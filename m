@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEC0BC433EF
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F1ACC43219
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233182AbhKWQpT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Nov 2021 11:45:19 -0500
-Received: from mga06.intel.com ([134.134.136.31]:10141 "EHLO mga06.intel.com"
+        id S238939AbhKWQpV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Nov 2021 11:45:21 -0500
+Received: from mga04.intel.com ([192.55.52.120]:49123 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233467AbhKWQpE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S236152AbhKWQpE (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 23 Nov 2021 11:45:04 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="295864757"
+X-IronPort-AV: E=McAfee;i="6200,9189,10176"; a="233778651"
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="295864757"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:41:56 -0800
+   d="scan'208";a="233778651"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:41:42 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="457120064"
+   d="scan'208";a="553484662"
 Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by orsmga006.jf.intel.com with ESMTP; 23 Nov 2021 08:41:46 -0800
+  by fmsmga008.fm.intel.com with ESMTP; 23 Nov 2021 08:41:33 -0800
 Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Ws016784;
-        Tue, 23 Nov 2021 16:41:43 GMT
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wn016784;
+        Tue, 23 Nov 2021 16:41:31 GMT
 From:   Alexander Lobakin <alexandr.lobakin@intel.com>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -69,9 +69,9 @@ Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
         virtualization@lists.linux-foundation.org
-Subject: [PATCH v2 net-next 16/26] virtio_net: don't mix XDP_DROP counter with Rx XDP errors
-Date:   Tue, 23 Nov 2021 17:39:45 +0100
-Message-Id: <20211123163955.154512-17-alexandr.lobakin@intel.com>
+Subject: [PATCH v2 net-next 11/26] sf100, sfx: implement generic XDP stats callbacks
+Date:   Tue, 23 Nov 2021 17:39:40 +0100
+Message-Id: <20211123163955.154512-12-alexandr.lobakin@intel.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211123163955.154512-1-alexandr.lobakin@intel.com>
 References: <20211123163955.154512-1-alexandr.lobakin@intel.com>
@@ -81,82 +81,111 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dedicate a separate counter for tracking XDP_ABORTED and other XDP
-errors and to leave xdp_drop for XDP_DROP case solely.
-Needed to better align with generic XDP stats.
+Export 4 per-channel XDP counters for both sf100 and sfx drivers
+using generic XDP stats infra.
 
 Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
 Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
 ---
- drivers/net/virtio_net.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/sfc/ef100_netdev.c |  2 ++
+ drivers/net/ethernet/sfc/efx.c          |  2 ++
+ drivers/net/ethernet/sfc/efx_common.c   | 42 +++++++++++++++++++++++++
+ drivers/net/ethernet/sfc/efx_common.h   |  3 ++
+ 4 files changed, 49 insertions(+)
 
-diff --git a/drivers/net/virtio_net.c b/drivers/net/virtio_net.c
-index c74af526d79b..112ceda3dcf7 100644
---- a/drivers/net/virtio_net.c
-+++ b/drivers/net/virtio_net.c
-@@ -92,6 +92,7 @@ struct virtnet_rq_stats {
- 	u64 xdp_tx;
- 	u64 xdp_redirects;
- 	u64 xdp_drops;
-+	u64 xdp_errors;
- 	u64 kicks;
- };
+diff --git a/drivers/net/ethernet/sfc/ef100_netdev.c b/drivers/net/ethernet/sfc/ef100_netdev.c
+index 67fe44db6b61..0367f7e043d8 100644
+--- a/drivers/net/ethernet/sfc/ef100_netdev.c
++++ b/drivers/net/ethernet/sfc/ef100_netdev.c
+@@ -219,6 +219,8 @@ static const struct net_device_ops ef100_netdev_ops = {
+ 	.ndo_start_xmit         = ef100_hard_start_xmit,
+ 	.ndo_tx_timeout         = efx_watchdog,
+ 	.ndo_get_stats64        = efx_net_stats,
++	.ndo_get_xdp_stats_nch  = efx_get_xdp_stats_nch,
++	.ndo_get_xdp_stats      = efx_get_xdp_stats,
+ 	.ndo_change_mtu         = efx_change_mtu,
+ 	.ndo_validate_addr      = eth_validate_addr,
+ 	.ndo_set_mac_address    = efx_set_mac_address,
+diff --git a/drivers/net/ethernet/sfc/efx.c b/drivers/net/ethernet/sfc/efx.c
+index a8c252e2b252..a6a015c4d3b4 100644
+--- a/drivers/net/ethernet/sfc/efx.c
++++ b/drivers/net/ethernet/sfc/efx.c
+@@ -588,6 +588,8 @@ static const struct net_device_ops efx_netdev_ops = {
+ 	.ndo_open		= efx_net_open,
+ 	.ndo_stop		= efx_net_stop,
+ 	.ndo_get_stats64	= efx_net_stats,
++	.ndo_get_xdp_stats_nch	= efx_get_xdp_stats_nch,
++	.ndo_get_xdp_stats	= efx_get_xdp_stats,
+ 	.ndo_tx_timeout		= efx_watchdog,
+ 	.ndo_start_xmit		= efx_hard_start_xmit,
+ 	.ndo_validate_addr	= eth_validate_addr,
+diff --git a/drivers/net/ethernet/sfc/efx_common.c b/drivers/net/ethernet/sfc/efx_common.c
+index f187631b2c5c..c2bf79fd66b4 100644
+--- a/drivers/net/ethernet/sfc/efx_common.c
++++ b/drivers/net/ethernet/sfc/efx_common.c
+@@ -606,6 +606,48 @@ void efx_net_stats(struct net_device *net_dev, struct rtnl_link_stats64 *stats)
+ 	spin_unlock_bh(&efx->stats_lock);
+ }
 
-@@ -115,6 +116,7 @@ static const struct virtnet_stat_desc virtnet_rq_stats_desc[] = {
- 	{ "xdp_tx",		VIRTNET_RQ_STAT(xdp_tx) },
- 	{ "xdp_redirects",	VIRTNET_RQ_STAT(xdp_redirects) },
- 	{ "xdp_drops",		VIRTNET_RQ_STAT(xdp_drops) },
-+	{ "xdp_errors",		VIRTNET_RQ_STAT(xdp_errors) },
- 	{ "kicks",		VIRTNET_RQ_STAT(kicks) },
- };
-
-@@ -818,7 +820,8 @@ static struct sk_buff *receive_small(struct net_device *dev,
- 			trace_xdp_exception(vi->dev, xdp_prog, act);
- 			goto err_xdp;
- 		case XDP_DROP:
--			goto err_xdp;
-+			stats->xdp_drops++;
-+			goto xdp_drop;
- 		}
- 	}
- 	rcu_read_unlock();
-@@ -843,8 +846,9 @@ static struct sk_buff *receive_small(struct net_device *dev,
- 	return skb;
-
- err_xdp:
-+	stats->xdp_errors++;
-+xdp_drop:
- 	rcu_read_unlock();
--	stats->xdp_drops++;
- err_len:
- 	stats->drops++;
- 	put_page(page);
-@@ -1033,7 +1037,12 @@ static struct sk_buff *receive_mergeable(struct net_device *dev,
- 		case XDP_DROP:
- 			if (unlikely(xdp_page != page))
- 				__free_pages(xdp_page, 0);
--			goto err_xdp;
++int efx_get_xdp_stats_nch(const struct net_device *net_dev, u32 attr_id)
++{
++	const struct efx_nic *efx = netdev_priv(net_dev);
 +
-+			if (unlikely(act != XDP_DROP))
-+				goto err_xdp;
++	switch (attr_id) {
++	case IFLA_XDP_XSTATS_TYPE_XDP:
++		return efx->n_channels;
++	default:
++		return -EOPNOTSUPP;
++	}
++}
 +
-+			stats->xdp_drops++;
-+			goto xdp_drop;
- 		}
- 	}
- 	rcu_read_unlock();
-@@ -1103,8 +1112,9 @@ static struct sk_buff *receive_mergeable(struct net_device *dev,
- 	return head_skb;
++int efx_get_xdp_stats(const struct net_device *net_dev, u32 attr_id,
++		      void *attr_data)
++{
++	struct ifla_xdp_stats *xdp_stats = attr_data;
++	struct efx_nic *efx = netdev_priv(net_dev);
++	const struct efx_channel *channel;
++
++	switch (attr_id) {
++	case IFLA_XDP_XSTATS_TYPE_XDP:
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
++	spin_lock_bh(&efx->stats_lock);
++
++	efx_for_each_channel(channel, efx) {
++		xdp_stats->drop = channel->n_rx_xdp_drops;
++		xdp_stats->errors = channel->n_rx_xdp_bad_drops;
++		xdp_stats->redirect = channel->n_rx_xdp_redirect;
++		xdp_stats->tx = channel->n_rx_xdp_tx;
++
++		xdp_stats++;
++	}
++
++	spin_unlock_bh(&efx->stats_lock);
++
++	return 0;
++}
++
+ /* Push loopback/power/transmit disable settings to the PHY, and reconfigure
+  * the MAC appropriately. All other PHY configuration changes are pushed
+  * through phy_op->set_settings(), and pushed asynchronously to the MAC
+diff --git a/drivers/net/ethernet/sfc/efx_common.h b/drivers/net/ethernet/sfc/efx_common.h
+index 65513fd0cf6c..987d7c6608a2 100644
+--- a/drivers/net/ethernet/sfc/efx_common.h
++++ b/drivers/net/ethernet/sfc/efx_common.h
+@@ -32,6 +32,9 @@ void efx_start_all(struct efx_nic *efx);
+ void efx_stop_all(struct efx_nic *efx);
 
- err_xdp:
-+	stats->xdp_errors++;
-+xdp_drop:
- 	rcu_read_unlock();
--	stats->xdp_drops++;
- err_skb:
- 	put_page(page);
- 	while (num_buf-- > 1) {
+ void efx_net_stats(struct net_device *net_dev, struct rtnl_link_stats64 *stats);
++int efx_get_xdp_stats_nch(const struct net_device *net_dev, u32 attr_id);
++int efx_get_xdp_stats(const struct net_device *net_dev, u32 attr_id,
++		      void *attr_data);
+
+ int efx_create_reset_workqueue(void);
+ void efx_queue_reset_work(struct efx_nic *efx);
 --
 2.33.1
 
