@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D923C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E54BC433EF
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238816AbhKWQpq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Nov 2021 11:45:46 -0500
-Received: from mga02.intel.com ([134.134.136.20]:20338 "EHLO mga02.intel.com"
+        id S238116AbhKWQpu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Nov 2021 11:45:50 -0500
+Received: from mga02.intel.com ([134.134.136.20]:20347 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238570AbhKWQpQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Nov 2021 11:45:16 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="222282451"
+        id S238665AbhKWQpR (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Nov 2021 11:45:17 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="222282476"
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="222282451"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:41:45 -0800
+   d="scan'208";a="222282476"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:41:53 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="591251873"
+   d="scan'208";a="456747199"
 Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by FMSMGA003.fm.intel.com with ESMTP; 23 Nov 2021 08:41:36 -0800
+  by orsmga003.jf.intel.com with ESMTP; 23 Nov 2021 08:41:43 -0800
 Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wo016784;
-        Tue, 23 Nov 2021 16:41:33 GMT
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wr016784;
+        Tue, 23 Nov 2021 16:41:40 GMT
 From:   Alexander Lobakin <alexandr.lobakin@intel.com>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -69,9 +69,9 @@ Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
         virtualization@lists.linux-foundation.org
-Subject: [PATCH v2 net-next 12/26] veth: don't mix XDP_DROP counter with Rx XDP errors
-Date:   Tue, 23 Nov 2021 17:39:41 +0100
-Message-Id: <20211123163955.154512-13-alexandr.lobakin@intel.com>
+Subject: [PATCH v2 net-next 15/26] veth: add generic XDP stats callbacks
+Date:   Tue, 23 Nov 2021 17:39:44 +0100
+Message-Id: <20211123163955.154512-16-alexandr.lobakin@intel.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211123163955.154512-1-alexandr.lobakin@intel.com>
 References: <20211123163955.154512-1-alexandr.lobakin@intel.com>
@@ -81,66 +81,100 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Similarly to mlx5, count XDP_ABORTED and other Rx XDP errors
-separately from XDP_DROP to better align with generic XDP stats.
+Expose veth's 7 per-channel counters by providing callbacks
+for generic XDP stats infra.
 
 Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
 Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
 ---
- drivers/net/veth.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/net/veth.c | 67 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 67 insertions(+)
 
 diff --git a/drivers/net/veth.c b/drivers/net/veth.c
-index 5ca0a899101d..0e6c030576f4 100644
+index 3eb24a5c2d45..c12209fbd1bd 100644
 --- a/drivers/net/veth.c
 +++ b/drivers/net/veth.c
-@@ -43,6 +43,7 @@ struct veth_stats {
- 	u64	xdp_packets;
- 	u64	xdp_bytes;
- 	u64	xdp_redirect;
-+	u64	xdp_errors;
- 	u64	xdp_drops;
- 	u64	xdp_tx;
- 	u64	xdp_tx_err;
-@@ -96,6 +97,7 @@ static const struct veth_q_stat_desc veth_rq_stats_desc[] = {
- 	{ "xdp_bytes",		VETH_RQ_STAT(xdp_bytes) },
- 	{ "drops",		VETH_RQ_STAT(rx_drops) },
- 	{ "xdp_redirect",	VETH_RQ_STAT(xdp_redirect) },
-+	{ "xdp_errors",		VETH_RQ_STAT(xdp_errors) },
- 	{ "xdp_drops",		VETH_RQ_STAT(xdp_drops) },
- 	{ "xdp_tx",		VETH_RQ_STAT(xdp_tx) },
- 	{ "xdp_tx_errors",	VETH_RQ_STAT(xdp_tx_err) },
-@@ -655,16 +657,18 @@ static struct xdp_frame *veth_xdp_rcv_one(struct veth_rq *rq,
- 			fallthrough;
- 		case XDP_ABORTED:
- 			trace_xdp_exception(rq->dev, xdp_prog, act);
--			fallthrough;
-+			goto err_xdp;
- 		case XDP_DROP:
- 			stats->xdp_drops++;
--			goto err_xdp;
-+			goto xdp_drop;
- 		}
- 	}
+@@ -437,6 +437,71 @@ static void veth_get_stats64(struct net_device *dev,
  	rcu_read_unlock();
+ }
 
- 	return frame;
- err_xdp:
-+	stats->xdp_errors++;
-+xdp_drop:
- 	rcu_read_unlock();
- 	xdp_return_frame(frame);
- xdp_xmit:
-@@ -805,7 +809,8 @@ static struct sk_buff *veth_xdp_rcv_skb(struct veth_rq *rq,
- 		fallthrough;
- 	case XDP_ABORTED:
- 		trace_xdp_exception(rq->dev, xdp_prog, act);
--		fallthrough;
-+		stats->xdp_errors++;
-+		goto xdp_drop;
- 	case XDP_DROP:
- 		stats->xdp_drops++;
- 		goto xdp_drop;
++static int veth_get_xdp_stats_nch(const struct net_device *dev, u32 attr_id)
++{
++	switch (attr_id) {
++	case IFLA_XDP_XSTATS_TYPE_XDP:
++		return max(dev->real_num_rx_queues, dev->real_num_tx_queues);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
++static int veth_get_xdp_stats(const struct net_device *dev, u32 attr_id,
++			      void *attr_data)
++{
++	const struct veth_priv *priv = netdev_priv(dev);
++	const struct net_device *peer = rtnl_dereference(priv->peer);
++	struct ifla_xdp_stats *xdp_iter, *xdp_stats = attr_data;
++	const struct veth_rq_stats *rq_stats;
++	u64 xmit_packets, xmit_errors;
++	u32 i, start;
++
++	switch (attr_id) {
++	case IFLA_XDP_XSTATS_TYPE_XDP:
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
++	for (i = 0; i < dev->real_num_rx_queues; i++) {
++		rq_stats = &priv->rq[i].stats;
++		xdp_iter = xdp_stats + i;
++
++		do {
++			start = u64_stats_fetch_begin_irq(&rq_stats->syncp);
++
++			xdp_iter->errors = rq_stats->vs.xdp_errors;
++			xdp_iter->redirect = rq_stats->vs.xdp_redirect;
++			xdp_iter->drop = rq_stats->vs.xdp_drops;
++			xdp_iter->tx = rq_stats->vs.xdp_tx;
++			xdp_iter->tx_errors = rq_stats->vs.xdp_tx_err;
++		} while (u64_stats_fetch_retry_irq(&rq_stats->syncp, start));
++	}
++
++	if (!peer)
++		return 0;
++
++	priv = netdev_priv(peer);
++
++	for (i = 0; i < peer->real_num_rx_queues; i++) {
++		rq_stats = &priv->rq[i].stats;
++		xdp_iter = xdp_stats + (i % dev->real_num_tx_queues);
++
++		do {
++			start = u64_stats_fetch_begin_irq(&rq_stats->syncp);
++
++			xmit_packets = rq_stats->vs.peer_tq_xdp_xmit;
++			xmit_errors = rq_stats->vs.peer_tq_xdp_xmit_err;
++		} while (u64_stats_fetch_retry_irq(&rq_stats->syncp, start));
++
++		xdp_iter->xmit_packets += xmit_packets;
++		xdp_iter->xmit_errors += xmit_errors;
++	}
++
++	return 0;
++}
++
+ /* fake multicast ability */
+ static void veth_set_multicast_list(struct net_device *dev)
+ {
+@@ -1537,6 +1602,8 @@ static const struct net_device_ops veth_netdev_ops = {
+ 	.ndo_stop		= veth_close,
+ 	.ndo_start_xmit		= veth_xmit,
+ 	.ndo_get_stats64	= veth_get_stats64,
++	.ndo_get_xdp_stats_nch	= veth_get_xdp_stats_nch,
++	.ndo_get_xdp_stats	= veth_get_xdp_stats,
+ 	.ndo_set_rx_mode	= veth_set_multicast_list,
+ 	.ndo_set_mac_address	= eth_mac_addr,
+ #ifdef CONFIG_NET_POLL_CONTROLLER
 --
 2.33.1
 
