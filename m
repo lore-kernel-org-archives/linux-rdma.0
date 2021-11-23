@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C12FC4167B
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA669C4332F
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239185AbhKWQpc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Nov 2021 11:45:32 -0500
-Received: from mga07.intel.com ([134.134.136.100]:62051 "EHLO mga07.intel.com"
+        id S239144AbhKWQpb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Nov 2021 11:45:31 -0500
+Received: from mga01.intel.com ([192.55.52.88]:20221 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236983AbhKWQpI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        id S236778AbhKWQpI (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
         Tue, 23 Nov 2021 11:45:08 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="298468574"
+X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="258931157"
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="298468574"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:41:54 -0800
+   d="scan'208";a="258931157"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:42:00 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="571115536"
+   d="scan'208";a="650112037"
 Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by fmsmga004.fm.intel.com with ESMTP; 23 Nov 2021 08:41:40 -0800
+  by fmsmga001.fm.intel.com with ESMTP; 23 Nov 2021 08:41:51 -0800
 Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wq016784;
-        Tue, 23 Nov 2021 16:41:38 GMT
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wu016784;
+        Tue, 23 Nov 2021 16:41:48 GMT
 From:   Alexander Lobakin <alexandr.lobakin@intel.com>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -69,53 +69,56 @@ Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
         virtualization@lists.linux-foundation.org
-Subject: [PATCH v2 net-next 14/26] veth: reformat veth_netdev_ops
-Date:   Tue, 23 Nov 2021 17:39:43 +0100
-Message-Id: <20211123163955.154512-15-alexandr.lobakin@intel.com>
+Subject: [PATCH v2 net-next 18/26] virtio_net: reformat virtnet_netdev
+Date:   Tue, 23 Nov 2021 17:39:47 +0100
+Message-Id: <20211123163955.154512-19-alexandr.lobakin@intel.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211123163955.154512-1-alexandr.lobakin@intel.com>
 References: <20211123163955.154512-1-alexandr.lobakin@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Some of the initializers are aligned with spaces, others with tabs.¬
-Reindent it using tabs only.¬
+Some of the initializers are aligned with spaces, others with tabs.
+Reindent it using tabs only.
 
 Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
 Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
 ---
- drivers/net/veth.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/net/virtio_net.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/net/veth.c b/drivers/net/veth.c
-index ac3b1a2a91c8..3eb24a5c2d45 100644
---- a/drivers/net/veth.c
-+++ b/drivers/net/veth.c
-@@ -1532,13 +1532,13 @@ static int veth_xdp(struct net_device *dev, struct netdev_bpf *xdp)
+diff --git a/drivers/net/virtio_net.c b/drivers/net/virtio_net.c
+index bf407423c929..f7c5511e510c 100644
+--- a/drivers/net/virtio_net.c
++++ b/drivers/net/virtio_net.c
+@@ -2710,15 +2710,15 @@ static void virtnet_tx_timeout(struct net_device *dev, unsigned int txqueue)
  }
 
- static const struct net_device_ops veth_netdev_ops = {
--	.ndo_init            = veth_dev_init,
--	.ndo_open            = veth_open,
--	.ndo_stop            = veth_close,
--	.ndo_start_xmit      = veth_xmit,
--	.ndo_get_stats64     = veth_get_stats64,
--	.ndo_set_rx_mode     = veth_set_multicast_list,
--	.ndo_set_mac_address = eth_mac_addr,
-+	.ndo_init		= veth_dev_init,
-+	.ndo_open		= veth_open,
-+	.ndo_stop		= veth_close,
-+	.ndo_start_xmit		= veth_xmit,
-+	.ndo_get_stats64	= veth_get_stats64,
-+	.ndo_set_rx_mode	= veth_set_multicast_list,
-+	.ndo_set_mac_address	= eth_mac_addr,
- #ifdef CONFIG_NET_POLL_CONTROLLER
- 	.ndo_poll_controller	= veth_poll_controller,
- #endif
+ static const struct net_device_ops virtnet_netdev = {
+-	.ndo_open            = virtnet_open,
+-	.ndo_stop   	     = virtnet_close,
+-	.ndo_start_xmit      = start_xmit,
+-	.ndo_validate_addr   = eth_validate_addr,
+-	.ndo_set_mac_address = virtnet_set_mac_address,
+-	.ndo_set_rx_mode     = virtnet_set_rx_mode,
+-	.ndo_get_stats64     = virtnet_stats,
+-	.ndo_vlan_rx_add_vid = virtnet_vlan_rx_add_vid,
+-	.ndo_vlan_rx_kill_vid = virtnet_vlan_rx_kill_vid,
++	.ndo_open		= virtnet_open,
++	.ndo_stop		= virtnet_close,
++	.ndo_start_xmit		= start_xmit,
++	.ndo_validate_addr	= eth_validate_addr,
++	.ndo_set_mac_address	= virtnet_set_mac_address,
++	.ndo_set_rx_mode	= virtnet_set_rx_mode,
++	.ndo_get_stats64	= virtnet_stats,
++	.ndo_vlan_rx_add_vid	= virtnet_vlan_rx_add_vid,
++	.ndo_vlan_rx_kill_vid	= virtnet_vlan_rx_kill_vid,
+ 	.ndo_bpf		= virtnet_xdp,
+ 	.ndo_xdp_xmit		= virtnet_xdp_xmit,
+ 	.ndo_features_check	= passthru_features_check,
 --
 2.33.1
 
