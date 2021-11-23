@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A2C2C4332F
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D923C433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239296AbhKWQph (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Nov 2021 11:45:37 -0500
-Received: from mga06.intel.com ([134.134.136.31]:10141 "EHLO mga06.intel.com"
+        id S238816AbhKWQpq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Nov 2021 11:45:46 -0500
+Received: from mga02.intel.com ([134.134.136.20]:20338 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236471AbhKWQpP (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Nov 2021 11:45:15 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="295864778"
+        id S238570AbhKWQpQ (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Nov 2021 11:45:16 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="222282451"
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="295864778"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:42:03 -0800
+   d="scan'208";a="222282451"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:41:45 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="674540123"
+   d="scan'208";a="591251873"
 Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by orsmga005.jf.intel.com with ESMTP; 23 Nov 2021 08:41:53 -0800
+  by FMSMGA003.fm.intel.com with ESMTP; 23 Nov 2021 08:41:36 -0800
 Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wv016784;
-        Tue, 23 Nov 2021 16:41:50 GMT
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wo016784;
+        Tue, 23 Nov 2021 16:41:33 GMT
 From:   Alexander Lobakin <alexandr.lobakin@intel.com>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -69,9 +69,9 @@ Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
         virtualization@lists.linux-foundation.org
-Subject: [PATCH v2 net-next 19/26] virtio_net: add callbacks for generic XDP stats
-Date:   Tue, 23 Nov 2021 17:39:48 +0100
-Message-Id: <20211123163955.154512-20-alexandr.lobakin@intel.com>
+Subject: [PATCH v2 net-next 12/26] veth: don't mix XDP_DROP counter with Rx XDP errors
+Date:   Tue, 23 Nov 2021 17:39:41 +0100
+Message-Id: <20211123163955.154512-13-alexandr.lobakin@intel.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211123163955.154512-1-alexandr.lobakin@intel.com>
 References: <20211123163955.154512-1-alexandr.lobakin@intel.com>
@@ -81,89 +81,66 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add generic XDP stats callbacks to be able to query 7 per-channel
-virtio-net XDP stats via generic XDP stats infra.
+Similarly to mlx5, count XDP_ABORTED and other Rx XDP errors
+separately from XDP_DROP to better align with generic XDP stats.
 
 Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
 Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
 ---
- drivers/net/virtio_net.c | 56 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ drivers/net/veth.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/virtio_net.c b/drivers/net/virtio_net.c
-index f7c5511e510c..0b4cc9662d91 100644
---- a/drivers/net/virtio_net.c
-+++ b/drivers/net/virtio_net.c
-@@ -1919,6 +1919,60 @@ static void virtnet_stats(struct net_device *dev,
- 	tot->rx_frame_errors = dev->stats.rx_frame_errors;
- }
+diff --git a/drivers/net/veth.c b/drivers/net/veth.c
+index 5ca0a899101d..0e6c030576f4 100644
+--- a/drivers/net/veth.c
++++ b/drivers/net/veth.c
+@@ -43,6 +43,7 @@ struct veth_stats {
+ 	u64	xdp_packets;
+ 	u64	xdp_bytes;
+ 	u64	xdp_redirect;
++	u64	xdp_errors;
+ 	u64	xdp_drops;
+ 	u64	xdp_tx;
+ 	u64	xdp_tx_err;
+@@ -96,6 +97,7 @@ static const struct veth_q_stat_desc veth_rq_stats_desc[] = {
+ 	{ "xdp_bytes",		VETH_RQ_STAT(xdp_bytes) },
+ 	{ "drops",		VETH_RQ_STAT(rx_drops) },
+ 	{ "xdp_redirect",	VETH_RQ_STAT(xdp_redirect) },
++	{ "xdp_errors",		VETH_RQ_STAT(xdp_errors) },
+ 	{ "xdp_drops",		VETH_RQ_STAT(xdp_drops) },
+ 	{ "xdp_tx",		VETH_RQ_STAT(xdp_tx) },
+ 	{ "xdp_tx_errors",	VETH_RQ_STAT(xdp_tx_err) },
+@@ -655,16 +657,18 @@ static struct xdp_frame *veth_xdp_rcv_one(struct veth_rq *rq,
+ 			fallthrough;
+ 		case XDP_ABORTED:
+ 			trace_xdp_exception(rq->dev, xdp_prog, act);
+-			fallthrough;
++			goto err_xdp;
+ 		case XDP_DROP:
+ 			stats->xdp_drops++;
+-			goto err_xdp;
++			goto xdp_drop;
+ 		}
+ 	}
+ 	rcu_read_unlock();
 
-+static int virtnet_get_xdp_stats_nch(const struct net_device *dev, u32 attr_id)
-+{
-+	const struct virtnet_info *vi = netdev_priv(dev);
-+
-+	switch (attr_id) {
-+	case IFLA_XDP_XSTATS_TYPE_XDP:
-+		return vi->curr_queue_pairs;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+}
-+
-+static int virtnet_get_xdp_stats(const struct net_device *dev, u32 attr_id,
-+				 void *attr_data)
-+{
-+	const struct virtnet_info *vi = netdev_priv(dev);
-+	struct ifla_xdp_stats *xdp_stats = attr_data;
-+	u32 i;
-+
-+	switch (attr_id) {
-+	case IFLA_XDP_XSTATS_TYPE_XDP:
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	for (i = 0; i < vi->curr_queue_pairs; i++) {
-+		const struct virtnet_rq_stats *rqs = &vi->rq[i].stats;
-+		const struct virtnet_sq_stats *sqs = &vi->sq[i].stats;
-+		u32 start;
-+
-+		do {
-+			start = u64_stats_fetch_begin_irq(&rqs->syncp);
-+
-+			xdp_stats->packets = rqs->xdp_packets;
-+			xdp_stats->tx = rqs->xdp_tx;
-+			xdp_stats->redirect = rqs->xdp_redirects;
-+			xdp_stats->drop = rqs->xdp_drops;
-+			xdp_stats->errors = rqs->xdp_errors;
-+		} while (u64_stats_fetch_retry_irq(&rqs->syncp, start));
-+
-+		do {
-+			start = u64_stats_fetch_begin_irq(&sqs->syncp);
-+
-+			xdp_stats->xmit_packets = sqs->xdp_xmit;
-+			xdp_stats->xmit_errors = sqs->xdp_xmit_errors;
-+		} while (u64_stats_fetch_retry_irq(&sqs->syncp, start));
-+
-+		xdp_stats++;
-+	}
-+
-+	return 0;
-+}
-+
- static void virtnet_ack_link_announce(struct virtnet_info *vi)
- {
- 	rtnl_lock();
-@@ -2717,6 +2771,8 @@ static const struct net_device_ops virtnet_netdev = {
- 	.ndo_set_mac_address	= virtnet_set_mac_address,
- 	.ndo_set_rx_mode	= virtnet_set_rx_mode,
- 	.ndo_get_stats64	= virtnet_stats,
-+	.ndo_get_xdp_stats_nch	= virtnet_get_xdp_stats_nch,
-+	.ndo_get_xdp_stats	= virtnet_get_xdp_stats,
- 	.ndo_vlan_rx_add_vid	= virtnet_vlan_rx_add_vid,
- 	.ndo_vlan_rx_kill_vid	= virtnet_vlan_rx_kill_vid,
- 	.ndo_bpf		= virtnet_xdp,
+ 	return frame;
+ err_xdp:
++	stats->xdp_errors++;
++xdp_drop:
+ 	rcu_read_unlock();
+ 	xdp_return_frame(frame);
+ xdp_xmit:
+@@ -805,7 +809,8 @@ static struct sk_buff *veth_xdp_rcv_skb(struct veth_rq *rq,
+ 		fallthrough;
+ 	case XDP_ABORTED:
+ 		trace_xdp_exception(rq->dev, xdp_prog, act);
+-		fallthrough;
++		stats->xdp_errors++;
++		goto xdp_drop;
+ 	case XDP_DROP:
+ 		stats->xdp_drops++;
+ 		goto xdp_drop;
 --
 2.33.1
 
