@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13464C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8533AC433FE
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 Nov 2021 16:42:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237468AbhKWQpH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 Nov 2021 11:45:07 -0500
-Received: from mga04.intel.com ([192.55.52.120]:49123 "EHLO mga04.intel.com"
+        id S238328AbhKWQpN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 Nov 2021 11:45:13 -0500
+Received: from mga07.intel.com ([134.134.136.100]:62051 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236471AbhKWQo6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 23 Nov 2021 11:44:58 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10176"; a="233778645"
+        id S236061AbhKWQpC (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 23 Nov 2021 11:45:02 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10177"; a="298468505"
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="233778645"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:41:40 -0800
+   d="scan'208";a="298468505"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2021 08:41:37 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,258,1631602800"; 
-   d="scan'208";a="553484649"
+   d="scan'208";a="474813338"
 Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by fmsmga008.fm.intel.com with ESMTP; 23 Nov 2021 08:41:31 -0800
+  by orsmga002.jf.intel.com with ESMTP; 23 Nov 2021 08:41:26 -0800
 Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wm016784;
-        Tue, 23 Nov 2021 16:41:28 GMT
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 1ANGf4Wk016784;
+        Tue, 23 Nov 2021 16:41:23 GMT
 From:   Alexander Lobakin <alexandr.lobakin@intel.com>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>
@@ -69,9 +69,9 @@ Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
         linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
         virtualization@lists.linux-foundation.org
-Subject: [PATCH v2 net-next 10/26] mlx5: provide generic XDP stats callbacks
-Date:   Tue, 23 Nov 2021 17:39:39 +0100
-Message-Id: <20211123163955.154512-11-alexandr.lobakin@intel.com>
+Subject: [PATCH v2 net-next 08/26] mvpp2: provide .ndo_get_xdp_stats() callback
+Date:   Tue, 23 Nov 2021 17:39:37 +0100
+Message-Id: <20211123163955.154512-9-alexandr.lobakin@intel.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211123163955.154512-1-alexandr.lobakin@intel.com>
 References: <20211123163955.154512-1-alexandr.lobakin@intel.com>
@@ -81,124 +81,84 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-mlx5 driver has a bunch of per-channel stats for XDP. 7 and 5 of
-them can be exported through generic XDP stats infra for XDP and XSK
-correspondingly.
-Add necessary calbacks for that. Note that the driver doesn't expose
-XSK stats if XSK setup has never been requested.
+Same as mvneta, mvpp2 stores 7 XDP counters in per-cpu containers.
+Expose them via generic XDP stats infra.
 
 Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
 Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en.h  |  5 ++
- .../net/ethernet/mellanox/mlx5/core/en_main.c |  2 +
- .../ethernet/mellanox/mlx5/core/en_stats.c    | 69 +++++++++++++++++++
- 3 files changed, 76 insertions(+)
+ .../net/ethernet/marvell/mvpp2/mvpp2_main.c   | 51 +++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 48b12ee44b8d..cc8cf3ff7d49 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -1212,4 +1212,9 @@ int mlx5e_set_vf_rate(struct net_device *dev, int vf, int min_tx_rate, int max_t
- int mlx5e_get_vf_config(struct net_device *dev, int vf, struct ifla_vf_info *ivi);
- int mlx5e_get_vf_stats(struct net_device *dev, int vf, struct ifla_vf_stats *vf_stats);
- #endif
-+
-+int mlx5e_get_xdp_stats_nch(const struct net_device *dev, u32 attr_id);
-+int mlx5e_get_xdp_stats(const struct net_device *dev, u32 attr_id,
-+			void *attr_data);
-+
- #endif /* __MLX5_EN_H__ */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 65571593ec5c..d5b3abf09c82 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -4532,6 +4532,8 @@ const struct net_device_ops mlx5e_netdev_ops = {
- 	.ndo_setup_tc            = mlx5e_setup_tc,
- 	.ndo_select_queue        = mlx5e_select_queue,
- 	.ndo_get_stats64         = mlx5e_get_stats,
-+	.ndo_get_xdp_stats_nch   = mlx5e_get_xdp_stats_nch,
-+	.ndo_get_xdp_stats       = mlx5e_get_xdp_stats,
- 	.ndo_set_rx_mode         = mlx5e_set_rx_mode,
- 	.ndo_set_mac_address     = mlx5e_set_mac,
- 	.ndo_vlan_rx_add_vid     = mlx5e_vlan_rx_add_vid,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-index 3631dafb4ea2..834457e3f19a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-@@ -2292,3 +2292,72 @@ unsigned int mlx5e_nic_stats_grps_num(struct mlx5e_priv *priv)
- {
- 	return ARRAY_SIZE(mlx5e_nic_stats_grps);
+diff --git a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
+index 97bd2ee8a010..58203cde3b60 100644
+--- a/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
++++ b/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c
+@@ -5131,6 +5131,56 @@ mvpp2_get_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
+ 	stats->tx_dropped	= dev->stats.tx_dropped;
  }
-+
-+int mlx5e_get_xdp_stats_nch(const struct net_device *dev, u32 attr_id)
+
++static int mvpp2_get_xdp_stats_ndo(const struct net_device *dev, u32 attr_id,
++				   void *attr_data)
 +{
-+	const struct mlx5e_priv *priv = netdev_priv(dev);
-+
-+	switch (attr_id) {
-+	case IFLA_XDP_XSTATS_TYPE_XDP:
-+		return priv->max_nch;
-+	case IFLA_XDP_XSTATS_TYPE_XSK:
-+		return priv->xsk.ever_used ? priv->max_nch : -ENODATA;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+}
-+
-+int mlx5e_get_xdp_stats(const struct net_device *dev, u32 attr_id,
-+			void *attr_data)
-+{
-+	const struct mlx5e_priv *priv = netdev_priv(dev);
++	const struct mvpp2_port *port = netdev_priv(dev);
 +	struct ifla_xdp_stats *xdp_stats = attr_data;
-+	u32 i;
++	u32 cpu, start;
 +
 +	switch (attr_id) {
 +	case IFLA_XDP_XSTATS_TYPE_XDP:
-+		break;
-+	case IFLA_XDP_XSTATS_TYPE_XSK:
-+		if (!priv->xsk.ever_used)
-+			return -ENODATA;
-+
 +		break;
 +	default:
 +		return -EOPNOTSUPP;
 +	}
 +
-+	for (i = 0; i < priv->max_nch; i++) {
-+		const struct mlx5e_channel_stats *cs = priv->channel_stats + i;
++	for_each_possible_cpu(cpu) {
++		const struct mvpp2_pcpu_stats *ps;
++		u64 xdp_xmit_err;
++		u64 xdp_redirect;
++		u64 xdp_tx_err;
++		u64 xdp_pass;
++		u64 xdp_drop;
++		u64 xdp_xmit;
++		u64 xdp_tx;
 +
-+		switch (attr_id) {
-+		case IFLA_XDP_XSTATS_TYPE_XDP:
-+			/* mlx5e_rq_stats rq */
-+			xdp_stats->errors = cs->rq.xdp_errors;
-+			xdp_stats->drop = cs->rq.xdp_drop;
-+			xdp_stats->redirect = cs->rq.xdp_redirect;
-+			/* mlx5e_xdpsq_stats rq_xdpsq */
-+			xdp_stats->tx = cs->rq_xdpsq.xmit;
-+			xdp_stats->tx_errors = cs->rq_xdpsq.err +
-+					       cs->rq_xdpsq.full;
-+			/* mlx5e_xdpsq_stats xdpsq */
-+			xdp_stats->xmit_packets = cs->xdpsq.xmit;
-+			xdp_stats->xmit_errors = cs->xdpsq.err;
-+			xdp_stats->xmit_full = cs->xdpsq.full;
-+			break;
-+		case IFLA_XDP_XSTATS_TYPE_XSK:
-+			/* mlx5e_rq_stats xskrq */
-+			xdp_stats->errors = cs->xskrq.xdp_errors;
-+			xdp_stats->drop = cs->xskrq.xdp_drop;
-+			xdp_stats->redirect = cs->xskrq.xdp_redirect;
-+			/* mlx5e_xdpsq_stats xsksq */
-+			xdp_stats->xmit_packets = cs->xsksq.xmit;
-+			xdp_stats->xmit_errors = cs->xsksq.err;
-+			xdp_stats->xmit_full = cs->xsksq.full;
-+			break;
-+		}
++		ps = per_cpu_ptr(port->stats, cpu);
 +
-+		xdp_stats++;
++		do {
++			start = u64_stats_fetch_begin_irq(&ps->syncp);
++
++			xdp_redirect = ps->xdp_redirect;
++			xdp_pass = ps->xdp_pass;
++			xdp_drop = ps->xdp_drop;
++			xdp_xmit = ps->xdp_xmit;
++			xdp_xmit_err = ps->xdp_xmit_err;
++			xdp_tx = ps->xdp_tx;
++			xdp_tx_err = ps->xdp_tx_err;
++		} while (u64_stats_fetch_retry_irq(&ps->syncp, start));
++
++		xdp_stats->redirect += xdp_redirect;
++		xdp_stats->pass += xdp_pass;
++		xdp_stats->drop += xdp_drop;
++		xdp_stats->xmit_packets += xdp_xmit;
++		xdp_stats->xmit_errors += xdp_xmit_err;
++		xdp_stats->tx += xdp_tx;
++		xdp_stats->tx_errors  += xdp_tx_err;
 +	}
 +
 +	return 0;
 +}
++
+ static int mvpp2_set_ts_config(struct mvpp2_port *port, struct ifreq *ifr)
+ {
+ 	struct hwtstamp_config config;
+@@ -5719,6 +5769,7 @@ static const struct net_device_ops mvpp2_netdev_ops = {
+ 	.ndo_set_mac_address	= mvpp2_set_mac_address,
+ 	.ndo_change_mtu		= mvpp2_change_mtu,
+ 	.ndo_get_stats64	= mvpp2_get_stats64,
++	.ndo_get_xdp_stats	= mvpp2_get_xdp_stats_ndo,
+ 	.ndo_eth_ioctl		= mvpp2_ioctl,
+ 	.ndo_vlan_rx_add_vid	= mvpp2_vlan_rx_add_vid,
+ 	.ndo_vlan_rx_kill_vid	= mvpp2_vlan_rx_kill_vid,
 --
 2.33.1
 
