@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CA61C433EF
-	for <linux-rdma@archiver.kernel.org>; Fri, 26 Nov 2021 07:11:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53F1BC433EF
+	for <linux-rdma@archiver.kernel.org>; Fri, 26 Nov 2021 07:18:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352694AbhKZHOd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 26 Nov 2021 02:14:33 -0500
-Received: from mga17.intel.com ([192.55.52.151]:50668 "EHLO mga17.intel.com"
+        id S1358871AbhKZHVe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 26 Nov 2021 02:21:34 -0500
+Received: from mga02.intel.com ([134.134.136.20]:54474 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1358871AbhKZHMc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 26 Nov 2021 02:12:32 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10179"; a="216330260"
+        id S234154AbhKZHTd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Fri, 26 Nov 2021 02:19:33 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10179"; a="222846389"
 X-IronPort-AV: E=Sophos;i="5.87,265,1631602800"; 
-   d="scan'208";a="216330260"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2021 23:09:20 -0800
+   d="scan'208";a="222846389"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2021 23:08:19 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,265,1631602800"; 
-   d="scan'208";a="458091780"
+   d="scan'208";a="498307549"
 Received: from lkp-server02.sh.intel.com (HELO 9e1e9f9b3bcb) ([10.239.97.151])
-  by orsmga006.jf.intel.com with ESMTP; 25 Nov 2021 23:09:18 -0800
+  by orsmga007.jf.intel.com with ESMTP; 25 Nov 2021 23:08:18 -0800
 Received: from kbuild by 9e1e9f9b3bcb with local (Exim 4.92)
         (envelope-from <lkp@intel.com>)
-        id 1mqVMD-0007kA-Po; Fri, 26 Nov 2021 07:09:17 +0000
-Date:   Fri, 26 Nov 2021 15:08:24 +0800
+        id 1mqVLF-0007jr-Mb; Fri, 26 Nov 2021 07:08:17 +0000
+Date:   Fri, 26 Nov 2021 15:08:11 +0800
 From:   kernel test robot <lkp@intel.com>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- 0e938533d96d656764fbd3fe0e2578873ec6d3e6
-Message-ID: <61a087e8.NwF70t0wtCgUvAyn%lkp@intel.com>
+Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
+ b0969f83890bf8b47f5c8bd42539599b2b52fdeb
+Message-ID: <61a087db.9vdPvdKFE6ZmUdYn%lkp@intel.com>
 User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -39,8 +39,8 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-next
-branch HEAD: 0e938533d96d656764fbd3fe0e2578873ec6d3e6  RDMA/bnxt_re: Remove dynamic pkey table
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-rc
+branch HEAD: b0969f83890bf8b47f5c8bd42539599b2b52fdeb  RDMA/hns: Do not destroy QP resources in the hw resetting phase
 
 elapsed time: 723m
 
@@ -97,8 +97,8 @@ riscv                             allnoconfig
 riscv                               defconfig
 riscv                          rv32_defconfig
 riscv                            allmodconfig
-um                           x86_64_defconfig
 um                             i386_defconfig
+um                           x86_64_defconfig
 x86_64                           allyesconfig
 x86_64                    rhel-8.3-kselftests
 x86_64                              defconfig
