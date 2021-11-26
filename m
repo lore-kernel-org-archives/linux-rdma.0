@@ -2,110 +2,114 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53F1BC433EF
-	for <linux-rdma@archiver.kernel.org>; Fri, 26 Nov 2021 07:18:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38576C433F5
+	for <linux-rdma@archiver.kernel.org>; Fri, 26 Nov 2021 08:27:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358871AbhKZHVe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 26 Nov 2021 02:21:34 -0500
-Received: from mga02.intel.com ([134.134.136.20]:54474 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234154AbhKZHTd (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Fri, 26 Nov 2021 02:19:33 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10179"; a="222846389"
-X-IronPort-AV: E=Sophos;i="5.87,265,1631602800"; 
-   d="scan'208";a="222846389"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Nov 2021 23:08:19 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.87,265,1631602800"; 
-   d="scan'208";a="498307549"
-Received: from lkp-server02.sh.intel.com (HELO 9e1e9f9b3bcb) ([10.239.97.151])
-  by orsmga007.jf.intel.com with ESMTP; 25 Nov 2021 23:08:18 -0800
-Received: from kbuild by 9e1e9f9b3bcb with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1mqVLF-0007jr-Mb; Fri, 26 Nov 2021 07:08:17 +0000
-Date:   Fri, 26 Nov 2021 15:08:11 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
- b0969f83890bf8b47f5c8bd42539599b2b52fdeb
-Message-ID: <61a087db.9vdPvdKFE6ZmUdYn%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        id S1346720AbhKZIan (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 26 Nov 2021 03:30:43 -0500
+Received: from szxga01-in.huawei.com ([45.249.212.187]:31908 "EHLO
+        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1345287AbhKZI2n (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 26 Nov 2021 03:28:43 -0500
+Received: from dggpeml500025.china.huawei.com (unknown [172.30.72.57])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4J0nqn0GjKzcbMg;
+        Fri, 26 Nov 2021 16:25:25 +0800 (CST)
+Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
+ dggpeml500025.china.huawei.com (7.185.36.35) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Fri, 26 Nov 2021 16:25:28 +0800
+Received: from [10.40.238.78] (10.40.238.78) by dggpeml500017.china.huawei.com
+ (7.185.36.243) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.20; Fri, 26 Nov
+ 2021 16:25:27 +0800
+Subject: Re: [PATCH v4 for-next 1/1] RDMA/hns: Support direct wqe of userspace
+To:     Jason Gunthorpe <jgg@nvidia.com>, Leon Romanovsky <leon@kernel.org>
+References: <20211122033801.30807-1-liangwenpeng@huawei.com>
+ <20211122033801.30807-2-liangwenpeng@huawei.com> <YZtboTThVCL7xs5s@unreal>
+ <20211125175044.GA504288@nvidia.com>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
+From:   Wenpeng Liang <liangwenpeng@huawei.com>
+Message-ID: <9b3e8596-a386-667b-b8b2-21358331d681@huawei.com>
+Date:   Fri, 26 Nov 2021 16:25:27 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
+ Thunderbird/45.7.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20211125175044.GA504288@nvidia.com>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.40.238.78]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ dggpeml500017.china.huawei.com (7.185.36.243)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-rc
-branch HEAD: b0969f83890bf8b47f5c8bd42539599b2b52fdeb  RDMA/hns: Do not destroy QP resources in the hw resetting phase
+On 2021/11/26 1:50, Jason Gunthorpe wrote:
+> On Mon, Nov 22, 2021 at 10:58:09AM +0200, Leon Romanovsky wrote:
+>> On Mon, Nov 22, 2021 at 11:38:01AM +0800, Wenpeng Liang wrote:
+>>> From: Yixing Liu <liuyixing1@huawei.com>
+>>>
+>>> Add direct wqe enable switch and address mapping.
+>>>
+>>> Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
+>>> Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+>>>  drivers/infiniband/hw/hns/hns_roce_device.h |  8 +--
+>>>  drivers/infiniband/hw/hns/hns_roce_main.c   | 38 ++++++++++++---
+>>>  drivers/infiniband/hw/hns/hns_roce_pd.c     |  3 ++
+>>>  drivers/infiniband/hw/hns/hns_roce_qp.c     | 54 ++++++++++++++++++++-
+>>>  include/uapi/rdma/hns-abi.h                 |  2 +
+>>>  5 files changed, 94 insertions(+), 11 deletions(-)
+>>
+>> <...>
+>>
+>>>  	entry = to_hns_mmap(rdma_entry);
+>>>  	pfn = entry->address >> PAGE_SHIFT;
+>>> -	prot = vma->vm_page_prot;
+>>>  
+>>> -	if (entry->mmap_type != HNS_ROCE_MMAP_TYPE_TPTR)
+>>> -		prot = pgprot_noncached(prot);
+>>> +	switch (entry->mmap_type) {
+>>> +	case HNS_ROCE_MMAP_TYPE_DB:
+>>> +		prot = pgprot_noncached(vma->vm_page_prot);
+>>> +		break;
+>>> +	case HNS_ROCE_MMAP_TYPE_TPTR:
+>>> +		prot = vma->vm_page_prot;
+>>> +		break;
+>>> +	case HNS_ROCE_MMAP_TYPE_DWQE:
+>>> +		prot = pgprot_device(vma->vm_page_prot);
+>>
+>> Everything fine, except this pgprot_device(). You probably need to check
+>> WC internally in your driver and use or pgprot_writecombine() or
+>> pgprot_noncached() explicitly.
+> 
+> pgprot_device is only used in two places in the kernel
+> pci_mmap_resource_range() for setting up the sysfs resourceXX mmap
+> 
+> And in pci_remap_iospace() as part of emulationg PIO on mmio
+> architectures
+> 
+> So, a PCI device should always be using pgprot_device() in its mmap
+> function
+> 
+> The question is why is pgprot_noncached() being used at all? The only
+> difference on ARM is that noncached is non-Early Write Acknowledgement
+> and devices is not.
+> 
+> At the very least this should be explained in a comment why nE vs E is
+> required in all these cases.
+> 
+> Jason
+> .
+> 
 
-elapsed time: 723m
+HIP09 is a SoC device, and our CPU only optimizes ST4 instructions for device
+attributes. Therefore, we set device attributes to obtain optimization effects.
 
-configs tested: 54
-configs skipped: 3
+The device attribute allows early ack, so it is faster compared with noncached.
+In order to ensure the early ack works correctly. Even if the data is incomplete,
+our device still knocks on the doorbell according to the content of the first
+8 bytes to complete the data transmission.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-i386                 randconfig-c001-20211125
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-nds32                               defconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-s390                             allmodconfig
-parisc                           allyesconfig
-s390                                defconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                                defconfig
-i386                              debian-10.3
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-x86_64                           allyesconfig
-x86_64                    rhel-8.3-kselftests
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                          rhel-8.3-func
-x86_64                                  kexec
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+Thanks
+Wenpeng
