@@ -2,40 +2,40 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 012E0C4332F
-	for <linux-rdma@archiver.kernel.org>; Fri, 26 Nov 2021 12:35:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE9F2C433FE
+	for <linux-rdma@archiver.kernel.org>; Fri, 26 Nov 2021 12:35:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377531AbhKZMiq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 26 Nov 2021 07:38:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38142 "EHLO
+        id S230471AbhKZMi5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 26 Nov 2021 07:38:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38184 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234976AbhKZMgq (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 26 Nov 2021 07:36:46 -0500
+        with ESMTP id S231321AbhKZMg5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 26 Nov 2021 07:36:57 -0500
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D30AC08EA71;
-        Fri, 26 Nov 2021 03:58:28 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC152C08EA73;
+        Fri, 26 Nov 2021 03:58:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=sK7cYKiS0ZeDgTJQcBOYJUCVPKi7GjzADEXG7w+vkFA=; b=jpj9W9dva4hbxt1LE7FoGKeilD
-        nKJf93/e408eCDoxSMPX4YuQpBaKtKuhDledbgkJVAeeHTOlzFBnuaW0WA36QlF2NwwBct8Fpu3pW
-        vFbhCCdaxrmxMBLIxcDqZdJ7CwBncvJ2K1JO/xWGMTBDggfAaVltos/1wlEwQVTrJ7DgJgNoSQHhX
-        pCgSe7CBVr3lpxKcVoAUjwKyQvyEnoeKeJe3fAq6fbrvad5BDDCLAbQBGpaU4J+StTxK6NLfDsXUw
-        NNz94o/a8eMqlgR13H6R82ee5DdAW1eeQRg2GumuvohapvQGZlsePyncmqPxrPXhlO1zl4iwxHnmu
-        ENoTpK4w==;
+        bh=jYRVhHW2gVb5d5i1xf3+2qqpIhLx3KXODjLr4PtmDyE=; b=eCapykDDNWjfyVTdMYXtBOYKLv
+        prgYEG325JO21OUPvNXInsoHWxwlwDFRS20CKdcVoNwJY7Wn70QOJ+1r6y9MEap/CPiTCutMV9TZA
+        CG0XXhQwyub/VWp3SkEqZ/OAYA06KkJ2Nz4QfkUh0PBSIZmLK5sM5bpMx2L11/zk7eeIwhZfu4ZSJ
+        jtv4jDGnPnxH/jGKpmDt1YTRibVqr3rBY/dl9A1sS36Iu6nXz3XO0m+uca/M5AtTqea7lbu4xhRp3
+        wL/MW/0Qz7xH+7C/dUwxCKSOBkDNesfbsw9deu3xBC2vwldONP9n0QYz4dQcEqz8UAsohoGikjO/q
+        I4uRiaGA==;
 Received: from [2001:4bb8:191:f9ce:bae8:5658:102a:5491] (helo=localhost)
         by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1mqZs0-00ASIN-Gx; Fri, 26 Nov 2021 11:58:25 +0000
+        id 1mqZs3-00ASJM-2j; Fri, 26 Nov 2021 11:58:28 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Jens Axboe <axboe@kernel.dk>
 Cc:     Paolo Valente <paolo.valente@linaro.org>, Jan Kara <jack@suse.cz>,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
         linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH 04/14] bfq: use bfq_bic_lookup in bfq_limit_depth
-Date:   Fri, 26 Nov 2021 12:58:07 +0100
-Message-Id: <20211126115817.2087431-5-hch@lst.de>
+Subject: [PATCH 06/14] block: mark put_io_context_active static
+Date:   Fri, 26 Nov 2021 12:58:09 +0100
+Message-Id: <20211126115817.2087431-7-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211126115817.2087431-1-hch@lst.de>
 References: <20211126115817.2087431-1-hch@lst.de>
@@ -46,27 +46,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-No need to create a new I/O context if there is none present yet in
-->limit_depth.
-
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- block/bfq-iosched.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/blk-ioc.c           | 2 +-
+ include/linux/iocontext.h | 1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/block/bfq-iosched.c b/block/bfq-iosched.c
-index c990c6409c119..ecc2e57e68630 100644
---- a/block/bfq-iosched.c
-+++ b/block/bfq-iosched.c
-@@ -663,7 +663,7 @@ static bool bfqq_request_over_limit(struct bfq_queue *bfqq, int limit)
- static void bfq_limit_depth(unsigned int op, struct blk_mq_alloc_data *data)
+diff --git a/block/blk-ioc.c b/block/blk-ioc.c
+index 3b31cfad4b75b..f3ff495756cb4 100644
+--- a/block/blk-ioc.c
++++ b/block/blk-ioc.c
+@@ -175,7 +175,7 @@ void put_io_context(struct io_context *ioc)
+  * Undo get_io_context_active().  If active reference reaches zero after
+  * put, @ioc can never issue further IOs and ioscheds are notified.
+  */
+-void put_io_context_active(struct io_context *ioc)
++static void put_io_context_active(struct io_context *ioc)
  {
- 	struct bfq_data *bfqd = data->q->elevator->elevator_data;
--	struct bfq_io_cq *bic = icq_to_bic(blk_mq_sched_get_icq(data->q));
-+	struct bfq_io_cq *bic = bfq_bic_lookup(data->q);
- 	struct bfq_queue *bfqq = bic ? bic_to_bfqq(bic, op_is_sync(op)) : NULL;
- 	int depth;
- 	unsigned limit = data->q->nr_requests;
+ 	struct io_cq *icq;
+ 
+diff --git a/include/linux/iocontext.h b/include/linux/iocontext.h
+index bcd47d104d8e6..3ba45953d5228 100644
+--- a/include/linux/iocontext.h
++++ b/include/linux/iocontext.h
+@@ -132,7 +132,6 @@ static inline void get_io_context_active(struct io_context *ioc)
+ struct task_struct;
+ #ifdef CONFIG_BLOCK
+ void put_io_context(struct io_context *ioc);
+-void put_io_context_active(struct io_context *ioc);
+ void exit_io_context(struct task_struct *task);
+ struct io_context *get_task_io_context(struct task_struct *task,
+ 				       gfp_t gfp_flags, int node);
 -- 
 2.30.2
 
