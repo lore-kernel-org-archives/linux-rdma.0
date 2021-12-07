@@ -2,205 +2,123 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06164C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Dec 2021 13:14:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E31EDC433FE
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Dec 2021 14:44:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236919AbhLGNS2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Dec 2021 08:18:28 -0500
-Received: from mga05.intel.com ([192.55.52.43]:2361 "EHLO mga05.intel.com"
+        id S238165AbhLGOs2 convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Dec 2021 09:48:28 -0500
+Received: from mga11.intel.com ([192.55.52.93]:15512 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236923AbhLGNS1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 7 Dec 2021 08:18:27 -0500
-X-IronPort-AV: E=McAfee;i="6200,9189,10190"; a="323825640"
+        id S231565AbhLGOs1 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 7 Dec 2021 09:48:27 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10190"; a="235100439"
 X-IronPort-AV: E=Sophos;i="5.87,293,1631602800"; 
-   d="scan'208";a="323825640"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2021 05:14:57 -0800
+   d="scan'208";a="235100439"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2021 06:44:57 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,293,1631602800"; 
-   d="scan'208";a="563507045"
-Received: from lkp-server02.sh.intel.com (HELO 9e1e9f9b3bcb) ([10.239.97.151])
-  by fmsmga008.fm.intel.com with ESMTP; 07 Dec 2021 05:14:56 -0800
-Received: from kbuild by 9e1e9f9b3bcb with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1muaJ5-000MbN-KY; Tue, 07 Dec 2021 13:14:55 +0000
-Date:   Tue, 07 Dec 2021 21:14:08 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- 0a0575a12e31657415d1d5f799d4b65f3c9e8ba4
-Message-ID: <61af5e20.ReRpPhbYNWO48rc/%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+   d="scan'208";a="462312784"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by orsmga006.jf.intel.com with ESMTP; 07 Dec 2021 06:44:56 -0800
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Tue, 7 Dec 2021 06:44:56 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Tue, 7 Dec 2021 06:44:55 -0800
+Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
+ fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.2308.020;
+ Tue, 7 Dec 2021 06:44:55 -0800
+From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
+To:     Dan Carpenter <dan.carpenter@oracle.com>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+CC:     "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Subject: RE: [PATCH] RDMA/irdma: Fix a potential memory allocation issue in
+ 'irdma_prm_add_pble_mem()'
+Thread-Topic: [PATCH] RDMA/irdma: Fix a potential memory allocation issue in
+ 'irdma_prm_add_pble_mem()'
+Thread-Index: AQHX6bCNMQeR51AEWEqSWwxcHSAfJ6wni3UA//+RAfA=
+Date:   Tue, 7 Dec 2021 14:44:55 +0000
+Message-ID: <0500c21d9d814715956e3275afd4f116@intel.com>
+References: <5e670b640508e14b1869c3e8e4fb970d78cbe997.1638692171.git.christophe.jaillet@wanadoo.fr>
+ <20211207131428.GF1956@kadam>
+In-Reply-To: <20211207131428.GF1956@kadam>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.6.200.16
+x-originating-ip: [10.1.200.100]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-next
-branch HEAD: 0a0575a12e31657415d1d5f799d4b65f3c9e8ba4  RDMA/bnxt_re: Fix endianness warning for req.pkey
+> Subject: Re: [PATCH] RDMA/irdma: Fix a potential memory allocation issue in
+> 'irdma_prm_add_pble_mem()'
+> 
+> On Sun, Dec 05, 2021 at 09:17:24AM +0100, Christophe JAILLET wrote:
+> > @@ -299,8 +298,7 @@ add_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc)
+> >  	return 0;
+> >
+> >  error:
+> > -	if (chunk->bitmapbuf)
+> > -		kfree(chunk->bitmapmem.va);
+> > +	bitmap_free(chunk->bitmapbuf);
+> >  	kfree(chunk->chunkmem.va);
+> 
+> Thanks for removing the "chunk->bitmapbuf = chunk->bitmapmem.va;" stuff.
+> It was really confusing.  The kfree(chunk->chunkmem.va) is equivalent to
+> kfree(chunk).  A good rule of thumb is that when you have one error:
+> label to free everything then it's normally going to be buggy.
+> 
+> drivers/infiniband/hw/irdma/pble.c
+>    281          pble_rsrc->next_fpm_addr += chunk->size;
+>    282          ibdev_dbg(to_ibdev(dev),
+>    283                    "PBLE: next_fpm_addr = %llx chunk_size[%llu] = 0x%llx\n",
+>    284                    pble_rsrc->next_fpm_addr, chunk->size, chunk->size);
+>    285          pble_rsrc->unallocated_pble -= (u32)(chunk->size >> 3);
+>    286          list_add(&chunk->list, &pble_rsrc->pinfo.clist);
+>                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> "chunk" added to the "->pinfo.clist" list.
+> 
+>    287          sd_reg_val = (sd_entry_type == IRDMA_SD_TYPE_PAGED) ?
+>    288                               sd_entry->u.pd_table.pd_page_addr.pa :
+>    289                               sd_entry->u.bp.addr.pa;
+>    290
+>    291          if (!sd_entry->valid) {
+>    292                  ret_code = irdma_hmc_sd_one(dev, hmc_info->hmc_fn_id,
+> sd_reg_val,
+>    293                                              idx->sd_idx, sd_entry->entry_type, true);
+>    294                  if (ret_code)
+>    295                          goto error;
+>                                 ^^^^^^^^^^^
+> 
+>    296          }
+>    297
+>    298          sd_entry->valid = true;
+>    299          return 0;
+>    300
+>    301  error:
+>    302          if (chunk->bitmapbuf)
+>    303                  kfree(chunk->bitmapmem.va);
+>    304          kfree(chunk->chunkmem.va);
+>                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> kfree(chunk) will lead to a use after free because it's still on the list.
+> 
 
-elapsed time: 724m
+Ugh! Yes, this is a bug. I will send a separate fix out shortly for this one.
 
-configs tested: 147
-configs skipped: 3
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-i386                 randconfig-c001-20211207
-powerpc                     tqm8541_defconfig
-mips                     decstation_defconfig
-parisc                           allyesconfig
-powerpc                 mpc837x_rdb_defconfig
-arm                       omap2plus_defconfig
-sh                                  defconfig
-sh                             sh03_defconfig
-arm                       cns3420vb_defconfig
-mips                           rs90_defconfig
-powerpc                     skiroot_defconfig
-mips                        workpad_defconfig
-m68k                        m5307c3_defconfig
-m68k                         apollo_defconfig
-m68k                          atari_defconfig
-arm                       multi_v4t_defconfig
-xtensa                  nommu_kc705_defconfig
-mips                      malta_kvm_defconfig
-riscv                    nommu_virt_defconfig
-powerpc                     taishan_defconfig
-arm                          iop32x_defconfig
-arm                         mv78xx0_defconfig
-arc                     nsimosci_hs_defconfig
-arm                         bcm2835_defconfig
-sh                        apsh4ad0a_defconfig
-arm                         vf610m4_defconfig
-sh                          lboxre2_defconfig
-arm                         shannon_defconfig
-powerpc                 mpc8540_ads_defconfig
-sh                            titan_defconfig
-m68k                             allmodconfig
-arm                             rpc_defconfig
-mips                    maltaup_xpa_defconfig
-xtensa                generic_kc705_defconfig
-arm                         at91_dt_defconfig
-arm                           spitz_defconfig
-arc                           tb10x_defconfig
-arm                         lpc32xx_defconfig
-arm                          simpad_defconfig
-arm                       imx_v4_v5_defconfig
-mips                         tb0219_defconfig
-arm                           sama7_defconfig
-mips                            e55_defconfig
-powerpc                   motionpro_defconfig
-openrisc                         alldefconfig
-powerpc                   lite5200b_defconfig
-mips                         mpc30x_defconfig
-m68k                                defconfig
-arc                         haps_hs_defconfig
-sparc                            alldefconfig
-arm                         s5pv210_defconfig
-powerpc                     stx_gp3_defconfig
-powerpc                     pq2fads_defconfig
-mips                        omega2p_defconfig
-arm                        keystone_defconfig
-arm                        cerfcube_defconfig
-powerpc                     akebono_defconfig
-sparc                            allyesconfig
-mips                         db1xxx_defconfig
-mips                     cu1000-neo_defconfig
-powerpc                      pmac32_defconfig
-powerpc                        fsp2_defconfig
-powerpc                 mpc836x_mds_defconfig
-sh                           se7705_defconfig
-powerpc                     tqm5200_defconfig
-arm                            mps2_defconfig
-sh                 kfr2r09-romimage_defconfig
-xtensa                       common_defconfig
-sh                             shx3_defconfig
-arm                  randconfig-c002-20211207
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-nds32                               defconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-parisc                              defconfig
-s390                             allyesconfig
-s390                             allmodconfig
-s390                                defconfig
-sparc                               defconfig
-i386                             allyesconfig
-i386                                defconfig
-i386                   debian-10.3-kselftests
-i386                              debian-10.3
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64               randconfig-a006-20211207
-x86_64               randconfig-a005-20211207
-x86_64               randconfig-a001-20211207
-x86_64               randconfig-a002-20211207
-x86_64               randconfig-a004-20211207
-x86_64               randconfig-a003-20211207
-i386                 randconfig-a001-20211207
-i386                 randconfig-a005-20211207
-i386                 randconfig-a002-20211207
-i386                 randconfig-a003-20211207
-i386                 randconfig-a006-20211207
-i386                 randconfig-a004-20211207
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-x86_64                    rhel-8.3-kselftests
-um                           x86_64_defconfig
-um                             i386_defconfig
-x86_64                           allyesconfig
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                          rhel-8.3-func
-x86_64                                  kexec
-
-clang tested configs:
-x86_64               randconfig-a016-20211207
-x86_64               randconfig-a011-20211207
-x86_64               randconfig-a013-20211207
-x86_64               randconfig-a014-20211207
-x86_64               randconfig-a015-20211207
-x86_64               randconfig-a012-20211207
-i386                 randconfig-a016-20211207
-i386                 randconfig-a013-20211207
-i386                 randconfig-a011-20211207
-i386                 randconfig-a014-20211207
-i386                 randconfig-a012-20211207
-i386                 randconfig-a015-20211207
-hexagon              randconfig-r045-20211207
-s390                 randconfig-r044-20211207
-riscv                randconfig-r042-20211207
-hexagon              randconfig-r041-20211207
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+Shiraz
