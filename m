@@ -2,102 +2,86 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8F39C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Dec 2021 08:37:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDB4EC433EF
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Dec 2021 09:31:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233104AbhLGIlM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Dec 2021 03:41:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46254 "EHLO
+        id S233915AbhLGJef (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Dec 2021 04:34:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233102AbhLGIlM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Dec 2021 03:41:12 -0500
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8858BC061748
-        for <linux-rdma@vger.kernel.org>; Tue,  7 Dec 2021 00:37:42 -0800 (PST)
-Received: by mail-oi1-x234.google.com with SMTP id u74so26449485oie.8
-        for <linux-rdma@vger.kernel.org>; Tue, 07 Dec 2021 00:37:42 -0800 (PST)
+        with ESMTP id S233017AbhLGJef (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Dec 2021 04:34:35 -0500
+Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B914C061574
+        for <linux-rdma@vger.kernel.org>; Tue,  7 Dec 2021 01:31:05 -0800 (PST)
+Received: by mail-ed1-x52f.google.com with SMTP id r11so54126186edd.9
+        for <linux-rdma@vger.kernel.org>; Tue, 07 Dec 2021 01:31:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=89Xwan8ItV/N/elD2Nw4JJQYF/4fozL+k5X8mIfTuqE=;
-        b=X3U0yqla0ZettlIRR2U3uP0hx6rTJFNuuIn9WxKNOg7ICs9bP8R4BftQvB2E4SMgR/
-         1UtRpdZYAaAVh+J3b/H+slzNv/2xF++AU041vWwDYf02+kyQ+dDWdCuaE43jrsufBpFr
-         9aobdsyWLM0WBKeGtRSjzw1QsfXAQWRtMcMNZtqzTvnOJT1hooYNo1RxDSDguGuL+7g8
-         9GGewTl4W5m1pPcWNQhYwDpB77vxV5ghiP1RbkhwuBbLqjVf0umwuIpxE/L+lo3jstRE
-         91P2T9HeUav86KdwjRx8DsD2qD1K7AUsY3IQmIih5Jpbmr8tNIHEkcWR5H/oJ6MxhkZT
-         1fdg==
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=opj4WcdlI5ZNn+l9eJPmDZe9yfO0cVZ4QibiFV7tQzQ=;
+        b=fhj4tk3pqga2TINcGmzrrO3h+4L3iU1O/Q5JMWP56KnaH2GDxBq2SfnA8Byudsrj4b
+         X3wXoVEHZY9EgvxkDAz73gAWjZTlLDpFZLOANgxe/oyYGqqKrnibo+/ygU96GxxfyJcw
+         LlK2rapyqWhtx7W6DY9FPoGYjqDTITkgwikRF3krjKPN1JdsMmUIbTCLVOuPxKgI19Fr
+         aqODZt0dVcbquOHVp9j+v+KxJM/gHPbbM8GRSuq4+3uFz/t6rjKFSs0aDPwKoAxxF/uA
+         g4n6KF73+gCk0uuHmQMPwpBmWj6TG2Wb5Fn7uSP9w3bf4ZhkrkNi3Om4TB5/DinTdSMZ
+         HZOw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=89Xwan8ItV/N/elD2Nw4JJQYF/4fozL+k5X8mIfTuqE=;
-        b=6U1qvA8cbsYkutkfMGhcwrIg66aOyx/KyTntF1Dnw4CjT+/XumOoUf34wSUponS2rE
-         agoyHFilmi0BJ7Bk5xQqXmHYneCm4qxk+6uYlwAMdQI7aLkNIxl+gtbaUCNHyRbdUV1u
-         TgUZaEHyca4CE3KXOZTthMJZzk49xJqKuX7BH8U/MAvV+8hoPh0CXNr4NbowzZdjoD7T
-         nWea0IlaFy6y/6H80kcxx3WsQAovnQh7wBPnIGQIbf6m4cu0OgyHvEGhgPjAvxyPRblR
-         N/hSi29VLnYw2Et8BRP8ZfTa/Re5YnH31ZPMlS+NSgUm1In4oR4QHzsWKj2wW4WXsqz1
-         GtgQ==
-X-Gm-Message-State: AOAM5316NAEjp5bouoLbzY3q8+gQ4K1n/SCKpl9ns9Ynqm4XsndWBf2P
-        9+vL0vGamJkoHfYdtfc4OouxQg4BaLgPMGWGv6oOeQ==
-X-Google-Smtp-Source: ABdhPJzpgVfQyheJozzv4cR1ZAH4dVyUrqeHxyYfwcSt1BR6FsTV5YduqrJOdrq3V+OkC6sfvA+xrXX0JJvNeTlV414=
-X-Received: by 2002:a05:6808:ec9:: with SMTP id q9mr3754831oiv.160.1638866261588;
- Tue, 07 Dec 2021 00:37:41 -0800 (PST)
-MIME-Version: 1.0
-References: <000000000000c3eace05d24f0189@google.com> <20211206154159.GP5112@ziepe.ca>
- <CACT4Y+bnJ5M84RjUONFYMXSOpzC5UOq2DxVNoQkq6c6nYwG9Og@mail.gmail.com> <20211206173550.GQ5112@ziepe.ca>
-In-Reply-To: <20211206173550.GQ5112@ziepe.ca>
-From:   Dmitry Vyukov <dvyukov@google.com>
-Date:   Tue, 7 Dec 2021 09:37:30 +0100
-Message-ID: <CACT4Y+atv60UELnQJqejS_Z+uBYYERha4-o1dViwVuSLpb-Tfw@mail.gmail.com>
-Subject: Re: [syzbot] BUG: corrupted list in rdma_listen (2)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=opj4WcdlI5ZNn+l9eJPmDZe9yfO0cVZ4QibiFV7tQzQ=;
+        b=Ojcm7x/Uo8DbOiempNtY8gwRqqU46eJ2JunS8lHyBgowxpOwJi6TSqRE5ISV5s4Cxa
+         zM62deUN0OjSmKTeAwvmMDr8OIO7fKsFvM2rvLxJDm2Q7cKpQ1/BciIkjlWYxHgcgpX4
+         C2usGEpxHWNgVPtwQji3CClaL9/rYIFoMargF7kfjvoLqQJrjdNsW2htKI9n7S3N1HKG
+         2mR3cYFQVVBDYx1uLMGQkup8ZUD1qmtk+/BUpdW4uGgE20pzLxT7lQHt25aTr0diGHxD
+         PDYOQqfFhpESKE5ppewwAyH8u3CKlc4h7Z05woJY00LSz1h2a9zI4KX5bZtWxBvTB0TX
+         Kmnw==
+X-Gm-Message-State: AOAM533utgiyE5+1J9u1DR7h0EuO50HeAl5CsaP4GCUblT3kVfR56Kxu
+        9yf5ybemHEGBhZ9x6Aok29U=
+X-Google-Smtp-Source: ABdhPJz1+UZJeC84QtybhYp0O+C8+Mykhp/VLuww4r9KilNyO1y0t9prawQtINpSq+aQ4uUDzkvBiQ==
+X-Received: by 2002:a17:906:5d0b:: with SMTP id g11mr51286704ejt.110.1638869464104;
+        Tue, 07 Dec 2021 01:31:04 -0800 (PST)
+Received: from fedora ([2a00:a040:19b:e02f::1006])
+        by smtp.gmail.com with ESMTPSA id x22sm7993476ejc.97.2021.12.07.01.31.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Dec 2021 01:31:03 -0800 (PST)
+Date:   Tue, 7 Dec 2021 11:31:00 +0200
+From:   Kamal Heib <kamalheib1@gmail.com>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     syzbot <syzbot+c94a3675a626f6333d74@syzkaller.appspotmail.com>,
-        avihaih@nvidia.com, dledford@redhat.com, haakon.bugge@oracle.com,
-        leon@kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Cc:     linux-rdma@vger.kernel.org,
+        Michal Kalderon <mkalderon@marvell.com>,
+        Ariel Elior <aelior@marvell.com>
+Subject: Re: [PATCH for-next] RDMA/qedr: Fix reporting max_{send/recv}_wr
+ attrs
+Message-ID: <Ya8p1Ade+lWn/APx@fedora>
+References: <20211206201314.124947-1-kamalheib1@gmail.com>
+ <20211206210655.GR5112@ziepe.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211206210655.GR5112@ziepe.ca>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, 6 Dec 2021 at 18:35, Jason Gunthorpe <jgg@ziepe.ca> wrote:
->
-> On Mon, Dec 06, 2021 at 04:46:40PM +0100, Dmitry Vyukov wrote:
-> > On Mon, 6 Dec 2021 at 16:42, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > >
-> > > On Sat, Dec 04, 2021 at 01:54:17AM -0800, syzbot wrote:
-> > > > Hello,
-> > > >
-> > > > syzbot found the following issue on:
-> > > >
-> > > > HEAD commit:    bf152b0b41dc Merge tag 'for_linus' of git://git.kernel.org..
-> > >
-> > > ??
-> > >
-> > > This commit is nearly a year old?
-> > >
-> > > $ git describe --contains bf152b0b41dc
-> > > v5.12-rc4~28
-> > >
-> > > I think this has probably been fixed since, why did a report for such
-> > > an old kernel get sent?
-> >
-> > Hi Jason,
-> >
-> > Oh, that's because the arm32 kernel was broken for that period, so
-> > syzbot tested the latest working kernel. There is a more fresh x86_64
-> > crash available on the dashboard:
-> > https://syzkaller.appspot.com/bug?extid=c94a3675a626f6333d74
->
-> ??
->
-> There is nothing there newer than a year?
->
+On Mon, Dec 06, 2021 at 05:06:55PM -0400, Jason Gunthorpe wrote:
+> On Mon, Dec 06, 2021 at 10:13:14PM +0200, Kamal Heib wrote:
+> > Fix the wrongly reported max_send_wr and max_recv_wr attributes for user
+> > QP by making sure to save their valuse on QP creation, so when query QP
+> > is called the attributes will be reported correctly.
+> > 
+> > Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
+> > ---
+> >  drivers/infiniband/hw/qedr/verbs.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> 
+> Fixes line?
+> 
 > Jason
 
-In the Crashes table there are 2 crashes, one is the one that was
-reported in this email and the second happened on upstream commit
-5833291ab6de (you can search by this hash on the page).
-5833291ab6de is newer than a year:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/log/?id=5833291ab6de
+Fixes: cecbcddf6461 ("qedr: Add support for QP verbs")
+
+Thanks,
+Kamal
