@@ -2,137 +2,160 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0411C433FE
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Dec 2021 14:11:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50654C433EF
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Dec 2021 17:05:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232385AbhLMOLt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Dec 2021 09:11:49 -0500
-Received: from mail-mw2nam10on2100.outbound.protection.outlook.com ([40.107.94.100]:52609
-        "EHLO NAM10-MW2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S232329AbhLMOLs (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 13 Dec 2021 09:11:48 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=F8ywoa082OcyvadQBL4tO1x9ClX84E14tavMSAu6oOxO4zkVsFR8FdKz4bFSERHdCfSI+MMhgyhhfDNtZcd45bLAvxDWn3AprvJ6XhY7l/etmDPbf2M+qAB1lSYxRctzr2O4UNW7Oz4rBA1kfpCzq8j0DJbl1wp8Tlu17uz7EoDzUxuKavV3Bn4cHWd/SK0l4fAUWzV5yi6lmYJGqJNKa1WvecTqRuNQz2xuxyYi+6zgpVLLzsPxKNV1eyQ7DYugVouc3m1DpWtV7EwFc777qX9G7H9GPvxE2WM3NVq6D1+uCJVYqkK0K7sCHS4u2p/qxieAU/JG5p3CwbI2AMB1Hg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=xS5BM2VceaZEufruPbkoBD705S0jxPOUEwsgj5Yt+HE=;
- b=NNeohxOPRMbw0J7Hx5MIq9o6hZcs+izTi0ksXia+xr2tS76K69vgTncVnz02YcItEGYGQCXHmBxfDXCYFNI5XNX5DzGLsnRFhdPjuCZg4Scm75MQ4upSRU7+N0sKLjCctx3hHdQ/38+1Gu46lsj6QOKV1z9sXCTbN9Eiqmf946hpkWUuuo9CPx+ZBdhfhCr5VKS86RyUK/qAVOAHUDjy4LodI/ol5FqTLCYcrv3ZQv+deVvA+IFCabbozIVE/gKcHEIXPXKDEpLMrAI+v3nj0BbF/Ohl05gAJkJE4jCXTNZs2OQyuW79/PgOX64ObTBuCmrETsN01pm/sB9I32YwXQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 208.255.156.42) smtp.rcpttodomain=vger.kernel.org
- smtp.mailfrom=cornelisnetworks.com; dmarc=bestguesspass action=none
- header.from=cornelisnetworks.com; dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xS5BM2VceaZEufruPbkoBD705S0jxPOUEwsgj5Yt+HE=;
- b=N7Sh/4h+8RD7HkqaF1KCzHNF9GfsW17h66m+yzZZRu2xBHbs8AddkH+co7Ut7SoXt88gFAsbB6bfgxsYXtFTCFJS0qrl10QbiAcRPtxkNnbTxtiXhf6LbSIIPXdPIsNlHI6MDshi5n6ssIB9PVpXEEt09iZ4oB3p/QQVlJXShIREGneDi4ggQc0abIRax+K5vDmSGVwbzinNT/SjN37tT8o5GCtq8VqvY21nCQqw7bzv/GV0ZEJn/+AE09qCBdM1OGarg9nfpwh7NkoM+cUUTKYSSsuBVqYgBwHVQDfJ7UZR0DhAU0r5gkJHeEZby5UXVIGU2uHUAU2hiB4FB89VqQ==
-Received: from MW4PR04CA0169.namprd04.prod.outlook.com (2603:10b6:303:85::24)
- by BYAPR01MB4278.prod.exchangelabs.com (2603:10b6:a03:11::29) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.4778.17; Mon, 13 Dec 2021 14:11:39 +0000
-Received: from CO1NAM11FT052.eop-nam11.prod.protection.outlook.com
- (2603:10b6:303:85:cafe::18) by MW4PR04CA0169.outlook.office365.com
- (2603:10b6:303:85::24) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4778.17 via Frontend
- Transport; Mon, 13 Dec 2021 14:11:38 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
- smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
- header.d=none;dmarc=bestguesspass action=none
- header.from=cornelisnetworks.com;
-Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
- designates 208.255.156.42 as permitted sender)
- receiver=protection.outlook.com; client-ip=208.255.156.42;
- helo=awfm-01.cornelisnetworks.com;
-Received: from awfm-01.cornelisnetworks.com (208.255.156.42) by
- CO1NAM11FT052.mail.protection.outlook.com (10.13.174.225) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.4778.13 via Frontend Transport; Mon, 13 Dec 2021 14:11:38 +0000
-Received: from awfm-01.cornelisnetworks.com (localhost [127.0.0.1])
-        by awfm-01.cornelisnetworks.com (8.14.7/8.14.7) with ESMTP id 1BDEBJWZ178024;
-        Mon, 13 Dec 2021 09:11:27 -0500
-Subject: [PATCH for-rc] IB/hfi1: Insure preempt is held across
- smp_processor_id
-From:   Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-To:     jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        stable@vger.kernel.org
-Date:   Mon, 13 Dec 2021 09:11:19 -0500
-Message-ID: <20211213141119.177982.15684.stgit@awfm-01.cornelisnetworks.com>
-User-Agent: StGit/0.17.1-dirty
+        id S234913AbhLMRF0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Dec 2021 12:05:26 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:32139 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S234830AbhLMRF0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 13 Dec 2021 12:05:26 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1639415124;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=P3TFAsQRIClwPso3h55COFgCPYMd8YWk5SFNWP4ZjE4=;
+        b=Rways+O3ABMXXRf4PRznr30GC+mOmrtNtdexSVDADbJiBkw0LEKCR4XiTeaCRXCLIErOXM
+        ySSVjG4L6D9MNLRNGJwv29ICp1cvDMUPbpTxqdjWHs2QQ6MmuYYzEN3eZz//gN7TOtcPPm
+        2VfPMa/t4vG65xSYdfDlfGmnV3c3u7A=
+Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com
+ [209.85.215.198]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-531-WowjUveuNhSfYyfszSs4yA-1; Mon, 13 Dec 2021 12:05:23 -0500
+X-MC-Unique: WowjUveuNhSfYyfszSs4yA-1
+Received: by mail-pg1-f198.google.com with SMTP id s8-20020a63af48000000b002e6c10ac245so9291496pgo.21
+        for <linux-rdma@vger.kernel.org>; Mon, 13 Dec 2021 09:05:23 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=P3TFAsQRIClwPso3h55COFgCPYMd8YWk5SFNWP4ZjE4=;
+        b=MLd7LIgiCL7aDpKRL7Y9oi1K+kv30pt7tEPam3dAD/XrnMnggi63F/ZdOVtW2777Oe
+         fLU3ub1DEjBcodVfCeo7XvPLKuRdMPVEiv1A7QeMC9y+Yhd4vBOnr372yyW+c5ZlQPZ2
+         KjU6xu1enwAq0/gZ1TheUyEcgLQxSa8C/X4FZdNT1Z6RWP0nbku9+3uPo6RT3x06f5wo
+         29ZJ/K5qfw1PldZr4tXevEiE+EOvxzPEokA97Cj2JrA1q+KpFtr0v35yOLKIojGtIIXz
+         7I/jba0CfTWKzUma7Ri34K9Cf0mXerA+Y9HbxgnjWxDic1vkA5GEohTk7/gxitv8qcp7
+         YG3w==
+X-Gm-Message-State: AOAM5307Iu1OtTSAI3Ujt566a0Oy6dkZqRNtR8SWlKhNtR7HB+RSheGA
+        DXlmeIAvaDIOTaihIkBiAOXnI+OkgPkAj/hIw0lNiliz/EO90n49v7TVYFg0G5ACJT9TyEfZ5EY
+        +Xa/BXKgA6dmidcTkcZqmuLRbRzup97Z8n224zQ==
+X-Received: by 2002:a17:90b:380e:: with SMTP id mq14mr46750257pjb.74.1639415121992;
+        Mon, 13 Dec 2021 09:05:21 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJweCD/BYcw5iFp2acEXHQ/MEQ0f3B9dz/WJMFgzdqdERWwIqxZTxR5zsqDQX6IfaVpAytwC00r7vtPxTCtTNr0=
+X-Received: by 2002:a17:90b:380e:: with SMTP id mq14mr46750204pjb.74.1639415121558;
+ Mon, 13 Dec 2021 09:05:21 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 6a0991d3-d9a0-43f5-c02b-08d9be427ad8
-X-MS-TrafficTypeDiagnostic: BYAPR01MB4278:EE_
-X-Microsoft-Antispam-PRVS: <BYAPR01MB4278535BD98F95675DDA48A2F4749@BYAPR01MB4278.prod.exchangelabs.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:2733;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: j1fNCSpCpG+Ac46ka7plcFWPkbUioC7TLjSnK08q2g5sKgFXbuHDNEUeL8b9EMkKlpYvPpN28IJBQGRFJ2bsdsGuA0dkhJEhOiaRFHzc7vYKQtmgCPi36dZD+3zI2Fp9lyehN15d6m6UVYHA9vpP2jQSnbxEIUY1v4fgktZtaNMjV37wikWC5k51p1EhjvGeDQziquPKoSUN4j2chYrg4FqQ3xm2dslvU0tO+jFXvrKkxCXnDiziG0T3u1RzRLgKnppISn6LBQlvRNu9dOe0l3qEI1AST9192Anb9GX8ThmP1PToMJLxjcVGtxNa8DoVRaG/6txp/LcbhRf/acgZirnHo6o5LOmVZAiC6eWmHMGwJ5goDFeqI5XD5ORtug4NvhFVSJuSo5c/IK+BKhwXS5vG795Z8tb0V7VHDugVUCFiTnTFZXEyvcBeZyHu9VZctYgB4YtK80VTCignkXyOGzNG0y0BTULCyxN8hKh0VmLdJc7uwHdwMqaX/HAtV9vaFyBSE6JBGSJhQ2rNe85FIeXTpA+hSm6C5SKA8/TXTrav+1/RVTkSPZr/3r3glqlfWQdtuVdm6zQuf8UJcSPIx7omfWUl4IeabKoDTJTcij6v89zP6nScKDkBOk60X0k7HiqF3aa18I0OWx5GvHQcOwMtHhF6VAEL9N3UqJoWZpc6yZ4iEzEufm9VJywvLInQnqwJyldWJucmqktyZx0waqAgRhCLvYkHNXUhfW3ITbfJ/+hx7BJAURhm80QnFXmJclAPL0UEPYGwUKHyvP5JQhC0Rq3OJ09vhyiCqqT952xuRLeHp7vd3H9e2IsuvWXZLrw6c3gSJePefq4qiyoEfCtBRppGvTd25B/Do/73ZPk=
-X-Forefront-Antispam-Report: CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:awfm-01.cornelisnetworks.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(4636009)(396003)(136003)(376002)(39830400003)(346002)(36840700001)(46966006)(7126003)(40480700001)(6916009)(2906002)(82310400004)(356005)(8676002)(103116003)(47076005)(83380400001)(316002)(55016003)(426003)(86362001)(8936002)(336012)(44832011)(966005)(5660300002)(186003)(4326008)(6666004)(81166007)(508600001)(36860700001)(7696005)(26005)(1076003)(70206006)(70586007)(36900700001);DIR:OUT;SFP:1102;
-X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Dec 2021 14:11:38.6217
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6a0991d3-d9a0-43f5-c02b-08d9be427ad8
-X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[awfm-01.cornelisnetworks.com]
-X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT052.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR01MB4278
+References: <CAHj4cs8cT23z+h2i+g6o3OQqEhWnHS88JO4jNoQo0Nww-sdkYg@mail.gmail.com>
+ <3c86dc88-97d9-5a71-20e1-a90279f47db5@grimberg.me> <CAHj4cs_3eLZd=vxRRrnBU2W4H38mqttcy0ZdSw6uw4KvbJWgeQ@mail.gmail.com>
+ <CAHj4cs_VZ7C7ciKy-q51a+Gc=uce0GDKRHNmUdoGOd7KSvURpA@mail.gmail.com>
+ <84208be5-a7a9-5261-398c-fa9bda3efbe3@grimberg.me> <CAHj4cs8dgNNE5qcX3Y4ykuTYU8z_kea6=q64Pn_2vsdodgOJZQ@mail.gmail.com>
+ <CAHj4cs-aDo7DufnKazyKuZVR-1AWr5FK1LDsN=Do=CVUJ2pH3g@mail.gmail.com>
+ <9f115198-bafc-be4e-1c90-06444b8a37f6@grimberg.me> <CAHj4cs8wBwDGhhtEPodyBdR-sCqJLYhwLhNHuPDm+KCan0hwWg@mail.gmail.com>
+ <42ccd095-b552-32f7-96b0-d34d46f7c83e@grimberg.me>
+In-Reply-To: <42ccd095-b552-32f7-96b0-d34d46f7c83e@grimberg.me>
+From:   Yi Zhang <yi.zhang@redhat.com>
+Date:   Tue, 14 Dec 2021 01:05:09 +0800
+Message-ID: <CAHj4cs9EazUmtbjPKp5TXO4kRPcSShiYbhmsHwfh7SOTQAeoyw@mail.gmail.com>
+Subject: Re: [bug report] NVMe/IB: reset_controller need more than 1min
+To:     Sagi Grimberg <sagi@grimberg.me>
+Cc:     "open list:NVM EXPRESS DRIVER" <linux-nvme@lists.infradead.org>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+On Mon, Dec 13, 2021 at 5:05 PM Sagi Grimberg <sagi@grimberg.me> wrote:
+>
+>
+> >>>>>> Hello
+> >>>>>>
+> >>>>>> Gentle ping here, this issue still exists on latest 5.13-rc7
+> >>>>>>
+> >>>>>> # time nvme reset /dev/nvme0
+> >>>>>>
+> >>>>>> real 0m12.636s
+> >>>>>> user 0m0.002s
+> >>>>>> sys 0m0.005s
+> >>>>>> # time nvme reset /dev/nvme0
+> >>>>>>
+> >>>>>> real 0m12.641s
+> >>>>>> user 0m0.000s
+> >>>>>> sys 0m0.007s
+> >>>>>
+> >>>>> Strange that even normal resets take so long...
+> >>>>> What device are you using?
+> >>>>
+> >>>> Hi Sagi
+> >>>>
+> >>>> Here is the device info:
+> >>>> Mellanox Technologies MT27700 Family [ConnectX-4]
+> >>>>
+> >>>>>
+> >>>>>> # time nvme reset /dev/nvme0
+> >>>>>>
+> >>>>>> real 1m16.133s
+> >>>>>> user 0m0.000s
+> >>>>>> sys 0m0.007s
+> >>>>>
+> >>>>> There seems to be a spurious command timeout here, but maybe this
+> >>>>> is due to the fact that the queues take so long to connect and
+> >>>>> the target expires the keep-alive timer.
+> >>>>>
+> >>>>> Does this patch help?
+> >>>>
+> >>>> The issue still exists, let me know if you need more testing for it. :)
+> >>>
+> >>> Hi Sagi
+> >>> ping, this issue still can be reproduced on the latest
+> >>> linux-block/for-next, do you have a chance to recheck it, thanks.
+> >>
+> >> Can you check if it happens with the below patch:
+> >
+> > Hi Sagi
+> > It is still reproducible with the change, here is the log:
+> >
+> > # time nvme reset /dev/nvme0
+> >
+> > real    0m12.973s
+> > user    0m0.000s
+> > sys     0m0.006s
+> > # time nvme reset /dev/nvme0
+> >
+> > real    1m15.606s
+> > user    0m0.000s
+> > sys     0m0.007s
+>
+> Does it speed up if you use less queues? (i.e. connect with -i 4) ?
+Yes, with -i 4, it has stablee 1.3s
+# time nvme reset /dev/nvme0
 
-Despite the patch noted below, the warning still happens with
-certain kernel configs.
+real 0m1.225s
+user 0m0.000s
+sys 0m0.007s
 
-It appears that either check_preemption_disabled() is inconsistent with
-with debug_rcu_read_lock() or the patch incorrectly assumes that an RCU
-critical section will prevent the current cpu from changing.
+>
+> >
+> > # dmesg | grep nvme
+> > [  900.634877] nvme nvme0: resetting controller
+> > [  909.026958] nvme nvme0: creating 40 I/O queues.
+> > [  913.604297] nvme nvme0: mapped 40/0/0 default/read/poll queues.
+> > [  917.600993] nvme nvme0: resetting controller
+> > [  988.562230] nvme nvme0: I/O 2 QID 0 timeout
+> > [  988.567607] nvme nvme0: Property Set error: 881, offset 0x14
+> > [  988.608181] nvme nvme0: creating 40 I/O queues.
+> > [  993.203495] nvme nvme0: mapped 40/0/0 default/read/poll queues.
+> >
+> > BTW, this issue cannot be reproduced on my NVME/ROCE environment.
+>
+> Then I think that we need the rdma folks to help here...
+>
 
-A clarification has been solicited via:
-https://lore.kernel.org/linux-rdma/CH0PR01MB71536FB1BD5ECF16E65CB3BFF26F9@CH0PR01MB7153.prod.exchangelabs.com/T/#u
 
-This patch will silence the warning for now by using get_cpu()/put_cpu().
-
-Fixes: b6d57e24ce6c ("IB/hfi1: Insure use of smp_processor_id() is preempt disabled")
-Cc: stable@vger.kernel.org
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
----
- drivers/infiniband/hw/hfi1/sdma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index f07d328..809096d 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -839,15 +839,15 @@ struct sdma_engine *sdma_select_user_engine(struct hfi1_devdata *dd,
- 		goto out;
- 
- 	rcu_read_lock();
--	cpu_id = smp_processor_id();
-+	cpu_id = get_cpu();
- 	rht_node = rhashtable_lookup(dd->sdma_rht, &cpu_id,
- 				     sdma_rht_params);
--
- 	if (rht_node && rht_node->map[vl]) {
- 		struct sdma_rht_map_elem *map = rht_node->map[vl];
- 
- 		sde = map->sde[selector & map->mask];
- 	}
-+	put_cpu();
- 	rcu_read_unlock();
- 
- 	if (sde)
+-- 
+Best Regards,
+  Yi Zhang
 
