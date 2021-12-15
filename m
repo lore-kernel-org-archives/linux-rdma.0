@@ -2,182 +2,225 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67774C43217
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Dec 2021 13:57:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02263C3526E
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Dec 2021 16:01:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243069AbhLON5t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Dec 2021 08:57:49 -0500
-Received: from mail-co1nam11on2072.outbound.protection.outlook.com ([40.107.220.72]:34592
-        "EHLO NAM11-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S243068AbhLON5s (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Wed, 15 Dec 2021 08:57:48 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=nZETngyGngwnacYy7hfmdMFybDRbierdSIymNc9xqayhacl98ETGkvR+XR2nw6tnSuRV+kexZpd3D483B6JC0vxUP6/Z1FIX8JwG3DjhTQJeWyFB9GzB8+qoNRCb86kiCRs13gVOPDshZOI0Whv+Oe3NtIs2xLiNDIunHuu/OyOl6Dq7YXihpf9UeKkVdAXCnGHvgsE10ynSObldx0bU3YU8V3+3MyJ4YMYqbLU36qDd1UpbtsHIEQsswFV2IZ5Z9Dina+O/GwXDbbeRCZ7qJLy5t9H+icupqHsqThkaaaoNsfRzCRQvhzWp5cj782ABMdu+0vuZMdHdP+QcVCvmYg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ojG9Q+cuHH4YbFDQEVt7FEYFQlu44YU8r8kpMhfvg0c=;
- b=MjpQnofJkqXzk0ecD0vG8Xw330NRrR3Wwp9dAzGChRp9KniGMdpjq1cDh6Ci4nfsjkB3b9/RA2HAlKqK4FCTVfuXYkuGrMl8ZHIvjIgjwU2nITeewlcQXwIXiH9DMhWl/lnJIQGL2qZCMjG99/68afNypvlqU/DJtV8y//5GPyjm1VrBZzXg5k7B4iNcPNkml793rie6/a4pXfVu67MxVJp4qIWByETBGUZ3ZjDpoI+by09f6XvRiZRHmu9vGXz/A+ZPn5c3q5Ht0LC6PD0tf2w8effHTcib6Ko1dd68rEQ3x2KmGP0fb+jt1S6StemkbvOdazx1TcA1S7QvJSCNNg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 203.18.50.13) smtp.rcpttodomain=grimberg.me smtp.mailfrom=nvidia.com;
- dmarc=pass (p=quarantine sp=quarantine pct=100) action=none
- header.from=nvidia.com; dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ojG9Q+cuHH4YbFDQEVt7FEYFQlu44YU8r8kpMhfvg0c=;
- b=XzW9pve6Q5RkN0NzYZLD9ec7oMBYPtTDuRo3ncFskyC3BmczEyXwVYHKNyZ769xLahpp8q2A+rZXABmX16394qSFJop94f5JVqUUt+uXDvrVmOyfhvC64HiokoDtQnoeJwrCP3ssEJ6RS2PcFLfQGE3jcN2jK5GmXUqWOestLdyFlysT9/6WgYVr40E6uZZZQ52/hpvZdBLjEV3E0HSkcszJcmUfuSpzc8qm1+S+Fz6ofN0Zfjx5AxBw5un71L9XMNvjklYH3z1c/EM0RDGM8iOyqx0jysBzfZ2ziMeVlKMQhwqLk/0gcw8nF2VvarktVQS7YRfk5dOETfnKkWjf5g==
-Received: from BN6PR11CA0010.namprd11.prod.outlook.com (2603:10b6:405:2::20)
- by BY5PR12MB5014.namprd12.prod.outlook.com (2603:10b6:a03:1c4::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4778.11; Wed, 15 Dec
- 2021 13:57:46 +0000
-Received: from BN8NAM11FT014.eop-nam11.prod.protection.outlook.com
- (2603:10b6:405:2:cafe::46) by BN6PR11CA0010.outlook.office365.com
- (2603:10b6:405:2::20) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4778.16 via Frontend
- Transport; Wed, 15 Dec 2021 13:57:45 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 203.18.50.13)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 203.18.50.13 as permitted sender) receiver=protection.outlook.com;
- client-ip=203.18.50.13; helo=mail.nvidia.com;
-Received: from mail.nvidia.com (203.18.50.13) by
- BN8NAM11FT014.mail.protection.outlook.com (10.13.177.142) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.4778.13 via Frontend Transport; Wed, 15 Dec 2021 13:57:45 +0000
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HKMAIL102.nvidia.com
- (10.18.16.11) with Microsoft SMTP Server (TLS) id 15.0.1497.18; Wed, 15 Dec
- 2021 13:57:35 +0000
-Received: from HQMAIL111.nvidia.com (172.20.187.18) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1497.18; Wed, 15 Dec
- 2021 13:57:35 +0000
-Received: from r-arch-stor02.mtr.labs.mlnx (172.20.187.6) by mail.nvidia.com
- (172.20.187.18) with Microsoft SMTP Server id 15.0.1497.18 via Frontend
- Transport; Wed, 15 Dec 2021 13:57:33 +0000
-From:   Max Gurtovoy <mgurtovoy@nvidia.com>
-To:     <linux-rdma@vger.kernel.org>, <sagi@grimberg.me>, <jgg@nvidia.com>
-CC:     <oren@nvidia.com>, <israelr@nvidia.com>, <sergeygo@nvidia.com>,
-        "Max Gurtovoy" <mgurtovoy@nvidia.com>
-Subject: [PATCH 5/6] IB/iser: remove un-needed casting to/from void pointer
-Date:   Wed, 15 Dec 2021 15:57:20 +0200
-Message-ID: <20211215135721.3662-6-mgurtovoy@nvidia.com>
-X-Mailer: git-send-email 2.18.1
-In-Reply-To: <20211215135721.3662-1-mgurtovoy@nvidia.com>
-References: <20211215135721.3662-1-mgurtovoy@nvidia.com>
+        id S244020AbhLOPk4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Dec 2021 10:40:56 -0500
+Received: from mga03.intel.com ([134.134.136.65]:37408 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S244007AbhLOPkz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Dec 2021 10:40:55 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1639582855; x=1671118855;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=FxQXrpzidZBsAUqh51m/NMcpxmceJ+93r599IJLP5nY=;
+  b=a7o2v2ID8hAbVl9ok8JQeJhsuDwtoY0p+LViApEboInHDoMe2swNPFcz
+   I5ACITZDfcMJMhERX1zwGYrr0uTcG8I33rkTk7K34IIKAJz0boZIsEBUx
+   ThDx0SCnD4lp0b91vcqlMpqa0guakPqLOKwQoI66K2N+YkA+GHkCv5tDY
+   QcMrBxZEXCHIgoGAl1Gx7SkOVYT9USVVUXjLwtNGFRRRys0Cfpoej1ER3
+   EkSUkjs6y9Eje5z5ezW1NlNhsC+vAAGjFCaQ1pD/AXs2Lgvjz8Fg43gbH
+   V7yDiuJw+ma05QOF9YjkvXS9m6owA1zBKKqKSD6G0OD/S4GoCDdUFcwv0
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10198"; a="239204881"
+X-IronPort-AV: E=Sophos;i="5.88,207,1635231600"; 
+   d="scan'208";a="239204881"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Dec 2021 07:40:07 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,207,1635231600"; 
+   d="scan'208";a="464309023"
+Received: from lkp-server02.sh.intel.com (HELO 9f38c0981d9f) ([10.239.97.151])
+  by orsmga003.jf.intel.com with ESMTP; 15 Dec 2021 07:40:05 -0800
+Received: from kbuild by 9f38c0981d9f with local (Exim 4.92)
+        (envelope-from <lkp@intel.com>)
+        id 1mxWNw-0001yB-Of; Wed, 15 Dec 2021 15:40:04 +0000
+Date:   Wed, 15 Dec 2021 23:39:43 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
+ 12d3bbdd6bd2780b71cc466f3fbc6eb7d43bbc2a
+Message-ID: <61ba0c3f.V2P7xBN/x3JCZvTu%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 020aed6b-ba5e-4102-24cb-08d9bfd2df48
-X-MS-TrafficTypeDiagnostic: BY5PR12MB5014:EE_
-X-Microsoft-Antispam-PRVS: <BY5PR12MB501465932CA6271F0A3E9830DE769@BY5PR12MB5014.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:364;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: FW6/W1BtmNiW35QlGI1qSQ5/lruad8tdPx28s/34pC6aFTvPetG6ny9HIvxyQn0gtZfnVlHEq0jM9ifCMLCBhk3Q+t42qMoeuZvSMdxXsdktgZj6o+BnEWO9A/8l9dWgQsnvTWNNTntchQo9q+EwCDND4tGZUIPbsZ8EN7sF4wX/osTGZhuDXJdFpMddtlcNyBwRYW8gvBvw08YeENUFW7gdLYUUFRBKg4m0lnn3i+a9+z6uYdaj9sSC67/2+gDMJjX+x2qHT6QZA3VsSYNdmMaKIHCxiL0pqD8ZyNu+6jzo3XdhJenxnVAuoWP4TnBmiGoojd+BG95QGOQ3tQv5Binv/KU93IdSo86o5Vra5IsTlni8myRe7jBfG2MrNfARYzBFZSYAGgo3ighvqMeIiL+iVzDj+Ll1QEQomFBE6WnCaBSqSUaKpS3447HS5gWLS9uCt9+1KMGeDQ0NFI4G9d+xF4dqRWs3sVzPSbGMkMr+8uBm/If2TZ5Qv6PV4WOE8Tj5YeJW7gOzvVzAABvo/BYtkngSIIxpD2gOy/LPPjo7ngU93cgWe0c9btNX1Y3egS/V1dHsLtVpqEaT4hPPXg2Bqn0IpqakKhooCQ1KuX92DPHCYkRrj1FqM8v75LXVYE4097CbtjrTNv3hHH6wyI+Tgp3eBgkee26bNKbik7TvPrMTtPrEK7Kw2xbqWOuQ6wVEPNsWrS44EIVono0tWy76vuhxl6hyFgtYFT7XXJgbUUv2dNzbZ1mIq9JXLOw2R73QE9k4BKc1drXhaD9PDthL3DoB8FpOGId4vo96I44=
-X-Forefront-Antispam-Report: CIP:203.18.50.13;CTRY:HK;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:hkhybrid02.nvidia.com;CAT:NONE;SFS:(4636009)(46966006)(36840700001)(40470700001)(107886003)(508600001)(70206006)(70586007)(26005)(83380400001)(2616005)(5660300002)(4326008)(356005)(34020700004)(54906003)(336012)(110136005)(426003)(7636003)(8936002)(36756003)(47076005)(82310400004)(36860700001)(6666004)(1076003)(86362001)(2906002)(186003)(6636002)(8676002)(40460700001)(316002);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Dec 2021 13:57:45.4095
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 020aed6b-ba5e-4102-24cb-08d9bfd2df48
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[203.18.50.13];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT014.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR12MB5014
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The void pointer can be typecasted to/from any type.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-rc
+branch HEAD: 12d3bbdd6bd2780b71cc466f3fbc6eb7d43bbc2a  RDMA/hns: Replace kfree() with kvfree()
 
-Signed-off-by: Max Gurtovoy <mgurtovoy@nvidia.com>
+elapsed time: 722m
+
+configs tested: 152
+configs skipped: 3
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+gcc tested configs:
+arm                                 defconfig
+arm64                            allyesconfig
+arm64                               defconfig
+arm                              allyesconfig
+arm                              allmodconfig
+i386                 randconfig-c001-20211214
+i386                 randconfig-c001-20211215
+sh                 kfr2r09-romimage_defconfig
+xtensa                    xip_kc705_defconfig
+powerpc                    klondike_defconfig
+powerpc                   motionpro_defconfig
+powerpc                 mpc834x_itx_defconfig
+sh                               alldefconfig
+arm                             mxs_defconfig
+powerpc                      pasemi_defconfig
+powerpc                    gamecube_defconfig
+powerpc64                        alldefconfig
+s390                                defconfig
+mips                  cavium_octeon_defconfig
+arm                     eseries_pxa_defconfig
+arm                      footbridge_defconfig
+arm                          pxa168_defconfig
+riscv                            allmodconfig
+sh                          polaris_defconfig
+mips                     loongson2k_defconfig
+arc                 nsimosci_hs_smp_defconfig
+powerpc                 mpc834x_mds_defconfig
+powerpc                 mpc836x_mds_defconfig
+arm                       imx_v4_v5_defconfig
+powerpc                 mpc832x_rdb_defconfig
+arm                          lpd270_defconfig
+powerpc                     ppa8548_defconfig
+mips                      maltaaprp_defconfig
+arm                          imote2_defconfig
+sh                      rts7751r2d1_defconfig
+sparc                               defconfig
+sh                         microdev_defconfig
+csky                             alldefconfig
+powerpc                     stx_gp3_defconfig
+m68k                             alldefconfig
+arm                            qcom_defconfig
+sh                           se7724_defconfig
+sparc64                             defconfig
+h8300                    h8300h-sim_defconfig
+arm                         socfpga_defconfig
+powerpc                      bamboo_defconfig
+ia64                         bigsur_defconfig
+arm                        multi_v5_defconfig
+arm                        oxnas_v6_defconfig
+mips                        workpad_defconfig
+arm                           sama5_defconfig
+mips                           jazz_defconfig
+arm                            mmp2_defconfig
+arm                         s3c2410_defconfig
+sh                          r7780mp_defconfig
+mips                      bmips_stb_defconfig
+powerpc                          g5_defconfig
+arm                           sama7_defconfig
+arm                  randconfig-c002-20211214
+ia64                             allmodconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                             allmodconfig
+m68k                                defconfig
+m68k                             allyesconfig
+nios2                               defconfig
+arc                              allyesconfig
+nds32                             allnoconfig
+nds32                               defconfig
+nios2                            allyesconfig
+csky                                defconfig
+alpha                               defconfig
+alpha                            allyesconfig
+xtensa                           allyesconfig
+h8300                            allyesconfig
+arc                                 defconfig
+sh                               allmodconfig
+parisc                              defconfig
+s390                             allyesconfig
+s390                             allmodconfig
+parisc                           allyesconfig
+i386                             allyesconfig
+sparc                            allyesconfig
+i386                                defconfig
+i386                   debian-10.3-kselftests
+i386                              debian-10.3
+mips                             allyesconfig
+mips                             allmodconfig
+powerpc                          allyesconfig
+powerpc                          allmodconfig
+powerpc                           allnoconfig
+x86_64               randconfig-a006-20211214
+x86_64               randconfig-a005-20211214
+x86_64               randconfig-a001-20211214
+x86_64               randconfig-a002-20211214
+x86_64               randconfig-a003-20211214
+x86_64               randconfig-a004-20211214
+i386                 randconfig-a001-20211214
+i386                 randconfig-a002-20211214
+i386                 randconfig-a005-20211214
+i386                 randconfig-a003-20211214
+i386                 randconfig-a006-20211214
+i386                 randconfig-a004-20211214
+x86_64               randconfig-a011-20211215
+x86_64               randconfig-a014-20211215
+x86_64               randconfig-a012-20211215
+x86_64               randconfig-a013-20211215
+x86_64               randconfig-a016-20211215
+x86_64               randconfig-a015-20211215
+i386                 randconfig-a013-20211215
+i386                 randconfig-a011-20211215
+i386                 randconfig-a016-20211215
+i386                 randconfig-a014-20211215
+i386                 randconfig-a015-20211215
+i386                 randconfig-a012-20211215
+riscv                    nommu_k210_defconfig
+riscv                            allyesconfig
+riscv                    nommu_virt_defconfig
+riscv                             allnoconfig
+riscv                               defconfig
+riscv                          rv32_defconfig
+x86_64                    rhel-8.3-kselftests
+um                           x86_64_defconfig
+um                             i386_defconfig
+x86_64                           allyesconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                          rhel-8.3-func
+x86_64                                  kexec
+
+clang tested configs:
+arm                  randconfig-c002-20211214
+x86_64               randconfig-c007-20211214
+riscv                randconfig-c006-20211214
+mips                 randconfig-c004-20211214
+i386                 randconfig-c001-20211214
+s390                 randconfig-c005-20211214
+powerpc              randconfig-c003-20211214
+x86_64               randconfig-a011-20211214
+x86_64               randconfig-a014-20211214
+x86_64               randconfig-a012-20211214
+x86_64               randconfig-a013-20211214
+x86_64               randconfig-a016-20211214
+x86_64               randconfig-a015-20211214
+i386                 randconfig-a013-20211214
+i386                 randconfig-a011-20211214
+i386                 randconfig-a016-20211214
+i386                 randconfig-a014-20211214
+i386                 randconfig-a015-20211214
+i386                 randconfig-a012-20211214
+hexagon              randconfig-r045-20211214
+s390                 randconfig-r044-20211214
+riscv                randconfig-r042-20211214
+hexagon              randconfig-r041-20211214
+hexagon              randconfig-r045-20211215
+hexagon              randconfig-r041-20211215
+
 ---
- drivers/infiniband/ulp/iser/iser_verbs.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 53af7f4052ec..afef5a2a7329 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -501,7 +501,7 @@ static void iser_connect_error(struct rdma_cm_id *cma_id)
- {
- 	struct iser_conn *iser_conn;
- 
--	iser_conn = (struct iser_conn *)cma_id->context;
-+	iser_conn = cma_id->context;
- 	iser_conn->state = ISER_CONN_TERMINATING;
- }
- 
-@@ -549,7 +549,7 @@ static void iser_addr_handler(struct rdma_cm_id *cma_id)
- 	struct ib_conn   *ib_conn;
- 	int    ret;
- 
--	iser_conn = (struct iser_conn *)cma_id->context;
-+	iser_conn = cma_id->context;
- 	if (iser_conn->state != ISER_CONN_PENDING)
- 		/* bailout */
- 		return;
-@@ -595,7 +595,7 @@ static void iser_route_handler(struct rdma_cm_id *cma_id)
- 	struct rdma_conn_param conn_param;
- 	int    ret;
- 	struct iser_cm_hdr req_hdr;
--	struct iser_conn *iser_conn = (struct iser_conn *)cma_id->context;
-+	struct iser_conn *iser_conn = cma_id->context;
- 	struct ib_conn *ib_conn = &iser_conn->ib_conn;
- 	struct ib_device *ib_dev = ib_conn->device->ib_device;
- 
-@@ -638,7 +638,7 @@ static void iser_connected_handler(struct rdma_cm_id *cma_id,
- 	struct ib_qp_attr attr;
- 	struct ib_qp_init_attr init_attr;
- 
--	iser_conn = (struct iser_conn *)cma_id->context;
-+	iser_conn = cma_id->context;
- 	if (iser_conn->state != ISER_CONN_PENDING)
- 		/* bailout */
- 		return;
-@@ -661,7 +661,7 @@ static void iser_connected_handler(struct rdma_cm_id *cma_id,
- 
- static void iser_disconnected_handler(struct rdma_cm_id *cma_id)
- {
--	struct iser_conn *iser_conn = (struct iser_conn *)cma_id->context;
-+	struct iser_conn *iser_conn = cma_id->context;
- 
- 	if (iser_conn_terminate(iser_conn)) {
- 		if (iser_conn->iscsi_conn)
-@@ -675,7 +675,7 @@ static void iser_disconnected_handler(struct rdma_cm_id *cma_id)
- static void iser_cleanup_handler(struct rdma_cm_id *cma_id,
- 				 bool destroy)
- {
--	struct iser_conn *iser_conn = (struct iser_conn *)cma_id->context;
-+	struct iser_conn *iser_conn = cma_id->context;
- 
- 	/*
- 	 * We are not guaranteed that we visited disconnected_handler
-@@ -692,7 +692,7 @@ static int iser_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *eve
- 	struct iser_conn *iser_conn;
- 	int ret = 0;
- 
--	iser_conn = (struct iser_conn *)cma_id->context;
-+	iser_conn = cma_id->context;
- 	iser_info("%s (%d): status %d conn %p id %p\n",
- 		  rdma_event_msg(event->event), event->event,
- 		  event->status, cma_id->context, cma_id);
-@@ -784,8 +784,7 @@ int iser_connect(struct iser_conn   *iser_conn,
- 	iser_conn->state = ISER_CONN_PENDING;
- 
- 	ib_conn->cma_id = rdma_create_id(&init_net, iser_cma_handler,
--					 (void *)iser_conn,
--					 RDMA_PS_TCP, IB_QPT_RC);
-+					 iser_conn, RDMA_PS_TCP, IB_QPT_RC);
- 	if (IS_ERR(ib_conn->cma_id)) {
- 		err = PTR_ERR(ib_conn->cma_id);
- 		iser_err("rdma_create_id failed: %d\n", err);
--- 
-2.18.1
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
