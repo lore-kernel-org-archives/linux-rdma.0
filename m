@@ -2,118 +2,75 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1115AC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Dec 2021 12:36:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 058F1C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Dec 2021 13:24:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242554AbhLOMga (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Dec 2021 07:36:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52482 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242501AbhLOMg3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Dec 2021 07:36:29 -0500
-Received: from mail-lf1-x135.google.com (mail-lf1-x135.google.com [IPv6:2a00:1450:4864:20::135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08A20C061574;
-        Wed, 15 Dec 2021 04:36:29 -0800 (PST)
-Received: by mail-lf1-x135.google.com with SMTP id m6so31074575lfu.1;
-        Wed, 15 Dec 2021 04:36:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=/B4+jWAqwXykz4vWfcUdoaBnklx9nhuB0x+qyPZT6e4=;
-        b=UAdo901qc25WuNpQZDyIvsjT7MHJscQaAW/or9naMisIevsgNzMgpGPPPhQcrTt8rQ
-         lOXQYK3oYdH/yIuy/R0hdNs7CJKgaRryqjzllOivmcoXWDjxKCIVM0VT1abWCm6jtz6o
-         sja4416/aVwuRbjCos2+Kp2YJpMzn1JP/buhSkfFp6BzEm2adSR73Nl1u/ESjfY3wmkk
-         DBMTOnxh0qsphAB3YZDRFd7sfFOn9gWZSJwV7uxV2JoGmfUx1+gEwQGf9iFnMxBXg+ba
-         Dl7yj1jUbp0u8cO/ydZb60I+9N7fAh/FukHPlVpGM12e7MXOdea7d9GlMmNMiYnhVnrR
-         aHFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=/B4+jWAqwXykz4vWfcUdoaBnklx9nhuB0x+qyPZT6e4=;
-        b=s2N2dJtSPrJ363RoQCnN7YD++4ZgwWglCCZVZxEINyAikPKcwY2BDKNrx99aOU80cQ
-         T140KzFA6eKsfWHfIgbcBZdqZwTiCnBRQ6KCRsWkHBebyUOIr8d+FKghM7PWftpHGpjT
-         CaIn/UcDI9rkUNBXuHEbKrDXrgaDgfnOZEv6zMbTGqFkCxQxEswCZUtbVd2xUqHy9dpU
-         BZLfhGBpeiiGAEKZo4OiAaz1ozc2XfKJQhpxThew+G7Z4NADR6zFhv6BfdUZLUUvY4Cc
-         2vW/xSGgUJZJzEUUNQTmpjXk8H2VAJ6fO5l/+rIpBd9/ceyUnrr3x4CrHBmOVj7bRVm0
-         4IgQ==
-X-Gm-Message-State: AOAM533Db56TW5dpDIiR13EjbJrwFy4QCB48mEJZebVXA3EmfIKsIPWx
-        kYHb2HxC5JpHJL1AF5FaJKNXkiJQNVUGyGOe75A=
-X-Google-Smtp-Source: ABdhPJzhZ9IPJsVU6iKeCj8iz3RjSkbPmPIM1Wcx5S8yxI/CfGDPKV61YqYV/sGNXBOjyUlbfnmYURqjJu5mbt1QnHQ=
-X-Received: by 2002:ac2:5049:: with SMTP id a9mr9595535lfm.666.1639571787323;
- Wed, 15 Dec 2021 04:36:27 -0800 (PST)
+        id S242820AbhLONY5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Dec 2021 08:24:57 -0500
+Received: from mga11.intel.com ([192.55.52.93]:5004 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S237419AbhLONYz (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 15 Dec 2021 08:24:55 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10198"; a="236761512"
+X-IronPort-AV: E=Sophos;i="5.88,207,1635231600"; 
+   d="scan'208";a="236761512"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Dec 2021 05:24:53 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,207,1635231600"; 
+   d="scan'208";a="505799356"
+Received: from intel-obmc.bj.intel.com (HELO intel-71.bj.intel.com) ([10.238.154.71])
+  by orsmga007.jf.intel.com with ESMTP; 15 Dec 2021 05:24:51 -0800
+From:   yanjun.zhu@linux.dev
+To:     zyjzyj2000@gmail.com, dledford@redhat.com, jgg@ziepe.ca,
+        linux-rdma@vger.kernel.org, leon@kernel.org, yanjun.zhu@linux.dev
+Subject: [PATCH 1/1] RDMA/rxe: Remove the unused variable
+Date:   Thu, 16 Dec 2021 00:48:42 -0500
+Message-Id: <20211216054842.1099428-1-yanjun.zhu@linux.dev>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-References: <CO6PR10MB56353FD77836D5605CDDB8DEDD769@CO6PR10MB5635.namprd10.prod.outlook.com>
- <20211215075258.442930-1-chi.minghao@zte.com.cn>
-In-Reply-To: <20211215075258.442930-1-chi.minghao@zte.com.cn>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Wed, 15 Dec 2021 20:36:15 +0800
-Message-ID: <CAD=hENdjPT7PeMe8AoeQXQr-Ksj8S08N4xeL_=__VEsoPDeOmw@mail.gmail.com>
-Subject: Re: [PATCH for-next v2] RDMA/rxe: remove redundant err variable
-To:     cgel.zte@gmail.com
-Cc:     devesh.s.sharma@oracle.com, chi.minghao@zte.com.cn,
-        Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        LKML <linux-kernel@vger.kernel.org>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>,
-        zealci@zte.com.cn
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Dec 15, 2021 at 3:53 PM <cgel.zte@gmail.com> wrote:
->
-> From: Minghao Chi <chi.minghao@zte.com.cn>
->
-> Return value directly instead of taking this
-> in another redundant variable.
->
-> Reported-by: Zeal Robot <zealci@zte.com.cn>
-> Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-Thanks.
-Acked-by: Zhu Yanjun <zyjzyj2000@gmail.com>
+The member variable xmit_errors can be replaced with
+rxe_counter_inc(rxe, RXE_CNT_SEND_ERR) totally. So
+remove it.
 
-Zhu Yanjun
+Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+---
+ drivers/infiniband/sw/rxe/rxe_net.c   | 1 -
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 2 --
+ 2 files changed, 3 deletions(-)
 
-> ---
->  drivers/infiniband/sw/rxe/rxe_net.c | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c
-> b/drivers/infiniband/sw/rxe/rxe_net.c
-> index 2cb810cb890a..f557150bd59a 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -22,24 +22,20 @@ static struct rxe_recv_sockets recv_sockets;
->
->  int rxe_mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
->  {
-> -       int err;
->         unsigned char ll_addr[ETH_ALEN];
->
->         ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
-> -       err = dev_mc_add(rxe->ndev, ll_addr);
->
-> -       return err;
-> +       return dev_mc_add(rxe->ndev, ll_addr);
->  }
->
->  int rxe_mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
->  {
-> -       int err;
->         unsigned char ll_addr[ETH_ALEN];
->
->         ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
-> -       err = dev_mc_del(rxe->ndev, ll_addr);
->
-> -       return err;
-> +       return dev_mc_del(rxe->ndev, ll_addr);
->  }
->
->  static struct dst_entry *rxe_find_route4(struct net_device *ndev,
-> --
-> 2.25.1
->
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 2cb810cb890a..112506c31b37 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -444,7 +444,6 @@ int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+ 	else
+ 		err = rxe_send(skb, pkt);
+ 	if (err) {
+-		rxe->xmit_errors++;
+ 		rxe_counter_inc(rxe, RXE_CNT_SEND_ERR);
+ 		return err;
+ 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 35e041450090..af0117710175 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -392,8 +392,6 @@ struct rxe_dev {
+ 
+ 	struct net_device	*ndev;
+ 
+-	int			xmit_errors;
+-
+ 	struct rxe_pool		uc_pool;
+ 	struct rxe_pool		pd_pool;
+ 	struct rxe_pool		ah_pool;
+-- 
+2.27.0
+
