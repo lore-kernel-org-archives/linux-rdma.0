@@ -2,93 +2,97 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94E95C43217
-	for <linux-rdma@archiver.kernel.org>; Tue, 21 Dec 2021 23:59:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB310C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Dec 2021 00:09:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238370AbhLUX6y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 21 Dec 2021 18:58:54 -0500
-Received: from mga02.intel.com ([134.134.136.20]:33887 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233952AbhLUX6y (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 21 Dec 2021 18:58:54 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1640131134; x=1671667134;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=1+wbyIlwB3zHUMy9SEZ74ClAM6/wZtRyXRl3v13q/IQ=;
-  b=AOyRui4q2m6EhJhri3yLZ/NSBlQFlWe6UY9tY3OfnyF3iaRy8z2OWlA3
-   3r/Wv8HKVpwXO+YNXOomq9PMODZejwPglplW9GkPZlPY/sLhe0oI82GJ7
-   6kn0MZmZHAXeZpZk9GC4BnzMezkvBOcyOWmdqMORyMCEVx7UnH1sBoA9Q
-   xbkK5G16SxhAgAIqSVPMaTfesXcAhXiXOkwmzqztLJiyj4PQM1i30y+2k
-   yu6hFGM+KBwdJvKzNnc5xUIRmO8LM5uWXKKPCg/WJykXn5ifAB/Yi9mju
-   Nv2wrnGCsKyqySfBncBwjelugT3sy6faoe0IQDeukAGgTRjrFH4NfL7ow
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10205"; a="227808271"
-X-IronPort-AV: E=Sophos;i="5.88,224,1635231600"; 
-   d="scan'208";a="227808271"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Dec 2021 15:58:53 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,224,1635231600"; 
-   d="scan'208";a="607226428"
-Received: from linux.intel.com ([10.54.29.200])
-  by FMSMGA003.fm.intel.com with ESMTP; 21 Dec 2021 15:58:53 -0800
-Received: from debox1-desk4.intel.com (unknown [10.209.90.33])
-        by linux.intel.com (Postfix) with ESMTP id 70ECD5807C5;
-        Tue, 21 Dec 2021 15:58:52 -0800 (PST)
-From:   "David E. Box" <david.e.box@linux.intel.com>
-To:     gregkh@linuxfoundation.org, mustafa.ismail@intel.com,
-        shiraz.saleem@intel.com, dledford@redhat.com, jgg@ziepe.ca,
-        leon@kernel.org, saeedm@nvidia.com, davem@davemloft.net,
-        kuba@kernel.org, vkoul@kernel.org, yung-chuan.liao@linux.intel.com,
+        id S237722AbhLVAJI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 21 Dec 2021 19:09:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38338 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237640AbhLVAJH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 21 Dec 2021 19:09:07 -0500
+Received: from mail-qk1-x732.google.com (mail-qk1-x732.google.com [IPv6:2607:f8b0:4864:20::732])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57529C061574
+        for <linux-rdma@vger.kernel.org>; Tue, 21 Dec 2021 16:09:07 -0800 (PST)
+Received: by mail-qk1-x732.google.com with SMTP id a11so667988qkh.13
+        for <linux-rdma@vger.kernel.org>; Tue, 21 Dec 2021 16:09:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=p6IPtjYLk9ApU3C7Ntq5pzotDKFMZC8bLzlwMwv2DHo=;
+        b=gdeWu7dcldq1KRDtXrK466kfK8ZpHrcRgPVzyQPYoZHEx9qR5NNRQnXdVTPhjY05pS
+         VX54P/WP7bBdN0Y2YviUR+IzQczADq36rQPDvSeBSlR5CzNBM9hnUWmpeLwh1zOgIfG4
+         T1ItolfMfK71PTBrsf594uOVGuRXfsMiL7rUYjcaQdrzDkXfR72il5m2jMYTcW+/hd/4
+         pJXYLsW1GpV4xGgUZjfQk/9GLjuyd3LG4uiIxEhBeAPgio5IpswJHOM1wzN1JoffZwqF
+         0w74l8kyv5Y2z+6wvMkdK3wXIuGOEzR/6OvL6lryE3Ism03q74Y3rB7rEvGeBhEU3L/r
+         JRSw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=p6IPtjYLk9ApU3C7Ntq5pzotDKFMZC8bLzlwMwv2DHo=;
+        b=6IZZfOkof8Ahz1UNdq2ADTEn3bn5yYECOZVIgyxj+7I2vRHNXjEff+HkuOze2geGd0
+         cLnekgraWP+mfuHuJdwgf4iJeWHUojtc9ixuxEZxL0wRmxXK0reeyrWPEIrafdAvoPcy
+         kZJTKeLFeT4JB2Cj8x2yY+0olQw4bE18XAY48l6GM2XmiU5KMyjIXSo/zxLrZ/N2V5vt
+         rJk2Q2NlC0JYvKHHOYLCksHHG3lhovF00sryYzy3d2WZbgo3nN7ONxp0eWNJK1eC7H/w
+         PYuvYBnQLl53xR/ov9P6XD0tV7G4vNM3wDAkjTFXqzsF1cmSF0/hwSBUJIMCq0japbQB
+         NKDg==
+X-Gm-Message-State: AOAM531fQyjV0BUIqF3jRb+wWGqFVceejy6dQYYVul8o0/HjZH4uUv0C
+        cLY6XPPEuDCOSrWi3vmhqAn5qw==
+X-Google-Smtp-Source: ABdhPJxZLJ+lxeM7m6HgpAAgvnFViXb+v/+egaiwjU9Z/pHPuR+zNWgaBbyZ73XdGEkhpy4k4oD6XA==
+X-Received: by 2002:a05:620a:4687:: with SMTP id bq7mr553892qkb.231.1640131746529;
+        Tue, 21 Dec 2021 16:09:06 -0800 (PST)
+Received: from ziepe.ca ([206.223.160.26])
+        by smtp.gmail.com with ESMTPSA id h2sm457177qkn.136.2021.12.21.16.09.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Dec 2021 16:09:06 -0800 (PST)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1mzpBp-007GVm-3o; Tue, 21 Dec 2021 20:09:05 -0400
+Date:   Tue, 21 Dec 2021 20:09:05 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     "David E. Box" <david.e.box@linux.intel.com>
+Cc:     gregkh@linuxfoundation.org, mustafa.ismail@intel.com,
+        shiraz.saleem@intel.com, dledford@redhat.com, leon@kernel.org,
+        saeedm@nvidia.com, davem@davemloft.net, kuba@kernel.org,
+        vkoul@kernel.org, yung-chuan.liao@linux.intel.com,
         pierre-louis.bossart@linux.intel.com, mst@redhat.com,
-        jasowang@redhat.com
-Cc:     "David E. Box" <david.e.box@linux.intel.com>,
-        andriy.shevchenko@linux.intel.com, hdegoede@redhat.com,
-        virtualization@lists.linux-foundation.org,
+        jasowang@redhat.com, andriy.shevchenko@linux.intel.com,
+        hdegoede@redhat.com, virtualization@lists.linux-foundation.org,
         alsa-devel@alsa-project.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH 0/4] driver_core: Auxiliary drvdata helper cleanup
-Date:   Tue, 21 Dec 2021 15:58:48 -0800
-Message-Id: <20211221235852.323752-1-david.e.box@linux.intel.com>
-X-Mailer: git-send-email 2.25.1
+Subject: Re: [PATCH 0/4] driver_core: Auxiliary drvdata helper cleanup
+Message-ID: <20211222000905.GN6467@ziepe.ca>
+References: <20211221235852.323752-1-david.e.box@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211221235852.323752-1-david.e.box@linux.intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Depends on "driver core: auxiliary bus: Add driver data helpers" patch [1].
-Applies the helpers to all auxiliary device drivers using
-dev_(get/set)_drvdata. Drivers were found using the following search:
+On Tue, Dec 21, 2021 at 03:58:48PM -0800, David E. Box wrote:
+> Depends on "driver core: auxiliary bus: Add driver data helpers" patch [1].
+> Applies the helpers to all auxiliary device drivers using
+> dev_(get/set)_drvdata. Drivers were found using the following search:
+> 
+>     grep -lr "struct auxiliary_device" $(grep -lr "drvdata" .)
+> 
+> Changes were build tested using the following configs:
+> 
+>     vdpa/mlx5:       CONFIG_MLX5_VDPA_NET
+>     net/mlx53:       CONFIG_MLX5_CORE_EN
+>     soundwire/intel: CONFIG_SOUNDWIRE_INTEL
+>     RDAM/irdma:      CONFIG_INFINIBAND_IRDMA
+>                      CONFIG_MLX5_INFINIBAND
+> 
+> [1] https://www.spinics.net/lists/platform-driver-x86/msg29940.html 
 
-    grep -lr "struct auxiliary_device" $(grep -lr "drvdata" .)
+I have to say I don't really find this to be a big readability
+improvement.
 
-Changes were build tested using the following configs:
+Also, what use is 'to_auxiliary_dev()' ? I didn't see any users added..
 
-    vdpa/mlx5:       CONFIG_MLX5_VDPA_NET
-    net/mlx53:       CONFIG_MLX5_CORE_EN
-    soundwire/intel: CONFIG_SOUNDWIRE_INTEL
-    RDAM/irdma:      CONFIG_INFINIBAND_IRDMA
-                     CONFIG_MLX5_INFINIBAND
-
-[1] https://www.spinics.net/lists/platform-driver-x86/msg29940.html 
-
-David E. Box (4):
-  RDMA/irdma: Use auxiliary_device driver data helpers
-  soundwire: intel: Use auxiliary_device driver data helpers
-  net/mlx5e: Use auxiliary_device driver data helpers
-  vdpa/mlx5: Use auxiliary_device driver data helpers
-
- drivers/infiniband/hw/irdma/main.c                | 4 ++--
- drivers/infiniband/hw/mlx5/main.c                 | 8 ++++----
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 8 ++++----
- drivers/soundwire/intel.c                         | 8 ++++----
- drivers/soundwire/intel_init.c                    | 2 +-
- drivers/vdpa/mlx5/net/mlx5_vnet.c                 | 4 ++--
- 6 files changed, 17 insertions(+), 17 deletions(-)
-
--- 
-2.25.1
-
+Jason
