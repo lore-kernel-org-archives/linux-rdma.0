@@ -2,59 +2,59 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66CC2C43217
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Dec 2021 10:42:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB327C43219
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Dec 2021 10:42:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243265AbhLWKmn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S243278AbhLWKmn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 23 Dec 2021 05:42:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51556 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347762AbhLWKml (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Dec 2021 05:42:41 -0500
-Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 081C2C06175B
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 02:42:37 -0800 (PST)
-Received: by mail-ed1-x52b.google.com with SMTP id o20so19638572eds.10
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 02:42:36 -0800 (PST)
+        with ESMTP id S243265AbhLWKmj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Dec 2021 05:42:39 -0500
+Received: from mail-ed1-x52e.google.com (mail-ed1-x52e.google.com [IPv6:2a00:1450:4864:20::52e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D175AC061757
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 02:42:35 -0800 (PST)
+Received: by mail-ed1-x52e.google.com with SMTP id j6so19578438edw.12
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 02:42:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=v5LPiTUH1n6N0mkTl6XoVhARK3ZoSRwyaky5PP4mJwQ=;
-        b=SfCH6+pMHe2UcTRJwg7yu02D7cCwTMtM22BshPjDrm085Ss0M6U3S2EVDLVf6U14Rw
-         IULWygyiw8BjsQ7kywp44nZIAA7e0TEvKnR0NEdA6pB1BJ+VO3ih+mC8jjMJ3yGhDZep
-         O2ypVCpqLB47/ZBungEFjOPw21QxjvzM/Wyxj12vV6lt1Sqrk2b4GAViIJsBoU6/hvui
-         6/WRnEjzBH4Nm6ib0YdoBK+O1e7GlzSpwOa06Jia/D6MMy73CUR1yQbSzFcQWWkisbok
-         yXlKR17/7OyGH/7IqU8TUJz+QArMtd/AsF2MnfjjlvPMA+NFt5OuP4ngu3XAU08XTNt/
-         EKvA==
+        bh=kj6vR5xbCri+TZOrNHfYrdAnbsi3Rl3NtjtXxXPGUL4=;
+        b=Khpzcl9QEtykeXDQ4KRlnFi2QxPFu//3X4EeGhWCoAlPsDzlgc8pPT3himJrlOmdIA
+         SaHNkBR8vGvFbvcUgbqCwFpGxhFWOSeYPBNSUiMd33zyIDxKy6c8S0ufrBDC/WhqWfxa
+         oBm3aR7o0SW4FgWIKiyz+GZhmSePb9j7wHB46cDJfV5ymAm+IF2i2HBzJ6MdZfdwbajc
+         TIHT6c2ht0ES8oR7gTmroEDQq7gw5kT9Rlfy6vc8MyiKwEfm5QOb2pu0hsKzIZQCsfRt
+         jlMJQB1TBjTPbjwfWULRj57m/KrdnCtjZj+cUwk8WxRpxiUTHVXKuYVnkE0fbkMlKFRn
+         r2Jw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=v5LPiTUH1n6N0mkTl6XoVhARK3ZoSRwyaky5PP4mJwQ=;
-        b=KcBJMpGHpoWD4ESrepbNMIHX5cPx0hFU4jVfYcfZ6dPd5Iyo2pP/8un4ezAsox4c1o
-         7wlCYLc+L34fTOqI63wObn4rWy6cEREV7nSdfI2XVjAr72ys1LoQkLiBIbIupF09vr8P
-         Km7yjTMxsGuC7WY5u9Kc7zLwLIfFe7bQLsU3OhmBly5k3jazmxnnMSjjk49YtcRPtS6T
-         nPc0GLRoSDyKlpNNAtR/1Z763zVtbErb01N8lrNFkev+nxEn1ueKF/5l8yw29ZF9aM2A
-         94Cjz87VLFywVBFcTVaDRbeD2JGOQ5MYOYdJ2gIqcohcBi7D5dVakKUo8q2O2habmESq
-         P3cw==
-X-Gm-Message-State: AOAM533Np/iYZpnM48tEQ9JV/jDByE1g6xC1REneep6BpOSyiB2ZEygi
-        k1aIAWBQd//nxdE3AA3BXk4Wv7SUC2hyKQ==
-X-Google-Smtp-Source: ABdhPJxeJhzXCDGXscVjg0edhgmn658Pxn2Tiwqyvfitw7swqfATh69YAzbkXEwOqrcsvHGapkuQXA==
-X-Received: by 2002:a17:906:f283:: with SMTP id gu3mr1397184ejb.768.1640256155108;
-        Thu, 23 Dec 2021 02:42:35 -0800 (PST)
+        bh=kj6vR5xbCri+TZOrNHfYrdAnbsi3Rl3NtjtXxXPGUL4=;
+        b=fLXGslBJIIv5UJY7tJ4LYFV44jPTbSu+WIFkLvikQnmBSWJuHTBZimxqLLv8IOdyWt
+         /aGs685mIjTnVHATaJuWyFyQSkq5s5Rd5GL1kSupoRuuxug9Mn8gtPICC10PVouvtI8s
+         oF8PRL6/NHQTU2l5LGKtL7p1HaJl9z9WG4oe2hVvYvWBtU9TQIfXM/JUJWILHDPDXOkH
+         YSiVC62PXk3UtqmmnQ1J00MKm+QOo4gM72ARkmcmTgT2HbKkerl6wiG8jl76g4fHCbVQ
+         UqgI8QNdvwP1Ja270UH1lyHRV3Bi4SCvaNbMHhvqJlgmARcvPsMs7mcoFSQw7zrC3z/k
+         X2Bg==
+X-Gm-Message-State: AOAM533kgpN2Ku7CbWLyNtdMQ7gnLoBrbvbkpnHg/MSY+BZ0q3Os4/0r
+        b4Jl9/7/d1cTkhSele2AV7gSsKuEXpkHxA==
+X-Google-Smtp-Source: ABdhPJwK/I5Hzhks979zhVaE1RnKVTL/yaw9Hk4DkJAZEuCduC04UrvJQ2YSg1S6Srd4+qsfD+DcwQ==
+X-Received: by 2002:a17:906:7305:: with SMTP id di5mr1433312ejc.702.1640256153352;
+        Thu, 23 Dec 2021 02:42:33 -0800 (PST)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4536:ce00:c42a:2c1b:a58b:ae52])
-        by smtp.gmail.com with ESMTPSA id ho14sm1627224ejc.73.2021.12.23.02.42.34
+        by smtp.gmail.com with ESMTPSA id ho14sm1627224ejc.73.2021.12.23.02.42.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Dec 2021 02:42:34 -0800 (PST)
+        Thu, 23 Dec 2021 02:42:33 -0800 (PST)
 From:   Jack Wang <jinpu.wang@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, jgg@ziepe.ca,
         haris.iqbal@ionos.com, jinpu.wang@ionos.com,
         Vaishali Thakkar <vaishali.thakkar@ionos.com>
-Subject: [PATCH for-next 7/7] RDMA/rtrs-clt: Rename rtrs_clt to rtrs_clt_sess
-Date:   Thu, 23 Dec 2021 11:42:29 +0100
-Message-Id: <20211223104229.23053-8-jinpu.wang@ionos.com>
+Subject: [PATCH for-next 4/7] RDMA/rtrs-srv: Rename rtrs_srv_sess to rtrs_srv_path
+Date:   Thu, 23 Dec 2021 11:42:26 +0100
+Message-Id: <20211223104229.23053-5-jinpu.wang@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20211223104229.23053-1-jinpu.wang@ionos.com>
 References: <20211223104229.23053-1-jinpu.wang@ionos.com>
@@ -66,615 +66,1874 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Vaishali Thakkar <vaishali.thakkar@ionos.com>
 
-Structure rtrs_clt is used for sessions. So to
-avoid confusions rename it to rtrs_clt_sess.
+rtrs_srv_sess is used for paths and not sessions on
+the server side. This creates confusion so let's
+rename it to rtrs_srv_path. Also, rename related
+variables and functions.
 
-Transformations are done with the help of
-following coccinelle script.
-
-@@
-@@
-struct
-- rtrs_clt
-+ rtrs_clt_sess
+Coccinelle is used to do the transformations for
+most of the occurrences and remaining ones were
+handled manually.
 
 Signed-off-by: Vaishali Thakkar <vaishali.thakkar@ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 ---
- drivers/block/rnbd/rnbd-clt.c                |  4 +-
- drivers/block/rnbd/rnbd-clt.h                |  2 +-
- drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c | 24 +++---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c       | 78 ++++++++++----------
- drivers/infiniband/ulp/rtrs/rtrs-clt.h       | 19 ++---
- drivers/infiniband/ulp/rtrs/rtrs.h           | 21 +++---
- 6 files changed, 77 insertions(+), 71 deletions(-)
+ drivers/block/rnbd/rnbd-srv.c                |   4 +-
+ drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c | 119 ++--
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c       | 606 ++++++++++---------
+ drivers/infiniband/ulp/rtrs/rtrs-srv.h       |  10 +-
+ drivers/infiniband/ulp/rtrs/rtrs.h           |   2 +-
+ 5 files changed, 375 insertions(+), 366 deletions(-)
 
-diff --git a/drivers/block/rnbd/rnbd-clt.c b/drivers/block/rnbd/rnbd-clt.c
-index 2df0657cdf00..70bbbdb81db1 100644
---- a/drivers/block/rnbd/rnbd-clt.c
-+++ b/drivers/block/rnbd/rnbd-clt.c
-@@ -433,7 +433,7 @@ static void msg_conf(void *priv, int errno)
- 	schedule_work(&iu->work);
- }
- 
--static int send_usr_msg(struct rtrs_clt *rtrs, int dir,
-+static int send_usr_msg(struct rtrs_clt_sess *rtrs, int dir,
- 			struct rnbd_iu *iu, struct kvec *vec,
- 			size_t len, struct scatterlist *sg, unsigned int sg_len,
- 			void (*conf)(struct work_struct *work),
-@@ -1010,7 +1010,7 @@ static int rnbd_client_xfer_request(struct rnbd_clt_dev *dev,
- 				     struct request *rq,
- 				     struct rnbd_iu *iu)
- {
--	struct rtrs_clt *rtrs = dev->sess->rtrs;
-+	struct rtrs_clt_sess *rtrs = dev->sess->rtrs;
- 	struct rtrs_permit *permit = iu->permit;
- 	struct rnbd_msg_io msg;
- 	struct rtrs_clt_req_ops req_ops;
-diff --git a/drivers/block/rnbd/rnbd-clt.h b/drivers/block/rnbd/rnbd-clt.h
-index 9ef8c4f306f2..0c2cae7f39b9 100644
---- a/drivers/block/rnbd/rnbd-clt.h
-+++ b/drivers/block/rnbd/rnbd-clt.h
-@@ -75,7 +75,7 @@ struct rnbd_cpu_qlist {
- 
- struct rnbd_clt_session {
- 	struct list_head        list;
--	struct rtrs_clt        *rtrs;
-+	struct rtrs_clt_sess        *rtrs;
- 	wait_queue_head_t       rtrs_waitq;
- 	bool                    rtrs_ready;
- 	struct rnbd_cpu_qlist	__percpu
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-index 834f6d30487c..b4fa473b7888 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt-sysfs.c
-@@ -50,7 +50,8 @@ static ssize_t max_reconnect_attempts_show(struct device *dev,
- 					   struct device_attribute *attr,
- 					   char *page)
- {
--	struct rtrs_clt *clt = container_of(dev, struct rtrs_clt, dev);
-+	struct rtrs_clt_sess *clt = container_of(dev, struct rtrs_clt_sess,
-+						 dev);
- 
- 	return sysfs_emit(page, "%d\n",
- 			  rtrs_clt_get_max_reconnect_attempts(clt));
-@@ -63,7 +64,8 @@ static ssize_t max_reconnect_attempts_store(struct device *dev,
- {
- 	int value;
- 	int ret;
--	struct rtrs_clt *clt  = container_of(dev, struct rtrs_clt, dev);
-+	struct rtrs_clt_sess *clt  = container_of(dev, struct rtrs_clt_sess,
-+						  dev);
- 
- 	ret = kstrtoint(buf, 10, &value);
- 	if (ret) {
-@@ -90,9 +92,9 @@ static ssize_t mpath_policy_show(struct device *dev,
- 				 struct device_attribute *attr,
- 				 char *page)
- {
--	struct rtrs_clt *clt;
-+	struct rtrs_clt_sess *clt;
- 
--	clt = container_of(dev, struct rtrs_clt, dev);
-+	clt = container_of(dev, struct rtrs_clt_sess, dev);
- 
- 	switch (clt->mp_policy) {
- 	case MP_POLICY_RR:
-@@ -114,12 +116,12 @@ static ssize_t mpath_policy_store(struct device *dev,
- 				  const char *buf,
- 				  size_t count)
- {
--	struct rtrs_clt *clt;
-+	struct rtrs_clt_sess *clt;
- 	int value;
- 	int ret;
- 	size_t len = 0;
- 
--	clt = container_of(dev, struct rtrs_clt, dev);
-+	clt = container_of(dev, struct rtrs_clt_sess, dev);
- 
- 	ret = kstrtoint(buf, 10, &value);
- 	if (!ret && (value == MP_POLICY_RR ||
-@@ -169,12 +171,12 @@ static ssize_t add_path_store(struct device *dev,
- 		.src = &srcaddr,
- 		.dst = &dstaddr
- 	};
--	struct rtrs_clt *clt;
-+	struct rtrs_clt_sess *clt;
- 	const char *nl;
- 	size_t len;
+diff --git a/drivers/block/rnbd/rnbd-srv.c b/drivers/block/rnbd/rnbd-srv.c
+index aafecfe97055..abff9039cbea 100644
+--- a/drivers/block/rnbd/rnbd-srv.c
++++ b/drivers/block/rnbd/rnbd-srv.c
+@@ -269,9 +269,9 @@ static int create_sess(struct rtrs_srv *rtrs)
+ 	char sessname[NAME_MAX];
  	int err;
  
--	clt = container_of(dev, struct rtrs_clt, dev);
-+	clt = container_of(dev, struct rtrs_clt_sess, dev);
+-	err = rtrs_srv_get_sess_name(rtrs, sessname, sizeof(sessname));
++	err = rtrs_srv_get_path_name(rtrs, sessname, sizeof(sessname));
+ 	if (err) {
+-		pr_err("rtrs_srv_get_sess_name(%s): %d\n", sessname, err);
++		pr_err("rtrs_srv_get_path_name(%s): %d\n", sessname, err);
  
- 	nl = strchr(buf, '\n');
- 	if (nl)
-@@ -425,7 +427,7 @@ static const struct attribute_group rtrs_clt_path_attr_group = {
+ 		return err;
+ 	}
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
+index e9fa67365b2b..628ef20ebf0c 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
+@@ -15,10 +15,10 @@
  
- int rtrs_clt_create_path_files(struct rtrs_clt_path *clt_path)
+ static void rtrs_srv_release(struct kobject *kobj)
  {
--	struct rtrs_clt *clt = clt_path->clt;
-+	struct rtrs_clt_sess *clt = clt_path->clt;
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 
+-	sess = container_of(kobj, struct rtrs_srv_sess, kobj);
+-	kfree(sess);
++	srv_path = container_of(kobj, struct rtrs_srv_path, kobj);
++	kfree(srv_path);
+ }
+ 
+ static struct kobj_type ktype = {
+@@ -36,24 +36,25 @@ static ssize_t rtrs_srv_disconnect_store(struct kobject *kobj,
+ 					  struct kobj_attribute *attr,
+ 					  const char *buf, size_t count)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	struct rtrs_path *s;
+ 	char str[MAXHOSTNAMELEN];
+ 
+-	sess = container_of(kobj, struct rtrs_srv_sess, kobj);
+-	s = &sess->s;
++	srv_path = container_of(kobj, struct rtrs_srv_path, kobj);
++	s = &srv_path->s;
+ 	if (!sysfs_streq(buf, "1")) {
+ 		rtrs_err(s, "%s: invalid value: '%s'\n",
+ 			  attr->attr.name, buf);
+ 		return -EINVAL;
+ 	}
+ 
+-	sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr, str, sizeof(str));
++	sockaddr_to_str((struct sockaddr *)&srv_path->s.dst_addr, str,
++			sizeof(str));
+ 
+ 	rtrs_info(s, "disconnect for path %s requested\n", str);
+ 	/* first remove sysfs itself to avoid deadlock */
+-	sysfs_remove_file_self(&sess->kobj, &attr->attr);
+-	close_sess(sess);
++	sysfs_remove_file_self(&srv_path->kobj, &attr->attr);
++	close_path(srv_path);
+ 
+ 	return count;
+ }
+@@ -66,11 +67,11 @@ static ssize_t rtrs_srv_hca_port_show(struct kobject *kobj,
+ 				       struct kobj_attribute *attr,
+ 				       char *page)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	struct rtrs_con *usr_con;
+ 
+-	sess = container_of(kobj, typeof(*sess), kobj);
+-	usr_con = sess->s.con[0];
++	srv_path = container_of(kobj, typeof(*srv_path), kobj);
++	usr_con = srv_path->s.con[0];
+ 
+ 	return sysfs_emit(page, "%u\n", usr_con->cm_id->port_num);
+ }
+@@ -82,11 +83,11 @@ static ssize_t rtrs_srv_hca_name_show(struct kobject *kobj,
+ 				       struct kobj_attribute *attr,
+ 				       char *page)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 
+-	sess = container_of(kobj, struct rtrs_srv_sess, kobj);
++	srv_path = container_of(kobj, struct rtrs_srv_path, kobj);
+ 
+-	return sysfs_emit(page, "%s\n", sess->s.dev->ib_dev->name);
++	return sysfs_emit(page, "%s\n", srv_path->s.dev->ib_dev->name);
+ }
+ 
+ static struct kobj_attribute rtrs_srv_hca_name_attr =
+@@ -96,11 +97,11 @@ static ssize_t rtrs_srv_src_addr_show(struct kobject *kobj,
+ 				       struct kobj_attribute *attr,
+ 				       char *page)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	int cnt;
+ 
+-	sess = container_of(kobj, struct rtrs_srv_sess, kobj);
+-	cnt = sockaddr_to_str((struct sockaddr *)&sess->s.dst_addr,
++	srv_path = container_of(kobj, struct rtrs_srv_path, kobj);
++	cnt = sockaddr_to_str((struct sockaddr *)&srv_path->s.dst_addr,
+ 			      page, PAGE_SIZE);
+ 	return cnt + sysfs_emit_at(page, cnt, "\n");
+ }
+@@ -112,11 +113,11 @@ static ssize_t rtrs_srv_dst_addr_show(struct kobject *kobj,
+ 				       struct kobj_attribute *attr,
+ 				       char *page)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	int len;
+ 
+-	sess = container_of(kobj, struct rtrs_srv_sess, kobj);
+-	len = sockaddr_to_str((struct sockaddr *)&sess->s.src_addr, page,
++	srv_path = container_of(kobj, struct rtrs_srv_path, kobj);
++	len = sockaddr_to_str((struct sockaddr *)&srv_path->s.src_addr, page,
+ 			      PAGE_SIZE);
+ 	len += sysfs_emit_at(page, len, "\n");
+ 	return len;
+@@ -125,7 +126,7 @@ static ssize_t rtrs_srv_dst_addr_show(struct kobject *kobj,
+ static struct kobj_attribute rtrs_srv_dst_addr_attr =
+ 	__ATTR(dst_addr, 0444, rtrs_srv_dst_addr_show, NULL);
+ 
+-static struct attribute *rtrs_srv_sess_attrs[] = {
++static struct attribute *rtrs_srv_path_attrs[] = {
+ 	&rtrs_srv_hca_name_attr.attr,
+ 	&rtrs_srv_hca_port_attr.attr,
+ 	&rtrs_srv_src_addr_attr.attr,
+@@ -134,8 +135,8 @@ static struct attribute *rtrs_srv_sess_attrs[] = {
+ 	NULL,
+ };
+ 
+-static const struct attribute_group rtrs_srv_sess_attr_group = {
+-	.attrs = rtrs_srv_sess_attrs,
++static const struct attribute_group rtrs_srv_path_attr_group = {
++	.attrs = rtrs_srv_path_attrs,
+ };
+ 
+ STAT_ATTR(struct rtrs_srv_stats, rdma,
+@@ -151,9 +152,9 @@ static const struct attribute_group rtrs_srv_stats_attr_group = {
+ 	.attrs = rtrs_srv_stats_attrs,
+ };
+ 
+-static int rtrs_srv_create_once_sysfs_root_folders(struct rtrs_srv_sess *sess)
++static int rtrs_srv_create_once_sysfs_root_folders(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv *srv = srv_path->srv;
+ 	int err = 0;
+ 
+ 	mutex_lock(&srv->paths_mutex);
+@@ -164,7 +165,7 @@ static int rtrs_srv_create_once_sysfs_root_folders(struct rtrs_srv_sess *sess)
+ 		goto unlock;
+ 	}
+ 	srv->dev.class = rtrs_dev_class;
+-	err = dev_set_name(&srv->dev, "%s", sess->s.sessname);
++	err = dev_set_name(&srv->dev, "%s", srv_path->s.sessname);
+ 	if (err)
+ 		goto unlock;
+ 
+@@ -196,9 +197,9 @@ static int rtrs_srv_create_once_sysfs_root_folders(struct rtrs_srv_sess *sess)
+ }
+ 
+ static void
+-rtrs_srv_destroy_once_sysfs_root_folders(struct rtrs_srv_sess *sess)
++rtrs_srv_destroy_once_sysfs_root_folders(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv *srv = srv_path->srv;
+ 
+ 	mutex_lock(&srv->paths_mutex);
+ 	if (!--srv->dev_ref) {
+@@ -213,7 +214,7 @@ rtrs_srv_destroy_once_sysfs_root_folders(struct rtrs_srv_sess *sess)
+ 	}
+ }
+ 
+-static void rtrs_srv_sess_stats_release(struct kobject *kobj)
++static void rtrs_srv_path_stats_release(struct kobject *kobj)
+ {
+ 	struct rtrs_srv_stats *stats;
+ 
+@@ -224,22 +225,22 @@ static void rtrs_srv_sess_stats_release(struct kobject *kobj)
+ 
+ static struct kobj_type ktype_stats = {
+ 	.sysfs_ops = &kobj_sysfs_ops,
+-	.release = rtrs_srv_sess_stats_release,
++	.release = rtrs_srv_path_stats_release,
+ };
+ 
+-static int rtrs_srv_create_stats_files(struct rtrs_srv_sess *sess)
++static int rtrs_srv_create_stats_files(struct rtrs_srv_path *srv_path)
+ {
+ 	int err;
+-	struct rtrs_path *s = &sess->s;
++	struct rtrs_path *s = &srv_path->s;
+ 
+-	err = kobject_init_and_add(&sess->stats->kobj_stats, &ktype_stats,
+-				   &sess->kobj, "stats");
++	err = kobject_init_and_add(&srv_path->stats->kobj_stats, &ktype_stats,
++				   &srv_path->kobj, "stats");
+ 	if (err) {
+ 		rtrs_err(s, "kobject_init_and_add(): %d\n", err);
+-		kobject_put(&sess->stats->kobj_stats);
++		kobject_put(&srv_path->stats->kobj_stats);
+ 		return err;
+ 	}
+-	err = sysfs_create_group(&sess->stats->kobj_stats,
++	err = sysfs_create_group(&srv_path->stats->kobj_stats,
+ 				 &rtrs_srv_stats_attr_group);
+ 	if (err) {
+ 		rtrs_err(s, "sysfs_create_group(): %d\n", err);
+@@ -249,64 +250,64 @@ static int rtrs_srv_create_stats_files(struct rtrs_srv_sess *sess)
+ 	return 0;
+ 
+ err:
+-	kobject_del(&sess->stats->kobj_stats);
+-	kobject_put(&sess->stats->kobj_stats);
++	kobject_del(&srv_path->stats->kobj_stats);
++	kobject_put(&srv_path->stats->kobj_stats);
+ 
+ 	return err;
+ }
+ 
+-int rtrs_srv_create_sess_files(struct rtrs_srv_sess *sess)
++int rtrs_srv_create_path_files(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
+-	struct rtrs_path *s = &sess->s;
++	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_path *s = &srv_path->s;
  	char str[NAME_MAX];
  	int err;
  	struct rtrs_addr path = {
-@@ -497,12 +499,12 @@ static const struct attribute_group rtrs_clt_attr_group = {
- 	.attrs = rtrs_clt_attrs,
- };
+-		.src = &sess->s.dst_addr,
+-		.dst = &sess->s.src_addr,
++		.src = &srv_path->s.dst_addr,
++		.dst = &srv_path->s.src_addr,
+ 	};
  
--int rtrs_clt_create_sysfs_root_files(struct rtrs_clt *clt)
-+int rtrs_clt_create_sysfs_root_files(struct rtrs_clt_sess *clt)
- {
- 	return sysfs_create_group(&clt->dev.kobj, &rtrs_clt_attr_group);
+ 	rtrs_addr_to_str(&path, str, sizeof(str));
+-	err = rtrs_srv_create_once_sysfs_root_folders(sess);
++	err = rtrs_srv_create_once_sysfs_root_folders(srv_path);
+ 	if (err)
+ 		return err;
+ 
+-	err = kobject_init_and_add(&sess->kobj, &ktype, srv->kobj_paths,
++	err = kobject_init_and_add(&srv_path->kobj, &ktype, srv->kobj_paths,
+ 				   "%s", str);
+ 	if (err) {
+ 		rtrs_err(s, "kobject_init_and_add(): %d\n", err);
+ 		goto destroy_root;
+ 	}
+-	err = sysfs_create_group(&sess->kobj, &rtrs_srv_sess_attr_group);
++	err = sysfs_create_group(&srv_path->kobj, &rtrs_srv_path_attr_group);
+ 	if (err) {
+ 		rtrs_err(s, "sysfs_create_group(): %d\n", err);
+ 		goto put_kobj;
+ 	}
+-	err = rtrs_srv_create_stats_files(sess);
++	err = rtrs_srv_create_stats_files(srv_path);
+ 	if (err)
+ 		goto remove_group;
+ 
+ 	return 0;
+ 
+ remove_group:
+-	sysfs_remove_group(&sess->kobj, &rtrs_srv_sess_attr_group);
++	sysfs_remove_group(&srv_path->kobj, &rtrs_srv_path_attr_group);
+ put_kobj:
+-	kobject_del(&sess->kobj);
++	kobject_del(&srv_path->kobj);
+ destroy_root:
+-	kobject_put(&sess->kobj);
+-	rtrs_srv_destroy_once_sysfs_root_folders(sess);
++	kobject_put(&srv_path->kobj);
++	rtrs_srv_destroy_once_sysfs_root_folders(srv_path);
+ 
+ 	return err;
  }
  
--void rtrs_clt_destroy_sysfs_root(struct rtrs_clt *clt)
-+void rtrs_clt_destroy_sysfs_root(struct rtrs_clt_sess *clt)
+-void rtrs_srv_destroy_sess_files(struct rtrs_srv_sess *sess)
++void rtrs_srv_destroy_path_files(struct rtrs_srv_path *srv_path)
  {
- 	sysfs_remove_group(&clt->dev.kobj, &rtrs_clt_attr_group);
+-	if (sess->kobj.state_in_sysfs) {
+-		kobject_del(&sess->stats->kobj_stats);
+-		kobject_put(&sess->stats->kobj_stats);
+-		sysfs_remove_group(&sess->kobj, &rtrs_srv_sess_attr_group);
+-		kobject_put(&sess->kobj);
++	if (srv_path->kobj.state_in_sysfs) {
++		kobject_del(&srv_path->stats->kobj_stats);
++		kobject_put(&srv_path->stats->kobj_stats);
++		sysfs_remove_group(&srv_path->kobj, &rtrs_srv_path_attr_group);
++		kobject_put(&srv_path->kobj);
  
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index 72b1fed365d1..a69c1e5b56dc 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -46,7 +46,7 @@ static struct rtrs_rdma_dev_pd dev_pd = {
- static struct workqueue_struct *rtrs_wq;
- static struct class *rtrs_clt_dev_class;
- 
--static inline bool rtrs_clt_is_connected(const struct rtrs_clt *clt)
-+static inline bool rtrs_clt_is_connected(const struct rtrs_clt_sess *clt)
- {
- 	struct rtrs_clt_path *clt_path;
- 	bool connected = false;
-@@ -60,7 +60,7 @@ static inline bool rtrs_clt_is_connected(const struct rtrs_clt *clt)
+-		rtrs_srv_destroy_once_sysfs_root_folders(sess);
++		rtrs_srv_destroy_once_sysfs_root_folders(srv_path);
+ 	}
+ }
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index de4f214233b6..643c9ccb4b44 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -62,19 +62,19 @@ static inline struct rtrs_srv_con *to_srv_con(struct rtrs_con *c)
+ 	return container_of(c, struct rtrs_srv_con, c);
  }
  
- static struct rtrs_permit *
--__rtrs_get_permit(struct rtrs_clt *clt, enum rtrs_clt_con_type con_type)
-+__rtrs_get_permit(struct rtrs_clt_sess *clt, enum rtrs_clt_con_type con_type)
+-static inline struct rtrs_srv_sess *to_srv_sess(struct rtrs_path *s)
++static inline struct rtrs_srv_path *to_srv_path(struct rtrs_path *s)
  {
- 	size_t max_depth = clt->queue_depth;
- 	struct rtrs_permit *permit;
-@@ -87,7 +87,7 @@ __rtrs_get_permit(struct rtrs_clt *clt, enum rtrs_clt_con_type con_type)
- 	return permit;
+-	return container_of(s, struct rtrs_srv_sess, s);
++	return container_of(s, struct rtrs_srv_path, s);
  }
  
--static inline void __rtrs_put_permit(struct rtrs_clt *clt,
-+static inline void __rtrs_put_permit(struct rtrs_clt_sess *clt,
- 				      struct rtrs_permit *permit)
+-static bool rtrs_srv_change_state(struct rtrs_srv_sess *sess,
++static bool rtrs_srv_change_state(struct rtrs_srv_path *srv_path,
+ 				  enum rtrs_srv_state new_state)
  {
- 	clear_bit_unlock(permit->mem_id, clt->permits_map);
-@@ -107,7 +107,7 @@ static inline void __rtrs_put_permit(struct rtrs_clt *clt,
-  * Context:
-  *    Can sleep if @wait == RTRS_PERMIT_WAIT
-  */
--struct rtrs_permit *rtrs_clt_get_permit(struct rtrs_clt *clt,
-+struct rtrs_permit *rtrs_clt_get_permit(struct rtrs_clt_sess *clt,
- 					  enum rtrs_clt_con_type con_type,
- 					  enum wait_type can_wait)
- {
-@@ -142,7 +142,8 @@ EXPORT_SYMBOL(rtrs_clt_get_permit);
-  * Context:
-  *    Does not matter
-  */
--void rtrs_clt_put_permit(struct rtrs_clt *clt, struct rtrs_permit *permit)
-+void rtrs_clt_put_permit(struct rtrs_clt_sess *clt,
-+			 struct rtrs_permit *permit)
- {
- 	if (WARN_ON(!test_bit(permit->mem_id, clt->permits_map)))
- 		return;
-@@ -303,7 +304,7 @@ static void rtrs_rdma_error_recovery(struct rtrs_clt_con *con)
- 	if (rtrs_clt_change_state_from_to(clt_path,
- 					   RTRS_CLT_CONNECTED,
- 					   RTRS_CLT_RECONNECTING)) {
--		struct rtrs_clt *clt = clt_path->clt;
-+		struct rtrs_clt_sess *clt = clt_path->clt;
- 		unsigned int delay_ms;
+ 	enum rtrs_srv_state old_state;
+ 	bool changed = false;
  
- 		/*
-@@ -743,7 +744,7 @@ static int post_recv_path(struct rtrs_clt_path *clt_path)
- struct path_it {
+-	spin_lock_irq(&sess->state_lock);
+-	old_state = sess->state;
++	spin_lock_irq(&srv_path->state_lock);
++	old_state = srv_path->state;
+ 	switch (new_state) {
+ 	case RTRS_SRV_CONNECTED:
+ 		if (old_state == RTRS_SRV_CONNECTING)
+@@ -93,8 +93,8 @@ static bool rtrs_srv_change_state(struct rtrs_srv_sess *sess,
+ 		break;
+ 	}
+ 	if (changed)
+-		sess->state = new_state;
+-	spin_unlock_irq(&sess->state_lock);
++		srv_path->state = new_state;
++	spin_unlock_irq(&srv_path->state_lock);
+ 
+ 	return changed;
+ }
+@@ -106,16 +106,16 @@ static void free_id(struct rtrs_srv_op *id)
+ 	kfree(id);
+ }
+ 
+-static void rtrs_srv_free_ops_ids(struct rtrs_srv_sess *sess)
++static void rtrs_srv_free_ops_ids(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv *srv = srv_path->srv;
  	int i;
- 	struct list_head skip_list;
--	struct rtrs_clt *clt;
-+	struct rtrs_clt_sess *clt;
- 	struct rtrs_clt_path *(*next_path)(struct path_it *it);
- };
  
-@@ -780,7 +781,7 @@ static struct rtrs_clt_path *get_next_path_rr(struct path_it *it)
- {
- 	struct rtrs_clt_path __rcu **ppcpu_path;
- 	struct rtrs_clt_path *path;
--	struct rtrs_clt *clt;
-+	struct rtrs_clt_sess *clt;
- 
- 	clt = it->clt;
- 
-@@ -817,7 +818,7 @@ static struct rtrs_clt_path *get_next_path_rr(struct path_it *it)
- static struct rtrs_clt_path *get_next_path_min_inflight(struct path_it *it)
- {
- 	struct rtrs_clt_path *min_path = NULL;
--	struct rtrs_clt *clt = it->clt;
-+	struct rtrs_clt_sess *clt = it->clt;
- 	struct rtrs_clt_path *clt_path;
- 	int min_inflight = INT_MAX;
- 	int inflight;
-@@ -868,7 +869,7 @@ static struct rtrs_clt_path *get_next_path_min_inflight(struct path_it *it)
- static struct rtrs_clt_path *get_next_path_min_latency(struct path_it *it)
- {
- 	struct rtrs_clt_path *min_path = NULL;
--	struct rtrs_clt *clt = it->clt;
-+	struct rtrs_clt_sess *clt = it->clt;
- 	struct rtrs_clt_path *clt_path;
- 	ktime_t min_latency = KTIME_MAX;
- 	ktime_t latency;
-@@ -898,7 +899,7 @@ static struct rtrs_clt_path *get_next_path_min_latency(struct path_it *it)
- 	return min_path;
+-	if (sess->ops_ids) {
++	if (srv_path->ops_ids) {
+ 		for (i = 0; i < srv->queue_depth; i++)
+-			free_id(sess->ops_ids[i]);
+-		kfree(sess->ops_ids);
+-		sess->ops_ids = NULL;
++			free_id(srv_path->ops_ids[i]);
++		kfree(srv_path->ops_ids);
++		srv_path->ops_ids = NULL;
+ 	}
  }
  
--static inline void path_it_init(struct path_it *it, struct rtrs_clt *clt)
-+static inline void path_it_init(struct path_it *it, struct rtrs_clt_sess *clt)
- {
- 	INIT_LIST_HEAD(&it->skip_list);
- 	it->clt = clt;
-@@ -1281,7 +1282,7 @@ static int rtrs_clt_read_req(struct rtrs_clt_io_req *req)
-  * @clt: clt context
-  * @fail_req: a failed io request.
-  */
--static int rtrs_clt_failover_req(struct rtrs_clt *clt,
-+static int rtrs_clt_failover_req(struct rtrs_clt_sess *clt,
- 				 struct rtrs_clt_io_req *fail_req)
- {
- 	struct rtrs_clt_path *alive_path;
-@@ -1316,7 +1317,7 @@ static int rtrs_clt_failover_req(struct rtrs_clt *clt,
+@@ -127,21 +127,24 @@ static struct ib_cqe io_comp_cqe = {
  
- static void fail_all_outstanding_reqs(struct rtrs_clt_path *clt_path)
+ static inline void rtrs_srv_inflight_ref_release(struct percpu_ref *ref)
  {
--	struct rtrs_clt *clt = clt_path->clt;
-+	struct rtrs_clt_sess *clt = clt_path->clt;
- 	struct rtrs_clt_io_req *req;
- 	int i, err;
+-	struct rtrs_srv_sess *sess = container_of(ref, struct rtrs_srv_sess, ids_inflight_ref);
++	struct rtrs_srv_path *srv_path = container_of(ref,
++						      struct rtrs_srv_path,
++						      ids_inflight_ref);
  
-@@ -1405,7 +1406,7 @@ static int alloc_path_reqs(struct rtrs_clt_path *clt_path)
- 	return err;
+-	percpu_ref_exit(&sess->ids_inflight_ref);
+-	complete(&sess->complete_done);
++	percpu_ref_exit(&srv_path->ids_inflight_ref);
++	complete(&srv_path->complete_done);
  }
  
--static int alloc_permits(struct rtrs_clt *clt)
-+static int alloc_permits(struct rtrs_clt_sess *clt)
+-static int rtrs_srv_alloc_ops_ids(struct rtrs_srv_sess *sess)
++static int rtrs_srv_alloc_ops_ids(struct rtrs_srv_path *srv_path)
  {
- 	unsigned int chunk_bits;
- 	int err, i;
-@@ -1439,7 +1440,7 @@ static int alloc_permits(struct rtrs_clt *clt)
- 	return err;
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv *srv = srv_path->srv;
+ 	struct rtrs_srv_op *id;
+ 	int i, ret;
+ 
+-	sess->ops_ids = kcalloc(srv->queue_depth, sizeof(*sess->ops_ids),
+-				GFP_KERNEL);
+-	if (!sess->ops_ids)
++	srv_path->ops_ids = kcalloc(srv->queue_depth,
++				    sizeof(*srv_path->ops_ids),
++				    GFP_KERNEL);
++	if (!srv_path->ops_ids)
+ 		goto err;
+ 
+ 	for (i = 0; i < srv->queue_depth; ++i) {
+@@ -149,44 +152,44 @@ static int rtrs_srv_alloc_ops_ids(struct rtrs_srv_sess *sess)
+ 		if (!id)
+ 			goto err;
+ 
+-		sess->ops_ids[i] = id;
++		srv_path->ops_ids[i] = id;
+ 	}
+ 
+-	ret = percpu_ref_init(&sess->ids_inflight_ref,
++	ret = percpu_ref_init(&srv_path->ids_inflight_ref,
+ 			      rtrs_srv_inflight_ref_release, 0, GFP_KERNEL);
+ 	if (ret) {
+ 		pr_err("Percpu reference init failed\n");
+ 		goto err;
+ 	}
+-	init_completion(&sess->complete_done);
++	init_completion(&srv_path->complete_done);
+ 
+ 	return 0;
+ 
+ err:
+-	rtrs_srv_free_ops_ids(sess);
++	rtrs_srv_free_ops_ids(srv_path);
+ 	return -ENOMEM;
  }
  
--static void free_permits(struct rtrs_clt *clt)
-+static void free_permits(struct rtrs_clt_sess *clt)
+-static inline void rtrs_srv_get_ops_ids(struct rtrs_srv_sess *sess)
++static inline void rtrs_srv_get_ops_ids(struct rtrs_srv_path *srv_path)
  {
- 	if (clt->permits_map) {
- 		size_t sz = clt->queue_depth;
-@@ -1510,7 +1511,7 @@ static void rtrs_clt_init_hb(struct rtrs_clt_path *clt_path)
- static void rtrs_clt_reconnect_work(struct work_struct *work);
- static void rtrs_clt_close_work(struct work_struct *work);
+-	percpu_ref_get(&sess->ids_inflight_ref);
++	percpu_ref_get(&srv_path->ids_inflight_ref);
+ }
  
--static struct rtrs_clt_path *alloc_path(struct rtrs_clt *clt,
-+static struct rtrs_clt_path *alloc_path(struct rtrs_clt_sess *clt,
- 					const struct rtrs_addr *path,
- 					size_t con_num, u32 nr_poll_queues)
+-static inline void rtrs_srv_put_ops_ids(struct rtrs_srv_sess *sess)
++static inline void rtrs_srv_put_ops_ids(struct rtrs_srv_path *srv_path)
  {
-@@ -1775,7 +1776,7 @@ static int rtrs_rdma_addr_resolved(struct rtrs_clt_con *con)
- static int rtrs_rdma_route_resolved(struct rtrs_clt_con *con)
+-	percpu_ref_put(&sess->ids_inflight_ref);
++	percpu_ref_put(&srv_path->ids_inflight_ref);
+ }
+ 
+ static void rtrs_srv_reg_mr_done(struct ib_cq *cq, struct ib_wc *wc)
  {
- 	struct rtrs_clt_path *clt_path = to_clt_path(con->c.path);
--	struct rtrs_clt *clt = clt_path->clt;
-+	struct rtrs_clt_sess *clt = clt_path->clt;
- 	struct rtrs_msg_conn_req msg;
- 	struct rdma_conn_param param;
+ 	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
  
-@@ -1810,7 +1811,7 @@ static int rtrs_rdma_conn_established(struct rtrs_clt_con *con,
- 				       struct rdma_cm_event *ev)
- {
- 	struct rtrs_clt_path *clt_path = to_clt_path(con->c.path);
--	struct rtrs_clt *clt = clt_path->clt;
-+	struct rtrs_clt_sess *clt = clt_path->clt;
- 	const struct rtrs_msg_conn_rsp *msg;
- 	u16 version, queue_depth;
- 	int errno;
-@@ -2100,7 +2101,7 @@ static int create_cm(struct rtrs_clt_con *con)
- 
- static void rtrs_clt_path_up(struct rtrs_clt_path *clt_path)
- {
--	struct rtrs_clt *clt = clt_path->clt;
-+	struct rtrs_clt_sess *clt = clt_path->clt;
- 	int up;
- 
- 	/*
-@@ -2131,7 +2132,7 @@ static void rtrs_clt_path_up(struct rtrs_clt_path *clt_path)
- 
- static void rtrs_clt_path_down(struct rtrs_clt_path *clt_path)
- {
--	struct rtrs_clt *clt = clt_path->clt;
-+	struct rtrs_clt_sess *clt = clt_path->clt;
- 
- 	if (!clt_path->established)
+ 	if (wc->status != IB_WC_SUCCESS) {
+ 		rtrs_err(s, "REG MR failed: %s\n",
+ 			  ib_wc_status_msg(wc->status));
+-		close_sess(sess);
++		close_path(srv_path);
  		return;
-@@ -2220,7 +2221,7 @@ static inline bool xchg_sessions(struct rtrs_clt_path __rcu **rcu_ppcpu_path,
- 
- static void rtrs_clt_remove_path_from_arr(struct rtrs_clt_path *clt_path)
+ 	}
+ }
+@@ -198,8 +201,8 @@ static struct ib_cqe local_reg_cqe = {
+ static int rdma_write_sg(struct rtrs_srv_op *id)
  {
--	struct rtrs_clt *clt = clt_path->clt;
-+	struct rtrs_clt_sess *clt = clt_path->clt;
- 	struct rtrs_clt_path *next;
- 	bool wait_for_grace = false;
- 	int cpu;
-@@ -2310,7 +2311,7 @@ static void rtrs_clt_remove_path_from_arr(struct rtrs_clt_path *clt_path)
+ 	struct rtrs_path *s = id->con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
+-	dma_addr_t dma_addr = sess->dma_addr[id->msg_id];
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
++	dma_addr_t dma_addr = srv_path->dma_addr[id->msg_id];
+ 	struct rtrs_srv_mr *srv_mr;
+ 	struct ib_send_wr inv_wr;
+ 	struct ib_rdma_wr imm_wr;
+@@ -233,7 +236,7 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 		return -EINVAL;
+ 	}
  
- static void rtrs_clt_add_path_to_arr(struct rtrs_clt_path *clt_path)
+-	plist->lkey = sess->s.dev->ib_pd->local_dma_lkey;
++	plist->lkey = srv_path->s.dev->ib_pd->local_dma_lkey;
+ 	offset += plist->length;
+ 
+ 	wr->wr.sg_list	= plist;
+@@ -284,7 +287,7 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 	if (always_invalidate) {
+ 		struct rtrs_msg_rkey_rsp *msg;
+ 
+-		srv_mr = &sess->mrs[id->msg_id];
++		srv_mr = &srv_path->mrs[id->msg_id];
+ 		rwr.wr.opcode = IB_WR_REG_MR;
+ 		rwr.wr.wr_cqe = &local_reg_cqe;
+ 		rwr.wr.num_sge = 0;
+@@ -300,11 +303,11 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 
+ 		list.addr   = srv_mr->iu->dma_addr;
+ 		list.length = sizeof(*msg);
+-		list.lkey   = sess->s.dev->ib_pd->local_dma_lkey;
++		list.lkey   = srv_path->s.dev->ib_pd->local_dma_lkey;
+ 		imm_wr.wr.sg_list = &list;
+ 		imm_wr.wr.num_sge = 1;
+ 		imm_wr.wr.opcode = IB_WR_SEND_WITH_IMM;
+-		ib_dma_sync_single_for_device(sess->s.dev->ib_dev,
++		ib_dma_sync_single_for_device(srv_path->s.dev->ib_dev,
+ 					      srv_mr->iu->dma_addr,
+ 					      srv_mr->iu->size, DMA_TO_DEVICE);
+ 	} else {
+@@ -317,7 +320,7 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
+ 							     0, need_inval));
+ 
+ 	imm_wr.wr.wr_cqe   = &io_comp_cqe;
+-	ib_dma_sync_single_for_device(sess->s.dev->ib_dev, dma_addr,
++	ib_dma_sync_single_for_device(srv_path->s.dev->ib_dev, dma_addr,
+ 				      offset, DMA_BIDIRECTIONAL);
+ 
+ 	err = ib_post_send(id->con->c.qp, &id->tx_wr.wr, NULL);
+@@ -342,7 +345,7 @@ static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
+ 			    int errno)
  {
--	struct rtrs_clt *clt = clt_path->clt;
-+	struct rtrs_clt_sess *clt = clt_path->clt;
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
+ 	struct ib_send_wr inv_wr, *wr = NULL;
+ 	struct ib_rdma_wr imm_wr;
+ 	struct ib_reg_wr rwr;
+@@ -402,7 +405,7 @@ static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
+ 		struct ib_sge list;
+ 		struct rtrs_msg_rkey_rsp *msg;
  
- 	mutex_lock(&clt->paths_mutex);
- 	clt->paths_num++;
-@@ -2636,7 +2637,7 @@ static int init_path(struct rtrs_clt_path *clt_path)
- static void rtrs_clt_reconnect_work(struct work_struct *work)
- {
- 	struct rtrs_clt_path *clt_path;
--	struct rtrs_clt *clt;
-+	struct rtrs_clt_sess *clt;
- 	unsigned int delay_ms;
- 	int err;
+-		srv_mr = &sess->mrs[id->msg_id];
++		srv_mr = &srv_path->mrs[id->msg_id];
+ 		rwr.wr.next = &imm_wr.wr;
+ 		rwr.wr.opcode = IB_WR_REG_MR;
+ 		rwr.wr.wr_cqe = &local_reg_cqe;
+@@ -419,11 +422,11 @@ static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
  
-@@ -2678,19 +2679,20 @@ static void rtrs_clt_reconnect_work(struct work_struct *work)
- 
- static void rtrs_clt_dev_release(struct device *dev)
- {
--	struct rtrs_clt *clt = container_of(dev, struct rtrs_clt, dev);
-+	struct rtrs_clt_sess *clt = container_of(dev, struct rtrs_clt_sess,
-+						 dev);
- 
- 	kfree(clt);
+ 		list.addr   = srv_mr->iu->dma_addr;
+ 		list.length = sizeof(*msg);
+-		list.lkey   = sess->s.dev->ib_pd->local_dma_lkey;
++		list.lkey   = srv_path->s.dev->ib_pd->local_dma_lkey;
+ 		imm_wr.wr.sg_list = &list;
+ 		imm_wr.wr.num_sge = 1;
+ 		imm_wr.wr.opcode = IB_WR_SEND_WITH_IMM;
+-		ib_dma_sync_single_for_device(sess->s.dev->ib_dev,
++		ib_dma_sync_single_for_device(srv_path->s.dev->ib_dev,
+ 					      srv_mr->iu->dma_addr,
+ 					      srv_mr->iu->size, DMA_TO_DEVICE);
+ 	} else {
+@@ -444,11 +447,11 @@ static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
+ 	return err;
  }
  
--static struct rtrs_clt *alloc_clt(const char *sessname, size_t paths_num,
-+static struct rtrs_clt_sess *alloc_clt(const char *sessname, size_t paths_num,
- 				  u16 port, size_t pdu_sz, void *priv,
- 				  void	(*link_ev)(void *priv,
- 						   enum rtrs_clt_link_ev ev),
- 				  unsigned int reconnect_delay_sec,
- 				  unsigned int max_reconnect_attempts)
+-void close_sess(struct rtrs_srv_sess *sess)
++void close_path(struct rtrs_srv_path *srv_path)
  {
--	struct rtrs_clt *clt;
-+	struct rtrs_clt_sess *clt;
- 	int err;
- 
- 	if (!paths_num || paths_num > MAX_PATHS_NUM)
-@@ -2765,7 +2767,7 @@ static struct rtrs_clt *alloc_clt(const char *sessname, size_t paths_num,
- 	return ERR_PTR(err);
+-	if (rtrs_srv_change_state(sess, RTRS_SRV_CLOSING))
+-		queue_work(rtrs_wq, &sess->close_work);
+-	WARN_ON(sess->state != RTRS_SRV_CLOSING);
++	if (rtrs_srv_change_state(srv_path, RTRS_SRV_CLOSING))
++		queue_work(rtrs_wq, &srv_path->close_work);
++	WARN_ON(srv_path->state != RTRS_SRV_CLOSING);
  }
  
--static void free_clt(struct rtrs_clt *clt)
-+static void free_clt(struct rtrs_clt_sess *clt)
- {
- 	free_permits(clt);
- 	free_percpu(clt->pcpu_path);
-@@ -2793,7 +2795,7 @@ static void free_clt(struct rtrs_clt *clt)
-  *
-  * Return a valid pointer on success otherwise PTR_ERR.
+ static inline const char *rtrs_srv_state_str(enum rtrs_srv_state state)
+@@ -480,7 +483,7 @@ static inline const char *rtrs_srv_state_str(enum rtrs_srv_state state)
   */
--struct rtrs_clt *rtrs_clt_open(struct rtrs_clt_ops *ops,
-+struct rtrs_clt_sess *rtrs_clt_open(struct rtrs_clt_ops *ops,
- 				 const char *pathname,
- 				 const struct rtrs_addr *paths,
- 				 size_t paths_num, u16 port,
-@@ -2801,7 +2803,7 @@ struct rtrs_clt *rtrs_clt_open(struct rtrs_clt_ops *ops,
- 				 s16 max_reconnect_attempts, u32 nr_poll_queues)
+ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int status)
  {
- 	struct rtrs_clt_path *clt_path, *tmp;
--	struct rtrs_clt *clt;
-+	struct rtrs_clt_sess *clt;
- 	int err, i;
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	struct rtrs_srv_con *con;
+ 	struct rtrs_path *s;
+ 	int err;
+@@ -490,25 +493,25 @@ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int status)
  
- 	if (strchr(pathname, '/') || strchr(pathname, '.')) {
-@@ -2875,7 +2877,7 @@ EXPORT_SYMBOL(rtrs_clt_open);
-  * rtrs_clt_close() - Close a path
-  * @clt: Session handle. Session is freed upon return.
-  */
--void rtrs_clt_close(struct rtrs_clt *clt)
-+void rtrs_clt_close(struct rtrs_clt_sess *clt)
+ 	con = id->con;
+ 	s = con->c.path;
+-	sess = to_srv_sess(s);
++	srv_path = to_srv_path(s);
+ 
+ 	id->status = status;
+ 
+-	if (sess->state != RTRS_SRV_CONNECTED) {
++	if (srv_path->state != RTRS_SRV_CONNECTED) {
+ 		rtrs_err_rl(s,
+ 			    "Sending I/O response failed,  session %s is disconnected, sess state %s\n",
+-			    kobject_name(&sess->kobj),
+-			    rtrs_srv_state_str(sess->state));
++			    kobject_name(&srv_path->kobj),
++			    rtrs_srv_state_str(srv_path->state));
+ 		goto out;
+ 	}
+ 	if (always_invalidate) {
+-		struct rtrs_srv_mr *mr = &sess->mrs[id->msg_id];
++		struct rtrs_srv_mr *mr = &srv_path->mrs[id->msg_id];
+ 
+ 		ib_update_fast_reg_key(mr->mr, ib_inc_rkey(mr->mr->rkey));
+ 	}
+ 	if (atomic_sub_return(1, &con->c.sq_wr_avail) < 0) {
+ 		rtrs_err(s, "IB send queue full: sess=%s cid=%d\n",
+-			 kobject_name(&sess->kobj),
++			 kobject_name(&srv_path->kobj),
+ 			 con->c.cid);
+ 		atomic_add(1, &con->c.sq_wr_avail);
+ 		spin_lock(&con->rsp_wr_wait_lock);
+@@ -524,11 +527,11 @@ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int status)
+ 
+ 	if (err) {
+ 		rtrs_err_rl(s, "IO response failed: %d: sess=%s\n", err,
+-			    kobject_name(&sess->kobj));
+-		close_sess(sess);
++			    kobject_name(&srv_path->kobj));
++		close_path(srv_path);
+ 	}
+ out:
+-	rtrs_srv_put_ops_ids(sess);
++	rtrs_srv_put_ops_ids(srv_path);
+ 	return true;
+ }
+ EXPORT_SYMBOL(rtrs_srv_resp_rdma);
+@@ -544,27 +547,27 @@ void rtrs_srv_set_sess_priv(struct rtrs_srv *srv, void *priv)
+ }
+ EXPORT_SYMBOL(rtrs_srv_set_sess_priv);
+ 
+-static void unmap_cont_bufs(struct rtrs_srv_sess *sess)
++static void unmap_cont_bufs(struct rtrs_srv_path *srv_path)
  {
- 	struct rtrs_clt_path *clt_path, *tmp;
+ 	int i;
  
-@@ -2950,12 +2952,12 @@ int rtrs_clt_remove_path_from_sysfs(struct rtrs_clt_path *clt_path,
+-	for (i = 0; i < sess->mrs_num; i++) {
++	for (i = 0; i < srv_path->mrs_num; i++) {
+ 		struct rtrs_srv_mr *srv_mr;
+ 
+-		srv_mr = &sess->mrs[i];
+-		rtrs_iu_free(srv_mr->iu, sess->s.dev->ib_dev, 1);
++		srv_mr = &srv_path->mrs[i];
++		rtrs_iu_free(srv_mr->iu, srv_path->s.dev->ib_dev, 1);
+ 		ib_dereg_mr(srv_mr->mr);
+-		ib_dma_unmap_sg(sess->s.dev->ib_dev, srv_mr->sgt.sgl,
++		ib_dma_unmap_sg(srv_path->s.dev->ib_dev, srv_mr->sgt.sgl,
+ 				srv_mr->sgt.nents, DMA_BIDIRECTIONAL);
+ 		sg_free_table(&srv_mr->sgt);
+ 	}
+-	kfree(sess->mrs);
++	kfree(srv_path->mrs);
+ }
+ 
+-static int map_cont_bufs(struct rtrs_srv_sess *sess)
++static int map_cont_bufs(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
+-	struct rtrs_path *ss = &sess->s;
++	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_path *ss = &srv_path->s;
+ 	int i, mri, err, mrs_num;
+ 	unsigned int chunk_bits;
+ 	int chunks_per_mr = 1;
+@@ -581,19 +584,19 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
+ 		mrs_num = srv->queue_depth;
+ 	} else {
+ 		chunks_per_mr =
+-			sess->s.dev->ib_dev->attrs.max_fast_reg_page_list_len;
++			srv_path->s.dev->ib_dev->attrs.max_fast_reg_page_list_len;
+ 		mrs_num = DIV_ROUND_UP(srv->queue_depth, chunks_per_mr);
+ 		chunks_per_mr = DIV_ROUND_UP(srv->queue_depth, mrs_num);
+ 	}
+ 
+-	sess->mrs = kcalloc(mrs_num, sizeof(*sess->mrs), GFP_KERNEL);
+-	if (!sess->mrs)
++	srv_path->mrs = kcalloc(mrs_num, sizeof(*srv_path->mrs), GFP_KERNEL);
++	if (!srv_path->mrs)
+ 		return -ENOMEM;
+ 
+-	sess->mrs_num = mrs_num;
++	srv_path->mrs_num = mrs_num;
+ 
+ 	for (mri = 0; mri < mrs_num; mri++) {
+-		struct rtrs_srv_mr *srv_mr = &sess->mrs[mri];
++		struct rtrs_srv_mr *srv_mr = &srv_path->mrs[mri];
+ 		struct sg_table *sgt = &srv_mr->sgt;
+ 		struct scatterlist *s;
+ 		struct ib_mr *mr;
+@@ -612,13 +615,13 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
+ 			sg_set_page(s, srv->chunks[chunks + i],
+ 				    max_chunk_size, 0);
+ 
+-		nr = ib_dma_map_sg(sess->s.dev->ib_dev, sgt->sgl,
++		nr = ib_dma_map_sg(srv_path->s.dev->ib_dev, sgt->sgl,
+ 				   sgt->nents, DMA_BIDIRECTIONAL);
+ 		if (nr < sgt->nents) {
+ 			err = nr < 0 ? nr : -EINVAL;
+ 			goto free_sg;
+ 		}
+-		mr = ib_alloc_mr(sess->s.dev->ib_pd, IB_MR_TYPE_MEM_REG,
++		mr = ib_alloc_mr(srv_path->s.dev->ib_pd, IB_MR_TYPE_MEM_REG,
+ 				 sgt->nents);
+ 		if (IS_ERR(mr)) {
+ 			err = PTR_ERR(mr);
+@@ -634,7 +637,7 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
+ 		if (always_invalidate) {
+ 			srv_mr->iu = rtrs_iu_alloc(1,
+ 					sizeof(struct rtrs_msg_rkey_rsp),
+-					GFP_KERNEL, sess->s.dev->ib_dev,
++					GFP_KERNEL, srv_path->s.dev->ib_dev,
+ 					DMA_TO_DEVICE, rtrs_srv_rdma_done);
+ 			if (!srv_mr->iu) {
+ 				err = -ENOMEM;
+@@ -644,7 +647,7 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
+ 		}
+ 		/* Eventually dma addr for each chunk can be cached */
+ 		for_each_sg(sgt->sgl, s, sgt->orig_nents, i)
+-			sess->dma_addr[chunks + i] = sg_dma_address(s);
++			srv_path->dma_addr[chunks + i] = sg_dma_address(s);
+ 
+ 		ib_update_fast_reg_key(mr, ib_inc_rkey(mr->rkey));
+ 		srv_mr->mr = mr;
+@@ -652,75 +655,75 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
+ 		continue;
+ err:
+ 		while (mri--) {
+-			srv_mr = &sess->mrs[mri];
++			srv_mr = &srv_path->mrs[mri];
+ 			sgt = &srv_mr->sgt;
+ 			mr = srv_mr->mr;
+-			rtrs_iu_free(srv_mr->iu, sess->s.dev->ib_dev, 1);
++			rtrs_iu_free(srv_mr->iu, srv_path->s.dev->ib_dev, 1);
+ dereg_mr:
+ 			ib_dereg_mr(mr);
+ unmap_sg:
+-			ib_dma_unmap_sg(sess->s.dev->ib_dev, sgt->sgl,
++			ib_dma_unmap_sg(srv_path->s.dev->ib_dev, sgt->sgl,
+ 					sgt->nents, DMA_BIDIRECTIONAL);
+ free_sg:
+ 			sg_free_table(sgt);
+ 		}
+-		kfree(sess->mrs);
++		kfree(srv_path->mrs);
+ 
+ 		return err;
+ 	}
+ 
+ 	chunk_bits = ilog2(srv->queue_depth - 1) + 1;
+-	sess->mem_bits = (MAX_IMM_PAYL_BITS - chunk_bits);
++	srv_path->mem_bits = (MAX_IMM_PAYL_BITS - chunk_bits);
+ 
  	return 0;
  }
  
--void rtrs_clt_set_max_reconnect_attempts(struct rtrs_clt *clt, int value)
-+void rtrs_clt_set_max_reconnect_attempts(struct rtrs_clt_sess *clt, int value)
+ static void rtrs_srv_hb_err_handler(struct rtrs_con *c)
  {
- 	clt->max_reconnect_attempts = (unsigned int)value;
+-	close_sess(to_srv_sess(c->path));
++	close_path(to_srv_path(c->path));
  }
  
--int rtrs_clt_get_max_reconnect_attempts(const struct rtrs_clt *clt)
-+int rtrs_clt_get_max_reconnect_attempts(const struct rtrs_clt_sess *clt)
+-static void rtrs_srv_init_hb(struct rtrs_srv_sess *sess)
++static void rtrs_srv_init_hb(struct rtrs_srv_path *srv_path)
  {
- 	return (int)clt->max_reconnect_attempts;
+-	rtrs_init_hb(&sess->s, &io_comp_cqe,
++	rtrs_init_hb(&srv_path->s, &io_comp_cqe,
+ 		      RTRS_HB_INTERVAL_MS,
+ 		      RTRS_HB_MISSED_MAX,
+ 		      rtrs_srv_hb_err_handler,
+ 		      rtrs_wq);
  }
-@@ -2985,9 +2987,9 @@ int rtrs_clt_get_max_reconnect_attempts(const struct rtrs_clt *clt)
-  * On dir=WRITE rtrs client will rdma write data in sg to server side.
+ 
+-static void rtrs_srv_start_hb(struct rtrs_srv_sess *sess)
++static void rtrs_srv_start_hb(struct rtrs_srv_path *srv_path)
+ {
+-	rtrs_start_hb(&sess->s);
++	rtrs_start_hb(&srv_path->s);
+ }
+ 
+-static void rtrs_srv_stop_hb(struct rtrs_srv_sess *sess)
++static void rtrs_srv_stop_hb(struct rtrs_srv_path *srv_path)
+ {
+-	rtrs_stop_hb(&sess->s);
++	rtrs_stop_hb(&srv_path->s);
+ }
+ 
+ static void rtrs_srv_info_rsp_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
+ 	struct rtrs_iu *iu;
+ 
+ 	iu = container_of(wc->wr_cqe, struct rtrs_iu, cqe);
+-	rtrs_iu_free(iu, sess->s.dev->ib_dev, 1);
++	rtrs_iu_free(iu, srv_path->s.dev->ib_dev, 1);
+ 
+ 	if (wc->status != IB_WC_SUCCESS) {
+ 		rtrs_err(s, "Sess info response send failed: %s\n",
+ 			  ib_wc_status_msg(wc->status));
+-		close_sess(sess);
++		close_path(srv_path);
+ 		return;
+ 	}
+ 	WARN_ON(wc->opcode != IB_WC_SEND);
+ }
+ 
+-static void rtrs_srv_sess_up(struct rtrs_srv_sess *sess)
++static void rtrs_srv_path_up(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv *srv = srv_path->srv;
+ 	struct rtrs_srv_ctx *ctx = srv->ctx;
+ 	int up;
+ 
+@@ -731,18 +734,18 @@ static void rtrs_srv_sess_up(struct rtrs_srv_sess *sess)
+ 	mutex_unlock(&srv->paths_ev_mutex);
+ 
+ 	/* Mark session as established */
+-	sess->established = true;
++	srv_path->established = true;
+ }
+ 
+-static void rtrs_srv_sess_down(struct rtrs_srv_sess *sess)
++static void rtrs_srv_path_down(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv *srv = srv_path->srv;
+ 	struct rtrs_srv_ctx *ctx = srv->ctx;
+ 
+-	if (!sess->established)
++	if (!srv_path->established)
+ 		return;
+ 
+-	sess->established = false;
++	srv_path->established = false;
+ 	mutex_lock(&srv->paths_ev_mutex);
+ 	WARN_ON(!srv->paths_up);
+ 	if (--srv->paths_up == 0)
+@@ -754,7 +757,7 @@ static bool exist_sessname(struct rtrs_srv_ctx *ctx,
+ 			   const char *sessname, const uuid_t *path_uuid)
+ {
+ 	struct rtrs_srv *srv;
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	bool found = false;
+ 
+ 	mutex_lock(&ctx->srv_mutex);
+@@ -767,9 +770,9 @@ static bool exist_sessname(struct rtrs_srv_ctx *ctx,
+ 			continue;
+ 		}
+ 
+-		list_for_each_entry(sess, &srv->paths_list, s.entry) {
+-			if (strlen(sess->s.sessname) == strlen(sessname) &&
+-			    !strcmp(sess->s.sessname, sessname)) {
++		list_for_each_entry(srv_path, &srv->paths_list, s.entry) {
++			if (strlen(srv_path->s.sessname) == strlen(sessname) &&
++			    !strcmp(srv_path->s.sessname, sessname)) {
+ 				found = true;
+ 				break;
+ 			}
+@@ -782,14 +785,14 @@ static bool exist_sessname(struct rtrs_srv_ctx *ctx,
+ 	return found;
+ }
+ 
+-static int post_recv_sess(struct rtrs_srv_sess *sess);
++static int post_recv_sess(struct rtrs_srv_path *srv_path);
+ static int rtrs_rdma_do_reject(struct rdma_cm_id *cm_id, int errno);
+ 
+ static int process_info_req(struct rtrs_srv_con *con,
+ 			    struct rtrs_msg_info_req *msg)
+ {
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
+ 	struct ib_send_wr *reg_wr = NULL;
+ 	struct rtrs_msg_info_rsp *rsp;
+ 	struct rtrs_iu *tx_iu;
+@@ -797,7 +800,7 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 	int mri, err;
+ 	size_t tx_sz;
+ 
+-	err = post_recv_sess(sess);
++	err = post_recv_sess(srv_path);
+ 	if (err) {
+ 		rtrs_err(s, "post_recv_sess(), err: %d\n", err);
+ 		return err;
+@@ -808,20 +811,21 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (exist_sessname(sess->srv->ctx,
+-			   msg->sessname, &sess->srv->paths_uuid)) {
++	if (exist_sessname(srv_path->srv->ctx,
++			   msg->sessname, &srv_path->srv->paths_uuid)) {
+ 		rtrs_err(s, "sessname is duplicated: %s\n", msg->sessname);
+ 		return -EPERM;
+ 	}
+-	strscpy(sess->s.sessname, msg->sessname, sizeof(sess->s.sessname));
++	strscpy(srv_path->s.sessname, msg->sessname,
++		sizeof(srv_path->s.sessname));
+ 
+-	rwr = kcalloc(sess->mrs_num, sizeof(*rwr), GFP_KERNEL);
++	rwr = kcalloc(srv_path->mrs_num, sizeof(*rwr), GFP_KERNEL);
+ 	if (!rwr)
+ 		return -ENOMEM;
+ 
+ 	tx_sz  = sizeof(*rsp);
+-	tx_sz += sizeof(rsp->desc[0]) * sess->mrs_num;
+-	tx_iu = rtrs_iu_alloc(1, tx_sz, GFP_KERNEL, sess->s.dev->ib_dev,
++	tx_sz += sizeof(rsp->desc[0]) * srv_path->mrs_num;
++	tx_iu = rtrs_iu_alloc(1, tx_sz, GFP_KERNEL, srv_path->s.dev->ib_dev,
+ 			       DMA_TO_DEVICE, rtrs_srv_info_rsp_done);
+ 	if (!tx_iu) {
+ 		err = -ENOMEM;
+@@ -830,10 +834,10 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 
+ 	rsp = tx_iu->buf;
+ 	rsp->type = cpu_to_le16(RTRS_MSG_INFO_RSP);
+-	rsp->sg_cnt = cpu_to_le16(sess->mrs_num);
++	rsp->sg_cnt = cpu_to_le16(srv_path->mrs_num);
+ 
+-	for (mri = 0; mri < sess->mrs_num; mri++) {
+-		struct ib_mr *mr = sess->mrs[mri].mr;
++	for (mri = 0; mri < srv_path->mrs_num; mri++) {
++		struct ib_mr *mr = srv_path->mrs[mri].mr;
+ 
+ 		rsp->desc[mri].addr = cpu_to_le64(mr->iova);
+ 		rsp->desc[mri].key  = cpu_to_le32(mr->rkey);
+@@ -854,13 +858,13 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 		reg_wr = &rwr[mri].wr;
+ 	}
+ 
+-	err = rtrs_srv_create_sess_files(sess);
++	err = rtrs_srv_create_path_files(srv_path);
+ 	if (err)
+ 		goto iu_free;
+-	kobject_get(&sess->kobj);
+-	get_device(&sess->srv->dev);
+-	rtrs_srv_change_state(sess, RTRS_SRV_CONNECTED);
+-	rtrs_srv_start_hb(sess);
++	kobject_get(&srv_path->kobj);
++	get_device(&srv_path->srv->dev);
++	rtrs_srv_change_state(srv_path, RTRS_SRV_CONNECTED);
++	rtrs_srv_start_hb(srv_path);
+ 
+ 	/*
+ 	 * We do not account number of established connections at the current
+@@ -868,9 +872,10 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 	 * all connections are successfully established.  Thus, simply notify
+ 	 * listener with a proper event if we are the first path.
+ 	 */
+-	rtrs_srv_sess_up(sess);
++	rtrs_srv_path_up(srv_path);
+ 
+-	ib_dma_sync_single_for_device(sess->s.dev->ib_dev, tx_iu->dma_addr,
++	ib_dma_sync_single_for_device(srv_path->s.dev->ib_dev,
++				      tx_iu->dma_addr,
+ 				      tx_iu->size, DMA_TO_DEVICE);
+ 
+ 	/* Send info response */
+@@ -878,7 +883,7 @@ static int process_info_req(struct rtrs_srv_con *con,
+ 	if (err) {
+ 		rtrs_err(s, "rtrs_iu_post_send(), err: %d\n", err);
+ iu_free:
+-		rtrs_iu_free(tx_iu, sess->s.dev->ib_dev, 1);
++		rtrs_iu_free(tx_iu, srv_path->s.dev->ib_dev, 1);
+ 	}
+ rwr_free:
+ 	kfree(rwr);
+@@ -890,7 +895,7 @@ static void rtrs_srv_info_req_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
+ 	struct rtrs_msg_info_req *msg;
+ 	struct rtrs_iu *iu;
+ 	int err;
+@@ -910,7 +915,7 @@ static void rtrs_srv_info_req_done(struct ib_cq *cq, struct ib_wc *wc)
+ 			  wc->byte_len);
+ 		goto close;
+ 	}
+-	ib_dma_sync_single_for_cpu(sess->s.dev->ib_dev, iu->dma_addr,
++	ib_dma_sync_single_for_cpu(srv_path->s.dev->ib_dev, iu->dma_addr,
+ 				   iu->size, DMA_FROM_DEVICE);
+ 	msg = iu->buf;
+ 	if (le16_to_cpu(msg->type) != RTRS_MSG_INFO_REQ) {
+@@ -923,22 +928,22 @@ static void rtrs_srv_info_req_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		goto close;
+ 
+ out:
+-	rtrs_iu_free(iu, sess->s.dev->ib_dev, 1);
++	rtrs_iu_free(iu, srv_path->s.dev->ib_dev, 1);
+ 	return;
+ close:
+-	close_sess(sess);
++	close_path(srv_path);
+ 	goto out;
+ }
+ 
+ static int post_recv_info_req(struct rtrs_srv_con *con)
+ {
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
+ 	struct rtrs_iu *rx_iu;
+ 	int err;
+ 
+ 	rx_iu = rtrs_iu_alloc(1, sizeof(struct rtrs_msg_info_req),
+-			       GFP_KERNEL, sess->s.dev->ib_dev,
++			       GFP_KERNEL, srv_path->s.dev->ib_dev,
+ 			       DMA_FROM_DEVICE, rtrs_srv_info_req_done);
+ 	if (!rx_iu)
+ 		return -ENOMEM;
+@@ -946,7 +951,7 @@ static int post_recv_info_req(struct rtrs_srv_con *con)
+ 	err = rtrs_iu_post_recv(&con->c, rx_iu);
+ 	if (err) {
+ 		rtrs_err(s, "rtrs_iu_post_recv(), err: %d\n", err);
+-		rtrs_iu_free(rx_iu, sess->s.dev->ib_dev, 1);
++		rtrs_iu_free(rx_iu, srv_path->s.dev->ib_dev, 1);
+ 		return err;
+ 	}
+ 
+@@ -966,20 +971,20 @@ static int post_recv_io(struct rtrs_srv_con *con, size_t q_size)
+ 	return 0;
+ }
+ 
+-static int post_recv_sess(struct rtrs_srv_sess *sess)
++static int post_recv_sess(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
+-	struct rtrs_path *s = &sess->s;
++	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_path *s = &srv_path->s;
+ 	size_t q_size;
+ 	int err, cid;
+ 
+-	for (cid = 0; cid < sess->s.con_num; cid++) {
++	for (cid = 0; cid < srv_path->s.con_num; cid++) {
+ 		if (cid == 0)
+ 			q_size = SERVICE_CON_QUEUE_DEPTH;
+ 		else
+ 			q_size = srv->queue_depth;
+ 
+-		err = post_recv_io(to_srv_con(sess->s.con[cid]), q_size);
++		err = post_recv_io(to_srv_con(srv_path->s.con[cid]), q_size);
+ 		if (err) {
+ 			rtrs_err(s, "post_recv_io(), err: %d\n", err);
+ 			return err;
+@@ -994,8 +999,8 @@ static void process_read(struct rtrs_srv_con *con,
+ 			 u32 buf_id, u32 off)
+ {
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
++	struct rtrs_srv *srv = srv_path->srv;
+ 	struct rtrs_srv_ctx *ctx = srv->ctx;
+ 	struct rtrs_srv_op *id;
+ 
+@@ -1003,10 +1008,10 @@ static void process_read(struct rtrs_srv_con *con,
+ 	void *data;
+ 	int ret;
+ 
+-	if (sess->state != RTRS_SRV_CONNECTED) {
++	if (srv_path->state != RTRS_SRV_CONNECTED) {
+ 		rtrs_err_rl(s,
+ 			     "Processing read request failed,  session is disconnected, sess state %s\n",
+-			     rtrs_srv_state_str(sess->state));
++			     rtrs_srv_state_str(srv_path->state));
+ 		return;
+ 	}
+ 	if (msg->sg_cnt != 1 && msg->sg_cnt != 0) {
+@@ -1014,9 +1019,9 @@ static void process_read(struct rtrs_srv_con *con,
+ 			    "Processing read request failed, invalid message\n");
+ 		return;
+ 	}
+-	rtrs_srv_get_ops_ids(sess);
+-	rtrs_srv_update_rdma_stats(sess->stats, off, READ);
+-	id = sess->ops_ids[buf_id];
++	rtrs_srv_get_ops_ids(srv_path);
++	rtrs_srv_update_rdma_stats(srv_path->stats, off, READ);
++	id = srv_path->ops_ids[buf_id];
+ 	id->con		= con;
+ 	id->dir		= READ;
+ 	id->msg_id	= buf_id;
+@@ -1042,9 +1047,9 @@ static void process_read(struct rtrs_srv_con *con,
+ 		rtrs_err_rl(s,
+ 			     "Sending err msg for failed RDMA-Write-Req failed, msg_id %d, err: %d\n",
+ 			     buf_id, ret);
+-		close_sess(sess);
++		close_path(srv_path);
+ 	}
+-	rtrs_srv_put_ops_ids(sess);
++	rtrs_srv_put_ops_ids(srv_path);
+ }
+ 
+ static void process_write(struct rtrs_srv_con *con,
+@@ -1052,8 +1057,8 @@ static void process_write(struct rtrs_srv_con *con,
+ 			  u32 buf_id, u32 off)
+ {
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
++	struct rtrs_srv *srv = srv_path->srv;
+ 	struct rtrs_srv_ctx *ctx = srv->ctx;
+ 	struct rtrs_srv_op *id;
+ 
+@@ -1061,15 +1066,15 @@ static void process_write(struct rtrs_srv_con *con,
+ 	void *data;
+ 	int ret;
+ 
+-	if (sess->state != RTRS_SRV_CONNECTED) {
++	if (srv_path->state != RTRS_SRV_CONNECTED) {
+ 		rtrs_err_rl(s,
+ 			     "Processing write request failed,  session is disconnected, sess state %s\n",
+-			     rtrs_srv_state_str(sess->state));
++			     rtrs_srv_state_str(srv_path->state));
+ 		return;
+ 	}
+-	rtrs_srv_get_ops_ids(sess);
+-	rtrs_srv_update_rdma_stats(sess->stats, off, WRITE);
+-	id = sess->ops_ids[buf_id];
++	rtrs_srv_get_ops_ids(srv_path);
++	rtrs_srv_update_rdma_stats(srv_path->stats, off, WRITE);
++	id = srv_path->ops_ids[buf_id];
+ 	id->con    = con;
+ 	id->dir    = WRITE;
+ 	id->msg_id = buf_id;
+@@ -1094,20 +1099,21 @@ static void process_write(struct rtrs_srv_con *con,
+ 		rtrs_err_rl(s,
+ 			     "Processing write request failed, sending I/O response failed, msg_id %d, err: %d\n",
+ 			     buf_id, ret);
+-		close_sess(sess);
++		close_path(srv_path);
+ 	}
+-	rtrs_srv_put_ops_ids(sess);
++	rtrs_srv_put_ops_ids(srv_path);
+ }
+ 
+ static void process_io_req(struct rtrs_srv_con *con, void *msg,
+ 			   u32 id, u32 off)
+ {
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
+ 	struct rtrs_msg_rdma_hdr *hdr;
+ 	unsigned int type;
+ 
+-	ib_dma_sync_single_for_cpu(sess->s.dev->ib_dev, sess->dma_addr[id],
++	ib_dma_sync_single_for_cpu(srv_path->s.dev->ib_dev,
++				   srv_path->dma_addr[id],
+ 				   max_chunk_size, DMA_BIDIRECTIONAL);
+ 	hdr = msg;
+ 	type = le16_to_cpu(hdr->type);
+@@ -1129,7 +1135,7 @@ static void process_io_req(struct rtrs_srv_con *con, void *msg,
+ 	return;
+ 
+ err:
+-	close_sess(sess);
++	close_path(srv_path);
+ }
+ 
+ static void rtrs_srv_inv_rkey_done(struct ib_cq *cq, struct ib_wc *wc)
+@@ -1138,15 +1144,15 @@ static void rtrs_srv_inv_rkey_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		container_of(wc->wr_cqe, typeof(*mr), inv_cqe);
+ 	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
++	struct rtrs_srv *srv = srv_path->srv;
+ 	u32 msg_id, off;
+ 	void *data;
+ 
+ 	if (wc->status != IB_WC_SUCCESS) {
+ 		rtrs_err(s, "Failed IB_WR_LOCAL_INV: %s\n",
+ 			  ib_wc_status_msg(wc->status));
+-		close_sess(sess);
++		close_path(srv_path);
+ 	}
+ 	msg_id = mr->msg_id;
+ 	off = mr->msg_off;
+@@ -1195,8 +1201,8 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
+ 	struct rtrs_path *s = con->c.path;
+-	struct rtrs_srv_sess *sess = to_srv_sess(s);
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv_path *srv_path = to_srv_path(s);
++	struct rtrs_srv *srv = srv_path->srv;
+ 	u32 imm_type, imm_payload;
+ 	int err;
+ 
+@@ -1206,7 +1212,7 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+ 				  "%s (wr_cqe: %p, type: %d, vendor_err: 0x%x, len: %u)\n",
+ 				  ib_wc_status_msg(wc->status), wc->wr_cqe,
+ 				  wc->opcode, wc->vendor_err, wc->byte_len);
+-			close_sess(sess);
++			close_path(srv_path);
+ 		}
+ 		return;
+ 	}
+@@ -1222,7 +1228,7 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		err = rtrs_post_recv_empty(&con->c, &io_comp_cqe);
+ 		if (err) {
+ 			rtrs_err(s, "rtrs_post_recv(), err: %d\n", err);
+-			close_sess(sess);
++			close_path(srv_path);
+ 			break;
+ 		}
+ 		rtrs_from_imm(be32_to_cpu(wc->ex.imm_data),
+@@ -1231,16 +1237,16 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+ 			u32 msg_id, off;
+ 			void *data;
+ 
+-			msg_id = imm_payload >> sess->mem_bits;
+-			off = imm_payload & ((1 << sess->mem_bits) - 1);
++			msg_id = imm_payload >> srv_path->mem_bits;
++			off = imm_payload & ((1 << srv_path->mem_bits) - 1);
+ 			if (msg_id >= srv->queue_depth || off >= max_chunk_size) {
+ 				rtrs_err(s, "Wrong msg_id %u, off %u\n",
+ 					  msg_id, off);
+-				close_sess(sess);
++				close_path(srv_path);
+ 				return;
+ 			}
+ 			if (always_invalidate) {
+-				struct rtrs_srv_mr *mr = &sess->mrs[msg_id];
++				struct rtrs_srv_mr *mr = &srv_path->mrs[msg_id];
+ 
+ 				mr->msg_off = off;
+ 				mr->msg_id = msg_id;
+@@ -1248,7 +1254,7 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+ 				if (err) {
+ 					rtrs_err(s, "rtrs_post_recv(), err: %d\n",
+ 						  err);
+-					close_sess(sess);
++					close_path(srv_path);
+ 					break;
+ 				}
+ 			} else {
+@@ -1257,10 +1263,10 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+ 			}
+ 		} else if (imm_type == RTRS_HB_MSG_IMM) {
+ 			WARN_ON(con->c.cid);
+-			rtrs_send_hb_ack(&sess->s);
++			rtrs_send_hb_ack(&srv_path->s);
+ 		} else if (imm_type == RTRS_HB_ACK_IMM) {
+ 			WARN_ON(con->c.cid);
+-			sess->s.hb_missed_cnt = 0;
++			srv_path->s.hb_missed_cnt = 0;
+ 		} else {
+ 			rtrs_wrn(s, "Unknown IMM type %u\n", imm_type);
+ 		}
+@@ -1284,22 +1290,22 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+ }
+ 
+ /**
+- * rtrs_srv_get_sess_name() - Get rtrs_srv peer hostname.
++ * rtrs_srv_get_path_name() - Get rtrs_srv peer hostname.
+  * @srv:	Session
+  * @sessname:	Sessname buffer
+  * @len:	Length of sessname buffer
   */
- int rtrs_clt_request(int dir, struct rtrs_clt_req_ops *ops,
--		     struct rtrs_clt *clt, struct rtrs_permit *permit,
--		      const struct kvec *vec, size_t nr, size_t data_len,
--		      struct scatterlist *sg, unsigned int sg_cnt)
-+		     struct rtrs_clt_sess *clt, struct rtrs_permit *permit,
-+		     const struct kvec *vec, size_t nr, size_t data_len,
-+		     struct scatterlist *sg, unsigned int sg_cnt)
+-int rtrs_srv_get_sess_name(struct rtrs_srv *srv, char *sessname, size_t len)
++int rtrs_srv_get_path_name(struct rtrs_srv *srv, char *sessname, size_t len)
  {
- 	struct rtrs_clt_io_req *req;
- 	struct rtrs_clt_path *clt_path;
-@@ -3045,7 +3047,7 @@ int rtrs_clt_request(int dir, struct rtrs_clt_req_ops *ops,
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	int err = -ENOTCONN;
+ 
+ 	mutex_lock(&srv->paths_mutex);
+-	list_for_each_entry(sess, &srv->paths_list, s.entry) {
+-		if (sess->state != RTRS_SRV_CONNECTED)
++	list_for_each_entry(srv_path, &srv->paths_list, s.entry) {
++		if (srv_path->state != RTRS_SRV_CONNECTED)
+ 			continue;
+-		strscpy(sessname, sess->s.sessname,
+-		       min_t(size_t, sizeof(sess->s.sessname), len));
++		strscpy(sessname, srv_path->s.sessname,
++			min_t(size_t, sizeof(srv_path->s.sessname), len));
+ 		err = 0;
+ 		break;
+ 	}
+@@ -1307,7 +1313,7 @@ int rtrs_srv_get_sess_name(struct rtrs_srv *srv, char *sessname, size_t len)
+ 
+ 	return err;
  }
- EXPORT_SYMBOL(rtrs_clt_request);
+-EXPORT_SYMBOL(rtrs_srv_get_sess_name);
++EXPORT_SYMBOL(rtrs_srv_get_path_name);
  
--int rtrs_clt_rdma_cq_direct(struct rtrs_clt *clt, unsigned int index)
-+int rtrs_clt_rdma_cq_direct(struct rtrs_clt_sess *clt, unsigned int index)
- {
- 	/* If no path, return -1 for block layer not to try again */
- 	int cnt = -1;
-@@ -3079,7 +3081,7 @@ EXPORT_SYMBOL(rtrs_clt_rdma_cq_direct);
-  *    0 on success
-  *    -ECOMM		no connection to the server
-  */
--int rtrs_clt_query(struct rtrs_clt *clt, struct rtrs_attrs *attr)
-+int rtrs_clt_query(struct rtrs_clt_sess *clt, struct rtrs_attrs *attr)
- {
- 	if (!rtrs_clt_is_connected(clt))
- 		return -ECOMM;
-@@ -3094,7 +3096,7 @@ int rtrs_clt_query(struct rtrs_clt *clt, struct rtrs_attrs *attr)
+ /**
+  * rtrs_srv_get_queue_depth() - Get rtrs_srv qdepth.
+@@ -1319,22 +1325,22 @@ int rtrs_srv_get_queue_depth(struct rtrs_srv *srv)
  }
- EXPORT_SYMBOL(rtrs_clt_query);
+ EXPORT_SYMBOL(rtrs_srv_get_queue_depth);
  
--int rtrs_clt_create_path_from_sysfs(struct rtrs_clt *clt,
-+int rtrs_clt_create_path_from_sysfs(struct rtrs_clt_sess *clt,
- 				     struct rtrs_addr *addr)
+-static int find_next_bit_ring(struct rtrs_srv_sess *sess)
++static int find_next_bit_ring(struct rtrs_srv_path *srv_path)
  {
- 	struct rtrs_clt_path *clt_path;
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.h b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-index 899ea6e36462..d1b18a154ae0 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.h
-@@ -126,7 +126,7 @@ struct rtrs_rbuf {
+-	struct ib_device *ib_dev = sess->s.dev->ib_dev;
++	struct ib_device *ib_dev = srv_path->s.dev->ib_dev;
+ 	int v;
  
- struct rtrs_clt_path {
- 	struct rtrs_path	s;
--	struct rtrs_clt	*clt;
-+	struct rtrs_clt_sess	*clt;
- 	wait_queue_head_t	state_wq;
- 	enum rtrs_clt_state	state;
- 	atomic_t		connected_cnt;
-@@ -153,7 +153,7 @@ struct rtrs_clt_path {
- 				*mp_skip_entry;
+-	v = cpumask_next(sess->cur_cq_vector, &cq_affinity_mask);
++	v = cpumask_next(srv_path->cur_cq_vector, &cq_affinity_mask);
+ 	if (v >= nr_cpu_ids || v >= ib_dev->num_comp_vectors)
+ 		v = cpumask_first(&cq_affinity_mask);
+ 	return v;
+ }
+ 
+-static int rtrs_srv_get_next_cq_vector(struct rtrs_srv_sess *sess)
++static int rtrs_srv_get_next_cq_vector(struct rtrs_srv_path *srv_path)
+ {
+-	sess->cur_cq_vector = find_next_bit_ring(sess);
++	srv_path->cur_cq_vector = find_next_bit_ring(srv_path);
+ 
+-	return sess->cur_cq_vector;
++	return srv_path->cur_cq_vector;
+ }
+ 
+ static void rtrs_srv_dev_release(struct device *dev)
+@@ -1439,22 +1445,22 @@ static void put_srv(struct rtrs_srv *srv)
+ }
+ 
+ static void __add_path_to_srv(struct rtrs_srv *srv,
+-			      struct rtrs_srv_sess *sess)
++			      struct rtrs_srv_path *srv_path)
+ {
+-	list_add_tail(&sess->s.entry, &srv->paths_list);
++	list_add_tail(&srv_path->s.entry, &srv->paths_list);
+ 	srv->paths_num++;
+ 	WARN_ON(srv->paths_num >= MAX_PATHS_NUM);
+ }
+ 
+-static void del_path_from_srv(struct rtrs_srv_sess *sess)
++static void del_path_from_srv(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv *srv = srv_path->srv;
+ 
+ 	if (WARN_ON(!srv))
+ 		return;
+ 
+ 	mutex_lock(&srv->paths_mutex);
+-	list_del(&sess->s.entry);
++	list_del(&srv_path->s.entry);
+ 	WARN_ON(!srv->paths_num);
+ 	srv->paths_num--;
+ 	mutex_unlock(&srv->paths_mutex);
+@@ -1487,44 +1493,44 @@ static int sockaddr_cmp(const struct sockaddr *a, const struct sockaddr *b)
+ static bool __is_path_w_addr_exists(struct rtrs_srv *srv,
+ 				    struct rdma_addr *addr)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 
+-	list_for_each_entry(sess, &srv->paths_list, s.entry)
+-		if (!sockaddr_cmp((struct sockaddr *)&sess->s.dst_addr,
++	list_for_each_entry(srv_path, &srv->paths_list, s.entry)
++		if (!sockaddr_cmp((struct sockaddr *)&srv_path->s.dst_addr,
+ 				  (struct sockaddr *)&addr->dst_addr) &&
+-		    !sockaddr_cmp((struct sockaddr *)&sess->s.src_addr,
++		    !sockaddr_cmp((struct sockaddr *)&srv_path->s.src_addr,
+ 				  (struct sockaddr *)&addr->src_addr))
+ 			return true;
+ 
+ 	return false;
+ }
+ 
+-static void free_sess(struct rtrs_srv_sess *sess)
++static void free_path(struct rtrs_srv_path *srv_path)
+ {
+-	if (sess->kobj.state_in_sysfs) {
+-		kobject_del(&sess->kobj);
+-		kobject_put(&sess->kobj);
++	if (srv_path->kobj.state_in_sysfs) {
++		kobject_del(&srv_path->kobj);
++		kobject_put(&srv_path->kobj);
+ 	} else {
+-		kfree(sess->stats);
+-		kfree(sess);
++		kfree(srv_path->stats);
++		kfree(srv_path);
+ 	}
+ }
+ 
+ static void rtrs_srv_close_work(struct work_struct *work)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	struct rtrs_srv_con *con;
+ 	int i;
+ 
+-	sess = container_of(work, typeof(*sess), close_work);
++	srv_path = container_of(work, typeof(*srv_path), close_work);
+ 
+-	rtrs_srv_destroy_sess_files(sess);
+-	rtrs_srv_stop_hb(sess);
++	rtrs_srv_destroy_path_files(srv_path);
++	rtrs_srv_stop_hb(srv_path);
+ 
+-	for (i = 0; i < sess->s.con_num; i++) {
+-		if (!sess->s.con[i])
++	for (i = 0; i < srv_path->s.con_num; i++) {
++		if (!srv_path->s.con[i])
+ 			continue;
+-		con = to_srv_con(sess->s.con[i]);
++		con = to_srv_con(srv_path->s.con[i]);
+ 		rdma_disconnect(con->c.cm_id);
+ 		ib_drain_qp(con->c.qp);
+ 	}
+@@ -1533,41 +1539,41 @@ static void rtrs_srv_close_work(struct work_struct *work)
+ 	 * Degrade ref count to the usual model with a single shared
+ 	 * atomic_t counter
+ 	 */
+-	percpu_ref_kill(&sess->ids_inflight_ref);
++	percpu_ref_kill(&srv_path->ids_inflight_ref);
+ 
+ 	/* Wait for all completion */
+-	wait_for_completion(&sess->complete_done);
++	wait_for_completion(&srv_path->complete_done);
+ 
+ 	/* Notify upper layer if we are the last path */
+-	rtrs_srv_sess_down(sess);
++	rtrs_srv_path_down(srv_path);
+ 
+-	unmap_cont_bufs(sess);
+-	rtrs_srv_free_ops_ids(sess);
++	unmap_cont_bufs(srv_path);
++	rtrs_srv_free_ops_ids(srv_path);
+ 
+-	for (i = 0; i < sess->s.con_num; i++) {
+-		if (!sess->s.con[i])
++	for (i = 0; i < srv_path->s.con_num; i++) {
++		if (!srv_path->s.con[i])
+ 			continue;
+-		con = to_srv_con(sess->s.con[i]);
++		con = to_srv_con(srv_path->s.con[i]);
+ 		rtrs_cq_qp_destroy(&con->c);
+ 		rdma_destroy_id(con->c.cm_id);
+ 		kfree(con);
+ 	}
+-	rtrs_ib_dev_put(sess->s.dev);
++	rtrs_ib_dev_put(srv_path->s.dev);
+ 
+-	del_path_from_srv(sess);
+-	put_srv(sess->srv);
+-	sess->srv = NULL;
+-	rtrs_srv_change_state(sess, RTRS_SRV_CLOSED);
++	del_path_from_srv(srv_path);
++	put_srv(srv_path->srv);
++	srv_path->srv = NULL;
++	rtrs_srv_change_state(srv_path, RTRS_SRV_CLOSED);
+ 
+-	kfree(sess->dma_addr);
+-	kfree(sess->s.con);
+-	free_sess(sess);
++	kfree(srv_path->dma_addr);
++	kfree(srv_path->s.con);
++	free_path(srv_path);
+ }
+ 
+-static int rtrs_rdma_do_accept(struct rtrs_srv_sess *sess,
++static int rtrs_rdma_do_accept(struct rtrs_srv_path *srv_path,
+ 			       struct rdma_cm_id *cm_id)
+ {
+-	struct rtrs_srv *srv = sess->srv;
++	struct rtrs_srv *srv = srv_path->srv;
+ 	struct rtrs_msg_conn_rsp msg;
+ 	struct rdma_conn_param param;
+ 	int err;
+@@ -1615,25 +1621,25 @@ static int rtrs_rdma_do_reject(struct rdma_cm_id *cm_id, int errno)
+ 	return errno;
+ }
+ 
+-static struct rtrs_srv_sess *
+-__find_sess(struct rtrs_srv *srv, const uuid_t *sess_uuid)
++static struct rtrs_srv_path *
++__find_path(struct rtrs_srv *srv, const uuid_t *sess_uuid)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 
+-	list_for_each_entry(sess, &srv->paths_list, s.entry) {
+-		if (uuid_equal(&sess->s.uuid, sess_uuid))
+-			return sess;
++	list_for_each_entry(srv_path, &srv->paths_list, s.entry) {
++		if (uuid_equal(&srv_path->s.uuid, sess_uuid))
++			return srv_path;
+ 	}
+ 
+ 	return NULL;
+ }
+ 
+-static int create_con(struct rtrs_srv_sess *sess,
++static int create_con(struct rtrs_srv_path *srv_path,
+ 		      struct rdma_cm_id *cm_id,
+ 		      unsigned int cid)
+ {
+-	struct rtrs_srv *srv = sess->srv;
+-	struct rtrs_path *s = &sess->s;
++	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_path *s = &srv_path->s;
+ 	struct rtrs_srv_con *con;
+ 
+ 	u32 cq_num, max_send_wr, max_recv_wr, wr_limit;
+@@ -1648,10 +1654,10 @@ static int create_con(struct rtrs_srv_sess *sess,
+ 	spin_lock_init(&con->rsp_wr_wait_lock);
+ 	INIT_LIST_HEAD(&con->rsp_wr_wait_list);
+ 	con->c.cm_id = cm_id;
+-	con->c.path = &sess->s;
++	con->c.path = &srv_path->s;
+ 	con->c.cid = cid;
+ 	atomic_set(&con->c.wr_cnt, 1);
+-	wr_limit = sess->s.dev->ib_dev->attrs.max_qp_wr;
++	wr_limit = srv_path->s.dev->ib_dev->attrs.max_qp_wr;
+ 
+ 	if (con->c.cid == 0) {
+ 		/*
+@@ -1684,10 +1690,10 @@ static int create_con(struct rtrs_srv_sess *sess,
+ 	}
+ 	cq_num = max_send_wr + max_recv_wr;
+ 	atomic_set(&con->c.sq_wr_avail, max_send_wr);
+-	cq_vector = rtrs_srv_get_next_cq_vector(sess);
++	cq_vector = rtrs_srv_get_next_cq_vector(srv_path);
+ 
+ 	/* TODO: SOFTIRQ can be faster, but be careful with softirq context */
+-	err = rtrs_cq_qp_create(&sess->s, &con->c, 1, cq_vector, cq_num,
++	err = rtrs_cq_qp_create(&srv_path->s, &con->c, 1, cq_vector, cq_num,
+ 				 max_send_wr, max_recv_wr,
+ 				 IB_POLL_WORKQUEUE);
+ 	if (err) {
+@@ -1699,8 +1705,8 @@ static int create_con(struct rtrs_srv_sess *sess,
+ 		if (err)
+ 			goto free_cqqp;
+ 	}
+-	WARN_ON(sess->s.con[cid]);
+-	sess->s.con[cid] = &con->c;
++	WARN_ON(srv_path->s.con[cid]);
++	srv_path->s.con[cid] = &con->c;
+ 
+ 	/*
+ 	 * Change context from server to current connection.  The other
+@@ -1719,13 +1725,13 @@ static int create_con(struct rtrs_srv_sess *sess,
+ 	return err;
+ }
+ 
+-static struct rtrs_srv_sess *__alloc_sess(struct rtrs_srv *srv,
++static struct rtrs_srv_path *__alloc_path(struct rtrs_srv *srv,
+ 					   struct rdma_cm_id *cm_id,
+ 					   unsigned int con_num,
+ 					   unsigned int recon_cnt,
+ 					   const uuid_t *uuid)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	int err = -ENOMEM;
+ 	char str[NAME_MAX];
+ 	struct rtrs_addr path;
+@@ -1739,74 +1745,76 @@ static struct rtrs_srv_sess *__alloc_sess(struct rtrs_srv *srv,
+ 		pr_err("Path with same addr exists\n");
+ 		goto err;
+ 	}
+-	sess = kzalloc(sizeof(*sess), GFP_KERNEL);
+-	if (!sess)
++	srv_path = kzalloc(sizeof(*srv_path), GFP_KERNEL);
++	if (!srv_path)
+ 		goto err;
+ 
+-	sess->stats = kzalloc(sizeof(*sess->stats), GFP_KERNEL);
+-	if (!sess->stats)
++	srv_path->stats = kzalloc(sizeof(*srv_path->stats), GFP_KERNEL);
++	if (!srv_path->stats)
+ 		goto err_free_sess;
+ 
+-	sess->stats->sess = sess;
++	srv_path->stats->srv_path = srv_path;
+ 
+-	sess->dma_addr = kcalloc(srv->queue_depth, sizeof(*sess->dma_addr),
+-				 GFP_KERNEL);
+-	if (!sess->dma_addr)
++	srv_path->dma_addr = kcalloc(srv->queue_depth,
++				     sizeof(*srv_path->dma_addr),
++				     GFP_KERNEL);
++	if (!srv_path->dma_addr)
+ 		goto err_free_stats;
+ 
+-	sess->s.con = kcalloc(con_num, sizeof(*sess->s.con), GFP_KERNEL);
+-	if (!sess->s.con)
++	srv_path->s.con = kcalloc(con_num, sizeof(*srv_path->s.con),
++				  GFP_KERNEL);
++	if (!srv_path->s.con)
+ 		goto err_free_dma_addr;
+ 
+-	sess->state = RTRS_SRV_CONNECTING;
+-	sess->srv = srv;
+-	sess->cur_cq_vector = -1;
+-	sess->s.dst_addr = cm_id->route.addr.dst_addr;
+-	sess->s.src_addr = cm_id->route.addr.src_addr;
++	srv_path->state = RTRS_SRV_CONNECTING;
++	srv_path->srv = srv;
++	srv_path->cur_cq_vector = -1;
++	srv_path->s.dst_addr = cm_id->route.addr.dst_addr;
++	srv_path->s.src_addr = cm_id->route.addr.src_addr;
+ 
+ 	/* temporary until receiving session-name from client */
+-	path.src = &sess->s.src_addr;
+-	path.dst = &sess->s.dst_addr;
++	path.src = &srv_path->s.src_addr;
++	path.dst = &srv_path->s.dst_addr;
+ 	rtrs_addr_to_str(&path, str, sizeof(str));
+-	strscpy(sess->s.sessname, str, sizeof(sess->s.sessname));
+-
+-	sess->s.con_num = con_num;
+-	sess->s.irq_con_num = con_num;
+-	sess->s.recon_cnt = recon_cnt;
+-	uuid_copy(&sess->s.uuid, uuid);
+-	spin_lock_init(&sess->state_lock);
+-	INIT_WORK(&sess->close_work, rtrs_srv_close_work);
+-	rtrs_srv_init_hb(sess);
+-
+-	sess->s.dev = rtrs_ib_dev_find_or_add(cm_id->device, &dev_pd);
+-	if (!sess->s.dev) {
++	strscpy(srv_path->s.sessname, str, sizeof(srv_path->s.sessname));
++
++	srv_path->s.con_num = con_num;
++	srv_path->s.irq_con_num = con_num;
++	srv_path->s.recon_cnt = recon_cnt;
++	uuid_copy(&srv_path->s.uuid, uuid);
++	spin_lock_init(&srv_path->state_lock);
++	INIT_WORK(&srv_path->close_work, rtrs_srv_close_work);
++	rtrs_srv_init_hb(srv_path);
++
++	srv_path->s.dev = rtrs_ib_dev_find_or_add(cm_id->device, &dev_pd);
++	if (!srv_path->s.dev) {
+ 		err = -ENOMEM;
+ 		goto err_free_con;
+ 	}
+-	err = map_cont_bufs(sess);
++	err = map_cont_bufs(srv_path);
+ 	if (err)
+ 		goto err_put_dev;
+ 
+-	err = rtrs_srv_alloc_ops_ids(sess);
++	err = rtrs_srv_alloc_ops_ids(srv_path);
+ 	if (err)
+ 		goto err_unmap_bufs;
+ 
+-	__add_path_to_srv(srv, sess);
++	__add_path_to_srv(srv, srv_path);
+ 
+-	return sess;
++	return srv_path;
+ 
+ err_unmap_bufs:
+-	unmap_cont_bufs(sess);
++	unmap_cont_bufs(srv_path);
+ err_put_dev:
+-	rtrs_ib_dev_put(sess->s.dev);
++	rtrs_ib_dev_put(srv_path->s.dev);
+ err_free_con:
+-	kfree(sess->s.con);
++	kfree(srv_path->s.con);
+ err_free_dma_addr:
+-	kfree(sess->dma_addr);
++	kfree(srv_path->dma_addr);
+ err_free_stats:
+-	kfree(sess->stats);
++	kfree(srv_path->stats);
+ err_free_sess:
+-	kfree(sess);
++	kfree(srv_path);
+ err:
+ 	return ERR_PTR(err);
+ }
+@@ -1816,7 +1824,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ 			      size_t len)
+ {
+ 	struct rtrs_srv_ctx *ctx = cm_id->context;
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 	struct rtrs_srv *srv;
+ 
+ 	u16 version, con_num, cid;
+@@ -1857,16 +1865,16 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ 		goto reject_w_err;
+ 	}
+ 	mutex_lock(&srv->paths_mutex);
+-	sess = __find_sess(srv, &msg->sess_uuid);
+-	if (sess) {
+-		struct rtrs_path *s = &sess->s;
++	srv_path = __find_path(srv, &msg->sess_uuid);
++	if (srv_path) {
++		struct rtrs_path *s = &srv_path->s;
+ 
+ 		/* Session already holds a reference */
+ 		put_srv(srv);
+ 
+-		if (sess->state != RTRS_SRV_CONNECTING) {
++		if (srv_path->state != RTRS_SRV_CONNECTING) {
+ 			rtrs_err(s, "Session in wrong state: %s\n",
+-				  rtrs_srv_state_str(sess->state));
++				  rtrs_srv_state_str(srv_path->state));
+ 			mutex_unlock(&srv->paths_mutex);
+ 			goto reject_w_err;
+ 		}
+@@ -1886,19 +1894,19 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ 			goto reject_w_err;
+ 		}
+ 	} else {
+-		sess = __alloc_sess(srv, cm_id, con_num, recon_cnt,
++		srv_path = __alloc_path(srv, cm_id, con_num, recon_cnt,
+ 				    &msg->sess_uuid);
+-		if (IS_ERR(sess)) {
++		if (IS_ERR(srv_path)) {
+ 			mutex_unlock(&srv->paths_mutex);
+ 			put_srv(srv);
+-			err = PTR_ERR(sess);
++			err = PTR_ERR(srv_path);
+ 			pr_err("RTRS server session allocation failed: %d\n", err);
+ 			goto reject_w_err;
+ 		}
+ 	}
+-	err = create_con(sess, cm_id, cid);
++	err = create_con(srv_path, cm_id, cid);
+ 	if (err) {
+-		rtrs_err((&sess->s), "create_con(), error %d\n", err);
++		rtrs_err((&srv_path->s), "create_con(), error %d\n", err);
+ 		rtrs_rdma_do_reject(cm_id, err);
+ 		/*
+ 		 * Since session has other connections we follow normal way
+@@ -1907,9 +1915,9 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ 		 */
+ 		goto close_and_return_err;
+ 	}
+-	err = rtrs_rdma_do_accept(sess, cm_id);
++	err = rtrs_rdma_do_accept(srv_path, cm_id);
+ 	if (err) {
+-		rtrs_err((&sess->s), "rtrs_rdma_do_accept(), error %d\n", err);
++		rtrs_err((&srv_path->s), "rtrs_rdma_do_accept(), error %d\n", err);
+ 		rtrs_rdma_do_reject(cm_id, err);
+ 		/*
+ 		 * Since current connection was successfully added to the
+@@ -1929,7 +1937,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ 
+ close_and_return_err:
+ 	mutex_unlock(&srv->paths_mutex);
+-	close_sess(sess);
++	close_path(srv_path);
+ 
+ 	return err;
+ }
+@@ -1937,14 +1945,14 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
+ static int rtrs_srv_rdma_cm_handler(struct rdma_cm_id *cm_id,
+ 				     struct rdma_cm_event *ev)
+ {
+-	struct rtrs_srv_sess *sess = NULL;
++	struct rtrs_srv_path *srv_path = NULL;
+ 	struct rtrs_path *s = NULL;
+ 
+ 	if (ev->event != RDMA_CM_EVENT_CONNECT_REQUEST) {
+ 		struct rtrs_con *c = cm_id->context;
+ 
+ 		s = c->path;
+-		sess = to_srv_sess(s);
++		srv_path = to_srv_path(s);
+ 	}
+ 
+ 	switch (ev->event) {
+@@ -1968,7 +1976,7 @@ static int rtrs_srv_rdma_cm_handler(struct rdma_cm_id *cm_id,
+ 	case RDMA_CM_EVENT_ADDR_CHANGE:
+ 	case RDMA_CM_EVENT_TIMEWAIT_EXIT:
+ 	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+-		close_sess(sess);
++		close_path(srv_path);
+ 		break;
+ 	default:
+ 		pr_err("Ignoring unexpected CM event %s, err %d\n",
+@@ -2176,13 +2184,13 @@ struct rtrs_srv_ctx *rtrs_srv_open(struct rtrs_srv_ops *ops, u16 port)
+ }
+ EXPORT_SYMBOL(rtrs_srv_open);
+ 
+-static void close_sessions(struct rtrs_srv *srv)
++static void close_paths(struct rtrs_srv *srv)
+ {
+-	struct rtrs_srv_sess *sess;
++	struct rtrs_srv_path *srv_path;
+ 
+ 	mutex_lock(&srv->paths_mutex);
+-	list_for_each_entry(sess, &srv->paths_list, s.entry)
+-		close_sess(sess);
++	list_for_each_entry(srv_path, &srv->paths_list, s.entry)
++		close_path(srv_path);
+ 	mutex_unlock(&srv->paths_mutex);
+ }
+ 
+@@ -2192,7 +2200,7 @@ static void close_ctx(struct rtrs_srv_ctx *ctx)
+ 
+ 	mutex_lock(&ctx->srv_mutex);
+ 	list_for_each_entry(srv, &ctx->srv_list, ctx_list)
+-		close_sessions(srv);
++		close_paths(srv);
+ 	mutex_unlock(&ctx->srv_mutex);
+ 	flush_workqueue(rtrs_wq);
+ }
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.h b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
+index c2c08ec8d9e8..6119e6708080 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.h
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
+@@ -37,7 +37,7 @@ struct rtrs_srv_stats_rdma_stats {
+ struct rtrs_srv_stats {
+ 	struct kobject				kobj_stats;
+ 	struct rtrs_srv_stats_rdma_stats	rdma_stats;
+-	struct rtrs_srv_sess			*sess;
++	struct rtrs_srv_path			*srv_path;
  };
  
--struct rtrs_clt {
-+struct rtrs_clt_sess {
- 	struct list_head	paths_list; /* rcu protected list */
- 	size_t			paths_num;
- 	struct rtrs_clt_path
-@@ -191,25 +191,26 @@ static inline struct rtrs_clt_path *to_clt_path(struct rtrs_path *s)
- 	return container_of(s, struct rtrs_clt_path, s);
- }
+ struct rtrs_srv_con {
+@@ -71,7 +71,7 @@ struct rtrs_srv_mr {
+ 	struct rtrs_iu	*iu;		/* send buffer for new rkey msg */
+ };
  
--static inline int permit_size(struct rtrs_clt *clt)
-+static inline int permit_size(struct rtrs_clt_sess *clt)
- {
- 	return sizeof(struct rtrs_permit) + clt->pdu_sz;
- }
+-struct rtrs_srv_sess {
++struct rtrs_srv_path {
+ 	struct rtrs_path	s;
+ 	struct rtrs_srv	*srv;
+ 	struct work_struct	close_work;
+@@ -125,7 +125,7 @@ struct rtrs_srv_ib_ctx {
  
--static inline struct rtrs_permit *get_permit(struct rtrs_clt *clt, int idx)
-+static inline struct rtrs_permit *get_permit(struct rtrs_clt_sess *clt,
-+					     int idx)
- {
- 	return (struct rtrs_permit *)(clt->permits + permit_size(clt) * idx);
- }
+ extern struct class *rtrs_dev_class;
  
- int rtrs_clt_reconnect_from_sysfs(struct rtrs_clt_path *path);
- void rtrs_clt_close_conns(struct rtrs_clt_path *clt_path, bool wait);
--int rtrs_clt_create_path_from_sysfs(struct rtrs_clt *clt,
-+int rtrs_clt_create_path_from_sysfs(struct rtrs_clt_sess *clt,
- 				     struct rtrs_addr *addr);
- int rtrs_clt_remove_path_from_sysfs(struct rtrs_clt_path *path,
- 				     const struct attribute *sysfs_self);
+-void close_sess(struct rtrs_srv_sess *sess);
++void close_path(struct rtrs_srv_path *srv_path);
  
--void rtrs_clt_set_max_reconnect_attempts(struct rtrs_clt *clt, int value);
--int rtrs_clt_get_max_reconnect_attempts(const struct rtrs_clt *clt);
-+void rtrs_clt_set_max_reconnect_attempts(struct rtrs_clt_sess *clt, int value);
-+int rtrs_clt_get_max_reconnect_attempts(const struct rtrs_clt_sess *clt);
- void free_path(struct rtrs_clt_path *clt_path);
+ static inline void rtrs_srv_update_rdma_stats(struct rtrs_srv_stats *s,
+ 					      size_t size, int d)
+@@ -142,7 +142,7 @@ ssize_t rtrs_srv_reset_all_help(struct rtrs_srv_stats *stats,
+ 				 char *page, size_t len);
  
- /* rtrs-clt-stats.c */
-@@ -239,8 +240,8 @@ ssize_t rtrs_clt_reset_all_help(struct rtrs_clt_stats *stats,
+ /* functions which are implemented in rtrs-srv-sysfs.c */
+-int rtrs_srv_create_sess_files(struct rtrs_srv_sess *sess);
+-void rtrs_srv_destroy_sess_files(struct rtrs_srv_sess *sess);
++int rtrs_srv_create_path_files(struct rtrs_srv_path *srv_path);
++void rtrs_srv_destroy_path_files(struct rtrs_srv_path *srv_path);
  
- /* rtrs-clt-sysfs.c */
- 
--int rtrs_clt_create_sysfs_root_files(struct rtrs_clt *clt);
--void rtrs_clt_destroy_sysfs_root(struct rtrs_clt *clt);
-+int rtrs_clt_create_sysfs_root_files(struct rtrs_clt_sess *clt);
-+void rtrs_clt_destroy_sysfs_root(struct rtrs_clt_sess *clt);
- 
- int rtrs_clt_create_path_files(struct rtrs_clt_path *clt_path);
- void rtrs_clt_destroy_path_files(struct rtrs_clt_path *clt_path,
+ #endif /* RTRS_SRV_H */
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs.h b/drivers/infiniband/ulp/rtrs/rtrs.h
-index 988688f93b62..e72e786c7013 100644
+index 859c79685daf..e28a53ff4b0b 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs.h
 +++ b/drivers/infiniband/ulp/rtrs/rtrs.h
-@@ -13,7 +13,7 @@
- #include <linux/scatterlist.h>
+@@ -175,7 +175,7 @@ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int errno);
  
- struct rtrs_permit;
--struct rtrs_clt;
-+struct rtrs_clt_sess;
- struct rtrs_srv_ctx;
- struct rtrs_srv_sess;
- struct rtrs_srv_op;
-@@ -52,14 +52,14 @@ struct rtrs_clt_ops {
- 	void	(*link_ev)(void *priv, enum rtrs_clt_link_ev ev);
- };
+ void rtrs_srv_set_sess_priv(struct rtrs_srv *sess, void *priv);
  
--struct rtrs_clt *rtrs_clt_open(struct rtrs_clt_ops *ops,
-+struct rtrs_clt_sess *rtrs_clt_open(struct rtrs_clt_ops *ops,
- 				 const char *pathname,
- 				 const struct rtrs_addr *paths,
- 				 size_t path_cnt, u16 port,
- 				 size_t pdu_sz, u8 reconnect_delay_sec,
- 				 s16 max_reconnect_attempts, u32 nr_poll_queues);
+-int rtrs_srv_get_sess_name(struct rtrs_srv *sess, char *sessname, size_t len);
++int rtrs_srv_get_path_name(struct rtrs_srv *sess, char *sessname, size_t len);
  
--void rtrs_clt_close(struct rtrs_clt *clt_path);
-+void rtrs_clt_close(struct rtrs_clt_sess *clt_path);
+ int rtrs_srv_get_queue_depth(struct rtrs_srv *sess);
  
- enum wait_type {
- 	RTRS_PERMIT_NOWAIT = 0,
-@@ -77,11 +77,12 @@ enum rtrs_clt_con_type {
- 	RTRS_IO_CON
- };
- 
--struct rtrs_permit *rtrs_clt_get_permit(struct rtrs_clt *sess,
--				    enum rtrs_clt_con_type con_type,
--				    enum wait_type wait);
-+struct rtrs_permit *rtrs_clt_get_permit(struct rtrs_clt_sess *sess,
-+					enum rtrs_clt_con_type con_type,
-+					enum wait_type wait);
- 
--void rtrs_clt_put_permit(struct rtrs_clt *sess, struct rtrs_permit *permit);
-+void rtrs_clt_put_permit(struct rtrs_clt_sess *sess,
-+			 struct rtrs_permit *permit);
- 
- /**
-  * rtrs_clt_req_ops - it holds the request confirmation callback
-@@ -98,10 +99,10 @@ struct rtrs_clt_req_ops {
- };
- 
- int rtrs_clt_request(int dir, struct rtrs_clt_req_ops *ops,
--		     struct rtrs_clt *sess, struct rtrs_permit *permit,
-+		     struct rtrs_clt_sess *sess, struct rtrs_permit *permit,
- 		     const struct kvec *vec, size_t nr, size_t len,
- 		     struct scatterlist *sg, unsigned int sg_cnt);
--int rtrs_clt_rdma_cq_direct(struct rtrs_clt *clt, unsigned int index);
-+int rtrs_clt_rdma_cq_direct(struct rtrs_clt_sess *clt, unsigned int index);
- 
- /**
-  * rtrs_attrs - RTRS session attributes
-@@ -112,7 +113,7 @@ struct rtrs_attrs {
- 	u32		max_segments;
- };
- 
--int rtrs_clt_query(struct rtrs_clt *sess, struct rtrs_attrs *attr);
-+int rtrs_clt_query(struct rtrs_clt_sess *sess, struct rtrs_attrs *attr);
- 
- /*
-  * Here goes RTRS server API
 -- 
 2.25.1
 
