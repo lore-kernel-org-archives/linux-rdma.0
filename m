@@ -2,83 +2,98 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 138ECC433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Dec 2021 18:46:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0F4AC433F5
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Dec 2021 19:34:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349882AbhLWSqF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Dec 2021 13:46:05 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:55950 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349869AbhLWSqF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Dec 2021 13:46:05 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 16417B8219E
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 18:46:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10FF4C36AE5;
-        Thu, 23 Dec 2021 18:46:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1640285162;
-        bh=k/+cwcugIJk1qTpCSozi9ivgMZsG/EXgK8KvFWqH5XU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Y76l749O0KnHvT05XU/KfEVLts3S45+cju3qXBDIorp4zrVR1nnY9HirESrNoJbF+
-         et6CEeoH/mZHw0r6SFo420OMbkoWZFvl0Wu+wuMW3G+YS18hoVFLS6+LKSPoD+oHl3
-         VS/DoUy3v7gQVUtvcsUDoF1jBnnddP6q4Bsn0AGmFYOmyMhyeeZsC8fU9GgdDICq7F
-         im3BRiXTzERWoN49X02nfNvt4l7CW2BIBOShsftuCc7qUx9h5HFDs6qalRRF9/HuRh
-         LF6N+YUWC9I4Cq8Ttb22XR7yW62wd5GyvtEqqR2JcDTgl18yGOKfCDkGZC1SLeb16+
-         G3wUYSkQ+TgBA==
-Date:   Thu, 23 Dec 2021 20:45:58 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Yanjun Zhu <yanjun.zhu@linux.dev>
-Cc:     Cheng Xu <chengyou@linux.alibaba.com>, jgg@ziepe.ca,
-        dledford@redhat.com, linux-rdma@vger.kernel.org,
-        KaiShen@linux.alibaba.com, tonylu@linux.alibaba.com
-Subject: Re: [PATCH rdma-next 10/11] RDMA/erdma: Add the ABI definitions
-Message-ID: <YcTD5jDwgDln4QBV@unreal>
-References: <20211221024858.25938-1-chengyou@linux.alibaba.com>
- <20211221024858.25938-11-chengyou@linux.alibaba.com>
- <c1893907-e8fb-1eec-9611-3f08d1b2a3c2@linux.dev>
+        id S1350096AbhLWTe7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Dec 2021 14:34:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58432 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1350022AbhLWTe6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Dec 2021 14:34:58 -0500
+Received: from mail-pl1-x62d.google.com (mail-pl1-x62d.google.com [IPv6:2607:f8b0:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E8ABC061401;
+        Thu, 23 Dec 2021 11:34:58 -0800 (PST)
+Received: by mail-pl1-x62d.google.com with SMTP id w24so5075240ply.12;
+        Thu, 23 Dec 2021 11:34:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:subject:from:to:date:in-reply-to:references:user-agent
+         :mime-version:content-transfer-encoding;
+        bh=gfqJf7SzIqbcHPeGopiBGrOBFpo1yLWHJgtQyrjtfMY=;
+        b=TcE1IvMrcW0NGYIvwnazCqtyBlz4RlhZYGOGu5TtQ20BhpOzZD57qxc1wuZzOqHIgY
+         X4+Jwa40ZqUzo/zGlhh8VHdPIRgleOaLLXhbqi0gv6YtxM54DBNwlZ947nvGKa0C75gd
+         +t1wkPQXiaS0167CMDjS+rc2b/Lj1UYOzGURWJfA+L6wmmzAxQ86bn40RHUSgf64mK0V
+         1CkxGBVV0KOP5P7KYrrddGRvTiVo4UFVZ1EQtON5dX5aQe8CYIxXuRSapZchWMiHYdQp
+         FxJEOsa4KWIZw/TzXN3FkVushZTQPipN3PowhfKbAd6bRLdOLrGNYyJ0jK7cemr7GgWZ
+         pLLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:subject:from:to:date:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=gfqJf7SzIqbcHPeGopiBGrOBFpo1yLWHJgtQyrjtfMY=;
+        b=mUUAAZRSo/qGNvJN2ouzTP+lvUiN0fs+iWMUL7gaRBKE4I5gkJf2KG8Qy0VE+Pn1MY
+         vnCVm4YSeyC3kzhto0CoZpsTBy/rA1QQPOi+6xCsFqWaB5VwNp69AZU4xNIKRrkh2ZJa
+         aTyOAWC64RmZIpzDYZuYnEH8qHeFBxGWF3+QasIg/7hvAbnshdu6xBabRbSkejhv3zxi
+         Unan3mC9ua2gSyyuCWhwfxz7x4gy4cFv6ignyuXFAdMfWFXHH39Cl5msU9CGVpoFyVFo
+         ewKXM2LaHhd0881p5I+z8tBVvoc0DxI/6Q3wXcGcpZKfVLp0EfsYn68kyPuhbk56VsHr
+         72zg==
+X-Gm-Message-State: AOAM532G9yvymL7T2UbrEgXfTowY8BYCR5dC2sbzs2EU/LIVqYx+4aZF
+        bYyNCcNu7EW8V1hGxCYh1tU=
+X-Google-Smtp-Source: ABdhPJx8VCGJ20VqDfKx0XJ2RzpGIAoKL9LsmWga+flt80us4x7/eBQQ2xQW6YrYBZOKIKUgAGDVlg==
+X-Received: by 2002:a17:90b:30c9:: with SMTP id hi9mr4166574pjb.216.1640288097932;
+        Thu, 23 Dec 2021 11:34:57 -0800 (PST)
+Received: from [10.2.59.154] (searspoint.nvidia.com. [216.228.112.21])
+        by smtp.gmail.com with ESMTPSA id ot6sm7116933pjb.32.2021.12.23.11.34.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 Dec 2021 11:34:57 -0800 (PST)
+Message-ID: <d8cf5bd620e65351dbd82d18b0426a22ea77eae2.camel@gmail.com>
+Subject: Re: [PATCH] net: ethernet: mellanox: return errno instead of 1
+From:   Saeed Mahameed <saeed.kernel@gmail.com>
+To:     Qing Wang <wangqing@vivo.com>, Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Thu, 23 Dec 2021 11:34:55 -0800
+In-Reply-To: <1640226277-32786-1-git-send-email-wangqing@vivo.com>
+References: <1640226277-32786-1-git-send-email-wangqing@vivo.com>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.42.2 (3.42.2-1.fc35) 
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <c1893907-e8fb-1eec-9611-3f08d1b2a3c2@linux.dev>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Dec 23, 2021 at 11:46:03PM +0800, Yanjun Zhu wrote:
-> 在 2021/12/21 10:48, Cheng Xu 写道:
-> > Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
-> > ---
-> >   include/uapi/rdma/erdma-abi.h | 49 +++++++++++++++++++++++++++++++++++
-> >   1 file changed, 49 insertions(+)
-> >   create mode 100644 include/uapi/rdma/erdma-abi.h
-> > 
-> > diff --git a/include/uapi/rdma/erdma-abi.h b/include/uapi/rdma/erdma-abi.h
-> > new file mode 100644
-> > index 000000000000..6bcba10c1e41
-> > --- /dev/null
-> > +++ b/include/uapi/rdma/erdma-abi.h
-> > @@ -0,0 +1,49 @@
-> > +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR Linux-OpenIB) */
-> > +/*
-> > + * Copyright (c) 2020-2021, Alibaba Group.
-> > + */
-> > +
-> > +#ifndef __ERDMA_USER_H__
-> > +#define __ERDMA_USER_H__
-> > +
-> > +#include <linux/types.h>
-> > +
-> > +#define ERDMA_ABI_VERSION       1
+On Wed, 2021-12-22 at 18:24 -0800, Qing Wang wrote:
+> From: Wang Qing <wangqing@vivo.com>
 > 
-> ERDMA_ABI_VERSION should be 2？
+> mlx5e_hv_vhca_stats_create() better return specific error than 1
+> 
+> Signed-off-by: Wang Qing <wangqing@vivo.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/en/hv_vhca_stats.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git
+> a/drivers/net/ethernet/mellanox/mlx5/core/en/hv_vhca_stats.c
+> b/drivers/net/ethernet/mellanox/mlx5/core/en/hv_vhca_stats.c
+> index d290d72..04cda3d
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/hv_vhca_stats.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/hv_vhca_stats.c
+> @@ -142,7 +142,7 @@ int mlx5e_hv_vhca_stats_create(struct mlx5e_priv
+> *priv)
+>                                     PTR_ERR(agent));
+>  
+>                 kvfree(priv->stats_agent.buf);
+> -               return IS_ERR_OR_NULL(agent);
+> +               return agent ? PTR_ERR(agent) : -ENODEV;
 
-Why?
+the single caller of this function ignores the return value,
+I just made a patch to void the return value and added you as Reported-
+by.
 
-This field is for rdma-core and we don't have erdma provider in that
-library yet. It always starts from 1 for new drivers.
+Thanks !
 
-Thanks
+
