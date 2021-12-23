@@ -2,59 +2,59 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63F07C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5F8BC4332F
 	for <linux-rdma@archiver.kernel.org>; Thu, 23 Dec 2021 10:42:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239759AbhLWKmm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S243258AbhLWKmm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 23 Dec 2021 05:42:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51532 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243258AbhLWKmi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Dec 2021 05:42:38 -0500
-Received: from mail-ed1-x52c.google.com (mail-ed1-x52c.google.com [IPv6:2a00:1450:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 879B5C061756
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 02:42:33 -0800 (PST)
-Received: by mail-ed1-x52c.google.com with SMTP id y13so19625129edd.13
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 02:42:33 -0800 (PST)
+        with ESMTP id S243271AbhLWKmj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Dec 2021 05:42:39 -0500
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34BB4C061759
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 02:42:36 -0800 (PST)
+Received: by mail-ed1-x52a.google.com with SMTP id x15so19803929edv.1
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Dec 2021 02:42:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=ionos.com; s=google;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=f9zzV9neopjIOxC859BdZWewdMkDgMUs5z1IMByLhjU=;
-        b=eWES61Iuhssmbor4jhC++N7Zj0O3Nv1sFjUql7diT8jQKFbTln+rA3E51hEwkJlRnh
-         qML80FGYbAGk74rPoEEjznRJ/p1gjqDxVZ8cB/ancySuEl/Ea2Cd7bZNQAFSg1gafr63
-         3b1tk6mh7m4Nb724Z5vSrYxbbK3vTiQqPKIAqqHgAGyI02wAATMSyznOkbvKjOkdbw7w
-         F/geAK78fBPil5Ckxvw6X67Vpke+F8Z2DdT/uQu1hI3jYKlDeqD9xtY9SzCSigjpMmTI
-         aYE+8nin0PSqfQsE8KGveSL+fEh6HWnvzI4lyhoG/t1SyxQfz605Dun1uTUUXuE97l01
-         0Q+g==
+        bh=zsgUPPvb6H+YFTfWSMCgo8eIaYf7eWSm4cXRiDpcLms=;
+        b=SXhd+5O04iMqOp4An6e1W2qDnYl3R8S2uYnhpelHP33v3FFxOwMAFlh59Ls1ETOFDc
+         4ZRzqdRfXsuB6DhbX4z6xQLjoz82jemmp11Gl7AE9OiUY5SCWHQzhjPXRKPcoPHVY5i3
+         FzU1lniXEbuzpnBb/kkeodWQ05AgYLsJQXldm2lxxrBvCFoWnRFbwxjgbGWggn04PQyM
+         dulS5JuvmzQu3mCc/01T8EaH64tSM+1LL5jhgl7cEaOSbAagDHfWEMjrJDcGG4UYTybH
+         WSV1ECN7csI0CuVLPe9i2E/gpt/TiuTnk5QO27FiCZtdyqv5fYnmLgAEzww0mFHitK21
+         5FZw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=f9zzV9neopjIOxC859BdZWewdMkDgMUs5z1IMByLhjU=;
-        b=ciIxpGqZmJxhYdRmDiLJ4yScMQgyo7XxYMeIb9Q4o9eWdf6T1PHbK9IikWm1YtnJ+w
-         geF1XMfZut6oB8ezdhXhAfnEFGbaETp3EITFUBgOdJODeQE1soh6kL1dYy6o8JOJexgc
-         cXkOs93AyFA9OVe3P+WdS7yGUo7KzhOVHkI0VAstJFQGbhN2lUzcZL3kmZ/ECQLSPav6
-         R/ybFK+GjKamgsfLL+pbjwhJM3hmNBSsWTAQYdmw8CCcxxrB0SS1PRMemeVIparjhXwN
-         KyzCbgCIzv8ELVjusbl9D2tC+DtkO3zqW4N0spMTzR5fCkYmZ2bxv5bVhDamZSMO9MFe
-         lslA==
-X-Gm-Message-State: AOAM5339cIQ9jsgGg44p4LhMD76onKDBqWHTjjOwomClhCwFhAsgxhiY
-        uJK+FPLSvRyGb8XG57H4GCrhNOCCGWGDOA==
-X-Google-Smtp-Source: ABdhPJx/xmkDltWhGxiOq0ZJm5BLTszabo3xlyIXdwINXCCcESWpp+RTirKQdAWxkgo8AmseVwHVZw==
-X-Received: by 2002:a17:907:162c:: with SMTP id hb44mr1447009ejc.657.1640256151796;
-        Thu, 23 Dec 2021 02:42:31 -0800 (PST)
+        bh=zsgUPPvb6H+YFTfWSMCgo8eIaYf7eWSm4cXRiDpcLms=;
+        b=P+ZNeTObr0y+OaK20s0OGzwr/vma1T0dvybMD2M8BfEXWuQcwnRohNqg6dIqOdFnVR
+         2X8UWYgdpzAxXWdGUDDYjizrRrF1raJPHAGI0DXKqmj2Ma03i0CTAtURcij+3RalcHax
+         qgaAyWBy6lARIcQ1Msy2TecgueC0k1lwjpBJBkKDXdAcxFm8CorxO37TNJAAMx5f8dgK
+         DCwTIjEIg3ZwJuCDQQZmsxBlScjK2vj3ZpQ/z5ktonuP4Gjh9Ovegx4Kj4tStLfwp0g2
+         gMSFHzmVfzGgCu9kRMW684SVykgJnhUAgNTeG9KPRobb0id5aYbM9ujtWYwYmY5HOf4c
+         DBPw==
+X-Gm-Message-State: AOAM531HqSLSNh2XxKKIUP5upadyqlKFEVursFZlh1a+DL/HU1m2hKar
+        rzEsqo4XG2oDzQLYMcoLvG4K36+qj2ibfQ==
+X-Google-Smtp-Source: ABdhPJxKHlbY8KXhUNqDQ3xted7P2zbo4/xpd7eeB6d1cuzqv16Wwc9bm4x0gQeYqixFSNK2L8PW0w==
+X-Received: by 2002:a17:906:d147:: with SMTP id br7mr750862ejb.188.1640256154514;
+        Thu, 23 Dec 2021 02:42:34 -0800 (PST)
 Received: from jwang-Latitude-5491.fritz.box ([2001:16b8:4536:ce00:c42a:2c1b:a58b:ae52])
-        by smtp.gmail.com with ESMTPSA id ho14sm1627224ejc.73.2021.12.23.02.42.31
+        by smtp.gmail.com with ESMTPSA id ho14sm1627224ejc.73.2021.12.23.02.42.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 23 Dec 2021 02:42:31 -0800 (PST)
+        Thu, 23 Dec 2021 02:42:34 -0800 (PST)
 From:   Jack Wang <jinpu.wang@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, jgg@ziepe.ca,
         haris.iqbal@ionos.com, jinpu.wang@ionos.com,
         Vaishali Thakkar <vaishali.thakkar@ionos.com>
-Subject: [PATCH for-next 2/7] RDMA/rtrs-srv: Rename rtrs_sess to rtrs_path
-Date:   Thu, 23 Dec 2021 11:42:24 +0100
-Message-Id: <20211223104229.23053-3-jinpu.wang@ionos.com>
+Subject: [PATCH for-next 6/7] RDMA/rtrs-srv: Rename rtrs_srv to rtrs_srv_sess
+Date:   Thu, 23 Dec 2021 11:42:28 +0100
+Message-Id: <20211223104229.23053-7-jinpu.wang@ionos.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20211223104229.23053-1-jinpu.wang@ionos.com>
 References: <20211223104229.23053-1-jinpu.wang@ionos.com>
@@ -66,273 +66,415 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Vaishali Thakkar <vaishali.thakkar@ionos.com>
 
-rtrs_sess has been renamed to rtrs_path to improve
-the readability of a code. This patch does the
-follow up changes in the server side module.
+Structure rtrs_srv is used for sessions so in order
+to avoid confusions rename it to rtrs_srv_sess.
 
-Coccinelle scripts were used to handle most of the
-transformations and remaining cases were handled
-manually.
+All changes were done with the help of following
+Coccinelle script:
+
+@@
+@@
+struct
+- rtrs_srv
++ rtrs_srv_sess
 
 Signed-off-by: Vaishali Thakkar <vaishali.thakkar@ionos.com>
 Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c |  6 +--
- drivers/infiniband/ulp/rtrs/rtrs-srv.c       | 46 ++++++++++----------
- drivers/infiniband/ulp/rtrs/rtrs-srv.h       |  2 +-
- 3 files changed, 27 insertions(+), 27 deletions(-)
+ drivers/block/rnbd/rnbd-srv.c                |  4 +-
+ drivers/block/rnbd/rnbd-srv.h                |  2 +-
+ drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c |  6 +-
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c       | 60 ++++++++++----------
+ drivers/infiniband/ulp/rtrs/rtrs-srv.h       |  4 +-
+ drivers/infiniband/ulp/rtrs/rtrs.h           | 11 ++--
+ 6 files changed, 45 insertions(+), 42 deletions(-)
 
+diff --git a/drivers/block/rnbd/rnbd-srv.c b/drivers/block/rnbd/rnbd-srv.c
+index abff9039cbea..05e59b831ffe 100644
+--- a/drivers/block/rnbd/rnbd-srv.c
++++ b/drivers/block/rnbd/rnbd-srv.c
+@@ -263,7 +263,7 @@ static void destroy_sess(struct rnbd_srv_session *srv_sess)
+ 	kfree(srv_sess);
+ }
+ 
+-static int create_sess(struct rtrs_srv *rtrs)
++static int create_sess(struct rtrs_srv_sess *rtrs)
+ {
+ 	struct rnbd_srv_session *srv_sess;
+ 	char sessname[NAME_MAX];
+@@ -305,7 +305,7 @@ static int create_sess(struct rtrs_srv *rtrs)
+ 	return 0;
+ }
+ 
+-static int rnbd_srv_link_ev(struct rtrs_srv *rtrs,
++static int rnbd_srv_link_ev(struct rtrs_srv_sess *rtrs,
+ 			     enum rtrs_srv_link_ev ev, void *priv)
+ {
+ 	struct rnbd_srv_session *srv_sess = priv;
+diff --git a/drivers/block/rnbd/rnbd-srv.h b/drivers/block/rnbd/rnbd-srv.h
+index 98ddc31eb408..e5604bce123a 100644
+--- a/drivers/block/rnbd/rnbd-srv.h
++++ b/drivers/block/rnbd/rnbd-srv.h
+@@ -20,7 +20,7 @@
+ struct rnbd_srv_session {
+ 	/* Entry inside global sess_list */
+ 	struct list_head        list;
+-	struct rtrs_srv		*rtrs;
++	struct rtrs_srv_sess	*rtrs;
+ 	char			sessname[NAME_MAX];
+ 	int			queue_depth;
+ 	struct bio_set		sess_bio_set;
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-index 9c43ce5ba1c1..e9fa67365b2b 100644
+index 628ef20ebf0c..b94ae12c2795 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-@@ -37,7 +37,7 @@ static ssize_t rtrs_srv_disconnect_store(struct kobject *kobj,
- 					  const char *buf, size_t count)
- {
- 	struct rtrs_srv_sess *sess;
--	struct rtrs_sess *s;
-+	struct rtrs_path *s;
- 	char str[MAXHOSTNAMELEN];
+@@ -154,7 +154,7 @@ static const struct attribute_group rtrs_srv_stats_attr_group = {
  
- 	sess = container_of(kobj, struct rtrs_srv_sess, kobj);
-@@ -230,7 +230,7 @@ static struct kobj_type ktype_stats = {
- static int rtrs_srv_create_stats_files(struct rtrs_srv_sess *sess)
+ static int rtrs_srv_create_once_sysfs_root_folders(struct rtrs_srv_path *srv_path)
  {
- 	int err;
--	struct rtrs_sess *s = &sess->s;
-+	struct rtrs_path *s = &sess->s;
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	int err = 0;
  
- 	err = kobject_init_and_add(&sess->stats->kobj_stats, &ktype_stats,
- 				   &sess->kobj, "stats");
-@@ -258,7 +258,7 @@ static int rtrs_srv_create_stats_files(struct rtrs_srv_sess *sess)
- int rtrs_srv_create_sess_files(struct rtrs_srv_sess *sess)
+ 	mutex_lock(&srv->paths_mutex);
+@@ -199,7 +199,7 @@ static int rtrs_srv_create_once_sysfs_root_folders(struct rtrs_srv_path *srv_pat
+ static void
+ rtrs_srv_destroy_once_sysfs_root_folders(struct rtrs_srv_path *srv_path)
  {
- 	struct rtrs_srv *srv = sess->srv;
--	struct rtrs_sess *s = &sess->s;
-+	struct rtrs_path *s = &sess->s;
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 
+ 	mutex_lock(&srv->paths_mutex);
+ 	if (!--srv->dev_ref) {
+@@ -258,7 +258,7 @@ static int rtrs_srv_create_stats_files(struct rtrs_srv_path *srv_path)
+ 
+ int rtrs_srv_create_path_files(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_path *s = &srv_path->s;
  	char str[NAME_MAX];
  	int err;
- 	struct rtrs_addr path = {
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-index 7df71f8cf149..de4f214233b6 100644
+index 643c9ccb4b44..8d61c9cc3f99 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
-@@ -62,7 +62,7 @@ static inline struct rtrs_srv_con *to_srv_con(struct rtrs_con *c)
- 	return container_of(c, struct rtrs_srv_con, c);
+@@ -108,7 +108,7 @@ static void free_id(struct rtrs_srv_op *id)
+ 
+ static void rtrs_srv_free_ops_ids(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	int i;
+ 
+ 	if (srv_path->ops_ids) {
+@@ -137,7 +137,7 @@ static inline void rtrs_srv_inflight_ref_release(struct percpu_ref *ref)
+ 
+ static int rtrs_srv_alloc_ops_ids(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_srv_op *id;
+ 	int i, ret;
+ 
+@@ -541,7 +541,7 @@ EXPORT_SYMBOL(rtrs_srv_resp_rdma);
+  * @srv:	Session pointer
+  * @priv:	The private pointer that is associated with the session.
+  */
+-void rtrs_srv_set_sess_priv(struct rtrs_srv *srv, void *priv)
++void rtrs_srv_set_sess_priv(struct rtrs_srv_sess *srv, void *priv)
+ {
+ 	srv->priv = priv;
  }
+@@ -566,7 +566,7 @@ static void unmap_cont_bufs(struct rtrs_srv_path *srv_path)
  
--static inline struct rtrs_srv_sess *to_srv_sess(struct rtrs_sess *s)
-+static inline struct rtrs_srv_sess *to_srv_sess(struct rtrs_path *s)
+ static int map_cont_bufs(struct rtrs_srv_path *srv_path)
  {
- 	return container_of(s, struct rtrs_srv_sess, s);
- }
-@@ -180,7 +180,7 @@ static inline void rtrs_srv_put_ops_ids(struct rtrs_srv_sess *sess)
- static void rtrs_srv_reg_mr_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 
- 	if (wc->status != IB_WC_SUCCESS) {
-@@ -197,7 +197,7 @@ static struct ib_cqe local_reg_cqe = {
- 
- static int rdma_write_sg(struct rtrs_srv_op *id)
- {
--	struct rtrs_sess *s = id->con->c.sess;
-+	struct rtrs_path *s = id->con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	dma_addr_t dma_addr = sess->dma_addr[id->msg_id];
- 	struct rtrs_srv_mr *srv_mr;
-@@ -341,7 +341,7 @@ static int rdma_write_sg(struct rtrs_srv_op *id)
- static int send_io_resp_imm(struct rtrs_srv_con *con, struct rtrs_srv_op *id,
- 			    int errno)
- {
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct ib_send_wr inv_wr, *wr = NULL;
- 	struct ib_rdma_wr imm_wr;
-@@ -482,14 +482,14 @@ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int status)
- {
- 	struct rtrs_srv_sess *sess;
- 	struct rtrs_srv_con *con;
--	struct rtrs_sess *s;
-+	struct rtrs_path *s;
- 	int err;
- 
- 	if (WARN_ON(!id))
- 		return true;
- 
- 	con = id->con;
--	s = con->c.sess;
-+	s = con->c.path;
- 	sess = to_srv_sess(s);
- 
- 	id->status = status;
-@@ -564,7 +564,7 @@ static void unmap_cont_bufs(struct rtrs_srv_sess *sess)
- static int map_cont_bufs(struct rtrs_srv_sess *sess)
- {
- 	struct rtrs_srv *srv = sess->srv;
--	struct rtrs_sess *ss = &sess->s;
-+	struct rtrs_path *ss = &sess->s;
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_path *ss = &srv_path->s;
  	int i, mri, err, mrs_num;
  	unsigned int chunk_bits;
- 	int chunks_per_mr = 1;
-@@ -677,7 +677,7 @@ static int map_cont_bufs(struct rtrs_srv_sess *sess)
+@@ -723,7 +723,7 @@ static void rtrs_srv_info_rsp_done(struct ib_cq *cq, struct ib_wc *wc)
  
- static void rtrs_srv_hb_err_handler(struct rtrs_con *c)
+ static void rtrs_srv_path_up(struct rtrs_srv_path *srv_path)
  {
--	close_sess(to_srv_sess(c->sess));
-+	close_sess(to_srv_sess(c->path));
- }
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_srv_ctx *ctx = srv->ctx;
+ 	int up;
  
- static void rtrs_srv_init_hb(struct rtrs_srv_sess *sess)
-@@ -702,7 +702,7 @@ static void rtrs_srv_stop_hb(struct rtrs_srv_sess *sess)
- static void rtrs_srv_info_rsp_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct rtrs_iu *iu;
+@@ -739,7 +739,7 @@ static void rtrs_srv_path_up(struct rtrs_srv_path *srv_path)
  
-@@ -788,7 +788,7 @@ static int rtrs_rdma_do_reject(struct rdma_cm_id *cm_id, int errno);
- static int process_info_req(struct rtrs_srv_con *con,
- 			    struct rtrs_msg_info_req *msg)
+ static void rtrs_srv_path_down(struct rtrs_srv_path *srv_path)
  {
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct ib_send_wr *reg_wr = NULL;
- 	struct rtrs_msg_info_rsp *rsp;
-@@ -889,7 +889,7 @@ static int process_info_req(struct rtrs_srv_con *con,
- static void rtrs_srv_info_req_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct rtrs_msg_info_req *msg;
- 	struct rtrs_iu *iu;
-@@ -932,7 +932,7 @@ static void rtrs_srv_info_req_done(struct ib_cq *cq, struct ib_wc *wc)
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_srv_ctx *ctx = srv->ctx;
  
- static int post_recv_info_req(struct rtrs_srv_con *con)
+ 	if (!srv_path->established)
+@@ -756,7 +756,7 @@ static void rtrs_srv_path_down(struct rtrs_srv_path *srv_path)
+ static bool exist_sessname(struct rtrs_srv_ctx *ctx,
+ 			   const char *sessname, const uuid_t *path_uuid)
  {
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct rtrs_iu *rx_iu;
- 	int err;
-@@ -969,7 +969,7 @@ static int post_recv_io(struct rtrs_srv_con *con, size_t q_size)
- static int post_recv_sess(struct rtrs_srv_sess *sess)
+-	struct rtrs_srv *srv;
++	struct rtrs_srv_sess *srv;
+ 	struct rtrs_srv_path *srv_path;
+ 	bool found = false;
+ 
+@@ -973,7 +973,7 @@ static int post_recv_io(struct rtrs_srv_con *con, size_t q_size)
+ 
+ static int post_recv_sess(struct rtrs_srv_path *srv_path)
  {
- 	struct rtrs_srv *srv = sess->srv;
--	struct rtrs_sess *s = &sess->s;
-+	struct rtrs_path *s = &sess->s;
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_path *s = &srv_path->s;
  	size_t q_size;
  	int err, cid;
+@@ -1000,7 +1000,7 @@ static void process_read(struct rtrs_srv_con *con,
+ {
+ 	struct rtrs_path *s = con->c.path;
+ 	struct rtrs_srv_path *srv_path = to_srv_path(s);
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_srv_ctx *ctx = srv->ctx;
+ 	struct rtrs_srv_op *id;
  
-@@ -993,7 +993,7 @@ static void process_read(struct rtrs_srv_con *con,
- 			 struct rtrs_msg_rdma_read *msg,
- 			 u32 buf_id, u32 off)
+@@ -1058,7 +1058,7 @@ static void process_write(struct rtrs_srv_con *con,
  {
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct rtrs_srv *srv = sess->srv;
+ 	struct rtrs_path *s = con->c.path;
+ 	struct rtrs_srv_path *srv_path = to_srv_path(s);
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
  	struct rtrs_srv_ctx *ctx = srv->ctx;
-@@ -1051,7 +1051,7 @@ static void process_write(struct rtrs_srv_con *con,
- 			  struct rtrs_msg_rdma_write *req,
- 			  u32 buf_id, u32 off)
- {
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct rtrs_srv *srv = sess->srv;
- 	struct rtrs_srv_ctx *ctx = srv->ctx;
-@@ -1102,7 +1102,7 @@ static void process_write(struct rtrs_srv_con *con,
- static void process_io_req(struct rtrs_srv_con *con, void *msg,
- 			   u32 id, u32 off)
- {
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct rtrs_msg_rdma_hdr *hdr;
- 	unsigned int type;
-@@ -1137,7 +1137,7 @@ static void rtrs_srv_inv_rkey_done(struct ib_cq *cq, struct ib_wc *wc)
- 	struct rtrs_srv_mr *mr =
- 		container_of(wc->wr_cqe, typeof(*mr), inv_cqe);
+ 	struct rtrs_srv_op *id;
+ 
+@@ -1145,7 +1145,7 @@ static void rtrs_srv_inv_rkey_done(struct ib_cq *cq, struct ib_wc *wc)
  	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct rtrs_srv *srv = sess->srv;
+ 	struct rtrs_path *s = con->c.path;
+ 	struct rtrs_srv_path *srv_path = to_srv_path(s);
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
  	u32 msg_id, off;
-@@ -1194,7 +1194,7 @@ static void rtrs_rdma_process_wr_wait_list(struct rtrs_srv_con *con)
- static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
- {
+ 	void *data;
+ 
+@@ -1202,7 +1202,7 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
  	struct rtrs_srv_con *con = to_srv_con(wc->qp->qp_context);
--	struct rtrs_sess *s = con->c.sess;
-+	struct rtrs_path *s = con->c.path;
- 	struct rtrs_srv_sess *sess = to_srv_sess(s);
- 	struct rtrs_srv *srv = sess->srv;
+ 	struct rtrs_path *s = con->c.path;
+ 	struct rtrs_srv_path *srv_path = to_srv_path(s);
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
  	u32 imm_type, imm_payload;
-@@ -1633,7 +1633,7 @@ static int create_con(struct rtrs_srv_sess *sess,
+ 	int err;
+ 
+@@ -1295,7 +1295,8 @@ static void rtrs_srv_rdma_done(struct ib_cq *cq, struct ib_wc *wc)
+  * @sessname:	Sessname buffer
+  * @len:	Length of sessname buffer
+  */
+-int rtrs_srv_get_path_name(struct rtrs_srv *srv, char *sessname, size_t len)
++int rtrs_srv_get_path_name(struct rtrs_srv_sess *srv, char *sessname,
++			   size_t len)
+ {
+ 	struct rtrs_srv_path *srv_path;
+ 	int err = -ENOTCONN;
+@@ -1319,7 +1320,7 @@ EXPORT_SYMBOL(rtrs_srv_get_path_name);
+  * rtrs_srv_get_queue_depth() - Get rtrs_srv qdepth.
+  * @srv:	Session
+  */
+-int rtrs_srv_get_queue_depth(struct rtrs_srv *srv)
++int rtrs_srv_get_queue_depth(struct rtrs_srv_sess *srv)
+ {
+ 	return srv->queue_depth;
+ }
+@@ -1345,12 +1346,13 @@ static int rtrs_srv_get_next_cq_vector(struct rtrs_srv_path *srv_path)
+ 
+ static void rtrs_srv_dev_release(struct device *dev)
+ {
+-	struct rtrs_srv *srv = container_of(dev, struct rtrs_srv, dev);
++	struct rtrs_srv_sess *srv = container_of(dev, struct rtrs_srv_sess,
++						 dev);
+ 
+ 	kfree(srv);
+ }
+ 
+-static void free_srv(struct rtrs_srv *srv)
++static void free_srv(struct rtrs_srv_sess *srv)
+ {
+ 	int i;
+ 
+@@ -1364,11 +1366,11 @@ static void free_srv(struct rtrs_srv *srv)
+ 	put_device(&srv->dev);
+ }
+ 
+-static struct rtrs_srv *get_or_create_srv(struct rtrs_srv_ctx *ctx,
++static struct rtrs_srv_sess *get_or_create_srv(struct rtrs_srv_ctx *ctx,
+ 					  const uuid_t *paths_uuid,
+ 					  bool first_conn)
+ {
+-	struct rtrs_srv *srv;
++	struct rtrs_srv_sess *srv;
+ 	int i;
+ 
+ 	mutex_lock(&ctx->srv_mutex);
+@@ -1430,7 +1432,7 @@ static struct rtrs_srv *get_or_create_srv(struct rtrs_srv_ctx *ctx,
+ 	return ERR_PTR(-ENOMEM);
+ }
+ 
+-static void put_srv(struct rtrs_srv *srv)
++static void put_srv(struct rtrs_srv_sess *srv)
+ {
+ 	if (refcount_dec_and_test(&srv->refcount)) {
+ 		struct rtrs_srv_ctx *ctx = srv->ctx;
+@@ -1444,7 +1446,7 @@ static void put_srv(struct rtrs_srv *srv)
+ 	}
+ }
+ 
+-static void __add_path_to_srv(struct rtrs_srv *srv,
++static void __add_path_to_srv(struct rtrs_srv_sess *srv,
+ 			      struct rtrs_srv_path *srv_path)
+ {
+ 	list_add_tail(&srv_path->s.entry, &srv->paths_list);
+@@ -1454,7 +1456,7 @@ static void __add_path_to_srv(struct rtrs_srv *srv,
+ 
+ static void del_path_from_srv(struct rtrs_srv_path *srv_path)
+ {
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 
+ 	if (WARN_ON(!srv))
+ 		return;
+@@ -1490,7 +1492,7 @@ static int sockaddr_cmp(const struct sockaddr *a, const struct sockaddr *b)
+ 	}
+ }
+ 
+-static bool __is_path_w_addr_exists(struct rtrs_srv *srv,
++static bool __is_path_w_addr_exists(struct rtrs_srv_sess *srv,
+ 				    struct rdma_addr *addr)
+ {
+ 	struct rtrs_srv_path *srv_path;
+@@ -1573,7 +1575,7 @@ static void rtrs_srv_close_work(struct work_struct *work)
+ static int rtrs_rdma_do_accept(struct rtrs_srv_path *srv_path,
+ 			       struct rdma_cm_id *cm_id)
+ {
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_msg_conn_rsp msg;
+ 	struct rdma_conn_param param;
+ 	int err;
+@@ -1622,7 +1624,7 @@ static int rtrs_rdma_do_reject(struct rdma_cm_id *cm_id, int errno)
+ }
+ 
+ static struct rtrs_srv_path *
+-__find_path(struct rtrs_srv *srv, const uuid_t *sess_uuid)
++__find_path(struct rtrs_srv_sess *srv, const uuid_t *sess_uuid)
+ {
+ 	struct rtrs_srv_path *srv_path;
+ 
+@@ -1638,7 +1640,7 @@ static int create_con(struct rtrs_srv_path *srv_path,
+ 		      struct rdma_cm_id *cm_id,
  		      unsigned int cid)
  {
- 	struct rtrs_srv *srv = sess->srv;
--	struct rtrs_sess *s = &sess->s;
-+	struct rtrs_path *s = &sess->s;
+-	struct rtrs_srv *srv = srv_path->srv;
++	struct rtrs_srv_sess *srv = srv_path->srv;
+ 	struct rtrs_path *s = &srv_path->s;
  	struct rtrs_srv_con *con;
  
- 	u32 cq_num, max_send_wr, max_recv_wr, wr_limit;
-@@ -1648,7 +1648,7 @@ static int create_con(struct rtrs_srv_sess *sess,
- 	spin_lock_init(&con->rsp_wr_wait_lock);
- 	INIT_LIST_HEAD(&con->rsp_wr_wait_list);
- 	con->c.cm_id = cm_id;
--	con->c.sess = &sess->s;
-+	con->c.path = &sess->s;
- 	con->c.cid = cid;
- 	atomic_set(&con->c.wr_cnt, 1);
- 	wr_limit = sess->s.dev->ib_dev->attrs.max_qp_wr;
-@@ -1859,7 +1859,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
- 	mutex_lock(&srv->paths_mutex);
- 	sess = __find_sess(srv, &msg->sess_uuid);
- 	if (sess) {
--		struct rtrs_sess *s = &sess->s;
-+		struct rtrs_path *s = &sess->s;
+@@ -1725,7 +1727,7 @@ static int create_con(struct rtrs_srv_path *srv_path,
+ 	return err;
+ }
  
- 		/* Session already holds a reference */
- 		put_srv(srv);
-@@ -1938,12 +1938,12 @@ static int rtrs_srv_rdma_cm_handler(struct rdma_cm_id *cm_id,
- 				     struct rdma_cm_event *ev)
+-static struct rtrs_srv_path *__alloc_path(struct rtrs_srv *srv,
++static struct rtrs_srv_path *__alloc_path(struct rtrs_srv_sess *srv,
+ 					   struct rdma_cm_id *cm_id,
+ 					   unsigned int con_num,
+ 					   unsigned int recon_cnt,
+@@ -1825,7 +1827,7 @@ static int rtrs_rdma_connect(struct rdma_cm_id *cm_id,
  {
- 	struct rtrs_srv_sess *sess = NULL;
--	struct rtrs_sess *s = NULL;
-+	struct rtrs_path *s = NULL;
+ 	struct rtrs_srv_ctx *ctx = cm_id->context;
+ 	struct rtrs_srv_path *srv_path;
+-	struct rtrs_srv *srv;
++	struct rtrs_srv_sess *srv;
  
- 	if (ev->event != RDMA_CM_EVENT_CONNECT_REQUEST) {
- 		struct rtrs_con *c = cm_id->context;
+ 	u16 version, con_num, cid;
+ 	u16 recon_cnt;
+@@ -2184,7 +2186,7 @@ struct rtrs_srv_ctx *rtrs_srv_open(struct rtrs_srv_ops *ops, u16 port)
+ }
+ EXPORT_SYMBOL(rtrs_srv_open);
  
--		s = c->sess;
-+		s = c->path;
- 		sess = to_srv_sess(s);
- 	}
+-static void close_paths(struct rtrs_srv *srv)
++static void close_paths(struct rtrs_srv_sess *srv)
+ {
+ 	struct rtrs_srv_path *srv_path;
  
+@@ -2196,7 +2198,7 @@ static void close_paths(struct rtrs_srv *srv)
+ 
+ static void close_ctx(struct rtrs_srv_ctx *ctx)
+ {
+-	struct rtrs_srv *srv;
++	struct rtrs_srv_sess *srv;
+ 
+ 	mutex_lock(&ctx->srv_mutex);
+ 	list_for_each_entry(srv, &ctx->srv_list, ctx_list)
 diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.h b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
-index 7d403c12faf3..c2c08ec8d9e8 100644
+index 6119e6708080..6292e87f6afd 100644
 --- a/drivers/infiniband/ulp/rtrs/rtrs-srv.h
 +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
-@@ -72,7 +72,7 @@ struct rtrs_srv_mr {
- };
+@@ -73,7 +73,7 @@ struct rtrs_srv_mr {
  
- struct rtrs_srv_sess {
--	struct rtrs_sess	s;
-+	struct rtrs_path	s;
- 	struct rtrs_srv	*srv;
+ struct rtrs_srv_path {
+ 	struct rtrs_path	s;
+-	struct rtrs_srv	*srv;
++	struct rtrs_srv_sess	*srv;
  	struct work_struct	close_work;
  	enum rtrs_srv_state	state;
+ 	spinlock_t		state_lock;
+@@ -90,7 +90,7 @@ struct rtrs_srv_path {
+ 	struct rtrs_srv_stats	*stats;
+ };
+ 
+-struct rtrs_srv {
++struct rtrs_srv_sess {
+ 	struct list_head	paths_list;
+ 	int			paths_up;
+ 	struct mutex		paths_ev_mutex;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs.h b/drivers/infiniband/ulp/rtrs/rtrs.h
+index d5d037660cea..988688f93b62 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs.h
++++ b/drivers/infiniband/ulp/rtrs/rtrs.h
+@@ -15,7 +15,7 @@
+ struct rtrs_permit;
+ struct rtrs_clt;
+ struct rtrs_srv_ctx;
+-struct rtrs_srv;
++struct rtrs_srv_sess;
+ struct rtrs_srv_op;
+ 
+ /*
+@@ -163,7 +163,7 @@ struct rtrs_srv_ops {
+ 	 *	@priv:		Private data from user if previously set with
+ 	 *			rtrs_srv_set_sess_priv()
+ 	 */
+-	int (*link_ev)(struct rtrs_srv *sess, enum rtrs_srv_link_ev ev,
++	int (*link_ev)(struct rtrs_srv_sess *sess, enum rtrs_srv_link_ev ev,
+ 		       void *priv);
+ };
+ 
+@@ -173,11 +173,12 @@ void rtrs_srv_close(struct rtrs_srv_ctx *ctx);
+ 
+ bool rtrs_srv_resp_rdma(struct rtrs_srv_op *id, int errno);
+ 
+-void rtrs_srv_set_sess_priv(struct rtrs_srv *sess, void *priv);
++void rtrs_srv_set_sess_priv(struct rtrs_srv_sess *sess, void *priv);
+ 
+-int rtrs_srv_get_path_name(struct rtrs_srv *sess, char *sessname, size_t len);
++int rtrs_srv_get_path_name(struct rtrs_srv_sess *sess, char *sessname,
++			   size_t len);
+ 
+-int rtrs_srv_get_queue_depth(struct rtrs_srv *sess);
++int rtrs_srv_get_queue_depth(struct rtrs_srv_sess *sess);
+ 
+ int rtrs_addr_to_sockaddr(const char *str, size_t len, u16 port,
+ 			  struct rtrs_addr *addr);
 -- 
 2.25.1
 
