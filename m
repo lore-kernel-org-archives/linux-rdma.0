@@ -2,46 +2,46 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C480C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Dec 2021 08:02:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B5DAC433FE
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Dec 2021 08:02:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235479AbhL1ICT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Dec 2021 03:02:19 -0500
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:10151 "EHLO
+        id S235502AbhL1ICW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Dec 2021 03:02:22 -0500
+Received: from mail.cn.fujitsu.com ([183.91.158.132]:47591 "EHLO
         heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S235464AbhL1ICS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Dec 2021 03:02:18 -0500
-IronPort-Data: =?us-ascii?q?A9a23=3AdK9/rKwvNA4xbTLWkDh6t+dpxyrEfRIJ4+MujC/?=
- =?us-ascii?q?XYbTApDor1mMDmGEZWGiPPqyNYGuhKItzat628UwA6JPQm4RnHQtv/xmBbVoQ9?=
- =?us-ascii?q?5OdWo7xwmQcns+qBpSaChohtq3yU/GYRCwPZiKa9kfF3oTJ9yEmjPjSHOqkUYY?=
- =?us-ascii?q?oBwgqLeNaYHZ44f5cs75h6mJYqYDR7zKl4bsekeWGULOW82Ic3lYv1k62gEgHU?=
- =?us-ascii?q?MIeF98vlgdWifhj5DcynpSOZX4VDfnZw3DQGuG4EgMmLtsvwo1V/kuBl/ssIti?=
- =?us-ascii?q?j1LjmcEwWWaOUNg+L4pZUc/H6xEEc+WppieBmXBYfQR4/ZzGhm9FjyNRPtJW2Y?=
- =?us-ascii?q?Qk0PKzQg/lbWB5de817FfQfqeGafiTn4KR/yGWDKRMA2c5GFlk7NJcD/eB3GWx?=
- =?us-ascii?q?m+vkRKTRLZReG78qk0bCpW+s23px7BMbuNYIb/HpnyFnxCfcvR5/cTqPS6NlX9?=
- =?us-ascii?q?Dctj99DHLDVYM9xQT5ucxnBYxRJNX8XFZshkebujX76GxVcpVWTjak6+W7eyEp?=
- =?us-ascii?q?2yreFGNPVc8aNQ8F9mFiZqmPPuW/+B3kyMdabzjGF2nSyh+POlGXwX4d6PLm58?=
- =?us-ascii?q?ON6xV6e3GoeDDUIWlah5/q0kEizX5RYMUN80i4vq7UisVanS9DVQRK1ujiHswQ?=
- =?us-ascii?q?aVt4WFPc1gCmPxaX88QeUHmVCRTcpVTCMnKfaXhRzjhnQwYyvXmcp7dWopbum3?=
- =?us-ascii?q?u/8hVuP1eI9dDRqifc4cDY4?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AI8ttva4u5M/IRmAdTAPXwCzXdLJyesId70hD?=
- =?us-ascii?q?6qhwISY6TiX+rbHJoB17726MtN9/YhEdcLy7VJVoBEmskKKdgrNhWotKPjOW21?=
- =?us-ascii?q?dARbsKheCJrgEIWReOktK1vp0AT0ERMrLN5CBB/KTHCReDYqsd6ejC4Ka1nv3f?=
- =?us-ascii?q?0nsoaQlrbptr5wB/Bh3zKDwMeCB2QYo+CIGH5tdK4x6peXEsZMy9AXUfG8fZod?=
- =?us-ascii?q?mjruOdXTc2Qw4g9BKVjS6lrJrzEx2j1B8YVD9VhZcOmFK16zDE2g=3D=3D?=
+        with ESMTP id S235478AbhL1ICT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Dec 2021 03:02:19 -0500
+IronPort-Data: =?us-ascii?q?A9a23=3AhCRgkqJPaLKhLizxFE+Rj5QlxSXFcZb7ZxGrkP8?=
+ =?us-ascii?q?bfHCxgjMh0DRSzWEdDWmOOK2DYDSnf4h+a4y0oB9SusLXx4NqS1BcGVNFFSwT8?=
+ =?us-ascii?q?ZWfbTi6wuYcBwvLd4ubChsPA/w2MrEsF+hpCC+MzvuRGuK59yAlj/vYHuOU5NP?=
+ =?us-ascii?q?sYUideyc1EU/Ntjozw4bVsqYw6TSIK1vlVeHa+qUzC3f5s9JACV/43orYwP9ZU?=
+ =?us-ascii?q?FsejxtD1rA2TagjUFYzDBD5BrpHTU26ByOQroW5goeHq+j/ILGRpgs1/j8mDJW?=
+ =?us-ascii?q?rj7T6blYXBLXVOGBiiFIPA+773EcE/Xd0j87XN9JFAatTozGIjdBwytREs7S+V?=
+ =?us-ascii?q?AUoIrbR3u8aVnG0FgknZPwYpeCbeSfXXcu7iheun2HX6+92AUgsJooe+v56KW5?=
+ =?us-ascii?q?L/P0cbjsKa3irlfO00qO5ELE03uwsKcDqOMUUvXQI5TXYBPApXp3FW6jM6vdYw?=
+ =?us-ascii?q?T4vi8EIFvHbD+IdaCVibRTJZRJnOkoeF58/2uyvgxHXdzBfrnqWqLAx7myVyxZ?=
+ =?us-ascii?q?+uJDkMNPPfdqObcNLn0qZryTN+GGRKhQQMNuUyRKD7HOgh+aJliT+MKoWFbul5?=
+ =?us-ascii?q?rtpjUeVy2g7FhIbTx24rOO/h0r4XMhQQ2QQ+ywzve0o+EmiZsfyUgf+o3OeuBM?=
+ =?us-ascii?q?YHd1KHIUS6g6C4rjV7h6UQGMNJgOtwvROWNQeHGRsjwHW2YiyQ2EHjVFcclrFn?=
+ =?us-ascii?q?p/8kN94EXFORYPaWRI5cA=3D=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3ACvgY86xaWGnT48rM8r8SKrPwyL1zdoMgy1kn?=
+ =?us-ascii?q?xilNoRw8SKKlfqeV7ZImPH7P+U8ssR4b+exoVJPtfZqYz+8R3WBzB8bEYOCFgh?=
+ =?us-ascii?q?rKEGgK1+KLqFeMJ8S9zJ846U4KSclD4bPLYmSS9fyKgjVQDexQveWvweS5g/vE?=
+ =?us-ascii?q?1XdxQUVPY6Fk1Q1wDQGWCSRNNXJ7LKt8BJyB/dBGujblXXwWa/6wDn4DU/OGiM?=
+ =?us-ascii?q?bMkPvdEGQ7Li9i+A+Tlimp9bK/NxCZ2y0VWzRJzaxn0UWtqX2A2pme?=
 X-IronPort-AV: E=Sophos;i="5.88,241,1635177600"; 
-   d="scan'208";a="119657409"
+   d="scan'208";a="119657407"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 28 Dec 2021 16:01:53 +0800
-Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-        by cn.fujitsu.com (Postfix) with ESMTP id 06CDB4D15A22;
-        Tue, 28 Dec 2021 16:01:48 +0800 (CST)
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+        by cn.fujitsu.com (Postfix) with ESMTP id 70B9C4D15A26;
+        Tue, 28 Dec 2021 16:01:50 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Tue, 28 Dec 2021 16:01:46 +0800
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Tue, 28 Dec 2021 16:01:51 +0800
 Received: from localhost.localdomain (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Tue, 28 Dec 2021 16:01:45 +0800
+ id 15.0.1497.23 via Frontend Transport; Tue, 28 Dec 2021 16:01:47 +0800
 From:   Li Zhijian <lizhijian@cn.fujitsu.com>
 To:     <linux-rdma@vger.kernel.org>, <zyjzyj2000@gmail.com>,
         <jgg@ziepe.ca>, <aharonl@nvidia.com>, <leon@kernel.org>
@@ -49,63 +49,61 @@ CC:     <linux-kernel@vger.kernel.org>, <mbloch@nvidia.com>,
         <liweihang@huawei.com>, <liangwenpeng@huawei.com>,
         <yangx.jy@cn.fujitsu.com>, <rpearsonhpe@gmail.com>,
         <y-goto@fujitsu.com>, Li Zhijian <lizhijian@cn.fujitsu.com>
-Subject: [RFC PATCH rdma-next 02/10] RDMA: Allow registering MR with flush access flags
-Date:   Tue, 28 Dec 2021 16:07:09 +0800
-Message-ID: <20211228080717.10666-3-lizhijian@cn.fujitsu.com>
+Subject: [RFC PATCH rdma-next 05/10] RDMA/rxe: Allow registering persistent flag for pmem MR only
+Date:   Tue, 28 Dec 2021 16:07:12 +0800
+Message-ID: <20211228080717.10666-6-lizhijian@cn.fujitsu.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20211228080717.10666-1-lizhijian@cn.fujitsu.com>
 References: <20211228080717.10666-1-lizhijian@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: 06CDB4D15A22.AF473
+X-yoursite-MailScanner-ID: 70B9C4D15A26.AF226
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: lizhijian@fujitsu.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Users can use ibv_reg_mr(3) to register flush access flags.
+Memory region should support 2 placement types: IB_ACCESS_FLUSH_PERSISTENT
+and IB_ACCESS_FLUSH_GLOBAL_VISIBILITY, and only pmem/nvdimm has ability to
+persist data(IB_ACCESS_FLUSH_PERSISTENT).
 
 Signed-off-by: Li Zhijian <lizhijian@cn.fujitsu.com>
 ---
- include/rdma/ib_verbs.h                 | 6 +++++-
- include/uapi/rdma/ib_user_ioctl_verbs.h | 2 ++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_mr.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 822ebb3425dc..f04d66539879 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1444,10 +1444,14 @@ enum ib_access_flags {
- 	IB_ACCESS_ON_DEMAND = IB_UVERBS_ACCESS_ON_DEMAND,
- 	IB_ACCESS_HUGETLB = IB_UVERBS_ACCESS_HUGETLB,
- 	IB_ACCESS_RELAXED_ORDERING = IB_UVERBS_ACCESS_RELAXED_ORDERING,
-+	IB_ACCESS_FLUSH_GLOBAL_VISIBILITY = IB_UVERBS_ACCESS_FLUSH_GLOBAL_VISIBLITY,
-+	IB_ACCESS_FLUSH_PERSISTENT = IB_UVERBS_ACCESS_FLUSH_PERSISTENT,
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index bcd5e7afa475..21616d058f29 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -206,6 +206,11 @@ static bool iova_in_pmem(struct rxe_mr *mr, u64 iova, int length)
+ 	return page_in_dev_pagemap(page);
+ }
  
-+	IB_ACCESS_FLUSH = IB_ACCESS_FLUSH_GLOBAL_VISIBILITY |
-+			  IB_ACCESS_FLUSH_PERSISTENT,
- 	IB_ACCESS_OPTIONAL = IB_UVERBS_ACCESS_OPTIONAL_RANGE,
- 	IB_ACCESS_SUPPORTED =
--		((IB_ACCESS_HUGETLB << 1) - 1) | IB_ACCESS_OPTIONAL,
-+		((IB_ACCESS_FLUSH_PERSISTENT << 1) - 1) | IB_ACCESS_OPTIONAL,
- };
++static bool ib_check_flush_access_flags(struct ib_mr *mr, u32 flags)
++{
++	return mr->is_pmem || !(flags & IB_ACCESS_FLUSH_PERSISTENT);
++}
++
+ int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
+ 		     int access, struct rxe_mr *mr)
+ {
+@@ -282,6 +287,13 @@ int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
  
- /*
-diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
-index 3072e5d6b692..4763d3e3ea16 100644
---- a/include/uapi/rdma/ib_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
-@@ -57,6 +57,8 @@ enum ib_uverbs_access_flags {
- 	IB_UVERBS_ACCESS_ZERO_BASED = 1 << 5,
- 	IB_UVERBS_ACCESS_ON_DEMAND = 1 << 6,
- 	IB_UVERBS_ACCESS_HUGETLB = 1 << 7,
-+	IB_UVERBS_ACCESS_FLUSH_GLOBAL_VISIBLITY = 1 << 8,
-+	IB_UVERBS_ACCESS_FLUSH_PERSISTENT = 1 << 9,
+ 	// iova_in_pmem must be called after set is updated
+ 	mr->ibmr.is_pmem = iova_in_pmem(mr, iova, length);
++	if (!ib_check_flush_access_flags(&mr->ibmr, access)) {
++		pr_err("Cannot set IB_ACCESS_FLUSH_PERSISTENT for non-pmem memory\n");
++		mr->state = RXE_MR_STATE_INVALID;
++		mr->umem = NULL;
++		err = -EINVAL;
++		goto err_release_umem;
++	}
  
- 	IB_UVERBS_ACCESS_RELAXED_ORDERING = IB_UVERBS_ACCESS_OPTIONAL_FIRST,
- 	IB_UVERBS_ACCESS_OPTIONAL_RANGE =
+ 	return 0;
+ 
 -- 
 2.31.1
 
