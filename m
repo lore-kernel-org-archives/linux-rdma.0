@@ -2,68 +2,119 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78BB9C433EF
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Dec 2021 12:38:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B123EC433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Dec 2021 01:39:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236699AbhL0MiJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Dec 2021 07:38:09 -0500
-Received: from out30-56.freemail.mail.aliyun.com ([115.124.30.56]:45932 "EHLO
-        out30-56.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S233750AbhL0MiJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 27 Dec 2021 07:38:09 -0500
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04407;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0V.vZrg7_1640608687;
-Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0V.vZrg7_1640608687)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 27 Dec 2021 20:38:07 +0800
-From:   Dust Li <dust.li@linux.alibaba.com>
-To:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Subject: [PATCH rdma-next] RDMA/mlx5: print wc status on CQE error and dump needed
-Date:   Mon, 27 Dec 2021 20:38:06 +0800
-Message-Id: <20211227123806.47530-1-dust.li@linux.alibaba.com>
-X-Mailer: git-send-email 2.19.1.3.ge56e4f7
+        id S234400AbhL1Bja (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Dec 2021 20:39:30 -0500
+Received: from mail.cn.fujitsu.com ([183.91.158.132]:32305 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S232933AbhL1Bja (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 27 Dec 2021 20:39:30 -0500
+IronPort-Data: =?us-ascii?q?A9a23=3A+67MA6MQyhPLZznvrR05lcFynXyQoLVcMsFnjC/?=
+ =?us-ascii?q?WdVO+3Toh3zwOmzNLW2nSaKyMNzHwLYslb43io04G7ZfXm99gGjLY11k3ESsS9?=
+ =?us-ascii?q?pCt6fd1j6vIF3rLaJWFFSqL1u1GAjX7BJ1yHi+0SiuFaOC79CAmj/HQH9IQNca?=
+ =?us-ascii?q?fUsxPbV49IMseoUI78wIJqtYAbemRW2thi/uryyHsEAPNNwpPD44hw/nrRCWDE?=
+ =?us-ascii?q?xjFkGhwUlQWPZintbJF/pUfJMp3yaqZdxMUTmTId9NWSdovzJnhlo/Y1xwrTN2?=
+ =?us-ascii?q?4kLfnaVBMSbnXVeSMoiMOHfH83V4Z/Wpvuko4HKN0hUN/jzSbn9FzydxLnZKtS?=
+ =?us-ascii?q?wY1JbCKk+MYO/VdO3gnbPMcpuSXfhBTtuTWlSUqaUDE2e1jBVstOosY4utfDmR?=
+ =?us-ascii?q?H9PheIzcIBjiRluCk0bDhErE0rssmJcjveogYvxlI3DjfD+sgB4LDXo3O5NlFz?=
+ =?us-ascii?q?HE8i94mNfTRaOIfdztjbR2GaBpKUn8TCZQjjKKri2P5fjlwtl2Yv+w07nLVwQg?=
+ =?us-ascii?q?316LiWPLRe9qXVYBPkkORjnzJ8n6/ARwAMtGbjz2f/RqEhODAtTH6VZofUraxn?=
+ =?us-ascii?q?sOGKnX7Knc7UUVQDAXk56LizBPWZj6WEGRMkgJGkET43BXDogHBYiCF?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3ArUOV6K+sPtGT5ha5jXVuk+DkI+orL9Y04lQ7?=
+ =?us-ascii?q?vn2ZKCYlFvBw8vrCoB1173HJYUkqMk3I9ergBEDiewK4yXcW2/hzAV7KZmCP11?=
+ =?us-ascii?q?dAR7sSj7cKrQeBJwTOssZZ1YpFN5N1EcDMCzFB5vrS0U2VFMkBzbC8nJyVuQ?=
+ =?us-ascii?q?=3D=3D?=
+X-IronPort-AV: E=Sophos;i="5.88,241,1635177600"; 
+   d="scan'208";a="119626387"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 28 Dec 2021 09:39:28 +0800
+Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
+        by cn.fujitsu.com (Postfix) with ESMTP id ACCD34D11981;
+        Tue, 28 Dec 2021 09:39:25 +0800 (CST)
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Tue, 28 Dec 2021 09:39:23 +0800
+Received: from localhost.localdomain (10.167.225.141) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Tue, 28 Dec 2021 09:39:23 +0800
+From:   Li Zhijian <lizhijian@cn.fujitsu.com>
+To:     <zyjzyj2000@gmail.com>, <jgg@ziepe.ca>
+CC:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <yanjun.zhu@linux.dev>, <rpearsonhpe@gmail.com>,
+        Li Zhijian <lizhijian@cn.fujitsu.com>,
+        Jason Gunthorpe <jgg@nvidia.com>
+Subject: [PATCH v2] RDMA/rxe: Prevent from double freeing rxe_map_set
+Date:   Tue, 28 Dec 2021 09:44:06 +0800
+Message-ID: <20211228014406.1033444-1-lizhijian@cn.fujitsu.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-yoursite-MailScanner-ID: ACCD34D11981.AD0F5
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: lizhijian@fujitsu.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-mlx5_handle_error_cqe() only dump the content of the CQE
-which is raw hex data, and not straighforward for debug.
-Print WC status message when we got CQE error and dump is
-need.
+a same rxe_map_set could be freed twice:
+rxe_reg_user_mr()
+  -> rxe_mr_init_user()
+    -> rxe_mr_free_map_set() # 1st
+  -> rxe_drop_ref()
+   ...
+    -> rxe_mr_cleanup()
+      -> rxe_mr_free_map_set() # 2nd
 
-Here is an example of how the dmesg log looks like with this:
-[166755.330649] infiniband mlx5_0: mlx5_handle_error_cqe:333:(pid 0): WC error: 10, message: remote access error
-[166755.332323] infiniband mlx5_0: dump_cqe:272:(pid 0): dump error cqe
-[166755.332944] 00000000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[166755.333574] 00000010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[166755.334202] 00000020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[166755.334837] 00000030: 00 00 00 00 00 00 88 13 08 03 61 b3 1e a1 42 d3
+By convention, we should cleanup/free resources in the error path in the
+same function where the resources are alloted in. So rxe_mr_init_user()
+doesn't need to free the map_set directly.
 
-Signed-off-by: Dust Li <dust.li@linux.alibaba.com>
+In addition, we have to reset map_set to NULL inside rxe_mr_alloc() if needed
+to prevent from map_set being double freed in rxe_mr_cleanup().
+
+CC: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Li Zhijian <lizhijian@cn.fujitsu.com>
 ---
- drivers/infiniband/hw/mlx5/cq.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+V2: Fix it by a simpler way by following suggestion from Bob,
+---
+ drivers/infiniband/sw/rxe/rxe_mr.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index a190fb581591..66dfadb96c66 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -328,8 +328,11 @@ static void mlx5_handle_error_cqe(struct mlx5_ib_dev *dev,
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 25c78aade822..7c4cd19a9db2 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -141,6 +141,7 @@ static int rxe_mr_alloc(struct rxe_mr *mr, int num_buf, int both)
+ 		ret = rxe_mr_alloc_map_set(num_map, &mr->next_map_set);
+ 		if (ret) {
+ 			rxe_mr_free_map_set(mr->num_map, mr->cur_map_set);
++			mr->cur_map_set = NULL;
+ 			goto err_out;
+ 		}
  	}
+@@ -214,7 +215,7 @@ int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
+ 				pr_warn("%s: Unable to get virtual address\n",
+ 						__func__);
+ 				err = -ENOMEM;
+-				goto err_cleanup_map;
++				goto err_release_umem;
+ 			}
  
- 	wc->vendor_err = cqe->vendor_err_synd;
--	if (dump)
-+	if (dump) {
-+		mlx5_ib_warn(dev, "WC error: %d, Message: %s\n",
-+				wc->status, ib_wc_status_msg(wc->status));
- 		dump_cqe(dev, cqe);
-+	}
- }
+ 			buf->addr = (uintptr_t)vaddr;
+@@ -237,8 +238,6 @@ int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
  
- static void handle_atomics(struct mlx5_ib_qp *qp, struct mlx5_cqe64 *cqe64,
+ 	return 0;
+ 
+-err_cleanup_map:
+-	rxe_mr_free_map_set(mr->num_map, mr->cur_map_set);
+ err_release_umem:
+ 	ib_umem_release(umem);
+ err_out:
 -- 
-2.19.1.3.ge56e4f7
+2.31.1
+
+
 
