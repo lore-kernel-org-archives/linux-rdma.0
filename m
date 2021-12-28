@@ -2,27 +2,27 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFEEDC433FE
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Dec 2021 13:07:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B36CC4332F
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Dec 2021 13:07:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232079AbhL1NHJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Dec 2021 08:07:09 -0500
-Received: from out30-56.freemail.mail.aliyun.com ([115.124.30.56]:39831 "EHLO
-        out30-56.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232019AbhL1NHI (ORCPT
+        id S232091AbhL1NHL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Dec 2021 08:07:11 -0500
+Received: from out30-44.freemail.mail.aliyun.com ([115.124.30.44]:36963 "EHLO
+        out30-44.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232060AbhL1NHK (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 28 Dec 2021 08:07:08 -0500
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R211e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0V07F2T5_1640696825;
-Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0V07F2T5_1640696825)
+        Tue, 28 Dec 2021 08:07:10 -0500
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R961e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04426;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0V06pjS-_1640696827;
+Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0V06pjS-_1640696827)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 28 Dec 2021 21:07:05 +0800
+          Tue, 28 Dec 2021 21:07:07 +0800
 From:   Tony Lu <tonylu@linux.alibaba.com>
 To:     kgraul@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH 2/4] net/smc: Add netlink net namespace support
-Date:   Tue, 28 Dec 2021 21:06:10 +0800
-Message-Id: <20211228130611.19124-3-tonylu@linux.alibaba.com>
+Subject: [PATCH 4/4] net/smc: Add net namespace for tracepoints
+Date:   Tue, 28 Dec 2021 21:06:12 +0800
+Message-Id: <20211228130611.19124-5-tonylu@linux.alibaba.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20211228130611.19124-1-tonylu@linux.alibaba.com>
 References: <20211228130611.19124-1-tonylu@linux.alibaba.com>
@@ -32,99 +32,94 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This adds net namespace ID to diag of linkgroup, helps us to distinguish
-different namespaces, and net_cookie is unique in the whole system.
+This prints net namespace ID, helps us to distinguish different net
+namespaces when using tracepoints.
 
 Signed-off-by: Tony Lu <tonylu@linux.alibaba.com>
 ---
- include/uapi/linux/smc.h      |  2 ++
- include/uapi/linux/smc_diag.h | 11 ++++++-----
- net/smc/smc_core.c            |  3 +++
- net/smc/smc_diag.c            | 16 +++++++++-------
- 4 files changed, 20 insertions(+), 12 deletions(-)
+ net/smc/smc_tracepoint.h | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/include/uapi/linux/smc.h b/include/uapi/linux/smc.h
-index 20f33b27787f..6c2874fd2c00 100644
---- a/include/uapi/linux/smc.h
-+++ b/include/uapi/linux/smc.h
-@@ -119,6 +119,8 @@ enum {
- 	SMC_NLA_LGR_R_CONNS_NUM,	/* u32 */
- 	SMC_NLA_LGR_R_V2_COMMON,	/* nest */
- 	SMC_NLA_LGR_R_V2,		/* nest */
-+	SMC_NLA_LGR_R_NET_COOKIE,	/* u64 */
-+	SMC_NLA_LGR_R_PAD,		/* flag */
- 	__SMC_NLA_LGR_R_MAX,
- 	SMC_NLA_LGR_R_MAX = __SMC_NLA_LGR_R_MAX - 1
- };
-diff --git a/include/uapi/linux/smc_diag.h b/include/uapi/linux/smc_diag.h
-index 8cb3a6fef553..c7008d87f1a4 100644
---- a/include/uapi/linux/smc_diag.h
-+++ b/include/uapi/linux/smc_diag.h
-@@ -84,11 +84,12 @@ struct smc_diag_conninfo {
- /* SMC_DIAG_LINKINFO */
+diff --git a/net/smc/smc_tracepoint.h b/net/smc/smc_tracepoint.h
+index ec17f29646f5..9fc5e586d24a 100644
+--- a/net/smc/smc_tracepoint.h
++++ b/net/smc/smc_tracepoint.h
+@@ -22,6 +22,7 @@ TRACE_EVENT(smc_switch_to_fallback,
+ 	    TP_STRUCT__entry(
+ 			     __field(const void *, sk)
+ 			     __field(const void *, clcsk)
++			     __field(u64, net_cookie)
+ 			     __field(int, fallback_rsn)
+ 	    ),
  
- struct smc_diag_linkinfo {
--	__u8 link_id;			/* link identifier */
--	__u8 ibname[IB_DEVICE_NAME_MAX]; /* name of the RDMA device */
--	__u8 ibport;			/* RDMA device port number */
--	__u8 gid[40];			/* local GID */
--	__u8 peer_gid[40];		/* peer GID */
-+	__u8		link_id;		    /* link identifier */
-+	__u8		ibname[IB_DEVICE_NAME_MAX]; /* name of the RDMA device */
-+	__u8		ibport;			    /* RDMA device port number */
-+	__u8		gid[40];		    /* local GID */
-+	__u8		peer_gid[40];		    /* peer GID */
-+	__aligned_u64	net_cookie;                 /* RDMA device net namespace */
- };
+@@ -31,11 +32,13 @@ TRACE_EVENT(smc_switch_to_fallback,
  
- struct smc_diag_lgrinfo {
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 05c11bbe4318..b9d6148d1287 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -348,6 +348,9 @@ static int smc_nl_fill_lgr(struct smc_link_group *lgr,
- 		goto errattr;
- 	if (nla_put_u8(skb, SMC_NLA_LGR_R_VLAN_ID, lgr->vlan_id))
- 		goto errattr;
-+	if (nla_put_u64_64bit(skb, SMC_NLA_LGR_R_NET_COOKIE,
-+			      lgr->net->net_cookie, SMC_NLA_LGR_R_PAD))
-+		goto errattr;
- 	memcpy(smc_target, lgr->pnet_id, SMC_MAX_PNETID_LEN);
- 	smc_target[SMC_MAX_PNETID_LEN] = 0;
- 	if (nla_put_string(skb, SMC_NLA_LGR_R_PNETID, smc_target))
-diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
-index c952986a6aca..7c8dad28c18d 100644
---- a/net/smc/smc_diag.c
-+++ b/net/smc/smc_diag.c
-@@ -145,19 +145,21 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
- 	if (smc->conn.lgr && !smc->conn.lgr->is_smcd &&
- 	    (req->diag_ext & (1 << (SMC_DIAG_LGRINFO - 1))) &&
- 	    !list_empty(&smc->conn.lgr->list)) {
-+		struct smc_link *link = smc->conn.lnk;
-+		struct net *net = read_pnet(&link->smcibdev->ibdev->coredev.rdma_net);
+ 			   __entry->sk = sk;
+ 			   __entry->clcsk = clcsk;
++			   __entry->net_cookie = sock_net(sk)->net_cookie;
+ 			   __entry->fallback_rsn = fallback_rsn;
+ 	    ),
+ 
+-	    TP_printk("sk=%p clcsk=%p fallback_rsn=%d",
+-		      __entry->sk, __entry->clcsk, __entry->fallback_rsn)
++	    TP_printk("sk=%p clcsk=%p net=%llu fallback_rsn=%d",
++		      __entry->sk, __entry->clcsk,
++		      __entry->net_cookie, __entry->fallback_rsn)
+ );
+ 
+ DECLARE_EVENT_CLASS(smc_msg_event,
+@@ -46,19 +49,23 @@ DECLARE_EVENT_CLASS(smc_msg_event,
+ 
+ 		    TP_STRUCT__entry(
+ 				     __field(const void *, smc)
++				     __field(u64, net_cookie)
+ 				     __field(size_t, len)
+ 				     __string(name, smc->conn.lnk->ibname)
+ 		    ),
+ 
+ 		    TP_fast_assign(
++				   const struct sock *sk = &smc->sk;
 +
- 		struct smc_diag_lgrinfo linfo = {
- 			.role = smc->conn.lgr->role,
--			.lnk[0].ibport = smc->conn.lnk->ibport,
--			.lnk[0].link_id = smc->conn.lnk->link_id,
-+			.lnk[0].ibport = link->ibport,
-+			.lnk[0].link_id = link->link_id,
-+			.lnk[0].net_cookie = net->net_cookie,
- 		};
+ 				   __entry->smc = smc;
++				   __entry->net_cookie = sock_net(sk)->net_cookie;
+ 				   __entry->len = len;
+ 				   __assign_str(name, smc->conn.lnk->ibname);
+ 		    ),
  
- 		memcpy(linfo.lnk[0].ibname,
- 		       smc->conn.lgr->lnk[0].smcibdev->ibdev->name,
--		       sizeof(smc->conn.lnk->smcibdev->ibdev->name));
--		smc_gid_be16_convert(linfo.lnk[0].gid,
--				     smc->conn.lnk->gid);
--		smc_gid_be16_convert(linfo.lnk[0].peer_gid,
--				     smc->conn.lnk->peer_gid);
-+		       sizeof(link->smcibdev->ibdev->name));
-+		smc_gid_be16_convert(linfo.lnk[0].gid, link->gid);
-+		smc_gid_be16_convert(linfo.lnk[0].peer_gid, link->peer_gid);
+-		    TP_printk("smc=%p len=%zu dev=%s",
+-			      __entry->smc, __entry->len,
+-			      __get_str(name))
++		    TP_printk("smc=%p net=%llu len=%zu dev=%s",
++			      __entry->smc, __entry->net_cookie,
++			      __entry->len, __get_str(name))
+ );
  
- 		if (nla_put(skb, SMC_DIAG_LGRINFO, sizeof(linfo), &linfo) < 0)
- 			goto errout;
+ DEFINE_EVENT(smc_msg_event, smc_tx_sendmsg,
+@@ -84,6 +91,7 @@ TRACE_EVENT(smcr_link_down,
+ 	    TP_STRUCT__entry(
+ 			     __field(const void *, lnk)
+ 			     __field(const void *, lgr)
++			     __field(u64, net_cookie)
+ 			     __field(int, state)
+ 			     __string(name, lnk->ibname)
+ 			     __field(void *, location)
+@@ -94,13 +102,14 @@ TRACE_EVENT(smcr_link_down,
+ 
+ 			   __entry->lnk = lnk;
+ 			   __entry->lgr = lgr;
++			   __entry->net_cookie = lgr->net->net_cookie;
+ 			   __entry->state = lnk->state;
+ 			   __assign_str(name, lnk->ibname);
+ 			   __entry->location = location;
+ 	    ),
+ 
+-	    TP_printk("lnk=%p lgr=%p state=%d dev=%s location=%pS",
+-		      __entry->lnk, __entry->lgr,
++	    TP_printk("lnk=%p lgr=%p net=%llu state=%d dev=%s location=%pS",
++		      __entry->lnk, __entry->lgr, __entry->net_cookie,
+ 		      __entry->state, __get_str(name),
+ 		      __entry->location)
+ );
 -- 
 2.32.0.3.g01195cf9f
 
