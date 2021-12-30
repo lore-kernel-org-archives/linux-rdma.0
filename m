@@ -2,300 +2,145 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31A49C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Dec 2021 11:24:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02630C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Dec 2021 12:17:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238945AbhL3LYE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Dec 2021 06:24:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54926 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239010AbhL3LYD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Dec 2021 06:24:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADB13C06173E;
-        Thu, 30 Dec 2021 03:24:02 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A46A6168B;
-        Thu, 30 Dec 2021 11:24:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9EA5C36AEC;
-        Thu, 30 Dec 2021 11:24:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1640863441;
-        bh=CPKISPGTbcoObFThEXqTFHDva0XDHTqBXOhYb8c6dGw=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=SiDtfuVZBtabg6cj76h4Be0/mTQ4Hh3msR8gyGB/ceR89gw7jA94N1gLJcM0Eqzev
-         Mxygbowsx/4aqP/kdj0nq4mb+PgBMst8JkTMnGJwJyi7IOh6Vj9KeMQhrIwc6ubWUq
-         tssY+bFPq/1JKwwMrkEJvVsaB5R9z0fSjn7ywVesMJH8cfa3VHAiPlCJl8RkFTdrjC
-         pdte3h6bJ8GGUvh5d7z2aah1T3I1tLRkxrytPmYw+4E8CBkDrMAmncnl2/KG/bLH3c
-         H3bP+EgNbQQ0no6vcaOleDBIRUY+XqspnayEoBPoDPdh5YJDMx75ua5C+T31ZCMg27
-         kEY9Zl5oE4QKg==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Aharon Landau <aharonl@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 6/7] RDMA/mlx5: Delay the deregistration of a non-cache mkey
-Date:   Thu, 30 Dec 2021 13:23:23 +0200
-Message-Id: <c209119299747d97ee39acfc79f2aa7d73b043c4.1640862842.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <cover.1640862842.git.leonro@nvidia.com>
-References: <cover.1640862842.git.leonro@nvidia.com>
+        id S239033AbhL3MRu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Dec 2021 07:17:50 -0500
+Received: from mail.cn.fujitsu.com ([183.91.158.132]:38440 "EHLO
+        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S229463AbhL3MRt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Dec 2021 07:17:49 -0500
+IronPort-Data: =?us-ascii?q?A9a23=3Ad6NkaaISKR3O8JqpFE+RJpclxSXFcZb7ZxGrkP8?=
+ =?us-ascii?q?bfHCxgDJw1mFVympKDTrTafmCYzCkft1zYYnkoBkCuJ7Xy4NqS1BcGVNFFSwT8?=
+ =?us-ascii?q?ZWfbTi6wuYcBwvLd4ubChsPA/w2MrEsF+hpCC+MzvuRGuK59yAlj/rQHuCU5NP?=
+ =?us-ascii?q?sYUideyc1EU/Ntjozw4bVsqYw6TSIK1vlVeHa+qUzC3f5s9JACV/43orYwP9ZU?=
+ =?us-ascii?q?FsejxtD1rA2TagjUFYzDBD5BrpHTU26ByOQroW5goeHq+j/ILGRpgs1/j8mDJW?=
+ =?us-ascii?q?rj7T6blYXBLXVOGBiiFIPA+773EcE/Xd0j87XN9JFAatToySAmd9hjtdcnZKtS?=
+ =?us-ascii?q?wY1JbCKk+MYO/VdO3gnbPIboOaffRBTtuTWlSUqaUDE2e1jBVstOosY4utfDmR?=
+ =?us-ascii?q?H9PheIzcIBjifgOe/26D9RfNrg80vPsrqFIIZpnxkizreCJ4OUJnFQbjMo81Yw?=
+ =?us-ascii?q?R80h8ZTDbDSatRxQThgYzzGfRxDO15RA5U79M+sh3/iY3hCpFecjbQ47nKVzwF?=
+ =?us-ascii?q?r1rXpdt3PdbS3qW999qqDjjueuT2nXVdBb5rCoQdpO0mE3ofn9R4XkqpLfFFgy?=
+ =?us-ascii?q?sNXvQ=3D=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A58KVHqtZKoSUXBaIHtqwezSx7skDStV00zEX?=
+ =?us-ascii?q?/kB9WHVpm62j5qSTdZEguCMc5wx+ZJheo7q90cW7IE80lqQFhLX5X43SPzUO0V?=
+ =?us-ascii?q?HARO5fBODZsl/d8kPFltJ15ONJdqhSLJnKB0FmsMCS2mKFOudl7N6Z0K3Av4vj?=
+ =?us-ascii?q?80s=3D?=
+X-IronPort-AV: E=Sophos;i="5.88,248,1635177600"; 
+   d="scan'208";a="119750104"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 30 Dec 2021 20:15:25 +0800
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+        by cn.fujitsu.com (Postfix) with ESMTP id 5EF5B4D15A21;
+        Thu, 30 Dec 2021 20:15:20 +0800 (CST)
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Thu, 30 Dec 2021 20:15:22 +0800
+Received: from Fedora-31.g08.fujitsu.local (10.167.220.99) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Thu, 30 Dec 2021 20:15:18 +0800
+From:   Xiao Yang <yangx.jy@fujitsu.com>
+To:     <linux-rdma@vger.kernel.org>
+CC:     <yanjun.zhu@linux.dev>, <rpearsonhpe@gmail.com>, <jgg@nvidia.com>,
+        <y-goto@fujitsu.com>, <lizhijian@fujitsu.com>,
+        <tomasz.gromadzki@intel.com>, Xiao Yang <yangx.jy@fujitsu.com>
+Subject: [RFC PATCH 1/2] RDMA/rxe: Rename send_atomic_ack() and atomic member of struct resp_res
+Date:   Thu, 30 Dec 2021 20:14:22 +0800
+Message-ID: <20211230121423.1919550-2-yangx.jy@fujitsu.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20211230121423.1919550-1-yangx.jy@fujitsu.com>
+References: <20211230121423.1919550-1-yangx.jy@fujitsu.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-yoursite-MailScanner-ID: 5EF5B4D15A21.A8576
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: yangx.jy@fujitsu.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@nvidia.com>
+send_atomic_ack() and atomic member of struct resp_res will be common
+in the future so rename them.
 
-When restarting an application with many non-cached mkeys, all the mkeys
-will be destroyed and then recreated.
-
-This process takes a long time (about 20 seconds for deregistration and
-28 seconds for registration of 100,000 MRs).
-
-To shorten the restart runtime, insert the mkeys temporarily into the
-cache and schedule a delayed work to destroy them later. If there is no
-fitting entry to these mkeys, create a temporary entry that fits them.
-
-If 30 seconds have passed and no user reclaimed the temporarily cached
-mkeys, the scheduled work will destroy the mkeys and the temporary
-entries.
-
-When restarting an application, the mkeys will still be in the cache
-when trying to reg them again, therefore, the registration will be
-faster (4 seconds for deregistration and 5 seconds or registration of
-100,000 MRs).
-
-Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   3 +
- drivers/infiniband/hw/mlx5/mr.c      | 131 ++++++++++++++++++++++++++-
- 2 files changed, 132 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c    |  2 +-
+ drivers/infiniband/sw/rxe/rxe_resp.c  | 10 +++++-----
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index ce1f48cc8370..8ebe1edce190 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -639,6 +639,7 @@ struct mlx5_ib_mkey {
- 	u32 key;
- 	enum mlx5_mkey_type type;
- 	unsigned int ndescs;
-+	unsigned int access_mode;
- 	struct wait_queue_head wait;
- 	refcount_t usecount;
- 	struct mlx5_cache_ent *cache_ent;
-@@ -746,6 +747,7 @@ struct mlx5_cache_ent {
- 	char                    name[4];
- 	unsigned int		ndescs;
- 
-+	u8 is_tmp:1;
- 	u8 disabled:1;
- 	u8 fill_to_high_water:1;
- 
-@@ -782,6 +784,7 @@ struct mlx5_mr_cache {
- 	struct mutex		cache_lock;
- 	struct dentry		*root;
- 	unsigned long		last_add;
-+	struct delayed_work	remove_ent_dwork;
- };
- 
- struct mlx5_ib_port_resources {
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 631bb12697fd..43e993b360d8 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -482,7 +482,7 @@ static bool someone_adding(struct mlx5_mr_cache *cache)
-  */
- static void queue_adjust_cache_locked(struct mlx5_cache_ent *ent)
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index 54b8711321c1..f3eec350f95c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -136,7 +136,7 @@ static void free_rd_atomic_resources(struct rxe_qp *qp)
+ void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res)
  {
--	if (ent->disabled || READ_ONCE(ent->dev->fill_delay))
-+	if (ent->disabled || READ_ONCE(ent->dev->fill_delay) || ent->is_tmp)
- 		return;
- 	if (ent->stored < ent->limit) {
- 		ent->fill_to_high_water = true;
-@@ -671,7 +671,16 @@ static void mlx5_ent_get_mkey_locked(struct mlx5_cache_ent *ent,
- 	WARN_ON(old != NULL);
- 	queue_adjust_cache_locked(ent);
- 	mr->mmkey.key = (u32)xa_to_value(xa_mkey);
--	mr->mmkey.cache_ent = ent;
-+
-+	if (!ent->is_tmp)
-+		mr->mmkey.cache_ent = ent;
-+	else {
-+		ent->total_mrs--;
-+		cancel_delayed_work(&ent->dev->cache.remove_ent_dwork);
-+		queue_delayed_work(ent->dev->cache.wq,
-+				   &ent->dev->cache.remove_ent_dwork,
-+				   msecs_to_jiffies(30 * 1000));
-+	}
+ 	if (res->type == RXE_ATOMIC_MASK) {
+-		kfree_skb(res->atomic.skb);
++		kfree_skb(res->resp.skb);
+ 	} else if (res->type == RXE_READ_MASK) {
+ 		if (res->read.mr)
+ 			rxe_drop_ref(res->read.mr);
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 380934e38923..738e6b6335e5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -959,7 +959,7 @@ static int send_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+ 	return err;
  }
  
- static bool mlx5_cache_get_mkey(struct mlx5_mr_cache *cache, void *mkc,
-@@ -750,8 +759,10 @@ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev, int *in,
- 		if (err)
- 			goto err;
- 	}
-+	mr->mmkey.ndescs = ndescs;
- 	mr->mmkey.type = MLX5_MKEY_MR;
- 	init_waitqueue_head(&mr->mmkey.wait);
-+	mr->mmkey.access_mode = access_mode;
- 	return mr;
- 
- err:
-@@ -863,6 +874,42 @@ static struct mlx5_cache_ent *mlx5_ib_create_cache_ent(struct mlx5_ib_dev *dev,
- 	return ent;
- }
- 
-+static void remove_ent_work_func(struct work_struct *work)
-+{
-+	struct mlx5_mr_cache *cache;
-+	struct mlx5_cache_ent *ent;
-+	struct rb_node *cur;
-+
-+	cache = container_of(work, struct mlx5_mr_cache, remove_ent_dwork.work);
-+	mutex_lock(&cache->cache_lock);
-+	cur = rb_last(&cache->cache_root);
-+	while (cur) {
-+		ent = rb_entry(cur, struct mlx5_cache_ent, node);
-+		cur = rb_prev(cur);
-+		mutex_unlock(&cache->cache_lock);
-+
-+		xa_lock_irq(&ent->mkeys);
-+		if (!ent->is_tmp || ent->total_mrs != ent->stored) {
-+			if (ent->total_mrs != ent->stored)
-+				queue_delayed_work(cache->wq,
-+						   &cache->remove_ent_dwork,
-+						   msecs_to_jiffies(30 * 1000));
-+			xa_unlock_irq(&ent->mkeys);
-+			mutex_lock(&cache->cache_lock);
-+			continue;
-+		}
-+		ent->disabled = true;
-+		xa_unlock_irq(&ent->mkeys);
-+
-+		clean_keys(ent->dev, ent);
-+		mutex_lock(&cache->cache_lock);
-+		rb_erase(&ent->node, &cache->cache_root);
-+		kfree(ent->mkc);
-+		kfree(ent);
-+	}
-+	mutex_unlock(&cache->cache_lock);
-+}
-+
- int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
+-static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
++static int send_resp(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
+ 			   u8 syndrome)
  {
- 	struct mlx5_mr_cache *cache = &dev->cache;
-@@ -873,6 +920,7 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
- 	mutex_init(&dev->slow_path_mutex);
- 	mutex_init(&dev->cache.cache_lock);
- 	cache->cache_root = RB_ROOT;
-+	INIT_DELAYED_WORK(&cache->remove_ent_dwork, remove_ent_work_func);
- 	cache->wq = alloc_ordered_workqueue("mkey_cache", WQ_MEM_RECLAIM);
- 	if (!cache->wq) {
- 		mlx5_ib_warn(dev, "failed to create work queue\n");
-@@ -922,6 +970,7 @@ int mlx5_mr_cache_cleanup(struct mlx5_ib_dev *dev)
- 	if (!dev->cache.wq)
- 		return 0;
+ 	int rc = 0;
+@@ -981,7 +981,7 @@ static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
  
-+	cancel_delayed_work_sync(&dev->cache.remove_ent_dwork);
- 	mutex_lock(&dev->cache.cache_lock);
- 	for (node = rb_first(root); node; node = rb_next(node)) {
- 		ent = rb_entry(node, struct mlx5_cache_ent, node);
-@@ -2092,6 +2141,81 @@ mlx5_free_priv_descs(struct mlx5_ib_mr *mr)
- 	}
- }
+ 	skb_get(skb);
+ 	res->type = RXE_ATOMIC_MASK;
+-	res->atomic.skb = skb;
++	res->resp.skb = skb;
+ 	res->first_psn = ack_pkt.psn;
+ 	res->last_psn  = ack_pkt.psn;
+ 	res->cur_psn   = ack_pkt.psn;
+@@ -1004,7 +1004,7 @@ static enum resp_states acknowledge(struct rxe_qp *qp,
+ 	if (qp->resp.aeth_syndrome != AETH_ACK_UNLIMITED)
+ 		send_ack(qp, pkt, qp->resp.aeth_syndrome, pkt->psn);
+ 	else if (pkt->mask & RXE_ATOMIC_MASK)
+-		send_atomic_ack(qp, pkt, AETH_ACK_UNLIMITED);
++		send_resp(qp, pkt, AETH_ACK_UNLIMITED);
+ 	else if (bth_ack(pkt))
+ 		send_ack(qp, pkt, AETH_ACK_UNLIMITED, pkt->psn);
  
-+static struct mlx5_cache_ent *mlx5_cache_create_tmp_ent(struct mlx5_ib_dev *dev,
-+							void *mkc,
-+							unsigned int ndescs)
-+{
-+	struct mlx5_cache_ent *ent;
-+	int ret;
-+
-+	ent = kzalloc(sizeof(*ent), GFP_KERNEL);
-+	if (!ent)
-+		return ERR_PTR(-ENOMEM);
-+
-+	xa_init_flags(&ent->mkeys, XA_FLAGS_LOCK_IRQ);
-+	ent->ndescs = ndescs;
-+	ent->dev = dev;
-+	ent->is_tmp = true;
-+
-+	INIT_WORK(&ent->work, cache_work_func);
-+	INIT_DELAYED_WORK(&ent->dwork, delayed_cache_work_func);
-+
-+	ent->mkc = mkc;
-+	ret = mlx5_cache_ent_insert_locked(&dev->cache, ent);
-+	if (ret) {
-+		kfree(ent);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return ent;
-+}
-+
-+static void mlx5_cache_tmp_push_mkey(struct mlx5_ib_dev *dev,
-+				     struct mlx5_ib_mr *mr)
-+{
-+	struct mlx5_mr_cache *cache = &dev->cache;
-+	struct ib_umem *umem = mr->umem;
-+	struct mlx5_cache_ent *ent;
-+	void *mkc;
-+
-+	if (!umem || !mlx5_ib_can_load_pas_with_umr(dev, umem->length))
-+		return;
-+
-+	mkc = kzalloc(MLX5_ST_SZ_BYTES(mkc), GFP_KERNEL);
-+	if (!mkc)
-+		return;
-+
-+	mlx5_set_cache_mkc(dev, mkc,
-+			   mlx5_acc_flags_to_ent_flags(dev, mr->access_flags),
-+			   mr->mmkey.access_mode, PAGE_SHIFT);
-+	mutex_lock(&cache->cache_lock);
-+	ent = mlx5_cache_find_smallest_ent(&dev->cache, mkc, mr->mmkey.ndescs,
-+					   mr->mmkey.ndescs);
-+	if (!ent) {
-+		ent = mlx5_cache_create_tmp_ent(dev, mkc, mr->mmkey.ndescs);
-+		if (IS_ERR(ent)) {
-+			mutex_unlock(&cache->cache_lock);
-+			kfree(mkc);
-+			return;
-+		}
-+	} else
-+		kfree(mkc);
-+
-+	xa_lock_irq(&ent->mkeys);
-+	if (ent->disabled) {
-+		xa_unlock_irq(&ent->mkeys);
-+		mutex_unlock(&cache->cache_lock);
-+		return;
-+	}
-+	ent->total_mrs++;
-+	xa_unlock_irq(&ent->mkeys);
-+	cancel_delayed_work(&cache->remove_ent_dwork);
-+	queue_delayed_work(cache->wq, &cache->remove_ent_dwork,
-+			   msecs_to_jiffies(30 * 1000));
-+	mutex_unlock(&cache->cache_lock);
-+	mr->mmkey.cache_ent = ent;
-+}
-+
- int mlx5_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
- {
- 	struct mlx5_ib_mr *mr = to_mmr(ibmr);
-@@ -2136,6 +2260,9 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
- 		mr->sig = NULL;
- 	}
- 
-+	if (!mr->mmkey.cache_ent)
-+		mlx5_cache_tmp_push_mkey(dev, mr);
-+
- 	/* Stop DMA */
- 	if (mr->mmkey.cache_ent) {
- 		if (revoke_mr(mr) || push_reserve_mkey(mr->mmkey.cache_ent)) {
+@@ -1113,9 +1113,9 @@ static enum resp_states duplicate_request(struct rxe_qp *qp,
+ 		/* Find the operation in our list of responder resources. */
+ 		res = find_resource(qp, pkt->psn);
+ 		if (res) {
+-			skb_get(res->atomic.skb);
++			skb_get(res->resp.skb);
+ 			/* Resend the result. */
+-			rc = rxe_xmit_packet(qp, pkt, res->atomic.skb);
++			rc = rxe_xmit_packet(qp, pkt, res->resp.skb);
+ 			if (rc) {
+ 				pr_err("Failed resending result. This flow is not handled - skb ignored\n");
+ 				rc = RESPST_CLEANUP;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 35e041450090..e0606e5f9962 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -155,7 +155,7 @@ struct resp_res {
+ 	union {
+ 		struct {
+ 			struct sk_buff	*skb;
+-		} atomic;
++		} resp;
+ 		struct {
+ 			struct rxe_mr	*mr;
+ 			u64		va_org;
 -- 
-2.33.1
+2.23.0
+
+
 
