@@ -2,55 +2,112 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DA18C433F5
-	for <linux-rdma@archiver.kernel.org>; Mon,  3 Jan 2022 09:13:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 583E5C433EF
+	for <linux-rdma@archiver.kernel.org>; Mon,  3 Jan 2022 09:47:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231138AbiACJNR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 3 Jan 2022 04:13:17 -0500
-Received: from mail.tomediacase.pl ([151.236.18.187]:57368 "EHLO
-        mail.tomediacase.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232312AbiACJNR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 3 Jan 2022 04:13:17 -0500
-X-Greylist: delayed 475 seconds by postgrey-1.27 at vger.kernel.org; Mon, 03 Jan 2022 04:13:16 EST
-Received: by mail.tomediacase.pl (Postfix, from userid 1001)
-        id B07CB40D72; Mon,  3 Jan 2022 10:05:11 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=tomediacase.pl;
-        s=mail; t=1641200720;
-        bh=1KDTsB3nJcWAjbNGIw57IBVNLXBfvIhwZJ5safZoOHQ=;
-        h=Date:From:To:Subject:From;
-        b=jUMugI6CbCmOdnhYHvbuiJGaShXlS5fehlOxigtXh/rsmKpyD1Jv/BkasE53jiV/r
-         HF3oOZJQB0DdfCV1GqktYIwCCW5G+l6w8+jzBRgJ2Q6/IxWPHSk5SdSwBZUQcPzJCO
-         SSCZQlEAM8CGT9eFftliG3w6Rr0psbh9wuzAFQDkWahBB5/rctROwkrrJy8e0TIlH6
-         dgovzW9xZVibW8UUiXecTsJdKPcvbuXfbVkO7RG2oEMaLUxYo1/GjRaMUTUAfEl55l
-         GU2S4cwSpvL5C75T375RPFsgx3+eliVxzfCqAeFESjYB0XN4YIrbv8sqYVmLQx64h2
-         dPmkjW2ht0dhQ==
-Received: by mail.tomediacase.pl for <linux-rdma@vger.kernel.org>; Mon,  3 Jan 2022 09:05:08 GMT
-Message-ID: <20220103084500-0.1.z.2q83.0.52qri9gqwm@tomediacase.pl>
-Date:   Mon,  3 Jan 2022 09:05:08 GMT
-From:   "Adam Charachuta" <adam.charachuta@tomediacase.pl>
-To:     <linux-rdma@vger.kernel.org>
-Subject: =?UTF-8?Q?S=C5=82owa_kluczowe_do_wypozycjonowania?=
-X-Mailer: mail.tomediacase.pl
+        id S231234AbiACJrV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 3 Jan 2022 04:47:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33094 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231142AbiACJrV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 3 Jan 2022 04:47:21 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12273C061761
+        for <linux-rdma@vger.kernel.org>; Mon,  3 Jan 2022 01:47:21 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D1687B80989
+        for <linux-rdma@vger.kernel.org>; Mon,  3 Jan 2022 09:47:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5B50C36AE9;
+        Mon,  3 Jan 2022 09:47:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1641203238;
+        bh=x5PqyJ9tAB+q8nGgwTmhxzy8Y6csC5RHIjggvZym2lI=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=fG5fpXGT3vRXGkoEmTMGrTQwq5ed2C6E27EhdkdpfH2EKbyUkuSy8mIt6I2u4Hoj/
+         SPDYHLVrVoiwOFWsrqTMmpWPB57iIZSg2w/XoAfga66mQ9QmlWrRax+ey+L3MtThCD
+         jaQGX2SPV0E3UjQQ6Cj2VsWeysdUCZC7j1HYBQFaLSBy1H+trUXckJFolixcoOErhw
+         KEhBSbsn8sW4UeDmWOSj/9aXjqCdw6BJo6bw5X0AVBkuSctvgrdca8toQjcdkTHpKh
+         9KUf3CApdee4NkLi978QoF8GdCa8qxTTv7D76RNUBS9Q/ObWfhcTJQs0O6d+y4csNg
+         2GAUohWdHxeSA==
+Date:   Mon, 3 Jan 2022 11:47:14 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     yanjun.zhu@linux.dev
+Cc:     mustafa.ismail@intel.com, shiraz.saleem@intel.com, jgg@ziepe.ca,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCHv3 1/1] RDMA/irdma: Make the source udp port vary
+Message-ID: <YdLGIs6LQLIooiIn@unreal>
+References: <20211221173913.1386261-1-yanjun.zhu@linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211221173913.1386261-1-yanjun.zhu@linux.dev>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Tue, Dec 21, 2021 at 12:39:13PM -0500, yanjun.zhu@linux.dev wrote:
+> From: Zhu Yanjun <yanjun.zhu@linux.dev>
+> 
+> Based on the link https://www.spinics.net/lists/linux-rdma/msg73735.html,
 
-zapozna=C5=82em si=C4=99 z Pa=C5=84stwa ofert=C4=85 i z przyjemno=C5=9Bci=
-=C4=85 przyznaj=C4=99, =C5=BCe przyci=C4=85ga uwag=C4=99 i zach=C4=99ca d=
-o dalszych rozm=C3=B3w.=20
+Please use lore.kernel.org links. They have all chances to outlive spinics.
 
-Pomy=C5=9Bla=C5=82em, =C5=BCe mo=C5=BCe m=C3=B3g=C5=82bym mie=C4=87 sw=C3=
-=B3j wk=C5=82ad w Pa=C5=84stwa rozw=C3=B3j i pom=C3=B3c dotrze=C4=87 z t=C4=
-=85 ofert=C4=85 do wi=C4=99kszego grona odbiorc=C3=B3w. Pozycjonuj=C4=99 =
-strony www, dzi=C4=99ki czemu generuj=C4=85 =C5=9Bwietny ruch w sieci.
+> get the source udp port number for a QP based on the grh.flow_label or
+> lqpn/rqrpn. This provides a better spread of traffic across NIC RX queues.
+> The method in the commit 2b880b2e5e03 ("RDMA/mlx5: Define RoCEv2 udp
+> source port when set path") is a standard way. So it is also adopted in
+> this commit.
+> 
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+> ---
+> V2->V3: Move to the block of IB_QP_AV in the mask and IB_AH_GRH in ah_flags
+> V1->V2: Adopt a standard method to get udp source port.
+> ---
+>  drivers/infiniband/hw/irdma/verbs.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+> index 8cd5f9261692..31039b295206 100644
+> --- a/drivers/infiniband/hw/irdma/verbs.c
+> +++ b/drivers/infiniband/hw/irdma/verbs.c
+> @@ -1094,6 +1094,15 @@ static int irdma_query_pkey(struct ib_device *ibdev, u32 port, u16 index,
+>  	return 0;
+>  }
+>  
+> +
+> +static u16 irdma_get_udp_sport(u32 fl, u32 lqpn, u32 rqpn)
+> +{
+> +	if (!fl)
+> +		fl = rdma_calc_flow_label(lqpn, rqpn);
+> +
+> +	return rdma_flow_label_to_udp_sport(fl);
+> +}
+> +
+>  /**
+>   * irdma_modify_qp_roce - modify qp request
+>   * @ibqp: qp's pointer for modify
+> @@ -1167,6 +1176,11 @@ int irdma_modify_qp_roce(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+>  
+>  		memset(&iwqp->roce_ah, 0, sizeof(iwqp->roce_ah));
+>  		if (attr->ah_attr.ah_flags & IB_AH_GRH) {
+> +			u32 fl = udp_info->flow_label;
+> +			u32 lqp = ibqp->qp_num;
+> +			u32 rqp = roce_info->dest_qp;
+> +
 
-Mo=C5=BCemy porozmawia=C4=87 w najbli=C5=BCszym czasie?
+I don't see too much value in these extra variables and extra function
+that is the same as get_udp_sport() from hns.
 
+It is worth to add new function to ib_verbs.h and reuse in both drivers.
 
-Pozdrawiam,
-Adam Charachuta
+Thanks
+
+> +			udp_info->src_port = irdma_get_udp_sport(fl, lqp, rqp);
+>  			udp_info->ttl = attr->ah_attr.grh.hop_limit;
+>  			udp_info->flow_label = attr->ah_attr.grh.flow_label;
+>  			udp_info->tos = attr->ah_attr.grh.traffic_class;
+> -- 
+> 2.27.0
+> 
