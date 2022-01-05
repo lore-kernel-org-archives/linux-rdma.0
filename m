@@ -2,92 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CEA24C4321E
-	for <linux-rdma@archiver.kernel.org>; Tue,  4 Jan 2022 15:44:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D477EC433F5
+	for <linux-rdma@archiver.kernel.org>; Tue,  4 Jan 2022 15:44:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233835AbiADPn7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 4 Jan 2022 10:43:59 -0500
-Received: from mga02.intel.com ([134.134.136.20]:10197 "EHLO mga02.intel.com"
+        id S233950AbiADPoq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 4 Jan 2022 10:44:46 -0500
+Received: from mga18.intel.com ([134.134.136.126]:35449 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232505AbiADPn6 (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Tue, 4 Jan 2022 10:43:58 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1641311038; x=1672847038;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=22y9EjrBRaMVy/mz9REdCI0A1LxLuq5BPOq8HpG1+gg=;
-  b=UnovQSwallIVIqbAQyjb9NCARDilaA1Ue7nDtEe8kXT723v2h7NU6tzj
-   LD6SUjbvz3nozkJw8+lesaECkScGnd3tq1MXNUhS6ph/dAAdDj9SGhGDW
-   t9O1lZy5P95H2zSPB49Cg2C+Q5W4gojbfFrRI+7YvtubgVf3LL17XC36p
-   iRNu6nngL5TFQCIXF/T+2ah1UzGqBz3z9U3LSSr/hy1MHXgIHwiXKsXYk
-   5KYL4R3+5otT7W3IRllPUq6NF+Cxf78guqRC8FDxs0dMLx8dPHYp6PXL/
-   QGseiTvWtgDcIgNUhUWJTKsqAffWp71R3vWF4Ng/dugEYwryWUUfNtkUd
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10216"; a="229559359"
+        id S234946AbiADPoi (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Tue, 4 Jan 2022 10:44:38 -0500
+X-IronPort-AV: E=McAfee;i="6200,9189,10216"; a="229062509"
 X-IronPort-AV: E=Sophos;i="5.88,261,1635231600"; 
-   d="scan'208";a="229559359"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2022 07:43:58 -0800
+   d="scan'208";a="229062509"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2022 07:44:37 -0800
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.88,261,1635231600"; 
-   d="scan'208";a="688600650"
-Received: from smile.fi.intel.com ([10.237.72.61])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2022 07:43:52 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1n4lxK-006GMj-Qz;
-        Tue, 04 Jan 2022 17:42:34 +0200
-Date:   Tue, 4 Jan 2022 17:42:34 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Jakub Kicinski <kuba@kernel.org>, mingo@kernel.org
-Cc:     Florian Fainelli <f.fainelli@gmail.com>, ast@kernel.org,
-        daniel@iogearbox.net, bpf@vger.kernel.org, netdev@vger.kernel.org,
-        linux-bluetooth@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-can@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
-        linux-hams@vger.kernel.org, ath11k@lists.infradead.org,
-        linux-wireless@vger.kernel.org, linux-nfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, bridge@lists.linux-foundation.org,
-        linux-decnet-user@lists.sourceforge.net,
-        linux-s390@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, virtualization@lists.linux-foundation.org
-Subject: Re: [PATCH bpf-next v2] net: don't include filter.h from net/sock.h
-Message-ID: <YdRq6vKceOqscaKK@smile.fi.intel.com>
-References: <20211229004913.513372-1-kuba@kernel.org>
- <5a82690c-7dc0-81de-4dd6-06e26e4b9b92@gmail.com>
- <20211229092012.635e9f2b@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
+   d="scan'208";a="526089383"
+Received: from intel-obmc.bj.intel.com (HELO intel-71.bj.intel.com) ([10.238.154.71])
+  by orsmga008.jf.intel.com with ESMTP; 04 Jan 2022 07:44:35 -0800
+From:   yanjun.zhu@linux.dev
+To:     liangwenpeng@huawei.com, liweihang@huawei.com, jgg@ziepe.ca,
+        mustafa.ismail@intel.com, shiraz.saleem@intel.com,
+        zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org,
+        yanjun.zhu@linux.dev
+Subject: [PATCH 0/4] Generate UDP src port with flow label or lqpn/rqpn
+Date:   Wed,  5 Jan 2022 03:07:23 -0500
+Message-Id: <20220105080727.2143737-1-yanjun.zhu@linux.dev>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211229092012.635e9f2b@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Dec 29, 2021 at 09:20:12AM -0800, Jakub Kicinski wrote:
-> On Tue, 28 Dec 2021 17:33:39 -0800 Florian Fainelli wrote:
-> > It would be nice if we used the number of files rebuilt because of a 
-> > header file change as another metric that the kernel is evaluated with 
-> > from release to release (or even on a commit by commit basis). Food for 
-> > thought.
-> 
-> Maybe Andy has some thoughts, he has been working on dropping
-> unnecessary includes of kernel.h, it seems.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-With this [1] announcement I believe Ingo is the best to tell you if this is a
-right direction.
+Follow the advice from Leon Romanovsky, rdma_get_udp_sport is moved to
+ib_verbs.h. several drivers generate udp source port with this function.
 
-> It'd be cool to plug something that'd warn us about significant
-> increases in dependencies into the patchwork build bot.
-> 
-> I have one more small series which un-includes uapi/bpf.h from
-> netdevice.h at which point I hope we'll be largely in the clear 
-> from build bot performance perspective.
+Zhu Yanjun (4):
+  RDMA/core: Calculate UDP source port based on flow label or lqpn/rqpn
+  RDMA/hns: Replace get_udp_sport with rdma_get_udp_sport
+  RDMA/irdma: Make the source udp port vary
+  RDMA/rxe: Use the standard method to produce udp source port
 
-[1]: https://lore.kernel.org/lkml/YdIfz+LMewetSaEB@gmail.com/T/#u
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 12 ++----------
+ drivers/infiniband/hw/irdma/verbs.c        |  5 +++++
+ drivers/infiniband/sw/rxe/rxe_verbs.c      | 10 ++++++++++
+ include/rdma/ib_verbs.h                    | 17 +++++++++++++++++
+ 4 files changed, 34 insertions(+), 10 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.27.0
 
