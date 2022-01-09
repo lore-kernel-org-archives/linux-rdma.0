@@ -2,73 +2,50 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B18A9C433F5
-	for <linux-rdma@archiver.kernel.org>; Sun,  9 Jan 2022 08:35:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F33EC433EF
+	for <linux-rdma@archiver.kernel.org>; Sun,  9 Jan 2022 08:42:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233310AbiAIIfz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 9 Jan 2022 03:35:55 -0500
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:60584 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233277AbiAIIfz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 9 Jan 2022 03:35:55 -0500
-Received: from pop-os.home ([90.11.185.88])
-        by smtp.orange.fr with ESMTPA
-        id 6Tg9nH5hLFGqt6Tg9nEaxZ; Sun, 09 Jan 2022 09:35:54 +0100
-X-ME-Helo: pop-os.home
-X-ME-Auth: YWZlNiIxYWMyZDliZWIzOTcwYTEyYzlhMmU3ZiQ1M2U2MzfzZDfyZTMxZTBkMTYyNDBjNDJlZmQ3ZQ==
-X-ME-Date: Sun, 09 Jan 2022 09:35:54 +0100
-X-ME-IP: 90.11.185.88
-From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To:     Bryan Tan <bryantan@vmware.com>, Vishnu Dasa <vdasa@vmware.com>,
-        VMware PV-Drivers <pv-drivers@vmware.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH] RDMA/pvrdma: Remove useless DMA-32 fallback configuration
-Date:   Sun,  9 Jan 2022 09:35:18 +0100
-Message-Id: <10c29cb45d14fb8ed89cf1308c4a9a7d445c52eb.1641717275.git.christophe.jaillet@wanadoo.fr>
-X-Mailer: git-send-email 2.32.0
+        id S233362AbiAIImz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 9 Jan 2022 03:42:55 -0500
+Received: from m2.carbon.beget.com ([5.101.153.166]:48684 "EHLO
+        m2.carbon.beget.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229867AbiAIImy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 9 Jan 2022 03:42:54 -0500
+X-Greylist: delayed 766 seconds by postgrey-1.27 at vger.kernel.org; Sun, 09 Jan 2022 03:42:54 EST
+Received: from isidorne (Authenticated sender isidorne@carbon.beget.ru)
+        by carbon.beget.ru with local (Exim 4.92.3-beget)
+        (envelope-from <isidorne__irinayara4ru__vi@carbon.beget.ru>)
+        id 1n6TaY-000CDE-38
+        for linux-rdma@vger.kernel.org; Sun, 09 Jan 2022 11:30:06 +0300
+To:     linux-rdma@vger.kernel.org
+Subject: =?UTF-8?B?0JLRiyDQt9Cw0L/QuNGB0LDQu9C40YHRjCDQvdCwINC40LPRgNGDICLQnNCw?=  =?UTF-8?B?0LPQuNGPINCR0L7Qs9C+0LIi?=
+Date:   Sun, 9 Jan 2022 08:30:05 +0000
+From:   =?UTF-8?B?0JjRgNC40L3QsCDQr9GA0LA=?= <info@irinayara.ru>
+Message-ID: <840c375af9f57b153e669f496d6b6405@irinayara.ru>
+X-Mailer: PHPMailer 5.2.27 (https://github.com/PHPMailer/PHPMailer)
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-As stated in [1], dma_set_mask() with a 64-bit mask never fails if
-dev->dma_mask is non-NULL.
-So, if it fails, the 32 bits case will also fail for the same reason.
+Здравствуйте, ❤️ Krystal is interested in your profile! Click Here: http://inx.lv/jUZE?kx03 ❤️!
 
-Simplify code and remove some dead code accordingly.
+От Вас поступила заявка на участие в командной (корпоративной) игре "Магия Богов".
+Ожидайте звонка менеджера для согласования времени и деталей участия.
 
-[1]: https://lkml.org/lkml/2021/6/7/398
-
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index 105f3a155939..343288b02792 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -811,12 +811,10 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
- 	}
- 
- 	/* Enable 64-Bit DMA */
--	if (dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64)) != 0) {
--		ret = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
--		if (ret != 0) {
--			dev_err(&pdev->dev, "dma_set_mask failed\n");
--			goto err_free_resource;
--		}
-+	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
-+	if (ret) {
-+		dev_err(&pdev->dev, "dma_set_mask failed\n");
-+		goto err_free_resource;
- 	}
- 	dma_set_max_seg_size(&pdev->dev, UINT_MAX);
- 	pci_set_master(pdev);
 -- 
-2.32.0
+Трансформационная игра "Магия Богов"
+
+Контакты и ссылки на соцсети:
+Instagram: https://www.instagram.com/psycholog_irinayara/
+Facebook: https://www.facebook.com/irina.corn.1
+В Контакте: https://vk.com/isidorai
+
+Сайт: http://irinayara.ru
+Mail: info@irinayara.ru
+
+Телефон: +7-903-292-33-57
+WhatsApp: +7-903-292-33-57
 
