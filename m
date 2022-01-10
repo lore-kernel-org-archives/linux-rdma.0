@@ -2,86 +2,129 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39830C433F5
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 Jan 2022 13:25:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58D39C433EF
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 Jan 2022 14:34:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232068AbiAJNZo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 Jan 2022 08:25:44 -0500
-Received: from mga07.intel.com ([134.134.136.100]:54314 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231574AbiAJNZo (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 10 Jan 2022 08:25:44 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1641821144; x=1673357144;
-  h=from:to:subject:date:message-id:references:in-reply-to:
-   content-transfer-encoding:mime-version;
-  bh=HQ/3n4S06vvTQHOszr0j6s3WlVgDNpMQOLs0bMdPhlQ=;
-  b=O+Hcoqw85JlXfmhxSPc28NRkavNfx6/lAAer0DI1XgId26abMlOCP71i
-   ehdD+qoRHSo4YCRRGq8vPwcDV97vD6+7AHcl9cqk/D7AE+Cxaaq0HYHau
-   XbZAATWeV9xu/LQFrtm6dTb1WABerZBsvzd81ZZ19qCAw/T9mADmYsjCY
-   RCa2TzUKxdp//c6/modMjGXVzXo/T9Zt774d91PZZUQNZN9QS+b4vXcU9
-   hxTEmvkv1gaiJHDG1bVeR2yizOaxj+H53qYc/Umga+A3kWq5vm2EpZHE9
-   kRFhD3dYyhi6kCwOag6NDp57Ds8SKYrIhSzV67r8QKbllNynFR5evBbol
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10222"; a="306578249"
-X-IronPort-AV: E=Sophos;i="5.88,277,1635231600"; 
-   d="scan'208";a="306578249"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jan 2022 05:25:43 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,277,1635231600"; 
-   d="scan'208";a="619435009"
-Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by fmsmga002.fm.intel.com with ESMTP; 10 Jan 2022 05:25:43 -0800
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Mon, 10 Jan 2022 05:25:42 -0800
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Mon, 10 Jan 2022 05:25:42 -0800
-Received: from fmsmsx612.amr.corp.intel.com ([10.18.126.92]) by
- fmsmsx612.amr.corp.intel.com ([10.18.126.92]) with mapi id 15.01.2308.020;
- Mon, 10 Jan 2022 05:25:42 -0800
-From:   "Saleem, Shiraz" <shiraz.saleem@intel.com>
-To:     "yanjun.zhu@linux.dev" <yanjun.zhu@linux.dev>,
-        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: RE: [PATCH 1/1] RDMA/irdma: Remove the redundant return
-Thread-Topic: [PATCH 1/1] RDMA/irdma: Remove the redundant return
-Thread-Index: AQHYBWuoATSDrJNP00SLzql17u0t3KxcQDqQ
-Date:   Mon, 10 Jan 2022 13:25:42 +0000
-Message-ID: <e6e87cb0b6614218b41016c746fb40fe@intel.com>
-References: <20220110073733.3221379-1-yanjun.zhu@linux.dev>
-In-Reply-To: <20220110073733.3221379-1-yanjun.zhu@linux.dev>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-dlp-version: 11.6.200.16
-x-originating-ip: [10.1.200.100]
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S235566AbiAJOeY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 Jan 2022 09:34:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35358 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230469AbiAJOeW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 Jan 2022 09:34:22 -0500
+Received: from mail-qv1-xf29.google.com (mail-qv1-xf29.google.com [IPv6:2607:f8b0:4864:20::f29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E323CC06173F
+        for <linux-rdma@vger.kernel.org>; Mon, 10 Jan 2022 06:34:21 -0800 (PST)
+Received: by mail-qv1-xf29.google.com with SMTP id t7so3026073qvj.0
+        for <linux-rdma@vger.kernel.org>; Mon, 10 Jan 2022 06:34:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=KzYKjySaNA8gCwHGzl2FyGGW1Nu0aUpHbWQZPToIi38=;
+        b=BhRvhK/w4tJaYtkJGmat1mS0fsTGROYWJEh6tPRgBZAj/SGfz0bmMMGl/5UgrbYBz6
+         6jpGItoVz8qvhkKVzFxwI9gA1dAYCWIFYGhL6VcXOE/SU/wHzlO5E2hB4YlALUIrTKs7
+         has8g65OJGSKuTCV3XZuwtO6msLzX7Xm0rPaI4XeM9ly4MVkDD3Zs+fw1i4tNgNBSgA6
+         aXZbRJb0soxVB4kmOFHXP+aSpn/opjQjN95WPvkC4oECvAJ7eRCzqapDbJLc6kBI41HQ
+         IhPRZOHr7uZvYC3MOWwoqh8Qy8mvZiSWdywAGVoOayk3np8Y94qmBIEWeilo80OTvhAN
+         pY7A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=KzYKjySaNA8gCwHGzl2FyGGW1Nu0aUpHbWQZPToIi38=;
+        b=h2Fizw59XgPD4yXDkN5+63K1ur4Vc37ZgPMzhGoxApICJN+rKIjIcxdLo/sHzKS5Rt
+         CsOBD5SmxHJuhmnvpZG2ORpWyZwnd0nt48xQEjFWRrXuJxiilRlaESc7YJ+0POciz0mG
+         Sye+fxAvuvqMojC1deIMweeRw6cpn2nyVcqzz6jiy10VGdoDzlFWo8QnNDWbaM71cWcw
+         HP05G4A8B2pAks+TM7g1aCmXacTgmmAPL6rvh85PeuBcVge19GFC3ydTrqYzBRrrCxHd
+         sKfk/1UyF5PUs4+Ga+d7fBn9w9cP/cl1WQEVhoHM39HsT2xmWgP92Kf9BjtHwDe0KYuO
+         xQbg==
+X-Gm-Message-State: AOAM531dHF0EuhQzmxQ9NnIbrk99GKkCxvBznmEE5PaSk/pxynRB35MA
+        2A9Y9+92i7yAnefAmDyNY6cNLQ==
+X-Google-Smtp-Source: ABdhPJwVssi4btKUH8E3kzLUaS3f99Ib3fKwcC7InqMA3lS6sRmydZeLeFDbpXNA457FvCYcbz/t8w==
+X-Received: by 2002:a05:6214:301:: with SMTP id i1mr3166053qvu.7.1641825261119;
+        Mon, 10 Jan 2022 06:34:21 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
+        by smtp.gmail.com with ESMTPSA id u6sm4642565qki.129.2022.01.10.06.34.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 10 Jan 2022 06:34:20 -0800 (PST)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1n6vkZ-00Do5L-Qp; Mon, 10 Jan 2022 10:34:19 -0400
+Date:   Mon, 10 Jan 2022 10:34:19 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>,
+        "aharonl@nvidia.com" <aharonl@nvidia.com>,
+        "leon@kernel.org" <leon@kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "mbloch@nvidia.com" <mbloch@nvidia.com>,
+        "liangwenpeng@huawei.com" <liangwenpeng@huawei.com>,
+        "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>,
+        "rpearsonhpe@gmail.com" <rpearsonhpe@gmail.com>,
+        "y-goto@fujitsu.com" <y-goto@fujitsu.com>
+Subject: Re: [RFC PATCH rdma-next 08/10] RDMA/rxe: Implement flush execution
+ in responder side
+Message-ID: <20220110143419.GF6467@ziepe.ca>
+References: <20211228080717.10666-1-lizhijian@cn.fujitsu.com>
+ <20211228080717.10666-9-lizhijian@cn.fujitsu.com>
+ <20220106002804.GS6467@ziepe.ca>
+ <347eb51d-6b0c-75fb-e27f-6bf4969125fe@fujitsu.com>
+ <20220106173346.GU6467@ziepe.ca>
+ <daa77a81-a518-0ba1-650c-faaaef33c1ea@fujitsu.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <daa77a81-a518-0ba1-650c-faaaef33c1ea@fujitsu.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH 1/1] RDMA/irdma: Remove the redundant return
->=20
-> From: Zhu Yanjun <yanjun.zhu@linux.dev>
->=20
-> The type of the function i40iw_remove is void. So remove the unnecessary =
-return.
->=20
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
-> ---
->  drivers/infiniband/hw/irdma/i40iw_if.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
+On Mon, Jan 10, 2022 at 05:45:47AM +0000, lizhijian@fujitsu.com wrote:
+> Hi Jason
+> 
+> 
+> On 07/01/2022 01:33, Jason Gunthorpe wrote:
+> > On Thu, Jan 06, 2022 at 06:42:57AM +0000, lizhijian@fujitsu.com wrote:
+> >>
+> >> On 06/01/2022 08:28, Jason Gunthorpe wrote:
+> >>> On Tue, Dec 28, 2021 at 04:07:15PM +0800, Li Zhijian wrote:
+> >>>> +	while (length > 0) {
+> >>>> +		va	= (u8 *)(uintptr_t)buf->addr + offset;
+> >>>> +		bytes	= buf->size - offset;
+> >>>> +
+> >>>> +		if (bytes > length)
+> >>>> +			bytes = length;
+> >>>> +
+> >>>> +		arch_wb_cache_pmem(va, bytes);
+> >>> So why did we need to check that the va was pmem to call this?
+> >> Sorry, i didn't get you.
+> >>
+> >> I didn't check whether va is pmem, since only MR registered with PERSISTENCE(only pmem can
+> >> register this access flag) can reach here.
+> > Yes, that is what I mean,
+> 
+> I'm not sure I understand the *check* you mentioned above.
+> 
+> Current code just dose something like:
+> 
+> if (!sanity_check())
+>      return;
+> if (requested_plt == PERSISTENCE)
+>      va = iova_to_va(iova);
+>      arch_wb_cache_pmem(va, bytes);
+>      wmb;
+> else if (requested_plt == GLOBAL_VISIBILITY)
+>      wmb();
+> 
+> 
+> > why did we need to check anything to call
+> > this API
+> As above pseudo code,  it didn't *check* anything as what you said i think.
+
+I mean when you created the MR in the first place you checked for pmem
+before even allowing the persitent access flag.
+
+Jason
