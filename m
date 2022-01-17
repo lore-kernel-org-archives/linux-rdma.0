@@ -2,761 +2,196 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04CBFC433F5
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Jan 2022 08:48:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B74C0C433F5
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Jan 2022 11:12:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230368AbiAQIst (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Jan 2022 03:48:49 -0500
-Received: from out30-57.freemail.mail.aliyun.com ([115.124.30.57]:40166 "EHLO
-        out30-57.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229982AbiAQIss (ORCPT
+        id S233963AbiAQLMW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Jan 2022 06:12:22 -0500
+Received: from mx0a-00069f02.pphosted.com ([205.220.165.32]:14012 "EHLO
+        mx0a-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233906AbiAQLMV (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>);
-        Mon, 17 Jan 2022 03:48:48 -0500
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R401e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V21zh7x_1642409319;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V21zh7x_1642409319)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 17 Jan 2022 16:48:40 +0800
-From:   Cheng Xu <chengyou@linux.alibaba.com>
-To:     jgg@ziepe.ca, dledford@redhat.com
-Cc:     leon@kernel.org, linux-rdma@vger.kernel.org,
-        KaiShen@linux.alibaba.com, chengyou@linux.alibaba.com,
-        tonylu@linux.alibaba.com
-Subject: [PATCH rdma-next v2 09/11] RDMA/erdma: Add the erdma module
-Date:   Mon, 17 Jan 2022 16:48:26 +0800
-Message-Id: <20220117084828.80638-10-chengyou@linux.alibaba.com>
-X-Mailer: git-send-email 2.32.0 (Apple Git-132)
-In-Reply-To: <20220117084828.80638-1-chengyou@linux.alibaba.com>
-References: <20220117084828.80638-1-chengyou@linux.alibaba.com>
+        Mon, 17 Jan 2022 06:12:21 -0500
+Received: from pps.filterd (m0246617.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20H9T93c013661;
+        Mon, 17 Jan 2022 11:12:15 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : references : in-reply-to : content-type :
+ content-id : content-transfer-encoding : mime-version; s=corp-2021-07-09;
+ bh=JZLdd7RdIwGWy2ntFN1CxmQA+Y/fMSwiUcyfX+wJBFI=;
+ b=G9SJoyqVE+sG6TnnOioCdT+W63hTBZ9kS1qQFzBJepgmy4QbEu2S2TdymY4S9PcnGean
+ UsqqhaCBetRE9q0efIvnk0jjjqisfNVSQyB076FOLSQce2F/EVEjyxRKXejPzdthZwTX
+ Of4fuEEl2a8mhp0dYvVxo1vrumS6x2AqnKZcGtSmVxX79O2LuPYmEW/JsDWIG2vOnkZf
+ lIqllal+b7NmAn0e+PW4Bl1zG8qgYyhDZVhvADULHiX+A3wlHh/kx4kL/lQqA+CXLdb+
+ XXad6R3jvTlNPVk/fijTalAt2abejRBR88olOm0Z8CUan5gNSgvfQlnd/etZnJ0htJGp WQ== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by mx0b-00069f02.pphosted.com with ESMTP id 3dkpttk34f-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 17 Jan 2022 11:12:15 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 20HBAK9T145262;
+        Mon, 17 Jan 2022 11:12:14 GMT
+Received: from nam11-co1-obe.outbound.protection.outlook.com (mail-co1nam11lp2177.outbound.protection.outlook.com [104.47.56.177])
+        by aserp3020.oracle.com with ESMTP id 3dkp32qwkw-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 17 Jan 2022 11:12:14 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=DnShROyMBF//nqux1uP219AWURRLzzCFlJ3bP78MtUr58sTqmuqdnKpOkWBccccwg/IvUYDsfIc1Qyow1WEOtCYo380bHpXBlM/qAXhVI79WYIofPEXR/HGuV7j2+9oI866lij7Dc/C8u+TGALqm86e4ZZlo4zkvoIVCOpzuVSV+N4tVJAZ0iRjzMzwLW90XFFTpw3q5bVQw/7UN4fvbozjF7SmAoEKr2sCgvZ2lkgyYjw9xY85Rpeu0dBWDrpXi+FS5cWZy+9bzIF4HWqdvfXsNLRasKRRNWxhmjKqO5FXUJkCyGmjg4uDN+g22s876yYf+rKH60WAj7gQfZSwh+A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=JZLdd7RdIwGWy2ntFN1CxmQA+Y/fMSwiUcyfX+wJBFI=;
+ b=WC7H8zag99fndyZj3P1LNysFLjapRTmJ5QwOUe0XJ5DU9JQi3XPc7DdgFwZ47y4zTQh4yAoqn+QbnHr5coPBTSXGYrvpa47iT7WVZf7MuPAjEzciJKFaLR8d5TTYfl+qi6Frkq4ToGaXKUUQsDBdFXqrsleaa+XQ6Cfz9PEuGjYSK12HwpEQqyaOBM42EV1LaZJTAGtTSjadFcVhKXG/q9COwmC2D1Yj09yh/rg7SlGNt8ejbvvPSdPMBf7Wk5YRl6cT/ucGpBcXQx3hk9AIkEeWDFdwONwdsRgA2scZfulZVnd3Kket+vdIaPcRgLATrcqyfW/g+EFo199S8t3p9g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=JZLdd7RdIwGWy2ntFN1CxmQA+Y/fMSwiUcyfX+wJBFI=;
+ b=zhAuyN4pTORgPaJV3NkZYr6vWGuJbS4Ia1GND8pvTYLw/Hjxlyu1gG292Q/weGpmBWC76zk7KIxdhUSQlwdn1Fq0qjj5bR9tAXrAJld5k+7lt6e42Dwhw8hqxLfbj0/0W1twSKqTxQN1RWX6suoKkbEzfQug6pVwM1Ff3yxw+N4=
+Received: from SN4PR10MB5590.namprd10.prod.outlook.com (2603:10b6:806:205::5)
+ by SN6PR10MB2656.namprd10.prod.outlook.com (2603:10b6:805:42::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4888.10; Mon, 17 Jan
+ 2022 11:12:12 +0000
+Received: from SN4PR10MB5590.namprd10.prod.outlook.com
+ ([fe80::54fa:f1f7:d24b:e1b0]) by SN4PR10MB5590.namprd10.prod.outlook.com
+ ([fe80::54fa:f1f7:d24b:e1b0%4]) with mapi id 15.20.4888.013; Mon, 17 Jan 2022
+ 11:12:12 +0000
+From:   Haakon Bugge <haakon.bugge@oracle.com>
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+CC:     "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        OFED mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: [rdma-core PATCH] providers/rxe: Replace '%' with '&' in
+ check_qp_queue_full()
+Thread-Topic: [rdma-core PATCH] providers/rxe: Replace '%' with '&' in
+ check_qp_queue_full()
+Thread-Index: AQHYBoyMt+p3JCa+2kO6ZZ6hvuqxcaxdFzIAgARahACABadWgA==
+Date:   Mon, 17 Jan 2022 11:12:12 +0000
+Message-ID: <5A111A92-427C-4FE1-BDA1-6E8877350D20@oracle.com>
+References: <20220111014145.2374669-1-yangx.jy@fujitsu.com>
+ <61DCEA00.1030002@fujitsu.com>
+ <326487d9-74cc-185e-1790-90730425057a@gmail.com>
+In-Reply-To: <326487d9-74cc-185e-1790-90730425057a@gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-mailer: Apple Mail (2.3693.40.0.1.81)
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 0577136f-1c0d-49ab-6fd0-08d9d9aa35e1
+x-ms-traffictypediagnostic: SN6PR10MB2656:EE_
+x-microsoft-antispam-prvs: <SN6PR10MB26563B29F499BBFF13F2D59AFD579@SN6PR10MB2656.namprd10.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:10000;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: RZAbo8pHWFcxl1dB86q8ir+h4NPMjNJTLqQ+QppWzEW374Y/+b5IgaRr/uxZj6QZXC6csa5qAzCqIx18TaJXpvaAYs2PJtKEEQ9asOwdmTUW19Yb72gY7fIf/zWLbFq/IQbogQkWe/RwOFNlJbAszTTffUb6rPX9F23NJPVNcPHeQ/yba7+nFzaNywKFiuS064OYfz4sLFx8G/cPEJayPskW72+xdU+1v+AqtuxamsIJh8A+xcu7+sNLtW5Snxypz0cPgqmQs+BjbzdUmz3K5L8o/2uPDnff2tznd17en4q5qRCvhUDJsBZ62+NlkD+htbQJRZ+NKlI14VU8ptIvE8YSr0VFKclJAXO29tXDREOd7F19JdvLZL2tB7j+IM3yVkqXJwEMDM/8Udcx9UIzvOGE/0OtJ6PoFqynb0hFGncFk6EeJdgJnkQH1d4/gXkRlDw67XPfGfWhkTlB3aXNWBxd+D3euzhf9N5VGkvh7T6awdiCi6XXp/ebIIl663Scx60n1WqlGl45gSKzK6yEfT4AO2nktjt4lalZQhb6dnIEsCVGQly+Q8Z92jegUg9DoJjli990Yw+N3lZ4C6ezB6qx6keLglm/1OniWsMQly7rIGmaJWdz2pfWfrLMUAEP1nqNHFNtVkqZWviQpIcazO42OhQ9bx/ZABFuzazbuYWOWKfWbEZ5dTGq80wlQj57ZM+WkuFMB+4v2CJqzb/sXeAfKJvdWRgVwBMDlYnH+lFsO/aqt803+rrK2icRwC3A
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SN4PR10MB5590.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(36756003)(6486002)(66946007)(66476007)(8936002)(122000001)(91956017)(33656002)(508600001)(2616005)(64756008)(186003)(8676002)(76116006)(2906002)(66446008)(26005)(4326008)(66556008)(6916009)(38070700005)(6506007)(53546011)(86362001)(66574015)(5660300002)(71200400001)(54906003)(316002)(38100700002)(83380400001)(6512007)(44832011)(45980500001);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?STR3cW4rSEw2OFZKa1hYTC9QRm5ycVIrWnpSVkNETWdiZ3dWcmJHcWtUQm95?=
+ =?utf-8?B?L2xXSzAzZ2h6MEhGNU1jKzdzZjlMa1h0Y2RSY1d5eFVub040VUxpVDdoWVNY?=
+ =?utf-8?B?Wkc2S2VURE5EZW9ZTUZaMGdRQnpSeVFodWlTSklieGNoMVBUSXd3Y3FpUTN3?=
+ =?utf-8?B?eHNHOFFUVnZlNkNZYU1iZnB6N284MFdqdlpUY0FsNlozR1pPMEc3YzZtUHAx?=
+ =?utf-8?B?R041a0pyK0Q2OC9OczB3d0VlenFhSHR2OVJDaFFrV0NyZXlxcE1QSnp4ZTdB?=
+ =?utf-8?B?VFBiTEhCSXRBdnlnaVVDdTVEUzgwY240L0taUkVEblp2S0U4QkUwQnRERWpW?=
+ =?utf-8?B?dlA3R0Q0bzlpVHZjL0h5NTNURXRiczVRVFVkdmtMcEYweDhDcy9pOXFiaURU?=
+ =?utf-8?B?NnpZU1hsMVNZQ2dtWFN5c09vWlh3Q3lheEdOYkZ4aCtaNXlHdjlyQWgrZDJB?=
+ =?utf-8?B?QWVzb3M3ZzdsQ3BGaFo5Y1NQOVlQdXRFMUZBMEZSWG1RMTJnVnFQZnU2Vkcr?=
+ =?utf-8?B?enFRa0JBWWxNcS85U2luUGY0eStlSEdJVWFmWDBnUjZmWXdUeFkvYURSWDhs?=
+ =?utf-8?B?TmRUUHZDNStZck1iMjF0UVYzYXlmYnFoWHdlVzJsKzNCeXI0S241OVJpUWtn?=
+ =?utf-8?B?aHpjZFFHVGlybmVJRWVGSlg5dEorTERmRTNZd0NvWEdnUjVwT0ZXeDBLL3hK?=
+ =?utf-8?B?ellVcEZNTUhEdFNianVMeGNNWlMxLzgzeVFWYmd2R1FlMmV6WGxTejZ1QzZ2?=
+ =?utf-8?B?MWV1YTVDZUs1cmw5MTUrVHg3SDFwY1ZhWDhoMVY4Y1BSNmp3VHFRQk1LVFNQ?=
+ =?utf-8?B?eEd2OTBqNUxsNTc0RTF1ZlVnUVJLYnhXNWsrcEZHeGJEY0Z0NzRVOVh4a1pS?=
+ =?utf-8?B?UFpteXp4L0xqQy8rb0R6S255ZmZRNDdpRUorVWxINGQ3WkM5eHZJaGNhL00z?=
+ =?utf-8?B?K3BQVjR1YlRJVEhuMWpkNTUzaTdiWGxrQjZnbnAzeWdmZEVWMnpkNmdmU0Jq?=
+ =?utf-8?B?ZzQzNjljOXc4V3JFTlMwaXNQZUZWbjhzNnNaTmg5MXRFSEhManpsQzM4dXll?=
+ =?utf-8?B?WUlyWlRzcUFLVXhqUlJaY2xIekswV3o5b1V6R0dzOFFYOHVCQUhzSVdNOUUr?=
+ =?utf-8?B?TVBXS0MxTC9kZmh5eHJPRHNCMHh2dGlORld2bHhNeVpkcUlJNjArVzU4YmI0?=
+ =?utf-8?B?MW81YTBCZ3FlZXE5MWFQZnQrZFBCZE5BVWJOZ2l5TlphNTAzNENkbk15UmFz?=
+ =?utf-8?B?T004SjBEL1FmbXo0WnhFU0pSd1R6TVQ2UU9keDNmdWtpNVRFdER6Tnd0RWRR?=
+ =?utf-8?B?VGZDOVRHQ3RNUnluV3lDMXNXSUg0MTlRRmNYRkhnNUNxc2dFalVJR2ZFRDVs?=
+ =?utf-8?B?VlNDQTRTTkpDQWJ5UTRIbjIzVE4vOU9ibE93RTFGcStORDY2Z0ZLeHhjOUtV?=
+ =?utf-8?B?eXNOZWJmOGVHb3dxdG5IYnlaMzRMMWVUbno5STQ3am5KV1MzdEs0UDNuVE41?=
+ =?utf-8?B?MnpCdktCL0ViclMxa2NCdjlheEJoNVBxM3VXSzNqRWRhNmQ2bmpzYWp5c2RQ?=
+ =?utf-8?B?VHlWcUFPeDl3WWkzYVE0d2dNZi83ZEo0SDVWQjZCNzh4cXAzbndVOVQ1dG9o?=
+ =?utf-8?B?ckgwV0hGSDRtM3NoR0pWZkVqcmYzMEdkWW82RXF6SE5xWExNalg2VldwU2hZ?=
+ =?utf-8?B?WlR4bmJ1MTZQTDMzdmIrbERlTGpxUW9RUUZLQzl1V0R0WTdkVDROeUdSSUhB?=
+ =?utf-8?B?VzlUUzh1aFJYK1l5b1JVbTVoSXFSRWZJUS9DK2UxaU9pUmxKdVoxK1lvRlg0?=
+ =?utf-8?B?V0FOVFJ5ZGJ6UFRNcWd5UlZWaW1TWXlNZEhRMVhBNENhbXVISllzKzJXazFG?=
+ =?utf-8?B?c3NFWU9jL2R1aVFud0hGR0FtZzNHMy9FdHRheWNHcUZmd2VGcHErK0JWVFRq?=
+ =?utf-8?B?a1FNemt6OEluZWVJN0JUMGxyQU12RGxMZ3Y5MzlpZ2FOSWJLWWNwTENhN2FW?=
+ =?utf-8?B?Yms4dEVyaEZ2N2llcVhuL0ZydmVycnJ3Wk9hcEZVV1Zjem91V2I1NDVaOEZs?=
+ =?utf-8?B?ZkpDeCtVeW80K0N0K0RWM0p3dS9BZjJVeE1HWGxOMmRoaWVMcEgwcUFNNVRn?=
+ =?utf-8?B?RU05THFqcTJTcjYyV1A4RkwvMTVaUWJtbVRmYTBGSDJmZVRkUTduV3RNUk5J?=
+ =?utf-8?Q?eTdLiR1HhOgjszKryHUoxm0=3D?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <14CE5BF2B5944D44A4BF255DB979CDA5@namprd10.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SN4PR10MB5590.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0577136f-1c0d-49ab-6fd0-08d9d9aa35e1
+X-MS-Exchange-CrossTenant-originalarrivaltime: 17 Jan 2022 11:12:12.0177
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: vNzzlBrY5y8z8YZW6iG9B6UV/XWJ5rTRvw4GRnpPVTNbukL+TccTCRt76EyXf1dEPpqWvslHPLz98cde7aMk1g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN6PR10MB2656
+X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10229 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0
+ mlxlogscore=999 adultscore=0 suspectscore=0 malwarescore=0 mlxscore=0
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2110150000 definitions=main-2201170072
+X-Proofpoint-ORIG-GUID: sQm14ZLbwSM3n2XImdBtQWgcMqHdK1Eo
+X-Proofpoint-GUID: sQm14ZLbwSM3n2XImdBtQWgcMqHdK1Eo
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add the main erdma module and debugfs files. The main module provides
-interface to infiniband subsytem, and the debugfs module provides a way
-to allow user can get the core status of the device and set the preferred
-congestion control algorithm.
-
-Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
----
- drivers/infiniband/hw/erdma/erdma_main.c | 707 +++++++++++++++++++++++
- 1 file changed, 707 insertions(+)
- create mode 100644 drivers/infiniband/hw/erdma/erdma_main.c
-
-diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
-new file mode 100644
-index 000000000000..e35902a145b3
---- /dev/null
-+++ b/drivers/infiniband/hw/erdma/erdma_main.c
-@@ -0,0 +1,707 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+
-+/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
-+/*          Kai Shen <kaishen@linux.alibaba.com> */
-+/* Copyright (c) 2020-2022, Alibaba Group. */
-+
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/netdevice.h>
-+#include <linux/pci.h>
-+#include <net/addrconf.h>
-+#include <rdma/erdma-abi.h>
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_user_verbs.h>
-+
-+#include "erdma.h"
-+#include "erdma_cm.h"
-+#include "erdma_hw.h"
-+#include "erdma_verbs.h"
-+
-+#define DESC __stringify(ElasticRDMA(iWarp) Driver)
-+
-+MODULE_AUTHOR("Alibaba");
-+MODULE_DESCRIPTION(DESC);
-+MODULE_LICENSE("GPL v2");
-+
-+/*Common string that is matched to accept the device by the user library*/
-+#define ERDMA_NODE_DESC_COMMON "Elastic RDMA(iWARP) stack"
-+
-+static struct list_head erdma_dev_list = LIST_HEAD_INIT(erdma_dev_list);
-+static DEFINE_MUTEX(erdma_dev_mutex);
-+
-+static int erdma_res_cb_init(struct erdma_dev *dev)
-+{
-+	int i;
-+
-+	for (i = 0; i < ERDMA_RES_CNT; i++) {
-+		dev->res_cb[i].next_alloc_idx = 1;
-+		spin_lock_init(&dev->res_cb[i].lock);
-+		dev->res_cb[i].bitmap = kcalloc(BITS_TO_LONGS(dev->res_cb[i].max_cap),
-+						sizeof(unsigned long), GFP_KERNEL);
-+		/* Free other memory in erdma_res_cb_free if failed. */
-+		if (!dev->res_cb[i].bitmap)
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+static void erdma_res_cb_free(struct erdma_dev *dev)
-+{
-+	int i;
-+
-+	for (i = 0; i < ERDMA_RES_CNT; i++)
-+		kfree(dev->res_cb[i].bitmap);
-+}
-+
-+static void erdma_release_handler(void *ptr)
-+{
-+	struct erdma_pci_drvdata *drvdata = (struct erdma_pci_drvdata *)ptr;
-+
-+	drvdata->is_registered = 0;
-+}
-+
-+static void erdma_dealloc_driver(struct ib_device *ibdev)
-+{
-+	struct erdma_dev *dev = to_edev(ibdev);
-+
-+	erdma_res_cb_free(dev);
-+	xa_destroy(&dev->qp_xa);
-+	xa_destroy(&dev->cq_xa);
-+
-+	if (dev->release_handler)
-+		dev->release_handler(dev->drvdata);
-+}
-+
-+static int erdma_device_register(struct erdma_dev *dev, const char *dev_name)
-+{
-+	struct ib_device *ibdev = &dev->ibdev;
-+	int ret;
-+
-+	ret = ib_register_device(ibdev, dev_name, dev->dmadev);
-+	if (ret) {
-+		dev_err(dev->dmadev, "ERROR: ib_register_device(%s) failed: ret = %d\n",
-+			dev_name, ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct ib_device_ops erdma_device_ops = {
-+	.owner = THIS_MODULE,
-+	.driver_id = RDMA_DRIVER_ERDMA,
-+	.uverbs_abi_ver = ERDMA_ABI_VERSION,
-+
-+	.alloc_mr = erdma_ib_alloc_mr,
-+	.alloc_pd = erdma_alloc_pd,
-+	.alloc_ucontext = erdma_alloc_ucontext,
-+	.create_cq = erdma_create_cq,
-+	.create_qp = erdma_create_qp,
-+	.dealloc_driver = erdma_dealloc_driver,
-+	.dealloc_pd = erdma_dealloc_pd,
-+	.dealloc_ucontext = erdma_dealloc_ucontext,
-+	.dereg_mr = erdma_dereg_mr,
-+	.destroy_cq = erdma_destroy_cq,
-+	.destroy_qp = erdma_destroy_qp,
-+	.disassociate_ucontext = erdma_disassociate_ucontext,
-+	.get_dma_mr = erdma_get_dma_mr,
-+	.get_netdev = erdma_get_netdev,
-+	.get_port_immutable = erdma_get_port_immutable,
-+	.iw_accept = erdma_accept,
-+	.iw_add_ref = erdma_qp_get_ref,
-+	.iw_connect = erdma_connect,
-+	.iw_create_listen = erdma_create_listen,
-+	.iw_destroy_listen = erdma_destroy_listen,
-+	.iw_get_qp = erdma_get_ibqp,
-+	.iw_reject = erdma_reject,
-+	.iw_rem_ref = erdma_qp_put_ref,
-+	.map_mr_sg = erdma_map_mr_sg,
-+	.mmap = erdma_mmap,
-+	.modify_qp = erdma_modify_qp,
-+	.post_recv = erdma_post_recv,
-+	.post_send = erdma_post_send,
-+	.poll_cq = erdma_poll_cq,
-+	.query_device = erdma_query_device,
-+	.query_gid = erdma_query_gid,
-+	.query_port = erdma_query_port,
-+	.query_qp = erdma_query_qp,
-+	.req_notify_cq = erdma_req_notify_cq,
-+	.reg_user_mr = erdma_reg_user_mr,
-+
-+	INIT_RDMA_OBJ_SIZE(ib_cq, erdma_cq, ibcq),
-+	INIT_RDMA_OBJ_SIZE(ib_pd, erdma_pd, ibpd),
-+	INIT_RDMA_OBJ_SIZE(ib_ucontext, erdma_ucontext, ibucontext),
-+	INIT_RDMA_OBJ_SIZE(ib_qp, erdma_qp, ibqp),
-+};
-+
-+static int erdma_dev_attrs_init(struct erdma_dev *dev)
-+{
-+	int err;
-+	u64 req_hdr, cap0, cap1;
-+
-+	ERDMA_CMDQ_BUILD_REQ_HDR(&req_hdr, CMDQ_SUBMOD_RDMA, CMDQ_OPCODE_QUERY_DEVICE);
-+
-+	err = erdma_post_cmd_wait(dev->cmdq, &req_hdr, sizeof(req_hdr), &cap0, &cap1);
-+	if (err)
-+		return err;
-+
-+	dev->attrs.max_cqe = 1 << FIELD_GET(ERDMA_CMD_DEV_CAP0_MAX_CQE_MASK, cap0);
-+	dev->attrs.max_mr_size = 1 << FIELD_GET(ERDMA_CMD_DEV_CAP0_MAX_MR_SIZE_MASK, cap0);
-+	dev->attrs.max_mw = 1 << FIELD_GET(ERDMA_CMD_DEV_CAP1_MAX_MW_MASK, cap1);
-+	dev->attrs.max_recv_wr = 1 << FIELD_GET(ERDMA_CMD_DEV_CAP0_MAX_RECV_WR_MASK, cap0);
-+	dev->attrs.local_dma_key = FIELD_GET(ERDMA_CMD_DEV_CAP1_DMA_LOCAL_KEY_MASK, cap1);
-+	dev->cc_method = FIELD_GET(ERDMA_CMD_DEV_CAP1_DEFAULT_CC_MASK, cap1);
-+	dev->attrs.max_qp = ERDMA_NQP_PER_QBLOCK * FIELD_GET(ERDMA_CMD_DEV_CAP1_QBLOCK_MASK, cap1);
-+	dev->attrs.max_mr = 2 * dev->attrs.max_qp;
-+	dev->attrs.max_cq = 2 * dev->attrs.max_qp;
-+
-+	dev->attrs.max_send_wr = ERDMA_MAX_SEND_WR;
-+	dev->attrs.vendor_id = PCI_VENDOR_ID_ALIBABA;
-+	dev->attrs.max_ord = ERDMA_MAX_ORD;
-+	dev->attrs.max_ird = ERDMA_MAX_IRD;
-+	dev->attrs.cap_flags = IB_DEVICE_LOCAL_DMA_LKEY | IB_DEVICE_MEM_MGT_EXTENSIONS;
-+	dev->attrs.max_send_sge = ERDMA_MAX_SEND_SGE;
-+	dev->attrs.max_recv_sge = ERDMA_MAX_RECV_SGE;
-+	dev->attrs.max_sge_rd = ERDMA_MAX_SGE_RD;
-+	dev->attrs.max_pd = ERDMA_MAX_PD;
-+	dev->attrs.max_srq = ERDMA_MAX_SRQ;
-+	dev->attrs.max_srq_wr = ERDMA_MAX_SRQ_WR;
-+	dev->attrs.max_srq_sge = ERDMA_MAX_SRQ_SGE;
-+
-+	dev->res_cb[ERDMA_RES_TYPE_PD].max_cap = ERDMA_MAX_PD;
-+	dev->res_cb[ERDMA_RES_TYPE_STAG_IDX].max_cap = dev->attrs.max_mr;
-+
-+	return 0;
-+}
-+
-+static void __erdma_dwqe_resource_init(struct erdma_dev *dev, int grp_num)
-+{
-+	int total_pages, type0, type1;
-+
-+	if (grp_num < 4)
-+		dev->disable_dwqe = 1;
-+	else
-+		dev->disable_dwqe = 0;
-+
-+	/* One page contains 4 goups. */
-+	total_pages = grp_num * 4;
-+	if (grp_num >= ERDMA_DWQE_MAX_GRP_CNT) {
-+		grp_num = ERDMA_DWQE_MAX_GRP_CNT;
-+		type0 = ERDMA_DWQE_TYPE0_CNT;
-+		type1 = ERDMA_DWQE_TYPE1_CNT / ERDMA_DWQE_TYPE1_CNT_PER_PAGE;
-+	} else {
-+		type1 = total_pages / 3;
-+		type0 = total_pages - type1;
-+	}
-+
-+	dev->dwqe_pages = type0;
-+	dev->dwqe_entries = type1 * ERDMA_DWQE_TYPE1_CNT_PER_PAGE;
-+
-+	pr_info("grp_num:%d, total pages:%d, type0:%d, type1:%d, type1_db_cnt:%d\n",
-+		grp_num, total_pages, type0, type1, type1 * 16);
-+}
-+
-+static struct erdma_dev *erdma_ib_device_create(struct erdma_pci_drvdata *drvdata,
-+						struct net_device *netdev)
-+{
-+	struct erdma_dev *dev;
-+	int ret = 0;
-+
-+	dev = ib_alloc_device(erdma_dev, ibdev);
-+	if (!dev)
-+		return NULL;
-+
-+	dev->drvdata = drvdata;
-+	dev->dmadev = &drvdata->pdev->dev;
-+	dev->cmdq = &drvdata->cmdq;
-+
-+	dev->release_handler = erdma_release_handler;
-+	__erdma_dwqe_resource_init(dev, drvdata->grp_num);
-+	dev->db_space = drvdata->func_bar + ERDMA_BAR_DB_SPACE_BASE;
-+	dev->db_space_addr = drvdata->func_bar_addr + ERDMA_BAR_DB_SPACE_BASE;
-+	dev->netdev = netdev;
-+
-+	ret = erdma_dev_attrs_init(dev);
-+	if (ret)
-+		goto release_ibdev;
-+
-+	INIT_LIST_HEAD(&dev->cep_list);
-+
-+	spin_lock_init(&dev->lock);
-+	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1);
-+	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1);
-+	dev->next_alloc_cqn = 1;
-+	dev->next_alloc_qpn = 1;
-+
-+	ret = erdma_res_cb_init(dev);
-+	if (ret)
-+		goto err_out;
-+
-+	spin_lock_init(&dev->db_bitmap_lock);
-+	bitmap_zero(dev->sdb_page, ERDMA_DWQE_TYPE0_CNT);
-+	bitmap_zero(dev->sdb_entry, ERDMA_DWQE_TYPE1_CNT);
-+
-+	atomic_set(&dev->num_ctx, 0);
-+	atomic_set(&dev->num_qp, 0);
-+	atomic_set(&dev->num_cq, 0);
-+	atomic_set(&dev->num_mr, 0);
-+	atomic_set(&dev->num_pd, 0);
-+
-+	dev->ibdev.node_type = RDMA_NODE_RNIC;
-+	memcpy(dev->ibdev.node_desc, ERDMA_NODE_DESC_COMMON, sizeof(ERDMA_NODE_DESC_COMMON));
-+	dev->ibdev.phys_port_cnt = 1;
-+	dev->ibdev.num_comp_vectors = drvdata->irq_num - 1;
-+
-+	ib_set_device_ops(&dev->ibdev, &erdma_device_ops);
-+	addrconf_addr_eui48((u8 *)&dev->ibdev.node_guid, netdev->dev_addr);
-+
-+	ret = ib_device_set_netdev(&dev->ibdev, dev->netdev, 1);
-+	if (ret)
-+		goto err_out;
-+
-+	return dev;
-+err_out:
-+	erdma_res_cb_free(dev);
-+	xa_destroy(&dev->qp_xa);
-+	xa_destroy(&dev->cq_xa);
-+
-+release_ibdev:
-+	ib_dealloc_device(&dev->ibdev);
-+
-+	return ERR_PTR(ret);
-+}
-+
-+static int erdma_netdev_matched_edev(struct net_device *netdev, struct erdma_pci_drvdata *drvdata)
-+{
-+	if (netdev->perm_addr[0] == drvdata->peer_addr[0] &&
-+	    netdev->perm_addr[1] == drvdata->peer_addr[1] &&
-+	    netdev->perm_addr[2] == drvdata->peer_addr[2] &&
-+	    netdev->perm_addr[3] == drvdata->peer_addr[3] &&
-+	    netdev->perm_addr[4] == drvdata->peer_addr[4] &&
-+	    netdev->perm_addr[5] == drvdata->peer_addr[5])
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static int erdma_newlink(const char *dev_name, struct net_device *netdev)
-+{
-+	struct ib_device *ibdev;
-+	struct erdma_pci_drvdata *drvdata, *tmp;
-+	struct erdma_dev *dev;
-+	int ret;
-+
-+	ibdev = ib_device_get_by_netdev(netdev, RDMA_DRIVER_ERDMA);
-+	if (ibdev) {
-+		ib_device_put(ibdev);
-+		return -EEXIST;
-+	}
-+
-+	list_for_each_entry_safe(drvdata, tmp, &erdma_dev_list, list) {
-+		if (erdma_netdev_matched_edev(netdev, drvdata) && !drvdata->is_registered) {
-+			dev = erdma_ib_device_create(drvdata, netdev);
-+			if (IS_ERR(dev)) {
-+				pr_info("add device failed\n");
-+				return PTR_ERR(dev);
-+			}
-+
-+			if (netif_running(netdev) && netif_carrier_ok(netdev))
-+				dev->state = IB_PORT_ACTIVE;
-+			else
-+				dev->state = IB_PORT_DOWN;
-+
-+			ret = erdma_device_register(dev, dev_name);
-+			if (ret) {
-+				ib_dealloc_device(&dev->ibdev);
-+				return ret;
-+			}
-+
-+			drvdata->is_registered = 1;
-+			drvdata->dev = dev;
-+
-+			return 0;
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static struct rdma_link_ops erdma_link_ops = {
-+	.type = "erdma",
-+	.newlink = erdma_newlink,
-+};
-+
-+static int erdma_netdev_notifier(struct notifier_block *nb, unsigned long event, void *arg)
-+{
-+	struct net_device *netdev = netdev_notifier_info_to_dev(arg);
-+	struct ib_device *ibdev;
-+	struct erdma_dev *dev;
-+
-+	ibdev = ib_device_get_by_netdev(netdev, RDMA_DRIVER_ERDMA);
-+	if (!ibdev)
-+		return NOTIFY_OK;
-+
-+	dev = to_edev(ibdev);
-+
-+	switch (event) {
-+	case NETDEV_UP:
-+		dev->state = IB_PORT_ACTIVE;
-+		erdma_port_event(dev, IB_EVENT_PORT_ACTIVE);
-+		break;
-+	case NETDEV_DOWN:
-+		dev->state = IB_PORT_DOWN;
-+		erdma_port_event(dev, IB_EVENT_PORT_ERR);
-+		break;
-+	case NETDEV_UNREGISTER:
-+		ib_unregister_device_queued(ibdev);
-+		break;
-+	case NETDEV_REGISTER:
-+	case NETDEV_CHANGEADDR:
-+	case NETDEV_CHANGEMTU:
-+	case NETDEV_GOING_DOWN:
-+	case NETDEV_CHANGE:
-+	default:
-+		break;
-+	}
-+
-+	ib_device_put(ibdev);
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static irqreturn_t erdma_comm_irq_handler(int irq, void *data)
-+{
-+	struct erdma_pci_drvdata *drvdata = data;
-+
-+	erdma_cmdq_completion_handler(&drvdata->cmdq);
-+	erdma_aeq_event_handler(drvdata);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int erdma_request_vectors(struct erdma_pci_drvdata *drvdata)
-+{
-+	int irq_num;
-+
-+	irq_num = pci_alloc_irq_vectors(drvdata->pdev, 1, ERDMA_NUM_MSIX_VEC, PCI_IRQ_MSIX);
-+
-+	if (irq_num <= 0) {
-+		dev_err(&drvdata->pdev->dev, "request irq vectors failed(%d)\n", irq_num);
-+		return -ENOSPC;
-+	}
-+
-+	dev_info(&drvdata->pdev->dev, "hardware return %d irqs.\n", irq_num);
-+	drvdata->irq_num = irq_num;
-+
-+	return 0;
-+}
-+
-+static int erdma_comm_irq_init(struct erdma_pci_drvdata *drvdata)
-+{
-+	u32 cpu = 0;
-+	int err;
-+	struct erdma_irq_info *irq_info = &drvdata->comm_irq;
-+
-+	snprintf(irq_info->name, ERDMA_IRQNAME_SIZE,
-+		 "erdma-common@pci:%s", pci_name(drvdata->pdev));
-+	irq_info->handler = erdma_comm_irq_handler;
-+	irq_info->data = drvdata;
-+	irq_info->msix_vector = pci_irq_vector(drvdata->pdev, ERDMA_MSIX_VECTOR_CMDQ);
-+
-+	if (drvdata->numa_node >= 0)
-+		cpu = cpumask_first(cpumask_of_node(drvdata->numa_node));
-+
-+	irq_info->cpu = cpu;
-+	cpumask_set_cpu(cpu, &irq_info->affinity_hint_mask);
-+	dev_info(&drvdata->pdev->dev, "setup irq:%p vector:%d name:%s\n",
-+		 irq_info, irq_info->msix_vector, irq_info->name);
-+
-+	err = request_irq(irq_info->msix_vector, irq_info->handler, 0,
-+			  irq_info->name, irq_info->data);
-+	if (err) {
-+		dev_err(&drvdata->pdev->dev, "failed to request_irq(%d)\n", err);
-+		return err;
-+	}
-+
-+	irq_set_affinity_hint(irq_info->msix_vector, &irq_info->affinity_hint_mask);
-+
-+	return 0;
-+}
-+
-+static void erdma_comm_irq_uninit(struct erdma_pci_drvdata *drvdata)
-+{
-+	struct erdma_irq_info *irq_info = &drvdata->comm_irq;
-+
-+	irq_set_affinity_hint(irq_info->msix_vector, NULL);
-+	free_irq(irq_info->msix_vector, irq_info->data);
-+}
-+
-+static int erdma_device_init(struct erdma_pci_drvdata *drvdata)
-+{
-+	int err;
-+	struct pci_dev *pdev = drvdata->pdev;
-+	u32 mac_l, mac_h;
-+
-+	drvdata->grp_num = erdma_reg_read32(drvdata, ERDMA_REGS_GRP_NUM_REG);
-+	mac_l = erdma_reg_read32(drvdata, ERDMA_REGS_NETDEV_MAC_L_REG);
-+	mac_h = erdma_reg_read32(drvdata, ERDMA_REGS_NETDEV_MAC_H_REG);
-+
-+	pr_info("assoc netdev mac addr is 0x%x-0x%x.\n", mac_h, mac_l);
-+
-+	drvdata->peer_addr[0] = (mac_h >> 8) & 0xFF;
-+	drvdata->peer_addr[1] = mac_h & 0xFF;
-+	drvdata->peer_addr[2] = (mac_l >> 24) & 0xFF;
-+	drvdata->peer_addr[3] = (mac_l >> 16) & 0xFF;
-+	drvdata->peer_addr[4] = (mac_l >> 8) & 0xFF;
-+	drvdata->peer_addr[5] = mac_l & 0xFF;
-+
-+	dev_info(&pdev->dev, "hardware return grp_num:%d\n", drvdata->grp_num);
-+
-+	/* force dma width to 64. */
-+	drvdata->dma_width = 64;
-+
-+	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(drvdata->dma_width));
-+	if (err) {
-+		dev_err(&pdev->dev, "pci_set_dma_mask failed(%d)\n", err);
-+		return err;
-+	}
-+
-+	err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(drvdata->dma_width));
-+	if (err) {
-+		dev_err(&pdev->dev, "pci_set_consistent_dma_mask failed(%d)\n", err);
-+		return err;
-+	}
-+
-+	return err;
-+}
-+
-+static void erdma_device_uninit(struct erdma_pci_drvdata *dev)
-+{
-+	u32 ctrl;
-+
-+	ctrl = FIELD_PREP(ERDMA_REG_DEV_CTRL_RESET_MASK, 1);
-+	erdma_reg_write32(dev, ERDMA_REGS_DEV_CTRL_REG, ctrl);
-+}
-+
-+static int erdma_probe_dev(struct pci_dev *pdev)
-+{
-+	int err;
-+	struct erdma_pci_drvdata *drvdata;
-+	u32 version;
-+	int bars;
-+
-+	err = pci_enable_device(pdev);
-+	if (err) {
-+		dev_err(&pdev->dev, "pci_enable_device failed(%d)\n", err);
-+		return err;
-+	}
-+
-+	pci_set_master(pdev);
-+
-+	drvdata = kcalloc(1, sizeof(*drvdata), GFP_KERNEL);
-+	if (!drvdata) {
-+		err = -ENOMEM;
-+		goto err_disable_device;
-+	}
-+
-+	pci_set_drvdata(pdev, drvdata);
-+	drvdata->pdev = pdev;
-+	drvdata->numa_node = pdev->dev.numa_node;
-+
-+	bars = pci_select_bars(pdev, IORESOURCE_MEM);
-+	err = pci_request_selected_regions(pdev, bars, DRV_MODULE_NAME);
-+	if (bars != ERDMA_BAR_MASK || err) {
-+		dev_err(&pdev->dev,
-+			"pci_request_selected_regions failed(bars:%d, err:%d)\n", bars, err);
-+		err = err == 0 ? -EINVAL : err;
-+		goto err_drvdata_release;
-+	}
-+
-+	drvdata->func_bar_addr = pci_resource_start(pdev, ERDMA_FUNC_BAR);
-+	drvdata->func_bar_len = pci_resource_len(pdev, ERDMA_FUNC_BAR);
-+
-+	drvdata->func_bar =
-+		devm_ioremap(&pdev->dev, drvdata->func_bar_addr, drvdata->func_bar_len);
-+	if (!drvdata->func_bar) {
-+		dev_err(&pdev->dev, "devm_ioremap failed.\n");
-+		err = -EFAULT;
-+		goto err_release_bars;
-+	}
-+
-+	version = erdma_reg_read32(drvdata, ERDMA_REGS_VERSION_REG);
-+	if (version == 0) {
-+		/* we knows that it is a non-functional function. */
-+		err = -ENODEV;
-+		goto err_iounmap_func_bar;
-+	}
-+
-+	err = erdma_device_init(drvdata);
-+	if (err)
-+		goto err_iounmap_func_bar;
-+
-+	err = erdma_request_vectors(drvdata);
-+	if (err)
-+		goto err_iounmap_func_bar;
-+
-+	err = erdma_comm_irq_init(drvdata);
-+	if (err)
-+		goto err_free_vectors;
-+
-+	err = erdma_aeq_init(drvdata);
-+	if (err)
-+		goto err_uninit_comm_irq;
-+
-+	err = erdma_cmdq_init(drvdata);
-+	if (err)
-+		goto err_uninit_aeq;
-+
-+	err = erdma_ceqs_init(drvdata);
-+	if (err)
-+		goto err_uninit_cmdq;
-+
-+	erdma_finish_cmdq_init(drvdata);
-+
-+	mutex_lock(&erdma_dev_mutex);
-+	list_add_tail(&drvdata->list, &erdma_dev_list);
-+	mutex_unlock(&erdma_dev_mutex);
-+
-+	return 0;
-+
-+err_uninit_cmdq:
-+	erdma_device_uninit(drvdata);
-+	erdma_cmdq_destroy(drvdata);
-+
-+err_uninit_aeq:
-+	erdma_aeq_destroy(drvdata);
-+
-+err_uninit_comm_irq:
-+	erdma_comm_irq_uninit(drvdata);
-+
-+err_free_vectors:
-+	pci_free_irq_vectors(drvdata->pdev);
-+
-+err_iounmap_func_bar:
-+	devm_iounmap(&pdev->dev, drvdata->func_bar);
-+
-+err_release_bars:
-+	pci_release_selected_regions(pdev, bars);
-+
-+err_drvdata_release:
-+	kfree(drvdata);
-+
-+err_disable_device:
-+	pci_disable_device(pdev);
-+
-+	return err;
-+}
-+
-+static void erdma_remove_dev(struct pci_dev *pdev)
-+{
-+	struct erdma_pci_drvdata *drvdata = pci_get_drvdata(pdev);
-+
-+	mutex_lock(&erdma_dev_mutex);
-+	list_del(&drvdata->list);
-+	mutex_unlock(&erdma_dev_mutex);
-+
-+	erdma_ceqs_uninit(drvdata);
-+
-+	erdma_device_uninit(drvdata);
-+
-+	erdma_cmdq_destroy(drvdata);
-+	erdma_aeq_destroy(drvdata);
-+	erdma_comm_irq_uninit(drvdata);
-+	pci_free_irq_vectors(drvdata->pdev);
-+
-+	devm_iounmap(&pdev->dev, drvdata->func_bar);
-+	pci_release_selected_regions(pdev, ERDMA_BAR_MASK);
-+
-+	kfree(drvdata);
-+
-+	pci_disable_device(pdev);
-+}
-+
-+static int erdma_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
-+{
-+	return erdma_probe_dev(pdev);
-+}
-+
-+static void erdma_remove(struct pci_dev *pdev)
-+{
-+	struct erdma_pci_drvdata *drvdata = pci_get_drvdata(pdev);
-+
-+	if (drvdata->is_registered) {
-+		ib_unregister_device(&drvdata->dev->ibdev);
-+		drvdata->is_registered = 0;
-+	}
-+
-+	erdma_remove_dev(pdev);
-+}
-+
-+static const struct pci_device_id erdma_pci_tbl[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ALIBABA, 0x107f) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ALIBABA, 0x5007) },
-+	{ 0, }
-+};
-+
-+static struct pci_driver erdma_pci_driver = {
-+	.name = DRV_MODULE_NAME,
-+	.id_table = erdma_pci_tbl,
-+	.probe = erdma_probe,
-+	.remove = erdma_remove
-+};
-+
-+MODULE_DEVICE_TABLE(pci, erdma_pci_tbl);
-+
-+static struct notifier_block erdma_netdev_nb = {
-+	.notifier_call = erdma_netdev_notifier,
-+};
-+
-+static __init int erdma_init_module(void)
-+{
-+	int ret;
-+
-+	ret = erdma_cm_init();
-+	if (ret)
-+		return ret;
-+
-+	ret = pci_register_driver(&erdma_pci_driver);
-+	if (ret) {
-+		pr_err("Couldn't register erdma driver.\n");
-+		goto uninit_cm;
-+	}
-+
-+	ret = register_netdevice_notifier(&erdma_netdev_nb);
-+	if (ret)
-+		goto unregister_driver;
-+
-+	rdma_link_register(&erdma_link_ops);
-+
-+	return ret;
-+
-+unregister_driver:
-+	pci_unregister_driver(&erdma_pci_driver);
-+
-+uninit_cm:
-+	erdma_cm_exit();
-+
-+	return ret;
-+}
-+
-+static void __exit erdma_exit_module(void)
-+{
-+	rdma_link_unregister(&erdma_link_ops);
-+	ib_unregister_driver(RDMA_DRIVER_ERDMA);
-+
-+	unregister_netdevice_notifier(&erdma_netdev_nb);
-+
-+	pci_unregister_driver(&erdma_pci_driver);
-+
-+	erdma_cm_exit();
-+}
-+
-+module_init(erdma_init_module);
-+module_exit(erdma_exit_module);
--- 
-2.27.0
-
+DQoNCj4gT24gMTMgSmFuIDIwMjIsIGF0IDIxOjUxLCBCb2IgUGVhcnNvbiA8cnBlYXJzb25ocGVA
+Z21haWwuY29tPiB3cm90ZToNCj4gDQo+IE9uIDEvMTAvMjIgMjA6MjIsIHlhbmd4Lmp5QGZ1aml0
+c3UuY29tIHdyb3RlOg0KPj4gT24gMjAyMi8xLzExIDk6NDEsIFhpYW8gWWFuZyB3cm90ZToNCj4+
+PiBUaGUgZXhwcmVzc2lvbiAiY29ucyA9PSAoKHFwLT5jdXJfaW5kZXggKyAxKSAlIHEtPmluZGV4
+X21hc2spIiBtaXN0YWtlbmx5DQo+Pj4gYXNzdW1lcyB0aGUgcXVldWUgaXMgZnVsbCB3aGVuIHFw
+LT5jdXJfaW5kZXggaXMgZXF1YWwgdG8gIm1heGltdW0gLSAxIg0KPj4+IChtYXhpbXVtIGlzIGNv
+cnJlY3QpLg0KPj4gSGkgQWxsLA0KPj4gDQo+PiBUaGUgY29tbWl0IG1lc3NhZ2Ugc2VlbXMgaW5h
+cHByb3ByaWF0ZSBzbyBJIHdpbGwgcmVzZW5kIHRoaXMgcGF0Y2guDQo+PiANCj4+IEJlc3QgUmVn
+YXJkcywNCj4+IFhpYW8gWWFuZw0KPj4+IEZvciBleGFtcGxlOg0KPj4+IElmIGNvbnMgYW5kIHFw
+LT5jdXJfaW5kZXggYXJlIDAgYW5kIHEtPmluZGV4X21hc2sgaXMgMSwgY2hlY2tfcXBfcXVldWVf
+ZnVsbCgpDQo+Pj4gcmVwb3J0cyBFTk9TUEMuDQo+Pj4gDQo+Pj4gRml4ZXM6IDFhODk0Y2ExMDEw
+NSAoIlByb3ZpZGVycy9yeGU6IEltcGxlbWVudCBpYnZfY3JlYXRlX3FwX2V4IHZlcmIiKQ0KPj4+
+IFNpZ25lZC1vZmYtYnk6IFhpYW8gWWFuZyA8eWFuZ3guanlAZnVqaXRzdS5jb20+DQo+Pj4gLS0t
+DQo+Pj4gcHJvdmlkZXJzL3J4ZS9yeGVfcXVldWUuaCB8IDIgKy0NCj4+PiAxIGZpbGUgY2hhbmdl
+ZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24oLSkNCj4+PiANCj4+PiBkaWZmIC0tZ2l0IGEv
+cHJvdmlkZXJzL3J4ZS9yeGVfcXVldWUuaCBiL3Byb3ZpZGVycy9yeGUvcnhlX3F1ZXVlLmgNCj4+
+PiBpbmRleCA2ZGU4MTQwYy4uNzA4ZTc2YWMgMTAwNjQ0DQo+Pj4gLS0tIGEvcHJvdmlkZXJzL3J4
+ZS9yeGVfcXVldWUuaA0KPj4+ICsrKyBiL3Byb3ZpZGVycy9yeGUvcnhlX3F1ZXVlLmgNCj4+PiBA
+QCAtMjA1LDcgKzIwNSw3IEBAIHN0YXRpYyBpbmxpbmUgaW50IGNoZWNrX3FwX3F1ZXVlX2Z1bGwo
+c3RydWN0IHJ4ZV9xcCAqcXApDQo+Pj4gCWlmIChxcC0+ZXJyKQ0KPj4+IAkJZ290byBlcnI7DQo+
+Pj4gDQo+Pj4gLQlpZiAoY29ucyA9PSAoKHFwLT5jdXJfaW5kZXggKyAxKSAlIHEtPmluZGV4X21h
+c2spKQ0KPj4+ICsJaWYgKGNvbnMgPT0gKChxcC0+Y3VyX2luZGV4ICsgMSkgJiBxLT5pbmRleF9t
+YXNrKSkNCj4+PiAJCXFwLT5lcnIgPSBFTk9TUEM7DQo+Pj4gZXJyOg0KPj4+IAlyZXR1cm4gcXAt
+PmVycjsNCj4gDQo+IFRoZSB3YXkgdGhlc2UgcXVldWVzIHdvcmsgdGhleSBjYW4gb25seSBob2xk
+IDJebiAtIDEgZW50cmllcy4gVGhlIHJlYXNvbiBmb3IgdGhpcyBpcw0KPiB0byBkaXN0aW5ndWlz
+aCBlbXB0eSBhbmQgZnVsbC4NCg0KWW91IGNhbiBzaW1wbHkgbWl0aWdhdGUgdGhhdCBieSBoYXZp
+bmcgZnJlZS1ydW5uaW5nIGNvdW50ZXJzLCByaWdodD8NCg0KDQpUaHhzLCBIw6Vrb24NCg0KPiBJ
+ZiB5b3UgbGV0IHRoZSBsYXN0IGVudHJ5IGJlIHdyaXR0ZW4gdGhlbiBwcm9kdWNlciB3b3VsZCBh
+ZHZhbmNlIHRvIGVxdWFsIGNvbnN1bWVyIHdoaWNoIGlzIHRoZSBpbml0aWFsIGVtcHR5IGNvbmRp
+dGlvbi4gU28gYSBxdWV1ZSB3aGljaCBjYW4gaG9sZCAxIGVudHJ5IGhhcyB0byBoYXZlIHR3byBz
+bG90cyAobj0xKSBidXQgY2FuIG9ubHkgaG9sZCBvbmUgZW50cnkuIEl0IGJlZ2lucyB3aXRoDQo+
+IA0KPiBwcm9kID0gY29ucyA9IDAgYW5kIGlzIGVtcHR5IGFuZCBpcyAqbm90KiBmdWxsDQo+IA0K
+PiBBZGRpbmcgb25lIGVudHJ5IGdpdmVzDQo+IA0KPiBzbG90WzBdID0gdmFsdWUsIHByb2QgPSAx
+LCBjb25zID0gMCBhbmQgaXMgZnVsbCBhbmQgbm90IGVtcHR5DQo+IA0KPiBBZnRlciByZWFkaW5n
+IHRoaXMgdmFsdWUNCj4gDQo+IHNsb3RbMF0gPSBvbGQgdmFsdWUsIHByb2QgPSBjb25zID0gMSBh
+bmQgcXVldWUgaXMgZW1wdHkgYWdhaW4uDQo+IA0KPiBXcml0aW5nIGEgbmV3IHZhbHVlDQo+IA0K
+PiBzbG90WzFdID0gbmV3IHZhbHVlLCBzbG90WzBdID0gb2xkIHZhbHVlLCBwcm9kID0gMCBhbmQg
+Y29ucyA9IDEgYW5kIHF1ZXVlIGlzIGZ1bGwgYWdhaW4uDQo+IA0KPiBUaGUgZXhwcmVzc2lvbiBm
+dWxsID0gKGNvbnMgPT0gKChxcC0+Y3VyX2luZGV4ICsgMSkgJSBxLT5pbmRleF9tYXNrKSkgaXMg
+Y29ycmVjdC4NCj4gDQo+IFBsZWFzZSBkbyBub3QgbWFrZSB0aGlzIGNoYW5nZS4NCj4gDQo+IEJv
+Yg0KDQo=
