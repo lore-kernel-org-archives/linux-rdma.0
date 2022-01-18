@@ -2,113 +2,200 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA3FC433EF
-	for <linux-rdma@archiver.kernel.org>; Tue, 18 Jan 2022 02:55:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1569DC433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 18 Jan 2022 03:12:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351442AbiARCy3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Jan 2022 21:54:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34784 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345655AbiARCs5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Jan 2022 21:48:57 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B053FC061774;
-        Mon, 17 Jan 2022 18:39:42 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4E19960C96;
-        Tue, 18 Jan 2022 02:39:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B561CC36AEF;
-        Tue, 18 Jan 2022 02:39:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642473581;
-        bh=TvWm8VA0FL0gbTrcAIrjiYnHCBn+7z1eGZmV+NVBhVA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=UR6xN0y8hKg9B1C9J3XCk3jl20H0p5N+TJ4Mu91C2Dzl0uUzEm8QRs5eWdzxhgrXJ
-         HE8768UGImlhkAMyRwV0A4IRHjbC4EU9GNufGG5kwAXb0wYojpHDnFeTdmqAHfipeT
-         xkgbDwpSDagzdnsXM695fgESaoiH4rSp6yJQD3UpdUst/ZGVMPUXMUgdWWrWbOOx2i
-         ugafaXYLaw2/ovxKWXXNX0QJgskf3sXNe/FbBtqXvc7GZOgnckNTYsKuXdcbhK4+RL
-         WcmIldUe/0xNu9XYQaZF1VpUSYWMdnq7oNEb6o3SoIVjtZSAC1ZzP+yu2F4xP8QV5u
-         Yt2pzkG6/3/Sg==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Maher Sanalla <msanalla@nvidia.com>,
-        Maor Gottlieb <maorg@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
-        kuba@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 180/188] net/mlx5: Update log_max_qp value to FW max capability
-Date:   Mon, 17 Jan 2022 21:31:44 -0500
-Message-Id: <20220118023152.1948105-180-sashal@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220118023152.1948105-1-sashal@kernel.org>
-References: <20220118023152.1948105-1-sashal@kernel.org>
+        id S1349136AbiARDJh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Jan 2022 22:09:37 -0500
+Received: from out30-43.freemail.mail.aliyun.com ([115.124.30.43]:55469 "EHLO
+        out30-43.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1343828AbiARC5q (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>);
+        Mon, 17 Jan 2022 21:57:46 -0500
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0V29cRIl_1642474661;
+Received: from 30.43.105.202(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V29cRIl_1642474661)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Tue, 18 Jan 2022 10:57:42 +0800
+Message-ID: <ea21f539-0d4b-5254-8325-dee74b2d26db@linux.alibaba.com>
+Date:   Tue, 18 Jan 2022 10:57:40 +0800
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.5.0
+Subject: Re: [PATCH rdma-next v2 03/11] RDMA/erdma: Add main include file
+Content-Language: en-US
+To:     Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     dledford@redhat.com, leon@kernel.org, linux-rdma@vger.kernel.org,
+        KaiShen@linux.alibaba.com, tonylu@linux.alibaba.com
+References: <20220117084828.80638-1-chengyou@linux.alibaba.com>
+ <20220117084828.80638-4-chengyou@linux.alibaba.com>
+ <20220117145814.GB8034@ziepe.ca>
+From:   Cheng Xu <chengyou@linux.alibaba.com>
+In-Reply-To: <20220117145814.GB8034@ziepe.ca>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maher Sanalla <msanalla@nvidia.com>
 
-[ Upstream commit f79a609ea6bf54ad2d2c24e4de4524288b221666 ]
 
-log_max_qp in driver's default profile #2 was set to 18, but FW actually
-supports 17 at the most - a situation that led to the concerning print
-when the driver is loaded:
-"log_max_qp value in current profile is 18, changing to HCA capabaility
-limit (17)"
+On 1/17/22 10:58 PM, Jason Gunthorpe wrote:
+> On Mon, Jan 17, 2022 at 04:48:20PM +0800, Cheng Xu wrote:
+>> Add ERDMA driver main header file, defining internal used data structures
+>> and operations. The defined data structures includes *cmdq*, which is used
+>> as the communication channel between ERDMA driver and hardware.
+>>
+>> Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+>>   drivers/infiniband/hw/erdma/erdma.h | 392 ++++++++++++++++++++++++++++
+>>   1 file changed, 392 insertions(+)
+>>   create mode 100644 drivers/infiniband/hw/erdma/erdma.h
+>>
+>> diff --git a/drivers/infiniband/hw/erdma/erdma.h b/drivers/infiniband/hw/erdma/erdma.h
+>> new file mode 100644
+>> index 000000000000..ae9ec98e99d0
+>> +++ b/drivers/infiniband/hw/erdma/erdma.h
+>> @@ -0,0 +1,392 @@
+>> +/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
+>> +
+>> +/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
+>> +/*          Kai Shen <kaishen@linux.alibaba.com> */
+>> +/* Copyright (c) 2020-2022, Alibaba Group. */
+>> +
+>> +#ifndef __ERDMA_H__
+>> +#define __ERDMA_H__
+>> +
+>> +#include <linux/bitfield.h>
+>> +#include <linux/netdevice.h>
+>> +#include <linux/xarray.h>
+>> +#include <rdma/ib_verbs.h>
+>> +
+>> +#include "erdma_hw.h"
+>> +
+>> +#define DRV_MODULE_NAME "erdma"
+>> +
+>> +struct erdma_eq {
+>> +	void *qbuf;
+>> +	dma_addr_t qbuf_dma_addr;
+>> +
+>> +	u32 depth;
+>> +	u64 __iomem *db_addr;
+>> +
+>> +	spinlock_t lock;
+>> +
+>> +	u16 ci;
+>> +	u16 owner;
+>> +
+>> +	atomic64_t event_num;
+>> +	atomic64_t notify_num;
+>> +
+>> +	void *db_info;
+>> +};
+>> +
+>> +struct erdma_cmdq_sq {
+>> +	void *qbuf;
+>> +	dma_addr_t qbuf_dma_addr;
+>> +
+>> +	spinlock_t lock;
+>> +	u64 __iomem *db_addr;
+>> +
+>> +	u16 ci;
+>> +	u16 pi;
+>> +
+>> +	u16 depth;
+>> +	u16 wqebb_cnt;
+>> +
+>> +	void *db_info;
+> 
+> Why are there so many void *'s in these structs?
+qbuf/db_addr/db_info are resources used by ERDMA driver & device.
+'void *dev' is used for convenient access the pointer structure, and
+is unnecessary indeed, I will check for this and remove if unnecessary.
 
-The expected behavior from mlx5_profile #2 is to match the maximum FW
-capability in regards to log_max_qp. Thus, log_max_qp in profile #2 is
-initialized to a defined static value (0xff) - which basically means that
-when loading this profile, log_max_qp value  will be what the currently
-installed FW supports at most.
+> 
+>> +struct erdma_cmdq_cq {
+>> +	void *db_info;
+> 
+>> +struct erdma_cmdq {
+>> +	void *dev;
+> 
+>> +struct erdma_irq_info {
+>> +	void *data;
+> 
+>> +struct erdma_eq_cb {
+>> +	void *dev;
+> 
+>> +struct erdma_dev {
+>> +	void *dmadev;
+>> +	void *drvdata;
+>> +	/* reference to drvdata->cmdq */
+>> +	struct erdma_cmdq *cmdq;
+>> +
+>> +	void (*release_handler)(void *drvdata);
+> 
+> Why??
+> 
 
-Signed-off-by: Maher Sanalla <msanalla@nvidia.com>
-Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+After reading all your review suggestions and questions, I think this 
+question, and other questions in PCI probe/remove, module_exit 
+functions, have a relationship with the ibdev generation mechanism of
+this version's driver. I realize it is not proper, and I think you
+already get the reason according your responses.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 92b01858d7f3e..29b7297a836a5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -97,6 +97,8 @@ enum {
- 	MLX5_ATOMIC_REQ_MODE_HOST_ENDIANNESS = 0x1,
- };
- 
-+#define LOG_MAX_SUPPORTED_QPS 0xff
-+
- static struct mlx5_profile profile[] = {
- 	[0] = {
- 		.mask           = 0,
-@@ -108,7 +110,7 @@ static struct mlx5_profile profile[] = {
- 	[2] = {
- 		.mask		= MLX5_PROF_MASK_QP_SIZE |
- 				  MLX5_PROF_MASK_MR_CACHE,
--		.log_max_qp	= 18,
-+		.log_max_qp	= LOG_MAX_SUPPORTED_QPS,
- 		.mr_cache[0]	= {
- 			.size	= 500,
- 			.limit	= 250
-@@ -513,7 +515,9 @@ static int handle_hca_cap(struct mlx5_core_dev *dev, void *set_ctx)
- 		 to_fw_pkey_sz(dev, 128));
- 
- 	/* Check log_max_qp from HCA caps to set in current profile */
--	if (MLX5_CAP_GEN_MAX(dev, log_max_qp) < prof->log_max_qp) {
-+	if (prof->log_max_qp == LOG_MAX_SUPPORTED_QPS) {
-+		prof->log_max_qp = MLX5_CAP_GEN_MAX(dev, log_max_qp);
-+	} else if (MLX5_CAP_GEN_MAX(dev, log_max_qp) < prof->log_max_qp) {
- 		mlx5_core_warn(dev, "log_max_qp value in current profile is %d, changing it to HCA capability limit (%d)\n",
- 			       prof->log_max_qp,
- 			       MLX5_CAP_GEN_MAX(dev, log_max_qp));
--- 
-2.34.1
+In the v1 driver, we create IB deivce in PCI probe function, and
+register IB device in net notifiers. In the v2 driver, we introduce the
+separated device structures (struct erdma_pci_drvdata/struct erdma_dev)
+to support dynamic IB device creation, because we think the user should
+control the lifecycle of IB device by 'rdma link' command, by mistake.
 
+Back to the 'release_handler', it is used for cleanup the
+erdma_pci_drvdata structure after IB device dealloc. We will fix all our
+mechanism.
+
+Thanks,
+Cheng Xu
+
+
+>> +	int cc_method;
+>> +	int disable_dwqe;
+>> +	int dwqe_pages;
+>> +	int dwqe_entries;
+> 
+> Use proper types, bool unsinged int, etc.
+> 
+
+Will fix.
+
+> 
+>> +#define ERDMA_CMDQ_BUILD_REQ_HDR(hdr, mod, op)\
+>> +do { \
+>> +	*(u64 *)(hdr) = FIELD_PREP(ERDMA_CMD_HDR_SUB_MOD_MASK, mod);\
+>> +	*(u64 *)(hdr) |= FIELD_PREP(ERDMA_CMD_HDR_OPCODE_MASK, op);\
+>> +} while (0)
+> 
+> Would prefer an inline wrappered in a macro
+
+Will fix.
+
+> 
+>> +int erdma_post_cmd_wait(struct erdma_cmdq *cmdq, u64 *req, u32 req_size, u64 *resp0, u64 *resp1);
+>> +void erdma_cmdq_completion_handler(struct erdma_cmdq *cmdq);
+>> +
+>> +int erdma_ceqs_init(struct erdma_pci_drvdata *drvdata);
+>> +void erdma_ceqs_uninit(struct erdma_pci_drvdata *drvdata);
+>> +
+>> +int erdma_aeq_init(struct erdma_pci_drvdata *drvdata);
+>> +void erdma_aeq_destroy(struct erdma_pci_drvdata *drvdata);
+>> +
+>> +void erdma_aeq_event_handler(struct erdma_pci_drvdata *drvdata);
+>> +void erdma_ceq_completion_handler(struct erdma_eq_cb *ceq_cb);
+> 
+> Don't use the word 'drvdata' in a driver if you can avoid it. It
+> should only be used to describe the pointer stored in the struct
+> device, and ib devices don't work that way.
+> 
+> Jason
+
+OK, I get it, and will remove them in next version.
+
+Thanks,
+Cheng Xu
