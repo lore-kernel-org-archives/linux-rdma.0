@@ -2,35 +2,32 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53B5AC433F5
-	for <linux-rdma@archiver.kernel.org>; Sun, 23 Jan 2022 18:03:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F67CC433F5
+	for <linux-rdma@archiver.kernel.org>; Sun, 23 Jan 2022 18:03:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230037AbiAWSDK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 23 Jan 2022 13:03:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45248 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229782AbiAWSDK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Jan 2022 13:03:10 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A19A1C06173B;
-        Sun, 23 Jan 2022 10:03:09 -0800 (PST)
+        id S229782AbiAWSDQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 23 Jan 2022 13:03:16 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:51858 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239445AbiAWSDN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Jan 2022 13:03:13 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3985FB80DDA;
-        Sun, 23 Jan 2022 18:03:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93E67C340E2;
-        Sun, 23 Jan 2022 18:03:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1F763B80DE2;
+        Sun, 23 Jan 2022 18:03:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CBE9C340E2;
+        Sun, 23 Jan 2022 18:03:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642960986;
-        bh=Xxp9NkpLTn9XkfjxrWrNTJOxpJ3+NyoF5pVciaxHLPg=;
-        h=From:To:Cc:Subject:Date:From;
-        b=VThQ0X/xnvNq/bQYqCSvz27urkifBIuMHXF+PyB0D6W/QhFW1hNsiyai766wgSWCW
-         VU8kl9MUyareR1nB1gKilClOB816vl8JS7bBa1F3lqMkEUflblJ5trBCkP7VJQEu3W
-         Z/Q2YPHOhO/BnvU8CzGkuV25pgwkGcGWwUwiRMBbqsneKnKcC99MXA//KmKoq8Bgdc
-         LrjTXgZnYFiUg77eNb4q2m1tp1OhFcLjFDPjxIncvI5FhPANlFMyxQTCFVqDG/vD/x
-         asZ3BGb6VTOBXQFTJQ40xNEPxq1T3gA9rO3A/+NU2ksW7p1GGzsH2YIT6rtF9UIGhK
-         e1XUtanvZJSkw==
+        s=k20201202; t=1642960990;
+        bh=QM74zjTB/Y5FBJZy+Z8avdL2zj0ZPAtA0BhDZQJTknY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=e7JmaeKb0sDGfF+OrJWjcKvbFLnK9qL7ZWC+NZIsfWVGgjOD3C8zcuUmWmrRepG/e
+         OjaYyiYyAip8c6uQ0vVGS7lmAQMfg+5l+MAeWm7A/Bqeq4+nXwxjc7Fv+QgCABMH3d
+         LGDqG14ERwE8/cGJMagB21lUm9kY9OP+a+i1WD4wFVNWdoDAH595eKLyqf+2UB/OBm
+         SObnFYwvj/6jCJ9vA70pdzWXc8ie8BDpXC7ZxPVZ3RFS6AAEEvtrkd+o+96GCudp6z
+         VLSrGI0dgtCzkmX45wblEg/aZCjek2tQQVVkQAt6kKxpKfgp2lh80MCSoKwH+JVeXD
+         lb80vQ5kQwOug==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>,
@@ -43,10 +40,12 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Sagi Grimberg <sagi@grimberg.me>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next 00/11] Delete useless module.h|moduleparam.h includes
-Date:   Sun, 23 Jan 2022 20:02:49 +0200
-Message-Id: <cover.1642960861.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 02/11] RDMA/core: Delete useless module.h include
+Date:   Sun, 23 Jan 2022 20:02:51 +0200
+Message-Id: <e412c83b45b6ebdd937886cc9c2cc7c8abcc34fa.1642960861.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <cover.1642960861.git.leonro@nvidia.com>
+References: <cover.1642960861.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -55,57 +54,90 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Nothing fancy, just delete module.h|moduleparam.h from files that don't
-need these includes at all.
+There is no need in include of module.h in the following files.
 
-Thanks
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/addr.c         | 1 -
+ drivers/infiniband/core/cache.c        | 1 -
+ drivers/infiniband/core/cma_configfs.c | 1 -
+ drivers/infiniband/core/cq.c           | 1 -
+ drivers/infiniband/core/iwpm_util.h    | 1 -
+ drivers/infiniband/core/sa_query.c     | 1 -
+ 6 files changed, 6 deletions(-)
 
-Leon Romanovsky (11):
-  RDMA/mlx5: Delete useless module.h include
-  RDMA/core: Delete useless module.h include
-  RDMA/hfi1: Delete useless module.h include
-  RDMA/mlx4: Delete useless module.h include
-  RDMA/mthca: Delete useless module.h include
-  RDMA/qib: Delete useless module.h include
-  RDMA/usnic: Delete useless module.h include
-  RDMA/rxe: Delete useless module.h include
-  RDMA/ipoib: Delete useless module.h include
-  RDMA/iser: Delete useless module.h include
-  RDMA/opa: Delete useless module.h include
-
- drivers/infiniband/core/addr.c                    | 1 -
- drivers/infiniband/core/cache.c                   | 1 -
- drivers/infiniband/core/cma_configfs.c            | 1 -
- drivers/infiniband/core/cq.c                      | 1 -
- drivers/infiniband/core/iwpm_util.h               | 1 -
- drivers/infiniband/core/sa_query.c                | 1 -
- drivers/infiniband/hw/hfi1/affinity.c             | 1 -
- drivers/infiniband/hw/hfi1/debugfs.c              | 1 -
- drivers/infiniband/hw/hfi1/device.c               | 1 -
- drivers/infiniband/hw/hfi1/fault.c                | 1 -
- drivers/infiniband/hw/hfi1/firmware.c             | 1 -
- drivers/infiniband/hw/mlx4/alias_GUID.c           | 1 -
- drivers/infiniband/hw/mlx5/ib_virt.c              | 1 -
- drivers/infiniband/hw/mlx5/mem.c                  | 1 -
- drivers/infiniband/hw/mlx5/qp.c                   | 1 -
- drivers/infiniband/hw/mlx5/srq.c                  | 1 -
- drivers/infiniband/hw/mthca/mthca_profile.c       | 2 --
- drivers/infiniband/hw/qib/qib_fs.c                | 1 -
- drivers/infiniband/hw/usnic/usnic_debugfs.c       | 1 -
- drivers/infiniband/hw/usnic/usnic_ib_qp_grp.c     | 1 -
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.c      | 1 -
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c      | 1 -
- drivers/infiniband/hw/usnic/usnic_transport.c     | 1 -
- drivers/infiniband/hw/usnic/usnic_vnic.c          | 1 -
- drivers/infiniband/sw/rxe/rxe.h                   | 1 -
- drivers/infiniband/sw/rxe/rxe_mmap.c              | 1 -
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c      | 1 -
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c         | 1 -
- drivers/infiniband/ulp/iser/iser_memory.c         | 1 -
- drivers/infiniband/ulp/iser/iser_verbs.c          | 1 -
- drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c | 1 -
- 31 files changed, 32 deletions(-)
-
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 65e3e7df8a4b..f253295795f0 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -37,7 +37,6 @@
+ #include <linux/inetdevice.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+-#include <linux/module.h>
+ #include <net/arp.h>
+ #include <net/neighbour.h>
+ #include <net/route.h>
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index f6aa1a964573..4084d05a4510 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -34,7 +34,6 @@
+  */
+ 
+ #include <linux/if_vlan.h>
+-#include <linux/module.h>
+ #include <linux/errno.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
+index 9ac16e0db761..de8a2d5d741c 100644
+--- a/drivers/infiniband/core/cma_configfs.c
++++ b/drivers/infiniband/core/cma_configfs.c
+@@ -30,7 +30,6 @@
+  * SOFTWARE.
+  */
+ 
+-#include <linux/module.h>
+ #include <linux/configfs.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/rdma_cm.h>
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index 433b426729d4..a70876a0a231 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -2,7 +2,6 @@
+ /*
+  * Copyright (c) 2015 HGST, a Western Digital Company.
+  */
+-#include <linux/module.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <rdma/ib_verbs.h>
+diff --git a/drivers/infiniband/core/iwpm_util.h b/drivers/infiniband/core/iwpm_util.h
+index 3a42ad43056e..d6fc8402158a 100644
+--- a/drivers/infiniband/core/iwpm_util.h
++++ b/drivers/infiniband/core/iwpm_util.h
+@@ -33,7 +33,6 @@
+ #ifndef _IWPM_UTIL_H
+ #define _IWPM_UTIL_H
+ 
+-#include <linux/module.h>
+ #include <linux/io.h>
+ #include <linux/in.h>
+ #include <linux/in6.h>
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 74ecd7456a11..8dc7d1f4b35d 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -32,7 +32,6 @@
+  * SOFTWARE.
+  */
+ 
+-#include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
+ #include <linux/random.h>
 -- 
 2.34.1
 
