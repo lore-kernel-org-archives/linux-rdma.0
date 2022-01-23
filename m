@@ -2,35 +2,32 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB1B5C433EF
-	for <linux-rdma@archiver.kernel.org>; Sun, 23 Jan 2022 18:03:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77EA3C433EF
+	for <linux-rdma@archiver.kernel.org>; Sun, 23 Jan 2022 18:03:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239455AbiAWSDR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 23 Jan 2022 13:03:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45282 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239450AbiAWSDQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Jan 2022 13:03:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17A91C06173B;
-        Sun, 23 Jan 2022 10:03:16 -0800 (PST)
+        id S239476AbiAWSDX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 23 Jan 2022 13:03:23 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:55902 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239462AbiAWSDW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Jan 2022 13:03:22 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A992C60FD1;
-        Sun, 23 Jan 2022 18:03:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42D05C340E2;
-        Sun, 23 Jan 2022 18:03:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 27C6D61031;
+        Sun, 23 Jan 2022 18:03:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B705C340E2;
+        Sun, 23 Jan 2022 18:03:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642960995;
-        bh=86POtQeJX0ykzFw6y5QfLxucOrXxGBGP/egs8OMW4g8=;
+        s=k20201202; t=1642961000;
+        bh=GjiOHAvRJQRdW5cmzBcDZ8FhEEi+z1roRXu4UOvfkks=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=O9dAXoYSnqiD9iYxIoaHAOojQdA3po1ZZHK05uIbfgO+gi8nmSgbYmtRP0N6xTeLp
-         UhCoYObfPhdtnsWAf9CWqeK0BLbuI5rKq3I/DCWMtJABRLJwYqxKFELgefiXUwDCDv
-         Kdlnm/M1tIOQGprq/JkUyXPe0X1xUyUtkSQSzfpmdIxVjy9UzJFInZRJ1gEIkSRy5v
-         q3cUxD4oYi4KRDzd+/g8zepNjqkEpBNoxSmlcgRLc5NgTj8tQ8/K5EPWBbWU5mIFlB
-         Bhh0292UOfNZHb3MPqsV5sisixcAFNrC+4xIL61PUBE4921EKm4qf5uINWd7EHA+lu
-         xLi1BOYmq8PJA==
+        b=uvpXJeqz8wimFhKnm7tIotIhljuVPDYDaAgk1IfPbPzsJf0Wzq1g+2iBfBLxygCfQ
+         0GAHk6i0xxyNE5WGUoaG2sw40fTour1i8PtVLFYMjXcfXTDrk6Ev2NV2dQa8t+Pc7B
+         YXReFMsBZ+r9Igvh/ngk1qbHahcbk5KOYTHhoFQchL/yndurn4y9yDHpPK0z4TxZsr
+         yJ5KHRpyZlTibGGbAO8THEUXh/uO4jzmOXWKRfQzXC9UznMrGjTOGKUg1Jap7OKrOw
+         9JhYcR6l3wJBiED204UQiJa1jIrPRCRy+3WFHgT9HSV1tchIU3i998M9blIrp6kgTI
+         APZ7q/IanXmDw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>,
@@ -43,9 +40,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>,
         Sagi Grimberg <sagi@grimberg.me>,
         Yishai Hadas <yishaih@nvidia.com>,
         Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [PATCH rdma-next 03/11] RDMA/hfi1: Delete useless module.h include
-Date:   Sun, 23 Jan 2022 20:02:52 +0200
-Message-Id: <c53a257079bc93dac036155b793073939d17ddba.1642960861.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 01/11] RDMA/mlx5: Delete useless module.h include
+Date:   Sun, 23 Jan 2022 20:02:50 +0200
+Message-Id: <3ab153e25c7ea59599022dc7fe3c409fcfe1aac1.1642960861.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <cover.1642960861.git.leonro@nvidia.com>
 References: <cover.1642960861.git.leonro@nvidia.com>
@@ -61,73 +58,60 @@ There is no need in include of module.h in the following files.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/hfi1/affinity.c | 1 -
- drivers/infiniband/hw/hfi1/debugfs.c  | 1 -
- drivers/infiniband/hw/hfi1/device.c   | 1 -
- drivers/infiniband/hw/hfi1/fault.c    | 1 -
- drivers/infiniband/hw/hfi1/firmware.c | 1 -
- 5 files changed, 5 deletions(-)
+ drivers/infiniband/hw/mlx5/ib_virt.c | 1 -
+ drivers/infiniband/hw/mlx5/mem.c     | 1 -
+ drivers/infiniband/hw/mlx5/qp.c      | 1 -
+ drivers/infiniband/hw/mlx5/srq.c     | 1 -
+ 4 files changed, 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
-index 98c813ba4304..706b3b659713 100644
---- a/drivers/infiniband/hw/hfi1/affinity.c
-+++ b/drivers/infiniband/hw/hfi1/affinity.c
-@@ -5,7 +5,6 @@
- 
- #include <linux/topology.h>
- #include <linux/cpumask.h>
--#include <linux/module.h>
- #include <linux/interrupt.h>
- #include <linux/numa.h>
- 
-diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
-index 22a3cdb940be..80ba1e53c068 100644
---- a/drivers/infiniband/hw/hfi1/debugfs.c
-+++ b/drivers/infiniband/hw/hfi1/debugfs.c
-@@ -7,7 +7,6 @@
- #include <linux/seq_file.h>
- #include <linux/kernel.h>
- #include <linux/export.h>
--#include <linux/module.h>
- #include <linux/string.h>
- #include <linux/types.h>
- #include <linux/ratelimit.h>
-diff --git a/drivers/infiniband/hw/hfi1/device.c b/drivers/infiniband/hw/hfi1/device.c
-index 68a184c39941..8ceff7141baf 100644
---- a/drivers/infiniband/hw/hfi1/device.c
-+++ b/drivers/infiniband/hw/hfi1/device.c
-@@ -4,7 +4,6 @@
+diff --git a/drivers/infiniband/hw/mlx5/ib_virt.c b/drivers/infiniband/hw/mlx5/ib_virt.c
+index f2f62875d072..afeb5e53254f 100644
+--- a/drivers/infiniband/hw/mlx5/ib_virt.c
++++ b/drivers/infiniband/hw/mlx5/ib_virt.c
+@@ -30,7 +30,6 @@
+  * SOFTWARE.
   */
  
- #include <linux/cdev.h>
 -#include <linux/module.h>
- #include <linux/device.h>
- #include <linux/fs.h>
+ #include <linux/mlx5/vport.h>
+ #include "mlx5_ib.h"
  
-diff --git a/drivers/infiniband/hw/hfi1/fault.c b/drivers/infiniband/hw/hfi1/fault.c
-index e2e4f9f6fae2..3af77a0840ab 100644
---- a/drivers/infiniband/hw/hfi1/fault.c
-+++ b/drivers/infiniband/hw/hfi1/fault.c
-@@ -6,7 +6,6 @@
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/kernel.h>
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index 844545064c9e..6191aa833ac2 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -30,7 +30,6 @@
+  * SOFTWARE.
+  */
+ 
 -#include <linux/module.h>
- #include <linux/types.h>
- #include <linux/bitmap.h>
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_umem_odp.h>
+ #include "mlx5_ib.h"
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 4f325a844c93..8fa6570caa1b 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -31,7 +31,6 @@
+  */
  
-diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
-index 31e63e245ea9..aa15a5cc7cf3 100644
---- a/drivers/infiniband/hw/hfi1/firmware.c
-+++ b/drivers/infiniband/hw/hfi1/firmware.c
-@@ -5,7 +5,6 @@
- 
- #include <linux/firmware.h>
- #include <linux/mutex.h>
+ #include <linux/etherdevice.h>
 -#include <linux/module.h>
- #include <linux/delay.h>
- #include <linux/crc32.h>
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_user_verbs.h>
+diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
+index 0694e9cba8d3..757756c50cc6 100644
+--- a/drivers/infiniband/hw/mlx5/srq.c
++++ b/drivers/infiniband/hw/mlx5/srq.c
+@@ -3,7 +3,6 @@
+  * Copyright (c) 2013-2018, Mellanox Technologies inc.  All rights reserved.
+  */
  
+-#include <linux/module.h>
+ #include <linux/mlx5/qp.h>
+ #include <linux/slab.h>
+ #include <rdma/ib_umem.h>
 -- 
 2.34.1
 
