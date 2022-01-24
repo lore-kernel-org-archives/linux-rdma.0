@@ -2,126 +2,112 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B0D7C4332F
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Jan 2022 17:22:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E5FDC433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Jan 2022 02:27:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240999AbiAXRWo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Jan 2022 12:22:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50132 "EHLO
+        id S3420080AbiAYCWr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Jan 2022 21:22:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240257AbiAXRWo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Jan 2022 12:22:44 -0500
-Received: from mail-pl1-x632.google.com (mail-pl1-x632.google.com [IPv6:2607:f8b0:4864:20::632])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 488E7C06173B
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Jan 2022 09:22:44 -0800 (PST)
-Received: by mail-pl1-x632.google.com with SMTP id c3so16201350pls.5
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Jan 2022 09:22:44 -0800 (PST)
+        with ESMTP id S2371204AbiAYAHM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Jan 2022 19:07:12 -0500
+Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 036F3C07E281
+        for <linux-rdma@vger.kernel.org>; Mon, 24 Jan 2022 13:55:13 -0800 (PST)
+Received: by mail-ej1-x636.google.com with SMTP id m4so25338931ejb.9
+        for <linux-rdma@vger.kernel.org>; Mon, 24 Jan 2022 13:55:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=MrF7wrhR/r11uhM1Zd7BV21fovtaCNxXQvw8C85WbLY=;
-        b=GLBFXmuYlThw8gVudTodEivYKQS9SKar/0ZJSgx9vZ2jV0i1C2mAs9UMhy+CDEzy5d
-         IFZTJOCLmtmr4tACBXyGpVkTCutTOkPjFKFsiXQuW10B7yMTisNiToMK0lgAYfmQGU2o
-         x5zzA/bx0jdyqosLimsGRim5t9m/10nNbO/oc=
+        d=ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=+JglsQ3W34SQt+Zy15lDmZEtS86vNJAWteLE8JfqzCY=;
+        b=hJdcGaxX5zLwcZWO9P4J/Z3YeyEZajM3SkYma/3FhrfBxH1yhxSc8FR8Ulv/DEAqFn
+         YfEboSOk9cHH39+r4aqv5owMQQqvlWVh7N1I39oBOMRlRbkD4tGJELv7OFn4qKcET1tw
+         yLnAgDdj4tiobUHbQ1vvMutXyKsuqXLt3P8uNCBEGjbnmX9pOfnI2+sYoqzF4tQXcUIA
+         +vx2IPIwXeNGkYkhut166sHkwZ9bDEvrSizR9qGaE286i8cI5UKo/3KSpYvRwkArZcib
+         vGhY37yIYAXfcr4OAeWSbtHOX4bDGuCYz4D2iy1vIZBkC2MqK0dOObJizhmdJttTEail
+         XV6A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=MrF7wrhR/r11uhM1Zd7BV21fovtaCNxXQvw8C85WbLY=;
-        b=d9YwrFF501sx5PnA5QIj9k98/t7Pj+5WmXVda3bHXAT9NPvusc9POB4MZEoPzd/epc
-         6U5eMLqESnJT2m6pNN4L8Q0OyTzKTuonLtoLLZ2Gnf7/4ofHq6oyP4e/UJQsu/bkOgvs
-         dO5W1kH27cBQf+l9V1G7PBPb5Mu4hFSlBVxcG0iyxuCCXPo3aixRmIqXe/FG6IdnkKme
-         WYrKjgAUIzkGQYwjwPfK5ZShf/QTDqRJ9yDD8pBWReL2tMQ9kLSDyDMovqzskdhvwWSz
-         FfRLsQ7uZwN+wsp2ZYIcBh2B6F5EmLyZKd/yZkzij1H+04VptwJTzLdFmooXdUij6dQz
-         5rjw==
-X-Gm-Message-State: AOAM531UvOo83p7qV16HuiuLlcuiPfynunCLZzjlxJ+ACrOGr/EeE+rK
-        DtmaCt/InuGfEN9RPdFcmBPJ3w==
-X-Google-Smtp-Source: ABdhPJzrcJk7jTA+I8Ws2u0wMgyvDme0Vzcmms3hN2SNCAdRMMOG6NzZq8hGBo8rxEKZTG9pux+DpQ==
-X-Received: by 2002:a17:90b:380a:: with SMTP id mq10mr2879344pjb.147.1643044963893;
-        Mon, 24 Jan 2022 09:22:43 -0800 (PST)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id om12sm8581896pjb.48.2022.01.24.09.22.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Jan 2022 09:22:43 -0800 (PST)
-From:   Kees Cook <keescook@chromium.org>
-To:     Saeed Mahameed <saeedm@nvidia.com>
-Cc:     Kees Cook <keescook@chromium.org>,
-        Leon Romanovsky <leon@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-hardening@vger.kernel.org
-Subject: [PATCH RESEND] net/mlx5e: Use struct_group() for memcpy() region
-Date:   Mon, 24 Jan 2022 09:22:41 -0800
-Message-Id: <20220124172242.2410996-1-keescook@chromium.org>
-X-Mailer: git-send-email 2.30.2
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=+JglsQ3W34SQt+Zy15lDmZEtS86vNJAWteLE8JfqzCY=;
+        b=I9cqxrBs/dEwDhFGDH/ge+c+dd97UMFP7bhAy+cEPITv5UJ9Cr6EponwIwgz7jj3Y2
+         0k/GkDqg5hy4/VtSg3QxMuN9lM6ojMX+zyEebvsBkl4C5TO7JVcaVKlDYs3aXen21GXy
+         9Ugo1bPKQ0k+rEMc+/7ubXNwAXv+o7BrpvHQHKjx6CsQ9WfcKG3h8jRe0OsMqQ96Icg/
+         YeFQCAvdT/wI//FCwYvFouIZ+88dXNJV7jGpKSPq2PKyu9TBIJd6Ay8ZonO/QsKtDh6j
+         pAiES4cXAP0Ljk8lEjQbYzvvEEKdh0nbRXsT0xAu/gi86OZLkJXM4NM4eRhzEdbQTARh
+         597w==
+X-Gm-Message-State: AOAM533ly2DIklVmsMg222eRfvGQ29i846s3lKq3iiYRohaenXSinQ9m
+        tmQxNM+2xpPn5tWNkKZHky6zFNGm2DC87KUw/69OeA==
+X-Google-Smtp-Source: ABdhPJwR6aHFyfik9X6q8xwr/txRv41f0oUETt/cE6olQXPJisyNFVqlzYtfWfqkxDEfUQxdLIBA67c7O2wIgboUKU0=
+X-Received: by 2002:a17:906:c110:: with SMTP id do16mr13831897ejc.441.1643061311513;
+ Mon, 24 Jan 2022 13:55:11 -0800 (PST)
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2499; h=from:subject; bh=1Hy/h6xR6CfzT4qu6mjl1eEfD5rBqmasVCiGJ8yfoaE=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBh7uBhn8A0lQDkjRJO9V5Sl0KNR5PpwAX0g9yKG64U XkTagiOJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCYe7gYQAKCRCJcvTf3G3AJrh+D/ 9XD/78mqJDQUOAqNi51dHFcJMTBtQW/5SOOscaza/hl+yTU06iM1xjcDFcsLZb7jaJ4KYcV/EZAnXv l73wUOrNTN38IgVBXoE6OMtjQHaJwjcbzEhxfcnx3ncVKWRelfg1Wcz3UCHgAp621U13ng7iIXtQFg JKnUuwTjUH8vLpNlDdzLwHJqxN7wWA/+r3YU5GGTsWbTGlUZSs4+TPUzhcF48K1Wx5gsWUUBD9lFg5 5oWex5SYi2l7himxmjllot0E3lyw9ot26ak3oWLfRQqqOUet5u4UhWbA1ZBkD6gys1OziqKY2YDzdA L/GNU45qVkr8K5864876AiJ2cFYIFEMng2G2M8xkgH2Pcj0aECmYo+BXt/WC4R5aNKGUbre0I77CKl uCiIH3lTD5mLBNIxe58Lr9ekNwdedX+uNPiZo96/OH0SKqmfp30VohtJJFlB3gauX/slbX9ONDffMR jtuYoEIwR5ODB0gsr3Rku7j/b0nYxJs80sAziKrtJTrlb9tk7RSlanVomFiTGvHxQoI8E8uiRogOG7 7u6sCJqdnF9kLjGpEkjPyi47V741Xkyly/jqjpTJjHzxQHSFinFisqz41YE2HEoINtxxy8kF6n2Rpy +uF1HuWJz6ebx3q5MGvBrhW3cnyzxgaMa1O85G0cJqOg8sujaw7WJe0sV8wQ==
-X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
-Content-Transfer-Encoding: 8bit
+References: <20220124122135.5745-1-linmq006@gmail.com>
+In-Reply-To: <20220124122135.5745-1-linmq006@gmail.com>
+From:   Jinpu Wang <jinpu.wang@ionos.com>
+Date:   Mon, 24 Jan 2022 22:55:00 +0100
+Message-ID: <CAMGffEm3tVDP2ir2spX4Xum96Kf=d9zSVnngfQcj_9YZFmV4ew@mail.gmail.com>
+Subject: Re: [PATCH v2] RDMA/rtrs: Fix double free in alloc_clt
+To:     Miaoqian Lin <linmq006@gmail.com>
+Cc:     "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Danil Kipnis <danil.kipnis@ionos.com>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-In preparation for FORTIFY_SOURCE performing compile-time and run-time
-field bounds checking for memcpy(), memmove(), and memset(), avoid
-intentionally writing across neighboring fields.
+On Mon, Jan 24, 2022 at 1:21 PM Miaoqian Lin <linmq006@gmail.com> wrote:
+>
+> Callback function rtrs_clt_dev_release() in put_device()
+> calls kfree(clt); to free memory. We shouldn't call kfree(clt) again.
+>
+> Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
+> Signed-off-by: Miaoqian Lin <linmq006@gmail.com>
+Hi Miaoqian,
+this is the complete fix.
+https://lore.kernel.org/linux-rdma/Ye00cQ+VUkzh8JCH@unreal/T/#t
 
-Use struct_group() in struct vlan_ethhdr around members h_dest and
-h_source, so they can be referenced together. This will allow memcpy()
-and sizeof() to more easily reason about sizes, improve readability,
-and avoid future warnings about writing beyond the end of h_dest.
-
-"pahole" shows no size nor member offset changes to struct vlan_ethhdr.
-"objdump -d" shows no object code changes.
-
-Cc: Saeed Mahameed <saeedm@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
-Since this results in no binary differences, I will carry this in my tree
-unless someone else wants to pick it up. It's one of the last remaining
-clean-ups needed for the next step in memcpy() hardening.
----
- drivers/net/ethernet/mellanox/mlx5/core/en_tx.c | 2 +-
- include/linux/if_vlan.h                         | 6 ++++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-index 7fd33b356cc8..ee7ecb88adc1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-@@ -208,7 +208,7 @@ static inline void mlx5e_insert_vlan(void *start, struct sk_buff *skb, u16 ihs)
- 	int cpy1_sz = 2 * ETH_ALEN;
- 	int cpy2_sz = ihs - cpy1_sz;
- 
--	memcpy(vhdr, skb->data, cpy1_sz);
-+	memcpy(&vhdr->addrs, skb->data, cpy1_sz);
- 	vhdr->h_vlan_proto = skb->vlan_proto;
- 	vhdr->h_vlan_TCI = cpu_to_be16(skb_vlan_tag_get(skb));
- 	memcpy(&vhdr->h_vlan_encapsulated_proto, skb->data + cpy1_sz, cpy2_sz);
-diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
-index 8420fe504927..2be4dd7e90a9 100644
---- a/include/linux/if_vlan.h
-+++ b/include/linux/if_vlan.h
-@@ -46,8 +46,10 @@ struct vlan_hdr {
-  *	@h_vlan_encapsulated_proto: packet type ID or len
-  */
- struct vlan_ethhdr {
--	unsigned char	h_dest[ETH_ALEN];
--	unsigned char	h_source[ETH_ALEN];
-+	struct_group(addrs,
-+		unsigned char	h_dest[ETH_ALEN];
-+		unsigned char	h_source[ETH_ALEN];
-+	);
- 	__be16		h_vlan_proto;
- 	__be16		h_vlan_TCI;
- 	__be16		h_vlan_encapsulated_proto;
--- 
-2.30.2
-
+Thanks!
+> ---
+> Changes in v2:
+> - call free_percpu() before put_device() to avoid UAF.
+> ---
+>  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 11 +++++++----
+>  1 file changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> index 7c3f98e57889..aff04f566304 100644
+> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+> @@ -2739,10 +2739,8 @@ static struct rtrs_clt_sess *alloc_clt(const char *sessname, size_t paths_num,
+>          */
+>         dev_set_uevent_suppress(&clt->dev, true);
+>         err = device_register(&clt->dev);
+> -       if (err) {
+> -               put_device(&clt->dev);
+> -               goto err;
+> -       }
+> +       if (err)
+> +               goto err_register;
+>
+>         clt->kobj_paths = kobject_create_and_add("paths", &clt->dev.kobj);
+>         if (!clt->kobj_paths) {
+> @@ -2764,6 +2762,11 @@ static struct rtrs_clt_sess *alloc_clt(const char *sessname, size_t paths_num,
+>  err:
+>         free_percpu(clt->pcpu_path);
+>         kfree(clt);
+> +       goto ret;
+> +err_register:
+> +       free_percpu(clt->pcpu_path);
+> +       put_device(&clt->dev);
+> +ret:
+>         return ERR_PTR(err);
+>  }
+>
+> --
+> 2.17.1
+>
