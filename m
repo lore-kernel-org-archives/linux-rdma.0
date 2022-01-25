@@ -2,112 +2,95 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E5FDC433F5
-	for <linux-rdma@archiver.kernel.org>; Tue, 25 Jan 2022 02:27:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5517C433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 25 Jan 2022 07:37:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S3420080AbiAYCWr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Jan 2022 21:22:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34028 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2371204AbiAYAHM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Jan 2022 19:07:12 -0500
-Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 036F3C07E281
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Jan 2022 13:55:13 -0800 (PST)
-Received: by mail-ej1-x636.google.com with SMTP id m4so25338931ejb.9
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Jan 2022 13:55:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=+JglsQ3W34SQt+Zy15lDmZEtS86vNJAWteLE8JfqzCY=;
-        b=hJdcGaxX5zLwcZWO9P4J/Z3YeyEZajM3SkYma/3FhrfBxH1yhxSc8FR8Ulv/DEAqFn
-         YfEboSOk9cHH39+r4aqv5owMQQqvlWVh7N1I39oBOMRlRbkD4tGJELv7OFn4qKcET1tw
-         yLnAgDdj4tiobUHbQ1vvMutXyKsuqXLt3P8uNCBEGjbnmX9pOfnI2+sYoqzF4tQXcUIA
-         +vx2IPIwXeNGkYkhut166sHkwZ9bDEvrSizR9qGaE286i8cI5UKo/3KSpYvRwkArZcib
-         vGhY37yIYAXfcr4OAeWSbtHOX4bDGuCYz4D2iy1vIZBkC2MqK0dOObJizhmdJttTEail
-         XV6A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=+JglsQ3W34SQt+Zy15lDmZEtS86vNJAWteLE8JfqzCY=;
-        b=I9cqxrBs/dEwDhFGDH/ge+c+dd97UMFP7bhAy+cEPITv5UJ9Cr6EponwIwgz7jj3Y2
-         0k/GkDqg5hy4/VtSg3QxMuN9lM6ojMX+zyEebvsBkl4C5TO7JVcaVKlDYs3aXen21GXy
-         9Ugo1bPKQ0k+rEMc+/7ubXNwAXv+o7BrpvHQHKjx6CsQ9WfcKG3h8jRe0OsMqQ96Icg/
-         YeFQCAvdT/wI//FCwYvFouIZ+88dXNJV7jGpKSPq2PKyu9TBIJd6Ay8ZonO/QsKtDh6j
-         pAiES4cXAP0Ljk8lEjQbYzvvEEKdh0nbRXsT0xAu/gi86OZLkJXM4NM4eRhzEdbQTARh
-         597w==
-X-Gm-Message-State: AOAM533ly2DIklVmsMg222eRfvGQ29i846s3lKq3iiYRohaenXSinQ9m
-        tmQxNM+2xpPn5tWNkKZHky6zFNGm2DC87KUw/69OeA==
-X-Google-Smtp-Source: ABdhPJwR6aHFyfik9X6q8xwr/txRv41f0oUETt/cE6olQXPJisyNFVqlzYtfWfqkxDEfUQxdLIBA67c7O2wIgboUKU0=
-X-Received: by 2002:a17:906:c110:: with SMTP id do16mr13831897ejc.441.1643061311513;
- Mon, 24 Jan 2022 13:55:11 -0800 (PST)
+        id S1377074AbiAYHhe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 25 Jan 2022 02:37:34 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:46582 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1351469AbiAYHev (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 25 Jan 2022 02:34:51 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F1956130E
+        for <linux-rdma@vger.kernel.org>; Tue, 25 Jan 2022 07:34:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AAA3C340E0;
+        Tue, 25 Jan 2022 07:34:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1643096089;
+        bh=Bcyk4r2K3BJd/kzY1EhnDrguesa5CbZAQJadl/G9hFY=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=te2L72Jn4Kjotyb6v6Kj+GkEWHOGXQV2kk9MZ2dmKiz/R+pLBN3URDn9Hze6ltxJw
+         cQhZSRnWZyaerUeQkhMRJtxfQeoFKxewgA3HM5CXItFqdeWAWFabkB8/WpapyPqZlN
+         SXhsZXryXSNv0+lTY684DQ+goFhhyM/Iy3FMoEoKRuNJpi0w2PwUbdazNBa6PUJeLQ
+         TwM9ZBxuDjzYiuH6CgNjARsq0LdismyCFKht102ScyAGXoOzCJg6XVxNZ/qi0VmH1B
+         vE7HFY7Py10VZzKVBzRQqQPzD7dr4EnEBOvaruPc9rLQafvYXK/c4SxrTQm+MoqTwU
+         N70E5UVl78JDQ==
+Date:   Tue, 25 Jan 2022 09:34:44 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     "Marciniszyn, Mike" <mike.marciniszyn@cornelisnetworks.com>
+Cc:     Haakon Bugge <haakon.bugge@oracle.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>,
+        OFED mailing list <linux-rdma@vger.kernel.org>
+Subject: Re: [PATCH for-rc] IB/rdmavt: Validate remote_addr during loopback
+ atomic tests
+Message-ID: <Ye+oFAX/GzOD3MzU@unreal>
+References: <1642584489-141005-1-git-send-email-mike.marciniszyn@cornelisnetworks.com>
+ <Ye0vPMAF6NdF0pMu@unreal>
+ <E3A123CC-3C34-4EE9-BF6E-3F9FEF04A939@oracle.com>
+ <Ye6cry944qSVHi6z@unreal>
+ <4579CC13-F537-4F54-887B-B9CFB570DE43@oracle.com>
+ <CH0PR01MB7153A251BF2D1F2C4A8ACFDAF25E9@CH0PR01MB7153.prod.exchangelabs.com>
 MIME-Version: 1.0
-References: <20220124122135.5745-1-linmq006@gmail.com>
-In-Reply-To: <20220124122135.5745-1-linmq006@gmail.com>
-From:   Jinpu Wang <jinpu.wang@ionos.com>
-Date:   Mon, 24 Jan 2022 22:55:00 +0100
-Message-ID: <CAMGffEm3tVDP2ir2spX4Xum96Kf=d9zSVnngfQcj_9YZFmV4ew@mail.gmail.com>
-Subject: Re: [PATCH v2] RDMA/rtrs: Fix double free in alloc_clt
-To:     Miaoqian Lin <linmq006@gmail.com>
-Cc:     "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Danil Kipnis <danil.kipnis@ionos.com>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CH0PR01MB7153A251BF2D1F2C4A8ACFDAF25E9@CH0PR01MB7153.prod.exchangelabs.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 24, 2022 at 1:21 PM Miaoqian Lin <linmq006@gmail.com> wrote:
->
-> Callback function rtrs_clt_dev_release() in put_device()
-> calls kfree(clt); to free memory. We shouldn't call kfree(clt) again.
->
-> Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
-> Signed-off-by: Miaoqian Lin <linmq006@gmail.com>
-Hi Miaoqian,
-this is the complete fix.
-https://lore.kernel.org/linux-rdma/Ye00cQ+VUkzh8JCH@unreal/T/#t
+On Mon, Jan 24, 2022 at 01:20:56PM +0000, Marciniszyn, Mike wrote:
+> > From: Haakon Bugge <haakon.bugge@oracle.com>
+> > Sent: Monday, January 24, 2022 7:44 AM
+> > To: Leon Romanovsky <leon@kernel.org>
+> > Cc: Marciniszyn, Mike <mike.marciniszyn@cornelisnetworks.com>;
+> > jgg@ziepe.ca; OFED mailing list <linux-rdma@vger.kernel.org>
+> > Subject: Re: [PATCH for-rc] IB/rdmavt: Validate remote_addr during
+> > loopback atomic tests
+> > > And is IBTA restriction applicable to hfi1?
+> > 
+> > For hfi1, I do not know. But this fix was in drivers/infiniband/sw/rdmavt, for
+> > which the first commit message states:
+> > 
+> >  This patch introduces the basics for a new module called rdma_vt. This new
+> >     driver is a software implementation of the InfiniBand verbs...
+> > 
+> > 
+> > More importantly, the check we discuss is not about being page-aligned, but
+> > about being naturally aligned, right?
+> > 
+> 
+> Hardware supported by rdamvt strives to be 100% compatible with the verbs API.
+> 
+> And yes, the natural alignment is the objective for the test.
+> 
+> According to the IB Spec (V1-Rel1.2.1 section 9.4.5 ATOMIC OPERATIONS):
+>         "The virtual address in the ATOMIC Command Request packet shall
+>         be naturally aligned to an 8 byte boundary. The responding CA
+>         checks this and returns an Invalid Request NAK if it is not naturally
+>         aligned."
+> 
+> The recent additions to the rdma-core test suite caught this issue.
+> 
+> The test is consistent with input packet parsing:
+> 
+>         case OP(COMPARE_SWAP):
+>         case OP(FETCH_ADD): {
+> <snip>
+>                 if (unlikely(vaddr & (sizeof(u64) - 1)))
+>                         goto nack_inv_unlck;
 
-Thanks!
-> ---
-> Changes in v2:
-> - call free_percpu() before put_device() to avoid UAF.
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> index 7c3f98e57889..aff04f566304 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> @@ -2739,10 +2739,8 @@ static struct rtrs_clt_sess *alloc_clt(const char *sessname, size_t paths_num,
->          */
->         dev_set_uevent_suppress(&clt->dev, true);
->         err = device_register(&clt->dev);
-> -       if (err) {
-> -               put_device(&clt->dev);
-> -               goto err;
-> -       }
-> +       if (err)
-> +               goto err_register;
->
->         clt->kobj_paths = kobject_create_and_add("paths", &clt->dev.kobj);
->         if (!clt->kobj_paths) {
-> @@ -2764,6 +2762,11 @@ static struct rtrs_clt_sess *alloc_clt(const char *sessname, size_t paths_num,
->  err:
->         free_percpu(clt->pcpu_path);
->         kfree(clt);
-> +       goto ret;
-> +err_register:
-> +       free_percpu(clt->pcpu_path);
-> +       put_device(&clt->dev);
-> +ret:
->         return ERR_PTR(err);
->  }
->
-> --
-> 2.17.1
->
+I see, thanks Mike and Haakon.
+
