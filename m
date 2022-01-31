@@ -2,57 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B19DC433FE
-	for <linux-rdma@archiver.kernel.org>; Mon, 31 Jan 2022 22:10:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F465C4332F
+	for <linux-rdma@archiver.kernel.org>; Mon, 31 Jan 2022 22:10:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231425AbiAaWKN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 31 Jan 2022 17:10:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58926 "EHLO
+        id S231710AbiAaWKO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 31 Jan 2022 17:10:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231660AbiAaWKL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 31 Jan 2022 17:10:11 -0500
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D69CAC06173E
-        for <linux-rdma@vger.kernel.org>; Mon, 31 Jan 2022 14:10:11 -0800 (PST)
-Received: by mail-oi1-x231.google.com with SMTP id m9so29503470oia.12
-        for <linux-rdma@vger.kernel.org>; Mon, 31 Jan 2022 14:10:11 -0800 (PST)
+        with ESMTP id S231627AbiAaWKN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 31 Jan 2022 17:10:13 -0500
+Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F4F0C06173D
+        for <linux-rdma@vger.kernel.org>; Mon, 31 Jan 2022 14:10:13 -0800 (PST)
+Received: by mail-oi1-x234.google.com with SMTP id v67so29534185oie.9
+        for <linux-rdma@vger.kernel.org>; Mon, 31 Jan 2022 14:10:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=1Qfvp20206DcmKvuNv+j3mvuVrDOObPq3yGtKsY16FI=;
-        b=cPUtk6PcjbHwBNeifn7PbzYRFzolu/hGSZN/4F/iTnSf2tZKZeMhRLMuozLjbX+d6h
-         y2d3jgbXKLPgWarz6nFf1bri4UUYY5tVblG/VS6/mod/sjhd/LjKER1l3CzjjmlGtFgG
-         wsKVU5DD/YB9I3ob2S7slPpRVky6QPhfJOnK3iIOwNfVnETwIKvybuBWfl4Q6HUD6spb
-         91bJYOeBIMyI7Kooq5Lz8DjhwHNzzZw28qWihk1Mi5eGOjM683rHZi6rVzzJG5lGBVfA
-         RSDCCrPnBq82/TYVVe92wxZet+RPOt+vB6IOr0lV3T4s+UonKsFMVnvB7R8unWxglXlT
-         tY2g==
+        bh=vyhU+SAzlULycIcyLyDOAHPl5t3FH7EOR8gipo1aZZQ=;
+        b=ncTLCO+May2EkmrxW6WtEfI2yP8a05YnuM5yyZ4Ewc5uxuKHLEnLqLMQk7BXKRedld
+         lhqGvanKtsXAKMKLhgUwkzYhk/AUcFSerscE459b9hrJ48XdTpoLhyJkIPsS+dG7nVo4
+         VXGQbbFef+FeQVvoDbKL6GgJQGNlhSBabOR2QKJGhNd+lR86307aXJ8paFY2rWRs/L76
+         orXsv6eNZLOT1jUHDC/5OgV/qO9J0jCh3X9UmIbtR7BdpTK1jYeA4DqU3so259PdsvrX
+         SqHE/z9IAc10nqEXyuBve8sfRc3Bi71ThFQFnsghPQ6/jtgJhkCLCRMraj6abOZ6itdV
+         Zb9Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=1Qfvp20206DcmKvuNv+j3mvuVrDOObPq3yGtKsY16FI=;
-        b=3ywEoMJYre3ccsG/TjP5E8kxAShCHl3DMaPksVJuCTGWUfMuM6BgGW9z9DinlYfvTa
-         sVr3t69Gte5SGFfLsUP3VJlmwxxVfYLODODl3qFb+tFXkmh59b+kLwSfRIuo5ajVOjkO
-         zdhDJCN7kC6uenyDO/DxY928wMvL1o7msKrYmh2sbl4QCaNxXdyN6BFWF3Z/CnsN+Zkr
-         oDUksJq4IH7cRI+NfNsyMSWmAfMtweFQYlZy6NY4S8WKPkImvxbOux9BowXCRPKJWTW0
-         Dkpbws1hAlWeyFkmxLSN/1EM9fkFsQioDrQEibvcKcywnBd/6BPsggygfvexGxFYFLK3
-         TG+g==
-X-Gm-Message-State: AOAM530FFN3HSOz4T1S0mpEcyBjUNhet10XYlcwfh2M4gAbDpVeimkCQ
-        FNyHd13TD1eyFAveDTOmIrk=
-X-Google-Smtp-Source: ABdhPJykhveKLG1JySaJwQR3xJijJ1VvQy14dzqU5PJKB1L1lDuTzxrsq4sYuPOVda/7s3xvFXQrIA==
-X-Received: by 2002:a05:6808:1491:: with SMTP id e17mr18648023oiw.123.1643667011282;
-        Mon, 31 Jan 2022 14:10:11 -0800 (PST)
+        bh=vyhU+SAzlULycIcyLyDOAHPl5t3FH7EOR8gipo1aZZQ=;
+        b=wfRkpfPvDqVsSCh4IMEWPJ8+z1pLATPCSFlXHvIswe/e9OL8Ku3SGoKvDJOus0/9vs
+         cGEzV8G1nFhxPjK9MeN8Y/a6ytPJ8bfGgRoAKaM5nL8oSEn33xQviihnNtP+0spF8QZX
+         75IHnxqAC635MATssO7CVoZNjQ1tgDmkoPHB2Z9UgrAd5t+dSgPSs7qQ7rjwD5BMIV+6
+         URfyi5SzWC82vKPWUMIgwfSal677X2EWaBAagxmXGJf/ECk4JAUNx+JWQ8drmZH22egm
+         /slo5euIQHM6SNVY7zmwzi3NN9dKNGm5yJS2fB6q3SLxKdz28YRv3KZdLsP+EVe0EIrD
+         NOeA==
+X-Gm-Message-State: AOAM530qYh6Lj3ax8B7gP7cZBBpIavCJOncpuzkG2zqucYmRHY36zLXA
+        aC1u9usMyrKDMcNNr2AQess9v6/A9Vk=
+X-Google-Smtp-Source: ABdhPJw/BCmJkZ4CcaTR3Bn+ku9DrpIAPWfLq+VKaT9bfKCkhh4DEIHlx2XOrDW3FIsKpF5e15FspA==
+X-Received: by 2002:a05:6808:1250:: with SMTP id o16mr14512371oiv.95.1643667012873;
+        Mon, 31 Jan 2022 14:10:12 -0800 (PST)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-5c63-4cee-84ac-42bc.res6.spectrum.com. [2603:8081:140c:1a00:5c63:4cee:84ac:42bc])
-        by smtp.googlemail.com with ESMTPSA id t21sm8304929otq.81.2022.01.31.14.10.10
+        by smtp.googlemail.com with ESMTPSA id t21sm8304929otq.81.2022.01.31.14.10.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Jan 2022 14:10:10 -0800 (PST)
+        Mon, 31 Jan 2022 14:10:12 -0800 (PST)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v10 09/17] RDMA/rxe: Introduce RXECB(skb)
-Date:   Mon, 31 Jan 2022 16:08:42 -0600
-Message-Id: <20220131220849.10170-10-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v10 11/17] RDMA/rxe: Replace mcg locks by rxe->mcg_lock
+Date:   Mon, 31 Jan 2022 16:08:44 -0600
+Message-Id: <20220131220849.10170-12-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220131220849.10170-1-rpearsonhpe@gmail.com>
 References: <20220131220849.10170-1-rpearsonhpe@gmail.com>
@@ -62,173 +62,177 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add a #define RXECB(skb) to rxe_hdr.h as a short cut to
-refer to single members of rxe_pkt_info which is stored in skb->cb
-in the receive path. Use this to make some cleanups in rxe_recv.c
+Starting to decouple mcg from rxe pools, replace the spin lock
+mcg->mcg_lock and the read/write lock pool->pool_lock by rxe->mcg_lock.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_hdr.h  |  3 ++
- drivers/infiniband/sw/rxe/rxe_recv.c | 55 +++++++++++++---------------
- 2 files changed, 29 insertions(+), 29 deletions(-)
+ drivers/infiniband/sw/rxe/rxe.c       |  2 ++
+ drivers/infiniband/sw/rxe/rxe_mcast.c | 25 ++++++++++++-------------
+ drivers/infiniband/sw/rxe/rxe_recv.c  |  4 ++--
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  3 ++-
+ 4 files changed, 18 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_hdr.h b/drivers/infiniband/sw/rxe/rxe_hdr.h
-index e432f9e37795..2a85d1e40e6a 100644
---- a/drivers/infiniband/sw/rxe/rxe_hdr.h
-+++ b/drivers/infiniband/sw/rxe/rxe_hdr.h
-@@ -36,6 +36,9 @@ static inline struct sk_buff *PKT_TO_SKB(struct rxe_pkt_info *pkt)
- 	return container_of((void *)pkt, struct sk_buff, cb);
- }
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index c55736e441e7..46a07e2d9dcf 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -198,6 +198,8 @@ static int rxe_init(struct rxe_dev *rxe)
+ 	if (err)
+ 		return err;
  
-+/* alternative to access a single element of rxe_pkt_info from skb */
-+#define RXECB(skb) ((struct rxe_pkt_info *)((skb)->cb))
++	spin_lock_init(&rxe->mcg_lock);
 +
- /*
-  * IBA header types and methods
-  *
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index 814a002b8911..10020103ea4a 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -107,17 +107,15 @@ static int check_keys(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
- 	return -EINVAL;
+ 	/* init pending mmap list */
+ 	spin_lock_init(&rxe->mmap_offset_lock);
+ 	spin_lock_init(&rxe->pending_lock);
+diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
+index 52bd46ca22c9..d35070777214 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mcast.c
++++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
+@@ -25,7 +25,7 @@ static int rxe_mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
+ 	return dev_mc_del(rxe->ndev, ll_addr);
  }
  
--static int check_addr(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+static int check_addr(struct rxe_dev *rxe, struct sk_buff *skb,
- 		      struct rxe_qp *qp)
+-/* caller should hold mc_grp_pool->pool_lock */
++/* caller should hold rxe->mcg_lock */
+ static int __rxe_create_mcg(struct rxe_dev *rxe, struct rxe_pool *pool,
+ 			    union ib_gid *mgid, struct rxe_mcg **mcg_p)
  {
--	struct sk_buff *skb = PKT_TO_SKB(pkt);
--
- 	if (qp_type(qp) != IB_QPT_RC && qp_type(qp) != IB_QPT_UC)
- 		goto done;
- 
--	if (unlikely(pkt->port_num != qp->attr.port_num)) {
-+	if (unlikely(RXECB(skb)->port_num != qp->attr.port_num)) {
- 		pr_warn_ratelimited("port %d != qp port %d\n",
--				    pkt->port_num, qp->attr.port_num);
-+				    RXECB(skb)->port_num, qp->attr.port_num);
- 		goto err1;
+@@ -43,7 +43,6 @@ static int __rxe_create_mcg(struct rxe_dev *rxe, struct rxe_pool *pool,
  	}
  
-@@ -167,8 +165,9 @@ static int check_addr(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
- 	return -EINVAL;
+ 	INIT_LIST_HEAD(&mcg->qp_list);
+-	spin_lock_init(&mcg->mcg_lock);
+ 	mcg->rxe = rxe;
+ 
+ 	rxe_add_ref(mcg);
+@@ -72,7 +71,7 @@ static int rxe_mcast_get_mcg(struct rxe_dev *rxe, union ib_gid *mgid,
+ 	if (rxe->attr.max_mcast_qp_attach == 0)
+ 		return -EINVAL;
+ 
+-	write_lock_bh(&pool->pool_lock);
++	spin_lock_bh(&rxe->mcg_lock);
+ 
+ 	mcg = rxe_pool_get_key_locked(pool, mgid);
+ 	if (mcg)
+@@ -80,12 +79,12 @@ static int rxe_mcast_get_mcg(struct rxe_dev *rxe, union ib_gid *mgid,
+ 
+ 	err = __rxe_create_mcg(rxe, pool, mgid, &mcg);
+ 	if (err) {
+-		write_unlock_bh(&pool->pool_lock);
++		spin_unlock_bh(&rxe->mcg_lock);
+ 		return err;
+ 	}
+ 
+ done:
+-	write_unlock_bh(&pool->pool_lock);
++	spin_unlock_bh(&rxe->mcg_lock);
+ 	*mcg_p = mcg;
+ 	return 0;
  }
+@@ -97,21 +96,21 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 	struct rxe_mca *mca, *new_mca;
  
--static int hdr_check(struct rxe_pkt_info *pkt)
-+static int hdr_check(struct sk_buff *skb)
- {
-+	struct rxe_pkt_info *pkt = RXECB(skb);
- 	struct rxe_dev *rxe = pkt->rxe;
- 	struct rxe_port *port = &rxe->port;
- 	struct rxe_qp *qp = NULL;
-@@ -199,7 +198,7 @@ static int hdr_check(struct rxe_pkt_info *pkt)
- 		if (unlikely(err))
- 			goto err2;
- 
--		err = check_addr(rxe, pkt, qp);
-+		err = check_addr(rxe, skb, qp);
- 		if (unlikely(err))
- 			goto err2;
- 
-@@ -222,17 +221,19 @@ static int hdr_check(struct rxe_pkt_info *pkt)
- 	return -EINVAL;
- }
- 
--static inline void rxe_rcv_pkt(struct rxe_pkt_info *pkt, struct sk_buff *skb)
-+static inline void rxe_rcv_pkt(struct sk_buff *skb)
- {
--	if (pkt->mask & RXE_REQ_MASK)
--		rxe_resp_queue_pkt(pkt->qp, skb);
-+	if (RXECB(skb)->mask & RXE_REQ_MASK)
-+		rxe_resp_queue_pkt(RXECB(skb)->qp, skb);
- 	else
--		rxe_comp_queue_pkt(pkt->qp, skb);
-+		rxe_comp_queue_pkt(RXECB(skb)->qp, skb);
- }
- 
--static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
-+static void rxe_rcv_mcast_pkt(struct sk_buff *skb)
- {
--	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	struct sk_buff *s;
-+	struct rxe_pkt_info *pkt = RXECB(skb);
-+	struct rxe_dev *rxe = pkt->rxe;
- 	struct rxe_mcg *mcg;
- 	struct rxe_mca *mca;
- 	struct rxe_qp *qp;
-@@ -274,26 +275,22 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 		 * the last QP in the list.
- 		 */
- 		if (mca->qp_list.next != &mcg->qp_list) {
--			struct sk_buff *cskb;
--			struct rxe_pkt_info *cpkt;
--
--			cskb = skb_clone(skb, GFP_ATOMIC);
--			if (unlikely(!cskb))
-+			s = skb_clone(skb, GFP_ATOMIC);
-+			if (unlikely(!s))
- 				continue;
- 
- 			if (WARN_ON(!ib_device_try_get(&rxe->ib_dev))) {
--				kfree_skb(cskb);
-+				kfree_skb(s);
- 				break;
- 			}
- 
--			cpkt = SKB_TO_PKT(cskb);
--			cpkt->qp = qp;
-+			RXECB(s)->qp = qp;
- 			rxe_add_ref(qp);
--			rxe_rcv_pkt(cpkt, cskb);
-+			rxe_rcv_pkt(s);
- 		} else {
--			pkt->qp = qp;
-+			RXECB(skb)->qp = qp;
- 			rxe_add_ref(qp);
--			rxe_rcv_pkt(pkt, skb);
-+			rxe_rcv_pkt(skb);
- 			skb = NULL;	/* mark consumed */
+ 	/* check to see if the qp is already a member of the group */
+-	spin_lock_bh(&mcg->mcg_lock);
++	spin_lock_bh(&rxe->mcg_lock);
+ 	list_for_each_entry(mca, &mcg->qp_list, qp_list) {
+ 		if (mca->qp == qp) {
+-			spin_unlock_bh(&mcg->mcg_lock);
++			spin_unlock_bh(&rxe->mcg_lock);
+ 			return 0;
  		}
  	}
-@@ -326,7 +323,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
-  */
- static int rxe_chk_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
- {
--	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	struct rxe_pkt_info *pkt = RXECB(skb);
- 	const struct ib_gid_attr *gid_attr;
- 	union ib_gid dgid;
- 	union ib_gid *pdgid;
-@@ -359,7 +356,7 @@ static int rxe_chk_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
- void rxe_rcv(struct sk_buff *skb)
- {
- 	int err;
--	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	struct rxe_pkt_info *pkt = RXECB(skb);
- 	struct rxe_dev *rxe = pkt->rxe;
+-	spin_unlock_bh(&mcg->mcg_lock);
++	spin_unlock_bh(&rxe->mcg_lock);
  
- 	if (unlikely(skb->len < RXE_BTH_BYTES))
-@@ -378,7 +375,7 @@ void rxe_rcv(struct sk_buff *skb)
- 	if (unlikely(skb->len < header_size(pkt)))
- 		goto drop;
+ 	/* speculative alloc new mca without using GFP_ATOMIC */
+ 	new_mca = kzalloc(sizeof(*mca), GFP_KERNEL);
+ 	if (!new_mca)
+ 		return -ENOMEM;
  
--	err = hdr_check(pkt);
-+	err = hdr_check(skb);
- 	if (unlikely(err))
- 		goto drop;
+-	spin_lock_bh(&mcg->mcg_lock);
++	spin_lock_bh(&rxe->mcg_lock);
+ 	/* re-check to see if someone else just attached qp */
+ 	list_for_each_entry(mca, &mcg->qp_list, qp_list) {
+ 		if (mca->qp == qp) {
+@@ -135,7 +134,7 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
  
-@@ -389,9 +386,9 @@ void rxe_rcv(struct sk_buff *skb)
- 	rxe_counter_inc(rxe, RXE_CNT_RCVD_PKTS);
+ 	err = 0;
+ out:
+-	spin_unlock_bh(&mcg->mcg_lock);
++	spin_unlock_bh(&rxe->mcg_lock);
+ 	return err;
+ }
  
- 	if (unlikely(bth_qpn(pkt) == IB_MULTICAST_QPN))
--		rxe_rcv_mcast_pkt(rxe, skb);
-+		rxe_rcv_mcast_pkt(skb);
- 	else
--		rxe_rcv_pkt(pkt, skb);
-+		rxe_rcv_pkt(skb);
+@@ -149,7 +148,7 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 	if (!mcg)
+ 		goto err1;
  
- 	return;
+-	spin_lock_bh(&mcg->mcg_lock);
++	spin_lock_bh(&rxe->mcg_lock);
+ 
+ 	list_for_each_entry_safe(mca, tmp, &mcg->qp_list, qp_list) {
+ 		if (mca->qp == qp) {
+@@ -158,14 +157,14 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 				__rxe_destroy_mcg(mcg);
+ 			atomic_dec(&qp->mcg_num);
+ 
+-			spin_unlock_bh(&mcg->mcg_lock);
++			spin_unlock_bh(&rxe->mcg_lock);
+ 			rxe_drop_ref(mcg);
+ 			kfree(mca);
+ 			return 0;
+ 		}
+ 	}
+ 
+-	spin_unlock_bh(&mcg->mcg_lock);
++	spin_unlock_bh(&rxe->mcg_lock);
+ 	rxe_drop_ref(mcg);
+ err1:
+ 	return -EINVAL;
+diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+index ed80125f1dc5..9a45743c8eaa 100644
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -267,14 +267,14 @@ static void rxe_rcv_mcast_pkt(struct sk_buff *skb)
+ 	qp_array = kmalloc_array(nmax, sizeof(qp), GFP_KERNEL);
+ 
+ 	n = 0;
+-	spin_lock_bh(&mcg->mcg_lock);
++	spin_lock_bh(&rxe->mcg_lock);
+ 	list_for_each_entry(mca, &mcg->qp_list, qp_list) {
+ 		rxe_add_ref(mca->qp);
+ 		qp_array[n++] = mca->qp;
+ 		if (n == nmax)
+ 			break;
+ 	}
+-	spin_unlock_bh(&mcg->mcg_lock);
++	spin_unlock_bh(&rxe->mcg_lock);
+ 	nmax = n;
+ 
+ 	/* this is unreliable datagram service so we let
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index d65c358798c6..b72f8f09d984 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -353,7 +353,6 @@ struct rxe_mw {
+ 
+ struct rxe_mcg {
+ 	struct rxe_pool_elem	elem;
+-	spinlock_t		mcg_lock; /* guard group */
+ 	struct rxe_dev		*rxe;
+ 	struct list_head	qp_list;
+ 	atomic_t		qp_num;
+@@ -397,6 +396,8 @@ struct rxe_dev {
+ 	struct rxe_pool		mw_pool;
+ 	struct rxe_pool		mc_grp_pool;
+ 
++	spinlock_t		mcg_lock; /* guard multicast groups */
++
+ 	spinlock_t		pending_lock; /* guard pending_mmaps */
+ 	struct list_head	pending_mmaps;
  
 -- 
 2.32.0
