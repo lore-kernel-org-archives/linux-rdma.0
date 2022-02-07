@@ -2,90 +2,175 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02020C433F5
-	for <linux-rdma@archiver.kernel.org>; Sat,  5 Feb 2022 12:17:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7B37C433F5
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Feb 2022 06:53:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379847AbiBEMRe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 5 Feb 2022 07:17:34 -0500
-Received: from mga14.intel.com ([192.55.52.115]:1313 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243979AbiBEMRc (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
-        Sat, 5 Feb 2022 07:17:32 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1644063452; x=1675599452;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=dA7aLRkk8F+iqwY27GaGa0TrFVEJcF8V/aqgM1P7jJ0=;
-  b=mTHOkqj87gNJKmU419+XzvNArZrSYv6tzKKeA0B+S5s44blkFtl3Lc4W
-   /jMEKRbi3tKSk0mqF/Od+pztwwdAL2cHo2UOb7sPgF0OD/j7KzRwhwp7Y
-   J6IP33HqTiKYd06How7WePtAqiHyKOP9w5scKD2GrnVJyUiDLHEuhH5up
-   f36oLFNLgGfagyUKyoWy1Fws9sx962Bzjduc+4gf/oE62rCYe2dulb8wQ
-   aLxeJ1qyCs6M6iyvobxrPfnWvGMtd7QLQeliiHwB2EQBtdaLoHGx8RR8o
-   qRdTNCm6I2+i+V3u3ULO5bQEkWKXd2OJJ4vfQVefvD3+2PqQPY3ChQCPy
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10248"; a="248722190"
-X-IronPort-AV: E=Sophos;i="5.88,345,1635231600"; 
-   d="scan'208";a="248722190"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Feb 2022 04:17:32 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,345,1635231600"; 
-   d="scan'208";a="535775763"
-Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
-  by fmsmga007.fm.intel.com with ESMTP; 05 Feb 2022 04:17:30 -0800
-Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1nGK0P-000Z0x-MK; Sat, 05 Feb 2022 12:17:29 +0000
-Date:   Sat, 5 Feb 2022 20:16:29 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     "D. Wythe" <alibuda@linux.alibaba.com>, kgraul@linux.ibm.com
-Cc:     kbuild-all@lists.01.org, kuba@kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org, "D. Wythe" <alibuda@linux.alibaba.com>
-Subject: Re: [PATCH net-next v3 1/3] net/smc: Make smc_tcp_listen_work()
- independent
-Message-ID: <202202052019.I6XO0mge-lkp@intel.com>
-References: <1d7365b47719546fe1f145affb01398d8287b381.1644041638.git.alibuda@linux.alibaba.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1d7365b47719546fe1f145affb01398d8287b381.1644041638.git.alibuda@linux.alibaba.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+        id S229506AbiBGGxe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Feb 2022 01:53:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58684 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1344926AbiBGGY1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Feb 2022 01:24:27 -0500
+Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36723C043181;
+        Sun,  6 Feb 2022 22:24:26 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R651e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3l4iMd_1644215063;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3l4iMd_1644215063)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Mon, 07 Feb 2022 14:24:23 +0800
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+To:     kgraul@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        "D. Wythe" <alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v4 2/3] net/smc: Limits backlog connections
+Date:   Mon,  7 Feb 2022 14:24:14 +0800
+Message-Id: <a1e2529bbb823e153d8e2380c82b60ac03c3ecd5.1644214112.git.alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <cover.1644214112.git.alibuda@linux.alibaba.com>
+References: <cover.1644214112.git.alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Wythe",
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-Thank you for the patch! Perhaps something to improve:
+Current implementation does not handling backlog semantics, one
+potential risk is that server will be flooded by infinite amount
+connections, even if client was SMC-incapable.
 
-[auto build test WARNING on net-next/master]
+This patch works to put a limit on backlog connections, referring to the
+TCP implementation, we divides SMC connections into two categories:
 
-url:    https://github.com/0day-ci/linux/commits/D-Wythe/Optimizing-performance-in-short-lived-scenarios/20220205-143638
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git c78b8b20e34920231eda02fb40c7aca7d88be837
-config: x86_64-randconfig-s021 (https://download.01.org/0day-ci/archive/20220205/202202052019.I6XO0mge-lkp@intel.com/config)
-compiler: gcc-9 (Debian 9.3.0-22) 9.3.0
-reproduce:
-        # apt-get install sparse
-        # sparse version: v0.6.4-dirty
-        # https://github.com/0day-ci/linux/commit/c750e361a42f2d32b4e041edfd0b51d9020a936c
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review D-Wythe/Optimizing-performance-in-short-lived-scenarios/20220205-143638
-        git checkout c750e361a42f2d32b4e041edfd0b51d9020a936c
-        # save the config file to linux build tree
-        mkdir build_dir
-        make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=x86_64 SHELL=/bin/bash net/smc/
+1. Half SMC connection, which includes all TCP established while SMC not
+connections.
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
+2. Full SMC connection, which includes all SMC established connections.
 
+For half SMC connection, since all half SMC connections starts with TCP
+established, we can achieve our goal by put a limit before TCP
+established. Refer to the implementation of TCP, this limits will based
+on not only the half SMC connections but also the full connections,
+which is also a constraint on full SMC connections.
 
-sparse warnings: (new ones prefixed by >>)
->> net/smc/af_smc.c:62:25: sparse: sparse: symbol 'smc_tcp_ls_wq' was not declared. Should it be static?
+For full SMC connections, although we know exactly where it starts, it's
+quite hard to put a limit before it. The easiest way is to block wait
+before receive SMC confirm CLC message, while it's under protection by
+smc_server_lgr_pending, a global lock, which leads this limit to the
+entire host instead of a single listen socket. Another way is to drop
+the full connections, but considering the cast of SMC connections, we
+prefer to keep full SMC connections.
 
-Please review and possibly fold the followup patch.
+Even so, the limits of full SMC connections still exists, see commits
+about half SMC connection below.
 
+After this patch, the limits of backend connection shows like:
+
+For SMC:
+
+1. Client with SMC-capability can makes 2 * backlog full SMC connections
+   or 1 * backlog half SMC connections and 1 * backlog full SMC
+   connections at most.
+
+2. Client without SMC-capability can only makes 1 * backlog half TCP
+   connections and 1 * backlog full TCP connections.
+
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ net/smc/af_smc.c | 43 +++++++++++++++++++++++++++++++++++++++++++
+ net/smc/smc.h    |  4 ++++
+ 2 files changed, 47 insertions(+)
+
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 80bdd7b..697573f 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -73,6 +73,34 @@ static void smc_set_keepalive(struct sock *sk, int val)
+ 	smc->clcsock->sk->sk_prot->keepalive(smc->clcsock->sk, val);
+ }
+ 
++static struct sock *smc_tcp_syn_recv_sock(const struct sock *sk, struct sk_buff *skb,
++					  struct request_sock *req,
++					  struct dst_entry *dst,
++					  struct request_sock *req_unhash,
++					  bool *own_req)
++{
++	struct smc_sock *smc;
++
++	smc = (struct smc_sock *)((uintptr_t)sk->sk_user_data & ~SK_USER_DATA_NOCOPY);
++
++	if (READ_ONCE(sk->sk_ack_backlog) + atomic_read(&smc->smc_pendings) >
++				sk->sk_max_ack_backlog)
++		goto drop;
++
++	if (sk_acceptq_is_full(&smc->sk)) {
++		NET_INC_STATS(sock_net(sk), LINUX_MIB_LISTENOVERFLOWS);
++		goto drop;
++	}
++
++	/* passthrough to origin syn recv sock fct */
++	return smc->ori_af_ops->syn_recv_sock(sk, skb, req, dst, req_unhash, own_req);
++
++drop:
++	dst_release(dst);
++	tcp_listendrop(sk);
++	return NULL;
++}
++
+ static struct smc_hashinfo smc_v4_hashinfo = {
+ 	.lock = __RW_LOCK_UNLOCKED(smc_v4_hashinfo.lock),
+ };
+@@ -1491,6 +1519,9 @@ static void smc_listen_out(struct smc_sock *new_smc)
+ 	struct smc_sock *lsmc = new_smc->listen_smc;
+ 	struct sock *newsmcsk = &new_smc->sk;
+ 
++	if (tcp_sk(new_smc->clcsock->sk)->syn_smc)
++		atomic_dec(&lsmc->smc_pendings);
++
+ 	if (lsmc->sk.sk_state == SMC_LISTEN) {
+ 		lock_sock_nested(&lsmc->sk, SINGLE_DEPTH_NESTING);
+ 		smc_accept_enqueue(&lsmc->sk, newsmcsk);
+@@ -2096,6 +2127,9 @@ static void smc_tcp_listen_work(struct work_struct *work)
+ 		if (!new_smc)
+ 			continue;
+ 
++		if (tcp_sk(new_smc->clcsock->sk)->syn_smc)
++			atomic_inc(&lsmc->smc_pendings);
++
+ 		new_smc->listen_smc = lsmc;
+ 		new_smc->use_fallback = lsmc->use_fallback;
+ 		new_smc->fallback_rsn = lsmc->fallback_rsn;
+@@ -2163,6 +2197,15 @@ static int smc_listen(struct socket *sock, int backlog)
+ 	smc->clcsock->sk->sk_data_ready = smc_clcsock_data_ready;
+ 	smc->clcsock->sk->sk_user_data =
+ 		(void *)((uintptr_t)smc | SK_USER_DATA_NOCOPY);
++
++	/* save origin ops */
++	smc->ori_af_ops = inet_csk(smc->clcsock->sk)->icsk_af_ops;
++
++	smc->af_ops = *smc->ori_af_ops;
++	smc->af_ops.syn_recv_sock = smc_tcp_syn_recv_sock;
++
++	inet_csk(smc->clcsock->sk)->icsk_af_ops = &smc->af_ops;
++
+ 	rc = kernel_listen(smc->clcsock, backlog);
+ 	if (rc) {
+ 		smc->clcsock->sk->sk_data_ready = smc->clcsk_data_ready;
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index 3d0b8e3..2b9f443 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -240,6 +240,10 @@ struct smc_sock {				/* smc sock container */
+ 	bool			use_fallback;	/* fallback to tcp */
+ 	int			fallback_rsn;	/* reason for fallback */
+ 	u32			peer_diagnosis; /* decline reason from peer */
++	atomic_t                smc_pendings;   /* pending smc connections */
++	struct inet_connection_sock_af_ops		af_ops;
++	const struct inet_connection_sock_af_ops	*ori_af_ops;
++						/* origin af ops */
+ 	int			sockopt_defer_accept;
+ 						/* sockopt TCP_DEFER_ACCEPT
+ 						 * value
+-- 
+1.8.3.1
+
