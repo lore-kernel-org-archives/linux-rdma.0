@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80C8DC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 913CEC433F5
 	for <linux-rdma@archiver.kernel.org>; Mon,  7 Feb 2022 06:54:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230192AbiBGGx4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S231937AbiBGGx4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 7 Feb 2022 01:53:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58672 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244862AbiBGGY0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Feb 2022 01:24:26 -0500
-Received: from out30-44.freemail.mail.aliyun.com (out30-44.freemail.mail.aliyun.com [115.124.30.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC26BC043184;
-        Sun,  6 Feb 2022 22:24:24 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3le4pS_1644215061;
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3le4pS_1644215061)
+        with ESMTP id S1349381AbiBGGYa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Feb 2022 01:24:30 -0500
+Received: from out30-45.freemail.mail.aliyun.com (out30-45.freemail.mail.aliyun.com [115.124.30.45])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9279BC043184;
+        Sun,  6 Feb 2022 22:24:27 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R581e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3le4ps_1644215064;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3le4ps_1644215064)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 07 Feb 2022 14:24:22 +0800
+          Mon, 07 Feb 2022 14:24:25 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
         "D. Wythe" <alibuda@linux.alibaba.com>
-Subject: [PATCH net-next v4 1/3] net/smc: Make smc_tcp_listen_work() independent
-Date:   Mon,  7 Feb 2022 14:24:13 +0800
-Message-Id: <e4a1e64d69ffec7d851998abb73b9e8731f175a7.1644214112.git.alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v4 3/3] net/smc: Fallback when handshake workqueue congested
+Date:   Mon,  7 Feb 2022 14:24:15 +0800
+Message-Id: <6deeca64bfecbd01d724092a1a2c91ca8bce3ce0.1644214112.git.alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <cover.1644214112.git.alibuda@linux.alibaba.com>
 References: <cover.1644214112.git.alibuda@linux.alibaba.com>
@@ -35,85 +35,129 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-In multithread and 10K connections benchmark, the backend TCP connection
-established very slowly, and lots of TCP connections stay in SYN_SENT
-state.
+This patch intends to provide a mechanism to allow automatic fallback to
+TCP according to the pressure of SMC handshake process. At present,
+frequent visits will cause the incoming connections to be backlogged in
+SMC handshake queue, raise the connections established time. Which is
+quite unacceptable for those applications who base on short lived
+connections.
 
-Client: smc_run wrk -c 10000 -t 4 http://server
+It should be optional for applications that don't care about connection
+established time. For now, this patch only provides the switch at the
+compile time.
 
-the netstate of server host shows like:
-    145042 times the listen queue of a socket overflowed
-    145042 SYNs to LISTEN sockets dropped
+There are two ways to implement this mechanism:
 
-One reason of this issue is that, since the smc_tcp_listen_work() shared
-the same workqueue (smc_hs_wq) with smc_listen_work(), while the
-smc_listen_work() do blocking wait for smc connection established. Once
-the workqueue became congested, it's will block the accept() from TCP
-listen.
+1. Fallback when TCP established.
+2. Fallback before TCP established.
 
-This patch creates a independent workqueue(smc_tcp_ls_wq) for
-smc_tcp_listen_work(), separate it from smc_listen_work(), which is
-quite acceptable considering that smc_tcp_listen_work() runs very fast.
+In the first way, we need to wait and receive CLC messages that the
+client will potentially send, and then actively reply with a decline
+message, in a sense, which is also a sort of SMC handshake, affect the
+connections established time on its way.
 
+In the second way, the only problem is that we need to inject SMC logic
+into TCP when it is about to reply the incoming SYN, since we already do
+that, it's seems not a problem anymore. And advantage is obvious, few
+additional processes are required to complete the fallback.
+
+This patch use the second way.
+
+Link: https://lore.kernel.org/all/1641301961-59331-1-git-send-email-alibuda@linux.alibaba.com/
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- net/smc/af_smc.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ include/linux/tcp.h  |  1 +
+ net/ipv4/tcp_input.c |  3 ++-
+ net/smc/Kconfig      | 12 ++++++++++++
+ net/smc/af_smc.c     | 22 ++++++++++++++++++++++
+ 4 files changed, 37 insertions(+), 1 deletion(-)
 
+diff --git a/include/linux/tcp.h b/include/linux/tcp.h
+index 78b91bb..1c4ae5d 100644
+--- a/include/linux/tcp.h
++++ b/include/linux/tcp.h
+@@ -394,6 +394,7 @@ struct tcp_sock {
+ 	bool	is_mptcp;
+ #endif
+ #if IS_ENABLED(CONFIG_SMC)
++	bool	(*smc_in_limited)(const struct sock *sk);
+ 	bool	syn_smc;	/* SYN includes SMC */
+ #endif
+ 
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index dc49a3d..9890de9 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -6701,7 +6701,8 @@ static void tcp_openreq_init(struct request_sock *req,
+ 	ireq->ir_num = ntohs(tcp_hdr(skb)->dest);
+ 	ireq->ir_mark = inet_request_mark(sk, skb);
+ #if IS_ENABLED(CONFIG_SMC)
+-	ireq->smc_ok = rx_opt->smc_ok;
++	ireq->smc_ok = rx_opt->smc_ok && !(tcp_sk(sk)->smc_in_limited &&
++			tcp_sk(sk)->smc_in_limited(sk));
+ #endif
+ }
+ 
+diff --git a/net/smc/Kconfig b/net/smc/Kconfig
+index 1ab3c5a..a4e1713 100644
+--- a/net/smc/Kconfig
++++ b/net/smc/Kconfig
+@@ -19,3 +19,15 @@ config SMC_DIAG
+ 	  smcss.
+ 
+ 	  if unsure, say Y.
++
++if SMC
++
++config SMC_AUTO_FALLBACK
++	bool "SMC: automatic fallback to TCP"
++	default y
++	help
++	  Allow automatic fallback to TCP accroding to the pressure of SMC-R
++	  handshake process.
++
++	  If that's not what you except or unsure, say N.
++endif
 diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index d5ea62b..80bdd7b 100644
+index 697573f..46f86a2 100644
 --- a/net/smc/af_smc.c
 +++ b/net/smc/af_smc.c
-@@ -59,6 +59,7 @@
- 						 * creation on client
- 						 */
- 
-+static struct workqueue_struct	*smc_tcp_ls_wq;	/* wq for tcp listen work */
- struct workqueue_struct	*smc_hs_wq;	/* wq for handshake work */
- struct workqueue_struct	*smc_close_wq;	/* wq for close work */
- 
-@@ -2124,7 +2125,7 @@ static void smc_clcsock_data_ready(struct sock *listen_clcsock)
- 	lsmc->clcsk_data_ready(listen_clcsock);
- 	if (lsmc->sk.sk_state == SMC_LISTEN) {
- 		sock_hold(&lsmc->sk); /* sock_put in smc_tcp_listen_work() */
--		if (!queue_work(smc_hs_wq, &lsmc->tcp_listen_work))
-+		if (!queue_work(smc_tcp_ls_wq, &lsmc->tcp_listen_work))
- 			sock_put(&lsmc->sk);
- 	}
+@@ -101,6 +101,24 @@ static struct sock *smc_tcp_syn_recv_sock(const struct sock *sk, struct sk_buff
+ 	return NULL;
  }
-@@ -2919,9 +2920,14 @@ static int __init smc_init(void)
- 		goto out_nl;
  
- 	rc = -ENOMEM;
++#if IS_ENABLED(CONFIG_SMC_AUTO_FALLBACK)
++static bool smc_is_in_limited(const struct sock *sk)
++{
++	const struct smc_sock *smc;
 +
-+	smc_tcp_ls_wq = alloc_workqueue("smc_tcp_ls_wq", 0, 0);
-+	if (!smc_tcp_ls_wq)
-+		goto out_pnet;
++	smc = (const struct smc_sock *)
++		((uintptr_t)sk->sk_user_data & ~SK_USER_DATA_NOCOPY);
 +
- 	smc_hs_wq = alloc_workqueue("smc_hs_wq", 0, 0);
- 	if (!smc_hs_wq)
--		goto out_pnet;
-+		goto out_alloc_tcp_ls_wq;
++	if (!smc)
++		return true;
++
++	if (workqueue_congested(WORK_CPU_UNBOUND, smc_hs_wq))
++		return true;
++
++	return false;
++}
++#endif
++
+ static struct smc_hashinfo smc_v4_hashinfo = {
+ 	.lock = __RW_LOCK_UNLOCKED(smc_v4_hashinfo.lock),
+ };
+@@ -2206,6 +2224,10 @@ static int smc_listen(struct socket *sock, int backlog)
  
- 	smc_close_wq = alloc_workqueue("smc_close_wq", 0, 0);
- 	if (!smc_close_wq)
-@@ -2992,6 +2998,8 @@ static int __init smc_init(void)
- 	destroy_workqueue(smc_close_wq);
- out_alloc_hs_wq:
- 	destroy_workqueue(smc_hs_wq);
-+out_alloc_tcp_ls_wq:
-+	destroy_workqueue(smc_tcp_ls_wq);
- out_pnet:
- 	smc_pnet_exit();
- out_nl:
-@@ -3010,6 +3018,7 @@ static void __exit smc_exit(void)
- 	smc_core_exit();
- 	smc_ib_unregister_client();
- 	destroy_workqueue(smc_close_wq);
-+	destroy_workqueue(smc_tcp_ls_wq);
- 	destroy_workqueue(smc_hs_wq);
- 	proto_unregister(&smc_proto6);
- 	proto_unregister(&smc_proto);
+ 	inet_csk(smc->clcsock->sk)->icsk_af_ops = &smc->af_ops;
+ 
++#if IS_ENABLED(CONFIG_SMC_AUTO_FALLBACK)
++	tcp_sk(smc->clcsock->sk)->smc_in_limited = smc_is_in_limited;
++#endif
++
+ 	rc = kernel_listen(smc->clcsock, backlog);
+ 	if (rc) {
+ 		smc->clcsock->sk->sk_data_ready = smc->clcsk_data_ready;
 -- 
 1.8.3.1
 
