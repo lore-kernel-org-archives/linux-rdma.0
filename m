@@ -2,64 +2,52 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA733C433F5
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Feb 2022 09:52:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A7FCC4167E
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Feb 2022 09:54:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238012AbiBGJvF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Feb 2022 04:51:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38408 "EHLO
+        id S237352AbiBGJwv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Feb 2022 04:52:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349688AbiBGJut (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Feb 2022 04:50:49 -0500
-Received: from out30-44.freemail.mail.aliyun.com (out30-44.freemail.mail.aliyun.com [115.124.30.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9D97C043181;
-        Mon,  7 Feb 2022 01:50:47 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R431e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3p8NYi_1644227444;
-Received: from 30.225.28.47(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3p8NYi_1644227444)
+        with ESMTP id S1351929AbiBGJhK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Feb 2022 04:37:10 -0500
+Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 532D1C043181;
+        Mon,  7 Feb 2022 01:37:08 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R671e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V3q7Wgi_1644226624;
+Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0V3q7Wgi_1644226624)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 07 Feb 2022 17:50:45 +0800
-Message-ID: <f1ed4d54-d658-c668-99af-9994a634baf3@linux.alibaba.com>
-Date:   Mon, 7 Feb 2022 17:50:44 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.5.0
-From:   "D. Wythe" <alibuda@linux.alibaba.com>
-Subject: Re: [PATCH net-next v4 3/3] net/smc: Fallback when handshake
+          Mon, 07 Feb 2022 17:37:04 +0800
+Date:   Mon, 7 Feb 2022 17:37:03 +0800
+From:   Tony Lu <tonylu@linux.alibaba.com>
+To:     "D. Wythe" <alibuda@linux.alibaba.com>
+Cc:     kgraul@linux.ibm.com, kuba@kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org, matthieu.baerts@tessares.net
+Subject: Re: [PATCH v2 net-next 3/3] net/smc: Fallback when handshake
  workqueue congested
-To:     Karsten Graul <kgraul@linux.ibm.com>
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Tony Lu <tonylu@linux.alibaba.com>
-References: <cover.1644214112.git.alibuda@linux.alibaba.com>
- <6deeca64bfecbd01d724092a1a2c91ca8bce3ce0.1644214112.git.alibuda@linux.alibaba.com>
- <bab2d7f1-c57a-cab4-3963-23721292eece@linux.ibm.com>
-In-Reply-To: <bab2d7f1-c57a-cab4-3963-23721292eece@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Message-ID: <YgDoPwMk4o56bHaw@TonyMac-Alibaba>
+Reply-To: Tony Lu <tonylu@linux.alibaba.com>
+References: <cover.1643380219.git.alibuda@linux.alibaba.com>
+ <2d3f81193fc7a245c50b30329d0e84ae98427a33.1643380219.git.alibuda@linux.alibaba.com>
+ <YfTDjXh8zP3WBAtg@TonyMac-Alibaba>
+ <0c4902f4-e744-fe95-1a05-51ae936c4516@linux.alibaba.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0c4902f4-e744-fe95-1a05-51ae936c4516@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-The main communication in v2 series is about adding a dynamic control 
-for auto fallback to TCP. I will soon add a new patch to implements this 
-in v5 series, or modify it in curret patch. Which one do you recommend?
-
-Look forward to your suggestions.
-
-Thanks.
-
-
-在 2022/2/7 下午3:56, Karsten Graul 写道:
-> On 07/02/2022 07:24, D. Wythe wrote:
->> From: "D. Wythe" <alibuda@linux.alibaba.com>
->>
->> This patch intends to provide a mechanism to allow automatic fallback to
->> TCP according to the pressure of SMC handshake process. At present,
->> frequent visits will cause the incoming connections to be backlogged in
->> SMC handshake queue, raise the connections established time. Which is
->> quite unacceptable for those applications who base on short lived
->> connections.
+On Mon, Feb 07, 2022 at 03:13:22PM +0800, D. Wythe wrote:
 > 
-> I hope I didn't miss any news, but with your latest reply to the v2 series you
-> questioned the config option in this v4 patch, so this is still work in progress, right?
+> After some trial and thought, I found that the scope of netlink control is
+> too large, we should limit the scope to socket. Adding a socket option may
+> be a better choice, what do you think?
+> 
+It is a good idea to be a socket-level config. Maybe we could consider
+netlink as default global behaviour.
+
+Thanks,
+Tony Lu
