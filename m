@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B298C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 13:16:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16700C4332F
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 13:16:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245598AbiBHNQa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Feb 2022 08:16:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33914 "EHLO
+        id S1343863AbiBHNQc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Feb 2022 08:16:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359750AbiBHMx0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 07:53:26 -0500
-Received: from out30-42.freemail.mail.aliyun.com (out30-42.freemail.mail.aliyun.com [115.124.30.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47BBEC03FEC0;
-        Tue,  8 Feb 2022 04:53:25 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R211e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3wMPhs_1644324801;
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3wMPhs_1644324801)
+        with ESMTP id S1359726AbiBHMxZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 07:53:25 -0500
+Received: from out30-56.freemail.mail.aliyun.com (out30-56.freemail.mail.aliyun.com [115.124.30.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5356C03FECA;
+        Tue,  8 Feb 2022 04:53:22 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3wWcNp_1644324797;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3wWcNp_1644324797)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 08 Feb 2022 20:53:22 +0800
+          Tue, 08 Feb 2022 20:53:18 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
         "D. Wythe" <alibuda@linux.alibaba.com>
-Subject: [PATCH net-next v5 4/5] net/smc: Dynamic control auto fallback by socket options
-Date:   Tue,  8 Feb 2022 20:53:12 +0800
-Message-Id: <20f504f961e1a803f85d64229ad84260434203bd.1644323503.git.alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v5 1/5] net/smc: Make smc_tcp_listen_work() independent
+Date:   Tue,  8 Feb 2022 20:53:09 +0800
+Message-Id: <58c544cb206d94b759ff0546bcffe693c3cbfb98.1644323503.git.alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <cover.1644323503.git.alibuda@linux.alibaba.com>
 References: <cover.1644323503.git.alibuda@linux.alibaba.com>
@@ -35,162 +35,85 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-This patch aims to add dynamic control for SMC auto fallback, since we
-don't have socket option level for SMC yet, which requires we need to
-implement it at the same time.
+In multithread and 10K connections benchmark, the backend TCP connection
+established very slowly, and lots of TCP connections stay in SYN_SENT
+state.
 
-This patch does the following:
+Client: smc_run wrk -c 10000 -t 4 http://server
 
-- add new socket option level: SOL_SMC.
-- add new SMC socket option: SMC_AUTO_FALLBACK.
-- provide getter/setter for SMC socket options.
+the netstate of server host shows like:
+    145042 times the listen queue of a socket overflowed
+    145042 SYNs to LISTEN sockets dropped
+
+One reason of this issue is that, since the smc_tcp_listen_work() shared
+the same workqueue (smc_hs_wq) with smc_listen_work(), while the
+smc_listen_work() do blocking wait for smc connection established. Once
+the workqueue became congested, it's will block the accept() from TCP
+listen.
+
+This patch creates a independent workqueue(smc_tcp_ls_wq) for
+smc_tcp_listen_work(), separate it from smc_listen_work(), which is
+quite acceptable considering that smc_tcp_listen_work() runs very fast.
 
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- include/linux/socket.h   |  1 +
- include/uapi/linux/smc.h |  4 +++
- net/smc/af_smc.c         | 69 +++++++++++++++++++++++++++++++++++++++++++++++-
- net/smc/smc.h            |  1 +
- 4 files changed, 74 insertions(+), 1 deletion(-)
+ net/smc/af_smc.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/socket.h b/include/linux/socket.h
-index 8ef26d8..6f85f5d 100644
---- a/include/linux/socket.h
-+++ b/include/linux/socket.h
-@@ -366,6 +366,7 @@ struct ucred {
- #define SOL_XDP		283
- #define SOL_MPTCP	284
- #define SOL_MCTP	285
-+#define SOL_SMC		286
- 
- /* IPX options */
- #define IPX_TYPE	1
-diff --git a/include/uapi/linux/smc.h b/include/uapi/linux/smc.h
-index 6c2874f..9f2cbf8 100644
---- a/include/uapi/linux/smc.h
-+++ b/include/uapi/linux/smc.h
-@@ -284,4 +284,8 @@ enum {
- 	__SMC_NLA_SEID_TABLE_MAX,
- 	SMC_NLA_SEID_TABLE_MAX = __SMC_NLA_SEID_TABLE_MAX - 1
- };
-+
-+/* SMC socket options */
-+#define SMC_AUTO_FALLBACK 1	/* allow auto fallback to TCP */
-+
- #endif /* _UAPI_LINUX_SMC_H */
 diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 8175f60..c313561 100644
+index 00b2e9d..4969ac8 100644
 --- a/net/smc/af_smc.c
 +++ b/net/smc/af_smc.c
-@@ -2325,7 +2325,8 @@ static int smc_listen(struct socket *sock, int backlog)
+@@ -59,6 +59,7 @@
+ 						 * creation on client
+ 						 */
  
- 	inet_csk(smc->clcsock->sk)->icsk_af_ops = &smc->af_ops;
++static struct workqueue_struct	*smc_tcp_ls_wq;	/* wq for tcp listen work */
+ struct workqueue_struct	*smc_hs_wq;	/* wq for handshake work */
+ struct workqueue_struct	*smc_close_wq;	/* wq for close work */
  
--	tcp_sk(smc->clcsock->sk)->smc_in_limited = smc_is_in_limited;
-+	if (smc->auto_fallback)
-+		tcp_sk(smc->clcsock->sk)->smc_in_limited = smc_is_in_limited;
- 
- 	rc = kernel_listen(smc->clcsock, backlog);
- 	if (rc) {
-@@ -2620,6 +2621,67 @@ static int smc_shutdown(struct socket *sock, int how)
- 	return rc ? rc : rc1;
+@@ -2227,7 +2228,7 @@ static void smc_clcsock_data_ready(struct sock *listen_clcsock)
+ 	lsmc->clcsk_data_ready(listen_clcsock);
+ 	if (lsmc->sk.sk_state == SMC_LISTEN) {
+ 		sock_hold(&lsmc->sk); /* sock_put in smc_tcp_listen_work() */
+-		if (!queue_work(smc_hs_wq, &lsmc->tcp_listen_work))
++		if (!queue_work(smc_tcp_ls_wq, &lsmc->tcp_listen_work))
+ 			sock_put(&lsmc->sk);
+ 	}
  }
+@@ -3024,9 +3025,14 @@ static int __init smc_init(void)
+ 		goto out_nl;
  
-+static int __smc_getsockopt(struct socket *sock, int level, int optname,
-+			    char __user *optval, int __user *optlen)
-+{
-+	struct smc_sock *smc;
-+	int val, len;
+ 	rc = -ENOMEM;
 +
-+	smc = smc_sk(sock->sk);
++	smc_tcp_ls_wq = alloc_workqueue("smc_tcp_ls_wq", 0, 0);
++	if (!smc_tcp_ls_wq)
++		goto out_pnet;
 +
-+	if (get_user(len, optlen))
-+		return -EFAULT;
-+
-+	len = min_t(int, len, sizeof(int));
-+
-+	if (len < 0)
-+		return -EINVAL;
-+
-+	switch (optname) {
-+	case SMC_AUTO_FALLBACK:
-+		val = smc->auto_fallback;
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (put_user(len, optlen))
-+		return -EFAULT;
-+	if (copy_to_user(optval, &val, len))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+static int __smc_setsockopt(struct socket *sock, int level, int optname,
-+			    sockptr_t optval, unsigned int optlen)
-+{
-+	struct sock *sk = sock->sk;
-+	struct smc_sock *smc;
-+	int val, rc;
-+
-+	smc = smc_sk(sk);
-+
-+	lock_sock(sk);
-+	switch (optname) {
-+	case SMC_AUTO_FALLBACK:
-+		if (optlen < sizeof(int))
-+			return -EINVAL;
-+		if (copy_from_sockptr(&val, optval, sizeof(int)))
-+			return -EFAULT;
-+
-+		smc->auto_fallback = !!val;
-+		rc = 0;
-+		break;
-+	default:
-+		rc = -EOPNOTSUPP;
-+		break;
-+	}
-+	release_sock(sk);
-+
-+	return rc;
-+}
-+
- static int smc_setsockopt(struct socket *sock, int level, int optname,
- 			  sockptr_t optval, unsigned int optlen)
- {
-@@ -2629,6 +2691,8 @@ static int smc_setsockopt(struct socket *sock, int level, int optname,
+ 	smc_hs_wq = alloc_workqueue("smc_hs_wq", 0, 0);
+ 	if (!smc_hs_wq)
+-		goto out_pnet;
++		goto out_alloc_tcp_ls_wq;
  
- 	if (level == SOL_TCP && optname == TCP_ULP)
- 		return -EOPNOTSUPP;
-+	else if (level == SOL_SMC)
-+		return __smc_setsockopt(sock, level, optname, optval, optlen);
- 
- 	smc = smc_sk(sk);
- 
-@@ -2711,6 +2775,9 @@ static int smc_getsockopt(struct socket *sock, int level, int optname,
- 	struct smc_sock *smc;
- 	int rc;
- 
-+	if (level == SOL_SMC)
-+		return __smc_getsockopt(sock, level, optname, optval, optlen);
-+
- 	smc = smc_sk(sock->sk);
- 	mutex_lock(&smc->clcsock_release_lock);
- 	if (!smc->clcsock) {
-diff --git a/net/smc/smc.h b/net/smc/smc.h
-index 5e5e38d..a0bdf75 100644
---- a/net/smc/smc.h
-+++ b/net/smc/smc.h
-@@ -249,6 +249,7 @@ struct smc_sock {				/* smc sock container */
- 	struct work_struct	smc_listen_work;/* prepare new accept socket */
- 	struct list_head	accept_q;	/* sockets to be accepted */
- 	spinlock_t		accept_q_lock;	/* protects accept_q */
-+	bool			auto_fallback;	/* auto fallabck to tcp */
- 	bool			use_fallback;	/* fallback to tcp */
- 	int			fallback_rsn;	/* reason for fallback */
- 	u32			peer_diagnosis; /* decline reason from peer */
+ 	smc_close_wq = alloc_workqueue("smc_close_wq", 0, 0);
+ 	if (!smc_close_wq)
+@@ -3097,6 +3103,8 @@ static int __init smc_init(void)
+ 	destroy_workqueue(smc_close_wq);
+ out_alloc_hs_wq:
+ 	destroy_workqueue(smc_hs_wq);
++out_alloc_tcp_ls_wq:
++	destroy_workqueue(smc_tcp_ls_wq);
+ out_pnet:
+ 	smc_pnet_exit();
+ out_nl:
+@@ -3115,6 +3123,7 @@ static void __exit smc_exit(void)
+ 	smc_core_exit();
+ 	smc_ib_unregister_client();
+ 	destroy_workqueue(smc_close_wq);
++	destroy_workqueue(smc_tcp_ls_wq);
+ 	destroy_workqueue(smc_hs_wq);
+ 	proto_unregister(&smc_proto6);
+ 	proto_unregister(&smc_proto);
 -- 
 1.8.3.1
 
