@@ -2,175 +2,132 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BD52C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 13:16:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9263C4332F
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 13:16:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350363AbiBHNQW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Feb 2022 08:16:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33928 "EHLO
+        id S1350642AbiBHNQZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Feb 2022 08:16:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359762AbiBHMx1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 07:53:27 -0500
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48F3BC03FECA;
-        Tue,  8 Feb 2022 04:53:26 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3wCD9C_1644324803;
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3wCD9C_1644324803)
+        with ESMTP id S232537AbiBHMxX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 07:53:23 -0500
+Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFA70C03FEC0;
+        Tue,  8 Feb 2022 04:53:20 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3we9Sx_1644324796;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3we9Sx_1644324796)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 08 Feb 2022 20:53:23 +0800
+          Tue, 08 Feb 2022 20:53:16 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
         "D. Wythe" <alibuda@linux.alibaba.com>
-Subject: [PATCH net-next v5 5/5] net/smc: Add global configure for auto fallback by netlink
-Date:   Tue,  8 Feb 2022 20:53:13 +0800
-Message-Id: <f54ee9f30898b998edf8f07dabccc84efaa2ab8b.1644323503.git.alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v5 0/5] net/smc: Optimizing performance in short-lived scenarios 
+Date:   Tue,  8 Feb 2022 20:53:08 +0800
+Message-Id: <cover.1644323503.git.alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <cover.1644323503.git.alibuda@linux.alibaba.com>
-References: <cover.1644323503.git.alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-Although we can control SMC auto fallback through socket options, which
-means that applications who need it must modify their code. It's quite
-troublesome for many existing applications. This patch modifies the
-global default value of auto fallback through netlink, providing a way
-to auto fallback without modifying any code for applications.
+This patch set aims to optimizing performance of SMC in short-lived
+links scenarios, which is quite unsatisfactory right now.
 
-Suggested-by: Tony Lu <tonylu@linux.alibaba.com>
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+In our benchmark, we test it with follow scripts:
+
+./wrk -c 10000 -t 4 -H 'Connection: Close' -d 20 http://smc-server
+
+Current performance figures like that:
+
+Running 20s test @ http://11.213.45.6
+  4 threads and 10000 connections
+  4956 requests in 20.06s, 3.24MB read
+  Socket errors: connect 0, read 0, write 672, timeout 0
+Requests/sec:    247.07
+Transfer/sec:    165.28KB
+
+There are many reasons for this phenomenon, this patch set doesn't
+solve it all though, but it can be well alleviated with it in.
+
+Patch 1/5  (Make smc_tcp_listen_work() independent) :
+
+Separate smc_tcp_listen_work() from smc_listen_work(), make them
+independent of each other, the busy SMC handshake can not affect new TCP
+connections visit any more. Avoid discarding a large number of TCP
+connections after being overstock, which is undoubtedly raise the
+connection establishment time.
+
+Patch 2/5 (Limits SMC backlog connections):
+
+Since patch 1 has separated smc_tcp_listen_work() from
+smc_listen_work(), an unrestricted TCP accept have come into being. This
+patch try to put a limit on SMC backlog connections refers to
+implementation of TCP.
+
+Patch 3/5 (Fallback when SMC handshake workqueue congested):
+
+Considering the complexity of SMC handshake right now, in short-lived
+links scenarios, this may not be the main scenario of SMC though, it's
+performance is still quite poor. This Patch try to provide auto fallback
+case when SMC handshake workqueue congested, which is the sign of SMC
+handshake stacking in our opinion.
+
+Patch 4/5 (Dynamic control SMC auto fallback by socket options)
+
+This patch allow applications dynamically control the ability of SMC
+auto fallback. Since SMC don't support set SMC socket option before,
+this patch also have to support SMC's owns socket options.
+
+Patch 5/5 (Add global configure for auto fallback by netlink)
+
+This patch provides a way to get benefit of auto fallback without
+modifying any code for applications, which is quite useful for most
+existing applications.
+
+After this patch set, performance figures like that:
+
+Running 20s test @ http://11.213.45.6
+  4 threads and 10000 connections
+  693253 requests in 20.10s, 452.88MB read
+Requests/sec:  34488.13
+Transfer/sec:     22.53MB
+
+That's a quite well performance improvement, about to 6 to 7 times in my
+environment.
 ---
- include/uapi/linux/smc.h |  3 +++
- net/smc/af_smc.c         | 17 +++++++++++++++++
- net/smc/smc.h            |  7 +++++++
- net/smc/smc_core.c       |  2 ++
- net/smc/smc_netlink.c    | 10 ++++++++++
- 5 files changed, 39 insertions(+)
+changelog:
+v2 -> v1:
+- fix compile warning
+- fix invalid dependencies in kconfig
+v3 -> v2:
+- correct spelling mistakes
+- fix useless variable declare
+v4 -> v3
+- make smc_tcp_ls_wq be static
+v5 -> v4
+- add dynamic control for SMC auto fallback by socket options
+- add global configure for SMC auto fallback through netlink
+---
+D. Wythe (5):
+  net/smc: Make smc_tcp_listen_work() independent
+  net/smc: Limits backlog connections
+  net/smc: Fallback when handshake workqueue congested
+  net/smc: Dynamic control auto fallback by socket options
+  net/smc: Add global configure for auto fallback by netlink
 
-diff --git a/include/uapi/linux/smc.h b/include/uapi/linux/smc.h
-index 9f2cbf8..33f7fb8 100644
---- a/include/uapi/linux/smc.h
-+++ b/include/uapi/linux/smc.h
-@@ -59,6 +59,8 @@ enum {
- 	SMC_NETLINK_DUMP_SEID,
- 	SMC_NETLINK_ENABLE_SEID,
- 	SMC_NETLINK_DISABLE_SEID,
-+	SMC_NETLINK_ENABLE_AUTO_FALLBACK,
-+	SMC_NETLINK_DISABLE_AUTO_FALLBACK,
- };
- 
- /* SMC_GENL_FAMILY top level attributes */
-@@ -85,6 +87,7 @@ enum {
- 	SMC_NLA_SYS_LOCAL_HOST,		/* string */
- 	SMC_NLA_SYS_SEID,		/* string */
- 	SMC_NLA_SYS_IS_SMCR_V2,		/* u8 */
-+	SMC_NLA_SYS_AUTO_FALLBACK,	/* u8 */
- 	__SMC_NLA_SYS_MAX,
- 	SMC_NLA_SYS_MAX = __SMC_NLA_SYS_MAX - 1
- };
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index c313561..4a25ce7 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -59,6 +59,8 @@
- 						 * creation on client
- 						 */
- 
-+bool smc_auto_fallback;	/* default behavior for auto fallback, disable by default */
-+
- static struct workqueue_struct	*smc_tcp_ls_wq;	/* wq for tcp listen work */
- struct workqueue_struct	*smc_hs_wq;	/* wq for handshake work */
- struct workqueue_struct	*smc_close_wq;	/* wq for close work */
-@@ -66,6 +68,18 @@
- static void smc_tcp_listen_work(struct work_struct *);
- static void smc_connect_work(struct work_struct *);
- 
-+int smc_enable_auto_fallback(struct sk_buff *skb, struct genl_info *info)
-+{
-+	WRITE_ONCE(smc_auto_fallback, true);
-+	return 0;
-+}
-+
-+int smc_disable_auto_fallback(struct sk_buff *skb, struct genl_info *info)
-+{
-+	WRITE_ONCE(smc_auto_fallback, false);
-+	return 0;
-+}
-+
- static void smc_set_keepalive(struct sock *sk, int val)
- {
- 	struct smc_sock *smc = smc_sk(sk);
-@@ -3006,6 +3020,9 @@ static int __smc_create(struct net *net, struct socket *sock, int protocol,
- 	smc->use_fallback = false; /* assume rdma capability first */
- 	smc->fallback_rsn = 0;
- 
-+	/* default behavior from smc_auto_fallback */
-+	smc->auto_fallback = READ_ONCE(smc_auto_fallback);
-+
- 	rc = 0;
- 	if (!clcsock) {
- 		rc = sock_create_kern(net, family, SOCK_STREAM, IPPROTO_TCP,
-diff --git a/net/smc/smc.h b/net/smc/smc.h
-index a0bdf75..ac75fe8 100644
---- a/net/smc/smc.h
-+++ b/net/smc/smc.h
-@@ -14,6 +14,7 @@
- #include <linux/socket.h>
- #include <linux/types.h>
- #include <linux/compiler.h> /* __aligned */
-+#include <net/genetlink.h>
- #include <net/sock.h>
- 
- #include "smc_ib.h"
-@@ -336,4 +337,10 @@ void smc_fill_gid_list(struct smc_link_group *lgr,
- 		       struct smc_gidlist *gidlist,
- 		       struct smc_ib_device *known_dev, u8 *known_gid);
- 
-+extern bool smc_auto_fallback; /* default behavior for auto fallback */
-+
-+/* smc_auto_fallback setter for netlink */
-+int smc_enable_auto_fallback(struct sk_buff *skb, struct genl_info *info);
-+int smc_disable_auto_fallback(struct sk_buff *skb, struct genl_info *info);
-+
- #endif	/* __SMC_H */
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 29525d0..cc9a398 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -248,6 +248,8 @@ int smc_nl_get_sys_info(struct sk_buff *skb, struct netlink_callback *cb)
- 		goto errattr;
- 	if (nla_put_u8(skb, SMC_NLA_SYS_IS_SMCR_V2, true))
- 		goto errattr;
-+	if (nla_put_u8(skb, SMC_NLA_SYS_AUTO_FALLBACK, smc_auto_fallback))
-+		goto errattr;
- 	smc_clc_get_hostname(&host);
- 	if (host) {
- 		memcpy(hostname, host, SMC_MAX_HOSTNAME_LEN);
-diff --git a/net/smc/smc_netlink.c b/net/smc/smc_netlink.c
-index f13ab06..a7de517 100644
---- a/net/smc/smc_netlink.c
-+++ b/net/smc/smc_netlink.c
-@@ -111,6 +111,16 @@
- 		.flags = GENL_ADMIN_PERM,
- 		.doit = smc_nl_disable_seid,
- 	},
-+	{
-+		.cmd = SMC_NETLINK_ENABLE_AUTO_FALLBACK,
-+		.flags = GENL_ADMIN_PERM,
-+		.doit = smc_enable_auto_fallback,
-+	},
-+	{
-+		.cmd = SMC_NETLINK_DISABLE_AUTO_FALLBACK,
-+		.flags = GENL_ADMIN_PERM,
-+		.doit = smc_disable_auto_fallback,
-+	},
- };
- 
- static const struct nla_policy smc_gen_nl_policy[2] = {
+ include/linux/socket.h   |   1 +
+ include/linux/tcp.h      |   1 +
+ include/uapi/linux/smc.h |   7 +++
+ net/ipv4/tcp_input.c     |   3 +-
+ net/smc/af_smc.c         | 158 ++++++++++++++++++++++++++++++++++++++++++++++-
+ net/smc/smc.h            |  12 ++++
+ net/smc/smc_core.c       |   2 +
+ net/smc/smc_netlink.c    |  10 +++
+ 8 files changed, 191 insertions(+), 3 deletions(-)
+
 -- 
 1.8.3.1
 
