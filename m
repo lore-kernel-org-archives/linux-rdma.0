@@ -2,108 +2,175 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2080EC433EF
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 12:07:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BD52C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 13:16:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348548AbiBHMHU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Feb 2022 07:07:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50046 "EHLO
+        id S1350363AbiBHNQW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Feb 2022 08:16:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235596AbiBHMHS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 07:07:18 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD49FC03FECE
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Feb 2022 04:07:17 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 45489B81AA0
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Feb 2022 12:07:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6A4BC004E1;
-        Tue,  8 Feb 2022 12:07:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1644322035;
-        bh=qmJz+Q8Bq6ckiNElce0iYeeczOdkQCDyzdjp57JRs3g=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=XIJe2d8Bm1cGCMrS3m13UrU/3qe7HlBMyjH8BzEedPrq6S3v3OHd8tOTENWPNpRRr
-         g1E3fwPtdQ9yblbvgFaXoxDAHy0uO2rUp7LWhUE7Qy+uWxw1jZsjJf2LSvh0HkNmud
-         +B7ZWl56CzDq0SVTJ8306uINnK2pVFRL7zKyHl7Q5UPiip8cc3o3OWzTETXI4iQiQQ
-         HTUTWle8fG/hLXSghBjfm6Oz7s0GA1sbQCAodP9utMuwC7E8it+0VdUfAwCAblxGpK
-         szJkhOQ2tH9lO1Ewn29JBv5XSvlZNGy1p1uI20WSP4FxZ9rny00Qgw1H3089A6ItXa
-         z1aICtJhkWdxQ==
-Date:   Tue, 8 Feb 2022 14:07:08 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Haakon Bugge <haakon.bugge@oracle.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
-        OFED mailing list <linux-rdma@vger.kernel.org>
-Subject: Re: Seeking clarification on the XRC Annex wrt. a TGT QP having a SQ
-Message-ID: <YgJc7DQ8T14do6WK@unreal>
-References: <6FD25F7D-6F5A-4990-A179-5ED213001BB7@oracle.com>
- <YgFsDXH5XdEBOT/O@unreal>
- <099658DB-B526-481A-B3BA-6F95BA74350C@oracle.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <099658DB-B526-481A-B3BA-6F95BA74350C@oracle.com>
+        with ESMTP id S1359762AbiBHMx1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 07:53:27 -0500
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48F3BC03FECA;
+        Tue,  8 Feb 2022 04:53:26 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3wCD9C_1644324803;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3wCD9C_1644324803)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Tue, 08 Feb 2022 20:53:23 +0800
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+To:     kgraul@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        "D. Wythe" <alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v5 5/5] net/smc: Add global configure for auto fallback by netlink
+Date:   Tue,  8 Feb 2022 20:53:13 +0800
+Message-Id: <f54ee9f30898b998edf8f07dabccc84efaa2ab8b.1644323503.git.alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <cover.1644323503.git.alibuda@linux.alibaba.com>
+References: <cover.1644323503.git.alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Feb 08, 2022 at 10:53:15AM +0000, Haakon Bugge wrote:
-> 
-> 
-> > On 7 Feb 2022, at 19:59, Leon Romanovsky <leon@kernel.org> wrote:
-> > 
-> > On Mon, Feb 07, 2022 at 02:55:35PM +0000, Haakon Bugge wrote:
-> >> Hey,
-> >> 
-> >> 
-> >> I have a question to XRC TGT QPs and whether they do have a set of requestor resources or not.
-> >> 
-> >> 
-> >> The XRC Annex (March 2, 2009 Revision 1.0) (*1) boldly states:
-> >> 
-> >> 	XRC TGT QPs are similar to RD EECs but do not have a requester side.
-> >> 
-> >> 
-> >> Nevertheless, in Table 9, page 36, it is stated that "Local ACK Timeout" and "SQ PSN" are required attributes during an RTR -> RTS transition for an XRC Target QP. This seems to be an incorrect requirement, subject to the XRC Target QP not having a send queue?
-> >> 
-> >> Further, looking at a vendor's creation of an XRC TGT QP, we see:
-> >> 
-> >> 	MLX5_SET(qpc, qpc, no_sq, 1);
-> >> 
-> >> in the function create_xrc_tgt().
-> >> 
-> >> If the interpretation that an XRC TGT does _not_ have a send queue is correct, we cannot simply remove "Local ACK Timeout" and "SQ PSN" as mandatory attributes during the state transition, because that will break all current software. Is it an idea to move those to optional attributes in the qp_state_table[]? Then remove the IB_QPT_XRC_TGT label in cm_init_qp_rts_attr()?
-> > 
-> > I think that your interpretation of spec is correct, but why do you want
-> > to remove these attributes? The device ignores them anyway.
-> 
-> :-)
-> 
-> Or, rephrasing your question, why have these attributes as mandatory? The device ignores them anyway ;-)
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-I can only guess. The spec is written by HW people, together with
-statement than XRC TGT QP same as RC, most likely, the decision was
-to take RC block and copy/paste for XRC TGT.
+Although we can control SMC auto fallback through socket options, which
+means that applications who need it must modify their code. It's quite
+troublesome for many existing applications. This patch modifies the
+global default value of auto fallback through netlink, providing a way
+to auto fallback without modifying any code for applications.
 
-Thanks
+Suggested-by: Tony Lu <tonylu@linux.alibaba.com>
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+---
+ include/uapi/linux/smc.h |  3 +++
+ net/smc/af_smc.c         | 17 +++++++++++++++++
+ net/smc/smc.h            |  7 +++++++
+ net/smc/smc_core.c       |  2 ++
+ net/smc/smc_netlink.c    | 10 ++++++++++
+ 5 files changed, 39 insertions(+)
 
-> 
-> To me, it is confusing. For example, in rdma_set_min_rnr_timer(), the test for XRC TGT is correct, since an XRG INI QP does not have any responder part. But this is then inconsistent with other parts of CM/CMA.
+diff --git a/include/uapi/linux/smc.h b/include/uapi/linux/smc.h
+index 9f2cbf8..33f7fb8 100644
+--- a/include/uapi/linux/smc.h
++++ b/include/uapi/linux/smc.h
+@@ -59,6 +59,8 @@ enum {
+ 	SMC_NETLINK_DUMP_SEID,
+ 	SMC_NETLINK_ENABLE_SEID,
+ 	SMC_NETLINK_DISABLE_SEID,
++	SMC_NETLINK_ENABLE_AUTO_FALLBACK,
++	SMC_NETLINK_DISABLE_AUTO_FALLBACK,
+ };
+ 
+ /* SMC_GENL_FAMILY top level attributes */
+@@ -85,6 +87,7 @@ enum {
+ 	SMC_NLA_SYS_LOCAL_HOST,		/* string */
+ 	SMC_NLA_SYS_SEID,		/* string */
+ 	SMC_NLA_SYS_IS_SMCR_V2,		/* u8 */
++	SMC_NLA_SYS_AUTO_FALLBACK,	/* u8 */
+ 	__SMC_NLA_SYS_MAX,
+ 	SMC_NLA_SYS_MAX = __SMC_NLA_SYS_MAX - 1
+ };
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index c313561..4a25ce7 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -59,6 +59,8 @@
+ 						 * creation on client
+ 						 */
+ 
++bool smc_auto_fallback;	/* default behavior for auto fallback, disable by default */
++
+ static struct workqueue_struct	*smc_tcp_ls_wq;	/* wq for tcp listen work */
+ struct workqueue_struct	*smc_hs_wq;	/* wq for handshake work */
+ struct workqueue_struct	*smc_close_wq;	/* wq for close work */
+@@ -66,6 +68,18 @@
+ static void smc_tcp_listen_work(struct work_struct *);
+ static void smc_connect_work(struct work_struct *);
+ 
++int smc_enable_auto_fallback(struct sk_buff *skb, struct genl_info *info)
++{
++	WRITE_ONCE(smc_auto_fallback, true);
++	return 0;
++}
++
++int smc_disable_auto_fallback(struct sk_buff *skb, struct genl_info *info)
++{
++	WRITE_ONCE(smc_auto_fallback, false);
++	return 0;
++}
++
+ static void smc_set_keepalive(struct sock *sk, int val)
+ {
+ 	struct smc_sock *smc = smc_sk(sk);
+@@ -3006,6 +3020,9 @@ static int __smc_create(struct net *net, struct socket *sock, int protocol,
+ 	smc->use_fallback = false; /* assume rdma capability first */
+ 	smc->fallback_rsn = 0;
+ 
++	/* default behavior from smc_auto_fallback */
++	smc->auto_fallback = READ_ONCE(smc_auto_fallback);
++
+ 	rc = 0;
+ 	if (!clcsock) {
+ 		rc = sock_create_kern(net, family, SOCK_STREAM, IPPROTO_TCP,
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index a0bdf75..ac75fe8 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -14,6 +14,7 @@
+ #include <linux/socket.h>
+ #include <linux/types.h>
+ #include <linux/compiler.h> /* __aligned */
++#include <net/genetlink.h>
+ #include <net/sock.h>
+ 
+ #include "smc_ib.h"
+@@ -336,4 +337,10 @@ void smc_fill_gid_list(struct smc_link_group *lgr,
+ 		       struct smc_gidlist *gidlist,
+ 		       struct smc_ib_device *known_dev, u8 *known_gid);
+ 
++extern bool smc_auto_fallback; /* default behavior for auto fallback */
++
++/* smc_auto_fallback setter for netlink */
++int smc_enable_auto_fallback(struct sk_buff *skb, struct genl_info *info);
++int smc_disable_auto_fallback(struct sk_buff *skb, struct genl_info *info);
++
+ #endif	/* __SMC_H */
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 29525d0..cc9a398 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -248,6 +248,8 @@ int smc_nl_get_sys_info(struct sk_buff *skb, struct netlink_callback *cb)
+ 		goto errattr;
+ 	if (nla_put_u8(skb, SMC_NLA_SYS_IS_SMCR_V2, true))
+ 		goto errattr;
++	if (nla_put_u8(skb, SMC_NLA_SYS_AUTO_FALLBACK, smc_auto_fallback))
++		goto errattr;
+ 	smc_clc_get_hostname(&host);
+ 	if (host) {
+ 		memcpy(hostname, host, SMC_MAX_HOSTNAME_LEN);
+diff --git a/net/smc/smc_netlink.c b/net/smc/smc_netlink.c
+index f13ab06..a7de517 100644
+--- a/net/smc/smc_netlink.c
++++ b/net/smc/smc_netlink.c
+@@ -111,6 +111,16 @@
+ 		.flags = GENL_ADMIN_PERM,
+ 		.doit = smc_nl_disable_seid,
+ 	},
++	{
++		.cmd = SMC_NETLINK_ENABLE_AUTO_FALLBACK,
++		.flags = GENL_ADMIN_PERM,
++		.doit = smc_enable_auto_fallback,
++	},
++	{
++		.cmd = SMC_NETLINK_DISABLE_AUTO_FALLBACK,
++		.flags = GENL_ADMIN_PERM,
++		.doit = smc_disable_auto_fallback,
++	},
+ };
+ 
+ static const struct nla_policy smc_gen_nl_policy[2] = {
+-- 
+1.8.3.1
 
-
-
-> 
-> 
-> Thxs, Håkon
-> 
-> > Thanks
-> > 
-> >> 
-> >> 
-> >> Thxs, Håkon
-> >> 
-> >> *1: IBTA Spec Release 1.6 is equal to the XRC Annex in this respect
-> 
