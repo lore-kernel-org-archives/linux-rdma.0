@@ -2,57 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72CB3C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 22:24:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEA2CC4332F
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 22:24:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1386838AbiBHWYi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Feb 2022 17:24:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37738 "EHLO
+        id S1386942AbiBHWYk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Feb 2022 17:24:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1386885AbiBHVRZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 16:17:25 -0500
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10B0DC0612B8
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Feb 2022 13:17:24 -0800 (PST)
-Received: by mail-oi1-x234.google.com with SMTP id i5so478450oih.1
-        for <linux-rdma@vger.kernel.org>; Tue, 08 Feb 2022 13:17:24 -0800 (PST)
+        with ESMTP id S1386878AbiBHVRW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 16:17:22 -0500
+Received: from mail-oo1-xc29.google.com (mail-oo1-xc29.google.com [IPv6:2607:f8b0:4864:20::c29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19225C0612BE
+        for <linux-rdma@vger.kernel.org>; Tue,  8 Feb 2022 13:17:21 -0800 (PST)
+Received: by mail-oo1-xc29.google.com with SMTP id f11-20020a4abb0b000000b002e9abf6bcbcso242159oop.0
+        for <linux-rdma@vger.kernel.org>; Tue, 08 Feb 2022 13:17:21 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=iqRAEa887JpXbjOAQTwV/4n6IwZcJpoqvAlHonjohs0=;
-        b=ZpnnO7x/QQWXRS9w7CyT6sMcbSHO/U/OWnXoENCTSq4HUHncFJG29troKP0X77B3Og
-         MzBTMxZst/DtUts/z9FEyhLDi1h6RRyc5vapC11AjfmOPYsSfs1Zl5u4lkRMFcEnc61W
-         tinwqaVQsMi/2EPVKOTanl5ynWp+D9FFopoa3hJCpRhG5ITs76acxPnIX7CQMuNvhj46
-         MRQOsflBnHzZZ+Ju3c8taWg4xcYi3srUdxEI0H2Dh53Jr5iPVfOUf0zUsjI6ba6Ky6jY
-         kwWQeMJkXgdgbv7nrmZLNDtwC2Aidfi4TT3iNtLc42QERc4wGA/2LUIlQfCFH/W6Iaem
-         oRYw==
+        bh=XY3DD4ol7toyhGXGGzuYQIC2OzhUvk7iT9xEabpmvAQ=;
+        b=YQjpn/AqWm+OS6T55zkWPUemCV81lvRUofbpg/Er6LbmhXWrLEUAZQvYkKv4yPJYcR
+         0YoqOsehVeUXrj9QT8j3qyFeOoiCl8BUPU+NuZZJVLYlu0x0HXTzLh+GunisYXDFzV9+
+         KjBthkhPrGZFVwIIJwyvxEs+xOsa9oHyr6zs4zoJhV2n28eqp/4cVuQ21axRUX9d5owl
+         Wj4X6RwOoY1AdsDVAIf7Yh8/pek6rvVIpC0xtkhyqVjh4hJND24sbaFo4odqY53qEw+n
+         MALNv4hb9gExGmddkX0KG7hnXGqcf/YyiehQDkNdBW/HNaDPLPSHgaXntqM6zW/SwgYd
+         Pqnw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=iqRAEa887JpXbjOAQTwV/4n6IwZcJpoqvAlHonjohs0=;
-        b=vMa1hJB6GCkWEDMjDUrAuyGJEXEnZAvOx52YoQ/1V0Fy+lcohDYxrQbMvqg+4W2kzw
-         7DctYLx5LSNtn+KhCmO/umvRXLMwO7c0T50vDwL/EAlKMDtFf8zOEmCTb4FK3eriJ3sb
-         yjJAXVXjQQ10vcoqy4bZ7LWTXQTPpeTxIdbE1ZDIUag5LsGq3Bcd+nvapQwzofPjMGyF
-         QAneedVyhCkAr7tNJK7RxTmLA4/6c0w2QLHEnd+8vtVkFPN41es8oNF+dHDkIEyLpikO
-         wxJSQkoCcZa6SN8FihVQ2kAxiRDnoysAGvLSe2SdGuWHSQUYIBY1UH5F1jRVvN3hz4Q3
-         WeeA==
-X-Gm-Message-State: AOAM5315gdSxLqkXCfDgNi132UO5HVD9tYCXLY0g9g5BztkbEDE4rJAJ
-        xyR9Got2Z2/XoB1gpG+WPzc=
-X-Google-Smtp-Source: ABdhPJw7VUdzHblzaXmv2ONH7UyldfM8ItX7njYoP0YrKwGu98+QNxjT5tbGw6aIn+kOWHMKRy/YWw==
-X-Received: by 2002:a05:6808:150d:: with SMTP id u13mr1429205oiw.55.1644355043026;
-        Tue, 08 Feb 2022 13:17:23 -0800 (PST)
+        bh=XY3DD4ol7toyhGXGGzuYQIC2OzhUvk7iT9xEabpmvAQ=;
+        b=cAnklYGPc4IIDEpGTMawHuWN8IFknUQ2VSjdDWQL410MdL0biGPYE2adZdKNI6g5x5
+         MgbCDgIxs/zMGh/ht2alc5Xts1stymbz1ZK3zt0TJ9Pixia+6nuZAtpuAAGLStZpPTTj
+         rFfDW5IDsI32E6NvC0VXcW6DGIieLwxYWsQk9kQvjdRD8Y9yuMqefdte3iA8cjrUB+b1
+         taQdChjNrMoIoBx31nUE7oG7xHIUuBmlwozIzVMR7kFRvtKPKYPpjiTEhnY1WWTgDGLA
+         HOwC139oem3IRgbb4W34Rq8oINHMvG31+tDv69liT5ttYOTTGr0q9C6ktp06IXLHHwGV
+         CkOQ==
+X-Gm-Message-State: AOAM533zszAWRrMyf/YMuU6CPEq1yPIKJMJ2qmGZZVzL/vfu531neVXf
+        hsw+Z8hGk6XTsIPTrTgQoT0rl9PjhLQ=
+X-Google-Smtp-Source: ABdhPJyeZWprEeyhm4/q7U9SgwmMygJoxypJE+vae9i4DbIeQ7ikEtFamJZ2DffvMag2j/G4aciYFQ==
+X-Received: by 2002:a05:6870:91c6:: with SMTP id c6mr1035039oaf.147.1644355040411;
+        Tue, 08 Feb 2022 13:17:20 -0800 (PST)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-2501-ba3f-d39d-75da.res6.spectrum.com. [2603:8081:140c:1a00:2501:ba3f:d39d:75da])
-        by smtp.googlemail.com with ESMTPSA id bh7sm2145462oib.6.2022.02.08.13.17.22
+        by smtp.googlemail.com with ESMTPSA id bh7sm2145462oib.6.2022.02.08.13.17.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Feb 2022 13:17:22 -0800 (PST)
+        Tue, 08 Feb 2022 13:17:19 -0800 (PST)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v11 09/11] RDMA/rxe: Finish cleanup of rxe_mcast.c
-Date:   Tue,  8 Feb 2022 15:16:43 -0600
-Message-Id: <20220208211644.123457-10-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v11 07/11] RDMA/rxe: Remove mcg from rxe pools
+Date:   Tue,  8 Feb 2022 15:16:41 -0600
+Message-Id: <20220208211644.123457-8-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220208211644.123457-1-rpearsonhpe@gmail.com>
 References: <20220208211644.123457-1-rpearsonhpe@gmail.com>
@@ -62,306 +62,254 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Cleanup rxe_mcast.c code. Minor changes and complete comments.
+Finish removing mcg from rxe pools. Replace rxe pools ref counting by
+kref's. Replace rxe_alloc by kzalloc.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_mcast.c | 189 +++++++++++++++++++-------
- drivers/infiniband/sw/rxe/rxe_verbs.h |   1 +
- 2 files changed, 144 insertions(+), 46 deletions(-)
+ drivers/infiniband/sw/rxe/rxe.c       |  8 ------
+ drivers/infiniband/sw/rxe/rxe_loc.h   |  2 +-
+ drivers/infiniband/sw/rxe/rxe_mcast.c | 39 ++++++++++++++++-----------
+ drivers/infiniband/sw/rxe/rxe_pool.c  |  9 -------
+ drivers/infiniband/sw/rxe/rxe_pool.h  |  1 -
+ drivers/infiniband/sw/rxe/rxe_recv.c  |  2 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  2 +-
+ 7 files changed, 27 insertions(+), 36 deletions(-)
 
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index dc36148272dd..3520eb2db685 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -28,7 +28,6 @@ void rxe_dealloc(struct ib_device *ib_dev)
+ 	rxe_pool_cleanup(&rxe->cq_pool);
+ 	rxe_pool_cleanup(&rxe->mr_pool);
+ 	rxe_pool_cleanup(&rxe->mw_pool);
+-	rxe_pool_cleanup(&rxe->mc_grp_pool);
+ 
+ 	if (rxe->tfm)
+ 		crypto_free_shash(rxe->tfm);
+@@ -157,15 +156,8 @@ static int rxe_init_pools(struct rxe_dev *rxe)
+ 	if (err)
+ 		goto err8;
+ 
+-	err = rxe_pool_init(rxe, &rxe->mc_grp_pool, RXE_TYPE_MC_GRP,
+-			    rxe->attr.max_mcast_grp);
+-	if (err)
+-		goto err9;
+-
+ 	return 0;
+ 
+-err9:
+-	rxe_pool_cleanup(&rxe->mw_pool);
+ err8:
+ 	rxe_pool_cleanup(&rxe->mr_pool);
+ err7:
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index d41831878fa6..409efeecd581 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -43,7 +43,7 @@ void rxe_cq_cleanup(struct rxe_pool_elem *arg);
+ struct rxe_mcg *rxe_lookup_mcg(struct rxe_dev *rxe, union ib_gid *mgid);
+ int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid);
+ int rxe_detach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid);
+-void rxe_mc_cleanup(struct rxe_pool_elem *elem);
++void rxe_cleanup_mcg(struct kref *kref);
+ 
+ /* rxe_mmap.c */
+ struct rxe_mmap_info {
 diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
-index 846147878607..b66839276aa6 100644
+index 78d696cd40d5..07c218788c59 100644
 --- a/drivers/infiniband/sw/rxe/rxe_mcast.c
 +++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
-@@ -1,12 +1,33 @@
- // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /*
-+ * Copyright (c) 2022 Hewlett Packard Enterprise, Inc. All rights reserved.
-  * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
-  * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
+@@ -98,7 +98,7 @@ static struct rxe_mcg *__rxe_lookup_mcg(struct rxe_dev *rxe,
+ 	}
+ 
+ 	if (node) {
+-		rxe_add_ref(mcg);
++		kref_get(&mcg->ref_cnt);
+ 		return mcg;
+ 	}
+ 
+@@ -141,6 +141,7 @@ static int __rxe_init_mcg(struct rxe_dev *rxe, union ib_gid *mgid,
+ 	if (unlikely(err))
+ 		return err;
+ 
++	kref_init(&mcg->ref_cnt);
+ 	memcpy(&mcg->mgid, mgid, sizeof(mcg->mgid));
+ 	INIT_LIST_HEAD(&mcg->qp_list);
+ 	mcg->rxe = rxe;
+@@ -152,7 +153,7 @@ static int __rxe_init_mcg(struct rxe_dev *rxe, union ib_gid *mgid,
+ 	 * Inserting mcg makes it visible to outside so this should
+ 	 * be done last after the object is ready.
+ 	 */
+-	rxe_add_ref(mcg);
++	kref_get(&mcg->ref_cnt);
+ 	__rxe_insert_mcg(mcg);
+ 
+ 	return 0;
+@@ -167,7 +168,6 @@ static int __rxe_init_mcg(struct rxe_dev *rxe, union ib_gid *mgid,
   */
- 
-+/*
-+ * rxe_mcast.c implements driver support for multicast transport.
-+ * It is based on two data structures struct rxe_mcg ('mcg') and
-+ * struct rxe_mca ('mca'). An mcg is allocated each time a qp is
-+ * attached to a new mgid for the first time. These are indexed by
-+ * a red-black tree using the mgid. This data structure is searched
-+ * for the mcg when a multicast packet is received and when another
-+ * qp is attached to the same mgid. It is cleaned up when the last qp
-+ * is detached from the mcg. Each time a qp is attached to an mcg an
-+ * mca is created. It holds a pointer to the qp and is added to a list
-+ * of qp's that are attached to the mcg. The qp_list is used to replicate
-+ * mcast packets in the rxe receive path.
-+ */
-+
- #include "rxe.h"
--#include "rxe_loc.h"
- 
-+/**
-+ * rxe_mcast_add - add multicast address to rxe device
-+ * @rxe: rxe device object
-+ * @mgid: multicast address as a gid
-+ *
-+ * Returns 0 on success else an error
-+ */
- static int rxe_mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
+ static struct rxe_mcg *rxe_get_mcg(struct rxe_dev *rxe, union ib_gid *mgid)
  {
- 	unsigned char ll_addr[ETH_ALEN];
-@@ -16,6 +37,13 @@ static int rxe_mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
- 	return dev_mc_add(rxe->ndev, ll_addr);
+-	struct rxe_pool *pool = &rxe->mc_grp_pool;
+ 	struct rxe_mcg *mcg, *tmp;
+ 	int err;
+ 
+@@ -180,7 +180,7 @@ static struct rxe_mcg *rxe_get_mcg(struct rxe_dev *rxe, union ib_gid *mgid)
+ 		return mcg;
+ 
+ 	/* speculative alloc of new mcg */
+-	mcg = rxe_alloc(pool);
++	mcg = kzalloc(sizeof(*mcg), GFP_KERNEL);
+ 	if (!mcg)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -188,7 +188,7 @@ static struct rxe_mcg *rxe_get_mcg(struct rxe_dev *rxe, union ib_gid *mgid)
+ 	/* re-check to see if someone else just added it */
+ 	tmp = __rxe_lookup_mcg(rxe, mgid);
+ 	if (tmp) {
+-		rxe_drop_ref(mcg);
++		kfree(mcg);
+ 		mcg = tmp;
+ 		goto out;
+ 	}
+@@ -208,10 +208,21 @@ static struct rxe_mcg *rxe_get_mcg(struct rxe_dev *rxe, union ib_gid *mgid)
+ err_dec:
+ 	atomic_dec(&rxe->mcg_num);
+ 	spin_unlock_bh(&rxe->mcg_lock);
+-	rxe_drop_ref(mcg);
++	kfree(mcg);
+ 	return ERR_PTR(err);
  }
  
 +/**
-+ * rxe_mcast_delete - delete multicast address from rxe device
-+ * @rxe: rxe device object
-+ * @mgid: multicast address as a gid
-+ *
-+ * Returns 0 on success else an error
++ * rxe_cleanup_mcg - cleanup mcg for kref_put
++ * @kref:
 + */
- static int rxe_mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
++void rxe_cleanup_mcg(struct kref *kref)
++{
++	struct rxe_mcg *mcg = container_of(kref, typeof(*mcg), ref_cnt);
++
++	kfree(mcg);
++}
++
+ /**
+  * __rxe_destroy_mcg - destroy mcg object holding rxe->mcg_lock
+  * @mcg: the mcg object
+@@ -221,11 +232,14 @@ static struct rxe_mcg *rxe_get_mcg(struct rxe_dev *rxe, union ib_gid *mgid)
+  */
+ static void __rxe_destroy_mcg(struct rxe_mcg *mcg)
  {
- 	unsigned char ll_addr[ETH_ALEN];
-@@ -214,7 +242,7 @@ static struct rxe_mcg *rxe_get_mcg(struct rxe_dev *rxe, union ib_gid *mgid)
++	struct rxe_dev *rxe = mcg->rxe;
++
+ 	/* remove mcg from red-black tree then drop ref */
+ 	__rxe_remove_mcg(mcg);
+-	rxe_drop_ref(mcg);
++	kref_put(&mcg->ref_cnt, rxe_cleanup_mcg);
+ 
+ 	rxe_mcast_delete(mcg->rxe, &mcg->mgid);
++	atomic_dec(&rxe->mcg_num);
+ }
  
  /**
-  * rxe_cleanup_mcg - cleanup mcg for kref_put
-- * @kref:
-+ * @kref: struct kref embedded in mcg
-  */
- void rxe_cleanup_mcg(struct kref *kref)
- {
-@@ -255,9 +283,57 @@ static void rxe_destroy_mcg(struct rxe_mcg *mcg)
+@@ -241,11 +255,6 @@ static void rxe_destroy_mcg(struct rxe_mcg *mcg)
  	spin_unlock_bh(&mcg->rxe->mcg_lock);
  }
  
--static int rxe_attach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
--				  struct rxe_mcg *mcg)
-+/**
-+ * __rxe_init_mca - initialize a new mca holding lock
-+ * @qp: qp object
-+ * @mcg: mcg object
-+ * @mca: empty space for new mca
-+ *
-+ * Context: caller must hold references on qp and mcg, rxe->mcg_lock
-+ * and pass memory for new mca
-+ *
-+ * Returns: 0 on success else an error
-+ */
-+static int __rxe_init_mca(struct rxe_qp *qp, struct rxe_mcg *mcg,
-+			  struct rxe_mca *mca)
-+{
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+	int n;
-+
-+	n = atomic_inc_return(&rxe->mcg_attach);
-+	if (n > rxe->attr.max_total_mcast_qp_attach) {
-+		atomic_dec(&rxe->mcg_attach);
-+		return -ENOMEM;
-+	}
-+
-+	n = atomic_inc_return(&mcg->qp_num);
-+	if (n > rxe->attr.max_mcast_qp_attach) {
-+		atomic_dec(&mcg->qp_num);
-+		atomic_dec(&rxe->mcg_attach);
-+		return -ENOMEM;
-+	}
-+
-+	atomic_inc(&qp->mcg_num);
-+
-+	rxe_add_ref(qp);
-+	mca->qp = qp;
-+
-+	list_add_tail(&mca->qp_list, &mcg->qp_list);
-+
-+	return 0;
-+}
-+
-+/**
-+ * rxe_attach_mcg - attach qp to mcg if not already attached
-+ * @qp: qp object
-+ * @mcg: mcg object
-+ *
-+ * Context: caller must hold reference on qp and mcg.
-+ * Returns: 0 on success else an error
-+ */
-+static int rxe_attach_mcg(struct rxe_mcg *mcg, struct rxe_qp *qp)
+-void rxe_mc_cleanup(struct rxe_pool_elem *elem)
+-{
+-	/* nothing left to do for now */
+-}
+-
+ static int rxe_attach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 				  struct rxe_mcg *mcg)
  {
-+	struct rxe_dev *rxe = mcg->rxe;
- 	struct rxe_mca *mca, *tmp;
- 	int err;
- 
-@@ -286,73 +362,77 @@ static int rxe_attach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
- 		}
- 	}
- 
--	/* check limits after checking if already attached */
--	if (atomic_inc_return(&mcg->qp_num) > rxe->attr.max_mcast_qp_attach) {
--		atomic_dec(&mcg->qp_num);
-+	err = __rxe_init_mca(qp, mcg, mca);
-+	if (err)
- 		kfree(mca);
--		err = -ENOMEM;
--		goto out;
--	}
--
--	/* protect pointer to qp in mca */
--	rxe_add_ref(qp);
--	mca->qp = qp;
--
--	atomic_inc(&qp->mcg_num);
--	list_add(&mca->qp_list, &mcg->qp_list);
--
--	err = 0;
- out:
- 	spin_unlock_bh(&rxe->mcg_lock);
- 	return err;
- }
- 
--static int rxe_detach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
--				   union ib_gid *mgid)
-+/**
-+ * __rxe_cleanup_mca - cleanup mca object holding lock
-+ * @mca: mca object
-+ * @mcg: mcg object
-+ *
-+ * Context: caller must hold a reference to mcg and rxe->mcg_lock
-+ */
-+static void __rxe_cleanup_mca(struct rxe_mca *mca, struct rxe_mcg *mcg)
- {
--	struct rxe_mcg *mcg;
--	struct rxe_mca *mca, *tmp;
--	int err;
-+	list_del(&mca->qp_list);
- 
--	mcg = rxe_lookup_mcg(rxe, mgid);
--	if (!mcg)
--		return -EINVAL;
-+	atomic_dec(&mcg->qp_num);
-+	atomic_dec(&mcg->rxe->mcg_attach);
-+	atomic_dec(&mca->qp->mcg_num);
-+	rxe_drop_ref(mca->qp);
-+
-+	kfree(mca);
-+}
-+
-+/**
-+ * rxe_detach_mcg - detach qp from mcg
-+ * @mcg: mcg object
-+ * @qp: qp object
-+ *
-+ * Returns: 0 on success else an error if qp is not attached.
-+ */
-+static int rxe_detach_mcg(struct rxe_mcg *mcg, struct rxe_qp *qp)
-+{
-+	struct rxe_dev *rxe = mcg->rxe;
-+	struct rxe_mca *mca, *tmp;
- 
- 	spin_lock_bh(&rxe->mcg_lock);
- 	list_for_each_entry_safe(mca, tmp, &mcg->qp_list, qp_list) {
- 		if (mca->qp == qp) {
--			list_del(&mca->qp_list);
--			atomic_dec(&qp->mcg_num);
--			rxe_drop_ref(qp);
-+			__rxe_cleanup_mca(mca, mcg);
- 
- 			/* if the number of qp's attached to the
- 			 * mcast group falls to zero go ahead and
- 			 * tear it down. This will not free the
- 			 * object since we are still holding a ref
--			 * from the get key above.
-+			 * from the caller
+@@ -328,7 +337,7 @@ static int rxe_detach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 			/* drop the ref from get key. This will free the
+ 			 * object if qp_num is zero.
  			 */
--			if (atomic_dec_return(&mcg->qp_num) <= 0)
-+			if (atomic_read(&mcg->qp_num) <= 0)
- 				__rxe_destroy_mcg(mcg);
- 
--			/* drop the ref from get key. This will free the
--			 * object if qp_num is zero.
--			 */
--			kref_put(&mcg->ref_cnt, rxe_cleanup_mcg);
--			kfree(mca);
--			err = 0;
--			goto out_unlock;
-+			spin_unlock_bh(&rxe->mcg_lock);
-+			return 0;
- 		}
+-			rxe_drop_ref(mcg);
++			kref_put(&mcg->ref_cnt, rxe_cleanup_mcg);
+ 			kfree(mca);
+ 			err = 0;
+ 			goto out_unlock;
+@@ -336,7 +345,7 @@ static int rxe_detach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
  	}
  
  	/* we didn't find the qp on the list */
--	kref_put(&mcg->ref_cnt, rxe_cleanup_mcg);
--	err = -EINVAL;
--
--out_unlock:
- 	spin_unlock_bh(&rxe->mcg_lock);
--	return err;
-+	return -EINVAL;
- }
+-	rxe_drop_ref(mcg);
++	kref_put(&mcg->ref_cnt, rxe_cleanup_mcg);
+ 	err = -EINVAL;
  
-+/**
-+ * rxe_attach_mcast - attach qp to multicast group (see IBA-11.3.1)
-+ * @ibqp: (IB) qp object
-+ * @mgid: multicast IP address
-+ * @mlid: multicast LID, ignored for RoCEv2 (see IBA-A17.5.6)
-+ *
-+ * Returns: 0 on success else an errno
-+ */
- int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
- {
- 	int err;
-@@ -365,7 +445,7 @@ int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
- 	if (IS_ERR(mcg))
- 		return PTR_ERR(mcg);
- 
--	err = rxe_attach_mcg(rxe, qp, mcg);
-+	err = rxe_attach_mcg(mcg, qp);
- 
- 	/* if we failed to attach the first qp to mcg tear it down */
+ out_unlock:
+@@ -362,7 +371,7 @@ int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
  	if (atomic_read(&mcg->qp_num) == 0)
-@@ -375,12 +455,29 @@ int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
+ 		rxe_destroy_mcg(mcg);
+ 
+-	rxe_drop_ref(mcg);
++	kref_put(&mcg->ref_cnt, rxe_cleanup_mcg);
  	return err;
  }
  
-+/**
-+ * rxe_detach_mcast - detach qp from multicast group (see IBA-11.3.2)
-+ * @ibqp: address of (IB) qp object
-+ * @mgid: multicast IP address
-+ * @mlid: multicast LID, ignored for RoCEv2 (see IBA-A17.5.6)
-+ *
-+ * Returns: 0 on success else an errno
-+ */
- int rxe_detach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
- {
- 	struct rxe_dev *rxe = to_rdev(ibqp->device);
- 	struct rxe_qp *qp = to_rqp(ibqp);
-+	struct rxe_mcg *mcg;
-+	int err;
-+
-+	mcg = rxe_lookup_mcg(rxe, mgid);
-+	if (!mcg)
-+		return -EINVAL;
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index 49a25f8ceae1..b6fe7c93aaab 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -79,15 +79,6 @@ static const struct rxe_type_info {
+ 		.min_index	= RXE_MIN_MW_INDEX,
+ 		.max_index	= RXE_MAX_MW_INDEX,
+ 	},
+-	[RXE_TYPE_MC_GRP] = {
+-		.name		= "rxe-mc_grp",
+-		.size		= sizeof(struct rxe_mcg),
+-		.elem_offset	= offsetof(struct rxe_mcg, elem),
+-		.cleanup	= rxe_mc_cleanup,
+-		.flags		= RXE_POOL_KEY,
+-		.key_offset	= offsetof(struct rxe_mcg, mgid),
+-		.key_size	= sizeof(union ib_gid),
+-	},
+ };
  
--	return rxe_detach_mcg(rxe, qp, mgid);
-+	err = rxe_detach_mcg(mcg, qp);
+ static int rxe_pool_init_index(struct rxe_pool *pool, u32 max, u32 min)
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index 2db9d9872cd1..8fc95c6b7b9b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -21,7 +21,6 @@ enum rxe_elem_type {
+ 	RXE_TYPE_CQ,
+ 	RXE_TYPE_MR,
+ 	RXE_TYPE_MW,
+-	RXE_TYPE_MC_GRP,
+ 	RXE_NUM_TYPES,		/* keep me last */
+ };
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+index fb265902f7e3..53924453abef 100644
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -300,7 +300,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+ 
+ 	spin_unlock_bh(&rxe->mcg_lock);
+ 
+-	rxe_drop_ref(mcg);
 +	kref_put(&mcg->ref_cnt, rxe_cleanup_mcg);
-+
-+	return err;
- }
  
- /**
+ 	if (likely(!skb))
+ 		return;
 diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 20fe3ee6589d..6b15251ff67a 100644
+index caa5b1b05019..20fe3ee6589d 100644
 --- a/drivers/infiniband/sw/rxe/rxe_verbs.h
 +++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -401,6 +401,7 @@ struct rxe_dev {
- 	spinlock_t		mcg_lock;
- 	struct rb_root		mcg_tree;
- 	atomic_t		mcg_num;
-+	atomic_t		mcg_attach;
+@@ -352,8 +352,8 @@ struct rxe_mw {
+ };
  
- 	spinlock_t		pending_lock; /* guard pending_mmaps */
- 	struct list_head	pending_mmaps;
+ struct rxe_mcg {
+-	struct rxe_pool_elem	elem;
+ 	struct rb_node		node;
++	struct kref		ref_cnt;
+ 	struct rxe_dev		*rxe;
+ 	struct list_head	qp_list;
+ 	union ib_gid		mgid;
 -- 
 2.32.0
 
