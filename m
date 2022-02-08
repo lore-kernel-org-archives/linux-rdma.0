@@ -2,58 +2,195 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19571C4332F
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 13:16:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B298C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 13:16:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350693AbiBHNQ0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Feb 2022 08:16:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35052 "EHLO
+        id S245598AbiBHNQa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Feb 2022 08:16:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245598AbiBHM6K (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 07:58:10 -0500
-Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F474C03FEC0;
-        Tue,  8 Feb 2022 04:58:09 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3wliRy_1644325084;
-Received: from 30.225.28.133(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3wliRy_1644325084)
+        with ESMTP id S1359750AbiBHMx0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 07:53:26 -0500
+Received: from out30-42.freemail.mail.aliyun.com (out30-42.freemail.mail.aliyun.com [115.124.30.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47BBEC03FEC0;
+        Tue,  8 Feb 2022 04:53:25 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R211e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V3wMPhs_1644324801;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V3wMPhs_1644324801)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 08 Feb 2022 20:58:05 +0800
-Message-ID: <df0a98b0-9e27-013a-cdeb-1ebcade043bf@linux.alibaba.com>
-Date:   Tue, 8 Feb 2022 20:58:04 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.5.0
-Subject: Re: [PATCH net-next v4 3/3] net/smc: Fallback when handshake
- workqueue congested
-To:     Karsten Graul <kgraul@linux.ibm.com>
+          Tue, 08 Feb 2022 20:53:22 +0800
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+To:     kgraul@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Tony Lu <tonylu@linux.alibaba.com>
-References: <cover.1644214112.git.alibuda@linux.alibaba.com>
- <6deeca64bfecbd01d724092a1a2c91ca8bce3ce0.1644214112.git.alibuda@linux.alibaba.com>
- <bab2d7f1-c57a-cab4-3963-23721292eece@linux.ibm.com>
- <f1ed4d54-d658-c668-99af-9994a634baf3@linux.alibaba.com>
- <7d18c7ac-9a4f-6a4f-2acf-5c83112fe967@linux.ibm.com>
-From:   "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <7d18c7ac-9a4f-6a4f-2acf-5c83112fe967@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        "D. Wythe" <alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v5 4/5] net/smc: Dynamic control auto fallback by socket options
+Date:   Tue,  8 Feb 2022 20:53:12 +0800
+Message-Id: <20f504f961e1a803f85d64229ad84260434203bd.1644323503.git.alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <cover.1644323503.git.alibuda@linux.alibaba.com>
+References: <cover.1644323503.git.alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-You may have misunderstood what I mean ... but it doesn't matter now, 
-I've sent the v5 series.
+This patch aims to add dynamic control for SMC auto fallback, since we
+don't have socket option level for SMC yet, which requires we need to
+implement it at the same time.
 
-Looking forward to your suggestions for v5 series.
+This patch does the following:
 
-Thanks.
+- add new socket option level: SOL_SMC.
+- add new SMC socket option: SMC_AUTO_FALLBACK.
+- provide getter/setter for SMC socket options.
 
-在 2022/2/7 下午6:03, Karsten Graul 写道:
-> On 07/02/2022 10:50, D. Wythe wrote:
->>
->> The main communication in v2 series is about adding a dynamic control for auto fallback to TCP. I will soon add a new patch to implements this in v5 series, or modify it in curret patch. Which one do you recommend?
->>
-> 
-> When you change a patch then you need to send a new series.
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+---
+ include/linux/socket.h   |  1 +
+ include/uapi/linux/smc.h |  4 +++
+ net/smc/af_smc.c         | 69 +++++++++++++++++++++++++++++++++++++++++++++++-
+ net/smc/smc.h            |  1 +
+ 4 files changed, 74 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/socket.h b/include/linux/socket.h
+index 8ef26d8..6f85f5d 100644
+--- a/include/linux/socket.h
++++ b/include/linux/socket.h
+@@ -366,6 +366,7 @@ struct ucred {
+ #define SOL_XDP		283
+ #define SOL_MPTCP	284
+ #define SOL_MCTP	285
++#define SOL_SMC		286
+ 
+ /* IPX options */
+ #define IPX_TYPE	1
+diff --git a/include/uapi/linux/smc.h b/include/uapi/linux/smc.h
+index 6c2874f..9f2cbf8 100644
+--- a/include/uapi/linux/smc.h
++++ b/include/uapi/linux/smc.h
+@@ -284,4 +284,8 @@ enum {
+ 	__SMC_NLA_SEID_TABLE_MAX,
+ 	SMC_NLA_SEID_TABLE_MAX = __SMC_NLA_SEID_TABLE_MAX - 1
+ };
++
++/* SMC socket options */
++#define SMC_AUTO_FALLBACK 1	/* allow auto fallback to TCP */
++
+ #endif /* _UAPI_LINUX_SMC_H */
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 8175f60..c313561 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -2325,7 +2325,8 @@ static int smc_listen(struct socket *sock, int backlog)
+ 
+ 	inet_csk(smc->clcsock->sk)->icsk_af_ops = &smc->af_ops;
+ 
+-	tcp_sk(smc->clcsock->sk)->smc_in_limited = smc_is_in_limited;
++	if (smc->auto_fallback)
++		tcp_sk(smc->clcsock->sk)->smc_in_limited = smc_is_in_limited;
+ 
+ 	rc = kernel_listen(smc->clcsock, backlog);
+ 	if (rc) {
+@@ -2620,6 +2621,67 @@ static int smc_shutdown(struct socket *sock, int how)
+ 	return rc ? rc : rc1;
+ }
+ 
++static int __smc_getsockopt(struct socket *sock, int level, int optname,
++			    char __user *optval, int __user *optlen)
++{
++	struct smc_sock *smc;
++	int val, len;
++
++	smc = smc_sk(sock->sk);
++
++	if (get_user(len, optlen))
++		return -EFAULT;
++
++	len = min_t(int, len, sizeof(int));
++
++	if (len < 0)
++		return -EINVAL;
++
++	switch (optname) {
++	case SMC_AUTO_FALLBACK:
++		val = smc->auto_fallback;
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
++	if (put_user(len, optlen))
++		return -EFAULT;
++	if (copy_to_user(optval, &val, len))
++		return -EFAULT;
++
++	return 0;
++}
++
++static int __smc_setsockopt(struct socket *sock, int level, int optname,
++			    sockptr_t optval, unsigned int optlen)
++{
++	struct sock *sk = sock->sk;
++	struct smc_sock *smc;
++	int val, rc;
++
++	smc = smc_sk(sk);
++
++	lock_sock(sk);
++	switch (optname) {
++	case SMC_AUTO_FALLBACK:
++		if (optlen < sizeof(int))
++			return -EINVAL;
++		if (copy_from_sockptr(&val, optval, sizeof(int)))
++			return -EFAULT;
++
++		smc->auto_fallback = !!val;
++		rc = 0;
++		break;
++	default:
++		rc = -EOPNOTSUPP;
++		break;
++	}
++	release_sock(sk);
++
++	return rc;
++}
++
+ static int smc_setsockopt(struct socket *sock, int level, int optname,
+ 			  sockptr_t optval, unsigned int optlen)
+ {
+@@ -2629,6 +2691,8 @@ static int smc_setsockopt(struct socket *sock, int level, int optname,
+ 
+ 	if (level == SOL_TCP && optname == TCP_ULP)
+ 		return -EOPNOTSUPP;
++	else if (level == SOL_SMC)
++		return __smc_setsockopt(sock, level, optname, optval, optlen);
+ 
+ 	smc = smc_sk(sk);
+ 
+@@ -2711,6 +2775,9 @@ static int smc_getsockopt(struct socket *sock, int level, int optname,
+ 	struct smc_sock *smc;
+ 	int rc;
+ 
++	if (level == SOL_SMC)
++		return __smc_getsockopt(sock, level, optname, optval, optlen);
++
+ 	smc = smc_sk(sock->sk);
+ 	mutex_lock(&smc->clcsock_release_lock);
+ 	if (!smc->clcsock) {
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index 5e5e38d..a0bdf75 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -249,6 +249,7 @@ struct smc_sock {				/* smc sock container */
+ 	struct work_struct	smc_listen_work;/* prepare new accept socket */
+ 	struct list_head	accept_q;	/* sockets to be accepted */
+ 	spinlock_t		accept_q_lock;	/* protects accept_q */
++	bool			auto_fallback;	/* auto fallabck to tcp */
+ 	bool			use_fallback;	/* fallback to tcp */
+ 	int			fallback_rsn;	/* reason for fallback */
+ 	u32			peer_diagnosis; /* decline reason from peer */
+-- 
+1.8.3.1
+
