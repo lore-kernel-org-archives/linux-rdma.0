@@ -2,143 +2,357 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B754C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 19:25:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC35C4332F
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 22:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1385664AbiBHTZW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Feb 2022 14:25:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35532 "EHLO
+        id S1386620AbiBHWYa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Feb 2022 17:24:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1349608AbiBHTZW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 14:25:22 -0500
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com (mail-sn1anam02on2128.outbound.protection.outlook.com [40.107.96.128])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 396EEC0613CB
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Feb 2022 11:25:21 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=YUMUH11XyIcTz7DZpQcmnmGY2mO0c9a0ZAEHT4FTLgB3vW0tcXK2TvWsMN/PnC2OsxYqL6kPqjleeY3TEhmgikEf3p9RWubU5QkNkAhz97jcdfhuKEcAGA+vuYYycxOPfpagrMinfAkbuouuyghA/SqmLT1lJt4KbIGv+30U5RPPHZWW6f4i9HhSjXKczIFqc8xQikNcAtttJOL5f3ccpnBhfn/jVtp5PbbL3cN4vFYUuGE05exm5VG4GnKlG2qWbn8DjGUoK0BrAPOA69DGWARoGGyn7nWOkVxzTx7tvGZNKpihKM+7ObNFruHbcEBnxMM/hwUrEY7MLjws2R7M4g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=jTFPrBM5okCaUmoKDChFZsF1OqAfddZCimzoT4eRJPg=;
- b=A5vyMwzaoyvT6N5t3r0fAPsFUOiHeaSUBS515qNAajfXlxp5+mSg9kL6QufJgdP1Pe0WzsCfowrJSqdIXkNR7UbX5yiGqSZuVf4l5dmSa4Ee/I5qorSJJaX7kIsDasK1PXfI17rph4rlMGWJuGHTE76KAAtiz52sE+1EgtZQNmfzR+zOHtCNByY1v3lMkHPELQLW8L7hlVsEvdIWcMOZUOrXWb+xLTrSk7aVxHzWmVvt4ynIGo0htjo4iE7Jrmpp59GJO7G11IqczBjDsIMM0mD/R0muknRr5a0ZoWvWrSJzWO92At2/pWR0ifaNdfWo92pgC8FoPfQzQLnejKIqbg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
- dkim=none; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=jTFPrBM5okCaUmoKDChFZsF1OqAfddZCimzoT4eRJPg=;
- b=evUp/++AQw6qPDEHwIhoKp2bhGfugaWjSvjubGvSlpVU4e/nEF4ytOSPgmpjZCQo3OOc2ZVf8zUAKdFiCQ3w7YJTMdZ6z0hUTewNK59RWjyoh88RhuqxI8AhN3dVx8ppnJuflxAw/9+xQs3YeIUDtZxd4vHby2twbffgtlNdAdzn3aRyrXAW5xEH4MbS0QuuxuewBNgqEnsXRceRVUodBVn+ZgWNkFsOgD84fzrXUmhQABXJAftpZXr+HCbP4NunyMntPGut9/eKbD/vw1TSQWC+XI5nxvl4R8GHuOGfwHAaVeNdVqJdgqR4AcsMtj9UZEU/3jc6DYac8FgScxmuAQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=cornelisnetworks.com;
-Received: from CH0PR01MB7153.prod.exchangelabs.com (2603:10b6:610:ea::7) by
- DM6PR01MB5931.prod.exchangelabs.com (2603:10b6:5:200::29) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.4951.16; Tue, 8 Feb 2022 19:25:19 +0000
-Received: from CH0PR01MB7153.prod.exchangelabs.com
- ([fe80::110:392e:efd1:88d0]) by CH0PR01MB7153.prod.exchangelabs.com
- ([fe80::110:392e:efd1:88d0%7]) with mapi id 15.20.4951.019; Tue, 8 Feb 2022
- 19:25:19 +0000
-From:   mike.marciniszyn@cornelisnetworks.com
-To:     jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
-Subject: [PATCH for-rc] IB/hfi1: Allow larger MTU without AIP
-Date:   Tue,  8 Feb 2022 14:25:09 -0500
-Message-Id: <1644348309-174874-1-git-send-email-mike.marciniszyn@cornelisnetworks.com>
-X-Mailer: git-send-email 1.8.3.1
-Content-Type: text/plain
-X-ClientProxiedBy: BL1PR13CA0440.namprd13.prod.outlook.com
- (2603:10b6:208:2c3::25) To CH0PR01MB7153.prod.exchangelabs.com
- (2603:10b6:610:ea::7)
+        with ESMTP id S1386866AbiBHVRT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 16:17:19 -0500
+Received: from mail-oo1-xc36.google.com (mail-oo1-xc36.google.com [IPv6:2607:f8b0:4864:20::c36])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B812CC0612B8
+        for <linux-rdma@vger.kernel.org>; Tue,  8 Feb 2022 13:17:17 -0800 (PST)
+Received: by mail-oo1-xc36.google.com with SMTP id o192-20020a4a2cc9000000b00300af40d795so113180ooo.13
+        for <linux-rdma@vger.kernel.org>; Tue, 08 Feb 2022 13:17:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=fUNciH/hkWjnuuT5P1MnljhT7pAEeg4AIrHOcJWnmPs=;
+        b=io9ytJmCkvpMyiUMweIHCy52gnJncw98AoZhhKYH1Zykn74XQBwhY59T8LrK9+iT4M
+         itR6U0CB3btSrHqliu7bow2d8oE+YiQGEcT0VkKHES4Q7/jDhoO1laRlQ1JTr+J73NqG
+         Mwz1oqicjPXXhy93zSfqhOvYZmXUl5oQrtze1/bZQneWA1uGqol5hvacdUsNLCb8qNWB
+         M/ZAZrsiFjqnT8vJ/5nggZ7ZQVQLYPcrca10unQLWkYcAjshoTrk2Fb2CrajxBPM5sot
+         xB4vXBuJksDMURDhlOHRRYxSLzU8FETxI7MCfKLEF2JS/uV5udeGMoTNvO+Dp9UfhquT
+         d63w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=fUNciH/hkWjnuuT5P1MnljhT7pAEeg4AIrHOcJWnmPs=;
+        b=5tgwSqj2uPVRhIIkca7PT+8Qu2KJ3JgtuKVHSz0Ek2jXiYeDuISl7HqNQovzdKiZLu
+         jUoYSHfV1gI7KKt0pbr/vdXBVhCGyOk3iIX3M7TWJpcKp267r1EgLY9GjIn2A2hY9c8X
+         UeI68Q2iCKwvEAWyBoQq3JCzc/54ySCdkxSowjkppc1NQIT2/hE7LWOveVpp19CpUodJ
+         sDS2Bh/rs1ByclJ6ZgoSXijvbfNVI3V+Rj4nOAJH5rRtBdHZf0I/j2vR5nEJPbCveVMC
+         5VSOUzw0IMQNukvG8b8l7FAqfDcaCLnM7LCrjS3ve+PS00qmoQOE4QG4SaQ21XFd4fWv
+         HLsQ==
+X-Gm-Message-State: AOAM530wC6Q2BATdezn/zkC07hprbxQLIOUgwyyEAwnx0WiBEK5Wk9CU
+        cT/sNGil914tTM2/dbs/qUM=
+X-Google-Smtp-Source: ABdhPJwHHFwc7OLTQH1CBkOFrPUNjVCjncdrAwug3lXX8oH9Qf5tOrL05BD6fCIop2qw05rvpxnr1A==
+X-Received: by 2002:a05:6870:8222:: with SMTP id n34mr1019239oae.67.1644355036957;
+        Tue, 08 Feb 2022 13:17:16 -0800 (PST)
+Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-2501-ba3f-d39d-75da.res6.spectrum.com. [2603:8081:140c:1a00:2501:ba3f:d39d:75da])
+        by smtp.googlemail.com with ESMTPSA id bh7sm2145462oib.6.2022.02.08.13.17.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 08 Feb 2022 13:17:16 -0800 (PST)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v11 03/11] RDMA/rxe: Replace grp by mcg, mce by mca
+Date:   Tue,  8 Feb 2022 15:16:37 -0600
+Message-Id: <20220208211644.123457-4-rpearsonhpe@gmail.com>
+X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20220208211644.123457-1-rpearsonhpe@gmail.com>
+References: <20220208211644.123457-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 59d4610e-1efb-4c40-1185-08d9eb38be57
-X-MS-TrafficTypeDiagnostic: DM6PR01MB5931:EE_
-X-Microsoft-Antispam-PRVS: <DM6PR01MB59319E3A00A68678C2A2787FF22D9@DM6PR01MB5931.prod.exchangelabs.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4303;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: lAsnMe05o7DR5iWWo7iMAa1uoSJsr+5661H5R/tKHRPkvhMzmlej4XJ0I5TKUhdDKZv59NWT9yIeaes1vM3VeL6QLByFkOtybIjBQWz1agZAzU715luCCztyM6nQt22GNK8n4OqvoPV/EBvoc8QtHKxiGkpX96Fs2RHdU/d7YUCbS1hcqOaCMz9Xyoi1x6aZy5bqjI4zk579xW3+c1jDAhYG/whCQ0KChqk+m3x/nRcgw16DEccpk/KM9DYEleikDw70dDRzZAEVEMb/rNCU6QU9O8Dqz4dDuFl/ZE8064qjoqEj0rq5idbO4rIhU8NlNiSvO8z/p/4IHCPiy8bFMy9XgEyJyZN84kCtVb5H9uwKlxDEQInhOdw1O/nN+MqMXwWQnY/KvWPuRrk8yCs+NQ2OqernVaZ5sKO6rMbCG5A45CPEmEi09Mx15a+CgEm+KOYECN8/HfsXOff4DZhVEJkC2LIgh58hjCN//3kmC4ix4o+U0RZVGJVThK+RBR9LU+ETr28e/ojtj73sAiONkHAVnw/zPdPPwgMeIXvyawONx8/0a/kBqkoFCdc6hC/0FsWtpxTsr81XfXKHI4x7Bc1DqmYojTu31bo+u2TQggwjSyDPdOMPgWQV1yNrgAqSgqPc90SURDsb/WpKjIIuF/iNq9ttMRWOP7OC90yVHdnpsbAbpJLhyKdJXdN/hDJAyYXuwB8ZV7k0dCavRiARUQ==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH0PR01MB7153.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(136003)(396003)(366004)(39840400004)(346002)(376002)(38100700002)(6916009)(83380400001)(186003)(26005)(2616005)(2906002)(107886003)(38350700002)(316002)(66556008)(66946007)(66476007)(6506007)(5660300002)(8676002)(6512007)(6666004)(9686003)(508600001)(4326008)(36756003)(86362001)(52116002)(6486002)(8936002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?eKXNHZVvdj/0Tj2cgH0RlOAeOaZ6U4iAQ9M3v6qRLocfSs58CBEHr2B2tmWJ?=
- =?us-ascii?Q?4AfFPuS//mFGcnQkPjVRMA6zYVzEltDc0B0aXt1NQw47g99lcIN+BcYkCmPr?=
- =?us-ascii?Q?HVIPEnaTxZeSuhc6YtuZNqntiVXtsz7ddiimei7t96ZXzgK+/7Ghhy1/SAiF?=
- =?us-ascii?Q?bE3QiHOqvkOm995+Sah/1I6Z2wdTWik14FVUhhIHS4B4gNvyLogT+8LeWCCf?=
- =?us-ascii?Q?4EiaeZUl8F6tPT2yUDymwTPkmDGa+nX6aZCXx0XEX3CTE4/4C/1yAgxQsiy+?=
- =?us-ascii?Q?7fSCtKgtgewoG7790+vaTSquIPYoq3hMSWHsOmlatYoNItP8txwhQqkfpYvq?=
- =?us-ascii?Q?khe83WJ4XOPw9kgmPN4FKBoPPxruCzx45vrpNHKtSuEPh7jZF3fXwdW8xEkG?=
- =?us-ascii?Q?T9DuL5BThYNKqkwUC8NQgDOaevIu8VnONb845TSR+XjZXtWq9iRLa12gO504?=
- =?us-ascii?Q?E4Hpeo7CzwwEE7n9EYdTx/SEkrOXh1uTQypDGDi6kdeXm+DReOKSzbzej6Gi?=
- =?us-ascii?Q?21MgimzSHfiJ+eZgENlfYn18p+B6BeohuoaHbPMN8nj4FHZhY5JMwAh83GGV?=
- =?us-ascii?Q?9fDeUpJAPFTx1nXpg7o+fOYOSM2pygAuiuaoo0frMGedbx0U8Qagw+TD0INW?=
- =?us-ascii?Q?3HDVGwlOrBrK9YzCH6cBvKqMrsNgm3d40V65UqU6FHNM/y3mbKTTEJ8NT9Me?=
- =?us-ascii?Q?qlLCgxHETliEsSaDmwYJ+u27BiD33mu/mTGA3xNzce6kwbPxcnDgo32bNy7p?=
- =?us-ascii?Q?I3q1j3kqhqDjpqgfXueCNApLjK5PvNAApQdm43HOOxjvDl/4aLQqWEJskwhG?=
- =?us-ascii?Q?oNP70I3/mTBwPzSxh0bx47jgHEod/nxu//yLPbiU2FiEqFfV8s7grPom5t+a?=
- =?us-ascii?Q?y1QFip+xNL2Lg2sR3HszXn2l7ljvvkuaGIHTeYriDqOpndd24Lhtd5NXk6EZ?=
- =?us-ascii?Q?SsuC4tLCq5HedVD2fh1wsH9JncrUft3OdTH1D7FJObtHWHK2b+6QMv9BeQmo?=
- =?us-ascii?Q?shihr1D5I87/Xi85B1dGYC49io5YqJUf4xnxlz5ZCc4GNXYOSKdtrGNoSqbq?=
- =?us-ascii?Q?PbERBPPctbYbZjPhMzQleXuxPUEPkC2Hd9ba+6qlviJ4w0eU3r61G3pb3ROc?=
- =?us-ascii?Q?QOuLPJn02yo+P2bBIr0q1tPB5r5W6JG6f1GVZb19NDrjCtZd9R1fN53OvOck?=
- =?us-ascii?Q?6N2F3tzfLNxYnn13oAjNdnNuKngpwpNnqcPUxrno4mTQFUGAgprS2oWsuOLi?=
- =?us-ascii?Q?sr3S1FSj7I3JLkceYe7mWoqOjwq+S19Vnvma5E1XubI1aGfng9DD/mqGRmdX?=
- =?us-ascii?Q?DabvYdc2yxRCrTffU3zCDj3JBuhTX8Mcfa46rNyGL5UGfclt07Lseb8vmORu?=
- =?us-ascii?Q?1lCW1Wsmc2U22y3xVsaGHAsiGbKWfePGL2tyAczSUwh4WwcWTkRW+dibQN97?=
- =?us-ascii?Q?wAS7UZzTUsw9sKkC1f+nmeX6DAVm1E1SAjBQnuG882s8HZnm442n1lC2zKiv?=
- =?us-ascii?Q?yTgqOVLCgtnOHuZVnHMBzYD1iRBRKXHIgoisl3bt2nizxklAYedmIIQQIENR?=
- =?us-ascii?Q?UlFPDEuXQ9SkFg2xMtqCZltZVSfGtBqd41hhJPcN1N3UpMYtO4avKMm+WGA5?=
- =?us-ascii?Q?Vrp15jVHhMkHLZ8g1UjN052DxfMXX7rMU+8DqVS064kdfqD6Hg2Km8FRlMiW?=
- =?us-ascii?Q?2DVG1d6SG+UaI5dHD6B3ASZo6W1jXITz3InxdPE67IsuIs32sgeIDxrmSRBd?=
- =?us-ascii?Q?bPgik/ynwQ=3D=3D?=
-X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 59d4610e-1efb-4c40-1185-08d9eb38be57
-X-MS-Exchange-CrossTenant-AuthSource: CH0PR01MB7153.prod.exchangelabs.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Feb 2022 19:25:19.6989
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: G8lBGjHPbx+GWZaZ7l0ME0+w6hyMhgez7r/UWgEmIdhtoYvP1YwaGkAlPpuwM8rBH4WO4XIdEa3MYvNo2QJBteg+fZzvTGtG09kv7lhg1oak2kSo2JXI8AfcYbg0CoDn
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR01MB5931
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Replace 'grp' by 'mcg', 'mce' by 'mca'.
+Shorten subroutine names in rxe_mcast.c.
+These name uses are more in line with other object names used.
 
-The AIP code signals the phys_mtu in the following query_port()
-fragment:
-
-	props->phys_mtu = HFI1_CAP_IS_KSET(AIP) ? hfi1_max_mtu :
-				ib_mtu_enum_to_int(props->max_mtu);
-
-Using the largest MTU possible should not depend on AIP.
-
-Fix by unconditionally using the hfi1_max_mtu value.
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/hw/hfi1/verbs.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_mcast.c | 110 +++++++++++++-------------
+ drivers/infiniband/sw/rxe/rxe_recv.c  |   8 +-
+ 2 files changed, 59 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index dc9211f..99d0743 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1397,8 +1397,7 @@ static int query_port(struct rvt_dev_info *rdi, u32 port_num,
- 				      4096 : hfi1_max_mtu), IB_MTU_4096);
- 	props->active_mtu = !valid_ib_mtu(ppd->ibmtu) ? props->max_mtu :
- 		mtu_to_enum(ppd->ibmtu, IB_MTU_4096);
--	props->phys_mtu = HFI1_CAP_IS_KSET(AIP) ? hfi1_max_mtu :
--				ib_mtu_enum_to_int(props->max_mtu);
-+	props->phys_mtu = hfi1_max_mtu;
- 
- 	return 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
+index 3c06b0590c82..96dc11a892a4 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mcast.c
++++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
+@@ -26,66 +26,66 @@ static int rxe_mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
  }
+ 
+ /* caller should hold rxe->mcg_lock */
+-static struct rxe_mcg *__rxe_create_grp(struct rxe_dev *rxe,
++static struct rxe_mcg *__rxe_create_mcg(struct rxe_dev *rxe,
+ 					struct rxe_pool *pool,
+ 					union ib_gid *mgid)
+ {
+-	struct rxe_mcg *grp;
++	struct rxe_mcg *mcg;
+ 	int err;
+ 
+-	grp = rxe_alloc_locked(pool);
+-	if (!grp)
++	mcg = rxe_alloc_locked(pool);
++	if (!mcg)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	err = rxe_mcast_add(rxe, mgid);
+ 	if (unlikely(err)) {
+-		rxe_drop_ref(grp);
++		rxe_drop_ref(mcg);
+ 		return ERR_PTR(err);
+ 	}
+ 
+-	INIT_LIST_HEAD(&grp->qp_list);
+-	grp->rxe = rxe;
++	INIT_LIST_HEAD(&mcg->qp_list);
++	mcg->rxe = rxe;
+ 
+-	/* rxe_alloc_locked takes a ref on grp but that will be
+-	 * dropped when grp goes out of scope. We need to take a ref
++	/* rxe_alloc_locked takes a ref on mcg but that will be
++	 * dropped when mcg goes out of scope. We need to take a ref
+ 	 * on the pointer that will be saved in the red-black tree
+-	 * by rxe_add_key and used to lookup grp from mgid later.
++	 * by rxe_add_key and used to lookup mcg from mgid later.
+ 	 * Adding key makes object visible to outside so this should
+ 	 * be done last after the object is ready.
+ 	 */
+-	rxe_add_ref(grp);
+-	rxe_add_key_locked(grp, mgid);
++	rxe_add_ref(mcg);
++	rxe_add_key_locked(mcg, mgid);
+ 
+-	return grp;
++	return mcg;
+ }
+ 
+-static struct rxe_mcg *rxe_mcast_get_grp(struct rxe_dev *rxe,
++static struct rxe_mcg *rxe_get_mcg(struct rxe_dev *rxe,
+ 					 union ib_gid *mgid)
+ {
+-	struct rxe_mcg *grp;
++	struct rxe_mcg *mcg;
+ 	struct rxe_pool *pool = &rxe->mc_grp_pool;
+ 
+ 	if (rxe->attr.max_mcast_qp_attach == 0)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	spin_lock_bh(&rxe->mcg_lock);
+-	grp = rxe_pool_get_key_locked(pool, mgid);
+-	if (!grp)
+-		grp = __rxe_create_grp(rxe, pool, mgid);
++	mcg = rxe_pool_get_key_locked(pool, mgid);
++	if (!mcg)
++		mcg = __rxe_create_mcg(rxe, pool, mgid);
+ 	spin_unlock_bh(&rxe->mcg_lock);
+ 
+-	return grp;
++	return mcg;
+ }
+ 
+-static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+-				  struct rxe_mcg *grp)
++static int rxe_attach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
++				  struct rxe_mcg *mcg)
+ {
+ 	struct rxe_mca *mca, *tmp;
+ 	int err;
+ 
+ 	/* check to see if the qp is already a member of the group */
+ 	spin_lock_bh(&rxe->mcg_lock);
+-	list_for_each_entry(mca, &grp->qp_list, qp_list) {
++	list_for_each_entry(mca, &mcg->qp_list, qp_list) {
+ 		if (mca->qp == qp) {
+ 			spin_unlock_bh(&rxe->mcg_lock);
+ 			return 0;
+@@ -100,7 +100,7 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 
+ 	spin_lock_bh(&rxe->mcg_lock);
+ 	/* re-check to see if someone else just attached qp */
+-	list_for_each_entry(tmp, &grp->qp_list, qp_list) {
++	list_for_each_entry(tmp, &mcg->qp_list, qp_list) {
+ 		if (tmp->qp == qp) {
+ 			kfree(mca);
+ 			err = 0;
+@@ -109,7 +109,7 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 	}
+ 
+ 	/* check limits after checking if already attached */
+-	if (grp->num_qp >= rxe->attr.max_mcast_qp_attach) {
++	if (mcg->num_qp >= rxe->attr.max_mcast_qp_attach) {
+ 		kfree(mca);
+ 		err = -ENOMEM;
+ 		goto out;
+@@ -120,8 +120,8 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 	mca->qp = qp;
+ 
+ 	atomic_inc(&qp->mcg_num);
+-	grp->num_qp++;
+-	list_add(&mca->qp_list, &grp->qp_list);
++	mcg->num_qp++;
++	list_add(&mca->qp_list, &mcg->qp_list);
+ 
+ 	err = 0;
+ out:
+@@ -130,21 +130,21 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ }
+ 
+ /* caller should be holding rxe->mcg_lock */
+-static void __rxe_destroy_grp(struct rxe_mcg *grp)
++static void __rxe_destroy_mcg(struct rxe_mcg *mcg)
+ {
+-	/* first remove grp from red-black tree then drop ref */
+-	rxe_drop_key_locked(grp);
+-	rxe_drop_ref(grp);
++	/* first remove mcg from red-black tree then drop ref */
++	rxe_drop_key_locked(mcg);
++	rxe_drop_ref(mcg);
+ 
+-	rxe_mcast_delete(grp->rxe, &grp->mgid);
++	rxe_mcast_delete(mcg->rxe, &mcg->mgid);
+ }
+ 
+-static void rxe_destroy_grp(struct rxe_mcg *grp)
++static void rxe_destroy_mcg(struct rxe_mcg *mcg)
+ {
+-	struct rxe_dev *rxe = grp->rxe;
++	struct rxe_dev *rxe = mcg->rxe;
+ 
+ 	spin_lock_bh(&rxe->mcg_lock);
+-	__rxe_destroy_grp(grp);
++	__rxe_destroy_mcg(mcg);
+ 	spin_unlock_bh(&rxe->mcg_lock);
+ }
+ 
+@@ -153,22 +153,22 @@ void rxe_mc_cleanup(struct rxe_pool_elem *elem)
+ 	/* nothing left to do for now */
+ }
+ 
+-static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
++static int rxe_detach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 				   union ib_gid *mgid)
+ {
+-	struct rxe_mcg *grp;
++	struct rxe_mcg *mcg;
+ 	struct rxe_mca *mca, *tmp;
+ 	int err;
+ 
+ 	spin_lock_bh(&rxe->mcg_lock);
+-	grp = rxe_pool_get_key_locked(&rxe->mc_grp_pool, mgid);
+-	if (!grp) {
++	mcg = rxe_pool_get_key_locked(&rxe->mc_grp_pool, mgid);
++	if (!mcg) {
+ 		/* we didn't find the mcast group for mgid */
+ 		err = -EINVAL;
+ 		goto out_unlock;
+ 	}
+ 
+-	list_for_each_entry_safe(mca, tmp, &grp->qp_list, qp_list) {
++	list_for_each_entry_safe(mca, tmp, &mcg->qp_list, qp_list) {
+ 		if (mca->qp == qp) {
+ 			list_del(&mca->qp_list);
+ 
+@@ -178,16 +178,16 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 			 * object since we are still holding a ref
+ 			 * from the get key above.
+ 			 */
+-			grp->num_qp--;
+-			if (grp->num_qp <= 0)
+-				__rxe_destroy_grp(grp);
++			mcg->num_qp--;
++			if (mcg->num_qp <= 0)
++				__rxe_destroy_mcg(mcg);
+ 
+ 			atomic_dec(&qp->mcg_num);
+ 
+ 			/* drop the ref from get key. This will free the
+ 			 * object if num_qp is zero.
+ 			 */
+-			rxe_drop_ref(grp);
++			rxe_drop_ref(mcg);
+ 			kfree(mca);
+ 			err = 0;
+ 			goto out_unlock;
+@@ -195,7 +195,7 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 	}
+ 
+ 	/* we didn't find the qp on the list */
+-	rxe_drop_ref(grp);
++	rxe_drop_ref(mcg);
+ 	err = -EINVAL;
+ 
+ out_unlock:
+@@ -208,20 +208,20 @@ int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
+ 	int err;
+ 	struct rxe_dev *rxe = to_rdev(ibqp->device);
+ 	struct rxe_qp *qp = to_rqp(ibqp);
+-	struct rxe_mcg *grp;
++	struct rxe_mcg *mcg;
+ 
+-	/* takes a ref on grp if successful */
+-	grp = rxe_mcast_get_grp(rxe, mgid);
+-	if (IS_ERR(grp))
+-		return PTR_ERR(grp);
++	/* takes a ref on mcg if successful */
++	mcg = rxe_get_mcg(rxe, mgid);
++	if (IS_ERR(mcg))
++		return PTR_ERR(mcg);
+ 
+-	err = rxe_mcast_add_grp_elem(rxe, qp, grp);
++	err = rxe_attach_mcg(rxe, qp, mcg);
+ 
+-	/* if we failed to attach the first qp to grp tear it down */
+-	if (grp->num_qp == 0)
+-		rxe_destroy_grp(grp);
++	/* if we failed to attach the first qp to mcg tear it down */
++	if (mcg->num_qp == 0)
++		rxe_destroy_mcg(mcg);
+ 
+-	rxe_drop_ref(grp);
++	rxe_drop_ref(mcg);
+ 	return err;
+ }
+ 
+@@ -230,5 +230,5 @@ int rxe_detach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
+ 	struct rxe_dev *rxe = to_rdev(ibqp->device);
+ 	struct rxe_qp *qp = to_rqp(ibqp);
+ 
+-	return rxe_mcast_drop_grp_elem(rxe, qp, mgid);
++	return rxe_detach_mcg(rxe, qp, mgid);
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+index a084b5d69937..d91c6660e83c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_recv.c
++++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+@@ -234,7 +234,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+ {
+ 	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
+ 	struct rxe_mcg *mcg;
+-	struct rxe_mca *mce;
++	struct rxe_mca *mca;
+ 	struct rxe_qp *qp;
+ 	union ib_gid dgid;
+ 	int err;
+@@ -257,8 +257,8 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+ 	 * single QP happen and just move on and try
+ 	 * the rest of them on the list
+ 	 */
+-	list_for_each_entry(mce, &mcg->qp_list, qp_list) {
+-		qp = mce->qp;
++	list_for_each_entry(mca, &mcg->qp_list, qp_list) {
++		qp = mca->qp;
+ 
+ 		/* validate qp for incoming packet */
+ 		err = check_type_state(rxe, pkt, qp);
+@@ -273,7 +273,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+ 		 * skb and pass to the QP. Pass the original skb to
+ 		 * the last QP in the list.
+ 		 */
+-		if (mce->qp_list.next != &mcg->qp_list) {
++		if (mca->qp_list.next != &mcg->qp_list) {
+ 			struct sk_buff *cskb;
+ 			struct rxe_pkt_info *cpkt;
+ 
 -- 
-1.8.3.1
+2.32.0
 
