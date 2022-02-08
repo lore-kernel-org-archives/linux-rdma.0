@@ -2,357 +2,193 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AC35C4332F
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 22:24:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 835D7C433F5
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Feb 2022 22:24:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1386620AbiBHWYa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Feb 2022 17:24:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37670 "EHLO
+        id S1386590AbiBHWYg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Feb 2022 17:24:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1386866AbiBHVRT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 16:17:19 -0500
-Received: from mail-oo1-xc36.google.com (mail-oo1-xc36.google.com [IPv6:2607:f8b0:4864:20::c36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B812CC0612B8
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Feb 2022 13:17:17 -0800 (PST)
-Received: by mail-oo1-xc36.google.com with SMTP id o192-20020a4a2cc9000000b00300af40d795so113180ooo.13
-        for <linux-rdma@vger.kernel.org>; Tue, 08 Feb 2022 13:17:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=fUNciH/hkWjnuuT5P1MnljhT7pAEeg4AIrHOcJWnmPs=;
-        b=io9ytJmCkvpMyiUMweIHCy52gnJncw98AoZhhKYH1Zykn74XQBwhY59T8LrK9+iT4M
-         itR6U0CB3btSrHqliu7bow2d8oE+YiQGEcT0VkKHES4Q7/jDhoO1laRlQ1JTr+J73NqG
-         Mwz1oqicjPXXhy93zSfqhOvYZmXUl5oQrtze1/bZQneWA1uGqol5hvacdUsNLCb8qNWB
-         M/ZAZrsiFjqnT8vJ/5nggZ7ZQVQLYPcrca10unQLWkYcAjshoTrk2Fb2CrajxBPM5sot
-         xB4vXBuJksDMURDhlOHRRYxSLzU8FETxI7MCfKLEF2JS/uV5udeGMoTNvO+Dp9UfhquT
-         d63w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=fUNciH/hkWjnuuT5P1MnljhT7pAEeg4AIrHOcJWnmPs=;
-        b=5tgwSqj2uPVRhIIkca7PT+8Qu2KJ3JgtuKVHSz0Ek2jXiYeDuISl7HqNQovzdKiZLu
-         jUoYSHfV1gI7KKt0pbr/vdXBVhCGyOk3iIX3M7TWJpcKp267r1EgLY9GjIn2A2hY9c8X
-         UeI68Q2iCKwvEAWyBoQq3JCzc/54ySCdkxSowjkppc1NQIT2/hE7LWOveVpp19CpUodJ
-         sDS2Bh/rs1ByclJ6ZgoSXijvbfNVI3V+Rj4nOAJH5rRtBdHZf0I/j2vR5nEJPbCveVMC
-         5VSOUzw0IMQNukvG8b8l7FAqfDcaCLnM7LCrjS3ve+PS00qmoQOE4QG4SaQ21XFd4fWv
-         HLsQ==
-X-Gm-Message-State: AOAM530wC6Q2BATdezn/zkC07hprbxQLIOUgwyyEAwnx0WiBEK5Wk9CU
-        cT/sNGil914tTM2/dbs/qUM=
-X-Google-Smtp-Source: ABdhPJwHHFwc7OLTQH1CBkOFrPUNjVCjncdrAwug3lXX8oH9Qf5tOrL05BD6fCIop2qw05rvpxnr1A==
-X-Received: by 2002:a05:6870:8222:: with SMTP id n34mr1019239oae.67.1644355036957;
-        Tue, 08 Feb 2022 13:17:16 -0800 (PST)
-Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-2501-ba3f-d39d-75da.res6.spectrum.com. [2603:8081:140c:1a00:2501:ba3f:d39d:75da])
-        by smtp.googlemail.com with ESMTPSA id bh7sm2145462oib.6.2022.02.08.13.17.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Feb 2022 13:17:16 -0800 (PST)
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v11 03/11] RDMA/rxe: Replace grp by mcg, mce by mca
-Date:   Tue,  8 Feb 2022 15:16:37 -0600
-Message-Id: <20220208211644.123457-4-rpearsonhpe@gmail.com>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20220208211644.123457-1-rpearsonhpe@gmail.com>
-References: <20220208211644.123457-1-rpearsonhpe@gmail.com>
+        with ESMTP id S1386900AbiBHVSm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Feb 2022 16:18:42 -0500
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62D37C0612B8;
+        Tue,  8 Feb 2022 13:18:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1644355119; x=1675891119;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-id:content-transfer-encoding:
+   mime-version;
+  bh=mfPH6OgpBTO2ohppjiYaJi1VDRHZLxPQPiLjqtPCbL8=;
+  b=YRC4Zq8CqVcXe9YFLLSPp9l/y2qxK+WiQJcYvVCRgeHWnqJuFp9Eph3R
+   g9wodcPlhWlfy2cXB/1kEnCnRIezKmNRO0LVo5zzvGmFyRhtAtHRNQniP
+   uJpmCtCQCQ3lby7FPcqtU766sV/a0P1h3gbVeioIJtUbJUCYmbV1tvkog
+   VRJYATqIm2u4yVm9vrbqHMFphK1lNgvlGhrjzCdjXrgceC6QPj8BQ98Dh
+   UjLiUtWgxMamr8HKKxE7ce7y3Jxkxh+U6K4Ep6PFghcDq/bQCn98wWXc6
+   8VM+oHnM7HCmCUMyWze0VHWf6UrLC1j3vq7tkAc9YXJ/GDqNDVk7tpq9S
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10252"; a="249262434"
+X-IronPort-AV: E=Sophos;i="5.88,353,1635231600"; 
+   d="scan'208";a="249262434"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2022 13:18:39 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,353,1635231600"; 
+   d="scan'208";a="536703766"
+Received: from fmsmsx604.amr.corp.intel.com ([10.18.126.84])
+  by fmsmga007.fm.intel.com with ESMTP; 08 Feb 2022 13:18:39 -0800
+Received: from fmsmsx607.amr.corp.intel.com (10.18.126.87) by
+ fmsmsx604.amr.corp.intel.com (10.18.126.84) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Tue, 8 Feb 2022 13:18:38 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx607.amr.corp.intel.com (10.18.126.87) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Tue, 8 Feb 2022 13:18:38 -0800
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20 via Frontend Transport; Tue, 8 Feb 2022 13:18:38 -0800
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.40) by
+ edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2308.20; Tue, 8 Feb 2022 13:18:38 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=NYcQCcuF4rAQ6YGgK58Z+DlcjJbyCjCl66Xd/fAY1Zcnlp7x/kgn6RXVjo0Q/rJjc+bSopNSCI290h4fAGslwxonvDR7lTtjJAIowkjAs0pmQjWKudgdo0rHNDht0d51l4fud/QW1tz1IsyGFwC3nZLmitJGHnPSCM5O06c+ja1oaq8QTovormivO4SP1szhsmWbdPL6vzAgQXVk/rYWhCHZGNuUX5jUrmgyfRfFN404wB6IY7Lg3H2a8eRJUT67xq9MkU1bf2HKj7XN3vGv3kx5Vvoty1DMg3KXl/pvZvEY8xpcTHaiXgQ2jsebbgTMNC77+77ogR+0vwrygkW2uw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=mfPH6OgpBTO2ohppjiYaJi1VDRHZLxPQPiLjqtPCbL8=;
+ b=C2ja6iSi4DuKAkT7wfaFSVqlrG75iCPs/NoKyUQ4hE/wB4MEVBqiu5HeFawh1Qpma8n+3miUb1waVCCq7F4t3izjHttNqWNIYRIAgDNdVo9JybII3dL7hPyNdbO7ouQuwLQJdko0I3jlYiVdGpRSYI5Jm+SnDDVLfvajyg+ZMNo346ttZjLAbS7vZkG75kVEaMQq2D5cdY9MnTB/vXmXRb72W1evUrI1bFJVBVoNBv86CTrVm7uBlKD7RikDE+ZCRLA5g5mnzLzgjqotumgmCpAGE+O7h7dBcBCSQoWjRZbrHh4RoqoDAlh816mY1aHbC4yyr8nfhIFFoZ4ykuKZ+g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+Received: from SN6PR11MB3229.namprd11.prod.outlook.com (2603:10b6:805:ba::28)
+ by BYAPR11MB2614.namprd11.prod.outlook.com (2603:10b6:a02:cc::27) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4951.12; Tue, 8 Feb
+ 2022 21:18:36 +0000
+Received: from SN6PR11MB3229.namprd11.prod.outlook.com
+ ([fe80::bded:8c4b:271e:7c1]) by SN6PR11MB3229.namprd11.prod.outlook.com
+ ([fe80::bded:8c4b:271e:7c1%5]) with mapi id 15.20.4951.019; Tue, 8 Feb 2022
+ 21:18:36 +0000
+From:   "Nguyen, Anthony L" <anthony.l.nguyen@intel.com>
+To:     "jgg@nvidia.com" <jgg@nvidia.com>
+CC:     "Ertman, David M" <david.m.ertman@intel.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "kuba@kernel.org" <kuba@kernel.org>,
+        "Saleem, Shiraz" <shiraz.saleem@intel.com>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Subject: Re: [PATCH net-next 0/1] [pull request] iwl-next Intel Wired LAN
+ Driver Updates 2022-02-07
+Thread-Topic: [PATCH net-next 0/1] [pull request] iwl-next Intel Wired LAN
+ Driver Updates 2022-02-07
+Thread-Index: AQHYHH7HWBPuCWMiOE2S/3RcG/zIdayJ4Z8AgABIPAA=
+Date:   Tue, 8 Feb 2022 21:18:36 +0000
+Message-ID: <6591eabecd1959c1744828dad006860520708e9a.camel@intel.com>
+References: <20220207235921.1303522-1-anthony.l.nguyen@intel.com>
+         <20220208170000.GA180855@nvidia.com>
+In-Reply-To: <20220208170000.GA180855@nvidia.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Evolution 3.40.4 (3.40.4-1.fc34) 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 1537b456-6b38-435e-f4f1-08d9eb4891a1
+x-ms-traffictypediagnostic: BYAPR11MB2614:EE_
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+x-microsoft-antispam-prvs: <BYAPR11MB2614F39EA493CC069A86E4A1C62D9@BYAPR11MB2614.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:10000;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 3GtOVFqRYLhOWFakXC+fNCpXIPCgZKn4WIOzeOTlAT3wcmq6yEot2oTfbds+vKOUzl1cgiAS9x5cWGDd0H3lJPpOlh3conQF/RuyrJaRgV4PBiaPggcgmzGNZ1/hXU1oALPo++kZL3Ajrslgpj6n6k9CteePuiSKiRrgyTtlh3LYXDUKeooYqPnmlOpr6nS/oMEF0I/ybx5XJe8QRh/1arDW4aayUTV/b6T+ss/4wKJlhk5x2lhQo4FS4uWsfGT0l7WK0k/f2T+wMgu8byqw3XT/aNLUkr10dct/37FT6gF9wwy9A6sp6/lqUwH5kLWp81e7Lh1d5PiU0W2rddEypOn8nycc5cw2WdlHaLu/v2yY1E/GbNt81bU61Gc+xqAJnw+ObDFHBSIVaUAX4+trH/t98OKZ3QHSWEGKUH6hDftt471uxvYVorrpU/iAwYese1z3SxGSA+PTQ1Bfx7OeOcke3IoEeGtXxfKejExbaEULY8+Yoim8shOl6Yc38WI/1+q+CVmDh3Tywjrm93NnN2fK66RjavpCfI6mme5xzOxBshhH9HjM/O5ItkCbJUcRdBpqjvvV4XHZaa9+rNZ8eaz9IwyfM3LyLWEhg/EoqdNBw6PXT5l2P4PhTaEPm/8xjts1MvF1XhH0ab5B4DQ9zSFyOtojjVRKrGrV0ZDtVqEeVB+k4qWiAem1r5Z3mS2HME50ROiVE9FzI13EvWNVgEB325+4YxfDJTs49+esFvS7+TqZl/0tRzVA40umSnjZhBeIKxG2KGz9ffHwlPh2ymadZcBDJHH6iCzpChb5kSw=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SN6PR11MB3229.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(6512007)(71200400001)(2616005)(83380400001)(8676002)(76116006)(8936002)(508600001)(64756008)(5660300002)(66476007)(86362001)(66446008)(66556008)(26005)(6506007)(66946007)(2906002)(38100700002)(82960400001)(186003)(316002)(54906003)(6916009)(4326008)(38070700005)(6486002)(122000001)(36756003)(966005)(91956017);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?QmZnem9ESFM0RHB5TjFCZzNRQjNPdWc5M2Y3TWJSMzY3M1k3NEN5T2xEWXlF?=
+ =?utf-8?B?ZTlXZ2xYUTJoZWVqUytpSEJxTjNWS09FWGtYNEVrK2ZTZXlTOVlVaHltMjRK?=
+ =?utf-8?B?RGN5MEhETTMyNDJqT1hWZGNYcWlaVDg3MlBoeEUvMnQ3VVp6azVWbmFrcnYv?=
+ =?utf-8?B?Z3RPNkNzbjJSSHdsMStEVmF5NkNzeFZVUHc2dk1mR09QWFZicFh6UEQ4Mk01?=
+ =?utf-8?B?MW42eWFhS0NQMlBheGxrcGpWVkZZdFRibHBHNzhXbnRmWEwrT3NvYnNQY2cx?=
+ =?utf-8?B?Y0VBNTQvUDdGMUpsK1NJR0M5aTUwUlFIRGswNkVNa3FRUnR2UmxLaU5sRzdG?=
+ =?utf-8?B?NHNsVjlJcE1uZmJnK2x5QnZoN3IzZ2srWGx5Q0hqeUFLcVZtY0w2amIrZUp4?=
+ =?utf-8?B?RUFMTEJxL1UvZ0RPM3B2SFZQSGlWMjh1ZkVLUFFPdTIza3lNSVJWS3VhaGlH?=
+ =?utf-8?B?aWFQZ1RHbHVwUFgrSEh5U1pOajRYSnk4S1ZzemlhNFpyaVBuMWJEYkozUlFC?=
+ =?utf-8?B?YUt4VFhGK1U4Tlh3OUxySHRES0VqczlQZ3c3M2x3WHpVU2NYWGFNNUI3TGUy?=
+ =?utf-8?B?SmtJb25Cd283QnpMQzZwZXZWMVhZTmtRb3hCTlRIdXVLY3VXd0s4S2JHUTFP?=
+ =?utf-8?B?WlU3UkpzSHVIZG5XN2xST2NtVDlEZEUydkZOVHMvWDM5bU5pUGRLUUt1TkRY?=
+ =?utf-8?B?L0YwZTJkdVRKV1ZqSDZuMjNDME1rYVBxaUpOcmw2UVlhSzN6c3h2NGIwb1Np?=
+ =?utf-8?B?SWcydVVPQ0xVb3c3YmlnRnJaZHd4R1pCNlJsSWFUc3N0Yk4vYWNLZFlpaWUv?=
+ =?utf-8?B?NTR3YlplRW5NM0hxSlZFNHNQQityck5hQnRvMW9jNTRscDlXRUU1U0tZMHF1?=
+ =?utf-8?B?VGh2K2dGRUt6bjZKNnFiUHdsemh5aWhrclovU2NOVmovMllqYXZqdDE5WXlM?=
+ =?utf-8?B?dzIyNDRKbUFJcTJkQUVGM0Nkek5QMUo4cHZ6U3RBMVZIMEN5RHE3R1JwNk42?=
+ =?utf-8?B?QkN0ZEpra05aUEZJUkRsN2FGa0xNUjBQQW9MeHlQWGlNL1g5TllPSDE0U1JG?=
+ =?utf-8?B?cDlQbnkyVXU2SFp0K1oxeUtCdVRoN3owS3B2T0xXdVU3VzZtL0ZwaUVnTkVY?=
+ =?utf-8?B?N2d6aWJVQS9sM1UvVUhtSGZRUlBLNDlSTDMyS09uUENDL2pOM3VFVGRzNTdW?=
+ =?utf-8?B?Mm9lNnNUdk40MVdGZXZDVmdycTFmQWtDNi83SFFUOEptbzhsa1BMOWx4blZ4?=
+ =?utf-8?B?aGwrVnBtc09hTGFtWUlaYUJkaXZ6SUJJNjZFQVJlMlJSdE1xcWVhZlpLNzd1?=
+ =?utf-8?B?aDNlbmw5b1VhY05SdFpGZjNjbFpaMXh2eFRxQ3ZsUGNXQ3lDQ0xNTEJnMWNY?=
+ =?utf-8?B?MGJtM3d0QlNyUUdRTnBzZ1dKbUpuU1JFL05pTGVPcVNuT3lzUkZoK1NGQzBm?=
+ =?utf-8?B?MGEwL2V3WDFsc3g1eHdsRjF6eGhkcnpkbTlLN293ejA4am55Mzhta0d6UVlv?=
+ =?utf-8?B?VTgrVXd1cE9MakJhSWoxTmhJMGRqRWNOMXhsMmg1bzAyVHlLTzFHT3A3MjZ5?=
+ =?utf-8?B?V3IwNHFFbDlIZjVFRXhkU0dZSUwxVTJNZzBlYXdGOXZ0d0NnQzJ0WFlLM3Fu?=
+ =?utf-8?B?WThNSmFPOHJNUE41L3hrU2FNL2tLQ2VFZHRaVUlWRkgrbzNnWEhVakxwMzN3?=
+ =?utf-8?B?VEhHSHdtWk9xZW1aWk82T0RYYjVWeDNHMTlrN2hGZnJERkdtT3NybEJyQlR1?=
+ =?utf-8?B?WmlXeEFtR2lqZmk0NTlLNkhkQ3o0djVielR6OGQwNGZHd2tmUFFSdzV2V1Er?=
+ =?utf-8?B?SDVKMWNXYkUvZHpWajVNVFI1MnFSdkVsR21OalNObk93c2k3aEdpYnNwenRG?=
+ =?utf-8?B?aG5tcUE3V1IxSVhUQkNKeU90amljcW1MT2RTRGFPME9rTFNZTk1PR2JyYlNH?=
+ =?utf-8?B?Z3JXdHNpdEk4NmZDNG5SdURLZHNWbi9nUXdZYm9ScXcrZDkzZXRaSm5HT2Vx?=
+ =?utf-8?B?UC9oZjgxUFQ1NEdHcXU0V1RNeTdndGQrS3ZyWUsrcHorN0FnRXRXamlkVFZa?=
+ =?utf-8?B?TFZBNG5wdnVQNnBObGNKa0xGdEdoSzZhajVYaDgzSVRTVlA4M1JLUXNGRUVr?=
+ =?utf-8?B?ejZ3dWFTT0JtWG1hSVFJeU1MdFJNc214dzhFeE9QVkdWL3QvcktsSEdXNmVj?=
+ =?utf-8?B?UXNwb3lKNW0rQ3hCNUJEMXhVci9ML1VSUE45YkhFNm1ybWlJRkRmdjl4WlZx?=
+ =?utf-8?Q?CDwq22AWG1mE2RHI9/4xQDQWVnYO3aOAMMtg4BNdzk=3D?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <F281D9837E26404AB4A7D9C0E1028B29@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SN6PR11MB3229.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1537b456-6b38-435e-f4f1-08d9eb4891a1
+X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Feb 2022 21:18:36.1868
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 75vhi5vnrXeSMacxSBtbdYz51fCx8VwVZAgl5loRqgSxS++xFvCxPEjDu0fEVALY6t8TRqihLmONEknjThM+/dOfJh4ghOiPxtFcGUJGza0=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR11MB2614
+X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Replace 'grp' by 'mcg', 'mce' by 'mca'.
-Shorten subroutine names in rxe_mcast.c.
-These name uses are more in line with other object names used.
-
-Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
----
- drivers/infiniband/sw/rxe/rxe_mcast.c | 110 +++++++++++++-------------
- drivers/infiniband/sw/rxe/rxe_recv.c  |   8 +-
- 2 files changed, 59 insertions(+), 59 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
-index 3c06b0590c82..96dc11a892a4 100644
---- a/drivers/infiniband/sw/rxe/rxe_mcast.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
-@@ -26,66 +26,66 @@ static int rxe_mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
- }
- 
- /* caller should hold rxe->mcg_lock */
--static struct rxe_mcg *__rxe_create_grp(struct rxe_dev *rxe,
-+static struct rxe_mcg *__rxe_create_mcg(struct rxe_dev *rxe,
- 					struct rxe_pool *pool,
- 					union ib_gid *mgid)
- {
--	struct rxe_mcg *grp;
-+	struct rxe_mcg *mcg;
- 	int err;
- 
--	grp = rxe_alloc_locked(pool);
--	if (!grp)
-+	mcg = rxe_alloc_locked(pool);
-+	if (!mcg)
- 		return ERR_PTR(-ENOMEM);
- 
- 	err = rxe_mcast_add(rxe, mgid);
- 	if (unlikely(err)) {
--		rxe_drop_ref(grp);
-+		rxe_drop_ref(mcg);
- 		return ERR_PTR(err);
- 	}
- 
--	INIT_LIST_HEAD(&grp->qp_list);
--	grp->rxe = rxe;
-+	INIT_LIST_HEAD(&mcg->qp_list);
-+	mcg->rxe = rxe;
- 
--	/* rxe_alloc_locked takes a ref on grp but that will be
--	 * dropped when grp goes out of scope. We need to take a ref
-+	/* rxe_alloc_locked takes a ref on mcg but that will be
-+	 * dropped when mcg goes out of scope. We need to take a ref
- 	 * on the pointer that will be saved in the red-black tree
--	 * by rxe_add_key and used to lookup grp from mgid later.
-+	 * by rxe_add_key and used to lookup mcg from mgid later.
- 	 * Adding key makes object visible to outside so this should
- 	 * be done last after the object is ready.
- 	 */
--	rxe_add_ref(grp);
--	rxe_add_key_locked(grp, mgid);
-+	rxe_add_ref(mcg);
-+	rxe_add_key_locked(mcg, mgid);
- 
--	return grp;
-+	return mcg;
- }
- 
--static struct rxe_mcg *rxe_mcast_get_grp(struct rxe_dev *rxe,
-+static struct rxe_mcg *rxe_get_mcg(struct rxe_dev *rxe,
- 					 union ib_gid *mgid)
- {
--	struct rxe_mcg *grp;
-+	struct rxe_mcg *mcg;
- 	struct rxe_pool *pool = &rxe->mc_grp_pool;
- 
- 	if (rxe->attr.max_mcast_qp_attach == 0)
- 		return ERR_PTR(-EINVAL);
- 
- 	spin_lock_bh(&rxe->mcg_lock);
--	grp = rxe_pool_get_key_locked(pool, mgid);
--	if (!grp)
--		grp = __rxe_create_grp(rxe, pool, mgid);
-+	mcg = rxe_pool_get_key_locked(pool, mgid);
-+	if (!mcg)
-+		mcg = __rxe_create_mcg(rxe, pool, mgid);
- 	spin_unlock_bh(&rxe->mcg_lock);
- 
--	return grp;
-+	return mcg;
- }
- 
--static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
--				  struct rxe_mcg *grp)
-+static int rxe_attach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
-+				  struct rxe_mcg *mcg)
- {
- 	struct rxe_mca *mca, *tmp;
- 	int err;
- 
- 	/* check to see if the qp is already a member of the group */
- 	spin_lock_bh(&rxe->mcg_lock);
--	list_for_each_entry(mca, &grp->qp_list, qp_list) {
-+	list_for_each_entry(mca, &mcg->qp_list, qp_list) {
- 		if (mca->qp == qp) {
- 			spin_unlock_bh(&rxe->mcg_lock);
- 			return 0;
-@@ -100,7 +100,7 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
- 
- 	spin_lock_bh(&rxe->mcg_lock);
- 	/* re-check to see if someone else just attached qp */
--	list_for_each_entry(tmp, &grp->qp_list, qp_list) {
-+	list_for_each_entry(tmp, &mcg->qp_list, qp_list) {
- 		if (tmp->qp == qp) {
- 			kfree(mca);
- 			err = 0;
-@@ -109,7 +109,7 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
- 	}
- 
- 	/* check limits after checking if already attached */
--	if (grp->num_qp >= rxe->attr.max_mcast_qp_attach) {
-+	if (mcg->num_qp >= rxe->attr.max_mcast_qp_attach) {
- 		kfree(mca);
- 		err = -ENOMEM;
- 		goto out;
-@@ -120,8 +120,8 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
- 	mca->qp = qp;
- 
- 	atomic_inc(&qp->mcg_num);
--	grp->num_qp++;
--	list_add(&mca->qp_list, &grp->qp_list);
-+	mcg->num_qp++;
-+	list_add(&mca->qp_list, &mcg->qp_list);
- 
- 	err = 0;
- out:
-@@ -130,21 +130,21 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
- }
- 
- /* caller should be holding rxe->mcg_lock */
--static void __rxe_destroy_grp(struct rxe_mcg *grp)
-+static void __rxe_destroy_mcg(struct rxe_mcg *mcg)
- {
--	/* first remove grp from red-black tree then drop ref */
--	rxe_drop_key_locked(grp);
--	rxe_drop_ref(grp);
-+	/* first remove mcg from red-black tree then drop ref */
-+	rxe_drop_key_locked(mcg);
-+	rxe_drop_ref(mcg);
- 
--	rxe_mcast_delete(grp->rxe, &grp->mgid);
-+	rxe_mcast_delete(mcg->rxe, &mcg->mgid);
- }
- 
--static void rxe_destroy_grp(struct rxe_mcg *grp)
-+static void rxe_destroy_mcg(struct rxe_mcg *mcg)
- {
--	struct rxe_dev *rxe = grp->rxe;
-+	struct rxe_dev *rxe = mcg->rxe;
- 
- 	spin_lock_bh(&rxe->mcg_lock);
--	__rxe_destroy_grp(grp);
-+	__rxe_destroy_mcg(mcg);
- 	spin_unlock_bh(&rxe->mcg_lock);
- }
- 
-@@ -153,22 +153,22 @@ void rxe_mc_cleanup(struct rxe_pool_elem *elem)
- 	/* nothing left to do for now */
- }
- 
--static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+static int rxe_detach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
- 				   union ib_gid *mgid)
- {
--	struct rxe_mcg *grp;
-+	struct rxe_mcg *mcg;
- 	struct rxe_mca *mca, *tmp;
- 	int err;
- 
- 	spin_lock_bh(&rxe->mcg_lock);
--	grp = rxe_pool_get_key_locked(&rxe->mc_grp_pool, mgid);
--	if (!grp) {
-+	mcg = rxe_pool_get_key_locked(&rxe->mc_grp_pool, mgid);
-+	if (!mcg) {
- 		/* we didn't find the mcast group for mgid */
- 		err = -EINVAL;
- 		goto out_unlock;
- 	}
- 
--	list_for_each_entry_safe(mca, tmp, &grp->qp_list, qp_list) {
-+	list_for_each_entry_safe(mca, tmp, &mcg->qp_list, qp_list) {
- 		if (mca->qp == qp) {
- 			list_del(&mca->qp_list);
- 
-@@ -178,16 +178,16 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
- 			 * object since we are still holding a ref
- 			 * from the get key above.
- 			 */
--			grp->num_qp--;
--			if (grp->num_qp <= 0)
--				__rxe_destroy_grp(grp);
-+			mcg->num_qp--;
-+			if (mcg->num_qp <= 0)
-+				__rxe_destroy_mcg(mcg);
- 
- 			atomic_dec(&qp->mcg_num);
- 
- 			/* drop the ref from get key. This will free the
- 			 * object if num_qp is zero.
- 			 */
--			rxe_drop_ref(grp);
-+			rxe_drop_ref(mcg);
- 			kfree(mca);
- 			err = 0;
- 			goto out_unlock;
-@@ -195,7 +195,7 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
- 	}
- 
- 	/* we didn't find the qp on the list */
--	rxe_drop_ref(grp);
-+	rxe_drop_ref(mcg);
- 	err = -EINVAL;
- 
- out_unlock:
-@@ -208,20 +208,20 @@ int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
- 	int err;
- 	struct rxe_dev *rxe = to_rdev(ibqp->device);
- 	struct rxe_qp *qp = to_rqp(ibqp);
--	struct rxe_mcg *grp;
-+	struct rxe_mcg *mcg;
- 
--	/* takes a ref on grp if successful */
--	grp = rxe_mcast_get_grp(rxe, mgid);
--	if (IS_ERR(grp))
--		return PTR_ERR(grp);
-+	/* takes a ref on mcg if successful */
-+	mcg = rxe_get_mcg(rxe, mgid);
-+	if (IS_ERR(mcg))
-+		return PTR_ERR(mcg);
- 
--	err = rxe_mcast_add_grp_elem(rxe, qp, grp);
-+	err = rxe_attach_mcg(rxe, qp, mcg);
- 
--	/* if we failed to attach the first qp to grp tear it down */
--	if (grp->num_qp == 0)
--		rxe_destroy_grp(grp);
-+	/* if we failed to attach the first qp to mcg tear it down */
-+	if (mcg->num_qp == 0)
-+		rxe_destroy_mcg(mcg);
- 
--	rxe_drop_ref(grp);
-+	rxe_drop_ref(mcg);
- 	return err;
- }
- 
-@@ -230,5 +230,5 @@ int rxe_detach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
- 	struct rxe_dev *rxe = to_rdev(ibqp->device);
- 	struct rxe_qp *qp = to_rqp(ibqp);
- 
--	return rxe_mcast_drop_grp_elem(rxe, qp, mgid);
-+	return rxe_detach_mcg(rxe, qp, mgid);
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index a084b5d69937..d91c6660e83c 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -234,7 +234,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- {
- 	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
- 	struct rxe_mcg *mcg;
--	struct rxe_mca *mce;
-+	struct rxe_mca *mca;
- 	struct rxe_qp *qp;
- 	union ib_gid dgid;
- 	int err;
-@@ -257,8 +257,8 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 	 * single QP happen and just move on and try
- 	 * the rest of them on the list
- 	 */
--	list_for_each_entry(mce, &mcg->qp_list, qp_list) {
--		qp = mce->qp;
-+	list_for_each_entry(mca, &mcg->qp_list, qp_list) {
-+		qp = mca->qp;
- 
- 		/* validate qp for incoming packet */
- 		err = check_type_state(rxe, pkt, qp);
-@@ -273,7 +273,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 		 * skb and pass to the QP. Pass the original skb to
- 		 * the last QP in the list.
- 		 */
--		if (mce->qp_list.next != &mcg->qp_list) {
-+		if (mca->qp_list.next != &mcg->qp_list) {
- 			struct sk_buff *cskb;
- 			struct rxe_pkt_info *cpkt;
- 
--- 
-2.32.0
-
+T24gVHVlLCAyMDIyLTAyLTA4IGF0IDEzOjAwIC0wNDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIE1vbiwgRmViIDA3LCAyMDIyIGF0IDAzOjU5OjIwUE0gLTA4MDAsIFRvbnkgTmd1eWVu
+IHdyb3RlOg0KPiA+IFRoaXMgcHVsbCByZXF1ZXN0IGlzIHRhcmdldGluZyBuZXQtbmV4dCBhbmQg
+cmRtYS1uZXh0IGJyYW5jaGVzLg0KPiA+IFJETUENCj4gPiBwYXRjaGVzIHdpbGwgYmUgc2VudCB0
+byBSRE1BIHRyZWUgZm9sbG93aW5nIGFjY2VwdGFuY2Ugb2YgdGhpcw0KPiA+IHNoYXJlZA0KPiA+
+IHB1bGwgcmVxdWVzdC4gVGhlc2UgcGF0Y2hlcyBoYXZlIGJlZW4gcmV2aWV3ZWQgYnkgbmV0ZGV2
+IGFuZCBSRE1BDQo+ID4gbWFpbGluZyBsaXN0c1sxXS4NCj4gPiANCj4gPiBEYXZlIGFkZHMgc3Vw
+cG9ydCBmb3IgaWNlIGRyaXZlciB0byBwcm92aWRlIERTQ1AgUW9TIG1hcHBpbmdzIHRvDQo+ID4g
+aXJkbWENCj4gPiBkcml2ZXIuDQo+ID4gDQo+ID4gWzFdDQo+ID4gaHR0cHM6Ly9sb3JlLmtlcm5l
+bC5vcmcvbmV0ZGV2LzIwMjIwMjAyMTkxOTIxLjE2MzgtMS1zaGlyYXouc2FsZWVtQGludGVsLmNv
+bS8NCj4gPiBUaGUgZm9sbG93aW5nIGFyZSBjaGFuZ2VzIHNpbmNlIGNvbW1pdA0KPiA+IGU3ODMz
+NjJlYjU0Y2Q5OWIyY2FjOGIzYTlhZWFjOTQyZTZmNmFjMDc6DQo+ID4gwqAgTGludXggNS4xNy1y
+YzENCj4gPiBhbmQgYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6DQo+ID4g
+wqAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3RuZ3V5L2xp
+bnV4IGl3bC0NCj4gPiBuZXh0DQo+IA0KPiBObyBzaWduZWQgdGFnPw0KPiANCj4gSW4gZnV0dXJl
+IGNhbiB5b3Ugc2VuZCB0aGVzZSBpbiB0aGUgc3RhbmRhcmQgZm9ybSBzbyBwYXRjaHdvcmtzIHdp
+bGwNCj4gcGljayB0aGVtIHVwPw0KPiANCj4gQWxzbyBwbGVhc2UgYWRkIGNvdmVyIGxldHRlcnMg
+c28gdGhlcmUgaXMgc29tZXRoaW5nIHRvIHB1dCBpbiB0aGUNCj4gbWVyZ2UNCg0KSSdtIHN0aWxs
+IHRyeWluZyB0byBmaWd1cmUgb3V0IGhvdyB0byBkbyB0aGUgc2hhcmVkIHB1bGwgcmVxdWVzdHMu
+IEknbGwNCmxvb2sgaW50byByZXNvbHZpbmcgdGhlc2UgaXNzdWVzIHlvdSBwb2ludGVkIG91dCBm
+b3IgbmV4dCBvbmUuDQoNCk9uZSBvZiB0aGUgdGhpbmdzIEknbSBzdGlsbCB1bnN1cmUgb24gaXMg
+d2hldGhlciB0aGUgc2hhcmVkIHB1bGwNCnJlcXVlc3Qgc2hvdWxkIGNvbnRhaW4gdGhlIG5ldGRl
+diBhbmQgUkRNQSBwYXRjaGVzIG9yIG9ubHkgdGhlIG5ldGRldg0Kb25lcy4NCg0KVGhhbmtzLA0K
+VG9ueQ0KDQo+IEJ1dCBQUiBhcHBsaWVkIGFsb25nIHdpdGggdGhlIG1hdGNoaW5nIHR3byBSRE1B
+IHBhdGNoZXMuDQo+IFRoYW5rcywNCj4gSmFzb24NCg0K
