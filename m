@@ -2,108 +2,137 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC79FC433FE
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Feb 2022 12:03:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BABFC433FE
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Feb 2022 12:07:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232169AbiBIMDa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Feb 2022 07:03:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39794 "EHLO
+        id S231551AbiBIMHG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Feb 2022 07:07:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231806AbiBIMDM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Feb 2022 07:03:12 -0500
-Received: from out199-10.us.a.mail.aliyun.com (out199-10.us.a.mail.aliyun.com [47.90.199.10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF00AC050CD8;
-        Wed,  9 Feb 2022 03:37:41 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V4.4WIx_1644406657;
-Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0V4.4WIx_1644406657)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 09 Feb 2022 19:37:38 +0800
-Date:   Wed, 9 Feb 2022 19:37:37 +0800
-From:   Tony Lu <tonylu@linux.alibaba.com>
-To:     "D. Wythe" <alibuda@linux.alibaba.com>
-Cc:     kgraul@linux.ibm.com, kuba@kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net-next v5 5/5] net/smc: Add global configure for auto
- fallback by netlink
-Message-ID: <YgOngV93e8IYr8bv@TonyMac-Alibaba>
-Reply-To: Tony Lu <tonylu@linux.alibaba.com>
-References: <cover.1644323503.git.alibuda@linux.alibaba.com>
- <f54ee9f30898b998edf8f07dabccc84efaa2ab8b.1644323503.git.alibuda@linux.alibaba.com>
- <YgOGg9Ud5N7LOOV6@TonyMac-Alibaba>
- <df2fa023-833d-e4a7-23b4-4f6427223ff5@linux.alibaba.com>
+        with ESMTP id S231544AbiBIMEv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Feb 2022 07:04:51 -0500
+Received: from mail-pf1-x42c.google.com (mail-pf1-x42c.google.com [IPv6:2607:f8b0:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42B45DF28A74;
+        Wed,  9 Feb 2022 03:32:36 -0800 (PST)
+Received: by mail-pf1-x42c.google.com with SMTP id z35so3785565pfw.2;
+        Wed, 09 Feb 2022 03:32:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=xn2w0xfCDJKMhAVqaUxCw+DE0Sr56TdC/5hT2Q2ktAs=;
+        b=A8XnlVtay/HPwPvCdYqCHbhrNjAZgJnAz0Xz+ujZCb1gAicdOF7VI2ESb4ZNYoXGY4
+         mbx42w8+JYs1lJEgEhd4O11wXPcYLWocSpK165gtGz/ZKBGswmkaiKewGs6yWYvIwgwr
+         r9V3K0mEM7Q34JnZkRm6UThjPbsR58FeN7pbOPMVFzjv/u+nlvhpc9HNwCo5/FhQu3JO
+         /I8GUUsY2AuvPYjL9ycREBwkHVKoy6GV72mbhqmddW5bR3QjhW3f9GHodCZ8LBGhqxBh
+         7St5JZzECmuAR4F/yBUA93iEy3kpuwfxodvIavc1VOLDIPkAWMlOIGC/t1sYk3E7gBVg
+         LHlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=xn2w0xfCDJKMhAVqaUxCw+DE0Sr56TdC/5hT2Q2ktAs=;
+        b=Lz1GZznlOV/iI8Nf1C/uYoDlfnb+RBBIhDMkTflCTMCkuunb/PMkTrzw5g5BBBinUY
+         u8kzcfxbWFkJ7j8XIPtaaIBjnUtmGzlWXXciv5G7WOz+hukZh34c/hIgoxAXaYQZSnx+
+         wkVUYngvs9rWVSoE81jZ/tUeujaYdxrOZV0jssVQe1YmRfHUKo7PCrGEBRC9H8o5I23P
+         cMu9vDvL4/2ehqhZ2NxzcVs5bdfFKt1vCzFGNdvodRuy7H1SxeNkX9bTKqNc0f/0Cxuq
+         I1qsSXAp1qtRdjrOUVPKge+/xH8KvS6y3jYQ3hnKLxshlqRhfNx5n+KnYhRpxg4lmu4t
+         nS2g==
+X-Gm-Message-State: AOAM530Pi+PukAKx89W6oral+lMwOclFgYCB3zA7rROsRk+JiULgOO9c
+        QWcuA+I+YUWr7VmiaZ9NAT+lShCoEEI=
+X-Google-Smtp-Source: ABdhPJxcG2NeFwP2rVZjOP8Uo+Mg/HUX5kmfxwL7u059Fj1k1jCekMP+xiw87WMqt8ide1F3HKlh8g==
+X-Received: by 2002:a63:5641:: with SMTP id g1mr1501269pgm.579.1644406355113;
+        Wed, 09 Feb 2022 03:32:35 -0800 (PST)
+Received: from [192.168.1.100] ([166.111.139.99])
+        by smtp.gmail.com with ESMTPSA id f5sm19090505pfc.0.2022.02.09.03.32.31
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 09 Feb 2022 03:32:34 -0800 (PST)
+Subject: Re: [BUG] net: mellanox: mlx4: possible deadlock in mlx4_xdp_set()
+ and mlx4_en_reset_config()
+To:     Tariq Toukan <ttoukan.linux@gmail.com>, tariqt@nvidia.com,
+        davem@davemloft.net, kuba@kernel.org
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <4a850d04-ed6a-5802-7038-a94ad0d466c5@gmail.com>
+ <bde548df-cb80-966a-599c-3e1cb8639716@gmail.com>
+From:   Jia-Ju Bai <baijiaju1990@gmail.com>
+Message-ID: <10008665-3a91-f95e-7ecb-994b8e8bcf55@gmail.com>
+Date:   Wed, 9 Feb 2022 19:32:31 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Disposition: inline
+In-Reply-To: <bde548df-cb80-966a-599c-3e1cb8639716@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <df2fa023-833d-e4a7-23b4-4f6427223ff5@linux.alibaba.com>
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Feb 09, 2022 at 05:53:18PM +0800, D. Wythe wrote:
-> 
-> 
-> �� 2022/2/9 ����5:16, Tony Lu д��:
-> > On Tue, Feb 08, 2022 at 08:53:13PM +0800, D. Wythe wrote:
-> > > From: "D. Wythe" <alibuda@linux.alibaba.com>
-> > > 
-> > > @@ -248,6 +248,8 @@ int smc_nl_get_sys_info(struct sk_buff *skb, struct netlink_callback *cb)
-> > >   		goto errattr;
-> > >   	if (nla_put_u8(skb, SMC_NLA_SYS_IS_SMCR_V2, true))
-> > >   		goto errattr;
-> > > +	if (nla_put_u8(skb, SMC_NLA_SYS_AUTO_FALLBACK, smc_auto_fallback))
-> > 
-> > READ_ONCE(smc_auto_fallback) ?
-> 
-> 
-> No READ_ONCE() will cause ?
 
-Make sure that we read the current value.
- 
-> 
-> > > +		goto errattr;
-> > >   	smc_clc_get_hostname(&host);
-> > >   	if (host) {
-> > >   		memcpy(hostname, host, SMC_MAX_HOSTNAME_LEN);
-> > > diff --git a/net/smc/smc_netlink.c b/net/smc/smc_netlink.c
-> > > index f13ab06..a7de517 100644
-> > > --- a/net/smc/smc_netlink.c
-> > > +++ b/net/smc/smc_netlink.c
-> > > @@ -111,6 +111,16 @@
-> > >   		.flags = GENL_ADMIN_PERM,
-> > >   		.doit = smc_nl_disable_seid,
-> > >   	},
-> > > +	{
-> > > +		.cmd = SMC_NETLINK_ENABLE_AUTO_FALLBACK,
-> > > +		.flags = GENL_ADMIN_PERM,
-> > > +		.doit = smc_enable_auto_fallback,
-> > > +	},
-> > > +	{
-> > > +		.cmd = SMC_NETLINK_DISABLE_AUTO_FALLBACK,
-> > > +		.flags = GENL_ADMIN_PERM,
-> > > +		.doit = smc_disable_auto_fallback,
-> > > +	},
-> > >   };
-> > 
-> > Consider adding the separated cmd to query the status of this config,
-> > just as SEID does?
-> > 
-> > It is common to check this value after user-space setted. Combined with
-> > sys_info maybe a little heavy in this scene.
-> 
-> 
-> Add a independent dumpit is quite okay, but is there have really scenarios
-> that access this value frequently? With more and more such switches in the
-> future, is is necessary for us to repeat on each switch ? I do have a plan
-> to put them unified within a NLA attributes, but I don't have much time yet.
 
-Yes, I think spreading them make code clean, and we can keep ABI
-compatibility if we have more than one interface. If we want to change
-one knob, we can change itself functions and data structures. Also, it
-makes userspace tools easy to maintainer. TCP's procfs, like /proc/net/netstat,
-is a summary knob, but not easy to parse and extend. Given that we
-choose modern netlink, we can avoid it from the beginning.
+On 2022/2/9 18:21, Tariq Toukan wrote:
+>
+>
+> On 2/7/2022 5:16 PM, Jia-Ju Bai wrote:
+>> Hello,
+>>
+>> My static analysis tool reports a possible deadlock in the mlx4 
+>> driver in Linux 5.16:
+>>
+>
+> Hi Jia-Ju,
+> Thanks for your email.
+>
+> Which static analysis tool do you use? Is it standard one?
 
-Thanks,
-Tony Lu
+Hi Tariq,
+
+Thanks for the reply and explanation :)
+I developed this tool by myself, based on LLVM.
+
+>
+>> mlx4_xdp_set()
+>>    mutex_lock(&mdev->state_lock); --> Line 2778 (Lock A)
+>>    mlx4_en_try_alloc_resources()
+>>      mlx4_en_alloc_resources()
+>>        mlx4_en_destroy_tx_ring()
+>>          mlx4_qp_free()
+>>            wait_for_completion(&qp->free); --> Line 528 (Wait X)
+>
+> The refcount_dec_and_test(&qp->refcount)) in mlx4_qp_free() pairs with 
+> refcount_set(&qp->refcount, 1); in mlx4_qp_alloc.
+> mlx4_qp_event increases and decreasing the refcount while running 
+> qp->event(qp, event_type); to protect it from being freed.
+>
+>>
+>> mlx4_en_reset_config()
+>>    mutex_lock(&mdev->state_lock); --> Line 3522 (Lock A)
+>>    mlx4_en_try_alloc_resources()
+>>      mlx4_en_alloc_resources()
+>>        mlx4_en_destroy_tx_ring()
+>>          mlx4_qp_free()
+>>            complete(&qp->free); --> Line 527 (Wake X)
+>>
+>> When mlx4_xdp_set() is executed, "Wait X" is performed by holding 
+>> "Lock A". If mlx4_en_reset_config() is executed at this time, "Wake 
+>> X" cannot be performed to wake up "Wait X" in mlx4_xdp_set(), because 
+>> "Lock A" has been already hold by mlx4_xdp_set(), causing a possible 
+>> deadlock.
+>>
+>> I am not quite sure whether this possible problem is real and how to 
+>> fix it if it is real.
+>> Any feedback would be appreciated, thanks :)
+>>
+>
+> Not possible.
+> These are two different qps, maintaining two different instances of 
+> refcount and complete, following the behavior I described above.
+
+Okay, "there are two different qps" should be the reason of this false 
+positive, and my tool cannot identify this reason in static analysis...
+
+
+Best wishes,
+Jia-Ju Bai
