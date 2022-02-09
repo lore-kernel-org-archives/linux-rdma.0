@@ -2,70 +2,97 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4FE2C3526E
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Feb 2022 09:41:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79EF0C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Feb 2022 09:41:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232467AbiBIJle (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Feb 2022 04:41:34 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:39480 "EHLO
+        id S234332AbiBIJlf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Feb 2022 04:41:35 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:48280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241007AbiBIJif (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Feb 2022 04:38:35 -0500
-Received: from out199-8.us.a.mail.aliyun.com (out199-8.us.a.mail.aliyun.com [47.90.199.8])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D355E016CC4;
-        Wed,  9 Feb 2022 01:38:28 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R581e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0V4-ikX7_1644397278;
-Received: from 30.225.28.54(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V4-ikX7_1644397278)
+        with ESMTP id S239370AbiBIJeB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Feb 2022 04:34:01 -0500
+Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D99FE05BA50;
+        Wed,  9 Feb 2022 01:33:57 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V4-Z-Uv_1644399222;
+Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0V4-Z-Uv_1644399222)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 09 Feb 2022 17:01:19 +0800
-Message-ID: <93bb89c6-8a35-b5e8-2c3b-54a5dfecb062@linux.alibaba.com>
-Date:   Wed, 9 Feb 2022 17:01:18 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.5.1
-Subject: Re: [PATCH net-next v5 4/5] net/smc: Dynamic control auto fallback by
- socket options
-To:     Karsten Graul <kgraul@linux.ibm.com>
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+          Wed, 09 Feb 2022 17:33:43 +0800
+Date:   Wed, 9 Feb 2022 17:33:40 +0800
+From:   Tony Lu <tonylu@linux.alibaba.com>
+To:     "D. Wythe" <alibuda@linux.alibaba.com>
+Cc:     kgraul@linux.ibm.com, kuba@kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next v5 5/5] net/smc: Add global configure for auto
+ fallback by netlink
+Message-ID: <YgOKc5FW/JRmW1U6@TonyMac-Alibaba>
+Reply-To: Tony Lu <tonylu@linux.alibaba.com>
 References: <cover.1644323503.git.alibuda@linux.alibaba.com>
- <20f504f961e1a803f85d64229ad84260434203bd.1644323503.git.alibuda@linux.alibaba.com>
- <74e9c7fb-073c-cd62-c42a-e57c18de3404@linux.ibm.com>
- <9ba496e1-daf1-57d2-318e-bfcd4f57755c@linux.alibaba.com>
- <e19f2c6a-0429-7e33-4083-caf58414d453@linux.ibm.com>
-From:   "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <e19f2c6a-0429-7e33-4083-caf58414d453@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+ <f54ee9f30898b998edf8f07dabccc84efaa2ab8b.1644323503.git.alibuda@linux.alibaba.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f54ee9f30898b998edf8f07dabccc84efaa2ab8b.1644323503.git.alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-When a large number of connections are influx, the long-connection 
-service has a much higher tolerance for smc queuing time than the 
-short-link service. For the long-connection service, more SMC 
-connections are more important than faster connection establishment, the 
-auto fallback is quite meaningless and unexpected to them, while the 
-short-link connection service is in the opposite. When a host has both 
-types of services below, a global switch cannot works in that case. what 
-do you think?
-
-Hope for you reply.
-
-Thanks.
-
-在 2022/2/9 下午3:59, Karsten Graul 写道:
-> On 09/02/2022 07:41, D. Wythe wrote:
->>
->> Some of our servers have different service types on different ports.
->> A global switch cannot control different service ports individually in this case。In fact, it has nothing to do with using netlink or not. Socket options is the first solution comes to my mind in that case，I don't know if there is any other better way。
->>
+On Tue, Feb 08, 2022 at 08:53:13PM +0800, D. Wythe wrote:
+> From: "D. Wythe" <alibuda@linux.alibaba.com>
 > 
-> I try to understand why you think it is needed to handle different
-> service types differently. As you wrote
+> Although we can control SMC auto fallback through socket options, which
+> means that applications who need it must modify their code. It's quite
+> troublesome for many existing applications. This patch modifies the
+> global default value of auto fallback through netlink, providing a way
+> to auto fallback without modifying any code for applications.
 > 
->> After some trial and thought, I found that the scope of netlink control is too large
+> Suggested-by: Tony Lu <tonylu@linux.alibaba.com>
+> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> ---
+>  include/uapi/linux/smc.h |  3 +++
+>  net/smc/af_smc.c         | 17 +++++++++++++++++
+>  net/smc/smc.h            |  7 +++++++
+>  net/smc/smc_core.c       |  2 ++
+>  net/smc/smc_netlink.c    | 10 ++++++++++
+>  5 files changed, 39 insertions(+)
 > 
-> please explain what you found out. I don't doubt about netlink or socket option here,
-> its all about why a global switch for this behavior isn't good enough.
+> diff --git a/include/uapi/linux/smc.h b/include/uapi/linux/smc.h
+> index 9f2cbf8..33f7fb8 100644
+> --- a/include/uapi/linux/smc.h
+> +++ b/include/uapi/linux/smc.h
+> @@ -59,6 +59,8 @@ enum {
+>  	SMC_NETLINK_DUMP_SEID,
+>  	SMC_NETLINK_ENABLE_SEID,
+>  	SMC_NETLINK_DISABLE_SEID,
+> +	SMC_NETLINK_ENABLE_AUTO_FALLBACK,
+> +	SMC_NETLINK_DISABLE_AUTO_FALLBACK,
+>  };
+>  
+>  /* SMC_GENL_FAMILY top level attributes */
+> @@ -85,6 +87,7 @@ enum {
+>  	SMC_NLA_SYS_LOCAL_HOST,		/* string */
+>  	SMC_NLA_SYS_SEID,		/* string */
+>  	SMC_NLA_SYS_IS_SMCR_V2,		/* u8 */
+> +	SMC_NLA_SYS_AUTO_FALLBACK,	/* u8 */
+>  	__SMC_NLA_SYS_MAX,
+>  	SMC_NLA_SYS_MAX = __SMC_NLA_SYS_MAX - 1
+>  };
+> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+> index c313561..4a25ce7 100644
+> --- a/net/smc/af_smc.c
+> +++ b/net/smc/af_smc.c
+> @@ -59,6 +59,8 @@
+>  						 * creation on client
+>  						 */
+>  
+> +bool smc_auto_fallback;	/* default behavior for auto fallback, disable by default */
+
+SMC supports net namespace, it would be better to provide a per
+net-namespace switch. Generally, one container has one application, runs
+different workload that is different from others. So the behavior could
+be different, such as high-performance (don't fallback for limit) or TCP
+transparent replacement (limit if needed).
+
+Thank you,
+Tony Lu
