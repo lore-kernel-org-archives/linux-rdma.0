@@ -2,64 +2,108 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BFBDC43217
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Feb 2022 11:57:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC79FC433FE
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Feb 2022 12:03:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229979AbiBIL5m (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Feb 2022 06:57:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57098 "EHLO
+        id S232169AbiBIMDa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Feb 2022 07:03:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231330AbiBIL4U (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Feb 2022 06:56:20 -0500
-Received: from out30-44.freemail.mail.aliyun.com (out30-44.freemail.mail.aliyun.com [115.124.30.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73442C1038EE;
-        Wed,  9 Feb 2022 02:56:37 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R601e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04426;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V4.8Z-0_1644404194;
-Received: from 30.225.28.54(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V4.8Z-0_1644404194)
+        with ESMTP id S231806AbiBIMDM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Feb 2022 07:03:12 -0500
+Received: from out199-10.us.a.mail.aliyun.com (out199-10.us.a.mail.aliyun.com [47.90.199.10])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF00AC050CD8;
+        Wed,  9 Feb 2022 03:37:41 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V4.4WIx_1644406657;
+Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0V4.4WIx_1644406657)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 09 Feb 2022 18:56:35 +0800
-Message-ID: <5150791a-b91f-c861-b648-9de78af0b984@linux.alibaba.com>
-Date:   Wed, 9 Feb 2022 18:56:34 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.5.1
-Subject: Re: [PATCH net-next v5 5/5] net/smc: Add global configure for auto
- fallback by netlink
-To:     Tony Lu <tonylu@linux.alibaba.com>
+          Wed, 09 Feb 2022 19:37:38 +0800
+Date:   Wed, 9 Feb 2022 19:37:37 +0800
+From:   Tony Lu <tonylu@linux.alibaba.com>
+To:     "D. Wythe" <alibuda@linux.alibaba.com>
 Cc:     kgraul@linux.ibm.com, kuba@kernel.org, davem@davemloft.net,
         netdev@vger.kernel.org, linux-s390@vger.kernel.org,
         linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next v5 5/5] net/smc: Add global configure for auto
+ fallback by netlink
+Message-ID: <YgOngV93e8IYr8bv@TonyMac-Alibaba>
+Reply-To: Tony Lu <tonylu@linux.alibaba.com>
 References: <cover.1644323503.git.alibuda@linux.alibaba.com>
  <f54ee9f30898b998edf8f07dabccc84efaa2ab8b.1644323503.git.alibuda@linux.alibaba.com>
- <YgOKc5FW/JRmW1U6@TonyMac-Alibaba>
- <20fc8ef9-6cbc-ac1d-97ad-ab47a2874afd@linux.alibaba.com>
- <YgOPRh34nUWOqh2C@TonyMac-Alibaba>
-From:   "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <YgOPRh34nUWOqh2C@TonyMac-Alibaba>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+ <YgOGg9Ud5N7LOOV6@TonyMac-Alibaba>
+ <df2fa023-833d-e4a7-23b4-4f6427223ff5@linux.alibaba.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=gb2312
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <df2fa023-833d-e4a7-23b4-4f6427223ff5@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-Copy that, there are indeed some problems for the container environment.
-I'll try work on it.
-
-Thanks.
-
-åœ¨ 2022/2/9 ä¸‹åˆ5:54, Tony Lu å†™é“:
-> On Wed, Feb 09, 2022 at 05:41:50PM +0800, D. Wythe wrote:
->> I don't think this is necessary, since we already have socket options. Is
->> there any scenario that the socket options and global switch can not cover?
->>
-> When transparently replacing the whole container's TCP connections, we
-> cannot touch the user's application, and have to replace their
-> connections to SMC. It is common for container environment, different
-> containers will run different applications.
+On Wed, Feb 09, 2022 at 05:53:18PM +0800, D. Wythe wrote:
 > 
-> Most of TCP knob is per net-namespace, it could be better for us to do
-> it from the beginning.
 > 
-> Thanks,
-> Tony Lu
+> ÔÚ 2022/2/9 ÏÂÎç5:16, Tony Lu Ð´µÀ:
+> > On Tue, Feb 08, 2022 at 08:53:13PM +0800, D. Wythe wrote:
+> > > From: "D. Wythe" <alibuda@linux.alibaba.com>
+> > > 
+> > > @@ -248,6 +248,8 @@ int smc_nl_get_sys_info(struct sk_buff *skb, struct netlink_callback *cb)
+> > >   		goto errattr;
+> > >   	if (nla_put_u8(skb, SMC_NLA_SYS_IS_SMCR_V2, true))
+> > >   		goto errattr;
+> > > +	if (nla_put_u8(skb, SMC_NLA_SYS_AUTO_FALLBACK, smc_auto_fallback))
+> > 
+> > READ_ONCE(smc_auto_fallback) ?
+> 
+> 
+> No READ_ONCE() will cause ?
+
+Make sure that we read the current value.
+ 
+> 
+> > > +		goto errattr;
+> > >   	smc_clc_get_hostname(&host);
+> > >   	if (host) {
+> > >   		memcpy(hostname, host, SMC_MAX_HOSTNAME_LEN);
+> > > diff --git a/net/smc/smc_netlink.c b/net/smc/smc_netlink.c
+> > > index f13ab06..a7de517 100644
+> > > --- a/net/smc/smc_netlink.c
+> > > +++ b/net/smc/smc_netlink.c
+> > > @@ -111,6 +111,16 @@
+> > >   		.flags = GENL_ADMIN_PERM,
+> > >   		.doit = smc_nl_disable_seid,
+> > >   	},
+> > > +	{
+> > > +		.cmd = SMC_NETLINK_ENABLE_AUTO_FALLBACK,
+> > > +		.flags = GENL_ADMIN_PERM,
+> > > +		.doit = smc_enable_auto_fallback,
+> > > +	},
+> > > +	{
+> > > +		.cmd = SMC_NETLINK_DISABLE_AUTO_FALLBACK,
+> > > +		.flags = GENL_ADMIN_PERM,
+> > > +		.doit = smc_disable_auto_fallback,
+> > > +	},
+> > >   };
+> > 
+> > Consider adding the separated cmd to query the status of this config,
+> > just as SEID does?
+> > 
+> > It is common to check this value after user-space setted. Combined with
+> > sys_info maybe a little heavy in this scene.
+> 
+> 
+> Add a independent dumpit is quite okay, but is there have really scenarios
+> that access this value frequently? With more and more such switches in the
+> future, is is necessary for us to repeat on each switch ? I do have a plan
+> to put them unified within a NLA attributes, but I don't have much time yet.
+
+Yes, I think spreading them make code clean, and we can keep ABI
+compatibility if we have more than one interface. If we want to change
+one knob, we can change itself functions and data structures. Also, it
+makes userspace tools easy to maintainer. TCP's procfs, like /proc/net/netstat,
+is a summary knob, but not easy to parse and extend. Given that we
+choose modern netlink, we can avoid it from the beginning.
+
+Thanks,
+Tony Lu
