@@ -2,195 +2,91 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06992C3525A
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Feb 2022 14:11:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75D97C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Feb 2022 15:04:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234843AbiBIOLe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Feb 2022 09:11:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46496 "EHLO
+        id S235479AbiBIPEK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Feb 2022 10:04:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50570 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234837AbiBIOLb (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Feb 2022 09:11:31 -0500
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15421C05CBA4;
-        Wed,  9 Feb 2022 06:11:28 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R901e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V4.ipev_1644415884;
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V4.ipev_1644415884)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 09 Feb 2022 22:11:24 +0800
-From:   "D. Wythe" <alibuda@linux.alibaba.com>
-To:     kgraul@linux.ibm.com
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        "D. Wythe" <alibuda@linux.alibaba.com>
-Subject: [PATCH net-next v6 4/5] net/smc: Dynamic control auto fallback by socket options
-Date:   Wed,  9 Feb 2022 22:11:14 +0800
-Message-Id: <47e067deb658407bc68899ee9e6827f8159f11b4.1644413637.git.alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <cover.1644413637.git.alibuda@linux.alibaba.com>
-References: <cover.1644413637.git.alibuda@linux.alibaba.com>
+        with ESMTP id S235480AbiBIPEH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Feb 2022 10:04:07 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AACA4C0613C9;
+        Wed,  9 Feb 2022 07:04:10 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 449AC60C2C;
+        Wed,  9 Feb 2022 15:04:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 972F2C340E7;
+        Wed,  9 Feb 2022 15:04:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1644419049;
+        bh=rnl42XryuAYpZ/26n1PZFSAKonH9klc6797clpNBQJE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=lZCvu2+/FnkDSxI3812SQGZcelt2I2ObLTUtnTFCWXR6Qvg2iZ0Q+bKoEnBxNgdxm
+         wwTUIaGECJsR+ZyU0zfDRPY4HBnSz5kO8DP3rF7lASA+VFegwKlKq6NlC7IsWXYuL5
+         HRbHP/uylGjXJJT76PYY2nPWz4xa7FjcHjaP5/1Wuttnfzn3seoWAbQDZ9dPvVnOcL
+         NIgygEYtjBEsu9eZq4O535/my6WDm7yxn7nqWoKh1SBukIj2siz0GECp+Dyes8JJK8
+         TnbMc5fhyoUd4e2a+VGmk4PhxrBeBImsqy9gtC6mMFpMZWw7wibvTi7Ix1PAZrW04+
+         SBKkNYvCAkODA==
+Date:   Wed, 9 Feb 2022 17:04:02 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH for-rc] IB/cma: Allow XRG INI QPs to set their local ACK
+ timeout
+Message-ID: <YgPX4lxiNcT7Gx9t@unreal>
+References: <1644412980-28424-1-git-send-email-haakon.bugge@oracle.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1644412980-28424-1-git-send-email-haakon.bugge@oracle.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "D. Wythe" <alibuda@linux.alibaba.com>
+On Wed, Feb 09, 2022 at 02:23:00PM +0100, Håkon Bugge wrote:
+> XRC INI QPs should be able to adjust their local ACK timeout.
+> 
+> Fixes: 2c1619edef61 ("IB/cma: Define option to set ack timeout and pack tos_set")
+> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+> Suggested-by: Avneesh Pant <avneesh.pant@oracle.com>
+> 
+> ---
+> 
+> To avoid excessive discussions around the *if (WARN_ON( ...*
+> construct, just saying that it has been sanctioned by Jason here:
+> 
+> https://lore.kernel.org/linux-rdma/20210413135120.GT7405@nvidia.com/
 
-This patch aims to add dynamic control for SMC auto fallback, since we
-don't have socket option level for SMC yet, which requires we need to
-implement it at the same time.
+And I think that this is wrong, because it cane be triggered by user.
+1. Create cm_id with any QP type you want - ucma_create_id()
+2. Call to set option - ucma_set_option()
+3. See WARN_ON.
 
-This patch does the following:
+Thanks
 
-- add new socket option level: SOL_SMC.
-- add new SMC socket option: SMC_AUTO_FALLBACK.
-- provide getter/setter for SMC socket options.
-
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- include/linux/socket.h   |  1 +
- include/uapi/linux/smc.h |  4 +++
- net/smc/af_smc.c         | 69 +++++++++++++++++++++++++++++++++++++++++++++++-
- net/smc/smc.h            |  1 +
- 4 files changed, 74 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/socket.h b/include/linux/socket.h
-index 8ef26d8..6f85f5d 100644
---- a/include/linux/socket.h
-+++ b/include/linux/socket.h
-@@ -366,6 +366,7 @@ struct ucred {
- #define SOL_XDP		283
- #define SOL_MPTCP	284
- #define SOL_MCTP	285
-+#define SOL_SMC		286
- 
- /* IPX options */
- #define IPX_TYPE	1
-diff --git a/include/uapi/linux/smc.h b/include/uapi/linux/smc.h
-index 6c2874f..9f2cbf8 100644
---- a/include/uapi/linux/smc.h
-+++ b/include/uapi/linux/smc.h
-@@ -284,4 +284,8 @@ enum {
- 	__SMC_NLA_SEID_TABLE_MAX,
- 	SMC_NLA_SEID_TABLE_MAX = __SMC_NLA_SEID_TABLE_MAX - 1
- };
-+
-+/* SMC socket options */
-+#define SMC_AUTO_FALLBACK 1	/* allow auto fallback to TCP */
-+
- #endif /* _UAPI_LINUX_SMC_H */
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 8175f60..c313561 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -2325,7 +2325,8 @@ static int smc_listen(struct socket *sock, int backlog)
- 
- 	inet_csk(smc->clcsock->sk)->icsk_af_ops = &smc->af_ops;
- 
--	tcp_sk(smc->clcsock->sk)->smc_in_limited = smc_is_in_limited;
-+	if (smc->auto_fallback)
-+		tcp_sk(smc->clcsock->sk)->smc_in_limited = smc_is_in_limited;
- 
- 	rc = kernel_listen(smc->clcsock, backlog);
- 	if (rc) {
-@@ -2620,6 +2621,67 @@ static int smc_shutdown(struct socket *sock, int how)
- 	return rc ? rc : rc1;
- }
- 
-+static int __smc_getsockopt(struct socket *sock, int level, int optname,
-+			    char __user *optval, int __user *optlen)
-+{
-+	struct smc_sock *smc;
-+	int val, len;
-+
-+	smc = smc_sk(sock->sk);
-+
-+	if (get_user(len, optlen))
-+		return -EFAULT;
-+
-+	len = min_t(int, len, sizeof(int));
-+
-+	if (len < 0)
-+		return -EINVAL;
-+
-+	switch (optname) {
-+	case SMC_AUTO_FALLBACK:
-+		val = smc->auto_fallback;
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (put_user(len, optlen))
-+		return -EFAULT;
-+	if (copy_to_user(optval, &val, len))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+static int __smc_setsockopt(struct socket *sock, int level, int optname,
-+			    sockptr_t optval, unsigned int optlen)
-+{
-+	struct sock *sk = sock->sk;
-+	struct smc_sock *smc;
-+	int val, rc;
-+
-+	smc = smc_sk(sk);
-+
-+	lock_sock(sk);
-+	switch (optname) {
-+	case SMC_AUTO_FALLBACK:
-+		if (optlen < sizeof(int))
-+			return -EINVAL;
-+		if (copy_from_sockptr(&val, optval, sizeof(int)))
-+			return -EFAULT;
-+
-+		smc->auto_fallback = !!val;
-+		rc = 0;
-+		break;
-+	default:
-+		rc = -EOPNOTSUPP;
-+		break;
-+	}
-+	release_sock(sk);
-+
-+	return rc;
-+}
-+
- static int smc_setsockopt(struct socket *sock, int level, int optname,
- 			  sockptr_t optval, unsigned int optlen)
- {
-@@ -2629,6 +2691,8 @@ static int smc_setsockopt(struct socket *sock, int level, int optname,
- 
- 	if (level == SOL_TCP && optname == TCP_ULP)
- 		return -EOPNOTSUPP;
-+	else if (level == SOL_SMC)
-+		return __smc_setsockopt(sock, level, optname, optval, optlen);
- 
- 	smc = smc_sk(sk);
- 
-@@ -2711,6 +2775,9 @@ static int smc_getsockopt(struct socket *sock, int level, int optname,
- 	struct smc_sock *smc;
- 	int rc;
- 
-+	if (level == SOL_SMC)
-+		return __smc_getsockopt(sock, level, optname, optval, optlen);
-+
- 	smc = smc_sk(sock->sk);
- 	mutex_lock(&smc->clcsock_release_lock);
- 	if (!smc->clcsock) {
-diff --git a/net/smc/smc.h b/net/smc/smc.h
-index 5e5e38d..a0bdf75 100644
---- a/net/smc/smc.h
-+++ b/net/smc/smc.h
-@@ -249,6 +249,7 @@ struct smc_sock {				/* smc sock container */
- 	struct work_struct	smc_listen_work;/* prepare new accept socket */
- 	struct list_head	accept_q;	/* sockets to be accepted */
- 	spinlock_t		accept_q_lock;	/* protects accept_q */
-+	bool			auto_fallback;	/* auto fallabck to tcp */
- 	bool			use_fallback;	/* fallback to tcp */
- 	int			fallback_rsn;	/* reason for fallback */
- 	u32			peer_diagnosis; /* decline reason from peer */
--- 
-1.8.3.1
-
+> ---
+>  drivers/infiniband/core/cma.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 0f5f0d7..006ea9c 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -2811,7 +2811,7 @@ int rdma_set_ack_timeout(struct rdma_cm_id *id, u8 timeout)
+>  {
+>  	struct rdma_id_private *id_priv;
+>  
+> -	if (id->qp_type != IB_QPT_RC)
+> +	if (WARN_ON(id->qp_type != IB_QPT_RC && id->qp_type != IB_QPT_XRC_INI))
+>  		return -EINVAL;
+>  
+>  	id_priv = container_of(id, struct rdma_id_private, id);
+> -- 
+> 1.8.3.1
+> 
