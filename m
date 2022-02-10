@@ -2,116 +2,125 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6BEDC433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 10 Feb 2022 23:33:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAC5CC433F5
+	for <linux-rdma@archiver.kernel.org>; Thu, 10 Feb 2022 23:36:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242420AbiBJXdv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Feb 2022 18:33:51 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43996 "EHLO
+        id S1345734AbiBJXgZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Feb 2022 18:36:25 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231627AbiBJXdu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Feb 2022 18:33:50 -0500
-Received: from mail-io1-xd2a.google.com (mail-io1-xd2a.google.com [IPv6:2607:f8b0:4864:20::d2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CF07E83;
-        Thu, 10 Feb 2022 15:33:50 -0800 (PST)
-Received: by mail-io1-xd2a.google.com with SMTP id h7so9454812iof.3;
-        Thu, 10 Feb 2022 15:33:50 -0800 (PST)
+        with ESMTP id S1345509AbiBJXgY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Feb 2022 18:36:24 -0500
+Received: from mail-qt1-x830.google.com (mail-qt1-x830.google.com [IPv6:2607:f8b0:4864:20::830])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF69B5F67
+        for <linux-rdma@vger.kernel.org>; Thu, 10 Feb 2022 15:36:24 -0800 (PST)
+Received: by mail-qt1-x830.google.com with SMTP id x5so7203452qtw.10
+        for <linux-rdma@vger.kernel.org>; Thu, 10 Feb 2022 15:36:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=scQQOeGEKS1UtnSb4hDa2pMn49T7lX7tre18iE1yAHU=;
-        b=RIBQ3M1+e7Un6Pm8klMv7JFRyzLD6R+Ak9wA8JMgVvjGGuFJshj+1pYyY0wdO/sViu
-         r/Sy2qLBoQJw0gRyu/afxAsCIuXSI2sSFdu1izZtWcqnwuDs2ZTvAzbFVFezEXxG+raL
-         rq/FBsjW8A6NSkaXInMpTgc7OsquM6YmI2Q63qt5QOeHsXoQ5u90pe3WWu3iprephA1b
-         d0YrHC/kIfZUHXhzpfBTs1G6T6tsaKxLKbBCCmFVfbNLDUavDbYlK9LcgOLDw3KGs7S3
-         wm2wh5bErKqLnwUFNL6fS5uN9xQAWwZpWzgQoRe4pwJHGyYuKaQt+yygbiUWOaPEYZjL
-         3Pgw==
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=jdc4wttGNx0+uj82g/3cbdbffgxGg6KC2LBxBSLJrgk=;
+        b=jRX3EwsKEqLkj5t34Wyy1HXC4YVS1isnrMPVqBC4ixn+0oP2qBipNkgdmlqMVQdT43
+         oFKqw7xgqwe9R5L+D7Ssebx1WwzV+x8fcYnrfPNRQioWbF0pVBgIF77MXw72CXw/rBh1
+         R03crznZCerFV0VRfsmmSiS0yCBzJbc+1KBCvbYjswrpa2MUDRIufenGKegLtzpUQKOK
+         fRuy688UtSf/WYawQ7B98TF8bl4BJHLH3h8PeLmYGlSYA5texJ3n2QbtdG/5nMz5A4sD
+         OM6UqY7H9vdsmD/ZtvC73tTJQdCur07s8k4MJdY89xPuA0BhEsqeyrleqRcU8ll1DQCF
+         yalw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=scQQOeGEKS1UtnSb4hDa2pMn49T7lX7tre18iE1yAHU=;
-        b=C8SmWh+6uKqhsdY9wcTHH1Q+8J6e+I/9iDDCevvC01JVMNcg65rGOADum2u3y5rAzE
-         Qi0G8IKSiCJjVGgNeqSynxoUWX+IN//foBKNge5CAOLiOZ8BA3jV+TuQT4jbwlQth5rV
-         Es83+JviYMHc6wmecRicKeJQfHYJ2JmPR+e4yga1zL7CBf+rSaksFFfZEi/tNLFtFWte
-         dYdvAf7h4lxul/ScALTwVh65518WpeY5jDm57TBNkha5gumJpGLbJKiZ7m/C3rb6WjqM
-         YAzwTUTkYGufW6ZEW4Pq3imslVDpk5VVMn8s8nKFH+kMiRzdkzw4piYnmoYYCjaPWzvY
-         8cog==
-X-Gm-Message-State: AOAM532wtBBhOsREiskDMFqhbov5p+WEcY0kEbuQ/4Pt010ds4zfat1B
-        PNC9Tc1WvAtEG5zEssS9Ltg=
-X-Google-Smtp-Source: ABdhPJwXeQ/bXUwb8aHBaOdNFbuQO4MW/NT2Fa7afUSNlrVEzUO80EGBGp2QuHnt22Zclxq0J+BZVg==
-X-Received: by 2002:a05:6638:1607:: with SMTP id x7mr1605707jas.226.1644536029481;
-        Thu, 10 Feb 2022 15:33:49 -0800 (PST)
-Received: from localhost ([12.28.44.171])
-        by smtp.gmail.com with ESMTPSA id d80sm8376224iof.15.2022.02.10.15.33.48
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=jdc4wttGNx0+uj82g/3cbdbffgxGg6KC2LBxBSLJrgk=;
+        b=iHPvqkotIFvNht314OHIK1U9pur77u68mPXJRSUMwXEUoyyiGiWfKbPN5kzr8wizgF
+         Zh1ldly1psts/jhjFGswqyP3a3CS6Bkg1byZQgmMgxGIClqIq1OuGCPlTpRVHGKg49nE
+         cIU+wA28uSq8j+vdwhGQdAMqvuOuh1dfZK1i4VL4CMJZLOSzzQzixvCSa3STAK/2dTas
+         qmCeZtncvosY1V0jNYR1/EczdPg5G3E3kgR3xjWdY5Fgo40FZvKF+TJvRuebSXKhSyNX
+         SpoaPijVBWsH8J+iElPWNaaLcZIfnzPLteZrmH0Ao4CAh57J8FgmUscAocPvD60qyYzP
+         1UEg==
+X-Gm-Message-State: AOAM531ycxH1XAYlVKuPU4LuyQvJdWfKTIM+4bsQfp7QHMAvA7ykRwY4
+        CX3VMs+32ncX40rRKZOzm0ezIA==
+X-Google-Smtp-Source: ABdhPJzQIa5zPQh2XXzG457f36+iK0e3IhFV7shWUsXDsYa/H80qoTgj6GDIRkxYp7seatNxPqPccQ==
+X-Received: by 2002:ac8:588f:: with SMTP id t15mr6728007qta.580.1644536184070;
+        Thu, 10 Feb 2022 15:36:24 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
+        by smtp.gmail.com with ESMTPSA id j15sm9497370qkp.88.2022.02.10.15.36.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Feb 2022 15:33:49 -0800 (PST)
-From:   Yury Norov <yury.norov@gmail.com>
-To:     Yury Norov <yury.norov@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        David Laight <David.Laight@aculab.com>,
-        Joe Perches <joe@perches.com>, Dennis Zhou <dennis@kernel.org>,
-        Emil Renner Berthing <kernel@esmil.dk>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>,
-        Alexey Klimov <aklimov@redhat.com>,
-        linux-kernel@vger.kernel.org,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc:     Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH 19/49] RDMA/hfi: replace cpumask_weight with cpumask_empty where appropriate
-Date:   Thu, 10 Feb 2022 14:49:03 -0800
-Message-Id: <20220210224933.379149-20-yury.norov@gmail.com>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20220210224933.379149-1-yury.norov@gmail.com>
-References: <20220210224933.379149-1-yury.norov@gmail.com>
+        Thu, 10 Feb 2022 15:36:23 -0800 (PST)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1nIIz8-0021OD-JG; Thu, 10 Feb 2022 19:36:22 -0400
+Date:   Thu, 10 Feb 2022 19:36:22 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc:     Victor Erminpour <victor.erminpour@oracle.com>,
+        "Ismail, Mustafa" <mustafa.ismail@intel.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "trivial@kernel.org" <trivial@kernel.org>
+Subject: Re: [PATCH] RDMA/irdma: Fix GCC 12 warning
+Message-ID: <20220210233622.GK49147@ziepe.ca>
+References: <1644453235-1437-1-git-send-email-victor.erminpour@oracle.com>
+ <35240f17968242409a39427c303370df@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <35240f17968242409a39427c303370df@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-drivers/infiniband/hw/hfi1/affinity.c code calls cpumask_weight() to check
-if any bit of a given cpumask is set. We can do it more efficiently with
-cpumask_empty() because cpumask_empty() stops traversing the cpumask as
-soon as it finds first set bit, while cpumask_weight() counts all bits
-unconditionally.
+On Thu, Feb 10, 2022 at 10:09:18PM +0000, Saleem, Shiraz wrote:
+> > Subject: [PATCH] RDMA/irdma: Fix GCC 12 warning
+> > 
+> > When building with automatic stack variable initialization, GCC 12 complains about
+> > variables defined outside of switch case statements.
+> > Move the variable into the case that uses it, which silences the warning:
+> > 
+> > ./drivers/infiniband/hw/irdma/hw.c:270:47: error: statement will never be executed [-
+> > Werror=switch-unreachable]
+> >   270 |                         struct irdma_cm_node *cm_node;
+> >       |
+> > 
+> > ./drivers/infiniband/hw/irdma/utils.c:1215:50: error: statement will never be executed
+> > [-Werror=switch-unreachable]
+> >   1215 |                         struct irdma_gen_ae_info ae_info;
+> >        |
+> > 
+> > Signed-off-by: Victor Erminpour <victor.erminpour@oracle.com>
+> >  drivers/infiniband/hw/irdma/hw.c    | 2 +-
+> >  drivers/infiniband/hw/irdma/utils.c | 2 +-
+> >  2 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/irdma/hw.c b/drivers/infiniband/hw/irdma/hw.c
+> > index 89234d04cc65..a41a3b128d0d 100644
+> > +++ b/drivers/infiniband/hw/irdma/hw.c
+> > @@ -267,8 +267,8 @@ static void irdma_process_aeq(struct irdma_pci_f *rf)
+> >  		}
+> > 
+> >  		switch (info->ae_id) {
+> > -			struct irdma_cm_node *cm_node;
+> >  		case IRDMA_AE_LLP_CONNECTION_ESTABLISHED:
+> > +			struct irdma_cm_node *cm_node;
+> >  			cm_node = iwqp->cm_node;
+> >  			if (cm_node->accept_pend) {
+> >  				atomic_dec(&cm_node->listener-
+> 
+> This doesn't compile.
+> 
+> drivers/infiniband/hw/irdma/hw.c: In function \u2018irdma_process_aeq\u2019:
+> drivers/infiniband/hw/irdma/hw.c:271:4: error: a label can only be part of a statement and a declaration is not a statement
+>   271 |    struct irdma_cm_node *cm_node;
+> 
+> Seems like we are accommodating for gcc12 bug since this C code is
+> legit?
 
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/hfi1/affinity.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+It might be legit, but it is nutzo and not our coding style.
 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
-index 706b3b659713..877f8e84a672 100644
---- a/drivers/infiniband/hw/hfi1/affinity.c
-+++ b/drivers/infiniband/hw/hfi1/affinity.c
-@@ -666,7 +666,7 @@ int hfi1_dev_affinity_init(struct hfi1_devdata *dd)
- 			 * engines, use the same CPU cores as general/control
- 			 * context.
- 			 */
--			if (cpumask_weight(&entry->def_intr.mask) == 0)
-+			if (cpumask_empty(&entry->def_intr.mask))
- 				cpumask_copy(&entry->def_intr.mask,
- 					     &entry->general_intr_mask);
- 		}
-@@ -686,7 +686,7 @@ int hfi1_dev_affinity_init(struct hfi1_devdata *dd)
- 		 * vectors, use the same CPU core as the general/control
- 		 * context.
- 		 */
--		if (cpumask_weight(&entry->comp_vect_mask) == 0)
-+		if (cpumask_empty(&entry->comp_vect_mask))
- 			cpumask_copy(&entry->comp_vect_mask,
- 				     &entry->general_intr_mask);
- 	}
--- 
-2.32.0
+If the variable is used by many branches it should be declared at the
+top of the function.
 
+If it is used in one branch it should be as above, with the missing {}
+added.
+
+Jason
