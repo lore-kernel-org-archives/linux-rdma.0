@@ -2,142 +2,185 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ACDCC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFEACC43219
 	for <linux-rdma@archiver.kernel.org>; Thu, 10 Feb 2022 09:11:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238267AbiBJJLn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 10 Feb 2022 04:11:43 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41930 "EHLO
+        id S238274AbiBJJLo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 10 Feb 2022 04:11:44 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236840AbiBJJLm (ORCPT
+        with ESMTP id S238209AbiBJJLm (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 10 Feb 2022 04:11:42 -0500
-Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66E27C38;
-        Thu, 10 Feb 2022 01:11:42 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R751e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0V43kdfO_1644484298;
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V43kdfO_1644484298)
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6760E103B;
+        Thu, 10 Feb 2022 01:11:43 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R851e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0V43c-FX_1644484300;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V43c-FX_1644484300)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Thu, 10 Feb 2022 17:11:39 +0800
+          Thu, 10 Feb 2022 17:11:40 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v7 0/5] net/smc: Optimizing performance in short-lived scenarios 
-Date:   Thu, 10 Feb 2022 17:11:33 +0800
-Message-Id: <cover.1644481811.git.alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v7 2/5] net/smc: Limit backlog connections
+Date:   Thu, 10 Feb 2022 17:11:35 +0800
+Message-Id: <7e0fe794f55ba8734d5b2fa8fec925da08389173.1644481811.git.alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <cover.1644481811.git.alibuda@linux.alibaba.com>
+References: <cover.1644481811.git.alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-This patch set aims to optimizing performance of SMC in short-lived
-links scenarios, which is quite unsatisfactory right now.
+Current implementation does not handling backlog semantics, one
+potential risk is that server will be flooded by infinite amount
+connections, even if client was SMC-incapable.
 
-In our benchmark, we test it with follow scripts:
+This patch works to put a limit on backlog connections, referring to the
+TCP implementation, we divides SMC connections into two categories:
 
-./wrk -c 10000 -t 4 -H 'Connection: Close' -d 20 http://smc-server
+1. Half SMC connection, which includes all TCP established while SMC not
+connections.
 
-Current performance figures like that:
+2. Full SMC connection, which includes all SMC established connections.
 
-Running 20s test @ http://11.213.45.6
-  4 threads and 10000 connections
-  4956 requests in 20.06s, 3.24MB read
-  Socket errors: connect 0, read 0, write 672, timeout 0
-Requests/sec:    247.07
-Transfer/sec:    165.28KB
+For half SMC connection, since all half SMC connections starts with TCP
+established, we can achieve our goal by put a limit before TCP
+established. Refer to the implementation of TCP, this limits will based
+on not only the half SMC connections but also the full connections,
+which is also a constraint on full SMC connections.
 
-There are many reasons for this phenomenon, this patch set doesn't
-solve it all though, but it can be well alleviated with it in.
+For full SMC connections, although we know exactly where it starts, it's
+quite hard to put a limit before it. The easiest way is to block wait
+before receive SMC confirm CLC message, while it's under protection by
+smc_server_lgr_pending, a global lock, which leads this limit to the
+entire host instead of a single listen socket. Another way is to drop
+the full connections, but considering the cast of SMC connections, we
+prefer to keep full SMC connections.
 
-Patch 1/5  (Make smc_tcp_listen_work() independent) :
+Even so, the limits of full SMC connections still exists, see commits
+about half SMC connection below.
 
-Separate smc_tcp_listen_work() from smc_listen_work(), make them
-independent of each other, the busy SMC handshake can not affect new TCP
-connections visit any more. Avoid discarding a large number of TCP
-connections after being overstock, which is undoubtedly raise the
-connection establishment time.
+After this patch, the limits of backend connection shows like:
 
-Patch 2/5 (Limit SMC backlog connections):
+For SMC:
 
-Since patch 1 has separated smc_tcp_listen_work() from
-smc_listen_work(), an unrestricted TCP accept have come into being. This
-patch try to put a limit on SMC backlog connections refers to
-implementation of TCP.
+1. Client with SMC-capability can makes 2 * backlog full SMC connections
+   or 1 * backlog half SMC connections and 1 * backlog full SMC
+   connections at most.
 
-Patch 3/5 (Limit SMC visits when handshake workqueue congested):
+2. Client without SMC-capability can only makes 1 * backlog half TCP
+   connections and 1 * backlog full TCP connections.
 
-Considering the complexity of SMC handshake right now, in short-lived
-links scenarios, this may not be the main scenario of SMC though, it's
-performance is still quite poor. This patch try to provide constraint on
-SMC handshake when handshake workqueue congested, which is the sign of
-SMC handshake stacking in our opinion.
-
-Patch 4/5 (Dynamic control handshake limitation by socket options)
-
-This patch allow applications dynamically control the ability of SMC
-handshake limitation. Since SMC don't support set SMC socket option
-before,
-this patch also have to support SMC's owns socket options.
-
-Patch 5/5 (Add global configure for handshake limitation by netlink)
-
-This patch provides a way to get benefit of handshake limitation
-without
-modifying any code for applications, which is quite useful for most
-existing applications.
-
-After this patch set, performance figures like that:
-
-Running 20s test @ http://11.213.45.6
-  4 threads and 10000 connections
-  693253 requests in 20.10s, 452.88MB read
-Requests/sec:  34488.13
-Transfer/sec:     22.53MB
-
-That's a quite well performance improvement, about to 6 to 7 times in my
-environment.
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
-changelog:
-v1 -> v2:
-- fix compile warning
-- fix invalid dependencies in kconfig
-v2 -> v3:
-- correct spelling mistakes
-- fix useless variable declare
-v3 -> v4
-- make smc_tcp_ls_wq be static
-v4 -> v5
-- add dynamic control for SMC auto fallback by socket options
-- add global configure for SMC auto fallback through netlink
-v5 -> v6
-- move auto fallback to net namespace scope
-- remove auto fallback attribute in SMC_GEN_SYS_INFO
-- add independent attributes for auto fallback
-v6 -> v7
-- fix wording and the naming issues, rename 'auto fallback' to handshake
-  limitation.
----
+ net/smc/af_smc.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ net/smc/smc.h    |  6 +++++-
+ 2 files changed, 50 insertions(+), 1 deletion(-)
 
-D. Wythe (5):
-  net/smc: Make smc_tcp_listen_work() independent
-  net/smc: Limit backlog connections
-  net/smc: Limit SMC visits when handshake workqueue congested
-  net/smc: Dynamic control handshake limitation by socket options
-  net/smc: Add global configure for handshake limitation by netlink
-
- include/linux/socket.h   |   1 +
- include/linux/tcp.h      |   1 +
- include/net/netns/smc.h  |   2 +
- include/uapi/linux/smc.h |  15 ++++
- net/ipv4/tcp_input.c     |   3 +-
- net/smc/af_smc.c         | 184 ++++++++++++++++++++++++++++++++++++++++++++++-
- net/smc/smc.h            |  13 +++-
- net/smc/smc_netlink.c    |  15 ++++
- net/smc/smc_pnet.c       |   3 +
- 9 files changed, 233 insertions(+), 4 deletions(-)
-
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 4969ac8..8587242 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -73,6 +73,36 @@ static void smc_set_keepalive(struct sock *sk, int val)
+ 	smc->clcsock->sk->sk_prot->keepalive(smc->clcsock->sk, val);
+ }
+ 
++static struct sock *smc_tcp_syn_recv_sock(const struct sock *sk,
++					  struct sk_buff *skb,
++					  struct request_sock *req,
++					  struct dst_entry *dst,
++					  struct request_sock *req_unhash,
++					  bool *own_req)
++{
++	struct smc_sock *smc;
++
++	smc = smc_clcsock_user_data(sk);
++
++	if (READ_ONCE(sk->sk_ack_backlog) + atomic_read(&smc->queued_smc_hs) >
++				sk->sk_max_ack_backlog)
++		goto drop;
++
++	if (sk_acceptq_is_full(&smc->sk)) {
++		NET_INC_STATS(sock_net(sk), LINUX_MIB_LISTENOVERFLOWS);
++		goto drop;
++	}
++
++	/* passthrough to original syn recv sock fct */
++	return smc->ori_af_ops->syn_recv_sock(sk, skb, req, dst, req_unhash,
++					      own_req);
++
++drop:
++	dst_release(dst);
++	tcp_listendrop(sk);
++	return NULL;
++}
++
+ static struct smc_hashinfo smc_v4_hashinfo = {
+ 	.lock = __RW_LOCK_UNLOCKED(smc_v4_hashinfo.lock),
+ };
+@@ -1595,6 +1625,9 @@ static void smc_listen_out(struct smc_sock *new_smc)
+ 	struct smc_sock *lsmc = new_smc->listen_smc;
+ 	struct sock *newsmcsk = &new_smc->sk;
+ 
++	if (tcp_sk(new_smc->clcsock->sk)->syn_smc)
++		atomic_dec(&lsmc->queued_smc_hs);
++
+ 	if (lsmc->sk.sk_state == SMC_LISTEN) {
+ 		lock_sock_nested(&lsmc->sk, SINGLE_DEPTH_NESTING);
+ 		smc_accept_enqueue(&lsmc->sk, newsmcsk);
+@@ -2200,6 +2233,9 @@ static void smc_tcp_listen_work(struct work_struct *work)
+ 		if (!new_smc)
+ 			continue;
+ 
++		if (tcp_sk(new_smc->clcsock->sk)->syn_smc)
++			atomic_inc(&lsmc->queued_smc_hs);
++
+ 		new_smc->listen_smc = lsmc;
+ 		new_smc->use_fallback = lsmc->use_fallback;
+ 		new_smc->fallback_rsn = lsmc->fallback_rsn;
+@@ -2266,6 +2302,15 @@ static int smc_listen(struct socket *sock, int backlog)
+ 	smc->clcsock->sk->sk_data_ready = smc_clcsock_data_ready;
+ 	smc->clcsock->sk->sk_user_data =
+ 		(void *)((uintptr_t)smc | SK_USER_DATA_NOCOPY);
++
++	/* save original ops */
++	smc->ori_af_ops = inet_csk(smc->clcsock->sk)->icsk_af_ops;
++
++	smc->af_ops = *smc->ori_af_ops;
++	smc->af_ops.syn_recv_sock = smc_tcp_syn_recv_sock;
++
++	inet_csk(smc->clcsock->sk)->icsk_af_ops = &smc->af_ops;
++
+ 	rc = kernel_listen(smc->clcsock, backlog);
+ 	if (rc) {
+ 		smc->clcsock->sk->sk_data_ready = smc->clcsk_data_ready;
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index 37b2001..e91e400 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -252,6 +252,10 @@ struct smc_sock {				/* smc sock container */
+ 	bool			use_fallback;	/* fallback to tcp */
+ 	int			fallback_rsn;	/* reason for fallback */
+ 	u32			peer_diagnosis; /* decline reason from peer */
++	atomic_t                queued_smc_hs;  /* queued smc handshakes */
++	struct inet_connection_sock_af_ops		af_ops;
++	const struct inet_connection_sock_af_ops	*ori_af_ops;
++						/* original af ops */
+ 	int			sockopt_defer_accept;
+ 						/* sockopt TCP_DEFER_ACCEPT
+ 						 * value
+@@ -276,7 +280,7 @@ static inline struct smc_sock *smc_sk(const struct sock *sk)
+ 	return (struct smc_sock *)sk;
+ }
+ 
+-static inline struct smc_sock *smc_clcsock_user_data(struct sock *clcsk)
++static inline struct smc_sock *smc_clcsock_user_data(const struct sock *clcsk)
+ {
+ 	return (struct smc_sock *)
+ 	       ((uintptr_t)clcsk->sk_user_data & ~SK_USER_DATA_NOCOPY);
 -- 
 1.8.3.1
 
