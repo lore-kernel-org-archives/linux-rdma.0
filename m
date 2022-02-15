@@ -2,157 +2,113 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2C17C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue, 15 Feb 2022 17:56:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A1CFC4321E
+	for <linux-rdma@archiver.kernel.org>; Tue, 15 Feb 2022 18:17:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234566AbiBOR4R (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Feb 2022 12:56:17 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:42330 "EHLO
+        id S242954AbiBOSR5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Feb 2022 13:17:57 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:34900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242778AbiBOR4N (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Feb 2022 12:56:13 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B122110076B;
-        Tue, 15 Feb 2022 09:56:03 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D8F2761662;
-        Tue, 15 Feb 2022 17:56:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62F9FC340EB;
-        Tue, 15 Feb 2022 17:56:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1644947761;
-        bh=RW6YVaDJUsS8JVaYPBST0uEeqYkZIjQuU58SCjwO1rE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=FkZ40rmL/bfiR2tDJxFdqEQG1gJMEL2JxCy404T8NX9D7ABZCxBkzehromlbioZ6c
-         RI2TDyvJcQ4PKIHmT6yBKKUkZP71O97i6YQe66ihRQDpNXQtQDTqoeMTz1NIS7PVg9
-         SX1qH8/gOYP20ZxBZUA9Ht121pUWOOEG7OEoYBKPGEiMys8n6mJTsQ7+oRTZ/i+Eky
-         RrD8OPAnVYripqAgpGbY9UVTTsKLgikBxvM+ZoCZ5dxhArqtOucPBG3ILgxhOVlXN1
-         AL9glzgO8JBZHUelsISQob5Q1bOXdIAbbIRZ32s/ISsO1EPxmD0weCENWb1YFvmsQy
-         B/Qh1rSP5acjg==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Aharon Landau <aharonl@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v2 4/5] RDMA/mlx5: Store ndescs instead of the translation table size
-Date:   Tue, 15 Feb 2022 19:55:32 +0200
-Message-Id: <e9dbfaa1f279793a6bd28ee5a31cb4f0f0d70f05.1644947594.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <cover.1644947594.git.leonro@nvidia.com>
-References: <cover.1644947594.git.leonro@nvidia.com>
+        with ESMTP id S242977AbiBOSR4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Feb 2022 13:17:56 -0500
+Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8023119F60
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Feb 2022 10:17:42 -0800 (PST)
+Received: by mail-pj1-x102e.google.com with SMTP id a11-20020a17090a740b00b001b8b506c42fso3903829pjg.0
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Feb 2022 10:17:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=rU/cr+2YS83r8ZzfG0ihHyfke5lY7dzNO33vRqwTRo0=;
+        b=BbY3zUMbpsKVLuD6QiFaFpnxej58wpxQPVVGisDcf+K+2coTsFmZNXGoWqBeKoLb1x
+         3ZptFg7el6LpqeSuHR1QjwuSCHfpkEX/T+XcjAHpaQzkvx2kHT7d0+kYGoaayuMfQhPV
+         CAs5kcpK7DDzn/NDlTFukbq1xe316LjUYcWLM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=rU/cr+2YS83r8ZzfG0ihHyfke5lY7dzNO33vRqwTRo0=;
+        b=MwkK26yqrUel1soK9uHLEGSAXxKrMSMLWkFaEMX8YkIZs0qpeK3+vEDku54J2HF89h
+         GIKy73VM/kOAGSqnK7fStEK2m+4Ivz2QAufbZDkRUrsmltfGOlKEHFkkOKCUriuhoja/
+         zUqiZQixkY2PGxT5byANXMXYKmbqlPc9hQNKSW7vXW/tD+05XjtpdKWadFIjEKhCJ7Ub
+         BguzyswzGMP4yqCNseKc4rsffVM3Jee32mxlPdlQqMSctIEhS9mR08Rrz0nD6JbKglMX
+         j83lSvwjtJ7SGka2ifmR5Vsn51P7gwxH1g2OrmX3Q89OBsUCgdENE8iKsh+6Skl075Tn
+         6otA==
+X-Gm-Message-State: AOAM533rLMuJiCIqvoZruCLU2ob+gt/LW9Zu8RlBgexKowVjYygMCNNA
+        VZURv5IyPmd5lRVJHKHTXp3JDg==
+X-Google-Smtp-Source: ABdhPJwjJJkj0fC2gO+FdGjnaisWCk9FKkCf0qazg7PUuY4rrjoW+egyeLOWB+yCEr/MI5qa+9+dbA==
+X-Received: by 2002:a17:902:eb8f:: with SMTP id q15mr235036plg.67.1644949062021;
+        Tue, 15 Feb 2022 10:17:42 -0800 (PST)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id a186sm3157627pgc.70.2022.02.15.10.17.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 15 Feb 2022 10:17:41 -0800 (PST)
+Date:   Tue, 15 Feb 2022 10:17:40 -0800
+From:   Kees Cook <keescook@chromium.org>
+To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc:     GR-QLogic-Storage-Upstream@marvell.com,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        linux-crypto@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, nouveau@lists.freedesktop.org,
+        coresight@lists.linaro.org, linux-arm-kernel@lists.infradead.org,
+        bcm-kernel-feedback-list@broadcom.com, netdev@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-scsi@vger.kernel.org,
+        target-devel@vger.kernel.org, mpi3mr-linuxdrv.pdl@broadcom.com,
+        linux-staging@lists.linux.dev,
+        linux-rpi-kernel@lists.infradead.org, sparmaintainer@unisys.com,
+        linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
+        linux-ext4@vger.kernel.org, linux-acpi@vger.kernel.org,
+        devel@acpica.org, linux-arch@vger.kernel.org, linux-mm@kvack.org,
+        greybus-dev@lists.linaro.org, linux-i3c@lists.infradead.org,
+        linux-rdma@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
+        linux-perf-users@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH][next] treewide: Replace zero-length arrays with
+ flexible-array members
+Message-ID: <202202151016.C0471D6E@keescook>
+References: <20220215174743.GA878920@embeddedor>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20220215174743.GA878920@embeddedor>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@nvidia.com>
+On Tue, Feb 15, 2022 at 11:47:43AM -0600, Gustavo A. R. Silva wrote:
+> There is a regular need in the kernel to provide a way to declare
+> having a dynamically sized set of trailing elements in a structure.
+> Kernel code should always use “flexible array members”[1] for these
+> cases. The older style of one-element or zero-length arrays should
+> no longer be used[2].
+> 
+> This code was transformed with the help of Coccinelle:
+> (next-20220214$ spatch --jobs $(getconf _NPROCESSORS_ONLN) --sp-file script.cocci --include-headers --dir . > output.patch)
+> 
+> @@
+> identifier S, member, array;
+> type T1, T2;
+> @@
+> 
+> struct S {
+>   ...
+>   T1 member;
+>   T2 array[
+> - 0
+>   ];
+> };
 
-Currently, ent->xlt stores the translation table size. This data should
-not be stored in the cache entry but be written directly to the mailbox.
-Store ndescs instead, and deduce the translation table size from it
-according to the access mode.
-Later in the series, ent->ndescs will help to search for entries.
+These all look trivially correct to me. Only two didn't have the end of
+the struct visible in the patch, and checking those showed them to be
+trailing members as well, so:
 
-Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
- drivers/infiniband/hw/mlx5/mr.c      | 25 ++++++++++++++++++++++---
- drivers/infiniband/hw/mlx5/odp.c     |  8 ++------
- 3 files changed, 25 insertions(+), 10 deletions(-)
+Reviewed-by: Kees Cook <keescook@chromium.org>
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 751d02bc755b..4f04bb55c4c6 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -763,9 +763,9 @@ struct mlx5_cache_ent {
- 
- 	char                    name[4];
- 	u32                     order;
--	u32			xlt;
- 	u32			access_mode;
- 	u32			page;
-+	unsigned int		ndescs;
- 
- 	u8 disabled:1;
- 	u8 fill_to_high_water:1;
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 0c1dc13b4c45..eb14ea4bcbba 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -176,6 +176,25 @@ static void create_mkey_callback(int status, struct mlx5_async_work *context)
- 	spin_unlock_irqrestore(&ent->lock, flags);
- }
- 
-+static int get_mkc_octo_size(unsigned int access_mode, unsigned int ndescs)
-+{
-+	int ret = 0;
-+
-+	switch (access_mode) {
-+	case MLX5_MKC_ACCESS_MODE_MTT:
-+		ret = DIV_ROUND_UP(ndescs, MLX5_IB_UMR_OCTOWORD /
-+						   sizeof(struct mlx5_mtt));
-+		break;
-+	case MLX5_MKC_ACCESS_MODE_KSM:
-+		ret = DIV_ROUND_UP(ndescs, MLX5_IB_UMR_OCTOWORD /
-+						   sizeof(struct mlx5_klm));
-+		break;
-+	default:
-+		WARN_ON(1);
-+	}
-+	return ret;
-+}
-+
- static struct mlx5_ib_mr *alloc_cache_mr(struct mlx5_cache_ent *ent, void *mkc)
- {
- 	struct mlx5_ib_mr *mr;
-@@ -191,7 +210,8 @@ static struct mlx5_ib_mr *alloc_cache_mr(struct mlx5_cache_ent *ent, void *mkc)
- 	MLX5_SET(mkc, mkc, access_mode_1_0, ent->access_mode & 0x3);
- 	MLX5_SET(mkc, mkc, access_mode_4_2, (ent->access_mode >> 2) & 0x7);
- 
--	MLX5_SET(mkc, mkc, translations_octword_size, ent->xlt);
-+	MLX5_SET(mkc, mkc, translations_octword_size,
-+		 get_mkc_octo_size(ent->access_mode, ent->ndescs));
- 	MLX5_SET(mkc, mkc, log_page_size, ent->page);
- 	return mr;
- }
-@@ -701,8 +721,7 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
- 			continue;
- 
- 		ent->page = PAGE_SHIFT;
--		ent->xlt = (1 << ent->order) * sizeof(struct mlx5_mtt) /
--			   MLX5_IB_UMR_OCTOWORD;
-+		ent->ndescs = 1 << ent->order;
- 		ent->access_mode = MLX5_MKC_ACCESS_MODE_MTT;
- 		if ((dev->mdev->profile.mask & MLX5_PROF_MASK_MR_CACHE) &&
- 		    !dev->is_rep && mlx5_core_is_pf(dev->mdev) &&
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index f834c9590c51..41c964a45f89 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -1598,18 +1598,14 @@ void mlx5_odp_init_mr_cache_entry(struct mlx5_cache_ent *ent)
- 	switch (ent->order - 2) {
- 	case MLX5_IMR_MTT_CACHE_ENTRY:
- 		ent->page = PAGE_SHIFT;
--		ent->xlt = MLX5_IMR_MTT_ENTRIES *
--			   sizeof(struct mlx5_mtt) /
--			   MLX5_IB_UMR_OCTOWORD;
-+		ent->ndescs = MLX5_IMR_MTT_ENTRIES;
- 		ent->access_mode = MLX5_MKC_ACCESS_MODE_MTT;
- 		ent->limit = 0;
- 		break;
- 
- 	case MLX5_IMR_KSM_CACHE_ENTRY:
- 		ent->page = MLX5_KSM_PAGE_SHIFT;
--		ent->xlt = mlx5_imr_ksm_entries *
--			   sizeof(struct mlx5_klm) /
--			   MLX5_IB_UMR_OCTOWORD;
-+		ent->ndescs = mlx5_imr_ksm_entries;
- 		ent->access_mode = MLX5_MKC_ACCESS_MODE_KSM;
- 		ent->limit = 0;
- 		break;
 -- 
-2.35.1
-
+Kees Cook
