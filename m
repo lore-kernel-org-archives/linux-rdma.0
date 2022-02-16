@@ -2,125 +2,524 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0744C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Feb 2022 07:07:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 810C8C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Feb 2022 07:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229674AbiBPHHz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Feb 2022 02:07:55 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:34264 "EHLO
+        id S229695AbiBPHI4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Feb 2022 02:08:56 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:43454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229620AbiBPHHf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Feb 2022 02:07:35 -0500
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on20610.outbound.protection.outlook.com [IPv6:2a01:111:f400:7eab::610])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 253E52C833C
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Feb 2022 23:06:31 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=STGh44YLoFjXYCutedcnB9eC28XVWBAy7Gk5L/P+gLfHfpiqJknjHN06o/2LxDb833XA58gAW+Dk9ZF1sr/vJZ/APd9bN2sgC9wO+VeH3JiyFeJArSgQno6nRdZ8rGNsclDeHCEezSzt/hl2GxciC7P1gTTrkuoeniyFcPhGCTqbIBIzLGN5AW6dE7HuibrCA9SKG2lwwEApgiD2j0TyXTlFjvUhoRklOr28HeL5s1Mngz1RN42xKMvO3GrnSjP9siLcEWNxGuSrk5mVAKFnVNSPv+mUAKLwDW8z4ThpY1RpOmQtgSDX9JTrWZ3KPwJphabXmQRNsdwM3gu56qKrQg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GvWt9e1n7HZX/1kGOjWtMosd3NWo7NUmwShqW5Q8tOk=;
- b=kHlDPJGJGjuPcspUoAjw4NCdaHJH4QEUGy9nSHB8NJUITgdaY5ZaqJ9kxcHqGvN3i4bEJ8qV1fE7niINZsQHCkaq5guxS3TEyoS9JNny1aNDxTFk8ZVD+VPckUIhR2HEJYcp+PwZ/qqzXYgxgujVZCvrxmqG03hJy/O5qJziCgxiQqe5U5Lt7Q3nYoPj9GJJym/QxCTwxT3Ut0/uDo21ChbEOlQA4oB/xrdb0+vHdPOdltAgNsUu/14zJ3P35lBozcY2zEEgFcRUJGRifI2n5kJ5bd41RrFNq2J9i7Ph1j4M9acIC13Co6DDd4XSZXZKd+ixgg7MVDW9DOvXPtdMBA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 12.22.5.235) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GvWt9e1n7HZX/1kGOjWtMosd3NWo7NUmwShqW5Q8tOk=;
- b=GG45ouXp+y9tZ/oF4aIbKBFc9uHWFbR9j+/0kGL+11+EOc/ycJ1i9538FHH0YgLDeVDDNzczenQrsnNT/BtWBc4H/3uEWut6I+LeMB1frA/GEYb7+65uZFrq6FyyGnt3kTDpTuGiWY/CL8SU9/hLQWWNrn7PyNqJhIRk5nOP4/HpZW85gSfXjr5NBWryC0wTJNexYDD2T+c7IW+vaffHUyNmYCQtwiVuMh3BPVax0GL82LW/Tw/bH5qOaOyUG75EyD9g352A+DxxeR3ARp7ELvkKm8RMOQcsGsfEc68rgfa1kh3XggIH8JhIJYnlOe4eUdUEU6dEz17Y3MiEsfzm0g==
-Received: from MWHPR17CA0072.namprd17.prod.outlook.com (2603:10b6:300:93::34)
- by DM6PR12MB4862.namprd12.prod.outlook.com (2603:10b6:5:1b7::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4975.15; Wed, 16 Feb
- 2022 07:02:32 +0000
-Received: from CO1NAM11FT049.eop-nam11.prod.protection.outlook.com
- (2603:10b6:300:93:cafe::68) by MWHPR17CA0072.outlook.office365.com
- (2603:10b6:300:93::34) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4995.14 via Frontend
- Transport; Wed, 16 Feb 2022 07:02:32 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.235)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 12.22.5.235 as permitted sender) receiver=protection.outlook.com;
- client-ip=12.22.5.235; helo=mail.nvidia.com;
-Received: from mail.nvidia.com (12.22.5.235) by
- CO1NAM11FT049.mail.protection.outlook.com (10.13.175.50) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.4975.11 via Frontend Transport; Wed, 16 Feb 2022 07:02:32 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by DRHQMAIL107.nvidia.com
- (10.27.9.16) with Microsoft SMTP Server (TLS) id 15.0.1497.18; Wed, 16 Feb
- 2022 07:02:30 +0000
-Received: from localhost (10.126.230.35) by rnnvmail201.nvidia.com
- (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.9; Tue, 15 Feb 2022
- 23:02:29 -0800
-Date:   Wed, 16 Feb 2022 09:02:23 +0200
-From:   Leon Romanovsky <leonro@nvidia.com>
-To:     Bart Van Assche <bvanassche@acm.org>
-CC:     Jason Gunthorpe <jgg@ziepe.ca>, <linux-rdma@vger.kernel.org>,
-        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: Re: [PATCH 1/3] ib_srp: Add more documentation
-Message-ID: <Ygyhf1YU6mJoVubK@unreal>
-References: <20220215182650.19839-1-bvanassche@acm.org>
- <20220215182650.19839-2-bvanassche@acm.org>
- <Ygv0IhNMJxFHSi8Q@unreal>
- <d76031cc-29bb-5dad-6f30-b69fee5966cb@acm.org>
+        with ESMTP id S229563AbiBPHI4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Feb 2022 02:08:56 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4420A6622E
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Feb 2022 23:08:32 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 09E5860C75
+        for <linux-rdma@vger.kernel.org>; Wed, 16 Feb 2022 07:07:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E75FC004E1;
+        Wed, 16 Feb 2022 07:07:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1644995257;
+        bh=3a3k8oTBZ8Wqe2Bf1kyx5gKOOTo//XjaHnFpWuOp8E0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=JdT9B9i9U6dtxYrdGbhswnuYn2jFNqqdD97gFqtYHEYJmw/qbJTSwAegNGqBeIiGI
+         B24Wg1WtlDsLHG74JSw4Xs+2uYgA4w/uv3ijnn7jxa5yeh7qrCrjqmxLAPahRlg0YP
+         EQbOQjH+960S3WGCmzKUJoIXeSMgv7DvevUzn4474Gsq4xsIRW3aZgrosayQuXYMYz
+         kINa0DvBsmU2kJmFdRHgIyWSSl3KcX/oJDUwj6NawW2VS544taXkheHCoys5kRK3W5
+         +qoO1D9V6DWzDqmPg770dFtXQBUWvQvgcprAwDsAqjxg3ZUwwc4aFh8E8QaEdc4BBV
+         t5EIuGyC9CYOA==
+Date:   Wed, 16 Feb 2022 09:07:29 +0200
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+Cc:     linux-rdma@vger.kernel.org, jgg@nvidia.com, zyjzyj2000@gmail.com,
+        guoqing.jiang@linux.dev, bvanassche@acm.org
+Subject: Re: [PATCH for-next] RDMA/rxe: Revert changes from irqsave to bh
+ locks
+Message-ID: <YgyisRNf4UVv48eY@unreal>
+References: <20220215194448.44369-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <d76031cc-29bb-5dad-6f30-b69fee5966cb@acm.org>
-X-Originating-IP: [10.126.230.35]
-X-ClientProxiedBy: rnnvmail201.nvidia.com (10.129.68.8) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: ce020946-19a7-4b5b-d84a-08d9f11a4d88
-X-MS-TrafficTypeDiagnostic: DM6PR12MB4862:EE_
-X-Microsoft-Antispam-PRVS: <DM6PR12MB48621E06D2A898760EE9937FBD359@DM6PR12MB4862.namprd12.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4125;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: NqQv5mVbTh5vyFq76tiWM0ClJyZWGsam7CQyjZiLuVKAtkxc/035cJr2cgkD4somb6aTO4G4dpwkkhj0EsC2rE2Q6gI/e/5H+1rAm4tBFZ5jgUMEnprIc20xK22o/3wzMKTXqKoKStZHtTOHBynK5Ox85yIzgAsaJ5TZ2J1Gsyf9siP9WqbsxpP0NHUGRL5IxyweZHVC8RPgOXWyFi0FcwRhEvHxeiVk4rmw9SjNvY7/vR8VCSqMQ1QxaGUuGka7TVNcKwHH5C9iT70hMoPFVBVC5rZbHAJ8gaF9OhSfsW/Rk12PX9GG6r5nntMEvJ7KEV1oyJ/05c6ai98ENHYWL2GAXWzRLQzbOvoDNsy6qUu5SSZhIPS4FvSn0fnAsRo5aHJKKW4/Xo9dkQ4+C7dyIQKS3FqY8GWdvZtFFLL4H9Ejr7v2rFna/8Ywmno1zPBZ3R8hh4pJ/5cgK1EuDon2p87UStrhRbzeMU331ILy0gOgNmHA8+em1Aezv7lOsyFmwCHbSLCJNuk2g8zym/ikC5hfwNHXYzl3QAXncncKOKiGdDQUBOM/vlFFqb5hFUz9C2YnyP47oc50QndHWenekX6CpAyBadqtrnXt85SJtFjQDvmsy6nG50xGnA6nv+FkPByAzT26T8ixuQE22H3pJrisMy5VuIrYr4yrGCE67hYcsTADUln6a1LAC7Pd/Lg3//UBn+wHbQPkXb9nHMCbNg==
-X-Forefront-Antispam-Report: CIP:12.22.5.235;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(7916004)(4636009)(36840700001)(46966006)(40470700004)(47076005)(26005)(186003)(16526019)(316002)(36860700001)(336012)(6666004)(6916009)(426003)(54906003)(9686003)(53546011)(82310400004)(8936002)(70206006)(40460700003)(33716001)(81166007)(356005)(86362001)(4326008)(508600001)(2906002)(5660300002)(8676002)(70586007)(4744005)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Feb 2022 07:02:32.0956
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ce020946-19a7-4b5b-d84a-08d9f11a4d88
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.235];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT049.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4862
+In-Reply-To: <20220215194448.44369-1-rpearsonhpe@gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Feb 15, 2022 at 12:34:27PM -0800, Bart Van Assche wrote:
-> On 2/15/22 10:42, Leon Romanovsky wrote:
-> > On Tue, Feb 15, 2022 at 10:26:48AM -0800, Bart Van Assche wrote:
-> > >   /*
-> > > + * RDMA adapter in the initiator system.
-> > > + *
-> > > + * @dev_list: List of RDMA ports associated with this RDMA adapter (srp_host).
-> > 
-> > Isn't this list of RDMA devices and not ports?
+On Tue, Feb 15, 2022 at 01:44:49PM -0600, Bob Pearson wrote:
+> A previous patch replaced all irqsave locks in rxe with bh locks.
+> This ran into problems because rdmacm has a bad habit of
+> calling rdma verbs APIs while disabling irqs. This is not allowed
+> during spin_unlock_bh() causing programs that use rdmacm to fail.
+> This patch reverts the changes to locks that had this problem or
+> got dragged into the same mess. After this patch blktests/check -q srp
+> now runs correctly.
 > 
-> Please take a look at srp_add_port(). I think that function establishes a
-> 1:1 relationship between an RDMA port and struct srp_host.
+> This patch applies cleanly to current for-next
+> 
+> commit: 2f1b2820b546 ("Merge branch 'irdma_dscp' into rdma.git for-next")
 
-Right, but this list contains devices and not ports.
-
-Anyway, it is not important.
+The three lines above shouldn't be part of commit message.
 
 Thanks
 
 > 
-> Thanks,
+> Reported-by: Guoqing Jiang <guoqing.jiang@linux.dev>
+> Reported-by: Bart Van Assche <bvanassche@acm.org>
+> Fixes: 21adfa7a3c4e ("RDMA/rxe: Replace irqsave locks with bh locks")
+> Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_cq.c    | 20 +++++++++++-------
+>  drivers/infiniband/sw/rxe/rxe_mcast.c | 19 ++++++++++-------
+>  drivers/infiniband/sw/rxe/rxe_pool.c  | 30 ++++++++++++++++-----------
+>  drivers/infiniband/sw/rxe/rxe_queue.c | 10 +++++----
+>  drivers/infiniband/sw/rxe/rxe_resp.c  | 11 +++++-----
+>  drivers/infiniband/sw/rxe/rxe_verbs.c | 27 ++++++++++++++----------
+>  6 files changed, 69 insertions(+), 48 deletions(-)
 > 
-> Bart.
+> diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
+> index 6baaaa34458e..642b52539ac3 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_cq.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_cq.c
+> @@ -42,13 +42,14 @@ int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
+>  static void rxe_send_complete(struct tasklet_struct *t)
+>  {
+>  	struct rxe_cq *cq = from_tasklet(cq, t, comp_task);
+> +	unsigned long flags;
+>  
+> -	spin_lock_bh(&cq->cq_lock);
+> +	spin_lock_irqsave(&cq->cq_lock, flags);
+>  	if (cq->is_dying) {
+> -		spin_unlock_bh(&cq->cq_lock);
+> +		spin_unlock_irqrestore(&cq->cq_lock, flags);
+>  		return;
+>  	}
+> -	spin_unlock_bh(&cq->cq_lock);
+> +	spin_unlock_irqrestore(&cq->cq_lock, flags);
+>  
+>  	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
+>  }
+> @@ -107,12 +108,13 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
+>  	struct ib_event ev;
+>  	int full;
+>  	void *addr;
+> +	unsigned long flags;
+>  
+> -	spin_lock_bh(&cq->cq_lock);
+> +	spin_lock_irqsave(&cq->cq_lock, flags);
+>  
+>  	full = queue_full(cq->queue, QUEUE_TYPE_TO_CLIENT);
+>  	if (unlikely(full)) {
+> -		spin_unlock_bh(&cq->cq_lock);
+> +		spin_unlock_irqrestore(&cq->cq_lock, flags);
+>  		if (cq->ibcq.event_handler) {
+>  			ev.device = cq->ibcq.device;
+>  			ev.element.cq = &cq->ibcq;
+> @@ -128,7 +130,7 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
+>  
+>  	queue_advance_producer(cq->queue, QUEUE_TYPE_TO_CLIENT);
+>  
+> -	spin_unlock_bh(&cq->cq_lock);
+> +	spin_unlock_irqrestore(&cq->cq_lock, flags);
+>  
+>  	if ((cq->notify == IB_CQ_NEXT_COMP) ||
+>  	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
+> @@ -141,9 +143,11 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
+>  
+>  void rxe_cq_disable(struct rxe_cq *cq)
+>  {
+> -	spin_lock_bh(&cq->cq_lock);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&cq->cq_lock, flags);
+>  	cq->is_dying = true;
+> -	spin_unlock_bh(&cq->cq_lock);
+> +	spin_unlock_irqrestore(&cq->cq_lock, flags);
+>  }
+>  
+>  void rxe_cq_cleanup(struct rxe_pool_elem *elem)
+> diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
+> index 9336295c4ee2..2878a56d9994 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_mcast.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
+> @@ -58,11 +58,12 @@ static int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
+>  	int err;
+>  	struct rxe_mcg *grp;
+>  	struct rxe_pool *pool = &rxe->mc_grp_pool;
+> +	unsigned long flags;
+>  
+>  	if (rxe->attr.max_mcast_qp_attach == 0)
+>  		return -EINVAL;
+>  
+> -	write_lock_bh(&pool->pool_lock);
+> +	write_lock_irqsave(&pool->pool_lock, flags);
+>  
+>  	grp = rxe_pool_get_key_locked(pool, mgid);
+>  	if (grp)
+> @@ -70,13 +71,13 @@ static int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
+>  
+>  	grp = create_grp(rxe, pool, mgid);
+>  	if (IS_ERR(grp)) {
+> -		write_unlock_bh(&pool->pool_lock);
+> +		write_unlock_irqrestore(&pool->pool_lock, flags);
+>  		err = PTR_ERR(grp);
+>  		return err;
+>  	}
+>  
+>  done:
+> -	write_unlock_bh(&pool->pool_lock);
+> +	write_unlock_irqrestore(&pool->pool_lock, flags);
+>  	*grp_p = grp;
+>  	return 0;
+>  }
+> @@ -86,9 +87,10 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+>  {
+>  	int err;
+>  	struct rxe_mca *elem;
+> +	unsigned long flags;
+>  
+>  	/* check to see of the qp is already a member of the group */
+> -	spin_lock_bh(&grp->mcg_lock);
+> +	spin_lock_irqsave(&grp->mcg_lock, flags);
+>  	list_for_each_entry(elem, &grp->qp_list, qp_list) {
+>  		if (elem->qp == qp) {
+>  			err = 0;
+> @@ -118,7 +120,7 @@ static int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+>  
+>  	err = 0;
+>  out:
+> -	spin_unlock_bh(&grp->mcg_lock);
+> +	spin_unlock_irqrestore(&grp->mcg_lock, flags);
+>  	return err;
+>  }
+>  
+> @@ -127,12 +129,13 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+>  {
+>  	struct rxe_mcg *grp;
+>  	struct rxe_mca *elem, *tmp;
+> +	unsigned long flags;
+>  
+>  	grp = rxe_pool_get_key(&rxe->mc_grp_pool, mgid);
+>  	if (!grp)
+>  		goto err1;
+>  
+> -	spin_lock_bh(&grp->mcg_lock);
+> +	spin_lock_irqsave(&grp->mcg_lock, flags);
+>  
+>  	list_for_each_entry_safe(elem, tmp, &grp->qp_list, qp_list) {
+>  		if (elem->qp == qp) {
+> @@ -140,7 +143,7 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+>  			grp->num_qp--;
+>  			atomic_dec(&qp->mcg_num);
+>  
+> -			spin_unlock_bh(&grp->mcg_lock);
+> +			spin_unlock_irqrestore(&grp->mcg_lock, flags);
+>  			rxe_drop_ref(elem);
+>  			rxe_drop_ref(grp);	/* ref held by QP */
+>  			rxe_drop_ref(grp);	/* ref from get_key */
+> @@ -148,7 +151,7 @@ static int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
+>  		}
+>  	}
+>  
+> -	spin_unlock_bh(&grp->mcg_lock);
+> +	spin_unlock_irqrestore(&grp->mcg_lock, flags);
+>  	rxe_drop_ref(grp);			/* ref from get_key */
+>  err1:
+>  	return -EINVAL;
+> diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+> index 63c594173565..a11dab13c192 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_pool.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+> @@ -260,11 +260,12 @@ int __rxe_add_key_locked(struct rxe_pool_elem *elem, void *key)
+>  int __rxe_add_key(struct rxe_pool_elem *elem, void *key)
+>  {
+>  	struct rxe_pool *pool = elem->pool;
+> +	unsigned long flags;
+>  	int err;
+>  
+> -	write_lock_bh(&pool->pool_lock);
+> +	write_lock_irqsave(&pool->pool_lock, flags);
+>  	err = __rxe_add_key_locked(elem, key);
+> -	write_unlock_bh(&pool->pool_lock);
+> +	write_unlock_irqrestore(&pool->pool_lock, flags);
+>  
+>  	return err;
+>  }
+> @@ -279,10 +280,11 @@ void __rxe_drop_key_locked(struct rxe_pool_elem *elem)
+>  void __rxe_drop_key(struct rxe_pool_elem *elem)
+>  {
+>  	struct rxe_pool *pool = elem->pool;
+> +	unsigned long flags;
+>  
+> -	write_lock_bh(&pool->pool_lock);
+> +	write_lock_irqsave(&pool->pool_lock, flags);
+>  	__rxe_drop_key_locked(elem);
+> -	write_unlock_bh(&pool->pool_lock);
+> +	write_unlock_irqrestore(&pool->pool_lock, flags);
+>  }
+>  
+>  int __rxe_add_index_locked(struct rxe_pool_elem *elem)
+> @@ -299,11 +301,12 @@ int __rxe_add_index_locked(struct rxe_pool_elem *elem)
+>  int __rxe_add_index(struct rxe_pool_elem *elem)
+>  {
+>  	struct rxe_pool *pool = elem->pool;
+> +	unsigned long flags;
+>  	int err;
+>  
+> -	write_lock_bh(&pool->pool_lock);
+> +	write_lock_irqsave(&pool->pool_lock, flags);
+>  	err = __rxe_add_index_locked(elem);
+> -	write_unlock_bh(&pool->pool_lock);
+> +	write_unlock_irqrestore(&pool->pool_lock, flags);
+>  
+>  	return err;
+>  }
+> @@ -319,10 +322,11 @@ void __rxe_drop_index_locked(struct rxe_pool_elem *elem)
+>  void __rxe_drop_index(struct rxe_pool_elem *elem)
+>  {
+>  	struct rxe_pool *pool = elem->pool;
+> +	unsigned long flags;
+>  
+> -	write_lock_bh(&pool->pool_lock);
+> +	write_lock_irqsave(&pool->pool_lock, flags);
+>  	__rxe_drop_index_locked(elem);
+> -	write_unlock_bh(&pool->pool_lock);
+> +	write_unlock_irqrestore(&pool->pool_lock, flags);
+>  }
+>  
+>  void *rxe_alloc_locked(struct rxe_pool *pool)
+> @@ -440,11 +444,12 @@ void *rxe_pool_get_index_locked(struct rxe_pool *pool, u32 index)
+>  
+>  void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
+>  {
+> +	unsigned long flags;
+>  	void *obj;
+>  
+> -	read_lock_bh(&pool->pool_lock);
+> +	read_lock_irqsave(&pool->pool_lock, flags);
+>  	obj = rxe_pool_get_index_locked(pool, index);
+> -	read_unlock_bh(&pool->pool_lock);
+> +	read_unlock_irqrestore(&pool->pool_lock, flags);
+>  
+>  	return obj;
+>  }
+> @@ -484,11 +489,12 @@ void *rxe_pool_get_key_locked(struct rxe_pool *pool, void *key)
+>  
+>  void *rxe_pool_get_key(struct rxe_pool *pool, void *key)
+>  {
+> +	unsigned long flags;
+>  	void *obj;
+>  
+> -	read_lock_bh(&pool->pool_lock);
+> +	read_lock_irqsave(&pool->pool_lock, flags);
+>  	obj = rxe_pool_get_key_locked(pool, key);
+> -	read_unlock_bh(&pool->pool_lock);
+> +	read_unlock_irqrestore(&pool->pool_lock, flags);
+>  
+>  	return obj;
+>  }
+> diff --git a/drivers/infiniband/sw/rxe/rxe_queue.c b/drivers/infiniband/sw/rxe/rxe_queue.c
+> index a1b283dd2d4c..dbd4971039c0 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_queue.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_queue.c
+> @@ -151,6 +151,8 @@ int rxe_queue_resize(struct rxe_queue *q, unsigned int *num_elem_p,
+>  	struct rxe_queue *new_q;
+>  	unsigned int num_elem = *num_elem_p;
+>  	int err;
+> +	unsigned long producer_flags;
+> +	unsigned long consumer_flags;
+>  
+>  	new_q = rxe_queue_init(q->rxe, &num_elem, elem_size, q->type);
+>  	if (!new_q)
+> @@ -164,17 +166,17 @@ int rxe_queue_resize(struct rxe_queue *q, unsigned int *num_elem_p,
+>  		goto err1;
+>  	}
+>  
+> -	spin_lock_bh(consumer_lock);
+> +	spin_lock_irqsave(consumer_lock, consumer_flags);
+>  
+>  	if (producer_lock) {
+> -		spin_lock_bh(producer_lock);
+> +		spin_lock_irqsave(producer_lock, producer_flags);
+>  		err = resize_finish(q, new_q, num_elem);
+> -		spin_unlock_bh(producer_lock);
+> +		spin_unlock_irqrestore(producer_lock, producer_flags);
+>  	} else {
+>  		err = resize_finish(q, new_q, num_elem);
+>  	}
+>  
+> -	spin_unlock_bh(consumer_lock);
+> +	spin_unlock_irqrestore(consumer_lock, consumer_flags);
+>  
+>  	rxe_queue_cleanup(new_q);	/* new/old dep on err */
+>  	if (err)
+> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+> index 380934e38923..c369d78fc8e8 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+> @@ -297,21 +297,22 @@ static enum resp_states get_srq_wqe(struct rxe_qp *qp)
+>  	struct ib_event ev;
+>  	unsigned int count;
+>  	size_t size;
+> +	unsigned long flags;
+>  
+>  	if (srq->error)
+>  		return RESPST_ERR_RNR;
+>  
+> -	spin_lock_bh(&srq->rq.consumer_lock);
+> +	spin_lock_irqsave(&srq->rq.consumer_lock, flags);
+>  
+>  	wqe = queue_head(q, QUEUE_TYPE_FROM_CLIENT);
+>  	if (!wqe) {
+> -		spin_unlock_bh(&srq->rq.consumer_lock);
+> +		spin_unlock_irqrestore(&srq->rq.consumer_lock, flags);
+>  		return RESPST_ERR_RNR;
+>  	}
+>  
+>  	/* don't trust user space data */
+>  	if (unlikely(wqe->dma.num_sge > srq->rq.max_sge)) {
+> -		spin_unlock_bh(&srq->rq.consumer_lock);
+> +		spin_unlock_irqrestore(&srq->rq.consumer_lock, flags);
+>  		pr_warn("%s: invalid num_sge in SRQ entry\n", __func__);
+>  		return RESPST_ERR_MALFORMED_WQE;
+>  	}
+> @@ -327,11 +328,11 @@ static enum resp_states get_srq_wqe(struct rxe_qp *qp)
+>  		goto event;
+>  	}
+>  
+> -	spin_unlock_bh(&srq->rq.consumer_lock);
+> +	spin_unlock_irqrestore(&srq->rq.consumer_lock, flags);
+>  	return RESPST_CHK_LENGTH;
+>  
+>  event:
+> -	spin_unlock_bh(&srq->rq.consumer_lock);
+> +	spin_unlock_irqrestore(&srq->rq.consumer_lock, flags);
+>  	ev.device = qp->ibqp.device;
+>  	ev.element.srq = qp->ibqp.srq;
+>  	ev.event = IB_EVENT_SRQ_LIMIT_REACHED;
+> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> index 9f0aef4b649d..80df9a8f71a1 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> @@ -384,8 +384,9 @@ static int rxe_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
+>  {
+>  	int err = 0;
+>  	struct rxe_srq *srq = to_rsrq(ibsrq);
+> +	unsigned long flags;
+>  
+> -	spin_lock_bh(&srq->rq.producer_lock);
+> +	spin_lock_irqsave(&srq->rq.producer_lock, flags);
+>  
+>  	while (wr) {
+>  		err = post_one_recv(&srq->rq, wr);
+> @@ -394,7 +395,7 @@ static int rxe_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
+>  		wr = wr->next;
+>  	}
+>  
+> -	spin_unlock_bh(&srq->rq.producer_lock);
+> +	spin_unlock_irqrestore(&srq->rq.producer_lock, flags);
+>  
+>  	if (err)
+>  		*bad_wr = wr;
+> @@ -643,18 +644,19 @@ static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+>  	int err;
+>  	struct rxe_sq *sq = &qp->sq;
+>  	struct rxe_send_wqe *send_wqe;
+> +	unsigned long flags;
+>  	int full;
+>  
+>  	err = validate_send_wr(qp, ibwr, mask, length);
+>  	if (err)
+>  		return err;
+>  
+> -	spin_lock_bh(&qp->sq.sq_lock);
+> +	spin_lock_irqsave(&qp->sq.sq_lock, flags);
+>  
+>  	full = queue_full(sq->queue, QUEUE_TYPE_TO_DRIVER);
+>  
+>  	if (unlikely(full)) {
+> -		spin_unlock_bh(&qp->sq.sq_lock);
+> +		spin_unlock_irqrestore(&qp->sq.sq_lock, flags);
+>  		return -ENOMEM;
+>  	}
+>  
+> @@ -663,7 +665,7 @@ static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
+>  
+>  	queue_advance_producer(sq->queue, QUEUE_TYPE_TO_DRIVER);
+>  
+> -	spin_unlock_bh(&qp->sq.sq_lock);
+> +	spin_unlock_irqrestore(&qp->sq.sq_lock, flags);
+>  
+>  	return 0;
+>  }
+> @@ -743,6 +745,7 @@ static int rxe_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+>  	int err = 0;
+>  	struct rxe_qp *qp = to_rqp(ibqp);
+>  	struct rxe_rq *rq = &qp->rq;
+> +	unsigned long flags;
+>  
+>  	if (unlikely((qp_state(qp) < IB_QPS_INIT) || !qp->valid)) {
+>  		*bad_wr = wr;
+> @@ -756,7 +759,7 @@ static int rxe_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+>  		goto err1;
+>  	}
+>  
+> -	spin_lock_bh(&rq->producer_lock);
+> +	spin_lock_irqsave(&rq->producer_lock, flags);
+>  
+>  	while (wr) {
+>  		err = post_one_recv(rq, wr);
+> @@ -767,7 +770,7 @@ static int rxe_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+>  		wr = wr->next;
+>  	}
+>  
+> -	spin_unlock_bh(&rq->producer_lock);
+> +	spin_unlock_irqrestore(&rq->producer_lock, flags);
+>  
+>  	if (qp->resp.state == QP_STATE_ERROR)
+>  		rxe_run_task(&qp->resp.task, 1);
+> @@ -848,8 +851,9 @@ static int rxe_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+>  	int i;
+>  	struct rxe_cq *cq = to_rcq(ibcq);
+>  	struct rxe_cqe *cqe;
+> +	unsigned long flags;
+>  
+> -	spin_lock_bh(&cq->cq_lock);
+> +	spin_lock_irqsave(&cq->cq_lock, flags);
+>  	for (i = 0; i < num_entries; i++) {
+>  		cqe = queue_head(cq->queue, QUEUE_TYPE_FROM_DRIVER);
+>  		if (!cqe)
+> @@ -858,7 +862,7 @@ static int rxe_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+>  		memcpy(wc++, &cqe->ibwc, sizeof(*wc));
+>  		queue_advance_consumer(cq->queue, QUEUE_TYPE_FROM_DRIVER);
+>  	}
+> -	spin_unlock_bh(&cq->cq_lock);
+> +	spin_unlock_irqrestore(&cq->cq_lock, flags);
+>  
+>  	return i;
+>  }
+> @@ -878,8 +882,9 @@ static int rxe_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
+>  	struct rxe_cq *cq = to_rcq(ibcq);
+>  	int ret = 0;
+>  	int empty;
+> +	unsigned long irq_flags;
+>  
+> -	spin_lock_bh(&cq->cq_lock);
+> +	spin_lock_irqsave(&cq->cq_lock, irq_flags);
+>  	if (cq->notify != IB_CQ_NEXT_COMP)
+>  		cq->notify = flags & IB_CQ_SOLICITED_MASK;
+>  
+> @@ -888,7 +893,7 @@ static int rxe_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
+>  	if ((flags & IB_CQ_REPORT_MISSED_EVENTS) && !empty)
+>  		ret = 1;
+>  
+> -	spin_unlock_bh(&cq->cq_lock);
+> +	spin_unlock_irqrestore(&cq->cq_lock, irq_flags);
+>  
+>  	return ret;
+>  }
+> -- 
+> 2.32.0
 > 
