@@ -2,140 +2,172 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D253EC433FE
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Feb 2022 00:36:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A683C433F5
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Feb 2022 00:36:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230008AbiBRAg6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S229734AbiBRAg6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 17 Feb 2022 19:36:58 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:33856 "EHLO
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:33910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229734AbiBRAg5 (ORCPT
+        with ESMTP id S230072AbiBRAg5 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Feb 2022 19:36:57 -0500
-Received: from mail-oo1-xc2d.google.com (mail-oo1-xc2d.google.com [IPv6:2607:f8b0:4864:20::c2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6739421838
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Feb 2022 16:36:41 -0800 (PST)
-Received: by mail-oo1-xc2d.google.com with SMTP id x6-20020a4a4106000000b003193022319cso1667615ooa.4
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Feb 2022 16:36:41 -0800 (PST)
+Received: from mail-oi1-x22b.google.com (mail-oi1-x22b.google.com [IPv6:2607:f8b0:4864:20::22b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4A882C11F
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Feb 2022 16:36:42 -0800 (PST)
+Received: by mail-oi1-x22b.google.com with SMTP id 4so1390789oil.11
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Feb 2022 16:36:42 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=q3TybakanDNhOLYbgamBDhsny+WlXnVaRLmMbOcOiec=;
-        b=qIAOW2G/wBgATGQehesHWoUwmgEJUcTf3PrTpW4TDiJfDbEtDeDvsA1fJBl5MWw+52
-         ykrptqfTaQ/HMkxr4Divh0MgMtswO8Tn6rJJPLnQeGUpDjTCgdUSofSYFvPKcJ14JIbA
-         +IWrNGvCX1kqVPe77lCdJ3x9VwqKL9zI4Nz/aqVyqz+8jbTFz2hvvrmSsoDOq/IY49nM
-         Wr02hlODkW1CQSpyPTneGABKTQ2kSbXvFnrIA10r+/3bSc73NSSMKoz8Sxy9PA/txPda
-         j38fYRDuOIJNTdXFu/3qIPOBSSOvEW81ZQ5ZhOk0bP5diXDoNbVtwScd9mfKk+rGhSSc
-         G3fw==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=CtZA+JkSi3WFhaVptCJyn0Ywy6jNakeNMbN8MYs1F0U=;
+        b=GWC0UAgaF+6Epl/7G9JBJBb6DRUDYe9yBT0F3sFTg1H+QfRvqo9aTDoLjdTm7ZMCsA
+         ZbGHxd9EusDYwj09cOtW8FJAxalaOrG5JUztwFxTV4ufcmZqoOxEN/WItCn02UhqdKW8
+         vm9KQaqeLUoyykjmATUksfjjb2WfikoO81BIY2hbrLWNgmR5ec3vpi7gqEiJwViMi7Hb
+         LiJd+hjX+2JK9q5ZlsY/qiEzXr1qeonj5pC0E2fcrvH6ue2lWv83VE4giTr9hoadbman
+         GNWIboQVyma9vSauTr/hYlKjL1WSqySs1FKPfiq86z8s8rOHlKka52Op+kMDtXTisZoM
+         MixA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=q3TybakanDNhOLYbgamBDhsny+WlXnVaRLmMbOcOiec=;
-        b=XWmkbnri+TEEOB/WPqpDqIeFFKMyGxFHN5qOor/uWNN7OkSDc0wA5F0tAdILULlx6b
-         gQJNXH3Ke8IuiY/x2DfMz/YIfl7Zx7SpzNUQUM59P98mGTRks0v+N6WC6UTKgo7VXrBT
-         l8MJy1tigLUk/H1fbSgD63t9daNSomEGvyzhZEYDxl6LmuUZwCnXRbD8hwwxN5Aqtfmu
-         CYpW7ggdnSnN+fpFrq8VNwABQagbhel0Y8beBQn8i+LuZ/wVwdWwjT4RabAgGUstG20/
-         fjaGnAuQc4iMd6Q3zzHtunBc7x+zbXqHVnSKv6pmGwwAD/K+GVyMjm1aLd9GJrzU8pW5
-         yngA==
-X-Gm-Message-State: AOAM530LP4TAMjjkOr/n4rjEbQXauiiP7hSBIt4bwXCtemcHBfYnd3os
-        LGotbSw2aaqbvupveqEwEI4=
-X-Google-Smtp-Source: ABdhPJwuuLLPpdZfvVDC3IORzu84CeBcVNjTwWCNK2UYksIn4NXswQTQEtKYRcsDI6k7h33SlcvPBw==
-X-Received: by 2002:a05:6870:2c6:b0:b7:2292:ee71 with SMTP id r6-20020a05687002c600b000b72292ee71mr2129170oaf.133.1645144600737;
-        Thu, 17 Feb 2022 16:36:40 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=CtZA+JkSi3WFhaVptCJyn0Ywy6jNakeNMbN8MYs1F0U=;
+        b=eIL/F4yi6zF711J4r6bA8FTuYxK52+1+UP+gBfKeiVmCS/dhxZQfjg9tai/NUOYrTC
+         ZSj0cC7a3S9YWhu5c+APbrk3ANroo8YMc2IwwBonWQckijQkJyGqMW5NCNQB8ZPQsvGP
+         nvcOTU6NQZRiuEo5kovsEpZdCpVazGLqgoaEUSG6wJCXJo11y/h4HnhiYwdzkg+niDFy
+         ZB4H0qa1v+eU1U8aNeB4pCNPxmLR3YarTu8QeCX8Ml8Qiok5SmcUD2vMaCjMbZO/bGHb
+         utyk5TJafwiLUnF3YdXVf3XHcZg4tkMPtpRK62dMemqSDB0XvF7cq6HZ2ZceNzG7mupT
+         WKJA==
+X-Gm-Message-State: AOAM530BONVcus9fC+6GHnmTfgKotJoBSi3xHk6juofqzxJ5Tjfh/15D
+        wV6Oo2wRn1QrT6LLdPzGitQ=
+X-Google-Smtp-Source: ABdhPJzLwoXsXoJFYquz2K1PwqsIDOz9sQl7409tdfcTvNIKXZ2DhqrhYWZbEa3Uvef9+NS1J86Pdw==
+X-Received: by 2002:a05:6808:1301:b0:2ce:6ee7:2cfb with SMTP id y1-20020a056808130100b002ce6ee72cfbmr3735541oiv.297.1645144602078;
+        Thu, 17 Feb 2022 16:36:42 -0800 (PST)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-1772-15fa-cf3f-3cd5.res6.spectrum.com. [2603:8081:140c:1a00:1772:15fa:cf3f:3cd5])
-        by smtp.googlemail.com with ESMTPSA id t31sm19698299oaa.9.2022.02.17.16.36.39
+        by smtp.googlemail.com with ESMTPSA id t31sm19698299oaa.9.2022.02.17.16.36.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Feb 2022 16:36:40 -0800 (PST)
+        Thu, 17 Feb 2022 16:36:41 -0800 (PST)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v12 0/6] Move two object pools to rxe_mcast.c
-Date:   Thu, 17 Feb 2022 18:35:38 -0600
-Message-Id: <20220218003543.205799-1-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v12 2/6] RDMA/rxe: Collect mca init code in a subroutine
+Date:   Thu, 17 Feb 2022 18:35:40 -0600
+Message-Id: <20220218003543.205799-3-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20220218003543.205799-1-rpearsonhpe@gmail.com>
+References: <20220218003543.205799-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch series completes the separation of the mc_grp and mc_elem
-object pools from rxe_pools.c and moving of their code to rxe_mcast.c.
-This makes sense because these two pools are different from the other
-pools as the only ones that do not share objects with rdma-core and
-that use key's instead of indices to enable looking up objects. This
-change will enable a significant simplification of the normal object
-pools.
-
-These patches correspond to 08-11/11 of the previous version of this
-series. The earler patches have been accepted.
+Collect initialization code for struct rxe_mca into a subroutine,
+__rxe_init_mca(), to cleanup rxe_attach_mcg() in rxe_mcast.c. Check
+limit on total number of attached qp's.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
-v12
-  Addressed issues raised by Jason Gunthorpe.
-  Returned a warning if rdma-core fails to cleanup mcast memory.
-  Split the 'cleanup patch' into more managable patches.
-  Fixed an error in the rcu patch by moving the kfree and
-  rxe_drop_ref(qp) to a call_rcu() routine.
-v11
-  Restructured the patch series to simplify it and make each patch
-  simpler. Addressed some additional issues raised by Jason Gunthorpe
-  in the review of that last version.
-v10
-  Corrected issues reported by Jason Gunthorpe
-  Isolated patches 01-17 separate from the remaining patches.
-  They will be submitted later
-v9
-  Corrected issues reported by Jason Gunthorpe,
-  Converted locking in rxe_mcast.c and rxe_pool.c to use RCU
-  Split up the patches into smaller changes
-v8
-  Fixed an additional race in 3/8 which was not handled correctly.
-v7
-  Corrected issues reported by Jason Gunthorpe
-Link: https://lore.kernel.org/linux-rdma/20211207190947.GH6385@nvidia.com/
-Link: https://lore.kernel.org/linux-rdma/20211207191857.GI6385@nvidia.com/
-Link: https://lore.kernel.org/linux-rdma/20211207192824.GJ6385@nvidia.com/
-v6
-  Fixed a kzalloc flags bug.
-  Fixed comment bug reported by 'Kernel Test Robot'.
-  Changed type of rxe_pool.c in __rxe_fini().
-v5
-  Removed patches already accepted into for-next and addressed comments
-  from Jason Gunthorpe.
-v4
-  Restructured patch series to change to xarray earlier which
-  greatly simplified the changes.
-  Rebased to current for-next
-v3
-  Changed rxe_alloc to use GFP_KERNEL
-  Addressed other comments by Jason Gunthorp
-  Merged the previous 06/10 and 07/10 patches into one since they overlapped
-  Added some minor cleanups as 10/10
-v2
-  Rebased to current for-next.
-  Added 4 additional patches
+ drivers/infiniband/sw/rxe/rxe_mcast.c | 58 ++++++++++++++++++++-------
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  1 +
+ 2 files changed, 44 insertions(+), 15 deletions(-)
 
-Bob Pearson (6):
-  RDMA/rxe: Add code to cleanup mcast memory
-  RDMA/rxe: Collect init code for mca in a subroutine
-  RDMA/rxe: Collect cleanup mca code in a subroutine
-  RDMA/rxe: Cleanup rxe_mcast.c
-  RDMA/rxe: For mcast copy qp list to temp array
-  RDMA/rxe: Convert mca read locking to RCU
-
- drivers/infiniband/sw/rxe/rxe.c       |   2 +
- drivers/infiniband/sw/rxe/rxe_loc.h   |   1 +
- drivers/infiniband/sw/rxe/rxe_mcast.c | 289 ++++++++++++++++++++------
- drivers/infiniband/sw/rxe/rxe_recv.c  | 107 ++++++----
- drivers/infiniband/sw/rxe/rxe_verbs.h |   3 +
- 5 files changed, 298 insertions(+), 104 deletions(-)
-
-
-This patch series applies to the current version of wip/jgg-for-next
-base-commit: 3810c1a1cbe8f3157f644b4e42f6c0157dfd22cb
+diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
+index 447d78bea28b..53db0984a9a1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mcast.c
++++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
+@@ -259,6 +259,46 @@ static void rxe_destroy_mcg(struct rxe_mcg *mcg)
+ 	spin_unlock_irqrestore(&mcg->rxe->mcg_lock, flags);
+ }
+ 
++/**
++ * __rxe_init_mca - initialize a new mca holding lock
++ * @qp: qp object
++ * @mcg: mcg object
++ * @mca: empty space for new mca
++ *
++ * Context: caller must hold references on qp and mcg, rxe->mcg_lock
++ * and pass memory for new mca
++ *
++ * Returns: 0 on success else an error
++ */
++static int __rxe_init_mca(struct rxe_qp *qp, struct rxe_mcg *mcg,
++			  struct rxe_mca *mca)
++{
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	int n;
++
++	n = atomic_inc_return(&rxe->mcg_attach);
++	if (n > rxe->attr.max_total_mcast_qp_attach) {
++		atomic_dec(&rxe->mcg_attach);
++		return -ENOMEM;
++	}
++
++	n = atomic_inc_return(&mcg->qp_num);
++	if (n > rxe->attr.max_mcast_qp_attach) {
++		atomic_dec(&mcg->qp_num);
++		atomic_dec(&rxe->mcg_attach);
++		return -ENOMEM;
++	}
++
++	atomic_inc(&qp->mcg_num);
++
++	rxe_add_ref(qp);
++	mca->qp = qp;
++
++	list_add_tail(&mca->qp_list, &mcg->qp_list);
++
++	return 0;
++}
++
+ static int rxe_attach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 				  struct rxe_mcg *mcg)
+ {
+@@ -291,22 +331,9 @@ static int rxe_attach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 		}
+ 	}
+ 
+-	/* check limits after checking if already attached */
+-	if (atomic_inc_return(&mcg->qp_num) > rxe->attr.max_mcast_qp_attach) {
+-		atomic_dec(&mcg->qp_num);
++	err = __rxe_init_mca(qp, mcg, mca);
++	if (err)
+ 		kfree(mca);
+-		err = -ENOMEM;
+-		goto out;
+-	}
+-
+-	/* protect pointer to qp in mca */
+-	rxe_add_ref(qp);
+-	mca->qp = qp;
+-
+-	atomic_inc(&qp->mcg_num);
+-	list_add(&mca->qp_list, &mcg->qp_list);
+-
+-	err = 0;
+ out:
+ 	spin_unlock_irqrestore(&rxe->mcg_lock, flags);
+ 	return err;
+@@ -329,6 +356,7 @@ static int rxe_detach_mcg(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 		if (mca->qp == qp) {
+ 			list_del(&mca->qp_list);
+ 			atomic_dec(&qp->mcg_num);
++			atomic_dec(&rxe->mcg_attach);
+ 			rxe_drop_ref(qp);
+ 
+ 			/* if the number of qp's attached to the
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 20fe3ee6589d..6b15251ff67a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -401,6 +401,7 @@ struct rxe_dev {
+ 	spinlock_t		mcg_lock;
+ 	struct rb_root		mcg_tree;
+ 	atomic_t		mcg_num;
++	atomic_t		mcg_attach;
+ 
+ 	spinlock_t		pending_lock; /* guard pending_mmaps */
+ 	struct list_head	pending_mmaps;
 -- 
 2.32.0
 
