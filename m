@@ -2,23 +2,23 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B3F2C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73146C43217
 	for <linux-rdma@archiver.kernel.org>; Fri, 18 Feb 2022 11:05:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232953AbiBRLFz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S232990AbiBRLFz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 18 Feb 2022 06:05:55 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45614 "EHLO
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233813AbiBRLFk (ORCPT
+        with ESMTP id S233670AbiBRLFk (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Feb 2022 06:05:40 -0500
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6289B2944FA
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3869C2944EE
         for <linux-rdma@vger.kernel.org>; Fri, 18 Feb 2022 03:05:23 -0800 (PST)
-Received: from dggpeml500022.china.huawei.com (unknown [172.30.72.57])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4K0TJT2zdzz1FDHT;
-        Fri, 18 Feb 2022 19:00:57 +0800 (CST)
+Received: from dggpeml500020.china.huawei.com (unknown [172.30.72.55])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4K0TMf0LY5z9snR;
+        Fri, 18 Feb 2022 19:03:42 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500022.china.huawei.com (7.185.36.66) with Microsoft SMTP Server
+ dggpeml500020.china.huawei.com (7.185.36.88) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2308.21; Fri, 18 Feb 2022 19:05:21 +0800
 Received: from localhost.localdomain (10.69.192.56) by
@@ -29,9 +29,9 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 6/8] RDMA/hns: Remove similar code that configures the hardware contexts
-Date:   Fri, 18 Feb 2022 19:05:17 +0800
-Message-ID: <20220218110519.37375-7-liangwenpeng@huawei.com>
+Subject: [PATCH for-next 4/8] RDMA/hns: Fix the wrong type of parameter "op" of the mailbox
+Date:   Fri, 18 Feb 2022 19:05:15 +0800
+Message-ID: <20220218110519.37375-5-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20220218110519.37375-1-liangwenpeng@huawei.com>
 References: <20220218110519.37375-1-liangwenpeng@huawei.com>
@@ -46,246 +46,247 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Chengchang Tang <tangchengchang@huawei.com>
+The "op" field of the mailbox occupies 8 bits, so the parameter "op"
+should be of type u8.
 
-Remove duplicate code for creating and destroying hardware contexts via
-mailbox.
-
-Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_cmd.c    | 12 +++++++++
- drivers/infiniband/hw/hns/hns_roce_cmd.h    |  5 ++++
- drivers/infiniband/hw/hns/hns_roce_cq.c     |  8 +++---
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 --
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  4 +--
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 29 ++++++---------------
- drivers/infiniband/hw/hns/hns_roce_srq.c    | 20 +++-----------
- 7 files changed, 35 insertions(+), 45 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cmd.c    | 12 ++++----
+ drivers/infiniband/hw/hns/hns_roce_cmd.h    |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h |  6 ++--
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |  4 +--
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 33 ++++++++++-----------
+ 5 files changed, 28 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index 0d4766cf6e24..78f66eb379ab 100644
+index 3642e9282b42..df11acd8030e 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -277,3 +277,15 @@ void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
- 	dma_pool_free(hr_dev->cmd.pool, mailbox->buf, mailbox->dma);
- 	kfree(mailbox);
+@@ -39,7 +39,7 @@
+ #define CMD_MAX_NUM 32
+ 
+ static int hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev, u64 in_param,
+-				     u64 out_param, u32 in_modifier, u16 op,
++				     u64 out_param, u32 in_modifier, u8 op,
+ 				     u16 token, int event)
+ {
+ 	return hr_dev->hw->post_mbox(hr_dev, in_param, out_param, in_modifier,
+@@ -49,7 +49,7 @@ static int hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev, u64 in_param,
+ /* this should be called with "poll_sem" */
+ static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				    u64 out_param, unsigned long in_modifier,
+-				    u16 op)
++				    u8 op)
+ {
+ 	int ret;
+ 
+@@ -67,7 +67,7 @@ static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
+ 
+ static int hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				  u64 out_param, unsigned long in_modifier,
+-				  u16 op)
++				  u8 op)
+ {
+ 	int ret;
+ 
+@@ -99,7 +99,7 @@ void hns_roce_cmd_event(struct hns_roce_dev *hr_dev, u16 token, u8 status,
+ 
+ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				    u64 out_param, unsigned long in_modifier,
+-				    u16 op)
++				    u8 op)
+ {
+ 	struct hns_roce_cmdq *cmd = &hr_dev->cmd;
+ 	struct hns_roce_cmd_context *context;
+@@ -149,7 +149,7 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 
+ static int hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				  u64 out_param, unsigned long in_modifier,
+-				  u16 op)
++				  u8 op)
+ {
+ 	int ret;
+ 
+@@ -162,7 +162,7 @@ static int hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
  }
-+
-+int hns_roce_create_hw_ctx(struct hns_roce_dev *dev,
-+			   struct hns_roce_cmd_mailbox *mailbox,
-+			   u8 cmd, unsigned long idx)
-+{
-+	return hns_roce_cmd_mbox(dev, mailbox->dma, 0, cmd, idx);
-+}
-+
-+int hns_roce_destroy_hw_ctx(struct hns_roce_dev *dev, u8 cmd, unsigned long idx)
-+{
-+	return hns_roce_cmd_mbox(dev, 0, 0, cmd, idx);
-+}
+ 
+ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
+-		      unsigned long in_modifier, u16 op)
++		      unsigned long in_modifier, u8 op)
+ {
+ 	bool is_busy;
+ 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.h b/drivers/infiniband/hw/hns/hns_roce_cmd.h
-index 759da8981c71..052a3d60905a 100644
+index 23937b106aa5..7928790061b8 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_cmd.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_cmd.h
-@@ -146,5 +146,10 @@ struct hns_roce_cmd_mailbox *
+@@ -140,7 +140,7 @@ enum {
+ };
+ 
+ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
+-		      unsigned long in_modifier, u16 op);
++		      unsigned long in_modifier, u8 op);
+ 
+ struct hns_roce_cmd_mailbox *
  hns_roce_alloc_cmd_mailbox(struct hns_roce_dev *hr_dev);
- void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_cmd_mailbox *mailbox);
-+int hns_roce_create_hw_ctx(struct hns_roce_dev *dev,
-+			   struct hns_roce_cmd_mailbox *mailbox,
-+			   u8 cmd, unsigned long idx);
-+int hns_roce_destroy_hw_ctx(struct hns_roce_dev *dev, u8 cmd,
-+			    unsigned long idx);
- 
- #endif /* _HNS_ROCE_CMD_H */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index a335fa8481a5..3d10300cab85 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -139,8 +139,8 @@ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- 
- 	hr_dev->hw->write_cqc(hr_dev, hr_cq, mailbox->buf, mtts, dma_handle);
- 
--	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0,
--				HNS_ROCE_CMD_CREATE_CQC, hr_cq->cqn);
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_CQC,
-+				     hr_cq->cqn);
- 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
- 	if (ret) {
- 		ibdev_err(ibdev,
-@@ -173,8 +173,8 @@ static void free_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- 	struct device *dev = hr_dev->dev;
- 	int ret;
- 
--	ret = hns_roce_cmd_mbox(hr_dev, 0, 0, HNS_ROCE_CMD_DESTROY_CQC,
--				hr_cq->cqn);
-+	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_CQC,
-+				      hr_cq->cqn);
- 	if (ret)
- 		dev_err(dev, "DESTROY_CQ failed (%d) for CQN %06lx\n", ret,
- 			hr_cq->cqn);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 5e4a3536c41b..21182ec56f18 100644
+index f21c7aa43324..8dd7919f8698 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -1152,8 +1152,6 @@ struct ib_mr *hns_roce_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
- int hns_roce_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
- 		       unsigned int *sg_offset);
- int hns_roce_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata);
--int hns_roce_hw_destroy_mpt(struct hns_roce_dev *hr_dev,
--			    unsigned long mpt_index);
- unsigned long key_to_hw_index(u32 key);
+@@ -852,7 +852,7 @@ struct hns_roce_hw {
+ 	int (*hw_init)(struct hns_roce_dev *hr_dev);
+ 	void (*hw_exit)(struct hns_roce_dev *hr_dev);
+ 	int (*post_mbox)(struct hns_roce_dev *hr_dev, u64 in_param,
+-			 u64 out_param, u32 in_modifier, u16 op,
++			 u64 out_param, u32 in_modifier, u8 op,
+ 			 u16 token, int event);
+ 	int (*poll_mbox_done)(struct hns_roce_dev *hr_dev);
+ 	bool (*chk_mbox_avail)(struct hns_roce_dev *hr_dev, bool *is_busy);
+@@ -872,10 +872,10 @@ struct hns_roce_hw {
+ 			  struct hns_roce_cq *hr_cq, void *mb_buf, u64 *mtts,
+ 			  dma_addr_t dma_handle);
+ 	int (*set_hem)(struct hns_roce_dev *hr_dev,
+-		       struct hns_roce_hem_table *table, int obj, int step_idx);
++		       struct hns_roce_hem_table *table, int obj, u32 step_idx);
+ 	int (*clear_hem)(struct hns_roce_dev *hr_dev,
+ 			 struct hns_roce_hem_table *table, int obj,
+-			 int step_idx);
++			 u32 step_idx);
+ 	int (*modify_qp)(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 			 int attr_mask, enum ib_qp_state cur_state,
+ 			 enum ib_qp_state new_state);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 8917365cc6b8..ce1a0d2792a3 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -488,7 +488,7 @@ static int set_mhop_hem(struct hns_roce_dev *hr_dev,
+ 			struct hns_roce_hem_index *index)
+ {
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	int step_idx;
++	u32 step_idx;
+ 	int ret = 0;
  
- int hns_roce_alloc_mw(struct ib_mw *mw, struct ib_udata *udata);
+ 	if (index->inited & HEM_INDEX_L0) {
+@@ -618,7 +618,7 @@ static void clear_mhop_hem(struct hns_roce_dev *hr_dev,
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	u32 hop_num = mhop->hop_num;
+ 	u32 chunk_ba_num;
+-	int step_idx;
++	u32 step_idx;
+ 
+ 	index->inited = HEM_INDEX_BUF;
+ 	chunk_ba_num = mhop->bt_chunk_size / BA_BYTE_LEN;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 55c49d358f76..631f6e233492 100644
+index a79ca9d3c62f..63571abfc019 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5868,7 +5868,7 @@ static void hns_roce_v2_destroy_eqc(struct hns_roce_dev *hr_dev, u32 eqn)
- 	else
- 		cmd = HNS_ROCE_CMD_DESTROY_AEQC;
- 
--	ret = hns_roce_cmd_mbox(hr_dev, 0, 0, cmd, eqn & HNS_ROCE_V2_EQN_M);
-+	ret = hns_roce_destroy_hw_ctx(hr_dev, cmd, eqn & HNS_ROCE_V2_EQN_M);
- 	if (ret)
- 		dev_err(dev, "[mailbox cmd] destroy eqc(%u) failed.\n", eqn);
- }
-@@ -5992,7 +5992,7 @@ static int hns_roce_v2_create_eq(struct hns_roce_dev *hr_dev,
- 	if (ret)
- 		goto err_cmd_mbox;
- 
--	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, eq_cmd, eq->eqn);
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, eq_cmd, eq->eqn);
- 	if (ret) {
- 		dev_err(hr_dev->dev, "[mailbox cmd] create eqc failed.\n");
- 		goto err_cmd_mbox;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 22ff78a5a1a7..39de862666d7 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -47,21 +47,6 @@ unsigned long key_to_hw_index(u32 key)
- 	return (key << 24) | (key >> 8);
+@@ -1345,7 +1345,7 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
  }
  
--static int hns_roce_hw_create_mpt(struct hns_roce_dev *hr_dev,
--				  struct hns_roce_cmd_mailbox *mailbox,
--				  unsigned long mpt_index)
--{
--	return hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0,
--				 HNS_ROCE_CMD_CREATE_MPT, mpt_index);
--}
--
--int hns_roce_hw_destroy_mpt(struct hns_roce_dev *hr_dev,
--			    unsigned long mpt_index)
--{
--	return hns_roce_cmd_mbox(hr_dev, 0, 0, HNS_ROCE_CMD_DESTROY_MPT,
--				 mpt_index);
--}
--
- static int alloc_mr_key(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
+ static int config_hem_ba_to_hw(struct hns_roce_dev *hr_dev, unsigned long obj,
+-			       dma_addr_t base_addr, u16 op)
++			       dma_addr_t base_addr, u8 op)
  {
- 	struct hns_roce_ida *mtpt_ida = &hr_dev->mr_table.mtpt_ida;
-@@ -141,7 +126,7 @@ static void hns_roce_mr_free(struct hns_roce_dev *hr_dev,
+ 	struct hns_roce_cmd_mailbox *mbox = hns_roce_alloc_cmd_mailbox(hr_dev);
  	int ret;
+@@ -2781,7 +2781,7 @@ static void hns_roce_v2_exit(struct hns_roce_dev *hr_dev)
  
- 	if (mr->enabled) {
--		ret = hns_roce_hw_destroy_mpt(hr_dev,
-+		ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_MPT,
- 					      key_to_hw_index(mr->key) &
- 					      (hr_dev->caps.num_mtpts - 1));
- 		if (ret)
-@@ -177,7 +162,7 @@ static int hns_roce_mr_enable(struct hns_roce_dev *hr_dev,
- 		goto err_page;
- 	}
+ static int hns_roce_mbox_post(struct hns_roce_dev *hr_dev, u64 in_param,
+ 			      u64 out_param, u32 in_modifier,
+-			      u16 op, u16 token, int event)
++			      u8 op, u16 token, int event)
+ {
+ 	struct hns_roce_cmq_desc desc;
+ 	struct hns_roce_post_mbox *mb = (struct hns_roce_post_mbox *)desc.data;
+@@ -2848,7 +2848,7 @@ static int v2_wait_mbox_complete(struct hns_roce_dev *hr_dev, u32 timeout,
  
--	ret = hns_roce_hw_create_mpt(hr_dev, mailbox,
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_MPT,
- 				     mtpt_idx & (hr_dev->caps.num_mtpts - 1));
- 	if (ret) {
- 		dev_err(dev, "failed to create mpt, ret = %d.\n", ret);
-@@ -306,7 +291,8 @@ struct ib_mr *hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start,
- 	if (ret)
- 		goto free_cmd_mbox;
- 
--	ret = hns_roce_hw_destroy_mpt(hr_dev, mtpt_idx);
-+	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_MPT,
-+				      mtpt_idx);
- 	if (ret)
- 		ibdev_warn(ib_dev, "failed to destroy MPT, ret = %d.\n", ret);
- 
-@@ -336,7 +322,8 @@ struct ib_mr *hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start,
- 		goto free_cmd_mbox;
- 	}
- 
--	ret = hns_roce_hw_create_mpt(hr_dev, mailbox, mtpt_idx);
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_MPT,
-+				     mtpt_idx);
- 	if (ret) {
- 		ibdev_err(ib_dev, "failed to create MPT, ret = %d.\n", ret);
- 		goto free_cmd_mbox;
-@@ -477,7 +464,7 @@ static void hns_roce_mw_free(struct hns_roce_dev *hr_dev,
+ static int v2_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
+ 			u64 out_param, u32 in_modifier,
+-			u16 op, u16 token, int event)
++			u8 op, u16 token, int event)
+ {
+ 	u8 status = 0;
  	int ret;
- 
- 	if (mw->enabled) {
--		ret = hns_roce_hw_destroy_mpt(hr_dev,
-+		ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_MPT,
- 					      key_to_hw_index(mw->rkey) &
- 					      (hr_dev->caps.num_mtpts - 1));
- 		if (ret)
-@@ -517,7 +504,7 @@ static int hns_roce_mw_enable(struct hns_roce_dev *hr_dev,
- 		goto err_page;
- 	}
- 
--	ret = hns_roce_hw_create_mpt(hr_dev, mailbox,
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_MPT,
- 				     mtpt_idx & (hr_dev->caps.num_mtpts - 1));
- 	if (ret) {
- 		dev_err(dev, "MW CREATE_MPT failed (%d)\n", ret);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index f270563aca97..e316276e18c2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -59,20 +59,6 @@ static void hns_roce_ib_srq_event(struct hns_roce_srq *srq,
- 	}
+@@ -3818,9 +3818,9 @@ static int hns_roce_v2_poll_cq(struct ib_cq *ibcq, int num_entries,
  }
  
--static int hns_roce_hw_create_srq(struct hns_roce_dev *dev,
--				  struct hns_roce_cmd_mailbox *mailbox,
--				  unsigned long srq_num)
--{
--	return hns_roce_cmd_mbox(dev, mailbox->dma, 0, HNS_ROCE_CMD_CREATE_SRQ,
--				 srq_num);
--}
--
--static int hns_roce_hw_destroy_srq(struct hns_roce_dev *dev,
--				   unsigned long srq_num)
--{
--	return hns_roce_cmd_mbox(dev, 0, 0, HNS_ROCE_CMD_DESTROY_SRQ, srq_num);
--}
--
- static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
+ static int get_op_for_set_hem(struct hns_roce_dev *hr_dev, u32 type,
+-			      int step_idx, u16 *mbox_op)
++			      u32 step_idx, u8 *mbox_op)
  {
- 	struct hns_roce_srq_table *srq_table = &hr_dev->srq_table;
-@@ -115,7 +101,8 @@ static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
- 		goto err_mbox;
- 	}
+-	u16 op;
++	u8 op;
  
--	ret = hns_roce_hw_create_srq(hr_dev, mailbox, srq->srqn);
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_SRQ,
-+				     srq->srqn);
- 	if (ret) {
- 		ibdev_err(ibdev, "failed to config SRQC, ret = %d.\n", ret);
- 		goto err_mbox;
-@@ -142,7 +129,8 @@ static void free_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
- 	struct hns_roce_srq_table *srq_table = &hr_dev->srq_table;
+ 	switch (type) {
+ 	case HEM_TYPE_QPC:
+@@ -3872,10 +3872,10 @@ static int config_gmv_ba_to_hw(struct hns_roce_dev *hr_dev, unsigned long obj,
+ }
+ 
+ static int set_hem_to_hw(struct hns_roce_dev *hr_dev, int obj,
+-			 dma_addr_t base_addr, u32 hem_type, int step_idx)
++			 dma_addr_t base_addr, u32 hem_type, u32 step_idx)
+ {
  	int ret;
+-	u16 op;
++	u8 op;
  
--	ret = hns_roce_hw_destroy_srq(hr_dev, srq->srqn);
-+	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_SRQ,
-+				      srq->srqn);
- 	if (ret)
- 		dev_err(hr_dev->dev, "DESTROY_SRQ failed (%d) for SRQN %06lx\n",
- 			ret, srq->srqn);
+ 	if (unlikely(hem_type == HEM_TYPE_GMV))
+ 		return config_gmv_ba_to_hw(hr_dev, obj, base_addr);
+@@ -3892,7 +3892,7 @@ static int set_hem_to_hw(struct hns_roce_dev *hr_dev, int obj,
+ 
+ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_hem_table *table, int obj,
+-			       int step_idx)
++			       u32 step_idx)
+ {
+ 	struct hns_roce_hem_iter iter;
+ 	struct hns_roce_hem_mhop mhop;
+@@ -3951,12 +3951,12 @@ static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
+ 
+ static int hns_roce_v2_clear_hem(struct hns_roce_dev *hr_dev,
+ 				 struct hns_roce_hem_table *table, int obj,
+-				 int step_idx)
++				 u32 step_idx)
+ {
+-	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_cmd_mailbox *mailbox;
++	struct device *dev = hr_dev->dev;
++	u8 op = 0xff;
+ 	int ret;
+-	u16 op = 0xff;
+ 
+ 	if (!hns_roce_check_whether_mhop(hr_dev, table->type))
+ 		return 0;
+@@ -5975,8 +5975,7 @@ static int alloc_eq_buf(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
+ }
+ 
+ static int hns_roce_v2_create_eq(struct hns_roce_dev *hr_dev,
+-				 struct hns_roce_eq *eq,
+-				 unsigned int eq_cmd)
++				 struct hns_roce_eq *eq, u8 eq_cmd)
+ {
+ 	struct hns_roce_cmd_mailbox *mailbox;
+ 	int ret;
+@@ -6105,14 +6104,14 @@ static int hns_roce_v2_init_eq_table(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_eq_table *eq_table = &hr_dev->eq_table;
+ 	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_eq *eq;
+-	unsigned int eq_cmd;
+-	int irq_num;
+-	int eq_num;
+ 	int other_num;
+ 	int comp_num;
+ 	int aeq_num;
+-	int i;
++	int irq_num;
++	int eq_num;
++	u8 eq_cmd;
+ 	int ret;
++	int i;
+ 
+ 	other_num = hr_dev->caps.num_other_vectors;
+ 	comp_num = hr_dev->caps.num_comp_vectors;
 -- 
 2.33.0
 
