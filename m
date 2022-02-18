@@ -2,40 +2,42 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D6F9C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6597C4167B
 	for <linux-rdma@archiver.kernel.org>; Fri, 18 Feb 2022 11:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233209AbiBRLFz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Feb 2022 06:05:55 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45566 "EHLO
+        id S233237AbiBRLF5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Feb 2022 06:05:57 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233223AbiBRLFj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Feb 2022 06:05:39 -0500
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E790F291FA7
-        for <linux-rdma@vger.kernel.org>; Fri, 18 Feb 2022 03:05:22 -0800 (PST)
-Received: from dggpeml500024.china.huawei.com (unknown [172.30.72.56])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4K0TMd3Cbpz9sl8;
-        Fri, 18 Feb 2022 19:03:41 +0800 (CST)
+        with ESMTP id S233911AbiBRLFk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Feb 2022 06:05:40 -0500
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFC89294FC0
+        for <linux-rdma@vger.kernel.org>; Fri, 18 Feb 2022 03:05:23 -0800 (PST)
+Received: from dggpeml500024.china.huawei.com (unknown [172.30.72.53])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4K0TKh42ngz8wpX;
+        Fri, 18 Feb 2022 19:02:00 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
  dggpeml500024.china.huawei.com (7.185.36.10) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Fri, 18 Feb 2022 19:05:20 +0800
+ 15.1.2308.21; Fri, 18 Feb 2022 19:05:22 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Fri, 18 Feb 2022 19:05:20 +0800
+ 15.1.2308.21; Fri, 18 Feb 2022 19:05:21 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 0/8] RDMA/hns: Clean up and refactor mailbox-related code
-Date:   Fri, 18 Feb 2022 19:05:11 +0800
-Message-ID: <20220218110519.37375-1-liangwenpeng@huawei.com>
+Subject: [PATCH for-next 8/8] RDMA/hns: Refactor the alloc_cqc()
+Date:   Fri, 18 Feb 2022 19:05:19 +0800
+Message-ID: <20220218110519.37375-9-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20220218110519.37375-1-liangwenpeng@huawei.com>
+References: <20220218110519.37375-1-liangwenpeng@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
 X-Originating-IP: [10.69.192.56]
 X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
  dggpeml500017.china.huawei.com (7.185.36.243)
@@ -44,38 +46,124 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Mailbox-related code is getting harder to maintain. Especially after
-removing the HIP06 code, the mailbox-related code needs to be cleaned
-and refactored more urgently.
+Abstract the alloc_cqc() into several parts and separate the process
+unrelated to allocating CQC.
 
-The following is the basic information of each patch
-(1) #1~#4: Preparing for refactoring
-(2) #5: Formal Refactoring
-(3) #6~#7: Follow-up cleanup
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_cq.c | 65 ++++++++++++++-----------
+ 1 file changed, 37 insertions(+), 28 deletions(-)
 
-Chengchang Tang (5):
-  RDMA/hns: Remove the unused parameter "op_modifier" in mailbox
-  RDMA/hns: Remove fixed parameter “timeout” in the mailbox
-  RDMA/hns: Refactor mailbox functions
-  RDMA/hns: Remove similar code that configures the hardware contexts
-  RDMA/hns: Refactor the alloc_srqc()
-
-Wenpeng Liang (3):
-  RDMA/hns: Remove redundant parameter "mailbox" in the mailbox
-  RDMA/hns: Fix the wrong type of parameter "op" of the mailbox
-  RDMA/hns: Refactor the alloc_cqc()
-
- drivers/infiniband/hw/hns/hns_roce_cmd.c      | 108 +++++++------
- drivers/infiniband/hw/hns/hns_roce_cmd.h      |   8 +-
- drivers/infiniband/hw/hns/hns_roce_cq.c       |  71 +++++----
- drivers/infiniband/hw/hns/hns_roce_device.h   |  24 +--
- drivers/infiniband/hw/hns/hns_roce_hem.c      |   4 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c    | 143 ++++++++----------
- .../infiniband/hw/hns/hns_roce_hw_v2_dfx.c    |   5 +-
- drivers/infiniband/hw/hns/hns_roce_mr.c       |  38 ++---
- drivers/infiniband/hw/hns/hns_roce_srq.c      | 104 +++++++------
- 9 files changed, 260 insertions(+), 245 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 3d10300cab85..8acd599ffac1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -100,12 +100,39 @@ static void free_cqn(struct hns_roce_dev *hr_dev, unsigned long cqn)
+ 	mutex_unlock(&cq_table->bank_mutex);
+ }
+ 
++static int hns_roce_create_cqc(struct hns_roce_dev *hr_dev,
++			       struct hns_roce_cq *hr_cq,
++			       u64 *mtts, dma_addr_t dma_handle)
++{
++	struct ib_device *ibdev = &hr_dev->ib_dev;
++	struct hns_roce_cmd_mailbox *mailbox;
++	int ret;
++
++	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
++	if (IS_ERR(mailbox)) {
++		ibdev_err(ibdev, "failed to alloc mailbox for CQC.\n");
++		return PTR_ERR(mailbox);
++	}
++
++	hr_dev->hw->write_cqc(hr_dev, hr_cq, mailbox->buf, mtts, dma_handle);
++
++	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_CQC,
++				     hr_cq->cqn);
++	if (ret)
++		ibdev_err(ibdev,
++			  "failed to send create cmd for CQ(0x%lx), ret = %d.\n",
++			  hr_cq->cqn, ret);
++
++	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
++
++	return ret;
++}
++
+ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ {
+ 	struct hns_roce_cq_table *cq_table = &hr_dev->cq_table;
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	struct hns_roce_cmd_mailbox *mailbox;
+-	u64 mtts[MTT_MIN_COUNT] = { 0 };
++	u64 mtts[MTT_MIN_COUNT] = {};
+ 	dma_addr_t dma_handle;
+ 	int ret;
+ 
+@@ -121,7 +148,7 @@ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 	if (ret) {
+ 		ibdev_err(ibdev, "failed to get CQ(0x%lx) context, ret = %d.\n",
+ 			  hr_cq->cqn, ret);
+-		goto err_out;
++		return ret;
+ 	}
+ 
+ 	ret = xa_err(xa_store(&cq_table->array, hr_cq->cqn, hr_cq, GFP_KERNEL));
+@@ -130,40 +157,17 @@ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 		goto err_put;
+ 	}
+ 
+-	/* Allocate mailbox memory */
+-	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
+-	if (IS_ERR(mailbox)) {
+-		ret = PTR_ERR(mailbox);
+-		goto err_xa;
+-	}
+-
+-	hr_dev->hw->write_cqc(hr_dev, hr_cq, mailbox->buf, mtts, dma_handle);
+-
+-	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_CQC,
+-				     hr_cq->cqn);
+-	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+-	if (ret) {
+-		ibdev_err(ibdev,
+-			  "failed to send create cmd for CQ(0x%lx), ret = %d.\n",
+-			  hr_cq->cqn, ret);
++	ret = hns_roce_create_cqc(hr_dev, hr_cq, mtts, dma_handle);
++	if (ret)
+ 		goto err_xa;
+-	}
+-
+-	hr_cq->cons_index = 0;
+-	hr_cq->arm_sn = 1;
+-
+-	refcount_set(&hr_cq->refcount, 1);
+-	init_completion(&hr_cq->free);
+ 
+ 	return 0;
+ 
+ err_xa:
+ 	xa_erase(&cq_table->array, hr_cq->cqn);
+-
+ err_put:
+ 	hns_roce_table_put(hr_dev, &cq_table->table, hr_cq->cqn);
+ 
+-err_out:
+ 	return ret;
+ }
+ 
+@@ -411,6 +415,11 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
+ 			goto err_cqc;
+ 	}
+ 
++	hr_cq->cons_index = 0;
++	hr_cq->arm_sn = 1;
++	refcount_set(&hr_cq->refcount, 1);
++	init_completion(&hr_cq->free);
++
+ 	return 0;
+ 
+ err_cqc:
+-- 
 2.33.0
 
