@@ -2,175 +2,397 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B482AC433EF
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Feb 2022 10:38:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D9C9C433F5
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Feb 2022 11:05:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229803AbiBRKio (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Feb 2022 05:38:44 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57352 "EHLO
+        id S234380AbiBRLFw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Feb 2022 06:05:52 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbiBRKin (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Feb 2022 05:38:43 -0500
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2118.outbound.protection.outlook.com [40.107.244.118])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1757B5BD2C;
-        Fri, 18 Feb 2022 02:38:27 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=OkXascRZuhRTvXJm7Kx2CSTWPLkqtGy2hVQXB4sofENVXrou2LhBfH7OMxJCq41T2aI49UwtyOqzJmoyTDX4p0+rkFTLXSakQEaXUaEmhLKJpmkp1pDqjadD4w2AAb69pvGfaQxYdUA7cwqqUcPmP5dNZZMEEm3jII9ONBPZCILxeaIFu7olOk0DWO9jKYlHcU2VswPocLBYjbgqbUqQa9eLiDQ5ZDIMWoheN3E5wKTpt4a6AE3dc3+3227IIVVfoDoOwUyd6z4VjcGw+glqgobchd6or9L5X4mquCzIDJ0QoMdQCaToCvX5II8E+RkT0pWjbjJZXg/8bDt6VmrQRA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=hUK9Cn4fEZFJr9zFNAHPMFXMneWYgz8q1w324ceHEsA=;
- b=Re67wzvX3Dn6iizrIKr7X7uH8R8Y3KuIMpGYEALasFdNZWfmCSg7RFfs89xc6hCu1XfRhdVwaabiNYuZQIRfsq8VpV0MWB+UbqNyL3UyDD2Qp0i+RQheFthZ3d1jBdlJ6WtIbLmDm8/raBePSVrywpl2gfAHeZWdVqqSLbNJ+InPqbyIoGwsrkRS/yVc7lf6B1xxoT3+WpNPbBqDujDEHxei/RQrI1Kgceuy+MDVbTAhRvh7qVA8H2+5yBRceCzpgmmwyXeBr5MkT/d0I2Ol5G+DptJrwxpj88m9IxUT25pdS0IioEma6XKKqx8B76ZYdkXQqbZ7FFdii1ydFKZitw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
- dkim=none; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=hUK9Cn4fEZFJr9zFNAHPMFXMneWYgz8q1w324ceHEsA=;
- b=agAxWj2CjT6nFBzrAU85JX7iKzrZ20fVwjkMOoa2pVnfAbHOAnD1yS5aUZHaZT/h3+3zwQPvwDhEIyBOOAKJ2jZ0WENwCAkYynRLgb+9ZBBqJdXVBhsTeRAyw7eijnuB/zRvLqarYjghpsS9zI3e5u8kIy4qcJoQO3cIRmSNhxo=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=corigine.com;
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
- by MWHPR13MB1248.namprd13.prod.outlook.com (2603:10b6:300:99::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4975.11; Fri, 18 Feb
- 2022 10:38:24 +0000
-Received: from PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::7037:b9dc:923c:c20d]) by PH0PR13MB4842.namprd13.prod.outlook.com
- ([fe80::7037:b9dc:923c:c20d%7]) with mapi id 15.20.4995.024; Fri, 18 Feb 2022
- 10:38:24 +0000
-Date:   Fri, 18 Feb 2022 11:38:14 +0100
-From:   Simon Horman <simon.horman@corigine.com>
-To:     Roi Dayan <roid@nvidia.com>, Ido Schimmel <idosch@idosch.org>
-Cc:     Jianbo Liu <jianbol@nvidia.com>, linux-kernel@vger.kernel.org,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        olteanv@gmail.com, andrew@lunn.ch, vivien.didelot@gmail.com,
-        f.fainelli@gmail.com, davem@davemloft.net, kuba@kernel.org,
-        rajur@chelsio.com, claudiu.manoil@nxp.com, sgoutham@marvell.com,
-        gakula@marvell.com, sbhatta@marvell.com, hkelam@marvell.com,
-        saeedm@nvidia.com, leon@kernel.org, idosch@nvidia.com,
-        petrm@nvidia.com, alexandre.belloni@bootlin.com,
-        UNGLinuxDriver@microchip.com, jhs@mojatatu.com,
-        xiyou.wangcong@gmail.com, jiri@resnulli.us,
-        baowen.zheng@corigine.com, louis.peens@netronome.com,
-        peng.zhang@corigine.com, oss-drivers@corigine.com
-Subject: Re: [PATCH net-next v2 0/2] flow_offload: add tc police parameters
-Message-ID: <20220218103813.GA29654@corigine.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Yg44A/JcKmsTU6N4@shredder>
- <5e9a4e05-8501-4d21-c8b9-91c992c109f0@nvidia.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-ClientProxiedBy: AM0PR01CA0086.eurprd01.prod.exchangelabs.com
- (2603:10a6:208:10e::27) To PH0PR13MB4842.namprd13.prod.outlook.com
- (2603:10b6:510:78::6)
+        with ESMTP id S233285AbiBRLFk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Feb 2022 06:05:40 -0500
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F29972944CC
+        for <linux-rdma@vger.kernel.org>; Fri, 18 Feb 2022 03:05:22 -0800 (PST)
+Received: from dggpeml500026.china.huawei.com (unknown [172.30.72.56])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4K0TJS5nDVz1FDHn;
+        Fri, 18 Feb 2022 19:00:56 +0800 (CST)
+Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
+ dggpeml500026.china.huawei.com (7.185.36.106) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.21; Fri, 18 Feb 2022 19:05:21 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.21; Fri, 18 Feb 2022 19:05:20 +0800
+From:   Wenpeng Liang <liangwenpeng@huawei.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <liangwenpeng@huawei.com>
+Subject: [PATCH for-next 2/8] =?UTF-8?q?RDMA/hns:=20Remove=20fixed=20param?= =?UTF-8?q?eter=20=E2=80=9Ctimeout=E2=80=9D=20in=20the=20mailbox?=
+Date:   Fri, 18 Feb 2022 19:05:13 +0800
+Message-ID: <20220218110519.37375-3-liangwenpeng@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20220218110519.37375-1-liangwenpeng@huawei.com>
+References: <20220218110519.37375-1-liangwenpeng@huawei.com>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 8d2ebf7a-2d28-4795-1c08-08d9f2caca07
-X-MS-TrafficTypeDiagnostic: MWHPR13MB1248:EE_
-X-Microsoft-Antispam-PRVS: <MWHPR13MB1248A4C3C9668A5B7F6B26D7E8379@MWHPR13MB1248.namprd13.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: X8s20xrk/Df+G9SuNSm8W3SkAbzY8CyumFkAc0wDq0QkLZJLonq+gwbIJtoBS8l6KeVv0AZynTjhkc1UIsUGFv9fwzCU9TWjDkMF9jIiUw6DgdUaJco+gY1zFz+i9BdGd5SxSc5Eyrd2LN4hAwzDWf6dykBZGN732JLEIIcc97wGrvDQuFzdYpNbKnfwLjGklYEsw/FVDmBFaO7X11ORHF6O7TLNPpYgFGcss2d5R/2uWtvbW/3anqFO9rPUwtAN9mYpPWcMxv2y2S10hLjcNQkEeqB8wNTY2wwR/Kym0KH9b/oAE5l9lDVeEG+GByfTViA+xsrX0OjKIvHcqCvXVURGmrYZRRKkzlF+trXl2oCOuQQBAXUm8/dPUsXm/5IVlcCs4AJPPcQJYjC/MPg+YHTfQwIpH4QhfJeynTl8NKdLOQvzke7NNQOKsEUPeNYqfZXjuNqlQBAm+0jvli5xQjiiah9hX2JuNlNmV5zlc2mA44ToiD4YeQSPpw+p0TKj9+Q0d3XSFuAPrXu4wFKaltL3IBSpM27AoHKTMg6wFT4N8J+lsvG4XVht3Hevg57tNyIDKRhjvrLALrRfiOu3zdxdRG4mv8bc8oeb2rMUD36tDKQQVcjHPDBp0mylEFIOo80WfEbOeiqIgIjoErW82g==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(136003)(366004)(376002)(396003)(346002)(39830400003)(6666004)(53546011)(52116002)(6506007)(8936002)(38100700002)(66476007)(4326008)(6486002)(33656002)(508600001)(316002)(8676002)(66556008)(66946007)(110136005)(1076003)(186003)(2616005)(107886003)(2906002)(83380400001)(5660300002)(86362001)(7416002)(6512007)(44832011)(36756003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?aZUN1vKQmeYFRe8qGRkfN9t5UVVFLN0gO9LRORCgACSsmtfiwE1mLSmZPF2M?=
- =?us-ascii?Q?pOAByH2O8+vNbeTUqWgGVD1yU8HBaHWY4j1ezMHX1DJEGD8ToWGVkBUJrXcf?=
- =?us-ascii?Q?CyupHK/k/GDMGyWpAm/ltYF8vrJ03Rq9vUwcP0iWNC//8KleUrgUFBb8Vpvb?=
- =?us-ascii?Q?t7zUhQcYUau+oiftmwYAfbdEt5bDLn9+qDJiZlpddf12rNbOCFR3T16VBKN8?=
- =?us-ascii?Q?XkcG4SPfCg6QNyhGu03qiaHNMP2bf0oB/oTNLy5H+Vw+EejJanIh5WPK3s79?=
- =?us-ascii?Q?+XvIwIDlT6NW3eqAGGv1JgU3rfmiuzNhuJz/SEWsLIORSIa4c7NRSLCq/oLw?=
- =?us-ascii?Q?FI2jFeLAS3sw2E9EoZnb2ODJJBIeA4wK+tgMawU/6eQIL42RUj/OMMx57sFY?=
- =?us-ascii?Q?q3EAqCdc1dfL4Y/MQOKkHImfg6qVoFGxHjiEuu6klaqlF0j5sTC3AU+GkGmu?=
- =?us-ascii?Q?o8ueWomOsBTCcNyrcx7oNK3f1MwbbR1ska+r0mUGns8Ljn2Ig2KeyLOOJo/9?=
- =?us-ascii?Q?vKkGWsiwAl9xgFz9AGWt8D3l0yMG+xfmhrmwbeKK80uN0vB+FoMR5elQycB1?=
- =?us-ascii?Q?/okfNj4sUAW5EDwozlo5Fbu+2xJUW3C0hAeH6v6tlUmHRGtRqk47RZIFDiU8?=
- =?us-ascii?Q?uWVF5fXj63qftPELzoiDHOOOC2eGQrVISvTPDdbWmM+0JrTzBldbS1bUwTb6?=
- =?us-ascii?Q?zvnkArFFas7s0FOEg0fknkFR/RmGErkWI7wOYqwZ7PSmASBwXQcN0Jb5Hp9a?=
- =?us-ascii?Q?4kLIpu+Al82e5uLeWGgRja4QZ9lVswHIS6Hwb93gps6FqXwKTrcRTl+zUXkz?=
- =?us-ascii?Q?zeqousfdjIH+ZbKPCDwg9SuXo6ZiralvziU4z4ZBMcNdiGnFwhXY4zH5/nW6?=
- =?us-ascii?Q?5oAgJlFehdlZTKC+C4r8t9/XcPTVKQ5h2om1nT6NjVCtaVlFbUgN05TC+UmT?=
- =?us-ascii?Q?lK4RJyHVTjhI6evjsGOS+1R4M+l9sS5Cxzx10ytCvOI2g/BS2LOhvoEyBXHT?=
- =?us-ascii?Q?HMKxPSghlLmqjcxCFqAMShJqIiWEWXBwdgKH5mcfabJz6jT0YZABhW48RaD6?=
- =?us-ascii?Q?+FYWom1UVOQwChiGxG9vfbO8grQ199GTW9M9PwIyf9QXvlSuwtAqzVZXFxAe?=
- =?us-ascii?Q?c3f44UxkG/mJ5UHVbFmwy2m6h1025PZMH6MiRGct9+hmDlFuraB+5SXS/pOO?=
- =?us-ascii?Q?/paZHbATT0RhAhNbU1bTGgFKHbVbTPsF0r2EcNAjhygVn4xi5lR2QhwyilTO?=
- =?us-ascii?Q?UnEi4DvR7AMCFN7We8hnofKcPRfX+2oCisTnFtbPqoJbH6UAl14ZjfNZi3fy?=
- =?us-ascii?Q?RFjyoTXBALYk6Stsl97Bmf2kl2sfi/PHyEI0KBSTAtWxS8gQFVPKfCWXqdV4?=
- =?us-ascii?Q?IK3xoib7+H1kFUm38Of4GjFMHUKRofCsHknadi1lxR3MUyYGK6TS5s9vK3Vs?=
- =?us-ascii?Q?a4QPq+j3wr1UUz0i96cB8qpCIIX5AMieJtT+sncUwZSfd6uJTQLyT2L6y4Zc?=
- =?us-ascii?Q?QVKEmMwpRHUK3kAZwA9XwfY5r7MGbskdk7sSZ50kixlC7BhpP/x0LKXVLkh9?=
- =?us-ascii?Q?7eyPjoZeMiFDAfeBFyE5oLbGaZ73ig5bO7Q6Yc9RONCQE1iMIIaJ3j0RXmIo?=
- =?us-ascii?Q?7Ym53aKjjinwanm+SS1OMas93+/8grDi7W7GEy/YRLGk2e1GS4WqTjhr4joD?=
- =?us-ascii?Q?EtPIfSgu3cPF2Ot2YgM/MZC3LP/YV5QcDlKFWCZzkLssYetc7cBNvn+n35cT?=
- =?us-ascii?Q?5Qnd/+C+zGaUL7kjCHny8pFNJGGhxRk=3D?=
-X-OriginatorOrg: corigine.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8d2ebf7a-2d28-4795-1c08-08d9f2caca07
-X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Feb 2022 10:38:23.9851
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: GLSMo26Q9sOK8XOqJDGHF6qCmNyMyQ+KtCQWApG0mtuWAcHmYNzPvG9hufDsN5VzAlf8lnu67CRaHSV1rukVJVB79WPZFMbWHsx80POCWIk=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR13MB1248
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ dggpeml500017.china.huawei.com (7.185.36.243)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 17, 2022 at 01:52:47PM +0200, Roi Dayan wrote:
-> On 2022-02-17 1:34 PM, Simon Horman wrote:
-> > On Thu, Feb 17, 2022 at 08:28:01AM +0000, Jianbo Liu wrote:
-> > > As a preparation for more advanced police offload in mlx5 (e.g.,
-> > > jumping to another chain when bandwidth is not exceeded), extend the
-> > > flow offload API with more tc-police parameters. Adjust existing
-> > > drivers to reject unsupported configurations.
-> > 
-> > Hi,
-> > 
-> > I have a concern that
-> > a) patch 1 introduces a facility that may break existing drivers; and
-> > b) patch 2 then fixes this
-> > 
-> > I'd slightly prefer if the series was rearranged to avoid this problem.
-> > 
-> > ...
-> 
-> Hi Simon,
-> 
-> It can't be rearranged as patch 2 can't compile without patch 1.
-> Patch 1 only adds more information passing to the driver.
-> 
-> The drivers functionality doesn't change. drivers today ignore
-> police information, like actions, and still being ignored after patch 1.
-> 
-> patch 2 updates the drivers to use that information instead of
-> ignoring it. so it fixes the drivers that without patch 1 can't be
-> fixed.
+From: Chengchang Tang <tangchengchang@huawei.com>
 
-I think it would be possible, but...
+The value of the function parameter “timeout” is unique. Therefore,
+it is unnecessary to specify the parameter “timeout” value each time.
+So remove it.
 
-On Thu, Feb 17, 2022 at 01:56:51PM +0200, Ido Schimmel wrote:
+Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
+Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_cmd.c      | 22 ++++++------
+ drivers/infiniband/hw/hns/hns_roce_cmd.h      |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_cq.c       |  5 ++-
+ drivers/infiniband/hw/hns/hns_roce_device.h   |  3 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c    | 35 +++++++------------
+ .../infiniband/hw/hns/hns_roce_hw_v2_dfx.c    |  3 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c       |  9 ++---
+ drivers/infiniband/hw/hns/hns_roce_srq.c      |  6 ++--
+ 8 files changed, 34 insertions(+), 51 deletions(-)
 
-...
-
-> Not sure what you mean by the above. Patch #1 extends the flow offload
-> API with tc-police parameters that weren't communicated to drivers until
-> now. Drivers still ignore the new parameters after this patch. It is
-> only in patch #2 that these drivers reject configurations where the
-> parameters are set.
-> 
-> Therefore, the only breakage I see is the one that can happen after
-> patch #2: unaware user space that was installing actions that weren't
-> fully reflected to hardware.
-> 
-> If we want to be on the safe side, it is possible to remove the errors,
-> but keep the extack messages so that user space is at least somewhat
-> aware.
-
-Yes, I see what you mean.
-I'm now comfortable with the way this patchset is arranged.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+index ab89e70b6f04..3642e9282b42 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+@@ -49,7 +49,7 @@ static int hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev, u64 in_param,
+ /* this should be called with "poll_sem" */
+ static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				    u64 out_param, unsigned long in_modifier,
+-				    u16 op, unsigned int timeout)
++				    u16 op)
+ {
+ 	int ret;
+ 
+@@ -62,18 +62,18 @@ static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
+ 		return ret;
+ 	}
+ 
+-	return hr_dev->hw->poll_mbox_done(hr_dev, timeout);
++	return hr_dev->hw->poll_mbox_done(hr_dev);
+ }
+ 
+ static int hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				  u64 out_param, unsigned long in_modifier,
+-				  u16 op, unsigned int timeout)
++				  u16 op)
+ {
+ 	int ret;
+ 
+ 	down(&hr_dev->cmd.poll_sem);
+ 	ret = __hns_roce_cmd_mbox_poll(hr_dev, in_param, out_param, in_modifier,
+-				       op, timeout);
++				       op);
+ 	up(&hr_dev->cmd.poll_sem);
+ 
+ 	return ret;
+@@ -99,7 +99,7 @@ void hns_roce_cmd_event(struct hns_roce_dev *hr_dev, u16 token, u8 status,
+ 
+ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				    u64 out_param, unsigned long in_modifier,
+-				    u16 op, unsigned int timeout)
++				    u16 op)
+ {
+ 	struct hns_roce_cmdq *cmd = &hr_dev->cmd;
+ 	struct hns_roce_cmd_context *context;
+@@ -130,7 +130,7 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	}
+ 
+ 	if (!wait_for_completion_timeout(&context->done,
+-					 msecs_to_jiffies(timeout))) {
++				msecs_to_jiffies(HNS_ROCE_CMD_TIMEOUT_MSECS))) {
+ 		dev_err_ratelimited(dev, "[cmd] token 0x%x mailbox 0x%x timeout.\n",
+ 				    context->token, op);
+ 		ret = -EBUSY;
+@@ -149,20 +149,20 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 
+ static int hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				  u64 out_param, unsigned long in_modifier,
+-				  u16 op, unsigned int timeout)
++				  u16 op)
+ {
+ 	int ret;
+ 
+ 	down(&hr_dev->cmd.event_sem);
+ 	ret = __hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param, in_modifier,
+-				       op, timeout);
++				       op);
+ 	up(&hr_dev->cmd.event_sem);
+ 
+ 	return ret;
+ }
+ 
+ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
+-		      unsigned long in_modifier, u16 op, unsigned int timeout)
++		      unsigned long in_modifier, u16 op)
+ {
+ 	bool is_busy;
+ 
+@@ -172,10 +172,10 @@ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
+ 
+ 	if (hr_dev->cmd.use_events)
+ 		return hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
+-					      in_modifier, op, timeout);
++					      in_modifier, op);
+ 	else
+ 		return hns_roce_cmd_mbox_poll(hr_dev, in_param, out_param,
+-					      in_modifier, op, timeout);
++					      in_modifier, op);
+ }
+ 
+ int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.h b/drivers/infiniband/hw/hns/hns_roce_cmd.h
+index 3055996935d5..23937b106aa5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cmd.h
++++ b/drivers/infiniband/hw/hns/hns_roce_cmd.h
+@@ -140,7 +140,7 @@ enum {
+ };
+ 
+ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
+-		      unsigned long in_modifier, u16 op, unsigned int timeout);
++		      unsigned long in_modifier, u16 op);
+ 
+ struct hns_roce_cmd_mailbox *
+ hns_roce_alloc_cmd_mailbox(struct hns_roce_dev *hr_dev);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 6fbfa262e6c7..22bd9e066a38 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -141,7 +141,7 @@ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 
+ 	/* Send mailbox to hw */
+ 	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, hr_cq->cqn,
+-			HNS_ROCE_CMD_CREATE_CQC, HNS_ROCE_CMD_TIMEOUT_MSECS);
++				HNS_ROCE_CMD_CREATE_CQC);
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+ 	if (ret) {
+ 		ibdev_err(ibdev,
+@@ -175,8 +175,7 @@ static void free_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 	int ret;
+ 
+ 	ret = hns_roce_cmd_mbox(hr_dev, 0, 0, hr_cq->cqn,
+-				HNS_ROCE_CMD_DESTROY_CQC,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++				HNS_ROCE_CMD_DESTROY_CQC);
+ 	if (ret)
+ 		dev_err(dev, "DESTROY_CQ failed (%d) for CQN %06lx\n", ret,
+ 			hr_cq->cqn);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 6da996f46cf3..2657f4c513ee 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -854,8 +854,7 @@ struct hns_roce_hw {
+ 	int (*post_mbox)(struct hns_roce_dev *hr_dev, u64 in_param,
+ 			 u64 out_param, u32 in_modifier, u16 op,
+ 			 u16 token, int event);
+-	int (*poll_mbox_done)(struct hns_roce_dev *hr_dev,
+-			      unsigned int timeout);
++	int (*poll_mbox_done)(struct hns_roce_dev *hr_dev);
+ 	bool (*chk_mbox_avail)(struct hns_roce_dev *hr_dev, bool *is_busy);
+ 	int (*set_gid)(struct hns_roce_dev *hr_dev, int gid_index,
+ 		       const union ib_gid *gid, const struct ib_gid_attr *attr);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index c86cf75c4caa..a79ca9d3c62f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1353,8 +1353,7 @@ static int config_hem_ba_to_hw(struct hns_roce_dev *hr_dev, unsigned long obj,
+ 	if (IS_ERR(mbox))
+ 		return PTR_ERR(mbox);
+ 
+-	ret = hns_roce_cmd_mbox(hr_dev, base_addr, mbox->dma, obj, op,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++	ret = hns_roce_cmd_mbox(hr_dev, base_addr, mbox->dma, obj, op);
+ 	hns_roce_free_cmd_mailbox(hr_dev, mbox);
+ 	return ret;
+ }
+@@ -2874,12 +2873,13 @@ static int v2_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
+ 	return ret;
+ }
+ 
+-static int v2_poll_mbox_done(struct hns_roce_dev *hr_dev, unsigned int timeout)
++static int v2_poll_mbox_done(struct hns_roce_dev *hr_dev)
+ {
+ 	u8 status = 0;
+ 	int ret;
+ 
+-	ret = v2_wait_mbox_complete(hr_dev, timeout, &status);
++	ret = v2_wait_mbox_complete(hr_dev, HNS_ROCE_CMD_TIMEOUT_MSECS,
++				    &status);
+ 	if (!ret) {
+ 		if (status != MB_ST_COMPLETE_SUCC)
+ 			return -EBUSY;
+@@ -3992,8 +3992,7 @@ static int hns_roce_v2_clear_hem(struct hns_roce_dev *hr_dev,
+ 		return PTR_ERR(mailbox);
+ 
+ 	/* configure the tag and op */
+-	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma, obj, op,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma, obj, op);
+ 
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+ 	return ret;
+@@ -4018,8 +4017,7 @@ static int hns_roce_v2_qp_modify(struct hns_roce_dev *hr_dev,
+ 	memcpy(mailbox->buf + qpc_size, qpc_mask, qpc_size);
+ 
+ 	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, hr_qp->qpn,
+-				HNS_ROCE_CMD_MODIFY_QPC,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++				HNS_ROCE_CMD_MODIFY_QPC);
+ 
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+ 
+@@ -5093,8 +5091,7 @@ static int hns_roce_v2_query_qpc(struct hns_roce_dev *hr_dev,
+ 		return PTR_ERR(mailbox);
+ 
+ 	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma, hr_qp->qpn,
+-				HNS_ROCE_CMD_QUERY_QPC,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++				HNS_ROCE_CMD_QUERY_QPC);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -5461,8 +5458,7 @@ static int hns_roce_v2_modify_srq(struct ib_srq *ibsrq,
+ 		hr_reg_clear(srqc_mask, SRQC_LIMIT_WL);
+ 
+ 		ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, srq->srqn,
+-					HNS_ROCE_CMD_MODIFY_SRQC,
+-					HNS_ROCE_CMD_TIMEOUT_MSECS);
++					HNS_ROCE_CMD_MODIFY_SRQC);
+ 		hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+ 		if (ret) {
+ 			ibdev_err(&hr_dev->ib_dev,
+@@ -5489,8 +5485,7 @@ static int hns_roce_v2_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+ 
+ 	srq_context = mailbox->buf;
+ 	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma, srq->srqn,
+-				HNS_ROCE_CMD_QUERY_SRQC,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++				HNS_ROCE_CMD_QUERY_SRQC);
+ 	if (ret) {
+ 		ibdev_err(&hr_dev->ib_dev,
+ 			  "failed to process cmd of querying SRQ, ret = %d.\n",
+@@ -5541,8 +5536,7 @@ static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+ 	hr_reg_clear(cqc_mask, CQC_CQ_PERIOD);
+ 
+ 	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, hr_cq->cqn,
+-				HNS_ROCE_CMD_MODIFY_CQC,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++				HNS_ROCE_CMD_MODIFY_CQC);
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+ 	if (ret)
+ 		ibdev_err(&hr_dev->ib_dev,
+@@ -5872,12 +5866,10 @@ static void hns_roce_v2_destroy_eqc(struct hns_roce_dev *hr_dev, u32 eqn)
+ 
+ 	if (eqn < hr_dev->caps.num_comp_vectors)
+ 		ret = hns_roce_cmd_mbox(hr_dev, 0, 0, eqn & HNS_ROCE_V2_EQN_M,
+-					HNS_ROCE_CMD_DESTROY_CEQC,
+-					HNS_ROCE_CMD_TIMEOUT_MSECS);
++					HNS_ROCE_CMD_DESTROY_CEQC);
+ 	else
+ 		ret = hns_roce_cmd_mbox(hr_dev, 0, 0, eqn & HNS_ROCE_V2_EQN_M,
+-					HNS_ROCE_CMD_DESTROY_AEQC,
+-					HNS_ROCE_CMD_TIMEOUT_MSECS);
++					HNS_ROCE_CMD_DESTROY_AEQC);
+ 	if (ret)
+ 		dev_err(dev, "[mailbox cmd] destroy eqc(%u) failed.\n", eqn);
+ }
+@@ -6002,8 +5994,7 @@ static int hns_roce_v2_create_eq(struct hns_roce_dev *hr_dev,
+ 	if (ret)
+ 		goto err_cmd_mbox;
+ 
+-	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, eq->eqn,
+-				eq_cmd, HNS_ROCE_CMD_TIMEOUT_MSECS);
++	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, eq->eqn, eq_cmd);
+ 	if (ret) {
+ 		dev_err(hr_dev->dev, "[mailbox cmd] create eqc failed.\n");
+ 		goto err_cmd_mbox;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2_dfx.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2_dfx.c
+index bce3a67b0b2d..107288150e3f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2_dfx.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2_dfx.c
+@@ -19,8 +19,7 @@ int hns_roce_v2_query_cqc_info(struct hns_roce_dev *hr_dev, u32 cqn,
+ 
+ 	cq_context = mailbox->buf;
+ 	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma, cqn,
+-				HNS_ROCE_CMD_QUERY_CQC,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++				HNS_ROCE_CMD_QUERY_CQC);
+ 	if (ret) {
+ 		dev_err(hr_dev->dev, "QUERY cqc cmd process error\n");
+ 		goto err_mailbox;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index e0ec839f2f6f..bf4ea6bfff84 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -52,8 +52,7 @@ static int hns_roce_hw_create_mpt(struct hns_roce_dev *hr_dev,
+ 				  unsigned long mpt_index)
+ {
+ 	return hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, mpt_index,
+-				 HNS_ROCE_CMD_CREATE_MPT,
+-				 HNS_ROCE_CMD_TIMEOUT_MSECS);
++				 HNS_ROCE_CMD_CREATE_MPT);
+ }
+ 
+ int hns_roce_hw_destroy_mpt(struct hns_roce_dev *hr_dev,
+@@ -61,8 +60,7 @@ int hns_roce_hw_destroy_mpt(struct hns_roce_dev *hr_dev,
+ 			    unsigned long mpt_index)
+ {
+ 	return hns_roce_cmd_mbox(hr_dev, 0, mailbox ? mailbox->dma : 0,
+-				 mpt_index, HNS_ROCE_CMD_DESTROY_MPT,
+-				 HNS_ROCE_CMD_TIMEOUT_MSECS);
++				 mpt_index, HNS_ROCE_CMD_DESTROY_MPT);
+ }
+ 
+ static int alloc_mr_key(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
+@@ -304,8 +302,7 @@ struct ib_mr *hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start,
+ 
+ 	mtpt_idx = key_to_hw_index(mr->key) & (hr_dev->caps.num_mtpts - 1);
+ 	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma, mtpt_idx,
+-				HNS_ROCE_CMD_QUERY_MPT,
+-				HNS_ROCE_CMD_TIMEOUT_MSECS);
++				HNS_ROCE_CMD_QUERY_MPT);
+ 	if (ret)
+ 		goto free_cmd_mbox;
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index 525e1eba263a..5bb8ccea95a6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -64,8 +64,7 @@ static int hns_roce_hw_create_srq(struct hns_roce_dev *dev,
+ 				  unsigned long srq_num)
+ {
+ 	return hns_roce_cmd_mbox(dev, mailbox->dma, 0, srq_num,
+-				 HNS_ROCE_CMD_CREATE_SRQ,
+-				 HNS_ROCE_CMD_TIMEOUT_MSECS);
++				 HNS_ROCE_CMD_CREATE_SRQ);
+ }
+ 
+ static int hns_roce_hw_destroy_srq(struct hns_roce_dev *dev,
+@@ -73,8 +72,7 @@ static int hns_roce_hw_destroy_srq(struct hns_roce_dev *dev,
+ 				   unsigned long srq_num)
+ {
+ 	return hns_roce_cmd_mbox(dev, 0, mailbox ? mailbox->dma : 0, srq_num,
+-				 HNS_ROCE_CMD_DESTROY_SRQ,
+-				 HNS_ROCE_CMD_TIMEOUT_MSECS);
++				 HNS_ROCE_CMD_DESTROY_SRQ);
+ }
+ 
+ static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
+-- 
+2.33.0
 
