@@ -2,133 +2,149 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA07AC433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Feb 2022 18:16:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E70CEC4332F
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Feb 2022 00:36:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244140AbiBQSQX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Feb 2022 13:16:23 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:58376 "EHLO
+        id S229457AbiBRAg6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Feb 2022 19:36:58 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:33864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244134AbiBQSQX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Feb 2022 13:16:23 -0500
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE118213428;
-        Thu, 17 Feb 2022 10:16:07 -0800 (PST)
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21HIBOcL000385;
-        Thu, 17 Feb 2022 18:16:03 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : references : content-type : in-reply-to :
- mime-version; s=pp1; bh=QbNiDzaXtugwEq/apbFl+z2s7Z8n99Z5EqF8nRXa5pY=;
- b=WMJzYKbQ2hp/BteDRj3AOYLEsg1Bny4jQ8k+u4dfJ+FWztcVmoHhRmzQZFDh/lHG5dTv
- 9+vxzM6MOtpXNECQHN+Lg27qdYkCH93fD6bXcWyfbdFbG/DMd16B0UOA8ZKJybRPt/nx
- f56/GOG9YI+09HozeNYG7kABW6L/nICUbKKo81bu6Dlh2tpXzzrtw9QDsqYph1gREeGV
- kf76IT7cvJBZ9MVGVOH7OnulrkWr6x10RWxf4+x184Qz6mczSDtFRqurIR54weq4nRQx
- QV4uEAYbdkSVM9reZ6B/CHhWq0k2ZAHg21bkPSoWmfF7+2C3E/bz0nl8vEJ8u2aOnEff /w== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 3e9pp9qk4q-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 17 Feb 2022 18:16:03 +0000
-Received: from m0098419.ppops.net (m0098419.ppops.net [127.0.0.1])
-        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 21HIDZrD009100;
-        Thu, 17 Feb 2022 18:16:02 GMT
-Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 3e9pp9qk3t-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 17 Feb 2022 18:16:02 +0000
-Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
-        by ppma04fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 21HIC4VB009474;
-        Thu, 17 Feb 2022 18:16:00 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-        by ppma04fra.de.ibm.com with ESMTP id 3e64hajr5w-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 17 Feb 2022 18:16:00 +0000
-Received: from d06av24.portsmouth.uk.ibm.com (d06av24.portsmouth.uk.ibm.com [9.149.105.60])
-        by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 21HIFveF28246432
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 17 Feb 2022 18:15:57 GMT
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 090474204C;
-        Thu, 17 Feb 2022 18:15:57 +0000 (GMT)
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id E786E42045;
-        Thu, 17 Feb 2022 18:15:56 +0000 (GMT)
-Received: from vela (unknown [9.145.66.38])
-        by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
-        Thu, 17 Feb 2022 18:15:56 +0000 (GMT)
-Received: from brueckner by vela with local (Exim 4.94.2)
-        (envelope-from <brueckner@linux.ibm.com>)
-        id 1nKlJr-000BTQ-47; Thu, 17 Feb 2022 19:15:55 +0100
-Date:   Thu, 17 Feb 2022 19:15:54 +0100
-From:   Hendrik Brueckner <brueckner@linux.ibm.com>
-To:     "dust.li" <dust.li@linux.alibaba.com>
-Cc:     Stefan Raspl <raspl@linux.ibm.com>,
-        Karsten Graul <kgraul@linux.ibm.com>,
-        Tony Lu <tonylu@linux.alibaba.com>, kuba@kernel.org,
-        davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Hendrik Brueckner <brueckner@linux.ibm.com>
-Subject: Re: [PATCH] net/smc: Add autocork support
-Message-ID: <Yg6Q2kIDJrhvNVz7@linux.ibm.com>
-References: <20220216034903.20173-1-dust.li@linux.alibaba.com>
- <68e9534b-7ff5-5a65-9017-124dbae0c74b@linux.ibm.com>
- <20220216152721.GB39286@linux.alibaba.com>
- <454b5efd-e611-2dfb-e462-e7ceaee0da4d@linux.ibm.com>
- <20220217132200.GA5443@linux.alibaba.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220217132200.GA5443@linux.alibaba.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: r1Qw7Syfysn6uzD6Ngi2E5jnB7tqPgKb
-X-Proofpoint-ORIG-GUID: TZwbOgHYVcUo3bK-1MjZAyVEOw1N7kwi
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+        with ESMTP id S230019AbiBRAg5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Feb 2022 19:36:57 -0500
+Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com [IPv6:2607:f8b0:4864:20::22e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16A602612F
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Feb 2022 16:36:42 -0800 (PST)
+Received: by mail-oi1-x22e.google.com with SMTP id q5so1412841oij.6
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Feb 2022 16:36:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=HCikr/21UBQgDZaKxWYexvox9IwibwcSTcDjepolExE=;
+        b=Kgrv/x13azUEwcxZ/xOk3D+cL/Oe1thqH7AXW98mYs8xDQiQ6MRvEVquT5aIgaQ44N
+         mtsK4AWVFG4GCO4wJn77D7vdd5aM4FIRc/CSY/Lpx/Iw+Re1lbyak1otxZjCXewTSeZN
+         pqmJ5UZ4TnY2ckOXnocxurGtccM5Kfl0+wIpKnfvIvRAKiZKeT8JO252JvV3aU8Utn6/
+         kK06lhxhaSKAWy9POWw95jxL04OVzVcerVrYrhlJBigh5rcuJElvypc1KayZAXpl7lex
+         HOsaHjrJ9nciIl8xUJXsjWZfq6SSbHnjfdL6P9QB9WNYoMrHwmdJ5ar1vRgN8Sr0gzfR
+         bIxQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=HCikr/21UBQgDZaKxWYexvox9IwibwcSTcDjepolExE=;
+        b=rNuoh/+Du4ZY5azazL5043fhii537dNMOp38kVTe4J0KbpLuCQs3/8wSlNeNOPkdzO
+         WOWM5aPB9SU4Hrd8PjVWP7Tbhj5pgJFbZA357igdCYj5bM3pOPeHgobO6L9oOJDIA3us
+         RYzkfRAK1Qjo9SUB4CHh+MWVK3gWOVBYwjujwTUSoZ/YfujBFa6WU8zyRZpQKQwWsbLU
+         Hmie74yw4l0HNFYW+cDJx5pWJnye7UkNM2dkSzaeIt+ODKhCmRKcu5RyjCxBfbM2hiLG
+         9UsrTPWH98IDt+DokpyEDU4xL/dj/rpcgZzZh7frXX2BipVV7BEP9Bs4BOycUvwwi11K
+         x67Q==
+X-Gm-Message-State: AOAM533/pi4lsCuwBEWSFIzWBTRjot9sColm0pp97iLgl7wBIPtX5q7u
+        cdSQyj0ZRvFL5uiNqABFu/U=
+X-Google-Smtp-Source: ABdhPJzbPhg9ddQMzOsK2l9T+D7TpDpxHW8koExSDUT+PmFIZ5Tzt4LDTnbQGbxmEsRWADjn8Sl9JQ==
+X-Received: by 2002:aca:42c6:0:b0:2cc:a020:c00f with SMTP id p189-20020aca42c6000000b002cca020c00fmr2246435oia.86.1645144601448;
+        Thu, 17 Feb 2022 16:36:41 -0800 (PST)
+Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-1772-15fa-cf3f-3cd5.res6.spectrum.com. [2603:8081:140c:1a00:1772:15fa:cf3f:3cd5])
+        by smtp.googlemail.com with ESMTPSA id t31sm19698299oaa.9.2022.02.17.16.36.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 17 Feb 2022 16:36:41 -0800 (PST)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v12 1/6] RDMA/rxe: Add code to cleanup mcast memory
+Date:   Thu, 17 Feb 2022 18:35:39 -0600
+Message-Id: <20220218003543.205799-2-rpearsonhpe@gmail.com>
+X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20220218003543.205799-1-rpearsonhpe@gmail.com>
+References: <20220218003543.205799-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
- definitions=2022-02-17_06,2022-02-17_01,2021-12-02_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 spamscore=0
- mlxlogscore=999 suspectscore=0 malwarescore=0 priorityscore=1501
- lowpriorityscore=0 impostorscore=0 clxscore=1011 phishscore=0 adultscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2201110000 definitions=main-2202170083
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Feb 17, 2022 at 09:22:00PM +0800, dust.li wrote:
-> On Thu, Feb 17, 2022 at 10:37:28AM +0100, Stefan Raspl wrote:
-> >On 2/16/22 16:27, dust.li wrote:
-> >> On Wed, Feb 16, 2022 at 02:58:32PM +0100, Stefan Raspl wrote:
-> >> > On 2/16/22 04:49, Dust Li wrote:
-> >> >
-> 
-> >Now we understand that cloud workloads are a bit different, and the desire to
-> >be able to modify the environment of a container while leaving the container
-> >image unmodified is understandable. But then again, enabling the base image
-> >would be the cloud way to address this. The question to us is: How do other
-> >parts of the kernel address this?
-> 
-> I'm not familiar with K8S, but from one of my colleague who has worked
-> in that area tells me for resources like CPU/MEM and configurations
-> like sysctl, can be set using K8S configuration:
-> https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/
+Well behaved applications will free all memory allocated by multicast.
+If this fails rdma-core will detach all qp's from multicast groups when
+an application terminates. This patch prints a warning and cleans out
+memory allocated by multicast if both of these fail to occur.
 
-For K8s, this involves container engines like cri-o, containerd, podman,
-and others towards the runtimes like runc.  To ensure they operate together,
-specifications by the Open Container Initiative (OCI) at
-https://opencontainers.org/release-notices/overview/
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+---
+ drivers/infiniband/sw/rxe/rxe.c       |  2 ++
+ drivers/infiniband/sw/rxe/rxe_loc.h   |  1 +
+ drivers/infiniband/sw/rxe/rxe_mcast.c | 38 +++++++++++++++++++++++++++
+ 3 files changed, 41 insertions(+)
 
-For container/pod deployments, there is especially the Container Runtime
-Interface (CRI) that defines the interface, e.g., of K8s to cri-o etc.
-
-CRI includes support for (namespaced) sysctl's:
-https://github.com/opencontainers/runtime-spec/releases/tag/v1.0.2
-
-In essence, the CRI spec would allow users to specify/control a specific
-runtime for the container in a declarative way w/o modifying the (base)
-container images.
-
-
-Thanks and kind regards,
-  Hendrik
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index 3520eb2db685..603b0156f889 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -29,6 +29,8 @@ void rxe_dealloc(struct ib_device *ib_dev)
+ 	rxe_pool_cleanup(&rxe->mr_pool);
+ 	rxe_pool_cleanup(&rxe->mw_pool);
+ 
++	rxe_cleanup_mcast(rxe);
++
+ 	if (rxe->tfm)
+ 		crypto_free_shash(rxe->tfm);
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index 409efeecd581..0bc1b7e2877c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -44,6 +44,7 @@ struct rxe_mcg *rxe_lookup_mcg(struct rxe_dev *rxe, union ib_gid *mgid);
+ int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid);
+ int rxe_detach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid);
+ void rxe_cleanup_mcg(struct kref *kref);
++void rxe_cleanup_mcast(struct rxe_dev *rxe);
+ 
+ /* rxe_mmap.c */
+ struct rxe_mmap_info {
+diff --git a/drivers/infiniband/sw/rxe/rxe_mcast.c b/drivers/infiniband/sw/rxe/rxe_mcast.c
+index 4935fe5c5868..447d78bea28b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mcast.c
++++ b/drivers/infiniband/sw/rxe/rxe_mcast.c
+@@ -388,3 +388,41 @@ int rxe_detach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
+ 
+ 	return rxe_detach_mcg(rxe, qp, mgid);
+ }
++
++/**
++ * rxe_cleanup_mcast - cleanup all resources still held by mcast
++ * @rxe: rxe object
++ *
++ * Called when rxe device is unloaded. Walk red-black tree to
++ * find all mcg's and then walk mcg->qp_list to find all mca's and
++ * free them.
++ *
++ * This is belt and suspenders. These should have been recovered
++ * already by the application else rdma-core.
++ */
++void rxe_cleanup_mcast(struct rxe_dev *rxe)
++{
++	struct rb_root *root = &rxe->mcg_tree;
++	struct rb_node *node, *next;
++	struct rxe_mcg *mcg;
++	struct rxe_mca *mca, *tmp;
++
++	if (RB_EMPTY_ROOT(root))
++		return;		/* expected behavior */
++
++	pr_warn("RDMA/core bug: Recovering  leaked multicast resources\n");
++
++	for (node = rb_first(root); node; node = next) {
++		next = rb_next(node);
++		mcg = rb_entry(node, typeof(*mcg), node);
++
++		spin_lock_bh(&rxe->mcg_lock);
++		list_for_each_entry_safe(mca, tmp, &mcg->qp_list, qp_list)
++			kfree(mca);
++
++		__rxe_remove_mcg(mcg);
++		spin_unlock_bh(&rxe->mcg_lock);
++
++		kfree(mcg);
++	}
++}
+-- 
+2.32.0
 
