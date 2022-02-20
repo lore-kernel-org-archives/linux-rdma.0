@@ -2,51 +2,51 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EFD8C433FE
-	for <linux-rdma@archiver.kernel.org>; Sun, 20 Feb 2022 21:22:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9AFBC433EF
+	for <linux-rdma@archiver.kernel.org>; Sun, 20 Feb 2022 21:22:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245100AbiBTVW1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 20 Feb 2022 16:22:27 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:57986 "EHLO
+        id S245109AbiBTVXS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 20 Feb 2022 16:23:18 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:34042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245092AbiBTVWS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 20 Feb 2022 16:22:18 -0500
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45D161EC6A
-        for <linux-rdma@vger.kernel.org>; Sun, 20 Feb 2022 13:21:56 -0800 (PST)
+        with ESMTP id S244570AbiBTVXR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 20 Feb 2022 16:23:17 -0500
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5F7537AAC
+        for <linux-rdma@vger.kernel.org>; Sun, 20 Feb 2022 13:22:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645392116; x=1676928116;
+  t=1645392175; x=1676928175;
   h=date:from:to:cc:subject:message-id:mime-version:
    content-transfer-encoding;
-  bh=jPmSlwAYZcnYCRj8NTDxa5kcGlh6jNfj9Vqw9u6JWCI=;
-  b=Ev/QyGLb3ZRkEeBYpWzh/Kc7sOVo0eePp1C1pcznt68MemYRSX8oD27U
-   Q2k5L9GK5FHDFb/+EObNbfa9HUjGBoV3ydNqWevvBKb2xENrwzWnlaI2+
-   QRYBSsKbJVYtV1HdHui2ZgKjHS0ARMbDHpMvpPXnKlf+P8ihEp0KXEToy
-   YtYxp+g5kNJSbyI6lv96eAOntH2PGQxb2q1yBemgi4TooIMnBF3HwDdgF
-   bDchqXYOmi5jTe3dHkMjBT7Nta9Dpl8VGl1cyV1e2DuzDmQIx9dfjOLNs
-   Iefo7096Y2URYhHp9nQ/Rdx9/x2UJTWyi0M3NUhH6BKsqhumsfgAAQ5+S
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10264"; a="234944032"
+  bh=9PzZ+BPev11n2xzIovYKnRLihZQL1vcjAj/g0N3DFa0=;
+  b=AcklwfyG49G7x2fX3Ze+JEZXlBOKrb0BbBvx2bhikreZL5orKb0EYoNi
+   CNpnnkQFQEw1NSPT8v4FNgWEPNmNMBcyFEtHzKlAFdZgDsRw+tXiEHrmE
+   LEiDiuS11j93WRDlERDwGFQEaWIsz69aL5DLz/1VJOwOnmqSWvy6giVax
+   yepxiwu8/ttyNmqz0jLmFPCCSp3uiEVix59AcL3cRaTqNn/dojaW3C60X
+   E0j41pDpT8EOXAd6SXTwlxzi7d321WjVUKf5q0HACY7Yd9KNnl3BCHtAg
+   +c+Gwvp7KqdwvS4iFBadTNZILnN8n+YYYpxuuGUgH6qthItNdxlnHwRiB
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10264"; a="232024897"
 X-IronPort-AV: E=Sophos;i="5.88,384,1635231600"; 
-   d="scan'208";a="234944032"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Feb 2022 13:21:54 -0800
+   d="scan'208";a="232024897"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Feb 2022 13:22:55 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.88,384,1635231600"; 
-   d="scan'208";a="778517426"
+   d="scan'208";a="507410968"
 Received: from lkp-server01.sh.intel.com (HELO da3212ac2f54) ([10.239.97.150])
-  by fmsmga005.fm.intel.com with ESMTP; 20 Feb 2022 13:21:53 -0800
+  by orsmga006.jf.intel.com with ESMTP; 20 Feb 2022 13:22:53 -0800
 Received: from kbuild by da3212ac2f54 with local (Exim 4.92)
         (envelope-from <lkp@intel.com>)
-        id 1nLteS-0000oE-I4; Sun, 20 Feb 2022 21:21:52 +0000
-Date:   Mon, 21 Feb 2022 05:21:40 +0800
+        id 1nLtfQ-0000pY-PL; Sun, 20 Feb 2022 21:22:52 +0000
+Date:   Mon, 21 Feb 2022 05:22:39 +0800
 From:   kernel test robot <lkp@intel.com>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
- c46fa8911b17e3f808679061a8af8bee219f4602
-Message-ID: <6212b0e4.LvP3+wGffdlZSQ71%lkp@intel.com>
+Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
+ 748663c8ccf6b2e5a800de19127c2cc1c4423fd2
+Message-ID: <6212b11f.it4nzfBCfWOFhjJO%lkp@intel.com>
 User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -55,10 +55,10 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-rc
-branch HEAD: c46fa8911b17e3f808679061a8af8bee219f4602  RDMA/rtrs-clt: Move free_permit from free_clt to rtrs_clt_close
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-next
+branch HEAD: 748663c8ccf6b2e5a800de19127c2cc1c4423fd2  IB/cma: Allow XRC INI QPs to set their local ACK timeout
 
-elapsed time: 731m
+elapsed time: 732m
 
 configs tested: 126
 configs skipped: 3
@@ -153,15 +153,15 @@ powerpc                          allyesconfig
 powerpc                          allmodconfig
 powerpc                           allnoconfig
 arc                  randconfig-r043-20220220
-s390                 randconfig-r044-20220220
 riscv                randconfig-r042-20220220
+s390                 randconfig-r044-20220220
 riscv                    nommu_k210_defconfig
 riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
 riscv                             allnoconfig
 riscv                               defconfig
 riscv                          rv32_defconfig
 riscv                            allmodconfig
+riscv                    nommu_virt_defconfig
 x86_64                    rhel-8.3-kselftests
 um                             i386_defconfig
 x86_64                           allyesconfig
