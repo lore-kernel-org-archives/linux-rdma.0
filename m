@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D246BC433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3465EC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230020AbiBWFKj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 00:10:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42910 "EHLO
+        id S233098AbiBWFKk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 00:10:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233098AbiBWFKj (ORCPT
+        with ESMTP id S237658AbiBWFKj (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 00:10:39 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E3A25F4DC;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2DE95EDF3;
         Tue, 22 Feb 2022 21:10:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B57D060C51;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E50160C16;
+        Wed, 23 Feb 2022 05:10:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3B24C340EB;
         Wed, 23 Feb 2022 05:10:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A25B5C340F4;
-        Wed, 23 Feb 2022 05:10:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645593011;
-        bh=QDPPmVXPHInsejevg3RYHIQX/gQP4aASDaADIrdxBk4=;
+        s=k20201202; t=1645593012;
+        bh=mDj7RLvsugBTLQ9B4NA3BujPDwBOvnvOB7n0kzKZG00=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uRIFUwSB0Qfz/077mK87f8aljDaNJjgWZ/43lzuloVV8TLt3St87Rnwgsxrl8wZ7/
-         DXgpAyEtqcmgg5jZMa2os0t3Tl1FdpoYamJ0x2PRZqY3SvCVZn1UyalHa7CjmtG75h
-         aszqBI5UKvm08R6/cFKweBdVnabhXlSooGUK3mIXU4ZD6tbhB9qYuGUZt206MP/qK/
-         hVxB+xg20rp2rXVt5jqjsD24fNEJlmOkdzFrz49Lu4gDA5y/yzGyZslSTzBWLeCGcR
-         +oyj5FcKQ4ZyVWVD/n1ZrmmisOcVXmJ73Mi+g9wF5M9ATOmHvAJWHnQH/jtjD9NfZ1
-         A6IwG6hZMnvTg==
+        b=sW3lYJWUnwODbLJo9FMGI5GE+Ad5Zh8wP3ZHDSrosMS8rWOQ5HgjFk2mIMwM91Wk/
+         L8cb5v0ppYISRpbeK56OKsZu7uF7R//l1eNcG5WhOE+bSqUH7T4k2dxxLjSs+NeEqZ
+         x8PML/pgJNttV88w3Bu05XPCFmk1Pur/68SfUw7c+gsiYxNTHhCr3WHzqEVScUfwyv
+         /tG5SrSgRkhQ/O7lBWgT1DdyYGEGiUSlRgA8TOSUeGcmrkwOwdJmzpSNPE8XmP7jkE
+         qbCtdAnfwTrkP3/pzY0/0anpFmRN/62gA0N6IWcfx9CzCOr2TozpTl6kKtWSbs9TAu
+         ysT8RwdGsFfgA==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -39,9 +39,9 @@ Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
         Maor Gottlieb <maorg@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [mlx5-next 02/17] net/mlx5: Add ability to insert to specific flow group
-Date:   Tue, 22 Feb 2022 21:09:17 -0800
-Message-Id: <20220223050932.244668-3-saeed@kernel.org>
+Subject: [mlx5-next 04/17] net/mlx5: E-switch, remove special uplink ingress ACL handling
+Date:   Tue, 22 Feb 2022 21:09:19 -0800
+Message-Id: <20220223050932.244668-5-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220223050932.244668-1-saeed@kernel.org>
 References: <20220223050932.244668-1-saeed@kernel.org>
@@ -53,71 +53,116 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <mbloch@nvidia.com>
 
-If the flow table isn't an autogroup the upper driver has to create the
-flow groups explicitly. This information can't later be used when
-creating rules to insert into a specific flow group. Allow such use case.
+As both uplinks set the same metadata there is no need to merge
+the ACL handling of both into a single one.
 
 Signed-off-by: Mark Bloch <mbloch@nvidia.com>
 Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 9 ++++++++-
- include/linux/mlx5/fs.h                           | 1 +
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ .../mellanox/mlx5/core/eswitch_offloads.c     | 65 +------------------
+ 1 file changed, 1 insertion(+), 64 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index b628917e38e4..ebb7960ec62b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1696,6 +1696,7 @@ static void free_match_list(struct match_list *head, bool ft_locked)
- static int build_match_list(struct match_list *match_head,
- 			    struct mlx5_flow_table *ft,
- 			    const struct mlx5_flow_spec *spec,
-+			    struct mlx5_flow_group *fg,
- 			    bool ft_locked)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index efaf3be73a7b..f65231e579bb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -2378,60 +2378,6 @@ void esw_offloads_unload_rep(struct mlx5_eswitch *esw, u16 vport_num)
+ 		mlx5_esw_offloads_devlink_port_unregister(esw, vport_num);
+ }
+ 
+-static int esw_set_uplink_slave_ingress_root(struct mlx5_core_dev *master,
+-					     struct mlx5_core_dev *slave)
+-{
+-	u32 in[MLX5_ST_SZ_DW(set_flow_table_root_in)]   = {};
+-	u32 out[MLX5_ST_SZ_DW(set_flow_table_root_out)] = {};
+-	struct mlx5_eswitch *esw;
+-	struct mlx5_flow_root_namespace *root;
+-	struct mlx5_flow_namespace *ns;
+-	struct mlx5_vport *vport;
+-	int err;
+-
+-	MLX5_SET(set_flow_table_root_in, in, opcode,
+-		 MLX5_CMD_OP_SET_FLOW_TABLE_ROOT);
+-	MLX5_SET(set_flow_table_root_in, in, table_type, FS_FT_ESW_INGRESS_ACL);
+-	MLX5_SET(set_flow_table_root_in, in, other_vport, 1);
+-	MLX5_SET(set_flow_table_root_in, in, vport_number, MLX5_VPORT_UPLINK);
+-
+-	if (master) {
+-		esw = master->priv.eswitch;
+-		vport = mlx5_eswitch_get_vport(esw, MLX5_VPORT_UPLINK);
+-		MLX5_SET(set_flow_table_root_in, in, table_of_other_vport, 1);
+-		MLX5_SET(set_flow_table_root_in, in, table_vport_number,
+-			 MLX5_VPORT_UPLINK);
+-
+-		ns = mlx5_get_flow_vport_acl_namespace(master,
+-						       MLX5_FLOW_NAMESPACE_ESW_INGRESS,
+-						       vport->index);
+-		root = find_root(&ns->node);
+-		mutex_lock(&root->chain_lock);
+-
+-		MLX5_SET(set_flow_table_root_in, in,
+-			 table_eswitch_owner_vhca_id_valid, 1);
+-		MLX5_SET(set_flow_table_root_in, in,
+-			 table_eswitch_owner_vhca_id,
+-			 MLX5_CAP_GEN(master, vhca_id));
+-		MLX5_SET(set_flow_table_root_in, in, table_id,
+-			 root->root_ft->id);
+-	} else {
+-		esw = slave->priv.eswitch;
+-		vport = mlx5_eswitch_get_vport(esw, MLX5_VPORT_UPLINK);
+-		ns = mlx5_get_flow_vport_acl_namespace(slave,
+-						       MLX5_FLOW_NAMESPACE_ESW_INGRESS,
+-						       vport->index);
+-		root = find_root(&ns->node);
+-		mutex_lock(&root->chain_lock);
+-		MLX5_SET(set_flow_table_root_in, in, table_id, root->root_ft->id);
+-	}
+-
+-	err = mlx5_cmd_exec(slave, in, sizeof(in), out, sizeof(out));
+-	mutex_unlock(&root->chain_lock);
+-
+-	return err;
+-}
+-
+ static int esw_set_slave_root_fdb(struct mlx5_core_dev *master,
+ 				  struct mlx5_core_dev *slave)
  {
- 	struct rhlist_head *tmp, *list;
-@@ -1710,6 +1711,9 @@ static int build_match_list(struct match_list *match_head,
- 	rhl_for_each_entry_rcu(g, tmp, list, hash) {
- 		struct match_list *curr_match;
+@@ -2613,15 +2559,10 @@ int mlx5_eswitch_offloads_config_single_fdb(struct mlx5_eswitch *master_esw,
+ {
+ 	int err;
  
-+		if (fg && fg != g)
-+			continue;
-+
- 		if (unlikely(!tree_get_node(&g->node)))
- 			continue;
+-	err = esw_set_uplink_slave_ingress_root(master_esw->dev,
+-						slave_esw->dev);
+-	if (err)
+-		return -EINVAL;
+-
+ 	err = esw_set_slave_root_fdb(master_esw->dev,
+ 				     slave_esw->dev);
+ 	if (err)
+-		goto err_fdb;
++		return err;
  
-@@ -1889,6 +1893,9 @@ _mlx5_add_flow_rules(struct mlx5_flow_table *ft,
- 	if (!check_valid_spec(spec))
- 		return ERR_PTR(-EINVAL);
+ 	err = esw_set_master_egress_rule(master_esw->dev,
+ 					 slave_esw->dev);
+@@ -2633,9 +2574,6 @@ int mlx5_eswitch_offloads_config_single_fdb(struct mlx5_eswitch *master_esw,
+ err_acl:
+ 	esw_set_slave_root_fdb(NULL, slave_esw->dev);
  
-+	if (flow_act->fg && ft->autogroup.active)
-+		return ERR_PTR(-EINVAL);
-+
- 	for (i = 0; i < dest_num; i++) {
- 		if (!dest_is_valid(&dest[i], flow_act, ft))
- 			return ERR_PTR(-EINVAL);
-@@ -1898,7 +1905,7 @@ _mlx5_add_flow_rules(struct mlx5_flow_table *ft,
- 	version = atomic_read(&ft->node.version);
+-err_fdb:
+-	esw_set_uplink_slave_ingress_root(NULL, slave_esw->dev);
+-
+ 	return err;
+ }
  
- 	/* Collect all fgs which has a matching match_criteria */
--	err = build_match_list(&match_head, ft, spec, take_write);
-+	err = build_match_list(&match_head, ft, spec, flow_act->fg, take_write);
- 	if (err) {
- 		if (take_write)
- 			up_write_ref_node(&ft->node, false);
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index b1aad14689e3..e3bfed68b08a 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -224,6 +224,7 @@ struct mlx5_flow_act {
- 	u32 flags;
- 	struct mlx5_fs_vlan vlan[MLX5_FS_VLAN_DEPTH];
- 	struct ib_counters *counters;
-+	struct mlx5_flow_group *fg;
- };
+@@ -2644,7 +2582,6 @@ void mlx5_eswitch_offloads_destroy_single_fdb(struct mlx5_eswitch *master_esw,
+ {
+ 	esw_unset_master_egress_rule(master_esw->dev);
+ 	esw_set_slave_root_fdb(NULL, slave_esw->dev);
+-	esw_set_uplink_slave_ingress_root(NULL, slave_esw->dev);
+ }
  
- #define MLX5_DECLARE_FLOW_ACT(name) \
+ #define ESW_OFFLOADS_DEVCOM_PAIR	(0)
 -- 
 2.35.1
 
