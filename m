@@ -2,46 +2,48 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA5BBC4332F
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:40:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2C84C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:40:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244871AbiBWXk1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 18:40:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34010 "EHLO
+        id S244690AbiBWXka (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 18:40:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244982AbiBWXkZ (ORCPT
+        with ESMTP id S245020AbiBWXkZ (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:25 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AA985C37D;
-        Wed, 23 Feb 2022 15:39:45 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BA425C670;
+        Wed, 23 Feb 2022 15:39:48 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 43D78CE1CF3;
-        Wed, 23 Feb 2022 23:39:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01D94C340F1;
-        Wed, 23 Feb 2022 23:39:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D869C61A24;
+        Wed, 23 Feb 2022 23:39:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B30B8C340F0;
+        Wed, 23 Feb 2022 23:39:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645659582;
-        bh=PHRkMC9N71FB39X5i7CvBJfxyfkx1PayZ19p3SU4/BA=;
+        s=k20201202; t=1645659587;
+        bh=8JnJOJwa0xLZJUZvZcQG78N7nZi1RKV+eoshHR+5zyw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=nAaLDlF3fOnSSNYVaGtgc07gON5zE+QUkhfr7t7dNSuYbNiyCOXrjxrre8DJq7OCT
-         M/38wwLygWDhRetghFXeI7PI14nytHBTrYJaEYWKski9ERqidOxIPIs4RJ7FhQw+ms
-         gz3T2ThCiJgYI4Jddsb0gNMLA6bI+Pthq4MhviGF6BT4K1o/3iboIGOOjMO6tGkAJo
-         5p2qb8FIm+f+m5ZSaVyrH9UB7wOGplPb3tSRVthltnngyp5UxXsiQcdy0gKjK7ov3h
-         tLAFQXypOZmT7yuAue8FCV35aNjzs4+YI5V/i5c+didkK7bFzzgDVt2bVppyZOoYEa
-         vjPzWb3kuPChA==
+        b=OeEPMC1l6XNAC6MbMcu8NSs4LnOb4OkrcQOUnbtBryBPbqQmsL4IXVzq5XL4K7CTq
+         WS/CUeLk+e3NtWZxGO3PDxrQaV8NbMZBm2yqRIafNe32HmWeJzmjfuPHl4P8VRcEAr
+         BO/xHaJyHUM1MD6vtMh3lI5+loMmrtWB3XmqMi4Uf3Nua48R9qmVPUHd7+nA1qOFE5
+         HbOZZPHpI2STBgRTjBiNJWZgbLfpA1gdMTyvAAQrrAB976he5Ws6Rw514VEYC1eB+N
+         yuVn539te+fX1Zv3E6BNpqJGlXdF1xHCcSr7Z3rGmnJYn2g7h6p287RuGz4bnq1tDs
+         K3+7uV2GSoGyQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
-        Maor Gottlieb <maorg@nvidia.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>,
+        Artemy Kovalyov <artemyko@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Moshe Shemesh <moshe@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [for-next v2 08/17] net/mlx5: Lag, record inactive state of bond device
-Date:   Wed, 23 Feb 2022 15:39:21 -0800
-Message-Id: <20220223233930.319301-9-saeed@kernel.org>
+Subject: [for-next v2 15/17] RDMA/mlx5: Use new command interface API
+Date:   Wed, 23 Feb 2022 15:39:28 -0800
+Message-Id: <20220223233930.319301-16-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220223233930.319301-1-saeed@kernel.org>
 References: <20220223233930.319301-1-saeed@kernel.org>
@@ -51,156 +53,158 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <mbloch@nvidia.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
 
-A bond device will drop duplicate packets (received on inactive ports)
-by default. A flag (all_slaves_active) can be set to override such
-behaviour. This flag is a global flag per bond device (ALB mode isn't
-supported by mlx5 driver so it can be ignored)
+DEVX can now use mlx5_cmd_do() which will not intercept the command
+execution status and will provide full information of the return code.
 
-When NETDEV_CHANGEUPPER / NETDEV_CHANGEINFODATA event is received check if
-there is an interface that is inactive.
+DEVX can now propagate the error code safely to upper layers, to
+indicate to the callers if the command was actually executed and the
+error code indicates the command execution status availability in
+the command outbox buffer.
 
-Downstream patch will use this information in order to decide if a drop
-rule is needed.
-
-Signed-off-by: Mark Bloch <mbloch@nvidia.com>
-Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
+Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/lag/lag.c | 49 ++++++++++++++++++-
- .../net/ethernet/mellanox/mlx5/core/lag/lag.h |  1 +
- .../net/ethernet/mellanox/mlx5/core/lag/mp.c  |  2 +-
- 3 files changed, 49 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c | 55 ++++++++++++++++++-------------
+ 1 file changed, 32 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-index 05e8cbece095..125ac4befd74 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-@@ -31,6 +31,7 @@
-  */
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 1f62c0ede048..fc036b4794fd 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -1055,7 +1055,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
+ 	int cmd_out_len = uverbs_attr_get_len(attrs,
+ 					MLX5_IB_ATTR_DEVX_OTHER_CMD_OUT);
+ 	void *cmd_out;
+-	int err;
++	int err, err2;
+ 	int uid;
  
- #include <linux/netdevice.h>
-+#include <net/bonding.h>
- #include <linux/mlx5/driver.h>
- #include <linux/mlx5/eswitch.h>
- #include <linux/mlx5/vport.h>
-@@ -619,6 +620,8 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
- 	struct net_device *upper = info->upper_dev, *ndev_tmp;
- 	struct netdev_lag_upper_info *lag_upper_info = NULL;
- 	bool is_bonded, is_in_lag, mode_supported;
-+	bool has_inactive = 0;
-+	struct slave *slave;
- 	int bond_status = 0;
- 	int num_slaves = 0;
- 	int changed = 0;
-@@ -638,8 +641,12 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
- 	rcu_read_lock();
- 	for_each_netdev_in_bond_rcu(upper, ndev_tmp) {
- 		idx = mlx5_lag_dev_get_netdev_idx(ldev, ndev_tmp);
--		if (idx >= 0)
-+		if (idx >= 0) {
-+			slave = bond_slave_get_rcu(ndev_tmp);
-+			if (slave)
-+				has_inactive |= bond_is_slave_inactive(slave);
- 			bond_status |= (1 << idx);
-+		}
+ 	c = devx_ufile2uctx(attrs);
+@@ -1076,14 +1076,16 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
+ 		return PTR_ERR(cmd_out);
  
- 		num_slaves++;
- 	}
-@@ -654,6 +661,7 @@ static int mlx5_handle_changeupper_event(struct mlx5_lag *ldev,
- 		tracker->hash_type = lag_upper_info->hash_type;
- 	}
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+-	err = mlx5_cmd_exec(dev->mdev, cmd_in,
+-			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_IN),
+-			    cmd_out, cmd_out_len);
+-	if (err)
++	err = mlx5_cmd_do(dev->mdev, cmd_in,
++			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_IN),
++			  cmd_out, cmd_out_len);
++	if (err && err != -EREMOTEIO)
+ 		return err;
  
-+	tracker->has_inactive = has_inactive;
- 	/* Determine bonding status:
- 	 * A device is considered bonded if both its physical ports are slaves
- 	 * of the same lag master, and only them.
-@@ -710,6 +718,38 @@ static int mlx5_handle_changelowerstate_event(struct mlx5_lag *ldev,
- 	return 1;
+-	return uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_OUT, cmd_out,
++	err2 = uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_OUT, cmd_out,
+ 			      cmd_out_len);
++
++	return err2 ?: err;
  }
  
-+static int mlx5_handle_changeinfodata_event(struct mlx5_lag *ldev,
-+					    struct lag_tracker *tracker,
-+					    struct net_device *ndev)
-+{
-+	struct net_device *ndev_tmp;
-+	struct slave *slave;
-+	bool has_inactive = 0;
-+	int idx;
-+
-+	if (!netif_is_lag_master(ndev))
-+		return 0;
-+
-+	rcu_read_lock();
-+	for_each_netdev_in_bond_rcu(ndev, ndev_tmp) {
-+		idx = mlx5_lag_dev_get_netdev_idx(ldev, ndev_tmp);
-+		if (idx < 0)
-+			continue;
-+
-+		slave = bond_slave_get_rcu(ndev_tmp);
-+		if (slave)
-+			has_inactive |= bond_is_slave_inactive(slave);
-+	}
-+	rcu_read_unlock();
-+
-+	if (tracker->has_inactive == has_inactive)
-+		return 0;
-+
-+	tracker->has_inactive = has_inactive;
-+
-+	return 1;
-+}
-+
- static int mlx5_lag_netdev_event(struct notifier_block *this,
- 				 unsigned long event, void *ptr)
- {
-@@ -718,7 +758,9 @@ static int mlx5_lag_netdev_event(struct notifier_block *this,
- 	struct mlx5_lag *ldev;
- 	int changed = 0;
- 
--	if ((event != NETDEV_CHANGEUPPER) && (event != NETDEV_CHANGELOWERSTATE))
-+	if (event != NETDEV_CHANGEUPPER &&
-+	    event != NETDEV_CHANGELOWERSTATE &&
-+	    event != NETDEV_CHANGEINFODATA)
- 		return NOTIFY_DONE;
- 
- 	ldev    = container_of(this, struct mlx5_lag, nb);
-@@ -734,6 +776,9 @@ static int mlx5_lag_netdev_event(struct notifier_block *this,
- 		changed = mlx5_handle_changelowerstate_event(ldev, &tracker,
- 							     ndev, ptr);
- 		break;
-+	case NETDEV_CHANGEINFODATA:
-+		changed = mlx5_handle_changeinfodata_event(ldev, &tracker, ndev);
-+		break;
+ static void devx_obj_build_destroy_cmd(void *in, void *out, void *din,
+@@ -1457,7 +1459,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)];
+ 	struct devx_obj *obj;
+ 	u16 obj_type = 0;
+-	int err;
++	int err, err2 = 0;
+ 	int uid;
+ 	u32 obj_id;
+ 	u16 opcode;
+@@ -1501,11 +1503,14 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 				     cmd_in, cmd_in_len, cmd_out,
+ 				     cmd_out_len);
+ 	} else {
+-		err = mlx5_cmd_exec(dev->mdev, cmd_in,
+-				    cmd_in_len,
+-				    cmd_out, cmd_out_len);
++		err = mlx5_cmd_do(dev->mdev, cmd_in, cmd_in_len,
++				  cmd_out, cmd_out_len);
  	}
  
- 	ldev->tracker = tracker;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
-index e5d231c31b54..305d9adbe325 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
-@@ -35,6 +35,7 @@ struct lag_tracker {
- 	enum   netdev_lag_tx_type           tx_type;
- 	struct netdev_lag_lower_state_info  netdev_state[MLX5_MAX_PORTS];
- 	unsigned int is_bonded:1;
-+	unsigned int has_inactive:1;
- 	enum netdev_lag_hash hash_type;
- };
++	if (err == -EREMOTEIO)
++		err2 = uverbs_copy_to(attrs,
++				      MLX5_IB_ATTR_DEVX_OBJ_CREATE_CMD_OUT,
++				      cmd_out, cmd_out_len);
+ 	if (err)
+ 		goto obj_free;
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/mp.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/mp.c
-index 1ca01a5b6cdd..4213208d9ef7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag/mp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/mp.c
-@@ -50,7 +50,7 @@ bool mlx5_lag_is_multipath(struct mlx5_core_dev *dev)
- static void mlx5_lag_set_port_affinity(struct mlx5_lag *ldev,
- 				       enum mlx5_lag_port_affinity port)
- {
--	struct lag_tracker tracker;
-+	struct lag_tracker tracker = {};
+@@ -1548,7 +1553,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 			      sizeof(out));
+ obj_free:
+ 	kfree(obj);
+-	return err;
++	return err2 ?: err;
+ }
  
- 	if (!__mlx5_lag_is_multipath(ldev))
- 		return;
+ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+@@ -1563,7 +1568,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
+ 	struct mlx5_ib_dev *mdev = to_mdev(c->ibucontext.device);
+ 	void *cmd_out;
+-	int err;
++	int err, err2;
+ 	int uid;
+ 
+ 	if (MLX5_GET(general_obj_in_cmd_hdr, cmd_in, vhca_tunnel_id))
+@@ -1586,14 +1591,16 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	devx_set_umem_valid(cmd_in);
+ 
+-	err = mlx5_cmd_exec(mdev->mdev, cmd_in,
+-			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
+-			    cmd_out, cmd_out_len);
+-	if (err)
++	err = mlx5_cmd_do(mdev->mdev, cmd_in,
++			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
++			  cmd_out, cmd_out_len);
++	if (err && err != -EREMOTEIO)
+ 		return err;
+ 
+-	return uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_OUT,
++	err2 = uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_OUT,
+ 			      cmd_out, cmd_out_len);
++
++	return err2 ?: err;
+ }
+ 
+ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+@@ -1607,7 +1614,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 	struct mlx5_ib_ucontext *c = rdma_udata_to_drv_context(
+ 		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
+ 	void *cmd_out;
+-	int err;
++	int err, err2;
+ 	int uid;
+ 	struct mlx5_ib_dev *mdev = to_mdev(c->ibucontext.device);
+ 
+@@ -1629,14 +1636,16 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 		return PTR_ERR(cmd_out);
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+-	err = mlx5_cmd_exec(mdev->mdev, cmd_in,
+-			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN),
+-			    cmd_out, cmd_out_len);
+-	if (err)
++	err = mlx5_cmd_do(mdev->mdev, cmd_in,
++			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN),
++			  cmd_out, cmd_out_len);
++	if (err && err != -EREMOTEIO)
+ 		return err;
+ 
+-	return uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_OUT,
++	err2 = uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_OUT,
+ 			      cmd_out, cmd_out_len);
++
++	return err2 ?: err;
+ }
+ 
+ struct devx_async_event_queue {
 -- 
 2.35.1
 
