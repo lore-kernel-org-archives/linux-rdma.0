@@ -2,45 +2,46 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09D6AC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DC34C4332F
 	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:40:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245020AbiBWXkc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 18:40:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33982 "EHLO
+        id S244978AbiBWXke (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 18:40:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243395AbiBWXkZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:25 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E09A35BD29;
-        Wed, 23 Feb 2022 15:39:46 -0800 (PST)
+        with ESMTP id S244975AbiBWXkY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:24 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86B4C5AEEC;
+        Wed, 23 Feb 2022 15:39:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 775B6619EB;
-        Wed, 23 Feb 2022 23:39:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71DF7C340EB;
-        Wed, 23 Feb 2022 23:39:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 35A0BB81878;
+        Wed, 23 Feb 2022 23:39:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E26FC340F0;
+        Wed, 23 Feb 2022 23:39:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645659585;
-        bh=dgX7kW2GHWK/0UfO2HQA2udHDYinSiV9Dx2tlyfbrWA=;
+        s=k20201202; t=1645659583;
+        bh=B6rlk1rtjI2P39ex0T5rmDlTvyxeV3kbIgFoVuLN3+M=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Pbcx6MDa4VQRx/TlYBJ1mVEwIZf/CKuC/8bZW/TBglmbRC8U7LyOjGx9NtkxgWeEc
-         Lc7B7kqzSpblbEVht4JUYMkBMhcK3Lzd5M9oQCp55IG3DrHe0qMrEHHLvvlrPimm1n
-         O9PKkrqDK/L5tECTjpFoUXSOcSoFQP6iNePv0nBoBhvJbLNhb2AMa/xKDZcT88D0lT
-         32ZLCZhB/GTVRn+N4fMXTs8AhO03pJ+LijAN8uDxps1Kc7SEiOtSNUzqhTpUKifsB4
-         BUZir2w0p0s+/gF7893aMXzyg3WH6irMDeCUvfICmC4RtTDPv0XmofjzxAwGpMDF+D
-         dc8guaaLJyDGQ==
+        b=deb7LbxmldhjDT7JP10EAH0cjtF9ye3Xk9soVUT6HqB1Ifpep3lA9DleWkAkUbeW2
+         dPfDobfg7GdwWTOEmUAgVEEVsyzusEipSRORscMJ96yDsdVuy7cyp5h/0Evy3uVm/t
+         dgbUN95+MiJd40e87hxVZeaNAMq65IbQnKrUu8wqR0yFQ9QMhtov4XaMxP3bJREjFK
+         7oz3s1sWebkySwFBdH7pZThuFci2Vmyw/MY6u0AVWfNtDqJh+0sQLzab9Css4vk9H7
+         QRF8GaBmwivvH9xHJDa4BhBRYi2FeQ9XSyGTHrXy+vrENlnO7XnRmlBupp9o+4t7TN
+         GmQ8Tf1MzkY1Q==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>,
+        Moshe Shemesh <moshe@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [for-next v2 13/17] net/mlx5: Use mlx5_cmd_do() in core create_{cq,dct}
-Date:   Wed, 23 Feb 2022 15:39:26 -0800
-Message-Id: <20220223233930.319301-14-saeed@kernel.org>
+Subject: [for-next v2 10/17] net/mlx5: cmdif, Return value improvements
+Date:   Wed, 23 Feb 2022 15:39:23 -0800
+Message-Id: <20220223233930.319301-11-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220223233930.319301-1-saeed@kernel.org>
 References: <20220223233930.319301-1-saeed@kernel.org>
@@ -52,141 +53,205 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Saeed Mahameed <saeedm@mellanox.com>
 
-mlx5_core_create_{cq/dct} functions are non-trivial mlx5 commands
-functions. They check command execution status themselves and hide
-valuable FW failure information.
+Make sure that the two basic command interface functions cmd_exec and
+cmd_invoke will return well defined return values:
 
-For mlx5_core/eth kernel user this is what we actually want, but for a
-devx/rdma user the hidden information is essential and should be propagated
-up to the caller, thus we convert these commands to use mlx5_cmd_do
-to return the FW/driver and command outbox status as is, and let the caller
-decide what to do with it.
+return < 0 : Command execution couldn't be submitted by driver
+return > 0 : Command execution couldn't be performed by firmware
+return = 0 : Command was executed by FW, Caller must check FW
+outbox status.
 
-For kernel callers of mlx5_core_create_{cq/dct} or those who only care about
-the binary status (FAIL/SUCCESS) they must check status themselves via
-mlx5_cmd_check() to restore the current behavior.
-
-err = mlx5_create_cq(in, out)
-err = mlx5_cmd_check(err, in, out)
-if (err)
-    // handle err
-
-For DEVX users and those who care about full visibility, They will just
-propagate the error to user space, and app can check if err == -EREMOTEIO,
-then outbox.{status,syndrome} are valid.
-
-API Note:
-mlx5_cmd_check() must be used by kernel users since it allows the driver
-to intercept the command execution status and return a driver simulated
-status in case of driver induced error handling or reset/recovery flows.
+These statuses are valid for the blocking call of cmd_exec() e.g. when
+callback == NULL, in a downstream patch, will refactor the code to
+provide the same return value semantics to the callback.
 
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/devx.c            |  6 +++---
- drivers/infiniband/hw/mlx5/qp.c              |  1 +
- drivers/infiniband/hw/mlx5/qpc.c             |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/cq.c | 17 ++++++++++++++---
- include/linux/mlx5/cq.h                      |  2 ++
- 5 files changed, 21 insertions(+), 7 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 77 +++++++++++--------
+ 1 file changed, 43 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 08b7f6bc56c3..1f62c0ede048 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -1497,9 +1497,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
- 		   !is_apu_cq(dev, cmd_in)) {
- 		obj->flags |= DEVX_OBJ_FLAGS_CQ;
- 		obj->core_cq.comp = devx_cq_comp;
--		err = mlx5_core_create_cq(dev->mdev, &obj->core_cq,
--					  cmd_in, cmd_in_len, cmd_out,
--					  cmd_out_len);
-+		err = mlx5_create_cq(dev->mdev, &obj->core_cq,
-+				     cmd_in, cmd_in_len, cmd_out,
-+				     cmd_out_len);
- 	} else {
- 		err = mlx5_cmd_exec(dev->mdev, cmd_in,
- 				    cmd_in_len,
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 29475cf8c7c3..b7fe47107d76 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -4465,6 +4465,7 @@ static int mlx5_ib_modify_dct(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		err = mlx5_core_create_dct(dev, &qp->dct.mdct, qp->dct.in,
- 					   MLX5_ST_SZ_BYTES(create_dct_in), out,
- 					   sizeof(out));
-+		err = mlx5_cmd_check(dev->mdev, err, qp->dct.in, out);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 17fe05809653..3c6a533ee0c9 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -190,10 +190,10 @@ static int verify_block_sig(struct mlx5_cmd_prot_block *block)
+ 	int xor_len = sizeof(*block) - sizeof(block->data) - 1;
+ 
+ 	if (xor8_buf(block, rsvd0_off, xor_len) != 0xff)
+-		return -EINVAL;
++		return -EHWPOISON;
+ 
+ 	if (xor8_buf(block, 0, sizeof(*block)) != 0xff)
+-		return -EINVAL;
++		return -EHWPOISON;
+ 
+ 	return 0;
+ }
+@@ -259,12 +259,12 @@ static int verify_signature(struct mlx5_cmd_work_ent *ent)
+ 
+ 	sig = xor8_buf(ent->lay, 0, sizeof(*ent->lay));
+ 	if (sig != 0xff)
+-		return -EINVAL;
++		return -EHWPOISON;
+ 
+ 	for (i = 0; i < n && next; i++) {
+ 		err = verify_block_sig(next->buf);
  		if (err)
- 			return err;
- 		resp.dctn = qp->dct.mdct.mqp.qpn;
-diff --git a/drivers/infiniband/hw/mlx5/qpc.c b/drivers/infiniband/hw/mlx5/qpc.c
-index 8844eacf2380..542e4c63a8de 100644
---- a/drivers/infiniband/hw/mlx5/qpc.c
-+++ b/drivers/infiniband/hw/mlx5/qpc.c
-@@ -220,7 +220,7 @@ int mlx5_core_create_dct(struct mlx5_ib_dev *dev, struct mlx5_core_dct *dct,
- 	init_completion(&dct->drained);
- 	MLX5_SET(create_dct_in, in, opcode, MLX5_CMD_OP_CREATE_DCT);
+-			return err;
++			return -EHWPOISON;
  
--	err = mlx5_cmd_exec(dev->mdev, in, inlen, out, outlen);
-+	err = mlx5_cmd_do(dev->mdev, in, inlen, out, outlen);
- 	if (err)
- 		return err;
+ 		next = next->next;
+ 	}
+@@ -479,7 +479,7 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
+ 	case MLX5_CMD_OP_ALLOC_SF:
+ 		*status = MLX5_DRIVER_STATUS_ABORTED;
+ 		*synd = MLX5_DRIVER_SYND;
+-		return -EIO;
++		return -ENOLINK;
+ 	default:
+ 		mlx5_core_err(dev, "Unknown FW command (%d)\n", op);
+ 		return -EINVAL;
+@@ -1101,16 +1101,27 @@ static int wait_func(struct mlx5_core_dev *dev, struct mlx5_cmd_work_ent *ent)
+ /*  Notes:
+  *    1. Callback functions may not sleep
+  *    2. page queue commands do not support asynchrous completion
++ *
++ * return value in case (!callback):
++ *	ret < 0 : Command execution couldn't be submitted by driver
++ *	ret > 0 : Command execution couldn't be performed by firmware
++ *	ret == 0: Command was executed by FW, Caller must check FW outbox status.
++ *
++ * return value in case (callback):
++ *	ret < 0 : Command execution couldn't be submitted by driver
++ *	ret == 0: Command will be submitted to FW for execution
++ *		  and the callback will be called for further status updates
+  */
+ static int mlx5_cmd_invoke(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *in,
+ 			   struct mlx5_cmd_msg *out, void *uout, int uout_size,
+ 			   mlx5_cmd_cbk_t callback,
+-			   void *context, int page_queue, u8 *status,
++			   void *context, int page_queue,
+ 			   u8 token, bool force_polling)
+ {
+ 	struct mlx5_cmd *cmd = &dev->cmd;
+ 	struct mlx5_cmd_work_ent *ent;
+ 	struct mlx5_cmd_stats *stats;
++	u8 status = 0;
+ 	int err = 0;
+ 	s64 ds;
+ 	u16 op;
+@@ -1141,12 +1152,12 @@ static int mlx5_cmd_invoke(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *in,
+ 		cmd_work_handler(&ent->work);
+ 	} else if (!queue_work(cmd->wq, &ent->work)) {
+ 		mlx5_core_warn(dev, "failed to queue work\n");
+-		err = -ENOMEM;
++		err = -EALREADY;
+ 		goto out_free;
+ 	}
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-index 5371ad0a12eb..15a74966be7d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-@@ -86,8 +86,9 @@ static void mlx5_add_cq_to_tasklet(struct mlx5_core_cq *cq,
- 	spin_unlock_irqrestore(&tasklet_ctx->lock, flags);
+ 	if (callback)
+-		goto out; /* mlx5_cmd_comp_handler() will put(ent) */
++		return 0; /* mlx5_cmd_comp_handler() will put(ent) */
+ 
+ 	err = wait_func(dev, ent);
+ 	if (err == -ETIMEDOUT || err == -ECANCELED)
+@@ -1164,12 +1175,11 @@ static int mlx5_cmd_invoke(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *in,
+ 	mlx5_core_dbg_mask(dev, 1 << MLX5_CMD_TIME,
+ 			   "fw exec time for %s is %lld nsec\n",
+ 			   mlx5_command_str(op), ds);
+-	*status = ent->status;
+ 
+ out_free:
++	status = ent->status;
+ 	cmd_ent_put(ent);
+-out:
+-	return err;
++	return err ? : status;
  }
  
--int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			u32 *in, int inlen, u32 *out, int outlen)
-+/* Callers must verify outbox status in case of err */
-+int mlx5_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
-+		   u32 *in, int inlen, u32 *out, int outlen)
+ static ssize_t dbg_write(struct file *filp, const char __user *buf,
+@@ -1719,7 +1729,7 @@ void mlx5_cmd_flush(struct mlx5_core_dev *dev)
+ 		up(&cmd->sem);
+ }
+ 
+-static int status_to_err(u8 status)
++static int deliv_status_to_err(u8 status)
  {
- 	int eqn = MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context),
- 			   c_eqn_or_apu_element);
-@@ -101,7 +102,7 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+ 	switch (status) {
+ 	case MLX5_CMD_DELIVERY_STAT_OK:
+@@ -1787,22 +1797,25 @@ static int is_manage_pages(void *in)
+ 	return MLX5_GET(mbox_in, in, opcode) == MLX5_CMD_OP_MANAGE_PAGES;
+ }
  
- 	memset(out, 0, outlen);
- 	MLX5_SET(create_cq_in, in, opcode, MLX5_CMD_OP_CREATE_CQ);
--	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
-+	err = mlx5_cmd_do(dev, in, inlen, out, outlen);
- 	if (err)
- 		return err;
++/*  Notes:
++ *    1. Callback functions may not sleep
++ *    2. Page queue commands do not support asynchrous completion
++ */
+ static int cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
+ 		    int out_size, mlx5_cmd_cbk_t callback, void *context,
+ 		    bool force_polling)
+ {
+-	struct mlx5_cmd_msg *inb;
+-	struct mlx5_cmd_msg *outb;
++	u16 opcode = MLX5_GET(mbox_in, in, opcode);
++	struct mlx5_cmd_msg *inb, *outb;
+ 	int pages_queue;
+ 	gfp_t gfp;
+-	int err;
+-	u8 status = 0;
+-	u32 drv_synd;
+-	u16 opcode;
+ 	u8 token;
++	int err;
  
-@@ -148,6 +149,16 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 	mlx5_cmd_exec_in(dev, destroy_cq, din);
+-	opcode = MLX5_GET(mbox_in, in, opcode);
+ 	if (mlx5_cmd_is_down(dev) || !opcode_allowed(&dev->cmd, opcode)) {
++		u32 drv_synd;
++		u8 status;
++
+ 		err = mlx5_internal_err_ret_value(dev, opcode, &drv_synd, &status);
+ 		MLX5_SET(mbox_out, out, status, status);
+ 		MLX5_SET(mbox_out, out, syndrome, drv_synd);
+@@ -1833,26 +1846,22 @@ static int cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
+ 	}
+ 
+ 	err = mlx5_cmd_invoke(dev, inb, outb, out, out_size, callback, context,
+-			      pages_queue, &status, token, force_polling);
+-	if (err)
+-		goto out_out;
++			      pages_queue, token, force_polling);
++	if (callback)
++		return err;
+ 
+-	mlx5_core_dbg(dev, "err %d, status %d\n", err, status);
+-	if (status) {
+-		err = status_to_err(status);
+-		goto out_out;
+-	}
++	if (err > 0) /* Failed in FW, command didn't execute */
++		err = deliv_status_to_err(err);
+ 
+-	if (!callback)
+-		err = mlx5_copy_from_msg(out, outb, out_size);
++	if (err)
++		goto out_out;
+ 
++	/* command completed by FW */
++	err = mlx5_copy_from_msg(out, outb, out_size);
+ out_out:
+-	if (!callback)
+-		mlx5_free_cmd_msg(dev, outb);
+-
++	mlx5_free_cmd_msg(dev, outb);
+ out_in:
+-	if (!callback)
+-		free_msg(dev, inb);
++	free_msg(dev, inb);
  	return err;
  }
-+EXPORT_SYMBOL(mlx5_create_cq);
-+
-+/* oubox is checked and err val is normalized */
-+int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
-+			u32 *in, int inlen, u32 *out, int outlen)
-+{
-+	int err = mlx5_create_cq(dev, cq, in, inlen, out, outlen);
-+
-+	return mlx5_cmd_check(dev, err, in, out);
-+}
- EXPORT_SYMBOL(mlx5_core_create_cq);
  
- int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq)
-diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
-index 7bfb67363434..cb15308b5cb0 100644
---- a/include/linux/mlx5/cq.h
-+++ b/include/linux/mlx5/cq.h
-@@ -183,6 +183,8 @@ static inline void mlx5_cq_put(struct mlx5_core_cq *cq)
- 		complete(&cq->free);
- }
- 
-+int mlx5_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
-+		   u32 *in, int inlen, u32 *out, int outlen);
- int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 			u32 *in, int inlen, u32 *out, int outlen);
- int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
 -- 
 2.35.1
 
