@@ -2,45 +2,48 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAF19C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EF79C433FE
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238096AbiBWFLJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 00:11:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43384 "EHLO
+        id S238149AbiBWFLM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 00:11:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237927AbiBWFKz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 00:10:55 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C26F652DE;
-        Tue, 22 Feb 2022 21:10:23 -0800 (PST)
+        with ESMTP id S238114AbiBWFKu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 00:10:50 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FB2F69294;
+        Tue, 22 Feb 2022 21:10:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 38816B80E5B;
-        Wed, 23 Feb 2022 05:10:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7197BC340EB;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3B0C060C2A;
         Wed, 23 Feb 2022 05:10:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 156D0C340F5;
+        Wed, 23 Feb 2022 05:10:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645593020;
-        bh=ujBXg24anTsk/Axomrs9N7clARdmQuZhd4PVBUI6iIs=;
+        s=k20201202; t=1645593019;
+        bh=8JnJOJwa0xLZJUZvZcQG78N7nZi1RKV+eoshHR+5zyw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qLtMNd+5JoaCCmyWr18OeUsQJEiJHKXpyKh10yBilEaTV6I962eAbv8wBiOH8Wop/
-         Oh6ESv+NtisHTJU3WVh3eb/d3fGDiY8iCYh3+8Vryov2ojHQew61PEH547SY4Ee5eu
-         3uIed+Fx8cWMv/OCLKmIV0AYCOlLQITva6N9+XLobo/tDyeSgI0xmDcFuclXzEaW+7
-         7Hf6iEZlVhnWUGSi+te2ugu/VZiW7S5Np52c7nwhQvymmZHoVDdS1i6UrpxDBe3/p0
-         rtWx4aLStgVnZxsWaHosdyd5qrKdyOYQHIgAoALHhwjj6lmr/yKDH6lEk2PVezilYo
-         uvI1DBVIjMwDg==
+        b=VImra9dvtIx8AADsgwVuT1lUNqHfdc/k/D5JQaiRqQw/Oh1vT6pIUddd3A9scAWRj
+         ZM1foGgVKNqmuAdyx629dqZsPI1M6Vxd0RoMaPHXlmTexuMkYEt4x4KOJ46MfQDxLC
+         hFeENeBVLvY4mIBta1G06v4k4oyole2wIa24z5w6fEeFFBsdkdGvi3tit21WfZ836N
+         fOQ/T7/FZuPn+JvoBQrE/z34ahw8RjvM5XUQ5xuJpfJHLyoEBAE07gdkujJT2JYbDK
+         e0hU+QCEoOqU6BFZgjlO+SzfOm6mJrte/Bjn5RCizsmYa2rh3LW0YmSJrHgieWZcN5
+         MGIF6FALlIjLA==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Moshe Shemesh <moshe@nvidia.com>,
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>,
+        Artemy Kovalyov <artemyko@mellanox.com>,
+        Yishai Hadas <yishaih@mellanox.com>,
+        Moshe Shemesh <moshe@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [mlx5-next 17/17] net/mlx5: Add clarification on sync reset failure
-Date:   Tue, 22 Feb 2022 21:09:32 -0800
-Message-Id: <20220223050932.244668-18-saeed@kernel.org>
+Subject: [mlx5-next 15/17] RDMA/mlx5: Use new command interface API
+Date:   Tue, 22 Feb 2022 21:09:30 -0800
+Message-Id: <20220223050932.244668-16-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220223050932.244668-1-saeed@kernel.org>
 References: <20220223050932.244668-1-saeed@kernel.org>
@@ -50,206 +53,158 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Moshe Shemesh <moshe@nvidia.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
 
-In case devlink reload action fw_activate failed in sync reset stage,
-use the new MFRL field reset_state to find why it failed and share this
-clarification with the user.
+DEVX can now use mlx5_cmd_do() which will not intercept the command
+execution status and will provide full information of the return code.
 
-Signed-off-by: Moshe Shemesh <moshe@nvidia.com>
+DEVX can now propagate the error code safely to upper layers, to
+indicate to the callers if the command was actually executed and the
+error code indicates the command execution status availability in
+the command outbox buffer.
+
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
+Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/devlink.c | 10 +---
- .../ethernet/mellanox/mlx5/core/fw_reset.c    | 57 ++++++++++++++++---
- .../ethernet/mellanox/mlx5/core/fw_reset.h    |  3 +-
- .../net/ethernet/mellanox/mlx5/core/port.c    | 20 +++++--
- include/linux/mlx5/driver.h                   |  3 +
- 5 files changed, 74 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c | 55 ++++++++++++++++++-------------
+ 1 file changed, 32 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index d1093bb2d436..057dde6f4417 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -100,15 +100,11 @@ static int mlx5_devlink_reload_fw_activate(struct devlink *devlink, struct netli
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 1f62c0ede048..fc036b4794fd 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -1055,7 +1055,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
+ 	int cmd_out_len = uverbs_attr_get_len(attrs,
+ 					MLX5_IB_ATTR_DEVX_OTHER_CMD_OUT);
+ 	void *cmd_out;
+-	int err;
++	int err, err2;
+ 	int uid;
+ 
+ 	c = devx_ufile2uctx(attrs);
+@@ -1076,14 +1076,16 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
+ 		return PTR_ERR(cmd_out);
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+-	err = mlx5_cmd_exec(dev->mdev, cmd_in,
+-			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_IN),
+-			    cmd_out, cmd_out_len);
+-	if (err)
++	err = mlx5_cmd_do(dev->mdev, cmd_in,
++			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_IN),
++			  cmd_out, cmd_out_len);
++	if (err && err != -EREMOTEIO)
+ 		return err;
+ 
+-	return uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_OUT, cmd_out,
++	err2 = uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_OUT, cmd_out,
+ 			      cmd_out_len);
++
++	return err2 ?: err;
+ }
+ 
+ static void devx_obj_build_destroy_cmd(void *in, void *out, void *din,
+@@ -1457,7 +1459,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)];
+ 	struct devx_obj *obj;
+ 	u16 obj_type = 0;
+-	int err;
++	int err, err2 = 0;
+ 	int uid;
+ 	u32 obj_id;
+ 	u16 opcode;
+@@ -1501,11 +1503,14 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 				     cmd_in, cmd_in_len, cmd_out,
+ 				     cmd_out_len);
+ 	} else {
+-		err = mlx5_cmd_exec(dev->mdev, cmd_in,
+-				    cmd_in_len,
+-				    cmd_out, cmd_out_len);
++		err = mlx5_cmd_do(dev->mdev, cmd_in, cmd_in_len,
++				  cmd_out, cmd_out_len);
  	}
  
- 	net_port_alive = !!(reset_type & MLX5_MFRL_REG_RESET_TYPE_NET_PORT_ALIVE);
--	err = mlx5_fw_reset_set_reset_sync(dev, net_port_alive);
-+	err = mlx5_fw_reset_set_reset_sync(dev, net_port_alive, extack);
++	if (err == -EREMOTEIO)
++		err2 = uverbs_copy_to(attrs,
++				      MLX5_IB_ATTR_DEVX_OBJ_CREATE_CMD_OUT,
++				      cmd_out, cmd_out_len);
  	if (err)
--		goto out;
-+		return err;
+ 		goto obj_free;
  
--	err = mlx5_fw_reset_wait_reset_done(dev);
--out:
--	if (err)
--		NL_SET_ERR_MSG_MOD(extack, "FW activate command failed");
+@@ -1548,7 +1553,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 			      sizeof(out));
+ obj_free:
+ 	kfree(obj);
 -	return err;
-+	return mlx5_fw_reset_wait_reset_done(dev);
++	return err2 ?: err;
  }
  
- static int mlx5_devlink_trigger_fw_live_patch(struct devlink *devlink,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c b/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
-index 0b0234f9d694..d438d7a61500 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
-@@ -57,7 +57,8 @@ static int mlx5_reg_mfrl_set(struct mlx5_core_dev *dev, u8 reset_level,
- 	return mlx5_core_access_reg(dev, in, sizeof(in), out, sizeof(out), MLX5_REG_MFRL, 0, 1);
- }
+ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+@@ -1563,7 +1568,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
+ 	struct mlx5_ib_dev *mdev = to_mdev(c->ibucontext.device);
+ 	void *cmd_out;
+-	int err;
++	int err, err2;
+ 	int uid;
  
--static int mlx5_reg_mfrl_query(struct mlx5_core_dev *dev, u8 *reset_level, u8 *reset_type)
-+static int mlx5_reg_mfrl_query(struct mlx5_core_dev *dev, u8 *reset_level,
-+			       u8 *reset_type, u8 *reset_state)
- {
- 	u32 out[MLX5_ST_SZ_DW(mfrl_reg)] = {};
- 	u32 in[MLX5_ST_SZ_DW(mfrl_reg)] = {};
-@@ -71,25 +72,67 @@ static int mlx5_reg_mfrl_query(struct mlx5_core_dev *dev, u8 *reset_level, u8 *r
- 		*reset_level = MLX5_GET(mfrl_reg, out, reset_level);
- 	if (reset_type)
- 		*reset_type = MLX5_GET(mfrl_reg, out, reset_type);
-+	if (reset_state)
-+		*reset_state = MLX5_GET(mfrl_reg, out, reset_state);
+ 	if (MLX5_GET(general_obj_in_cmd_hdr, cmd_in, vhca_tunnel_id))
+@@ -1586,14 +1591,16 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	devx_set_umem_valid(cmd_in);
  
- 	return 0;
- }
- 
- int mlx5_fw_reset_query(struct mlx5_core_dev *dev, u8 *reset_level, u8 *reset_type)
- {
--	return mlx5_reg_mfrl_query(dev, reset_level, reset_type);
-+	return mlx5_reg_mfrl_query(dev, reset_level, reset_type, NULL);
- }
- 
--int mlx5_fw_reset_set_reset_sync(struct mlx5_core_dev *dev, u8 reset_type_sel)
-+static int mlx5_fw_reset_get_reset_state_err(struct mlx5_core_dev *dev,
-+					     struct netlink_ext_ack *extack)
-+{
-+	u8 reset_state;
-+
-+	if (mlx5_reg_mfrl_query(dev, NULL, NULL, &reset_state))
-+		goto out;
-+
-+	switch (reset_state) {
-+	case MLX5_MFRL_REG_RESET_STATE_IN_NEGOTIATION:
-+	case MLX5_MFRL_REG_RESET_STATE_RESET_IN_PROGRESS:
-+		NL_SET_ERR_MSG_MOD(extack, "Sync reset was already triggered");
-+		return -EBUSY;
-+	case MLX5_MFRL_REG_RESET_STATE_TIMEOUT:
-+		NL_SET_ERR_MSG_MOD(extack, "Sync reset got timeout");
-+		return -ETIMEDOUT;
-+	case MLX5_MFRL_REG_RESET_STATE_NACK:
-+		NL_SET_ERR_MSG_MOD(extack, "One of the hosts disabled reset");
-+		return -EPERM;
-+	}
-+
-+out:
-+	NL_SET_ERR_MSG_MOD(extack, "Sync reset failed");
-+	return -EIO;
-+}
-+
-+int mlx5_fw_reset_set_reset_sync(struct mlx5_core_dev *dev, u8 reset_type_sel,
-+				 struct netlink_ext_ack *extack)
- {
- 	struct mlx5_fw_reset *fw_reset = dev->priv.fw_reset;
-+	u32 out[MLX5_ST_SZ_DW(mfrl_reg)] = {};
-+	u32 in[MLX5_ST_SZ_DW(mfrl_reg)] = {};
- 	int err;
- 
- 	set_bit(MLX5_FW_RESET_FLAGS_PENDING_COMP, &fw_reset->reset_flags);
--	err = mlx5_reg_mfrl_set(dev, MLX5_MFRL_REG_RESET_LEVEL3, reset_type_sel, 0, true);
+-	err = mlx5_cmd_exec(mdev->mdev, cmd_in,
+-			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
+-			    cmd_out, cmd_out_len);
 -	if (err)
--		clear_bit(MLX5_FW_RESET_FLAGS_PENDING_COMP, &fw_reset->reset_flags);
--	return err;
++	err = mlx5_cmd_do(mdev->mdev, cmd_in,
++			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
++			  cmd_out, cmd_out_len);
++	if (err && err != -EREMOTEIO)
+ 		return err;
+ 
+-	return uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_OUT,
++	err2 = uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_OUT,
+ 			      cmd_out, cmd_out_len);
 +
-+	MLX5_SET(mfrl_reg, in, reset_level, MLX5_MFRL_REG_RESET_LEVEL3);
-+	MLX5_SET(mfrl_reg, in, rst_type_sel, reset_type_sel);
-+	MLX5_SET(mfrl_reg, in, pci_sync_for_fw_update_start, 1);
-+	err = mlx5_access_reg(dev, in, sizeof(in), out, sizeof(out),
-+			      MLX5_REG_MFRL, 0, 1, false);
-+	if (!err)
-+		return 0;
-+
-+	clear_bit(MLX5_FW_RESET_FLAGS_PENDING_COMP, &fw_reset->reset_flags);
-+	if (err == -EREMOTEIO && MLX5_CAP_MCAM_FEATURE(dev, reset_state))
-+		return mlx5_fw_reset_get_reset_state_err(dev, extack);
-+
-+	NL_SET_ERR_MSG_MOD(extack, "Sync reset command failed");
-+	return mlx5_cmd_check(dev, err, in, out);
++	return err2 ?: err;
  }
  
- int mlx5_fw_reset_set_live_patch(struct mlx5_core_dev *dev)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.h b/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.h
-index 7761ee5fc7d0..694fc7cb2684 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.h
-@@ -9,7 +9,8 @@
- void mlx5_fw_reset_enable_remote_dev_reset_set(struct mlx5_core_dev *dev, bool enable);
- bool mlx5_fw_reset_enable_remote_dev_reset_get(struct mlx5_core_dev *dev);
- int mlx5_fw_reset_query(struct mlx5_core_dev *dev, u8 *reset_level, u8 *reset_type);
--int mlx5_fw_reset_set_reset_sync(struct mlx5_core_dev *dev, u8 reset_type_sel);
-+int mlx5_fw_reset_set_reset_sync(struct mlx5_core_dev *dev, u8 reset_type_sel,
-+				 struct netlink_ext_ack *extack);
- int mlx5_fw_reset_set_live_patch(struct mlx5_core_dev *dev);
+ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+@@ -1607,7 +1614,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 	struct mlx5_ib_ucontext *c = rdma_udata_to_drv_context(
+ 		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
+ 	void *cmd_out;
+-	int err;
++	int err, err2;
+ 	int uid;
+ 	struct mlx5_ib_dev *mdev = to_mdev(c->ibucontext.device);
  
- int mlx5_fw_reset_wait_reset_done(struct mlx5_core_dev *dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/port.c b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-index 1ef2b6a848c1..d15b417d3e07 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/port.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-@@ -33,9 +33,10 @@
- #include <linux/mlx5/port.h>
- #include "mlx5_core.h"
+@@ -1629,14 +1636,16 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 		return PTR_ERR(cmd_out);
  
--int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
--			 int size_in, void *data_out, int size_out,
--			 u16 reg_id, int arg, int write)
-+/* calling with verbose false will not print error to log */
-+int mlx5_access_reg(struct mlx5_core_dev *dev, void *data_in, int size_in,
-+		    void *data_out, int size_out, u16 reg_id, int arg,
-+		    int write, bool verbose)
- {
- 	int outlen = MLX5_ST_SZ_BYTES(access_register_out) + size_out;
- 	int inlen = MLX5_ST_SZ_BYTES(access_register_in) + size_in;
-@@ -57,7 +58,9 @@ int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
- 	MLX5_SET(access_register_in, in, argument, arg);
- 	MLX5_SET(access_register_in, in, register_id, reg_id);
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+-	err = mlx5_cmd_exec(mdev->mdev, cmd_in,
+-			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN),
+-			    cmd_out, cmd_out_len);
+-	if (err)
++	err = mlx5_cmd_do(mdev->mdev, cmd_in,
++			  uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN),
++			  cmd_out, cmd_out_len);
++	if (err && err != -EREMOTEIO)
+ 		return err;
  
--	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
-+	err = mlx5_cmd_do(dev, in, inlen, out, outlen);
-+	if (verbose)
-+		err = mlx5_cmd_check(dev, err, in, out);
- 	if (err)
- 		goto out;
- 
-@@ -69,6 +72,15 @@ int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
- 	kvfree(in);
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(mlx5_access_reg);
+-	return uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_OUT,
++	err2 = uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_OUT,
+ 			      cmd_out, cmd_out_len);
 +
-+int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
-+			 int size_in, void *data_out, int size_out,
-+			 u16 reg_id, int arg, int write)
-+{
-+	return mlx5_access_reg(dev, data_in, size_in, data_out, size_out,
-+			       reg_id, arg, write, true);
-+}
- EXPORT_SYMBOL_GPL(mlx5_core_access_reg);
++	return err2 ?: err;
+ }
  
- int mlx5_query_pcam_reg(struct mlx5_core_dev *dev, u32 *pcam, u8 feature_group,
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 432151d7d0bf..d3b1a6a1f8d2 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1031,6 +1031,9 @@ int mlx5_core_detach_mcg(struct mlx5_core_dev *dev, union ib_gid *mgid, u32 qpn)
- 
- void mlx5_qp_debugfs_init(struct mlx5_core_dev *dev);
- void mlx5_qp_debugfs_cleanup(struct mlx5_core_dev *dev);
-+int mlx5_access_reg(struct mlx5_core_dev *dev, void *data_in, int size_in,
-+		    void *data_out, int size_out, u16 reg_id, int arg,
-+		    int write, bool verbose);
- int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
- 			 int size_in, void *data_out, int size_out,
- 			 u16 reg_num, int arg, int write);
+ struct devx_async_event_queue {
 -- 
 2.35.1
 
