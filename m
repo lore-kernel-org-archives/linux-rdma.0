@@ -2,45 +2,44 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EFE4C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0F32C433F5
 	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:39:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238566AbiBWXkN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 18:40:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33866 "EHLO
+        id S244985AbiBWXkO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 18:40:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242983AbiBWXkM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EAFC5B8A9;
-        Wed, 23 Feb 2022 15:39:39 -0800 (PST)
+        with ESMTP id S244974AbiBWXkN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:13 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C1C95B89D;
+        Wed, 23 Feb 2022 15:39:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 35F6861A25;
+        by sin.source.kernel.org (Postfix) with ESMTPS id 5BFA3CE1CE5;
         Wed, 23 Feb 2022 23:39:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89EF4C340F4;
-        Wed, 23 Feb 2022 23:39:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39B17C340EB;
+        Wed, 23 Feb 2022 23:39:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645659579;
-        bh=q/QH9SsazgS+rTp/eGrM/twH4pN5D14hKwibEtqalEY=;
+        s=k20201202; t=1645659577;
+        bh=qGz7EbQ53bmHTgG9hRn74lRJirmYcVm7oKU8gQeCHYg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ihBzl4k2/S2meUaAov0vSJDDxiQ1TjWab8v6JU3gL4d01p2uAtNnDIN4C7ffvVPuH
-         rfAM8uWuFcP70zjX//Uwp+ces71Km2QX1moc4VNA68G2Lay0PyiBxUREGWTHIDJEdd
-         uHQ70nmMYvU+O7yaCLS8TCTa6ko7lRtHRRpAtnoN2ejdpkXNnqWySMdTa0wKveHNTZ
-         91Iq8ba1ZdX57sFQhABL87yo0Y2wt3Hnfvwi4L1mzE0R4S8zP4S2/xMQ/6gxPx0/GK
-         rXuylaJuRoaRNJETxvpJH1F3EBfTcq8ZPwEs3BJPvTWkgu/M8sD56USS/Z9NsahI4+
-         afor0+iTIuQIg==
+        b=lo2sPg5wVS3ZFRrE98VjbGb1qWnEabhMaId1yrWW0672yPj1rPLLFB0dTC6bKo3hM
+         D43vSpt0rw6nl9cZwX1hvQQkxCnvIJToF4IIzECUrC9234FIONKyzw9GJEYo2FgtpC
+         6gZuX0WJQz5WITM9gSBjb6To0x2YFvmOtRivGESCDydMbZgQULGKiCPhs/cZfjprsj
+         uCYgYFhiQwMJW6QpvMcPLYP0ykDffqCIHH7sLQWysOMiCF3bfMFUJdsDMYRPFZKyAZ
+         ssFH4CPfus0aVX4zPti5I25/E2u+9Vbl9bfUi+MPWdQ2oBgqAURGBQ9ikrSjhTeSAD
+         CQocn6iyEwpYQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Sunil Rani <sunrani@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [for-next v2 03/17] net/mlx5: E-Switch, reserve and use same uplink metadata across ports
-Date:   Wed, 23 Feb 2022 15:39:16 -0800
-Message-Id: <20220223233930.319301-4-saeed@kernel.org>
+        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>
+Subject: [for-next v2 01/17] mlx5: remove unused static inlines
+Date:   Wed, 23 Feb 2022 15:39:14 -0800
+Message-Id: <20220223233930.319301-2-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220223233930.319301-1-saeed@kernel.org>
 References: <20220223233930.319301-1-saeed@kernel.org>
@@ -50,90 +49,82 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Sunil Rani <sunrani@nvidia.com>
+From: Jakub Kicinski <kuba@kernel.org>
 
-When in switchdev mode wire traffic will hit the FDB in one of two
-scenarios.
+mlx5 has some unused static inline helpers in include/
+while at it also clean static inlines in the driver itself.
 
-- Shared FDB, in that case traffic from both physical ports should be
-  tagged by the same metadata value so a single FDB rule could catch
-  traffic from both ports.
-
-- Two E-Switches, traffic from each physical port will hit the native
-  E-Switch which means traffic from one physical port can't reach the
-  E-Switch of the other one.
-
-Looking at those two scenarios it means we can always use the same metadata
-value to tag wire traffic regardless of the mode.
-
-Reserve a single metadata value to be used to tag wire traffic.
-
-Signed-off-by: Sunil Rani <sunrani@nvidia.com>
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../mellanox/mlx5/core/eswitch_offloads.c     | 28 +++++++++++++++++--
- 1 file changed, 25 insertions(+), 3 deletions(-)
+ .../ethernet/mellanox/mlx5/core/en_accel/en_accel.h    |  9 ---------
+ drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h  |  7 -------
+ include/linux/mlx5/driver.h                            | 10 ----------
+ 3 files changed, 26 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 9a7b25692505..efaf3be73a7b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -2845,6 +2845,19 @@ bool mlx5_esw_vport_match_metadata_supported(const struct mlx5_eswitch *esw)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
+index d964665eaa63..62cde3e87c2e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h
+@@ -139,15 +139,6 @@ static inline bool mlx5e_accel_tx_begin(struct net_device *dev,
  	return true;
  }
  
-+#define MLX5_ESW_METADATA_RSVD_UPLINK 1
-+
-+/* Share the same metadata for uplink's. This is fine because:
-+ * (a) In shared FDB mode (LAG) both uplink's are treated the
-+ *     same and tagged with the same metadata.
-+ * (b) In non shared FDB mode, packets from physical port0
-+ *     cannot hit eswitch of PF1 and vice versa.
-+ */
-+static u32 mlx5_esw_match_metadata_reserved(struct mlx5_eswitch *esw)
-+{
-+	return MLX5_ESW_METADATA_RSVD_UPLINK;
-+}
-+
- u32 mlx5_esw_match_metadata_alloc(struct mlx5_eswitch *esw)
+-static inline bool mlx5e_accel_tx_is_ipsec_flow(struct mlx5e_accel_tx_state *state)
+-{
+-#ifdef CONFIG_MLX5_EN_IPSEC
+-	return mlx5e_ipsec_is_tx_flow(&state->ipsec);
+-#else
+-	return false;
+-#endif
+-}
+-
+ static inline unsigned int mlx5e_accel_tx_ids_len(struct mlx5e_txqsq *sq,
+ 						  struct mlx5e_accel_tx_state *state)
  {
- 	u32 vport_end_ida = (1 << ESW_VPORT_BITS) - 1;
-@@ -2859,8 +2872,10 @@ u32 mlx5_esw_match_metadata_alloc(struct mlx5_eswitch *esw)
- 		return 0;
- 
- 	/* Metadata is 4 bits of PFNUM and 12 bits of unique id */
--	/* Use only non-zero vport_id (1-4095) for all PF's */
--	id = ida_alloc_range(&esw->offloads.vport_metadata_ida, 1, vport_end_ida, GFP_KERNEL);
-+	/* Use only non-zero vport_id (2-4095) for all PF's */
-+	id = ida_alloc_range(&esw->offloads.vport_metadata_ida,
-+			     MLX5_ESW_METADATA_RSVD_UPLINK + 1,
-+			     vport_end_ida, GFP_KERNEL);
- 	if (id < 0)
- 		return 0;
- 	id = (pf_num << ESW_VPORT_BITS) | id;
-@@ -2878,7 +2893,11 @@ void mlx5_esw_match_metadata_free(struct mlx5_eswitch *esw, u32 metadata)
- static int esw_offloads_vport_metadata_setup(struct mlx5_eswitch *esw,
- 					     struct mlx5_vport *vport)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h
+index 4bad6a5fde56..f240ffe5116c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h
+@@ -92,13 +92,6 @@ mlx5_hv_vhca_agent_create(struct mlx5_hv_vhca *hv_vhca,
+ static inline void mlx5_hv_vhca_agent_destroy(struct mlx5_hv_vhca_agent *agent)
  {
--	vport->default_metadata = mlx5_esw_match_metadata_alloc(esw);
-+	if (vport->vport == MLX5_VPORT_UPLINK)
-+		vport->default_metadata = mlx5_esw_match_metadata_reserved(esw);
-+	else
-+		vport->default_metadata = mlx5_esw_match_metadata_alloc(esw);
-+
- 	vport->metadata = vport->default_metadata;
- 	return vport->metadata ? 0 : -ENOSPC;
  }
-@@ -2889,6 +2908,9 @@ static void esw_offloads_vport_metadata_cleanup(struct mlx5_eswitch *esw,
- 	if (!vport->default_metadata)
- 		return;
+-
+-static inline int
+-mlx5_hv_vhca_write_agent(struct mlx5_hv_vhca_agent *agent,
+-			 void *buf, int len)
+-{
+-	return 0;
+-}
+ #endif
  
-+	if (vport->vport == MLX5_VPORT_UPLINK)
-+		return;
-+
- 	WARN_ON(vport->metadata != vport->default_metadata);
- 	mlx5_esw_match_metadata_free(esw, vport->default_metadata);
- }
+ #endif /* __LIB_HV_VHCA_H__ */
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 78655d8d13a7..1b398c9e17b9 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -863,20 +863,10 @@ struct mlx5_hca_vport_context {
+ 	bool			grh_required;
+ };
+ 
+-static inline void *mlx5_buf_offset(struct mlx5_frag_buf *buf, int offset)
+-{
+-		return buf->frags->buf + offset;
+-}
+-
+ #define STRUCT_FIELD(header, field) \
+ 	.struct_offset_bytes = offsetof(struct ib_unpacked_ ## header, field),      \
+ 	.struct_size_bytes   = sizeof((struct ib_unpacked_ ## header *)0)->field
+ 
+-static inline struct mlx5_core_dev *pci2mlx5_core_dev(struct pci_dev *pdev)
+-{
+-	return pci_get_drvdata(pdev);
+-}
+-
+ extern struct dentry *mlx5_debugfs_root;
+ 
+ static inline u16 fw_rev_maj(struct mlx5_core_dev *dev)
 -- 
 2.35.1
 
