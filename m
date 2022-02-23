@@ -2,45 +2,46 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABB82C433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85872C4332F
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238071AbiBWFKt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 00:10:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42952 "EHLO
+        id S238118AbiBWFKu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 00:10:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237720AbiBWFKl (ORCPT
+        with ESMTP id S237755AbiBWFKl (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 00:10:41 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67A3E60CF5;
-        Tue, 22 Feb 2022 21:10:14 -0800 (PST)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B8A3652DE;
+        Tue, 22 Feb 2022 21:10:15 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 11789B81E81;
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DA64160C16;
+        Wed, 23 Feb 2022 05:10:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE7C1C36AE2;
         Wed, 23 Feb 2022 05:10:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50327C340F5;
-        Wed, 23 Feb 2022 05:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645593011;
-        bh=q/QH9SsazgS+rTp/eGrM/twH4pN5D14hKwibEtqalEY=;
+        s=k20201202; t=1645593014;
+        bh=x9UKmK3BgZIxNfogmE7vYver6vDTrTChZ2LUN6NFRl0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=n2JOb2HEWrIWaWCzRy5izqmBctRV9iJZJ75uOsnWdMnqA7mDtZa7hXgFbhs7X02Gh
-         PPSmmHN9jLbNosbYwMvtLARlkQQfeh1oCd0N27CjYjgtLdVyRzaVhx/NC7APHbH8Z/
-         Lo+SHS+ejq8cCn9k/TeJFaBp57HFpoGqrJUopBDDq8sxQoub4PmUSfem8PXTGvBPRb
-         W84SG3H7R2B1AtnCatfa4UUPUUdJ0QiErDBrtj7GbV3m21jb+XyT1i81X6FZxyvPAy
-         ZQWzIArixQkEFa+cSgcMPMgVxu/oQ0pcDFWBlDK0wKpRydZc8D/TfPwXI5D7tErYT/
-         5xXqmP5d6aB5A==
+        b=hBCLJeYeM8jjqnB7f+P6f2xOni5nzA+anQAGa6nQQuEsW1EDoWwyhqgXbhFY9pg24
+         R2HOZkOs34jMV5Ol04hqKCJrWWRPZFTt1JVCAPgloJAC6b37vkgWj4WKC5jWGzjBhc
+         fNTYlIr0KTH/JtpSUSBf3md+2BefKmmdcXHdI2CctVrUssHkOq1w+/96RBr7gkfz/6
+         hRvf2qPkvVFXfxohua71zPrCrYgJm0E1robw1iUaNGkTG9YNhus/YCtgVECSl9FX3T
+         utBIOe6HXFHd87gYfD2/AVLC0FLR3+9ZWKbkqxh0V8ksJQFS/K5FMasI8oydrPtiVy
+         9nffzYXJ5W/2g==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Sunil Rani <sunrani@nvidia.com>,
+        netdev@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+        Maor Gottlieb <maorg@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [mlx5-next 03/17] net/mlx5: E-Switch, reserve and use same uplink metadata across ports
-Date:   Tue, 22 Feb 2022 21:09:18 -0800
-Message-Id: <20220223050932.244668-4-saeed@kernel.org>
+Subject: [mlx5-next 07/17] net/mlx5: Lag, don't use magic numbers for ports
+Date:   Tue, 22 Feb 2022 21:09:22 -0800
+Message-Id: <20220223050932.244668-8-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220223050932.244668-1-saeed@kernel.org>
 References: <20220223050932.244668-1-saeed@kernel.org>
@@ -50,90 +51,53 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Sunil Rani <sunrani@nvidia.com>
+From: Mark Bloch <mbloch@nvidia.com>
 
-When in switchdev mode wire traffic will hit the FDB in one of two
-scenarios.
+Instead of using 1 & 2 as the ports numbers use an enum value.
 
-- Shared FDB, in that case traffic from both physical ports should be
-  tagged by the same metadata value so a single FDB rule could catch
-  traffic from both ports.
-
-- Two E-Switches, traffic from each physical port will hit the native
-  E-Switch which means traffic from one physical port can't reach the
-  E-Switch of the other one.
-
-Looking at those two scenarios it means we can always use the same metadata
-value to tag wire traffic regardless of the mode.
-
-Reserve a single metadata value to be used to tag wire traffic.
-
-Signed-off-by: Sunil Rani <sunrani@nvidia.com>
+Signed-off-by: Mark Bloch <mbloch@nvidia.com>
+Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../mellanox/mlx5/core/eswitch_offloads.c     | 28 +++++++++++++++++--
- 1 file changed, 25 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 9a7b25692505..efaf3be73a7b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -2845,6 +2845,19 @@ bool mlx5_esw_vport_match_metadata_supported(const struct mlx5_eswitch *esw)
- 	return true;
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+index 0758a98a08d1..05e8cbece095 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+@@ -40,6 +40,11 @@
+ #include "lag.h"
+ #include "mp.h"
  
-+#define MLX5_ESW_METADATA_RSVD_UPLINK 1
++enum {
++	MLX5_LAG_EGRESS_PORT_1 = 1,
++	MLX5_LAG_EGRESS_PORT_2,
++};
 +
-+/* Share the same metadata for uplink's. This is fine because:
-+ * (a) In shared FDB mode (LAG) both uplink's are treated the
-+ *     same and tagged with the same metadata.
-+ * (b) In non shared FDB mode, packets from physical port0
-+ *     cannot hit eswitch of PF1 and vice versa.
-+ */
-+static u32 mlx5_esw_match_metadata_reserved(struct mlx5_eswitch *esw)
-+{
-+	return MLX5_ESW_METADATA_RSVD_UPLINK;
-+}
-+
- u32 mlx5_esw_match_metadata_alloc(struct mlx5_eswitch *esw)
- {
- 	u32 vport_end_ida = (1 << ESW_VPORT_BITS) - 1;
-@@ -2859,8 +2872,10 @@ u32 mlx5_esw_match_metadata_alloc(struct mlx5_eswitch *esw)
- 		return 0;
+ /* General purpose, use for short periods of time.
+  * Beware of lock dependencies (preferably, no locks should be acquired
+  * under it).
+@@ -193,15 +198,15 @@ static void mlx5_infer_tx_affinity_mapping(struct lag_tracker *tracker,
+ 	p2en = tracker->netdev_state[MLX5_LAG_P2].tx_enabled &&
+ 	       tracker->netdev_state[MLX5_LAG_P2].link_up;
  
- 	/* Metadata is 4 bits of PFNUM and 12 bits of unique id */
--	/* Use only non-zero vport_id (1-4095) for all PF's */
--	id = ida_alloc_range(&esw->offloads.vport_metadata_ida, 1, vport_end_ida, GFP_KERNEL);
-+	/* Use only non-zero vport_id (2-4095) for all PF's */
-+	id = ida_alloc_range(&esw->offloads.vport_metadata_ida,
-+			     MLX5_ESW_METADATA_RSVD_UPLINK + 1,
-+			     vport_end_ida, GFP_KERNEL);
- 	if (id < 0)
- 		return 0;
- 	id = (pf_num << ESW_VPORT_BITS) | id;
-@@ -2878,7 +2893,11 @@ void mlx5_esw_match_metadata_free(struct mlx5_eswitch *esw, u32 metadata)
- static int esw_offloads_vport_metadata_setup(struct mlx5_eswitch *esw,
- 					     struct mlx5_vport *vport)
- {
--	vport->default_metadata = mlx5_esw_match_metadata_alloc(esw);
-+	if (vport->vport == MLX5_VPORT_UPLINK)
-+		vport->default_metadata = mlx5_esw_match_metadata_reserved(esw);
-+	else
-+		vport->default_metadata = mlx5_esw_match_metadata_alloc(esw);
-+
- 	vport->metadata = vport->default_metadata;
- 	return vport->metadata ? 0 : -ENOSPC;
- }
-@@ -2889,6 +2908,9 @@ static void esw_offloads_vport_metadata_cleanup(struct mlx5_eswitch *esw,
- 	if (!vport->default_metadata)
+-	*port1 = 1;
+-	*port2 = 2;
++	*port1 = MLX5_LAG_EGRESS_PORT_1;
++	*port2 = MLX5_LAG_EGRESS_PORT_2;
+ 	if ((!p1en && !p2en) || (p1en && p2en))
  		return;
  
-+	if (vport->vport == MLX5_VPORT_UPLINK)
-+		return;
-+
- 	WARN_ON(vport->metadata != vport->default_metadata);
- 	mlx5_esw_match_metadata_free(esw, vport->default_metadata);
+ 	if (p1en)
+-		*port2 = 1;
++		*port2 = MLX5_LAG_EGRESS_PORT_1;
+ 	else
+-		*port1 = 2;
++		*port1 = MLX5_LAG_EGRESS_PORT_2;
  }
+ 
+ static int _mlx5_modify_lag(struct mlx5_lag *ldev, u8 v2p_port1, u8 v2p_port2)
 -- 
 2.35.1
 
