@@ -2,160 +2,138 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DDCFC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:39:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EFE4C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:39:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235894AbiBWXkL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 18:40:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33850 "EHLO
+        id S238566AbiBWXkN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 18:40:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243095AbiBWXkK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:10 -0500
+        with ESMTP id S242983AbiBWXkM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:12 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A7B05B3C8;
-        Wed, 23 Feb 2022 15:39:38 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EAFC5B8A9;
+        Wed, 23 Feb 2022 15:39:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AB1661A09;
-        Wed, 23 Feb 2022 23:39:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 942CBC340E7;
-        Wed, 23 Feb 2022 23:39:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 35F6861A25;
+        Wed, 23 Feb 2022 23:39:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89EF4C340F4;
+        Wed, 23 Feb 2022 23:39:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645659577;
-        bh=OItCKh58/aajz/pTnTukWCWzM/ikpHZ0lMD9+lTG2jc=;
-        h=From:To:Cc:Subject:Date:From;
-        b=IqPaiVFZ4YwhriP9WHFhCPxSbtCj/NphtRNO2ccHshrR2f1H6g9dveT0GijOmnwNL
-         MlDTeyotSNGWqpjUaiJBDfF5qV9Hfkpb92IOKq+XLp6aDBXKyIqD1G8HJm7pkZMLGp
-         cGHKeXPjTb0r63i3AwQyin7cjjJSCW6g5BQQtWkkkFoRDRfH023Cw7D/8e+SwjrqhO
-         P19Eb6i6C7gx3xiDYXmVksBuVppr2Uk2aNn+gwz4N/OXdj6gdvnZWEffF2Rs14jVOW
-         zNrVPNU+bHW2Px8TZE+blPfkF5EZ+masPe0xHl++N+7R9NcL4evjTDHRFza7YcNVkm
-         jYtfTJ5KV+Z4w==
+        s=k20201202; t=1645659579;
+        bh=q/QH9SsazgS+rTp/eGrM/twH4pN5D14hKwibEtqalEY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ihBzl4k2/S2meUaAov0vSJDDxiQ1TjWab8v6JU3gL4d01p2uAtNnDIN4C7ffvVPuH
+         rfAM8uWuFcP70zjX//Uwp+ces71Km2QX1moc4VNA68G2Lay0PyiBxUREGWTHIDJEdd
+         uHQ70nmMYvU+O7yaCLS8TCTa6ko7lRtHRRpAtnoN2ejdpkXNnqWySMdTa0wKveHNTZ
+         91Iq8ba1ZdX57sFQhABL87yo0Y2wt3Hnfvwi4L1mzE0R4S8zP4S2/xMQ/6gxPx0/GK
+         rXuylaJuRoaRNJETxvpJH1F3EBfTcq8ZPwEs3BJPvTWkgu/M8sD56USS/Z9NsahI4+
+         afor0+iTIuQIg==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>
-Subject: [pull request][for-next v2 00/17] mlx5-next 2022-22-02
-Date:   Wed, 23 Feb 2022 15:39:13 -0800
-Message-Id: <20220223233930.319301-1-saeed@kernel.org>
+        netdev@vger.kernel.org, Sunil Rani <sunrani@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: [for-next v2 03/17] net/mlx5: E-Switch, reserve and use same uplink metadata across ports
+Date:   Wed, 23 Feb 2022 15:39:16 -0800
+Message-Id: <20220223233930.319301-4-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220223233930.319301-1-saeed@kernel.org>
+References: <20220223233930.319301-1-saeed@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@nvidia.com>
+From: Sunil Rani <sunrani@nvidia.com>
 
-Hi Dave, Jakub and Jason,
+When in switchdev mode wire traffic will hit the FDB in one of two
+scenarios.
 
-v1->v2:
- - Fix typo in the 1st patch's title
+- Shared FDB, in that case traffic from both physical ports should be
+  tagged by the same metadata value so a single FDB rule could catch
+  traffic from both ports.
 
-The following PR includes updates to mlx5-next branch:
+- Two E-Switches, traffic from each physical port will hit the native
+  E-Switch which means traffic from one physical port can't reach the
+  E-Switch of the other one.
 
-Headlines: 
-==========
+Looking at those two scenarios it means we can always use the same metadata
+value to tag wire traffic regardless of the mode.
 
-1) Jakub cleans up unused static inline functions
+Reserve a single metadata value to be used to tag wire traffic.
 
-2) I did some low level firmware command interface return status changes to
-provide the caller with full visibility on the error/status returned by
-the Firmware.
+Signed-off-by: Sunil Rani <sunrani@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
+---
+ .../mellanox/mlx5/core/eswitch_offloads.c     | 28 +++++++++++++++++--
+ 1 file changed, 25 insertions(+), 3 deletions(-)
 
-3) Use the new command interface in RDMA DEVX usecases to avoid flooding
-dmesg with some "expected" user error prone use cases.
-
-4) Moshe also uses the new command interface to grab the specific error
-code from MFRL register command to provide the exact error reason for
-why SW reset couldn't perform internally in FW.
-
-5) From Mark Bloch: Lag, drop packets in hardware when possible
-
-In active-backup mode the inactive interface's packets are dropped by the
-bond device. In switchdev where TC rules are offloaded to the FDB
-this can lead to packets being hit in the FDB where without offload
-they would have been dropped before reaching TC rules in the kernel.
-
-Create a drop rule to make sure packets on inactive ports are dropped
-before reaching the FDB.
-
-Listen on NETDEV_CHANGEUPPER / NETDEV_CHANGEINFODATA events and record
-the inactive state and offload accordingly.
-
-==========
-
-Please pull and let me know if there's any problem.
-
-The following changes since commit e783362eb54cd99b2cac8b3a9aeac942e6f6ac07:
-
-  Linux 5.17-rc1 (2022-01-23 10:12:53 +0200)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git mlx5-next
-
-for you to fetch changes up to 45fee8edb4b333af79efad7a99de51718ebda94b:
-
-  net/mlx5: Add clarification on sync reset failure (2022-02-23 15:21:59 -0800)
-
-----------------------------------------------------------------
-Jakub Kicinski (1):
-      mlx5: remove unused static inlines
-
-Mark Bloch (7):
-      net/mlx5: Add ability to insert to specific flow group
-      net/mlx5: E-switch, remove special uplink ingress ACL handling
-      net/mlx5: E-switch, add drop rule support to ingress ACL
-      net/mlx5: Lag, use local variable already defined to access E-Switch
-      net/mlx5: Lag, don't use magic numbers for ports
-      net/mlx5: Lag, record inactive state of bond device
-      net/mlx5: Lag, offload active-backup drops to hardware
-
-Moshe Shemesh (2):
-      net/mlx5: Add reset_state field to MFRL register
-      net/mlx5: Add clarification on sync reset failure
-
-Saeed Mahameed (6):
-      net/mlx5: cmdif, Return value improvements
-      net/mlx5: cmdif, cmd_check refactoring
-      net/mlx5: cmdif, Add new api for command execution
-      net/mlx5: Use mlx5_cmd_do() in core create_{cq,dct}
-      net/mlx5: cmdif, Refactor error handling and reporting of async commands
-      RDMA/mlx5: Use new command interface API
-
-Sunil Rani (1):
-      net/mlx5: E-Switch, reserve and use same uplink metadata across ports
-
- drivers/infiniband/hw/mlx5/devx.c                              |  61 +++++++------
- drivers/infiniband/hw/mlx5/mr.c                                |  15 +++-
- drivers/infiniband/hw/mlx5/qp.c                                |   1 +
- drivers/infiniband/hw/mlx5/qpc.c                               |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c                  | 328 +++++++++++++++++++++++++++++++++++++++++++--------------------------
- drivers/net/ethernet/mellanox/mlx5/core/cq.c                   |  17 +++-
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c              |  10 +--
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h    |   9 --
- drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ingress_ofld.c |  87 +++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ofld.h         |  15 ++++
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h              |   3 +
- drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c     |  93 ++++++--------------
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c              |   9 +-
- drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c             |  57 ++++++++++--
- drivers/net/ethernet/mellanox/mlx5/core/fw_reset.h             |   3 +-
- drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c              | 142 +++++++++++++++++++++++++++---
- drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h              |   2 +
- drivers/net/ethernet/mellanox/mlx5/core/lag/mp.c               |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h          |   7 --
- drivers/net/ethernet/mellanox/mlx5/core/main.c                 |   5 +-
- drivers/net/ethernet/mellanox/mlx5/core/port.c                 |  20 ++++-
- include/linux/mlx5/cq.h                                        |   2 +
- include/linux/mlx5/driver.h                                    |  19 ++--
- include/linux/mlx5/fs.h                                        |   1 +
- include/linux/mlx5/mlx5_ifc.h                                  |  14 ++-
- 25 files changed, 640 insertions(+), 284 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 9a7b25692505..efaf3be73a7b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -2845,6 +2845,19 @@ bool mlx5_esw_vport_match_metadata_supported(const struct mlx5_eswitch *esw)
+ 	return true;
+ }
+ 
++#define MLX5_ESW_METADATA_RSVD_UPLINK 1
++
++/* Share the same metadata for uplink's. This is fine because:
++ * (a) In shared FDB mode (LAG) both uplink's are treated the
++ *     same and tagged with the same metadata.
++ * (b) In non shared FDB mode, packets from physical port0
++ *     cannot hit eswitch of PF1 and vice versa.
++ */
++static u32 mlx5_esw_match_metadata_reserved(struct mlx5_eswitch *esw)
++{
++	return MLX5_ESW_METADATA_RSVD_UPLINK;
++}
++
+ u32 mlx5_esw_match_metadata_alloc(struct mlx5_eswitch *esw)
+ {
+ 	u32 vport_end_ida = (1 << ESW_VPORT_BITS) - 1;
+@@ -2859,8 +2872,10 @@ u32 mlx5_esw_match_metadata_alloc(struct mlx5_eswitch *esw)
+ 		return 0;
+ 
+ 	/* Metadata is 4 bits of PFNUM and 12 bits of unique id */
+-	/* Use only non-zero vport_id (1-4095) for all PF's */
+-	id = ida_alloc_range(&esw->offloads.vport_metadata_ida, 1, vport_end_ida, GFP_KERNEL);
++	/* Use only non-zero vport_id (2-4095) for all PF's */
++	id = ida_alloc_range(&esw->offloads.vport_metadata_ida,
++			     MLX5_ESW_METADATA_RSVD_UPLINK + 1,
++			     vport_end_ida, GFP_KERNEL);
+ 	if (id < 0)
+ 		return 0;
+ 	id = (pf_num << ESW_VPORT_BITS) | id;
+@@ -2878,7 +2893,11 @@ void mlx5_esw_match_metadata_free(struct mlx5_eswitch *esw, u32 metadata)
+ static int esw_offloads_vport_metadata_setup(struct mlx5_eswitch *esw,
+ 					     struct mlx5_vport *vport)
+ {
+-	vport->default_metadata = mlx5_esw_match_metadata_alloc(esw);
++	if (vport->vport == MLX5_VPORT_UPLINK)
++		vport->default_metadata = mlx5_esw_match_metadata_reserved(esw);
++	else
++		vport->default_metadata = mlx5_esw_match_metadata_alloc(esw);
++
+ 	vport->metadata = vport->default_metadata;
+ 	return vport->metadata ? 0 : -ENOSPC;
+ }
+@@ -2889,6 +2908,9 @@ static void esw_offloads_vport_metadata_cleanup(struct mlx5_eswitch *esw,
+ 	if (!vport->default_metadata)
+ 		return;
+ 
++	if (vport->vport == MLX5_VPORT_UPLINK)
++		return;
++
+ 	WARN_ON(vport->metadata != vport->default_metadata);
+ 	mlx5_esw_match_metadata_free(esw, vport->default_metadata);
+ }
 -- 
 2.35.1
 
