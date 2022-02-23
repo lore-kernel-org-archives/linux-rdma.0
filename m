@@ -2,191 +2,111 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C39C8C433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7670C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:51:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238166AbiBWFLQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 00:11:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43394 "EHLO
+        id S237621AbiBWFv1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 00:51:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237931AbiBWFKu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 00:10:50 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27016674E9;
-        Tue, 22 Feb 2022 21:10:20 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A3DA0B81E82;
-        Wed, 23 Feb 2022 05:10:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1119C340E7;
-        Wed, 23 Feb 2022 05:10:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645593018;
-        bh=dgX7kW2GHWK/0UfO2HQA2udHDYinSiV9Dx2tlyfbrWA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ZFtbKEcsILxUdyAxcW1blD1uxJI3JRMo2oLkbDKCEW2vmJ9noMHUPHCFWd/U6Qq5R
-         UypbyP/MXnzDKf/h3Dmc7uOHMJtdyhDVpdVbXdEH9SdhQj4Wuj098CIPo8ZW6TyMFu
-         XW4hLev9xgWCsd6urfh92SRGru1ieqtVVzuTDsiNUOnaRwzSUgxvozRxSMG90S13G4
-         tSlqQgbjO7eTmlgQB2+bA96iCAiTpVok7qUzFmxSdYdn1ZkGF7weg7Tf/iDKQlk6sP
-         t1TUWOh9o11Crsn7eUbUhtvr677wU28Z+A1ygN8MK+8hq74G11qIkWgglt/6hGQrZX
-         A4Iyln5UVc5Dg==
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [mlx5-next 13/17] net/mlx5: Use mlx5_cmd_do() in core create_{cq,dct}
-Date:   Tue, 22 Feb 2022 21:09:28 -0800
-Message-Id: <20220223050932.244668-14-saeed@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220223050932.244668-1-saeed@kernel.org>
-References: <20220223050932.244668-1-saeed@kernel.org>
+        with ESMTP id S236743AbiBWFv0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 00:51:26 -0500
+Received: from out1.migadu.com (out1.migadu.com [IPv6:2001:41d0:2:863f::])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9F7D443D4
+        for <linux-rdma@vger.kernel.org>; Tue, 22 Feb 2022 21:50:58 -0800 (PST)
+Subject: Re: bug report for rxe
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1645595457;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=NPcPPnMudUDryLuzR5hRjC+/jlWixmOsXd1LDXJQqtM=;
+        b=lbP1y4ux4+1hTJShd1nz292Xit67/TNiToZS7kD5Y+6WV/+z8wwPs4GZsZRA6aZz1c3c+n
+        sCPnQurkT3pmQhb1A9mnbvLFvBGOIl9w2VdDMGa/cx2tA/3CjISr132fc+JTZUPCtnvdpR
+        OSRgK4S41zkqZ9Elsc0FQEESfsSLhtQ=
+To:     Bob Pearson <rpearsonhpe@gmail.com>,
+        "Pearson, Robert B" <robert.pearson2@hpe.com>,
+        Zhu Yanjun <zyjzyj2000@gmail.com>,
+        Jinpu Wang <jinpu.wang@ionos.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+References: <20220210073655.42281-1-guoqing.jiang@linux.dev>
+ <473a53b6-9ab2-0d48-a9cf-c84b8dc4c3f3@linux.dev>
+ <CAD=hENeU=cf4_AZPYBDke-kv3Lv3+AUkkEjZm4Drkc6YLJOeLQ@mail.gmail.com>
+ <PH7PR84MB1488DB95EFB4F86FCDC7B8E6BC3B9@PH7PR84MB1488.NAMPRD84.PROD.OUTLOOK.COM>
+ <3b6ddb23-6dfa-29e2-27fd-741c1e3e576d@linux.dev>
+ <3ecd3493-662c-7c08-f2f2-59c1c97f8d59@gmail.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Guoqing Jiang <guoqing.jiang@linux.dev>
+Message-ID: <bc952176-05e7-bb87-aee5-f4ec1fa25f41@linux.dev>
+Date:   Wed, 23 Feb 2022 13:50:50 +0800
 MIME-Version: 1.0
+In-Reply-To: <3ecd3493-662c-7c08-f2f2-59c1c97f8d59@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
 
-mlx5_core_create_{cq/dct} functions are non-trivial mlx5 commands
-functions. They check command execution status themselves and hide
-valuable FW failure information.
 
-For mlx5_core/eth kernel user this is what we actually want, but for a
-devx/rdma user the hidden information is essential and should be propagated
-up to the caller, thus we convert these commands to use mlx5_cmd_do
-to return the FW/driver and command outbox status as is, and let the caller
-decide what to do with it.
+On 2/23/22 1:01 PM, Bob Pearson wrote:
+> On 2/22/22 22:43, Guoqing Jiang wrote:
+>>
+>> On 2/23/22 12:58 AM, Pearson, Robert B wrote:
+>>>> After investigation, seems the culprit is commit 647bf13ce944 ("RDMA/rxe:
+>>>> Create duplicate mapping tables for FMRs"). The problem is
+>>>> mr_check_range returns -EFAULT after find iova and length are not
+>>>> valid, so connection between two VMs can't be established.
+>>>>
+>>>> Revert the commit manually or apply below temporary change,  rxe works
+>>>> again with rnbd/rtrs though I don't think it is the right thing to do.
+>>>> Could experts provide a proper solution? Thanks.
+>>>>
+>>> This patch fixed failures in blktests and srp which were discussed at length. See e.g.
+>>>
+>>> https://lore.kernel.org/linux-rdma/20210907163939.GW1200268@ziepe.ca/
+>> Thanks for the link, which reminds me the always_invalidate parameter in rtrs_server.
+>>
+>>> and related messages. The conclusion was that two mappings were required. One owned by the
+>>> driver and one by the 'hardware', i.e. bottom half in the rxe case, allowing updating a new mapping
+>>> while the old one is still active and then switching them.
+>>>
+>>> If this case has iova and length not valid as indicated is there a problem with the test case?
+>> And after disable always_invalidate (which is enabled by default), rnbd/rtrs over roce
+>> works either. So I suppose there might be potential issue for always_invalidate=Y in
+>> rtrs server side since invalidate works for srp IIUC, @Jinpu.
+>>
+>> Thanks,
+>> Guoqing
+> It would help to understand what you are running. My main concern is that mr_check_range
+> shouldn't fail unless there is something very wrong.
 
-For kernel callers of mlx5_core_create_{cq/dct} or those who only care about
-the binary status (FAIL/SUCCESS) they must check status themselves via
-mlx5_cmd_check() to restore the current behavior.
+Let me paste it again, I just try to map server block device to client 
+side, specifically the bold
+line.
 
-err = mlx5_create_cq(in, out)
-err = mlx5_cmd_check(err, in, out)
-if (err)
-    // handle err
+1.  VM (server)
 
-For DEVX users and those who care about full visibility, They will just
-propagate the error to user space, and app can check if err == -EREMOTEIO,
-then outbox.{status,syndrome} are valid.
+modprobe rdma_rxe
+rdma link add rxe0 type rxe netdev ens3
+modprobe rnbd-server
 
-API Note:
-mlx5_cmd_check() must be used by kernel users since it allows the driver
-to intercept the command execution status and return a driver simulated
-status in case of driver induced error handling or reset/recovery flows.
+2.  VM (client)
 
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
----
- drivers/infiniband/hw/mlx5/devx.c            |  6 +++---
- drivers/infiniband/hw/mlx5/qp.c              |  1 +
- drivers/infiniband/hw/mlx5/qpc.c             |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/cq.c | 17 ++++++++++++++---
- include/linux/mlx5/cq.h                      |  2 ++
- 5 files changed, 21 insertions(+), 7 deletions(-)
+modprobe rdma_rxe
+rdma link add rxe0 type rxe netdev ens3
+modprobe rnbd-client
+*echo "sessname=bla path=ip:$serverip 
+device_path=$block_device_in_server" > 
+/sys/devices/virtual/rnbd-client/ctl/map_device*
 
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 08b7f6bc56c3..1f62c0ede048 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -1497,9 +1497,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
- 		   !is_apu_cq(dev, cmd_in)) {
- 		obj->flags |= DEVX_OBJ_FLAGS_CQ;
- 		obj->core_cq.comp = devx_cq_comp;
--		err = mlx5_core_create_cq(dev->mdev, &obj->core_cq,
--					  cmd_in, cmd_in_len, cmd_out,
--					  cmd_out_len);
-+		err = mlx5_create_cq(dev->mdev, &obj->core_cq,
-+				     cmd_in, cmd_in_len, cmd_out,
-+				     cmd_out_len);
- 	} else {
- 		err = mlx5_cmd_exec(dev->mdev, cmd_in,
- 				    cmd_in_len,
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 29475cf8c7c3..b7fe47107d76 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -4465,6 +4465,7 @@ static int mlx5_ib_modify_dct(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		err = mlx5_core_create_dct(dev, &qp->dct.mdct, qp->dct.in,
- 					   MLX5_ST_SZ_BYTES(create_dct_in), out,
- 					   sizeof(out));
-+		err = mlx5_cmd_check(dev->mdev, err, qp->dct.in, out);
- 		if (err)
- 			return err;
- 		resp.dctn = qp->dct.mdct.mqp.qpn;
-diff --git a/drivers/infiniband/hw/mlx5/qpc.c b/drivers/infiniband/hw/mlx5/qpc.c
-index 8844eacf2380..542e4c63a8de 100644
---- a/drivers/infiniband/hw/mlx5/qpc.c
-+++ b/drivers/infiniband/hw/mlx5/qpc.c
-@@ -220,7 +220,7 @@ int mlx5_core_create_dct(struct mlx5_ib_dev *dev, struct mlx5_core_dct *dct,
- 	init_completion(&dct->drained);
- 	MLX5_SET(create_dct_in, in, opcode, MLX5_CMD_OP_CREATE_DCT);
- 
--	err = mlx5_cmd_exec(dev->mdev, in, inlen, out, outlen);
-+	err = mlx5_cmd_do(dev->mdev, in, inlen, out, outlen);
- 	if (err)
- 		return err;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-index 5371ad0a12eb..15a74966be7d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
-@@ -86,8 +86,9 @@ static void mlx5_add_cq_to_tasklet(struct mlx5_core_cq *cq,
- 	spin_unlock_irqrestore(&tasklet_ctx->lock, flags);
- }
- 
--int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
--			u32 *in, int inlen, u32 *out, int outlen)
-+/* Callers must verify outbox status in case of err */
-+int mlx5_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
-+		   u32 *in, int inlen, u32 *out, int outlen)
- {
- 	int eqn = MLX5_GET(cqc, MLX5_ADDR_OF(create_cq_in, in, cq_context),
- 			   c_eqn_or_apu_element);
-@@ -101,7 +102,7 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 
- 	memset(out, 0, outlen);
- 	MLX5_SET(create_cq_in, in, opcode, MLX5_CMD_OP_CREATE_CQ);
--	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
-+	err = mlx5_cmd_do(dev, in, inlen, out, outlen);
- 	if (err)
- 		return err;
- 
-@@ -148,6 +149,16 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 	mlx5_cmd_exec_in(dev, destroy_cq, din);
- 	return err;
- }
-+EXPORT_SYMBOL(mlx5_create_cq);
-+
-+/* oubox is checked and err val is normalized */
-+int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
-+			u32 *in, int inlen, u32 *out, int outlen)
-+{
-+	int err = mlx5_create_cq(dev, cq, in, inlen, out, outlen);
-+
-+	return mlx5_cmd_check(dev, err, in, out);
-+}
- EXPORT_SYMBOL(mlx5_core_create_cq);
- 
- int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq)
-diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
-index 7bfb67363434..cb15308b5cb0 100644
---- a/include/linux/mlx5/cq.h
-+++ b/include/linux/mlx5/cq.h
-@@ -183,6 +183,8 @@ static inline void mlx5_cq_put(struct mlx5_core_cq *cq)
- 		complete(&cq->free);
- }
- 
-+int mlx5_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
-+		   u32 *in, int inlen, u32 *out, int outlen);
- int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
- 			u32 *in, int inlen, u32 *out, int outlen);
- int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq);
--- 
-2.35.1
+
+
+Thanks,
+Guoqing
 
