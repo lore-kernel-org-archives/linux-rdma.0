@@ -2,45 +2,46 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18DD9C433F5
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:40:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9BE0C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:40:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244983AbiBWXkZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 18:40:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33928 "EHLO
+        id S245063AbiBWXk0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 18:40:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244867AbiBWXkO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:14 -0500
+        with ESMTP id S244871AbiBWXkP (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:15 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0BDF5A0B9;
-        Wed, 23 Feb 2022 15:39:43 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D28A95B3DE;
+        Wed, 23 Feb 2022 15:39:44 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7DAD6B82269;
+        by ams.source.kernel.org (Postfix) with ESMTPS id 87C19B8226A;
+        Wed, 23 Feb 2022 23:39:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABC68C340F3;
         Wed, 23 Feb 2022 23:39:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A3DDC340F0;
-        Wed, 23 Feb 2022 23:39:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645659581;
-        bh=m6XO6tyCsQl/0mkgQVShucIMftO83qs12ofEEKGhrpc=;
+        s=k20201202; t=1645659583;
+        bh=0sJdf1guIu5C6xHMv6OY6rPXkkGBe1Sm+NfTNhiJ62g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hIQF5MUf6mLCEu75ERY14o3avyuvAGJckQQ1w1SOyzhc7hnRuZQiCxzQDWGOsvwUH
-         Nmaw1QlP2JLVBggPIz8Gxov9YLJCzYrYx6PP6UOO+UTOFDUVhHXx+T1D8Ej0gd4DWJ
-         HiAV+8S++oi3WsgcpVf4ouObG0yUjvvaTMEzs5MiATPYnIrlDpirQD/71djRjTKawk
-         0jVPcBcqztuLZ9BoXoF06l/Zxxax+WCrkbUX4ofwUJSuKRaKWuov2pUh9ofWZXIddR
-         XW2c338qxUQLEuSjSKNpXWn2u2lDQJJIodAbPQTjUXUgY2vmPLbhoXWOXa+TWz0XQB
-         ziGixPyHhr9Jg==
+        b=M67YOU0sVL0nsGaZt3FSepgW3rDKs/7Hb3z1KTdk5uNEpk9zBNsrmTICUGap+ptHU
+         hRdq1XAA1WeG5TGUCGyj/IKwuvnz+COQZXSpV+vgv7/aCHnIfEyA1WJ0oIxcNHMLjI
+         zG3WI27A8oboLidtSBrHSPJgxaCqKQnLIE7U6aoP5oHTKWpHLDEM+Nn0twQSaA6EDr
+         WD+873a5MM0yV5yoRDPCjX/ahezsMgs1xRt9XMiPm8T9W/QN3I+HV7Xc8EEn/Ws++i
+         2fCP2U6ce62F8I/NHvKTOitLd8Mgo4uItOlwT88mwJzvIbNbH1QOicWTe6sweKMN5j
+         G97o7DRMUPbYQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+        Maor Gottlieb <maorg@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [for-next v2 06/17] net/mlx5: Lag, use local variable already defined to access E-Switch
-Date:   Wed, 23 Feb 2022 15:39:19 -0800
-Message-Id: <20220223233930.319301-7-saeed@kernel.org>
+Subject: [for-next v2 09/17] net/mlx5: Lag, offload active-backup drops to hardware
+Date:   Wed, 23 Feb 2022 15:39:22 -0800
+Message-Id: <20220223233930.319301-10-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220223233930.319301-1-saeed@kernel.org>
 References: <20220223233930.319301-1-saeed@kernel.org>
@@ -52,39 +53,150 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <mbloch@nvidia.com>
 
-Use the local variable for dev0 (and add from dev1) instead of using
-the devices stored in the ldev structure. Makes the code easier
-to read.
+In active-backup mode the backup interface's packets are dropped by the
+bond device. In switchdev where TC rules are offloaded to the FDB
+this can lead to packets being hit in the FDB where without offload
+they would have been dropped before reaching TC rules in the kernel.
+
+Create a drop rule to make sure packets on inactive ports are dropped
+before reaching the FDB.
 
 Signed-off-by: Mark Bloch <mbloch@nvidia.com>
+Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/lag/lag.c | 75 ++++++++++++++++++-
+ .../net/ethernet/mellanox/mlx5/core/lag/lag.h |  1 +
+ 2 files changed, 73 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-index 4ddf6b330a44..0758a98a08d1 100644
+index 125ac4befd74..6cad3b72c133 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-@@ -347,6 +347,7 @@ int mlx5_activate_lag(struct mlx5_lag *ldev,
- static int mlx5_deactivate_lag(struct mlx5_lag *ldev)
+@@ -38,6 +38,7 @@
+ #include "lib/devcom.h"
+ #include "mlx5_core.h"
+ #include "eswitch.h"
++#include "esw/acl/ofld.h"
+ #include "lag.h"
+ #include "mp.h"
+ 
+@@ -210,6 +211,62 @@ static void mlx5_infer_tx_affinity_mapping(struct lag_tracker *tracker,
+ 		*port1 = MLX5_LAG_EGRESS_PORT_2;
+ }
+ 
++static bool mlx5_lag_has_drop_rule(struct mlx5_lag *ldev)
++{
++	return ldev->pf[MLX5_LAG_P1].has_drop || ldev->pf[MLX5_LAG_P2].has_drop;
++}
++
++static void mlx5_lag_drop_rule_cleanup(struct mlx5_lag *ldev)
++{
++	int i;
++
++	for (i = 0; i < MLX5_MAX_PORTS; i++) {
++		if (!ldev->pf[i].has_drop)
++			continue;
++
++		mlx5_esw_acl_ingress_vport_drop_rule_destroy(ldev->pf[i].dev->priv.eswitch,
++							     MLX5_VPORT_UPLINK);
++		ldev->pf[i].has_drop = false;
++	}
++}
++
++static void mlx5_lag_drop_rule_setup(struct mlx5_lag *ldev,
++				     struct lag_tracker *tracker)
++{
++	struct mlx5_core_dev *dev0 = ldev->pf[MLX5_LAG_P1].dev;
++	struct mlx5_core_dev *dev1 = ldev->pf[MLX5_LAG_P2].dev;
++	struct mlx5_core_dev *inactive;
++	u8 v2p_port1, v2p_port2;
++	int inactive_idx;
++	int err;
++
++	/* First delete the current drop rule so there won't be any dropped
++	 * packets
++	 */
++	mlx5_lag_drop_rule_cleanup(ldev);
++
++	if (!ldev->tracker.has_inactive)
++		return;
++
++	mlx5_infer_tx_affinity_mapping(tracker, &v2p_port1, &v2p_port2);
++
++	if (v2p_port1 == MLX5_LAG_EGRESS_PORT_1) {
++		inactive = dev1;
++		inactive_idx = MLX5_LAG_P2;
++	} else {
++		inactive = dev0;
++		inactive_idx = MLX5_LAG_P1;
++	}
++
++	err = mlx5_esw_acl_ingress_vport_drop_rule_create(inactive->priv.eswitch,
++							  MLX5_VPORT_UPLINK);
++	if (!err)
++		ldev->pf[inactive_idx].has_drop = true;
++	else
++		mlx5_core_err(inactive,
++			      "Failed to create lag drop rule, error: %d", err);
++}
++
+ static int _mlx5_modify_lag(struct mlx5_lag *ldev, u8 v2p_port1, u8 v2p_port2)
  {
  	struct mlx5_core_dev *dev0 = ldev->pf[MLX5_LAG_P1].dev;
-+	struct mlx5_core_dev *dev1 = ldev->pf[MLX5_LAG_P2].dev;
- 	u32 in[MLX5_ST_SZ_DW(destroy_lag_in)] = {};
- 	bool roce_lag = __mlx5_lag_is_roce(ldev);
- 	u8 flags = ldev->flags;
-@@ -356,8 +357,8 @@ static int mlx5_deactivate_lag(struct mlx5_lag *ldev)
- 	mlx5_lag_mp_reset(ldev);
+@@ -244,6 +301,10 @@ void mlx5_modify_lag(struct mlx5_lag *ldev,
+ 			       ldev->v2p_map[MLX5_LAG_P1],
+ 			       ldev->v2p_map[MLX5_LAG_P2]);
+ 	}
++
++	if (tracker->tx_type == NETDEV_LAG_TX_TYPE_ACTIVEBACKUP &&
++	    !(ldev->flags & MLX5_LAG_FLAG_ROCE))
++		mlx5_lag_drop_rule_setup(ldev, tracker);
+ }
  
- 	if (ldev->shared_fdb) {
--		mlx5_eswitch_offloads_destroy_single_fdb(ldev->pf[MLX5_LAG_P1].dev->priv.eswitch,
--							 ldev->pf[MLX5_LAG_P2].dev->priv.eswitch);
-+		mlx5_eswitch_offloads_destroy_single_fdb(dev0->priv.eswitch,
-+							 dev1->priv.eswitch);
- 		ldev->shared_fdb = false;
+ static void mlx5_lag_set_port_sel_mode(struct mlx5_lag *ldev,
+@@ -345,6 +406,10 @@ int mlx5_activate_lag(struct mlx5_lag *ldev,
+ 		return err;
  	}
  
++	if (tracker->tx_type == NETDEV_LAG_TX_TYPE_ACTIVEBACKUP &&
++	    !roce_lag)
++		mlx5_lag_drop_rule_setup(ldev, tracker);
++
+ 	ldev->flags |= flags;
+ 	ldev->shared_fdb = shared_fdb;
+ 	return 0;
+@@ -379,11 +444,15 @@ static int mlx5_deactivate_lag(struct mlx5_lag *ldev)
+ 				      "Failed to deactivate VF LAG; driver restart required\n"
+ 				      "Make sure all VFs are unbound prior to VF LAG activation or deactivation\n");
+ 		}
+-	} else if (flags & MLX5_LAG_FLAG_HASH_BASED) {
+-		mlx5_lag_port_sel_destroy(ldev);
++		return err;
+ 	}
+ 
+-	return err;
++	if (flags & MLX5_LAG_FLAG_HASH_BASED)
++		mlx5_lag_port_sel_destroy(ldev);
++	if (mlx5_lag_has_drop_rule(ldev))
++		mlx5_lag_drop_rule_cleanup(ldev);
++
++	return 0;
+ }
+ 
+ static bool mlx5_lag_check_prereq(struct mlx5_lag *ldev)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
+index 305d9adbe325..cbf9a9003e55 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h
+@@ -28,6 +28,7 @@ enum {
+ struct lag_func {
+ 	struct mlx5_core_dev *dev;
+ 	struct net_device    *netdev;
++	bool has_drop;
+ };
+ 
+ /* Used for collection of netdev event info. */
 -- 
 2.35.1
 
