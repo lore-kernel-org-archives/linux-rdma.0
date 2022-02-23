@@ -2,46 +2,45 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ECF0C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:39:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18DD9C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 23:40:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244981AbiBWXkZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S244983AbiBWXkZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 23 Feb 2022 18:40:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60350 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244978AbiBWXkN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:13 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 491825A5A0;
-        Wed, 23 Feb 2022 15:39:42 -0800 (PST)
+        with ESMTP id S244867AbiBWXkO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 18:40:14 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0BDF5A0B9;
+        Wed, 23 Feb 2022 15:39:43 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0BD43B81EDD;
-        Wed, 23 Feb 2022 23:39:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38BF4C340F1;
-        Wed, 23 Feb 2022 23:39:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7DAD6B82269;
+        Wed, 23 Feb 2022 23:39:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A3DDC340F0;
+        Wed, 23 Feb 2022 23:39:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645659579;
-        bh=mDj7RLvsugBTLQ9B4NA3BujPDwBOvnvOB7n0kzKZG00=;
+        s=k20201202; t=1645659581;
+        bh=m6XO6tyCsQl/0mkgQVShucIMftO83qs12ofEEKGhrpc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GByrVs/1cUtbIsxJ7/+UrEtxc69E6XsEGnCQOAhzCDNvfLHdDNi0m7OE0pHwCzfDA
-         pV7b1+bxW7SY37i7fKKFMaw+YhrkVa8jiQ91JcvGq9bdHOZiqPSPIVzPacirFNbXIr
-         aX6SbmKzCZzLpGQw7kyIeBnGJ9/yenNs2NxuCi133nvWb0xJgQm7SGFWnAU0YfLcDW
-         L9v4RB45XsatXNnSPP1HID7NWhJOUUoYuktDYC+RQypKOW4RMMLo3zfbkXgrmkV369
-         fGMAX8cYZmXglGjqWXgSb7MGPNuxZlvlbUUU6iS2UxK4fLJSqOGEUtcnnFRECetLqE
-         g6VnjVflzizkQ==
+        b=hIQF5MUf6mLCEu75ERY14o3avyuvAGJckQQ1w1SOyzhc7hnRuZQiCxzQDWGOsvwUH
+         Nmaw1QlP2JLVBggPIz8Gxov9YLJCzYrYx6PP6UOO+UTOFDUVhHXx+T1D8Ej0gd4DWJ
+         HiAV+8S++oi3WsgcpVf4ouObG0yUjvvaTMEzs5MiATPYnIrlDpirQD/71djRjTKawk
+         0jVPcBcqztuLZ9BoXoF06l/Zxxax+WCrkbUX4ofwUJSuKRaKWuov2pUh9ofWZXIddR
+         XW2c338qxUQLEuSjSKNpXWn2u2lDQJJIodAbPQTjUXUgY2vmPLbhoXWOXa+TWz0XQB
+         ziGixPyHhr9Jg==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
-        Maor Gottlieb <maorg@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [for-next v2 04/17] net/mlx5: E-switch, remove special uplink ingress ACL handling
-Date:   Wed, 23 Feb 2022 15:39:17 -0800
-Message-Id: <20220223233930.319301-5-saeed@kernel.org>
+Subject: [for-next v2 06/17] net/mlx5: Lag, use local variable already defined to access E-Switch
+Date:   Wed, 23 Feb 2022 15:39:19 -0800
+Message-Id: <20220223233930.319301-7-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220223233930.319301-1-saeed@kernel.org>
 References: <20220223233930.319301-1-saeed@kernel.org>
@@ -53,116 +52,39 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <mbloch@nvidia.com>
 
-As both uplinks set the same metadata there is no need to merge
-the ACL handling of both into a single one.
+Use the local variable for dev0 (and add from dev1) instead of using
+the devices stored in the ldev structure. Makes the code easier
+to read.
 
 Signed-off-by: Mark Bloch <mbloch@nvidia.com>
-Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../mellanox/mlx5/core/eswitch_offloads.c     | 65 +------------------
- 1 file changed, 1 insertion(+), 64 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index efaf3be73a7b..f65231e579bb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -2378,60 +2378,6 @@ void esw_offloads_unload_rep(struct mlx5_eswitch *esw, u16 vport_num)
- 		mlx5_esw_offloads_devlink_port_unregister(esw, vport_num);
- }
- 
--static int esw_set_uplink_slave_ingress_root(struct mlx5_core_dev *master,
--					     struct mlx5_core_dev *slave)
--{
--	u32 in[MLX5_ST_SZ_DW(set_flow_table_root_in)]   = {};
--	u32 out[MLX5_ST_SZ_DW(set_flow_table_root_out)] = {};
--	struct mlx5_eswitch *esw;
--	struct mlx5_flow_root_namespace *root;
--	struct mlx5_flow_namespace *ns;
--	struct mlx5_vport *vport;
--	int err;
--
--	MLX5_SET(set_flow_table_root_in, in, opcode,
--		 MLX5_CMD_OP_SET_FLOW_TABLE_ROOT);
--	MLX5_SET(set_flow_table_root_in, in, table_type, FS_FT_ESW_INGRESS_ACL);
--	MLX5_SET(set_flow_table_root_in, in, other_vport, 1);
--	MLX5_SET(set_flow_table_root_in, in, vport_number, MLX5_VPORT_UPLINK);
--
--	if (master) {
--		esw = master->priv.eswitch;
--		vport = mlx5_eswitch_get_vport(esw, MLX5_VPORT_UPLINK);
--		MLX5_SET(set_flow_table_root_in, in, table_of_other_vport, 1);
--		MLX5_SET(set_flow_table_root_in, in, table_vport_number,
--			 MLX5_VPORT_UPLINK);
--
--		ns = mlx5_get_flow_vport_acl_namespace(master,
--						       MLX5_FLOW_NAMESPACE_ESW_INGRESS,
--						       vport->index);
--		root = find_root(&ns->node);
--		mutex_lock(&root->chain_lock);
--
--		MLX5_SET(set_flow_table_root_in, in,
--			 table_eswitch_owner_vhca_id_valid, 1);
--		MLX5_SET(set_flow_table_root_in, in,
--			 table_eswitch_owner_vhca_id,
--			 MLX5_CAP_GEN(master, vhca_id));
--		MLX5_SET(set_flow_table_root_in, in, table_id,
--			 root->root_ft->id);
--	} else {
--		esw = slave->priv.eswitch;
--		vport = mlx5_eswitch_get_vport(esw, MLX5_VPORT_UPLINK);
--		ns = mlx5_get_flow_vport_acl_namespace(slave,
--						       MLX5_FLOW_NAMESPACE_ESW_INGRESS,
--						       vport->index);
--		root = find_root(&ns->node);
--		mutex_lock(&root->chain_lock);
--		MLX5_SET(set_flow_table_root_in, in, table_id, root->root_ft->id);
--	}
--
--	err = mlx5_cmd_exec(slave, in, sizeof(in), out, sizeof(out));
--	mutex_unlock(&root->chain_lock);
--
--	return err;
--}
--
- static int esw_set_slave_root_fdb(struct mlx5_core_dev *master,
- 				  struct mlx5_core_dev *slave)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+index 4ddf6b330a44..0758a98a08d1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+@@ -347,6 +347,7 @@ int mlx5_activate_lag(struct mlx5_lag *ldev,
+ static int mlx5_deactivate_lag(struct mlx5_lag *ldev)
  {
-@@ -2613,15 +2559,10 @@ int mlx5_eswitch_offloads_config_single_fdb(struct mlx5_eswitch *master_esw,
- {
- 	int err;
+ 	struct mlx5_core_dev *dev0 = ldev->pf[MLX5_LAG_P1].dev;
++	struct mlx5_core_dev *dev1 = ldev->pf[MLX5_LAG_P2].dev;
+ 	u32 in[MLX5_ST_SZ_DW(destroy_lag_in)] = {};
+ 	bool roce_lag = __mlx5_lag_is_roce(ldev);
+ 	u8 flags = ldev->flags;
+@@ -356,8 +357,8 @@ static int mlx5_deactivate_lag(struct mlx5_lag *ldev)
+ 	mlx5_lag_mp_reset(ldev);
  
--	err = esw_set_uplink_slave_ingress_root(master_esw->dev,
--						slave_esw->dev);
--	if (err)
--		return -EINVAL;
--
- 	err = esw_set_slave_root_fdb(master_esw->dev,
- 				     slave_esw->dev);
- 	if (err)
--		goto err_fdb;
-+		return err;
+ 	if (ldev->shared_fdb) {
+-		mlx5_eswitch_offloads_destroy_single_fdb(ldev->pf[MLX5_LAG_P1].dev->priv.eswitch,
+-							 ldev->pf[MLX5_LAG_P2].dev->priv.eswitch);
++		mlx5_eswitch_offloads_destroy_single_fdb(dev0->priv.eswitch,
++							 dev1->priv.eswitch);
+ 		ldev->shared_fdb = false;
+ 	}
  
- 	err = esw_set_master_egress_rule(master_esw->dev,
- 					 slave_esw->dev);
-@@ -2633,9 +2574,6 @@ int mlx5_eswitch_offloads_config_single_fdb(struct mlx5_eswitch *master_esw,
- err_acl:
- 	esw_set_slave_root_fdb(NULL, slave_esw->dev);
- 
--err_fdb:
--	esw_set_uplink_slave_ingress_root(NULL, slave_esw->dev);
--
- 	return err;
- }
- 
-@@ -2644,7 +2582,6 @@ void mlx5_eswitch_offloads_destroy_single_fdb(struct mlx5_eswitch *master_esw,
- {
- 	esw_unset_master_egress_rule(master_esw->dev);
- 	esw_set_slave_root_fdb(NULL, slave_esw->dev);
--	esw_set_uplink_slave_ingress_root(NULL, slave_esw->dev);
- }
- 
- #define ESW_OFFLOADS_DEVCOM_PAIR	(0)
 -- 
 2.35.1
 
