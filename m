@@ -2,158 +2,267 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA44AC43219
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C2D0C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Feb 2022 05:10:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237738AbiBWFKl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 00:10:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42924 "EHLO
+        id S237991AbiBWFKt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 00:10:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237703AbiBWFKj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 00:10:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC4C460CF5;
-        Tue, 22 Feb 2022 21:10:12 -0800 (PST)
+        with ESMTP id S237711AbiBWFKk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 00:10:40 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FD605F4DC;
+        Tue, 22 Feb 2022 21:10:13 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4664CB81E7F;
-        Wed, 23 Feb 2022 05:10:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E57EC340E7;
-        Wed, 23 Feb 2022 05:10:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3B32E60C51;
+        Wed, 23 Feb 2022 05:10:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ECE0C340F1;
+        Wed, 23 Feb 2022 05:10:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645593009;
-        bh=hyahgmDEs7JfyMAHhJsx103v2EM+b6FqfYfVbGNLDS8=;
-        h=From:To:Cc:Subject:Date:From;
-        b=j1UDfcKBKYwX8RgYJO2BwLU84oAQK8q2MRFv3e56qBa+adtg9HdHh+RfcPTm+NAmF
-         iyP9ahNVR4FAKPUzPdAQRUNrv6J3CIH/TtsJMK5eKAuCdZEIUNmbQwjxMf55a3mui1
-         B9BsSLMm3C6QPRyDTiWXnv77iXWVKEjVcVVdrWUPqS1EqqyqeSRb+RtN/mtLW/0tpM
-         pL2Nw1SGJvFe4oWF09LJCPsu/8eSHUGEPnz6oLRhXMCWAXwqIDjMR/36HhbPJ2+vxR
-         Nifpeq/t0vL29F24et84yqGXxW5ZSnUcDMdBswktpvd5LVpPpVuzfzvndwuIirtWIx
-         gk0CO/+OOSctg==
+        s=k20201202; t=1645593013;
+        bh=eKlvFR+Cs49zIzqh8w++OOKU/H0cr8G92YPcgDlWAsI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=bRsaN5L1OEwXyTXicz73r7jh9i+v59uAwdHIkOKzKfhC1HYwFh89w5Cbuw5ZnwHET
+         fV1klropYtCrSMcRQmQBCgQYcjyOjPiwtaanZi4K+AlxxrVsxd89NaScH1LFGn5P8w
+         vLVIee8A+PVrjsUEQqs6mcs3wfqi9N6ltw3LD1+2j7eTkx9rwDN4kTnuv2nfVPET+M
+         XX+fvZGkqzQm9GTnG0PWVGZTiEHjJS+SiSMRNmdxmO9KpT6j0XfhfGyA8Wc8ThEbXw
+         IW7J2ME7JjCfBuep4pyLXxhjvyJpBYzZGqjDVQddbxnw6drxNk16Md/CgMKP1aeLod
+         UnwgUS/2fm0lw==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>
-Subject: [pull request][net-next/rdma-next 00/17] mlx5-next updates 2022-02-22
-Date:   Tue, 22 Feb 2022 21:09:15 -0800
-Message-Id: <20220223050932.244668-1-saeed@kernel.org>
+        netdev@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+        Maor Gottlieb <maorg@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>
+Subject: [mlx5-next 05/17] net/mlx5: E-switch, add drop rule support to ingress ACL
+Date:   Tue, 22 Feb 2022 21:09:20 -0800
+Message-Id: <20220223050932.244668-6-saeed@kernel.org>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220223050932.244668-1-saeed@kernel.org>
+References: <20220223050932.244668-1-saeed@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@nvidia.com>
+From: Mark Bloch <mbloch@nvidia.com>
 
-Hi Dave, Jakub and Jason,
+Support inserting an ingress ACL drop rule on the uplink in
+switchdev mode. This will be used by downstream patches to offload
+active-backup lag mode. The drop rule (if created) is the first rule
+in the ACL.
 
-The following PR includes updates to mlx5-next branch:
+Signed-off-by: Mark Bloch <mbloch@nvidia.com>
+Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
+---
+ .../mellanox/mlx5/core/esw/acl/ingress_ofld.c | 87 +++++++++++++++++++
+ .../mellanox/mlx5/core/esw/acl/ofld.h         | 15 ++++
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h |  3 +
+ 3 files changed, 105 insertions(+)
 
-Headlines: 
-==========
-
-1) Jakub cleans up unused static inline function
-
-2) I did some low level firmware command interface return status changes to
-provide the caller with full visibility on the error/status returned by
-the Firmware.
-
-3) Use the new command interface in RDMA DEVX usecases to avoid flooding
-dmesg with some "expected" user error prone use cases.
-
-4) Moshe also uses the new command interface to grab the specific error
-code from MFRL register command to provide the exact error reason for
-why SW reset couldn't perform internally in FW.
-
-5) From Mark Bloch: Lag, drop packets in hardware when possible
-
-In active-backup mode the inactive interface's packets are dropped by the
-bond device. In switchdev where TC rules are offloaded to the FDB
-this can lead to packets being hit in the FDB where without offload
-they would have been dropped before reaching TC rules in the kernel.
-
-Create a drop rule to make sure packets on inactive ports are dropped
-before reaching the FDB.
-
-Listen on NETDEV_CHANGEUPPER / NETDEV_CHANGEINFODATA events and record
-the inactive state and offload accordingly.
-
-==========
-
-Please pull and let me know if there's any problem.
-
-The following changes since commit e783362eb54cd99b2cac8b3a9aeac942e6f6ac07:
-
-  Linux 5.17-rc1 (2022-01-23 10:12:53 +0200)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git mlx5-next
-
-for you to fetch changes up to 03dd4b816a528472acbf56dad06e0e284eed876b:
-
-  net/mlx5: Add clarification on sync reset failure (2022-02-22 20:56:28 -0800)
-
-----------------------------------------------------------------
-Jakub Kicinski (1):
-      mlx5: remove usused static inlines
-
-Mark Bloch (7):
-      net/mlx5: Add ability to insert to specific flow group
-      net/mlx5: E-switch, remove special uplink ingress ACL handling
-      net/mlx5: E-switch, add drop rule support to ingress ACL
-      net/mlx5: Lag, use local variable already defined to access E-Switch
-      net/mlx5: Lag, don't use magic numbers for ports
-      net/mlx5: Lag, record inactive state of bond device
-      net/mlx5: Lag, offload active-backup drops to hardware
-
-Moshe Shemesh (2):
-      net/mlx5: Add reset_state field to MFRL register
-      net/mlx5: Add clarification on sync reset failure
-
-Saeed Mahameed (6):
-      net/mlx5: cmdif, Return value improvements
-      net/mlx5: cmdif, cmd_check refactoring
-      net/mlx5: cmdif, Add new api for command execution
-      net/mlx5: Use mlx5_cmd_do() in core create_{cq,dct}
-      net/mlx5: cmdif, Refactor error handling and reporting of async commands
-      RDMA/mlx5: Use new command interface API
-
-Sunil Rani (1):
-      net/mlx5: E-Switch, reserve and use same uplink metadata across ports
-
- drivers/infiniband/hw/mlx5/devx.c                              |  61 +++++++++++++++++++++++-----------------
- drivers/infiniband/hw/mlx5/mr.c                                |  15 +++++++++-
- drivers/infiniband/hw/mlx5/qp.c                                |   1 +
- drivers/infiniband/hw/mlx5/qpc.c                               |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c                  | 328 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------------
- drivers/net/ethernet/mellanox/mlx5/core/cq.c                   |  17 +++++++++--
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c              |  10 ++-----
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/en_accel.h    |   9 ------
- drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ingress_ofld.c |  87 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ofld.h         |  15 ++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h              |   3 ++
- drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c     |  93 +++++++++++++++++-------------------------------------------
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c              |   9 +++++-
- drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c             |  57 ++++++++++++++++++++++++++++++++-----
- drivers/net/ethernet/mellanox/mlx5/core/fw_reset.h             |   3 +-
- drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c              | 142 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------
- drivers/net/ethernet/mellanox/mlx5/core/lag/lag.h              |   2 ++
- drivers/net/ethernet/mellanox/mlx5/core/lag/mp.c               |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/lib/hv_vhca.h          |   7 -----
- drivers/net/ethernet/mellanox/mlx5/core/main.c                 |   5 ++--
- drivers/net/ethernet/mellanox/mlx5/core/port.c                 |  20 ++++++++++---
- include/linux/mlx5/cq.h                                        |   2 ++
- include/linux/mlx5/driver.h                                    |  19 +++++--------
- include/linux/mlx5/fs.h                                        |   1 +
- include/linux/mlx5/mlx5_ifc.h                                  |  14 +++++++--
- 25 files changed, 640 insertions(+), 284 deletions(-)
-
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ingress_ofld.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ingress_ofld.c
+index 39e948bc1204..a994e71e05c1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ingress_ofld.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ingress_ofld.c
+@@ -92,6 +92,7 @@ static int esw_acl_ingress_mod_metadata_create(struct mlx5_eswitch *esw,
+ 
+ 	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_MOD_HDR | MLX5_FLOW_CONTEXT_ACTION_ALLOW;
+ 	flow_act.modify_hdr = vport->ingress.offloads.modify_metadata;
++	flow_act.fg = vport->ingress.offloads.metadata_allmatch_grp;
+ 	vport->ingress.offloads.modify_metadata_rule =
+ 				mlx5_add_flow_rules(vport->ingress.acl,
+ 						    NULL, &flow_act, NULL, 0);
+@@ -117,6 +118,36 @@ static void esw_acl_ingress_mod_metadata_destroy(struct mlx5_eswitch *esw,
+ 	vport->ingress.offloads.modify_metadata_rule = NULL;
+ }
+ 
++static int esw_acl_ingress_src_port_drop_create(struct mlx5_eswitch *esw,
++						struct mlx5_vport *vport)
++{
++	struct mlx5_flow_act flow_act = {};
++	struct mlx5_flow_handle *flow_rule;
++	int err = 0;
++
++	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_DROP;
++	flow_act.fg = vport->ingress.offloads.drop_grp;
++	flow_rule = mlx5_add_flow_rules(vport->ingress.acl, NULL, &flow_act, NULL, 0);
++	if (IS_ERR(flow_rule)) {
++		err = PTR_ERR(flow_rule);
++		goto out;
++	}
++
++	vport->ingress.offloads.drop_rule = flow_rule;
++out:
++	return err;
++}
++
++static void esw_acl_ingress_src_port_drop_destroy(struct mlx5_eswitch *esw,
++						  struct mlx5_vport *vport)
++{
++	if (!vport->ingress.offloads.drop_rule)
++		return;
++
++	mlx5_del_flow_rules(vport->ingress.offloads.drop_rule);
++	vport->ingress.offloads.drop_rule = NULL;
++}
++
+ static int esw_acl_ingress_ofld_rules_create(struct mlx5_eswitch *esw,
+ 					     struct mlx5_vport *vport)
+ {
+@@ -154,6 +185,7 @@ static void esw_acl_ingress_ofld_rules_destroy(struct mlx5_eswitch *esw,
+ {
+ 	esw_acl_ingress_allow_rule_destroy(vport);
+ 	esw_acl_ingress_mod_metadata_destroy(esw, vport);
++	esw_acl_ingress_src_port_drop_destroy(esw, vport);
+ }
+ 
+ static int esw_acl_ingress_ofld_groups_create(struct mlx5_eswitch *esw,
+@@ -170,10 +202,29 @@ static int esw_acl_ingress_ofld_groups_create(struct mlx5_eswitch *esw,
+ 	if (!flow_group_in)
+ 		return -ENOMEM;
+ 
++	if (vport->vport == MLX5_VPORT_UPLINK) {
++		/* This group can hold an FTE to drop all traffic.
++		 * Need in case LAG is enabled.
++		 */
++		MLX5_SET(create_flow_group_in, flow_group_in, start_flow_index, flow_index);
++		MLX5_SET(create_flow_group_in, flow_group_in, end_flow_index, flow_index);
++
++		g = mlx5_create_flow_group(vport->ingress.acl, flow_group_in);
++		if (IS_ERR(g)) {
++			ret = PTR_ERR(g);
++			esw_warn(esw->dev, "vport[%d] ingress create drop flow group, err(%d)\n",
++				 vport->vport, ret);
++			goto drop_err;
++		}
++		vport->ingress.offloads.drop_grp = g;
++		flow_index++;
++	}
++
+ 	if (esw_acl_ingress_prio_tag_enabled(esw, vport)) {
+ 		/* This group is to hold FTE to match untagged packets when prio_tag
+ 		 * is enabled.
+ 		 */
++		memset(flow_group_in, 0, inlen);
+ 		match_criteria = MLX5_ADDR_OF(create_flow_group_in,
+ 					      flow_group_in, match_criteria);
+ 		MLX5_SET(create_flow_group_in, flow_group_in,
+@@ -221,6 +272,11 @@ static int esw_acl_ingress_ofld_groups_create(struct mlx5_eswitch *esw,
+ 		vport->ingress.offloads.metadata_prio_tag_grp = NULL;
+ 	}
+ prio_tag_err:
++	if (!IS_ERR_OR_NULL(vport->ingress.offloads.drop_grp)) {
++		mlx5_destroy_flow_group(vport->ingress.offloads.drop_grp);
++		vport->ingress.offloads.drop_grp = NULL;
++	}
++drop_err:
+ 	kvfree(flow_group_in);
+ 	return ret;
+ }
+@@ -236,6 +292,11 @@ static void esw_acl_ingress_ofld_groups_destroy(struct mlx5_vport *vport)
+ 		mlx5_destroy_flow_group(vport->ingress.offloads.metadata_prio_tag_grp);
+ 		vport->ingress.offloads.metadata_prio_tag_grp = NULL;
+ 	}
++
++	if (vport->ingress.offloads.drop_grp) {
++		mlx5_destroy_flow_group(vport->ingress.offloads.drop_grp);
++		vport->ingress.offloads.drop_grp = NULL;
++	}
+ }
+ 
+ int esw_acl_ingress_ofld_setup(struct mlx5_eswitch *esw,
+@@ -252,6 +313,8 @@ int esw_acl_ingress_ofld_setup(struct mlx5_eswitch *esw,
+ 
+ 	if (mlx5_eswitch_vport_match_metadata_enabled(esw))
+ 		num_ftes++;
++	if (vport->vport == MLX5_VPORT_UPLINK)
++		num_ftes++;
+ 	if (esw_acl_ingress_prio_tag_enabled(esw, vport))
+ 		num_ftes++;
+ 
+@@ -320,3 +383,27 @@ int mlx5_esw_acl_ingress_vport_bond_update(struct mlx5_eswitch *esw, u16 vport_n
+ 	vport->metadata = vport->default_metadata;
+ 	return err;
+ }
++
++int mlx5_esw_acl_ingress_vport_drop_rule_create(struct mlx5_eswitch *esw, u16 vport_num)
++{
++	struct mlx5_vport *vport = mlx5_eswitch_get_vport(esw, vport_num);
++
++	if (IS_ERR(vport)) {
++		esw_warn(esw->dev, "vport(%d) invalid!\n", vport_num);
++		return PTR_ERR(vport);
++	}
++
++	return esw_acl_ingress_src_port_drop_create(esw, vport);
++}
++
++void mlx5_esw_acl_ingress_vport_drop_rule_destroy(struct mlx5_eswitch *esw, u16 vport_num)
++{
++	struct mlx5_vport *vport = mlx5_eswitch_get_vport(esw, vport_num);
++
++	if (WARN_ON_ONCE(IS_ERR(vport))) {
++		esw_warn(esw->dev, "vport(%d) invalid!\n", vport_num);
++		return;
++	}
++
++	esw_acl_ingress_src_port_drop_destroy(esw, vport);
++}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ofld.h b/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ofld.h
+index c57869b93d60..11d3d3978848 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ofld.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/ofld.h
+@@ -6,6 +6,7 @@
+ 
+ #include "eswitch.h"
+ 
++#ifdef CONFIG_MLX5_ESWITCH
+ /* Eswitch acl egress external APIs */
+ int esw_acl_egress_ofld_setup(struct mlx5_eswitch *esw, struct mlx5_vport *vport);
+ void esw_acl_egress_ofld_cleanup(struct mlx5_vport *vport);
+@@ -25,5 +26,19 @@ int esw_acl_ingress_ofld_setup(struct mlx5_eswitch *esw, struct mlx5_vport *vpor
+ void esw_acl_ingress_ofld_cleanup(struct mlx5_eswitch *esw, struct mlx5_vport *vport);
+ int mlx5_esw_acl_ingress_vport_bond_update(struct mlx5_eswitch *esw, u16 vport_num,
+ 					   u32 metadata);
++void mlx5_esw_acl_ingress_vport_drop_rule_destroy(struct mlx5_eswitch *esw, u16 vport_num);
++int mlx5_esw_acl_ingress_vport_drop_rule_create(struct mlx5_eswitch *esw, u16 vport_num);
+ 
++#else /* CONFIG_MLX5_ESWITCH */
++static void
++mlx5_esw_acl_ingress_vport_drop_rule_destroy(struct mlx5_eswitch *esw,
++					     u16 vport_num)
++{}
++
++static int mlx5_esw_acl_ingress_vport_drop_rule_create(struct mlx5_eswitch *esw,
++						       u16 vport_num)
++{
++	return 0;
++}
++#endif /* CONFIG_MLX5_ESWITCH */
+ #endif /* __MLX5_ESWITCH_ACL_OFLD_H__ */
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index ead5e8acc8be..1d01e6ee6ef1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -113,8 +113,11 @@ struct vport_ingress {
+ 		 * packet with metadata.
+ 		 */
+ 		struct mlx5_flow_group *metadata_allmatch_grp;
++		/* Optional group to add a drop all rule */
++		struct mlx5_flow_group *drop_grp;
+ 		struct mlx5_modify_hdr *modify_metadata;
+ 		struct mlx5_flow_handle *modify_metadata_rule;
++		struct mlx5_flow_handle *drop_rule;
+ 	} offloads;
+ };
+ 
 -- 
 2.35.1
 
