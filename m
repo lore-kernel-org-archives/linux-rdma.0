@@ -2,47 +2,47 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62BE1C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7744C433FE
 	for <linux-rdma@archiver.kernel.org>; Thu, 24 Feb 2022 02:24:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230128AbiBXCZQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 23 Feb 2022 21:25:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39480 "EHLO
+        id S230101AbiBXCZR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 23 Feb 2022 21:25:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230104AbiBXCZQ (ORCPT
+        with ESMTP id S230097AbiBXCZQ (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 23 Feb 2022 21:25:16 -0500
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8E1822C6FE
-        for <linux-rdma@vger.kernel.org>; Wed, 23 Feb 2022 18:24:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4785C22EDCB
+        for <linux-rdma@vger.kernel.org>; Wed, 23 Feb 2022 18:24:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645669487; x=1677205487;
+  t=1645669488; x=1677205488;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=2XBMnGbStjTg9/DSJhMMdw34aQ7TIH2KQZv+E1OlKyw=;
-  b=hVZFfvXzqK2vYMFulvA8vzqHuZi1LTNfz3gzbpOiKti3Caci/6Lzpwlo
-   aoutnNcOxE7L+Oajj9kv2M+UjuNpva+sX8UYMgyfAkOQ/IWa4YGr+aRY+
-   RFYHHqhxz5cs22jB8Cu7or8Le91M0bD2DkmnJ3prpgfUrMZ6sV5+37Jyk
-   NIhdIXbRfoYvhFI/L7uDRjzALope66mfXWFJ7zTAus8mjgsR8aq8xi+Fj
-   loCbjS4igW/4yUDxZxYnNruOni6u4V+LA1EUUoTkWRM7+k3Wt5spwPSMd
-   S6OzhEixh4HI2o7CUppjEZWFA27BJx2SCPp3nKFfI7MrY1Oa7jKmALuKR
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10267"; a="235627964"
+  bh=nqkk1InaaHwaH5hNQJzomPX5ODXVbcLVGUNbLKU1Xgw=;
+  b=WPp0PN8mM6Maj1kvTuHHCXC4DvbpDTKOh67C0/wdesOpd6wvP1+1TFeG
+   EAu77FtGJgE4vDAzohwnIqUXrMD/LweYpLWUBRNnMT/xOCvO5PivCjCJm
+   oQbw8Z4CoG4evoPyjNOe8+lBC/DVABh1I5iiZ4/nfpqqkvHR/LyPmXsnE
+   QbwvkeYzyafAjAvLKTI+GF6fSqg7tPB44kxTo/joVizRCQiHqqZlE2yWh
+   5acq2dAdKPu9sieREc79Wc5aNVpazVaYNOo6cRn4veXBwCrKHYe2wfdlB
+   MjbpJQuOEjaG+maYj6QMasfS2EHDkEETVAkVLzSDt+dmJxC75leyBaDJm
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10267"; a="235627972"
 X-IronPort-AV: E=Sophos;i="5.88,392,1635231600"; 
-   d="scan'208";a="235627964"
+   d="scan'208";a="235627972"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2022 16:58:51 -0800
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2022 16:58:52 -0800
 X-IronPort-AV: E=Sophos;i="5.88,392,1635231600"; 
-   d="scan'208";a="548513122"
+   d="scan'208";a="548513130"
 Received: from ssaleem-mobl.amr.corp.intel.com ([10.255.38.207])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2022 16:58:50 -0800
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2022 16:58:51 -0800
 From:   Shiraz Saleem <shiraz.saleem@intel.com>
 To:     jgg@nvidia.com, linux-rdma@vger.kernel.org
 Cc:     Mustafa Ismail <mustafa.ismail@intel.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH rdma-rc 1/3] RDMA/irdma: Fix netdev notifications for vlan's
-Date:   Wed, 23 Feb 2022 18:58:40 -0600
-Message-Id: <20220224005842.1707-2-shiraz.saleem@intel.com>
+Subject: [PATCH rdma-rc 3/3] RDMA/irdma: Remove incorrect masking of PD
+Date:   Wed, 23 Feb 2022 18:58:42 -0600
+Message-Id: <20220224005842.1707-4-shiraz.saleem@intel.com>
 X-Mailer: git-send-email 2.31.0
 In-Reply-To: <20220224005842.1707-1-shiraz.saleem@intel.com>
 References: <20220224005842.1707-1-shiraz.saleem@intel.com>
@@ -54,58 +54,39 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Currently, events on vlan netdevs are being ignored. Fix
-this by finding the real netdev and processing the
-notifications for vlan netdevs.
+The PD id is masked with 0x7fff, while PD can be 18 bits for GEN2 HW.
+Remove the masking as it should not be needed and can cause incorrect
+PD id to be used.
 
-Fixes: 915cc7ac0f8e ("RDMA/irdma: Add miscellaneous utility definitions")
+Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
 Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/utils.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/irdma/verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
-index 398736d..26407d8 100644
---- a/drivers/infiniband/hw/irdma/utils.c
-+++ b/drivers/infiniband/hw/irdma/utils.c
-@@ -155,6 +155,8 @@ int irdma_inetaddr_event(struct notifier_block *notifier, unsigned long event,
- 	struct ib_device *ibdev;
- 	u32 local_ipaddr;
- 
-+	if (is_vlan_dev(netdev))
-+		netdev = vlan_dev_real_dev(netdev);
- 	ibdev = ib_device_get_by_netdev(netdev, RDMA_DRIVER_IRDMA);
- 	if (!ibdev)
- 		return NOTIFY_DONE;
-@@ -201,6 +203,8 @@ int irdma_inet6addr_event(struct notifier_block *notifier, unsigned long event,
- 	struct ib_device *ibdev;
- 	u32 local_ipaddr6[4];
- 
-+	if (is_vlan_dev(netdev))
-+		netdev = vlan_dev_real_dev(netdev);
- 	ibdev = ib_device_get_by_netdev(netdev, RDMA_DRIVER_IRDMA);
- 	if (!ibdev)
- 		return NOTIFY_DONE;
-@@ -243,14 +247,16 @@ int irdma_net_event(struct notifier_block *notifier, unsigned long event,
- 		    void *ptr)
- {
- 	struct neighbour *neigh = ptr;
-+	struct net_device *netdev = (struct net_device *)neigh->dev;
- 	struct irdma_device *iwdev;
- 	struct ib_device *ibdev;
- 	__be32 *p;
- 	u32 local_ipaddr[4] = {};
- 	bool ipv4 = true;
- 
--	ibdev = ib_device_get_by_netdev((struct net_device *)neigh->dev,
--					RDMA_DRIVER_IRDMA);
-+	if (is_vlan_dev(netdev))
-+		netdev = vlan_dev_real_dev(netdev);
-+	ibdev = ib_device_get_by_netdev(netdev, RDMA_DRIVER_IRDMA);
- 	if (!ibdev)
- 		return NOTIFY_DONE;
- 
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 460e757..1bf6404 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -2509,7 +2509,7 @@ static int irdma_dealloc_mw(struct ib_mw *ibmw)
+ 	cqp_info = &cqp_request->info;
+ 	info = &cqp_info->in.u.dealloc_stag.info;
+ 	memset(info, 0, sizeof(*info));
+-	info->pd_id = iwpd->sc_pd.pd_id & 0x00007fff;
++	info->pd_id = iwpd->sc_pd.pd_id;
+ 	info->stag_idx = ibmw->rkey >> IRDMA_CQPSQ_STAG_IDX_S;
+ 	info->mr = false;
+ 	cqp_info->cqp_cmd = IRDMA_OP_DEALLOC_STAG;
+@@ -3021,7 +3021,7 @@ static int irdma_dereg_mr(struct ib_mr *ib_mr, struct ib_udata *udata)
+ 	cqp_info = &cqp_request->info;
+ 	info = &cqp_info->in.u.dealloc_stag.info;
+ 	memset(info, 0, sizeof(*info));
+-	info->pd_id = iwpd->sc_pd.pd_id & 0x00007fff;
++	info->pd_id = iwpd->sc_pd.pd_id;
+ 	info->stag_idx = ib_mr->rkey >> IRDMA_CQPSQ_STAG_IDX_S;
+ 	info->mr = true;
+ 	if (iwpbl->pbl_allocated)
 -- 
 1.8.3.1
 
