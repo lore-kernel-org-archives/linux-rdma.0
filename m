@@ -2,124 +2,78 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED9E6C433FE
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Feb 2022 16:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0D2BC433FE
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Feb 2022 16:45:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243029AbiBYQdk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 25 Feb 2022 11:33:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35904 "EHLO
+        id S237952AbiBYQpn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 25 Feb 2022 11:45:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243028AbiBYQdj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Feb 2022 11:33:39 -0500
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C70577DABE
-        for <linux-rdma@vger.kernel.org>; Fri, 25 Feb 2022 08:33:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645806785; x=1677342785;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=TDj4bdLIl2vCf4AE1laXwBcch8ZyPVdkvFeeIXkrZlQ=;
-  b=ZADxLJ7QtCQDamKJ/kbff7V9Y61lx6M8QPX7aFuTOrbzksPLUKedzIfq
-   gAyMSlekv4t9MjWWScO+SYz3SVARvMBe7neFBwv7X/I9QMEMuG9w/MlMJ
-   +PljAU0YIF746myJRjFbDLEkRliLIwa+877K/y95b0a27oboO5JeYkhqh
-   HtOaEcj5TRJN9VjnDUSINfw0Mamo1a3iDPL34609MaDDT194NECc7tX3v
-   rMC5CXOWuJQz932N2fZI0l1QpD4Edl0czOnKZLOZ2iqjFY7ty5oylXn6l
-   byqqMrK1x8aqDbkOQkDw9DiA3yVYBiBKWu9b2tkxlJ7RYjPi0/4+tEI2h
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10268"; a="315744251"
-X-IronPort-AV: E=Sophos;i="5.90,136,1643702400"; 
-   d="scan'208";a="315744251"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Feb 2022 08:33:02 -0800
-X-IronPort-AV: E=Sophos;i="5.90,136,1643702400"; 
-   d="scan'208";a="549321879"
-Received: from ssaleem-mobl.amr.corp.intel.com ([10.255.32.70])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Feb 2022 08:33:02 -0800
-From:   Shiraz Saleem <shiraz.saleem@intel.com>
-To:     jgg@nvidia.com, linux-rdma@vger.kernel.org
-Cc:     Mustafa Ismail <mustafa.ismail@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH rdma-rc v1 2/3] RDMA/irdma: Fix Passthrough mode in VM
-Date:   Fri, 25 Feb 2022 10:32:10 -0600
-Message-Id: <20220225163211.127-3-shiraz.saleem@intel.com>
-X-Mailer: git-send-email 2.31.0
-In-Reply-To: <20220225163211.127-1-shiraz.saleem@intel.com>
-References: <20220225163211.127-1-shiraz.saleem@intel.com>
+        with ESMTP id S229922AbiBYQpn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Feb 2022 11:45:43 -0500
+Received: from out30-44.freemail.mail.aliyun.com (out30-44.freemail.mail.aliyun.com [115.124.30.44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F1A91F9829;
+        Fri, 25 Feb 2022 08:45:09 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R171e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0V5Tsmgd_1645807506;
+Received: from 30.15.226.221(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V5Tsmgd_1645807506)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Sat, 26 Feb 2022 00:45:07 +0800
+Message-ID: <45837d14-7895-4aff-43a3-a5ad6ef80c2d@linux.alibaba.com>
+Date:   Sat, 26 Feb 2022 00:45:06 +0800
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.5.1
+Subject: Re: [PATCH net] net/smc: fix unexpected SMC_CLC_DECL_ERR_REGRMB error
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+To:     kgraul@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <1645776708-66113-1-git-send-email-alibuda@linux.alibaba.com>
+In-Reply-To: <1645776708-66113-1-git-send-email-alibuda@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Using PCI_FUNC macro in a VM, when the device is in passthrough
-mode does not provide the real function instance. This means that
-currently, devices will not probe unless the instance in the VM
-matches the instance in the host.
 
-Fix this by getting the pf_id from the LAN during the probe.
+在 2022/2/25 下午4:11, D. Wythe 写道:
+> From: "D. Wythe" <alibuda@linux.alibaba.com>
+> 
+> Remove connections from link group is not synchronous with handling
+> SMC_LLC_DELETE_RKEY, which means that even the number of connections is
+> less that SMC_RMBS_PER_LGR_MAX, it does not mean that the connection can
+> register rtoken successfully later, in other words, the rtoken entry may
+> have not been released. This will cause an unexpected
+> SMC_CLC_DECL_ERR_REGRMB to be reported, and then ths smc connection have
+> to fallback to TCP.
+> 
+> Therefore, we need to judge according to the number of idle rtoken
+> entry.
+> 
+> Fixes: cd6851f30386 ("smc: remote memory buffers (RMBs)")
+> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> ---
+>   net/smc/smc_core.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 29525d0..24ef0af 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -1864,7 +1864,8 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
+>   		    (ini->smcd_version == SMC_V2 ||
+>   		     lgr->vlan_id == ini->vlan_id) &&
+>   		    (role == SMC_CLNT || ini->is_smcd ||
+> -		     lgr->conns_num < SMC_RMBS_PER_LGR_MAX)) {
+> +		     lgr->conns_num < SMC_RMBS_PER_LGR_MAX -
+> +		     bitmap_weight(lgr->rtokens_used_mask, SMC_RMBS_PER_LGR_MAX))) {
+>   			/* link group found */
+>   			ini->first_contact_local = 0;
+>   			conn->lgr = lgr;
 
-Fixes: 8498a30e1b94 ("RDMA/irdma: Register auxiliary driver and implement private channel OPs")
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
----
- drivers/infiniband/hw/irdma/hw.c       | 2 +-
- drivers/infiniband/hw/irdma/i40iw_if.c | 1 +
- drivers/infiniband/hw/irdma/main.c     | 1 +
- drivers/infiniband/hw/irdma/main.h     | 1 +
- 4 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/irdma/hw.c b/drivers/infiniband/hw/irdma/hw.c
-index 89234d0..e46e324 100644
---- a/drivers/infiniband/hw/irdma/hw.c
-+++ b/drivers/infiniband/hw/irdma/hw.c
-@@ -1608,7 +1608,7 @@ static enum irdma_status_code irdma_initialize_dev(struct irdma_pci_f *rf)
- 	info.fpm_commit_buf = mem.va;
- 
- 	info.bar0 = rf->hw.hw_addr;
--	info.hmc_fn_id = PCI_FUNC(rf->pcidev->devfn);
-+	info.hmc_fn_id = rf->pf_id;
- 	info.hw = &rf->hw;
- 	status = irdma_sc_dev_init(rf->rdma_ver, &rf->sc_dev, &info);
- 	if (status)
-diff --git a/drivers/infiniband/hw/irdma/i40iw_if.c b/drivers/infiniband/hw/irdma/i40iw_if.c
-index 43e962b..0886783 100644
---- a/drivers/infiniband/hw/irdma/i40iw_if.c
-+++ b/drivers/infiniband/hw/irdma/i40iw_if.c
-@@ -77,6 +77,7 @@ static void i40iw_fill_device_info(struct irdma_device *iwdev, struct i40e_info
- 	rf->rdma_ver = IRDMA_GEN_1;
- 	rf->gen_ops.request_reset = i40iw_request_reset;
- 	rf->pcidev = cdev_info->pcidev;
-+	rf->pf_id = cdev_info->fid;
- 	rf->hw.hw_addr = cdev_info->hw_addr;
- 	rf->cdev = cdev_info;
- 	rf->msix_count = cdev_info->msix_count;
-diff --git a/drivers/infiniband/hw/irdma/main.c b/drivers/infiniband/hw/irdma/main.c
-index 9fab290..5e8e886 100644
---- a/drivers/infiniband/hw/irdma/main.c
-+++ b/drivers/infiniband/hw/irdma/main.c
-@@ -226,6 +226,7 @@ static void irdma_fill_device_info(struct irdma_device *iwdev, struct ice_pf *pf
- 	rf->hw.hw_addr = pf->hw.hw_addr;
- 	rf->pcidev = pf->pdev;
- 	rf->msix_count =  pf->num_rdma_msix;
-+	rf->pf_id = pf->hw.pf_id;
- 	rf->msix_entries = &pf->msix_entries[pf->rdma_base_vector];
- 	rf->default_vsi.vsi_idx = vsi->vsi_num;
- 	rf->protocol_used = pf->rdma_mode & IIDC_RDMA_PROTOCOL_ROCEV2 ?
-diff --git a/drivers/infiniband/hw/irdma/main.h b/drivers/infiniband/hw/irdma/main.h
-index cb218ca..fb7faa8 100644
---- a/drivers/infiniband/hw/irdma/main.h
-+++ b/drivers/infiniband/hw/irdma/main.h
-@@ -257,6 +257,7 @@ struct irdma_pci_f {
- 	u8 *mem_rsrc;
- 	u8 rdma_ver;
- 	u8 rst_to;
-+	u8 pf_id;
- 	enum irdma_protocol_used protocol_used;
- 	u32 sd_type;
- 	u32 msix_count;
--- 
-1.8.3.1
+I did a horrible math here, i'll send another fix later.
 
+Best wishes.
