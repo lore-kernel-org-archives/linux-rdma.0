@@ -2,291 +2,143 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB376C433FE
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Feb 2022 11:26:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0407CC433FE
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Feb 2022 12:14:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239165AbiBYL1Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 25 Feb 2022 06:27:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51342 "EHLO
+        id S237700AbiBYMOy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 25 Feb 2022 07:14:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240129AbiBYL1O (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Feb 2022 06:27:14 -0500
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58F711E4823
-        for <linux-rdma@vger.kernel.org>; Fri, 25 Feb 2022 03:26:25 -0800 (PST)
-Received: from dggpeml500022.china.huawei.com (unknown [172.30.72.54])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4K4nR15Lj2z1FDZd;
-        Fri, 25 Feb 2022 19:21:33 +0800 (CST)
-Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500022.china.huawei.com (7.185.36.66) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Fri, 25 Feb 2022 19:26:07 +0800
-Received: from localhost.localdomain (10.69.192.56) by
- dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Fri, 25 Feb 2022 19:26:06 +0800
-From:   Wenpeng Liang <liangwenpeng@huawei.com>
-To:     <jgg@nvidia.com>, <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <liangwenpeng@huawei.com>
-Subject: [PATCH v2 for-next 6/9] RDMA/hns: Remove similar code that configures the hardware contexts
-Date:   Fri, 25 Feb 2022 19:25:56 +0800
-Message-ID: <20220225112559.43300-7-liangwenpeng@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20220225112559.43300-1-liangwenpeng@huawei.com>
-References: <20220225112559.43300-1-liangwenpeng@huawei.com>
+        with ESMTP id S233595AbiBYMOx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Feb 2022 07:14:53 -0500
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam08on2042.outbound.protection.outlook.com [40.107.101.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00265227599;
+        Fri, 25 Feb 2022 04:14:21 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=CLEFxdqeaRMHnm+/j3ASB8I+djVOHk1wqe4XnQ4qXyM/+0RtL2PNHP0nXGzQeE31Eb19KcmKCm9vVY6+KibK2FFnIPDL1ctDepD6Z9bDqci0RyiFYd7Bg/LmgIb7Ya9fQm0zNsOKYZzy37BXlGtX2Wf5hvmpd78vsZ1z0JC50MkLRZSUYNqQyph/+nhteySgqReaxOJnmhLFGAjaY6yYZW/ZPwb1M3dx1MmL0ccXONrnsEWLdHeDi7uk9NHGDxbnYQxvVKra+nXpKn+ABynqOAvE7t76hRy76O9ExruZ/2D1vZCP7bm48O8T6i2SLqKToAlwc8tKhWfGd3pqQF0ivw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=6OzXSx+Z74xY2ySQkA2ihNHE/3T++lRqkfg95wBGb4Y=;
+ b=LWSNtBHGrkrVY2Ao4VMhWwCEXE2uEga6vclBDSIv9u5402aY4RIeTUIM7WMEJ/3JpragmfA1hnrTsNe9IHmH+oUKoo0yhtBtRXulTfT57WONrGv7U2O9zHP/0yLgjepBffRpc38eEp8cJP2rOizkNP6mQRMexW4X/QfOJP07HEZpGKlOagnfloKur0F/MJZgHKqDujt86JN3Nz1eckL1FzDVznM0HB3q+yOuZmPvL46eOX2/ZRxAk2GH51JAOkaZMifzRgs2lViFXPqPvezlGYiu2StUcREtfDxcpa/O0T5WHXLXDnxVZiL0elwkxnuowiTUGpt4UQ/K4tP2Pmo6dA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 12.22.5.235) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6OzXSx+Z74xY2ySQkA2ihNHE/3T++lRqkfg95wBGb4Y=;
+ b=gXKoKDdauDitSLghwcuhil+tW/igqAf2vwsR3x0G11OzIMkXqKPmWYZda7z3EIyK/b4yDdy9fNWOCHqvNZlsOQMlbN0cnE+qoav+6I0Ajn22dIbkKcVHMbzP+XduH1/wTneEgtJoSfU8zJALhlHUmiVVRWWfcjbKb7YUqauD7UuTSqjnzQTfCLjGpqJ6cwc8K9ykrC5vwsKS++steqelq4SE/AAGhRQswOF6WZU+XPylZP1bwslS7Q682uPTRK/bbjezQl2DPsIm2LS68spUP3qMI+K283S+UDfyIMWMYITNI/zCigFSZwK7HXHyQ9Lwmh9zxFUaK96WchEfLdC08A==
+Received: from BN9PR03CA0568.namprd03.prod.outlook.com (2603:10b6:408:138::33)
+ by DM5PR12MB2453.namprd12.prod.outlook.com (2603:10b6:4:b5::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.22; Fri, 25 Feb
+ 2022 12:14:20 +0000
+Received: from BN8NAM11FT025.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:138:cafe::1e) by BN9PR03CA0568.outlook.office365.com
+ (2603:10b6:408:138::33) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.21 via Frontend
+ Transport; Fri, 25 Feb 2022 12:14:20 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.235)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 12.22.5.235 as permitted sender) receiver=protection.outlook.com;
+ client-ip=12.22.5.235; helo=mail.nvidia.com;
+Received: from mail.nvidia.com (12.22.5.235) by
+ BN8NAM11FT025.mail.protection.outlook.com (10.13.177.136) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.20.5017.24 via Frontend Transport; Fri, 25 Feb 2022 12:14:20 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by DRHQMAIL107.nvidia.com
+ (10.27.9.16) with Microsoft SMTP Server (TLS) id 15.0.1497.18; Fri, 25 Feb
+ 2022 12:14:19 +0000
+Received: from [172.27.0.43] (10.126.231.35) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.9; Fri, 25 Feb 2022
+ 04:14:15 -0800
+Message-ID: <331ea6e1-a8cb-3076-0dc8-385c53ab379c@nvidia.com>
+Date:   Fri, 25 Feb 2022 14:14:12 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.69.192.56]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- dggpeml500017.china.huawei.com (7.185.36.243)
-X-CFilter-Loop: Reflected
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101
+ Thunderbird/98.0
+Subject: Re: [PATCH] net/mlx5e: Fix return of a kfree'd object instead of NULL
+Content-Language: en-US
+To:     Colin Ian King <colin.i.king@gmail.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>
+CC:     <kernel-janitors@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <llvm@lists.linux.dev>
+References: <20220224221525.147744-1-colin.i.king@gmail.com>
+From:   Roi Dayan <roid@nvidia.com>
+In-Reply-To: <20220224221525.147744-1-colin.i.king@gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.126.231.35]
+X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 5cb795d4-80d6-4897-40eb-08d9f8585a2a
+X-MS-TrafficTypeDiagnostic: DM5PR12MB2453:EE_
+X-Microsoft-Antispam-PRVS: <DM5PR12MB2453B5B585EB5E4EC333A0BAB83E9@DM5PR12MB2453.namprd12.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: DIlY03ZnQVFsIXLlB/e+qEvws4sQogHi1TfX2uuScy0NVYEKdVSef4765RtBaXeu9PaJniT7f7QJ9tauLfT3adV5ZzO/T5pt4OqpzgPFn/aJXCT8VTCRV6OaSxKTecPb9V2yOHZF74T1/I5z3VzdfqCuqXrgydtHQHHFioEcOQWxWiyYr5Wcy/Ae89XnpZ7eoX2BDIDT88XXSag08gXB/XTS0+0TaNyuPP9475cZU7MPC1BxFK/tDHG+NbXqxLtgu6kuMUSLlPXVMyVOuy3FwQLO5ec0xtT9mUuR0G5F/K/2/Ky23fN1U+Pb1rBGZdWakk2zJqXKgczYpFT9X3qr0cVdgCQsTyN8DdphnjLGXbf8QZPaYPCvSNInZvl2TH160KexC+2csW/k7xlxKSeMwnAuO/bwvqK5WxHxroBVzlPN6SnAULYcrAwd39iC89zHJVYHWUl6aBRZmQad+LnuWXNzKML58Yo/hXEho4uq9Cza9HID8JvUuafSeMiK+yu59EhBo9aux7FXksNFCAHvX9iTtH/bRxovnWtAxlccIUu38+dMzt+9eRTuuqVdPJeRWXqzs4Bg0jUT9xaW13Kuui1+jSP0JTM5QqBn3We2km6EYCWLGIT3Q1WB100qUJgNDpCzohqAe+vFpoRlKg/moErXGWuFp0ZfadN19B1ZnuuPZXyOTo8KhykpjCeo9PYG4anmzbM8pFALivVTPW6ObV9GvbU4pQIE7n9FOqL9Ah2v3kTk7UQUm+hkZYW0fB5Yvbx8TpBXWePruc5kI8w7cw==
+X-Forefront-Antispam-Report: CIP:12.22.5.235;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(46966006)(40470700004)(36840700001)(81166007)(36860700001)(26005)(82310400004)(356005)(186003)(2616005)(426003)(336012)(16526019)(83380400001)(8936002)(36756003)(31686004)(316002)(2906002)(70206006)(70586007)(4326008)(47076005)(8676002)(86362001)(6666004)(54906003)(110136005)(31696002)(40460700003)(16576012)(5660300002)(53546011)(508600001)(7416002)(2101003)(43740500002)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Feb 2022 12:14:20.1446
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5cb795d4-80d6-4897-40eb-08d9f8585a2a
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.235];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: BN8NAM11FT025.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB2453
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Chengchang Tang <tangchengchang@huawei.com>
 
-Remove duplicate code for creating and destroying hardware contexts via
-mailbox.
 
-Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/hns/hns_roce_cmd.c    | 12 +++++++++
- drivers/infiniband/hw/hns/hns_roce_cmd.h    |  5 ++++
- drivers/infiniband/hw/hns/hns_roce_cq.c     |  8 +++---
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 --
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  4 +--
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 29 ++++++---------------
- drivers/infiniband/hw/hns/hns_roce_srq.c    | 20 +++-----------
- 7 files changed, 35 insertions(+), 45 deletions(-)
+On 2022-02-25 12:15 AM, Colin Ian King wrote:
+> Currently in the case where parse_attr fails to be allocated the memory
+> pointed to by attr2 is kfree'd but the non-null pointer attr2 is returned
+> and a potential use of a kfree'd object can occur.  Fix this by returning
+> NULL to indicate a memory allocation error.
+> 
+> Addresses issue found by clang-scan:
+> drivers/net/ethernet/mellanox/mlx5/core/en_tc.c:3401:3: warning: Use of
+> memory after it is freed [unix.Malloc]
+> 
+> Fixes: 8300f225268b ("net/mlx5e: Create new flow attr for multi table actions")
+> Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+> ---
+>   drivers/net/ethernet/mellanox/mlx5/core/en_tc.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> index 76a015dfc5fc..c0776a4a3845 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+> @@ -3398,7 +3398,7 @@ mlx5e_clone_flow_attr_for_post_act(struct mlx5_flow_attr *attr,
+>   	if (!attr2 || !parse_attr) {
+>   		kvfree(parse_attr);
+>   		kfree(attr2);
+> -		return attr2;
+> +		return NULL;
+>   	}
+>   
+>   	memcpy(attr2, attr, attr_sz);
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index 7e37066b272d..864413607571 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -262,3 +262,15 @@ void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
- 	dma_pool_free(hr_dev->cmd.pool, mailbox->buf, mailbox->dma);
- 	kfree(mailbox);
- }
-+
-+int hns_roce_create_hw_ctx(struct hns_roce_dev *dev,
-+			   struct hns_roce_cmd_mailbox *mailbox,
-+			   u8 cmd, unsigned long idx)
-+{
-+	return hns_roce_cmd_mbox(dev, mailbox->dma, 0, cmd, idx);
-+}
-+
-+int hns_roce_destroy_hw_ctx(struct hns_roce_dev *dev, u8 cmd, unsigned long idx)
-+{
-+	return hns_roce_cmd_mbox(dev, 0, 0, cmd, idx);
-+}
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.h b/drivers/infiniband/hw/hns/hns_roce_cmd.h
-index 759da8981c71..052a3d60905a 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.h
-@@ -146,5 +146,10 @@ struct hns_roce_cmd_mailbox *
- hns_roce_alloc_cmd_mailbox(struct hns_roce_dev *hr_dev);
- void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_cmd_mailbox *mailbox);
-+int hns_roce_create_hw_ctx(struct hns_roce_dev *dev,
-+			   struct hns_roce_cmd_mailbox *mailbox,
-+			   u8 cmd, unsigned long idx);
-+int hns_roce_destroy_hw_ctx(struct hns_roce_dev *dev, u8 cmd,
-+			    unsigned long idx);
- 
- #endif /* _HNS_ROCE_CMD_H */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index a335fa8481a5..3d10300cab85 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -139,8 +139,8 @@ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- 
- 	hr_dev->hw->write_cqc(hr_dev, hr_cq, mailbox->buf, mtts, dma_handle);
- 
--	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0,
--				HNS_ROCE_CMD_CREATE_CQC, hr_cq->cqn);
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_CQC,
-+				     hr_cq->cqn);
- 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
- 	if (ret) {
- 		ibdev_err(ibdev,
-@@ -173,8 +173,8 @@ static void free_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- 	struct device *dev = hr_dev->dev;
- 	int ret;
- 
--	ret = hns_roce_cmd_mbox(hr_dev, 0, 0, HNS_ROCE_CMD_DESTROY_CQC,
--				hr_cq->cqn);
-+	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_CQC,
-+				      hr_cq->cqn);
- 	if (ret)
- 		dev_err(dev, "DESTROY_CQ failed (%d) for CQN %06lx\n", ret,
- 			hr_cq->cqn);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 5e4a3536c41b..21182ec56f18 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -1152,8 +1152,6 @@ struct ib_mr *hns_roce_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
- int hns_roce_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
- 		       unsigned int *sg_offset);
- int hns_roce_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata);
--int hns_roce_hw_destroy_mpt(struct hns_roce_dev *hr_dev,
--			    unsigned long mpt_index);
- unsigned long key_to_hw_index(u32 key);
- 
- int hns_roce_alloc_mw(struct ib_mw *mw, struct ib_udata *udata);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 55c49d358f76..631f6e233492 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5868,7 +5868,7 @@ static void hns_roce_v2_destroy_eqc(struct hns_roce_dev *hr_dev, u32 eqn)
- 	else
- 		cmd = HNS_ROCE_CMD_DESTROY_AEQC;
- 
--	ret = hns_roce_cmd_mbox(hr_dev, 0, 0, cmd, eqn & HNS_ROCE_V2_EQN_M);
-+	ret = hns_roce_destroy_hw_ctx(hr_dev, cmd, eqn & HNS_ROCE_V2_EQN_M);
- 	if (ret)
- 		dev_err(dev, "[mailbox cmd] destroy eqc(%u) failed.\n", eqn);
- }
-@@ -5992,7 +5992,7 @@ static int hns_roce_v2_create_eq(struct hns_roce_dev *hr_dev,
- 	if (ret)
- 		goto err_cmd_mbox;
- 
--	ret = hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0, eq_cmd, eq->eqn);
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, eq_cmd, eq->eqn);
- 	if (ret) {
- 		dev_err(hr_dev->dev, "[mailbox cmd] create eqc failed.\n");
- 		goto err_cmd_mbox;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 22ff78a5a1a7..39de862666d7 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -47,21 +47,6 @@ unsigned long key_to_hw_index(u32 key)
- 	return (key << 24) | (key >> 8);
- }
- 
--static int hns_roce_hw_create_mpt(struct hns_roce_dev *hr_dev,
--				  struct hns_roce_cmd_mailbox *mailbox,
--				  unsigned long mpt_index)
--{
--	return hns_roce_cmd_mbox(hr_dev, mailbox->dma, 0,
--				 HNS_ROCE_CMD_CREATE_MPT, mpt_index);
--}
--
--int hns_roce_hw_destroy_mpt(struct hns_roce_dev *hr_dev,
--			    unsigned long mpt_index)
--{
--	return hns_roce_cmd_mbox(hr_dev, 0, 0, HNS_ROCE_CMD_DESTROY_MPT,
--				 mpt_index);
--}
--
- static int alloc_mr_key(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
- {
- 	struct hns_roce_ida *mtpt_ida = &hr_dev->mr_table.mtpt_ida;
-@@ -141,7 +126,7 @@ static void hns_roce_mr_free(struct hns_roce_dev *hr_dev,
- 	int ret;
- 
- 	if (mr->enabled) {
--		ret = hns_roce_hw_destroy_mpt(hr_dev,
-+		ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_MPT,
- 					      key_to_hw_index(mr->key) &
- 					      (hr_dev->caps.num_mtpts - 1));
- 		if (ret)
-@@ -177,7 +162,7 @@ static int hns_roce_mr_enable(struct hns_roce_dev *hr_dev,
- 		goto err_page;
- 	}
- 
--	ret = hns_roce_hw_create_mpt(hr_dev, mailbox,
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_MPT,
- 				     mtpt_idx & (hr_dev->caps.num_mtpts - 1));
- 	if (ret) {
- 		dev_err(dev, "failed to create mpt, ret = %d.\n", ret);
-@@ -306,7 +291,8 @@ struct ib_mr *hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start,
- 	if (ret)
- 		goto free_cmd_mbox;
- 
--	ret = hns_roce_hw_destroy_mpt(hr_dev, mtpt_idx);
-+	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_MPT,
-+				      mtpt_idx);
- 	if (ret)
- 		ibdev_warn(ib_dev, "failed to destroy MPT, ret = %d.\n", ret);
- 
-@@ -336,7 +322,8 @@ struct ib_mr *hns_roce_rereg_user_mr(struct ib_mr *ibmr, int flags, u64 start,
- 		goto free_cmd_mbox;
- 	}
- 
--	ret = hns_roce_hw_create_mpt(hr_dev, mailbox, mtpt_idx);
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_MPT,
-+				     mtpt_idx);
- 	if (ret) {
- 		ibdev_err(ib_dev, "failed to create MPT, ret = %d.\n", ret);
- 		goto free_cmd_mbox;
-@@ -477,7 +464,7 @@ static void hns_roce_mw_free(struct hns_roce_dev *hr_dev,
- 	int ret;
- 
- 	if (mw->enabled) {
--		ret = hns_roce_hw_destroy_mpt(hr_dev,
-+		ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_MPT,
- 					      key_to_hw_index(mw->rkey) &
- 					      (hr_dev->caps.num_mtpts - 1));
- 		if (ret)
-@@ -517,7 +504,7 @@ static int hns_roce_mw_enable(struct hns_roce_dev *hr_dev,
- 		goto err_page;
- 	}
- 
--	ret = hns_roce_hw_create_mpt(hr_dev, mailbox,
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_MPT,
- 				     mtpt_idx & (hr_dev->caps.num_mtpts - 1));
- 	if (ret) {
- 		dev_err(dev, "MW CREATE_MPT failed (%d)\n", ret);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
-index f270563aca97..e316276e18c2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_srq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
-@@ -59,20 +59,6 @@ static void hns_roce_ib_srq_event(struct hns_roce_srq *srq,
- 	}
- }
- 
--static int hns_roce_hw_create_srq(struct hns_roce_dev *dev,
--				  struct hns_roce_cmd_mailbox *mailbox,
--				  unsigned long srq_num)
--{
--	return hns_roce_cmd_mbox(dev, mailbox->dma, 0, HNS_ROCE_CMD_CREATE_SRQ,
--				 srq_num);
--}
--
--static int hns_roce_hw_destroy_srq(struct hns_roce_dev *dev,
--				   unsigned long srq_num)
--{
--	return hns_roce_cmd_mbox(dev, 0, 0, HNS_ROCE_CMD_DESTROY_SRQ, srq_num);
--}
--
- static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
- {
- 	struct hns_roce_srq_table *srq_table = &hr_dev->srq_table;
-@@ -115,7 +101,8 @@ static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
- 		goto err_mbox;
- 	}
- 
--	ret = hns_roce_hw_create_srq(hr_dev, mailbox, srq->srqn);
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_SRQ,
-+				     srq->srqn);
- 	if (ret) {
- 		ibdev_err(ibdev, "failed to config SRQC, ret = %d.\n", ret);
- 		goto err_mbox;
-@@ -142,7 +129,8 @@ static void free_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
- 	struct hns_roce_srq_table *srq_table = &hr_dev->srq_table;
- 	int ret;
- 
--	ret = hns_roce_hw_destroy_srq(hr_dev, srq->srqn);
-+	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_SRQ,
-+				      srq->srqn);
- 	if (ret)
- 		dev_err(hr_dev->dev, "DESTROY_SRQ failed (%d) for SRQN %06lx\n",
- 			ret, srq->srqn);
--- 
-2.33.0
 
+thanks!
+
+Reviewed-by: Roi Dayan <roid@nvidia.com>
