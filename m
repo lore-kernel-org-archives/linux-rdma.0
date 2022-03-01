@@ -2,293 +2,232 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE66C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Mar 2022 09:35:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A055CC433FE
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Mar 2022 09:44:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231801AbiCAJfy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Mar 2022 04:35:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58646 "EHLO
+        id S233465AbiCAJou (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Mar 2022 04:44:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229720AbiCAJfx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Mar 2022 04:35:53 -0500
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4790BC1B
-        for <linux-rdma@vger.kernel.org>; Tue,  1 Mar 2022 01:35:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646127312; x=1677663312;
-  h=date:from:to:cc:subject:message-id:mime-version:
-   content-transfer-encoding;
-  bh=CY222U6cJcdryxzuzpNnTiKuURohUmX4MuYegXSm0LE=;
-  b=F8YffJqlXN4sukZAh4JTMYfUyb6VnxaS4FSKkztpreuEVLbz997eb0t9
-   Nsk8k6/rwfU64GTOVpm9K4CfDph4VFwEyJWGyJBSB5PWN9SqURKq+oHSB
-   e3XjQzd8cCfKIAkDwNt1RVE1rJ2O7tu4NGRYDKg7f50i8NMeIhkdye+af
-   MD+Fg0od6FSzwBSuLL5uErlSlDZsupdY8/oiOeBC4K2HJMvC3p6tbdKtD
-   v2l5yJipxRVNWq2I00MYQfuCtZrV8V425miiczIEKWJH6hNIEUwQ9dYZu
-   GBoVmtxG+NRxDkt15rH+bMXNUNtrY+Mv91V4Ni0ht8fwMflxAWXMnN2RU
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10272"; a="233068332"
-X-IronPort-AV: E=Sophos;i="5.90,145,1643702400"; 
-   d="scan'208";a="233068332"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Mar 2022 01:35:12 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.90,145,1643702400"; 
-   d="scan'208";a="593536533"
-Received: from lkp-server01.sh.intel.com (HELO 2146afe809fb) ([10.239.97.150])
-  by fmsmga008.fm.intel.com with ESMTP; 01 Mar 2022 01:35:09 -0800
-Received: from kbuild by 2146afe809fb with local (Exim 4.92)
-        (envelope-from <lkp@intel.com>)
-        id 1nOyuS-0000FA-Hf; Tue, 01 Mar 2022 09:35:08 +0000
-Date:   Tue, 01 Mar 2022 17:34:14 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-next] BUILD SUCCESS
- a80501b89152adb29adc7ab943d75c7345f9a3fb
-Message-ID: <621de896.krVZ7SknaButOFyA%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        with ESMTP id S232098AbiCAJot (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Mar 2022 04:44:49 -0500
+Received: from out30-42.freemail.mail.aliyun.com (out30-42.freemail.mail.aliyun.com [115.124.30.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFAA73B01E;
+        Tue,  1 Mar 2022 01:44:07 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R821e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V5vuqVq_1646127844;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0V5vuqVq_1646127844)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Tue, 01 Mar 2022 17:44:05 +0800
+From:   Dust Li <dust.li@linux.alibaba.com>
+To:     Karsten Graul <kgraul@linux.ibm.com>,
+        Tony Lu <tonylu@linux.alibaba.com>,
+        Guangguan Wang <guangguan.wang@linux.alibaba.com>
+Cc:     davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: [PATCH net-next 1/7] net/smc: add sysctl interface for SMC
+Date:   Tue,  1 Mar 2022 17:43:56 +0800
+Message-Id: <20220301094402.14992-2-dust.li@linux.alibaba.com>
+X-Mailer: git-send-email 2.19.1.3.ge56e4f7
+In-Reply-To: <20220301094402.14992-1-dust.li@linux.alibaba.com>
+References: <20220301094402.14992-1-dust.li@linux.alibaba.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-next
-branch HEAD: a80501b89152adb29adc7ab943d75c7345f9a3fb  RDMA/core: Remove unnecessary statements
+This patch add sysctl interface to support container environment
+for SMC as we talk in the mail list.
 
-elapsed time: 729m
-
-configs tested: 216
-configs skipped: 4
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm                                 defconfig
-arm64                            allyesconfig
-arm64                               defconfig
-arm                              allyesconfig
-arm                              allmodconfig
-i386                          randconfig-c001
-i386                 randconfig-c001-20220228
-arc                        vdk_hs38_defconfig
-powerpc                      pasemi_defconfig
-m68k                       m5249evb_defconfig
-arm                            lart_defconfig
-arm                         assabet_defconfig
-arm                          simpad_defconfig
-sh                           se7780_defconfig
-arc                 nsimosci_hs_smp_defconfig
-parisc                              defconfig
-mips                             allyesconfig
-powerpc                        cell_defconfig
-s390                                defconfig
-h8300                       h8s-sim_defconfig
-nios2                         10m50_defconfig
-mips                           jazz_defconfig
-mips                         db1xxx_defconfig
-sh                ecovec24-romimage_defconfig
-m68k                            mac_defconfig
-sh                     sh7710voipgw_defconfig
-m68k                        m5407c3_defconfig
-sh                              ul2_defconfig
-sh                            migor_defconfig
-powerpc                      tqm8xx_defconfig
-xtensa                    xip_kc705_defconfig
-nds32                               defconfig
-mips                     loongson1b_defconfig
-powerpc                     tqm8548_defconfig
-sh                        sh7757lcr_defconfig
-powerpc                      bamboo_defconfig
-arm                        keystone_defconfig
-arc                        nsim_700_defconfig
-mips                            gpr_defconfig
-arm                       omap2plus_defconfig
-powerpc                     tqm8555_defconfig
-mips                         mpc30x_defconfig
-arm                        cerfcube_defconfig
-mips                       bmips_be_defconfig
-mips                         rt305x_defconfig
-sh                          rsk7269_defconfig
-sh                        sh7785lcr_defconfig
-sh                         ecovec24_defconfig
-arm                        multi_v7_defconfig
-sh                          landisk_defconfig
-sh                          r7785rp_defconfig
-arc                            hsdk_defconfig
-sh                          r7780mp_defconfig
-sh                           se7724_defconfig
-sh                          sdk7780_defconfig
-arm                            pleb_defconfig
-microblaze                      mmu_defconfig
-arm                          pxa3xx_defconfig
-m68k                        m5307c3_defconfig
-m68k                          multi_defconfig
-powerpc                     redwood_defconfig
-parisc                generic-64bit_defconfig
-mips                          rb532_defconfig
-um                               alldefconfig
-sh                        edosk7705_defconfig
-sh                                  defconfig
-powerpc                   motionpro_defconfig
-sh                               alldefconfig
-um                           x86_64_defconfig
-s390                       zfcpdump_defconfig
-powerpc                     taishan_defconfig
-openrisc                    or1ksim_defconfig
-arm                         axm55xx_defconfig
-powerpc                     sequoia_defconfig
-m68k                       m5275evb_defconfig
-arm                        mini2440_defconfig
-sparc64                          alldefconfig
-sh                           se7619_defconfig
-powerpc                      ppc6xx_defconfig
-arc                          axs103_defconfig
-openrisc                         alldefconfig
-sh                           se7751_defconfig
-powerpc                 linkstation_defconfig
-arm                          badge4_defconfig
-arm                            qcom_defconfig
-arm                       aspeed_g5_defconfig
-arc                        nsimosci_defconfig
-m68k                         apollo_defconfig
-arm                        spear6xx_defconfig
-m68k                          amiga_defconfig
-arm                           viper_defconfig
-arm                  randconfig-c002-20220228
-arm                  randconfig-c002-20220227
-arm                  randconfig-c002-20220301
-ia64                             allmodconfig
-ia64                                defconfig
-ia64                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-m68k                             allyesconfig
-nios2                               defconfig
-arc                              allyesconfig
-nds32                             allnoconfig
-nios2                            allyesconfig
-csky                                defconfig
-alpha                               defconfig
-alpha                            allyesconfig
-xtensa                           allyesconfig
-h8300                            allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-s390                             allyesconfig
-s390                             allmodconfig
-parisc64                            defconfig
-parisc                           allyesconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-sparc                               defconfig
-i386                                defconfig
-i386                   debian-10.3-kselftests
-i386                              debian-10.3
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                          allmodconfig
-powerpc                           allnoconfig
-x86_64                        randconfig-a006
-x86_64                        randconfig-a004
-x86_64                        randconfig-a002
-x86_64               randconfig-a011-20220228
-x86_64               randconfig-a015-20220228
-x86_64               randconfig-a014-20220228
-x86_64               randconfig-a013-20220228
-x86_64               randconfig-a016-20220228
-x86_64               randconfig-a012-20220228
-i386                 randconfig-a016-20220228
-i386                 randconfig-a012-20220228
-i386                 randconfig-a015-20220228
-i386                 randconfig-a011-20220228
-i386                 randconfig-a013-20220228
-i386                 randconfig-a014-20220228
-s390                 randconfig-r044-20220228
-arc                  randconfig-r043-20220228
-riscv                randconfig-r042-20220228
-arc                  randconfig-r043-20220227
-riscv                    nommu_k210_defconfig
-riscv                            allyesconfig
-riscv                    nommu_virt_defconfig
-riscv                             allnoconfig
-riscv                               defconfig
-riscv                          rv32_defconfig
-riscv                            allmodconfig
-x86_64                    rhel-8.3-kselftests
-um                             i386_defconfig
-x86_64                           allyesconfig
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                          rhel-8.3-func
-x86_64                                  kexec
-x86_64                         rhel-8.3-kunit
-
-clang tested configs:
-powerpc              randconfig-c003-20220227
-x86_64                        randconfig-c007
-arm                  randconfig-c002-20220227
-mips                 randconfig-c004-20220227
-s390                 randconfig-c005-20220227
-i386                          randconfig-c001
-riscv                randconfig-c006-20220227
-powerpc              randconfig-c003-20220301
-riscv                randconfig-c006-20220301
-arm                  randconfig-c002-20220301
-mips                 randconfig-c004-20220301
-powerpc                     powernv_defconfig
-mips                           rs90_defconfig
-arm                         hackkit_defconfig
-arm                      pxa255-idp_defconfig
-powerpc                     tqm8540_defconfig
-mips                           mtx1_defconfig
-powerpc                     pseries_defconfig
-powerpc                     tqm8560_defconfig
-arm                       cns3420vb_defconfig
-arm                        neponset_defconfig
-arm                        vexpress_defconfig
-powerpc                      pmac32_defconfig
-arm                       imx_v4_v5_defconfig
-mips                      bmips_stb_defconfig
-arm                    vt8500_v6_v7_defconfig
-powerpc                     mpc5200_defconfig
-arm                           sama7_defconfig
-mips                           ip28_defconfig
-arm                        mvebu_v5_defconfig
-arm                          imote2_defconfig
-powerpc                        fsp2_defconfig
-arm                           spitz_defconfig
-arm                     davinci_all_defconfig
-mips                     cu1830-neo_defconfig
-x86_64               randconfig-a003-20220228
-x86_64               randconfig-a005-20220228
-x86_64               randconfig-a002-20220228
-x86_64               randconfig-a006-20220228
-x86_64               randconfig-a001-20220228
-x86_64               randconfig-a004-20220228
-i386                 randconfig-a002-20220228
-i386                 randconfig-a001-20220228
-i386                 randconfig-a005-20220228
-i386                 randconfig-a003-20220228
-i386                 randconfig-a006-20220228
-i386                 randconfig-a004-20220228
-i386                          randconfig-a002
-i386                          randconfig-a006
-i386                          randconfig-a004
-x86_64                        randconfig-a014
-x86_64                        randconfig-a016
-x86_64                        randconfig-a012
-i386                          randconfig-a011
-i386                          randconfig-a013
-i386                          randconfig-a015
-hexagon              randconfig-r045-20220301
-hexagon              randconfig-r045-20220227
-hexagon              randconfig-r041-20220227
-riscv                randconfig-r042-20220227
-
+Link: https://lore.kernel.org/netdev/20220224020253.GF5443@linux.alibaba.com
+Co-developed-by: Tony Lu <tonylu@linux.alibaba.com>
+Signed-off-by: Tony Lu <tonylu@linux.alibaba.com>
+Signed-off-by: Dust Li <dust.li@linux.alibaba.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ include/net/netns/smc.h |  3 ++
+ net/smc/Makefile        |  2 +-
+ net/smc/af_smc.c        | 10 ++++++
+ net/smc/smc_sysctl.c    | 70 +++++++++++++++++++++++++++++++++++++++++
+ net/smc/smc_sysctl.h    | 32 +++++++++++++++++++
+ 5 files changed, 116 insertions(+), 1 deletion(-)
+ create mode 100644 net/smc/smc_sysctl.c
+ create mode 100644 net/smc/smc_sysctl.h
+
+diff --git a/include/net/netns/smc.h b/include/net/netns/smc.h
+index 47b166684fd8..1682eae50579 100644
+--- a/include/net/netns/smc.h
++++ b/include/net/netns/smc.h
+@@ -14,5 +14,8 @@ struct netns_smc {
+ 	struct smc_stats_rsn		*fback_rsn;
+ 
+ 	bool				limit_smc_hs;	/* constraint on handshake */
++#ifdef CONFIG_SYSCTL
++	struct ctl_table_header		*smc_hdr;
++#endif
+ };
+ #endif
+diff --git a/net/smc/Makefile b/net/smc/Makefile
+index 196fb6f01b14..640af9a39f9c 100644
+--- a/net/smc/Makefile
++++ b/net/smc/Makefile
+@@ -4,4 +4,4 @@ obj-$(CONFIG_SMC)	+= smc.o
+ obj-$(CONFIG_SMC_DIAG)	+= smc_diag.o
+ smc-y := af_smc.o smc_pnet.o smc_ib.o smc_clc.o smc_core.o smc_wr.o smc_llc.o
+ smc-y += smc_cdc.o smc_tx.o smc_rx.o smc_close.o smc_ism.o smc_netlink.o smc_stats.o
+-smc-y += smc_tracepoint.o
++smc-y += smc_tracepoint.o smc_sysctl.o
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 30acc31b2c45..19b3066cf7af 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -51,6 +51,7 @@
+ #include "smc_close.h"
+ #include "smc_stats.h"
+ #include "smc_tracepoint.h"
++#include "smc_sysctl.h"
+ 
+ static DEFINE_MUTEX(smc_server_lgr_pending);	/* serialize link group
+ 						 * creation on server
+@@ -3273,9 +3274,17 @@ static int __init smc_init(void)
+ 		goto out_sock;
+ 	}
+ 
++	rc = smc_sysctl_init();
++	if (rc) {
++		pr_err("%s: sysctl_init fails with %d\n", __func__, rc);
++		goto out_ulp;
++	}
++
+ 	static_branch_enable(&tcp_have_smc);
+ 	return 0;
+ 
++out_ulp:
++	tcp_unregister_ulp(&smc_ulp_ops);
+ out_sock:
+ 	sock_unregister(PF_SMC);
+ out_proto6:
+@@ -3303,6 +3312,7 @@ static int __init smc_init(void)
+ static void __exit smc_exit(void)
+ {
+ 	static_branch_disable(&tcp_have_smc);
++	smc_sysctl_exit();
+ 	tcp_unregister_ulp(&smc_ulp_ops);
+ 	sock_unregister(PF_SMC);
+ 	smc_core_exit();
+diff --git a/net/smc/smc_sysctl.c b/net/smc/smc_sysctl.c
+new file mode 100644
+index 000000000000..8a3a8e145976
+--- /dev/null
++++ b/net/smc/smc_sysctl.c
+@@ -0,0 +1,70 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ *  Shared Memory Communications over RDMA (SMC-R) and RoCE
++ *
++ *  smc_sysctl.c: sysctl interface to SMC subsystem.
++ *
++ *  Copyright (c) 2022, Alibaba Inc.
++ *
++ *  Author: Tony Lu <tonylu@linux.alibaba.com>
++ *
++ */
++
++#include <linux/init.h>
++#include <linux/sysctl.h>
++#include <net/net_namespace.h>
++
++#include "smc_sysctl.h"
++
++static struct ctl_table smc_table[] = {
++	{  }
++};
++
++static __net_init int smc_sysctl_init_net(struct net *net)
++{
++	struct ctl_table *table;
++
++	table = smc_table;
++	if (!net_eq(net, &init_net)) {
++		int i;
++
++		table = kmemdup(table, sizeof(smc_table), GFP_KERNEL);
++		if (!table)
++			goto err_alloc;
++
++		for (i = 0; i < ARRAY_SIZE(smc_table) - 1; i++)
++			table[i].data += (void *)net - (void *)&init_net;
++	}
++
++	net->smc.smc_hdr = register_net_sysctl(net, "net/smc", table);
++	if (!net->smc.smc_hdr)
++		goto err_reg;
++
++	return 0;
++
++err_reg:
++	if (!net_eq(net, &init_net))
++		kfree(table);
++err_alloc:
++	return -ENOMEM;
++}
++
++static __net_exit void smc_sysctl_exit_net(struct net *net)
++{
++	unregister_net_sysctl_table(net->smc.smc_hdr);
++}
++
++static struct pernet_operations smc_sysctl_ops __net_initdata = {
++	.init = smc_sysctl_init_net,
++	.exit = smc_sysctl_exit_net,
++};
++
++int __init smc_sysctl_init(void)
++{
++	return register_pernet_subsys(&smc_sysctl_ops);
++}
++
++void smc_sysctl_exit(void)
++{
++	unregister_pernet_subsys(&smc_sysctl_ops);
++}
+diff --git a/net/smc/smc_sysctl.h b/net/smc/smc_sysctl.h
+new file mode 100644
+index 000000000000..49553ac236b6
+--- /dev/null
++++ b/net/smc/smc_sysctl.h
+@@ -0,0 +1,32 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ *  Shared Memory Communications over RDMA (SMC-R) and RoCE
++ *
++ *  smc_sysctl.c: sysctl interface to SMC subsystem.
++ *
++ *  Copyright (c) 2022, Alibaba Inc.
++ *
++ *  Author: Tony Lu <tonylu@linux.alibaba.com>
++ *
++ */
++
++#ifndef _SMC_SYSCTL_H
++#define _SMC_SYSCTL_H
++
++#ifdef CONFIG_SYSCTL
++
++int smc_sysctl_init(void);
++void smc_sysctl_exit(void);
++
++#else
++
++int smc_sysctl_init(void)
++{
++	return 0;
++}
++
++void smc_sysctl_exit(void) { }
++
++#endif /* CONFIG_SYSCTL */
++
++#endif /* _SMC_SYSCTL_H */
+-- 
+2.19.1.3.ge56e4f7
+
