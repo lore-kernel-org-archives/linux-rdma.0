@@ -2,68 +2,141 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5C18C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Mar 2022 00:31:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD801C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Mar 2022 00:45:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229689AbiCAAcB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 28 Feb 2022 19:32:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42704 "EHLO
+        id S231546AbiCAAqL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 28 Feb 2022 19:46:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229480AbiCAAcB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 28 Feb 2022 19:32:01 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AC50764C;
-        Mon, 28 Feb 2022 16:31:20 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 763A3B816C6;
-        Tue,  1 Mar 2022 00:31:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCBEFC340EE;
-        Tue,  1 Mar 2022 00:31:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1646094678;
-        bh=Euw391qM8LjbXBajM9+tTp5fY6LR/jx5+DgRym+rV0M=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=p+4LNoQZC6RWYH3OJoYXk04Ws5oCuxGDBow3ww7Lg8UgeVyn04Dry3JlhtBcIP1CG
-         rExyYNeQAtacbJc/Z1I+0hUDZGOvYOd12LYJSl1lfO3/CgV91/GLt4vctQZDoUT9P3
-         Of6ocsTiYRIKiUoR7jFFKwjyWT8cuCRFbHruUsCTYfe7tXhEywgA9lW4Fnu+sEHLEm
-         eHzOJaLR7mbXAOKp6TcbON09BdMo68dc+taCjVZ7+HaSEqB/Eh8Zt36M/re5MDI5Bd
-         ZPuG3Uq+Ei0zQXXCO7vZ60X60LyDD8bqcasfs3w+6FEWpUPpiVGWMc8ZqpdkuqQWO/
-         s5cNS3W1aw+dg==
-Date:   Mon, 28 Feb 2022 16:31:16 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     Saeed Mahameed <saeed@kernel.org>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: Re: [pull request][for-next v2 00/17] mlx5-next 2022-22-02
-Message-ID: <20220228163116.3eb49678@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net>
-In-Reply-To: <20220228224148.gwzbabatnedfrmu3@sx1>
-References: <20220223233930.319301-1-saeed@kernel.org>
-        <20220228224148.gwzbabatnedfrmu3@sx1>
+        with ESMTP id S229506AbiCAAqK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 28 Feb 2022 19:46:10 -0500
+Received: from mail-lj1-x235.google.com (mail-lj1-x235.google.com [IPv6:2a00:1450:4864:20::235])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C197C119
+        for <linux-rdma@vger.kernel.org>; Mon, 28 Feb 2022 16:45:29 -0800 (PST)
+Received: by mail-lj1-x235.google.com with SMTP id u7so19714105ljk.13
+        for <linux-rdma@vger.kernel.org>; Mon, 28 Feb 2022 16:45:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=BlmDHl6uq7o6y8aC/cJk7fo5oLGvHdeOO4XUoHPiZHY=;
+        b=CuWkmdhnuqYUPLlFfSW5kqvLG+/BaUYxswQvwT5TlbeMKdgX0f6Tdop/2MomIxMIWT
+         P4yfskuo3sOir2HSEC5b7N//0EkwPlLVbS+ffho6xWO2QaHJfy0oi9bnLtClO4bSDX+r
+         dQzBghLtont2uRRAhfDOfzUglX2wpO3DzhpXQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=BlmDHl6uq7o6y8aC/cJk7fo5oLGvHdeOO4XUoHPiZHY=;
+        b=tOUr0/n4+d6ugf/Z82yOImwE85LIbEYV9+rTvd43BIv6NF9mAjq2IuswOmDVLDCq55
+         60CBaY5J2yuFbV+eXCViOL/+I5182RIP3p0uTvQ4epxLt0FSeGokPLnq/YI6nojYkCkN
+         q+DDn/zhDwhm9d9bOxSpwxcX53L8Y6qfxs7EVDu0rQoKGTILy1gNormruwCsoZlI+I3T
+         1Ndsb31ALdx/b+LTmrYkYCimGbI75mTo4A419B6ivKLzYVV5svhPIKzSxmvvJO6ub1C5
+         LFDiekJMAFSltW8T08RhKYwYEUz/HDSv9Oycu7Y9S2EM5Rl7fJbbosovG4yAz1tP2aUz
+         GzEQ==
+X-Gm-Message-State: AOAM533XAMBAHuBgFoDAIY4inQPz/TE/TzSZC627hDmv0Izs4CGEA6bF
+        sZO9p7a5BKiksQdyemE93bY4m2LH07cRw9aCUpY=
+X-Google-Smtp-Source: ABdhPJzMjQDh2yNTlqIgp5jDWpSJlWziTXOdI7OIrs9Ej+12VZTxqDuAJ32fl0jhBJE2NAx1oCu/ig==
+X-Received: by 2002:a2e:b444:0:b0:244:c6ff:4894 with SMTP id o4-20020a2eb444000000b00244c6ff4894mr15520659ljm.457.1646095528200;
+        Mon, 28 Feb 2022 16:45:28 -0800 (PST)
+Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com. [209.85.167.46])
+        by smtp.gmail.com with ESMTPSA id u19-20020a2e91d3000000b002461bced9e2sm1631866ljg.79.2022.02.28.16.45.27
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 28 Feb 2022 16:45:28 -0800 (PST)
+Received: by mail-lf1-f46.google.com with SMTP id j7so24266493lfu.6
+        for <linux-rdma@vger.kernel.org>; Mon, 28 Feb 2022 16:45:27 -0800 (PST)
+X-Received: by 2002:a05:6512:3042:b0:437:96f5:e68a with SMTP id
+ b2-20020a056512304200b0043796f5e68amr14778245lfb.449.1646095527444; Mon, 28
+ Feb 2022 16:45:27 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+References: <20220228110822.491923-1-jakobkoschel@gmail.com>
+ <20220228110822.491923-3-jakobkoschel@gmail.com> <2e4e95d6-f6c9-a188-e1cd-b1eae465562a@amd.com>
+ <CAHk-=wgQps58DPEOe4y5cTh5oE9EdNTWRLXzgMiETc+mFX7jzw@mail.gmail.com>
+ <CAHk-=wj8fkosQ7=bps5K+DDazBXk=ypfn49A0sEq+7-nZnyfXA@mail.gmail.com>
+ <CAHk-=wiTCvLQkHcJ3y0hpqH7FEk9D28LDvZZogC6OVLk7naBww@mail.gmail.com>
+ <Yh0tl3Lni4weIMkl@casper.infradead.org> <CAHk-=wgBfJ1-cPA2LTvFyyy8owpfmtCuyiZi4+um8DhFNe+CyA@mail.gmail.com>
+ <Yh1aMm3hFe/j9ZbI@casper.infradead.org>
+In-Reply-To: <Yh1aMm3hFe/j9ZbI@casper.infradead.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Mon, 28 Feb 2022 16:45:11 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wi0gSUMBr2SVF01Gy1xC1w1iGtJT5ztju9BPWYKjdh+NA@mail.gmail.com>
+Message-ID: <CAHk-=wi0gSUMBr2SVF01Gy1xC1w1iGtJT5ztju9BPWYKjdh+NA@mail.gmail.com>
+Subject: Re: [PATCH 2/6] treewide: remove using list iterator after loop body
+ as a ptr
+To:     Matthew Wilcox <willy@infradead.org>
+Cc:     =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Jakob Koschel <jakobkoschel@gmail.com>,
+        alsa-devel@alsa-project.org, linux-aspeed@lists.ozlabs.org,
+        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        linux-iio@vger.kernel.org, nouveau@lists.freedesktop.org,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        Cristiano Giuffrida <c.giuffrida@vu.nl>,
+        amd-gfx list <amd-gfx@lists.freedesktop.org>,
+        samba-technical@lists.samba.org,
+        linux1394-devel@lists.sourceforge.net, drbd-dev@lists.linbit.com,
+        linux-arch <linux-arch@vger.kernel.org>,
+        CIFS <linux-cifs@vger.kernel.org>,
+        KVM list <kvm@vger.kernel.org>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        linux-rdma <linux-rdma@vger.kernel.org>,
+        linux-staging@lists.linux.dev, "Bos, H.J." <h.j.bos@vu.nl>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        intel-wired-lan@lists.osuosl.org,
+        kgdb-bugreport@lists.sourceforge.net,
+        bcm-kernel-feedback-list@broadcom.com,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Arnd Bergman <arnd@arndb.de>,
+        Linux PM <linux-pm@vger.kernel.org>,
+        intel-gfx <intel-gfx@lists.freedesktop.org>,
+        Brian Johannesmeyer <bjohannesmeyer@gmail.com>,
+        Nathan Chancellor <nathan@kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        v9fs-developer@lists.sourceforge.net,
+        linux-tegra <linux-tegra@vger.kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-sgx@vger.kernel.org,
+        linux-block <linux-block@vger.kernel.org>,
+        Netdev <netdev@vger.kernel.org>, linux-usb@vger.kernel.org,
+        linux-wireless <linux-wireless@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux F2FS Dev Mailing List 
+        <linux-f2fs-devel@lists.sourceforge.net>,
+        tipc-discussion@lists.sourceforge.net,
+        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+        dma <dmaengine@vger.kernel.org>,
+        linux-mediatek@lists.infradead.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        Mike Rapoport <rppt@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, 28 Feb 2022 14:41:48 -0800 Saeed Mahameed wrote:
-> On 23 Feb 15:39, Saeed Mahameed wrote:
-> >From: Saeed Mahameed <saeedm@nvidia.com>
-> >
-> >Hi Dave, Jakub and Jason,
-> >
-> >v1->v2:
-> > - Fix typo in the 1st patch's title
-> >
-> >The following PR includes updates to mlx5-next branch:
-> 
-> Dave, Jakub, I expecting this to be pulled into net-next, let me know if I
-> did something wrong, I see the series is marked as "Awaiting upstream" in
-> patchworks.
+On Mon, Feb 28, 2022 at 3:26 PM Matthew Wilcox <willy@infradead.org> wrote:
+>
+> #define ___PASTE(a, b)  a##b
+> #define __PASTE(a, b) ___PASTE(a, b)
+> #define _min(a, b, u) ({         \
 
-Indeed, pulled now, sorry for the wait!
+Yeah, except that's ugly beyond belief, plus it's literally not what
+we do in the kernel.
+
+Really. The "-Wshadow doesn't work on the kernel" is not some new
+issue, because you have to do completely insane things to the source
+code to enable it.
+
+Just compare your uglier-than-sin version to my straightforward one.
+One does the usual and obvious "use a private variable to avoid the
+classic multi-use of a macro argument". And the other one is an
+abomination.
+
+              Linus
