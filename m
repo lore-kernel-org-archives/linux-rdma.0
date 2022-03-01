@@ -2,31 +2,31 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DF7BC433FE
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Mar 2022 09:44:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C8EFC433EF
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Mar 2022 09:44:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233966AbiCAJow (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Mar 2022 04:44:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55870 "EHLO
+        id S233971AbiCAJpE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Mar 2022 04:45:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233859AbiCAJou (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Mar 2022 04:44:50 -0500
-Received: from out30-45.freemail.mail.aliyun.com (out30-45.freemail.mail.aliyun.com [115.124.30.45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2C2C3B55E;
-        Tue,  1 Mar 2022 01:44:09 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V5wm1KG_1646127846;
-Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0V5wm1KG_1646127846)
+        with ESMTP id S233969AbiCAJox (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Mar 2022 04:44:53 -0500
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22F563BBF3;
+        Tue,  1 Mar 2022 01:44:11 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=dust.li@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V5vTpxp_1646127849;
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0V5vTpxp_1646127849)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 01 Mar 2022 17:44:07 +0800
+          Tue, 01 Mar 2022 17:44:09 +0800
 From:   Dust Li <dust.li@linux.alibaba.com>
 To:     Karsten Graul <kgraul@linux.ibm.com>,
         Tony Lu <tonylu@linux.alibaba.com>,
         Guangguan Wang <guangguan.wang@linux.alibaba.com>
 Cc:     davem@davemloft.net, kuba@kernel.org, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next 3/7] net/smc: add sysctl for autocorking
-Date:   Tue,  1 Mar 2022 17:43:58 +0800
-Message-Id: <20220301094402.14992-4-dust.li@linux.alibaba.com>
+Subject: [PATCH net-next 5/7] net/smc: correct settings of RMB window update limit
+Date:   Tue,  1 Mar 2022 17:44:00 +0800
+Message-Id: <20220301094402.14992-6-dust.li@linux.alibaba.com>
 X-Mailer: git-send-email 2.19.1.3.ge56e4f7
 In-Reply-To: <20220301094402.14992-1-dust.li@linux.alibaba.com>
 References: <20220301094402.14992-1-dust.li@linux.alibaba.com>
@@ -36,105 +36,44 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This add a new sysctl: net.smc.autocorking_size
+rmbe_update_limit is used to limit announcing receive
+window updating too frequently. RFC7609 request a minimal
+increase in the window size of 10% of the receive buffer
+space. But current implementation used:
 
-We can dynamically change the behaviour of autocorking
-by change the value of autocorking_size.
-Setting to 0 disables autocorking in SMC
+  min_t(int, rmbe_size / 10, SOCK_MIN_SNDBUF / 2)
+
+and SOCK_MIN_SNDBUF / 2 == 2304 Bytes, which is almost
+always less then 10% of the receive buffer space.
+
+This causes the receiver always sending CDC message to
+update its consumer cursor when it consumes more then 2K
+of data. And as a result, we may encounter something like
+"TCP silly window syndrome" when sending 2.5~8K message.
+
+This patch fixes this using max(rmbe_size / 10, SOCK_MIN_SNDBUF / 2).
+
+With this patch and SMC autocorking enabled, qperf 2K/4K/8K
+tcp_bw test shows 45%/75%/40% increase in throughput respectively.
 
 Signed-off-by: Dust Li <dust.li@linux.alibaba.com>
 ---
- Documentation/networking/smc-sysctl.rst | 23 +++++++++++++++++++++++
- include/net/netns/smc.h                 |  1 +
- net/smc/smc_sysctl.c                    | 10 ++++++++++
- net/smc/smc_tx.c                        |  2 +-
- 4 files changed, 35 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/networking/smc-sysctl.rst
+ net/smc/smc_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/networking/smc-sysctl.rst b/Documentation/networking/smc-sysctl.rst
-new file mode 100644
-index 000000000000..c53f8c61c9e4
---- /dev/null
-+++ b/Documentation/networking/smc-sysctl.rst
-@@ -0,0 +1,23 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+=========
-+SMC Sysctl
-+=========
-+
-+/proc/sys/net/smc/* Variables
-+==============================
-+
-+autocorking_size - INTEGER
-+	Setting SMC auto corking size:
-+	SMC auto corking is like TCP auto corking from the application's
-+	perspective of view. When applications do consecutive small
-+	write()/sendmsg() system calls, we try to coalesce these small writes
-+	as much as possible, to lower total amount of CDC and RDMA Write been
-+	sent.
-+	autocorking_size limits the maximum corked bytes that can be sent to
-+	the under device in 1 single sending. If set to 0, the SMC auto corking
-+	is disabled.
-+	Applications can still use TCP_CORK for optimal behavior when they
-+	know how/when to uncork their sockets.
-+
-+	Default: 64K
-diff --git a/include/net/netns/smc.h b/include/net/netns/smc.h
-index 1682eae50579..e5389eeaf8bd 100644
---- a/include/net/netns/smc.h
-+++ b/include/net/netns/smc.h
-@@ -17,5 +17,6 @@ struct netns_smc {
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header		*smc_hdr;
- #endif
-+	unsigned int			sysctl_autocorking_size;
- };
- #endif
-diff --git a/net/smc/smc_sysctl.c b/net/smc/smc_sysctl.c
-index 8a3a8e145976..3b59876aaac9 100644
---- a/net/smc/smc_sysctl.c
-+++ b/net/smc/smc_sysctl.c
-@@ -14,9 +14,17 @@
- #include <linux/sysctl.h>
- #include <net/net_namespace.h>
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 29525d03b253..1674b2549f8b 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1988,7 +1988,7 @@ static struct smc_buf_desc *smc_buf_get_slot(int compressed_bufsize,
+  */
+ static inline int smc_rmb_wnd_update_limit(int rmbe_size)
+ {
+-	return min_t(int, rmbe_size / 10, SOCK_MIN_SNDBUF / 2);
++	return max_t(int, rmbe_size / 10, SOCK_MIN_SNDBUF / 2);
+ }
  
-+#include "smc.h"
- #include "smc_sysctl.h"
- 
- static struct ctl_table smc_table[] = {
-+	{
-+		.procname       = "autocorking_size",
-+		.data           = &init_net.smc.sysctl_autocorking_size,
-+		.maxlen         = sizeof(unsigned int),
-+		.mode           = 0644,
-+		.proc_handler	= proc_douintvec,
-+	},
- 	{  }
- };
- 
-@@ -40,6 +48,8 @@ static __net_init int smc_sysctl_init_net(struct net *net)
- 	if (!net->smc.smc_hdr)
- 		goto err_reg;
- 
-+	net->smc.sysctl_autocorking_size = SMC_AUTOCORKING_DEFAULT_SIZE;
-+
- 	return 0;
- 
- err_reg:
-diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
-index 062c6b1535e3..257dc0d0aeb1 100644
---- a/net/smc/smc_tx.c
-+++ b/net/smc/smc_tx.c
-@@ -147,7 +147,7 @@ static bool smc_should_autocork(struct smc_sock *smc)
- 	struct smc_connection *conn = &smc->conn;
- 	int corking_size;
- 
--	corking_size = min(SMC_AUTOCORKING_DEFAULT_SIZE,
-+	corking_size = min(sock_net(&smc->sk)->smc.sysctl_autocorking_size,
- 			   conn->sndbuf_desc->len >> 1);
- 
- 	if (atomic_read(&conn->cdc_pend_tx_wr) == 0 ||
+ /* map an rmb buf to a link */
 -- 
 2.19.1.3.ge56e4f7
 
