@@ -2,69 +2,76 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 920A7C433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Mar 2022 07:28:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C702C433FE
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Mar 2022 07:51:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239883AbiCBH3j (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Mar 2022 02:29:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57922 "EHLO
+        id S234978AbiCBHwg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Mar 2022 02:52:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236844AbiCBH3U (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Mar 2022 02:29:20 -0500
-Received: from out30-57.freemail.mail.aliyun.com (out30-57.freemail.mail.aliyun.com [115.124.30.57])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70CF651E51;
-        Tue,  1 Mar 2022 23:28:36 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R621e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=guwen@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V61g7Jq_1646206113;
-Received: from 30.225.24.118(mailfrom:guwen@linux.alibaba.com fp:SMTPD_---0V61g7Jq_1646206113)
+        with ESMTP id S233208AbiCBHwg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Mar 2022 02:52:36 -0500
+Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 951651C133;
+        Tue,  1 Mar 2022 23:51:49 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0V61jDA6_1646207506;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0V61jDA6_1646207506)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 02 Mar 2022 15:28:34 +0800
-Message-ID: <82bd43af-1d90-4395-b868-4a045bf4a47b@linux.alibaba.com>
-Date:   Wed, 2 Mar 2022 15:28:32 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.4.0
+          Wed, 02 Mar 2022 15:51:47 +0800
+Date:   Wed, 2 Mar 2022 15:51:46 +0800
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+To:     Wen Gu <guwen@linux.alibaba.com>
+Cc:     kgraul@linux.ibm.com, kuba@kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org
 Subject: Re: [PATCH net] net/smc: fix unexpected SMC_CLC_DECL_ERR_REGRMB error
-To:     "D. Wythe" <alibuda@linux.alibaba.com>, kgraul@linux.ibm.com
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+Message-ID: <20220302075146.GA29189@e02h04389.eu6sqa>
+Reply-To: "D. Wythe" <alibuda@linux.alibaba.com>
 References: <1646140644-121649-1-git-send-email-alibuda@linux.alibaba.com>
-From:   Wen Gu <guwen@linux.alibaba.com>
-In-Reply-To: <1646140644-121649-1-git-send-email-alibuda@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+ <82bd43af-1d90-4395-b868-4a045bf4a47b@linux.alibaba.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=gb2312
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <82bd43af-1d90-4395-b868-4a045bf4a47b@linux.alibaba.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-
-åœ¨ 2022/3/1 ä¸‹åˆ9:17, D. Wythe å†™é“:
-> From: "D. Wythe" <alibuda@linux.alibaba.com>
+On Wed, Mar 02, 2022 at 03:28:32PM +0800, Wen Gu wrote:
 > 
-> Remove connections from link group is not synchronous with handling
-> SMC_LLC_DELETE_RKEY, which means that even the number of connections is
-> less that SMC_RMBS_PER_LGR_MAX, it does not mean that the connection can
-> register rtoken successfully later, in other words, the rtoken entry may
-> have not been released. This will cause an unexpected
-> SMC_CLC_DECL_ERR_REGRMB to be reported, and then ths smc connection have
-> to fallback to TCP.
 > 
+> ÔÚ 2022/3/1 ÏÂÎç9:17, D. Wythe Ð´µÀ:
+> >From: "D. Wythe" <alibuda@linux.alibaba.com>
+> >
+> >Remove connections from link group is not synchronous with handling
+> >SMC_LLC_DELETE_RKEY, which means that even the number of connections is
+> >less that SMC_RMBS_PER_LGR_MAX, it does not mean that the connection can
+> >register rtoken successfully later, in other words, the rtoken entry may
+> >have not been released. This will cause an unexpected
+> >SMC_CLC_DECL_ERR_REGRMB to be reported, and then ths smc connection have
+> >to fallback to TCP.
+> >
+> 
+> 
+> IMHO, if there are SMC_RMBS_PER_LGR_MAX connections in the link group now,
+> one of them is being removed and here comes a new connection at this moment,
+> then:
+> 
+> (1) without this patch, the new connection will be added into the old link group
+>     but fallback if the removing connection has not finished unregistering its rmb.
+> 
+> (2) with this patch, a new link group will be created and the new connection
+>     will be added into the new link group.
+> 
+> I am wondering if (1) should be considered as a issue, or just a bydesign?
+> If it is a issue, I think this patch works, Thanks!
 
 
-IMHO, if there are SMC_RMBS_PER_LGR_MAX connections in the link group now,
-one of them is being removed and here comes a new connection at this moment,
-then:
+We should always be willing to improve the success rate of the SMC 
+connection, creating a new group is not a side effect of this patch, it 
+actually dues to the state bewteen connections that can not achieve 
+clock synchronization. In fact, it can happen in any times.
 
-(1) without this patch, the new connection will be added into the old link group
-     but fallback if the removing connection has not finished unregistering its rmb.
-
-(2) with this patch, a new link group will be created and the new connection
-     will be added into the new link group.
-
-I am wondering if (1) should be considered as a issue, or just a bydesign?
-If it is a issue, I think this patch works, Thanks!
-
-Reviewed-by: Wen Gu <guwen@linux.alibaba.com>
-
-Best Regards,
-Wen Gu
+Thanks.
