@@ -2,189 +2,171 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FCC8C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed,  2 Mar 2022 00:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ABACC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed,  2 Mar 2022 01:02:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232206AbiCBADM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Mar 2022 19:03:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52768 "EHLO
+        id S231271AbiCBBDL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Mar 2022 20:03:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238460AbiCBADL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Mar 2022 19:03:11 -0500
-Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 809839FD8
-        for <linux-rdma@vger.kernel.org>; Tue,  1 Mar 2022 16:02:28 -0800 (PST)
-Received: by mail-ed1-x52d.google.com with SMTP id q17so48714edd.4
-        for <linux-rdma@vger.kernel.org>; Tue, 01 Mar 2022 16:02:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4H0hy1V+vsSL/J4iRHU98fs6Ghx9E/bawvPg5OjXQmQ=;
-        b=A1xSV6w+mnGI8KddmZFT+SVp47UhRqZlj7dZE7Ue1BgWjGw2+QCc51Zb6PIPvKiXuh
-         /TGd1P3o63R0kiFyLwVU+kzDBf6Kt9wFSZwwJYnrWAqavu9szp3nfmKm0Qe68N3l8Mdl
-         bWvesgtwBf4BWRSm4aUiCmj0pmAaHYwmzAjUs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4H0hy1V+vsSL/J4iRHU98fs6Ghx9E/bawvPg5OjXQmQ=;
-        b=p3HMzpRyV9wA+Njo/c8Y/FjnhspUrWf0K7DtRbofCC/bLCZXDMM3UODgKC/M4tiH2F
-         VyWo/kZ1xbXBd1I5EOIZ9AeujY3dq5ujOIwqgRsuMUWfW7TyiwE79/rCKQrwePF9J23d
-         uTAQSIH6ZxbZiy5a0Ypw0c7gJPbkRtLCHfxJ4/OL0hoqIag3MidJz/J9BJdkuk8aoTv9
-         RVZl28jzBS6VyKCzhITd69QrM0yl2LlDjfP6Abp+zj4nFkoF3qtb+22VgYM/CIpfNl37
-         da5hA6bXjHtYXHTuqHJUy500day7LZSHKzroeBigHJ8cwN7r4/y8sBza1AvVdygaIuTZ
-         zxyw==
-X-Gm-Message-State: AOAM530nvXLTMVVtcrJlaqMH6xtRsoF3rAtfhiiQMMkX1U1GxCkK/w9j
-        QjYNU+HUunWlewz/yaFFJu7q7RnwRGRYBu75q9Y=
-X-Google-Smtp-Source: ABdhPJwT8Yb1rX7i4FcdgEDQFcHyAn7exK+YopLJJ/S4pPjqa3K7nnWqY/KPIy19QnJZSb9H1/JxSQ==
-X-Received: by 2002:a05:6402:4396:b0:412:b131:fca6 with SMTP id o22-20020a056402439600b00412b131fca6mr26616629edc.133.1646179346857;
-        Tue, 01 Mar 2022 16:02:26 -0800 (PST)
-Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com. [209.85.221.51])
-        by smtp.gmail.com with ESMTPSA id yy18-20020a170906dc1200b006d6e5c75029sm1043396ejb.187.2022.03.01.16.02.26
-        for <linux-rdma@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 01 Mar 2022 16:02:26 -0800 (PST)
-Received: by mail-wr1-f51.google.com with SMTP id i8so129443wrr.8
-        for <linux-rdma@vger.kernel.org>; Tue, 01 Mar 2022 16:02:26 -0800 (PST)
-X-Received: by 2002:a05:6512:3042:b0:437:96f5:e68a with SMTP id
- b2-20020a056512304200b0043796f5e68amr17643498lfb.449.1646178958685; Tue, 01
- Mar 2022 15:55:58 -0800 (PST)
+        with ESMTP id S230292AbiCBBDK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Mar 2022 20:03:10 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DA56220C3;
+        Tue,  1 Mar 2022 17:02:27 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 273B36159F;
+        Wed,  2 Mar 2022 01:02:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76344C340F3;
+        Wed,  2 Mar 2022 01:02:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1646182946;
+        bh=TQAJQbjyWV4JMwUwseuG0w73QjUd7yOWzDkU+uUu3Vg=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=qg7GtMJkxm2i3XkEAl4kkMT9IvWQA9jd9b8232zgWAnlVJLXKEgFYrJMkb0TYiLd1
+         S4uJExFVTK8nunBzRhdKNpJar53ZNl/DFVVA4T7CJ4rzSCmhgPU8oIDkFBEcZVKghX
+         OIst8wxvJsOx6jDKG4hMDYIDJcRJoalDVsiAWHOrGD4mAS+GvwNI99Yo/pWQqz7voy
+         1kJP0ZL8h82x8xsSJT0WqSkUiSKaQfxIosH/x/2IQYWFyjROQAQ8Gfn/uQN0nDIqoN
+         3PfTyjZiTyGeys9cP1HHQ+1jF6RJA4qDuQPrPKFwhNUq+GoJAy5wTs3OJ69L8CKTFu
+         CuHcU/UHfpqfQ==
+Date:   Tue, 1 Mar 2022 17:02:25 -0800
+From:   Saeed Mahameed <saeed@kernel.org>
+To:     Joe Damato <jdamato@fastly.com>
+Cc:     netdev@vger.kernel.org, kuba@kernel.org,
+        ilias.apalodimas@linaro.org, davem@davemloft.net, hawk@kernel.org,
+        ttoukan.linux@gmail.com, brouer@redhat.com, leon@kernel.org,
+        linux-rdma@vger.kernel.org, saeedm@nvidia.com
+Subject: Re: [net-next v8 4/4] mlx5: add support for page_pool_get_stats
+Message-ID: <20220302010225.dlhj3mtikog63zxz@sx1>
+References: <1646172610-129397-1-git-send-email-jdamato@fastly.com>
+ <1646172610-129397-5-git-send-email-jdamato@fastly.com>
 MIME-Version: 1.0
-References: <20220228110822.491923-1-jakobkoschel@gmail.com>
- <20220228110822.491923-3-jakobkoschel@gmail.com> <2e4e95d6-f6c9-a188-e1cd-b1eae465562a@amd.com>
- <CAHk-=wgQps58DPEOe4y5cTh5oE9EdNTWRLXzgMiETc+mFX7jzw@mail.gmail.com>
- <282f0f8d-f491-26fc-6ae0-604b367a5a1a@amd.com> <b2d20961dbb7533f380827a7fcc313ff849875c1.camel@HansenPartnership.com>
- <7D0C2A5D-500E-4F38-AD0C-A76E132A390E@kernel.org> <73fa82a20910c06784be2352a655acc59e9942ea.camel@HansenPartnership.com>
- <CAHk-=wiT5HX6Kp0Qv4ZYK_rkq9t5fZ5zZ7vzvi6pub9kgp=72g@mail.gmail.com>
- <7dc860874d434d2288f36730d8ea3312@AcuMS.aculab.com> <CAHk-=whKqg89zu4T95+ctY-hocR6kDArpo2qO14-kV40Ga7ufw@mail.gmail.com>
- <0ced2b155b984882b39e895f0211037c@AcuMS.aculab.com>
-In-Reply-To: <0ced2b155b984882b39e895f0211037c@AcuMS.aculab.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Tue, 1 Mar 2022 15:55:42 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wix0HLCBs5sxAeW3uckg0YncXbTjMsE-Tv8WzmkOgLAXQ@mail.gmail.com>
-Message-ID: <CAHk-=wix0HLCBs5sxAeW3uckg0YncXbTjMsE-Tv8WzmkOgLAXQ@mail.gmail.com>
-Subject: Re: [PATCH 2/6] treewide: remove using list iterator after loop body
- as a ptr
-To:     David Laight <David.Laight@aculab.com>
-Cc:     James Bottomley <James.Bottomley@hansenpartnership.com>,
-        linux-wireless <linux-wireless@vger.kernel.org>,
-        "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
-        KVM list <kvm@vger.kernel.org>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-        "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        Cristiano Giuffrida <c.giuffrida@vu.nl>,
-        "Bos, H.J." <h.j.bos@vu.nl>,
-        "linux1394-devel@lists.sourceforge.net" 
-        <linux1394-devel@lists.sourceforge.net>,
-        "drbd-dev@lists.linbit.com" <drbd-dev@lists.linbit.com>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        CIFS <linux-cifs@vger.kernel.org>,
-        "linux-aspeed@lists.ozlabs.org" <linux-aspeed@lists.ozlabs.org>,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        linux-rdma <linux-rdma@vger.kernel.org>,
-        "linux-staging@lists.linux.dev" <linux-staging@lists.linux.dev>,
-        amd-gfx list <amd-gfx@lists.freedesktop.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        "intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>,
-        "kgdb-bugreport@lists.sourceforge.net" 
-        <kgdb-bugreport@lists.sourceforge.net>,
-        "bcm-kernel-feedback-list@broadcom.com" 
-        <bcm-kernel-feedback-list@broadcom.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Arnd Bergman <arnd@arndb.de>,
-        Linux PM <linux-pm@vger.kernel.org>,
-        intel-gfx <intel-gfx@lists.freedesktop.org>,
-        Brian Johannesmeyer <bjohannesmeyer@gmail.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        dma <dmaengine@vger.kernel.org>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Jakob Koschel <jakobkoschel@gmail.com>,
-        "v9fs-developer@lists.sourceforge.net" 
-        <v9fs-developer@lists.sourceforge.net>,
-        linux-tegra <linux-tegra@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "linux-sgx@vger.kernel.org" <linux-sgx@vger.kernel.org>,
-        linux-block <linux-block@vger.kernel.org>,
-        Netdev <netdev@vger.kernel.org>,
-        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-        "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux F2FS Dev Mailing List 
-        <linux-f2fs-devel@lists.sourceforge.net>,
-        "tipc-discussion@lists.sourceforge.net" 
-        <tipc-discussion@lists.sourceforge.net>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        "linux-mediatek@lists.infradead.org" 
-        <linux-mediatek@lists.infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        Mike Rapoport <rppt@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <1646172610-129397-5-git-send-email-jdamato@fastly.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Mar 1, 2022 at 3:19 PM David Laight <David.Laight@aculab.com> wrote:
+On 01 Mar 14:10, Joe Damato wrote:
+>This change adds support for the page_pool_get_stats API to mlx5. If the
+>user has enabled CONFIG_PAGE_POOL_STATS in their kernel, ethtool will
+>output page pool stats.
 >
-> Having said that there are so few users of list_entry_is_head()
-> it is reasonable to generate two new names.
 
-Well, the problem is that the users of list_entry_is_head() may be few
-- but there are a number of _other_ ways to check "was that the HEAD
-pointer", and not all of them are necessarily correct.
+I was hoping to see something other than ethtool, a driver-less approach,
+page_pool is a first class citizen, it collects own stats and should be
+able to report own stats without the need for driver help.
 
-IOW, different places do different random tests for "did we walk the
-whole loop without breaking out". And many of them happen to work. In
-fact, in practice, pretty much *all* of them happen to work, and you
-have to have the right struct layout and really really bad luck to hit
-a case of "type confusion ended up causing the test to not work".
+I understand these stats are per driver ring, but we can always come up with
+a naming convention in the page pool to allow correlating page-pool stats
+with per ring driver stats.
 
-And *THAT* is the problem here. It's not the "there are 25ish places
-that current use list_entry_is_head()".
+Anyway i can't think of a simple hack, so this patch is a good temporary
+compromise until we come up with the right approach.
 
-It's the "there are ~480 places that use the type-confused HEAD entry
-that has been cast to the wrong type".
+>Signed-off-by: Joe Damato <jdamato@fastly.com>
+>---
+> drivers/net/ethernet/mellanox/mlx5/core/en_stats.c | 75 ++++++++++++++++++++++
+> drivers/net/ethernet/mellanox/mlx5/core/en_stats.h | 27 +++++++-
+> 2 files changed, 101 insertions(+), 1 deletion(-)
+>
+>diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
+>index 3e5d8c7..eb518ec 100644
+>--- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
+>+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
+>@@ -37,6 +37,10 @@
+> #include "en/ptp.h"
+> #include "en/port.h"
+>
+>+#ifdef CONFIG_PAGE_POOL_STATS
+>+#include <net/page_pool.h>
+>+#endif
+>+
+> static unsigned int stats_grps_num(struct mlx5e_priv *priv)
+> {
+> 	return !priv->profile->stats_grps_num ? 0 :
+>@@ -183,6 +187,19 @@ static const struct counter_desc sw_stats_desc[] = {
+> 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_congst_umr) },
+> 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_arfs_err) },
+> 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_recover) },
+>+#ifdef CONFIG_PAGE_POOL_STATS
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_alloc_fast) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_alloc_slow) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_alloc_slow_high_order) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_alloc_empty) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_alloc_refill) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_alloc_waive) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_recycle_cached) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_recycle_cache_full) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_recycle_ring) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_recycle_ring_full) },
+>+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_pp_recycle_released_ref) },
+>+#endif
+> #ifdef CONFIG_MLX5_EN_TLS
+> 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_tls_decrypted_packets) },
+> 	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_tls_decrypted_bytes) },
+>@@ -349,6 +366,19 @@ static void mlx5e_stats_grp_sw_update_stats_rq_stats(struct mlx5e_sw_stats *s,
+> 	s->rx_congst_umr              += rq_stats->congst_umr;
+> 	s->rx_arfs_err                += rq_stats->arfs_err;
+> 	s->rx_recover                 += rq_stats->recover;
+>+#ifdef CONFIG_PAGE_POOL_STATS
+>+	s->rx_pp_alloc_fast          += rq_stats->pp_alloc_fast;
+>+	s->rx_pp_alloc_slow          += rq_stats->pp_alloc_slow;
+>+	s->rx_pp_alloc_empty         += rq_stats->pp_alloc_empty;
+>+	s->rx_pp_alloc_refill        += rq_stats->pp_alloc_refill;
+>+	s->rx_pp_alloc_waive         += rq_stats->pp_alloc_waive;
+>+	s->rx_pp_alloc_slow_high_order		+= rq_stats->pp_alloc_slow_high_order;
+>+	s->rx_pp_recycle_cached			+= rq_stats->pp_recycle_cached;
+>+	s->rx_pp_recycle_cache_full		+= rq_stats->pp_recycle_cache_full;
+>+	s->rx_pp_recycle_ring			+= rq_stats->pp_recycle_ring;
+>+	s->rx_pp_recycle_ring_full		+= rq_stats->pp_recycle_ring_full;
+>+	s->rx_pp_recycle_released_ref		+= rq_stats->pp_recycle_released_ref;
+>+#endif
+> #ifdef CONFIG_MLX5_EN_TLS
+> 	s->rx_tls_decrypted_packets   += rq_stats->tls_decrypted_packets;
+> 	s->rx_tls_decrypted_bytes     += rq_stats->tls_decrypted_bytes;
+>@@ -455,6 +485,35 @@ static void mlx5e_stats_grp_sw_update_stats_qos(struct mlx5e_priv *priv,
+> 	}
+> }
+>
+>+#ifdef CONFIG_PAGE_POOL_STATS
+>+static void mlx5e_stats_update_stats_rq_page_pool(struct mlx5e_channel *c)
+>+{
+>+	struct mlx5e_rq_stats *rq_stats = c->rq.stats;
+>+	struct page_pool *pool = c->rq.page_pool;
+>+	struct page_pool_stats stats = { 0 };
+>+
+you can drop the 0, just {} should be enough.
 
-And THAT is why I think we'd be better off with that bigger change
-that simply means that you can't use the iterator variable at all
-outside the loop, and try to make it something where the compiler can
-help catch mis-uses.
+>+	if (!page_pool_get_stats(pool, &stats))
+>+		return;
+>+
 
-Now, making the list_for_each_entry() thing force the iterator to NULL
-at the end of the loop does fix the problem. The issue I have with it
-is really just that you end up getting no warning at all from the
-compiler if you mix old-style and new-style semantics. Now, you *will*
-get an oops (if using a new-style iterator with an old-style check),
-but many of these things will be in odd driver code and may happen
-only for error cases.
+you can contain the whole page_pool_stats objects inside rq_stats object,
+and avoid all the assignments below.
 
-And if you use a new-style check with an old-style iterator (ie some
-backport problem), you will probably end up getting random memory
-corruption, because you'll decide "it's not a HEAD entry", and then
-you'll actually *use* the HEAD that has the wrong type cast associated
-with it.
+just do:
+    page_pool_get_stats(pool, &rq_stats.pp);
+    return;
 
-See what my worry is?
-
-With the "don't use iterator outside the loop" approach, the exact
-same code works in both the old world order and the new world order,
-and you don't have the semantic confusion. And *if* you try to use the
-iterator outside the loop, you'll _mostly_ (*) get a compiler warning
-about it not being initialized.
-
-             Linus
-
-(*) Unless somebody initializes the iterator pointer pointlessly.
-Which clearly does happen. Thus the "mostly". It's not perfect, and
-that's most definitely not nice - but it should at least hopefully
-make it that much harder to mess up.
+>+	rq_stats->pp_alloc_fast = stats.alloc_stats.fast;
+>+	rq_stats->pp_alloc_slow = stats.alloc_stats.slow;
+>+	rq_stats->pp_alloc_slow_high_order = stats.alloc_stats.slow_high_order;
+>+	rq_stats->pp_alloc_empty = stats.alloc_stats.empty;
+>+	rq_stats->pp_alloc_waive = stats.alloc_stats.waive;
+>+	rq_stats->pp_alloc_refill = stats.alloc_stats.refill;
+>+
+>+	rq_stats->pp_recycle_cached = stats.recycle_stats.cached;
+>+	rq_stats->pp_recycle_cache_full = stats.recycle_stats.cache_full;
+>+	rq_stats->pp_recycle_ring = stats.recycle_stats.ring;
+>+	rq_stats->pp_recycle_ring_full = stats.recycle_stats.ring_full;
+>+	rq_stats->pp_recycle_released_ref = stats.recycle_stats.released_refcnt;
+>+}
+>+#else
+>+static void mlx5e_stats_update_stats_rq_page_pool(struct mlx5e_channel *c)
+>+{
+>+}
+>+#endif
