@@ -2,23 +2,23 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50688C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62110C43219
 	for <linux-rdma@archiver.kernel.org>; Wed,  2 Mar 2022 06:48:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239753AbiCBGta (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 2 Mar 2022 01:49:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40552 "EHLO
+        id S239745AbiCBGt3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 2 Mar 2022 01:49:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40546 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239749AbiCBGt0 (ORCPT
+        with ESMTP id S239746AbiCBGt0 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 2 Mar 2022 01:49:26 -0500
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CD5BB2D66
-        for <linux-rdma@vger.kernel.org>; Tue,  1 Mar 2022 22:48:43 -0800 (PST)
-Received: from dggpeml500024.china.huawei.com (unknown [172.30.72.55])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4K7l2T6XTJz1GC1k;
-        Wed,  2 Mar 2022 14:44:01 +0800 (CST)
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D214CB2D4D
+        for <linux-rdma@vger.kernel.org>; Tue,  1 Mar 2022 22:48:42 -0800 (PST)
+Received: from dggpeml500021.china.huawei.com (unknown [172.30.72.57])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4K7l5m0cyKzBrPP;
+        Wed,  2 Mar 2022 14:46:52 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500024.china.huawei.com (7.185.36.10) with Microsoft SMTP Server
+ dggpeml500021.china.huawei.com (7.185.36.21) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2308.21; Wed, 2 Mar 2022 14:48:41 +0800
 Received: from localhost.localdomain (10.69.192.56) by
@@ -29,9 +29,9 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH v3 for-next 9/9] RDMA/hns: Refactor the alloc_cqc()
-Date:   Wed, 2 Mar 2022 14:48:30 +0800
-Message-ID: <20220302064830.61706-10-liangwenpeng@huawei.com>
+Subject: [PATCH v3 for-next 8/9] RDMA/hns: Refactor the alloc_srqc()
+Date:   Wed, 2 Mar 2022 14:48:29 +0800
+Message-ID: <20220302064830.61706-9-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20220302064830.61706-1-liangwenpeng@huawei.com>
 References: <20220302064830.61706-1-liangwenpeng@huawei.com>
@@ -46,125 +46,172 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Abstract the alloc_cqc() into several parts and separate the process
-unrelated to allocating CQC.
+From: Chengchang Tang <tangchengchang@huawei.com>
 
+Abstract the alloc_srqc() into several parts and separate the alloc_srqn()
+from the alloc_srqc().
+
+Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_cq.c | 65 ++++++++++++++-----------
- 1 file changed, 37 insertions(+), 28 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_srq.c | 80 +++++++++++++++---------
+ 1 file changed, 52 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 3d10300cab85..8acd599ffac1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -100,12 +100,39 @@ static void free_cqn(struct hns_roce_dev *hr_dev, unsigned long cqn)
- 	mutex_unlock(&cq_table->bank_mutex);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index 97032a357b00..8dae98f827eb 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -59,40 +59,39 @@ static void hns_roce_ib_srq_event(struct hns_roce_srq *srq,
+ 	}
  }
  
-+static int hns_roce_create_cqc(struct hns_roce_dev *hr_dev,
-+			       struct hns_roce_cq *hr_cq,
-+			       u64 *mtts, dma_addr_t dma_handle)
+-static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
++static int alloc_srqn(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
+ {
+-	struct hns_roce_srq_table *srq_table = &hr_dev->srq_table;
+ 	struct hns_roce_ida *srq_ida = &hr_dev->srq_table.srq_ida;
+-	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	struct hns_roce_cmd_mailbox *mailbox;
+-	int ret;
+ 	int id;
+ 
+ 	id = ida_alloc_range(&srq_ida->ida, srq_ida->min, srq_ida->max,
+ 			     GFP_KERNEL);
+ 	if (id < 0) {
+-		ibdev_err(ibdev, "failed to alloc srq(%d).\n", id);
++		ibdev_err(&hr_dev->ib_dev, "failed to alloc srq(%d).\n", id);
+ 		return -ENOMEM;
+ 	}
+-	srq->srqn = (unsigned long)id;
+ 
+-	ret = hns_roce_table_get(hr_dev, &srq_table->table, srq->srqn);
+-	if (ret) {
+-		ibdev_err(ibdev, "failed to get SRQC table, ret = %d.\n", ret);
+-		goto err_out;
+-	}
++	srq->srqn = id;
+ 
+-	ret = xa_err(xa_store(&srq_table->xa, srq->srqn, srq, GFP_KERNEL));
+-	if (ret) {
+-		ibdev_err(ibdev, "failed to store SRQC, ret = %d.\n", ret);
+-		goto err_put;
+-	}
++	return 0;
++}
++
++static void free_srqn(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
++{
++	ida_free(&hr_dev->srq_table.srq_ida.ida, (int)srq->srqn);
++}
++
++static int hns_roce_create_srqc(struct hns_roce_dev *hr_dev,
++				struct hns_roce_srq *srq)
 +{
 +	struct ib_device *ibdev = &hr_dev->ib_dev;
 +	struct hns_roce_cmd_mailbox *mailbox;
 +	int ret;
-+
-+	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
-+	if (IS_ERR(mailbox)) {
-+		ibdev_err(ibdev, "failed to alloc mailbox for CQC.\n");
+ 
+ 	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
+ 	if (IS_ERR(mailbox)) {
+ 		ibdev_err(ibdev, "failed to alloc mailbox for SRQC.\n");
+-		ret = PTR_ERR(mailbox);
+-		goto err_xa;
 +		return PTR_ERR(mailbox);
-+	}
-+
-+	hr_dev->hw->write_cqc(hr_dev, hr_cq, mailbox->buf, mtts, dma_handle);
-+
-+	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_CQC,
-+				     hr_cq->cqn);
+ 	}
+ 
+ 	ret = hr_dev->hw->write_srqc(srq, mailbox->buf);
+@@ -103,23 +102,42 @@ static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
+ 
+ 	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_SRQ,
+ 				     srq->srqn);
+-	if (ret) {
 +	if (ret)
-+		ibdev_err(ibdev,
-+			  "failed to send create cmd for CQ(0x%lx), ret = %d.\n",
-+			  hr_cq->cqn, ret);
-+
-+	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
-+
+ 		ibdev_err(ibdev, "failed to config SRQC, ret = %d.\n", ret);
+-		goto err_mbox;
+-	}
+ 
++err_mbox:
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
 +	return ret;
 +}
 +
- static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- {
- 	struct hns_roce_cq_table *cq_table = &hr_dev->cq_table;
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
--	struct hns_roce_cmd_mailbox *mailbox;
--	u64 mtts[MTT_MIN_COUNT] = { 0 };
-+	u64 mtts[MTT_MIN_COUNT] = {};
- 	dma_addr_t dma_handle;
- 	int ret;
- 
-@@ -121,7 +148,7 @@ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- 	if (ret) {
- 		ibdev_err(ibdev, "failed to get CQ(0x%lx) context, ret = %d.\n",
- 			  hr_cq->cqn, ret);
--		goto err_out;
++static int alloc_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
++{
++	struct hns_roce_srq_table *srq_table = &hr_dev->srq_table;
++	struct ib_device *ibdev = &hr_dev->ib_dev;
++	int ret;
++
++	ret = hns_roce_table_get(hr_dev, &srq_table->table, srq->srqn);
++	if (ret) {
++		ibdev_err(ibdev, "failed to get SRQC table, ret = %d.\n", ret);
 +		return ret;
- 	}
- 
- 	ret = xa_err(xa_store(&cq_table->array, hr_cq->cqn, hr_cq, GFP_KERNEL));
-@@ -130,40 +157,17 @@ static int alloc_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- 		goto err_put;
- 	}
- 
--	/* Allocate mailbox memory */
--	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
--	if (IS_ERR(mailbox)) {
--		ret = PTR_ERR(mailbox);
--		goto err_xa;
--	}
--
--	hr_dev->hw->write_cqc(hr_dev, hr_cq, mailbox->buf, mtts, dma_handle);
--
--	ret = hns_roce_create_hw_ctx(hr_dev, mailbox, HNS_ROCE_CMD_CREATE_CQC,
--				     hr_cq->cqn);
--	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
--	if (ret) {
--		ibdev_err(ibdev,
--			  "failed to send create cmd for CQ(0x%lx), ret = %d.\n",
--			  hr_cq->cqn, ret);
-+	ret = hns_roce_create_cqc(hr_dev, hr_cq, mtts, dma_handle);
++	}
++
++	ret = xa_err(xa_store(&srq_table->xa, srq->srqn, srq, GFP_KERNEL));
++	if (ret) {
++		ibdev_err(ibdev, "failed to store SRQC, ret = %d.\n", ret);
++		goto err_put;
++	}
++
++	ret = hns_roce_create_srqc(hr_dev, srq);
 +	if (ret)
- 		goto err_xa;
--	}
--
--	hr_cq->cons_index = 0;
--	hr_cq->arm_sn = 1;
--
--	refcount_set(&hr_cq->refcount, 1);
--	init_completion(&hr_cq->free);
++		goto err_xa;
  
  	return 0;
  
+-err_mbox:
+-	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
  err_xa:
- 	xa_erase(&cq_table->array, hr_cq->cqn);
--
+ 	xa_erase(&srq_table->xa, srq->srqn);
  err_put:
- 	hns_roce_table_put(hr_dev, &cq_table->table, hr_cq->cqn);
- 
+ 	hns_roce_table_put(hr_dev, &srq_table->table, srq->srqn);
 -err_out:
+-	ida_free(&srq_ida->ida, id);
+ 
  	return ret;
  }
+@@ -142,7 +160,6 @@ static void free_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
+ 	wait_for_completion(&srq->free);
  
-@@ -411,6 +415,11 @@ int hns_roce_create_cq(struct ib_cq *ib_cq, const struct ib_cq_init_attr *attr,
- 			goto err_cqc;
- 	}
+ 	hns_roce_table_put(hr_dev, &srq_table->table, srq->srqn);
+-	ida_free(&srq_table->srq_ida.ida, (int)srq->srqn);
+ }
  
-+	hr_cq->cons_index = 0;
-+	hr_cq->arm_sn = 1;
-+	refcount_set(&hr_cq->refcount, 1);
-+	init_completion(&hr_cq->free);
+ static int alloc_srq_idx(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq,
+@@ -390,10 +407,14 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = alloc_srqc(hr_dev, srq);
++	ret = alloc_srqn(hr_dev, srq);
+ 	if (ret)
+ 		goto err_srq_buf;
+ 
++	ret = alloc_srqc(hr_dev, srq);
++	if (ret)
++		goto err_srqn;
 +
- 	return 0;
+ 	if (udata) {
+ 		resp.srqn = srq->srqn;
+ 		if (ib_copy_to_udata(udata, &resp,
+@@ -412,6 +433,8 @@ int hns_roce_create_srq(struct ib_srq *ib_srq,
  
- err_cqc:
+ err_srqc:
+ 	free_srqc(hr_dev, srq);
++err_srqn:
++	free_srqn(hr_dev, srq);
+ err_srq_buf:
+ 	free_srq_buf(hr_dev, srq);
+ 
+@@ -424,6 +447,7 @@ int hns_roce_destroy_srq(struct ib_srq *ibsrq, struct ib_udata *udata)
+ 	struct hns_roce_srq *srq = to_hr_srq(ibsrq);
+ 
+ 	free_srqc(hr_dev, srq);
++	free_srqn(hr_dev, srq);
+ 	free_srq_buf(hr_dev, srq);
+ 	return 0;
+ }
 -- 
 2.33.0
 
