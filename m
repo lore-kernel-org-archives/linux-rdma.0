@@ -2,57 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F045C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA976C4332F
 	for <linux-rdma@archiver.kernel.org>; Fri,  4 Mar 2022 00:08:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235140AbiCDAJf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S234131AbiCDAJf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 3 Mar 2022 19:09:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59804 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234287AbiCDAJd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Mar 2022 19:09:33 -0500
-Received: from mail-oo1-xc36.google.com (mail-oo1-xc36.google.com [IPv6:2607:f8b0:4864:20::c36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 415113FBFD
-        for <linux-rdma@vger.kernel.org>; Thu,  3 Mar 2022 16:08:47 -0800 (PST)
-Received: by mail-oo1-xc36.google.com with SMTP id h16-20020a4a6f10000000b00320507b9ccfso7663465ooc.7
-        for <linux-rdma@vger.kernel.org>; Thu, 03 Mar 2022 16:08:47 -0800 (PST)
+        with ESMTP id S235007AbiCDAJf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Mar 2022 19:09:35 -0500
+Received: from mail-oi1-x22a.google.com (mail-oi1-x22a.google.com [IPv6:2607:f8b0:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66A6140E56
+        for <linux-rdma@vger.kernel.org>; Thu,  3 Mar 2022 16:08:44 -0800 (PST)
+Received: by mail-oi1-x22a.google.com with SMTP id x193so6406217oix.0
+        for <linux-rdma@vger.kernel.org>; Thu, 03 Mar 2022 16:08:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=9q1/Uj0uD+ZwTi5CIpoO1p47G+exO0yd4IBMXRE/Big=;
-        b=mWlj7kGPtmIVjkQ1E2fesF5cOZD4Ya4HDIFSH3vUHEhaSnEbaBF5P4+RxPTIBrt3XO
-         3bco/PvSKYywaqTwdbX4i9sXoXWOoRZAF1AjYaXOZH3laX9mP5h4+U5lp9cB/jcqGfKt
-         qtIIpKOi6U9chYfxQjKPhr0IuVdlOC0FPD3f9KyWHIr6vKWVXoywfEkykwxY5TW/4WU+
-         kTTaXnaDMbsq7oCXD0xZtPx3OglmbLGAnbDvW0CBMYQTdd77IJ5agRuj4bXgBK/B5mmg
-         4WxIdnPbPydHZe/qnvvImC0x84pHDqgIe/EOxCXs5ELWXjxpJ74fl0+u/B5UKa1BZmSA
-         Oi7A==
+        bh=iwD6U6B4WJb3lynL5l5wUSLzlnC+ucGLHdFjTDXzY1Y=;
+        b=hGTn7F4Mlcz+qjTv9Eihndl84LhFQJJgvhLIkPY4fpTOi+x7A7vSOrLJx75b1VG0ER
+         NwRFs3/0Oo1pAyvduyQy/hw6Ul+x2R7s5+Vyz4oYHr7qM/mm+dlBXzcB96whQz4LLvE0
+         C82Bhm555PURtOlNZc98QBGGnUKJ+u4IRKDQtI+FvxRcrOR2VRRX3F8HnkqCeMGAm/eA
+         lgngHNon+8XedztosRSC5ujtSiVDSm1zb4T8XiLGjhgtBygAu4ND4g249ch4crjs5Tjp
+         efFUlx5NAFtYfwU6yw3sEQfcLdciPm0Ef8/e8kxBV8p5wKOf11ML6OAD55qt6NxTduhO
+         Uliw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=9q1/Uj0uD+ZwTi5CIpoO1p47G+exO0yd4IBMXRE/Big=;
-        b=5LD/1JN/1wTwIsr+ZI6tkWXKW2aALxb9MSptrNhdO02oM91DIqd4LmqczQ8yew/5zM
-         wM9V8FL6nwOaaPcv1rf+Ctd/otGuU80s+cVxV4K0kutNR44Ec7sU0h1EBVPF4YZWC6Cp
-         7nJ/kuZUmHkgGRvfpubBsMq34oB2VK6y8r/Lx6TpG62Kqk52QVb9++Dmgwf76IRXkSGw
-         BRdbxxiqSpjTZdVFPGy+O8TxiSxHHKe3uVh7UEE8zS6cQQC2cDttse5ILRgkDoxtt1K4
-         PU7KGO1x4IPVqgijk+K14ZOouz2W/R7rxOsDZSzsF+TFM8iQFvt3Jkdy3+uDrxBC2slC
-         T8HQ==
-X-Gm-Message-State: AOAM532jZTx62uDkiRmOLmhay/VXUovCs3vHGpKzBppYQkNHQapQ3vFK
-        oZy0Gslh9rDeDJjTZN7N4YM=
-X-Google-Smtp-Source: ABdhPJwbJ/i5uFHzbS1N3EYndBJFqOaoKuA7DMxTG5YDuFneTzVNbCfJdTMAEhVPqCMMr5dEepn66Q==
-X-Received: by 2002:a05:6870:45aa:b0:d4:5d51:b0ac with SMTP id y42-20020a05687045aa00b000d45d51b0acmr6102739oao.59.1646352526537;
-        Thu, 03 Mar 2022 16:08:46 -0800 (PST)
+        bh=iwD6U6B4WJb3lynL5l5wUSLzlnC+ucGLHdFjTDXzY1Y=;
+        b=V5gWkrDNuTBNm6TLYfOlVCZ4tKbi6cJTCwyvc5/yUbgCAI6zj7dC7fG+eJh2/dm+7l
+         kp5j3lMC3hqC7cGHld8ypmKeZTKcLNipXkDgKKQGbzHsO9TBYg5rNkchrQyr1a2cpeRj
+         YXqtmi6Vj5NwxJprMj80SQK4Kn0hgRZxvxgzy36vPCc5FcYpfV+tV1ay6IATLeqHQXKe
+         mJZ1FSbKqvajmmJgay8DLkOKeWyQJmg2ngK/cWtGstGdMypgyzDmzZDZO1KD78f7pUDC
+         wYOvGGYWiRT+uPgQBSdoCMZaR2rDzUwrR2ri1jPdKJN//F2nRTpcpddWA8Jh4LYc1Ezu
+         3jzw==
+X-Gm-Message-State: AOAM533SzFtUR0BQd3MFfMTU49JeVbablhHNCU1HMXezYKJZlzK7y0Ee
+        L+X9SO57yk5PbO/tcOukucM=
+X-Google-Smtp-Source: ABdhPJzeMnr7Nd3LSUMpu+WeBUgKpz3ozEW9ejDOBZIUIpar8nUZLb++qyOJkylPvjgcFij74OrU9w==
+X-Received: by 2002:a05:6808:2026:b0:2d5:409e:1dc2 with SMTP id q38-20020a056808202600b002d5409e1dc2mr6816486oiw.130.1646352523755;
+        Thu, 03 Mar 2022 16:08:43 -0800 (PST)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-4a4e-f957-5a09-0218.res6.spectrum.com. [2603:8081:140c:1a00:4a4e:f957:5a09:218])
-        by smtp.googlemail.com with ESMTPSA id n23-20020a9d7417000000b005afc3371166sm1646469otk.81.2022.03.03.16.08.46
+        by smtp.googlemail.com with ESMTPSA id n23-20020a9d7417000000b005afc3371166sm1646469otk.81.2022.03.03.16.08.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Mar 2022 16:08:46 -0800 (PST)
+        Thu, 03 Mar 2022 16:08:43 -0800 (PST)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v11 07/13] RDMA/rxe: Shorten pool names in rxe_pool.c
-Date:   Thu,  3 Mar 2022 18:08:03 -0600
-Message-Id: <20220304000808.225811-8-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v11 03/13] RDMA/rxe: Reverse the sense of RXE_POOL_NO_ALLOC
+Date:   Thu,  3 Mar 2022 18:07:59 -0600
+Message-Id: <20220304000808.225811-4-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220304000808.225811-1-rpearsonhpe@gmail.com>
 References: <20220304000808.225811-1-rpearsonhpe@gmail.com>
@@ -62,84 +62,128 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Replace pool names like "rxe-xx" with "xx". Just reduces clutter.
+There is only one remaining object type that allocates its own memory,
+that is mr. So the sense of RXE_POOL_NO_ALLOC is changed to
+RXE_POOL_ALLOC. Add checks to rxe_alloc() and rxe_add_to_pool() to
+make sure the correct call is used for the setting of this flag.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_pool.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_pool.c | 21 ++++++++++++---------
+ drivers/infiniband/sw/rxe/rxe_pool.h |  2 +-
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index bc3ae64adba8..c50baeb10bd2 100644
+index 16056b918ace..239c24544ff2 100644
 --- a/drivers/infiniband/sw/rxe/rxe_pool.c
 +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -19,19 +19,19 @@ static const struct rxe_type_info {
- 	u32 max_elem;
- } rxe_type_info[RXE_NUM_TYPES] = {
- 	[RXE_TYPE_UC] = {
--		.name		= "rxe-uc",
-+		.name		= "uc",
+@@ -21,19 +21,17 @@ static const struct rxe_type_info {
+ 		.name		= "rxe-uc",
  		.size		= sizeof(struct rxe_ucontext),
  		.elem_offset	= offsetof(struct rxe_ucontext, elem),
- 		.max_elem	= UINT_MAX,
+-		.flags          = RXE_POOL_NO_ALLOC,
  	},
  	[RXE_TYPE_PD] = {
--		.name		= "rxe-pd",
-+		.name		= "pd",
+ 		.name		= "rxe-pd",
  		.size		= sizeof(struct rxe_pd),
  		.elem_offset	= offsetof(struct rxe_pd, elem),
- 		.max_elem	= UINT_MAX,
+-		.flags		= RXE_POOL_NO_ALLOC,
  	},
  	[RXE_TYPE_AH] = {
--		.name		= "rxe-ah",
-+		.name		= "ah",
+ 		.name		= "rxe-ah",
  		.size		= sizeof(struct rxe_ah),
  		.elem_offset	= offsetof(struct rxe_ah, elem),
- 		.flags		= RXE_POOL_INDEX,
-@@ -40,7 +40,7 @@ static const struct rxe_type_info {
- 		.max_elem	= RXE_MAX_AH_INDEX - RXE_MIN_AH_INDEX + 1,
+-		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
++		.flags		= RXE_POOL_INDEX,
+ 		.min_index	= RXE_MIN_AH_INDEX,
+ 		.max_index	= RXE_MAX_AH_INDEX,
  	},
- 	[RXE_TYPE_SRQ] = {
--		.name		= "rxe-srq",
-+		.name		= "srq",
+@@ -41,7 +39,7 @@ static const struct rxe_type_info {
+ 		.name		= "rxe-srq",
  		.size		= sizeof(struct rxe_srq),
  		.elem_offset	= offsetof(struct rxe_srq, elem),
- 		.flags		= RXE_POOL_INDEX,
-@@ -49,7 +49,7 @@ static const struct rxe_type_info {
- 		.max_elem	= RXE_MAX_SRQ_INDEX - RXE_MIN_SRQ_INDEX + 1,
+-		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
++		.flags		= RXE_POOL_INDEX,
+ 		.min_index	= RXE_MIN_SRQ_INDEX,
+ 		.max_index	= RXE_MAX_SRQ_INDEX,
  	},
- 	[RXE_TYPE_QP] = {
--		.name		= "rxe-qp",
-+		.name		= "qp",
+@@ -50,7 +48,7 @@ static const struct rxe_type_info {
  		.size		= sizeof(struct rxe_qp),
  		.elem_offset	= offsetof(struct rxe_qp, elem),
  		.cleanup	= rxe_qp_cleanup,
-@@ -59,14 +59,14 @@ static const struct rxe_type_info {
- 		.max_elem	= RXE_MAX_QP_INDEX - RXE_MIN_QP_INDEX + 1,
+-		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
++		.flags		= RXE_POOL_INDEX,
+ 		.min_index	= RXE_MIN_QP_INDEX,
+ 		.max_index	= RXE_MAX_QP_INDEX,
  	},
- 	[RXE_TYPE_CQ] = {
--		.name		= "rxe-cq",
-+		.name		= "cq",
+@@ -58,7 +56,6 @@ static const struct rxe_type_info {
+ 		.name		= "rxe-cq",
  		.size		= sizeof(struct rxe_cq),
  		.elem_offset	= offsetof(struct rxe_cq, elem),
+-		.flags          = RXE_POOL_NO_ALLOC,
  		.cleanup	= rxe_cq_cleanup,
- 		.max_elem	= UINT_MAX,
  	},
  	[RXE_TYPE_MR] = {
--		.name		= "rxe-mr",
-+		.name		= "mr",
+@@ -66,7 +63,7 @@ static const struct rxe_type_info {
  		.size		= sizeof(struct rxe_mr),
  		.elem_offset	= offsetof(struct rxe_mr, elem),
  		.cleanup	= rxe_mr_cleanup,
-@@ -76,7 +76,7 @@ static const struct rxe_type_info {
- 		.max_elem	= RXE_MAX_MR_INDEX - RXE_MIN_MR_INDEX + 1,
+-		.flags		= RXE_POOL_INDEX,
++		.flags		= RXE_POOL_INDEX | RXE_POOL_ALLOC,
+ 		.min_index	= RXE_MIN_MR_INDEX,
+ 		.max_index	= RXE_MAX_MR_INDEX,
  	},
- 	[RXE_TYPE_MW] = {
--		.name		= "rxe-mw",
-+		.name		= "mw",
+@@ -75,7 +72,7 @@ static const struct rxe_type_info {
  		.size		= sizeof(struct rxe_mw),
  		.elem_offset	= offsetof(struct rxe_mw, elem),
  		.cleanup	= rxe_mw_cleanup,
+-		.flags		= RXE_POOL_INDEX | RXE_POOL_NO_ALLOC,
++		.flags		= RXE_POOL_INDEX,
+ 		.min_index	= RXE_MIN_MW_INDEX,
+ 		.max_index	= RXE_MAX_MW_INDEX,
+ 	},
+@@ -264,6 +261,9 @@ void *rxe_alloc(struct rxe_pool *pool)
+ 	struct rxe_pool_elem *elem;
+ 	void *obj;
+ 
++	if (WARN_ON(!(pool->flags & RXE_POOL_ALLOC)))
++		return NULL;
++
+ 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+ 		goto out_cnt;
+ 
+@@ -286,6 +286,9 @@ void *rxe_alloc(struct rxe_pool *pool)
+ 
+ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_elem *elem)
+ {
++	if (WARN_ON(pool->flags & RXE_POOL_ALLOC))
++		return -EINVAL;
++
+ 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+ 		goto out_cnt;
+ 
+@@ -310,7 +313,7 @@ void rxe_elem_release(struct kref *kref)
+ 	if (pool->cleanup)
+ 		pool->cleanup(elem);
+ 
+-	if (!(pool->flags & RXE_POOL_NO_ALLOC)) {
++	if (pool->flags & RXE_POOL_ALLOC) {
+ 		obj = elem->obj;
+ 		kfree(obj);
+ 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index 8fc95c6b7b9b..44b944c8c360 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -9,7 +9,7 @@
+ 
+ enum rxe_pool_flags {
+ 	RXE_POOL_INDEX		= BIT(1),
+-	RXE_POOL_NO_ALLOC	= BIT(4),
++	RXE_POOL_ALLOC		= BIT(2),
+ };
+ 
+ enum rxe_elem_type {
 -- 
 2.32.0
 
