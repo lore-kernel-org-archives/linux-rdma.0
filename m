@@ -2,174 +2,198 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D31C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Mar 2022 14:56:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 354C2C433FE
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Mar 2022 15:51:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245628AbiCHO51 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Mar 2022 09:57:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51316 "EHLO
+        id S1348010AbiCHPwa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Mar 2022 10:52:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239658AbiCHO50 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Mar 2022 09:57:26 -0500
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2053.outbound.protection.outlook.com [40.107.236.53])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA4344D60E
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Mar 2022 06:56:29 -0800 (PST)
+        with ESMTP id S1347961AbiCHPw3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Mar 2022 10:52:29 -0500
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2052.outbound.protection.outlook.com [40.107.223.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EE8D4F45E
+        for <linux-rdma@vger.kernel.org>; Tue,  8 Mar 2022 07:51:32 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TWHp+5ST62E8SZoXjDDKsbClQCx2t29KAKm/g6AFWJiab23+AbaXLVbdThy6qSb/+JRecZuQhFaCyMkBvNaytPaGa0kq+cS9/M9mHZSU5DAmnFUo30GxQ9ERO3fzAlFt98nPD1NsLJaYvLYBYvC1N8TYpi94N/gZbw9ZzlI7g8yWDRYbAm/1xgeYVSO0bYywePSVzW+YOhv3hkx8yA3csFXJfaY/utZXyi6MUXjzNYUv40esccgTiFZaJMhhRXAgIwElL+rmey6VcQdKMC+ctIvswQIPxDvgfinoFUAYdLnaaTVV4Pd1WDUautXPBb4mrJ60bZoi5RwweniIdiMcYA==
+ b=UGgcqsxVXvYxaFyN5R2N2c83sPWr6B48eJl2zqEouVWO5A3/ZmJJmiRm9F3vMhAbV5Aa3ZKBSFWxamMcLKCGEAdcz0Sv+o1DSNpOh3PWHFUa4oIG7JbPtb1RwmOaTMx30uueq51nHmad+N1e9ZpnvtQFbFYrNV2sHLUNKJ4Vp/ikQ+BXY4CzpjPeJAPcmLalk5qSObuke3h1V8O7mCfC97I9ZfhWJRLwuCSuB8wfg1T1F+zn9xDK0tkUh3cG+vhVkdhodUmg3yoNDc32YbcfO6tGyXi/q5HdBW2xDCoRH4GtexzySCvdtPi15kdYPCLBXosrxrS4UhGhO7sl4tl4+w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=VxKKAwrWnc7Vj2P/A0lTW0F0ko1hK+iijC+UYJyEv+w=;
- b=Xtt6Ua2DjcnrYFYBPYQMD19XCiwssy2o21gLr3NhqHvIF5GCQHBQVU1WddpcOAefKStf5a0600CXrp2LF2Za5z9bqVh0PAhAhy5KoCYHL2vnZJ+yrRW10Pji//7eXISXmLJq67P26vYxaeQJcUd/+mZGL8aRbx4D4v8wxX5vY0hT/X7zFq3E7/xbDhQBGDd2ULzfmScr429iKDyZ2BlwdPtfUKFEkV1bSzQJoyhTaDP1n5o4oAQBx82+suwJIlWuF8Unq6zmXxcte/qvnlj/alL7kQ/Cq8GrDhqbtdLMQZ/hrGCiZ2dzSPjciEfIHONFedLavwXoiWdu6yGYCK0QTw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 12.22.5.235) smtp.rcpttodomain=grimberg.me smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none
+ bh=65Z6Raw0Y8rJ9/p7UWqhyimkJH4O5Gu0w94VFAmO1AA=;
+ b=k00y9p0kOyHII8twxiCXHgjBzlFDA8OTzDZIvUFCSMuX6noEEkA6O1IHpeCxfjT9OCC/7C4isytNw1XajN0R5Vxd8SfMqcmTkw5/JiP82QBLTDo/p3aCSB4W3J8+A1b3JStoTI7fTxMxb2xdQwneIcVhHdYETTK1dGxTGwZ1U+zxSduCNu+dqak17fmDeNZyw2RWgqG8OyhldSmB1SlznglXCKgNWiGSA4Z/ASWbp3sJu+U2/rhRMI1jbPbeErJrZvDDrsBtpHZIXI9pvUGmLQR870DOaW5i4p62h24MpeOzevAq4pWNNSYM9uMT1YB2p9HsFv3GED1MfNqwCt8yrQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=VxKKAwrWnc7Vj2P/A0lTW0F0ko1hK+iijC+UYJyEv+w=;
- b=N/zWGRSC/cVLycZOTxZ4FsDOQ2N9LCObKk0daJ9Vc7cgOnNbKrdIRk4qJQVxt0OnULBe+TfNP621GhxvrELrxsVO70qg9ksmHFPj+J+sZ6fd+lIxKQai9Jj9pA63ypj2UP+UHUvWFEHYPZK3Q9VhRABt6BLTA3ly/dpiQbDKxd1+y/WKbPRSC78kHbsLm1UiUkKLVz0OH9Nc6RE8dF8X7RNCXaIGfO3CJtFmHttjjouMql67KdFwV/8ARKeE6LUv2BSga6sIy3RzN0FMpV4jBTeD7tznl0met2AtA3FKjH6h/vohfdtA5sCDIZWUW62Sm6CU0PbHLZOJ1OLUzDlW1g==
-Received: from MW4PR04CA0122.namprd04.prod.outlook.com (2603:10b6:303:84::7)
- by MN2PR12MB2877.namprd12.prod.outlook.com (2603:10b6:208:ae::32) with
+ bh=65Z6Raw0Y8rJ9/p7UWqhyimkJH4O5Gu0w94VFAmO1AA=;
+ b=ckxzUIMzgU5ew1MQxPwdTqXkuO8prGYpfX9xhMgX/BNhp4GrmG2/htsaJe9Y5qiafqD+ltaK2Mty6veow4bcf/cPxZltOfiY8mvdIkdlar+STByPh3YrEbtMj1GNBaH6MEBOT4KcORV4yJ0lNweBGIu9CyCRJm6kGa2umvAZ1HyG2VN1K61ykztr3stFgRnUjXtzVQeMdRushZtsrB+X1l2046ujmWXXnSfR2FOZXYs6DuGGusBPTa5nORkoS+1OX3OYVTlWZJc07FFnSvwt/3wXVCBX2NZO5AJY+KMu4/DjbC8wfoaorkcpoHKFrt5VW0mruDtqi0AsZn34GRX/mQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DM4PR12MB5040.namprd12.prod.outlook.com (2603:10b6:5:38b::19)
+ by MWHPR12MB1662.namprd12.prod.outlook.com (2603:10b6:301:11::10) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.17; Tue, 8 Mar
- 2022 14:56:22 +0000
-Received: from CO1NAM11FT004.eop-nam11.prod.protection.outlook.com
- (2603:10b6:303:84:cafe::46) by MW4PR04CA0122.outlook.office365.com
- (2603:10b6:303:84::7) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.14 via Frontend
- Transport; Tue, 8 Mar 2022 14:56:22 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.235)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 12.22.5.235 as permitted sender) receiver=protection.outlook.com;
- client-ip=12.22.5.235; helo=mail.nvidia.com;
-Received: from mail.nvidia.com (12.22.5.235) by
- CO1NAM11FT004.mail.protection.outlook.com (10.13.175.89) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.5038.14 via Frontend Transport; Tue, 8 Mar 2022 14:56:21 +0000
-Received: from rnnvmail204.nvidia.com (10.129.68.6) by DRHQMAIL107.nvidia.com
- (10.27.9.16) with Microsoft SMTP Server (TLS) id 15.0.1497.18; Tue, 8 Mar
- 2022 14:55:53 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail204.nvidia.com
- (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.9; Tue, 8 Mar 2022
- 06:55:52 -0800
-Received: from r-arch-stor03.mtr.labs.mlnx (10.127.8.14) by mail.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server id 15.2.986.9 via Frontend
- Transport; Tue, 8 Mar 2022 06:55:50 -0800
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.14; Tue, 8 Mar
+ 2022 15:51:30 +0000
+Received: from DM4PR12MB5040.namprd12.prod.outlook.com
+ ([fe80::f037:e2a1:f108:125a]) by DM4PR12MB5040.namprd12.prod.outlook.com
+ ([fe80::f037:e2a1:f108:125a%8]) with mapi id 15.20.5038.027; Tue, 8 Mar 2022
+ 15:51:30 +0000
+Message-ID: <9d9abd33-51f2-5a8e-9df9-8ffe72e3a30b@nvidia.com>
+Date:   Tue, 8 Mar 2022 17:51:23 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.6.1
+Subject: Re: [bug report] NVMe/IB: kmemleak observed on 5.17.0-rc5 with
+ nvme-rdma testing
+Content-Language: en-US
+To:     Yi Zhang <yi.zhang@redhat.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>
+Cc:     Sagi Grimberg <sagi@grimberg.me>
+References: <CAHj4cs8vnLXyddEJkV_1Dbmn7UaM4sLX=C1CN9tuA-5Mhczayw@mail.gmail.com>
 From:   Max Gurtovoy <mgurtovoy@nvidia.com>
-To:     <linux-rdma@vger.kernel.org>, <jgg@nvidia.com>, <sagi@grimberg.me>
-CC:     <oren@nvidia.com>, <sergeygo@nvidia.com>, <israelr@nvidia.com>,
-        <leonro@nvidia.com>, Max Gurtovoy <mgurtovoy@nvidia.com>
-Subject: [PATCH v2 1/4] IB/iser: remove iser_reg_data_sg helper function
-Date:   Tue, 8 Mar 2022 16:55:43 +0200
-Message-ID: <20220308145546.8372-2-mgurtovoy@nvidia.com>
-X-Mailer: git-send-email 2.18.1
-In-Reply-To: <20220308145546.8372-1-mgurtovoy@nvidia.com>
-References: <20220308145546.8372-1-mgurtovoy@nvidia.com>
+In-Reply-To: <CAHj4cs8vnLXyddEJkV_1Dbmn7UaM4sLX=C1CN9tuA-5Mhczayw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: AS8PR04CA0086.eurprd04.prod.outlook.com
+ (2603:10a6:20b:313::31) To DM4PR12MB5040.namprd12.prod.outlook.com
+ (2603:10b6:5:38b::19)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 92a08140-571d-438e-8091-08da0113cf4b
-X-MS-TrafficTypeDiagnostic: MN2PR12MB2877:EE_
-X-Microsoft-Antispam-PRVS: <MN2PR12MB2877B0DEA7842A5299F71F07DE099@MN2PR12MB2877.namprd12.prod.outlook.com>
+X-MS-Office365-Filtering-Correlation-Id: d474e6cf-ef42-4992-464e-08da011b830a
+X-MS-TrafficTypeDiagnostic: MWHPR12MB1662:EE_
+X-Microsoft-Antispam-PRVS: <MWHPR12MB1662C688660A179C350E94A2DE099@MWHPR12MB1662.namprd12.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: VhweoNT2BqrOSsHxOr7qYfHal9fBRiI2SvmlDxdx0B4rR+QTMdweO7rPe7rOoivaJUJsr4iPG8jUXwnmZgRusk6ZpBp44ApfwGErtD1TPnB09f4vU4V2/BOQ+QfK59EHKjS/yF5bm4TQi2fEgCuciufXSu6R6ntT8xJmCXUOWPPM2kewfncRjrmALqf9tAuAYUe370t7/8dl686dfJ9w7uC/Qq9JXDjKbS7ZTJRLzXBrfnMowQorE7cwSzDuJ6oxNCnVYlR/r0KcU8GQUI0jLfNC3Og2UD/4Ew2U/88P77QeS1igEx/Utms2yc15j+qyeOw4sDn/0hhHXf9i+9fQZNx5xPF4BDgT3MuE3MwYXE1OytRECcIt9r+57Z0iqaanQ5LvuLWUOxZ6mBimP4A6iLSWnsDV2rBC1WaMlF9DfSghiToNA5Qr8Cn1e3oJHyIPo8wwtCwVMpuSviohSpso3uHyfyIwzC1zsBVnbwF9gP71NGjxDE9TdMK+cdOI6VOL4FzU6mAVXXVayivfdPAONe9/eOneiA3/wa0FN0dIoKBKkrX4vvMLi94wo8oiUyQ5EXebfu5bQvv3o/mBgG5P+JyPrF165GxLDGSPACmFotORJhfSqtAmUfRQhqcXXiXfx4DwzfoGSq4El395EmMN52VqMK938zcCvAujQY2FspHmP/tlLb5GaZOl/sCMMrrA9cdwX9n9qbjQYESl2x3oIA==
-X-Forefront-Antispam-Report: CIP:12.22.5.235;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(36840700001)(40470700004)(46966006)(4326008)(81166007)(8676002)(70206006)(70586007)(5660300002)(2906002)(356005)(36756003)(8936002)(82310400004)(54906003)(36860700001)(110136005)(316002)(186003)(40460700003)(508600001)(86362001)(107886003)(47076005)(6666004)(2616005)(426003)(1076003)(26005)(83380400001)(336012)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: +32f9oeUgRZSFHtw3x0O+Fj3CXXU4m4QOT2FO5AI+MbDBJUgtvn+7Ge5jCrz5drJzlD9G+71RRNwdhSvH3J4iT1feQDRm7WUi8rvBG9qYKUSMdY26rhEj3njp2pMDAtx1pEXcBkZYy1VJve7A3GY18imwj+UHQkuAIVVNBMzakIbJz4p2xhg09JFQk5aOpm7OVYBXkErvO6Ri4Ka2+zGfsAzYOguL5tDF3Swfy6mGjgav2t0N/WOn74Dta0Pf1QmCmpEe7nVVdeB/RLdq0LA5FnuP2PPfTD+NeA3r4drEjiAaUAbdiqWxN7n5A9yeI7nu1nvj8FG01ks8FypnUpChU0MegnW3/GwBTIhAU+uYxE2jc0jHhq1WaEBeYvYaLbQILa7Wh1XgLN/GyKvgASA26KS7RiztpMiL7QYYkVdTd8vaPaVkSVGcL9e5VAhNMRzUDtyM5GVH/vAooCQJ2F5jN/J3XkwJfyhlJD1uhWWTMnx6XH1f8xemF0HOtwX8U9krcy8DBFzwqQRZs8TJz9qUiR/GxwEvMLiDqp/Zs/2qAQt032Wv0k4H5I6x6G1ONoMGyPoX8CrCmG4YdnC65nx9jXwJHYbK7bNJ3rqJJt6xgSTkL2mFjIw6iBzqeTQ0bIy4MY5oghQRqF6Ye71KpIGllDidej3GH2CXHfx9igzZZG9Hl4tdhdcq2UWllaOqotQaHhf/qDaL/rT33IP8tUhD30ZkKBBqSKwaqqekHBnd19ULCqTHiyZh+6TKI8JZmjksMgPboihp/y9uGjaCm9x5w==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5040.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(110136005)(66556008)(38100700002)(66946007)(36756003)(316002)(31686004)(2616005)(6666004)(508600001)(5660300002)(6506007)(8936002)(86362001)(53546011)(6512007)(186003)(26005)(2906002)(31696002)(66476007)(4326008)(8676002)(6486002)(43740500002)(45980500001)(505234007);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?cEp6WHc3azBUNHY1VkhRWWRHRkwwSzRtV0RTN0hCQTNRSmdOelpqYkR6SHVU?=
+ =?utf-8?B?QUlNODFOR2NkaEVlQXZEWC9LWFozeFBVakU0TEo1bkFGVmpjNUgyTUNlTzcx?=
+ =?utf-8?B?bHJWSE1jVVQ5MzJnTVlwRUFJU0JnVFAzZkRQSytOZi9GZ0hwdmRHNXg1ZG5J?=
+ =?utf-8?B?ZVFWQkVWN0NCT2dlclFsQktYQ2FyV3JaNndEbExVYndqcUU3RjV2UmZhZHc4?=
+ =?utf-8?B?bW1pU3EwRE5KZjNXNHRsR1puVE4zOTZXUFI4Z1E1ak82dDkrNXpRVDdoOFFT?=
+ =?utf-8?B?bjFIcGdHYm0zSXREU2liSk4wR2hmaE1qeDR2RXl2WmlnR1l0YTQrZEIyMnZv?=
+ =?utf-8?B?SFRoNXJPRW1SemVWN3dacnJXeEROdW1pa0l6QWpiMmN0NmlacHo4OStYcmo4?=
+ =?utf-8?B?Y3BJUzNLY1ROdnlRTERxNEQ4R0oyeXQvUUpwcWZSOWNjMnB5d1R2anFmY0t5?=
+ =?utf-8?B?ay82enJ0dVVtOWtHSTFoYnF2ZXIwMGgrdXBXQldDejZrWXVXWUJ2eTZWUUVx?=
+ =?utf-8?B?ZVRCYkRoMEl5ZzMwWmVVVHdneE1NbkhnV2tWUHFFbHA1RUtjVnMzQXZ6QWhQ?=
+ =?utf-8?B?eSszU3JXZGl2K2RBc0xEb01vMzBjeEs0YlRCSm9BVHUvWFZtQXBGYXpUV1Va?=
+ =?utf-8?B?WVJ6T1VOK3hXVlFTRlRXSTBnN01yY0ZhV0lyRVNBN3RTM3cyODAwQk9BbGtj?=
+ =?utf-8?B?M2taeXZZaEp1TElISFl6dTBBeTRTWmZNSktlMzI1cXk5Q3hjdThkYXVtMGo2?=
+ =?utf-8?B?bFdkaGJmRWxNck9xTyt6cGwxOFlwTTRyTFhObm9RYlp5dU9rNlluZ0xiOGoy?=
+ =?utf-8?B?ZmcrdHNJSTJGMjNhRTJweTFtUTBta3J2VG5JYzRUWHVEVE5ha0RhUG5xeTBG?=
+ =?utf-8?B?VU8zZjNuMEprRVp5Z3BQRE5oVVNReUsyeUxaWXFWQzZLNC9PQmU5bWl4T1M5?=
+ =?utf-8?B?dWdIdFo1elVFY1hNcG9EMk05am5RaVZpVTVsdXBDVnVuNHVKbDliSzkxVFpu?=
+ =?utf-8?B?RFA0MGFKZ3Nub2hzMEU1ckVROEY1NjdUSDFjQjNVNnREMFZzbjg0a1h6WEx5?=
+ =?utf-8?B?RFU5Rzh2V2MxeHNleUFESWNaK2JQckZJb25yZE9VYk1QT3B6M2xOZG1UTlJq?=
+ =?utf-8?B?cFUyWndDSHlwMVlGbFozWURQYWlCR2s5UFRPYUR5QmJjNVQrM05FTDVtZVBr?=
+ =?utf-8?B?Ymw5N3BJY2lqK3lqT3p4U3dEZm8vT0pveXoxVlZlVzREa1BIQzRKeVI0Zmw3?=
+ =?utf-8?B?WkFOd2VqMFB2dXVZNFBqK0hmSER2dkQ3ZGI2Z0dUY3lJVEZvdiswOVp4Z1ZR?=
+ =?utf-8?B?eUdTTE51L2F5Tnlqb3htQmpjeGdHSVJrZHJSd3BnQ1Jyc1pLQnVGaUFLMG5J?=
+ =?utf-8?B?akRPaTI3VVZGR2hsWXA1M2JUNVhPdlJjc1Roc3FXdDNsUjdsRG9XUXRCcHZr?=
+ =?utf-8?B?bFVyUXFNVk5PZGdobFN6ZW5kdnBXcFdKVlZNM3B4Rm50OS9QeXJyU2JqK3Vw?=
+ =?utf-8?B?OGtMRzhlbU1vaWZESnpkcHVtRHhhNi9VSjhTYVdJK2hMQUxIVlh2bGdlb2NZ?=
+ =?utf-8?B?bEY2R3ZuS1JHUUp2OW9SbFNkR0FQWSs0R1c0VDB2QkJIZHZQaFZZczE3Wjli?=
+ =?utf-8?B?dzYzRHZhSzJORUdaeXVDSHVkT1RTTVE4M28yUzFQcmpxMXpJZzFKdFVzVnBF?=
+ =?utf-8?B?Z2RTdlhXWTJIN2t4WUtzeWFVR0RwSnpsN0oybFY2UFF6UGljVjZCSHdxZ3p3?=
+ =?utf-8?B?OXJ3a1lvNkVqYVlJRXpmQXhsMkF0cjBQK1dIeENGbGxheTIvb2VwT0taYkwy?=
+ =?utf-8?B?VCtaK20zbGdDbGNjY2NTM0Vndm1SQk1PTnJmNG5GZGMvaHVHRklyVDBHUUhL?=
+ =?utf-8?B?eVJBUk5aSnQxVUZOS3RJaG9QTWJhWTc4ZDcya3oya2FyeDVvYzlrS0xjN1BT?=
+ =?utf-8?B?dTJWSXE2bGlmNjlCSmFzWVZUaVNINU84Zi84UFBjTlhhN0o1MndldWFwVGpK?=
+ =?utf-8?B?N3YzVHlCK2J3QWhOaFhCMXNTWkdqTUJFSzBpMnhSQnpuWlhFYm9nMEdEL0Nv?=
+ =?utf-8?B?UDBZSUsvdEVyTXFNTGVTTy81a0J4U3ZGNEgwaXFwdVZMd0JqWU5SNDhzSXJD?=
+ =?utf-8?B?bFN2K0xBcUM0bCtFbHpyNTJDUVZDQ3J0dk5YeEhkZGVaVi82TWJBemcxUlIr?=
+ =?utf-8?Q?CDe2nLUJnJ+0cXTTN5DxjzI=3D?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Mar 2022 14:56:21.8934
+X-MS-Exchange-CrossTenant-Network-Message-Id: d474e6cf-ef42-4992-464e-08da011b830a
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5040.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Mar 2022 15:51:30.2766
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 92a08140-571d-438e-8091-08da0113cf4b
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.235];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT004.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB2877
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: R/5Fs8OToAxHhtfr3KcgXcvG5lelL4nDASN/u0Z9Zn4abVE/MwinSWgfPtVO7A3nFRi2TgqmqjfAyQgaZ8lrKw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR12MB1662
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Open coding it makes the code more readable and simple.
+Hi Yi Zhang,
 
-Reviewed-by: Sergey Gorenko <sergeygo@nvidia.com>
-Signed-off-by: Max Gurtovoy <mgurtovoy@nvidia.com>
----
- drivers/infiniband/ulp/iser/iser_memory.c | 31 +++++++----------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+Please send the commands to repro.
 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 660982625488..4292c57856dd 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -327,40 +327,26 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 	return 0;
- }
- 
--static int iser_reg_data_sg(struct iscsi_iser_task *task,
--			    struct iser_data_buf *mem,
--			    struct iser_fr_desc *desc, bool use_dma_key,
--			    struct iser_mem_reg *reg)
--{
--	struct iser_device *device = task->iser_conn->ib_conn.device;
--
--	if (use_dma_key)
--		return iser_reg_dma(device, mem, reg);
--
--	return iser_fast_reg_mr(task, mem, &desc->rsc, reg);
--}
--
- int iser_reg_mem_fastreg(struct iscsi_iser_task *task,
- 			 enum iser_data_dir dir,
- 			 bool all_imm)
- {
- 	struct ib_conn *ib_conn = &task->iser_conn->ib_conn;
-+	struct iser_device *device = ib_conn->device;
- 	struct iser_data_buf *mem = &task->data[dir];
- 	struct iser_mem_reg *reg = &task->rdma_reg[dir];
--	struct iser_fr_desc *desc = NULL;
-+	struct iser_fr_desc *desc;
- 	bool use_dma_key;
- 	int err;
- 
- 	use_dma_key = mem->dma_nents == 1 && (all_imm || !iser_always_reg) &&
- 		      scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL;
-+	if (use_dma_key)
-+		return iser_reg_dma(device, mem, reg);
- 
--	if (!use_dma_key) {
--		desc = iser_reg_desc_get_fr(ib_conn);
--		reg->mem_h = desc;
--	}
--
-+	desc = iser_reg_desc_get_fr(ib_conn);
- 	if (scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL) {
--		err = iser_reg_data_sg(task, mem, desc, use_dma_key, reg);
-+		err = iser_fast_reg_mr(task, mem, &desc->rsc, reg);
- 		if (unlikely(err))
- 			goto err_reg;
- 	} else {
-@@ -372,11 +358,12 @@ int iser_reg_mem_fastreg(struct iscsi_iser_task *task,
- 		desc->sig_protected = true;
- 	}
- 
-+	reg->mem_h = desc;
-+
- 	return 0;
- 
- err_reg:
--	if (desc)
--		iser_reg_desc_put_fr(ib_conn, desc);
-+	iser_reg_desc_put_fr(ib_conn, desc);
- 
- 	return err;
- }
--- 
-2.18.1
+I run the following with no success to repro:
 
+for i in `seq 100`; do echo $i &&  cat /sys/kernel/debug/kmemleak && 
+echo clear > /sys/kernel/debug/kmemleak && nvme reset /dev/nvme2 && 
+sleep 5 && echo scan > /sys/kernel/debug/kmemleak ; done
+
+-Max.
+
+On 2/21/2022 1:37 PM, Yi Zhang wrote:
+> Hello
+>
+> Below kmemleak triggered when I do nvme connect/reset/disconnect
+> operations on latest 5.17.0-rc5, pls check it.
+>
+> # cat /sys/kernel/debug/kmemleak
+> unreferenced object 0xffff8883e398bc00 (size 192):
+>    comm "nvme", pid 2632, jiffies 4295317772 (age 2951.476s)
+>    hex dump (first 32 bytes):
+>      80 50 84 a3 ff ff ff ff 70 d4 12 67 81 88 ff ff  .P......p..g....
+>      01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+>    backtrace:
+>      [<00000000ecf84f29>] kmem_cache_alloc_trace+0x10e/0x220
+>      [<0000000099bbcbaa>] blk_iolatency_init+0x4e/0x380
+>      [<00000000e7a59176>] blkcg_init_queue+0x12e/0x610
+>      [<00000000aade682c>] blk_alloc_queue+0x400/0x840
+>      [<000000007ed43824>] blk_mq_init_queue_data+0x6a/0x100
+>      [<00000000cbff6d39>] nvme_rdma_setup_ctrl+0x4ca/0x15f0 [nvme_rdma]
+>      [<00000000a309d26c>] nvme_rdma_create_ctrl+0x7e5/0xa9f [nvme_rdma]
+>      [<000000007d8b5cca>] nvmf_dev_write+0x44e/0xa39 [nvme_fabrics]
+>      [<0000000031d8624b>] vfs_write+0x17e/0x9a0
+>      [<00000000471d7945>] ksys_write+0xf1/0x1c0
+>      [<00000000a963bc79>] do_syscall_64+0x3a/0x80
+>      [<0000000005154fc2>] entry_SYSCALL_64_after_hwframe+0x44/0xae
+> unreferenced object 0xffff8883e398a700 (size 192):
+>    comm "nvme", pid 2632, jiffies 4295317782 (age 2951.466s)
+>    hex dump (first 32 bytes):
+>      80 50 84 a3 ff ff ff ff 60 c8 12 67 81 88 ff ff  .P......`..g....
+>      01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+>    backtrace:
+>      [<00000000ecf84f29>] kmem_cache_alloc_trace+0x10e/0x220
+>      [<0000000099bbcbaa>] blk_iolatency_init+0x4e/0x380
+>      [<00000000e7a59176>] blkcg_init_queue+0x12e/0x610
+>      [<00000000aade682c>] blk_alloc_queue+0x400/0x840
+>      [<000000007ed43824>] blk_mq_init_queue_data+0x6a/0x100
+>      [<000000004f80b965>] nvme_rdma_setup_ctrl+0xf37/0x15f0 [nvme_rdma]
+>      [<00000000a309d26c>] nvme_rdma_create_ctrl+0x7e5/0xa9f [nvme_rdma]
+>      [<000000007d8b5cca>] nvmf_dev_write+0x44e/0xa39 [nvme_fabrics]
+>      [<0000000031d8624b>] vfs_write+0x17e/0x9a0
+>      [<00000000471d7945>] ksys_write+0xf1/0x1c0
+>      [<00000000a963bc79>] do_syscall_64+0x3a/0x80
+>      [<0000000005154fc2>] entry_SYSCALL_64_after_hwframe+0x44/0xae
+> unreferenced object 0xffff8894253d9d00 (size 192):
+>    comm "nvme", pid 2632, jiffies 4295331915 (age 2937.333s)
+>    hex dump (first 32 bytes):
+>      80 50 84 a3 ff ff ff ff 80 e0 12 67 81 88 ff ff  .P.........g....
+>      01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+>    backtrace:
+>      [<00000000ecf84f29>] kmem_cache_alloc_trace+0x10e/0x220
+>      [<0000000099bbcbaa>] blk_iolatency_init+0x4e/0x380
+>      [<00000000e7a59176>] blkcg_init_queue+0x12e/0x610
+>      [<00000000aade682c>] blk_alloc_queue+0x400/0x840
+>      [<000000007ed43824>] blk_mq_init_queue_data+0x6a/0x100
+>      [<000000009f9abba5>] nvme_rdma_setup_ctrl.cold.70+0x5ee/0xb01 [nvme_rdma]
+>      [<00000000a309d26c>] nvme_rdma_create_ctrl+0x7e5/0xa9f [nvme_rdma]
+>      [<000000007d8b5cca>] nvmf_dev_write+0x44e/0xa39 [nvme_fabrics]
+>      [<0000000031d8624b>] vfs_write+0x17e/0x9a0
+>      [<00000000471d7945>] ksys_write+0xf1/0x1c0
+>      [<00000000a963bc79>] do_syscall_64+0x3a/0x80
+>      [<0000000005154fc2>] entry_SYSCALL_64_after_hwframe+0x44/0xae
+>
+>
+>
