@@ -2,25 +2,25 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A6F2C433F5
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Mar 2022 14:56:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D31C433F5
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Mar 2022 14:56:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241296AbiCHO5Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Mar 2022 09:57:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51300 "EHLO
+        id S245628AbiCHO51 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Mar 2022 09:57:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51316 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239658AbiCHO5X (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Mar 2022 09:57:23 -0500
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2058.outbound.protection.outlook.com [40.107.220.58])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83A3D4D614
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Mar 2022 06:56:26 -0800 (PST)
+        with ESMTP id S239658AbiCHO50 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Mar 2022 09:57:26 -0500
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2053.outbound.protection.outlook.com [40.107.236.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA4344D60E
+        for <linux-rdma@vger.kernel.org>; Tue,  8 Mar 2022 06:56:29 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=KvkZMQlw1++PCVkT42tBZ2l6eATdshvbKqQbneqLpq4gM8bjdzGsnPd9q8z7t8fGpU5mFgNttWFH9cKAeMwYtSAm0dAs4h6+nh3kgO2thvUFQSd+B27C9J+mVp/fwSR+yhJusxalKI32XWHnh0cKfWFTRoZfsO6OTRb5cA7jsr9os+XUBrBEaV5ddwOlJqjcCYOCicGo9X4fVLQ+9ZcgntpzRcwRWMr87VYMoJp3PZVSD9BRjGdb4DkivWEu2E2AWyfLTjcEgrCJ2gpq9SMeydpava412tiePX3UZSpafbYIjDHil7doIDI4EqlR6tF/Yj5kJAswR/oIkNdslQvAXg==
+ b=TWHp+5ST62E8SZoXjDDKsbClQCx2t29KAKm/g6AFWJiab23+AbaXLVbdThy6qSb/+JRecZuQhFaCyMkBvNaytPaGa0kq+cS9/M9mHZSU5DAmnFUo30GxQ9ERO3fzAlFt98nPD1NsLJaYvLYBYvC1N8TYpi94N/gZbw9ZzlI7g8yWDRYbAm/1xgeYVSO0bYywePSVzW+YOhv3hkx8yA3csFXJfaY/utZXyi6MUXjzNYUv40esccgTiFZaJMhhRXAgIwElL+rmey6VcQdKMC+ctIvswQIPxDvgfinoFUAYdLnaaTVV4Pd1WDUautXPBb4mrJ60bZoi5RwweniIdiMcYA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=nn284xp7m9ce6QCG7ZMdmiNzU3gGzRZAPLxecvLADyk=;
- b=Ohq1hr6M8XBLGHlRuRO4pRacAECzI+09Xp6bkDGQXaYEEbwM7/3SBDLYGAawILkbRSH3iF6dtGEbokuUQ/5bkBqyugEBJSIbZUDv1rwHLhVCgOGah/clF9ioLyo4XI7P5RVbXXC70o9vPohEqFiJtV/o4nduGAzsL63ROJ29X1MqDJrciMpuMh1D7lPQu+zWfcEdPT+dnGRO2LxNEEMc6iEZJCzYR60l6z56Vy7CfgAStxIDsPialetnEw0xXR9EjYkGrWqFHgWko4LN56cde13dRj/n83syCiTIXZ07dLW26QsGQJ76PYHIuv8JvODaj79xnZDY6KT8FZS81fhbWg==
+ bh=VxKKAwrWnc7Vj2P/A0lTW0F0ko1hK+iijC+UYJyEv+w=;
+ b=Xtt6Ua2DjcnrYFYBPYQMD19XCiwssy2o21gLr3NhqHvIF5GCQHBQVU1WddpcOAefKStf5a0600CXrp2LF2Za5z9bqVh0PAhAhy5KoCYHL2vnZJ+yrRW10Pji//7eXISXmLJq67P26vYxaeQJcUd/+mZGL8aRbx4D4v8wxX5vY0hT/X7zFq3E7/xbDhQBGDd2ULzfmScr429iKDyZ2BlwdPtfUKFEkV1bSzQJoyhTaDP1n5o4oAQBx82+suwJIlWuF8Unq6zmXxcte/qvnlj/alL7kQ/Cq8GrDhqbtdLMQZ/hrGCiZ2dzSPjciEfIHONFedLavwXoiWdu6yGYCK0QTw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  12.22.5.235) smtp.rcpttodomain=grimberg.me smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -28,18 +28,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=nn284xp7m9ce6QCG7ZMdmiNzU3gGzRZAPLxecvLADyk=;
- b=OWXF7DbAYuO2AuRD5zVWRwOMBTk5iIdrKDeOMiSYsbc3dA1apKYcQz6wKwz0Vuzcm3DGOvE8cCa7Bi0r83RTrgrMOKsylLjXLahYkA98q4HBq2+Oc7hoApwxq7eybIXOjBH+er3eObJPlKYiEp3aAtyWW1/gIrHCTgyn6IbvaDt94NQkd0VudDFBPUXX9FOFsn90l2gqvR++1T05tBLjDGxcskC6O7eRBGflfCmSHSzB74sIgC2cvyw3gfmO9oyE9ivNvgBXS6Gg0mb+gy6TjDtoFBJhSzgVB+TRS2iT9qNMU1hM+FSFGAI+5kfsyd3M0Q8cPU4CJNN7xvKYwhJvkw==
-Received: from MW4PR04CA0123.namprd04.prod.outlook.com (2603:10b6:303:84::8)
- by BYAPR12MB3208.namprd12.prod.outlook.com (2603:10b6:a03:13b::32) with
+ bh=VxKKAwrWnc7Vj2P/A0lTW0F0ko1hK+iijC+UYJyEv+w=;
+ b=N/zWGRSC/cVLycZOTxZ4FsDOQ2N9LCObKk0daJ9Vc7cgOnNbKrdIRk4qJQVxt0OnULBe+TfNP621GhxvrELrxsVO70qg9ksmHFPj+J+sZ6fd+lIxKQai9Jj9pA63ypj2UP+UHUvWFEHYPZK3Q9VhRABt6BLTA3ly/dpiQbDKxd1+y/WKbPRSC78kHbsLm1UiUkKLVz0OH9Nc6RE8dF8X7RNCXaIGfO3CJtFmHttjjouMql67KdFwV/8ARKeE6LUv2BSga6sIy3RzN0FMpV4jBTeD7tznl0met2AtA3FKjH6h/vohfdtA5sCDIZWUW62Sm6CU0PbHLZOJ1OLUzDlW1g==
+Received: from MW4PR04CA0122.namprd04.prod.outlook.com (2603:10b6:303:84::7)
+ by MN2PR12MB2877.namprd12.prod.outlook.com (2603:10b6:208:ae::32) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.16; Tue, 8 Mar
- 2022 14:56:24 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.17; Tue, 8 Mar
+ 2022 14:56:22 +0000
 Received: from CO1NAM11FT004.eop-nam11.prod.protection.outlook.com
- (2603:10b6:303:84:cafe::e6) by MW4PR04CA0123.outlook.office365.com
- (2603:10b6:303:84::8) with Microsoft SMTP Server (version=TLS1_2,
+ (2603:10b6:303:84:cafe::46) by MW4PR04CA0122.outlook.office365.com
+ (2603:10b6:303:84::7) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.14 via Frontend
- Transport; Tue, 8 Mar 2022 14:56:24 +0000
+ Transport; Tue, 8 Mar 2022 14:56:22 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 12.22.5.235)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -49,24 +49,24 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
 Received: from mail.nvidia.com (12.22.5.235) by
  CO1NAM11FT004.mail.protection.outlook.com (10.13.175.89) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.5038.14 via Frontend Transport; Tue, 8 Mar 2022 14:56:24 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by DRHQMAIL107.nvidia.com
+ 15.20.5038.14 via Frontend Transport; Tue, 8 Mar 2022 14:56:21 +0000
+Received: from rnnvmail204.nvidia.com (10.129.68.6) by DRHQMAIL107.nvidia.com
  (10.27.9.16) with Microsoft SMTP Server (TLS) id 15.0.1497.18; Tue, 8 Mar
- 2022 14:55:59 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ 2022 14:55:53 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail204.nvidia.com
+ (10.129.68.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.9; Tue, 8 Mar 2022
- 06:55:58 -0800
+ 06:55:52 -0800
 Received: from r-arch-stor03.mtr.labs.mlnx (10.127.8.14) by mail.nvidia.com
  (10.129.68.7) with Microsoft SMTP Server id 15.2.986.9 via Frontend
- Transport; Tue, 8 Mar 2022 06:55:55 -0800
+ Transport; Tue, 8 Mar 2022 06:55:50 -0800
 From:   Max Gurtovoy <mgurtovoy@nvidia.com>
 To:     <linux-rdma@vger.kernel.org>, <jgg@nvidia.com>, <sagi@grimberg.me>
 CC:     <oren@nvidia.com>, <sergeygo@nvidia.com>, <israelr@nvidia.com>,
         <leonro@nvidia.com>, Max Gurtovoy <mgurtovoy@nvidia.com>
-Subject: [PATCH v2 3/4] IB/iser: generalize map/unmap dma tasks
-Date:   Tue, 8 Mar 2022 16:55:45 +0200
-Message-ID: <20220308145546.8372-4-mgurtovoy@nvidia.com>
+Subject: [PATCH v2 1/4] IB/iser: remove iser_reg_data_sg helper function
+Date:   Tue, 8 Mar 2022 16:55:43 +0200
+Message-ID: <20220308145546.8372-2-mgurtovoy@nvidia.com>
 X-Mailer: git-send-email 2.18.1
 In-Reply-To: <20220308145546.8372-1-mgurtovoy@nvidia.com>
 References: <20220308145546.8372-1-mgurtovoy@nvidia.com>
@@ -74,205 +74,102 @@ MIME-Version: 1.0
 Content-Type: text/plain
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 07465071-ebc4-4b4e-44d9-08da0113d099
-X-MS-TrafficTypeDiagnostic: BYAPR12MB3208:EE_
-X-Microsoft-Antispam-PRVS: <BYAPR12MB32087D8679507EE8F4676127DE099@BYAPR12MB3208.namprd12.prod.outlook.com>
+X-MS-Office365-Filtering-Correlation-Id: 92a08140-571d-438e-8091-08da0113cf4b
+X-MS-TrafficTypeDiagnostic: MN2PR12MB2877:EE_
+X-Microsoft-Antispam-PRVS: <MN2PR12MB2877B0DEA7842A5299F71F07DE099@MN2PR12MB2877.namprd12.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: W1PKbIcqlL5UeD53L08Cu3/C3UftkLxx5mYjJBiUOCr6ZoHhRh3146fpo/I83A98Wnbh1ouaP3lkl/kAQ+QB979BZBVJCFYUSyiIyovBj5K0AMfJbl4KZTUOjr6WpMdQkC4QF1noD+TrMXZ8tYjnr//XOU3Ly0WX5jp3CTAwP/voiXvWjN3FF/BVgoVCsT7OBWGdLuepYOAeVt0jPuuxsYeDm4w8m8h5fDgBdswEgivFgQ4zHh+NzgDN/EQJa8KqtLL3GkY9dQFsFQO62+l5dKDYCjLVIorZg0vf5d/Pfb2W8gAktt9DDfn0GBwRgJH673s78oPtReAQL7Z+RJpV60Dryo85k9wlhJ6bACRiKwvwcxlZBorEEe9mGhfXrBcYnufwa16U0Jp2mMnh3NzWIwRSyqpjHmoViQtJq6IY5vclycH/SRcaNF2ll5llnDaj6ArAI9tAvYztvi9sXL7mW/sDyNaNXKXKdcYwRIjZMdLfeeX5s1R51WIGAjxv3qfVUSvt3Xl8wpsGjJM6OcnJ1h0nMPt88pu1oZU1W4iao/NkRcaFIenKImfZ02nLxu13hS3QcjzrJc0yuQcVqaT47D1xYU8BzMLndJyLiP9QZTyJtwBnppVfS89xurf7OFbjloPpsp/4WhaG2SD0uykglUttBO5TAO2YZ+u737itSOkLncbLVgp+kon8hA/WZQsanIyRvQ9eA49CnEANcSZiZQ==
-X-Forefront-Antispam-Report: CIP:12.22.5.235;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(40470700004)(46966006)(36840700001)(36860700001)(54906003)(26005)(47076005)(2906002)(4326008)(86362001)(36756003)(6666004)(110136005)(316002)(508600001)(356005)(2616005)(107886003)(426003)(81166007)(336012)(1076003)(186003)(82310400004)(8676002)(70206006)(70586007)(8936002)(83380400001)(40460700003)(5660300002)(36900700001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: VhweoNT2BqrOSsHxOr7qYfHal9fBRiI2SvmlDxdx0B4rR+QTMdweO7rPe7rOoivaJUJsr4iPG8jUXwnmZgRusk6ZpBp44ApfwGErtD1TPnB09f4vU4V2/BOQ+QfK59EHKjS/yF5bm4TQi2fEgCuciufXSu6R6ntT8xJmCXUOWPPM2kewfncRjrmALqf9tAuAYUe370t7/8dl686dfJ9w7uC/Qq9JXDjKbS7ZTJRLzXBrfnMowQorE7cwSzDuJ6oxNCnVYlR/r0KcU8GQUI0jLfNC3Og2UD/4Ew2U/88P77QeS1igEx/Utms2yc15j+qyeOw4sDn/0hhHXf9i+9fQZNx5xPF4BDgT3MuE3MwYXE1OytRECcIt9r+57Z0iqaanQ5LvuLWUOxZ6mBimP4A6iLSWnsDV2rBC1WaMlF9DfSghiToNA5Qr8Cn1e3oJHyIPo8wwtCwVMpuSviohSpso3uHyfyIwzC1zsBVnbwF9gP71NGjxDE9TdMK+cdOI6VOL4FzU6mAVXXVayivfdPAONe9/eOneiA3/wa0FN0dIoKBKkrX4vvMLi94wo8oiUyQ5EXebfu5bQvv3o/mBgG5P+JyPrF165GxLDGSPACmFotORJhfSqtAmUfRQhqcXXiXfx4DwzfoGSq4El395EmMN52VqMK938zcCvAujQY2FspHmP/tlLb5GaZOl/sCMMrrA9cdwX9n9qbjQYESl2x3oIA==
+X-Forefront-Antispam-Report: CIP:12.22.5.235;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:mail.nvidia.com;PTR:InfoNoRecords;CAT:NONE;SFS:(13230001)(4636009)(36840700001)(40470700004)(46966006)(4326008)(81166007)(8676002)(70206006)(70586007)(5660300002)(2906002)(356005)(36756003)(8936002)(82310400004)(54906003)(36860700001)(110136005)(316002)(186003)(40460700003)(508600001)(86362001)(107886003)(47076005)(6666004)(2616005)(426003)(1076003)(26005)(83380400001)(336012)(36900700001);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Mar 2022 14:56:24.0964
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Mar 2022 14:56:21.8934
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 07465071-ebc4-4b4e-44d9-08da0113d099
+X-MS-Exchange-CrossTenant-Network-Message-Id: 92a08140-571d-438e-8091-08da0113cf4b
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[12.22.5.235];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT004.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR12MB3208
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB2877
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Avoid code duplication and add the mapping/unmapping of the protection
-buffers to the iser_dma_map_task_data/iser_dma_unmap_task_data
-functions.
+Open coding it makes the code more readable and simple.
 
 Reviewed-by: Sergey Gorenko <sergeygo@nvidia.com>
 Signed-off-by: Max Gurtovoy <mgurtovoy@nvidia.com>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h     |  5 +--
- drivers/infiniband/ulp/iser/iser_initiator.c | 40 +-------------------
- drivers/infiniband/ulp/iser/iser_memory.c    | 31 +++++++++++++--
- 3 files changed, 31 insertions(+), 45 deletions(-)
+ drivers/infiniband/ulp/iser/iser_memory.c | 31 +++++++----------------
+ 1 file changed, 9 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 23b922233006..7e4faf9c5e9e 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -531,13 +531,12 @@ int  iser_post_recvm(struct iser_conn *iser_conn,
- int  iser_post_send(struct ib_conn *ib_conn, struct iser_tx_desc *tx_desc);
- 
- int iser_dma_map_task_data(struct iscsi_iser_task *iser_task,
--			   struct iser_data_buf *data,
- 			   enum iser_data_dir iser_dir,
- 			   enum dma_data_direction dma_dir);
- 
- void iser_dma_unmap_task_data(struct iscsi_iser_task *iser_task,
--			      struct iser_data_buf *data,
--			      enum dma_data_direction dir);
-+			      enum iser_data_dir iser_dir,
-+			      enum dma_data_direction dma_dir);
- 
- int  iser_initialize_task_headers(struct iscsi_task *task,
- 			struct iser_tx_desc *tx_desc);
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 012decf6905a..dbc2c268bc0e 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -52,26 +52,13 @@ static int iser_prepare_read_cmd(struct iscsi_task *task)
- 	struct iser_mem_reg *mem_reg;
- 	int err;
- 	struct iser_ctrl *hdr = &iser_task->desc.iser_header;
--	struct iser_data_buf *buf_in = &iser_task->data[ISER_DIR_IN];
- 
- 	err = iser_dma_map_task_data(iser_task,
--				     buf_in,
- 				     ISER_DIR_IN,
- 				     DMA_FROM_DEVICE);
- 	if (err)
- 		return err;
- 
--	if (scsi_prot_sg_count(iser_task->sc)) {
--		struct iser_data_buf *pbuf_in = &iser_task->prot[ISER_DIR_IN];
--
--		err = iser_dma_map_task_data(iser_task,
--					     pbuf_in,
--					     ISER_DIR_IN,
--					     DMA_FROM_DEVICE);
--		if (err)
--			return err;
--	}
--
- 	err = iser_reg_mem_fastreg(iser_task, ISER_DIR_IN, false);
- 	if (err) {
- 		iser_err("Failed to set up Data-IN RDMA\n");
-@@ -106,23 +93,11 @@ static int iser_prepare_write_cmd(struct iscsi_task *task, unsigned int imm_sz,
- 	struct ib_sge *tx_dsg = &iser_task->desc.tx_sg[1];
- 
- 	err = iser_dma_map_task_data(iser_task,
--				     buf_out,
- 				     ISER_DIR_OUT,
- 				     DMA_TO_DEVICE);
- 	if (err)
- 		return err;
- 
--	if (scsi_prot_sg_count(iser_task->sc)) {
--		struct iser_data_buf *pbuf_out = &iser_task->prot[ISER_DIR_OUT];
--
--		err = iser_dma_map_task_data(iser_task,
--					     pbuf_out,
--					     ISER_DIR_OUT,
--					     DMA_TO_DEVICE);
--		if (err)
--			return err;
--	}
--
- 	err = iser_reg_mem_fastreg(iser_task, ISER_DIR_OUT,
- 				   buf_out->data_len == imm_sz);
- 	if (err != 0) {
-@@ -740,27 +715,16 @@ void iser_task_rdma_init(struct iscsi_iser_task *iser_task)
- 
- void iser_task_rdma_finalize(struct iscsi_iser_task *iser_task)
- {
--	int prot_count = scsi_prot_sg_count(iser_task->sc);
- 
- 	if (iser_task->dir[ISER_DIR_IN]) {
- 		iser_unreg_mem_fastreg(iser_task, ISER_DIR_IN);
--		iser_dma_unmap_task_data(iser_task,
--					 &iser_task->data[ISER_DIR_IN],
-+		iser_dma_unmap_task_data(iser_task, ISER_DIR_IN,
- 					 DMA_FROM_DEVICE);
--		if (prot_count)
--			iser_dma_unmap_task_data(iser_task,
--						 &iser_task->prot[ISER_DIR_IN],
--						 DMA_FROM_DEVICE);
- 	}
- 
- 	if (iser_task->dir[ISER_DIR_OUT]) {
- 		iser_unreg_mem_fastreg(iser_task, ISER_DIR_OUT);
--		iser_dma_unmap_task_data(iser_task,
--					 &iser_task->data[ISER_DIR_OUT],
-+		iser_dma_unmap_task_data(iser_task, ISER_DIR_OUT,
- 					 DMA_TO_DEVICE);
--		if (prot_count)
--			iser_dma_unmap_task_data(iser_task,
--						 &iser_task->prot[ISER_DIR_OUT],
--						 DMA_TO_DEVICE);
- 	}
- }
 diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 01708df8cb0c..7046e7ca9523 100644
+index 660982625488..4292c57856dd 100644
 --- a/drivers/infiniband/ulp/iser/iser_memory.c
 +++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -71,10 +71,10 @@ static void iser_reg_desc_put_fr(struct ib_conn *ib_conn,
+@@ -327,40 +327,26 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 	return 0;
  }
  
- int iser_dma_map_task_data(struct iscsi_iser_task *iser_task,
--			   struct iser_data_buf *data,
- 			   enum iser_data_dir iser_dir,
- 			   enum dma_data_direction dma_dir)
+-static int iser_reg_data_sg(struct iscsi_iser_task *task,
+-			    struct iser_data_buf *mem,
+-			    struct iser_fr_desc *desc, bool use_dma_key,
+-			    struct iser_mem_reg *reg)
+-{
+-	struct iser_device *device = task->iser_conn->ib_conn.device;
+-
+-	if (use_dma_key)
+-		return iser_reg_dma(device, mem, reg);
+-
+-	return iser_fast_reg_mr(task, mem, &desc->rsc, reg);
+-}
+-
+ int iser_reg_mem_fastreg(struct iscsi_iser_task *task,
+ 			 enum iser_data_dir dir,
+ 			 bool all_imm)
  {
-+	struct iser_data_buf *data = &iser_task->data[iser_dir];
- 	struct ib_device *dev;
+ 	struct ib_conn *ib_conn = &task->iser_conn->ib_conn;
++	struct iser_device *device = ib_conn->device;
+ 	struct iser_data_buf *mem = &task->data[dir];
+ 	struct iser_mem_reg *reg = &task->rdma_reg[dir];
+-	struct iser_fr_desc *desc = NULL;
++	struct iser_fr_desc *desc;
+ 	bool use_dma_key;
+ 	int err;
  
- 	iser_task->dir[iser_dir] = 1;
-@@ -85,17 +85,40 @@ int iser_dma_map_task_data(struct iscsi_iser_task *iser_task,
- 		iser_err("dma_map_sg failed!!!\n");
- 		return -EINVAL;
+ 	use_dma_key = mem->dma_nents == 1 && (all_imm || !iser_always_reg) &&
+ 		      scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL;
++	if (use_dma_key)
++		return iser_reg_dma(device, mem, reg);
+ 
+-	if (!use_dma_key) {
+-		desc = iser_reg_desc_get_fr(ib_conn);
+-		reg->mem_h = desc;
+-	}
+-
++	desc = iser_reg_desc_get_fr(ib_conn);
+ 	if (scsi_get_prot_op(task->sc) == SCSI_PROT_NORMAL) {
+-		err = iser_reg_data_sg(task, mem, desc, use_dma_key, reg);
++		err = iser_fast_reg_mr(task, mem, &desc->rsc, reg);
+ 		if (unlikely(err))
+ 			goto err_reg;
+ 	} else {
+@@ -372,11 +358,12 @@ int iser_reg_mem_fastreg(struct iscsi_iser_task *task,
+ 		desc->sig_protected = true;
  	}
-+
-+	if (scsi_prot_sg_count(iser_task->sc)) {
-+		struct iser_data_buf *pdata = &iser_task->prot[iser_dir];
-+
-+		pdata->dma_nents = ib_dma_map_sg(dev, pdata->sg, pdata->size, dma_dir);
-+		if (unlikely(pdata->dma_nents == 0)) {
-+			iser_err("protection dma_map_sg failed!!!\n");
-+			goto out_unmap;
-+		}
-+	}
+ 
++	reg->mem_h = desc;
 +
  	return 0;
-+
-+out_unmap:
-+	ib_dma_unmap_sg(dev, data->sg, data->size, dma_dir);
-+	return -EINVAL;
+ 
+ err_reg:
+-	if (desc)
+-		iser_reg_desc_put_fr(ib_conn, desc);
++	iser_reg_desc_put_fr(ib_conn, desc);
+ 
+ 	return err;
  }
- 
-+
- void iser_dma_unmap_task_data(struct iscsi_iser_task *iser_task,
--			      struct iser_data_buf *data,
--			      enum dma_data_direction dir)
-+			      enum iser_data_dir iser_dir,
-+			      enum dma_data_direction dma_dir)
- {
-+	struct iser_data_buf *data = &iser_task->data[iser_dir];
- 	struct ib_device *dev;
- 
- 	dev = iser_task->iser_conn->ib_conn.device->ib_device;
--	ib_dma_unmap_sg(dev, data->sg, data->size, dir);
-+	ib_dma_unmap_sg(dev, data->sg, data->size, dma_dir);
-+
-+	if (scsi_prot_sg_count(iser_task->sc)) {
-+		struct iser_data_buf *pdata = &iser_task->prot[iser_dir];
-+
-+		ib_dma_unmap_sg(dev, pdata->sg, pdata->size, dma_dir);
-+	}
- }
- 
- static int iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
 -- 
 2.18.1
 
