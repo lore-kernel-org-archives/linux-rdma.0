@@ -2,118 +2,61 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92647C433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Mar 2022 13:20:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1023CC433FE
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Mar 2022 13:34:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229861AbiCINVL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Mar 2022 08:21:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49022 "EHLO
+        id S233180AbiCINfP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Mar 2022 08:35:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33220 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229738AbiCINVL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Mar 2022 08:21:11 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C05D14FBF1
-        for <linux-rdma@vger.kernel.org>; Wed,  9 Mar 2022 05:20:12 -0800 (PST)
+        with ESMTP id S232795AbiCINfO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Mar 2022 08:35:14 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DEE313CA09
+        for <linux-rdma@vger.kernel.org>; Wed,  9 Mar 2022 05:34:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E3AC0B82164
-        for <linux-rdma@vger.kernel.org>; Wed,  9 Mar 2022 13:20:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20184C340E8;
-        Wed,  9 Mar 2022 13:20:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BECB361A5A
+        for <linux-rdma@vger.kernel.org>; Wed,  9 Mar 2022 13:34:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EAC4C340F3;
+        Wed,  9 Mar 2022 13:34:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1646832009;
-        bh=WrUKLcGbOoVG4UTu4j6PwN44NpmDexNlLFs8z9KUaH8=;
+        s=k20201202; t=1646832855;
+        bh=W5vs5SsrutxKPsFe7kQLJORsKYTr9608xpmxQzwN4Ng=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=O+RitiuSBQfxUEZwh6Cc0XbiyJvwEcp1ytEGyx0RTMQHl3y9LX5cgy09jrKpxR9+W
-         y/bIHetdRFGaojbBIBi2L2m3JGAY3QEBg7oKr5LTlQM2k6MHI98GEkQliB+yQaySkd
-         2mKe4R7UtZeSkZXflqsvGbjEGrnEMOVhTcUMXOipV40nIulJjheJ/Otootfb4wMR3b
-         Q4eLqr9oP4JGVoF5PtnuophZ9/vbUfd3Y+7CIsguX4tnsr+cpJn9/k0tOsZua0mPam
-         6Y7urAJqxag2Pu7Eyuypndr61c5Nh12uAsBz2+jJcf0AolzmleT57yyEcBxHCVUuif
-         xG/f3FpLYf4ow==
-Date:   Wed, 9 Mar 2022 15:20:05 +0200
+        b=HIPtCnM6nKDwpLtXJEudai9/vP/GZpChnkVEu3l4Plet4yk3fFLpXoDp2qw4hXuAd
+         v6u0eg2Re89okBjeylvwuUORY3HZOiVAaBujhtfK0mUJKpRM4+oE0tsBH9+BnkvIGm
+         QVCChagnataRZz8ZLuX4gsJ0KmQI4RmHNdH7W7IFRbp3RbebTGCbsOh421hI5vruXK
+         A8tz3S46GD5bYJW+MlKIxktB23uAvgtbtcblhPMdQ+YvHNQSAjoqaQvzxgbGoq+Hzg
+         jcGXKVqG4Sg0Et/gSawT/Lv/d9We6gtgipB0T9xXv1ZsgR8bvsIrqaK7d1ZikaFMDE
+         pu6zsC0NvEuKg==
+Date:   Wed, 9 Mar 2022 15:34:10 +0200
 From:   Leon Romanovsky <leon@kernel.org>
-To:     "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>
-Cc:     Jason Gunthorpe <jgg@nvidia.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH rdma-core] libibverbs/examples: Add missing device
- attributes
-Message-ID: <YiiphVezgIaf/IFg@unreal>
-References: <20220209025308.20743-1-yangx.jy@fujitsu.com>
- <YgOCXCXWyCTxvva8@unreal>
- <20220211124139.GL4160@nvidia.com>
- <4043a417-4cd8-1868-9085-65e0b61a6a74@fujitsu.com>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     zyjzyj2000@gmail.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] RDMA/rxe: remove useless argument for
+ update_state()
+Message-ID: <Yiis0vMUTJrUbG3N@unreal>
+References: <20220307145047.3235675-1-cgxu519@mykernel.net>
+ <20220307145047.3235675-2-cgxu519@mykernel.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4043a417-4cd8-1868-9085-65e0b61a6a74@fujitsu.com>
+In-Reply-To: <20220307145047.3235675-2-cgxu519@mykernel.net>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Mar 07, 2022 at 10:03:25AM +0000, yangx.jy@fujitsu.com wrote:
-> On 2022/2/11 20:41, Jason Gunthorpe wrote:
-> > On Wed, Feb 09, 2022 at 10:59:08AM +0200, Leon Romanovsky wrote:
-> >> On Wed, Feb 09, 2022 at 10:53:08AM +0800, Xiao Yang wrote:
-> >>> make ibv_devinfo command show more device attributes.
-> >>>
-> >>> Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
-> >>>   libibverbs/examples/devinfo.c | 29 +++++++++++++++++++++++++----
-> >>>   libibverbs/verbs.h            | 13 ++++++++++---
-> >>>   2 files changed, 35 insertions(+), 7 deletions(-)
-> >> I have a feeling that a long time ago, we had a discussion if and how
-> >> expose device capabilities and the decision was that we don't report
-> >> in-kernel specific device caps.
-> > Right, it is kernel bug they leak out in the first place.
-> >
-> >>> diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-> >>> index a9f182ff..68591c7b 100644
-> >>> +++ b/libibverbs/verbs.h
-> >>> @@ -136,7 +136,9 @@ enum ibv_device_cap_flags {
-> >>>   	IBV_DEVICE_MEM_WINDOW_TYPE_2B	= 1 << 24,
-> >>>   	IBV_DEVICE_RC_IP_CSUM		= 1 << 25,
-> >>>   	IBV_DEVICE_RAW_IP_CSUM		= 1 << 26,
-> >>> -	IBV_DEVICE_MANAGED_FLOW_STEERING = 1 << 29
-> >>> +	IBV_DEVICE_CROSS_CHANNEL	= 1 << 27,
-> >>> +	IBV_DEVICE_MANAGED_FLOW_STEERING = 1 << 29,
-> >>> +	IBV_DEVICE_INTEGRITY_HANDOVER	= 1 << 30
-> >>>   };
-> >>>   
-> >>>   enum ibv_fork_status {
-> >>> @@ -149,8 +151,13 @@ enum ibv_fork_status {
-> >>>    * Can't extended above ibv_device_cap_flags enum as in some systems/compilers
-> >>>    * enum range is limited to 4 bytes.
-> >>>    */
-> >>> -#define IBV_DEVICE_RAW_SCATTER_FCS (1ULL << 34)
-> >>> -#define IBV_DEVICE_PCI_WRITE_END_PADDING (1ULL << 36)
-> >>> +#define IBV_DEVICE_ON_DEMAND_PAGING		(1ULL << 31)
-> >>> +#define IBV_DEVICE_SG_GAPS_REG			(1ULL << 32)
-> >>> +#define IBV_DEVICE_VIRTUAL_FUNCTION		(1ULL << 33)
-> >>> +#define IBV_DEVICE_RAW_SCATTER_FCS		(1ULL << 34)
-> >>> +#define IBV_DEVICE_RDMA_NETDEV_OPA		(1ULL << 35)
-> >>> +#define IBV_DEVICE_PCI_WRITE_END_PADDING	(1ULL << 36)
-> >>> +#define IBV_DEVICE_ALLOW_USER_UNREG		(1ULL << 37)
-> > And don't copy ABI into header like this, the kernel parts need to be
-> > moved to the kernel uabi header and cleaned
+On Mon, Mar 07, 2022 at 10:50:47PM +0800, Chengguang Xu wrote:
+> The argument 'payload' is not used in update_state(),
+> so just remove it.
 > 
-> Hi Jason, Leon
+> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_req.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> Sorry, it's not clear to me.
-> 
-> 1) Is it necessary to add these missing attributes?
-> 
-> 2) If necessary, do you think they need to be moved into 
-> kernel-headers/rdma?
 
-We wanted to say that these device supported capabilities shouldn't be
-added to ibv_devinfo.
-
-Thanks
-
-> 
-> Best Regards,
-> 
-> Xiao Yang
-> 
-> >
-> > Jason
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
