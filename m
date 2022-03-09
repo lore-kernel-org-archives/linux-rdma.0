@@ -2,61 +2,81 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEC3CC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Mar 2022 13:34:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A72FC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Mar 2022 13:43:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231716AbiCINfK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Mar 2022 08:35:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32898 "EHLO
+        id S233240AbiCINol (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Mar 2022 08:44:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232795AbiCINfK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Mar 2022 08:35:10 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8111A13CA09
-        for <linux-rdma@vger.kernel.org>; Wed,  9 Mar 2022 05:34:11 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1D360B81EE7
-        for <linux-rdma@vger.kernel.org>; Wed,  9 Mar 2022 13:34:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C3AFC340E8;
-        Wed,  9 Mar 2022 13:34:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1646832848;
-        bh=HozPSXG9jlP7k4DSccd05eu72/SdW5kXJUqRyiuTPNw=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=sfKGMgY16eqN+ko4u706J1B2G/Neh0qGNDhDEI0AjshHLRijwqceUVw1SPh6hAIOW
-         gNl2iH6C5mdgdQ14uOiL38M6MBB/2T8tNOw0yegLl4LyhpVLM55PxUqDCjsUfuaMkY
-         ESb0zooFL65nRag6sN7HlpANib3Nn90Ry6o8ZYsWBElQKWn/rHkfg19xH+vw4OkDnu
-         tlWSv0XdPH7syde78/Qo1k1IlVbmgwueMfXn6HHzNkF+kiTX3pWHvUv9Osmh/hMF/C
-         uZthkmUDiL82RxJXyj78POvNo3BqV1xqyxFsxE6y2RboPGoovd13GPrp+4YZb+yON3
-         8Xeg3uog3FWPg==
-Date:   Wed, 9 Mar 2022 15:34:03 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     zyjzyj2000@gmail.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] RDMA/rxe: change variable and function argument
- to proper type
-Message-ID: <Yiisy/gqP4cwZ8MY@unreal>
-References: <20220307145047.3235675-1-cgxu519@mykernel.net>
+        with ESMTP id S232597AbiCINoi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Mar 2022 08:44:38 -0500
+Received: from out0.migadu.com (out0.migadu.com [94.23.1.103])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE104FBF0B;
+        Wed,  9 Mar 2022 05:43:25 -0800 (PST)
+Message-ID: <f6da67eb-4f18-d1f1-6ec4-c9f927723421@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1646833403;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=MKCg6b62OK3ru9vlrlF2vLy+aBAiaItrtd70F+lQgLk=;
+        b=bVsgM0NL1XoiQOmfT4KlX6bZmwGkwqFGmNWnEUOM7cXbd6Z096ZZ6vDRe4HkTFgi07jFRw
+        ilGjURBadyRrl/CIHnbtWVyt7lptwTBLXTJv3YksjC9750bbyuvof15nUe8LvlCeX0OExM
+        CTEdK684fmNl7Dd4Ol+GFjiIdRWrZyc=
+Date:   Wed, 9 Mar 2022 21:43:05 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220307145047.3235675-1-cgxu519@mykernel.net>
+Subject: Re: [PATCH for-next 9/9] RDMA/rxe: get rid of create_user_ah
+To:     Yajun Deng <yajun.deng@linux.dev>, jgg@nvidia.com,
+        selvin.xavier@broadcom.com, galpress@amazon.com, sleybo@amazon.com,
+        liangwenpeng@huawei.com, liweihang@huawei.com,
+        mustafa.ismail@intel.com, shiraz.saleem@intel.com,
+        leonro@nvidia.com, dennis.dalessandro@cornelisnetworks.com,
+        mike.marciniszyn@cornelisnetworks.com, zyjzyj2000@gmail.com
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20220308144033.3406606-1-yajun.deng@linux.dev>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Yanjun Zhu <yanjun.zhu@linux.dev>
+In-Reply-To: <20220308144033.3406606-1-yajun.deng@linux.dev>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Mar 07, 2022 at 10:50:46PM +0800, Chengguang Xu wrote:
-> The type of wqe length is u32 so in order to avoid overflow
-> and shadow casting change variable and relevant function argument to
-> proper type.
-> 
-> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
-> ---
->  drivers/infiniband/sw/rxe/rxe_req.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
+在 2022/3/8 22:40, Yajun Deng 写道:
+> There is no create_user_ah in ib_device_ops, remove it.
+In the file include/rdma/ib_verbs.h:
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+2305 struct ib_device_ops {
+...
+2431         int (*create_user_ah)(struct ib_ah *ah, struct 
+rdma_ah_init_attr *attr,
+2432                               struct ib_udata *udata);
+...
+
+create_user_ah exists.
+
+Zhu Yanjun
+> 
+> Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+> ---
+>   drivers/infiniband/sw/rxe/rxe_verbs.c | 1 -
+>   1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> index 80df9a8f71a1..fa0cf2554425 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> @@ -1053,7 +1053,6 @@ static const struct ib_device_ops rxe_dev_ops = {
+>   	.create_cq = rxe_create_cq,
+>   	.create_qp = rxe_create_qp,
+>   	.create_srq = rxe_create_srq,
+> -	.create_user_ah = rxe_create_ah,
+>   	.dealloc_driver = rxe_dealloc,
+>   	.dealloc_mw = rxe_dealloc_mw,
+>   	.dealloc_pd = rxe_dealloc_pd,
+
