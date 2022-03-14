@@ -2,344 +2,77 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 026E1C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49859C433EF
 	for <linux-rdma@archiver.kernel.org>; Mon, 14 Mar 2022 06:47:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236444AbiCNGtA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 14 Mar 2022 02:49:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46866 "EHLO
+        id S236422AbiCNGs7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 14 Mar 2022 02:48:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229724AbiCNGs7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 14 Mar 2022 02:48:59 -0400
-Received: from out30-45.freemail.mail.aliyun.com (out30-45.freemail.mail.aliyun.com [115.124.30.45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC5CF5FC9
-        for <linux-rdma@vger.kernel.org>; Sun, 13 Mar 2022 23:47:47 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R311e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04426;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V75.E1c_1647240464;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V75.E1c_1647240464)
+        with ESMTP id S236444AbiCNGsy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 14 Mar 2022 02:48:54 -0400
+Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2278F38F
+        for <linux-rdma@vger.kernel.org>; Sun, 13 Mar 2022 23:47:44 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R501e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V74Oreh_1647240462;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V74Oreh_1647240462)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 14 Mar 2022 14:47:45 +0800
+          Mon, 14 Mar 2022 14:47:42 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, dledford@redhat.com
 Cc:     leon@kernel.org, linux-rdma@vger.kernel.org,
         KaiShen@linux.alibaba.com, chengyou@linux.alibaba.com,
         tonylu@linux.alibaba.com, BMT@zurich.ibm.com
-Subject: [PATCH for-next v4 04/12] RDMA/erdma: Add main include file
-Date:   Mon, 14 Mar 2022 14:47:31 +0800
-Message-Id: <20220314064739.81647-5-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next v4 02/12] RDMA/core: Allow calling query_port when netdev isn't attached in iWarp
+Date:   Mon, 14 Mar 2022 14:47:29 +0800
+Message-Id: <20220314064739.81647-3-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.32.0 (Apple Git-132)
 In-Reply-To: <20220314064739.81647-1-chengyou@linux.alibaba.com>
 References: <20220314064739.81647-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add ERDMA driver main header file, defining internal used data structures
-and operations. The defined data structures includes *cmdq*, which is used
-as the communication channel between ERDMA driver and hardware.
+This change lets the iWarp device drivers decide the return value of
+iw_query_port when attached netdev is NULL. This allows ib_register_device
+calling when netdev is NULL.
+
+background info:
+https://lore.kernel.org/all/20220118141324.GF8034@ziepe.ca/
 
 Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- drivers/infiniband/hw/erdma/erdma.h | 288 ++++++++++++++++++++++++++++
- 1 file changed, 288 insertions(+)
- create mode 100644 drivers/infiniband/hw/erdma/erdma.h
+ drivers/infiniband/core/device.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/erdma/erdma.h b/drivers/infiniband/hw/erdma/erdma.h
-new file mode 100644
-index 000000000000..3dccae58ff5c
---- /dev/null
-+++ b/drivers/infiniband/hw/erdma/erdma.h
-@@ -0,0 +1,288 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+
-+/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
-+/*          Kai Shen <kaishen@linux.alibaba.com> */
-+/* Copyright (c) 2020-2022, Alibaba Group. */
-+
-+#ifndef __ERDMA_H__
-+#define __ERDMA_H__
-+
-+#include <linux/bitfield.h>
-+#include <linux/netdevice.h>
-+#include <linux/xarray.h>
-+#include <rdma/ib_verbs.h>
-+
-+#include "erdma_hw.h"
-+
-+#define DRV_MODULE_NAME "erdma"
-+#define ERDMA_NODE_DESC "Elastic RDMA(iWARP) stack"
-+
-+struct erdma_eq {
-+	void *qbuf;
-+	dma_addr_t qbuf_dma_addr;
-+
-+	spinlock_t lock;
-+
-+	u32 depth;
-+
-+	u16 ci;
-+	u16 owner;
-+
-+	atomic64_t event_num;
-+	atomic64_t notify_num;
-+
-+	u64 __iomem *db_addr;
-+	u64 *db_record;
-+};
-+
-+struct erdma_cmdq_sq {
-+	void *qbuf;
-+	dma_addr_t qbuf_dma_addr;
-+
-+	spinlock_t lock;
-+
-+	u32 depth;
-+	u16 ci;
-+	u16 pi;
-+
-+	u16 wqebb_cnt;
-+
-+	u64 *db_record;
-+};
-+
-+struct erdma_cmdq_cq {
-+	void *qbuf;
-+	dma_addr_t qbuf_dma_addr;
-+
-+	spinlock_t lock;
-+
-+	u32 depth;
-+	u32 ci;
-+	u16 owner;
-+
-+	u32 cmdsn;
-+
-+	u64 *db_record;
-+
-+	atomic64_t armed_num;
-+};
-+
-+enum {
-+	ERDMA_CMD_STATUS_INIT,
-+	ERDMA_CMD_STATUS_ISSUED,
-+	ERDMA_CMD_STATUS_FINISHED,
-+	ERDMA_CMD_STATUS_TIMEOUT
-+};
-+
-+struct erdma_comp_wait {
-+	struct completion wait_event;
-+	u32 cmd_status;
-+	u32 ctx_id;
-+	u16 sq_pi;
-+	u8 comp_status;
-+	u8 rsvd;
-+	u32 comp_data[4];
-+};
-+
-+enum {
-+	ERDMA_CMDQ_STATE_OK_BIT = 0,
-+	ERDMA_CMDQ_STATE_TIMEOUT_BIT = 1,
-+	ERDMA_CMDQ_STATE_CTX_ERR_BIT = 2,
-+};
-+
-+#define ERDMA_CMDQ_TIMEOUT_MS 15000
-+#define ERDMA_REG_ACCESS_WAIT_MS 20
-+#define ERDMA_WAIT_DEV_DONE_CNT 500
-+
-+struct erdma_cmdq {
-+	unsigned long *comp_wait_bitmap;
-+	struct erdma_comp_wait *wait_pool;
-+	spinlock_t lock;
-+
-+	bool use_event;
-+
-+	struct erdma_cmdq_sq sq;
-+	struct erdma_cmdq_cq cq;
-+	struct erdma_eq eq;
-+
-+	unsigned long state;
-+
-+	struct semaphore credits;
-+	u16 max_outstandings;
-+};
-+
-+#define COMPROMISE_CC ERDMA_CC_CUBIC
-+enum erdma_cc_method {
-+	ERDMA_CC_NEWRENO = 0,
-+	ERDMA_CC_CUBIC,
-+	ERDMA_CC_HPCC_RTT,
-+	ERDMA_CC_HPCC_ECN,
-+	ERDMA_CC_HPCC_INT,
-+	ERDMA_CC_METHODS_NUM
-+};
-+
-+struct erdma_devattr {
-+	unsigned int device;
-+	unsigned int version;
-+
-+	u32 vendor_id;
-+	u32 vendor_part_id;
-+	u32 fw_version;
-+
-+	unsigned char peer_addr[ETH_ALEN];
-+
-+	int numa_node;
-+	enum erdma_cc_method cc_method;
-+	u32 grp_num;
-+	u32 irq_num;
-+
-+	bool disable_dwqe;
-+	u16 dwqe_pages;
-+	u16 dwqe_entries;
-+
-+	u32 max_qp;
-+	u32 max_send_wr;
-+	u32 max_recv_wr;
-+	u32 max_ord;
-+	u32 max_ird;
-+
-+	enum ib_device_cap_flags cap_flags;
-+	u32 max_send_sge;
-+	u32 max_recv_sge;
-+	u32 max_sge_rd;
-+	u32 max_cq;
-+	u32 max_cqe;
-+	u64 max_mr_size;
-+	u32 max_mr;
-+	u32 max_pd;
-+	u32 max_mw;
-+	u32 max_srq;
-+	u32 max_srq_wr;
-+	u32 max_srq_sge;
-+	u32 local_dma_key;
-+};
-+
-+#define ERDMA_IRQNAME_SIZE 50
-+
-+struct erdma_eq_cb {
-+	bool ready;
-+	void *dev; /* All EQs use this fields to get erdma_dev struct */
-+	char irq_name[ERDMA_IRQNAME_SIZE];
-+	u32 msix_vector;
-+
-+	struct erdma_eq eq;
-+	struct tasklet_struct tasklet;
-+};
-+
-+struct erdma_resource_cb {
-+	unsigned long *bitmap;
-+	spinlock_t lock;
-+	u32 next_alloc_idx;
-+	u32 max_cap;
-+};
-+
-+enum {
-+	ERDMA_RES_TYPE_PD = 0,
-+	ERDMA_RES_TYPE_STAG_IDX = 1,
-+	ERDMA_RES_CNT = 2,
-+};
-+
-+#define ERDMA_EXTRA_BUFFER_SIZE 8
-+#define WARPPED_BUFSIZE(size) ((size) + ERDMA_EXTRA_BUFFER_SIZE)
-+
-+struct erdma_dev {
-+	struct ib_device ibdev;
-+	struct net_device *netdev;
-+	struct pci_dev *pdev;
-+	struct notifier_block netdev_nb;
-+
-+	resource_size_t func_bar_addr;
-+	resource_size_t func_bar_len;
-+	u8 __iomem *func_bar;
-+
-+	struct erdma_devattr attrs;
-+	/* physical port state (only one port per device) */
-+	enum ib_port_state state;
-+
-+	/* cmdq and aeq use the same msix vector */
-+	u32 comm_msix_vector;
-+	char comm_irq_name[ERDMA_IRQNAME_SIZE];
-+	struct erdma_cmdq cmdq;
-+	struct erdma_eq aeq;
-+	struct erdma_eq_cb ceqs[31];
-+
-+	spinlock_t lock;
-+	struct erdma_resource_cb res_cb[ERDMA_RES_CNT];
-+	struct xarray qp_xa;
-+	struct xarray cq_xa;
-+
-+	u32 next_alloc_qpn;
-+	u32 next_alloc_cqn;
-+
-+	spinlock_t db_bitmap_lock;
-+	/* We provide max 64 uContexts that each has one SQ doorbell Page. */
-+	DECLARE_BITMAP(sdb_page, ERDMA_DWQE_TYPE0_CNT);
-+	/*
-+	 * We provide max 496 uContexts that each has one SQ normal Db,
-+	 * and one directWQE db。
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index a311df07b1bd..29e42279e983 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2019,8 +2019,12 @@ static int iw_query_port(struct ib_device *device,
+ 	memset(port_attr, 0, sizeof(*port_attr));
+ 
+ 	netdev = ib_device_get_netdev(device, port_num);
++	/* Some iwarp device may be not binded to a netdev temporarily when
++	 * ib_register_device called. To adapt this scenario, and let iWarp
++	 * device drivers decide the return value.
 +	 */
-+	DECLARE_BITMAP(sdb_entry, ERDMA_DWQE_TYPE1_CNT);
-+
-+	atomic_t num_ctx;
-+	struct list_head cep_list;
-+};
-+
-+static inline struct erdma_dev *to_edev(struct ib_device *ibdev)
-+{
-+	return container_of(ibdev, struct erdma_dev, ibdev);
-+}
-+
-+static inline u32 erdma_reg_read32(struct erdma_dev *dev, u32 reg)
-+{
-+	return readl(dev->func_bar + reg);
-+}
-+
-+static inline u64 erdma_reg_read64(struct erdma_dev *dev, u32 reg)
-+{
-+	return readq(dev->func_bar + reg);
-+}
-+
-+static inline void erdma_reg_write32(struct erdma_dev *dev, u32 reg, u32 value)
-+{
-+	writel(value, dev->func_bar + reg);
-+}
-+
-+static inline void erdma_reg_write64(struct erdma_dev *dev, u32 reg, u64 value)
-+{
-+	writeq(value, dev->func_bar + reg);
-+}
-+
-+static inline u32 erdma_reg_read32_filed(struct erdma_dev *dev, u32 reg,
-+					 u32 filed_mask)
-+{
-+	u32 val = erdma_reg_read32(dev, reg);
-+
-+	return FIELD_GET(filed_mask, val);
-+}
-+
-+int erdma_cmdq_init(struct erdma_dev *dev);
-+void erdma_finish_cmdq_init(struct erdma_dev *dev);
-+void erdma_cmdq_destroy(struct erdma_dev *dev);
-+
-+void erdma_cmdq_build_reqhdr(u64 *hdr, u32 mod, u32 op);
-+int erdma_post_cmd_wait(struct erdma_cmdq *cmdq, u64 *req, u32 req_size,
-+			u64 *resp0, u64 *resp1);
-+void erdma_cmdq_completion_handler(struct erdma_cmdq *cmdq);
-+
-+int erdma_ceqs_init(struct erdma_dev *dev);
-+void erdma_ceqs_uninit(struct erdma_dev *dev);
-+void notify_eq(struct erdma_eq *eq);
-+void *get_next_valid_eqe(struct erdma_eq *eq);
-+
-+int erdma_aeq_init(struct erdma_dev *dev);
-+void erdma_aeq_destroy(struct erdma_dev *dev);
-+
-+void erdma_aeq_event_handler(struct erdma_dev *dev);
-+void erdma_ceq_completion_handler(struct erdma_eq_cb *ceq_cb);
-+
-+#endif
+ 	if (!netdev)
+-		return -ENODEV;
++		goto query_port;
+ 
+ 	port_attr->max_mtu = IB_MTU_4096;
+ 	port_attr->active_mtu = ib_mtu_int_to_enum(netdev->mtu);
+@@ -2045,6 +2049,7 @@ static int iw_query_port(struct ib_device *device,
+ 	}
+ 
+ 	dev_put(netdev);
++query_port:
+ 	return device->ops.query_port(device, port_num, port_attr);
+ }
+ 
 -- 
 2.27.0
 
