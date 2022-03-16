@@ -2,31 +2,31 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3D1C4167B
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Mar 2022 19:20:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A26CCC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Mar 2022 19:20:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357863AbiCPTVm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Mar 2022 15:21:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51102 "EHLO
+        id S1357949AbiCPTV4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Mar 2022 15:21:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352938AbiCPTVj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Mar 2022 15:21:39 -0400
+        with ESMTP id S1357917AbiCPTVq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Mar 2022 15:21:46 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59CA440A3F;
-        Wed, 16 Mar 2022 12:20:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CC376A00C;
+        Wed, 16 Mar 2022 12:20:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
         MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
         :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=xtNRe1xty6FQQPFuledRJUXSwUairNMM4kORWxmQYV8=; b=t84D6OIOwke7941Ipke874O+qb
-        aGBsnQhRO4EXcylH7PbZ6WwWeCmIP4gE/9nv3vDdhD6Os6XtG70EyG1KDkHTNG6ABB0g9QcjpdI0J
-        6N/hmx6YYf+6oZ/gr4ycnfMFPal+Dige9a+w8PggP2gPGgVIZzFbB96HtwvXzZx0mJE3frVq+3ZoH
-        GqAwo3vDUKUFX67ZKegrnZ9P2I9r8/CCabOZh4Q2zU/aeqxkW7pHJ39DGMYNLyBiGPINg7GoFQeGX
-        gTQQQGxpmdVzC4R5jza4poDTlmba5GZouKH8tZYaUsEpaWIqAzRdgk4s8ssWMJ1Zj/YQW+S+dYFbZ
-        wOWrix6Q==;
+        bh=mAEBdlB3OIVWW6VHbg2SecqMSqz6buQ0aUi+Rw762/Y=; b=QU8xTqKmgiaf0d2RYK0H55UDCG
+        aLJvbEgjnyUe31XqnajbeerGSgezvbj7E6vzKNEkthY9gGqTCGwCgSKs/P6N/RAY4zpEqVLmXvKbP
+        uiSRzPcbdU7p3lSpluXCtlaLUMBZuaHvqoH09vYAF9WublfayTlpUU/qLQX/IDYXeABeZH5o+zC2W
+        8kZMfKNRXr6lT1/BQuMttKB9AK/4vNhr0ZbmY9ozWZm9W0S5VvcJ8UryNdPz0mWnabak/ruaUP3LR
+        RSlCpaIl4OEVlR7bIZCUxDmvaJ/Q+Xkkx2o2F4c2Wa2eoa9/E3ikl20nvmBdUIbACnjGJJLK415O7
+        7YK7glNg==;
 Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
         by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nUZC3-00EArp-Q1; Wed, 16 Mar 2022 19:20:23 +0000
+        id 1nUZCA-00EArp-3R; Wed, 16 Mar 2022 19:20:30 +0000
 From:   Randy Dunlap <rdunlap@infradead.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     Randy Dunlap <rdunlap@infradead.org>,
@@ -73,9 +73,9 @@ Cc:     Randy Dunlap <rdunlap@infradead.org>,
         linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org,
         linux-usb@vger.kernel.org, nouveau@lists.freedesktop.org,
         virtualization@lists.linux-foundation.org, x86@kernel.org
-Subject: [PATCH 5/9] virtio-scsi: eliminate anonymous module_init & module_exit
-Date:   Wed, 16 Mar 2022 12:20:06 -0700
-Message-Id: <20220316192010.19001-6-rdunlap@infradead.org>
+Subject: [PATCH 8/9] x86/crypto: eliminate anonymous module_init & module_exit
+Date:   Wed, 16 Mar 2022 12:20:09 -0700
+Message-Id: <20220316192010.19001-9-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220316192010.19001-1-rdunlap@infradead.org>
 References: <20220316192010.19001-1-rdunlap@infradead.org>
@@ -105,46 +105,167 @@ Example 2: (initcall_debug log)
  calling  init+0x0/0x9a @ 1
  initcall init+0x0/0x9a returned 0 after 74 usecs
 
-Fixes: 4fe74b1cb051 ("[SCSI] virtio-scsi: SCSI driver for QEMU based virtual machines")
+Fixes: 64b94ceae8c1 ("crypto: blowfish - add x86_64 assembly implementation")
+Fixes: 676a38046f4f ("crypto: camellia-x86_64 - module init/exit functions should be static")
+Fixes: 0b95ec56ae19 ("crypto: camellia - add assembler implementation for x86_64")
+Fixes: 56d76c96a9f3 ("crypto: serpent - add AVX2/x86_64 assembler implementation of serpent cipher")
+Fixes: b9f535ffe38f ("[CRYPTO] twofish: i586 assembly version")
+Fixes: ff0a70fe0536 ("crypto: twofish-x86_64-3way - module init/exit functions should be static")
+Fixes: 8280daad436e ("crypto: twofish - add 3-way parallel x86_64 assembler implemention")
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Stefan Hajnoczi <stefanha@redhat.com>
-Cc: "James E.J. Bottomley" <jejb@linux.ibm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: linux-scsi@vger.kernel.org
-Cc: virtualization@lists.linux-foundation.org
+Cc: Jussi Kivilinna <jussi.kivilinna@mbnet.fi>
+Cc: Joachim Fritschi <jfritschi@freenet.de>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: linux-crypto@vger.kernel.org
+Cc: x86@kernel.org
 ---
- drivers/scsi/virtio_scsi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/crypto/blowfish_glue.c     |    8 ++++----
+ arch/x86/crypto/camellia_glue.c     |    8 ++++----
+ arch/x86/crypto/serpent_avx2_glue.c |    8 ++++----
+ arch/x86/crypto/twofish_glue.c      |    8 ++++----
+ arch/x86/crypto/twofish_glue_3way.c |    8 ++++----
+ 5 files changed, 20 insertions(+), 20 deletions(-)
 
---- lnx-517-rc8.orig/drivers/scsi/virtio_scsi.c
-+++ lnx-517-rc8/drivers/scsi/virtio_scsi.c
-@@ -988,7 +988,7 @@ static struct virtio_driver virtio_scsi_
- 	.remove = virtscsi_remove,
- };
+--- lnx-517-rc8.orig/arch/x86/crypto/blowfish_glue.c
++++ lnx-517-rc8/arch/x86/crypto/blowfish_glue.c
+@@ -315,7 +315,7 @@ static int force;
+ module_param(force, int, 0);
+ MODULE_PARM_DESC(force, "Force module load, ignore CPU blacklist");
  
 -static int __init init(void)
-+static int __init virtio_scsi_init(void)
++static int __init blowfish_init(void)
  {
- 	int ret = -ENOMEM;
+ 	int err;
  
-@@ -1020,14 +1020,14 @@ error:
- 	return ret;
+@@ -339,15 +339,15 @@ static int __init init(void)
+ 	return err;
  }
  
 -static void __exit fini(void)
-+static void __exit virtio_scsi_fini(void)
++static void __exit blowfish_fini(void)
  {
- 	unregister_virtio_driver(&virtio_scsi_driver);
- 	mempool_destroy(virtscsi_cmd_pool);
- 	kmem_cache_destroy(virtscsi_cmd_cache);
+ 	crypto_unregister_alg(&bf_cipher_alg);
+ 	crypto_unregister_skciphers(bf_skcipher_algs,
+ 				    ARRAY_SIZE(bf_skcipher_algs));
  }
+ 
 -module_init(init);
 -module_exit(fini);
-+module_init(virtio_scsi_init);
-+module_exit(virtio_scsi_fini);
++module_init(blowfish_init);
++module_exit(blowfish_fini);
  
- MODULE_DEVICE_TABLE(virtio, id_table);
- MODULE_DESCRIPTION("Virtio SCSI HBA driver");
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Blowfish Cipher Algorithm, asm optimized");
+--- lnx-517-rc8.orig/arch/x86/crypto/camellia_glue.c
++++ lnx-517-rc8/arch/x86/crypto/camellia_glue.c
+@@ -1377,7 +1377,7 @@ static int force;
+ module_param(force, int, 0);
+ MODULE_PARM_DESC(force, "Force module load, ignore CPU blacklist");
+ 
+-static int __init init(void)
++static int __init camellia_init(void)
+ {
+ 	int err;
+ 
+@@ -1401,15 +1401,15 @@ static int __init init(void)
+ 	return err;
+ }
+ 
+-static void __exit fini(void)
++static void __exit camellia_fini(void)
+ {
+ 	crypto_unregister_alg(&camellia_cipher_alg);
+ 	crypto_unregister_skciphers(camellia_skcipher_algs,
+ 				    ARRAY_SIZE(camellia_skcipher_algs));
+ }
+ 
+-module_init(init);
+-module_exit(fini);
++module_init(camellia_init);
++module_exit(camellia_fini);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Camellia Cipher Algorithm, asm optimized");
+--- lnx-517-rc8.orig/arch/x86/crypto/serpent_avx2_glue.c
++++ lnx-517-rc8/arch/x86/crypto/serpent_avx2_glue.c
+@@ -96,7 +96,7 @@ static struct skcipher_alg serpent_algs[
+ 
+ static struct simd_skcipher_alg *serpent_simd_algs[ARRAY_SIZE(serpent_algs)];
+ 
+-static int __init init(void)
++static int __init serpent_avx2_init(void)
+ {
+ 	const char *feature_name;
+ 
+@@ -115,14 +115,14 @@ static int __init init(void)
+ 					      serpent_simd_algs);
+ }
+ 
+-static void __exit fini(void)
++static void __exit serpent_avx2_fini(void)
+ {
+ 	simd_unregister_skciphers(serpent_algs, ARRAY_SIZE(serpent_algs),
+ 				  serpent_simd_algs);
+ }
+ 
+-module_init(init);
+-module_exit(fini);
++module_init(serpent_avx2_init);
++module_exit(serpent_avx2_fini);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Serpent Cipher Algorithm, AVX2 optimized");
+--- lnx-517-rc8.orig/arch/x86/crypto/twofish_glue.c
++++ lnx-517-rc8/arch/x86/crypto/twofish_glue.c
+@@ -81,18 +81,18 @@ static struct crypto_alg alg = {
+ 	}
+ };
+ 
+-static int __init init(void)
++static int __init twofish_glue_init(void)
+ {
+ 	return crypto_register_alg(&alg);
+ }
+ 
+-static void __exit fini(void)
++static void __exit twofish_glue_fini(void)
+ {
+ 	crypto_unregister_alg(&alg);
+ }
+ 
+-module_init(init);
+-module_exit(fini);
++module_init(twofish_glue_init);
++module_exit(twofish_glue_fini);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION ("Twofish Cipher Algorithm, asm optimized");
+--- lnx-517-rc8.orig/arch/x86/crypto/twofish_glue_3way.c
++++ lnx-517-rc8/arch/x86/crypto/twofish_glue_3way.c
+@@ -140,7 +140,7 @@ static int force;
+ module_param(force, int, 0);
+ MODULE_PARM_DESC(force, "Force module load, ignore CPU blacklist");
+ 
+-static int __init init(void)
++static int __init twofish_3way_init(void)
+ {
+ 	if (!force && is_blacklisted_cpu()) {
+ 		printk(KERN_INFO
+@@ -154,13 +154,13 @@ static int __init init(void)
+ 					 ARRAY_SIZE(tf_skciphers));
+ }
+ 
+-static void __exit fini(void)
++static void __exit twofish_3way_fini(void)
+ {
+ 	crypto_unregister_skciphers(tf_skciphers, ARRAY_SIZE(tf_skciphers));
+ }
+ 
+-module_init(init);
+-module_exit(fini);
++module_init(twofish_3way_init);
++module_exit(twofish_3way_fini);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Twofish Cipher Algorithm, 3-way parallel asm optimized");
