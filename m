@@ -2,34 +2,29 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4494FC433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Mar 2022 19:20:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C113C43219
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Mar 2022 02:39:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357782AbiCPTVj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Mar 2022 15:21:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51048 "EHLO
+        id S238395AbiCQCkW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Mar 2022 22:40:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230130AbiCPTVh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Mar 2022 15:21:37 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 710C65FF32;
-        Wed, 16 Mar 2022 12:20:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
-        :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=bxcgHAl0Vjaoi9igyOuuv3t+bDn9tO/RrS7lBi/KU+M=; b=f6hRy706t/BpNpFO1C9Km2RrDC
-        QpQAZACubPMNHVjc1Qg4uTBS8JBsSkx6wWoOO6MkPJLDnRMPb4gvs6j+IxwOBV3OSeMK+SM4Bc/qr
-        cbVKkVwZ7HPLsk4PUNHYTJtLurqFWxXaUdf1VQas1wSqg474f4RVgG74C1IMA8nhCoibwkT0pOmOU
-        GBglyb2fZdt3taUHK7+NnvqDf/kegkuSfBz7kIBCvuVIgmTmTlKHaYbML2syZZpq1QELYE2/RzZoa
-        l0az3lska8YewVS5FuOdlrR7fZdGroVN4nksyhhqrm4CGqbCEJyDuxhNl+9rqNtKe/b3GXlgFM8kV
-        vY7z0i7Q==;
-Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nUZBy-00EArp-Bl; Wed, 16 Mar 2022 19:20:18 +0000
-From:   Randy Dunlap <rdunlap@infradead.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        with ESMTP id S1358444AbiCQCkV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Mar 2022 22:40:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F14A1FCF0;
+        Wed, 16 Mar 2022 19:39:05 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F001BB81DD5;
+        Thu, 17 Mar 2022 02:39:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71A07C340F0;
+        Thu, 17 Mar 2022 02:38:57 +0000 (UTC)
+Date:   Wed, 16 Mar 2022 22:38:55 -0400
+From:   Steven Rostedt <rostedt@goodmis.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     linux-kernel@vger.kernel.org,
         "Michael S. Tsirkin" <mst@redhat.com>,
         Jason Wang <jasowang@redhat.com>,
         Paolo Bonzini <pbonzini@redhat.com>,
@@ -48,7 +43,7 @@ Cc:     Randy Dunlap <rdunlap@infradead.org>,
         "James E.J. Bottomley" <jejb@linux.ibm.com>,
         "Martin K. Petersen" <martin.petersen@oracle.com>,
         Felipe Balbi <felipe.balbi@linux.intel.com>,
-        =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>,
+        =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
         Krzysztof Opasiak <k.opasiak@samsung.com>,
         Igor Kotrasinski <i.kotrasinsk@samsung.com>,
@@ -59,7 +54,6 @@ Cc:     Randy Dunlap <rdunlap@infradead.org>,
         Joachim Fritschi <jfritschi@freenet.de>,
         Herbert Xu <herbert@gondor.apana.org.au>,
         Thomas Gleixner <tglx@linutronix.de>,
-        Steven Rostedt <rostedt@goodmis.org>,
         Ingo Molnar <mingo@kernel.org>,
         Karol Herbst <karolherbst@gmail.com>,
         Pekka Paalanen <ppaalanen@gmail.com>,
@@ -73,77 +67,90 @@ Cc:     Randy Dunlap <rdunlap@infradead.org>,
         linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org,
         linux-usb@vger.kernel.org, nouveau@lists.freedesktop.org,
         virtualization@lists.linux-foundation.org, x86@kernel.org
-Subject: [PATCH 2/9] virtio_console: eliminate anonymous module_init & module_exit
-Date:   Wed, 16 Mar 2022 12:20:03 -0700
-Message-Id: <20220316192010.19001-3-rdunlap@infradead.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220316192010.19001-1-rdunlap@infradead.org>
+Subject: Re: [PATCH 9/9] testmmiotrace: eliminate anonymous module_init &
+ module_exit
+Message-ID: <20220316223855.5c31ae25@gandalf.local.home>
+In-Reply-To: <20220316192010.19001-10-rdunlap@infradead.org>
 References: <20220316192010.19001-1-rdunlap@infradead.org>
+        <20220316192010.19001-10-rdunlap@infradead.org>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Eliminate anonymous module_init() and module_exit(), which can lead to
-confusion or ambiguity when reading System.map, crashes/oops/bugs,
-or an initcall_debug log.
+On Wed, 16 Mar 2022 12:20:10 -0700
+Randy Dunlap <rdunlap@infradead.org> wrote:
 
-Give each of these init and exit functions unique driver-specific
-names to eliminate the anonymous names.
+> Eliminate anonymous module_init() and module_exit(), which can lead to
+> confusion or ambiguity when reading System.map, crashes/oops/bugs,
+> or an initcall_debug log.
+> 
+> Give each of these init and exit functions unique driver-specific
+> names to eliminate the anonymous names.
+> 
+> Example 1: (System.map)
+>  ffffffff832fc78c t init
+>  ffffffff832fc79e t init
+>  ffffffff832fc8f8 t init
+> 
+> Example 2: (initcall_debug log)
+>  calling  init+0x0/0x12 @ 1
+>  initcall init+0x0/0x12 returned 0 after 15 usecs
+>  calling  init+0x0/0x60 @ 1
+>  initcall init+0x0/0x60 returned 0 after 2 usecs
+>  calling  init+0x0/0x9a @ 1
+>  initcall init+0x0/0x9a returned 0 after 74 usecs
+> 
+> Fixes: 8b7d89d02ef3 ("x86: mmiotrace - trace memory mapped IO")
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Steven Rostedt <rostedt@goodmis.org>
 
-Example 1: (System.map)
- ffffffff832fc78c t init
- ffffffff832fc79e t init
- ffffffff832fc8f8 t init
+Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
 
-Example 2: (initcall_debug log)
- calling  init+0x0/0x12 @ 1
- initcall init+0x0/0x12 returned 0 after 15 usecs
- calling  init+0x0/0x60 @ 1
- initcall init+0x0/0x60 returned 0 after 2 usecs
- calling  init+0x0/0x9a @ 1
- initcall init+0x0/0x9a returned 0 after 74 usecs
+-- Steve
 
-Fixes: 31610434bc35 ("Virtio console driver")
-Fixes: 7177876fea83 ("virtio: console: Add ability to remove module")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Amit Shah <amit@kernel.org>
-Cc: virtualization@lists.linux-foundation.org
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/char/virtio_console.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Cc: Karol Herbst <karolherbst@gmail.com>
+> Cc: Pekka Paalanen <ppaalanen@gmail.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: nouveau@lists.freedesktop.org
+> Cc: x86@kernel.org
+> ---
+>  arch/x86/mm/testmmiotrace.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> --- lnx-517-rc8.orig/arch/x86/mm/testmmiotrace.c
+> +++ lnx-517-rc8/arch/x86/mm/testmmiotrace.c
+> @@ -113,7 +113,7 @@ static void do_test_bulk_ioremapping(voi
+>  	synchronize_rcu();
+>  }
+>  
+> -static int __init init(void)
+> +static int __init testmmiotrace_init(void)
+>  {
+>  	unsigned long size = (read_far) ? (8 << 20) : (16 << 10);
+>  	int ret = security_locked_down(LOCKDOWN_MMIOTRACE);
+> @@ -136,11 +136,11 @@ static int __init init(void)
+>  	return 0;
+>  }
+>  
+> -static void __exit cleanup(void)
+> +static void __exit testmmiotrace_cleanup(void)
+>  {
+>  	pr_debug("unloaded.\n");
+>  }
+>  
+> -module_init(init);
+> -module_exit(cleanup);
+> +module_init(testmmiotrace_init);
+> +module_exit(testmmiotrace_cleanup);
+>  MODULE_LICENSE("GPL");
 
---- lnx-517-rc8.orig/drivers/char/virtio_console.c
-+++ lnx-517-rc8/drivers/char/virtio_console.c
-@@ -2245,7 +2245,7 @@ static struct virtio_driver virtio_rproc
- 	.remove =	virtcons_remove,
- };
- 
--static int __init init(void)
-+static int __init virtio_console_init(void)
- {
- 	int err;
- 
-@@ -2280,7 +2280,7 @@ free:
- 	return err;
- }
- 
--static void __exit fini(void)
-+static void __exit virtio_console_fini(void)
- {
- 	reclaim_dma_bufs();
- 
-@@ -2290,8 +2290,8 @@ static void __exit fini(void)
- 	class_destroy(pdrvdata.class);
- 	debugfs_remove_recursive(pdrvdata.debugfs_dir);
- }
--module_init(init);
--module_exit(fini);
-+module_init(virtio_console_init);
-+module_exit(virtio_console_fini);
- 
- MODULE_DESCRIPTION("Virtio console driver");
- MODULE_LICENSE("GPL");
