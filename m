@@ -2,57 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AC6FC433FE
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Mar 2022 01:55:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 310AFC4332F
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Mar 2022 01:55:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231670AbiCRB47 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Mar 2022 21:56:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47316 "EHLO
+        id S231320AbiCRB5A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Mar 2022 21:57:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231635AbiCRB47 (ORCPT
+        with ESMTP id S231651AbiCRB47 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Mar 2022 21:56:59 -0400
-Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E9AB243700
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:35 -0700 (PDT)
-Received: by mail-ot1-x329.google.com with SMTP id t8-20020a0568301e2800b005b235a56f2dso4732783otr.9
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:35 -0700 (PDT)
+Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C18F242216
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:34 -0700 (PDT)
+Received: by mail-oi1-x234.google.com with SMTP id e4so4467484oif.2
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=+SdF1uWi4XJsKk+Knhny+0qCi8cPiaW1ef6UDKr5t3o=;
-        b=MErwI4FrxF0aWEhq1oMYAU56RtzMRpUcJSErdKfRSnyUlcrDVYXBpnb6/Byt5M4lfU
-         4dP3WGtGUD8NzKTXNkTHIwgq79T4dZhnAFdaiqEoS+m7CzGdUZjm0lFvmNUme8wfYKIf
-         86bm4psv55/IBYh8F/325oz8MEAq+jS8ajmdpY1/VDnF5k6MBW+LOvfgwA9fd9t+2ln/
-         NrQ6jeqhHi7QU6UJ+0ex9Ci9SBru46bm7Ptth35sM2m206hAubWXW2qryb85LtgoAph5
-         7GRr2d0UZ3Je6rDJumxahPNGWlYKSjfkmuw4mwi39TqxwG7bZjOx+2xr+rn7sO1ZLP6R
-         4ZHg==
+        bh=NOY+T0iyFXtdgsKlS557JSXDm6hKgYpjdNQTGul5DK4=;
+        b=YEcIC5b4iyA3p9uTCGPLHsYHaBDha98XOEx+HsdczdRN10h5TnkKQHBAzNDDdgigDj
+         9m9eHfKYhtzwTyiQ5j03WCwCQVD5ZcpCon8ajtwOVzQO3TBe+Au++B1+nMLqimiHRFSr
+         WxjJjIDJXkfs6j+x5soWVsLsR3s2wCcsZW4cp43jEpEasYShR2gysl1iuMEMZSjfhJsj
+         sAJ+D7O7tb7jJzNt7qsJJJvM/H6XSdCXQ+zTr/pqybjUs/q33MygQNpQLik5SnUJoiO8
+         lIZVFf5j8xxdPaeh+77whZnGcjXfMDBpcaMqPRoxBKb1O8QPbnUb32iR0f8VKjJL7FcD
+         vB5g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=+SdF1uWi4XJsKk+Knhny+0qCi8cPiaW1ef6UDKr5t3o=;
-        b=zZ0y1AF2NSWKrqHQFxCiprWZR6o3FXNRznu8wUW+CO9u6FFOymc8ocGF53vlcCz5nT
-         n285gVjQWckrtRVRWqvXDwqib/czor9iEATwqsEHMIqrTj10mRdS3nk3HkOEAV1Slewk
-         u3afbUgIc0MF2cTXikSMO1xh0gIKIOADVxH3rAGn8qsNrttZTpg9P2r5FTZRMdXQSiiI
-         xUstOO8VFw2SsCG+9orRXHOxJOFBuEh2987qiJgpxKkvNvtR4M1QDwSTEtTGCDSqaCjw
-         n56mnx5gie9cyMxYx2shrRilVL0oGuajUG5pbhldfsJOqjwQaSISGWzZVaruCR0DQEbt
-         H/oQ==
-X-Gm-Message-State: AOAM531GH5JLwzGGzURCDzYZh3kzW6afFrKxn95g+hbaa6aBoZPaBwTK
-        kuORklgBTjOg70VwXOfN0Zo=
-X-Google-Smtp-Source: ABdhPJwLhsPCArY0Kx6h4iFy0FmSSn1w97gEaNHyDEQPyY1VzGoLDLWkLQKyweA3KZUxOG4gufQjCQ==
-X-Received: by 2002:a9d:77d7:0:b0:5b2:29b0:70cb with SMTP id w23-20020a9d77d7000000b005b229b070cbmr2514561otl.276.1647568534925;
-        Thu, 17 Mar 2022 18:55:34 -0700 (PDT)
+        bh=NOY+T0iyFXtdgsKlS557JSXDm6hKgYpjdNQTGul5DK4=;
+        b=3IW+WvH3LbF3DEpT8j3wRtN9Q/TSQtr8fIRQCz6dZS1z39ffTk8T9962Dj5iUS1e8h
+         4JOjK5a82rqelg42PIj8O4Uq76YwzEwY5C+W6J8ES7dEkJ0EuVCSftEfTOzZ47XbLcVe
+         5O4Eay4553zlaiikSRt5jvniKVD9PgAbHo4Lzj9hZzTWim6IjCxnnS1BggyRIDPIi8iu
+         dVqYFz0kiQ+jzcZctjil0rKYIqqkbZT3WefNabxeKDXRkZ0bQgZzfI+X6yGR1j709YZh
+         b89fjmteVde4GKplKacQ+MPPnXApU//9cRjqCkXWr2B6/gXuPMKMHDkW5WTI+e6uk7Gl
+         bUsA==
+X-Gm-Message-State: AOAM532gQckjRxRaHhhzLGcJ/R0sbdBOXjMGrLbmUFKQURo9g3q1Sv7C
+        z0x9zlmPDwkR08Tz0hHQdKfpP3dRuww=
+X-Google-Smtp-Source: ABdhPJxcDhstYLHNZWEkBmUYfkDiO2cfmezBpmkVY4UWP78jLo+c+fowmDnIDHRhHLt5qKD7YMjQaA==
+X-Received: by 2002:a54:4e81:0:b0:2ec:ae99:e02d with SMTP id c1-20020a544e81000000b002ecae99e02dmr7728292oiy.261.1647568533572;
+        Thu, 17 Mar 2022 18:55:33 -0700 (PDT)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-257e-2cb6-0a79-8c62.res6.spectrum.com. [2603:8081:140c:1a00:257e:2cb6:a79:8c62])
-        by smtp.googlemail.com with ESMTPSA id a32-20020a056870a1a000b000d458b1469dsm3292878oaf.10.2022.03.17.18.55.34
+        by smtp.googlemail.com with ESMTPSA id a32-20020a056870a1a000b000d458b1469dsm3292878oaf.10.2022.03.17.18.55.33
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Mar 2022 18:55:34 -0700 (PDT)
+        Thu, 17 Mar 2022 18:55:33 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v12 08/11] RDMA/rxe: Stop lookup of partially built objects
-Date:   Thu, 17 Mar 2022 20:55:11 -0500
-Message-Id: <20220318015514.231621-9-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v12 06/11] RDMA/rxe: Move mw cleanup code to rxe_mw_cleanup()
+Date:   Thu, 17 Mar 2022 20:55:09 -0500
+Message-Id: <20220318015514.231621-7-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220318015514.231621-1-rpearsonhpe@gmail.com>
 References: <20220318015514.231621-1-rpearsonhpe@gmail.com>
@@ -62,229 +62,104 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Currently the rdma_rxe driver has a security weakness due to giving
-objects which are partially initialized indices allowing external
-actors to gain access to them by sending packets which refer to
-their index (e.g. qpn, rkey, etc) causing unpredictable results.
-
-This patch adds two new APIs rxe_finalize(obj) and
-rxe_disable_lookup(obj) which enable or disable looking up pool objects
-from indices using rxe_pool_get_index(). By default objects are disabled.
-These APIs are used to enable looking up objects which have indices:
-AH, QP, MR, and MW. They are added in create verbs after the
-objects are fully initialized and as soon as possible in destroy
-verbs.
-
-Note, the sequence
-	rxe_disable_lookup(obj);
-	rxe_put(obj);
-in destroy verbs stops the looking up of objects by clearing the
-pointer in the xarray with __xa_store() before a possible
-long wait until the last reference is dropped somewhere else and
-the xarray entry is erased with xa_erase().
+Move code from rxe_dealloc_mw() to rxe_mw_cleanup() to allow
+flows which hold a reference to mw to complete.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_mr.c    |  1 +
- drivers/infiniband/sw/rxe/rxe_mw.c    |  3 +++
- drivers/infiniband/sw/rxe/rxe_pool.c  | 36 ++++++++++++++++++++++++---
- drivers/infiniband/sw/rxe/rxe_pool.h  |  9 ++++---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 10 ++++++++
- 5 files changed, 53 insertions(+), 6 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_mw.c   | 57 ++++++++++++++--------------
+ drivers/infiniband/sw/rxe/rxe_pool.c |  1 +
+ 2 files changed, 29 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index fc3942e04a1f..8059f31882ae 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -687,6 +687,7 @@ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
- 	if (atomic_read(&mr->num_mw) > 0)
- 		return -EINVAL;
- 
-+	rxe_disable_lookup(mr);
- 	rxe_put(mr);
- 
- 	return 0;
 diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
-index ba3f94c69171..2464952a04d4 100644
+index c86b2efd58f2..ba3f94c69171 100644
 --- a/drivers/infiniband/sw/rxe/rxe_mw.c
 +++ b/drivers/infiniband/sw/rxe/rxe_mw.c
-@@ -25,6 +25,8 @@ int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata)
- 			RXE_MW_STATE_FREE : RXE_MW_STATE_VALID;
- 	spin_lock_init(&mw->lock);
- 
-+	rxe_finalize(mw);
-+
+@@ -28,40 +28,11 @@ int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata)
  	return 0;
  }
  
-@@ -32,6 +34,7 @@ int rxe_dealloc_mw(struct ib_mw *ibmw)
+-static void rxe_do_dealloc_mw(struct rxe_mw *mw)
+-{
+-	if (mw->mr) {
+-		struct rxe_mr *mr = mw->mr;
+-
+-		mw->mr = NULL;
+-		atomic_dec(&mr->num_mw);
+-		rxe_put(mr);
+-	}
+-
+-	if (mw->qp) {
+-		struct rxe_qp *qp = mw->qp;
+-
+-		mw->qp = NULL;
+-		rxe_put(qp);
+-	}
+-
+-	mw->access = 0;
+-	mw->addr = 0;
+-	mw->length = 0;
+-	mw->state = RXE_MW_STATE_INVALID;
+-}
+-
+ int rxe_dealloc_mw(struct ib_mw *ibmw)
  {
  	struct rxe_mw *mw = to_rmw(ibmw);
+-	struct rxe_pd *pd = to_rpd(ibmw->pd);
+-
+-	spin_lock_bh(&mw->lock);
+-	rxe_do_dealloc_mw(mw);
+-	spin_unlock_bh(&mw->lock);
  
-+	rxe_disable_lookup(mw);
  	rxe_put(mw);
+-	rxe_put(pd);
  
  	return 0;
+ }
+@@ -328,3 +299,31 @@ struct rxe_mw *rxe_lookup_mw(struct rxe_qp *qp, int access, u32 rkey)
+ 
+ 	return mw;
+ }
++
++void rxe_mw_cleanup(struct rxe_pool_elem *elem)
++{
++	struct rxe_mw *mw = container_of(elem, typeof(*mw), elem);
++	struct rxe_pd *pd = to_rpd(mw->ibmw.pd);
++
++	rxe_put(pd);
++
++	if (mw->mr) {
++		struct rxe_mr *mr = mw->mr;
++
++		mw->mr = NULL;
++		atomic_dec(&mr->num_mw);
++		rxe_put(mr);
++	}
++
++	if (mw->qp) {
++		struct rxe_qp *qp = mw->qp;
++
++		mw->qp = NULL;
++		rxe_put(qp);
++	}
++
++	mw->access = 0;
++	mw->addr = 0;
++	mw->length = 0;
++	mw->state = RXE_MW_STATE_INVALID;
++}
 diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 0fdde3d46949..87b89d263f80 100644
+index 5963b1429ad8..0fdde3d46949 100644
 --- a/drivers/infiniband/sw/rxe/rxe_pool.c
 +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -140,7 +140,9 @@ void *rxe_alloc(struct rxe_pool *pool)
- 	elem->obj = obj;
- 	kref_init(&elem->ref_cnt);
- 
--	err = xa_alloc_cyclic(&pool->xa, &elem->index, elem, pool->limit,
-+	/* allocate index in array but leave pointer as NULL so it
-+	 * can't be looked up until rxe_finalize() is called */
-+	err = xa_alloc_cyclic(&pool->xa, &elem->index, NULL, pool->limit,
- 			      &pool->next, GFP_KERNEL);
- 	if (err)
- 		goto err_free;
-@@ -168,7 +170,7 @@ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_elem *elem)
- 	elem->obj = (u8 *)elem - pool->elem_offset;
- 	kref_init(&elem->ref_cnt);
- 
--	err = xa_alloc_cyclic(&pool->xa, &elem->index, elem, pool->limit,
-+	err = xa_alloc_cyclic(&pool->xa, &elem->index, NULL, pool->limit,
- 			      &pool->next, GFP_KERNEL);
- 	if (err)
- 		goto err_cnt;
-@@ -202,8 +204,12 @@ static void rxe_elem_release(struct kref *kref)
- {
- 	struct rxe_pool_elem *elem = container_of(kref, typeof(*elem), ref_cnt);
- 	struct rxe_pool *pool = elem->pool;
-+	struct xarray *xa = &pool->xa;
-+	unsigned long flags;
- 
--	xa_erase(&pool->xa, elem->index);
-+	xa_lock_irqsave(xa, flags);
-+	__xa_erase(&pool->xa, elem->index);
-+	xa_unlock_irqrestore(xa, flags);
- 
- 	if (pool->cleanup)
- 		pool->cleanup(elem);
-@@ -223,3 +229,27 @@ int __rxe_put(struct rxe_pool_elem *elem)
- {
- 	return kref_put(&elem->ref_cnt, rxe_elem_release);
- }
-+
-+void __rxe_finalize(struct rxe_pool_elem *elem)
-+{
-+	struct xarray *xa = &elem->pool->xa;
-+	unsigned long flags;
-+	void *ret;
-+
-+	xa_lock_irqsave(xa, flags);
-+	ret = __xa_store(&elem->pool->xa, elem->index, elem, GFP_KERNEL);
-+	xa_unlock_irqrestore(xa, flags);
-+	WARN_ON(xa_err(ret));
-+}
-+
-+void __rxe_disable_lookup(struct rxe_pool_elem *elem)
-+{
-+	struct xarray *xa = &elem->pool->xa;
-+	unsigned long flags;
-+	void *ret;
-+
-+	xa_lock_irqsave(xa, flags);
-+	ret = __xa_store(&elem->pool->xa, elem->index, NULL, GFP_KERNEL);
-+	xa_unlock_irqrestore(xa, flags);
-+	WARN_ON(xa_err(ret));
-+}
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
-index 24bcc786c1b3..aa66d0eea13b 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.h
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.h
-@@ -63,20 +63,23 @@ void *rxe_alloc(struct rxe_pool *pool);
- 
- /* connect already allocated object to pool */
- int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_elem *elem);
--
- #define rxe_add_to_pool(pool, obj) __rxe_add_to_pool(pool, &(obj)->elem)
- 
- /* lookup an indexed object from index. takes a reference on object */
- void *rxe_pool_get_index(struct rxe_pool *pool, u32 index);
- 
- int __rxe_get(struct rxe_pool_elem *elem);
--
- #define rxe_get(obj) __rxe_get(&(obj)->elem)
- 
- int __rxe_put(struct rxe_pool_elem *elem);
--
- #define rxe_put(obj) __rxe_put(&(obj)->elem)
- 
- #define rxe_read(obj) kref_read(&(obj)->elem.ref_cnt)
- 
-+void __rxe_finalize(struct rxe_pool_elem *elem);
-+#define rxe_finalize(obj) __rxe_finalize(&(obj)->elem)
-+
-+void __rxe_disable_lookup(struct rxe_pool_elem *elem);
-+#define rxe_disable_lookup(obj) __rxe_disable_lookup(&(obj)->elem)
-+
- #endif /* RXE_POOL_H */
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 4c082ac439c6..6a83b4a630f5 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -197,6 +197,8 @@ static int rxe_create_ah(struct ib_ah *ibah,
- 	}
- 
- 	rxe_init_av(init_attr->ah_attr, &ah->av);
-+	rxe_finalize(ah);
-+
- 	return 0;
- }
- 
-@@ -228,6 +230,7 @@ static int rxe_destroy_ah(struct ib_ah *ibah, u32 flags)
- {
- 	struct rxe_ah *ah = to_rah(ibah);
- 
-+	rxe_disable_lookup(ah);
- 	rxe_put(ah);
- 	return 0;
- }
-@@ -435,6 +438,7 @@ static int rxe_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *init,
- 	if (err)
- 		goto qp_init;
- 
-+	rxe_finalize(qp);
- 	return 0;
- 
- qp_init:
-@@ -487,6 +491,7 @@ static int rxe_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 	struct rxe_qp *qp = to_rqp(ibqp);
- 	int ret;
- 
-+	rxe_disable_lookup(qp);
- 	ret = rxe_qp_chk_destroy(qp);
- 	if (ret)
- 		return ret;
-@@ -905,6 +910,7 @@ static struct ib_mr *rxe_get_dma_mr(struct ib_pd *ibpd, int access)
- 
- 	rxe_get(pd);
- 	rxe_mr_init_dma(pd, access, mr);
-+	rxe_finalize(mr);
- 
- 	return &mr->ibmr;
- }
-@@ -933,6 +939,8 @@ static struct ib_mr *rxe_reg_user_mr(struct ib_pd *ibpd,
- 	if (err)
- 		goto err3;
- 
-+	rxe_finalize(mr);
-+
- 	return &mr->ibmr;
- 
- err3:
-@@ -965,6 +973,8 @@ static struct ib_mr *rxe_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
- 	if (err)
- 		goto err2;
- 
-+	rxe_finalize(mr);
-+
- 	return &mr->ibmr;
- 
- err2:
+@@ -83,6 +83,7 @@ static const struct rxe_type_info {
+ 		.name		= "mw",
+ 		.size		= sizeof(struct rxe_mw),
+ 		.elem_offset	= offsetof(struct rxe_mw, elem),
++		.cleanup	= rxe_mw_cleanup,
+ 		.min_index	= RXE_MIN_MW_INDEX,
+ 		.max_index	= RXE_MAX_MW_INDEX,
+ 		.max_elem	= RXE_MAX_MW_INDEX - RXE_MIN_MW_INDEX + 1,
 -- 
 2.32.0
 
