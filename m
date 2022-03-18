@@ -2,57 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCC60C433F5
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Mar 2022 01:55:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5563C433EF
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Mar 2022 01:55:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231674AbiCRB5B (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Mar 2022 21:57:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47354 "EHLO
+        id S231622AbiCRB5C (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Mar 2022 21:57:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231665AbiCRB47 (ORCPT
+        with ESMTP id S229730AbiCRB47 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Mar 2022 21:56:59 -0400
-Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E117024371F
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:36 -0700 (PDT)
-Received: by mail-ot1-x329.google.com with SMTP id e25-20020a0568301e5900b005b236d5d74fso4782873otj.0
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:36 -0700 (PDT)
+Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AD1C241B6E
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:33 -0700 (PDT)
+Received: by mail-oi1-x22d.google.com with SMTP id 12so7486162oix.12
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=x/XVrqL1j/fKwDAY2wInSzzWzgO8c6dYaexgt/1KeDA=;
-        b=AM06jl0kMvxtLaPx2IUYL52JiYPZt7LkFzsP7h/VdcSV6d3DYPZVl0BCEDcfnUb0H+
-         x7sZS0AbQlEbZG7Y6Y5za4B21FnEajM3Yv/v9OSKyMqoS2v05LDLdkIAioSFTogLICj3
-         ofZCQcxBEAD5X8fNyDFfsQhZW7IF3/QKkXpUtsO/3KlVOpNnytFM1v1hZJ4+qxEoj8sX
-         vFCLIOVwZjq39xhklgvdnyvDSxHkXykCyo2dTe48SPuPy978NgwKZoNhv9GDzP9hGnbL
-         9H61UHuwrPiTL3SaSYc0ggS6xO5KYrc+cZ6z6F59lKQ+i32el9SwrefbBKqIHC16eaRy
-         FWSQ==
+        bh=ir1rbhJVm4YOuatC8nTnW07YQS3a/+GpADxu2BBd+7A=;
+        b=FNRipG9CDMnaM6uTvDPD3IgPUmUEwVeEq6doaoHc4Yl1kaHYUZ2l5nZTRVo2g2gpqC
+         b9M7dvjWuoxWkiHmd4kIiOA8mBIOPSqXuATlbYtW+dq5m1UVhfC4M60z1PG50zpi3ohu
+         jqwwJRranXQn06mf18oeVhduRuoo429ctkeBn8KMru0NPQ3HrKeXC8ov1pSPPZmeFOtw
+         x6Cj+jr35PQzY0rJtqnBSWMFROmxB2UrcT74TLX6aQ3LqMq4cNHienXAVV7hIZyfPFpF
+         UO5Xx2PhR0DCrTSziYrEdeRCxlJoUGTXmQ7ejZNr3xHJRzZNShVKdkzZFdKCpafVdTt4
+         phpg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=x/XVrqL1j/fKwDAY2wInSzzWzgO8c6dYaexgt/1KeDA=;
-        b=2SYRQiYYxyDZ3VjOfD1bWWBlCT8xWpoZP9BRCX5ThkdcZupqX+NOY1j5bFqRWCX//U
-         ewXSvYa7w5+t1vJcjiDb+/9LH6GUE2VELW1Hx7I7Q1gIzLVAuuRXODC8dlIxZVqTLCaW
-         lfM5lS5+DcCJSMqhSADTM/mXt5kAdfEHvHZ76nrKA2H50vawKpn7pacBl6QxlBXvNolN
-         UlWOuvSUnssvlceG+OcE58mhpjYwtKwrvEuB3pnbUaA49VWIq3v/32MVjh73BawxdiVt
-         7Yvzt3X0qqASst26PhNwRDVVHLX8LvCRdR/gfMtSZpQBlclKRxTv6/VIePpOQzlziyA9
-         ndkw==
-X-Gm-Message-State: AOAM530kRAE56sU21L19BnOGAWfuiNXAo63ec14xvRZagtosi3y2MMDE
-        232ixHErSS147kzUzRVqQIU=
-X-Google-Smtp-Source: ABdhPJxe9LbC26+AJyCNGBtz2icSYTQEEZCfJUVA34aP1fDmkyA/etTziXwMyaGkeRXRJd6m8OrZRg==
-X-Received: by 2002:a9d:6f07:0:b0:5b2:38e8:41f7 with SMTP id n7-20020a9d6f07000000b005b238e841f7mr2629574otq.308.1647568536330;
-        Thu, 17 Mar 2022 18:55:36 -0700 (PDT)
+        bh=ir1rbhJVm4YOuatC8nTnW07YQS3a/+GpADxu2BBd+7A=;
+        b=VvseTGcY0ndYv+RTMmhxD9NegjuIpEydn4ULxk+eUyxo4bPAJ4YoSSU0yMX5DR7hsw
+         AUj/ngbCf8+WrwmSoU5/iiRz5KPxy9RU3XeC0GpYtcBeUotjqtGj+yYymVIUy2xV9FXt
+         BIE3X41/hJnV5KzJ1wy+jKyhiGRwgrNKHCFBzM+KWrsl8hkpjcih44roRAsGkjlovbI+
+         hECLZ0GEiMQd9W10FRlEY1My0W5AbBVl0ZJkq6R8xexC+Tc1H1kQpdanXgqf41k/OJaP
+         zwZ9BgO7zINO2jJ15SqGd2uoFJ/+w17U9CxsCDA+SQTWNlaKC0rXxSpUg6HiPChfDqmt
+         0Jrg==
+X-Gm-Message-State: AOAM530ETo+SJdnG6jBCaQjxhyXTCdE1JrsJpVkuGDbADECKRitOB5tt
+        ZLFWxBYpz8ZjyxIlTWJwwbo=
+X-Google-Smtp-Source: ABdhPJy7YB7H62QgmymhziVSnV22gROhua4mx4x/tngvRuBLmDU9Pn9IalnOWSNNMWRnOaSDGsd8ew==
+X-Received: by 2002:a05:6808:b19:b0:2ec:aefc:be5b with SMTP id s25-20020a0568080b1900b002ecaefcbe5bmr3062134oij.135.1647568532859;
+        Thu, 17 Mar 2022 18:55:32 -0700 (PDT)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-257e-2cb6-0a79-8c62.res6.spectrum.com. [2603:8081:140c:1a00:257e:2cb6:a79:8c62])
-        by smtp.googlemail.com with ESMTPSA id a32-20020a056870a1a000b000d458b1469dsm3292878oaf.10.2022.03.17.18.55.35
+        by smtp.googlemail.com with ESMTPSA id a32-20020a056870a1a000b000d458b1469dsm3292878oaf.10.2022.03.17.18.55.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Mar 2022 18:55:36 -0700 (PDT)
+        Thu, 17 Mar 2022 18:55:32 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v12 10/11] RDMA/rxe: Convert read side locking to rcu
-Date:   Thu, 17 Mar 2022 20:55:13 -0500
-Message-Id: <20220318015514.231621-11-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v12 05/11] RDMA/rxe: Move mr cleanup code to rxe_mr_cleanup()
+Date:   Thu, 17 Mar 2022 20:55:08 -0500
+Message-Id: <20220318015514.231621-6-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220318015514.231621-1-rpearsonhpe@gmail.com>
 References: <20220318015514.231621-1-rpearsonhpe@gmail.com>
@@ -62,45 +62,44 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use rcu_read_lock() for protecting read side operations in rxe_pool.c.
+Move the code which tears down an mr to rxe_mr_cleanup to allow
+operations holding a reference to the mr to complete.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_pool.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_mr.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 6f39f74233d2..a2c74beceeae 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.c
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -190,16 +190,15 @@ void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index 60a31b718774..fc3942e04a1f 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -683,14 +683,10 @@ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
  {
- 	struct rxe_pool_elem *elem;
- 	struct xarray *xa = &pool->xa;
--	unsigned long flags;
- 	void *obj;
+ 	struct rxe_mr *mr = to_rmr(ibmr);
  
--	xa_lock_irqsave(xa, flags);
-+	rcu_read_lock();
- 	elem = xa_load(xa, index);
- 	if (elem && kref_get_unless_zero(&elem->ref_cnt))
- 		obj = elem->obj;
- 	else
- 		obj = NULL;
--	xa_unlock_irqrestore(xa, flags);
-+	rcu_read_unlock();
+-	if (atomic_read(&mr->num_mw) > 0) {
+-		pr_warn("%s: Attempt to deregister an MR while bound to MWs\n",
+-			__func__);
++	/* See IBA 10.6.7.2.6 */
++	if (atomic_read(&mr->num_mw) > 0)
+ 		return -EINVAL;
+-	}
  
- 	return obj;
- }
-@@ -242,7 +241,7 @@ int __rxe_cleanup(struct rxe_pool_elem *elem)
- 		pool->cleanup(elem);
+-	mr->state = RXE_MR_STATE_INVALID;
+-	rxe_put(mr_pd(mr));
+ 	rxe_put(mr);
  
- 	if (pool->flags & RXE_POOL_ALLOC)
--		kfree(elem->obj);
-+		kfree_rcu(elem->obj);
+ 	return 0;
+@@ -700,6 +696,8 @@ void rxe_mr_cleanup(struct rxe_pool_elem *elem)
+ {
+ 	struct rxe_mr *mr = container_of(elem, typeof(*mr), elem);
  
- 	atomic_dec(&pool->num_elem);
++	rxe_put(mr_pd(mr));
++
+ 	ib_umem_release(mr->umem);
  
+ 	if (mr->cur_map_set)
 -- 
 2.32.0
 
