@@ -2,57 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01B17C433F5
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Mar 2022 01:55:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B61B0C433FE
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Mar 2022 01:55:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229831AbiCRB44 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Mar 2022 21:56:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47112 "EHLO
+        id S231585AbiCRB45 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Mar 2022 21:56:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231585AbiCRB44 (ORCPT
+        with ESMTP id S229730AbiCRB44 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Mar 2022 21:56:56 -0400
-Received: from mail-oi1-x235.google.com (mail-oi1-x235.google.com [IPv6:2607:f8b0:4864:20::235])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0800D2414D7
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:31 -0700 (PDT)
-Received: by mail-oi1-x235.google.com with SMTP id q189so7503970oia.9
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:31 -0700 (PDT)
+Received: from mail-oi1-x236.google.com (mail-oi1-x236.google.com [IPv6:2607:f8b0:4864:20::236])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E9C8241A2A
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:32 -0700 (PDT)
+Received: by mail-oi1-x236.google.com with SMTP id w127so7495953oig.10
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=XI+4+Dmeo+mKDgNgvWOH65/+Nxhaxdl8wKivdGzzlRU=;
-        b=JArd+2eKKEB8oBvkXvt2QqkjrlC8WPc0mbHRWlZueW9zb3D7JTBcIhZkZAcg19dN63
-         F+x+mxQKNdU5DW9PUXNME5wk0uA5Lh1lFHNBbixYtzWhFC0I+RAf4T9m67aQZmo64B3J
-         kH+k27ICCfeefpaY7wKRoLucp1I1gAyscLTfbRj1S5paZsKvEc5MVHe6/gwFJWEW8W4u
-         rjbk9fAazTh2+3j5Q3FnrYnbHUSubIt+Wk6r5kXGzfNegEJhM/bcutIP32FjoSTJIVqc
-         IfZZ+OG+k2Ve1BUu2Xws2rjrDHUfWL0xoH2nXeANUZFQvnlNjbZXfvZ0HqElViKIT6jD
-         mt6Q==
+        bh=qzyw0G+X5gEzfm3C8WMHFqx+zJvFjMkDqLfBwb9Xil8=;
+        b=Uk2KJChsXoYk0CionU+czhOb8THcjG/qHD8nqklzPRIntD49CVZyG0kf3Q0VnxOrOP
+         h+0SRKiNdzZSP6guW7SK6FgN+23ElVTySkvb9RH4+HUYpnIo8sHAkDfDdwgIwRqGsGyO
+         0I18L6VENfvBZ6knR8cNTo6F6aXoTExOY5w8mWayDA3OQm4gIYtHCVRCva+6CbnVY4gu
+         cJX8HXf70eadhE1/s12KxXPrtzvE+8JghHkI0NxfSeJowOPtAEDwT6EnJ3NkX1Ay09V2
+         +o/EsXmIV0d5K/FuiMijtwqTJRuZV1Eye7nANFqxZo24lYC7mrThlzesKIN144EYxJUF
+         uZ2w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=XI+4+Dmeo+mKDgNgvWOH65/+Nxhaxdl8wKivdGzzlRU=;
-        b=ndHBxEE52pvKfwks6hrDIWy5gzmCgKM358wNc0ft+MasyHbmNVLWAx/Tr9TIxFkSSu
-         BRq7uP9IQL1wy6YzaJYLt/tiPdk92KVAXosygZysA0GuQzSvDzo6Y0D+QsTq+Cd3qS3Z
-         HtApHF3VnCANmuhM8CFANyT6EfTnr7zx2MzgTx/Jt1BcBVRD4QoAzP66A5QnRYDuZHYM
-         Wa1nthje6IR0M5X6HAPeLUdNrq6K/GV/7kxJymIKa/74efX6tsWtqmbXXErZ9tZJCS7C
-         YN9jfrcVo0juhjNSWDbQRU7sxSvldkCi4Cv2XavB0hMa625aDL0mIFiizy57X0zBDn28
-         SsyQ==
-X-Gm-Message-State: AOAM533O2OgaeLztRXGh2tRzCUAXdyDHWnYHs4PzE4lP0IIMldbD7noD
-        +yOUY5SqIbGB66zY+14EBwOtfINPwpM=
-X-Google-Smtp-Source: ABdhPJxwy4tXxkr6i3sbZjzSc+6Rx13qutO3uq6DKVgYTPsjWNdTscXYgWhPYq65buCmrMsYdABl0A==
-X-Received: by 2002:aca:bed7:0:b0:2ef:2225:6b6 with SMTP id o206-20020acabed7000000b002ef222506b6mr1457468oif.174.1647568530344;
-        Thu, 17 Mar 2022 18:55:30 -0700 (PDT)
+        bh=qzyw0G+X5gEzfm3C8WMHFqx+zJvFjMkDqLfBwb9Xil8=;
+        b=g1IA+Q0nzWqJnLxdd1Wgu5w9qnzfgt1OPpjb7Z+K5qyVH33CAxL2ko23tm/XApgoMy
+         dWURouAd9VkkIRpmXN6CCcoxXJhslsCYlEer/dzUH7jAMAFuNIFdW7RmZAzPnJnxM4oe
+         tsOF1m3cIb2Xw3zLDa+HVBufW/ntZYCr2pUrXxtVMn4o3NwqLB9anRraIpHiiPsm4rb9
+         x9oDkRBIjwQUogEx5/OwmAf0mK8hgacqAmQqwrfT7LoErLGLG8Hadiw2g4Az7Kbjwupu
+         nPryXpYlq4MAhyrhNDLgXBXxfKxQt3GaTF/d/IHaxEvQDxEXdSworqMqTrScIHUGo1K1
+         qdQQ==
+X-Gm-Message-State: AOAM530JvxjviwsO9TTuBJMeubioKS32fHhPvsN1TwmkhkqF7f8doR8h
+        OfuzodNng2zr/CfmNXEPAil3VWBw23I=
+X-Google-Smtp-Source: ABdhPJxxIsxRE04DqMMkW7u1APjSk+VeePrK97aB8slgLs8765D2bVel8Bw7UCcd39+fDW444b1KbA==
+X-Received: by 2002:aca:1901:0:b0:2ec:b7d0:1207 with SMTP id l1-20020aca1901000000b002ecb7d01207mr7388585oii.30.1647568532018;
+        Thu, 17 Mar 2022 18:55:32 -0700 (PDT)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-257e-2cb6-0a79-8c62.res6.spectrum.com. [2603:8081:140c:1a00:257e:2cb6:a79:8c62])
-        by smtp.googlemail.com with ESMTPSA id a32-20020a056870a1a000b000d458b1469dsm3292878oaf.10.2022.03.17.18.55.29
+        by smtp.googlemail.com with ESMTPSA id a32-20020a056870a1a000b000d458b1469dsm3292878oaf.10.2022.03.17.18.55.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Mar 2022 18:55:30 -0700 (PDT)
+        Thu, 17 Mar 2022 18:55:31 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v12 02/11] RDMA/rxe: Add rxe_srq_cleanup()
-Date:   Thu, 17 Mar 2022 20:55:05 -0500
-Message-Id: <20220318015514.231621-3-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v12 04/11] RDMA/rxe: Move qp cleanup code to rxe_qp_do_cleanup()
+Date:   Thu, 17 Mar 2022 20:55:07 -0500
+Message-Id: <20220318015514.231621-5-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220318015514.231621-1-rpearsonhpe@gmail.com>
 References: <20220318015514.231621-1-rpearsonhpe@gmail.com>
@@ -62,165 +62,70 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move cleanup code from rxe_destroy_srq() to rxe_srq_cleanup()
-which is called after all references are dropped to allow
-code depending on the srq object to complete.
+Move the code from rxe_qp_destroy() to rxe_qp_do_cleanup().
+This allows flows holding references to qp to complete before
+the qp object is torn down.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_loc.h   |  7 ++++---
- drivers/infiniband/sw/rxe/rxe_pool.c  |  1 +
- drivers/infiniband/sw/rxe/rxe_srq.c   | 11 +++++++++++
- drivers/infiniband/sw/rxe/rxe_verbs.c | 27 +++++++++++----------------
- 4 files changed, 27 insertions(+), 19 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_loc.h   |  1 -
+ drivers/infiniband/sw/rxe/rxe_qp.c    | 12 ++++--------
+ drivers/infiniband/sw/rxe/rxe_verbs.c |  1 -
+ 3 files changed, 4 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 9067d3b6f1ee..300c702f432a 100644
+index 300c702f432a..ddf91d3d5527 100644
 --- a/drivers/infiniband/sw/rxe/rxe_loc.h
 +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -37,7 +37,7 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited);
+@@ -114,7 +114,6 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr,
+ int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask);
+ void rxe_qp_error(struct rxe_qp *qp);
+ int rxe_qp_chk_destroy(struct rxe_qp *qp);
+-void rxe_qp_destroy(struct rxe_qp *qp);
+ void rxe_qp_cleanup(struct rxe_pool_elem *elem);
  
- void rxe_cq_disable(struct rxe_cq *cq);
- 
--void rxe_cq_cleanup(struct rxe_pool_elem *arg);
-+void rxe_cq_cleanup(struct rxe_pool_elem *elem);
- 
- /* rxe_mcast.c */
- struct rxe_mcg *rxe_lookup_mcg(struct rxe_dev *rxe, union ib_gid *mgid);
-@@ -81,7 +81,7 @@ int rxe_invalidate_mr(struct rxe_qp *qp, u32 rkey);
- int rxe_reg_fast_mr(struct rxe_qp *qp, struct rxe_send_wqe *wqe);
- int rxe_mr_set_page(struct ib_mr *ibmr, u64 addr);
- int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata);
--void rxe_mr_cleanup(struct rxe_pool_elem *arg);
-+void rxe_mr_cleanup(struct rxe_pool_elem *elem);
- 
- /* rxe_mw.c */
- int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata);
-@@ -89,7 +89,7 @@ int rxe_dealloc_mw(struct ib_mw *ibmw);
- int rxe_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe);
- int rxe_invalidate_mw(struct rxe_qp *qp, u32 rkey);
- struct rxe_mw *rxe_lookup_mw(struct rxe_qp *qp, int access, u32 rkey);
--void rxe_mw_cleanup(struct rxe_pool_elem *arg);
-+void rxe_mw_cleanup(struct rxe_pool_elem *elem);
- 
- /* rxe_net.c */
- struct sk_buff *rxe_init_packet(struct rxe_dev *rxe, struct rxe_av *av,
-@@ -167,6 +167,7 @@ int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
- int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
- 		      struct ib_srq_attr *attr, enum rxe_srq_attr_mask mask,
- 		      struct rxe_modify_srq_cmd *ucmd, struct ib_udata *udata);
-+void rxe_srq_cleanup(struct rxe_pool_elem *elem);
- 
- void rxe_dealloc(struct ib_device *ib_dev);
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 87066d04ed18..5963b1429ad8 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.c
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -46,6 +46,7 @@ static const struct rxe_type_info {
- 		.name		= "srq",
- 		.size		= sizeof(struct rxe_srq),
- 		.elem_offset	= offsetof(struct rxe_srq, elem),
-+		.cleanup	= rxe_srq_cleanup,
- 		.min_index	= RXE_MIN_SRQ_INDEX,
- 		.max_index	= RXE_MAX_SRQ_INDEX,
- 		.max_elem	= RXE_MAX_SRQ_INDEX - RXE_MIN_SRQ_INDEX + 1,
-diff --git a/drivers/infiniband/sw/rxe/rxe_srq.c b/drivers/infiniband/sw/rxe/rxe_srq.c
-index 862aa749c93a..26e7ac35733e 100644
---- a/drivers/infiniband/sw/rxe/rxe_srq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_srq.c
-@@ -154,3 +154,14 @@ int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
- 	srq->rq.queue = NULL;
- 	return err;
+ static inline int qp_num(struct rxe_qp *qp)
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index 62acf890af6c..f5200777399c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -777,9 +777,11 @@ int rxe_qp_chk_destroy(struct rxe_qp *qp)
+ 	return 0;
  }
+ 
+-/* called by the destroy qp verb */
+-void rxe_qp_destroy(struct rxe_qp *qp)
++/* called when the last reference to the qp is dropped */
++static void rxe_qp_do_cleanup(struct work_struct *work)
+ {
++	struct rxe_qp *qp = container_of(work, typeof(*qp), cleanup_work.work);
 +
-+void rxe_srq_cleanup(struct rxe_pool_elem *elem)
-+{
-+	struct rxe_srq *srq = container_of(elem, typeof(*srq), elem);
-+
-+	if (srq->pd)
-+		rxe_put(srq->pd);
-+
-+	if (srq->rq.queue)
-+		rxe_queue_cleanup(srq->rq.queue);
-+}
+ 	qp->valid = 0;
+ 	qp->qp_timeout_jiffies = 0;
+ 	rxe_cleanup_task(&qp->resp.task);
+@@ -798,12 +800,6 @@ void rxe_qp_destroy(struct rxe_qp *qp)
+ 		__rxe_do_task(&qp->comp.task);
+ 		__rxe_do_task(&qp->req.task);
+ 	}
+-}
+-
+-/* called when the last reference to the qp is dropped */
+-static void rxe_qp_do_cleanup(struct work_struct *work)
+-{
+-	struct rxe_qp *qp = container_of(work, typeof(*qp), cleanup_work.work);
+ 
+ 	if (qp->sq.queue)
+ 		rxe_queue_cleanup(qp->sq.queue);
 diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 5609956d2bc3..89f4f30f7247 100644
+index 89f4f30f7247..9a3c33dad979 100644
 --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
 +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -286,36 +286,35 @@ static int rxe_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *init,
- 	struct rxe_srq *srq = to_rsrq(ibsrq);
- 	struct rxe_create_srq_resp __user *uresp = NULL;
+@@ -491,7 +491,6 @@ static int rxe_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 	if (ret)
+ 		return ret;
  
--	if (init->srq_type != IB_SRQT_BASIC)
--		return -EOPNOTSUPP;
--
- 	if (udata) {
- 		if (udata->outlen < sizeof(*uresp))
- 			return -EINVAL;
- 		uresp = udata->outbuf;
- 	}
- 
-+	if (init->srq_type != IB_SRQT_BASIC)
-+		return -EOPNOTSUPP;
-+
- 	err = rxe_srq_chk_attr(rxe, NULL, &init->attr, RXE_SRQ_INIT);
- 	if (err)
--		goto err1;
-+		goto err_out;
- 
- 	err = rxe_add_to_pool(&rxe->srq_pool, srq);
- 	if (err)
--		goto err1;
-+		goto err_out;
- 
- 	rxe_get(pd);
- 	srq->pd = pd;
- 
- 	err = rxe_srq_from_init(rxe, srq, init, udata, uresp);
- 	if (err)
--		goto err2;
-+		goto err_cleanup;
- 
- 	return 0;
- 
--err2:
--	rxe_put(pd);
-+err_cleanup:
- 	rxe_put(srq);
--err1:
-+err_out:
- 	return err;
- }
- 
-@@ -340,15 +339,15 @@ static int rxe_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
- 
- 	err = rxe_srq_chk_attr(rxe, srq, attr, mask);
- 	if (err)
--		goto err1;
-+		goto err_out;
- 
- 	err = rxe_srq_from_attr(rxe, srq, attr, mask, &ucmd, udata);
- 	if (err)
--		goto err1;
-+		goto err_out;
- 
- 	return 0;
- 
--err1:
-+err_out:
- 	return err;
- }
- 
-@@ -369,10 +368,6 @@ static int rxe_destroy_srq(struct ib_srq *ibsrq, struct ib_udata *udata)
- {
- 	struct rxe_srq *srq = to_rsrq(ibsrq);
- 
--	if (srq->rq.queue)
--		rxe_queue_cleanup(srq->rq.queue);
--
--	rxe_put(srq->pd);
- 	rxe_put(srq);
+-	rxe_qp_destroy(qp);
+ 	rxe_put(qp);
  	return 0;
  }
 -- 
