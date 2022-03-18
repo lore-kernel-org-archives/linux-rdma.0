@@ -2,57 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B025BC433F5
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Mar 2022 01:55:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AC07C433EF
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Mar 2022 01:55:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231449AbiCRB47 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Mar 2022 21:56:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47250 "EHLO
+        id S231673AbiCRB5A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Mar 2022 21:57:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229730AbiCRB46 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Mar 2022 21:56:58 -0400
-Received: from mail-oo1-xc32.google.com (mail-oo1-xc32.google.com [IPv6:2607:f8b0:4864:20::c32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4A9C24223E
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:34 -0700 (PDT)
-Received: by mail-oo1-xc32.google.com with SMTP id j7-20020a4ad6c7000000b0031c690e4123so8641819oot.11
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:34 -0700 (PDT)
+        with ESMTP id S231622AbiCRB47 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Mar 2022 21:56:59 -0400
+Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com [IPv6:2607:f8b0:4864:20::232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5E32241A10
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:31 -0700 (PDT)
+Received: by mail-oi1-x232.google.com with SMTP id e4so4467427oif.2
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Mar 2022 18:55:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=yxF2KUc6EO6kphwo4HlT4qqWAakQzhVgtzyDrqKl8JA=;
-        b=jh8jCnZocMTq++PDjOrq3FhJSZroSMa8/vwqLJ7EcNyo+PQ++Ix5YuhQakpjlkmJQY
-         UND2bhle9t2GGNYkX5Md6kNaGu+K8h3VpSC4UG2vng7uX8IkiUkVU8AJ6/LpYSvf9+zb
-         8djWNtOnStUVSV51vznybanBUR1jX5Ir0cepdL2o+fDCGdgrieo+S220ihQF7BizwNpH
-         3MDz7Qj2i5w0ocnnYZE5M5sipnocWFq+t4M7hGSwimVXqIUf1e3Mx8GQF8KR0P7Tv88Q
-         hueSpeUp/Onio9j0OLAgcQhFyqIUuCMH1Z6uZDGSMIfqVvPY1a1+tLsWF+ssGtS05sYz
-         /Qqg==
+        bh=1xptPxghO5Wv38XZBgv1n4noPRyDNrIm4QC80PPVwBo=;
+        b=NCSI8ASfaJnabR36RGZYsF6iuUoeLNJSjrbNQjx/wsExiEi7G7oQk+H8yVehakCRAU
+         i6NWT9KTH+Fp6RC4lbnd/eGplKU+jK0E2vzaW5VoLDFKaui/c2y6yBjbY7+JVBx0rLNt
+         gno4Iyx5D+DVSgK1jCVf6puaMUMKGk3LEn3H80PAwifLkalN/RMhtSKcmTMbWB4+lkfF
+         DoxKxp7VKNDF2Ja8LvTEGtMMRFbWjjLbFEnaS+gmdJAMOmSh4GViARlbDCNhx6t7uhIo
+         4I0gW+QlpIt31pgieK3DQHdNdehNefmdeqg6ZsNlLrMdbvHVAtyqtMEIsjzBGLftChOK
+         +TOQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=yxF2KUc6EO6kphwo4HlT4qqWAakQzhVgtzyDrqKl8JA=;
-        b=NxNXZSqeXak2wEDB91oOt8RsPNSK2rqtTQhT1I2NfYkYvrl2ZMU3Vf0fbZ64wjL2qp
-         yrBRBik44FTMcQHCgiX3i1NPp2WCbEoWmCDq4pWLabK2UICdXb1ntXzwmyZ5jT6v8FKY
-         yPdhKSqFLBBc4JWD1ZUEKS776a6rh30KuVVuop6QQPLbJ5HxLeGNVC5GgMXtch6U/4xC
-         E2q1JCdaslo05KJ3y88F9Ay06jZevSc99ZSLw5NOap8Ix1umUfWzVnl8ACUFotEYCSHq
-         3K4VnkkXFoLeQltkO5FVnrdKFRakEf3ZSnftEZPOG0Q4LFVveAAy4U67ccYdfHc3hfnc
-         ySgQ==
-X-Gm-Message-State: AOAM53288tclBQO6lxK5kdvzy7sLpSRA/jhmjIUfz5yiREFuDDvVYjIU
-        0E3O8HmOxpIPtXQGPibQsxE=
-X-Google-Smtp-Source: ABdhPJyTbcXT575WAelXOptxhAfWOn4mVJU9HiaTPTgtx/0Zx5r8yxYfEWnhILxXZKmW1lCyWVo1Lg==
-X-Received: by 2002:a05:6870:231f:b0:da:c15:fd43 with SMTP id w31-20020a056870231f00b000da0c15fd43mr2695069oao.135.1647568534270;
-        Thu, 17 Mar 2022 18:55:34 -0700 (PDT)
+        bh=1xptPxghO5Wv38XZBgv1n4noPRyDNrIm4QC80PPVwBo=;
+        b=T+vTvhbPVJagKK2Z8DfxHIbh3kXMgZovimYdhlYwOe1v25GDGcyKKKiS2rOzmk3dGm
+         CKV3gTe2tqeVR2rQfyOLQJb8w2P/7EChm3P41OQFV8IEDv6rjhPwHb1K0qgB+zMAB+w/
+         bYzrQJYLL4cn3iPVftY40uMeYvBWdk6poNvjDMDJjKVlHr9Ed4Yy3sU2oqBZvEiujfj8
+         +RmbW3ll67oYr2iathdTFsK9q7DBlJJGuPHS3udjbvOFDLx/oFlbsqWh8DfxUm6l3j+G
+         4xCfHMOD+OZElEiP9E/dqcLDBimDDWSXQBDBDrNNgji1ZuXx2OmZ0IE/TBi5zi3c6EH1
+         c/gQ==
+X-Gm-Message-State: AOAM531vtCwZYBy4bOgsLGYJNcP8aJ5yaxY/OYtqcj4POx25wUb84Imr
+        0ftdaFwcqSL+sL8eBoH8g5U=
+X-Google-Smtp-Source: ABdhPJxIWRzPzbPM9yFlVViO1YZyMXyo7f0E1Y3fiGAzXxuDYyBEzT72/RqSnXZWQ1HER5efgYRGVA==
+X-Received: by 2002:a05:6808:190e:b0:2da:226f:5ab with SMTP id bf14-20020a056808190e00b002da226f05abmr3443443oib.13.1647568531313;
+        Thu, 17 Mar 2022 18:55:31 -0700 (PDT)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-257e-2cb6-0a79-8c62.res6.spectrum.com. [2603:8081:140c:1a00:257e:2cb6:a79:8c62])
-        by smtp.googlemail.com with ESMTPSA id a32-20020a056870a1a000b000d458b1469dsm3292878oaf.10.2022.03.17.18.55.33
+        by smtp.googlemail.com with ESMTPSA id a32-20020a056870a1a000b000d458b1469dsm3292878oaf.10.2022.03.17.18.55.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Mar 2022 18:55:34 -0700 (PDT)
+        Thu, 17 Mar 2022 18:55:31 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v12 07/11] RDMA/rxe: Enforce IBA C11-17
-Date:   Thu, 17 Mar 2022 20:55:10 -0500
-Message-Id: <20220318015514.231621-8-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v12 03/11] RDMA/rxe: Check rxe_get() return value
+Date:   Thu, 17 Mar 2022 20:55:06 -0500
+Message-Id: <20220318015514.231621-4-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220318015514.231621-1-rpearsonhpe@gmail.com>
 References: <20220318015514.231621-1-rpearsonhpe@gmail.com>
@@ -62,85 +62,62 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add a counter to keep track of the number of WQs connected to
-a CQ and return an error if destroy_cq is called while the
-counter is non zero.
+In the tasklets (completer, responder, and requester) check the
+return value from rxe_get() to detect failures to get a reference.
+This only occurs if the qp has had its reference count drop to
+zero which indicates that it no longer should be used. This is
+in preparation to an upcoming change that will move the qp cleanup
+code to rxe_qp_cleanup().
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_qp.c    | 10 ++++++++++
- drivers/infiniband/sw/rxe/rxe_verbs.c |  6 ++++++
- drivers/infiniband/sw/rxe/rxe_verbs.h |  1 +
- 3 files changed, 17 insertions(+)
+ drivers/infiniband/sw/rxe/rxe_comp.c | 3 ++-
+ drivers/infiniband/sw/rxe/rxe_req.c  | 3 ++-
+ drivers/infiniband/sw/rxe/rxe_resp.c | 3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index f5200777399c..18861b9edbfd 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -334,6 +334,9 @@ int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
- 	qp->scq			= scq;
- 	qp->srq			= srq;
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index 138b3e7d3a5f..da3a398053b8 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -562,7 +562,8 @@ int rxe_completer(void *arg)
+ 	enum comp_state state;
+ 	int ret = 0;
  
-+	atomic_inc(&rcq->num_wq);
-+	atomic_inc(&scq->num_wq);
-+
- 	rxe_qp_init_misc(rxe, qp, init);
+-	rxe_get(qp);
++	if (!rxe_get(qp))
++		return -EAGAIN;
  
- 	err = rxe_qp_init_req(rxe, qp, init, udata, uresp);
-@@ -353,6 +356,9 @@ int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
- 	rxe_queue_cleanup(qp->sq.queue);
- 	qp->sq.queue = NULL;
- err1:
-+	atomic_dec(&rcq->num_wq);
-+	atomic_dec(&scq->num_wq);
-+
- 	qp->pd = NULL;
- 	qp->rcq = NULL;
- 	qp->scq = NULL;
-@@ -810,10 +816,14 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
- 	if (qp->rq.queue)
- 		rxe_queue_cleanup(qp->rq.queue);
+ 	if (!qp->valid || qp->req.state == QP_STATE_ERROR ||
+ 	    qp->req.state == QP_STATE_RESET) {
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index ae5fbc79dd5c..27aba921cc66 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -611,7 +611,8 @@ int rxe_requester(void *arg)
+ 	struct rxe_ah *ah;
+ 	struct rxe_av *av;
  
-+	atomic_dec(&qp->scq->num_wq);
- 	if (qp->scq)
- 		rxe_put(qp->scq);
-+
-+	atomic_dec(&qp->rcq->num_wq);
- 	if (qp->rcq)
- 		rxe_put(qp->rcq);
-+
- 	if (qp->pd)
- 		rxe_put(qp->pd);
+-	rxe_get(qp);
++	if (!rxe_get(qp))
++		return -EAGAIN;
  
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 9a3c33dad979..4c082ac439c6 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -802,6 +802,12 @@ static int rxe_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
- {
- 	struct rxe_cq *cq = to_rcq(ibcq);
+ next_wqe:
+ 	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 16fc7ea1298d..1ed45c192cf5 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1250,7 +1250,8 @@ int rxe_responder(void *arg)
+ 	struct rxe_pkt_info *pkt = NULL;
+ 	int ret = 0;
  
-+	/* See IBA C11-17: The CI shall return an error if this Verb is
-+	 * invoked while a Work Queue is still associated with the CQ.
-+	 */
-+	if (atomic_read(&cq->num_wq))
-+		return -EINVAL;
-+
- 	rxe_cq_disable(cq);
+-	rxe_get(qp);
++	if (!rxe_get(qp))
++		return -EAGAIN;
  
- 	rxe_put(cq);
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 34aa013c7801..5764aeed921a 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -67,6 +67,7 @@ struct rxe_cq {
- 	bool			is_dying;
- 	bool			is_user;
- 	struct tasklet_struct	comp_task;
-+	atomic_t		num_wq;
- };
+ 	qp->resp.aeth_syndrome = AETH_ACK_UNLIMITED;
  
- enum wqe_state {
 -- 
 2.32.0
 
