@@ -2,263 +2,193 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E6B3C433FE
-	for <linux-rdma@archiver.kernel.org>; Sun, 20 Mar 2022 15:11:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 724FBC433EF
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Mar 2022 02:07:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245345AbiCTPNC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 20 Mar 2022 11:13:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40488 "EHLO
+        id S244563AbiCUCIi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 20 Mar 2022 22:08:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245340AbiCTPNB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 20 Mar 2022 11:13:01 -0400
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2085.outbound.protection.outlook.com [40.107.244.85])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A7AE19B070
-        for <linux-rdma@vger.kernel.org>; Sun, 20 Mar 2022 08:11:38 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=cnHZPUA3OKSR1jAxTCfOozQmzkfAFsJB5KiClLsYZ5hvqp7QwBr0tptC6wFtl5+JFSfRuDSohagMTv+EXhFhcckVx8WqSvdgg2qJ4/SLxDbSPa86+JQBje8IgPu/LLEschlBE4f2WoqBQtzeyYRXS6Y6MaNfYk/KpYaAit8lVX6X82BWeQda9x1iDcUmcibsYTSEeWRA9iPA1xeKbcn+Y2fWbMwGcXIk4ObUIuacrSNuDsjt6R3eL5SpnZ7ir12FSvvLVTjcN+mHG8BY7q4a0SvSlO239nctOy0taltmFyDyPR+E4WDA1kfZYsrw7ICgemRdII1wJRoZmTkM4McVSQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9VijblXXuKMZ+iHxRe/NpFLJZYMrAdwLlvCSBkefnoM=;
- b=A1SI7ydh52LxYy9MhyUZG9UJSqxpysmRlxF746LD5adHtT2O/+rJtThLzH9EYrZ+EZ7GZJGj6SooNln7L8f2ztIBnhwslTAZGBtKiB1glJ22oASvPu29tNwcZdMtfOpMPhZpOpbLsap5xoqKGpdH2gTEZzw95YrUUH58md8eUFKExlmbjaGSDxfpNMiA2yMT+q9C3kHMi921X3PYfc+xhz197w9wCzD45/z7ES56ecmWXRsO1zIJJbW2nNKtr9mMeaCSvdXh5h+xcNUervkeqxMcbg39kEPA4wO7w4igRZ01mFTmyucq16eNyzHoBuayc7jhonLGgSt3/Gb27oAD/w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9VijblXXuKMZ+iHxRe/NpFLJZYMrAdwLlvCSBkefnoM=;
- b=WCSVwrBS9bfvUqou10HUNDT8G1OLakgv6iwAIzLrU25WqYyZ0UnXqMH4d7Zqgi2JXvSsf0FA/ScN3eDQwL2LH1deHX25hzvKj/D/gVocj5RAW4dCa4pwh02/8WLXEb2AyB1Sp8IX4LAnQyMY8mx0AqZqBIeUAozERfEZowYnStxkWGZVFrGHXP1b/Iq6A+kuhhrncv6oJvet74zCpYB4Cb2A2WPMKrEBvuS9hUT/RqJy3SvgNRvtVGQ/2gaKzxpdeg6W2UpfiwufibxNUcFCk14iuOvcdV+ivYEX2ns75gB0tOxyAvkZFOB2mqCNiSs8zAmWDzKuJXgPHdqwBqfJpQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DM4PR12MB5040.namprd12.prod.outlook.com (2603:10b6:5:38b::19)
- by DM4PR12MB5294.namprd12.prod.outlook.com (2603:10b6:5:39e::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5081.19; Sun, 20 Mar
- 2022 15:11:37 +0000
-Received: from DM4PR12MB5040.namprd12.prod.outlook.com
- ([fe80::f037:e2a1:f108:125a]) by DM4PR12MB5040.namprd12.prod.outlook.com
- ([fe80::f037:e2a1:f108:125a%7]) with mapi id 15.20.5081.018; Sun, 20 Mar 2022
- 15:11:37 +0000
-Message-ID: <d8283461-8759-39ac-6ef7-a6f5cc739634@nvidia.com>
-Date:   Sun, 20 Mar 2022 17:11:29 +0200
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [bug report] NVMe/IB: reset_controller need more than 1min
-Content-Language: en-US
-To:     Sagi Grimberg <sagi@grimberg.me>, Yi Zhang <yi.zhang@redhat.com>
-Cc:     Max Gurtovoy <maxg@mellanox.com>,
-        "open list:NVM EXPRESS DRIVER" <linux-nvme@lists.infradead.org>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
-References: <CAHj4cs8cT23z+h2i+g6o3OQqEhWnHS88JO4jNoQo0Nww-sdkYg@mail.gmail.com>
- <2D31D2FB-BC4B-476A-9717-C02E84542DFA@oracle.com>
- <CAHj4cs-yt1+Lufqgwira-YbB6PHtJ=2JA_Vora_CfarzSzoFrA@mail.gmail.com>
- <4BB6D957-6C18-4E58-A622-0880007ECD9F@oracle.com>
- <CAHj4cs_ta5WR7j0qvHyr1tSCR-U7=svY5j8Hctd7YUMNcGXsaA@mail.gmail.com>
- <a2fabeb3-5f19-11b6-8c00-a479e3759182@grimberg.me>
- <bdb675e4-1de8-400b-9d43-9f0c18147dc4@nvidia.com>
- <CAHj4cs_C=pCz41hg1AnQcEZPBRK78WTUq8HE3n_28t56iN1FuA@mail.gmail.com>
- <fe9842f1-e5c7-7569-426e-9029662bb4f3@nvidia.com>
- <CAHj4cs8fNmj2Mn7Srs547ji51x7mQ8ZWKzFOuJaENe=vKpBJ-A@mail.gmail.com>
- <6347079f-ec3b-c2e5-bb3b-43b539d6d3f1@nvidia.com>
- <CAHj4cs_ir917u7Up5PBfwWpZtnVLey69pXXNjFNAjbqQ5vwU0w@mail.gmail.com>
- <6d8f4525-f663-18cc-8644-bfddd7d86bd0@grimberg.me>
- <CAHj4cs_ff3TGnD2QJSzx3QJQKc1HkF=TJkh_MokqGK3n8NWyQQ@mail.gmail.com>
- <3d3f7b64-1c74-d41c-4c60-055e9fa79080@nvidia.com>
- <7e0abcac-791a-bd71-38c3-4a5490b7f209@grimberg.me>
-From:   Max Gurtovoy <mgurtovoy@nvidia.com>
-In-Reply-To: <7e0abcac-791a-bd71-38c3-4a5490b7f209@grimberg.me>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: AS8PR04CA0114.eurprd04.prod.outlook.com
- (2603:10a6:20b:31e::29) To DM4PR12MB5040.namprd12.prod.outlook.com
- (2603:10b6:5:38b::19)
+        with ESMTP id S238328AbiCUCIh (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 20 Mar 2022 22:08:37 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D0F4747044
+        for <linux-rdma@vger.kernel.org>; Sun, 20 Mar 2022 19:07:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1647828430;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ANFYFmuS8Tz+3eqS8fBUv9YrTs9SzhgRuqQIuCO0FkY=;
+        b=VDa0E40Rch+jPYmtJMWE+XjMnh08cS6Aj8Ok8OM3C4Yczl/bwxB4psantUe3TspS3mlVAE
+        61QeVsRH95QplJHxCHz/q5K8gwdcos1ObSLEnRBhlyEsqPugb2iKmqfSQjWK4+EwMv4CXy
+        FXFs8kNxYMk51jOJgP9rrqt533tASp0=
+Received: from mail-pj1-f71.google.com (mail-pj1-f71.google.com
+ [209.85.216.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-217-oBouyIjKOZ2s8QuOeWQ2bw-1; Sun, 20 Mar 2022 22:07:09 -0400
+X-MC-Unique: oBouyIjKOZ2s8QuOeWQ2bw-1
+Received: by mail-pj1-f71.google.com with SMTP id lr15-20020a17090b4b8f00b001c646e432baso10303461pjb.3
+        for <linux-rdma@vger.kernel.org>; Sun, 20 Mar 2022 19:07:09 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ANFYFmuS8Tz+3eqS8fBUv9YrTs9SzhgRuqQIuCO0FkY=;
+        b=TE4VM0/STQNaYLouxk8rp29oWdG5hIc+2tMuVCZWXTg1kUYAuc7vAJIllBCFoG5aiH
+         JdMne7bg7FnVvGfZyGQEeUnpNh+3ohrvDcZ+kARacdvEhgn7besqlV9GxacotnvQh+f9
+         hssR0EZntpBnMP73eNj1DbYNWCB9LZOwXeZUT1GLMCOZib2w/rK/cWaHrwU0Pts+6VPV
+         2vroIwYRo/tCEfxn26d8J9ejx6fLE9Ft/mKOl94cXSruIToVp8FbpVPhZRGN1y7JTf+x
+         Dsn4a4lIqS6ulUeUI80Fx4AWHM9fe7Cd6AQJhyKs6SKgkbG6g7xU5cc71itcLrScky26
+         00FA==
+X-Gm-Message-State: AOAM532KIce3H+ihB4QYEg5sB3AAFhThWreb0AJQs3/b9a6wzFtTAf89
+        PRHECSWian1z/DvQeZrPPJUepxoRWtpcjwyLxUOuVHoYzk1naZwANemSLcuyvAdSIq4qx0jrBgD
+        lhmbXSxJ7GWgh54CsJP8bjT7SQ8wLIjJ4Z9bQsg==
+X-Received: by 2002:a17:902:dacc:b0:151:c216:2772 with SMTP id q12-20020a170902dacc00b00151c2162772mr10503333plx.107.1647828428351;
+        Sun, 20 Mar 2022 19:07:08 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJzkhjAEU+UMEwJ7dYsZwFLT9b66aKKxjwImfm3T9DN+x36YxqYzWBc5VBaCbMrOqrcungbQisNKnQYo39GnRaA=
+X-Received: by 2002:a17:902:dacc:b0:151:c216:2772 with SMTP id
+ q12-20020a170902dacc00b00151c2162772mr10503320plx.107.1647828428103; Sun, 20
+ Mar 2022 19:07:08 -0700 (PDT)
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c9310533-a84f-455d-a851-08da0a83ed86
-X-MS-TrafficTypeDiagnostic: DM4PR12MB5294:EE_
-X-Microsoft-Antispam-PRVS: <DM4PR12MB5294C086C1DD7D3418403619DE159@DM4PR12MB5294.namprd12.prod.outlook.com>
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 4+0QSJo/ts263nOv6x1OvCWWNAKpYYDwW2fL/fZhFN/hZPlIPcPzDACI3GudASubhvJvZAr31VpfzmVTmwFjNGD8FSQqsHUHB84U8OQK5mrrkF3Nfb/uUJkHpUghGUBrIYrbWVKW3ROOf8/nX8DWVifrCvRqDde+6RVO2X/PH3KrO7Q+QmGDEcaTLyHnpffTdv4LEqERrE3Bkw36yisfPu6OGPaolj3cS2K0gSued0kOqn05txkkUPtvWCIPaUDHZ5EaHQjJ4H6hIvM951+k9Wa47xFYEL2H6ITjF8dYpjNsEMnzIxv4t+CMXqGQs6hOgOxeUqrnR0j3fPIar4h5fesMokKb3HOuyS7jz4C0TPTgq4hIjB0qCFCjXfci5HiakZ9fkrEwujnFAgAaK6pY9fEj6cJkCZH5DVdcxLl2CM+PwF/GyxPSLr5iNJP3PApI0mNTrGcViJhxKFYMvC84+mvPpbnaFkXSrF/NYM76IAOxF5CJH32UGwN/kkEwuBvt5JYOmmDuBqvOdlr+gL0E0PcixaClU1c0wDAeZiWaxZ4yAH0Bq4+X5fN3z7aWHu73E7A63vY2uDRTsDrseOq4Kk8iua33aB4kTCqytYT5/jHlGAdYVmknGk+D2MUV01EWxoHmypU7QNUejH8U5K7s6iJDz9pcWuYxNFZnZ53LjyiMya8IuvzPX3Sus5Qyk8V/QbakKxtSWg8o+otVTgIf+SP7zARrGNFmttpoKDJMdsb/KQV3NRSrD9lmus6Fzij4
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5040.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(38100700002)(6506007)(53546011)(2906002)(6512007)(83380400001)(2616005)(186003)(26005)(66476007)(66946007)(8936002)(66556008)(508600001)(8676002)(31686004)(6486002)(36756003)(4326008)(86362001)(31696002)(6666004)(5660300002)(316002)(54906003)(110136005)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?YUxKYVlWV1NXbnZRbDBBelNSdVBNZ25ubVZSUTRyNWtmQjZ3Z2VpcFViSC9T?=
- =?utf-8?B?OWZzckgyekxuQTFoTjFTUjRIbjhnS3JKempPVmlFZmExN0luVlRGUlg3bTJQ?=
- =?utf-8?B?dXI4bFREbUcyc092T1lHbnRBb3VHMkI0K29TdGZ0Wk1qaS95VDFNT2lsaVBL?=
- =?utf-8?B?QXpkbUM4dVgzam53amhFU0Job0cxcFhkQUhjaWw3QmVyV2hqR2Z5TE9CZDFE?=
- =?utf-8?B?eWtnTWlYOXNldUNkaW5uQ3NOWDRINkUrRDB4WjVickhGbGZWcXp2cTh3eUlG?=
- =?utf-8?B?TWowbitJTzBGeTJWNWlUd0F0T0xOT3kwcVZJTWhSUGdhQlphbHZyRGZSYk1X?=
- =?utf-8?B?bStqS1VSc2JaQ1pvNjNEbEJ4NTF0czJDRTRYUE0xbThxMDgxSFBNaXhKTCsv?=
- =?utf-8?B?VTB3NHZJeXFrRU4rY2M2OUlPbVZJVlY5Y3JrSzNKNFZ4SFJhYzdrMXNuejR2?=
- =?utf-8?B?aVZ6ZzJFajYzSEtGTG9FSVZDeGZ1QzArSUszZlBZWUduZmJaQTJ5NnU2MVVV?=
- =?utf-8?B?a1pPVHV1b3dXL05xU2w4SGR1aThDZ3psYldiSC9OSmQwb1YrMnVra0lqOFVh?=
- =?utf-8?B?anl2OFRzQ2VyQjN0NkV3Vk1HRVlBSHFKa0g4Ymk1dkMyK3QxVElXaGlDUk9i?=
- =?utf-8?B?dlZLbGt5OGxQQXpqdjVMQ1VZUGtMOWpzSlJkV0cyN3R4MTViZlYxNG9MbFRs?=
- =?utf-8?B?TG8ySENLOHpRQThaVzlUTUo3QU1KVUdWM2ZPejBHRFg4QWJzQmJiVTN1ZTk0?=
- =?utf-8?B?MlpHWFRZc1hKTTRFNUsvWlBHRWppL1JkaUliQ0NqTU5iTDBYdmwvK0lnSnZv?=
- =?utf-8?B?S2tLTW81eEJBdEJvYkNJaDhaMFByTW4rTkcxVHVrczBlYmM5OXZGUkJkVTRi?=
- =?utf-8?B?TjBiVXlmUEdSSk9PREE5cVU2S3hZUTNaZlpnTFJ4QS9Hc1VqQU9pd0lIeGFK?=
- =?utf-8?B?UGd1RFYwbGNUeUtaRnVBU0NqankwZXd0NGV1bzRTdkJKc2Nhck42emR1cm85?=
- =?utf-8?B?ejU5UnFoVkZsRHFpSGF5a0dwbGpMSnA4Nk5hUHlGZVNPaC9RbVFKNWxIUXZF?=
- =?utf-8?B?OWxjTlF1RHZ1YVZiYnFCZklJTkVZQmNOTzdsbDRsdUtHVi8zTEhoVVUxakNn?=
- =?utf-8?B?SkJvYmpsMUdacURwVWlub1BicWRxaGdHczNRTjR5UkhMemp1QVRrdHh4Vi9q?=
- =?utf-8?B?cGVoVlhBMG9RUm8yaWVpRW9Oc0lOUFMrU2MrMFE2QlIvZVk1eHViSWhJenNL?=
- =?utf-8?B?MW5NQXo0YWxZYTQzRW5iV0lNempUWmJBY3hnZGtxRVI1c3NGU3ZjQ3hMemY5?=
- =?utf-8?B?amZSWm1POXViU3FrdWVpeXdNZHdRWDM1YVZFTjdzem1IK1NNbElEM2swdUxY?=
- =?utf-8?B?YUV6SkVBdEk5YnMzTmZrOTd4TUF2YkEyUmNIam82QjFGanA3OXloTTVWWWZ1?=
- =?utf-8?B?TmdVOUZBcTdreC8wa2ZZK3VVWTgrZm5DbXp4UTlKMngyd1l0ZUdSemo1ai9U?=
- =?utf-8?B?dEY1UmZsU0RGRWZNaDJnSXpDcUpjaWh6N01SL1V5VnR5elVNR1E3dE1hZk96?=
- =?utf-8?B?cEs4bG0wTnFySTNsd1pUalJEeVlRQTd5MVRVMnZjaWUvLzBTSCtpQUhjQ1Jx?=
- =?utf-8?B?NVFZRFByY1JHWVlIRnk1ZW1PREpIays2d2pGZE9QVXI3QjBldlg3cGNmdG5V?=
- =?utf-8?B?TEpsOHhrKzZ2Ulhtb1JLSlE3akhjak1VYlVxYnFIbTc2RE9pVlpiMW8rdy82?=
- =?utf-8?B?c0p3dFUyTE9TQnRXVlBZY21HS3hVeGVVaCtwZytlekM0K2xtcllaVkpzVnVZ?=
- =?utf-8?B?RTlvaXc2WXV2c3FGYVZzZ250SmpTZi91a0NibVZuREI0d2xkeWtNMUxBRXRR?=
- =?utf-8?B?bGFwNHNUYWtJMUErQmI3aTZCbjlyS0luT1J5dzdEdEdEc2hBeFljdW9mZUor?=
- =?utf-8?B?TWtEc3pNLzRjMTNqNGRRdnpRRnM1NkRuVVVTeTlKWllxWHA3dXV3MkFWcS9x?=
- =?utf-8?B?a0hwekFqcE5BPT0=?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c9310533-a84f-455d-a851-08da0a83ed86
-X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5040.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Mar 2022 15:11:37.1020
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: A45OVHPEey75agGv8EWl2P/3pgek/HBkgUK/ppjB1kQkXk+BW7coTd0DaeZYNY9v2VGE0kcXyiqPepo9+iwnkg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB5294
+References: <CAHj4cs8vnLXyddEJkV_1Dbmn7UaM4sLX=C1CN9tuA-5Mhczayw@mail.gmail.com>
+ <9d9abd33-51f2-5a8e-9df9-8ffe72e3a30b@nvidia.com> <CAHj4cs_uViOtdMmFmJZ=htBXybjUP3uL3LnRR0C4PCnHWUM82A@mail.gmail.com>
+ <bbb103d5-7622-dc88-07b8-1edc684d2f82@nvidia.com> <CAHj4cs_L=QHh4XeOJGfibfSJhhijS6s7RBNuLd_XetKT3hfjWQ@mail.gmail.com>
+ <9ba8bfae-2363-e331-83c7-317a9456da31@grimberg.me>
+In-Reply-To: <9ba8bfae-2363-e331-83c7-317a9456da31@grimberg.me>
+From:   Yi Zhang <yi.zhang@redhat.com>
+Date:   Mon, 21 Mar 2022 10:06:56 +0800
+Message-ID: <CAHj4cs9cmOt=9++wuqJ1ehLPDJcaXJGyTKcHSjU-avWxr1CBrA@mail.gmail.com>
+Subject: Re: [bug report] NVMe/IB: kmemleak observed on 5.17.0-rc5 with
+ nvme-rdma testing
+To:     Sagi Grimberg <sagi@grimberg.me>
+Cc:     Max Gurtovoy <mgurtovoy@nvidia.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        "open list:NVM EXPRESS DRIVER" <linux-nvme@lists.infradead.org>,
+        Nitzan Carmi <nitzanc@nvidia.com>,
+        Israel Rukshin <israelr@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-On 3/20/2022 3:03 PM, Sagi Grimberg wrote:
+On Sun, Mar 20, 2022 at 9:00 PM Sagi Grimberg <sagi@grimberg.me> wrote:
 >
->>>> These are very long times for a non-debug kernel...
->>>> Max, do you see the root cause for this?
->>>>
->>>> Yi, does this happen with rxe/siw as well?
->>> Hi Sagi
->>>
->>> rxe/siw will take less than 1s
->>> with rdma_rxe
->>> # time nvme reset /dev/nvme0
->>> real 0m0.094s
->>> user 0m0.000s
->>> sys 0m0.006s
->>>
->>> with siw
->>> # time nvme reset /dev/nvme0
->>> real 0m0.097s
->>> user 0m0.000s
->>> sys 0m0.006s
->>>
->>> This is only reproducible with mlx IB card, as I mentioned before, the
->>> reset operation time changed from 3s to 12s after the below commit,
->>> could you check this commit?
->>>
->>> commit 5ec5d3bddc6b912b7de9e3eb6c1f2397faeca2bc
->>> Author: Max Gurtovoy <maxg@mellanox.com>
->>> Date:   Tue May 19 17:05:56 2020 +0300
->>>
->>>      nvme-rdma: add metadata/T10-PI support
->>>
->> I couldn't repro these long reset times.
 >
-> It appears to be when setting up a controller with lots of queues
-> maybe?
-
-I'm doing that.
-
+> >>> # nvme connect to target
+> >>> # nvme reset /dev/nvme0
+> >>> # nvme disconnect-all
+> >>> # sleep 10
+> >>> # echo scan > /sys/kernel/debug/kmemleak
+> >>> # sleep 60
+> >>> # cat /sys/kernel/debug/kmemleak
+> >>>
+> >> Thanks I was able to repro it with the above commands.
+> >>
+> >> Still not clear where is the leak is, but I do see some non-symmetric
+> >> code in the error flows that we need to fix. Plus the keep-alive timing
+> >> movement.
+> >>
+> >> It will take some time for me to debug this.
+> >>
+> >> Can you repro it with tcp transport as well ?
+> >
+> > Yes, nvme/tcp also can reproduce it, here is the log:
+> >
+> > unreferenced object 0xffff8881675f7000 (size 192):
+> >    comm "nvme", pid 3711, jiffies 4296033311 (age 2272.976s)
+> >    hex dump (first 32 bytes):
+> >      20 59 04 92 ff ff ff ff 00 00 da 13 81 88 ff ff   Y..............
+> >      01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> >    backtrace:
+> >      [<00000000adbc7c81>] kmem_cache_alloc_trace+0x10e/0x220
+> >      [<00000000c04d85be>] blk_iolatency_init+0x4e/0x380
+> >      [<00000000897ffdaf>] blkcg_init_queue+0x12e/0x610
+> >      [<000000002653e58d>] blk_alloc_queue+0x400/0x840
+> >      [<00000000fcb99f3c>] blk_mq_init_queue_data+0x6a/0x100
+> >      [<00000000486936b6>] nvme_tcp_setup_ctrl+0x70c/0xbe0 [nvme_tcp]
+> >      [<000000000bb29b26>] nvme_tcp_create_ctrl+0x953/0xbb4 [nvme_tcp]
+> >      [<00000000ca3d4e54>] nvmf_dev_write+0x44e/0xa39 [nvme_fabrics]
+> >      [<0000000056b79a25>] vfs_write+0x17e/0x9a0
+> >      [<00000000a5af6c18>] ksys_write+0xf1/0x1c0
+> >      [<00000000c035c128>] do_syscall_64+0x3a/0x80
+> >      [<000000000e5ea863>] entry_SYSCALL_64_after_hwframe+0x44/0xae
+> > unreferenced object 0xffff8881675f7600 (size 192):
+> >    comm "nvme", pid 3711, jiffies 4296033320 (age 2272.967s)
+> >    hex dump (first 32 bytes):
+> >      20 59 04 92 ff ff ff ff 00 00 22 92 81 88 ff ff   Y........".....
+> >      01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> >    backtrace:
+> >      [<00000000adbc7c81>] kmem_cache_alloc_trace+0x10e/0x220
+> >      [<00000000c04d85be>] blk_iolatency_init+0x4e/0x380
+> >      [<00000000897ffdaf>] blkcg_init_queue+0x12e/0x610
+> >      [<000000002653e58d>] blk_alloc_queue+0x400/0x840
+> >      [<00000000fcb99f3c>] blk_mq_init_queue_data+0x6a/0x100
+> >      [<000000006ca5f9f6>] nvme_tcp_setup_ctrl+0x772/0xbe0 [nvme_tcp]
+> >      [<000000000bb29b26>] nvme_tcp_create_ctrl+0x953/0xbb4 [nvme_tcp]
+> >      [<00000000ca3d4e54>] nvmf_dev_write+0x44e/0xa39 [nvme_fabrics]
+> >      [<0000000056b79a25>] vfs_write+0x17e/0x9a0
+> >      [<00000000a5af6c18>] ksys_write+0xf1/0x1c0
+> >      [<00000000c035c128>] do_syscall_64+0x3a/0x80
+> >      [<000000000e5ea863>] entry_SYSCALL_64_after_hwframe+0x44/0xae
+> > unreferenced object 0xffff8891fb6a3600 (size 192):
+> >    comm "nvme", pid 3711, jiffies 4296033511 (age 2272.776s)
+> >    hex dump (first 32 bytes):
+> >      20 59 04 92 ff ff ff ff 00 00 5c 1d 81 88 ff ff   Y........\.....
+> >      01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+> >    backtrace:
+> >      [<00000000adbc7c81>] kmem_cache_alloc_trace+0x10e/0x220
+> >      [<00000000c04d85be>] blk_iolatency_init+0x4e/0x380
+> >      [<00000000897ffdaf>] blkcg_init_queue+0x12e/0x610
+> >      [<000000002653e58d>] blk_alloc_queue+0x400/0x840
+> >      [<00000000fcb99f3c>] blk_mq_init_queue_data+0x6a/0x100
+> >      [<000000004a3bf20e>] nvme_tcp_setup_ctrl.cold.57+0x868/0xa5d [nvme_tcp]
+> >      [<000000000bb29b26>] nvme_tcp_create_ctrl+0x953/0xbb4 [nvme_tcp]
+> >      [<00000000ca3d4e54>] nvmf_dev_write+0x44e/0xa39 [nvme_fabrics]
+> >      [<0000000056b79a25>] vfs_write+0x17e/0x9a0
+> >      [<00000000a5af6c18>] ksys_write+0xf1/0x1c0
+> >      [<00000000c035c128>] do_syscall_64+0x3a/0x80
+> >      [<000000000e5ea863>] entry_SYSCALL_64_after_hwframe+0x44/0xae
 >
->> Nevertheless, the above commit added T10-PI offloads.
->>
->> In this commit, for supported devices we create extra resources in HW 
->> (more memory keys per task).
->>
->> I suggested doing this configuration as part of the "nvme connect" 
->> command and save this resource allocation by default but during the 
->> review I was asked to make it the default behavior.
+> Looks like there is some asymmetry on blk_iolatency. It is intialized
+> when allocating a request queue and exited when deleting a genhd. In
+> nvme we have request queues that will never have genhd that corresponds
+> to them (like the admin queue).
 >
-> Don't know if I gave you this feedback or not, but it probably didn't
-> occur to the commenter that it will make the connection establishment
-> take tens of seconds.
+> Does this patch eliminate the issue?
 
-It was known that we create more resources than needed for 
-"non-PI-desired" controllers.
+Yes, the nvme/rdma nvme/tcp kmemleak fixed with the change.
 
-
+> --
+> diff --git a/block/blk-core.c b/block/blk-core.c
+> index 94bf37f8e61d..6ccc02a41f25 100644
+> --- a/block/blk-core.c
+> +++ b/block/blk-core.c
+> @@ -323,6 +323,7 @@ void blk_cleanup_queue(struct request_queue *q)
 >
->> Sagi/Christoph,
->>
->> WDYT ? should we reconsider the "nvme connect --with_metadata" option ?
+>          blk_queue_flag_set(QUEUE_FLAG_DEAD, q);
 >
-> Maybe you can make these lazily allocated?
-
-You mean something like:
-
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index fd4720d37cc0..367ba0bb62ab 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -1620,10 +1620,19 @@ int nvme_getgeo(struct block_device *bdev, 
-struct hd_geometry *geo)
-  }
-
-  #ifdef CONFIG_BLK_DEV_INTEGRITY
--static void nvme_init_integrity(struct gendisk *disk, u16 ms, u8 pi_type,
--                               u32 max_integrity_segments)
-+static int nvme_init_integrity(struct gendisk *disk, struct nvme_ns *ns)
-  {
-         struct blk_integrity integrity = { };
-+       u16 ms = ns->ms;
-+       u8 pi_type = ns->pi_type;
-+       u32 max_integrity_segments = ns->ctrl->max_integrity_segments;
-+       int ret;
-+
-+       if (ns->ctrl->ops->init_integrity) {
-+               ret = ns->ctrl->ops->init_integrity(ns->ctrl);
-+               if (ret)
-+                       return ret;
-+       }
-
-         switch (pi_type) {
-         case NVME_NS_DPS_PI_TYPE3:
-@@ -1644,11 +1653,13 @@ static void nvme_init_integrity(struct gendisk 
-*disk, u16 ms, u8 pi_type,
-         integrity.tuple_size = ms;
-         blk_integrity_register(disk, &integrity);
-         blk_queue_max_integrity_segments(disk->queue, 
-max_integrity_segments);
-+
-+       return 0;
-  }
-  #else
--static void nvme_init_integrity(struct gendisk *disk, u16 ms, u8 pi_type,
--                               u32 max_integrity_segments)
-+static void nvme_init_integrity(struct gendisk *disk, struct nvme_ns *ns)
-  {
-+       return 0;
-  }
-  #endif /* CONFIG_BLK_DEV_INTEGRITY */
-
-@@ -1853,8 +1864,8 @@ static void nvme_update_disk_info(struct gendisk 
-*disk,
-         if (ns->ms) {
-                 if (IS_ENABLED(CONFIG_BLK_DEV_INTEGRITY) &&
-                     (ns->features & NVME_NS_METADATA_SUPPORTED))
--                       nvme_init_integrity(disk, ns->ms, ns->pi_type,
-- ns->ctrl->max_integrity_segments);
-+                       if (nvme_init_integrity(disk, ns))
-+                               capacity = 0;
-                 else if (!nvme_ns_has_pi(ns))
-                         capacity = 0;
-         }
-@@ -4395,7 +4406,7 @@ EXPORT_SYMBOL_GPL(nvme_stop_ctrl);
+> +       rq_qos_exit(q);
+>          blk_sync_queue(q);
+>          if (queue_is_mq(q)) {
+>                  blk_mq_cancel_work_sync(q);
+> diff --git a/block/genhd.c b/block/genhd.c
+> index 54f60ded2ee6..10ff0606c100 100644
+> --- a/block/genhd.c
+> +++ b/block/genhd.c
+> @@ -626,7 +626,6 @@ void del_gendisk(struct gendisk *disk)
+>
+>          blk_mq_freeze_queue_wait(q);
+>
+> -       rq_qos_exit(q);
+>          blk_sync_queue(q);
+>          blk_flush_integrity();
+>          /*
+> --
+>
 
 
-and create the resources for the first namespace we find as PI formatted ?
-
+-- 
+Best Regards,
+  Yi Zhang
 
