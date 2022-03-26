@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6D7AC433EF
-	for <linux-rdma@archiver.kernel.org>; Sat, 26 Mar 2022 17:02:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43E14C433EF
+	for <linux-rdma@archiver.kernel.org>; Sat, 26 Mar 2022 17:02:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234160AbiCZRDs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 26 Mar 2022 13:03:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49386 "EHLO
+        id S234227AbiCZRDy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 26 Mar 2022 13:03:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234042AbiCZRDM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 26 Mar 2022 13:03:12 -0400
+        with ESMTP id S234096AbiCZRDl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 26 Mar 2022 13:03:41 -0400
 Received: from stuerz.xyz (unknown [45.77.206.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C545170D93;
-        Sat, 26 Mar 2022 10:01:18 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46A1E17289E;
+        Sat, 26 Mar 2022 10:01:36 -0700 (PDT)
 Received: by stuerz.xyz (Postfix, from userid 114)
-        id 4DA25FBC15; Sat, 26 Mar 2022 17:01:15 +0000 (UTC)
+        id 89F01FBB90; Sat, 26 Mar 2022 17:01:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
-        t=1648314077; bh=F4mFOP6R8mSC+27qiR8caNRLqSuQe2zZwUjAxTCpWKk=;
+        t=1648314095; bh=OIgqNWNKM4FUx2aMq66C59LbU1toNuGdnuhts8rWjzE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Xg8sAhUbcrHjQslpCBEpkyjUdn56VuM10WXDhvaub55YmwddV8jrxDpzfZyVe3yZo
-         QlmdtTsaOietyV0DPj7ab0Rp74UEkocsfhjaKvaVeBvpCk+8U7c1QScPnuhaVExP4X
-         laQCdsDMHofwB+7TQ2HA9PoVE59E/5t/zTbGcKcDptM+7QeMCUe92dlvo/q4XNcQkU
-         W3GYfZdC/X3DxCE5//Whh/muwcIbf0RB3klnYztGrQlbXdJLNj/vOoCPSmgcL5gxV7
-         MUipvDevFObReYEhwHLXtVek1LWz3vzdWZOAwfelAodwolaZwTEHj2h3OTZzkjzJNw
-         iUILBuopsokGw==
+        b=NGGF9R0nGgvoNNFVbJq7YUOhpFoUvd+UDHPvUqEnMYzLPg6wG2+tJNo4wtSym83rv
+         3e8aQn+XKbF4ttvz+4/KC3GeQGYXzEoJtc4y0BaafRf5EeDEg4ovOyVXZPS4FyKcRw
+         42c5RuqTLZhMmlfOxY2yReWU3IX8rYIr5t1BuqHffgiBNdXmZ+Q61YcTqgbkXLqV3L
+         H3bt49ICqE4L7YN0S0TZFVtOO1hluDvo1e7tniOsD047S/6Mh4K5ujrrtQTh5JZM4X
+         MHcbHwfrRCu8oq7ZWcxEz7lDMAtFI8pfUKvg9henVTNaE1F2VXlf1qeW4DJ16fL0+s
+         K2d8xFT7UTT5A==
 Received: from benni-fedora.. (unknown [IPv6:2a02:8109:a100:1a48:ff0:ef2f:d4da:17d8])
-        by stuerz.xyz (Postfix) with ESMTPSA id A2186FB7CD;
-        Sat, 26 Mar 2022 17:01:06 +0000 (UTC)
+        by stuerz.xyz (Postfix) with ESMTPSA id 88BC8FBB90;
+        Sat, 26 Mar 2022 17:01:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
-        t=1648314073; bh=F4mFOP6R8mSC+27qiR8caNRLqSuQe2zZwUjAxTCpWKk=;
+        t=1648314092; bh=OIgqNWNKM4FUx2aMq66C59LbU1toNuGdnuhts8rWjzE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=lpn1kNOht3IjqkwWrlXCvwxCCuKRTgm9xratBr2om8NH60q2A3PkG7ny40QNucd/c
-         TI5QLl5gJY3hgaLe/x2wsXDBNDJ8sD7BM5hPjca1hImMajeyzv97QpcvqYXtaodIwn
-         LP32ozhih5w7oBi1imaMTktrGINSREkWcl8znBajxoBVw+kh9bYQXBdB0++rNIqnjk
-         /56oT7zPXmWOO1JkR7/z86GemOpPv2MOrbeEd2gs6B4eQE/NQoych/gsIiVj9RsovA
-         xRoAwNJStE0bvDErb8jy1vAHc4WALCyAibhfkba1AKMkK5kA2ZNDgcbcDAeFBT4Qns
-         573fZe452hA5g==
+        b=q5q75UwSTKYtxZSPnmZk34FK8PeXDHcTNRBj5CzYGeK0w2pwNaZU+fi90Oz/WKkid
+         4WEqyQWecLkpaeHn3vE+T8T9IhcPNKppIdLidXwWPOkvmIRMdMQbgLWo7vumkiu7Ys
+         yL3ZKk/BMn4WTB83Nz4BUSd7BvbvSh4mfApi64G8Ns4vDjEHHeCqwRPzckTwSkHXvN
+         1U+V2EqlTgJP/JpZgtNYZ8hAXXSUwrkojdQjapu3jM+5NwQBSrq5YhphrzOyacM/cb
+         qKXKHKGluyZwgMCRmQwUm/8nWGTHWd6eeIhFKVdr6V3ZsPI8N++ZPoBFNYgkN7OQEI
+         2haFTg5IDR/XQ==
 From:   =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
 To:     andrew@lunn.ch
 Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
@@ -65,9 +65,9 @@ Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
         wcn36xx@lists.infradead.org, linux-wireless@vger.kernel.org,
         linux-pci@vger.kernel.org,
         =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
-Subject: [PATCH 17/22] cxl: Replace comments with C99 initializers
-Date:   Sat, 26 Mar 2022 17:59:04 +0100
-Message-Id: <20220326165909.506926-17-benni@stuerz.xyz>
+Subject: [PATCH 20/22] wireless: Replace comments with C99 initializers
+Date:   Sat, 26 Mar 2022 17:59:07 +0100
+Message-Id: <20220326165909.506926-20-benni@stuerz.xyz>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220326165909.506926-1-benni@stuerz.xyz>
 References: <20220326165909.506926-1-benni@stuerz.xyz>
@@ -83,66 +83,51 @@ initializers because the kernel supports them now.
 
 Signed-off-by: Benjamin Stürz <benni@stuerz.xyz>
 ---
- drivers/misc/cxl/hcalls.c | 40 +++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ drivers/net/wireless/ray_cs.c | 31 +++++++++++++++++--------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/misc/cxl/hcalls.c b/drivers/misc/cxl/hcalls.c
-index aba5e20eeb1f..ed2086d579d3 100644
---- a/drivers/misc/cxl/hcalls.c
-+++ b/drivers/misc/cxl/hcalls.c
-@@ -86,32 +86,32 @@
+diff --git a/drivers/net/wireless/ray_cs.c b/drivers/net/wireless/ray_cs.c
+index 87e98ab068ed..dd11018b956c 100644
+--- a/drivers/net/wireless/ray_cs.c
++++ b/drivers/net/wireless/ray_cs.c
+@@ -2529,20 +2529,23 @@ static void clear_interrupt(ray_dev_t *local)
+ #define MAXDATA (PAGE_SIZE - 80)
  
- 
- static char *afu_op_names[] = {
--	"UNKNOWN_OP",		/* 0 undefined */
--	"RESET",		/* 1 */
--	"SUSPEND_PROCESS",	/* 2 */
--	"RESUME_PROCESS",	/* 3 */
--	"READ_ERR_STATE",	/* 4 */
--	"GET_AFU_ERR",		/* 5 */
--	"GET_CONFIG",		/* 6 */
--	"GET_DOWNLOAD_STATE",	/* 7 */
--	"TERMINATE_PROCESS",	/* 8 */
--	"COLLECT_VPD",		/* 9 */
--	"UNKNOWN_OP",		/* 10 undefined */
--	"GET_FUNCTION_ERR_INT",	/* 11 */
--	"ACK_FUNCTION_ERR_INT",	/* 12 */
--	"GET_ERROR_LOG",	/* 13 */
-+	[0]  = "UNKNOWN_OP",		         /* undefined */
-+	[1]  = "RESET",
-+	[2]  = "SUSPEND_PROCESS",
-+	[3]  = "RESUME_PROCESS",
-+	[4]  = "READ_ERR_STATE",
-+	[5]  = "GET_AFU_ERR",
-+	[6]  = "GET_CONFIG",
-+	[7]  = "GET_DOWNLOAD_STATE",
-+	[8]  = "TERMINATE_PROCESS",
-+	[9]  = "COLLECT_VPD",
-+	[10] = "UNKNOWN_OP",		         /*  undefined */
-+	[11] = "GET_FUNCTION_ERR_INT",
-+	[12] = "ACK_FUNCTION_ERR_INT",
-+	[13] = "GET_ERROR_LOG",
+ static const char *card_status[] = {
+-	"Card inserted - uninitialized",	/* 0 */
+-	"Card not downloaded",			/* 1 */
+-	"Waiting for download parameters",	/* 2 */
+-	"Card doing acquisition",		/* 3 */
+-	"Acquisition complete",			/* 4 */
+-	"Authentication complete",		/* 5 */
+-	"Association complete",			/* 6 */
+-	"???", "???", "???", "???",		/* 7 8 9 10 undefined */
+-	"Card init error",			/* 11 */
+-	"Download parameters error",		/* 12 */
+-	"???",					/* 13 */
+-	"Acquisition failed",			/* 14 */
+-	"Authentication refused",		/* 15 */
+-	"Association failed"			/* 16 */
++	[0]  = "Card inserted - uninitialized",
++	[1]  = "Card not downloaded",
++	[2]  = "Waiting for download parameters",
++	[3]  = "Card doing acquisition",
++	[4]  = "Acquisition complete",
++	[5]  = "Authentication complete",
++	[6]  = "Association complete",
++	[7]  = "???",
++	[8]  = "???",
++	[9]  = "???",
++	[10] = "???",
++	[11] = "Card init error",
++	[12] = "Download parameters error",
++	[13] = "???",
++	[14] = "Acquisition failed",
++	[15] = "Authentication refused",
++	[16] = "Association failed"
  };
  
- static char *control_adapter_op_names[] = {
--	"UNKNOWN_OP",		/* 0 undefined */
--	"RESET",		/* 1 */
--	"COLLECT_VPD",		/* 2 */
-+	[0] = "UNKNOWN_OP",		         /* undefined */
-+	[1] = "RESET",
-+	[2] = "COLLECT_VPD",
- };
- 
- static char *download_op_names[] = {
--	"UNKNOWN_OP",		/* 0 undefined */
--	"DOWNLOAD",		/* 1 */
--	"VALIDATE",		/* 2 */
-+	[0] = "UNKNOWN_OP",		         /* undefined */
-+	[1] = "DOWNLOAD",
-+	[2] = "VALIDATE",
- };
- 
- static char *op_str(unsigned int op, char *name_array[], int array_len)
+ static const char *nettype[] = { "Adhoc", "Infra " };
 -- 
 2.35.1
 
