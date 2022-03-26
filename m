@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8721C4321E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2CF7C433F5
 	for <linux-rdma@archiver.kernel.org>; Sat, 26 Mar 2022 17:10:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234124AbiCZRKl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S234192AbiCZRKl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Sat, 26 Mar 2022 13:10:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49690 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231444AbiCZRKd (ORCPT
+        with ESMTP id S233183AbiCZRKd (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sat, 26 Mar 2022 13:10:33 -0400
-Received: from stuerz.xyz (stuerz.xyz [IPv6:2001:19f0:5:15da:5400:3ff:fecc:7379])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD9E134B8C;
-        Sat, 26 Mar 2022 10:08:33 -0700 (PDT)
+Received: from stuerz.xyz (unknown [45.77.206.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADC3834BB2;
+        Sat, 26 Mar 2022 10:08:34 -0700 (PDT)
 Received: by stuerz.xyz (Postfix, from userid 114)
-        id 4334DFBAD9; Sat, 26 Mar 2022 16:59:42 +0000 (UTC)
+        id 1BDFDFB7F0; Sat, 26 Mar 2022 17:00:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
-        t=1648313984; bh=ZCCwstaS3e/RzElmSk6N8DZfvChsgUHfiTuyAGHFjIM=;
+        t=1648314011; bh=l2IWPCqMKAH1wZwiF0dTGCOb58JalsVJpSOVxVm/2R4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RPrzs+/yoGLnF5i8FE3eP1X0LDAI6HjUCl2gNtzUox5BXq2E1eLaG0a2oQDUzahaT
-         0gGMlEffJt46pJtPLai9sWEfLeEJc0ZkiLQjl90z5wXqO39WLPgg9P+0nGqQNlR+VE
-         nN7gNlVMnnHiadIwoB2jopKAwOZtVz0o85E4m/s4GSh1J5gAC64U4qmHByU3ZdIsMl
-         IQbRWXqcM6M7A5NNiREXc9fr7WuFT0PCxZW7As8ThOCY/cbVQwoBBfePDkYKijEZRF
-         iwxxu2W006Baw3aUGRDQonw5DwZWwCTof+YKKK+wmLsQVqfDYizYB9X3tcxZjF3fCS
-         k/mkV/dFzcSbw==
+        b=gSyHP6UPnBkUn1Chdy/s4X9uHp781E+8d6F5cRNIsxBl9MYj3z0/VWq/LLj8uvhP6
+         G9BpWOZQp8ADyNQweuoAmwt4sIVZDPSixyqGflK99Mgmawkh3LHevbSJKqHDEP/EbA
+         RAvRDg7+aqFjdEuSShb5aq799ptd3pR1EcvVIIyc0pkJy0XUJiraUa0jyeI3d9rkH0
+         If3fQ4h62IO+SCqhV4hBA6To4f4P/bcAw1KS9JqFzHkHIG8TOyc+SzIcXS/Gn17lLJ
+         y/AI3WEnypyXGrYcZrek9bsMo05m7xqXupQY6mo2AsiuvcdWUcmzHOXSKOWfCvtZ4s
+         WRaak/odSHv3A==
 Received: from benni-fedora.. (unknown [IPv6:2a02:8109:a100:1a48:ff0:ef2f:d4da:17d8])
-        by stuerz.xyz (Postfix) with ESMTPSA id 2881DFB7D1;
-        Sat, 26 Mar 2022 16:59:34 +0000 (UTC)
+        by stuerz.xyz (Postfix) with ESMTPSA id 8A2E4FB7F0;
+        Sat, 26 Mar 2022 17:00:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
-        t=1648313980; bh=ZCCwstaS3e/RzElmSk6N8DZfvChsgUHfiTuyAGHFjIM=;
+        t=1648314006; bh=l2IWPCqMKAH1wZwiF0dTGCOb58JalsVJpSOVxVm/2R4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=xIsbMOdfU0Q/V/noYBJTvzmENKQwr3xdCDopx+KQ13tTLqAWk3SM6OL4hiv3VVsu4
-         LZ2+4qV891SizwSAbA9RFdif7Xad8663beBH5K2j13NhHE07xQeDfsOgSqxr/C+za+
-         MSb5j7oij2Jd7DfXjOZjPMiCw0Ou7lQ4TQyPva2bjbz9+bFlJyFVO1bNqQWmVvfeza
-         iheYS8PB8/Na2CaDqA8T7AYheNWnter0biMGLVSYWwaNejld2sHcJuTOq8NLUVbkAH
-         b42QbHz9DPMRS79rba+4qCccBHmJTdFEI0D+LYmCJFkFlO8Nbwc3qJr+SwfiHZOfvp
-         PvjA7XiPr1hCQ==
+        b=AlPQwI4EjIDelvb9sF4uDVI7otwpQbfj6RKPYToutjnNxpt0yUwy6L1o6fhnNHML9
+         IjOis25yddnKqT80p+JWkf7ie89Xz7ikPFa9eBWuVuoF28nvHT1nR0QaA8QlkLcfNz
+         F++j1fFs+aEl1i2sLaj1VYlzUHQmtbV9jYG+n2TIzspceQ9ZiRO/3Me6/w9bom7+gQ
+         57DAah7Nc1+01euyOmq0lMuDaWE6c/rM7RVHF+4v9hyADnsn7DtPxXibgKxlwELAkJ
+         UBq3OD6Znyd/f15ARdsj2BbQPazIQ/WzcxiztoaGbrmnub0K3If1/KcHDORBXtoROm
+         Vx8E2Z8ecrAMw==
 From:   =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
 To:     andrew@lunn.ch
 Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
@@ -65,9 +65,9 @@ Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
         wcn36xx@lists.infradead.org, linux-wireless@vger.kernel.org,
         linux-pci@vger.kernel.org,
         =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
-Subject: [PATCH 03/22] ia64: Replace comments with C99 initializers
-Date:   Sat, 26 Mar 2022 17:58:50 +0100
-Message-Id: <20220326165909.506926-3-benni@stuerz.xyz>
+Subject: [PATCH 07/22] cm4000: Replace comments with C99 initializers
+Date:   Sat, 26 Mar 2022 17:58:54 +0100
+Message-Id: <20220326165909.506926-7-benni@stuerz.xyz>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220326165909.506926-1-benni@stuerz.xyz>
 References: <20220326165909.506926-1-benni@stuerz.xyz>
@@ -83,84 +83,44 @@ initializers because the kernel supports them now.
 
 Signed-off-by: Benjamin Stürz <benni@stuerz.xyz>
 ---
- arch/ia64/kernel/kprobes.c | 64 +++++++++++++++++++-------------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+ drivers/char/pcmcia/cm4000_cs.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/arch/ia64/kernel/kprobes.c b/arch/ia64/kernel/kprobes.c
-index 1a7bab1c5d7c..2d6a9388201e 100644
---- a/arch/ia64/kernel/kprobes.c
-+++ b/arch/ia64/kernel/kprobes.c
-@@ -29,38 +29,38 @@ struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
- 
- enum instruction_type {A, I, M, F, B, L, X, u};
- static enum instruction_type bundle_encoding[32][3] = {
--  { M, I, I },				/* 00 */
--  { M, I, I },				/* 01 */
--  { M, I, I },				/* 02 */
--  { M, I, I },				/* 03 */
--  { M, L, X },				/* 04 */
--  { M, L, X },				/* 05 */
--  { u, u, u },  			/* 06 */
--  { u, u, u },  			/* 07 */
--  { M, M, I },				/* 08 */
--  { M, M, I },				/* 09 */
--  { M, M, I },				/* 0A */
--  { M, M, I },				/* 0B */
--  { M, F, I },				/* 0C */
--  { M, F, I },				/* 0D */
--  { M, M, F },				/* 0E */
--  { M, M, F },				/* 0F */
--  { M, I, B },				/* 10 */
--  { M, I, B },				/* 11 */
--  { M, B, B },				/* 12 */
--  { M, B, B },				/* 13 */
--  { u, u, u },  			/* 14 */
--  { u, u, u },  			/* 15 */
--  { B, B, B },				/* 16 */
--  { B, B, B },				/* 17 */
--  { M, M, B },				/* 18 */
--  { M, M, B },				/* 19 */
--  { u, u, u },  			/* 1A */
--  { u, u, u },  			/* 1B */
--  { M, F, B },				/* 1C */
--  { M, F, B },				/* 1D */
--  { u, u, u },  			/* 1E */
--  { u, u, u },  			/* 1F */
-+	[0x00] = { M, I, I },
-+	[0x01] = { M, I, I },
-+	[0x02] = { M, I, I },
-+	[0x03] = { M, I, I },
-+	[0x04] = { M, L, X },
-+	[0x05] = { M, L, X },
-+	[0x06] = { u, u, u },
-+	[0x07] = { u, u, u },
-+	[0x08] = { M, M, I },
-+	[0x09] = { M, M, I },
-+	[0x0A] = { M, M, I },
-+	[0x0B] = { M, M, I },
-+	[0x0C] = { M, F, I },
-+	[0x0D] = { M, F, I },
-+	[0x0E] = { M, M, F },
-+	[0x0F] = { M, M, F },
-+	[0x10] = { M, I, B },
-+	[0x11] = { M, I, B },
-+	[0x12] = { M, B, B },
-+	[0x13] = { M, B, B },
-+	[0x14] = { u, u, u },
-+	[0x15] = { u, u, u },
-+	[0x16] = { B, B, B },
-+	[0x17] = { B, B, B },
-+	[0x18] = { M, M, B },
-+	[0x19] = { M, M, B },
-+	[0x1A] = { u, u, u },
-+	[0x1B] = { u, u, u },
-+	[0x1C] = { M, F, B },
-+	[0x1D] = { M, F, B },
-+	[0x1E] = { u, u, u },
-+	[0x1F] = { u, u, u },
+diff --git a/drivers/char/pcmcia/cm4000_cs.c b/drivers/char/pcmcia/cm4000_cs.c
+index adaec8fd4b16..8082025ab5b7 100644
+--- a/drivers/char/pcmcia/cm4000_cs.c
++++ b/drivers/char/pcmcia/cm4000_cs.c
+@@ -153,18 +153,18 @@ static struct class *cmm_class;
+  * violates process/coding-style.rst.  However, I don't really think wrapping it around will
+  * make it any clearer to read -HW */
+ static unsigned char fi_di_table[10][14] = {
+-/*FI     00   01   02   03   04   05   06   07   08   09   10   11   12   13 */
+-/*DI */
+-/* 0 */ {0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11},
+-/* 1 */ {0x01,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x91,0x11,0x11,0x11,0x11},
+-/* 2 */ {0x02,0x12,0x22,0x32,0x11,0x11,0x11,0x11,0x11,0x92,0xA2,0xB2,0x11,0x11},
+-/* 3 */ {0x03,0x13,0x23,0x33,0x43,0x53,0x63,0x11,0x11,0x93,0xA3,0xB3,0xC3,0xD3},
+-/* 4 */ {0x04,0x14,0x24,0x34,0x44,0x54,0x64,0x11,0x11,0x94,0xA4,0xB4,0xC4,0xD4},
+-/* 5 */ {0x00,0x15,0x25,0x35,0x45,0x55,0x65,0x11,0x11,0x95,0xA5,0xB5,0xC5,0xD5},
+-/* 6 */ {0x06,0x16,0x26,0x36,0x46,0x56,0x66,0x11,0x11,0x96,0xA6,0xB6,0xC6,0xD6},
+-/* 7 */ {0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11},
+-/* 8 */ {0x08,0x11,0x28,0x38,0x48,0x58,0x68,0x11,0x11,0x98,0xA8,0xB8,0xC8,0xD8},
+-/* 9 */ {0x09,0x19,0x29,0x39,0x49,0x59,0x69,0x11,0x11,0x99,0xA9,0xB9,0xC9,0xD9}
++/*  FI     00   01   02   03   04   05   06   07   08   09   10   11   12   13 */
++/*  DI */
++	[0] = {0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11},
++	[1] = {0x01,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x91,0x11,0x11,0x11,0x11},
++	[2] = {0x02,0x12,0x22,0x32,0x11,0x11,0x11,0x11,0x11,0x92,0xA2,0xB2,0x11,0x11},
++	[3] = {0x03,0x13,0x23,0x33,0x43,0x53,0x63,0x11,0x11,0x93,0xA3,0xB3,0xC3,0xD3},
++	[4] = {0x04,0x14,0x24,0x34,0x44,0x54,0x64,0x11,0x11,0x94,0xA4,0xB4,0xC4,0xD4},
++	[5] = {0x00,0x15,0x25,0x35,0x45,0x55,0x65,0x11,0x11,0x95,0xA5,0xB5,0xC5,0xD5},
++	[6] = {0x06,0x16,0x26,0x36,0x46,0x56,0x66,0x11,0x11,0x96,0xA6,0xB6,0xC6,0xD6},
++	[7] = {0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11},
++	[8] = {0x08,0x11,0x28,0x38,0x48,0x58,0x68,0x11,0x11,0x98,0xA8,0xB8,0xC8,0xD8},
++	[9] = {0x09,0x19,0x29,0x39,0x49,0x59,0x69,0x11,0x11,0x99,0xA9,0xB9,0xC9,0xD9}
  };
  
- /* Insert a long branch code */
+ #ifndef CM4000_DEBUG
 -- 
 2.35.1
 
