@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C373C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDFFEC4321E
 	for <linux-rdma@archiver.kernel.org>; Sat, 26 Mar 2022 17:09:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234257AbiCZRKn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 26 Mar 2022 13:10:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49694 "EHLO
+        id S234264AbiCZRKo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 26 Mar 2022 13:10:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233000AbiCZRKd (ORCPT
+        with ESMTP id S232932AbiCZRKd (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sat, 26 Mar 2022 13:10:33 -0400
-Received: from stuerz.xyz (stuerz.xyz [IPv6:2001:19f0:5:15da:5400:3ff:fecc:7379])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADAF634BA0;
+Received: from stuerz.xyz (unknown [45.77.206.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADA4734B96;
         Sat, 26 Mar 2022 10:08:33 -0700 (PDT)
 Received: by stuerz.xyz (Postfix, from userid 114)
-        id 9D973FBBC6; Sat, 26 Mar 2022 17:00:22 +0000 (UTC)
+        id 15FDCFB7E4; Sat, 26 Mar 2022 16:59:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
-        t=1648314024; bh=gqt1+kI42FGInscQtbmdIv8LY19kdHpeRO5nUSHeT20=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=yTXX8Igb67dmxs2rI659X8bFPAsNUwM4FYdfBfqYco2pov/ruj2kzZjHBlDxNkm4O
-         YrS0PiktRz+Kr7/aFJY64IZPdRchAc2MJNAASFeANAOToGtmTs60gRB0CWYatC4Yz3
-         1ZJDCGLTP8XgRa8IefeCRaT1qjpCVz5BAAoKiFJF7ShxdKbQMTIX0RodhnN2J11VGs
-         k+N760Wph8Ptz1J0J5ixbFLngT+HQI2/cTFotHxVMERaU8M2LJcQTJ7SxTbMfx5rcP
-         YZNQ2bgzHE4XMRQDQRyA9OuyThOohBO9PlEEpixa0+Wbjl+hLiIIhKEEvfsw9ED24f
-         glh+IX8phWjZw==
+        t=1648313971; bh=h8kNuGjX/tVaFYP7mTBrGXI49VfH81tUX/xpUFBsyPo=;
+        h=From:To:Cc:Subject:Date:From;
+        b=quzw4Veqn1t75q8i+SwY92Od0H4kbj+Jplj+Hrb9t/pLmlKsT6TJwKYv9o17XTzCA
+         3n4+kjK3LG/omELSm+sodJ7uUl4FaExNJQFo4XQbw2amIsW408Doe+3AErNNJZpImZ
+         lx7AVbydSYoFr2bJYXUKmyssrinBABDWXfDrQufUX+8e9VArBlaTIJ/bN2K5xyVq+w
+         0p7uHbBGHtyMHQgqTwLQnNn16UdQEjGi85LRaznlxiosXx3mrR8DCIsPHQcZtPldiM
+         dmTbc/27NaJUevsVWuBjG4Qlevt2k5gOfZ0u7u+jCoIZM3SSZM+fmuEdmLFHsnsnPg
+         mGpj42WHbwZ4g==
 Received: from benni-fedora.. (unknown [IPv6:2a02:8109:a100:1a48:ff0:ef2f:d4da:17d8])
-        by stuerz.xyz (Postfix) with ESMTPSA id A8729FB7D3;
-        Sat, 26 Mar 2022 17:00:13 +0000 (UTC)
+        by stuerz.xyz (Postfix) with ESMTPSA id 06801FB7CA;
+        Sat, 26 Mar 2022 16:59:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
-        t=1648314020; bh=gqt1+kI42FGInscQtbmdIv8LY19kdHpeRO5nUSHeT20=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cAGmc7q/v70fp/d8OErxnqAUtLx7NZZMJRTXOS0xd3wx/9j3/80aOVZpisTnSXgpD
-         prCgpdgT77LpFvxgJNlKEBWLSBjZ4kxEnRiiQ8dYJXZz/rVa+mwrDqlAxyVCXFhHlW
-         pIK2SHvu+HJwUEPSNGCBAg9W2pTt/tLFKw/zKUqmtezySp/jWWzvO2dxfFwiuWRJ/2
-         xpQDsn76lN3Gog+YDVovDRsTD/FUOFZK+XpCqNI1kFh28CwW7J2ObwhgE7g2W94Ieh
-         euilI5YMx4HWkP8cW5lsUQrviC9YxhnjqgNxitvFz2aa9gpm6UrKMQ8V/jtHu5kgQn
-         iXGM/MCmHVf9Q==
+        t=1648313967; bh=h8kNuGjX/tVaFYP7mTBrGXI49VfH81tUX/xpUFBsyPo=;
+        h=From:To:Cc:Subject:Date:From;
+        b=vaoJWTFzm8MRCBX+7S85u4Wohc5rAbjDG2T7E8DUltJLkf/krkoSBna4S3pqS99En
+         P3y6O3CiGyfogbGETepdGKzgpDN0QtHf35//97zogTn2Hce6o6WZ17BRWG3tApzQGf
+         aNIkiZhaEmddVF8juLhl42fQ5bbgbuzhcq0ukey1NN8t0guq0sCG3i6sPdM3bYC1U6
+         aU6BRZFuKP75AmwaGReNRozzsPCzJxq44tCraR+Ll6KCKwir1BEUti16KlHrTphFJy
+         +nuQ/wPjFpAX6QV3asHxC7dOJgBXo+wgnEZXWOiibQ9bZKvgZVBmA4ga1hsVtcewJL
+         xOc6w0OY3ukmA==
 From:   =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
 To:     andrew@lunn.ch
 Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
@@ -65,12 +65,10 @@ Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
         wcn36xx@lists.infradead.org, linux-wireless@vger.kernel.org,
         linux-pci@vger.kernel.org,
         =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
-Subject: [PATCH 09/22] gpio-winbond: Use C99 initializers
-Date:   Sat, 26 Mar 2022 17:58:56 +0100
-Message-Id: <20220326165909.506926-9-benni@stuerz.xyz>
+Subject: [PATCH 01/22] orion5x: Replace comments with C99 initializers
+Date:   Sat, 26 Mar 2022 17:58:48 +0100
+Message-Id: <20220326165909.506926-1-benni@stuerz.xyz>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220326165909.506926-1-benni@stuerz.xyz>
-References: <20220326165909.506926-1-benni@stuerz.xyz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -83,67 +81,26 @@ initializers because the kernel supports them now.
 
 Signed-off-by: Benjamin Stürz <benni@stuerz.xyz>
 ---
- drivers/gpio/gpio-winbond.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-orion5x/dns323-setup.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-winbond.c b/drivers/gpio/gpio-winbond.c
-index 7f8f5b02e31d..0b637fdb407c 100644
---- a/drivers/gpio/gpio-winbond.c
-+++ b/drivers/gpio/gpio-winbond.c
-@@ -249,7 +249,7 @@ struct winbond_gpio_info {
+diff --git a/arch/arm/mach-orion5x/dns323-setup.c b/arch/arm/mach-orion5x/dns323-setup.c
+index 87cb47220e82..d762248c6512 100644
+--- a/arch/arm/mach-orion5x/dns323-setup.c
++++ b/arch/arm/mach-orion5x/dns323-setup.c
+@@ -61,9 +61,9 @@
+ 
+ /* Exposed to userspace, do not change */
+ enum {
+-	DNS323_REV_A1,	/* 0 */
+-	DNS323_REV_B1,	/* 1 */
+-	DNS323_REV_C1,	/* 2 */
++	DNS323_REV_A1 = 0,
++	DNS323_REV_B1 = 1,
++	DNS323_REV_C1 = 2,
  };
  
- static const struct winbond_gpio_info winbond_gpio_infos[6] = {
--	{ /* 0 */
-+	[0] = {
- 		.dev = WB_SIO_DEV_GPIO12,
- 		.enablereg = WB_SIO_GPIO12_REG_ENABLE,
- 		.enablebit = WB_SIO_GPIO12_ENABLE_1,
-@@ -266,7 +266,7 @@ static const struct winbond_gpio_info winbond_gpio_infos[6] = {
- 			.warnonly = true
- 		}
- 	},
--	{ /* 1 */
-+	[1] = {
- 		.dev = WB_SIO_DEV_GPIO12,
- 		.enablereg = WB_SIO_GPIO12_REG_ENABLE,
- 		.enablebit = WB_SIO_GPIO12_ENABLE_2,
-@@ -277,7 +277,7 @@ static const struct winbond_gpio_info winbond_gpio_infos[6] = {
- 		.datareg = WB_SIO_GPIO12_REG_DATA2
- 		/* special conflict handling so doesn't use conflict data */
- 	},
--	{ /* 2 */
-+	[2] = {
- 		.dev = WB_SIO_DEV_GPIO34,
- 		.enablereg = WB_SIO_GPIO34_REG_ENABLE,
- 		.enablebit = WB_SIO_GPIO34_ENABLE_3,
-@@ -294,7 +294,7 @@ static const struct winbond_gpio_info winbond_gpio_infos[6] = {
- 			.warnonly = true
- 		}
- 	},
--	{ /* 3 */
-+	[3] = {
- 		.dev = WB_SIO_DEV_GPIO34,
- 		.enablereg = WB_SIO_GPIO34_REG_ENABLE,
- 		.enablebit = WB_SIO_GPIO34_ENABLE_4,
-@@ -311,7 +311,7 @@ static const struct winbond_gpio_info winbond_gpio_infos[6] = {
- 			.warnonly = true
- 		}
- 	},
--	{ /* 4 */
-+	[4] = {
- 		.dev = WB_SIO_DEV_WDGPIO56,
- 		.enablereg = WB_SIO_WDGPIO56_REG_ENABLE,
- 		.enablebit = WB_SIO_WDGPIO56_ENABLE_5,
-@@ -328,7 +328,7 @@ static const struct winbond_gpio_info winbond_gpio_infos[6] = {
- 			.warnonly = true
- 		}
- 	},
--	{ /* 5 */
-+	[5] = {
- 		.dev = WB_SIO_DEV_WDGPIO56,
- 		.enablereg = WB_SIO_WDGPIO56_REG_ENABLE,
- 		.enablebit = WB_SIO_WDGPIO56_ENABLE_6,
+ 
 -- 
 2.35.1
 
