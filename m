@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDFFEC4321E
-	for <linux-rdma@archiver.kernel.org>; Sat, 26 Mar 2022 17:09:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6000CC43217
+	for <linux-rdma@archiver.kernel.org>; Sat, 26 Mar 2022 17:09:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234264AbiCZRKo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 26 Mar 2022 13:10:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49692 "EHLO
+        id S234306AbiCZRKq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 26 Mar 2022 13:10:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50226 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232932AbiCZRKd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 26 Mar 2022 13:10:33 -0400
+        with ESMTP id S234045AbiCZRKj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 26 Mar 2022 13:10:39 -0400
 Received: from stuerz.xyz (unknown [45.77.206.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADA4734B96;
-        Sat, 26 Mar 2022 10:08:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F2D635865;
+        Sat, 26 Mar 2022 10:08:58 -0700 (PDT)
 Received: by stuerz.xyz (Postfix, from userid 114)
-        id 15FDCFB7E4; Sat, 26 Mar 2022 16:59:29 +0000 (UTC)
+        id 321B8FBBA1; Sat, 26 Mar 2022 17:00:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
-        t=1648313971; bh=h8kNuGjX/tVaFYP7mTBrGXI49VfH81tUX/xpUFBsyPo=;
-        h=From:To:Cc:Subject:Date:From;
-        b=quzw4Veqn1t75q8i+SwY92Od0H4kbj+Jplj+Hrb9t/pLmlKsT6TJwKYv9o17XTzCA
-         3n4+kjK3LG/omELSm+sodJ7uUl4FaExNJQFo4XQbw2amIsW408Doe+3AErNNJZpImZ
-         lx7AVbydSYoFr2bJYXUKmyssrinBABDWXfDrQufUX+8e9VArBlaTIJ/bN2K5xyVq+w
-         0p7uHbBGHtyMHQgqTwLQnNn16UdQEjGi85LRaznlxiosXx3mrR8DCIsPHQcZtPldiM
-         dmTbc/27NaJUevsVWuBjG4Qlevt2k5gOfZ0u7u+jCoIZM3SSZM+fmuEdmLFHsnsnPg
-         mGpj42WHbwZ4g==
+        t=1648314016; bh=HOFmAYiVvnT7rSVfobZmsnPlgQ5nBBe17TNp3HtbNU0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=OE6w7EbGz4UZqMrSmnQO9S4DWG3C+A+XGWmHj1gGNyXwzuCg2tgyFaWJe3ge1xrGo
+         ZklfkmLdhXZh1w7uCDZZYSk9u3CuqbZNayJumKTNAXg/GONO7RxnGJHUR037ruIdBS
+         Fp2smpwss0tQxWIm5ODbwoyQx3wuUvnfU2SPBSOKVx496KvRNHoYqttGuF2H1XAiNF
+         QgJ3pcxWWxo4xcwTRijChip3hD3SvUJ9xLQzFvcn1z9+nVDGjwLoeTSUfSgEOjjdMw
+         I7qtII+gHEQFTrCQkdsK2RDYSiDDNbqp3GyqVLl6XkR0RjliCTrClhr7sk0bdeE9G+
+         pKtdwiXsaftmw==
 Received: from benni-fedora.. (unknown [IPv6:2a02:8109:a100:1a48:ff0:ef2f:d4da:17d8])
-        by stuerz.xyz (Postfix) with ESMTPSA id 06801FB7CA;
-        Sat, 26 Mar 2022 16:59:20 +0000 (UTC)
+        by stuerz.xyz (Postfix) with ESMTPSA id 20D94FB7EA;
+        Sat, 26 Mar 2022 17:00:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stuerz.xyz; s=mail;
-        t=1648313967; bh=h8kNuGjX/tVaFYP7mTBrGXI49VfH81tUX/xpUFBsyPo=;
-        h=From:To:Cc:Subject:Date:From;
-        b=vaoJWTFzm8MRCBX+7S85u4Wohc5rAbjDG2T7E8DUltJLkf/krkoSBna4S3pqS99En
-         P3y6O3CiGyfogbGETepdGKzgpDN0QtHf35//97zogTn2Hce6o6WZ17BRWG3tApzQGf
-         aNIkiZhaEmddVF8juLhl42fQ5bbgbuzhcq0ukey1NN8t0guq0sCG3i6sPdM3bYC1U6
-         aU6BRZFuKP75AmwaGReNRozzsPCzJxq44tCraR+Ll6KCKwir1BEUti16KlHrTphFJy
-         +nuQ/wPjFpAX6QV3asHxC7dOJgBXo+wgnEZXWOiibQ9bZKvgZVBmA4ga1hsVtcewJL
-         xOc6w0OY3ukmA==
+        t=1648314013; bh=HOFmAYiVvnT7rSVfobZmsnPlgQ5nBBe17TNp3HtbNU0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=Hf7mJJcWBmIj3C+XCxyzFO7S9C0oUaIl8hxKEGBu6X8vw2n1pWSpj6iB15/DP+6Lp
+         3QX2TjmaymPMgIhJcqwVkwY6dEsEyphIorKi1wt0xa4x6MJ6oAZB59LvQ3nuveeFu0
+         348YW/tdR5UvOfRwGWcPa9XVwbxu+xibpp/4thWzzXOlH3zZnJHzTtHyLYycZzhdQ3
+         Slg6rVaVkmUpHlV6SbMwW2oDlerJ1InqL387Q5Q/hQQJH1awaV4a52wpm8TuxMZYnL
+         WGg8OJF9bO4XtyqoNzz5xIgxnsqwooQQF0Nsc2pHaLUBhYt9zf8O+zC8ZiS2I6nTZh
+         bsWtkEHhv2HFw==
 From:   =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
 To:     andrew@lunn.ch
 Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
@@ -65,10 +65,12 @@ Cc:     sebastian.hesselbarth@gmail.com, gregory.clement@bootlin.com,
         wcn36xx@lists.infradead.org, linux-wireless@vger.kernel.org,
         linux-pci@vger.kernel.org,
         =?UTF-8?q?Benjamin=20St=C3=BCrz?= <benni@stuerz.xyz>
-Subject: [PATCH 01/22] orion5x: Replace comments with C99 initializers
-Date:   Sat, 26 Mar 2022 17:58:48 +0100
-Message-Id: <20220326165909.506926-1-benni@stuerz.xyz>
+Subject: [PATCH 08/22] i5100: Replace comments with C99 initializers
+Date:   Sat, 26 Mar 2022 17:58:55 +0100
+Message-Id: <20220326165909.506926-8-benni@stuerz.xyz>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220326165909.506926-1-benni@stuerz.xyz>
+References: <20220326165909.506926-1-benni@stuerz.xyz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -81,25 +83,63 @@ initializers because the kernel supports them now.
 
 Signed-off-by: Benjamin Stürz <benni@stuerz.xyz>
 ---
- arch/arm/mach-orion5x/dns323-setup.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/edac/i5100_edac.c | 44 +++++++++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff --git a/arch/arm/mach-orion5x/dns323-setup.c b/arch/arm/mach-orion5x/dns323-setup.c
-index 87cb47220e82..d762248c6512 100644
---- a/arch/arm/mach-orion5x/dns323-setup.c
-+++ b/arch/arm/mach-orion5x/dns323-setup.c
-@@ -61,9 +61,9 @@
- 
- /* Exposed to userspace, do not change */
- enum {
--	DNS323_REV_A1,	/* 0 */
--	DNS323_REV_B1,	/* 1 */
--	DNS323_REV_C1,	/* 2 */
-+	DNS323_REV_A1 = 0,
-+	DNS323_REV_B1 = 1,
-+	DNS323_REV_C1 = 2,
- };
- 
+diff --git a/drivers/edac/i5100_edac.c b/drivers/edac/i5100_edac.c
+index 324a46b8479b..5992f0ee5f28 100644
+--- a/drivers/edac/i5100_edac.c
++++ b/drivers/edac/i5100_edac.c
+@@ -379,28 +379,28 @@ static int i5100_rank_to_slot(const struct mem_ctl_info *mci,
+ static const char *i5100_err_msg(unsigned err)
+ {
+ 	static const char *merrs[] = {
+-		"unknown", /* 0 */
+-		"uncorrectable data ECC on replay", /* 1 */
+-		"unknown", /* 2 */
+-		"unknown", /* 3 */
+-		"aliased uncorrectable demand data ECC", /* 4 */
+-		"aliased uncorrectable spare-copy data ECC", /* 5 */
+-		"aliased uncorrectable patrol data ECC", /* 6 */
+-		"unknown", /* 7 */
+-		"unknown", /* 8 */
+-		"unknown", /* 9 */
+-		"non-aliased uncorrectable demand data ECC", /* 10 */
+-		"non-aliased uncorrectable spare-copy data ECC", /* 11 */
+-		"non-aliased uncorrectable patrol data ECC", /* 12 */
+-		"unknown", /* 13 */
+-		"correctable demand data ECC", /* 14 */
+-		"correctable spare-copy data ECC", /* 15 */
+-		"correctable patrol data ECC", /* 16 */
+-		"unknown", /* 17 */
+-		"SPD protocol error", /* 18 */
+-		"unknown", /* 19 */
+-		"spare copy initiated", /* 20 */
+-		"spare copy completed", /* 21 */
++		[0]  = "unknown",
++		[1]  = "uncorrectable data ECC on replay",
++		[2]  = "unknown",
++		[3]  = "unknown",
++		[4]  = "aliased uncorrectable demand data ECC",
++		[5]  = "aliased uncorrectable spare-copy data ECC",
++		[6]  = "aliased uncorrectable patrol data ECC",
++		[7]  = "unknown",
++		[8]  = "unknown",
++		[9]  = "unknown",
++		[10] = "non-aliased uncorrectable demand data ECC",
++		[11] = "non-aliased uncorrectable spare-copy data ECC",
++		[12] = "non-aliased uncorrectable patrol data ECC",
++		[13] = "unknown",
++		[14] = "correctable demand data ECC",
++		[15] = "correctable spare-copy data ECC",
++		[16] = "correctable patrol data ECC",
++		[17] = "unknown",
++		[18] = "SPD protocol error",
++		[19] = "unknown",
++		[20] = "spare copy initiated",
++		[21] = "spare copy completed",
+ 	};
+ 	unsigned i;
  
 -- 
 2.35.1
