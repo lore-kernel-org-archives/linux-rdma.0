@@ -2,49 +2,49 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B68DAC3527B
-	for <linux-rdma@archiver.kernel.org>; Fri,  1 Apr 2022 15:02:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E971BC433F5
+	for <linux-rdma@archiver.kernel.org>; Fri,  1 Apr 2022 15:02:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346113AbiDAPEM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 1 Apr 2022 11:04:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60524 "EHLO
+        id S1348515AbiDAPEO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 1 Apr 2022 11:04:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351881AbiDAOtj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 1 Apr 2022 10:49:39 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7288B2B04D6;
-        Fri,  1 Apr 2022 07:40:34 -0700 (PDT)
+        with ESMTP id S1350190AbiDAOrS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 1 Apr 2022 10:47:18 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AED92A12AF;
+        Fri,  1 Apr 2022 07:37:21 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 6192CCE258C;
-        Fri,  1 Apr 2022 14:39:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA1EFC36AE2;
-        Fri,  1 Apr 2022 14:39:46 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 04497CE258A;
+        Fri,  1 Apr 2022 14:37:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 396FEC340EE;
+        Fri,  1 Apr 2022 14:37:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648823987;
-        bh=/yfV8bz2vNtdrO0Qc04Iiksnfpc9KJXbAWkZeRolfpM=;
+        s=k20201202; t=1648823830;
+        bh=79s09JmfnRTspuMBLjDF/9qtIeFT50RzlTzUkGad3r4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=obNVBtC1g2S4ILnYhbori0gBZtMPEuvE0/OrtNf9LfuO6yRbO2BAi2hICDaSdeV2m
-         vAlUWecV/F0+QLWNwnulKzHm9XUV3X8JgHv6Sj7husEAIk7SC/VVmAzTjEC/YPy8PK
-         UAkIUxOjJMxT3qmrT1aZVH+YZUIhMhgw8jLDr6YTmqH+hbGG/Mbxogir4NmIg+uUN2
-         uH9Aezze6G9cQbhktR4mcExjexCKho1nGi9ELe1QlW9SyNgvXflrDMt8l3D0nM7ZSZ
-         LlJ3wV4nrlGt5zwGEK38n/lkC1GN88V7w6gQ1l9Q8Z+cczvPQqhPpegp8jNsqni+Xh
-         TPkUQArxvgoBQ==
+        b=F1TnHsKqhX6rVSXoMWICZx9nWQLdbuN46dQp7UhA1bG02I2MyK8XsFhfUY6yVm3GF
+         RtC2Q8eCvHzq3WFCpJkFLMeh3I4Ajfoz5esej1Xbsqlq81ENSXdn7yRZ7UjywplBOH
+         EC1jJ2ChAAGA+4uInqMrFVtPYvfhQhJ4MNfHM5WDZNIh9tTvBvcFaI/DvpLwbnsui2
+         IcGvU2IvZt7NLhCJ5/MZaTfh4mmif3oyMQ+4wUoZR7OouTWyGQO8LgctgRKCJkr5AF
+         X4wMuQouk/GgTKn7N1ASe0S4jO+fk+AjRiqleAlZrRUYug0dGeQiKmp/O/7DjkxXYy
+         5MT/GTldzrstg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Maxim Mikityanskiy <maximmi@nvidia.com>,
-        Tariq Toukan <tariqt@nvidia.com>,
+Cc:     Gal Pressman <gal@nvidia.com>, Ido Schimmel <idosch@nvidia.com>,
+        Maxim Mikityanskiy <maximmi@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
         kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 42/98] net/mlx5e: Disable TX queues before registering the netdev
-Date:   Fri,  1 Apr 2022 10:36:46 -0400
-Message-Id: <20220401143742.1952163-42-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.16 094/109] net/mlx5e: Remove overzealous validations in netlink EEPROM query
+Date:   Fri,  1 Apr 2022 10:32:41 -0400
+Message-Id: <20220401143256.1950537-94-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220401143742.1952163-1-sashal@kernel.org>
-References: <20220401143742.1952163-1-sashal@kernel.org>
+In-Reply-To: <20220401143256.1950537-1-sashal@kernel.org>
+References: <20220401143256.1950537-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -53,36 +53,66 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Maxim Mikityanskiy <maximmi@nvidia.com>
+From: Gal Pressman <gal@nvidia.com>
 
-[ Upstream commit d08c6e2a4d0308a7922d7ef3b1b3af45d4096aad ]
+[ Upstream commit 970adfb76095fa719778d70a6b86030d2feb88dd ]
 
-Normally, the queues are disabled when the channels are deactivated, and
-enabled when the channels are activated. However, on register, the
-channels are not active, but the queues are enabled by default. This
-change fixes it, preventing mlx5e_xmit from running when the channels
-are deactivated in the beginning.
+Unlike the legacy EEPROM callbacks, when using the netlink EEPROM query
+(get_module_eeprom_by_page) the driver should not try to validate the
+query parameters, but just perform the read requested by the userspace.
 
-Signed-off-by: Maxim Mikityanskiy <maximmi@nvidia.com>
-Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+Recent discussion in the mailing list:
+https://lore.kernel.org/netdev/20220120093051.70845141@kicinski-fedora-PC1C0HJN.hsd1.ca.comcast.net/
+
+Signed-off-by: Gal Pressman <gal@nvidia.com>
+Reviewed-by: Ido Schimmel <idosch@nvidia.com>
+Reviewed-by: Maxim Mikityanskiy <maximmi@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 1 +
- 1 file changed, 1 insertion(+)
+ .../net/ethernet/mellanox/mlx5/core/port.c    | 23 -------------------
+ 1 file changed, 23 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index f075bb8ccd00..01301bee420c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -4914,6 +4914,7 @@ mlx5e_create_netdev(struct mlx5_core_dev *mdev, const struct mlx5e_profile *prof
- 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/port.c b/drivers/net/ethernet/mellanox/mlx5/core/port.c
+index 7b16a1188aab..fd79860de723 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/port.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/port.c
+@@ -433,35 +433,12 @@ int mlx5_query_module_eeprom_by_page(struct mlx5_core_dev *dev,
+ 				     struct mlx5_module_eeprom_query_params *params,
+ 				     u8 *data)
+ {
+-	u8 module_id;
+ 	int err;
  
- 	netif_carrier_off(netdev);
-+	netif_tx_disable(netdev);
- 	dev_net_set(netdev, mlx5_core_net(mdev));
+ 	err = mlx5_query_module_num(dev, &params->module_number);
+ 	if (err)
+ 		return err;
  
- 	return netdev;
+-	err = mlx5_query_module_id(dev, params->module_number, &module_id);
+-	if (err)
+-		return err;
+-
+-	switch (module_id) {
+-	case MLX5_MODULE_ID_SFP:
+-		if (params->page > 0)
+-			return -EINVAL;
+-		break;
+-	case MLX5_MODULE_ID_QSFP:
+-	case MLX5_MODULE_ID_QSFP28:
+-	case MLX5_MODULE_ID_QSFP_PLUS:
+-		if (params->page > 3)
+-			return -EINVAL;
+-		break;
+-	case MLX5_MODULE_ID_DSFP:
+-		break;
+-	default:
+-		mlx5_core_err(dev, "Module ID not recognized: 0x%x\n", module_id);
+-		return -EINVAL;
+-	}
+-
+ 	if (params->i2c_address != MLX5_I2C_ADDR_HIGH &&
+ 	    params->i2c_address != MLX5_I2C_ADDR_LOW) {
+ 		mlx5_core_err(dev, "I2C address not recognized: 0x%x\n", params->i2c_address);
 -- 
 2.34.1
 
