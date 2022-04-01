@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E971BC433F5
-	for <linux-rdma@archiver.kernel.org>; Fri,  1 Apr 2022 15:02:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08150C433EF
+	for <linux-rdma@archiver.kernel.org>; Fri,  1 Apr 2022 15:02:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348515AbiDAPEO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 1 Apr 2022 11:04:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60392 "EHLO
+        id S1348725AbiDAPES (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 1 Apr 2022 11:04:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350190AbiDAOrS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 1 Apr 2022 10:47:18 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AED92A12AF;
-        Fri,  1 Apr 2022 07:37:21 -0700 (PDT)
+        with ESMTP id S1352565AbiDAOu6 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 1 Apr 2022 10:50:58 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFC292B3D66;
+        Fri,  1 Apr 2022 07:42:00 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 04497CE258A;
-        Fri,  1 Apr 2022 14:37:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 396FEC340EE;
-        Fri,  1 Apr 2022 14:37:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 21656B82519;
+        Fri,  1 Apr 2022 14:41:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D790C34111;
+        Fri,  1 Apr 2022 14:41:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648823830;
+        s=k20201202; t=1648824096;
         bh=79s09JmfnRTspuMBLjDF/9qtIeFT50RzlTzUkGad3r4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=F1TnHsKqhX6rVSXoMWICZx9nWQLdbuN46dQp7UhA1bG02I2MyK8XsFhfUY6yVm3GF
-         RtC2Q8eCvHzq3WFCpJkFLMeh3I4Ajfoz5esej1Xbsqlq81ENSXdn7yRZ7UjywplBOH
-         EC1jJ2ChAAGA+4uInqMrFVtPYvfhQhJ4MNfHM5WDZNIh9tTvBvcFaI/DvpLwbnsui2
-         IcGvU2IvZt7NLhCJ5/MZaTfh4mmif3oyMQ+4wUoZR7OouTWyGQO8LgctgRKCJkr5AF
-         X4wMuQouk/GgTKn7N1ASe0S4jO+fk+AjRiqleAlZrRUYug0dGeQiKmp/O/7DjkxXYy
-         5MT/GTldzrstg==
+        b=RrrJEc3+n5gh3IGsMhRwes0/KyLGtVJmB/2sJACAUZ9/5F3w7DV6ANJcAbqo8cvAd
+         NI7PKuC61/6BMsVA6eWn97fZsRO/5PG1mvFAoB/GScR13+nbKz5DCOMdbaU7pWPrCA
+         m2PziGXnoM83zm/KwFVMejPAdzg51aaiZ8O93DwgfI36r8nxrNiXjhskOuR3NI1xWR
+         YnabOnFl4BGDalo5Vh3Eyqztx2Pig6qhELom5gt5tCC7upi/jZVTAGFzRydpMjKmqH
+         12TQXZiiDxuf/8LkX0ULnc0GGU6EbFEV7XrCX5fy8dxkzICUYQ9AcDnQLzuOqpQpfi
+         /NB5Ysr9ozBSg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Gal Pressman <gal@nvidia.com>, Ido Schimmel <idosch@nvidia.com>,
@@ -39,12 +39,12 @@ Cc:     Gal Pressman <gal@nvidia.com>, Ido Schimmel <idosch@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
         kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.16 094/109] net/mlx5e: Remove overzealous validations in netlink EEPROM query
-Date:   Fri,  1 Apr 2022 10:32:41 -0400
-Message-Id: <20220401143256.1950537-94-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 84/98] net/mlx5e: Remove overzealous validations in netlink EEPROM query
+Date:   Fri,  1 Apr 2022 10:37:28 -0400
+Message-Id: <20220401143742.1952163-84-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220401143256.1950537-1-sashal@kernel.org>
-References: <20220401143256.1950537-1-sashal@kernel.org>
+In-Reply-To: <20220401143742.1952163-1-sashal@kernel.org>
+References: <20220401143742.1952163-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
