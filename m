@@ -2,57 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43C6AC433F5
-	for <linux-rdma@archiver.kernel.org>; Mon,  4 Apr 2022 22:27:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F2EDC433EF
+	for <linux-rdma@archiver.kernel.org>; Mon,  4 Apr 2022 22:28:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243039AbiDDW3g (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 4 Apr 2022 18:29:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48818 "EHLO
+        id S245401AbiDDWaG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 4 Apr 2022 18:30:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245434AbiDDW2V (ORCPT
+        with ESMTP id S1343760AbiDDW2V (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 4 Apr 2022 18:28:21 -0400
-Received: from mail-oi1-x22a.google.com (mail-oi1-x22a.google.com [IPv6:2607:f8b0:4864:20::22a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96D1051E56
-        for <linux-rdma@vger.kernel.org>; Mon,  4 Apr 2022 14:51:28 -0700 (PDT)
-Received: by mail-oi1-x22a.google.com with SMTP id t21so11469191oie.11
-        for <linux-rdma@vger.kernel.org>; Mon, 04 Apr 2022 14:51:28 -0700 (PDT)
+Received: from mail-oa1-x2a.google.com (mail-oa1-x2a.google.com [IPv6:2001:4860:4864:20::2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 928FE517FF
+        for <linux-rdma@vger.kernel.org>; Mon,  4 Apr 2022 14:51:30 -0700 (PDT)
+Received: by mail-oa1-x2a.google.com with SMTP id 586e51a60fabf-de48295467so12391335fac.2
+        for <linux-rdma@vger.kernel.org>; Mon, 04 Apr 2022 14:51:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ir1rbhJVm4YOuatC8nTnW07YQS3a/+GpADxu2BBd+7A=;
-        b=mTm9DC73zrc9+qnJe02afFnnOl6MCGSh3IWWvLG5tsd/KyTy8Vu3zNxuTE/tq7fWQ5
-         yDh++N7VQCVYLXwFuXcWvw3DRwHJQIuojiOVv2Lm36P9D9VBP+U1qBM/1dS6eaWKg60b
-         Q2IGDxBaUA1wOfiCffj4beikFlZNuFvcnvf9e76p0r8vll9SE1Vs8D/Ac9OAvogoRSuj
-         RSAnvZxgFCyFSVSgSSCSWYEvZ0p1nQjt+EyOUtiyxFSoUGZo/U9khtS1SMclyY0SzfKR
-         HO/VUbv+WYAJudxZayhFqMJ5pb2jB+pDYZFp2Cjb7vm76q8webyWKLVjAa9plnZBc8hp
-         jKjA==
+        bh=TvPpkHvA3BY4MWR0Waer4OHXDIziMbtQ5DYk5eeWse4=;
+        b=Kn6WgMKhz/deDtMlaBuLmvC+y2vb4GGPG/ftF+/j9OWq2tG5lJGBxsNqoD4sUa5V3O
+         oatXCb/HFSZA3oGr/GTCa6uWKhgceevcVmAes1mKSOLjUYjdBz55k8cRUOhjYNdP8BYk
+         XKNLfgWhYW9Te8Oo53P+YmgQ/x6FPkWhco1jU0+AciwLOFWsLg0vDcYnkkpb3+1UVohl
+         WDlRRaOeVkf1JBajuPDQLlQeKDaX0/PdZVPXK7OhQNuVfRYLBSAL00G52ZfWMd+rBnib
+         R3cMY6qGzrc2YxAyPNZ+CWcv+aIOkBNhlyJEOsdEfR8vM12nAcfQgGqBaPRlTU8PrK/r
+         Ithw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ir1rbhJVm4YOuatC8nTnW07YQS3a/+GpADxu2BBd+7A=;
-        b=MdgdyDJ0mCh0YPKS5vLCM5eiu+uRCGOtDf3B2rSD+Ywf0vesVn4tYAbQw6AttXrIpT
-         mX0om3f8BbLGbPPvlCCX9sUwBYBvQsp7+spUnsn9dAKlrzK7SrvfcVWU0Ir+BxJ4DMxa
-         exih5nLeahaixl4/dc2EZGxggJQcklp1fZljyWCSYAoYQzmeoQN4wrbBQ68jYsgncUN+
-         Q6NN8te1spIop+toGPfJGbOmdtJ7KzmLiSou2vYaDiTloLlB0dBvQo+BTbwz8MSbRB76
-         /6cyPG4HHRcxYeN9Y27GW/oi26Yyf5FPUmLPKCke5HaK2fvj9/LaAuzzv/ni6S4qgR39
-         uxmA==
-X-Gm-Message-State: AOAM5313h4U7NanO2dLfiCBNgPBIA/ggpIYbLpfvQ4Ze0LEyZ/mpXsvX
-        BkVWrfaSJfNJrlGym12iSBVGePeMYCU=
-X-Google-Smtp-Source: ABdhPJwPQ2bprDhQhp2WrXtZX9iE+cdQCrvLzFdpSMEyxT0sdskEcouw/HkG6VSkocCkD0yH3aryrg==
-X-Received: by 2002:a05:6808:13d4:b0:2ce:2801:d7bb with SMTP id d20-20020a05680813d400b002ce2801d7bbmr166716oiw.44.1649109088003;
-        Mon, 04 Apr 2022 14:51:28 -0700 (PDT)
+        bh=TvPpkHvA3BY4MWR0Waer4OHXDIziMbtQ5DYk5eeWse4=;
+        b=UzNFKj8dWxpg7lGaz7IhG7w0KIC1yplnRYCa1u+R5cELbCnQYMgUvknniruUbCWjIu
+         IRpD0WkTCJg91ZwKSaGp/iDoLNzWhLky/tgLiYIhNKHtqVQIWrdU87D42oJ1uTimwcYk
+         rVgTSpP3JirtaY/KEZmxqf/SbMbyGeuSytC91ry2DFoe5Ultwi7DyqRg8yACxh9yUfuh
+         iG95OFhkT+Yh8Hisa1iw+9cpezJhv5fJgq2eV6ASh1kxDvSWD8Y3zrDTVBoGgtQLgt1V
+         9DUP2/w4jnbNPXKuNsiuNBd1g9JgiS03tNwYXDkgxx6RhdmGJo9bptzY4jJ8YdtJdSxQ
+         TrlQ==
+X-Gm-Message-State: AOAM5319sBEEZscF31xji4M2Maf5Vl2L1hvj3zRC0jLyv/4hholQNY6M
+        DNNDKAhWE1Ew6oJ8CW0WUR0=
+X-Google-Smtp-Source: ABdhPJwOIqP/7LkWYE6XS3qie02rs6CiajoP9NZuNzhxeVuFTmRlpD9qAGna+xjagPGoAiHSBqWFIg==
+X-Received: by 2002:a05:6870:d58c:b0:de:6900:6222 with SMTP id u12-20020a056870d58c00b000de69006222mr129571oao.179.1649109089525;
+        Mon, 04 Apr 2022 14:51:29 -0700 (PDT)
 Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-349e-d2a8-b899-a3ee.res6.spectrum.com. [2603:8081:140c:1a00:349e:d2a8:b899:a3ee])
-        by smtp.googlemail.com with ESMTPSA id e2-20020a0568301f2200b005cdafdea1d9sm5226441oth.50.2022.04.04.14.51.27
+        by smtp.googlemail.com with ESMTPSA id e2-20020a0568301f2200b005cdafdea1d9sm5226441oth.50.2022.04.04.14.51.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 Apr 2022 14:51:27 -0700 (PDT)
+        Mon, 04 Apr 2022 14:51:29 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v13 05/10] RDMA/rxe: Move mr cleanup code to rxe_mr_cleanup()
-Date:   Mon,  4 Apr 2022 16:50:55 -0500
-Message-Id: <20220404215059.39819-6-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v13 07/10] RDMA/rxe: Enforce IBA C11-17
+Date:   Mon,  4 Apr 2022 16:50:57 -0500
+Message-Id: <20220404215059.39819-8-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220404215059.39819-1-rpearsonhpe@gmail.com>
 References: <20220404215059.39819-1-rpearsonhpe@gmail.com>
@@ -62,44 +62,85 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move the code which tears down an mr to rxe_mr_cleanup to allow
-operations holding a reference to the mr to complete.
+Add a counter to keep track of the number of WQs connected to
+a CQ and return an error if destroy_cq is called while the
+counter is non zero.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_mr.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c    | 10 ++++++++++
+ drivers/infiniband/sw/rxe/rxe_verbs.c |  6 ++++++
+ drivers/infiniband/sw/rxe/rxe_verbs.h |  1 +
+ 3 files changed, 17 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 60a31b718774..fc3942e04a1f 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -683,14 +683,10 @@ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
- {
- 	struct rxe_mr *mr = to_rmr(ibmr);
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index f5200777399c..18861b9edbfd 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -334,6 +334,9 @@ int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
+ 	qp->scq			= scq;
+ 	qp->srq			= srq;
  
--	if (atomic_read(&mr->num_mw) > 0) {
--		pr_warn("%s: Attempt to deregister an MR while bound to MWs\n",
--			__func__);
-+	/* See IBA 10.6.7.2.6 */
-+	if (atomic_read(&mr->num_mw) > 0)
- 		return -EINVAL;
--	}
- 
--	mr->state = RXE_MR_STATE_INVALID;
--	rxe_put(mr_pd(mr));
- 	rxe_put(mr);
- 
- 	return 0;
-@@ -700,6 +696,8 @@ void rxe_mr_cleanup(struct rxe_pool_elem *elem)
- {
- 	struct rxe_mr *mr = container_of(elem, typeof(*mr), elem);
- 
-+	rxe_put(mr_pd(mr));
++	atomic_inc(&rcq->num_wq);
++	atomic_inc(&scq->num_wq);
 +
- 	ib_umem_release(mr->umem);
+ 	rxe_qp_init_misc(rxe, qp, init);
  
- 	if (mr->cur_map_set)
+ 	err = rxe_qp_init_req(rxe, qp, init, udata, uresp);
+@@ -353,6 +356,9 @@ int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
+ 	rxe_queue_cleanup(qp->sq.queue);
+ 	qp->sq.queue = NULL;
+ err1:
++	atomic_dec(&rcq->num_wq);
++	atomic_dec(&scq->num_wq);
++
+ 	qp->pd = NULL;
+ 	qp->rcq = NULL;
+ 	qp->scq = NULL;
+@@ -810,10 +816,14 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
+ 	if (qp->rq.queue)
+ 		rxe_queue_cleanup(qp->rq.queue);
+ 
++	atomic_dec(&qp->scq->num_wq);
+ 	if (qp->scq)
+ 		rxe_put(qp->scq);
++
++	atomic_dec(&qp->rcq->num_wq);
+ 	if (qp->rcq)
+ 		rxe_put(qp->rcq);
++
+ 	if (qp->pd)
+ 		rxe_put(qp->pd);
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 6738f1b4a543..4adcb93af9b1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -801,6 +801,12 @@ static int rxe_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
+ {
+ 	struct rxe_cq *cq = to_rcq(ibcq);
+ 
++	/* See IBA C11-17: The CI shall return an error if this Verb is
++	 * invoked while a Work Queue is still associated with the CQ.
++	 */
++	if (atomic_read(&cq->num_wq))
++		return -EINVAL;
++
+ 	rxe_cq_disable(cq);
+ 
+ 	rxe_put(cq);
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index e7eff1ca75e9..bb15a74f624e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -67,6 +67,7 @@ struct rxe_cq {
+ 	bool			is_dying;
+ 	bool			is_user;
+ 	struct tasklet_struct	comp_task;
++	atomic_t		num_wq;
+ };
+ 
+ enum wqe_state {
 -- 
 2.32.0
 
