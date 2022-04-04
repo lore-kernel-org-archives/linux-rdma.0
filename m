@@ -2,83 +2,97 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA03AC43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEF9BC43217
 	for <linux-rdma@archiver.kernel.org>; Mon,  4 Apr 2022 21:18:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358279AbiDDVUn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 4 Apr 2022 17:20:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36884 "EHLO
+        id S1379683AbiDDVUk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 4 Apr 2022 17:20:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1380030AbiDDSlV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 4 Apr 2022 14:41:21 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 959D85F99;
-        Mon,  4 Apr 2022 11:39:24 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 42A3FB818D8;
-        Mon,  4 Apr 2022 18:39:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81B0EC340F3;
-        Mon,  4 Apr 2022 18:39:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649097561;
-        bh=uoCUt9kRip3xmuGeLGDqglk9GEPAPCSc46dVFwVFFvs=;
-        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-        b=pWjK8T/SiEbCNPFdLabaKBhPZF8HEsxpYiFOPoj11AhzUzWc0mFSTNoTlb44mzjIt
-         F3UZs1LSUjPo/vOdjOWkHWODjT6vCZV4ZDdN74DxYDMI5v/o8GBHU2fLfKRNJyKNv7
-         gtUzy0Kf5ojn5swpmgVLnbCnNNgCbQO7w0i9dnoCj/kzOzhXBF6WNWKxFi9motkxV1
-         mAZPq5pTW07Pv3EOFvaB4dD/VUmByyweb+IizmotBRaNxe2OECt5SeCdq2GbRkzw8s
-         AQKJTPhJozQ/0jP8eneP9qLPjEAktInngDlNV+gUc4cd2uHWA+D6yPbPP1WfCZEgV2
-         5G+GoDEs7Lu2A==
-From:   Kalle Valo <kvalo@kernel.org>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
-        linux-rdma@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-serial@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-xfs@vger.kernel.org, alsa-devel@alsa-project.org,
-        linux-s390@vger.kernel.org
-Subject: Re: Build regressions/improvements in v5.18-rc1
-References: <CAHk-=wg6FWL1xjVyHx7DdjD2dHZETA5_=FqqW17Z19X-WTfWSg@mail.gmail.com>
-        <20220404074734.1092959-1-geert@linux-m68k.org>
-        <alpine.DEB.2.22.394.2204041006230.1941618@ramsan.of.borg>
-Date:   Mon, 04 Apr 2022 21:39:15 +0300
-In-Reply-To: <alpine.DEB.2.22.394.2204041006230.1941618@ramsan.of.borg> (Geert
-        Uytterhoeven's message of "Mon, 4 Apr 2022 10:16:08 +0200 (CEST)")
-Message-ID: <874k38u20c.fsf@tynnyri.adurom.net>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        with ESMTP id S1380326AbiDDTdp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 4 Apr 2022 15:33:45 -0400
+Received: from mail-oa1-x34.google.com (mail-oa1-x34.google.com [IPv6:2001:4860:4864:20::34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E623F20F41
+        for <linux-rdma@vger.kernel.org>; Mon,  4 Apr 2022 12:31:48 -0700 (PDT)
+Received: by mail-oa1-x34.google.com with SMTP id 586e51a60fabf-d6ca46da48so11898737fac.12
+        for <linux-rdma@vger.kernel.org>; Mon, 04 Apr 2022 12:31:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=YlOe/ylcM4Uv9wPppiqGueQ0tJJ6UnWozD/bBxEhkDU=;
+        b=oT2VK/12yW0yt5/1tJdzA9VQ3LT4LEADQHoRyOblmYfVmSZtOpy9TdNSwomEcyqSgi
+         ummXfOUgGnm1Pyw9JhG2awZ493ObloF2ZPXnhAdTBIXceVXgtrEMPCINd5jV1uIWDT9b
+         cby3CZyZMO80Rgc8zEegoHwfRCJiUq85T3XKkwuUwLxkx373jRIbkHLl2xJv3spQ/J0l
+         d6WqMJ19qId8NJqzSRVIOW5tYTn3nCECAgYFUag32DSRirCP+WWiF5d0PSFwB8nB5EbN
+         +IYLTNUndhvvxi2KW+BLC5zhIli91BQIEfoPGiQsgZQ3dYaOylt1farg0ueK8X9Yz4aa
+         BD2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=YlOe/ylcM4Uv9wPppiqGueQ0tJJ6UnWozD/bBxEhkDU=;
+        b=iY14GFMvpFiRY+VukC+7WXBHMvJJ/+SawEX6JLvrdKKRIBFTttVOtCpOn27EkZeOpK
+         jZ9sALVYQMaR2UpxoAKgLD9Ex610uTQMwJdmQW0JMRXBN8Xy7JNbrnbaq/Y+Rpj5tL3O
+         q/fPL8jga5H2SjMQN3FhYChHV1NECwp3hmrNKEmZc7cG7E/wfl3XmsZXGs3eUx0z2Bf9
+         pR3Ryeo66aXqYiCzJEQ3RueZ1ZqpbGiymuKGfkVtyATve1mKkK2LkRJOU0T5OI8r3YND
+         Idr5WopBtUdXuQyxyvWHwyR+KMj5X2vYYbyiG5thsxZa9skF6yA4vX8C+YovsuEd6ga6
+         cbaQ==
+X-Gm-Message-State: AOAM533cb+s+q+cIn/vh/89SzKmlFrlgLZ2R4Xk0YaPRf85VuIFOEG2f
+        uirBLOsh0+Q8aUPkSPpOSLhCT3UW3dQ=
+X-Google-Smtp-Source: ABdhPJz1iv4y4zrYMRLjQfBcnjY0ABAWGpolDvaxz/6DtNzYm7Qmn9kh3DcmMwzYzLobn5Ayjpxq8A==
+X-Received: by 2002:a05:6870:d10b:b0:e2:1f:f3bf with SMTP id e11-20020a056870d10b00b000e2001ff3bfmr402297oac.157.1649100708300;
+        Mon, 04 Apr 2022 12:31:48 -0700 (PDT)
+Received: from ?IPV6:2603:8081:140c:1a00:5ce5:a41:7a36:d73b? (2603-8081-140c-1a00-5ce5-0a41-7a36-d73b.res6.spectrum.com. [2603:8081:140c:1a00:5ce5:a41:7a36:d73b])
+        by smtp.gmail.com with ESMTPSA id e9-20020a056820060900b003216277bfdasm4356293oow.19.2022.04.04.12.31.47
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 04 Apr 2022 12:31:48 -0700 (PDT)
+Message-ID: <dcbe5883-2c04-617e-cc3a-5680ca6d823c@gmail.com>
+Date:   Mon, 4 Apr 2022 14:31:47 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: warnings from pyverbs tests
+Content-Language: en-US
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+References: <09525cae-22de-d28d-de4a-120598d0f80b@gmail.com>
+ <20220404184444.GR2120790@nvidia.com>
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+In-Reply-To: <20220404184444.GR2120790@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Geert Uytterhoeven <geert@linux-m68k.org> writes:
+On 4/4/22 13:44, Jason Gunthorpe wrote:
+> On Mon, Apr 04, 2022 at 01:19:21PM -0500, Bob Pearson wrote:
+>> Back from vacation I see the following warnings when I run the pyverbs test suite.
+>>
+>> <frozen importlib._bootstrap>:228: RuntimeWarning: pyverbs.device.Context size changed, may indicate binary incompatibility. Expected 160 from C header, got 176 from PyObject
+>>
+>> <frozen importlib._bootstrap>:228: RuntimeWarning: pyverbs.qp.QPEx size changed, may indicate binary incompatibility. Expected 136 from C header, got 144 from PyObject
+>>
+>> <frozen importlib._bootstrap>:228: RuntimeWarning: pyverbs.qp.QPInitAttrEx size changed, may indicate binary incompatibility. Expected 208 from C header, got 216 from PyObject
+>>
+>> <frozen importlib._bootstrap>:228: RuntimeWarning: pyverbs.pd.PD size changed, may indicate binary incompatibility. Expected 128 from C header, got 136 from PyObject
+>>
+>> <frozen importlib._bootstrap>:228: RuntimeWarning: pyverbs.pd.ParentDomain size changed, may indicate binary incompatibility. Expected 144 from C header, got 152 from PyObject
+>>
+>> <frozen importlib._bootstrap>:228: RuntimeWarning: pyverbs.providers.mlx5.mlx5dv.Mlx5Context size changed, may indicate binary incompatibility. Expected 192 from C header, got 200 from PyObject
+>>
+>>
+>> It seems the headers in rdma-core and the kernel are out of sync. I just pulled fresh bits from both.
+> 
+> 
+> I don't think it has to do with kernel, that looks like a python
+> compilation problem. Rebuild a fresh rdma-core and make sure it is not
+> mixing and matching shared librarie somehow
+> 
+> Jason
 
->> /kisskb/src/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c:
->> error: case label does not reduce to an integer constant: => 3798:2,
->> 3809:2
->
-> arm64-gcc5.4/arm64-allmodconfig
-> powerpc-gcc5/powerpc-allmodconfig
-> powerpc-gcc5/ppc64_book3e_allmodconfig
+I removed rdma-core/build and rebuilt everything. That fixed it.
 
-After v5.17 there were two commits to brcmfmac/sdio.c:
-
-$ git log --oneline v5.17.. drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
-ed26edf7bfd9 brcmfmac: Add BCM43454/6 support
-6d766d8cb505 brcmfmac: pcie: Declare missing firmware files in pcie.c
-
-I can't see how either of them could cause this warning. Could something
-else cause this or am I missing something?
-
--- 
-https://patchwork.kernel.org/project/linux-wireless/list/
-
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+Thanks.
