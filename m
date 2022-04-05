@@ -2,100 +2,153 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3F4AC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4FACC433F5
 	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 02:08:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442947AbiDFCFu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Apr 2022 22:05:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48742 "EHLO
+        id S1442134AbiDFCFm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Apr 2022 22:05:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1573251AbiDESdW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Apr 2022 14:33:22 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 788F713F6F;
-        Tue,  5 Apr 2022 11:31:23 -0700 (PDT)
+        with ESMTP id S1573712AbiDETut (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Apr 2022 15:50:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27A861B7B3;
+        Tue,  5 Apr 2022 12:48:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2573EB81E2E;
-        Tue,  5 Apr 2022 18:31:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 658C7C385A1;
-        Tue,  5 Apr 2022 18:31:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D3EB8618DF;
+        Tue,  5 Apr 2022 19:48:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23A35C385A3;
+        Tue,  5 Apr 2022 19:48:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649183480;
-        bh=1hnkQYUuoWkC4yQdqZXmunRlJ4PgNWR3bFFQPi+NKyg=;
+        s=k20201202; t=1649188127;
+        bh=3cx2HlRw5UuwWQnD4r+Bq8Bs1343pRf5RQaY1RJUjFg=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=WAh2iBjp+FfhVbPaBSaaW1gZl23WvY8W7NK7nD02Ge6408pU+/hV1gDEDnPZmTwzw
-         7QyNLelnig/aEflwUslwjCPrVhDTGVt/I1ic0FVr2Yo2r7/9geSY8WOPoxytkS7M//
-         Z8WU+k2aZq2HLB4Y7/a+5Tc9FckxgyPiLy9TuAXn70Vh311gcXeoSufKgqtzpneRYe
-         m4TOGfewkusTEIbOAyBax6kd88obeERSAjxC9l7yhfuczjIVHVZlC/yiSEaEpcAWgV
-         bh9TDfaQ4FGOzXWJIjaS2mtFXSBHxzgyNoN6TpmYbpg/3yBdEKaQVudQgYDbbMSHrX
-         BknM8GzlOpsuw==
-Date:   Tue, 5 Apr 2022 21:31:16 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Borislav Petkov <bp@alien8.de>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
-        Saeed Mahameed <saeedm@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Jason Gunthorpe <jgg@nvidia.com>,
-        Jakub Kicinski <kuba@kernel.org>
-Subject: Re: [PATCH 10/11] IB/mlx5: Fix undefined behavior due to shift
- overflowing the constant
-Message-ID: <YkyK9NfN57ldFuyY@unreal>
-References: <20220405151517.29753-1-bp@alien8.de>
- <20220405151517.29753-11-bp@alien8.de>
+        b=gn5j0EirRVPADPDCHdFHvxrX19bAfA7ZY649lONoQ0JI8Kv8e3MG5cIPjMESNQgWQ
+         M2YAt6biR1xLVV1tWDhzNPPIOVQZgu+dbDngcHTIcc62HxOjUvKTH9Uus19CGgbOYn
+         JQ6vSzmFyOaMHBhUPcFd26KaOaJvv9hMwCAsvlBmUD/HsatZ81a07IILcspGIopIxv
+         LDRbIhkuQeHq2zKPzE9OfY/1zteVNTBQ2GyrJD+56QA+pQq5ekvJgeoliwSc+I3N8w
+         DYY7OqlxJRhgEhMTaT2KIC3FN253Qary9ggacWM4OAB5YcRG9HVryFLmt8m4SzmzQI
+         j40FwCAobAUew==
+Date:   Tue, 5 Apr 2022 12:48:45 -0700
+From:   Saeed Mahameed <saeed@kernel.org>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Jason Gunthorpe <jgg@nvidia.com>,
+        Patrisious Haddad <phaddad@nvidia.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Yishai Hadas <yishaih@nvidia.com>
+Subject: Re: [PATCH mlx5-next 1/3] net/mlx5: Nullify eq->dbg and qp->dbg
+ pointers post destruction
+Message-ID: <20220405194845.c443x4gf522c2kgv@sx1>
+References: <cover.1649139915.git.leonro@nvidia.com>
+ <032d54e1ed92d0f288b385d6343a5b6e109daabe.1649139915.git.leonro@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20220405151517.29753-11-bp@alien8.de>
+In-Reply-To: <032d54e1ed92d0f288b385d6343a5b6e109daabe.1649139915.git.leonro@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Apr 05, 2022 at 05:15:16PM +0200, Borislav Petkov wrote:
-> From: Borislav Petkov <bp@suse.de>
-> 
-> Fix:
-> 
->   drivers/infiniband/hw/mlx5/main.c: In function ‘translate_eth_legacy_proto_oper’:
->   drivers/infiniband/hw/mlx5/main.c:370:2: error: case label does not reduce to an integer constant
->     case MLX5E_PROT_MASK(MLX5E_50GBASE_KR2):
->     ^~~~
-> 
-> See https://lore.kernel.org/r/YkwQ6%2BtIH8GQpuct@zn.tnic for the gory
-> details as to why it triggers with older gccs only.
-> 
-> Signed-off-by: Borislav Petkov <bp@suse.de>
-> Cc: Leon Romanovsky <leon@kernel.org>
-> Cc: Saeed Mahameed <saeedm@nvidia.com>
-> Cc: linux-rdma@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> ---
->  include/linux/mlx5/port.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+On 05 Apr 11:12, Leon Romanovsky wrote:
+>From: Patrisious Haddad <phaddad@nvidia.com>
+>
+>Prior to this patch in the case that destroy_unmap_eq()
+>failed and was called again, it triggered an additional call of
 
-I would like to take this patch to mlx5-next, but it didn't show
-nor in patchworks [1] nor in lore [2].
+Where is it being failed and called again ? this shouldn't even be an
+option, we try to keep mlx5 symmetrical, constructors and destructors are
+supposed to be called only once in their respective positions.
+the callers must be fixed to avoid re-entry, or change destructors to clear
+up all resources even on failures, no matter what do not invent a reentry
+protocols to mlx5 destructors.
 
-Thanks
+>mlx5_debug_eq_remove() which causes a kernel crash, since
+>eq->dbg was not nullified in previous call.
+>
 
-[1] https://patchwork.kernel.org/project/linux-rdma/list/
-[2] https://lore.kernel.org/linux-rdma/
+[...]
 
-> 
-> diff --git a/include/linux/mlx5/port.h b/include/linux/mlx5/port.h
-> index 28a928b0684b..e96ee1e348cb 100644
-> --- a/include/linux/mlx5/port.h
-> +++ b/include/linux/mlx5/port.h
-> @@ -141,7 +141,7 @@ enum mlx5_ptys_width {
->  	MLX5_PTYS_WIDTH_12X	= 1 << 4,
->  };
->  
-> -#define MLX5E_PROT_MASK(link_mode) (1 << link_mode)
-> +#define MLX5E_PROT_MASK(link_mode) (1U << link_mode)
->  #define MLX5_GET_ETH_PROTO(reg, out, ext, field)	\
->  	(ext ? MLX5_GET(reg, out, ext_##field) :	\
->  	MLX5_GET(reg, out, field))
-> -- 
-> 2.35.1
-> 
+> int mlx5_debug_cq_add(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq)
+>diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+>index 229728c80233..3c61f355cdac 100644
+>--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+>+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+>@@ -386,16 +386,20 @@ void mlx5_eq_disable(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
+> }
+> EXPORT_SYMBOL(mlx5_eq_disable);
+>
+>-static int destroy_unmap_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
+>+static int destroy_unmap_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
+>+			    bool reentry)
+> {
+> 	int err;
+>
+> 	mlx5_debug_eq_remove(dev, eq);
+>
+> 	err = mlx5_cmd_destroy_eq(dev, eq->eqn);
+>-	if (err)
+>+	if (err) {
+> 		mlx5_core_warn(dev, "failed to destroy a previously created eq: eqn %d\n",
+> 			       eq->eqn);
+>+		if (reentry)
+>+			return err;
+>+	}
+>
+> 	mlx5_frag_buf_free(dev, &eq->frag_buf);
+> 	return err;
+>@@ -481,7 +485,7 @@ static int destroy_async_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
+> 	int err;
+>
+> 	mutex_lock(&eq_table->lock);
+>-	err = destroy_unmap_eq(dev, eq);
+>+	err = destroy_unmap_eq(dev, eq, false);
+> 	mutex_unlock(&eq_table->lock);
+> 	return err;
+> }
+>@@ -748,12 +752,15 @@ EXPORT_SYMBOL(mlx5_eq_create_generic);
+>
+> int mlx5_eq_destroy_generic(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
+> {
+>+	struct mlx5_eq_table *eq_table = dev->priv.eq_table;
+> 	int err;
+>
+> 	if (IS_ERR(eq))
+> 		return -EINVAL;
+>
+>-	err = destroy_async_eq(dev, eq);
+>+	mutex_lock(&eq_table->lock);
+
+Here you are inventing the re-entry. 
+Please drop this and fix properly. And avoid boolean parameters to mlx5 core
+functions as much as possible, let's keep mlx5_core simple.
+
+>+	err = destroy_unmap_eq(dev, eq, true);
+>+	mutex_unlock(&eq_table->lock);
+> 	if (err)
+> 		goto out;
+>
+>@@ -851,7 +858,7 @@ static void destroy_comp_eqs(struct mlx5_core_dev *dev)
+> 	list_for_each_entry_safe(eq, n, &table->comp_eqs_list, list) {
+> 		list_del(&eq->list);
+> 		mlx5_eq_disable(dev, &eq->core, &eq->irq_nb);
+>-		if (destroy_unmap_eq(dev, &eq->core))
+>+		if (destroy_unmap_eq(dev, &eq->core, false))
+> 			mlx5_core_warn(dev, "failed to destroy comp EQ 0x%x\n",
+> 				       eq->core.eqn);
+> 		tasklet_disable(&eq->tasklet_ctx.task);
+>@@ -915,7 +922,7 @@ static int create_comp_eqs(struct mlx5_core_dev *dev)
+> 			goto clean_eq;
+> 		err = mlx5_eq_enable(dev, &eq->core, &eq->irq_nb);
+> 		if (err) {
+>-			destroy_unmap_eq(dev, &eq->core);
+>+			destroy_unmap_eq(dev, &eq->core, false);
+> 			goto clean_eq;
+> 		}
+>
+>-- 
+>2.35.1
+>
