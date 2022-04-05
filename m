@@ -2,62 +2,52 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CCA7C43217
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 02:08:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DEF4C4332F
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 02:08:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357709AbiDFCFI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Apr 2022 22:05:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59576 "EHLO
+        id S1386818AbiDFCF0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Apr 2022 22:05:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1573718AbiDETwl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Apr 2022 15:52:41 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8953E1B7AB
-        for <linux-rdma@vger.kernel.org>; Tue,  5 Apr 2022 12:50:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1649188240;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=BMvE598geYS7AsLGKolv801H0ecrutTt3W25tuDKPtk=;
-        b=VNcgCIl5LJHJawXZznG2tNgYk2irfqbxlQBZFdqRpFDA0H59shSI7qoj5qlC1RD5j/+uKZ
-        D3BlDj7mxDRTH53j23FhvdfUUkBsMgHnia9kco3Uf/i430/R0QzUsUhUSyIbjI+uuSHyip
-        uUWkEjX2aqjQcoZTWb5gU9H3Iq11Bho=
-Received: from mail-io1-f71.google.com (mail-io1-f71.google.com
- [209.85.166.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-440-DHCoCz4WM9mQy33cdrGk6w-1; Tue, 05 Apr 2022 15:50:39 -0400
-X-MC-Unique: DHCoCz4WM9mQy33cdrGk6w-1
-Received: by mail-io1-f71.google.com with SMTP id y3-20020a056602178300b00645d25c30c1so212768iox.6
-        for <linux-rdma@vger.kernel.org>; Tue, 05 Apr 2022 12:50:39 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
-         :references:organization:mime-version:content-transfer-encoding;
-        bh=BMvE598geYS7AsLGKolv801H0ecrutTt3W25tuDKPtk=;
-        b=PIFiyruAwhCafcOta8Io6/l4LZNM+iqS2+vKPkn/pWfDqBTR4v0g3vHBl1QSwhaxFB
-         bVKFFebz3nBcYW5p7VTDPpFEmQHBfjQSAqoKSRR7RrGgjyvorEtq1ztvD77FuoGi3K+G
-         x0MD0S12piNGUaQJjucJ8SD5ILiXlXClBIKYVyj6DbFzwyOvzl+AmEuDnb82OcxiTKTd
-         CjdiU20jCFNbOS5JPi+xOlUDD2yzeQFWbmqAurFREz1FsyYHWtiEnxaNGbIceB13ZIpU
-         z3dNohjpD+sWWcguZRoGzucLX1WOV8gUP3+lSngOLxG3UbwvDmaYuPt7uitsgXpjz5Fe
-         AIpw==
-X-Gm-Message-State: AOAM532l6wPleaMGwcpj2/H9RWEQOJy0rR6J0a0zBQLwqKYNZQndxnhX
-        209RT+Y5wUiY8ReLxFgkhWH3JzHFVCunPxOTgJjk+et/Pm2UnKzSR1Dl8tuaj2SLs/x1Q6crZpy
-        NMj44ZmjPLwjnWWsS2mmwMw==
-X-Received: by 2002:a02:29c2:0:b0:323:a234:9df7 with SMTP id p185-20020a0229c2000000b00323a2349df7mr2968420jap.43.1649188238739;
-        Tue, 05 Apr 2022 12:50:38 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyCZgg4vIZs3ezp1ecKFvBApBInnRyJCHzNn5JkctUv/g96VC+Jzbb1H1znHS07OnzGhGeLgw==
-X-Received: by 2002:a02:29c2:0:b0:323:a234:9df7 with SMTP id p185-20020a0229c2000000b00323a2349df7mr2968392jap.43.1649188238422;
-        Tue, 05 Apr 2022 12:50:38 -0700 (PDT)
-Received: from redhat.com ([38.15.36.239])
-        by smtp.gmail.com with ESMTPSA id 13-20020a056e0211ad00b002ca32cb7a18sm5029165ilj.49.2022.04.05.12.50.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Apr 2022 12:50:37 -0700 (PDT)
-Date:   Tue, 5 Apr 2022 13:50:36 -0600
-From:   Alex Williamson <alex.williamson@redhat.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Lu Baolu <baolu.lu@linux.intel.com>,
+        with ESMTP id S1457615AbiDEQSJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Apr 2022 12:18:09 -0400
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2040.outbound.protection.outlook.com [40.107.236.40])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BEA519C11;
+        Tue,  5 Apr 2022 09:16:10 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=WlznvIoPpsBceogC2J1a/886h2l4nluzDEbt9aTGv0GEc3tnDmjneudkJB+m5DwQFAJEwZ0GszMBG0EKmCxWM+j3Zq/hjQ8qM/WZ8EwTOwq+xQ4IdyP/wGvY0lmuRO6Y0ldC511dSBfx8WIC8uUZ+d0utlx7wIc1XCoLwpRmXEt9YZo/07GMBLXCf/lVeFlV6PfWWnbAUpYhjjTvYu0gh8+vkE8n1Fn/t2KHU6QRE5dK6s8imn4ooueDssx8SI8T5A8Ca/AMygQ282v1S72zeMDdmdRj8e2aY1RO4ytCpHiPC7qyM7bNA/qI/Rrk48SWT1yQxnb9yNoUg3xNsc5gmg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=MrbA4VAIicUckPy/EYaYXdM1hvuSyWyOMmfOfHNRYjI=;
+ b=krYDiJwv+Ty3i1cLjSlLBL2P4L7KDktKFTCtdd9JuybLXxJ3HQBfh9p26Mk+AwmKxUPGNZVZ/vFY3xecdaPV8N+zCeCXiYXLTrZ8UsvRqCbdB5lIRFdDs1J4L2oZD/OnKORR/F6yPqVkbuZZolrZKnQeCApEKSi3XlqFHhxqBBZTdkYf4iaUZFijcnVSqdwG9Z9rtHZXDWqusyU5H+iwGgyDhFeD/rmhg/AmrvtZ0x1zcdBd5cUkiYLvpOEL+dOl67ZF7StQ8Cw0r7E/fSTvxSLMg0sN2EDhRqWbTqP6LNgYk1ZOJZSc2R6U/+ziG95mVx/tIUDk8sxZ3haU5OVHGA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=MrbA4VAIicUckPy/EYaYXdM1hvuSyWyOMmfOfHNRYjI=;
+ b=AEDCNcB46EBnLcxCHrpxMykKLmnyrDFZFfGhZ175ildDcV/77ySXnS6e6MrcvavNMxqGa2K9xe4yDsn0cIzwpny03KyLGmRl5mNxVabhXMQRqtvhoiEUsm4YUxSAw1WhWNSB4RzMh8+KgkxYIUaAL6xbWaKHq9060OKYNlkDSZs1NDnqheVni4ErKkBI/sEe8GTe1ru1G1dZE6D6JsFOiudIxE7hCdfsM+75QW2Fg8jQC+a1fm838CphpkR2SE+vQnxMZDm4kGkpB5A2ntYksjAjAyfZS+81Z0B8lICH08zYQnZOT898cMx6Y8FrERLDVXqHGpkWWWmjv31taICtCA==
+Received: from BN6PR12MB1153.namprd12.prod.outlook.com (2603:10b6:404:19::17)
+ by DM4PR12MB5818.namprd12.prod.outlook.com (2603:10b6:8:62::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5123.31; Tue, 5 Apr
+ 2022 16:16:07 +0000
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
+ by BN6PR12MB1153.namprd12.prod.outlook.com (2603:10b6:404:19::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5123.31; Tue, 5 Apr
+ 2022 16:16:06 +0000
+Received: from MN2PR12MB4192.namprd12.prod.outlook.com
+ ([fe80::cdfb:f88e:410b:9374]) by MN2PR12MB4192.namprd12.prod.outlook.com
+ ([fe80::cdfb:f88e:410b:9374%5]) with mapi id 15.20.5123.031; Tue, 5 Apr 2022
+ 16:16:06 +0000
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Alex Williamson <alex.williamson@redhat.com>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
         Christian Benvenuti <benve@cisco.com>,
         Cornelia Huck <cohuck@redhat.com>,
         David Woodhouse <dwmw2@infradead.org>,
@@ -74,173 +64,155 @@ Cc:     Lu Baolu <baolu.lu@linux.intel.com>,
         Robin Murphy <robin.murphy@arm.com>,
         Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
         virtualization@lists.linux-foundation.org,
-        Will Deacon <will@kernel.org>, Christoph Hellwig <hch@lst.de>,
+        Will Deacon <will@kernel.org>
+Cc:     Christoph Hellwig <hch@lst.de>,
         "Tian, Kevin" <kevin.tian@intel.com>
-Subject: Re: [PATCH 3/5] iommu: Introduce the domain op
- enforce_cache_coherency()
-Message-ID: <20220405135036.4812c51e.alex.williamson@redhat.com>
-In-Reply-To: <3-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
-References: <0-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
-        <3-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
-Organization: Red Hat
+Subject: [PATCH 1/5] iommu: Replace uses of IOMMU_CAP_CACHE_COHERENCY with dev_is_dma_coherent()
+Date:   Tue,  5 Apr 2022 13:16:00 -0300
+Message-Id: <1-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
+In-Reply-To: <0-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
+References: 
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: BL1PR13CA0326.namprd13.prod.outlook.com
+ (2603:10b6:208:2c1::31) To MN2PR12MB4192.namprd12.prod.outlook.com
+ (2603:10b6:208:1d5::15)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: a76cff61-cc69-446f-32e5-08da171f95d8
+X-MS-TrafficTypeDiagnostic: BN6PR12MB1153:EE_|DM4PR12MB5818:EE_
+X-Microsoft-Antispam-PRVS: <BN6PR12MB1153CD045BAAB062DA245934C2E49@BN6PR12MB1153.namprd12.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: xzQC0aqYOeg8VnV919OqNJq1tIvQ8GQ58gW1ZNUauthYOGTmNulwg+1kTqf/2A+eeTeKeRMfmzPVSFGS8GZK6cal95/0s5EbffNBz4EXbUnV5f0v1KgT6QOmQ6zc4U1XcQbXVF9zwzpTL48OreKLpwY39obvcLukD/ZhW4UfZqi4Q+5vDLgTsEgWbshjlAON8esbprWwZOA343LT+x0H7uSnEeuJTdv8g0Ar99SzntMgq0cvyq+IGqQrjSuACTSxVIYzDL9ndIjGjywbB7hzw4kJgovOVaL4YKsqnypk+2rHAslaAbEVwz6DUnAgsKop5Sxe6s/vAqlToOULdvtuDPiylOLF+LoL6o0VPEJAHTsLMJaXESiTF1TD3ws9jafBnrj3JIvFWDYee/mApsLXFk5N2/mOv+XcuA2vKHLUJSa6iLCowHjGMj4xcAV7DsazJ0HXv6o3wlpkapzdjdynSHN5a4GW0CzjZ/q9WjEXT5KoNu4Ln+ShmY1V/WBDMLRxSVWCiGhDIfEts7eKBp4AUepbbOlb0Thmwb4cVISTKKwrUiijAZjQlOyt4PPFqRGP6Pqa+M2A8+rv8SZXsbMNaGZqDcZPpJ+syPxHC/eQ24CeQvlFPmkJqc1ZPBahiUSpsr0NPr0FHYCSWKVX3ytYgH0U3PP3tGKBHjMIUqS7MlOqie770Au9Z5aMXtSh5Y/T86wXddyzsVjnQOH3OvQRkQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN6PR12MB1153.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(6486002)(508600001)(7416002)(8936002)(6512007)(5660300002)(2906002)(83380400001)(36756003)(316002)(110136005)(66946007)(38100700002)(186003)(6666004)(54906003)(6506007)(921005)(26005)(86362001)(66476007)(66556008)(4326008)(2616005)(8676002)(4216001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?9Xjb03ZbzKPf+LebL/vGg+6WgyoskAcG5ujOhTS72JpFDTuVXqu/e4kQnbr/?=
+ =?us-ascii?Q?iEWobnEZB09bdLJwFCISwfji0CQqP8XYU1p2ZplalNJVZl1DmW5zNZeuJ1We?=
+ =?us-ascii?Q?ZYDgTby4nNngxbnsQfy1zTPSR74FXwQPS0pBI+31aV11CZ0eVE9+nVZ9iFXO?=
+ =?us-ascii?Q?J2YPGoIjGY8kOA4K91SXjVlh38AqNzeKL/9hX3W+aORmKPNhREXz1BsIRDLv?=
+ =?us-ascii?Q?m0ng9uW3W15TlgnkL208TIyiCmwbZtQcURPbh6pH24msIhnk1zN+kvRLvwc8?=
+ =?us-ascii?Q?h/4koa2yNHdQNB2DLm5zrHwJVtfu0n6qwYMmjrdkHxbUB6yI2XWOCyAy77kR?=
+ =?us-ascii?Q?1U34B29NPCTysDpyY9E5w/8zIe7QImG8RCnnx8SpyNNYKE3AsMlkoLcsIMsu?=
+ =?us-ascii?Q?FyiCYQifvKpOa4qDv6cRZgbHWfAl81BFOdjM+k5kS4yBUIUypQ0+eJqkY+9S?=
+ =?us-ascii?Q?FS7ldwUQ7LjexAGG0hc0RBLuISxtXCFRBSJxi/DIwyc92RjTE3EurBAOirh+?=
+ =?us-ascii?Q?S43jR02QUaknjvS6ugyulv/8EOGFLODy04gcLr7BU71J6CHrTDtFv/VHQDJ5?=
+ =?us-ascii?Q?U4Pj4EEYqb4ZrccQrye5D1XYPGE7Mq7y42F5vX40uLAzyri1me/Xr3c6zP8d?=
+ =?us-ascii?Q?K8t6MyZ02oacFKyn4EOdpziGVTNJqS8blFPyCGhkjD/lf+AJPhgvPPRhZ0zs?=
+ =?us-ascii?Q?5I3fdPjSoO0wG98lCa54ohT9yAYnAX3YaRnCEYpz1FgYRRhoRq3t5zVRL/DJ?=
+ =?us-ascii?Q?W7i4OiBsmXF7l4gg1/0gvH4KL68wCv4BpUZu2MZ+ks6KzgOptry4XCWGqwRp?=
+ =?us-ascii?Q?ntr7peHFmTSbvATlpvAPa6eRk4+GYsK+2ItgzzGNyJAeMj2YCSC3YUlrYsGM?=
+ =?us-ascii?Q?r0oX/FVp9tzO7QNDpqSZQ6W7zaFYCzmWC/UmYThojdz4sfhz153poO1vPZ4r?=
+ =?us-ascii?Q?KTTqz3IprIe+q8cJ6rob8QHhALE9NE5QvX/58bT94rmgPfDEuv91iH61k8z4?=
+ =?us-ascii?Q?GBjjDBiGxaE1gO+ktaFdeWwzZTnNP90QsoxTE5aeRHz4q97xeQN6tUqdXKOX?=
+ =?us-ascii?Q?B4Wwg/qTxB0j0JfGYviFZEuvQ2wHP7AQv17cEk3dHQY9KLj6k9VPwn4tiHyb?=
+ =?us-ascii?Q?PJotLWhw78D4UbpkDv7VxyOatPmEXrORT/li2wzhe00mgdGv7nC3wFVZtsIi?=
+ =?us-ascii?Q?j1tM8rapIy7BKFeunnPl34Ke5vioK5A8KaRraDos5lCT/yTRZCx4giVvMR6H?=
+ =?us-ascii?Q?lcMISNdUD525AJdmUfOxL/iG7mM+Fd6LBzPwnYloIku4HluSF3T362grTg6a?=
+ =?us-ascii?Q?mYKq/+6I1ywuh5XFALC8oS1VGoihaLYCVEH2m0JUTkepa8U4oTn8yihVcBul?=
+ =?us-ascii?Q?15dPJiBOfzs7uaPR+OYePbMW56rPIe2IPDq1Yf5ofqrw6/rNZDaFRbjbSirw?=
+ =?us-ascii?Q?8S6d7TkHmA11o581ifW4vDFGpncg8GFZWZaju5FGzglDgFHzEbeOrwundOH5?=
+ =?us-ascii?Q?vXgILfr1cs6QgEsqXIjDWBq+t7kWPNexTqBp4zhvURX4FfbYzaL9HeVzwRG/?=
+ =?us-ascii?Q?c8UIuR444PCuqVIkgUMRWzlrao5mDJW3piP+4MRPGMWPQB8I4uomI4HxxbyX?=
+ =?us-ascii?Q?nA0XuzExRLtHD65gTGjsJLjHXXnIfErCieZGZki0PiBuP5nCg7arbLLZgh4Y?=
+ =?us-ascii?Q?kfKjBIPcpYFiuiadE6UcaYLaTnFRVnxlU9TdOar0nZPknrc43pjiVbHEev5I?=
+ =?us-ascii?Q?7Trb6nh22A=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a76cff61-cc69-446f-32e5-08da171f95d8
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Apr 2022 16:16:05.8319
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: tOC6IVCw74JlEEA2Z6+d15Crt/32cBJBG7ZeFvifzh4UHBHoOJ4nStlzM0FxuSYr
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB5818
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue,  5 Apr 2022 13:16:02 -0300
-Jason Gunthorpe <jgg@nvidia.com> wrote:
+vdpa and usnic are trying to test if IOMMU_CACHE is supported. The correct
+way to do this is via dev_is_dma_coherent() like the DMA API does. If
+IOMMU_CACHE is not supported then these drivers won't work as they don't
+call any coherency-restoring routines around their DMAs.
 
-> This new mechanism will replace using IOMMU_CAP_CACHE_COHERENCY and
-> IOMMU_CACHE to control the no-snoop blocking behavior of the IOMMU.
-> 
-> Currently only Intel and AMD IOMMUs are known to support this
-> feature. They both implement it as an IOPTE bit, that when set, will cause
-> PCIe TLPs to that IOVA with the no-snoop bit set to be treated as though
-> the no-snoop bit was clear.
-> 
-> The new API is triggered by calling enforce_cache_coherency() before
-> mapping any IOVA to the domain which globally switches on no-snoop
-> blocking. This allows other implementations that might block no-snoop
-> globally and outside the IOPTE - AMD also documents such an HW capability.
-> 
-> Leave AMD out of sync with Intel and have it block no-snoop even for
-> in-kernel users. This can be trivially resolved in a follow up patch.
-> 
-> Only VFIO will call this new API.
-> 
-> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-> ---
->  drivers/iommu/amd/iommu.c   |  7 +++++++
->  drivers/iommu/intel/iommu.c | 14 +++++++++++++-
->  include/linux/intel-iommu.h |  1 +
->  include/linux/iommu.h       |  4 ++++
->  4 files changed, 25 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/iommu/amd/iommu.c b/drivers/iommu/amd/iommu.c
-> index a1ada7bff44e61..e500b487eb3429 100644
-> --- a/drivers/iommu/amd/iommu.c
-> +++ b/drivers/iommu/amd/iommu.c
-> @@ -2271,6 +2271,12 @@ static int amd_iommu_def_domain_type(struct device *dev)
->  	return 0;
->  }
->  
-> +static bool amd_iommu_enforce_cache_coherency(struct iommu_domain *domain)
-> +{
-> +	/* IOMMU_PTE_FC is always set */
-> +	return true;
-> +}
-> +
->  const struct iommu_ops amd_iommu_ops = {
->  	.capable = amd_iommu_capable,
->  	.domain_alloc = amd_iommu_domain_alloc,
-> @@ -2293,6 +2299,7 @@ const struct iommu_ops amd_iommu_ops = {
->  		.flush_iotlb_all = amd_iommu_flush_iotlb_all,
->  		.iotlb_sync	= amd_iommu_iotlb_sync,
->  		.free		= amd_iommu_domain_free,
-> +		.enforce_cache_coherency = amd_iommu_enforce_cache_coherency,
->  	}
->  };
->  
-> diff --git a/drivers/iommu/intel/iommu.c b/drivers/iommu/intel/iommu.c
-> index df5c62ecf942b8..f08611a6cc4799 100644
-> --- a/drivers/iommu/intel/iommu.c
-> +++ b/drivers/iommu/intel/iommu.c
-> @@ -4422,7 +4422,8 @@ static int intel_iommu_map(struct iommu_domain *domain,
->  		prot |= DMA_PTE_READ;
->  	if (iommu_prot & IOMMU_WRITE)
->  		prot |= DMA_PTE_WRITE;
-> -	if ((iommu_prot & IOMMU_CACHE) && dmar_domain->iommu_snooping)
-> +	if (((iommu_prot & IOMMU_CACHE) && dmar_domain->iommu_snooping) ||
-> +	    dmar_domain->enforce_no_snoop)
->  		prot |= DMA_PTE_SNP;
->  
->  	max_addr = iova + size;
-> @@ -4545,6 +4546,16 @@ static phys_addr_t intel_iommu_iova_to_phys(struct iommu_domain *domain,
->  	return phys;
->  }
->  
-> +static bool intel_iommu_enforce_cache_coherency(struct iommu_domain *domain)
-> +{
-> +	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
-> +
-> +	if (!dmar_domain->iommu_snooping)
-> +		return false;
-> +	dmar_domain->enforce_no_snoop = true;
-> +	return true;
-> +}
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+---
+ drivers/infiniband/hw/usnic/usnic_uiom.c | 16 +++++++---------
+ drivers/vhost/vdpa.c                     |  3 ++-
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
-Don't we have issues if we try to set DMA_PTE_SNP on DMARs that don't
-support it, ie. reserved register bit set in pte faults?  It seems
-really inconsistent here that I could make a domain that supports
-iommu_snooping, set enforce_no_snoop = true, then add another DMAR to
-the domain that may not support iommu_snooping, I'd get false on the
-subsequent enforcement test, but the dmar_domain is still trying to use
-DMA_PTE_SNP.
-
-There's also a disconnect, maybe just in the naming or documentation,
-but if I call enforce_cache_coherency for a domain, that seems like the
-domain should retain those semantics regardless of how it's modified,
-ie. "enforced".  For example, if I tried to perform the above operation,
-I should get a failure attaching the device that brings in the less
-capable DMAR because the domain has been set to enforce this feature.
-
-If the API is that I need to re-enforce_cache_coherency on every
-modification of the domain, shouldn't dmar_domain->enforce_no_snoop
-also return to a default value on domain changes?
-
-Maybe this should be something like set_no_snoop_squashing with the
-above semantics, it needs to be re-applied whenever the domain:device
-composition changes?  Thanks,
-
-Alex
-
-> +
->  static bool intel_iommu_capable(enum iommu_cap cap)
->  {
->  	if (cap == IOMMU_CAP_CACHE_COHERENCY)
-> @@ -4898,6 +4909,7 @@ const struct iommu_ops intel_iommu_ops = {
->  		.iotlb_sync		= intel_iommu_tlb_sync,
->  		.iova_to_phys		= intel_iommu_iova_to_phys,
->  		.free			= intel_iommu_domain_free,
-> +		.enforce_cache_coherency = intel_iommu_enforce_cache_coherency,
->  	}
->  };
->  
-> diff --git a/include/linux/intel-iommu.h b/include/linux/intel-iommu.h
-> index 2f9891cb3d0014..1f930c0c225d94 100644
-> --- a/include/linux/intel-iommu.h
-> +++ b/include/linux/intel-iommu.h
-> @@ -540,6 +540,7 @@ struct dmar_domain {
->  	u8 has_iotlb_device: 1;
->  	u8 iommu_coherency: 1;		/* indicate coherency of iommu access */
->  	u8 iommu_snooping: 1;		/* indicate snooping control feature */
-> +	u8 enforce_no_snoop : 1;        /* Create IOPTEs with snoop control */
->  
->  	struct list_head devices;	/* all devices' list */
->  	struct iova_domain iovad;	/* iova's that belong to this domain */
-> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> index 9208eca4b0d1ac..fe4f24c469c373 100644
-> --- a/include/linux/iommu.h
-> +++ b/include/linux/iommu.h
-> @@ -272,6 +272,9 @@ struct iommu_ops {
->   * @iotlb_sync: Flush all queued ranges from the hardware TLBs and empty flush
->   *            queue
->   * @iova_to_phys: translate iova to physical address
-> + * @enforce_cache_coherency: Prevent any kind of DMA from bypassing IOMMU_CACHE,
-> + *                           including no-snoop TLPs on PCIe or other platform
-> + *                           specific mechanisms.
->   * @enable_nesting: Enable nesting
->   * @set_pgtable_quirks: Set io page table quirks (IO_PGTABLE_QUIRK_*)
->   * @free: Release the domain after use.
-> @@ -300,6 +303,7 @@ struct iommu_domain_ops {
->  	phys_addr_t (*iova_to_phys)(struct iommu_domain *domain,
->  				    dma_addr_t iova);
->  
-> +	bool (*enforce_cache_coherency)(struct iommu_domain *domain);
->  	int (*enable_nesting)(struct iommu_domain *domain);
->  	int (*set_pgtable_quirks)(struct iommu_domain *domain,
->  				  unsigned long quirks);
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+index 760b254ba42d6b..24d118198ac756 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -42,6 +42,7 @@
+ #include <linux/list.h>
+ #include <linux/pci.h>
+ #include <rdma/ib_verbs.h>
++#include <linux/dma-map-ops.h>
+ 
+ #include "usnic_log.h"
+ #include "usnic_uiom.h"
+@@ -474,6 +475,12 @@ int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev)
+ 	struct usnic_uiom_dev *uiom_dev;
+ 	int err;
+ 
++	if (!dev_is_dma_coherent(dev)) {
++		usnic_err("IOMMU of %s does not support cache coherency\n",
++				dev_name(dev));
++		return -EINVAL;
++	}
++
+ 	uiom_dev = kzalloc(sizeof(*uiom_dev), GFP_ATOMIC);
+ 	if (!uiom_dev)
+ 		return -ENOMEM;
+@@ -483,13 +490,6 @@ int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev)
+ 	if (err)
+ 		goto out_free_dev;
+ 
+-	if (!iommu_capable(dev->bus, IOMMU_CAP_CACHE_COHERENCY)) {
+-		usnic_err("IOMMU of %s does not support cache coherency\n",
+-				dev_name(dev));
+-		err = -EINVAL;
+-		goto out_detach_device;
+-	}
+-
+ 	spin_lock(&pd->lock);
+ 	list_add_tail(&uiom_dev->link, &pd->devs);
+ 	pd->dev_cnt++;
+@@ -497,8 +497,6 @@ int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev)
+ 
+ 	return 0;
+ 
+-out_detach_device:
+-	iommu_detach_device(pd->domain, dev);
+ out_free_dev:
+ 	kfree(uiom_dev);
+ 	return err;
+diff --git a/drivers/vhost/vdpa.c b/drivers/vhost/vdpa.c
+index 4c2f0bd062856a..05ea5800febc37 100644
+--- a/drivers/vhost/vdpa.c
++++ b/drivers/vhost/vdpa.c
+@@ -22,6 +22,7 @@
+ #include <linux/vdpa.h>
+ #include <linux/nospec.h>
+ #include <linux/vhost.h>
++#include <linux/dma-map-ops.h>
+ 
+ #include "vhost.h"
+ 
+@@ -929,7 +930,7 @@ static int vhost_vdpa_alloc_domain(struct vhost_vdpa *v)
+ 	if (!bus)
+ 		return -EFAULT;
+ 
+-	if (!iommu_capable(bus, IOMMU_CAP_CACHE_COHERENCY))
++	if (!dev_is_dma_coherent(dma_dev))
+ 		return -ENOTSUPP;
+ 
+ 	v->domain = iommu_domain_alloc(bus);
+-- 
+2.35.1
 
