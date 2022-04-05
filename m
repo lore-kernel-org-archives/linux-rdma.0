@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D230FC4332F
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Apr 2022 08:23:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD604C433FE
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Apr 2022 08:31:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234372AbiDEIZF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Apr 2022 04:25:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33066 "EHLO
+        id S234433AbiDEIZN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Apr 2022 04:25:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239422AbiDEIUE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Apr 2022 04:20:04 -0400
+        with ESMTP id S239415AbiDEIUD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Apr 2022 04:20:03 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 558496E8EE;
-        Tue,  5 Apr 2022 01:12:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8652E8597B;
+        Tue,  5 Apr 2022 01:12:54 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 188D9B81B90;
-        Tue,  5 Apr 2022 08:12:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58CBFC385A2;
-        Tue,  5 Apr 2022 08:12:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 41013B81B92;
+        Tue,  5 Apr 2022 08:12:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83669C385A2;
+        Tue,  5 Apr 2022 08:12:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649146375;
-        bh=Ewcg6XIQpxOcYpK+RJNS2cZyxmvDqGh/zPgxML6vPUY=;
+        s=k20201202; t=1649146372;
+        bh=u3tQN1jErHjyr0UBnv+18ZdETY9+1Yn9vLc97oMtBc4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=tsJ777W/0D7ib0jeZIFyZWRWtJGIr/LKobZza/r4s75TdZwLAmb3Byl5o9Zh1+klE
-         CAc/ENkk7MBzkQQWVabXlizT7fftOlf0ukXtZ/vZ3wnRJoda1sYs/8OECcILEbCmB7
-         kMmnAMy06GwJgr05kvzYpJO73+3MwpK7JMVnXDM58mmxxYnVwzcmw+0wvV4lZMi5L6
-         qcUNZZFrwqmqIrhjarWKnQ3+v+o+cJtyNqGCJSTMropQD+DucGvWB5Gcs5uRM3BiOs
-         ovO2WldsXNmgQxoDGsouZYdRuXweUb99CgGpyphXwPQIz/Sz22MwBHtDTGMu7+PBio
-         I8UeCci0f51Eg==
+        b=fn08pANTSf5W3DRB8JUbnYHZT6LflVGFEd7vvYkN8u1C3gZt3Q2XAHbN7VVOQ4KqX
+         TjydDQkG9dq27WeFpjgmJgBxuSCPdkyCjxx7/+ipbT4TGjyn6eR45u7psPEaNcpuzy
+         cfhaOPZCZI5cJZr+I5uBvyQZmINWcka66k0Peq8ZWWf0NeApDJx9WnxGZq/6o3zMJm
+         yFZJbrEGiBmtXNxsl6yXz+QasRoXSUyer10Fk05ClTorSsnP/JyKbS2c8r7o0Cy1sH
+         bKZ4Z+icjPuX3c1naQXUoKedjQ/XWeOZGJGIrrWrHk0Ed0AD52LKFgyvGp/a7relef
+         R5pxh/fXdb9gw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Patrisious Haddad <phaddad@nvidia.com>,
@@ -38,9 +38,9 @@ Cc:     Patrisious Haddad <phaddad@nvidia.com>,
         netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next 3/3] RDMA/mlx5: Return the firmware result upon destroying QP/RQ
-Date:   Tue,  5 Apr 2022 11:12:42 +0300
-Message-Id: <b2ddec0b7b1dfc27045c5de1bfb39c234776ac7a.1649139915.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 2/3] RDMA/mlx5: Handling dct common resource destruction upon firmware failure
+Date:   Tue,  5 Apr 2022 11:12:41 +0300
+Message-Id: <2a43192bf2649c1076b6a3b92ad6fd7d967d4498.1649139915.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <cover.1649139915.git.leonro@nvidia.com>
 References: <cover.1649139915.git.leonro@nvidia.com>
@@ -52,105 +52,87 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Patrisious Haddad <phaddad@nvidia.com>
 
-Previously when destroying a QP/RQ, the result of the firmware
-destruction function was ignored and upper layers weren't informed
-about the failure.
-Which in turn could lead to various problems since when upper layer
-isn't aware of the failure it continues its operation thinking that the
-related QP/RQ was successfully destroyed while it actually wasn't,
-which could lead to the below kernel WARN.
+Previously when destroying a DCT, if the firmware function for the
+destruction failed, the common resource would have been destroyed
+either way, since it was destroyed before the firmware object.
+Which leads to kernel warning "refcount_t: underflow" which indicates
+possible use-after-free.
+Which is triggered when we try to destroy the common resource for the
+second time and execute refcount_dec_and_test(&common->refcount).
 
-Currently, we return the correct firmware destruction status to upper
-layers which in case of the RQ would be mlx5_ib_destroy_wq() which
-was already capable of handling RQ destruction failure or in case of
-a QP to destroy_qp_common(), which now would actually warn upon qp
-destruction failure.
+So, currently before destroying the common resource we check its
+refcount and continue with the destruction only if it isn't zero.
 
-WARNING: CPU: 3 PID: 995 at drivers/infiniband/core/rdma_core.c:940 uverbs_destroy_ufile_hw+0xcb/0xe0 [ib_uverbs]
-Modules linked in: xt_conntrack xt_MASQUERADE nf_conntrack_netlink nfnetlink xt_addrtype iptable_nat nf_nat br_netfilter rpcrdma rdma_ucm ib_iser libiscsi scsi_transport_iscsi rdma_cm ib_umad ib_ipoib iw_cm ib_cm mlx5_ib ib_uverbs ib_core overlay mlx5_core fuse
-CPU: 3 PID: 995 Comm: python3 Not tainted 5.16.0-rc5+ #1
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 8 PID: 1002 at lib/refcount.c:28 refcount_warn_saturate+0xd8/0xe0
+Modules linked in: xt_conntrack xt_MASQUERADE nf_conntrack_netlink nfnetlink xt_addrtype iptable_nat nf_nat br_netfilter rpcrdma rdma_ucm ib_iser libiscsi scsi_transport_iscsi ib_umad rdma_cm ib_ipoib iw_cm ib_cm mlx5_ib ib_uverbs ib_core overlay mlx5_core fuse
+CPU: 8 PID: 1002 Comm: python3 Not tainted 5.16.0-rc5+ #1
 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
-RIP: 0010:uverbs_destroy_ufile_hw+0xcb/0xe0 [ib_uverbs]
-Code: 41 5c 41 5d 41 5e e9 44 34 f0 e0 48 89 df e8 4c 77 ff ff 49 8b 86 10 01 00 00 48 85 c0 74 a1 4c 89 e7 ff d0 eb 9a 0f 0b eb c1 <0f> 0b be 04 00 00 00 48 89 df e8 b6 f6 ff ff e9 75 ff ff ff 90 0f
-RSP: 0018:ffff8881533e3e78 EFLAGS: 00010287
-RAX: ffff88811b2cf3e0 RBX: ffff888106209700 RCX: 0000000000000000
-RDX: ffff888106209780 RSI: ffff8881533e3d30 RDI: ffff888109b101a0
-RBP: 0000000000000001 R08: ffff888127cb381c R09: 0de9890000000009
-R10: ffff888127cb3800 R11: 0000000000000000 R12: ffff888106209780
-R13: ffff888106209750 R14: ffff888100f20660 R15: 0000000000000000
-FS:  00007f8be353b740(0000) GS:ffff88852c980000(0000) knlGS:0000000000000000
+RIP: 0010:refcount_warn_saturate+0xd8/0xe0
+Code: ff 48 c7 c7 18 f5 23 82 c6 05 60 70 ff 00 01 e8 d0 0a 45 00 0f 0b c3 48 c7 c7 c0 f4 23 82 c6 05 4c 70 ff 00 01 e8 ba 0a 45 00 <0f> 0b c3 0f 1f 44 00 00 8b 07 3d 00 00 00 c0 74 12 83 f8 01 74 13
+RSP: 0018:ffff8881221d3aa8 EFLAGS: 00010286
+RAX: 0000000000000000 RBX: ffff8881313e8d40 RCX: ffff88852cc1b5c8
+RDX: 00000000ffffffd8 RSI: 0000000000000027 RDI: ffff88852cc1b5c0
+RBP: ffff888100f70000 R08: ffff88853ffd1ba8 R09: 0000000000000003
+R10: 00000000fffff000 R11: 3fffffffffffffff R12: 0000000000000246
+R13: ffff888100f71fa0 R14: ffff8881221d3c68 R15: 0000000000000020
+FS:  00007efebbb13740(0000) GS:ffff88852cc00000(0000) knlGS:0000000000000000
 CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f8bd5b117c0 CR3: 000000012cd8a004 CR4: 0000000000370ea0
+CR2: 00005611aac29f80 CR3: 00000001313de004 CR4: 0000000000370ea0
 DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 Call Trace:
  <TASK>
- ib_uverbs_close+0x1a/0x90 [ib_uverbs]
- __fput+0x82/0x230
- task_work_run+0x59/0x90
- exit_to_user_mode_prepare+0x138/0x140
- syscall_exit_to_user_mode+0x1d/0x50
- ? __x64_sys_close+0xe/0x40
- do_syscall_64+0x4a/0x90
+ destroy_resource_common+0x6e/0x95 [mlx5_ib]
+ mlx5_core_destroy_rq_tracked+0x38/0xbe [mlx5_ib]
+ mlx5_ib_destroy_wq+0x22/0x80 [mlx5_ib]
+ ib_destroy_wq_user+0x1f/0x40 [ib_core]
+ uverbs_free_wq+0x19/0x40 [ib_uverbs]
+ destroy_hw_idr_uobject+0x18/0x50 [ib_uverbs]
+ uverbs_destroy_uobject+0x2f/0x190 [ib_uverbs]
+ uobj_destroy+0x3c/0x80 [ib_uverbs]
+ ib_uverbs_cmd_verbs+0x3e4/0xb80 [ib_uverbs]
+ ? uverbs_free_wq+0x40/0x40 [ib_uverbs]
+ ? ip_list_rcv+0xf7/0x120
+ ? netif_receive_skb_list_internal+0x1b6/0x2d0
+ ? task_tick_fair+0xbf/0x450
+ ? __handle_mm_fault+0x11fc/0x1450
+ ib_uverbs_ioctl+0xa4/0x110 [ib_uverbs]
+ __x64_sys_ioctl+0x3e4/0x8e0
+ ? handle_mm_fault+0xb9/0x210
+ do_syscall_64+0x3d/0x90
  entry_SYSCALL_64_after_hwframe+0x44/0xae
-RIP: 0033:0x7f8be3ae0abb
-Code: 03 00 00 00 0f 05 48 3d 00 f0 ff ff 77 41 c3 48 83 ec 18 89 7c 24 0c e8 83 43 f9 ff 8b 7c 24 0c 41 89 c0 b8 03 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 35 44 89 c7 89 44 24 0c e8 c1 43 f9 ff 8b 44
-RSP: 002b:00007ffdb51909c0 EFLAGS: 00000293 ORIG_RAX: 0000000000000003
-RAX: 0000000000000000 RBX: 0000557bb7f7c020 RCX: 00007f8be3ae0abb
-RDX: 0000557bb7c74010 RSI: 0000557bb7f14ca0 RDI: 0000000000000005
-RBP: 0000557bb7fbd598 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000293 R12: 0000557bb7fbd5b8
-R13: 0000557bb7fbd5a8 R14: 0000000000001000 R15: 0000557bb7f7c020
+RIP: 0033:0x7efebc0be17b
+Code: 0f 1e fa 48 8b 05 1d ad 0c 00 64 c7 00 26 00 00 00 48 c7 c0 ff ff ff ff c3 66 0f 1f 44 00 00 f3 0f 1e fa b8 10 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d ed ac 0c 00 f7 d8 64 89 01 48
+RSP: 002b:00007ffe71813e78 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007ffe71813fb8 RCX: 00007efebc0be17b
+RDX: 00007ffe71813fa0 RSI: 00000000c0181b01 RDI: 0000000000000005
+RBP: 00007ffe71813f80 R08: 00005611aae96020 R09: 000000000000004f
+R10: 00007efebbf9ffa0 R11: 0000000000000246 R12: 00007ffe71813f80
+R13: 00007ffe71813f4c R14: 00005611aae2eca0 R15: 00007efeae6c89d0
  </TASK>
 
 Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
 Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/qpc.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx5/qpc.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/infiniband/hw/mlx5/qpc.c b/drivers/infiniband/hw/mlx5/qpc.c
-index d9ce73a2fbeb..73bae024c01a 100644
+index 542e4c63a8de..d9ce73a2fbeb 100644
 --- a/drivers/infiniband/hw/mlx5/qpc.c
 +++ b/drivers/infiniband/hw/mlx5/qpc.c
-@@ -300,8 +300,7 @@ int mlx5_core_destroy_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp)
- 	MLX5_SET(destroy_qp_in, in, opcode, MLX5_CMD_OP_DESTROY_QP);
- 	MLX5_SET(destroy_qp_in, in, qpn, qp->qpn);
- 	MLX5_SET(destroy_qp_in, in, uid, qp->uid);
--	mlx5_cmd_exec_in(dev->mdev, destroy_qp, in);
--	return 0;
-+	return mlx5_cmd_exec_in(dev->mdev, destroy_qp, in);
- }
+@@ -178,6 +178,9 @@ static void destroy_resource_common(struct mlx5_ib_dev *dev,
+ 	struct mlx5_qp_table *table = &dev->qp_table;
+ 	unsigned long flags;
  
- int mlx5_core_set_delay_drop(struct mlx5_ib_dev *dev,
-@@ -551,14 +550,14 @@ int mlx5_core_xrcd_dealloc(struct mlx5_ib_dev *dev, u32 xrcdn)
- 	return mlx5_cmd_exec_in(dev->mdev, dealloc_xrcd, in);
- }
- 
--static void destroy_rq_tracked(struct mlx5_ib_dev *dev, u32 rqn, u16 uid)
-+static int destroy_rq_tracked(struct mlx5_ib_dev *dev, u32 rqn, u16 uid)
- {
- 	u32 in[MLX5_ST_SZ_DW(destroy_rq_in)] = {};
- 
- 	MLX5_SET(destroy_rq_in, in, opcode, MLX5_CMD_OP_DESTROY_RQ);
- 	MLX5_SET(destroy_rq_in, in, rqn, rqn);
- 	MLX5_SET(destroy_rq_in, in, uid, uid);
--	mlx5_cmd_exec_in(dev->mdev, destroy_rq, in);
-+	return mlx5_cmd_exec_in(dev->mdev, destroy_rq, in);
- }
- 
- int mlx5_core_create_rq_tracked(struct mlx5_ib_dev *dev, u32 *in, int inlen,
-@@ -589,8 +588,7 @@ int mlx5_core_destroy_rq_tracked(struct mlx5_ib_dev *dev,
- 				 struct mlx5_core_qp *rq)
- {
- 	destroy_resource_common(dev, rq);
--	destroy_rq_tracked(dev, rq->qpn, rq->uid);
--	return 0;
-+	return destroy_rq_tracked(dev, rq->qpn, rq->uid);
- }
- 
- static void destroy_sq_tracked(struct mlx5_ib_dev *dev, u32 sqn, u16 uid)
++	if (refcount_read(&qp->common.refcount) == 0)
++		return;
++
+ 	spin_lock_irqsave(&table->lock, flags);
+ 	radix_tree_delete(&table->tree,
+ 			  qp->qpn | (qp->common.res << MLX5_USER_INDEX_LEN));
 -- 
 2.35.1
 
