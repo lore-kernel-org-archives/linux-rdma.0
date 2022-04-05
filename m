@@ -2,110 +2,144 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E772C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 02:08:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3D96C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 02:08:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442358AbiDFCFo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Apr 2022 22:05:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35136 "EHLO
+        id S1443595AbiDFCF4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Apr 2022 22:05:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1449825AbiDEPup (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Apr 2022 11:50:45 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F2C01107833;
-        Tue,  5 Apr 2022 07:36:05 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A2EF623A;
-        Tue,  5 Apr 2022 07:36:05 -0700 (PDT)
-Received: from e121345-lin.cambridge.arm.com (e121345-lin.cambridge.arm.com [10.1.196.40])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id C05F63F5A1;
-        Tue,  5 Apr 2022 07:36:04 -0700 (PDT)
-From:   Robin Murphy <robin.murphy@arm.com>
-To:     benve@cisco.com, neescoba@cisco.com, jgg@ziepe.ca
-Cc:     linux-rdma@vger.kernel.org, iommu@lists.linux-foundation.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] RDMA/usnic: Refactor usnic_uiom_alloc_pd()
-Date:   Tue,  5 Apr 2022 15:35:59 +0100
-Message-Id: <ef607cb3f5a09920b86971b8c8e60af8c647457e.1649169359.git.robin.murphy@arm.com>
-X-Mailer: git-send-email 2.28.0.dirty
+        with ESMTP id S1573497AbiDETMt (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Apr 2022 15:12:49 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EE799E885B
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Apr 2022 12:10:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1649185848;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ufYYfNJ31ZxJiptHxZVI0cJDY245GxkfqBFvOLAxMek=;
+        b=Z9xUuWIFR1s5Ev4w2nyOD2v0z3fHci6g13TOV980JOAop8ZJh1B/KGPbUnOLPzwiod2D5n
+        zR9KVBTDx3Z1Fn096cuMlF3ritv9wL0sh6HY7KAWGny3m03LjZYEBUy5itgGqEsLKTFi79
+        JEkrQ5Axjt92XOV3XQSYNJdJKHT4Qkg=
+Received: from mail-io1-f71.google.com (mail-io1-f71.google.com
+ [209.85.166.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-350-jmYuWaSTO4egUO0OcF72hg-1; Tue, 05 Apr 2022 15:10:47 -0400
+X-MC-Unique: jmYuWaSTO4egUO0OcF72hg-1
+Received: by mail-io1-f71.google.com with SMTP id e27-20020a056602045b00b00645bd576184so150901iov.3
+        for <linux-rdma@vger.kernel.org>; Tue, 05 Apr 2022 12:10:47 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:in-reply-to
+         :references:organization:mime-version:content-transfer-encoding;
+        bh=ufYYfNJ31ZxJiptHxZVI0cJDY245GxkfqBFvOLAxMek=;
+        b=Gj3ppBn+4viqMqZExlElO7aoo8mb0UKEZbmIgKqXgdvQxosiHzQ63nMEcwMX/KeJlZ
+         tHaBjxFxbogVMSfo7x17jcOJ9xWQVm+yEsDUuahFeY/51sLDRpIHwkYMR/l2s+ODZuns
+         B+cxIXSkr0cJTR4nkAKIIgumwAnKzQJlaRIvtXfJ1iDW+t+/yB96sbxgVCQBLDfTEN6Q
+         8Bv5UPQRNYFFJXQooySvFtYUsosCOmO355/qRwPBUTZSknXAOzaw0j5R3h1nHRPnkCKj
+         SKUMTf4rjNY5RH8VCixf3fyicvS3SzpndL0YC6uEx0qjkm8BBouoidvoHRp7gZeGy8r6
+         Gxkg==
+X-Gm-Message-State: AOAM531rMj1zDVxyOfXuQ4V5mEvxVQtZxONiGSJHSOVcHnd813nu8ct+
+        5NjyIsXADgKGwS6U2Hph2h2k0fzrP3B5c8bWGDXU3APcrag/nRxVwSUc0n0FmcWe7YysC743XNg
+        Y9z75sxuEk2Q4RhRenP13+g==
+X-Received: by 2002:a92:cdad:0:b0:2c6:7b76:a086 with SMTP id g13-20020a92cdad000000b002c67b76a086mr2568126ild.5.1649185846539;
+        Tue, 05 Apr 2022 12:10:46 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJxocs2ZVaXF5YVJwjGBcLRqnK5UBIr3mQlWSQgNmkFdgGBC2rjlpWZLrLl9AI2wrgBUaUJw1w==
+X-Received: by 2002:a92:cdad:0:b0:2c6:7b76:a086 with SMTP id g13-20020a92cdad000000b002c67b76a086mr2568112ild.5.1649185846282;
+        Tue, 05 Apr 2022 12:10:46 -0700 (PDT)
+Received: from redhat.com ([38.15.36.239])
+        by smtp.gmail.com with ESMTPSA id x2-20020a056602160200b006463c1977f9sm9314961iow.22.2022.04.05.12.10.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 Apr 2022 12:10:45 -0700 (PDT)
+Date:   Tue, 5 Apr 2022 13:10:44 -0600
+From:   Alex Williamson <alex.williamson@redhat.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Lu Baolu <baolu.lu@linux.intel.com>,
+        Christian Benvenuti <benve@cisco.com>,
+        Cornelia Huck <cohuck@redhat.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        iommu@lists.linux-foundation.org, Jason Wang <jasowang@redhat.com>,
+        Joerg Roedel <joro@8bytes.org>, kvm@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-arm-msm@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org,
+        Matthew Rosato <mjrosato@linux.ibm.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Nelson Escobar <neescoba@cisco.com>, netdev@vger.kernel.org,
+        Rob Clark <robdclark@gmail.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+        virtualization@lists.linux-foundation.org,
+        Will Deacon <will@kernel.org>, Christoph Hellwig <hch@lst.de>,
+        "Tian, Kevin" <kevin.tian@intel.com>
+Subject: Re: [PATCH 2/5] vfio: Require that devices support DMA cache
+ coherence
+Message-ID: <20220405131044.23910b77.alex.williamson@redhat.com>
+In-Reply-To: <2-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
+References: <0-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
+        <2-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
+Organization: Red Hat
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Rather than hard-coding pci_bus_type, pass the PF device through to
-usnic_uiom_alloc_pd() and retrieve its bus there. This prepares for
-iommu_domain_alloc() changing to take a device rather than a bus_type.
+On Tue,  5 Apr 2022 13:16:01 -0300
+Jason Gunthorpe <jgg@nvidia.com> wrote:
 
-Signed-off-by: Robin Murphy <robin.murphy@arm.com>
----
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 3 +--
- drivers/infiniband/hw/usnic/usnic_uiom.c     | 5 ++---
- drivers/infiniband/hw/usnic/usnic_uiom.h     | 2 +-
- 3 files changed, 4 insertions(+), 6 deletions(-)
+> dev_is_dma_coherent() is the control to determine if IOMMU_CACHE can be
+> supported.
+> 
+> IOMMU_CACHE means that normal DMAs do not require any additional coherency
+> mechanism and is the basic uAPI that VFIO exposes to userspace. For
+> instance VFIO applications like DPDK will not work if additional coherency
+> operations are required.
+> 
+> Therefore check dev_is_dma_coherent() before allowing a device to join a
+> domain. This will block device/platform/iommu combinations from using VFIO
+> that do not support cache coherent DMA.
+> 
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+> ---
+>  drivers/vfio/vfio.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/vfio/vfio.c b/drivers/vfio/vfio.c
+> index a4555014bd1e72..2a3aa3e742d943 100644
+> --- a/drivers/vfio/vfio.c
+> +++ b/drivers/vfio/vfio.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/vfio.h>
+>  #include <linux/wait.h>
+>  #include <linux/sched/signal.h>
+> +#include <linux/dma-map-ops.h>
+>  #include "vfio.h"
+>  
+>  #define DRIVER_VERSION	"0.3"
+> @@ -1348,6 +1349,11 @@ static int vfio_group_get_device_fd(struct vfio_group *group, char *buf)
+>  	if (IS_ERR(device))
+>  		return PTR_ERR(device);
+>  
+> +	if (group->type == VFIO_IOMMU && !dev_is_dma_coherent(device->dev)) {
+> +		ret = -ENODEV;
+> +		goto err_device_put;
+> +	}
+> +
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index d3a9670bf971..06aae6a79c3d 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -442,7 +442,7 @@ int usnic_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- {
- 	struct usnic_ib_pd *pd = to_upd(ibpd);
- 
--	pd->umem_pd = usnic_uiom_alloc_pd();
-+	pd->umem_pd = usnic_uiom_alloc_pd(ibpd->device->dev.parent);
- 	if (IS_ERR(pd->umem_pd))
- 		return PTR_ERR(pd->umem_pd);
- 
-@@ -706,4 +706,3 @@ int usnic_ib_mmap(struct ib_ucontext *context,
- 	usnic_err("No VF %u found\n", vfid);
- 	return -EINVAL;
- }
--
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 8c48027614a1..e212929369df 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -40,7 +40,6 @@
- #include <linux/iommu.h>
- #include <linux/workqueue.h>
- #include <linux/list.h>
--#include <linux/pci.h>
- #include <rdma/ib_verbs.h>
- 
- #include "usnic_log.h"
-@@ -439,7 +438,7 @@ void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr)
- 	__usnic_uiom_release_tail(uiomr);
- }
- 
--struct usnic_uiom_pd *usnic_uiom_alloc_pd(void)
-+struct usnic_uiom_pd *usnic_uiom_alloc_pd(struct device *dev)
- {
- 	struct usnic_uiom_pd *pd;
- 	void *domain;
-@@ -448,7 +447,7 @@ struct usnic_uiom_pd *usnic_uiom_alloc_pd(void)
- 	if (!pd)
- 		return ERR_PTR(-ENOMEM);
- 
--	pd->domain = domain = iommu_domain_alloc(&pci_bus_type);
-+	pd->domain = domain = iommu_domain_alloc(dev->bus);
- 	if (!domain) {
- 		usnic_err("Failed to allocate IOMMU domain");
- 		kfree(pd);
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.h b/drivers/infiniband/hw/usnic/usnic_uiom.h
-index 9407522179e9..5a9acf941510 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.h
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.h
-@@ -80,7 +80,7 @@ struct usnic_uiom_chunk {
- 	struct scatterlist		page_list[];
- };
- 
--struct usnic_uiom_pd *usnic_uiom_alloc_pd(void);
-+struct usnic_uiom_pd *usnic_uiom_alloc_pd(struct device *dev);
- void usnic_uiom_dealloc_pd(struct usnic_uiom_pd *pd);
- int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev);
- void usnic_uiom_detach_dev_from_pd(struct usnic_uiom_pd *pd,
--- 
-2.28.0.dirty
+Failing at the point where the user is trying to gain access to the
+device seems a little late in the process and opaque, wouldn't we
+rather have vfio bus drivers fail to probe such devices?  I'd expect
+this to occur in the vfio_register_group_dev() path.  Thanks,
+
+Alex
+
+>  	if (!try_module_get(device->dev->driver->owner)) {
+>  		ret = -ENODEV;
+>  		goto err_device_put;
 
