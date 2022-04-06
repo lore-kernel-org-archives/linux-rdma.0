@@ -2,67 +2,101 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E95FC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 17:58:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F29E6C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 19:19:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239848AbiDFSAJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Apr 2022 14:00:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40800 "EHLO
+        id S229977AbiDFTVa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Apr 2022 15:21:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239561AbiDFR7t (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 13:59:49 -0400
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 978CC21FF45;
-        Wed,  6 Apr 2022 09:10:36 -0700 (PDT)
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id A1E2768AFE; Wed,  6 Apr 2022 18:10:31 +0200 (CEST)
-Date:   Wed, 6 Apr 2022 18:10:31 +0200
-From:   Christoph Hellwig <hch@lst.de>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Christoph Hellwig <hch@lst.de>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Lu Baolu <baolu.lu@linux.intel.com>,
-        Christian Benvenuti <benve@cisco.com>,
-        Cornelia Huck <cohuck@redhat.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        iommu@lists.linux-foundation.org, Jason Wang <jasowang@redhat.com>,
-        Joerg Roedel <joro@8bytes.org>, kvm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org,
-        Matthew Rosato <mjrosato@linux.ibm.com>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Nelson Escobar <neescoba@cisco.com>, netdev@vger.kernel.org,
-        Rob Clark <robdclark@gmail.com>,
-        Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-        virtualization@lists.linux-foundation.org,
-        Will Deacon <will@kernel.org>,
-        "Tian, Kevin" <kevin.tian@intel.com>
-Subject: Re: [PATCH 1/5] iommu: Replace uses of IOMMU_CAP_CACHE_COHERENCY
- with dev_is_dma_coherent()
-Message-ID: <20220406161031.GA31790@lst.de>
-References: <1-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com> <db5a6daa-bfe9-744f-7fc5-d5167858bc3e@arm.com> <20220406142432.GF2120790@nvidia.com> <20220406151823.GG2120790@nvidia.com> <20220406155056.GA30433@lst.de> <20220406160623.GI2120790@nvidia.com>
+        with ESMTP id S229484AbiDFTUS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 15:20:18 -0400
+Received: from alexa-out-sd-02.qualcomm.com (alexa-out-sd-02.qualcomm.com [199.106.114.39])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8441E21E19;
+        Wed,  6 Apr 2022 10:30:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=quicinc.com; i=@quicinc.com; q=dns/txt; s=qcdkim;
+  t=1649266255; x=1680802255;
+  h=message-id:date:mime-version:subject:to:references:from:
+   in-reply-to:content-transfer-encoding;
+  bh=6ntTxqe3cu4c0Uf8vB38QsM5/1MJtQWWwjbiUS6GuQg=;
+  b=PstudtNCDLwXDY3HjryTq9kHJsM7BxGyrHCg/hj8zERiXmdQqKcO8E1G
+   dgA7hYltlmsbGjR9lBy2z0tNji3BytmSVhy1CEYH7u2Ln7qBr/coxs9M6
+   qgtRwWX+7VuPpsPhPOONCALvoGcjNXJhEaCk1RBmap19G49iyMcoD8mQ0
+   8=;
+Received: from unknown (HELO ironmsg03-sd.qualcomm.com) ([10.53.140.143])
+  by alexa-out-sd-02.qualcomm.com with ESMTP; 06 Apr 2022 10:30:55 -0700
+X-QCInternal: smtphost
+Received: from nasanex01c.na.qualcomm.com ([10.47.97.222])
+  by ironmsg03-sd.qualcomm.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Apr 2022 10:30:51 -0700
+Received: from nalasex01a.na.qualcomm.com (10.47.209.196) by
+ nasanex01c.na.qualcomm.com (10.47.97.222) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.986.22; Wed, 6 Apr 2022 10:30:51 -0700
+Received: from [10.110.72.142] (10.80.80.8) by nalasex01a.na.qualcomm.com
+ (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.22; Wed, 6 Apr 2022
+ 10:30:48 -0700
+Message-ID: <1bd025f0-8805-6ec9-7927-a9a18d0e0431@quicinc.com>
+Date:   Wed, 6 Apr 2022 10:30:47 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220406160623.GI2120790@nvidia.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH] RDMA: Split kernel-only global device caps from uvers
+ device caps
+Content-Language: en-US
+To:     Jason Gunthorpe <jgg@nvidia.com>, Ariel Elior <aelior@marvell.com>,
+        "Anna Schumaker" <anna@kernel.org>, Jens Axboe <axboe@fb.com>,
+        Christian Benvenuti <benve@cisco.com>,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        "Dennis Dalessandro" <dennis.dalessandro@cornelisnetworks.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Keith Busch <kbusch@kernel.org>,
+        Chaitanya Kulkarni <kch@nvidia.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        <linux-cifs@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
+        <linux-nvme@lists.infradead.org>, <linux-rdma@vger.kernel.org>,
+        Max Gurtovoy <mgurtovoy@nvidia.com>,
+        Mike Marciniszyn <mike.marciniszyn@cornelisnetworks.com>,
+        Michal Kalderon <mkalderon@marvell.com>,
+        Mustafa Ismail <mustafa.ismail@intel.com>,
+        "Nelson Escobar" <neescoba@cisco.com>, <netdev@vger.kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, <rds-devel@oss.oracle.com>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        <samba-technical@lists.samba.org>,
+        Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Steve French <sfrench@samba.org>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        <target-devel@vger.kernel.org>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Yishai Hadas <yishaih@nvidia.com>,
+        "Zhu Yanjun" <zyjzyj2000@gmail.com>,
+        Xiao Yang <yangx.jy@fujitsu.com>
+References: <0-v1-47e161ac2db9+80f-kern_caps_jgg@nvidia.com>
+From:   Jeff Johnson <quic_jjohnson@quicinc.com>
+In-Reply-To: <0-v1-47e161ac2db9+80f-kern_caps_jgg@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.80.80.8]
+X-ClientProxiedBy: nasanex01a.na.qualcomm.com (10.52.223.231) To
+ nalasex01a.na.qualcomm.com (10.47.209.196)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Apr 06, 2022 at 01:06:23PM -0300, Jason Gunthorpe wrote:
-> On Wed, Apr 06, 2022 at 05:50:56PM +0200, Christoph Hellwig wrote:
-> > On Wed, Apr 06, 2022 at 12:18:23PM -0300, Jason Gunthorpe wrote:
-> > > > Oh, I didn't know about device_get_dma_attr()..
-> > 
-> > Which is completely broken for any non-OF, non-ACPI plaform.
+On 4/4/2022 9:18 AM, Jason Gunthorpe wrote:
+> Split ib_device::device_cap_flags into kernel_cap_flags that holds the
+> flags only used by the kernel.
 > 
-> I saw that, but I spent some time searching and could not find an
-> iommu driver that would load independently of OF or ACPI. ie no IOMMU
-> platform drivers are created by board files. Things like Intel/AMD
-> discover only from ACPI, etc.
+> This cleanly splits out the uverbs flags from the kernel flags to avoid
+> confusion in the flags bitmap.
+> 
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 
-s390?
+subject nit: s/uvers/uverbs/ ?
