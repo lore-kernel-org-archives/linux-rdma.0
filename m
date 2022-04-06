@@ -2,74 +2,77 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CBE5C433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 07:34:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5C1DC433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 08:37:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235107AbiDFHgP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Apr 2022 03:36:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47310 "EHLO
+        id S234109AbiDFIj3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Apr 2022 04:39:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358453AbiDFHDY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 03:03:24 -0400
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14CD21EA284;
-        Tue,  5 Apr 2022 22:30:46 -0700 (PDT)
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id E913E68AFE; Wed,  6 Apr 2022 07:30:39 +0200 (CEST)
-Date:   Wed, 6 Apr 2022 07:30:39 +0200
-From:   Christoph Hellwig <hch@lst.de>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Alex Williamson <alex.williamson@redhat.com>,
-        Lu Baolu <baolu.lu@linux.intel.com>,
-        Christian Benvenuti <benve@cisco.com>,
-        Cornelia Huck <cohuck@redhat.com>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        iommu@lists.linux-foundation.org, Jason Wang <jasowang@redhat.com>,
-        Joerg Roedel <joro@8bytes.org>, kvm@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org,
-        Matthew Rosato <mjrosato@linux.ibm.com>,
-        "Michael S. Tsirkin" <mst@redhat.com>,
-        Nelson Escobar <neescoba@cisco.com>, netdev@vger.kernel.org,
-        Rob Clark <robdclark@gmail.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
-        virtualization@lists.linux-foundation.org,
-        Will Deacon <will@kernel.org>, Christoph Hellwig <hch@lst.de>,
-        "Tian, Kevin" <kevin.tian@intel.com>
-Subject: Re: [PATCH 1/5] iommu: Replace uses of IOMMU_CAP_CACHE_COHERENCY
- with dev_is_dma_coherent()
-Message-ID: <20220406053039.GA10580@lst.de>
-References: <0-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com> <1-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
+        with ESMTP id S1352013AbiDFIgO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 04:36:14 -0400
+Received: from out199-7.us.a.mail.aliyun.com (out199-7.us.a.mail.aliyun.com [47.90.199.7])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 505212AC2AE
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Apr 2022 19:34:57 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R761e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V9JZmId_1649212492;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V9JZmId_1649212492)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Wed, 06 Apr 2022 10:34:53 +0800
+From:   Cheng Xu <chengyou@linux.alibaba.com>
+To:     jgg@ziepe.ca, dledford@redhat.com, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com,
+        chengyou@linux.alibaba.com, tonylu@linux.alibaba.com,
+        BMT@zurich.ibm.com
+Subject: [PATCH for-next v5 02/12] RDMA/core: Allow calling query_port when netdev isn't attached in iWarp
+Date:   Wed,  6 Apr 2022 10:34:40 +0800
+Message-Id: <20220406023450.56683-3-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.32.0 (Apple Git-132)
+In-Reply-To: <20220406023450.56683-1-chengyou@linux.alibaba.com>
+References: <20220406023450.56683-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Apr 05, 2022 at 01:16:00PM -0300, Jason Gunthorpe wrote:
-> diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-> index 760b254ba42d6b..24d118198ac756 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-> @@ -42,6 +42,7 @@
->  #include <linux/list.h>
->  #include <linux/pci.h>
->  #include <rdma/ib_verbs.h>
-> +#include <linux/dma-map-ops.h>
->  
->  #include "usnic_log.h"
->  #include "usnic_uiom.h"
-> @@ -474,6 +475,12 @@ int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev)
->  	struct usnic_uiom_dev *uiom_dev;
->  	int err;
->  
-> +	if (!dev_is_dma_coherent(dev)) {
+This change lets the iWarp device drivers decide the return value of
+iw_query_port when attached netdev is NULL. This allows ib_register_device
+calling when netdev is NULL.
 
-Which part of the comment at the top of dma-map-ops.h is not clear
-enough to you?
+background info:
+https://lore.kernel.org/all/20220118141324.GF8034@ziepe.ca/
+
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+---
+ drivers/infiniband/core/device.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index a311df07b1bd..1638b1188dc8 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2019,8 +2019,12 @@ static int iw_query_port(struct ib_device *device,
+ 	memset(port_attr, 0, sizeof(*port_attr));
+ 
+ 	netdev = ib_device_get_netdev(device, port_num);
++	/* Some iwarp device may be not binded to a netdev temporarily when
++	 * ib_register_device called. To adapt this scenario, allowing iWarp
++	 * device drivers decide the return value.
++	 */
+ 	if (!netdev)
+-		return -ENODEV;
++		goto query_port;
+ 
+ 	port_attr->max_mtu = IB_MTU_4096;
+ 	port_attr->active_mtu = ib_mtu_int_to_enum(netdev->mtu);
+@@ -2045,6 +2049,7 @@ static int iw_query_port(struct ib_device *device,
+ 	}
+ 
+ 	dev_put(netdev);
++query_port:
+ 	return device->ops.query_port(device, port_num, port_attr);
+ }
+ 
+-- 
+2.27.0
+
