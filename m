@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19EAFC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 13:32:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D346C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 13:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232473AbiDFNeY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Apr 2022 09:34:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42734 "EHLO
+        id S234073AbiDFN7V (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Apr 2022 09:59:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53066 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233497AbiDFNce (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 09:32:34 -0400
-Received: from out30-44.freemail.mail.aliyun.com (out30-44.freemail.mail.aliyun.com [115.124.30.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD83713EFAF
-        for <linux-rdma@vger.kernel.org>; Tue,  5 Apr 2022 19:34:59 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V9Jhjdq_1649212496;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V9Jhjdq_1649212496)
+        with ESMTP id S234670AbiDFN6m (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 09:58:42 -0400
+Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB6251F6217
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Apr 2022 19:35:04 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V9JZmLh_1649212501;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V9JZmLh_1649212501)
           by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 06 Apr 2022 10:34:57 +0800
+          Wed, 06 Apr 2022 10:35:01 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, dledford@redhat.com, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com,
         chengyou@linux.alibaba.com, tonylu@linux.alibaba.com,
         BMT@zurich.ibm.com
-Subject: [PATCH for-next v5 05/12] RDMA/erdma: Add cmdq implementation
-Date:   Wed,  6 Apr 2022 10:34:43 +0800
-Message-Id: <20220406023450.56683-6-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next v5 09/12] RDMA/erdma: Add connection management (CM) support
+Date:   Wed,  6 Apr 2022 10:34:47 +0800
+Message-Id: <20220406023450.56683-10-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.32.0 (Apple Git-132)
 In-Reply-To: <20220406023450.56683-1-chengyou@linux.alibaba.com>
 References: <20220406023450.56683-1-chengyou@linux.alibaba.com>
@@ -35,519 +35,1634 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Cmdq is the main control plane channel between erdma driver and hardware.
-After erdma device is initialized, the cmdq channel will be active in the
-whole lifecycle of this driver.
+ERDMA's transport protocol is iWarp, so the driver must support CM
+interface. In CM part, we use the same way as SoftiWarp: using kernel
+socket to set up the connection, then performing MPA negotiation in
+kernel. So, this part of code mainly comes from SoftiWarp, base on it,
+we add some more features, such as non-blocking iw_connect implementation.
 
 Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- drivers/infiniband/hw/erdma/erdma_cmdq.c | 497 +++++++++++++++++++++++
- 1 file changed, 497 insertions(+)
- create mode 100644 drivers/infiniband/hw/erdma/erdma_cmdq.c
+ drivers/infiniband/hw/erdma/erdma_cm.c | 1434 ++++++++++++++++++++++++
+ drivers/infiniband/hw/erdma/erdma_cm.h |  168 +++
+ 2 files changed, 1602 insertions(+)
+ create mode 100644 drivers/infiniband/hw/erdma/erdma_cm.c
+ create mode 100644 drivers/infiniband/hw/erdma/erdma_cm.h
 
-diff --git a/drivers/infiniband/hw/erdma/erdma_cmdq.c b/drivers/infiniband/hw/erdma/erdma_cmdq.c
+diff --git a/drivers/infiniband/hw/erdma/erdma_cm.c b/drivers/infiniband/hw/erdma/erdma_cm.c
 new file mode 100644
-index 000000000000..29145f886a36
+index 000000000000..618e25c7e514
 --- /dev/null
-+++ b/drivers/infiniband/hw/erdma/erdma_cmdq.c
-@@ -0,0 +1,497 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++++ b/drivers/infiniband/hw/erdma/erdma_cm.c
+@@ -0,0 +1,1434 @@
++// SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause
 +
 +/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
 +/*          Kai Shen <kaishen@linux.alibaba.com> */
 +/* Copyright (c) 2020-2022, Alibaba Group. */
 +
++/* Authors: Bernard Metzler <bmt@zurich.ibm.com> */
++/*          Fredy Neeser */
++/*          Greg Joyce <greg@opengridcomputing.com> */
++/* Copyright (c) 2008-2019, IBM Corporation */
++/* Copyright (c) 2017, Open Grid Computing, Inc. */
++
++#include <linux/errno.h>
++#include <linux/inetdevice.h>
++#include <linux/net.h>
++#include <linux/inetdevice.h>
++#include <net/addrconf.h>
++#include <linux/tcp.h>
 +#include <linux/types.h>
-+#include <linux/kernel.h>
-+#include <linux/pci.h>
++#include <linux/workqueue.h>
++#include <net/sock.h>
++
++#include <rdma/iw_cm.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_user_verbs.h>
++#include <rdma/ib_verbs.h>
 +
 +#include "erdma.h"
-+#include "erdma_hw.h"
++#include "erdma_cm.h"
 +#include "erdma_verbs.h"
 +
-+static void arm_cmdq_cq(struct erdma_cmdq *cmdq)
++static struct workqueue_struct *erdma_cm_wq;
++
++static void erdma_cm_llp_state_change(struct sock *sk);
++static void erdma_cm_llp_data_ready(struct sock *sk);
++static void erdma_cm_llp_error_report(struct sock *sk);
++
++static void erdma_sk_assign_cm_upcalls(struct sock *sk)
 +{
-+	struct erdma_dev *dev = container_of(cmdq, struct erdma_dev, cmdq);
-+	u64 db_data = FIELD_PREP(ERDMA_CQDB_CI_MASK, cmdq->cq.ci) |
-+		      FIELD_PREP(ERDMA_CQDB_ARM_MASK, 1) |
-+		      FIELD_PREP(ERDMA_CQDB_CMDSN_MASK, cmdq->cq.cmdsn) |
-+		      FIELD_PREP(ERDMA_CQDB_IDX_MASK, cmdq->cq.cmdsn);
-+
-+	*cmdq->cq.db_record = db_data;
-+	writeq(db_data, dev->func_bar + ERDMA_CMDQ_CQDB_REG);
-+
-+	atomic64_inc(&cmdq->cq.armed_num);
++	write_lock_bh(&sk->sk_callback_lock);
++	sk->sk_state_change = erdma_cm_llp_state_change;
++	sk->sk_data_ready = erdma_cm_llp_data_ready;
++	sk->sk_error_report = erdma_cm_llp_error_report;
++	write_unlock_bh(&sk->sk_callback_lock);
 +}
 +
-+static void kick_cmdq_db(struct erdma_cmdq *cmdq)
++static void erdma_sk_save_upcalls(struct sock *sk)
 +{
-+	struct erdma_dev *dev = container_of(cmdq, struct erdma_dev, cmdq);
-+	u64 db_data = FIELD_PREP(ERDMA_CMD_HDR_WQEBB_INDEX_MASK, cmdq->sq.pi);
++	struct erdma_cep *cep = sk_to_cep(sk);
 +
-+	*cmdq->sq.db_record = db_data;
-+	writeq(db_data, dev->func_bar + ERDMA_CMDQ_SQDB_REG);
++	write_lock_bh(&sk->sk_callback_lock);
++	cep->sk_state_change = sk->sk_state_change;
++	cep->sk_data_ready = sk->sk_data_ready;
++	cep->sk_error_report = sk->sk_error_report;
++	write_unlock_bh(&sk->sk_callback_lock);
 +}
 +
-+static struct erdma_comp_wait *get_comp_wait(struct erdma_cmdq *cmdq)
++static void erdma_sk_restore_upcalls(struct sock *sk, struct erdma_cep *cep)
 +{
-+	int comp_idx;
++	sk->sk_state_change = cep->sk_state_change;
++	sk->sk_data_ready = cep->sk_data_ready;
++	sk->sk_error_report = cep->sk_error_report;
++	sk->sk_user_data = NULL;
++}
 +
-+	spin_lock(&cmdq->lock);
-+	comp_idx = find_first_zero_bit(cmdq->comp_wait_bitmap,
-+				       cmdq->max_outstandings);
-+	if (comp_idx == cmdq->max_outstandings) {
-+		spin_unlock(&cmdq->lock);
-+		return ERR_PTR(-ENOMEM);
++static void erdma_socket_disassoc(struct socket *s)
++{
++	struct sock *sk = s->sk;
++	struct erdma_cep *cep;
++
++	if (sk) {
++		write_lock_bh(&sk->sk_callback_lock);
++		cep = sk_to_cep(sk);
++		if (cep) {
++			erdma_sk_restore_upcalls(sk, cep);
++			erdma_cep_put(cep);
++		} else {
++			WARN_ON_ONCE(1);
++		}
++		write_unlock_bh(&sk->sk_callback_lock);
++	} else {
++		WARN_ON_ONCE(1);
 +	}
-+
-+	set_bit(comp_idx, cmdq->comp_wait_bitmap);
-+	spin_unlock(&cmdq->lock);
-+
-+	return &cmdq->wait_pool[comp_idx];
 +}
 +
-+static void put_comp_wait(struct erdma_cmdq *cmdq,
-+			  struct erdma_comp_wait *comp_wait)
++static void erdma_cep_socket_assoc(struct erdma_cep *cep, struct socket *s)
 +{
-+	int used;
++	cep->sock = s;
++	erdma_cep_get(cep);
++	s->sk->sk_user_data = cep;
 +
-+	cmdq->wait_pool[comp_wait->ctx_id].cmd_status = ERDMA_CMD_STATUS_INIT;
-+	spin_lock(&cmdq->lock);
-+	used = test_and_clear_bit(comp_wait->ctx_id, cmdq->comp_wait_bitmap);
-+	spin_unlock(&cmdq->lock);
-+
-+	WARN_ON(!used);
++	erdma_sk_save_upcalls(s->sk);
++	erdma_sk_assign_cm_upcalls(s->sk);
 +}
 +
-+static int erdma_cmdq_wait_res_init(struct erdma_dev *dev,
-+				    struct erdma_cmdq *cmdq)
++static void erdma_disassoc_listen_cep(struct erdma_cep *cep)
 +{
-+	int i;
-+
-+	cmdq->wait_pool =
-+		devm_kcalloc(&dev->pdev->dev, cmdq->max_outstandings,
-+			     sizeof(struct erdma_comp_wait), GFP_KERNEL);
-+	if (!cmdq->wait_pool)
-+		return -ENOMEM;
-+
-+	spin_lock_init(&cmdq->lock);
-+	cmdq->comp_wait_bitmap =
-+		devm_kcalloc(&dev->pdev->dev,
-+			     BITS_TO_LONGS(cmdq->max_outstandings),
-+			     sizeof(unsigned long), GFP_KERNEL);
-+	if (!cmdq->comp_wait_bitmap) {
-+		devm_kfree(&dev->pdev->dev, cmdq->wait_pool);
-+		return -ENOMEM;
++	if (cep->listen_cep) {
++		erdma_cep_put(cep->listen_cep);
++		cep->listen_cep = NULL;
 +	}
++}
 +
-+	for (i = 0; i < cmdq->max_outstandings; i++) {
-+		init_completion(&cmdq->wait_pool[i].wait_event);
-+		cmdq->wait_pool[i].ctx_id = i;
++static struct erdma_cep *erdma_cep_alloc(struct erdma_dev *dev)
++{
++	struct erdma_cep *cep = kzalloc(sizeof(*cep), GFP_KERNEL);
++	unsigned long flags;
++
++	if (!cep)
++		return NULL;
++
++	INIT_LIST_HEAD(&cep->listenq);
++	INIT_LIST_HEAD(&cep->devq);
++	INIT_LIST_HEAD(&cep->work_freelist);
++
++	kref_init(&cep->ref);
++	cep->state = ERDMA_EPSTATE_IDLE;
++	init_waitqueue_head(&cep->waitq);
++	spin_lock_init(&cep->lock);
++	cep->dev = dev;
++
++	spin_lock_irqsave(&dev->lock, flags);
++	list_add_tail(&cep->devq, &dev->cep_list);
++	spin_unlock_irqrestore(&dev->lock, flags);
++
++	return cep;
++}
++
++static void erdma_cm_free_work(struct erdma_cep *cep)
++{
++	struct list_head *w, *tmp;
++	struct erdma_cm_work *work;
++
++	list_for_each_safe(w, tmp, &cep->work_freelist) {
++		work = list_entry(w, struct erdma_cm_work, list);
++		list_del(&work->list);
++		kfree(work);
 +	}
-+
-+	return 0;
 +}
 +
-+static int erdma_cmdq_sq_init(struct erdma_dev *dev)
++static void erdma_cancel_mpatimer(struct erdma_cep *cep)
 +{
-+	struct erdma_cmdq *cmdq = &dev->cmdq;
-+	struct erdma_cmdq_sq *sq = &cmdq->sq;
-+	u32 buf_size;
-+
-+	sq->wqebb_cnt = SQEBB_COUNT(ERDMA_CMDQ_SQE_SIZE);
-+	sq->depth = cmdq->max_outstandings * sq->wqebb_cnt;
-+
-+	buf_size = sq->depth << SQEBB_SHIFT;
-+
-+	sq->qbuf =
-+		dma_alloc_coherent(&dev->pdev->dev, WARPPED_BUFSIZE(buf_size),
-+				   &sq->qbuf_dma_addr, GFP_KERNEL);
-+	if (!sq->qbuf)
-+		return -ENOMEM;
-+
-+	sq->db_record = (u64 *)(sq->qbuf + buf_size);
-+
-+	spin_lock_init(&sq->lock);
-+
-+	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_SQ_ADDR_H_REG,
-+			  upper_32_bits(sq->qbuf_dma_addr));
-+	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_SQ_ADDR_L_REG,
-+			  lower_32_bits(sq->qbuf_dma_addr));
-+	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_DEPTH_REG, sq->depth);
-+	erdma_reg_write64(dev, ERDMA_CMDQ_SQ_DB_HOST_ADDR_REG,
-+			  sq->qbuf_dma_addr + buf_size);
-+
-+	return 0;
-+}
-+
-+static int erdma_cmdq_cq_init(struct erdma_dev *dev)
-+{
-+	struct erdma_cmdq *cmdq = &dev->cmdq;
-+	struct erdma_cmdq_cq *cq = &cmdq->cq;
-+	u32 buf_size;
-+
-+	cq->depth = cmdq->sq.depth;
-+	buf_size = cq->depth << CQE_SHIFT;
-+
-+	cq->qbuf =
-+		dma_alloc_coherent(&dev->pdev->dev, WARPPED_BUFSIZE(buf_size),
-+				   &cq->qbuf_dma_addr, GFP_KERNEL | __GFP_ZERO);
-+	if (!cq->qbuf)
-+		return -ENOMEM;
-+
-+	spin_lock_init(&cq->lock);
-+
-+	cq->db_record = (u64 *)(cq->qbuf + buf_size);
-+
-+	atomic64_set(&cq->armed_num, 0);
-+
-+	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_CQ_ADDR_H_REG,
-+			  upper_32_bits(cq->qbuf_dma_addr));
-+	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_CQ_ADDR_L_REG,
-+			  lower_32_bits(cq->qbuf_dma_addr));
-+	erdma_reg_write64(dev, ERDMA_CMDQ_CQ_DB_HOST_ADDR_REG,
-+			  cq->qbuf_dma_addr + buf_size);
-+
-+	return 0;
-+}
-+
-+static int erdma_cmdq_eq_init(struct erdma_dev *dev)
-+{
-+	struct erdma_cmdq *cmdq = &dev->cmdq;
-+	struct erdma_eq *eq = &cmdq->eq;
-+	u32 buf_size;
-+
-+	eq->depth = cmdq->max_outstandings;
-+	buf_size = eq->depth << EQE_SHIFT;
-+
-+	eq->qbuf =
-+		dma_alloc_coherent(&dev->pdev->dev, WARPPED_BUFSIZE(buf_size),
-+				   &eq->qbuf_dma_addr, GFP_KERNEL | __GFP_ZERO);
-+	if (!eq->qbuf)
-+		return -ENOMEM;
-+
-+	spin_lock_init(&eq->lock);
-+	atomic64_set(&eq->event_num, 0);
-+
-+	eq->db_addr =
-+		(u64 __iomem *)(dev->func_bar + ERDMA_REGS_CEQ_DB_BASE_REG);
-+	eq->db_record = (u64 *)(eq->qbuf + buf_size);
-+
-+	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_EQ_ADDR_H_REG,
-+			  upper_32_bits(eq->qbuf_dma_addr));
-+	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_EQ_ADDR_L_REG,
-+			  lower_32_bits(eq->qbuf_dma_addr));
-+	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_EQ_DEPTH_REG, eq->depth);
-+	erdma_reg_write64(dev, ERDMA_CMDQ_EQ_DB_HOST_ADDR_REG,
-+			  eq->qbuf_dma_addr + buf_size);
-+
-+	return 0;
-+}
-+
-+int erdma_cmdq_init(struct erdma_dev *dev)
-+{
-+	int err, i;
-+	struct erdma_cmdq *cmdq = &dev->cmdq;
-+	u32 status, ctrl;
-+
-+	cmdq->max_outstandings = ERDMA_CMDQ_MAX_OUTSTANDING;
-+	cmdq->use_event = false;
-+
-+	sema_init(&cmdq->credits, cmdq->max_outstandings);
-+
-+	err = erdma_cmdq_wait_res_init(dev, cmdq);
-+	if (err)
-+		return err;
-+
-+	err = erdma_cmdq_sq_init(dev);
-+	if (err)
-+		return err;
-+
-+	err = erdma_cmdq_cq_init(dev);
-+	if (err)
-+		goto err_destroy_sq;
-+
-+	err = erdma_cmdq_eq_init(dev);
-+	if (err)
-+		goto err_destroy_cq;
-+
-+	ctrl = FIELD_PREP(ERDMA_REG_DEV_CTRL_INIT_MASK, 1);
-+	erdma_reg_write32(dev, ERDMA_REGS_DEV_CTRL_REG, ctrl);
-+
-+	for (i = 0; i < ERDMA_WAIT_DEV_DONE_CNT; i++) {
-+		status =
-+			erdma_reg_read32_filed(dev, ERDMA_REGS_DEV_ST_REG,
-+					       ERDMA_REG_DEV_ST_INIT_DONE_MASK);
-+		if (status)
-+			break;
-+
-+		msleep(ERDMA_REG_ACCESS_WAIT_MS);
++	spin_lock_bh(&cep->lock);
++	if (cep->mpa_timer) {
++		if (cancel_delayed_work(&cep->mpa_timer->work)) {
++			erdma_cep_put(cep);
++			kfree(cep->mpa_timer);
++		}
++		cep->mpa_timer = NULL;
 +	}
-+
-+	if (i == ERDMA_WAIT_DEV_DONE_CNT) {
-+		dev_err(&dev->pdev->dev, "wait init done failed.\n");
-+		err = -ETIMEDOUT;
-+		goto err_destroy_eq;
-+	}
-+
-+	set_bit(ERDMA_CMDQ_STATE_OK_BIT, &cmdq->state);
-+
-+	return 0;
-+
-+err_destroy_eq:
-+	dma_free_coherent(&dev->pdev->dev,
-+			  (cmdq->eq.depth << EQE_SHIFT) +
-+				  ERDMA_EXTRA_BUFFER_SIZE,
-+			  cmdq->eq.qbuf, cmdq->eq.qbuf_dma_addr);
-+
-+err_destroy_cq:
-+	dma_free_coherent(&dev->pdev->dev,
-+			  (cmdq->cq.depth << CQE_SHIFT) +
-+				  ERDMA_EXTRA_BUFFER_SIZE,
-+			  cmdq->cq.qbuf, cmdq->cq.qbuf_dma_addr);
-+
-+err_destroy_sq:
-+	dma_free_coherent(&dev->pdev->dev,
-+			  (cmdq->sq.depth << SQEBB_SHIFT) +
-+				  ERDMA_EXTRA_BUFFER_SIZE,
-+			  cmdq->sq.qbuf, cmdq->sq.qbuf_dma_addr);
-+
-+	return err;
++	spin_unlock_bh(&cep->lock);
 +}
 +
-+void erdma_finish_cmdq_init(struct erdma_dev *dev)
++static void erdma_put_work(struct erdma_cm_work *work)
 +{
-+	/* after device init successfully, change cmdq to event mode. */
-+	dev->cmdq.use_event = true;
-+	arm_cmdq_cq(&dev->cmdq);
++	INIT_LIST_HEAD(&work->list);
++	spin_lock_bh(&work->cep->lock);
++	list_add(&work->list, &work->cep->work_freelist);
++	spin_unlock_bh(&work->cep->lock);
 +}
 +
-+void erdma_cmdq_destroy(struct erdma_dev *dev)
-+{
-+	struct erdma_cmdq *cmdq = &dev->cmdq;
-+
-+	clear_bit(ERDMA_CMDQ_STATE_OK_BIT, &cmdq->state);
-+
-+	dma_free_coherent(&dev->pdev->dev,
-+			  (cmdq->eq.depth << EQE_SHIFT) +
-+				  ERDMA_EXTRA_BUFFER_SIZE,
-+			  cmdq->eq.qbuf, cmdq->eq.qbuf_dma_addr);
-+	dma_free_coherent(&dev->pdev->dev,
-+			  (cmdq->sq.depth << SQEBB_SHIFT) +
-+				  ERDMA_EXTRA_BUFFER_SIZE,
-+			  cmdq->sq.qbuf, cmdq->sq.qbuf_dma_addr);
-+	dma_free_coherent(&dev->pdev->dev,
-+			  (cmdq->cq.depth << CQE_SHIFT) +
-+				  ERDMA_EXTRA_BUFFER_SIZE,
-+			  cmdq->cq.qbuf, cmdq->cq.qbuf_dma_addr);
-+}
-+
-+static void *get_next_valid_cmdq_cqe(struct erdma_cmdq *cmdq)
-+{
-+	__be32 *cqe = get_queue_entry(cmdq->cq.qbuf, cmdq->cq.ci,
-+				      cmdq->cq.depth, CQE_SHIFT);
-+	u32 owner = FIELD_GET(ERDMA_CQE_HDR_OWNER_MASK,
-+			      __be32_to_cpu(READ_ONCE(*cqe)));
-+
-+	return owner ^ !!(cmdq->cq.ci & cmdq->cq.depth) ? cqe : NULL;
-+}
-+
-+static void push_cmdq_sqe(struct erdma_cmdq *cmdq, u64 *req, size_t req_len,
-+			  struct erdma_comp_wait *comp_wait)
-+{
-+	__le64 *wqe;
-+	u64 hdr = *req;
-+
-+	comp_wait->cmd_status = ERDMA_CMD_STATUS_ISSUED;
-+	reinit_completion(&comp_wait->wait_event);
-+	comp_wait->sq_pi = cmdq->sq.pi;
-+
-+	wqe = get_queue_entry(cmdq->sq.qbuf, cmdq->sq.pi, cmdq->sq.depth,
-+			      SQEBB_SHIFT);
-+	memcpy(wqe, req, req_len);
-+
-+	cmdq->sq.pi += cmdq->sq.wqebb_cnt;
-+	hdr |= FIELD_PREP(ERDMA_CMD_HDR_WQEBB_INDEX_MASK, cmdq->sq.pi) |
-+	       FIELD_PREP(ERDMA_CMD_HDR_CONTEXT_COOKIE_MASK,
-+			  comp_wait->ctx_id) |
-+	       FIELD_PREP(ERDMA_CMD_HDR_WQEBB_CNT_MASK, cmdq->sq.wqebb_cnt - 1);
-+	*wqe = hdr;
-+
-+	kick_cmdq_db(cmdq);
-+}
-+
-+static int erdma_poll_single_cmd_completion(struct erdma_cmdq *cmdq)
-+{
-+	struct erdma_comp_wait *comp_wait;
-+	u32 hdr0, sqe_idx;
-+	__be32 *cqe;
-+	u16 ctx_id;
-+	u64 *sqe;
-+	int i;
-+
-+	cqe = get_next_valid_cmdq_cqe(cmdq);
-+	if (!cqe)
-+		return -EAGAIN;
-+
-+	cmdq->cq.ci++;
-+
-+	dma_rmb();
-+	hdr0 = __be32_to_cpu(*cqe);
-+	sqe_idx = __be32_to_cpu(*(cqe + 1));
-+
-+	sqe = get_queue_entry(cmdq->sq.qbuf, sqe_idx, cmdq->sq.depth,
-+			      SQEBB_SHIFT);
-+	ctx_id = FIELD_GET(ERDMA_CMD_HDR_CONTEXT_COOKIE_MASK, *sqe);
-+	comp_wait = &cmdq->wait_pool[ctx_id];
-+	if (comp_wait->cmd_status != ERDMA_CMD_STATUS_ISSUED)
-+		return -EIO;
-+
-+	comp_wait->cmd_status = ERDMA_CMD_STATUS_FINISHED;
-+	comp_wait->comp_status = FIELD_GET(ERDMA_CQE_HDR_SYNDROME_MASK, hdr0);
-+	cmdq->sq.ci += cmdq->sq.wqebb_cnt;
-+
-+	for (i = 0; i < 4; i++)
-+		comp_wait->comp_data[i] = __be32_to_cpu(*(cqe + 2 + i));
-+
-+	if (cmdq->use_event)
-+		complete(&comp_wait->wait_event);
-+
-+	return 0;
-+}
-+
-+static void erdma_polling_cmd_completions(struct erdma_cmdq *cmdq)
++static void erdma_cep_set_inuse(struct erdma_cep *cep)
 +{
 +	unsigned long flags;
-+	u16 comp_num;
 +
-+	spin_lock_irqsave(&cmdq->cq.lock, flags);
++	spin_lock_irqsave(&cep->lock, flags);
++	while (cep->in_use) {
++		spin_unlock_irqrestore(&cep->lock, flags);
++		wait_event_interruptible(cep->waitq, !cep->in_use);
++		if (signal_pending(current))
++			flush_signals(current);
 +
-+	/* We must have less than # of max_outstandings
-+	 * completions at one time.
-+	 */
-+	for (comp_num = 0; comp_num < cmdq->max_outstandings; comp_num++)
-+		if (erdma_poll_single_cmd_completion(cmdq))
-+			break;
++		spin_lock_irqsave(&cep->lock, flags);
++	}
 +
-+	if (comp_num && cmdq->use_event)
-+		arm_cmdq_cq(cmdq);
-+
-+	spin_unlock_irqrestore(&cmdq->cq.lock, flags);
++	cep->in_use = 1;
++	spin_unlock_irqrestore(&cep->lock, flags);
 +}
 +
-+void erdma_cmdq_completion_handler(struct erdma_cmdq *cmdq)
++static void erdma_cep_set_free(struct erdma_cep *cep)
 +{
-+	int got_event = 0;
++	unsigned long flags;
 +
-+	if (!test_bit(ERDMA_CMDQ_STATE_OK_BIT, &cmdq->state) ||
-+	    !cmdq->use_event)
++	spin_lock_irqsave(&cep->lock, flags);
++	cep->in_use = 0;
++	spin_unlock_irqrestore(&cep->lock, flags);
++
++	wake_up(&cep->waitq);
++}
++
++static void __erdma_cep_dealloc(struct kref *ref)
++{
++	struct erdma_cep *cep = container_of(ref, struct erdma_cep, ref);
++	struct erdma_dev *dev = cep->dev;
++	unsigned long flags;
++
++	WARN_ON(cep->listen_cep);
++
++	kfree(cep->private_data);
++	kfree(cep->mpa.pdata);
++	spin_lock_bh(&cep->lock);
++	if (!list_empty(&cep->work_freelist))
++		erdma_cm_free_work(cep);
++	spin_unlock_bh(&cep->lock);
++
++	spin_lock_irqsave(&dev->lock, flags);
++	list_del(&cep->devq);
++	spin_unlock_irqrestore(&dev->lock, flags);
++	kfree(cep);
++}
++
++static struct erdma_cm_work *erdma_get_work(struct erdma_cep *cep)
++{
++	struct erdma_cm_work *work = NULL;
++
++	spin_lock_bh(&cep->lock);
++	if (!list_empty(&cep->work_freelist)) {
++		work = list_entry(cep->work_freelist.next, struct erdma_cm_work,
++				  list);
++		list_del_init(&work->list);
++	}
++
++	spin_unlock_bh(&cep->lock);
++	return work;
++}
++
++static int erdma_cm_alloc_work(struct erdma_cep *cep, int num)
++{
++	struct erdma_cm_work *work;
++
++	while (num--) {
++		work = kmalloc(sizeof(*work), GFP_KERNEL);
++		if (!work) {
++			if (!(list_empty(&cep->work_freelist)))
++				erdma_cm_free_work(cep);
++			return -ENOMEM;
++		}
++		work->cep = cep;
++		INIT_LIST_HEAD(&work->list);
++		list_add(&work->list, &cep->work_freelist);
++	}
++
++	return 0;
++}
++
++static int erdma_cm_upcall(struct erdma_cep *cep, enum iw_cm_event_type reason,
++			   int status)
++{
++	struct iw_cm_event event;
++	struct iw_cm_id *cm_id;
++
++	memset(&event, 0, sizeof(event));
++	event.status = status;
++	event.event = reason;
++
++	if (reason == IW_CM_EVENT_CONNECT_REQUEST) {
++		event.provider_data = cep;
++		cm_id = cep->listen_cep->cm_id;
++
++		event.ird = cep->dev->attrs.max_ird;
++		event.ord = cep->dev->attrs.max_ord;
++	} else {
++		cm_id = cep->cm_id;
++	}
++
++	if (reason == IW_CM_EVENT_CONNECT_REQUEST ||
++	    reason == IW_CM_EVENT_CONNECT_REPLY) {
++		u16 pd_len = be16_to_cpu(cep->mpa.hdr.params.pd_len);
++
++		if (pd_len && cep->mpa.pdata) {
++			event.private_data_len = pd_len;
++			event.private_data = cep->mpa.pdata;
++		}
++
++		getname_local(cep->sock, &event.local_addr);
++		getname_peer(cep->sock, &event.remote_addr);
++	}
++
++	return cm_id->event_handler(cm_id, &event);
++}
++
++void erdma_qp_cm_drop(struct erdma_qp *qp)
++{
++	struct erdma_cep *cep = qp->cep;
++
++	if (!qp->cep)
 +		return;
 +
-+	while (get_next_valid_eqe(&cmdq->eq)) {
-+		cmdq->eq.ci++;
-+		got_event++;
-+	}
++	erdma_cep_set_inuse(cep);
 +
-+	if (got_event) {
-+		cmdq->cq.cmdsn++;
-+		erdma_polling_cmd_completions(cmdq);
-+	}
++	/* already closed. */
++	if (cep->state == ERDMA_EPSTATE_CLOSED)
++		goto out;
 +
-+	notify_eq(&cmdq->eq);
-+}
-+
-+static int erdma_poll_cmd_completion(struct erdma_comp_wait *comp_ctx,
-+				     struct erdma_cmdq *cmdq, u32 timeout)
-+{
-+	unsigned long comp_timeout = jiffies + msecs_to_jiffies(timeout);
-+
-+	while (1) {
-+		erdma_polling_cmd_completions(cmdq);
-+		if (comp_ctx->cmd_status != ERDMA_CMD_STATUS_ISSUED)
++	if (cep->cm_id) {
++		switch (cep->state) {
++		case ERDMA_EPSTATE_AWAIT_MPAREP:
++			erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY,
++					-EINVAL);
 +			break;
 +
-+		if (time_is_before_jiffies(comp_timeout))
-+			return -ETIME;
++		case ERDMA_EPSTATE_RDMA_MODE:
++			erdma_cm_upcall(cep, IW_CM_EVENT_CLOSE, 0);
++			break;
 +
-+		msleep(20);
++		case ERDMA_EPSTATE_IDLE:
++		case ERDMA_EPSTATE_LISTENING:
++		case ERDMA_EPSTATE_CONNECTING:
++		case ERDMA_EPSTATE_AWAIT_MPAREQ:
++		case ERDMA_EPSTATE_RECVD_MPAREQ:
++		case ERDMA_EPSTATE_CLOSED:
++		default:
++			break;
++		}
++		cep->cm_id->rem_ref(cep->cm_id);
++		cep->cm_id = NULL;
++		erdma_cep_put(cep);
++	}
++	cep->state = ERDMA_EPSTATE_CLOSED;
++
++	if (cep->sock) {
++		erdma_socket_disassoc(cep->sock);
++		sock_release(cep->sock);
++		cep->sock = NULL;
++	}
++
++	if (cep->qp) {
++		cep->qp = NULL;
++		erdma_qp_put(qp);
++	}
++out:
++	erdma_cep_set_free(cep);
++}
++
++void erdma_cep_put(struct erdma_cep *cep)
++{
++	WARN_ON(kref_read(&cep->ref) < 1);
++	kref_put(&cep->ref, __erdma_cep_dealloc);
++}
++
++void erdma_cep_get(struct erdma_cep *cep)
++{
++	kref_get(&cep->ref);
++}
++
++static int erdma_send_mpareqrep(struct erdma_cep *cep, const void *pdata,
++				u8 pd_len)
++{
++	struct socket *s = cep->sock;
++	struct mpa_rr *rr = &cep->mpa.hdr;
++	struct kvec iov[3];
++	struct msghdr msg;
++	int iovec_num = 0;
++	int ret;
++	int mpa_len;
++
++	memset(&msg, 0, sizeof(msg));
++
++	rr->params.pd_len = cpu_to_be16(pd_len);
++
++	iov[iovec_num].iov_base = rr;
++	iov[iovec_num].iov_len = sizeof(*rr);
++	iovec_num++;
++	mpa_len = sizeof(*rr);
++
++	iov[iovec_num].iov_base = &cep->mpa.ext_data;
++	iov[iovec_num].iov_len = sizeof(cep->mpa.ext_data);
++	iovec_num++;
++	mpa_len += sizeof(cep->mpa.ext_data);
++
++	if (pd_len) {
++		iov[iovec_num].iov_base = (char *)pdata;
++		iov[iovec_num].iov_len = pd_len;
++		mpa_len += pd_len;
++		iovec_num++;
++	}
++
++	ret = kernel_sendmsg(s, &msg, iov, iovec_num, mpa_len);
++
++	return ret < 0 ? ret : 0;
++}
++
++static inline int ksock_recv(struct socket *sock, char *buf, size_t size,
++			     int flags)
++{
++	struct kvec iov = { buf, size };
++	struct msghdr msg = { .msg_name = NULL, .msg_flags = flags };
++
++	return kernel_recvmsg(sock, &msg, &iov, 1, size, flags);
++}
++
++static int __recv_mpa_hdr(struct erdma_cep *cep, int hdr_rcvd, char *hdr,
++			  int hdr_size, int *rcvd_out)
++{
++	struct socket *s = cep->sock;
++	int rcvd;
++
++	*rcvd_out = 0;
++	if (hdr_rcvd < hdr_size) {
++		rcvd = ksock_recv(s, hdr + hdr_rcvd, hdr_size - hdr_rcvd,
++				  MSG_DONTWAIT);
++		if (rcvd == -EAGAIN)
++			return -EAGAIN;
++
++		if (rcvd <= 0)
++			return -ECONNABORTED;
++
++		hdr_rcvd += rcvd;
++		*rcvd_out = rcvd;
++
++		if (hdr_rcvd < hdr_size)
++			return -EAGAIN;
 +	}
 +
 +	return 0;
 +}
 +
-+static int erdma_wait_cmd_completion(struct erdma_comp_wait *comp_ctx,
-+				     struct erdma_cmdq *cmdq, u32 timeout)
++static void __mpa_rr_set_revision(u16 *bits, u8 rev)
 +{
-+	unsigned long flags = 0;
++	*bits = (*bits & ~MPA_RR_MASK_REVISION) |
++		(cpu_to_be16(rev) & MPA_RR_MASK_REVISION);
++}
 +
-+	wait_for_completion_timeout(&comp_ctx->wait_event,
-+				    msecs_to_jiffies(timeout));
++static u8 __mpa_rr_revision(u16 mpa_rr_bits)
++{
++	u16 rev = mpa_rr_bits & MPA_RR_MASK_REVISION;
 +
-+	if (unlikely(comp_ctx->cmd_status != ERDMA_CMD_STATUS_FINISHED)) {
-+		spin_lock_irqsave(&cmdq->cq.lock, flags);
-+		comp_ctx->cmd_status = ERDMA_CMD_STATUS_TIMEOUT;
-+		spin_unlock_irqrestore(&cmdq->cq.lock, flags);
-+		return -ETIME;
++	return (u8)be16_to_cpu(rev);
++}
++
++static void __mpa_ext_set_cc(u32 *bits, u32 cc)
++{
++	*bits = (*bits & ~MPA_EXT_FLAG_CC) |
++		(cpu_to_be32(cc) & MPA_EXT_FLAG_CC);
++}
++
++static u8 __mpa_ext_cc(__be32 mpa_ext_bits)
++{
++	__be32 cc = mpa_ext_bits & MPA_EXT_FLAG_CC;
++
++	return (u8)be32_to_cpu(cc);
++}
++
++/*
++ * Receive MPA Request/Reply header.
++ *
++ * Returns 0 if complete MPA Request/Reply haeder including
++ * eventual private data was received. Returns -EAGAIN if
++ * header was partially received or negative error code otherwise.
++ *
++ * Context: May be called in process context only
++ */
++static int erdma_recv_mpa_rr(struct erdma_cep *cep)
++{
++	struct mpa_rr *hdr = &cep->mpa.hdr;
++	struct socket *s = cep->sock;
++	u16 pd_len;
++	int rcvd, to_rcv, ret, pd_rcvd;
++
++	if (cep->mpa.bytes_rcvd < sizeof(struct mpa_rr)) {
++		ret = __recv_mpa_hdr(cep, cep->mpa.bytes_rcvd,
++				     (char *)&cep->mpa.hdr,
++				     sizeof(struct mpa_rr), &rcvd);
++		cep->mpa.bytes_rcvd += rcvd;
++		if (ret)
++			return ret;
 +	}
 +
-+	return 0;
++	if (be16_to_cpu(hdr->params.pd_len) > MPA_MAX_PRIVDATA ||
++	    __mpa_rr_revision(hdr->params.bits) != MPA_REVISION_EXT_1)
++		return -EPROTO;
++
++	if (cep->mpa.bytes_rcvd - sizeof(struct mpa_rr) <
++	    sizeof(struct erdma_mpa_ext)) {
++		ret = __recv_mpa_hdr(
++			cep, cep->mpa.bytes_rcvd - sizeof(struct mpa_rr),
++			(char *)&cep->mpa.ext_data,
++			sizeof(struct erdma_mpa_ext), &rcvd);
++		cep->mpa.bytes_rcvd += rcvd;
++		if (ret)
++			return ret;
++	}
++
++	pd_len = be16_to_cpu(hdr->params.pd_len);
++	pd_rcvd = cep->mpa.bytes_rcvd - sizeof(struct mpa_rr) -
++		  sizeof(struct erdma_mpa_ext);
++	to_rcv = pd_len - pd_rcvd;
++
++	if (!to_rcv) {
++		/*
++		 * We have received the whole MPA Request/Reply message.
++		 * Check against peer protocol violation.
++		 */
++		u32 word;
++
++		ret = __recv_mpa_hdr(cep, 0, (char *)&word, sizeof(word),
++				     &rcvd);
++		if (ret == -EAGAIN && rcvd == 0)
++			return 0;
++
++		if (ret)
++			return ret;
++
++		return -EPROTO;
++	}
++
++	/*
++	 * At this point, MPA header has been fully received, and pd_len != 0.
++	 * So, begin to receive private data.
++	 */
++	if (!cep->mpa.pdata) {
++		cep->mpa.pdata = kmalloc(pd_len + 4, GFP_KERNEL);
++		if (!cep->mpa.pdata)
++			return -ENOMEM;
++	}
++
++	rcvd = ksock_recv(s, cep->mpa.pdata + pd_rcvd, to_rcv + 4,
++			  MSG_DONTWAIT);
++	if (rcvd < 0)
++		return rcvd;
++
++	if (rcvd > to_rcv)
++		return -EPROTO;
++
++	cep->mpa.bytes_rcvd += rcvd;
++
++	if (to_rcv == rcvd)
++		return 0;
++
++	return -EAGAIN;
 +}
 +
-+void erdma_cmdq_build_reqhdr(u64 *hdr, u32 mod, u32 op)
++/*
++ * erdma_proc_mpareq()
++ *
++ * Read MPA Request from socket and signal new connection to IWCM
++ * if success. Caller must hold lock on corresponding listening CEP.
++ */
++static int erdma_proc_mpareq(struct erdma_cep *cep)
 +{
-+	*hdr = FIELD_PREP(ERDMA_CMD_HDR_SUB_MOD_MASK, mod) |
-+	       FIELD_PREP(ERDMA_CMD_HDR_OPCODE_MASK, op);
-+}
-+
-+int erdma_post_cmd_wait(struct erdma_cmdq *cmdq, u64 *req, u32 req_size,
-+			u64 *resp0, u64 *resp1)
-+{
-+	struct erdma_comp_wait *comp_wait;
++	struct mpa_rr *req;
 +	int ret;
 +
-+	if (!test_bit(ERDMA_CMDQ_STATE_OK_BIT, &cmdq->state))
-+		return -ENODEV;
++	ret = erdma_recv_mpa_rr(cep);
++	if (ret)
++		return ret;
 +
-+	down(&cmdq->credits);
++	req = &cep->mpa.hdr;
 +
-+	comp_wait = get_comp_wait(cmdq);
-+	if (IS_ERR(comp_wait)) {
-+		clear_bit(ERDMA_CMDQ_STATE_OK_BIT, &cmdq->state);
-+		set_bit(ERDMA_CMDQ_STATE_CTX_ERR_BIT, &cmdq->state);
-+		up(&cmdq->credits);
-+		return PTR_ERR(comp_wait);
++	if (memcmp(req->key, MPA_KEY_REQ, MPA_KEY_SIZE))
++		return -EPROTO;
++
++	memcpy(req->key, MPA_KEY_REP, MPA_KEY_SIZE);
++
++	/* Currently does not support marker and crc. */
++	if (req->params.bits & MPA_RR_FLAG_MARKERS ||
++	    req->params.bits & MPA_RR_FLAG_CRC)
++		goto reject_conn;
++
++	cep->state = ERDMA_EPSTATE_RECVD_MPAREQ;
++
++	/* Keep reference until IWCM accepts/rejects */
++	erdma_cep_get(cep);
++	ret = erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REQUEST, 0);
++	if (ret)
++		erdma_cep_put(cep);
++
++	return ret;
++
++reject_conn:
++	req->params.bits &= ~MPA_RR_FLAG_MARKERS;
++	req->params.bits |= MPA_RR_FLAG_REJECT;
++	req->params.bits &= ~MPA_RR_FLAG_CRC;
++
++	kfree(cep->mpa.pdata);
++	cep->mpa.pdata = NULL;
++	erdma_send_mpareqrep(cep, NULL, 0);
++
++	return -EOPNOTSUPP;
++}
++
++static int erdma_proc_mpareply(struct erdma_cep *cep)
++{
++	struct erdma_qp_attrs qp_attrs;
++	struct erdma_qp *qp = cep->qp;
++	struct mpa_rr *rep;
++	int ret;
++
++	ret = erdma_recv_mpa_rr(cep);
++	if (ret != -EAGAIN)
++		erdma_cancel_mpatimer(cep);
++	if (ret)
++		goto out_err;
++
++	rep = &cep->mpa.hdr;
++
++	if (memcmp(rep->key, MPA_KEY_REP, MPA_KEY_SIZE)) {
++		ret = -EPROTO;
++		goto out_err;
 +	}
 +
-+	spin_lock(&cmdq->sq.lock);
-+	push_cmdq_sqe(cmdq, req, req_size, comp_wait);
-+	spin_unlock(&cmdq->sq.lock);
-+
-+	if (cmdq->use_event)
-+		ret = erdma_wait_cmd_completion(comp_wait, cmdq,
-+						ERDMA_CMDQ_TIMEOUT_MS);
-+	else
-+		ret = erdma_poll_cmd_completion(comp_wait, cmdq,
-+						ERDMA_CMDQ_TIMEOUT_MS);
-+
-+	if (ret) {
-+		set_bit(ERDMA_CMDQ_STATE_TIMEOUT_BIT, &cmdq->state);
-+		clear_bit(ERDMA_CMDQ_STATE_OK_BIT, &cmdq->state);
-+		goto out;
++	if (rep->params.bits & MPA_RR_FLAG_REJECT) {
++		erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY, -ECONNRESET);
++		return -ECONNRESET;
 +	}
 +
-+	ret = comp_wait->comp_status;
-+
-+	if (resp0 && resp1) {
-+		*resp0 = *((u64 *)&comp_wait->comp_data[0]);
-+		*resp1 = *((u64 *)&comp_wait->comp_data[2]);
++	/* Currently does not support marker and crc. */
++	if ((rep->params.bits & MPA_RR_FLAG_MARKERS) ||
++	    (rep->params.bits & MPA_RR_FLAG_CRC)) {
++		erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY, -ECONNREFUSED);
++		return -EINVAL;
 +	}
-+	put_comp_wait(cmdq, comp_wait);
 +
-+out:
-+	up(&cmdq->credits);
++	memset(&qp_attrs, 0, sizeof(qp_attrs));
++	qp_attrs.irq_size = cep->ird;
++	qp_attrs.orq_size = cep->ord;
++	qp_attrs.state = ERDMA_QP_STATE_RTS;
++
++	down_write(&qp->state_lock);
++	if (qp->attrs.state > ERDMA_QP_STATE_RTR) {
++		ret = -EINVAL;
++		up_write(&qp->state_lock);
++		goto out_err;
++	}
++
++	qp->attrs.qp_type = ERDMA_QP_ACTIVE;
++	if (__mpa_ext_cc(cep->mpa.ext_data.bits) != qp->attrs.cc)
++		qp->attrs.cc = COMPROMISE_CC;
++
++	ret = erdma_modify_qp_internal(qp, &qp_attrs,
++				       ERDMA_QP_ATTR_STATE |
++				       ERDMA_QP_ATTR_LLP_HANDLE |
++				       ERDMA_QP_ATTR_MPA);
++
++	up_write(&qp->state_lock);
++
++	if (!ret) {
++		ret = erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY, 0);
++		if (!ret)
++			cep->state = ERDMA_EPSTATE_RDMA_MODE;
++
++		return 0;
++	}
++
++out_err:
++	erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY, -EINVAL);
++	return ret;
++}
++
++static void erdma_accept_newconn(struct erdma_cep *cep)
++{
++	struct socket *s = cep->sock;
++	struct socket *new_s = NULL;
++	struct erdma_cep *new_cep = NULL;
++	int ret = 0;
++
++	if (cep->state != ERDMA_EPSTATE_LISTENING)
++		goto error;
++
++	new_cep = erdma_cep_alloc(cep->dev);
++	if (!new_cep)
++		goto error;
++
++	/*
++	 * 4: Allocate a sufficient number of work elements
++	 * to allow concurrent handling of local + peer close
++	 * events, MPA header processing + MPA timeout.
++	 */
++	if (erdma_cm_alloc_work(new_cep, 4) != 0)
++		goto error;
++
++	/*
++	 * Copy saved socket callbacks from listening CEP
++	 * and assign new socket with new CEP
++	 */
++	new_cep->sk_state_change = cep->sk_state_change;
++	new_cep->sk_data_ready = cep->sk_data_ready;
++	new_cep->sk_error_report = cep->sk_error_report;
++
++	ret = kernel_accept(s, &new_s, O_NONBLOCK);
++	if (ret != 0)
++		goto error;
++
++	new_cep->sock = new_s;
++	erdma_cep_get(new_cep);
++	new_s->sk->sk_user_data = new_cep;
++
++	tcp_sock_set_nodelay(new_s->sk);
++	new_cep->state = ERDMA_EPSTATE_AWAIT_MPAREQ;
++
++	ret = erdma_cm_queue_work(new_cep, ERDMA_CM_WORK_MPATIMEOUT);
++	if (ret)
++		goto error;
++
++	new_cep->listen_cep = cep;
++	erdma_cep_get(cep);
++
++	if (atomic_read(&new_s->sk->sk_rmem_alloc)) {
++		/* MPA REQ already queued */
++		erdma_cep_set_inuse(new_cep);
++		ret = erdma_proc_mpareq(new_cep);
++		erdma_cep_set_free(new_cep);
++
++		if (ret != -EAGAIN) {
++			erdma_cep_put(cep);
++			new_cep->listen_cep = NULL;
++			if (ret)
++				goto error;
++		}
++	}
++	return;
++
++error:
++	if (new_cep) {
++		new_cep->state = ERDMA_EPSTATE_CLOSED;
++		erdma_cancel_mpatimer(new_cep);
++
++		erdma_cep_put(new_cep);
++		new_cep->sock = NULL;
++	}
++
++	if (new_s) {
++		erdma_socket_disassoc(new_s);
++		sock_release(new_s);
++	}
++}
++
++static int erdma_newconn_connected(struct erdma_cep *cep)
++{
++	int ret = 0;
++
++	cep->mpa.hdr.params.bits = 0;
++	__mpa_rr_set_revision(&cep->mpa.hdr.params.bits, MPA_REVISION_EXT_1);
++
++	memcpy(cep->mpa.hdr.key, MPA_KEY_REQ, MPA_KEY_SIZE);
++	cep->mpa.ext_data.cookie = cep->qp->attrs.cookie;
++	__mpa_ext_set_cc(&cep->mpa.ext_data.bits, cep->qp->attrs.cc);
++
++	ret = erdma_send_mpareqrep(cep, cep->private_data, cep->pd_len);
++	cep->state = ERDMA_EPSTATE_AWAIT_MPAREP;
++	cep->mpa.hdr.params.pd_len = 0;
++
++	if (ret >= 0)
++		ret = erdma_cm_queue_work(cep, ERDMA_CM_WORK_MPATIMEOUT);
 +
 +	return ret;
 +}
++
++static void erdma_cm_work_handler(struct work_struct *w)
++{
++	struct erdma_cm_work *work;
++	struct erdma_cep *cep;
++	int release_cep = 0, ret = 0;
++
++	work = container_of(w, struct erdma_cm_work, work.work);
++	cep = work->cep;
++
++	erdma_cep_set_inuse(cep);
++
++	switch (work->type) {
++	case ERDMA_CM_WORK_CONNECTED:
++		erdma_cancel_mpatimer(cep);
++		if (cep->state == ERDMA_EPSTATE_CONNECTING) {
++			ret = erdma_newconn_connected(cep);
++			if (ret) {
++				erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY,
++						-EIO);
++				release_cep = 1;
++			}
++		}
++		break;
++	case ERDMA_CM_WORK_CONNECTTIMEOUT:
++		if (cep->state == ERDMA_EPSTATE_CONNECTING) {
++			cep->mpa_timer = NULL;
++			erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY,
++					-ETIMEDOUT);
++			release_cep = 1;
++		}
++		break;
++	case ERDMA_CM_WORK_ACCEPT:
++		erdma_accept_newconn(cep);
++		break;
++	case ERDMA_CM_WORK_READ_MPAHDR:
++		if (cep->state == ERDMA_EPSTATE_AWAIT_MPAREQ) {
++			if (cep->listen_cep) {
++				erdma_cep_set_inuse(cep->listen_cep);
++
++				if (cep->listen_cep->state ==
++				    ERDMA_EPSTATE_LISTENING)
++					ret = erdma_proc_mpareq(cep);
++				else
++					ret = -EFAULT;
++
++				erdma_cep_set_free(cep->listen_cep);
++
++				if (ret != -EAGAIN) {
++					erdma_cep_put(cep->listen_cep);
++					cep->listen_cep = NULL;
++					if (ret)
++						erdma_cep_put(cep);
++				}
++			}
++		} else if (cep->state == ERDMA_EPSTATE_AWAIT_MPAREP) {
++			ret = erdma_proc_mpareply(cep);
++		}
++
++		if (ret && ret != -EAGAIN)
++			release_cep = 1;
++		break;
++	case ERDMA_CM_WORK_CLOSE_LLP:
++		if (cep->cm_id)
++			erdma_cm_upcall(cep, IW_CM_EVENT_CLOSE, 0);
++		release_cep = 1;
++		break;
++	case ERDMA_CM_WORK_PEER_CLOSE:
++		if (cep->cm_id) {
++			if (cep->state == ERDMA_EPSTATE_CONNECTING ||
++			    cep->state == ERDMA_EPSTATE_AWAIT_MPAREP) {
++				/*
++				 * MPA reply not received, but connection drop
++				 */
++				erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY,
++						-ECONNRESET);
++			} else if (cep->state == ERDMA_EPSTATE_RDMA_MODE) {
++				/*
++				 * NOTE: IW_CM_EVENT_DISCONNECT is given just
++				 *       to transition IWCM into CLOSING.
++				 */
++				erdma_cm_upcall(cep, IW_CM_EVENT_DISCONNECT, 0);
++				erdma_cm_upcall(cep, IW_CM_EVENT_CLOSE, 0);
++			}
++		} else if (cep->state == ERDMA_EPSTATE_AWAIT_MPAREQ) {
++			/* Socket close before MPA request received. */
++			erdma_disassoc_listen_cep(cep);
++			erdma_cep_put(cep);
++		}
++		release_cep = 1;
++		break;
++	case ERDMA_CM_WORK_MPATIMEOUT:
++		cep->mpa_timer = NULL;
++		if (cep->state == ERDMA_EPSTATE_AWAIT_MPAREP) {
++			/*
++			 * MPA request timed out:
++			 * Hide any partially received private data and signal
++			 * timeout
++			 */
++			cep->mpa.hdr.params.pd_len = 0;
++
++			if (cep->cm_id)
++				erdma_cm_upcall(cep, IW_CM_EVENT_CONNECT_REPLY,
++						-ETIMEDOUT);
++			release_cep = 1;
++		} else if (cep->state == ERDMA_EPSTATE_AWAIT_MPAREQ) {
++			/* No MPA req received after peer TCP stream setup. */
++			erdma_disassoc_listen_cep(cep);
++
++			erdma_cep_put(cep);
++			release_cep = 1;
++		}
++		break;
++	default:
++		WARN(1, "Undefined CM work type: %d\n", work->type);
++	}
++
++	if (release_cep) {
++		erdma_cancel_mpatimer(cep);
++		cep->state = ERDMA_EPSTATE_CLOSED;
++		if (cep->qp) {
++			struct erdma_qp *qp = cep->qp;
++			/*
++			 * Serialize a potential race with application
++			 * closing the QP and calling erdma_qp_cm_drop()
++			 */
++			erdma_qp_get(qp);
++			erdma_cep_set_free(cep);
++
++			erdma_qp_llp_close(qp);
++			erdma_qp_put(qp);
++
++			erdma_cep_set_inuse(cep);
++			cep->qp = NULL;
++			erdma_qp_put(qp);
++		}
++
++		if (cep->sock) {
++			erdma_socket_disassoc(cep->sock);
++			sock_release(cep->sock);
++			cep->sock = NULL;
++		}
++
++		if (cep->cm_id) {
++			cep->cm_id->rem_ref(cep->cm_id);
++			cep->cm_id = NULL;
++			if (cep->state != ERDMA_EPSTATE_LISTENING)
++				erdma_cep_put(cep);
++		}
++	}
++	erdma_cep_set_free(cep);
++	erdma_put_work(work);
++	erdma_cep_put(cep);
++}
++
++int erdma_cm_queue_work(struct erdma_cep *cep, enum erdma_work_type type)
++{
++	struct erdma_cm_work *work = erdma_get_work(cep);
++	unsigned long delay = 0;
++
++	if (!work)
++		return -ENOMEM;
++
++	work->type = type;
++	work->cep = cep;
++
++	erdma_cep_get(cep);
++
++	INIT_DELAYED_WORK(&work->work, erdma_cm_work_handler);
++
++	if (type == ERDMA_CM_WORK_MPATIMEOUT) {
++		cep->mpa_timer = work;
++
++		if (cep->state == ERDMA_EPSTATE_AWAIT_MPAREP)
++			delay = MPAREP_TIMEOUT;
++		else
++			delay = MPAREQ_TIMEOUT;
++	} else if (type == ERDMA_CM_WORK_CONNECTTIMEOUT) {
++		cep->mpa_timer = work;
++
++		delay = CONNECT_TIMEOUT;
++	}
++
++	queue_delayed_work(erdma_cm_wq, &work->work, delay);
++
++	return 0;
++}
++
++static void erdma_cm_llp_data_ready(struct sock *sk)
++{
++	struct erdma_cep *cep;
++
++	read_lock(&sk->sk_callback_lock);
++
++	cep = sk_to_cep(sk);
++	if (!cep)
++		goto out;
++
++	if (cep->state == ERDMA_EPSTATE_AWAIT_MPAREQ ||
++	    cep->state == ERDMA_EPSTATE_AWAIT_MPAREP)
++		erdma_cm_queue_work(cep, ERDMA_CM_WORK_READ_MPAHDR);
++
++out:
++	read_unlock(&sk->sk_callback_lock);
++}
++
++static void erdma_cm_llp_error_report(struct sock *sk)
++{
++	struct erdma_cep *cep = sk_to_cep(sk);
++
++	if (cep)
++		cep->sk_error_report(sk);
++}
++
++static void erdma_cm_llp_state_change(struct sock *sk)
++{
++	struct erdma_cep *cep;
++	void (*orig_state_change)(struct sock *sk);
++
++	read_lock(&sk->sk_callback_lock);
++
++	cep = sk_to_cep(sk);
++	if (!cep) {
++		read_unlock(&sk->sk_callback_lock);
++		return;
++	}
++	orig_state_change = cep->sk_state_change;
++
++	switch (sk->sk_state) {
++	case TCP_ESTABLISHED:
++		if (cep->state == ERDMA_EPSTATE_CONNECTING)
++			erdma_cm_queue_work(cep, ERDMA_CM_WORK_CONNECTED);
++		else
++			erdma_cm_queue_work(cep, ERDMA_CM_WORK_ACCEPT);
++		break;
++	case TCP_CLOSE:
++	case TCP_CLOSE_WAIT:
++		if (cep->state != ERDMA_EPSTATE_LISTENING)
++			erdma_cm_queue_work(cep, ERDMA_CM_WORK_PEER_CLOSE);
++		break;
++	default:
++		break;
++	}
++	read_unlock(&sk->sk_callback_lock);
++	orig_state_change(sk);
++}
++
++static int kernel_bindconnect(struct socket *s, struct sockaddr *laddr,
++			      int laddrlen, struct sockaddr *raddr,
++			      int raddrlen, int flags)
++{
++	int ret;
++
++	sock_set_reuseaddr(s->sk);
++	ret = s->ops->bind(s, laddr, laddrlen);
++	if (ret)
++		return ret;
++	ret = s->ops->connect(s, raddr, raddrlen, flags);
++	return ret < 0 ? ret : 0;
++}
++
++int erdma_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
++{
++	struct erdma_dev *dev = to_edev(id->device);
++	struct erdma_qp *qp;
++	struct erdma_cep *cep = NULL;
++	struct socket *s = NULL;
++	struct sockaddr *laddr = (struct sockaddr *)&id->m_local_addr;
++	struct sockaddr *raddr = (struct sockaddr *)&id->m_remote_addr;
++	u16 pd_len = params->private_data_len;
++	int ret;
++
++	if (pd_len > MPA_MAX_PRIVDATA)
++		return -EINVAL;
++
++	if (params->ird > dev->attrs.max_ird ||
++	    params->ord > dev->attrs.max_ord)
++		return -EINVAL;
++
++	if (laddr->sa_family != AF_INET || raddr->sa_family != AF_INET)
++		return -EAFNOSUPPORT;
++
++	qp = find_qp_by_qpn(dev, params->qpn);
++	if (!qp)
++		return -ENOENT;
++	erdma_qp_get(qp);
++
++	ret = sock_create(AF_INET, SOCK_STREAM, IPPROTO_TCP, &s);
++	if (ret < 0)
++		goto error_put_qp;
++
++	cep = erdma_cep_alloc(dev);
++	if (!cep) {
++		ret = -ENOMEM;
++		goto error_release_sock;
++	}
++
++	erdma_cep_set_inuse(cep);
++
++	/* Associate QP with CEP */
++	erdma_cep_get(cep);
++	qp->cep = cep;
++	cep->qp = qp;
++
++	/* Associate cm_id with CEP */
++	id->add_ref(id);
++	cep->cm_id = id;
++
++	/*
++	 * 6: Allocate a sufficient number of work elements
++	 * to allow concurrent handling of local + peer close
++	 * events, MPA header processing + MPA timeout, connected event
++	 * and connect timeout.
++	 */
++	ret = erdma_cm_alloc_work(cep, 6);
++	if (ret != 0) {
++		ret = -ENOMEM;
++		goto error_release_cep;
++	}
++
++	cep->ird = params->ird;
++	cep->ord = params->ord;
++	cep->state = ERDMA_EPSTATE_CONNECTING;
++
++	erdma_cep_socket_assoc(cep, s);
++
++	if (pd_len) {
++		cep->pd_len = pd_len;
++		cep->private_data = kmalloc(pd_len, GFP_KERNEL);
++		if (!cep->private_data) {
++			ret = -ENOMEM;
++			goto error_disassoc;
++		}
++
++		memcpy(cep->private_data, params->private_data,
++		       params->private_data_len);
++	}
++
++	ret = kernel_bindconnect(s, laddr, sizeof(*laddr), raddr,
++				 sizeof(*raddr), O_NONBLOCK);
++	if (ret != -EINPROGRESS && ret != 0) {
++		goto error_disassoc;
++	} else if (ret == 0) {
++		ret = erdma_cm_queue_work(cep, ERDMA_CM_WORK_CONNECTED);
++		if (ret)
++			goto error_disassoc;
++	} else {
++		ret = erdma_cm_queue_work(cep, ERDMA_CM_WORK_CONNECTTIMEOUT);
++		if (ret)
++			goto error_disassoc;
++	}
++
++	erdma_cep_set_free(cep);
++	return 0;
++
++error_disassoc:
++	kfree(cep->private_data);
++	cep->private_data = NULL;
++	cep->pd_len = 0;
++
++	erdma_socket_disassoc(s);
++
++error_release_cep:
++	/* disassoc with cm_id */
++	cep->cm_id = NULL;
++	id->rem_ref(id);
++
++	/* disassoc with qp */
++	qp->cep = NULL;
++	erdma_cep_put(cep);
++	cep->qp = NULL;
++
++	cep->state = ERDMA_EPSTATE_CLOSED;
++
++	erdma_cep_set_free(cep);
++
++	/* release the cep. */
++	erdma_cep_put(cep);
++
++error_release_sock:
++	if (s)
++		sock_release(s);
++error_put_qp:
++	erdma_qp_put(qp);
++
++	return ret;
++}
++
++int erdma_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
++{
++	struct erdma_dev *dev = to_edev(id->device);
++	struct erdma_cep *cep = (struct erdma_cep *)id->provider_data;
++	struct erdma_qp *qp;
++	struct erdma_qp_attrs qp_attrs;
++	int ret;
++
++	erdma_cep_set_inuse(cep);
++	erdma_cep_put(cep);
++
++	/* Free lingering inbound private data */
++	if (cep->mpa.hdr.params.pd_len) {
++		cep->mpa.hdr.params.pd_len = 0;
++		kfree(cep->mpa.pdata);
++		cep->mpa.pdata = NULL;
++	}
++	erdma_cancel_mpatimer(cep);
++
++	if (cep->state != ERDMA_EPSTATE_RECVD_MPAREQ) {
++		erdma_cep_set_free(cep);
++		erdma_cep_put(cep);
++
++		return -ECONNRESET;
++	}
++
++	qp = find_qp_by_qpn(dev, params->qpn);
++	if (!qp)
++		return -ENOENT;
++	erdma_qp_get(qp);
++
++	down_write(&qp->state_lock);
++	if (qp->attrs.state > ERDMA_QP_STATE_RTR) {
++		ret = -EINVAL;
++		up_write(&qp->state_lock);
++		goto error;
++	}
++
++	if (params->ord > dev->attrs.max_ord ||
++	    params->ird > dev->attrs.max_ord) {
++		ret = -EINVAL;
++		up_write(&qp->state_lock);
++		goto error;
++	}
++
++	if (params->private_data_len > MPA_MAX_PRIVDATA) {
++		ret = -EINVAL;
++		up_write(&qp->state_lock);
++		goto error;
++	}
++
++	cep->ird = params->ird;
++	cep->ord = params->ord;
++
++	cep->cm_id = id;
++	id->add_ref(id);
++
++	memset(&qp_attrs, 0, sizeof(qp_attrs));
++	qp_attrs.orq_size = params->ord;
++	qp_attrs.irq_size = params->ird;
++
++	qp_attrs.state = ERDMA_QP_STATE_RTS;
++
++	/* Associate QP with CEP */
++	erdma_cep_get(cep);
++	qp->cep = cep;
++	cep->qp = qp;
++
++	cep->state = ERDMA_EPSTATE_RDMA_MODE;
++
++	qp->attrs.qp_type = ERDMA_QP_PASSIVE;
++	qp->attrs.pd_len = params->private_data_len;
++
++	if (qp->attrs.cc != __mpa_ext_cc(cep->mpa.ext_data.bits))
++		qp->attrs.cc = COMPROMISE_CC;
++
++	/* move to rts */
++	ret = erdma_modify_qp_internal(qp, &qp_attrs,
++				       ERDMA_QP_ATTR_STATE |
++				       ERDMA_QP_ATTR_ORD |
++				       ERDMA_QP_ATTR_LLP_HANDLE |
++				       ERDMA_QP_ATTR_IRD |
++				       ERDMA_QP_ATTR_MPA);
++	up_write(&qp->state_lock);
++
++	if (ret)
++		goto error;
++
++	cep->mpa.ext_data.bits = 0;
++	__mpa_ext_set_cc(&cep->mpa.ext_data.bits, qp->attrs.cc);
++	cep->mpa.ext_data.cookie = cep->qp->attrs.cookie;
++
++	ret = erdma_send_mpareqrep(cep, params->private_data,
++				   params->private_data_len);
++	if (!ret) {
++		ret = erdma_cm_upcall(cep, IW_CM_EVENT_ESTABLISHED, 0);
++		if (ret)
++			goto error;
++
++		erdma_cep_set_free(cep);
++
++		return 0;
++	}
++
++error:
++	erdma_socket_disassoc(cep->sock);
++	sock_release(cep->sock);
++	cep->sock = NULL;
++
++	cep->state = ERDMA_EPSTATE_CLOSED;
++
++	if (cep->cm_id) {
++		cep->cm_id->rem_ref(id);
++		cep->cm_id = NULL;
++	}
++
++	if (qp->cep) {
++		erdma_cep_put(cep);
++		qp->cep = NULL;
++	}
++
++	cep->qp = NULL;
++	erdma_qp_put(qp);
++
++	erdma_cep_set_free(cep);
++	erdma_cep_put(cep);
++
++	return ret;
++}
++
++int erdma_reject(struct iw_cm_id *id, const void *pdata, u8 plen)
++{
++	struct erdma_cep *cep = (struct erdma_cep *)id->provider_data;
++
++	erdma_cep_set_inuse(cep);
++	erdma_cep_put(cep);
++
++	erdma_cancel_mpatimer(cep);
++
++	if (cep->state != ERDMA_EPSTATE_RECVD_MPAREQ) {
++		erdma_cep_set_free(cep);
++		erdma_cep_put(cep);
++
++		return -ECONNRESET;
++	}
++
++	if (__mpa_rr_revision(cep->mpa.hdr.params.bits) == MPA_REVISION_EXT_1) {
++		cep->mpa.hdr.params.bits |= MPA_RR_FLAG_REJECT; /* reject */
++		erdma_send_mpareqrep(cep, pdata, plen);
++	}
++
++	erdma_socket_disassoc(cep->sock);
++	sock_release(cep->sock);
++	cep->sock = NULL;
++
++	cep->state = ERDMA_EPSTATE_CLOSED;
++
++	erdma_cep_set_free(cep);
++	erdma_cep_put(cep);
++
++	return 0;
++}
++
++int erdma_create_listen(struct iw_cm_id *id, int backlog)
++{
++	struct socket *s;
++	struct erdma_cep *cep = NULL;
++	int ret = 0;
++	struct erdma_dev *dev = to_edev(id->device);
++	int addr_family = id->local_addr.ss_family;
++	struct sockaddr_in *laddr = &to_sockaddr_in(id->local_addr);
++
++	if (addr_family != AF_INET)
++		return -EAFNOSUPPORT;
++
++	ret = sock_create(addr_family, SOCK_STREAM, IPPROTO_TCP, &s);
++	if (ret < 0)
++		return ret;
++
++	sock_set_reuseaddr(s->sk);
++
++	/* For wildcard addr, limit binding to current device only */
++	if (ipv4_is_zeronet(laddr->sin_addr.s_addr))
++		s->sk->sk_bound_dev_if = dev->netdev->ifindex;
++
++	ret = s->ops->bind(s, (struct sockaddr *)laddr,
++			   sizeof(struct sockaddr_in));
++	if (ret)
++		goto error;
++
++	cep = erdma_cep_alloc(dev);
++	if (!cep) {
++		ret = -ENOMEM;
++		goto error;
++	}
++	erdma_cep_socket_assoc(cep, s);
++
++	ret = erdma_cm_alloc_work(cep, backlog);
++	if (ret)
++		goto error;
++
++	ret = s->ops->listen(s, backlog);
++	if (ret)
++		goto error;
++
++	cep->cm_id = id;
++	id->add_ref(id);
++
++	if (!id->provider_data) {
++		id->provider_data =
++			kmalloc(sizeof(struct list_head), GFP_KERNEL);
++		if (!id->provider_data) {
++			ret = -ENOMEM;
++			goto error;
++		}
++		INIT_LIST_HEAD((struct list_head *)id->provider_data);
++	}
++
++	list_add_tail(&cep->listenq, (struct list_head *)id->provider_data);
++	cep->state = ERDMA_EPSTATE_LISTENING;
++
++	return 0;
++
++error:
++	if (cep) {
++		erdma_cep_set_inuse(cep);
++
++		if (cep->cm_id) {
++			cep->cm_id->rem_ref(cep->cm_id);
++			cep->cm_id = NULL;
++		}
++		cep->sock = NULL;
++		erdma_socket_disassoc(s);
++		cep->state = ERDMA_EPSTATE_CLOSED;
++
++		erdma_cep_set_free(cep);
++		erdma_cep_put(cep);
++	}
++	sock_release(s);
++
++	return ret;
++}
++
++static void erdma_drop_listeners(struct iw_cm_id *id)
++{
++	struct list_head *p, *tmp;
++	/*
++	 * In case of a wildcard rdma_listen on a multi-homed device,
++	 * a listener's IWCM id is associated with more than one listening CEP.
++	 */
++	list_for_each_safe(p, tmp, (struct list_head *)id->provider_data) {
++		struct erdma_cep *cep =
++			list_entry(p, struct erdma_cep, listenq);
++
++		list_del(p);
++
++		erdma_cep_set_inuse(cep);
++
++		if (cep->cm_id) {
++			cep->cm_id->rem_ref(cep->cm_id);
++			cep->cm_id = NULL;
++		}
++		if (cep->sock) {
++			erdma_socket_disassoc(cep->sock);
++			sock_release(cep->sock);
++			cep->sock = NULL;
++		}
++		cep->state = ERDMA_EPSTATE_CLOSED;
++		erdma_cep_set_free(cep);
++		erdma_cep_put(cep);
++	}
++}
++
++int erdma_destroy_listen(struct iw_cm_id *id)
++{
++	if (!id->provider_data)
++		return 0;
++
++	erdma_drop_listeners(id);
++	kfree(id->provider_data);
++	id->provider_data = NULL;
++
++	return 0;
++}
++
++int erdma_cm_init(void)
++{
++	erdma_cm_wq = create_singlethread_workqueue("erdma_cm_wq");
++	if (!erdma_cm_wq)
++		return -ENOMEM;
++
++	return 0;
++}
++
++void erdma_cm_exit(void)
++{
++	if (erdma_cm_wq)
++		destroy_workqueue(erdma_cm_wq);
++}
+diff --git a/drivers/infiniband/hw/erdma/erdma_cm.h b/drivers/infiniband/hw/erdma/erdma_cm.h
+new file mode 100644
+index 000000000000..1206bc538bc4
+--- /dev/null
++++ b/drivers/infiniband/hw/erdma/erdma_cm.h
+@@ -0,0 +1,168 @@
++/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
++
++/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
++/*          Kai Shen <kaishen@linux.alibaba.com> */
++/* Copyright (c) 2020-2022, Alibaba Group. */
++
++/* Authors: Bernard Metzler <bmt@zurich.ibm.com> */
++/*          Greg Joyce <greg@opengridcomputing.com> */
++/* Copyright (c) 2008-2019, IBM Corporation */
++/* Copyright (c) 2017, Open Grid Computing, Inc. */
++
++#ifndef __ERDMA_CM_H__
++#define __ERDMA_CM_H__
++
++#include <net/sock.h>
++#include <linux/tcp.h>
++
++#include <rdma/iw_cm.h>
++
++/* iWarp MPA protocol defs */
++#define MPA_REVISION_EXT_1 129
++#define MPA_MAX_PRIVDATA RDMA_MAX_PRIVATE_DATA
++#define MPA_KEY_REQ "MPA ID Req Frame"
++#define MPA_KEY_REP "MPA ID Rep Frame"
++#define MPA_KEY_SIZE 16
++#define MPA_DEFAULT_HDR_LEN 28
++
++struct mpa_rr_params {
++	__be16 bits;
++	__be16 pd_len;
++};
++
++/*
++ * MPA request/response Hdr bits & fields
++ */
++enum {
++	MPA_RR_FLAG_MARKERS = __cpu_to_be16(0x8000),
++	MPA_RR_FLAG_CRC = __cpu_to_be16(0x4000),
++	MPA_RR_FLAG_REJECT = __cpu_to_be16(0x2000),
++	MPA_RR_RESERVED = __cpu_to_be16(0x1f00),
++	MPA_RR_MASK_REVISION = __cpu_to_be16(0x00ff)
++};
++
++/*
++ * MPA request/reply header
++ */
++struct mpa_rr {
++	u8 key[16];
++	struct mpa_rr_params params;
++};
++
++struct erdma_mpa_ext {
++	__be32 cookie;
++	__be32 bits;
++};
++
++enum {
++	MPA_EXT_FLAG_CC = cpu_to_be32(0x0000000f),
++};
++
++struct erdma_mpa_info {
++	struct mpa_rr hdr; /* peer mpa hdr in host byte order */
++	struct erdma_mpa_ext ext_data;
++	char *pdata;
++	int bytes_rcvd;
++};
++
++struct erdma_sk_upcalls {
++	void (*sk_state_change)(struct sock *sk);
++	void (*sk_data_ready)(struct sock *sk, int bytes);
++	void (*sk_error_report)(struct sock *sk);
++};
++
++struct erdma_dev;
++
++enum erdma_cep_state {
++	ERDMA_EPSTATE_IDLE = 1,
++	ERDMA_EPSTATE_LISTENING,
++	ERDMA_EPSTATE_CONNECTING,
++	ERDMA_EPSTATE_AWAIT_MPAREQ,
++	ERDMA_EPSTATE_RECVD_MPAREQ,
++	ERDMA_EPSTATE_AWAIT_MPAREP,
++	ERDMA_EPSTATE_RDMA_MODE,
++	ERDMA_EPSTATE_CLOSED
++};
++
++struct erdma_cep {
++	struct iw_cm_id *cm_id;
++	struct erdma_dev *dev;
++	struct list_head devq;
++	spinlock_t lock;
++	struct kref ref;
++	int in_use;
++	wait_queue_head_t waitq;
++	enum erdma_cep_state state;
++
++	struct list_head listenq;
++	struct erdma_cep *listen_cep;
++
++	struct erdma_qp *qp;
++	struct socket *sock;
++
++	struct erdma_cm_work *mpa_timer;
++	struct list_head work_freelist;
++
++	struct erdma_mpa_info mpa;
++	int ord;
++	int ird;
++
++	int pd_len;
++	/* hold user's private data. */
++	void *private_data;
++
++	/* Saved upcalls of socket llp.sock */
++	void (*sk_state_change)(struct sock *sk);
++	void (*sk_data_ready)(struct sock *sk);
++	void (*sk_error_report)(struct sock *sk);
++};
++
++#define MPAREQ_TIMEOUT (HZ * 20)
++#define MPAREP_TIMEOUT (HZ * 10)
++#define CONNECT_TIMEOUT (HZ * 10)
++
++enum erdma_work_type {
++	ERDMA_CM_WORK_ACCEPT = 1,
++	ERDMA_CM_WORK_READ_MPAHDR,
++	ERDMA_CM_WORK_CLOSE_LLP, /* close socket */
++	ERDMA_CM_WORK_PEER_CLOSE, /* socket indicated peer close */
++	ERDMA_CM_WORK_MPATIMEOUT,
++	ERDMA_CM_WORK_CONNECTED,
++	ERDMA_CM_WORK_CONNECTTIMEOUT
++};
++
++struct erdma_cm_work {
++	struct delayed_work work;
++	struct list_head list;
++	enum erdma_work_type type;
++	struct erdma_cep *cep;
++};
++
++#define to_sockaddr_in(a) (*(struct sockaddr_in *)(&(a)))
++
++static inline int getname_peer(struct socket *s, struct sockaddr_storage *a)
++{
++	return s->ops->getname(s, (struct sockaddr *)a, 1);
++}
++
++static inline int getname_local(struct socket *s, struct sockaddr_storage *a)
++{
++	return s->ops->getname(s, (struct sockaddr *)a, 0);
++}
++
++int erdma_connect(struct iw_cm_id *id, struct iw_cm_conn_param *param);
++int erdma_accept(struct iw_cm_id *id, struct iw_cm_conn_param *param);
++int erdma_reject(struct iw_cm_id *id, const void *pdata, u8 plen);
++int erdma_create_listen(struct iw_cm_id *id, int backlog);
++int erdma_destroy_listen(struct iw_cm_id *id);
++
++void erdma_cep_get(struct erdma_cep *ceq);
++void erdma_cep_put(struct erdma_cep *ceq);
++int erdma_cm_queue_work(struct erdma_cep *ceq, enum erdma_work_type type);
++
++int erdma_cm_init(void);
++void erdma_cm_exit(void);
++
++#define sk_to_cep(sk) ((struct erdma_cep *)((sk)->sk_user_data))
++
++#endif
 -- 
 2.27.0
 
