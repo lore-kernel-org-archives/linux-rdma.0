@@ -2,396 +2,166 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5012C433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 13:57:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E43CFC433F5
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 15:09:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233848AbiDFN7Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Apr 2022 09:59:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47676 "EHLO
+        id S235470AbiDFPLi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Apr 2022 11:11:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234190AbiDFN6m (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 09:58:42 -0400
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA14B1F6212
-        for <linux-rdma@vger.kernel.org>; Tue,  5 Apr 2022 19:35:03 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V9JZmKr_1649212498;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V9JZmKr_1649212498)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 06 Apr 2022 10:34:59 +0800
-From:   Cheng Xu <chengyou@linux.alibaba.com>
-To:     jgg@ziepe.ca, dledford@redhat.com, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com,
-        chengyou@linux.alibaba.com, tonylu@linux.alibaba.com,
-        BMT@zurich.ibm.com
-Subject: [PATCH for-next v5 07/12] RDMA/erdma: Add verbs header file
-Date:   Wed,  6 Apr 2022 10:34:45 +0800
-Message-Id: <20220406023450.56683-8-chengyou@linux.alibaba.com>
-X-Mailer: git-send-email 2.32.0 (Apple Git-132)
-In-Reply-To: <20220406023450.56683-1-chengyou@linux.alibaba.com>
-References: <20220406023450.56683-1-chengyou@linux.alibaba.com>
+        with ESMTP id S235707AbiDFPLX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 11:11:23 -0400
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2062e.outbound.protection.outlook.com [IPv6:2a01:111:f400:7e89::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6A5922EB3D;
+        Wed,  6 Apr 2022 05:11:15 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=aAddBGI/bZvKLiGatfWKhfLA9eAm+JA6AeWvjD/t053IJFAVLNxGh1WNeS+JKLGJ1yG+JwSdKbMVOHWBHLef8jfd9HiOUvTquiHAvEkb7MPm5hD04WcnLlmHvJaIm+zq0YL/ztkdMznMQeVOfcwvukWj4fxXsma3kRERd//+dk+u9vkpVUSyG1xc1I0Fb3C727nA//aQwAOnNaNRMknpvYF0q4/ZuQeWPFb9BkODClTM5seNn+vnMu8vGJ+d4c4GrHb6ItqOOOQcZe2bOO9MDIMTmjAduk3L7bQt6l+0NgEh5BwnBXi7La7ho7LP1AQy1ewV74owTdetQdJxdmhQ5Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=maJk1G8B0XfwbBilLG6EGxqigu+g9r6jhgjUxosvpxw=;
+ b=ch5G2WUoI96mz/63EfAmySIRO2q+g+KnlEm+A5+wMYP8EBRJrcTpqg9hQoR3bp5Xx8+wNrhLNWdBBqDIq9b4rhffiDD1VKETcTQMpqfCZB2kFc0hVBs/2Tiru3KHJqhhCPleNkQQDgbqOwKqJ4YjRRWNegIkHEvHv3bYx85Yfyx0FAxEB9le0jroiRAJvH0asAcTri+YzGMGZlbMye0y2K/ohJ6aba9hn4EajeU6SaQF586r9iUotnOOtoOjyAzRc4Fh7xJvkOK0l6/HIX/LuttDyxgAz+4xaUOEq1zHTxhpvC6xunZ9aBXKOh34dDAK8uaxT205CHNT1qcPsyFQrA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=maJk1G8B0XfwbBilLG6EGxqigu+g9r6jhgjUxosvpxw=;
+ b=eFQ9gUjBc6K/JV4N/p4+rbqjqlgHj4Uq6GWgX1S5kJplWXLlMcz3tSnLjM4ipAU/bsRRpdhpPmxH1CyfpUUdqreYlTNhdxw/HEy28Hvt3gBFN1GZC5z6xFm4Q2P0NRspEeFCpDjGgeccfmBx6m/H7afk5+2fXtKMv0ElXB9u0BH/8i/RTZ72PTE3k0VcqbzIJKSJs4MGnWKWIOB1mzAQAxa7ekq6CATW3EzGjsw6UOMJO9dkylq+iI7z9jWfVAzWM6B8LMQKjz6ijJVjbr9QL3xUuC/Q76XCrTcGZMFyzMFMDA6hRxBegVSIcJAX1K+ERma1AJiJAtbrnWm/8TMd5A==
+Received: from MN2PR12MB3344.namprd12.prod.outlook.com (2603:10b6:208:c5::10)
+ by BYAPR12MB3336.namprd12.prod.outlook.com (2603:10b6:a03:d7::26) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5144.21; Wed, 6 Apr
+ 2022 12:07:34 +0000
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
+ by MN2PR12MB3344.namprd12.prod.outlook.com (2603:10b6:208:c5::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5123.31; Wed, 6 Apr
+ 2022 12:07:32 +0000
+Received: from MN2PR12MB4192.namprd12.prod.outlook.com
+ ([fe80::cdfb:f88e:410b:9374]) by MN2PR12MB4192.namprd12.prod.outlook.com
+ ([fe80::cdfb:f88e:410b:9374%6]) with mapi id 15.20.5144.021; Wed, 6 Apr 2022
+ 12:07:32 +0000
+Date:   Wed, 6 Apr 2022 09:07:30 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     Alex Williamson <alex.williamson@redhat.com>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        Christian Benvenuti <benve@cisco.com>,
+        Cornelia Huck <cohuck@redhat.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        iommu@lists.linux-foundation.org, Jason Wang <jasowang@redhat.com>,
+        Joerg Roedel <joro@8bytes.org>, kvm@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-arm-msm@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org,
+        Matthew Rosato <mjrosato@linux.ibm.com>,
+        "Michael S. Tsirkin" <mst@redhat.com>,
+        Nelson Escobar <neescoba@cisco.com>, netdev@vger.kernel.org,
+        Rob Clark <robdclark@gmail.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>,
+        virtualization@lists.linux-foundation.org,
+        Will Deacon <will@kernel.org>,
+        "Tian, Kevin" <kevin.tian@intel.com>
+Subject: Re: [PATCH 1/5] iommu: Replace uses of IOMMU_CAP_CACHE_COHERENCY
+ with dev_is_dma_coherent()
+Message-ID: <20220406120730.GA2120790@nvidia.com>
+References: <0-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
+ <1-v1-ef02c60ddb76+12ca2-intel_no_snoop_jgg@nvidia.com>
+ <20220406053039.GA10580@lst.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220406053039.GA10580@lst.de>
+X-ClientProxiedBy: YT3PR01CA0044.CANPRD01.PROD.OUTLOOK.COM
+ (2603:10b6:b01:82::29) To MN2PR12MB4192.namprd12.prod.outlook.com
+ (2603:10b6:208:1d5::15)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 8ce4e903-65f4-4e65-a5a8-08da17c60766
+X-MS-TrafficTypeDiagnostic: MN2PR12MB3344:EE_|BYAPR12MB3336:EE_
+X-Microsoft-Antispam-PRVS: <MN2PR12MB33447FB9A91EA234E565A4E0C2E79@MN2PR12MB3344.namprd12.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: N7JD+kwH+F/mxIav3NbMX6KSHi7GQLHEYcbbzpGCpsfsHzdNTszL0tLM3ZWL3z363bK7MStPf4mxbqE0F04jlx9kWRW37PcBvQR/nlqH4yYI1+CB9m6sfUY7zKWUng0+kU0U46+DfMqhiAHvB0j1o/9aGyj1/PHvEG5GraRhKLHAdOqHI2buea5JJt/CVJ9KpztBFTJmj93lm3P/1q2iImOXE+a1aRH0tFIRB1ac+8KJ3+auX+2PWEOGk5f4E16CyyfBZi7g9ncOLMc/q4ii7SEsz2cD164yDZHN2djBqedNKxpX+3tkpPoGIU6v/BIWBknKqn13quI7tb8gPSgmG3EZJRyLYNBi4uBKn4L3TPUSlKtc0Ytz0D8MpJSTeMn56AfjVFXwNtOClZjV3LSe1Kvmu2WBinAufyvgWEvVxjJvPoHp+DOLSHsMZwE6yirPO/SICikIdyLslKjr5wwwRvLETBFt1z4WnWSsYjdplCBMqzFJ6nqkDyo3kq074Tny4aBvj8lIvw4jt1deu4ILCyplhaYzPjk61OauBdI55HnYvlP/fgazcpvMujeH5IO2Pdy+71EGW/hYO3+v9ecJR6bjV3DmWwFwIQonaX06gO/X/nIyB3h7ZUMkjCSCTULsPEjxXbN6bI+v5GjOyn18vg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB3344.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(66946007)(4326008)(66556008)(33656002)(66476007)(316002)(6916009)(54906003)(8676002)(6486002)(38100700002)(36756003)(86362001)(26005)(1076003)(186003)(508600001)(6506007)(6512007)(8936002)(4744005)(2616005)(7416002)(5660300002)(2906002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?TlYjIsdBmwLbC0TirZBTT4IXFEbhKW/TsEgQLvqdJHpEFRhET3FVLZ+ezBiu?=
+ =?us-ascii?Q?7ECcRvNIlZQ01QEQ5c2smjfCLxBQgHejc38TFDK/41LYl72hLN5DKpBvFwN6?=
+ =?us-ascii?Q?F050xtJHfhu4xoDuOgBN/yHqAiMCkNriV1lcQ6NbZdRMjkAI9OpHoiVL7i/E?=
+ =?us-ascii?Q?Ou71W6WeogPccoOlIrOCYrjHK6DuX0zY/9agP14hqPnEyk4suftpw44nki4t?=
+ =?us-ascii?Q?6Ir4LWsHihECoA5ACg3+5tdVCwEsHbSVLeaXmQcerpuf3k/2dshC/lsliyKT?=
+ =?us-ascii?Q?tPEMC7RD+MPx6IggUfY1YOq4d+jaZLyDwzOjZlymPPROwnf3fOh91h7S1M/C?=
+ =?us-ascii?Q?prRy2Y2a/Yp6VsLFYZNkihuTI5TyLNPSUyVcjph7zNtXa9lyScqtyQQUiO30?=
+ =?us-ascii?Q?gXESldRMiLPQmaEkGG6f6BOM5Bkk4nBZsh9AHDcuTzb3qnnmuPq78rDIOxYu?=
+ =?us-ascii?Q?Qo0qwPqjvYvtgwAndnZxV8HyWebMK0ju1G4ntCraoY0TLqHM4vm6INPLNX93?=
+ =?us-ascii?Q?srXSnTVH2KzxTOBwrkxvIu4cFT20h6ulMFzCgp5u3Z/lkdyNnXXtL7ZwqqUl?=
+ =?us-ascii?Q?zavjQB15ZtLoYV1YFRt+W/IoABup8z7ISvq0NaIxVAso7dO2+4aAZpHizppm?=
+ =?us-ascii?Q?1yHh/1Lqff7XkM0vijPCLboZMV/Ibfaf08j/56KnUJDDuL8xM9m5+fJm1y+F?=
+ =?us-ascii?Q?qvXxFhGEnweOTrX5u6NafeJg5jRK0ogJB+QaiB72RTD4T5xTYc4zT3fgyXPq?=
+ =?us-ascii?Q?vp8mbLEQF4/7JwBP+uHgqkYxGc7v4mrnzeURIzhDKhnUoLYYfbRq3cRnIuj8?=
+ =?us-ascii?Q?eogLYILW6M7RmZe6RuhNriAWjJDkpF1qSOS7FMR3NE7R3/3Sw3Ir7WYn/LtM?=
+ =?us-ascii?Q?KYYx/30qvURsXLpXmMnuzAY+cYmba2DNjW8VlsrY0v6lbkIoMoURRe8E9tG5?=
+ =?us-ascii?Q?ZZ3iEdSCoOcFeLJzmyhJAVWhphAU6cdpIGIrrwEaEsXZcDD3JWzmFqsYpZ8c?=
+ =?us-ascii?Q?2bdGjk/0AZHkSeyc/LsjUTRze3gSSHGw6Zsz+bJQUk4nw2x+SEHSPCAdPw52?=
+ =?us-ascii?Q?joE3L+DIZ6ElAmp3viy5O/oKXmXIwlfQV7+a3PinhZDSMTxWb24vrDBss2R6?=
+ =?us-ascii?Q?r03elvXKkOCuk6mV+wqHVILrJQlF+roRwt8SybKzEk9Ijq3qwQ+iMvMIt7mC?=
+ =?us-ascii?Q?YbUErZ6BHN1jou8Q2GUvH4gat+IENTF/Qia/pT0n5drbdJmiUFM+OSKA6WaH?=
+ =?us-ascii?Q?7Apprk64vFnMsCqN3Iddze1fHmPM+83MnL6UiwRhTqAY7zBq99uRsBZj/93q?=
+ =?us-ascii?Q?1pC4nx4+JqlThj7z5C0EAvRpl5fd7ayTnibe2si+1jFWrsSy21Nv1ORyyQ1x?=
+ =?us-ascii?Q?5hDMoCgvh+vWxC+zJAwu2FUdfpwqeBWxwWUKT9z1fc+KP0OA16qQG3yiQWqL?=
+ =?us-ascii?Q?DokQw7u+u1yKkmixKVD4kAGzTDkQsvzqbk3sosow3tAAmRKPah5gjEhkEhZW?=
+ =?us-ascii?Q?NFNBVDdJ38oQVuFNAldY9KhlGQRl5X0h2zzHMRyJayC1/qi0LhdMJcXTBc5t?=
+ =?us-ascii?Q?6mlpu+OZsGPOR8QpYI4XkzET2AfDHUGiZ3YcOsDGSS+htJnREVB855cZ5MNl?=
+ =?us-ascii?Q?relNOWPzJBzMABsz2W6c7Wm3C5E9E70Qfumw9I5ufiyMNkFouKwt4WTJ5fmC?=
+ =?us-ascii?Q?tGCKkObIe8pGneISmkif8vHyN4uVw3cUaZ4ybkOBYvKi281RizTNMLQDArCi?=
+ =?us-ascii?Q?gwQek0fk0A=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 8ce4e903-65f4-4e65-a5a8-08da17c60766
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Apr 2022 12:07:32.4132
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 9Lbbj6FnmzszPjVrdqxJmh6hu1XcCqdudqqXpbOy+7hMDO3yZ2aJTx0WOLBfhpWp
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR12MB3336
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This header file defines the main structures and functions used for RDMA
-Verbs, including qp, cq, mr ucontext, etc,.
+On Wed, Apr 06, 2022 at 07:30:39AM +0200, Christoph Hellwig wrote:
+> On Tue, Apr 05, 2022 at 01:16:00PM -0300, Jason Gunthorpe wrote:
+> > diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+> > index 760b254ba42d6b..24d118198ac756 100644
+> > +++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+> > @@ -42,6 +42,7 @@
+> >  #include <linux/list.h>
+> >  #include <linux/pci.h>
+> >  #include <rdma/ib_verbs.h>
+> > +#include <linux/dma-map-ops.h>
+> >  
+> >  #include "usnic_log.h"
+> >  #include "usnic_uiom.h"
+> > @@ -474,6 +475,12 @@ int usnic_uiom_attach_dev_to_pd(struct usnic_uiom_pd *pd, struct device *dev)
+> >  	struct usnic_uiom_dev *uiom_dev;
+> >  	int err;
+> >  
+> > +	if (!dev_is_dma_coherent(dev)) {
+> 
+> Which part of the comment at the top of dma-map-ops.h is not clear
+> enough to you?
 
-Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
----
- drivers/infiniband/hw/erdma/erdma_verbs.h | 342 ++++++++++++++++++++++
- 1 file changed, 342 insertions(+)
- create mode 100644 drivers/infiniband/hw/erdma/erdma_verbs.h
+Didn't see it
 
-diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
-new file mode 100644
-index 000000000000..dfbc11abe32d
---- /dev/null
-+++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
-@@ -0,0 +1,342 @@
-+/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
-+
-+/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
-+/*          Kai Shen <kaishen@linux.alibaba.com> */
-+/* Copyright (c) 2020-2022, Alibaba Group. */
-+
-+#ifndef __ERDMA_VERBS_H__
-+#define __ERDMA_VERBS_H__
-+
-+#include <linux/errno.h>
-+
-+#include <rdma/iw_cm.h>
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_user_verbs.h>
-+
-+#include "erdma.h"
-+#include "erdma_cm.h"
-+#include "erdma_hw.h"
-+
-+/* RDMA Capability. */
-+#define ERDMA_MAX_PD (128 * 1024)
-+#define ERDMA_MAX_SEND_WR 4096
-+#define ERDMA_MAX_ORD 128
-+#define ERDMA_MAX_IRD 128
-+#define ERDMA_MAX_SGE_RD 1
-+#define ERDMA_MAX_CONTEXT (128 * 1024)
-+#define ERDMA_MAX_SEND_SGE 6
-+#define ERDMA_MAX_RECV_SGE 1
-+#define ERDMA_MAX_INLINE (sizeof(struct erdma_sge) * (ERDMA_MAX_SEND_SGE))
-+#define ERDMA_MAX_FRMR_PA 512
-+
-+enum {
-+	ERDMA_MMAP_IO_NC = 0, /* no cache */
-+};
-+
-+struct erdma_user_mmap_entry {
-+	struct rdma_user_mmap_entry rdma_entry;
-+	u64 address;
-+	u8 mmap_flag;
-+};
-+
-+struct erdma_ucontext {
-+	struct ib_ucontext ibucontext;
-+	struct erdma_dev *dev;
-+
-+	u32 sdb_type;
-+	u32 sdb_idx;
-+	u32 sdb_page_idx;
-+	u32 sdb_page_off;
-+	u64 sdb;
-+	u64 rdb;
-+	u64 cdb;
-+
-+	struct rdma_user_mmap_entry *sq_db_mmap_entry;
-+	struct rdma_user_mmap_entry *rq_db_mmap_entry;
-+	struct rdma_user_mmap_entry *cq_db_mmap_entry;
-+
-+	/* doorbell records */
-+	struct list_head dbrecords_page_list;
-+	struct mutex dbrecords_page_mutex;
-+};
-+
-+struct erdma_pd {
-+	struct ib_pd ibpd;
-+	u32 pdn;
-+};
-+
-+/*
-+ * MemoryRegion definition.
-+ */
-+#define ERDMA_MAX_INLINE_MTT_ENTRIES 4
-+#define MTT_SIZE(mtt_cnt) (mtt_cnt << 3) /* per mtt takes 8 Bytes. */
-+#define ERDMA_MR_MAX_MTT_CNT 524288
-+#define ERDMA_MTT_ENTRY_SIZE 8
-+
-+#define ERDMA_MR_TYPE_NORMAL 0
-+#define ERDMA_MR_TYPE_FRMR 1
-+#define ERDMA_MR_TYPE_DMA 2
-+
-+#define ERDMA_MR_INLINE_MTT 0
-+#define ERDMA_MR_INDIRECT_MTT 1
-+
-+#define ERDMA_MR_ACC_LR BIT(0)
-+#define ERDMA_MR_ACC_LW BIT(1)
-+#define ERDMA_MR_ACC_RR BIT(2)
-+#define ERDMA_MR_ACC_RW BIT(3)
-+
-+static inline u8 to_erdma_access_flags(int access)
-+{
-+	return (access & IB_ACCESS_REMOTE_READ ? ERDMA_MR_ACC_RR : 0) |
-+	       (access & IB_ACCESS_LOCAL_WRITE ? ERDMA_MR_ACC_LW : 0) |
-+	       (access & IB_ACCESS_REMOTE_WRITE ? ERDMA_MR_ACC_RW : 0);
-+}
-+
-+struct erdma_mem {
-+	struct ib_umem *umem;
-+	void *mtt_buf;
-+	u32 mtt_type;
-+	u32 page_size;
-+	u32 page_offset;
-+	u32 page_cnt;
-+	u32 mtt_nents;
-+
-+	u64 va;
-+	u64 len;
-+
-+	u64 mtt_entry[ERDMA_MAX_INLINE_MTT_ENTRIES];
-+};
-+
-+struct erdma_mr {
-+	struct ib_mr ibmr;
-+	struct erdma_mem mem;
-+	u8 type;
-+	u8 access;
-+	u8 valid;
-+};
-+
-+struct erdma_user_dbrecords_page {
-+	struct list_head list;
-+	struct ib_umem *umem;
-+	u64 va;
-+	int refcnt;
-+};
-+
-+struct erdma_uqp {
-+	struct erdma_mem sq_mtt;
-+	struct erdma_mem rq_mtt;
-+
-+	dma_addr_t sq_db_info_dma_addr;
-+	dma_addr_t rq_db_info_dma_addr;
-+
-+	struct erdma_user_dbrecords_page *user_dbr_page;
-+
-+	u32 rq_offset;
-+};
-+
-+struct erdma_kqp {
-+	u16 sq_pi;
-+	u16 sq_ci;
-+
-+	u16 rq_pi;
-+	u16 rq_ci;
-+
-+	u64 *swr_tbl;
-+	u64 *rwr_tbl;
-+
-+	void *hw_sq_db;
-+	void *hw_rq_db;
-+
-+	void *sq_buf;
-+	dma_addr_t sq_buf_dma_addr;
-+
-+	void *rq_buf;
-+	dma_addr_t rq_buf_dma_addr;
-+
-+	void *sq_db_info;
-+	void *rq_db_info;
-+
-+	u8 sig_all;
-+};
-+
-+enum erdma_qp_state {
-+	ERDMA_QP_STATE_IDLE = 0,
-+	ERDMA_QP_STATE_RTR = 1,
-+	ERDMA_QP_STATE_RTS = 2,
-+	ERDMA_QP_STATE_CLOSING = 3,
-+	ERDMA_QP_STATE_TERMINATE = 4,
-+	ERDMA_QP_STATE_ERROR = 5,
-+	ERDMA_QP_STATE_UNDEF = 7,
-+	ERDMA_QP_STATE_COUNT = 8
-+};
-+
-+enum erdma_qp_attr_mask {
-+	ERDMA_QP_ATTR_STATE = (1 << 0),
-+	ERDMA_QP_ATTR_LLP_HANDLE = (1 << 2),
-+	ERDMA_QP_ATTR_ORD = (1 << 3),
-+	ERDMA_QP_ATTR_IRD = (1 << 4),
-+	ERDMA_QP_ATTR_SQ_SIZE = (1 << 5),
-+	ERDMA_QP_ATTR_RQ_SIZE = (1 << 6),
-+	ERDMA_QP_ATTR_MPA = (1 << 7)
-+};
-+
-+struct erdma_qp_attrs {
-+	enum erdma_qp_state state;
-+	enum erdma_cc_alg cc; /* Congestion control algorithm */
-+	u32 sq_size;
-+	u32 rq_size;
-+	u32 orq_size;
-+	u32 irq_size;
-+	u32 max_send_sge;
-+	u32 max_recv_sge;
-+	u32 cookie;
-+#define ERDMA_QP_ACTIVE 0
-+#define ERDMA_QP_PASSIVE 1
-+	u8 qp_type;
-+	u8 pd_len;
-+};
-+
-+struct erdma_qp {
-+	struct ib_qp ibqp;
-+	struct kref ref;
-+	struct completion safe_free;
-+	struct erdma_dev *dev;
-+	struct erdma_cep *cep;
-+	struct rw_semaphore state_lock;
-+
-+	union {
-+		struct erdma_kqp kern_qp;
-+		struct erdma_uqp user_qp;
-+	};
-+
-+	struct erdma_cq *scq;
-+	struct erdma_cq *rcq;
-+
-+	struct erdma_qp_attrs attrs;
-+	spinlock_t lock;
-+};
-+
-+struct erdma_kcq_info {
-+	void *qbuf;
-+	dma_addr_t qbuf_dma_addr;
-+	u32 ci;
-+	u32 cmdsn;
-+	u32 notify_cnt;
-+
-+	spinlock_t lock;
-+	u8 __iomem *db;
-+	u64 *db_record;
-+};
-+
-+struct erdma_ucq_info {
-+	struct erdma_mem qbuf_mtt;
-+	struct erdma_user_dbrecords_page *user_dbr_page;
-+	dma_addr_t db_info_dma_addr;
-+};
-+
-+struct erdma_cq {
-+	struct ib_cq ibcq;
-+	u32 cqn;
-+
-+	u32 depth;
-+	u32 assoc_eqn;
-+
-+	union {
-+		struct erdma_kcq_info kern_cq;
-+		struct erdma_ucq_info user_cq;
-+	};
-+};
-+
-+#define QP_ID(qp) ((qp)->ibqp.qp_num)
-+
-+static inline struct erdma_qp *find_qp_by_qpn(struct erdma_dev *dev, int id)
-+{
-+	return (struct erdma_qp *)xa_load(&dev->qp_xa, id);
-+}
-+
-+static inline struct erdma_cq *find_cq_by_cqn(struct erdma_dev *dev, int id)
-+{
-+	return (struct erdma_cq *)xa_load(&dev->cq_xa, id);
-+}
-+
-+void erdma_qp_get(struct erdma_qp *qp);
-+void erdma_qp_put(struct erdma_qp *qp);
-+int erdma_modify_qp_internal(struct erdma_qp *qp, struct erdma_qp_attrs *attrs,
-+			     enum erdma_qp_attr_mask mask);
-+void erdma_qp_llp_close(struct erdma_qp *qp);
-+void erdma_qp_cm_drop(struct erdma_qp *qp);
-+
-+static inline struct erdma_ucontext *to_ectx(struct ib_ucontext *ibctx)
-+{
-+	return container_of(ibctx, struct erdma_ucontext, ibucontext);
-+}
-+
-+static inline struct erdma_pd *to_epd(struct ib_pd *pd)
-+{
-+	return container_of(pd, struct erdma_pd, ibpd);
-+}
-+
-+static inline struct erdma_mr *to_emr(struct ib_mr *ibmr)
-+{
-+	return container_of(ibmr, struct erdma_mr, ibmr);
-+}
-+
-+static inline struct erdma_qp *to_eqp(struct ib_qp *qp)
-+{
-+	return container_of(qp, struct erdma_qp, ibqp);
-+}
-+
-+static inline struct erdma_cq *to_ecq(struct ib_cq *ibcq)
-+{
-+	return container_of(ibcq, struct erdma_cq, ibcq);
-+}
-+
-+static inline struct erdma_user_mmap_entry *
-+to_emmap(struct rdma_user_mmap_entry *ibmmap)
-+{
-+	return container_of(ibmmap, struct erdma_user_mmap_entry, rdma_entry);
-+}
-+
-+int erdma_alloc_ucontext(struct ib_ucontext *ibctx, struct ib_udata *data);
-+void erdma_dealloc_ucontext(struct ib_ucontext *ibctx);
-+int erdma_query_device(struct ib_device *dev, struct ib_device_attr *attr,
-+		       struct ib_udata *data);
-+int erdma_get_port_immutable(struct ib_device *dev, u32 port,
-+			     struct ib_port_immutable *ib_port_immutable);
-+int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
-+		    struct ib_udata *data);
-+int erdma_query_port(struct ib_device *dev, u32 port,
-+		     struct ib_port_attr *attr);
-+int erdma_query_gid(struct ib_device *dev, u32 port, int idx,
-+		    union ib_gid *gid);
-+int erdma_alloc_pd(struct ib_pd *ibpd, struct ib_udata *data);
-+int erdma_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata);
-+int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
-+		    struct ib_udata *data);
-+int erdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr, int mask,
-+		   struct ib_qp_init_attr *init_attr);
-+int erdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr, int mask,
-+		    struct ib_udata *data);
-+int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata);
-+int erdma_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata);
-+int erdma_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags);
-+struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
-+				u64 virt, int access, struct ib_udata *udata);
-+struct ib_mr *erdma_get_dma_mr(struct ib_pd *ibpd, int rights);
-+int erdma_dereg_mr(struct ib_mr *ibmr, struct ib_udata *data);
-+int erdma_mmap(struct ib_ucontext *ctx, struct vm_area_struct *vma);
-+void erdma_qp_get_ref(struct ib_qp *ibqp);
-+void erdma_qp_put_ref(struct ib_qp *ibqp);
-+struct ib_qp *erdma_get_ibqp(struct ib_device *dev, int id);
-+int erdma_post_send(struct ib_qp *ibqp, const struct ib_send_wr *send_wr,
-+		    const struct ib_send_wr **bad_send_wr);
-+int erdma_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *recv_wr,
-+		    const struct ib_recv_wr **bad_recv_wr);
-+int erdma_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
-+struct ib_mr *erdma_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
-+				u32 max_num_sg);
-+int erdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		    unsigned int *sg_offset);
-+void erdma_port_event(struct erdma_dev *dev, enum ib_event_type reason);
-+
-+#endif
--- 
-2.27.0
+I'll move dev_is_dma_coherent to device.h along with
+device_iommu_mapped() and others then
 
+Thanks,
+Jason
