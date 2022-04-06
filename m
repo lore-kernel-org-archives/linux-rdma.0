@@ -2,228 +2,392 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D9BC4332F
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 12:32:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B88D7C43219
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 13:11:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231591AbiDFMeU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Apr 2022 08:34:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54136 "EHLO
+        id S232748AbiDFNNx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Apr 2022 09:13:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233102AbiDFMbt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 08:31:49 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 075C7577B6A;
-        Wed,  6 Apr 2022 01:26:55 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 836DAB82186;
-        Wed,  6 Apr 2022 08:26:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BB7CC385A1;
-        Wed,  6 Apr 2022 08:26:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649233612;
-        bh=jRhpswGEZMMLoPMbto7cwMcackH47XHQEkjraLI8sdo=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kMbnD+BaTqBtjWZYu4EYeqYMC9/LJvo1T0sQ6e2UNJx1043GxFfzR7FGW4p3x8OYd
-         F02uCGou7i3VV4KY/QK6ewH0rgtdzPqEvrNVIJcrvx7cxLUd9qS34wBveoQ1pkbcPv
-         GLN27pnDd1U78ayXS4C5hQDfHR9E+gLxTpkkyboGaTPpm8SN4BKc6qKQAQYA8GP7ee
-         IupN7g21lQBTu8Q5qNsRjdn9bbIJXQBhxD5dYPU4y4poglt9Q3FdnfXyFCO3ErRVXO
-         qvGbUgBnkhwSNC78wDdYOD+pC/+Rs6gwLekQuNUThMS6NF5GQ4VDLnqHTg1EdzzWfZ
-         dL4lHWpSXPCBA==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Raed Salem <raeds@nvidia.com>
-Subject: [PATCH mlx5-next 14/17] net/mlx5: Move IPsec file to relevant directory
-Date:   Wed,  6 Apr 2022 11:25:49 +0300
-Message-Id: <a0ca88f4d9c602c574106c0de0511803e7dcbdff.1649232994.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <cover.1649232994.git.leonro@nvidia.com>
-References: <cover.1649232994.git.leonro@nvidia.com>
+        with ESMTP id S233674AbiDFNMx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 09:12:53 -0400
+Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B06B82AC2B8
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Apr 2022 19:35:00 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R731e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0V9JW3rq_1649212497;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0V9JW3rq_1649212497)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Wed, 06 Apr 2022 10:34:58 +0800
+From:   Cheng Xu <chengyou@linux.alibaba.com>
+To:     jgg@ziepe.ca, dledford@redhat.com, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com,
+        chengyou@linux.alibaba.com, tonylu@linux.alibaba.com,
+        BMT@zurich.ibm.com
+Subject: [PATCH for-next v5 06/12] RDMA/erdma: Add event queue implementation
+Date:   Wed,  6 Apr 2022 10:34:44 +0800
+Message-Id: <20220406023450.56683-7-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.32.0 (Apple Git-132)
+In-Reply-To: <20220406023450.56683-1-chengyou@linux.alibaba.com>
+References: <20220406023450.56683-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+Event queue (EQ) is the main notification way from erdma hardware to its
+driver. Each erdma device contains 2 kinds EQs: asynchronous EQ (AEQ) and
+completion EQ (CEQ). Per device has 1 AEQ, which used for RDMA async event
+report, and max to 32 CEQs (numbered for CEQ0 to CEQ31). CEQ0 is used for
+cmdq completion event report, and the rest CEQs are used for RDMA
+completion event report.
 
-IPsec is part of ethernet side of mlx5 driver and needs to be placed
-in en_accel folder.
-
-Reviewed-by: Raed Salem <raeds@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/Makefile                | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en/params.c             | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h        | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c     | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.h     | 2 +-
- .../mellanox/mlx5/core/{accel => en_accel}/ipsec_offload.c      | 2 +-
- .../mellanox/mlx5/core/{accel => en_accel}/ipsec_offload.h      | 0
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c   | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_stats.c  | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c               | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c                 | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c                  | 2 +-
- 12 files changed, 11 insertions(+), 11 deletions(-)
- rename drivers/net/ethernet/mellanox/mlx5/core/{accel => en_accel}/ipsec_offload.c (99%)
- rename drivers/net/ethernet/mellanox/mlx5/core/{accel => en_accel}/ipsec_offload.h (100%)
+ drivers/infiniband/hw/erdma/erdma_eq.c | 334 +++++++++++++++++++++++++
+ 1 file changed, 334 insertions(+)
+ create mode 100644 drivers/infiniband/hw/erdma/erdma_eq.c
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-index 9e715a1056f8..f7aafbfcdb61 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-@@ -94,7 +94,7 @@ mlx5_core-$(CONFIG_MLX5_FPGA) += fpga/cmd.o fpga/core.o fpga/conn.o fpga/sdk.o
- 
- mlx5_core-$(CONFIG_MLX5_EN_IPSEC) += en_accel/ipsec.o en_accel/ipsec_rxtx.o \
- 				     en_accel/ipsec_stats.o en_accel/ipsec_fs.o \
--				     accel/ipsec_offload.o
-+				     en_accel/ipsec_offload.o
- 
- mlx5_core-$(CONFIG_MLX5_EN_TLS) += en_accel/ktls_stats.o \
- 				   en_accel/fs_tcp.o en_accel/ktls.o en_accel/ktls_txrx.o \
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/params.c b/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
-index 9f4ae8bc09b9..1e8700957280 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/params.c
-@@ -5,7 +5,7 @@
- #include "en/txrx.h"
- #include "en/port.h"
- #include "en_accel/en_accel.h"
--#include "accel/ipsec_offload.h"
-+#include "en_accel/ipsec_offload.h"
- 
- static bool mlx5e_rx_is_xdp(struct mlx5e_params *params,
- 			    struct mlx5e_xsk_param *xsk)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
-index eccc13b1338f..a0e9dade09e9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
-@@ -40,7 +40,7 @@
- #include <net/xfrm.h>
- #include <linux/idr.h>
- 
--#include "accel/ipsec_offload.h"
-+#include "ipsec_offload.h"
- 
- #define MLX5E_IPSEC_SADB_RX_BITS 10
- #define MLX5E_IPSEC_ESN_SCOPE_MID 0x80000000L
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-index 32093497292f..66b529e36ea1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-@@ -2,7 +2,7 @@
- /* Copyright (c) 2020, Mellanox Technologies inc. All rights reserved. */
- 
- #include <linux/netdevice.h>
--#include "accel/ipsec_offload.h"
-+#include "ipsec_offload.h"
- #include "ipsec_fs.h"
- #include "fs_core.h"
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.h
-index 3389b3bb3ef8..b3e23aa5beeb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.h
-@@ -6,7 +6,7 @@
- 
- #include "en.h"
- #include "ipsec.h"
--#include "accel/ipsec_offload.h"
-+#include "ipsec_offload.h"
- #include "en/fs.h"
- 
- #ifdef CONFIG_MLX5_EN_IPSEC
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_offload.c
-similarity index 99%
-rename from drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c
-rename to drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_offload.c
-index 9dbebef19ff0..7ae2d308139e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_offload.c
-@@ -2,7 +2,7 @@
- /* Copyright (c) 2017, Mellanox Technologies inc. All rights reserved. */
- 
- #include "mlx5_core.h"
--#include "accel/ipsec_offload.h"
-+#include "ipsec_offload.h"
- #include "lib/mlx5.h"
- #include "en_accel/ipsec_fs.h"
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_offload.h
-similarity index 100%
-rename from drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.h
-rename to drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_offload.h
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c
-index 08a6dd4b7662..9b65c765cbd9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c
-@@ -34,7 +34,7 @@
- #include <crypto/aead.h>
- #include <net/xfrm.h>
- #include <net/esp.h>
--#include "accel/ipsec_offload.h"
-+#include "ipsec_offload.h"
- #include "en_accel/ipsec_rxtx.h"
- #include "en_accel/ipsec.h"
- #include "en.h"
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_stats.c
-index 87c42df3ee20..3aace1c2a763 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_stats.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_stats.c
-@@ -35,7 +35,7 @@
- #include <net/sock.h>
- 
- #include "en.h"
--#include "accel/ipsec_offload.h"
-+#include "ipsec_offload.h"
- #include "fpga/sdk.h"
- #include "en_accel/ipsec.h"
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 6a3a08fd8910..12b72a0bcb1a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -48,7 +48,7 @@
- #include "en_accel/ipsec.h"
- #include "en_accel/en_accel.h"
- #include "en_accel/ktls.h"
--#include "accel/ipsec_offload.h"
-+#include "en_accel/ipsec_offload.h"
- #include "lib/vxlan.h"
- #include "lib/clock.h"
- #include "en/port.h"
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index f85eefaad6ab..a5f6fd16b665 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -48,7 +48,7 @@
- #include "en_rep.h"
- #include "en/rep/tc.h"
- #include "ipoib/ipoib.h"
--#include "accel/ipsec_offload.h"
-+#include "en_accel/ipsec_offload.h"
- #include "en_accel/ipsec_rxtx.h"
- #include "en_accel/ktls_txrx.h"
- #include "en/xdp.h"
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 8fcbb1032b07..032de078723c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -62,7 +62,7 @@
- #include "lib/mlx5.h"
- #include "lib/tout.h"
- #include "fpga/core.h"
--#include "accel/ipsec_offload.h"
-+#include "en_accel/ipsec_offload.h"
- #include "lib/clock.h"
- #include "lib/vxlan.h"
- #include "lib/geneve.h"
+diff --git a/drivers/infiniband/hw/erdma/erdma_eq.c b/drivers/infiniband/hw/erdma/erdma_eq.c
+new file mode 100644
+index 000000000000..bc7cf194800a
+--- /dev/null
++++ b/drivers/infiniband/hw/erdma/erdma_eq.c
+@@ -0,0 +1,334 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++
++/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
++/*          Kai Shen <kaishen@linux.alibaba.com> */
++/* Copyright (c) 2020-2022, Alibaba Group. */
++
++#include <linux/errno.h>
++#include <linux/types.h>
++#include <linux/pci.h>
++
++#include <rdma/iw_cm.h>
++#include <rdma/ib_verbs.h>
++#include <rdma/ib_user_verbs.h>
++
++#include "erdma.h"
++#include "erdma_cm.h"
++#include "erdma_hw.h"
++#include "erdma_verbs.h"
++
++#define MAX_POLL_CHUNK_SIZE 16
++
++void notify_eq(struct erdma_eq *eq)
++{
++	u64 db_data = FIELD_PREP(ERDMA_EQDB_CI_MASK, eq->ci) |
++		      FIELD_PREP(ERDMA_EQDB_ARM_MASK, 1);
++
++	*eq->db_record = db_data;
++	writeq(db_data, eq->db_addr);
++
++	atomic64_inc(&eq->notify_num);
++}
++
++void *get_next_valid_eqe(struct erdma_eq *eq)
++{
++	u64 *eqe = get_queue_entry(eq->qbuf, eq->ci, eq->depth, EQE_SHIFT);
++	u32 owner = FIELD_GET(ERDMA_CEQE_HDR_O_MASK, READ_ONCE(*eqe));
++
++	return owner ^ !!(eq->ci & eq->depth) ? eqe : NULL;
++}
++
++void erdma_aeq_event_handler(struct erdma_dev *dev)
++{
++	struct erdma_aeqe *aeqe;
++	u32 cqn, qpn;
++	struct erdma_qp *qp;
++	struct erdma_cq *cq;
++	struct ib_event event;
++	u32 poll_cnt = 0;
++
++	memset(&event, 0, sizeof(event));
++
++	while (poll_cnt < MAX_POLL_CHUNK_SIZE) {
++		aeqe = get_next_valid_eqe(&dev->aeq);
++		if (!aeqe)
++			break;
++
++		dma_rmb();
++
++		dev->aeq.ci++;
++		atomic64_inc(&dev->aeq.event_num);
++		poll_cnt++;
++
++		if (FIELD_GET(ERDMA_AEQE_HDR_TYPE_MASK, aeqe->hdr) ==
++		    ERDMA_AE_TYPE_CQ_ERR) {
++			cqn = aeqe->event_data0;
++			cq = find_cq_by_cqn(dev, cqn);
++			if (!cq)
++				continue;
++
++			event.device = cq->ibcq.device;
++			event.element.cq = &cq->ibcq;
++			event.event = IB_EVENT_CQ_ERR;
++			if (cq->ibcq.event_handler)
++				cq->ibcq.event_handler(&event,
++						       cq->ibcq.cq_context);
++		} else {
++			qpn = aeqe->event_data0;
++			qp = find_qp_by_qpn(dev, qpn);
++			if (!qp)
++				continue;
++
++			event.device = qp->ibqp.device;
++			event.element.qp = &qp->ibqp;
++			event.event = IB_EVENT_QP_FATAL;
++			if (qp->ibqp.event_handler)
++				qp->ibqp.event_handler(&event,
++						       qp->ibqp.qp_context);
++		}
++	}
++
++	notify_eq(&dev->aeq);
++}
++
++int erdma_aeq_init(struct erdma_dev *dev)
++{
++	struct erdma_eq *eq = &dev->aeq;
++	u32 buf_size;
++
++	eq->depth = ERDMA_DEFAULT_EQ_DEPTH;
++	buf_size = eq->depth << EQE_SHIFT;
++
++	eq->qbuf =
++		dma_alloc_coherent(&dev->pdev->dev, WARPPED_BUFSIZE(buf_size),
++				   &eq->qbuf_dma_addr, GFP_KERNEL | __GFP_ZERO);
++	if (!eq->qbuf)
++		return -ENOMEM;
++
++	spin_lock_init(&eq->lock);
++	atomic64_set(&eq->event_num, 0);
++	atomic64_set(&eq->notify_num, 0);
++
++	eq->db_addr = (u64 __iomem *)(dev->func_bar + ERDMA_REGS_AEQ_DB_REG);
++	eq->db_record = (u64 *)(eq->qbuf + buf_size);
++
++	erdma_reg_write32(dev, ERDMA_REGS_AEQ_ADDR_H_REG,
++			  upper_32_bits(eq->qbuf_dma_addr));
++	erdma_reg_write32(dev, ERDMA_REGS_AEQ_ADDR_L_REG,
++			  lower_32_bits(eq->qbuf_dma_addr));
++	erdma_reg_write32(dev, ERDMA_REGS_AEQ_DEPTH_REG, eq->depth);
++	erdma_reg_write64(dev, ERDMA_AEQ_DB_HOST_ADDR_REG,
++			  eq->qbuf_dma_addr + buf_size);
++
++	return 0;
++}
++
++void erdma_aeq_destroy(struct erdma_dev *dev)
++{
++	struct erdma_eq *eq = &dev->aeq;
++
++	dma_free_coherent(&dev->pdev->dev,
++			  WARPPED_BUFSIZE(eq->depth << EQE_SHIFT), eq->qbuf,
++			  eq->qbuf_dma_addr);
++}
++
++void erdma_ceq_completion_handler(struct erdma_eq_cb *ceq_cb)
++{
++	struct erdma_dev *dev = ceq_cb->dev;
++	struct erdma_cq *cq;
++	u32 poll_cnt = 0;
++	u64 *ceqe;
++	int cqn;
++
++	if (!ceq_cb->ready)
++		return;
++
++	while (poll_cnt < MAX_POLL_CHUNK_SIZE) {
++		ceqe = get_next_valid_eqe(&ceq_cb->eq);
++		if (!ceqe)
++			break;
++
++		dma_rmb();
++		ceq_cb->eq.ci++;
++		poll_cnt++;
++		cqn = FIELD_GET(ERDMA_CEQE_HDR_CQN_MASK, READ_ONCE(*ceqe));
++
++		cq = find_cq_by_cqn(dev, cqn);
++		if (!cq)
++			continue;
++
++		if (rdma_is_kernel_res(&cq->ibcq.res))
++			cq->kern_cq.cmdsn++;
++
++		if (cq->ibcq.comp_handler)
++			cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
++	}
++
++	notify_eq(&ceq_cb->eq);
++}
++
++static irqreturn_t erdma_intr_ceq_handler(int irq, void *data)
++{
++	struct erdma_eq_cb *ceq_cb = data;
++
++	tasklet_schedule(&ceq_cb->tasklet);
++
++	return IRQ_HANDLED;
++}
++
++static void erdma_intr_ceq_task(unsigned long data)
++{
++	erdma_ceq_completion_handler((struct erdma_eq_cb *)data);
++}
++
++static int erdma_set_ceq_irq(struct erdma_dev *dev, u16 ceqn)
++{
++	struct erdma_eq_cb *eqc = &dev->ceqs[ceqn];
++	int err;
++
++	snprintf(eqc->irq.name, ERDMA_IRQNAME_SIZE, "erdma-ceq%u@pci:%s", ceqn,
++		 pci_name(dev->pdev));
++	eqc->irq.msix_vector = pci_irq_vector(dev->pdev, ceqn + 1);
++
++	tasklet_init(&dev->ceqs[ceqn].tasklet, erdma_intr_ceq_task,
++		     (unsigned long)&dev->ceqs[ceqn]);
++
++	cpumask_set_cpu(cpumask_local_spread(ceqn + 1, dev->attrs.numa_node),
++			&eqc->irq.affinity_hint_mask);
++
++	err = request_irq(eqc->irq.msix_vector, erdma_intr_ceq_handler, 0,
++			  eqc->irq.name, eqc);
++	if (err) {
++		dev_err(&dev->pdev->dev, "failed to request_irq(%d)\n", err);
++		return err;
++	}
++
++	irq_set_affinity_hint(eqc->irq.msix_vector,
++			      &eqc->irq.affinity_hint_mask);
++
++	return 0;
++}
++
++static void erdma_free_ceq_irq(struct erdma_dev *dev, u16 ceqn)
++{
++	struct erdma_eq_cb *eqc = &dev->ceqs[ceqn];
++
++	irq_set_affinity_hint(eqc->irq.msix_vector, NULL);
++	free_irq(eqc->irq.msix_vector, eqc);
++}
++
++static int create_eq_cmd(struct erdma_dev *dev, u32 eqn, struct erdma_eq *eq)
++{
++	struct erdma_cmdq_create_eq_req req;
++	dma_addr_t db_info_dma_addr;
++
++	erdma_cmdq_build_reqhdr(&req.hdr, CMDQ_SUBMOD_COMMON,
++				CMDQ_OPCODE_CREATE_EQ);
++	req.eqn = eqn;
++	req.depth = ilog2(eq->depth);
++	req.qbuf_addr = eq->qbuf_dma_addr;
++	req.qtype = ERDMA_EQ_TYPE_CEQ;
++	/* Vector index is the same as EQN. */
++	req.vector_idx = eqn;
++	db_info_dma_addr = eq->qbuf_dma_addr + (eq->depth << EQE_SHIFT);
++	req.db_dma_addr_l = lower_32_bits(db_info_dma_addr);
++	req.db_dma_addr_h = upper_32_bits(db_info_dma_addr);
++
++	return erdma_post_cmd_wait(&dev->cmdq, (u64 *)&req,
++				   sizeof(struct erdma_cmdq_create_eq_req),
++				   NULL, NULL);
++}
++
++static int erdma_ceq_init_one(struct erdma_dev *dev, u16 ceqn)
++{
++	struct erdma_eq *eq = &dev->ceqs[ceqn].eq;
++	u32 buf_size = ERDMA_DEFAULT_EQ_DEPTH << EQE_SHIFT;
++	int ret;
++
++	eq->qbuf =
++		dma_alloc_coherent(&dev->pdev->dev, WARPPED_BUFSIZE(buf_size),
++				   &eq->qbuf_dma_addr, GFP_KERNEL | __GFP_ZERO);
++	if (!eq->qbuf)
++		return -ENOMEM;
++
++	spin_lock_init(&eq->lock);
++	atomic64_set(&eq->event_num, 0);
++	atomic64_set(&eq->notify_num, 0);
++
++	eq->depth = ERDMA_DEFAULT_EQ_DEPTH;
++	eq->db_addr =
++		(u64 __iomem *)(dev->func_bar + ERDMA_REGS_CEQ_DB_BASE_REG +
++				(ceqn + 1) * ERDMA_DB_SIZE);
++	eq->db_record = (u64 *)(eq->qbuf + buf_size);
++	eq->ci = 0;
++	dev->ceqs[ceqn].dev = dev;
++
++	/* CEQ indexed from 1, 0 rsvd for CMDQ-EQ. */
++	ret = create_eq_cmd(dev, ceqn + 1, eq);
++	dev->ceqs[ceqn].ready = ret ? false : true;
++
++	return ret;
++}
++
++static void erdma_ceq_uninit_one(struct erdma_dev *dev, u16 ceqn)
++{
++	struct erdma_eq *eq = &dev->ceqs[ceqn].eq;
++	u32 buf_size = ERDMA_DEFAULT_EQ_DEPTH << EQE_SHIFT;
++	struct erdma_cmdq_destroy_eq_req req;
++	int err;
++
++	dev->ceqs[ceqn].ready = 0;
++
++	erdma_cmdq_build_reqhdr(&req.hdr, CMDQ_SUBMOD_COMMON,
++				CMDQ_OPCODE_DESTROY_EQ);
++	/* CEQ indexed from 1, 0 rsvd for CMDQ-EQ. */
++	req.eqn = ceqn + 1;
++	req.qtype = ERDMA_EQ_TYPE_CEQ;
++	req.vector_idx = ceqn + 1;
++
++	err = erdma_post_cmd_wait(&dev->cmdq, (u64 *)&req, sizeof(req), NULL,
++				  NULL);
++	if (err)
++		return;
++
++	dma_free_coherent(&dev->pdev->dev, WARPPED_BUFSIZE(buf_size), eq->qbuf,
++			  eq->qbuf_dma_addr);
++}
++
++int erdma_ceqs_init(struct erdma_dev *dev)
++{
++	u32 i, j;
++	int err;
++
++	for (i = 0; i < dev->attrs.irq_num - 1; i++) {
++		err = erdma_ceq_init_one(dev, i);
++		if (err)
++			goto out_err;
++
++		err = erdma_set_ceq_irq(dev, i);
++		if (err) {
++			erdma_ceq_uninit_one(dev, i);
++			goto out_err;
++		}
++	}
++
++	return 0;
++
++out_err:
++	for (j = 0; j < i; j++) {
++		erdma_free_ceq_irq(dev, j);
++		erdma_ceq_uninit_one(dev, j);
++	}
++
++	return err;
++}
++
++void erdma_ceqs_uninit(struct erdma_dev *dev)
++{
++	u32 i;
++
++	for (i = 0; i < dev->attrs.irq_num - 1; i++) {
++		erdma_free_ceq_irq(dev, i);
++		erdma_ceq_uninit_one(dev, i);
++	}
++}
 -- 
-2.35.1
+2.27.0
 
