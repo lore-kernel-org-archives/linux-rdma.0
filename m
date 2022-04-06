@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D181CC433F5
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 11:34:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45ED0C4332F
+	for <linux-rdma@archiver.kernel.org>; Wed,  6 Apr 2022 11:34:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232057AbiDFLgf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Apr 2022 07:36:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41812 "EHLO
+        id S229459AbiDFLgm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 6 Apr 2022 07:36:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238395AbiDFLec (ORCPT
+        with ESMTP id S238571AbiDFLec (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Apr 2022 07:34:32 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81C0355F367;
-        Wed,  6 Apr 2022 01:26:02 -0700 (PDT)
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADA02466A12;
+        Wed,  6 Apr 2022 01:26:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 227CCB8217A;
-        Wed,  6 Apr 2022 08:25:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AC5AC385A1;
-        Wed,  6 Apr 2022 08:25:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3844060BBC;
+        Wed,  6 Apr 2022 08:26:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27289C385A5;
+        Wed,  6 Apr 2022 08:26:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649233557;
-        bh=Bfxjf4WvYY6KvwHW1ji2+YyT/mfjbCo5tCbTTJgJQf8=;
-        h=From:To:Cc:Subject:Date:From;
-        b=TLjPuOvEYlUJaoXO9pIkz+mz62q2gsdSai0vRxWrwxJX8NvMBbvYLhYMDQzuYXp5C
-         rSRNyOwoUrtqIvD2UKLgxX8Vl8Fr8+3kLP+wb1d2MRdiRtnrkOtJOjVqMlb9r1N2UZ
-         6tG9IhMLAvvvuHj5on8o++QDXKW8jtI9WIjHiS2REmAsht27ezg5FyjLvd1tgo3fZN
-         aOfUP9mJ03qJ9vVnezbM0Dcz51nrzAxrxRbPaSfr/JUBiF9hQJROuvmKBseEipHp5s
-         /uP5JYqhtrNgW3d+NhfG32HucwxzsaLcu5ulC2PpATcg0VfXaQoWBsHtYK0UpE1HTv
-         sZFiPO4/OgeAw==
+        s=k20201202; t=1649233577;
+        bh=mVWd0sPSPhb/64Il5vnij+ydWrnTPFzzurOFlKh4S/g=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=MeF4RCFDTbxczBxDH/PwCTGjhXQm4UgN3+hQvKtW6ib4dtKgNRGzsm7ixpNvyCbOa
+         9CcQGS6vK+o8xGG6BhY0ZbsVcU7qLHaaQISvmNhr+uikY5tcMGGFx+MeRvUDRXH5aI
+         aiYusf8UKqzRLxEgETW7dHb/WYm1KvEgUUVYCNQH8X77uMf849c/OyG7wYACsvhdP/
+         0CmYCBHXQryHLWis/8qQp2Z7decwJ+KkkKs5ouBLE7oyk/SoRMuufWm6fkLpxuCRYX
+         J7ZbGWSvdWhA//rH3peDMPSx68Jdcm70FhdsqDJBQmLJzUDBHfs7FblwodRi41aYZy
+         e+4zB0Z6llE4A==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>, Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
@@ -38,10 +38,12 @@ To:     Jason Gunthorpe <jgg@nvidia.com>, Jakub Kicinski <kuba@kernel.org>,
 Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         Raed Salem <raeds@nvidia.com>
-Subject: [PATCH mlx5-next 00/17] Drop Mellanox FPGA IPsec support from the kernel
-Date:   Wed,  6 Apr 2022 11:25:35 +0300
-Message-Id: <cover.1649232994.git.leonro@nvidia.com>
+Subject: [PATCH mlx5-next 06/17] RDMA/mlx5: Delete never supported IPsec flow action
+Date:   Wed,  6 Apr 2022 11:25:41 +0300
+Message-Id: <697cd60bd5c9b6a004c449c1a41c2798fac844ff.1649232994.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <cover.1649232994.git.leonro@nvidia.com>
+References: <cover.1649232994.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -50,78 +52,35 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Together with FPGA TLS, the IPsec went to EOL state in the November of
-2019 [1]. Exactly like FPGA TLS, no active customers exist for this
-upstream code and all the complexity around that area can be deleted.
-    
-[1] https://network.nvidia.com/related-docs/eol/LCR-000535.pdf
+The IPSEC_REQUIRED_METADATA capability bit is never set, and can be
+safely removed from the flow action flags.
 
-Thanks
+Reviewed-by: Raed Salem <raeds@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/main.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Leon Romanovsky (17):
-  net/mlx5_fpga: Drop INNOVA IPsec support
-  net/mlx5: Delete metadata handling logic
-  net/mlx5: Remove not-used IDA field from IPsec struct
-  net/mlx5: Remove XFRM no_trailer flag
-  net/mlx5: Remove FPGA ipsec specific statistics
-  RDMA/mlx5: Delete never supported IPsec flow action
-  RDMA/mlx5: Drop crypto flow steering API
-  RDMA/core: Delete IPsec flow action logic from the core
-  net/mlx5: Remove ipsec vs. ipsec offload file separation
-  net/mlx5: Remove useless IPsec device checks
-  net/mlx5: Unify device IPsec capabilities check
-  net/mlx5: Align flow steering allocation namespace to common style
-  net/mlx5: Remove not-needed IPsec config
-  net/mlx5: Move IPsec file to relevant directory
-  net/mlx5: Reduce kconfig complexity while building crypto support
-  net/mlx5: Remove ipsec_ops function table
-  net/mlx5: Remove not-implemented IPsec capabilities
-
- drivers/infiniband/core/device.c              |    2 -
- .../core/uverbs_std_types_flow_action.c       |  383 +---
- drivers/infiniband/hw/mlx5/fs.c               |  223 +--
- drivers/infiniband/hw/mlx5/main.c             |   31 -
- .../net/ethernet/mellanox/mlx5/core/Kconfig   |   33 +-
- .../net/ethernet/mellanox/mlx5/core/Makefile  |    9 +-
- .../ethernet/mellanox/mlx5/core/accel/accel.h |   36 -
- .../ethernet/mellanox/mlx5/core/accel/ipsec.c |  179 --
- .../ethernet/mellanox/mlx5/core/accel/ipsec.h |   96 -
- .../mellanox/mlx5/core/accel/ipsec_offload.h  |   38 -
- .../ethernet/mellanox/mlx5/core/en/params.c   |   13 +-
- .../mellanox/mlx5/core/en_accel/ipsec.c       |   30 +-
- .../mellanox/mlx5/core/en_accel/ipsec.h       |   31 +-
- .../mellanox/mlx5/core/en_accel/ipsec_fs.c    |    5 +-
- .../mellanox/mlx5/core/en_accel/ipsec_fs.h    |    7 +-
- .../core/{accel => en_accel}/ipsec_offload.c  |   95 +-
- .../mlx5/core/en_accel/ipsec_offload.h        |   14 +
- .../mellanox/mlx5/core/en_accel/ipsec_rxtx.c  |  245 +--
- .../mellanox/mlx5/core/en_accel/ipsec_rxtx.h  |    3 -
- .../mellanox/mlx5/core/en_accel/ipsec_stats.c |   63 +-
- .../net/ethernet/mellanox/mlx5/core/en_main.c |   12 +-
- .../net/ethernet/mellanox/mlx5/core/en_rep.c  |    1 -
- .../net/ethernet/mellanox/mlx5/core/en_rx.c   |   56 +-
- .../ethernet/mellanox/mlx5/core/en_stats.c    |    1 -
- .../ethernet/mellanox/mlx5/core/en_stats.h    |    1 -
- .../ethernet/mellanox/mlx5/core/fpga/core.h   |    2 -
- .../ethernet/mellanox/mlx5/core/fpga/ipsec.c  | 1582 -----------------
- .../ethernet/mellanox/mlx5/core/fpga/ipsec.h  |   62 -
- .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |    2 -
- .../net/ethernet/mellanox/mlx5/core/fs_core.c |   15 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    |    8 +-
- include/linux/mlx5/accel.h                    |   35 +-
- include/linux/mlx5/driver.h                   |    3 -
- include/linux/mlx5/mlx5_ifc_fpga.h            |  148 --
- include/rdma/ib_verbs.h                       |    8 -
- 35 files changed, 143 insertions(+), 3329 deletions(-)
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/accel/accel.h
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec.c
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec.h
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/accel/ipsec_offload.h
- rename drivers/net/ethernet/mellanox/mlx5/core/{accel => en_accel}/ipsec_offload.c (84%)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_offload.h
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
- delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.h
-
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 172773ed427a..4a9629c01cf1 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1798,15 +1798,11 @@ static int set_ucontext_resp(struct ib_ucontext *uctx,
+ 		if (mlx5_get_flow_namespace(dev->mdev,
+ 				MLX5_FLOW_NAMESPACE_EGRESS))
+ 			resp->flow_action_flags |= MLX5_USER_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM;
+-		if (mlx5_accel_ipsec_device_caps(dev->mdev) &
+-				MLX5_ACCEL_IPSEC_CAP_REQUIRED_METADATA)
+-			resp->flow_action_flags |= MLX5_USER_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_REQ_METADATA;
+ 		if (MLX5_CAP_FLOWTABLE(dev->mdev, flow_table_properties_nic_receive.ft_field_support.outer_esp_spi))
+ 			resp->flow_action_flags |= MLX5_USER_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_SPI_STEERING;
+ 		if (mlx5_accel_ipsec_device_caps(dev->mdev) &
+ 				MLX5_ACCEL_IPSEC_CAP_TX_IV_IS_ESN)
+ 			resp->flow_action_flags |= MLX5_USER_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_TX_IV_IS_ESN;
+-		/* MLX5_USER_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_FULL_OFFLOAD is currently always 0 */
+ 	}
+ 
+ 	resp->tot_bfregs = bfregi->lib_uar_dyn ? 0 :
 -- 
 2.35.1
 
