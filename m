@@ -2,92 +2,139 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 431E3C433F5
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Apr 2022 12:54:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96A8EC433F5
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Apr 2022 13:14:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245542AbiDGM4n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Apr 2022 08:56:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34606 "EHLO
+        id S237951AbiDGNQn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Apr 2022 09:16:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235962AbiDGM4m (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Apr 2022 08:56:42 -0400
-Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 678FA25A49E;
-        Thu,  7 Apr 2022 05:54:39 -0700 (PDT)
-Received: by ajax-webmail-mail-app3 (Coremail) ; Thu, 7 Apr 2022 20:54:13
- +0800 (GMT+08:00)
-X-Originating-IP: [10.181.226.201]
-Date:   Thu, 7 Apr 2022 20:54:13 +0800 (GMT+08:00)
-X-CM-HeaderCharset: UTF-8
-From:   duoming@zju.edu.cn
-To:     "Dan Carpenter" <dan.carpenter@oracle.com>
-Cc:     linux-kernel@vger.kernel.org, chris@zankel.net, jcmvbkbc@gmail.com,
-        mustafa.ismail@intel.com, shiraz.saleem@intel.com, jgg@ziepe.ca,
-        wg@grandegger.com, mkl@pengutronix.de, davem@davemloft.net,
-        kuba@kernel.org, pabeni@redhat.com, jes@trained-monkey.org,
-        gregkh@linuxfoundation.org, jirislaby@kernel.org,
-        alexander.deucher@amd.com, linux-xtensa@linux-xtensa.org,
-        linux-rdma@vger.kernel.org, linux-can@vger.kernel.org,
-        netdev@vger.kernel.org, linux-hippi@sunsite.dk,
-        linux-staging@lists.linux.dev, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org
-Subject: Re: Re: [PATCH 09/11] drivers: infiniband: hw: Fix deadlock in
- irdma_cleanup_cm_core()
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version XT5.0.8 build 20200806(7a9be5e8)
- Copyright (c) 2002-2022 www.mailtech.cn zju.edu.cn
-In-Reply-To: <20220407112455.GK3293@kadam>
-References: <cover.1649310812.git.duoming@zju.edu.cn>
- <4069b99042d28c8e51b941d9e698b99d1656ed33.1649310812.git.duoming@zju.edu.cn>
- <20220407112455.GK3293@kadam>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
+        with ESMTP id S229649AbiDGNQm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Apr 2022 09:16:42 -0400
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C47C16665F
+        for <linux-rdma@vger.kernel.org>; Thu,  7 Apr 2022 06:14:42 -0700 (PDT)
+Received: from dggpeml500021.china.huawei.com (unknown [172.30.72.53])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4KZ1vm69JFzBs6n;
+        Thu,  7 Apr 2022 21:10:28 +0800 (CST)
+Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
+ dggpeml500021.china.huawei.com (7.185.36.21) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.21; Thu, 7 Apr 2022 21:14:40 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.21; Thu, 7 Apr 2022 21:14:40 +0800
+From:   Wenpeng Liang <liangwenpeng@huawei.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <liangwenpeng@huawei.com>
+Subject: [PATCH for-next 2/2] RDMA/hns: Add NOP operation for sending WR
+Date:   Thu, 7 Apr 2022 21:14:03 +0800
+Message-ID: <20220407131403.26040-3-liangwenpeng@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20220407131403.26040-1-liangwenpeng@huawei.com>
+References: <20220407131403.26040-1-liangwenpeng@huawei.com>
 MIME-Version: 1.0
-Message-ID: <1be0c02d.3f701.1800416ef60.Coremail.duoming@zju.edu.cn>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID: cC_KCgDnXmL13k5iNReTAQ--.17805W
-X-CM-SenderInfo: qssqjiasttq6lmxovvfxof0/1tbiAgYNAVZdtZE4DQAFsX
-X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
-        CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
-        daVFxhVjvjDU=
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ dggpeml500017.china.huawei.com (7.185.36.243)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-SGVsbG8sCgpPbiBUaHUsIDcgQXByIDIwMjIgMTQ6MjQ6NTYgKzAzMDAgRGFuIENhcnBlbnRlciB3
-cm90ZToKCj4gPiBUaGVyZSBpcyBhIGRlYWRsb2NrIGluIGlyZG1hX2NsZWFudXBfY21fY29yZSgp
-LCB3aGljaCBpcyBzaG93bgo+ID4gYmVsb3c6Cj4gPiAKPiA+ICAgIChUaHJlYWQgMSkgICAgICAg
-ICAgICAgIHwgICAgICAoVGhyZWFkIDIpCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICB8
-IGlyZG1hX3NjaGVkdWxlX2NtX3RpbWVyKCkKPiA+IGlyZG1hX2NsZWFudXBfY21fY29yZSgpICAg
-IHwgIGFkZF90aW1lcigpCj4gPiAgc3Bpbl9sb2NrX2lycXNhdmUoKSAvLygxKSB8ICAod2FpdCBh
-IHRpbWUpCj4gPiAgLi4uICAgICAgICAgICAgICAgICAgICAgICB8IGlyZG1hX2NtX3RpbWVyX3Rp
-Y2soKQo+ID4gIGRlbF90aW1lcl9zeW5jKCkgICAgICAgICAgfCAgc3Bpbl9sb2NrX2lycXNhdmUo
-KSAvLygyKQo+ID4gICh3YWl0IHRpbWVyIHRvIHN0b3ApICAgICAgfCAgLi4uCj4gPiAKPiA+IFdl
-IGhvbGQgY21fY29yZS0+aHRfbG9jayBpbiBwb3NpdGlvbiAoMSkgb2YgdGhyZWFkIDEgYW5kCj4g
-PiB1c2UgZGVsX3RpbWVyX3N5bmMoKSB0byB3YWl0IHRpbWVyIHRvIHN0b3AsIGJ1dCB0aW1lciBo
-YW5kbGVyCj4gPiBhbHNvIG5lZWQgY21fY29yZS0+aHRfbG9jayBpbiBwb3NpdGlvbiAoMikgb2Yg
-dGhyZWFkIDIuCj4gPiBBcyBhIHJlc3VsdCwgaXJkbWFfY2xlYW51cF9jbV9jb3JlKCkgd2lsbCBi
-bG9jayBmb3JldmVyLgo+ID4gCj4gPiBUaGlzIHBhdGNoIGV4dHJhY3RzIGRlbF90aW1lcl9zeW5j
-KCkgZnJvbSB0aGUgcHJvdGVjdGlvbiBvZgo+ID4gc3Bpbl9sb2NrX2lycXNhdmUoKSwgd2hpY2gg
-Y291bGQgbGV0IHRpbWVyIGhhbmRsZXIgdG8gb2J0YWluCj4gPiB0aGUgbmVlZGVkIGxvY2suCj4g
-PiAKPiA+IFNpZ25lZC1vZmYtYnk6IER1b21pbmcgWmhvdSA8ZHVvbWluZ0B6anUuZWR1LmNuPgo+
-ID4gLS0tCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2lyZG1hL2NtLmMgfCA1ICsrKystCj4g
-PiAgMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+ID4gCj4g
-PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L2lyZG1hL2NtLmMgYi9kcml2ZXJz
-L2luZmluaWJhbmQvaHcvaXJkbWEvY20uYwo+ID4gaW5kZXggZGVkYjNiN2VkZDguLjAxOWRkOGJm
-ZTA4IDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L2lyZG1hL2NtLmMKPiA+
-ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9pcmRtYS9jbS5jCj4gPiBAQCAtMzI1Miw4ICsz
-MjUyLDExIEBAIHZvaWQgaXJkbWFfY2xlYW51cF9jbV9jb3JlKHN0cnVjdCBpcmRtYV9jbV9jb3Jl
-ICpjbV9jb3JlKQo+ID4gIAkJcmV0dXJuOwo+ID4gIAo+ID4gIAlzcGluX2xvY2tfaXJxc2F2ZSgm
-Y21fY29yZS0+aHRfbG9jaywgZmxhZ3MpOwo+ID4gLQlpZiAodGltZXJfcGVuZGluZygmY21fY29y
-ZS0+dGNwX3RpbWVyKSkKPiA+ICsJaWYgKHRpbWVyX3BlbmRpbmcoJmNtX2NvcmUtPnRjcF90aW1l
-cikpIHsKPiA+ICsJCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmNtX2NvcmUtPmh0X2xvY2ssIGZs
-YWdzKTsKPiA+ICAJCWRlbF90aW1lcl9zeW5jKCZjbV9jb3JlLT50Y3BfdGltZXIpOwo+ID4gKwkJ
-c3Bpbl9sb2NrX2lycXNhdmUoJmNtX2NvcmUtPmh0X2xvY2ssIGZsYWdzKTsKPiA+ICsJfQo+ID4g
-IAlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZjbV9jb3JlLT5odF9sb2NrLCBmbGFncyk7Cj4gCj4g
-VGhpcyBsb2NrIGRvZXNuJ3Qgc2VlbSB0byBiZSBwcm90ZWN0aW5nIGFueXRoaW5nLiAgQWxzbyBk
-byB3ZSBuZWVkIHRvCj4gY2hlY2sgdGltZXJfcGVuZGluZygpPyAgSSB0aGluayB0aGUgZGVsX3Rp
-bWVyX3N5bmMoKSBmdW5jdGlvbiB3aWxsIGp1c3QKPiByZXR1cm4gZGlyZWN0bHkgaWYgdGhlcmUg
-aXNuJ3QgYSBwZW5kaW5nIGxvY2s/CgpUaGFua3MgYSBsb3QgZm9yIHlvdXIgYWR2aWNlLCBJIHdp
-bGwgcmVtb3ZlIHRoZSB0aW1lcl9wZW5kaW5nKCkgYW5kIHRoZQpyZWR1bmRhbnQgbG9jay4KCkJl
-c3QgcmVnYXJkcywKRHVvbWluZyBaaG91
+From: Yangyang Li <liyangyang20@huawei.com>
+
+The NOP operation is a no-op, mainly used in scenarios where SQWQE requires
+page alignment or WQE size alignment. Each NOP WR consumes one SQWQE, but
+the hardware does not operate and directly generates a CQE. The IB
+specification does not specify this type of WR.
+
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 9 +++++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 9 +++++++++
+ 2 files changed, 18 insertions(+)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index cf5455cda9c4..0494e3330be0 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -73,6 +73,9 @@ static inline void set_data_seg_v2(struct hns_roce_v2_wqe_data_seg *dseg,
+ #define HR_IB_OPC_MAP(ib_key, hr_key) \
+ 		[IB_WR_ ## ib_key] = 1 + HNS_ROCE_V2_WQE_OP_ ## hr_key
+ 
++#define HR_PRIV_OPC_MAP(hr_key) \
++		[HNS_ROCE_WR_ ## hr_key] = 1 + HNS_ROCE_V2_WQE_OP_ ## hr_key
++
+ static const u32 hns_roce_op_code[] = {
+ 	HR_IB_OPC_MAP(RDMA_WRITE, RDMA_WRITE),
+ 	HR_IB_OPC_MAP(RDMA_WRITE_WITH_IMM, RDMA_WRITE_WITH_IMM),
+@@ -86,6 +89,7 @@ static const u32 hns_roce_op_code[] = {
+ 	HR_IB_OPC_MAP(MASKED_ATOMIC_CMP_AND_SWP, ATOM_MSK_CMP_AND_SWAP),
+ 	HR_IB_OPC_MAP(MASKED_ATOMIC_FETCH_AND_ADD, ATOM_MSK_FETCH_AND_ADD),
+ 	HR_IB_OPC_MAP(REG_MR, FAST_REG_PMR),
++	HR_PRIV_OPC_MAP(NOP),
+ };
+ 
+ static u32 to_hr_opcode(u32 ib_opcode)
+@@ -540,6 +544,7 @@ static int set_rc_opcode(struct hns_roce_dev *hr_dev,
+ 		break;
+ 	case IB_WR_SEND:
+ 	case IB_WR_SEND_WITH_IMM:
++	case HNS_ROCE_WR_NOP:
+ 		break;
+ 	case IB_WR_ATOMIC_CMP_AND_SWP:
+ 	case IB_WR_ATOMIC_FETCH_AND_ADD:
+@@ -3852,6 +3857,9 @@ static int get_cur_qp(struct hns_roce_cq *hr_cq, struct hns_roce_v2_cqe *cqe,
+ #define HR_IB_WC_OP_MAP(hr_key, ib_key) \
+ 		[HNS_ROCE_V2_WQE_OP_ ## hr_key] = 1 + IB_WC_ ## ib_key
+ 
++#define HR_PRIV_WC_OP_MAP(hr_key) \
++		[HNS_ROCE_V2_WQE_OP_ ## hr_key] = 1 + HNS_ROCE_WC_ ## hr_key
++
+ static const u32 wc_send_op_map[] = {
+ 	HR_IB_WC_OP_MAP(SEND, SEND),
+ 	HR_IB_WC_OP_MAP(SEND_WITH_INV, SEND),
+@@ -3866,6 +3874,7 @@ static const u32 wc_send_op_map[] = {
+ 	HR_IB_WC_OP_MAP(ATOM_MSK_FETCH_AND_ADD, MASKED_FETCH_ADD),
+ 	HR_IB_WC_OP_MAP(FAST_REG_PMR, REG_MR),
+ 	HR_IB_WC_OP_MAP(BIND_MW, REG_MR),
++	HR_PRIV_WC_OP_MAP(NOP),
+ };
+ 
+ static int to_ib_wc_send_op(u32 hr_opcode)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 0d87b627601e..9e7f7148a9ad 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -170,6 +170,14 @@ enum {
+ 
+ #define	GID_LEN_V2				16
+ 
++enum {
++	HNS_ROCE_WR_NOP = IB_WR_RESERVED4,
++};
++
++enum {
++	HNS_ROCE_WC_NOP = HNS_ROCE_WR_NOP,
++};
++
+ enum {
+ 	HNS_ROCE_V2_WQE_OP_SEND				= 0x0,
+ 	HNS_ROCE_V2_WQE_OP_SEND_WITH_INV		= 0x1,
+@@ -184,6 +192,7 @@ enum {
+ 	HNS_ROCE_V2_WQE_OP_FAST_REG_PMR			= 0xa,
+ 	HNS_ROCE_V2_WQE_OP_LOCAL_INV			= 0xb,
+ 	HNS_ROCE_V2_WQE_OP_BIND_MW			= 0xc,
++	HNS_ROCE_V2_WQE_OP_NOP				= 0x13,
+ 	HNS_ROCE_V2_WQE_OP_MASK				= 0x1f,
+ };
+ 
+-- 
+2.33.0
+
