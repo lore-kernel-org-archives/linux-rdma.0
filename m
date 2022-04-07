@@ -2,21 +2,21 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5922C433FE
-	for <linux-rdma@archiver.kernel.org>; Thu,  7 Apr 2022 06:35:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBF81C43217
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Apr 2022 06:36:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234388AbiDGGgy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 7 Apr 2022 02:36:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38552 "EHLO
+        id S241175AbiDGGie (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Apr 2022 02:38:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241175AbiDGGga (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Apr 2022 02:36:30 -0400
-Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A81A68B6D8;
-        Wed,  6 Apr 2022 23:34:26 -0700 (PDT)
+        with ESMTP id S241623AbiDGGia (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Apr 2022 02:38:30 -0400
+Received: from zju.edu.cn (mail.zju.edu.cn [61.164.42.155])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5D0F52C130;
+        Wed,  6 Apr 2022 23:36:24 -0700 (PDT)
 Received: from ubuntu.localdomain (unknown [10.15.192.164])
-        by mail-app4 (Coremail) with SMTP id cS_KCgBnKRC7hU5imJbiAA--.58581S3;
-        Thu, 07 Apr 2022 14:33:37 +0800 (CST)
+        by mail-app4 (Coremail) with SMTP id cS_KCgBnKRBUhk5i9JviAA--.58619S2;
+        Thu, 07 Apr 2022 14:36:08 +0800 (CST)
 From:   Duoming Zhou <duoming@zju.edu.cn>
 To:     linux-kernel@vger.kernel.org
 Cc:     chris@zankel.net, jcmvbkbc@gmail.com, mustafa.ismail@intel.com,
@@ -29,51 +29,49 @@ Cc:     chris@zankel.net, jcmvbkbc@gmail.com, mustafa.ismail@intel.com,
         netdev@vger.kernel.org, linux-hippi@sunsite.dk,
         linux-staging@lists.linux.dev, linux-serial@vger.kernel.org,
         linux-usb@vger.kernel.org, Duoming Zhou <duoming@zju.edu.cn>
-Subject: [PATCH 01/11] drivers: tty: serial: Fix deadlock in sa1100_set_termios()
-Date:   Thu,  7 Apr 2022 14:33:17 +0800
-Message-Id: <e82ff9358d4ef90a7e9f624534d6d54fc193467f.1649310812.git.duoming@zju.edu.cn>
+Subject: [PATCH 05/11] drivers: staging: rtl8192e: Fix deadlock in rtllib_beacons_stop()
+Date:   Thu,  7 Apr 2022 14:36:03 +0800
+Message-Id: <30b73126e09c47d9f86d705c26efb63da0bab157.1649310812.git.duoming@zju.edu.cn>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <cover.1649310812.git.duoming@zju.edu.cn>
 References: <cover.1649310812.git.duoming@zju.edu.cn>
-In-Reply-To: <cover.1649310812.git.duoming@zju.edu.cn>
-References: <cover.1649310812.git.duoming@zju.edu.cn>
-X-CM-TRANSID: cS_KCgBnKRC7hU5imJbiAA--.58581S3
-X-Coremail-Antispam: 1UD129KBjvJXoW7uFy3AFW3Jr17Jr17ZFy8uFg_yoW8Jw48pF
-        sFyr9IkFWkZF4293WDKw4qvF45ua1DuFy7GFW7G39Y9rnYqF90gF1fKa4YvFW2vFsrWr9F
-        vF1rZ3y3CF4kA3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDU0xBIdaVrnRJUUUvm1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+X-CM-TRANSID: cS_KCgBnKRBUhk5i9JviAA--.58619S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7uF4xuw4rZF48urWfAF13Arb_yoW8Gw4xpF
+        WDWFy3AF10vr48Cayjyw4kZ34fCwsFvrWDuayakw4rZ3Z7XF15XF10yFWYyF45JFZrtw13
+        Arn5Z3y5uFn0k3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDU0xBIdaVrnRJUUUvG1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
         w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
-        IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJr0_GcWl84ACjcxK6I8E
-        87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c
-        8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_
-        Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwI
-        xGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1l42xK82IY
-        c2Ij64vIr41l42xK82IY6x8ErcxFaVAv8VW8uw4UJr1UMxC20s026xCaFVCjc4AY6r1j6r
-        4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF
-        67AKxVW8ZVWrXwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2I
-        x0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2
-        z280aVAFwI0_Gr0_Cr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnU
-        UI43ZEXa7VUbXdbUUUUUU==
-X-CM-SenderInfo: qssqjiasttq6lmxovvfxof0/1tbiAgYNAVZdtZEbDgAQsi
+        IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW0oVCq3wA2z4x0Y4vEx4A2
+        jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAS0I0E0xvYzxvE52
+        x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUGVWU
+        XwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI4
+        8JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628vn2kIc2xKxwCF04k20xvY
+        0x0EwIxGrwCF04k20xvE74AGY7Cv6cx26r4fKr1UJr1l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr
+        1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE
+        14v26r4a6rW5MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_JFI_Gr1lIxAIcVC0I7
+        IYx2IY6xkF7I0E14v26r4UJVWxJr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvE
+        x4A2jsIE14v26r4j6F4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr1j6F4UJbIYCTnIWIevJa
+        73UjIFyTuYvjfUF9a9DUUUU
+X-CM-SenderInfo: qssqjiasttq6lmxovvfxof0/1tbiAgYNAVZdtZEbDgAaso
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There is a deadlock in sa1100_set_termios(), which is shown
+There is a deadlock in rtllib_beacons_stop(), which is shown
 below:
 
    (Thread 1)              |      (Thread 2)
-                           | sa1100_enable_ms()
-sa1100_set_termios()       |  mod_timer()
+                           | rtllib_send_beacon()
+rtllib_beacons_stop()      |  mod_timer()
  spin_lock_irqsave() //(1) |  (wait a time)
- ...                       | sa1100_timeout()
+ ...                       | rtllib_send_beacon_cb()
  del_timer_sync()          |  spin_lock_irqsave() //(2)
  (wait timer to stop)      |  ...
 
-We hold sport->port.lock in position (1) of thread 1 and
+We hold ieee->beacon_lock in position (1) of thread 1 and
 use del_timer_sync() to wait timer to stop, but timer handler
-also need sport->port.lock in position (2) of thread 2. As a result,
-sa1100_set_termios() will block forever.
+also need ieee->beacon_lock in position (2) of thread 2.
+As a result, rtllib_beacons_stop() will block forever.
 
 This patch extracts del_timer_sync() from the protection of
 spin_lock_irqsave(), which could let timer handler to obtain
@@ -81,23 +79,25 @@ the needed lock.
 
 Signed-off-by: Duoming Zhou <duoming@zju.edu.cn>
 ---
- drivers/tty/serial/sa1100.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/staging/rtl8192e/rtllib_softmac.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/tty/serial/sa1100.c b/drivers/tty/serial/sa1100.c
-index 5fe6cccfc1a..3a5f12ced0b 100644
---- a/drivers/tty/serial/sa1100.c
-+++ b/drivers/tty/serial/sa1100.c
-@@ -476,7 +476,9 @@ sa1100_set_termios(struct uart_port *port, struct ktermios *termios,
- 				UTSR1_TO_SM(UTSR1_ROR);
- 	}
+diff --git a/drivers/staging/rtl8192e/rtllib_softmac.c b/drivers/staging/rtl8192e/rtllib_softmac.c
+index 4b6c2295a3c..3ea542e9008 100644
+--- a/drivers/staging/rtl8192e/rtllib_softmac.c
++++ b/drivers/staging/rtl8192e/rtllib_softmac.c
+@@ -651,10 +651,10 @@ static void rtllib_beacons_stop(struct rtllib_device *ieee)
+ 	spin_lock_irqsave(&ieee->beacon_lock, flags);
  
-+	spin_unlock_irqrestore(&sport->port.lock, flags);
- 	del_timer_sync(&sport->timer);
-+	spin_lock_irqsave(&sport->port.lock, flags);
+ 	ieee->beacon_txing = 0;
+-	del_timer_sync(&ieee->beacon_timer);
  
- 	/*
- 	 * Update the per-port timeout.
+ 	spin_unlock_irqrestore(&ieee->beacon_lock, flags);
+ 
++	del_timer_sync(&ieee->beacon_timer);
+ }
+ 
+ 
 -- 
 2.17.1
 
