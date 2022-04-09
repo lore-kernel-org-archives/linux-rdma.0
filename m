@@ -2,36 +2,36 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 365BBC433F5
-	for <linux-rdma@archiver.kernel.org>; Sat,  9 Apr 2022 08:33:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27B29C433EF
+	for <linux-rdma@archiver.kernel.org>; Sat,  9 Apr 2022 08:34:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238700AbiDIIf4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 9 Apr 2022 04:35:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58788 "EHLO
+        id S232833AbiDIIgM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 9 Apr 2022 04:36:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232833AbiDIIf4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 9 Apr 2022 04:35:56 -0400
+        with ESMTP id S240327AbiDIIgM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 9 Apr 2022 04:36:12 -0400
 Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 901312AF4
-        for <linux-rdma@vger.kernel.org>; Sat,  9 Apr 2022 01:33:49 -0700 (PDT)
-Received: from dggpeml500025.china.huawei.com (unknown [172.30.72.56])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Kb7ct2Ss8zDqHy;
-        Sat,  9 Apr 2022 16:31:26 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91A402AF4
+        for <linux-rdma@vger.kernel.org>; Sat,  9 Apr 2022 01:34:05 -0700 (PDT)
+Received: from dggpeml500022.china.huawei.com (unknown [172.30.72.57])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Kb7dB32kFzDq8g;
+        Sat,  9 Apr 2022 16:31:42 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500025.china.huawei.com (7.185.36.35) with Microsoft SMTP Server
+ dggpeml500022.china.huawei.com (7.185.36.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2308.21; Sat, 9 Apr 2022 16:33:32 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Sat, 9 Apr 2022 16:33:31 +0800
+ 15.1.2308.21; Sat, 9 Apr 2022 16:33:32 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 1/5] RDMA/hns: Remove unnecessary check for the sgid_attr when modifying QP
-Date:   Sat, 9 Apr 2022 16:32:50 +0800
-Message-ID: <20220409083254.9696-2-liangwenpeng@huawei.com>
+Subject: [PATCH for-next 3/5] RDMA/hns: Remove redundant variable "ret"
+Date:   Sat, 9 Apr 2022 16:32:52 +0800
+Message-ID: <20220409083254.9696-4-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20220409083254.9696-1-liangwenpeng@huawei.com>
 References: <20220409083254.9696-1-liangwenpeng@huawei.com>
@@ -46,32 +46,40 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Chengchang Tang <tangchengchang@huawei.com>
+From: Guofeng Yue <yueguofeng@hisilicon.com>
 
-The sgid_attr cannot be null in this scenario. This judgment is redundant.
+It is completely redundant for this function to use "ret" to store the
+return value of the subfunction.
 
-Fixes: 606bf89e98ef ("RDMA/hns: Refactor for hns_roce_v2_modify_qp function")
-Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
+Signed-off-by: Guofeng Yue <yueguofeng@hisilicon.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 2b0cef17ad45..cd87e6e86720 100644
+index cd87e6e86720..aa3eca16e04a 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4966,9 +4966,7 @@ static int hns_roce_v2_set_path(struct ib_qp *ibqp,
- 		if (ret)
- 			return ret;
+@@ -3257,7 +3257,6 @@ static int hns_roce_v2_write_mtpt(struct hns_roce_dev *hr_dev,
+ 				  void *mb_buf, struct hns_roce_mr *mr)
+ {
+ 	struct hns_roce_v2_mpt_entry *mpt_entry;
+-	int ret;
  
--		if (gid_attr)
--			is_udp = (gid_attr->gid_type ==
--				 IB_GID_TYPE_ROCE_UDP_ENCAP);
-+		is_udp = (gid_attr->gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP);
- 	}
+ 	mpt_entry = mb_buf;
+ 	memset(mpt_entry, 0, sizeof(*mpt_entry));
+@@ -3296,9 +3295,7 @@ static int hns_roce_v2_write_mtpt(struct hns_roce_dev *hr_dev,
+ 		     to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.ba_pg_shift));
+ 	hr_reg_enable(mpt_entry, MPT_INNER_PA_VLD);
  
- 	/* Only HIP08 needs to set the vlan_en bits in QPC */
+-	ret = set_mtpt_pbl(hr_dev, mpt_entry, mr);
+-
+-	return ret;
++	return set_mtpt_pbl(hr_dev, mpt_entry, mr);
+ }
+ 
+ static int hns_roce_v2_rereg_write_mtpt(struct hns_roce_dev *hr_dev,
 -- 
 2.33.0
 
