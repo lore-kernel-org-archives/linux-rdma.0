@@ -2,157 +2,197 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F9AC433F5
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 04:11:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA56FC433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 09:55:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242822AbiDLENf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Apr 2022 00:13:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55530 "EHLO
+        id S245198AbiDLJ5Q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Apr 2022 05:57:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229772AbiDLENe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Apr 2022 00:13:34 -0400
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 299D62E6AE
-        for <linux-rdma@vger.kernel.org>; Mon, 11 Apr 2022 21:11:18 -0700 (PDT)
-Received: by mail-oi1-x234.google.com with SMTP id 12so17831143oix.12
-        for <linux-rdma@vger.kernel.org>; Mon, 11 Apr 2022 21:11:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language
-         :from:to:references:in-reply-to:content-transfer-encoding;
-        bh=dc2FJCFm9L8Rsf+cXqasDi/Z/Q30sRa1LaH3Y/CZpzE=;
-        b=FOIZKpE0GFWyOG2F/R2UKMcMECCzyhLvA5frp9xVX3PHCbgkdEf/fNSmXROZhZA8Mh
-         zr24FkNvEuOvu9o3pfnEwqxPR2NWsg+NVo47rFpDK8pRVhX/WuQKGqvTWkg2SgZr0lxr
-         dWuMHZAXJTCyfSXJ98n4gr60EPyBm1BMGIKZofY82jqQnb3kVn/ocKMtSENvuGBDR9ac
-         j62g7v/bJgOfzaGs8OSVWGOQLNqPwW+DekCR3Trg4rb9Kh/nJOcYFt99byg/XdE0hvjt
-         na6w8+LDQdkKiPgnuXCH0JxkNIcxEpZGLaxXaXLjgzJfratx2/01O10x6NcvQPha/jG6
-         JrCA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:from:to:references:in-reply-to
-         :content-transfer-encoding;
-        bh=dc2FJCFm9L8Rsf+cXqasDi/Z/Q30sRa1LaH3Y/CZpzE=;
-        b=4dpR9q7l0Jf/aVBQfF4Ggog0jUgjubcfAUObYRezOl17COL+jtIOm90slh7j/SodlY
-         iuXxhwCaVREkahzxi9Qy0yudTqY6BbDvHk5rw177a81WqIAd86zAsi3yfjo3nrbZU7ZB
-         5AwUfqQh7lj1OsKQqlpsHK9nPBj1Dh9d9/Inkn1yIlKbvacIbeLF7sWRRVNu0jPaMC7w
-         njzWV9VsBemxAxRsD+UOqS7Ff0C2gyyaoecIusCswbT+ug4uuFc/qU7Vfo5PYW2mo9xS
-         X0mMJkhkTYxEEHumJ36Uh6ux/8zh5SDoH0PzAa2g5RrAPoyr0NSFJuIPCoEqwUu7jgH2
-         2i2w==
-X-Gm-Message-State: AOAM531Y1zp2iIT4N/n7yqsFe4/FAYl9gtdvRXJm1+NeLrw05IX7WENt
-        4FLfzy51lZSUHogUnFGQF3Y=
-X-Google-Smtp-Source: ABdhPJzVvLWf/78dmM5BuEF1H1bHK/gm+5is4U7tg7oBycSn3W8C0+pdG4gocpMu44FU7fu8lwoP4g==
-X-Received: by 2002:a05:6808:ecf:b0:2f9:f0b1:7ee8 with SMTP id q15-20020a0568080ecf00b002f9f0b17ee8mr917017oiv.225.1649736677430;
-        Mon, 11 Apr 2022 21:11:17 -0700 (PDT)
-Received: from ?IPV6:2603:8081:140c:1a00:e8e8:cfa3:e55d:7274? (2603-8081-140c-1a00-e8e8-cfa3-e55d-7274.res6.spectrum.com. [2603:8081:140c:1a00:e8e8:cfa3:e55d:7274])
-        by smtp.gmail.com with ESMTPSA id a6-20020a9d4706000000b005cdff2d400bsm13002758otf.24.2022.04.11.21.11.16
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 11 Apr 2022 21:11:17 -0700 (PDT)
-Message-ID: <3f13c82a-8d80-45a3-95fe-5a9c0ff3db1c@gmail.com>
-Date:   Mon, 11 Apr 2022 23:11:15 -0500
+        with ESMTP id S1359459AbiDLHnE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Apr 2022 03:43:04 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCBA112094
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 00:24:34 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 684286152A
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 07:24:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55D62C385A8;
+        Tue, 12 Apr 2022 07:24:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1649748273;
+        bh=jxzBQ3p511Q4zNZoSo17Nc0/mX6rU2ZH6d6/tFfjLPo=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=UumpKQeQoMVNt7SOEtOxZkIlnh/nSfb6z0CABQObZQkG2AoKQrNONJkxwe1i0rPYM
+         2ba49t/b0olKqD5O9jEl7Zb03iFeQLhcrujO2Nn8oZu6I3zkvBeareKBG6e6HE/MZO
+         Oh2XGspM5M+tR6vLXhSHibz7zv54LK1TZGrb0H0spDWNyEaQUcq+NUJ4QDCagvuEdf
+         AdyZ85+ogCGjwVflppE3NxKRSv0ARJ1FLXL2sciTZ7oV1RrR7Y546mcjd05oUNAqkK
+         kg4oAUBBdmuU+yTPZEZ+UP8g7Rt1v9tWWhOy47/usdDONkrA/xVTRIZZ5Ae4m/2RSc
+         00xHVC9SUBOXg==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Aharon Landau <aharonl@nvidia.com>, linux-rdma@vger.kernel.org,
+        Michael Guralnik <michaelgur@nvidia.com>
+Subject: [PATCH rdma-next 06/12] RDMA/mlx5: Introduce mlx5_umr_post_send_wait()
+Date:   Tue, 12 Apr 2022 10:24:01 +0300
+Message-Id: <f027dd592fde62402b2d49efded8d1d22229d22b.1649747695.git.leonro@nvidia.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <cover.1649747695.git.leonro@nvidia.com>
+References: <cover.1649747695.git.leonro@nvidia.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: null pointer in rxe_mr_copy()
-Content-Language: en-US
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-To:     Zhu Yanjun <zyjzyj2000@gmail.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-References: <1b0ae089-ff3f-7e84-4c07-a5d97554e3c0@gmail.com>
-In-Reply-To: <1b0ae089-ff3f-7e84-4c07-a5d97554e3c0@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 4/10/22 22:34, Bob Pearson wrote:
-> Zhu,
-> 
-> Since checking for mr == NULL in rxe_mr_copy fixes the problem you were seeing in rping.
-> Perhaps it would be a good idea to apply the following patch which would tell us which of
-> the three calls to rxe_mr_copy is failing. My suspicion is the one in read_reply() in rxe_resp.c
-> This could be caused by a race between shutting down the qp and finishing up an RDMA read.
-> The responder resources state machine is completely unprotected from simultaneous access by
-> verbs code and bh code in rxe_resp.c. rxe_resp is a tasklet so all the accesses from there are
-> serialized but if anyone makes a verbs call that touches the responder resources it could
-> cause problems. The most likely (only?) place this could happen is qp shutdown.
+From: Aharon Landau <aharonl@nvidia.com>
 
-I have reproduced a failure in rping on the v13 patch series. So never mind. It's something else.
-It runs for about a couple minutes on my  system between a pair of VMs with
+Introduce mlx5_umr_post_send_wait() that uses a UMR adjusted flow for
+posting WQEs. The next patches will gradually move UMR operations to use
+this flow. Once done, will get rid of mlx5_ib_post_send_wait().
 
-rping -s or c -C 10000 -S 4096 -a 192.168.0.xx -d -V -p 1234
+mlx5_umr_post_send_wait gets already written WQE segments and will only
+memcpy it to the SQ. This way, we avoid packing all the data in a WR just
+to unpack it into the WQE.
 
-after a couple of minutes client hangs. Nothing in dmesg though. Happens right after an RDMA read
-that reports success on the server. Possibly it is at 10000 packets feels about the right time but
-job does not finish. 
-> 
-> Bob
-> 
-> 
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-> 
-> index 60a31b718774..66184f5a4ddf 100644
-> 
-> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
-> 
-> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-> 
-> @@ -489,6 +489,7 @@ int copy_data(
-> 
->  		if (bytes > 0) {
-> 
->  			iova = sge->addr + offset;
-> 
->  
-> 
-> +			WARN_ON(!mr);
-> 
->  			err = rxe_mr_copy(mr, iova, addr, bytes, dir);
-> 
->  			if (err)
-> 
->  				goto err2;
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-> 
-> index 1d95fab606da..6e3e86bdccd7 100644
-> 
-> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
-> 
-> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-> 
-> @@ -536,6 +536,7 @@ static enum resp_states write_data_in(struct rxe_qp *qp,
-> 
->  	int	err;
-> 
->  	int data_len = payload_size(pkt);
-> 
->  
-> 
-> +	WARN_ON(!qp->resp.mr);
-> 
->  	err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
-> 
->  			  payload_addr(pkt), data_len, RXE_TO_MR_OBJ);
-> 
->  	if (err) {
-> 
-> @@ -772,6 +773,7 @@ static enum resp_states read_reply(struct rxe_qp *qp,
-> 
->  	if (!skb)
-> 
->  		return RESPST_ERR_RNR;
-> 
->  
-> 
-> +	WARN_ON(!mr);
-> 
->  	err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
-> 
->  			  payload, RXE_FROM_MR_OBJ);
-> 
->  	if (err)
-> 
+Signed-off-by: Aharon Landau <aharonl@nvidia.com>
+Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/umr.c | 92 ++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/umr.h | 12 +++++
+ 2 files changed, 104 insertions(+)
+
+diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
+index 8131501dc052..f17f64cb1925 100644
+--- a/drivers/infiniband/hw/mlx5/umr.c
++++ b/drivers/infiniband/hw/mlx5/umr.c
+@@ -3,6 +3,7 @@
+ 
+ #include "mlx5_ib.h"
+ #include "umr.h"
++#include "wr.h"
+ 
+ static __be64 get_umr_enable_mr_mask(void)
+ {
+@@ -228,3 +229,94 @@ void mlx5r_umr_resource_cleanup(struct mlx5_ib_dev *dev)
+ 	ib_free_cq(dev->umrc.cq);
+ 	ib_dealloc_pd(dev->umrc.pd);
+ }
++
++static int mlx5r_umr_post_send(struct ib_qp *ibqp, u32 mkey, struct ib_cqe *cqe,
++			       struct mlx5r_umr_wqe *wqe, bool with_data)
++{
++	unsigned int wqe_size =
++		with_data ? sizeof(struct mlx5r_umr_wqe) :
++			    sizeof(struct mlx5r_umr_wqe) -
++				    sizeof(struct mlx5_wqe_data_seg);
++	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_ib_qp *qp = to_mqp(ibqp);
++	struct mlx5_wqe_ctrl_seg *ctrl;
++	union {
++		struct ib_cqe *ib_cqe;
++		u64 wr_id;
++	} id;
++	void *cur_edge, *seg;
++	unsigned long flags;
++	unsigned int idx;
++	int size, err;
++
++	if (unlikely(mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR))
++		return -EIO;
++
++	spin_lock_irqsave(&qp->sq.lock, flags);
++
++	err = mlx5r_begin_wqe(qp, &seg, &ctrl, &idx, &size, &cur_edge, 0,
++			      cpu_to_be32(mkey), false, false);
++	if (WARN_ON(err))
++		goto out;
++
++	qp->sq.wr_data[idx] = MLX5_IB_WR_UMR;
++
++	mlx5r_memcpy_send_wqe(&qp->sq, &cur_edge, &seg, &size, wqe, wqe_size);
++
++	id.ib_cqe = cqe;
++	mlx5r_finish_wqe(qp, ctrl, seg, size, cur_edge, idx, id.wr_id, 0,
++			 MLX5_FENCE_MODE_NONE, MLX5_OPCODE_UMR);
++
++	mlx5r_ring_db(qp, 1, ctrl);
++
++out:
++	spin_unlock_irqrestore(&qp->sq.lock, flags);
++
++	return err;
++}
++
++static void mlx5r_umr_done(struct ib_cq *cq, struct ib_wc *wc)
++{
++	struct mlx5_ib_umr_context *context =
++		container_of(wc->wr_cqe, struct mlx5_ib_umr_context, cqe);
++
++	context->status = wc->status;
++	complete(&context->done);
++}
++
++static inline void mlx5r_umr_init_context(struct mlx5r_umr_context *context)
++{
++	context->cqe.done = mlx5r_umr_done;
++	init_completion(&context->done);
++}
++
++static int mlx5r_umr_post_send_wait(struct mlx5_ib_dev *dev, u32 mkey,
++				   struct mlx5r_umr_wqe *wqe, bool with_data)
++{
++	struct umr_common *umrc = &dev->umrc;
++	struct mlx5r_umr_context umr_context;
++	int err;
++
++	err = umr_check_mkey_mask(dev, be64_to_cpu(wqe->ctrl_seg.mkey_mask));
++	if (WARN_ON(err))
++		return err;
++
++	mlx5r_umr_init_context(&umr_context);
++
++	down(&umrc->sem);
++	err = mlx5r_umr_post_send(umrc->qp, mkey, &umr_context.cqe, wqe,
++				  with_data);
++	if (err)
++		mlx5_ib_warn(dev, "UMR post send failed, err %d\n", err);
++	else {
++		wait_for_completion(&umr_context.done);
++		if (umr_context.status != IB_WC_SUCCESS) {
++			mlx5_ib_warn(dev, "reg umr failed (%u)\n",
++				     umr_context.status);
++			err = -EFAULT;
++		}
++	}
++	up(&umrc->sem);
++	return err;
++}
+diff --git a/drivers/infiniband/hw/mlx5/umr.h b/drivers/infiniband/hw/mlx5/umr.h
+index 0fe6cdd633d4..d984213caf60 100644
+--- a/drivers/infiniband/hw/mlx5/umr.h
++++ b/drivers/infiniband/hw/mlx5/umr.h
+@@ -79,4 +79,16 @@ int mlx5r_umr_set_umr_ctrl_seg(struct mlx5_ib_dev *dev,
+ 			       struct mlx5_wqe_umr_ctrl_seg *umr,
+ 			       const struct ib_send_wr *wr);
+ 
++struct mlx5r_umr_context {
++	struct ib_cqe cqe;
++	enum ib_wc_status status;
++	struct completion done;
++};
++
++struct mlx5r_umr_wqe {
++	struct mlx5_wqe_umr_ctrl_seg ctrl_seg;
++	struct mlx5_mkey_seg mkey_seg;
++	struct mlx5_wqe_data_seg data_seg;
++};
++
+ #endif /* _MLX5_IB_UMR_H */
+-- 
+2.35.1
 
