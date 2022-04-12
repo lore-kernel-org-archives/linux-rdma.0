@@ -2,432 +2,289 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70027C4332F
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 09:58:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B958C43219
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 09:58:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346524AbiDLJ5Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Apr 2022 05:57:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56430 "EHLO
+        id S1350812AbiDLJ5e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Apr 2022 05:57:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359463AbiDLHnE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Apr 2022 03:43:04 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFF0612AE3
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 00:24:42 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6BB2D614FA
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 07:24:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BC43C385A1;
-        Tue, 12 Apr 2022 07:24:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649748281;
-        bh=S3smLdABGn1zXzTyX86DMkDISHKjxJSHU+LICImXBo0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VXqVkoelMfH9PDlb69M3XRRsZwLKvHZLvpxEMvGWhTOCio7PiDpzdIdzPW3BKPxBs
-         rLWt5szNzyn50IAVeTWtMpM7o9shZLDYxP0M6O48o6mpadwRw/3W4t41bXmW8hnbvc
-         PetkkLPgeezkdhCV13/6oCYbPWyNoj16phaFsEjMEgPXuVklZLzri52aS/wuhFuYLb
-         IIUsSWPJJr2uMS5qwv+H/KI8VhATfJM8vHGx6GUlQL892IMIpt4rHWXet2xN7n72zi
-         swDvbvB4atYQdwI5+ccDNh63VcDlsnXSd6OnKBTuS4LNP+QWvf/PuIa0+FCBs7yb/U
-         Y1eYNnAyED5zg==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Aharon Landau <aharonl@nvidia.com>, linux-rdma@vger.kernel.org,
-        Michael Guralnik <michaelgur@nvidia.com>
-Subject: [PATCH rdma-next 05/12] RDMA/mlx5: Expose wqe posting helpers outside of wr.c
-Date:   Tue, 12 Apr 2022 10:24:00 +0300
-Message-Id: <a2b0f6cd96f0405a65d38e82c6ae7ef34dcb34bc.1649747695.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <cover.1649747695.git.leonro@nvidia.com>
-References: <cover.1649747695.git.leonro@nvidia.com>
+        with ESMTP id S1356924AbiDLHje (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Apr 2022 03:39:34 -0400
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8389D4AE1E
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 00:10:29 -0700 (PDT)
+Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23C5V5Pe003034;
+        Tue, 12 Apr 2022 07:10:25 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : content-type : mime-version; s=corp-2021-07-09;
+ bh=r7xlkp5jK5+784ibzk3NhXflAEV6AUOhrHiP0za5AqU=;
+ b=rwBj1QlhxDf6UgwKnCyfEqLkqL4LrpUSS/PuhaUQeXvMtY4ZIH7lI9z3nPcpEQjPRu1W
+ 0rEJq2ofYaVVWOo0dFQN0x4praqiUd+19JvnCLlFVb4dLpUBqMqopAubzkOhA/TdACMx
+ rnkj8AH5JSNz63W2I8i49I0dBLr1pC3WNiE73J1o64GExWYrMPcexLnohVXm4AGHWOlO
+ e25JULKUXrPFDFANYTu8g2y3dpDBNDeiFeMDX2A3tAxZHFfY/kglWIfG9h8elDw6cQDk
+ XXB/b9VA+9uc6lH7GVvJFeVAc1D6uzJwaJeukfDh8pXIY1ebuP7aIcz6/fyy6hdYaV7I Sw== 
+Received: from phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta03.appoci.oracle.com [138.1.37.129])
+        by mx0b-00069f02.pphosted.com with ESMTP id 3fb0x2dugp-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 12 Apr 2022 07:10:25 +0000
+Received: from pps.filterd (phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+        by phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 23C77J94038755;
+        Tue, 12 Apr 2022 07:10:24 GMT
+Received: from nam12-mw2-obe.outbound.protection.outlook.com (mail-mw2nam12lp2040.outbound.protection.outlook.com [104.47.66.40])
+        by phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com with ESMTP id 3fb0k2uy1e-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 12 Apr 2022 07:10:24 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=esYTZNBWTBuncgi1ZVbZyGFpJsJ8Saiqg/h9zmIifw3EoWVoBdmiMwIS9lY16nLbUCl9wuuaMY4syPVww9ihwHms19HG45Lg1qbdcu81YrY4c9k3rgGSEwfp6PywlE5c55g+zVLhZoOzphStncHzIw7SCckYVv3ERqgnxJI2iUVp3oib4TPBXw11El37st37a3lQ2G26LcE803RmL595NslDLEfbPFZqKOPzYboK5dw/KbqPrs9+GPQ2AzY4HhxhSgyFG3AMXzSuk3e3yOCRDV90Gr3pb4+mpIv+64kFApzTI0m3hjOxKXAxMF+xPYF5OWWNwGA8hDS5nUX9GzgRyQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=r7xlkp5jK5+784ibzk3NhXflAEV6AUOhrHiP0za5AqU=;
+ b=JDDax1+Xiz5ZhECqbK05ySGvRs+dbbGFWTn04RaMP0rH4QN5gkAdrId8UqipbKxuc3e/gQyiJ92lmeKL38tQq4e7vj/cOwRl9EnIzuq867J54sVf2TQTdoZP2YnKwtNmG/QjTejc78oblcbFnAWUJfLzEeKzyifB41ChdS8BxYXTHGNyP5V2jHJE9TjqkCcikEtjOiAX/HecItM5+yQ6ksxEKB+pT4n9kxcgjUXO3qujYWFjX2Q65019TelZNOeBGEwP+AJ84cVhdZiU/5dmuSHPzigZkaZ7Q2XjJNBPp7XqZou0Z1dzcr380Rm0s0F9gipx6t+WtHsC6I11FUimIg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=r7xlkp5jK5+784ibzk3NhXflAEV6AUOhrHiP0za5AqU=;
+ b=y0l3sIbGDzEEDT2NHzh31m2dgDguRqpHmnDrSJffI21tIFhQ8JsmTBRZsifKYcntsL+O9wcWvcnI9k77a8tGV+htNHffhcUu1WuChSlQmRP3LqUm3PEHYQQtc4p6dH83uXpWhVtyO3Z0DfldjF5qpa2lVSx4nVolZTQ4ECsbt+U=
+Received: from MWHPR1001MB2365.namprd10.prod.outlook.com
+ (2603:10b6:301:2d::28) by BN6PR1001MB2403.namprd10.prod.outlook.com
+ (2603:10b6:405:2f::20) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5144.29; Tue, 12 Apr
+ 2022 07:10:17 +0000
+Received: from MWHPR1001MB2365.namprd10.prod.outlook.com
+ ([fe80::b5d5:7b39:ca2d:1b87]) by MWHPR1001MB2365.namprd10.prod.outlook.com
+ ([fe80::b5d5:7b39:ca2d:1b87%5]) with mapi id 15.20.5144.022; Tue, 12 Apr 2022
+ 07:10:17 +0000
+Date:   Tue, 12 Apr 2022 10:10:08 +0300
+From:   Dan Carpenter <dan.carpenter@oracle.com>
+To:     leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org
+Subject: [bug report] RDMA/mlx5: Drop crypto flow steering API
+Message-ID: <20220412071008.GA3732@kili>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-ClientProxiedBy: ZR0P278CA0006.CHEP278.PROD.OUTLOOK.COM
+ (2603:10a6:910:16::16) To MWHPR1001MB2365.namprd10.prod.outlook.com
+ (2603:10b6:301:2d::28)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 0dd3f291-cd71-4504-d9ab-08da1c537f4c
+X-MS-TrafficTypeDiagnostic: BN6PR1001MB2403:EE_
+X-Microsoft-Antispam-PRVS: <BN6PR1001MB24036CFAD5D9FBAF7EE150848EED9@BN6PR1001MB2403.namprd10.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: NTuulcQCIDlWbRsDBlgch9J+aU43PxnTndBl3f8kbDHbDqq8rSMjKK0rCjdgpjuR11WDPbRj9pQsNaVm4acD4g8049CBLVLgU8n9HDrhD+HnVkbIai2b0btbikKMlFjRjigAvisj9MCLFzhynYoztSoHHZm8y/he1daKwiS/vS7g2on8lEfuUPQxoUc4hhoJFy6M9OYYk8NLVcUKxV+1NO6pZQfP5Utb/R9DDpKdraESwQQv+5mgskg9v3IGxXtTVGTYKBe67a0Ra8hpj0fGdsWBk+ENdgO3crga0PLown9U4I4xCPnMA11N7P7SakQZL0f8oFuuy/5UX4JzT+o3xqIz2BgeTjyS+Po1gkP55z3PCMyG/AKJF8wbu1kTg2rk9F5bBiTw8P67E80wTh5DoJKjsEcfmImHjtoGIDHISHDiCmzIj6TmW7NIfOaYj0JFDt6JJwRJy/lBR8KFSdl3UCMW9yYyfmHfMhv8sTTtV+12CUSAwuHAXfLl2trWTulnquXOfWqqahSxLu58Obc8GrBUBtakIcJAWOmmsRbz/CCk255DwCgM5hUJIV9nyFOOe8g6AycTnT1HgXZMVetNrgVu+xR2mVEWV6gjAOy8riJfx5PvHZnebbWq+Q/9SL0aWblUqArWzV50KeruY1EaTESSezD8j8mdISCdGSrfnFEPiLvJOF7M1UwrC8k0WZhQT/IUDnGB/fIGIceTyCq2Mg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1001MB2365.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(7916004)(366004)(66946007)(316002)(33716001)(6916009)(8936002)(86362001)(38100700002)(38350700002)(44832011)(83380400001)(186003)(1076003)(26005)(508600001)(33656002)(6666004)(6506007)(8676002)(6512007)(66556008)(66476007)(52116002)(6486002)(5660300002)(2906002)(9686003)(4326008);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?IrA7le1BBSpQjJKPPVIXUWYzVwaC/ech/BGNIs+iHPmuW0hohWMB5psWhhwX?=
+ =?us-ascii?Q?cMtSQiXGiaR+83zFDffU9dngmxM31C3dQ7ZvZsB2JqveJSV0dDfXkqib0IVp?=
+ =?us-ascii?Q?NPTvMO5U9l54iKfxo2vQH4uf9m3lgjyAiRwhjjwHwQPaW+v4MMT7Xr2GA4V1?=
+ =?us-ascii?Q?XKBOC4t8G/Fn91xRJKP5FIM0rYoueud50DVHZYpigl2jYBPuUZG/vHEHZLdM?=
+ =?us-ascii?Q?kDU4HR3Su8MBibeN8AlhCrzcnNGm8C1BVqzYEq2E8o4SjmSzKywfkGZDyPIR?=
+ =?us-ascii?Q?fW+NB+007oeadnWiU2Nv3NtKawOiKnaIw58FqzGwtOyx0kdemV/FO+Czybg2?=
+ =?us-ascii?Q?znDq2yOLjAhhDEmiqkRk5YTEIGyiuoLU8Shi2QSvIwwzcnQaYUyeruYo/4+q?=
+ =?us-ascii?Q?KghCof1oLIh0zGMezLvcm1uZa4DTpockICMEYzpWV3snTAX8b56uT3QZXogv?=
+ =?us-ascii?Q?9TjlYrhGez1Te9Y2UGyDk0uQ0jnmgf9WhiPu9xUolJEcLG5fAVEwvqbXy43h?=
+ =?us-ascii?Q?wg5xuKmQAbLTX6u/XlAzoj/k+aRtcBWs804M/RRaySv14x6O0b1nwwOtj/Vt?=
+ =?us-ascii?Q?AmOc7y7hPvHkVN66obbuAsmWo6QxBa4KbACgWnSh8x/K3JiidIURk1sjntz7?=
+ =?us-ascii?Q?Wea3ZvcqWbLFInK44ApJ1gaNgSMGuYu0vDpfI7coxcjc9C/y//jL+mz6tsXp?=
+ =?us-ascii?Q?D2AUyCH2WnxJSUbhJpbbXvylT5LxBAnJM8P1bJ4WedzOk3+KnJ3o44MYapU6?=
+ =?us-ascii?Q?WxvaAUvoNiAO4iTUMavdsTYvUTzmelrFOH5iJezzIIx51R6Ybp0xr9lqinD1?=
+ =?us-ascii?Q?uWxPryz2BK9Xl9Jzn5gblB0o5LnUUVb7WltX8g7k81sL1lnKnUwrE4B+z4jY?=
+ =?us-ascii?Q?v0r2H9hEinlcVE4HgcON7ji/rmR8/ld/gZBOmvtFK3tNr3Ici/Qp3+TTlNRC?=
+ =?us-ascii?Q?tYzOx1WcLKBAp1h1ryEQj+loJVt5fbmrkHixhJuPGmp/jCn255KtY1tZB+iT?=
+ =?us-ascii?Q?9XLlrkfoXnQIX6qAzPYbbU9zA93nmdMGkQg+Faaj8pyFnc4N999gq7VR3J/3?=
+ =?us-ascii?Q?YDoTT1wvIjLezEmQT12mMuXlxdx5Dg4oOht7JDpbyXvkd8bj0o1OcPQP45+7?=
+ =?us-ascii?Q?JMb2GsDMNd9LHlS5Y09u8cAK++3PaHJUWWOiIw+UKiy7b41RX1KjTdnfqVUx?=
+ =?us-ascii?Q?OWNtinktj1oFhEmHcuUMjxR2mukVa1hjsDv9FeM/1pdf5SIsQozrdI/qkiek?=
+ =?us-ascii?Q?6AFT/xsiCj9eOqgMgV/u0Wuxm6NfcmzNiLXmlEwgsbmzi5kJamW2El5OwznS?=
+ =?us-ascii?Q?NSJNdZPl0gsiKCHF10HOiwWzeFASuNGh3D12GWqQPlWvtEtb/fLcU40ui7TH?=
+ =?us-ascii?Q?KiX+gSP3jDTAFIVSFDFd6byAYpnyxy8b8ET5wHkehIluqeC3eePrPa0rfSZT?=
+ =?us-ascii?Q?nGRbYBMYHRyKavK7KScL27hyUFb25gfuxVrxkTxKNBn+Mou1ZJ6NjcyxHCqB?=
+ =?us-ascii?Q?utKnWWgKU/6LHrIk/JXcLBLlDDkLeQ2NubicLULosSbqflGxcalTIZCWGKsD?=
+ =?us-ascii?Q?1mvvvk312hPi+fipA8XzVnjxYoymA7zOLekA6VSOxARaK2IsIM2MMxfqKZ3o?=
+ =?us-ascii?Q?0ZAn4zAS64lxcM6+qrRbFCfnybiRV0bPuwLvvxpMBtRDbA2pvy2+5GwdhPV8?=
+ =?us-ascii?Q?3vm7oAghQ3WOUnub+VkhoOKxGMxa8+CnfnDyeFJBmk8xqsoHAitQuJYFPRXK?=
+ =?us-ascii?Q?ZDyaEHFTiA2Fia4UhHEpQiYUW0gsrC0=3D?=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0dd3f291-cd71-4504-d9ab-08da1c537f4c
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1001MB2365.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Apr 2022 07:10:17.2452
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: F+gJkl0Gb3Mf4DWb7sO1r7NsaBuTHvIuMKB5l+nEisx/oKYOaTP+7X95wEgfbK8LAWt/3oKX2d3E8SG08XDKqZiGQWAaVm4ZAHdt0+Dq5oo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN6PR1001MB2403
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.425,18.0.858
+ definitions=2022-04-12_02:2022-04-11,2022-04-12 signatures=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 suspectscore=0
+ malwarescore=0 mlxlogscore=999 spamscore=0 adultscore=0 phishscore=0
+ mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2204120034
+X-Proofpoint-ORIG-GUID: q1OseDAzq_F8qdZY7kAtv7twoDj8euYN
+X-Proofpoint-GUID: q1OseDAzq_F8qdZY7kAtv7twoDj8euYN
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@nvidia.com>
+Hello Leon Romanovsky,
 
-Split posting WQEs logic to helpers, generalize it and expose for future
-use in the UMR post send.
+The patch de8bdb476908: "RDMA/mlx5: Drop crypto flow steering API"
+from Apr 6, 2022, leads to the following Smatch static checker
+warning:
 
-Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/wr.c | 172 +++++++++++---------------------
- drivers/infiniband/hw/mlx5/wr.h |  60 +++++++++++
- 2 files changed, 121 insertions(+), 111 deletions(-)
+	drivers/infiniband/hw/mlx5/fs.c:1126 _create_flow_rule()
+	warn: duplicate check 'is_egress' (previous on line 1098)
 
-diff --git a/drivers/infiniband/hw/mlx5/wr.c b/drivers/infiniband/hw/mlx5/wr.c
-index 24457eb5e4b7..7949f83b2cd2 100644
---- a/drivers/infiniband/hw/mlx5/wr.c
-+++ b/drivers/infiniband/hw/mlx5/wr.c
-@@ -26,58 +26,7 @@ static const u32 mlx5_ib_opcode[] = {
- 	[MLX5_IB_WR_UMR]			= MLX5_OPCODE_UMR,
- };
- 
--/* handle_post_send_edge - Check if we get to SQ edge. If yes, update to the
-- * next nearby edge and get new address translation for current WQE position.
-- * @sq - SQ buffer.
-- * @seg: Current WQE position (16B aligned).
-- * @wqe_sz: Total current WQE size [16B].
-- * @cur_edge: Updated current edge.
-- */
--static inline void handle_post_send_edge(struct mlx5_ib_wq *sq, void **seg,
--					 u32 wqe_sz, void **cur_edge)
--{
--	u32 idx;
--
--	if (likely(*seg != *cur_edge))
--		return;
--
--	idx = (sq->cur_post + (wqe_sz >> 2)) & (sq->wqe_cnt - 1);
--	*cur_edge = get_sq_edge(sq, idx);
--
--	*seg = mlx5_frag_buf_get_wqe(&sq->fbc, idx);
--}
--
--/* memcpy_send_wqe - copy data from src to WQE and update the relevant WQ's
-- * pointers. At the end @seg is aligned to 16B regardless the copied size.
-- * @sq - SQ buffer.
-- * @cur_edge: Updated current edge.
-- * @seg: Current WQE position (16B aligned).
-- * @wqe_sz: Total current WQE size [16B].
-- * @src: Pointer to copy from.
-- * @n: Number of bytes to copy.
-- */
--static inline void memcpy_send_wqe(struct mlx5_ib_wq *sq, void **cur_edge,
--				   void **seg, u32 *wqe_sz, const void *src,
--				   size_t n)
--{
--	while (likely(n)) {
--		size_t leftlen = *cur_edge - *seg;
--		size_t copysz = min_t(size_t, leftlen, n);
--		size_t stride;
--
--		memcpy(*seg, src, copysz);
--
--		n -= copysz;
--		src += copysz;
--		stride = !n ? ALIGN(copysz, 16) : copysz;
--		*seg += stride;
--		*wqe_sz += stride >> 4;
--		handle_post_send_edge(sq, seg, *wqe_sz, cur_edge);
--	}
--}
--
--static int mlx5_wq_overflow(struct mlx5_ib_wq *wq, int nreq,
--			    struct ib_cq *ib_cq)
-+int mlx5r_wq_overflow(struct mlx5_ib_wq *wq, int nreq, struct ib_cq *ib_cq)
- {
- 	struct mlx5_ib_cq *cq;
- 	unsigned int cur;
-@@ -123,9 +72,9 @@ static void set_eth_seg(const struct ib_send_wr *wr, struct mlx5_ib_qp *qp,
- 		eseg->mss = cpu_to_be16(ud_wr->mss);
- 		eseg->inline_hdr.sz = cpu_to_be16(left);
- 
--		/* memcpy_send_wqe should get a 16B align address. Hence, we
--		 * first copy up to the current edge and then, if needed,
--		 * continue to memcpy_send_wqe.
-+		/* mlx5r_memcpy_send_wqe should get a 16B align address. Hence,
-+		 * we first copy up to the current edge and then, if needed,
-+		 * continue to mlx5r_memcpy_send_wqe.
- 		 */
- 		copysz = min_t(u64, *cur_edge - (void *)eseg->inline_hdr.start,
- 			       left);
-@@ -139,8 +88,8 @@ static void set_eth_seg(const struct ib_send_wr *wr, struct mlx5_ib_qp *qp,
- 			handle_post_send_edge(&qp->sq, seg, *size, cur_edge);
- 			left -= copysz;
- 			pdata += copysz;
--			memcpy_send_wqe(&qp->sq, cur_edge, seg, size, pdata,
--					left);
-+			mlx5r_memcpy_send_wqe(&qp->sq, cur_edge, seg, size,
-+					      pdata, left);
- 		}
- 
- 		return;
-@@ -766,8 +715,8 @@ static int set_reg_wr(struct mlx5_ib_qp *qp,
- 	handle_post_send_edge(&qp->sq, seg, *size, cur_edge);
- 
- 	if (umr_inline) {
--		memcpy_send_wqe(&qp->sq, cur_edge, seg, size, mr->descs,
--				mr_list_size);
-+		mlx5r_memcpy_send_wqe(&qp->sq, cur_edge, seg, size, mr->descs,
-+				      mr_list_size);
- 		*size = ALIGN(*size, MLX5_SEND_WQE_BB >> 4);
- 	} else {
- 		set_reg_data_seg(*seg, mr, pd);
-@@ -809,23 +758,22 @@ static void dump_wqe(struct mlx5_ib_qp *qp, u32 idx, int size_16)
- 	}
- }
- 
--static int __begin_wqe(struct mlx5_ib_qp *qp, void **seg,
--		       struct mlx5_wqe_ctrl_seg **ctrl,
--		       const struct ib_send_wr *wr, unsigned int *idx,
--		       int *size, void **cur_edge, int nreq,
--		       bool send_signaled, bool solicited)
-+int mlx5r_begin_wqe(struct mlx5_ib_qp *qp, void **seg,
-+		    struct mlx5_wqe_ctrl_seg **ctrl, unsigned int *idx,
-+		    int *size, void **cur_edge, int nreq, __be32 general_id,
-+		    bool send_signaled, bool solicited)
- {
--	if (unlikely(mlx5_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq)))
-+	if (unlikely(mlx5r_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq)))
- 		return -ENOMEM;
- 
- 	*idx = qp->sq.cur_post & (qp->sq.wqe_cnt - 1);
- 	*seg = mlx5_frag_buf_get_wqe(&qp->sq.fbc, *idx);
- 	*ctrl = *seg;
- 	*(uint32_t *)(*seg + 8) = 0;
--	(*ctrl)->imm = send_ieth(wr);
-+	(*ctrl)->general_id = general_id;
- 	(*ctrl)->fm_ce_se = qp->sq_signal_bits |
--		(send_signaled ? MLX5_WQE_CTRL_CQ_UPDATE : 0) |
--		(solicited ? MLX5_WQE_CTRL_SOLICITED : 0);
-+			    (send_signaled ? MLX5_WQE_CTRL_CQ_UPDATE : 0) |
-+			    (solicited ? MLX5_WQE_CTRL_SOLICITED : 0);
- 
- 	*seg += sizeof(**ctrl);
- 	*size = sizeof(**ctrl) / 16;
-@@ -839,16 +787,14 @@ static int begin_wqe(struct mlx5_ib_qp *qp, void **seg,
- 		     const struct ib_send_wr *wr, unsigned int *idx, int *size,
- 		     void **cur_edge, int nreq)
- {
--	return __begin_wqe(qp, seg, ctrl, wr, idx, size, cur_edge, nreq,
--			   wr->send_flags & IB_SEND_SIGNALED,
--			   wr->send_flags & IB_SEND_SOLICITED);
-+	return mlx5r_begin_wqe(qp, seg, ctrl, idx, size, cur_edge, nreq,
-+			       send_ieth(wr), wr->send_flags & IB_SEND_SIGNALED,
-+			       wr->send_flags & IB_SEND_SOLICITED);
- }
- 
--static void finish_wqe(struct mlx5_ib_qp *qp,
--		       struct mlx5_wqe_ctrl_seg *ctrl,
--		       void *seg, u8 size, void *cur_edge,
--		       unsigned int idx, u64 wr_id, int nreq, u8 fence,
--		       u32 mlx5_opcode)
-+void mlx5r_finish_wqe(struct mlx5_ib_qp *qp, struct mlx5_wqe_ctrl_seg *ctrl,
-+		      void *seg, u8 size, void *cur_edge, unsigned int idx,
-+		      u64 wr_id, int nreq, u8 fence, u32 mlx5_opcode)
- {
- 	u8 opmod = 0;
- 
-@@ -912,8 +858,8 @@ static int handle_psv(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	/*
- 	 * SET_PSV WQEs are not signaled and solicited on error.
- 	 */
--	err = __begin_wqe(qp, seg, ctrl, wr, idx, size, cur_edge, nreq,
--			  false, true);
-+	err = mlx5r_begin_wqe(qp, seg, ctrl, idx, size, cur_edge, nreq,
-+			      send_ieth(wr), false, true);
- 	if (unlikely(err)) {
- 		mlx5_ib_warn(dev, "\n");
- 		err = -ENOMEM;
-@@ -924,8 +870,8 @@ static int handle_psv(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 		mlx5_ib_warn(dev, "\n");
- 		goto out;
- 	}
--	finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id, nreq,
--		   next_fence, MLX5_OPCODE_SET_PSV);
-+	mlx5r_finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id,
-+			 nreq, next_fence, MLX5_OPCODE_SET_PSV);
- 
- out:
- 	return err;
-@@ -965,8 +911,8 @@ static int handle_reg_mr_integrity(struct mlx5_ib_dev *dev,
- 		if (unlikely(err))
- 			goto out;
- 
--		finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id,
--			   nreq, fence, MLX5_OPCODE_UMR);
-+		mlx5r_finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx,
-+				 wr->wr_id, nreq, fence, MLX5_OPCODE_UMR);
- 
- 		err = begin_wqe(qp, seg, ctrl, wr, idx, size, cur_edge, nreq);
- 		if (unlikely(err)) {
-@@ -997,8 +943,8 @@ static int handle_reg_mr_integrity(struct mlx5_ib_dev *dev,
- 		mlx5_ib_warn(dev, "\n");
- 		goto out;
- 	}
--	finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id, nreq,
--		   fence, MLX5_OPCODE_UMR);
-+	mlx5r_finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id,
-+			 nreq, fence, MLX5_OPCODE_UMR);
- 
- 	sig_attrs = mr->ibmr.sig_attrs;
- 	err = handle_psv(dev, qp, wr, ctrl, seg, size, cur_edge, idx, nreq,
-@@ -1142,6 +1088,32 @@ static int handle_qpt_reg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	return err;
- }
- 
-+void mlx5r_ring_db(struct mlx5_ib_qp *qp, unsigned int nreq,
-+		   struct mlx5_wqe_ctrl_seg *ctrl)
-+{
-+	struct mlx5_bf *bf = &qp->bf;
-+
-+	qp->sq.head += nreq;
-+
-+	/* Make sure that descriptors are written before
-+	 * updating doorbell record and ringing the doorbell
-+	 */
-+	wmb();
-+
-+	qp->db.db[MLX5_SND_DBR] = cpu_to_be32(qp->sq.cur_post);
-+
-+	/* Make sure doorbell record is visible to the HCA before
-+	 * we hit doorbell.
-+	 */
-+	wmb();
-+
-+	mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset);
-+	/* Make sure doorbells don't leak out of SQ spinlock
-+	 * and reach the HCA out of order.
-+	 */
-+	bf->offset ^= bf->buf_size;
-+}
-+
- int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 		      const struct ib_send_wr **bad_wr, bool drain)
- {
-@@ -1150,7 +1122,6 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 	struct mlx5_core_dev *mdev = dev->mdev;
- 	struct mlx5_ib_qp *qp = to_mqp(ibqp);
- 	struct mlx5_wqe_xrc_seg *xrc;
--	struct mlx5_bf *bf;
- 	void *cur_edge;
- 	int size;
- 	unsigned long flags;
-@@ -1172,8 +1143,6 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 	if (qp->type == IB_QPT_GSI)
- 		return mlx5_ib_gsi_post_send(ibqp, wr, bad_wr);
- 
--	bf = &qp->bf;
--
- 	spin_lock_irqsave(&qp->sq.lock, flags);
- 
- 	for (nreq = 0; wr; nreq++, wr = wr->next) {
-@@ -1285,35 +1254,16 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 		}
- 
- 		qp->next_fence = next_fence;
--		finish_wqe(qp, ctrl, seg, size, cur_edge, idx, wr->wr_id, nreq,
--			   fence, mlx5_ib_opcode[wr->opcode]);
-+		mlx5r_finish_wqe(qp, ctrl, seg, size, cur_edge, idx, wr->wr_id,
-+				 nreq, fence, mlx5_ib_opcode[wr->opcode]);
- skip_psv:
- 		if (0)
- 			dump_wqe(qp, idx, size);
- 	}
- 
- out:
--	if (likely(nreq)) {
--		qp->sq.head += nreq;
--
--		/* Make sure that descriptors are written before
--		 * updating doorbell record and ringing the doorbell
--		 */
--		wmb();
--
--		qp->db.db[MLX5_SND_DBR] = cpu_to_be32(qp->sq.cur_post);
--
--		/* Make sure doorbell record is visible to the HCA before
--		 * we hit doorbell.
--		 */
--		wmb();
--
--		mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset);
--		/* Make sure doorbells don't leak out of SQ spinlock
--		 * and reach the HCA out of order.
--		 */
--		bf->offset ^= bf->buf_size;
--	}
-+	if (likely(nreq))
-+		mlx5r_ring_db(qp, nreq, ctrl);
- 
- 	spin_unlock_irqrestore(&qp->sq.lock, flags);
- 
-@@ -1353,7 +1303,7 @@ int mlx5_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
- 	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
- 
- 	for (nreq = 0; wr; nreq++, wr = wr->next) {
--		if (mlx5_wq_overflow(&qp->rq, nreq, qp->ibqp.recv_cq)) {
-+		if (mlx5r_wq_overflow(&qp->rq, nreq, qp->ibqp.recv_cq)) {
- 			err = -ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
-diff --git a/drivers/infiniband/hw/mlx5/wr.h b/drivers/infiniband/hw/mlx5/wr.h
-index 4f0057516402..2dc89438000d 100644
---- a/drivers/infiniband/hw/mlx5/wr.h
-+++ b/drivers/infiniband/hw/mlx5/wr.h
-@@ -41,6 +41,66 @@ static inline void *get_sq_edge(struct mlx5_ib_wq *sq, u32 idx)
- 	return fragment_end + MLX5_SEND_WQE_BB;
- }
- 
-+/* handle_post_send_edge - Check if we get to SQ edge. If yes, update to the
-+ * next nearby edge and get new address translation for current WQE position.
-+ * @sq: SQ buffer.
-+ * @seg: Current WQE position (16B aligned).
-+ * @wqe_sz: Total current WQE size [16B].
-+ * @cur_edge: Updated current edge.
-+ */
-+static inline void handle_post_send_edge(struct mlx5_ib_wq *sq, void **seg,
-+					 u32 wqe_sz, void **cur_edge)
-+{
-+	u32 idx;
-+
-+	if (likely(*seg != *cur_edge))
-+		return;
-+
-+	idx = (sq->cur_post + (wqe_sz >> 2)) & (sq->wqe_cnt - 1);
-+	*cur_edge = get_sq_edge(sq, idx);
-+
-+	*seg = mlx5_frag_buf_get_wqe(&sq->fbc, idx);
-+}
-+
-+/* mlx5r_memcpy_send_wqe - copy data from src to WQE and update the relevant
-+ * WQ's pointers. At the end @seg is aligned to 16B regardless the copied size.
-+ * @sq: SQ buffer.
-+ * @cur_edge: Updated current edge.
-+ * @seg: Current WQE position (16B aligned).
-+ * @wqe_sz: Total current WQE size [16B].
-+ * @src: Pointer to copy from.
-+ * @n: Number of bytes to copy.
-+ */
-+static inline void mlx5r_memcpy_send_wqe(struct mlx5_ib_wq *sq, void **cur_edge,
-+					 void **seg, u32 *wqe_sz,
-+					 const void *src, size_t n)
-+{
-+	while (likely(n)) {
-+		size_t leftlen = *cur_edge - *seg;
-+		size_t copysz = min_t(size_t, leftlen, n);
-+		size_t stride;
-+
-+		memcpy(*seg, src, copysz);
-+
-+		n -= copysz;
-+		src += copysz;
-+		stride = !n ? ALIGN(copysz, 16) : copysz;
-+		*seg += stride;
-+		*wqe_sz += stride >> 4;
-+		handle_post_send_edge(sq, seg, *wqe_sz, cur_edge);
-+	}
-+}
-+
-+int mlx5r_wq_overflow(struct mlx5_ib_wq *wq, int nreq, struct ib_cq *ib_cq);
-+int mlx5r_begin_wqe(struct mlx5_ib_qp *qp, void **seg,
-+		    struct mlx5_wqe_ctrl_seg **ctrl, unsigned int *idx,
-+		    int *size, void **cur_edge, int nreq, __be32 general_id,
-+		    bool send_signaled, bool solicited);
-+void mlx5r_finish_wqe(struct mlx5_ib_qp *qp, struct mlx5_wqe_ctrl_seg *ctrl,
-+		      void *seg, u8 size, void *cur_edge, unsigned int idx,
-+		      u64 wr_id, int nreq, u8 fence, u32 mlx5_opcode);
-+void mlx5r_ring_db(struct mlx5_ib_qp *qp, unsigned int nreq,
-+		   struct mlx5_wqe_ctrl_seg *ctrl);
- int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 		      const struct ib_send_wr **bad_wr, bool drain);
- int mlx5_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
--- 
-2.35.1
+drivers/infiniband/hw/mlx5/fs.c
+    1030 static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
+    1031                                                       struct mlx5_ib_flow_prio *ft_prio,
+    1032                                                       const struct ib_flow_attr *flow_attr,
+    1033                                                       struct mlx5_flow_destination *dst,
+    1034                                                       u32 underlay_qpn,
+    1035                                                       struct mlx5_ib_create_flow *ucmd)
+    1036 {
+    1037         struct mlx5_flow_table        *ft = ft_prio->flow_table;
+    1038         struct mlx5_ib_flow_handler *handler;
+    1039         struct mlx5_flow_act flow_act = {};
+    1040         struct mlx5_flow_spec *spec;
+    1041         struct mlx5_flow_destination dest_arr[2] = {};
+    1042         struct mlx5_flow_destination *rule_dst = dest_arr;
+    1043         const void *ib_flow = (const void *)flow_attr + sizeof(*flow_attr);
+    1044         unsigned int spec_index;
+    1045         u32 prev_type = 0;
+    1046         int err = 0;
+    1047         int dest_num = 0;
+    1048         bool is_egress = flow_attr->flags & IB_FLOW_ATTR_FLAGS_EGRESS;
+    1049 
+    1050         if (!is_valid_attr(dev->mdev, flow_attr))
+    1051                 return ERR_PTR(-EINVAL);
+    1052 
+    1053         if (dev->is_rep && is_egress)
+    1054                 return ERR_PTR(-EINVAL);
+    1055 
+    1056         spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
+    1057         handler = kzalloc(sizeof(*handler), GFP_KERNEL);
+    1058         if (!handler || !spec) {
+    1059                 err = -ENOMEM;
+    1060                 goto free;
+    1061         }
+    1062 
+    1063         INIT_LIST_HEAD(&handler->list);
+    1064 
+    1065         for (spec_index = 0; spec_index < flow_attr->num_of_specs; spec_index++) {
+    1066                 err = parse_flow_attr(dev->mdev, spec,
+    1067                                       ib_flow, flow_attr, &flow_act,
+    1068                                       prev_type);
+    1069                 if (err < 0)
+    1070                         goto free;
+    1071 
+    1072                 prev_type = ((union ib_flow_spec *)ib_flow)->type;
+    1073                 ib_flow += ((union ib_flow_spec *)ib_flow)->size;
+    1074         }
+    1075 
+    1076         if (dst && !(flow_act.action & MLX5_FLOW_CONTEXT_ACTION_DROP)) {
+    1077                 memcpy(&dest_arr[0], dst, sizeof(*dst));
+    1078                 dest_num++;
+    1079         }
+    1080 
+    1081         if (!flow_is_multicast_only(flow_attr))
+    1082                 set_underlay_qp(dev, spec, underlay_qpn);
+    1083 
+    1084         if (dev->is_rep && flow_attr->type != IB_FLOW_ATTR_SNIFFER) {
+    1085                 struct mlx5_eswitch_rep *rep;
+    1086 
+    1087                 rep = dev->port[flow_attr->port - 1].rep;
+    1088                 if (!rep) {
+    1089                         err = -EINVAL;
+    1090                         goto free;
+    1091                 }
+    1092 
+    1093                 mlx5_ib_set_rule_source_port(dev, spec, rep);
+    1094         }
+    1095 
+    1096         spec->match_criteria_enable = get_match_criteria_enable(spec->match_criteria);
+    1097 
+    1098         if (is_egress) {
+    1099                 err = -EINVAL;
+    1100                 goto free;
 
+The patch changed this check so we always return -EINVAL.
+
+
+    1101         }
+    1102 
+    1103         if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_COUNT) {
+    1104                 struct mlx5_ib_mcounters *mcounters;
+    1105 
+    1106                 err = mlx5_ib_flow_counters_set_data(flow_act.counters, ucmd);
+    1107                 if (err)
+    1108                         goto free;
+    1109 
+    1110                 mcounters = to_mcounters(flow_act.counters);
+    1111                 handler->ibcounters = flow_act.counters;
+    1112                 dest_arr[dest_num].type =
+    1113                         MLX5_FLOW_DESTINATION_TYPE_COUNTER;
+    1114                 dest_arr[dest_num].counter_id =
+    1115                         mlx5_fc_id(mcounters->hw_cntrs_hndl);
+    1116                 dest_num++;
+    1117         }
+    1118 
+    1119         if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_DROP) {
+    1120                 if (!dest_num)
+    1121                         rule_dst = NULL;
+    1122         } else {
+    1123                 if (flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)
+    1124                         flow_act.action |=
+    1125                                 MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
+--> 1126                 if (is_egress)
+                             ^^^^^^^^^
+No need to check
+
+    1127                         flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_ALLOW;
+    1128                 else if (dest_num)
+    1129                         flow_act.action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
+    1130         }
+    1131 
+    1132         if ((spec->flow_context.flags & FLOW_CONTEXT_HAS_TAG)  &&
+    1133             (flow_attr->type == IB_FLOW_ATTR_ALL_DEFAULT ||
+    1134              flow_attr->type == IB_FLOW_ATTR_MC_DEFAULT)) {
+    1135                 mlx5_ib_warn(dev, "Flow tag %u and attribute type %x isn't allowed in leftovers\n",
+    1136                              spec->flow_context.flow_tag, flow_attr->type);
+    1137                 err = -EINVAL;
+    1138                 goto free;
+    1139         }
+    1140         handler->rule = mlx5_add_flow_rules(ft, spec,
+    1141                                             &flow_act,
+    1142                                             rule_dst, dest_num);
+    1143 
+    1144         if (IS_ERR(handler->rule)) {
+    1145                 err = PTR_ERR(handler->rule);
+    1146                 goto free;
+    1147         }
+    1148 
+    1149         ft_prio->refcount++;
+    1150         handler->prio = ft_prio;
+    1151         handler->dev = dev;
+    1152 
+    1153         ft_prio->flow_table = ft;
+    1154 free:
+    1155         if (err && handler) {
+    1156                 mlx5_ib_counters_clear_description(handler->ibcounters);
+    1157                 kfree(handler);
+    1158         }
+    1159         kvfree(spec);
+    1160         return err ? ERR_PTR(err) : handler;
+    1161 }
+
+regards,
+dan carpenter
