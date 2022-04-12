@@ -2,107 +2,96 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B07BDC433FE
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 02:22:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37985C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 02:22:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229921AbiDLCYv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 11 Apr 2022 22:24:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56882 "EHLO
+        id S244968AbiDLCYw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 Apr 2022 22:24:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242867AbiDLCYu (ORCPT
+        with ESMTP id S243459AbiDLCYu (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Apr 2022 22:24:50 -0400
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 348042E6AC;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E21E62E9D2;
         Mon, 11 Apr 2022 19:22:34 -0700 (PDT)
-IronPort-Data: =?us-ascii?q?A9a23=3AZrcepaxftCmDi76JAIt6t+fuxCrEfRIJ4+MujC/?=
- =?us-ascii?q?XYbTApD0g3mZWn2sdDGGDOfuKZzD8f4hwbN7ipEoG6sDXzoViHQtv/xmBbVoQ9?=
- =?us-ascii?q?5OdWo7xwmQcns+qBpSaChohtq3yU/GYRCwPZiKa9kfF3oTJ9yEmj/nSHuOkUYY?=
- =?us-ascii?q?oBwgqLeNaYHZ44f5cs75h6mJYqYDR7zKl4bsekeWGULOW82Ic3lYv1k62gEgHU?=
- =?us-ascii?q?MIeF98vlgdWifhj5DcynpSOZX4VDfnZw3DQGuG4EgMmLtsvwo1V/kuBl/ssIti?=
- =?us-ascii?q?j1LjmcEwWWaOUNg+L4pZUc/H6xEEc+WppieBmXBYfQR4/ZzGhm9FjyNRPtJW2Y?=
- =?us-ascii?q?Qk0PKzQg/lbWB5de817FfQco+OXcSTl4KR/yGWDKRMA2c5GHlA0L5waoL4vWUl?=
- =?us-ascii?q?B8PUZLHYGaRXrr+a3xq+rD+phnMIuKOH1M44F/HJt1zfUCbAhW5+ra6HL48JIm?=
- =?us-ascii?q?S08g8lmA/nTfYwaZCBpYRCGZAdAUn8VB50WjualnnS5eDQwlb4/jcLb+ECKlEo?=
- =?us-ascii?q?ojuera4GTJ7S3qQxuth7wjgr7E67RXnn27OCi9Ac=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A6Vz3O6O+rII0NMBcTv2jsMiBIKoaSvp037BL?=
- =?us-ascii?q?7TEUdfUxSKGlfq+V8sjzqiWftN98YhAdcLO7Scy9qBHnhP1ICOAqVN/MYOCMgh?=
- =?us-ascii?q?rLEGgN1+vf6gylMyj/28oY7q14bpV5YeeaMXFKyer8/ym0euxN/OW6?=
+IronPort-Data: =?us-ascii?q?A9a23=3AytdQmaA2u98BCBVW//Dhw5YqxClBgxIJ4g17XOL?=
+ =?us-ascii?q?fBAXrhTIl02YGyWVLWDqOPv2LZ2akLotxaozg/UoAsMOAx9UxeLYW3SszFioV8?=
+ =?us-ascii?q?6IpJjg4wn/YZnrUdouaJK5ex512huLocYZkHhcwmj/3auK79SMkjPnRLlbBILW?=
+ =?us-ascii?q?s1h5ZFFYMpBgJ2UoLd94R2uaEsPDha++/kYqaT/73ZDdJ7wVJ3lc8sMpvnv/AU?=
+ =?us-ascii?q?MPa41v0tnRmDRxCUcS3e3M9VPrzLonpR5f0rxU9IwK0ewrD5OnREmLx9BFrBM6?=
+ =?us-ascii?q?nk6rgbwsBRbu60Qqm0yIQAvb9xEMZ4HFaPqUTbZLwbW9TiieJntJwwdNlu4GyS?=
+ =?us-ascii?q?BsyI+vHn+F1vxxwSnslYf0WpOWXSZS4mYnJp6HcSFP+0vd8HUNsZdVA0ulyCGB?=
+ =?us-ascii?q?Ks/cfLVglahGFmvLzw7+hTORortosIdOtP44FvHxkizbDAp4ORZHFXrWP/9Nd1?=
+ =?us-ascii?q?R8uic1UW/XTfcwUbXxodhuoSx9ANX8FCZ8mkaGjjxHCn5dwwL6OjfNvpTGNk0o?=
+ =?us-ascii?q?qi/6wWOc5s+eiHa199nt0bEqal4ghPiwnCQ=3D=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A6EyDRqvw/Yzs9+eQQw1pcvwj7skDStV00zEX?=
+ =?us-ascii?q?/kB9WHVpm62j5qSTdZEguCMc5wx+ZJheo7q90cW7IE80lqQFhLX5X43SPzUO0V?=
+ =?us-ascii?q?HARO5fBODZsl/d8kPFltJ15ONJdqhSLJnKB0FmsMCS2mKFOudl7N6Z0K3Av4vj?=
+ =?us-ascii?q?80s=3D?=
 X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="123488429"
+   d="scan'208";a="123488428"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 12 Apr 2022 10:22:31 +0800
-Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-        by cn.fujitsu.com (Postfix) with ESMTP id DA88E4D17165;
-        Tue, 12 Apr 2022 10:22:28 +0800 (CST)
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+        by cn.fujitsu.com (Postfix) with ESMTP id EA3E74D16FC6;
+        Tue, 12 Apr 2022 10:22:27 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
  (TLS) id 15.0.1497.23; Tue, 12 Apr 2022 10:22:27 +0800
 Received: from localhost.localdomain (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Tue, 12 Apr 2022 10:22:27 +0800
+ id 15.0.1497.23 via Frontend Transport; Tue, 12 Apr 2022 10:22:26 +0800
 From:   Li Zhijian <lizhijian@fujitsu.com>
 To:     <zyjzyj2000@gmail.com>, <jgg@ziepe.ca>,
         <linux-rdma@vger.kernel.org>
 CC:     <linux-kernel@vger.kernel.org>, Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH 3/3] RDMA/rxe: Generate error completion for error requester state
-Date:   Tue, 12 Apr 2022 10:29:03 +0800
-Message-ID: <20220412022903.574238-3-lizhijian@fujitsu.com>
+Subject: [PATCH 1/3] RDMA/rxe: Remove useless parameters for update_state()
+Date:   Tue, 12 Apr 2022 10:29:01 +0800
+Message-ID: <20220412022903.574238-1-lizhijian@fujitsu.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20220412022903.574238-1-lizhijian@fujitsu.com>
-References: <20220412022903.574238-1-lizhijian@fujitsu.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: DA88E4D17165.AE8A7
+X-yoursite-MailScanner-ID: EA3E74D16FC6.A02E7
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: lizhijian@fujitsu.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-SoftRoCE always returns success when user space is posting a new wqe where
-it usually just euqueues a wqe.
+wqe was not used by update_state() so far.
 
-Once requester state becomes QP_STATE_ERROR, we should generate error
-completion for all subsequent wqe. So user is able to poll the completion
-event to check if the former wqe is handled correctly.
-
-Here we check QP_STATE_ERROR after req_next_wqe() so that the completion
-can associate with its wqe.
+aaaf62e06623 ("RDMA/rxe: Remove useless argument for update_state()")
+just did a partial fixes.
 
 Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
 ---
- drivers/infiniband/sw/rxe/rxe_req.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_req.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index c369bebaf02e..9b35f6528d73 100644
+index 5f7348b11268..bf7493bab9b9 100644
 --- a/drivers/infiniband/sw/rxe/rxe_req.c
 +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -611,7 +611,7 @@ int rxe_requester(void *arg)
- 	rxe_get(qp);
+@@ -525,8 +525,7 @@ static void rollback_state(struct rxe_send_wqe *wqe,
+ 	qp->req.psn    = rollback_psn;
+ }
  
- next_wqe:
--	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
-+	if (unlikely(!qp->valid))
- 		goto exit;
+-static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+-			 struct rxe_pkt_info *pkt)
++static void update_state(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
+ {
+ 	qp->req.opcode = pkt->opcode;
  
- 	if (unlikely(qp->req.state == QP_STATE_RESET)) {
-@@ -633,6 +633,14 @@ int rxe_requester(void *arg)
- 	if (unlikely(!wqe))
- 		goto exit;
+@@ -753,7 +752,7 @@ int rxe_requester(void *arg)
+ 		goto err;
+ 	}
  
-+	if (qp->req.state == QP_STATE_ERROR) {
-+		/*
-+		 * Generate an error completion so that user space is able to
-+		 * poll this completion.
-+		 */
-+		goto err;
-+	}
-+
- 	if (wqe->mask & WR_LOCAL_OP_MASK) {
- 		ret = rxe_do_local_ops(qp, wqe);
- 		if (unlikely(ret))
+-	update_state(qp, wqe, &pkt);
++	update_state(qp, &pkt);
+ 
+ 	goto next_wqe;
+ 
 -- 
 2.31.1
 
