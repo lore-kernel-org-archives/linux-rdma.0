@@ -2,537 +2,281 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1880C4707F
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 09:58:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38215C433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 11:22:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352584AbiDLJ56 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Apr 2022 05:57:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52156 "EHLO
+        id S1348601AbiDLLYv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Apr 2022 07:24:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359476AbiDLHnE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Apr 2022 03:43:04 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E0CB1401C
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 00:25:03 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 166A2B81B58
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 07:25:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4157AC385A5;
-        Tue, 12 Apr 2022 07:25:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649748300;
-        bh=ihN1fbPoqGSDrMxR1NP3cSEjLgtNElSfYSp55crxqec=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=rabET+a0OC+MwsFPBuEKCRUXad0EBlOymSWCZXd3AUN80rFa7Qm0RlljJ7WD+QNLI
-         lsDnLc+Zg3cSO7WBt/rahp1Lm9AJfFqEQIHk6oEFPazQRoPLU/p6cXflQ1pvHirM0y
-         j56FxlUtk5PmSu6jDVVxsZqfSegzbJlh2GgR5o6dnHpIFuppv6A8wby2AlnGOqdATO
-         SOWFjGkQCV8x/tJcRXeY5LZbg4ClGJE5rnmLN39geoLUGVmT3P4/3OCR1ekVzZXpgD
-         hnZugJSKm4TeUBu+WLLC5AkDvz3cIVUmPgpIK9av9NgoExck/oul96bKIbGC+GrVDp
-         OL90eRqZPimJA==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Aharon Landau <aharonl@nvidia.com>, linux-rdma@vger.kernel.org,
-        Michael Guralnik <michaelgur@nvidia.com>
-Subject: [PATCH rdma-next 11/12] RDMA/mlx5: Use mlx5_umr_post_send_wait() to update xlt
-Date:   Tue, 12 Apr 2022 10:24:06 +0300
-Message-Id: <55a4972f156aba3592a2fc9bcb33e2059acf295f.1649747695.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <cover.1649747695.git.leonro@nvidia.com>
-References: <cover.1649747695.git.leonro@nvidia.com>
+        with ESMTP id S1348537AbiDLLYg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Apr 2022 07:24:36 -0400
+Received: from out1.migadu.com (out1.migadu.com [IPv6:2001:41d0:2:863f::])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A83289A996
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 03:05:14 -0700 (PDT)
+Message-ID: <c14a7d05-c60f-cde7-3f83-9a7c7163cf07@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1649757911;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=hXVgCHnjKuXPscQ9eb4aHfgFjE0+CcCcJ4OL/NK6UdA=;
+        b=UXztIj1hLM7W3D0k8HF/cduxi4WzoP/yxLX2bbnobK2vbk1QPn29dHDvWbS9J1TeekD1xS
+        BNlUzLbuCYhr6mjwPEEMIj4zceJkvObFCaa6gzMIJsVc5AKp5CPR9BblFk5uq75wf6RHwh
+        kqQv7Yfklmc0autjvpCoENPeI7CSVso=
+Date:   Tue, 12 Apr 2022 18:04:59 +0800
 MIME-Version: 1.0
+Subject: Re: null pointer in rxe_mr_copy()
+To:     Bob Pearson <rpearsonhpe@gmail.com>,
+        "Pearson, Robert B" <robert.pearson2@hpe.com>,
+        Zhu Yanjun <zyjzyj2000@gmail.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+References: <1b0ae089-ff3f-7e84-4c07-a5d97554e3c0@gmail.com>
+ <CAD=hENdM=VEF4MM_L=W1PtiX=x2s_kucMLc41WWmK-6c6s2Nrg@mail.gmail.com>
+ <CAD=hENet+KQe35eqXabM+EpucHh3mYypUo4H8S-XmwNPcOv4+A@mail.gmail.com>
+ <PH7PR84MB1488434327EEBD890113E807BCEA9@PH7PR84MB1488.NAMPRD84.PROD.OUTLOOK.COM>
+ <fb331dbd-17e9-4314-afde-0f312b5ac13a@gmail.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Yanjun Zhu <yanjun.zhu@linux.dev>
+In-Reply-To: <fb331dbd-17e9-4314-afde-0f312b5ac13a@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Aharon Landau <aharonl@nvidia.com>
+在 2022/4/12 11:13, Bob Pearson 写道:
+> On 4/11/22 11:25, Pearson, Robert B wrote:
+>> Zhu,
+>>
+>> Would you be willing to try the v13 pool patch series. It also fixes the blktests bug.
+>> (You have to apply Bart's scsi_debug revert patch to fix that issue.)
+>> I think it may also fix this issue because it is way more careful about deferring qp cleanup
+>> code until after all the packets have completed.
+>>
+>> The bug you are seeing feels like a race with qp destroy.
+>>
+>> Bob
+>>
+>> -----Original Message-----
+>> From: Zhu Yanjun <zyjzyj2000@gmail.com>
+>> Sent: Monday, April 11, 2022 12:34 AM
+>> To: Bob Pearson <rpearsonhpe@gmail.com>
+>> Cc: linux-rdma@vger.kernel.org
+>> Subject: Re: null pointer in rxe_mr_copy()
+>>
+>> On Mon, Apr 11, 2022 at 1:14 PM Zhu Yanjun <zyjzyj2000@gmail.com> wrote:
+>>>
+>>> On Mon, Apr 11, 2022 at 11:34 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
+>>>>
+>>>> Zhu,
+>>>>
+>>>> Since checking for mr == NULL in rxe_mr_copy fixes the problem you were seeing in rping.
+>>>> Perhaps it would be a good idea to apply the following patch which
+>>>> would tell us which of the three calls to rxe_mr_copy is failing. My
+>>>> suspicion is the one in read_reply()
+>>> Hi, Bob
+>>>
+>>> Yes. It is the function read_reply.
+>>
+>>   720 static enum resp_states read_reply(struct rxe_qp *qp,
+>>   721                                    struct rxe_pkt_info *req_pkt)
+>>   722 {
+>>   723         struct rxe_pkt_info ack_pkt;
+>>   724         struct sk_buff *skb;
+>>   725         int mtu = qp->mtu;
+>>   726         enum resp_states state;
+>>   727         int payload;
+>>   728         int opcode;
+>>   729         int err;
+>>   730         struct resp_res *res = qp->resp.res;
+>>   731         struct rxe_mr *mr;
+>>   732
+>>   733         if (!res) {
+>>   734                 res = rxe_prepare_read_res(qp, req_pkt);
+>>   735                 qp->resp.res = res;
+>>   736         }
+>>   737
+>>   738         if (res->state == rdatm_res_state_new) {
+>>   739                 mr = qp->resp.mr;
+>> <----It seems that mr is from here.
+>>   740                 qp->resp.mr = NULL;
+>>   741
+>>
+>>
+>>>
+>>>   kernel: ------------[ cut here ]------------
+>>>   kernel: WARNING: CPU: 74 PID: 38510 at
+>>> drivers/infiniband/sw/rxe/rxe_resp.c:768 rxe_responder+0x1d67/0x1dd0
+>>> [rdma_rxe]
+>>>   kernel: Modules linked in: rdma_rxe(OE) ip6_udp_tunnel udp_tunnel
+>>> rds_rdma rds xt_CHECKSUM xt_MASQUERADE xt_conntrack ipt_REJECT
+>>> nf_reject_ipv4 nft_compat nft_chain_nat nf_nat nf_conntrack
+>>> nf_defrag_ipv6 nf_defrag_ipv4 nf_tables nfnetlink tun bridge stp llc
+>>> vfat fat rpcrdma sunrpc rdma_ucm ib_srpt ib_isert iscsi_target_mod
+>>> target_core_mod intel_rapl_msr intel_rapl_common ib_iser libiscsi
+>>> scsi_transport_iscsi rdma_cm ib_cm i10nm_edac iw_cm nfit libnvdimm
+>>> x86_pkg_temp_thermal intel_powerclamp coretemp ipmi_ssif kvm_intel kvm
+>>> irdma iTCO_wdt iTCO_vendor_support i40e irqbypass crct10dif_pclmul
+>>> crc32_pclmul ib_uverbs ghash_clmulni_intel rapl intel_cstate ib_core
+>>> intel_uncore wmi_bmof pcspkr mei_me isst_if_mbox_pci isst_if_mmio
+>>> acpi_ipmi isst_if_common ipmi_si i2c_i801 mei intel_pch_thermal
+>>> i2c_smbus ipmi_devintf ipmi_msghandler acpi_power_meter ip_tables xfs
+>>> libcrc32c sd_mod t10_pi crc64_rocksoft crc64 sg mgag200 i2c_algo_bit
+>>> drm_shmem_helper drm_kms_helper syscopyarea sysfillrect ice
+>>>   kernel: sysimgblt fb_sys_fops ahci drm libahci crc32c_intel libata
+>>> megaraid_sas tg3 wmi dm_mirror dm_region_hash dm_log dm_mod fuse [last
+>>> unloaded: ip6_udp_tunnel]
+>>>   kernel: CPU: 74 PID: 38510 Comm: rping Kdump: loaded Tainted: G S
+>>>   W  OE     5.18.0.RXE #14
+>>>   kernel: Hardware name: Dell Inc. PowerEdge R750/06V45N, BIOS 1.2.4
+>>> 05/28/2021
+>>>   kernel: RIP: 0010:rxe_responder+0x1d67/0x1dd0 [rdma_rxe]
+>>>   kernel: Code: 24 30 48 89 44 24 30 49 8b 86 88 00 00 00 48 89 44 24
+>>> 38 48 8b 73 20 48 8b 43 18 ff d0 0f 1f 00 e9 10 e3 ff ff e8 e9 52 98
+>>> ee <0f> 0b 45 8b 86 f0 00 00 00 48 8b 8c 24 e0 00 00 00 ba 01 03 00 00
+>>>   kernel: RSP: 0018:ff5f5b78c7624e70 EFLAGS: 00010246
+>>>   kernel: RAX: ff20346c70a1d700 RBX: ff20346c7127c040 RCX:
+>>> ff20346c70a1d700
+>>>   kernel: RDX: 0000000000000000 RSI: 0000000000000000 RDI:
+>>> ff20346c53194000
+>>>   kernel: RBP: 0000000000000040 R08: 2ebbb556a556fe7f R09:
+>>> 69de575d0320dc48
+>>>   kernel: R10: ff5f5b78c7624de0 R11: 00000000ee4984a4 R12:
+>>> ff20346c70a1d700
+>>>   kernel: R13: 0000000000000000 R14: ff20346ef0539000 R15:
+>>> ff20346c70a1c528
+>>>   kernel: FS:  00007ff34d49b740(0000) GS:ff20347b3fa80000(0000)
+>>> knlGS:0000000000000000
+>>>   kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>>>   kernel: CR2: 00007ff40be030c0 CR3: 00000003d0634005 CR4:
+>>> 0000000000771ee0
+>>>   kernel: DR0: 0000000000000000 DR1: 0000000000000000 DR2:
+>>> 0000000000000000
+>>>   kernel: DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7:
+>>> 0000000000000400
+>>>   kernel: PKRU: 55555554
+>>>   kernel: Call Trace:
+>>>   kernel: <IRQ>
+>>>   kernel: ? __local_bh_enable_ip+0x9f/0xe0
+>>>   kernel: ? rxe_do_task+0x67/0xe0 [rdma_rxe]
+>>>   kernel: ? __local_bh_enable_ip+0x77/0xe0
+>>>   kernel: rxe_do_task+0x71/0xe0 [rdma_rxe]
+>>>   kernel: tasklet_action_common.isra.15+0xb8/0xf0
+>>>   kernel: __do_softirq+0xe4/0x48c
+>>>   kernel: ? rxe_do_task+0x67/0xe0 [rdma_rxe]
+>>>   kernel: do_softirq+0xb5/0x100
+>>>   kernel: </IRQ>
+>>>   kernel: <TASK>
+>>>   kernel: __local_bh_enable_ip+0xd0/0xe0
+>>>   kernel: rxe_do_task+0x67/0xe0 [rdma_rxe]
+>>>   kernel: rxe_post_send+0x2ff/0x4c0 [rdma_rxe]
+>>>   kernel: ? rdma_lookup_get_uobject+0x131/0x1e0 [ib_uverbs]
+>>>   kernel: ib_uverbs_post_send+0x4d5/0x700 [ib_uverbs]
+>>>   kernel: ib_uverbs_write+0x38f/0x5e0 [ib_uverbs]
+>>>   kernel: ? find_held_lock+0x2d/0x90
+>>>   kernel: vfs_write+0xb8/0x370
+>>>   kernel: ksys_write+0xbb/0xd0
+>>>   kernel: ? syscall_trace_enter.isra.15+0x169/0x220
+>>>   kernel: do_syscall_64+0x37/0x80
+>>>
+>>> Zhu Yanjun
+>>>
+>>>   in rxe_resp.c
+>>>> This could be caused by a race between shutting down the qp and finishing up an RDMA read.
+>>>> The responder resources state machine is completely unprotected from
+>>>> simultaneous access by verbs code and bh code in rxe_resp.c.
+>>>> rxe_resp is a tasklet so all the accesses from there are serialized
+>>>> but if anyone makes a verbs call that touches the responder resources it could cause problems. The most likely (only?) place this could happen is qp shutdown.
+>>>>
+>>>> Bob
+>>>>
+>>>>
+>>>>
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c
+>>>> b/drivers/infiniband/sw/rxe/rxe_mr.c
+>>>>
+>>>> index 60a31b718774..66184f5a4ddf 100644
+>>>>
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
+>>>>
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+>>>>
+>>>> @@ -489,6 +489,7 @@ int copy_data(
+>>>>
+>>>>                  if (bytes > 0) {
+>>>>
+>>>>                          iova = sge->addr + offset;
+>>>>
+>>>>
+>>>>
+>>>> +                       WARN_ON(!mr);
+>>>>
+>>>>                          err = rxe_mr_copy(mr, iova, addr, bytes,
+>>>> dir);
+>>>>
+>>>>                          if (err)
+>>>>
+>>>>                                  goto err2;
+>>>>
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>> b/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>>
+>>>> index 1d95fab606da..6e3e86bdccd7 100644
+>>>>
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>>
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>>
+>>>> @@ -536,6 +536,7 @@ static enum resp_states write_data_in(struct
+>>>> rxe_qp *qp,
+>>>>
+>>>>          int     err;
+>>>>
+>>>>          int data_len = payload_size(pkt);
+>>>>
+>>>>
+>>>>
+>>>> +       WARN_ON(!qp->resp.mr);
+>>>>
+>>>>          err = rxe_mr_copy(qp->resp.mr, qp->resp.va +
+>>>> qp->resp.offset,
+>>>>
+>>>>                            payload_addr(pkt), data_len,
+>>>> RXE_TO_MR_OBJ);
+>>>>
+>>>>          if (err) {
+>>>>
+>>>> @@ -772,6 +773,7 @@ static enum resp_states read_reply(struct rxe_qp
+>>>> *qp,
+>>>>
+>>>>          if (!skb)
+>>>>
+>>>>                  return RESPST_ERR_RNR;
+>>>>
+>>>>
+>>>>
+>>>> +       WARN_ON(!mr);
+>>>>
+>>>>          err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
+>>>>
+>>>>                            payload, RXE_FROM_MR_OBJ);
+>>>>
+>>>>          if (err)
+>>>>
+> 
+> When you run rping are you going between two machines? It doesn't work in loopback as far as I can tell.
 
-Move mlx5_ib_update_mr_pas logic to umr.c, and use mlx5_umr_post_send_wait()
-instead of mlx5_ib_post_send_wait().
+Sorry. It is late to reply.
 
-Since it is the last use of mlx5_ib_post_send_wait(), remove it.
+With 2 machines or loopback, long time rping (about 10 minutes or so), 
+the crash will occur.
 
-Signed-off-by: Aharon Landau <aharonl@nvidia.com>
-Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   2 -
- drivers/infiniband/hw/mlx5/mr.c      | 171 ---------------------------
- drivers/infiniband/hw/mlx5/odp.c     |  54 ++++-----
- drivers/infiniband/hw/mlx5/umr.c     |  93 ++++++++++++++-
- drivers/infiniband/hw/mlx5/umr.h     |   7 +-
- 5 files changed, 117 insertions(+), 210 deletions(-)
+Zhu Yanjun
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index ea4d5519df8c..10e60c9281b4 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1287,8 +1287,6 @@ int mlx5_ib_advise_mr(struct ib_pd *pd,
- 		      struct uverbs_attr_bundle *attrs);
- int mlx5_ib_alloc_mw(struct ib_mw *mw, struct ib_udata *udata);
- int mlx5_ib_dealloc_mw(struct ib_mw *mw);
--int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
--		       int page_shift, int flags);
- struct mlx5_ib_mr *mlx5_ib_alloc_implicit_mr(struct mlx5_ib_pd *pd,
- 					     int access_flags);
- void mlx5_ib_free_implicit_mr(struct mlx5_ib_mr *mr);
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index df79fd5be5f2..9bfbd8d199ee 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -122,11 +122,6 @@ mlx5_ib_create_mkey_cb(struct mlx5_ib_dev *dev,
- static int mr_cache_max_order(struct mlx5_ib_dev *dev);
- static void queue_adjust_cache_locked(struct mlx5_cache_ent *ent);
- 
--static bool umr_can_use_indirect_mkey(struct mlx5_ib_dev *dev)
--{
--	return !MLX5_CAP_GEN(dev->mdev, umr_indirect_mkey_disabled);
--}
--
- static int destroy_mkey(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- {
- 	WARN_ON(xa_load(&dev->odp_mkeys, mlx5_base_mkey(mr->mmkey.key)));
-@@ -839,49 +834,6 @@ static int mr_cache_max_order(struct mlx5_ib_dev *dev)
- 	return MLX5_MAX_UMR_SHIFT;
- }
- 
--static void mlx5_ib_umr_done(struct ib_cq *cq, struct ib_wc *wc)
--{
--	struct mlx5_ib_umr_context *context =
--		container_of(wc->wr_cqe, struct mlx5_ib_umr_context, cqe);
--
--	context->status = wc->status;
--	complete(&context->done);
--}
--
--static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
--{
--	context->cqe.done = mlx5_ib_umr_done;
--	context->status = -1;
--	init_completion(&context->done);
--}
--
--static int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
--				  struct mlx5_umr_wr *umrwr)
--{
--	struct umr_common *umrc = &dev->umrc;
--	const struct ib_send_wr *bad;
--	int err;
--	struct mlx5_ib_umr_context umr_context;
--
--	mlx5_ib_init_umr_context(&umr_context);
--	umrwr->wr.wr_cqe = &umr_context.cqe;
--
--	down(&umrc->sem);
--	err = ib_post_send(umrc->qp, &umrwr->wr, &bad);
--	if (err) {
--		mlx5_ib_warn(dev, "UMR post send failed, err %d\n", err);
--	} else {
--		wait_for_completion(&umr_context.done);
--		if (umr_context.status != IB_WC_SUCCESS) {
--			mlx5_ib_warn(dev, "reg umr failed (%u)\n",
--				     umr_context.status);
--			err = -EFAULT;
--		}
--	}
--	up(&umrc->sem);
--	return err;
--}
--
- static struct mlx5_cache_ent *mr_cache_ent_from_order(struct mlx5_ib_dev *dev,
- 						      unsigned int order)
- {
-@@ -959,129 +911,6 @@ static struct mlx5_ib_mr *alloc_cacheable_mr(struct ib_pd *pd,
- 	return mr;
- }
- 
--/*
-- * Create a MLX5_IB_SEND_UMR_UPDATE_XLT work request and XLT buffer ready for
-- * submission.
-- */
--static void *mlx5_ib_create_xlt_wr(struct mlx5_ib_mr *mr,
--				   struct mlx5_umr_wr *wr, struct ib_sge *sg,
--				   size_t nents, size_t ent_size,
--				   unsigned int flags)
--{
--	struct mlx5_ib_dev *dev = mr_to_mdev(mr);
--	void *xlt;
--
--	xlt = mlx5r_umr_create_xlt(dev, sg, nents, ent_size, flags);
--
--	memset(wr, 0, sizeof(*wr));
--	wr->wr.send_flags = MLX5_IB_SEND_UMR_UPDATE_XLT;
--	if (!(flags & MLX5_IB_UPD_XLT_ENABLE))
--		wr->wr.send_flags |= MLX5_IB_SEND_UMR_FAIL_IF_FREE;
--	wr->wr.sg_list = sg;
--	wr->wr.num_sge = 1;
--	wr->wr.opcode = MLX5_IB_WR_UMR;
--	wr->pd = mr->ibmr.pd;
--	wr->mkey = mr->mmkey.key;
--	wr->length = mr->ibmr.length;
--	wr->virt_addr = mr->ibmr.iova;
--	wr->access_flags = mr->access_flags;
--	wr->page_shift = mr->page_shift;
--	wr->xlt_size = sg->length;
--	return xlt;
--}
--
--static unsigned int xlt_wr_final_send_flags(unsigned int flags)
--{
--	unsigned int res = 0;
--
--	if (flags & MLX5_IB_UPD_XLT_ENABLE)
--		res |= MLX5_IB_SEND_UMR_ENABLE_MR |
--		       MLX5_IB_SEND_UMR_UPDATE_PD_ACCESS |
--		       MLX5_IB_SEND_UMR_UPDATE_TRANSLATION;
--	if (flags & MLX5_IB_UPD_XLT_PD || flags & MLX5_IB_UPD_XLT_ACCESS)
--		res |= MLX5_IB_SEND_UMR_UPDATE_PD_ACCESS;
--	if (flags & MLX5_IB_UPD_XLT_ADDR)
--		res |= MLX5_IB_SEND_UMR_UPDATE_TRANSLATION;
--	return res;
--}
--
--int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
--		       int page_shift, int flags)
--{
--	struct mlx5_ib_dev *dev = mr_to_mdev(mr);
--	struct device *ddev = &dev->mdev->pdev->dev;
--	void *xlt;
--	struct mlx5_umr_wr wr;
--	struct ib_sge sg;
--	int err = 0;
--	int desc_size = (flags & MLX5_IB_UPD_XLT_INDIRECT)
--			       ? sizeof(struct mlx5_klm)
--			       : sizeof(struct mlx5_mtt);
--	const int page_align = MLX5_UMR_MTT_ALIGNMENT / desc_size;
--	const int page_mask = page_align - 1;
--	size_t pages_mapped = 0;
--	size_t pages_to_map = 0;
--	size_t pages_iter;
--	size_t size_to_map = 0;
--	size_t orig_sg_length;
--
--	if ((flags & MLX5_IB_UPD_XLT_INDIRECT) &&
--	    !umr_can_use_indirect_mkey(dev))
--		return -EPERM;
--
--	if (WARN_ON(!mr->umem->is_odp))
--		return -EINVAL;
--
--	/* UMR copies MTTs in units of MLX5_UMR_MTT_ALIGNMENT bytes,
--	 * so we need to align the offset and length accordingly
--	 */
--	if (idx & page_mask) {
--		npages += idx & page_mask;
--		idx &= ~page_mask;
--	}
--	pages_to_map = ALIGN(npages, page_align);
--
--	xlt = mlx5_ib_create_xlt_wr(mr, &wr, &sg, npages, desc_size, flags);
--	if (!xlt)
--		return -ENOMEM;
--	pages_iter = sg.length / desc_size;
--	orig_sg_length = sg.length;
--
--	if (!(flags & MLX5_IB_UPD_XLT_INDIRECT)) {
--		struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
--		size_t max_pages = ib_umem_odp_num_pages(odp) - idx;
--
--		pages_to_map = min_t(size_t, pages_to_map, max_pages);
--	}
--
--	wr.page_shift = page_shift;
--
--	for (pages_mapped = 0;
--	     pages_mapped < pages_to_map && !err;
--	     pages_mapped += pages_iter, idx += pages_iter) {
--		npages = min_t(int, pages_iter, pages_to_map - pages_mapped);
--		size_to_map = npages * desc_size;
--		dma_sync_single_for_cpu(ddev, sg.addr, sg.length,
--					DMA_TO_DEVICE);
--		mlx5_odp_populate_xlt(xlt, idx, npages, mr, flags);
--		dma_sync_single_for_device(ddev, sg.addr, sg.length,
--					   DMA_TO_DEVICE);
--
--		sg.length = ALIGN(size_to_map, MLX5_UMR_MTT_ALIGNMENT);
--
--		if (pages_mapped + pages_iter >= pages_to_map)
--			wr.wr.send_flags |= xlt_wr_final_send_flags(flags);
--
--		wr.offset = idx * desc_size;
--		wr.xlt_size = sg.length;
--
--		err = mlx5_ib_post_send_wait(dev, &wr);
--	}
--	sg.length = orig_sg_length;
--	mlx5r_umr_unmap_free_xlt(dev, xlt, &sg);
--	return err;
--}
--
- /*
-  * If ibmr is NULL it will be allocated by reg_create.
-  * Else, the given ibmr will be used.
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index c00e70e74d94..66ac7bdc59f6 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -118,7 +118,7 @@ static void populate_klm(struct mlx5_klm *pklm, size_t idx, size_t nentries,
- 	 *
- 	 *    xa_store()
- 	 *    mutex_lock(umem_mutex)
--	 *     mlx5_ib_update_xlt()
-+	 *     mlx5r_umr_update_xlt()
- 	 *    mutex_unlock(umem_mutex)
- 	 *    destroy lkey
- 	 *
-@@ -199,9 +199,9 @@ static void free_implicit_child_mr_work(struct work_struct *work)
- 	mlx5r_deref_wait_odp_mkey(&mr->mmkey);
- 
- 	mutex_lock(&odp_imr->umem_mutex);
--	mlx5_ib_update_xlt(mr->parent, ib_umem_start(odp) >> MLX5_IMR_MTT_SHIFT,
--			   1, 0,
--			   MLX5_IB_UPD_XLT_INDIRECT | MLX5_IB_UPD_XLT_ATOMIC);
-+	mlx5r_umr_update_xlt(mr->parent,
-+			     ib_umem_start(odp) >> MLX5_IMR_MTT_SHIFT, 1, 0,
-+			     MLX5_IB_UPD_XLT_INDIRECT | MLX5_IB_UPD_XLT_ATOMIC);
- 	mutex_unlock(&odp_imr->umem_mutex);
- 	mlx5_ib_dereg_mr(&mr->ibmr, NULL);
- 
-@@ -283,19 +283,19 @@ static bool mlx5_ib_invalidate_range(struct mmu_interval_notifier *mni,
- 			u64 umr_offset = idx & umr_block_mask;
- 
- 			if (in_block && umr_offset == 0) {
--				mlx5_ib_update_xlt(mr, blk_start_idx,
--						   idx - blk_start_idx, 0,
--						   MLX5_IB_UPD_XLT_ZAP |
--						   MLX5_IB_UPD_XLT_ATOMIC);
-+				mlx5r_umr_update_xlt(mr, blk_start_idx,
-+						     idx - blk_start_idx, 0,
-+						     MLX5_IB_UPD_XLT_ZAP |
-+						     MLX5_IB_UPD_XLT_ATOMIC);
- 				in_block = 0;
- 			}
- 		}
- 	}
- 	if (in_block)
--		mlx5_ib_update_xlt(mr, blk_start_idx,
--				   idx - blk_start_idx + 1, 0,
--				   MLX5_IB_UPD_XLT_ZAP |
--				   MLX5_IB_UPD_XLT_ATOMIC);
-+		mlx5r_umr_update_xlt(mr, blk_start_idx,
-+				     idx - blk_start_idx + 1, 0,
-+				     MLX5_IB_UPD_XLT_ZAP |
-+				     MLX5_IB_UPD_XLT_ATOMIC);
- 
- 	mlx5_update_odp_stats(mr, invalidations, invalidations);
- 
-@@ -442,11 +442,11 @@ static struct mlx5_ib_mr *implicit_get_child_mr(struct mlx5_ib_mr *imr,
- 	 */
- 	refcount_set(&mr->mmkey.usecount, 2);
- 
--	err = mlx5_ib_update_xlt(mr, 0,
--				 MLX5_IMR_MTT_ENTRIES,
--				 PAGE_SHIFT,
--				 MLX5_IB_UPD_XLT_ZAP |
--				 MLX5_IB_UPD_XLT_ENABLE);
-+	err = mlx5r_umr_update_xlt(mr, 0,
-+				   MLX5_IMR_MTT_ENTRIES,
-+				   PAGE_SHIFT,
-+				   MLX5_IB_UPD_XLT_ZAP |
-+				   MLX5_IB_UPD_XLT_ENABLE);
- 	if (err) {
- 		ret = ERR_PTR(err);
- 		goto out_mr;
-@@ -513,12 +513,12 @@ struct mlx5_ib_mr *mlx5_ib_alloc_implicit_mr(struct mlx5_ib_pd *pd,
- 	imr->is_odp_implicit = true;
- 	xa_init(&imr->implicit_children);
- 
--	err = mlx5_ib_update_xlt(imr, 0,
--				 mlx5_imr_ksm_entries,
--				 MLX5_KSM_PAGE_SHIFT,
--				 MLX5_IB_UPD_XLT_INDIRECT |
--				 MLX5_IB_UPD_XLT_ZAP |
--				 MLX5_IB_UPD_XLT_ENABLE);
-+	err = mlx5r_umr_update_xlt(imr, 0,
-+				   mlx5_imr_ksm_entries,
-+				   MLX5_KSM_PAGE_SHIFT,
-+				   MLX5_IB_UPD_XLT_INDIRECT |
-+				   MLX5_IB_UPD_XLT_ZAP |
-+				   MLX5_IB_UPD_XLT_ENABLE);
- 	if (err)
- 		goto out_mr;
- 
-@@ -581,7 +581,7 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 	 * No need to check whether the MTTs really belong to this MR, since
- 	 * ib_umem_odp_map_dma_and_lock already checks this.
- 	 */
--	ret = mlx5_ib_update_xlt(mr, start_idx, np, page_shift, xlt_flags);
-+	ret = mlx5r_umr_update_xlt(mr, start_idx, np, page_shift, xlt_flags);
- 	mutex_unlock(&odp->umem_mutex);
- 
- 	if (ret < 0) {
-@@ -679,9 +679,9 @@ static int pagefault_implicit_mr(struct mlx5_ib_mr *imr,
- 	 * next pagefault handler will see the new information.
- 	 */
- 	mutex_lock(&odp_imr->umem_mutex);
--	err = mlx5_ib_update_xlt(imr, upd_start_idx, upd_len, 0,
--				 MLX5_IB_UPD_XLT_INDIRECT |
--					 MLX5_IB_UPD_XLT_ATOMIC);
-+	err = mlx5r_umr_update_xlt(imr, upd_start_idx, upd_len, 0,
-+				   MLX5_IB_UPD_XLT_INDIRECT |
-+					  MLX5_IB_UPD_XLT_ATOMIC);
- 	mutex_unlock(&odp_imr->umem_mutex);
- 	if (err) {
- 		mlx5_ib_err(mr_to_mdev(imr), "Failed to update PAS\n");
-diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
-index b56e3569c677..ad9e31107901 100644
---- a/drivers/infiniband/hw/mlx5/umr.c
-+++ b/drivers/infiniband/hw/mlx5/umr.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /* Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. */
- 
-+#include <rdma/ib_umem_odp.h>
- #include "mlx5_ib.h"
- #include "umr.h"
- #include "wr.h"
-@@ -455,7 +456,7 @@ static void *mlx5r_umr_alloc_xlt(size_t *nents, size_t ent_size, gfp_t gfp_mask)
- 	return xlt_emergency_page;
- }
- 
--void mlx5r_umr_free_xlt(void *xlt, size_t length)
-+static void mlx5r_umr_free_xlt(void *xlt, size_t length)
- {
- 	if (xlt == xlt_emergency_page) {
- 		mutex_unlock(&xlt_emergency_page_mutex);
-@@ -465,8 +466,8 @@ void mlx5r_umr_free_xlt(void *xlt, size_t length)
- 	free_pages((unsigned long)xlt, get_order(length));
- }
- 
--void mlx5r_umr_unmap_free_xlt(struct mlx5_ib_dev *dev, void *xlt,
--			     struct ib_sge *sg)
-+static void mlx5r_umr_unmap_free_xlt(struct mlx5_ib_dev *dev, void *xlt,
-+				     struct ib_sge *sg)
- {
- 	struct device *ddev = &dev->mdev->pdev->dev;
- 
-@@ -477,8 +478,9 @@ void mlx5r_umr_unmap_free_xlt(struct mlx5_ib_dev *dev, void *xlt,
- /*
-  * Create an XLT buffer ready for submission.
-  */
--void *mlx5r_umr_create_xlt(struct mlx5_ib_dev *dev, struct ib_sge *sg,
--			  size_t nents, size_t ent_size, unsigned int flags)
-+static void *mlx5r_umr_create_xlt(struct mlx5_ib_dev *dev, struct ib_sge *sg,
-+				  size_t nents, size_t ent_size,
-+				  unsigned int flags)
- {
- 	struct device *ddev = &dev->mdev->pdev->dev;
- 	dma_addr_t dma;
-@@ -658,3 +660,84 @@ int mlx5r_umr_update_mr_pas(struct mlx5_ib_mr *mr, unsigned int flags)
- 	mlx5r_umr_unmap_free_xlt(dev, mtt, &sg);
- 	return err;
- }
-+
-+static bool umr_can_use_indirect_mkey(struct mlx5_ib_dev *dev)
-+{
-+	return !MLX5_CAP_GEN(dev->mdev, umr_indirect_mkey_disabled);
-+}
-+
-+int mlx5r_umr_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
-+			 int page_shift, int flags)
-+{
-+	int desc_size = (flags & MLX5_IB_UPD_XLT_INDIRECT)
-+			       ? sizeof(struct mlx5_klm)
-+			       : sizeof(struct mlx5_mtt);
-+	const int page_align = MLX5_UMR_MTT_ALIGNMENT / desc_size;
-+	struct mlx5_ib_dev *dev = mr_to_mdev(mr);
-+	struct device *ddev = &dev->mdev->pdev->dev;
-+	const int page_mask = page_align - 1;
-+	struct mlx5r_umr_wqe wqe = {};
-+	size_t pages_mapped = 0;
-+	size_t pages_to_map = 0;
-+	size_t size_to_map = 0;
-+	size_t orig_sg_length;
-+	size_t pages_iter;
-+	struct ib_sge sg;
-+	int err = 0;
-+	void *xlt;
-+
-+	if ((flags & MLX5_IB_UPD_XLT_INDIRECT) &&
-+	    !umr_can_use_indirect_mkey(dev))
-+		return -EPERM;
-+
-+	if (WARN_ON(!mr->umem->is_odp))
-+		return -EINVAL;
-+
-+	/* UMR copies MTTs in units of MLX5_UMR_MTT_ALIGNMENT bytes,
-+	 * so we need to align the offset and length accordingly
-+	 */
-+	if (idx & page_mask) {
-+		npages += idx & page_mask;
-+		idx &= ~page_mask;
-+	}
-+	pages_to_map = ALIGN(npages, page_align);
-+
-+	xlt = mlx5r_umr_create_xlt(dev, &sg, npages, desc_size, flags);
-+	if (!xlt)
-+		return -ENOMEM;
-+
-+	pages_iter = sg.length / desc_size;
-+	orig_sg_length = sg.length;
-+
-+	if (!(flags & MLX5_IB_UPD_XLT_INDIRECT)) {
-+		struct ib_umem_odp *odp = to_ib_umem_odp(mr->umem);
-+		size_t max_pages = ib_umem_odp_num_pages(odp) - idx;
-+
-+		pages_to_map = min_t(size_t, pages_to_map, max_pages);
-+	}
-+
-+	mlx5r_umr_set_update_xlt_ctrl_seg(&wqe.ctrl_seg, flags, &sg);
-+	mlx5r_umr_set_update_xlt_mkey_seg(dev, &wqe.mkey_seg, mr, page_shift);
-+	mlx5r_umr_set_update_xlt_data_seg(&wqe.data_seg, &sg);
-+
-+	for (pages_mapped = 0;
-+	     pages_mapped < pages_to_map && !err;
-+	     pages_mapped += pages_iter, idx += pages_iter) {
-+		npages = min_t(int, pages_iter, pages_to_map - pages_mapped);
-+		size_to_map = npages * desc_size;
-+		dma_sync_single_for_cpu(ddev, sg.addr, sg.length,
-+					DMA_TO_DEVICE);
-+		mlx5_odp_populate_xlt(xlt, idx, npages, mr, flags);
-+		dma_sync_single_for_device(ddev, sg.addr, sg.length,
-+					   DMA_TO_DEVICE);
-+		sg.length = ALIGN(size_to_map, MLX5_UMR_MTT_ALIGNMENT);
-+
-+		if (pages_mapped + pages_iter >= pages_to_map)
-+			mlx5r_umr_final_update_xlt(dev, &wqe, mr, &sg, flags);
-+		mlx5r_umr_update_offset(&wqe.ctrl_seg, idx * desc_size);
-+		err = mlx5r_umr_post_send_wait(dev, mr->mmkey.key, &wqe, true);
-+	}
-+	sg.length = orig_sg_length;
-+	mlx5r_umr_unmap_free_xlt(dev, xlt, &sg);
-+	return err;
-+}
-diff --git a/drivers/infiniband/hw/mlx5/umr.h b/drivers/infiniband/hw/mlx5/umr.h
-index 3bb251f07f4e..b42e8c93b385 100644
---- a/drivers/infiniband/hw/mlx5/umr.h
-+++ b/drivers/infiniband/hw/mlx5/umr.h
-@@ -94,11 +94,8 @@ struct mlx5r_umr_wqe {
- int mlx5r_umr_revoke_mr(struct mlx5_ib_mr *mr);
- int mlx5r_umr_rereg_pd_access(struct mlx5_ib_mr *mr, struct ib_pd *pd,
- 			      int access_flags);
--void *mlx5r_umr_create_xlt(struct mlx5_ib_dev *dev, struct ib_sge *sg,
--			   size_t nents, size_t ent_size, unsigned int flags);
--void mlx5r_umr_free_xlt(void *xlt, size_t length);
--void mlx5r_umr_unmap_free_xlt(struct mlx5_ib_dev *dev, void *xlt,
--			      struct ib_sge *sg);
- int mlx5r_umr_update_mr_pas(struct mlx5_ib_mr *mr, unsigned int flags);
-+int mlx5r_umr_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
-+			 int page_shift, int flags);
- 
- #endif /* _MLX5_IB_UMR_H */
--- 
-2.35.1
+> 
+> Bob
 
