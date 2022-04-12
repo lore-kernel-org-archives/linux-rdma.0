@@ -2,42 +2,42 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 856F0C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70027C4332F
 	for <linux-rdma@archiver.kernel.org>; Tue, 12 Apr 2022 09:58:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347779AbiDLJ51 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 12 Apr 2022 05:57:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57668 "EHLO
+        id S1346524AbiDLJ5Y (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 12 Apr 2022 05:57:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56430 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1359451AbiDLHnD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Apr 2022 03:43:03 -0400
+        with ESMTP id S1359463AbiDLHnE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 12 Apr 2022 03:43:04 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D056FDFB1
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 00:24:19 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFF0612AE3
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 00:24:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 99C8C616B2
-        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 07:24:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82F29C385A6;
-        Tue, 12 Apr 2022 07:24:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6BB2D614FA
+        for <linux-rdma@vger.kernel.org>; Tue, 12 Apr 2022 07:24:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BC43C385A1;
+        Tue, 12 Apr 2022 07:24:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649748258;
-        bh=59bggVcQIHHtc4RAXdYTN2bJ76HMArkTtxTTRvXq3xk=;
+        s=k20201202; t=1649748281;
+        bh=S3smLdABGn1zXzTyX86DMkDISHKjxJSHU+LICImXBo0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kh+GaYjjF/xqC2DygnTy01CFOiyBE8H60m96tVROPBUVeNoqroJrJbD7+jRh6yhaR
-         i7oI60y3JEBijeFCWLRMyBhi0FxE8tzJ/zHXCtFxE2AWCxQmeOj+OsEZS/hBmde9df
-         tpGpVwgH6qw9ehOHANsuOoAfOKoR/i/Ny06F46QivivMHc6JGLoCsosdA2pHMuIvsU
-         QlnlDvkdRaXAZCofTYlEgNu5lH9EA+J4cp/7K3/cehCNNnvhOdg2NDpoDvmY072vKa
-         A2wNVJL6Y5Y57dEvu3zHTp+wR9e5UDaC3buqcpQ5LSuiaifFgstddHXLeFwTsHEPKo
-         FgO3yfQ4FLAdA==
+        b=VXqVkoelMfH9PDlb69M3XRRsZwLKvHZLvpxEMvGWhTOCio7PiDpzdIdzPW3BKPxBs
+         rLWt5szNzyn50IAVeTWtMpM7o9shZLDYxP0M6O48o6mpadwRw/3W4t41bXmW8hnbvc
+         PetkkLPgeezkdhCV13/6oCYbPWyNoj16phaFsEjMEgPXuVklZLzri52aS/wuhFuYLb
+         IIUsSWPJJr2uMS5qwv+H/KI8VhATfJM8vHGx6GUlQL892IMIpt4rHWXet2xN7n72zi
+         swDvbvB4atYQdwI5+ccDNh63VcDlsnXSd6OnKBTuS4LNP+QWvf/PuIa0+FCBs7yb/U
+         Y1eYNnAyED5zg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Aharon Landau <aharonl@nvidia.com>, linux-rdma@vger.kernel.org,
         Michael Guralnik <michaelgur@nvidia.com>
-Subject: [PATCH rdma-next 01/12] RDMA/mlx5: Move init and cleanup of UMR to umr.c
-Date:   Tue, 12 Apr 2022 10:23:56 +0300
-Message-Id: <849e632dd1945a2534712a320cc5779f2149ba96.1649747695.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 05/12] RDMA/mlx5: Expose wqe posting helpers outside of wr.c
+Date:   Tue, 12 Apr 2022 10:24:00 +0300
+Message-Id: <a2b0f6cd96f0405a65d38e82c6ae7ef34dcb34bc.1649747695.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <cover.1649747695.git.leonro@nvidia.com>
 References: <cover.1649747695.git.leonro@nvidia.com>
@@ -49,306 +49,385 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Aharon Landau <aharonl@nvidia.com>
 
-The first patch in a series to split UMR logic to a dedicated file.
-As a start, move the init and cleanup of UMR resources to umr.c.
+Split posting WQEs logic to helpers, generalize it and expose for future
+use in the UMR post send.
 
 Signed-off-by: Aharon Landau <aharonl@nvidia.com>
 Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/Makefile |   1 +
- drivers/infiniband/hw/mlx5/main.c   | 109 ++--------------------------
- drivers/infiniband/hw/mlx5/umr.c    | 106 +++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/umr.h    |  12 +++
- 4 files changed, 125 insertions(+), 103 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx5/umr.c
- create mode 100644 drivers/infiniband/hw/mlx5/umr.h
+ drivers/infiniband/hw/mlx5/wr.c | 172 +++++++++++---------------------
+ drivers/infiniband/hw/mlx5/wr.h |  60 +++++++++++
+ 2 files changed, 121 insertions(+), 111 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
-index f43380106bd0..612ee8190a2d 100644
---- a/drivers/infiniband/hw/mlx5/Makefile
-+++ b/drivers/infiniband/hw/mlx5/Makefile
-@@ -19,6 +19,7 @@ mlx5_ib-y := ah.o \
- 	     restrack.o \
- 	     srq.o \
- 	     srq_cmd.o \
-+	     umr.o \
- 	     wr.o
+diff --git a/drivers/infiniband/hw/mlx5/wr.c b/drivers/infiniband/hw/mlx5/wr.c
+index 24457eb5e4b7..7949f83b2cd2 100644
+--- a/drivers/infiniband/hw/mlx5/wr.c
++++ b/drivers/infiniband/hw/mlx5/wr.c
+@@ -26,58 +26,7 @@ static const u32 mlx5_ib_opcode[] = {
+ 	[MLX5_IB_WR_UMR]			= MLX5_OPCODE_UMR,
+ };
  
- mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 09a78a03cf73..e2d88027a9a7 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -41,6 +41,7 @@
- #include "wr.h"
- #include "restrack.h"
- #include "counters.h"
-+#include "umr.h"
- #include <rdma/uverbs_std_types.h>
- #include <rdma/uverbs_ioctl.h>
- #include <rdma/mlx5_user_ioctl_verbs.h>
-@@ -4004,12 +4005,7 @@ static void mlx5_ib_stage_pre_ib_reg_umr_cleanup(struct mlx5_ib_dev *dev)
- 	if (err)
- 		mlx5_ib_warn(dev, "mr cache cleanup failed\n");
- 
--	if (dev->umrc.qp)
--		ib_destroy_qp(dev->umrc.qp);
--	if (dev->umrc.cq)
--		ib_free_cq(dev->umrc.cq);
--	if (dev->umrc.pd)
--		ib_dealloc_pd(dev->umrc.pd);
-+	mlx5r_umr_resource_cleanup(dev);
- }
- 
- static void mlx5_ib_stage_ib_reg_cleanup(struct mlx5_ib_dev *dev)
-@@ -4017,112 +4013,19 @@ static void mlx5_ib_stage_ib_reg_cleanup(struct mlx5_ib_dev *dev)
- 	ib_unregister_device(&dev->ib_dev);
- }
- 
--enum {
--	MAX_UMR_WR = 128,
--};
+-/* handle_post_send_edge - Check if we get to SQ edge. If yes, update to the
+- * next nearby edge and get new address translation for current WQE position.
+- * @sq - SQ buffer.
+- * @seg: Current WQE position (16B aligned).
+- * @wqe_sz: Total current WQE size [16B].
+- * @cur_edge: Updated current edge.
+- */
+-static inline void handle_post_send_edge(struct mlx5_ib_wq *sq, void **seg,
+-					 u32 wqe_sz, void **cur_edge)
+-{
+-	u32 idx;
 -
- static int mlx5_ib_stage_post_ib_reg_umr_init(struct mlx5_ib_dev *dev)
+-	if (likely(*seg != *cur_edge))
+-		return;
+-
+-	idx = (sq->cur_post + (wqe_sz >> 2)) & (sq->wqe_cnt - 1);
+-	*cur_edge = get_sq_edge(sq, idx);
+-
+-	*seg = mlx5_frag_buf_get_wqe(&sq->fbc, idx);
+-}
+-
+-/* memcpy_send_wqe - copy data from src to WQE and update the relevant WQ's
+- * pointers. At the end @seg is aligned to 16B regardless the copied size.
+- * @sq - SQ buffer.
+- * @cur_edge: Updated current edge.
+- * @seg: Current WQE position (16B aligned).
+- * @wqe_sz: Total current WQE size [16B].
+- * @src: Pointer to copy from.
+- * @n: Number of bytes to copy.
+- */
+-static inline void memcpy_send_wqe(struct mlx5_ib_wq *sq, void **cur_edge,
+-				   void **seg, u32 *wqe_sz, const void *src,
+-				   size_t n)
+-{
+-	while (likely(n)) {
+-		size_t leftlen = *cur_edge - *seg;
+-		size_t copysz = min_t(size_t, leftlen, n);
+-		size_t stride;
+-
+-		memcpy(*seg, src, copysz);
+-
+-		n -= copysz;
+-		src += copysz;
+-		stride = !n ? ALIGN(copysz, 16) : copysz;
+-		*seg += stride;
+-		*wqe_sz += stride >> 4;
+-		handle_post_send_edge(sq, seg, *wqe_sz, cur_edge);
+-	}
+-}
+-
+-static int mlx5_wq_overflow(struct mlx5_ib_wq *wq, int nreq,
+-			    struct ib_cq *ib_cq)
++int mlx5r_wq_overflow(struct mlx5_ib_wq *wq, int nreq, struct ib_cq *ib_cq)
  {
--	struct ib_qp_init_attr *init_attr = NULL;
--	struct ib_qp_attr *attr = NULL;
--	struct ib_pd *pd;
--	struct ib_cq *cq;
--	struct ib_qp *qp;
- 	int ret;
+ 	struct mlx5_ib_cq *cq;
+ 	unsigned int cur;
+@@ -123,9 +72,9 @@ static void set_eth_seg(const struct ib_send_wr *wr, struct mlx5_ib_qp *qp,
+ 		eseg->mss = cpu_to_be16(ud_wr->mss);
+ 		eseg->inline_hdr.sz = cpu_to_be16(left);
  
--	attr = kzalloc(sizeof(*attr), GFP_KERNEL);
--	init_attr = kzalloc(sizeof(*init_attr), GFP_KERNEL);
--	if (!attr || !init_attr) {
--		ret = -ENOMEM;
--		goto error_0;
--	}
--
--	pd = ib_alloc_pd(&dev->ib_dev, 0);
--	if (IS_ERR(pd)) {
--		mlx5_ib_dbg(dev, "Couldn't create PD for sync UMR QP\n");
--		ret = PTR_ERR(pd);
--		goto error_0;
--	}
--
--	cq = ib_alloc_cq(&dev->ib_dev, NULL, 128, 0, IB_POLL_SOFTIRQ);
--	if (IS_ERR(cq)) {
--		mlx5_ib_dbg(dev, "Couldn't create CQ for sync UMR QP\n");
--		ret = PTR_ERR(cq);
--		goto error_2;
--	}
--
--	init_attr->send_cq = cq;
--	init_attr->recv_cq = cq;
--	init_attr->sq_sig_type = IB_SIGNAL_ALL_WR;
--	init_attr->cap.max_send_wr = MAX_UMR_WR;
--	init_attr->cap.max_send_sge = 1;
--	init_attr->qp_type = MLX5_IB_QPT_REG_UMR;
--	init_attr->port_num = 1;
--	qp = ib_create_qp(pd, init_attr);
--	if (IS_ERR(qp)) {
--		mlx5_ib_dbg(dev, "Couldn't create sync UMR QP\n");
--		ret = PTR_ERR(qp);
--		goto error_3;
--	}
--
--	attr->qp_state = IB_QPS_INIT;
--	attr->port_num = 1;
--	ret = ib_modify_qp(qp, attr,
--			   IB_QP_STATE | IB_QP_PKEY_INDEX | IB_QP_PORT);
--	if (ret) {
--		mlx5_ib_dbg(dev, "Couldn't modify UMR QP\n");
--		goto error_4;
--	}
--
--	memset(attr, 0, sizeof(*attr));
--	attr->qp_state = IB_QPS_RTR;
--	attr->path_mtu = IB_MTU_256;
--
--	ret = ib_modify_qp(qp, attr, IB_QP_STATE);
--	if (ret) {
--		mlx5_ib_dbg(dev, "Couldn't modify umr QP to rtr\n");
--		goto error_4;
--	}
--
--	memset(attr, 0, sizeof(*attr));
--	attr->qp_state = IB_QPS_RTS;
--	ret = ib_modify_qp(qp, attr, IB_QP_STATE);
--	if (ret) {
--		mlx5_ib_dbg(dev, "Couldn't modify umr QP to rts\n");
--		goto error_4;
--	}
--
--	dev->umrc.qp = qp;
--	dev->umrc.cq = cq;
--	dev->umrc.pd = pd;
-+	ret = mlx5r_umr_resource_init(dev);
-+	if (ret)
-+		return ret;
+-		/* memcpy_send_wqe should get a 16B align address. Hence, we
+-		 * first copy up to the current edge and then, if needed,
+-		 * continue to memcpy_send_wqe.
++		/* mlx5r_memcpy_send_wqe should get a 16B align address. Hence,
++		 * we first copy up to the current edge and then, if needed,
++		 * continue to mlx5r_memcpy_send_wqe.
+ 		 */
+ 		copysz = min_t(u64, *cur_edge - (void *)eseg->inline_hdr.start,
+ 			       left);
+@@ -139,8 +88,8 @@ static void set_eth_seg(const struct ib_send_wr *wr, struct mlx5_ib_qp *qp,
+ 			handle_post_send_edge(&qp->sq, seg, *size, cur_edge);
+ 			left -= copysz;
+ 			pdata += copysz;
+-			memcpy_send_wqe(&qp->sq, cur_edge, seg, size, pdata,
+-					left);
++			mlx5r_memcpy_send_wqe(&qp->sq, cur_edge, seg, size,
++					      pdata, left);
+ 		}
  
--	sema_init(&dev->umrc.sem, MAX_UMR_WR);
- 	ret = mlx5_mr_cache_init(dev);
- 	if (ret) {
- 		mlx5_ib_warn(dev, "mr cache init failed %d\n", ret);
--		goto error_4;
-+		mlx5r_umr_resource_cleanup(dev);
+ 		return;
+@@ -766,8 +715,8 @@ static int set_reg_wr(struct mlx5_ib_qp *qp,
+ 	handle_post_send_edge(&qp->sq, seg, *size, cur_edge);
+ 
+ 	if (umr_inline) {
+-		memcpy_send_wqe(&qp->sq, cur_edge, seg, size, mr->descs,
+-				mr_list_size);
++		mlx5r_memcpy_send_wqe(&qp->sq, cur_edge, seg, size, mr->descs,
++				      mr_list_size);
+ 		*size = ALIGN(*size, MLX5_SEND_WQE_BB >> 4);
+ 	} else {
+ 		set_reg_data_seg(*seg, mr, pd);
+@@ -809,23 +758,22 @@ static void dump_wqe(struct mlx5_ib_qp *qp, u32 idx, int size_16)
  	}
--
--	kfree(attr);
--	kfree(init_attr);
--
--	return 0;
--
--error_4:
--	ib_destroy_qp(qp);
--	dev->umrc.qp = NULL;
--
--error_3:
--	ib_free_cq(cq);
--	dev->umrc.cq = NULL;
--
--error_2:
--	ib_dealloc_pd(pd);
--	dev->umrc.pd = NULL;
--
--error_0:
--	kfree(attr);
--	kfree(init_attr);
- 	return ret;
  }
  
-diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
-new file mode 100644
-index 000000000000..46eaf919eb49
---- /dev/null
-+++ b/drivers/infiniband/hw/mlx5/umr.c
-@@ -0,0 +1,106 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/* Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. */
-+
-+#include "mlx5_ib.h"
-+#include "umr.h"
-+
-+enum {
-+	MAX_UMR_WR = 128,
-+};
-+
-+static int mlx5r_umr_qp_rst2rts(struct mlx5_ib_dev *dev, struct ib_qp *qp)
+-static int __begin_wqe(struct mlx5_ib_qp *qp, void **seg,
+-		       struct mlx5_wqe_ctrl_seg **ctrl,
+-		       const struct ib_send_wr *wr, unsigned int *idx,
+-		       int *size, void **cur_edge, int nreq,
+-		       bool send_signaled, bool solicited)
++int mlx5r_begin_wqe(struct mlx5_ib_qp *qp, void **seg,
++		    struct mlx5_wqe_ctrl_seg **ctrl, unsigned int *idx,
++		    int *size, void **cur_edge, int nreq, __be32 general_id,
++		    bool send_signaled, bool solicited)
+ {
+-	if (unlikely(mlx5_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq)))
++	if (unlikely(mlx5r_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq)))
+ 		return -ENOMEM;
+ 
+ 	*idx = qp->sq.cur_post & (qp->sq.wqe_cnt - 1);
+ 	*seg = mlx5_frag_buf_get_wqe(&qp->sq.fbc, *idx);
+ 	*ctrl = *seg;
+ 	*(uint32_t *)(*seg + 8) = 0;
+-	(*ctrl)->imm = send_ieth(wr);
++	(*ctrl)->general_id = general_id;
+ 	(*ctrl)->fm_ce_se = qp->sq_signal_bits |
+-		(send_signaled ? MLX5_WQE_CTRL_CQ_UPDATE : 0) |
+-		(solicited ? MLX5_WQE_CTRL_SOLICITED : 0);
++			    (send_signaled ? MLX5_WQE_CTRL_CQ_UPDATE : 0) |
++			    (solicited ? MLX5_WQE_CTRL_SOLICITED : 0);
+ 
+ 	*seg += sizeof(**ctrl);
+ 	*size = sizeof(**ctrl) / 16;
+@@ -839,16 +787,14 @@ static int begin_wqe(struct mlx5_ib_qp *qp, void **seg,
+ 		     const struct ib_send_wr *wr, unsigned int *idx, int *size,
+ 		     void **cur_edge, int nreq)
+ {
+-	return __begin_wqe(qp, seg, ctrl, wr, idx, size, cur_edge, nreq,
+-			   wr->send_flags & IB_SEND_SIGNALED,
+-			   wr->send_flags & IB_SEND_SOLICITED);
++	return mlx5r_begin_wqe(qp, seg, ctrl, idx, size, cur_edge, nreq,
++			       send_ieth(wr), wr->send_flags & IB_SEND_SIGNALED,
++			       wr->send_flags & IB_SEND_SOLICITED);
+ }
+ 
+-static void finish_wqe(struct mlx5_ib_qp *qp,
+-		       struct mlx5_wqe_ctrl_seg *ctrl,
+-		       void *seg, u8 size, void *cur_edge,
+-		       unsigned int idx, u64 wr_id, int nreq, u8 fence,
+-		       u32 mlx5_opcode)
++void mlx5r_finish_wqe(struct mlx5_ib_qp *qp, struct mlx5_wqe_ctrl_seg *ctrl,
++		      void *seg, u8 size, void *cur_edge, unsigned int idx,
++		      u64 wr_id, int nreq, u8 fence, u32 mlx5_opcode)
+ {
+ 	u8 opmod = 0;
+ 
+@@ -912,8 +858,8 @@ static int handle_psv(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	/*
+ 	 * SET_PSV WQEs are not signaled and solicited on error.
+ 	 */
+-	err = __begin_wqe(qp, seg, ctrl, wr, idx, size, cur_edge, nreq,
+-			  false, true);
++	err = mlx5r_begin_wqe(qp, seg, ctrl, idx, size, cur_edge, nreq,
++			      send_ieth(wr), false, true);
+ 	if (unlikely(err)) {
+ 		mlx5_ib_warn(dev, "\n");
+ 		err = -ENOMEM;
+@@ -924,8 +870,8 @@ static int handle_psv(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		mlx5_ib_warn(dev, "\n");
+ 		goto out;
+ 	}
+-	finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id, nreq,
+-		   next_fence, MLX5_OPCODE_SET_PSV);
++	mlx5r_finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id,
++			 nreq, next_fence, MLX5_OPCODE_SET_PSV);
+ 
+ out:
+ 	return err;
+@@ -965,8 +911,8 @@ static int handle_reg_mr_integrity(struct mlx5_ib_dev *dev,
+ 		if (unlikely(err))
+ 			goto out;
+ 
+-		finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id,
+-			   nreq, fence, MLX5_OPCODE_UMR);
++		mlx5r_finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx,
++				 wr->wr_id, nreq, fence, MLX5_OPCODE_UMR);
+ 
+ 		err = begin_wqe(qp, seg, ctrl, wr, idx, size, cur_edge, nreq);
+ 		if (unlikely(err)) {
+@@ -997,8 +943,8 @@ static int handle_reg_mr_integrity(struct mlx5_ib_dev *dev,
+ 		mlx5_ib_warn(dev, "\n");
+ 		goto out;
+ 	}
+-	finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id, nreq,
+-		   fence, MLX5_OPCODE_UMR);
++	mlx5r_finish_wqe(qp, *ctrl, *seg, *size, *cur_edge, *idx, wr->wr_id,
++			 nreq, fence, MLX5_OPCODE_UMR);
+ 
+ 	sig_attrs = mr->ibmr.sig_attrs;
+ 	err = handle_psv(dev, qp, wr, ctrl, seg, size, cur_edge, idx, nreq,
+@@ -1142,6 +1088,32 @@ static int handle_qpt_reg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	return err;
+ }
+ 
++void mlx5r_ring_db(struct mlx5_ib_qp *qp, unsigned int nreq,
++		   struct mlx5_wqe_ctrl_seg *ctrl)
 +{
-+	struct ib_qp_attr attr = {};
-+	int ret;
++	struct mlx5_bf *bf = &qp->bf;
 +
-+	attr.qp_state = IB_QPS_INIT;
-+	attr.port_num = 1;
-+	ret = ib_modify_qp(qp, &attr,
-+			   IB_QP_STATE | IB_QP_PKEY_INDEX | IB_QP_PORT);
-+	if (ret) {
-+		mlx5_ib_dbg(dev, "Couldn't modify UMR QP\n");
-+		return ret;
-+	}
++	qp->sq.head += nreq;
 +
-+	memset(&attr, 0, sizeof(attr));
-+	attr.qp_state = IB_QPS_RTR;
++	/* Make sure that descriptors are written before
++	 * updating doorbell record and ringing the doorbell
++	 */
++	wmb();
 +
-+	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
-+	if (ret) {
-+		mlx5_ib_dbg(dev, "Couldn't modify umr QP to rtr\n");
-+		return ret;
-+	}
++	qp->db.db[MLX5_SND_DBR] = cpu_to_be32(qp->sq.cur_post);
 +
-+	memset(&attr, 0, sizeof(attr));
-+	attr.qp_state = IB_QPS_RTS;
-+	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
-+	if (ret) {
-+		mlx5_ib_dbg(dev, "Couldn't modify umr QP to rts\n");
-+		return ret;
-+	}
++	/* Make sure doorbell record is visible to the HCA before
++	 * we hit doorbell.
++	 */
++	wmb();
 +
-+	return 0;
++	mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset);
++	/* Make sure doorbells don't leak out of SQ spinlock
++	 * and reach the HCA out of order.
++	 */
++	bf->offset ^= bf->buf_size;
 +}
 +
-+int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev)
+ int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 		      const struct ib_send_wr **bad_wr, bool drain)
+ {
+@@ -1150,7 +1122,6 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 	struct mlx5_core_dev *mdev = dev->mdev;
+ 	struct mlx5_ib_qp *qp = to_mqp(ibqp);
+ 	struct mlx5_wqe_xrc_seg *xrc;
+-	struct mlx5_bf *bf;
+ 	void *cur_edge;
+ 	int size;
+ 	unsigned long flags;
+@@ -1172,8 +1143,6 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 	if (qp->type == IB_QPT_GSI)
+ 		return mlx5_ib_gsi_post_send(ibqp, wr, bad_wr);
+ 
+-	bf = &qp->bf;
+-
+ 	spin_lock_irqsave(&qp->sq.lock, flags);
+ 
+ 	for (nreq = 0; wr; nreq++, wr = wr->next) {
+@@ -1285,35 +1254,16 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 		}
+ 
+ 		qp->next_fence = next_fence;
+-		finish_wqe(qp, ctrl, seg, size, cur_edge, idx, wr->wr_id, nreq,
+-			   fence, mlx5_ib_opcode[wr->opcode]);
++		mlx5r_finish_wqe(qp, ctrl, seg, size, cur_edge, idx, wr->wr_id,
++				 nreq, fence, mlx5_ib_opcode[wr->opcode]);
+ skip_psv:
+ 		if (0)
+ 			dump_wqe(qp, idx, size);
+ 	}
+ 
+ out:
+-	if (likely(nreq)) {
+-		qp->sq.head += nreq;
+-
+-		/* Make sure that descriptors are written before
+-		 * updating doorbell record and ringing the doorbell
+-		 */
+-		wmb();
+-
+-		qp->db.db[MLX5_SND_DBR] = cpu_to_be32(qp->sq.cur_post);
+-
+-		/* Make sure doorbell record is visible to the HCA before
+-		 * we hit doorbell.
+-		 */
+-		wmb();
+-
+-		mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset);
+-		/* Make sure doorbells don't leak out of SQ spinlock
+-		 * and reach the HCA out of order.
+-		 */
+-		bf->offset ^= bf->buf_size;
+-	}
++	if (likely(nreq))
++		mlx5r_ring_db(qp, nreq, ctrl);
+ 
+ 	spin_unlock_irqrestore(&qp->sq.lock, flags);
+ 
+@@ -1353,7 +1303,7 @@ int mlx5_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+ 	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
+ 
+ 	for (nreq = 0; wr; nreq++, wr = wr->next) {
+-		if (mlx5_wq_overflow(&qp->rq, nreq, qp->ibqp.recv_cq)) {
++		if (mlx5r_wq_overflow(&qp->rq, nreq, qp->ibqp.recv_cq)) {
+ 			err = -ENOMEM;
+ 			*bad_wr = wr;
+ 			goto out;
+diff --git a/drivers/infiniband/hw/mlx5/wr.h b/drivers/infiniband/hw/mlx5/wr.h
+index 4f0057516402..2dc89438000d 100644
+--- a/drivers/infiniband/hw/mlx5/wr.h
++++ b/drivers/infiniband/hw/mlx5/wr.h
+@@ -41,6 +41,66 @@ static inline void *get_sq_edge(struct mlx5_ib_wq *sq, u32 idx)
+ 	return fragment_end + MLX5_SEND_WQE_BB;
+ }
+ 
++/* handle_post_send_edge - Check if we get to SQ edge. If yes, update to the
++ * next nearby edge and get new address translation for current WQE position.
++ * @sq: SQ buffer.
++ * @seg: Current WQE position (16B aligned).
++ * @wqe_sz: Total current WQE size [16B].
++ * @cur_edge: Updated current edge.
++ */
++static inline void handle_post_send_edge(struct mlx5_ib_wq *sq, void **seg,
++					 u32 wqe_sz, void **cur_edge)
 +{
-+	struct ib_qp_init_attr init_attr = {};
-+	struct ib_pd *pd;
-+	struct ib_cq *cq;
-+	struct ib_qp *qp;
-+	int ret;
++	u32 idx;
 +
-+	pd = ib_alloc_pd(&dev->ib_dev, 0);
-+	if (IS_ERR(pd)) {
-+		mlx5_ib_dbg(dev, "Couldn't create PD for sync UMR QP\n");
-+		return PTR_ERR(pd);
-+	}
++	if (likely(*seg != *cur_edge))
++		return;
 +
-+	cq = ib_alloc_cq(&dev->ib_dev, NULL, 128, 0, IB_POLL_SOFTIRQ);
-+	if (IS_ERR(cq)) {
-+		mlx5_ib_dbg(dev, "Couldn't create CQ for sync UMR QP\n");
-+		ret = PTR_ERR(cq);
-+		goto destroy_pd;
-+	}
++	idx = (sq->cur_post + (wqe_sz >> 2)) & (sq->wqe_cnt - 1);
++	*cur_edge = get_sq_edge(sq, idx);
 +
-+	init_attr.send_cq = cq;
-+	init_attr.recv_cq = cq;
-+	init_attr.sq_sig_type = IB_SIGNAL_ALL_WR;
-+	init_attr.cap.max_send_wr = MAX_UMR_WR;
-+	init_attr.cap.max_send_sge = 1;
-+	init_attr.qp_type = MLX5_IB_QPT_REG_UMR;
-+	init_attr.port_num = 1;
-+	qp = ib_create_qp(pd, &init_attr);
-+	if (IS_ERR(qp)) {
-+		mlx5_ib_dbg(dev, "Couldn't create sync UMR QP\n");
-+		ret = PTR_ERR(qp);
-+		goto destroy_cq;
-+	}
-+
-+	ret = mlx5r_umr_qp_rst2rts(dev, qp);
-+	if (ret)
-+		goto destroy_qp;
-+
-+	dev->umrc.qp = qp;
-+	dev->umrc.cq = cq;
-+	dev->umrc.pd = pd;
-+
-+	sema_init(&dev->umrc.sem, MAX_UMR_WR);
-+
-+	return 0;
-+
-+destroy_qp:
-+	ib_destroy_qp(qp);
-+destroy_cq:
-+	ib_free_cq(cq);
-+destroy_pd:
-+	ib_dealloc_pd(pd);
-+	return ret;
++	*seg = mlx5_frag_buf_get_wqe(&sq->fbc, idx);
 +}
 +
-+void mlx5r_umr_resource_cleanup(struct mlx5_ib_dev *dev)
++/* mlx5r_memcpy_send_wqe - copy data from src to WQE and update the relevant
++ * WQ's pointers. At the end @seg is aligned to 16B regardless the copied size.
++ * @sq: SQ buffer.
++ * @cur_edge: Updated current edge.
++ * @seg: Current WQE position (16B aligned).
++ * @wqe_sz: Total current WQE size [16B].
++ * @src: Pointer to copy from.
++ * @n: Number of bytes to copy.
++ */
++static inline void mlx5r_memcpy_send_wqe(struct mlx5_ib_wq *sq, void **cur_edge,
++					 void **seg, u32 *wqe_sz,
++					 const void *src, size_t n)
 +{
-+	ib_destroy_qp(dev->umrc.qp);
-+	ib_free_cq(dev->umrc.cq);
-+	ib_dealloc_pd(dev->umrc.pd);
++	while (likely(n)) {
++		size_t leftlen = *cur_edge - *seg;
++		size_t copysz = min_t(size_t, leftlen, n);
++		size_t stride;
++
++		memcpy(*seg, src, copysz);
++
++		n -= copysz;
++		src += copysz;
++		stride = !n ? ALIGN(copysz, 16) : copysz;
++		*seg += stride;
++		*wqe_sz += stride >> 4;
++		handle_post_send_edge(sq, seg, *wqe_sz, cur_edge);
++	}
 +}
-diff --git a/drivers/infiniband/hw/mlx5/umr.h b/drivers/infiniband/hw/mlx5/umr.h
-new file mode 100644
-index 000000000000..cb1a2c95aac2
---- /dev/null
-+++ b/drivers/infiniband/hw/mlx5/umr.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/* Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. */
 +
-+#ifndef _MLX5_IB_UMR_H
-+#define _MLX5_IB_UMR_H
-+
-+#include "mlx5_ib.h"
-+
-+int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev);
-+void mlx5r_umr_resource_cleanup(struct mlx5_ib_dev *dev);
-+
-+#endif /* _MLX5_IB_UMR_H */
++int mlx5r_wq_overflow(struct mlx5_ib_wq *wq, int nreq, struct ib_cq *ib_cq);
++int mlx5r_begin_wqe(struct mlx5_ib_qp *qp, void **seg,
++		    struct mlx5_wqe_ctrl_seg **ctrl, unsigned int *idx,
++		    int *size, void **cur_edge, int nreq, __be32 general_id,
++		    bool send_signaled, bool solicited);
++void mlx5r_finish_wqe(struct mlx5_ib_qp *qp, struct mlx5_wqe_ctrl_seg *ctrl,
++		      void *seg, u8 size, void *cur_edge, unsigned int idx,
++		      u64 wr_id, int nreq, u8 fence, u32 mlx5_opcode);
++void mlx5r_ring_db(struct mlx5_ib_qp *qp, unsigned int nreq,
++		   struct mlx5_wqe_ctrl_seg *ctrl);
+ int mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 		      const struct ib_send_wr **bad_wr, bool drain);
+ int mlx5_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
 -- 
 2.35.1
 
