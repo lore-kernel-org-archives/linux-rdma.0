@@ -2,424 +2,218 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71700C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Apr 2022 01:41:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14E08C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Apr 2022 02:02:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383668AbiDUBoF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 Apr 2022 21:44:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60024 "EHLO
+        id S1383772AbiDUCFn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 Apr 2022 22:05:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383675AbiDUBoD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 Apr 2022 21:44:03 -0400
-Received: from mail-oa1-x29.google.com (mail-oa1-x29.google.com [IPv6:2001:4860:4864:20::29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56B6C17049
-        for <linux-rdma@vger.kernel.org>; Wed, 20 Apr 2022 18:41:15 -0700 (PDT)
-Received: by mail-oa1-x29.google.com with SMTP id 586e51a60fabf-e656032735so2673628fac.0
-        for <linux-rdma@vger.kernel.org>; Wed, 20 Apr 2022 18:41:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=D9WBywQ4FSEeFAOXLYlGzO0LUFUlKiXwHhfCB/z2N10=;
-        b=AOmzNAeVBmZsPmOY++zMaWYJ6hcfRGec9ww14ycQ2rmc5o+sJyrlns4gpDZWrIaLU1
-         ZvG25gwGD0oa6L7BCjGUjce9XVsQb9Vih5E+PYErAmDl02DSUrDNaBTEFx0fsm4KvLFk
-         /Dp8eSFTTaw0pnX9V4E7RA1paJoZtOX+rcqvm642hRQ8hkWe0nC372IUSTtZrpFqZqTr
-         ENa+IYDKQri92sW2lCcKemiW+wasr45DxjHdw5L/9tTA5SlU2/Qxg846Xxv+l39ecqMc
-         7SAxQD5uWhDVt2GKXVCQEa9cL4hbLFsQXTTnEoyWOnPDgp8Cjv+75Tq0Z5WKFbjChZEc
-         2lfg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=D9WBywQ4FSEeFAOXLYlGzO0LUFUlKiXwHhfCB/z2N10=;
-        b=yJDIv9cSJsU2SEs6w7oRaVxxMjbMZKlb4qqSeYGfdjRLJwAMC/ECLQTdXNlb1Dtrm3
-         2mHHK7/mSrU4zyc/0tb/YE/aqkSro7/6AtfKxlkvnOKlAY8QH8jVtI/lagbR9UBqSFD7
-         PMzM8VAuRedbp+qB81BuRb+FZ1tiiy+jNKubXV8rG/jrqBe6HsEM9nut58johWZnCkIM
-         dbqUA31gXteWldxWZoQDUvcLT768V8TAUZx8oXD8b7Q+ChyCnJ4jm9J1UHh/+Cn8dVgu
-         4si5rv6mdAx2iTnrEbUsXEvL3Ho150WoYj8d61/58B3HSIMwxAlZhGMXOh4YEoTPPmpn
-         JZpw==
-X-Gm-Message-State: AOAM531/QW6gawwO4YMSZhtM+glCyOVimxTy4nXTNdIPDNL0KlELfEpo
-        s63k1o+8dw/SbVsVUlKL9HlVKoad+cI=
-X-Google-Smtp-Source: ABdhPJym/ataYKKKwlJH3Y0hujIgEtfKmh7Bg7SwBbywo+DowapNmdcTkDEJ8kgZ8V9iAgZvdv7HdQ==
-X-Received: by 2002:a05:6870:ec8a:b0:e5:faac:cc90 with SMTP id eo10-20020a056870ec8a00b000e5faaccc90mr2857931oab.172.1650505274158;
-        Wed, 20 Apr 2022 18:41:14 -0700 (PDT)
-Received: from ubuntu-21.tx.rr.com (2603-8081-140c-1a00-c7f7-b397-372c-b2f0.res6.spectrum.com. [2603:8081:140c:1a00:c7f7:b397:372c:b2f0])
-        by smtp.googlemail.com with ESMTPSA id l16-20020a9d6a90000000b0060548d240d4sm4847710otq.74.2022.04.20.18.41.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 Apr 2022 18:41:13 -0700 (PDT)
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v14 08/10] RDMA/rxe: Stop lookup of partially built objects
-Date:   Wed, 20 Apr 2022 20:40:41 -0500
-Message-Id: <20220421014042.26985-9-rpearsonhpe@gmail.com>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20220421014042.26985-1-rpearsonhpe@gmail.com>
-References: <20220421014042.26985-1-rpearsonhpe@gmail.com>
+        with ESMTP id S243566AbiDUCFm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 Apr 2022 22:05:42 -0400
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9B3EDEC0;
+        Wed, 20 Apr 2022 19:02:53 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R251e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VAc6Az8_1650506569;
+Received: from 30.43.96.87(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VAc6Az8_1650506569)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Thu, 21 Apr 2022 10:02:50 +0800
+Message-ID: <1ec3f1d2-887d-f66c-6221-6319afc4a3e9@linux.alibaba.com>
+Date:   Thu, 21 Apr 2022 10:02:47 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.7.0
+Subject: Re: siw_cm.c:255 siw_cep_put+0x125/0x130 kernel warning while testing
+ blktests srp/002 v5.17-rc7
+Content-Language: en-US
+To:     Bernard Metzler <BMT@zurich.ibm.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Bart Van Assche <bvanassche@acm.org>
+Cc:     "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Pankaj Raghav <pankydev8@gmail.com>,
+        Pankaj Raghav <p.raghav@samsung.com>
+References: <BYAPR15MB2631988B13EE2E336FD2ED4E99F29@BYAPR15MB2631.namprd15.prod.outlook.com>
+From:   Cheng Xu <chengyou@linux.alibaba.com>
+In-Reply-To: <BYAPR15MB2631988B13EE2E336FD2ED4E99F29@BYAPR15MB2631.namprd15.prod.outlook.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Currently the rdma_rxe driver has a security weakness due to giving
-objects which are partially initialized indices allowing external
-actors to gain access to them by sending packets which refer to
-their index (e.g. qpn, rkey, etc) causing unpredictable results.
 
-This patch adds a new API rxe_finalize(obj) which enables looking up
-pool objects from indices using rxe_pool_get_index() for
-AH, QP, MR, and MW. They are added in create verbs only after the
-objects are fully initialized.
 
-It also adds wait for completion to destroy/dealloc verbs to assure that
-all references have been dropped before returning to rdma_core by
-implementing a new rxe_pool API rxe_cleanup() which drops a reference
-to the object and then waits for all other references to be dropped.
-When the last reference is dropped the object is completed by kref.
-After that it cleans up the object and if locally allocated frees
-the memory.
+On 4/19/22 11:53 PM, Bernard Metzler wrote:
+>> -----Original Message-----
+>> From: Cheng Xu <chengyou@linux.alibaba.com>
+>> Sent: Monday, 18 April 2022 10:29
+>> To: Luis Chamberlain <mcgrof@kernel.org>; Bernard Metzler
+>> <BMT@zurich.ibm.com>; Bart Van Assche <bvanassche@acm.org>
+>> Cc: linux-block@vger.kernel.org; linux-rdma@vger.kernel.org; Pankaj Raghav
+>> <pankydev8@gmail.com>; Pankaj Raghav <p.raghav@samsung.com>
+>> Subject: [EXTERNAL] Re: siw_cm.c:255 siw_cep_put+0x125/0x130 kernel
+>> warning while testing blktests srp/002 v5.17-rc7
+>>
+>>
+>>
+>> On 4/15/22 7:31 AM, Luis Chamberlain wrote:
+>>
+>> <...>
+>>
+>>> [  195.218783] ------------[ cut here ]------------
+>>> [  195.221242] WARNING: CPU: 7 PID: 201 at
+>> drivers/infiniband/sw/siw/siw_cm.c:255 siw_cep_put+0x125/0x130 [siw]
+>>> [  195.222838] Modules linked in: ib_srp(E) scsi_transport_srp(E)
+>> target_core_pscsi(E) target_core_file(E) ib_srpt(E) target_core_iblock(E)
+>> target_core_mod(E) rdma_cm(E) iw_cm(E) ib_cm(E) scsi_debug(E) siw(E)
+>> null_blk(E) ib_umad(E) ib_uverbs(E) sd_mod(E) sg(E) dm_service_time(E)
+>> scsi_dh_rdac(E) scsi_dh_emc(E) scsi_dh_alua(E) dm_multipath(E) ib_core(E)
+>> dm_mod(E) nvme_fabrics(E) kvm_intel(E) kvm(E) irqbypass(E)
+>> crct10dif_pclmul(E) ghash_clmulni_intel(E) aesni_intel(E) crypto_simd(E)
+>> cryptd(E) joydev(E) evdev(E) serio_raw(E) cirrus(E) drm_shmem_helper(E)
+>> drm_kms_helper(E) virtio_balloon(E) cec(E) i6300esb(E) button(E) drm(E)
+>> configfs(E) ip_tables(E) x_tables(E) autofs4(E) ext4(E) crc16(E) mbcache(E)
+>> jbd2(E) btrfs(E) blake2b_generic(E) xor(E) raid6_pq(E) zstd_compress(E)
+>> libcrc32c(E) crc32c_generic(E) virtio_net(E) net_failover(E) failover(E)
+>> virtio_blk(E) ata_generic(E) uhci_hcd(E) ehci_hcd(E) crc32_pclmul(E)
+>> crc32c_intel(E) ata_piix(E) psmouse(E) nvme(E) libata(E) virtio_pci(E)
+>>> [  195.222986]  virtio_pci_legacy_dev(E) virtio_pci_modern_dev(E)
+>> usbcore(E) virtio(E) usb_common(E) scsi_mod(E) nvme_core(E) i2c_piix4(E)
+>> virtio_ring(E) t10_pi(E) scsi_common(E) [last unloaded: null_blk]
+>>> [  195.241036] sd 3:0:0:1: [sdd] Attached SCSI disn
+>>> [  195.241188] CPU: 2 PID: 201 Comm: kworker/u16:22 Kdump: loaded
+>> Tainted: G            E     5.17.0-rc7 #1
+>>> [  195.246053] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+>> BIOS 1.15.0-1 04/01/2014
+>>> [  195.249123] Workqueue: iw_cm_wq cm_work_handler [iw_cm]
+>>> [  195.251274] RIP: 0010:siw_cep_put+0x125/0x130 [siw]
+>>> [  195.253548] Code: bb c0 e8 ae 74 0f d7 48 89 ef 5d 41 5c 41 5d e9 b1 d6 ef
+>> d6 5d be 03 00 00 00 41 5c 41 5d e9 22 b7 0c d7 0f 0b e9 f3 fe ff ff <0f> 0b e9 1c
+>> ff ff ff 0f 1f 40 00 0f 1f 44 00 00 55 48 8d 6f 20 53
+>>> [  195.258982] RSP: 0018:ffffbc53404ebc98 EFLAGS: 00010286
+>>> [  195.261018] RAX: 0000000000000001 RBX: 0000000000000000 RCX:
+>> 0000000000000000
+>>> [  195.263569] RDX: 0000000000000001 RSI: 0000000000000246 RDI:
+>> ffffa03d1102a924
+>>> [  195.266151] RBP: ffffa03d1102a900 R08: ffffa03d1102a920 R09:
+>> ffffbc53404ebc50
+>>> [  195.269150] R10: ffffffff98a060e0 R11: 0000000000000000 R12:
+>> ffffa03cc4297000
+>>> [  195.272744] R13: ffffa03d2a48aea0 R14: ffffa03d2a48ae78 R15:
+>> ffffa03cc427ad58
+>>> [  195.275575] FS:  0000000000000000(0000) GS:ffffa03df7c80000(0000)
+>> knlGS:0000000000000000
+>>> [  195.278932] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>>> [  195.280963] CR2: 00005590bc2e4fe8 CR3: 000000008500a004 CR4:
+>> 0000000000770ee0
+>>> [  195.282803] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
+>> 0000000000000000
+>>> [  195.284650] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7:
+>> 0000000000000400
+>>> [  195.286522] PKRU: 55555554
+>>> [  195.287998] Call Trace:
+>>> [  195.289210]  <TASK>
+>>> [  195.290969]  siw_reject+0xac/0x180 [siw]
+>>> [  195.292679]  iw_cm_reject+0x68/0xc0 [iw_cm]
+>>> [  195.294136]  cm_work_handler+0x59d/0xe20 [iw_cm]
+>>> [  195.295588]  process_one_work+0x1e2/0x3b0
+>>> [  195.298338]  worker_thread+0x50/0x3a0
+>>> [  195.300330]  ? rescuer_thread+0x390/0x390
+>>> [  195.302269]  kthread+0xe5/0x110
+>>> [  195.304062]  ? kthread_complete_and_exit+0x20/0x20
+>>> [  195.307612]  ret_from_fork+0x1f/0x30
+>>> [  195.309585]  </TASK>
+>>> [  195.310674] ---[ end trace 0000000000000000 ]---
+>>> [  195.313290] scsi host4: ib_srp: REJ received
+>>> [  195.313293] scsi host4:   REJ reason 0xffffff98
+>>> [  195.315433] scsi host4: ib_srp: Connection 0/8 to 172.17.8.113 failed
+>>> [  195.472718] ib_srp:srp_parse_in: ib_srp: 172.17.8.113 -> 172.17.8.113:0
+>>> [  195.472739] ib_srp:srp_parse_in: ib_srp: 172.17.8.113:5555 ->
+>> 172.17.8.113:5555
+>>> [  195.472807] ib_srp:srp_parse_in: ib_srp: [fe80::5054:ff:fe5b:90dc%3] ->
+>> [fe80::5054:ff:fe5b:90dc]:0/202442865%3
+>>>> [0] INVALID URI REMOVED
+>> 3A__github.com_mcgrof_kdevops&d=DwIGaQ&c=jf_iaSHvJObTbx-
+>> siA1ZOg&r=2TaYXQ0T-
+>> r8ZO1PP1alNwU_QJcRRLfmYTAgd3QCvqSc&m=7dWDVPFaNFXoRqokXmPFFy
+>> XkVL2yItLNzYUDfM4ULTg&s=1ezv_qa-
+>> ujLTftm7OxJ5xNZuoKrc70DJPBDccqZokbY&e=
+>>>   >    Luis
+>>
+>> Hi, Bernard
+>>
+>> I reproduced this issue, and it looks like a condition race between
+>> 'cm_work_handler' and 'siw_cm_work_handler'.
+>>
+>> ----------------------------------------------------------------
+>>    Thread0:                         Thread1:
+>>    siw_cm_work_handler              cm_work_handler
+>> ----------------------------------------------------------------
+>> step0:
+>> siw_cm_upcall with
+>> IW_CM_EVENT_CONNECT_REQUEST
+>>
+>>                               ===> cm_conn_req_handler
+>>                                      ...
+>>                                        cm_id->cm_handler (failed)
+>>                                        iw_cm_reject
+>>                                             siw_reject
+>>
+>> *step1*:
+>> detach cep with listen_cep
+>> ----------------------------------------------------------------
+>>
+>> When siw_reject is called in cm_work_handler, the related cep may have
+>> not been detached with its listen_cep, through the two steps are very
+>> close.
+>>
+>> I think one simple way to fix this issue is keep step1 under
+>> siw_cep_set_inuse's protection, and this will make siw_reject will be
+>> pending util siw_cm_work_handler release the lock:
+>>
+>> diff --git a/drivers/infiniband/sw/siw/siw_cm.c
+>> b/drivers/infiniband/sw/siw/siw_cm.c
+>> index 7acdd3c3a599..f033b6da1e9f 100644
+>> --- a/drivers/infiniband/sw/siw/siw_cm.c
+>> +++ b/drivers/infiniband/sw/siw/siw_cm.c
+>> @@ -968,13 +968,15 @@ static void siw_accept_newconn(struct siw_cep
+>> *cep)
+>>
+>>                   siw_cep_set_inuse(new_cep);
+>>                   rv = siw_proc_mpareq(new_cep);
+>> -               siw_cep_set_free(new_cep);
+>>
+>>                   if (rv != -EAGAIN) {
+>>                           siw_cep_put(cep);
+>>                           new_cep->listen_cep = NULL;
+>> +                       siw_cep_set_free(new_cep);
+>>                           if (rv)
+>>                                   goto error;
+>> +               } else {
+>> +                       siw_cep_set_free(new_cep);
+>>                   }
+>>           }
+>>           return;
+>>
+>> Thanks,
+>> Cheng Xu
+> 
+> Hi Cheng, many thanks for looking into it! Unfortunately
+> I am out next 12 days until May. I will immediately look into
+> it when back. Your explanation sounds reasonable, but I'd
+> like to fully understand. 
+I'd like to send a patch to fix this. When you back, you can review this
+issue and the patch.
 
-Combined with deferring cleanup code to type specific cleanup
-routines this allows all pending activity referring to objects to
-complete before returning to rdma_core.
+Was it fixing the issue for you?
 
-Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
----
- drivers/infiniband/sw/rxe/rxe_mr.c    |  2 +-
- drivers/infiniband/sw/rxe/rxe_mw.c    |  4 +-
- drivers/infiniband/sw/rxe/rxe_pool.c  | 62 +++++++++++++++++++++++++--
- drivers/infiniband/sw/rxe/rxe_pool.h  | 11 +++--
- drivers/infiniband/sw/rxe/rxe_verbs.c | 30 ++++++++-----
- 5 files changed, 90 insertions(+), 19 deletions(-)
+Sure, With this change, the WARN in dmesg does not appear any more in
+my tests.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index fc3942e04a1f..9a5c2af6a56f 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -687,7 +687,7 @@ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
- 	if (atomic_read(&mr->num_mw) > 0)
- 		return -EINVAL;
- 
--	rxe_put(mr);
-+	rxe_cleanup(mr);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
-index 2e1fa844fabf..86e63d7dc1f3 100644
---- a/drivers/infiniband/sw/rxe/rxe_mw.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mw.c
-@@ -33,6 +33,8 @@ int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata)
- 			RXE_MW_STATE_FREE : RXE_MW_STATE_VALID;
- 	spin_lock_init(&mw->lock);
- 
-+	rxe_finalize(mw);
-+
- 	return 0;
- }
- 
-@@ -40,7 +42,7 @@ int rxe_dealloc_mw(struct ib_mw *ibmw)
- {
- 	struct rxe_mw *mw = to_rmw(ibmw);
- 
--	rxe_put(mw);
-+	rxe_cleanup(mw);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 0fdde3d46949..f5380b6bdea2 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.c
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -6,6 +6,8 @@
- 
- #include "rxe.h"
- 
-+#define RXE_POOL_TIMEOUT	(200)
-+#define RXE_POOL_MAX_TIMEOUTS	(3)
- #define RXE_POOL_ALIGN		(16)
- 
- static const struct rxe_type_info {
-@@ -139,8 +141,12 @@ void *rxe_alloc(struct rxe_pool *pool)
- 	elem->pool = pool;
- 	elem->obj = obj;
- 	kref_init(&elem->ref_cnt);
-+	init_completion(&elem->complete);
- 
--	err = xa_alloc_cyclic(&pool->xa, &elem->index, elem, pool->limit,
-+	/* allocate index in array but leave pointer as NULL so it
-+	 * can't be looked up until rxe_finalize() is called
-+	 */
-+	err = xa_alloc_cyclic(&pool->xa, &elem->index, NULL, pool->limit,
- 			      &pool->next, GFP_KERNEL);
- 	if (err)
- 		goto err_free;
-@@ -167,8 +173,9 @@ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_elem *elem)
- 	elem->pool = pool;
- 	elem->obj = (u8 *)elem - pool->elem_offset;
- 	kref_init(&elem->ref_cnt);
-+	init_completion(&elem->complete);
- 
--	err = xa_alloc_cyclic(&pool->xa, &elem->index, elem, pool->limit,
-+	err = xa_alloc_cyclic(&pool->xa, &elem->index, NULL, pool->limit,
- 			      &pool->next, GFP_KERNEL);
- 	if (err)
- 		goto err_cnt;
-@@ -201,9 +208,44 @@ void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
- static void rxe_elem_release(struct kref *kref)
- {
- 	struct rxe_pool_elem *elem = container_of(kref, typeof(*elem), ref_cnt);
-+
-+	complete(&elem->complete);
-+}
-+
-+int __rxe_cleanup(struct rxe_pool_elem *elem)
-+{
- 	struct rxe_pool *pool = elem->pool;
-+	struct xarray *xa = &pool->xa;
-+	static int timeout = RXE_POOL_TIMEOUT;
-+	unsigned long flags;
-+	int ret, err = 0;
-+	void *xa_ret;
- 
--	xa_erase(&pool->xa, elem->index);
-+	/* erase xarray entry to prevent looking up
-+	 * the pool elem from its index
-+	 */
-+	xa_lock_irqsave(xa, flags);
-+	xa_ret = __xa_erase(xa, elem->index);
-+	xa_unlock_irqrestore(xa, flags);
-+	WARN_ON(xa_err(xa_ret));
-+
-+	/* if this is the last call to rxe_put complete the
-+	 * object. It is safe to touch elem after this since
-+	 * it is freed below
-+	 */
-+	__rxe_put(elem);
-+
-+	if (timeout) {
-+		ret = wait_for_completion_timeout(&elem->complete, timeout);
-+		if (!ret) {
-+			pr_warn("Timed out waiting for %s#%d to complete\n",
-+				pool->name, elem->index);
-+			if (++pool->timeouts >= RXE_POOL_MAX_TIMEOUTS)
-+				timeout = 0;
-+
-+			err = -EINVAL;
-+		}
-+	}
- 
- 	if (pool->cleanup)
- 		pool->cleanup(elem);
-@@ -212,6 +254,8 @@ static void rxe_elem_release(struct kref *kref)
- 		kfree(elem->obj);
- 
- 	atomic_dec(&pool->num_elem);
-+
-+	return err;
- }
- 
- int __rxe_get(struct rxe_pool_elem *elem)
-@@ -223,3 +267,15 @@ int __rxe_put(struct rxe_pool_elem *elem)
- {
- 	return kref_put(&elem->ref_cnt, rxe_elem_release);
- }
-+
-+void __rxe_finalize(struct rxe_pool_elem *elem)
-+{
-+	struct xarray *xa = &elem->pool->xa;
-+	unsigned long flags;
-+	void *ret;
-+
-+	xa_lock_irqsave(xa, flags);
-+	ret = __xa_store(&elem->pool->xa, elem->index, elem, GFP_KERNEL);
-+	xa_unlock_irqrestore(xa, flags);
-+	WARN_ON(xa_err(ret));
-+}
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
-index 24bcc786c1b3..83f96b2d5096 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.h
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.h
-@@ -28,6 +28,7 @@ struct rxe_pool_elem {
- 	void			*obj;
- 	struct kref		ref_cnt;
- 	struct list_head	list;
-+	struct completion	complete;
- 	u32			index;
- };
- 
-@@ -37,6 +38,7 @@ struct rxe_pool {
- 	void			(*cleanup)(struct rxe_pool_elem *elem);
- 	enum rxe_pool_flags	flags;
- 	enum rxe_elem_type	type;
-+	unsigned int		timeouts;
- 
- 	unsigned int		max_elem;
- 	atomic_t		num_elem;
-@@ -63,20 +65,23 @@ void *rxe_alloc(struct rxe_pool *pool);
- 
- /* connect already allocated object to pool */
- int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_elem *elem);
--
- #define rxe_add_to_pool(pool, obj) __rxe_add_to_pool(pool, &(obj)->elem)
- 
- /* lookup an indexed object from index. takes a reference on object */
- void *rxe_pool_get_index(struct rxe_pool *pool, u32 index);
- 
- int __rxe_get(struct rxe_pool_elem *elem);
--
- #define rxe_get(obj) __rxe_get(&(obj)->elem)
- 
- int __rxe_put(struct rxe_pool_elem *elem);
--
- #define rxe_put(obj) __rxe_put(&(obj)->elem)
- 
-+int __rxe_cleanup(struct rxe_pool_elem *elem);
-+#define rxe_cleanup(obj) __rxe_cleanup(&(obj)->elem)
-+
- #define rxe_read(obj) kref_read(&(obj)->elem.ref_cnt)
- 
-+void __rxe_finalize(struct rxe_pool_elem *elem);
-+#define rxe_finalize(obj) __rxe_finalize(&(obj)->elem)
-+
- #endif /* RXE_POOL_H */
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 7357794b951a..b003bc126fb7 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -115,7 +115,7 @@ static void rxe_dealloc_ucontext(struct ib_ucontext *ibuc)
- {
- 	struct rxe_ucontext *uc = to_ruc(ibuc);
- 
--	rxe_put(uc);
-+	rxe_cleanup(uc);
- }
- 
- static int rxe_port_immutable(struct ib_device *dev, u32 port_num,
-@@ -149,7 +149,7 @@ static int rxe_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- {
- 	struct rxe_pd *pd = to_rpd(ibpd);
- 
--	rxe_put(pd);
-+	rxe_cleanup(pd);
- 	return 0;
- }
- 
-@@ -188,7 +188,7 @@ static int rxe_create_ah(struct ib_ah *ibah,
- 		err = copy_to_user(&uresp->ah_num, &ah->ah_num,
- 					 sizeof(uresp->ah_num));
- 		if (err) {
--			rxe_put(ah);
-+			rxe_cleanup(ah);
- 			return -EFAULT;
- 		}
- 	} else if (ah->is_user) {
-@@ -197,6 +197,8 @@ static int rxe_create_ah(struct ib_ah *ibah,
- 	}
- 
- 	rxe_init_av(init_attr->ah_attr, &ah->av);
-+	rxe_finalize(ah);
-+
- 	return 0;
- }
- 
-@@ -228,7 +230,7 @@ static int rxe_destroy_ah(struct ib_ah *ibah, u32 flags)
- {
- 	struct rxe_ah *ah = to_rah(ibah);
- 
--	rxe_put(ah);
-+	rxe_cleanup(ah);
- 	return 0;
- }
- 
-@@ -313,7 +315,7 @@ static int rxe_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *init,
- 	return 0;
- 
- err_cleanup:
--	rxe_put(srq);
-+	rxe_cleanup(srq);
- err_out:
- 	return err;
- }
-@@ -367,7 +369,7 @@ static int rxe_destroy_srq(struct ib_srq *ibsrq, struct ib_udata *udata)
- {
- 	struct rxe_srq *srq = to_rsrq(ibsrq);
- 
--	rxe_put(srq);
-+	rxe_cleanup(srq);
- 	return 0;
- }
- 
-@@ -434,10 +436,11 @@ static int rxe_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *init,
- 	if (err)
- 		goto qp_init;
- 
-+	rxe_finalize(qp);
- 	return 0;
- 
- qp_init:
--	rxe_put(qp);
-+	rxe_cleanup(qp);
- 	return err;
- }
- 
-@@ -490,7 +493,7 @@ static int rxe_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 	if (ret)
- 		return ret;
- 
--	rxe_put(qp);
-+	rxe_cleanup(qp);
- 	return 0;
- }
- 
-@@ -808,7 +811,7 @@ static int rxe_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
- 
- 	rxe_cq_disable(cq);
- 
--	rxe_put(cq);
-+	rxe_cleanup(cq);
- 	return 0;
- }
- 
-@@ -903,6 +906,7 @@ static struct ib_mr *rxe_get_dma_mr(struct ib_pd *ibpd, int access)
- 
- 	rxe_get(pd);
- 	rxe_mr_init_dma(pd, access, mr);
-+	rxe_finalize(mr);
- 
- 	return &mr->ibmr;
- }
-@@ -931,11 +935,13 @@ static struct ib_mr *rxe_reg_user_mr(struct ib_pd *ibpd,
- 	if (err)
- 		goto err3;
- 
-+	rxe_finalize(mr);
-+
- 	return &mr->ibmr;
- 
- err3:
- 	rxe_put(pd);
--	rxe_put(mr);
-+	rxe_cleanup(mr);
- err2:
- 	return ERR_PTR(err);
- }
-@@ -963,11 +969,13 @@ static struct ib_mr *rxe_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
- 	if (err)
- 		goto err2;
- 
-+	rxe_finalize(mr);
-+
- 	return &mr->ibmr;
- 
- err2:
- 	rxe_put(pd);
--	rxe_put(mr);
-+	rxe_cleanup(mr);
- err1:
- 	return ERR_PTR(err);
- }
--- 
-2.32.0
+Thanks,
+Cheng Xu
 
+> 
+> Thanks, Bernard.
+> 
