@@ -2,187 +2,56 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81AE9C433F5
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Apr 2022 03:48:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B7F1C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Apr 2022 07:17:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1384008AbiDUDvI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 Apr 2022 23:51:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43846 "EHLO
+        id S1385288AbiDUHUm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Apr 2022 03:20:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384006AbiDUDvI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 Apr 2022 23:51:08 -0400
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E968AE7A
-        for <linux-rdma@vger.kernel.org>; Wed, 20 Apr 2022 20:48:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1650512900; x=1682048900;
-  h=date:from:to:cc:subject:message-id:mime-version:
-   content-transfer-encoding;
-  bh=aWY0luQ+9oSefJcJmTnP/ULIsERbrAbw7oKSpCDOyoI=;
-  b=UNW5nqXidstBmbCXioNf/6ooJyoecyt0baRt6wH+0BmT/MIWQIVVFeFx
-   +BaClwwCuNmt1jdHN+O/Q9ZOMDzzxFxlzMmBf2fcQ88ANNI5QEzBNa23u
-   X8K6dRDz7x2lCCx0WI9/bTeQ30eUWNSDcFpk6RXGm8QUctTY9yKZSAccf
-   880hqBIlGjeVjv+Qh62+PS4+gcRpxR6p1RRJRf1NHv03MDy37TBRjddsV
-   eOnKC3ngacf8VhH9M8KTyakhgADPqPHZZcAomxQqwqjuHsTyZ1rSDj6Xt
-   OnEamkdgXqXudAwAuDtw7o7mtg0Pk5ndPMQJKWi4NJ9WDhWd15SdDEAcL
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10323"; a="244809417"
-X-IronPort-AV: E=Sophos;i="5.90,277,1643702400"; 
-   d="scan'208";a="244809417"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Apr 2022 20:48:19 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.90,277,1643702400"; 
-   d="scan'208";a="647951320"
-Received: from lkp-server01.sh.intel.com (HELO 3abc53900bec) ([10.239.97.150])
-  by FMSMGA003.fm.intel.com with ESMTP; 20 Apr 2022 20:48:18 -0700
-Received: from kbuild by 3abc53900bec with local (Exim 4.95)
-        (envelope-from <lkp@intel.com>)
-        id 1nhNnl-0007on-TN;
-        Thu, 21 Apr 2022 03:48:17 +0000
-Date:   Thu, 21 Apr 2022 11:44:29 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/jgg-for-rc] BUILD SUCCESS
- 570a4bf7440e9fb2a4164244a6bf60a46362b627
-Message-ID: <6260d31d.kqcscJ4syaLLrtTu%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        with ESMTP id S235802AbiDUHUm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Apr 2022 03:20:42 -0400
+Received: from out30-56.freemail.mail.aliyun.com (out30-56.freemail.mail.aliyun.com [115.124.30.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E40F167F5
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Apr 2022 00:17:53 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R171e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VAdmiDk_1650525469;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VAdmiDk_1650525469)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Thu, 21 Apr 2022 15:17:50 +0800
+From:   Cheng Xu <chengyou@linux.alibaba.com>
+To:     jgg@ziepe.ca, dledford@redhat.com, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com,
+        chengyou@linux.alibaba.com, tonylu@linux.alibaba.com,
+        BMT@zurich.ibm.com
+Subject: [PATCH for-next v7 01/12] RDMA: Add ERDMA to rdma_driver_id definition
+Date:   Thu, 21 Apr 2022 15:17:36 +0800
+Message-Id: <20220421071747.1892-2-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.32.0 (Apple Git-132)
+In-Reply-To: <20220421071747.1892-1-chengyou@linux.alibaba.com>
+References: <20220421071747.1892-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/jgg-for-rc
-branch HEAD: 570a4bf7440e9fb2a4164244a6bf60a46362b627  RDMA/rxe: Recheck the MR in when generating a READ reply
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+---
+ include/uapi/rdma/ib_user_ioctl_verbs.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-elapsed time: 743m
-
-configs tested: 110
-configs skipped: 3
-
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-gcc tested configs:
-arm64                               defconfig
-arm64                            allyesconfig
-arm                              allmodconfig
-arm                                 defconfig
-arm                              allyesconfig
-i386                          randconfig-c001
-m68k                       m5208evb_defconfig
-m68k                          hp300_defconfig
-powerpc                      ppc6xx_defconfig
-powerpc                      pcm030_defconfig
-mips                     loongson1b_defconfig
-arm                          lpd270_defconfig
-xtensa                         virt_defconfig
-powerpc                      chrp32_defconfig
-ia64                      gensparse_defconfig
-sh                        apsh4ad0a_defconfig
-mips                         cobalt_defconfig
-arm                            qcom_defconfig
-sh                   secureedge5410_defconfig
-powerpc                       ppc64_defconfig
-arm64                            alldefconfig
-sh                          polaris_defconfig
-x86_64                        randconfig-c001
-arm                  randconfig-c002-20220420
-ia64                             allmodconfig
-ia64                             allyesconfig
-ia64                                defconfig
-m68k                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-nios2                               defconfig
-arc                              allyesconfig
-csky                                defconfig
-nios2                            allyesconfig
-alpha                               defconfig
-alpha                            allyesconfig
-h8300                            allyesconfig
-xtensa                           allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-s390                                defconfig
-s390                             allmodconfig
-parisc                              defconfig
-parisc64                            defconfig
-parisc                           allyesconfig
-s390                             allyesconfig
-sparc                               defconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-i386                                defconfig
-i386                   debian-10.3-kselftests
-i386                              debian-10.3
-mips                             allyesconfig
-mips                             allmodconfig
-powerpc                          allyesconfig
-powerpc                           allnoconfig
-powerpc                          allmodconfig
-x86_64                        randconfig-a006
-x86_64                        randconfig-a004
-x86_64                        randconfig-a002
-x86_64                        randconfig-a011
-x86_64                        randconfig-a013
-x86_64                        randconfig-a015
-i386                          randconfig-a012
-i386                          randconfig-a014
-i386                          randconfig-a016
-arc                  randconfig-r043-20220420
-riscv                               defconfig
-riscv                    nommu_virt_defconfig
-riscv                          rv32_defconfig
-riscv                    nommu_k210_defconfig
-riscv                             allnoconfig
-riscv                            allmodconfig
-riscv                            allyesconfig
-x86_64                    rhel-8.3-kselftests
-um                           x86_64_defconfig
-um                             i386_defconfig
-x86_64                          rhel-8.3-func
-x86_64                                  kexec
-x86_64                              defconfig
-x86_64                           allyesconfig
-x86_64                         rhel-8.3-kunit
-x86_64                               rhel-8.3
-
-clang tested configs:
-riscv                randconfig-c006-20220420
-mips                 randconfig-c004-20220420
-x86_64                        randconfig-c007
-i386                          randconfig-c001
-arm                  randconfig-c002-20220420
-powerpc              randconfig-c003-20220420
-arm                           omap1_defconfig
-powerpc                      ppc44x_defconfig
-powerpc                     pseries_defconfig
-powerpc                     skiroot_defconfig
-arm                          ep93xx_defconfig
-powerpc                    gamecube_defconfig
-arm                        neponset_defconfig
-x86_64                        randconfig-a005
-x86_64                        randconfig-a003
-x86_64                        randconfig-a001
-i386                          randconfig-a002
-i386                          randconfig-a006
-i386                          randconfig-a004
-x86_64                        randconfig-a012
-x86_64                        randconfig-a014
-x86_64                        randconfig-a016
-i386                          randconfig-a013
-i386                          randconfig-a011
-i386                          randconfig-a015
-hexagon              randconfig-r041-20220420
-riscv                randconfig-r042-20220420
-hexagon              randconfig-r045-20220420
-s390                 randconfig-r044-20220420
-
+diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
+index 3072e5d6b692..7dd56210226f 100644
+--- a/include/uapi/rdma/ib_user_ioctl_verbs.h
++++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
+@@ -250,6 +250,7 @@ enum rdma_driver_id {
+ 	RDMA_DRIVER_QIB,
+ 	RDMA_DRIVER_EFA,
+ 	RDMA_DRIVER_SIW,
++	RDMA_DRIVER_ERDMA,
+ };
+ 
+ enum ib_uverbs_gid_type {
 -- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+2.27.0
+
