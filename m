@@ -2,99 +2,217 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E80EC433EF
-	for <linux-rdma@archiver.kernel.org>; Sat, 23 Apr 2022 01:54:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 911B7C433FE
+	for <linux-rdma@archiver.kernel.org>; Sat, 23 Apr 2022 02:35:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229455AbiDWB5v (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Apr 2022 21:57:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37490 "EHLO
+        id S232246AbiDWCiO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Apr 2022 22:38:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231768AbiDWB5p (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 22 Apr 2022 21:57:45 -0400
-Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CC07E4B
-        for <linux-rdma@vger.kernel.org>; Fri, 22 Apr 2022 18:54:50 -0700 (PDT)
-Received: by mail-oi1-x22d.google.com with SMTP id t15so11010917oie.1
-        for <linux-rdma@vger.kernel.org>; Fri, 22 Apr 2022 18:54:50 -0700 (PDT)
+        with ESMTP id S232244AbiDWCiL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 22 Apr 2022 22:38:11 -0400
+Received: from mail-lf1-x132.google.com (mail-lf1-x132.google.com [IPv6:2a00:1450:4864:20::132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9986AFE5E6
+        for <linux-rdma@vger.kernel.org>; Fri, 22 Apr 2022 19:35:15 -0700 (PDT)
+Received: by mail-lf1-x132.google.com with SMTP id y32so17256052lfa.6
+        for <linux-rdma@vger.kernel.org>; Fri, 22 Apr 2022 19:35:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language
-         :from:to:references:in-reply-to:content-transfer-encoding;
-        bh=p7vjC567BURP8YKsIzj2NxBh4cGKgwagWxOhdvW3eo8=;
-        b=cs5lsrjhx6QXVYkA9C8DrRm3BUjaXhH/jehrk2iCOsWmhICQeTUwNLEe6MiBKFV0XI
-         pXy1G8Vd/yuDCSvl7+svjxmWJMoWV7OkO5ZfCwTA9fGTbE4pdJ9bL7pTMhyXkRFPIv+J
-         Qw5NwDOCn6gJB9Wk+HiD/eYbm+WyiD/oAOtGBzTgaiZo2HL2qY/QVwl9Z19QlQRjHasY
-         QHkjqge3HTnQmpOjk6Ng/Y38OH2H3JvHjqz2pmRtdwbkA9QfdcoROXxiU1lvRzX212ew
-         pdbxAJtidsqxdtpVoM5l36EyqP9CCxPO1MVgsmYXMjrFxP6s4oNnECCjuBrp9wZUqNSh
-         Braw==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=mAjj7vb+jpEdxehtsXvQsPoaerEpLTK6GpbJNfOA29I=;
+        b=IPhu2+B9gFs7F+/BCAjlc1B4vlr0Cv1DB8xs7/Z/6Y4iFvKdUtoFwUPCzGqsFlrDmK
+         qD9t3JvsF3BjDLT8wf6lc59eaCJx7U5eP1ei+aGYrf0XjH7EByp0oH9yWaAWVyw5X8zf
+         wFWQulIMf7yYpV/w3kDQApahLmO2KP5K3EfKH1fDnAheVyrGIuEyEYKnDqPoIvLgO004
+         2Mrhk4lbVjaPfcTka7czRq9dcpNSaFJQ/40LGqcbg6N4CKPSUYGyWfK6u0M6I6atHEbM
+         uM9sd1svKsVXXcBEvlMmDhVd5Y9JW3Tr2VZ3Zx18mBQNnMvegwUiP8fEJMglUIHQLuNd
+         ipaw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:from:to:references:in-reply-to
-         :content-transfer-encoding;
-        bh=p7vjC567BURP8YKsIzj2NxBh4cGKgwagWxOhdvW3eo8=;
-        b=cD8Wqt2z1yF0zMmjdmhSo57TGlJk3K6ZsWvLBoc70DDAD5iSzhR8UwCkjhMiopGnJe
-         umYqtdS2jFBH7mHRHw3hHhXl1qyHUx5ErMb/w6nRdW+oj5jg7Jvkt+BZqtGxfA4nVfdv
-         E1btWfelnH9qvI2FyGerfML/yvBqdvms0GNzgzChaak5fvGBfjU8uuGvtPI74dLdh3TV
-         jEATUQ0vbtzR2g+5P/a8Dvgf6om/8UcRZCY8wvb2nMhjDpxmw0Zv6mEEHopwqAW+ISV1
-         ed9yYrwkhP7WyavbfInLJ1CyMucCZwtm6jDEK9yuqrMTSA88hUSnQA5ocTbdeaWqZxBj
-         EJgg==
-X-Gm-Message-State: AOAM532rNKbMBHIv/mXvYoxf6Ib5nIvpFEEoTQGnh/cyXMGyLHa4QDlT
-        tOJ7wR9pV1Dk3E1qNXPoD/4=
-X-Google-Smtp-Source: ABdhPJxmOQfim2m0ldQSmihxqSoVS7m9W++gbY0Ukz5h5b8+gOeojVvjCFLqAlcKQ8fi1BQuoi3tiQ==
-X-Received: by 2002:a05:6808:17a3:b0:324:fcbf:3142 with SMTP id bg35-20020a05680817a300b00324fcbf3142mr1314494oib.5.1650678889752;
-        Fri, 22 Apr 2022 18:54:49 -0700 (PDT)
-Received: from ?IPV6:2603:8081:140c:1a00:e508:94f4:5ee:8557? (2603-8081-140c-1a00-e508-94f4-05ee-8557.res6.spectrum.com. [2603:8081:140c:1a00:e508:94f4:5ee:8557])
-        by smtp.gmail.com with ESMTPSA id k15-20020a4a2a0f000000b0033a34a057c8sm1457554oof.11.2022.04.22.18.54.49
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 22 Apr 2022 18:54:49 -0700 (PDT)
-Message-ID: <c362b55f-64c2-4eda-8acf-c389b6435bcd@gmail.com>
-Date:   Fri, 22 Apr 2022 20:54:48 -0500
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=mAjj7vb+jpEdxehtsXvQsPoaerEpLTK6GpbJNfOA29I=;
+        b=IomgSfGOJARkEMohzkbF1w4cS7WkoWb+wpG99FnUgzipGNN5oxyxDdyVOIMxmqdWB2
+         gzTDlvJKLHa+WpW0mrQDyQAPvkG1JoACsNc/68PIYg2rBFr3/Tq52/j0u28W/zAis3+p
+         GHXJpPHyWB/fm0+KFGndOziipClu8yIKyxMe4SuueN2OjxVx59LzCNT/m8DuThLfqMnf
+         V4PmkCRruMKubIx9sh3yXXcqpFZiU6WeM6jPueW0UqzF5kKxlq8fxkc3O7Eir6SUghw8
+         5W4uH23N1O1JU/panXZHUH8KJmtckne/LU/BlPsmhc9Xo4LkzrBiKBca58OS2gOK6j7u
+         dKcw==
+X-Gm-Message-State: AOAM530On2ceIzTmctSmeU/Kh7zyzPNPGMSqT5ldXJ3UmzLodDh4mIG4
+        TIdvUcUu2Y4pVbrd5udXmy+4yTsWrhQROKuk4mf71r6k
+X-Google-Smtp-Source: ABdhPJygtK+d9qcnOPh4k88yNY4dEqg44UYIQkqnYUkf2+QOimbjSAsXQYvZxK77B6FSH/yXL3JJ9u9eUIs2B38Pt9E=
+X-Received: by 2002:a05:6512:1526:b0:471:44fa:c367 with SMTP id
+ bq38-20020a056512152600b0047144fac367mr5145918lfb.376.1650681313725; Fri, 22
+ Apr 2022 19:35:13 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: bug report for rdma_rxe
-Content-Language: en-US
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        Zhu Yanjun <zyjzyj2000@gmail.com>,
+References: <983bec37-4765-b45e-0f73-c474976d2dfc@gmail.com>
+ <20220422210025.GL2120790@nvidia.com> <387a0976-9f6f-29d3-347f-0ae551821b34@gmail.com>
+ <CAD=hENe6mQhOEp976UX+cR9Yf74gABcSnt7iXmitVV3sGcVzfA@mail.gmail.com> <5fc18e8e-25f9-5398-f0c8-e546466e08f3@gmail.com>
+In-Reply-To: <5fc18e8e-25f9-5398-f0c8-e546466e08f3@gmail.com>
+From:   Zhu Yanjun <zyjzyj2000@gmail.com>
+Date:   Sat, 23 Apr 2022 10:35:02 +0800
+Message-ID: <CAD=hENetRAy359Gj7-prCRjKkovz3_+xQT-Dt26Rr9YD0uGGFA@mail.gmail.com>
+Subject: Re: much about ah objects in rxe
+To:     Bob Pearson <rpearsonhpe@gmail.com>
+Cc:     Jason Gunthorpe <jgg@nvidia.com>,
         "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-References: <5de7d1a9-a7ac-aea5-d11c-49423d3f0bf1@gmail.com>
-In-Reply-To: <5de7d1a9-a7ac-aea5-d11c-49423d3f0bf1@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 4/22/22 16:04, Bob Pearson wrote:
-> Local operations in the rdma_rxe driver are not obviously idempotent. But, the
-> RC retry mechanism backs up the send queue to the point of the wqe that is
-> currently being acknowledged and re-walks the sq. Each send or write operation is
-> retried with the exception that the first one is truncated by the packets already
-> having been acknowledged. Each read and atomic operation is resent except that
-> read data already received in the first wqe is not requested. But all the
-> local operations are replayed. The problem is local invalidate which is destructive.
-> For example
-> 
-> sq:	some operation that times out
-> 	bind mw to mr
-> 	some other operation
-> 	invalidate mw
-> 	invalidate mr
-> 
-> can't be replayed because invalidating the mr makes the second bind fail.
-> There are lots of other examples where things go wrong.
-> 
-> To make things worse the send queue timer is never cleared and for typical
-> timeout values goes off every few msec whether anything actually failed.
-> 
-> Bob
+On Sat, Apr 23, 2022 at 9:48 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
+>
+> On 4/22/22 20:18, Zhu Yanjun wrote:
+> > On Sat, Apr 23, 2022 at 6:11 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
+> >>
+> >> On 4/22/22 16:00, Jason Gunthorpe wrote:
+> >>> On Fri, Apr 22, 2022 at 01:32:24PM -0500, Bob Pearson wrote:
+> >>>> Jason,
+> >>>>
+> >>>> I am confused a little.
+> >>>>
+> >>>>  - xa_alloc_xxx internally takes xa->xa_lock with a spinlock but
+> >>>>    has a gfp_t parameter which is normally GFP_KERNEL. So I trust them when they say
+> >>>>    that it releases the lock around kmalloc's by 'magic' as you say.
+> >>>>
+> >>>>  - The only read side operation on the rxe pool xarrays is in rxe_pool_get_index() but
+> >>>>    that will be protected by a rcu_read_lock so it can't deadlock with the write
+> >>>>    side spinlocks regardless of type (plain, _bh, _saveirq)
+> >>>>
+> >>>>  - Apparently CM is calling ib_create_ah while holding spin locks. This would
+> >>>>    call xa_alloc_xxx which would unlock xa_lock and call kmalloc(..., GFP_KERNEL)
+> >>>>    which should cause a warning for AH. You say it does not because xarray doesn't
+> >>>>    call might_sleep().
+> >>>>
+> >>>> I am not sure how might_sleep() works. When I add might_sleep() just ahead of
+> >>>> xa_alloc_xxx() it does not cause warnings for CM test cases (e.g. rping.)
+> >>>> Another way to study this would be to test for in_atomic() but
+> >>>
+> >>> might_sleep should work, it definately triggers from inside a
+> >>> spinlock. Perhaps you don't have all the right debug kconfig enabled?
+> >>>
+> >>>> that seems to be discouraged and may not work as assumed. It's hard to reproduce
+> >>>> evidence that ib_create_ah really has spinlocks held by the caller. I think it
+> >>>> was seen in lockdep traces but I have a hard time reading them.
+> >>>
+> >>> There is a call to create_ah inside RDMA CM that is under a spinlock
+> >>>
+> >>>>  - There is a lot of effort trying to make 'deadlocks' go away. But the read side
+> >>>>    is going to end as up rcu_read_lock so there soon will be no deadlocks with
+> >>>>    rxe_pool_get_index() possible. xarrays were designed to work well with rcu
+> >>>>    so it would better to just go ahead and do it. Verbs objects tend to be long
+> >>>>    lived with lots of IO on each instance. This is a perfect use case for rcu.
+> >>>
+> >>> Yes
+> >>>
+> >>>> I think this means there is no reason for anything but a plain spinlock in rxe_alloc
+> >>>> and rxe_add_to_pool.
+> >>>
+> >>> Maybe, are you sure there are no other xa spinlocks held from an IRQ?
+> >>>
+> >>> And you still have to deal with the create AH called in an atomic
+> >>> region.
+> >>
+> >> There are only 3 references to the xarrays:
+> >>
+> >>         1. When an object is allocated. Either from rxe_alloc() which is called
+> >>            an MR is registered or from rxe_add_to_pool() when the other
+> >>            objects are created.
+> >>         2. When an object is looked up from rxe_pool_get_index()
+> >>         3. When an object is cleaned up from rxe_xxx_destroy() and similar.
+> >>
+> >> For non AH objects the create and destroy verbs are always called in process
+> >> context and non-atomic and the lookup routine is normally called in soft IRQ
+> >> context but doesn't take a lock when rcu is used so can't deadlock.
+> >
+> > Are you sure about this? There are about several non AH objects.
+> > You can make sure that all in process context?
+> >
+> > And you can ensure it in the future?
+>
+> I added the line
+>
+>         WARN_ON(!in_task());
+>
+> to rxe_alloc and rxe_add_to_pool
+>
+> and it never triggered. I would be theoretically possible for someone to try
 
-This looks like an unholy mess. The reason I was looking at it is because Lustre
-on rxe doesn't work at the moment and the problems were traced to retry flows (on a very
-reliable network) caused by stray timeouts. We see local_invalidate_mr operations
-getting retried multiple times and not all of them succeed because the caller
-is remapping the fast MR in the mean time and changing the rkey.
+Your test environment does not mean that all the test environments
+will not trigger this.
 
-Bob
+> to write a module that responds to an interrupt in some wigit and then
+> tries to start a verbs session. But it would be very strange. It is reasonable
+> to just declare that the verbs APIs are not callable in interrupt (soft or hard)
+
+This will limit verbs APIs use.
+
+> context. I believe this is tacitly understood and currently is true. It is a
+> separate issue whether or not the caller is in 'atomic context' which includes
+> holding a spinlock and implies that the thread cannot sleep. the xarray code
+> if you look at the code for xa_alloc_cyclic() does take the xa_lock spinlock around
+> _xa_alloc_cyclic() but they also say in the comments that they release that lock
+> internally before calling kmalloc() and friends if the gfp_t parameter is
+> GFP_KERNEL so that it is safe to sleep.  However cma.c calls ib_create_ah() while
+> holding spinlocks (happens to be spin_lock_saveirq() but that doesn't matter here
+> since any spinlock makes it bad to call kmalloc()). So we have to use GFP_ATOMIC
+> for AH objects.
+>
+> It is clear that the assumption of the verbs APIs is that they are always called
+> in process context.
+
+How to ensure that they are not called in interrupt context? And some
+kernel modules
+also use the rdma.
+
+> >
+> >>
+> >> For AH objects the create call is always called in process context but may
+> >
+> > How to ensure it?
+>
+> Same way. It is true now see the WARN_ON above.
+> >
+> >> or may not hold an irq spinlock so hard interrupts are disabled to prevent
+> >> deadlocking CMs locks. The cleanup call is also in process context but also
+> >> may or may not hold an irq spinlock (not sure if it happens). These calls
+> >> can't deadlock each other for the xa_lock because there either won't be an
+> >> interrupt or because the process context calls don't cause reentering the
+> >> rxe code. They also can't deadlock with the lookup call when it is using rcu.
+> >
+> > From you, all the operations including create, destroy and lookup are
+> > in process context or soft IRQ context.
+> > How to ensure it? I mean that all operations are always in process or
+> > soft IRQ context, and will not violate?
+> > Even though in different calls ?
+>
+> We have no way to get into interrupt context. We get called from above through
+> the verbs APIs in process context and from below by NAPI passing network packets
+> to us in softirq context. We also internally defer work to tasklets which are
+> always soft IRQs. Unless someone outside of the rdma-core subsystem called into
+> verbs calls from interrupt context (weird) it can never happen. And has never
+> happened. Again don't get confused with irqsave spinlocks. They are used in
+> process or soft irq context sometimes and disable hardware interrupts to prevent
+> a deadlock with another spinlock in a hardware interrupt handler. But we don't
+> have any code that runs in hardware interrupt context to worry about. I doubt
+> cma does either but many people use irqsave spinlocks when they are not needed.
+
+How to verify that many people use unnecessary irqsave spinlock?
+
+Zhu Yanjun
+
+> >
+> > Zhu Yanjun
+> >
+> >>
+> >>>
+> >>>> To sum up once we have rcu enabled the only required change is to use GFP_ATOMIC
+> >>>> or find a way to pre-allocate for AH objects (assuming that I can convince myself
+> >>>> that ib_create_ah really comes with spinlocks held).
+> >>>
+> >>> Possibly yes
+> >>>
+> >>> Jason
+> >>
+>
