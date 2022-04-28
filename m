@@ -2,130 +2,131 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4B20C433F5
-	for <linux-rdma@archiver.kernel.org>; Wed, 27 Apr 2022 09:19:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05F27C433F5
+	for <linux-rdma@archiver.kernel.org>; Wed, 27 Apr 2022 11:44:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229453AbiD0JWe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 27 Apr 2022 05:22:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49356 "EHLO
+        id S232855AbiD0Lr2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 27 Apr 2022 07:47:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229441AbiD0JWd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 27 Apr 2022 05:22:33 -0400
-Received: from gentwo.de (gentwo.de [IPv6:2a02:c206:2048:5042::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5A49284D4E;
-        Wed, 27 Apr 2022 02:19:09 -0700 (PDT)
-Received: by gentwo.de (Postfix, from userid 1001)
-        id 5A0C9B0034A; Wed, 27 Apr 2022 11:19:02 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gentwo.de; s=default;
-        t=1651051142; bh=THAW7SYz39sd/4SV8yYtY27oG4RBl9E93y+eOWpVpUk=;
-        h=Date:From:To:cc:Subject:In-Reply-To:References:From;
-        b=lmXeCHTS1JPWXVhPjcLNIuleVDaTvDTP4ykvzJJp3YixMG8lELuB+IIFRFMXUkxXk
-         X4SfPdPrQ5oy8cP2ydHY+d+L1tM+R3iWFd42J59UEL46LmMD/BP9jZA2JaH20U+tRg
-         j0f3l7VzVgoMFloIDTydL6sAELGKzvfXvd8x+XSaiSlBlK/tfz2Bb7HNVPw+2gH9+Z
-         Xmy+z4yX6GG1nFKOkUcSPASZYdSX4kohjSU7bMDV5eBw/EkfOksRZrcAlvezOs2BwB
-         pQbIbcxs5ZINHSERykb0UQbE0Nx/nnfWR1iMYxRDHqEtb0TA5+9HHhYCQEdeatriOc
-         GMU1D4KmEyBLQ==
-Received: from localhost (localhost [127.0.0.1])
-        by gentwo.de (Postfix) with ESMTP id 515BFB0001E;
-        Wed, 27 Apr 2022 11:19:02 +0200 (CEST)
-Date:   Wed, 27 Apr 2022 11:19:02 +0200 (CEST)
-From:   Christoph Lameter <cl@gentwo.de>
-To:     Marcelo Tosatti <mtosatti@redhat.com>
-cc:     linux-kernel@vger.kernel.org, Nitesh Lal <nilal@redhat.com>,
-        Nicolas Saenz Julienne <nsaenzju@redhat.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alex Belits <abelits@belits.com>, Peter Xu <peterx@redhat.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        Oscar Shiang <oscar0225@livemail.tw>,
-        linux-rdma@vger.kernel.org
-Subject: Re: [patch v12 00/13] extensible prctl task isolation interface and
- vmstat sync
-In-Reply-To: <20220315153132.717153751@fedora.localdomain>
-Message-ID: <alpine.DEB.2.22.394.2204271049050.159551@gentwo.de>
-References: <20220315153132.717153751@fedora.localdomain>
-User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
+        with ESMTP id S232694AbiD0Lr2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 27 Apr 2022 07:47:28 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48D7B47563
+        for <linux-rdma@vger.kernel.org>; Wed, 27 Apr 2022 04:44:16 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6400,9594,10329"; a="247831824"
+X-IronPort-AV: E=Sophos;i="5.90,292,1643702400"; 
+   d="scan'208";a="247831824"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2022 04:44:15 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.90,292,1643702400"; 
+   d="scan'208";a="533166661"
+Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
+  by orsmga006.jf.intel.com with ESMTP; 27 Apr 2022 04:44:13 -0700
+From:   yanjun.zhu@linux.dev
+To:     jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
+        yanjun.zhu@linux.dev
+Subject: [PATCH 1/1] RDMA/rxe: Optimize the mr pool struct
+Date:   Thu, 28 Apr 2022 00:10:28 -0400
+Message-Id: <20220428041028.1363139-1-yanjun.zhu@linux.dev>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Ok I actually have started an opensource project that may make use of the
-onshot interface. This is a bridging tool between two RDMA protocols
-called ib2roce. See https://gentwo.org/christoph/2022-bridging-rdma.pdf
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-The relevant code can be found at
-https://github.com/clameter/rdma-core/tree/ib2roce/ib2roce. In
-particular look at the ib2roce.c source code. This is still
-under development.
+Based on the commit c9f4c695835c ("RDMA/rxe: Reverse the sense of
+RXE_POOL_NO_ALLOC"), only the mr pool uses the RXE_POOL_ALLOC,
+As such, replace this flags with pool type to save memory.
 
-The ib2roce briding can run in a busy loop mode (-k option) where it spins
-on ibv_poll_cq() which is an RDMA call to handle incoming packets without
-kernel interaction. See busyloop() in ib2roce.c
+Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+---
+ drivers/infiniband/sw/rxe/rxe_pool.c | 9 +++------
+ drivers/infiniband/sw/rxe/rxe_pool.h | 5 -----
+ 2 files changed, 3 insertions(+), 11 deletions(-)
 
-Currently I have configured the system to use CONFIG_NOHZ_FULL. With that
-I am able to reliably forward packets at a rate that saturates 100G
-Ethernet / EDR Infiniband from a single spinning thread.
-
-Without CONFIG_NOHZ_FULL any slight disturbance causes the forwarding to
-fall behind which will lead to dramatic packet loss since we are looking
-here at a potential data rate of 12.5Gbyte/sec and about 12.5Mbyte per
-msec. If the kernel interrupts the forwarding by say 10 msecs then we are
-falling behind by 125MB which would have to be buffered and processing by
-additional codes. That complexity makes it processing packets much slower
-which could cause the forwarding to slow down so that a recovery is not
-possible should the data continue to arrive at line rate.
-
-Isolation of the threads was done through the following kernel parameters:
-
-nohz_full=8-15,24-31 rcu_nocbs=8-15,24-31 poll_spectre_v2=off
-numa_balancing=disable rcutree.kthread_prio=3 intel_pstate=disable nosmt
-
-And systemd was configured with the following affinites:
-
-system.conf:CPUAffinity=0-7,16-23
-
-This means that the second socket will be generally free of tasks and
-kernel threads.
-
-The NUMA configuration:
-
-$ numactl --hardware
-available: 2 nodes (0-1)
-node 0 cpus: 0 1 2 3 4 5 6 7
-node 0 size: 94798 MB
-node 0 free: 92000 MB
-node 1 cpus: 8 9 10 11 12 13 14 15
-node 1 size: 96765 MB
-node 1 free: 96082 MB
-
-node distances:
-node   0   1
-  0:  10  21
-  1:  21  10
-
-
-I could modify busyloop() in ib2roce.c to use the oneshot mode via prctl
-provided by this patch instead of the NOHZ_FULL.
-
-What kind of metric could I be using to show the difference in idleness of
-the quality of the cpu isolation?
-
-The ib2roce tool already has a CLI mode where one can monitor the
-latencies that the busyloop experiences. See the latency calculations in
-busyloop() and the CLI command "core". Stats can be reset via the "zap"
-command.
-
-I can see the usefulness of the oneshot mode but (I am very very sorry) I
-still think that this patchset overdoes what is needed and I fail to
-understand what the point of inheritance, per syscall quiescint etc is.
-Those cause needless overhead in syscall handling and increase the
-complexity of managing a busyloop. Special handling when the scheduler
-switches a task? If tasks are being switched that requires them to be low
-latency and undisturbed then something went very very wrong with the
-system configuration and the only thing I would suggest is to issue some
-kernel warning that this is not the way one should configure the system.
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index 793df1569ff1..138763eb0e10 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -13,7 +13,6 @@ static const struct rxe_type_info {
+ 	size_t size;
+ 	size_t elem_offset;
+ 	void (*cleanup)(struct rxe_pool_elem *elem);
+-	enum rxe_pool_flags flags;
+ 	u32 min_index;
+ 	u32 max_index;
+ 	u32 max_elem;
+@@ -73,7 +72,6 @@ static const struct rxe_type_info {
+ 		.size		= sizeof(struct rxe_mr),
+ 		.elem_offset	= offsetof(struct rxe_mr, elem),
+ 		.cleanup	= rxe_mr_cleanup,
+-		.flags		= RXE_POOL_ALLOC,
+ 		.min_index	= RXE_MIN_MR_INDEX,
+ 		.max_index	= RXE_MAX_MR_INDEX,
+ 		.max_elem	= RXE_MAX_MR_INDEX - RXE_MIN_MR_INDEX + 1,
+@@ -101,7 +99,6 @@ void rxe_pool_init(struct rxe_dev *rxe, struct rxe_pool *pool,
+ 	pool->max_elem		= info->max_elem;
+ 	pool->elem_size		= ALIGN(info->size, RXE_POOL_ALIGN);
+ 	pool->elem_offset	= info->elem_offset;
+-	pool->flags		= info->flags;
+ 	pool->cleanup		= info->cleanup;
+ 
+ 	atomic_set(&pool->num_elem, 0);
+@@ -122,7 +119,7 @@ void *rxe_alloc(struct rxe_pool *pool)
+ 	void *obj;
+ 	int err;
+ 
+-	if (WARN_ON(!(pool->flags & RXE_POOL_ALLOC)))
++	if (WARN_ON(!(pool->type == RXE_TYPE_MR)))
+ 		return NULL;
+ 
+ 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+@@ -156,7 +153,7 @@ int __rxe_add_to_pool(struct rxe_pool *pool, struct rxe_pool_elem *elem, gfp_t g
+ {
+ 	int err;
+ 
+-	if (WARN_ON(pool->flags & RXE_POOL_ALLOC))
++	if (WARN_ON(pool->type == RXE_TYPE_MR))
+ 		return -EINVAL;
+ 
+ 	if (atomic_inc_return(&pool->num_elem) > pool->max_elem)
+@@ -217,7 +214,7 @@ static void rxe_elem_release(struct kref *kref)
+ 	if (pool->cleanup)
+ 		pool->cleanup(elem);
+ 
+-	if (pool->flags & RXE_POOL_ALLOC)
++	if (pool->type == RXE_TYPE_MR)
+ 		kfree(elem->obj);
+ 
+ 	atomic_dec(&pool->num_elem);
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index 12986622088b..ff5b52fe96c1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -7,10 +7,6 @@
+ #ifndef RXE_POOL_H
+ #define RXE_POOL_H
+ 
+-enum rxe_pool_flags {
+-	RXE_POOL_ALLOC		= BIT(1),
+-};
+-
+ enum rxe_elem_type {
+ 	RXE_TYPE_UC,
+ 	RXE_TYPE_PD,
+@@ -35,7 +31,6 @@ struct rxe_pool {
+ 	struct rxe_dev		*rxe;
+ 	const char		*name;
+ 	void			(*cleanup)(struct rxe_pool_elem *elem);
+-	enum rxe_pool_flags	flags;
+ 	enum rxe_elem_type	type;
+ 
+ 	unsigned int		max_elem;
+-- 
+2.27.0
 
