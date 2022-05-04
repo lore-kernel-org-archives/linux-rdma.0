@@ -2,184 +2,128 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 714A6C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 May 2022 00:00:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF6F4C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 May 2022 00:01:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238228AbiEEAED (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 May 2022 20:04:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52662 "EHLO
+        id S235849AbiEEAEU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 May 2022 20:04:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1381179AbiEDXiD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 May 2022 19:38:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E38E1EEC0;
-        Wed,  4 May 2022 16:34:26 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AAD361CFE;
-        Wed,  4 May 2022 23:34:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B1B9C385A4;
-        Wed,  4 May 2022 23:34:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1651707264;
-        bh=rg7gAW6bX54fvgfTyj+iLNX8iI1sLhWyZHkaZSInPKI=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=rr/VhCUks/jvvIukLEQ8hvouelHSSI+9oZesVy9WjHsFReyAH53SdMAhNcNxTncRh
-         AeNcfpQbGYHxmfRd7jiZWMjG0UbB4TKauYhVIbCXLf6VkMiM+KTnvLtKq+XumdW3b5
-         5XsvfgT+eqRG0aM2cOon7t/TFhjG0ZcaDmVjSrCT8tVFYMC+NZbIz/9jgmtLbpb2XF
-         jXkHA/11zXgPOkzwOz9hKL1cmOdu/0VL29aSmhBA26JK83Tblanq8QYFCE42J8CQ6Y
-         8C4e2ka/Vcj7axXhNyNWWZ2uF0Rop6olk1luKtEofCYGXG5sML5MH30Czl0f2TcCS9
-         K08sslbYEpn+w==
-Date:   Wed, 4 May 2022 18:43:24 -0500
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Kees Cook <keescook@chromium.org>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        "David S. Miller" <davem@davemloft.net>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Eric Paris <eparis@parisplace.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Xiu Jianfeng <xiujianfeng@huawei.com>,
-        Christian =?iso-8859-1?Q?G=F6ttsche?= <cgzones@googlemail.com>,
-        netdev@vger.kernel.org, selinux@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        alsa-devel@alsa-project.org, Al Viro <viro@zeniv.linux.org.uk>,
-        Andrew Gabbasov <andrew_gabbasov@mentor.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Andy Gross <agross@kernel.org>,
-        Andy Lavr <andy.lavr@gmail.com>,
-        Arend van Spriel <aspriel@gmail.com>,
-        Baowen Zheng <baowen.zheng@corigine.com>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Bradley Grove <linuxdrivers@attotech.com>,
-        brcm80211-dev-list.pdl@broadcom.com,
-        Christian Brauner <brauner@kernel.org>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Chris Zankel <chris@zankel.net>,
-        Cong Wang <cong.wang@bytedance.com>,
-        Daniel Axtens <dja@axtens.net>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Dan Williams <dan.j.williams@intel.com>,
-        David Gow <davidgow@google.com>,
-        David Howells <dhowells@redhat.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        devicetree@vger.kernel.org, Dexuan Cui <decui@microsoft.com>,
-        Dmitry Kasatkin <dmitry.kasatkin@gmail.com>,
-        Eli Cohen <elic@nvidia.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Eugeniu Rosca <erosca@de.adit-jv.com>,
-        Felipe Balbi <balbi@kernel.org>,
-        Francis Laniel <laniel_francis@privacyrequired.com>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Franky Lin <franky.lin@broadcom.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Gregory Greenman <gregory.greenman@intel.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        Hante Meuleman <hante.meuleman@broadcom.com>,
-        Hulk Robot <hulkci@huawei.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "James E.J. Bottomley" <jejb@linux.ibm.com>,
-        James Morris <jmorris@namei.org>,
-        Jarkko Sakkinen <jarkko@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>,
-        Johan Hedberg <johan.hedberg@gmail.com>,
-        Johannes Berg <johannes.berg@intel.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        John Keeping <john@metanate.com>,
-        Juergen Gross <jgross@suse.com>, Kalle Valo <kvalo@kernel.org>,
-        Keith Packard <keithp@keithp.com>, keyrings@vger.kernel.org,
-        kunit-dev@googlegroups.com,
-        Kuniyuki Iwashima <kuniyu@amazon.co.jp>,
-        "K. Y. Srinivasan" <kys@microsoft.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Lee Jones <lee.jones@linaro.org>,
+        with ESMTP id S1383401AbiEEABS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 May 2022 20:01:18 -0400
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2047.outbound.protection.outlook.com [40.107.236.47])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E156B98;
+        Wed,  4 May 2022 16:57:41 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Q8sSVvS24/76Q4Jh8NWT85pF3rMaDWUHMYtXkxX7kOszUbzaYsaWmYlBFimx538p2JlcmxJo3m8d5+5nvIy3nGW2P9v1VlKEcQJ+O9pgQXka2kBNnHIu3s7XVjX1r/QdRUUH0j+OJhEW0R/lHdb4fr62EMfI6dnt4Rp+A+cCp6hcztrFaOIbnydwJe7bCONcgv7rVOxUzit5zMIaN/gy9tZAwg+9WNk90+EMsffKD93qZWzq+DULFyKTHJYwJVruqV2elHfL+/UaOMFo5CWpEmZNP4Q+Tx9sF73rsa0jRgh/k7gvq1fIFlQ+hCtb89nnqza4QZDTlOYatkrDH3jdIA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=IhUL3zRn6YfbTb9ROEnuLEIlEEsTIrXOEWmJc83Lkig=;
+ b=hT4yK/N9Cr/Irl8JQKRcrJbQd+p9TDHx1M4tWM7Hq5R8T9L+pC7PXfuBowzBxHK1qQ+B7M3qLqYh5xlhO0wpXo+RAIDNb4E8U6ImcjGX/YANcGQZh5lNvoR1tUayElNjPeYrMc0QDPgm++f3YTUkUBBHW8CWqsKnWnggqRQY182xGSO/28lxxF+cWAaD2YtkXwmmTFmVyZXdugb+orOuozSWzzMrpNooPGm9Z1sQv9OpIO8BqyoKeKqBf9lqRuW2nllycA/PzPZLP1ZIUcJbTbjhg1Ti2pWrP956Sp+LatYzFZHc8g8sOkMPcuNi61L+lUyrg19Ek/b32omFARPlww==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=IhUL3zRn6YfbTb9ROEnuLEIlEEsTIrXOEWmJc83Lkig=;
+ b=Z7CE8+2rtuYKRFF2hA5a/JoHp75YyLs6vIlQZW/EOrVrK17CHoaL9850w1+uNSOBBBpp23HPicvuH2WtRgDwsTrNK+4VHYKxkfrXJ0s5UVUWz5SVxmBELnag2rntMafsQ0P4Zkapl3BZK8Xie8pILe7i2OLJG1VGqPuTRTq6XkVXP4p5Y/itsMkyOITR9/n09OIDt+Jc9mG6YuUV7E9hd+wgcXwPWi3kk7sHKmZRjcW8miGq6jEVDGuUk0WQslX08gWJBtJi35ZJqlE28sNHOusauhzkUQINtFaZH+BjYM5GBiMT6eaeOle9gV+ZeOoGWZOM/81IVx6Wqy6kytSW6Q==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH2PR12MB4181.namprd12.prod.outlook.com (2603:10b6:610:a8::16)
+ by CH2PR12MB4940.namprd12.prod.outlook.com (2603:10b6:610:65::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5206.24; Wed, 4 May
+ 2022 23:57:40 +0000
+Received: from CH2PR12MB4181.namprd12.prod.outlook.com
+ ([fe80::a090:8b53:715c:a961]) by CH2PR12MB4181.namprd12.prod.outlook.com
+ ([fe80::a090:8b53:715c:a961%5]) with mapi id 15.20.5206.026; Wed, 4 May 2022
+ 23:57:40 +0000
+Date:   Wed, 4 May 2022 20:57:38 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Guo Zhengkui <guozhengkui@vivo.com>
+Cc:     Wenpeng Liang <liangwenpeng@huawei.com>,
+        Weihang Li <liweihang@huawei.com>,
         Leon Romanovsky <leon@kernel.org>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        linux1394-devel@lists.sourceforge.net,
-        linux-afs@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-arm-msm@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-        linux-hardening@vger.kernel.org, linux-hyperv@vger.kernel.org,
-        linux-integrity@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, llvm@lists.linux.dev,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Louis Peens <louis.peens@corigine.com>,
-        Luca Coelho <luciano.coelho@intel.com>,
-        Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Marcel Holtmann <marcel@holtmann.org>,
-        Mark Brown <broonie@kernel.org>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Rich Felker <dalias@aerifal.cx>,
-        Rob Herring <robh+dt@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        SHA-cyfmac-dev-list@infineon.com,
-        Simon Horman <simon.horman@corigine.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Stephen Hemminger <sthemmin@microsoft.com>,
-        Tadeusz Struk <tadeusz.struk@linaro.org>,
-        Takashi Iwai <tiwai@suse.com>, Tom Rix <trix@redhat.com>,
-        Udipto Goswami <quic_ugoswami@quicinc.com>,
-        Vincenzo Frascino <vincenzo.frascino@arm.com>,
-        wcn36xx@lists.infradead.org, Wei Liu <wei.liu@kernel.org>,
-        xen-devel@lists.xenproject.org,
-        Yang Yingliang <yangyingliang@huawei.com>
-Subject: Re: [PATCH 28/32] selinux: Use mem_to_flex_dup() with xfrm and sidtab
-Message-ID: <20220504234324.GA12556@embeddedor>
-References: <20220504014440.3697851-1-keescook@chromium.org>
- <20220504014440.3697851-29-keescook@chromium.org>
- <CAHC9VhT5Y=ENiSyb=S-NVbGX63sLOv4nVuR_GS-yww6tiz0wYA@mail.gmail.com>
-MIME-Version: 1.0
+        "open list:HISILICON ROCE DRIVER" <linux-rdma@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        zhengkui_guo@outlook.com
+Subject: Re: [PATCH linux-next] RDMA/hns: fix returnvar.cocci warning
+Message-ID: <20220504235738.GA197080@nvidia.com>
+References: <20220426070858.9098-1-guozhengkui@vivo.com>
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHC9VhT5Y=ENiSyb=S-NVbGX63sLOv4nVuR_GS-yww6tiz0wYA@mail.gmail.com>
+In-Reply-To: <20220426070858.9098-1-guozhengkui@vivo.com>
+X-ClientProxiedBy: MN2PR15CA0064.namprd15.prod.outlook.com
+ (2603:10b6:208:237::33) To CH2PR12MB4181.namprd12.prod.outlook.com
+ (2603:10b6:610:a8::16)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: ab8b71f7-4911-4e59-20ac-08da2e29df06
+X-MS-TrafficTypeDiagnostic: CH2PR12MB4940:EE_
+X-Microsoft-Antispam-PRVS: <CH2PR12MB49401CD4E0707F8A191AE983C2C39@CH2PR12MB4940.namprd12.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: xLUmWa0NOfFqQ6BxLhU+bqyOTcvtbke2B3CXBhqa7juvzJ0nsm/l5TXf78ly0JhzCa0/KVqNNg+HwUMiV/IKVesmfvFPaw1c7QGvcIx6M9Hp2OfJlu22MMg47akrUo9CNbmSbjyqu8h0bYOu5WyMtYbmop+qnk2ZKvxa88HGy1L8YMTHFrChCUuo6aA9D5GwUGtavex/PJsMBfUjX+4BzYKPAiGjxlBfhj6p26W/Y2ORH4pz6TZaZWiiJucHFGGTPPzUMZmFQbs3i/6wV53Ont6bVh0IcYH6e14pXARklo4NYDxjcSrSRFzOmoDm83QPwI0Pkr+ebhZAK1d8hhy/MFJ/LIJ49vPF0EBgoQ5zhIXDLCfzET3m1GOgkxXqTZKqTHWk5XmckVjIHiVhICp+S/JdVNHFoaC4nph/6agXG3TQTTjLOxPZETQoNwLxGUjXPQJsIaMR+LqPATAnUgD9kn9QWskszYBjkXo9j2P33Asv9j5/Jpb+jSlKRalhyzAQLHIbSS+XyG0eQ5q6YA0eZbHqcOwAitbEbR4PyYxW5gNGcblMd48v/uGrjGAj1lwJIPWSlIC+/thXUpOK9aSIpM7f/E+qYYhSYbs7IZ+7UIV7PcSKYy8E8J3xJUWBA1A+8fZ/eVhRpDQw3tnlZzehaOUd++Dg+KxgecE53cyQSs9s0ycOeXgWnThZCnDLXq2q
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH2PR12MB4181.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(8936002)(2906002)(508600001)(83380400001)(6486002)(5660300002)(4744005)(86362001)(36756003)(26005)(33656002)(6512007)(186003)(1076003)(38100700002)(6916009)(316002)(2616005)(54906003)(66946007)(6506007)(66556008)(66476007)(4326008)(8676002)(27376004);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?8LsQC/hw+M8RJbtqacnNPKnWTAXftmqGhQZYXkrrh34u1IMrlrLsAo+qud2R?=
+ =?us-ascii?Q?2UF3kZ0u6DQ1RTslFnA19C/KzRppTjKo6365u02jAdgjH+FBtji7zMo0SMpe?=
+ =?us-ascii?Q?VxLw2hFI9oOav1Xzv/hOb0xbedp1W3mJpWx80fU5+f0hTSh7LIhuz9V9QuCa?=
+ =?us-ascii?Q?/GpfiiMjDR4Vyzs1sbxk/HeDGyMPlY3d7OpzVMjEq0Oi3XyPDFA8EoNc7Wns?=
+ =?us-ascii?Q?wbbioCnu7s5AfVZlyEubh/FmayVdDC5nLSvBoGleUS9vxp3q17nehVLjQSUf?=
+ =?us-ascii?Q?zIIdmBYWNnL3VyIU+W/eXVQks9LKJ3CaPDEl38FiVLWGFwh0JebKGu1RRGc/?=
+ =?us-ascii?Q?a5/1vabXwIQR5sWAiydHPJKVXUXvXyCVAM9S3epi1BGWNNNSgqhb+XlfsoWO?=
+ =?us-ascii?Q?kU2XDxceMgbrBoob5v6w62KE/JDVFP3x5r0RLHAufhyNEkH9Qd3GFXGM7FKM?=
+ =?us-ascii?Q?MKfh3YTmm6vqIyPetoLooyN4q3cmpucVD99LB8YtfjIt2/mOPhDiLXQA/K9x?=
+ =?us-ascii?Q?CXRTko0DyDMiA4Xf0R+NDctkNZs+2z/QJ4R7xRFzwobhemXG5UkK7tmjUz+y?=
+ =?us-ascii?Q?iQbHmHW6K2LMqNgq8UXqIG3bptPfBVh6gtHPFTEqmsa7aSC+AilTfwD3V6Zj?=
+ =?us-ascii?Q?EISOl8CH6pxDVstZn/G8fFmF2etQfldGRe6EJs3Z7V0CL5THla5Ge5h/joLy?=
+ =?us-ascii?Q?Od4TBkAOMOtcRR/upABB+G6v0Y78kS6ZGXZ6tyz21LXfaBLjtEc2Xuch9w0x?=
+ =?us-ascii?Q?GD20lXsCQxwOjWNszTdy9pst2oqTSjSbGRtg1ByIt1i2QltVmL8Mf9RXCe0s?=
+ =?us-ascii?Q?CZ3xv13RqVo3cRojV517USBW/YHpa47ljLuQHgjH3TPgGhxaNfuHnLQ9VmVk?=
+ =?us-ascii?Q?L7l7GoRTythcCiN8HsNLoCDnNWXOQwOspblrYW0JU/9MxVqV7XY5O78H1fIL?=
+ =?us-ascii?Q?NWWEn8CPK5Q9nQEApE39ojzy3aGhzmu8WpIN4XMA/OFwXRCCToTF30TALLeZ?=
+ =?us-ascii?Q?Eqz5SU8afmqa37HmKNpsKcl/zi6dZtKyYNjn8WmPuy/1h9dQKzojIQkNE0Oq?=
+ =?us-ascii?Q?tjXkBLNhhC8CIAMAYarvNzYtppoC6F5WDEJzp20KDCIgsUx087WN/U3qnPAr?=
+ =?us-ascii?Q?lRignXPEDsIDIVbMO1o6kVLHsidKH3fW/wLEVWTNVS5ogiwm9Hyn1kmfBa5j?=
+ =?us-ascii?Q?tXGQXiMviwhigiLqEnPkVOa6aYKg0hzhSa4vRUYL8PZO/WOHO5xDb7KvGN2W?=
+ =?us-ascii?Q?N1KJS1Svbe6EPHQTon+K4UQONX3ZTP+RXuE20fcq+IvEAKdJlk7SbCFka+AD?=
+ =?us-ascii?Q?idEVVX1R8ouDnUhkwixeiTKXRwFMwMRg+lloB6FL0Zl6NfgxnGyboiN1SbfQ?=
+ =?us-ascii?Q?7irPJKJZUpl5+rzgTkDADoYr5sRFNj9CXnMzhrlBydGKsIwJh9IJTRIG4A87?=
+ =?us-ascii?Q?N7rRRN7F78mCFeXIaIPOd0mYPAR/KynzILd4io53i++rXBcdVaVuRYVJml3T?=
+ =?us-ascii?Q?/yQBZM9GkviwLIhWxSe7pGxgjDgtA8GUqthEfuXL9i8sLiB7ucV3OaxIEEF1?=
+ =?us-ascii?Q?NOnJpNxSbSid8TNcss1B6iSE8FIR/fr/Jj1UTYpplDWvXEwB4twxyJc7jUea?=
+ =?us-ascii?Q?A25QGpqR8iF0bN6TtVVZmPVyGmXWOEGS64BIUm1tYemqMU1zWkfdurNHlO8v?=
+ =?us-ascii?Q?3FT6a2EYYz2q90nIBgiFap0meg8zHCbkJpaqi+G4Vo0IITZfpihoNCQbuyHf?=
+ =?us-ascii?Q?r9HkG13/Cg=3D=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ab8b71f7-4911-4e59-20ac-08da2e29df06
+X-MS-Exchange-CrossTenant-AuthSource: CH2PR12MB4181.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 May 2022 23:57:40.0665
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: xh7/jcG+NqLac/WX41YD5ql5xDv0Fy/uuZ1Vucyo4AcxsjjodsYQk+CDpYx7lJOt
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB4940
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Paul,
-
-On Wed, May 04, 2022 at 06:57:28PM -0400, Paul Moore wrote:
-> On Tue, May 3, 2022 at 9:57 PM Kees Cook <keescook@chromium.org> wrote:
-
-[..]
-
-> > +++ b/include/uapi/linux/xfrm.h
-> > @@ -31,9 +31,9 @@ struct xfrm_id {
-> >  struct xfrm_sec_ctx {
-> >         __u8    ctx_doi;
-> >         __u8    ctx_alg;
-> > -       __u16   ctx_len;
-> > +       __DECLARE_FLEX_ARRAY_ELEMENTS_COUNT(__u16, ctx_len);
-> >         __u32   ctx_sid;
-> > -       char    ctx_str[0];
-> > +       __DECLARE_FLEX_ARRAY_ELEMENTS(char, ctx_str);
-> >  };
+On Tue, Apr 26, 2022 at 03:08:58PM +0800, Guo Zhengkui wrote:
+> Fix the following coccicheck warning:
+> drivers/infiniband/hw/hns/hns_roce_mr.c:343:5-8: Unneeded variable: "ret".
+> Return "0" on line 351.
 > 
-> While I like the idea of this in principle, I'd like to hear about the
-> testing you've done on these patches.  A previous flex array
-> conversion in the audit uapi headers ended up causing a problem with
+> Signed-off-by: Guo Zhengkui <guozhengkui@vivo.com>
+> ---
+>  drivers/infiniband/hw/hns/hns_roce_mr.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 
-I'm curious about which commit caused those problems...?
+Applied to for-next, thanks
 
-Thanks
---
-Gustavo
-
-> GCC12 and SWIG; while it was a SWIG problem and not a kernel header
-> problem that was thin consolation for those with broken builds.
+Jason
