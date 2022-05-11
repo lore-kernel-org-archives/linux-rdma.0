@@ -2,85 +2,164 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96E74C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed, 11 May 2022 02:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4862DC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 11 May 2022 02:53:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239660AbiEKCXm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 May 2022 22:23:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55802 "EHLO
+        id S231919AbiEKCxw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 May 2022 22:53:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52522 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236215AbiEKCXi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 May 2022 22:23:38 -0400
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 30FE215C1B5;
-        Tue, 10 May 2022 19:23:37 -0700 (PDT)
-IronPort-Data: =?us-ascii?q?A9a23=3A17x7wq21Y2L4QGYB9PbD5Qpzkn2cJEfYwER7XOP?=
- =?us-ascii?q?LsXnJ0DMg12MPxmEWXDuAaKuONGP2LttwOti18x4AvpCDydM2QQE+nZ1PZygU8?=
- =?us-ascii?q?JKaX7x1DatR0xu6d5SFFAQ+hyknQoGowPscEzmM9n9BDpC79SMmjfvQH+KlYAL?=
- =?us-ascii?q?5EnsZqTFMGX5JZS1Ly7ZRbr5A2bBVMivV0T/Ai5S31GyNh1aYBlkpB5er83uDi?=
- =?us-ascii?q?hhdVAQw5TTSbdgT1LPXeuJ84Jg3fcldJFOgKmVY83LTegrN8F251juxExYFAdX?=
- =?us-ascii?q?jnKv5c1ERX/jZOg3mZnh+AvDk20Yd4HdplPtT2Pk0MC+7jx2NnsJxyddMvJqYR?=
- =?us-ascii?q?xorP7HXhaIWVBww/yRWZPcaoeOdfSPj2SCU5wicG5f2+N18HUMkLI9Cor4vKW5?=
- =?us-ascii?q?L/P0cbjsKa3irg+Ow3aL+SeR2gMknBNfkMZlZuXx6yzzdS/E8TvjrR6TM+M8dx?=
- =?us-ascii?q?js1j+hQEvvEIckUczxiaFLHeRInElUYB7osneqwiz/0elVlRPi9zUYsyzGLilU?=
- =?us-ascii?q?vj/62a5yIEuFmjP59xi6wzl8qNUyjav3CCOGi9A=3D=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AKmn0IK7wHUSVs7PKhAPXwPTXdLJyesId70hD?=
- =?us-ascii?q?6qkRc20wTiX8ra2TdZsguyMc9wx6ZJhNo7G90cq7MBbhHPxOkOos1N6ZNWGIhI?=
- =?us-ascii?q?LCFvAB0WKN+V3dMhy73utc+IMlSKJmFeD3ZGIQse/KpCW+DPYsqePqzJyV?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="124142434"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 11 May 2022 10:23:32 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-        by cn.fujitsu.com (Postfix) with ESMTP id 7B4064D1716F;
-        Wed, 11 May 2022 10:23:27 +0800 (CST)
-Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Wed, 11 May 2022 10:23:27 +0800
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Wed, 11 May 2022 10:23:27 +0800
-Received: from localhost.localdomain (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Wed, 11 May 2022 10:23:25 +0800
-From:   Li Zhijian <lizhijian@fujitsu.com>
-To:     Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        <linux-rdma@vger.kernel.org>
-CC:     <linux-kernel@vger.kernel.org>, Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH v2 0/2] RDMA/rxe: Fix no completion event issue
-Date:   Wed, 11 May 2022 10:30:28 +0800
-Message-ID: <20220511023030.229212-1-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
+        with ESMTP id S241826AbiEKCxU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 May 2022 22:53:20 -0400
+Received: from mail-pl1-x62c.google.com (mail-pl1-x62c.google.com [IPv6:2607:f8b0:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAFD72497C
+        for <linux-rdma@vger.kernel.org>; Tue, 10 May 2022 19:53:05 -0700 (PDT)
+Received: by mail-pl1-x62c.google.com with SMTP id n18so570981plg.5
+        for <linux-rdma@vger.kernel.org>; Tue, 10 May 2022 19:53:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=Sa6iliEUhHDKiJ4d5VKYWANmjzvcVks6FAQCBioSqwo=;
+        b=iLg1sZkLeKPM2kWZK1dOBgkVtvIv9fskmkv+uRa3VrGM/iSiUFxz9myhwDCq/lYtMQ
+         uqYJxL/zrLKanqkbFe33nehGm6l5DZ8mvHCYyk8RO7ro9VrUdoxqMHW1qj/9L4C/sZR+
+         79n1lE2VsyCc+x3k5bTSQqe4BWZOIwuScBssM=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=Sa6iliEUhHDKiJ4d5VKYWANmjzvcVks6FAQCBioSqwo=;
+        b=Dm1J9Ve2ycqscD/RAW0wr4FkpVG7Nmd96hNmydcWvNlL55YB7zJVuKONFwHIRLBYpk
+         rkZAK7NvJXjhIG15z8LhN84tmR4JiexHIa+Jh1IrYokGSOcAvRRcNZxeKin7lBAWsAAw
+         IZVv/FAKTIe6shW1EIIZMiOHeRKeYfaPv0hsfq12jmU9BVwLz2DpetZADoY7TT2yyPQ1
+         YRfl96mLozmixWiD9gn5ciQdW5l13vYxTVcsXiUITUJFH6gpGT8Ipe1m3xS/9DookOtx
+         C4a1Ee0QSC21qv8xsnPfjbwxXCFvSfa/eBGU7svHU9iSWIU9nafLiM73ykXPagVrbqin
+         2Pbw==
+X-Gm-Message-State: AOAM532Q1sGO+Gya25tX95t4TQaiguOpvX2wCC3C2iK864zJ7iRuoDl0
+        yFVKg2kibkYUC7tY8Ul2GMgo8Q==
+X-Google-Smtp-Source: ABdhPJx1c1/TGylCkNI+72RCfr609NArcRVaQDmF+ypY51TnbvIezVGQVIwy6NL0mcbSprU53CJYrg==
+X-Received: by 2002:a17:902:d4c2:b0:15e:abd0:926f with SMTP id o2-20020a170902d4c200b0015eabd0926fmr23646480plg.129.1652237585369;
+        Tue, 10 May 2022 19:53:05 -0700 (PDT)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id n9-20020a170902968900b0015e8d4eb1d7sm363503plp.33.2022.05.10.19.53.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 10 May 2022 19:53:05 -0700 (PDT)
+From:   Kees Cook <keescook@chromium.org>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Kees Cook <keescook@chromium.org>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Coco Li <lixiaoyan@google.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>, netdev@vger.kernel.org,
+        linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH] fortify: Provide a memcpy trap door for sharp corners
+Date:   Tue, 10 May 2022 19:53:01 -0700
+Message-Id: <20220511025301.3636666-1-keescook@chromium.org>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: 7B4064D1716F.AB924
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: lizhijian@fujitsu.com
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4296; h=from:subject; bh=zskFoaXURO/IVylo7b2S5LXUxKy16zZKQmnvSBayKxA=; b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBieyUMQ7ji1ylNdh9eL1qcvtxDkFAlxq4iz5ETfoxb d7pbo8iJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCYnslDAAKCRCJcvTf3G3AJnjwD/ 4vfLAWnR6lv2s6quyKFRlqqPX6DLgsFQO/0o6PWTm5WPdSp+jXJqvlubxLwxyUfRZUbAjVMOhXxrZz KnVhdajFWHnLc9B7YN9txp8Hh+eKcnC/OHn7yNU8hpZKQniQmkPh4D9/b1vwGodxeF6+u63TcnX8Z+ zZKjmoKETwoY1YykOIEE1Xqg8ox/oT52kP9u1N092vsWV6YXGrtSUQzsEqal/HToEvS6eW+ZUTi8i3 EyzzxjYtTSltgVY3Et9AqCO9Uo+0Ik7Go0rzqSNgnp0GS8xpKOFXb2g124++75uNB7utcfKmGn5yfR Wb4rd1+trzcYq7kxQp1xPZHqXXLV9UzeTqzToIVwDOwsWyKRmNdmsX9hDkiNiCn+7N9X+l9/gIbMm2 +RjZ/MRfPPTNuGmpliyix25Smdz53NXN1FrhronUFYEKnf1WpUEwTEvF4O42vsCTekwqIrgGXCLurf S/7d3fS4v4Bg8cA+5Qh+Uk0+ZqrTXgUP6OaDMkTICNXHTUGS80cHN7CrFE6q1UO+tsNQ/Fsge8taJS gm+Kiyli7VLSzYhXC0sKHxbB0JH0xP5894RSoW/K/PoLq+kRq7B1YseAHyV0Qfk5+iriQajxk+fnBQ egtZMtFQH8mxnRG8Q/Oo/X9lppUulkGrhJw92Vl2hjcQ77wy6/uvc14JCVXA==
+X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Since RXE always posts RDMA_WRITE successfully, it's observed that
-no more completion occurs after a few incorrect posts. Actually, it
-will block the polling. we can easily reproduce it by the below pattern.
+As we continue to narrow the scope of what the FORTIFY memcpy() will
+accept and build alternative APIs that give the compiler appropriate
+visibility into more complex memcpy scenarios, there is a need for
+"unfortified" memcpy use in rare cases where combinations of compiler
+behaviors, source code layout, etc, result in cases where the stricter
+memcpy checks need to be bypassed until appropriate solutions can be
+developed (i.e. fix compiler bugs, code refactoring, new API, etc). The
+intention is for this to be used only if there's no other reasonable
+solution, for its use to include a justification that can be used
+to assess future solutions, and for it to be temporary.
 
-a. post correct RDMA_WRITE
-b. poll completion event
-while true {
-  c. post incorrect RDMA_WRITE(wrong rkey for example)
-  d. poll completion event <<<< block after 2 incorrect RDMA_WRITE posts
-}
+Example usage included, based on analysis and discussion from:
+https://lore.kernel.org/netdev/CANn89iLS_2cshtuXPyNUGDPaic=sJiYfvTb_wNLgWrZRyBxZ_g@mail.gmail.com
 
-Li Zhijian (2):
-  RDMA/rxe: Update wqe_index for each wqe error completion
-  RDMA/rxe: Generate error completion for error requester state
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Coco Li <lixiaoyan@google.com>
+Cc: Tariq Toukan <tariqt@nvidia.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: netdev@vger.kernel.org
+Cc: linux-hardening@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_tx.c |  8 +++++++-
+ include/linux/fortify-string.h                  | 16 ++++++++++++++++
+ include/linux/string.h                          |  4 ++++
+ 3 files changed, 27 insertions(+), 1 deletion(-)
 
- drivers/infiniband/sw/rxe/rxe_req.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+index 2dc48406cd08..5855d8f9c509 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
+@@ -386,7 +386,13 @@ mlx5e_sq_xmit_wqe(struct mlx5e_txqsq *sq, struct sk_buff *skb,
+ 			stats->added_vlan_packets++;
+ 		} else {
+ 			eseg->inline_hdr.sz |= cpu_to_be16(attr->ihs);
+-			memcpy(eseg->inline_hdr.start, skb->data, attr->ihs);
++			unsafe_memcpy(eseg->inline_hdr.start, skb->data, attr->ihs,
++				/* This copy has been bounds-checked earlier in
++				 * mlx5i_sq_calc_wqe_attr() and intentionally
++				 * crosses a flex array boundary. Since it is
++				 * performance sensitive, splitting the copy is
++				 * undesirable.
++				 */);
+ 		}
+ 		dseg += wqe_attr->ds_cnt_inl;
+ 	} else if (skb_vlan_tag_present(skb)) {
+diff --git a/include/linux/fortify-string.h b/include/linux/fortify-string.h
+index 295637a66c46..3b401fa0f374 100644
+--- a/include/linux/fortify-string.h
++++ b/include/linux/fortify-string.h
+@@ -52,6 +52,22 @@ extern char *__underlying_strncpy(char *p, const char *q, __kernel_size_t size)
+ #define __underlying_strncpy	__builtin_strncpy
+ #endif
+ 
++/**
++ * unsafe_memcpy - memcpy implementation with no FORTIFY bounds checking
++ *
++ * @dst: Destination memory address to write to
++ * @src: Source memory address to read from
++ * @bytes: How many bytes to write to @dst from @src
++ * @justification: Free-form text or comment describing why the use is needed
++ *
++ * This should be used for corner cases where the compiler cannot do the
++ * right thing, or during transitions between APIs, etc. It should be used
++ * very rarely, and includes a place for justification detailing where bounds
++ * checking has happened, and why existing solutions cannot be employed.
++ */
++#define unsafe_memcpy(dst, src, bytes, justification)		\
++	__underlying_memcpy(dst, src, bytes)
++
+ /*
+  * Clang's use of __builtin_object_size() within inlines needs hinting via
+  * __pass_object_size(). The preference is to only ever use type 1 (member
+diff --git a/include/linux/string.h b/include/linux/string.h
+index b6572aeca2f5..61ec7e4f6311 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -252,6 +252,10 @@ static inline const char *kbasename(const char *path)
+ #if !defined(__NO_FORTIFY) && defined(__OPTIMIZE__) && defined(CONFIG_FORTIFY_SOURCE)
+ #include <linux/fortify-string.h>
+ #endif
++#ifndef unsafe_memcpy
++#define unsafe_memcpy(dst, src, bytes, justification)		\
++	memcpy(dst, src, bytes)
++#endif
+ 
+ void memcpy_and_pad(void *dest, size_t dest_len, const void *src, size_t count,
+ 		    int pad);
 -- 
-2.31.1
-
-
+2.32.0
 
