@@ -2,770 +2,143 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05EE2C433F5
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 May 2022 08:01:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89CDEC433EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 May 2022 08:43:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351288AbiELIBY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 May 2022 04:01:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45998 "EHLO
+        id S1350769AbiELInF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 May 2022 04:43:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351301AbiELIBU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 May 2022 04:01:20 -0400
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 652A057B0B
-        for <linux-rdma@vger.kernel.org>; Thu, 12 May 2022 01:01:17 -0700 (PDT)
-Received: from dggpeml500022.china.huawei.com (unknown [172.30.72.53])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4KzPHH0JRkzCsZV;
-        Thu, 12 May 2022 15:56:27 +0800 (CST)
-Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500022.china.huawei.com (7.185.36.66) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 12 May 2022 16:01:15 +0800
-Received: from localhost.localdomain (10.69.192.56) by
- dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 12 May 2022 16:01:15 +0800
-From:   Wenpeng Liang <liangwenpeng@huawei.com>
-To:     <jgg@nvidia.com>, <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 1/2] RDMA/hns: Use hr_reg_xxx() instead of remaining roce_set_xxx()
-Date:   Thu, 12 May 2022 16:00:11 +0800
-Message-ID: <20220512080012.38728-2-liangwenpeng@huawei.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20220512080012.38728-1-liangwenpeng@huawei.com>
-References: <20220512080012.38728-1-liangwenpeng@huawei.com>
+        with ESMTP id S1351728AbiELImo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 May 2022 04:42:44 -0400
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2040.outbound.protection.outlook.com [40.107.94.40])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A5234504A;
+        Thu, 12 May 2022 01:42:30 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=VJH6Q/9KUlo5RoSK75zGnL9j//xVm6Z+OlxhqzSACIO9FPckVzZzYPtdK8YMUswyXe1b+q+VE5dFlN5j0/pqDIFhwyAcF/5PHxWU+56M16uTUpW7toM56TvRDgqSfa4Z32lhRV2jgKE8G2Vt3a1lvx5ZZIY4N+ESTLoWe9xFIwKKxCyiydcjBfU0sMC0TtV/bpAr7geQpYn73aAWhKg9lcyscFsTLP92+xt6F2RY1/vKmsBKpKadkNXxkzHDzfr6HvTNOdSy/6D+ABBeyEQQC1IN8mgMWi09pnDUiViMc+/DwFRk1xCD5qG7lHuY2QXE/Pbeg3vcjo059XiCyu1viw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=TYz0eM6fXd67zyrv4B2b+ZkmS2jAJPiEvLLUTnhSh3w=;
+ b=i+5U1uTmUTCSnJqoD1nuwtORmsqbBkENM7xHYEipPgRw49PJE+2edVPJzhu6ZrTl/ftcdlCTet+triQf9p36mMO9KHdGTPR8cELpUXUS0t4cucIMr2BKz8zCun2vhgDh3/G+LIR1tAxp0ePr0O3T6lfUZlm8LSEFnAELVWTuKPQhhxDV0cDJiPz9PIZUxDR5834bhwvkjxnB97E/af8BuIAtyG7FzO66ziKRWINuNY44EYcdW6Lp5res1O3oOKMzOWqpQfU3otxjx6C9mm977lPRFEBUjC67YaRoWmrNghagZFZk4q37Pz0/2RX3BSc7Lilm71lYF2uiMgU9sdPBIg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=TYz0eM6fXd67zyrv4B2b+ZkmS2jAJPiEvLLUTnhSh3w=;
+ b=lwm5JqgjkEqXy9vId0HdDHHK820D17xXG6IcHCGFfLsy/SWGTufiaAfk0Uco/HpWT2NSjHZr4BcaikxuKmtwFM0ktnCHckTxAj0+hmSEsZBQmUEgia7svlJT3V1RF2ZPT6xGXjGJklWkNw3xQf3EqDljJ+q3FTJt9WZGdxc5Im0yxLYndtPXsU6/3QeVNtDHWKqLVdD6Yw39wKZEZVSSsOcsR31LsE8+2W57UHXU8Jyfvzhrb+1jr0SQew5VXUwZce6LFWW6lnZXsAe5ClLYemrS02u+yQPNxUhC6eJYcYx0n74ZJTKhFYWf7db7RC4Bfhq4Fgz4FWY5h76CO1zegA==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BY5PR12MB4209.namprd12.prod.outlook.com (2603:10b6:a03:20d::22)
+ by MN0PR12MB5811.namprd12.prod.outlook.com (2603:10b6:208:377::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5227.23; Thu, 12 May
+ 2022 08:42:28 +0000
+Received: from BY5PR12MB4209.namprd12.prod.outlook.com
+ ([fe80::bcda:499a:1cc1:abca]) by BY5PR12MB4209.namprd12.prod.outlook.com
+ ([fe80::bcda:499a:1cc1:abca%4]) with mapi id 15.20.5227.023; Thu, 12 May 2022
+ 08:42:28 +0000
+Date:   Thu, 12 May 2022 01:42:26 -0700
+From:   Saeed Mahameed <saeedm@nvidia.com>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Kees Cook <keescook@chromium.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Coco Li <lixiaoyan@google.com>,
+        Tariq Toukan <tariqt@nvidia.com>, netdev@vger.kernel.org,
+        linux-hardening@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH] fortify: Provide a memcpy trap door for sharp corners
+Message-ID: <20220512084226.id7jghqbadluze5k@LT-SAEEDM-5760.attlocal.net>
+References: <20220511025301.3636666-1-keescook@chromium.org>
+ <20220511092417.3c1c60d9@kernel.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20220511092417.3c1c60d9@kernel.org>
+X-ClientProxiedBy: BYAPR11CA0037.namprd11.prod.outlook.com
+ (2603:10b6:a03:80::14) To BY5PR12MB4209.namprd12.prod.outlook.com
+ (2603:10b6:a03:20d::22)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.69.192.56]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- dggpeml500017.china.huawei.com (7.185.36.243)
-X-CFilter-Loop: Reflected
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 7102d372-55c8-45d6-ab88-08da33f35866
+X-MS-TrafficTypeDiagnostic: MN0PR12MB5811:EE_
+X-Microsoft-Antispam-PRVS: <MN0PR12MB5811A97F6FD53A34F0EDFF90B3CB9@MN0PR12MB5811.namprd12.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Oj7bOxfjEnagrL1Vk9FMxJdPBM3iNHqBgEp3jBQZvm9SAaT+8x92MX04SOQ5ECFKuiwHmuyFEEnL90fBBuYEOt0Ke3PSIvepU4nSlRR0PYV2I37CqAaOep4l5El+wHnVIQ1yNr3lHPs0Y49hMakixvLvTECPI5XLDht5qEGoZ1sd6C1LRoCUeKPJZXt/8JmNruhQuGLxCToTe6YXQjEaNI+e+HKYga9Dmm2apGz/JnETcMhTr4PR0SmdHuYkyNStluL6/8cUpZkMKgVadYQWlFtbSGn9SV8C1EcEOXSKpBYHQ2zMxEkMpsogtcXQqVLXL9GWLK10UweDWPBm9pdcYTv6hYHq0lHVYnweSpFWBETvGUuSkWO/Mk9X/qThRuewlpjQnR7un1kDbQDHUOoxW+m2EMXDr8d8RP+o+d3Pep55XW1hQhRjkP4ltcQGBuGdNhs3mMRkk6NYOLB4jbTFcd73QKPPt1nQ6aGotBYbQpYosYSY6e+ea1bIZudOcDR7wtDDm9erY8aj2HNuWvmSbvZTUG/AyXCJMnivdV0oWjG4KfubRt/BDRVvurzZugPo3RaTX6HVKI+PTGWT4jzqLfZemGzHcllXwssQulav3mz0j47dpWTGI7RbmHpzGXr8u/QQsklx3M+J1fUfYuo30lWvB8vAXRbTCuHvVMybZ5lRiKuDQxv7AudZG+bJdHt8o9qM2oqx70yoZGu24E6Q0WG1MOclqOSwAWb9mMArV1I=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR12MB4209.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(86362001)(7416002)(38100700002)(508600001)(5660300002)(6486002)(966005)(9686003)(66946007)(316002)(6506007)(4326008)(66476007)(66556008)(54906003)(6916009)(8676002)(83380400001)(186003)(6512007)(1076003)(2906002)(8936002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?MeglJ2F6pEYczcRzLaZbLhAcs+VKQmsRJKnprvCuT9TH/XBBj7uQMAZRJV9j?=
+ =?us-ascii?Q?sJFCGRpCwdPLdtxhXh6C9mbBU51s1dI+6QtArPNrQyOgHKqyCgmGr4tyilmn?=
+ =?us-ascii?Q?pJJ5R+WTBeR5fl0UufvD9sP9hn57YlxMl4XU4kb7CLUTa1ulPgRbXX4ea2wu?=
+ =?us-ascii?Q?y+4Rul40MfcgVTAzJAi5sBn8moBA5nS0sRh2t2tM4skyyWO633mtaN+xFubk?=
+ =?us-ascii?Q?ixk2dARC8J7w/v75w89IbViZFfOk1FQEr2u7ywifuRbAKgw4JmVIDgdHmUDy?=
+ =?us-ascii?Q?eHUV2xvsSlYTwV+T0CFLcRjiR8Kh6EqPqXiFBJzFEs3UTr5O/vF/casoT4Vt?=
+ =?us-ascii?Q?x3kAFX+OT5TwaYGvD7QKZl2EsOZ91PT0jT2HXqvI25khIUh96dDO1/6PY80G?=
+ =?us-ascii?Q?nR6gZy3sGno5o9syX5BwchaEnhdhV+dI4ROkXN4Iofh7pdtdDl1ew1+acCKt?=
+ =?us-ascii?Q?JpLkMkYVPUB+NZbBblI+ok/seAgbAxN3OFg/4wd3vLxMPBgOWzl7nUNCEJp4?=
+ =?us-ascii?Q?ogZ5gxFJ0IJKa3WCnebDPnOluU4Bz8i+7mDA2o5+uv7UF+ITIRWBtecMf9Zo?=
+ =?us-ascii?Q?vDLlhiKXuVr/mZSaDl0VWh++AIwZry514OIkENbR9RfWsdLj5ge+lY4IQiIF?=
+ =?us-ascii?Q?IaBKqaG2fDxxYY3rR6wEDW0+lrxOHzl5GPktLBPbMnJQ4oYZ3rpcX+QBlfhx?=
+ =?us-ascii?Q?sCkMoY9Rc2Olm1l4uyId1bs+kuIAjuw1gJLvyjpUfwhE0IdOUVZEXvIMoIS1?=
+ =?us-ascii?Q?briJM/9ovEuF5ObjCSxDOjSHw/2nbENPmR+lxvc418rNDgv4HQzYIyakmmNp?=
+ =?us-ascii?Q?FMys0smo+9zpd3B5mlekeI1Uu6cJYtZzHUROjT19HNAt6iR+cr5wihHWQwoL?=
+ =?us-ascii?Q?bvcUtIs456FUxw8wYuGear8tdiw87qTB8b88+DxnWVC4KWzXTvYr2R3atAuY?=
+ =?us-ascii?Q?3NRwhUrYQpxIHuUVD1lFI+oc1TCX2zExHnTI0Yo3iiovMhcrRMyxt5ZjSOE+?=
+ =?us-ascii?Q?6J4ztJ06NbLOtUhzNOen59bLJZkz0Dxrku8bWsMQWkN4x+2CChc9pl/Yg/cX?=
+ =?us-ascii?Q?oSoQsHf4XgWl6fId9CxipW4jfyugljDUJgw98NPIRHS1QP7TN0i1lMWKgsri?=
+ =?us-ascii?Q?uZv+1fxG8UtLije8ksa9jFC5mOINCmD1fsoHku3u6Ppmx3K6t/2ClpVXltBN?=
+ =?us-ascii?Q?Bk15IqB5tVlHvbuktoRBJ4NruwbivhevM6b1gulQBMm5LPZZHnj7cWr3tIvZ?=
+ =?us-ascii?Q?zUbD6s2DBXTG0g4aAM5r/AF4m0WgDcZPsSzjQY/Qm2Ib8pMRp3WsgrGNg7FW?=
+ =?us-ascii?Q?mTwia+toECPNKcPfMRYISStJHpLG2splad9/PcR0sahV+1ncQRC/61w0Ill+?=
+ =?us-ascii?Q?Gh7ro8FrM2L5yGM8cTNNYBmQeJJQsLdT/YQXOFiGSlx0O3MEoA+IHNvIva5d?=
+ =?us-ascii?Q?bFw+kD4jNfRdYdwvrudV1J/pFNX0j7NkCOmxrphKUim6QeRL6aut/qTSTsgV?=
+ =?us-ascii?Q?7o53chlBxF5fnoJEe+Qi4nfCKnYMGV3ldkSMLdPCysyfdiT9t09FtZ0d+JFu?=
+ =?us-ascii?Q?y+aur2rwvHociiuzR72YLZ9l2Bb77ldjG3O+iNxoV/NrfuQhDrio1zrzOkdv?=
+ =?us-ascii?Q?mLlkqTER4E0jftAxVVmSjPF2vJ4j+4ZX9aLrrzFWVkhCmHwtyyMeJy+wiG8M?=
+ =?us-ascii?Q?RMqGhXJUwlsVfAbZqXwAOADkp6PRcLDA1xnBjKXazLZmT0TrLctofkKOt2Kl?=
+ =?us-ascii?Q?yZlZ77zhw8gYqC08SsOGCy7eY+InuGY=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 7102d372-55c8-45d6-ab88-08da33f35866
+X-MS-Exchange-CrossTenant-AuthSource: BY5PR12MB4209.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 May 2022 08:42:28.0789
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Fhcm9rDDR4smXg2hEKew1g8Kf/I71sH2OPVz0rMkcikuC1LJn3qREge80SDDg2sbMwK7YC+dUNVbqvcLL3PLbA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB5811
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-To reduce the code size and make the code clearer, replace all
-roce_set_xxx() with hr_reg_xxx() to write the data fields.
+On 11 May 09:24, Jakub Kicinski wrote:
+>On Tue, 10 May 2022 19:53:01 -0700 Kees Cook wrote:
+>> As we continue to narrow the scope of what the FORTIFY memcpy() will
+>> accept and build alternative APIs that give the compiler appropriate
+>> visibility into more complex memcpy scenarios, there is a need for
+>> "unfortified" memcpy use in rare cases where combinations of compiler
+>> behaviors, source code layout, etc, result in cases where the stricter
+>> memcpy checks need to be bypassed until appropriate solutions can be
+>> developed (i.e. fix compiler bugs, code refactoring, new API, etc). The
+>> intention is for this to be used only if there's no other reasonable
+>> solution, for its use to include a justification that can be used
+>> to assess future solutions, and for it to be temporary.
+>>
+>> Example usage included, based on analysis and discussion from:
+>> https://lore.kernel.org/netdev/CANn89iLS_2cshtuXPyNUGDPaic=sJiYfvTb_wNLgWrZRyBxZ_g@mail.gmail.com
+>
+>Saeed, ack for taking this in directly? Or do you prefer to take this
+>plus Eric's last BIG TCP patch via your tree?
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 261 ++++++++-------------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 166 +++++--------
- 2 files changed, 157 insertions(+), 270 deletions(-)
+Please take both, I asked Eric a question on the BIG TCP patch, but I
+won't block the series.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index d233b6c2b29a..ff66e44f0614 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -149,8 +149,7 @@ static void set_atomic_seg(const struct ib_send_wr *wr,
- 		aseg->cmp_data = 0;
- 	}
- 
--	roce_set_field(rc_sq_wqe->byte_16, V2_RC_SEND_WQE_BYTE_16_SGE_NUM_M,
--		       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_S, valid_num_sge);
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_SGE_NUM, valid_num_sge);
- }
- 
- static int fill_ext_sge_inl_data(struct hns_roce_qp *qp,
-@@ -271,8 +270,7 @@ static int set_rc_inl(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
- 	dseg += sizeof(struct hns_roce_v2_rc_send_wqe);
- 
- 	if (msg_len <= HNS_ROCE_V2_MAX_RC_INL_INN_SZ) {
--		roce_set_bit(rc_sq_wqe->byte_20,
--			     V2_RC_SEND_WQE_BYTE_20_INL_TYPE_S, 0);
-+		hr_reg_clear(rc_sq_wqe, RC_SEND_WQE_INL_TYPE);
- 
- 		for (i = 0; i < wr->num_sge; i++) {
- 			memcpy(dseg, ((void *)wr->sg_list[i].addr),
-@@ -280,17 +278,13 @@ static int set_rc_inl(struct hns_roce_qp *qp, const struct ib_send_wr *wr,
- 			dseg += wr->sg_list[i].length;
- 		}
- 	} else {
--		roce_set_bit(rc_sq_wqe->byte_20,
--			     V2_RC_SEND_WQE_BYTE_20_INL_TYPE_S, 1);
-+		hr_reg_enable(rc_sq_wqe, RC_SEND_WQE_INL_TYPE);
- 
- 		ret = fill_ext_sge_inl_data(qp, wr, &curr_idx, msg_len);
- 		if (ret)
- 			return ret;
- 
--		roce_set_field(rc_sq_wqe->byte_16,
--			       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_M,
--			       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_S,
--			       curr_idx - *sge_idx);
-+		hr_reg_write(rc_sq_wqe, RC_SEND_WQE_SGE_NUM, curr_idx - *sge_idx);
- 	}
- 
- 	*sge_idx = curr_idx;
-@@ -309,12 +303,10 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 	int j = 0;
- 	int i;
- 
--	roce_set_field(rc_sq_wqe->byte_20,
--		       V2_RC_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_M,
--		       V2_RC_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_S,
--		       (*sge_ind) & (qp->sge.sge_cnt - 1));
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_MSG_START_SGE_IDX,
-+		     (*sge_ind) & (qp->sge.sge_cnt - 1));
- 
--	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_INLINE_S,
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_INLINE,
- 		     !!(wr->send_flags & IB_SEND_INLINE));
- 	if (wr->send_flags & IB_SEND_INLINE)
- 		return set_rc_inl(qp, wr, rc_sq_wqe, sge_ind);
-@@ -339,9 +331,7 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 			       valid_num_sge - HNS_ROCE_SGE_IN_WQE);
- 	}
- 
--	roce_set_field(rc_sq_wqe->byte_16,
--		       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_M,
--		       V2_RC_SEND_WQE_BYTE_16_SGE_NUM_S, valid_num_sge);
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_SGE_NUM, valid_num_sge);
- 
- 	return 0;
- }
-@@ -412,8 +402,7 @@ static int set_ud_opcode(struct hns_roce_v2_ud_send_wqe *ud_sq_wqe,
- 
- 	ud_sq_wqe->immtdata = get_immtdata(wr);
- 
--	roce_set_field(ud_sq_wqe->byte_4, V2_UD_SEND_WQE_BYTE_4_OPCODE_M,
--		       V2_UD_SEND_WQE_BYTE_4_OPCODE_S, to_hr_opcode(ib_op));
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_OPCODE, to_hr_opcode(ib_op));
- 
- 	return 0;
- }
-@@ -424,21 +413,15 @@ static int fill_ud_av(struct hns_roce_v2_ud_send_wqe *ud_sq_wqe,
- 	struct ib_device *ib_dev = ah->ibah.device;
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
- 
--	roce_set_field(ud_sq_wqe->byte_24, V2_UD_SEND_WQE_BYTE_24_UDPSPN_M,
--		       V2_UD_SEND_WQE_BYTE_24_UDPSPN_S, ah->av.udp_sport);
--
--	roce_set_field(ud_sq_wqe->byte_36, V2_UD_SEND_WQE_BYTE_36_HOPLIMIT_M,
--		       V2_UD_SEND_WQE_BYTE_36_HOPLIMIT_S, ah->av.hop_limit);
--	roce_set_field(ud_sq_wqe->byte_36, V2_UD_SEND_WQE_BYTE_36_TCLASS_M,
--		       V2_UD_SEND_WQE_BYTE_36_TCLASS_S, ah->av.tclass);
--	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_M,
--		       V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_S, ah->av.flowlabel);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_UDPSPN, ah->av.udp_sport);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_HOPLIMIT, ah->av.hop_limit);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_TCLASS, ah->av.tclass);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_FLOW_LABEL, ah->av.flowlabel);
- 
- 	if (WARN_ON(ah->av.sl > MAX_SERVICE_LEVEL))
- 		return -EINVAL;
- 
--	roce_set_field(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_SL_M,
--		       V2_UD_SEND_WQE_BYTE_40_SL_S, ah->av.sl);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_SL, ah->av.sl);
- 
- 	ud_sq_wqe->sgid_index = ah->av.gid_index;
- 
-@@ -448,10 +431,8 @@ static int fill_ud_av(struct hns_roce_v2_ud_send_wqe *ud_sq_wqe,
- 	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
- 		return 0;
- 
--	roce_set_bit(ud_sq_wqe->byte_40, V2_UD_SEND_WQE_BYTE_40_UD_VLAN_EN_S,
--		     ah->av.vlan_en);
--	roce_set_field(ud_sq_wqe->byte_36, V2_UD_SEND_WQE_BYTE_36_VLAN_M,
--		       V2_UD_SEND_WQE_BYTE_36_VLAN_S, ah->av.vlan_id);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_VLAN_EN, ah->av.vlan_en);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_VLAN, ah->av.vlan_id);
- 
- 	return 0;
- }
-@@ -476,27 +457,19 @@ static inline int set_ud_wqe(struct hns_roce_qp *qp,
- 
- 	ud_sq_wqe->msg_len = cpu_to_le32(msg_len);
- 
--	roce_set_bit(ud_sq_wqe->byte_4, V2_UD_SEND_WQE_BYTE_4_CQE_S,
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_CQE,
- 		     !!(wr->send_flags & IB_SEND_SIGNALED));
--
--	roce_set_bit(ud_sq_wqe->byte_4, V2_UD_SEND_WQE_BYTE_4_SE_S,
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_SE,
- 		     !!(wr->send_flags & IB_SEND_SOLICITED));
- 
--	roce_set_field(ud_sq_wqe->byte_16, V2_UD_SEND_WQE_BYTE_16_PD_M,
--		       V2_UD_SEND_WQE_BYTE_16_PD_S, to_hr_pd(qp->ibqp.pd)->pdn);
--
--	roce_set_field(ud_sq_wqe->byte_16, V2_UD_SEND_WQE_BYTE_16_SGE_NUM_M,
--		       V2_UD_SEND_WQE_BYTE_16_SGE_NUM_S, valid_num_sge);
--
--	roce_set_field(ud_sq_wqe->byte_20,
--		       V2_UD_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_M,
--		       V2_UD_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_S,
--		       curr_idx & (qp->sge.sge_cnt - 1));
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_PD, to_hr_pd(qp->ibqp.pd)->pdn);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_SGE_NUM, valid_num_sge);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_MSG_START_SGE_IDX,
-+		     curr_idx & (qp->sge.sge_cnt - 1));
- 
- 	ud_sq_wqe->qkey = cpu_to_le32(ud_wr(wr)->remote_qkey & 0x80000000 ?
- 			  qp->qkey : ud_wr(wr)->remote_qkey);
--	roce_set_field(ud_sq_wqe->byte_32, V2_UD_SEND_WQE_BYTE_32_DQPN_M,
--		       V2_UD_SEND_WQE_BYTE_32_DQPN_S, ud_wr(wr)->remote_qpn);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_DQPN, ud_wr(wr)->remote_qpn);
- 
- 	ret = fill_ud_av(ud_sq_wqe, ah);
- 	if (ret)
-@@ -516,8 +489,7 @@ static inline int set_ud_wqe(struct hns_roce_qp *qp,
- 		dma_wmb();
- 
- 	*sge_idx = curr_idx;
--	roce_set_bit(ud_sq_wqe->byte_4, V2_UD_SEND_WQE_BYTE_4_OWNER_S,
--		     owner_bit);
-+	hr_reg_write(ud_sq_wqe, UD_SEND_WQE_OWNER, owner_bit);
- 
- 	return 0;
- }
-@@ -553,7 +525,7 @@ static int set_rc_opcode(struct hns_roce_dev *hr_dev,
- 			ret = -EOPNOTSUPP;
- 		break;
- 	case IB_WR_LOCAL_INV:
--		roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_SO_S, 1);
-+		hr_reg_enable(rc_sq_wqe, RC_SEND_WQE_SO);
- 		fallthrough;
- 	case IB_WR_SEND_WITH_INV:
- 		rc_sq_wqe->inv_key = cpu_to_le32(wr->ex.invalidate_rkey);
-@@ -565,11 +537,11 @@ static int set_rc_opcode(struct hns_roce_dev *hr_dev,
- 	if (unlikely(ret))
- 		return ret;
- 
--	roce_set_field(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_OPCODE_M,
--		       V2_RC_SEND_WQE_BYTE_4_OPCODE_S, to_hr_opcode(ib_op));
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_OPCODE, to_hr_opcode(ib_op));
- 
- 	return ret;
- }
-+
- static inline int set_rc_wqe(struct hns_roce_qp *qp,
- 			     const struct ib_send_wr *wr,
- 			     void *wqe, unsigned int *sge_idx,
-@@ -590,13 +562,13 @@ static inline int set_rc_wqe(struct hns_roce_qp *qp,
- 	if (WARN_ON(ret))
- 		return ret;
- 
--	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_FENCE_S,
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_FENCE,
- 		     (wr->send_flags & IB_SEND_FENCE) ? 1 : 0);
- 
--	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_SE_S,
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_SE,
- 		     (wr->send_flags & IB_SEND_SOLICITED) ? 1 : 0);
- 
--	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_CQE_S,
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_CQE,
- 		     (wr->send_flags & IB_SEND_SIGNALED) ? 1 : 0);
- 
- 	if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
-@@ -616,8 +588,7 @@ static inline int set_rc_wqe(struct hns_roce_qp *qp,
- 		dma_wmb();
- 
- 	*sge_idx = curr_idx;
--	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_OWNER_S,
--		     owner_bit);
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_OWNER, owner_bit);
- 
- 	return ret;
- }
-@@ -682,14 +653,11 @@ static void write_dwqe(struct hns_roce_dev *hr_dev, struct hns_roce_qp *qp,
- 	struct hns_roce_v2_rc_send_wqe *rc_sq_wqe = wqe;
- 
- 	/* All kinds of DirectWQE have the same header field layout */
--	roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_FLAG_S, 1);
--	roce_set_field(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_DB_SL_L_M,
--		       V2_RC_SEND_WQE_BYTE_4_DB_SL_L_S, qp->sl);
--	roce_set_field(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_DB_SL_H_M,
--		       V2_RC_SEND_WQE_BYTE_4_DB_SL_H_S,
--		       qp->sl >> HNS_ROCE_SL_SHIFT);
--	roce_set_field(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_WQE_INDEX_M,
--		       V2_RC_SEND_WQE_BYTE_4_WQE_INDEX_S, qp->sq.head);
-+	hr_reg_enable(rc_sq_wqe, RC_SEND_WQE_FLAG);
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_DB_SL_L, qp->sl);
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_DB_SL_H,
-+		     qp->sl >> HNS_ROCE_SL_SHIFT);
-+	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_WQE_INDEX, qp->sq.head);
- 
- 	hns_roce_write512(hr_dev, wqe, qp->sq.db_reg);
- }
-@@ -1785,17 +1753,16 @@ static int __hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev,
- 	swt = (struct hns_roce_vf_switch *)desc.data;
- 	hns_roce_cmq_setup_basic_desc(&desc, HNS_SWITCH_PARAMETER_CFG, true);
- 	swt->rocee_sel |= cpu_to_le32(HNS_ICL_SWITCH_CMD_ROCEE_SEL);
--	roce_set_field(swt->fun_id, VF_SWITCH_DATA_FUN_ID_VF_ID_M,
--		       VF_SWITCH_DATA_FUN_ID_VF_ID_S, vf_id);
-+	hr_reg_write(swt, VF_SWITCH_VF_ID, vf_id);
- 	ret = hns_roce_cmq_send(hr_dev, &desc, 1);
- 	if (ret)
- 		return ret;
- 
- 	desc.flag = cpu_to_le16(HNS_ROCE_CMD_FLAG_IN);
- 	desc.flag &= cpu_to_le16(~HNS_ROCE_CMD_FLAG_WR);
--	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LPBK_S, 1);
--	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S, 0);
--	roce_set_bit(swt->cfg, VF_SWITCH_DATA_CFG_ALW_DST_OVRD_S, 1);
-+	hr_reg_enable(swt, VF_SWITCH_ALW_LPBK);
-+	hr_reg_clear(swt, VF_SWITCH_ALW_LCL_LPBK);
-+	hr_reg_enable(swt, VF_SWITCH_ALW_DST_OVRD);
- 
- 	return hns_roce_cmq_send(hr_dev, &desc, 1);
- }
-@@ -3133,10 +3100,8 @@ static int config_sgid_table(struct hns_roce_dev *hr_dev,
- 
- 	hns_roce_cmq_setup_basic_desc(&desc, HNS_ROCE_OPC_CFG_SGID_TB, false);
- 
--	roce_set_field(sgid_tb->table_idx_rsv, CFG_SGID_TB_TABLE_IDX_M,
--		       CFG_SGID_TB_TABLE_IDX_S, gid_index);
--	roce_set_field(sgid_tb->vf_sgid_type_rsv, CFG_SGID_TB_VF_SGID_TYPE_M,
--		       CFG_SGID_TB_VF_SGID_TYPE_S, sgid_type);
-+	hr_reg_write(sgid_tb, CFG_SGID_TB_TABLE_IDX, gid_index);
-+	hr_reg_write(sgid_tb, CFG_SGID_TB_VF_SGID_TYPE, sgid_type);
- 
- 	copy_gid(&sgid_tb->vf_sgid_l, gid);
- 
-@@ -3171,19 +3136,14 @@ static int config_gmv_table(struct hns_roce_dev *hr_dev,
- 
- 	copy_gid(&tb_a->vf_sgid_l, gid);
- 
--	roce_set_field(tb_a->vf_sgid_type_vlan, CFG_GMV_TB_VF_SGID_TYPE_M,
--		       CFG_GMV_TB_VF_SGID_TYPE_S, sgid_type);
--	roce_set_bit(tb_a->vf_sgid_type_vlan, CFG_GMV_TB_VF_VLAN_EN_S,
--		     vlan_id < VLAN_CFI_MASK);
--	roce_set_field(tb_a->vf_sgid_type_vlan, CFG_GMV_TB_VF_VLAN_ID_M,
--		       CFG_GMV_TB_VF_VLAN_ID_S, vlan_id);
-+	hr_reg_write(tb_a, GMV_TB_A_VF_SGID_TYPE, sgid_type);
-+	hr_reg_write(tb_a, GMV_TB_A_VF_VLAN_EN, vlan_id < VLAN_CFI_MASK);
-+	hr_reg_write(tb_a, GMV_TB_A_VF_VLAN_ID, vlan_id);
- 
- 	tb_b->vf_smac_l = cpu_to_le32(*(u32 *)mac);
--	roce_set_field(tb_b->vf_smac_h, CFG_GMV_TB_SMAC_H_M,
--		       CFG_GMV_TB_SMAC_H_S, *(u16 *)&mac[4]);
- 
--	roce_set_field(tb_b->table_idx_rsv, CFG_GMV_TB_SGID_IDX_M,
--		       CFG_GMV_TB_SGID_IDX_S, gid_index);
-+	hr_reg_write(tb_b, GMV_TB_B_SMAC_H, *(u16 *)&mac[4]);
-+	hr_reg_write(tb_b, GMV_TB_B_SGID_IDX, gid_index);
- 
- 	return hns_roce_cmq_send(hr_dev, desc, 2);
- }
-@@ -3232,10 +3192,8 @@ static int hns_roce_v2_set_mac(struct hns_roce_dev *hr_dev, u8 phy_port,
- 	reg_smac_l = *(u32 *)(&addr[0]);
- 	reg_smac_h = *(u16 *)(&addr[4]);
- 
--	roce_set_field(smac_tb->tb_idx_rsv, CFG_SMAC_TB_IDX_M,
--		       CFG_SMAC_TB_IDX_S, phy_port);
--	roce_set_field(smac_tb->vf_smac_h_rsv, CFG_SMAC_TB_VF_SMAC_H_M,
--		       CFG_SMAC_TB_VF_SMAC_H_S, reg_smac_h);
-+	hr_reg_write(smac_tb, CFG_SMAC_TB_IDX, phy_port);
-+	hr_reg_write(smac_tb, CFG_SMAC_TB_VF_SMAC_H, reg_smac_h);
- 	smac_tb->vf_smac_l = cpu_to_le32(reg_smac_l);
- 
- 	return hns_roce_cmq_send(hr_dev, &desc, 1);
-@@ -3264,21 +3222,15 @@ static int set_mtpt_pbl(struct hns_roce_dev *hr_dev,
- 
- 	mpt_entry->pbl_size = cpu_to_le32(mr->npages);
- 	mpt_entry->pbl_ba_l = cpu_to_le32(pbl_ba >> 3);
--	roce_set_field(mpt_entry->byte_48_mode_ba,
--		       V2_MPT_BYTE_48_PBL_BA_H_M, V2_MPT_BYTE_48_PBL_BA_H_S,
--		       upper_32_bits(pbl_ba >> 3));
-+	hr_reg_write(mpt_entry, MPT_PBL_BA_H, upper_32_bits(pbl_ba >> 3));
- 
- 	mpt_entry->pa0_l = cpu_to_le32(lower_32_bits(pages[0]));
--	roce_set_field(mpt_entry->byte_56_pa0_h, V2_MPT_BYTE_56_PA0_H_M,
--		       V2_MPT_BYTE_56_PA0_H_S, upper_32_bits(pages[0]));
-+	hr_reg_write(mpt_entry, MPT_PA0_H, upper_32_bits(pages[0]));
- 
- 	mpt_entry->pa1_l = cpu_to_le32(lower_32_bits(pages[1]));
--	roce_set_field(mpt_entry->byte_64_buf_pa1, V2_MPT_BYTE_64_PA1_H_M,
--		       V2_MPT_BYTE_64_PA1_H_S, upper_32_bits(pages[1]));
--	roce_set_field(mpt_entry->byte_64_buf_pa1,
--		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_M,
--		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_S,
--		       to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.buf_pg_shift));
-+	hr_reg_write(mpt_entry, MPT_PA1_H, upper_32_bits(pages[1]));
-+	hr_reg_write(mpt_entry, MPT_PBL_BUF_PG_SZ,
-+		     to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.buf_pg_shift));
- 
- 	return 0;
- }
-@@ -3336,24 +3288,19 @@ static int hns_roce_v2_rereg_write_mtpt(struct hns_roce_dev *hr_dev,
- 	u32 mr_access_flags = mr->access;
- 	int ret = 0;
- 
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_MPT_ST_M,
--		       V2_MPT_BYTE_4_MPT_ST_S, V2_MPT_ST_VALID);
--
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PD_M,
--		       V2_MPT_BYTE_4_PD_S, mr->pd);
-+	hr_reg_write(mpt_entry, MPT_ST, V2_MPT_ST_VALID);
-+	hr_reg_write(mpt_entry, MPT_PD, mr->pd);
- 
- 	if (flags & IB_MR_REREG_ACCESS) {
--		roce_set_bit(mpt_entry->byte_8_mw_cnt_en,
--			     V2_MPT_BYTE_8_BIND_EN_S,
-+		hr_reg_write(mpt_entry, MPT_BIND_EN,
- 			     (mr_access_flags & IB_ACCESS_MW_BIND ? 1 : 0));
--		roce_set_bit(mpt_entry->byte_8_mw_cnt_en,
--			     V2_MPT_BYTE_8_ATOMIC_EN_S,
-+		hr_reg_write(mpt_entry, MPT_ATOMIC_EN,
- 			     mr_access_flags & IB_ACCESS_REMOTE_ATOMIC ? 1 : 0);
--		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RR_EN_S,
-+		hr_reg_write(mpt_entry, MPT_RR_EN,
- 			     mr_access_flags & IB_ACCESS_REMOTE_READ ? 1 : 0);
--		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RW_EN_S,
-+		hr_reg_write(mpt_entry, MPT_RW_EN,
- 			     mr_access_flags & IB_ACCESS_REMOTE_WRITE ? 1 : 0);
--		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_LW_EN_S,
-+		hr_reg_write(mpt_entry, MPT_LW_EN,
- 			     mr_access_flags & IB_ACCESS_LOCAL_WRITE ? 1 : 0);
- 	}
- 
-@@ -3384,37 +3331,28 @@ static int hns_roce_v2_frmr_write_mtpt(struct hns_roce_dev *hr_dev,
- 		return -ENOBUFS;
- 	}
- 
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_MPT_ST_M,
--		       V2_MPT_BYTE_4_MPT_ST_S, V2_MPT_ST_FREE);
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PBL_HOP_NUM_M,
--		       V2_MPT_BYTE_4_PBL_HOP_NUM_S, 1);
--	roce_set_field(mpt_entry->byte_4_pd_hop_st,
--		       V2_MPT_BYTE_4_PBL_BA_PG_SZ_M,
--		       V2_MPT_BYTE_4_PBL_BA_PG_SZ_S,
--		       to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.ba_pg_shift));
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PD_M,
--		       V2_MPT_BYTE_4_PD_S, mr->pd);
-+	hr_reg_write(mpt_entry, MPT_ST, V2_MPT_ST_FREE);
-+	hr_reg_write(mpt_entry, MPT_PD, mr->pd);
-+
-+	hr_reg_enable(mpt_entry, MPT_RA_EN);
-+	hr_reg_enable(mpt_entry, MPT_R_INV_EN);
-+	hr_reg_enable(mpt_entry, MPT_L_INV_EN);
- 
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RA_EN_S, 1);
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_R_INV_EN_S, 1);
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_L_INV_EN_S, 1);
-+	hr_reg_enable(mpt_entry, MPT_FRE);
-+	hr_reg_clear(mpt_entry, MPT_MR_MW);
-+	hr_reg_enable(mpt_entry, MPT_BPD);
-+	hr_reg_clear(mpt_entry, MPT_PA);
- 
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_FRE_S, 1);
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_PA_S, 0);
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_MR_MW_S, 0);
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_BPD_S, 1);
-+	hr_reg_write(mpt_entry, MPT_PBL_HOP_NUM, 1);
-+	hr_reg_write(mpt_entry, MPT_PBL_BA_PG_SZ,
-+		     to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.ba_pg_shift));
-+	hr_reg_write(mpt_entry, MPT_PBL_BUF_PG_SZ,
-+		     to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.buf_pg_shift));
- 
- 	mpt_entry->pbl_size = cpu_to_le32(mr->npages);
- 
- 	mpt_entry->pbl_ba_l = cpu_to_le32(lower_32_bits(pbl_ba >> 3));
--	roce_set_field(mpt_entry->byte_48_mode_ba, V2_MPT_BYTE_48_PBL_BA_H_M,
--		       V2_MPT_BYTE_48_PBL_BA_H_S,
--		       upper_32_bits(pbl_ba >> 3));
--
--	roce_set_field(mpt_entry->byte_64_buf_pa1,
--		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_M,
--		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_S,
--		       to_hr_hw_page_shift(mr->pbl_mtr.hem_cfg.buf_pg_shift));
-+	hr_reg_write(mpt_entry, MPT_PBL_BA_H, upper_32_bits(pbl_ba >> 3));
- 
- 	return 0;
- }
-@@ -3426,36 +3364,29 @@ static int hns_roce_v2_mw_write_mtpt(void *mb_buf, struct hns_roce_mw *mw)
- 	mpt_entry = mb_buf;
- 	memset(mpt_entry, 0, sizeof(*mpt_entry));
- 
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_MPT_ST_M,
--		       V2_MPT_BYTE_4_MPT_ST_S, V2_MPT_ST_FREE);
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PD_M,
--		       V2_MPT_BYTE_4_PD_S, mw->pdn);
--	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PBL_HOP_NUM_M,
--		       V2_MPT_BYTE_4_PBL_HOP_NUM_S,
--		       mw->pbl_hop_num == HNS_ROCE_HOP_NUM_0 ? 0 :
--							       mw->pbl_hop_num);
--	roce_set_field(mpt_entry->byte_4_pd_hop_st,
--		       V2_MPT_BYTE_4_PBL_BA_PG_SZ_M,
--		       V2_MPT_BYTE_4_PBL_BA_PG_SZ_S,
--		       mw->pbl_ba_pg_sz + PG_SHIFT_OFFSET);
--
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_R_INV_EN_S, 1);
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_L_INV_EN_S, 1);
--	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_LW_EN_S, 1);
--
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_PA_S, 0);
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_MR_MW_S, 1);
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_BPD_S, 1);
--	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_BQP_S,
--		     mw->ibmw.type == IB_MW_TYPE_1 ? 0 : 1);
-+	hr_reg_write(mpt_entry, MPT_ST, V2_MPT_ST_FREE);
-+	hr_reg_write(mpt_entry, MPT_PD, mw->pdn);
- 
--	roce_set_field(mpt_entry->byte_64_buf_pa1,
--		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_M,
--		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_S,
--		       mw->pbl_buf_pg_sz + PG_SHIFT_OFFSET);
-+	hr_reg_enable(mpt_entry, MPT_R_INV_EN);
-+	hr_reg_enable(mpt_entry, MPT_L_INV_EN);
-+	hr_reg_enable(mpt_entry, MPT_LW_EN);
-+
-+	hr_reg_enable(mpt_entry, MPT_MR_MW);
-+	hr_reg_enable(mpt_entry, MPT_BPD);
-+	hr_reg_clear(mpt_entry, MPT_PA);
-+	hr_reg_write(mpt_entry, MPT_BQP,
-+		     mw->ibmw.type == IB_MW_TYPE_1 ? 0 : 1);
- 
- 	mpt_entry->lkey = cpu_to_le32(mw->rkey);
- 
-+	hr_reg_write(mpt_entry, MPT_PBL_HOP_NUM,
-+		     mw->pbl_hop_num == HNS_ROCE_HOP_NUM_0 ? 0 :
-+							     mw->pbl_hop_num);
-+	hr_reg_write(mpt_entry, MPT_PBL_BA_PG_SZ,
-+		     mw->pbl_ba_pg_sz + PG_SHIFT_OFFSET);
-+	hr_reg_write(mpt_entry, MPT_PBL_BUF_PG_SZ,
-+		     mw->pbl_buf_pg_sz + PG_SHIFT_OFFSET);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 9cbb230de03b..5ad094df4d78 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -788,12 +788,15 @@ struct hns_roce_v2_mpt_entry {
- #define MPT_LKEY MPT_FIELD_LOC(223, 192)
- #define MPT_VA MPT_FIELD_LOC(287, 224)
- #define MPT_PBL_SIZE MPT_FIELD_LOC(319, 288)
--#define MPT_PBL_BA MPT_FIELD_LOC(380, 320)
-+#define MPT_PBL_BA_L MPT_FIELD_LOC(351, 320)
-+#define MPT_PBL_BA_H MPT_FIELD_LOC(380, 352)
- #define MPT_BLK_MODE MPT_FIELD_LOC(381, 381)
- #define MPT_RSV0 MPT_FIELD_LOC(383, 382)
--#define MPT_PA0 MPT_FIELD_LOC(441, 384)
-+#define MPT_PA0_L MPT_FIELD_LOC(415, 384)
-+#define MPT_PA0_H MPT_FIELD_LOC(441, 416)
- #define MPT_BOUND_VA MPT_FIELD_LOC(447, 442)
--#define MPT_PA1 MPT_FIELD_LOC(505, 448)
-+#define MPT_PA1_L MPT_FIELD_LOC(479, 448)
-+#define MPT_PA1_H MPT_FIELD_LOC(505, 480)
- #define MPT_PERSIST_EN MPT_FIELD_LOC(506, 506)
- #define MPT_RSV2 MPT_FIELD_LOC(507, 507)
- #define MPT_PBL_BUF_PG_SZ MPT_FIELD_LOC(511, 508)
-@@ -899,48 +902,24 @@ struct hns_roce_v2_ud_send_wqe {
- 	u8	dgid[GID_LEN_V2];
- };
- 
--#define V2_UD_SEND_WQE_BYTE_4_OPCODE_S 0
--#define V2_UD_SEND_WQE_BYTE_4_OPCODE_M GENMASK(4, 0)
--
--#define	V2_UD_SEND_WQE_BYTE_4_OWNER_S 7
--
--#define	V2_UD_SEND_WQE_BYTE_4_CQE_S 8
--
--#define	V2_UD_SEND_WQE_BYTE_4_SE_S 11
--
--#define	V2_UD_SEND_WQE_BYTE_16_PD_S 0
--#define V2_UD_SEND_WQE_BYTE_16_PD_M GENMASK(23, 0)
--
--#define	V2_UD_SEND_WQE_BYTE_16_SGE_NUM_S 24
--#define V2_UD_SEND_WQE_BYTE_16_SGE_NUM_M GENMASK(31, 24)
--
--#define	V2_UD_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_S 0
--#define V2_UD_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_M GENMASK(23, 0)
--
--#define	V2_UD_SEND_WQE_BYTE_24_UDPSPN_S 16
--#define V2_UD_SEND_WQE_BYTE_24_UDPSPN_M GENMASK(31, 16)
--
--#define	V2_UD_SEND_WQE_BYTE_32_DQPN_S 0
--#define V2_UD_SEND_WQE_BYTE_32_DQPN_M GENMASK(23, 0)
--
--#define	V2_UD_SEND_WQE_BYTE_36_VLAN_S 0
--#define V2_UD_SEND_WQE_BYTE_36_VLAN_M GENMASK(15, 0)
--
--#define	V2_UD_SEND_WQE_BYTE_36_HOPLIMIT_S 16
--#define V2_UD_SEND_WQE_BYTE_36_HOPLIMIT_M GENMASK(23, 16)
--
--#define	V2_UD_SEND_WQE_BYTE_36_TCLASS_S 24
--#define V2_UD_SEND_WQE_BYTE_36_TCLASS_M GENMASK(31, 24)
--
--#define	V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_S 0
--#define V2_UD_SEND_WQE_BYTE_40_FLOW_LABEL_M GENMASK(19, 0)
--
--#define	V2_UD_SEND_WQE_BYTE_40_SL_S 20
--#define V2_UD_SEND_WQE_BYTE_40_SL_M GENMASK(23, 20)
--
--#define V2_UD_SEND_WQE_BYTE_40_UD_VLAN_EN_S 30
--
--#define	V2_UD_SEND_WQE_BYTE_40_LBI_S 31
-+#define UD_SEND_WQE_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_v2_ud_send_wqe, h, l)
-+
-+#define UD_SEND_WQE_OPCODE UD_SEND_WQE_FIELD_LOC(4, 0)
-+#define UD_SEND_WQE_OWNER UD_SEND_WQE_FIELD_LOC(7, 7)
-+#define UD_SEND_WQE_CQE UD_SEND_WQE_FIELD_LOC(8, 8)
-+#define UD_SEND_WQE_SE UD_SEND_WQE_FIELD_LOC(11, 11)
-+#define UD_SEND_WQE_PD UD_SEND_WQE_FIELD_LOC(119, 96)
-+#define UD_SEND_WQE_SGE_NUM UD_SEND_WQE_FIELD_LOC(127, 120)
-+#define UD_SEND_WQE_MSG_START_SGE_IDX UD_SEND_WQE_FIELD_LOC(151, 128)
-+#define UD_SEND_WQE_UDPSPN UD_SEND_WQE_FIELD_LOC(191, 176)
-+#define UD_SEND_WQE_DQPN UD_SEND_WQE_FIELD_LOC(247, 224)
-+#define UD_SEND_WQE_VLAN UD_SEND_WQE_FIELD_LOC(271, 256)
-+#define UD_SEND_WQE_HOPLIMIT UD_SEND_WQE_FIELD_LOC(279, 272)
-+#define UD_SEND_WQE_TCLASS UD_SEND_WQE_FIELD_LOC(287, 280)
-+#define UD_SEND_WQE_FLOW_LABEL UD_SEND_WQE_FIELD_LOC(307, 288)
-+#define UD_SEND_WQE_SL UD_SEND_WQE_FIELD_LOC(311, 308)
-+#define UD_SEND_WQE_VLAN_EN UD_SEND_WQE_FIELD_LOC(318, 318)
-+#define UD_SEND_WQE_LBI UD_SEND_WQE_FIELD_LOC(319, 319)
- 
- struct hns_roce_v2_rc_send_wqe {
- 	__le32		byte_4;
-@@ -955,42 +934,23 @@ struct hns_roce_v2_rc_send_wqe {
- 	__le64		va;
- };
- 
--#define	V2_RC_SEND_WQE_BYTE_4_OPCODE_S 0
--#define V2_RC_SEND_WQE_BYTE_4_OPCODE_M GENMASK(4, 0)
--
--#define V2_RC_SEND_WQE_BYTE_4_DB_SL_L_S 5
--#define V2_RC_SEND_WQE_BYTE_4_DB_SL_L_M GENMASK(6, 5)
--
--#define V2_RC_SEND_WQE_BYTE_4_DB_SL_H_S 13
--#define V2_RC_SEND_WQE_BYTE_4_DB_SL_H_M GENMASK(14, 13)
--
--#define V2_RC_SEND_WQE_BYTE_4_WQE_INDEX_S 15
--#define V2_RC_SEND_WQE_BYTE_4_WQE_INDEX_M GENMASK(30, 15)
--
--#define V2_RC_SEND_WQE_BYTE_4_OWNER_S 7
--
--#define V2_RC_SEND_WQE_BYTE_4_CQE_S 8
--
--#define V2_RC_SEND_WQE_BYTE_4_FENCE_S 9
--
--#define V2_RC_SEND_WQE_BYTE_4_SO_S 10
--
--#define V2_RC_SEND_WQE_BYTE_4_SE_S 11
--
--#define V2_RC_SEND_WQE_BYTE_4_INLINE_S 12
--
--#define V2_RC_SEND_WQE_BYTE_4_FLAG_S 31
--
--#define	V2_RC_SEND_WQE_BYTE_16_XRC_SRQN_S 0
--#define V2_RC_SEND_WQE_BYTE_16_XRC_SRQN_M GENMASK(23, 0)
--
--#define	V2_RC_SEND_WQE_BYTE_16_SGE_NUM_S 24
--#define V2_RC_SEND_WQE_BYTE_16_SGE_NUM_M GENMASK(31, 24)
--
--#define V2_RC_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_S 0
--#define V2_RC_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_M GENMASK(23, 0)
--
--#define V2_RC_SEND_WQE_BYTE_20_INL_TYPE_S 31
-+#define RC_SEND_WQE_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_v2_rc_send_wqe, h, l)
-+
-+#define RC_SEND_WQE_OPCODE RC_SEND_WQE_FIELD_LOC(4, 0)
-+#define RC_SEND_WQE_DB_SL_L RC_SEND_WQE_FIELD_LOC(6, 5)
-+#define RC_SEND_WQE_DB_SL_H RC_SEND_WQE_FIELD_LOC(14, 13)
-+#define RC_SEND_WQE_OWNER RC_SEND_WQE_FIELD_LOC(7, 7)
-+#define RC_SEND_WQE_CQE RC_SEND_WQE_FIELD_LOC(8, 8)
-+#define RC_SEND_WQE_FENCE RC_SEND_WQE_FIELD_LOC(9, 9)
-+#define RC_SEND_WQE_SO RC_SEND_WQE_FIELD_LOC(10, 10)
-+#define RC_SEND_WQE_SE RC_SEND_WQE_FIELD_LOC(11, 11)
-+#define RC_SEND_WQE_INLINE RC_SEND_WQE_FIELD_LOC(12, 12)
-+#define RC_SEND_WQE_WQE_INDEX RC_SEND_WQE_FIELD_LOC(30, 15)
-+#define RC_SEND_WQE_FLAG RC_SEND_WQE_FIELD_LOC(31, 31)
-+#define RC_SEND_WQE_XRC_SRQN RC_SEND_WQE_FIELD_LOC(119, 96)
-+#define RC_SEND_WQE_SGE_NUM RC_SEND_WQE_FIELD_LOC(127, 120)
-+#define RC_SEND_WQE_MSG_START_SGE_IDX RC_SEND_WQE_FIELD_LOC(151, 128)
-+#define RC_SEND_WQE_INL_TYPE RC_SEND_WQE_FIELD_LOC(159, 159)
- 
- struct hns_roce_wqe_frmr_seg {
- 	__le32	pbl_size;
-@@ -1112,12 +1072,12 @@ struct hns_roce_vf_switch {
- 	__le32 resv3;
- };
- 
--#define VF_SWITCH_DATA_FUN_ID_VF_ID_S 3
--#define VF_SWITCH_DATA_FUN_ID_VF_ID_M GENMASK(10, 3)
-+#define VF_SWITCH_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_vf_switch, h, l)
- 
--#define VF_SWITCH_DATA_CFG_ALW_LPBK_S 1
--#define VF_SWITCH_DATA_CFG_ALW_LCL_LPBK_S 2
--#define VF_SWITCH_DATA_CFG_ALW_DST_OVRD_S 3
-+#define VF_SWITCH_VF_ID VF_SWITCH_FIELD_LOC(42, 35)
-+#define VF_SWITCH_ALW_LPBK VF_SWITCH_FIELD_LOC(65, 65)
-+#define VF_SWITCH_ALW_LCL_LPBK VF_SWITCH_FIELD_LOC(66, 66)
-+#define VF_SWITCH_ALW_DST_OVRD VF_SWITCH_FIELD_LOC(67, 67)
- 
- struct hns_roce_post_mbox {
- 	__le32	in_param_l;
-@@ -1180,11 +1140,10 @@ struct hns_roce_cfg_sgid_tb {
- 	__le32	vf_sgid_type_rsv;
- };
- 
--#define CFG_SGID_TB_TABLE_IDX_S 0
--#define CFG_SGID_TB_TABLE_IDX_M GENMASK(7, 0)
-+#define SGID_TB_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_cfg_sgid_tb, h, l)
- 
--#define CFG_SGID_TB_VF_SGID_TYPE_S 0
--#define CFG_SGID_TB_VF_SGID_TYPE_M GENMASK(1, 0)
-+#define CFG_SGID_TB_TABLE_IDX SGID_TB_FIELD_LOC(7, 0)
-+#define CFG_SGID_TB_VF_SGID_TYPE SGID_TB_FIELD_LOC(161, 160)
- 
- struct hns_roce_cfg_smac_tb {
- 	__le32	tb_idx_rsv;
-@@ -1192,11 +1151,11 @@ struct hns_roce_cfg_smac_tb {
- 	__le32	vf_smac_h_rsv;
- 	__le32	rsv[3];
- };
--#define CFG_SMAC_TB_IDX_S 0
--#define CFG_SMAC_TB_IDX_M GENMASK(7, 0)
- 
--#define CFG_SMAC_TB_VF_SMAC_H_S 0
--#define CFG_SMAC_TB_VF_SMAC_H_M GENMASK(15, 0)
-+#define SMAC_TB_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_cfg_smac_tb, h, l)
-+
-+#define CFG_SMAC_TB_IDX SMAC_TB_FIELD_LOC(7, 0)
-+#define CFG_SMAC_TB_VF_SMAC_H SMAC_TB_FIELD_LOC(79, 64)
- 
- struct hns_roce_cfg_gmv_tb_a {
- 	__le32 vf_sgid_l;
-@@ -1207,16 +1166,11 @@ struct hns_roce_cfg_gmv_tb_a {
- 	__le32 resv;
- };
- 
--#define CFG_GMV_TB_SGID_IDX_S 0
--#define CFG_GMV_TB_SGID_IDX_M GENMASK(7, 0)
--
--#define CFG_GMV_TB_VF_SGID_TYPE_S 0
--#define CFG_GMV_TB_VF_SGID_TYPE_M GENMASK(1, 0)
-+#define GMV_TB_A_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_cfg_gmv_tb_a, h, l)
- 
--#define CFG_GMV_TB_VF_VLAN_EN_S 2
--
--#define CFG_GMV_TB_VF_VLAN_ID_S 16
--#define CFG_GMV_TB_VF_VLAN_ID_M GENMASK(27, 16)
-+#define GMV_TB_A_VF_SGID_TYPE GMV_TB_A_FIELD_LOC(129, 128)
-+#define GMV_TB_A_VF_VLAN_EN GMV_TB_A_FIELD_LOC(130, 130)
-+#define GMV_TB_A_VF_VLAN_ID GMV_TB_A_FIELD_LOC(155, 144)
- 
- struct hns_roce_cfg_gmv_tb_b {
- 	__le32	vf_smac_l;
-@@ -1225,8 +1179,10 @@ struct hns_roce_cfg_gmv_tb_b {
- 	__le32	resv[3];
- };
- 
--#define CFG_GMV_TB_SMAC_H_S 0
--#define CFG_GMV_TB_SMAC_H_M GENMASK(15, 0)
-+#define GMV_TB_B_FIELD_LOC(h, l) FIELD_LOC(struct hns_roce_cfg_gmv_tb_b, h, l)
-+
-+#define GMV_TB_B_SMAC_H GMV_TB_B_FIELD_LOC(47, 32)
-+#define GMV_TB_B_SGID_IDX GMV_TB_B_FIELD_LOC(71, 64)
- 
- #define HNS_ROCE_QUERY_PF_CAPS_CMD_NUM 5
- struct hns_roce_query_pf_caps_a {
--- 
-2.33.0
+Thanks!
 
