@@ -2,95 +2,76 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E71A2C4332F
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 May 2022 01:46:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBEADC433EF
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 May 2022 02:30:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239133AbiEPBq6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 15 May 2022 21:46:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35742 "EHLO
+        id S236252AbiEPCaP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 15 May 2022 22:30:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239117AbiEPBq4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 15 May 2022 21:46:56 -0400
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 97604389D;
-        Sun, 15 May 2022 18:46:53 -0700 (PDT)
-IronPort-Data: =?us-ascii?q?A9a23=3AuBVEa6tABzRGI97eN2E8s4slTOfnVMJcMUV32f8?=
- =?us-ascii?q?akzHdYEJGY0x3zDcZXGuPOfuKYGr1L9t1Poix/ExVvZ7UydZnTgc9/n1gHilAw?=
- =?us-ascii?q?SbnLY7Hdx+vZUt+DSFioHpPtpxYMp+ZRCwNZie0SiyFb/6x/RGQ6YnSHuCmULS?=
- =?us-ascii?q?cY3goLeNZYHxJZSxLyrdRbrFA0YDR7zOl4bsekuWHULOX82cc3lE8t8pvnChSU?=
- =?us-ascii?q?MHa41v0iLCRicdj5zcyn1FNZH4WyDrYw3HQGuG4FcbiLwrPIS3Qw4/Xw/stIov?=
- =?us-ascii?q?NfrfTeUtMTKPQPBSVlzxdXK3Kbhpq/3R0i/hkcqFHLxo/ZzahxridzP1JtI6wS?=
- =?us-ascii?q?AUoN6vklvkfUgVDDmd1OqguFLrveCLj65HLkxOcG5fr67A0ZK0sBqUT+utxDnB?=
- =?us-ascii?q?J6NQcKTYQflaKg+O8ybiyDOJrg6wLPcDtPp4Z/GNg0BndDPA7UdbPTruizd9R1?=
- =?us-ascii?q?TQ3gIZEAPnRauIeczNkaBmGaBpKUn8TCZQjjKKri2P5fjlwtl2Yv+w07nLVwQg?=
- =?us-ascii?q?316LiWPLRe9qXVYBPkkORjnzJ8n6/ARwAMtGbjz2f/RqEhODAtTH6VZofUraxn?=
- =?us-ascii?q?sOGKnX7Knc7UUVQDAXk56LizBPWZj6WEGRMkgJGkET43BbDogHBYiCF?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3ASq0e66APbnz//iHlHemQ55DYdb4zR+YMi2TD?=
- =?us-ascii?q?tnoBLSC9F/b0qynAppomPGDP4gr5NEtApTniAtjkfZq/z+8X3WB5B97LMzUO01?=
- =?us-ascii?q?HYTr2Kg7GD/xTQXwX69sN4kZxrarVCDrTLZmRSvILX5xaZHr8brOW6zA=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="124250462"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 16 May 2022 09:46:50 +0800
-Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-        by cn.fujitsu.com (Postfix) with ESMTP id 5AF6B4D68A23;
-        Mon, 16 May 2022 09:46:45 +0800 (CST)
-Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
- G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Mon, 16 May 2022 09:46:43 +0800
-Received: from localhost.localdomain (10.167.225.141) by
- G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Mon, 16 May 2022 09:46:46 +0800
-From:   Li Zhijian <lizhijian@fujitsu.com>
-To:     Yanjun Zhu <yanjun.zhu@linux.dev>, Jason Gunthorpe <jgg@ziepe.ca>,
-        "Haakon Bugge" <haakon.bugge@oracle.com>,
-        Cheng Xu <chengyou@linux.alibaba.com>,
-        <linux-rdma@vger.kernel.org>
-CC:     <linux-kernel@vger.kernel.org>, Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH v3 1/2] RDMA/rxe: Update wqe_index for each wqe error completion
-Date:   Mon, 16 May 2022 09:53:28 +0800
-Message-ID: <20220516015329.445474-2-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20220516015329.445474-1-lizhijian@fujitsu.com>
-References: <20220516015329.445474-1-lizhijian@fujitsu.com>
+        with ESMTP id S234618AbiEPCaO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 15 May 2022 22:30:14 -0400
+Received: from out30-44.freemail.mail.aliyun.com (out30-44.freemail.mail.aliyun.com [115.124.30.44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB483FD04
+        for <linux-rdma@vger.kernel.org>; Sun, 15 May 2022 19:30:12 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VDCSziF_1652668209;
+Received: from 30.43.106.100(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VDCSziF_1652668209)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Mon, 16 May 2022 10:30:10 +0800
+Message-ID: <d9376e3c-38cb-9c6e-1234-48d3ed08d78f@linux.alibaba.com>
+Date:   Mon, 16 May 2022 10:30:08 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: 5AF6B4D68A23.AE324
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: lizhijian@fujitsu.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.9.0
+Subject: Re: [PATCH for-next v7 00/12] Elastic RDMA Adapter (ERDMA) driver
+Content-Language: en-US
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     dledford@redhat.com, leon@kernel.org, linux-rdma@vger.kernel.org,
+        KaiShen@linux.alibaba.com, tonylu@linux.alibaba.com,
+        BMT@zurich.ibm.com
+References: <20220421071747.1892-1-chengyou@linux.alibaba.com>
+ <20220510125038.GA1093446@nvidia.com>
+From:   Cheng Xu <chengyou@linux.alibaba.com>
+In-Reply-To: <20220510125038.GA1093446@nvidia.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Previously, if user space keeps sending abnormal wqe, queue.prod will
-keep increasing while queue.index doesn't. Once
-queue.index==queue.prod in next round, req_next_wqe() will treat queue
-as empty. In such case, no new completion would be generated.
 
-Update wqe_index for each wqe completion so that req_next_wqe() can get
-next wqe properly.
 
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
- drivers/infiniband/sw/rxe/rxe_req.c | 2 ++
- 1 file changed, 2 insertions(+)
+On 5/10/22 8:50 PM, Jason Gunthorpe wrote:
+> On Thu, Apr 21, 2022 at 03:17:35PM +0800, Cheng Xu wrote:
+>> Hello all,
+>>
+>> This v7 patch set introduces the Elastic RDMA Adapter (ERDMA) driver,
+>> which released in Apsara Conference 2021 by Alibaba. The PR of ERDMA
+>> userspace provider has already been created [1].
+> 
+> It doesn't compile:
+> 
+> ../drivers/infiniband/hw/erdma/erdma_verbs.c:291:8: error: no member named 'kernel_cap_flags' in 'struct ib_device_attr'
+>          attr->kernel_cap_flags = IBK_LOCAL_DMA_LKEY;
+>          ~~~~  ^
+> ../drivers/infiniband/hw/erdma/erdma_verbs.c:291:27: error: use of undeclared identifier 'IBK_LOCAL_DMA_LKEY'
+>          attr->kernel_cap_flags = IBK_LOCAL_DMA_LKEY;
+>                                   ^
+> 
+> Jason
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index a0d5e57f73c1..8bdd0b6b578f 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -773,6 +773,8 @@ int rxe_requester(void *arg)
- 	if (ah)
- 		rxe_put(ah);
- err:
-+	/* update wqe_index for each wqe completion */
-+	qp->req.wqe_index = queue_next_index(qp->sq.queue, qp->req.wqe_index);
- 	wqe->state = wqe_state_error;
- 	__rxe_do_task(&qp->comp.task);
- 
--- 
-2.31.1
+This v7 patch set is based on the latest for-next branch. This
+change is introduced by (e945c653c, RDMA: Split kernel-only global 
+device caps from uverbs device caps). Maybe you compile the patch set
+with for-rc?
+If so, should the code be base on the for-rc code?
+
+(BTW, sorry for late reply. My mail APP classified your responses to
+wrong folder, and I'm aware of this after visiting the website
+lore.kernel.org)
+
+Thanks,
+Cheng Xu
 
 
 
