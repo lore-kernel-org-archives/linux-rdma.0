@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9854C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 May 2022 09:05:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EE22C4321E
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 May 2022 09:05:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244046AbiEQJE5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 May 2022 05:04:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53124 "EHLO
+        id S244116AbiEQJE7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 May 2022 05:04:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240554AbiEQJEw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 May 2022 05:04:52 -0400
+        with ESMTP id S244152AbiEQJEx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 May 2022 05:04:53 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 545103F316;
-        Tue, 17 May 2022 02:04:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 200F949686;
+        Tue, 17 May 2022 02:04:51 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 012E920F32C6; Tue, 17 May 2022 02:04:43 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 012E920F32C6
+        id 04D6420F722B; Tue, 17 May 2022 02:04:51 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 04D6420F722B
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1652778284;
-        bh=ojA9Vp3b1/V9h3FkXwTJNt9d/ThwRugOJ3+/bcYv0TQ=;
-        h=From:To:Cc:Subject:Date:Reply-To:From;
-        b=DJqd5IdhkvSx7eWgpVps6BFS03s780foB6vAch5Lq68bOR5JaH2Bc2UxOUSTaW9lZ
-         sNJLXccvW4G8sHUnTM5EnhNPHPLFswBrr1TytSzIP1FKytqekMKpnpBIH7EVRSFo9W
-         n9vqSfe7qjo1y9HrCt3VdPZGIzgx6rvsCAxbu4nI=
+        s=default; t=1652778291;
+        bh=/BppzPeZ494XyxOwZmPcGdJSVL9IuEWNVP2swpa6YwA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
+        b=UzKmCnqtP+C8/NDVzNuDYFhjnFcAJ/d4S87kMjfimwOWDJLwxvfXJo6zFiSP3Qy8F
+         x9KyTf9WOMWeeFaijFOzYpDhTe139Iu2/KyTtXKX+064YiBCBLdiwJkA1vEfYBcYLk
+         7JzvDa92QExJK5dWaKNVcMNMlkNG7wLw4F5gCuW8=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -37,10 +37,12 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [PATCH 00/12] Introduce Microsoft Azure Network Adapter (MANA) RDMA driver
-Date:   Tue, 17 May 2022 02:04:24 -0700
-Message-Id: <1652778276-2986-1-git-send-email-longli@linuxonhyperv.com>
+Subject: [PATCH 07/12] net: mana: Export Work Queue functions for use by RDMA driver
+Date:   Tue, 17 May 2022 02:04:31 -0700
+Message-Id: <1652778276-2986-8-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1652778276-2986-1-git-send-email-longli@linuxonhyperv.com>
+References: <1652778276-2986-1-git-send-email-longli@linuxonhyperv.com>
 Reply-To: longli@microsoft.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -48,67 +50,91 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-This patchset implements a RDMA driver for Microsoft Azure Network
-Adapter (MANA). In MANA, the RDMA device is modeled as an auxiliary device
-to the Ethernet device.
+RDMA device may need to create Ethernet device queues for use by Queue
+Pair type RAW. This allows a user-mode context accesses Ethernet hardware
+queues. Export the supporting functions for use by the RDMA driver.
 
-The first 11 patches modify the MANA Ethernet driver to support RDMA driver.
-The last patch implementes the RDMA driver.
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+ drivers/net/ethernet/microsoft/mana/gdma_main.c |  1 +
+ drivers/net/ethernet/microsoft/mana/mana.h      |  9 +++++++++
+ drivers/net/ethernet/microsoft/mana/mana_en.c   | 16 +++++++++-------
+ 3 files changed, 19 insertions(+), 7 deletions(-)
 
-Long Li (12):
-  net: mana: Add support for auxiliary device
-  net: mana: Record the physical address for doorbell page region
-  net: mana: Handle vport sharing between devices
-  net: mana: Add functions for allocating doorbell page from GDMA
-  net: mana: Set the DMA device max page size
-  net: mana: Define data structures for protection domain and memory
-    registration
-  net: mana: Export Work Queue functions for use by RDMA driver
-  net: mana: Record port number in netdev
-  net: mana: Move header files to a common location
-  net: mana: Define max values for SGL entries
-  net: mana: Define and process GDMA response code
-    GDMA_STATUS_MORE_ENTRIES
-  RDMA/mana_ib: Add a driver for Microsoft Azure Network Adapter
-
- MAINTAINERS                                   |   4 +
- drivers/infiniband/Kconfig                    |   1 +
- drivers/infiniband/hw/Makefile                |   1 +
- drivers/infiniband/hw/mana/Kconfig            |   7 +
- drivers/infiniband/hw/mana/Makefile           |   4 +
- drivers/infiniband/hw/mana/cq.c               |  74 ++
- drivers/infiniband/hw/mana/main.c             | 679 ++++++++++++++++++
- drivers/infiniband/hw/mana/mana_ib.h          | 145 ++++
- drivers/infiniband/hw/mana/mr.c               | 133 ++++
- drivers/infiniband/hw/mana/qp.c               | 466 ++++++++++++
- drivers/infiniband/hw/mana/wq.c               | 111 +++
- .../net/ethernet/microsoft/mana/gdma_main.c   |  94 ++-
- .../net/ethernet/microsoft/mana/hw_channel.c  |   6 +-
- .../net/ethernet/microsoft/mana/mana_bpf.c    |   2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 139 +++-
- .../ethernet/microsoft/mana/mana_ethtool.c    |   2 +-
- .../net/ethernet/microsoft/mana/shm_channel.c |   2 +-
- .../microsoft => include/linux}/mana/gdma.h   | 191 ++++-
- .../linux}/mana/hw_channel.h                  |   0
- .../microsoft => include/linux}/mana/mana.h   |  26 +-
- .../linux}/mana/shm_channel.h                 |   0
- include/uapi/rdma/ib_user_ioctl_verbs.h       |   1 +
- include/uapi/rdma/mana-abi.h                  |  68 ++
- 23 files changed, 2111 insertions(+), 45 deletions(-)
- create mode 100644 drivers/infiniband/hw/mana/Kconfig
- create mode 100644 drivers/infiniband/hw/mana/Makefile
- create mode 100644 drivers/infiniband/hw/mana/cq.c
- create mode 100644 drivers/infiniband/hw/mana/main.c
- create mode 100644 drivers/infiniband/hw/mana/mana_ib.h
- create mode 100644 drivers/infiniband/hw/mana/mr.c
- create mode 100644 drivers/infiniband/hw/mana/qp.c
- create mode 100644 drivers/infiniband/hw/mana/wq.c
- rename {drivers/net/ethernet/microsoft => include/linux}/mana/gdma.h (77%)
- rename {drivers/net/ethernet/microsoft => include/linux}/mana/hw_channel.h (100%)
- rename {drivers/net/ethernet/microsoft => include/linux}/mana/mana.h (94%)
- rename {drivers/net/ethernet/microsoft => include/linux}/mana/shm_channel.h (100%)
- create mode 100644 include/uapi/rdma/mana-abi.h
-
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 55c4059ac870..9c93d7a403ea 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -125,6 +125,7 @@ int mana_gd_send_request(struct gdma_context *gc, u32 req_len, const void *req,
+ 
+ 	return mana_hwc_send_request(hwc, req_len, req, resp_len, resp);
+ }
++EXPORT_SYMBOL(mana_gd_send_request);
+ 
+ int mana_gd_alloc_memory(struct gdma_context *gc, unsigned int length,
+ 			 struct gdma_mem_info *gmi)
+diff --git a/drivers/net/ethernet/microsoft/mana/mana.h b/drivers/net/ethernet/microsoft/mana/mana.h
+index 26f14fcb6a61..29e14ad8b930 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana.h
++++ b/drivers/net/ethernet/microsoft/mana/mana.h
+@@ -568,6 +568,15 @@ struct mana_adev {
+ 	struct gdma_dev *mdev;
+ };
+ 
++int mana_create_wq_obj(struct mana_port_context *apc,
++		       mana_handle_t vport,
++		       u32 wq_type, struct mana_obj_spec *wq_spec,
++		       struct mana_obj_spec *cq_spec,
++		       mana_handle_t *wq_obj);
++
++void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
++			 mana_handle_t wq_obj);
++
+ int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
+ 		   u32 doorbell_pg_id);
+ void mana_uncfg_vport(struct mana_port_context *apc);
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index dc9fcb99e937..b4af85e81834 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -644,11 +644,11 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
+ 	return err;
+ }
+ 
+-static int mana_create_wq_obj(struct mana_port_context *apc,
+-			      mana_handle_t vport,
+-			      u32 wq_type, struct mana_obj_spec *wq_spec,
+-			      struct mana_obj_spec *cq_spec,
+-			      mana_handle_t *wq_obj)
++int mana_create_wq_obj(struct mana_port_context *apc,
++		       mana_handle_t vport,
++		       u32 wq_type, struct mana_obj_spec *wq_spec,
++		       struct mana_obj_spec *cq_spec,
++		       mana_handle_t *wq_obj)
+ {
+ 	struct mana_create_wqobj_resp resp = {};
+ 	struct mana_create_wqobj_req req = {};
+@@ -697,9 +697,10 @@ static int mana_create_wq_obj(struct mana_port_context *apc,
+ out:
+ 	return err;
+ }
++EXPORT_SYMBOL_GPL(mana_create_wq_obj);
+ 
+-static void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
+-				mana_handle_t wq_obj)
++void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
++			 mana_handle_t wq_obj)
+ {
+ 	struct mana_destroy_wqobj_resp resp = {};
+ 	struct mana_destroy_wqobj_req req = {};
+@@ -724,6 +725,7 @@ static void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
+ 		netdev_err(ndev, "Failed to destroy WQ object: %d, 0x%x\n", err,
+ 			   resp.hdr.status);
+ }
++EXPORT_SYMBOL_GPL(mana_destroy_wq_obj);
+ 
+ static void mana_destroy_eq(struct mana_context *ac)
+ {
 -- 
 2.17.1
 
