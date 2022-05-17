@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5673FC43219
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 May 2022 09:05:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C923C433F5
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 May 2022 09:05:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240554AbiEQJFE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 May 2022 05:05:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52970 "EHLO
+        id S244238AbiEQJFI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 May 2022 05:05:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243995AbiEQJEx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 May 2022 05:04:53 -0400
+        with ESMTP id S244028AbiEQJEy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 May 2022 05:04:54 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9DFCF49695;
-        Tue, 17 May 2022 02:04:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3BDC448E75;
+        Tue, 17 May 2022 02:04:54 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 85E9C20F722D; Tue, 17 May 2022 02:04:52 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 85E9C20F722D
+        id 23D9020F7230; Tue, 17 May 2022 02:04:54 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 23D9020F7230
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1652778292;
-        bh=3vVr+K4NDmssO2e4KeqmSxjJfA0f8IyEGQ1NHgRJqnU=;
+        s=default; t=1652778294;
+        bh=6RZGGvFWrSGpPbswEMH8aRsp+dxd1M1jw+kx4KN2h5k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=VWGLLjOgzh/fPLu0QFAgzkQGCAFRydSbyjC61R28ddpA+6/K0Rc3p/eXRcxaYxmXP
-         DKhJPhMaLwJV7+P3pcVgIuwK8wCbIpc6UijKKmWa3UZWfyPcTuw4wff0SLTbP5pgBA
-         q03WoQKVHc2GAXfOWPyGPpc4JwwZ4GAuX0+HluAM=
+        b=ffSoI6UcZSsVkTrcMBtafR/4BW8d2IJSV1qpmR/cVAyh8+XyqnustFWw3s102uobi
+         9vn163S4vzn/da5NOz55QBGKgS+DuMgznMryri5Dr8dallaGRZWRSmeYYoE7gPcEpJ
+         vhoJWRmHcz3dEYDB6MZ+DB/H+bROUQssHS3i24OM=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -37,9 +37,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [PATCH 09/12] net: mana: Move header files to a common location
-Date:   Tue, 17 May 2022 02:04:33 -0700
-Message-Id: <1652778276-2986-10-git-send-email-longli@linuxonhyperv.com>
+Subject: [PATCH 11/12] net: mana: Define and process GDMA response code GDMA_STATUS_MORE_ENTRIES
+Date:   Tue, 17 May 2022 02:04:35 -0700
+Message-Id: <1652778276-2986-12-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1652778276-2986-1-git-send-email-longli@linuxonhyperv.com>
 References: <1652778276-2986-1-git-send-email-longli@linuxonhyperv.com>
@@ -50,136 +50,42 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-In preparation to add MANA RDMA driver, move all the required header files
-to a common location for use by both Ethernet and RDMA drivers.
+When doing memory registration, the PF may respond with
+GDMA_STATUS_MORE_ENTRIES to indicate a follow request is needed. This is
+not an error and should be processed as expected.
 
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- MAINTAINERS                                                   | 1 +
- drivers/net/ethernet/microsoft/mana/gdma_main.c               | 2 +-
- drivers/net/ethernet/microsoft/mana/hw_channel.c              | 4 ++--
- drivers/net/ethernet/microsoft/mana/mana_bpf.c                | 2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c                 | 2 +-
- drivers/net/ethernet/microsoft/mana/mana_ethtool.c            | 2 +-
- drivers/net/ethernet/microsoft/mana/shm_channel.c             | 2 +-
- {drivers/net/ethernet/microsoft => include/linux}/mana/gdma.h | 0
- .../ethernet/microsoft => include/linux}/mana/hw_channel.h    | 0
- {drivers/net/ethernet/microsoft => include/linux}/mana/mana.h | 0
- .../ethernet/microsoft => include/linux}/mana/shm_channel.h   | 0
- 11 files changed, 8 insertions(+), 7 deletions(-)
- rename {drivers/net/ethernet/microsoft => include/linux}/mana/gdma.h (100%)
- rename {drivers/net/ethernet/microsoft => include/linux}/mana/hw_channel.h (100%)
- rename {drivers/net/ethernet/microsoft => include/linux}/mana/mana.h (100%)
- rename {drivers/net/ethernet/microsoft => include/linux}/mana/shm_channel.h (100%)
+ drivers/net/ethernet/microsoft/mana/hw_channel.c | 2 +-
+ include/linux/mana/gdma.h                        | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 40fa1955ca3f..268c68dc40dc 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9108,6 +9108,7 @@ F:	include/asm-generic/hyperv-tlfs.h
- F:	include/asm-generic/mshyperv.h
- F:	include/clocksource/hyperv_timer.h
- F:	include/linux/hyperv.h
-+F:	include/mana/
- F:	include/uapi/linux/hyperv.h
- F:	net/vmw_vsock/hyperv_transport.c
- F:	tools/hv/
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index 9c93d7a403ea..96edf8491ebd 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -6,7 +6,7 @@
- #include <linux/utsname.h>
- #include <linux/version.h>
- 
--#include "mana.h"
-+#include <linux/mana/mana.h>
- 
- static u32 mana_gd_r32(struct gdma_context *g, u64 offset)
- {
 diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 078d6a5a0768..609cd714dcc0 100644
+index 609cd714dcc0..a80c14676c75 100644
 --- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
 +++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -1,8 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
- /* Copyright (c) 2021, Microsoft Corporation. */
+@@ -820,7 +820,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 		goto out;
+ 	}
  
--#include "gdma.h"
--#include "hw_channel.h"
-+#include <linux/mana/gdma.h>
-+#include <linux/mana/hw_channel.h>
+-	if (ctx->status_code) {
++	if (ctx->status_code && ctx->status_code != GDMA_STATUS_MORE_ENTRIES) {
+ 		dev_err(hwc->dev, "HWC: Failed hw_channel req: 0x%x\n",
+ 			ctx->status_code);
+ 		err = -EPROTO;
+diff --git a/include/linux/mana/gdma.h b/include/linux/mana/gdma.h
+index d6a970118f4c..d40f1dffca5c 100644
+--- a/include/linux/mana/gdma.h
++++ b/include/linux/mana/gdma.h
+@@ -9,6 +9,8 @@
  
- static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
- {
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-index 1d2f948b5c00..7476f21e5f37 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-@@ -8,7 +8,7 @@
- #include <linux/bpf_trace.h>
- #include <net/xdp.h>
+ #include "shm_channel.h"
  
--#include "mana.h"
-+#include <linux/mana/mana.h>
- 
- void mana_xdp_tx(struct sk_buff *skb, struct net_device *ndev)
- {
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 6bb38c90b008..928b14a7ee1f 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -11,7 +11,7 @@
- #include <net/checksum.h>
- #include <net/ip6_checksum.h>
- 
--#include "mana.h"
-+#include <linux/mana/mana.h>
- 
- static DEFINE_IDA(mana_adev_ida);
- 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index e13f2453eabb..c2ecb5154139 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -5,7 +5,7 @@
- #include <linux/etherdevice.h>
- #include <linux/ethtool.h>
- 
--#include "mana.h"
-+#include <linux/mana/mana.h>
- 
- static const struct {
- 	char name[ETH_GSTRING_LEN];
-diff --git a/drivers/net/ethernet/microsoft/mana/shm_channel.c b/drivers/net/ethernet/microsoft/mana/shm_channel.c
-index da255da62176..161a4e6ba32a 100644
---- a/drivers/net/ethernet/microsoft/mana/shm_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/shm_channel.c
-@@ -6,7 +6,7 @@
- #include <linux/io.h>
- #include <linux/mm.h>
- 
--#include "shm_channel.h"
-+#include <linux/mana/shm_channel.h>
- 
- #define PAGE_FRAME_L48_WIDTH_BYTES 6
- #define PAGE_FRAME_L48_WIDTH_BITS (PAGE_FRAME_L48_WIDTH_BYTES * 8)
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/include/linux/mana/gdma.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/gdma.h
-rename to include/linux/mana/gdma.h
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.h b/include/linux/mana/hw_channel.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/hw_channel.h
-rename to include/linux/mana/hw_channel.h
-diff --git a/drivers/net/ethernet/microsoft/mana/mana.h b/include/linux/mana/mana.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/mana.h
-rename to include/linux/mana/mana.h
-diff --git a/drivers/net/ethernet/microsoft/mana/shm_channel.h b/include/linux/mana/shm_channel.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/shm_channel.h
-rename to include/linux/mana/shm_channel.h
++#define GDMA_STATUS_MORE_ENTRIES	((u32)0x00000105L)
++
+ /* Structures labeled with "HW DATA" are exchanged with the hardware. All of
+  * them are naturally aligned and hence don't need __packed.
+  */
 -- 
 2.17.1
 
