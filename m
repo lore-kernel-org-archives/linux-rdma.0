@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62158C43217
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 May 2022 09:05:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1F25C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 May 2022 09:05:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243930AbiEQJFM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 May 2022 05:05:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52886 "EHLO
+        id S244152AbiEQJFN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 May 2022 05:05:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235185AbiEQJEw (ORCPT
+        with ESMTP id S244065AbiEQJEw (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 May 2022 05:04:52 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3E82147063;
-        Tue, 17 May 2022 02:04:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 123B14832A;
+        Tue, 17 May 2022 02:04:47 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 1511020F7224; Tue, 17 May 2022 02:04:48 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1511020F7224
+        id 2F77320F3D1A; Tue, 17 May 2022 02:04:47 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2F77320F3D1A
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1652778288;
-        bh=Ssqwyn9buuJdDtO8VksCBiYTIi8iEmbq5gI64z2s+PY=;
+        s=default; t=1652778287;
+        bh=0dsZ0bZFwegjOW5xJagkjlSAdsffEmIkK2SaE7ckO08=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=L/8+iOHGHmUS3/sbpCnwTFNk21iE2oBN/YzvRyTKlhRuoRb4NEzrU8ofUxR2swxWq
-         sAeS25TLIQ0AgdFr+yyUwuZil/2HgRwEuS3/UGGtVbxnmLJdUaHFcFmCJ2LjAbdyqO
-         i0Fh8Z5I5qetdcJy/8NH0B1x32GAkB3iTz2D9lpc=
+        b=egE5OchiO0fxF84xVynNCRfmpjAyZZxAOuUpEmtbfS/X0EtWtzESK702X5qy/4yCu
+         IKvDTmbpNzW9Own9TOgvYS3tLEAGwWL/8llSb4GThHVIWVYncZAklLbYoeKJt3bZuT
+         gdEyvGSGSfOYKWrJt6D55ZvIOwmmS5b2ibTe0fgI=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -37,9 +37,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [PATCH 03/12] net: mana: Handle vport sharing between devices
-Date:   Tue, 17 May 2022 02:04:27 -0700
-Message-Id: <1652778276-2986-4-git-send-email-longli@linuxonhyperv.com>
+Subject: [PATCH 02/12] net: mana: Record the physical address for doorbell page region
+Date:   Tue, 17 May 2022 02:04:26 -0700
+Message-Id: <1652778276-2986-3-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1652778276-2986-1-git-send-email-longli@linuxonhyperv.com>
 References: <1652778276-2986-1-git-send-email-longli@linuxonhyperv.com>
@@ -50,88 +50,54 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-For outgoing packets, the PF requires the VF to configure the vport with
-corresponding protection domain and doorbell ID for the kernel or user
-context. The vport can't be shared between different contexts.
-
-Implement the logic to exclusively take over the vport by either the
-Ethernet device or RDMA device.
+For supporting RDMA device with multiple user contexts with their
+individual doorbell pages, record the start address of doorbell page
+region for use by the RDMA driver to allocate user context doorbell IDs.
 
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/mana.h    |  4 ++++
- drivers/net/ethernet/microsoft/mana/mana_en.c | 19 +++++++++++++++++--
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/microsoft/mana/gdma.h      | 2 ++
+ drivers/net/ethernet/microsoft/mana/gdma_main.c | 4 ++++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana.h b/drivers/net/ethernet/microsoft/mana/mana.h
-index 51bff91b63ee..26f14fcb6a61 100644
---- a/drivers/net/ethernet/microsoft/mana/mana.h
-+++ b/drivers/net/ethernet/microsoft/mana/mana.h
-@@ -375,6 +375,7 @@ struct mana_port_context {
- 	unsigned int num_queues;
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/drivers/net/ethernet/microsoft/mana/gdma.h
+index d815d323be87..c724ca410fcb 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma.h
++++ b/drivers/net/ethernet/microsoft/mana/gdma.h
+@@ -350,9 +350,11 @@ struct gdma_context {
+ 	struct completion	eq_test_event;
+ 	u32			test_event_eq_id;
  
- 	mana_handle_t port_handle;
-+	atomic_t port_use_count;
++	phys_addr_t		bar0_pa;
+ 	void __iomem		*bar0_va;
+ 	void __iomem		*shm_base;
+ 	void __iomem		*db_page_base;
++	phys_addr_t		phys_db_page_base;
+ 	u32 db_page_size;
  
- 	u16 port_idx;
+ 	/* Shared memory chanenl (used to bootstrap HWC) */
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 49b85ca578b0..9fafaa0c8e76 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -27,6 +27,9 @@ static void mana_gd_init_registers(struct pci_dev *pdev)
+ 	gc->db_page_base = gc->bar0_va +
+ 				mana_gd_r64(gc, GDMA_REG_DB_PAGE_OFFSET);
  
-@@ -567,4 +568,7 @@ struct mana_adev {
- 	struct gdma_dev *mdev;
- };
- 
-+int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
-+		   u32 doorbell_pg_id);
-+void mana_uncfg_vport(struct mana_port_context *apc);
- #endif /* _MANA_H */
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index c706bf943e49..4f7a50ace9f6 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -530,13 +530,25 @@ static int mana_query_vport_cfg(struct mana_port_context *apc, u32 vport_index,
- 	return 0;
++	gc->phys_db_page_base = gc->bar0_pa +
++				mana_gd_r64(gc, GDMA_REG_DB_PAGE_OFFSET);
++
+ 	gc->shm_base = gc->bar0_va + mana_gd_r64(gc, GDMA_REG_SHM_OFFSET);
  }
  
--static int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
--			  u32 doorbell_pg_id)
-+void mana_uncfg_vport(struct mana_port_context *apc)
-+{
-+	atomic_dec(&apc->port_use_count);
-+}
-+EXPORT_SYMBOL_GPL(mana_uncfg_vport);
-+
-+int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
-+		   u32 doorbell_pg_id)
- {
- 	struct mana_config_vport_resp resp = {};
- 	struct mana_config_vport_req req = {};
- 	int err;
+@@ -1335,6 +1338,7 @@ static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
  
-+	/* Ethernet driver and IB driver can't take the port at the same time */
-+	if (atomic_inc_return(&apc->port_use_count) != 1) {
-+		atomic_dec(&apc->port_use_count);
-+		return -ENODEV;
-+	}
-+
- 	mana_gd_init_req_hdr(&req.hdr, MANA_CONFIG_VPORT_TX,
- 			     sizeof(req), sizeof(resp));
- 	req.vport = apc->port_handle;
-@@ -566,6 +578,7 @@ static int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
- out:
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(mana_cfg_vport);
+ 	mutex_init(&gc->eq_test_event_mutex);
+ 	pci_set_drvdata(pdev, gc);
++	gc->bar0_pa = pci_resource_start(pdev, 0);
  
- static int mana_cfg_vport_steering(struct mana_port_context *apc,
- 				   enum TRI_STATE rx,
-@@ -1678,6 +1691,8 @@ static void mana_destroy_vport(struct mana_port_context *apc)
- 	}
- 
- 	mana_destroy_txq(apc);
-+
-+	mana_uncfg_vport(apc);
- }
- 
- static int mana_create_vport(struct mana_port_context *apc,
+ 	bar0_va = pci_iomap(pdev, bar, 0);
+ 	if (!bar0_va)
 -- 
 2.17.1
 
