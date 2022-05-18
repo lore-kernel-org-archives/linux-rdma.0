@@ -2,716 +2,131 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40513C4332F
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 May 2022 01:58:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E24EC433EF
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 May 2022 03:41:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234054AbiERB6O (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 May 2022 21:58:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60300 "EHLO
+        id S229517AbiERDlp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 May 2022 23:41:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234093AbiERB6L (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 May 2022 21:58:11 -0400
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67E7354F8F
-        for <linux-rdma@vger.kernel.org>; Tue, 17 May 2022 18:58:07 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VDYOu6T_1652839084;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VDYOu6T_1652839084)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 18 May 2022 09:58:04 +0800
-From:   Cheng Xu <chengyou@linux.alibaba.com>
-To:     jgg@ziepe.ca, dledford@redhat.com, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com,
-        chengyou@linux.alibaba.com, tonylu@linux.alibaba.com,
-        BMT@zurich.ibm.com
-Subject: [PATCH for-next v8 10/12] RDMA/erdma: Add the erdma module
-Date:   Wed, 18 May 2022 09:57:49 +0800
-Message-Id: <20220518015751.38156-11-chengyou@linux.alibaba.com>
-X-Mailer: git-send-email 2.32.1 (Apple Git-133)
-In-Reply-To: <20220518015751.38156-1-chengyou@linux.alibaba.com>
-References: <20220518015751.38156-1-chengyou@linux.alibaba.com>
+        with ESMTP id S229805AbiERDlo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 May 2022 23:41:44 -0400
+Received: from mail-oa1-x2c.google.com (mail-oa1-x2c.google.com [IPv6:2001:4860:4864:20::2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F7022649
+        for <linux-rdma@vger.kernel.org>; Tue, 17 May 2022 20:41:40 -0700 (PDT)
+Received: by mail-oa1-x2c.google.com with SMTP id 586e51a60fabf-f1d2ea701dso1117679fac.10
+        for <linux-rdma@vger.kernel.org>; Tue, 17 May 2022 20:41:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language
+         :references:to:from:in-reply-to:content-transfer-encoding;
+        bh=urezTpjTq6ZcibeyCY5NQkSfulh9xF0GjxngAmJ7wWo=;
+        b=iLCJ4BPpbCPciqLytfVh3/I7Q55XSXNZmTE775Q6bzF317U+Vc/PqNCHiJPEQU4flr
+         JGiUmId4D0fUjMapHFAReworJKBbSCb2p5yOmstU6U1ASzGtK7JcAwNPIswJrmqf85AE
+         9TfzFLtclftwYTo3ObI41ZfW/yV77AVgoEUFdBoR4ivoMi3oipGvOgrbIyPJrdTT/LeK
+         +sZOz3GpM9jZpptlltbV5L4aaCtotffwij4eM7/37HmlXJ/WbCtiSp9uj08riMVDFxd+
+         XYgFUZT1KQpGGdMwfXj9haPOwU09+eFu9QT2eugYD9UfIFuqosUJ1WHtOrEiJstjvUrq
+         eBHw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:references:to:from:in-reply-to
+         :content-transfer-encoding;
+        bh=urezTpjTq6ZcibeyCY5NQkSfulh9xF0GjxngAmJ7wWo=;
+        b=WjLBsO58R//qxoULk3JCG1+xxYbFj/U1fJ7tANuGCUzXiCpEBFKUwZFr9ghUdHkFHV
+         FgDP7msrwKYeN3mXjv23W8vd1a4qcbwpYW9SRWBHJ06vSH+NcsIAa4PJpStrFZpu5NBE
+         MJhIT4t8wM2oRaA1nktu9FMUoVpByOGXtpNF3FnRDF6p4WVqb7isNy8KmEBTjAdiofbO
+         CXd1FJTxoyrZd+oSs5sBsY38k+diXS8gkYLEb3WKVsn2hi1TxwsmAFqm9W8oAU6tuSHc
+         +RAgs0+hf4qWK9+vYvG8uen4YJFrQDhj9kh2uEjbVSage5h5FHYQQ/c5q45bO2+qLw6S
+         NSHQ==
+X-Gm-Message-State: AOAM531b9iP0LO9hIbnmdjTjEMX9kidaV0WlTuRwRZw63iEmiD8P5XhU
+        GBP4FKJBFqJCSmMjOy1FVRfrMt68NRU=
+X-Google-Smtp-Source: ABdhPJxW/jnPuzUkkXIHD36JvP+VJT1/a/IX4KkOyE9UNv8GVqsNOEdsLCbevFIVx40aQ4kt+vE97A==
+X-Received: by 2002:a05:6870:c1d5:b0:ed:986c:3e64 with SMTP id i21-20020a056870c1d500b000ed986c3e64mr14928325oad.222.1652845291812;
+        Tue, 17 May 2022 20:41:31 -0700 (PDT)
+Received: from ?IPV6:2603:8081:140c:1a00:471c:e880:a07:cbc1? (2603-8081-140c-1a00-471c-e880-0a07-cbc1.res6.spectrum.com. [2603:8081:140c:1a00:471c:e880:a07:cbc1])
+        by smtp.gmail.com with ESMTPSA id q5-20020a9d6305000000b0060603221251sm441242otk.33.2022.05.17.20.41.31
+        for <linux-rdma@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 17 May 2022 20:41:31 -0700 (PDT)
+Message-ID: <0793a5bf-e984-94e7-2389-86dfa38729e2@gmail.com>
+Date:   Tue, 17 May 2022 22:41:30 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.1
+Subject: Fwd: Bug in pyverbs for test_qp_ex_rc_bind_mw
+Content-Language: en-US
+References: <9c9bbda0-4134-207c-96cb-eb594aab40d4@gmail.com>
+To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+In-Reply-To: <9c9bbda0-4134-207c-96cb-eb594aab40d4@gmail.com>
+X-Forwarded-Message-Id: <9c9bbda0-4134-207c-96cb-eb594aab40d4@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add the main erdma module, which provides interface to infiniband
-subsystem. Also fix a bug reported by kernel test robot.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
----
- drivers/infiniband/hw/erdma/erdma_main.c | 661 +++++++++++++++++++++++
- 1 file changed, 661 insertions(+)
- create mode 100644 drivers/infiniband/hw/erdma/erdma_main.c
 
-diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
-new file mode 100644
-index 000000000000..e542f260d20c
---- /dev/null
-+++ b/drivers/infiniband/hw/erdma/erdma_main.c
-@@ -0,0 +1,661 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+
-+/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
-+/*          Kai Shen <kaishen@linux.alibaba.com> */
-+/* Copyright (c) 2020-2022, Alibaba Group. */
-+
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/netdevice.h>
-+#include <linux/pci.h>
-+#include <linux/workqueue.h>
-+#include <net/addrconf.h>
-+#include <rdma/erdma-abi.h>
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_user_verbs.h>
-+
-+#include "erdma.h"
-+#include "erdma_cm.h"
-+#include "erdma_hw.h"
-+#include "erdma_verbs.h"
-+
-+MODULE_AUTHOR("Cheng Xu <chengyou@linux.alibaba.com>");
-+MODULE_DESCRIPTION("Alibaba elasticRDMA adapter driver");
-+MODULE_LICENSE("Dual BSD/GPL");
-+
-+static struct workqueue_struct *erdma_link_wq;
-+
-+static int erdma_netdev_event(struct notifier_block *nb, unsigned long event,
-+			      void *arg)
-+{
-+	struct net_device *netdev = netdev_notifier_info_to_dev(arg);
-+	struct erdma_dev *dev = container_of(nb, struct erdma_dev, netdev_nb);
-+
-+	if (dev->netdev == NULL || dev->netdev != netdev)
-+		goto done;
-+
-+	switch (event) {
-+	case NETDEV_UP:
-+		dev->state = IB_PORT_ACTIVE;
-+		erdma_port_event(dev, IB_EVENT_PORT_ACTIVE);
-+		break;
-+	case NETDEV_DOWN:
-+		dev->state = IB_PORT_DOWN;
-+		erdma_port_event(dev, IB_EVENT_PORT_ERR);
-+		break;
-+	case NETDEV_REGISTER:
-+	case NETDEV_UNREGISTER:
-+	case NETDEV_CHANGEADDR:
-+	case NETDEV_CHANGEMTU:
-+	case NETDEV_GOING_DOWN:
-+	case NETDEV_CHANGE:
-+	default:
-+		break;
-+	}
-+
-+done:
-+	return NOTIFY_OK;
-+}
-+
-+/* Handle all link tasks. */
-+static void erdma_link_task(struct work_struct *work)
-+{
-+	struct erdma_link_work *link_work =
-+		container_of(work, struct erdma_link_work, work);
-+	struct erdma_dev *dev = link_work->dev;
-+	struct net_device *netdev;
-+	int ret;
-+
-+	/* already linked to a netdev, return */
-+	if (dev->netdev)
-+		goto out;
-+
-+	switch (link_work->event) {
-+	case ERDMA_LINK_EVENT_ADD:
-+		rtnl_lock();
-+		for_each_netdev(&init_net, netdev) {
-+			if (ether_addr_equal_unaligned(netdev->perm_addr,
-+						       dev->attrs.peer_addr)) {
-+				ret = ib_device_set_netdev(&dev->ibdev, netdev,
-+							   1);
-+				if (ret) {
-+					rtnl_unlock();
-+
-+					ibdev_warn(&dev->ibdev,
-+						   "failed (%d) to link netdev",
-+						   ret);
-+					goto out;
-+				}
-+
-+				dev->netdev = netdev;
-+				break;
-+			}
-+		}
-+		rtnl_unlock();
-+
-+		/* We get the linked net device. */
-+		if (dev->netdev) {
-+			addrconf_addr_eui48((u8 *)&dev->ibdev.node_guid,
-+					    netdev->dev_addr);
-+			if (netif_running(dev->netdev) &&
-+			    netif_carrier_ok(dev->netdev))
-+				dev->state = IB_PORT_ACTIVE;
-+			else
-+				dev->state = IB_PORT_DOWN;
-+
-+			dev->netdev_nb.notifier_call = erdma_netdev_event;
-+
-+			ret = register_netdevice_notifier(&dev->netdev_nb);
-+			if (ret)
-+				ibdev_err(&dev->ibdev,
-+					  "failed to register notifier.\n");
-+		}
-+
-+		break;
-+	default:
-+		ibdev_err(&dev->ibdev, "error event type %lu.\n",
-+			  link_work->event);
-+	}
-+
-+out:
-+	kfree(link_work);
-+}
-+
-+static int erdma_device_register(struct erdma_dev *dev)
-+{
-+	struct ib_device *ibdev = &dev->ibdev;
-+	struct erdma_link_work *work;
-+	int ret;
-+
-+	memset(ibdev->name, 0, IB_DEVICE_NAME_MAX);
-+	/*
-+	 * In Ali ECS environment, ENI's mac address is unique in VPC.
-+	 * So, generating the ibdev's name from mac address of the binded
-+	 * netdev.
-+	 */
-+	ret = snprintf(ibdev->name, IB_DEVICE_NAME_MAX, "%s_%.2x%.2x%.2x",
-+		       DRV_MODULE_NAME, dev->attrs.peer_addr[3],
-+		       dev->attrs.peer_addr[4], dev->attrs.peer_addr[5]);
-+	if (ret < 0)
-+		return ret;
-+
-+	ibdev->phys_port_cnt = 1;
-+	ret = ib_device_set_netdev(ibdev, NULL, 1);
-+	if (ret)
-+		return ret;
-+
-+	work = kzalloc(sizeof(*work), GFP_KERNEL);
-+	if (!work)
-+		return -ENOMEM;
-+
-+	ret = ib_register_device(ibdev, ibdev->name, &dev->pdev->dev);
-+	if (ret) {
-+		dev_err(&dev->pdev->dev,
-+			"ib_register_device(%s) failed: ret = %d\n",
-+			ibdev->name, ret);
-+		kfree(work);
-+		return ret;
-+	}
-+
-+	work->dev = dev;
-+	work->event = ERDMA_LINK_EVENT_ADD;
-+	INIT_WORK(&work->work, erdma_link_task);
-+	queue_work(erdma_link_wq, &work->work);
-+
-+	return 0;
-+}
-+
-+static irqreturn_t erdma_comm_irq_handler(int irq, void *data)
-+{
-+	struct erdma_dev *dev = data;
-+
-+	erdma_cmdq_completion_handler(&dev->cmdq);
-+	erdma_aeq_event_handler(dev);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static void erdma_dwqe_resource_init(struct erdma_dev *dev)
-+{
-+	int total_pages, type0, type1;
-+
-+	dev->attrs.grp_num = erdma_reg_read32(dev, ERDMA_REGS_GRP_NUM_REG);
-+
-+	if (dev->attrs.grp_num < 4)
-+		dev->attrs.disable_dwqe = true;
-+	else
-+		dev->attrs.disable_dwqe = false;
-+
-+	/* One page contains 4 goups. */
-+	total_pages = dev->attrs.grp_num * 4;
-+
-+	if (dev->attrs.grp_num >= ERDMA_DWQE_MAX_GRP_CNT) {
-+		dev->attrs.grp_num = ERDMA_DWQE_MAX_GRP_CNT;
-+		type0 = ERDMA_DWQE_TYPE0_CNT;
-+		type1 = ERDMA_DWQE_TYPE1_CNT / ERDMA_DWQE_TYPE1_CNT_PER_PAGE;
-+	} else {
-+		type1 = total_pages / 3;
-+		type0 = total_pages - type1 - 1;
-+	}
-+
-+	dev->attrs.dwqe_pages = type0;
-+	dev->attrs.dwqe_entries = type1 * ERDMA_DWQE_TYPE1_CNT_PER_PAGE;
-+}
-+
-+static int erdma_request_vectors(struct erdma_dev *dev)
-+{
-+	int expect_irq_num = min(num_possible_cpus() + 1, ERDMA_NUM_MSIX_VEC);
-+
-+	dev->attrs.irq_num = pci_alloc_irq_vectors(dev->pdev, 1, expect_irq_num,
-+						   PCI_IRQ_MSIX);
-+	if (dev->attrs.irq_num <= 0) {
-+		dev_err(&dev->pdev->dev, "request irq vectors failed(%d)\n",
-+			dev->attrs.irq_num);
-+		return -ENOSPC;
-+	}
-+
-+	return 0;
-+}
-+
-+static int erdma_comm_irq_init(struct erdma_dev *dev)
-+{
-+	snprintf(dev->comm_irq.name, ERDMA_IRQNAME_SIZE, "erdma-common@pci:%s",
-+		 pci_name(dev->pdev));
-+	dev->comm_irq.msix_vector =
-+		pci_irq_vector(dev->pdev, ERDMA_MSIX_VECTOR_CMDQ);
-+
-+	cpumask_set_cpu(cpumask_first(cpumask_of_pcibus(dev->pdev->bus)),
-+			&dev->comm_irq.affinity_hint_mask);
-+	irq_set_affinity_hint(dev->comm_irq.msix_vector,
-+			      &dev->comm_irq.affinity_hint_mask);
-+
-+	return request_irq(dev->comm_irq.msix_vector, erdma_comm_irq_handler, 0,
-+			   dev->comm_irq.name, dev);
-+}
-+
-+static void erdma_comm_irq_uninit(struct erdma_dev *dev)
-+{
-+	irq_set_affinity_hint(dev->comm_irq.msix_vector, NULL);
-+	free_irq(dev->comm_irq.msix_vector, dev);
-+}
-+
-+static int erdma_device_init(struct erdma_dev *dev, struct pci_dev *pdev)
-+{
-+	erdma_dwqe_resource_init(dev);
-+
-+	return dma_set_mask_and_coherent(&pdev->dev,
-+					 DMA_BIT_MASK(ERDMA_PCI_WIDTH));
-+}
-+
-+static void erdma_device_uninit(struct erdma_dev *dev)
-+{
-+	u32 ctrl = FIELD_PREP(ERDMA_REG_DEV_CTRL_RESET_MASK, 1);
-+
-+	erdma_reg_write32(dev, ERDMA_REGS_DEV_CTRL_REG, ctrl);
-+}
-+
-+static const struct pci_device_id erdma_pci_tbl[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_ALIBABA, 0x107f) },
-+	{}
-+};
-+
-+static int erdma_probe_dev(struct pci_dev *pdev)
-+{
-+	int err;
-+	struct erdma_dev *dev;
-+	u32 version;
-+	int bars;
-+
-+	err = pci_enable_device(pdev);
-+	if (err) {
-+		dev_err(&pdev->dev, "pci_enable_device failed(%d)\n", err);
-+		return err;
-+	}
-+
-+	pci_set_master(pdev);
-+
-+	dev = ib_alloc_device(erdma_dev, ibdev);
-+	if (!dev) {
-+		dev_err(&pdev->dev, "ib_alloc_device failed\n");
-+		err = -ENOMEM;
-+		goto err_disable_device;
-+	}
-+
-+	pci_set_drvdata(pdev, dev);
-+	dev->pdev = pdev;
-+	dev->attrs.numa_node = dev_to_node(&pdev->dev);
-+
-+	bars = pci_select_bars(pdev, IORESOURCE_MEM);
-+	err = pci_request_selected_regions(pdev, bars, DRV_MODULE_NAME);
-+	if (bars != ERDMA_BAR_MASK || err) {
-+		err = err ? err : -EINVAL;
-+		goto err_ib_device_release;
-+	}
-+
-+	dev->func_bar_addr = pci_resource_start(pdev, ERDMA_FUNC_BAR);
-+	dev->func_bar_len = pci_resource_len(pdev, ERDMA_FUNC_BAR);
-+
-+	dev->func_bar =
-+		devm_ioremap(&pdev->dev, dev->func_bar_addr, dev->func_bar_len);
-+	if (!dev->func_bar) {
-+		dev_err(&pdev->dev, "devm_ioremap failed.\n");
-+		err = -EFAULT;
-+		goto err_release_bars;
-+	}
-+
-+	version = erdma_reg_read32(dev, ERDMA_REGS_VERSION_REG);
-+	if (version == 0) {
-+		/* we knows that it is a non-functional function. */
-+		err = -ENODEV;
-+		goto err_iounmap_func_bar;
-+	}
-+
-+	err = erdma_device_init(dev, pdev);
-+	if (err)
-+		goto err_iounmap_func_bar;
-+
-+	err = erdma_request_vectors(dev);
-+	if (err)
-+		goto err_iounmap_func_bar;
-+
-+	err = erdma_comm_irq_init(dev);
-+	if (err)
-+		goto err_free_vectors;
-+
-+	err = erdma_aeq_init(dev);
-+	if (err)
-+		goto err_uninit_comm_irq;
-+
-+	err = erdma_cmdq_init(dev);
-+	if (err)
-+		goto err_uninit_aeq;
-+
-+	err = erdma_ceqs_init(dev);
-+	if (err)
-+		goto err_uninit_cmdq;
-+
-+	erdma_finish_cmdq_init(dev);
-+
-+	return 0;
-+
-+err_uninit_cmdq:
-+	erdma_device_uninit(dev);
-+	erdma_cmdq_destroy(dev);
-+
-+err_uninit_aeq:
-+	erdma_aeq_destroy(dev);
-+
-+err_uninit_comm_irq:
-+	erdma_comm_irq_uninit(dev);
-+
-+err_free_vectors:
-+	pci_free_irq_vectors(dev->pdev);
-+
-+err_iounmap_func_bar:
-+	devm_iounmap(&pdev->dev, dev->func_bar);
-+
-+err_release_bars:
-+	pci_release_selected_regions(pdev, bars);
-+
-+err_ib_device_release:
-+	ib_dealloc_device(&dev->ibdev);
-+
-+err_disable_device:
-+	pci_disable_device(pdev);
-+
-+	return err;
-+}
-+
-+static void erdma_remove_dev(struct pci_dev *pdev)
-+{
-+	struct erdma_dev *dev = pci_get_drvdata(pdev);
-+
-+	erdma_ceqs_uninit(dev);
-+
-+	erdma_device_uninit(dev);
-+
-+	erdma_cmdq_destroy(dev);
-+	erdma_aeq_destroy(dev);
-+	erdma_comm_irq_uninit(dev);
-+	pci_free_irq_vectors(dev->pdev);
-+
-+	devm_iounmap(&pdev->dev, dev->func_bar);
-+	pci_release_selected_regions(pdev, ERDMA_BAR_MASK);
-+
-+	ib_dealloc_device(&dev->ibdev);
-+
-+	pci_disable_device(pdev);
-+}
-+
-+#define ERDMA_GET_CAP(name, cap) FIELD_GET(ERDMA_CMD_DEV_CAP_##name##_MASK, cap)
-+
-+static int erdma_dev_attrs_init(struct erdma_dev *dev)
-+{
-+	int err;
-+	u64 req_hdr, cap0, cap1;
-+
-+	erdma_cmdq_build_reqhdr(&req_hdr, CMDQ_SUBMOD_RDMA,
-+				CMDQ_OPCODE_QUERY_DEVICE);
-+
-+	err = erdma_post_cmd_wait(&dev->cmdq, &req_hdr, sizeof(req_hdr), &cap0,
-+				  &cap1);
-+	if (err)
-+		return err;
-+
-+	dev->attrs.max_cqe = 1 << ERDMA_GET_CAP(MAX_CQE, cap0);
-+	dev->attrs.max_mr_size = 1ULL << ERDMA_GET_CAP(MAX_MR_SIZE, cap0);
-+	dev->attrs.max_mw = 1 << ERDMA_GET_CAP(MAX_MW, cap1);
-+	dev->attrs.max_recv_wr = 1 << ERDMA_GET_CAP(MAX_RECV_WR, cap0);
-+	dev->attrs.local_dma_key = ERDMA_GET_CAP(DMA_LOCAL_KEY, cap1);
-+	dev->attrs.cc = ERDMA_GET_CAP(DEFAULT_CC, cap1);
-+	dev->attrs.max_qp = ERDMA_NQP_PER_QBLOCK * ERDMA_GET_CAP(QBLOCK, cap1);
-+	dev->attrs.max_mr = dev->attrs.max_qp << 1;
-+	dev->attrs.max_cq = dev->attrs.max_qp << 1;
-+
-+	dev->attrs.max_send_wr = ERDMA_MAX_SEND_WR;
-+	dev->attrs.max_ord = ERDMA_MAX_ORD;
-+	dev->attrs.max_ird = ERDMA_MAX_IRD;
-+	dev->attrs.max_send_sge = ERDMA_MAX_SEND_SGE;
-+	dev->attrs.max_recv_sge = ERDMA_MAX_RECV_SGE;
-+	dev->attrs.max_sge_rd = ERDMA_MAX_SGE_RD;
-+	dev->attrs.max_pd = ERDMA_MAX_PD;
-+
-+	dev->res_cb[ERDMA_RES_TYPE_PD].max_cap = ERDMA_MAX_PD;
-+	dev->res_cb[ERDMA_RES_TYPE_STAG_IDX].max_cap = dev->attrs.max_mr;
-+
-+	erdma_cmdq_build_reqhdr(&req_hdr, CMDQ_SUBMOD_COMMON,
-+				CMDQ_OPCODE_QUERY_FW_INFO);
-+
-+	err = erdma_post_cmd_wait(&dev->cmdq, &req_hdr, sizeof(req_hdr), &cap0,
-+				  &cap1);
-+
-+	dev->attrs.fw_version = FIELD_GET(ERDMA_CMD_INFO0_FW_VER_MASK, cap0);
-+
-+	return err;
-+}
-+
-+static int erdma_res_cb_init(struct erdma_dev *dev)
-+{
-+	int i, j;
-+
-+	for (i = 0; i < ERDMA_RES_CNT; i++) {
-+		dev->res_cb[i].next_alloc_idx = 1;
-+		spin_lock_init(&dev->res_cb[i].lock);
-+		dev->res_cb[i].bitmap =
-+			kcalloc(BITS_TO_LONGS(dev->res_cb[i].max_cap),
-+				sizeof(unsigned long), GFP_KERNEL);
-+		/* We will free the memory in erdma_res_cb_free */
-+		if (!dev->res_cb[i].bitmap)
-+			goto err;
-+	}
-+
-+	return 0;
-+
-+err:
-+	for (j = 0; j < i; j++)
-+		kfree(dev->res_cb[j].bitmap);
-+
-+	return -ENOMEM;
-+}
-+
-+static void erdma_res_cb_free(struct erdma_dev *dev)
-+{
-+	int i;
-+
-+	for (i = 0; i < ERDMA_RES_CNT; i++)
-+		kfree(dev->res_cb[i].bitmap);
-+}
-+
-+static const struct ib_device_ops erdma_device_ops = {
-+	.owner = THIS_MODULE,
-+	.driver_id = RDMA_DRIVER_ERDMA,
-+	.uverbs_abi_ver = ERDMA_ABI_VERSION,
-+
-+	.alloc_mr = erdma_ib_alloc_mr,
-+	.alloc_pd = erdma_alloc_pd,
-+	.alloc_ucontext = erdma_alloc_ucontext,
-+	.create_cq = erdma_create_cq,
-+	.create_qp = erdma_create_qp,
-+	.dealloc_pd = erdma_dealloc_pd,
-+	.dealloc_ucontext = erdma_dealloc_ucontext,
-+	.dereg_mr = erdma_dereg_mr,
-+	.destroy_cq = erdma_destroy_cq,
-+	.destroy_qp = erdma_destroy_qp,
-+	.get_dma_mr = erdma_get_dma_mr,
-+	.get_port_immutable = erdma_get_port_immutable,
-+	.iw_accept = erdma_accept,
-+	.iw_add_ref = erdma_qp_get_ref,
-+	.iw_connect = erdma_connect,
-+	.iw_create_listen = erdma_create_listen,
-+	.iw_destroy_listen = erdma_destroy_listen,
-+	.iw_get_qp = erdma_get_ibqp,
-+	.iw_reject = erdma_reject,
-+	.iw_rem_ref = erdma_qp_put_ref,
-+	.map_mr_sg = erdma_map_mr_sg,
-+	.mmap = erdma_mmap,
-+	.mmap_free = erdma_mmap_free,
-+	.modify_qp = erdma_modify_qp,
-+	.post_recv = erdma_post_recv,
-+	.post_send = erdma_post_send,
-+	.poll_cq = erdma_poll_cq,
-+	.query_device = erdma_query_device,
-+	.query_gid = erdma_query_gid,
-+	.query_port = erdma_query_port,
-+	.query_qp = erdma_query_qp,
-+	.req_notify_cq = erdma_req_notify_cq,
-+	.reg_user_mr = erdma_reg_user_mr,
-+
-+	INIT_RDMA_OBJ_SIZE(ib_cq, erdma_cq, ibcq),
-+	INIT_RDMA_OBJ_SIZE(ib_pd, erdma_pd, ibpd),
-+	INIT_RDMA_OBJ_SIZE(ib_ucontext, erdma_ucontext, ibucontext),
-+	INIT_RDMA_OBJ_SIZE(ib_qp, erdma_qp, ibqp),
-+};
-+
-+static int erdma_ib_device_add(struct pci_dev *pdev)
-+{
-+	struct erdma_dev *dev = pci_get_drvdata(pdev);
-+	struct ib_device *ibdev = &dev->ibdev;
-+	u64 mac;
-+	int ret = 0;
-+
-+	ret = erdma_dev_attrs_init(dev);
-+	if (ret)
-+		return ret;
-+
-+	ibdev->node_type = RDMA_NODE_RNIC;
-+	memcpy(ibdev->node_desc, ERDMA_NODE_DESC, sizeof(ERDMA_NODE_DESC));
-+
-+	/*
-+	 * Current model (one-to-one device association):
-+	 * One ERDMA device per net_device or, equivalently,
-+	 * per physical port.
-+	 */
-+	ibdev->phys_port_cnt = 1;
-+	ibdev->num_comp_vectors = dev->attrs.irq_num - 1;
-+
-+	ib_set_device_ops(ibdev, &erdma_device_ops);
-+
-+	INIT_LIST_HEAD(&dev->cep_list);
-+
-+	spin_lock_init(&dev->lock);
-+	xa_init_flags(&dev->qp_xa, XA_FLAGS_ALLOC1);
-+	xa_init_flags(&dev->cq_xa, XA_FLAGS_ALLOC1);
-+	dev->next_alloc_cqn = 1;
-+	dev->next_alloc_qpn = 1;
-+
-+	ret = erdma_res_cb_init(dev);
-+	if (ret)
-+		return ret;
-+
-+	spin_lock_init(&dev->db_bitmap_lock);
-+	bitmap_zero(dev->sdb_page, ERDMA_DWQE_TYPE0_CNT);
-+	bitmap_zero(dev->sdb_entry, ERDMA_DWQE_TYPE1_CNT);
-+
-+	atomic_set(&dev->num_ctx, 0);
-+
-+	mac = erdma_reg_read32(dev, ERDMA_REGS_NETDEV_MAC_L_REG);
-+	mac |= (u64)erdma_reg_read32(dev, ERDMA_REGS_NETDEV_MAC_H_REG) << 32;
-+
-+	u64_to_ether_addr(mac, dev->attrs.peer_addr);
-+
-+	ret = erdma_device_register(dev);
-+	if (ret)
-+		goto err_out;
-+
-+	return 0;
-+
-+err_out:
-+	xa_destroy(&dev->qp_xa);
-+	xa_destroy(&dev->cq_xa);
-+
-+	erdma_res_cb_free(dev);
-+
-+	return ret;
-+}
-+
-+static void erdma_ib_device_remove(struct pci_dev *pdev)
-+{
-+	struct erdma_dev *dev = pci_get_drvdata(pdev);
-+
-+	if (dev->netdev) {
-+		ib_device_set_netdev(&dev->ibdev, NULL, 1);
-+		dev->netdev = NULL;
-+		unregister_netdevice_notifier(&dev->netdev_nb);
-+	}
-+
-+	ib_unregister_device(&dev->ibdev);
-+
-+	erdma_res_cb_free(dev);
-+	xa_destroy(&dev->qp_xa);
-+	xa_destroy(&dev->cq_xa);
-+}
-+
-+static int erdma_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
-+{
-+	int ret;
-+
-+	ret = erdma_probe_dev(pdev);
-+	if (ret)
-+		return ret;
-+
-+	ret = erdma_ib_device_add(pdev);
-+	if (ret) {
-+		erdma_remove_dev(pdev);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static void erdma_remove(struct pci_dev *pdev)
-+{
-+	erdma_ib_device_remove(pdev);
-+	erdma_remove_dev(pdev);
-+}
-+
-+static struct pci_driver erdma_pci_driver = {
-+	.name = DRV_MODULE_NAME,
-+	.id_table = erdma_pci_tbl,
-+	.probe = erdma_probe,
-+	.remove = erdma_remove
-+};
-+
-+MODULE_DEVICE_TABLE(pci, erdma_pci_tbl);
-+
-+static __init int erdma_init_module(void)
-+{
-+	int ret;
-+
-+	ret = erdma_cm_init();
-+	if (ret)
-+		return ret;
-+
-+	erdma_link_wq = create_singlethread_workqueue("erdma_link");
-+	if (!erdma_link_wq) {
-+		erdma_cm_exit();
-+		return -ENOMEM;
-+	}
-+
-+	ret = pci_register_driver(&erdma_pci_driver);
-+	if (ret) {
-+		destroy_workqueue(erdma_link_wq);
-+		erdma_cm_exit();
-+	}
-+
-+	return ret;
-+}
-+
-+static void __exit erdma_exit_module(void)
-+{
-+	pci_unregister_driver(&erdma_pci_driver);
-+
-+	if (erdma_link_wq)
-+		destroy_workqueue(erdma_link_wq);
-+	erdma_cm_exit();
-+}
-+
-+module_init(erdma_init_module);
-+module_exit(erdma_exit_module);
--- 
-2.27.0
 
+-------- Forwarded Message --------
+Subject: Re: Bug in pyverbs for test_qp_ex_rc_bind_mw
+Date: Tue, 17 May 2022 22:41:08 -0500
+From: Bob Pearson <rpearsonhpe@gmail.com>
+To: Jason Gunthorpe <jgg@nvidia.com>, Zhu Yanjun <zyjzyj2000@gmail.com>, Edward Srouji <edwards@nvidia.com>, Leon Romanovsky <leon@kernel.org>
+
+On 5/17/22 21:57, Bob Pearson wrote:
+> test_qp_ex_rc_bind_mw has an error in that the new_rkey is computed from the old mr rkey and not the old mw rkey.
+> The following lines
+> 
+> 	mw = MW(server.pd, mw_type=e.IBV_MW_TYPE_2)
+> 	...
+> 	new_rkey = inc_rkey(server.mr.rkey)
+> 	server.qp.wr_bind_mw(mw, new_rkey, bind_info)
+> 
+> will compute a new rkey with the same index as mr and a key portion that is one larger than mr modulo 256.
+> This is passed to wr_bind_mw which expects a parameter with a new key portion of the mw (not the mr).
+> The memory windows implementation in rxe generates a random initial rkey for mw and for bind_mw it
+> checks that the new 8 bit key is different than the old key. Since the mr and mw are random wrt each other
+> we expect that the new key will match the old key approx 1 out of 256 test runs which will cause an error
+> which is just what I see.
+> 
+> The correct code should be
+> 
+> 	new_key = inc_rkey(<old mw.rkey>)
+> 
+> which will guarantee that it is always different than the previous key. The problem is I can't figure out
+> how to compute the rkey from the mw or I would submit a patch.
+> 
+> Bob
+> 
+
+If in test_qpex.py I type
+
+print("mw = ", mw)
+print("mr = ", self.server.mr)
+
+I get
+
+mw = MW:
+Rkey		: 12345678
+Handle		: 4
+MW Type		: IBV_MW_TYPE_2
+
+mr = MR
+lkey		: 432134
+rkey		: 432134
+length		: 1024
+buf		: 9403912345678
+handle		: 2
+
+The difference is the colon ':' after MW and caps.
+
+I can refer to mr.rkey as self.server.mr.rkey no problem
+
+but mw.Rkey doesn't work. Neither does mw.rkey or anything else I have thought of.
+
+I hate python. Just hate it.
+
+Bob
