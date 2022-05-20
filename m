@@ -2,172 +2,551 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2CE2C433F5
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 May 2022 01:35:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D8D8C4167D
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 May 2022 06:10:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344477AbiETBfM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 May 2022 21:35:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51184 "EHLO
+        id S1345756AbiETGKO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 20 May 2022 02:10:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344580AbiETBfK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 May 2022 21:35:10 -0400
-Received: from mx0a-002cfd01.pphosted.com (mx0a-002cfd01.pphosted.com [148.163.151.149])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FFD19CF59
-        for <linux-rdma@vger.kernel.org>; Thu, 19 May 2022 18:35:06 -0700 (PDT)
-Received: from pps.filterd (m0130871.ppops.net [127.0.0.1])
-        by mx0a-002cfd01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24JJHN2A015100
-        for <linux-rdma@vger.kernel.org>; Thu, 19 May 2022 21:35:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=buckeyemail.osu.edu; h=from : to :
- subject : date : message-id : content-type : content-id :
- content-transfer-encoding : mime-version; s=pps1;
- bh=7zM2Kj+u/LKHxSqRkzXQKYgFDlEl3KyBfn8uHzggD0g=;
- b=fw9r6LOP4zwf1B47OiGUNjualflfcAh7CAhzj0WH94b/zRDjt+hOsIe3MLDj2Z5VJqRY
- GyyAcGFHr8WFXCYVY+ovri6p22cptEvTlS1aMWxLjUsagZnGkxEdlbIx1pkkGJBtBocZ
- G7n/PXtD+Ik8mwhXKYgZxsPTt9cjw5uGlDbjzE/mP/fgXeox+7hyK1fupAJkvVl6pOnJ
- ErjyjyozjZhq6PUwYmElp7Tm6pLxZMfKKpT45hCvzsA1mStS9Zx1upzoB8T3dvzCuOlp
- bBCAJ0LZeb700zBavUMic3wP17IK0CWcDmD8sHrDl/2ZMcXx5p0JslZWpbayy3uqjC85 RQ== 
-Received: from nam10-dm6-obe.outbound.protection.outlook.com (mail-dm6nam10lp2102.outbound.protection.outlook.com [104.47.58.102])
-        by mx0a-002cfd01.pphosted.com (PPS) with ESMTPS id 3g5qxkv687-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-rdma@vger.kernel.org>; Thu, 19 May 2022 21:35:06 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Tws8z8bpO5p0oJAwn5vSjCzPIMQKthWvz7RaaPNDhtIHHuwSfVUhKlO4xYFU8MLoqMsEgcOUCdj2FYlTeFT1moTBIDnD3/Cm8oEw22KfffmohMk1rm8mYrimeqIK3LYSVfEQMdhCV3iP1i51Mw6T1McXAVRoMVgoGKgrQu2EflPheiWfRbwkqYvsgI6XGqcGVho1q5QBZO2YCL1vztCCq3aHNgk1qrJxuJVG6z5xwU5c6ce4VKcidPtTHut+nSsOQafhasOib2gu0GWl1g5nAnihkAGnj1biQiG4+ZhznmXJFJuIahQrNDIqNobDwKurN5okiQ6sdp3WM7V2wtPvVg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=7zM2Kj+u/LKHxSqRkzXQKYgFDlEl3KyBfn8uHzggD0g=;
- b=J/OQ6jgUSz8Pb9cOfe2fkP+7SG5qwzOP7hjJjcKdlaQ9soXM4Jmk8DjQYIN+DH8s4W/TQ+w2eojDV5RpvtC2RGFs0LYlbYOiKvYOR111GtymY+bo5jAN9G3FKBoP6rCM13j3pcb8dWa2Sp6bMsHxkUEMOkmohe5RGfnFZLyProgNWP21lwISG20ubAW+ht2WF0MxZ+oKiYBS8CkIoel1AZeGw5UU0Deaap+/lgONcgY9ECAc4G89YRh6qfnrncIkDmwfvNsKVtyhMSaxER3gJr7R65G9gQ+j2n/GWOaiKVWGYJ+29lLMgdyc31FM37BULLgzl3OjNSx/dhjtUWtMKA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=buckeyemail.osu.edu; dmarc=pass action=none
- header.from=buckeyemail.osu.edu; dkim=pass header.d=buckeyemail.osu.edu;
- arc=none
-Received: from BL1PR01MB7652.prod.exchangelabs.com (2603:10b6:208:397::12) by
- BN3PR01MB1956.prod.exchangelabs.com (2a01:111:e400:c5f0::12) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5273.17; Fri, 20 May 2022 01:35:04 +0000
-Received: from BL1PR01MB7652.prod.exchangelabs.com
- ([fe80::88b4:bc72:38e3:3ef9]) by BL1PR01MB7652.prod.exchangelabs.com
- ([fe80::88b4:bc72:38e3:3ef9%7]) with mapi id 15.20.5273.015; Fri, 20 May 2022
- 01:35:04 +0000
-From:   "Geng, Liang" <geng.161@buckeyemail.osu.edu>
-To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: The performance of event APIs could be bounded by softirqs
-Thread-Topic: The performance of event APIs could be bounded by softirqs
-Thread-Index: AQHYa+nUzigMd7Yyt0iScH8Xbr6Nlg==
-Date:   Fri, 20 May 2022 01:35:04 +0000
-Message-ID: <4F5407D6-F481-4219-ACAB-529CB1621730@buckeyemail.osu.edu>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 55cb4df3-ad63-4e13-f9d8-08da3a00f6f5
-x-ms-traffictypediagnostic: BN3PR01MB1956:EE_
-x-microsoft-antispam-prvs: <BN3PR01MB195643445A48F20B6722379E9BD39@BN3PR01MB1956.prod.exchangelabs.com>
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: Hg5xH5KOJHG6hFtrjcY30OcbycA5Mhbu+lc372JwPS9Ykpv+Zqw7YVrP4oamEcJ58VwCJZ3d10OjX7zLn5QfeUx11j9pjMT1UpzBs+Lc+Nnn9lAHrkGYJmRaNmd+ta8/V2NmRzDVHTuZ6J8CoY86yWtVOsKDcAXvoee3p7DGgj4z6toq8it1tAQzulachEfpwrts0bUwqia22i+yn9clJXqINSFsyiyOIrOzW+yqWBLKiyv5JmZjmsROL+VmoMg9OZYopVd/Ny6VPyHdKyb6XF3G/F0WB7RQ1UbRmGLZ/SxJv8iSZyajb9OMv/EekcPFCZZ0MyQ1t5C3QmD7/QwpnzzSiglAUp71xD/xqmuRkXUXwJs5UCaAI3TbZPpdFL8U7gAyLAUgW2KyxJ6V+ZyPA60E5okc3z7UfGAjARRGFbaQnUo2H4K7mJFFgnp+fyZrQYuBLsLDGdmP5iXorR/nAjIRYVXaul1kYMIFNUMeR8HU7lUgBsIUnUt4MqOGhjf7w+GnvOXjxfK9YwIwyAD8PVEYVCMIW7aXepVYUjiTp+lsuUxXPfm20Qxl9Vk4BeCwfmhcAYLtncrVsW8j7kOPYCw2cGvM8KG8cN98oJFy0PZpYk3z4+E0+PU42CYufFXIYP7nnsYOH9w6mayC6vJQl0q02rhrNE8IZH5xHdZ5BWuheASIaNAd9h8VwUV7IHSKKkBsCAi8trNzWvuk1+I4TCGZF7kmIyPvsU75taxF9/H77IO2OKWPEQ8ldku2ppR3IYK4Ci4cvgKa94XOxT9NcQSwrb7e3YoFo4FP376DB8U=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL1PR01MB7652.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(76116006)(66946007)(66476007)(66446008)(66556008)(8676002)(64756008)(26005)(71200400001)(6512007)(5660300002)(2906002)(33656002)(508600001)(38070700005)(86362001)(75432002)(122000001)(6506007)(2616005)(316002)(786003)(38100700002)(6486002)(6916009)(966005)(186003)(8936002)(91956017)(83380400001);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?Q0h6NndBOHRGVXNqd08zMWVmZHFRS3Y3UVZmVVBwcFJLZ3BHeTJlMmNrdnJ4?=
- =?utf-8?B?TG4wSXJuZjRtSXpUK2FRbllnUFF6TTVTa2VWSGxlR05VRFEzOHUzVCtEWVp0?=
- =?utf-8?B?QlJWYVdQVTZKamg5V3JIWTVPTk9RVW1hK0lzSXdNbk1zQmY1ZDYyK0dSTnFy?=
- =?utf-8?B?VnE0aDY2Vi9xY1BDQjVpMlBaekZORW9PM2ZMc0FiM0VRNGYyYW9yT1lxcUMv?=
- =?utf-8?B?ZTgrbjRpdDFubUZCS1dzZTQ0WlJlSGxpc05xRUdxeWU0b0hndG8rdG94N2hE?=
- =?utf-8?B?bHIxaTdrZ0dYc1ZzMlF1MzBPd25adzFIZVVYTVdnbU5nV2trRGxyODlMQ0Vw?=
- =?utf-8?B?QkdINlRxM0pINURoS3BFRlFCQXZZVjJmc2dVZ25iandzeXZnWmlZQitvNjUx?=
- =?utf-8?B?MHoyUmxpLy9jYlpCcmMyaGNqRUl2OVk5ZnVuZm1mak5HUE9rRmdzM1NNa053?=
- =?utf-8?B?TXN2cERzL04rdnRwZ3dGQ1FmcktzMmZZeW1SUkZwNXVvdWdmZW5CNXpENkRU?=
- =?utf-8?B?bEYwNXpOdG9vSWtKWkJ5OXdlMEU5dXFCUjh6VXlFdXhYT2RNYXZBVkU1ZUsv?=
- =?utf-8?B?RzQ1VVBVM0VORFNqOXdwc1lmZXFzUlBkWHBzNThTUFVONlBZTm1Ralc0N2Ns?=
- =?utf-8?B?NXB6UDFwUVFlMHFNTWlZdjVKM2NUNWpLVlIwZlVCM0xqYWgycVlCSXZSek8x?=
- =?utf-8?B?akFndnpDcG1BY3RXNG9xNnFrcXgyNzJ0eUx6V2Y3dUxpTE12SWRkVFd5ZTMw?=
- =?utf-8?B?Q0NRcUV6OWVTc2pQSnB3VzB4ZG0rZ3NHbUtTZnM1QzJkVW9PUmN5MUdkS2l3?=
- =?utf-8?B?UTBMaFRENzliZU9FejJhMlJSK3dnY3ZJeXBCRjFtb3pGTEQ0bFpUcmRNeVNj?=
- =?utf-8?B?QUczTGdpS0liWVdJOXMyZ2ZxbWJVVkxuZGlVMit4N3hBcGxwbEQ4TFo3emQ0?=
- =?utf-8?B?Snljb01tOTFDY1BXdEprWnVVQWNwWSsxNEV1bXBYN2ppVkZOU21VZElmZ1hD?=
- =?utf-8?B?RGphS2c1R1cxdXFKVmxzdElhZDJMOFRPOW5iWGQzbTlpYXJZMll2ZU9YZWlS?=
- =?utf-8?B?bEZ6ZjI4cWlyRzk5M1ZwMElvanZpNWRFUHphZ2wzeUh0ekg3UVhsejEyejFB?=
- =?utf-8?B?QkF6TnhpNVZEK29TSnBJTTlRWnVvR3hhVDljdHNhNmJNSHhZWFUyYks0bTFN?=
- =?utf-8?B?bUVkUEJQSUxEd3VKdTBodUZLQUdUWkQ4ejdxNEZsRThFeGRCTDZDeFhwVGJT?=
- =?utf-8?B?YmNlcTExZmkwZXRQSU9PRnJhbTZqNnNhY2ZyL1dySEgyNlBuUnBwa1dRVnlp?=
- =?utf-8?B?aFhFVHVQNUg0M0pSL2RIYjNWS282Ym4zalVxY3FSNlJ5U09MeFBBeXFLN2Rt?=
- =?utf-8?B?Rit4aUFtbXRCTCtXUkJOQjFveTFyOGhZRGFSOEwwSWFyaVgxdGRqZmhlWitC?=
- =?utf-8?B?Mm9mTldSQ2owL0dxMlZGREtRaU51WWdFRXNLZk42NlllWVlNWmgvcitJVER5?=
- =?utf-8?B?SzFEVzFmd0ZVOUh2QkxBWXRKcHM2RStOeXNKYk5BTjhBV0x3bndWY3ZWakdz?=
- =?utf-8?B?aHNIQXFYQ0piVTFjOWp0UnBPNXZwRyt3eTZoeXVNeXNDU1NHRWEvR0NuUlJD?=
- =?utf-8?B?U1VSZHlBNDhGVThEL1FxUWFQSWN1cEJ5UFNoK1o1OS93R0hVNFpyaGZrek9G?=
- =?utf-8?B?SlZ6RWhaZ01mMWdaRitZUGx4QnVNdE5lczJvU2d0R0pTbVNnUTNlT3Q0TlV0?=
- =?utf-8?B?dGxhbXlYSkdtVmkzbStHbVhYRTR2SzMrbTJWQTJRUW15SFZrck1oVnNkRklM?=
- =?utf-8?B?MU5WbHcxREZyUG5kYTFPdDBZZ2RKQWNyM2tzby8ycWFTK3BCNUFpTi9UOEtq?=
- =?utf-8?B?VUcrd1ViM2dhU21ReGpxc09uNERGY0F6QXhxeVFBNCtRUWtsT2RIWW83c2Q0?=
- =?utf-8?B?eE9KaytCRUdHMkRhRDFicW8rTlNyQzVrYXV1aEh6WUtlRzdXSFlsT0JYdTF4?=
- =?utf-8?B?NVZQWEYyU2pxdUU3bjdKYzV0OUtsUXp4d1RTWGkxY1ptUmNwQmZUM1dGbXIy?=
- =?utf-8?B?QUV6SDRkQUx3enVrQ0JjNHNqblBDbzRzek82dzh1VGNhVzlYRHFmWm5vOU82?=
- =?utf-8?B?dGJ6Z0NsWXpRK2U1NDQ0bXR5WjJRUlNxWnp5RE9jQm5UK2JlTTVvQjJFczRv?=
- =?utf-8?B?WVQxMFJzOWFlMytucTRiZkptdm9vL3F1bHhvQkJ3VHBTa1V4Y2s4RDdqQyta?=
- =?utf-8?B?TnVwVXhrMXpNOTJlSTlBRGlWaGUwd0JlTkpnSVo0bEVVc2syNG4rL2VSb2Uv?=
- =?utf-8?B?MURxMXdnQUNhRkZ3WlhsNjE2anlrYkN4bXhBdGNKcVFTOFUzWlVmRVpwQUxX?=
- =?utf-8?Q?XZXd5fxJQVfKo6wA=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <593EFFC3ABAE134F88EC103CBC7BE291@prod.exchangelabs.com>
-Content-Transfer-Encoding: base64
+        with ESMTP id S234755AbiETGKL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 20 May 2022 02:10:11 -0400
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B75E114B672;
+        Thu, 19 May 2022 23:10:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1653027008; x=1684563008;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=0IGNZy702JKiu4Ffd+miSfnDB5aL95QU70i4umciOZU=;
+  b=nMje4jNl21GKaG7y7MeqERj2cfFKj7CzwZMn+boqkviRLEsG11FS3U9o
+   GzK09/dAjU2bSUo5DYhcvotApEfeBb2gGd+ElvBz2A9tbGF0PY6UrvAml
+   x9iqyS0YJ49622ymdZqPqck8s+ZeNN/olGlMvqOAzmfLYOQXhvI1bt/yZ
+   CODlUn7dAc9Mh0/OUeHk1MH12Nbo/OA7XMMtk+GJ5P1iLxRVbT4bChvBr
+   ANMkXeD9bxOtco79T2Gw+ro6bE2FgCds60737YNO5DWZuvD77Q4NGENDY
+   Y/IsDI0+17J6OObDNsIkyy2A+qCL+9TII5QgfmnpA+dukxzsHjNg4d1ei
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10352"; a="253019642"
+X-IronPort-AV: E=Sophos;i="5.91,238,1647327600"; 
+   d="scan'208";a="253019642"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2022 23:10:08 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.91,238,1647327600"; 
+   d="scan'208";a="576024797"
+Received: from lkp-server02.sh.intel.com (HELO 242b25809ac7) ([10.239.97.151])
+  by fmsmga007.fm.intel.com with ESMTP; 19 May 2022 23:10:03 -0700
+Received: from kbuild by 242b25809ac7 with local (Exim 4.95)
+        (envelope-from <lkp@intel.com>)
+        id 1nrvpr-0004Lj-5P;
+        Fri, 20 May 2022 06:10:03 +0000
+Date:   Fri, 20 May 2022 14:08:52 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     netdev@vger.kernel.org, linux-staging@lists.linux.dev,
+        linux-sh@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-nvme@lists.infradead.org,
+        linux-mm@kvack.org, linux-hwmon@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux-arch@vger.kernel.org,
+        kvm@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org, bpf@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org,
+        Linux Memory Management List <linux-mm@kvack.org>
+Subject: [linux-next:master] BUILD REGRESSION
+ 21498d01d045c5b95b93e0a0625ae965b4330ebe
+Message-ID: <62873074.g1g0twvcKbX70gr/%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-X-OriginatorOrg: buckeyemail.osu.edu
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: BL1PR01MB7652.prod.exchangelabs.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 55cb4df3-ad63-4e13-f9d8-08da3a00f6f5
-X-MS-Exchange-CrossTenant-originalarrivaltime: 20 May 2022 01:35:04.3604
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: eb095636-1052-4895-952b-1ff9df1d1121
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 2C+K57dLYKAq2qNfaP52kCCt0LOfbq/qzFW0IM8uwHOOHlxLkSEdLk9bBLElrJ0Y9NDHtnHN/f7arYjWF7MiNn7PvHTCRcNMcP0aROCDBRE=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN3PR01MB1956
-X-Proofpoint-GUID: PlAs21HT5dVYVVYfhCs7HRyHJyDxUd5N
-X-Proofpoint-ORIG-GUID: PlAs21HT5dVYVVYfhCs7HRyHJyDxUd5N
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.874,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-05-19_06,2022-05-19_03,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 spamscore=0
- priorityscore=1501 bulkscore=0 mlxlogscore=687 suspectscore=0
- impostorscore=0 adultscore=0 lowpriorityscore=0 malwarescore=0 mlxscore=0
- clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2205200010
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-RGVhciBMaW51eCBSRE1BIGNvbW11bml0eSwNCiANCknigJltIHRyeWluZyB0byB1c2UgUkRNQSBl
-dmVudCBtb2RlIGZvciBoYW5kbGluZyBtYW55IGNvbm5lY3Rpb25zLiBJIGZvdW5kIHRoYXQgdGhl
-IHBlcmZvcm1hbmNlIGRlZ3JhZGVkIHdoZW4gdGhlcmXigJlzIG1hbnkgc2VuZCByZXF1ZXN0cyB1
-bmRlciBldmVudCBtb2RlLiBUaGlzIGlzc3VlIGNhbiBiZSByZXByb2R1Y2VkIGJ5IHVzaW5nIHBl
-cmYtdGVzdC4NCiANCldoYXQgSSBvYnNlcnZlZCBpcyB0aGF0IG9ubHkgMTAgY2xpZW50cyBjYW4g
-ZWFzaWx5IG1ha2VzIGtzb2Z0aXJxZCB0aHJlYWQgYnVzeSBhbmQgdGhlcmUgaXMgb25seSAxIENQ
-VSBjb3JlIGlzIGhhbmRsaW5nIGludGVycnVwdHMsIHdoaWNoIGNvdWxkIGJlIHRoZSBwZXJmb3Jt
-YW5jZSBib3R0bGVuZWNrLg0KIA0KDQpUaGlzIGlzc3VlcyBjYW4gYmUgcmVwcm9kdWNlZCB3aXRo
-IGh0dHBzOi8vZ2l0aHViLmNvbS9saW51eC1yZG1hL3BlcmZ0ZXN0DQogDQpOX0lURVI9MTAwMDAw
-MDAwDQpDTElFTlRfSVA9MTAuMy4xLjENCnBraWxsIGliX3NlbmRfbGF0DQogDQpUbyBsYXVuY2gg
-c2VydmVyOg0KIA0KZm9yIGkgaW4gJChzZXEgMSAxMCk7IGRvDQogICAgICAgICAgICAgICAgcG9y
-dD0kKCgxMjM0NSskaSkpDQogICAgICAgICAgICAgICAgLi9pYl9zZW5kX2xhdCAtZSAtbiAkTl9J
-VEVSIC1wICRwb3J0ICYNCmRvbmUNCiANClRvIGxhdW5jaCBjbGllbnQ6DQogDQpmb3IgaSBpbiAk
-KHNlcSAxIDEwKTsgZG8NCiAgICAgICAgICAgICAgICBwb3J0PSQoKDEyMzQ1KyRpKSkNCiAgICAg
-ICAgICAgICAgICAuL2liX3NlbmRfbGF0ICRDTElFTlRfSVAgLWUgLW4gJE5fSVRFUiAtcCAkcG9y
-dCAmDQpkb25lDQogDQpBbmQgdGhlbiwgdXNlIGh0b3AgdG8gbW9uaXRvciBzZXJ2ZXIgc2lkZToN
-CiANCkluZm9ybWF0aW9uIGFib3V0IHN5c3RlbToNCiANCkxpbnV4IERpc3RyaWJ1dGlvbjoNCg0K
-TFNCIFZlcnNpb246ICAgIDpjb3JlLTQuMS1hbWQ2NDpjb3JlLTQuMS1ub2FyY2g6Y3h4LTQuMS1h
-bWQ2NDpjeHgtNC4xLW5vYXJjaDpsYW5ndWFnZXMtNC4xLWFtZDY0Omxhbmd1YWdlcy00LjEtbm9h
-cmNoOnByaW50aW5nLTQuMS1hbWQ2NDpwcmludGluZy00LjEtbm9hcmNoDQpEaXN0cmlidXRvciBJ
-RDogQ2VudE9TDQpEZXNjcmlwdGlvbjogICAgQ2VudE9TIExpbnV4IHJlbGVhc2UgNy44LjIwMDMg
-KENvcmUpDQpSZWxlYXNlOiAgICAgICAgNy44LjIwMDMNCkNvZGVuYW1lOiAgICAgICBDb3JlDQpM
-aW51eCBLZXJuZWwgYW5kIFZlcnNpb246DQpMaW51eCBncHUwMS5jbHVzdGVyIDMuMTAuMC0xMTI3
-LjE5LjEuZWw3Lng4Nl82NCAjMSBTTVAgVHVlIEF1ZyAyNSAxNzoyMzo1NCBVVEMgMjAyMCB4ODZf
-NjQgeDg2XzY0IHg4Nl82NCBHTlUvTGludXgNCg0KSW5maW5pQmFuZCBoYXJkd2FyZSBhbmQgZmly
-bXdhcmUgdmVyc2lvbjoNCg0KZHJpdmVyOiBtbHg1X2NvcmVbaWJfaXBvaWJdDQp2ZXJzaW9uOiA1
-LjAtMi4xLjgNCmZpcm13YXJlLXZlcnNpb246IDE2LjIxLjIwMTAgKE1UXzAwMDAwMDAwMTApDQpl
-eHBhbnNpb24tcm9tLXZlcnNpb246DQpidXMtaW5mbzogMDAwMDowMjowMC4wDQpzdXBwb3J0cy1z
-dGF0aXN0aWNzOiB5ZXMNCnN1cHBvcnRzLXRlc3Q6IHllcw0Kc3VwcG9ydHMtZWVwcm9tLWFjY2Vz
-czogbm8NCnN1cHBvcnRzLXJlZ2lzdGVyLWR1bXA6IG5vDQpzdXBwb3J0cy1wcml2LWZsYWdzOiB5
-ZXMNCiANCk5JQzogTWVsbGFub3ggVGVjaG5vbG9naWVzIE1UMjc4MDAgRmFtaWx5IFtDb25uZWN0
-WC01XQ0KDQpSZWdhcmRzLA0KTGlhbmcNCg0K
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
+branch HEAD: 21498d01d045c5b95b93e0a0625ae965b4330ebe  Add linux-next specific files for 20220519
+
+Error/Warning reports:
+
+https://lore.kernel.org/linux-mm/202204291924.vTGZmerI-lkp@intel.com
+https://lore.kernel.org/linux-mm/202205041248.WgCwPcEV-lkp@intel.com
+https://lore.kernel.org/linux-mm/202205122113.uLKzd3SZ-lkp@intel.com
+https://lore.kernel.org/linux-mm/202205172344.3GFeaum1-lkp@intel.com
+https://lore.kernel.org/linux-mm/202205192041.eAjgoXSY-lkp@intel.com
+https://lore.kernel.org/linux-mm/202205192334.DNijFnTC-lkp@intel.com
+https://lore.kernel.org/linux-mm/202205200219.llzx7zfy-lkp@intel.com
+https://lore.kernel.org/llvm/202205052057.2TyEsXsL-lkp@intel.com
+https://lore.kernel.org/llvm/202205060132.uhqyUx1l-lkp@intel.com
+https://lore.kernel.org/llvm/202205170352.5YjuBP5H-lkp@intel.com
+https://lore.kernel.org/llvm/202205200012.68rPHREP-lkp@intel.com
+
+Error/Warning: (recently discovered and may have been fixed)
+
+<command-line>: fatal error: ./include/generated/utsrelease.h: No such file or directory
+ERROR: modpost: "devm_ioremap_resource" [drivers/net/can/ctucanfd/ctucanfd_platform.ko] undefined!
+arch/x86/kvm/hyperv.c:1983:22: error: shift count >= width of type [-Werror,-Wshift-count-overflow]
+arch/x86/kvm/pmu.h:20:32: warning: 'vmx_icl_pebs_cpu' defined but not used [-Wunused-const-variable=]
+drivers/gpu/drm/amd/amdgpu/amdgpu_discovery.c:1364:5: warning: no previous prototype for 'amdgpu_discovery_get_mall_info' [-Wmissing-prototypes]
+drivers/gpu/drm/amd/amdgpu/gfx_v11_0.c:1986:6: warning: no previous prototype for function 'gfx_v11_0_rlc_stop' [-Wmissing-prototypes]
+drivers/gpu/drm/amd/amdgpu/soc21.c:171:6: warning: no previous prototype for 'soc21_grbm_select' [-Wmissing-prototypes]
+drivers/gpu/drm/solomon/ssd130x-spi.c:154:35: warning: 'ssd130x_spi_table' defined but not used [-Wunused-const-variable=]
+drivers/hwmon/nct6775-platform.c:199:9: sparse:    unsigned char
+drivers/hwmon/nct6775-platform.c:199:9: sparse:    void
+drivers/net/ethernet/dec/tulip/eeprom.c:120:54: error: 'struct pci_dev' has no member named 'pdev'; did you mean 'dev'?
+drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.h:22:6: warning: no previous prototype for function 'mlx5_lag_mpesw_init' [-Wmissing-prototypes]
+drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.h:23:6: warning: no previous prototype for function 'mlx5_lag_mpesw_cleanup' [-Wmissing-prototypes]
+drivers/nvme/host/fc.c:1914: undefined reference to `blkcg_get_fc_appid'
+drivers/video/fbdev/omap/hwa742.c:492:5: warning: no previous prototype for 'hwa742_update_window_async' [-Wmissing-prototypes]
+include/asm-generic/bitops/const_hweight.h:21:76: warning: right shift count >= width of type [-Wshift-count-overflow]
+kernel/trace/fgraph.c:37:12: warning: no previous prototype for function 'ftrace_enable_ftrace_graph_caller' [-Wmissing-prototypes]
+kernel/trace/fgraph.c:46:12: warning: no previous prototype for function 'ftrace_disable_ftrace_graph_caller' [-Wmissing-prototypes]
+
+Unverified Error/Warning (likely false positive, please contact us if interested):
+
+Makefile:686: arch/h8300/Makefile: No such file or directory
+arch/Kconfig:10: can't open file "arch/h8300/Kconfig"
+arch/riscv/include/asm/tlbflush.h:23:2: error: expected assembly-time absolute expression
+drivers/gpu/drm/amd/amdgpu/amdgpu_discovery.c:1364:5: warning: no previous prototype for function 'amdgpu_discovery_get_mall_info' [-Wmissing-prototypes]
+drivers/gpu/drm/amd/amdgpu/amdgpu_ucode.c:129:6: warning: no previous prototype for function 'amdgpu_ucode_print_imu_hdr' [-Wmissing-prototypes]
+drivers/gpu/drm/amd/amdgpu/imu_v11_0.c:302:6: warning: no previous prototype for function 'program_imu_rlc_ram' [-Wmissing-prototypes]
+drivers/gpu/drm/amd/amdgpu/soc21.c:171:6: warning: no previous prototype for function 'soc21_grbm_select' [-Wmissing-prototypes]
+drivers/gpu/drm/bridge/adv7511/adv7511.h:229:17: warning: 'ADV7511_REG_CEC_RX_FRAME_HDR' defined but not used [-Wunused-const-variable=]
+drivers/gpu/drm/bridge/adv7511/adv7511.h:235:17: warning: 'ADV7511_REG_CEC_RX_FRAME_LEN' defined but not used [-Wunused-const-variable=]
+drivers/gpu/drm/i915/gt/intel_gt_sysfs_pm.c:276:27: error: implicit declaration of function 'sysfs_gt_attribute_r_max_func' [-Werror=implicit-function-declaration]
+drivers/gpu/drm/i915/gt/intel_gt_sysfs_pm.c:327:16: error: implicit declaration of function 'sysfs_gt_attribute_w_func' [-Werror=implicit-function-declaration]
+drivers/gpu/drm/i915/gt/intel_gt_sysfs_pm.c:416:24: error: implicit declaration of function 'sysfs_gt_attribute_r_min_func' [-Werror=implicit-function-declaration]
+drivers/gpu/drm/i915/gt/intel_gt_sysfs_pm.c:47 sysfs_gt_attribute_w_func() error: uninitialized symbol 'ret'.
+drivers/gpu/drm/i915/gt/intel_rps.c:2325 rps_read_mmio() error: uninitialized symbol 'val'.
+drivers/infiniband/hw/hns/hns_roce_hw_v2.c:309:9: sparse: sparse: dubious: x & !y
+drivers/staging/vt6655/card.c:759:16: sparse: sparse: cast to restricted __le64
+fc.c:(.text+0x432): undefined reference to `blkcg_get_fc_appid'
+fc.c:(.text+0x492): undefined reference to `blkcg_get_fc_appid'
+fc.c:(.text+0x5fe): undefined reference to `blkcg_get_fc_appid'
+fc.c:(.text+0x790): undefined reference to `blkcg_get_fc_appid'
+fc.c:(.text+0x7de): undefined reference to `blkcg_get_fc_appid'
+kernel/bpf/verifier.c:5354 process_kptr_func() warn: passing zero to 'PTR_ERR'
+ld.lld: error: undefined symbol: blkcg_get_fc_appid
+make[1]: *** No rule to make target 'arch/h8300/Makefile'.
+mm/shmem.c:1910 shmem_getpage_gfp() warn: should '(((1) << 12) / 512) << folio_order(folio)' be a 64 bit type?
+powerpc64-linux-ld: drivers/gpu/drm/bridge/analogix/analogix_dp_reg.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/gpu/drm/bridge/analogix/analogix_dp_core.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: drivers/mfd/mt6397-irq.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/mfd/mt6397-core.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: drivers/mmc/core/host.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/mmc/core/bus.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: drivers/mtd/mtdchar.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/mtd/mtdsuper.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: drivers/nfc/nxp-nci/firmware.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/nfc/nxp-nci/core.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: drivers/nfc/s3fwrn5/nci.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/nfc/s3fwrn5/firmware.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: drivers/soundwire/master.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/soundwire/bus.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: drivers/staging/greybus/audio_manager_module.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/staging/greybus/audio_manager.o:(.bss+0x40): first defined here
+powerpc64-linux-ld: drivers/w1/w1_int.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; drivers/w1/w1.o:(.bss+0x40): first defined here
+powerpc64-linux-ld: fs/exfat/namei.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; fs/exfat/inode.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: fs/hpfs/anode.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; fs/hpfs/alloc.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: fs/omfs/dir.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; fs/omfs/bitmap.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: fs/pstore/pmsg.o:(.bss+0x40): multiple definition of `____cacheline_aligned'; fs/pstore/platform.o:(.bss+0x40): first defined here
+powerpc64-linux-ld: net/decnet/dn_route.o:(.bss+0x40): multiple definition of `____cacheline_aligned'; net/decnet/dn_nsp_out.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: net/nfc/nci/ntf.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; net/nfc/nci/data.o:(.bss+0x0): first defined here
+powerpc64-linux-ld: net/nfc/rawsock.o:(.bss+0x40): multiple definition of `____cacheline_aligned'; net/nfc/af_nfc.o:(.bss+0x40): first defined here
+powerpc64-linux-ld: net/unix/sysctl_net_unix.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; net/unix/garbage.o:(.bss+0x40): first defined here
+powerpc64-linux-ld: sound/soc/bcm/bcm63xx-pcm-whistler.o:(.bss+0x0): multiple definition of `____cacheline_aligned'; sound/soc/bcm/bcm63xx-i2s-whistler.o:(.bss+0x0): first defined here
+{standard input}:1991: Error: unknown pseudo-op: `.lc'
+
+Error/Warning ids grouped by kconfigs:
+
+gcc_recent_errors
+|-- alpha-allmodconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- alpha-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- alpha-randconfig-s032-20220519
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- arc-allmodconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- arc-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- arc-randconfig-r043-20220519
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- arm-allmodconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-video-fbdev-omap-hwa742.c:warning:no-previous-prototype-for-hwa742_update_window_async
+|-- arm-allyesconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-video-fbdev-omap-hwa742.c:warning:no-previous-prototype-for-hwa742_update_window_async
+|-- arm-randconfig-r024-20220519
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- arm-rpc_defconfig
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- arm64-allmodconfig
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- arm64-allyesconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- arm64-randconfig-r006-20220519
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- csky-allmodconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   |-- drivers-pci-pci.c:sparse:sparse:incorrect-type-in-assignment-(different-base-types)-expected-restricted-pci_power_t-assigned-usertype-state-got-int
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- csky-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- h8300-allmodconfig
+|   |-- Makefile:arch-h8300-Makefile:No-such-file-or-directory
+|   |-- arch-Kconfig:can-t-open-file-arch-h8300-Kconfig
+|   `-- make:No-rule-to-make-target-arch-h8300-Makefile-.
+|-- h8300-allyesconfig
+|   |-- Makefile:arch-h8300-Makefile:No-such-file-or-directory
+|   |-- arch-Kconfig:can-t-open-file-arch-h8300-Kconfig
+|   `-- make:No-rule-to-make-target-arch-h8300-Makefile-.
+|-- i386-allmodconfig
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- i386-allyesconfig
+|   |-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_HDR-defined-but-not-used
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_LEN-defined-but-not-used
+|   `-- drivers-gpu-drm-solomon-ssd13-spi.c:warning:ssd13_spi_table-defined-but-not-used
+|-- i386-debian-10.3
+|   `-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|-- i386-debian-10.3-kselftests
+|   `-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|-- i386-randconfig-a003
+|   |-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|   `-- include-asm-generic-bitops-const_hweight.h:warning:right-shift-count-width-of-type
+|-- i386-randconfig-a012
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_HDR-defined-but-not-used
+|   `-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_LEN-defined-but-not-used
+|-- i386-randconfig-a014
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_HDR-defined-but-not-used
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_LEN-defined-but-not-used
+|   `-- fc.c:(.text):undefined-reference-to-blkcg_get_fc_appid
+|-- i386-randconfig-a016
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_HDR-defined-but-not-used
+|   `-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_LEN-defined-but-not-used
+|-- i386-randconfig-c001
+|   `-- fc.c:(.text):undefined-reference-to-blkcg_get_fc_appid
+|-- i386-randconfig-m021
+|   |-- kernel-bpf-verifier.c-process_kptr_func()-warn:passing-zero-to-PTR_ERR
+|   `-- mm-shmem.c-shmem_getpage_gfp()-warn:should-((()-)-)-folio_order(folio)-be-a-bit-type
+|-- i386-randconfig-s001
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_HDR-defined-but-not-used
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_LEN-defined-but-not-used
+|   |-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_r_max_func
+|   |-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_r_min_func
+|   `-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_w_func
+|-- i386-randconfig-s002
+|   `-- drivers-pci-pci.c:sparse:sparse:incorrect-type-in-assignment-(different-base-types)-expected-restricted-pci_power_t-assigned-usertype-state-got-int
+|-- ia64-allmodconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- ia64-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- m68k-allmodconfig
+|   |-- drivers-hwmon-nct6775-platform.c:sparse:sparse:incompatible-types-in-conditional-expression-(different-base-types):
+|   |-- drivers-hwmon-nct6775-platform.c:sparse:unsigned-char
+|   `-- drivers-hwmon-nct6775-platform.c:sparse:void
+|-- m68k-allyesconfig
+|   |-- drivers-hwmon-nct6775-platform.c:sparse:sparse:incompatible-types-in-conditional-expression-(different-base-types):
+|   |-- drivers-hwmon-nct6775-platform.c:sparse:unsigned-char
+|   `-- drivers-hwmon-nct6775-platform.c:sparse:void
+|-- mips-allmodconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- mips-allyesconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- mips-randconfig-r014-20220519
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- nios2-randconfig-r015-20220519
+|   `-- drivers-nvme-host-fc.c:undefined-reference-to-blkcg_get_fc_appid
+|-- parisc-allmodconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   |-- drivers-net-ethernet-dec-tulip-eeprom.c:error:struct-pci_dev-has-no-member-named-pdev
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- parisc-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   |-- drivers-net-ethernet-dec-tulip-eeprom.c:error:struct-pci_dev-has-no-member-named-pdev
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- parisc-defconfig
+|   `-- drivers-net-ethernet-dec-tulip-eeprom.c:error:struct-pci_dev-has-no-member-named-pdev
+|-- parisc64-allmodconfig
+|   `-- drivers-net-ethernet-dec-tulip-eeprom.c:error:struct-pci_dev-has-no-member-named-pdev
+|-- parisc64-defconfig
+|   `-- drivers-net-ethernet-dec-tulip-eeprom.c:error:struct-pci_dev-has-no-member-named-pdev
+|-- powerpc-allmodconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- powerpc-allyesconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- powerpc-randconfig-r001-20220519
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- powerpc-randconfig-r005-20220519
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- powerpc64-randconfig-c003-20220519
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- powerpc64-randconfig-r036-20220519
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-gpu-drm-bridge-analogix-analogix_dp_core.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-mfd-mt6397-core.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-mmc-core-bus.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-mtd-mtdsuper.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-nfc-nxp-nci-core.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-nfc-s3fwrn5-firmware.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-soundwire-bus.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-staging-greybus-audio_manager.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-drivers-w1-w1.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-fs-exfat-inode.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-fs-hpfs-alloc.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-fs-omfs-bitmap.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-fs-pstore-platform.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-net-decnet-dn_nsp_out.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-net-nfc-af_nfc.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-net-nfc-nci-data.o:(.bss):first-defined-here
+|   |-- multiple-definition-of-____cacheline_aligned-net-unix-garbage.o:(.bss):first-defined-here
+|   `-- multiple-definition-of-____cacheline_aligned-sound-soc-bcm-bcm63xx-i2s-whistler.o:(.bss):first-defined-here
+|-- riscv-allmodconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- riscv-allyesconfig
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|-- riscv-randconfig-r034-20220519
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- s390-allmodconfig
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- s390-allyesconfig
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- s390-randconfig-r002-20220519
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- s390-randconfig-r034-20220519
+|   `-- ERROR:devm_ioremap_resource-drivers-net-can-ctucanfd-ctucanfd_platform.ko-undefined
+|-- sh-allmodconfig
+|   |-- arch-sh-kernel-crash_dump.c:sparse:sparse:incorrect-type-in-argument-(different-address-spaces)-expected-void-const-addr-got-void-noderef-__iomem
+|   `-- standard-input:Error:unknown-pseudo-op:lc
+|-- sh-allyesconfig
+|   |-- arch-sh-kernel-crash_dump.c:sparse:sparse:incorrect-type-in-argument-(different-address-spaces)-expected-void-const-addr-got-void-noderef-__iomem
+|   `-- standard-input:Error:unknown-pseudo-op:lc
+|-- sparc-allmodconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   |-- drivers-infiniband-hw-hns-hns_roce_hw_v2.c:sparse:sparse:dubious:x-y
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- sparc-allyesconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   `-- drivers-staging-vt6655-card.c:sparse:sparse:cast-to-restricted-__le64
+|-- x86_64-allmodconfig
+|   `-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|-- x86_64-allyesconfig
+|   |-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|   |-- command-line:fatal-error:.-include-generated-utsrelease.h:No-such-file-or-directory
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_HDR-defined-but-not-used
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_LEN-defined-but-not-used
+|   `-- drivers-gpu-drm-solomon-ssd13-spi.c:warning:ssd13_spi_table-defined-but-not-used
+|-- x86_64-kexec
+|   `-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|-- x86_64-randconfig-a002
+|   |-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|   `-- fc.c:(.text):undefined-reference-to-blkcg_get_fc_appid
+|-- x86_64-randconfig-a011
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_HDR-defined-but-not-used
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_LEN-defined-but-not-used
+|   |-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_r_max_func
+|   |-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_r_min_func
+|   `-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_w_func
+|-- x86_64-randconfig-a015
+|   |-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|   `-- fc.c:(.text):undefined-reference-to-blkcg_get_fc_appid
+|-- x86_64-randconfig-c002
+|   |-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_r_max_func
+|   |-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_r_min_func
+|   `-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c:error:implicit-declaration-of-function-sysfs_gt_attribute_w_func
+|-- x86_64-randconfig-s021
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_HDR-defined-but-not-used
+|   |-- drivers-gpu-drm-bridge-adv7511-adv7511.h:warning:ADV7511_REG_CEC_RX_FRAME_LEN-defined-but-not-used
+|   `-- fc.c:(.text):undefined-reference-to-blkcg_get_fc_appid
+|-- x86_64-rhel-8.3
+|   `-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|-- x86_64-rhel-8.3-func
+|   `-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|-- x86_64-rhel-8.3-kselftests
+|   |-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|   |-- drivers-gpu-drm-i915-gt-intel_gt_sysfs_pm.c-sysfs_gt_attribute_w_func()-error:uninitialized-symbol-ret-.
+|   |-- drivers-gpu-drm-i915-gt-intel_rps.c-rps_read_mmio()-error:uninitialized-symbol-val-.
+|   `-- kernel-bpf-verifier.c-process_kptr_func()-warn:passing-zero-to-PTR_ERR
+|-- x86_64-rhel-8.3-kunit
+|   `-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|-- x86_64-rhel-8.3-syz
+|   `-- arch-x86-kvm-pmu.h:warning:vmx_icl_pebs_cpu-defined-but-not-used
+|-- xtensa-allmodconfig
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+|   `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+`-- xtensa-allyesconfig
+    |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-amdgpu_discovery_get_mall_info
+    `-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-soc21_grbm_select
+
+clang_recent_errors
+|-- i386-randconfig-a002
+|   `-- arch-x86-kvm-hyperv.c:error:shift-count-width-of-type-Werror-Wshift-count-overflow
+|-- i386-randconfig-a004
+|   `-- ld.lld:error:undefined-symbol:blkcg_get_fc_appid
+|-- i386-randconfig-a015
+|   |-- drivers-net-ethernet-mellanox-mlx5-core-lag-mpesw.h:warning:no-previous-prototype-for-function-mlx5_lag_mpesw_cleanup
+|   `-- drivers-net-ethernet-mellanox-mlx5-core-lag-mpesw.h:warning:no-previous-prototype-for-function-mlx5_lag_mpesw_init
+|-- riscv-randconfig-r042-20220519
+|   |-- arch-riscv-include-asm-tlbflush.h:error:expected-assembly-time-absolute-expression
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_discovery.c:warning:no-previous-prototype-for-function-amdgpu_discovery_get_mall_info
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_ucode.c:warning:no-previous-prototype-for-function-amdgpu_ucode_print_imu_hdr
+|   |-- drivers-gpu-drm-amd-amdgpu-gfx_v11_0.c:warning:no-previous-prototype-for-function-gfx_v11_0_rlc_stop
+|   |-- drivers-gpu-drm-amd-amdgpu-imu_v11_0.c:warning:no-previous-prototype-for-function-program_imu_rlc_ram
+|   |-- drivers-gpu-drm-amd-amdgpu-soc21.c:warning:no-previous-prototype-for-function-soc21_grbm_select
+|   |-- kernel-trace-fgraph.c:warning:no-previous-prototype-for-function-ftrace_disable_ftrace_graph_caller
+|   `-- kernel-trace-fgraph.c:warning:no-previous-prototype-for-function-ftrace_enable_ftrace_graph_caller
+`-- x86_64-randconfig-a003
+    `-- ld.lld:error:undefined-symbol:blkcg_get_fc_appid
+
+elapsed time: 1189m
+
+configs tested: 102
+configs skipped: 4
+
+gcc tested configs:
+arm                              allmodconfig
+arm                              allyesconfig
+arm64                            allyesconfig
+arm                                 defconfig
+arm64                               defconfig
+x86_64                           allyesconfig
+i386                             allyesconfig
+ia64                             allmodconfig
+mips                             allyesconfig
+riscv                            allyesconfig
+um                           x86_64_defconfig
+riscv                            allmodconfig
+um                             i386_defconfig
+mips                             allmodconfig
+powerpc                          allmodconfig
+m68k                             allyesconfig
+s390                             allmodconfig
+s390                             allyesconfig
+m68k                             allmodconfig
+powerpc                          allyesconfig
+i386                          randconfig-c001
+sparc                            allyesconfig
+parisc                           allyesconfig
+sh                               allmodconfig
+h8300                            allyesconfig
+xtensa                           allyesconfig
+arc                              allyesconfig
+alpha                            allyesconfig
+nios2                            allyesconfig
+powerpc                     mpc83xx_defconfig
+sh                           se7705_defconfig
+powerpc                     taishan_defconfig
+arm                             rpc_defconfig
+m68k                       m5208evb_defconfig
+m68k                        mvme147_defconfig
+ia64                                defconfig
+ia64                             allyesconfig
+m68k                                defconfig
+alpha                               defconfig
+csky                                defconfig
+arc                                 defconfig
+parisc                              defconfig
+s390                                defconfig
+parisc64                            defconfig
+i386                   debian-10.3-kselftests
+i386                              debian-10.3
+i386                                defconfig
+sparc                               defconfig
+nios2                               defconfig
+powerpc                           allnoconfig
+x86_64                        randconfig-a004
+x86_64                        randconfig-a002
+x86_64                        randconfig-a006
+i386                          randconfig-a001
+i386                          randconfig-a003
+i386                          randconfig-a005
+x86_64                        randconfig-a013
+x86_64                        randconfig-a011
+x86_64                        randconfig-a015
+i386                          randconfig-a014
+i386                          randconfig-a012
+i386                          randconfig-a016
+arc                  randconfig-r043-20220519
+riscv                    nommu_k210_defconfig
+riscv                          rv32_defconfig
+riscv                    nommu_virt_defconfig
+riscv                               defconfig
+riscv                             allnoconfig
+x86_64                    rhel-8.3-kselftests
+x86_64                         rhel-8.3-kunit
+x86_64                           rhel-8.3-syz
+x86_64                          rhel-8.3-func
+x86_64                                  kexec
+x86_64                               rhel-8.3
+x86_64                              defconfig
+
+clang tested configs:
+powerpc                     mpc512x_defconfig
+arm                          pxa168_defconfig
+mips                      pic32mzda_defconfig
+mips                  cavium_octeon_defconfig
+mips                malta_qemu_32r6_defconfig
+arm                       mainstone_defconfig
+powerpc                   bluestone_defconfig
+arm                          ixp4xx_defconfig
+powerpc                  mpc866_ads_defconfig
+mips                           rs90_defconfig
+arm                         socfpga_defconfig
+x86_64                        randconfig-a005
+x86_64                        randconfig-a001
+x86_64                        randconfig-a003
+i386                          randconfig-a002
+i386                          randconfig-a006
+i386                          randconfig-a004
+x86_64                        randconfig-a012
+x86_64                        randconfig-a014
+x86_64                        randconfig-a016
+i386                          randconfig-a013
+i386                          randconfig-a011
+i386                          randconfig-a015
+hexagon              randconfig-r041-20220519
+hexagon              randconfig-r045-20220519
+s390                 randconfig-r044-20220519
+riscv                randconfig-r042-20220519
+
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
