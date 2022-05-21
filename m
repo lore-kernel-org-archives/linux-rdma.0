@@ -2,43 +2,40 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18D6CC4332F
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 May 2022 11:14:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73643C4332F
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 May 2022 11:14:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242272AbiEULN5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 21 May 2022 07:13:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47412 "EHLO
+        id S1351424AbiEULOx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 21 May 2022 07:14:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242683AbiEULMG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 21 May 2022 07:12:06 -0400
+        with ESMTP id S1355000AbiEULOB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 21 May 2022 07:14:01 -0400
 Received: from mail3-relais-sop.national.inria.fr (mail3-relais-sop.national.inria.fr [192.134.164.104])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E7E528E33;
-        Sat, 21 May 2022 04:12:03 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 746AE12B036;
+        Sat, 21 May 2022 04:12:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=inria.fr; s=dc;
   h=from:to:cc:subject:date:message-id:mime-version:
    content-transfer-encoding;
-  bh=8fYJyg30jVrQqFQpOJmI0wxHHBVbkdTQBhJk6eEiDi8=;
-  b=FWvKDSai1Ov/mxDSznsYrLA0RAMr9D2+KBw28LYTDtjjqk/dK2YTB2sE
-   bPJ1RseFvavr4t9f6c8JaaLSMie1WhhogxLDit21HMRkxECJlvdRTuzfp
-   o7+YfbObhZoPvZQVZp5SeKGwx6qz/Shlp/cNRrklQeEe3tt4b2iSzvRh3
-   o=;
+  bh=v+ZPMIx9AjXYp92+fHcfEdS/GpROmWYy/KwD1X8Vw3E=;
+  b=Q1pE42yk/Yvt6vOxeSfKrdtGd4QlL7mM5PK713gHGZNz+rMiNqAdhp4O
+   vf8tnyFvzHE/YX8pcDInCMEyaD8yfIsmApyFoUZxL+yT3+gdy/D1X0P83
+   K16DNFqiQJe1XfE64LVH6bJiH8R6D7dFzB8FI4+3F55inDZOgIwDnrXDA
+   4=;
 Authentication-Results: mail3-relais-sop.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=Julia.Lawall@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
 X-IronPort-AV: E=Sophos;i="5.91,242,1647298800"; 
-   d="scan'208";a="14727916"
+   d="scan'208";a="14727991"
 Received: from i80.paris.inria.fr (HELO i80.paris.inria.fr.) ([128.93.90.48])
-  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2022 13:11:55 +0200
+  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2022 13:12:06 +0200
 From:   Julia Lawall <Julia.Lawall@inria.fr>
-To:     Saeed Mahameed <saeedm@nvidia.com>
-Cc:     kernel-janitors@vger.kernel.org, Leon Romanovsky <leon@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] net/mlx5: fix typo in comment
-Date:   Sat, 21 May 2022 13:10:31 +0200
-Message-Id: <20220521111145.81697-21-Julia.Lawall@inria.fr>
+To:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc:     kernel-janitors@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] IB/hf1: fix typo in comment
+Date:   Sat, 21 May 2022 13:11:33 +0200
+Message-Id: <20220521111145.81697-83-Julia.Lawall@inria.fr>
 X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -52,20 +49,20 @@ Detected with the help of Coccinelle.
 Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
 
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c |    2 +-
+ drivers/infiniband/hw/hfi1/efivar.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index fbd4dd76a19f..c9b4e50a593e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1769,7 +1769,7 @@ static int mlx5_try_fast_unload(struct mlx5_core_dev *dev)
- 	}
- 
- 	/* Panic tear down fw command will stop the PCI bus communication
--	 * with the HCA, so the health polll is no longer needed.
-+	 * with the HCA, so the health poll is no longer needed.
+diff --git a/drivers/infiniband/hw/hfi1/efivar.c b/drivers/infiniband/hw/hfi1/efivar.c
+index e8ed05516bf2..7741a1d69097 100644
+--- a/drivers/infiniband/hw/hfi1/efivar.c
++++ b/drivers/infiniband/hw/hfi1/efivar.c
+@@ -72,7 +72,7 @@ static int read_efi_var(const char *name, unsigned long *size,
+ 	 * is in the EFIVAR_FS code and may not be compiled in.
+ 	 * However, even that is insufficient since it does not cover
+ 	 * EFI_BUFFER_TOO_SMALL which could be an important return.
+-	 * For now, just split out succces or not found.
++	 * For now, just split out success or not found.
  	 */
- 	mlx5_drain_health_wq(dev);
- 	mlx5_stop_health_poll(dev, false);
+ 	ret = status == EFI_SUCCESS   ? 0 :
+ 	      status == EFI_NOT_FOUND ? -ENOENT :
 
