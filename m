@@ -2,66 +2,61 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C32A7C433EF
-	for <linux-rdma@archiver.kernel.org>; Sat, 21 May 2022 11:15:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F31C433F5
+	for <linux-rdma@archiver.kernel.org>; Sat, 21 May 2022 20:03:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354927AbiEULPO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 21 May 2022 07:15:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50614 "EHLO
+        id S232659AbiEUUDu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 21 May 2022 16:03:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355047AbiEULOI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 21 May 2022 07:14:08 -0400
-Received: from mail3-relais-sop.national.inria.fr (mail3-relais-sop.national.inria.fr [192.134.164.104])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABFFF35DFC;
-        Sat, 21 May 2022 04:12:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=inria.fr; s=dc;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=DsOgnd5SeHFfVowAerPFBLnuFro3sYsxUMok15sASes=;
-  b=iBtCEFndKsIo+D1RLq3uP6eJZai5xG7n35JbZdRHF5h/0vlO4k0SIVZD
-   Bl+O4oXVzJIo2Gn/ZSydKkNgzCuyNs/lEFQflkX4/g/WeBmYFcM5E2tzi
-   X18drz3PrNwFKW1alGUDjsOqkKeHrhJvFx2ZeF3STSnf4s7iTDvVDmgry
-   g=;
-Authentication-Results: mail3-relais-sop.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=Julia.Lawall@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
-X-IronPort-AV: E=Sophos;i="5.91,242,1647298800"; 
-   d="scan'208";a="14727995"
-Received: from i80.paris.inria.fr (HELO i80.paris.inria.fr.) ([128.93.90.48])
-  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2022 13:12:07 +0200
-From:   Julia Lawall <Julia.Lawall@inria.fr>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     kernel-janitors@vger.kernel.org, Leon Romanovsky <leon@kernel.org>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] IB/core: fix typo in comment
-Date:   Sat, 21 May 2022 13:11:37 +0200
-Message-Id: <20220521111145.81697-87-Julia.Lawall@inria.fr>
-X-Mailer: git-send-email 2.20.1
+        with ESMTP id S230182AbiEUUDu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 21 May 2022 16:03:50 -0400
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C6AE5AA55;
+        Sat, 21 May 2022 13:03:48 -0700 (PDT)
+Received: by mail-wm1-f53.google.com with SMTP id o12-20020a1c4d0c000000b00393fbe2973dso8635861wmh.2;
+        Sat, 21 May 2022 13:03:48 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=nWpDQmZNg8zKVk12QskQ7NNS05C4fI/JmZBKLdKyu8Q=;
+        b=KD5gCRlWiS/0hW7c2QgKfzIlOkG7sU11TbsPKgPMUz2up8gL7CB2kLLd0GocmToSlU
+         k9uIJ2dly709wbNX8Q58ZZ7R5MHSIJIWpBWoB+9oBny+zOlJ6mxpgZyTdmRxhgkayy2G
+         SpD9OER0YfPbXQCw7SNpMU09d45uE/TjGIliC9AdsvDnibMkgK4S2C92wotRr7k/vao4
+         di/qQHf4ffUE4oiX7Q9xXs8caMD1GRQ/FkR+JRRFaWhzFFj5qnBw7UDSuafuBYEOxiOr
+         v0SXvECgpFeMZvWlh/I3SucpI6tT7aFJVY8q4ER+yzEj7FBp/37AH8Ytn6PaODaA5f/l
+         xe5g==
+X-Gm-Message-State: AOAM531GeRi3RzY03jHTw0PMSAZ4pBT4P1y58OBariXTgA+U9lYOwCIJ
+        5ZlV2jS1w4nwS3WMFaR0VWc=
+X-Google-Smtp-Source: ABdhPJwWOSURnpMuTktKZK+FlyLFjj6RHyhAd2DORlYWnYibLFpPmzEebzlHDo5WCw0x+HshpLDVmQ==
+X-Received: by 2002:a7b:cd95:0:b0:397:3c5e:9639 with SMTP id y21-20020a7bcd95000000b003973c5e9639mr6978872wmj.12.1653163426610;
+        Sat, 21 May 2022 13:03:46 -0700 (PDT)
+Received: from [10.100.102.14] (46-117-125-14.bb.netvision.net.il. [46.117.125.14])
+        by smtp.gmail.com with ESMTPSA id p16-20020a05600c1d9000b003973435c517sm5579239wms.0.2022.05.21.13.03.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 21 May 2022 13:03:46 -0700 (PDT)
+Message-ID: <bfe4d070-1f7b-f727-c6c2-fa9e0b0db37d@grimberg.me>
+Date:   Sat, 21 May 2022 23:03:44 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.1
+Subject: Re: [PATCH] IB/iser: fix typo in comment
+Content-Language: en-US
+To:     Julia Lawall <Julia.Lawall@inria.fr>
+Cc:     kernel-janitors@vger.kernel.org,
+        Max Gurtovoy <mgurtovoy@nvidia.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20220521111145.81697-4-Julia.Lawall@inria.fr>
+From:   Sagi Grimberg <sagi@grimberg.me>
+In-Reply-To: <20220521111145.81697-4-Julia.Lawall@inria.fr>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Spelling mistake (triple letters) in comment.
-Detected with the help of Coccinelle.
-
-Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
-
----
- drivers/infiniband/core/umem_odp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index aead24c1a682..186ed8859920 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -455,7 +455,7 @@ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
- 			break;
- 		}
- 	}
--	/* upon sucesss lock should stay on hold for the callee */
-+	/* upon success lock should stay on hold for the callee */
- 	if (!ret)
- 		ret = dma_index - start_idx;
- 	else
-
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
