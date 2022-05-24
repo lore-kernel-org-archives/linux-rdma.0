@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1BB4C4167D
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 May 2022 08:56:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 924C3C4167E
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 May 2022 08:56:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234288AbiEXI4p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 May 2022 04:56:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60184 "EHLO
+        id S234350AbiEXI4q (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 May 2022 04:56:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234128AbiEXI4f (ORCPT
+        with ESMTP id S234157AbiEXI4f (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 24 May 2022 04:56:35 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BFF8E71A12;
-        Tue, 24 May 2022 01:56:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0A13472E02;
+        Tue, 24 May 2022 01:56:34 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 3570C20B894E; Tue, 24 May 2022 01:56:32 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3570C20B894E
+        id D822520B895E; Tue, 24 May 2022 01:56:33 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D822520B895E
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1653382592;
-        bh=YkClySdAx+rMylUuoFvR93SO23QhTU9QLABI0z7TWdU=;
+        s=default; t=1653382593;
+        bh=jGlFFUQbS795R2dpHb7MTDEh4uGqBijvAhcZ+j87f/c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=MxWBp/DTdy5JZGXjQktKrgZm+n81ARdwz8/faJWMMa2nI7gnFsVVmjT/9d0zDUUVj
-         RqhicJIIq/yZIoKyaeVEzE0fhwX0R93iSXsuFWygA+BXXDKGHKuLcLCJfZRRQGxcya
-         pdBaa9+CeiNUfc4a53qqseAD8epwpA18ASug5d6U=
+        b=Zq3ajQoJAwBAzF8GSkuTcYOr9seSOfKQ/jgShcyA6YvfCjB5C3nb70gvZg1LKRvfx
+         1rbXmxR7WsJnIS/E0oSpDuwDO54Wa56b0jqnJlebxsuNglPj6MnlewOz2dc9CGfrOu
+         QM3RFIjSc6/L0BZxjUPB9c4HKt2gjDwQATJWL6oY=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v2 07/12] net: mana: Export Work Queue functions for use by RDMA driver
-Date:   Tue, 24 May 2022 01:56:07 -0700
-Message-Id: <1653382572-14788-8-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v2 10/12] net: mana: Define max values for SGL entries
+Date:   Tue, 24 May 2022 01:56:10 -0700
+Message-Id: <1653382572-14788-11-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1653382572-14788-1-git-send-email-longli@linuxonhyperv.com>
 References: <1653382572-14788-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,91 +51,71 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-RDMA device may need to create Ethernet device queues for use by Queue
-Pair type RAW. This allows a user-mode context accesses Ethernet hardware
-queues. Export the supporting functions for use by the RDMA driver.
+The number of maximum SGl entries should be computed from the maximum
+WQE size for the intended queue type and the corresponding OOB data
+size. This guarantees the hardware queue can successfully queue requests
+up to the queue depth exposed to the upper layer.
 
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/gdma_main.c |  1 +
- drivers/net/ethernet/microsoft/mana/mana.h      |  9 +++++++++
- drivers/net/ethernet/microsoft/mana/mana_en.c   | 16 +++++++++-------
- 3 files changed, 19 insertions(+), 7 deletions(-)
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 2 +-
+ include/net/mana/gdma.h                       | 7 +++++++
+ include/net/mana/mana.h                       | 4 +---
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index b8ba8871098b..16fb0c42f0a6 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -125,6 +125,7 @@ int mana_gd_send_request(struct gdma_context *gc, u32 req_len, const void *req,
- 
- 	return mana_hwc_send_request(hwc, req_len, req, resp_len, resp);
- }
-+EXPORT_SYMBOL(mana_gd_send_request);
- 
- int mana_gd_alloc_memory(struct gdma_context *gc, unsigned int length,
- 			 struct gdma_mem_info *gmi)
-diff --git a/drivers/net/ethernet/microsoft/mana/mana.h b/drivers/net/ethernet/microsoft/mana/mana.h
-index 6aacbf42aeaf..e7719c861395 100644
---- a/drivers/net/ethernet/microsoft/mana/mana.h
-+++ b/drivers/net/ethernet/microsoft/mana/mana.h
-@@ -568,6 +568,15 @@ struct mana_adev {
- 	struct gdma_dev *mdev;
- };
- 
-+int mana_create_wq_obj(struct mana_port_context *apc,
-+		       mana_handle_t vport,
-+		       u32 wq_type, struct mana_obj_spec *wq_spec,
-+		       struct mana_obj_spec *cq_spec,
-+		       mana_handle_t *wq_obj);
-+
-+void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
-+			 mana_handle_t wq_obj);
-+
- int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
- 		   u32 doorbell_pg_id);
- void mana_uncfg_vport(struct mana_port_context *apc);
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index ac4df96ebb3b..15d3b68d7c41 100644
+index 1cb8bd3b1f53..f3facaee3055 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -645,11 +645,11 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
- 	return err;
- }
+@@ -187,7 +187,7 @@ int mana_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	pkg.wqe_req.client_data_unit = 0;
  
--static int mana_create_wq_obj(struct mana_port_context *apc,
--			      mana_handle_t vport,
--			      u32 wq_type, struct mana_obj_spec *wq_spec,
--			      struct mana_obj_spec *cq_spec,
--			      mana_handle_t *wq_obj)
-+int mana_create_wq_obj(struct mana_port_context *apc,
-+		       mana_handle_t vport,
-+		       u32 wq_type, struct mana_obj_spec *wq_spec,
-+		       struct mana_obj_spec *cq_spec,
-+		       mana_handle_t *wq_obj)
- {
- 	struct mana_create_wqobj_resp resp = {};
- 	struct mana_create_wqobj_req req = {};
-@@ -698,9 +698,10 @@ static int mana_create_wq_obj(struct mana_port_context *apc,
- out:
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(mana_create_wq_obj);
+ 	pkg.wqe_req.num_sge = 1 + skb_shinfo(skb)->nr_frags;
+-	WARN_ON_ONCE(pkg.wqe_req.num_sge > 30);
++	WARN_ON_ONCE(pkg.wqe_req.num_sge > MAX_TX_WQE_SGL_ENTRIES);
  
--static void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
--				mana_handle_t wq_obj)
-+void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
-+			 mana_handle_t wq_obj)
- {
- 	struct mana_destroy_wqobj_resp resp = {};
- 	struct mana_destroy_wqobj_req req = {};
-@@ -725,6 +726,7 @@ static void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
- 		netdev_err(ndev, "Failed to destroy WQ object: %d, 0x%x\n", err,
- 			   resp.hdr.status);
- }
-+EXPORT_SYMBOL_GPL(mana_destroy_wq_obj);
+ 	if (pkg.wqe_req.num_sge <= ARRAY_SIZE(pkg.sgl_array)) {
+ 		pkg.wqe_req.sgl = pkg.sgl_array;
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index bc8cd9528937..d6a970118f4c 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -436,6 +436,13 @@ struct gdma_wqe {
+ #define MAX_TX_WQE_SIZE 512
+ #define MAX_RX_WQE_SIZE 256
  
- static void mana_destroy_eq(struct mana_context *ac)
- {
++#define MAX_TX_WQE_SGL_ENTRIES	((GDMA_MAX_SQE_SIZE - \
++			sizeof(struct gdma_sge) - INLINE_OOB_SMALL_SIZE) / \
++			sizeof(struct gdma_sge))
++
++#define MAX_RX_WQE_SGL_ENTRIES	((GDMA_MAX_RQE_SIZE - \
++			sizeof(struct gdma_sge)) / sizeof(struct gdma_sge))
++
+ struct gdma_cqe {
+ 	u32 cqe_data[GDMA_COMP_DATA_SIZE / 4];
+ 
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index e7719c861395..a58e86b0aebe 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -264,8 +264,6 @@ struct mana_cq {
+ 	int budget;
+ };
+ 
+-#define GDMA_MAX_RQE_SGES 15
+-
+ struct mana_recv_buf_oob {
+ 	/* A valid GDMA work request representing the data buffer. */
+ 	struct gdma_wqe_request wqe_req;
+@@ -275,7 +273,7 @@ struct mana_recv_buf_oob {
+ 
+ 	/* SGL of the buffer going to be sent has part of the work request. */
+ 	u32 num_sge;
+-	struct gdma_sge sgl[GDMA_MAX_RQE_SGES];
++	struct gdma_sge sgl[MAX_RX_WQE_SGL_ENTRIES];
+ 
+ 	/* Required to store the result of mana_gd_post_work_request.
+ 	 * gdma_posted_wqe_info.wqe_size_in_bu is required for progressing the
 -- 
 2.17.1
 
