@@ -2,85 +2,85 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DC4AC4321E
-	for <linux-rdma@archiver.kernel.org>; Thu, 26 May 2022 01:17:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A398C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 26 May 2022 03:47:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344894AbiEZBRB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 25 May 2022 21:17:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54468 "EHLO
+        id S242009AbiEZDra (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 25 May 2022 23:47:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344426AbiEZBQ5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 25 May 2022 21:16:57 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4177B4FC5F;
-        Wed, 25 May 2022 18:16:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=qYg8IKyL/r8f2Vg1ESuYjuOnE5g2jafpU06hhSyNUpw=; b=FU/B4l/86GX2mfAVzdnOZlet7o
-        4YIMhkZpbCoSmgTvSZ+0srZ6BwOG40pWCCMj19qhaZ7LyhuSaw2+YdDV5a6+88avQFq2cWdQHfPWr
-        byuXc0vT/MGU7fDuPvzVefIP3U6jrYIpaAmCNdJioEzp88SsKae4gtRxxjsbwJwKjR30fWyrk6jS+
-        6N+w+qBIVJaEKMA2SIN/QJXQZdAFNIwoALKz9JWYzo9WKGMkqQ+rWdT359dIGkZ8Sy1ZcS2tNgQxZ
-        uFqnsZqHJyvAVlUVWnv0GfWFHqg8A7Yfpa485ULCi1tDMGcQd2T2bgnhjP4//0FFa8Q9P8q43x6cS
-        bXqNJBtA==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nu278-000pxs-VA; Thu, 26 May 2022 01:16:35 +0000
-Date:   Thu, 26 May 2022 02:16:34 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Jessica Clarke <jrtc27@jrtc27.com>,
-        kernel test robot <lkp@intel.com>,
-        virtualization@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-staging@lists.linux.dev, linux-riscv@lists.infradead.org,
-        linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-parport@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-mm@kvack.org, linux-fbdev@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, kvm@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, bpf@vger.kernel.org,
-        amd-gfx@lists.freedesktop.org, alsa-devel@alsa-project.org
-Subject: Re: [linux-next:master] BUILD REGRESSION
- 8cb8311e95e3bb58bd84d6350365f14a718faa6d
-Message-ID: <Yo7U8kglHlcvQ0Ri@casper.infradead.org>
-References: <628ea118.wJYf60YnZco0hs9o%lkp@intel.com>
- <20220525145056.953631743a4c494aabf000dc@linux-foundation.org>
- <F0E25DFF-8256-48FF-8B88-C0E3730A3E5E@jrtc27.com>
- <20220525152006.e87d3fa50aca58fdc1b43b6a@linux-foundation.org>
+        with ESMTP id S233544AbiEZDr3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 25 May 2022 23:47:29 -0400
+Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25AC6257;
+        Wed, 25 May 2022 20:47:26 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VEQTeja_1653536838;
+Received: from 30.225.28.183(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VEQTeja_1653536838)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Thu, 26 May 2022 11:47:24 +0800
+Message-ID: <8a518b27-3048-cb0b-d2e3-a68d0ef05171@linux.alibaba.com>
+Date:   Thu, 26 May 2022 11:47:18 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220525152006.e87d3fa50aca58fdc1b43b6a@linux-foundation.org>
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
+ Gecko/20100101 Thunderbird/91.8.1
+Subject: Re: [RFC net-next] net/smc:introduce 1RTT to SMC
+To:     Alexandra Winter <wintera@linux.ibm.com>,
+        Tony Lu <tonylu@linux.alibaba.com>
+Cc:     kgraul@linux.ibm.com, kuba@kernel.org, davem@davemloft.net,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+References: <1653375127-130233-1-git-send-email-alibuda@linux.alibaba.com>
+ <YoyOGlG2kVe4VA4m@TonyMac-Alibaba>
+ <64439f1c-9817-befd-c11b-fa64d22620a9@linux.ibm.com>
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+In-Reply-To: <64439f1c-9817-befd-c11b-fa64d22620a9@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, May 25, 2022 at 03:20:06PM -0700, Andrew Morton wrote:
-> On Wed, 25 May 2022 23:07:35 +0100 Jessica Clarke <jrtc27@jrtc27.com> wrote:
+
+
+在 2022/5/25 下午9:42, Alexandra Winter 写道:
+
+> Thank you D. Wythe for your proposals, the prototype and measurements.
+> They sound quite promising to us.
+>  > We need to carefully evaluate them and make sure everything is compatible
+> with the existing implementations of SMC-D and SMC-R v1 and v2. In the
+> typical s390 environment ROCE LAG is propably not good enough, as the card
+> is still a single point of failure. So your ideas need to be compatible
+> with link redundancy. We also need to consider that the extension of the
+> protocol does not block other desirable extensions.
 > 
-> > This is i386, so an unsigned long is 32-bit, but i_blocks is a blkcnt_t
-> > i.e. a u64, which makes the shift without a cast of the LHS fishy.
+> Your prototype is very helpful for the understanding. Before submitting any
+> code patches to net-next, we should agree on the details of the protocol
+> extension. Maybe you could formulate your proposal in plain text, so we can
+> discuss it here?
+
+I am very pleased to hear that your team have interest in this 
+proposals, and thanks a lot for your advise. We really appreciate your 
+point of view about compatibility, In fact, we are working on some 
+written drafts which compatibility is quite a important part, and will 
+be shared here soon.
+
 > 
-> Ah, of course, thanks.  I remember 32 bits ;)
+> We also need to inform you that several public holidays are upcoming in the
+> next weeks and several of our team will be out for summer vacation, so please
+> allow for longer response times.
+
+Thanks for your informing, that's totaly okay to us. May your holidays 
+be full of warmth and cheer.
+
+
+> Kind regards
+> Alexandra Winter
 > 
-> --- a/mm/shmem.c~mm-shmemc-suppress-shift-warning
-> +++ a/mm/shmem.c
-> @@ -1945,7 +1945,7 @@ alloc_nohuge:
->  
->  	spin_lock_irq(&info->lock);
->  	info->alloced += folio_nr_pages(folio);
-> -	inode->i_blocks += BLOCKS_PER_PAGE << folio_order(folio);
-> +	inode->i_blocks += (blkcnt_t)BLOCKS_PER_PAGE << folio_order(folio);
 
-Bizarre this started showing up now.  The recent patch was:
 
--       info->alloced += compound_nr(page);
--       inode->i_blocks += BLOCKS_PER_PAGE << compound_order(page);
-+       info->alloced += folio_nr_pages(folio);
-+       inode->i_blocks += BLOCKS_PER_PAGE << folio_order(folio);
+D. Wyther
+Thanks.
 
-so it could tell that compound_order() was small, but folio_order()
-might be large?
 
-Silencing the warning is a good thing, but folio_order() can (at the
-moment) be at most 9 on i386, so it isn't actually going to be
-larger than 4096.
+
+
