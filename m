@@ -2,44 +2,44 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34FBACCA471
-	for <linux-rdma@archiver.kernel.org>; Wed,  1 Jun 2022 13:52:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F73C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed,  1 Jun 2022 13:55:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344512AbiFANw0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 1 Jun 2022 09:52:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51152 "EHLO
+        id S1353587AbiFANzT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 1 Jun 2022 09:55:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353361AbiFANwX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 1 Jun 2022 09:52:23 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C58D03136B;
-        Wed,  1 Jun 2022 06:52:19 -0700 (PDT)
+        with ESMTP id S1353700AbiFANzG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 1 Jun 2022 09:55:06 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE6408A303;
+        Wed,  1 Jun 2022 06:54:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6884DB81ADA;
-        Wed,  1 Jun 2022 13:52:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B69DC385A5;
-        Wed,  1 Jun 2022 13:52:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E2DE615A7;
+        Wed,  1 Jun 2022 13:54:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18331C385B8;
+        Wed,  1 Jun 2022 13:54:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1654091536;
+        s=k20201202; t=1654091663;
         bh=Io4HhJb+Cz16sRUnVJbOtBv6IWiQnhJuRY59WG07j+s=;
         h=From:To:Cc:Subject:Date:From;
-        b=LKe/3zhUU/8lyK+lQ9MN9KiOY897DafvsEAGC77XO2a0aWFIqSZ42GFAcVZVnbgEd
-         VEvQyElQjIrEvgsYUb8zOS9E8xWKGpqoLq9T/m74O/UcV/oLY9Qi9JD1Zwib12PoVB
-         8EzYq2KlTsT2kfV08eN+EydAb7/mHTddqsQZMpmIAPX1NoK+BYCiISTF1gdOEzVcP0
-         owhLLCOzlNp/mnJ/9KWWqZ27hWzNMB0AYcQ+LPhWqwDBIYti64nUMx54zLPVmVJPvx
-         yDyjs8jI+ZqOKLKVPCIi7G0UZLzSUpC1LL7zvEKhabFTxcP6O4/bqQcMzbdWL4/pPD
-         sHIGf/h5u0knA==
+        b=HD9q1mlOJ3GyGfOsW7Zt8X8L+SCQjVduH/C47s5WD5I5RCNSk2IAsGcmpIYMIb55O
+         Gl8+nv6Ecos175pUirtczoLpdPdFd2qei0IO/wvKicSMbEx9ZZ+ZqxPMzslq3+daXg
+         tIOmHdzjdCdW+7FXXabqDxgKvwLkxLSngwXkLxCDgw0EuMFKwyCLcVv9jSGUPl+P7s
+         z9AOa1xttTj/TA/6rv+xhPdkHxQ57kRovlcgdZoBVjkKN6wD2tysqkC9ersVMStNLp
+         7MQCsyrU9kmqxUyM9Fm8YAZUeccr7eBlYIp8d3dEMhzTZEeWl8LZPi1cxw/1TZIyu5
+         97qc/IhIRpPPw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Niels Dossche <dossche.niels@gmail.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Sasha Levin <sashal@kernel.org>,
         dennis.dalessandro@cornelisnetworks.com, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.18 01/49] IB/rdmavt: add missing locks in rvt_ruc_loopback
-Date:   Wed,  1 Jun 2022 09:51:25 -0400
-Message-Id: <20220601135214.2002647-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.17 01/48] IB/rdmavt: add missing locks in rvt_ruc_loopback
+Date:   Wed,  1 Jun 2022 09:53:34 -0400
+Message-Id: <20220601135421.2003328-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
 X-stable: review
