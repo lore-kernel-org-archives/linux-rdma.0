@@ -2,43 +2,43 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21BC5C433EF
-	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jun 2022 12:33:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87EA9C43334
+	for <linux-rdma@archiver.kernel.org>; Mon,  6 Jun 2022 12:35:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237140AbiFFMdx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 6 Jun 2022 08:33:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36838 "EHLO
+        id S237228AbiFFMfy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 6 Jun 2022 08:35:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237141AbiFFMdv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Jun 2022 08:33:51 -0400
-Received: from smtpbg.qq.com (smtpbg123.qq.com [175.27.65.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F3F362D4;
-        Mon,  6 Jun 2022 05:33:45 -0700 (PDT)
-X-QQ-mid: bizesmtp82t1654518803tsg12c24
+        with ESMTP id S237220AbiFFMfy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 6 Jun 2022 08:35:54 -0400
+Received: from smtpbg.qq.com (smtpbg139.qq.com [175.27.65.136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86DBE2AD996;
+        Mon,  6 Jun 2022 05:35:48 -0700 (PDT)
+X-QQ-mid: bizesmtp77t1654518866tsuslvzx
 Received: from localhost.localdomain ( [111.9.5.115])
         by bizesmtp.qq.com (ESMTP) with 
-        id ; Mon, 06 Jun 2022 20:33:14 +0800 (CST)
+        id ; Mon, 06 Jun 2022 20:34:21 +0800 (CST)
 X-QQ-SSF: 01000000002000C0H000B00A0000000
-X-QQ-FEAT: oL/cO9MxQnNSoE5dwibh5Q8a7uGey0p7VEuvzpAgvjo/nRrUZ3kB5FmtGlIYv
-        GVIb9DehZKx5wbML+DUWwIGkuhLLvYfWBJZVZbhDJZYptx1oKoVb2kwbZlfIBGxPOzlxHtR
-        qOOWIenu5KaN67z6NIbtwzhzpL23pXtW2D77rD6SfXuKBzONbZRTreK9IeOV+Ob+NbPsTxy
-        2TrIgTu3FCYKutDKK4jlz2Y36KUweUS5eprctygPXXYb/SQCAO313vFQ40lZwEFgRIX93FF
-        6xXJ6gZVwuVMd27Fy19tSu/mDoddeOCnGbGiIWV//jnznD1Qafv1f6T2HwsXk8kGV3snrIU
-        0WDzM2rubahaKJChw6yaXmGEXfnrawIPhounmjq
+X-QQ-FEAT: gDHn9VCP/rxflbaaDKzGJ/IapudJoJpOUO9NKEeMpAnuW4pnNla36YdLzfRhL
+        KGf/xNh0wOPaBDovpfTQz/r9AsGld1qTGLmCICVSiW2k29qdA3C0FejJt+Ds0DrGk2nMife
+        kiJWAu4ZXwdORrMcdpoaojCEqnI/81e85ZSfDKmbXumw8gP4U6IlR3ffiLh0Vty+g3ECtCf
+        OgQDIHbVSkCoXvNtHAM/F4fJh+1P2VaLxPxycPQ9Pyuk+ODHa3xvRJjtT3Ng96ARuQH0CDN
+        Q6+bYXC/O4QNVxrvl5LHfX2uIUNbT1DhesPMaL4hBI5DDW3wEOoETawPMWS3ZCuMaw80mFu
+        B/VVarTmlsdgVag4zMHWwVgxrdKfQ==
 X-QQ-GoodBg: 0
 From:   Xiang wangx <wangxiang@cdjrlc.com>
 To:     dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca,
         leon@kernel.org, linux-rdma@vger.kernel.org,
         linux-kernel@vger.kernel.org
 Cc:     Xiang wangx <wangxiang@cdjrlc.com>
-Subject: [PATCH v2] RDMA/hw/hfi1/pio_copy: Fix syntax errors in comments
-Date:   Mon,  6 Jun 2022 20:33:12 +0800
-Message-Id: <20220606123312.29053-1-wangxiang@cdjrlc.com>
+Subject: [PATCH v2] RDMA/hw/hfi1/pio_copy: Fix typo in comment
+Date:   Mon,  6 Jun 2022 20:34:19 +0800
+Message-Id: <20220606123419.29109-1-wangxiang@cdjrlc.com>
 X-Mailer: git-send-email 2.36.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:cdjrlc.com:qybgspam:qybgspam8
+Feedback-ID: bizesmtp:cdjrlc.com:qybgspam:qybgspam6
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
