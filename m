@@ -2,62 +2,67 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 481D4C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jun 2022 09:01:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5A15C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jun 2022 09:59:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232671AbiFGJA7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Jun 2022 05:00:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52966 "EHLO
+        id S240452AbiFGJ7F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Jun 2022 05:59:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232578AbiFGJAz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jun 2022 05:00:55 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86700AF334;
-        Tue,  7 Jun 2022 02:00:54 -0700 (PDT)
+        with ESMTP id S240483AbiFGJ6q (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jun 2022 05:58:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24714986FC
+        for <linux-rdma@vger.kernel.org>; Tue,  7 Jun 2022 02:58:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3249DB81DCB;
-        Tue,  7 Jun 2022 09:00:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64A92C34115;
-        Tue,  7 Jun 2022 09:00:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 950EC60A55
+        for <linux-rdma@vger.kernel.org>; Tue,  7 Jun 2022 09:58:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 820B9C34115;
+        Tue,  7 Jun 2022 09:58:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1654592451;
-        bh=pmlO+X9G5fB4iURqv/soASLUerVZkAVaKoDfbeOgnQQ=;
+        s=k20201202; t=1654595904;
+        bh=Ne0YWqoh7Lm6FcIoKRkt05wKiQiAzNSnH+ScIaZQSnw=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Lw7dISykKX5Q4K4MeDO5dEIyVPcSBHj2Y0wRVrBNn1YWPYVyPRGSw4Lxr1dzC7G9T
-         oU40k/e8xQ6GVN3PkR/bWMVRQl6qBgOib6aP2NFFsAXlx5YoM4FQOlgxWtZC2hE7+1
-         a8r37i5/YD1/5Ep7qg9BSQVJcToDxHMlvJ3PRPGOpODE2hByfz3Rj5yw3MwD9ggPH8
-         G+XrBzV+fByRFWAoAmb+mu3ISS/Wqs2L8m1G3pad0eW4k0OS3k3lOSGBq8eIl6kM9m
-         C6o14yzI9PPPQ+cXkd73F1LKtK+wkl6D1bcUjCZquodGZDjQmE8FzGuKcDCw9WezGw
-         r10wfUisZXcDg==
-Date:   Tue, 7 Jun 2022 12:00:47 +0300
+        b=Vdv0Oq/3bWmz2hSOlCFTW/T/w4CGLvfVNXyDiko/KK5on1dQKKtjCbaZUSWk0DxGn
+         dYqU9Do738Q36gQ/8YU2mu5bV7JXpcMaVUHOa7agLN2gAEmcYXCBmnILaYrA+K+AKK
+         EU3QqX9zcN2ANAasA59MOjBJIJFOflVKdh0WwjpJxVmo6hcLvJnIJDkA9ikw/92nL+
+         H+oV+pOrH8msVn0emLnToMHUuaz17eCHTEiQy8p+DL6LNU+CpUMIQqZviy+NeqO2b7
+         hdxqv2cfXnbrktSso0K0L0XOQRSs3o7+jkqilbicdEq5cC4B9276g0rGn2M767/jim
+         IGva0AH4dfLNg==
+Date:   Tue, 7 Jun 2022 12:58:19 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Xiang wangx <wangxiang@cdjrlc.com>
-Cc:     dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] RDMA/hw/hfi1/pio_copy: Fix typo in comment
-Message-ID: <Yp8Tv3l/V4TWjDqx@unreal>
-References: <20220606123419.29109-1-wangxiang@cdjrlc.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Aharon Landau <aharonl@nvidia.com>, linux-rdma@vger.kernel.org,
+        Michael Guralnik <michaelgur@nvidia.com>
+Subject: Re: [PATCH rdma-next] RDMA/mlx5: Add a umr recovery flow
+Message-ID: <Yp8hO/xGnFFDP69V@unreal>
+References: <6cc24816cca049bd8541317f5e41d3ac659445d3.1652588303.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220606123419.29109-1-wangxiang@cdjrlc.com>
+In-Reply-To: <6cc24816cca049bd8541317f5e41d3ac659445d3.1652588303.git.leonro@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jun 06, 2022 at 08:34:19PM +0800, Xiang wangx wrote:
-> Delete the redundant word 'and'.
+On Sun, May 15, 2022 at 07:19:53AM +0300, Leon Romanovsky wrote:
+> From: Aharon Landau <aharonl@nvidia.com>
 > 
-> Signed-off-by: Xiang wangx <wangxiang@cdjrlc.com>
+> When a UMR fails, the UMR QP state changes to an error state. Therefore,
+> all the further UMR operations will fail too.
+> 
+> Add a recovery flow to the UMR QP, and repost the flushed WQEs.
+> 
+> Signed-off-by: Aharon Landau <aharonl@nvidia.com>
+> Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 > ---
-> 
-> Changes since v1
-> *Change commit log
-> 
->  drivers/infiniband/hw/hfi1/pio_copy.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/infiniband/hw/mlx5/cq.c      |  4 ++
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 ++++-
+>  drivers/infiniband/hw/mlx5/umr.c     | 78 ++++++++++++++++++++++++----
+>  3 files changed, 83 insertions(+), 11 deletions(-)
 > 
 
-Thanks, fixed the title and applied to rdma-next.
+Thanks, applied to rdma-next.
