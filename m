@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FA4C433EF
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jun 2022 20:05:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B1DEC43334
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jun 2022 20:05:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231416AbiFHUFb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jun 2022 16:05:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58934 "EHLO
+        id S229527AbiFHUFc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Jun 2022 16:05:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233904AbiFHUF1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jun 2022 16:05:27 -0400
+        with ESMTP id S234918AbiFHUF2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jun 2022 16:05:28 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F19C3374270;
-        Wed,  8 Jun 2022 13:05:26 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E822B374278;
+        Wed,  8 Jun 2022 13:05:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B492961978;
-        Wed,  8 Jun 2022 20:05:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11EA3C34116;
-        Wed,  8 Jun 2022 20:05:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 792F261C5E;
+        Wed,  8 Jun 2022 20:05:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8BC2C34116;
+        Wed,  8 Jun 2022 20:05:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1654718725;
-        bh=Xsitfxpa9SAiyjEFJ3rFzKOoSCANgcCbda2AMgv57kQ=;
-        h=From:To:Cc:Subject:Date:From;
-        b=ueHbtuB8zXtwlhLpmBo0kGP/RjMBO4pdgXF1Cag+GIbhRsDplAu6tLOJ22u4imHvo
-         dSGplBnEXtou/SuVBlqZwiJDsM2A5O9zV5yf2oNGqk4XXOvdl3c/U2yBFYTNRcPTNc
-         PsmujyopG0AH/5pHp0/HmdB3FB3gSW76Uj032luV6dQ5PSmA5vin66ll6HZKjEC4Oq
-         1ceESMw7chQbRBGJ+hOAuItCAfOfwNUg0NFx6Fo8WIWyRFO87Y/HvZ2A5Bt4wbBbLm
-         EoWaaxyJo0kqUVjt+/qfAkCsfZ/1Z/5hV3ViXm1mwycNIvVUjPqNNB7TAce9w8Wjj0
-         y97wG9sVLqDgA==
+        s=k20201202; t=1654718726;
+        bh=qSZ7c0PaCVngExyoBTV64R514xcCKTUwvjddtm4ngjk=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=j+iW84UzSi9cA25QJe/Umv+WIF02rqQuRIjc/Sl5LmM5622ZL+QrVVP9/e7A/4GvE
+         WjEclXaCrMW2HvzeeB6kxOKya/kQ2T3QIxMb+CNMoSVcNDp8LWq4tPOilguLqaOAvI
+         f4wabkYQrmcS+gJHc0V4NuGdjXLymSxLGqTFXt7n7SvjrgpB5kiUytl38dREb0enxL
+         BK0eaWR6GFHyIJSo+CfVGQ27Hritub55Y12pB5CXlpAFWtgiv1aSiquagRg5NMIYrA
+         mLNmy2v9I6MhZsgOdC6nmVq89r3sdFz6EtFJ0Q5jVOL8QU8PWDaf6k3RekEIjdOBXg
+         MxvufioEmEobw==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Leon Romanovsky <leonro@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
@@ -39,11 +39,14 @@ Cc:     Jason Gunthorpe <jgg@nvidia.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
         Eric Dumazet <edumazet@google.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: [PATCH mlx5-next 0/6] mlx5-next HW bits and definitions updates 2022-06-08
-Date:   Wed,  8 Jun 2022 13:04:46 -0700
-Message-Id: <20220608200452.43880-1-saeed@kernel.org>
+        linux-rdma@vger.kernel.org,
+        Michael Guralnik <michaelgur@nvidia.com>
+Subject: [PATCH mlx5-next 2/6] net/mlx5: Add HW definitions of vport debug counters
+Date:   Wed,  8 Jun 2022 13:04:48 -0700
+Message-Id: <20220608200452.43880-3-saeed@kernel.org>
 X-Mailer: git-send-email 2.36.1
+In-Reply-To: <20220608200452.43880-1-saeed@kernel.org>
+References: <20220608200452.43880-1-saeed@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -52,31 +55,84 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Saeed Mahameed <saeedm@nvidia.com>
 
-Updates to mlx5 HW bits and definitions for upcoming rdma and netdev
-features.
+total_q_under_processor_handle - number of queues in error state due to an
+async error or errored command.
 
-Jianbo Liu (2):
-  net/mlx5: Add IFC bits and enums for flow meter
-  net/mlx5: Add support EXECUTE_ASO action for flow entry
+send_queue_priority_update_flow - number of QP/SQ priority/SL update
+events.
 
-Ofer Levi (1):
-  net/mlx5: Add bits and fields to support enhanced CQE compression
+cq_overrun - number of times CQ entered an error state due to an
+overflow.
 
-Saeed Mahameed (1):
-  net/mlx5: Add HW definitions of vport debug counters
+async_eq_overrun -number of time an EQ mapped to async events was
+overrun.
 
-Shay Drory (2):
-  net/mlx5: group fdb cleanup to single function
-  net/mlx5: Remove not used MLX5_CAP_BITS_RW_MASK
+comp_eq_overrun - number of time an EQ mapped to completion events was
+overrun.
 
- .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |  33 ++++
- .../net/ethernet/mellanox/mlx5/core/fs_core.c |  18 ++-
- .../net/ethernet/mellanox/mlx5/core/main.c    |   7 -
- include/linux/mlx5/device.h                   |  36 ++---
- include/linux/mlx5/fs.h                       |  14 ++
- include/linux/mlx5/mlx5_ifc.h                 | 144 ++++++++++++++++--
- 6 files changed, 207 insertions(+), 45 deletions(-)
+quota_exceeded_command - number of commands issued and failed due to quota
+exceeded.
 
+invalid_command - number of commands issued and failed dues to any reason
+other than quota exceeded.
+
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
+Signed-off-by: Michael Guralnik <michaelgur@nvidia.com>
+---
+ include/linux/mlx5/mlx5_ifc.h | 23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index a81f86620a10..585d246cef3b 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -1438,7 +1438,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 
+ 	u8         reserved_at_120[0xa];
+ 	u8         log_max_ra_req_dc[0x6];
+-	u8         reserved_at_130[0xa];
++	u8         reserved_at_130[0x9];
++	u8         vnic_env_cq_overrun[0x1];
+ 	u8         log_max_ra_res_dc[0x6];
+ 
+ 	u8         reserved_at_140[0x5];
+@@ -1633,7 +1634,11 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         nic_receive_steering_discard[0x1];
+ 	u8         receive_discard_vport_down[0x1];
+ 	u8         transmit_discard_vport_down[0x1];
+-	u8         reserved_at_343[0x5];
++	u8         eq_overrun_count[0x1];
++	u8         reserved_at_344[0x1];
++	u8         invalid_command_count[0x1];
++	u8         quota_exceeded_count[0x1];
++	u8         reserved_at_347[0x1];
+ 	u8         log_max_flow_counter_bulk[0x8];
+ 	u8         max_flow_counter_15_0[0x10];
+ 
+@@ -3438,11 +3443,21 @@ struct mlx5_ifc_vnic_diagnostic_statistics_bits {
+ 
+ 	u8         transmit_discard_vport_down[0x40];
+ 
+-	u8         reserved_at_140[0xa0];
++	u8         async_eq_overrun[0x20];
++
++	u8         comp_eq_overrun[0x20];
++
++	u8         reserved_at_180[0x20];
++
++	u8         invalid_command[0x20];
++
++	u8         quota_exceeded_command[0x20];
+ 
+ 	u8         internal_rq_out_of_buffer[0x20];
+ 
+-	u8         reserved_at_200[0xe00];
++	u8         cq_overrun[0x20];
++
++	u8         reserved_at_220[0xde0];
+ };
+ 
+ struct mlx5_ifc_traffic_counter_bits {
 -- 
 2.36.1
 
