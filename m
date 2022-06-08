@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E350DCCA47B
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jun 2022 10:43:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9587C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jun 2022 10:43:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237139AbiFHKnj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jun 2022 06:43:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47786 "EHLO
+        id S236957AbiFHKnk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Jun 2022 06:43:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237015AbiFHKn3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jun 2022 06:43:29 -0400
-Received: from out30-45.freemail.mail.aliyun.com (out30-45.freemail.mail.aliyun.com [115.124.30.45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0708C53E3F
-        for <linux-rdma@vger.kernel.org>; Wed,  8 Jun 2022 03:43:25 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VFlr2Ix_1654685002;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VFlr2Ix_1654685002)
+        with ESMTP id S237119AbiFHKne (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jun 2022 06:43:34 -0400
+Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8A78C4E
+        for <linux-rdma@vger.kernel.org>; Wed,  8 Jun 2022 03:43:30 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045170;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VFlsuD1_1654685006;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VFlsuD1_1654685006)
           by smtp.aliyun-inc.com;
-          Wed, 08 Jun 2022 18:43:23 +0800
+          Wed, 08 Jun 2022 18:43:27 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com,
         chengyou@linux.alibaba.com, tonylu@linux.alibaba.com,
         BMT@zurich.ibm.com
-Subject: [PATCH for-next v10 02/11] RDMA/erdma: Add the hardware related definitions
-Date:   Wed,  8 Jun 2022 18:43:11 +0800
-Message-Id: <20220608104320.53066-3-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next v10 06/11] RDMA/erdma: Add verbs header file
+Date:   Wed,  8 Jun 2022 18:43:15 +0800
+Message-Id: <20220608104320.53066-7-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.32.1 (Apple Git-133)
 In-Reply-To: <20220608104320.53066-1-chengyou@linux.alibaba.com>
 References: <20220608104320.53066-1-chengyou@linux.alibaba.com>
@@ -35,529 +35,361 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-ERDMA is a PCIe device, and this file provides ERDMA hardware related
-definitions, mainly including PCIe device capabilities restrictions,
-device registers definitions, doorbell space, doorbell structure
-definitions and WQE definitions.
+This header file defines the main structures and functions used for RDMA
+Verbs, including qp, cq, mr, ucontext, etc,.
 
 Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- drivers/infiniband/hw/erdma/erdma_hw.h | 508 +++++++++++++++++++++++++
- 1 file changed, 508 insertions(+)
- create mode 100644 drivers/infiniband/hw/erdma/erdma_hw.h
+ drivers/infiniband/hw/erdma/erdma_verbs.h | 342 ++++++++++++++++++++++
+ 1 file changed, 342 insertions(+)
+ create mode 100644 drivers/infiniband/hw/erdma/erdma_verbs.h
 
-diff --git a/drivers/infiniband/hw/erdma/erdma_hw.h b/drivers/infiniband/hw/erdma/erdma_hw.h
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
 new file mode 100644
-index 000000000000..31e7fb45a993
+index 000000000000..b0e1b54b6d1d
 --- /dev/null
-+++ b/drivers/infiniband/hw/erdma/erdma_hw.h
-@@ -0,0 +1,508 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
+@@ -0,0 +1,342 @@
++/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
 +
 +/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
 +/*          Kai Shen <kaishen@linux.alibaba.com> */
 +/* Copyright (c) 2020-2022, Alibaba Group. */
 +
-+#ifndef __ERDMA_HW_H__
-+#define __ERDMA_HW_H__
++#ifndef __ERDMA_VERBS_H__
++#define __ERDMA_VERBS_H__
 +
-+#include <linux/kernel.h>
-+#include <linux/types.h>
++#include <linux/errno.h>
 +
-+/* PCIe device related definition. */
-+#define PCI_VENDOR_ID_ALIBABA 0x1ded
++#include <rdma/ib_verbs.h>
++#include <rdma/ib_user_verbs.h>
++#include <rdma/iw_cm.h>
 +
-+#define ERDMA_PCI_WIDTH 64
-+#define ERDMA_FUNC_BAR 0
-+#define ERDMA_MISX_BAR 2
++#include "erdma.h"
++#include "erdma_cm.h"
++#include "erdma_hw.h"
 +
-+#define ERDMA_BAR_MASK (BIT(ERDMA_FUNC_BAR) | BIT(ERDMA_MISX_BAR))
++/* RDMA Capability. */
++#define ERDMA_MAX_PD (128 * 1024)
++#define ERDMA_MAX_SEND_WR 4096
++#define ERDMA_MAX_ORD 128
++#define ERDMA_MAX_IRD 128
++#define ERDMA_MAX_SGE_RD 1
++#define ERDMA_MAX_CONTEXT (128 * 1024)
++#define ERDMA_MAX_SEND_SGE 6
++#define ERDMA_MAX_RECV_SGE 1
++#define ERDMA_MAX_INLINE (sizeof(struct erdma_sge) * (ERDMA_MAX_SEND_SGE))
++#define ERDMA_MAX_FRMR_PA 512
 +
-+/* MSI-X related. */
-+#define ERDMA_NUM_MSIX_VEC 32U
-+#define ERDMA_MSIX_VECTOR_CMDQ 0
++enum {
++	ERDMA_MMAP_IO_NC = 0, /* no cache */
++};
 +
-+/* PCIe Bar0 Registers. */
-+#define ERDMA_REGS_VERSION_REG 0x0
-+#define ERDMA_REGS_DEV_CTRL_REG 0x10
-+#define ERDMA_REGS_DEV_ST_REG 0x14
-+#define ERDMA_REGS_NETDEV_MAC_L_REG 0x18
-+#define ERDMA_REGS_NETDEV_MAC_H_REG 0x1C
-+#define ERDMA_REGS_CMDQ_SQ_ADDR_L_REG 0x20
-+#define ERDMA_REGS_CMDQ_SQ_ADDR_H_REG 0x24
-+#define ERDMA_REGS_CMDQ_CQ_ADDR_L_REG 0x28
-+#define ERDMA_REGS_CMDQ_CQ_ADDR_H_REG 0x2C
-+#define ERDMA_REGS_CMDQ_DEPTH_REG 0x30
-+#define ERDMA_REGS_CMDQ_EQ_DEPTH_REG 0x34
-+#define ERDMA_REGS_CMDQ_EQ_ADDR_L_REG 0x38
-+#define ERDMA_REGS_CMDQ_EQ_ADDR_H_REG 0x3C
-+#define ERDMA_REGS_AEQ_ADDR_L_REG 0x40
-+#define ERDMA_REGS_AEQ_ADDR_H_REG 0x44
-+#define ERDMA_REGS_AEQ_DEPTH_REG 0x48
-+#define ERDMA_REGS_GRP_NUM_REG 0x4c
-+#define ERDMA_REGS_AEQ_DB_REG 0x50
-+#define ERDMA_CMDQ_SQ_DB_HOST_ADDR_REG 0x60
-+#define ERDMA_CMDQ_CQ_DB_HOST_ADDR_REG 0x68
-+#define ERDMA_CMDQ_EQ_DB_HOST_ADDR_REG 0x70
-+#define ERDMA_AEQ_DB_HOST_ADDR_REG 0x78
-+#define ERDMA_REGS_STATS_TSO_IN_PKTS_REG 0x80
-+#define ERDMA_REGS_STATS_TSO_OUT_PKTS_REG 0x88
-+#define ERDMA_REGS_STATS_TSO_OUT_BYTES_REG 0x90
-+#define ERDMA_REGS_STATS_TX_DROP_PKTS_REG 0x98
-+#define ERDMA_REGS_STATS_TX_BPS_METER_DROP_PKTS_REG 0xa0
-+#define ERDMA_REGS_STATS_TX_PPS_METER_DROP_PKTS_REG 0xa8
-+#define ERDMA_REGS_STATS_RX_PKTS_REG 0xc0
-+#define ERDMA_REGS_STATS_RX_BYTES_REG 0xc8
-+#define ERDMA_REGS_STATS_RX_DROP_PKTS_REG 0xd0
-+#define ERDMA_REGS_STATS_RX_BPS_METER_DROP_PKTS_REG 0xd8
-+#define ERDMA_REGS_STATS_RX_PPS_METER_DROP_PKTS_REG 0xe0
-+#define ERDMA_REGS_CEQ_DB_BASE_REG 0x100
-+#define ERDMA_CMDQ_SQDB_REG 0x200
-+#define ERDMA_CMDQ_CQDB_REG 0x300
++struct erdma_user_mmap_entry {
++	struct rdma_user_mmap_entry rdma_entry;
++	u64 address;
++	u8 mmap_flag;
++};
 +
-+/* DEV_CTRL_REG details. */
-+#define ERDMA_REG_DEV_CTRL_RESET_MASK 0x00000001
-+#define ERDMA_REG_DEV_CTRL_INIT_MASK 0x00000002
++struct erdma_ucontext {
++	struct ib_ucontext ibucontext;
 +
-+/* DEV_ST_REG details. */
-+#define ERDMA_REG_DEV_ST_RESET_DONE_MASK 0x00000001U
-+#define ERDMA_REG_DEV_ST_INIT_DONE_MASK 0x00000002U
++	u32 sdb_type;
++	u32 sdb_idx;
++	u32 sdb_page_idx;
++	u32 sdb_page_off;
++	u64 sdb;
++	u64 rdb;
++	u64 cdb;
 +
-+/* eRDMA PCIe DBs definition. */
-+#define ERDMA_BAR_DB_SPACE_BASE 4096
++	struct rdma_user_mmap_entry *sq_db_mmap_entry;
++	struct rdma_user_mmap_entry *rq_db_mmap_entry;
++	struct rdma_user_mmap_entry *cq_db_mmap_entry;
 +
-+#define ERDMA_BAR_SQDB_SPACE_OFFSET ERDMA_BAR_DB_SPACE_BASE
-+#define ERDMA_BAR_SQDB_SPACE_SIZE (384 * 1024)
++	/* doorbell records */
++	struct list_head dbrecords_page_list;
++	struct mutex dbrecords_page_mutex;
++};
 +
-+#define ERDMA_BAR_RQDB_SPACE_OFFSET \
-+	(ERDMA_BAR_SQDB_SPACE_OFFSET + ERDMA_BAR_SQDB_SPACE_SIZE)
-+#define ERDMA_BAR_RQDB_SPACE_SIZE (96 * 1024)
++struct erdma_pd {
++	struct ib_pd ibpd;
++	u32 pdn;
++};
 +
-+#define ERDMA_BAR_CQDB_SPACE_OFFSET \
-+	(ERDMA_BAR_RQDB_SPACE_OFFSET + ERDMA_BAR_RQDB_SPACE_SIZE)
-+
-+/* Doorbell page resources related. */
 +/*
-+ * Max # of parallelly issued directSQE is 3072 per device,
-+ * hardware organizes this into 24 group, per group has 128 credits.
++ * MemoryRegion definition.
 + */
-+#define ERDMA_DWQE_MAX_GRP_CNT 24
-+#define ERDMA_DWQE_NUM_PER_GRP 128
++#define ERDMA_MAX_INLINE_MTT_ENTRIES 4
++#define MTT_SIZE(mtt_cnt) (mtt_cnt << 3) /* per mtt takes 8 Bytes. */
++#define ERDMA_MR_MAX_MTT_CNT 524288
++#define ERDMA_MTT_ENTRY_SIZE 8
 +
-+#define ERDMA_DWQE_TYPE0_CNT 64
-+#define ERDMA_DWQE_TYPE1_CNT 496
-+/* type1 DB contains 2 DBs, takes 256Byte. */
-+#define ERDMA_DWQE_TYPE1_CNT_PER_PAGE 16
++#define ERDMA_MR_TYPE_NORMAL 0
++#define ERDMA_MR_TYPE_FRMR 1
++#define ERDMA_MR_TYPE_DMA 2
 +
-+#define ERDMA_SDB_SHARED_PAGE_INDEX 95
++#define ERDMA_MR_INLINE_MTT 0
++#define ERDMA_MR_INDIRECT_MTT 1
 +
-+/* Doorbell related. */
-+#define ERDMA_DB_SIZE 8
++#define ERDMA_MR_ACC_LR BIT(0)
++#define ERDMA_MR_ACC_LW BIT(1)
++#define ERDMA_MR_ACC_RR BIT(2)
++#define ERDMA_MR_ACC_RW BIT(3)
 +
-+#define ERDMA_CQDB_IDX_MASK GENMASK_ULL(63, 56)
-+#define ERDMA_CQDB_CQN_MASK GENMASK_ULL(55, 32)
-+#define ERDMA_CQDB_ARM_MASK BIT_ULL(31)
-+#define ERDMA_CQDB_SOL_MASK BIT_ULL(30)
-+#define ERDMA_CQDB_CMDSN_MASK GENMASK_ULL(29, 28)
-+#define ERDMA_CQDB_CI_MASK GENMASK_ULL(23, 0)
++static inline u8 to_erdma_access_flags(int access)
++{
++	return (access & IB_ACCESS_REMOTE_READ ? ERDMA_MR_ACC_RR : 0) |
++	       (access & IB_ACCESS_LOCAL_WRITE ? ERDMA_MR_ACC_LW : 0) |
++	       (access & IB_ACCESS_REMOTE_WRITE ? ERDMA_MR_ACC_RW : 0);
++}
 +
-+#define ERDMA_EQDB_ARM_MASK BIT(31)
-+#define ERDMA_EQDB_CI_MASK GENMASK_ULL(23, 0)
++struct erdma_mem {
++	struct ib_umem *umem;
++	void *mtt_buf;
++	u32 mtt_type;
++	u32 page_size;
++	u32 page_offset;
++	u32 page_cnt;
++	u32 mtt_nents;
 +
-+#define ERDMA_PAGE_SIZE_SUPPORT 0x7FFFF000
++	u64 va;
++	u64 len;
 +
-+/* WQE related. */
-+#define EQE_SIZE 16
-+#define EQE_SHIFT 4
-+#define RQE_SIZE 32
-+#define RQE_SHIFT 5
-+#define CQE_SIZE 32
-+#define CQE_SHIFT 5
-+#define SQEBB_SIZE 32
-+#define SQEBB_SHIFT 5
-+#define SQEBB_MASK (~(SQEBB_SIZE - 1))
-+#define SQEBB_ALIGN(size) ((size + SQEBB_SIZE - 1) & SQEBB_MASK)
-+#define SQEBB_COUNT(size) (SQEBB_ALIGN(size) >> SQEBB_SHIFT)
-+
-+#define ERDMA_MAX_SQE_SIZE 128
-+#define ERDMA_MAX_WQEBB_PER_SQE 4
-+
-+/* CMDQ related. */
-+#define ERDMA_CMDQ_MAX_OUTSTANDING 128
-+#define ERDMA_CMDQ_SQE_SIZE 64
-+
-+/* cmdq sub module definition. */
-+enum CMDQ_WQE_SUB_MOD {
-+	CMDQ_SUBMOD_RDMA = 0,
-+	CMDQ_SUBMOD_COMMON = 1
++	u64 mtt_entry[ERDMA_MAX_INLINE_MTT_ENTRIES];
 +};
 +
-+enum CMDQ_RDMA_OPCODE {
-+	CMDQ_OPCODE_QUERY_DEVICE = 0,
-+	CMDQ_OPCODE_CREATE_QP = 1,
-+	CMDQ_OPCODE_DESTROY_QP = 2,
-+	CMDQ_OPCODE_MODIFY_QP = 3,
-+	CMDQ_OPCODE_CREATE_CQ = 4,
-+	CMDQ_OPCODE_DESTROY_CQ = 5,
-+	CMDQ_OPCODE_REG_MR = 8,
-+	CMDQ_OPCODE_DEREG_MR = 9
++struct erdma_mr {
++	struct ib_mr ibmr;
++	struct erdma_mem mem;
++	u8 type;
++	u8 access;
++	u8 valid;
 +};
 +
-+enum CMDQ_COMMON_OPCODE {
-+	CMDQ_OPCODE_CREATE_EQ = 0,
-+	CMDQ_OPCODE_DESTROY_EQ = 1,
-+	CMDQ_OPCODE_QUERY_FW_INFO = 2,
++struct erdma_user_dbrecords_page {
++	struct list_head list;
++	struct ib_umem *umem;
++	u64 va;
++	int refcnt;
 +};
 +
-+/* cmdq-SQE HDR */
-+#define ERDMA_CMD_HDR_WQEBB_CNT_MASK GENMASK_ULL(54, 52)
-+#define ERDMA_CMD_HDR_CONTEXT_COOKIE_MASK GENMASK_ULL(47, 32)
-+#define ERDMA_CMD_HDR_SUB_MOD_MASK GENMASK_ULL(25, 24)
-+#define ERDMA_CMD_HDR_OPCODE_MASK GENMASK_ULL(23, 16)
-+#define ERDMA_CMD_HDR_WQEBB_INDEX_MASK GENMASK_ULL(15, 0)
++struct erdma_uqp {
++	struct erdma_mem sq_mtt;
++	struct erdma_mem rq_mtt;
 +
-+struct erdma_cmdq_destroy_cq_req {
-+	u64 hdr;
-+	u32 cqn;
++	dma_addr_t sq_db_info_dma_addr;
++	dma_addr_t rq_db_info_dma_addr;
++
++	struct erdma_user_dbrecords_page *user_dbr_page;
++
++	u32 rq_offset;
 +};
 +
-+#define ERDMA_EQ_TYPE_AEQ 0
-+#define ERDMA_EQ_TYPE_CEQ 1
++struct erdma_kqp {
++	u16 sq_pi;
++	u16 sq_ci;
 +
-+struct erdma_cmdq_create_eq_req {
-+	u64 hdr;
-+	u64 qbuf_addr;
-+	u8 vector_idx;
-+	u8 eqn;
-+	u8 depth;
-+	u8 qtype;
-+	u32 db_dma_addr_l;
-+	u32 db_dma_addr_h;
++	u16 rq_pi;
++	u16 rq_ci;
++
++	u64 *swr_tbl;
++	u64 *rwr_tbl;
++
++	void __iomem *hw_sq_db;
++	void __iomem *hw_rq_db;
++
++	void *sq_buf;
++	dma_addr_t sq_buf_dma_addr;
++
++	void *rq_buf;
++	dma_addr_t rq_buf_dma_addr;
++
++	void *sq_db_info;
++	void *rq_db_info;
++
++	u8 sig_all;
 +};
 +
-+struct erdma_cmdq_destroy_eq_req {
-+	u64 hdr;
-+	u64 rsvd0;
-+	u8 vector_idx;
-+	u8 eqn;
-+	u8 rsvd1;
-+	u8 qtype;
++enum erdma_qp_state {
++	ERDMA_QP_STATE_IDLE = 0,
++	ERDMA_QP_STATE_RTR = 1,
++	ERDMA_QP_STATE_RTS = 2,
++	ERDMA_QP_STATE_CLOSING = 3,
++	ERDMA_QP_STATE_TERMINATE = 4,
++	ERDMA_QP_STATE_ERROR = 5,
++	ERDMA_QP_STATE_UNDEF = 7,
++	ERDMA_QP_STATE_COUNT = 8
 +};
 +
-+/* create_cq cfg0 */
-+#define ERDMA_CMD_CREATE_CQ_DEPTH_MASK GENMASK(31, 24)
-+#define ERDMA_CMD_CREATE_CQ_PAGESIZE_MASK GENMASK(23, 20)
-+#define ERDMA_CMD_CREATE_CQ_CQN_MASK GENMASK(19, 0)
-+
-+/* create_cq cfg1 */
-+#define ERDMA_CMD_CREATE_CQ_MTT_CNT_MASK GENMASK(31, 16)
-+#define ERDMA_CMD_CREATE_CQ_MTT_TYPE_MASK BIT(15)
-+#define ERDMA_CMD_CREATE_CQ_EQN_MASK GENMASK(9, 0)
-+
-+struct erdma_cmdq_create_cq_req {
-+	u64 hdr;
-+	u32 cfg0;
-+	u32 qbuf_addr_l;
-+	u32 qbuf_addr_h;
-+	u32 cfg1;
-+	u64 cq_db_info_addr;
-+	u32 first_page_offset;
++enum erdma_qp_attr_mask {
++	ERDMA_QP_ATTR_STATE = (1 << 0),
++	ERDMA_QP_ATTR_LLP_HANDLE = (1 << 2),
++	ERDMA_QP_ATTR_ORD = (1 << 3),
++	ERDMA_QP_ATTR_IRD = (1 << 4),
++	ERDMA_QP_ATTR_SQ_SIZE = (1 << 5),
++	ERDMA_QP_ATTR_RQ_SIZE = (1 << 6),
++	ERDMA_QP_ATTR_MPA = (1 << 7)
 +};
 +
-+/* regmr/deregmr cfg0 */
-+#define ERDMA_CMD_MR_VALID_MASK BIT(31)
-+#define ERDMA_CMD_MR_KEY_MASK GENMASK(27, 20)
-+#define ERDMA_CMD_MR_MPT_IDX_MASK GENMASK(19, 0)
-+
-+/* regmr cfg1 */
-+#define ERDMA_CMD_REGMR_PD_MASK GENMASK(31, 12)
-+#define ERDMA_CMD_REGMR_TYPE_MASK GENMASK(7, 6)
-+#define ERDMA_CMD_REGMR_RIGHT_MASK GENMASK(5, 2)
-+#define ERDMA_CMD_REGMR_ACC_MODE_MASK GENMASK(1, 0)
-+
-+/* regmr cfg2 */
-+#define ERDMA_CMD_REGMR_PAGESIZE_MASK GENMASK(31, 27)
-+#define ERDMA_CMD_REGMR_MTT_TYPE_MASK GENMASK(21, 20)
-+#define ERDMA_CMD_REGMR_MTT_CNT_MASK GENMASK(19, 0)
-+
-+struct erdma_cmdq_reg_mr_req {
-+	u64 hdr;
-+	u32 cfg0;
-+	u32 cfg1;
-+	u64 start_va;
-+	u32 size;
-+	u32 cfg2;
-+	u64 phy_addr[4];
-+};
-+
-+struct erdma_cmdq_dereg_mr_req {
-+	u64 hdr;
-+	u32 cfg;
-+};
-+
-+/* modify qp cfg */
-+#define ERDMA_CMD_MODIFY_QP_STATE_MASK GENMASK(31, 24)
-+#define ERDMA_CMD_MODIFY_QP_CC_MASK GENMASK(23, 20)
-+#define ERDMA_CMD_MODIFY_QP_QPN_MASK GENMASK(19, 0)
-+
-+struct erdma_cmdq_modify_qp_req {
-+	u64 hdr;
-+	u32 cfg;
++struct erdma_qp_attrs {
++	enum erdma_qp_state state;
++	enum erdma_cc_alg cc; /* Congestion control algorithm */
++	u32 sq_size;
++	u32 rq_size;
++	u32 orq_size;
++	u32 irq_size;
++	u32 max_send_sge;
++	u32 max_recv_sge;
 +	u32 cookie;
-+	__be32 dip;
-+	__be32 sip;
-+	__be16 sport;
-+	__be16 dport;
-+	u32 send_nxt;
-+	u32 recv_nxt;
++#define ERDMA_QP_ACTIVE 0
++#define ERDMA_QP_PASSIVE 1
++	u8 qp_type;
++	u8 pd_len;
 +};
 +
-+/* create qp cfg0 */
-+#define ERDMA_CMD_CREATE_QP_SQ_DEPTH_MASK GENMASK(31, 20)
-+#define ERDMA_CMD_CREATE_QP_QPN_MASK GENMASK(19, 0)
++struct erdma_qp {
++	struct ib_qp ibqp;
++	struct kref ref;
++	struct completion safe_free;
++	struct erdma_dev *dev;
++	struct erdma_cep *cep;
++	struct rw_semaphore state_lock;
 +
-+/* create qp cfg1 */
-+#define ERDMA_CMD_CREATE_QP_RQ_DEPTH_MASK GENMASK(31, 20)
-+#define ERDMA_CMD_CREATE_QP_PD_MASK GENMASK(19, 0)
-+
-+/* create qp cqn_mtt_cfg */
-+#define ERDMA_CMD_CREATE_QP_PAGE_SIZE_MASK GENMASK(31, 28)
-+#define ERDMA_CMD_CREATE_QP_CQN_MASK GENMASK(23, 0)
-+
-+/* create qp mtt_cfg */
-+#define ERDMA_CMD_CREATE_QP_PAGE_OFFSET_MASK GENMASK(31, 12)
-+#define ERDMA_CMD_CREATE_QP_MTT_CNT_MASK GENMASK(11, 1)
-+#define ERDMA_CMD_CREATE_QP_MTT_TYPE_MASK BIT(0)
-+
-+#define ERDMA_CMDQ_CREATE_QP_RESP_COOKIE_MASK GENMASK_ULL(31, 0)
-+
-+struct erdma_cmdq_create_qp_req {
-+	u64 hdr;
-+	u32 cfg0;
-+	u32 cfg1;
-+	u32 sq_cqn_mtt_cfg;
-+	u32 rq_cqn_mtt_cfg;
-+	u64 sq_buf_addr;
-+	u64 rq_buf_addr;
-+	u32 sq_mtt_cfg;
-+	u32 rq_mtt_cfg;
-+	u64 sq_db_info_dma_addr;
-+	u64 rq_db_info_dma_addr;
-+};
-+
-+struct erdma_cmdq_destroy_qp_req {
-+	u64 hdr;
-+	u32 qpn;
-+};
-+
-+/* cap qword 0 definition */
-+#define ERDMA_CMD_DEV_CAP_MAX_CQE_MASK GENMASK_ULL(47, 40)
-+#define ERDMA_CMD_DEV_CAP_MAX_RECV_WR_MASK GENMASK_ULL(23, 16)
-+#define ERDMA_CMD_DEV_CAP_MAX_MR_SIZE_MASK GENMASK_ULL(7, 0)
-+
-+/* cap qword 1 definition */
-+#define ERDMA_CMD_DEV_CAP_DMA_LOCAL_KEY_MASK GENMASK_ULL(63, 32)
-+#define ERDMA_CMD_DEV_CAP_DEFAULT_CC_MASK GENMASK_ULL(31, 28)
-+#define ERDMA_CMD_DEV_CAP_QBLOCK_MASK GENMASK_ULL(27, 16)
-+#define ERDMA_CMD_DEV_CAP_MAX_MW_MASK GENMASK_ULL(7, 0)
-+
-+#define ERDMA_NQP_PER_QBLOCK 1024
-+
-+#define ERDMA_CMD_INFO0_FW_VER_MASK GENMASK_ULL(31, 0)
-+
-+/* CQE hdr */
-+#define ERDMA_CQE_HDR_OWNER_MASK BIT(31)
-+#define ERDMA_CQE_HDR_OPCODE_MASK GENMASK(23, 16)
-+#define ERDMA_CQE_HDR_QTYPE_MASK GENMASK(15, 8)
-+#define ERDMA_CQE_HDR_SYNDROME_MASK GENMASK(7, 0)
-+
-+#define ERDMA_CQE_QTYPE_SQ 0
-+#define ERDMA_CQE_QTYPE_RQ 1
-+#define ERDMA_CQE_QTYPE_CMDQ 2
-+
-+struct erdma_cqe {
-+	__be32 hdr;
-+	__be32 qe_idx;
-+	__be32 qpn;
 +	union {
-+		__le32 imm_data;
-+		__be32 inv_rkey;
-+	};
-+	__be32 size;
-+	__be32 rsvd[3];
-+};
-+
-+struct erdma_sge {
-+	__aligned_le64 laddr;
-+	__le32 length;
-+	__le32 lkey;
-+};
-+
-+/* Receive Queue Element */
-+struct erdma_rqe {
-+	__le16 qe_idx;
-+	__le16 rsvd0;
-+	__le32 qpn;
-+	__le32 rsvd1;
-+	__le32 rsvd2;
-+	__le64 to;
-+	__le32 length;
-+	__le32 stag;
-+};
-+
-+/* SQE */
-+#define ERDMA_SQE_HDR_SGL_LEN_MASK GENMASK_ULL(63, 56)
-+#define ERDMA_SQE_HDR_WQEBB_CNT_MASK GENMASK_ULL(54, 52)
-+#define ERDMA_SQE_HDR_QPN_MASK GENMASK_ULL(51, 32)
-+#define ERDMA_SQE_HDR_OPCODE_MASK GENMASK_ULL(31, 27)
-+#define ERDMA_SQE_HDR_DWQE_MASK BIT_ULL(26)
-+#define ERDMA_SQE_HDR_INLINE_MASK BIT_ULL(25)
-+#define ERDMA_SQE_HDR_FENCE_MASK BIT_ULL(24)
-+#define ERDMA_SQE_HDR_SE_MASK BIT_ULL(23)
-+#define ERDMA_SQE_HDR_CE_MASK BIT_ULL(22)
-+#define ERDMA_SQE_HDR_WQEBB_INDEX_MASK GENMASK_ULL(15, 0)
-+
-+/* REG MR attrs */
-+#define ERDMA_SQE_MR_MODE_MASK GENMASK(1, 0)
-+#define ERDMA_SQE_MR_ACCESS_MASK GENMASK(5, 2)
-+#define ERDMA_SQE_MR_MTT_TYPE_MASK GENMASK(7, 6)
-+#define ERDMA_SQE_MR_MTT_CNT_MASK GENMASK(31, 12)
-+
-+struct erdma_write_sqe {
-+	__le64 hdr;
-+	__be32 imm_data;
-+	__le32 length;
-+
-+	__le32 sink_stag;
-+	__le32 sink_to_l;
-+	__le32 sink_to_h;
-+
-+	__le32 rsvd;
-+
-+	struct erdma_sge sgl[0];
-+};
-+
-+struct erdma_send_sqe {
-+	__le64 hdr;
-+	union {
-+		__be32 imm_data;
-+		__le32 invalid_stag;
++		struct erdma_kqp kern_qp;
++		struct erdma_uqp user_qp;
 +	};
 +
-+	__le32 length;
-+	struct erdma_sge sgl[0];
++	struct erdma_cq *scq;
++	struct erdma_cq *rcq;
++
++	struct erdma_qp_attrs attrs;
++	spinlock_t lock;
 +};
 +
-+struct erdma_readreq_sqe {
-+	__le64 hdr;
-+	__le32 invalid_stag;
-+	__le32 length;
-+	__le32 sink_stag;
-+	__le32 sink_to_l;
-+	__le32 sink_to_h;
-+	__le32 rsvd;
++struct erdma_kcq_info {
++	void *qbuf;
++	dma_addr_t qbuf_dma_addr;
++	u32 ci;
++	u32 cmdsn;
++	u32 notify_cnt;
++
++	spinlock_t lock;
++	u8 __iomem *db;
++	u64 *db_record;
 +};
 +
-+struct erdma_reg_mr_sqe {
-+	__le64 hdr;
-+	__le64 addr;
-+	__le32 length;
-+	__le32 stag;
-+	__le32 attrs;
-+	__le32 rsvd;
++struct erdma_ucq_info {
++	struct erdma_mem qbuf_mtt;
++	struct erdma_user_dbrecords_page *user_dbr_page;
++	dma_addr_t db_info_dma_addr;
 +};
 +
-+/* EQ related. */
-+#define ERDMA_DEFAULT_EQ_DEPTH 256
++struct erdma_cq {
++	struct ib_cq ibcq;
++	u32 cqn;
 +
-+/* ceqe */
-+#define ERDMA_CEQE_HDR_DB_MASK BIT_ULL(63)
-+#define ERDMA_CEQE_HDR_PI_MASK GENMASK_ULL(55, 32)
-+#define ERDMA_CEQE_HDR_O_MASK BIT_ULL(31)
-+#define ERDMA_CEQE_HDR_CQN_MASK GENMASK_ULL(19, 0)
++	u32 depth;
++	u32 assoc_eqn;
 +
-+/* aeqe */
-+#define ERDMA_AEQE_HDR_O_MASK BIT(31)
-+#define ERDMA_AEQE_HDR_TYPE_MASK GENMASK(23, 16)
-+#define ERDMA_AEQE_HDR_SUBTYPE_MASK GENMASK(7, 0)
-+
-+#define ERDMA_AE_TYPE_QP_FATAL_EVENT 0
-+#define ERDMA_AE_TYPE_QP_ERQ_ERR_EVENT 1
-+#define ERDMA_AE_TYPE_ACC_ERR_EVENT 2
-+#define ERDMA_AE_TYPE_CQ_ERR 3
-+#define ERDMA_AE_TYPE_OTHER_ERROR 4
-+
-+struct erdma_aeqe {
-+	__le32 hdr;
-+	__le32 event_data0;
-+	__le32 event_data1;
-+	__le32 rsvd;
++	union {
++		struct erdma_kcq_info kern_cq;
++		struct erdma_ucq_info user_cq;
++	};
 +};
 +
-+enum erdma_opcode {
-+	ERDMA_OP_WRITE = 0,
-+	ERDMA_OP_READ = 1,
-+	ERDMA_OP_SEND = 2,
-+	ERDMA_OP_SEND_WITH_IMM = 3,
++#define QP_ID(qp) ((qp)->ibqp.qp_num)
 +
-+	ERDMA_OP_RECEIVE = 4,
-+	ERDMA_OP_RECV_IMM = 5,
-+	ERDMA_OP_RECV_INV = 6,
++static inline struct erdma_qp *find_qp_by_qpn(struct erdma_dev *dev, int id)
++{
++	return (struct erdma_qp *)xa_load(&dev->qp_xa, id);
++}
 +
-+	ERDMA_OP_REQ_ERR = 7,
-+	ERDMA_OP_READ_RESPONSE = 8,
-+	ERDMA_OP_WRITE_WITH_IMM = 9,
++static inline struct erdma_cq *find_cq_by_cqn(struct erdma_dev *dev, int id)
++{
++	return (struct erdma_cq *)xa_load(&dev->cq_xa, id);
++}
 +
-+	ERDMA_OP_RECV_ERR = 10,
++void erdma_qp_get(struct erdma_qp *qp);
++void erdma_qp_put(struct erdma_qp *qp);
++int erdma_modify_qp_internal(struct erdma_qp *qp, struct erdma_qp_attrs *attrs,
++			     enum erdma_qp_attr_mask mask);
++void erdma_qp_llp_close(struct erdma_qp *qp);
++void erdma_qp_cm_drop(struct erdma_qp *qp);
 +
-+	ERDMA_OP_INVALIDATE = 11,
-+	ERDMA_OP_RSP_SEND_IMM = 12,
-+	ERDMA_OP_SEND_WITH_INV = 13,
++static inline struct erdma_ucontext *to_ectx(struct ib_ucontext *ibctx)
++{
++	return container_of(ibctx, struct erdma_ucontext, ibucontext);
++}
 +
-+	ERDMA_OP_REG_MR = 14,
-+	ERDMA_OP_LOCAL_INV = 15,
-+	ERDMA_OP_READ_WITH_INV = 16,
-+	ERDMA_NUM_OPCODES = 17,
-+	ERDMA_OP_INVALID = ERDMA_NUM_OPCODES + 1
-+};
++static inline struct erdma_pd *to_epd(struct ib_pd *pd)
++{
++	return container_of(pd, struct erdma_pd, ibpd);
++}
 +
-+enum erdma_wc_status {
-+	ERDMA_WC_SUCCESS = 0,
-+	ERDMA_WC_GENERAL_ERR = 1,
-+	ERDMA_WC_RECV_WQE_FORMAT_ERR = 2,
-+	ERDMA_WC_RECV_STAG_INVALID_ERR = 3,
-+	ERDMA_WC_RECV_ADDR_VIOLATION_ERR = 4,
-+	ERDMA_WC_RECV_RIGHT_VIOLATION_ERR = 5,
-+	ERDMA_WC_RECV_PDID_ERR = 6,
-+	ERDMA_WC_RECV_WARRPING_ERR = 7,
-+	ERDMA_WC_SEND_WQE_FORMAT_ERR = 8,
-+	ERDMA_WC_SEND_WQE_ORD_EXCEED = 9,
-+	ERDMA_WC_SEND_STAG_INVALID_ERR = 10,
-+	ERDMA_WC_SEND_ADDR_VIOLATION_ERR = 11,
-+	ERDMA_WC_SEND_RIGHT_VIOLATION_ERR = 12,
-+	ERDMA_WC_SEND_PDID_ERR = 13,
-+	ERDMA_WC_SEND_WARRPING_ERR = 14,
-+	ERDMA_WC_FLUSH_ERR = 15,
-+	ERDMA_WC_RETRY_EXC_ERR = 16,
-+	ERDMA_NUM_WC_STATUS
-+};
++static inline struct erdma_mr *to_emr(struct ib_mr *ibmr)
++{
++	return container_of(ibmr, struct erdma_mr, ibmr);
++}
 +
-+enum erdma_vendor_err {
-+	ERDMA_WC_VENDOR_NO_ERR = 0,
-+	ERDMA_WC_VENDOR_INVALID_RQE = 1,
-+	ERDMA_WC_VENDOR_RQE_INVALID_STAG = 2,
-+	ERDMA_WC_VENDOR_RQE_ADDR_VIOLATION = 3,
-+	ERDMA_WC_VENDOR_RQE_ACCESS_RIGHT_ERR = 4,
-+	ERDMA_WC_VENDOR_RQE_INVALID_PD = 5,
-+	ERDMA_WC_VENDOR_RQE_WRAP_ERR = 6,
-+	ERDMA_WC_VENDOR_INVALID_SQE = 0x20,
-+	ERDMA_WC_VENDOR_ZERO_ORD = 0x21,
-+	ERDMA_WC_VENDOR_SQE_INVALID_STAG = 0x30,
-+	ERDMA_WC_VENDOR_SQE_ADDR_VIOLATION = 0x31,
-+	ERDMA_WC_VENDOR_SQE_ACCESS_ERR = 0x32,
-+	ERDMA_WC_VENDOR_SQE_INVALID_PD = 0x33,
-+	ERDMA_WC_VENDOR_SQE_WARP_ERR = 0x34
-+};
++static inline struct erdma_qp *to_eqp(struct ib_qp *qp)
++{
++	return container_of(qp, struct erdma_qp, ibqp);
++}
++
++static inline struct erdma_cq *to_ecq(struct ib_cq *ibcq)
++{
++	return container_of(ibcq, struct erdma_cq, ibcq);
++}
++
++static inline struct erdma_user_mmap_entry *
++to_emmap(struct rdma_user_mmap_entry *ibmmap)
++{
++	return container_of(ibmmap, struct erdma_user_mmap_entry, rdma_entry);
++}
++
++int erdma_alloc_ucontext(struct ib_ucontext *ibctx, struct ib_udata *data);
++void erdma_dealloc_ucontext(struct ib_ucontext *ibctx);
++int erdma_query_device(struct ib_device *dev, struct ib_device_attr *attr,
++		       struct ib_udata *data);
++int erdma_get_port_immutable(struct ib_device *dev, u32 port,
++			     struct ib_port_immutable *ib_port_immutable);
++int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
++		    struct ib_udata *data);
++int erdma_query_port(struct ib_device *dev, u32 port,
++		     struct ib_port_attr *attr);
++int erdma_query_gid(struct ib_device *dev, u32 port, int idx,
++		    union ib_gid *gid);
++int erdma_alloc_pd(struct ib_pd *ibpd, struct ib_udata *data);
++int erdma_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata);
++int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
++		    struct ib_udata *data);
++int erdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr, int mask,
++		   struct ib_qp_init_attr *init_attr);
++int erdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr, int mask,
++		    struct ib_udata *data);
++int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata);
++int erdma_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata);
++int erdma_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags);
++struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
++				u64 virt, int access, struct ib_udata *udata);
++struct ib_mr *erdma_get_dma_mr(struct ib_pd *ibpd, int rights);
++int erdma_dereg_mr(struct ib_mr *ibmr, struct ib_udata *data);
++int erdma_mmap(struct ib_ucontext *ctx, struct vm_area_struct *vma);
++void erdma_mmap_free(struct rdma_user_mmap_entry *rdma_entry);
++void erdma_qp_get_ref(struct ib_qp *ibqp);
++void erdma_qp_put_ref(struct ib_qp *ibqp);
++struct ib_qp *erdma_get_ibqp(struct ib_device *dev, int id);
++int erdma_post_send(struct ib_qp *ibqp, const struct ib_send_wr *send_wr,
++		    const struct ib_send_wr **bad_send_wr);
++int erdma_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *recv_wr,
++		    const struct ib_recv_wr **bad_recv_wr);
++int erdma_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
++struct ib_mr *erdma_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
++				u32 max_num_sg);
++int erdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		    unsigned int *sg_offset);
++void erdma_port_event(struct erdma_dev *dev, enum ib_event_type reason);
 +
 +#endif
 -- 
