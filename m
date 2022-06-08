@@ -2,88 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51AC4CCA47F
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Jun 2022 12:48:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0704ECCA481
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jun 2022 03:46:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244192AbiFGMsS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Jun 2022 08:48:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37094 "EHLO
+        id S230366AbiFHDqD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Jun 2022 23:46:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244191AbiFGMsG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jun 2022 08:48:06 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9931313EBD;
-        Tue,  7 Jun 2022 05:48:05 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4A785B81F6E;
-        Tue,  7 Jun 2022 12:48:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75C4BC385A5;
-        Tue,  7 Jun 2022 12:48:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1654606083;
-        bh=/6NsrWgjW5XlNWz0DHm3gy/B2YKwhVrCWYTDLXV0/wY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ft8NqcJkj3muFkOVLl48cCAFdAVtWn0E8vVnW3Hjr9QU2xjxq1MKc0Y6tDdGGrej9
-         Dg3pXdkEcl5SM5881fV/2jXnUDKt3l1huSZzw2dbIB3pgNcYT24ONH7P22viyD7qNc
-         AMC2zLuiuYjKCpcL8moTgno/78YukP6BOLgfxeGISEBllwViSvBhrTWvLZFfZTnAzX
-         URZQEly3ksAyy1J+ls4AiQMMT7eFa0xt3XxnbyCSlTyGot1nQC4ylLFd6KgAaY1NyH
-         GkFLTk+GewI9k6ECmRE9JLUmzKKtmYz3GWGMla+yYWc4otqCmWTdPSuuUpI/7iGUiI
-         wfBu2EPrc9xvA==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Yevgeny Kliteynik <kliteyn@nvidia.com>,
-        Erez Shitrit <erezsh@mellanox.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH mlx5-next 1/3] net/mlx5: Introduce header-modify-pattern ICM properties
-Date:   Tue,  7 Jun 2022 15:47:43 +0300
-Message-Id: <66f4096ce4d4c8451f0b781284c650f97e545d41.1654605768.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <cover.1654605768.git.leonro@nvidia.com>
-References: <cover.1654605768.git.leonro@nvidia.com>
+        with ESMTP id S234616AbiFHDpL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Jun 2022 23:45:11 -0400
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A0CE22C8B3;
+        Tue,  7 Jun 2022 17:55:38 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=yang.lee@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VFhpV8V_1654649735;
+Received: from localhost(mailfrom:yang.lee@linux.alibaba.com fp:SMTPD_---0VFhpV8V_1654649735)
+          by smtp.aliyun-inc.com;
+          Wed, 08 Jun 2022 08:55:36 +0800
+From:   Yang Li <yang.lee@linux.alibaba.com>
+To:     chengyou@linux.alibaba.com
+Cc:     kaishen@linux.alibaba.com, jgg@ziepe.ca, leon@kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Yang Li <yang.lee@linux.alibaba.com>,
+        Abaci Robot <abaci@linux.alibaba.com>
+Subject: [PATCH -next] RDMA/erdma: remove unneeded semicolon
+Date:   Wed,  8 Jun 2022 08:55:34 +0800
+Message-Id: <20220608005534.76789-1-yang.lee@linux.alibaba.com>
+X-Mailer: git-send-email 2.20.1.7.g153144c
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yevgeny Kliteynik <kliteyn@nvidia.com>
+Eliminate the following coccicheck warning:
+./drivers/infiniband/hw/erdma/erdma_qp.c:254:3-4: Unneeded semicolon
 
-Added new fields for device memory capabilities, in order to
-support creation of ICM memory for modify header patterns.
-
-Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
-Signed-off-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/erdma/erdma_qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 006836ae7e43..4e41b3164dc8 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1086,11 +1086,14 @@ struct mlx5_ifc_device_mem_cap_bits {
- 	u8         log_sw_icm_alloc_granularity[0x6];
- 	u8         log_steering_sw_icm_size[0x8];
+diff --git a/drivers/infiniband/hw/erdma/erdma_qp.c b/drivers/infiniband/hw/erdma/erdma_qp.c
+index 6d49095662c8..a33b29ef11a5 100644
+--- a/drivers/infiniband/hw/erdma/erdma_qp.c
++++ b/drivers/infiniband/hw/erdma/erdma_qp.c
+@@ -251,7 +251,7 @@ static int fill_inline_data(struct erdma_qp *qp,
+ 					       qp->attrs.sq_size, SQEBB_SHIFT);
+ 			if (!remain_size)
+ 				break;
+-		};
++		}
  
--	u8         reserved_at_120[0x20];
-+	u8         reserved_at_120[0x18];
-+	u8         log_header_modify_pattern_sw_icm_size[0x8];
- 
- 	u8         header_modify_sw_icm_start_address[0x40];
- 
--	u8         reserved_at_180[0x80];
-+	u8         reserved_at_180[0x40];
-+
-+	u8         header_modify_pattern_sw_icm_start_address[0x40];
- 
- 	u8         memic_operations[0x20];
- 
+ 		i++;
+ 	}
 -- 
-2.36.1
+2.20.1.7.g153144c
 
