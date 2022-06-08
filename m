@@ -2,27 +2,27 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBE1EC43334
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jun 2022 19:11:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE413C433EF
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Jun 2022 19:12:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232406AbiFHTLT convert rfc822-to-8bit (ORCPT
+        id S234832AbiFHTMR convert rfc822-to-8bit (ORCPT
         <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Jun 2022 15:11:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40574 "EHLO
+        Wed, 8 Jun 2022 15:12:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45518 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234578AbiFHTLS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jun 2022 15:11:18 -0400
-Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60D79112A
-        for <linux-rdma@vger.kernel.org>; Wed,  8 Jun 2022 12:11:16 -0700 (PDT)
+        with ESMTP id S234578AbiFHTMQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Jun 2022 15:12:16 -0400
+Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 003C02E68D
+        for <linux-rdma@vger.kernel.org>; Wed,  8 Jun 2022 12:12:14 -0700 (PDT)
 Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.66.156])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 78A623FC3B
-        for <linux-rdma@vger.kernel.org>; Wed,  8 Jun 2022 19:11:05 +0000 (UTC)
+        by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 0654C3F154
+        for <linux-rdma@vger.kernel.org>; Wed,  8 Jun 2022 19:06:53 +0000 (UTC)
 Received: from juju-4112d9-prod-launchpad-manual-servers-4.lp.internal (localhost [127.0.0.1])
-        by buildd-manager.lp.internal (Postfix) with ESMTP id 952A8C0718
-        for <linux-rdma@vger.kernel.org>; Wed,  8 Jun 2022 19:10:57 +0000 (UTC)
+        by buildd-manager.lp.internal (Postfix) with ESMTP id EC2F5C0718
+        for <linux-rdma@vger.kernel.org>; Wed,  8 Jun 2022 19:06:32 +0000 (UTC)
 Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8BIT
@@ -34,13 +34,13 @@ X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
 X-Launchpad-PPA: linux-rdma-rdma-core-daily
 To:     Linux RDMA <linux-rdma@vger.kernel.org>
 From:   Ubuntu Installer <archive@ubuntu.com>
-Subject: [~linux-rdma/ubuntu/rdma-core-daily] rdma-core_42.0~202206080810+gitc590cbd5~ubuntu16.04.1_arm64.changes (Rejected)
-Message-Id: <165471545758.22905.2205286318206210267.launchpad@juju-4112d9-prod-launchpad-manual-servers-4.lp.internal>
-Date:   Wed, 08 Jun 2022 19:10:57 -0000
+Subject: [~linux-rdma/ubuntu/rdma-core-daily] rdma-core_42.0~202206080810+gitc590cbd5~ubuntu18.04.1_amd64.changes (Rejected)
+Message-Id: <165471519295.21610.15242766247404590970.launchpad@juju-4112d9-prod-launchpad-manual-servers-4.lp.internal>
+Date:   Wed, 08 Jun 2022 19:06:32 -0000
 Reply-To: Ubuntu Installer <archive@ubuntu.com>
 Sender: noreply@launchpad.net
 X-Generated-By: Launchpad (canonical.com); Revision="0f209dcba08bdd5fd387de120244a7b387be6615"; Instance="buildmaster"
-X-Launchpad-Hash: 79e653e6a02834bafeedebdd2cb94e6e8424c170
+X-Launchpad-Hash: 48eaf36b7a12db58b777ca75f030ad3944106dc3
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -48,7 +48,7 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 Rejected:
 [lplibrarian-public-upload.internal:10004]: [Errno -2] Name or service not known
 
-rdma-core (42.0~202206080810+gitc590cbd5~ubuntu16.04.1) xenial; urgency=low
+rdma-core (42.0~202206080810+gitc590cbd5~ubuntu18.04.1) bionic; urgency=low
 
   * Auto build.
 
