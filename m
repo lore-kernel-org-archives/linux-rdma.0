@@ -2,236 +2,120 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DDEAC43334
-	for <linux-rdma@archiver.kernel.org>; Sat, 11 Jun 2022 03:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C48C433EF
+	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jun 2022 21:15:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348496AbiFKDJD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 10 Jun 2022 23:09:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60444 "EHLO
+        id S233160AbiFLVPG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 12 Jun 2022 17:15:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347484AbiFKDJD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 10 Jun 2022 23:09:03 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63C3D6465
-        for <linux-rdma@vger.kernel.org>; Fri, 10 Jun 2022 20:09:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1654916942; x=1686452942;
-  h=date:from:to:cc:subject:message-id:mime-version:
-   content-transfer-encoding;
-  bh=gSwGGgGXsd5poYrlaS/6hEBsHxQj2pEGI9dgXbq1sCE=;
-  b=K2YoWBJBJ6JoJpRcTkUkwT1L9kbUl1GPlGtRIOaiiyTg8bR08IZlHwz4
-   g/7mXtNYf7DzPjZ39ac3uqlCvbTUUeS8SL6G73oMo1B2Xz0Rbl1vLTCXX
-   gJfkbzyl3YPtbY47df7OIiWTUOiiaMPEzaO72WIynup/+UhF/t+3qgU2A
-   hvKrOPt67wZKr3Wbau9S3F5VKU4hc1QpNuk+inC48OrvgXN+D8imUqQAw
-   pqLGIze9zPap5+mGl/N5wpx1qvK8HR7vHGHb30ux0Cdbkm+pcqqYs2YUW
-   ovutGct7jWqOjipci92Nz+PsJ0JeCXRunIeXSWsexiUyghXys/ioYdM9/
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10374"; a="260927157"
-X-IronPort-AV: E=Sophos;i="5.91,292,1647327600"; 
-   d="scan'208";a="260927157"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jun 2022 20:09:01 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.91,292,1647327600"; 
-   d="scan'208";a="567137589"
-Received: from lkp-server01.sh.intel.com (HELO 60dabacc1df6) ([10.239.97.150])
-  by orsmga002.jf.intel.com with ESMTP; 10 Jun 2022 20:09:00 -0700
-Received: from kbuild by 60dabacc1df6 with local (Exim 4.95)
-        (envelope-from <lkp@intel.com>)
-        id 1nzrUh-000IUw-Q7;
-        Sat, 11 Jun 2022 03:08:59 +0000
-Date:   Sat, 11 Jun 2022 11:08:42 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Leon Romanovsky <leonro@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg+lists@ziepe.ca>,
-        Doug Ledford <dledford@redhat.com>
-Subject: [rdma:for-next] BUILD SUCCESS
- 158e71bb69e368b8b33e8b7c4ac8c111da0c1ae2
-Message-ID: <62a4073a.4+BmnN75U3TOBRiZ%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S230245AbiFLVPF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 12 Jun 2022 17:15:05 -0400
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E97CDE08A;
+        Sun, 12 Jun 2022 14:15:04 -0700 (PDT)
+Received: by linux.microsoft.com (Postfix, from userid 1004)
+        id 79E0F20C14B6; Sun, 12 Jun 2022 14:15:04 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 79E0F20C14B6
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
+        s=default; t=1655068504;
+        bh=XE8GwgX0PUfkW0qZHzueXyliNP5uMGgm+d0MEyjzUwA=;
+        h=From:To:Cc:Subject:Date:Reply-To:From;
+        b=LKnb4mzCbt/RvO4Ojmlq4zFnLOAj3cvuM6hKmHHb1BPRGrJydr4ZPcAKoqFJi/Iqr
+         rHASDC+8q4ZMj7+iDqA6wdhAmTSs/NJ7OEy4PjpjgTKMyXzO3PyTbO10Zt2C6dzFJQ
+         jeV9GabsTC9L76o2ka39TO1NGUoH3l3tafiwX2hw=
+From:   longli@linuxonhyperv.com
+To:     "K. Y. Srinivasan" <kys@microsoft.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        Stephen Hemminger <sthemmin@microsoft.com>,
+        Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, edumazet@google.com,
+        shiraz.saleem@intel.com, Ajay Sharma <sharmaajay@microsoft.com>
+Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Long Li <longli@microsoft.com>
+Subject: [Patch v3 00/12] Introduce Microsoft Azure Network Adapter (MANA) RDMA driver
+Date:   Sun, 12 Jun 2022 14:14:42 -0700
+Message-Id: <1655068494-16440-1-git-send-email-longli@linuxonhyperv.com>
+X-Mailer: git-send-email 1.8.3.1
+Reply-To: longli@microsoft.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-branch HEAD: 158e71bb69e368b8b33e8b7c4ac8c111da0c1ae2  RDMA/mlx5: Add a umr recovery flow
+From: Long Li <longli@microsoft.com>
 
-elapsed time: 5311m
+This patchset implements a RDMA driver for Microsoft Azure Network
+Adapter (MANA). In MANA, the RDMA device is modeled as an auxiliary device
+to the Ethernet device.
 
-configs tested: 155
-configs skipped: 3
+The first 11 patches modify the MANA Ethernet driver to support RDMA driver.
+The last patch implementes the RDMA driver.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+The user-mode of the driver is being reviewed at:
+https://github.com/linux-rdma/rdma-core/pull/1177
 
-gcc tested configs:
-arm64                               defconfig
-arm64                            allyesconfig
-arm                              allmodconfig
-arm                                 defconfig
-arm                              allyesconfig
-i386                          randconfig-c001
-mips                 randconfig-c004-20220607
-sh                         ap325rxa_defconfig
-arc                     haps_hs_smp_defconfig
-m68k                       m5475evb_defconfig
-nios2                               defconfig
-ia64                         bigsur_defconfig
-m68k                        m5272c3_defconfig
-sh                            titan_defconfig
-powerpc                 mpc837x_mds_defconfig
-mips                         tb0226_defconfig
-powerpc64                           defconfig
-sh                          rsk7201_defconfig
-powerpc                 canyonlands_defconfig
-sh                          lboxre2_defconfig
-m68k                          sun3x_defconfig
-powerpc                 mpc8540_ads_defconfig
-arc                      axs103_smp_defconfig
-sparc64                             defconfig
-sh                           sh2007_defconfig
-arm                           viper_defconfig
-sh                           se7206_defconfig
-powerpc                    adder875_defconfig
-sh                         apsh4a3a_defconfig
-sh                          r7785rp_defconfig
-powerpc                      ppc6xx_defconfig
-arm                        shmobile_defconfig
-parisc                generic-64bit_defconfig
-openrisc                 simple_smp_defconfig
-powerpc                 mpc837x_rdb_defconfig
-powerpc                      tqm8xx_defconfig
-powerpc                 mpc834x_itx_defconfig
-alpha                            alldefconfig
-m68k                            mac_defconfig
-arm                       imx_v6_v7_defconfig
-arm                         s3c6400_defconfig
-arm                             ezx_defconfig
-arm                      footbridge_defconfig
-m68k                        mvme147_defconfig
-powerpc                  storcenter_defconfig
-mips                           xway_defconfig
-openrisc                         alldefconfig
-mips                      fuloong2e_defconfig
-powerpc                      ep88xc_defconfig
-um                           x86_64_defconfig
-sh                   sh7770_generic_defconfig
-arc                    vdk_hs38_smp_defconfig
-x86_64                        randconfig-c001
-arm                  randconfig-c002-20220607
-arm                  randconfig-c002-20220608
-arm                  randconfig-c002-20220609
-ia64                             allyesconfig
-ia64                             allmodconfig
-ia64                                defconfig
-riscv                             allnoconfig
-m68k                             allyesconfig
-m68k                             allmodconfig
-m68k                                defconfig
-arc                              allyesconfig
-csky                                defconfig
-nios2                            allyesconfig
-alpha                               defconfig
-alpha                            allyesconfig
-h8300                            allyesconfig
-xtensa                           allyesconfig
-arc                                 defconfig
-sh                               allmodconfig
-s390                                defconfig
-s390                             allmodconfig
-parisc                              defconfig
-parisc64                            defconfig
-parisc                           allyesconfig
-s390                             allyesconfig
-sparc                               defconfig
-i386                             allyesconfig
-sparc                            allyesconfig
-i386                                defconfig
-i386                   debian-10.3-kselftests
-i386                              debian-10.3
-mips                             allyesconfig
-mips                             allmodconfig
-riscv                               defconfig
-riscv                    nommu_virt_defconfig
-riscv                          rv32_defconfig
-riscv                    nommu_k210_defconfig
-riscv                            allmodconfig
-riscv                            allyesconfig
-powerpc                          allyesconfig
-powerpc                           allnoconfig
-powerpc                          allmodconfig
-um                             i386_defconfig
-i386                          randconfig-a001
-x86_64                        randconfig-a004
-i386                          randconfig-a003
-i386                          randconfig-a005
-x86_64                        randconfig-a002
-x86_64                        randconfig-a011
-x86_64                        randconfig-a006
-i386                          randconfig-a012
-x86_64                        randconfig-a013
-x86_64                        randconfig-a015
-i386                          randconfig-a014
-i386                          randconfig-a016
-x86_64                    rhel-8.3-kselftests
-x86_64                                  kexec
-x86_64                              defconfig
-x86_64                           allyesconfig
-x86_64                               rhel-8.3
-x86_64                          rhel-8.3-func
-x86_64                           rhel-8.3-syz
-x86_64                         rhel-8.3-kunit
 
-clang tested configs:
-powerpc              randconfig-c003-20220608
-x86_64                        randconfig-c007
-riscv                randconfig-c006-20220608
-i386                          randconfig-c001
-s390                 randconfig-c005-20220608
-mips                 randconfig-c004-20220608
-arm                  randconfig-c002-20220608
-powerpc              randconfig-c003-20220607
-riscv                randconfig-c006-20220607
-s390                 randconfig-c005-20220607
-mips                 randconfig-c004-20220607
-arm                  randconfig-c002-20220607
-mips                      pic32mzda_defconfig
-arm                         socfpga_defconfig
-powerpc                  mpc866_ads_defconfig
-powerpc                        fsp2_defconfig
-powerpc                          g5_defconfig
-arm64                            allyesconfig
-mips                        maltaup_defconfig
-powerpc                       ebony_defconfig
-arm                  colibri_pxa300_defconfig
-powerpc                      katmai_defconfig
-powerpc                 mpc832x_mds_defconfig
-mips                        workpad_defconfig
-powerpc                     akebono_defconfig
-arm                         mv78xx0_defconfig
-arm                         lpc32xx_defconfig
-x86_64                        randconfig-k001
-i386                          randconfig-a002
-i386                          randconfig-a006
-i386                          randconfig-a004
-x86_64                        randconfig-a005
-x86_64                        randconfig-a003
-x86_64                        randconfig-a001
-i386                          randconfig-a011
-x86_64                        randconfig-a012
-x86_64                        randconfig-a014
-x86_64                        randconfig-a016
-hexagon              randconfig-r045-20220609
-s390                 randconfig-r044-20220609
-riscv                randconfig-r042-20220609
-hexagon              randconfig-r041-20220609
-hexagon              randconfig-r045-20220608
-hexagon              randconfig-r041-20220608
+Ajay Sharma (3):
+  net: mana: Set the DMA device max segment size
+  net: mana: Define data structures for protection domain and memory
+    registration
+  net: mana: Define and process GDMA response code
+    GDMA_STATUS_MORE_ENTRIES
+
+Long Li (9):
+  net: mana: Add support for auxiliary device
+  net: mana: Record the physical address for doorbell page region
+  net: mana: Handle vport sharing between devices
+  net: mana: Add functions for allocating doorbell page from GDMA
+  net: mana: Export Work Queue functions for use by RDMA driver
+  net: mana: Record port number in netdev
+  net: mana: Move header files to a common location
+  net: mana: Define max values for SGL entries
+  RDMA/mana_ib: Add a driver for Microsoft Azure Network Adapter
+
+ MAINTAINERS                                   |   4 +
+ drivers/infiniband/Kconfig                    |   1 +
+ drivers/infiniband/hw/Makefile                |   1 +
+ drivers/infiniband/hw/mana/Kconfig            |   7 +
+ drivers/infiniband/hw/mana/Makefile           |   4 +
+ drivers/infiniband/hw/mana/cq.c               |  80 ++
+ drivers/infiniband/hw/mana/main.c             | 686 ++++++++++++++++++
+ drivers/infiniband/hw/mana/mana_ib.h          | 145 ++++
+ drivers/infiniband/hw/mana/mr.c               | 133 ++++
+ drivers/infiniband/hw/mana/qp.c               | 501 +++++++++++++
+ drivers/infiniband/hw/mana/wq.c               | 114 +++
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  96 ++-
+ .../net/ethernet/microsoft/mana/hw_channel.c  |   6 +-
+ .../net/ethernet/microsoft/mana/mana_bpf.c    |   2 +-
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 149 +++-
+ .../ethernet/microsoft/mana/mana_ethtool.c    |   2 +-
+ .../net/ethernet/microsoft/mana/shm_channel.c |   2 +-
+ .../microsoft => include/net}/mana/gdma.h     | 188 ++++-
+ .../net}/mana/hw_channel.h                    |   0
+ .../microsoft => include/net}/mana/mana.h     |  26 +-
+ .../net}/mana/shm_channel.h                   |   0
+ include/uapi/rdma/ib_user_ioctl_verbs.h       |   1 +
+ include/uapi/rdma/mana-abi.h                  |  66 ++
+ 23 files changed, 2169 insertions(+), 45 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mana/Kconfig
+ create mode 100644 drivers/infiniband/hw/mana/Makefile
+ create mode 100644 drivers/infiniband/hw/mana/cq.c
+ create mode 100644 drivers/infiniband/hw/mana/main.c
+ create mode 100644 drivers/infiniband/hw/mana/mana_ib.h
+ create mode 100644 drivers/infiniband/hw/mana/mr.c
+ create mode 100644 drivers/infiniband/hw/mana/qp.c
+ create mode 100644 drivers/infiniband/hw/mana/wq.c
+ rename {drivers/net/ethernet/microsoft => include/net}/mana/gdma.h (77%)
+ rename {drivers/net/ethernet/microsoft => include/net}/mana/hw_channel.h (100%)
+ rename {drivers/net/ethernet/microsoft => include/net}/mana/mana.h (94%)
+ rename {drivers/net/ethernet/microsoft => include/net}/mana/shm_channel.h (100%)
+ create mode 100644 include/uapi/rdma/mana-abi.h
 
 -- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+2.17.1
+
