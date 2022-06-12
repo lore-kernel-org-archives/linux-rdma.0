@@ -2,160 +2,144 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2ACA0C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E01FBCCA473
 	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jun 2022 22:35:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236272AbiFLWfS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 12 Jun 2022 18:35:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45528 "EHLO
+        id S236017AbiFLWfT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 12 Jun 2022 18:35:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235847AbiFLWfQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 12 Jun 2022 18:35:16 -0400
-Received: from mail-oo1-xc2e.google.com (mail-oo1-xc2e.google.com [IPv6:2607:f8b0:4864:20::c2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5769F2252E
-        for <linux-rdma@vger.kernel.org>; Sun, 12 Jun 2022 15:35:14 -0700 (PDT)
-Received: by mail-oo1-xc2e.google.com with SMTP id u8-20020a4ae688000000b0041b8dab7f71so918829oot.7
-        for <linux-rdma@vger.kernel.org>; Sun, 12 Jun 2022 15:35:14 -0700 (PDT)
+        with ESMTP id S236018AbiFLWfS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 12 Jun 2022 18:35:18 -0400
+Received: from mail-oa1-x29.google.com (mail-oa1-x29.google.com [IPv6:2001:4860:4864:20::29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6029C2252E
+        for <linux-rdma@vger.kernel.org>; Sun, 12 Jun 2022 15:35:17 -0700 (PDT)
+Received: by mail-oa1-x29.google.com with SMTP id 586e51a60fabf-1011df6971aso3869780fac.1
+        for <linux-rdma@vger.kernel.org>; Sun, 12 Jun 2022 15:35:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=j4AXGX9kZGJmjBAa2k/kOzYO3L3hcomxsWtijtlwCXk=;
-        b=Nb3J+ScbohC5KkqaYD5MqAbbpCe4qShdORbbb2GD4my/U4+AJqiLoBrqIS+qgqVlQR
-         hszpwONzcJ2hfPc7hS5FA4ZNTMcDkEypAeuBXXEt8Ce9E605A+LqPshdzKAl9XzGxAhQ
-         l3k9h5dsOVM22UOFqcmEhO8skZdXj4tM+RxWqLo96auYPWcyjsDpRp36vOmvA35d77qT
-         EXD86jBkJwTL0M7DnizWvZWyfKIPW/Aw5tAPejUmY9k3z1Ae6vJvgaBhWmEXczeix6jx
-         V4JVRXTd/cxOjWAg30lwbf7ol0t677FzG1gZ0AVqFpGamIQ3FPmtkaUlAGmPx7sl5t91
-         +aAg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=zgS1BRhsKF+JItx7znCicMAXBi246AuO09yAKjTZPiI=;
+        b=j+FpEizm37MgrLLFWHlhiCOKrvzD84wDHakZhzSXUND43KY44GoLRJarnAr7ZSvxkR
+         N/p0b12mQGRQJihv/SVGo4BHYB4R3EPUr1o9H8KXThrDOeixp8rpV+FmBizwElpVK7yQ
+         mHaeL+4buu0exxWYykMHHSgVcOnFjooTqSOGJk/XWvwRDCbPVCvFpPHVg6vD7V6NudIg
+         rtNtzRJfbElwx36Mw71VbLp7dpcjh+zZfAfzlWWhDFRdCT79hbhMLqRxO6ggd/Vsb8Um
+         dIa9kG/BlsQqaY9mXgffkJ7yw0PSz1hbsLP0LDOQgdt2gxNz71OFl7biBhJMrdiUB2Vf
+         qPdQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=j4AXGX9kZGJmjBAa2k/kOzYO3L3hcomxsWtijtlwCXk=;
-        b=4n1JqyO4srfAj5WNukVnUsvWO6yBeRtRSVi8wZGyRMrew2zibZOM4qOlDH/kxYzJXw
-         pOQdQUztovlHSsqplVX+vJ5kOpUhwpjR9COPUpsxZ1VbQD7dlDu7M4jBY2PDjqR3vdjH
-         NH887W3LubK55N/9BYWBFx+jwR/Gf1nfyzilyRRS5mlBz7KnHHmAGdVYax/M3QBndTCa
-         SLz5hLAp9ciLdFNcxAE14vzWK/suT15FM3er1dmpWkDLmhbFf0zOBgPQpC7ZHj7lrxYF
-         XjvgztnKDB0ipzSVK/wNsOZblu1h7lRillh9hJ3QWigjZdYr9lhpDK0NPfJ+Pi0OPJab
-         nTjQ==
-X-Gm-Message-State: AOAM531+u7WqaouiRrXyjnHVV6vj4AINwnXLW9qccxMCcQlYNGVZRiYe
-        T8jglZ8z//a5d3UkNRQCeRQ=
-X-Google-Smtp-Source: ABdhPJxi7X4fsMfcgUpM6mFR83iQQ4/bMbH1W/FHi1SZbfR1gFP2iQJwa+Dohv7bqaGlKzPl0qGm7g==
-X-Received: by 2002:a4a:e787:0:b0:41b:7367:3587 with SMTP id x7-20020a4ae787000000b0041b73673587mr16521093oov.11.1655073314268;
-        Sun, 12 Jun 2022 15:35:14 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=zgS1BRhsKF+JItx7znCicMAXBi246AuO09yAKjTZPiI=;
+        b=HKx1F+7lh/pqv9rimA1SsBa676JxvA+ako2QVaEs8YkotpKHlKp6l14iFOLo8Fz9Cz
+         m0Zbni5g6e1WEzvVwV5DGjnctX3r1gVRZ+HFoIaMnzkfPX1CLfJDx4m2r9oPYBWd272Z
+         D/6/jBtqSYW9FbbHq+5JgGq0W9PgEWT11iRtPb1P4LYo2u3mNIiBCZPVZqUBzMmw5h5r
+         MG0zBa2MjpdoKjA1tpWEGUROM6WlSaSo6XSsioq4tMj00ZvNrrhT3TV2cbSKdrcGQKR1
+         l1J4Kv5aN4hkUwiSMzYe6f1LzlPZHMF506zZXG6zHgjXxK8n4PnCRzjVu7poUz67LhQd
+         HzfQ==
+X-Gm-Message-State: AOAM533xcCOvmzlEauL+NgdfmuY0bsFhwVjc1KV8xz+E79oybRbhBgQU
+        1wxKzwcqSYOdMKLT2BYc5vs=
+X-Google-Smtp-Source: ABdhPJz9rteROqC74JQYM4WaR4JXhBuGNeqkPVod2L2uXHHQM1etBvU7FqPL+ZostxQw9+Exy/qEgA==
+X-Received: by 2002:a05:6870:912a:b0:fe:1981:b15a with SMTP id o42-20020a056870912a00b000fe1981b15amr6242914oae.77.1655073316779;
+        Sun, 12 Jun 2022 15:35:16 -0700 (PDT)
 Received: from u-22.tx.rr.com (097-099-248-255.res.spectrum.com. [97.99.248.255])
-        by smtp.googlemail.com with ESMTPSA id y185-20020aca32c2000000b00326414c1bb7sm2562421oiy.35.2022.06.12.15.35.12
+        by smtp.googlemail.com with ESMTPSA id y185-20020aca32c2000000b00326414c1bb7sm2562421oiy.35.2022.06.12.15.35.15
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 12 Jun 2022 15:35:13 -0700 (PDT)
+        Sun, 12 Jun 2022 15:35:16 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, frank.zago@hpe.com,
         ian.ziemba@hpe.com, jhack@hpe.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v16 0/2] Fix race conditions in rxe_pool
-Date:   Sun, 12 Jun 2022 17:34:33 -0500
-Message-Id: <20220612223434.31462-1-rpearsonhpe@gmail.com>
+Subject: [PATCH v16 2/2] RDMA/rxe: Convert read side locking to rcu
+Date:   Sun, 12 Jun 2022 17:34:35 -0500
+Message-Id: <20220612223434.31462-3-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220612223434.31462-1-rpearsonhpe@gmail.com>
+References: <20220612223434.31462-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There are several race conditions discovered in the current rdma_rxe
-driver.  They mostly relate to races between normal operations and
-destroying objects.  This patch series includes the remaining two
-patches of the original series.
-
-Applies cleanly to current for-next after the two oneline patches
-submitted by Dongliang Mu that fixed an error in the error checking
-code from xa_alloc_cyclic().
+Use rcu_read_lock() for protecting read side operations in rxe_pool.c.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
-v16
-  Addressed some issues raised by Jason Gunthorpe.
-  - Added if(sleepable) might_sleep() calls.
-  - Dropped the stray fence patch that got in there somehow.
-  - Left the timeout for AH cleanup. We can drop it later if
-    it isn't needed.
-v15
-  Rebased to the current for-next branch of 5.19.0-rc1+.
-  Adds support for RDMA_AH_CREATE/DESTROY_SLEEPABLE.
-v14
-  Rebased to current wip/jgg-for-next
-  Removed patch 3 as unnecessary
-  Waited for resolution of bugs in rxe_resp and some locking bugs.
+ drivers/infiniband/sw/rxe/rxe_pool.c | 27 +++++++++++----------------
+ 1 file changed, 11 insertions(+), 16 deletions(-)
 
-  Note: With rcu read lock in rxe_pool_get_index there are no bottom
-  half spinlocks from looking up AH or non AH objects to conflict
-  with the default xa_lock so no lockdep warnings occur. The rxe_pool
-  alloc functions can hold locks simultanteously with the rcu read
-  lock so it does not have to prevent soft or hard IRQs.
-v13
-  Rebased to current for-next
-  Addressed Jason's comments on patch 1, 8 and 9. 8 and 9 are
-  combined into one patch.
-v12
-  Rebased to current wip/jgg-for-next
-  Dropped patches already accepted from v11.
-  Moved all object cleanup code to type specific cleanup routines.
-  Renamed to match Jason's requests.
-  Addressed some other issued raised.
-  Kept the contentious rxe_hide() function but renamed to
-  rxe_disable_lookup() which says what it does. I am still convinced
-  this cleaner than other alternatives like moving xa_erase to the
-  top of destroy routines but just for indexed objects.
-v11
-  Rebased to current for-next.
-  Reordered patches and made other changes to respond to issues
-  reported by Jason Gunthorpe.
-v10
-  Rebased to current wip/jgg-for-next.
-  Split some patches into smaller ones.
-v9
-  Corrected issues reported by Jason Gunthorpe,
-  Converted locking in rxe_mcast.c and rxe_pool.c to use RCU
-  Split up the patches into smaller changes
-v8
-  Fixed an additional race in 3/8 which was not handled correctly.
-v7
-  Corrected issues reported by Jason Gunthorpe
-Link: https://lore.kernel.org/linux-rdma/20211207190947.GH6385@nvidia.com/
-Link: https://lore.kernel.org/linux-rdma/20211207191857.GI6385@nvidia.com/
-Link: https://lore.kernel.org/linux-rdma/20211207192824.GJ6385@nvidia.com/
-v6
-  Fixed a kzalloc flags bug.
-  Fixed comment bug reported by 'Kernel Test Robot'.
-  Changed type of rxe_pool.c in __rxe_fini().
-v5
-  Removed patches already accepted into for-next and addressed comments
-  from Jason Gunthorpe.
-v4
-  Restructured patch series to change to xarray earlier which
-  greatly simplified the changes.
-  Rebased to current for-next
-v3
-  Changed rxe_alloc to use GFP_KERNEL
-  Addressed other comments by Jason Gunthorp
-  Merged the previous 06/10 and 07/10 patches into one since they overlapped
-  Added some minor cleanups as 10/10
-v2
-  Rebased to current for-next.
-  Added 4 additional patches
-
-Bob Pearson (2):
-  RDMA/rxe: Stop lookup of partially built objects
-  RDMA/rxe: Convert read side locking to rcu
-
- drivers/infiniband/sw/rxe/rxe_mr.c    |   2 +-
- drivers/infiniband/sw/rxe/rxe_mw.c    |   4 +-
- drivers/infiniband/sw/rxe/rxe_pool.c  | 102 +++++++++++++++++++++++---
- drivers/infiniband/sw/rxe/rxe_pool.h  |  18 +++--
- drivers/infiniband/sw/rxe/rxe_verbs.c |  39 ++++++----
- 5 files changed, 133 insertions(+), 32 deletions(-)
-
-
-base-commit: 61414011df6607415c14805dabf0687663090e0a
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index 8d8f5e409585..f50620f5a0a1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -197,16 +197,15 @@ void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
+ {
+ 	struct rxe_pool_elem *elem;
+ 	struct xarray *xa = &pool->xa;
+-	unsigned long flags;
+ 	void *obj;
+ 
+-	xa_lock_irqsave(xa, flags);
++	rcu_read_lock();
+ 	elem = xa_load(xa, index);
+ 	if (elem && kref_get_unless_zero(&elem->ref_cnt))
+ 		obj = elem->obj;
+ 	else
+ 		obj = NULL;
+-	xa_unlock_irqrestore(xa, flags);
++	rcu_read_unlock();
+ 
+ 	return obj;
+ }
+@@ -223,16 +222,16 @@ int __rxe_cleanup(struct rxe_pool_elem *elem, bool sleepable)
+ 	struct rxe_pool *pool = elem->pool;
+ 	struct xarray *xa = &pool->xa;
+ 	static int timeout = RXE_POOL_TIMEOUT;
+-	unsigned long flags;
+ 	int ret, err = 0;
+ 	void *xa_ret;
+ 
++	if (sleepable)
++		might_sleep();
++
+ 	/* erase xarray entry to prevent looking up
+ 	 * the pool elem from its index
+ 	 */
+-	xa_lock_irqsave(xa, flags);
+-	xa_ret = __xa_erase(xa, elem->index);
+-	xa_unlock_irqrestore(xa, flags);
++	xa_ret = xa_erase(xa, elem->index);
+ 	WARN_ON(xa_err(xa_ret));
+ 
+ 	/* if this is the last call to rxe_put complete the
+@@ -277,7 +276,7 @@ int __rxe_cleanup(struct rxe_pool_elem *elem, bool sleepable)
+ 		pool->cleanup(elem);
+ 
+ 	if (pool->type == RXE_TYPE_MR)
+-		kfree(elem->obj);
++		kfree_rcu(elem->obj);
+ 
+ 	atomic_dec(&pool->num_elem);
+ 
+@@ -296,12 +295,8 @@ int __rxe_put(struct rxe_pool_elem *elem)
+ 
+ void __rxe_finalize(struct rxe_pool_elem *elem)
+ {
+-	struct xarray *xa = &elem->pool->xa;
+-	unsigned long flags;
+-	void *ret;
+-
+-	xa_lock_irqsave(xa, flags);
+-	ret = __xa_store(&elem->pool->xa, elem->index, elem, GFP_KERNEL);
+-	xa_unlock_irqrestore(xa, flags);
+-	WARN_ON(xa_err(ret));
++	void *xa_ret;
++
++	xa_ret = xa_store(&elem->pool->xa, elem->index, elem, GFP_KERNEL);
++	WARN_ON(xa_err(xa_ret));
+ }
 -- 
 2.34.1
 
