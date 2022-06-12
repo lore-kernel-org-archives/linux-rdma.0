@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0765ACCA47D
-	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jun 2022 21:15:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9363CCA481
+	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jun 2022 21:15:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235626AbiFLVPU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 12 Jun 2022 17:15:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35036 "EHLO
+        id S235752AbiFLVPW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 12 Jun 2022 17:15:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235817AbiFLVPS (ORCPT
+        with ESMTP id S235585AbiFLVPS (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sun, 12 Jun 2022 17:15:18 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 17DC8590B1;
-        Sun, 12 Jun 2022 14:15:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 291E2590B3;
+        Sun, 12 Jun 2022 14:15:15 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id D5FEB20C14CC; Sun, 12 Jun 2022 14:15:13 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D5FEB20C14CC
+        id F31D920C14C5; Sun, 12 Jun 2022 14:15:14 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com F31D920C14C5
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1655068513;
-        bh=p5GKtvBJepK5tUtAWUPKm2bLu7UNy3ry5F9qIJzPzOY=;
+        s=default; t=1655068515;
+        bh=iPLieafcLxFjlmmLhb05zN+YoGOcztOQ4Ix4vfZZjm8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=gd2jH72ij8G2Y2JDUU2XptVOJTLqQzurkEe1SE5BIqh6wWoyHk6TdzWq10Sfceejg
-         12bHmRHBuLleVTxvkooLtLxJbHgxhyyvsnCWmqEsqMijBoUoPYjISFR2AKPmorChku
-         mH6OJJTSQT1J5O4Oxlu0sqYDnU7mj/P+1Xg+JQTk=
+        b=SN8BosHK+buYJOFw4sCV73d1u9NUVp1GDyYdbc53EKhJRlKuRXpwjcVoVESk6ZVfL
+         YODYZ6JIdnHy/g0pmt7dpK5d5EL7+1vHXOhfJAZqB4hHF3qucWdSJsDOF2zNjCTgGi
+         F4BjvJgBggtIM+CAjVfgdck+44R8cWj/4a6O3rsU=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v3 08/12] net: mana: Record port number in netdev
-Date:   Sun, 12 Jun 2022 14:14:50 -0700
-Message-Id: <1655068494-16440-9-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v3 10/12] net: mana: Define max values for SGL entries
+Date:   Sun, 12 Jun 2022 14:14:52 -0700
+Message-Id: <1655068494-16440-11-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1655068494-16440-1-git-send-email-longli@linuxonhyperv.com>
 References: <1655068494-16440-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,26 +51,71 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-The port number is useful for user-mode application to identify this
-net device based on port index. Set to the correct value in ndev.
+The number of maximum SGl entries should be computed from the maximum
+WQE size for the intended queue type and the corresponding OOB data
+size. This guarantees the hardware queue can successfully queue requests
+up to the queue depth exposed to the upper layer.
 
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/mana_en.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 2 +-
+ include/net/mana/gdma.h                       | 7 +++++++
+ include/net/mana/mana.h                       | 4 +---
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index d530de74e554..a977975c69dd 100644
+index e7e99ba77673..b8d2e155bffc 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -1962,6 +1962,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
- 	ndev->max_mtu = ndev->mtu;
- 	ndev->min_mtu = ndev->mtu;
- 	ndev->needed_headroom = MANA_HEADROOM;
-+	ndev->dev_port = port_idx;
- 	SET_NETDEV_DEV(ndev, gc->dev);
+@@ -187,7 +187,7 @@ int mana_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	pkg.wqe_req.client_data_unit = 0;
  
- 	netif_carrier_off(ndev);
+ 	pkg.wqe_req.num_sge = 1 + skb_shinfo(skb)->nr_frags;
+-	WARN_ON_ONCE(pkg.wqe_req.num_sge > 30);
++	WARN_ON_ONCE(pkg.wqe_req.num_sge > MAX_TX_WQE_SGL_ENTRIES);
+ 
+ 	if (pkg.wqe_req.num_sge <= ARRAY_SIZE(pkg.sgl_array)) {
+ 		pkg.wqe_req.sgl = pkg.sgl_array;
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index b1bec8ab5695..ef5de92dd98d 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -436,6 +436,13 @@ struct gdma_wqe {
+ #define MAX_TX_WQE_SIZE 512
+ #define MAX_RX_WQE_SIZE 256
+ 
++#define MAX_TX_WQE_SGL_ENTRIES	((GDMA_MAX_SQE_SIZE - \
++			sizeof(struct gdma_sge) - INLINE_OOB_SMALL_SIZE) / \
++			sizeof(struct gdma_sge))
++
++#define MAX_RX_WQE_SGL_ENTRIES	((GDMA_MAX_RQE_SIZE - \
++			sizeof(struct gdma_sge)) / sizeof(struct gdma_sge))
++
+ struct gdma_cqe {
+ 	u32 cqe_data[GDMA_COMP_DATA_SIZE / 4];
+ 
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index e7719c861395..a58e86b0aebe 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -264,8 +264,6 @@ struct mana_cq {
+ 	int budget;
+ };
+ 
+-#define GDMA_MAX_RQE_SGES 15
+-
+ struct mana_recv_buf_oob {
+ 	/* A valid GDMA work request representing the data buffer. */
+ 	struct gdma_wqe_request wqe_req;
+@@ -275,7 +273,7 @@ struct mana_recv_buf_oob {
+ 
+ 	/* SGL of the buffer going to be sent has part of the work request. */
+ 	u32 num_sge;
+-	struct gdma_sge sgl[GDMA_MAX_RQE_SGES];
++	struct gdma_sge sgl[MAX_RX_WQE_SGL_ENTRIES];
+ 
+ 	/* Required to store the result of mana_gd_post_work_request.
+ 	 * gdma_posted_wqe_info.wqe_size_in_bu is required for progressing the
 -- 
 2.17.1
 
