@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C517BCCA47E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE2CFCCA486
 	for <linux-rdma@archiver.kernel.org>; Sun, 12 Jun 2022 21:15:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235847AbiFLVPX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 12 Jun 2022 17:15:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35038 "EHLO
+        id S236333AbiFLVPR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 12 Jun 2022 17:15:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235826AbiFLVPS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 12 Jun 2022 17:15:18 -0400
+        with ESMTP id S236241AbiFLVPO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 12 Jun 2022 17:15:14 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 293FD590B6;
-        Sun, 12 Jun 2022 14:15:15 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BA771590AD;
+        Sun, 12 Jun 2022 14:15:12 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 833E320C14B6; Sun, 12 Jun 2022 14:15:15 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 833E320C14B6
+        id 91F8220C14B6; Sun, 12 Jun 2022 14:15:12 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 91F8220C14B6
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1655068515;
-        bh=x1QcoU450lsj1EWNt9RFR2F0sIY35MmhbByrM4SKD8Y=;
+        s=default; t=1655068512;
+        bh=CwiOaoEk9YykcClYrOfs3XpbnDQKc1iGpmTtVCREO+A=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=btoH6NQRGUIYmazGr7xV0u0KByeflr94l0BrTdc/zebk7Ql8IhaOsWDrZN2fM7rCU
-         KEK6BYE+q6RyQ/6neoB2mS4NBXt03YOqNxDUV+Jcph8FfPHu+KLubDwmsqiewvmuAE
-         Sy8Drgtu2p9ZtLEppKLrq0pbVGMiHSIyN4HSvkIQ=
+        b=n4UiQdI9R6IEdWrMMSgTwvTCtOl/t0wBakmWKQlInzr787d3VRcs97iB27YA8VSbB
+         PPNeBvmvWXOeBfVQ9RmktPlyxXHHC1wk4rqu4anBIMyYYlV1mq3TZkE/Q+D7cZpjXy
+         +Wt843o/XoetXkVjSk+LL0AGNGYL//2LnEqGM2YE=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v3 11/12] net: mana: Define and process GDMA response code GDMA_STATUS_MORE_ENTRIES
-Date:   Sun, 12 Jun 2022 14:14:53 -0700
-Message-Id: <1655068494-16440-12-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v3 06/12] net: mana: Define data structures for protection domain and memory registration
+Date:   Sun, 12 Jun 2022 14:14:48 -0700
+Message-Id: <1655068494-16440-7-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1655068494-16440-1-git-send-email-longli@linuxonhyperv.com>
 References: <1655068494-16440-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,43 +51,372 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Ajay Sharma <sharmaajay@microsoft.com>
 
-When doing memory registration, the PF may respond with
-GDMA_STATUS_MORE_ENTRIES to indicate a follow request is needed. This is
-not an error and should be processed as expected.
+The MANA hardware support protection domain and memory registration for use
+in RDMA environment. Add those definitions and expose them for use by the
+RDMA driver.
 
 Signed-off-by: Ajay Sharma <sharmaajay@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/hw_channel.c | 2 +-
- include/net/mana/gdma.h                          | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+Change log:
+v3: format/coding style changes
 
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index e61cb3f6fbe1..24ecd193a185 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -820,7 +820,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ drivers/net/ethernet/microsoft/mana/gdma.h    | 146 +++++++++++++++++-
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  27 ++--
+ drivers/net/ethernet/microsoft/mana/mana_en.c |  18 ++-
+ 3 files changed, 168 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/drivers/net/ethernet/microsoft/mana/gdma.h
+index f945755760dc..b1bec8ab5695 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma.h
++++ b/drivers/net/ethernet/microsoft/mana/gdma.h
+@@ -27,6 +27,10 @@ enum gdma_request_type {
+ 	GDMA_CREATE_DMA_REGION		= 25,
+ 	GDMA_DMA_REGION_ADD_PAGES	= 26,
+ 	GDMA_DESTROY_DMA_REGION		= 27,
++	GDMA_CREATE_PD			= 29,
++	GDMA_DESTROY_PD			= 30,
++	GDMA_CREATE_MR			= 31,
++	GDMA_DESTROY_MR			= 32,
+ };
+ 
+ #define GDMA_RESOURCE_DOORBELL_PAGE	27
+@@ -59,6 +63,8 @@ enum {
+ 	GDMA_DEVICE_MANA	= 2,
+ };
+ 
++typedef u64 gdma_obj_handle_t;
++
+ struct gdma_resource {
+ 	/* Protect the bitmap */
+ 	spinlock_t lock;
+@@ -192,7 +198,7 @@ struct gdma_mem_info {
+ 	u64 length;
+ 
+ 	/* Allocated by the PF driver */
+-	u64 gdma_region;
++	gdma_obj_handle_t dma_region_handle;
+ };
+ 
+ #define REGISTER_ATB_MST_MKEY_LOWER_SIZE 8
+@@ -599,7 +605,7 @@ struct gdma_create_queue_req {
+ 	u32 reserved1;
+ 	u32 pdid;
+ 	u32 doolbell_id;
+-	u64 gdma_region;
++	gdma_obj_handle_t gdma_region;
+ 	u32 reserved2;
+ 	u32 queue_size;
+ 	u32 log2_throttle_limit;
+@@ -626,6 +632,28 @@ struct gdma_disable_queue_req {
+ 	u32 alloc_res_id_on_creation;
+ }; /* HW DATA */
+ 
++enum atb_page_size {
++	ATB_PAGE_SIZE_4K,
++	ATB_PAGE_SIZE_8K,
++	ATB_PAGE_SIZE_16K,
++	ATB_PAGE_SIZE_32K,
++	ATB_PAGE_SIZE_64K,
++	ATB_PAGE_SIZE_128K,
++	ATB_PAGE_SIZE_256K,
++	ATB_PAGE_SIZE_512K,
++	ATB_PAGE_SIZE_1M,
++	ATB_PAGE_SIZE_2M,
++	ATB_PAGE_SIZE_MAX,
++};
++
++enum gdma_mr_access_flags {
++	GDMA_ACCESS_FLAG_LOCAL_READ = (1 << 0),
++	GDMA_ACCESS_FLAG_LOCAL_WRITE = (1 << 1),
++	GDMA_ACCESS_FLAG_REMOTE_READ = (1 << 2),
++	GDMA_ACCESS_FLAG_REMOTE_WRITE = (1 << 3),
++	GDMA_ACCESS_FLAG_REMOTE_ATOMIC = (1 << 4),
++};
++
+ /* GDMA_CREATE_DMA_REGION */
+ struct gdma_create_dma_region_req {
+ 	struct gdma_req_hdr hdr;
+@@ -652,14 +680,14 @@ struct gdma_create_dma_region_req {
+ 
+ struct gdma_create_dma_region_resp {
+ 	struct gdma_resp_hdr hdr;
+-	u64 gdma_region;
++	gdma_obj_handle_t dma_region_handle;
+ }; /* HW DATA */
+ 
+ /* GDMA_DMA_REGION_ADD_PAGES */
+ struct gdma_dma_region_add_pages_req {
+ 	struct gdma_req_hdr hdr;
+ 
+-	u64 gdma_region;
++	gdma_obj_handle_t dma_region_handle;
+ 
+ 	u32 page_addr_list_len;
+ 	u32 reserved3;
+@@ -671,9 +699,114 @@ struct gdma_dma_region_add_pages_req {
+ struct gdma_destroy_dma_region_req {
+ 	struct gdma_req_hdr hdr;
+ 
+-	u64 gdma_region;
++	gdma_obj_handle_t dma_region_handle;
+ }; /* HW DATA */
+ 
++enum gdma_pd_flags {
++	GDMA_PD_FLAG_ALLOW_GPA_MR = (1 << 0),
++	GDMA_PD_FLAG_ALLOW_FMR_MR = (1 << 1),
++};
++
++struct gdma_create_pd_req {
++	struct gdma_req_hdr hdr;
++	enum gdma_pd_flags flags;
++	u32 reserved;
++};
++
++struct gdma_create_pd_resp {
++	struct gdma_resp_hdr hdr;
++	gdma_obj_handle_t pd_handle;
++	u32 pd_id;
++	u32 reserved;
++};
++
++struct gdma_destroy_pd_req {
++	struct gdma_req_hdr hdr;
++	gdma_obj_handle_t pd_handle;
++};
++
++struct gdma_destory_pd_resp {
++	struct gdma_resp_hdr hdr;
++};
++
++enum gdma_mr_type {
++	/* Guest Physical Address - MRs of this type allow access
++	 * to any DMA-mapped memory using bus-logical address
++	 */
++	GDMA_MR_TYPE_GPA = 1,
++
++	/* Guest Virtual Address - MRs of this type allow access
++	 * to memory mapped by PTEs associated with this MR using a virtual
++	 * address that is set up in the MST
++	 */
++	GDMA_MR_TYPE_GVA,
++
++	/* Fast Memory Register - Like GVA but the MR is initially put in the
++	 * FREE state (as opposed to Valid), and the specified number of
++	 * PTEs are reserved for future fast memory reservations.
++	 */
++	GDMA_MR_TYPE_FMR,
++};
++
++struct gdma_create_mr_params {
++	gdma_obj_handle_t pd_handle;
++	enum gdma_mr_type mr_type;
++	union {
++		struct {
++			gdma_obj_handle_t dma_region_handle;
++			u64 virtual_address;
++			enum gdma_mr_access_flags access_flags;
++		} gva;
++		struct {
++			enum gdma_mr_access_flags access_flags;
++		} gpa;
++		struct {
++			enum atb_page_size page_size;
++			u32  reserved_pte_count;
++		} fmr;
++	};
++};
++
++struct gdma_create_mr_request {
++	struct gdma_req_hdr hdr;
++	gdma_obj_handle_t pd_handle;
++	enum gdma_mr_type mr_type;
++	u32 reserved;
++
++	union {
++		struct {
++			enum gdma_mr_access_flags access_flags;
++		} gpa;
++
++		struct {
++			gdma_obj_handle_t dma_region_handle;
++			u64 virtual_address;
++			enum gdma_mr_access_flags access_flags;
++		} gva;
++
++		struct {
++			enum atb_page_size page_size;
++			u32 reserved_pte_count;
++		} fmr;
++	};
++};
++
++struct gdma_create_mr_response {
++	struct gdma_resp_hdr hdr;
++	gdma_obj_handle_t mr_handle;
++	u32 lkey;
++	u32 rkey;
++};
++
++struct gdma_destroy_mr_request {
++	struct gdma_req_hdr hdr;
++	gdma_obj_handle_t mr_handle;
++};
++
++struct gdma_destroy_mr_response {
++	struct gdma_resp_hdr hdr;
++};
++
+ int mana_gd_verify_vf_version(struct pci_dev *pdev);
+ 
+ int mana_gd_register_device(struct gdma_dev *gd);
+@@ -705,4 +838,7 @@ int mana_gd_allocate_doorbell_page(struct gdma_context *gc, int *doorbell_page);
+ 
+ int mana_gd_destroy_doorbell_page(struct gdma_context *gc, int doorbell_page);
+ 
++int mana_gd_destroy_dma_region(struct gdma_context *gc,
++			       gdma_obj_handle_t dma_region_handle);
++
+ #endif /* _GDMA_H */
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 0c38c9a539f9..60cc1270b7d5 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -226,7 +226,7 @@ static int mana_gd_create_hw_eq(struct gdma_context *gc,
+ 	req.type = queue->type;
+ 	req.pdid = queue->gdma_dev->pdid;
+ 	req.doolbell_id = queue->gdma_dev->doorbell;
+-	req.gdma_region = queue->mem_info.gdma_region;
++	req.gdma_region = queue->mem_info.dma_region_handle;
+ 	req.queue_size = queue->queue_size;
+ 	req.log2_throttle_limit = queue->eq.log2_throttle_limit;
+ 	req.eq_pci_msix_index = queue->eq.msix_index;
+@@ -240,7 +240,7 @@ static int mana_gd_create_hw_eq(struct gdma_context *gc,
+ 
+ 	queue->id = resp.queue_index;
+ 	queue->eq.disable_needed = true;
+-	queue->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
++	queue->mem_info.dma_region_handle = GDMA_INVALID_DMA_REGION;
+ 	return 0;
+ }
+ 
+@@ -694,24 +694,30 @@ int mana_gd_create_hwc_queue(struct gdma_dev *gd,
+ 	return err;
+ }
+ 
+-static void mana_gd_destroy_dma_region(struct gdma_context *gc, u64 gdma_region)
++int mana_gd_destroy_dma_region(struct gdma_context *gc,
++			       gdma_obj_handle_t dma_region_handle)
+ {
+ 	struct gdma_destroy_dma_region_req req = {};
+ 	struct gdma_general_resp resp = {};
+ 	int err;
+ 
+-	if (gdma_region == GDMA_INVALID_DMA_REGION)
+-		return;
++	if (dma_region_handle == GDMA_INVALID_DMA_REGION)
++		return 0;
+ 
+ 	mana_gd_init_req_hdr(&req.hdr, GDMA_DESTROY_DMA_REGION, sizeof(req),
+ 			     sizeof(resp));
+-	req.gdma_region = gdma_region;
++	req.dma_region_handle = dma_region_handle;
+ 
+ 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
+-	if (err || resp.hdr.status)
++	if (err || resp.hdr.status) {
+ 		dev_err(gc->dev, "Failed to destroy DMA region: %d, 0x%x\n",
+ 			err, resp.hdr.status);
++		return -EPROTO;
++	}
++
++	return 0;
+ }
++EXPORT_SYMBOL(mana_gd_destroy_dma_region);
+ 
+ static int mana_gd_create_dma_region(struct gdma_dev *gd,
+ 				     struct gdma_mem_info *gmi)
+@@ -756,14 +762,15 @@ static int mana_gd_create_dma_region(struct gdma_dev *gd,
+ 	if (err)
+ 		goto out;
+ 
+-	if (resp.hdr.status || resp.gdma_region == GDMA_INVALID_DMA_REGION) {
++	if (resp.hdr.status ||
++	    resp.dma_region_handle == GDMA_INVALID_DMA_REGION) {
+ 		dev_err(gc->dev, "Failed to create DMA region: 0x%x\n",
+ 			resp.hdr.status);
+ 		err = -EPROTO;
  		goto out;
  	}
  
--	if (ctx->status_code) {
-+	if (ctx->status_code && ctx->status_code != GDMA_STATUS_MORE_ENTRIES) {
- 		dev_err(hwc->dev, "HWC: Failed hw_channel req: 0x%x\n",
- 			ctx->status_code);
- 		err = -EPROTO;
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index ef5de92dd98d..0485902d96c9 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -9,6 +9,8 @@
+-	gmi->gdma_region = resp.gdma_region;
++	gmi->dma_region_handle = resp.dma_region_handle;
+ out:
+ 	kfree(req);
+ 	return err;
+@@ -886,7 +893,7 @@ void mana_gd_destroy_queue(struct gdma_context *gc, struct gdma_queue *queue)
+ 		return;
+ 	}
  
- #include "shm_channel.h"
+-	mana_gd_destroy_dma_region(gc, gmi->gdma_region);
++	mana_gd_destroy_dma_region(gc, gmi->dma_region_handle);
+ 	mana_gd_free_memory(gmi);
+ 	kfree(queue);
+ }
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 839f7099ac2d..235e63dcef5e 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -1371,10 +1371,10 @@ static int mana_create_txq(struct mana_port_context *apc,
+ 		memset(&wq_spec, 0, sizeof(wq_spec));
+ 		memset(&cq_spec, 0, sizeof(cq_spec));
  
-+#define GDMA_STATUS_MORE_ENTRIES	0x00000105
-+
- /* Structures labeled with "HW DATA" are exchanged with the hardware. All of
-  * them are naturally aligned and hence don't need __packed.
-  */
+-		wq_spec.gdma_region = txq->gdma_sq->mem_info.gdma_region;
++		wq_spec.gdma_region = txq->gdma_sq->mem_info.dma_region_handle;
+ 		wq_spec.queue_size = txq->gdma_sq->queue_size;
+ 
+-		cq_spec.gdma_region = cq->gdma_cq->mem_info.gdma_region;
++		cq_spec.gdma_region = cq->gdma_cq->mem_info.dma_region_handle;
+ 		cq_spec.queue_size = cq->gdma_cq->queue_size;
+ 		cq_spec.modr_ctx_id = 0;
+ 		cq_spec.attached_eq = cq->gdma_cq->cq.parent->id;
+@@ -1389,8 +1389,10 @@ static int mana_create_txq(struct mana_port_context *apc,
+ 		txq->gdma_sq->id = wq_spec.queue_index;
+ 		cq->gdma_cq->id = cq_spec.queue_index;
+ 
+-		txq->gdma_sq->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
+-		cq->gdma_cq->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
++		txq->gdma_sq->mem_info.dma_region_handle =
++			GDMA_INVALID_DMA_REGION;
++		cq->gdma_cq->mem_info.dma_region_handle =
++			GDMA_INVALID_DMA_REGION;
+ 
+ 		txq->gdma_txq_id = txq->gdma_sq->id;
+ 
+@@ -1601,10 +1603,10 @@ static struct mana_rxq *mana_create_rxq(struct mana_port_context *apc,
+ 
+ 	memset(&wq_spec, 0, sizeof(wq_spec));
+ 	memset(&cq_spec, 0, sizeof(cq_spec));
+-	wq_spec.gdma_region = rxq->gdma_rq->mem_info.gdma_region;
++	wq_spec.gdma_region = rxq->gdma_rq->mem_info.dma_region_handle;
+ 	wq_spec.queue_size = rxq->gdma_rq->queue_size;
+ 
+-	cq_spec.gdma_region = cq->gdma_cq->mem_info.gdma_region;
++	cq_spec.gdma_region = cq->gdma_cq->mem_info.dma_region_handle;
+ 	cq_spec.queue_size = cq->gdma_cq->queue_size;
+ 	cq_spec.modr_ctx_id = 0;
+ 	cq_spec.attached_eq = cq->gdma_cq->cq.parent->id;
+@@ -1617,8 +1619,8 @@ static struct mana_rxq *mana_create_rxq(struct mana_port_context *apc,
+ 	rxq->gdma_rq->id = wq_spec.queue_index;
+ 	cq->gdma_cq->id = cq_spec.queue_index;
+ 
+-	rxq->gdma_rq->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
+-	cq->gdma_cq->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
++	rxq->gdma_rq->mem_info.dma_region_handle = GDMA_INVALID_DMA_REGION;
++	cq->gdma_cq->mem_info.dma_region_handle = GDMA_INVALID_DMA_REGION;
+ 
+ 	rxq->gdma_id = rxq->gdma_rq->id;
+ 	cq->gdma_id = cq->gdma_cq->id;
 -- 
 2.17.1
 
