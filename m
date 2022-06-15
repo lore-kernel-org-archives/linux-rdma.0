@@ -2,38 +2,38 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22AF1C43334
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jun 2022 15:29:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CF7AC43334
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Jun 2022 15:29:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234002AbiFOP25 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jun 2022 11:28:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48216 "EHLO
+        id S233084AbiFOP3J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jun 2022 11:29:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353817AbiFOP17 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jun 2022 11:27:59 -0400
+        with ESMTP id S1356184AbiFOP2p (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jun 2022 11:28:45 -0400
 Received: from hr2.samba.org (hr2.samba.org [IPv6:2a01:4f8:192:486::2:0])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FC4E16595
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Jun 2022 08:27:31 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EF1FF51
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Jun 2022 08:28:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=samba.org;
         s=42; h=Message-Id:Date:Cc:To:From;
-        bh=X4yjjgUauZLNVhdKH977DyeFAC1iEOZ232nEBNxdlo8=; b=GwB+lmuEeKLzHGM+uQKuCH3hWT
-        RhktaHbF+juBMlnbFrWJ0seADYHKkqtOWANeZdvDecYKYDQx76ozDQsCrAfHSxrZgzmyKc8ioZUPk
-        fMU4kdlSLAI9Zs4CHDdXVGSXrNnwn+UgwWvas4ngOIuFkmQfHOWz2FctONr8d8ZCf0Mo/QucgjKew
-        Oo+LAJf0SA+KS9jig89XcVKdc4I3pxJu6tZvtkxCrlC7TpXaAFzWTk5bMdjuu3wXAdmA8Z94OWaBT
-        bTkoIB8cj483A7pjzM3oyRHAcRZvTN2BFMNctst2o+fUPetI4hFSPe92xwOMBY+Uctlz9bufaUwO0
-        4jzzDHdvhoOjKPlfpoImmt5+c0Jt0RPlYlSMdmQWkLE4SqNxaB5wUUSlgCJEdQYjVF63b5px1vP5R
-        sIzIGZZcniqhqm0PDHq0k+sq7i9i/nugByP0SjhVtG8/Czui3jOUzQrWhV7MSd5+yvcQYTm8cZOQb
-        FHk9eXul6bsj/mpCvYYTx+Hp;
+        bh=EklZFP4aFAqi/lEclxMAM1al3UCe/uBglyUeYgxdUa0=; b=j6sPsSbaWYnE6zXWlIdbyZfjVz
+        JE4G2bfNdgonsaCxCHvyNn77O874Rmc47CpxPOHmLPAWzPxuZbHH7sDcdPXwrhOaYDPnsX9Xg3OYu
+        GHWbmnW8en6eFjcfBsFKKJUUpNM2IyJDbFfJAc/XI/Gk3+8hCcesbCC/i2C8KlojKYhV20+WFgTlZ
+        6ZVi0FZhM/6fWabaGQT5pkTYVqcsyuHcOEWpVwmTqBs7tcvA8yl4dSPajBd3sh/xpWX9XUGGYfSOi
+        DWySIRStqFFELbIaUuBk+ZwqXwT9k/blShHH3fctngYAu2sL+3CL75SyFD2whMxvoQQRrn4JdbeUI
+        9XulB573oJe0u/fjfjnfPVsRFd4PfMuyufU6MDd4eY+BZxN/XsZ1AcEX8jvJC5g4ebH1xpyMWERF7
+        9cWrmGfaBx73Ap5ZKIl6mtmJY1HsIuhxldTVVWxBIzQFieBaYN7FyP/kwql8DLueIiRb1JCK9V0PN
+        detUKQ5QL2euU1ySpNM2Ti5B;
 Received: from [127.0.0.2] (localhost [127.0.0.1])
         by hr2.samba.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__ECDSA_SECP256R1_SHA256__CHACHA20_POLY1305:256)
         (Exim)
-        id 1o1UvZ-005rtZ-SV; Wed, 15 Jun 2022 15:27:29 +0000
+        id 1o1UwM-005rvx-FF; Wed, 15 Jun 2022 15:28:18 +0000
 From:   Stefan Metzmacher <metze@samba.org>
 To:     Bernard Metzler <bmt@zurich.ibm.com>, linux-rdma@vger.kernel.org
 Cc:     Stefan Metzmacher <metze@samba.org>
-Subject: [PATCH v2 04/14] rdma/siw: use __siw_cep_terminate_upcall() for indirect SIW_CM_WORK_CLOSE_LLP
-Date:   Wed, 15 Jun 2022 17:26:42 +0200
-Message-Id: <8cd3dfb0bee64ca1de4157bc6d7c9b1a9602ac31.1655305567.git.metze@samba.org>
+Subject: [PATCH v2 11/14] rdma/siw: use error and out logic at the end of siw_connect()
+Date:   Wed, 15 Jun 2022 17:26:49 +0200
+Message-Id: <5da05688aba3d09db5c46a80915f13729c807245.1655305567.git.metze@samba.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <cover.1655305567.git.metze@samba.org>
 References: <cover.1655305567.git.metze@samba.org>
@@ -43,33 +43,47 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Both code paths from siw_qp_cm_drop() should use the same logic.
+This will make the following changes easier.
 
 Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
 Signed-off-by: Stefan Metzmacher <metze@samba.org>
 Cc: Bernard Metzler <bmt@zurich.ibm.com>
 Cc: linux-rdma@vger.kernel.org
 ---
- drivers/infiniband/sw/siw/siw_cm.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/infiniband/sw/siw/siw_cm.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index c5ef5de7e84c..4387cdf99cf9 100644
+index 307494c6707a..66d90fc77cef 100644
 --- a/drivers/infiniband/sw/siw/siw_cm.c
 +++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -1070,11 +1070,7 @@ static void siw_cm_work_handler(struct work_struct *w)
- 		/*
- 		 * QP scheduled LLP close
- 		 */
--		if (cep->qp && cep->qp->term_info.valid)
--			siw_send_terminate(cep->qp);
--
--		if (cep->cm_id)
--			siw_cm_upcall(cep, IW_CM_EVENT_CLOSE, 0);
-+		__siw_cep_terminate_upcall(cep, -EINVAL);
+@@ -1502,14 +1502,19 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+ 		cep->mpa.pdata = NULL;
+ 	}
  
- 		release_cep = 1;
- 		break;
+-	if (rv >= 0) {
+-		rv = siw_cm_queue_work(cep, SIW_CM_WORK_MPATIMEOUT);
+-		if (!rv) {
+-			siw_dbg_cep(cep, "[QP %u]: exit\n", qp_id(qp));
+-			siw_cep_set_free(cep);
+-			return 0;
+-		}
++	if (rv < 0) {
++		goto error;
++	}
++
++	rv = siw_cm_queue_work(cep, SIW_CM_WORK_MPATIMEOUT);
++	if (rv != 0) {
++		goto error;
+ 	}
++
++	siw_dbg_cep(cep, "[QP %u]: exit\n", qp_id(qp));
++	siw_cep_set_free(cep);
++	return 0;
++
+ error:
+ 	siw_dbg(id->device, "failed: %d\n", rv);
+ 
 -- 
 2.34.1
 
