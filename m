@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B64ECCA487
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jun 2022 02:07:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B606CCA47E
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jun 2022 02:07:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348912AbiFPCHn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jun 2022 22:07:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42384 "EHLO
+        id S1358203AbiFPCHq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jun 2022 22:07:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348213AbiFPCHh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jun 2022 22:07:37 -0400
+        with ESMTP id S1351052AbiFPCHj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jun 2022 22:07:39 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 86C9BFC3;
-        Wed, 15 Jun 2022 19:07:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A00D655B1;
+        Wed, 15 Jun 2022 19:07:37 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 5ABA520C327C; Wed, 15 Jun 2022 19:07:30 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 5ABA520C327C
+        id 7C18A20C32A8; Wed, 15 Jun 2022 19:07:32 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 7C18A20C32A8
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1655345250;
-        bh=6JaEm1a6tNhVzT6xGRcitQHJYk7ChgQN72DXm0YtbbQ=;
+        s=default; t=1655345252;
+        bh=1aqAq+XFkynCEX1IOJMJtc5KNnVFho/fnRwjJW59dps=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=Jx5UdVfQJKpe+FxNgQDTNx/0jCDaseIf4tI0Gg3G/XDf6hUFs4nPQRKXvTkicNPjG
-         VEaczPPSZ9q9dNm81+30eUOmdN4GfYBNxPc88I80DEIsRKNhmHNXqWRNcVWTvIH1gH
-         Bq4iM2gVupCYnIf50F3rrS+CmUjgZXptM3rojd3A=
+        b=lZ71K/uX07Ly/z8qKNTtkgDoI0XA8SrMM6DDkARCjZfJmWPCtA64LcOcICcPFCMGf
+         vof8gNik7O3pq8KGCrB/H5G/obbbrxRGh8L4R56I1BxQfYtBgzq1u3nmJT3UWphrL9
+         Wze1j9SUaTs12+l8ySIPr+AmnM8tKmdkVHXTR8+A=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v4 03/12] net: mana: Handle vport sharing between devices
-Date:   Wed, 15 Jun 2022 19:07:11 -0700
-Message-Id: <1655345240-26411-4-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v4 07/12] net: mana: Export Work Queue functions for use by RDMA driver
+Date:   Wed, 15 Jun 2022 19:07:15 -0700
+Message-Id: <1655345240-26411-8-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1655345240-26411-1-git-send-email-longli@linuxonhyperv.com>
 References: <1655345240-26411-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,133 +51,91 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-For outgoing packets, the PF requires the VF to configure the vport with
-corresponding protection domain and doorbell ID for the kernel or user
-context. The vport can't be shared between different contexts.
-
-Implement the logic to exclusively take over the vport by either the
-Ethernet device or RDMA device.
+RDMA device may need to create Ethernet device queues for use by Queue
+Pair type RAW. This allows a user-mode context accesses Ethernet hardware
+queues. Export the supporting functions for use by the RDMA driver.
 
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
-Change log:
-v2: use refcount instead of directly using atomic variables
-v4: change to mutex to avoid possible race with refcount
+ drivers/net/ethernet/microsoft/mana/gdma_main.c |  1 +
+ drivers/net/ethernet/microsoft/mana/mana.h      |  9 +++++++++
+ drivers/net/ethernet/microsoft/mana/mana_en.c   | 16 +++++++++-------
+ 3 files changed, 19 insertions(+), 7 deletions(-)
 
- drivers/net/ethernet/microsoft/mana/mana.h    |  7 ++++
- drivers/net/ethernet/microsoft/mana/mana_en.c | 40 ++++++++++++++++++-
- 2 files changed, 45 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 60cc1270b7d5..272facd272a4 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -125,6 +125,7 @@ int mana_gd_send_request(struct gdma_context *gc, u32 req_len, const void *req,
+ 
+ 	return mana_hwc_send_request(hwc, req_len, req, resp_len, resp);
+ }
++EXPORT_SYMBOL(mana_gd_send_request);
+ 
+ int mana_gd_alloc_memory(struct gdma_context *gc, unsigned int length,
+ 			 struct gdma_mem_info *gmi)
 diff --git a/drivers/net/ethernet/microsoft/mana/mana.h b/drivers/net/ethernet/microsoft/mana/mana.h
-index 51bff91b63ee..8e58abdce906 100644
+index 8e58abdce906..aca95c6ba8b3 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana.h
 +++ b/drivers/net/ethernet/microsoft/mana/mana.h
-@@ -376,6 +376,10 @@ struct mana_port_context {
- 
- 	mana_handle_t port_handle;
- 
-+	/* Mutex for sharing access to vport_use_count */
-+	struct mutex vport_mutex;
-+	int vport_use_count;
-+
- 	u16 port_idx;
- 
- 	bool port_is_up;
-@@ -567,4 +571,7 @@ struct mana_adev {
+@@ -571,6 +571,15 @@ struct mana_adev {
  	struct gdma_dev *mdev;
  };
  
-+int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
-+		   u32 doorbell_pg_id);
-+void mana_uncfg_vport(struct mana_port_context *apc);
- #endif /* _MANA_H */
++int mana_create_wq_obj(struct mana_port_context *apc,
++		       mana_handle_t vport,
++		       u32 wq_type, struct mana_obj_spec *wq_spec,
++		       struct mana_obj_spec *cq_spec,
++		       mana_handle_t *wq_obj);
++
++void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
++			 mana_handle_t wq_obj);
++
+ int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
+ 		   u32 doorbell_pg_id);
+ void mana_uncfg_vport(struct mana_port_context *apc);
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 745a9783dd70..23e7e423a544 100644
+index c18c358607a7..b769fccc076d 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -530,13 +530,31 @@ static int mana_query_vport_cfg(struct mana_port_context *apc, u32 vport_index,
- 	return 0;
+@@ -662,11 +662,11 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
+ 	return err;
  }
  
--static int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
--			  u32 doorbell_pg_id)
-+void mana_uncfg_vport(struct mana_port_context *apc)
-+{
-+	mutex_lock(&apc->vport_mutex);
-+	apc->vport_use_count--;
-+	WARN_ON(apc->vport_use_count < 0);
-+	mutex_unlock(&apc->vport_mutex);
-+}
-+EXPORT_SYMBOL_GPL(mana_uncfg_vport);
-+
-+int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
-+		   u32 doorbell_pg_id)
+-static int mana_create_wq_obj(struct mana_port_context *apc,
+-			      mana_handle_t vport,
+-			      u32 wq_type, struct mana_obj_spec *wq_spec,
+-			      struct mana_obj_spec *cq_spec,
+-			      mana_handle_t *wq_obj)
++int mana_create_wq_obj(struct mana_port_context *apc,
++		       mana_handle_t vport,
++		       u32 wq_type, struct mana_obj_spec *wq_spec,
++		       struct mana_obj_spec *cq_spec,
++		       mana_handle_t *wq_obj)
  {
- 	struct mana_config_vport_resp resp = {};
- 	struct mana_config_vport_req req = {};
- 	int err;
- 
-+	/* Ethernet driver and IB driver can't take the port at the same time */
-+	mutex_lock(&apc->vport_mutex);
-+	if (apc->vport_use_count > 0) {
-+		mutex_unlock(&apc->vport_mutex);
-+		return -ENODEV;
-+	}
-+	apc->vport_use_count++;
-+	mutex_unlock(&apc->vport_mutex);
-+
- 	mana_gd_init_req_hdr(&req.hdr, MANA_CONFIG_VPORT_TX,
- 			     sizeof(req), sizeof(resp));
- 	req.vport = apc->port_handle;
-@@ -563,9 +581,19 @@ static int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
- 
- 	apc->tx_shortform_allowed = resp.short_form_allowed;
- 	apc->tx_vp_offset = resp.tx_vport_offset;
-+
-+	netdev_info(apc->ndev, "Configured vPort %llu PD %u DB %u\n",
-+		    apc->port_handle, protection_dom_id, doorbell_pg_id);
+ 	struct mana_create_wqobj_resp resp = {};
+ 	struct mana_create_wqobj_req req = {};
+@@ -715,9 +715,10 @@ static int mana_create_wq_obj(struct mana_port_context *apc,
  out:
-+	if (err) {
-+		mutex_lock(&apc->vport_mutex);
-+		apc->vport_use_count--;
-+		mutex_unlock(&apc->vport_mutex);
-+	}
-+
  	return err;
  }
-+EXPORT_SYMBOL_GPL(mana_cfg_vport);
++EXPORT_SYMBOL_GPL(mana_create_wq_obj);
  
- static int mana_cfg_vport_steering(struct mana_port_context *apc,
- 				   enum TRI_STATE rx,
-@@ -626,6 +654,9 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
+-static void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
+-				mana_handle_t wq_obj)
++void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
++			 mana_handle_t wq_obj)
+ {
+ 	struct mana_destroy_wqobj_resp resp = {};
+ 	struct mana_destroy_wqobj_req req = {};
+@@ -742,6 +743,7 @@ static void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
+ 		netdev_err(ndev, "Failed to destroy WQ object: %d, 0x%x\n", err,
  			   resp.hdr.status);
- 		err = -EPROTO;
- 	}
-+
-+	netdev_info(ndev, "Configured steering vPort %llu entries %u\n",
-+		    apc->port_handle, num_entries);
- out:
- 	kfree(req);
- 	return err;
-@@ -1678,6 +1709,8 @@ static void mana_destroy_vport(struct mana_port_context *apc)
- 	}
- 
- 	mana_destroy_txq(apc);
-+
-+	mana_uncfg_vport(apc);
  }
++EXPORT_SYMBOL_GPL(mana_destroy_wq_obj);
  
- static int mana_create_vport(struct mana_port_context *apc,
-@@ -1929,6 +1962,9 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
- 	apc->port_handle = INVALID_MANA_HANDLE;
- 	apc->port_idx = port_idx;
- 
-+	mutex_init(&apc->vport_mutex);
-+	apc->vport_use_count = 0;
-+
- 	ndev->netdev_ops = &mana_devops;
- 	ndev->ethtool_ops = &mana_ethtool_ops;
- 	ndev->mtu = ETH_DATA_LEN;
+ static void mana_destroy_eq(struct mana_context *ac)
+ {
 -- 
 2.17.1
 
