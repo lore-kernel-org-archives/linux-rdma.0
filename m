@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F727C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jun 2022 02:07:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3D1ECCA483
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jun 2022 02:07:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358352AbiFPCHv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jun 2022 22:07:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42474 "EHLO
+        id S1358364AbiFPCHw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jun 2022 22:07:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350066AbiFPCHk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jun 2022 22:07:40 -0400
+        with ESMTP id S1354878AbiFPCHj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jun 2022 22:07:39 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9FFB3558F;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id A02C2643E;
         Wed, 15 Jun 2022 19:07:37 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id F306D20C32A4; Wed, 15 Jun 2022 19:07:31 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com F306D20C32A4
+        id 1B37920C32B2; Wed, 15 Jun 2022 19:07:34 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1B37920C32B2
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1655345252;
-        bh=Cigy/OCgOw9YbD2IF1NWqIEJyOfFXpbWeQHZ0IGWpgc=;
+        s=default; t=1655345254;
+        bh=WnAUrlvUwfhIO5pMVyiEMyAYxQk5L9UhW0Z7vT9tZiE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=Ps7A3cFxEm1jMX8K3Fd/wZlpHXp54XMof/Mh6mgl1/mVNmOTKBcf1EywPpvQG8jzQ
-         TAJ+BnRuoiKLh/LfPhJ9FkUEFN3hkE6t3IZzWUcl9wKyDsoaWZ1jSSFxXypNAErS7M
-         hsQnOJBw/2dwJV+fZTkSCBakx755quwSGnzr7qCc=
+        b=LT4gDRw0YaSfXIOArUaYXexT3nfEwV5lmAWS7fEvHc2crT4cDevN0TYqLYn71N3iY
+         7bdX9cKFr5NsDZd7TInECCxLkyii1CZmufHOmSGB/6fdDz/NGI0t8QeaavVc89ljK+
+         UytkW5EjKHTjjgQ8flGcYxhLICO5lA0EBKQG9SZE=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v4 06/12] net: mana: Define data structures for protection domain and memory registration
-Date:   Wed, 15 Jun 2022 19:07:14 -0700
-Message-Id: <1655345240-26411-7-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v4 10/12] net: mana: Define max values for SGL entries
+Date:   Wed, 15 Jun 2022 19:07:18 -0700
+Message-Id: <1655345240-26411-11-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1655345240-26411-1-git-send-email-longli@linuxonhyperv.com>
 References: <1655345240-26411-1-git-send-email-longli@linuxonhyperv.com>
@@ -49,374 +49,73 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Ajay Sharma <sharmaajay@microsoft.com>
+From: Long Li <longli@microsoft.com>
 
-The MANA hardware support protection domain and memory registration for use
-in RDMA environment. Add those definitions and expose them for use by the
-RDMA driver.
+The number of maximum SGl entries should be computed from the maximum
+WQE size for the intended queue type and the corresponding OOB data
+size. This guarantees the hardware queue can successfully queue requests
+up to the queue depth exposed to the upper layer.
 
-Signed-off-by: Ajay Sharma <sharmaajay@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
-Change log:
-v3: format/coding style changes
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 2 +-
+ include/net/mana/gdma.h                       | 7 +++++++
+ include/net/mana/mana.h                       | 4 +---
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
- drivers/net/ethernet/microsoft/mana/gdma.h    | 146 +++++++++++++++++-
- .../net/ethernet/microsoft/mana/gdma_main.c   |  27 ++--
- drivers/net/ethernet/microsoft/mana/mana_en.c |  18 ++-
- 3 files changed, 168 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/drivers/net/ethernet/microsoft/mana/gdma.h
-index f945755760dc..b1bec8ab5695 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma.h
-+++ b/drivers/net/ethernet/microsoft/mana/gdma.h
-@@ -27,6 +27,10 @@ enum gdma_request_type {
- 	GDMA_CREATE_DMA_REGION		= 25,
- 	GDMA_DMA_REGION_ADD_PAGES	= 26,
- 	GDMA_DESTROY_DMA_REGION		= 27,
-+	GDMA_CREATE_PD			= 29,
-+	GDMA_DESTROY_PD			= 30,
-+	GDMA_CREATE_MR			= 31,
-+	GDMA_DESTROY_MR			= 32,
- };
- 
- #define GDMA_RESOURCE_DOORBELL_PAGE	27
-@@ -59,6 +63,8 @@ enum {
- 	GDMA_DEVICE_MANA	= 2,
- };
- 
-+typedef u64 gdma_obj_handle_t;
-+
- struct gdma_resource {
- 	/* Protect the bitmap */
- 	spinlock_t lock;
-@@ -192,7 +198,7 @@ struct gdma_mem_info {
- 	u64 length;
- 
- 	/* Allocated by the PF driver */
--	u64 gdma_region;
-+	gdma_obj_handle_t dma_region_handle;
- };
- 
- #define REGISTER_ATB_MST_MKEY_LOWER_SIZE 8
-@@ -599,7 +605,7 @@ struct gdma_create_queue_req {
- 	u32 reserved1;
- 	u32 pdid;
- 	u32 doolbell_id;
--	u64 gdma_region;
-+	gdma_obj_handle_t gdma_region;
- 	u32 reserved2;
- 	u32 queue_size;
- 	u32 log2_throttle_limit;
-@@ -626,6 +632,28 @@ struct gdma_disable_queue_req {
- 	u32 alloc_res_id_on_creation;
- }; /* HW DATA */
- 
-+enum atb_page_size {
-+	ATB_PAGE_SIZE_4K,
-+	ATB_PAGE_SIZE_8K,
-+	ATB_PAGE_SIZE_16K,
-+	ATB_PAGE_SIZE_32K,
-+	ATB_PAGE_SIZE_64K,
-+	ATB_PAGE_SIZE_128K,
-+	ATB_PAGE_SIZE_256K,
-+	ATB_PAGE_SIZE_512K,
-+	ATB_PAGE_SIZE_1M,
-+	ATB_PAGE_SIZE_2M,
-+	ATB_PAGE_SIZE_MAX,
-+};
-+
-+enum gdma_mr_access_flags {
-+	GDMA_ACCESS_FLAG_LOCAL_READ = (1 << 0),
-+	GDMA_ACCESS_FLAG_LOCAL_WRITE = (1 << 1),
-+	GDMA_ACCESS_FLAG_REMOTE_READ = (1 << 2),
-+	GDMA_ACCESS_FLAG_REMOTE_WRITE = (1 << 3),
-+	GDMA_ACCESS_FLAG_REMOTE_ATOMIC = (1 << 4),
-+};
-+
- /* GDMA_CREATE_DMA_REGION */
- struct gdma_create_dma_region_req {
- 	struct gdma_req_hdr hdr;
-@@ -652,14 +680,14 @@ struct gdma_create_dma_region_req {
- 
- struct gdma_create_dma_region_resp {
- 	struct gdma_resp_hdr hdr;
--	u64 gdma_region;
-+	gdma_obj_handle_t dma_region_handle;
- }; /* HW DATA */
- 
- /* GDMA_DMA_REGION_ADD_PAGES */
- struct gdma_dma_region_add_pages_req {
- 	struct gdma_req_hdr hdr;
- 
--	u64 gdma_region;
-+	gdma_obj_handle_t dma_region_handle;
- 
- 	u32 page_addr_list_len;
- 	u32 reserved3;
-@@ -671,9 +699,114 @@ struct gdma_dma_region_add_pages_req {
- struct gdma_destroy_dma_region_req {
- 	struct gdma_req_hdr hdr;
- 
--	u64 gdma_region;
-+	gdma_obj_handle_t dma_region_handle;
- }; /* HW DATA */
- 
-+enum gdma_pd_flags {
-+	GDMA_PD_FLAG_ALLOW_GPA_MR = (1 << 0),
-+	GDMA_PD_FLAG_ALLOW_FMR_MR = (1 << 1),
-+};
-+
-+struct gdma_create_pd_req {
-+	struct gdma_req_hdr hdr;
-+	enum gdma_pd_flags flags;
-+	u32 reserved;
-+};
-+
-+struct gdma_create_pd_resp {
-+	struct gdma_resp_hdr hdr;
-+	gdma_obj_handle_t pd_handle;
-+	u32 pd_id;
-+	u32 reserved;
-+};
-+
-+struct gdma_destroy_pd_req {
-+	struct gdma_req_hdr hdr;
-+	gdma_obj_handle_t pd_handle;
-+};
-+
-+struct gdma_destory_pd_resp {
-+	struct gdma_resp_hdr hdr;
-+};
-+
-+enum gdma_mr_type {
-+	/* Guest Physical Address - MRs of this type allow access
-+	 * to any DMA-mapped memory using bus-logical address
-+	 */
-+	GDMA_MR_TYPE_GPA = 1,
-+
-+	/* Guest Virtual Address - MRs of this type allow access
-+	 * to memory mapped by PTEs associated with this MR using a virtual
-+	 * address that is set up in the MST
-+	 */
-+	GDMA_MR_TYPE_GVA,
-+
-+	/* Fast Memory Register - Like GVA but the MR is initially put in the
-+	 * FREE state (as opposed to Valid), and the specified number of
-+	 * PTEs are reserved for future fast memory reservations.
-+	 */
-+	GDMA_MR_TYPE_FMR,
-+};
-+
-+struct gdma_create_mr_params {
-+	gdma_obj_handle_t pd_handle;
-+	enum gdma_mr_type mr_type;
-+	union {
-+		struct {
-+			gdma_obj_handle_t dma_region_handle;
-+			u64 virtual_address;
-+			enum gdma_mr_access_flags access_flags;
-+		} gva;
-+		struct {
-+			enum gdma_mr_access_flags access_flags;
-+		} gpa;
-+		struct {
-+			enum atb_page_size page_size;
-+			u32  reserved_pte_count;
-+		} fmr;
-+	};
-+};
-+
-+struct gdma_create_mr_request {
-+	struct gdma_req_hdr hdr;
-+	gdma_obj_handle_t pd_handle;
-+	enum gdma_mr_type mr_type;
-+	u32 reserved;
-+
-+	union {
-+		struct {
-+			enum gdma_mr_access_flags access_flags;
-+		} gpa;
-+
-+		struct {
-+			gdma_obj_handle_t dma_region_handle;
-+			u64 virtual_address;
-+			enum gdma_mr_access_flags access_flags;
-+		} gva;
-+
-+		struct {
-+			enum atb_page_size page_size;
-+			u32 reserved_pte_count;
-+		} fmr;
-+	};
-+};
-+
-+struct gdma_create_mr_response {
-+	struct gdma_resp_hdr hdr;
-+	gdma_obj_handle_t mr_handle;
-+	u32 lkey;
-+	u32 rkey;
-+};
-+
-+struct gdma_destroy_mr_request {
-+	struct gdma_req_hdr hdr;
-+	gdma_obj_handle_t mr_handle;
-+};
-+
-+struct gdma_destroy_mr_response {
-+	struct gdma_resp_hdr hdr;
-+};
-+
- int mana_gd_verify_vf_version(struct pci_dev *pdev);
- 
- int mana_gd_register_device(struct gdma_dev *gd);
-@@ -705,4 +838,7 @@ int mana_gd_allocate_doorbell_page(struct gdma_context *gc, int *doorbell_page);
- 
- int mana_gd_destroy_doorbell_page(struct gdma_context *gc, int doorbell_page);
- 
-+int mana_gd_destroy_dma_region(struct gdma_context *gc,
-+			       gdma_obj_handle_t dma_region_handle);
-+
- #endif /* _GDMA_H */
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index 0c38c9a539f9..60cc1270b7d5 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -226,7 +226,7 @@ static int mana_gd_create_hw_eq(struct gdma_context *gc,
- 	req.type = queue->type;
- 	req.pdid = queue->gdma_dev->pdid;
- 	req.doolbell_id = queue->gdma_dev->doorbell;
--	req.gdma_region = queue->mem_info.gdma_region;
-+	req.gdma_region = queue->mem_info.dma_region_handle;
- 	req.queue_size = queue->queue_size;
- 	req.log2_throttle_limit = queue->eq.log2_throttle_limit;
- 	req.eq_pci_msix_index = queue->eq.msix_index;
-@@ -240,7 +240,7 @@ static int mana_gd_create_hw_eq(struct gdma_context *gc,
- 
- 	queue->id = resp.queue_index;
- 	queue->eq.disable_needed = true;
--	queue->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
-+	queue->mem_info.dma_region_handle = GDMA_INVALID_DMA_REGION;
- 	return 0;
- }
- 
-@@ -694,24 +694,30 @@ int mana_gd_create_hwc_queue(struct gdma_dev *gd,
- 	return err;
- }
- 
--static void mana_gd_destroy_dma_region(struct gdma_context *gc, u64 gdma_region)
-+int mana_gd_destroy_dma_region(struct gdma_context *gc,
-+			       gdma_obj_handle_t dma_region_handle)
- {
- 	struct gdma_destroy_dma_region_req req = {};
- 	struct gdma_general_resp resp = {};
- 	int err;
- 
--	if (gdma_region == GDMA_INVALID_DMA_REGION)
--		return;
-+	if (dma_region_handle == GDMA_INVALID_DMA_REGION)
-+		return 0;
- 
- 	mana_gd_init_req_hdr(&req.hdr, GDMA_DESTROY_DMA_REGION, sizeof(req),
- 			     sizeof(resp));
--	req.gdma_region = gdma_region;
-+	req.dma_region_handle = dma_region_handle;
- 
- 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
--	if (err || resp.hdr.status)
-+	if (err || resp.hdr.status) {
- 		dev_err(gc->dev, "Failed to destroy DMA region: %d, 0x%x\n",
- 			err, resp.hdr.status);
-+		return -EPROTO;
-+	}
-+
-+	return 0;
- }
-+EXPORT_SYMBOL(mana_gd_destroy_dma_region);
- 
- static int mana_gd_create_dma_region(struct gdma_dev *gd,
- 				     struct gdma_mem_info *gmi)
-@@ -756,14 +762,15 @@ static int mana_gd_create_dma_region(struct gdma_dev *gd,
- 	if (err)
- 		goto out;
- 
--	if (resp.hdr.status || resp.gdma_region == GDMA_INVALID_DMA_REGION) {
-+	if (resp.hdr.status ||
-+	    resp.dma_region_handle == GDMA_INVALID_DMA_REGION) {
- 		dev_err(gc->dev, "Failed to create DMA region: 0x%x\n",
- 			resp.hdr.status);
- 		err = -EPROTO;
- 		goto out;
- 	}
- 
--	gmi->gdma_region = resp.gdma_region;
-+	gmi->dma_region_handle = resp.dma_region_handle;
- out:
- 	kfree(req);
- 	return err;
-@@ -886,7 +893,7 @@ void mana_gd_destroy_queue(struct gdma_context *gc, struct gdma_queue *queue)
- 		return;
- 	}
- 
--	mana_gd_destroy_dma_region(gc, gmi->gdma_region);
-+	mana_gd_destroy_dma_region(gc, gmi->dma_region_handle);
- 	mana_gd_free_memory(gmi);
- 	kfree(queue);
- }
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 23e7e423a544..c18c358607a7 100644
+index 5aab7afc9143..9a976d9b6b6f 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -1382,10 +1382,10 @@ static int mana_create_txq(struct mana_port_context *apc,
- 		memset(&wq_spec, 0, sizeof(wq_spec));
- 		memset(&cq_spec, 0, sizeof(cq_spec));
+@@ -187,7 +187,7 @@ int mana_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	pkg.wqe_req.client_data_unit = 0;
  
--		wq_spec.gdma_region = txq->gdma_sq->mem_info.gdma_region;
-+		wq_spec.gdma_region = txq->gdma_sq->mem_info.dma_region_handle;
- 		wq_spec.queue_size = txq->gdma_sq->queue_size;
+ 	pkg.wqe_req.num_sge = 1 + skb_shinfo(skb)->nr_frags;
+-	WARN_ON_ONCE(pkg.wqe_req.num_sge > 30);
++	WARN_ON_ONCE(pkg.wqe_req.num_sge > MAX_TX_WQE_SGL_ENTRIES);
  
--		cq_spec.gdma_region = cq->gdma_cq->mem_info.gdma_region;
-+		cq_spec.gdma_region = cq->gdma_cq->mem_info.dma_region_handle;
- 		cq_spec.queue_size = cq->gdma_cq->queue_size;
- 		cq_spec.modr_ctx_id = 0;
- 		cq_spec.attached_eq = cq->gdma_cq->cq.parent->id;
-@@ -1400,8 +1400,10 @@ static int mana_create_txq(struct mana_port_context *apc,
- 		txq->gdma_sq->id = wq_spec.queue_index;
- 		cq->gdma_cq->id = cq_spec.queue_index;
+ 	if (pkg.wqe_req.num_sge <= ARRAY_SIZE(pkg.sgl_array)) {
+ 		pkg.wqe_req.sgl = pkg.sgl_array;
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index b1bec8ab5695..ef5de92dd98d 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -436,6 +436,13 @@ struct gdma_wqe {
+ #define MAX_TX_WQE_SIZE 512
+ #define MAX_RX_WQE_SIZE 256
  
--		txq->gdma_sq->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
--		cq->gdma_cq->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
-+		txq->gdma_sq->mem_info.dma_region_handle =
-+			GDMA_INVALID_DMA_REGION;
-+		cq->gdma_cq->mem_info.dma_region_handle =
-+			GDMA_INVALID_DMA_REGION;
++#define MAX_TX_WQE_SGL_ENTRIES	((GDMA_MAX_SQE_SIZE - \
++			sizeof(struct gdma_sge) - INLINE_OOB_SMALL_SIZE) / \
++			sizeof(struct gdma_sge))
++
++#define MAX_RX_WQE_SGL_ENTRIES	((GDMA_MAX_RQE_SIZE - \
++			sizeof(struct gdma_sge)) / sizeof(struct gdma_sge))
++
+ struct gdma_cqe {
+ 	u32 cqe_data[GDMA_COMP_DATA_SIZE / 4];
  
- 		txq->gdma_txq_id = txq->gdma_sq->id;
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index aca95c6ba8b3..3a0bc6e0b730 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -264,8 +264,6 @@ struct mana_cq {
+ 	int budget;
+ };
  
-@@ -1612,10 +1614,10 @@ static struct mana_rxq *mana_create_rxq(struct mana_port_context *apc,
+-#define GDMA_MAX_RQE_SGES 15
+-
+ struct mana_recv_buf_oob {
+ 	/* A valid GDMA work request representing the data buffer. */
+ 	struct gdma_wqe_request wqe_req;
+@@ -275,7 +273,7 @@ struct mana_recv_buf_oob {
  
- 	memset(&wq_spec, 0, sizeof(wq_spec));
- 	memset(&cq_spec, 0, sizeof(cq_spec));
--	wq_spec.gdma_region = rxq->gdma_rq->mem_info.gdma_region;
-+	wq_spec.gdma_region = rxq->gdma_rq->mem_info.dma_region_handle;
- 	wq_spec.queue_size = rxq->gdma_rq->queue_size;
+ 	/* SGL of the buffer going to be sent has part of the work request. */
+ 	u32 num_sge;
+-	struct gdma_sge sgl[GDMA_MAX_RQE_SGES];
++	struct gdma_sge sgl[MAX_RX_WQE_SGL_ENTRIES];
  
--	cq_spec.gdma_region = cq->gdma_cq->mem_info.gdma_region;
-+	cq_spec.gdma_region = cq->gdma_cq->mem_info.dma_region_handle;
- 	cq_spec.queue_size = cq->gdma_cq->queue_size;
- 	cq_spec.modr_ctx_id = 0;
- 	cq_spec.attached_eq = cq->gdma_cq->cq.parent->id;
-@@ -1628,8 +1630,8 @@ static struct mana_rxq *mana_create_rxq(struct mana_port_context *apc,
- 	rxq->gdma_rq->id = wq_spec.queue_index;
- 	cq->gdma_cq->id = cq_spec.queue_index;
- 
--	rxq->gdma_rq->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
--	cq->gdma_cq->mem_info.gdma_region = GDMA_INVALID_DMA_REGION;
-+	rxq->gdma_rq->mem_info.dma_region_handle = GDMA_INVALID_DMA_REGION;
-+	cq->gdma_cq->mem_info.dma_region_handle = GDMA_INVALID_DMA_REGION;
- 
- 	rxq->gdma_id = rxq->gdma_rq->id;
- 	cq->gdma_id = cq->gdma_cq->id;
+ 	/* Required to store the result of mana_gd_post_work_request.
+ 	 * gdma_posted_wqe_info.wqe_size_in_bu is required for progressing the
 -- 
 2.17.1
 
