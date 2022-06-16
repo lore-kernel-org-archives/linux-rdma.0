@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11B30C433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jun 2022 02:07:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C2D7C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Jun 2022 02:07:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350614AbiFPCHi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Jun 2022 22:07:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42342 "EHLO
+        id S1355228AbiFPCHl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Jun 2022 22:07:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347776AbiFPCHh (ORCPT
+        with ESMTP id S1348036AbiFPCHh (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Jun 2022 22:07:37 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 00A031C0;
-        Wed, 15 Jun 2022 19:07:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EFAE3F3E;
+        Wed, 15 Jun 2022 19:07:29 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 8D99820C3274; Wed, 15 Jun 2022 19:07:27 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 8D99820C3274
+        id C107620C3278; Wed, 15 Jun 2022 19:07:29 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C107620C3278
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1655345247;
-        bh=uDiFCpUJB7ov/Y1grAR0LzvmAxSNvBtHZIJICK5io/0=;
-        h=From:To:Cc:Subject:Date:Reply-To:From;
-        b=AaxrItD6UUMwgAmNsmiiM8etgqWtdoZU25qJMRkPwdiQY7XQmvoDYpVbs3PfxOI6a
-         OyTnFYRiIfQv0HPc7Z9kPonlQrsuhuqI7xNtbbAPPP6Iku8xzCNUqevReVoRFhmMuL
-         5jxHUDAdpZrS67kWYwbhNA2ok9Mqr26z0Ux1MeyU=
+        s=default; t=1655345249;
+        bh=0dsZ0bZFwegjOW5xJagkjlSAdsffEmIkK2SaE7ckO08=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
+        b=NoCvqJBv9odDvC3hcRnFmDwBbzX+uSUuufP05R1Et2NNsq+TxirDqptQFPRRQwGTn
+         UOSmm9j+sOCTcztdJi+H2hhFc1dxJe12mgmIjJN4gIrsjeubKgnkvU4X6Ds5hbFj0w
+         2dZJW5SxuMTkWkwvhpvDThhwrhQcqPchMC/nT8yA=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,10 +38,12 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v4 00/12] Introduce Microsoft Azure Network Adapter (MANA) RDMA driver
-Date:   Wed, 15 Jun 2022 19:07:08 -0700
-Message-Id: <1655345240-26411-1-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v4 02/12] net: mana: Record the physical address for doorbell page region
+Date:   Wed, 15 Jun 2022 19:07:10 -0700
+Message-Id: <1655345240-26411-3-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1655345240-26411-1-git-send-email-longli@linuxonhyperv.com>
+References: <1655345240-26411-1-git-send-email-longli@linuxonhyperv.com>
 Reply-To: longli@microsoft.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -49,73 +51,54 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-This patchset implements a RDMA driver for Microsoft Azure Network
-Adapter (MANA). In MANA, the RDMA device is modeled as an auxiliary device
-to the Ethernet device.
+For supporting RDMA device with multiple user contexts with their
+individual doorbell pages, record the start address of doorbell page
+region for use by the RDMA driver to allocate user context doorbell IDs.
 
-The first 11 patches modify the MANA Ethernet driver to support RDMA driver.
-The last patch implementes the RDMA driver.
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+ drivers/net/ethernet/microsoft/mana/gdma.h      | 2 ++
+ drivers/net/ethernet/microsoft/mana/gdma_main.c | 4 ++++
+ 2 files changed, 6 insertions(+)
 
-The user-mode of the driver is being reviewed at:
-https://github.com/linux-rdma/rdma-core/pull/1177
-
-
-Ajay Sharma (3):
-  net: mana: Set the DMA device max segment size
-  net: mana: Define data structures for protection domain and memory
-    registration
-  net: mana: Define and process GDMA response code
-    GDMA_STATUS_MORE_ENTRIES
-
-Long Li (9):
-  net: mana: Add support for auxiliary device
-  net: mana: Record the physical address for doorbell page region
-  net: mana: Handle vport sharing between devices
-  net: mana: Add functions for allocating doorbell page from GDMA
-  net: mana: Export Work Queue functions for use by RDMA driver
-  net: mana: Record port number in netdev
-  net: mana: Move header files to a common location
-  net: mana: Define max values for SGL entries
-  RDMA/mana_ib: Add a driver for Microsoft Azure Network Adapter
-
- MAINTAINERS                                   |   4 +
- drivers/infiniband/Kconfig                    |   1 +
- drivers/infiniband/hw/Makefile                |   1 +
- drivers/infiniband/hw/mana/Kconfig            |   7 +
- drivers/infiniband/hw/mana/Makefile           |   4 +
- drivers/infiniband/hw/mana/cq.c               |  80 ++
- drivers/infiniband/hw/mana/main.c             | 681 ++++++++++++++++++
- drivers/infiniband/hw/mana/mana_ib.h          | 145 ++++
- drivers/infiniband/hw/mana/mr.c               | 133 ++++
- drivers/infiniband/hw/mana/qp.c               | 501 +++++++++++++
- drivers/infiniband/hw/mana/wq.c               | 114 +++
- .../net/ethernet/microsoft/mana/gdma_main.c   |  96 ++-
- .../net/ethernet/microsoft/mana/hw_channel.c  |   6 +-
- .../net/ethernet/microsoft/mana/mana_bpf.c    |   2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c | 162 ++++-
- .../ethernet/microsoft/mana/mana_ethtool.c    |   2 +-
- .../net/ethernet/microsoft/mana/shm_channel.c |   2 +-
- .../microsoft => include/net}/mana/gdma.h     | 188 ++++-
- .../net}/mana/hw_channel.h                    |   0
- .../microsoft => include/net}/mana/mana.h     |  29 +-
- .../net}/mana/shm_channel.h                   |   0
- include/uapi/rdma/ib_user_ioctl_verbs.h       |   1 +
- include/uapi/rdma/mana-abi.h                  |  66 ++
- 23 files changed, 2180 insertions(+), 45 deletions(-)
- create mode 100644 drivers/infiniband/hw/mana/Kconfig
- create mode 100644 drivers/infiniband/hw/mana/Makefile
- create mode 100644 drivers/infiniband/hw/mana/cq.c
- create mode 100644 drivers/infiniband/hw/mana/main.c
- create mode 100644 drivers/infiniband/hw/mana/mana_ib.h
- create mode 100644 drivers/infiniband/hw/mana/mr.c
- create mode 100644 drivers/infiniband/hw/mana/qp.c
- create mode 100644 drivers/infiniband/hw/mana/wq.c
- rename {drivers/net/ethernet/microsoft => include/net}/mana/gdma.h (77%)
- rename {drivers/net/ethernet/microsoft => include/net}/mana/hw_channel.h (100%)
- rename {drivers/net/ethernet/microsoft => include/net}/mana/mana.h (93%)
- rename {drivers/net/ethernet/microsoft => include/net}/mana/shm_channel.h (100%)
- create mode 100644 include/uapi/rdma/mana-abi.h
-
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/drivers/net/ethernet/microsoft/mana/gdma.h
+index d815d323be87..c724ca410fcb 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma.h
++++ b/drivers/net/ethernet/microsoft/mana/gdma.h
+@@ -350,9 +350,11 @@ struct gdma_context {
+ 	struct completion	eq_test_event;
+ 	u32			test_event_eq_id;
+ 
++	phys_addr_t		bar0_pa;
+ 	void __iomem		*bar0_va;
+ 	void __iomem		*shm_base;
+ 	void __iomem		*db_page_base;
++	phys_addr_t		phys_db_page_base;
+ 	u32 db_page_size;
+ 
+ 	/* Shared memory chanenl (used to bootstrap HWC) */
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 49b85ca578b0..9fafaa0c8e76 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -27,6 +27,9 @@ static void mana_gd_init_registers(struct pci_dev *pdev)
+ 	gc->db_page_base = gc->bar0_va +
+ 				mana_gd_r64(gc, GDMA_REG_DB_PAGE_OFFSET);
+ 
++	gc->phys_db_page_base = gc->bar0_pa +
++				mana_gd_r64(gc, GDMA_REG_DB_PAGE_OFFSET);
++
+ 	gc->shm_base = gc->bar0_va + mana_gd_r64(gc, GDMA_REG_SHM_OFFSET);
+ }
+ 
+@@ -1335,6 +1338,7 @@ static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 
+ 	mutex_init(&gc->eq_test_event_mutex);
+ 	pci_set_drvdata(pdev, gc);
++	gc->bar0_pa = pci_resource_start(pdev, 0);
+ 
+ 	bar0_va = pci_iomap(pdev, bar, 0);
+ 	if (!bar0_va)
 -- 
 2.17.1
 
