@@ -2,25 +2,25 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FA4CCCA47F
-	for <linux-rdma@archiver.kernel.org>; Fri, 24 Jun 2022 11:10:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F1A6CCA482
+	for <linux-rdma@archiver.kernel.org>; Fri, 24 Jun 2022 11:10:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229584AbiFXLKY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 24 Jun 2022 07:10:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41800 "EHLO
+        id S229818AbiFXLK0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 24 Jun 2022 07:10:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230324AbiFXLKX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 24 Jun 2022 07:10:23 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5482D562CF
-        for <linux-rdma@vger.kernel.org>; Fri, 24 Jun 2022 04:10:22 -0700 (PDT)
-Received: from dggpeml500026.china.huawei.com (unknown [172.30.72.55])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4LTvVf4jYYzdZLQ;
-        Fri, 24 Jun 2022 19:08:10 +0800 (CST)
+        with ESMTP id S230463AbiFXLKY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 24 Jun 2022 07:10:24 -0400
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 243C25674C
+        for <linux-rdma@vger.kernel.org>; Fri, 24 Jun 2022 04:10:23 -0700 (PDT)
+Received: from dggpeml500025.china.huawei.com (unknown [172.30.72.53])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4LTvXT5VxQzDsNT;
+        Fri, 24 Jun 2022 19:09:45 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500026.china.huawei.com (7.185.36.106) with Microsoft SMTP Server
+ dggpeml500025.china.huawei.com (7.185.36.35) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Fri, 24 Jun 2022 19:10:20 +0800
+ 15.1.2375.24; Fri, 24 Jun 2022 19:10:21 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
@@ -29,9 +29,9 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 2/5] RDMA/hns: Fix the wrong type of return value of the interrupt handler
-Date:   Fri, 24 Jun 2022 19:08:42 +0800
-Message-ID: <20220624110845.48184-3-liangwenpeng@huawei.com>
+Subject: [PATCH for-next 4/5] RDMA/hns: Refactor the abnormal interrupt handler function
+Date:   Fri, 24 Jun 2022 19:08:44 +0800
+Message-ID: <20220624110845.48184-5-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20220624110845.48184-1-liangwenpeng@huawei.com>
 References: <20220624110845.48184-1-liangwenpeng@huawei.com>
@@ -48,111 +48,79 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Haoyue Xu <xuhaoyue1@hisilicon.com>
 
-The type of return value of the interrupt handler should be irqreturn_t.
+Use a single function to handle the same kind of abnormal interrupts.
 
 Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 27 +++++++++++-----------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 35 ++++++++++++++--------
+ 1 file changed, 23 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 617713084383..bb6073635c53 100644
+index 35bf58fcaeb3..782f09a7f8af 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5855,12 +5855,12 @@ static struct hns_roce_aeqe *next_aeqe_sw_v2(struct hns_roce_eq *eq)
- 		!!(eq->cons_index & eq->entries)) ? aeqe : NULL;
+@@ -5982,24 +5982,19 @@ static irqreturn_t hns_roce_v2_msix_interrupt_eq(int irq, void *eq_ptr)
+ 	return IRQ_RETVAL(int_work);
  }
  
--static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
--			       struct hns_roce_eq *eq)
-+static irqreturn_t hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
-+				       struct hns_roce_eq *eq)
+-static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
++static irqreturn_t abnormal_interrupt_basic(struct hns_roce_dev *hr_dev,
++					    u32 int_st)
  {
- 	struct device *dev = hr_dev->dev;
- 	struct hns_roce_aeqe *aeqe = next_aeqe_sw_v2(eq);
--	int aeqe_found = 0;
-+	irqreturn_t aeqe_found = IRQ_NONE;
- 	int event_type;
- 	u32 queue_num;
- 	int sub_type;
-@@ -5914,7 +5914,7 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 		eq->event_type = event_type;
- 		eq->sub_type = sub_type;
- 		++eq->cons_index;
--		aeqe_found = 1;
-+		aeqe_found = IRQ_HANDLED;
- 
- 		hns_roce_v2_init_irq_work(hr_dev, eq, queue_num);
- 
-@@ -5922,7 +5922,8 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 	}
- 
- 	update_eq_db(eq);
--	return aeqe_found;
-+
-+	return IRQ_RETVAL(aeqe_found);
- }
- 
- static struct hns_roce_ceqe *next_ceqe_sw_v2(struct hns_roce_eq *eq)
-@@ -5937,11 +5938,11 @@ static struct hns_roce_ceqe *next_ceqe_sw_v2(struct hns_roce_eq *eq)
- 		!!(eq->cons_index & eq->entries)) ? ceqe : NULL;
- }
- 
--static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
--			       struct hns_roce_eq *eq)
-+static irqreturn_t hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
-+				       struct hns_roce_eq *eq)
- {
- 	struct hns_roce_ceqe *ceqe = next_ceqe_sw_v2(eq);
--	int ceqe_found = 0;
-+	irqreturn_t ceqe_found = IRQ_NONE;
- 	u32 cqn;
- 
- 	while (ceqe) {
-@@ -5955,21 +5956,21 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
- 		hns_roce_cq_completion(hr_dev, cqn);
- 
- 		++eq->cons_index;
--		ceqe_found = 1;
-+		ceqe_found = IRQ_HANDLED;
- 
- 		ceqe = next_ceqe_sw_v2(eq);
- 	}
- 
- 	update_eq_db(eq);
- 
--	return ceqe_found;
-+	return IRQ_RETVAL(ceqe_found);
- }
- 
- static irqreturn_t hns_roce_v2_msix_interrupt_eq(int irq, void *eq_ptr)
- {
- 	struct hns_roce_eq *eq = eq_ptr;
- 	struct hns_roce_dev *hr_dev = eq->hr_dev;
--	int int_work;
-+	irqreturn_t int_work;
- 
- 	if (eq->type_flag == HNS_ROCE_CEQ)
- 		/* Completion event interrupt */
-@@ -5985,7 +5986,7 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- {
- 	struct hns_roce_dev *hr_dev = dev_id;
- 	struct device *dev = hr_dev->dev;
--	int int_work = 0;
-+	irqreturn_t int_work = IRQ_NONE;
- 	u32 int_st;
+-	struct hns_roce_dev *hr_dev = dev_id;
+-	struct device *dev = hr_dev->dev;
++	struct pci_dev *pdev = hr_dev->pci_dev;
++	struct hnae3_ae_dev *ae_dev = pci_get_drvdata(pdev);
++	const struct hnae3_ae_ops *ops = ae_dev->ops;
+ 	irqreturn_t int_work = IRQ_NONE;
+-	u32 int_st;
  	u32 int_en;
  
-@@ -6013,7 +6014,7 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- 		int_en |= 1 << HNS_ROCE_V2_VF_ABN_INT_EN_S;
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
+-	/* Abnormal interrupt */
+-	int_st = roce_read(hr_dev, ROCEE_VF_ABN_INT_ST_REG);
+ 	int_en = roce_read(hr_dev, ROCEE_VF_ABN_INT_EN_REG);
  
--		int_work = 1;
-+		int_work = IRQ_HANDLED;
+ 	if (int_st & BIT(HNS_ROCE_V2_VF_INT_ST_AEQ_OVERFLOW_S)) {
+-		struct pci_dev *pdev = hr_dev->pci_dev;
+-		struct hnae3_ae_dev *ae_dev = pci_get_drvdata(pdev);
+-		const struct hnae3_ae_ops *ops = ae_dev->ops;
+-
+-		dev_err(dev, "AEQ overflow!\n");
++		dev_err(hr_dev->dev, "AEQ overflow!\n");
+ 
+ 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG,
+ 			   1 << HNS_ROCE_V2_VF_INT_ST_AEQ_OVERFLOW_S);
+@@ -6016,12 +6011,28 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
+ 
+ 		int_work = IRQ_HANDLED;
  	} else {
- 		dev_err(dev, "There is no abnormal irq found!\n");
+-		dev_err(dev, "There is no abnormal irq found!\n");
++		dev_err(hr_dev->dev, "there is no basic abn irq found.\n");
  	}
+ 
+ 	return IRQ_RETVAL(int_work);
+ }
+ 
++static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
++{
++	struct hns_roce_dev *hr_dev = dev_id;
++	irqreturn_t int_work = IRQ_NONE;
++	u32 int_st;
++
++	int_st = roce_read(hr_dev, ROCEE_VF_ABN_INT_ST_REG);
++
++	if (int_st)
++		int_work = abnormal_interrupt_basic(hr_dev, int_st);
++	else
++		dev_err(hr_dev->dev, "there is no abnormal irq found.\n");
++
++	return IRQ_RETVAL(int_work);
++}
++
+ static void hns_roce_v2_int_mask_enable(struct hns_roce_dev *hr_dev,
+ 					int eq_num, u32 enable_flag)
+ {
 -- 
 2.33.0
 
