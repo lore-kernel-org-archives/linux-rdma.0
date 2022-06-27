@@ -2,113 +2,68 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71FC9C43334
-	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jun 2022 10:23:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08962CCA481
+	for <linux-rdma@archiver.kernel.org>; Mon, 27 Jun 2022 11:33:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233724AbiF0KXL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 27 Jun 2022 06:23:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34162 "EHLO
+        id S234468AbiF0Lds (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 27 Jun 2022 07:33:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231776AbiF0KXK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 27 Jun 2022 06:23:10 -0400
+        with ESMTP id S236238AbiF0Lda (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 27 Jun 2022 07:33:30 -0400
 Received: from mail-m2835.qiye.163.com (mail-m2835.qiye.163.com [103.74.28.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22BF72AC6
-        for <linux-rdma@vger.kernel.org>; Mon, 27 Jun 2022 03:23:08 -0700 (PDT)
-Received: from localhost (unknown [117.48.120.186])
-        by mail-m2835.qiye.163.com (Hmail) with ESMTPA id CBD938A0201;
-        Mon, 27 Jun 2022 18:23:06 +0800 (CST)
-Date:   Mon, 27 Jun 2022 18:23:03 +0800
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03AEBD10A
+        for <linux-rdma@vger.kernel.org>; Mon, 27 Jun 2022 04:30:41 -0700 (PDT)
+Received: from localhost.localdomain (unknown [117.48.120.186])
+        by mail-m2835.qiye.163.com (Hmail) with ESMTPA id 3AE268A014A;
+        Mon, 27 Jun 2022 19:30:39 +0800 (CST)
 From:   Tao Liu <thomas.liu@ucloud.cn>
-To:     Leon Romanovsky <leonro@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org, saeedm@nvidia.com, talgi@nvidia.com,
-        mgurtovoy@nvidia.com, jgg@nvidia.com, yaminf@nvidia.com
-Subject: Re: [PATCH RFC net] linux/dim: Fix divide 0 in RDMA DIM.
-Message-ID: <YrmFB2sNH8p/CqVU@FVFF87CCQ6LR.local>
-References: <20220623085858.42945-1-thomas.liu@ucloud.cn>
- <YrlfSnNNdjkaajAg@unreal>
- <YrluGtk3wawXlnag@FVFF87CCQ6LR.local>
- <Yrlw+j8dnvCUVa1y@unreal>
+To:     linux-rdma@vger.kernel.org
+Cc:     saeedm@nvidia.com, talgi@nvidia.com, leonro@nvidia.com,
+        mgurtovoy@nvidia.com, jgg@nvidia.com, yaminf@nvidia.com,
+        thomas.liu@ucloud.cn
+Subject: [PATCH v2] linux/dim: Fix divide 0 in RDMA DIM.
+Date:   Mon, 27 Jun 2022 19:30:36 +0800
+Message-Id: <20220627113036.1324-1-thomas.liu@ucloud.cn>
+X-Mailer: git-send-email 2.30.1 (Apple Git-130)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Yrlw+j8dnvCUVa1y@unreal>
+Content-Transfer-Encoding: 8bit
 X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-        tZV1koWUFJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVlDHRkdVhlJGk4dSExKGh1PH1UZERMWGhIXJBQOD1
-        lXWRgSC1lBWUpKTFVPQ1VKSUtVSkNNWVdZFhoPEhUdFFlBWU9LSFVKSktISkxVS1kG
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PTo6Hjo6TDIIPQkPQhM3ISwu
-        Ig4aCUNVSlVKTU5NSElOSENMSk9PVTMWGhIXVQ8TFBYaCFUXEg47DhgXFA4fVRgVRVlXWRILWUFZ
-        SkpMVU9DVUpJS1VKQ01ZV1kIAVlBSE1KTDcG
-X-HM-Tid: 0a81a4afb25b841dkuqwcbd938a0201
+        tZV1koWUFJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVlDHUseVk4eSExDGUJJGUwfGVUZERMWGhIXJBQOD1
+        lXWRgSC1lBWUpKTFVPQ1VKSUtVSkNNWVdZFhoPEhUdFFlBWU9LSFVKSktISkNVS1kG
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6PxQ6ISo5MjIRFwhRHBVMD0hC
+        FTAaCTBVSlVKTU5NSElCT0hCTU1KVTMWGhIXVQ8TFBYaCFUXEg47DhgXFA4fVRgVRVlXWRILWUFZ
+        SkpMVU9DVUpJS1VKQ01ZV1kIAVlBSk1DTzcG
+X-HM-Tid: 0a81a4ed8864841dkuqw3ae268a014a
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jun 27, 2022 at 11:57:30AM +0300, Leon Romanovsky wrote:
-> On Mon, Jun 27, 2022 at 04:45:14PM +0800, Tao Liu wrote:
-> > On Mon, Jun 27, 2022 at 10:42:02AM +0300, Leon Romanovsky wrote:
-> > > On Thu, Jun 23, 2022 at 04:58:58PM +0800, Tao Liu wrote:
-> > > > We hit a divide 0 error in ofed 5.1.2.3.7.1. But dim.c and
-> > > > rdma_dim.c seem same as upstream.
-> 
-> <...>
-> 
-> > > > Fixes: f4915455dcf0 ("linux/dim: Implement RDMA adaptive moderation (DIM)")
-> > > > Signed-off-by: Tao Liu <thomas.liu@ucloud.cn>
-> > > > ---
-> > > >  lib/dim/rdma_dim.c | 3 +++
-> > > >  1 file changed, 3 insertions(+)
-> > > 
-> > > I think that this change will be better as it won't change
-> > > decision order in rdma_dim_stats_compare()
-> > > 
-> > > diff --git a/include/linux/dim.h b/include/linux/dim.h
-> > > index b698266d0035..69ae238ec2dc 100644
-> > > --- a/include/linux/dim.h
-> > > +++ b/include/linux/dim.h
-> > > @@ -21,7 +21,7 @@
-> > >   * We consider 10% difference as significant.
-> > >   */
-> > >  #define IS_SIGNIFICANT_DIFF(val, ref) \
-> > > -       (((100UL * abs((val) - (ref))) / (ref)) > 10)
-> > > +       (ref && (((100UL * abs((val) - (ref))) / (ref)) > 10))
-> > >  
-> > >  /*
-> > >   * Calculate the gap between two values.
-> > > 
-> > > 
-> > Reviewed code in net_dim_stats_compare() and rdma_dim_stats_compare(), the
-> > crash point is the only place not covered 0 condition. So it maybe not
-> > need to change the macro.
-> 
-> Change in the macro ensures that we check cqe_ratio only when it is
-> needed.
-> 
-> Can you please resubmit?
-> 
-Yes, I will. Thanks for your comment.
+We hit a divide 0 error in ofed 5.1.2.3.7.1. It is caused in
+rdma_dim_stats_compare() when prev->cpe_ratio == 0.
 
-> Thanks
-> 
-> > 
-> > But I am not familiar with the algorithm, and not sure what is the right
-> > return value.
-> > > > 
-> > > > diff --git a/lib/dim/rdma_dim.c b/lib/dim/rdma_dim.c
-> > > > index 15462d54758d..a657b106343c 100644
-> > > > --- a/lib/dim/rdma_dim.c
-> > > > +++ b/lib/dim/rdma_dim.c
-> > > > @@ -34,6 +34,9 @@ static int rdma_dim_stats_compare(struct dim_stats *curr,
-> > > >  		return (curr->cpms > prev->cpms) ? DIM_STATS_BETTER :
-> > > >  						DIM_STATS_WORSE;
-> > > >  
-> > > > +	if (!prev->cpe_ratio)
-> > > > +		return DIM_STATS_SAME;
-> > > > +
-> > > >  	if (IS_SIGNIFICANT_DIFF(curr->cpe_ratio, prev->cpe_ratio))
-> > > >  		return (curr->cpe_ratio > prev->cpe_ratio) ? DIM_STATS_BETTER :
-> > > >  						DIM_STATS_WORSE;
-> > > > -- 
-> > > > 2.30.1 (Apple Git-130)
-> > > > 
-> > > 
-> 
+dim.c and rdma_dim.c in ofed share same code with upstream.
+We check the 0 case in IS_SIGNIFICANT_DIFF(), and do not change
+decision order.
+
+Signed-off-by: Tao Liu <thomas.liu@ucloud.cn>
+---
+ include/linux/dim.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/dim.h b/include/linux/dim.h
+index b698266d0035..6c5733981563 100644
+--- a/include/linux/dim.h
++++ b/include/linux/dim.h
+@@ -21,7 +21,7 @@
+  * We consider 10% difference as significant.
+  */
+ #define IS_SIGNIFICANT_DIFF(val, ref) \
+-	(((100UL * abs((val) - (ref))) / (ref)) > 10)
++	((ref) && (((100UL * abs((val) - (ref))) / (ref)) > 10))
+ 
+ /*
+  * Calculate the gap between two values.
+-- 
+2.30.1 (Apple Git-130)
+
