@@ -2,125 +2,115 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0F55CCA483
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Jun 2022 08:28:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C071CCA47F
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Jun 2022 13:38:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244915AbiF1I2F (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Jun 2022 04:28:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50828 "EHLO
+        id S1346754AbiF1NhW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Jun 2022 09:37:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343982AbiF1I1l (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Jun 2022 04:27:41 -0400
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2793F0C;
-        Tue, 28 Jun 2022 01:27:39 -0700 (PDT)
-Received: from fraeml707-chm.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LXHkl0stbz6GDGM;
-        Tue, 28 Jun 2022 16:26:55 +0800 (CST)
-Received: from lhreml724-chm.china.huawei.com (10.201.108.75) by
- fraeml707-chm.china.huawei.com (10.206.15.35) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Tue, 28 Jun 2022 10:27:37 +0200
-Received: from [10.126.174.22] (10.126.174.22) by
- lhreml724-chm.china.huawei.com (10.201.108.75) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Tue, 28 Jun 2022 09:27:36 +0100
-Message-ID: <b530d4ac-2d7b-0989-c5da-6b6351a0a68f@huawei.com>
-Date:   Tue, 28 Jun 2022 09:27:37 +0100
+        with ESMTP id S1346613AbiF1NhA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Jun 2022 09:37:00 -0400
+Received: from mail-qv1-xf33.google.com (mail-qv1-xf33.google.com [IPv6:2607:f8b0:4864:20::f33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 532F12AC75
+        for <linux-rdma@vger.kernel.org>; Tue, 28 Jun 2022 06:36:54 -0700 (PDT)
+Received: by mail-qv1-xf33.google.com with SMTP id c1so19892285qvi.11
+        for <linux-rdma@vger.kernel.org>; Tue, 28 Jun 2022 06:36:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=gN4ZNyT9GRZ46Vwx3CUzNgwGxKE3ptwelsb3O/2waMc=;
+        b=SRPS2zIET11DP06FAnMANUW30rX+F+KLnmvgpItTZuHDiHMYbx191l+udZ0BIKVo+p
+         DUqKNFcRnPxEdciA9v/rjMoUuUABeinU5a59o91m7mO0ei+LjGwfeqP1sFK6bST4r2Sc
+         +kwNrequilw+r3whlSvEqjUrw7uEou8aBEv26lUqmckZs7QEO1gxqNAIdKmR6ixdoBBW
+         VwXL+VitONeiHER4+6czyOuvux/gSa01CsajOGl6xQeKgTZdOU9/PF5ai6yeP3/8Na6A
+         VkyCaiWAoLiX3IML+rZ/qAH9obhof6Stg3VEpk4n7D6sOfmWV6A4zI2itZ9nI+NyrBEn
+         GAtg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=gN4ZNyT9GRZ46Vwx3CUzNgwGxKE3ptwelsb3O/2waMc=;
+        b=c4pnTlK3jBDvc1nogEHIKYxhiINqTPCCF5mwi9GN1hn4kV/E7GU8Mb3PuWIb+bQwUa
+         m2NUNnoLw4H46T3QOKTRCL7qME3LWDjaPlFUCn6HeoF6VZP8nsmpThpqWyppKhxxeFjw
+         h41LkBTI89x/3dlVbePPQkAtt8jA/fA2cUuFdgepoK+WI6s0+finXyLFhOfFp0YVX/M2
+         19D+UoG+ClSWMehhVCmB3mwmNX68YKngWnSgUlglU1P2T5gKeybKYg9b+aemVBpBPhju
+         1Tn7dYl2YOY4BED9mU75+24P3XeIY62y47Z/i/CUH5/7zoy4bhiF4/whL9ihAVXXvT1F
+         D5bg==
+X-Gm-Message-State: AJIora+d9//Z7YfKWfuW/Mue37sSpkquzB9ALzTQBy/VPMNw24D+omDQ
+        XH8oGmIPy48kHr679YF43BXEEg==
+X-Google-Smtp-Source: AGRyM1uooXTVlKXYemR9EvbrrQp4i2XA4BpQT09bjvN7I6xIwm3cKCnpXCNHNGqwd+HxVz52pv3Omw==
+X-Received: by 2002:ac8:5b0d:0:b0:31b:f519:4107 with SMTP id m13-20020ac85b0d000000b0031bf5194107mr1237416qtw.331.1656423413317;
+        Tue, 28 Jun 2022 06:36:53 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
+        by smtp.gmail.com with ESMTPSA id s10-20020a05620a29ca00b006a79479657fsm708363qkp.108.2022.06.28.06.36.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 28 Jun 2022 06:36:52 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1o6BOd-002vAA-VA; Tue, 28 Jun 2022 10:36:51 -0300
+Date:   Tue, 28 Jun 2022 10:36:51 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc:     Daniel Borkmann <daniel@iogearbox.net>,
+        Kees Cook <keescook@chromium.org>,
+        linux-kernel@vger.kernel.org, x86@kernel.org, dm-devel@redhat.com,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-s390@vger.kernel.org, kvm@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        netdev@vger.kernel.org, bpf@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, linux-can@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org,
+        linux1394-devel@lists.sourceforge.net, io-uring@vger.kernel.org,
+        lvs-devel@vger.kernel.org, linux-mtd@lists.infradead.org,
+        kasan-dev@googlegroups.com, linux-mmc@vger.kernel.org,
+        nvdimm@lists.linux.dev, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-perf-users@vger.kernel.org,
+        linux-raid@vger.kernel.org, linux-sctp@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-arm-kernel@lists.infradead.org, linux-scsi@vger.kernel.org,
+        target-devel@vger.kernel.org, linux-usb@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        v9fs-developer@lists.sourceforge.net, linux-rdma@vger.kernel.org,
+        alsa-devel@alsa-project.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH][next] treewide: uapi: Replace zero-length arrays with
+ flexible-array members
+Message-ID: <20220628133651.GO23621@ziepe.ca>
+References: <20220627180432.GA136081@embeddedor>
+ <6bc1e94c-ce1d-a074-7d0c-8dbe6ce22637@iogearbox.net>
+ <20220628004052.GM23621@ziepe.ca>
+ <20220628005825.GA161566@embeddedor>
+ <20220628022129.GA8452@embeddedor>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.6.1
-Subject: Re: [PATCH v2 0/6] blk-mq: Add a flag for reserved requests series
-To:     <axboe@kernel.dk>
-CC:     <linux-doc@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linux-mmc@vger.kernel.org>, <linux-nvme@lists.infradead.org>,
-        <linux-s390@vger.kernel.org>, <linux-scsi@vger.kernel.org>,
-        <mpi3mr-linuxdrv.pdl@broadcom.com>, <linux-block@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <nbd@other.debian.org>,
-        <damien.lemoal@opensource.wdc.com>, <jejb@linux.ibm.com>,
-        <hch@lst.de>, <martin.petersen@oracle.com>, <kartilak@cisco.com>,
-        <bvanassche@acm.org>, <satishkh@cisco.com>, <hare@suse.de>,
-        <sebaddel@cisco.com>
-References: <1655810143-67784-1-git-send-email-john.garry@huawei.com>
-From:   John Garry <john.garry@huawei.com>
-In-Reply-To: <1655810143-67784-1-git-send-email-john.garry@huawei.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.126.174.22]
-X-ClientProxiedBy: lhreml726-chm.china.huawei.com (10.201.108.77) To
- lhreml724-chm.china.huawei.com (10.201.108.75)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220628022129.GA8452@embeddedor>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 21/06/2022 12:15, John Garry wrote:
+On Tue, Jun 28, 2022 at 04:21:29AM +0200, Gustavo A. R. Silva wrote:
 
-Hi Jens,
+> > > Though maybe we could just switch off -Wgnu-variable-sized-type-not-at-end  during configuration ?
 
-about this series, would you be ok to pick this up for merging? Do you 
-find the changes acceptable?
+> We need to think in a different strategy.
 
-Thanks,
-John
+I think we will need to switch off the warning in userspace - this is
+doable for rdma-core.
 
-> In [0] I included "blk-mq: Add a flag for reserved requests" to identify
-> if a request is 'reserved' for special handling. Doing this is easier than
-> passing a 'reserved' arg to the blk_mq_ops callbacks. Indeed, only 1x
-> timeout implementation or blk-mq iter function actually uses the
-> 'reserved' arg (or 3x if you count SCSI core and FNIC SCSI driver). So
-> this series drops the 'reserved' arg for these timeout and iter functions.
-> Christoph suggested that I try to upstream now.
-> 
-> Differences to v1:
-> - Use "scsi_timeout" as name for SCSI timeout function and update docs
-> - Add RB tags (thanks!)
-> - Split out patch to drop local variables for 'reserved', as requested by
->    Bart
-> 
-> Based on following:
-> 6dbcddf6e76b (block/for-5.20/block) block: bfq: Fix kernel-doc headers
-> 
-> [0] https://lore.kernel.org/linux-scsi/1654770559-101375-1-git-send-email-john.garry@huawei.com/T/#m22aa9f89e55835edc2e650d43f7e3219a3a1a324
-> 
-> John Garry (6):
->    scsi: core: Remove reserved request time-out handling
->    blk-mq: Add a flag for reserved requests
->    blk-mq: Drop blk_mq_ops.timeout 'reserved' arg
->    scsi: fnic: Drop reserved request handling
->    blk-mq: Drop 'reserved' arg of busy_tag_iter_fn
->    blk-mq: Drop local variable for reserved tag
-> 
->   Documentation/scsi/scsi_eh.rst          |  3 +--
->   Documentation/scsi/scsi_mid_low_api.rst |  2 +-
->   block/blk-mq-debugfs.c                  |  2 +-
->   block/blk-mq-tag.c                      | 13 +++++--------
->   block/blk-mq.c                          | 22 +++++++++++++---------
->   block/bsg-lib.c                         |  2 +-
->   drivers/block/mtip32xx/mtip32xx.c       | 11 +++++------
->   drivers/block/nbd.c                     |  5 ++---
->   drivers/block/null_blk/main.c           |  2 +-
->   drivers/infiniband/ulp/srp/ib_srp.c     |  3 +--
->   drivers/mmc/core/queue.c                |  3 +--
->   drivers/nvme/host/apple.c               |  3 +--
->   drivers/nvme/host/core.c                |  2 +-
->   drivers/nvme/host/fc.c                  |  6 ++----
->   drivers/nvme/host/nvme.h                |  2 +-
->   drivers/nvme/host/pci.c                 |  2 +-
->   drivers/nvme/host/rdma.c                |  3 +--
->   drivers/nvme/host/tcp.c                 |  3 +--
->   drivers/s390/block/dasd.c               |  2 +-
->   drivers/s390/block/dasd_int.h           |  2 +-
->   drivers/scsi/aacraid/comminit.c         |  2 +-
->   drivers/scsi/aacraid/linit.c            |  2 +-
->   drivers/scsi/fnic/fnic_scsi.c           | 14 ++++----------
->   drivers/scsi/hosts.c                    | 14 ++++++--------
->   drivers/scsi/mpi3mr/mpi3mr_os.c         | 16 ++++------------
->   drivers/scsi/scsi_error.c               |  6 +++---
->   drivers/scsi/scsi_lib.c                 |  8 --------
->   drivers/scsi/scsi_priv.h                |  2 +-
->   include/linux/blk-mq.h                  | 10 ++++++++--
->   include/scsi/scsi_host.h                |  2 +-
->   30 files changed, 71 insertions(+), 98 deletions(-)
-> 
+On the other hand, if the goal is to enable the array size check
+compiler warning I would suggest focusing only on those structs that
+actually hit that warning in the kernel. IIRC infiniband doesn't
+trigger it because it just pointer casts the flex array to some other
+struct.
 
+It isn't actually an array it is a placeholder for a trailing
+structure, so it is never indexed.
+
+This is also why we hit the warning because the convient way for
+userspace to compose the message is to squash the header and trailer
+structs together in a super struct on the stack, then invoke the
+ioctl.
+
+Jason 
