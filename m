@@ -2,44 +2,44 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F718C433EF
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Jul 2022 20:54:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C1A9CCA47F
+	for <linux-rdma@archiver.kernel.org>; Sun,  3 Jul 2022 20:54:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232438AbiGCUy2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S232486AbiGCUy2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Sun, 3 Jul 2022 16:54:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51824 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230353AbiGCUy0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Jul 2022 16:54:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 731DF38B8;
-        Sun,  3 Jul 2022 13:54:25 -0700 (PDT)
+        with ESMTP id S229519AbiGCUy1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Jul 2022 16:54:27 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87C355581;
+        Sun,  3 Jul 2022 13:54:26 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 30572B803F5;
-        Sun,  3 Jul 2022 20:54:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7328C341C6;
-        Sun,  3 Jul 2022 20:54:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 235B3611B8;
+        Sun,  3 Jul 2022 20:54:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70FE7C341CB;
+        Sun,  3 Jul 2022 20:54:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1656881662;
-        bh=qUoDcuRP5vkIgGERNRI+Z7Y6twPYrygl3Z+F74ezNC8=;
+        s=k20201202; t=1656881665;
+        bh=YKK1KNzCTUm1o7hPTaB/4GkwUF8LldvKteTLBJp9ags=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=vNryQ8YncimG7JBi+2Peue2iYicMejHBeuIFpnAPuj+5kR4+fM6iXk6uOYNQEt1jx
-         cLJntOMmGsn//hAEbNdsy+S5lfF+T1wIWFcZ3EpqK7KkiZewFFLCiSOnGUV6P6Lnj+
-         cI1+hhJdXe447d9EMhGeH96dXJCEbe5eKVo+T6XtM/XbeXDR9sRxjYyKPcNNKmTyjH
-         dovCNCyOGN/nfbblGFG/iq+GKFzFQaKwcspV1FkNdw7oWiJTxjVLcmjS7Cwhqsb1/L
-         Bqo+knSS+TwI8s0wdq+Yr6nEaKhqDhu65gph7YpglPkafKwKlYDdQdCFDMz45MfomT
-         bEPg2nn7MYxDA==
+        b=lO3seAJkfmjE9pB71qGmwCcR72k6ctgQeYqI0ptYkPYQDPrYBlQzsjK3Xc63WjuLf
+         RpJupDau4Es+uUP55Sn/Q8d4fpGRVILhwG2pA1m+9BYCfMGAP/TImF5kVj6OSa1MxY
+         gK3t8PQhqwO32C717acik3drSSY6Lun3tRbU+CJM0qD5Htemk6Q6eqQ5Yly4C3QI/u
+         mn2oLoz6YKQeAMjV9vx5kLhYa2JVy5Nsnxu8UpHk5FWaSN7755CnIbsBqveg4AOxG7
+         a7125dvVUiWC3vOtLwHWgt7tFiMJdwl1xZZ5io3qqohq2CixbRMdUueO7NyR06thMB
+         hwIkO5FwNFZEQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Leon Romanovsky <leonro@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
 Cc:     Jason Gunthorpe <jgg@nvidia.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
         Maor Gottlieb <maorg@nvidia.com>
-Subject: [PATCH mlx5-next 1/5] net/mlx5: Expose the ability to point to any UID from shared UID
-Date:   Sun,  3 Jul 2022 13:54:03 -0700
-Message-Id: <20220703205407.110890-2-saeed@kernel.org>
+Subject: [PATCH rdma-next 4/5] RDMA/mlx5: Refactor get flow table function
+Date:   Sun,  3 Jul 2022 13:54:06 -0700
+Message-Id: <20220703205407.110890-5-saeed@kernel.org>
 X-Mailer: git-send-email 2.36.1
 In-Reply-To: <20220703205407.110890-1-saeed@kernel.org>
 References: <20220703205407.110890-1-saeed@kernel.org>
@@ -51,40 +51,91 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <mbloch@nvidia.com>
 
-Expose shared_object_to_user_object_allowed, this capability
-means an object created with shared UID can point to any UID.
+_get_flow_table() requires the entire matcher being passed
+while all it needs is the priority and namespace type.
+Pass the priority and namespace type directly instead.
 
 Signed-off-by: Mark Bloch <mbloch@nvidia.com>
 Reviewed-by: Maor Gottlieb <maorg@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/fs.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 8e87eb47f9dc..9321d774e2d8 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1371,7 +1371,9 @@ enum {
- };
+diff --git a/drivers/infiniband/hw/mlx5/fs.c b/drivers/infiniband/hw/mlx5/fs.c
+index 39ffb363ba0c..b1402aea29c1 100644
+--- a/drivers/infiniband/hw/mlx5/fs.c
++++ b/drivers/infiniband/hw/mlx5/fs.c
+@@ -1407,8 +1407,8 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
+ }
  
- struct mlx5_ifc_cmd_hca_cap_bits {
--	u8         reserved_at_0[0x1f];
-+	u8         reserved_at_0[0x10];
-+	u8         shared_object_to_user_object_allowed[0x1];
-+	u8         reserved_at_13[0xe];
- 	u8         vhca_resource_manager[0x1];
+ static struct mlx5_ib_flow_prio *
+-_get_flow_table(struct mlx5_ib_dev *dev,
+-		struct mlx5_ib_flow_matcher *fs_matcher,
++_get_flow_table(struct mlx5_ib_dev *dev, u16 user_priority,
++		enum mlx5_flow_namespace_type ns_type,
+ 		bool mcast)
+ {
+ 	struct mlx5_flow_namespace *ns = NULL;
+@@ -1421,11 +1421,11 @@ _get_flow_table(struct mlx5_ib_dev *dev,
+ 	if (mcast)
+ 		priority = MLX5_IB_FLOW_MCAST_PRIO;
+ 	else
+-		priority = ib_prio_to_core_prio(fs_matcher->priority, false);
++		priority = ib_prio_to_core_prio(user_priority, false);
  
- 	u8         hca_cap_2[0x1];
-@@ -8507,7 +8509,7 @@ struct mlx5_ifc_create_flow_table_out_bits {
+ 	esw_encap = mlx5_eswitch_get_encap_mode(dev->mdev) !=
+ 		DEVLINK_ESWITCH_ENCAP_MODE_NONE;
+-	switch (fs_matcher->ns_type) {
++	switch (ns_type) {
+ 	case MLX5_FLOW_NAMESPACE_BYPASS:
+ 		max_table_size = BIT(
+ 			MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev, log_max_ft_size));
+@@ -1452,17 +1452,17 @@ _get_flow_table(struct mlx5_ib_dev *dev,
+ 					       reformat_l3_tunnel_to_l2) &&
+ 		    esw_encap)
+ 			flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
+-		priority = fs_matcher->priority;
++		priority = user_priority;
+ 		break;
+ 	case MLX5_FLOW_NAMESPACE_RDMA_RX:
+ 		max_table_size = BIT(
+ 			MLX5_CAP_FLOWTABLE_RDMA_RX(dev->mdev, log_max_ft_size));
+-		priority = fs_matcher->priority;
++		priority = user_priority;
+ 		break;
+ 	case MLX5_FLOW_NAMESPACE_RDMA_TX:
+ 		max_table_size = BIT(
+ 			MLX5_CAP_FLOWTABLE_RDMA_TX(dev->mdev, log_max_ft_size));
+-		priority = fs_matcher->priority;
++		priority = user_priority;
+ 		break;
+ 	default:
+ 		break;
+@@ -1470,11 +1470,11 @@ _get_flow_table(struct mlx5_ib_dev *dev,
  
- struct mlx5_ifc_create_flow_table_in_bits {
- 	u8         opcode[0x10];
--	u8         reserved_at_10[0x10];
-+	u8         uid[0x10];
+ 	max_table_size = min_t(int, max_table_size, MLX5_FS_MAX_ENTRIES);
  
- 	u8         reserved_at_20[0x10];
- 	u8         op_mod[0x10];
+-	ns = mlx5_get_flow_namespace(dev->mdev, fs_matcher->ns_type);
++	ns = mlx5_get_flow_namespace(dev->mdev, ns_type);
+ 	if (!ns)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+-	switch (fs_matcher->ns_type) {
++	switch (ns_type) {
+ 	case MLX5_FLOW_NAMESPACE_BYPASS:
+ 		prio = &dev->flow_db->prios[priority];
+ 		break;
+@@ -1618,7 +1618,8 @@ static struct mlx5_ib_flow_handler *raw_fs_rule_add(
+ 	mcast = raw_fs_is_multicast(fs_matcher, cmd_in);
+ 	mutex_lock(&dev->flow_db->lock);
+ 
+-	ft_prio = _get_flow_table(dev, fs_matcher, mcast);
++	ft_prio = _get_flow_table(dev, fs_matcher->priority,
++				  fs_matcher->ns_type, mcast);
+ 	if (IS_ERR(ft_prio)) {
+ 		err = PTR_ERR(ft_prio);
+ 		goto unlock;
 -- 
 2.36.1
 
