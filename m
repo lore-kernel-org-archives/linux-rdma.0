@@ -2,44 +2,44 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 082ACC43334
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Jul 2022 20:54:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F415DCCA473
+	for <linux-rdma@archiver.kernel.org>; Sun,  3 Jul 2022 20:54:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229519AbiGCUya (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 3 Jul 2022 16:54:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51924 "EHLO
+        id S232564AbiGCUyc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 3 Jul 2022 16:54:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51984 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232515AbiGCUy2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Jul 2022 16:54:28 -0400
+        with ESMTP id S232625AbiGCUyb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Jul 2022 16:54:31 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F0DA5597;
-        Sun,  3 Jul 2022 13:54:27 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9829A5597;
+        Sun,  3 Jul 2022 13:54:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0FDEFB80CD1;
+        by ams.source.kernel.org (Postfix) with ESMTPS id C2373B80CD3;
+        Sun,  3 Jul 2022 20:54:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58C70C341C6;
         Sun,  3 Jul 2022 20:54:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 910E7C341C6;
-        Sun,  3 Jul 2022 20:54:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1656881664;
-        bh=KPNcxYuQm4DwJyLX2izxMH/T+Ps3FYgNHEaxDlj1t04=;
+        s=k20201202; t=1656881666;
+        bh=v1upxO6OKCZzmpinjkQuyX4DQQrtVyRo7txDCM4xESw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=tGFz0ca5UPlgJWakZ7CvNum6W5wMDKYYE0wLlCCLZTxkKNzigruAxl7UbaFY3S+HA
-         xmaZvvK8CdX/n+neZLVDWJ70faVRf7Q30nja7GpwfL+uU0ceWZ5B1cwdKP9TLjvXSc
-         yGT/9QOYDlEK0VRDJfgD8VAwtACcGCHHQ8HSs/7pDgfW4upZdMaZHMw6Qm0jmy7VjE
-         +83sMMzmu6pwqgo+QplUG5aGshpxePU26hh2INhJvqsVuaq/yThjxzxdR8mcnF7Npx
-         sd34+SINxxCccBab9AgMWql51jRsU3ePc/J6yFhXHzBb7kN2UcuiOcj8nGzaJWGgzI
-         7IaZdIzfsHIBw==
+        b=oR/io81qhuNJPZQATE8HdA9aR2NuTzkJqPIWG75UFNOVqQGmVcRBJPvX/QYkG3iio
+         S46yOVUBF93P21x5j451uvwGQVl0Ld62UfxZuUoxzRirlW3rQWc12tCuSicW4OemYi
+         HcHaL4EfOvKIY2tRdfELhcOQi63iatlL44xfFMgAjVZDmxQr+8KGjnNTzDRzf5hX38
+         nHWgas28iYPoeMwjXbEQendbMe/B3GdUuvYsrUNz5Ujdh883vlW9/ygIyUSTPGk0pc
+         WPoJBjzlfl/E1ZbXMTl0Vfc9XpS/vGTuRQx8UE0YxtYNw0DxHcyCq+4QkRxyZ+bjSE
+         bhdfhIqrgrWsQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Leon Romanovsky <leonro@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
 Cc:     Jason Gunthorpe <jgg@nvidia.com>, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
-        Alex Vesker <valex@nvidia.com>
-Subject: [PATCH mlx5-next 3/5] net/mlx5: fs, allow flow table creation with a UID
-Date:   Sun,  3 Jul 2022 13:54:05 -0700
-Message-Id: <20220703205407.110890-4-saeed@kernel.org>
+        Yishai Hadas <yishaih@nvidia.com>
+Subject: [PATCH rdma-next 5/5] RDMA/mlx5: Expose steering anchor to userspace
+Date:   Sun,  3 Jul 2022 13:54:07 -0700
+Message-Id: <20220703205407.110890-6-saeed@kernel.org>
 X-Mailer: git-send-email 2.36.1
 In-Reply-To: <20220703205407.110890-1-saeed@kernel.org>
 References: <20220703205407.110890-1-saeed@kernel.org>
@@ -51,223 +51,298 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <mbloch@nvidia.com>
 
-Add UID field to flow table attributes to allow creating flow tables
-with a non default (zero) uid.
+Expose a steering anchor per priority to allow users to re-inject
+packets back into default NIC pipeline for additional processing.
+
+MLX5_IB_METHOD_STEERING_ANCHOR_CREATE returns a flow table ID which
+a user can use to re-inject packets at a specific priority.
+
+A FTE (flow table entry) can be created and the flow table ID
+used as a destination.
+
+When a packet is taken into a RDMA-controlled steering domain (like
+software steering) there may be a need to insert the packet back into
+the default NIC pipeline. This exposes a flow table ID to the user that can
+be used as a destination in a flow table entry.
+
+With this new method priorities that are exposed to users via
+MLX5_IB_METHOD_FLOW_MATCHER_CREATE can be reached from a non-zero UID.
+
+As user-created flow tables (via RDMA DEVX) are created with a non-zero UID
+thus it's impossible to point to a NIC core flow table (core driver flow tables
+are created with UID value of zero) from userspace.
+Create flow tables that are exposed to users with the shared UID, this
+allows users to point to default NIC flow tables.
+
+Steering loops are prevented at FW level as FW enforces that no flow
+table at level X can point to a table at level lower than X.
 
 Signed-off-by: Mark Bloch <mbloch@nvidia.com>
-Reviewed-by: Alex Vesker <valex@nvidia.com>
+Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c | 16 ++++++++++------
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h |  2 +-
- .../net/ethernet/mellanox/mlx5/core/fs_core.c    |  2 +-
- .../mellanox/mlx5/core/steering/dr_cmd.c         |  1 +
- .../mellanox/mlx5/core/steering/dr_table.c       |  8 +++++---
- .../mellanox/mlx5/core/steering/dr_types.h       |  1 +
- .../ethernet/mellanox/mlx5/core/steering/fs_dr.c |  7 ++++---
- .../mellanox/mlx5/core/steering/mlx5dr.h         |  3 ++-
- include/linux/mlx5/fs.h                          |  1 +
- 9 files changed, 26 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx5/fs.c          | 138 ++++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h     |   6 +
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h |  17 +++
+ 3 files changed, 156 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 735dc805dad7..e735e19461ba 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -50,10 +50,12 @@ static int mlx5_cmd_stub_update_root_ft(struct mlx5_flow_root_namespace *ns,
+diff --git a/drivers/infiniband/hw/mlx5/fs.c b/drivers/infiniband/hw/mlx5/fs.c
+index b1402aea29c1..691d00c89f33 100644
+--- a/drivers/infiniband/hw/mlx5/fs.c
++++ b/drivers/infiniband/hw/mlx5/fs.c
+@@ -679,7 +679,15 @@ enum flow_table_type {
+ #define MLX5_FS_MAX_TYPES	 6
+ #define MLX5_FS_MAX_ENTRIES	 BIT(16)
  
- static int mlx5_cmd_stub_create_flow_table(struct mlx5_flow_root_namespace *ns,
- 					   struct mlx5_flow_table *ft,
--					   unsigned int size,
-+					   struct mlx5_flow_table_attr *ft_attr,
- 					   struct mlx5_flow_table *next_ft)
- {
--	ft->max_fte = size ? roundup_pow_of_two(size) : 1;
-+	int max_fte = ft_attr->max_fte;
+-static struct mlx5_ib_flow_prio *_get_prio(struct mlx5_flow_namespace *ns,
++static bool mlx5_ib_shared_ft_allowed(struct ib_device *device)
++{
++	struct mlx5_ib_dev *dev = to_mdev(device);
 +
-+	ft->max_fte = max_fte ? roundup_pow_of_two(max_fte) : 1;
++	return MLX5_CAP_GEN(dev->mdev, shared_object_to_user_object_allowed);
++}
++
++static struct mlx5_ib_flow_prio *_get_prio(struct mlx5_ib_dev *dev,
++					   struct mlx5_flow_namespace *ns,
+ 					   struct mlx5_ib_flow_prio *prio,
+ 					   int priority,
+ 					   int num_entries, int num_groups,
+@@ -688,6 +696,8 @@ static struct mlx5_ib_flow_prio *_get_prio(struct mlx5_flow_namespace *ns,
+ 	struct mlx5_flow_table_attr ft_attr = {};
+ 	struct mlx5_flow_table *ft;
  
++	if (mlx5_ib_shared_ft_allowed(&dev->ib_dev))
++		ft_attr.uid = MLX5_SHARED_RESOURCE_UID;
+ 	ft_attr.prio = priority;
+ 	ft_attr.max_fte = num_entries;
+ 	ft_attr.flags = flags;
+@@ -784,8 +794,8 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
+ 
+ 	ft = prio->flow_table;
+ 	if (!ft)
+-		return _get_prio(ns, prio, priority, max_table_size, num_groups,
+-				 flags);
++		return _get_prio(dev, ns, prio, priority, max_table_size,
++				 num_groups, flags);
+ 
+ 	return prio;
+ }
+@@ -927,7 +937,7 @@ int mlx5_ib_fs_add_op_fc(struct mlx5_ib_dev *dev, u32 port_num,
+ 
+ 	prio = &dev->flow_db->opfcs[type];
+ 	if (!prio->flow_table) {
+-		prio = _get_prio(ns, prio, priority,
++		prio = _get_prio(dev, ns, prio, priority,
+ 				 dev->num_ports * MAX_OPFC_RULES, 1, 0);
+ 		if (IS_ERR(prio)) {
+ 			err = PTR_ERR(prio);
+@@ -1499,7 +1509,7 @@ _get_flow_table(struct mlx5_ib_dev *dev, u16 user_priority,
+ 	if (prio->flow_table)
+ 		return prio;
+ 
+-	return _get_prio(ns, prio, priority, max_table_size,
++	return _get_prio(dev, ns, prio, priority, max_table_size,
+ 			 MLX5_FS_MAX_TYPES, flags);
+ }
+ 
+@@ -2016,6 +2026,23 @@ static int flow_matcher_cleanup(struct ib_uobject *uobject,
  	return 0;
  }
-@@ -258,7 +260,7 @@ static int mlx5_cmd_update_root_ft(struct mlx5_flow_root_namespace *ns,
  
- static int mlx5_cmd_create_flow_table(struct mlx5_flow_root_namespace *ns,
- 				      struct mlx5_flow_table *ft,
--				      unsigned int size,
-+				      struct mlx5_flow_table_attr *ft_attr,
- 				      struct mlx5_flow_table *next_ft)
++static int steering_anchor_cleanup(struct ib_uobject *uobject,
++				   enum rdma_remove_reason why,
++				   struct uverbs_attr_bundle *attrs)
++{
++	struct mlx5_ib_steering_anchor *obj = uobject->object;
++
++	if (atomic_read(&obj->usecnt))
++		return -EBUSY;
++
++	mutex_lock(&obj->dev->flow_db->lock);
++	put_flow_table(obj->dev, obj->ft_prio, true);
++	mutex_unlock(&obj->dev->flow_db->lock);
++
++	kfree(obj);
++	return 0;
++}
++
+ static int mlx5_ib_matcher_ns(struct uverbs_attr_bundle *attrs,
+ 			      struct mlx5_ib_flow_matcher *obj)
  {
- 	int en_encap = !!(ft->flags & MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT);
-@@ -267,17 +269,19 @@ static int mlx5_cmd_create_flow_table(struct mlx5_flow_root_namespace *ns,
- 	u32 out[MLX5_ST_SZ_DW(create_flow_table_out)] = {};
- 	u32 in[MLX5_ST_SZ_DW(create_flow_table_in)] = {};
- 	struct mlx5_core_dev *dev = ns->dev;
-+	unsigned int size;
- 	int err;
- 
--	if (size != POOL_NEXT_SIZE)
--		size = roundup_pow_of_two(size);
--	size = mlx5_ft_pool_get_avail_sz(dev, ft->type, size);
-+	if (ft_attr->max_fte != POOL_NEXT_SIZE)
-+		size = roundup_pow_of_two(ft_attr->max_fte);
-+	size = mlx5_ft_pool_get_avail_sz(dev, ft->type, ft_attr->max_fte);
- 	if (!size)
- 		return -ENOSPC;
- 
- 	MLX5_SET(create_flow_table_in, in, opcode,
- 		 MLX5_CMD_OP_CREATE_FLOW_TABLE);
- 
-+	MLX5_SET(create_flow_table_in, in, uid, ft_attr->uid);
- 	MLX5_SET(create_flow_table_in, in, table_type, ft->type);
- 	MLX5_SET(create_flow_table_in, in, flow_table_context.level, ft->level);
- 	MLX5_SET(create_flow_table_in, in, flow_table_context.log_size, size ? ilog2(size) : 0);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h
-index 274004e80f03..8ef4254b9ea1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h
-@@ -38,7 +38,7 @@
- struct mlx5_flow_cmds {
- 	int (*create_flow_table)(struct mlx5_flow_root_namespace *ns,
- 				 struct mlx5_flow_table *ft,
--				 unsigned int size,
-+				 struct mlx5_flow_table_attr *ft_attr,
- 				 struct mlx5_flow_table *next_ft);
- 	int (*destroy_flow_table)(struct mlx5_flow_root_namespace *ns,
- 				  struct mlx5_flow_table *ft);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 1da3dc7c95fa..35d89edb1bcd 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1155,7 +1155,7 @@ static struct mlx5_flow_table *__mlx5_create_flow_table(struct mlx5_flow_namespa
- 			      find_next_chained_ft(fs_prio);
- 	ft->def_miss_action = ns->def_miss_action;
- 	ft->ns = ns;
--	err = root->cmds->create_flow_table(root, ft, ft_attr->max_fte, next_ft);
-+	err = root->cmds->create_flow_table(root, ft, ft_attr, next_ft);
- 	if (err)
- 		goto free_ft;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_cmd.c
-index 223c8741b7ae..16d65fe4f654 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_cmd.c
-@@ -439,6 +439,7 @@ int mlx5dr_cmd_create_flow_table(struct mlx5_core_dev *mdev,
- 
- 	MLX5_SET(create_flow_table_in, in, opcode, MLX5_CMD_OP_CREATE_FLOW_TABLE);
- 	MLX5_SET(create_flow_table_in, in, table_type, attr->table_type);
-+	MLX5_SET(create_flow_table_in, in, uid, attr->uid);
- 
- 	ft_mdev = MLX5_ADDR_OF(create_flow_table_in, in, flow_table_context);
- 	MLX5_SET(flow_table_context, ft_mdev, termination_table, attr->term_tbl);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_table.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_table.c
-index e5f6412baea9..31d443dd8386 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_table.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_table.c
-@@ -214,7 +214,7 @@ static int dr_table_destroy_sw_owned_tbl(struct mlx5dr_table *tbl)
- 					     tbl->table_type);
+@@ -2122,6 +2149,75 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(
+ 	return err;
  }
  
--static int dr_table_create_sw_owned_tbl(struct mlx5dr_table *tbl)
-+static int dr_table_create_sw_owned_tbl(struct mlx5dr_table *tbl, u16 uid)
- {
- 	bool en_encap = !!(tbl->flags & MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT);
- 	bool en_decap = !!(tbl->flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
-@@ -236,6 +236,7 @@ static int dr_table_create_sw_owned_tbl(struct mlx5dr_table *tbl)
- 	ft_attr.sw_owner = true;
- 	ft_attr.decap_en = en_decap;
- 	ft_attr.reformat_en = en_encap;
-+	ft_attr.uid = uid;
++static int UVERBS_HANDLER(MLX5_IB_METHOD_STEERING_ANCHOR_CREATE)(
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *uobj = uverbs_attr_get_uobject(
++		attrs, MLX5_IB_ATTR_STEERING_ANCHOR_CREATE_HANDLE);
++	struct mlx5_ib_dev *dev = mlx5_udata_to_mdev(&attrs->driver_udata);
++	enum mlx5_ib_uapi_flow_table_type ib_uapi_ft_type;
++	enum mlx5_flow_namespace_type ns_type;
++	struct mlx5_ib_steering_anchor *obj;
++	struct mlx5_ib_flow_prio *ft_prio;
++	u16 priority;
++	u32 ft_id;
++	int err;
++
++	if (!capable(CAP_NET_RAW))
++		return -EPERM;
++
++	err = uverbs_get_const(&ib_uapi_ft_type, attrs,
++			       MLX5_IB_ATTR_STEERING_ANCHOR_FT_TYPE);
++	if (err)
++		return err;
++
++	err = mlx5_ib_ft_type_to_namespace(ib_uapi_ft_type, &ns_type);
++	if (err)
++		return err;
++
++	err = uverbs_copy_from(&priority, attrs,
++			       MLX5_IB_ATTR_STEERING_ANCHOR_PRIORITY);
++	if (err)
++		return err;
++
++	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
++	if (!obj)
++		return -ENOMEM;
++
++	mutex_lock(&dev->flow_db->lock);
++	ft_prio = _get_flow_table(dev, priority, ns_type, 0);
++	if (IS_ERR(ft_prio)) {
++		mutex_unlock(&dev->flow_db->lock);
++		err = PTR_ERR(ft_prio);
++		goto free_obj;
++	}
++
++	ft_prio->refcount++;
++	ft_id = mlx5_flow_table_id(ft_prio->flow_table);
++	mutex_unlock(&dev->flow_db->lock);
++
++	err = uverbs_copy_to(attrs, MLX5_IB_ATTR_STEERING_ANCHOR_FT_ID,
++			     &ft_id, sizeof(ft_id));
++	if (err)
++		goto put_flow_table;
++
++	uobj->object = obj;
++	obj->dev = dev;
++	obj->ft_prio = ft_prio;
++	atomic_set(&obj->usecnt, 0);
++
++	return 0;
++
++put_flow_table:
++	mutex_lock(&dev->flow_db->lock);
++	put_flow_table(dev, ft_prio, true);
++	mutex_unlock(&dev->flow_db->lock);
++free_obj:
++	kfree(obj);
++
++	return err;
++}
++
+ static struct ib_flow_action *
+ mlx5_ib_create_modify_header(struct mlx5_ib_dev *dev,
+ 			     enum mlx5_ib_uapi_flow_table_type ft_type,
+@@ -2478,6 +2574,35 @@ DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_FLOW_MATCHER,
+ 			    &UVERBS_METHOD(MLX5_IB_METHOD_FLOW_MATCHER_CREATE),
+ 			    &UVERBS_METHOD(MLX5_IB_METHOD_FLOW_MATCHER_DESTROY));
  
- 	ret = mlx5dr_cmd_create_flow_table(tbl->dmn->mdev, &ft_attr,
- 					   NULL, &tbl->table_id);
-@@ -243,7 +244,8 @@ static int dr_table_create_sw_owned_tbl(struct mlx5dr_table *tbl)
- 	return ret;
- }
++DECLARE_UVERBS_NAMED_METHOD(
++	MLX5_IB_METHOD_STEERING_ANCHOR_CREATE,
++	UVERBS_ATTR_IDR(MLX5_IB_ATTR_STEERING_ANCHOR_CREATE_HANDLE,
++			MLX5_IB_OBJECT_STEERING_ANCHOR,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_CONST_IN(MLX5_IB_ATTR_STEERING_ANCHOR_FT_TYPE,
++			     enum mlx5_ib_uapi_flow_table_type,
++			     UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_STEERING_ANCHOR_PRIORITY,
++			   UVERBS_ATTR_TYPE(u16),
++			   UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_STEERING_ANCHOR_FT_ID,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(
++	MLX5_IB_METHOD_STEERING_ANCHOR_DESTROY,
++	UVERBS_ATTR_IDR(MLX5_IB_ATTR_STEERING_ANCHOR_DESTROY_HANDLE,
++			MLX5_IB_OBJECT_STEERING_ANCHOR,
++			UVERBS_ACCESS_DESTROY,
++			UA_MANDATORY));
++
++DECLARE_UVERBS_NAMED_OBJECT(
++	MLX5_IB_OBJECT_STEERING_ANCHOR,
++	UVERBS_TYPE_ALLOC_IDR(steering_anchor_cleanup),
++	&UVERBS_METHOD(MLX5_IB_METHOD_STEERING_ANCHOR_CREATE),
++	&UVERBS_METHOD(MLX5_IB_METHOD_STEERING_ANCHOR_DESTROY));
++
+ const struct uapi_definition mlx5_ib_flow_defs[] = {
+ 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(
+ 		MLX5_IB_OBJECT_FLOW_MATCHER),
+@@ -2486,6 +2611,9 @@ const struct uapi_definition mlx5_ib_flow_defs[] = {
+ 		&mlx5_ib_fs),
+ 	UAPI_DEF_CHAIN_OBJ_TREE(UVERBS_OBJECT_FLOW_ACTION,
+ 				&mlx5_ib_flow_actions),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(
++		MLX5_IB_OBJECT_STEERING_ANCHOR,
++		UAPI_DEF_IS_OBJ_SUPPORTED(mlx5_ib_shared_ft_allowed)),
+ 	{},
+ };
  
--struct mlx5dr_table *mlx5dr_table_create(struct mlx5dr_domain *dmn, u32 level, u32 flags)
-+struct mlx5dr_table *mlx5dr_table_create(struct mlx5dr_domain *dmn, u32 level,
-+					 u32 flags, u16 uid)
- {
- 	struct mlx5dr_table *tbl;
- 	int ret;
-@@ -263,7 +265,7 @@ struct mlx5dr_table *mlx5dr_table_create(struct mlx5dr_domain *dmn, u32 level, u
- 	if (ret)
- 		goto free_tbl;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 998b67509a53..c067db25fadd 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -259,6 +259,12 @@ struct mlx5_ib_flow_matcher {
+ 	u8			match_criteria_enable;
+ };
  
--	ret = dr_table_create_sw_owned_tbl(tbl);
-+	ret = dr_table_create_sw_owned_tbl(tbl, uid);
- 	if (ret)
- 		goto uninit_tbl;
++struct mlx5_ib_steering_anchor {
++	struct mlx5_ib_flow_prio *ft_prio;
++	struct mlx5_ib_dev *dev;
++	atomic_t usecnt;
++};
++
+ struct mlx5_ib_pp {
+ 	u16 index;
+ 	struct mlx5_core_dev *mdev;
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+index e539c84d63f1..3bee490eb585 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+@@ -228,6 +228,7 @@ enum mlx5_ib_objects {
+ 	MLX5_IB_OBJECT_VAR,
+ 	MLX5_IB_OBJECT_PP,
+ 	MLX5_IB_OBJECT_UAR,
++	MLX5_IB_OBJECT_STEERING_ANCHOR,
+ };
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
-index 98320e3945ad..50b0dd4fb4a9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_types.h
-@@ -1200,6 +1200,7 @@ struct mlx5dr_cmd_query_flow_table_details {
+ enum mlx5_ib_flow_matcher_create_attrs {
+@@ -248,6 +249,22 @@ enum mlx5_ib_flow_matcher_methods {
+ 	MLX5_IB_METHOD_FLOW_MATCHER_DESTROY,
+ };
  
- struct mlx5dr_cmd_create_flow_table_attr {
- 	u32 table_type;
-+	u16 uid;
- 	u64 icm_addr_rx;
- 	u64 icm_addr_tx;
- 	u8 level;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/fs_dr.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/fs_dr.c
-index 6a9abba92df6..c30ed8e18458 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/fs_dr.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/fs_dr.c
-@@ -62,7 +62,7 @@ static int set_miss_action(struct mlx5_flow_root_namespace *ns,
- 
- static int mlx5_cmd_dr_create_flow_table(struct mlx5_flow_root_namespace *ns,
- 					 struct mlx5_flow_table *ft,
--					 unsigned int size,
-+					 struct mlx5_flow_table_attr *ft_attr,
- 					 struct mlx5_flow_table *next_ft)
- {
- 	struct mlx5dr_table *tbl;
-@@ -71,7 +71,7 @@ static int mlx5_cmd_dr_create_flow_table(struct mlx5_flow_root_namespace *ns,
- 
- 	if (mlx5_dr_is_fw_table(ft->flags))
- 		return mlx5_fs_cmd_get_fw_cmds()->create_flow_table(ns, ft,
--								    size,
-+								    ft_attr,
- 								    next_ft);
- 	flags = ft->flags;
- 	/* turn off encap/decap if not supported for sw-str by fw */
-@@ -79,7 +79,8 @@ static int mlx5_cmd_dr_create_flow_table(struct mlx5_flow_root_namespace *ns,
- 		flags = ft->flags & ~(MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT |
- 				      MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
- 
--	tbl = mlx5dr_table_create(ns->fs_dr_domain.dr_domain, ft->level, flags);
-+	tbl = mlx5dr_table_create(ns->fs_dr_domain.dr_domain, ft->level, flags,
-+				  ft_attr->uid);
- 	if (!tbl) {
- 		mlx5_core_err(ns->dev, "Failed creating dr flow_table\n");
- 		return -EINVAL;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5dr.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5dr.h
-index 7626c85643b1..3bb14860b36d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5dr.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/mlx5dr.h
-@@ -51,7 +51,8 @@ void mlx5dr_domain_set_peer(struct mlx5dr_domain *dmn,
- 			    struct mlx5dr_domain *peer_dmn);
- 
- struct mlx5dr_table *
--mlx5dr_table_create(struct mlx5dr_domain *domain, u32 level, u32 flags);
-+mlx5dr_table_create(struct mlx5dr_domain *domain, u32 level, u32 flags,
-+		    u16 uid);
- 
- struct mlx5dr_table *
- mlx5dr_table_get_from_fs_ft(struct mlx5_flow_table *ft);
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index eee07d416b56..8e73c377da2c 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -178,6 +178,7 @@ struct mlx5_flow_table_attr {
- 	int max_fte;
- 	u32 level;
- 	u32 flags;
-+	u16 uid;
- 	struct mlx5_flow_table *next_ft;
- 
- 	struct {
++enum mlx5_ib_flow_steering_anchor_create_attrs {
++	MLX5_IB_ATTR_STEERING_ANCHOR_CREATE_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_ATTR_STEERING_ANCHOR_FT_TYPE,
++	MLX5_IB_ATTR_STEERING_ANCHOR_PRIORITY,
++	MLX5_IB_ATTR_STEERING_ANCHOR_FT_ID,
++};
++
++enum mlx5_ib_flow_steering_anchor_destroy_attrs {
++	MLX5_IB_ATTR_STEERING_ANCHOR_DESTROY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++};
++
++enum mlx5_ib_steering_anchor_methods {
++	MLX5_IB_METHOD_STEERING_ANCHOR_CREATE = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_METHOD_STEERING_ANCHOR_DESTROY,
++};
++
+ enum mlx5_ib_device_query_context_attrs {
+ 	MLX5_IB_ATTR_QUERY_CONTEXT_RESP_UCTX = (1U << UVERBS_ID_NS_SHIFT),
+ };
 -- 
 2.36.1
 
