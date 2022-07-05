@@ -2,105 +2,97 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94537C43334
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Jul 2022 14:09:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE388C43334
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Jul 2022 14:52:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231875AbiGEOJv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Jul 2022 10:09:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32932 "EHLO
+        id S231513AbiGEOwX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Jul 2022 10:52:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232955AbiGEOJd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Jul 2022 10:09:33 -0400
-Received: from mail-qt1-x833.google.com (mail-qt1-x833.google.com [IPv6:2607:f8b0:4864:20::833])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F8161F614
-        for <linux-rdma@vger.kernel.org>; Tue,  5 Jul 2022 07:00:01 -0700 (PDT)
-Received: by mail-qt1-x833.google.com with SMTP id l14so13742918qtx.2
-        for <linux-rdma@vger.kernel.org>; Tue, 05 Jul 2022 07:00:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:content-transfer-encoding:in-reply-to;
-        bh=H/M96SwcQ+6khO48rEPFSqALYdOSCMlS7OhwhehnpdA=;
-        b=brYM99p9J57tehMqH2FEM9lh530WXbLxP3KXVvJRF0M9nONH/qUbxLbddBo/8Gn2e9
-         Ww268+3prNMkVhSCQbBJjHMW0XWwyznNC25bLE6VRLnhBKYDGcXycCI+/GBz0tRhd2wf
-         1zadSrqdUdx0sfRB9YDwWxHxmyUmZ9VCvZyuXzUiA+HGH1TFKJjTp7M4iUJ9v1EPVwPm
-         c9HpvLLq7TTAqxIMLDliSjHzxtLUdOVIi2oMDOA978BMpRrAg+rs4/1NrLVAmVBXnYGj
-         r+E/qdo+BxZVSfILZaYdvODeNhL9ZUCllRUqCruUeLE5kAhR8WP65yjjoD1Hu8nR+JUK
-         X8OA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=H/M96SwcQ+6khO48rEPFSqALYdOSCMlS7OhwhehnpdA=;
-        b=7D0nD2mliBALJFadaqmLDLiXRHPPAs0AIthjoo/sAsjkmQigf4JtUCsBYMV2MXyNdm
-         xnV0daJpHomuW0QUGA4jUBPfVe7TWYUM+afzk9y3Che25qczArsIKcKAlO3bf9ge9vfs
-         EY/7pA/EeTAC2DMsqxWV4le6hCaZEIefQ1l3AVSSkCN+G3eFBSrfsAhuWW6HjTTWhfOg
-         jrQUMpk3xHCPfzP8AkonuSyDdaTj2aLATZRcRD4+FAjsSeprU7ABJbqYuhnzWu2GoVAH
-         c1dY1BV5XA9QxuIIcsxGmZIOqKa1v66EXUmTFX+Acn4y+UPTAbjKVDvAdaF7f/XPEzR5
-         wGfA==
-X-Gm-Message-State: AJIora9QRuAm1/jYJo4P2fhhQyK8tIxqEQVSJvRLtDIHboPrAlayzEEf
-        f5QCv+CAmJ/gARsmtTOAEbz4JA==
-X-Google-Smtp-Source: AGRyM1vC+kAl4Hs+KYuXewDTo4F9Ekh8JT0omYuIrPnqITdKEE24mWy66ih99f+FdepJeJUTD9/BdA==
-X-Received: by 2002:a05:622a:449:b0:31e:7949:9927 with SMTP id o9-20020a05622a044900b0031e79499927mr6842434qtx.604.1657029600634;
-        Tue, 05 Jul 2022 07:00:00 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
-        by smtp.gmail.com with ESMTPSA id 142-20020a370994000000b006a73cb957dasm25909819qkj.20.2022.07.05.06.59.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Jul 2022 06:59:59 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1o8j5r-006Vb8-Ai; Tue, 05 Jul 2022 10:59:59 -0300
-Date:   Tue, 5 Jul 2022 10:59:59 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     haris iqbal <haris.phnx@gmail.com>
-Cc:     "Pearson, Robert B" <robert.pearson2@hpe.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>,
-        "aleksei.marov@ionos.com" <aleksei.marov@ionos.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "haris.iqbal@ionos.com" <haris.iqbal@ionos.com>,
-        "jinpu.wang@ionos.com" <jinpu.wang@ionos.com>,
-        "rpearsonhpe@gmail.com" <rpearsonhpe@gmail.com>
-Subject: Re: [PATCH] RDMA/rxe: For invalidate compare keys according to the
- MR access
-Message-ID: <20220705135959.GG23621@ziepe.ca>
-References: <20220629164946.521293-1-haris.phnx@gmail.com>
- <20220629183445.GV23621@ziepe.ca>
- <MW4PR84MB2307EB091065A95A6972C41FBCBB9@MW4PR84MB2307.NAMPRD84.PROD.OUTLOOK.COM>
- <20220629184432.GW23621@ziepe.ca>
- <MW4PR84MB23074C9D7F136278F37FD7FEBCBB9@MW4PR84MB2307.NAMPRD84.PROD.OUTLOOK.COM>
- <CAE_WKMzMi7A5qYp71ez=4E1BxcUNYCDeYq4DmFjxWMoHYRusAA@mail.gmail.com>
+        with ESMTP id S229995AbiGEOwX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Jul 2022 10:52:23 -0400
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 486F013E29
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Jul 2022 07:52:22 -0700 (PDT)
+IronPort-Data: =?us-ascii?q?A9a23=3Agsiu1a5hzzpnuGZSAeU94wxRtNjFchMFZxGqfqr?=
+ =?us-ascii?q?LsXjdYENS1DMPmGRMC2COOviMYzHyLdAgPIq/ox8EuceEm4c3Hgc5pCpnJ55og?=
+ =?us-ascii?q?ZCbXIzGdC8cHM8zwvXrFRsht4NHAjX5BJhcokT0+1H9YtANkVEmjfvSHuCkUba?=
+ =?us-ascii?q?dUsxMbVQMpBkJ2EsLd9ER0tYAbeiRW2thiPuqyyHtEAbNNw1cbgr435m+RCZH5?=
+ =?us-ascii?q?5wejt+3UmsWPpintHeG/5Uc4Ql2yauZdxMUSaEMdgK2qnqq8V23wo/Z109F5tK?=
+ =?us-ascii?q?NmbC9fFAIQ6LJIE6FjX8+t6qK20AE/3JtlP1gcqd0hUR/0l1lm/hgwdNCpdqyW?=
+ =?us-ascii?q?C8nI6/NhP8AFRJfFkmSOIUfouCdcSLl65z7I0ruNiGEL+9VJFsuMIQC4eFxAXl?=
+ =?us-ascii?q?D3fMdITEJKBuEgoqe0qO5WPhu3Jx7dOHkOYoevjdryjSxJfIrRpbrQKjQ49Jcm?=
+ =?us-ascii?q?jAqiahmGffYetpcczZqZTzebBBVfFQaEpQzmKGvnHaXWz9Xp3qHpKcv7i7YxWR?=
+ =?us-ascii?q?MPBLFWDbOUoXSA5wLwQDD/SSbl1kVyyoybLS3oQdpOFr27gMXoR7GZQ=3D=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A8KZURquQ3YX0nc2xg+9oV3gz7skDktV00zEX?=
+ =?us-ascii?q?/kB9WHVpmszxra6TdZMgpHnJYVcqKQgdcL+7WJVoLUmxyXcx2/h1AV7AZniAhI?=
+ =?us-ascii?q?LLFvAA0WKK+VSJcEeSygce79YFT0EUMrzN5DZB4voSmDPIcerI3uP3jZyAtKPP?=
+ =?us-ascii?q?yWt3VwF2Z+VF5wd9MAySFUp7X2B9dOEEPavZ9sxavCChZHhSSsy6A0MOV+/Fq8?=
+ =?us-ascii?q?aOu4nhZXc9dmQawTjLnTW186T7DhTd+h8fVglEybAk/XOAsyGR3NTaj82G?=
+X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
+   d="scan'208";a="127282228"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 05 Jul 2022 22:52:21 +0800
+Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
+        by cn.fujitsu.com (Postfix) with ESMTP id 52BFE4D17179;
+        Tue,  5 Jul 2022 22:52:20 +0800 (CST)
+Received: from G08CNEXCHPEKD08.g08.fujitsu.local (10.167.33.83) by
+ G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Tue, 5 Jul 2022 22:52:18 +0800
+Received: from localhost.localdomain (10.167.215.54) by
+ G08CNEXCHPEKD08.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Tue, 5 Jul 2022 22:52:21 +0800
+From:   Xiao Yang <yangx.jy@fujitsu.com>
+To:     <linux-rdma@vger.kernel.org>
+CC:     <leon@kernel.org>, <jgg@ziepe.ca>, <rpearsonhpe@gmail.com>,
+        <zyjzyj2000@gmail.com>, Xiao Yang <yangx.jy@fujitsu.com>
+Subject: [PATCH v2 2/2] RDMA/rxe: Rename rxe_atomic_reply to atomic_reply
+Date:   Tue, 5 Jul 2022 22:52:12 +0800
+Message-ID: <20220705145212.12014-2-yangx.jy@fujitsu.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220705145212.12014-1-yangx.jy@fujitsu.com>
+References: <20220705145212.12014-1-yangx.jy@fujitsu.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAE_WKMzMi7A5qYp71ez=4E1BxcUNYCDeYq4DmFjxWMoHYRusAA@mail.gmail.com>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-yoursite-MailScanner-ID: 52BFE4D17179.A72C9
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: yangx.jy@fujitsu.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 05, 2022 at 11:28:59AM +0200, haris iqbal wrote:
-> On Wed, Jun 29, 2022 at 8:48 PM Pearson, Robert B
-> <robert.pearson2@hpe.com> wrote:
-> >
-> > > > > If the rkey's and lkeys are always the same why do we store them twice in the mr ?
-> > > >
-> > > > They are not always the same currently. If you request remote access they are the same if you don't rkey is set to zero.
-> > > > You could, of course, check both the keys and the access bits but that is not the way it is written currently.
-> >
-> > > Storing the rkey instead of checking the flags seems like a weird obfuscation to me..
-> >
-> > > Jason
-> >
-> > One always has the choice to always just use the lkey and check the flags. But referring the rkey just uses one memory reference 😊
-> 
-> Have we reached a consensus here as to how to solve this?
-> 
-> This (and the issue created by dual map) has basically caused a
-> regression in RTRS since the 5.15. And we would appreciate it a lot if
-> the fix goes in and is backported.
+It's better to use the unified naming format.
 
-I think your patch is close, it should just be tweaked a bit.
+Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
+---
+ drivers/infiniband/sw/rxe/rxe_resp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Jason
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 5536582b8fe4..265e46fe050f 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -595,7 +595,7 @@ static struct resp_res *rxe_prepare_res(struct rxe_qp *qp,
+ /* Guarantee atomicity of atomic operations at the machine level. */
+ static DEFINE_SPINLOCK(atomic_ops_lock);
+ 
+-static enum resp_states rxe_atomic_reply(struct rxe_qp *qp,
++static enum resp_states atomic_reply(struct rxe_qp *qp,
+ 					 struct rxe_pkt_info *pkt)
+ {
+ 	u64 *vaddr;
+@@ -1333,7 +1333,7 @@ int rxe_responder(void *arg)
+ 			state = read_reply(qp, pkt);
+ 			break;
+ 		case RESPST_ATOMIC_REPLY:
+-			state = rxe_atomic_reply(qp, pkt);
++			state = atomic_reply(qp, pkt);
+ 			break;
+ 		case RESPST_ACKNOWLEDGE:
+ 			state = acknowledge(qp, pkt);
+-- 
+2.34.1
+
+
+
