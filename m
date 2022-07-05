@@ -2,188 +2,109 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A95EC433EF
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Jul 2022 11:46:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93281C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Jul 2022 13:15:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232303AbiGELqQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Jul 2022 07:46:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55790 "EHLO
+        id S231888AbiGENPr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Jul 2022 09:15:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232496AbiGELqP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Jul 2022 07:46:15 -0400
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 54BF017580
-        for <linux-rdma@vger.kernel.org>; Tue,  5 Jul 2022 04:46:14 -0700 (PDT)
-IronPort-Data: =?us-ascii?q?A9a23=3ACBsRuKI06jiqJQt5FE+RMZclxSXFcZb7ZxGrkP8?=
- =?us-ascii?q?bfHDq1Wkk3zUGm2JNDGnSOa2MYzT1L9F3Ptvkpk1S6JHVn4NqS1BcGVNFFSwT8?=
- =?us-ascii?q?ZWfbTi6wuYcBwvLd4ubChsPA/w2MrEsF+hpCC+MzvuRGuK59yMkj/nRHuOU5NP?=
- =?us-ascii?q?sYUideyc1EU/Ntjozw4bVsqYw6TSIK1vlVeHa+qUzC3f5s9JACV/43orYwP9ZU?=
- =?us-ascii?q?FsejxtD1rA2TagjUFYzDBD5BrpHTU26ByOQroW5goeHq+j/ILGRpgs1/j8mDJW?=
- =?us-ascii?q?rj7T6blYXBLXVOGBiiFIPA+773EcE/Xd0j87XN9JFAatToySAmd9hjtdcnZKtS?=
- =?us-ascii?q?wY1JbCKk+MYO/VdO3gkYvcZpuaYcRBTtuTWlSUqaUDE2e1jBVstOosY4utfDmR?=
- =?us-ascii?q?H9PheIzcIBjiRluCk0bDhErE0rssmJcjveogYvxlIyTzeC94lTIrFTqGM4sVXt?=
- =?us-ascii?q?B80h8ZTDbPEa88QQSRgYQ6GYBBVPFoTTpUkk4+AhHbwWy9ZpUqY46E+i1U/ZiQ?=
- =?us-ascii?q?ZPKPFaYKTI4LVA54O2Bvwm44PxEyhajlyCTBV4WPtHqqQu9Ly?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3Ar3vscampWnxQXTClkIQBb5jGHADpDfIQ3DAb?=
- =?us-ascii?q?v31ZSRFFG/Fw9vre+MjzsCWYtN9/Yh8dcK+7UpVoLUm8yXcX2/h1AV7BZniEhI?=
- =?us-ascii?q?LAFugLgrcKqAeQeREWmNQ86Y5QN4B6CPDVSWNxlNvG5mCDeOoI8Z2q97+JiI7l?=
- =?us-ascii?q?o0tQcQ=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="127276178"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 05 Jul 2022 19:46:10 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-        by cn.fujitsu.com (Postfix) with ESMTP id 246EC4D17179;
-        Tue,  5 Jul 2022 19:46:09 +0800 (CST)
-Received: from G08CNEXCHPEKD08.g08.fujitsu.local (10.167.33.83) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Tue, 5 Jul 2022 19:46:10 +0800
-Received: from localhost.localdomain (10.167.215.54) by
- G08CNEXCHPEKD08.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Tue, 5 Jul 2022 19:46:10 +0800
-From:   Xiao Yang <yangx.jy@fujitsu.com>
-To:     <linux-rdma@vger.kernel.org>
-CC:     <leon@kernel.org>, <jgg@ziepe.ca>, <rpearsonhpe@gmail.com>,
-        <zyjzyj2000@gmail.com>, Xiao Yang <yangx.jy@fujitsu.com>
-Subject: [PATCH 1/2] RDMA/rxe: Add common rxe_prepare_res()
-Date:   Tue, 5 Jul 2022 19:46:02 +0800
-Message-ID: <20220705114603.6768-1-yangx.jy@fujitsu.com>
-X-Mailer: git-send-email 2.34.1
+        with ESMTP id S231547AbiGENP1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Jul 2022 09:15:27 -0400
+Received: from mail-qt1-x82e.google.com (mail-qt1-x82e.google.com [IPv6:2607:f8b0:4864:20::82e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B5E935DC1
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Jul 2022 05:39:35 -0700 (PDT)
+Received: by mail-qt1-x82e.google.com with SMTP id l14so13398565qtx.2
+        for <linux-rdma@vger.kernel.org>; Tue, 05 Jul 2022 05:39:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=MV/9robfJ8dyu1dzaK7LWHNMYMEjsO1EwYVbeXZRAbk=;
+        b=OogdDWH7Cz1tYCj8sXZquslNIbgXiTkWCg6YZwVFVw1Vm9fbVxgkCoLz9+p6UVNYYC
+         oZYiE6gGxNIbLNrcQkQCfLOXCkExR+vFekIHKLdSYAwTS2t00Ln/w5v3R9EccL6pJLSg
+         ZOEjcfm1n0zQgpoBKKOlrAV4r/dJ0NNWLaVW0wLcEMYc1WK7eBOSub1lTOlLEZc7kthD
+         cDbg0cfUe06wq6qh0OSbNGiFcVapWRPEn87VUN4txRHP5R08y0HmjsvWjdId81vBxavT
+         izY0PsCfZ3GKY6EtRr9BnYxhYv6sgp8lm2sEOMtdLEOEvSNlZMgMSFNemUqy2eOoFbXq
+         pqxQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=MV/9robfJ8dyu1dzaK7LWHNMYMEjsO1EwYVbeXZRAbk=;
+        b=kvlURfPgZtQrw/T69RsDcJGELHHA6yOj1Ukt872PP+zXJ+OC5rnP7jfeOLWm3CxFpa
+         j/xEbE/zd24VqXRz/xeMzW5H1y4H5kTxbiG6ieEKEDh+caUR9ZZJ+NgM8sRykrAzk+O1
+         JN1XyVOmAhN8gX6W6ovSqyuj/z/hEVoD6bMlSxVpqlEJWvXHmOnCEdFRnC+4EVDApvTh
+         iOXDRxurXQe6qsPQSNi3gTHRInpMNPmVCNQZl7HwMxW42ZbykNSNUfzXOjShN6WjyjWV
+         k+goatNPcFPWPE5AhABrovCGp2ayEEgm+zXCXqzluF1gnHWMQ8QaZ/QRUTvFOnS8QrXo
+         wjwQ==
+X-Gm-Message-State: AJIora9iI7LGmM35bRU0Q0LfHcWdM2WJCzDrufyqBacusccy1s6WX/Mi
+        MJX1AK4s4RbxjkgkK1wIasYXQTchar7SmA==
+X-Google-Smtp-Source: AGRyM1vl/UolXvUCaPV0Ugru3PEs2Xxe7Q2FFWkRRZO5sxltcSVvDHIdMgZO4Y9yxM/vpysXbe6i/g==
+X-Received: by 2002:ac8:578a:0:b0:31d:3ca6:d7e0 with SMTP id v10-20020ac8578a000000b0031d3ca6d7e0mr16265174qta.181.1657024774610;
+        Tue, 05 Jul 2022 05:39:34 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
+        by smtp.gmail.com with ESMTPSA id bx15-20020a05622a090f00b0031c56d5f7e1sm13508248qtb.92.2022.07.05.05.39.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 Jul 2022 05:39:34 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1o8hq1-006TzK-Ez; Tue, 05 Jul 2022 09:39:33 -0300
+Date:   Tue, 5 Jul 2022 09:39:33 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Bart Van Assche <bvanassche@acm.org>
+Cc:     Hillf Danton <hdanton@sina.com>,
+        Mike Christie <michael.christie@oracle.com>,
+        "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: use-after-free in srpt_enable_tpg()
+Message-ID: <20220705123933.GD23621@ziepe.ca>
+References: <17649b9c-7e42-1625-8bc9-8ad333ab771c@fujitsu.com>
+ <ed7e268e-94c5-38b1-286d-e2cb10412334@acm.org>
+ <fbaca135-891c-7ff3-d7ac-bd79609849f5@oracle.com>
+ <20220701015934.1105-1-hdanton@sina.com>
+ <20220703021119.1109-1-hdanton@sina.com>
+ <20220704001157.1644-1-hdanton@sina.com>
+ <a671867f-153c-75a4-0f58-8dcb0d4f9c19@acm.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: 246EC4D17179.A79E4
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: yangx.jy@fujitsu.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a671867f-153c-75a4-0f58-8dcb0d4f9c19@acm.org>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Replace rxe_prepare_atomic_res() and rxe_prepare_read_res()
-with rxe_prepare_res().
+On Mon, Jul 04, 2022 at 09:34:07PM -0700, Bart Van Assche wrote:
+> On 7/3/22 17:11, Hillf Danton wrote:
+> > On Sun, 3 Jul 2022 07:55:05 -0700 Bart Van Assche wrote:
+> > > However, I'm not sure that would make a
+> > > significant difference since there is a similar while-loop in one of the
+> > > callers of srpt_remove_one() (disable_device() in the RDMA core).
+> > 
+> > Hehe... feel free to shed light on how the loop in RDMA core is currently
+> > making the loop in srpt more prone to uaf?
+> 
+> In my email I was referring to the following code in disable_device():
+> 
+>        wait_for_completion(&device->unreg_completion);
+> 
+> I think that code shows that device removal by the RDMA core is synchronous
+> in nature. Even if the ib_srpt source code would be modified such that the
+> objects referred by that code live longer, the wait loop in disable_device()
+> would wait for the ib_device reference counts to drop to zero.
 
-Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
----
- drivers/infiniband/sw/rxe/rxe_resp.c | 71 +++++++++++++---------------
- 1 file changed, 32 insertions(+), 39 deletions(-)
+That is not really the "ib_device" reference count it is the
+"registration" reference count.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index ccdfc1a6b659..5536582b8fe4 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -553,27 +553,48 @@ static enum resp_states write_data_in(struct rxe_qp *qp,
- 	return rc;
- }
- 
--/* Guarantee atomicity of atomic operations at the machine level. */
--static DEFINE_SPINLOCK(atomic_ops_lock);
--
--static struct resp_res *rxe_prepare_atomic_res(struct rxe_qp *qp,
--					       struct rxe_pkt_info *pkt)
-+static struct resp_res *rxe_prepare_res(struct rxe_qp *qp,
-+					struct rxe_pkt_info *pkt,
-+					int type)
- {
- 	struct resp_res *res;
-+	u32 pkts;
- 
- 	res = &qp->resp.resources[qp->resp.res_head];
- 	rxe_advance_resp_resource(qp);
- 	free_rd_atomic_resource(qp, res);
- 
--	res->type = RXE_ATOMIC_MASK;
--	res->first_psn = pkt->psn;
--	res->last_psn = pkt->psn;
--	res->cur_psn = pkt->psn;
-+	res->type = type;
- 	res->replay = 0;
- 
-+	switch (type) {
-+	case RXE_READ_MASK:
-+		res->read.va = qp->resp.va + qp->resp.offset;
-+		res->read.va_org = qp->resp.va + qp->resp.offset;
-+		res->read.resid = qp->resp.resid;
-+		res->read.length = qp->resp.resid;
-+		res->read.rkey = qp->resp.rkey;
-+
-+		pkts = max_t(u32, (reth_len(pkt) + qp->mtu - 1)/qp->mtu, 1);
-+		res->first_psn = pkt->psn;
-+		res->cur_psn = pkt->psn;
-+		res->last_psn = (pkt->psn + pkts - 1) & BTH_PSN_MASK;
-+
-+		res->state = rdatm_res_state_new;
-+		break;
-+	case RXE_ATOMIC_MASK:
-+		res->first_psn = pkt->psn;
-+		res->last_psn = pkt->psn;
-+		res->cur_psn = pkt->psn;
-+		break;
-+	}
-+
- 	return res;
- }
- 
-+/* Guarantee atomicity of atomic operations at the machine level. */
-+static DEFINE_SPINLOCK(atomic_ops_lock);
-+
- static enum resp_states rxe_atomic_reply(struct rxe_qp *qp,
- 					 struct rxe_pkt_info *pkt)
- {
-@@ -584,7 +605,7 @@ static enum resp_states rxe_atomic_reply(struct rxe_qp *qp,
- 	u64 value;
- 
- 	if (!res) {
--		res = rxe_prepare_atomic_res(qp, pkt);
-+		res = rxe_prepare_res(qp, pkt, RXE_ATOMIC_MASK);
- 		qp->resp.res = res;
- 	}
- 
-@@ -680,34 +701,6 @@ static struct sk_buff *prepare_ack_packet(struct rxe_qp *qp,
- 	return skb;
- }
- 
--static struct resp_res *rxe_prepare_read_res(struct rxe_qp *qp,
--					struct rxe_pkt_info *pkt)
--{
--	struct resp_res *res;
--	u32 pkts;
--
--	res = &qp->resp.resources[qp->resp.res_head];
--	rxe_advance_resp_resource(qp);
--	free_rd_atomic_resource(qp, res);
--
--	res->type = RXE_READ_MASK;
--	res->replay = 0;
--	res->read.va = qp->resp.va + qp->resp.offset;
--	res->read.va_org = qp->resp.va + qp->resp.offset;
--	res->read.resid = qp->resp.resid;
--	res->read.length = qp->resp.resid;
--	res->read.rkey = qp->resp.rkey;
--
--	pkts = max_t(u32, (reth_len(pkt) + qp->mtu - 1)/qp->mtu, 1);
--	res->first_psn = pkt->psn;
--	res->cur_psn = pkt->psn;
--	res->last_psn = (pkt->psn + pkts - 1) & BTH_PSN_MASK;
--
--	res->state = rdatm_res_state_new;
--
--	return res;
--}
--
- /**
-  * rxe_recheck_mr - revalidate MR from rkey and get a reference
-  * @qp: the qp
-@@ -778,7 +771,7 @@ static enum resp_states read_reply(struct rxe_qp *qp,
- 	struct rxe_mr *mr;
- 
- 	if (!res) {
--		res = rxe_prepare_read_res(qp, req_pkt);
-+		res = rxe_prepare_res(qp, req_pkt, RXE_READ_MASK);
- 		qp->resp.res = res;
- 	}
- 
--- 
-2.34.1
+IB has a system where drivers/ulp can create critical regions where
+the ib device must be registered using the ib_device_try_get()/put
+calls. "Must be registered" is useful in a number of places but should
+not be held for a long period.
 
+This is distinct from the normal struct device refcount that simply
+keeps the ib_device memory alive.
 
-
+Jason
