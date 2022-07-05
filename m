@@ -2,108 +2,93 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE679C433EF
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Jul 2022 06:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3C02C433EF
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Jul 2022 09:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229771AbiGEG0t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Jul 2022 02:26:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43090 "EHLO
+        id S229457AbiGEJaK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Jul 2022 05:30:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229817AbiGEG0o (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Jul 2022 02:26:44 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD41210FEE
-        for <linux-rdma@vger.kernel.org>; Mon,  4 Jul 2022 23:26:43 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6400,9594,10398"; a="263056999"
-X-IronPort-AV: E=Sophos;i="5.92,245,1650956400"; 
-   d="scan'208";a="263056999"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jul 2022 23:26:43 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,245,1650956400"; 
-   d="scan'208";a="649957465"
-Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by fmsmga008.fm.intel.com with ESMTP; 04 Jul 2022 23:26:42 -0700
-From:   yanjun.zhu@linux.dev
-To:     jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
-        yanjun.zhu@linux.dev
-Subject: [PATCHv2 1/1] RDMA/rxe: Fix BUG: KASAN: null-ptr-deref in rxe_qp_do_cleanup
-Date:   Tue,  5 Jul 2022 18:54:14 -0400
-Message-Id: <20220705225414.315478-1-yanjun.zhu@linux.dev>
-X-Mailer: git-send-email 2.27.0
+        with ESMTP id S229866AbiGEJ3h (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Jul 2022 05:29:37 -0400
+Received: from mail-lj1-x234.google.com (mail-lj1-x234.google.com [IPv6:2a00:1450:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CD7811143
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Jul 2022 02:29:27 -0700 (PDT)
+Received: by mail-lj1-x234.google.com with SMTP id a11so13772185ljb.5
+        for <linux-rdma@vger.kernel.org>; Tue, 05 Jul 2022 02:29:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=R//HU7C+165KJTyX+ItPsS4149nMZnC2T5iv7NY8pnk=;
+        b=NuQ0qf0LyVbbFBVOJ2Y8JxuPcZV00/xiTDL3ZxyoZpTXvq1qfsKxqOM9iXghqY/mRp
+         mNLjyI0exy/xs88kDSmuHAZcfKbnvdbogAd1tH6qZ0W1mQxVpk5c/pnlQm0Sem+t6/Pr
+         i6A48FooY4Sbge3nbshjZg0naCY3D2jwfhU9UGhTYudPX/VeFPNtrQ/qb37cX+8NAd1U
+         Y/seJfbMMrSdtztnWN3sSLi2ULVNL4gavOrZcp+0TQlwheL2AZLNzlTHWZxZ5JqLLMnw
+         T4oRrYOrpPJhHt57CsMsfKnYWIwVuUn5fRdkT2QpCkmxk9zSZxoihZAZaPfa6nu7Kwtf
+         9jzg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=R//HU7C+165KJTyX+ItPsS4149nMZnC2T5iv7NY8pnk=;
+        b=7uaxrzhhpGdpH57SCuB9eJMKP1vuRUle4teoaJHtejY8aXoFNCgU3hixvqznHxvC21
+         APbzDRYkrFgGCcHQZhMb2uO138aW/yqmWenKF1h6zHOHGrUtMZSWJ1RLVFzZytnD2n3m
+         IDyDKJYcTnkjTLk8L3LpCLbBC4fxMn2qqYKyC4SsU0gJau97b04ohCm8hiclNDYs/zR/
+         WnOOlu9jFUZzw67Lc6p5xuxtm3vouPv0leJjQxZ6LgthNqOXMR+R89lDfOTcEXAb878N
+         sNBA8wgfKH5FhvFJBVr6agL7SD6F8aVDDfowW6P7eCHMaXjY9KOvH1Uo8BQpjn0yYXi6
+         hbXw==
+X-Gm-Message-State: AJIora/1bKwxj7hOkO1YGMGk5mDQ3yElIWvdGH6+RqFu3DZDWjNk7R/2
+        94WstQYRCobM4hYPhsyRoESrJveDWhdF0namY2Q=
+X-Google-Smtp-Source: AGRyM1to7PSzB+eIu9/zgYMq6KFMTER5kB3TruzL5fFsTo3spSZHDr3r2Bqe62MmcOtUEibeGNAMxy9Ahd1or9CAnO8=
+X-Received: by 2002:a2e:7c07:0:b0:25a:73a0:4373 with SMTP id
+ x7-20020a2e7c07000000b0025a73a04373mr18983473ljc.409.1657013365300; Tue, 05
+ Jul 2022 02:29:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220629164946.521293-1-haris.phnx@gmail.com> <20220629183445.GV23621@ziepe.ca>
+ <MW4PR84MB2307EB091065A95A6972C41FBCBB9@MW4PR84MB2307.NAMPRD84.PROD.OUTLOOK.COM>
+ <20220629184432.GW23621@ziepe.ca> <MW4PR84MB23074C9D7F136278F37FD7FEBCBB9@MW4PR84MB2307.NAMPRD84.PROD.OUTLOOK.COM>
+In-Reply-To: <MW4PR84MB23074C9D7F136278F37FD7FEBCBB9@MW4PR84MB2307.NAMPRD84.PROD.OUTLOOK.COM>
+From:   haris iqbal <haris.phnx@gmail.com>
+Date:   Tue, 5 Jul 2022 11:28:59 +0200
+Message-ID: <CAE_WKMzMi7A5qYp71ez=4E1BxcUNYCDeYq4DmFjxWMoHYRusAA@mail.gmail.com>
+Subject: Re: [PATCH] RDMA/rxe: For invalidate compare keys according to the MR access
+To:     "Pearson, Robert B" <robert.pearson2@hpe.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>,
+        "aleksei.marov@ionos.com" <aleksei.marov@ionos.com>,
+        "leon@kernel.org" <leon@kernel.org>,
+        "haris.iqbal@ionos.com" <haris.iqbal@ionos.com>,
+        "jinpu.wang@ionos.com" <jinpu.wang@ionos.com>,
+        "rpearsonhpe@gmail.com" <rpearsonhpe@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
+On Wed, Jun 29, 2022 at 8:48 PM Pearson, Robert B
+<robert.pearson2@hpe.com> wrote:
+>
+> > > > If the rkey's and lkeys are always the same why do we store them tw=
+ice in the mr ?
+> > >
+> > > They are not always the same currently. If you request remote access =
+they are the same if you don't rkey is set to zero.
+> > > You could, of course, check both the keys and the access bits but tha=
+t is not the way it is written currently.
+>
+> > Storing the rkey instead of checking the flags seems like a weird obfus=
+cation to me..
+>
+> > Jason
+>
+> One always has the choice to always just use the lkey and check the flags=
+. But referring the rkey just uses one memory reference =F0=9F=98=8A
 
-The function rxe_create_qp calls rxe_qp_from_init. If some error
-occurs, the error handler of function rxe_qp_from_init will set
-both scq and rcq to NULL.
+Have we reached a consensus here as to how to solve this?
 
-Then rxe_create_qp calls rxe_put to handle qp. In the end,
-rxe_qp_do_cleanup is called by rxe_put. rxe_qp_do_cleanup directly
-accesses scq and rcq before checking them. This will cause 
-null-ptr-deref error.
-
-The call graph is as below:
-
-rxe_create_qp {
-  ...
-  rxe_qp_from_init {
-    ...
-  err1:
-    ...
-    qp->rcq = NULL;  <---rcq is set to NULL
-    qp->scq = NULL;  <---scq is set to NULL
-    ...
-  }
-        
-qp_init:
-  rxe_put{
-    ...
-    rxe_qp_do_cleanup {
-      ...
-      atomic_dec(&qp->scq->num_wq); <--- scq is accessed
-      ...
-      atomic_dec(&qp->rcq->num_wq); <--- rcq is accessed
-    }
-}
-
-Fixes: 4703b4f0d94a ("RDMA/rxe: Enforce IBA C11-17")
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
----
-V1->V2: Describe the error flows.
----
- drivers/infiniband/sw/rxe/rxe_qp.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index 22e9b85344c3..b79e1b43454e 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -804,13 +804,15 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
- 	if (qp->rq.queue)
- 		rxe_queue_cleanup(qp->rq.queue);
- 
--	atomic_dec(&qp->scq->num_wq);
--	if (qp->scq)
-+	if (qp->scq) {
-+		atomic_dec(&qp->scq->num_wq);
- 		rxe_put(qp->scq);
-+	}
- 
--	atomic_dec(&qp->rcq->num_wq);
--	if (qp->rcq)
-+	if (qp->rcq) {
-+		atomic_dec(&qp->rcq->num_wq);
- 		rxe_put(qp->rcq);
-+	}
- 
- 	if (qp->pd)
- 		rxe_put(qp->pd);
--- 
-2.34.1
-
+This (and the issue created by dual map) has basically caused a
+regression in RTRS since the 5.15. And we would appreciate it a lot if
+the fix goes in and is backported.
