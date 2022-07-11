@@ -2,205 +2,343 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6746C433EF
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 Jul 2022 13:13:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 762B8CCA47B
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 Jul 2022 13:13:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230107AbiGKNNa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S229501AbiGKNNa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 11 Jul 2022 09:13:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46772 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229665AbiGKNN3 (ORCPT
+        with ESMTP id S230103AbiGKNN3 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Jul 2022 09:13:29 -0400
-Received: from out30-57.freemail.mail.aliyun.com (out30-57.freemail.mail.aliyun.com [115.124.30.57])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14FCF3341D
-        for <linux-rdma@vger.kernel.org>; Mon, 11 Jul 2022 06:13:21 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R261e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VJ0frRz_1657545197;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VJ0frRz_1657545197)
+Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E07933A38
+        for <linux-rdma@vger.kernel.org>; Mon, 11 Jul 2022 06:13:23 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VJ1N4Lr_1657545201;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VJ1N4Lr_1657545201)
           by smtp.aliyun-inc.com;
-          Mon, 11 Jul 2022 21:13:18 +0800
+          Mon, 11 Jul 2022 21:13:21 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com,
         chengyou@linux.alibaba.com, tonylu@linux.alibaba.com,
         BMT@zurich.ibm.com, christophe.jaillet@wanadoo.fr
-Subject: [PATCH for-next v12 00/11] Elastic RDMA Adapter (ERDMA) driver
-Date:   Mon, 11 Jul 2022 21:13:05 +0800
-Message-Id: <20220711131316.3449-1-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next v12 03/11] RDMA/erdma: Add main include file
+Date:   Mon, 11 Jul 2022 21:13:08 +0800
+Message-Id: <20220711131316.3449-4-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.37.0
+In-Reply-To: <20220711131316.3449-1-chengyou@linux.alibaba.com>
+References: <20220711131316.3449-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello all,
+Add ERDMA driver main header file, defining internal used data structures
+and operations. The defined data structures includes *cmdq*, which is used
+as the communication channel between ERDMA driver and hardware.
 
-This v12 patch set introduces the Elastic RDMA Adapter (ERDMA) driver,
-which released in Apsara Conference 2021 by Alibaba. The PR of ERDMA
-userspace provider has already been created [1].
-
-ERDMA enables large-scale RDMA acceleration capability in Alibaba ECS
-environment, initially offered in g7re instance. It can improve the
-efficiency of large-scale distributed computing and communication
-significantly and expand dynamically with the cluster scale of Alibaba
-Cloud.
-
-ERDMA is a RDMA networking adapter based on the Alibaba MOC hardware. It
-works in the VPC network environment (overlay network), and uses iWarp
-transport protocol. ERDMA supports reliable connection (RC). ERDMA also
-supports both kernel space and user space verbs. Now we have already
-supported HPC/AI applications with libfabric, NoF and some other internal
-verbs libraries, such as xrdma, epsl, etc,.
-
-For the ECS instance with RDMA enabled, our MOC hardware generates two
-kinds of PCI devices: one for ERDMA, and one for the original net device
-(virtio-net). They are separated PCI devices.
-
-Fixed issues in v12:
-- Use the bitmap API to allocate bitmaps. (From Christophe)
-- Use the non-atomic bitmap API when applicable. (From Christophe)
-
-Fixed issues in v11:
-- Return -EIO when CMDQ response has error status.
-- Eliminate static checker warnings.
-
-Fixed issues in v10:
-- Remove unneeded semicolon in erdma_qp.c reported by Abcci Robot.
-- Remove duplicated include in erdma_cm.c reported by Abcci Robot.
-- Fix return value check in erdma_alloc_ucontext() reported by Hulk
-  Robot.
-- Sort the include headers.
-
-Fixed issues or changes in v9:
-- Refactor the implementation of netdev bind flow in erdma.
-- Remove the modification of iw_query_port due to the refactor.
-
-Fixed issues or changes in v8:
-- Sort the source order in drivers/infiniband/Kconfig.
-- Remove !CPU_BIG_ENDIAN in our Kconfig, and fix warnings reported by
-  sparse.
-- Remove rdma_link_ops implementation in erdma. Instead, we implement a
-  workqueue to handle the link operation after registering erdma device
-  successfully.
-
-Changes in v7:
-- Fix a wrong doorbell records' address calculation issue in
-  erdma_create_qp.
-- Fix a condition race issue when reporting IW_CM_EVENT_CONNECT_REQUEST
-  event in cm.
-- Sorry for a mmap_free implementation missing, we add it in this version.
-- Remove unnecessary reference to erdma_dev in erdma_ucontext.
-
-Changes in v6:
-- Rebase to the latest for-next code, and solve the compilation issues.
-
-Fixed issues or changes in v5:
-- Rename the reserved fields of structure definitions to improve
-  readability.
-- Remove some magic numbers and unnecessary initializations.
-- Fix some coding style format issues.
-- Fix some typos in comments.
-- No casting in the assignment if the function's returned pointer is
-  "void *".
-- Re-write the polling functions (cmdq cq, verbs cq, aeq and ceq), which
-  all check the valid bit in order to get next valid QE. This new
-  implementation is more simple. Thank Wenpeng.
-- Fix an issue reported by kernel test robot.
-- Some minor changes in code (such as removing SRQ definitions since we do
-  not support it yet).
-
-Fixed issues in v4:
-- Fix some typos.
-- Use __GFP_ZERO flags in dma_alloc_coherent, instead of memset after
-  buffer allocation.
-- Use one single polling function for AEQ and CEQ, before there had two.
-- Fix wrong iov_num when calling kernel_sendmsg.
-- Add necessary comment in erdma_cm.
-- Remove duplicated check in MPA processing function.
-- Always return 0 in erdma_query_port.
-- Directly return error code instead of assigning "ret", and then returning
-  "ret" in init_kernel_qp.
-
-Fixed issues or changes in v3:
-- Change char limit of column from 100 to 80.
-- Remove unnecessary field or structure definitions in erdma.h.
-- Use exactly type (bool, unsigned int) instead of "int" in erdma_dev.
-- Make ibdev and pci device having the same lifecycle. ERDMA will remain
-  an invalid port state until binded to the corresponding netdev.
-- ib_core: allow query_port when netdev is NULL for iWarp device.
-- Move large inline function in erdma.h to .c files.
-- Use dev_{info, warn, err} or ibdev_{info, warn, err} instead of
-  pr_{info, warn, err} function calls.
-- Remove print function calls in userspace-triggered paths.
-- Add necessary comments in CM part.
-- Remove unused entries in map_cqe_opcode[] table.
-- Use rdma_is_kernel_res instead of self-definitions.
-- Remove unsed resources counter in erdma_dev.
-- Use pgprot_device instead of pgprot_noncached in erdma_mmap.
-- Remove disassociate_ucontext interface implementation
-
-Fixed issues in v2:
-- No "extern" to function declarations.
-- No inline functions in .c files, no void casting for functions with
-  return values.
-- Based on siw's newest kernel version, rewrite the code (mainly CM and
-  CM related part) which originally based on an old siw version.
-- remove debugfs.
-- fix issues reported by kernel test robot.
-- Using RDMA_NLDEV_CMD_NEWLINK instead of binding in net notifiers.
-
-[1] https://github.com/linux-rdma/rdma-core/pull/1126
-
-Thanks,
-Cheng Xu
-
-Cheng Xu (11):
-  RDMA: Add ERDMA to rdma_driver_id definition
-  RDMA/erdma: Add the hardware related definitions
-  RDMA/erdma: Add main include file
-  RDMA/erdma: Add cmdq implementation
-  RDMA/erdma: Add event queue implementation
-  RDMA/erdma: Add verbs header file
-  RDMA/erdma: Add verbs implementation
-  RDMA/erdma: Add connection management (CM) support
-  RDMA/erdma: Add the erdma module
-  RDMA/erdma: Add the ABI definitions
-  RDMA/erdma: Add driver to kernel build environment
-
- MAINTAINERS                               |    8 +
- drivers/infiniband/Kconfig                |   15 +-
- drivers/infiniband/hw/Makefile            |    1 +
- drivers/infiniband/hw/erdma/Kconfig       |   12 +
- drivers/infiniband/hw/erdma/Makefile      |    4 +
- drivers/infiniband/hw/erdma/erdma.h       |  287 ++++
- drivers/infiniband/hw/erdma/erdma_cm.c    | 1430 ++++++++++++++++++++
- drivers/infiniband/hw/erdma/erdma_cm.h    |  167 +++
- drivers/infiniband/hw/erdma/erdma_cmdq.c  |  496 +++++++
- drivers/infiniband/hw/erdma/erdma_cq.c    |  205 +++
- drivers/infiniband/hw/erdma/erdma_eq.c    |  329 +++++
- drivers/infiniband/hw/erdma/erdma_hw.h    |  508 +++++++
- drivers/infiniband/hw/erdma/erdma_main.c  |  636 +++++++++
- drivers/infiniband/hw/erdma/erdma_qp.c    |  566 ++++++++
- drivers/infiniband/hw/erdma/erdma_verbs.c | 1460 +++++++++++++++++++++
- drivers/infiniband/hw/erdma/erdma_verbs.h |  342 +++++
- include/uapi/rdma/erdma-abi.h             |   49 +
- include/uapi/rdma/ib_user_ioctl_verbs.h   |    1 +
- 18 files changed, 6509 insertions(+), 7 deletions(-)
- create mode 100644 drivers/infiniband/hw/erdma/Kconfig
- create mode 100644 drivers/infiniband/hw/erdma/Makefile
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+---
+ drivers/infiniband/hw/erdma/erdma.h | 287 ++++++++++++++++++++++++++++
+ 1 file changed, 287 insertions(+)
  create mode 100644 drivers/infiniband/hw/erdma/erdma.h
- create mode 100644 drivers/infiniband/hw/erdma/erdma_cm.c
- create mode 100644 drivers/infiniband/hw/erdma/erdma_cm.h
- create mode 100644 drivers/infiniband/hw/erdma/erdma_cmdq.c
- create mode 100644 drivers/infiniband/hw/erdma/erdma_cq.c
- create mode 100644 drivers/infiniband/hw/erdma/erdma_eq.c
- create mode 100644 drivers/infiniband/hw/erdma/erdma_hw.h
- create mode 100644 drivers/infiniband/hw/erdma/erdma_main.c
- create mode 100644 drivers/infiniband/hw/erdma/erdma_qp.c
- create mode 100644 drivers/infiniband/hw/erdma/erdma_verbs.c
- create mode 100644 drivers/infiniband/hw/erdma/erdma_verbs.h
- create mode 100644 include/uapi/rdma/erdma-abi.h
 
+diff --git a/drivers/infiniband/hw/erdma/erdma.h b/drivers/infiniband/hw/erdma/erdma.h
+new file mode 100644
+index 000000000000..a75138f9e523
+--- /dev/null
++++ b/drivers/infiniband/hw/erdma/erdma.h
+@@ -0,0 +1,287 @@
++/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
++
++/* Authors: Cheng Xu <chengyou@linux.alibaba.com> */
++/*          Kai Shen <kaishen@linux.alibaba.com> */
++/* Copyright (c) 2020-2022, Alibaba Group. */
++
++#ifndef __ERDMA_H__
++#define __ERDMA_H__
++
++#include <linux/bitfield.h>
++#include <linux/netdevice.h>
++#include <linux/xarray.h>
++#include <rdma/ib_verbs.h>
++
++#include "erdma_hw.h"
++
++#define DRV_MODULE_NAME "erdma"
++#define ERDMA_NODE_DESC "Elastic RDMA(iWARP) stack"
++
++struct erdma_eq {
++	void *qbuf;
++	dma_addr_t qbuf_dma_addr;
++
++	spinlock_t lock;
++
++	u32 depth;
++
++	u16 ci;
++	u16 rsvd;
++
++	atomic64_t event_num;
++	atomic64_t notify_num;
++
++	u64 __iomem *db_addr;
++	u64 *db_record;
++};
++
++struct erdma_cmdq_sq {
++	void *qbuf;
++	dma_addr_t qbuf_dma_addr;
++
++	spinlock_t lock;
++
++	u32 depth;
++	u16 ci;
++	u16 pi;
++
++	u16 wqebb_cnt;
++
++	u64 *db_record;
++};
++
++struct erdma_cmdq_cq {
++	void *qbuf;
++	dma_addr_t qbuf_dma_addr;
++
++	spinlock_t lock;
++
++	u32 depth;
++	u32 ci;
++	u32 cmdsn;
++
++	u64 *db_record;
++
++	atomic64_t armed_num;
++};
++
++enum {
++	ERDMA_CMD_STATUS_INIT,
++	ERDMA_CMD_STATUS_ISSUED,
++	ERDMA_CMD_STATUS_FINISHED,
++	ERDMA_CMD_STATUS_TIMEOUT
++};
++
++struct erdma_comp_wait {
++	struct completion wait_event;
++	u32 cmd_status;
++	u32 ctx_id;
++	u16 sq_pi;
++	u8 comp_status;
++	u8 rsvd;
++	u32 comp_data[4];
++};
++
++enum {
++	ERDMA_CMDQ_STATE_OK_BIT = 0,
++	ERDMA_CMDQ_STATE_TIMEOUT_BIT = 1,
++	ERDMA_CMDQ_STATE_CTX_ERR_BIT = 2,
++};
++
++#define ERDMA_CMDQ_TIMEOUT_MS 15000
++#define ERDMA_REG_ACCESS_WAIT_MS 20
++#define ERDMA_WAIT_DEV_DONE_CNT 500
++
++struct erdma_cmdq {
++	unsigned long *comp_wait_bitmap;
++	struct erdma_comp_wait *wait_pool;
++	spinlock_t lock;
++
++	bool use_event;
++
++	struct erdma_cmdq_sq sq;
++	struct erdma_cmdq_cq cq;
++	struct erdma_eq eq;
++
++	unsigned long state;
++
++	struct semaphore credits;
++	u16 max_outstandings;
++};
++
++#define COMPROMISE_CC ERDMA_CC_CUBIC
++enum erdma_cc_alg {
++	ERDMA_CC_NEWRENO = 0,
++	ERDMA_CC_CUBIC,
++	ERDMA_CC_HPCC_RTT,
++	ERDMA_CC_HPCC_ECN,
++	ERDMA_CC_HPCC_INT,
++	ERDMA_CC_METHODS_NUM
++};
++
++struct erdma_devattr {
++	u32 fw_version;
++
++	unsigned char peer_addr[ETH_ALEN];
++
++	int numa_node;
++	enum erdma_cc_alg cc;
++	u32 grp_num;
++	u32 irq_num;
++
++	bool disable_dwqe;
++	u16 dwqe_pages;
++	u16 dwqe_entries;
++
++	u32 max_qp;
++	u32 max_send_wr;
++	u32 max_recv_wr;
++	u32 max_ord;
++	u32 max_ird;
++
++	u32 max_send_sge;
++	u32 max_recv_sge;
++	u32 max_sge_rd;
++	u32 max_cq;
++	u32 max_cqe;
++	u64 max_mr_size;
++	u32 max_mr;
++	u32 max_pd;
++	u32 max_mw;
++	u32 local_dma_key;
++};
++
++#define ERDMA_IRQNAME_SIZE 50
++
++struct erdma_irq {
++	char name[ERDMA_IRQNAME_SIZE];
++	u32 msix_vector;
++	cpumask_t affinity_hint_mask;
++};
++
++struct erdma_eq_cb {
++	bool ready;
++	void *dev; /* All EQs use this fields to get erdma_dev struct */
++	struct erdma_irq irq;
++	struct erdma_eq eq;
++	struct tasklet_struct tasklet;
++};
++
++struct erdma_resource_cb {
++	unsigned long *bitmap;
++	spinlock_t lock;
++	u32 next_alloc_idx;
++	u32 max_cap;
++};
++
++enum {
++	ERDMA_RES_TYPE_PD = 0,
++	ERDMA_RES_TYPE_STAG_IDX = 1,
++	ERDMA_RES_CNT = 2,
++};
++
++#define ERDMA_EXTRA_BUFFER_SIZE ERDMA_DB_SIZE
++#define WARPPED_BUFSIZE(size) ((size) + ERDMA_EXTRA_BUFFER_SIZE)
++
++struct erdma_dev {
++	struct ib_device ibdev;
++	struct net_device *netdev;
++	struct pci_dev *pdev;
++	struct notifier_block netdev_nb;
++
++	resource_size_t func_bar_addr;
++	resource_size_t func_bar_len;
++	u8 __iomem *func_bar;
++
++	struct erdma_devattr attrs;
++	/* physical port state (only one port per device) */
++	enum ib_port_state state;
++
++	/* cmdq and aeq use the same msix vector */
++	struct erdma_irq comm_irq;
++	struct erdma_cmdq cmdq;
++	struct erdma_eq aeq;
++	struct erdma_eq_cb ceqs[ERDMA_NUM_MSIX_VEC - 1];
++
++	spinlock_t lock;
++	struct erdma_resource_cb res_cb[ERDMA_RES_CNT];
++	struct xarray qp_xa;
++	struct xarray cq_xa;
++
++	u32 next_alloc_qpn;
++	u32 next_alloc_cqn;
++
++	spinlock_t db_bitmap_lock;
++	/* We provide max 64 uContexts that each has one SQ doorbell Page. */
++	DECLARE_BITMAP(sdb_page, ERDMA_DWQE_TYPE0_CNT);
++	/*
++	 * We provide max 496 uContexts that each has one SQ normal Db,
++	 * and one directWQE db。
++	 */
++	DECLARE_BITMAP(sdb_entry, ERDMA_DWQE_TYPE1_CNT);
++
++	atomic_t num_ctx;
++	struct list_head cep_list;
++};
++
++static inline void *get_queue_entry(void *qbuf, u32 idx, u32 depth, u32 shift)
++{
++	idx &= (depth - 1);
++
++	return qbuf + (idx << shift);
++}
++
++static inline struct erdma_dev *to_edev(struct ib_device *ibdev)
++{
++	return container_of(ibdev, struct erdma_dev, ibdev);
++}
++
++static inline u32 erdma_reg_read32(struct erdma_dev *dev, u32 reg)
++{
++	return readl(dev->func_bar + reg);
++}
++
++static inline u64 erdma_reg_read64(struct erdma_dev *dev, u32 reg)
++{
++	return readq(dev->func_bar + reg);
++}
++
++static inline void erdma_reg_write32(struct erdma_dev *dev, u32 reg, u32 value)
++{
++	writel(value, dev->func_bar + reg);
++}
++
++static inline void erdma_reg_write64(struct erdma_dev *dev, u32 reg, u64 value)
++{
++	writeq(value, dev->func_bar + reg);
++}
++
++static inline u32 erdma_reg_read32_filed(struct erdma_dev *dev, u32 reg,
++					 u32 filed_mask)
++{
++	u32 val = erdma_reg_read32(dev, reg);
++
++	return FIELD_GET(filed_mask, val);
++}
++
++int erdma_cmdq_init(struct erdma_dev *dev);
++void erdma_finish_cmdq_init(struct erdma_dev *dev);
++void erdma_cmdq_destroy(struct erdma_dev *dev);
++
++void erdma_cmdq_build_reqhdr(u64 *hdr, u32 mod, u32 op);
++int erdma_post_cmd_wait(struct erdma_cmdq *cmdq, u64 *req, u32 req_size,
++			u64 *resp0, u64 *resp1);
++void erdma_cmdq_completion_handler(struct erdma_cmdq *cmdq);
++
++int erdma_ceqs_init(struct erdma_dev *dev);
++void erdma_ceqs_uninit(struct erdma_dev *dev);
++void notify_eq(struct erdma_eq *eq);
++void *get_next_valid_eqe(struct erdma_eq *eq);
++
++int erdma_aeq_init(struct erdma_dev *dev);
++void erdma_aeq_destroy(struct erdma_dev *dev);
++
++void erdma_aeq_event_handler(struct erdma_dev *dev);
++void erdma_ceq_completion_handler(struct erdma_eq_cb *ceq_cb);
++
++#endif
 -- 
 2.27.0
 
