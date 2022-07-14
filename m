@@ -2,96 +2,104 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F6BAC43334
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jul 2022 06:15:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DCC9C43334
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jul 2022 09:44:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231337AbiGNGPi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 Jul 2022 02:15:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41624 "EHLO
+        id S238008AbiGNJoU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 Jul 2022 05:44:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230080AbiGNGPh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 Jul 2022 02:15:37 -0400
-Received: from mail-m974.mail.163.com (mail-m974.mail.163.com [123.126.97.4])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8854122532;
-        Wed, 13 Jul 2022 23:15:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=mzTq4
-        k3RFbV4JfE/JzliP1pvt1svDx3HGsgwfN7XyH0=; b=cRAfla81ldZRBhBfGEX77
-        DO2qbBdF4YYqfW55G2oc0d4knZTEBw8d53J8u9fujRXIPZe7xVTCeWNpXFJSmNE5
-        WuDESlpgBbVbKlqeBPHS+0OwYuU+LHq3tfOCmnfowOc7aFEtMTo2XV6BYkWuFZYX
-        TttXfHYBKFnxtd5qlKULvE=
-Received: from localhost.localdomain (unknown [123.112.69.106])
-        by smtp4 (Coremail) with SMTP id HNxpCgCnxs5qtM9ivPnrOQ--.60480S4;
-        Thu, 14 Jul 2022 14:15:17 +0800 (CST)
-From:   Jianglei Nie <niejianglei2021@163.com>
-To:     mkalderon@marvell.com, aelior@marvell.com, jgg@ziepe.ca,
-        leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jianglei Nie <niejianglei2021@163.com>
-Subject: [PATCH] RDMA/qedr: Fix potential memory leak in __qedr_alloc_mr()
-Date:   Thu, 14 Jul 2022 14:15:05 +0800
-Message-Id: <20220714061505.2342759-1-niejianglei2021@163.com>
-X-Mailer: git-send-email 2.25.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: HNxpCgCnxs5qtM9ivPnrOQ--.60480S4
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Zr1fuFyxKryrGFWrKF47CFg_yoW8WFWDpF
-        43Gr90vr45Xa1DWwn8Awn7ZFWfCa18Ka909r9Fv3savas8try09F18K347ZrykJFZ5Gr4f
-        Zr18Aw45CF409rJanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRDCz_UUUUU=
-X-Originating-IP: [123.112.69.106]
-X-CM-SenderInfo: xqlhyxxdqjzvrlsqjii6rwjhhfrp/1tbiPhU+jFxBtQusqQAAs-
+        with ESMTP id S229897AbiGNJoU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 Jul 2022 05:44:20 -0400
+Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB47C11C1A;
+        Thu, 14 Jul 2022 02:44:17 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=guwen@linux.alibaba.com;NM=1;PH=DS;RN=10;SR=0;TI=SMTPD_---0VJImA7W_1657791845;
+Received: from localhost(mailfrom:guwen@linux.alibaba.com fp:SMTPD_---0VJImA7W_1657791845)
+          by smtp.aliyun-inc.com;
+          Thu, 14 Jul 2022 17:44:14 +0800
+From:   Wen Gu <guwen@linux.alibaba.com>
+To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com
+Cc:     linux-s390@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH net-next v2 0/6] net/smc: Introduce virtually contiguous buffers for SMC-R
+Date:   Thu, 14 Jul 2022 17:43:59 +0800
+Message-Id: <1657791845-1060-1-git-send-email-guwen@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-__qedr_alloc_mr() allocates a memory chunk for "mr->info.pbl_table" with
-init_mr_info(). When rdma_alloc_tid() and rdma_register_tid() fail, "mr"
-is released while "mr->info.pbl_table" is not released, which will lead
-to a memory leak.
+On long-running enterprise production servers, high-order contiguous
+memory pages are usually very rare and in most cases we can only get
+fragmented pages.
 
-We should release the "mr->info.pbl_table" with qedr_free_pbl() when error
-occurs to fix the memory leak.
+When replacing TCP with SMC-R in such production scenarios, attempting
+to allocate high-order physically contiguous sndbufs and RMBs may result
+in frequent memory compaction, which will cause unexpected hung issue
+and further stability risks.
 
-Signed-off-by: Jianglei Nie <niejianglei2021@163.com>
----
- drivers/infiniband/hw/qedr/verbs.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+So this patch set is aimed to allow SMC-R link group to use virtually
+contiguous sndbufs and RMBs to avoid potential issues mentioned above.
+Whether to use physically or virtually contiguous buffers can be set
+by sysctl smcr_buf_type.
 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 03ed7c0fae50..d745ce9dc88a 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -3084,7 +3084,7 @@ static struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd,
- 		else
- 			DP_ERR(dev, "roce alloc tid returned error %d\n", rc);
- 
--		goto err0;
-+		goto err1;
- 	}
- 
- 	/* Index only, 18 bit long, lkey = itid << 8 | key */
-@@ -3108,7 +3108,7 @@ static struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd,
- 	rc = dev->ops->rdma_register_tid(dev->rdma_ctx, &mr->hw_mr);
- 	if (rc) {
- 		DP_ERR(dev, "roce register tid returned an error %d\n", rc);
--		goto err1;
-+		goto err2;
- 	}
- 
- 	mr->ibmr.lkey = mr->hw_mr.itid << 8 | mr->hw_mr.key;
-@@ -3117,8 +3117,10 @@ static struct qedr_mr *__qedr_alloc_mr(struct ib_pd *ibpd,
- 	DP_DEBUG(dev, QEDR_MSG_MR, "alloc frmr: %x\n", mr->ibmr.lkey);
- 	return mr;
- 
--err1:
-+err2:
- 	dev->ops->rdma_free_tid(dev->rdma_ctx, mr->hw_mr.itid);
-+err1:
-+	qedr_free_pbl(dev, &mr->info.pbl_info, mr->info.pbl_table);
- err0:
- 	kfree(mr);
- 	return ERR_PTR(rc);
+Note that using virtually contiguous buffers will bring an acceptable
+performance regression, which can be mainly divided into two parts:
+
+1) regression in data path, which is brought by additional address
+   translation of sndbuf by RNIC in Tx. But in general, translating
+   address through MTT is fast. According to qperf test, this part
+   regression is basically less than 10% in latency and bandwidth.
+   (see patch 5/6 for details)
+
+2) regression in buffer initialization and destruction path, which is
+   brought by additional MR operations of sndbufs. But thanks to link
+   group buffer reuse mechanism, the impact of this kind of regression
+   decreases as times of buffer reuse increases.
+
+Patch set overview:
+- Patch 1/6 and 2/6 mainly about simplifying and optimizing DMA sync
+  operation, which will reduce overhead on the data path, especially
+  when using virtually contiguous buffers;
+- Patch 3/6 and 4/6 introduce a sysctl smcr_buf_type to set the type
+  of buffers in new created link group;
+- Patch 5/6 allows SMC-R to use virtually contiguous sndbufs and RMBs,
+  including buffer creation, destruction, MR operation and access;
+- patch 6/6 extends netlink attribute for buffer type of SMC-R link group;
+
+v1->v2:
+- Patch 5/6 fixes build issue on 32bit;
+- Patch 3/6 adds description of new sysctl in smc-sysctl.rst;
+
+Guangguan Wang (2):
+  net/smc: remove redundant dma sync ops
+  net/smc: optimize for smc_sndbuf_sync_sg_for_device and
+    smc_rmb_sync_sg_for_cpu
+
+Wen Gu (4):
+  net/smc: Introduce a sysctl for setting SMC-R buffer type
+  net/smc: Use sysctl-specified types of buffers in new link group
+  net/smc: Allow virtually contiguous sndbufs or RMBs for SMC-R
+  net/smc: Extend SMC-R link group netlink attribute
+
+ Documentation/networking/smc-sysctl.rst |  13 ++
+ include/net/netns/smc.h                 |   1 +
+ include/uapi/linux/smc.h                |   1 +
+ net/smc/af_smc.c                        |  68 +++++++--
+ net/smc/smc_clc.c                       |   8 +-
+ net/smc/smc_clc.h                       |   2 +-
+ net/smc/smc_core.c                      | 246 +++++++++++++++++++++-----------
+ net/smc/smc_core.h                      |  20 ++-
+ net/smc/smc_ib.c                        |  44 +++++-
+ net/smc/smc_ib.h                        |   2 +
+ net/smc/smc_llc.c                       |  33 +++--
+ net/smc/smc_rx.c                        |  92 +++++++++---
+ net/smc/smc_sysctl.c                    |  11 ++
+ net/smc/smc_tx.c                        |  10 +-
+ 14 files changed, 404 insertions(+), 147 deletions(-)
+
 -- 
-2.25.1
+1.8.3.1
 
