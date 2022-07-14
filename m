@@ -2,25 +2,25 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32AE4CCA47B
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jul 2022 13:45:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19C92C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jul 2022 13:45:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230190AbiGNNps (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 Jul 2022 09:45:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42164 "EHLO
+        id S238901AbiGNNpt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 Jul 2022 09:45:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238901AbiGNNps (ORCPT
+        with ESMTP id S239331AbiGNNps (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 Jul 2022 09:45:48 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A32852890
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC9B0528A0
         for <linux-rdma@vger.kernel.org>; Thu, 14 Jul 2022 06:45:46 -0700 (PDT)
-Received: from dggpeml500021.china.huawei.com (unknown [172.30.72.53])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4LkFyx0gVBzVfbl;
-        Thu, 14 Jul 2022 21:42:01 +0800 (CST)
+Received: from dggpeml500022.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4LkG1M6KT2zlVrQ;
+        Thu, 14 Jul 2022 21:44:07 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500021.china.huawei.com (7.185.36.21) with Microsoft SMTP Server
+ dggpeml500022.china.huawei.com (7.185.36.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 14 Jul 2022 21:45:44 +0800
+ 15.1.2375.24; Thu, 14 Jul 2022 21:45:43 +0800
 Received: from localhost.localdomain (10.69.192.56) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
@@ -29,12 +29,10 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH v3 for-next 2/5] RDMA/hns: Fix the wrong type of return value of the interrupt handler
-Date:   Thu, 14 Jul 2022 21:43:50 +0800
-Message-ID: <20220714134353.16700-3-liangwenpeng@huawei.com>
+Subject: [PATCH v3 for-next 0/5] RDMA/hns: Supports recovery of on-chip RAM 1bit ECC errors
+Date:   Thu, 14 Jul 2022 21:43:48 +0800
+Message-ID: <20220714134353.16700-1-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20220714134353.16700-1-liangwenpeng@huawei.com>
-References: <20220714134353.16700-1-liangwenpeng@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -46,113 +44,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Haoyue Xu <xuhaoyue1@hisilicon.com>
+Add support for the 1bit ECC error recovery by abnormal interrupt reporting
+and adjusts the structure of the abnormal interrupt handler.
 
-The type of return value of the interrupt handler should be irqreturn_t.
+The following is the outline of each patch:
+(1)#1~#4: Cleanup and bugfix for the abnormal interrupt handler.
+(2)#5: Support for the 1bit ECC error recovery.
 
-Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 27 +++++++++++-----------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+Changes since v2:
+* Optimize the logic of the exit of fmea_recover_others() in #5.
+* v2 Link: https://patchwork.kernel.org/project/linux-rdma/cover/20220713092630.1657-1-liangwenpeng@huawei.com/
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 617713084383..bb6073635c53 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5855,12 +5855,12 @@ static struct hns_roce_aeqe *next_aeqe_sw_v2(struct hns_roce_eq *eq)
- 		!!(eq->cons_index & eq->entries)) ? aeqe : NULL;
- }
- 
--static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
--			       struct hns_roce_eq *eq)
-+static irqreturn_t hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
-+				       struct hns_roce_eq *eq)
- {
- 	struct device *dev = hr_dev->dev;
- 	struct hns_roce_aeqe *aeqe = next_aeqe_sw_v2(eq);
--	int aeqe_found = 0;
-+	irqreturn_t aeqe_found = IRQ_NONE;
- 	int event_type;
- 	u32 queue_num;
- 	int sub_type;
-@@ -5914,7 +5914,7 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 		eq->event_type = event_type;
- 		eq->sub_type = sub_type;
- 		++eq->cons_index;
--		aeqe_found = 1;
-+		aeqe_found = IRQ_HANDLED;
- 
- 		hns_roce_v2_init_irq_work(hr_dev, eq, queue_num);
- 
-@@ -5922,7 +5922,8 @@ static int hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 	}
- 
- 	update_eq_db(eq);
--	return aeqe_found;
-+
-+	return IRQ_RETVAL(aeqe_found);
- }
- 
- static struct hns_roce_ceqe *next_ceqe_sw_v2(struct hns_roce_eq *eq)
-@@ -5937,11 +5938,11 @@ static struct hns_roce_ceqe *next_ceqe_sw_v2(struct hns_roce_eq *eq)
- 		!!(eq->cons_index & eq->entries)) ? ceqe : NULL;
- }
- 
--static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
--			       struct hns_roce_eq *eq)
-+static irqreturn_t hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
-+				       struct hns_roce_eq *eq)
- {
- 	struct hns_roce_ceqe *ceqe = next_ceqe_sw_v2(eq);
--	int ceqe_found = 0;
-+	irqreturn_t ceqe_found = IRQ_NONE;
- 	u32 cqn;
- 
- 	while (ceqe) {
-@@ -5955,21 +5956,21 @@ static int hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
- 		hns_roce_cq_completion(hr_dev, cqn);
- 
- 		++eq->cons_index;
--		ceqe_found = 1;
-+		ceqe_found = IRQ_HANDLED;
- 
- 		ceqe = next_ceqe_sw_v2(eq);
- 	}
- 
- 	update_eq_db(eq);
- 
--	return ceqe_found;
-+	return IRQ_RETVAL(ceqe_found);
- }
- 
- static irqreturn_t hns_roce_v2_msix_interrupt_eq(int irq, void *eq_ptr)
- {
- 	struct hns_roce_eq *eq = eq_ptr;
- 	struct hns_roce_dev *hr_dev = eq->hr_dev;
--	int int_work;
-+	irqreturn_t int_work;
- 
- 	if (eq->type_flag == HNS_ROCE_CEQ)
- 		/* Completion event interrupt */
-@@ -5985,7 +5986,7 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- {
- 	struct hns_roce_dev *hr_dev = dev_id;
- 	struct device *dev = hr_dev->dev;
--	int int_work = 0;
-+	irqreturn_t int_work = IRQ_NONE;
- 	u32 int_st;
- 	u32 int_en;
- 
-@@ -6013,7 +6014,7 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
- 		int_en |= 1 << HNS_ROCE_V2_VF_ABN_INT_EN_S;
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_EN_REG, int_en);
- 
--		int_work = 1;
-+		int_work = IRQ_HANDLED;
- 	} else {
- 		dev_err(dev, "There is no abnormal irq found!\n");
- 	}
--- 
+Changes since v1:
+* Embed ecc_work into structure hns_roce_dev, no longer dynamically allocated in #5.
+* Add the const keyword to the string array that does not change in #5.
+* v1 Link: https://patchwork.kernel.org/project/linux-rdma/cover/20220624110845.48184-1-liangwenpeng@huawei.com/
+
+Haoyue Xu (5):
+  RDMA/hns: Remove unused abnormal interrupt of type RAS
+  RDMA/hns: Fix the wrong type of return value of the interrupt handler
+  RDMA/hns: Fix incorrect clearing of interrupt status register
+  RDMA/hns: Refactor the abnormal interrupt handler function
+  RDMA/hns: Recover 1bit-ECC error of RAM on chip
+
+ drivers/infiniband/hw/hns/hns_roce_device.h |   1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 248 +++++++++++++++++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  13 +-
+ 3 files changed, 227 insertions(+), 35 deletions(-)
+
+--
 2.33.0
 
