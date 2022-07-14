@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8614DC433EF
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jul 2022 09:46:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB83FC43334
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jul 2022 09:46:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238328AbiGNJqR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 Jul 2022 05:46:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51264 "EHLO
+        id S235301AbiGNJqb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 Jul 2022 05:46:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238438AbiGNJpn (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 Jul 2022 05:45:43 -0400
-Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FC2F12D26;
-        Thu, 14 Jul 2022 02:45:41 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R691e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=guwen@linux.alibaba.com;NM=1;PH=DS;RN=10;SR=0;TI=SMTPD_---0VJIcqMy_1657791934;
-Received: from localhost(mailfrom:guwen@linux.alibaba.com fp:SMTPD_---0VJIcqMy_1657791934)
+        with ESMTP id S238413AbiGNJps (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 Jul 2022 05:45:48 -0400
+Received: from out30-56.freemail.mail.aliyun.com (out30-56.freemail.mail.aliyun.com [115.124.30.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6A624B4BC;
+        Thu, 14 Jul 2022 02:45:46 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R481e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=guwen@linux.alibaba.com;NM=1;PH=DS;RN=10;SR=0;TI=SMTPD_---0VJIcqPy_1657791941;
+Received: from localhost(mailfrom:guwen@linux.alibaba.com fp:SMTPD_---0VJIcqPy_1657791941)
           by smtp.aliyun-inc.com;
-          Thu, 14 Jul 2022 17:45:38 +0800
+          Thu, 14 Jul 2022 17:45:43 +0800
 From:   Wen Gu <guwen@linux.alibaba.com>
 To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, davem@davemloft.net,
         edumazet@google.com, kuba@kernel.org, pabeni@redhat.com
 Cc:     linux-s390@vger.kernel.org, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH net-next v2 4/6] net/smc: Use sysctl-specified types of buffers in new link group
-Date:   Thu, 14 Jul 2022 17:44:03 +0800
-Message-Id: <1657791845-1060-5-git-send-email-guwen@linux.alibaba.com>
+Subject: [PATCH net-next v2 6/6] net/smc: Extend SMC-R link group netlink attribute
+Date:   Thu, 14 Jul 2022 17:44:05 +0800
+Message-Id: <1657791845-1060-7-git-send-email-guwen@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1657791845-1060-1-git-send-email-guwen@linux.alibaba.com>
 References: <1657791845-1060-1-git-send-email-guwen@linux.alibaba.com>
@@ -33,43 +33,41 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch introduces a new SMC-R specific element buf_type
-in struct smc_link_group, for recording the value of sysctl
-smcr_buf_type when link group is created.
-
-New created link group will create and reuse buffers of the
-type specified by buf_type.
+Extend SMC-R link group netlink attribute SMC_GEN_LGR_SMCR.
+Introduce SMC_NLA_LGR_R_BUF_TYPE to show the buffer type of
+SMC-R link group.
 
 Signed-off-by: Wen Gu <guwen@linux.alibaba.com>
 ---
- net/smc/smc_core.c | 1 +
- net/smc/smc_core.h | 1 +
- 2 files changed, 2 insertions(+)
+ include/uapi/linux/smc.h | 1 +
+ net/smc/smc_core.c       | 2 ++
+ 2 files changed, 3 insertions(+)
 
+diff --git a/include/uapi/linux/smc.h b/include/uapi/linux/smc.h
+index 693f549..bb4dacc 100644
+--- a/include/uapi/linux/smc.h
++++ b/include/uapi/linux/smc.h
+@@ -124,6 +124,7 @@ enum {
+ 	SMC_NLA_LGR_R_V2,		/* nest */
+ 	SMC_NLA_LGR_R_NET_COOKIE,	/* u64 */
+ 	SMC_NLA_LGR_R_PAD,		/* flag */
++	SMC_NLA_LGR_R_BUF_TYPE,		/* u8 */
+ 	__SMC_NLA_LGR_R_MAX,
+ 	SMC_NLA_LGR_R_MAX = __SMC_NLA_LGR_R_MAX - 1
+ };
 diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index fa3a7a8..86afbbc 100644
+index f26770c..ff49a11 100644
 --- a/net/smc/smc_core.c
 +++ b/net/smc/smc_core.c
-@@ -907,6 +907,7 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
- 		lgr->net = smc_ib_net(lnk->smcibdev);
- 		lgr_list = &smc_lgr_list.list;
- 		lgr_lock = &smc_lgr_list.lock;
-+		lgr->buf_type = lgr->net->smc.sysctl_smcr_buf_type;
- 		atomic_inc(&lgr_cnt);
- 	}
- 	smc->conn.lgr = lgr;
-diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-index 7652dfa..0261124 100644
---- a/net/smc/smc_core.h
-+++ b/net/smc/smc_core.h
-@@ -284,6 +284,7 @@ struct smc_link_group {
- 						/* used rtoken elements */
- 			u8			next_link_id;
- 			enum smc_lgr_type	type;
-+			enum smcr_buf_type	buf_type;
- 						/* redundancy state */
- 			u8			pnet_id[SMC_MAX_PNETID_LEN + 1];
- 						/* pnet id of this lgr */
+@@ -347,6 +347,8 @@ static int smc_nl_fill_lgr(struct smc_link_group *lgr,
+ 		goto errattr;
+ 	if (nla_put_u8(skb, SMC_NLA_LGR_R_TYPE, lgr->type))
+ 		goto errattr;
++	if (nla_put_u8(skb, SMC_NLA_LGR_R_BUF_TYPE, lgr->buf_type))
++		goto errattr;
+ 	if (nla_put_u8(skb, SMC_NLA_LGR_R_VLAN_ID, lgr->vlan_id))
+ 		goto errattr;
+ 	if (nla_put_u64_64bit(skb, SMC_NLA_LGR_R_NET_COOKIE,
 -- 
 1.8.3.1
 
