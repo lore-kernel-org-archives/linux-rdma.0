@@ -2,108 +2,125 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E20AEC43334
-	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jul 2022 13:34:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E877C433EF
+	for <linux-rdma@archiver.kernel.org>; Thu, 14 Jul 2022 13:45:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238605AbiGNNer (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 14 Jul 2022 09:34:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32844 "EHLO
+        id S239344AbiGNNps (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 14 Jul 2022 09:45:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235151AbiGNNer (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 Jul 2022 09:34:47 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E2781CB01
-        for <linux-rdma@vger.kernel.org>; Thu, 14 Jul 2022 06:34:46 -0700 (PDT)
-Received: from dggpeml500020.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4LkFlW3bSdzhYf2;
-        Thu, 14 Jul 2022 21:32:07 +0800 (CST)
+        with ESMTP id S238326AbiGNNpr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 14 Jul 2022 09:45:47 -0400
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27A4F52888
+        for <linux-rdma@vger.kernel.org>; Thu, 14 Jul 2022 06:45:46 -0700 (PDT)
+Received: from dggpeml500024.china.huawei.com (unknown [172.30.72.55])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4LkG0D2bH6z1L91P;
+        Thu, 14 Jul 2022 21:43:08 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500020.china.huawei.com (7.185.36.88) with Microsoft SMTP Server
+ dggpeml500024.china.huawei.com (7.185.36.10) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 14 Jul 2022 21:34:44 +0800
-Received: from [10.40.238.78] (10.40.238.78) by dggpeml500017.china.huawei.com
- (7.185.36.243) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 14 Jul
- 2022 21:34:43 +0800
-Subject: Re: [PATCH v2 for-next 5/5] RDMA/hns: Recover 1bit-ECC error of RAM
- on chip
-To:     Cheng Xu <chengyou@linux.alibaba.com>, <jgg@nvidia.com>,
-        <leon@kernel.org>
-References: <20220713092630.1657-1-liangwenpeng@huawei.com>
- <20220713092630.1657-6-liangwenpeng@huawei.com>
- <7a5655e7-cba6-9c6f-8591-c110de8baf32@linux.alibaba.com>
- <3eda3dd0-959a-b4d7-e67f-f5693f83c903@huawei.com>
- <1ffcaf32-dd7c-a0db-dd5f-1d0819437b45@linux.alibaba.com>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>
+ 15.1.2375.24; Thu, 14 Jul 2022 21:45:44 +0800
+Received: from localhost.localdomain (10.69.192.56) by
+ dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Thu, 14 Jul 2022 21:45:44 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
-Message-ID: <5f2f1a50-659b-5a0d-419b-047225acd47c@huawei.com>
-Date:   Thu, 14 Jul 2022 21:34:43 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.7.1
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <liangwenpeng@huawei.com>
+Subject: [PATCH v3 for-next 4/5] RDMA/hns: Refactor the abnormal interrupt handler function
+Date:   Thu, 14 Jul 2022 21:43:52 +0800
+Message-ID: <20220714134353.16700-5-liangwenpeng@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20220714134353.16700-1-liangwenpeng@huawei.com>
+References: <20220714134353.16700-1-liangwenpeng@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <1ffcaf32-dd7c-a0db-dd5f-1d0819437b45@linux.alibaba.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.40.238.78]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
  dggpeml500017.china.huawei.com (7.185.36.243)
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: Haoyue Xu <xuhaoyue1@hisilicon.com>
 
-On 2022/7/13 18:14, Cheng Xu wrote:
-> 
-> On 7/13/22 6:03 PM, Wenpeng Liang wrote:
->> On 2022/7/13 17:36, Cheng Xu wrote:
->>> On 7/13/22 5:26 PM, Wenpeng Liang wrote:
->>>
->>> <...>
->>>
->>>> +static int fmea_recover_others(struct hns_roce_dev *hr_dev, u32 res_type,
->>>> +			       u32 index)
->>>> +{
->>>> +	u8 write_bt0_op = fmea_ram_res[res_type].write_bt0_op;
->>>> +	u8 read_bt0_op = fmea_ram_res[res_type].read_bt0_op;
->>>> +	struct hns_roce_cmd_mailbox *mailbox;
->>>> +	u64 addr;
->>>> +	int ret;
->>>> +
->>>> +	mailbox = hns_roce_alloc_cmd_mailbox(hr_dev);
->>>> +	if (IS_ERR(mailbox))
->>>> +		return PTR_ERR(mailbox);
->>>> +
->>>> +	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma, read_bt0_op, index);
->>>> +	if (ret) {
->>>> +		dev_err(hr_dev->dev,
->>>> +			"failed to execute cmd to read fmea ram, ret = %d.\n",
->>>> +			ret);
->>>> +		goto err;
->>>> +	}
->>>> +
->>>> +	addr = fmea_get_ram_res_addr(res_type, mailbox->buf);
->>>> +
->>>> +	ret = hns_roce_cmd_mbox(hr_dev, addr, 0, write_bt0_op, index);
->>>> +	if (ret) {
->>>> +		dev_err(hr_dev->dev,
->>>> +			"failed to execute cmd to write fmea ram, ret = %d.\n",
->>>> +			ret);
->>>> +		goto err;
->>>> +	}
->>>> +
->>> Here it seems that you miss a "return 0" or the "goto err;" is unnecessary.
->>>
->> Will remove the "goto err;".
->>
-> And, if the hns_roce_free_cmd_mailbox is called in both normal and error flow,
-> Maybe using "out" or some name else is better than "err" as the jump label?
-> 
+Use a single function to handle the same kind of abnormal interrupts.
 
-Will fix it.
+Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
+Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 35 ++++++++++++++--------
+ 1 file changed, 23 insertions(+), 12 deletions(-)
 
-Thansk,
-Wenpeng
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 35bf58fcaeb3..782f09a7f8af 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -5982,24 +5982,19 @@ static irqreturn_t hns_roce_v2_msix_interrupt_eq(int irq, void *eq_ptr)
+ 	return IRQ_RETVAL(int_work);
+ }
+ 
+-static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
++static irqreturn_t abnormal_interrupt_basic(struct hns_roce_dev *hr_dev,
++					    u32 int_st)
+ {
+-	struct hns_roce_dev *hr_dev = dev_id;
+-	struct device *dev = hr_dev->dev;
++	struct pci_dev *pdev = hr_dev->pci_dev;
++	struct hnae3_ae_dev *ae_dev = pci_get_drvdata(pdev);
++	const struct hnae3_ae_ops *ops = ae_dev->ops;
+ 	irqreturn_t int_work = IRQ_NONE;
+-	u32 int_st;
+ 	u32 int_en;
+ 
+-	/* Abnormal interrupt */
+-	int_st = roce_read(hr_dev, ROCEE_VF_ABN_INT_ST_REG);
+ 	int_en = roce_read(hr_dev, ROCEE_VF_ABN_INT_EN_REG);
+ 
+ 	if (int_st & BIT(HNS_ROCE_V2_VF_INT_ST_AEQ_OVERFLOW_S)) {
+-		struct pci_dev *pdev = hr_dev->pci_dev;
+-		struct hnae3_ae_dev *ae_dev = pci_get_drvdata(pdev);
+-		const struct hnae3_ae_ops *ops = ae_dev->ops;
+-
+-		dev_err(dev, "AEQ overflow!\n");
++		dev_err(hr_dev->dev, "AEQ overflow!\n");
+ 
+ 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG,
+ 			   1 << HNS_ROCE_V2_VF_INT_ST_AEQ_OVERFLOW_S);
+@@ -6016,12 +6011,28 @@ static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
+ 
+ 		int_work = IRQ_HANDLED;
+ 	} else {
+-		dev_err(dev, "There is no abnormal irq found!\n");
++		dev_err(hr_dev->dev, "there is no basic abn irq found.\n");
+ 	}
+ 
+ 	return IRQ_RETVAL(int_work);
+ }
+ 
++static irqreturn_t hns_roce_v2_msix_interrupt_abn(int irq, void *dev_id)
++{
++	struct hns_roce_dev *hr_dev = dev_id;
++	irqreturn_t int_work = IRQ_NONE;
++	u32 int_st;
++
++	int_st = roce_read(hr_dev, ROCEE_VF_ABN_INT_ST_REG);
++
++	if (int_st)
++		int_work = abnormal_interrupt_basic(hr_dev, int_st);
++	else
++		dev_err(hr_dev->dev, "there is no abnormal irq found.\n");
++
++	return IRQ_RETVAL(int_work);
++}
++
+ static void hns_roce_v2_int_mask_enable(struct hns_roce_dev *hr_dev,
+ 					int eq_num, u32 enable_flag)
+ {
+-- 
+2.33.0
 
-> Thanks,
-> Cheng Xu
