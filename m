@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8E65CCA492
-	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jul 2022 15:22:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C54DCCA496
+	for <linux-rdma@archiver.kernel.org>; Mon, 25 Jul 2022 15:22:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236458AbiGYPV6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 25 Jul 2022 11:21:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37738 "EHLO
+        id S236486AbiGYPWA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 25 Jul 2022 11:22:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236309AbiGYPVo (ORCPT
+        with ESMTP id S236310AbiGYPVo (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 25 Jul 2022 11:21:44 -0400
-Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43B45193E7;
-        Mon, 25 Jul 2022 08:20:56 -0700 (PDT)
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B21CB617B;
+        Mon, 25 Jul 2022 08:21:03 -0700 (PDT)
 Received: from dimapc.. (109-252-119-232.nat.spd-mgts.ru [109.252.119.232])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 612EA6601B0D;
-        Mon, 25 Jul 2022 16:20:52 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id 2E5EC6601B0E;
+        Mon, 25 Jul 2022 16:21:00 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1658762454;
-        bh=VnASVctkeLjfZ36FxY1reL6K2hi5HykLh1z80wBnGvM=;
+        s=mail; t=1658762462;
+        bh=va+2N1U6jZR9UG67k72ODpvUReFCq9AoJW3EC29fAyY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=I+HYrQXtbcbpmdiCSnuLabgcI4/SrJccBuswJyuF48plCvQMX7Qr/QfxNp/L5ZCbv
-         Rc7lKQuntBj4POIUqqPdOErIEmAHAYHfoFYGfFkpUDJ8QwpNkzetNcgCmves2rKnFq
-         uLhxeQZcZhZWDKiWY4amjfaS4B7KvkFr71jNEzFB4eIDYyj04Q9c3nGbh/FYVWKmkx
-         +Lxjc4Rh6KTP9z44w16aBmEdssgXeSCCKaucqAduNlL5NAtOpNDM5arnnVyk34JXbP
-         8ubHY8NC2WPeTmTr0yJ9vqm+4l7BSGFWSN6bbdjGICUx3STb3Ukwwx9UJ/oJj7IJSO
-         e2ewnyEkm5y4g==
+        b=hF7ZR01ny2d7o7bYE+Z5dQKruldBmtrcJcYzRtqjWpjWhPHejJuJ8SbR06SZM2aPy
+         PtNrndiN/nQSiU3QbPd3ctnZp4AsfylceLBLgZg1oSvV4c3Zv419RY/B4awMy5ey1W
+         JdPdffAe80sYcNuJxp42Aie3X8uYUumDehJZnxPU9KVd3D21F8VXhUQFK+8ZkB1DWc
+         KmrEP/xKl94kuJKiRYwnCEIPYClTew820OvW7bvO7YKu8UcodMFHHx5wzl7sk4al/K
+         i0Wxa4jPFMqEzxfcD4BoG6SAy54UxKHYee5eOgxPvwHkUvoNdjeuL8fEHON/BKLhvt
+         80xKjVSm5X6kA==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -64,9 +64,9 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         spice-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
         linux-arm-msm@vger.kernel.org
-Subject: [PATCH v2 2/5] drm/gem: Take reservation lock for vmap/vunmap operations
-Date:   Mon, 25 Jul 2022 18:18:36 +0300
-Message-Id: <20220725151839.31622-3-dmitry.osipenko@collabora.com>
+Subject: [PATCH v2 5/5] dma-buf: Remove internal lock
+Date:   Mon, 25 Jul 2022 18:18:39 +0300
+Message-Id: <20220725151839.31622-6-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.36.1
 In-Reply-To: <20220725151839.31622-1-dmitry.osipenko@collabora.com>
 References: <20220725151839.31622-1-dmitry.osipenko@collabora.com>
@@ -76,246 +76,80 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The new common dma-buf locking convention will require buffer importers
-to hold the reservation lock around mapping operations. Make DRM GEM core
-to take the lock around the vmapping operations and update QXL and i915
-drivers to use the locked functions for the case where DRM core now holds
-the lock. This patch prepares DRM core and drivers to transition to the
-common dma-buf locking convention where vmapping of exported GEMs will
-be done under the held reservation lock.
+The internal dma-buf lock isn't needed anymore because the updated
+locking specification claims that dma-buf reservation must be locked
+by importers, and thus, the internal data is already protected by the
+reservation lock. Remove the obsoleted internal lock.
 
+Acked-by: Tomasz Figa <tfiga@chromium.org>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- drivers/gpu/drm/drm_client.c                 |  4 ++--
- drivers/gpu/drm/drm_gem.c                    | 24 ++++++++++++++++++++
- drivers/gpu/drm/drm_gem_framebuffer_helper.c |  6 ++---
- drivers/gpu/drm/drm_prime.c                  |  4 ++--
- drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c   |  2 +-
- drivers/gpu/drm/qxl/qxl_object.c             | 17 +++++++-------
- drivers/gpu/drm/qxl/qxl_prime.c              |  4 ++--
- include/drm/drm_gem.h                        |  3 +++
- 8 files changed, 46 insertions(+), 18 deletions(-)
+ drivers/dma-buf/dma-buf.c | 5 -----
+ include/linux/dma-buf.h   | 9 ---------
+ 2 files changed, 14 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_client.c b/drivers/gpu/drm/drm_client.c
-index af3b7395bf69..e9a1cd310352 100644
---- a/drivers/gpu/drm/drm_client.c
-+++ b/drivers/gpu/drm/drm_client.c
-@@ -323,7 +323,7 @@ drm_client_buffer_vmap(struct drm_client_buffer *buffer,
- 	 * fd_install step out of the driver backend hooks, to make that
- 	 * final step optional for internal users.
- 	 */
--	ret = drm_gem_vmap(buffer->gem, map);
-+	ret = drm_gem_vmap_unlocked(buffer->gem, map);
- 	if (ret)
- 		return ret;
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index bfdd551c7571..1d211ab400a1 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -656,7 +656,6 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
  
-@@ -345,7 +345,7 @@ void drm_client_buffer_vunmap(struct drm_client_buffer *buffer)
- {
- 	struct iosys_map *map = &buffer->map;
+ 	dmabuf->file = file;
  
--	drm_gem_vunmap(buffer->gem, map);
-+	drm_gem_vunmap_unlocked(buffer->gem, map);
- }
- EXPORT_SYMBOL(drm_client_buffer_vunmap);
+-	mutex_init(&dmabuf->lock);
+ 	INIT_LIST_HEAD(&dmabuf->attachments);
  
-diff --git a/drivers/gpu/drm/drm_gem.c b/drivers/gpu/drm/drm_gem.c
-index eb0c2d041f13..8b92846112ef 100644
---- a/drivers/gpu/drm/drm_gem.c
-+++ b/drivers/gpu/drm/drm_gem.c
-@@ -1171,6 +1171,8 @@ int drm_gem_vmap(struct drm_gem_object *obj, struct iosys_map *map)
- {
- 	int ret;
+ 	mutex_lock(&db_list.lock);
+@@ -1508,7 +1507,6 @@ int dma_buf_vmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map)
+ 		return -EINVAL;
  
-+	dma_resv_assert_held(obj->resv);
-+
- 	if (!obj->funcs->vmap)
- 		return -EOPNOTSUPP;
+ 	dma_resv_lock(dmabuf->resv, NULL);
+-	mutex_lock(&dmabuf->lock);
+ 	if (dmabuf->vmapping_counter) {
+ 		dmabuf->vmapping_counter++;
+ 		BUG_ON(iosys_map_is_null(&dmabuf->vmap_ptr));
+@@ -1528,7 +1526,6 @@ int dma_buf_vmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map)
+ 	*map = dmabuf->vmap_ptr;
  
-@@ -1186,6 +1188,8 @@ EXPORT_SYMBOL(drm_gem_vmap);
- 
- void drm_gem_vunmap(struct drm_gem_object *obj, struct iosys_map *map)
- {
-+	dma_resv_assert_held(obj->resv);
-+
- 	if (iosys_map_is_null(map))
- 		return;
- 
-@@ -1197,6 +1201,26 @@ void drm_gem_vunmap(struct drm_gem_object *obj, struct iosys_map *map)
- }
- EXPORT_SYMBOL(drm_gem_vunmap);
- 
-+int drm_gem_vmap_unlocked(struct drm_gem_object *obj, struct iosys_map *map)
-+{
-+	int ret;
-+
-+	dma_resv_lock(obj->resv, NULL);
-+	ret = drm_gem_vmap(obj, map);
-+	dma_resv_unlock(obj->resv);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(drm_gem_vmap_unlocked);
-+
-+void drm_gem_vunmap_unlocked(struct drm_gem_object *obj, struct iosys_map *map)
-+{
-+	dma_resv_lock(obj->resv, NULL);
-+	drm_gem_vunmap(obj, map);
-+	dma_resv_unlock(obj->resv);
-+}
-+EXPORT_SYMBOL(drm_gem_vunmap_unlocked);
-+
- /**
-  * drm_gem_lock_reservations - Sets up the ww context and acquires
-  * the lock on an array of GEM objects.
-diff --git a/drivers/gpu/drm/drm_gem_framebuffer_helper.c b/drivers/gpu/drm/drm_gem_framebuffer_helper.c
-index 61339a9cd010..135cd4a96ea9 100644
---- a/drivers/gpu/drm/drm_gem_framebuffer_helper.c
-+++ b/drivers/gpu/drm/drm_gem_framebuffer_helper.c
-@@ -354,7 +354,7 @@ int drm_gem_fb_vmap(struct drm_framebuffer *fb, struct iosys_map *map,
- 			ret = -EINVAL;
- 			goto err_drm_gem_vunmap;
- 		}
--		ret = drm_gem_vmap(obj, &map[i]);
-+		ret = drm_gem_vmap_unlocked(obj, &map[i]);
- 		if (ret)
- 			goto err_drm_gem_vunmap;
- 	}
-@@ -376,7 +376,7 @@ int drm_gem_fb_vmap(struct drm_framebuffer *fb, struct iosys_map *map,
- 		obj = drm_gem_fb_get_obj(fb, i);
- 		if (!obj)
- 			continue;
--		drm_gem_vunmap(obj, &map[i]);
-+		drm_gem_vunmap_unlocked(obj, &map[i]);
- 	}
+ out_unlock:
+-	mutex_unlock(&dmabuf->lock);
+ 	dma_resv_unlock(dmabuf->resv);
  	return ret;
  }
-@@ -403,7 +403,7 @@ void drm_gem_fb_vunmap(struct drm_framebuffer *fb, struct iosys_map *map)
- 			continue;
- 		if (iosys_map_is_null(&map[i]))
- 			continue;
--		drm_gem_vunmap(obj, &map[i]);
-+		drm_gem_vunmap_unlocked(obj, &map[i]);
+@@ -1549,13 +1546,11 @@ void dma_buf_vunmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map)
+ 	BUG_ON(!iosys_map_is_equal(&dmabuf->vmap_ptr, map));
+ 
+ 	dma_resv_lock(dmabuf->resv, NULL);
+-	mutex_lock(&dmabuf->lock);
+ 	if (--dmabuf->vmapping_counter == 0) {
+ 		if (dmabuf->ops->vunmap)
+ 			dmabuf->ops->vunmap(dmabuf, map);
+ 		iosys_map_clear(&dmabuf->vmap_ptr);
  	}
+-	mutex_unlock(&dmabuf->lock);
+ 	dma_resv_unlock(dmabuf->resv);
  }
- EXPORT_SYMBOL(drm_gem_fb_vunmap);
-diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
-index b75ef1756873..1bd234fd21a5 100644
---- a/drivers/gpu/drm/drm_prime.c
-+++ b/drivers/gpu/drm/drm_prime.c
-@@ -678,7 +678,7 @@ int drm_gem_dmabuf_vmap(struct dma_buf *dma_buf, struct iosys_map *map)
- {
- 	struct drm_gem_object *obj = dma_buf->priv;
+ EXPORT_SYMBOL_NS_GPL(dma_buf_vunmap_unlocked, DMA_BUF);
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index e7a6a8d28862..2f9fb7f3c835 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -326,15 +326,6 @@ struct dma_buf {
+ 	/** @ops: dma_buf_ops associated with this buffer object. */
+ 	const struct dma_buf_ops *ops;
  
--	return drm_gem_vmap(obj, map);
-+	return drm_gem_vmap_unlocked(obj, map);
- }
- EXPORT_SYMBOL(drm_gem_dmabuf_vmap);
- 
-@@ -694,7 +694,7 @@ void drm_gem_dmabuf_vunmap(struct dma_buf *dma_buf, struct iosys_map *map)
- {
- 	struct drm_gem_object *obj = dma_buf->priv;
- 
--	drm_gem_vunmap(obj, map);
-+	drm_gem_vunmap_unlocked(obj, map);
- }
- EXPORT_SYMBOL(drm_gem_dmabuf_vunmap);
- 
-diff --git a/drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c
-index 5ecea7df98b1..cc54a5b1d6ae 100644
---- a/drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c
-+++ b/drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c
-@@ -72,7 +72,7 @@ static int i915_gem_dmabuf_vmap(struct dma_buf *dma_buf,
- 	struct drm_i915_gem_object *obj = dma_buf_to_obj(dma_buf);
- 	void *vaddr;
- 
--	vaddr = i915_gem_object_pin_map_unlocked(obj, I915_MAP_WB);
-+	vaddr = i915_gem_object_pin_map(obj, I915_MAP_WB);
- 	if (IS_ERR(vaddr))
- 		return PTR_ERR(vaddr);
- 
-diff --git a/drivers/gpu/drm/qxl/qxl_object.c b/drivers/gpu/drm/qxl/qxl_object.c
-index b42a657e4c2f..a64cd635fbc0 100644
---- a/drivers/gpu/drm/qxl/qxl_object.c
-+++ b/drivers/gpu/drm/qxl/qxl_object.c
-@@ -168,9 +168,16 @@ int qxl_bo_vmap_locked(struct qxl_bo *bo, struct iosys_map *map)
- 		bo->map_count++;
- 		goto out;
- 	}
--	r = ttm_bo_vmap(&bo->tbo, &bo->map);
-+
-+	r = __qxl_bo_pin(bo);
- 	if (r)
- 		return r;
-+
-+	r = ttm_bo_vmap(&bo->tbo, &bo->map);
-+	if (r) {
-+		__qxl_bo_unpin(bo);
-+		return r;
-+	}
- 	bo->map_count = 1;
- 
- 	/* TODO: Remove kptr in favor of map everywhere. */
-@@ -192,12 +199,6 @@ int qxl_bo_vmap(struct qxl_bo *bo, struct iosys_map *map)
- 	if (r)
- 		return r;
- 
--	r = __qxl_bo_pin(bo);
--	if (r) {
--		qxl_bo_unreserve(bo);
--		return r;
--	}
+-	/**
+-	 * @lock:
+-	 *
+-	 * Used internally to serialize list manipulation, attach/detach and
+-	 * vmap/unmap. Note that in many cases this is superseeded by
+-	 * dma_resv_lock() on @resv.
+-	 */
+-	struct mutex lock;
 -
- 	r = qxl_bo_vmap_locked(bo, map);
- 	qxl_bo_unreserve(bo);
- 	return r;
-@@ -247,6 +248,7 @@ void qxl_bo_vunmap_locked(struct qxl_bo *bo)
- 		return;
- 	bo->kptr = NULL;
- 	ttm_bo_vunmap(&bo->tbo, &bo->map);
-+	__qxl_bo_unpin(bo);
- }
- 
- int qxl_bo_vunmap(struct qxl_bo *bo)
-@@ -258,7 +260,6 @@ int qxl_bo_vunmap(struct qxl_bo *bo)
- 		return r;
- 
- 	qxl_bo_vunmap_locked(bo);
--	__qxl_bo_unpin(bo);
- 	qxl_bo_unreserve(bo);
- 	return 0;
- }
-diff --git a/drivers/gpu/drm/qxl/qxl_prime.c b/drivers/gpu/drm/qxl/qxl_prime.c
-index 142d01415acb..9169c26357d3 100644
---- a/drivers/gpu/drm/qxl/qxl_prime.c
-+++ b/drivers/gpu/drm/qxl/qxl_prime.c
-@@ -59,7 +59,7 @@ int qxl_gem_prime_vmap(struct drm_gem_object *obj, struct iosys_map *map)
- 	struct qxl_bo *bo = gem_to_qxl_bo(obj);
- 	int ret;
- 
--	ret = qxl_bo_vmap(bo, map);
-+	ret = qxl_bo_vmap_locked(bo, map);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -71,5 +71,5 @@ void qxl_gem_prime_vunmap(struct drm_gem_object *obj,
- {
- 	struct qxl_bo *bo = gem_to_qxl_bo(obj);
- 
--	qxl_bo_vunmap(bo);
-+	qxl_bo_vunmap_locked(bo);
- }
-diff --git a/include/drm/drm_gem.h b/include/drm/drm_gem.h
-index 87cffc9efa85..bf3700415229 100644
---- a/include/drm/drm_gem.h
-+++ b/include/drm/drm_gem.h
-@@ -420,4 +420,7 @@ void drm_gem_unlock_reservations(struct drm_gem_object **objs, int count,
- int drm_gem_dumb_map_offset(struct drm_file *file, struct drm_device *dev,
- 			    u32 handle, u64 *offset);
- 
-+int drm_gem_vmap_unlocked(struct drm_gem_object *obj, struct iosys_map *map);
-+void drm_gem_vunmap_unlocked(struct drm_gem_object *obj, struct iosys_map *map);
-+
- #endif /* __DRM_GEM_H__ */
+ 	/**
+ 	 * @vmapping_counter:
+ 	 *
 -- 
 2.36.1
 
