@@ -2,38 +2,39 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7966C00140
-	for <linux-rdma@archiver.kernel.org>; Tue,  2 Aug 2022 11:42:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6444FC19F2D
+	for <linux-rdma@archiver.kernel.org>; Tue,  2 Aug 2022 11:42:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235884AbiHBLm0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 2 Aug 2022 07:42:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40322 "EHLO
+        id S236193AbiHBLm1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 2 Aug 2022 07:42:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231732AbiHBLmZ (ORCPT
+        with ESMTP id S233384AbiHBLmZ (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 2 Aug 2022 07:42:25 -0400
 X-Greylist: delayed 1695 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 02 Aug 2022 04:42:24 PDT
 Received: from mx08-0057a101.pphosted.com (mx08-0057a101.pphosted.com [185.183.31.45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9164910F1;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 916A32127E;
         Tue,  2 Aug 2022 04:42:24 -0700 (PDT)
 Received: from pps.filterd (m0214196.ppops.net [127.0.0.1])
-        by mx07-0057a101.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 272AqotU029528;
-        Tue, 2 Aug 2022 13:13:34 +0200
+        by mx07-0057a101.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 272AqotW029528;
+        Tue, 2 Aug 2022 13:13:42 +0200
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=westermo.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-transfer-encoding :
- content-type; s=12052020; bh=KtBdZ4PHF0Bh/BhAkFzl+uA+TAc7eBGlkWIvzvsFIXM=;
- b=uquVkeHuJuzI3JDrdhnNhf6FrCkZ2lSvEDVMSiG9o/Nso3cTtjgG2VKKHVVyRR1eilXw
- zx/3rGQS51oSGrYjxkbEDfqoXRkM7lOOc8Py5SKLGyT6JnpkIsBKmE2xL2nPQcICveX4
- Aajk2ELw+2lNmrh8Lyux01jd0APVJEGEFYRlasbw00PBVrYoNH0RD8uKv/T35BFX3kd/
- 7CbgjuFRgDJt/AbRO3c+pwvSaj92UPw/q/5IepC9CD49GlTx+0a7P7zL69GWGoEH5k6g
- o06fhPGATJtnyVLKT0wlkN3rqrjCp5SpHGPkF00+2PrlkQbeXvwMXD/bName1INXhT7M zw== 
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=12052020;
+ bh=qzoiygoNP3aKHBU59YwFwlDaf3F38U+FwxB7grTnLfg=;
+ b=RI6w56erWjaWVrwEz/AujQ1SNFoXRSblYjthE9nzGQ/D1wkSTacmTDR4jil83+xVtQCy
+ 29Cu//n2F0THt/01/+axhTNGYIEyv4MbZCN3MJQSQQwHJEb6M5OXDewyjZrauTk0JWVY
+ nfCJJr72FH4OzYBbON0kcfCGml7V5SsK6AwXLS3Xgd9xk7cPkB+IDQ31DSHnIR65oeh5
+ /04yqkamwwsxa5dKpa2TwyRv63BE2ix3lP0lB/H/TIq2pR+We622hv6I2/CMrOS9CIcX
+ 7DKpIBj+Dae9VBouF2EWkUP6F3N8olYWgRWm6gLOdSoAMNnTcaYd3NeJR6giYJCkgSqx /w== 
 Received: from mail.beijerelectronics.com ([195.67.87.131])
-        by mx07-0057a101.pphosted.com (PPS) with ESMTPS id 3hmrn42u0k-1
+        by mx07-0057a101.pphosted.com (PPS) with ESMTPS id 3hmrn42u0q-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Tue, 02 Aug 2022 13:13:34 +0200
+        Tue, 02 Aug 2022 13:13:41 +0200
 Received: from Orpheus.westermo.com (172.29.101.13) by
  EX01GLOBAL.beijerelectronics.com (10.101.10.25) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P384) id
- 15.1.2375.17; Tue, 2 Aug 2022 13:13:31 +0200
+ 15.1.2375.17; Tue, 2 Aug 2022 13:13:39 +0200
 From:   Matthias May <matthias.may@westermo.com>
 To:     <netdev@vger.kernel.org>
 CC:     <davem@davemloft.net>, <edumazet@google.com>, <kuba@kernel.org>,
@@ -46,46 +47,55 @@ CC:     <davem@davemloft.net>, <edumazet@google.com>, <kuba@kernel.org>,
         <bpf@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <nicolas.dichtel@6wind.com>, <eyal.birger@gmail.com>,
         Matthias May <matthias.may@westermo.com>
-Subject: [PATCH net 0/4] Do not use RT_TOS for IPv6 flowlabel
-Date:   Tue, 2 Aug 2022 13:13:04 +0200
-Message-ID: <20220802111308.1359887-1-matthias.may@westermo.com>
+Subject: [PATCH net 3/4] mlx5: do not use RT_TOS for IPv6 flowlabel
+Date:   Tue, 2 Aug 2022 13:13:07 +0200
+Message-ID: <20220802111308.1359887-4-matthias.may@westermo.com>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220802111308.1359887-1-matthias.may@westermo.com>
+References: <20220802111308.1359887-1-matthias.may@westermo.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-Originating-IP: [172.29.101.13]
 X-ClientProxiedBy: wsevst-s0023.westermo.com (192.168.130.120) To
  EX01GLOBAL.beijerelectronics.com (10.101.10.25)
-X-Proofpoint-GUID: CV9hysvU_QhaSQVLt3PZsZaxVZBClzpH
-X-Proofpoint-ORIG-GUID: CV9hysvU_QhaSQVLt3PZsZaxVZBClzpH
+X-Proofpoint-GUID: 4kZqUP7mwkKp_nVO2BtZHMDBUjOJGro6
+X-Proofpoint-ORIG-GUID: 4kZqUP7mwkKp_nVO2BtZHMDBUjOJGro6
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 According to Guillaume Nault RT_TOS should never be used for IPv6.
 
-Quote:
-RT_TOS() is an old macro used to interprete IPv4 TOS as described in
-the obsolete RFC 1349. It's conceptually wrong to use it even in IPv4
-code, although, given the current state of the code, most of the
-existing calls have no consequence.
+Fixes: ce99f6b97fcd ("net/mlx5e: Support SRIOV TC encapsulation offloads for IPv6 tunnels")
 
-But using RT_TOS() in IPv6 code is always a bug: IPv6 never had a "TOS"
-field to be interpreted the RFC 1349 way. There's no historical
-compatibility to worry about.
-
-Matthias May (4):
-  geneve: do not use RT_TOS for IPv6 flowlabel
-  vxlan: do not use RT_TOS for IPv6 flowlabel
-  mlx5: do not use RT_TOS for IPv6 flowlabel
-  ipv6: do not use RT_TOS for IPv6 flowlabel
-
+Signed-off-by: Matthias May <matthias.may@westermo.com>
+---
  drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c | 4 ++--
- drivers/net/geneve.c                                | 3 +--
- drivers/net/vxlan/vxlan_core.c                      | 2 +-
- net/ipv6/ip6_output.c                               | 3 +--
- 4 files changed, 5 insertions(+), 7 deletions(-)
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
+index d87bbb0be7c8..e6f64d890fb3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
+@@ -506,7 +506,7 @@ int mlx5e_tc_tun_create_header_ipv6(struct mlx5e_priv *priv,
+ 	int err;
+ 
+ 	attr.ttl = tun_key->ttl;
+-	attr.fl.fl6.flowlabel = ip6_make_flowinfo(RT_TOS(tun_key->tos), tun_key->label);
++	attr.fl.fl6.flowlabel = ip6_make_flowinfo(tun_key->tos, tun_key->label);
+ 	attr.fl.fl6.daddr = tun_key->u.ipv6.dst;
+ 	attr.fl.fl6.saddr = tun_key->u.ipv6.src;
+ 
+@@ -620,7 +620,7 @@ int mlx5e_tc_tun_update_header_ipv6(struct mlx5e_priv *priv,
+ 
+ 	attr.ttl = tun_key->ttl;
+ 
+-	attr.fl.fl6.flowlabel = ip6_make_flowinfo(RT_TOS(tun_key->tos), tun_key->label);
++	attr.fl.fl6.flowlabel = ip6_make_flowinfo(tun_key->tos, tun_key->label);
+ 	attr.fl.fl6.daddr = tun_key->u.ipv6.dst;
+ 	attr.fl.fl6.saddr = tun_key->u.ipv6.src;
+ 
 -- 
 2.35.1
 
