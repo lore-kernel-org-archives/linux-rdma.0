@@ -2,37 +2,38 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE3E0C25B08
-	for <linux-rdma@archiver.kernel.org>; Fri,  5 Aug 2022 19:24:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AF8DC25B07
+	for <linux-rdma@archiver.kernel.org>; Fri,  5 Aug 2022 19:24:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241361AbiHETYD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 5 Aug 2022 15:24:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39816 "EHLO
+        id S241369AbiHETYE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 5 Aug 2022 15:24:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231262AbiHETYC (ORCPT
+        with ESMTP id S241113AbiHETYC (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 5 Aug 2022 15:24:02 -0400
 Received: from mx07-0057a101.pphosted.com (mx07-0057a101.pphosted.com [205.220.184.10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0457366132;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 333466AA00;
         Fri,  5 Aug 2022 12:24:00 -0700 (PDT)
 Received: from pps.filterd (m0214197.ppops.net [127.0.0.1])
-        by mx07-0057a101.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 275Iw8pF020710;
-        Fri, 5 Aug 2022 21:20:08 +0200
+        by mx07-0057a101.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 275IwDco020717;
+        Fri, 5 Aug 2022 21:20:15 +0200
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=westermo.com; h=from : to : cc :
- subject : date : message-id : mime-version : content-transfer-encoding :
- content-type; s=12052020; bh=azXcdsLu4260lFD/yn5j/LkPyKGtpHhYWRtPGk/Sl68=;
- b=XHhpZyddNNuQrs27za74WwQGmy52oTf/pq0+JkAkSYjmZ6wRqRHAMXTw4O8dHNh9Wg9i
- Lubrqb1D8ZW0OeH/h3Gt2e9l9pQfrOACmhx3t3zuC352b8VBsDFB5I//CUQ5VSSoPDG8
- wbpFHmkNgx6ww7fa1dqcYQuyOgMmwbWboahgM++pPW2gjZQYv6QGBDi/RoZWqgL1j38/
- 0MOYiZ2B5Or7hNyjNuYbKz4ZCap10v8pI31M6j+QgrJ9ZNoXq+AS8GA6G0Wvs2vGpjQT
- fKBSYwq/RmrxHneZ2CKJdI4D2BBzlZwP3I0pqnY3xxFQ1UZ7kQZEHu6+DX6kiDzJay03 Pw== 
+ subject : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding : content-type; s=12052020;
+ bh=KNwb78g0eGkKfY8cM6IPLc3keEhAD6R+o+WDqMnC85A=;
+ b=b61DjV+T2JSYRV4vf7giWIByrmz94NxQ0YOsh2jYdfmBaFTGUNuX2KKdDFWbCoq/zrkU
+ CFpD/ms0JWrJQDqCZU5ZIgHyaw3K+ZqCbqvuZaRxCDWO/DDMe+K1GUKrMBYBkmBNyw8u
+ ebGaFqAbk0WQ9DYaQB1pLtTfqfPJOZGw3MatgcWBDKNoZGEEuyL7zbKY1SSes5bgmDzQ
+ 9kPHu0cwxbTvb56mG23l7mUTpx3aA7MGzW1jUKLo+um91dOEX051hUnnuwRQ1BfdGtZD
+ Oulf2fY+sghkjAPFE6/zDLGkPebgKHPFF9dHaGyvWlnXw149PtOC7UjiTjzvvYxkT0sV pQ== 
 Received: from mail.beijerelectronics.com ([195.67.87.131])
-        by mx07-0057a101.pphosted.com (PPS) with ESMTPS id 3hr3tdsntg-1
+        by mx07-0057a101.pphosted.com (PPS) with ESMTPS id 3hr3tdsntn-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Fri, 05 Aug 2022 21:20:08 +0200
+        Fri, 05 Aug 2022 21:20:15 +0200
 Received: from Orpheus.nch.westermo.com (172.29.100.2) by
  EX01GLOBAL.beijerelectronics.com (10.101.10.25) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384_P384) id
- 15.1.2375.17; Fri, 5 Aug 2022 21:20:05 +0200
+ 15.1.2375.17; Fri, 5 Aug 2022 21:20:12 +0200
 From:   Matthias May <matthias.may@westermo.com>
 To:     <netdev@vger.kernel.org>
 CC:     <davem@davemloft.net>, <edumazet@google.com>, <kuba@kernel.org>,
@@ -49,18 +50,20 @@ CC:     <davem@davemloft.net>, <edumazet@google.com>, <kuba@kernel.org>,
         <ogerlitz@mellanox.com>, <willemb@google.com>,
         <martin.varghese@nokia.com>,
         Matthias May <matthias.may@westermo.com>
-Subject: [PATCH v3 net 0/4] Do not use RT_TOS for IPv6 flowlabel
-Date:   Fri, 5 Aug 2022 21:19:02 +0200
-Message-ID: <20220805191906.9323-1-matthias.may@westermo.com>
+Subject: [PATCH v3 net 2/4] vxlan: do not use RT_TOS for IPv6 flowlabel
+Date:   Fri, 5 Aug 2022 21:19:04 +0200
+Message-ID: <20220805191906.9323-3-matthias.may@westermo.com>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220805191906.9323-1-matthias.may@westermo.com>
+References: <20220805191906.9323-1-matthias.may@westermo.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
 X-Originating-IP: [172.29.100.2]
 X-ClientProxiedBy: wsevst-s0023.westermo.com (192.168.130.120) To
  EX01GLOBAL.beijerelectronics.com (10.101.10.25)
-X-Proofpoint-GUID: P-FzDb9V4CZpy967eeQjyxN_EOsIRN6q
-X-Proofpoint-ORIG-GUID: P-FzDb9V4CZpy967eeQjyxN_EOsIRN6q
+X-Proofpoint-GUID: t4-9ggl_BGKV-pPZ8OBnhmlGUtXOnoC2
+X-Proofpoint-ORIG-GUID: t4-9ggl_BGKV-pPZ8OBnhmlGUtXOnoC2
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -77,25 +80,32 @@ But using RT_TOS() in IPv6 code is always a bug: IPv6 never had a "TOS"
 field to be interpreted the RFC 1349 way. There's no historical
 compatibility to worry about.
 
+Fixes: 1400615d64cf ("vxlan: allow setting ipv6 traffic class")
+Acked-by: Guillaume Nault <gnault@redhat.com>
+Signed-off-by: Matthias May <matthias.may@westermo.com>
 ---
 v1 -> v2:
  - Fix spacing of "Fixes" tag.
  - Add missing CCs
 v2 -> v3:
  - Add the info from the cover to the actual patch message (Guillaume Nault)
+---
+ drivers/net/vxlan/vxlan_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Matthias May (4):
-  geneve: do not use RT_TOS for IPv6 flowlabel
-  vxlan: do not use RT_TOS for IPv6 flowlabel
-  mlx5: do not use RT_TOS for IPv6 flowlabel
-  ipv6: do not use RT_TOS for IPv6 flowlabel
-
- drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c | 4 ++--
- drivers/net/geneve.c                                | 3 +--
- drivers/net/vxlan/vxlan_core.c                      | 2 +-
- net/ipv6/ip6_output.c                               | 3 +--
- 4 files changed, 5 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/net/vxlan/vxlan_core.c b/drivers/net/vxlan/vxlan_core.c
+index 265d4a0245e7..797585fbb004 100644
+--- a/drivers/net/vxlan/vxlan_core.c
++++ b/drivers/net/vxlan/vxlan_core.c
+@@ -2320,7 +2320,7 @@ static struct dst_entry *vxlan6_get_route(struct vxlan_dev *vxlan,
+ 	fl6.flowi6_oif = oif;
+ 	fl6.daddr = *daddr;
+ 	fl6.saddr = *saddr;
+-	fl6.flowlabel = ip6_make_flowinfo(RT_TOS(tos), label);
++	fl6.flowlabel = ip6_make_flowinfo(tos, label);
+ 	fl6.flowi6_mark = skb->mark;
+ 	fl6.flowi6_proto = IPPROTO_UDP;
+ 	fl6.fl6_dport = dport;
 -- 
 2.35.1
 
