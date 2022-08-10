@@ -2,29 +2,29 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75D40C25B07
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Aug 2022 17:48:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5EA1C25B0D
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Aug 2022 17:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232593AbiHJRsB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Aug 2022 13:48:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52552 "EHLO
+        id S232799AbiHJRsC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Aug 2022 13:48:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232408AbiHJRrv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Aug 2022 13:47:51 -0400
-Received: from out30-45.freemail.mail.aliyun.com (out30-45.freemail.mail.aliyun.com [115.124.30.45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5074A86C06;
-        Wed, 10 Aug 2022 10:47:49 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R171e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VLvokRq_1660153665;
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VLvokRq_1660153665)
+        with ESMTP id S232450AbiHJRrx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Aug 2022 13:47:53 -0400
+Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 789968C01C;
+        Wed, 10 Aug 2022 10:47:51 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VLvtUGn_1660153668;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VLvtUGn_1660153668)
           by smtp.aliyun-inc.com;
-          Thu, 11 Aug 2022 01:47:45 +0800
+          Thu, 11 Aug 2022 01:47:48 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next 04/10] net/smc: make SMC_LLC_FLOW_RKEY run concurrently
-Date:   Thu, 11 Aug 2022 01:47:35 +0800
-Message-Id: <9191753eb6f3726e0ed56c7fec6c7d55893e2c76.1660152975.git.alibuda@linux.alibaba.com>
+Subject: [PATCH net-next 07/10] net/smc: reduce unnecessary blocking in smcr_lgr_reg_rmbs()
+Date:   Thu, 11 Aug 2022 01:47:38 +0800
+Message-Id: <46f364ce7878b740e58bf44d3bed5fe23c64a260.1660152975.git.alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <cover.1660152975.git.alibuda@linux.alibaba.com>
 References: <cover.1660152975.git.alibuda@linux.alibaba.com>
@@ -34,218 +34,73 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-Once confirm/delete rkey response can be multiplex delivered,
-We can allow parallel execution of start (remote) or
-initialization (local) a SMC_LLC_FLOW_RKEY flow.
+Unlike smc_buf_create() and smcr_buf_unuse(), smcr_lgr_reg_rmbs() is
+exclusive when assigned rmb_desc was not registered, although it can be
+executed in parallel when assigned rmb_desc was registered already
+and only performs read semtamics on it. Hence, we can not simply replace
+it with read semaphore.
 
-This patch will count the flows executed in parallel, and only when
-the count reaches zero will the current flow type be removed.
+The idea here is that if the assigned rmb_desc was registered already,
+use read semaphore to protect the critical section, once the assigned
+rmb_desc was not registered, keep using keep write semaphore still
+to keep its exclusivity.
+
+Thanks to the reusable features of rmb_desc, which allows us to execute
+in parallel in most cases.
 
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- net/smc/smc_core.h |  1 +
- net/smc/smc_llc.c  | 69 +++++++++++++++++++++++++++++++++++++++++-------------
- net/smc/smc_llc.h  |  6 +++++
- 3 files changed, 60 insertions(+), 16 deletions(-)
+ net/smc/af_smc.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-index acc2869..8490676 100644
---- a/net/smc/smc_core.h
-+++ b/net/smc/smc_core.h
-@@ -286,6 +286,7 @@ enum smc_llc_flowtype {
- struct smc_llc_flow {
- 	enum smc_llc_flowtype type;
- 	struct smc_llc_qentry *qentry;
-+	refcount_t	parallel_refcnt;
- };
- 
- struct smc_link_group {
-diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
-index b026df2..965a3cc 100644
---- a/net/smc/smc_llc.c
-+++ b/net/smc/smc_llc.c
-@@ -231,10 +231,18 @@ static inline void smc_llc_flow_qentry_set(struct smc_llc_flow *flow,
- 	flow->qentry = qentry;
- }
- 
--static void smc_llc_flow_parallel(struct smc_link_group *lgr, u8 flow_type,
-+static void smc_llc_flow_parallel(struct smc_link_group *lgr, struct smc_llc_flow *flow,
- 				  struct smc_llc_qentry *qentry)
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 51b90e2..39dbf39 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -516,10 +516,25 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
  {
- 	u8 msg_type = qentry->msg.raw.hdr.common.llc_type;
-+	u8 flow_type = flow->type;
-+
-+	/* SMC_LLC_FLOW_RKEY can be parallel */
-+	if (flow_type == SMC_LLC_FLOW_RKEY &&
-+	    (msg_type == SMC_LLC_CONFIRM_RKEY || msg_type == SMC_LLC_DELETE_RKEY)) {
-+		refcount_inc(&flow->parallel_refcnt);
-+		return;
-+	}
+ 	struct smc_link_group *lgr = link->lgr;
+ 	int i, rc = 0;
++	bool slow = false;
  
- 	if ((msg_type == SMC_LLC_ADD_LINK || msg_type == SMC_LLC_DELETE_LINK) &&
- 	    flow_type != msg_type && !lgr->delayed_event) {
-@@ -261,7 +269,7 @@ static bool smc_llc_flow_start(struct smc_llc_flow *flow,
- 	spin_lock_bh(&lgr->llc_flow_lock);
- 	if (flow->type) {
- 		/* a flow is already active */
--		smc_llc_flow_parallel(lgr, flow->type, qentry);
-+		smc_llc_flow_parallel(lgr, flow, qentry);
- 		spin_unlock_bh(&lgr->llc_flow_lock);
- 		return false;
- 	}
-@@ -280,6 +288,7 @@ static bool smc_llc_flow_start(struct smc_llc_flow *flow,
- 		flow->type = SMC_LLC_FLOW_NONE;
- 	}
- 	smc_llc_flow_qentry_set(flow, qentry);
-+	refcount_set(&flow->parallel_refcnt, 1);
- 	spin_unlock_bh(&lgr->llc_flow_lock);
- 	return true;
- }
-@@ -289,6 +298,7 @@ int smc_llc_flow_initiate(struct smc_link_group *lgr,
- 			  enum smc_llc_flowtype type)
- {
- 	enum smc_llc_flowtype allowed_remote = SMC_LLC_FLOW_NONE;
-+	bool accept = false;
- 	int rc;
- 
- 	/* all flows except confirm_rkey and delete_rkey are exclusive,
-@@ -300,10 +310,39 @@ int smc_llc_flow_initiate(struct smc_link_group *lgr,
- 	if (list_empty(&lgr->list))
- 		return -ENODEV;
- 	spin_lock_bh(&lgr->llc_flow_lock);
--	if (lgr->llc_flow_lcl.type == SMC_LLC_FLOW_NONE &&
--	    (lgr->llc_flow_rmt.type == SMC_LLC_FLOW_NONE ||
--	     lgr->llc_flow_rmt.type == allowed_remote)) {
--		lgr->llc_flow_lcl.type = type;
+ 	rc = smc_llc_flow_initiate(lgr, SMC_LLC_FLOW_RKEY);
+ 	if (rc)
+ 		return rc;
 +
-+	/* Flow is initialized only if the following conditions are met:
-+	 * incoming flow	local flow		remote flow
-+	 * exclusive		NONE			NONE
-+	 * SMC_LLC_FLOW_RKEY	SMC_LLC_FLOW_RKEY	SMC_LLC_FLOW_RKEY
-+	 * SMC_LLC_FLOW_RKEY	NONE			SMC_LLC_FLOW_RKEY
-+	 * SMC_LLC_FLOW_RKEY	SMC_LLC_FLOW_RKEY	NONE
-+	 */
-+	switch (type) {
-+	case SMC_LLC_FLOW_RKEY:
-+		if (!SMC_IS_PARALLEL_FLOW(lgr->llc_flow_lcl.type))
-+			break;
-+		if (!SMC_IS_PARALLEL_FLOW(lgr->llc_flow_rmt.type))
-+			break;
-+		/* accepted */
-+		accept = true;
-+		break;
-+	default:
-+		if (!SMC_IS_NONE_FLOW(lgr->llc_flow_lcl.type))
-+			break;
-+		if (!SMC_IS_NONE_FLOW(lgr->llc_flow_rmt.type))
-+			break;
-+		/* accepted */
-+		accept = true;
-+		break;
-+	}
-+	if (accept) {
-+		if (SMC_IS_NONE_FLOW(lgr->llc_flow_lcl.type)) {
-+			lgr->llc_flow_lcl.type = type;
-+			refcount_set(&lgr->llc_flow_lcl.parallel_refcnt, 1);
-+		} else {
-+			refcount_inc(&lgr->llc_flow_lcl.parallel_refcnt);
++	down_read(&lgr->llc_conf_mutex);
++	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
++		if (!smc_link_active(&lgr->lnk[i]))
++			continue;
++		if (!rmb_desc->is_reg_mr[link->link_idx]) {
++			up_read(&lgr->llc_conf_mutex);
++			goto slow_path;
 +		}
- 		spin_unlock_bh(&lgr->llc_flow_lock);
- 		return 0;
- 	}
-@@ -322,6 +361,10 @@ int smc_llc_flow_initiate(struct smc_link_group *lgr,
- void smc_llc_flow_stop(struct smc_link_group *lgr, struct smc_llc_flow *flow)
- {
- 	spin_lock_bh(&lgr->llc_flow_lock);
-+	if (!refcount_dec_and_test(&flow->parallel_refcnt)) {
-+		spin_unlock_bh(&lgr->llc_flow_lock);
-+		return;
 +	}
- 	memset(flow, 0, sizeof(*flow));
- 	flow->type = SMC_LLC_FLOW_NONE;
- 	spin_unlock_bh(&lgr->llc_flow_lock);
-@@ -1729,16 +1772,14 @@ static void smc_llc_delete_link_work(struct work_struct *work)
++	/* mr register already */
++	goto fast_path;
++slow_path:
++	slow = true;
+ 	/* protect against parallel smc_llc_cli_rkey_exchange() and
+ 	 * parallel smcr_link_reg_buf()
+ 	 */
+@@ -531,7 +546,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
+ 		if (rc)
+ 			goto out;
+ 	}
+-
++fast_path:
+ 	/* exchange confirm_rkey msg with peer */
+ 	rc = smc_llc_do_confirm_rkey(link, rmb_desc);
+ 	if (rc) {
+@@ -540,7 +555,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
+ 	}
+ 	rmb_desc->is_conf_rkey = true;
+ out:
+-	up_write(&lgr->llc_conf_mutex);
++	slow ? up_write(&lgr->llc_conf_mutex) : up_read(&lgr->llc_conf_mutex);
+ 	smc_llc_flow_stop(lgr, &lgr->llc_flow_lcl);
+ 	return rc;
  }
- 
- /* process a confirm_rkey request from peer, remote flow */
--static void smc_llc_rmt_conf_rkey(struct smc_link_group *lgr)
-+static void smc_llc_rmt_conf_rkey(struct smc_link_group *lgr, struct smc_llc_qentry *qentry)
- {
- 	struct smc_llc_msg_confirm_rkey *llc;
--	struct smc_llc_qentry *qentry;
- 	struct smc_link *link;
- 	int num_entries;
- 	int rk_idx;
- 	int i;
- 
--	qentry = lgr->llc_flow_rmt.qentry;
- 	llc = &qentry->msg.confirm_rkey;
- 	link = qentry->link;
- 
-@@ -1765,19 +1806,16 @@ static void smc_llc_rmt_conf_rkey(struct smc_link_group *lgr)
- 	llc->hd.flags |= SMC_LLC_FLAG_RESP;
- 	smc_llc_init_msg_hdr(&llc->hd, link->lgr, sizeof(*llc));
- 	smc_llc_send_message(link, &qentry->msg);
--	smc_llc_flow_qentry_del(&lgr->llc_flow_rmt);
- }
- 
- /* process a delete_rkey request from peer, remote flow */
--static void smc_llc_rmt_delete_rkey(struct smc_link_group *lgr)
-+static void smc_llc_rmt_delete_rkey(struct smc_link_group *lgr, struct smc_llc_qentry *qentry)
- {
- 	struct smc_llc_msg_delete_rkey *llc;
--	struct smc_llc_qentry *qentry;
- 	struct smc_link *link;
- 	u8 err_mask = 0;
- 	int i, max;
- 
--	qentry = lgr->llc_flow_rmt.qentry;
- 	llc = &qentry->msg.delete_rkey;
- 	link = qentry->link;
- 
-@@ -1815,7 +1853,6 @@ static void smc_llc_rmt_delete_rkey(struct smc_link_group *lgr)
- finish:
- 	llc->hd.flags |= SMC_LLC_FLAG_RESP;
- 	smc_llc_send_message(link, &qentry->msg);
--	smc_llc_flow_qentry_del(&lgr->llc_flow_rmt);
- }
- 
- static void smc_llc_protocol_violation(struct smc_link_group *lgr, u8 type)
-@@ -1916,7 +1953,7 @@ static void smc_llc_event_handler(struct smc_llc_qentry *qentry)
- 		/* new request from remote, assign to remote flow */
- 		if (smc_llc_flow_start(&lgr->llc_flow_rmt, qentry)) {
- 			/* process here, does not wait for more llc msgs */
--			smc_llc_rmt_conf_rkey(lgr);
-+			smc_llc_rmt_conf_rkey(lgr, qentry);
- 			smc_llc_flow_stop(lgr, &lgr->llc_flow_rmt);
- 		}
- 		return;
-@@ -1929,7 +1966,7 @@ static void smc_llc_event_handler(struct smc_llc_qentry *qentry)
- 		/* new request from remote, assign to remote flow */
- 		if (smc_llc_flow_start(&lgr->llc_flow_rmt, qentry)) {
- 			/* process here, does not wait for more llc msgs */
--			smc_llc_rmt_delete_rkey(lgr);
-+			smc_llc_rmt_delete_rkey(lgr, qentry);
- 			smc_llc_flow_stop(lgr, &lgr->llc_flow_rmt);
- 		}
- 		return;
-diff --git a/net/smc/smc_llc.h b/net/smc/smc_llc.h
-index 4404e52..005a81e 100644
---- a/net/smc/smc_llc.h
-+++ b/net/smc/smc_llc.h
-@@ -48,6 +48,12 @@ enum smc_llc_msg_type {
- #define smc_link_downing(state) \
- 	(cmpxchg(state, SMC_LNK_ACTIVE, SMC_LNK_INACTIVE) == SMC_LNK_ACTIVE)
- 
-+#define SMC_IS_NONE_FLOW(type)		\
-+	((type) == SMC_LLC_FLOW_NONE)
-+
-+#define SMC_IS_PARALLEL_FLOW(type)	\
-+	(((type) == SMC_LLC_FLOW_RKEY) || SMC_IS_NONE_FLOW(type))
-+
- /* LLC DELETE LINK Request Reason Codes */
- #define SMC_LLC_DEL_LOST_PATH		0x00010000
- #define SMC_LLC_DEL_OP_INIT_TERM	0x00020000
 -- 
 1.8.3.1
 
