@@ -2,29 +2,29 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5EA1C25B0D
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 Aug 2022 17:48:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0984C282E7
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 Aug 2022 17:48:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232799AbiHJRsC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 Aug 2022 13:48:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52648 "EHLO
+        id S232943AbiHJRsE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 Aug 2022 13:48:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232450AbiHJRrx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Aug 2022 13:47:53 -0400
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 789968C01C;
+        with ESMTP id S232500AbiHJRsB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 Aug 2022 13:48:01 -0400
+Received: from out199-14.us.a.mail.aliyun.com (out199-14.us.a.mail.aliyun.com [47.90.199.14])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 786718C01B;
         Wed, 10 Aug 2022 10:47:51 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VLvtUGn_1660153668;
-Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VLvtUGn_1660153668)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R751e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VLvpTf-_1660153667;
+Received: from localhost(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VLvpTf-_1660153667)
           by smtp.aliyun-inc.com;
-          Thu, 11 Aug 2022 01:47:48 +0800
+          Thu, 11 Aug 2022 01:47:47 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next 07/10] net/smc: reduce unnecessary blocking in smcr_lgr_reg_rmbs()
-Date:   Thu, 11 Aug 2022 01:47:38 +0800
-Message-Id: <46f364ce7878b740e58bf44d3bed5fe23c64a260.1660152975.git.alibuda@linux.alibaba.com>
+Subject: [PATCH net-next 06/10] net/smc: use read semaphores to reduce unnecessary blocking in smc_buf_create() & smcr_buf_unuse()
+Date:   Thu, 11 Aug 2022 01:47:37 +0800
+Message-Id: <b7f5dfd30ed2e0d1279a91b99753bed64593d15b.1660152975.git.alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <cover.1660152975.git.alibuda@linux.alibaba.com>
 References: <cover.1660152975.git.alibuda@linux.alibaba.com>
@@ -34,73 +34,70 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-Unlike smc_buf_create() and smcr_buf_unuse(), smcr_lgr_reg_rmbs() is
-exclusive when assigned rmb_desc was not registered, although it can be
-executed in parallel when assigned rmb_desc was registered already
-and only performs read semtamics on it. Hence, we can not simply replace
-it with read semaphore.
+Following is part of Off-CPU graph during frequent SMC-R short-lived
+processing:
 
-The idea here is that if the assigned rmb_desc was registered already,
-use read semaphore to protect the critical section, once the assigned
-rmb_desc was not registered, keep using keep write semaphore still
-to keep its exclusivity.
+process_one_work				(51.19%)
+smc_close_passive_work			(28.36%)
+	smcr_buf_unuse				(28.34%)
+	rwsem_down_write_slowpath		(28.22%)
 
-Thanks to the reusable features of rmb_desc, which allows us to execute
-in parallel in most cases.
+smc_listen_work				(22.83%)
+	smc_clc_wait_msg			(1.84%)
+	smc_buf_create				(20.45%)
+		smcr_buf_map_usable_links
+		rwsem_down_write_slowpath	(20.43%)
+	smcr_lgr_reg_rmbs			(0.53%)
+		rwsem_down_write_slowpath	(0.43%)
+		smc_llc_do_confirm_rkey		(0.08%)
+
+We can clearly see that during the connection establishment time,
+waiting time of connections is not on IO, but on llc_conf_mutex.
+
+What is more important, the core critical area (smcr_buf_unuse() &
+smc_buf_create()) only perfroms read semantics on links, we can
+easily replace it with read semaphore.
 
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- net/smc/af_smc.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ net/smc/smc_core.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 51b90e2..39dbf39 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -516,10 +516,25 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
- {
- 	struct smc_link_group *lgr = link->lgr;
- 	int i, rc = 0;
-+	bool slow = false;
- 
- 	rc = smc_llc_flow_initiate(lgr, SMC_LLC_FLOW_RKEY);
- 	if (rc)
- 		return rc;
-+
-+	down_read(&lgr->llc_conf_mutex);
-+	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
-+		if (!smc_link_active(&lgr->lnk[i]))
-+			continue;
-+		if (!rmb_desc->is_reg_mr[link->link_idx]) {
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index fc8deec..113804d 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1388,10 +1388,10 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
+ 		rc = smc_llc_flow_initiate(lgr, SMC_LLC_FLOW_RKEY);
+ 		if (!rc) {
+ 			/* protect against smc_llc_cli_rkey_exchange() */
+-			down_write(&lgr->llc_conf_mutex);
++			down_read(&lgr->llc_conf_mutex);
+ 			smc_llc_do_delete_rkey(lgr, buf_desc);
+ 			buf_desc->is_conf_rkey = false;
+-			up_write(&lgr->llc_conf_mutex);
 +			up_read(&lgr->llc_conf_mutex);
-+			goto slow_path;
-+		}
-+	}
-+	/* mr register already */
-+	goto fast_path;
-+slow_path:
-+	slow = true;
- 	/* protect against parallel smc_llc_cli_rkey_exchange() and
- 	 * parallel smcr_link_reg_buf()
- 	 */
-@@ -531,7 +546,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
- 		if (rc)
- 			goto out;
+ 			smc_llc_flow_stop(lgr, &lgr->llc_flow_lcl);
+ 		}
  	}
--
-+fast_path:
- 	/* exchange confirm_rkey msg with peer */
- 	rc = smc_llc_do_confirm_rkey(link, rmb_desc);
- 	if (rc) {
-@@ -540,7 +555,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
+@@ -2581,7 +2581,7 @@ static int smcr_buf_map_usable_links(struct smc_link_group *lgr,
+ 	int i, rc = 0;
+ 
+ 	/* protect against parallel link reconfiguration */
+-	down_write(&lgr->llc_conf_mutex);
++	down_read(&lgr->llc_conf_mutex);
+ 	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
+ 		struct smc_link *lnk = &lgr->lnk[i];
+ 
+@@ -2593,7 +2593,7 @@ static int smcr_buf_map_usable_links(struct smc_link_group *lgr,
+ 		}
  	}
- 	rmb_desc->is_conf_rkey = true;
  out:
 -	up_write(&lgr->llc_conf_mutex);
-+	slow ? up_write(&lgr->llc_conf_mutex) : up_read(&lgr->llc_conf_mutex);
- 	smc_llc_flow_stop(lgr, &lgr->llc_flow_lcl);
++	up_read(&lgr->llc_conf_mutex);
  	return rc;
  }
+ 
 -- 
 1.8.3.1
 
