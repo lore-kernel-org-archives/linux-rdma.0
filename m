@@ -2,59 +2,67 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CA1CC19F2D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70886C3F6B0
 	for <linux-rdma@archiver.kernel.org>; Wed, 10 Aug 2022 01:44:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229513AbiHJBno (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S229924AbiHJBno (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Tue, 9 Aug 2022 21:43:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36754 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229681AbiHJBn0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 9 Aug 2022 21:43:26 -0400
-Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 754FB6FA2A
-        for <linux-rdma@vger.kernel.org>; Tue,  9 Aug 2022 18:43:24 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045192;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VLss2AB_1660095801;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VLss2AB_1660095801)
+        with ESMTP id S229513AbiHJBnY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 9 Aug 2022 21:43:24 -0400
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61DAE6FA27
+        for <linux-rdma@vger.kernel.org>; Tue,  9 Aug 2022 18:43:23 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R411e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045170;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VLss29u_1660095800;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VLss29u_1660095800)
           by smtp.aliyun-inc.com;
-          Wed, 10 Aug 2022 09:43:22 +0800
+          Wed, 10 Aug 2022 09:43:21 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
-Subject: [PATCH for-rc] RDMA/erdma: Using the key in FMR WR instead of MR structure
-Date:   Wed, 10 Aug 2022 09:43:20 +0800
-Message-Id: <20220810014320.88026-2-chengyou@linux.alibaba.com>
+Subject: [PATCH for-rc] RDMA/erdma: Correct the max_qp and max_cq capacities of the device
+Date:   Wed, 10 Aug 2022 09:43:19 +0800
+Message-Id: <20220810014320.88026-1-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.37.0
-In-Reply-To: <20220810014320.88026-1-chengyou@linux.alibaba.com>
-References: <20220810014320.88026-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-RDMA driver should get the MR key from FMR WR, not the MR structure passed
-in.
+QP0 in HW is used for CMDQ, and the rest is for RDMA QPs. So the actual
+max_qp capacity reported to core should be max_qp (reported by HW) - 1.
+So does max_cq.
 
 Fixes: 155055771704 ("RDMA/erdma: Add verbs implementation")
 Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- drivers/infiniband/hw/erdma/erdma_qp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/erdma/erdma_qp.c b/drivers/infiniband/hw/erdma/erdma_qp.c
-index 72f08171a28a..bc3ec22a62c5 100644
---- a/drivers/infiniband/hw/erdma/erdma_qp.c
-+++ b/drivers/infiniband/hw/erdma/erdma_qp.c
-@@ -407,7 +407,7 @@ static int erdma_push_one_sqe(struct erdma_qp *qp, u16 *pi,
- 			     to_erdma_access_flags(reg_wr(send_wr)->access);
- 		regmr_sge->addr = cpu_to_le64(mr->ibmr.iova);
- 		regmr_sge->length = cpu_to_le32(mr->ibmr.length);
--		regmr_sge->stag = cpu_to_le32(mr->ibmr.lkey);
-+		regmr_sge->stag = cpu_to_le32(reg_wr(send_wr)->key);
- 		attrs = FIELD_PREP(ERDMA_SQE_MR_MODE_MASK, 0) |
- 			FIELD_PREP(ERDMA_SQE_MR_ACCESS_MASK, mr->access) |
- 			FIELD_PREP(ERDMA_SQE_MR_MTT_CNT_MASK,
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index a7a3d42e2016..699bd3f59cd3 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -280,7 +280,7 @@ int erdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr,
+ 	attr->vendor_id = PCI_VENDOR_ID_ALIBABA;
+ 	attr->vendor_part_id = dev->pdev->device;
+ 	attr->hw_ver = dev->pdev->revision;
+-	attr->max_qp = dev->attrs.max_qp;
++	attr->max_qp = dev->attrs.max_qp - 1;
+ 	attr->max_qp_wr = min(dev->attrs.max_send_wr, dev->attrs.max_recv_wr);
+ 	attr->max_qp_rd_atom = dev->attrs.max_ord;
+ 	attr->max_qp_init_rd_atom = dev->attrs.max_ird;
+@@ -291,7 +291,7 @@ int erdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr,
+ 	attr->max_send_sge = dev->attrs.max_send_sge;
+ 	attr->max_recv_sge = dev->attrs.max_recv_sge;
+ 	attr->max_sge_rd = dev->attrs.max_sge_rd;
+-	attr->max_cq = dev->attrs.max_cq;
++	attr->max_cq = dev->attrs.max_cq - 1;
+ 	attr->max_cqe = dev->attrs.max_cqe;
+ 	attr->max_mr = dev->attrs.max_mr;
+ 	attr->max_pd = dev->attrs.max_pd;
 -- 
 2.27.0
 
