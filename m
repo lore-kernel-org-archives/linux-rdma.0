@@ -2,58 +2,57 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA48BC2BB41
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Aug 2022 18:08:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 739E1C32772
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Aug 2022 18:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236916AbiHPSIX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 16 Aug 2022 14:08:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38324 "EHLO
+        id S236910AbiHPSL0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 16 Aug 2022 14:11:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236941AbiHPSHz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Aug 2022 14:07:55 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F87C85FE0
-        for <linux-rdma@vger.kernel.org>; Tue, 16 Aug 2022 11:07:45 -0700 (PDT)
+        with ESMTP id S236906AbiHPSLF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Aug 2022 14:11:05 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E6C986074
+        for <linux-rdma@vger.kernel.org>; Tue, 16 Aug 2022 11:10:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1660673264;
+        s=mimecast20190719; t=1660673407;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Ygl4bsiGppbXjaR+QFxwzenbyEWvTTquS8G3MYyuF5k=;
-        b=J2EZDDOzoQmAGaAOY2K/XyZ904+hprlQYeJVL2Rzf2lYBDktnGRqr225XJNn8rWlS8WikF
-        hC7MgZWnTtA1eUSRGq1PDE03pTzZJoZSghlqT96F/+eFHYnSG5bA4WH/004mw59xjNNvdK
-        v2FIpXGYDe6VFQBEcEKXTcoA8MbreIU=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+         content-transfer-encoding:content-transfer-encoding;
+        bh=5Cxl1yMNjN1JWkJUDea+B9kQSTSEbSpFhOYq99gTDk4=;
+        b=GLcfCGmsV7L1Q0SMm2EXJtO6wrhbwGqL0fr3aFu3NaFrlNLZEzBaKVvawixlzCaaB8vNEp
+        iTZqVWQoK5lzO7Lf99OwI8rsskGvP0E7K1BB4d7ZAS+9N8a5ieDC/cR7oFg7pkY0BJk/Hz
+        EDiEg+bOq9t8fvTw0bkAh+9mRaia4fg=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-625-C3Xrr2QEOCGnI68WGeJppA-1; Tue, 16 Aug 2022 14:07:43 -0400
-X-MC-Unique: C3Xrr2QEOCGnI68WGeJppA-1
-Received: by mail-wm1-f71.google.com with SMTP id z16-20020a05600c0a1000b003a5c18a66f0so5222977wmp.6
-        for <linux-rdma@vger.kernel.org>; Tue, 16 Aug 2022 11:07:43 -0700 (PDT)
+ us-mta-385-Fzzv3mRvMnGw_uzHQEnqNw-1; Tue, 16 Aug 2022 14:07:39 -0400
+X-MC-Unique: Fzzv3mRvMnGw_uzHQEnqNw-1
+Received: by mail-wm1-f72.google.com with SMTP id y3-20020a1c4b03000000b003a537ef75c7so2204372wma.3
+        for <linux-rdma@vger.kernel.org>; Tue, 16 Aug 2022 11:07:39 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc;
-        bh=Ygl4bsiGppbXjaR+QFxwzenbyEWvTTquS8G3MYyuF5k=;
-        b=mbcjaTNy9G+HqKX51Do97UyFXZBSea3DVg53RdON4X6dF2DnREKxLS7FyACAFs8ijM
-         n9Ay8LCDifzKFAEpROguxOO4NgGJtOZEq1UtD4gpgoTTwNHEYDaVrktvKBXvNly4Gjj8
-         hznMEfZv2zM+kVrn3wOQZ4W55ngh+5TIe6aDlpwGC1NTdeB+ocX0wPEk1cMhd6Ye00yB
-         y/tDi8tUqWR6UBEtJWAax7gNBd6UwM2JpQqFpJxEbiq3YP4AyGxrfiQ3LXGc9EPzpIcU
-         KZEHZINCodLXjsN70CaHVzhw7T29ERNizbu/4C/km2VtbzSZGpybV9UcYZugwltBJifd
-         OFVg==
-X-Gm-Message-State: ACgBeo1QnToPY+5aX58X8sw7t8N5Q8vyZvg7oG3AjrVT8QCeQSzP5iOb
-        BB54FHzwZxr2HiGQgChEmmGMMxt2JUdo5YTBsSeL2suhGEz7BBUVZPZnLyaK6nquErtx6WKPlME
-        pEypCdel99KEpRm69fvWlRg==
-X-Received: by 2002:a05:600c:3ac9:b0:3a5:f114:1f8 with SMTP id d9-20020a05600c3ac900b003a5f11401f8mr7308799wms.204.1660673262254;
-        Tue, 16 Aug 2022 11:07:42 -0700 (PDT)
-X-Google-Smtp-Source: AA6agR48CFk/soei7QbfayAzQBKnIM/T9VknX41x2JuU6hM+hzmZxgjXWFEqwx3WheqBotPeya0UKg==
-X-Received: by 2002:a05:600c:3ac9:b0:3a5:f114:1f8 with SMTP id d9-20020a05600c3ac900b003a5f11401f8mr7308780wms.204.1660673262069;
-        Tue, 16 Aug 2022 11:07:42 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc;
+        bh=5Cxl1yMNjN1JWkJUDea+B9kQSTSEbSpFhOYq99gTDk4=;
+        b=yrEM01bpvxHI2zIJcFtV64xdG5NJ0GkirEMvq2MdPRuTVk/gm7m85aXf4cTnehRMMz
+         9bR0CwyQGQ37uUrvgmyma77lIQ8IDnTPxC4iDKjGeuFBh9WXaVY+EsA6TMYptz528yfL
+         bT0DGzeWCszkNLZFR/lra8wTRYWSDE8+MWmRPtgDwGI37zcjNUi1KJTDr/Du+4z5IqEF
+         0eGcyAQWxYRA67C4ewoLqPhGrPQNyi1TKJ0JcWbT/0M6V6dI1qBKnSgkULQGTDuPdcsQ
+         SLeZ7WlciyZml0YOqiJanM1azN/B6lTSxseOI+p5DEE7LGwOM9gp+s+KKOYQwX/j40d3
+         rXqA==
+X-Gm-Message-State: ACgBeo3mol6zZVVYRZb4JQ0VIMIneBDtQUd4vQaMABuruSjIFefkfCXo
+        aI41IcCnLA1pByWqGa0ZjF+9S4u+S2LNaxS6408oRar3FF4m7Jqm4huZGfyrLVlRs0bgZ2Nll4M
+        Wir4WSqpkwv3vXRSRMk7NmQ==
+X-Received: by 2002:a5d:4912:0:b0:220:6633:104f with SMTP id x18-20020a5d4912000000b002206633104fmr12446506wrq.625.1660673256725;
+        Tue, 16 Aug 2022 11:07:36 -0700 (PDT)
+X-Google-Smtp-Source: AA6agR6uR8z5D5D8T/gAXNcIujuyju0f7+AmovqCm4Vq6ys0+45zUiErhIRXXQQ3OhAWcNPgXMOXnw==
+X-Received: by 2002:a5d:4912:0:b0:220:6633:104f with SMTP id x18-20020a5d4912000000b002206633104fmr12446491wrq.625.1660673256534;
+        Tue, 16 Aug 2022 11:07:36 -0700 (PDT)
 Received: from vschneid.remote.csb ([185.11.37.247])
-        by smtp.gmail.com with ESMTPSA id o8-20020a05600c4fc800b003a319bd3278sm14694961wmq.40.2022.08.16.11.07.40
+        by smtp.gmail.com with ESMTPSA id o8-20020a05600c4fc800b003a319bd3278sm14694961wmq.40.2022.08.16.11.07.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 16 Aug 2022 11:07:41 -0700 (PDT)
+        Tue, 16 Aug 2022 11:07:36 -0700 (PDT)
 From:   Valentin Schneider <vschneid@redhat.com>
 To:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         linux-kernel@vger.kernel.org
@@ -78,79 +77,52 @@ Cc:     Saeed Mahameed <saeedm@nvidia.com>,
         Tony Luck <tony.luck@intel.com>,
         Jonathan Cameron <Jonathan.Cameron@huawei.com>,
         Gal Pressman <gal@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH 4/5] sched/topology: Introduce for_each_numa_hop_cpu()
-Date:   Tue, 16 Aug 2022 19:07:26 +0100
-Message-Id: <20220816180727.387807-5-vschneid@redhat.com>
+Subject: [PATCH 0/5] cpumask, sched/topology: NUMA-aware CPU spreading interface
+Date:   Tue, 16 Aug 2022 19:07:22 +0100
+Message-Id: <20220816180727.387807-1-vschneid@redhat.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20220816180727.387807-1-vschneid@redhat.com>
-References: <20220816180727.387807-1-vschneid@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The recently introduced sched_numa_hop_mask() exposes cpumasks of CPUs
-reachable within a given distance budget, but this means each successive
-cpumask is a superset of the previous one.
+Hi folks,
 
-Code wanting to allocate one item per CPU (e.g. IRQs) at increasing
-distances would thus need to allocate a temporary cpumask to note which
-CPUs have already been visited. This can be prevented by leveraging
-for_each_cpu_andnot() - package all that logic into one ugl^D fancy macro.
+Tariq pointed out in [1] that drivers allocating IRQ vectors would benefit
+from having smarter NUMA-awareness (cpumask_local_spread() doesn't quite cut
+it).
 
-Signed-off-by: Valentin Schneider <vschneid@redhat.com>
----
- include/linux/topology.h | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+The proposed interface involved an array of CPUs and a temporary cpumask, and
+being my difficult self what I'm proposing here is an interface that doesn't
+require any temporary storage other than some stack variables (at the cost of
+one wild macro).
 
-diff --git a/include/linux/topology.h b/include/linux/topology.h
-index 13b82b83e547..6c671dc3252c 100644
---- a/include/linux/topology.h
-+++ b/include/linux/topology.h
-@@ -254,5 +254,42 @@ static inline const struct cpumask *sched_numa_hop_mask(int node, int hops)
- }
- #endif	/* CONFIG_NUMA */
- 
-+/**
-+ * for_each_numa_hop_cpu - iterate over CPUs by increasing NUMA distance,
-+ *                         starting from a given node.
-+ * @cpu: the iteration variable.
-+ * @node: the NUMA node to start the search from.
-+ *
-+ * Requires rcu_lock to be held.
-+ * Careful: this is a double loop, 'break' won't work as expected.
-+ *
-+ *
-+ * Implementation notes:
-+ *
-+ * Providing it is valid, the mask returned by
-+ *  sched_numa_hop_mask(node, hops+1)
-+ * is a superset of the one returned by
-+ *   sched_numa_hop_mask(node, hops)
-+ * which may not be that useful for drivers that try to spread things out and
-+ * want to visit a CPU not more than once.
-+ *
-+ * To accommodate for that, we use for_each_cpu_andnot() to iterate over the cpus
-+ * of sched_numa_hop_mask(node, hops+1) with the CPUs of
-+ * sched_numa_hop_mask(node, hops) removed, IOW we only iterate over CPUs
-+ * a given distance away (rather than *up to* a given distance).
-+ *
-+ * hops=0 forces us to play silly games: we pass cpu_none_mask to
-+ * for_each_cpu_andnot(), which turns it into for_each_cpu().
-+ */
-+#define for_each_numa_hop_cpu(cpu, node)				       \
-+	for (struct { const struct cpumask *curr, *prev; int hops; } __v =     \
-+		     { sched_numa_hop_mask(node, 0), NULL, 0 };		       \
-+	     !IS_ERR_OR_NULL(__v.curr);					       \
-+	     __v.hops++,                                                       \
-+	     __v.prev = __v.curr,					       \
-+	     __v.curr = sched_numa_hop_mask(node, __v.hops))                   \
-+		for_each_cpu_andnot(cpu,				       \
-+				    __v.curr,				       \
-+				    __v.hops ? __v.prev : cpu_none_mask)
- 
- #endif /* _LINUX_TOPOLOGY_H */
--- 
+Patch 5/5 is just there to showcase how the thing would be used. If this doesn't
+get hated on, I'll let Tariq pick this up and push it with his networking driver
+changes (with actual changelogs).
+
+[1]: https://lore.kernel.org/all/20220728191203.4055-1-tariqt@nvidia.com/
+
+Cheers,
+Valentin
+
+Valentin Schneider (5):
+  bitops: Introduce find_next_andnot_bit()
+  cpumask: Introduce for_each_cpu_andnot()
+  sched/topology: Introduce sched_numa_hop_mask()
+  sched/topology: Introduce for_each_numa_hop_cpu()
+  SHOWCASE: net/mlx5e: Leverage for_each_numa_hop_cpu()
+
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c | 12 ++++-
+ include/linux/cpumask.h                      | 32 ++++++++++++++
+ include/linux/find.h                         | 44 ++++++++++++++++---
+ include/linux/topology.h                     | 46 ++++++++++++++++++++
+ kernel/sched/topology.c                      | 28 ++++++++++++
+ lib/cpumask.c                                | 19 ++++++++
+ lib/find_bit.c                               | 16 ++++---
+ 7 files changed, 184 insertions(+), 13 deletions(-)
+
+--
 2.31.1
 
