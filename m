@@ -2,343 +2,178 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 447A9C32771
-	for <linux-rdma@archiver.kernel.org>; Tue, 16 Aug 2022 09:56:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B0D7C32772
+	for <linux-rdma@archiver.kernel.org>; Tue, 16 Aug 2022 10:17:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232858AbiHPJ4O (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 16 Aug 2022 05:56:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57858 "EHLO
+        id S233565AbiHPKRU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 16 Aug 2022 06:17:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234183AbiHPJzW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Aug 2022 05:55:22 -0400
-Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B630399F0;
-        Tue, 16 Aug 2022 01:39:10 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R861e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=tonylu@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VMPRQlw_1660639065;
-Received: from localhost(mailfrom:tonylu@linux.alibaba.com fp:SMTPD_---0VMPRQlw_1660639065)
-          by smtp.aliyun-inc.com;
-          Tue, 16 Aug 2022 16:37:46 +0800
-Date:   Tue, 16 Aug 2022 16:37:45 +0800
-From:   Tony Lu <tonylu@linux.alibaba.com>
-To:     "D. Wythe" <alibuda@linux.alibaba.com>
-Cc:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, kuba@kernel.org,
-        davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH net-next 08/10] net/smc: replace mutex rmbs_lock and
- sndbufs_lock with rw_semaphore
-Message-ID: <YvtXWfnWTP5P9ePT@TonyMac-Alibaba>
-Reply-To: Tony Lu <tonylu@linux.alibaba.com>
-References: <cover.1660152975.git.alibuda@linux.alibaba.com>
- <b4e23c1ef29d567661de46a79c00e48a01344366.1660152975.git.alibuda@linux.alibaba.com>
+        with ESMTP id S234146AbiHPKQi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 16 Aug 2022 06:16:38 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD64B17A99;
+        Tue, 16 Aug 2022 02:36:48 -0700 (PDT)
+Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 27G9USWx021747;
+        Tue, 16 Aug 2022 09:35:23 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ mime-version : subject : to : cc : references : from : in-reply-to :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=nCJHr1acNLMLVG9QC3Uc/OZmUsg9vYgpJuYgh6L0TMI=;
+ b=RuhkAMjodgEZugZKEoL6Bh8hnbsidX4cNDdqJQofcEecF2N1knuc3+KDIuLKsQCJRDrx
+ fGKdAJlH9J5F4ys+G6R0cbQWv2WmM+LQWcFI1J4AGzA45y83Io1CWuoyqkRjNTI6whWw
+ jQggp9VB9oNJHyYAOm9CQoM53hwS+u8AAv9frWCwBjHGQBM8V8/0jLW0uj4U4debE33f
+ vU7cX+Ut+O+I5Mm/3xfgXpi4yFC2WvKm4sOIybAC4QXRi2GpJcos0oFvJgc8Uw3TelVl
+ e01E4bnekv9jcV2u7orKtqzEKm0NKwnK2wwkQUwsH6abGeQhJjaTSFJv/ZztjUbbAdy5 cA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3j08nkg3fb-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 16 Aug 2022 09:35:23 +0000
+Received: from m0098404.ppops.net (m0098404.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 27G9VZRG029016;
+        Tue, 16 Aug 2022 09:35:22 GMT
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3j08nkg3ed-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 16 Aug 2022 09:35:22 +0000
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+        by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 27G9KgG2022415;
+        Tue, 16 Aug 2022 09:35:20 GMT
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
+        by ppma04ams.nl.ibm.com with ESMTP id 3hx3k9b09k-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 16 Aug 2022 09:35:20 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+        by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 27G9ZHwm25297306
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 16 Aug 2022 09:35:17 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 51DA9AE061;
+        Tue, 16 Aug 2022 09:35:17 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 93E3AAE05A;
+        Tue, 16 Aug 2022 09:35:16 +0000 (GMT)
+Received: from [9.171.58.165] (unknown [9.171.58.165])
+        by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Tue, 16 Aug 2022 09:35:16 +0000 (GMT)
+Message-ID: <2182efbc-99f8-17ba-d344-95a467536b05@linux.ibm.com>
+Date:   Tue, 16 Aug 2022 11:35:15 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b4e23c1ef29d567661de46a79c00e48a01344366.1660152975.git.alibuda@linux.alibaba.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.1.2
+Subject: Re: [PATCH net-next 00/10] net/smc: optimize the parallelism of SMC-R
+ connections
+Content-Language: en-US
+To:     "D. Wythe" <alibuda@linux.alibaba.com>, kgraul@linux.ibm.com,
+        wenjia@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <cover.1660152975.git.alibuda@linux.alibaba.com>
+From:   Jan Karcher <jaka@linux.ibm.com>
+In-Reply-To: <cover.1660152975.git.alibuda@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: VG2nuOpx713STu1xwibBw5GqTQeovTSb
+X-Proofpoint-ORIG-GUID: L3hK5E3pxDKeGVmdL1ebOmL1e8BPYD5z
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
+ definitions=2022-08-16_07,2022-08-16_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011
+ priorityscore=1501 mlxscore=0 spamscore=0 phishscore=0 bulkscore=0
+ malwarescore=0 mlxlogscore=999 suspectscore=0 adultscore=0
+ lowpriorityscore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2207270000 definitions=main-2208160037
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 11, 2022 at 01:47:39AM +0800, D. Wythe wrote:
+
+
+On 10.08.2022 19:47, D. Wythe wrote:
 > From: "D. Wythe" <alibuda@linux.alibaba.com>
 > 
-> It's clear that rmbs_lock and sndbufs_lock are aims to protect the
-> rmbs list or the sndbufs list.
-> 
-> During conenction establieshment, smc_buf_get_slot() will always
+> This patch set attempts to optimize the parallelism of SMC-R connections,
+> mainly to reduce unnecessary blocking on locks, and to fix exceptions that
+> occur after thoses optimization.
+>
 
-conenction -> connection
+Thank you again for your submission!
+Let me give you a quick update from our side:
+We tested your patches on top of the net-next kernel on our s390 
+systems. They did crash our systems. After verifying our environment we 
+pulled console logs and now we can tell that there is indeed a problem 
+with your patches regarding SMC-D. So please do not integrate this 
+change as of right now. I'm going to do more in depth reviews of your 
+patches but i need some time for them so here is a quick a description 
+of the problem:
 
-> be invoke, and it only performs read semantics in rmbs list and
+It is a SMC-D problem, that occurs while building up the connection. In 
+smc_conn_create you set struct smc_lnk_cluster *lnkc = NULL. For the 
+SMC-R path you do grab the pointer, for SMC-D that never happens. Still 
+you are using this refernce for SMC-D => Crash. This problem can be 
+reproduced using the SMC-D path. Here is an example console output:
 
-invoke -> invoked.
+[  779.516382] Unable to handle kernel pointer dereference in virtual 
+kernel address space
+[  779.516389] Failing address: 0000000000000000 TEID: 0000000000000483
+[  779.516391] Fault in home space mode while using kernel ASCE.
+[  779.516395] AS:0000000069628007 R3:00000000ffbf0007 
+S:00000000ffbef800 P:000000000000003d
+[  779.516431] Oops: 0004 ilc:2 [#1] SMP
+[  779.516436] Modules linked in: tcp_diag inet_diag ism mlx5_ib 
+ib_uverbs mlx5_core smc_diag smc ib_core nft_fib_inet nft_fib_ipv4
+nft_fib_ipv6 nft_fib nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 
+nft_reject nft_ct nft_chain_nat nf_nat nf_conntrack nf_defrag_ipv
+6 nf_defrag_ipv4 ip_set nf_tables n
+[  779.516470] CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted 
+5.19.0-13940-g22a46254655a #3
+[  779.516476] Hardware name: IBM 8561 T01 701 (z/VM 7.2.0)
 
-> sndbufs list.
-> 
-> Based on the above considerations, we replace mutex with rw_semaphore.
-> Only smc_buf_get_slot() use down_read() to allow smc_buf_get_slot()
-> run concurrently, other part use down_write() to keep exclusive
-> semantics.
-> 
-> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
-> ---
->  net/smc/smc_core.c | 55 +++++++++++++++++++++++++++---------------------------
->  net/smc/smc_core.h |  4 ++--
->  net/smc/smc_llc.c  | 16 ++++++++--------
->  3 files changed, 38 insertions(+), 37 deletions(-)
-> 
-> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-> index 113804d..b90970a 100644
-> --- a/net/smc/smc_core.c
-> +++ b/net/smc/smc_core.c
-> @@ -1138,8 +1138,8 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
->  	lgr->freeing = 0;
->  	lgr->vlan_id = ini->vlan_id;
->  	refcount_set(&lgr->refcnt, 1); /* set lgr refcnt to 1 */
-> -	mutex_init(&lgr->sndbufs_lock);
-> -	mutex_init(&lgr->rmbs_lock);
-> +	init_rwsem(&lgr->sndbufs_lock);
-> +	init_rwsem(&lgr->rmbs_lock);
->  	rwlock_init(&lgr->conns_lock);
->  	for (i = 0; i < SMC_RMBE_SIZES; i++) {
->  		INIT_LIST_HEAD(&lgr->sndbufs[i]);
-> @@ -1380,7 +1380,7 @@ struct smc_link *smc_switch_conns(struct smc_link_group *lgr,
->  static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
->  			   struct smc_link_group *lgr)
->  {
-> -	struct mutex *lock;	/* lock buffer list */
-> +	struct rw_semaphore *lock;	/* lock buffer list */
->  	int rc;
->  
->  	if (is_rmb && buf_desc->is_conf_rkey && !list_empty(&lgr->list)) {
-> @@ -1400,9 +1400,9 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
->  		/* buf registration failed, reuse not possible */
->  		lock = is_rmb ? &lgr->rmbs_lock :
->  				&lgr->sndbufs_lock;
-> -		mutex_lock(lock);
-> +		down_write(lock);
->  		list_del(&buf_desc->list);
-> -		mutex_unlock(lock);
-> +		up_write(lock);
->  
->  		smc_buf_free(lgr, is_rmb, buf_desc);
->  	} else {
-> @@ -1506,15 +1506,16 @@ static void smcr_buf_unmap_lgr(struct smc_link *lnk)
->  	int i;
->  
->  	for (i = 0; i < SMC_RMBE_SIZES; i++) {
-> -		mutex_lock(&lgr->rmbs_lock);
-> +		down_write(&lgr->rmbs_lock);
->  		list_for_each_entry_safe(buf_desc, bf, &lgr->rmbs[i], list)
->  			smcr_buf_unmap_link(buf_desc, true, lnk);
-> -		mutex_unlock(&lgr->rmbs_lock);
-> -		mutex_lock(&lgr->sndbufs_lock);
-> +		up_write(&lgr->rmbs_lock);
-> +
-> +		down_write(&lgr->sndbufs_lock);
->  		list_for_each_entry_safe(buf_desc, bf, &lgr->sndbufs[i],
->  					 list)
->  			smcr_buf_unmap_link(buf_desc, false, lnk);
-> -		mutex_unlock(&lgr->sndbufs_lock);
-> +		up_write(&lgr->sndbufs_lock);
->  	}
->  }
->  
-> @@ -2324,19 +2325,19 @@ int smc_uncompress_bufsize(u8 compressed)
->   * buffer size; if not available, return NULL
->   */
->  static struct smc_buf_desc *smc_buf_get_slot(int compressed_bufsize,
-> -					     struct mutex *lock,
-> +					     struct rw_semaphore *lock,
->  					     struct list_head *buf_list)
->  {
->  	struct smc_buf_desc *buf_slot;
->  
-> -	mutex_lock(lock);
-> +	down_read(lock);
->  	list_for_each_entry(buf_slot, buf_list, list) {
->  		if (cmpxchg(&buf_slot->used, 0, 1) == 0) {
-> -			mutex_unlock(lock);
-> +			up_read(lock);
->  			return buf_slot;
->  		}
->  	}
-> -	mutex_unlock(lock);
-> +	up_read(lock);
->  	return NULL;
->  }
->  
-> @@ -2445,13 +2446,13 @@ int smcr_link_reg_buf(struct smc_link *link, struct smc_buf_desc *buf_desc)
->  	return 0;
->  }
->  
-> -static int _smcr_buf_map_lgr(struct smc_link *lnk, struct mutex *lock,
-> +static int _smcr_buf_map_lgr(struct smc_link *lnk, struct rw_semaphore *lock,
->  			     struct list_head *lst, bool is_rmb)
->  {
->  	struct smc_buf_desc *buf_desc, *bf;
->  	int rc = 0;
->  
-> -	mutex_lock(lock);
-> +	down_write(lock);
->  	list_for_each_entry_safe(buf_desc, bf, lst, list) {
->  		if (!buf_desc->used)
->  			continue;
-> @@ -2460,7 +2461,7 @@ static int _smcr_buf_map_lgr(struct smc_link *lnk, struct mutex *lock,
->  			goto out;
->  	}
->  out:
-> -	mutex_unlock(lock);
-> +	up_write(lock);
->  	return rc;
->  }
->  
-> @@ -2493,37 +2494,37 @@ int smcr_buf_reg_lgr(struct smc_link *lnk)
->  	int i, rc = 0;
->  
->  	/* reg all RMBs for a new link */
-> -	mutex_lock(&lgr->rmbs_lock);
-> +	down_write(&lgr->rmbs_lock);
->  	for (i = 0; i < SMC_RMBE_SIZES; i++) {
->  		list_for_each_entry_safe(buf_desc, bf, &lgr->rmbs[i], list) {
->  			if (!buf_desc->used)
->  				continue;
->  			rc = smcr_link_reg_buf(lnk, buf_desc);
->  			if (rc) {
-> -				mutex_unlock(&lgr->rmbs_lock);
-> +				up_write(&lgr->rmbs_lock);
->  				return rc;
->  			}
->  		}
->  	}
-> -	mutex_unlock(&lgr->rmbs_lock);
-> +	up_write(&lgr->rmbs_lock);
->  
->  	if (lgr->buf_type == SMCR_PHYS_CONT_BUFS)
->  		return rc;
->  
->  	/* reg all vzalloced sndbufs for a new link */
-> -	mutex_lock(&lgr->sndbufs_lock);
-> +	down_write(&lgr->sndbufs_lock);
->  	for (i = 0; i < SMC_RMBE_SIZES; i++) {
->  		list_for_each_entry_safe(buf_desc, bf, &lgr->sndbufs[i], list) {
->  			if (!buf_desc->used || !buf_desc->is_vm)
->  				continue;
->  			rc = smcr_link_reg_buf(lnk, buf_desc);
->  			if (rc) {
-> -				mutex_unlock(&lgr->sndbufs_lock);
-> +				up_write(&lgr->sndbufs_lock);
->  				return rc;
->  			}
->  		}
->  	}
-> -	mutex_unlock(&lgr->sndbufs_lock);
-> +	up_write(&lgr->sndbufs_lock);
->  	return rc;
->  }
->  
-> @@ -2641,7 +2642,7 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
->  	struct list_head *buf_list;
->  	int bufsize, bufsize_short;
->  	bool is_dgraded = false;
-> -	struct mutex *lock;	/* lock buffer list */
-> +	struct rw_semaphore *lock;	/* lock buffer list */
->  	int sk_buf_size;
->  
->  	if (is_rmb)
-> @@ -2689,9 +2690,9 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
->  		SMC_STAT_RMB_ALLOC(smc, is_smcd, is_rmb);
->  		SMC_STAT_RMB_SIZE(smc, is_smcd, is_rmb, bufsize);
->  		buf_desc->used = 1;
-> -		mutex_lock(lock);
-> +		down_write(lock);
->  		list_add(&buf_desc->list, buf_list);
-> -		mutex_unlock(lock);
-> +		up_write(lock);
->  		break; /* found */
->  	}
->  
-> @@ -2765,9 +2766,9 @@ int smc_buf_create(struct smc_sock *smc, bool is_smcd)
->  	/* create rmb */
->  	rc = __smc_buf_create(smc, is_smcd, true);
->  	if (rc) {
-> -		mutex_lock(&smc->conn.lgr->sndbufs_lock);
-> +		down_write(&smc->conn.lgr->sndbufs_lock);
->  		list_del(&smc->conn.sndbuf_desc->list);
-> -		mutex_unlock(&smc->conn.lgr->sndbufs_lock);
-> +		up_write(&smc->conn.lgr->sndbufs_lock);
->  		smc_buf_free(smc->conn.lgr, false, smc->conn.sndbuf_desc);
->  		smc->conn.sndbuf_desc = NULL;
->  	}
-> diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-> index 559d330..008148c 100644
-> --- a/net/smc/smc_core.h
-> +++ b/net/smc/smc_core.h
-> @@ -300,9 +300,9 @@ struct smc_link_group {
->  	unsigned short		vlan_id;	/* vlan id of link group */
->  
->  	struct list_head	sndbufs[SMC_RMBE_SIZES];/* tx buffers */
-> -	struct mutex		sndbufs_lock;	/* protects tx buffers */
-> +	struct rw_semaphore	sndbufs_lock;	/* protects tx buffers */
->  	struct list_head	rmbs[SMC_RMBE_SIZES];	/* rx buffers */
-> -	struct mutex		rmbs_lock;	/* protects rx buffers */
-> +	struct rw_semaphore	rmbs_lock;	/* protects rx buffers */
->  
->  	u8			id[SMC_LGR_ID_SIZE];	/* unique lgr id */
->  	struct delayed_work	free_work;	/* delayed freeing of an lgr */
-> diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
-> index d744937..76f9906 100644
-> --- a/net/smc/smc_llc.c
-> +++ b/net/smc/smc_llc.c
-> @@ -642,7 +642,7 @@ static int smc_llc_fill_ext_v2(struct smc_llc_msg_add_link_v2_ext *ext,
->  
->  	prim_lnk_idx = link->link_idx;
->  	lnk_idx = link_new->link_idx;
-> -	mutex_lock(&lgr->rmbs_lock);
-> +	down_write(&lgr->rmbs_lock);
->  	ext->num_rkeys = lgr->conns_num;
->  	if (!ext->num_rkeys)
->  		goto out;
-> @@ -662,7 +662,7 @@ static int smc_llc_fill_ext_v2(struct smc_llc_msg_add_link_v2_ext *ext,
->  	}
->  	len += i * sizeof(ext->rt[0]);
->  out:
-> -	mutex_unlock(&lgr->rmbs_lock);
-> +	up_write(&lgr->rmbs_lock);
->  	return len;
->  }
->  
-> @@ -923,7 +923,7 @@ static int smc_llc_cli_rkey_exchange(struct smc_link *link,
->  	int rc = 0;
->  	int i;
->  
-> -	mutex_lock(&lgr->rmbs_lock);
-> +	down_write(&lgr->rmbs_lock);
->  	num_rkeys_send = lgr->conns_num;
->  	buf_pos = smc_llc_get_first_rmb(lgr, &buf_lst);
->  	do {
-> @@ -950,7 +950,7 @@ static int smc_llc_cli_rkey_exchange(struct smc_link *link,
->  			break;
->  	} while (num_rkeys_send || num_rkeys_recv);
->  
-> -	mutex_unlock(&lgr->rmbs_lock);
-> +	up_write(&lgr->rmbs_lock);
->  	return rc;
->  }
->  
-> @@ -1033,14 +1033,14 @@ static void smc_llc_save_add_link_rkeys(struct smc_link *link,
->  	ext = (struct smc_llc_msg_add_link_v2_ext *)((u8 *)lgr->wr_rx_buf_v2 +
->  						     SMC_WR_TX_SIZE);
->  	max = min_t(u8, ext->num_rkeys, SMC_LLC_RKEYS_PER_MSG_V2);
-> -	mutex_lock(&lgr->rmbs_lock);
-> +	down_write(&lgr->rmbs_lock);
->  	for (i = 0; i < max; i++) {
->  		smc_rtoken_set(lgr, link->link_idx, link_new->link_idx,
->  			       ext->rt[i].rmb_key,
->  			       ext->rt[i].rmb_vaddr_new,
->  			       ext->rt[i].rmb_key_new);
->  	}
-> -	mutex_unlock(&lgr->rmbs_lock);
-> +	up_write(&lgr->rmbs_lock);
->  }
->  
->  static void smc_llc_save_add_link_info(struct smc_link *link,
-> @@ -1349,7 +1349,7 @@ static int smc_llc_srv_rkey_exchange(struct smc_link *link,
->  	int rc = 0;
->  	int i;
->  
-> -	mutex_lock(&lgr->rmbs_lock);
-> +	down_write(&lgr->rmbs_lock);
->  	num_rkeys_send = lgr->conns_num;
->  	buf_pos = smc_llc_get_first_rmb(lgr, &buf_lst);
->  	do {
-> @@ -1374,7 +1374,7 @@ static int smc_llc_srv_rkey_exchange(struct smc_link *link,
->  		smc_llc_flow_qentry_del(&lgr->llc_flow_lcl);
->  	} while (num_rkeys_send || num_rkeys_recv);
->  out:
-> -	mutex_unlock(&lgr->rmbs_lock);
-> +	up_write(&lgr->rmbs_lock);
->  	return rc;
->  }
->  
-> -- 
-> 1.8.3.1
+[  779.522738] Workqueue: smc_hs_wq smc_listen_work [smc]
+[  779.522755] Krnl PSW : 0704c00180000000 000003ff803da89c 
+(smc_conn_create+0x174/0x968 [smc])
+[  779.522766]            R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 CC:0 
+PM:0 RI:0 EA:3
+[  779.522770] Krnl GPRS: 0000000000000002 0000000000000000 
+0000000000000001 0000000000000000
+[  779.522773]            000000008a4128a0 000003ff803f21aa 
+000000008e30d640 0000000086d72000
+[  779.522776]            0000000086d72000 000000008a412803 
+000000008a412800 000000008e30d650
+[  779.522779]            0000000080934200 0000000000000000 
+000003ff803cb954 00000380002dfa88
+[  779.522789] Krnl Code: 000003ff803da88e: e310f0e80024        stg 
+%r1,232(%r15)
+[  779.522789]            000003ff803da894: a7180000            lhi 
+%r1,0
+[  779.522789]           #000003ff803da898: 582003ac            l 
+%r2,940
+[  779.522789]           >000003ff803da89c: ba123020            cs 
+%r1,%r2,32(%r3)
+[  779.522789]            000003ff803da8a0: ec1603be007e        cij 
+%r1,0,6,000003ff803db01c
+
+[  779.522789]            000003ff803da8a6: 4110b002            la 
+%r1,2(%r11)
+[  779.522789]            000003ff803da8aa: e310f0f00024        stg 
+%r1,240(%r15)
+[  779.522789]            000003ff803da8b0: e310f0c00004        lg 
+%r1,192(%r15)
+[  779.522870] Call Trace:
+[  779.522873]  [<000003ff803da89c>] smc_conn_create+0x174/0x968 [smc]
+[  779.522884]  [<000003ff803cb954>] 
+smc_find_ism_v2_device_serv+0x1b4/0x300 [smc]
+01: HCPGSP2629I The virtual machine is placed in CP mode due to a SIGP 
+stop from CPU 01.
+01: HCPGSP2629I The virtual machine is placed in CP mode due to a SIGP 
+stop from CPU 00.
+[  779.522894]  [<000003ff803cbace>] smc_listen_find_device+0x2e/0x370 [smc]
+
+
+I'm going to send the review for the first patch right away (which is 
+the one causing the crash), so far I'm done with it. The others are 
+going to follow. Maybe you can look over the problem and come up with a 
+solution, otherwise we are going to decide if we want to look into it as 
+soon as I'm done with the reviews. Thank you for your patience.
