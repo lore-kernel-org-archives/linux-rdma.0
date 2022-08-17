@@ -2,197 +2,220 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 852FDC28B2B
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Aug 2022 16:12:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B6D1C32771
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Aug 2022 16:53:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241020AbiHQQMw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Aug 2022 12:12:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59168 "EHLO
+        id S240563AbiHQQxW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Aug 2022 12:53:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241019AbiHQQMc (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Aug 2022 12:12:32 -0400
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2085.outbound.protection.outlook.com [40.107.244.85])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E94CA033B;
-        Wed, 17 Aug 2022 09:11:53 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=V9RM6OPkIrv/QrUlQ16WasNKIbSAh0EdO4CzobJKJ7GhZf+4TOD3VKf/S8NlL/lROtaXe+F7PCxln7Aq1g7cwUNoHjKOnO92Ts/06z8AkRo5c8XZQ4JXbK3aBTxOv/+Ynqp7b9wvNBk1vbXsrKA9/7BKcc0ny+14SuyaXamz53jMGr5d/siZIz/49IphPIrEIK8zJ296OY2gOKQ7RFK7zx1ikXREkpF9lN+bJ/J0nxlbZwU2yhiTPdwd54urb/l2rS7FeeBcmOsJ89BM/zCSqgjDY1OsDYoCk13HO1E5oYSLazj1fQoDHZ1s5rY32mIkgJOcQxeNl67I6fMnHNAZkA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=PZc4Za0nuGWHAVHcE6SCuKfrxwZpP9evnPTLOJU+Luw=;
- b=QNPRvfGlXqVEJtuIHIMa+AS05UfTUyw4+rnBqgmguZQWu1Ic008xBSFbftuCy2OyaWSCbjeiOoXzRygA23ROxf/bFCGLY0zj0RL3lkD/XungOOZnb9EXbJzEa+RFSlw07pQXaeZ8+qkyw9PHa0pzuF+KTVGG+AWCuxPbNi5IuvPdzUtwKMZ+4oWxMpDNGO0jWJzmDDy3Stlqr/WvBz+NXQUKRCfccIkQcuUVh8z1VDOAbx955csMJWbz4HuEeDR1RUV6wccbII1emWrmh5mAyNuOwdr3yTbpKFp8VaY2LQ1WH/XaLa8JNTUy8bIcbKvdGbPyzD3zyLFZcbcilM1iew==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=PZc4Za0nuGWHAVHcE6SCuKfrxwZpP9evnPTLOJU+Luw=;
- b=a0OohiVI3Gaxg5KnG9R7DzAA+KH45JGjx6XEMMadS/+6n0cYlW0c1E+T1mFhJZUoBcSjjif9R3JJlRfmqatfv/c3Dku/hTmxxZoMPAzXgMSo9aebVDZqUtZ1ALZwv8zWNFkhrElbcAiF15PIb+RUAK1x44EYQsBmF6g33t+u4ENogI9ZoTU17zLG0/J//GlK97KcNCse2ZdrcAyjg7FWkbLu+m30aEuQ9i0nqlYuNDYzO3vsvTvNKpewGOtna6AvcoxoRIxD0pipkJZdobLhxfoc5Lg+zXss13ImAKOSswHephkcY4umbTDje6OV5YvsmJjGlnqlNN7mtfcy/M2Opw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
- by CO6PR12MB5458.namprd12.prod.outlook.com (2603:10b6:5:35b::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5525.11; Wed, 17 Aug
- 2022 16:11:46 +0000
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5]) by MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5%6]) with mapi id 15.20.5525.019; Wed, 17 Aug 2022
- 16:11:46 +0000
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Alex Williamson <alex.williamson@redhat.com>,
-        =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        Cornelia Huck <cohuck@redhat.com>,
-        dri-devel@lists.freedesktop.org, kvm@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        Sumit Semwal <sumit.semwal@linaro.org>
-Cc:     Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
-        Maor Gottlieb <maorg@nvidia.com>,
-        Oded Gabbay <ogabbay@kernel.org>
-Subject: [PATCH 3/4] vfio_pci: Do not open code pci_try_reset_function()
-Date:   Wed, 17 Aug 2022 13:11:41 -0300
-Message-Id: <3-v1-9e6e1739ed95+5fa-vfio_dma_buf_jgg@nvidia.com>
-In-Reply-To: <0-v1-9e6e1739ed95+5fa-vfio_dma_buf_jgg@nvidia.com>
-References: 
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: MN2PR05CA0015.namprd05.prod.outlook.com
- (2603:10b6:208:c0::28) To MN2PR12MB4192.namprd12.prod.outlook.com
- (2603:10b6:208:1d5::15)
+        with ESMTP id S238084AbiHQQxS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Aug 2022 12:53:18 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EB885F6B;
+        Wed, 17 Aug 2022 09:53:10 -0700 (PDT)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 27HGZsKr002728;
+        Wed, 17 Aug 2022 16:53:05 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ mime-version : subject : to : cc : references : from : in-reply-to :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=KydXxhnC8wSso8+pPTBV073JagbokXBZh0e+l64kL7M=;
+ b=KMQttZ1jDtOktJQ5T6d6Hw27e2oEWZW0syovUZX0rj59W98SX7tmKjDKv0uJuhQzmP74
+ eeKK3xbPePnSoiHkDfQJtocIAKZs0GjCj5JoBCilxmPAa35RFsS4LJlN2D3X3BAkG8g8
+ /AMUO4jZx39Ih6YO/fl/vMFkbh82gwma9JJqFHXJGWFd8nl+jMZbmKlubfFht6fmT+Ss
+ dWKSuyvW7wthzFE2ywRjL2MNOy0DKMhgQnyTVfw7QuwsTrTfWi0lMqIrkFlJ3jg48Trt
+ fhQq2djTuIuqhWdhBNTFYgAV2lXPdVilqM86JTUPDinhw7auz1Clr3wlLOi59LV/dISB xQ== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3j1389j6y1-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 17 Aug 2022 16:53:05 +0000
+Received: from m0098420.ppops.net (m0098420.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 27HGgw7c020209;
+        Wed, 17 Aug 2022 16:53:04 GMT
+Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
+        by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3j1389j6wv-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 17 Aug 2022 16:53:04 +0000
+Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
+        by ppma03fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 27HGpnlg009837;
+        Wed, 17 Aug 2022 16:53:03 GMT
+Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
+        by ppma03fra.de.ibm.com with ESMTP id 3hx3k8ujhr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 17 Aug 2022 16:53:03 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 27HGoDtT28443010
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 17 Aug 2022 16:50:13 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 75C8A52050;
+        Wed, 17 Aug 2022 16:52:59 +0000 (GMT)
+Received: from [9.171.63.181] (unknown [9.171.63.181])
+        by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 0479A5204F;
+        Wed, 17 Aug 2022 16:52:58 +0000 (GMT)
+Message-ID: <0f0718d1-eeb4-6440-5367-db9cc8104f43@linux.ibm.com>
+Date:   Wed, 17 Aug 2022 18:52:58 +0200
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c840418f-65a4-4bb9-c9ee-08da806b2e0e
-X-MS-TrafficTypeDiagnostic: CO6PR12MB5458:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: MGJai6iVF8uRmcJsW3tR78xg9wKhA800BummeGj4Q/6422OpsKb4nkycKMHXLys2TEBzQsU4NNVJyFwPAjyqGuMUf2tGRmLkoyx8HyUuoLw5KBQt0NxThOy7mp16zLocAUOTAwcfS5ReyJzqXlTqnLa4MQXx1gCwMIy9nstrde7mfPgs6xHPZuHMFSHIeER2UvTTYIw2urXlKus3a2/yLTzfoDj/k4BB02tY6TtS9kLbMcV5wXlC8jJcdHz4F3+4picvfwndtZHW1tQKZqaQ7lGWGdfQK1uawhAbMsaOD6ZkZTzwc7ZhG3xTq6/Emq7WGjSXzK9GkU5gb9l6kght4+1QQJBhI4LeY7eWD/aDEtxc9PSvlAQ858WHd8KLn7Rxzss2MvPiikg4XtSEss3CS12VuOTsr/Jhffl3qqt5hu8+At11Bukq1AmsQsEBuAtdxwp3/ItEXjr1UTpfnkfclw37LJhOu0rh9Th9yO9hjWHVMElkq5xncFBdN489rZrLTX3OO3AYFXlBLmUlB/som1i859+NdqMIsAIVVm9EbkaDHV3eh/Z5/+mBWVQuZ72UVaZi0sYkCiYMsO4Kev6eKDtfn9ENTwN6j+GlDkmOoahC7IGSptcLHFOHRyGnG4eRshLx3bYkJpuoCIwuCEVq+3uveOayr91jcIq+96sgHnJHUwtE1L6wV2xTR7dkvUfyz/qwn5EY20K1mDoCpZjdvkEKLT06aqtV174SinCNz6Vxz9ncJtye9OV8tJVgJHA85AEDOt6X6lO+ll75rsj71fn775QSckM/CsRPRkcL/nQ=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(396003)(39860400002)(376002)(136003)(346002)(366004)(26005)(316002)(41300700001)(2616005)(7416002)(6666004)(6512007)(2906002)(66476007)(66946007)(8676002)(4326008)(38100700002)(66556008)(186003)(5660300002)(478600001)(54906003)(83380400001)(8936002)(110136005)(86362001)(36756003)(6486002)(6506007)(4216001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?cVJkfEkC92Q4s/p9PXi5PSAoZtLot9zPCDUCjKMWu/9cpvwIX4eJNSwETSJO?=
- =?us-ascii?Q?+bMBJX306Q4nH0SM3kBeQmunDcFyVx5VXRa4yirYHTx2xmpJCwL+6PMhGsPv?=
- =?us-ascii?Q?SMA658nYOoYqREfvVtJMd3oU8J5NwuuH50vqT4HuKJZb4FXxA1VyfVvrRDLp?=
- =?us-ascii?Q?YrcE0pPt74egTcBp1w0lx3jXaaX07eBRGE2krAM0FaYKIs4/vQZKFdLPo77y?=
- =?us-ascii?Q?xk9Xl2sFFa4uSDqPcfFWTLbDCRz4M5s9vVMzKvzFNsmBsckVGV7yWoPyY9p2?=
- =?us-ascii?Q?z1tWqMWOpkj0SndfoH+ivAGSkygpJYbcFBasVctEK6ubhDXEfAXpxQQ/YGJQ?=
- =?us-ascii?Q?RkEB5zjWp74BxSUdA0CWoLctNwrZr46kjbGg9u7BQHZWlx1WpIrfAKD5m2k5?=
- =?us-ascii?Q?HtHO2nFIFoxDL6YnTo000VNqgTToucjbN5/5NFSmCtNvxjE02TH/YK7KXnOl?=
- =?us-ascii?Q?2AoJIMibj7IGy85WVAa0b4Fei2IVnYzmHi4LhnL595j5VzIF9ot0cV1BuZeu?=
- =?us-ascii?Q?kdMN85V4dfm1RlCrecl1xPjUr4x0uL3oZ8vr25xraqIQHcR31NhQ2VZvFIyK?=
- =?us-ascii?Q?8LBdkFgQ/qxPHGo49/nbGTFGeKe9LTOUmvKqkbJ7YZc3irp4vougxR1sucdN?=
- =?us-ascii?Q?h2jIR1Y6sOLE0ICkJ+2yRDscMKf20aMy2/YKed1Q87ThAFlgLwRnQy3yrIl4?=
- =?us-ascii?Q?Ei387sgEgzLoEgun5chzH9MmJ0OeLbIp/HAvBKOIczFiEQu3O978zvyL+8g2?=
- =?us-ascii?Q?iQ1K1outYGxn2qiLzd1GJvdpSw5PHfj531+IIblXqgSqRRkdCMv29cOFQmSN?=
- =?us-ascii?Q?NYZBbN+cBA05wDFt4GkHGfKTEaT/hlhOQSoMwji3V/BVa+zoQIWqLAlLvYsm?=
- =?us-ascii?Q?AFkGNQdT3qVnAiyfZMhnt4Age7n9t5ZmHSm6vwyD/3T9rdFS6qvlhSmhHtlG?=
- =?us-ascii?Q?pqafyuGC53CpbWQdvQE6NLrnAhedVv9OZDvm0dF6eQ6RwSra05H8j9ftZgkp?=
- =?us-ascii?Q?aMZ5rNnICb5GDVbSSUsiC/Bm6ZoKQyvTGW1j3tpKb1p4tpFBL8DbjKRLvJ7c?=
- =?us-ascii?Q?EiKl0gYPqBoxbzBR/wpQALksQIa02urIzYzQERMd9sycU0kSSh2M9vrhL5ly?=
- =?us-ascii?Q?LEQOaDveto0S0H1c5/Jfin9UHzp8jd1xnG3RqEotvqZmyz8vWDCcQ1TdS32f?=
- =?us-ascii?Q?2crl7y7QNcmxZicZb+s5Db5eYhp62bxcIw1mVCcPLLxXbjeJkdSjs+vwim1G?=
- =?us-ascii?Q?3Yp3MG/DFQMm19g+wOBM7jRYK9u/mSe//hKAl73DhhoTsFMKfbzCyKPka+Is?=
- =?us-ascii?Q?D/AAXxZLyq0DA8y9hX7GPrHj95j0rB2GYlCs6E52n6Ta0ck/9nBASbdDr8Pr?=
- =?us-ascii?Q?dCn18HEWLZW1xmR/PJ88XtN5CudICvQB6j9R3PmPFb7PjM7E+f3+WU1dXf5B?=
- =?us-ascii?Q?G6sHwpEQnTJxXmB9tZQ0xIPekeQSdifbFTYIsT/ZdyQnNy+UycR2YqVyckY9?=
- =?us-ascii?Q?3MSvd3InfYp5AVJpF2FmcBzyQA8c2rqzGlsSQSyBmbqzA7CZ/5Gk0zZokrxJ?=
- =?us-ascii?Q?/V09j8EFEqtD9V1VF1rNDksJWzqSsOwKU9hf1D+Y?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c840418f-65a4-4bb9-c9ee-08da806b2e0e
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Aug 2022 16:11:44.9860
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8jTajYxvSwR2fBpRrIfY49hJLcQCBwUvj5DBO6CTj/+8qbD0x0Ob/Ar4WAPSRxX3
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO6PR12MB5458
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.1.2
+Subject: Re: [PATCH net-next 00/10] net/smc: optimize the parallelism of SMC-R
+ connections
+Content-Language: en-US
+To:     "D. Wythe" <alibuda@linux.alibaba.com>, kgraul@linux.ibm.com,
+        wenjia@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <cover.1660152975.git.alibuda@linux.alibaba.com>
+ <2182efbc-99f8-17ba-d344-95a467536b05@linux.ibm.com>
+ <9da41595-977f-5026-0ea1-f18a5fa1de4c@linux.alibaba.com>
+From:   Jan Karcher <jaka@linux.ibm.com>
+In-Reply-To: <9da41595-977f-5026-0ea1-f18a5fa1de4c@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: D2TOL5x-kNu7qxBFHI-IpOzcR7goPjUY
+X-Proofpoint-GUID: tX3Rio_6aoDOftuZyeGSsnTdyFP_BIDa
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
+ definitions=2022-08-17_11,2022-08-16_02,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0
+ mlxlogscore=999 spamscore=0 adultscore=0 phishscore=0 clxscore=1015
+ priorityscore=1501 mlxscore=0 suspectscore=0 bulkscore=0 impostorscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2207270000 definitions=main-2208170063
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-FLR triggered by an emulated config space write should not behave
-differently from a FLR triggered by VFIO_DEVICE_RESET, currently the
-config space path misses the power management.
 
-Consolidate all the call sites to invoke a single function.
 
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
----
- drivers/vfio/pci/vfio_pci_config.c | 14 ++++----------
- drivers/vfio/pci/vfio_pci_core.c   |  5 ++---
- drivers/vfio/pci/vfio_pci_priv.h   |  1 +
- 3 files changed, 7 insertions(+), 13 deletions(-)
+On 17.08.2022 06:55, D. Wythe wrote:
+> 
+> 
+> On 8/16/22 5:35 PM, Jan Karcher wrote:
+>>
+>>
+>> On 10.08.2022 19:47, D. Wythe wrote:
+>>> From: "D. Wythe" <alibuda@linux.alibaba.com>
+>>>
+>>> This patch set attempts to optimize the parallelism of SMC-R 
+>>> connections,
+>>> mainly to reduce unnecessary blocking on locks, and to fix exceptions 
+>>> that
+>>> occur after thoses optimization.
+>>>
+>>
+>> Thank you again for your submission!
+>> Let me give you a quick update from our side:
+>> We tested your patches on top of the net-next kernel on our s390 
+>> systems. They did crash our systems. After verifying our environment 
+>> we pulled console logs and now we can tell that there is indeed a 
+>> problem with your patches regarding SMC-D. So please do not integrate 
+>> this change as of right now. I'm going to do more in depth reviews of 
+>> your patches but i need some time for them so here is a quick a 
+>> description of the problem:
+> 
+> Sorry for the late reply, and thanks a lot for your comment.
+> 
+> I'm sorry for the low-level mistake. In the early design, I hoped that 
+> lnkc can also work on SMC-D,
+> but in later tests I found out that we don't have SMC-D environment to 
+> test, so I have to canceled this logic.
+> But dues to the rollback isn't thorough enough, leaving this issues, we 
+> are very sorry for that.
+> 
 
-diff --git a/drivers/vfio/pci/vfio_pci_config.c b/drivers/vfio/pci/vfio_pci_config.c
-index 4a350421c5f62a..d22921efa25987 100644
---- a/drivers/vfio/pci/vfio_pci_config.c
-+++ b/drivers/vfio/pci/vfio_pci_config.c
-@@ -893,11 +893,8 @@ static int vfio_exp_config_write(struct vfio_pci_core_device *vdev, int pos,
- 						 pos - offset + PCI_EXP_DEVCAP,
- 						 &cap);
- 
--		if (!ret && (cap & PCI_EXP_DEVCAP_FLR)) {
--			vfio_pci_zap_and_down_write_memory_lock(vdev);
--			pci_try_reset_function(vdev->pdev);
--			up_write(&vdev->memory_lock);
--		}
-+		if (!ret && (cap & PCI_EXP_DEVCAP_FLR))
-+			vfio_pci_try_reset_function(vdev);
- 	}
- 
- 	/*
-@@ -975,11 +972,8 @@ static int vfio_af_config_write(struct vfio_pci_core_device *vdev, int pos,
- 						pos - offset + PCI_AF_CAP,
- 						&cap);
- 
--		if (!ret && (cap & PCI_AF_CAP_FLR) && (cap & PCI_AF_CAP_TP)) {
--			vfio_pci_zap_and_down_write_memory_lock(vdev);
--			pci_try_reset_function(vdev->pdev);
--			up_write(&vdev->memory_lock);
--		}
-+		if (!ret && (cap & PCI_AF_CAP_FLR) && (cap & PCI_AF_CAP_TP))
-+			vfio_pci_try_reset_function(vdev);
- 	}
- 
- 	return count;
-diff --git a/drivers/vfio/pci/vfio_pci_core.c b/drivers/vfio/pci/vfio_pci_core.c
-index 050b9d4b8c290c..d13e22021860cc 100644
---- a/drivers/vfio/pci/vfio_pci_core.c
-+++ b/drivers/vfio/pci/vfio_pci_core.c
-@@ -960,8 +960,7 @@ static int vfio_pci_ioctl_set_irqs(struct vfio_pci_core_device *vdev,
- 	return ret;
- }
- 
--static int vfio_pci_ioctl_reset(struct vfio_pci_core_device *vdev,
--				void __user *arg)
-+int vfio_pci_try_reset_function(struct vfio_pci_core_device *vdev)
- {
- 	int ret;
- 
-@@ -1202,7 +1201,7 @@ long vfio_pci_core_ioctl(struct vfio_device *core_vdev, unsigned int cmd,
- 	case VFIO_DEVICE_PCI_HOT_RESET:
- 		return vfio_pci_ioctl_pci_hot_reset(vdev, uarg);
- 	case VFIO_DEVICE_RESET:
--		return vfio_pci_ioctl_reset(vdev, uarg);
-+		return vfio_pci_try_reset_function(vdev);
- 	case VFIO_DEVICE_SET_IRQS:
- 		return vfio_pci_ioctl_set_irqs(vdev, uarg);
- 	default:
-diff --git a/drivers/vfio/pci/vfio_pci_priv.h b/drivers/vfio/pci/vfio_pci_priv.h
-index 58b8d34c162cd6..5b1cb9a9838442 100644
---- a/drivers/vfio/pci/vfio_pci_priv.h
-+++ b/drivers/vfio/pci/vfio_pci_priv.h
-@@ -60,6 +60,7 @@ void vfio_config_free(struct vfio_pci_core_device *vdev);
- int vfio_pci_set_power_state(struct vfio_pci_core_device *vdev,
- 			     pci_power_t state);
- 
-+int vfio_pci_try_reset_function(struct vfio_pci_core_device *vdev);
- bool __vfio_pci_memory_enabled(struct vfio_pci_core_device *vdev);
- void vfio_pci_zap_and_down_write_memory_lock(struct vfio_pci_core_device *vdev);
- u16 vfio_pci_memory_lock_and_enable(struct vfio_pci_core_device *vdev);
--- 
-2.37.2
+One more comment:
+If the only reason why you do not touch SMC-D is that you do not have 
+the environment to test it we strongly encourage you to change it anyway.
 
+At some point doing kernel development, especially driver development 
+you are going to reach the point where you do not have the environment 
+to test it. It is on the maintainers to test those changes and verify 
+that nothing is broken.
+
+So please:
+If testing is the only reason change SMC-D as well and we are going to 
+test it for you verifying if it does work or not.
+
+Thank you
+Jan
+
+> 
+>> It is a SMC-D problem, that occurs while building up the connection. 
+>> In smc_conn_create you set struct smc_lnk_cluster *lnkc = NULL. For 
+>> the SMC-R path you do grab the pointer, for SMC-D that never happens. 
+>> Still you are using this refernce for SMC-D => Crash. This problem can 
+>> be reproduced using the SMC-D path. Here is an example console output:
+>>
+>> [  779.516382] Unable to handle kernel pointer dereference in virtual 
+>> kernel address space
+>> [  779.516389] Failing address: 0000000000000000 TEID: 0000000000000483
+>> [  779.516391] Fault in home space mode while using kernel ASCE.
+>> [  779.516395] AS:0000000069628007 R3:00000000ffbf0007 
+>> S:00000000ffbef800 P:000000000000003d
+>> [  779.516431] Oops: 0004 ilc:2 [#1] SMP
+>> [  779.516436] Modules linked in: tcp_diag inet_diag ism mlx5_ib 
+>> ib_uverbs mlx5_core smc_diag smc ib_core nft_fib_inet nft_fib_ipv4
+>> nft_fib_ipv6 nft_fib nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 
+>> nft_reject nft_ct nft_chain_nat nf_nat nf_conntrack nf_defrag_ipv
+>> 6 nf_defrag_ipv4 ip_set nf_tables n
+>> [  779.516470] CPU: 0 PID: 24 Comm: kworker/0:1 Not tainted 
+>> 5.19.0-13940-g22a46254655a #3
+>> [  779.516476] Hardware name: IBM 8561 T01 701 (z/VM 7.2.0)
+>>
+>> [  779.522738] Workqueue: smc_hs_wq smc_listen_work [smc]
+>> [  779.522755] Krnl PSW : 0704c00180000000 000003ff803da89c 
+>> (smc_conn_create+0x174/0x968 [smc])
+>> [  779.522766]            R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 
+>> CC:0 PM:0 RI:0 EA:3
+>> [  779.522770] Krnl GPRS: 0000000000000002 0000000000000000 
+>> 0000000000000001 0000000000000000
+>> [  779.522773]            000000008a4128a0 000003ff803f21aa 
+>> 000000008e30d640 0000000086d72000
+>> [  779.522776]            0000000086d72000 000000008a412803 
+>> 000000008a412800 000000008e30d650
+>> [  779.522779]            0000000080934200 0000000000000000 
+>> 000003ff803cb954 00000380002dfa88
+>> [  779.522789] Krnl Code: 000003ff803da88e: e310f0e80024        stg 
+>> %r1,232(%r15)
+>> [  779.522789]            000003ff803da894: a7180000            lhi %r1,0
+>> [  779.522789]           #000003ff803da898: 582003ac            l %r2,940
+>> [  779.522789]           >000003ff803da89c: ba123020            cs 
+>> %r1,%r2,32(%r3)
+>> [  779.522789]            000003ff803da8a0: ec1603be007e        cij 
+>> %r1,0,6,000003ff803db01c
+>>
+>> [  779.522789]            000003ff803da8a6: 4110b002            la 
+>> %r1,2(%r11)
+>> [  779.522789]            000003ff803da8aa: e310f0f00024        stg 
+>> %r1,240(%r15)
+>> [  779.522789]            000003ff803da8b0: e310f0c00004        lg 
+>> %r1,192(%r15)
+>> [  779.522870] Call Trace:
+>> [  779.522873]  [<000003ff803da89c>] smc_conn_create+0x174/0x968 [smc]
+>> [  779.522884]  [<000003ff803cb954>] 
+>> smc_find_ism_v2_device_serv+0x1b4/0x300 [smc]
+>> 01: HCPGSP2629I The virtual machine is placed in CP mode due to a SIGP 
+>> stop from CPU 01.
+>> 01: HCPGSP2629I The virtual machine is placed in CP mode due to a SIGP 
+>> stop from CPU 00.
+>> [  779.522894]  [<000003ff803cbace>] smc_listen_find_device+0x2e/0x370 
+>> [smc]
+>>
+>>
+>> I'm going to send the review for the first patch right away (which is 
+>> the one causing the crash), so far I'm done with it. The others are 
+>> going to follow. Maybe you can look over the problem and come up with 
+>> a solution, otherwise we are going to decide if we want to look into 
+>> it as soon as I'm done with the reviews. Thank you for your patience.
+> 
+> In the next revision, I will add additional judgment to protect the 
+> SMC-D environment,
+> thanks for your comments.
+> 
+> And Looking forward to your other comments, thanks again.
+> 
+> D. Wythe
+> 
