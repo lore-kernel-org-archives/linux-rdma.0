@@ -2,152 +2,109 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D4EC25B08
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Aug 2022 11:55:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EA36C25B08
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Aug 2022 12:18:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236498AbiHQLy7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Aug 2022 07:54:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48698 "EHLO
+        id S234942AbiHQMSb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Aug 2022 08:18:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43490 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233448AbiHQLy6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Aug 2022 07:54:58 -0400
-Received: from smtp-fw-6002.amazon.com (smtp-fw-6002.amazon.com [52.95.49.90])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09CB7642EE
-        for <linux-rdma@vger.kernel.org>; Wed, 17 Aug 2022 04:54:55 -0700 (PDT)
+        with ESMTP id S236698AbiHQMSa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Aug 2022 08:18:30 -0400
+Received: from smtp-fw-9103.amazon.com (smtp-fw-9103.amazon.com [207.171.188.200])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F5E133379
+        for <linux-rdma@vger.kernel.org>; Wed, 17 Aug 2022 05:18:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
   d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1660737296; x=1692273296;
+  t=1660738708; x=1692274708;
   h=message-id:date:mime-version:to:cc:references:from:
    in-reply-to:content-transfer-encoding:subject;
-  bh=zcVe3eUDMJUitrIvKhrY19risXLhaIr8EV4XGUKANWI=;
-  b=gFMv2g928YbRpiifp3O1SpM4BxKOqcByx9+OFhWxaaJ8OuzRzqt9wcbn
-   y9qc4vVmx+lqWgtKODHqc85N0JyCE3pa3CCXnmK1wpY8R1v3Cu9PXE8PK
-   oD6knd27HbTZ/rJPyih1Czo9Sm6AClHdd6GFVZGVIHJNSCbZLWPm1lG35
-   8=;
+  bh=04zyyO0sPL9KiuZOzvxcZXRwJluabb0Bsc2KNxTS0Lg=;
+  b=KJDd/9vhShomcu8Z/agYmUxGECBZ2/eEGTr2ldV2Ol6W5fPPo+Ofls7Z
+   mgnzC1qkQhWQ2lAvV+7rfe+6ZGldy7F0YrXXYR0u81sa8Iqbf0L+jrDkx
+   XyevzJeJf7ALKn0wKG44N7Iea4bPBbolw/Kk2gWMmNSX3mRkmLtNjQmA1
+   c=;
 X-IronPort-AV: E=Sophos;i="5.93,243,1654560000"; 
-   d="scan'208";a="234052093"
+   d="scan'208";a="1045211726"
 Subject: Re: [PATCH for-next] RDMA/efa: Support CQ receive entries with source GID
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-iad-1e-7dac3c4d.us-east-1.amazon.com) ([10.43.8.6])
-  by smtp-border-fw-6002.iad6.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Aug 2022 11:54:43 +0000
-Received: from EX13D09EUC002.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan3.iad.amazon.com [10.40.163.38])
-        by email-inbound-relay-iad-1e-7dac3c4d.us-east-1.amazon.com (Postfix) with ESMTPS id 484A46C077D;
-        Wed, 17 Aug 2022 11:54:42 +0000 (UTC)
+Received: from pdx4-co-svc-p1-lb2-vlan3.amazon.com (HELO email-inbound-relay-iad-1d-35b1f9a2.us-east-1.amazon.com) ([10.25.36.214])
+  by smtp-border-fw-9103.sea19.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Aug 2022 12:18:11 +0000
+Received: from EX13D09EUC002.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
+        by email-inbound-relay-iad-1d-35b1f9a2.us-east-1.amazon.com (Postfix) with ESMTPS id 11290201292;
+        Wed, 17 Aug 2022 12:18:09 +0000 (UTC)
 Received: from [192.168.92.243] (10.43.160.201) by
  EX13D09EUC002.ant.amazon.com (10.43.164.73) with Microsoft SMTP Server (TLS)
- id 15.0.1497.38; Wed, 17 Aug 2022 11:54:38 +0000
-Message-ID: <4a32458c-1845-525a-82c9-71e283b50c83@amazon.com>
-Date:   Wed, 17 Aug 2022 14:54:33 +0300
+ id 15.0.1497.38; Wed, 17 Aug 2022 12:18:06 +0000
+Message-ID: <a096d37b-e636-d621-8065-195d7cba627c@amazon.com>
+Date:   Wed, 17 Aug 2022 15:18:01 +0300
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
  Thunderbird/102.1.2
-To:     Gal Pressman <gal.pressman@linux.dev>,
-        "jgg@nvidia.com" <jgg@nvidia.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-CC:     "Jahjah, Firas" <firasj@amazon.com>,
+Content-Language: en-US
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     "jgg@nvidia.com" <jgg@nvidia.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "Jahjah, Firas" <firasj@amazon.com>,
         "Leybovich, Yossi" <sleybo@amazon.com>,
         "Kranzdorf, Daniel" <dkkranzd@amazon.com>
 References: <20220809151636.788-1-mrgolin@amazon.com>
- <36725261-998d-63c2-bc0e-115157acb061@linux.dev>
- <491d9db3-650d-fce5-a6ca-d44b2f55f3e8@amazon.com>
- <83de3270-220a-b08c-a969-dbd292553288@linux.dev>
-Content-Language: en-US
+ <YvuiKpvLtBvKVhkO@unreal>
 From:   "Margolin, Michael" <mrgolin@amazon.com>
-In-Reply-To: <83de3270-220a-b08c-a969-dbd292553288@linux.dev>
+In-Reply-To: <YvuiKpvLtBvKVhkO@unreal>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 X-Originating-IP: [10.43.160.201]
-X-ClientProxiedBy: EX13D05UWB002.ant.amazon.com (10.43.161.50) To
+X-ClientProxiedBy: EX13D27UWA001.ant.amazon.com (10.43.160.19) To
  EX13D09EUC002.ant.amazon.com (10.43.164.73)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 
-On 8/15/2022 9:17 AM, Gal Pressman wrote:
+On 8/16/2022 4:56 PM, Leon Romanovsky wrote:
 > CAUTION: This email originated from outside of the organization. Do not click links or open attachments unless you can confirm the sender and know the content is safe.
 >
 >
 >
-> On 14/08/2022 18:04, Margolin, Michael wrote:
->> On 8/14/2022 2:38 PM, Gal Pressman wrote:
->>> On 09/08/2022 18:16, Michael Margolin wrote:
->>>> Add a parameter for create CQ admin command to set source address on
->>>> receive completion descriptors. Report capability for this feature
->>>> through query device verb.
->>>>
->>>> Reviewed-by: Firas Jahjah <firasj@amazon.com>
->>>> Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
->>>> Signed-off-by: Daniel Kranzdorf <dkkranzd@amazon.com>
->>>> Signed-off-by: Michael Margolin <mrgolin@amazon.com>
->>>> ---
->>>>  drivers/infiniband/hw/efa/efa_admin_cmds_defs.h | 6 +++++-
->>>>  drivers/infiniband/hw/efa/efa_com_cmd.c         | 5 ++++-
->>>>  drivers/infiniband/hw/efa/efa_com_cmd.h         | 1 +
->>>>  drivers/infiniband/hw/efa/efa_verbs.c           | 4 +++-
->>>>  include/uapi/rdma/efa-abi.h                     | 4 +++-
->>>>  5 files changed, 16 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
->>>> index 0b0b93b529f3..d4b9226088bd 100644
->>>> --- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
->>>> +++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
->>>> @@ -444,7 +444,10 @@ struct efa_admin_create_cq_cmd {
->>>>       /*
->>>>        * 4:0 : cq_entry_size_words - size of CQ entry in
->>>>        *    32-bit words, valid values: 4, 8.
->>>> -      * 7:5 : reserved7 - MBZ
->>>> +      * 5 : set_src_addr - If set, source address will be
->>>> +      *    filled on RX completions from unknown senders.
->>>> +      *    Requires 8 words CQ entry size.
->>>> +      * 7:6 : reserved7 - MBZ
->>>>        */
->>>>       u8 cq_caps_2;
->>>>
->>>> @@ -980,6 +983,7 @@ struct efa_admin_host_info {
->>>>  #define EFA_ADMIN_CREATE_CQ_CMD_INTERRUPT_MODE_ENABLED_MASK BIT(5)
->>>>  #define EFA_ADMIN_CREATE_CQ_CMD_VIRT_MASK                   BIT(6)
->>>>  #define EFA_ADMIN_CREATE_CQ_CMD_CQ_ENTRY_SIZE_WORDS_MASK    GENMASK(4, 0)
->>>> +#define EFA_ADMIN_CREATE_CQ_CMD_SET_SRC_ADDR_MASK           BIT(5)
->>>>
->>>>  /* create_cq_resp */
->>>>  #define EFA_ADMIN_CREATE_CQ_RESP_DB_VALID_MASK              BIT(0)
->>>> diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.c b/drivers/infiniband/hw/efa/efa_com_cmd.c
->>>> index fb405da4e1db..8f8885e002ba 100644
->>>> --- a/drivers/infiniband/hw/efa/efa_com_cmd.c
->>>> +++ b/drivers/infiniband/hw/efa/efa_com_cmd.c
->>>> @@ -168,7 +168,10 @@ int efa_com_create_cq(struct efa_com_dev *edev,
->>>>                       EFA_ADMIN_CREATE_CQ_CMD_INTERRUPT_MODE_ENABLED, 1);
->>>>               create_cmd.eqn = params->eqn;
->>>>       }
->>>> -
->>>> +     if (params->set_src_addr) {
->>>> +             EFA_SET(&create_cmd.cq_caps_2,
->>>> +                     EFA_ADMIN_CREATE_CQ_CMD_SET_SRC_ADDR, 1);
->>>> +     }
->>> Don't you need to validate the CQE size requested by the user somewhere?
->>> I assume you must use 32 bytes completions for this.
->> This is a good point. Requested CQE size is validated against command
->> feature bits in the device FW. In a case of user requesting for a wrong
->> or unsupported configuration efa_com_cmd_exec() will return an
->> appropriate error code. This is to avoid driver dependency on CQE
->> structure or size.
+> On Tue, Aug 09, 2022 at 06:16:36PM +0300, Michael Margolin wrote:
+>> Add a parameter for create CQ admin command to set source address on
+>> receive completion descriptors. Report capability for this feature
+>> through query device verb.
 >>
->>
->> Michael
->>
-> The driver usually terminates bad inputs before they get to the device
-> to prevent unnecessary noise.
-> As of today, command failures are unexpected so we have a ibdev_err to
-> indicate that something went very wrong, I don't think you want to allow
-> a non-root user to flood your device (and dmesg) with errors.
+>> Reviewed-by: Firas Jahjah <firasj@amazon.com>
+>> Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
+>> Signed-off-by: Daniel Kranzdorf <dkkranzd@amazon.com>
+>> Signed-off-by: Michael Margolin <mrgolin@amazon.com>
+>> ---
+>>  drivers/infiniband/hw/efa/efa_admin_cmds_defs.h | 6 +++++-
+>>  drivers/infiniband/hw/efa/efa_com_cmd.c         | 5 ++++-
+>>  drivers/infiniband/hw/efa/efa_com_cmd.h         | 1 +
+>>  drivers/infiniband/hw/efa/efa_verbs.c           | 4 +++-
+>>  include/uapi/rdma/efa-abi.h                     | 4 +++-
+>>  5 files changed, 16 insertions(+), 4 deletions(-)
+> <...>
+>
+>> diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.h b/drivers/infiniband/hw/efa/efa_com_cmd.h
+>> index c33010bbf9e8..c6234336543d 100644
+>> --- a/drivers/infiniband/hw/efa/efa_com_cmd.h
+>> +++ b/drivers/infiniband/hw/efa/efa_com_cmd.h
+>> @@ -76,6 +76,7 @@ struct efa_com_create_cq_params {
+>>       u16 eqn;
+>>       u8 entry_size_in_bytes;
+>>       bool interrupt_mode_enabled;
+>> +     bool set_src_addr;
+> Please use "u8 xxx : 1" instead of bool in structs.
+>
+> Thanks
 
-I agree that in this case it's better to just return an error code
-rather than printing to dmesg.
+Thanks Leon for your reply.
 
-To avoid greater changes in error handling for control over error
-printing, I'll go with your suggestion and check for command correctness
-in driver code. Anyway it's better to early check all inputs.
+Is this a convention in the subsystem? This is an internal struct used
+only to bind several variables for a function call and I think using
+bool makes it more readable.
 
-Thanks.
+Of course if it's essential I will change this.
+
+
+Michael
 
