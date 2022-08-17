@@ -2,110 +2,256 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A3A8C25B08
-	for <linux-rdma@archiver.kernel.org>; Wed, 17 Aug 2022 17:29:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E864C25B08
+	for <linux-rdma@archiver.kernel.org>; Wed, 17 Aug 2022 17:58:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241158AbiHQR3W (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 17 Aug 2022 13:29:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48186 "EHLO
+        id S240940AbiHQR6e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 17 Aug 2022 13:58:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241253AbiHQR3G (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Aug 2022 13:29:06 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A754A3D72
-        for <linux-rdma@vger.kernel.org>; Wed, 17 Aug 2022 10:28:46 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7516B61299
-        for <linux-rdma@vger.kernel.org>; Wed, 17 Aug 2022 17:28:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57A78C433B5;
-        Wed, 17 Aug 2022 17:28:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1660757324;
-        bh=EWcjWeaX6n6rWkDmw44DbEpUWKLO+vA/iRnpuzgoz3E=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=RUDcBF74gDLhxpDHWtwpUeq975OEvNJgXaCrM54T+hO8o17P0rIJJL9HLkpJOj1Eh
-         o2k96l2uRBpzYTUHyVVAna0vG9+F3YqXyebKfazSVbdtVCge3RgVu1Njqp2QbNRKL4
-         EfHLQ8F4LLMqJaR0UQBGpP8y5MN/u/0oz1NDfnk2Zr/QgvG+uOJKKV5A/JHtRGcnTM
-         yD9eo/NR5cuiL7yImZHSUuOmUQxsU6XjTn+QstGfRvfhpVDWudyYvhGDDc3RTssJui
-         fLT02CmPQkIlauhRw1UHbc3ID+BEsAVGrlA6eyLYsVG1E+qZ68bx7hBbT+9Lisc0va
-         tWEGeWVL2KN2Q==
-Date:   Wed, 17 Aug 2022 20:28:40 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Guoqing Jiang <guoqing.jiang@linux.dev>
-Cc:     dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH] RDMA/hfi1: Suppress compiler warnings
-Message-ID: <Yv0lSAlIsClbOpHm@unreal>
-References: <20220817142215.17251-1-guoqing.jiang@linux.dev>
+        with ESMTP id S238249AbiHQR6b (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 17 Aug 2022 13:58:31 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 635BC2559B
+        for <linux-rdma@vger.kernel.org>; Wed, 17 Aug 2022 10:58:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1660759106;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=FeC1hIbpeF331EYBQF/yk4Lw5Xn8tjgBYGOWKQGB6dY=;
+        b=N7EOlLBJCQIdpP2oA3ioT9PbHXsQ5AdGbUuGo/3iUR8x7pro1pAvgkJxoJb8VuO486QLsw
+        3YdMb1SicTE4DVap7q2zbcydnksA6nM5kvSL3znRQ4p7nXq3pviR+kQ+BnrKFZfjYyJDvG
+        DLWPclhouNHWzaOANn3B5l1OQZWfM1Q=
+Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
+ [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-642-SbeU30hIOrqJZcnM7qyhCg-1; Wed, 17 Aug 2022 13:58:25 -0400
+X-MC-Unique: SbeU30hIOrqJZcnM7qyhCg-1
+Received: by mail-wm1-f69.google.com with SMTP id f18-20020a05600c4e9200b003a5f81299caso3479617wmq.7
+        for <linux-rdma@vger.kernel.org>; Wed, 17 Aug 2022 10:58:25 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc;
+        bh=FeC1hIbpeF331EYBQF/yk4Lw5Xn8tjgBYGOWKQGB6dY=;
+        b=uEDISWf6R2ap7yd+FRvMZ6nW2EfJ52QEH57iG0y687skJhOBOUjhnIAMwe1qBlbCPZ
+         r6lbEO0AawgxcgzS2k26hDAGjJofeYvSPu/0clnu0cEkPceasvon41CzWH17FtQNAH/G
+         zmQeAURjCKu6GLT/XtRnD8kfDc/shUYHgE8p0s15dmov1L63r9mwB6cLJxSoiMkhAWQD
+         DfD7z9DsoErQxZsGg/UuKnFz/2UtqRi/vp4caWvK53zB32D+jwFdCg/Qas7T+BwfuTba
+         8wSBEpiOmz1al3n3C/pna/Ds6QHL0dKaTEwPXkx0T7D50wTMHB2eOGenFU4FYWQ+QQbK
+         n2Ww==
+X-Gm-Message-State: ACgBeo0UXjjuF5aFCCWmg6tUxpJlZHn7+HNJCFxf5gOh3Hi1wjsUhM6+
+        TNIa8Z0NqC99MfujLI25p/29eZ3Nf+jjJfJd+dKj7vgen8vAUb8Z9ZwP5yjj8XUxqO+HBhUDuqT
+        2GbutZocZ1xWZjLTwwnRuxQ==
+X-Received: by 2002:a05:600c:4ece:b0:3a6:28:bc59 with SMTP id g14-20020a05600c4ece00b003a60028bc59mr2841861wmq.154.1660759104262;
+        Wed, 17 Aug 2022 10:58:24 -0700 (PDT)
+X-Google-Smtp-Source: AA6agR510plnN0HC3OB3lvW09uzTiD8Mi1hIvWoOCu1vCuuNhK8JvlAqdM5qXlzOkhVL+R6kqbyikQ==
+X-Received: by 2002:a05:600c:4ece:b0:3a6:28:bc59 with SMTP id g14-20020a05600c4ece00b003a60028bc59mr2841852wmq.154.1660759104030;
+        Wed, 17 Aug 2022 10:58:24 -0700 (PDT)
+Received: from vschneid.remote.csb ([185.11.37.247])
+        by smtp.gmail.com with ESMTPSA id u8-20020a05600c19c800b003a541d893desm2809009wmq.38.2022.08.17.10.58.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 17 Aug 2022 10:58:23 -0700 (PDT)
+From:   Valentin Schneider <vschneid@redhat.com>
+To:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Yury Norov <yury.norov@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Ingo Molnar <mingo@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Mel Gorman <mgorman@suse.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Barry Song <song.bao.hua@hisilicon.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Tony Luck <tony.luck@intel.com>,
+        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+        Gal Pressman <gal@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
+Subject: [PATCH v2 1/5] bitops: Introduce find_next_andnot_bit()
+Date:   Wed, 17 Aug 2022 18:58:08 +0100
+Message-Id: <20220817175812.671843-2-vschneid@redhat.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20220817175812.671843-1-vschneid@redhat.com>
+References: <20220817175812.671843-1-vschneid@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20220817142215.17251-1-guoqing.jiang@linux.dev>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Aug 17, 2022 at 10:22:15PM +0800, Guoqing Jiang wrote:
-> With W=1, the following compiler warnings appears.
-> 
-> In file included from ./include/trace/define_trace.h:102:0,
->                  from drivers/infiniband/hw/hfi1/trace_dbg.h:111,
->                  from drivers/infiniband/hw/hfi1/trace.h:15,
->                  from drivers/infiniband/hw/hfi1/trace.c:6:
-> drivers/infiniband/hw/hfi1/./trace_dbg.h: In function ‘trace_event_get_offsets_hfi1_trace_template’:
-> ./include/trace/trace_events.h:261:9: warning: function ‘trace_event_get_offsets_hfi1_trace_template’ might be a candidate for ‘gnu_printf’ format attribute [-Wsuggest-attribute=format]
->   struct trace_event_raw_##call __maybe_unused *entry;  \
->          ^
-> drivers/infiniband/hw/hfi1/./trace_dbg.h:25:1: note: in expansion of macro ‘DECLARE_EVENT_CLASS’
->  DECLARE_EVENT_CLASS(hfi1_trace_template,
->  ^~~~~~~~~~~~~~~~~~~
-> In file included from ./include/trace/define_trace.h:102:0,
->                  from drivers/infiniband/hw/hfi1/trace_dbg.h:111,
->                  from drivers/infiniband/hw/hfi1/trace.h:15,
->                  from drivers/infiniband/hw/hfi1/trace.c:6:
-> drivers/infiniband/hw/hfi1/./trace_dbg.h: In function ‘trace_event_raw_event_hfi1_trace_template’:
-> ./include/trace/trace_events.h:386:9: warning: function ‘trace_event_raw_event_hfi1_trace_template’ might be a candidate for ‘gnu_printf’ format attribute [-Wsuggest-attribute=format]
->   struct trace_event_raw_##call *entry;    \
->          ^
-> drivers/infiniband/hw/hfi1/./trace_dbg.h:25:1: note: in expansion of macro ‘DECLARE_EVENT_CLASS’
->  DECLARE_EVENT_CLASS(hfi1_trace_template,
->  ^~~~~~~~~~~~~~~~~~~
-> In file included from ./include/trace/define_trace.h:103:0,
->                  from drivers/infiniband/hw/hfi1/trace_dbg.h:111,
->                  from drivers/infiniband/hw/hfi1/trace.h:15,
->                  from drivers/infiniband/hw/hfi1/trace.c:6:
-> drivers/infiniband/hw/hfi1/./trace_dbg.h: In function ‘perf_trace_hfi1_trace_template’:
-> ./include/trace/perf.h:64:9: warning: function ‘perf_trace_hfi1_trace_template’ might be a candidate for ‘gnu_printf’ format attribute [-Wsuggest-attribute=format]
->   struct hlist_head *head;     \
->          ^
-> drivers/infiniband/hw/hfi1/./trace_dbg.h:25:1: note: in expansion of macro ‘DECLARE_EVENT_CLASS’
->  DECLARE_EVENT_CLASS(hfi1_trace_template,
->  ^~~~~~~~~~~~~~~~~~~
-> 
-> Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
-> ---
->  drivers/infiniband/hw/hfi1/trace_dbg.h | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/infiniband/hw/hfi1/trace_dbg.h b/drivers/infiniband/hw/hfi1/trace_dbg.h
-> index 582b6f68df3d..489395bfb5b3 100644
-> --- a/drivers/infiniband/hw/hfi1/trace_dbg.h
-> +++ b/drivers/infiniband/hw/hfi1/trace_dbg.h
-> @@ -22,6 +22,11 @@
->  
->  #define MAX_MSG_LEN 512
->  
-> +#pragma GCC diagnostic push
-> +#ifndef __clang__
-> +#pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
-> +#endif
+In preparation of introducing for_each_cpu_andnot(), add a variant of
+find_next_bit() that negate the bits in @addr2 when ANDing them with the
+bits in @addr1.
 
-I don't like it.
+Note that the _find_next_bit() @invert argument now gets split into two:
+@invert1 for words in @addr1, @invert2 for words in @addr2. The only
+current users of _find_next_bit() with @invert set are:
+  o find_next_zero_bit()
+  o find_next_zero_bit_le()
+and neither of these pass an @addr2, so the conversion is straightforward.
 
-Or let's fix the code (don't know how) or disable this warning for whole
-kernel.
+Signed-off-by: Valentin Schneider <vschneid@redhat.com>
+---
+ include/linux/find.h | 44 ++++++++++++++++++++++++++++++++++++++------
+ lib/find_bit.c       | 23 ++++++++++++-----------
+ 2 files changed, 50 insertions(+), 17 deletions(-)
 
-Thanks
+diff --git a/include/linux/find.h b/include/linux/find.h
+index 424ef67d4a42..920597de4e62 100644
+--- a/include/linux/find.h
++++ b/include/linux/find.h
+@@ -10,7 +10,8 @@
+ 
+ extern unsigned long _find_next_bit(const unsigned long *addr1,
+ 		const unsigned long *addr2, unsigned long nbits,
+-		unsigned long start, unsigned long invert, unsigned long le);
++		unsigned long start, unsigned long invert1, unsigned long invert2,
++		unsigned long le);
+ extern unsigned long _find_first_bit(const unsigned long *addr, unsigned long size);
+ extern unsigned long _find_first_and_bit(const unsigned long *addr1,
+ 					 const unsigned long *addr2, unsigned long size);
+@@ -41,7 +42,7 @@ unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
+ 		return val ? __ffs(val) : size;
+ 	}
+ 
+-	return _find_next_bit(addr, NULL, size, offset, 0UL, 0);
++	return _find_next_bit(addr, NULL, size, offset, 0UL, 0UL, 0);
+ }
+ #endif
+ 
+@@ -71,7 +72,38 @@ unsigned long find_next_and_bit(const unsigned long *addr1,
+ 		return val ? __ffs(val) : size;
+ 	}
+ 
+-	return _find_next_bit(addr1, addr2, size, offset, 0UL, 0);
++	return _find_next_bit(addr1, addr2, size, offset, 0UL, 0UL, 0);
++}
++#endif
++
++#ifndef find_next_andnot_bit
++/**
++ * find_next_andnot_bit - find the next set bit in one memory region
++ *                        but not in the other
++ * @addr1: The first address to base the search on
++ * @addr2: The second address to base the search on
++ * @size: The bitmap size in bits
++ * @offset: The bitnumber to start searching at
++ *
++ * Returns the bit number for the next set bit
++ * If no bits are set, returns @size.
++ */
++static inline
++unsigned long find_next_andnot_bit(const unsigned long *addr1,
++		const unsigned long *addr2, unsigned long size,
++		unsigned long offset)
++{
++	if (small_const_nbits(size)) {
++		unsigned long val;
++
++		if (unlikely(offset >= size))
++			return size;
++
++		val = *addr1 & ~*addr2 & GENMASK(size - 1, offset);
++		return val ? __ffs(val) : size;
++	}
++
++	return _find_next_bit(addr1, addr2, size, offset, 0UL, ~0UL, 0);
+ }
+ #endif
+ 
+@@ -99,7 +131,7 @@ unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
+ 		return val == ~0UL ? size : ffz(val);
+ 	}
+ 
+-	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0);
++	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0UL, 0);
+ }
+ #endif
+ 
+@@ -247,7 +279,7 @@ unsigned long find_next_zero_bit_le(const void *addr, unsigned
+ 		return val == ~0UL ? size : ffz(val);
+ 	}
+ 
+-	return _find_next_bit(addr, NULL, size, offset, ~0UL, 1);
++	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0UL, 1);
+ }
+ #endif
+ 
+@@ -266,7 +298,7 @@ unsigned long find_next_bit_le(const void *addr, unsigned
+ 		return val ? __ffs(val) : size;
+ 	}
+ 
+-	return _find_next_bit(addr, NULL, size, offset, 0UL, 1);
++	return _find_next_bit(addr, NULL, size, offset, 0UL, 0UL, 1);
+ }
+ #endif
+ 
+diff --git a/lib/find_bit.c b/lib/find_bit.c
+index 1b8e4b2a9cba..c46b66d7d2b4 100644
+--- a/lib/find_bit.c
++++ b/lib/find_bit.c
+@@ -21,27 +21,29 @@
+ 
+ #if !defined(find_next_bit) || !defined(find_next_zero_bit) ||			\
+ 	!defined(find_next_bit_le) || !defined(find_next_zero_bit_le) ||	\
+-	!defined(find_next_and_bit)
++	!defined(find_next_and_bit) || !defined(find_next_andnot_bit)
+ /*
+  * This is a common helper function for find_next_bit, find_next_zero_bit, and
+  * find_next_and_bit. The differences are:
+- *  - The "invert" argument, which is XORed with each fetched word before
+- *    searching it for one bits.
+  *  - The optional "addr2", which is anded with "addr1" if present.
++ *  - The "invert" arguments, which are XORed with each fetched word (invert1
++ *    for words in addr1, invert2 for those in addr2) before searching it for
++ *    one bits.
+  */
+ unsigned long _find_next_bit(const unsigned long *addr1,
+-		const unsigned long *addr2, unsigned long nbits,
+-		unsigned long start, unsigned long invert, unsigned long le)
++			     const unsigned long *addr2,
++			     unsigned long nbits, unsigned long start,
++			     unsigned long invert1, unsigned long invert2,
++			     unsigned long le)
+ {
+ 	unsigned long tmp, mask;
+ 
+ 	if (unlikely(start >= nbits))
+ 		return nbits;
+ 
+-	tmp = addr1[start / BITS_PER_LONG];
++	tmp = addr1[start / BITS_PER_LONG] ^ invert1;
+ 	if (addr2)
+-		tmp &= addr2[start / BITS_PER_LONG];
+-	tmp ^= invert;
++		tmp &= addr2[start / BITS_PER_LONG] ^ invert2;
+ 
+ 	/* Handle 1st word. */
+ 	mask = BITMAP_FIRST_WORD_MASK(start);
+@@ -57,10 +59,9 @@ unsigned long _find_next_bit(const unsigned long *addr1,
+ 		if (start >= nbits)
+ 			return nbits;
+ 
+-		tmp = addr1[start / BITS_PER_LONG];
++		tmp = addr1[start / BITS_PER_LONG] ^ invert1;
+ 		if (addr2)
+-			tmp &= addr2[start / BITS_PER_LONG];
+-		tmp ^= invert;
++			tmp &= addr2[start / BITS_PER_LONG] ^ invert2;
+ 	}
+ 
+ 	if (le)
+-- 
+2.31.1
+
