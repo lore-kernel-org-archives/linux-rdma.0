@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82E16C00140
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Aug 2022 16:44:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 042FCC00140
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Aug 2022 16:45:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344265AbiHRQoA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Aug 2022 12:44:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34776 "EHLO
+        id S1344502AbiHRQpo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 Aug 2022 12:45:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234721AbiHRQn7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 18 Aug 2022 12:43:59 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE6C27286E
-        for <linux-rdma@vger.kernel.org>; Thu, 18 Aug 2022 09:43:58 -0700 (PDT)
+        with ESMTP id S1344973AbiHRQpl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 18 Aug 2022 12:45:41 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EE6DBA9E7
+        for <linux-rdma@vger.kernel.org>; Thu, 18 Aug 2022 09:45:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1660841037;
+        s=mimecast20190719; t=1660841139;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=eqToihXW7UPc5fyH33OBT/OedZIImlp+Kc9bZc6ly0A=;
-        b=VB0JeSuqVWSjoRAFSG89e/vlPzbLsmuh0/kSzlRpEjYpKA8OA/APqsMpItIooyt1FQrRf7
-        a9gE+qnWOeN6rdO51IkddXFf+JbaJhB+qFXTmi/8MHtjzLHY4rwPzq/KdUhdn3PfEJFOoG
-        6ZqTzmmXWskvUWkYg3w4+3krTc8MOjU=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=ywTMuS9huvM7zHWOxR6GjSmCdhb3SJi0oS2399XlZwU=;
+        b=D79UzXcHA7YAvj+O6XmGbxReWxL3xzxKhKp4R1Otbgv3Vk0hzPNBMuqN31CGYRJP7yuA9O
+        zACkadpB8NGMmU2zR7QR0IApc5W0tZbfu3v6BDDLCUWTp3UGei2Qd8UTT6lkE1pcgti59t
+        XKspMVZbLvwgjoOvQnlIZWpgNZ86klM=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-621-_1Eu9H3UNaywn09n9sBaEw-1; Thu, 18 Aug 2022 12:43:56 -0400
-X-MC-Unique: _1Eu9H3UNaywn09n9sBaEw-1
-Received: by mail-wm1-f69.google.com with SMTP id b16-20020a05600c4e1000b003a5a47762c3so1177767wmq.9
-        for <linux-rdma@vger.kernel.org>; Thu, 18 Aug 2022 09:43:56 -0700 (PDT)
+ us-mta-150-zdfFZprLPleARRD0QqZtoA-1; Thu, 18 Aug 2022 12:45:38 -0400
+X-MC-Unique: zdfFZprLPleARRD0QqZtoA-1
+Received: by mail-wm1-f71.google.com with SMTP id r5-20020a1c4405000000b003a5fa79008bso91473wma.5
+        for <linux-rdma@vger.kernel.org>; Thu, 18 Aug 2022 09:45:38 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-message-state:from:to:cc;
-        bh=eqToihXW7UPc5fyH33OBT/OedZIImlp+Kc9bZc6ly0A=;
-        b=1eU9ldQGkXXg1reM84A4IuI9vNbPhpGnTXm4zsDl1TWs21dRA1296V/UBAbNqWH7c1
-         JzW5in8g/KfzhP7p4YrTI9dFfTimwMxlcrVXkw0frcXVEZtTdWtwNCcz0LNSlQqLAdDq
-         dNjnp23XyIJB0yypx71GeUJHyoJmjJSHnM7XQbwDukD+8jIMVL/fgEtk8JZnhT4lgMk+
-         dCNKhLVGFKlGwEI3RBB5+xxwxaHzJl1E2kKUWI3JVsK5m+2OsKpek9eWOjqG2Zt1+ga2
-         gJkkvLbVrwrd0yEXIh/RbvtWSFUYwfD5IIT00FZbzEp4Qy2ZBjgTrD4PSxBlmC/1BmTL
-         Rh0g==
-X-Gm-Message-State: ACgBeo1M820t5EEYsRIPSz64Ffc/kDbisInIasXDGFw9SICfTTuyMKj+
-        Mcb/S53f2yAYCk72z8hz2103mKqxALMVca+A1NQMMpnOwNHUcx7Hsluy0sTl+/a3tTw4BFsLh6C
-        1irMQLTHQe2yYBEWfsIAX0A==
-X-Received: by 2002:a05:600c:34c5:b0:3a5:f6e5:1cb4 with SMTP id d5-20020a05600c34c500b003a5f6e51cb4mr2462936wmq.71.1660841035505;
-        Thu, 18 Aug 2022 09:43:55 -0700 (PDT)
-X-Google-Smtp-Source: AA6agR6zVAvV4ZDxfM+xoVbsQJM08MqXGQTOR77bBLXVroW/ZlJy6DF/9cr8lI/MZsemart2GDI+Og==
-X-Received: by 2002:a05:600c:34c5:b0:3a5:f6e5:1cb4 with SMTP id d5-20020a05600c34c500b003a5f6e51cb4mr2462928wmq.71.1660841035373;
-        Thu, 18 Aug 2022 09:43:55 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc;
+        bh=ywTMuS9huvM7zHWOxR6GjSmCdhb3SJi0oS2399XlZwU=;
+        b=bnfYz6EJoeocEtK6imonYgE0e39B9jfOwDE8k1EDJwvHGhUtt+7CGqlkGA/9duK/aO
+         6b5urpc1CCNfsJYMwLiCgahndFhGUqvDaAUt9W/RAPsHhJmnXC55M1G16r9MrUZ5q/Fk
+         EoZYAYf+jTWroySdgApqDpHuHhjCLeu/6S0RzLtuSKH7uTR0EoBDzN3njeG/rH2JFrOJ
+         z5XnuBsgQmpuReTidRGG8gADGJvHwuFlj/ghYOxZp8IzM5g5pdcoQD25dcDlLPihs/kq
+         sbj//mkHA6i+PRerl44FtMvk5BWebq42KaY/ocU7S3n6pVTjI8tOuaeVsYh1SJCO6E9z
+         FraQ==
+X-Gm-Message-State: ACgBeo02Yv4RyVszcY8vAp8dyuS35wysDgsAZdVT8Xt1JNxrXWniRM1b
+        3ljPE9D42we32U/vzberzN18VEJ1Wx+LlmC7h9NVoJuuMGcdU/ml15WzQxP+7k66yAgq8E66HDh
+        YqnWr8g+HKCQIvDyMHjQiuA==
+X-Received: by 2002:a05:6000:1f08:b0:21f:bbe:252c with SMTP id bv8-20020a0560001f0800b0021f0bbe252cmr2104347wrb.340.1660841137316;
+        Thu, 18 Aug 2022 09:45:37 -0700 (PDT)
+X-Google-Smtp-Source: AA6agR5V5LqD6L/uZK5MQwaiVfgT2IX7c0E6MzpdjvY5DMfJ6PdmT5prIm5y5OBYNyJ1oo+5n3JYqw==
+X-Received: by 2002:a05:6000:1f08:b0:21f:bbe:252c with SMTP id bv8-20020a0560001f0800b0021f0bbe252cmr2104328wrb.340.1660841137167;
+        Thu, 18 Aug 2022 09:45:37 -0700 (PDT)
 Received: from vschneid.remote.csb ([185.11.37.247])
-        by smtp.gmail.com with ESMTPSA id l17-20020a05600c4f1100b003a1980d55c4sm6660692wmq.47.2022.08.18.09.43.54
+        by smtp.gmail.com with ESMTPSA id d7-20020a05600c3ac700b003a5ad7f6de2sm2465458wms.15.2022.08.18.09.45.35
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Aug 2022 09:43:54 -0700 (PDT)
+        Thu, 18 Aug 2022 09:45:36 -0700 (PDT)
 From:   Valentin Schneider <vschneid@redhat.com>
-To:     Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+To:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         linux-kernel@vger.kernel.org
 Cc:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
@@ -78,39 +78,54 @@ Cc:     Saeed Mahameed <saeedm@nvidia.com>,
         Tony Luck <tony.luck@intel.com>,
         Jonathan Cameron <Jonathan.Cameron@huawei.com>,
         Gal Pressman <gal@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: Re: [PATCH v2 0/5] sched, net: NUMA-aware CPU spreading interface
-In-Reply-To: <9b062b28-e6dd-3af1-da02-1bc511ed6939@intel.com>
+Subject: [PATCH v2 5/5] SHOWCASE: net/mlx5e: Leverage for_each_numa_hop_cpu()
+Date:   Thu, 18 Aug 2022 17:45:22 +0100
+Message-Id: <20220818164522.1087673-3-vschneid@redhat.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20220818164522.1087673-1-vschneid@redhat.com>
 References: <20220817175812.671843-1-vschneid@redhat.com>
- <9b062b28-e6dd-3af1-da02-1bc511ed6939@intel.com>
-Date:   Thu, 18 Aug 2022 17:43:53 +0100
-Message-ID: <xhsmhzgg1a4dy.mognet@vschneid.remote.csb>
+ <20220818164522.1087673-1-vschneid@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 18/08/22 09:28, Jesse Brandeburg wrote:
-> On 8/17/2022 10:58 AM, Valentin Schneider wrote:
->> Hi folks,
->>
->> Tariq pointed out in [1] that drivers allocating IRQ vectors would benefit
->> from having smarter NUMA-awareness (cpumask_local_spread() doesn't quite cut
->> it).
->>
->> The proposed interface involved an array of CPUs and a temporary cpumask, and
->> being my difficult self what I'm proposing here is an interface that doesn't
->> require any temporary storage other than some stack variables (at the cost of
->> one wild macro).
->>
->> Patch 5/5 is just there to showcase how the thing would be used. If this doesn't
->> get hated on, I'll let Tariq pick this up and push it with his networking driver
->> changes (with actual changelogs).
->
-> I am interested in this work, but it seems that at least on lore and in
-> my inbox, patch 3,4,5 didn't show up.
+Not-signed-off-by: Valentin Schneider <vschneid@redhat.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-I used exactly the same git send-email command for this than for v1 (which
-shows up in its entirety on lore), but I can't see these either. I'm going
-to assume they got lost and will resend them.
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index 229728c80233..0a5432903edd 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -812,6 +812,7 @@ static int comp_irqs_request(struct mlx5_core_dev *dev)
+ 	int ncomp_eqs = table->num_comp_eqs;
+ 	u16 *cpus;
+ 	int ret;
++	int cpu;
+ 	int i;
+ 
+ 	ncomp_eqs = table->num_comp_eqs;
+@@ -830,8 +831,15 @@ static int comp_irqs_request(struct mlx5_core_dev *dev)
+ 		ret = -ENOMEM;
+ 		goto free_irqs;
+ 	}
+-	for (i = 0; i < ncomp_eqs; i++)
+-		cpus[i] = cpumask_local_spread(i, dev->priv.numa_node);
++
++	rcu_read_lock();
++	for_each_numa_hop_cpus(cpu, dev->priv.numa_node) {
++		cpus[i] = cpu;
++		if (++i == ncomp_eqs)
++			goto spread_done;
++	}
++spread_done:
++	rcu_read_unlock();
+ 	ret = mlx5_irqs_request_vectors(dev, cpus, ncomp_eqs, table->comp_irqs);
+ 	kfree(cpus);
+ 	if (ret < 0)
+-- 
+2.31.1
 
