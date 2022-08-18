@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A640AC3F6B0
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 Aug 2022 16:45:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A79D3C00140
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 Aug 2022 16:51:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344965AbiHRQpq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 Aug 2022 12:45:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36538 "EHLO
+        id S1345078AbiHRQvh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 Aug 2022 12:51:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48958 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344949AbiHRQpg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 18 Aug 2022 12:45:36 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B98B4B99FC
-        for <linux-rdma@vger.kernel.org>; Thu, 18 Aug 2022 09:45:35 -0700 (PDT)
+        with ESMTP id S1345012AbiHRQvf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 18 Aug 2022 12:51:35 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF9C57969F
+        for <linux-rdma@vger.kernel.org>; Thu, 18 Aug 2022 09:51:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1660841134;
+        s=mimecast20190719; t=1660841490;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=qZr7gdCnQUFeKt5ugQdZLofQqTfC3GDipKWYJIctC0o=;
-        b=bC3Ak9Wth7r0KqCXyA6QdLS0cdsUN66l2i2359vuRcM3SsT3EkKBqXxyQaTsP9JPYsPX82
-        b12a7PCWs9tfvpK53PJqDhW327PyMD21m1jdn8m68Tg03KudcjTu138b7WPSgoP0P0O8mY
-        5or1Vhh1P3riWAKilDtexhfDXwFLiuY=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=4hys+dHsvGKwimvP9q8wpRWR1CV0ec7am4TJ1PyleZM=;
+        b=UZdcwIYSg9oxF0TD2DsgTciVuB4VtrDFJftdHV2I7K37/HQ6bQzS/f+fGxFfB1Sbpqn9oS
+        MVnJG7PbFds+OscvUmfQqVWXZ/dGGNXGTQ6WdOMtP64idHvRANtQ2LgTKzvjk3kz04QEgk
+        e7E+lqpSpM2mFV35JWHXyavB0jWBSZs=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-393-9gnavOOyO2SIWmK5r3fIUA-1; Thu, 18 Aug 2022 12:45:33 -0400
-X-MC-Unique: 9gnavOOyO2SIWmK5r3fIUA-1
-Received: by mail-wm1-f72.google.com with SMTP id q16-20020a1cf310000000b003a626026ed1so746004wmq.4
-        for <linux-rdma@vger.kernel.org>; Thu, 18 Aug 2022 09:45:33 -0700 (PDT)
+ us-mta-266-wN1vYBMkNwCoQ3QrLRSzOA-1; Thu, 18 Aug 2022 12:51:29 -0400
+X-MC-Unique: wN1vYBMkNwCoQ3QrLRSzOA-1
+Received: by mail-wr1-f71.google.com with SMTP id v27-20020adfa1db000000b002252854ec99so303978wrv.2
+        for <linux-rdma@vger.kernel.org>; Thu, 18 Aug 2022 09:51:29 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc;
-        bh=qZr7gdCnQUFeKt5ugQdZLofQqTfC3GDipKWYJIctC0o=;
-        b=mXUHjZcglsBO/UipLCkRzaJsbrJ3+mLZPiQbNY9vEacL2Qz1AKt8Fhb8EkAODJY/iG
-         Wo/Z0sap7QnrOavhKQ7HoTmLnyR+jG7POtTRJ0ffcxgh07i9jS2d2QON5JV4bCOGOAe2
-         Intvr/TN9wiLHCLZ8v8rCDiYYuV1yD/8e01jT1fkEVe957PT/DREtgUnlmS4PlDSlSFi
-         bMZorYx3O60Eu3IBXQ+6j4fQLH9WLZX7YJFdeuQzjVn9jjHO1sLTEuoRCrWR8cjo836H
-         hgUs5PAJ6JEc6/AKP9P720edH/yxFcqZkO2+vMAJNPyR4ry8/B2TvRiyA/TEXhFRiKMT
-         rAaw==
-X-Gm-Message-State: ACgBeo1SfI+PLtzVEclOsaqcF2OYh1DbOyh6VwHWUiJi0B7riqTSL574
-        etw1vSmFVIk8Bjpk4ITsZvsUxkK7gHnFz02KdvShHTGDHwqgQ43VZfKFXdUuwird4+35iZkw2R3
-        kZb10M64LV7VigvRNjBSj6Q==
-X-Received: by 2002:a5d:5408:0:b0:220:63d5:d9f3 with SMTP id g8-20020a5d5408000000b0022063d5d9f3mr2077536wrv.249.1660841132684;
-        Thu, 18 Aug 2022 09:45:32 -0700 (PDT)
-X-Google-Smtp-Source: AA6agR6gxwdIXrKECZW5GHwGnYxvYL4c65/BszpFIuTjU6CiGZ3DNUbfNM6q7fEaB9mFStW46VURNA==
-X-Received: by 2002:a5d:5408:0:b0:220:63d5:d9f3 with SMTP id g8-20020a5d5408000000b0022063d5d9f3mr2077533wrv.249.1660841132508;
-        Thu, 18 Aug 2022 09:45:32 -0700 (PDT)
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-message-state:from:to:cc;
+        bh=4hys+dHsvGKwimvP9q8wpRWR1CV0ec7am4TJ1PyleZM=;
+        b=JLJmKBajoO9h7KnRhhRkn7swECME0rySQxZk0qAIiw1Z9Aa9CbYvdg+joPQroUwsZc
+         7yS/0ZlpfwZk5eXmsTBKj3/DtV6PCKH3SqilGxP5xGGuI+z9yySCvfglzIlL4GMXYeMF
+         NchIJ/L4l4Qz5DAxf4NPr/8GaHBBT2lC+/a6f4FumUovTqxqO2mQFr5QlLSeY7p2vRwv
+         WsrfhTuYmPP/n9DRA/xa0Ys6K+ecbH9kaSYYOlHArB5sqL+o/HxIy/Yh83StOtxMaQak
+         uUqfc+6ID+e/I/vr71WxOJnuSgP0WfLHUFp8SABjJD7pjkT3Sjg/GRr62WRFJV32epiG
+         u9qg==
+X-Gm-Message-State: ACgBeo31q/2XN/qJz3n97tJu0MBMaGeEWHXLAvadv+X8AWZg3Kq17jrW
+        daJ6Aatt/uc76JCdG5i+ovGxd89Ykj9/glU7UiWk0h0G84lOooU1oLIUzMJjMEq7ne9eUsVX0ZE
+        4Un8TVeDVaL1qheu1KBgFqQ==
+X-Received: by 2002:a7b:cbd0:0:b0:3a6:9f6:a3e8 with SMTP id n16-20020a7bcbd0000000b003a609f6a3e8mr2416308wmi.13.1660841488562;
+        Thu, 18 Aug 2022 09:51:28 -0700 (PDT)
+X-Google-Smtp-Source: AA6agR42KLtH2wgObwY2XF2QCwFA4YZsXhbXH3Krxozkk5s4ActjOWw0Iol/UCx419LGdNcY8BX3xA==
+X-Received: by 2002:a7b:cbd0:0:b0:3a6:9f6:a3e8 with SMTP id n16-20020a7bcbd0000000b003a609f6a3e8mr2416291wmi.13.1660841488411;
+        Thu, 18 Aug 2022 09:51:28 -0700 (PDT)
 Received: from vschneid.remote.csb ([185.11.37.247])
-        by smtp.gmail.com with ESMTPSA id d7-20020a05600c3ac700b003a5ad7f6de2sm2465458wms.15.2022.08.18.09.45.31
+        by smtp.gmail.com with ESMTPSA id m5-20020a05600c4f4500b003a5fa79007fsm3034679wmq.7.2022.08.18.09.51.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 18 Aug 2022 09:45:32 -0700 (PDT)
+        Thu, 18 Aug 2022 09:51:27 -0700 (PDT)
 From:   Valentin Schneider <vschneid@redhat.com>
-To:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+To:     Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         linux-kernel@vger.kernel.org
 Cc:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
@@ -78,91 +78,44 @@ Cc:     Saeed Mahameed <saeedm@nvidia.com>,
         Tony Luck <tony.luck@intel.com>,
         Jonathan Cameron <Jonathan.Cameron@huawei.com>,
         Gal Pressman <gal@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH v2 3/5] sched/topology: Introduce sched_numa_hop_mask()
-Date:   Thu, 18 Aug 2022 17:45:20 +0100
-Message-Id: <20220818164522.1087673-1-vschneid@redhat.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20220817175812.671843-1-vschneid@redhat.com>
+Subject: Re: [PATCH v2 0/5] sched, net: NUMA-aware CPU spreading interface
+In-Reply-To: <xhsmhzgg1a4dy.mognet@vschneid.remote.csb>
 References: <20220817175812.671843-1-vschneid@redhat.com>
+ <9b062b28-e6dd-3af1-da02-1bc511ed6939@intel.com>
+ <xhsmhzgg1a4dy.mognet@vschneid.remote.csb>
+Date:   Thu, 18 Aug 2022 17:51:26 +0100
+Message-ID: <xhsmhwnb5a41d.mognet@vschneid.remote.csb>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Tariq has pointed out that drivers allocating IRQ vectors would benefit
-from having smarter NUMA-awareness - cpumask_local_spread() only knows
-about the local node and everything outside is in the same bucket.
+On 18/08/22 17:43, Valentin Schneider wrote:
+> On 18/08/22 09:28, Jesse Brandeburg wrote:
+>> On 8/17/2022 10:58 AM, Valentin Schneider wrote:
+>>> Hi folks,
+>>>
+>>> Tariq pointed out in [1] that drivers allocating IRQ vectors would benefit
+>>> from having smarter NUMA-awareness (cpumask_local_spread() doesn't quite cut
+>>> it).
+>>>
+>>> The proposed interface involved an array of CPUs and a temporary cpumask, and
+>>> being my difficult self what I'm proposing here is an interface that doesn't
+>>> require any temporary storage other than some stack variables (at the cost of
+>>> one wild macro).
+>>>
+>>> Patch 5/5 is just there to showcase how the thing would be used. If this doesn't
+>>> get hated on, I'll let Tariq pick this up and push it with his networking driver
+>>> changes (with actual changelogs).
+>>
+>> I am interested in this work, but it seems that at least on lore and in
+>> my inbox, patch 3,4,5 didn't show up.
+>
+> I used exactly the same git send-email command for this than for v1 (which
+> shows up in its entirety on lore), but I can't see these either. I'm going
+> to assume they got lost and will resend them.
 
-sched_domains_numa_masks is pretty much what we want to hand out (a cpumask
-of CPUs reachable within a given distance budget), introduce
-sched_numa_hop_mask() to export those cpumasks.
-
-Link: http://lore.kernel.org/r/20220728191203.4055-1-tariqt@nvidia.com
-Signed-off-by: Valentin Schneider <vschneid@redhat.com>
----
- include/linux/topology.h |  9 +++++++++
- kernel/sched/topology.c  | 28 ++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
-
-diff --git a/include/linux/topology.h b/include/linux/topology.h
-index 4564faafd0e1..13b82b83e547 100644
---- a/include/linux/topology.h
-+++ b/include/linux/topology.h
-@@ -245,5 +245,14 @@ static inline const struct cpumask *cpu_cpu_mask(int cpu)
- 	return cpumask_of_node(cpu_to_node(cpu));
- }
- 
-+#ifdef CONFIG_NUMA
-+extern const struct cpumask *sched_numa_hop_mask(int node, int hops);
-+#else
-+static inline const struct cpumask *sched_numa_hop_mask(int node, int hops)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+#endif	/* CONFIG_NUMA */
-+
- 
- #endif /* _LINUX_TOPOLOGY_H */
-diff --git a/kernel/sched/topology.c b/kernel/sched/topology.c
-index 8739c2a5a54e..f0236a0ae65c 100644
---- a/kernel/sched/topology.c
-+++ b/kernel/sched/topology.c
-@@ -2067,6 +2067,34 @@ int sched_numa_find_closest(const struct cpumask *cpus, int cpu)
- 	return found;
- }
- 
-+/**
-+ * sched_numa_hop_mask() - Get the cpumask of CPUs at most @hops hops away.
-+ * @node: The node to count hops from.
-+ * @hops: Include CPUs up to that many hops away. 0 means local node.
-+ *
-+ * Requires rcu_lock to be held. Returned cpumask is only valid within that
-+ * read-side section, copy it if required beyond that.
-+ *
-+ * Note that not all hops are equal in size; see sched_init_numa() for how
-+ * distances and masks are handled.
-+ *
-+ * Also note that this is a reflection of sched_domains_numa_masks, which may change
-+ * during the lifetime of the system (offline nodes are taken out of the masks).
-+ */
-+const struct cpumask *sched_numa_hop_mask(int node, int hops)
-+{
-+	struct cpumask ***masks = rcu_dereference(sched_domains_numa_masks);
-+
-+	if (node >= nr_node_ids || hops >= sched_domains_numa_levels)
-+		return ERR_PTR(-EINVAL);
-+
-+	if (!masks)
-+		return NULL;
-+
-+	return masks[hops][node];
-+}
-+EXPORT_SYMBOL_GPL(sched_numa_hop_mask);
-+
- #endif /* CONFIG_NUMA */
- 
- static int __sdt_alloc(const struct cpumask *cpu_map)
--- 
-2.31.1
+Welp, it's there now, but clearly should've used --no-thread when resending
+them :/
 
