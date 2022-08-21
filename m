@@ -2,132 +2,77 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67C5CC00140
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Aug 2022 09:35:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A95C32789
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Aug 2022 11:18:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229481AbiHUJfa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 21 Aug 2022 05:35:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53972 "EHLO
+        id S229599AbiHULSW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 21 Aug 2022 07:18:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229471AbiHUJfa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 21 Aug 2022 05:35:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F2491403C
-        for <linux-rdma@vger.kernel.org>; Sun, 21 Aug 2022 02:35:29 -0700 (PDT)
+        with ESMTP id S229566AbiHULSV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 21 Aug 2022 07:18:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD722643F;
+        Sun, 21 Aug 2022 04:18:18 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id ADAF560DDA
-        for <linux-rdma@vger.kernel.org>; Sun, 21 Aug 2022 09:35:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88729C433C1;
-        Sun, 21 Aug 2022 09:35:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 86D75B80CAC;
+        Sun, 21 Aug 2022 11:18:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7336C433D6;
+        Sun, 21 Aug 2022 11:18:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1661074528;
-        bh=Q6CduLaPV4V2ykEoxLGVPRA1I4p/MjrCdnxy7F7iiyU=;
+        s=k20201202; t=1661080696;
+        bh=ptHOrY6H/u2M8gvWUkoZP/1haNUm/UVGhD3B1HMsr8E=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Db36EVDqVz4gnxiYxh7CwvXgWdAaN4oqMKiRB9K1OXK06/QKyMSX2pLiCAegJaoaV
-         4YmmuZuMyA86RuYpjgJfvTSPAUeuh9nrshyKj3S+8O2PXpyaUlkkjAXt5OXe4N2fxA
-         q70uOXc2uTvwiAgN5MR/d9B/z1kyJA8zKIGKoGlSV7PqLX3tTWypX7XeLgTNFN8tmY
-         +2D1Wd6p9CObh0ra/V7uztNalueREq4haMe6ec7War6Z1y9ubIKDq5sNzTkyELmlND
-         Fa23/X1ANFJKxRUtQS5vNszEM4tOyh/qS1mrbSjsxQVrangRsRW0vENfyHZ0qs64kx
-         XQvYiPUWO7grg==
-Date:   Sun, 21 Aug 2022 12:35:23 +0300
+        b=pOPbY0XfVrNLb9iaanR876q8f08y8gyXGNkotpb79QcY6qjJmNFB4bVfEbodGBKXO
+         tbXcas9Y0Dz+sVfwjcaGZRIzlSVIjrQP4Gga8kG+Y0REXr4MKb/lx6AyUMK5FXXe+Q
+         JK9FvVoUHm0pdKbcWM9Db11Nbbnu6Gs5znb8bh1Z90M9+nSpr343uKFCikD5osJGUV
+         +ig/3HZbNAxhu92wyRoNfv/PjsADY5B47b6gzoTR70Ll4tAJc5595aH6whYXwUPbXJ
+         Uii7LNUr+dKFoMd6Z5gNwGdoCqqIjkbRbFFYSra8WnbMYQ6ovxmLTjiYQHQKq+Tv+k
+         6uLklpwb4krNQ==
+Date:   Sun, 21 Aug 2022 14:18:11 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Michael Margolin <mrgolin@amazon.com>
-Cc:     jgg@nvidia.com, linux-rdma@vger.kernel.org,
-        Firas Jahjah <firasj@amazon.com>,
-        Yossi Leybovich <sleybo@amazon.com>,
-        Daniel Kranzdorf <dkkranzd@amazon.com>
-Subject: Re: [PATCH for-next v2] RDMA/efa: Support CQ receive entries with
- source GID
-Message-ID: <YwH8WyQZZ/Bzk80h@unreal>
-References: <20220818140449.414-1-mrgolin@amazon.com>
+To:     Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc:     linux-kernel@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>,
+        Selvin Xavier <selvin.xavier@broadcom.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Bart Van Assche <bvanassche@acm.org>,
+        linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Subject: Re: [PATCH] IB: move from strlcpy with unused retval to strscpy
+Message-ID: <YwIUc7E18FexunJB@unreal>
+References: <20220818210018.6841-1-wsa+renesas@sang-engineering.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220818140449.414-1-mrgolin@amazon.com>
+In-Reply-To: <20220818210018.6841-1-wsa+renesas@sang-engineering.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Aug 18, 2022 at 05:04:49PM +0300, Michael Margolin wrote:
-> Add a parameter for create CQ admin command to set source address on
-> receive completion descriptors. Report capability for this feature
-> through query device verb.
+On Thu, Aug 18, 2022 at 11:00:18PM +0200, Wolfram Sang wrote:
+> Follow the advice of the below link and prefer 'strscpy' in this
+> subsystem. Conversion is 1:1 because the return value is not used.
+> Generated by a coccinelle script.
 > 
-> Reviewed-by: Firas Jahjah <firasj@amazon.com>
-> Reviewed-by: Yossi Leybovich <sleybo@amazon.com>
-> Signed-off-by: Daniel Kranzdorf <dkkranzd@amazon.com>
-> Signed-off-by: Michael Margolin <mrgolin@amazon.com>
+> Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 > ---
-> v1 -> v2:
-> - Add check for CQE size request correctness in efa_create_cq() 
-> 	(comment from Gal Pressman)
-> - Use bitfields for bool struct members
-> 	(comment from Leon Romanovsky and Jason Gunthorpe)
-> 
->  drivers/infiniband/hw/efa/efa_admin_cmds_defs.h   |   6 +-
->  drivers/infiniband/hw/efa/efa_com_cmd.c           |   5 +-
->  drivers/infiniband/hw/efa/efa_com_cmd.h           |   3 +-
->  drivers/infiniband/hw/efa/efa_io_defs.h           | 289 ++++++++++++++++++
->  drivers/infiniband/hw/efa/efa_verbs.c             |  10 +-
->  include/uapi/rdma/efa-abi.h                       |   4 +-
->  6 files changed, 311 insertions(+), 6 deletions(-)
->  create mode 100644 drivers/infiniband/hw/efa/efa_io_defs.h
-> 
-> diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-> index 0b0b93b529f3..d4b9226088bd 100644
-> --- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-> +++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
-> @@ -444,7 +444,10 @@ struct efa_admin_create_cq_cmd {
->  	/*
->  	 * 4:0 : cq_entry_size_words - size of CQ entry in
->  	 *    32-bit words, valid values: 4, 8.
-> -	 * 7:5 : reserved7 - MBZ
-> +	 * 5 : set_src_addr - If set, source address will be
-> +	 *    filled on RX completions from unknown senders.
-> +	 *    Requires 8 words CQ entry size.
-> +	 * 7:6 : reserved7 - MBZ
->  	 */
->  	u8 cq_caps_2;
->  
-> @@ -980,6 +983,7 @@ struct efa_admin_host_info {
->  #define EFA_ADMIN_CREATE_CQ_CMD_INTERRUPT_MODE_ENABLED_MASK BIT(5)
->  #define EFA_ADMIN_CREATE_CQ_CMD_VIRT_MASK                   BIT(6)
->  #define EFA_ADMIN_CREATE_CQ_CMD_CQ_ENTRY_SIZE_WORDS_MASK    GENMASK(4, 0)
-> +#define EFA_ADMIN_CREATE_CQ_CMD_SET_SRC_ADDR_MASK           BIT(5)
->  
->  /* create_cq_resp */
->  #define EFA_ADMIN_CREATE_CQ_RESP_DB_VALID_MASK              BIT(0)
-> diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.c b/drivers/infiniband/hw/efa/efa_com_cmd.c
-> index fb405da4e1db..8f8885e002ba 100644
-> --- a/drivers/infiniband/hw/efa/efa_com_cmd.c
-> +++ b/drivers/infiniband/hw/efa/efa_com_cmd.c
-> @@ -168,7 +168,10 @@ int efa_com_create_cq(struct efa_com_dev *edev,
->  			EFA_ADMIN_CREATE_CQ_CMD_INTERRUPT_MODE_ENABLED, 1);
->  		create_cmd.eqn = params->eqn;
->  	}
-> -
-> +	if (params->set_src_addr) {
-> +		EFA_SET(&create_cmd.cq_caps_2,
-> +			EFA_ADMIN_CREATE_CQ_CMD_SET_SRC_ADDR, 1);
-> +	}
->  	efa_com_set_dma_addr(params->dma_addr,
->  			     &create_cmd.cq_ba.mem_addr_high,
->  			     &create_cmd.cq_ba.mem_addr_low);
-> diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.h b/drivers/infiniband/hw/efa/efa_com_cmd.h
-> index c33010bbf9e8..671a04d69fc2 100644
-> --- a/drivers/infiniband/hw/efa/efa_com_cmd.h
-> +++ b/drivers/infiniband/hw/efa/efa_com_cmd.h
-> @@ -75,7 +75,8 @@ struct efa_com_create_cq_params {
->  	u16 uarn;
->  	u16 eqn;
->  	u8 entry_size_in_bytes;
-> -	bool interrupt_mode_enabled;
-> +	bool interrupt_mode_enabled : 1;
-> +	bool set_src_addr : 1;
+>  drivers/infiniband/core/cma_configfs.c             | 2 +-
+>  drivers/infiniband/core/device.c                   | 4 ++--
+>  drivers/infiniband/hw/bnxt_re/main.c               | 2 +-
+>  drivers/infiniband/hw/hfi1/file_ops.c              | 2 +-
+>  drivers/infiniband/hw/hfi1/verbs.c                 | 2 +-
+>  drivers/infiniband/hw/mthca/mthca_cmd.c            | 2 +-
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c           | 2 +-
+>  drivers/infiniband/hw/qib/qib_iba7322.c            | 2 +-
+>  drivers/infiniband/ulp/ipoib/ipoib_ethtool.c       | 4 ++--
+>  drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c | 4 ++--
+>  drivers/infiniband/ulp/srpt/ib_srpt.c              | 2 +-
+>  11 files changed, 14 insertions(+), 14 deletions(-)
 
-It should be u8 xxx : 1 and not bool ...
-Fixes locally and applied.
+You forgot to change strlcpy in include/rdma/rdma_vt.h file.
+
+I changed locally and applied to -next.
 
 Thanks
