@@ -2,76 +2,62 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16A6DC32772
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Aug 2022 08:49:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4553AC00140
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Aug 2022 09:09:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229492AbiHUItW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 21 Aug 2022 04:49:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51038 "EHLO
+        id S229982AbiHUJJe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 21 Aug 2022 05:09:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229505AbiHUItU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 21 Aug 2022 04:49:20 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15BDC25286
-        for <linux-rdma@vger.kernel.org>; Sun, 21 Aug 2022 01:49:19 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6500,9779,10445"; a="276266524"
-X-IronPort-AV: E=Sophos;i="5.93,251,1654585200"; 
-   d="scan'208";a="276266524"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2022 01:49:18 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,251,1654585200"; 
-   d="scan'208";a="637791434"
-Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by orsmga008.jf.intel.com with ESMTP; 21 Aug 2022 01:49:17 -0700
-From:   yanjun.zhu@linux.dev
-To:     jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
-        yanjun.zhu@linux.dev, zyjzyj2000@gmail.com
-Subject: [PATCH 2/3] RDMA/rxe: Fix the error caused by qp->sk
-Date:   Sun, 21 Aug 2022 21:16:14 -0400
-Message-Id: <20220822011615.805603-3-yanjun.zhu@linux.dev>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20220822011615.805603-1-yanjun.zhu@linux.dev>
-References: <20220822011615.805603-1-yanjun.zhu@linux.dev>
+        with ESMTP id S230030AbiHUJJd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 21 Aug 2022 05:09:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E8C41AF37
+        for <linux-rdma@vger.kernel.org>; Sun, 21 Aug 2022 02:09:31 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 225C7B80B94
+        for <linux-rdma@vger.kernel.org>; Sun, 21 Aug 2022 09:09:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F2CFC433C1;
+        Sun, 21 Aug 2022 09:09:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1661072968;
+        bh=GI85NMSXPs88KiZGH7wmCFLde2Pmqsd/mRcnp9AJvcU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=uP0MXR/0PSdA/pcj3Sw2/dOM2TYQpxxHjJUJIgmt+tUtWM6ZMv0Dde2tThbcPHai+
+         6AnnGaou58fmhqx4Eoj9XSvJiQqCmlmzgbm0h5uklvo8MgHhy9p06Dn828GKD2N7Gt
+         3FlHxAAJm/fYqxVXLioL8/Ehmvy9n0+vitoQ7TFwNGSQ3adpHuv7S9BLT6BWchylbI
+         5+95BZ/pZlsOW3GTZDa7TxZLDallbGS1AwUD4gWDMd3M5vAKWa7gyo2z/POdsYAwvk
+         RQwFyaUhsB/R+pYqdePId+zlFOwHBbSShTx/Pn4KkRk3zH2A64eZW3DnQIaMBNmZEg
+         Ls9zBk+Knda2A==
+Date:   Sun, 21 Aug 2022 12:09:24 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Md Haris Iqbal <haris.iqbal@ionos.com>
+Cc:     linux-rdma@vger.kernel.org, jgg@ziepe.ca, jinpu.wang@ionos.com
+Subject: Re: [PATCH for-next 0/2] Add trace event support to RTRS
+Message-ID: <YwH2RGj/3qsubb8c@unreal>
+References: <20220818105240.110234-1-haris.iqbal@ionos.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220818105240.110234-1-haris.iqbal@ionos.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
+On Thu, Aug 18, 2022 at 12:52:38PM +0200, Md Haris Iqbal wrote:
+> Hi Jason, hi Leon,
+> 
+> Please consider to include following changes to the next merge window.
+> 
+> The patchset is organized as follows:
+> 1: Adds trace event to rtrs-clt
+> 2: Adds trace event to rtrs-srv
+> 
+> Santosh Pradhan (2):
+>   RDMA/rtrs-clt: Add event tracing support
+>   RDMA/rtrs-srv: Add event tracing support
+> 
 
-When sock_create_kern in the function rxe_qp_init_req fails,
-qp->sk is set to NULL.
-
-Then the function rxe_create_qp will call rxe_qp_do_cleanup
-to handle allocated resource.
-
-Before handling qp->sk, this variable should be checked.
-
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
----
- drivers/infiniband/sw/rxe/rxe_qp.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index f10b461b9963..b229052ae91a 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -835,8 +835,10 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
- 
- 	free_rd_atomic_resources(qp);
- 
--	kernel_sock_shutdown(qp->sk, SHUT_RDWR);
--	sock_release(qp->sk);
-+	if (qp->sk) {
-+		kernel_sock_shutdown(qp->sk, SHUT_RDWR);
-+		sock_release(qp->sk);
-+	}
- }
- 
- /* called when the last reference to the qp is dropped */
--- 
-2.31.1
-
+Thanks, applied.
