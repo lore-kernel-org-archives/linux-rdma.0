@@ -2,175 +2,74 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA702C32789
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Aug 2022 05:34:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA470C00140
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Aug 2022 08:49:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229965AbiHUFeb convert rfc822-to-8bit (ORCPT
-        <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 21 Aug 2022 01:34:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41070 "EHLO
+        id S229630AbiHUItU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 21 Aug 2022 04:49:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229713AbiHUFea (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 21 Aug 2022 01:34:30 -0400
-Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D050913EAA
-        for <linux-rdma@vger.kernel.org>; Sat, 20 Aug 2022 22:34:28 -0700 (PDT)
-Received: by mail-il1-f197.google.com with SMTP id a4-20020a056e0208a400b002e4621942dfso6141258ilt.0
-        for <linux-rdma@vger.kernel.org>; Sat, 20 Aug 2022 22:34:28 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:to:from:subject:message-id:date
-         :mime-version:x-gm-message-state:from:to:cc;
-        bh=a+etxQMTB+vR5J4K1rcBznEYzEFIprZpeNGFNGTbBMY=;
-        b=3N0i74y+UNZI31qtTfCrcX/Xa0whIOkQwD0tJBVnbjO3V3W5oCC2NRFarfd6lcEgt3
-         3bB1PRay/nanFoFcd835fzD7KBO6HA1g71zjFxKXSqZNE9KBn75jq7ZgepRzx+LnpVgT
-         7yX63kTl73sb4jMucdQ90hebxrhTwxXNbxDu3jhbmisW8/Wtf6z6L15zpljNwNmfLsAv
-         J6F/kDD4zxWgadluW/9pgKQeWJCtdVRts68fNPhwu3jCTgSB9NbOxap4ssVtaTjKO3ga
-         E0WewZ9FDON4sKwcu5Kh7k4W6tFKeiMzq+WylA5nPoUtPNDU+B5y45ePfzT28gApW3At
-         OShw==
-X-Gm-Message-State: ACgBeo3ySmTQ0XoqHsaMLDPhK3IBPOlerNd8wHpFGE0/GPBd70GEAoMK
-        fe1iHjXNJ9YDbl2kQtTGRZ3cmy0TB3/zE8lGqHqPjSvg7NuA
-X-Google-Smtp-Source: AA6agR48w2x3OID+s9oHXffsyfKk30YfJGdt/O6WfKg5cTLowRFzkpnMlq+fj+9tQuX2KZUfJ10i5KnabXqYPfIonjnMvJ/nCgJO
+        with ESMTP id S229436AbiHUItT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 21 Aug 2022 04:49:19 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02AC324F25
+        for <linux-rdma@vger.kernel.org>; Sun, 21 Aug 2022 01:49:15 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6500,9779,10445"; a="276266519"
+X-IronPort-AV: E=Sophos;i="5.93,251,1654585200"; 
+   d="scan'208";a="276266519"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2022 01:49:14 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,251,1654585200"; 
+   d="scan'208";a="637791432"
+Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
+  by orsmga008.jf.intel.com with ESMTP; 21 Aug 2022 01:49:13 -0700
+From:   yanjun.zhu@linux.dev
+To:     jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
+        yanjun.zhu@linux.dev, zyjzyj2000@gmail.com
+Subject: [PATCH 0/3] Fixes for syzbot problem 
+Date:   Sun, 21 Aug 2022 21:16:12 -0400
+Message-Id: <20220822011615.805603-1-yanjun.zhu@linux.dev>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-X-Received: by 2002:a6b:6717:0:b0:688:d287:fa83 with SMTP id
- b23-20020a6b6717000000b00688d287fa83mr6227528ioc.71.1661060068138; Sat, 20
- Aug 2022 22:34:28 -0700 (PDT)
-Date:   Sat, 20 Aug 2022 22:34:28 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000004fe8f805e6b9af20@google.com>
-Subject: [syzbot] possible deadlock in rds_tcp_reset_callbacks
-From:   syzbot <syzbot+78c55c7bc6f66e53dce2@syzkaller.appspotmail.com>
-To:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, pabeni@redhat.com,
-        rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello,
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-syzbot found the following issue on:
+In the link:
 
-HEAD commit:    8755ae45a9e8 Add linux-next specific files for 20220819
-git tree:       linux-next
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=107cf485080000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=ead6107a3bbe3c62
-dashboard link: https://syzkaller.appspot.com/bug?extid=78c55c7bc6f66e53dce2
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12e678cb080000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13f68e5b080000
+https://syzkaller.appspot.com/bug?id=3efca8275142fbfdde6cf77e1b18b1d5c6794d76
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+78c55c7bc6f66e53dce2@syzkaller.appspotmail.com
+a rxe problem occurred. I tried to reproduce this problem in local hosts.
+Finally I could reproduce this problem in local hosts.
+The commit ("RDMA/rxe: Fix "kernel NULL pointer dereference" error") tries to
+fix this problem.
 
-======================================================
-WARNING: possible circular locking dependency detected
-6.0.0-rc1-next-20220819-syzkaller #0 Not tainted
-------------------------------------------------------
-kworker/u4:3/46 is trying to acquire lock:
-ffff888027dc40e8 ((work_completion)(&(&cp->cp_send_w)->work)){+.+.}-{0:0}, at: __flush_work+0xdd/0xae0 kernel/workqueue.c:3066
+After this syzbot problem disappeared, another problem appeared
+when qp->sk failed to initialized.
+The commit ("RDMA/rxe: Fix the error caused by qp->sk") tries to solve
+this problem.
 
-but task is already holding lock:
-ffff88807e18da70 (k-sk_lock-AF_INET6){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1712 [inline]
-ffff88807e18da70 (k-sk_lock-AF_INET6){+.+.}-{0:0}, at: rds_tcp_reset_callbacks+0x1bf/0x4d0 net/rds/tcp.c:169
+When I delved into the source code to solve the above problems, I found
+that the member variable obj in struct rxe_task is not needed. So the
+commit ("RDMA/rxe: Remove the unused variable obj") removes this
+variable obj.
 
-which lock already depends on the new lock.
+After the 3 commits, in locat hosts, the whole system can work well.
 
+Zhu Yanjun (3):
+  RDMA/rxe: Fix "kernel NULL pointer dereference" error
+  RDMA/rxe: Fix the error caused by qp->sk
+  RDMA/rxe: Remove the unused variable obj
 
-the existing dependency chain (in reverse order) is:
+ drivers/infiniband/sw/rxe/rxe_qp.c   | 16 ++++++++++------
+ drivers/infiniband/sw/rxe/rxe_task.c |  3 +--
+ drivers/infiniband/sw/rxe/rxe_task.h |  3 +--
+ 3 files changed, 12 insertions(+), 10 deletions(-)
 
--> #1 (k-sk_lock-AF_INET6){+.+.}-{0:0}:
-       lock_sock_nested+0x36/0xf0 net/core/sock.c:3391
-       lock_sock include/net/sock.h:1712 [inline]
-       tcp_sock_set_cork+0x16/0x90 net/ipv4/tcp.c:3328
-       rds_send_xmit+0x386/0x2540 net/rds/send.c:194
-       rds_send_worker+0x92/0x2e0 net/rds/threads.c:200
-       process_one_work+0x991/0x1610 kernel/workqueue.c:2289
-       worker_thread+0x665/0x1080 kernel/workqueue.c:2436
-       kthread+0x2e4/0x3a0 kernel/kthread.c:376
-       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
+-- 
+2.31.1
 
--> #0 ((work_completion)(&(&cp->cp_send_w)->work)){+.+.}-{0:0}:
-       check_prev_add kernel/locking/lockdep.c:3095 [inline]
-       check_prevs_add kernel/locking/lockdep.c:3214 [inline]
-       validate_chain kernel/locking/lockdep.c:3829 [inline]
-       __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5053
-       lock_acquire kernel/locking/lockdep.c:5666 [inline]
-       lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
-       __flush_work+0x105/0xae0 kernel/workqueue.c:3069
-       __cancel_work_timer+0x3f9/0x570 kernel/workqueue.c:3160
-       rds_tcp_reset_callbacks+0x1cb/0x4d0 net/rds/tcp.c:171
-       rds_tcp_accept_one+0x9d5/0xd10 net/rds/tcp_listen.c:203
-       rds_tcp_accept_worker+0x55/0x80 net/rds/tcp.c:529
-       process_one_work+0x991/0x1610 kernel/workqueue.c:2289
-       worker_thread+0x665/0x1080 kernel/workqueue.c:2436
-       kthread+0x2e4/0x3a0 kernel/kthread.c:376
-       ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
-
-other info that might help us debug this:
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(k-sk_lock-AF_INET6);
-                               lock((work_completion)(&(&cp->cp_send_w)->work));
-                               lock(k-sk_lock-AF_INET6);
-  lock((work_completion)(&(&cp->cp_send_w)->work));
-
- *** DEADLOCK ***
-
-4 locks held by kworker/u4:3/46:
- #0: ffff8880275f7938 ((wq_completion)krdsd){+.+.}-{0:0}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
- #0: ffff8880275f7938 ((wq_completion)krdsd){+.+.}-{0:0}, at: arch_atomic_long_set include/linux/atomic/atomic-long.h:41 [inline]
- #0: ffff8880275f7938 ((wq_completion)krdsd){+.+.}-{0:0}, at: atomic_long_set include/linux/atomic/atomic-instrumented.h:1280 [inline]
- #0: ffff8880275f7938 ((wq_completion)krdsd){+.+.}-{0:0}, at: set_work_data kernel/workqueue.c:636 [inline]
- #0: ffff8880275f7938 ((wq_completion)krdsd){+.+.}-{0:0}, at: set_work_pool_and_clear_pending kernel/workqueue.c:663 [inline]
- #0: ffff8880275f7938 ((wq_completion)krdsd){+.+.}-{0:0}, at: process_one_work+0x87a/0x1610 kernel/workqueue.c:2260
- #1: ffffc90000b77da8 ((work_completion)(&rtn->rds_tcp_accept_w)){+.+.}-{0:0}, at: process_one_work+0x8ae/0x1610 kernel/workqueue.c:2264
- #2: ffff8880733c4088 (&tc->t_conn_path_lock){+.+.}-{3:3}, at: rds_tcp_accept_one+0x892/0xd10 net/rds/tcp_listen.c:195
- #3: ffff88807e18da70 (k-sk_lock-AF_INET6){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1712 [inline]
- #3: ffff88807e18da70 (k-sk_lock-AF_INET6){+.+.}-{0:0}, at: rds_tcp_reset_callbacks+0x1bf/0x4d0 net/rds/tcp.c:169
-
-stack backtrace:
-CPU: 1 PID: 46 Comm: kworker/u4:3 Not tainted 6.0.0-rc1-next-20220819-syzkaller #0
-kworker/u4:3[46] cmdline: ��a�����
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/22/2022
-Workqueue: krdsd rds_tcp_accept_worker
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:122 [inline]
- dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:140
- check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2175
- check_prev_add kernel/locking/lockdep.c:3095 [inline]
- check_prevs_add kernel/locking/lockdep.c:3214 [inline]
- validate_chain kernel/locking/lockdep.c:3829 [inline]
- __lock_acquire+0x2a43/0x56d0 kernel/locking/lockdep.c:5053
- lock_acquire kernel/locking/lockdep.c:5666 [inline]
- lock_acquire+0x1ab/0x570 kernel/locking/lockdep.c:5631
- __flush_work+0x105/0xae0 kernel/workqueue.c:3069
- __cancel_work_timer+0x3f9/0x570 kernel/workqueue.c:3160
- rds_tcp_reset_callbacks+0x1cb/0x4d0 net/rds/tcp.c:171
- rds_tcp_accept_one+0x9d5/0xd10 net/rds/tcp_listen.c:203
- rds_tcp_accept_worker+0x55/0x80 net/rds/tcp.c:529
- process_one_work+0x991/0x1610 kernel/workqueue.c:2289
- worker_thread+0x665/0x1080 kernel/workqueue.c:2436
- kthread+0x2e4/0x3a0 kernel/kthread.c:376
- ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:306
- </TASK>
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this issue, for details see:
-https://goo.gl/tpsmEJ#testing-patches
