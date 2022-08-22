@@ -2,23 +2,23 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C1CCC32793
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 Aug 2022 10:45:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B91A7C3F6B0
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 Aug 2022 10:45:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232258AbiHVKpo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S231574AbiHVKpo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 22 Aug 2022 06:45:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37792 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233791AbiHVKpg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 Aug 2022 06:45:36 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44C992CCBD
+        with ESMTP id S233773AbiHVKpe (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 Aug 2022 06:45:34 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 442E62BB0E
         for <linux-rdma@vger.kernel.org>; Mon, 22 Aug 2022 03:45:31 -0700 (PDT)
-Received: from dggpeml500021.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MB88c6kZ6znTgv;
-        Mon, 22 Aug 2022 18:43:12 +0800 (CST)
+Received: from dggpeml500022.china.huawei.com (unknown [172.30.72.57])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4MB87Z27CYzlVlB;
+        Mon, 22 Aug 2022 18:42:18 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500021.china.huawei.com (7.185.36.21) with Microsoft SMTP Server
+ dggpeml500022.china.huawei.com (7.185.36.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
  15.1.2375.24; Mon, 22 Aug 2022 18:45:29 +0800
 Received: from localhost.localdomain (10.67.165.2) by
@@ -29,12 +29,10 @@ From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH v2 for-next 3/7] RDMA/hns: Support CQ's restrack raw ops for hns driver
-Date:   Mon, 22 Aug 2022 18:44:51 +0800
-Message-ID: <20220822104455.2311053-4-liangwenpeng@huawei.com>
+Subject: [PATCH v2 for-next 0/7] RDMA/hns: Add more restrack attributes to hns driver
+Date:   Mon, 22 Aug 2022 18:44:48 +0800
+Message-ID: <20220822104455.2311053-1-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20220822104455.2311053-1-liangwenpeng@huawei.com>
-References: <20220822104455.2311053-1-liangwenpeng@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -46,105 +44,35 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The CQ raw restrack attributes come from the queue context maintained by
-the ROCEE.
+The hns driver already supports CQ's restrack ops. Therefore, this patchset
+supports QP/MR's restrack ops and CQ/QP/MR's restrack raw ops. Among them,
+restrack ops dump the queue information maintained by the driver, and
+restrack raw ops dump the queue context maintained by ROCEE.
 
-For example:
+Changes since v1:
+* Add support for restrack raw ops.
+* Add the result dumped by rdmatool in the commit message.
+* v1 Link: https://patchwork.kernel.org/project/linux-rdma/cover/20220124124624.55352-1-liangwenpeng@huawei.com/
 
-$ rdma res show cq dev hns_0 cqn 14 -dd -jp -r
-[ {
-        "ifindex": 4,
-        "ifname": "hns_0",
-        "data": [ 1,0,0,0,7,0,0,0,0,0,0,0,0,82,6,0,0,82,6,0,0,82,6,0,
-		  1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,
-		  6,0,0,0,0,0,0,0 ]
-    } ]
+Wenpeng Liang (7):
+  RDMA/hns: Remove redundant DFX file and DFX ops structure
+  RDMA/hns: Add or remove CQ's restrack attributes
+  RDMA/hns: Support CQ's restrack raw ops for hns driver
+  RDMA/hns: Support QP's restrack ops for hns driver
+  RDMA/hns: Support QP's restrack raw ops for hns driver
+  RDMA/hns: Support MR's restrack ops for hns driver
+  RDMA/hns: Support MR's restrack raw ops for hns driver
 
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h   |  1 +
- drivers/infiniband/hw/hns/hns_roce_main.c     |  1 +
- drivers/infiniband/hw/hns/hns_roce_restrack.c | 39 +++++++++++++++++++
- 3 files changed, 41 insertions(+)
+ drivers/infiniband/hw/hns/Makefile            |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_device.h   |  17 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c    |  76 +++++-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h    |   6 +-
+ .../infiniband/hw/hns/hns_roce_hw_v2_dfx.c    |  34 ---
+ drivers/infiniband/hw/hns/hns_roce_main.c     |  11 +-
+ drivers/infiniband/hw/hns/hns_roce_restrack.c | 220 ++++++++++++++----
+ 7 files changed, 263 insertions(+), 103 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2_dfx.c
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 103d50564b89..c73adc0d3555 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -1224,6 +1224,7 @@ void hns_roce_handle_device_err(struct hns_roce_dev *hr_dev);
- int hns_roce_init(struct hns_roce_dev *hr_dev);
- void hns_roce_exit(struct hns_roce_dev *hr_dev);
- int hns_roce_fill_res_cq_entry(struct sk_buff *msg, struct ib_cq *ib_cq);
-+int hns_roce_fill_res_cq_entry_raw(struct sk_buff *msg, struct ib_cq *ib_cq);
- struct hns_user_mmap_entry *
- hns_roce_user_mmap_entry_insert(struct ib_ucontext *ucontext, u64 address,
- 				size_t length,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index caf73e8f4bbe..1b66ed45350e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -567,6 +567,7 @@ static const struct ib_device_ops hns_roce_dev_xrcd_ops = {
- 
- static const struct ib_device_ops hns_roce_dev_restrack_ops = {
- 	.fill_res_cq_entry = hns_roce_fill_res_cq_entry,
-+	.fill_res_cq_entry_raw = hns_roce_fill_res_cq_entry_raw,
- };
- 
- static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_restrack.c b/drivers/infiniband/hw/hns/hns_roce_restrack.c
-index 2e8299784bc2..3f9c2f9dfdf6 100644
---- a/drivers/infiniband/hw/hns/hns_roce_restrack.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_restrack.c
-@@ -9,6 +9,8 @@
- #include "hns_roce_device.h"
- #include "hns_roce_hw_v2.h"
- 
-+#define MAX_ENTRY_NUM 256
-+
- int hns_roce_fill_res_cq_entry(struct sk_buff *msg, struct ib_cq *ib_cq)
- {
- 	struct hns_roce_cq *hr_cq = to_hr_cq(ib_cq);
-@@ -39,3 +41,40 @@ int hns_roce_fill_res_cq_entry(struct sk_buff *msg, struct ib_cq *ib_cq)
- 
- 	return -EMSGSIZE;
- }
-+
-+int hns_roce_fill_res_cq_entry_raw(struct sk_buff *msg, struct ib_cq *ib_cq)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ib_cq->device);
-+	struct hns_roce_cq *hr_cq = to_hr_cq(ib_cq);
-+	struct hns_roce_v2_cq_context context;
-+	u32 data[MAX_ENTRY_NUM] = {};
-+	int offset = 0;
-+	int ret;
-+
-+	if (!hr_dev->hw->query_cqc)
-+		return -EINVAL;
-+
-+	ret = hr_dev->hw->query_cqc(hr_dev, hr_cq->cqn, &context);
-+	if (ret)
-+		return -EINVAL;
-+
-+	data[offset++] = hr_reg_read(&context, CQC_CQ_ST);
-+	data[offset++] = hr_reg_read(&context, CQC_SHIFT);
-+	data[offset++] = hr_reg_read(&context, CQC_CQE_SIZE);
-+	data[offset++] = hr_reg_read(&context, CQC_CQE_CNT);
-+	data[offset++] = hr_reg_read(&context, CQC_CQ_PRODUCER_IDX);
-+	data[offset++] = hr_reg_read(&context, CQC_CQ_CONSUMER_IDX);
-+	data[offset++] = hr_reg_read(&context, CQC_DB_RECORD_EN);
-+	data[offset++] = hr_reg_read(&context, CQC_ARM_ST);
-+	data[offset++] = hr_reg_read(&context, CQC_CMD_SN);
-+	data[offset++] = hr_reg_read(&context, CQC_CEQN);
-+	data[offset++] = hr_reg_read(&context, CQC_CQ_MAX_CNT);
-+	data[offset++] = hr_reg_read(&context, CQC_CQ_PERIOD);
-+	data[offset++] = hr_reg_read(&context, CQC_CQE_HOP_NUM);
-+	data[offset++] = hr_reg_read(&context, CQC_CQE_BAR_PG_SZ);
-+	data[offset++] = hr_reg_read(&context, CQC_CQE_BUF_PG_SZ);
-+
-+	ret = nla_put(msg, RDMA_NLDEV_ATTR_RES_RAW, offset * sizeof(u32), data);
-+
-+	return ret;
-+}
--- 
+--
 2.30.0
 
