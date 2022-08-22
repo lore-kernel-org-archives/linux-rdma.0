@@ -2,35 +2,34 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4B52C32789
-	for <linux-rdma@archiver.kernel.org>; Sun, 21 Aug 2022 08:49:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA904C32793
+	for <linux-rdma@archiver.kernel.org>; Sun, 21 Aug 2022 08:49:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229436AbiHUItV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 21 Aug 2022 04:49:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51022 "EHLO
+        id S229505AbiHUItW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 21 Aug 2022 04:49:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229492AbiHUItT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 21 Aug 2022 04:49:19 -0400
+        with ESMTP id S229744AbiHUItW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 21 Aug 2022 04:49:22 -0400
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65B7625281
-        for <linux-rdma@vger.kernel.org>; Sun, 21 Aug 2022 01:49:17 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6500,9779,10445"; a="276266522"
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAA1A2528C
+        for <linux-rdma@vger.kernel.org>; Sun, 21 Aug 2022 01:49:20 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6500,9779,10445"; a="276266527"
 X-IronPort-AV: E=Sophos;i="5.93,251,1654585200"; 
-   d="scan'208";a="276266522"
+   d="scan'208";a="276266527"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2022 01:49:16 -0700
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2022 01:49:20 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.93,251,1654585200"; 
-   d="scan'208";a="637791433"
+   d="scan'208";a="637791436"
 Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by orsmga008.jf.intel.com with ESMTP; 21 Aug 2022 01:49:14 -0700
+  by orsmga008.jf.intel.com with ESMTP; 21 Aug 2022 01:49:18 -0700
 From:   yanjun.zhu@linux.dev
 To:     jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
         yanjun.zhu@linux.dev, zyjzyj2000@gmail.com
-Cc:     syzbot+ab99dc4c6e961eed8b8e@syzkaller.appspotmail.com
-Subject: [PATCH 1/3] RDMA/rxe: Fix "kernel NULL pointer dereference" error
-Date:   Sun, 21 Aug 2022 21:16:13 -0400
-Message-Id: <20220822011615.805603-2-yanjun.zhu@linux.dev>
+Subject: [PATCH 3/3] RDMA/rxe: Remove the unused variable obj
+Date:   Sun, 21 Aug 2022 21:16:15 -0400
+Message-Id: <20220822011615.805603-4-yanjun.zhu@linux.dev>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20220822011615.805603-1-yanjun.zhu@linux.dev>
 References: <20220822011615.805603-1-yanjun.zhu@linux.dev>
@@ -42,37 +41,78 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-When rxe_queue_init in the function rxe_qp_init_req fails,
-both qp->req.task.func and qp->req.task.arg are not initialized.
+The member variable obj in struct rxe_task is not needed.
+So remove it to save memory.
 
-Because of creation of qp fails, the function rxe_create_qp will
-call rxe_qp_do_cleanup to handle allocated resource.
-
-Before calling __rxe_do_task, both qp->req.task.func and
-qp->req.task.arg should be checked.
-
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Reported-by: syzbot+ab99dc4c6e961eed8b8e@syzkaller.appspotmail.com
 Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 ---
- drivers/infiniband/sw/rxe/rxe_qp.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c   | 6 +++---
+ drivers/infiniband/sw/rxe/rxe_task.c | 3 +--
+ drivers/infiniband/sw/rxe/rxe_task.h | 3 +--
+ 3 files changed, 5 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index 516bf9b95e48..f10b461b9963 100644
+index b229052ae91a..ee4f7a4a7e01 100644
 --- a/drivers/infiniband/sw/rxe/rxe_qp.c
 +++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -797,7 +797,9 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
- 	rxe_cleanup_task(&qp->comp.task);
+@@ -242,9 +242,9 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
  
- 	/* flush out any receive wr's or pending requests */
--	__rxe_do_task(&qp->req.task);
-+	if (qp->req.task.func && qp->req.task.arg)
-+		__rxe_do_task(&qp->req.task);
-+
- 	if (qp->sq.queue) {
- 		__rxe_do_task(&qp->comp.task);
- 		__rxe_do_task(&qp->req.task);
+ 	skb_queue_head_init(&qp->req_pkts);
+ 
+-	rxe_init_task(rxe, &qp->req.task, qp,
++	rxe_init_task(&qp->req.task, qp,
+ 		      rxe_requester, "req");
+-	rxe_init_task(rxe, &qp->comp.task, qp,
++	rxe_init_task(&qp->comp.task, qp,
+ 		      rxe_completer, "comp");
+ 
+ 	qp->qp_timeout_jiffies = 0; /* Can't be set for UD/UC in modify_qp */
+@@ -292,7 +292,7 @@ static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 
+ 	skb_queue_head_init(&qp->resp_pkts);
+ 
+-	rxe_init_task(rxe, &qp->resp.task, qp,
++	rxe_init_task(&qp->resp.task, qp,
+ 		      rxe_responder, "resp");
+ 
+ 	qp->resp.opcode		= OPCODE_NONE;
+diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
+index 2248cf33d776..ec2b7de1c497 100644
+--- a/drivers/infiniband/sw/rxe/rxe_task.c
++++ b/drivers/infiniband/sw/rxe/rxe_task.c
+@@ -94,10 +94,9 @@ void rxe_do_task(struct tasklet_struct *t)
+ 	task->ret = ret;
+ }
+ 
+-int rxe_init_task(void *obj, struct rxe_task *task,
++int rxe_init_task(struct rxe_task *task,
+ 		  void *arg, int (*func)(void *), char *name)
+ {
+-	task->obj	= obj;
+ 	task->arg	= arg;
+ 	task->func	= func;
+ 	snprintf(task->name, sizeof(task->name), "%s", name);
+diff --git a/drivers/infiniband/sw/rxe/rxe_task.h b/drivers/infiniband/sw/rxe/rxe_task.h
+index 11d183fd3338..7f612a1c68a7 100644
+--- a/drivers/infiniband/sw/rxe/rxe_task.h
++++ b/drivers/infiniband/sw/rxe/rxe_task.h
+@@ -19,7 +19,6 @@ enum {
+  * called again.
+  */
+ struct rxe_task {
+-	void			*obj;
+ 	struct tasklet_struct	tasklet;
+ 	int			state;
+ 	spinlock_t		state_lock; /* spinlock for task state */
+@@ -35,7 +34,7 @@ struct rxe_task {
+  *	arg  => parameter to pass to fcn
+  *	func => function to call until it returns != 0
+  */
+-int rxe_init_task(void *obj, struct rxe_task *task,
++int rxe_init_task(struct rxe_task *task,
+ 		  void *arg, int (*func)(void *), char *name);
+ 
+ /* cleanup task */
 -- 
 2.31.1
 
