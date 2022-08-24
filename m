@@ -2,48 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B084DC38145
-	for <linux-rdma@archiver.kernel.org>; Wed, 24 Aug 2022 14:11:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B559C32796
+	for <linux-rdma@archiver.kernel.org>; Wed, 24 Aug 2022 14:15:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239058AbiHXOLW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 24 Aug 2022 10:11:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53426 "EHLO
+        id S239098AbiHXOPI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 24 Aug 2022 10:15:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239009AbiHXOLU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 24 Aug 2022 10:11:20 -0400
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2067.outbound.protection.outlook.com [40.107.223.67])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 446AE895C8;
-        Wed, 24 Aug 2022 07:11:19 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Nnu9eRxdokgHHfl+/+uOoH79qxNcD0SVs9cWBq5ZoF9j0UFCd7XseYc3AhPw0jPm5ije3Kb6wQMUBTHEKZJmSaYp5RYFbgoAnJokP/VVhMmXhpXevr7VDpX+b6lvqhfYrb2M33K6mb9uTqZMNxoURPJ/edrWyIhWvQkTKp8RA2Omz2Id/NOzDW9Mojlqq/FWsNBeA8JBs46rl/9bgYq59XXJgdfietMh2Dh3LxhxDI8tovBdESun4HH6yTY84u7eFpJqSTBs3iTVmNdeygetn7jWArP0HnTsaYJ8mLRL7cRR8U+PaIEl1QlfJOePwEJcMDAhZm6EgRc3/rwuEeUbcQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kqPUQCej5vuqxvtj8Chlk3T/0EwQ6MX8daIfGCr7o8M=;
- b=c/XYxqdneDEH/DkMoLFAsRp6iqvullaPOshGTd9IJExYzhHSUDR/lvxqVU8bJzAi+bG4bVC2GDFT/AnfpIM18YW45lz7zeybn1yJkTdHE7hbwZb8HQitbHjRZTPQPAJCtILuFDjiq6MJnMDr0rs6JHqgaZXccGMOQ/VfNaRGyHZhlVOPOFWV3yL9WKyaG/ol2pyw5Yhhktf1m+JEDiYO1maA0JSV6+adQNTgnaMt3LTNNXoWfng3OHb8k6jn/t9ivn02jtvgB9ELg5st2eo3ocrTnLV3fTfmCImt5aCCfCHbK//xhu/L84jCLav54YuhJIXO1RRAPH3QKLJKdTuHiA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=kqPUQCej5vuqxvtj8Chlk3T/0EwQ6MX8daIfGCr7o8M=;
- b=Qh3ShTDqYljGuzDiMNRcnLnEVaa1TnymlG57SvJVZ37XrCkhCzlZlcOdBD0onKcBMrrCqvRssSW7RmGJCKoAHPW84c+dPgar3Stm+B3OKYTy5D4B7HrG14exTta7wWOM7t7TfMu6ixQrqLYLY5bzTUWcfh5BsSrXlomsiN0ejSM=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from BN8PR12MB3587.namprd12.prod.outlook.com (2603:10b6:408:43::13)
- by DM6PR12MB2921.namprd12.prod.outlook.com (2603:10b6:5:182::17) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5546.21; Wed, 24 Aug
- 2022 14:11:16 +0000
-Received: from BN8PR12MB3587.namprd12.prod.outlook.com
- ([fe80::905:1701:3b51:7e39]) by BN8PR12MB3587.namprd12.prod.outlook.com
- ([fe80::905:1701:3b51:7e39%2]) with mapi id 15.20.5546.024; Wed, 24 Aug 2022
- 14:11:16 +0000
-Message-ID: <ce79b696-339b-3505-5884-14a20489de57@amd.com>
-Date:   Wed, 24 Aug 2022 16:09:55 +0200
+        with ESMTP id S239094AbiHXOPG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 24 Aug 2022 10:15:06 -0400
+Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33550844C2;
+        Wed, 24 Aug 2022 07:15:05 -0700 (PDT)
+Received: by mail-ej1-x629.google.com with SMTP id y3so7427795ejc.1;
+        Wed, 24 Aug 2022 07:15:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc;
+        bh=3RY0kXIvgqIVojhkrE4Zwlr7wJlH94oU+XFloUi3XjI=;
+        b=k433WZpJORtGGgjLBRUCWg89Ct3eMmhhzzPwfTl6//mc8KZmXsfUkvjXK2CPv2G6j9
+         FW4/JFsVFe8WZ8qXfiG0G2WUSXJhVho/22M2ZvYonWllG8JjwTj6MhS+/biMgV4nO5Zr
+         llPWeve491++YksKYHfxR6w08hbYD3Jv+FtIHtqkeqoTfLN6sUfa2AlD62I2SrAPThJb
+         x/pSysLoKr056pSqqIrDP4Zf5umrg7az72DW3OYvoPJOZdkczmoNmarSqM1+dim8Vhiv
+         BxZj98y4ZeYDVEzsmdne2xhUZzSQUjC7gSpIH2W4w1Iq4MHPRdAGpb04pB6x8cp2I0OU
+         nIBA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc;
+        bh=3RY0kXIvgqIVojhkrE4Zwlr7wJlH94oU+XFloUi3XjI=;
+        b=qAZ17XQjciWcUbOVrCHCAmxxY8Vmk6qNQLGtXlxJ6c0tIEcKKu21fcGB+LB9BZk67q
+         27wrjz7TrWpuQFTFtswLcZUb6FGVd112d+x47vau4GOPM+6rzojwWLfpJzRbTIjdQY1Y
+         1yvSL2YnQzwEywvfYek3Tm1qySRSQZ1Xh6HjDLF6Y5oZ8BoVczR2ozREZ6NMnDvTMp9D
+         LNgTCvx6uzsTOh6o3TcoOY6xELW1nXW2eDcym6ufJG/05Zm2Xf3gNx0+VbuVv1Slyo2N
+         EGB57uyEaoNpYD1OwHBW74XYnY7frfydzNNV9z3AKeItc30oDkDbjZPgPDsUp0twr3wK
+         k7Aw==
+X-Gm-Message-State: ACgBeo3hM4rE8k21p/2yGXu1ujPYf0XnZ+Q6UaesYfWlPkkSOiwwHnbI
+        cuCEZ4MZECFuzqxWFuHJVP8=
+X-Google-Smtp-Source: AA6agR5vl7eAC3d146n4WFT7uLsC77WQL4B00T85StELI9JlyPgaC5TszQICKao2kaYSaa7iVSFw9A==
+X-Received: by 2002:a17:907:7256:b0:73d:9c6b:35e2 with SMTP id ds22-20020a170907725600b0073d9c6b35e2mr2992627ejc.197.1661350503452;
+        Wed, 24 Aug 2022 07:15:03 -0700 (PDT)
+Received: from ?IPV6:2a02:908:1256:79a0:62ca:57d9:b533:6057? ([2a02:908:1256:79a0:62ca:57d9:b533:6057])
+        by smtp.gmail.com with ESMTPSA id m26-20020a056402051a00b004464c3de6dasm3147684edv.65.2022.08.24.07.15.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 24 Aug 2022 07:15:02 -0700 (PDT)
+Message-ID: <79cf9887-64ad-9cfd-035a-4b6e41b864e0@gmail.com>
+Date:   Wed, 24 Aug 2022 16:15:00 +0200
+MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
  Thunderbird/91.11.0
-Subject: Re: [PATCH v3 9/9] dma-buf: Remove internal lock
+Subject: Re: [PATCH v3 0/9] Move all drivers to a common dma-buf locking
+ convention
 Content-Language: en-US
 To:     Dmitry Osipenko <dmitry.osipenko@collabora.com>,
         David Airlie <airlied@linux.ie>,
@@ -80,176 +92,116 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         lima@lists.freedesktop.org
 References: <20220824102248.91964-1-dmitry.osipenko@collabora.com>
- <20220824102248.91964-10-dmitry.osipenko@collabora.com>
-From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-In-Reply-To: <20220824102248.91964-10-dmitry.osipenko@collabora.com>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+In-Reply-To: <20220824102248.91964-1-dmitry.osipenko@collabora.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: AS9PR06CA0185.eurprd06.prod.outlook.com
- (2603:10a6:20b:45d::6) To BN8PR12MB3587.namprd12.prod.outlook.com
- (2603:10b6:408:43::13)
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 67b7ec6f-b4af-4832-23c0-08da85da577d
-X-MS-TrafficTypeDiagnostic: DM6PR12MB2921:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 9NG0WZgeddmHQwKb4RZcp7HqbpXvkRxGZjf8wyn//i6nkI+GbEM6NxR1/40CDNMCQElwy/eStwFCrwZgaEyUVVlX2goeVG1d+IQ85CzYj/TM3kHYZit/pEWPukn8aSbCIFi0anF8TVxbP7sASoCyTZIE1JRZp6lyp2s2j509su11JpbWVYzWD+GMVOPNEDtRR4OYz915Thgdk7xVJ2aIMeM14Vmk18P/VO9HQzDaCXdRPXNIDnA2uaRBbor/PXHXcmWK7OLyL42WYgMYcuIIjzFf080beadL4TqaSejUCXWRcONHkmHJaPkVYXLMgTHxELmO9hsbZzEd4PZ1jaiUM+2mBFpuPFo4PMJKcxmPsaYLpu6Zih7foI2FwwEO1cOPZSVC9fWr5Ix4DZEdJLzvLi0rj1QRdV5YjptGrnc8bCCP0dfsWSRiuTLu2IdHfPdG/64xaxIBYO6px9rdwIwYtSXQgYQyD9vsloEdRthTFDTGjJZcc/P4R+DFz6WnrnNfnlxrpu0VlgKsIrKlAkHIcZBSZcdwwF2p8gBxzQVwUXi0WflZ2ElQ6/jr9rU9LnPlP8GomqxPPBiPxpJn1uP/FsU5Noi3rdri6PH3W7+3Rtui36W6VHY52RsEBfBbfX6yBqsXVMPXyEYvLM+vvK//37+PYV9Rb+oSE1O+RFDYGoBf4xoUnIJWkzCXxRDymyHOteQJ2EM/q4FwGctUsrXrjHNy+N0TN4Bg8cYeKOX+g3DGsGHY3AU2O7KPNi+UD3mdGgCm1LFf9tN8wWOLxEa5TyLAtup+3YFphHEvgVhuw4zMkKIsINbnr8+q3pGTt6f6
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN8PR12MB3587.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(39860400002)(346002)(366004)(376002)(136003)(396003)(66946007)(66556008)(8676002)(86362001)(31696002)(110136005)(316002)(83380400001)(6666004)(8936002)(186003)(38100700002)(2616005)(7416002)(921005)(41300700001)(478600001)(6486002)(66574015)(2906002)(36756003)(7406005)(31686004)(6512007)(6506007)(5660300002)(66476007)(4326008)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?RHZvZkdGS242YVZNUWVVU0x0d1dTYi90OXFsUW5vN3U2aERzQ3ArMFdpUy9q?=
- =?utf-8?B?aXdKaHVOTGhRTUgrMnNiWFNNRWxWai9hbWdEL1ZFV1FTWUZzYkltUkVtZTNE?=
- =?utf-8?B?UWV3Q2t5R1BYMGE3WFJZN2NtQ1BXaTU4RkJMbUF2Z1Nxc2tMNy9NRHFLN2hJ?=
- =?utf-8?B?K3BJWnVqaU5JS1lsOVl0UlIwd0w5bjFNNkpWZWNDZ3hCbkcyc04wR0VLSjdo?=
- =?utf-8?B?TXBiRFVMcWI4S2swSk1YVks1K0ZPSkZwVkJZbUhUSzR3anpWdTV1Z21ZRlJC?=
- =?utf-8?B?OS9xeXFZT1VYWnh5dWxaMERpaXdEd1NvUThpUG4xQ1R1SjJFRXIzQVBNRjFn?=
- =?utf-8?B?Mm5GaVg1ZjBXVk1BSm1yMlV2ZGNCekEram9LRXJScGsxeDZqVGZaUFRSTG5m?=
- =?utf-8?B?dU9PU01YU0FkTVhsZDZ5RzNEOGtCQ2t5VzhzQUFUK0prNmFSTGtyVjRCK0Y3?=
- =?utf-8?B?emNIakUxTXM2dWlBT2FFNGJHc3NCSXM3L3NybndiYmRmdmpZb0ZtNVlLVTFZ?=
- =?utf-8?B?YmorQmZRU1NLU1g3ZXJiaXRqTjVDZjNrcVB3USswdFRMVndJVHJpcFdZckRv?=
- =?utf-8?B?UEVVRFg1YlFQbEM2Nm4rVmNsaFl4a3grVXJsVGprQU9PR20xTmRyOU8rSkgw?=
- =?utf-8?B?MWxFbFlvSVI2T3dQWGRCWVZvSHRLb1FzWHdwL2lPUVV0VExmUVpjY3hJSGtQ?=
- =?utf-8?B?cCtKVHZ6REM5ZEdSdTNEdnhtcmxQWjNrMThhYzVQNTdqc0tuUEs0d2hsL2ky?=
- =?utf-8?B?cGxuSTd5SlIwYysrR1A0V1RKK2dYRnpvQ0RMMFl5M0NaalhqZmlPd2FYLzAw?=
- =?utf-8?B?dGxyZWtPUHhrSlBUOFZtQk5UOThNMkg2MzF6Z2dpd1NUODlIUzA4ZUJRd3Zy?=
- =?utf-8?B?d0JHNVR0cWNSYW1qSFdscWNYZ3ZIWVRhcm82Ymc1VzZ2Znh0VEVPQkJDTWVy?=
- =?utf-8?B?TUhNclNkcEdjN3ErT3g4NTBuNnVSQ0tQb3NTQUJqQnFaN3NNSUVXVjJSYkRQ?=
- =?utf-8?B?b0JiS3BHSUw3WHNRajlVbHUrUWRuczFnRm9hRkdBdFJyT1BVcGR5UG1lbkxy?=
- =?utf-8?B?dktzaHV6MksyTmQydzRCb1FHTnUyUnlmZys4Z01XR3VTeW1JNHQ1RWFtM29Z?=
- =?utf-8?B?cm5heWFuWUxsUHdtaFo5MHFQTXlUcjhwMHpwL0p1SlRoSFRCM2t0dG1vanRs?=
- =?utf-8?B?Q0pmZjVtdS8zVHBCamxVOUhzdGlnNXR3Q3ZpYWFpYkZJaCsvaWVlbWdWYkQy?=
- =?utf-8?B?UUdpa3ErSWlwdjAwY2ZabUQxS2p1Q0ZjcGxGTDRCcE5GOW4yY1pQS3NYNnNW?=
- =?utf-8?B?UXRSSDlIVksyUnhqTlIxVDc0aEp4YXUxcURnV0psRkYzMnNsMmszMG9HV1hV?=
- =?utf-8?B?RExuMU9xQmdLQ1paZUQ3Tyt3Y0pXVEdoVnRuemFCYmFCVXBrUHhyOE9GdTJt?=
- =?utf-8?B?WnRta1JEcWxlMEFpelJTYnNLMlVJUElOaEZ5MnNqK3NQTzhORjRadlhiOXhl?=
- =?utf-8?B?VmhFMHZYMTZuYnFqZGNVRDBySkI2bERRbGV3cnNHZ29HTm5MVCtXdFBZQmFu?=
- =?utf-8?B?d05QVnFVd2F3TDh4SEsyK2lSWVI5bHJYd0dvREtnV0dmelh1RFNhcVZWWFZC?=
- =?utf-8?B?cnBwdHEwcEl6bTFCOVY4RW95cWc1M1VDdFIwdmplbnA0ZDljc2d6bTZQSE5L?=
- =?utf-8?B?Q0lKOVhxeWNwbGVORGFrZ3RGNlBMVWxOeVJXM29sakplZlFkVTcvYy9oQWNN?=
- =?utf-8?B?ZzhFYitOWkRIZVo4aWptUWNWY0F5dEtqWTI5SkVoRzRyRmNZZjFFZjk2VG9G?=
- =?utf-8?B?UEtVcmJSNGJSc2VXQlNBUWFYWFRXRVBFakpJVUNHQk0rU3graGx6bFIwYnBr?=
- =?utf-8?B?TGVSYmk3NldxWFQ2NGkyZysxd01QUUpJUVB3MzdlalljMlluYjhlQlhGN1R0?=
- =?utf-8?B?dXdvczhUOWlMb1JmL0NGK1NSUEhiWGFia0NPTHlZVVNkdFRiL0NJbGwrV3Y5?=
- =?utf-8?B?M2h1SWhpa1pZZGtOcGU3QWV5QWxSamlRR0lpcEZzMU4vYUZzcWRtRytoMGhV?=
- =?utf-8?B?bjNMTXBVVnI5S1RmaHgzcSs3QW9GaDliWFBoeUQ3U0dVTE9BMGxNY2hFOFdQ?=
- =?utf-8?B?RGJwclNBQVhSSlg0Vi81TUZ1NEwxSThHU1pValk2RnVMbUsxZEw2bFQvVTRk?=
- =?utf-8?Q?u1j+2hwCp46rKu/IcbQa2dXCfG+/oPZl9unLUmkSzpyK?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 67b7ec6f-b4af-4832-23c0-08da85da577d
-X-MS-Exchange-CrossTenant-AuthSource: BN8PR12MB3587.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Aug 2022 14:11:15.3638
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: MTY5k8ED+mNcVUDjvJ5HsDVekfcgtBKL3p44ies0fA2tsJvqTNu1kTc77Ran8cDH
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB2921
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Reviewed-by: Christian König <christian.koenig@amd.com> to patches #2-#4
+
 Am 24.08.22 um 12:22 schrieb Dmitry Osipenko:
-> The internal dma-buf lock isn't needed anymore because the updated
-> locking specification claims that dma-buf reservation must be locked
-> by importers, and thus, the internal data is already protected by the
-> reservation lock. Remove the obsoleted internal lock.
+> Hello,
 >
-> Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
-
-Reviewed-by: Christian König <christian.koenig@amd.com>
-
-> ---
->   drivers/dma-buf/dma-buf.c | 14 ++++----------
->   include/linux/dma-buf.h   |  9 ---------
->   2 files changed, 4 insertions(+), 19 deletions(-)
+> This series moves all drivers to a dynamic dma-buf locking specification.
+>  From now on all dma-buf importers are made responsible for holding
+> dma-buf's reservation lock around all operations performed over dma-bufs
+> in accordance to the locking specification. This allows us to utilize
+> reservation lock more broadly around kernel without fearing of a potential
+> deadlocks.
 >
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 696d132b02f4..a0406254f0ae 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -656,7 +656,6 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
->   
->   	dmabuf->file = file;
->   
-> -	mutex_init(&dmabuf->lock);
->   	INIT_LIST_HEAD(&dmabuf->attachments);
->   
->   	mutex_lock(&db_list.lock);
-> @@ -1503,7 +1502,7 @@ EXPORT_SYMBOL_NS_GPL(dma_buf_mmap_unlocked, DMA_BUF);
->   int dma_buf_vmap(struct dma_buf *dmabuf, struct iosys_map *map)
->   {
->   	struct iosys_map ptr;
-> -	int ret = 0;
-> +	int ret;
->   
->   	iosys_map_clear(map);
->   
-> @@ -1515,28 +1514,25 @@ int dma_buf_vmap(struct dma_buf *dmabuf, struct iosys_map *map)
->   	if (!dmabuf->ops->vmap)
->   		return -EINVAL;
->   
-> -	mutex_lock(&dmabuf->lock);
->   	if (dmabuf->vmapping_counter) {
->   		dmabuf->vmapping_counter++;
->   		BUG_ON(iosys_map_is_null(&dmabuf->vmap_ptr));
->   		*map = dmabuf->vmap_ptr;
-> -		goto out_unlock;
-> +		return 0;
->   	}
->   
->   	BUG_ON(iosys_map_is_set(&dmabuf->vmap_ptr));
->   
->   	ret = dmabuf->ops->vmap(dmabuf, &ptr);
->   	if (WARN_ON_ONCE(ret))
-> -		goto out_unlock;
-> +		return ret;
->   
->   	dmabuf->vmap_ptr = ptr;
->   	dmabuf->vmapping_counter = 1;
->   
->   	*map = dmabuf->vmap_ptr;
->   
-> -out_unlock:
-> -	mutex_unlock(&dmabuf->lock);
-> -	return ret;
-> +	return 0;
->   }
->   EXPORT_SYMBOL_NS_GPL(dma_buf_vmap, DMA_BUF);
->   
-> @@ -1578,13 +1574,11 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, struct iosys_map *map)
->   	BUG_ON(dmabuf->vmapping_counter == 0);
->   	BUG_ON(!iosys_map_is_equal(&dmabuf->vmap_ptr, map));
->   
-> -	mutex_lock(&dmabuf->lock);
->   	if (--dmabuf->vmapping_counter == 0) {
->   		if (dmabuf->ops->vunmap)
->   			dmabuf->ops->vunmap(dmabuf, map);
->   		iosys_map_clear(&dmabuf->vmap_ptr);
->   	}
-> -	mutex_unlock(&dmabuf->lock);
->   }
->   EXPORT_SYMBOL_NS_GPL(dma_buf_vunmap, DMA_BUF);
->   
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index d48d534dc55c..aed6695bbb50 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -326,15 +326,6 @@ struct dma_buf {
->   	/** @ops: dma_buf_ops associated with this buffer object. */
->   	const struct dma_buf_ops *ops;
->   
-> -	/**
-> -	 * @lock:
-> -	 *
-> -	 * Used internally to serialize list manipulation, attach/detach and
-> -	 * vmap/unmap. Note that in many cases this is superseeded by
-> -	 * dma_resv_lock() on @resv.
-> -	 */
-> -	struct mutex lock;
-> -
->   	/**
->   	 * @vmapping_counter:
->   	 *
+> This patchset passes all i915 selftests. It was also tested using VirtIO,
+> Panfrost, Lima, Tegra, udmabuf, AMDGPU and Nouveau drivers. I tested cases
+> of display+GPU, display+V4L and GPU+V4L dma-buf sharing (where appropriate),
+> which covers majority of kernel drivers since rest of the drivers share
+> same or similar code paths.
+>
+> Changelog:
+>
+> v3: - Factored out dma_buf_mmap_unlocked() and attachment functions
+>        into aseparate patches, like was suggested by Christian König.
+>
+>      - Corrected and factored out dma-buf locking documentation into
+>        a separate patch, like was suggested by Christian König.
+>
+>      - Intel driver dropped the reservation locking fews days ago from
+>        its BO-release code path, but we need that locking for the imported
+>        GEMs because in the end that code path unmaps the imported GEM.
+>        So I added back the locking needed by the imported GEMs, updating
+>        the "dma-buf attachment locking specification" patch appropriately.
+>
+>      - Tested Nouveau+Intel dma-buf import/export combo.
+>
+>      - Tested udmabuf import to i915/Nouveau/AMDGPU.
+>
+>      - Fixed few places in Etnaviv, Panfrost and Lima drivers that I missed
+>        to switch to locked dma-buf vmapping in the drm/gem: Take reservation
+>        lock for vmap/vunmap operations" patch. In a result invalidated the
+>        Christian's r-b that he gave to v2.
+>
+>      - Added locked dma-buf vmap/vunmap functions that are needed for fixing
+>        vmappping of Etnaviv, Panfrost and Lima drivers mentioned above.
+>        I actually had this change stashed for the drm-shmem shrinker patchset,
+>        but then realized that it's already needed by the dma-buf patches.
+>        Also improved my tests to better cover these code paths.
+>
+> v2: - Changed locking specification to avoid problems with a cross-driver
+>        ww locking, like was suggested by Christian König. Now the attach/detach
+>        callbacks are invoked without the held lock and exporter should take the
+>        lock.
+>
+>      - Added "locking convention" documentation that explains which dma-buf
+>        functions and callbacks are locked/unlocked for importers and exporters,
+>        which was requested by Christian König.
+>
+>      - Added ack from Tomasz Figa to the V4L patches that he gave to v1.
+>
+> Dmitry Osipenko (9):
+>    dma-buf: Add _unlocked postfix to function names
+>    dma-buf: Add locked variant of dma_buf_vmap/vunmap()
+>    drm/gem: Take reservation lock for vmap/vunmap operations
+>    dma-buf: Move dma_buf_vmap/vunmap_unlocked() to dynamic locking
+>      specification
+>    dma-buf: Move dma_buf_mmap_unlocked() to dynamic locking specification
+>    dma-buf: Move dma-buf attachment to dynamic locking specification
+>    dma-buf: Document dynamic locking convention
+>    media: videobuf2: Stop using internal dma-buf lock
+>    dma-buf: Remove internal lock
+>
+>   Documentation/driver-api/dma-buf.rst          |   6 +
+>   drivers/dma-buf/dma-buf.c                     | 276 ++++++++++++++----
+>   drivers/gpu/drm/amd/amdgpu/amdgpu_dma_buf.c   |   4 +-
+>   drivers/gpu/drm/armada/armada_gem.c           |  14 +-
+>   drivers/gpu/drm/drm_client.c                  |   4 +-
+>   drivers/gpu/drm/drm_gem.c                     |  24 ++
+>   drivers/gpu/drm/drm_gem_dma_helper.c          |   6 +-
+>   drivers/gpu/drm/drm_gem_framebuffer_helper.c  |   6 +-
+>   drivers/gpu/drm/drm_gem_shmem_helper.c        |   2 +-
+>   drivers/gpu/drm/drm_gem_ttm_helper.c          |   9 +-
+>   drivers/gpu/drm/drm_prime.c                   |  12 +-
+>   drivers/gpu/drm/etnaviv/etnaviv_gem_prime.c   |   4 +-
+>   drivers/gpu/drm/exynos/exynos_drm_gem.c       |   2 +-
+>   drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c    |   6 +-
+>   drivers/gpu/drm/i915/gem/i915_gem_object.c    |  12 +
+>   .../drm/i915/gem/selftests/i915_gem_dmabuf.c  |  20 +-
+>   drivers/gpu/drm/lima/lima_sched.c             |   4 +-
+>   drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c     |   8 +-
+>   drivers/gpu/drm/panfrost/panfrost_dump.c      |   4 +-
+>   drivers/gpu/drm/panfrost/panfrost_perfcnt.c   |   6 +-
+>   drivers/gpu/drm/qxl/qxl_object.c              |  17 +-
+>   drivers/gpu/drm/qxl/qxl_prime.c               |   4 +-
+>   drivers/gpu/drm/tegra/gem.c                   |  27 +-
+>   drivers/infiniband/core/umem_dmabuf.c         |  11 +-
+>   .../common/videobuf2/videobuf2-dma-contig.c   |  26 +-
+>   .../media/common/videobuf2/videobuf2-dma-sg.c |  23 +-
+>   .../common/videobuf2/videobuf2-vmalloc.c      |  17 +-
+>   .../platform/nvidia/tegra-vde/dmabuf-cache.c  |  12 +-
+>   drivers/misc/fastrpc.c                        |  12 +-
+>   drivers/xen/gntdev-dmabuf.c                   |  14 +-
+>   include/drm/drm_gem.h                         |   3 +
+>   include/linux/dma-buf.h                       |  57 ++--
+>   32 files changed, 410 insertions(+), 242 deletions(-)
+>
 
