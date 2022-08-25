@@ -2,86 +2,119 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EBD0ECAAD4
-	for <linux-rdma@archiver.kernel.org>; Thu, 25 Aug 2022 21:39:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E30A7ECAAA3
+	for <linux-rdma@archiver.kernel.org>; Thu, 25 Aug 2022 22:15:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243919AbiHYVjQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 25 Aug 2022 17:39:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33878 "EHLO
+        id S243477AbiHYWPL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 25 Aug 2022 18:15:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243811AbiHYVjM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 25 Aug 2022 17:39:12 -0400
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0678C12F2
-        for <linux-rdma@vger.kernel.org>; Thu, 25 Aug 2022 14:39:11 -0700 (PDT)
-Received: by mail-pl1-f173.google.com with SMTP id io24so6326814plb.1
-        for <linux-rdma@vger.kernel.org>; Thu, 25 Aug 2022 14:39:11 -0700 (PDT)
+        with ESMTP id S237937AbiHYWPK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 25 Aug 2022 18:15:10 -0400
+Received: from mail-oa1-x32.google.com (mail-oa1-x32.google.com [IPv6:2001:4860:4864:20::32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C42323DF24
+        for <linux-rdma@vger.kernel.org>; Thu, 25 Aug 2022 15:15:08 -0700 (PDT)
+Received: by mail-oa1-x32.google.com with SMTP id 586e51a60fabf-11cab7d7e0fso25560621fac.6
+        for <linux-rdma@vger.kernel.org>; Thu, 25 Aug 2022 15:15:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc;
+        bh=ELMdtnU96nSGslv5n69wK7Yi1A/faHCFHHb1qBkgYEk=;
+        b=ghzXAiKl3q2Fep8bUsPxM7CcW0prEqU7pU48NNGwt2YLIv6BwrlYK7z6ZvBYgY3Ebd
+         zQgIvWQ1StEBqUXJtchqvEHtlrouNpS80FPYe/MdO9Klvp4UncLq2XkAy1v+cTpRubxr
+         7LlTr8rTLiQKWJjva9ZzxlxNUJGJaH8C+wa5pu5aSWZj1+sUKxhNwldF+LwXNECaYxBW
+         aIGgQXA5iR4cg4riFBGkbig2jxFkcoRacQ7lgZHpgHUkiz2H9hOJSB81m/7ZeA2LoZoP
+         Yi7O71WfSnScSZMfVMgDUOp75r5FJmTloV4xUbtT29+LV3LFlP0FduAStFTmBTsO4ifB
+         hr8Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc;
-        bh=3Mw+ejviqqmcadHo47IKXdXfT8te6+F1g89OeLJKqhQ=;
-        b=USwajTQQCECzH2hsq9AOWSwwTwBQhw/D8q9UCt1BypoDFZ5NPeALqzHiE9mFohSpJK
-         645HVQgxXAV11gbkha9GaljJI88Vx1dQbD8u92MT00TzdnveFkg5PFzXBlG8qaekQpAa
-         7CSbIU2bq2b7igLjRf6/YfHdEIzTSPpwc4leS82G8uuMIwmGIjBttSQVrGgjHa9qno5/
-         /f2ucfov2l4WRCm2lM0YMK+dSh8sQYznxv6tDuJ7r1Ug8YqfIHfLLhy2s3dpXGGUs8cF
-         L+U4nlPSbiidr07nSzBeppCR3f3A65Fm/UZTtINgfpCE0tYrOp+sKATLjs1Ze3QGEhyA
-         lW2g==
-X-Gm-Message-State: ACgBeo1AvYFo5XA2EcdgV4Pr2a3yLiE+nn9LWVeDqhyrbrmFAfZsg2R8
-        fczQsNQyAI0bZ5zIkvNw8rk=
-X-Google-Smtp-Source: AA6agR5G1MdhIsvYXww7Sl59YVvv96pFFbBnBKK5q+zCoTPP0yPTmOTYMwNjhuvSFkGyScGz9u85pA==
-X-Received: by 2002:a17:902:ca01:b0:172:bc42:be8e with SMTP id w1-20020a170902ca0100b00172bc42be8emr937786pld.47.1661463551072;
-        Thu, 25 Aug 2022 14:39:11 -0700 (PDT)
-Received: from bvanassche-linux.mtv.corp.google.com ([2620:15c:211:201:349c:3078:d005:5a7e])
-        by smtp.gmail.com with ESMTPSA id n27-20020aa7985b000000b005379e480445sm111676pfq.94.2022.08.25.14.39.09
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc;
+        bh=ELMdtnU96nSGslv5n69wK7Yi1A/faHCFHHb1qBkgYEk=;
+        b=sfj520horh3YdJ+X2WBdeWaV2yBDX22MruAPdqR/y6r71o8nz+W+JFtEG9c9xFRXUy
+         koK+SNr0fETeiZk7W+ojqDnpPXznfmgVLMsv4mCcZFcTEjJGFdkomNWPDNvIG4nInt/X
+         RsZAqpWCs6qjCVae+Gr7YmIbwlWWpSjTVsT6WbsxTlJlBa/W/8a2Yzn30f3jluPTqoHU
+         JXWwISuiAnShnf+FFgKFE5j/H5/u3n34P8dysCBDuEeLWD4XOFkg+zf3AadxvYsN/f2W
+         GcIXhqgTwVmPIBnni1pj3u3gsCd++Om/FOcidA6cJkmoaDEkFReH/idar2D8H5eDXqSs
+         Sr8g==
+X-Gm-Message-State: ACgBeo0eUDxYCkY5n2ZVld7+q9bZSnafluFVo5ccvjzjj390YUKUWrFd
+        fm8Sgb4w8mfSlgzHHO3DhgR+20qTgEA=
+X-Google-Smtp-Source: AA6agR5SC8bEARGNp9kay49HvXi2u1hGnraOdW6HYCnBf3odxQ4Y3HTJzA/6PJaY8ml8sCjfGd1Z8Q==
+X-Received: by 2002:a05:6870:2402:b0:11c:eb96:77be with SMTP id n2-20020a056870240200b0011ceb9677bemr528721oap.67.1661465708194;
+        Thu, 25 Aug 2022 15:15:08 -0700 (PDT)
+Received: from u-22.tx.rr.com (097-099-248-255.res.spectrum.com. [97.99.248.255])
+        by smtp.googlemail.com with ESMTPSA id v18-20020a4ade92000000b0044b491ccf97sm250232oou.25.2022.08.25.15.15.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Aug 2022 14:39:09 -0700 (PDT)
-From:   Bart Van Assche <bvanassche@acm.org>
-To:     Jason Gunthorpe <jgg@ziepe.ca>
-Cc:     Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org,
-        Bart Van Assche <bvanassche@acm.org>,
-        Bo Liu <liubo03@inspur.com>
-Subject: [PATCH 3/4] RDMA/srp: Handle dev_set_name() failure
-Date:   Thu, 25 Aug 2022 14:38:59 -0700
-Message-Id: <20220825213900.864587-4-bvanassche@acm.org>
-X-Mailer: git-send-email 2.37.2.672.g94769d06f0-goog
-In-Reply-To: <20220825213900.864587-1-bvanassche@acm.org>
-References: <20220825213900.864587-1-bvanassche@acm.org>
+        Thu, 25 Aug 2022 15:15:07 -0700 (PDT)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, jhack@hpe.com,
+        linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v2] RDMA/rxe: Fix resize_finish() in rxe_queue.c
+Date:   Thu, 25 Aug 2022 17:14:47 -0500
+Message-Id: <20220825221446.6512-1-rpearsonhpe@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Instead of ignoring dev_set_name() failure, handle dev_set_name()
-failure. Convert a device_register() call into device_initialize() and
-device_add() calls.
+Currently in resize_finish() in rxe_queue.c there is a loop which
+copies the entries in the original queue into a newly allocated queue.
+The termination logic for this loop is incorrect. The call to
+queue_next_index() updates cons but has no effect on whether the
+queue is empty. So if the queue starts out empty nothing is copied
+but if it is not then the loop will run forever. This patch changes
+the loop to compare the value of cons to the original producer index.
 
-Reported-by: Bo Liu <liubo03@inspur.com>
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Fixes: ae6e843fe08d0 ("RDMA/rxe: Add memory barriers to kernel queues")
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+v2
+   Fixed typo. Should have replaced all original 'prod' by 'new_prod'
+---
+ drivers/infiniband/sw/rxe/rxe_queue.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 1d3a15e63732..3f31a0eef1ef 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3902,12 +3902,13 @@ static struct srp_host *srp_add_port(struct srp_device *device, u8 port)
- 	host->srp_dev = device;
- 	host->port = port;
+diff --git a/drivers/infiniband/sw/rxe/rxe_queue.c b/drivers/infiniband/sw/rxe/rxe_queue.c
+index dbd4971039c0..d6dbf5a0058d 100644
+--- a/drivers/infiniband/sw/rxe/rxe_queue.c
++++ b/drivers/infiniband/sw/rxe/rxe_queue.c
+@@ -112,23 +112,25 @@ static int resize_finish(struct rxe_queue *q, struct rxe_queue *new_q,
+ 			 unsigned int num_elem)
+ {
+ 	enum queue_type type = q->type;
++	u32 new_prod;
+ 	u32 prod;
+ 	u32 cons;
  
-+	device_initialize(&host->dev);
- 	host->dev.class = &srp_class;
- 	host->dev.parent = device->dev->dev.parent;
--	dev_set_name(&host->dev, "srp-%s-%d", dev_name(&device->dev->dev),
--		     port);
--
--	if (device_register(&host->dev))
-+	if (dev_set_name(&host->dev, "srp-%s-%d", dev_name(&device->dev->dev),
-+			 port))
-+		goto put_host;
-+	if (device_add(&host->dev))
- 		goto put_host;
- 	if (device_create_file(&host->dev, &dev_attr_add_target))
- 		goto put_host;
+ 	if (!queue_empty(q, q->type) && (num_elem < queue_count(q, type)))
+ 		return -EINVAL;
+ 
+-	prod = queue_get_producer(new_q, type);
++	new_prod = queue_get_producer(new_q, type);
++	prod = queue_get_producer(q, type);
+ 	cons = queue_get_consumer(q, type);
+ 
+-	while (!queue_empty(q, type)) {
+-		memcpy(queue_addr_from_index(new_q, prod),
++	while ((prod - cons) & q->index_mask) {
++		memcpy(queue_addr_from_index(new_q, new_prod),
+ 		       queue_addr_from_index(q, cons), new_q->elem_size);
+-		prod = queue_next_index(new_q, prod);
++		new_prod = queue_next_index(new_q, new_prod);
+ 		cons = queue_next_index(q, cons);
+ 	}
+ 
+-	new_q->buf->producer_index = prod;
++	new_q->buf->producer_index = new_prod;
+ 	q->buf->consumer_index = cons;
+ 
+ 	/* update private index copies */
+
+base-commit: 2c34bb6dea481fa11048e26ffd1ce7400dbc2105
+-- 
+2.34.1
+
