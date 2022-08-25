@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85945C00448
-	for <linux-rdma@archiver.kernel.org>; Thu, 25 Aug 2022 02:39:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A80C8C25B06
+	for <linux-rdma@archiver.kernel.org>; Thu, 25 Aug 2022 02:39:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231162AbiHYCjU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 24 Aug 2022 22:39:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54208 "EHLO
+        id S231289AbiHYCjX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 24 Aug 2022 22:39:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231289AbiHYCjN (ORCPT
+        with ESMTP id S231166AbiHYCjN (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Wed, 24 Aug 2022 22:39:13 -0400
-Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36F8D9A9F9
+Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EC089A9C9
         for <linux-rdma@vger.kernel.org>; Wed, 24 Aug 2022 19:39:10 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R401e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046056;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VNBL-aO_1661395148;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VNBL-aO_1661395148)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R961e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VNBL-a2_1661395147;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VNBL-a2_1661395147)
           by smtp.aliyun-inc.com;
-          Thu, 25 Aug 2022 10:39:08 +0800
+          Thu, 25 Aug 2022 10:39:07 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
-Subject: [PATCH for-next v2 2/2] RDMA/erdma: Add drain_sq and drain_rq support
-Date:   Thu, 25 Aug 2022 10:39:05 +0800
-Message-Id: <20220825023905.28274-3-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next v2 1/2] RDMA/erdma: Introduce internal post_send/post_recv for qp drain
+Date:   Thu, 25 Aug 2022 10:39:04 +0800
+Message-Id: <20220825023905.28274-2-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.37.0
 In-Reply-To: <20220825023905.28274-1-chengyou@linux.alibaba.com>
 References: <20220825023905.28274-1-chengyou@linux.alibaba.com>
@@ -33,145 +33,168 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-For erdma, hardware won't process any WRs after modifying QP state to
-error, so the default __ib_drain_sq and __ib_drain_rq can not work for
-erdma device. Here, we introduce custom implementation of drain_sq and
-drain_rq interface to fit erdma hardware.
+For erdma, hardware won't process newly posted send WRs or recv WRs
+after QP state changed to error, and no flush cqes will generated
+for them. So, internal post_send and post_recv functions are introduced
+to prevent the new send WRs or recv WRs.
 
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
 Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
-v1 -> v2:
- - Add drain_rq/drain_sq assignments in struct ib_device_ops of erdma.
----
- drivers/infiniband/hw/erdma/erdma_main.c  |  2 +
- drivers/infiniband/hw/erdma/erdma_qp.c    | 71 +++++++++++++++++++++++
- drivers/infiniband/hw/erdma/erdma_verbs.h | 10 ++++
- 3 files changed, 83 insertions(+)
+ drivers/infiniband/hw/erdma/erdma_main.c  |  4 +-
+ drivers/infiniband/hw/erdma/erdma_qp.c    | 45 ++++++++++++++++++++---
+ drivers/infiniband/hw/erdma/erdma_verbs.h | 17 +++++++--
+ 3 files changed, 55 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
-index 4921ebc1286d..e4ce77607f10 100644
+index 07e743d24847..4921ebc1286d 100644
 --- a/drivers/infiniband/hw/erdma/erdma_main.c
 +++ b/drivers/infiniband/hw/erdma/erdma_main.c
-@@ -446,6 +446,8 @@ static const struct ib_device_ops erdma_device_ops = {
- 	.dereg_mr = erdma_dereg_mr,
- 	.destroy_cq = erdma_destroy_cq,
- 	.destroy_qp = erdma_destroy_qp,
-+	.drain_rq = erdma_drain_rq,
-+	.drain_sq = erdma_drain_sq,
- 	.get_dma_mr = erdma_get_dma_mr,
- 	.get_port_immutable = erdma_get_port_immutable,
- 	.iw_accept = erdma_accept,
+@@ -460,8 +460,8 @@ static const struct ib_device_ops erdma_device_ops = {
+ 	.mmap = erdma_mmap,
+ 	.mmap_free = erdma_mmap_free,
+ 	.modify_qp = erdma_modify_qp,
+-	.post_recv = erdma_post_recv,
+-	.post_send = erdma_post_send,
++	.post_recv = erdma_post_recv_nodrain,
++	.post_send = erdma_post_send_nodrain,
+ 	.poll_cq = erdma_poll_cq,
+ 	.query_device = erdma_query_device,
+ 	.query_gid = erdma_query_gid,
 diff --git a/drivers/infiniband/hw/erdma/erdma_qp.c b/drivers/infiniband/hw/erdma/erdma_qp.c
-index abf8b134d076..57fdb946fbfd 100644
+index bc3ec22a62c5..abf8b134d076 100644
 --- a/drivers/infiniband/hw/erdma/erdma_qp.c
 +++ b/drivers/infiniband/hw/erdma/erdma_qp.c
-@@ -599,3 +599,74 @@ int erdma_post_recv_nodrain(struct ib_qp *ibqp,
+@@ -475,8 +475,8 @@ static void kick_sq_db(struct erdma_qp *qp, u16 pi)
+ 	writeq(db_data, qp->kern_qp.hw_sq_db);
+ }
+ 
+-int erdma_post_send(struct ib_qp *ibqp, const struct ib_send_wr *send_wr,
+-		    const struct ib_send_wr **bad_send_wr)
++static int erdma_post_send(struct ib_qp *ibqp, const struct ib_send_wr *send_wr,
++			   const struct ib_send_wr **bad_send_wr, bool drain)
  {
- 	return erdma_post_recv(ibqp, recv_wr, bad_recv_wr, false);
+ 	struct erdma_qp *qp = to_eqp(ibqp);
+ 	int ret = 0;
+@@ -488,6 +488,16 @@ int erdma_post_send(struct ib_qp *ibqp, const struct ib_send_wr *send_wr,
+ 		return -EINVAL;
+ 
+ 	spin_lock_irqsave(&qp->lock, flags);
++
++	if (unlikely(qp->flags & ERDMA_QP_FLAGS_TX_STOPPED)) {
++		*bad_send_wr = send_wr;
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (unlikely(drain))
++		qp->flags |= ERDMA_QP_FLAGS_TX_STOPPED;
++
+ 	sq_pi = qp->kern_qp.sq_pi;
+ 
+ 	while (wr) {
+@@ -507,11 +517,19 @@ int erdma_post_send(struct ib_qp *ibqp, const struct ib_send_wr *send_wr,
+ 
+ 		wr = wr->next;
+ 	}
+-	spin_unlock_irqrestore(&qp->lock, flags);
+ 
++out:
++	spin_unlock_irqrestore(&qp->lock, flags);
+ 	return ret;
+ }
+ 
++int erdma_post_send_nodrain(struct ib_qp *ibqp,
++			    const struct ib_send_wr *send_wr,
++			    const struct ib_send_wr **bad_send_wr)
++{
++	return erdma_post_send(ibqp, send_wr, bad_send_wr, false);
++}
++
+ static int erdma_post_recv_one(struct erdma_qp *qp,
+ 			       const struct ib_recv_wr *recv_wr)
+ {
+@@ -542,8 +560,8 @@ static int erdma_post_recv_one(struct erdma_qp *qp,
+ 	return 0;
+ }
+ 
+-int erdma_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *recv_wr,
+-		    const struct ib_recv_wr **bad_recv_wr)
++static int erdma_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *recv_wr,
++			   const struct ib_recv_wr **bad_recv_wr, bool drain)
+ {
+ 	const struct ib_recv_wr *wr = recv_wr;
+ 	struct erdma_qp *qp = to_eqp(ibqp);
+@@ -552,6 +570,15 @@ int erdma_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *recv_wr,
+ 
+ 	spin_lock_irqsave(&qp->lock, flags);
+ 
++	if (unlikely(qp->flags & ERDMA_QP_FLAGS_RX_STOPPED)) {
++		ret = -EINVAL;
++		*bad_recv_wr = recv_wr;
++		goto out;
++	}
++
++	if (unlikely(drain))
++		qp->flags |= ERDMA_QP_FLAGS_RX_STOPPED;
++
+ 	while (wr) {
+ 		ret = erdma_post_recv_one(qp, wr);
+ 		if (ret) {
+@@ -561,6 +588,14 @@ int erdma_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *recv_wr,
+ 		wr = wr->next;
+ 	}
+ 
++out:
+ 	spin_unlock_irqrestore(&qp->lock, flags);
+ 	return ret;
  }
 +
-+static void erdma_drain_qp_done(struct ib_cq *cq, struct ib_wc *wc)
++int erdma_post_recv_nodrain(struct ib_qp *ibqp,
++			    const struct ib_recv_wr *recv_wr,
++			    const struct ib_recv_wr **bad_recv_wr)
 +{
-+	struct erdma_drain_cqe *cqe =
-+		container_of(wc->wr_cqe, struct erdma_drain_cqe, cqe);
-+
-+	complete(&cqe->done);
-+}
-+
-+static void erdma_drain_qp_common(struct ib_qp *ibqp, struct completion *comp,
-+				  struct ib_cq *ibcq)
-+{
-+	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
-+	struct erdma_qp *qp = to_eqp(ibqp);
-+	const struct ib_send_wr *bad_swr;
-+	const struct ib_recv_wr *bad_rwr;
-+	struct ib_rdma_wr swr = {
-+		.wr = {
-+			.next = NULL,
-+			{ .wr_cqe   = &qp->kern_qp.sdrain.cqe, },
-+			.opcode = IB_WR_RDMA_WRITE,
-+			.send_flags = IB_SEND_SIGNALED,
-+		},
-+	};
-+	struct ib_recv_wr rwr = {
-+		.next = NULL,
-+		.wr_cqe = &qp->kern_qp.rdrain.cqe,
-+		.num_sge = 0,
-+	};
-+
-+	if (qp->flags & ERDMA_QP_FLAGS_DRAIN_ISSUED)
-+		goto wait_for_completion;
-+
-+	qp->flags |= ERDMA_QP_FLAGS_DRAIN_ISSUED;
-+
-+	qp->kern_qp.rdrain.cqe.done = erdma_drain_qp_done;
-+	init_completion(&qp->kern_qp.rdrain.done);
-+
-+	qp->kern_qp.sdrain.cqe.done = erdma_drain_qp_done;
-+	init_completion(&qp->kern_qp.sdrain.done);
-+
-+	if (erdma_post_recv(ibqp, &rwr, &bad_rwr, true))
-+		return;
-+
-+	if (erdma_post_send(ibqp, &swr.wr, &bad_swr, true))
-+		return;
-+
-+	if (ib_modify_qp(ibqp, &attr, IB_QP_STATE))
-+		return;
-+
-+wait_for_completion:
-+	if (ibcq->poll_ctx == IB_POLL_DIRECT)
-+		while (wait_for_completion_timeout(comp, HZ / 10) <= 0)
-+			ib_process_cq_direct(ibcq, -1);
-+	else
-+		wait_for_completion(comp);
-+}
-+
-+void erdma_drain_sq(struct ib_qp *ibqp)
-+{
-+	struct erdma_qp *qp = to_eqp(ibqp);
-+
-+	erdma_drain_qp_common(ibqp, &qp->kern_qp.sdrain.done, ibqp->send_cq);
-+}
-+
-+void erdma_drain_rq(struct ib_qp *ibqp)
-+{
-+	struct erdma_qp *qp = to_eqp(ibqp);
-+
-+	erdma_drain_qp_common(ibqp, &qp->kern_qp.rdrain.done, ibqp->recv_cq);
++	return erdma_post_recv(ibqp, recv_wr, bad_recv_wr, false);
 +}
 diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
-index f4148fbac878..4cec92c8a737 100644
+index c7baddb1f292..f4148fbac878 100644
 --- a/drivers/infiniband/hw/erdma/erdma_verbs.h
 +++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
-@@ -133,6 +133,11 @@ struct erdma_uqp {
- 	u32 rq_offset;
+@@ -195,6 +195,12 @@ struct erdma_qp_attrs {
+ 	u8 pd_len;
  };
  
-+struct erdma_drain_cqe {
-+	struct ib_cqe cqe;
-+	struct completion done;
++enum erdma_qp_flags {
++	ERDMA_QP_FLAGS_DRAIN_ISSUED = (1 << 0),
++	ERDMA_QP_FLAGS_TX_STOPPED = (1 << 1),
++	ERDMA_QP_FLAGS_RX_STOPPED = (1 << 2),
 +};
 +
- struct erdma_kqp {
- 	u16 sq_pi;
- 	u16 sq_ci;
-@@ -155,6 +160,9 @@ struct erdma_kqp {
- 	void *sq_db_info;
- 	void *rq_db_info;
+ struct erdma_qp {
+ 	struct ib_qp ibqp;
+ 	struct kref ref;
+@@ -202,6 +208,7 @@ struct erdma_qp {
+ 	struct erdma_dev *dev;
+ 	struct erdma_cep *cep;
+ 	struct rw_semaphore state_lock;
++	unsigned long flags;
  
-+	struct erdma_drain_cqe sdrain;
-+	struct erdma_drain_cqe rdrain;
-+
- 	u8 sig_all;
- };
- 
-@@ -341,6 +349,8 @@ int erdma_post_send_nodrain(struct ib_qp *ibqp,
- int erdma_post_recv_nodrain(struct ib_qp *ibqp,
- 			    const struct ib_recv_wr *recv_wr,
- 			    const struct ib_recv_wr **bad_recv_wr);
-+void erdma_drain_sq(struct ib_qp *ibqp);
-+void erdma_drain_rq(struct ib_qp *ibqp);
+ 	union {
+ 		struct erdma_kqp kern_qp;
+@@ -328,10 +335,12 @@ void erdma_mmap_free(struct rdma_user_mmap_entry *rdma_entry);
+ void erdma_qp_get_ref(struct ib_qp *ibqp);
+ void erdma_qp_put_ref(struct ib_qp *ibqp);
+ struct ib_qp *erdma_get_ibqp(struct ib_device *dev, int id);
+-int erdma_post_send(struct ib_qp *ibqp, const struct ib_send_wr *send_wr,
+-		    const struct ib_send_wr **bad_send_wr);
+-int erdma_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *recv_wr,
+-		    const struct ib_recv_wr **bad_recv_wr);
++int erdma_post_send_nodrain(struct ib_qp *ibqp,
++			    const struct ib_send_wr *send_wr,
++			    const struct ib_send_wr **bad_send_wr);
++int erdma_post_recv_nodrain(struct ib_qp *ibqp,
++			    const struct ib_recv_wr *recv_wr,
++			    const struct ib_recv_wr **bad_recv_wr);
  int erdma_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
  struct ib_mr *erdma_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
  				u32 max_num_sg);
