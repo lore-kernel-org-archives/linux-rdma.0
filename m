@@ -2,20 +2,20 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70232ECAAD2
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Aug 2022 10:51:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0790BC0502C
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Aug 2022 10:51:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229790AbiH2KvD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S229813AbiH2KvD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 29 Aug 2022 06:51:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60350 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229813AbiH2KvC (ORCPT
+        with ESMTP id S229920AbiH2KvC (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 29 Aug 2022 06:51:02 -0400
 Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A654D44543
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF6EC4454B
         for <linux-rdma@vger.kernel.org>; Mon, 29 Aug 2022 03:51:00 -0700 (PDT)
-Received: from dggpeml500025.china.huawei.com (unknown [172.30.72.57])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MGRw91kSLzkWTf;
+Received: from dggpeml500025.china.huawei.com (unknown [172.30.72.56])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MGRw94XY1zkWYY;
         Mon, 29 Aug 2022 18:47:21 +0800 (CST)
 Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
  dggpeml500025.china.huawei.com (7.185.36.35) with Microsoft SMTP Server
@@ -24,14 +24,14 @@ Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
 Received: from localhost.localdomain (10.67.165.2) by
  dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Mon, 29 Aug 2022 18:50:57 +0800
+ 15.1.2375.24; Mon, 29 Aug 2022 18:50:58 +0800
 From:   Wenpeng Liang <liangwenpeng@huawei.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>
-Subject: [PATCH for-next 2/4] RDMA/hns: Fix wrong fixed value of qp->rq.wqe_shift
-Date:   Mon, 29 Aug 2022 18:50:19 +0800
-Message-ID: <20220829105021.1427804-3-liangwenpeng@huawei.com>
+Subject: [PATCH for-next 4/4] RDMA/hns: Remove redundant member doorbell_qpn of struct hns_roce_qp
+Date:   Mon, 29 Aug 2022 18:50:21 +0800
+Message-ID: <20220829105021.1427804-5-liangwenpeng@huawei.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20220829105021.1427804-1-liangwenpeng@huawei.com>
 References: <20220829105021.1427804-1-liangwenpeng@huawei.com>
@@ -46,34 +46,62 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The value of qp->rq.wqe_shift of HIP08 is always determined by the number
-of sge. So delete the wrong branch.
+The value of doorbell_qpn is always equal to qpn on current hardware
+versions. So remove it.
 
-Fixes: cfc85f3e4b7f ("RDMA/hns: Add profile support for hip08 driver")
-Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
 Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_qp.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 1 -
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 3 ---
+ 3 files changed, 1 insertion(+), 5 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 22c5e9a564e0..80b3fe031f0f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -599,7 +599,6 @@ struct hns_roce_qp {
+ 	struct hns_roce_db	rdb;
+ 	struct hns_roce_db	sdb;
+ 	unsigned long		en_flags;
+-	u32			doorbell_qpn;
+ 	enum ib_sig_type	sq_signal_bits;
+ 	struct hns_roce_wq	sq;
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 9b71ea8040c1..c257eb01adb6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -637,7 +637,7 @@ static inline void update_sq_db(struct hns_roce_dev *hr_dev,
+ 	} else {
+ 		struct hns_roce_v2_db sq_db = {};
+ 
+-		hr_reg_write(&sq_db, DB_TAG, qp->doorbell_qpn);
++		hr_reg_write(&sq_db, DB_TAG, qp->qpn);
+ 		hr_reg_write(&sq_db, DB_CMD, HNS_ROCE_V2_SQ_DB);
+ 		hr_reg_write(&sq_db, DB_PI, qp->sq.head);
+ 		hr_reg_write(&sq_db, DB_SL, qp->sl);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 48d3616a6d71..7bee7f6c5e70 100644
+index 7bee7f6c5e70..3b35fb387566 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -462,11 +462,8 @@ static int set_rq_size(struct hns_roce_dev *hr_dev, struct ib_qp_cap *cap,
- 	hr_qp->rq.max_gs = roundup_pow_of_two(max(1U, cap->max_recv_sge) +
- 					      hr_qp->rq.rsv_sge);
+@@ -218,7 +218,6 @@ static int alloc_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
  
--	if (hr_dev->caps.max_rq_sg <= HNS_ROCE_SGE_IN_WQE)
--		hr_qp->rq.wqe_shift = ilog2(hr_dev->caps.max_rq_desc_sz);
--	else
--		hr_qp->rq.wqe_shift = ilog2(hr_dev->caps.max_rq_desc_sz *
--					    hr_qp->rq.max_gs);
-+	hr_qp->rq.wqe_shift = ilog2(hr_dev->caps.max_rq_desc_sz *
-+				    hr_qp->rq.max_gs);
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_GSI) {
+ 		num = 1;
+-		hr_qp->doorbell_qpn = 1;
+ 	} else {
+ 		mutex_lock(&qp_table->bank_mutex);
+ 		bankid = get_least_load_bankid_for_qp(qp_table->bank);
+@@ -234,8 +233,6 @@ static int alloc_qpn(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
  
- 	hr_qp->rq.wqe_cnt = cnt;
- 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE &&
+ 		qp_table->bank[bankid].inuse++;
+ 		mutex_unlock(&qp_table->bank_mutex);
+-
+-		hr_qp->doorbell_qpn = (u32)num;
+ 	}
+ 
+ 	hr_qp->qpn = num;
 -- 
 2.30.0
 
