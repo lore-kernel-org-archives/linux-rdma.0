@@ -2,144 +2,86 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58D0FECAAD4
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Aug 2022 10:52:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B233ECAAD2
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Aug 2022 12:04:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229644AbiH2Kwo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Aug 2022 06:52:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33252 "EHLO
+        id S229651AbiH2ME4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Aug 2022 08:04:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229565AbiH2Kwn (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 29 Aug 2022 06:52:43 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FA905D0F3
-        for <linux-rdma@vger.kernel.org>; Mon, 29 Aug 2022 03:52:42 -0700 (PDT)
-Received: from dggpeml500023.china.huawei.com (unknown [172.30.72.57])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MGRy71ZctzkWSp;
-        Mon, 29 Aug 2022 18:49:03 +0800 (CST)
-Received: from dggpeml500017.china.huawei.com (7.185.36.243) by
- dggpeml500023.china.huawei.com (7.185.36.114) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Mon, 29 Aug 2022 18:52:40 +0800
-Received: from localhost.localdomain (10.67.165.2) by
- dggpeml500017.china.huawei.com (7.185.36.243) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Mon, 29 Aug 2022 18:52:39 +0800
-From:   Wenpeng Liang <liangwenpeng@huawei.com>
-To:     <jgg@nvidia.com>, <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <liangwenpeng@huawei.com>
-Subject: [PATCH for-next] RDMA/hns: Disable local invalidate operation
-Date:   Mon, 29 Aug 2022 18:52:03 +0800
-Message-ID: <20220829105203.1569481-1-liangwenpeng@huawei.com>
-X-Mailer: git-send-email 2.30.0
+        with ESMTP id S229636AbiH2MEb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 29 Aug 2022 08:04:31 -0400
+Received: from mail-ej1-x632.google.com (mail-ej1-x632.google.com [IPv6:2a00:1450:4864:20::632])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0368BD4
+        for <linux-rdma@vger.kernel.org>; Mon, 29 Aug 2022 04:49:45 -0700 (PDT)
+Received: by mail-ej1-x632.google.com with SMTP id gb36so15110279ejc.10
+        for <linux-rdma@vger.kernel.org>; Mon, 29 Aug 2022 04:49:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=yuHdVt0/eo9ZST6J7H4oWl3nRFDUlOktmfCexGEC3Vk=;
+        b=SVn0jn695/IQMfX2BtfxLOVQ8Y7pakyvV+4srnNkCKBYoAyH5T0HsIImchR8s+IzLT
+         MlkI3FekLG4p66s9SKKbJM8hsbFs0buGOFovO3To8OYc8HB1AIVedPZINIWqBvQkO2jr
+         MeLi1YChRNQMgKLZzWJBz87c/wPks1WR/SIazNTei8vq676tqO2VSoiSwbrp9Y1LViAY
+         vqcneFJUoKNyLs/1Atn6RqzLdhZSJ341j+trxCPlTLX8bBesTHUEvTXxEVgfDm748TF2
+         mVjudU6KRF7JeGtKMEXGfOqW3ZOqY+iwlIV7j+uqaZvqrLKNpN0UVyH2UtwaRRKqmNcb
+         x2VA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=yuHdVt0/eo9ZST6J7H4oWl3nRFDUlOktmfCexGEC3Vk=;
+        b=iJ7Qlknj+rgySNXTThKwrBOBsSEsH70zx7Wu+1dr+i6sKCDId2zFcGdNNt27pEwy5m
+         CYGG9AzFkGNWvF0TcQKGJf8CwhczvgrG2xk/Q0b+l/zHKLGuqXd32fAUtbJdxZyeKJq+
+         llZL1cWvrkTG+BmJo4LE6c1/Ztctu/RdwvqWYUkrJCvnpyIHc7Y23VDPSUc6eVaak6Jz
+         IyiEe2yyDGcZcLeCEh+pkNQiQVpLskH5XRWuYIBPvBjBgKsMN6jWNrOb0AdnJIeqQ2aJ
+         4f1oF4p8Fcri2FGg1LMryWlbIxpeJAg6UXcDFmH8+wAdzgO528ajRf4sP3PybttP3+sj
+         9fcg==
+X-Gm-Message-State: ACgBeo0q+lWOa9eX1xXDbF8AO0Q9LDEMXGppFW8vZbXoMrUdKsx2lNYM
+        6r62RuinbYTPKpElLy1r2LL8/LQgCX7w18BB0Kk5PuO6h7Y=
+X-Google-Smtp-Source: AA6agR4rFvN/HFYBxKgvh5InjZkk/uG8RWVmM8EPYr7XL1XqXc3hzMaYwMooJflvjwGn4sqk6i0xL9VnhWwE+Mfero0=
+X-Received: by 2002:a17:907:75ec:b0:741:484b:3ca4 with SMTP id
+ jz12-20020a17090775ec00b00741484b3ca4mr6916830ejc.316.1661771588049; Mon, 29
+ Aug 2022 04:13:08 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.67.165.2]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- dggpeml500017.china.huawei.com (7.185.36.243)
-X-CFilter-Loop: Reflected
+References: <20220826081117.21687-1-guoqing.jiang@linux.dev>
+ <CAMGffEku8H3RubkQGq1Cjy8pP8B+95coT+b2J6VxSAQx-kKmmg@mail.gmail.com>
+ <aa3a4d50-2e71-a185-09ac-79bd34f9c8e6@linux.dev> <CAMGffEkRo104Cp6+KX8NtS0ud+DHM6ftjmHyxjiQa=zJ7tFzog@mail.gmail.com>
+ <c4fb6007-91f9-6d2c-4888-d49a08dd297e@linux.dev> <CAMGffEkAYOJPAPaHDspk-JfJNNF96pHWnrCwYzROFZxPBBO+Fw@mail.gmail.com>
+ <09317a03-4e29-0f8b-4d7e-a2024c9364f6@linux.dev>
+In-Reply-To: <09317a03-4e29-0f8b-4d7e-a2024c9364f6@linux.dev>
+From:   Jinpu Wang <jinpu.wang@ionos.com>
+Date:   Mon, 29 Aug 2022 13:12:57 +0200
+Message-ID: <CAMGffE=kUGmntpJSmtd_hTSTXPQxRfKquBsggBRn6TyrCKyiGA@mail.gmail.com>
+Subject: Re: [PATCH] rnbd-srv: remove 'dir' argument from rnbd_srv_rdma_ev
+To:     Guoqing Jiang <guoqing.jiang@linux.dev>
+Cc:     haris.iqbal@ionos.com, axboe@kernel.dk, jgg@ziepe.ca,
+        leon@kernel.org, linux-block@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yangyang Li <liyangyang20@huawei.com>
-
-Currently, local invalidate operation doesn't work well. So the hns driver
-does not support it temporarily and removes related code.
-
-Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
-Signed-off-by: Wenpeng Liang <liangwenpeng@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 11 -----------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  2 --
- 2 files changed, 13 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index fa78b141dff2..2b5a4bd7beeb 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -118,7 +118,6 @@ static const u32 hns_roce_op_code[] = {
- 	HR_OPC_MAP(ATOMIC_CMP_AND_SWP,		ATOM_CMP_AND_SWAP),
- 	HR_OPC_MAP(ATOMIC_FETCH_AND_ADD,	ATOM_FETCH_AND_ADD),
- 	HR_OPC_MAP(SEND_WITH_INV,		SEND_WITH_INV),
--	HR_OPC_MAP(LOCAL_INV,			LOCAL_INV),
- 	HR_OPC_MAP(MASKED_ATOMIC_CMP_AND_SWP,	ATOM_MSK_CMP_AND_SWAP),
- 	HR_OPC_MAP(MASKED_ATOMIC_FETCH_AND_ADD,	ATOM_MSK_FETCH_AND_ADD),
- 	HR_OPC_MAP(REG_MR,			FAST_REG_PMR),
-@@ -560,9 +559,6 @@ static int set_rc_opcode(struct hns_roce_dev *hr_dev,
- 		else
- 			ret = -EOPNOTSUPP;
- 		break;
--	case IB_WR_LOCAL_INV:
--		hr_reg_enable(rc_sq_wqe, RC_SEND_WQE_SO);
--		fallthrough;
- 	case IB_WR_SEND_WITH_INV:
- 		rc_sq_wqe->inv_key = cpu_to_le32(wr->ex.invalidate_rkey);
- 		break;
-@@ -3227,7 +3223,6 @@ static int hns_roce_v2_write_mtpt(struct hns_roce_dev *hr_dev,
- 
- 	hr_reg_write(mpt_entry, MPT_ST, V2_MPT_ST_VALID);
- 	hr_reg_write(mpt_entry, MPT_PD, mr->pd);
--	hr_reg_enable(mpt_entry, MPT_L_INV_EN);
- 
- 	hr_reg_write_bool(mpt_entry, MPT_BIND_EN,
- 			  mr->access & IB_ACCESS_MW_BIND);
-@@ -3318,7 +3313,6 @@ static int hns_roce_v2_frmr_write_mtpt(struct hns_roce_dev *hr_dev,
- 
- 	hr_reg_enable(mpt_entry, MPT_RA_EN);
- 	hr_reg_enable(mpt_entry, MPT_R_INV_EN);
--	hr_reg_enable(mpt_entry, MPT_L_INV_EN);
- 
- 	hr_reg_enable(mpt_entry, MPT_FRE);
- 	hr_reg_clear(mpt_entry, MPT_MR_MW);
-@@ -3350,7 +3344,6 @@ static int hns_roce_v2_mw_write_mtpt(void *mb_buf, struct hns_roce_mw *mw)
- 	hr_reg_write(mpt_entry, MPT_PD, mw->pdn);
- 
- 	hr_reg_enable(mpt_entry, MPT_R_INV_EN);
--	hr_reg_enable(mpt_entry, MPT_L_INV_EN);
- 	hr_reg_enable(mpt_entry, MPT_LW_EN);
- 
- 	hr_reg_enable(mpt_entry, MPT_MR_MW);
-@@ -3799,7 +3792,6 @@ static const u32 wc_send_op_map[] = {
- 	HR_WC_OP_MAP(RDMA_READ,			RDMA_READ),
- 	HR_WC_OP_MAP(RDMA_WRITE,		RDMA_WRITE),
- 	HR_WC_OP_MAP(RDMA_WRITE_WITH_IMM,	RDMA_WRITE),
--	HR_WC_OP_MAP(LOCAL_INV,			LOCAL_INV),
- 	HR_WC_OP_MAP(ATOM_CMP_AND_SWAP,		COMP_SWAP),
- 	HR_WC_OP_MAP(ATOM_FETCH_AND_ADD,	FETCH_ADD),
- 	HR_WC_OP_MAP(ATOM_MSK_CMP_AND_SWAP,	MASKED_COMP_SWAP),
-@@ -3849,9 +3841,6 @@ static void fill_send_wc(struct ib_wc *wc, struct hns_roce_v2_cqe *cqe)
- 	case HNS_ROCE_V2_WQE_OP_RDMA_WRITE_WITH_IMM:
- 		wc->wc_flags |= IB_WC_WITH_IMM;
- 		break;
--	case HNS_ROCE_V2_WQE_OP_LOCAL_INV:
--		wc->wc_flags |= IB_WC_WITH_INVALIDATE;
--		break;
- 	case HNS_ROCE_V2_WQE_OP_ATOM_CMP_AND_SWAP:
- 	case HNS_ROCE_V2_WQE_OP_ATOM_FETCH_AND_ADD:
- 	case HNS_ROCE_V2_WQE_OP_ATOM_MSK_CMP_AND_SWAP:
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index ae29780dd63a..7222ed00bb90 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -182,7 +182,6 @@ enum {
- 	HNS_ROCE_V2_WQE_OP_ATOM_MSK_CMP_AND_SWAP	= 0x8,
- 	HNS_ROCE_V2_WQE_OP_ATOM_MSK_FETCH_AND_ADD	= 0x9,
- 	HNS_ROCE_V2_WQE_OP_FAST_REG_PMR			= 0xa,
--	HNS_ROCE_V2_WQE_OP_LOCAL_INV			= 0xb,
- 	HNS_ROCE_V2_WQE_OP_BIND_MW			= 0xc,
- 	HNS_ROCE_V2_WQE_OP_MASK				= 0x1f,
- };
-@@ -917,7 +916,6 @@ struct hns_roce_v2_rc_send_wqe {
- #define RC_SEND_WQE_OWNER RC_SEND_WQE_FIELD_LOC(7, 7)
- #define RC_SEND_WQE_CQE RC_SEND_WQE_FIELD_LOC(8, 8)
- #define RC_SEND_WQE_FENCE RC_SEND_WQE_FIELD_LOC(9, 9)
--#define RC_SEND_WQE_SO RC_SEND_WQE_FIELD_LOC(10, 10)
- #define RC_SEND_WQE_SE RC_SEND_WQE_FIELD_LOC(11, 11)
- #define RC_SEND_WQE_INLINE RC_SEND_WQE_FIELD_LOC(12, 12)
- #define RC_SEND_WQE_WQE_INDEX RC_SEND_WQE_FIELD_LOC(30, 15)
--- 
-2.30.0
-
+On Fri, Aug 26, 2022 at 4:02 PM Guoqing Jiang <guoqing.jiang@linux.dev> wrote:
+>
+>
+>
+> On 8/26/22 7:58 PM, Jinpu Wang wrote:
+> >> And I guess we can just pass parameters with register after remove an
+> >> argument,
+> >> otherwise need to push/pop stack with more than six parameters for x64.
+> > I doubt it makes any notable performance change.
+>
+> I think it is called in the IO path (process_read and process_write) ...
+>
+> BTW, do you agree if the 'usr' can be dropped from rdma_ev given it is
+> always
+> same as 'data + data_len'?
+in the current form, yes, usr  can be dropped. we can add later if
+there is a need.
+>
+> Thanks,
+> Guoqing
+Thx!
