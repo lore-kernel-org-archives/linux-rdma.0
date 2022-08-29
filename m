@@ -2,158 +2,153 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5C51ECAAD2
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Aug 2022 19:41:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF5CAECAAD8
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Aug 2022 21:32:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229595AbiH2Tl6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Aug 2022 15:41:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39178 "EHLO
+        id S229555AbiH2Vcw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Aug 2022 17:32:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229450AbiH2Tl5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 29 Aug 2022 15:41:57 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1096D6CF68;
-        Mon, 29 Aug 2022 12:41:55 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 711BBB811CC;
-        Mon, 29 Aug 2022 19:41:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3615C433C1;
-        Mon, 29 Aug 2022 19:41:52 +0000 (UTC)
-Subject: [PATCH RFC] SUNRPC: Replace the use of the xprtiod WQ in rpcrdma
-From:   Chuck Lever <chuck.lever@oracle.com>
-To:     linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org
-Date:   Mon, 29 Aug 2022 15:41:51 -0400
-Message-ID: <166180211114.3197109.16549818378767240704.stgit@morisot.1015granger.net>
-User-Agent: StGit/1.5
+        with ESMTP id S229596AbiH2Vcv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 29 Aug 2022 17:32:51 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E38460C7
+        for <linux-rdma@vger.kernel.org>; Mon, 29 Aug 2022 14:32:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1661808771; x=1693344771;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=fPci53mxqXElEABc2ERovrcZLD+RxymmMITQa0wDffo=;
+  b=KxSLRTSeMrc65mBfxiQe8Nqbd/u9rexLQqW9SrCasGFV4pHIJiU0d0n7
+   J3e8SVrh0y0Rw1rn+4TQoL0QNx8rMEA3kwYmOpY9YTMfha4KCUubqdtF+
+   wMWHHlH0AuKcgRz10uicQCZn75Rns5j3HcNcp2iZcOLBx30s9OoLQLLeA
+   70iOXrZmHPHLTtKB/iodNZWl/Qkc0diU317J2sYxBnx+seuEOe8GoqOlC
+   1g+9h+m/clBICCQmu62/QCVUBAX90VUlmDrAOtxMZjLOzIagVe6sKZq/B
+   jWGaaXvv89pg7VKGBWxxNvhGN5c3Yj+tviWmxvaVb6GjIu+NUqRHwRUHW
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10454"; a="295007650"
+X-IronPort-AV: E=Sophos;i="5.93,273,1654585200"; 
+   d="scan'208";a="295007650"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Aug 2022 14:32:51 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,273,1654585200"; 
+   d="scan'208";a="700725411"
+Received: from lkp-server02.sh.intel.com (HELO e45bc14ccf4d) ([10.239.97.151])
+  by FMSMGA003.fm.intel.com with ESMTP; 29 Aug 2022 14:32:49 -0700
+Received: from kbuild by e45bc14ccf4d with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1oSmNE-0000Ky-34;
+        Mon, 29 Aug 2022 21:32:48 +0000
+Date:   Tue, 30 Aug 2022 05:32:31 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Leon Romanovsky <leonro@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg+lists@ziepe.ca>,
+        Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/leon-for-next] BUILD SUCCESS
+ ecf8dd4b9c3d9c7e8d4c725869226e465f315459
+Message-ID: <630d306f.79vAG6coU4Y1nGPe%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-While setting up a new lab, I accidentally misconfigured the
-Ethernet port for a system that tried an NFS mount using RoCE.
-This made the NFS server unreachable. The following WARNING
-popped on the NFS client while waiting for the mount attempt to
-time out:
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
+branch HEAD: ecf8dd4b9c3d9c7e8d4c725869226e465f315459  IB/cm: Refactor cm_insert_listen() and cm_find_listen()
 
-kernel: workqueue: WQ_MEM_RECLAIM xprtiod:xprt_rdma_connect_worker [rpcrdma] is flushing !WQ_MEM_RECLAI>
-kernel: WARNING: CPU: 0 PID: 100 at kernel/workqueue.c:2628 check_flush_dependency+0xbf/0xca
-kernel: Modules linked in: rpcsec_gss_krb5 nfsv4 dns_resolver nfs 8021q garp stp mrp llc rfkill rpcrdma>
-kernel: CPU: 0 PID: 100 Comm: kworker/u8:8 Not tainted 6.0.0-rc1-00002-g6229f8c054e5 #13
-kernel: Hardware name: Supermicro X10SRA-F/X10SRA-F, BIOS 2.0b 06/12/2017
-kernel: Workqueue: xprtiod xprt_rdma_connect_worker [rpcrdma]
-kernel: RIP: 0010:check_flush_dependency+0xbf/0xca
-kernel: Code: 75 2a 48 8b 55 18 48 8d 8b b0 00 00 00 4d 89 e0 48 81 c6 b0 00 00 00 48 c7 c7 65 33 2e be>
-kernel: RSP: 0018:ffffb562806cfcf8 EFLAGS: 00010092
-kernel: RAX: 0000000000000082 RBX: ffff97894f8c3c00 RCX: 0000000000000027
-kernel: RDX: 0000000000000002 RSI: ffffffffbe3447d1 RDI: 00000000ffffffff
-kernel: RBP: ffff978941315840 R08: 0000000000000000 R09: 0000000000000000
-kernel: R10: 00000000000008b0 R11: 0000000000000001 R12: ffffffffc0ce3731
-kernel: R13: ffff978950c00500 R14: ffff97894341f0c0 R15: ffff978951112eb0
-kernel: FS:  0000000000000000(0000) GS:ffff97987fc00000(0000) knlGS:0000000000000000
-kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-kernel: CR2: 00007f807535eae8 CR3: 000000010b8e4002 CR4: 00000000003706f0
-kernel: DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-kernel: DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-kernel: Call Trace:
-kernel:  <TASK>
-kernel:  __flush_work.isra.0+0xaf/0x188
-kernel:  ? _raw_spin_lock_irqsave+0x2c/0x37
-kernel:  ? lock_timer_base+0x38/0x5f
-kernel:  __cancel_work_timer+0xea/0x13d
-kernel:  ? preempt_latency_start+0x2b/0x46
-kernel:  rdma_addr_cancel+0x70/0x81 [ib_core]
-kernel:  _destroy_id+0x1a/0x246 [rdma_cm]
-kernel:  rpcrdma_xprt_connect+0x115/0x5ae [rpcrdma]
-kernel:  ? _raw_spin_unlock+0x14/0x29
-kernel:  ? raw_spin_rq_unlock_irq+0x5/0x10
-kernel:  ? finish_task_switch.isra.0+0x171/0x249
-kernel:  xprt_rdma_connect_worker+0x3b/0xc7 [rpcrdma]
-kernel:  process_one_work+0x1d8/0x2d4
-kernel:  worker_thread+0x18b/0x24f
-kernel:  ? rescuer_thread+0x280/0x280
-kernel:  kthread+0xf4/0xfc
-kernel:  ? kthread_complete_and_exit+0x1b/0x1b
-kernel:  ret_from_fork+0x22/0x30
-kernel:  </TASK>
+elapsed time: 723m
 
-SUNRPC's xprtiod workqueue is WQ_MEM_RECLAIM, so any workqueue that
-one of its work items tries to cancel has to be WQ_MEM_RECLAIM to
-prevent a priority inversion. The internal workqueues in the
-RDMA/core are currently non-MEM_RECLAIM.
+configs tested: 77
+configs skipped: 2
 
-Jason Gunthorpe says this about the current state of RDMA/core:
-> If you attempt to do a reconnection/etc from within a RECLAIM
-> context it will deadlock on one of the many allocations that are
-> made to support opening the connection.
->
-> The general idea of reclaim is that the entire task context
-> working under the reclaim is marked with an override of the gfp
-> flags to make all allocations under that call chain reclaim safe.
->
-> But rdmacm does allocations outside this, eg in the WQs processing
-> the CM packets. So this doesn't work and we will deadlock.
->
-> Fixing it is a big deal and needs more than poking WQ_MEM_RECLAIM
-> here and there.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-So we will change the ULP in this case to avoid the use of
-WQ_MEM_RECLAIM where possible. Deadlocks that were possible before
-are not fixed, but at least we no longer have a false sense of
-confidence that the stack won't allocate memory during memory
-reclaim.
+gcc tested configs:
+arm                                 defconfig
+um                             i386_defconfig
+um                           x86_64_defconfig
+i386                 randconfig-a004-20220829
+i386                 randconfig-a005-20220829
+i386                 randconfig-a001-20220829
+i386                 randconfig-a003-20220829
+powerpc                           allnoconfig
+i386                 randconfig-a002-20220829
+powerpc                          allmodconfig
+i386                 randconfig-a006-20220829
+arc                              allyesconfig
+x86_64                              defconfig
+mips                             allyesconfig
+x86_64                               rhel-8.3
+arm64                            allyesconfig
+alpha                            allyesconfig
+m68k                             allyesconfig
+x86_64                           allyesconfig
+arm                              allyesconfig
+m68k                             allmodconfig
+x86_64                           rhel-8.3-kvm
+x86_64                    rhel-8.3-kselftests
+x86_64                          rhel-8.3-func
+sh                               allmodconfig
+x86_64                         rhel-8.3-kunit
+x86_64                           rhel-8.3-syz
+arc                  randconfig-r043-20220829
+x86_64               randconfig-a003-20220829
+x86_64               randconfig-a004-20220829
+x86_64               randconfig-a002-20220829
+i386                                defconfig
+x86_64               randconfig-a001-20220829
+x86_64               randconfig-a005-20220829
+x86_64               randconfig-a006-20220829
+i386                             allyesconfig
+xtensa                           alldefconfig
+sh                            migor_defconfig
+sh                      rts7751r2d1_defconfig
+m68k                        m5407c3_defconfig
+sh                          r7780mp_defconfig
+m68k                          multi_defconfig
+sh                                  defconfig
+sh                          r7785rp_defconfig
+sh                             shx3_defconfig
+mips                       bmips_be_defconfig
+csky                              allnoconfig
+alpha                             allnoconfig
+arc                               allnoconfig
+riscv                             allnoconfig
+arm                           h5000_defconfig
+arm                        keystone_defconfig
+arm64                            alldefconfig
+arc                          axs103_defconfig
+sh                          lboxre2_defconfig
+ia64                             allmodconfig
+loongarch                           defconfig
+loongarch                         allnoconfig
+arm                         axm55xx_defconfig
+sh                           se7343_defconfig
+sh                        edosk7705_defconfig
 
-While we're adjusting these queue_* call sites, ensure the work
-requests always run on the local CPU so the worker allocates RDMA
-resources that are local to the CPU that queued the work request.
+clang tested configs:
+hexagon              randconfig-r041-20220829
+hexagon              randconfig-r045-20220829
+s390                 randconfig-r044-20220829
+riscv                randconfig-r042-20220829
+i386                 randconfig-a011-20220829
+i386                 randconfig-a014-20220829
+i386                 randconfig-a013-20220829
+i386                 randconfig-a015-20220829
+i386                 randconfig-a012-20220829
+i386                 randconfig-a016-20220829
+x86_64               randconfig-a011-20220829
+x86_64               randconfig-a012-20220829
+x86_64               randconfig-a013-20220829
+x86_64               randconfig-a014-20220829
+x86_64               randconfig-a016-20220829
+x86_64               randconfig-a015-20220829
 
-Suggested-by: Leon Romanovsky <leon@kernel.org>
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
----
- net/sunrpc/xprtrdma/transport.c |    4 ++--
- net/sunrpc/xprtrdma/verbs.c     |   11 ++++-------
- 2 files changed, 6 insertions(+), 9 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index bcb37b51adf6..9581641bb8cb 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -494,8 +494,8 @@ xprt_rdma_connect(struct rpc_xprt *xprt, struct rpc_task *task)
- 		xprt_reconnect_backoff(xprt, RPCRDMA_INIT_REEST_TO);
- 	}
- 	trace_xprtrdma_op_connect(r_xprt, delay);
--	queue_delayed_work(xprtiod_workqueue, &r_xprt->rx_connect_worker,
--			   delay);
-+	queue_delayed_work_on(smp_processor_id(), system_long_wq,
-+			      &r_xprt->rx_connect_worker, delay);
- }
- 
- /**
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 2fbe9aaeec34..691afc96bcbc 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -791,13 +791,10 @@ void rpcrdma_mrs_refresh(struct rpcrdma_xprt *r_xprt)
- 	/* If there is no underlying connection, it's no use
- 	 * to wake the refresh worker.
- 	 */
--	if (ep->re_connect_status == 1) {
--		/* The work is scheduled on a WQ_MEM_RECLAIM
--		 * workqueue in order to prevent MR allocation
--		 * from recursing into NFS during direct reclaim.
--		 */
--		queue_work(xprtiod_workqueue, &buf->rb_refresh_worker);
--	}
-+	if (ep->re_connect_status != 1)
-+		return;
-+	queue_work_on(smp_processor_id(), system_highpri_wq,
-+		      &buf->rb_refresh_worker);
- }
- 
- /**
-
-
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
