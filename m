@@ -2,113 +2,87 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E29AECAAD2
-	for <linux-rdma@archiver.kernel.org>; Mon, 29 Aug 2022 13:33:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8684C0502E
+	for <linux-rdma@archiver.kernel.org>; Mon, 29 Aug 2022 13:34:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229459AbiH2NdT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 29 Aug 2022 09:33:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51576 "EHLO
+        id S229760AbiH2Ne2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 29 Aug 2022 09:34:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229559AbiH2NdR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 29 Aug 2022 09:33:17 -0400
-Received: from out1.migadu.com (out1.migadu.com [IPv6:2001:41d0:2:863f::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DF948A6F3;
-        Mon, 29 Aug 2022 06:33:15 -0700 (PDT)
-Subject: Re: [PATCH] rnbd-srv: remove 'dir' argument from rnbd_srv_rdma_ev
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1661779992;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=OGTDmBTnSUxZ2aPGvbotw8MTs5jZFkG/dPZ3aMTk51s=;
-        b=wxQf3/VaAuLxRGXzYOwrzmT2q8Q/2cvD2zrtQWyBFWY77Wpzw7pfPTxmM1MqPJaYm7MiuA
-        5o5HUz8Hazyi7Lsc/6nQzFdKvV9grEvlWUbcpYRsvsKuYQsPBxa1hgec5yolpkMu40A1E+
-        fw6VmlUYSUBihUueXGSAKhqj8kZxsk8=
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     haris.iqbal@ionos.com, jinpu.wang@ionos.com, axboe@kernel.dk,
-        jgg@ziepe.ca, linux-block@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-References: <20220826081117.21687-1-guoqing.jiang@linux.dev>
- <YwxuYrJJRBDxsJ8X@unreal>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Guoqing Jiang <guoqing.jiang@linux.dev>
-Message-ID: <d969d7bf-d2a3-05aa-26e5-41628f74b8ab@linux.dev>
-Date:   Mon, 29 Aug 2022 21:33:09 +0800
+        with ESMTP id S229576AbiH2Ne0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 29 Aug 2022 09:34:26 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FF628A7FF
+        for <linux-rdma@vger.kernel.org>; Mon, 29 Aug 2022 06:34:24 -0700 (PDT)
+Received: from canpemm500002.china.huawei.com (unknown [172.30.72.54])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4MGW7d6xTkzlWWH;
+        Mon, 29 Aug 2022 21:12:29 +0800 (CST)
+Received: from [10.169.59.127] (10.169.59.127) by
+ canpemm500002.china.huawei.com (7.192.104.244) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Mon, 29 Aug 2022 21:15:51 +0800
+Subject: Re: [PATCH] nvme-rdma: set ack timeout of RoCE to 262ms
+To:     Sagi Grimberg <sagi@grimberg.me>,
+        Max Gurtovoy <mgurtovoy@nvidia.com>,
+        Christoph Hellwig <hch@lst.de>
+CC:     <linux-nvme@lists.infradead.org>, <kbusch@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+References: <20220819075825.21231-1-lengchao@huawei.com>
+ <20220821062016.GA26553@lst.de>
+ <83992e8f-b18a-ccd3-e0ee-a5802043f161@huawei.com>
+ <86e9fc3b-aded-220d-1ee0-4d5928097104@nvidia.com>
+ <f7254cc2-88e0-e91f-e4f1-788c5889fcf1@huawei.com>
+ <fbee7c67-fd7b-12c8-5685-066b1974aadb@grimberg.me>
+ <550d4612-0041-3d84-b1cb-786d0c8e0d11@huawei.com>
+ <3030fbb2-5c63-54ea-5be3-b88cf63c6b75@grimberg.me>
+From:   Chao Leng <lengchao@huawei.com>
+Message-ID: <c86a6cea-09b5-c04c-aa7b-adc6a457acf6@huawei.com>
+Date:   Mon, 29 Aug 2022 21:15:50 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.1
 MIME-Version: 1.0
-In-Reply-To: <YwxuYrJJRBDxsJ8X@unreal>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <3030fbb2-5c63-54ea-5be3-b88cf63c6b75@grimberg.me>
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Language: en-US
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: linux.dev
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.169.59.127]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ canpemm500002.china.huawei.com (7.192.104.244)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 
 
-On 8/29/22 3:44 PM, Leon Romanovsky wrote:
-> On Fri, Aug 26, 2022 at 04:11:17PM +0800, Guoqing Jiang wrote:
->> Since all callers (process_{read,write}) set id->dir, no need to
->> pass 'dir' again.
->>
->> Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
->> ---
->>   drivers/block/rnbd/rnbd-srv.c          | 9 ++++-----
->>   drivers/block/rnbd/rnbd-srv.h          | 1 +
->>   drivers/infiniband/ulp/rtrs/rtrs-srv.c | 4 ++--
->>   drivers/infiniband/ulp/rtrs/rtrs.h     | 3 +--
->>   4 files changed, 8 insertions(+), 9 deletions(-)
-
-> I applied the patch and cleanup of rtrs-srv.h can be done later.
-
-Thanks! I suppose below
-
-> So decouple it from rtrs-srv.h and hide everything that not-needed to be
-> exported to separate header file.
-
-means move 'struct rtrs_srv_op' to rtrs.h, which seems not appropriate to me
-because both client and server include the header. Pls correct me if I 
-am wrong.
-
-Since process_{read,write} prints direction info if ctx->ops.rdma_ev 
-fails, how
-about remove the 'dir' info from rnbd_srv_rdma_ev? Then we  don't need to
-include rtrs-srv.h.
-
-diff --git a/drivers/block/rnbd/rnbd-srv.c b/drivers/block/rnbd/rnbd-srv.c
-index 431c6da19d3f..d07ff3ba560c 100644
---- a/drivers/block/rnbd/rnbd-srv.c
-+++ b/drivers/block/rnbd/rnbd-srv.c
-@@ -387,8 +387,8 @@ static int rnbd_srv_rdma_ev(void *priv, struct 
-rtrs_srv_op *id,
-                                             datalen);
-                 break;
-         default:
--               pr_warn("Received unexpected message type %d with dir %d 
-from session %s\n",
--                       type, id->dir, srv_sess->sessname);
-+               pr_warn("Received unexpected message type %d from 
-session %s\n",
-+                       type, srv_sess->sessname);
-                 return -EINVAL;
-         }
-
-diff --git a/drivers/block/rnbd/rnbd-srv.h b/drivers/block/rnbd/rnbd-srv.h
-index 5a0ef6c2b5c7..081bceaf4ae9 100644
---- a/drivers/block/rnbd/rnbd-srv.h
-+++ b/drivers/block/rnbd/rnbd-srv.h
-@@ -14,7 +14,6 @@
-  #include <linux/kref.h>
-
-  #include <rtrs.h>
--#include <rtrs-srv.h>
-  #include "rnbd-proto.h"
-  #include "rnbd-log.h"
-
-
-Thoughts?
-
-Thanks,
-Guoqing
+On 2022/8/29 17:06, Sagi Grimberg wrote:
+> 
+>>>>> If so, which devices did you use ?
+>>>> The host HBA is Mellanox Technologies MT27800 Family [ConnectX-5];
+>>>> The switch and storage are huawei equipments.
+>>>> In principle, switches and storage devices from other vendors
+>>>> have the same problem.
+>>>> If you think it is necessary, we can test the other vendor switchs
+>>>> and linux target.
+>>>
+>>> Why is the 2s default chosen, what is the downside for a 250ms seconds ack timeout? and why is nvme-rdma different than all other kernel rdma
+>> The downside is redundant retransmit if the packets delay more than
+>> 250ms in the networks and finally reaches the receiver.
+>> Only in extreme scenarios, the packet delay may exceed 250 ms.
+> 
+> Sounds like the default needs to be changed if it only addresses the
+> extreme scenarios...
+> 
+>>> consumers that it needs to set this explicitly?
+>> The real-time transaction services are sensitive to the delay.
+>> nvme-rdma will be used in real-time transactions.
+>> The real-time transaction services do not allow that the packets
+>> delay more than 250ms in the networks.
+>> So we need to set the ack timeout to 262ms.
+> 
+> While I don't disagree with the change itself, I do disagree why this
+> needs to be driven by nvme-rdma locally. If all kernel rdma consumers
+> need this (and if not, I'd like to understand why), this needs to be set in the rdma core.Changing the default set in the rdma core is another option.
+But it will affect all application based on RDMA.
+Max, what do you think? Thank you.
+> .
