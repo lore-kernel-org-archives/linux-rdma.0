@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 331A7ECAAD5
-	for <linux-rdma@archiver.kernel.org>; Wed, 31 Aug 2022 00:35:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD7EFC54EE9
+	for <linux-rdma@archiver.kernel.org>; Wed, 31 Aug 2022 00:35:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231634AbiHaAfH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 30 Aug 2022 20:35:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45992 "EHLO
+        id S231741AbiHaAfJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 30 Aug 2022 20:35:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231443AbiHaAeq (ORCPT
+        with ESMTP id S231446AbiHaAeq (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 30 Aug 2022 20:34:46 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 96ED2A598B;
-        Tue, 30 Aug 2022 17:34:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B64B32C7;
+        Tue, 30 Aug 2022 17:34:44 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 635E92045E2A; Tue, 30 Aug 2022 17:34:43 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 635E92045E2A
+        id 7E6912045E2E; Tue, 30 Aug 2022 17:34:44 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 7E6912045E2E
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1661906083;
-        bh=j2CYby0MNn6oo7DPaFtS91QWa5bnsAlN30QWMn1LzMU=;
+        s=default; t=1661906084;
+        bh=TVsP8Dfm0+8+pxJK1xuH374UMPKQ2xcK55Dw85XVZL0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=Z1FnJfByZrIlplBHEBUpO1bllXm72YoZIROpDDdQvTeaP67VQG2r17wab4OCxMeD2
-         dELcEWG9qy1WYsaKF+FzkWV/9spQdZtBT/uwvXQLGtTlHhyhD1YmBdW4e6G75HdDuk
-         7wZMJaUDdd2X59cxRAwu0harAGYFFK7ogUKnE6W4=
+        b=rjrBBZk6H+zc0JKJj4cvlqdJaKx4gbTgw22hen9aOIKyPDL+R6BcA/b0LuiZM24d8
+         sjlajumT6L8LkflBTcbCtQoZ9ob1/0QPAbhx/hDFO2PDxvgi/XPVwuV55BMZPS+hdZ
+         PoGQiWK7qW9I65lNh8ninFqPTQTt/858FGHnmhrg=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v5 05/12] net: mana: Set the DMA device max segment size
-Date:   Tue, 30 Aug 2022 17:34:24 -0700
-Message-Id: <1661906071-29508-6-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v5 07/12] net: mana: Record port number in netdev
+Date:   Tue, 30 Aug 2022 17:34:26 -0700
+Message-Id: <1661906071-29508-8-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1661906071-29508-1-git-send-email-longli@linuxonhyperv.com>
 References: <1661906071-29508-1-git-send-email-longli@linuxonhyperv.com>
@@ -49,38 +49,29 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Ajay Sharma <sharmaajay@microsoft.com>
+From: Long Li <longli@microsoft.com>
 
-MANA hardware doesn't have any restrictions on the DMA segment size, set it
-to the max allowed value.
+The port number is useful for user-mode application to identify this
+net device based on port index. Set to the correct value in ndev.
 
-Signed-off-by: Ajay Sharma <sharmaajay@microsoft.com>
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 ---
-Change log:
-v2: Use the max allowed value as the hardware doesn't have any limit
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/net/ethernet/microsoft/mana/gdma_main.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index 3c391b0cfab4..9a1885e47766 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -1387,6 +1387,12 @@ static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	if (err)
- 		goto release_region;
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 4c771ce59108..eeddd4ab2fa4 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -1988,6 +1988,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 	ndev->max_mtu = ndev->mtu;
+ 	ndev->min_mtu = ndev->mtu;
+ 	ndev->needed_headroom = MANA_HEADROOM;
++	ndev->dev_port = port_idx;
+ 	SET_NETDEV_DEV(ndev, gc->dev);
  
-+	err = dma_set_max_seg_size(&pdev->dev, UINT_MAX);
-+	if (err) {
-+		dev_err(&pdev->dev, "Failed to set dma device segment size\n");
-+		goto release_region;
-+	}
-+
- 	err = -ENOMEM;
- 	gc = vzalloc(sizeof(*gc));
- 	if (!gc)
+ 	netif_carrier_off(ndev);
 -- 
 2.17.1
 
