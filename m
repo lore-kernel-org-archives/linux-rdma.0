@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3015AC0502C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70665C54EE9
 	for <linux-rdma@archiver.kernel.org>; Wed, 31 Aug 2022 15:41:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231311AbiHaPlf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S232181AbiHaPlf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 31 Aug 2022 11:41:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34270 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232078AbiHaPlD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 31 Aug 2022 11:41:03 -0400
+        with ESMTP id S229959AbiHaPlE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 31 Aug 2022 11:41:04 -0400
 Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0E695FF77;
-        Wed, 31 Aug 2022 08:40:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E06CB61B05;
+        Wed, 31 Aug 2022 08:40:17 -0700 (PDT)
 Received: from dimapc.. (109-252-119-13.nat.spd-mgts.ru [109.252.119.13])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id B09946601E0B;
-        Wed, 31 Aug 2022 16:39:58 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id 3F03A6601DEE;
+        Wed, 31 Aug 2022 16:40:11 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1661960401;
-        bh=gIw0LiJmbclTWGOdwrfcgGOZXkgbb+7eQ2rM8JMcCFs=;
+        s=mail; t=1661960414;
+        bh=tOl8HnGHuspOaHfQ8kLvPjNpiAx+VJwtG1vjNitDsbY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=eDTg8soNjJsESfVNNrUcTFbA9XH0ERxZfrDcBM3uq+ZSIdqUh20nNOEarUQbWs34k
-         PFovJnbPzxF3EogbvS9BRbnL/c7KFsOaMbXMGkLz+0smFOPc1ddV26U0FR64kswUkc
-         jwaxe7WMdo6rb5rFo/X5ftYeCZx7KkQRBMpqNqdC0Z1EX7fxh+ptv6eyTCVs1tvNW2
-         mh+y5yP4InDFFgDKc62A/v7x4OJBD9p6Tta3U4v0sv2KP03fDz1R1ye/kDMTZRkMFm
-         V4whnjGGGtVsCrWU/YGsXT6X/6PNrrJM992r/7+W/w6Xmct9aupP7YCY2SVTZJP3aR
-         5kYLzMmbuKgYg==
+        b=kstPveCaJveRBMwtfiKH3ZEeiXoX62OYMZ2fGOLodxxp4RoJkGu4+wX+ZBBPsIclU
+         jC6BGy95i//NUiQnoMQ4erjBSYOBC8Ru++SGHiCT/9wRglO2GVJFcSugeKpeAWgkxM
+         8JtLuUEtcNQZlNOXOMUPUT5Cj80Xq6sd33axeBXK+rmA+vwkNdDb0AUKjfB6EB3ptw
+         KaBaYu80d/FuWGBMzslNdWxVAePKz+26arVlSAG7NZLi+VvCqcjfUUarsJM71hn2Xo
+         jO/K0Hu5Ruk7Boo4ixyRth/yzAD1hmSV+/zWxE4Zq8LIZSxSuFlUqFURm8A50yCeS1
+         ycL3RR0VL1zYw==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -75,50 +75,120 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: [PATCH v4 15/21] dma-buf: Move dma_buf_vmap() to dynamic locking specification
-Date:   Wed, 31 Aug 2022 18:37:51 +0300
-Message-Id: <20220831153757.97381-16-dmitry.osipenko@collabora.com>
+Subject: [PATCH v4 19/21] dma-buf: Document dynamic locking convention
+Date:   Wed, 31 Aug 2022 18:37:55 +0300
+Message-Id: <20220831153757.97381-20-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20220831153757.97381-1-dmitry.osipenko@collabora.com>
 References: <20220831153757.97381-1-dmitry.osipenko@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move dma_buf_vmap/vunmap_unlocked() functions to the dynamic locking
-specification by asserting that the reservation lock is held.
+Add documentation for the dynamic locking convention. The documentation
+tells dma-buf API users when they should take the reservation lock and
+when not.
 
-Acked-by: Christian König <christian.koenig@amd.com>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- drivers/dma-buf/dma-buf.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/driver-api/dma-buf.rst |  6 +++
+ drivers/dma-buf/dma-buf.c            | 64 ++++++++++++++++++++++++++++
+ 2 files changed, 70 insertions(+)
 
+diff --git a/Documentation/driver-api/dma-buf.rst b/Documentation/driver-api/dma-buf.rst
+index 36a76cbe9095..622b8156d212 100644
+--- a/Documentation/driver-api/dma-buf.rst
++++ b/Documentation/driver-api/dma-buf.rst
+@@ -119,6 +119,12 @@ DMA Buffer ioctls
+ 
+ .. kernel-doc:: include/uapi/linux/dma-buf.h
+ 
++DMA-BUF locking convention
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++.. kernel-doc:: drivers/dma-buf/dma-buf.c
++   :doc: locking convention
++
+ Kernel Functions and Structures Reference
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
 diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 51fb69048853..ceea4839c641 100644
+index d9130486cb8f..97ce884fad76 100644
 --- a/drivers/dma-buf/dma-buf.c
 +++ b/drivers/dma-buf/dma-buf.c
-@@ -1449,6 +1449,8 @@ int dma_buf_vmap(struct dma_buf *dmabuf, struct iosys_map *map)
- 	if (WARN_ON(!dmabuf))
- 		return -EINVAL;
+@@ -794,6 +794,70 @@ static struct sg_table * __map_dma_buf(struct dma_buf_attachment *attach,
+ 	return sg_table;
+ }
  
-+	dma_resv_assert_held(dmabuf->resv);
++/**
++ * DOC: locking convention
++ *
++ * In order to avoid deadlock situations between dma-buf exports and importers,
++ * all dma-buf API users must follow the common dma-buf locking convention.
++ *
++ * Convention for importers
++ *
++ * 1. Importers must hold the dma-buf reservation lock when calling these
++ *    functions:
++ *
++ *     - dma_buf_pin()
++ *     - dma_buf_unpin()
++ *     - dma_buf_map_attachment()
++ *     - dma_buf_unmap_attachment()
++ *     - dma_buf_vmap()
++ *     - dma_buf_vunmap()
++ *
++ * 2. Importers must not hold the dma-buf reservation lock when calling these
++ *    functions:
++ *
++ *     - dma_buf_attach()
++ *     - dma_buf_dynamic_attach()
++ *     - dma_buf_detach()
++ *     - dma_buf_export(
++ *     - dma_buf_fd()
++ *     - dma_buf_get()
++ *     - dma_buf_put()
++ *     - dma_buf_mmap()
++ *     - dma_buf_begin_cpu_access()
++ *     - dma_buf_end_cpu_access()
++ *     - dma_buf_map_attachment_unlocked()
++ *     - dma_buf_unmap_attachment_unlocked()
++ *     - dma_buf_vmap_unlocked()
++ *     - dma_buf_vunmap_unlocked()
++ *
++ * Convention for exporters
++ *
++ * 1. These &dma_buf_ops callbacks are invoked with unlocked dma-buf
++ *    reservation and exporter can take the lock:
++ *
++ *     - &dma_buf_ops.attach()
++ *     - &dma_buf_ops.detach()
++ *     - &dma_buf_ops.release()
++ *     - &dma_buf_ops.begin_cpu_access()
++ *     - &dma_buf_ops.end_cpu_access()
++ *
++ * 2. These &dma_buf_ops callbacks are invoked with locked dma-buf
++ *    reservation and exporter can't take the lock:
++ *
++ *     - &dma_buf_ops.pin()
++ *     - &dma_buf_ops.unpin()
++ *     - &dma_buf_ops.map_dma_buf()
++ *     - &dma_buf_ops.unmap_dma_buf()
++ *     - &dma_buf_ops.mmap()
++ *     - &dma_buf_ops.vmap()
++ *     - &dma_buf_ops.vunmap()
++ *
++ * 3. Exporters must hold the dma-buf reservation lock when calling these
++ *    functions:
++ *
++ *     - dma_buf_move_notify()
++ */
 +
- 	if (!dmabuf->ops->vmap)
- 		return -EINVAL;
- 
-@@ -1509,6 +1511,8 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, struct iosys_map *map)
- 	if (WARN_ON(!dmabuf))
- 		return;
- 
-+	dma_resv_assert_held(dmabuf->resv);
-+
- 	BUG_ON(iosys_map_is_null(&dmabuf->vmap_ptr));
- 	BUG_ON(dmabuf->vmapping_counter == 0);
- 	BUG_ON(!iosys_map_is_equal(&dmabuf->vmap_ptr, map));
+ /**
+  * dma_buf_dynamic_attach - Add the device to dma_buf's attachments list
+  * @dmabuf:		[in]	buffer to attach device to.
 -- 
 2.37.2
 
