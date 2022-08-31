@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70665C54EE9
-	for <linux-rdma@archiver.kernel.org>; Wed, 31 Aug 2022 15:41:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC552ECAAD1
+	for <linux-rdma@archiver.kernel.org>; Wed, 31 Aug 2022 15:41:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232181AbiHaPlf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 31 Aug 2022 11:41:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37824 "EHLO
+        id S231248AbiHaPlj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 31 Aug 2022 11:41:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34324 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229959AbiHaPlE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 31 Aug 2022 11:41:04 -0400
-Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E06CB61B05;
-        Wed, 31 Aug 2022 08:40:17 -0700 (PDT)
+        with ESMTP id S231648AbiHaPlJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 31 Aug 2022 11:41:09 -0400
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 220AC76775;
+        Wed, 31 Aug 2022 08:40:21 -0700 (PDT)
 Received: from dimapc.. (109-252-119-13.nat.spd-mgts.ru [109.252.119.13])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 3F03A6601DEE;
-        Wed, 31 Aug 2022 16:40:11 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id 68D6C6601EBA;
+        Wed, 31 Aug 2022 16:39:52 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1661960414;
-        bh=tOl8HnGHuspOaHfQ8kLvPjNpiAx+VJwtG1vjNitDsbY=;
+        s=mail; t=1661960395;
+        bh=yuFPPZLpZu5HiT00pXyoIXNbNU+jh/z2zDqW9/uKf/o=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=kstPveCaJveRBMwtfiKH3ZEeiXoX62OYMZ2fGOLodxxp4RoJkGu4+wX+ZBBPsIclU
-         jC6BGy95i//NUiQnoMQ4erjBSYOBC8Ru++SGHiCT/9wRglO2GVJFcSugeKpeAWgkxM
-         8JtLuUEtcNQZlNOXOMUPUT5Cj80Xq6sd33axeBXK+rmA+vwkNdDb0AUKjfB6EB3ptw
-         KaBaYu80d/FuWGBMzslNdWxVAePKz+26arVlSAG7NZLi+VvCqcjfUUarsJM71hn2Xo
-         jO/K0Hu5Ruk7Boo4ixyRth/yzAD1hmSV+/zWxE4Zq8LIZSxSuFlUqFURm8A50yCeS1
-         ycL3RR0VL1zYw==
+        b=N/B+b8bOYPtHEQfD37MFztmBLUQG1Fw59ElRW+eMzo5mBqnLPKKxtrTtpJ5b3A9Re
+         TeoegHw8MNPuFRGxmerjQaX0cftS5KdDOB9bjKMJkW1d9QrMiRYxurgsUEY8dMXDlV
+         gGytpQShxs12u0FLdR+l9TU5JAf3nC+nIGtzgJjObxtxJA5YlNZNeGstwA44tRjNIj
+         LGz6cxeSNsncUszPcRWjDRSIZufs697VuN6aMG7EXTUJzbo5FFMYbEhJO0nPtrwhaa
+         /H3pVyYysLeApxxArprlFRxS4YnCYkIqYz491f3i6b2n5C1Uoq4VSnPUybsmx9GWcd
+         Z+ig7XvygSbGA==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -75,9 +75,9 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: [PATCH v4 19/21] dma-buf: Document dynamic locking convention
-Date:   Wed, 31 Aug 2022 18:37:55 +0300
-Message-Id: <20220831153757.97381-20-dmitry.osipenko@collabora.com>
+Subject: [PATCH v4 13/21] media: videobuf2: Prepare to dynamic dma-buf locking specification
+Date:   Wed, 31 Aug 2022 18:37:49 +0300
+Message-Id: <20220831153757.97381-14-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20220831153757.97381-1-dmitry.osipenko@collabora.com>
 References: <20220831153757.97381-1-dmitry.osipenko@collabora.com>
@@ -87,108 +87,129 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add documentation for the dynamic locking convention. The documentation
-tells dma-buf API users when they should take the reservation lock and
-when not.
+Prepare V4L2 memory allocators to the common dynamic dma-buf locking
+convention by starting to use the unlocked versions of dma-buf API
+functions.
 
+Acked-by: Tomasz Figa <tfiga@chromium.org>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- Documentation/driver-api/dma-buf.rst |  6 +++
- drivers/dma-buf/dma-buf.c            | 64 ++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+)
+ drivers/media/common/videobuf2/videobuf2-dma-contig.c | 11 ++++++-----
+ drivers/media/common/videobuf2/videobuf2-dma-sg.c     |  8 ++++----
+ drivers/media/common/videobuf2/videobuf2-vmalloc.c    |  6 +++---
+ 3 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/driver-api/dma-buf.rst b/Documentation/driver-api/dma-buf.rst
-index 36a76cbe9095..622b8156d212 100644
---- a/Documentation/driver-api/dma-buf.rst
-+++ b/Documentation/driver-api/dma-buf.rst
-@@ -119,6 +119,12 @@ DMA Buffer ioctls
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-contig.c b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+index 678b359717c4..79f4d8301fbb 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+@@ -101,7 +101,7 @@ static void *vb2_dc_vaddr(struct vb2_buffer *vb, void *buf_priv)
+ 	if (buf->db_attach) {
+ 		struct iosys_map map;
  
- .. kernel-doc:: include/uapi/linux/dma-buf.h
+-		if (!dma_buf_vmap(buf->db_attach->dmabuf, &map))
++		if (!dma_buf_vmap_unlocked(buf->db_attach->dmabuf, &map))
+ 			buf->vaddr = map.vaddr;
  
-+DMA-BUF locking convention
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+.. kernel-doc:: drivers/dma-buf/dma-buf.c
-+   :doc: locking convention
-+
- Kernel Functions and Structures Reference
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 		return buf->vaddr;
+@@ -711,7 +711,7 @@ static int vb2_dc_map_dmabuf(void *mem_priv)
+ 	}
  
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index d9130486cb8f..97ce884fad76 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -794,6 +794,70 @@ static struct sg_table * __map_dma_buf(struct dma_buf_attachment *attach,
- 	return sg_table;
+ 	/* get the associated scatterlist for this buffer */
+-	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
++	sgt = dma_buf_map_attachment_unlocked(buf->db_attach, buf->dma_dir);
+ 	if (IS_ERR(sgt)) {
+ 		pr_err("Error getting dmabuf scatterlist\n");
+ 		return -EINVAL;
+@@ -722,7 +722,8 @@ static int vb2_dc_map_dmabuf(void *mem_priv)
+ 	if (contig_size < buf->size) {
+ 		pr_err("contiguous chunk is too small %lu/%lu\n",
+ 		       contig_size, buf->size);
+-		dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++		dma_buf_unmap_attachment_unlocked(buf->db_attach, sgt,
++						  buf->dma_dir);
+ 		return -EFAULT;
+ 	}
+ 
+@@ -750,10 +751,10 @@ static void vb2_dc_unmap_dmabuf(void *mem_priv)
+ 	}
+ 
+ 	if (buf->vaddr) {
+-		dma_buf_vunmap(buf->db_attach->dmabuf, &map);
++		dma_buf_vunmap_unlocked(buf->db_attach->dmabuf, &map);
+ 		buf->vaddr = NULL;
+ 	}
+-	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++	dma_buf_unmap_attachment_unlocked(buf->db_attach, sgt, buf->dma_dir);
+ 
+ 	buf->dma_addr = 0;
+ 	buf->dma_sgt = NULL;
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+index fa69158a65b1..36ecdea8d707 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+@@ -309,7 +309,7 @@ static void *vb2_dma_sg_vaddr(struct vb2_buffer *vb, void *buf_priv)
+ 
+ 	if (!buf->vaddr) {
+ 		if (buf->db_attach) {
+-			ret = dma_buf_vmap(buf->db_attach->dmabuf, &map);
++			ret = dma_buf_vmap_unlocked(buf->db_attach->dmabuf, &map);
+ 			buf->vaddr = ret ? NULL : map.vaddr;
+ 		} else {
+ 			buf->vaddr = vm_map_ram(buf->pages, buf->num_pages, -1);
+@@ -565,7 +565,7 @@ static int vb2_dma_sg_map_dmabuf(void *mem_priv)
+ 	}
+ 
+ 	/* get the associated scatterlist for this buffer */
+-	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
++	sgt = dma_buf_map_attachment_unlocked(buf->db_attach, buf->dma_dir);
+ 	if (IS_ERR(sgt)) {
+ 		pr_err("Error getting dmabuf scatterlist\n");
+ 		return -EINVAL;
+@@ -594,10 +594,10 @@ static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
+ 	}
+ 
+ 	if (buf->vaddr) {
+-		dma_buf_vunmap(buf->db_attach->dmabuf, &map);
++		dma_buf_vunmap_unlocked(buf->db_attach->dmabuf, &map);
+ 		buf->vaddr = NULL;
+ 	}
+-	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++	dma_buf_unmap_attachment_unlocked(buf->db_attach, sgt, buf->dma_dir);
+ 
+ 	buf->dma_sgt = NULL;
+ }
+diff --git a/drivers/media/common/videobuf2/videobuf2-vmalloc.c b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+index 948152f1596b..7831bf545874 100644
+--- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
++++ b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+@@ -376,7 +376,7 @@ static int vb2_vmalloc_map_dmabuf(void *mem_priv)
+ 	struct iosys_map map;
+ 	int ret;
+ 
+-	ret = dma_buf_vmap(buf->dbuf, &map);
++	ret = dma_buf_vmap_unlocked(buf->dbuf, &map);
+ 	if (ret)
+ 		return -EFAULT;
+ 	buf->vaddr = map.vaddr;
+@@ -389,7 +389,7 @@ static void vb2_vmalloc_unmap_dmabuf(void *mem_priv)
+ 	struct vb2_vmalloc_buf *buf = mem_priv;
+ 	struct iosys_map map = IOSYS_MAP_INIT_VADDR(buf->vaddr);
+ 
+-	dma_buf_vunmap(buf->dbuf, &map);
++	dma_buf_vunmap_unlocked(buf->dbuf, &map);
+ 	buf->vaddr = NULL;
  }
  
-+/**
-+ * DOC: locking convention
-+ *
-+ * In order to avoid deadlock situations between dma-buf exports and importers,
-+ * all dma-buf API users must follow the common dma-buf locking convention.
-+ *
-+ * Convention for importers
-+ *
-+ * 1. Importers must hold the dma-buf reservation lock when calling these
-+ *    functions:
-+ *
-+ *     - dma_buf_pin()
-+ *     - dma_buf_unpin()
-+ *     - dma_buf_map_attachment()
-+ *     - dma_buf_unmap_attachment()
-+ *     - dma_buf_vmap()
-+ *     - dma_buf_vunmap()
-+ *
-+ * 2. Importers must not hold the dma-buf reservation lock when calling these
-+ *    functions:
-+ *
-+ *     - dma_buf_attach()
-+ *     - dma_buf_dynamic_attach()
-+ *     - dma_buf_detach()
-+ *     - dma_buf_export(
-+ *     - dma_buf_fd()
-+ *     - dma_buf_get()
-+ *     - dma_buf_put()
-+ *     - dma_buf_mmap()
-+ *     - dma_buf_begin_cpu_access()
-+ *     - dma_buf_end_cpu_access()
-+ *     - dma_buf_map_attachment_unlocked()
-+ *     - dma_buf_unmap_attachment_unlocked()
-+ *     - dma_buf_vmap_unlocked()
-+ *     - dma_buf_vunmap_unlocked()
-+ *
-+ * Convention for exporters
-+ *
-+ * 1. These &dma_buf_ops callbacks are invoked with unlocked dma-buf
-+ *    reservation and exporter can take the lock:
-+ *
-+ *     - &dma_buf_ops.attach()
-+ *     - &dma_buf_ops.detach()
-+ *     - &dma_buf_ops.release()
-+ *     - &dma_buf_ops.begin_cpu_access()
-+ *     - &dma_buf_ops.end_cpu_access()
-+ *
-+ * 2. These &dma_buf_ops callbacks are invoked with locked dma-buf
-+ *    reservation and exporter can't take the lock:
-+ *
-+ *     - &dma_buf_ops.pin()
-+ *     - &dma_buf_ops.unpin()
-+ *     - &dma_buf_ops.map_dma_buf()
-+ *     - &dma_buf_ops.unmap_dma_buf()
-+ *     - &dma_buf_ops.mmap()
-+ *     - &dma_buf_ops.vmap()
-+ *     - &dma_buf_ops.vunmap()
-+ *
-+ * 3. Exporters must hold the dma-buf reservation lock when calling these
-+ *    functions:
-+ *
-+ *     - dma_buf_move_notify()
-+ */
-+
- /**
-  * dma_buf_dynamic_attach - Add the device to dma_buf's attachments list
-  * @dmabuf:		[in]	buffer to attach device to.
+@@ -399,7 +399,7 @@ static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
+ 	struct iosys_map map = IOSYS_MAP_INIT_VADDR(buf->vaddr);
+ 
+ 	if (buf->vaddr)
+-		dma_buf_vunmap(buf->dbuf, &map);
++		dma_buf_vunmap_unlocked(buf->dbuf, &map);
+ 
+ 	kfree(buf);
+ }
 -- 
 2.37.2
 
