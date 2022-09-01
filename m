@@ -2,44 +2,44 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3679DC0502C
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Sep 2022 14:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35F25C64991
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Sep 2022 14:21:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234581AbiIAOVD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Sep 2022 10:21:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47658 "EHLO
+        id S233033AbiIAOVE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Sep 2022 10:21:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232685AbiIAOVB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Sep 2022 10:21:01 -0400
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2071.outbound.protection.outlook.com [40.107.237.71])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6729432EC1;
+        with ESMTP id S233849AbiIAOVC (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Sep 2022 10:21:02 -0400
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2086.outbound.protection.outlook.com [40.107.244.86])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2AFE41D35;
         Thu,  1 Sep 2022 07:21:00 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=mQDuxmPMKgq+5eat+j7TfqmgVBa9QJwwxIWNNAdarunVYn1CdbZSx0bCz9W3WPZuBzedFgg/fWp2Ep97Dg4OCi+2AgPpeYCPXRnoO4Ua8WfXa2DikxXdTz6zcFec8mxA1KD/kEoY7e1fA1yDi8OG1y6RXP25hGKA0rsMBvoRkxpOb+rh8cePmJoOhFlBmAGbUDZzLJ+9GCNvIkRpgNuMLHa0l+rwwX8DXtdeyo+eWkJljV567N9ePeDvelpCS9f2AhjsB3CqGKP7zSpb6OwbBMBT6A2NAQ5PJesxsY+spYj1QkBBN84sGQUaEcJqPOL90stDTVKKI9YoYmfijtIfxQ==
+ b=gzzzBDcPNMfi5VGvJeusidb7bepykYArYAXIPI233EaL4RbFTFHgOYLyV3y4x0ILY8fzB7HnzlTWvc1LQhQGzBfzesQEEhiFUz1re97lLW1yA1mQRtkWAhi5qJGi7dxREUMD/3rBEbkcdCzr9v7TQNtQoFRM2NRkJVJczYm8E2aafxmOpBdJnDjK9Qi8UqLsQR2Kt7q2c1UjzB1Msfo0N+Q8HkrcCHKCLE3RH9Uhp3o1GULsDjoo17nrHmWQeO75cjYIElv2+Mi5tAn4rsHgXG5c0aqUDbGuV/AWUf2vN0X3zNiq+2F4PPjRIndc75AZUbTePnDhPosZMm8QwZSh2A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/aB2fdyup4zXlO7Fs2az03ubJD/zt2/t60pbinRpFNQ=;
- b=aBt/156TwEDGCmZgi6MygQeDDQjTKmCV4Lpa575aKRhkvFmmM2GlvYsi/jLGILTvIzy7945rIBP9W8WLj8uPraxebGaHYO7AoTH7paTEA7AOUfin54hzwvMVTD30ZWhjsLDjfzIgywRV+NYT5nyRxaoyAKlmwZy6StQRFQO4Y5cJy08wf5iOGJBf0X4jOyJUIZCbGtWftS1C4USbdPdxO9NQU5IOZklRdeQTEQESIohmZ1L5/4CKvWDIbO4abqUu6Hk2ANGh2MLHcMpQkPGvv8fbBs6fuh5hLUedC7l591RbIADJZwZ8ojzAfIgn9Bhw/rIXQkokmtOSSjR1z97BlQ==
+ bh=6Ldn7BcH4Fc4o6NLHshrDaZYqiE1GryuyqNfaP2v+tQ=;
+ b=Fb61O1+MeLrBamNwC7tK4trcrNtAIFfSM5FUWjOcq1j9MmBPJ7XDlzrvZRqyV++IMndod0cnvWpJOHaOSJCm9JPtZw1ZNPw2Mn1N9X15Tj4PV2aKOopG9cxOtR7uescXpb5vC5FhFaCqHFrGgQ061qSTbLm2qTF/0Pb1xs+J4LJoinDlmiAd8UsYHscHxgXZ1n1tpZJhFZD5tmaCfU4qYfkToTsJjGqR5o30WgO9vWV0QxESG+ZaOm44yUo1ueytJVxg5HirscsWF/7w3LsZh0/XQ2DSxMerecU10qQ8genLaKlDAlIPrA103WOhQJLwqeEJ1TJDcxxmwR3u8Q3hfg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/aB2fdyup4zXlO7Fs2az03ubJD/zt2/t60pbinRpFNQ=;
- b=fhZmiN7U8rZs0slqgczpOzdTFY4A/es294tSxlbS6qTlnkg2JPTIWmw60A2jFK4Mbc7bbnpjIINDfTqK+L725dh1267yyQfGzpk3TGTEJmaLTEmzSGri+y+6zknHB0Achf6pIbb9D7XVkfet5IZbV3YOdEvLZJ2hh6oqtTTLlpMQdz6SushKoQ4cHG4z9I8wWGKFEahlCsB99nVPcsHYi3TZC9kUiTBpX9+EiqAN3eRn5wIIGN3627I0KFlPfY6WfKEP+9eQ3fRlzRP6Kcn4V9pjAslq1Ae8hU5pXcwsKcGZ2DmRSIUWgIv8ZlvyRNp7vUbVIi0GIGXUMlrThJlHCQ==
+ bh=6Ldn7BcH4Fc4o6NLHshrDaZYqiE1GryuyqNfaP2v+tQ=;
+ b=pxLcvQFJlhu0V+OBYgLCE7vja8H2kmMRdVoeupKpK9l/jbYZ8Nz9phvw5nwmZE6vW4ZVW0T61OaJagGO7HPQ/Z0ngCz/7MTOep7Jl/reomsr2vrkWkUyZco32zn9fhXU8w8T+pE0y6YCTqEOkboq8z+0gp8ykBBTeerk+KyWYcLNLgP+R7P+lyGBLXbC1hCJ5cApVsFmjqbKbnx2gqIIafDowx5iMsE0l2crlpchqVY3hSDfpHlaaSdbbFUne5L1rxPc0qAfHBXAAa2NuK63WSfaukmJ9KcW8EXM3U5DpesJ9HvvmLffaW0U79PgvpaFJVyDvoDRAPqWFRdA1QrQuA==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
- by BY5PR12MB5000.namprd12.prod.outlook.com (2603:10b6:a03:1d7::8) with
+ by IA1PR12MB6041.namprd12.prod.outlook.com (2603:10b6:208:3d7::16) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5566.15; Thu, 1 Sep
- 2022 14:20:57 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5566.21; Thu, 1 Sep
+ 2022 14:20:58 +0000
 Received: from MN2PR12MB4192.namprd12.prod.outlook.com
  ([fe80::462:7fe:f04f:d0d5]) by MN2PR12MB4192.namprd12.prod.outlook.com
  ([fe80::462:7fe:f04f:d0d5%7]) with mapi id 15.20.5588.012; Thu, 1 Sep 2022
- 14:20:57 +0000
+ 14:20:58 +0000
 From:   Jason Gunthorpe <jgg@nvidia.com>
 To:     =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
         dri-devel@lists.freedesktop.org, Leon Romanovsky <leon@kernel.org>,
@@ -49,134 +49,252 @@ To:     =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
         Sumit Semwal <sumit.semwal@linaro.org>
 Cc:     Kamal Heib <kamalheib1@gmail.com>,
         Mohammad Kabat <mohammadkab@nvidia.com>
-Subject: [PATCH 2/4] RDMA/core: Add UVERBS_ATTR_RAW_FD
-Date:   Thu,  1 Sep 2022 11:20:54 -0300
-Message-Id: <2-v1-bd147097458e+ede-umem_dmabuf_jgg@nvidia.com>
+Subject: [PATCH 4/4] RDMA/mlx5: Enable ATS support for MRs and umems
+Date:   Thu,  1 Sep 2022 11:20:56 -0300
+Message-Id: <4-v1-bd147097458e+ede-umem_dmabuf_jgg@nvidia.com>
 In-Reply-To: <0-v1-bd147097458e+ede-umem_dmabuf_jgg@nvidia.com>
 References: 
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: MN2PR01CA0007.prod.exchangelabs.com (2603:10b6:208:10c::20)
- To MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
+X-ClientProxiedBy: MN2PR15CA0002.namprd15.prod.outlook.com
+ (2603:10b6:208:1b4::15) To MN2PR12MB4192.namprd12.prod.outlook.com
+ (2603:10b6:208:1d5::15)
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 9e4e12a6-d60d-496c-015d-08da8c253009
-X-MS-TrafficTypeDiagnostic: BY5PR12MB5000:EE_
+X-MS-Office365-Filtering-Correlation-Id: 98e81480-a7f3-4b36-c5d3-08da8c25300d
+X-MS-TrafficTypeDiagnostic: IA1PR12MB6041:EE_
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: pDIhVsbNPCH+LhanUheLaUnlGaYL1t0kAYkMcEFk7HH6dbs2Lero7nX8e0hrGuY7rZARQW4B6415QmY63s5m2X+TSJ/7b+gP4hfid6K4MnfwamloC5R2XOBxe+SyUGKYG+2p5PrGBXJwBFhhgnXtYfwZbHf2dtYRzGl0NfXnRk5s72fsd4d720RKSDelHTZTZQwj3pOf/BKHYLrOeMSxO2KOOQ5iorgJ9ydF6BLnqB57wiDOYfKvs0JLCC0KVQX39qRwJMNOajOKLaQ7YTJZWXsnQEI//H0ACkW21qxu2hAEDGQx3r3lk4MjxKSOBaga2c2SQpUL1RjlTOLIL1DbAmR1/Oy2uDFFahiZDZ486bI4UrCQ8O+O8/tBPcDxmnIbaGtaKHBBJlmpcg0IsD5XzwSPU0p3gOkjMeLhgbMGu7K05kKntJni2xThuq9oyXtVdTHMHxTPs73rze7jlsc/L8O9iToIKoTUIIzAc/Jgh/4uizYPQ1MirPXt4jRn2401OtNxH7qKlVYRlW/ShZxVXGWRn1uq/Hk5Nq0QYXEwARdh65d22iFhBJMeAH5ac8wsujBh3CeLzfdZ+r/N6KeC2dj2t09HKm5FvoyzzmkkKWdCXzTh93QSZ0CC+FJcUhFz7NSbTylkE1uBo3CxQzykzVOG2f+ejXXS76902UqgQaYrTD+dVI6chZiincaTmkAXEt8kRXdgd6UBzmpAG0tDZgukU48HQxXKJ+wCYwFdRHwhU2Au2iKPmb67+NRmBnck
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(39860400002)(376002)(346002)(136003)(366004)(396003)(6512007)(66946007)(4326008)(5660300002)(66476007)(6666004)(6506007)(478600001)(107886003)(8676002)(66556008)(6486002)(8936002)(86362001)(41300700001)(83380400001)(2906002)(2616005)(26005)(38100700002)(186003)(316002)(36756003)(110136005)(54906003)(4216001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: 2XjB1Vb6mgSsjXuPyIquXbqc2YtrnGtu1V/byME1PLJM599L1edw8l0T6TLuzlIPTvpuQ5+BVz8lq5GdqkF3dT0rZMhQicgg3cNcqez3SvfRF9v5KoG+dW7BVwIBog+PYMo1+o83Fhbr7TMEQfscniFurhEOGgpfEwCHTxTERGAiNOEv8uTSZo5zIB5o3ozQTSnC9uBx4xIEqsn7l/3xGrUBwxcdzmPkE0WnkoD1xgKV5UVGzf9Q6t4B7qCDlldp7dlsKVKkSDRghuXFsUzOMNl0Pqz7TnMv+VFU7SlwMoLBprdVMLGHTz7p141exvJtYeo39Z6gMKBDHvAYqqop/pEmz+92mIXVL7+qiTkWOnZLD4GKT8lpeFEg6JCRjW3dW7yyM9YRG2Nv8CEkQ8i3faEUGRjlpTWvSZ9PQVhIAwYsBzGEodc8Q43miHbpX6wK3H0RPrXzSWLYDf3p3XLjTSUoOFKO0RfgVd8/6dhnYp46iK8cvdtK7eET7kP+gFlh8asRutew+edCSkLm+1wtQrIZgFl3aaZWrQJTYSfx501Pd+XQO6nFlpRVSOdp3sMLzcjp26f8HT+cQ+dzx45OdsmmseXt8WLTmj/17fte80mg3oTgTS5cK4fLZtDEAnWxqOhsAiiZZqtEIEdZYF8vUYYvLYJ7HV5HoHASHzmdvBW3Z4YMoE36Y1AsieVr2UaYg8EIgVZG5kwjyZWt+RSPky727HBqC3gNuxqfaCfD+IcWWY8LlxXp2ThxA6Z0vVDG
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(346002)(136003)(396003)(39860400002)(366004)(376002)(6512007)(2616005)(107886003)(26005)(2906002)(38100700002)(6506007)(83380400001)(186003)(4326008)(66556008)(110136005)(8676002)(6486002)(66476007)(54906003)(66946007)(8936002)(316002)(41300700001)(5660300002)(36756003)(86362001)(478600001)(4216001);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?UKAP33sN7HmkgVXsDBVvWQEhWbPRMDmw/iLMiUsV8ThAzAdGlYubAp8NbzN7?=
- =?us-ascii?Q?eYeXjcAjlxp3rGVGt2m2BSn6WJtuR91xB1OPI+BamoAcbuHe3f8TSLy9c3mm?=
- =?us-ascii?Q?sd2EVniUrece6LnuGT75txH7gKjsDK+LQ95e7R9LxE5HhANp+hH60zPOt+Zl?=
- =?us-ascii?Q?2kd4tPCxm9XqGiqUj77prExKaI8txIviBk4+QBPyIZx53SDsOImHAtvDlGVH?=
- =?us-ascii?Q?GHwn36lewtfhXDu9lgemDYzOpATLJKFhB77AW4Kveh19XgFUv6pzGGb0C1NX?=
- =?us-ascii?Q?Cm0pxb8P7GuOQwKGXh+41Eiy64qJBuLZrguJWJwgiFmjaxd+HxmZJZ1TcVdM?=
- =?us-ascii?Q?/heR/jtGHunaR24dp95KV1sx6TWGFdy20peNHVc1pMvvu/fZmsDuqi4ke7Zi?=
- =?us-ascii?Q?qACzz9SaXmmYK8iNqILxuCGYRp0yPTQz1NC+F1L+PRULtxWnqy3LoO4e3F8I?=
- =?us-ascii?Q?ezK14ABC7TqAMXQ0gRU7GSi99TOGYOySXim9CRKWa+vzQiRpeGv3RLA1iv7+?=
- =?us-ascii?Q?MLsux9v/7UcvX5vE4nbwVuASTjxdEnsapifeJ79ByhkffsEVMoQK6z26NOX9?=
- =?us-ascii?Q?jWMe31qEXLag0Zwvtlo+XOWgtDDpfNIZw42CxMuCEcgnLf+2QUeGDuEYvoQ3?=
- =?us-ascii?Q?Cigf/0TZbT8jyUjCrVVKtQDsFskelfB7MrDH1yMHUmR/T7ZvoQsRzff9Gog4?=
- =?us-ascii?Q?PgBwuDtToI89wJ+zXUcaPxcI8po0F8DdYHpK0wVeq+o74CT4nuOqugpTUaDH?=
- =?us-ascii?Q?Ts/YEEzcriQ3b/ZbkbTmcAPyvczMFFhxq98k03up9nPESlaGjzpnd/Xc6UVc?=
- =?us-ascii?Q?3YljU0AQNM+oJ+tteye8vccTPkMNT/BVSevKlHK8O0JcwC29TTPR5sF2IBf7?=
- =?us-ascii?Q?CKrl3cDLTjJduUPomZfX1x4KPY3oNHUqKXxomHhiprsxMSpl1Wa0REL17cMr?=
- =?us-ascii?Q?GmMyCrgla486trzuOejP9CS/RL3E5jYpu5qpkEMbgJCPeDtKjYfjqHVNYfcK?=
- =?us-ascii?Q?9vTWU4wKVDdsqcZbc3/fdTnMFKcEZWvIlo5jyZeRwYKNF4mnnU8aaDHQv9tL?=
- =?us-ascii?Q?M+QdVTaOx3rML99BAqnx5QW1QXHZa/okrLP5nErLILJYrKRrpNUa/vwT+oKw?=
- =?us-ascii?Q?/Jq2y8TIR3LH3BRI46s4YiSVotDeKPYcObYD7QesOajWpSnzrcuw+seSAIOj?=
- =?us-ascii?Q?EW/f2Z+LqqteX82zexU2UYGXriRFkZLa0Sxqv13mXm19ZoMB5GrUb6KW1Ab5?=
- =?us-ascii?Q?8AD+JbjQJNfzitK4o6co6HZBrtJPQRGl445yA0sDoF70yiVimFPqTTw+mfln?=
- =?us-ascii?Q?pSIbiRMAP7SqT07hAJyJOKvHGIyR/KRRc/dCiqgqh/BeTgIi/EWdBhp9PeoR?=
- =?us-ascii?Q?TzmcvqW2wP1ceR/q/YaVfrihBKURFMFLVescSqODH8oGF7giiP2FwMfaLvPY?=
- =?us-ascii?Q?dTxcUhG8/erM6pqIx20idLDVAZ2Y0sDlJ6uJV3LQEviab4+DGLGGnW0kS95i?=
- =?us-ascii?Q?itfWtoHh5PcS/2+JyZs+VXj0Wt6TcDleOPzxgXgFWEuYkQLjz5fcvHRP914O?=
- =?us-ascii?Q?3X8Br9AEXwdn1TKRkIe26/2FoQXGVXaAmj2uRdag?=
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?X72JPHBzAwSalejS6P0B+j4HymKeRtfD+mfUxzwebzUGQ+MpxS3eh4Lt5ZkN?=
+ =?us-ascii?Q?DilqxdyY2erBGt7wD0rZ/KzFvjezT72ClF5fRftyJopgRP9InoNCWnieIRJj?=
+ =?us-ascii?Q?y9gFKeDldsmYoqyotpUYgLgMcy3G3iiPToYkObiWbwa2SVYNg94PO9hmuQMY?=
+ =?us-ascii?Q?ruLMc2R9aQuVrkkiTgkssBQJ7ehRQVRJks09f/EZ8JCtGl1TPM2Vb6VuUl02?=
+ =?us-ascii?Q?xYFwKngJfPn6sNV5BLtiMMXvzQB6eTdKZAC9I6fp4rhpOyRv29QNFYWsKKDZ?=
+ =?us-ascii?Q?rUiiC+b0v4MGN3dXkx7SZxjmjfCKN37eLdNpQXvbGrhfTP5V0UVhwr+TBz/j?=
+ =?us-ascii?Q?0oXaoTujCvf9eCSdt+EHbt1dlKEYy7UgwovcEZgJZ1g/YZUKzA26Ho3kvdh/?=
+ =?us-ascii?Q?FKpnI6JixJpQuL5RqtSL00/6DjJgrm52Rm5xqR/t98OVaOo5VbHphmoqKtMf?=
+ =?us-ascii?Q?GsG7swpQ8h/FZCHs2xd835/hfDMDkXGraQNDT1Rl65PZobc7F588IEgrN/A1?=
+ =?us-ascii?Q?7/xWfzJNKyDzGcIYE6AgjKBuvhv4QvH6lGiBXQcSybFK3kW+77FylnGjgn4M?=
+ =?us-ascii?Q?Km3AV206A4/AHBgvX/mqaCTW147eHNVYfs3J64gEKMEnPWxB2ijss4Jlhy6W?=
+ =?us-ascii?Q?N7DorshdTrzQ/BvkB3TtlbhRX3qjPDL5qPcgBqSTIWAQpA07K3TBaNWczXf4?=
+ =?us-ascii?Q?K+Xkt0D6hm5csbeY2Id1eUEwzGowes+8+nLTlKsPOrVK0BkSXbeGFskaDzXR?=
+ =?us-ascii?Q?JyiXzZjrkn0TfV3/X489ELdSx+8REj0VE1DHr7f0cKVfzwQRon8RUurPKwaM?=
+ =?us-ascii?Q?hA9i6b1uhzVTQTGKwGjRm0bQz1pwQMrFJvEzWJ5vyw3Y7HBGkSQtYGp2crL8?=
+ =?us-ascii?Q?yEU2R5VejcEOX/gHY/Y51PHhPWU3u2OMhClWFa3oPg7qzhqrAY6N6LmpciCq?=
+ =?us-ascii?Q?d9w594wIq2R5aebolEuaOldsT9AmC9QOMEOaoxCZBsj3B9sBUrIBKJICJWro?=
+ =?us-ascii?Q?pJncjDY4Y0jIcSy5gVgoPkR8EU3eHW3LtJ/kZojNGn1u78Gq7OENtsFJawzt?=
+ =?us-ascii?Q?oj6XVNI49jmjiMlZsS6Lmv0quemirZ++mY6k5CPquEYqFievv4gfaLAgUyY6?=
+ =?us-ascii?Q?TXj2kDmZs/HNAgkOBnHIdnujyhaan3UFDcJ6/2iq5/IAQTkyXBCHXFG1gKro?=
+ =?us-ascii?Q?B+I96vjVYg+2IkGxllpHIQ+3gc7s+/qkmwVIbFoKisE4291cHBqRALI4PBfX?=
+ =?us-ascii?Q?vl7+3xvYoRHIOLR4Pzx7ntiEJJikPT0IBEC92/jIbLglIrAxcqB87AZdgATB?=
+ =?us-ascii?Q?bPq+ncFLDDJjc2rn5hylcP3HdTY4Q0VXoJd1R8DrzwcWxoxypKJbzgiJrsVs?=
+ =?us-ascii?Q?fpV8RjbtlVF1jqMy/BnRl5g9NzfwFsC45sYZMwRPa9eOZ20JHimQi+lfU80c?=
+ =?us-ascii?Q?We9ROhYXzLhAftZd2SO+drRiC8iwyTjCyfVZEGNhfViouxk3tlmRGEW3lTzo?=
+ =?us-ascii?Q?a+JDdm76hLRbijA8xxkyUv0NUzaRiLbwD4/aDmDteJc5gE7ueINhkw+FJAe3?=
+ =?us-ascii?Q?yPoz6fjepfpi67UyZned51mGqvpgnwyJ7u+Khd5m?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9e4e12a6-d60d-496c-015d-08da8c253009
+X-MS-Exchange-CrossTenant-Network-Message-Id: 98e81480-a7f3-4b36-c5d3-08da8c25300d
 X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Sep 2022 14:20:57.5171
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Sep 2022 14:20:57.5796
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 3MayONxtN/zL4PW7xCehQvlc2ay4mi/jVluEOkJMaoVCyd0vXa+ydBenYoQ9bb9D
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR12MB5000
+X-MS-Exchange-CrossTenant-UserPrincipalName: 6H7cld3vBDck1/Y4kymq3qaWLmIZ/6tmtnJC5D74eRUZ9WrbE/gjG08szHhsdzke
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6041
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This uses the same passing protocol as UVERBS_ATTR_FD (eg len = 0 data_s64
-= fd), except that the FD is not required to be a uverbs object and the
-core code does not covert the FD to an object handle automatically.
+For mlx5 if ATS is enabled in the PCI config then the device will use ATS
+requests for only certain DMA operations. This has to be opted in by the
+SW side based on the mkey or umem settings.
 
-Access to the int fd is provided by uverbs_get_raw_fd().
+ATS slows down the PCI performance, so it should only be set in cases when
+it is needed. All of these cases revolve around optimizing PCI P2P
+transfers and avoiding bad cases where the bus just doesn't work.
 
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/infiniband/core/uverbs_ioctl.c |  8 ++++++++
- include/rdma/uverbs_ioctl.h            | 13 +++++++++++++
- 2 files changed, 21 insertions(+)
+ drivers/infiniband/hw/mlx5/devx.c    | 37 ++++++++++++++++------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 36 +++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/mr.c      |  5 +++-
+ 3 files changed, 61 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index 990f0724acc6b6..d9799706c58e99 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -337,6 +337,14 @@ static int uverbs_process_attr(struct bundle_priv *pbundle,
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 291e73d7928276..c900977e6ccdb7 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -2158,26 +2158,17 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_SUBSCRIBE_EVENT)(
  
- 		break;
+ static int devx_umem_get(struct mlx5_ib_dev *dev, struct ib_ucontext *ucontext,
+ 			 struct uverbs_attr_bundle *attrs,
+-			 struct devx_umem *obj)
++			 struct devx_umem *obj, u32 access_flags)
+ {
+ 	u64 addr;
+ 	size_t size;
+-	u32 access;
+ 	int err;
  
-+	case UVERBS_ATTR_TYPE_RAW_FD:
-+		if (uattr->attr_data.reserved || uattr->len != 0 ||
-+		    uattr->data_s64 < INT_MIN || uattr->data_s64 > INT_MAX)
-+			return -EINVAL;
-+		/* _uverbs_get_const_signed() is the accessor */
-+		e->ptr_attr.data = uattr->data_s64;
-+		break;
+ 	if (uverbs_copy_from(&addr, attrs, MLX5_IB_ATTR_DEVX_UMEM_REG_ADDR) ||
+ 	    uverbs_copy_from(&size, attrs, MLX5_IB_ATTR_DEVX_UMEM_REG_LEN))
+ 		return -EFAULT;
+ 
+-	err = uverbs_get_flags32(&access, attrs,
+-				 MLX5_IB_ATTR_DEVX_UMEM_REG_ACCESS,
+-				 IB_ACCESS_LOCAL_WRITE |
+-				 IB_ACCESS_REMOTE_WRITE |
+-				 IB_ACCESS_REMOTE_READ);
+-	if (err)
+-		return err;
+-
+-	err = ib_check_mr_access(&dev->ib_dev, access);
++	err = ib_check_mr_access(&dev->ib_dev, access_flags);
+ 	if (err)
+ 		return err;
+ 
+@@ -2191,12 +2182,12 @@ static int devx_umem_get(struct mlx5_ib_dev *dev, struct ib_ucontext *ucontext,
+ 			return -EFAULT;
+ 
+ 		umem_dmabuf = ib_umem_dmabuf_get_pinned(
+-			&dev->ib_dev, addr, size, dmabuf_fd, access);
++			&dev->ib_dev, addr, size, dmabuf_fd, access_flags);
+ 		if (IS_ERR(umem_dmabuf))
+ 			return PTR_ERR(umem_dmabuf);
+ 		obj->umem = &umem_dmabuf->umem;
+ 	} else {
+-		obj->umem = ib_umem_get(&dev->ib_dev, addr, size, access);
++		obj->umem = ib_umem_get(&dev->ib_dev, addr, size, access_flags);
+ 		if (IS_ERR(obj->umem))
+ 			return PTR_ERR(obj->umem);
+ 	}
+@@ -2238,7 +2229,8 @@ static unsigned int devx_umem_find_best_pgsize(struct ib_umem *umem,
+ static int devx_umem_reg_cmd_alloc(struct mlx5_ib_dev *dev,
+ 				   struct uverbs_attr_bundle *attrs,
+ 				   struct devx_umem *obj,
+-				   struct devx_umem_reg_cmd *cmd)
++				   struct devx_umem_reg_cmd *cmd,
++				   int access)
+ {
+ 	unsigned long pgsz_bitmap;
+ 	unsigned int page_size;
+@@ -2287,6 +2279,9 @@ static int devx_umem_reg_cmd_alloc(struct mlx5_ib_dev *dev,
+ 	MLX5_SET(umem, umem, page_offset,
+ 		 ib_umem_dma_offset(obj->umem, page_size));
+ 
++	if (mlx5_umem_needs_ats(dev, obj->umem, access))
++		MLX5_SET(umem, umem, ats, 1);
 +
- 	case UVERBS_ATTR_TYPE_IDRS_ARRAY:
- 		return uverbs_process_idrs_array(pbundle, attr_uapi,
- 						 &e->objs_arr_attr, uattr,
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index 23bb404aba12c0..9d45a5b203169e 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -24,6 +24,7 @@ enum uverbs_attr_type {
- 	UVERBS_ATTR_TYPE_PTR_OUT,
- 	UVERBS_ATTR_TYPE_IDR,
- 	UVERBS_ATTR_TYPE_FD,
-+	UVERBS_ATTR_TYPE_RAW_FD,
- 	UVERBS_ATTR_TYPE_ENUM_IN,
- 	UVERBS_ATTR_TYPE_IDRS_ARRAY,
- };
-@@ -521,6 +522,11 @@ struct uapi_definition {
- 			  .u.obj.access = _access,                             \
- 			  __VA_ARGS__ } })
+ 	mlx5_ib_populate_pas(obj->umem, page_size, mtt,
+ 			     (obj->umem->writable ? MLX5_IB_MTT_WRITE : 0) |
+ 				     MLX5_IB_MTT_READ);
+@@ -2304,20 +2299,30 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_UMEM_REG)(
+ 	struct mlx5_ib_ucontext *c = rdma_udata_to_drv_context(
+ 		&attrs->driver_udata, struct mlx5_ib_ucontext, ibucontext);
+ 	struct mlx5_ib_dev *dev = to_mdev(c->ibucontext.device);
++	int access_flags;
+ 	int err;
  
-+#define UVERBS_ATTR_RAW_FD(_attr_id, ...)                                      \
-+	(&(const struct uverbs_attr_def){                                      \
-+		.id = (_attr_id),                                              \
-+		.attr = { .type = UVERBS_ATTR_TYPE_RAW_FD, __VA_ARGS__ } })
+ 	if (!c->devx_uid)
+ 		return -EINVAL;
+ 
++	err = uverbs_get_flags32(&access_flags, attrs,
++				 MLX5_IB_ATTR_DEVX_UMEM_REG_ACCESS,
++				 IB_ACCESS_LOCAL_WRITE |
++				 IB_ACCESS_REMOTE_WRITE |
++				 IB_ACCESS_REMOTE_READ |
++				 IB_ACCESS_RELAXED_ORDERING);
++	if (err)
++		return err;
 +
- #define UVERBS_ATTR_PTR_IN(_attr_id, _type, ...)                               \
- 	(&(const struct uverbs_attr_def){                                      \
- 		.id = _attr_id,                                                \
-@@ -999,4 +1005,11 @@ _uverbs_get_const_unsigned(u64 *to,
- 		 uverbs_get_const_default_unsigned(_to, _attrs_bundle, _idx,   \
- 						    _default))
+ 	obj = kzalloc(sizeof(struct devx_umem), GFP_KERNEL);
+ 	if (!obj)
+ 		return -ENOMEM;
  
-+static inline int
-+uverbs_get_raw_fd(int *to, const struct uverbs_attr_bundle *attrs_bundle,
-+		  size_t idx)
+-	err = devx_umem_get(dev, &c->ibucontext, attrs, obj);
++	err = devx_umem_get(dev, &c->ibucontext, attrs, obj, access_flags);
+ 	if (err)
+ 		goto err_obj_free;
+ 
+-	err = devx_umem_reg_cmd_alloc(dev, attrs, obj, &cmd);
++	err = devx_umem_reg_cmd_alloc(dev, attrs, obj, &cmd, access_flags);
+ 	if (err)
+ 		goto err_umem_release;
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 2e2ad391838583..7e2c4a3782209d 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1550,4 +1550,40 @@ static inline bool rt_supported(int ts_cap)
+ 	return ts_cap == MLX5_TIMESTAMP_FORMAT_CAP_REAL_TIME ||
+ 	       ts_cap == MLX5_TIMESTAMP_FORMAT_CAP_FREE_RUNNING_AND_REAL_TIME;
+ }
++
++/*
++ * PCI Peer to Peer is a trainwreck. If no switch is present then things
++ * sometimes work, depending on the pci_distance_p2p logic for excluding broken
++ * root complexes. However if a switch is present in the path, then things get
++ * really ugly depending on how the switch is setup. This table assumes that the
++ * root complex is strict and is validating that all req/reps are matches
++ * perfectly - so any scenario where it sees only half the transaction is a
++ * failure.
++ *
++ * CR/RR/DT  ATS RO P2P
++ * 00X       X   X  OK
++ * 010       X   X  fails (request is routed to root but root never sees comp)
++ * 011       0   X  fails (request is routed to root but root never sees comp)
++ * 011       1   X  OK
++ * 10X       X   1  OK
++ * 101       X   0  fails (completion is routed to root but root didn't see req)
++ * 110       X   0  SLOW
++ * 111       0   0  SLOW
++ * 111       1   0  fails (completion is routed to root but root didn't see req)
++ * 111       1   1  OK
++ *
++ * Unfortunately we cannot reliably know if a switch is present or what the
++ * CR/RR/DT ACS settings are, as in a VM that is all hidden. Assume that
++ * CR/RR/DT is 111 if the ATS cap is enabled and follow the last three rows.
++ *
++ * For now assume if the umem is a dma_buf then it is P2P.
++ */
++static inline bool mlx5_umem_needs_ats(struct mlx5_ib_dev *dev,
++				       struct ib_umem *umem, int access_flags)
 +{
-+	return uverbs_get_const_signed(to, attrs_bundle, idx);
++	if (!MLX5_CAP_GEN(dev->mdev, ats) || !umem->is_dmabuf)
++		return false;
++	return access_flags & IB_ACCESS_RELAXED_ORDERING;
 +}
 +
- #endif
+ #endif /* MLX5_IB_H */
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 129d531bd01bc8..7fd3adea370290 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -937,7 +937,8 @@ static struct mlx5_ib_mr *alloc_cacheable_mr(struct ib_pd *pd,
+ 	 * cache then synchronously create an uncached one.
+ 	 */
+ 	if (!ent || ent->limit == 0 ||
+-	    !mlx5r_umr_can_reconfig(dev, 0, access_flags)) {
++	    !mlx5r_umr_can_reconfig(dev, 0, access_flags) ||
++	    mlx5_umem_needs_ats(dev, umem, access_flags)) {
+ 		mutex_lock(&dev->slow_path_mutex);
+ 		mr = reg_create(pd, umem, iova, access_flags, page_size, false);
+ 		mutex_unlock(&dev->slow_path_mutex);
+@@ -1018,6 +1019,8 @@ static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, struct ib_umem *umem,
+ 	MLX5_SET(mkc, mkc, translations_octword_size,
+ 		 get_octo_len(iova, umem->length, mr->page_shift));
+ 	MLX5_SET(mkc, mkc, log_page_size, mr->page_shift);
++	if (mlx5_umem_needs_ats(dev, umem, access_flags))
++		MLX5_SET(mkc, mkc, ma_translation_mode, 1);
+ 	if (populate) {
+ 		MLX5_SET(create_mkey_in, in, translations_octword_actual_size,
+ 			 get_octo_len(iova, umem->length, mr->page_shift));
 -- 
 2.37.2
 
