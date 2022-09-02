@@ -2,131 +2,79 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B54E5ECAAD5
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Sep 2022 19:16:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A174ECAAA1
+	for <linux-rdma@archiver.kernel.org>; Fri,  2 Sep 2022 22:02:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229585AbiIBTQW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 2 Sep 2022 15:16:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55204 "EHLO
+        id S231446AbiIBWCy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 2 Sep 2022 18:02:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229484AbiIBTQV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Sep 2022 15:16:21 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60A172871B
-        for <linux-rdma@vger.kernel.org>; Fri,  2 Sep 2022 12:16:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1662146180; x=1693682180;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=5UQGGp6qhyGi26kiVY2gy/Acet61+ruqlv08GiDqyH4=;
-  b=cqkb5ySm/Q8c36oheI0CwMvqQcdQDSf0COUt8TEvSiFbP5k8aGMePcRV
-   lfbppNUpEKLQlGNxvEbZhKKgqJI75s4R4lNfnR57Rj4plPFqveXYRYaON
-   HyEHGRribJPzjegdMoFtSTVfx0dT9K1NSjDc2qv+xGNaeUbJpohlB5gM2
-   IWTyLIuFkhJDXM61eYTJFhFry3NGvND2P5fxlmeXVwxgvCsannOaH+DoF
-   Dhz5IQf+VqWASMoaHlkcbgFG18he413Jpd8qcafSXJvfxgA8CSHjewbxS
-   ztu1uRnXDHTuUeC3yzQJ3VVK7KJ2CPs9zIk/FGP8RhpaH0/WGpQw3Fy/g
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10458"; a="279081136"
-X-IronPort-AV: E=Sophos;i="5.93,285,1654585200"; 
-   d="scan'208";a="279081136"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2022 12:16:20 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,285,1654585200"; 
-   d="scan'208";a="646216902"
-Received: from lkp-server02.sh.intel.com (HELO 95dfd251caa2) ([10.239.97.151])
-  by orsmga001.jf.intel.com with ESMTP; 02 Sep 2022 12:16:18 -0700
-Received: from kbuild by 95dfd251caa2 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1oUC9J-0000VJ-1M;
-        Fri, 02 Sep 2022 19:16:17 +0000
-Date:   Sat, 3 Sep 2022 03:15:34 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Guoqing Jiang <guoqing.jiang@linux.dev>, haris.iqbal@ionos.com,
-        jinpu.wang@ionos.com, jgg@ziepe.ca, leon@kernel.org
-Cc:     kbuild-all@lists.01.org, linux-rdma@vger.kernel.org
-Subject: Re: [PATCH 3/3] RDMA/rtrs-clt: Kill xchg_paths
-Message-ID: <202209030331.GmBYWKZb-lkp@intel.com>
-References: <20220902101922.26273-4-guoqing.jiang@linux.dev>
+        with ESMTP id S231530AbiIBWCf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Sep 2022 18:02:35 -0400
+Received: from mail-ed1-x52a.google.com (mail-ed1-x52a.google.com [IPv6:2a00:1450:4864:20::52a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCA1F37FA8
+        for <linux-rdma@vger.kernel.org>; Fri,  2 Sep 2022 15:01:39 -0700 (PDT)
+Received: by mail-ed1-x52a.google.com with SMTP id t5so4322770edc.11
+        for <linux-rdma@vger.kernel.org>; Fri, 02 Sep 2022 15:01:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=X2ygozQyBm6cAvEpqCdHcgYhvvowICsnm856eESGrmQ=;
+        b=vre1Hhrq6UWw3Hh93Etn3MOzxkC1ZvC5vOhXnROsOJ5nsy1ykZWNKA99+Bfwmbiq9d
+         e7fFjX0wgk+/UcC9AxGqpI5TWjK29dCAJ6lLH/eHlLNi3BIAg1QPClMrtfnFrDg4COLT
+         GlJ/wd1OGAcQSTlxeKOCPqboCATFkIkCokOGQjmIM0S+j5glk7LWgL+CImGn88a5M53v
+         jBLgJrdz82pLEW1e/0akw6Tursp7SsfP3GDPNi95hCyTCj62FCHjeIc13QX3bU8qiq8B
+         wtlhvcwTK+7MkNxcbzo1qBZsKQ7VGaeDnDk/Ba3+obx6tHimrt08e3ZELcsIs5ngyXk1
+         T29w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=X2ygozQyBm6cAvEpqCdHcgYhvvowICsnm856eESGrmQ=;
+        b=K3cLelWQc0fiyqDMw9E8Ds6Nzq268edo8e9WmuuvoqSP6MEBvOjJ5vUSkdoyVAh+3F
+         GU3T6cbrD/G/yAHY4lyDXHQZIHojKNiiYNPWGQzgHWt5HyY3AE7XBe0wwb52vIiZWS7H
+         Oup903qRCE2O6dERitCjbKO0fUKq4Pazodw6bHuyEfuvZoi37SO8J6hv9TxKlPY5aOvK
+         haZ2prBQWjcGdgNen0A2LkUC6fwav+TOCC8i0CuMIgZDOLqczGs/trC5pAaMY9UYAdXX
+         YqP53OM2wDZ7hEFUlYiZ9mo95L8FH0qXXt/1Tf9n97x7QC8ikUfeYMLO2URVFksF4zgG
+         YdnA==
+X-Gm-Message-State: ACgBeo1Z7T9X2j9QJIFQvRXkhubPJqan7t0BN3O0BIVQzp6B3Zm8qIzX
+        UmZsyWpoeabO/xXbY6VKb6DDyYm9YF0hLq0xZWyY5Q==
+X-Google-Smtp-Source: AA6agR77vJPBFHJS3QcyTB954ZTFsKZTU1n5/3PCkL1nLZl1zyKrPVcFnKQabwIfGKmZC0cwrKkB3EmFnay02jCyXXs=
+X-Received: by 2002:a05:6402:641:b0:446:d:bd64 with SMTP id
+ u1-20020a056402064100b00446000dbd64mr34562834edx.32.1662156069307; Fri, 02
+ Sep 2022 15:01:09 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220902101922.26273-4-guoqing.jiang@linux.dev>
+References: <20220901133056.570396-1-linus.walleij@linaro.org> <SA0PR15MB391974392E37FF66792171BA997B9@SA0PR15MB3919.namprd15.prod.outlook.com>
+In-Reply-To: <SA0PR15MB391974392E37FF66792171BA997B9@SA0PR15MB3919.namprd15.prod.outlook.com>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Sat, 3 Sep 2022 00:00:57 +0200
+Message-ID: <CACRpkdaseb5BfRebewQ6_4mgu_1nmtLXEvNejSF1OUfuRaNekQ@mail.gmail.com>
+Subject: Re: [PATCH v2] RDMA/siw: Pass a pointer to virt_to_page()
+To:     Bernard Metzler <BMT@zurich.ibm.com>
+Cc:     Jason Gunthorpe <jgg@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Guoqing,
+On Thu, Sep 1, 2022 at 3:47 PM Bernard Metzler <BMT@zurich.ibm.com> wrote:
 
-Thank you for the patch! Yet something to improve:
+> Thanks Linus! Code looks good to me. For a decent patch,
+> add a Fixes line and resend. It fixes commit
+> b9be6f18cf9e rdma/siw: transmit path.
 
-[auto build test ERROR on rdma/for-next]
-[also build test ERROR on linus/master v6.0-rc3 next-20220901]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+OK added it and sent v3
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Guoqing-Jiang/misc-changes-for-rtrs/20220902-182137
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-config: parisc64-allmodconfig (https://download.01.org/0day-ci/archive/20220903/202209030331.GmBYWKZb-lkp@intel.com/config)
-compiler: hppa-linux-gcc (GCC) 12.1.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/1cb28fde63a272543476132ec83f6eb121111fae
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Guoqing-Jiang/misc-changes-for-rtrs/20220902-182137
-        git checkout 1cb28fde63a272543476132ec83f6eb121111fae
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=parisc SHELL=/bin/bash drivers/infiniband/ulp/rtrs/
+> I also found the description of what your patch does
+> a little to verbose, but that is maybe just my taste,
+> preferring a very crisp and short description ;)
 
-If you fix the issue, kindly add following tag where applicable
-Reported-by: kernel test robot <lkp@intel.com>
+That's a matter of taste so I wouldn't know what to write
+other than that you want less. Whoever applies the patch is free
+to edit, cut and write whatever commit message they like.
 
-All errors (new ones prefixed by >>):
-
-   In file included from include/linux/atomic.h:80,
-                    from arch/parisc/include/asm/bitops.h:13,
-                    from include/linux/bitops.h:67,
-                    from include/linux/log2.h:12,
-                    from include/asm-generic/div64.h:55,
-                    from ./arch/parisc/include/generated/asm/div64.h:1,
-                    from include/linux/math.h:6,
-                    from include/linux/math64.h:6,
-                    from include/linux/time.h:6,
-                    from include/linux/stat.h:19,
-                    from include/linux/module.h:13,
-                    from drivers/infiniband/ulp/rtrs/rtrs-clt.c:13:
-   drivers/infiniband/ulp/rtrs/rtrs-clt.c: In function 'rtrs_clt_remove_path_from_arr':
->> include/linux/atomic/atomic-arch-fallback.h:90:34: error: initialization of 'struct rtrs_clt_path **' from incompatible pointer type 'struct rtrs_clt_path *' [-Werror=incompatible-pointer-types]
-      90 |         typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-         |                                  ^
-   include/linux/atomic/atomic-instrumented.h:1978:9: note: in expansion of macro 'arch_try_cmpxchg'
-    1978 |         arch_try_cmpxchg(__ai_ptr, __ai_oldp, __VA_ARGS__); \
-         |         ^~~~~~~~~~~~~~~~
-   drivers/infiniband/ulp/rtrs/rtrs-clt.c:2297:21: note: in expansion of macro 'try_cmpxchg'
-    2297 |                 if (try_cmpxchg((typeof(ppcpu_path))ppcpu_path, clt_path, next))
-         |                     ^~~~~~~~~~~
-   cc1: some warnings being treated as errors
-
-
-vim +90 include/linux/atomic/atomic-arch-fallback.h
-
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  86  
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  87  #ifndef arch_try_cmpxchg
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  88  #define arch_try_cmpxchg(_ptr, _oldp, _new) \
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  89  ({ \
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29 @90  	typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  91  	___r = arch_cmpxchg((_ptr), ___o, (_new)); \
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  92  	if (unlikely(___r != ___o)) \
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  93  		*___op = ___r; \
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  94  	likely(___r == ___o); \
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  95  })
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  96  #endif /* arch_try_cmpxchg */
-29f006fdefe6f8 include/linux/atomic-arch-fallback.h Peter Zijlstra 2020-08-29  97  
-
--- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+Yours,
+Linus Walleij
