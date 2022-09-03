@@ -2,146 +2,106 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B39F5ECAAA1
-	for <linux-rdma@archiver.kernel.org>; Fri,  2 Sep 2022 22:03:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1545CC38145
+	for <linux-rdma@archiver.kernel.org>; Sat,  3 Sep 2022 04:04:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230507AbiIBWDF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 2 Sep 2022 18:03:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46460 "EHLO
+        id S229952AbiICEEV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 3 Sep 2022 00:04:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231516AbiIBWCq (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 2 Sep 2022 18:02:46 -0400
-Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DB535726A
-        for <linux-rdma@vger.kernel.org>; Fri,  2 Sep 2022 15:01:55 -0700 (PDT)
-Received: by mail-lf1-x12f.google.com with SMTP id bq23so5108315lfb.7
-        for <linux-rdma@vger.kernel.org>; Fri, 02 Sep 2022 15:01:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date;
-        bh=kFFiI7byvu9/4wAo+ABXvOasfdkwHI7P+cJA6WG0TyU=;
-        b=gHSa20jutWENA+tydUfxp09rV9o2ZUxQMpT/Jjmd23IvvS8LFX1sSDAJ44gqlLxk9R
-         V/iWniI4PuIp9j6znioV/hetjED9XLQIovf9yvQcZJTRcK3fnmGAXE7c3eR2lMrmzYUm
-         eYJJnkQum1Q4IH2o6QLdpllQGNUut2HigVeMolLPXs5/gYFrzuf9fyt2FkR0YssJKgkk
-         021v8oLH0sOiNZxlc+2GOAWHJrxL1WJHqa8z9w5/P2/sn5nRM8C6UDoStmunTYt5YVHk
-         7mLK1tNuuWBTzAp5m9cVGsnqwx/rYq7JkYgVR0O6WeK2BC3wXmqwLiBBZYuAG0U3e4WA
-         lfdg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date;
-        bh=kFFiI7byvu9/4wAo+ABXvOasfdkwHI7P+cJA6WG0TyU=;
-        b=ci5KnxccbDqGeC37+dCx/Izy0fkC1Ug/RxfJ+A4fnJgxwP5xWrpnlup6iWSznSI+zO
-         2tXqYQm0wd1wIHMBvGYr5Q9QPMjCz/TK0WI6k0GibNQulL+RFklEWkoxWkcAKH2OeR/B
-         B9ElveGA+raeNq+dilRD8A1IJOT/iIHB+WMrE4Sgo7fRZUkFi0NwCm+U/YYTm98ixFnM
-         RKfsHT+9goU80V7lNDmsp8VKvh8doudYZLO9txDeX2Ja0bQcvLztSfA8vt3jwHtZ1gBP
-         8sQxBqN77zNmwmNrDQxNL32DQF3n0aw5MoLkFX4ylhLBsNiXYuHdtnhLYKvTVGc2Q4w+
-         jMRQ==
-X-Gm-Message-State: ACgBeo1CbDqSCxY+kwqQifgengXcNw105ntorPlOYKnQiP8X5DDbWg7E
-        Xebdy5Z7//McC3q5oA0LTbuOog==
-X-Google-Smtp-Source: AA6agR6qHbmq1Cy6TPZlsJ6tjixQLJe+9SsO3tvAZwk2j/NeT8Nn9W3C32JQu16Aa1d89BJ9mBd9yg==
-X-Received: by 2002:a05:6512:6c5:b0:494:6bab:6cca with SMTP id u5-20020a05651206c500b004946bab6ccamr8174616lff.197.1662156082016;
-        Fri, 02 Sep 2022 15:01:22 -0700 (PDT)
-Received: from localhost.localdomain (c-fdcc225c.014-348-6c756e10.bbcust.telenor.se. [92.34.204.253])
-        by smtp.gmail.com with ESMTPSA id u9-20020a056512094900b0048b143c09c2sm361455lft.259.2022.09.02.15.01.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 02 Sep 2022 15:01:21 -0700 (PDT)
-From:   Linus Walleij <linus.walleij@linaro.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Bernard Metzler <BMT@zurich.ibm.com>
-Cc:     linux-rdma@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>
-Subject: [PATCH v3] RDMA/siw: Pass a pointer to virt_to_page()
-Date:   Fri,  2 Sep 2022 23:59:18 +0200
-Message-Id: <20220902215918.603761-1-linus.walleij@linaro.org>
-X-Mailer: git-send-email 2.37.2
+        with ESMTP id S229520AbiICEEU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 3 Sep 2022 00:04:20 -0400
+Received: from out0.migadu.com (out0.migadu.com [94.23.1.103])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12A9F120A3
+        for <linux-rdma@vger.kernel.org>; Fri,  2 Sep 2022 20:54:31 -0700 (PDT)
+Subject: Re: [PATCH 3/3] RDMA/rtrs-clt: Kill xchg_paths
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1662177269;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=2oKlpZuSoAcoai98ZQn5OpWkjNBi4K5GklWzXK8RLwk=;
+        b=o5L8VdXwec2XITcnvvqZJMPvBZCiSgDnOfme+BdUvx9Hy9pSAsw8LdOy96/+OWyLwhchf7
+        hUzpBbTScOGB/rBtgEKl6M2W6ZlvYCA9YR6cwkHXeSdII4UVA0sPcYYONx2DKZYxXLPS1O
+        28V6P7AxkChvUYyx2WwbQFPRa0PiCZE=
+To:     kernel test robot <lkp@intel.com>, haris.iqbal@ionos.com,
+        jinpu.wang@ionos.com, jgg@ziepe.ca, leon@kernel.org
+Cc:     kbuild-all@lists.01.org, linux-rdma@vger.kernel.org
+References: <20220902101922.26273-4-guoqing.jiang@linux.dev>
+ <202209030331.GmBYWKZb-lkp@intel.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Guoqing Jiang <guoqing.jiang@linux.dev>
+Message-ID: <1ac63952-ad51-7d6c-1776-689f3686a23a@linux.dev>
+Date:   Sat, 3 Sep 2022 11:54:24 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <202209030331.GmBYWKZb-lkp@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Functions that work on a pointer to virtual memory such as
-virt_to_pfn() and users of that function such as
-virt_to_page() are supposed to pass a pointer to virtual
-memory, ideally a (void *) or other pointer. However since
-many architectures implement virt_to_pfn() as a macro,
-this function becomes polymorphic and accepts both a
-(unsigned long) and a (void *).
 
-If we instead implement a proper virt_to_pfn(void *addr)
-function the following happens (occurred on arch/arm):
 
-drivers/infiniband/sw/siw/siw_qp_tx.c:32:23: warning: incompatible
-  integer to pointer conversion passing 'dma_addr_t' (aka 'unsigned int')
-  to parameter of type 'const void *' [-Wint-conversion]
-drivers/infiniband/sw/siw/siw_qp_tx.c:32:37: warning: passing argument
-  1 of 'virt_to_pfn' makes pointer from integer without a cast
-  [-Wint-conversion]
-drivers/infiniband/sw/siw/siw_qp_tx.c:538:36: warning: incompatible
-  integer to pointer conversion passing 'unsigned long long'
-  to parameter of type 'const void *' [-Wint-conversion]
+On 9/3/22 3:15 AM, kernel test robot wrote:
+> Hi Guoqing,
+>
+> Thank you for the patch! Yet something to improve:
+>
+> [auto build test ERROR on rdma/for-next]
+> [also build test ERROR on linus/master v6.0-rc3 next-20220901]
+> [If your patch is applied to the wrong git tree, kindly drop us a note.
+> And when submitting patch, we suggest to use '--base' as documented in
+> https://git-scm.com/docs/git-format-patch#_base_tree_information]
+>
+> url:    https://github.com/intel-lab-lkp/linux/commits/Guoqing-Jiang/misc-changes-for-rtrs/20220902-182137
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
+> config: parisc64-allmodconfig (https://download.01.org/0day-ci/archive/20220903/202209030331.GmBYWKZb-lkp@intel.com/config)
+> compiler: hppa-linux-gcc (GCC) 12.1.0
+> reproduce (this is a W=1 build):
+>          wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>          chmod +x ~/bin/make.cross
+>          # https://github.com/intel-lab-lkp/linux/commit/1cb28fde63a272543476132ec83f6eb121111fae
+>          git remote add linux-review https://github.com/intel-lab-lkp/linux
+>          git fetch --no-tags linux-review Guoqing-Jiang/misc-changes-for-rtrs/20220902-182137
+>          git checkout 1cb28fde63a272543476132ec83f6eb121111fae
+>          # save the config file
+>          mkdir build_dir && cp config build_dir/.config
+>          COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=parisc SHELL=/bin/bash drivers/infiniband/ulp/rtrs/
+>
+> If you fix the issue, kindly add following tag where applicable
+> Reported-by: kernel test robot <lkp@intel.com>
+>
+> All errors (new ones prefixed by >>):
+>
+>     In file included from include/linux/atomic.h:80,
+>                      from arch/parisc/include/asm/bitops.h:13,
+>                      from include/linux/bitops.h:67,
+>                      from include/linux/log2.h:12,
+>                      from include/asm-generic/div64.h:55,
+>                      from ./arch/parisc/include/generated/asm/div64.h:1,
+>                      from include/linux/math.h:6,
+>                      from include/linux/math64.h:6,
+>                      from include/linux/time.h:6,
+>                      from include/linux/stat.h:19,
+>                      from include/linux/module.h:13,
+>                      from drivers/infiniband/ulp/rtrs/rtrs-clt.c:13:
+>     drivers/infiniband/ulp/rtrs/rtrs-clt.c: In function 'rtrs_clt_remove_path_from_arr':
+>>> include/linux/atomic/atomic-arch-fallback.h:90:34: error: initialization of 'struct rtrs_clt_path **' from incompatible pointer type 'struct rtrs_clt_path *' [-Werror=incompatible-pointer-types]
+>        90 |         typeof(*(_ptr)) *___op = (_oldp), ___o = *___op, ___r; \
+>           |                                  ^
+>     include/linux/atomic/atomic-instrumented.h:1978:9: note: in expansion of macro 'arch_try_cmpxchg'
+>      1978 |         arch_try_cmpxchg(__ai_ptr, __ai_oldp, __VA_ARGS__); \
+>           |         ^~~~~~~~~~~~~~~~
+>     drivers/infiniband/ulp/rtrs/rtrs-clt.c:2297:21: note: in expansion of macro 'try_cmpxchg'
+>      2297 |                 if (try_cmpxchg((typeof(ppcpu_path))ppcpu_path, clt_path, next))
+>           |                     ^~~~~~~~~~~
+>     cc1: some warnings being treated as errors
 
-Fix this with an explicit cast. In one case where the SIW
-SGE uses an unaligned u64 we need a double cast modifying the
-virtual address (va) to a platform-specific uintptr_t before
-casting to a (void *).
+My bad, thanks for the report!
 
-Fixes: b9be6f18cf9e ("rdma/siw: transmit path")
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
-ChangeLog v2->v3:
-- Add Fixes: tag.
-ChangeLog v1->v2:
-- Change the local va variable to be uintptr_t, avoiding
-  double casts in two spots.
----
- drivers/infiniband/sw/siw/siw_qp_tx.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
-index 1f4e60257700..7d47b521070b 100644
---- a/drivers/infiniband/sw/siw/siw_qp_tx.c
-+++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
-@@ -29,7 +29,7 @@ static struct page *siw_get_pblpage(struct siw_mem *mem, u64 addr, int *idx)
- 	dma_addr_t paddr = siw_pbl_get_buffer(pbl, offset, NULL, idx);
- 
- 	if (paddr)
--		return virt_to_page(paddr);
-+		return virt_to_page((void *)paddr);
- 
- 	return NULL;
- }
-@@ -533,13 +533,23 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
- 					kunmap_local(kaddr);
- 				}
- 			} else {
--				u64 va = sge->laddr + sge_off;
-+				/*
-+				 * Cast to an uintptr_t to preserve all 64 bits
-+				 * in sge->laddr.
-+				 */
-+				uintptr_t va = (uintptr_t)(sge->laddr + sge_off);
- 
--				page_array[seg] = virt_to_page(va & PAGE_MASK);
-+				/*
-+				 * virt_to_page() takes a (void *) pointer
-+				 * so cast to a (void *) meaning it will be 64
-+				 * bits on a 64 bit platform and 32 bits on a
-+				 * 32 bit platform.
-+				 */
-+				page_array[seg] = virt_to_page((void *)(va & PAGE_MASK));
- 				if (do_crc)
- 					crypto_shash_update(
- 						c_tx->mpa_crc_hd,
--						(void *)(uintptr_t)va,
-+						(void *)va,
- 						plen);
- 			}
- 
--- 
-2.37.2
-
+Guoqing
