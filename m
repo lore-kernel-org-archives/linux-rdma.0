@@ -2,85 +2,144 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 703E6C54EE9
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Sep 2022 22:33:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0A9BECAAA1
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Sep 2022 02:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230108AbiIFWdN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Sep 2022 18:33:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39592 "EHLO
+        id S229449AbiIGClz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Sep 2022 22:41:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39682 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230106AbiIFWdL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Sep 2022 18:33:11 -0400
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9D9E8B2D2
-        for <linux-rdma@vger.kernel.org>; Tue,  6 Sep 2022 15:33:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1662503590; x=1694039590;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=e/d/YSWSQaLK85irF5TXWWeW2ABM85xnpz7Emrhaw0U=;
-  b=e9QPzPVbgazdE4QSLtjUZNngVTbIH6UCmNRIzBepYYvImxOTnn1cHQkW
-   1UuUd8iV4EYkjNoR94G9P/tGd4b8MFP6Ad/rkV23qIceqHnhW9HfwxiBz
-   Y1d3QB3Lol7/nUeqwQsidUr8/1LeJIwlfwYVHyUNTSWJJDmwOZI9f063L
-   fZTeT8/51EMLCuTf97UDXV9Forv040qjZGrquNc/R7z96HIL2XVG4huQG
-   LQp1ep8aGXkkS1zoo84az2m3TqAnFAaO1zNb7WP5gRoAehferXZPLeGnF
-   +SYyTht4XeAXUkx8oIppqcJPrZ9zT4nDCut/yDlGEfjVJ3UiYdVXTeFjw
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10462"; a="296724584"
-X-IronPort-AV: E=Sophos;i="5.93,294,1654585200"; 
-   d="scan'208";a="296724584"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2022 15:33:10 -0700
-X-IronPort-AV: E=Sophos;i="5.93,294,1654585200"; 
-   d="scan'208";a="675898255"
-Received: from ssaleem-mobl1.amr.corp.intel.com ([10.255.34.147])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2022 15:33:09 -0700
-From:   Shiraz Saleem <shiraz.saleem@intel.com>
-To:     jgg@nvidia.com, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org,
-        Sindhu-Devale <sindhu.devale@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH for-rc 5/5] RDMA/irdma: Report RNR NAK generation in device caps
-Date:   Tue,  6 Sep 2022 17:32:44 -0500
-Message-Id: <20220906223244.1119-6-shiraz.saleem@intel.com>
-X-Mailer: git-send-email 2.35.2
-In-Reply-To: <20220906223244.1119-1-shiraz.saleem@intel.com>
-References: <20220906223244.1119-1-shiraz.saleem@intel.com>
+        with ESMTP id S229447AbiIGCly (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Sep 2022 22:41:54 -0400
+Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C16878238;
+        Tue,  6 Sep 2022 19:41:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+        s=170520fj; t=1662518511; i=@fujitsu.com;
+        bh=e1IOWRGj50D0jLr/vNU6CG1Vjm8zy1XGVKAs8sV+qTU=;
+        h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type;
+        b=ja6OYWDhb1bIGAHoAXnbvxX96SG0QxvWVUj3SvChLPLrEKGOWKoUYH1G/FAsQGT3A
+         7BQVRHdKCfxUGGNzDnxKY7px284pABROFQ+dOCp/iaNRNWOmH79+24i/kgX1pE5AGR
+         QXBpZMLeLwG6nimzNTNd0UP2zmpxf6azg1fyyOG/Jul3Kc5UtbU+nNuFUa+Q2We5wD
+         3iKA+IesqJ6vgjJhInN5Yr35xYKD6GXckh/D4Q6iwMVIZA3NUJVZn+GTt4Fr+dGnFR
+         jFiTeIBk7zaVRsOYOI0vy0muVEO8o4UwZ86CfJ5BkFQ+M/s++6urLMK6RT0wueaEJu
+         /V65jDVUPO42A==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFrrMIsWRWlGSWpSXmKPExsViZ8ORpPuORSL
+  Z4NRCY4uZM04wWkz5tZTZ4vKuOWwWzw71slicP9bP7sDqsXPWXXaPTas62Tw+b5Lz2Pr5NksA
+  SxRrZl5SfkUCa8aKXadYCk7xV7y59YqxgXEnTxcjF4eQwEZGifn757NDOEuYJA4cnc/axcgJ5
+  OxnlFgzRQTEZhPQkLjXcpMRxBYRiJH4d+wXmM0s4Cax6c1sdhBbWMBVonHZP7BeFgEViY9LXj
+  OB2LwCjhIHD95jBrElBBQkpjx8zwwRF5Q4OfMJC8QcCYmDL14AxTmAapQkZnbHQ5RXSDROP8Q
+  EYatJXD23iXkCI/8sJN2zkHQvYGRaxWiVVJSZnlGSm5iZo2toYKBraGiqa6xraGmpl1ilm6iX
+  Wqpbnlpcomuol1herJdaXKxXXJmbnJOil5dasokRGNYpxczHdzBO6fupd4hRkoNJSZRX9YZ4s
+  hBfUn5KZUZicUZ8UWlOavEhRhkODiUJXj4GiWQhwaLU9NSKtMwcYIzBpCU4eJREINK8xQWJuc
+  WZ6RCpU4yKUuK8uxmBEgIgiYzSPLg2WFxfYpSVEuZlZGBgEOIpSC3KzSxBlX/FKM7BqCTM6wA
+  yhSczrwRu+iugxUxAi7cGioMsLklESEk1MO28o/bnlU7rsd7jDz/u2/kpUUqxd6LwpPwVHBbl
+  f30eJpqYFInZV97zuLo1YvPlE3HFyxyX9G6a9prnSaOzNNOX3Utmy/E4FcdHt2dzGD56t2CRy
+  6L+e3H8waGyf8Qv2PsobpGaH7XvxPclxXynBDs4Dabyn545d/Otq/FvuhrKnBMXvVPWE3Fjij
+  6j0iC5/ti3j0KcGmeUM1vf1cx7fCOetaHLRJZ16SOd2ZdevVs6N1hvqohOTfn1kDfcbx6fY45
+  KXXPFO11LrPD1tY82rM6zC0W0K1qqFZdGhqVpaHamfouTizeSVNs5/ff9uf9XtE91/OZ65sbq
+  YwuztWS6DiXos2S84uzZZ3L14zWmeCWW4oxEQy3mouJEAKZk4LJmAwAA
+X-Env-Sender: lizhijian@fujitsu.com
+X-Msg-Ref: server-14.tower-587.messagelabs.com!1662518510!442743!1
+X-Originating-IP: [62.60.8.98]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received: 
+X-StarScan-Version: 9.87.3; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 17575 invoked from network); 7 Sep 2022 02:41:50 -0000
+Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
+  by server-14.tower-587.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 7 Sep 2022 02:41:50 -0000
+Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
+        by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 6B4D31AD;
+        Wed,  7 Sep 2022 03:41:50 +0100 (BST)
+Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 5FF5C1AC;
+        Wed,  7 Sep 2022 03:41:50 +0100 (BST)
+Received: from 21b4d06c27e6.localdomain (10.167.225.141) by
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.32; Wed, 7 Sep 2022 03:41:47 +0100
+From:   Li Zhijian <lizhijian@fujitsu.com>
+To:     <zyjzyj2000@gmail.com>, <jgg@ziepe.ca>, <leon@kernel.org>,
+        <linux-rdma@vger.kernel.org>
+CC:     <linux-kernel@vger.kernel.org>, Li Zhijian <lizhijian@fujitsu.com>
+Subject: [PATCH for-next 1/2] RDMA/rxe: use %u to print u32 variables
+Date:   Wed, 7 Sep 2022 02:48:20 +0000
+Message-ID: <1662518901-2-1-git-send-email-lizhijian@fujitsu.com>
+X-Mailer: git-send-email 1.8.3.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
+X-Virus-Scanned: ClamAV using ClamSMTP
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Sindhu-Devale <sindhu.devale@intel.com>
+struct ib_qp_cap {
+        u32     max_send_wr;
+        u32     max_recv_wr;
+        u32     max_send_sge;
+        u32     max_recv_sge;
+        u32     max_inline_data;
+...
 
-Report RNR NAK generation when device capabilities are queried
+To avoid getting a negative value from dmesg:
+[410580.579965] rdma_rxe: invalid send sge = 65535 > 32
+[410580.583818] rdma_rxe: invalid send wr = -1 > 1048576
+[410582.771323] rdma_rxe: invalid recv sge = 65535 > 32
+[410582.775310] rdma_rxe: invalid recv wr = -1 > 1048576
 
-Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
-Signed-off-by: Sindhu-Devale <sindhu.devale@intel.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
 ---
- drivers/infiniband/hw/irdma/verbs.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 892467c..9b207f5 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -46,8 +46,11 @@ static int irdma_query_device(struct ib_device *ibdev,
- 	props->max_sge_rd = hw_attrs->uk_attrs.max_hw_read_sges;
- 	props->max_qp_rd_atom = hw_attrs->max_hw_ird;
- 	props->max_qp_init_rd_atom = hw_attrs->max_hw_ord;
--	if (rdma_protocol_roce(ibdev, 1))
-+	if (rdma_protocol_roce(ibdev, 1)) {
-+		props->device_cap_flags |= IB_DEVICE_RC_RNR_NAK_GEN;
- 		props->max_pkeys = IRDMA_PKEY_TBL_SZ;
-+	}
-+
- 	props->max_ah = rf->max_ah;
- 	props->max_mcast_grp = rf->max_mcg;
- 	props->max_mcast_qp_attach = IRDMA_MAX_MGS_PER_CTX;
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index 1dcbeacb3122..ad7f06f4beb0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -19,33 +19,33 @@ static int rxe_qp_chk_cap(struct rxe_dev *rxe, struct ib_qp_cap *cap,
+ 			  int has_srq)
+ {
+ 	if (cap->max_send_wr > rxe->attr.max_qp_wr) {
+-		pr_warn("invalid send wr = %d > %d\n",
++		pr_warn("invalid send wr = %u > %d\n",
+ 			cap->max_send_wr, rxe->attr.max_qp_wr);
+ 		goto err1;
+ 	}
+ 
+ 	if (cap->max_send_sge > rxe->attr.max_send_sge) {
+-		pr_warn("invalid send sge = %d > %d\n",
++		pr_warn("invalid send sge = %u > %d\n",
+ 			cap->max_send_sge, rxe->attr.max_send_sge);
+ 		goto err1;
+ 	}
+ 
+ 	if (!has_srq) {
+ 		if (cap->max_recv_wr > rxe->attr.max_qp_wr) {
+-			pr_warn("invalid recv wr = %d > %d\n",
++			pr_warn("invalid recv wr = %u > %d\n",
+ 				cap->max_recv_wr, rxe->attr.max_qp_wr);
+ 			goto err1;
+ 		}
+ 
+ 		if (cap->max_recv_sge > rxe->attr.max_recv_sge) {
+-			pr_warn("invalid recv sge = %d > %d\n",
++			pr_warn("invalid recv sge = %u > %d\n",
+ 				cap->max_recv_sge, rxe->attr.max_recv_sge);
+ 			goto err1;
+ 		}
+ 	}
+ 
+ 	if (cap->max_inline_data > rxe->max_inline_data) {
+-		pr_warn("invalid max inline data = %d > %d\n",
++		pr_warn("invalid max inline data = %u > %d\n",
+ 			cap->max_inline_data, rxe->max_inline_data);
+ 		goto err1;
+ 	}
 -- 
 1.8.3.1
 
