@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA915C38145
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Sep 2022 23:37:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 790F7C38145
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Sep 2022 23:37:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229999AbiIGXhM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Sep 2022 19:37:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52974 "EHLO
+        id S229620AbiIGXhP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Sep 2022 19:37:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229459AbiIGXhL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Sep 2022 19:37:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C54277E33B;
-        Wed,  7 Sep 2022 16:37:10 -0700 (PDT)
+        with ESMTP id S229459AbiIGXhN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Sep 2022 19:37:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8901E7E33B;
+        Wed,  7 Sep 2022 16:37:12 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 66DDF61AF2;
-        Wed,  7 Sep 2022 23:37:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B509EC433D6;
-        Wed,  7 Sep 2022 23:37:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2544761AF2;
+        Wed,  7 Sep 2022 23:37:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D8C3C433B5;
+        Wed,  7 Sep 2022 23:37:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662593829;
-        bh=fmr28kv/65U8JUTR7nL+T542LMSwkh0XA5b938laPIA=;
-        h=From:To:Cc:Subject:Date:From;
-        b=iXWDDgc3nSouXP1ACypdbUru4N3Os94Qx0fYPqGkykDUU8Iv+D1qBOm9S34EfGyPp
-         wi9i5Byg3qdk23ptBWBuJ6BZwiE6Y7XrCxI8FXKbHFapi4hSppuHQZnQYZRQFe0wb1
-         WFwvKHYVZ+fofjTUnK0OXpcOsS9KJjhBnQ1jlOitQhLlya7ZElgXP/XU1+jPvL6MYc
-         fC0D8EAZrL3aBUKLQuS2zrqrIat/7rUF8BdjxtUiiXRiwYHPAQtKHZKgyPq+AhCxEU
-         5dMeUtGVTqKTy1n0+K3sRLLVDhr16UrwgKn+wleT/tsJayarua+MBS0Gzf04nXs3bH
-         SltJRTuMazpTQ==
+        s=k20201202; t=1662593831;
+        bh=8nGayDZSVgT6kbm9HUq0yaxUFAjeujV068sMVMghQpQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=ahJwwK87Vga7PCr3lgoH5wPtVrYYttaI07bsTHVeNefG2gTGSQGfluhjA+TwOsD+j
+         FAIkyteWbenRZ/ZU4grnvSePqfgaf2Dor8qJ+BCbuGD/sdPyf/oq0tttFjiDLfXbKD
+         n9oWb/nrcetyWlduFd9AbnGkcRURKroWe8bfuXleBNXdcOCa5GVDPX63VqQiv2tdNX
+         FpniKEpKnUrf779fn9Sj4HuJuYiVYCa4PMOoy+xttl2Ajr7jC6i0pQZAXqUFysYCjk
+         RA4C1okQdSmvCdZYOIZpki/PCBeR4lbgoYp38WxCkKOKp9JDDBG9S9HaxEdO6HkL6a
+         RFn0LFQwRkfiQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>
@@ -39,121 +39,265 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Paolo Abeni <pabeni@redhat.com>,
         Eric Dumazet <edumazet@google.com>, netdev@vger.kernel.org,
         Tariq Toukan <tariqt@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org
-Subject: [PATCH mlx5-next 00/14] mlx5-next updates 2022-09-07
-Date:   Wed,  7 Sep 2022 16:36:22 -0700
-Message-Id: <20220907233636.388475-1-saeed@kernel.org>
+        Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org,
+        Aya Levin <ayal@nvidia.com>,
+        Eran Ben Elisha <eranbe@nvidia.com>
+Subject: [PATCH mlx5-next 02/14] net/mlx5: Add support for NPPS with real time mode
+Date:   Wed,  7 Sep 2022 16:36:24 -0700
+Message-Id: <20220907233636.388475-3-saeed@kernel.org>
 X-Mailer: git-send-email 2.37.2
+In-Reply-To: <20220907233636.388475-1-saeed@kernel.org>
+References: <20220907233636.388475-1-saeed@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@nvidia.com>
+From: Aya Levin <ayal@nvidia.com>
 
-This series includes various mlx5 updates
+Add support for setting NPPS. NPPS is currently available in
+REAL_TIME_CLOCK mode only. In addition allow the user to set the pulse
+duration.
 
-1) HW definitions and support for NPPS clock settings.
+When NPPS pulse duration is not set explicitly by the user, driver set
+it to 50% of the NPPS period.
 
-2) NVMEoTCP HW capabilities and definitions 
+Signed-off-by: Aya Levin <ayal@nvidia.com>
+Reviewed-by: Eran Ben Elisha <eranbe@nvidia.com>
+Reviewed-by: Saeed Mahameed <saeedm@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
+---
+ .../ethernet/mellanox/mlx5/core/lib/clock.c   | 139 +++++++++++++++---
+ include/linux/mlx5/driver.h                   |   2 +
+ 2 files changed, 121 insertions(+), 20 deletions(-)
 
-3) crypt HW bits and definitions for upcoming ipsec and TLS improvements
-
-4) various cleanups 
-
-5)  Enable hash mode by default for all NICs
-
-Liu, Changcheng Says:
-=====================
-When hardware lag hash mode is active, the explicit port affinity
-of the QP/TIS is ignored. The steering rules inside the port-select
-steering domain will determine the egress port.
-
-To support setting explicit port affinity while using hardware lag
-hash mode, a new capability of bypassing the port-select steering
-domain is introduced.
-
-The following patch series enable hash mode over NICs that support
-the new capability:
-5.1) Set the active port bit mask to let the firmware know which ports
-   are down and which are up, so it can use this info when handling
-   failover on QPs with explicit port affinity.
-5.2) Remove the assignment of default port affinity by the driver as
-   the user has dedicated userspace APIs to set the port affinity so
-   the default configuration isn't needed anymore.
-5.3) Detect and enable port-select bypass so explicit port affinity is
-   honored by the firmware.
-5.4) Enable hash mode by default on all NICs
-
-When setting QP/TIS port affinity explicitly and hash mode is active
-and the bypass port-select flow table capability is enabled by firmware,
-firmware adds a steering rule to catch egress traffic of these QPs/TISs
-and make their traffic skip the port-select steering domain. This adds
-performance overhead for all QPs/TISs. The common use case is to not
-set explicit port affinity(as when in hash, we don't need it). If there
-is a user that does want to set port affinity, it can be done with the
-dedicated userspace APIs.
-
-Detect the bypass port-select flow table capability, set it to let
-firmware know the driver supports this new capability.
-
-=====================
-
-
-Aya Levin (2):
-  net/mlx5: Expose NPPS related registers
-  net/mlx5: Add support for NPPS with real time mode
-
-Ben Ben-Ishay (1):
-  net/mlx5: Add NVMEoTCP caps, HW bits, 128B CQE and enumerations
-
-Gal Pressman (2):
-  net/mlx5: Remove unused functions
-  net/mlx5: Remove unused structs
-
-Jianbo Liu (2):
-  net/mlx5: Add IFC bits for general obj create param
-  net/mlx5: Add IFC bits and enums for crypto key
-
-Leon Romanovsky (1):
-  net/mlx5: Remove from FPGA IFC file not-needed definitions
-
-Liu, Changcheng (5):
-  net/mlx5: add IFC bits for bypassing port select flow table
-  RDMA/mlx5: Don't set tx affinity when lag is in hash mode
-  net/mlx5: Lag, set active ports if support bypass port select flow
-    table
-  net/mlx5: Lag, enable hash mode by default for all NICs
-  net/mlx5: detect and enable bypass port select flow table
-
-Or Gerlitz (1):
-  net/mlx5e: Rename from tls to transport static params
-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  12 +
- .../ethernet/mellanox/mlx5/core/en/tc/meter.c |   6 +-
- .../mlx5/core/en_accel/common_utils.h         |  32 ++
- .../mellanox/mlx5/core/en_accel/ipsec_rxtx.h  |   5 -
- .../mellanox/mlx5/core/en_accel/ktls_rx.c     |   6 +-
- .../mellanox/mlx5/core/en_accel/ktls_tx.c     |   8 +-
- .../mellanox/mlx5/core/en_accel/ktls_txrx.c   |  36 +--
- .../mellanox/mlx5/core/en_accel/ktls_utils.h  |  17 +-
- drivers/net/ethernet/mellanox/mlx5/core/fw.c  |   6 +
- .../net/ethernet/mellanox/mlx5/core/health.c  |   7 -
- .../net/ethernet/mellanox/mlx5/core/lag/lag.c |  91 +++++-
- .../ethernet/mellanox/mlx5/core/lib/clock.c   | 139 +++++++--
- .../net/ethernet/mellanox/mlx5/core/main.c    |  34 +++
- .../mellanox/mlx5/core/steering/dr_types.h    |  14 -
- .../mellanox/mlx5/core/steering/fs_dr.h       |   4 -
- include/linux/mlx5/device.h                   |  70 ++++-
- include/linux/mlx5/driver.h                   |   9 +-
- include/linux/mlx5/fs_helpers.h               |  48 ---
- include/linux/mlx5/mlx5_ifc.h                 | 280 ++++++++++++++++--
- include/linux/mlx5/mlx5_ifc_fpga.h            |  24 --
- include/linux/mlx5/qp.h                       |   1 +
- 21 files changed, 629 insertions(+), 220 deletions(-)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en_accel/common_utils.h
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
+index 91e806c1aa21..d3a9ae80fd30 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
+@@ -65,6 +65,8 @@ enum {
+ 	MLX5_MTPPS_FS_TIME_STAMP		= BIT(0x4),
+ 	MLX5_MTPPS_FS_OUT_PULSE_DURATION	= BIT(0x5),
+ 	MLX5_MTPPS_FS_ENH_OUT_PER_ADJ		= BIT(0x7),
++	MLX5_MTPPS_FS_NPPS_PERIOD               = BIT(0x9),
++	MLX5_MTPPS_FS_OUT_PULSE_DURATION_NS     = BIT(0xa),
+ };
+ 
+ static bool mlx5_real_time_mode(struct mlx5_core_dev *mdev)
+@@ -72,6 +74,13 @@ static bool mlx5_real_time_mode(struct mlx5_core_dev *mdev)
+ 	return (mlx5_is_real_time_rq(mdev) || mlx5_is_real_time_sq(mdev));
+ }
+ 
++static bool mlx5_npps_real_time_supported(struct mlx5_core_dev *mdev)
++{
++	return (mlx5_real_time_mode(mdev) &&
++		MLX5_CAP_MCAM_FEATURE(mdev, npps_period) &&
++		MLX5_CAP_MCAM_FEATURE(mdev, out_pulse_duration_ns));
++}
++
+ static bool mlx5_modify_mtutc_allowed(struct mlx5_core_dev *mdev)
+ {
+ 	return MLX5_CAP_MCAM_FEATURE(mdev, ptpcyc2realtime_modify);
+@@ -459,9 +468,95 @@ static u64 perout_conf_internal_timer(struct mlx5_core_dev *mdev, s64 sec)
+ 	return find_target_cycles(mdev, target_ns);
+ }
+ 
+-static u64 perout_conf_real_time(s64 sec)
++static u64 perout_conf_real_time(s64 sec, u32 nsec)
++{
++	return (u64)nsec | (u64)sec << 32;
++}
++
++static int perout_conf_1pps(struct mlx5_core_dev *mdev, struct ptp_clock_request *rq,
++			    u64 *time_stamp, bool real_time)
++{
++	struct timespec64 ts;
++	s64 ns;
++
++	ts.tv_nsec = rq->perout.period.nsec;
++	ts.tv_sec = rq->perout.period.sec;
++	ns = timespec64_to_ns(&ts);
++
++	if ((ns >> 1) != 500000000LL)
++		return -EINVAL;
++
++	*time_stamp = real_time ? perout_conf_real_time(rq->perout.start.sec, 0) :
++		      perout_conf_internal_timer(mdev, rq->perout.start.sec);
++
++	return 0;
++}
++
++#define MLX5_MAX_PULSE_DURATION (BIT(__mlx5_bit_sz(mtpps_reg, out_pulse_duration_ns)) - 1)
++static int mlx5_perout_conf_out_pulse_duration(struct mlx5_core_dev *mdev,
++					       struct ptp_clock_request *rq,
++					       u32 *out_pulse_duration_ns)
+ {
+-	return (u64)sec << 32;
++	struct mlx5_pps *pps_info = &mdev->clock.pps_info;
++	u32 out_pulse_duration;
++	struct timespec64 ts;
++
++	if (rq->perout.flags & PTP_PEROUT_DUTY_CYCLE) {
++		ts.tv_sec = rq->perout.on.sec;
++		ts.tv_nsec = rq->perout.on.nsec;
++		out_pulse_duration = (u32)timespec64_to_ns(&ts);
++	} else {
++		/* out_pulse_duration_ns should be up to 50% of the
++		 * pulse period as default
++		 */
++		ts.tv_sec = rq->perout.period.sec;
++		ts.tv_nsec = rq->perout.period.nsec;
++		out_pulse_duration = (u32)timespec64_to_ns(&ts) >> 1;
++	}
++
++	if (out_pulse_duration < pps_info->min_out_pulse_duration_ns ||
++	    out_pulse_duration > MLX5_MAX_PULSE_DURATION) {
++		mlx5_core_err(mdev, "NPPS pulse duration %u is not in [%llu, %lu]\n",
++			      out_pulse_duration, pps_info->min_out_pulse_duration_ns,
++			      MLX5_MAX_PULSE_DURATION);
++		return -EINVAL;
++	}
++	*out_pulse_duration_ns = out_pulse_duration;
++
++	return 0;
++}
++
++static int perout_conf_npps_real_time(struct mlx5_core_dev *mdev, struct ptp_clock_request *rq,
++				      u32 *field_select, u32 *out_pulse_duration_ns,
++				      u64 *period, u64 *time_stamp)
++{
++	struct mlx5_pps *pps_info = &mdev->clock.pps_info;
++	struct ptp_clock_time *time = &rq->perout.start;
++	struct timespec64 ts;
++
++	ts.tv_sec = rq->perout.period.sec;
++	ts.tv_nsec = rq->perout.period.nsec;
++	if (timespec64_to_ns(&ts) < pps_info->min_npps_period) {
++		mlx5_core_err(mdev, "NPPS period is lower than minimal npps period %llu\n",
++			      pps_info->min_npps_period);
++		return -EINVAL;
++	}
++	*period = perout_conf_real_time(rq->perout.period.sec, rq->perout.period.nsec);
++
++	if (mlx5_perout_conf_out_pulse_duration(mdev, rq, out_pulse_duration_ns))
++		return -EINVAL;
++
++	*time_stamp = perout_conf_real_time(time->sec, time->nsec);
++	*field_select |= MLX5_MTPPS_FS_NPPS_PERIOD |
++			 MLX5_MTPPS_FS_OUT_PULSE_DURATION_NS;
++
++	return 0;
++}
++
++static bool mlx5_perout_verify_flags(struct mlx5_core_dev *mdev, unsigned int flags)
++{
++	return ((!mlx5_npps_real_time_supported(mdev) && flags) ||
++		(mlx5_npps_real_time_supported(mdev) && flags & ~PTP_PEROUT_DUTY_CYCLE));
+ }
+ 
+ static int mlx5_perout_configure(struct ptp_clock_info *ptp,
+@@ -474,20 +569,20 @@ static int mlx5_perout_configure(struct ptp_clock_info *ptp,
+ 			container_of(clock, struct mlx5_core_dev, clock);
+ 	bool rt_mode = mlx5_real_time_mode(mdev);
+ 	u32 in[MLX5_ST_SZ_DW(mtpps_reg)] = {0};
+-	struct timespec64 ts;
++	u32 out_pulse_duration_ns = 0;
+ 	u32 field_select = 0;
++	u64 npps_period = 0;
+ 	u64 time_stamp = 0;
+ 	u8 pin_mode = 0;
+ 	u8 pattern = 0;
+ 	int pin = -1;
+ 	int err = 0;
+-	s64 ns;
+ 
+ 	if (!MLX5_PPS_CAP(mdev))
+ 		return -EOPNOTSUPP;
+ 
+ 	/* Reject requests with unsupported flags */
+-	if (rq->perout.flags)
++	if (mlx5_perout_verify_flags(mdev, rq->perout.flags))
+ 		return -EOPNOTSUPP;
+ 
+ 	if (rq->perout.index >= clock->ptp_info.n_pins)
+@@ -500,29 +595,25 @@ static int mlx5_perout_configure(struct ptp_clock_info *ptp,
+ 
+ 	if (on) {
+ 		bool rt_mode = mlx5_real_time_mode(mdev);
+-		s64 sec = rq->perout.start.sec;
+-
+-		if (rq->perout.start.nsec)
+-			return -EINVAL;
+ 
+ 		pin_mode = MLX5_PIN_MODE_OUT;
+ 		pattern = MLX5_OUT_PATTERN_PERIODIC;
+-		ts.tv_sec = rq->perout.period.sec;
+-		ts.tv_nsec = rq->perout.period.nsec;
+-		ns = timespec64_to_ns(&ts);
+ 
+-		if ((ns >> 1) != 500000000LL)
++		if (rt_mode &&  rq->perout.start.sec > U32_MAX)
+ 			return -EINVAL;
+ 
+-		if (rt_mode && sec > U32_MAX)
+-			return -EINVAL;
+-
+-		time_stamp = rt_mode ? perout_conf_real_time(sec) :
+-				       perout_conf_internal_timer(mdev, sec);
+-
+ 		field_select |= MLX5_MTPPS_FS_PIN_MODE |
+ 				MLX5_MTPPS_FS_PATTERN |
+ 				MLX5_MTPPS_FS_TIME_STAMP;
++
++		if (mlx5_npps_real_time_supported(mdev))
++			err = perout_conf_npps_real_time(mdev, rq, &field_select,
++							 &out_pulse_duration_ns, &npps_period,
++							 &time_stamp);
++		else
++			err = perout_conf_1pps(mdev, rq, &time_stamp, rt_mode);
++		if (err)
++			return err;
+ 	}
+ 
+ 	MLX5_SET(mtpps_reg, in, pin, pin);
+@@ -531,7 +622,8 @@ static int mlx5_perout_configure(struct ptp_clock_info *ptp,
+ 	MLX5_SET(mtpps_reg, in, enable, on);
+ 	MLX5_SET64(mtpps_reg, in, time_stamp, time_stamp);
+ 	MLX5_SET(mtpps_reg, in, field_select, field_select);
+-
++	MLX5_SET64(mtpps_reg, in, npps_period, npps_period);
++	MLX5_SET(mtpps_reg, in, out_pulse_duration_ns, out_pulse_duration_ns);
+ 	err = mlx5_set_mtpps(mdev, in, sizeof(in));
+ 	if (err)
+ 		return err;
+@@ -687,6 +779,13 @@ static void mlx5_get_pps_caps(struct mlx5_core_dev *mdev)
+ 	clock->ptp_info.n_per_out = MLX5_GET(mtpps_reg, out,
+ 					     cap_max_num_of_pps_out_pins);
+ 
++	if (MLX5_CAP_MCAM_FEATURE(mdev, npps_period))
++		clock->pps_info.min_npps_period = 1 << MLX5_GET(mtpps_reg, out,
++								cap_log_min_npps_period);
++	if (MLX5_CAP_MCAM_FEATURE(mdev, out_pulse_duration_ns))
++		clock->pps_info.min_out_pulse_duration_ns = 1 << MLX5_GET(mtpps_reg, out,
++								cap_log_min_out_pulse_duration_ns);
++
+ 	clock->pps_info.pin_caps[0] = MLX5_GET(mtpps_reg, out, cap_pin_0_mode);
+ 	clock->pps_info.pin_caps[1] = MLX5_GET(mtpps_reg, out, cap_pin_1_mode);
+ 	clock->pps_info.pin_caps[2] = MLX5_GET(mtpps_reg, out, cap_pin_2_mode);
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 96b16fbe1aa4..a3f39f6e189e 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -698,6 +698,8 @@ struct mlx5_pps {
+ 	struct work_struct         out_work;
+ 	u64                        start[MAX_PIN_NUM];
+ 	u8                         enabled;
++	u64                        min_npps_period;
++	u64                        min_out_pulse_duration_ns;
+ };
+ 
+ struct mlx5_timer {
 -- 
 2.37.2
 
