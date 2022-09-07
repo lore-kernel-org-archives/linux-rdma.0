@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94180C54EE9
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Sep 2022 23:37:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89A14ECAAD3
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Sep 2022 23:37:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229459AbiIGXhQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Sep 2022 19:37:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52990 "EHLO
+        id S230112AbiIGXhU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Sep 2022 19:37:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229822AbiIGXhN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Sep 2022 19:37:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5336B7FFB3;
+        with ESMTP id S230031AbiIGXhP (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Sep 2022 19:37:15 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F7527C1CF;
         Wed,  7 Sep 2022 16:37:13 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E39E061AEF;
+        by sin.source.kernel.org (Postfix) with ESMTPS id 6A008CE1E05;
         Wed,  7 Sep 2022 23:37:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BD24C433B5;
-        Wed,  7 Sep 2022 23:37:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95474C433D7;
+        Wed,  7 Sep 2022 23:37:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662593832;
-        bh=mB2eUvh4l966XE7lRpvl0b1UaXKsu1b+2ZLq9CThMxk=;
+        s=k20201202; t=1662593830;
+        bh=Xy/P04BxUZSe9boIeJFProSOXcQrLF/gu7yicfUSKlY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JMwYkPSeRgMq+Wjl63Hrv5O4yF7b2+ZtKId0mn3RdpW5kB25ynY6KlEQO9dKgkfFd
-         J1PW82fBXmDC1OeXqyqzayubvjtU8El3mnddvN32V7FEVmIP2hZXbgTJtZUEAOtPxr
-         KC/EKdzELk9IPkHX3bvS+//CxHCYGG31pZNij8r77uK+LoLVjKJ6MF0rII4/mvyEs3
-         TZi9PNT0ozhN9Sla128fp2iUd0Oj5w+Lx2cWavuvncWMR8Aps8mqyxUwc4TS6ssynE
-         QawgrvWfkgfNDj/fH+vBcBISziPz9mnDXFilW43m5gqi1c8yBogObu2SvruGSFNQri
-         e0E1MWPZSR77A==
+        b=cbqHrQB8DN1dSafiw5lAUFS8i+GnFOIpjHqntRGihFWiDBlgHWhceYVLKYlrpan16
+         /RMnrQdlbLDKtoU5xAneeblEW6q9xrRIX3LDrrEn1lpBJRZBfDQBRGyZ+rcdzmBE9N
+         Zxo0Zky33YXNTPi6UfDl0bB6vBE5WMYShKS3NaorTZO4XmUV3C1EzWdkmICo3+SYVH
+         HNa+SGxzVLw6M5bybRmaYem79lVQXrq7ZrWGtKbp8+5okAq6RnpSL8rqyzTokQAaS4
+         1NxYNsRdNhJ2t0Losu1IACdkbIb4qMcS9yb9+GqfG7BR4KOLjCPdq+iZ87f3i541Yy
+         BA3GP7diRfu1A==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>
@@ -40,11 +40,11 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>, netdev@vger.kernel.org,
         Tariq Toukan <tariqt@nvidia.com>,
         Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org,
-        "Liu, Changcheng" <jerrliu@nvidia.com>, Liu@vger.kernel.org,
-        Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH mlx5-next 03/14] net/mlx5: add IFC bits for bypassing port select flow table
-Date:   Wed,  7 Sep 2022 16:36:25 -0700
-Message-Id: <20220907233636.388475-4-saeed@kernel.org>
+        Aya Levin <ayal@nvidia.com>,
+        Eran Ben Elisha <eranbe@nvidia.com>
+Subject: [PATCH mlx5-next 01/14] net/mlx5: Expose NPPS related registers
+Date:   Wed,  7 Sep 2022 16:36:23 -0700
+Message-Id: <20220907233636.388475-2-saeed@kernel.org>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20220907233636.388475-1-saeed@kernel.org>
 References: <20220907233636.388475-1-saeed@kernel.org>
@@ -54,56 +54,68 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "Liu, Changcheng" <jerrliu@nvidia.com>
+From: Aya Levin <ayal@nvidia.com>
 
-port_select_flow_table_bypass - When set, device supports
-bypass port select flow table.
-active_port - Bitmask indicates the current active ports
-in PORT_SELECT_FT LAG.
-MLX5_SET_HCA_CAP_OP_MODE_PORT_SELECTION - op_mod to operate
-PORT_SELECTION_Capabilities.
+Add management capability bits indicating firmware may support N pulses
+per second. Add corresponding fields in MTPPS register.
 
-Signed-off-by: Liu, Changcheng <jerrliu@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Aya Levin <ayal@nvidia.com>
+Reviewed-by: Eran Ben Elisha <eranbe@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/mlx5/mlx5_ifc.h | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
 diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index e2f71c8d9bd7..3c1756763e90 100644
+index 4acd5610e96b..e2f71c8d9bd7 100644
 --- a/include/linux/mlx5/mlx5_ifc.h
 +++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -68,6 +68,7 @@ enum {
- 	MLX5_SET_HCA_CAP_OP_MOD_ODP                   = 0x2,
- 	MLX5_SET_HCA_CAP_OP_MOD_ATOMIC                = 0x3,
- 	MLX5_SET_HCA_CAP_OP_MOD_ROCE                  = 0x4,
-+	MLX5_SET_HCA_CAP_OP_MODE_PORT_SELECTION       = 0x25,
- };
+@@ -9789,7 +9789,9 @@ struct mlx5_ifc_pcam_reg_bits {
+ struct mlx5_ifc_mcam_enhanced_features_bits {
+ 	u8         reserved_at_0[0x5d];
+ 	u8         mcia_32dwords[0x1];
+-	u8         reserved_at_5e[0xc];
++	u8         out_pulse_duration_ns[0x1];
++	u8         npps_period[0x1];
++	u8         reserved_at_60[0xa];
+ 	u8         reset_state[0x1];
+ 	u8         ptpcyc2realtime_modify[0x1];
+ 	u8         reserved_at_6c[0x2];
+@@ -10289,7 +10291,12 @@ struct mlx5_ifc_mtpps_reg_bits {
+ 	u8         reserved_at_18[0x4];
+ 	u8         cap_max_num_of_pps_out_pins[0x4];
  
- enum {
-@@ -813,7 +814,9 @@ struct mlx5_ifc_flow_table_nic_cap_bits {
- struct mlx5_ifc_port_selection_cap_bits {
- 	u8         reserved_at_0[0x10];
- 	u8         port_select_flow_table[0x1];
--	u8         reserved_at_11[0xf];
-+	u8         reserved_at_11[0x1];
-+	u8         port_select_flow_table_bypass[0x1];
-+	u8         reserved_at_13[0xd];
+-	u8         reserved_at_20[0x24];
++	u8         reserved_at_20[0x13];
++	u8         cap_log_min_npps_period[0x5];
++	u8         reserved_at_38[0x3];
++	u8         cap_log_min_out_pulse_duration_ns[0x5];
++
++	u8         reserved_at_40[0x4];
+ 	u8         cap_pin_3_mode[0x4];
+ 	u8         reserved_at_48[0x4];
+ 	u8         cap_pin_2_mode[0x4];
+@@ -10308,7 +10315,9 @@ struct mlx5_ifc_mtpps_reg_bits {
+ 	u8         cap_pin_4_mode[0x4];
  
- 	u8         reserved_at_20[0x1e0];
+ 	u8         field_select[0x20];
+-	u8         reserved_at_a0[0x60];
++	u8         reserved_at_a0[0x20];
++
++	u8         npps_period[0x40];
  
-@@ -10930,7 +10933,9 @@ struct mlx5_ifc_lagc_bits {
- 	u8         reserved_at_18[0x5];
- 	u8         lag_state[0x3];
+ 	u8         enable[0x1];
+ 	u8         reserved_at_101[0xb];
+@@ -10317,7 +10326,8 @@ struct mlx5_ifc_mtpps_reg_bits {
+ 	u8         pin_mode[0x4];
+ 	u8         pin[0x8];
  
--	u8         reserved_at_20[0x14];
-+	u8         reserved_at_20[0xc];
-+	u8         active_port[0x4];
-+	u8         reserved_at_30[0x4];
- 	u8         tx_remap_affinity_2[0x4];
- 	u8         reserved_at_38[0x4];
- 	u8         tx_remap_affinity_1[0x4];
+-	u8         reserved_at_120[0x20];
++	u8         reserved_at_120[0x2];
++	u8         out_pulse_duration_ns[0x1e];
+ 
+ 	u8         time_stamp[0x40];
+ 
 -- 
 2.37.2
 
