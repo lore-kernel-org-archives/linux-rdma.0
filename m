@@ -2,365 +2,204 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65DB8C6FA82
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Sep 2022 23:37:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D7E6ECAAD3
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Sep 2022 01:23:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230151AbiIGXhz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Sep 2022 19:37:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53906 "EHLO
+        id S229494AbiIHBXs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Sep 2022 21:23:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230128AbiIGXhi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Sep 2022 19:37:38 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C850C58E5;
-        Wed,  7 Sep 2022 16:37:22 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 39D66B81F6C;
-        Wed,  7 Sep 2022 23:37:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAEB2C433D6;
-        Wed,  7 Sep 2022 23:37:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662593838;
-        bh=VTwKE/HifF14fvKgG7CJFPsTBYaYcf3fzqcU6L7WhkA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HtHCLMQac3FIzVC4iybRJKLUESC7Bg6H5fDrOX6aM1hXUBzhnhILS/QF6T8lvw6WM
-         lTopQohZy21fkKKSHyR7V2WCwjJL/rRDR2Bs6JAqxcky+FPIIr3RlRp0HdgqtO8YvG
-         f8ejMqn0JE2fTCw4M0zFWVMF5oduFF541n3YTmKShIPKUMT66dAdYLeMYlLJycMPmz
-         0hheFXeDZ0L51cMt5gu8AQOSIFJJHGFzlrW+AqBEQUfuixSy7hWBCv3pQ99nT8r9+K
-         GkwFf7zCKBrHqaVvKRh0+eQ9ITPI6Iy/zJNusdZ/1j0EoLkn/sy7FybLBZhX+heDLn
-         B2IrBCFZ5LMEg==
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Eric Dumazet <edumazet@google.com>, netdev@vger.kernel.org,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org,
-        Or Gerlitz <ogerlitz@nvidia.com>,
-        Ben Ben-Ishay <benishay@nvidia.com>,
-        Aurelien Aptel <aaptel@nvidia.com>
-Subject: [PATCH mlx5-next 11/14] net/mlx5e: Rename from tls to transport static params
-Date:   Wed,  7 Sep 2022 16:36:33 -0700
-Message-Id: <20220907233636.388475-12-saeed@kernel.org>
-X-Mailer: git-send-email 2.37.2
-In-Reply-To: <20220907233636.388475-1-saeed@kernel.org>
-References: <20220907233636.388475-1-saeed@kernel.org>
+        with ESMTP id S229469AbiIHBXr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Sep 2022 21:23:47 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11966AF4A6
+        for <linux-rdma@vger.kernel.org>; Wed,  7 Sep 2022 18:23:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1662600226; x=1694136226;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=RmScj+XwUSCx972rOW+EMEH1u2ml8XeIKdux1JIzDJc=;
+  b=dqf5NOHCwxYIATG01cy3ueRu424hcVCwDVJGGFg+kelmcjMt7YcBNVav
+   V2brZxR09NtgUX8a3TuCMZ2JukFt5KrQNRlfsyeYmtwhErLkZ40jyl1Ny
+   iAUOty6l3C+e/0G/KM1beoQP34dzmSjbZi2NAu1rg2gS9uczrnS8PRrEB
+   MCL4XbQLLQRFpCr6Hv8P9329PjwY8FnFSxIQn+KCG7KkK8rYqgr/1oHW8
+   AbALeunxM6+OeZlS9KmB4T09Ju9MhglCmhyBdTvwdpiGVHpjz8Jp4T1Ss
+   ldHw8wmiqQnOkxvRFn+fkObQGIXnxgAs6Zc72g1aQ4uYSPlfAaYfPMzce
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10463"; a="297037605"
+X-IronPort-AV: E=Sophos;i="5.93,298,1654585200"; 
+   d="scan'208";a="297037605"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2022 18:23:45 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,298,1654585200"; 
+   d="scan'208";a="943131630"
+Received: from lkp-server02.sh.intel.com (HELO 95dfd251caa2) ([10.239.97.151])
+  by fmsmga005.fm.intel.com with ESMTP; 07 Sep 2022 18:23:44 -0700
+Received: from kbuild by 95dfd251caa2 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1oW6Gd-0007DD-2U;
+        Thu, 08 Sep 2022 01:23:43 +0000
+Date:   Thu, 08 Sep 2022 09:23:01 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg+lists@ziepe.ca>,
+        Doug Ledford <dledford@redhat.com>
+Subject: [rdma:wip/leon-for-rc] BUILD SUCCESS
+ a261786fdc0a5bed2e5f994dcc0ffeeeb0d662c7
+Message-ID: <631943f5.xPjkwVnPrUE7h90R%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Or Gerlitz <ogerlitz@nvidia.com>
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-rc
+branch HEAD: a261786fdc0a5bed2e5f994dcc0ffeeeb0d662c7  RDMA/irdma: Report RNR NAK generation in device caps
 
-The static params structure is used in TLS but also in other
-transports we're offloading like nvmeotcp:
+elapsed time: 966m
 
-- Rename the relevant structures/fields
-- Create common file for appropriate transports
-- Apply changes in the TLS code
+configs tested: 128
+configs skipped: 4
 
-No functional change here.
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Signed-off-by: Or Gerlitz <ogerlitz@nvidia.com>
-Signed-off-by: Ben Ben-Ishay <benishay@nvidia.com>
-Signed-off-by: Aurelien Aptel <aaptel@nvidia.com>
-Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
----
- .../mlx5/core/en_accel/common_utils.h         | 32 +++++++++++++++++
- .../mellanox/mlx5/core/en_accel/ktls_rx.c     |  6 ++--
- .../mellanox/mlx5/core/en_accel/ktls_tx.c     |  8 ++---
- .../mellanox/mlx5/core/en_accel/ktls_txrx.c   | 36 ++++++++-----------
- .../mellanox/mlx5/core/en_accel/ktls_utils.h  | 17 ++-------
- include/linux/mlx5/device.h                   |  8 ++---
- include/linux/mlx5/mlx5_ifc.h                 |  8 +++--
- 7 files changed, 66 insertions(+), 49 deletions(-)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/en_accel/common_utils.h
+gcc tested configs:
+um                             i386_defconfig
+um                           x86_64_defconfig
+powerpc                           allnoconfig
+x86_64                              defconfig
+i386                                defconfig
+x86_64                               rhel-8.3
+m68k                             allyesconfig
+x86_64                           allyesconfig
+m68k                             allmodconfig
+arc                              allyesconfig
+alpha                            allyesconfig
+i386                             allyesconfig
+sh                               allmodconfig
+arm                                 defconfig
+powerpc                          allmodconfig
+mips                             allyesconfig
+x86_64                           rhel-8.3-syz
+csky                              allnoconfig
+alpha                             allnoconfig
+arc                               allnoconfig
+riscv                             allnoconfig
+x86_64                           rhel-8.3-kvm
+x86_64                          rhel-8.3-func
+x86_64                    rhel-8.3-kselftests
+x86_64                         rhel-8.3-kunit
+m68k                          atari_defconfig
+powerpc                 mpc85xx_cds_defconfig
+sh                      rts7751r2d1_defconfig
+sh                          landisk_defconfig
+arm                           u8500_defconfig
+ia64                             alldefconfig
+arm                          iop32x_defconfig
+i386                          randconfig-a012
+i386                          randconfig-a014
+i386                          randconfig-a016
+powerpc                    sam440ep_defconfig
+m68k                          amiga_defconfig
+powerpc                      tqm8xx_defconfig
+m68k                        stmark2_defconfig
+arm64                            allyesconfig
+arm                              allyesconfig
+sh                                  defconfig
+m68k                                defconfig
+mips                     loongson1b_defconfig
+xtensa                         virt_defconfig
+ia64                         bigsur_defconfig
+arm                        keystone_defconfig
+sh                  sh7785lcr_32bit_defconfig
+m68k                          multi_defconfig
+loongarch                           defconfig
+loongarch                         allnoconfig
+arm                             pxa_defconfig
+arc                          axs103_defconfig
+mips                           gcw0_defconfig
+parisc64                         alldefconfig
+i386                          randconfig-c001
+sparc                               defconfig
+sh                     sh7710voipgw_defconfig
+riscv                    nommu_virt_defconfig
+riscv                          rv32_defconfig
+riscv                    nommu_k210_defconfig
+i386                   debian-10.3-kselftests
+i386                              debian-10.3
+i386                             alldefconfig
+powerpc                     ep8248e_defconfig
+m68k                          hp300_defconfig
+m68k                        m5272c3_defconfig
+arm                          exynos_defconfig
+sparc                            alldefconfig
+sparc                             allnoconfig
+arm                        cerfcube_defconfig
+powerpc                      arches_defconfig
+openrisc                 simple_smp_defconfig
+powerpc                     asp8347_defconfig
+x86_64                        randconfig-a006
+x86_64                        randconfig-a004
+x86_64                        randconfig-a002
+arm                          pxa3xx_defconfig
+arm                         s3c6400_defconfig
+powerpc                     stx_gp3_defconfig
+arm64                            alldefconfig
+sh                           se7722_defconfig
+sh                             sh03_defconfig
+sh                           se7750_defconfig
+s390                             allmodconfig
+xtensa                       common_defconfig
+sh                          r7785rp_defconfig
+powerpc                     mpc83xx_defconfig
+xtensa                generic_kc705_defconfig
+csky                                defconfig
+um                                  defconfig
+sh                            titan_defconfig
+arm                            mps2_defconfig
+i386                          debian-10.3-kvm
+i386                        debian-10.3-kunit
+i386                         debian-10.3-func
+sh                          r7780mp_defconfig
+arm                            qcom_defconfig
+ia64                          tiger_defconfig
+arc                              alldefconfig
+x86_64                        randconfig-a011
+x86_64                        randconfig-a013
+x86_64                        randconfig-a015
+xtensa                           allyesconfig
+sparc                            allyesconfig
+x86_64                                  kexec
+ia64                             allmodconfig
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/common_utils.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/common_utils.h
-new file mode 100644
-index 000000000000..0353389a0b60
---- /dev/null
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/common_utils.h
-@@ -0,0 +1,32 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/* Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. */
-+#ifndef __MLX5E_COMMON_UTILS_H__
-+#define __MLX5E_COMMON_UTILS_H__
-+
-+#include "en.h"
-+
-+struct mlx5e_set_transport_static_params_wqe {
-+	struct mlx5_wqe_ctrl_seg ctrl;
-+	struct mlx5_wqe_umr_ctrl_seg uctrl;
-+	struct mlx5_mkey_seg mkc;
-+	struct mlx5_wqe_transport_static_params_seg params;
-+};
-+
-+/* macros for transport_static_params handling */
-+#define MLX5E_TRANSPORT_SET_STATIC_PARAMS_WQEBBS \
-+	(DIV_ROUND_UP(sizeof(struct mlx5e_set_transport_static_params_wqe), MLX5_SEND_WQE_BB))
-+
-+#define MLX5E_TRANSPORT_FETCH_SET_STATIC_PARAMS_WQE(sq, pi) \
-+	((struct mlx5e_set_transport_static_params_wqe *)\
-+	 mlx5e_fetch_wqe(&(sq)->wq, pi, sizeof(struct mlx5e_set_transport_static_params_wqe)))
-+
-+#define MLX5E_TRANSPORT_STATIC_PARAMS_WQE_SZ \
-+	(sizeof(struct mlx5e_set_transport_static_params_wqe))
-+
-+#define MLX5E_TRANSPORT_STATIC_PARAMS_DS_CNT \
-+	(DIV_ROUND_UP(MLX5E_TRANSPORT_STATIC_PARAMS_WQE_SZ, MLX5_SEND_WQE_DS))
-+
-+#define MLX5E_TRANSPORT_STATIC_PARAMS_OCTWORD_SIZE \
-+	(MLX5_ST_SZ_BYTES(transport_static_params) / MLX5_SEND_WQE_DS)
-+
-+#endif /* __MLX5E_COMMON_UTILS_H__ */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_rx.c
-index 27483aa7be8a..157b47c6dc7a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_rx.c
-@@ -136,16 +136,16 @@ static struct mlx5_wqe_ctrl_seg *
- post_static_params(struct mlx5e_icosq *sq,
- 		   struct mlx5e_ktls_offload_context_rx *priv_rx)
- {
--	struct mlx5e_set_tls_static_params_wqe *wqe;
-+	struct mlx5e_set_transport_static_params_wqe *wqe;
- 	struct mlx5e_icosq_wqe_info wi;
- 	u16 pi, num_wqebbs;
- 
--	num_wqebbs = MLX5E_TLS_SET_STATIC_PARAMS_WQEBBS;
-+	num_wqebbs = MLX5E_TRANSPORT_SET_STATIC_PARAMS_WQEBBS;
- 	if (unlikely(!mlx5e_icosq_can_post_wqe(sq, num_wqebbs)))
- 		return ERR_PTR(-ENOSPC);
- 
- 	pi = mlx5e_icosq_get_next_pi(sq, num_wqebbs);
--	wqe = MLX5E_TLS_FETCH_SET_STATIC_PARAMS_WQE(sq, pi);
-+	wqe = MLX5E_TRANSPORT_FETCH_SET_STATIC_PARAMS_WQE(sq, pi);
- 	mlx5e_ktls_build_static_params(wqe, sq->pc, sq->sqn, &priv_rx->crypto_info,
- 				       mlx5e_tir_get_tirn(&priv_rx->tir),
- 				       priv_rx->key_id, priv_rx->resync.seq, false,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_tx.c
-index 0aef69527226..de843f3eb222 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_tx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_tx.c
-@@ -32,7 +32,7 @@ u16 mlx5e_ktls_get_stop_room(struct mlx5_core_dev *mdev, struct mlx5e_params *pa
- 
- 	num_dumps = mlx5e_ktls_dumps_num_wqes(params, MAX_SKB_FRAGS, TLS_MAX_PAYLOAD_SIZE);
- 
--	stop_room += mlx5e_stop_room_for_wqe(mdev, MLX5E_TLS_SET_STATIC_PARAMS_WQEBBS);
-+	stop_room += mlx5e_stop_room_for_wqe(mdev, MLX5E_TRANSPORT_SET_STATIC_PARAMS_WQEBBS);
- 	stop_room += mlx5e_stop_room_for_wqe(mdev, MLX5E_TLS_SET_PROGRESS_PARAMS_WQEBBS);
- 	stop_room += num_dumps * mlx5e_stop_room_for_wqe(mdev, MLX5E_KTLS_DUMP_WQEBBS);
- 	stop_room += 1; /* fence nop */
-@@ -544,12 +544,12 @@ post_static_params(struct mlx5e_txqsq *sq,
- 		   struct mlx5e_ktls_offload_context_tx *priv_tx,
- 		   bool fence)
- {
--	struct mlx5e_set_tls_static_params_wqe *wqe;
-+	struct mlx5e_set_transport_static_params_wqe *wqe;
- 	u16 pi, num_wqebbs;
- 
--	num_wqebbs = MLX5E_TLS_SET_STATIC_PARAMS_WQEBBS;
-+	num_wqebbs = MLX5E_TRANSPORT_SET_STATIC_PARAMS_WQEBBS;
- 	pi = mlx5e_txqsq_get_next_pi(sq, num_wqebbs);
--	wqe = MLX5E_TLS_FETCH_SET_STATIC_PARAMS_WQE(sq, pi);
-+	wqe = MLX5E_TRANSPORT_FETCH_SET_STATIC_PARAMS_WQE(sq, pi);
- 	mlx5e_ktls_build_static_params(wqe, sq->pc, sq->sqn, &priv_tx->crypto_info,
- 				       priv_tx->tisn, priv_tx->key_id, 0, fence,
- 				       TLS_OFFLOAD_CTX_DIR_TX);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_txrx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_txrx.c
-index ac29aeb8af49..68c16daa6008 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_txrx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_txrx.c
-@@ -8,10 +8,6 @@ enum {
- 	MLX5E_STATIC_PARAMS_CONTEXT_TLS_1_2 = 0x2,
- };
- 
--enum {
--	MLX5E_ENCRYPTION_STANDARD_TLS = 0x1,
--};
--
- #define EXTRACT_INFO_FIELDS do { \
- 	salt    = info->salt;    \
- 	rec_seq = info->rec_seq; \
-@@ -20,7 +16,7 @@ enum {
- } while (0)
- 
- static void
--fill_static_params(struct mlx5_wqe_tls_static_params_seg *params,
-+fill_static_params(struct mlx5_wqe_transport_static_params_seg *params,
- 		   struct tls12_crypto_info_aes_gcm_128 *info,
- 		   u32 key_id, u32 resync_tcp_sn)
- {
-@@ -34,25 +30,25 @@ fill_static_params(struct mlx5_wqe_tls_static_params_seg *params,
- 
- 	EXTRACT_INFO_FIELDS;
- 
--	gcm_iv      = MLX5_ADDR_OF(tls_static_params, ctx, gcm_iv);
--	initial_rn  = MLX5_ADDR_OF(tls_static_params, ctx, initial_record_number);
-+	gcm_iv      = MLX5_ADDR_OF(transport_static_params, ctx, gcm_iv);
-+	initial_rn  = MLX5_ADDR_OF(transport_static_params, ctx, initial_record_number);
- 
- 	memcpy(gcm_iv,      salt,    salt_sz);
- 	memcpy(initial_rn,  rec_seq, rec_seq_sz);
- 
- 	tls_version = MLX5E_STATIC_PARAMS_CONTEXT_TLS_1_2;
- 
--	MLX5_SET(tls_static_params, ctx, tls_version, tls_version);
--	MLX5_SET(tls_static_params, ctx, const_1, 1);
--	MLX5_SET(tls_static_params, ctx, const_2, 2);
--	MLX5_SET(tls_static_params, ctx, encryption_standard,
--		 MLX5E_ENCRYPTION_STANDARD_TLS);
--	MLX5_SET(tls_static_params, ctx, resync_tcp_sn, resync_tcp_sn);
--	MLX5_SET(tls_static_params, ctx, dek_index, key_id);
-+	MLX5_SET(transport_static_params, ctx, tls_version, tls_version);
-+	MLX5_SET(transport_static_params, ctx, const_1, 1);
-+	MLX5_SET(transport_static_params, ctx, const_2, 2);
-+	MLX5_SET(transport_static_params, ctx, acc_type,
-+		 MLX5_TRANSPORT_STATIC_PARAMS_ACC_TYPE_TLS);
-+	MLX5_SET(transport_static_params, ctx, resync_tcp_sn, resync_tcp_sn);
-+	MLX5_SET(transport_static_params, ctx, dek_index, key_id);
- }
- 
- void
--mlx5e_ktls_build_static_params(struct mlx5e_set_tls_static_params_wqe *wqe,
-+mlx5e_ktls_build_static_params(struct mlx5e_set_transport_static_params_wqe *wqe,
- 			       u16 pc, u32 sqn,
- 			       struct tls12_crypto_info_aes_gcm_128 *info,
- 			       u32 tis_tir_num, u32 key_id, u32 resync_tcp_sn,
-@@ -61,19 +57,17 @@ mlx5e_ktls_build_static_params(struct mlx5e_set_tls_static_params_wqe *wqe,
- 	struct mlx5_wqe_umr_ctrl_seg *ucseg = &wqe->uctrl;
- 	struct mlx5_wqe_ctrl_seg     *cseg  = &wqe->ctrl;
- 	u8 opmod = direction == TLS_OFFLOAD_CTX_DIR_TX ?
--		MLX5_OPC_MOD_TLS_TIS_STATIC_PARAMS :
--		MLX5_OPC_MOD_TLS_TIR_STATIC_PARAMS;
--
--#define STATIC_PARAMS_DS_CNT DIV_ROUND_UP(sizeof(*wqe), MLX5_SEND_WQE_DS)
-+		MLX5_OPC_MOD_TRANSPORT_TIS_STATIC_PARAMS :
-+		MLX5_OPC_MOD_TRANSPORT_TIR_STATIC_PARAMS;
- 
- 	cseg->opmod_idx_opcode = cpu_to_be32((pc << 8) | MLX5_OPCODE_UMR | (opmod << 24));
- 	cseg->qpn_ds           = cpu_to_be32((sqn << MLX5_WQE_CTRL_QPN_SHIFT) |
--					     STATIC_PARAMS_DS_CNT);
-+					     MLX5E_TRANSPORT_STATIC_PARAMS_DS_CNT);
- 	cseg->fm_ce_se         = fence ? MLX5_FENCE_MODE_INITIATOR_SMALL : 0;
- 	cseg->tis_tir_num      = cpu_to_be32(tis_tir_num << 8);
- 
- 	ucseg->flags = MLX5_UMR_INLINE;
--	ucseg->bsf_octowords = cpu_to_be16(MLX5_ST_SZ_BYTES(tls_static_params) / 16);
-+	ucseg->bsf_octowords = cpu_to_be16(MLX5E_TRANSPORT_STATIC_PARAMS_OCTWORD_SIZE);
- 
- 	fill_static_params(&wqe->params, info, key_id, resync_tcp_sn);
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_utils.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_utils.h
-index 0dc715c4c10d..9077785752ef 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_utils.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ktls_utils.h
-@@ -6,6 +6,7 @@
- 
- #include <net/tls.h>
- #include "en.h"
-+#include "en_accel/common_utils.h"
- 
- enum {
- 	MLX5E_TLS_PROGRESS_PARAMS_AUTH_STATE_NO_OFFLOAD     = 0,
-@@ -27,13 +28,6 @@ int mlx5e_ktls_add_rx(struct net_device *netdev, struct sock *sk,
- void mlx5e_ktls_del_rx(struct net_device *netdev, struct tls_context *tls_ctx);
- void mlx5e_ktls_rx_resync(struct net_device *netdev, struct sock *sk, u32 seq, u8 *rcd_sn);
- 
--struct mlx5e_set_tls_static_params_wqe {
--	struct mlx5_wqe_ctrl_seg ctrl;
--	struct mlx5_wqe_umr_ctrl_seg uctrl;
--	struct mlx5_mkey_seg mkc;
--	struct mlx5_wqe_tls_static_params_seg params;
--};
--
- struct mlx5e_set_tls_progress_params_wqe {
- 	struct mlx5_wqe_ctrl_seg ctrl;
- 	struct mlx5_wqe_tls_progress_params_seg params;
-@@ -44,19 +38,12 @@ struct mlx5e_get_tls_progress_params_wqe {
- 	struct mlx5_seg_get_psv  psv;
- };
- 
--#define MLX5E_TLS_SET_STATIC_PARAMS_WQEBBS \
--	(DIV_ROUND_UP(sizeof(struct mlx5e_set_tls_static_params_wqe), MLX5_SEND_WQE_BB))
--
- #define MLX5E_TLS_SET_PROGRESS_PARAMS_WQEBBS \
- 	(DIV_ROUND_UP(sizeof(struct mlx5e_set_tls_progress_params_wqe), MLX5_SEND_WQE_BB))
- 
- #define MLX5E_KTLS_GET_PROGRESS_WQEBBS \
- 	(DIV_ROUND_UP(sizeof(struct mlx5e_get_tls_progress_params_wqe), MLX5_SEND_WQE_BB))
- 
--#define MLX5E_TLS_FETCH_SET_STATIC_PARAMS_WQE(sq, pi) \
--	((struct mlx5e_set_tls_static_params_wqe *)\
--	 mlx5e_fetch_wqe(&(sq)->wq, pi, sizeof(struct mlx5e_set_tls_static_params_wqe)))
--
- #define MLX5E_TLS_FETCH_SET_PROGRESS_PARAMS_WQE(sq, pi) \
- 	((struct mlx5e_set_tls_progress_params_wqe *)\
- 	 mlx5e_fetch_wqe(&(sq)->wq, pi, sizeof(struct mlx5e_set_tls_progress_params_wqe)))
-@@ -70,7 +57,7 @@ struct mlx5e_get_tls_progress_params_wqe {
- 	 mlx5e_fetch_wqe(&(sq)->wq, pi, sizeof(struct mlx5e_dump_wqe)))
- 
- void
--mlx5e_ktls_build_static_params(struct mlx5e_set_tls_static_params_wqe *wqe,
-+mlx5e_ktls_build_static_params(struct mlx5e_set_transport_static_params_wqe *wqe,
- 			       u16 pc, u32 sqn,
- 			       struct tls12_crypto_info_aes_gcm_128 *info,
- 			       u32 tis_tir_num, u32 key_id, u32 resync_tcp_sn,
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 3fbeb0468618..fc621790c1af 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -444,8 +444,8 @@ enum {
- };
- 
- enum {
--	MLX5_OPC_MOD_TLS_TIS_STATIC_PARAMS = 0x1,
--	MLX5_OPC_MOD_TLS_TIR_STATIC_PARAMS = 0x2,
-+	MLX5_OPC_MOD_TRANSPORT_TIS_STATIC_PARAMS = 0x1,
-+	MLX5_OPC_MOD_TRANSPORT_TIR_STATIC_PARAMS = 0x2,
- };
- 
- enum {
-@@ -453,8 +453,8 @@ enum {
- 	MLX5_OPC_MOD_TLS_TIR_PROGRESS_PARAMS = 0x2,
- };
- 
--struct mlx5_wqe_tls_static_params_seg {
--	u8     ctx[MLX5_ST_SZ_BYTES(tls_static_params)];
-+struct mlx5_wqe_transport_static_params_seg {
-+	u8     ctx[MLX5_ST_SZ_BYTES(transport_static_params)];
- };
- 
- struct mlx5_wqe_tls_progress_params_seg {
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 26619b8e57c2..4a549b26daa0 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -11671,12 +11671,16 @@ enum {
- 	MLX5_GENERAL_OBJECT_TYPE_ENCRYPTION_KEY_TYPE_IPSEC = 0x2,
- };
- 
--struct mlx5_ifc_tls_static_params_bits {
-+enum {
-+	MLX5_TRANSPORT_STATIC_PARAMS_ACC_TYPE_TLS               = 0x1,
-+};
-+
-+struct mlx5_ifc_transport_static_params_bits {
- 	u8         const_2[0x2];
- 	u8         tls_version[0x4];
- 	u8         const_1[0x2];
- 	u8         reserved_at_8[0x14];
--	u8         encryption_standard[0x4];
-+	u8         acc_type[0x4];
- 
- 	u8         reserved_at_20[0x20];
- 
+clang tested configs:
+riscv                randconfig-r042-20220907
+hexagon              randconfig-r041-20220907
+hexagon              randconfig-r045-20220907
+s390                 randconfig-r044-20220907
+x86_64                        randconfig-a005
+x86_64                        randconfig-a003
+x86_64                        randconfig-a001
+x86_64                        randconfig-a012
+x86_64                        randconfig-a014
+x86_64                        randconfig-a016
+i386                          randconfig-a002
+i386                          randconfig-a006
+i386                          randconfig-a004
+x86_64                        randconfig-k001
+powerpc                     tqm8540_defconfig
+arm                           spitz_defconfig
+powerpc                 mpc8315_rdb_defconfig
+mips                           ip22_defconfig
+i386                          randconfig-a011
+i386                          randconfig-a013
+i386                          randconfig-a015
+
 -- 
-2.37.2
-
+0-DAY CI Kernel Test Service
+https://01.org/lkp
