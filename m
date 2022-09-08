@@ -2,43 +2,43 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA0D0C38145
-	for <linux-rdma@archiver.kernel.org>; Thu,  8 Sep 2022 10:09:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E38CCECAAD5
+	for <linux-rdma@archiver.kernel.org>; Thu,  8 Sep 2022 10:09:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231133AbiIHKJX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 8 Sep 2022 06:09:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51448 "EHLO
+        id S231322AbiIHKJh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 8 Sep 2022 06:09:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231328AbiIHKJV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Sep 2022 06:09:21 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA68FE1246
-        for <linux-rdma@vger.kernel.org>; Thu,  8 Sep 2022 03:09:19 -0700 (PDT)
+        with ESMTP id S231362AbiIHKJb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 8 Sep 2022 06:09:31 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EE676341
+        for <linux-rdma@vger.kernel.org>; Thu,  8 Sep 2022 03:09:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id DAC9FCE1EE3
-        for <linux-rdma@vger.kernel.org>; Thu,  8 Sep 2022 10:09:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 567C0C433D6;
-        Thu,  8 Sep 2022 10:09:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ACD0361C2C
+        for <linux-rdma@vger.kernel.org>; Thu,  8 Sep 2022 10:09:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9502DC433D7;
+        Thu,  8 Sep 2022 10:09:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662631753;
-        bh=yT7UVymAEci31hyjNAxM7/fjlKhIc3KYAG/RBf3X3n0=;
+        s=k20201202; t=1662631766;
+        bh=nISOS98JMW+00iHH/Ze7hXS4D0jwb9famwNqqp/Jqr0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Uu2CgAIjw0v1zDmECVoW2/tbpe79EcQ9K6OdkuXyxdL+0vSe8OhQiEOKymi+OnZb8
-         SE60Fw3qa7zl89zNfm7YmH2l5tNPStiU4Avbu/mvM7eM14M8rhqfDo6DgKzN0lQEn/
-         /Lqo68RGeJ/1nvmn+nzZ5Bv/0IKPIX7qFc8AfVfaf3bciwD4j+dDBNULsMFrqdJ2gx
-         P0C5fuvju/XNfArhicWfPoP6KtBdkvi4J6FyYFdqjNieP8v0w+eYtkmdy2bOqallJC
-         xx+K9VVbQ4Op2gHeA/YJ0yvVIchR66kJvecBw6yYBIE3uYgJUm4wASOFjFtqrrsGZz
-         GD45h9aEajghA==
+        b=lw4kCAbLbLEuHwfieVhAMDEZTsLZtTyMT1b85QFJYhv+qWTy08JLgae4jK9h2XmwG
+         ejbv3xOvL7d7t4qMgSV8HHKMon5Mi+1+kYp1Tb3uWtiN2JA1IbuZmNuS0KyLW1zclt
+         qYCeMOa5zkTHqfCo9a8pnYAPE/wlFAPE/5qJwIFAPcjAXECcKQWdYXuhlMKg6epIf4
+         /7AzUAT0p/938+TKDoGX86ctsO+g73dKsHcQjqsfgRwWmvtBbfl/Qw9Oo/e9InkDem
+         CGIWmEX7/zhZ/s8dPvsGCXEP28f/1j6GzUUOUxizzoc6FawBGoHYxXXpCIO13/F+kK
+         2r0lRXD4G/3ng==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Mark Zhang <markzhang@nvidia.com>,
         Bart Van Assche <bvanassche@acm.org>,
         linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH rdma-next 1/4] RDMA/core: Rename rdma_route.num_paths field to num_pri_alt_paths
-Date:   Thu,  8 Sep 2022 13:09:00 +0300
-Message-Id: <cbe424de63a56207870d70c5edce7c68e45f429e.1662631201.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 3/4] RDMA/cm: Use SLID in the work completion as the DLID in responder side
+Date:   Thu,  8 Sep 2022 13:09:02 +0300
+Message-Id: <cd17c240231e059d2fc07c17dfe555d548b917eb.1662631201.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <cover.1662631201.git.leonro@nvidia.com>
 References: <cover.1662631201.git.leonro@nvidia.com>
@@ -50,144 +50,71 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markzhang@nvidia.com>
 
-This fields means the total number of primary and alternative paths,
-i.e.,:
-  0 - No primary nor alternate path is available;
-  1 - Only primary path is available;
-  2 - Both primary and alternate path are available.
-Rename it to avoid confusion as with follow patches primary path will
-support multiple path records.
+The responder should always use WC's SLID as the dlid, to follow the
+IB SPEC section "13.5.4.2 COMMON RESPONSE ACTIONS":
+A responder always takes the following actions in constructing a
+response packet:
+- The SLID of the received packet is used as the DLID in the response
+  packet.
 
+Fixes: ac3a949fb2ff ("IB/CM: Set appropriate slid and dlid when handling CM request")
 Signed-off-by: Mark Zhang <markzhang@nvidia.com>
 Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cma.c  | 18 +++++++++---------
- drivers/infiniband/core/ucma.c | 10 +++++-----
- include/rdma/rdma_cm.h         |  7 ++++++-
- 3 files changed, 20 insertions(+), 15 deletions(-)
+ drivers/infiniband/core/cm.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 46d06678dfbe..91e72a76d95e 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -2241,14 +2241,14 @@ cma_ib_new_conn_id(const struct rdma_cm_id *listen_id,
- 		goto err;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index d7410ee2ade7..ade82752f9f7 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1614,14 +1614,13 @@ static void cm_path_set_rec_type(struct ib_device *ib_device, u32 port_num,
  
- 	rt = &id->route;
--	rt->num_paths = ib_event->param.req_rcvd.alternate_path ? 2 : 1;
--	rt->path_rec = kmalloc_array(rt->num_paths, sizeof(*rt->path_rec),
--				     GFP_KERNEL);
-+	rt->num_pri_alt_paths = ib_event->param.req_rcvd.alternate_path ? 2 : 1;
-+	rt->path_rec = kmalloc_array(rt->num_pri_alt_paths,
-+				     sizeof(*rt->path_rec), GFP_KERNEL);
- 	if (!rt->path_rec)
- 		goto err;
- 
- 	rt->path_rec[0] = *path;
--	if (rt->num_paths == 2)
-+	if (rt->num_pri_alt_paths == 2)
- 		rt->path_rec[1] = *ib_event->param.req_rcvd.alternate_path;
- 
- 	if (net_dev) {
-@@ -2826,7 +2826,7 @@ static void cma_query_handler(int status, struct sa_path_rec *path_rec,
- 	route = &work->id->id.route;
- 
- 	if (!status) {
--		route->num_paths = 1;
-+		route->num_pri_alt_paths = 1;
- 		*route->path_rec = *path_rec;
- 	} else {
- 		work->old_state = RDMA_CM_ROUTE_QUERY;
-@@ -3081,7 +3081,7 @@ int rdma_set_ib_path(struct rdma_cm_id *id,
- 		dev_put(ndev);
- 	}
- 
--	id->route.num_paths = 1;
-+	id->route.num_pri_alt_paths = 1;
- 	return 0;
- 
- err_free:
-@@ -3214,7 +3214,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- 		goto err1;
- 	}
- 
--	route->num_paths = 1;
-+	route->num_pri_alt_paths = 1;
- 
- 	ndev = cma_iboe_set_path_rec_l2_fields(id_priv);
- 	if (!ndev) {
-@@ -3274,7 +3274,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
- err2:
- 	kfree(route->path_rec);
- 	route->path_rec = NULL;
--	route->num_paths = 0;
-+	route->num_pri_alt_paths = 0;
- err1:
- 	kfree(work);
- 	return ret;
-@@ -4265,7 +4265,7 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
- 	}
- 
- 	req.primary_path = &route->path_rec[0];
--	if (route->num_paths == 2)
-+	if (route->num_pri_alt_paths == 2)
- 		req.alternate_path = &route->path_rec[1];
- 
- 	req.ppath_sgid_attr = id_priv->id.route.addr.dev_addr.sgid_attr;
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 9d6ac9dff39a..bf42650f125b 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -754,8 +754,8 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
+ static void cm_format_path_lid_from_req(struct cm_req_msg *req_msg,
+ 					struct sa_path_rec *primary_path,
+-					struct sa_path_rec *alt_path)
++					struct sa_path_rec *alt_path,
++					struct ib_wc *wc)
  {
- 	struct rdma_dev_addr *dev_addr;
+ 	u32 lid;
  
--	resp->num_paths = route->num_paths;
--	switch (route->num_paths) {
-+	resp->num_paths = route->num_pri_alt_paths;
-+	switch (route->num_pri_alt_paths) {
- 	case 0:
- 		dev_addr = &route->addr.dev_addr;
- 		rdma_addr_get_dgid(dev_addr,
-@@ -781,8 +781,8 @@ static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
- 				 struct rdma_route *route)
+ 	if (primary_path->rec_type != SA_PATH_REC_TYPE_OPA) {
+-		sa_path_set_dlid(primary_path,
+-				 IBA_GET(CM_REQ_PRIMARY_LOCAL_PORT_LID,
+-					 req_msg));
++		sa_path_set_dlid(primary_path, wc->slid);
+ 		sa_path_set_slid(primary_path,
+ 				 IBA_GET(CM_REQ_PRIMARY_REMOTE_PORT_LID,
+ 					 req_msg));
+@@ -1658,7 +1657,8 @@ static void cm_format_path_lid_from_req(struct cm_req_msg *req_msg,
+ 
+ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
+ 				     struct sa_path_rec *primary_path,
+-				     struct sa_path_rec *alt_path)
++				     struct sa_path_rec *alt_path,
++				     struct ib_wc *wc)
  {
+ 	primary_path->dgid =
+ 		*IBA_GET_MEM_PTR(CM_REQ_PRIMARY_LOCAL_PORT_GID, req_msg);
+@@ -1716,7 +1716,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
+ 		if (sa_path_is_roce(alt_path))
+ 			alt_path->roce.route_resolved = false;
+ 	}
+-	cm_format_path_lid_from_req(req_msg, primary_path, alt_path);
++	cm_format_path_lid_from_req(req_msg, primary_path, alt_path, wc);
+ }
  
--	resp->num_paths = route->num_paths;
--	switch (route->num_paths) {
-+	resp->num_paths = route->num_pri_alt_paths;
-+	switch (route->num_pri_alt_paths) {
- 	case 0:
- 		rdma_ip2gid((struct sockaddr *)&route->addr.dst_addr,
- 			    (union ib_gid *)&resp->ib_route[0].dgid);
-@@ -921,7 +921,7 @@ static ssize_t ucma_query_path(struct ucma_context *ctx,
- 	if (!resp)
- 		return -ENOMEM;
- 
--	resp->num_paths = ctx->cm_id->route.num_paths;
-+	resp->num_paths = ctx->cm_id->route.num_pri_alt_paths;
- 	for (i = 0, out_len -= sizeof(*resp);
- 	     i < resp->num_paths && out_len > sizeof(struct ib_path_rec_data);
- 	     i++, out_len -= sizeof(struct ib_path_rec_data)) {
-diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-index 5b18e2e36ee6..81916039ee24 100644
---- a/include/rdma/rdma_cm.h
-+++ b/include/rdma/rdma_cm.h
-@@ -52,7 +52,12 @@ struct rdma_addr {
- struct rdma_route {
- 	struct rdma_addr addr;
- 	struct sa_path_rec *path_rec;
--	int num_paths;
-+	/*
-+	 * 0 - No primary nor alternate path is available
-+	 * 1 - Only primary path is available
-+	 * 2 - Both primary and alternate path are available
-+	 */
-+	int num_pri_alt_paths;
- };
- 
- struct rdma_conn_param {
+ static u16 cm_get_bth_pkey(struct cm_work *work)
+@@ -2129,7 +2129,7 @@ static int cm_req_handler(struct cm_work *work)
+ 	if (cm_req_has_alt_path(req_msg))
+ 		work->path[1].rec_type = work->path[0].rec_type;
+ 	cm_format_paths_from_req(req_msg, &work->path[0],
+-				 &work->path[1]);
++				 &work->path[1], work->mad_recv_wc->wc);
+ 	if (cm_id_priv->av.ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE)
+ 		sa_path_set_dmac(&work->path[0],
+ 				 cm_id_priv->av.ah_attr.roce.dmac);
 -- 
 2.37.2
 
