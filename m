@@ -2,101 +2,80 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 897B9ECAAD3
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Sep 2022 09:24:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39EA1ECAAA1
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Sep 2022 09:38:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230210AbiIIJYX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Sep 2022 05:24:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46218 "EHLO
+        id S230476AbiIIJik (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Sep 2022 05:38:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231367AbiIIJYI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Sep 2022 05:24:08 -0400
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C42EF131EF6;
-        Fri,  9 Sep 2022 02:23:09 -0700 (PDT)
-Received: from dggpeml500023.china.huawei.com (unknown [172.30.72.56])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4MP9Sj6w4XzHnfc;
-        Fri,  9 Sep 2022 17:20:21 +0800 (CST)
-Received: from ubuntu1804.huawei.com (10.67.174.58) by
- dggpeml500023.china.huawei.com (7.185.36.114) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Fri, 9 Sep 2022 17:22:18 +0800
-From:   Xiu Jianfeng <xiujianfeng@huawei.com>
-To:     <santosh.shilimkar@oracle.com>, <davem@davemloft.net>,
-        <edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>
-CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <rds-devel@oss.oracle.com>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH -next] net: rds: add missing __init/__exit annotations to module init/exit funcs
-Date:   Fri, 9 Sep 2022 17:18:40 +0800
-Message-ID: <20220909091840.247946-1-xiujianfeng@huawei.com>
-X-Mailer: git-send-email 2.17.1
+        with ESMTP id S232048AbiIIJib (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Sep 2022 05:38:31 -0400
+Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68302A2AA3
+        for <linux-rdma@vger.kernel.org>; Fri,  9 Sep 2022 02:38:29 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VP8vGWM_1662716306;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VP8vGWM_1662716306)
+          by smtp.aliyun-inc.com;
+          Fri, 09 Sep 2022 17:38:26 +0800
+From:   Cheng Xu <chengyou@linux.alibaba.com>
+To:     jgg@ziepe.ca, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
+Subject: [PATCH for-next 3/4] RDMA/erdma: Make hardware internal opcodes invisible to driver
+Date:   Fri,  9 Sep 2022 17:38:21 +0800
+Message-Id: <20220909093822.33868-4-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.37.0
+In-Reply-To: <20220909093822.33868-1-chengyou@linux.alibaba.com>
+References: <20220909093822.33868-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.174.58]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- dggpeml500023.china.huawei.com (7.185.36.114)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add missing __init/__exit annotations to module init/exit funcs.
+Some opcodes are used in hardware internally, and driver does not care
+about them. So, we change them to reserved opcodes in driver.
 
-Signed-off-by: Xiu Jianfeng <xiujianfeng@huawei.com>
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- net/rds/af_rds.c         | 2 +-
- net/rds/rdma_transport.c | 4 ++--
- net/rds/tcp.c            | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/erdma/erdma_cq.c | 1 -
+ drivers/infiniband/hw/erdma/erdma_hw.h | 8 ++++----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
-index b239120dd9ca..3ff6995244e5 100644
---- a/net/rds/af_rds.c
-+++ b/net/rds/af_rds.c
-@@ -894,7 +894,7 @@ module_exit(rds_exit);
+diff --git a/drivers/infiniband/hw/erdma/erdma_cq.c b/drivers/infiniband/hw/erdma/erdma_cq.c
+index 2f7390de35d7..58e0dc5c75d1 100644
+--- a/drivers/infiniband/hw/erdma/erdma_cq.c
++++ b/drivers/infiniband/hw/erdma/erdma_cq.c
+@@ -59,7 +59,6 @@ static const enum ib_wc_opcode wc_mapping_table[ERDMA_NUM_OPCODES] = {
+ 	[ERDMA_OP_RECV_IMM] = IB_WC_RECV_RDMA_WITH_IMM,
+ 	[ERDMA_OP_RECV_INV] = IB_WC_RECV,
+ 	[ERDMA_OP_WRITE_WITH_IMM] = IB_WC_RDMA_WRITE,
+-	[ERDMA_OP_INVALIDATE] = IB_WC_LOCAL_INV,
+ 	[ERDMA_OP_RSP_SEND_IMM] = IB_WC_RECV,
+ 	[ERDMA_OP_SEND_WITH_INV] = IB_WC_SEND,
+ 	[ERDMA_OP_REG_MR] = IB_WC_REG_MR,
+diff --git a/drivers/infiniband/hw/erdma/erdma_hw.h b/drivers/infiniband/hw/erdma/erdma_hw.h
+index b210c49c669f..3004cf3ac481 100644
+--- a/drivers/infiniband/hw/erdma/erdma_hw.h
++++ b/drivers/infiniband/hw/erdma/erdma_hw.h
+@@ -450,13 +450,13 @@ enum erdma_opcode {
+ 	ERDMA_OP_RECV_IMM = 5,
+ 	ERDMA_OP_RECV_INV = 6,
  
- u32 rds_gen_num;
+-	ERDMA_OP_REQ_ERR = 7,
+-	ERDMA_OP_READ_RESPONSE = 8,
++	ERDMA_OP_RSVD0 = 7,
++	ERDMA_OP_RSVD1 = 8,
+ 	ERDMA_OP_WRITE_WITH_IMM = 9,
  
--static int rds_init(void)
-+static int __init rds_init(void)
- {
- 	int ret;
+-	ERDMA_OP_RECV_ERR = 10,
++	ERDMA_OP_RSVD2 = 10,
++	ERDMA_OP_RSVD3 = 11,
  
-diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
-index a9e4ff948a7d..d36f3f6b4351 100644
---- a/net/rds/rdma_transport.c
-+++ b/net/rds/rdma_transport.c
-@@ -291,7 +291,7 @@ static void rds_rdma_listen_stop(void)
- #endif
- }
- 
--static int rds_rdma_init(void)
-+static int __init rds_rdma_init(void)
- {
- 	int ret;
- 
-@@ -307,7 +307,7 @@ static int rds_rdma_init(void)
- }
- module_init(rds_rdma_init);
- 
--static void rds_rdma_exit(void)
-+static void __exit rds_rdma_exit(void)
- {
- 	/* stop listening first to ensure no new connections are attempted */
- 	rds_rdma_listen_stop();
-diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-index 73ee2771093d..d8754366506a 100644
---- a/net/rds/tcp.c
-+++ b/net/rds/tcp.c
-@@ -712,7 +712,7 @@ static void rds_tcp_exit(void)
- }
- module_exit(rds_tcp_exit);
- 
--static int rds_tcp_init(void)
-+static int __init rds_tcp_init(void)
- {
- 	int ret;
+-	ERDMA_OP_INVALIDATE = 11,
+ 	ERDMA_OP_RSP_SEND_IMM = 12,
+ 	ERDMA_OP_SEND_WITH_INV = 13,
  
 -- 
-2.17.1
+2.27.0
 
