@@ -2,147 +2,64 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78D33ECAAA1
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Sep 2022 09:38:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17E26C6FA86
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Sep 2022 09:38:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231393AbiIIJil (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Sep 2022 05:38:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36466 "EHLO
+        id S231537AbiIIJin (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Sep 2022 05:38:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232052AbiIIJib (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Sep 2022 05:38:31 -0400
-Received: from out30-57.freemail.mail.aliyun.com (out30-57.freemail.mail.aliyun.com [115.124.30.57])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 680DEA2216
-        for <linux-rdma@vger.kernel.org>; Fri,  9 Sep 2022 02:38:29 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VP9-tfX_1662716307;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VP9-tfX_1662716307)
+        with ESMTP id S231703AbiIIJi1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Sep 2022 05:38:27 -0400
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 635A997EDE
+        for <linux-rdma@vger.kernel.org>; Fri,  9 Sep 2022 02:38:26 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R271e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VP8mhPn_1662716303;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VP8mhPn_1662716303)
           by smtp.aliyun-inc.com;
-          Fri, 09 Sep 2022 17:38:27 +0800
+          Fri, 09 Sep 2022 17:38:24 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
-Subject: [PATCH for-next 4/4] RDMA/erdma: Support dynamic mtu
-Date:   Fri,  9 Sep 2022 17:38:22 +0800
-Message-Id: <20220909093822.33868-5-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next 0/4] RDMA/erdma: cleanups and updates 9-9-2022
+Date:   Fri,  9 Sep 2022 17:38:18 +0800
+Message-Id: <20220909093822.33868-1-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.37.0
-In-Reply-To: <20220909093822.33868-1-chengyou@linux.alibaba.com>
-References: <20220909093822.33868-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hardware now support jumbo frame for RDMA. So we introduce a new CMDQ
-message to support mtu change notification.
+Hi,
 
-Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
----
- drivers/infiniband/hw/erdma/erdma.h       |  1 +
- drivers/infiniband/hw/erdma/erdma_hw.h    |  6 ++++++
- drivers/infiniband/hw/erdma/erdma_main.c  |  8 +++++++-
- drivers/infiniband/hw/erdma/erdma_verbs.c | 11 +++++++++++
- drivers/infiniband/hw/erdma/erdma_verbs.h |  1 +
- 5 files changed, 26 insertions(+), 1 deletion(-)
+This series has new updates for erdma driver:
+- #1~#3 aim at making code more clean, including eliminating unnecessary
+  castings, removing redundant include headers, and hiding hardware
+  internal opcodes.
+- #4 introcuces dynamic mtu support.
 
-diff --git a/drivers/infiniband/hw/erdma/erdma.h b/drivers/infiniband/hw/erdma/erdma.h
-index cc5e4eb3a21e..730783fbc894 100644
---- a/drivers/infiniband/hw/erdma/erdma.h
-+++ b/drivers/infiniband/hw/erdma/erdma.h
-@@ -197,6 +197,7 @@ struct erdma_dev {
- 	struct erdma_devattr attrs;
- 	/* physical port state (only one port per device) */
- 	enum ib_port_state state;
-+	u32 mtu;
- 
- 	/* cmdq and aeq use the same msix vector */
- 	struct erdma_irq comm_irq;
-diff --git a/drivers/infiniband/hw/erdma/erdma_hw.h b/drivers/infiniband/hw/erdma/erdma_hw.h
-index 3004cf3ac481..e788887732e1 100644
---- a/drivers/infiniband/hw/erdma/erdma_hw.h
-+++ b/drivers/infiniband/hw/erdma/erdma_hw.h
-@@ -153,6 +153,7 @@ enum CMDQ_COMMON_OPCODE {
- 	CMDQ_OPCODE_CREATE_EQ = 0,
- 	CMDQ_OPCODE_DESTROY_EQ = 1,
- 	CMDQ_OPCODE_QUERY_FW_INFO = 2,
-+	CMDQ_OPCODE_CONF_MTU = 3,
- };
- 
- /* cmdq-SQE HDR */
-@@ -190,6 +191,11 @@ struct erdma_cmdq_destroy_eq_req {
- 	u8 qtype;
- };
- 
-+struct erdma_cmdq_config_mtu_req {
-+	u64 hdr;
-+	u32 mtu;
-+};
-+
- /* create_cq cfg0 */
- #define ERDMA_CMD_CREATE_CQ_DEPTH_MASK GENMASK(31, 24)
- #define ERDMA_CMD_CREATE_CQ_PAGESIZE_MASK GENMASK(23, 20)
-diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
-index 6d3e02ba9e77..49778bb294ae 100644
---- a/drivers/infiniband/hw/erdma/erdma_main.c
-+++ b/drivers/infiniband/hw/erdma/erdma_main.c
-@@ -34,10 +34,15 @@ static int erdma_netdev_event(struct notifier_block *nb, unsigned long event,
- 		dev->state = IB_PORT_DOWN;
- 		erdma_port_event(dev, IB_EVENT_PORT_ERR);
- 		break;
-+	case NETDEV_CHANGEMTU:
-+		if (dev->mtu != netdev->mtu) {
-+			erdma_set_mtu(dev, netdev->mtu);
-+			dev->mtu = netdev->mtu;
-+		}
-+		break;
- 	case NETDEV_REGISTER:
- 	case NETDEV_UNREGISTER:
- 	case NETDEV_CHANGEADDR:
--	case NETDEV_CHANGEMTU:
- 	case NETDEV_GOING_DOWN:
- 	case NETDEV_CHANGE:
- 	default:
-@@ -95,6 +100,7 @@ static int erdma_device_register(struct erdma_dev *dev)
- 	if (ret)
- 		return ret;
- 
-+	dev->mtu = dev->netdev->mtu;
- 	addrconf_addr_eui48((u8 *)&ibdev->node_guid, dev->netdev->dev_addr);
- 
- 	ret = ib_register_device(ibdev, "erdma_%d", &dev->pdev->dev);
-diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
-index aea93d08af95..62be98e2b941 100644
---- a/drivers/infiniband/hw/erdma/erdma_verbs.c
-+++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
-@@ -1436,6 +1436,17 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	return ret;
- }
- 
-+void erdma_set_mtu(struct erdma_dev *dev, u32 mtu)
-+{
-+	struct erdma_cmdq_config_mtu_req req;
-+
-+	erdma_cmdq_build_reqhdr(&req.hdr, CMDQ_SUBMOD_COMMON,
-+				CMDQ_OPCODE_CONF_MTU);
-+	req.mtu = mtu;
-+
-+	erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL);
-+}
-+
- void erdma_port_event(struct erdma_dev *dev, enum ib_event_type reason)
- {
- 	struct ib_event event;
-diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
-index fe93e1ac9674..ab6380635e9e 100644
---- a/drivers/infiniband/hw/erdma/erdma_verbs.h
-+++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
-@@ -330,5 +330,6 @@ struct ib_mr *erdma_ib_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
- int erdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
- 		    unsigned int *sg_offset);
- void erdma_port_event(struct erdma_dev *dev, enum ib_event_type reason);
-+void erdma_set_mtu(struct erdma_dev *dev, u32 mtu);
- 
- #endif
+Thanks,
+Cheng Xu
+
+Cheng Xu (4):
+  RDMA/erdma: Eliminate unnecessary casting for erdma_post_cmd_wait
+  RDMA/erdma: Remove redundant includes
+  RDMA/erdma: Make hardware internal opcodes invisible to driver
+  RDMA/erdma: Support dynamic mtu
+
+ drivers/infiniband/hw/erdma/erdma.h       |  4 ++-
+ drivers/infiniband/hw/erdma/erdma_cm.c    |  8 ------
+ drivers/infiniband/hw/erdma/erdma_cmdq.c  |  8 +-----
+ drivers/infiniband/hw/erdma/erdma_cq.c    |  4 ---
+ drivers/infiniband/hw/erdma/erdma_eq.c    | 13 ++-------
+ drivers/infiniband/hw/erdma/erdma_hw.h    | 14 ++++++---
+ drivers/infiniband/hw/erdma/erdma_main.c  | 17 +++++------
+ drivers/infiniband/hw/erdma/erdma_qp.c    | 15 ++--------
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 35 +++++++++++------------
+ drivers/infiniband/hw/erdma/erdma_verbs.h |  9 +-----
+ 10 files changed, 43 insertions(+), 84 deletions(-)
+
 -- 
 2.27.0
 
