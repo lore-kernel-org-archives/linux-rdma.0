@@ -2,95 +2,110 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AECCC6FA82
-	for <linux-rdma@archiver.kernel.org>; Fri,  9 Sep 2022 09:40:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB7B2ECAAA1
+	for <linux-rdma@archiver.kernel.org>; Fri,  9 Sep 2022 13:24:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231561AbiIIJkg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 9 Sep 2022 05:40:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43672 "EHLO
+        id S229585AbiIINYn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 9 Sep 2022 09:24:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230402AbiIIJka (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Sep 2022 05:40:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 108E39C525;
-        Fri,  9 Sep 2022 02:40:26 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9845261F6A;
-        Fri,  9 Sep 2022 09:40:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A696C433C1;
-        Fri,  9 Sep 2022 09:40:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662716425;
-        bh=HsfqPASjnakS+xsqfPpAn2Do0sUbq2U9xY/KUbbjIP4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Np7qYKPDxkWRV3AzIEX0EEInSZkDu8nyjOKt/thmwV20qBJ/XehbSQ6RAFNU59mRz
-         uIaN745OjFy8eeLD3llQbNIMMzzk93bzsvg8Ls+StIWbB0lsbujcMsfeQW0xO/odEb
-         cVASnbjfzCf/mnDTH+NxBLvJcU0ZCdtWyY2YmnwPRZ8Mypx2gzn2xFFcncu/YIY7X5
-         F5faa52aFffAWRL/lOvU/lbc0yTJY3ZVrocrHLme32ptHBRTzjBfoOrBJYk8SC40mx
-         gTzi+PGBo/WpCGibrG3zzCmh8Al0eTOlddTf3OG55JThKJUSZlkx4pnphVospe5Yhk
-         cwxQVw9xK0u8A==
-Date:   Fri, 9 Sep 2022 10:40:10 +0100
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Hangyu Hua <hbh25y@gmail.com>
-Cc:     bvanassche@acm.org, jgg@ziepe.ca, leon@kernel.org,
-        linux-rdma@vger.kernel.org, target-devel@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] infiniband: ulp: srpt: Use flex array destination for
- memcpy()
-Message-ID: <YxsJ+n8RjpBIpGKo@work>
-References: <20220909022943.8896-1-hbh25y@gmail.com>
+        with ESMTP id S229631AbiIINYl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 9 Sep 2022 09:24:41 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 352D118375;
+        Fri,  9 Sep 2022 06:24:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=iY0w1kh/xK+MCzo1rcnqvZqdmGxlHyuGkIUEG2fe/n0=; b=3wAl0TxsoTvU4WSk/aqxa6e9u/
+        30XUqAlq7pk+SKpG5MSQFbT0MoWDiD1aYo7F1FJ3DrSUU/9qFFxdzWUyN2J66hZuW72TG3hUIDZdP
+        P42VoYLJin+mebeMH4p6hwbaQ6n3DWx4lhsetBocd6lS+lVM+d40I3KLyzVAXt3CokaWpej/0paac
+        cqzPcUqf/5srbDXkPIK36whHP4DZUpnSRlHspglNS5p77kTiy4b9zZUMLF3IIgBjcz6Br2jRoxYX+
+        vWGuxJBluz3V6oi4VjQPpmc7mmu3iWRQ00Aie4He+c8ZFXrNNAodqvzzBHDQ6SOErfZj+lNQgw+to
+        rptERk0w==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1oWdzn-00GJ4H-M7; Fri, 09 Sep 2022 13:24:35 +0000
+Date:   Fri, 9 Sep 2022 06:24:35 -0700
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Christoph Hellwig <hch@infradead.org>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Cornelia Huck <cohuck@redhat.com>,
+        dri-devel@lists.freedesktop.org, kvm@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+        Maor Gottlieb <maorg@nvidia.com>,
+        Oded Gabbay <ogabbay@kernel.org>,
+        Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 4/4] vfio/pci: Allow MMIO regions to be exported
+ through dma-buf
+Message-ID: <Yxs+k6psNfBLDqdv@infradead.org>
+References: <4-v2-472615b3877e+28f7-vfio_dma_buf_jgg@nvidia.com>
+ <YxcYGzPv022G2vLm@infradead.org>
+ <b6b5d236-c089-7428-4cc9-a08fe4f6b4a3@amd.com>
+ <YxczjNIloP7TWcf2@nvidia.com>
+ <YxiJJYtWgh1l0wxg@infradead.org>
+ <YxiPh4u/92chN02C@nvidia.com>
+ <Yxiq5sjf/qA7xS8A@infradead.org>
+ <Yxi3cFfs0SA4XWJw@nvidia.com>
+ <Yxi5h09JAzIo4Kh8@infradead.org>
+ <YxjDBOIavc79ZByZ@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220909022943.8896-1-hbh25y@gmail.com>
+In-Reply-To: <YxjDBOIavc79ZByZ@nvidia.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Sep 09, 2022 at 10:29:43AM +0800, Hangyu Hua wrote:
-> In preparation for FORTIFY_SOURCE performing run-time destination buffer
-> bounds checking for memcpy(), specify the destination output buffer
-> explicitly, instead of asking memcpy() to write past the end of what looked
-> like a fixed-size object.
-> 
-> Notice that srp_rsp[] is a pointer to a structure that contains
-> flexible-array member data[]:
-> 
-> struct srp_rsp {
-> 	...
-> 	__be32	sense_data_len;
-> 	__be32	resp_data_len;
-> 	u8	data[];
-> };
-> 
-> link: https://github.com/KSPP/linux/issues/201
-> Signed-off-by: Hangyu Hua <hbh25y@gmail.com>
+On Wed, Sep 07, 2022 at 01:12:52PM -0300, Jason Gunthorpe wrote:
+> The PCI offset is some embedded thing - I've never seen it in a server
+> platform.
 
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+That's not actually true, e.g. some power system definitively had it,
+althiugh I don't know if the current ones do.
 
-Thanks
---
-Gustavo
+But that's not that point.  The offset is a configuration fully
+supported by Linux, and someone that just works by using the proper
+APIs.  Doing some handwaiving about embedded only or bad design doesn't
+matter.  There is a reason why we have these proper APIs and no one
+has any business bypassing them.
 
-> ---
->  drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> I also seem to remember that iommu and PCI offset don't play nice
+> together - so for the VFIO use case where the iommu is present I'm
+> pretty sure we can very safely assume 0 offset. That seems confirmed
+> by the fact that VFIO has never handled PCI offset in its own P2P path
+> and P2P works fine in VMs across a wide range of platforms.
+
+I think the offset is one of the reasons why IOVA windows can be
+reserved (and maybe also why ppc is so weird).
+
+> So, would you be OK with this series if I try to make a dma_map_p2p()
+> that resolves the offset issue?
+
+Well, if it also solves the other issue of invalid scatterlists leaking
+outside of drm we can think about it.
+
 > 
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index 21cbe30d526f..8c29e14150d3 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -1421,7 +1421,7 @@ static int srpt_build_cmd_rsp(struct srpt_rdma_ch *ch,
->  
->  		srp_rsp->flags |= SRP_RSP_FLAG_SNSVALID;
->  		srp_rsp->sense_data_len = cpu_to_be32(sense_data_len);
-> -		memcpy(srp_rsp + 1, sense_data, sense_data_len);
-> +		memcpy(srp_rsp->data, sense_data, sense_data_len);
->  	}
->  
->  	return sizeof(*srp_rsp) + sense_data_len;
-> -- 
-> 2.34.1
+> > Last but not least I don't really see how the code would even work
+> > when an IOMMU is used, as dma_map_resource will return an IOVA that
+> > is only understood by the IOMMU itself, and not the other endpoint.
 > 
+> I don't understand this.
+> 
+> __iommu_dma_map() will put the given phys into the iommu_domain
+> associated with 'dev' and return the IOVA it picked.
+
+Yes, __iommu_dma_map creates an IOVA for the mapped remote BAR.  That
+is the right thing if the I/O goes through the host bridge, but it is
+the wrong thing if the I/O goes through the switch - in that case the
+IOVA generated is not something that the endpoint that owns the BAR
+can even understand.
+
+Take a look at iommu_dma_map_sg and pci_p2pdma_map_segment to see how
+this is handled.
