@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3880C6FA82
-	for <linux-rdma@archiver.kernel.org>; Tue, 13 Sep 2022 19:31:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E61E1C6FA82
+	for <linux-rdma@archiver.kernel.org>; Tue, 13 Sep 2022 19:31:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229478AbiIMTbT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 13 Sep 2022 15:31:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55296 "EHLO
+        id S229924AbiIMTb5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 13 Sep 2022 15:31:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229710AbiIMTac (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 13 Sep 2022 15:30:32 -0400
-Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A916240BC5;
-        Tue, 13 Sep 2022 12:29:44 -0700 (PDT)
+        with ESMTP id S229604AbiIMTbf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 13 Sep 2022 15:31:35 -0400
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D21574B9A;
+        Tue, 13 Sep 2022 12:30:00 -0700 (PDT)
 Received: from dimapc.. (109-252-122-187.nat.spd-mgts.ru [109.252.122.187])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 0550E6601FFD;
-        Tue, 13 Sep 2022 20:29:37 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id D6B756602033;
+        Tue, 13 Sep 2022 20:29:53 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1663097383;
-        bh=KXnLT1zxHK6U6noEjkHRO2Mfpv2Yq4iTZhk9Iiw0LNk=;
+        s=mail; t=1663097398;
+        bh=9SeFMAw05BZn16x/ElulgqR7Ax8eaKdCJvDDJbwzdLQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PQyGcACbXOTNIgk0irg1P6NcYmxhJujzFOXE6Ef69JU5AzWwVFi7exXLF2mnvwUiB
-         U6eAiHHbYb+Hxz0eHy+lpvBCT4eIvX0QaZ8+u6Rm/T+IkVvmFYnZJcPRS5hfBJKdNA
-         NEmTX/AUUCVZH7BKy8T/A0CORL8IZ6KLqa6Abrihbt9xQSZ9BMBOyaNjiBJjkyJXuh
-         n7tVhmliMWXj3IQ2im87fTlaYDbNTjLjQ33VTpcqARrbt3JYHn/df0U0UAxtjzLAaL
-         9qy9nFA1JqFjSN8LOlgO2lVU8Xe9SAtAqJZnBk7uMKM5QtiavHcl6uzt3Z/oHiN9sG
-         0PYhKji8YIX4g==
+        b=V78M3Ys7tVW/6N/kFZRiBQ77zWDoUBgZXEOtUBIkqMXuwXCPPiqYgXXdzekdQF4/b
+         A6WJ03WPgSwQj8m4js/VcDAlagUJt7hwRVw6mLP9/+OFNC7qrcFHlLJwqaKwMmNiGI
+         4R1FksEUZXm4T9NzcpJFqwcvDq7mIDyUFoR/A9DxIjHVZwRE7jCMO0DsqlKO+CmYs0
+         x3pbk+hugQOST7Xf+zmA88Hrq4mk0OH2vhbmBdex+ROA6zg02Uw1xeDXkvmip4V7yR
+         jkxYRKhXXfwtt7DZ0VK+o0a0HyD7QWjQ+lh2nQW4fJyNDP/E5yWxOZseoIeXnReSlK
+         CpUt4B3XILbuw==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -76,9 +76,9 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: [PATCH v5 17/21] dma-buf: Move dma_buf_map_attachment() to dynamic locking specification
-Date:   Tue, 13 Sep 2022 22:27:53 +0300
-Message-Id: <20220913192757.37727-18-dmitry.osipenko@collabora.com>
+Subject: [PATCH v5 20/21] media: videobuf2: Stop using internal dma-buf lock
+Date:   Tue, 13 Sep 2022 22:27:56 +0300
+Message-Id: <20220913192757.37727-21-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.37.3
 In-Reply-To: <20220913192757.37727-1-dmitry.osipenko@collabora.com>
 References: <20220913192757.37727-1-dmitry.osipenko@collabora.com>
@@ -89,54 +89,139 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move dma-buf attachment mapping functions to the dynamic locking
-specification by asserting that the reservation lock is held.
+All drivers that use dma-bufs have been moved to the updated locking
+specification and now dma-buf reservation is guaranteed to be locked
+by importers during the mapping operations. There is no need to take
+the internal dma-buf lock anymore. Remove locking from the videobuf2
+memory allocators.
 
-Reviewed-by: Christian König <christian.koenig@amd.com>
+Acked-by: Tomasz Figa <tfiga@chromium.org>
+Acked-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Acked-by: Christian König <christian.koenig@amd.com>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- drivers/dma-buf/dma-buf.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/media/common/videobuf2/videobuf2-dma-contig.c | 11 +----------
+ drivers/media/common/videobuf2/videobuf2-dma-sg.c     | 11 +----------
+ drivers/media/common/videobuf2/videobuf2-vmalloc.c    | 11 +----------
+ 3 files changed, 3 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index b406f42d1ebe..8873315d6edc 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -1038,8 +1038,7 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
- 	if (WARN_ON(!attach || !attach->dmabuf))
- 		return ERR_PTR(-EINVAL);
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-contig.c b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+index 79f4d8301fbb..555bd40fa472 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+@@ -382,18 +382,12 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dc_attachment *attach = db_attach->priv;
+-	/* stealing dmabuf mutex to serialize map/unmap operations */
+-	struct mutex *lock = &db_attach->dmabuf->lock;
+ 	struct sg_table *sgt;
  
--	if (dma_buf_attachment_is_dynamic(attach))
--		dma_resv_assert_held(attach->dmabuf->resv);
-+	dma_resv_assert_held(attach->dmabuf->resv);
+-	mutex_lock(lock);
+-
+ 	sgt = &attach->sgt;
+ 	/* return previously mapped sg table */
+-	if (attach->dma_dir == dma_dir) {
+-		mutex_unlock(lock);
++	if (attach->dma_dir == dma_dir)
+ 		return sgt;
+-	}
  
- 	if (attach->sgt) {
- 		/*
-@@ -1054,7 +1053,6 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
+ 	/* release any previous cache */
+ 	if (attach->dma_dir != DMA_NONE) {
+@@ -409,14 +403,11 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 	if (dma_map_sgtable(db_attach->dev, sgt, dma_dir,
+ 			    DMA_ATTR_SKIP_CPU_SYNC)) {
+ 		pr_err("failed to map scatterlist\n");
+-		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
  	}
  
- 	if (dma_buf_is_dynamic(attach->dmabuf)) {
--		dma_resv_assert_held(attach->dmabuf->resv);
- 		if (!IS_ENABLED(CONFIG_DMABUF_MOVE_NOTIFY)) {
- 			r = attach->dmabuf->ops->pin(attach);
- 			if (r)
-@@ -1143,15 +1141,11 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- 	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
- 		return;
+ 	attach->dma_dir = dma_dir;
  
--	if (dma_buf_attachment_is_dynamic(attach))
--		dma_resv_assert_held(attach->dmabuf->resv);
-+	dma_resv_assert_held(attach->dmabuf->resv);
- 
- 	if (attach->sgt == sg_table)
- 		return;
- 
--	if (dma_buf_is_dynamic(attach->dmabuf))
--		dma_resv_assert_held(attach->dmabuf->resv);
+-	mutex_unlock(lock);
 -
- 	__unmap_dma_buf(attach, sg_table, direction);
+ 	return sgt;
+ }
  
- 	if (dma_buf_is_dynamic(attach->dmabuf) &&
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+index 36ecdea8d707..36981a5b5c53 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+@@ -424,18 +424,12 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ 	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dma_sg_attachment *attach = db_attach->priv;
+-	/* stealing dmabuf mutex to serialize map/unmap operations */
+-	struct mutex *lock = &db_attach->dmabuf->lock;
+ 	struct sg_table *sgt;
+ 
+-	mutex_lock(lock);
+-
+ 	sgt = &attach->sgt;
+ 	/* return previously mapped sg table */
+-	if (attach->dma_dir == dma_dir) {
+-		mutex_unlock(lock);
++	if (attach->dma_dir == dma_dir)
+ 		return sgt;
+-	}
+ 
+ 	/* release any previous cache */
+ 	if (attach->dma_dir != DMA_NONE) {
+@@ -446,14 +440,11 @@ static struct sg_table *vb2_dma_sg_dmabuf_ops_map(
+ 	/* mapping to the client with new direction */
+ 	if (dma_map_sgtable(db_attach->dev, sgt, dma_dir, 0)) {
+ 		pr_err("failed to map scatterlist\n");
+-		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
+ 	}
+ 
+ 	attach->dma_dir = dma_dir;
+ 
+-	mutex_unlock(lock);
+-
+ 	return sgt;
+ }
+ 
+diff --git a/drivers/media/common/videobuf2/videobuf2-vmalloc.c b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+index 7831bf545874..41db707e43a4 100644
+--- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
++++ b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+@@ -267,18 +267,12 @@ static struct sg_table *vb2_vmalloc_dmabuf_ops_map(
+ 	struct dma_buf_attachment *db_attach, enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_vmalloc_attachment *attach = db_attach->priv;
+-	/* stealing dmabuf mutex to serialize map/unmap operations */
+-	struct mutex *lock = &db_attach->dmabuf->lock;
+ 	struct sg_table *sgt;
+ 
+-	mutex_lock(lock);
+-
+ 	sgt = &attach->sgt;
+ 	/* return previously mapped sg table */
+-	if (attach->dma_dir == dma_dir) {
+-		mutex_unlock(lock);
++	if (attach->dma_dir == dma_dir)
+ 		return sgt;
+-	}
+ 
+ 	/* release any previous cache */
+ 	if (attach->dma_dir != DMA_NONE) {
+@@ -289,14 +283,11 @@ static struct sg_table *vb2_vmalloc_dmabuf_ops_map(
+ 	/* mapping to the client with new direction */
+ 	if (dma_map_sgtable(db_attach->dev, sgt, dma_dir, 0)) {
+ 		pr_err("failed to map scatterlist\n");
+-		mutex_unlock(lock);
+ 		return ERR_PTR(-EIO);
+ 	}
+ 
+ 	attach->dma_dir = dma_dir;
+ 
+-	mutex_unlock(lock);
+-
+ 	return sgt;
+ }
+ 
 -- 
 2.37.3
 
