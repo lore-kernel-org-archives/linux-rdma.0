@@ -2,59 +2,59 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89594ECAAA1
-	for <linux-rdma@archiver.kernel.org>; Sat, 17 Sep 2022 03:11:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 031C3ECAAD8
+	for <linux-rdma@archiver.kernel.org>; Sat, 17 Sep 2022 03:11:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229685AbiIQDLw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 16 Sep 2022 23:11:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54914 "EHLO
+        id S229688AbiIQDLx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 16 Sep 2022 23:11:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229769AbiIQDLV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 16 Sep 2022 23:11:21 -0400
-Received: from mail-oa1-x2f.google.com (mail-oa1-x2f.google.com [IPv6:2001:4860:4864:20::2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC05B9DB6C
-        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:16 -0700 (PDT)
-Received: by mail-oa1-x2f.google.com with SMTP id 586e51a60fabf-12b542cb1d3so44955109fac.13
-        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:16 -0700 (PDT)
+        with ESMTP id S229623AbiIQDLW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 16 Sep 2022 23:11:22 -0400
+Received: from mail-ot1-x32b.google.com (mail-ot1-x32b.google.com [IPv6:2607:f8b0:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11685BD131
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:19 -0700 (PDT)
+Received: by mail-ot1-x32b.google.com with SMTP id w10-20020a056830410a00b00655d70a1aeaso3735672ott.3
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=2sQYsVirRP6MdY15qHzh8WxTTUEdGT3IBBGPdUTLpFI=;
-        b=MQju2xXVMj3zhesztM+J4UOUYJdNCuNrtPQm8KZmR4UWEmd0m/EtNlX0TMiDnE4gOX
-         o7HNTa8VXePLuz6EfdYrUdGSeDc7I2KHtOj3WyU43IsJFoQCrfXbeV+ZZPsnLYBzUWQR
-         HcrC6alQtrmQ9IMos2x+BCJMsJaAqNSD7KPq0/VJU+QPNI1lbIgmlU6igQhNRYiCrkxS
-         dWtKQNN7Mv3xJw1QrzZTXAR/vxeuDGqYXCENjLFJna/brcCfXMCAK8CxUnH07hWbT/lu
-         +601qcqSqyi+wJqbebJbYf33yoQYNylDkWe5jRUVNbYpOcwvV5ei3yihHTcUt3f+UGZ8
-         3Rig==
+        bh=pmXKEYyCNniaE+BlAFgYZOoUvItL4ct2QR9ZHK2YPsY=;
+        b=Lyu4eq4z5AC2lHQaDfwGhtqfQaNFXwD6WzZM+x8/JWz3hcpi6R+PzXBWLRWqsPOvWw
+         jtbBdTrl67Thax0y6XHukmbKwW1brX1rW1WepWnFx6txaYmRDTCMHbbFdNa5LwzHH8c2
+         jYotEArdodUwcNgQ8HYbsuQa/mRz4VUwmYvwvK3LFkYfsa8Wc6YTWKAABXtX7Z9Mup7Y
+         HbuixmSHvViVNu9dV0SGN4STrBAkw1cirOlPZs1EwRvKeVxg+0obSwVAOTJoOdM8cZEs
+         Lz4YgVPnv6br4wRxMtO450csT11R9IgM789YLWb7DDmyBJopn1+/u2DRCnwcfaBeZqk9
+         re/A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date;
-        bh=2sQYsVirRP6MdY15qHzh8WxTTUEdGT3IBBGPdUTLpFI=;
-        b=TTL76awRRgiXoKCy7bWE9lcMXuS0NATeB8zV0ry76BTduFW3aXhTsMX7k0GaeoyuEl
-         Z0sBWKCvmj1LUpLgVOaX/ZdckKKd9qI+IAFwPC9W/5JuxZeM1qtNUbjmX5dBIdMqEBSX
-         1Nb/jfEviewRsdqgw2Cqyaa0VbYqNBCrFmA+u3xz5SQcRTqPQpkOJGD8lZzyAOHR1YOb
-         SAfSBSNxTrylfKQc/4sVuiW1E0BPfM37jGdi2JA7oG1vnqEp10TUFl1PMLUs64mluicy
-         OeVGqqlVIOkRM560N5R/uyu6/Da/F7jWdkTZngEt6wbw36H9d79w7hOJTp/NOCmQAZ/c
-         Uzhw==
-X-Gm-Message-State: ACgBeo26apCR42aiBWO1bs8lsAdQLrXwulnt5PsWktT7AqZoXPNyMleZ
-        aHMP7cSLYdzlq9BRZf5op7U=
-X-Google-Smtp-Source: AA6agR5EqS42wR4GOmLz5/XB3LRs53V53NycHalSumUrWZ7WdV5LuOi+RpgBF9uLyvzfEpAkQ24Vsg==
-X-Received: by 2002:a05:6871:29a:b0:127:6381:9bbc with SMTP id i26-20020a056871029a00b0012763819bbcmr10590878oae.77.1663384276233;
-        Fri, 16 Sep 2022 20:11:16 -0700 (PDT)
+        bh=pmXKEYyCNniaE+BlAFgYZOoUvItL4ct2QR9ZHK2YPsY=;
+        b=KnQGxp0paQWaoGR37/SCfRavJ7/tt2m6OejA1GMZpa2Unqfag2WrpC32vZQgWLkzwT
+         aFAnZ+/6fz5wFHwX9DACR7JehPdW35xdjUYCUgSClMxyPjgnPQgOqJn4kPAgPERJmadc
+         xBV7bXp5/eoH5PKVksIx4P8ljdY3j6WWJoytC5m0s4QaLXOooyKuaCdJm4dazMGpyFXX
+         f9Pk0RpnTrgndm2baoExSOKrZ/U/j2j3tvogVlE35Og79np9grH60cTmoRux0PeRXMZP
+         CmhgFrGj8T46cuog7dr+TkzpxkWCEpd2yLwO3dkoAFTUw1iKT2esXWBGtj8EpDjFWNrx
+         HO8g==
+X-Gm-Message-State: ACrzQf0cpohzk4ftvlvdvlipuQDDlxTenW+MyDL8PDada8yLODqhmhp8
+        gCRZGkjI5K1og2A6Z9pggDg=
+X-Google-Smtp-Source: AMsMyM5p37aNwpquMqvJaPeAPQBhZ3WeusMdr9IWMOP9C/2Ky8GkPTQWO1ogHComC9cqzcqB34m+4A==
+X-Received: by 2002:a05:6830:4193:b0:656:d1eb:a000 with SMTP id r19-20020a056830419300b00656d1eba000mr3609896otu.109.1663384278385;
+        Fri, 16 Sep 2022 20:11:18 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-f9ea-fe1d-a45c-bca2.res6.spectrum.com. [2603:8081:140c:1a00:f9ea:fe1d:a45c:bca2])
-        by smtp.googlemail.com with ESMTPSA id q17-20020a4a6c11000000b00475f26931c8sm921422ooc.13.2022.09.16.20.11.15
+        by smtp.googlemail.com with ESMTPSA id q17-20020a4a6c11000000b00475f26931c8sm921422ooc.13.2022.09.16.20.11.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Sep 2022 20:11:15 -0700 (PDT)
+        Fri, 16 Sep 2022 20:11:17 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, lizhijian@fujitsu.com,
         linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 09/13] RDMA/rxe: Extend rxe_recv.c to support xrc
-Date:   Fri, 16 Sep 2022 22:11:00 -0500
-Message-Id: <20220917031104.21222-10-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 11/13] RDMA/rxe: Extend rxe_req.c to support xrc qps
+Date:   Fri, 16 Sep 2022 22:11:02 -0500
+Message-Id: <20220917031104.21222-12-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220917031104.21222-1-rpearsonhpe@gmail.com>
 References: <20220917031104.21222-1-rpearsonhpe@gmail.com>
@@ -64,158 +64,115 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Extend rxe_recv.c to support xrc packets. Add checks for qp type
-and check qp->xrcd matches srq->xrcd.
+Extend code in rxe_req.c to support xrc qp types.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_hdr.h  |  5 +-
- drivers/infiniband/sw/rxe/rxe_recv.c | 79 +++++++++++++++++++++-------
- 2 files changed, 63 insertions(+), 21 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_req.c | 38 +++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_hdr.h b/drivers/infiniband/sw/rxe/rxe_hdr.h
-index e947bcf75209..fb9959d91b8d 100644
---- a/drivers/infiniband/sw/rxe/rxe_hdr.h
-+++ b/drivers/infiniband/sw/rxe/rxe_hdr.h
-@@ -14,7 +14,10 @@
- struct rxe_pkt_info {
- 	struct rxe_dev		*rxe;		/* device that owns packet */
- 	struct rxe_qp		*qp;		/* qp that owns packet */
--	struct rxe_send_wqe	*wqe;		/* send wqe */
-+	union {
-+		struct rxe_send_wqe	*wqe;	/* send wqe */
-+		struct rxe_srq		*srq;	/* srq for recvd xrc packets */
-+	};
- 	u8			*hdr;		/* points to bth */
- 	u32			mask;		/* useful info about pkt */
- 	u32			psn;		/* bth psn of packet */
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index f3ad7b6dbd97..4f35757d3c52 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -13,49 +13,51 @@
- static int check_type_state(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
- 			    struct rxe_qp *qp)
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index d2a9abfed596..e7bb969f97f3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -229,7 +229,7 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
  {
--	unsigned int pkt_type;
-+	unsigned int pkt_type = pkt->opcode & IB_OPCODE_TYPE;
+ 	struct rxe_dev		*rxe = to_rdev(qp->ibqp.device);
+ 	struct sk_buff		*skb;
+-	struct rxe_send_wr	*ibwr = &wqe->wr;
++	struct rxe_send_wr	*wr = &wqe->wr;
+ 	int			pad = (-payload) & 0x3;
+ 	int			paylen;
+ 	int			solicited;
+@@ -246,13 +246,13 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
+ 		return NULL;
  
- 	if (unlikely(!qp->valid))
--		goto err1;
-+		goto err_out;
+ 	/* init bth */
+-	solicited = (ibwr->send_flags & IB_SEND_SOLICITED) &&
++	solicited = (wr->send_flags & IB_SEND_SOLICITED) &&
+ 			(pkt->mask & RXE_LAST_MASK) &&
+ 			((pkt->mask & (RXE_SEND_MASK)) ||
+ 			(pkt->mask & (RXE_WRITE_MASK | RXE_IMMDT_MASK)) ==
+ 			(RXE_WRITE_MASK | RXE_IMMDT_MASK));
  
--	pkt_type = pkt->opcode & 0xe0;
+-	qp_num = (pkt->mask & RXE_DETH_MASK) ? ibwr->wr.ud.remote_qpn :
++	qp_num = (pkt->mask & RXE_DETH_MASK) ? wr->wr.ud.remote_qpn :
+ 					 qp->attr.dest_qp_num;
  
- 	switch (qp_type(qp)) {
- 	case IB_QPT_RC:
--		if (unlikely(pkt_type != IB_OPCODE_RC)) {
--			pr_warn_ratelimited("bad qp type\n");
--			goto err1;
--		}
-+		if (unlikely(pkt_type != IB_OPCODE_RC))
-+			goto err_out;
- 		break;
- 	case IB_QPT_UC:
--		if (unlikely(pkt_type != IB_OPCODE_UC)) {
--			pr_warn_ratelimited("bad qp type\n");
--			goto err1;
--		}
-+		if (unlikely(pkt_type != IB_OPCODE_UC))
-+			goto err_out;
- 		break;
- 	case IB_QPT_UD:
- 	case IB_QPT_GSI:
--		if (unlikely(pkt_type != IB_OPCODE_UD)) {
--			pr_warn_ratelimited("bad qp type\n");
--			goto err1;
--		}
-+		if (unlikely(pkt_type != IB_OPCODE_UD))
-+			goto err_out;
-+		break;
-+	case IB_QPT_XRC_INI:
-+		if (unlikely(pkt_type != IB_OPCODE_XRC))
-+			goto err_out;
-+		break;
-+	case IB_QPT_XRC_TGT:
-+		if (unlikely(pkt_type != IB_OPCODE_XRC))
-+			goto err_out;
- 		break;
- 	default:
--		pr_warn_ratelimited("unsupported qp type\n");
--		goto err1;
-+		goto err_out;
+ 	ack_req = ((pkt->mask & RXE_LAST_MASK) ||
+@@ -264,34 +264,37 @@ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
+ 		 ack_req, pkt->psn);
+ 
+ 	/* init optional headers */
++	if (pkt->mask & RXE_XRCETH_MASK)
++		xrceth_set_srqn(pkt, wr->srq_num);
++
+ 	if (pkt->mask & RXE_RETH_MASK) {
+-		reth_set_rkey(pkt, ibwr->wr.rdma.rkey);
++		reth_set_rkey(pkt, wr->wr.rdma.rkey);
+ 		reth_set_va(pkt, wqe->iova);
+ 		reth_set_len(pkt, wqe->dma.resid);
  	}
  
- 	if (pkt->mask & RXE_REQ_MASK) {
- 		if (unlikely(qp->resp.state != QP_STATE_READY))
--			goto err1;
-+			goto err_out;
- 	} else if (unlikely(qp->req.state < QP_STATE_READY ||
- 				qp->req.state > QP_STATE_DRAINED)) {
--		goto err1;
-+		goto err_out;
+ 	if (pkt->mask & RXE_IMMDT_MASK)
+-		immdt_set_imm(pkt, ibwr->ex.imm_data);
++		immdt_set_imm(pkt, wr->ex.imm_data);
+ 
+ 	if (pkt->mask & RXE_IETH_MASK)
+-		ieth_set_rkey(pkt, ibwr->ex.invalidate_rkey);
++		ieth_set_rkey(pkt, wr->ex.invalidate_rkey);
+ 
+ 	if (pkt->mask & RXE_ATMETH_MASK) {
+ 		atmeth_set_va(pkt, wqe->iova);
+-		if (opcode == IB_OPCODE_RC_COMPARE_SWAP) {
+-			atmeth_set_swap_add(pkt, ibwr->wr.atomic.swap);
+-			atmeth_set_comp(pkt, ibwr->wr.atomic.compare_add);
++		if ((opcode & IB_OPCODE_CMD) == IB_OPCODE_COMPARE_SWAP) {
++			atmeth_set_swap_add(pkt, wr->wr.atomic.swap);
++			atmeth_set_comp(pkt, wr->wr.atomic.compare_add);
+ 		} else {
+-			atmeth_set_swap_add(pkt, ibwr->wr.atomic.compare_add);
++			atmeth_set_swap_add(pkt, wr->wr.atomic.compare_add);
+ 		}
+-		atmeth_set_rkey(pkt, ibwr->wr.atomic.rkey);
++		atmeth_set_rkey(pkt, wr->wr.atomic.rkey);
  	}
  
- 	return 0;
+ 	if (pkt->mask & RXE_DETH_MASK) {
+ 		if (qp->ibqp.qp_num == 1)
+ 			deth_set_qkey(pkt, GSI_QKEY);
+ 		else
+-			deth_set_qkey(pkt, ibwr->wr.ud.remote_qkey);
++			deth_set_qkey(pkt, wr->wr.ud.remote_qkey);
+ 		deth_set_sqp(pkt, qp->ibqp.qp_num);
+ 	}
  
--err1:
-+err_out:
-+	pr_debug("%s: failed qp#%d: opcode = 0x%02x\n", __func__,
-+			qp->elem.index, pkt->opcode);
- 	return -EINVAL;
- }
- 
-@@ -166,6 +168,37 @@ static int check_addr(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
- 	return -EINVAL;
- }
- 
-+static int check_xrcd(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+		      struct rxe_qp *qp)
-+{
-+	int err;
-+
-+	struct rxe_xrcd *xrcd = qp->xrcd;
-+	u32 srqn = xrceth_srqn(pkt);
-+	struct rxe_srq *srq;
-+
-+	srq = rxe_pool_get_index(&rxe->srq_pool, srqn);
-+	if (unlikely(!srq)) {
-+		err = -EINVAL;
-+		goto err_out;
-+	}
-+
-+	if (unlikely(srq->xrcd != xrcd)) {
-+		rxe_put(srq);
-+		err = -EINVAL;
-+		goto err_out;
-+	}
-+
-+	pkt->srq = srq;
-+
-+	return 0;
-+
-+err_out:
-+	pr_debug("%s: qp#%d: failed err = %d\n", __func__,
-+			qp->elem.index, err);
-+	return err;
-+}
-+
- static int hdr_check(struct rxe_pkt_info *pkt)
+@@ -338,8 +341,10 @@ static void update_wqe_state(struct rxe_qp *qp,
+ 		struct rxe_pkt_info *pkt)
  {
- 	struct rxe_dev *rxe = pkt->rxe;
-@@ -205,6 +238,12 @@ static int hdr_check(struct rxe_pkt_info *pkt)
- 		err = check_keys(rxe, pkt, qpn, qp);
- 		if (unlikely(err))
- 			goto err2;
-+
-+		if (qp_type(qp) == IB_QPT_XRC_TGT) {
-+			err = check_xrcd(rxe, pkt, qp);
-+			if (unlikely(err))
-+				goto err2;
-+		}
+ 	if (pkt->mask & RXE_LAST_MASK) {
+-		if (qp_type(qp) == IB_QPT_RC)
++		if (qp_type(qp) == IB_QPT_RC ||
++		    qp_type(qp) == IB_QPT_XRC_INI)
+ 			wqe->state = wqe_state_pending;
++		/* other qp types handled in rxe_xmit_packet() */
  	} else {
- 		if (unlikely((pkt->mask & RXE_GRH_MASK) == 0)) {
- 			pr_warn_ratelimited("no grh for mcast qpn\n");
+ 		wqe->state = wqe_state_processing;
+ 	}
+@@ -532,9 +537,10 @@ int rxe_requester(void *arg)
+ 			goto done;
+ 	}
+ 
+-	if (unlikely(qp_type(qp) == IB_QPT_RC &&
+-		psn_compare(qp->req.psn, (qp->comp.psn +
+-				RXE_MAX_UNACKED_PSNS)) > 0)) {
++	if (unlikely((qp_type(qp) == IB_QPT_RC ||
++		      qp_type(qp) == IB_QPT_XRC_INI) &&
++		     psn_compare(qp->req.psn, (qp->comp.psn +
++					RXE_MAX_UNACKED_PSNS)) > 0)) {
+ 		qp->req.wait_psn = 1;
+ 		goto exit;
+ 	}
 -- 
 2.34.1
 
