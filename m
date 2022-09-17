@@ -2,59 +2,59 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45111C6FA8B
-	for <linux-rdma@archiver.kernel.org>; Sat, 17 Sep 2022 03:11:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81E37C6FA82
+	for <linux-rdma@archiver.kernel.org>; Sat, 17 Sep 2022 03:11:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229492AbiIQDLv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S229586AbiIQDLv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Fri, 16 Sep 2022 23:11:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54538 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229657AbiIQDLV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 16 Sep 2022 23:11:21 -0400
-Received: from mail-ot1-x32e.google.com (mail-ot1-x32e.google.com [IPv6:2607:f8b0:4864:20::32e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 029DC985BF
-        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:16 -0700 (PDT)
-Received: by mail-ot1-x32e.google.com with SMTP id u6-20020a056830118600b006595e8f9f3fso3954922otq.1
-        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:15 -0700 (PDT)
+        with ESMTP id S229833AbiIQDLW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 16 Sep 2022 23:11:22 -0400
+Received: from mail-ot1-x330.google.com (mail-ot1-x330.google.com [IPv6:2607:f8b0:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7A17BD132
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:20 -0700 (PDT)
+Received: by mail-ot1-x330.google.com with SMTP id br15-20020a056830390f00b0061c9d73b8bdso16102436otb.6
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=PIF/daVr5yYMTgWd7zk0PdSI0kMkAwJNKjUQnaP5nw8=;
-        b=TqIN92m4CAKPRFfSXCwboJCbSIZ5toGfWFHAn35dRb1EBh5YeqswhmukTm2lsqWH6O
-         gTfgcz+NRYeM3GwM3/AC338XkhHVJDfb99MhLy+IPedD5zzTzr4Hyq45371uRqtx/j3U
-         rO1zH/aIMK8XaotpD9GQ9toIpxUZI4ndIO/YR32cJ1ZWaNm/4uK/5JdveW5CeOFANBBv
-         z9lNUiYIjYT78iN0jN4vGtKHWbKYXqK4dTx5fMnWmsdkAeZbSrswWWKO1I/b/8EpwiuG
-         4o9d0XtjKpRCefxT368Vp5KqH3S2suHmt5Hj4b0ALADAt6H+eofGBjJgGKAfW1KZmhR6
-         FiAg==
+        bh=Ui/s4dF0I6Izv/NUMyg9qVP6krfiZ0OXxFPfLW8eZPo=;
+        b=pNPWxwPwC71W0dm1J4LOKOlw3JaL9ZU9oRrit6y1Lmq0qctkv81Y3H6ty4eR2agJjb
+         GFXZXgGlfjLm3fPt8aEPAorOUWylAHl8MnaCntZX5gM10b7zGVnvweJGVu1EcyFYikbn
+         kT8GnhVRv8l+FhDSM3vWc9hpH+zzZ6shMtWzuLkHKi8SpdDwdc4h6m21c6Yyi4eB1tz4
+         2TVoImD/OGQuJTpDodauha91AaozLkVv2vTDObTkjRo1oA6qxdNuFRi3ioU9yuphbN3K
+         XsFPiHRnK3lUHSIn8WpWLb1UpjV+6KjtxGEYwHrNQhtisHECWUT+JneCv0zsKhAvWMkA
+         m1iQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date;
-        bh=PIF/daVr5yYMTgWd7zk0PdSI0kMkAwJNKjUQnaP5nw8=;
-        b=FiniBI9vETAV5uziTK574Ol8o4OWTu+0UtNkGwIHW0208HLujLlM1+bvh3JN43Ki1c
-         hPGgeJDVVws3LEiYCyg4QlqCtkLHmtL8Ypn9HYOr55k6sitaN5OZZk5RgxrHmeHsKZ+V
-         xRDvzx88gyLPCTUuDQ5UaRUTzkGMrgaLHSyBO/9VarUZJxLV37KCP3Q/4GtKpxwu09K+
-         9vv0arQgtkG0eDDZgfnGKnCTgAvCz04fLAUI5M/wnOUW8/Ws8r2iEzjp+Kaang2BA42r
-         P5FvVGHv5epT9woTmObJ57SgaS54XjKp+g4SdWT9GxMcxiefwb1LlGwLemotzAthb8pq
-         Cxlw==
-X-Gm-Message-State: ACrzQf1yCRzVmf8FXLpiXp7LZUsNzc9RHdIosOtAQAToMLY0243P1he0
-        oT+L7kLMD77qZUdseq/VqAc=
-X-Google-Smtp-Source: AMsMyM7gJOPiHRpCfKz4tH4yr2b1OPHf9J1+dhaARTlVwagE+D39yWOFNLrxHaFr5DN39F1kttCNqQ==
-X-Received: by 2002:a05:6830:658b:b0:63b:3501:7167 with SMTP id cn11-20020a056830658b00b0063b35017167mr3607628otb.343.1663384275265;
-        Fri, 16 Sep 2022 20:11:15 -0700 (PDT)
+        bh=Ui/s4dF0I6Izv/NUMyg9qVP6krfiZ0OXxFPfLW8eZPo=;
+        b=70BCDoZVerMWWwss08ZZAgmBLURJyOLAnN1+rVPDqM7f+rgq2XL4mhGcBTtFuGSzTi
+         sRAV00iNGwLndM1Id7QrSvYoS2HLO7yTs0IjOR9yBUE+idzlPtQptFlhlZ2ups2I4r7L
+         kwwD46sOtoD027BssKeFGzc5lnevVD34h57D402CKT4+T7xvz2poD7uRYzof1TqD9+/J
+         UCOqduir0/YfueFNLg0RYj+k3MspZJVkBK/1PPum7E1bREI5Zwzmcms/9b0JRfuTLOkx
+         hEVaOwhZ3l16rXHf698LwWue5kAOpnOHYAVOJ9zbqx/ekMT+oIEzPHgnNqc+I8Fzr7/f
+         Mzxg==
+X-Gm-Message-State: ACrzQf01w/89UBsS/aa8LEkrk9Haws8ApOjduo/pxnCc7IrFLViMaeqT
+        rngiiD7AdKVEZaFbJ8+AI2E=
+X-Google-Smtp-Source: AMsMyM7bqSov08aEZR5dlcyl8p8rQxuYcfb7gZGjGV9TVBuZKQHyBN+z0X5/BaumuX9Ciq8GXFOH1Q==
+X-Received: by 2002:a9d:6b0e:0:b0:657:1e3:7251 with SMTP id g14-20020a9d6b0e000000b0065701e37251mr3507617otp.267.1663384280420;
+        Fri, 16 Sep 2022 20:11:20 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-f9ea-fe1d-a45c-bca2.res6.spectrum.com. [2603:8081:140c:1a00:f9ea:fe1d:a45c:bca2])
-        by smtp.googlemail.com with ESMTPSA id q17-20020a4a6c11000000b00475f26931c8sm921422ooc.13.2022.09.16.20.11.14
+        by smtp.googlemail.com with ESMTPSA id q17-20020a4a6c11000000b00475f26931c8sm921422ooc.13.2022.09.16.20.11.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Sep 2022 20:11:14 -0700 (PDT)
+        Fri, 16 Sep 2022 20:11:19 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, lizhijian@fujitsu.com,
         linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 08/13] RDMA/rxe: Extend rxe_qp.c to support xrc qps
-Date:   Fri, 16 Sep 2022 22:10:59 -0500
-Message-Id: <20220917031104.21222-9-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 13/13] RDMA/rxe: Extend rxe_resp.c to support xrc qps
+Date:   Fri, 16 Sep 2022 22:11:04 -0500
+Message-Id: <20220917031104.21222-14-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220917031104.21222-1-rpearsonhpe@gmail.com>
 References: <20220917031104.21222-1-rpearsonhpe@gmail.com>
@@ -64,617 +64,475 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Extend code in rxe_qp.c to support xrc qp types.
+Extend code in rxe_resp.c to support xrc qp types.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_av.c    |   3 +-
- drivers/infiniband/sw/rxe/rxe_loc.h   |   7 +-
- drivers/infiniband/sw/rxe/rxe_qp.c    | 307 +++++++++++++++-----------
- drivers/infiniband/sw/rxe/rxe_verbs.c |  22 +-
- drivers/infiniband/sw/rxe/rxe_verbs.h |   1 +
- 5 files changed, 200 insertions(+), 140 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_loc.h  |   3 +-
+ drivers/infiniband/sw/rxe/rxe_mw.c   |  14 +--
+ drivers/infiniband/sw/rxe/rxe_resp.c | 161 +++++++++++++++++++++------
+ 3 files changed, 138 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
-index 3b05314ca739..c8f3ec53aa79 100644
---- a/drivers/infiniband/sw/rxe/rxe_av.c
-+++ b/drivers/infiniband/sw/rxe/rxe_av.c
-@@ -110,7 +110,8 @@ struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt, struct rxe_ah **ahp)
- 	if (!pkt || !pkt->qp)
- 		return NULL;
- 
--	if (qp_type(pkt->qp) == IB_QPT_RC || qp_type(pkt->qp) == IB_QPT_UC)
-+	if (qp_type(pkt->qp) == IB_QPT_RC || qp_type(pkt->qp) == IB_QPT_UC ||
-+			qp_type(pkt->qp) == IB_QPT_XRC_INI)
- 		return &pkt->qp->pri_av;
- 
- 	if (!pkt->wqe)
 diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 5526d83697c7..c6fb93a749ad 100644
+index c6fb93a749ad..9381c76bff87 100644
 --- a/drivers/infiniband/sw/rxe/rxe_loc.h
 +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -103,11 +103,12 @@ const char *rxe_parent_name(struct rxe_dev *rxe, unsigned int port_num);
- int next_opcode(struct rxe_qp *qp, struct rxe_send_wqe *wqe, u32 opcode);
+@@ -87,7 +87,8 @@ int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata);
+ int rxe_dealloc_mw(struct ib_mw *ibmw);
+ int rxe_bind_mw(struct rxe_qp *qp, struct rxe_send_wqe *wqe);
+ int rxe_invalidate_mw(struct rxe_qp *qp, u32 rkey);
+-struct rxe_mw *rxe_lookup_mw(struct rxe_qp *qp, int access, u32 rkey);
++struct rxe_mw *rxe_lookup_mw(struct rxe_pd *pd, struct rxe_qp *qp,
++			     int access, u32 rkey);
+ void rxe_mw_cleanup(struct rxe_pool_elem *elem);
  
- /* rxe_qp.c */
--int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init);
--int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
-+int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp *ibqp,
-+		    struct ib_qp_init_attr *init);
-+int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp,
- 		     struct ib_qp_init_attr *init,
- 		     struct rxe_create_qp_resp __user *uresp,
--		     struct ib_pd *ibpd, struct ib_udata *udata);
-+		     struct ib_udata *udata);
- int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init);
- int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
- 		    struct ib_qp_attr *attr, int mask);
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index 1dcbeacb3122..6cbc842b8cbb 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -56,30 +56,42 @@ static int rxe_qp_chk_cap(struct rxe_dev *rxe, struct ib_qp_cap *cap,
- 	return -EINVAL;
+ /* rxe_net.c */
+diff --git a/drivers/infiniband/sw/rxe/rxe_mw.c b/drivers/infiniband/sw/rxe/rxe_mw.c
+index 104993801a80..2a7493526ec2 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mw.c
++++ b/drivers/infiniband/sw/rxe/rxe_mw.c
+@@ -280,10 +280,10 @@ int rxe_invalidate_mw(struct rxe_qp *qp, u32 rkey)
+ 	return ret;
  }
  
--int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init)
-+int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp *ibqp,
-+		    struct ib_qp_init_attr *init)
+-struct rxe_mw *rxe_lookup_mw(struct rxe_qp *qp, int access, u32 rkey)
++struct rxe_mw *rxe_lookup_mw(struct rxe_pd *pd, struct rxe_qp *qp,
++			     int access, u32 rkey)
  {
-+	struct ib_pd *ibpd = ibqp->pd;
- 	struct ib_qp_cap *cap = &init->cap;
- 	struct rxe_port *port;
- 	int port_num = init->port_num;
+ 	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+-	struct rxe_pd *pd = to_rpd(qp->ibqp.pd);
+ 	struct rxe_mw *mw;
+ 	int index = rkey >> 8;
  
-+	if (init->create_flags)
-+		return -EOPNOTSUPP;
-+
- 	switch (init->qp_type) {
- 	case IB_QPT_GSI:
+@@ -291,11 +291,11 @@ struct rxe_mw *rxe_lookup_mw(struct rxe_qp *qp, int access, u32 rkey)
+ 	if (!mw)
+ 		return NULL;
+ 
+-	if (unlikely((mw->rkey != rkey) || rxe_mw_pd(mw) != pd ||
+-		     (mw->ibmw.type == IB_MW_TYPE_2 && mw->qp != qp) ||
+-		     (mw->length == 0) ||
+-		     (access && !(access & mw->access)) ||
+-		     mw->state != RXE_MW_STATE_VALID)) {
++	if ((mw->rkey != rkey) || rxe_mw_pd(mw) != pd ||
++	    (mw->ibmw.type == IB_MW_TYPE_2 &&
++	     (mw->qp != qp || qp_type(qp) == IB_QPT_XRC_TGT)) ||
++	    (mw->length == 0) || (access && !(access & mw->access)) ||
++	    mw->state != RXE_MW_STATE_VALID) {
+ 		rxe_put(mw);
+ 		return NULL;
+ 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index cb560cbe418d..b0a97074bc5a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -88,7 +88,8 @@ void rxe_resp_queue_pkt(struct rxe_qp *qp, struct sk_buff *skb)
+ 
+ 	skb_queue_tail(&qp->req_pkts, skb);
+ 
+-	must_sched = (pkt->opcode == IB_OPCODE_RC_RDMA_READ_REQUEST) ||
++	/* mask off opcode type bits */
++	must_sched = ((pkt->opcode & 0x1f) == IB_OPCODE_RDMA_READ_REQUEST) ||
+ 			(skb_queue_len(&qp->req_pkts) > 1);
+ 
+ 	rxe_run_task(&qp->resp.task, must_sched);
+@@ -127,6 +128,7 @@ static enum resp_states check_psn(struct rxe_qp *qp,
+ 
+ 	switch (qp_type(qp)) {
  	case IB_QPT_RC:
++	case IB_QPT_XRC_TGT:
+ 		if (diff > 0) {
+ 			if (qp->resp.sent_psn_nak)
+ 				return RESPST_CLEANUP;
+@@ -156,6 +158,7 @@ static enum resp_states check_psn(struct rxe_qp *qp,
+ 			return RESPST_CLEANUP;
+ 		}
+ 		break;
++
+ 	default:
+ 		break;
+ 	}
+@@ -248,6 +251,47 @@ static enum resp_states check_op_seq(struct rxe_qp *qp,
+ 		}
+ 		break;
+ 
++	case IB_QPT_XRC_TGT:
++		switch (qp->resp.opcode) {
++		case IB_OPCODE_XRC_SEND_FIRST:
++		case IB_OPCODE_XRC_SEND_MIDDLE:
++			switch (pkt->opcode) {
++			case IB_OPCODE_XRC_SEND_MIDDLE:
++			case IB_OPCODE_XRC_SEND_LAST:
++			case IB_OPCODE_XRC_SEND_LAST_WITH_IMMEDIATE:
++			case IB_OPCODE_XRC_SEND_LAST_WITH_INVALIDATE:
++				return RESPST_CHK_OP_VALID;
++			default:
++				return RESPST_ERR_MISSING_OPCODE_LAST_C;
++			}
++
++		case IB_OPCODE_XRC_RDMA_WRITE_FIRST:
++		case IB_OPCODE_XRC_RDMA_WRITE_MIDDLE:
++			switch (pkt->opcode) {
++			case IB_OPCODE_XRC_RDMA_WRITE_MIDDLE:
++			case IB_OPCODE_XRC_RDMA_WRITE_LAST:
++			case IB_OPCODE_XRC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
++				return RESPST_CHK_OP_VALID;
++			default:
++				return RESPST_ERR_MISSING_OPCODE_LAST_C;
++			}
++
++		default:
++			switch (pkt->opcode) {
++			case IB_OPCODE_XRC_SEND_MIDDLE:
++			case IB_OPCODE_XRC_SEND_LAST:
++			case IB_OPCODE_XRC_SEND_LAST_WITH_IMMEDIATE:
++			case IB_OPCODE_XRC_SEND_LAST_WITH_INVALIDATE:
++			case IB_OPCODE_XRC_RDMA_WRITE_MIDDLE:
++			case IB_OPCODE_XRC_RDMA_WRITE_LAST:
++			case IB_OPCODE_XRC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
++				return RESPST_ERR_MISSING_OPCODE_FIRST;
++			default:
++				return RESPST_CHK_OP_VALID;
++			}
++		}
++		break;
++
+ 	default:
+ 		return RESPST_CHK_OP_VALID;
+ 	}
+@@ -258,6 +302,7 @@ static enum resp_states check_op_valid(struct rxe_qp *qp,
+ {
+ 	switch (qp_type(qp)) {
+ 	case IB_QPT_RC:
++	case IB_QPT_XRC_TGT:
+ 		if (((pkt->mask & RXE_READ_MASK) &&
+ 		     !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_READ)) ||
+ 		    ((pkt->mask & RXE_WRITE_MASK) &&
+@@ -290,9 +335,22 @@ static enum resp_states check_op_valid(struct rxe_qp *qp,
+ 	return RESPST_CHK_RESOURCE;
+ }
+ 
+-static enum resp_states get_srq_wqe(struct rxe_qp *qp)
++static struct rxe_srq *get_srq(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
++{
++	struct rxe_srq *srq;
++
++	if (qp_type(qp) == IB_QPT_XRC_TGT)
++		srq = pkt->srq;
++	else if (qp->srq)
++		srq = qp->srq;
++	else
++		srq = NULL;
++
++	return srq;
++}
++
++static enum resp_states get_srq_wqe(struct rxe_qp *qp, struct rxe_srq *srq)
+ {
+-	struct rxe_srq *srq = qp->srq;
+ 	struct rxe_queue *q = srq->rq.queue;
+ 	struct rxe_recv_wqe *wqe;
+ 	struct ib_event ev;
+@@ -344,7 +402,7 @@ static enum resp_states get_srq_wqe(struct rxe_qp *qp)
+ static enum resp_states check_resource(struct rxe_qp *qp,
+ 				       struct rxe_pkt_info *pkt)
+ {
+-	struct rxe_srq *srq = qp->srq;
++	struct rxe_srq *srq = get_srq(qp, pkt);
+ 
+ 	if (qp->resp.state == QP_STATE_ERROR) {
+ 		if (qp->resp.wqe) {
+@@ -377,7 +435,7 @@ static enum resp_states check_resource(struct rxe_qp *qp,
+ 
+ 	if (pkt->mask & RXE_RWR_MASK) {
+ 		if (srq)
+-			return get_srq_wqe(qp);
++			return get_srq_wqe(qp, srq);
+ 
+ 		qp->resp.wqe = queue_head(qp->rq.queue,
+ 				QUEUE_TYPE_FROM_CLIENT);
+@@ -387,6 +445,7 @@ static enum resp_states check_resource(struct rxe_qp *qp,
+ 	return RESPST_CHK_LENGTH;
+ }
+ 
++/* TODO this should actually do what it says per IBA spec */
+ static enum resp_states check_length(struct rxe_qp *qp,
+ 				     struct rxe_pkt_info *pkt)
+ {
+@@ -397,6 +456,9 @@ static enum resp_states check_length(struct rxe_qp *qp,
  	case IB_QPT_UC:
- 	case IB_QPT_UD:
-+		if (!ibpd || !init->recv_cq || !init->send_cq)
-+			return -EINVAL;
-+		break;
-+	case IB_QPT_XRC_INI:
-+		if (!init->send_cq)
-+			return -EINVAL;
-+		break;
+ 		return RESPST_CHK_RKEY;
+ 
 +	case IB_QPT_XRC_TGT:
-+		if (!init->xrcd)
-+			return -EINVAL;
- 		break;
++		return RESPST_CHK_RKEY;
++
  	default:
- 		return -EOPNOTSUPP;
+ 		return RESPST_CHK_RKEY;
  	}
- 
--	if (!init->recv_cq || !init->send_cq) {
--		pr_warn("missing cq\n");
--		goto err1;
-+	if (init->qp_type != IB_QPT_XRC_TGT) {
-+		if (rxe_qp_chk_cap(rxe, cap, !!(init->srq || init->xrcd)))
-+			goto err1;
- 	}
- 
--	if (rxe_qp_chk_cap(rxe, cap, !!init->srq))
--		goto err1;
--
- 	if (init->qp_type == IB_QPT_GSI) {
- 		if (!rdma_is_port_valid(&rxe->ib_dev, port_num)) {
- 			pr_warn("invalid port = %d\n", port_num);
-@@ -148,49 +160,83 @@ static void cleanup_rd_atomic_resources(struct rxe_qp *qp)
- static void rxe_qp_init_misc(struct rxe_dev *rxe, struct rxe_qp *qp,
- 			     struct ib_qp_init_attr *init)
+@@ -407,6 +469,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
  {
--	struct rxe_port *port;
--	u32 qpn;
--
-+	qp->ibqp.qp_type	= init->qp_type;
- 	qp->sq_sig_type		= init->sq_sig_type;
- 	qp->attr.path_mtu	= 1;
- 	qp->mtu			= ib_mtu_enum_to_int(qp->attr.path_mtu);
+ 	struct rxe_mr *mr = NULL;
+ 	struct rxe_mw *mw = NULL;
++	struct rxe_pd *pd;
+ 	u64 va;
+ 	u32 rkey;
+ 	u32 resid;
+@@ -447,8 +510,11 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 	resid	= qp->resp.resid;
+ 	pktlen	= payload_size(pkt);
  
--	qpn			= qp->elem.index;
--	port			= &rxe->port;
--
- 	switch (init->qp_type) {
- 	case IB_QPT_GSI:
- 		qp->ibqp.qp_num		= 1;
--		port->qp_gsi_index	= qpn;
-+		rxe->port.qp_gsi_index	= qp->elem.index;
- 		qp->attr.port_num	= init->port_num;
- 		break;
- 
- 	default:
--		qp->ibqp.qp_num		= qpn;
-+		qp->ibqp.qp_num		= qp->elem.index;
- 		break;
- 	}
- 
- 	spin_lock_init(&qp->state_lock);
- 
--	spin_lock_init(&qp->req.task.state_lock);
--	spin_lock_init(&qp->resp.task.state_lock);
--	spin_lock_init(&qp->comp.task.state_lock);
--
--	spin_lock_init(&qp->sq.sq_lock);
--	spin_lock_init(&qp->rq.producer_lock);
--	spin_lock_init(&qp->rq.consumer_lock);
--
- 	atomic_set(&qp->ssn, 0);
- 	atomic_set(&qp->skb_out, 0);
++	/* we have ref counts on qp and pkt->srq so this is just a temp */
++	pd = (qp_type(qp) == IB_QPT_XRC_TGT) ? pkt->srq->pd : qp->pd;
++
+ 	if (rkey_is_mw(rkey)) {
+-		mw = rxe_lookup_mw(qp, access, rkey);
++		mw = rxe_lookup_mw(pd, qp, access, rkey);
+ 		if (!mw) {
+ 			pr_debug("%s: no MW matches rkey %#x\n",
+ 					__func__, rkey);
+@@ -469,7 +535,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 		rxe_put(mw);
+ 		rxe_get(mr);
+ 	} else {
+-		mr = lookup_mr(qp->pd, access, rkey, RXE_LOOKUP_REMOTE);
++		mr = lookup_mr(pd, access, rkey, RXE_LOOKUP_REMOTE);
+ 		if (!mr) {
+ 			pr_debug("%s: no MR matches rkey %#x\n",
+ 					__func__, rkey);
+@@ -518,12 +584,12 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+ 	return state;
  }
  
-+static int rxe_prepare_send_queue(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			struct ib_qp_init_attr *init, struct ib_udata *udata,
-+			struct rxe_create_qp_resp __user *uresp)
-+{
-+	struct rxe_queue *q;
-+	int wqe_size;
-+	int err;
-+
-+	qp->sq.max_wr = init->cap.max_send_wr;
-+
-+	wqe_size = init->cap.max_send_sge*sizeof(struct ib_sge);
-+	wqe_size = max_t(int, wqe_size, init->cap.max_inline_data);
-+
-+	qp->sq.max_sge = wqe_size/sizeof(struct ib_sge);
-+	qp->sq.max_inline = wqe_size;
-+	wqe_size += sizeof(struct rxe_send_wqe);
-+
-+	q = rxe_queue_init(rxe, &qp->sq.max_wr, wqe_size,
-+			   QUEUE_TYPE_FROM_CLIENT);
-+	if (!q)
-+		return -ENOMEM;
-+
-+	err = do_mmap_info(rxe, uresp ? &uresp->sq_mi : NULL, udata,
-+			   q->buf, q->buf_size, &q->ip);
-+
-+	if (err) {
-+		vfree(q->buf);
-+		kfree(q);
-+		return err;
-+	}
-+
-+	init->cap.max_send_sge = qp->sq.max_sge;
-+	init->cap.max_inline_data = qp->sq.max_inline;
-+
-+	qp->sq.queue = q;
-+
-+	return 0;
-+}
-+
- static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
- 			   struct ib_qp_init_attr *init, struct ib_udata *udata,
- 			   struct rxe_create_qp_resp __user *uresp)
+-static enum resp_states send_data_in(struct rxe_qp *qp, void *data_addr,
+-				     int data_len)
++static enum resp_states send_data_in(struct rxe_pd *pd, struct rxe_qp *qp,
++				     void *data_addr, int data_len)
  {
  	int err;
--	int wqe_size;
--	enum queue_type type;
-+
-+	err = rxe_prepare_send_queue(rxe, qp, init, udata, uresp);
-+	if (err)
-+		return err;
-+
-+	spin_lock_init(&qp->sq.sq_lock);
-+	spin_lock_init(&qp->req.task.state_lock);
-+	spin_lock_init(&qp->comp.task.state_lock);
-+
-+	skb_queue_head_init(&qp->resp_pkts);
  
- 	err = sock_create_kern(&init_net, AF_INET, SOCK_DGRAM, 0, &qp->sk);
- 	if (err < 0)
-@@ -205,32 +251,6 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
- 	 * (0xc000 - 0xffff).
- 	 */
- 	qp->src_port = RXE_ROCE_V2_SPORT + (hash_32(qp_num(qp), 14) & 0x3fff);
--	qp->sq.max_wr		= init->cap.max_send_wr;
--
--	/* These caps are limited by rxe_qp_chk_cap() done by the caller */
--	wqe_size = max_t(int, init->cap.max_send_sge * sizeof(struct ib_sge),
--			 init->cap.max_inline_data);
--	qp->sq.max_sge = init->cap.max_send_sge =
--		wqe_size / sizeof(struct ib_sge);
--	qp->sq.max_inline = init->cap.max_inline_data = wqe_size;
--	wqe_size += sizeof(struct rxe_send_wqe);
--
--	type = QUEUE_TYPE_FROM_CLIENT;
--	qp->sq.queue = rxe_queue_init(rxe, &qp->sq.max_wr,
--				wqe_size, type);
--	if (!qp->sq.queue)
--		return -ENOMEM;
--
--	err = do_mmap_info(rxe, uresp ? &uresp->sq_mi : NULL, udata,
--			   qp->sq.queue->buf, qp->sq.queue->buf_size,
--			   &qp->sq.queue->ip);
--
--	if (err) {
--		vfree(qp->sq.queue->buf);
--		kfree(qp->sq.queue);
--		qp->sq.queue = NULL;
--		return err;
--	}
+-	err = copy_data(qp->pd, IB_ACCESS_LOCAL_WRITE, &qp->resp.wqe->dma,
++	err = copy_data(pd, IB_ACCESS_LOCAL_WRITE, &qp->resp.wqe->dma,
+ 			data_addr, data_len, RXE_TO_MR_OBJ);
+ 	if (unlikely(err))
+ 		return (err == -ENOSPC) ? RESPST_ERR_LENGTH
+@@ -627,7 +693,8 @@ static enum resp_states atomic_reply(struct rxe_qp *qp,
+ 		spin_lock_bh(&atomic_ops_lock);
+ 		res->atomic.orig_val = value = *vaddr;
  
- 	qp->req.wqe_index = queue_get_producer(qp->sq.queue,
- 					       QUEUE_TYPE_FROM_CLIENT);
-@@ -240,57 +260,71 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
- 	qp->req.opcode		= -1;
- 	qp->comp.opcode		= -1;
+-		if (pkt->opcode == IB_OPCODE_RC_COMPARE_SWAP) {
++		if (pkt->opcode == IB_OPCODE_RC_COMPARE_SWAP ||
++		    pkt->opcode == IB_OPCODE_XRC_COMPARE_SWAP) {
+ 			if (value == atmeth_comp(pkt))
+ 				value = atmeth_swap_add(pkt);
+ 		} else {
+@@ -786,24 +853,30 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+ 		}
  
--	skb_queue_head_init(&qp->req_pkts);
--
- 	rxe_init_task(&qp->req.task, qp,
- 		      rxe_requester, "req");
- 	rxe_init_task(&qp->comp.task, qp,
- 		      rxe_completer, "comp");
+ 		if (res->read.resid <= mtu)
+-			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY;
++			opcode = IB_OPCODE_RDMA_READ_RESPONSE_ONLY;
+ 		else
+-			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST;
++			opcode = IB_OPCODE_RDMA_READ_RESPONSE_FIRST;
+ 	} else {
+ 		mr = rxe_recheck_mr(qp, res->read.rkey);
+ 		if (!mr)
+ 			return RESPST_ERR_RKEY_VIOLATION;
  
- 	qp->qp_timeout_jiffies = 0; /* Can't be set for UD/UC in modify_qp */
--	if (init->qp_type == IB_QPT_RC) {
-+	if (init->qp_type == IB_QPT_RC || init->qp_type == IB_QPT_XRC_INI) {
- 		timer_setup(&qp->rnr_nak_timer, rnr_nak_timer, 0);
- 		timer_setup(&qp->retrans_timer, retransmit_timer, 0);
+ 		if (res->read.resid > mtu)
+-			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE;
++			opcode = IB_OPCODE_RDMA_READ_RESPONSE_MIDDLE;
+ 		else
+-			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST;
++			opcode = IB_OPCODE_RDMA_READ_RESPONSE_LAST;
  	}
- 	return 0;
- }
  
-+static int rxe_prepare_recv_queue(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			struct ib_qp_init_attr *init, struct ib_udata *udata,
-+			struct rxe_create_qp_resp __user *uresp)
-+{
-+	struct rxe_queue *q;
-+	int wqe_size;
-+	int err;
-+
-+	qp->rq.max_wr = init->cap.max_recv_wr;
-+	qp->rq.max_sge = init->cap.max_recv_sge;
-+
-+	wqe_size = sizeof(struct rxe_recv_wqe) +
-+		   qp->rq.max_sge*sizeof(struct ib_sge);
-+
-+	q = rxe_queue_init(rxe, &qp->rq.max_wr, wqe_size,
-+			   QUEUE_TYPE_FROM_CLIENT);
-+	if (!q)
-+		return -ENOMEM;
-+
-+	err = do_mmap_info(rxe, uresp ? &uresp->rq_mi : NULL, udata,
-+			   q->buf, q->buf_size, &q->ip);
-+
-+	if (err) {
-+		vfree(q->buf);
-+		kfree(q);
-+		return err;
-+	}
-+
-+	qp->rq.queue = q;
-+
-+	return 0;
-+}
-+
- static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
- 			    struct ib_qp_init_attr *init,
- 			    struct ib_udata *udata,
- 			    struct rxe_create_qp_resp __user *uresp)
- {
- 	int err;
--	int wqe_size;
--	enum queue_type type;
+ 	res->state = rdatm_res_state_next;
  
--	if (!qp->srq) {
--		qp->rq.max_wr		= init->cap.max_recv_wr;
--		qp->rq.max_sge		= init->cap.max_recv_sge;
--
--		wqe_size = rcv_wqe_size(qp->rq.max_sge);
--
--		pr_debug("qp#%d max_wr = %d, max_sge = %d, wqe_size = %d\n",
--			 qp_num(qp), qp->rq.max_wr, qp->rq.max_sge, wqe_size);
--
--		type = QUEUE_TYPE_FROM_CLIENT;
--		qp->rq.queue = rxe_queue_init(rxe, &qp->rq.max_wr,
--					wqe_size, type);
--		if (!qp->rq.queue)
--			return -ENOMEM;
--
--		err = do_mmap_info(rxe, uresp ? &uresp->rq_mi : NULL, udata,
--				   qp->rq.queue->buf, qp->rq.queue->buf_size,
--				   &qp->rq.queue->ip);
--		if (err) {
--			vfree(qp->rq.queue->buf);
--			kfree(qp->rq.queue);
--			qp->rq.queue = NULL;
-+	if (!qp->srq && qp_type(qp) != IB_QPT_XRC_TGT) {
-+		err = rxe_prepare_recv_queue(rxe, qp, init, udata, uresp);
-+		if (err)
+ 	payload = min_t(int, res->read.resid, mtu);
+ 
++	/* fixup opcode type */
++	if (qp_type(qp) == IB_QPT_XRC_TGT)
++		opcode |= IB_OPCODE_XRC;
++	else
++		opcode |= IB_OPCODE_RC;
++
+ 	skb = prepare_ack_packet(qp, &ack_pkt, opcode, payload,
+ 				 res->cur_psn, AETH_ACK_UNLIMITED);
+ 	if (!skb)
+@@ -858,6 +931,8 @@ static enum resp_states execute(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
+ 	enum resp_states err;
+ 	struct sk_buff *skb = PKT_TO_SKB(pkt);
+ 	union rdma_network_hdr hdr;
++	struct rxe_pd *pd = (qp_type(qp) == IB_QPT_XRC_TGT) ?
++						pkt->srq->pd : qp->pd;
+ 
+ 	if (pkt->mask & RXE_SEND_MASK) {
+ 		if (qp_type(qp) == IB_QPT_UD ||
+@@ -867,15 +942,15 @@ static enum resp_states execute(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
+ 						sizeof(hdr.reserved));
+ 				memcpy(&hdr.roce4grh, ip_hdr(skb),
+ 						sizeof(hdr.roce4grh));
+-				err = send_data_in(qp, &hdr, sizeof(hdr));
++				err = send_data_in(pd, qp, &hdr, sizeof(hdr));
+ 			} else {
+-				err = send_data_in(qp, ipv6_hdr(skb),
++				err = send_data_in(pd, qp, ipv6_hdr(skb),
+ 						sizeof(hdr));
+ 			}
+ 			if (err)
+ 				return err;
+ 		}
+-		err = send_data_in(qp, payload_addr(pkt), payload_size(pkt));
++		err = send_data_in(pd, qp, payload_addr(pkt), payload_size(pkt));
+ 		if (err)
  			return err;
--		}
-+
-+		spin_lock_init(&qp->rq.producer_lock);
-+		spin_lock_init(&qp->rq.consumer_lock);
- 	}
+ 	} else if (pkt->mask & RXE_WRITE_MASK) {
+@@ -914,7 +989,7 @@ static enum resp_states execute(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
  
--	skb_queue_head_init(&qp->resp_pkts);
-+	spin_lock_init(&qp->resp.task.state_lock);
-+
-+	skb_queue_head_init(&qp->req_pkts);
- 
- 	rxe_init_task(&qp->resp.task, qp,
- 		      rxe_responder, "resp");
-@@ -303,64 +337,82 @@ static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
- }
- 
- /* called by the create qp verb */
--int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
-+int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp,
- 		     struct ib_qp_init_attr *init,
- 		     struct rxe_create_qp_resp __user *uresp,
--		     struct ib_pd *ibpd,
- 		     struct ib_udata *udata)
- {
- 	int err;
-+	struct rxe_pd *pd = to_rpd(qp->ibqp.pd);
- 	struct rxe_cq *rcq = to_rcq(init->recv_cq);
- 	struct rxe_cq *scq = to_rcq(init->send_cq);
--	struct rxe_srq *srq = init->srq ? to_rsrq(init->srq) : NULL;
-+	struct rxe_srq *srq = to_rsrq(init->srq);
-+	struct rxe_xrcd *xrcd = to_rxrcd(init->xrcd);
- 
--	rxe_get(pd);
--	rxe_get(rcq);
--	rxe_get(scq);
--	if (srq)
-+	if (pd) {
-+		rxe_get(pd);
-+		qp->pd = pd;
-+	}
-+	if (rcq) {
-+		rxe_get(rcq);
-+		qp->rcq = rcq;
-+		atomic_inc(&rcq->num_wq);
-+	}
-+	if (scq) {
-+		rxe_get(scq);
-+		qp->scq = scq;
-+		atomic_inc(&scq->num_wq);
-+	}
-+	if (srq) {
- 		rxe_get(srq);
--
--	qp->pd			= pd;
--	qp->rcq			= rcq;
--	qp->scq			= scq;
--	qp->srq			= srq;
--
--	atomic_inc(&rcq->num_wq);
--	atomic_inc(&scq->num_wq);
-+		qp->srq = srq;
-+	}
-+	if (xrcd) {
-+		rxe_get(xrcd);
-+		qp->xrcd = xrcd;
-+	}
- 
- 	rxe_qp_init_misc(rxe, qp, init);
- 
--	err = rxe_qp_init_req(rxe, qp, init, udata, uresp);
--	if (err)
--		goto err1;
-+	switch (init->qp_type) {
-+	case IB_QPT_RC:
-+	case IB_QPT_UC:
-+	case IB_QPT_GSI:
-+	case IB_QPT_UD:
-+		err = rxe_qp_init_req(rxe, qp, init, udata, uresp);
-+		if (err)
-+			goto err_out;
- 
--	err = rxe_qp_init_resp(rxe, qp, init, udata, uresp);
--	if (err)
--		goto err2;
-+		err = rxe_qp_init_resp(rxe, qp, init, udata, uresp);
-+		if (err)
-+			goto err_unwind;
-+		break;
-+	case IB_QPT_XRC_INI:
-+		err = rxe_qp_init_req(rxe, qp, init, udata, uresp);
-+		if (err)
-+			goto err_out;
-+		break;
-+	case IB_QPT_XRC_TGT:
-+		err = rxe_qp_init_resp(rxe, qp, init, udata, uresp);
-+		if (err)
-+			goto err_out;
-+		break;
-+	default:
-+		/* not reached */
-+		err = -EOPNOTSUPP;
-+		goto err_out;
-+	};
- 
- 	qp->attr.qp_state = IB_QPS_RESET;
- 	qp->valid = 1;
- 
- 	return 0;
- 
--err2:
-+err_unwind:
- 	rxe_queue_cleanup(qp->sq.queue);
- 	qp->sq.queue = NULL;
--err1:
--	atomic_dec(&rcq->num_wq);
--	atomic_dec(&scq->num_wq);
--
--	qp->pd = NULL;
--	qp->rcq = NULL;
--	qp->scq = NULL;
--	qp->srq = NULL;
--
--	if (srq)
--		rxe_put(srq);
--	rxe_put(scq);
--	rxe_put(rcq);
--	rxe_put(pd);
--
-+err_out:
-+	/* rxe_qp_cleanup handles the rest */
- 	return err;
- }
- 
-@@ -486,7 +538,8 @@ static void rxe_qp_reset(struct rxe_qp *qp)
- 
- 	/* stop request/comp */
- 	if (qp->sq.queue) {
--		if (qp_type(qp) == IB_QPT_RC)
-+		if (qp_type(qp) == IB_QPT_RC ||
-+		    qp_type(qp) == IB_QPT_XRC_INI)
- 			rxe_disable_task(&qp->comp.task);
- 		rxe_disable_task(&qp->req.task);
- 	}
-@@ -530,7 +583,8 @@ static void rxe_qp_reset(struct rxe_qp *qp)
- 	rxe_enable_task(&qp->resp.task);
- 
- 	if (qp->sq.queue) {
--		if (qp_type(qp) == IB_QPT_RC)
-+		if (qp_type(qp) == IB_QPT_RC ||
-+		    qp_type(qp) == IB_QPT_XRC_INI)
- 			rxe_enable_task(&qp->comp.task);
- 
- 		rxe_enable_task(&qp->req.task);
-@@ -543,7 +597,8 @@ static void rxe_qp_drain(struct rxe_qp *qp)
- 	if (qp->sq.queue) {
- 		if (qp->req.state != QP_STATE_DRAINED) {
- 			qp->req.state = QP_STATE_DRAIN;
--			if (qp_type(qp) == IB_QPT_RC)
-+			if (qp_type(qp) == IB_QPT_RC ||
-+			    qp_type(qp) == IB_QPT_XRC_INI)
- 				rxe_run_task(&qp->comp.task, 1);
- 			else
- 				__rxe_do_task(&qp->comp.task);
-@@ -563,7 +618,7 @@ void rxe_qp_error(struct rxe_qp *qp)
- 	/* drain work and packet queues */
- 	rxe_run_task(&qp->resp.task, 1);
- 
--	if (qp_type(qp) == IB_QPT_RC)
-+	if (qp_type(qp) == IB_QPT_RC || qp_type(qp) == IB_QPT_XRC_INI)
- 		rxe_run_task(&qp->comp.task, 1);
+ 	if (pkt->mask & RXE_COMP_MASK)
+ 		return RESPST_COMPLETE;
+-	else if (qp_type(qp) == IB_QPT_RC)
++	else if (qp_type(qp) == IB_QPT_RC || qp_type(qp) == IB_QPT_XRC_TGT)
+ 		return RESPST_ACKNOWLEDGE;
  	else
- 		__rxe_do_task(&qp->comp.task);
-@@ -673,7 +728,8 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
- 		qp->attr.sq_psn = (attr->sq_psn & BTH_PSN_MASK);
- 		qp->req.psn = qp->attr.sq_psn;
- 		qp->comp.psn = qp->attr.sq_psn;
--		pr_debug("qp#%d set req psn = 0x%x\n", qp_num(qp), qp->req.psn);
-+		pr_debug("qp#%d set req psn = %d comp psn = %d\n", qp_num(qp),
-+				qp->req.psn, qp->comp.psn);
- 	}
+ 		return RESPST_CLEANUP;
+@@ -928,13 +1003,21 @@ static enum resp_states do_complete(struct rxe_qp *qp,
+ 	struct ib_uverbs_wc *uwc = &cqe.uibwc;
+ 	struct rxe_recv_wqe *wqe = qp->resp.wqe;
+ 	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	struct rxe_cq *cq;
++	struct rxe_srq *srq;
  
- 	if (mask & IB_QP_PATH_MIG_STATE)
-@@ -788,7 +844,7 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
- 	qp->qp_timeout_jiffies = 0;
- 	rxe_cleanup_task(&qp->resp.task);
+ 	if (!wqe)
+ 		goto finish;
  
--	if (qp_type(qp) == IB_QPT_RC) {
-+	if (qp_type(qp) == IB_QPT_RC || qp_type(qp) == IB_QPT_XRC_INI) {
- 		del_timer_sync(&qp->retrans_timer);
- 		del_timer_sync(&qp->rnr_nak_timer);
- 	}
-@@ -808,6 +864,9 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
- 	if (qp->sq.queue)
- 		rxe_queue_cleanup(qp->sq.queue);
+ 	memset(&cqe, 0, sizeof(cqe));
  
-+	if (qp->xrcd)
-+		rxe_put(qp->xrcd);
+-	if (qp->rcq->is_user) {
++	/* srq and cq if != 0 are protected by references held by qp or pkt */
++	srq = (qp_type(qp) == IB_QPT_XRC_TGT) ? pkt->srq : qp->srq;
++	cq = (qp_type(qp) == IB_QPT_XRC_TGT) ? pkt->srq->cq : qp->rcq;
 +
- 	if (qp->srq)
- 		rxe_put(qp->srq);
++	WARN_ON(!cq);
++
++	if (cq->is_user) {
+ 		uwc->status		= qp->resp.status;
+ 		uwc->qp_num		= qp->ibqp.qp_num;
+ 		uwc->wr_id		= wqe->wr_id;
+@@ -956,7 +1039,7 @@ static enum resp_states do_complete(struct rxe_qp *qp,
+ 		/* fields after byte_len are different between kernel and user
+ 		 * space
+ 		 */
+-		if (qp->rcq->is_user) {
++		if (cq->is_user) {
+ 			uwc->wc_flags = IB_WC_GRH;
  
-@@ -830,7 +889,7 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
- 	if (qp->resp.mr)
- 		rxe_put(qp->resp.mr);
+ 			if (pkt->mask & RXE_IMMDT_MASK) {
+@@ -1005,12 +1088,13 @@ static enum resp_states do_complete(struct rxe_qp *qp,
+ 	}
  
+ 	/* have copy for srq and reference for !srq */
+-	if (!qp->srq)
++	if (!srq)
+ 		queue_advance_consumer(qp->rq.queue, QUEUE_TYPE_FROM_CLIENT);
+ 
+ 	qp->resp.wqe = NULL;
+ 
+-	if (rxe_cq_post(qp->rcq, &cqe, pkt ? bth_se(pkt) : 1))
++	/* either qp or srq is holding a reference to cq */
++	if (rxe_cq_post(cq, &cqe, pkt ? bth_se(pkt) : 1))
+ 		return RESPST_ERR_CQ_OVERFLOW;
+ 
+ finish:
+@@ -1018,7 +1102,7 @@ static enum resp_states do_complete(struct rxe_qp *qp,
+ 		return RESPST_CHK_RESOURCE;
+ 	if (unlikely(!pkt))
+ 		return RESPST_DONE;
 -	if (qp_type(qp) == IB_QPT_RC)
-+	if (qp_type(qp) == IB_QPT_RC || qp_type(qp) == IB_QPT_XRC_INI)
- 		sk_dst_reset(qp->sk->sk);
- 
- 	free_rd_atomic_resources(qp);
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index ef86f0c5890e..59ba11e52bac 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -416,7 +416,6 @@ static int rxe_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *init,
- {
- 	int err;
- 	struct rxe_dev *rxe = to_rdev(ibqp->device);
--	struct rxe_pd *pd = to_rpd(ibqp->pd);
- 	struct rxe_qp *qp = to_rqp(ibqp);
- 	struct rxe_create_qp_resp __user *uresp = NULL;
- 
-@@ -424,16 +423,7 @@ static int rxe_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *init,
- 		if (udata->outlen < sizeof(*uresp))
- 			return -EINVAL;
- 		uresp = udata->outbuf;
--	}
--
--	if (init->create_flags)
--		return -EOPNOTSUPP;
- 
--	err = rxe_qp_chk_init(rxe, init);
--	if (err)
--		return err;
--
--	if (udata) {
- 		if (udata->inlen)
- 			return -EINVAL;
- 
-@@ -442,11 +432,15 @@ static int rxe_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *init,
- 		qp->is_user = false;
- 	}
- 
-+	err = rxe_qp_chk_init(rxe, ibqp, init);
-+	if (err)
-+		return err;
++	if (qp_type(qp) == IB_QPT_RC || qp_type(qp) == IB_QPT_XRC_TGT)
+ 		return RESPST_ACKNOWLEDGE;
+ 	else
+ 		return RESPST_CLEANUP;
+@@ -1029,9 +1113,13 @@ static int send_ack(struct rxe_qp *qp, u8 syndrome, u32 psn)
+ 	int err = 0;
+ 	struct rxe_pkt_info ack_pkt;
+ 	struct sk_buff *skb;
++	int opcode;
 +
- 	err = rxe_add_to_pool(&rxe->qp_pool, qp);
- 	if (err)
- 		return err;
++	opcode = (qp_type(qp) == IB_QPT_XRC_TGT) ?
++				IB_OPCODE_XRC_ACKNOWLEDGE :
++				IB_OPCODE_RC_ACKNOWLEDGE;
  
--	err = rxe_qp_from_init(rxe, qp, pd, init, uresp, ibqp->pd, udata);
-+	err = rxe_qp_from_init(rxe, qp, init, uresp, udata);
- 	if (err)
- 		goto qp_init;
- 
-@@ -517,6 +511,9 @@ static int validate_send_wr(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
- 	int num_sge = ibwr->num_sge;
- 	struct rxe_sq *sq = &qp->sq;
- 
-+	if (unlikely(qp_type(qp) == IB_QPT_XRC_TGT))
-+		return -EOPNOTSUPP;
-+
- 	if (unlikely(num_sge > sq->max_sge))
+-	skb = prepare_ack_packet(qp, &ack_pkt, IB_OPCODE_RC_ACKNOWLEDGE,
+-				 0, psn, syndrome);
++	skb = prepare_ack_packet(qp, &ack_pkt, opcode, 0, psn, syndrome);
+ 	if (!skb) {
+ 		err = -ENOMEM;
  		goto err1;
+@@ -1050,9 +1138,13 @@ static int send_atomic_ack(struct rxe_qp *qp, u8 syndrome, u32 psn)
+ 	int err = 0;
+ 	struct rxe_pkt_info ack_pkt;
+ 	struct sk_buff *skb;
++	int opcode;
++
++	opcode = (qp_type(qp) == IB_QPT_XRC_TGT) ?
++				IB_OPCODE_XRC_ATOMIC_ACKNOWLEDGE :
++				IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE;
  
-@@ -740,8 +737,9 @@ static int rxe_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
- 		/* Utilize process context to do protocol processing */
- 		rxe_run_task(&qp->req.task, 0);
- 		return 0;
--	} else
-+	} else {
- 		return rxe_post_send_kernel(qp, wr, bad_wr);
-+	}
- }
+-	skb = prepare_ack_packet(qp, &ack_pkt, IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE,
+-				 0, psn, syndrome);
++	skb = prepare_ack_packet(qp, &ack_pkt, opcode, 0, psn, syndrome);
+ 	if (!skb) {
+ 		err = -ENOMEM;
+ 		goto out;
+@@ -1073,7 +1165,7 @@ static int send_atomic_ack(struct rxe_qp *qp, u8 syndrome, u32 psn)
+ static enum resp_states acknowledge(struct rxe_qp *qp,
+ 				    struct rxe_pkt_info *pkt)
+ {
+-	if (qp_type(qp) != IB_QPT_RC)
++	if (qp_type(qp) != IB_QPT_RC && qp_type(qp) != IB_QPT_XRC_TGT)
+ 		return RESPST_CLEANUP;
  
- static int rxe_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 7dab7fa3ba6c..ee482a0569b8 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -230,6 +230,7 @@ struct rxe_qp {
- 	struct rxe_srq		*srq;
- 	struct rxe_cq		*scq;
- 	struct rxe_cq		*rcq;
-+	struct rxe_xrcd		*xrcd;
+ 	if (qp->resp.aeth_syndrome != AETH_ACK_UNLIMITED)
+@@ -1094,6 +1186,8 @@ static enum resp_states cleanup(struct rxe_qp *qp,
+ 	if (pkt) {
+ 		skb = skb_dequeue(&qp->req_pkts);
+ 		rxe_put(qp);
++		if (pkt->srq)
++			rxe_put(pkt->srq);
+ 		kfree_skb(skb);
+ 		ib_device_put(qp->ibqp.device);
+ 	}
+@@ -1359,7 +1453,8 @@ int rxe_responder(void *arg)
+ 			state = do_class_d1e_error(qp);
+ 			break;
+ 		case RESPST_ERR_RNR:
+-			if (qp_type(qp) == IB_QPT_RC) {
++			if (qp_type(qp) == IB_QPT_RC ||
++			    qp_type(qp) == IB_QPT_XRC_TGT) {
+ 				rxe_counter_inc(rxe, RXE_CNT_SND_RNR);
+ 				/* RC - class B */
+ 				send_ack(qp, AETH_RNR_NAK |
+@@ -1374,7 +1469,8 @@ int rxe_responder(void *arg)
+ 			break;
  
- 	enum ib_sig_type	sq_sig_type;
+ 		case RESPST_ERR_RKEY_VIOLATION:
+-			if (qp_type(qp) == IB_QPT_RC) {
++			if (qp_type(qp) == IB_QPT_RC ||
++			    qp_type(qp) == IB_QPT_XRC_TGT) {
+ 				/* Class C */
+ 				do_class_ac_error(qp, AETH_NAK_REM_ACC_ERR,
+ 						  IB_WC_REM_ACCESS_ERR);
+@@ -1400,7 +1496,8 @@ int rxe_responder(void *arg)
+ 			break;
  
+ 		case RESPST_ERR_LENGTH:
+-			if (qp_type(qp) == IB_QPT_RC) {
++			if (qp_type(qp) == IB_QPT_RC ||
++			    qp_type(qp) == IB_QPT_XRC_TGT) {
+ 				/* Class C */
+ 				do_class_ac_error(qp, AETH_NAK_INVALID_REQ,
+ 						  IB_WC_REM_INV_REQ_ERR);
 -- 
 2.34.1
 
