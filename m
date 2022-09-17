@@ -2,59 +2,59 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2AEFECAAA1
-	for <linux-rdma@archiver.kernel.org>; Sat, 17 Sep 2022 03:11:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 417A2C6FA82
+	for <linux-rdma@archiver.kernel.org>; Sat, 17 Sep 2022 03:11:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229600AbiIQDLy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 16 Sep 2022 23:11:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54928 "EHLO
+        id S229608AbiIQDL4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 16 Sep 2022 23:11:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229825AbiIQDLW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 16 Sep 2022 23:11:22 -0400
-Received: from mail-oa1-x32.google.com (mail-oa1-x32.google.com [IPv6:2001:4860:4864:20::32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F0BC4DF25
-        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:20 -0700 (PDT)
-Received: by mail-oa1-x32.google.com with SMTP id 586e51a60fabf-12c8312131fso4530250fac.4
-        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:20 -0700 (PDT)
+        with ESMTP id S229814AbiIQDLU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 16 Sep 2022 23:11:20 -0400
+Received: from mail-oa1-x29.google.com (mail-oa1-x29.google.com [IPv6:2001:4860:4864:20::29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 262D6BD0B1
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:14 -0700 (PDT)
+Received: by mail-oa1-x29.google.com with SMTP id 586e51a60fabf-127dca21a7dso54672401fac.12
+        for <linux-rdma@vger.kernel.org>; Fri, 16 Sep 2022 20:11:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=Qv+MFCfjBy9qlntNACjCRozVQRuJY60ehMS3GyMG2/8=;
-        b=ixdvqOTXOHRkBAZgeXHmG4i/sUug4F3bSGOFmPP20d8lB6m+KmMF6LBHy/1niEEZBy
-         5A3hg70lifLhDV6q8IJiinrmcW3ZuKFerx14tInHj8jVXTPF70PAwunl1rEr79wd211K
-         Hacy1uy5yal1YbINp4+waO0xU4HgCIM8vE36JYqQSRrrsU2UB3yoXOyr94jP19j7K2yr
-         nWHGNgqCCPJL8sDq0ktXQ7BcSWZbtyDrgCDK0fe6joz5TmS8xgtpO/jhE93cvdrasCt3
-         apU/Wli83rChIJA1ufe92v3BZWHJF17WUFI9ylIOOHBRNxbFaU0BYqhDlFDXGW8iTMM3
-         O9iA==
+        bh=/yphHfq1fscJdeg9GonHY1UqInv08T/3vgxuCO7wSGA=;
+        b=cVWL4ZPoU3G2cQ7Pqdz9mJQP4ZV90j1VUPXBE0XpDWNIDZfqVLkgn209Bj0gQQ2ugg
+         pt40MrPy/Ri6GQwmZLFZZ6F5StYtkhOtPbv13p7o6t5PZqe5jI7ci2BPzHbhO9sSUp+E
+         zSZ2WELfYLPYTnff8XOb60DgeeVY1EJCQzlCVqDfPekieThHgMh2ejLiP2t3NwGrhyVc
+         EMFKSSyn6psZ2OxvLU/ZHfxSpzHMOsdCmGRFuBdS1KYkkwCZ3wbqkqeJETYXdozYQDgu
+         YWvu7mMgAXHY4rKFFLT7GP9m4nAEd3Hocnci+42s8E2Q1iA1g3cvG7vtHHK8+TxXB3+d
+         vLcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date;
-        bh=Qv+MFCfjBy9qlntNACjCRozVQRuJY60ehMS3GyMG2/8=;
-        b=Vb7NYJHpR5DyJRU6dG7yiJbBli5/880CIzHeRzOJewbYI/Z+SianOvdEqu/4vPtkSU
-         p3N+mIALD+ojfQyvrDfESjIk0zj0jrQwvmfG7oIUU/02KQrEF3rEfKnrf9Le/N23sGWi
-         IFHAiS2GPA215MlI11ZvdSFeqcn/RnLOrC7Z62jfvm4cVwrhG5qapypQfG/KFzpY6hWg
-         sMFTc0UeHQmkY77VhndAYkbDMYCowNO0rTCniaFAeRX+8RuqTulS5oMh+ePfPcIesPHl
-         2XPBn21wMUxyOMm9qCmurRo2Ym66zQJMDN8zo0mvnd0srqsfvkROwFC9WXxKiZYuEZwV
-         erQQ==
-X-Gm-Message-State: ACrzQf0zghCmX9VCq8yl5wvcaKNFHnsbUh/1Sop3QIneYRE23tOPiUsu
-        G3fJ6BPiWOEY2+QcJ+C74WE=
-X-Google-Smtp-Source: AMsMyM527px44S7PwMcOFSVxE7sAeFgHKG/yi7pABUjaROyVJCD2fj7QyrqXC215LPfJ/JylBr+yPg==
-X-Received: by 2002:a05:6870:c14f:b0:12b:1ca6:8f4a with SMTP id g15-20020a056870c14f00b0012b1ca68f4amr4676226oad.90.1663384279385;
-        Fri, 16 Sep 2022 20:11:19 -0700 (PDT)
+        bh=/yphHfq1fscJdeg9GonHY1UqInv08T/3vgxuCO7wSGA=;
+        b=7NL+aFE+kx6gA4Nx2vQcDJ8BZB+a3lP6o/b3fZnxT++9PHdFktT5x3C+W7PC8diKbH
+         piomgcdD60h6wXWdL7kJm+AkntCr5FX4yyraYyy+nTVSGRVvX8Nn94uWlP+5Boe0Co1t
+         CEnH926xYPZjtwfefgMCRKOIOpT8GizAsBHOZdYjentEpIkDwx7onJ03wMV3fXXJPHqh
+         WF4aOthOfAp4y5Kli1SJiUzyBOL3P+LUGfGNkjii1JWrYIcX3WA53l3f+WRBwMyU4w2x
+         b8IiJS6p7fbegDXRvL5JBR1yLJQz4stfw65Lwpb4Gx8ua2maRPAwrv6AdyeTTahgySJ0
+         bVww==
+X-Gm-Message-State: ACgBeo0elPyUOMzRRskj9etl5clf8xm2K/O1byZyMBC0vK8cw+5fFgiq
+        69JvgN6u5XoVe6tcCXL5DH8=
+X-Google-Smtp-Source: AA6agR6LHmibP0B2httn7D3KlNiTpdUb/SPkPUzgI55/BrhopDmZXs4xvsH3/tKbIQ8sntJ0KsiNDw==
+X-Received: by 2002:a05:6870:f110:b0:127:3735:8e19 with SMTP id k16-20020a056870f11000b0012737358e19mr10217738oac.273.1663384273478;
+        Fri, 16 Sep 2022 20:11:13 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-f9ea-fe1d-a45c-bca2.res6.spectrum.com. [2603:8081:140c:1a00:f9ea:fe1d:a45c:bca2])
-        by smtp.googlemail.com with ESMTPSA id q17-20020a4a6c11000000b00475f26931c8sm921422ooc.13.2022.09.16.20.11.18
+        by smtp.googlemail.com with ESMTPSA id q17-20020a4a6c11000000b00475f26931c8sm921422ooc.13.2022.09.16.20.11.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Sep 2022 20:11:18 -0700 (PDT)
+        Fri, 16 Sep 2022 20:11:12 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, lizhijian@fujitsu.com,
         linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 12/13] RDMA/rxe: Extend rxe_net.c to support xrc qps
-Date:   Fri, 16 Sep 2022 22:11:03 -0500
-Message-Id: <20220917031104.21222-13-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 06/13] RDMA/rxe: Implement open_xrcd and close_xrcd
+Date:   Fri, 16 Sep 2022 22:10:57 -0500
+Message-Id: <20220917031104.21222-7-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220917031104.21222-1-rpearsonhpe@gmail.com>
 References: <20220917031104.21222-1-rpearsonhpe@gmail.com>
@@ -64,81 +64,175 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Extend code in rxe_net.c to support xrc qp types.
+Add rxe_open_xrcd() and rxe_close_xrcd() and add xrcd objects
+to rxe object pools to implement ib_open_xrcd() and ib_close_xrcd().
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_net.c | 23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ drivers/infiniband/sw/rxe/rxe.c       |  2 ++
+ drivers/infiniband/sw/rxe/rxe_param.h |  3 +++
+ drivers/infiniband/sw/rxe/rxe_pool.c  |  8 ++++++++
+ drivers/infiniband/sw/rxe/rxe_pool.h  |  1 +
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 23 +++++++++++++++++++++++
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 11 +++++++++++
+ 6 files changed, 48 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index d46190ad082f..d9bedd6fc497 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -92,7 +92,7 @@ static struct dst_entry *rxe_find_route(struct net_device *ndev,
- {
- 	struct dst_entry *dst = NULL;
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index 51daac5c4feb..acd22980836e 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -23,6 +23,7 @@ void rxe_dealloc(struct ib_device *ib_dev)
+ 	rxe_pool_cleanup(&rxe->uc_pool);
+ 	rxe_pool_cleanup(&rxe->pd_pool);
+ 	rxe_pool_cleanup(&rxe->ah_pool);
++	rxe_pool_cleanup(&rxe->xrcd_pool);
+ 	rxe_pool_cleanup(&rxe->srq_pool);
+ 	rxe_pool_cleanup(&rxe->qp_pool);
+ 	rxe_pool_cleanup(&rxe->cq_pool);
+@@ -120,6 +121,7 @@ static void rxe_init_pools(struct rxe_dev *rxe)
+ 	rxe_pool_init(rxe, &rxe->uc_pool, RXE_TYPE_UC);
+ 	rxe_pool_init(rxe, &rxe->pd_pool, RXE_TYPE_PD);
+ 	rxe_pool_init(rxe, &rxe->ah_pool, RXE_TYPE_AH);
++	rxe_pool_init(rxe, &rxe->xrcd_pool, RXE_TYPE_XRCD);
+ 	rxe_pool_init(rxe, &rxe->srq_pool, RXE_TYPE_SRQ);
+ 	rxe_pool_init(rxe, &rxe->qp_pool, RXE_TYPE_QP);
+ 	rxe_pool_init(rxe, &rxe->cq_pool, RXE_TYPE_CQ);
+diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
+index 86c7a8bf3cbb..fa4bf177e123 100644
+--- a/drivers/infiniband/sw/rxe/rxe_param.h
++++ b/drivers/infiniband/sw/rxe/rxe_param.h
+@@ -86,6 +86,9 @@ enum rxe_device_param {
+ 	RXE_MAX_QP_INDEX		= DEFAULT_MAX_VALUE,
+ 	RXE_MAX_QP			= DEFAULT_MAX_VALUE - RXE_MIN_QP_INDEX,
  
--	if (qp_type(qp) == IB_QPT_RC)
-+	if (qp_type(qp) == IB_QPT_RC || qp_type(qp) == IB_QPT_XRC_INI)
- 		dst = sk_dst_get(qp->sk->sk);
++	RXE_MIN_XRCD_INDEX		= 1,
++	RXE_MAX_XRCD_INDEX		= 128,
++	RXE_MAX_XRCD			= 128,
+ 	RXE_MIN_SRQ_INDEX		= 0x00020001,
+ 	RXE_MAX_SRQ_INDEX		= DEFAULT_MAX_VALUE,
+ 	RXE_MAX_SRQ			= DEFAULT_MAX_VALUE - RXE_MIN_SRQ_INDEX,
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index f50620f5a0a1..b54453b68169 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -42,6 +42,14 @@ static const struct rxe_type_info {
+ 		.max_index	= RXE_MAX_AH_INDEX,
+ 		.max_elem	= RXE_MAX_AH_INDEX - RXE_MIN_AH_INDEX + 1,
+ 	},
++	[RXE_TYPE_XRCD] = {
++		.name		= "xrcd",
++		.size		= sizeof(struct rxe_xrcd),
++		.elem_offset	= offsetof(struct rxe_xrcd, elem),
++		.min_index	= RXE_MIN_XRCD_INDEX,
++		.max_index	= RXE_MAX_XRCD_INDEX,
++		.max_elem	= RXE_MAX_XRCD_INDEX - RXE_MIN_XRCD_INDEX + 1,
++	},
+ 	[RXE_TYPE_SRQ] = {
+ 		.name		= "srq",
+ 		.size		= sizeof(struct rxe_srq),
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index 9d83cb32092f..35ac0746a4b8 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -11,6 +11,7 @@ enum rxe_elem_type {
+ 	RXE_TYPE_UC,
+ 	RXE_TYPE_PD,
+ 	RXE_TYPE_AH,
++	RXE_TYPE_XRCD,
+ 	RXE_TYPE_SRQ,
+ 	RXE_TYPE_QP,
+ 	RXE_TYPE_CQ,
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 9ebe9decad34..4a5da079bf11 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -281,6 +281,26 @@ static int post_one_recv(struct rxe_rq *rq, const struct ib_recv_wr *ibwr)
+ 	return err;
+ }
  
- 	if (!dst || !dst_check(dst, qp->dst_cookie)) {
-@@ -120,7 +120,8 @@ static struct dst_entry *rxe_find_route(struct net_device *ndev,
- #endif
- 		}
- 
--		if (dst && (qp_type(qp) == IB_QPT_RC)) {
-+		if (dst && (qp_type(qp) == IB_QPT_RC ||
-+			    qp_type(qp) == IB_QPT_XRC_INI)) {
- 			dst_hold(dst);
- 			sk_dst_set(qp->sk->sk, dst);
- 		}
-@@ -386,14 +387,23 @@ static int rxe_send(struct sk_buff *skb, struct rxe_pkt_info *pkt)
-  */
- static int rxe_loopback(struct sk_buff *skb, struct rxe_pkt_info *pkt)
- {
--	memcpy(SKB_TO_PKT(skb), pkt, sizeof(*pkt));
-+	struct rxe_pkt_info *new_pkt = SKB_TO_PKT(skb);
++static int rxe_alloc_xrcd(struct ib_xrcd *ibxrcd, struct ib_udata *udata)
++{
++	struct rxe_dev *rxe = to_rdev(ibxrcd->device);
++	struct rxe_xrcd *xrcd = to_rxrcd(ibxrcd);
++	int err;
 +
-+	memset(new_pkt, 0, sizeof(*new_pkt));
++	err = rxe_add_to_pool(&rxe->xrcd_pool, xrcd);
 +
-+	/* match rxe_udp_encap_recv */
-+	new_pkt->rxe = pkt->rxe;
-+	new_pkt->port_num = 1;
-+	new_pkt->hdr = pkt->hdr;
-+	new_pkt->mask = RXE_GRH_MASK;
-+	new_pkt->paylen = pkt->paylen;
++	return err;
++}
++
++static int rxe_dealloc_xrcd(struct ib_xrcd *ibxrcd, struct ib_udata *udata)
++{
++	struct rxe_xrcd *xrcd = to_rxrcd(ibxrcd);
++
++	rxe_cleanup(xrcd);
++
++	return 0;
++}
++
+ static int rxe_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *init,
+ 			  struct ib_udata *udata)
+ {
+@@ -1055,6 +1075,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	.alloc_mw = rxe_alloc_mw,
+ 	.alloc_pd = rxe_alloc_pd,
+ 	.alloc_ucontext = rxe_alloc_ucontext,
++	.alloc_xrcd = rxe_alloc_xrcd,
+ 	.attach_mcast = rxe_attach_mcast,
+ 	.create_ah = rxe_create_ah,
+ 	.create_cq = rxe_create_cq,
+@@ -1065,6 +1086,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	.dealloc_mw = rxe_dealloc_mw,
+ 	.dealloc_pd = rxe_dealloc_pd,
+ 	.dealloc_ucontext = rxe_dealloc_ucontext,
++	.dealloc_xrcd = rxe_dealloc_xrcd,
+ 	.dereg_mr = rxe_dereg_mr,
+ 	.destroy_ah = rxe_destroy_ah,
+ 	.destroy_cq = rxe_destroy_cq,
+@@ -1103,6 +1125,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, rxe_cq, ibcq),
+ 	INIT_RDMA_OBJ_SIZE(ib_pd, rxe_pd, ibpd),
+ 	INIT_RDMA_OBJ_SIZE(ib_qp, rxe_qp, ibqp),
++	INIT_RDMA_OBJ_SIZE(ib_xrcd, rxe_xrcd, ibxrcd),
+ 	INIT_RDMA_OBJ_SIZE(ib_srq, rxe_srq, ibsrq),
+ 	INIT_RDMA_OBJ_SIZE(ib_ucontext, rxe_ucontext, ibuc),
+ 	INIT_RDMA_OBJ_SIZE(ib_mw, rxe_mw, ibmw),
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index a51819d0c345..6c4cfb802dd4 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -93,6 +93,11 @@ struct rxe_rq {
+ 	struct rxe_queue	*queue;
+ };
  
- 	if (skb->protocol == htons(ETH_P_IP))
- 		skb_pull(skb, sizeof(struct iphdr));
- 	else
- 		skb_pull(skb, sizeof(struct ipv6hdr));
++struct rxe_xrcd {
++	struct ib_xrcd		ibxrcd;
++	struct rxe_pool_elem	elem;
++};
++
+ struct rxe_srq {
+ 	struct ib_srq		ibsrq;
+ 	struct rxe_pool_elem	elem;
+@@ -383,6 +388,7 @@ struct rxe_dev {
+ 	struct rxe_pool		uc_pool;
+ 	struct rxe_pool		pd_pool;
+ 	struct rxe_pool		ah_pool;
++	struct rxe_pool		xrcd_pool;
+ 	struct rxe_pool		srq_pool;
+ 	struct rxe_pool		qp_pool;
+ 	struct rxe_pool		cq_pool;
+@@ -432,6 +438,11 @@ static inline struct rxe_ah *to_rah(struct ib_ah *ah)
+ 	return ah ? container_of(ah, struct rxe_ah, ibah) : NULL;
+ }
  
--	if (WARN_ON(!ib_device_try_get(&pkt->rxe->ib_dev))) {
-+	if (WARN_ON(!ib_device_try_get(&new_pkt->rxe->ib_dev))) {
- 		kfree_skb(skb);
- 		return -EIO;
- 	}
-@@ -412,7 +422,6 @@ int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 
- 	if ((is_request && (qp->req.state != QP_STATE_READY)) ||
- 	    (!is_request && (qp->resp.state != QP_STATE_READY))) {
--		pr_info("Packet dropped. QP is not in ready state\n");
- 		goto drop;
- 	}
- 
-@@ -427,8 +436,8 @@ int rxe_xmit_packet(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
- 		return err;
- 	}
- 
--	if ((qp_type(qp) != IB_QPT_RC) &&
--	    (pkt->mask & RXE_LAST_MASK)) {
-+	if ((pkt->mask & RXE_REQ_MASK) && (pkt->mask & RXE_LAST_MASK) &&
-+	    (qp_type(qp) != IB_QPT_RC && qp_type(qp) != IB_QPT_XRC_INI)) {
- 		pkt->wqe->state = wqe_state_done;
- 		rxe_run_task(&qp->comp.task, 1);
- 	}
++static inline struct rxe_xrcd *to_rxrcd(struct ib_xrcd *ibxrcd)
++{
++	return ibxrcd ? container_of(ibxrcd, struct rxe_xrcd, ibxrcd) : NULL;
++}
++
+ static inline struct rxe_srq *to_rsrq(struct ib_srq *srq)
+ {
+ 	return srq ? container_of(srq, struct rxe_srq, ibsrq) : NULL;
 -- 
 2.34.1
 
