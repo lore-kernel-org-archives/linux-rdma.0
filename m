@@ -2,44 +2,44 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D8AC54EE9
-	for <linux-rdma@archiver.kernel.org>; Tue, 20 Sep 2022 18:22:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4590FC6FA82
+	for <linux-rdma@archiver.kernel.org>; Tue, 20 Sep 2022 18:24:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229812AbiITSWM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 20 Sep 2022 14:22:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56466 "EHLO
+        id S229713AbiITSYp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 20 Sep 2022 14:24:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229503AbiITSWL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 20 Sep 2022 14:22:11 -0400
+        with ESMTP id S229530AbiITSYo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 20 Sep 2022 14:24:44 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2D80543E3
-        for <linux-rdma@vger.kernel.org>; Tue, 20 Sep 2022 11:22:10 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 018AFBF77
+        for <linux-rdma@vger.kernel.org>; Tue, 20 Sep 2022 11:24:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7B6C1625BD
-        for <linux-rdma@vger.kernel.org>; Tue, 20 Sep 2022 18:22:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25D8FC433B5;
-        Tue, 20 Sep 2022 18:22:08 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 90AA062C29
+        for <linux-rdma@vger.kernel.org>; Tue, 20 Sep 2022 18:24:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39A26C433D7;
+        Tue, 20 Sep 2022 18:24:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1663698129;
-        bh=ljmiITlRv3/EHEVVRsfkE4oTYzcJaioT+PtAycWou3Q=;
+        s=k20201202; t=1663698282;
+        bh=oVKVCM6i07x5XIinlgxwxGWTwq0gtWlL7K1Ak3xWElo=;
         h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=Aqs2/6g1cs137kYibQ5+eO8Gs0jeQeRw111k3yKknnGpPh+weE+LDjTU/IsWrvZOF
-         VZgb0zzPV+kd0PwWjC3Nn6Qk82h5llVRyPaQEPpHh3D62ooLDTlMjuYyaUW6ov5Iip
-         JtO82Ne4cNMcWc1xld/J3xr5n9ot3XJb8ZaKm4J+v2bXz7k5uOJcv17uzRWwmX0ag5
-         g7skk5EKG/YW+BG0mkd4MIsOEk110WQwNy/q0cH+HSt5GyXhz+1fCPNPLj4W6lUsJc
-         +OBqyrQJ/nhovvdpRAl4mB+gF2qXl93nOpe8fhXNq0o0jvyl0NzL5STlFdHKmhPOud
-         c5oSnT2YKTvow==
+        b=d+vWeEVps/JN4Q+njR+90W8/3TvI+qclXbDN/Ion+HDlxD/6pYCpvTV7m51Xfv5Z5
+         mloQWMjJvLBU8Qxy6rIqidX/TowfLS8PiR0nhiG5kk5wZDsnPs6VGnxl9//lJ3Ypb/
+         ZBrYjItvgM9IAJ+F6uLEG31dSTWDRkBcA3NKYPuZZbaVFRxCgVozOqWJ67m2EHAlBA
+         +rN4kNRquCuK7RvrYu0iTa/lyt1RqXIm3dvXKJCKwPzIytTw/2xqJbIzIo6KaeZDeP
+         O5+cIY6cAj9snHoVwIUMd81LIImD7mxFPqFxVp+0+CCFCCiKMidABchTTaRrIkmCAj
+         VgLezq+nR2Z1A==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Bernard Metzler <bmt@zurich.ibm.com>, linux-rdma@vger.kernel.org
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+To:     linux-rdma@vger.kernel.org, Bernard Metzler <bmt@zurich.ibm.com>
+Cc:     Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
         Olga Kornievskaia <kolga@netapp.com>
-In-Reply-To: <20220920081202.223629-1-bmt@zurich.ibm.com>
-References: <20220920081202.223629-1-bmt@zurich.ibm.com>
-Subject: Re: [PATCH] RDMA/siw: Always consume all skbuf data in sk_data_ready() upcall.
-Message-Id: <166369812555.317747.1553449990860336985.b4-ty@kernel.org>
-Date:   Tue, 20 Sep 2022 21:22:05 +0300
+In-Reply-To: <20220920082503.224189-1-bmt@zurich.ibm.com>
+References: <20220920082503.224189-1-bmt@zurich.ibm.com>
+Subject: Re: [PATCH] RDMA/siw: Fix QP destroy to wait for all references dropped.
+Message-Id: <166369827769.318280.4806860033247455281.b4-ty@kernel.org>
+Date:   Tue, 20 Sep 2022 21:24:37 +0300
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -48,24 +48,22 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, 20 Sep 2022 10:12:02 +0200, Bernard Metzler wrote:
-> For header and trailer/padding processing, siw did not consume new
-> skb data until minimum amount present to fill current header or trailer
-> structure, including potential payload padding. Not consuming any
-> data during upcall may cause a receive stall, since tcp_read_sock()
-> is not upcalling again if no new data arrive.
-> A NFSoRDMA client got stuck at RDMA Write reception of unaligned
-> payload, if the current skb did contain only the expected 3 padding
-> bytes, but not the 4 bytes CRC trailer. Expecting 4 more bytes already
-> arrived in another skb, and not consuming those 3 bytes in the current
-> upcall left the Write incomplete, waiting for the CRC forever.
+On Tue, 20 Sep 2022 10:25:03 +0200, Bernard Metzler wrote:
+> Delay QP destroy completion until all siw references to QP are
+> dropped. The calling RDMA core will free QP structure after
+> successful return from siw_qp_destroy() call, so siw must not
+> hold any remaining reference to the QP upon return.
+> A use-after-free was encountered in xfstest generic/460, while
+> testing NFSoRDMA. Here, after a TCP connection drop by peer,
+> the triggered siw_cm_work_handler got delayed until after
+> QP destroy call, referencing a QP which has already freed.
 > 
 > [...]
 
 Applied, thanks!
 
-[1/1] RDMA/siw: Always consume all skbuf data in sk_data_ready() upcall.
-      https://git.kernel.org/rdma/rdma/c/754209850df836
+[1/1] RDMA/siw: Fix QP destroy to wait for all references dropped.
+      https://git.kernel.org/rdma/rdma/c/a3c278807a459e
 
 Best regards,
 -- 
