@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E24AC6FA91
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Sep 2022 01:23:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A45FC6FA91
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Sep 2022 01:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231499AbiIUBXM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 20 Sep 2022 21:23:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34076 "EHLO
+        id S231539AbiIUBXU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 20 Sep 2022 21:23:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34210 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231281AbiIUBXE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 20 Sep 2022 21:23:04 -0400
+        with ESMTP id S231390AbiIUBXG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 20 Sep 2022 21:23:06 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9898F7B1F0;
-        Tue, 20 Sep 2022 18:23:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 872967AC24;
+        Tue, 20 Sep 2022 18:23:03 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id CFA9120B929E; Tue, 20 Sep 2022 18:22:59 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com CFA9120B929E
+        id 5D0C0205DC89; Tue, 20 Sep 2022 18:23:03 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 5D0C0205DC89
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1663723379;
-        bh=LmwWqjupTpaqMbP++VM/cZAhOFr+Ugbwtr03knype9U=;
+        s=default; t=1663723383;
+        bh=rC0GRMnD1jYpEG0yPRlbVifq0LE8zs1R4qyGvKkv0lA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=o6856gLX09MMSAIuAIeRf6uwRoLVaYAiWJA26JCvQyDftXp4qTGkxgM1zVW1imnbD
-         QGgg/v8mKvkgbR3S6aYzjmnxYgD1ToYMdIMsopzUQmlVQKrkMnoaSRJtrJ4KLQGcRc
-         i3I3QRLXqJ5P7fgHV4QB7/tICCc4JeJyE7flBmnQ=
+        b=C8jxNHbOvBNc35DRHb0zByIKFRssIEDLHAlm7vTjYMFNy39bX6Y5aPoX+7zxS/tEr
+         k+AHVpDVJalHZNPIoF6p2/6zgriKVxvr99OGOL7uY6+eoBfVnZUvigng0KpngvvD61
+         ighiLCm0LRXT6UgljKMDlLReDULnXlVyJJBesXBY=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v6 04/12] net: mana: Add functions for allocating doorbell page from GDMA
-Date:   Tue, 20 Sep 2022 18:22:24 -0700
-Message-Id: <1663723352-598-5-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v6 10/12] net: mana: Define and process GDMA response code GDMA_STATUS_MORE_ENTRIES
+Date:   Tue, 20 Sep 2022 18:22:30 -0700
+Message-Id: <1663723352-598-11-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1663723352-598-1-git-send-email-longli@linuxonhyperv.com>
 References: <1663723352-598-1-git-send-email-longli@linuxonhyperv.com>
@@ -49,146 +49,47 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
+From: Ajay Sharma <sharmaajay@microsoft.com>
 
-The RDMA device needs to allocate doorbell pages for each user context.
-Implement those functions and expose them for use by the RDMA driver.
+When doing memory registration, the PF may respond with
+GDMA_STATUS_MORE_ENTRIES to indicate a follow request is needed. This is
+not an error and should be processed as expected.
 
+Signed-off-by: Ajay Sharma <sharmaajay@microsoft.com>
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
-Change log:
-v4: use EXPORT_SYMBOL_NS
+ drivers/net/ethernet/microsoft/mana/hw_channel.c | 2 +-
+ include/net/mana/gdma.h                          | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
- drivers/net/ethernet/microsoft/mana/gdma.h    | 29 ++++++++++
- .../net/ethernet/microsoft/mana/gdma_main.c   | 56 +++++++++++++++++++
- 2 files changed, 85 insertions(+)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/drivers/net/ethernet/microsoft/mana/gdma.h
-index 72eaec2470c0..0ee3615152b8 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma.h
-+++ b/drivers/net/ethernet/microsoft/mana/gdma.h
-@@ -22,11 +22,15 @@ enum gdma_request_type {
- 	GDMA_GENERATE_TEST_EQE		= 10,
- 	GDMA_CREATE_QUEUE		= 12,
- 	GDMA_DISABLE_QUEUE		= 13,
-+	GDMA_ALLOCATE_RESOURCE_RANGE	= 22,
-+	GDMA_DESTROY_RESOURCE_RANGE	= 24,
- 	GDMA_CREATE_DMA_REGION		= 25,
- 	GDMA_DMA_REGION_ADD_PAGES	= 26,
- 	GDMA_DESTROY_DMA_REGION		= 27,
- };
+diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+index 76829ab43d40..9d1507eba5b9 100644
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
++++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -836,7 +836,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 		goto out;
+ 	}
  
-+#define GDMA_RESOURCE_DOORBELL_PAGE	27
-+
- enum gdma_queue_type {
- 	GDMA_INVALID_QUEUE,
- 	GDMA_SQ,
-@@ -578,6 +582,26 @@ struct gdma_register_device_resp {
- 	u32 db_id;
- }; /* HW DATA */
+-	if (ctx->status_code) {
++	if (ctx->status_code && ctx->status_code != GDMA_STATUS_MORE_ENTRIES) {
+ 		dev_err(hwc->dev, "HWC: Failed hw_channel req: 0x%x\n",
+ 			ctx->status_code);
+ 		err = -EPROTO;
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 9b050aabf76e..42344cd5e8ce 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -9,6 +9,8 @@
  
-+struct gdma_allocate_resource_range_req {
-+	struct gdma_req_hdr hdr;
-+	u32 resource_type;
-+	u32 num_resources;
-+	u32 alignment;
-+	u32 allocated_resources;
-+};
-+
-+struct gdma_allocate_resource_range_resp {
-+	struct gdma_resp_hdr hdr;
-+	u32 allocated_resources;
-+};
-+
-+struct gdma_destroy_resource_range_req {
-+	struct gdma_req_hdr hdr;
-+	u32 resource_type;
-+	u32 num_resources;
-+	u32 allocated_resources;
-+};
-+
- /* GDMA_CREATE_QUEUE */
- struct gdma_create_queue_req {
- 	struct gdma_req_hdr hdr;
-@@ -686,4 +710,9 @@ void mana_gd_free_memory(struct gdma_mem_info *gmi);
+ #include "shm_channel.h"
  
- int mana_gd_send_request(struct gdma_context *gc, u32 req_len, const void *req,
- 			 u32 resp_len, void *resp);
++#define GDMA_STATUS_MORE_ENTRIES	0x00000105
 +
-+int mana_gd_allocate_doorbell_page(struct gdma_context *gc, int *doorbell_page);
-+
-+int mana_gd_destroy_doorbell_page(struct gdma_context *gc, int doorbell_page);
-+
- #endif /* _GDMA_H */
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index 0cfe5f15458e..63544ca9e238 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -180,6 +180,62 @@ void mana_gd_free_memory(struct gdma_mem_info *gmi)
- 			  gmi->dma_handle);
- }
- 
-+int mana_gd_destroy_doorbell_page(struct gdma_context *gc, int doorbell_page)
-+{
-+	struct gdma_destroy_resource_range_req req = {};
-+	struct gdma_resp_hdr resp = {};
-+	int err;
-+
-+	mana_gd_init_req_hdr(&req.hdr, GDMA_DESTROY_RESOURCE_RANGE,
-+			     sizeof(req), sizeof(resp));
-+
-+	req.resource_type = GDMA_RESOURCE_DOORBELL_PAGE;
-+	req.num_resources = 1;
-+	req.allocated_resources = doorbell_page;
-+
-+	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-+	if (err || resp.status) {
-+		dev_err(gc->dev,
-+			"Failed to destroy doorbell page: ret %d, 0x%x\n",
-+			err, resp.status);
-+		return err ? err : -EPROTO;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_NS(mana_gd_destroy_doorbell_page, NET_MANA);
-+
-+int mana_gd_allocate_doorbell_page(struct gdma_context *gc,
-+				   int *doorbell_page)
-+{
-+	struct gdma_allocate_resource_range_req req = {};
-+	struct gdma_allocate_resource_range_resp resp = {};
-+	int err;
-+
-+	mana_gd_init_req_hdr(&req.hdr, GDMA_ALLOCATE_RESOURCE_RANGE,
-+			     sizeof(req), sizeof(resp));
-+
-+	req.resource_type = GDMA_RESOURCE_DOORBELL_PAGE;
-+	req.num_resources = 1;
-+	req.alignment = 1;
-+
-+	/* Have GDMA start searching from 0 */
-+	req.allocated_resources = 0;
-+
-+	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-+	if (err || resp.hdr.status) {
-+		dev_err(gc->dev,
-+			"Failed to allocate doorbell page: ret %d, 0x%x\n",
-+			err, resp.hdr.status);
-+		return err ? err : -EPROTO;
-+	}
-+
-+	*doorbell_page = resp.allocated_resources;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_NS(mana_gd_allocate_doorbell_page, NET_MANA);
-+
- static int mana_gd_create_hw_eq(struct gdma_context *gc,
- 				struct gdma_queue *queue)
- {
+ /* Structures labeled with "HW DATA" are exchanged with the hardware. All of
+  * them are naturally aligned and hence don't need __packed.
+  */
 -- 
 2.17.1
 
