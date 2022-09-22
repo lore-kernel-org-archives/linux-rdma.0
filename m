@@ -2,36 +2,36 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19950C6FA86
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Sep 2022 12:34:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74E1AC54EE9
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Sep 2022 12:34:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231657AbiIVMeP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Sep 2022 08:34:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56714 "EHLO
+        id S231608AbiIVMeQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Sep 2022 08:34:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231608AbiIVMeN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Sep 2022 08:34:13 -0400
+        with ESMTP id S231557AbiIVMeM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Sep 2022 08:34:12 -0400
 Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBBB2E721F
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADB75E7211
         for <linux-rdma@vger.kernel.org>; Thu, 22 Sep 2022 05:34:10 -0700 (PDT)
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4MYF3X6p6Nz14S1L;
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.56])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4MYF3X31Spz14R6M;
         Thu, 22 Sep 2022 20:30:00 +0800 (CST)
 Received: from kwepemm600013.china.huawei.com (7.193.23.68) by
  dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 22 Sep 2022 20:34:09 +0800
+ 15.1.2375.31; Thu, 22 Sep 2022 20:34:08 +0800
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemm600013.china.huawei.com (7.193.23.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 22 Sep 2022 20:34:03 +0800
+ 15.1.2375.31; Thu, 22 Sep 2022 20:34:02 +0800
 From:   Haoyue Xu <xuhaoyue1@hisilicon.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>, <xuhaoyue1@hisilicon.com>
-Subject: [PATCH for-next 05/12] RDMA/hns: Remove redundant 'bt_level' for hem_list_alloc_item()
-Date:   Thu, 22 Sep 2022 20:33:08 +0800
-Message-ID: <20220922123315.3732205-6-xuhaoyue1@hisilicon.com>
+Subject: [PATCH for-next 02/12] RDMA/hns: Remove unnecessary braces for single statement blocks
+Date:   Thu, 22 Sep 2022 20:33:05 +0800
+Message-ID: <20220922123315.3732205-3-xuhaoyue1@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20220922123315.3732205-1-xuhaoyue1@hisilicon.com>
 References: <20220922123315.3732205-1-xuhaoyue1@hisilicon.com>
@@ -46,56 +46,30 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yunsheng Lin <linyunsheng@huawei.com>
+From: Guofeng Yue <yueguofeng@hisilicon.com>
 
-The 'bt_level' parameter is not used in hem_list_alloc_item(),
-so remove it.
+Braces {} are not necessary for single statement blocks.
 
-Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
+Signed-off-by: Guofeng Yue <yueguofeng@hisilicon.com>
 Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_main.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index ce1a0d2792a3..e7c73ff14ae0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -986,7 +986,7 @@ struct hns_roce_hem_head {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 9de3a522980a..82948ae3e52b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -846,9 +846,8 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
  
- static struct hns_roce_hem_item *
- hem_list_alloc_item(struct hns_roce_dev *hr_dev, int start, int end, int count,
--		    bool exist_bt, int bt_level)
-+		    bool exist_bt)
- {
- 	struct hns_roce_hem_item *hem;
+ 	hns_roce_init_cq_table(hr_dev);
  
-@@ -1195,7 +1195,7 @@ static int hem_list_alloc_mid_bt(struct hns_roce_dev *hr_dev,
- 		start_aligned = (distance / step) * step + r->offset;
- 		end = min_t(int, start_aligned + step - 1, max_ofs);
- 		cur = hem_list_alloc_item(hr_dev, start_aligned, end, unit,
--					  true, level);
-+					  true);
- 		if (!cur) {
- 			ret = -ENOMEM;
- 			goto err_exit;
-@@ -1247,7 +1247,7 @@ alloc_root_hem(struct hns_roce_dev *hr_dev, int unit, int *max_ba_num,
- 	/* indicate to last region */
- 	r = &regions[region_cnt - 1];
- 	hem = hem_list_alloc_item(hr_dev, offset, r->offset + r->count - 1,
--				  ba_num, true, 0);
-+				  ba_num, true);
- 	if (!hem)
- 		return ERR_PTR(-ENOMEM);
+-	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ) {
++	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_SRQ)
+ 		hns_roce_init_srq_table(hr_dev);
+-	}
  
-@@ -1264,7 +1264,7 @@ static int alloc_fake_root_bt(struct hns_roce_dev *hr_dev, void *cpu_base,
- 	struct hns_roce_hem_item *hem;
- 
- 	hem = hem_list_alloc_item(hr_dev, r->offset, r->offset + r->count - 1,
--				  r->count, false, 0);
-+				  r->count, false);
- 	if (!hem)
- 		return -ENOMEM;
+ 	return 0;
  
 -- 
 2.30.0
