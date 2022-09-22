@@ -2,36 +2,36 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2D75C6FA82
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Sep 2022 12:34:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 337B9C6FA93
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Sep 2022 12:34:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231660AbiIVMeX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Sep 2022 08:34:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56832 "EHLO
+        id S231615AbiIVMeY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Sep 2022 08:34:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231615AbiIVMeO (ORCPT
+        with ESMTP id S231629AbiIVMeO (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Sep 2022 08:34:14 -0400
 Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35A17E720F
-        for <linux-rdma@vger.kernel.org>; Thu, 22 Sep 2022 05:34:12 -0700 (PDT)
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MYF3Y4KbkzlXMs;
-        Thu, 22 Sep 2022 20:30:01 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D302E721A
+        for <linux-rdma@vger.kernel.org>; Thu, 22 Sep 2022 05:34:11 -0700 (PDT)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.56])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4MYF536TzszpTqV;
+        Thu, 22 Sep 2022 20:31:19 +0800 (CST)
 Received: from kwepemm600013.china.huawei.com (7.193.23.68) by
  dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 22 Sep 2022 20:34:10 +0800
+ 15.1.2375.31; Thu, 22 Sep 2022 20:34:09 +0800
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemm600013.china.huawei.com (7.193.23.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 22 Sep 2022 20:34:05 +0800
+ 15.1.2375.31; Thu, 22 Sep 2022 20:34:04 +0800
 From:   Haoyue Xu <xuhaoyue1@hisilicon.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>, <xuhaoyue1@hisilicon.com>
-Subject: [PATCH for-next 11/12] RDMA/hns: Replacing magic number with macros in apply_func_caps()
-Date:   Thu, 22 Sep 2022 20:33:14 +0800
-Message-ID: <20220922123315.3732205-12-xuhaoyue1@hisilicon.com>
+Subject: [PATCH for-next 09/12] RDMA/hns: Remove redundant 'max_srq_desc_sz' in caps
+Date:   Thu, 22 Sep 2022 20:33:12 +0800
+Message-ID: <20220922123315.3732205-10-xuhaoyue1@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20220922123315.3732205-1-xuhaoyue1@hisilicon.com>
 References: <20220922123315.3732205-1-xuhaoyue1@hisilicon.com>
@@ -46,33 +46,73 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Yixing Liu <liuyixing1@huawei.com>
+From: Yangyang Li <liyangyang20@huawei.com>
 
-Replacing magic number with macros in function apply_func_caps().
+The max_srq_desc_sz is defined in the code, but never used,
+so delete this redundant variable.
 
-Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
+Signed-off-by: Yangyang Li <liyangyang20@huawei.com>
 Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 2 --
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 3 +--
+ 3 files changed, 2 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index edd19970931d..aa859bf30774 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -735,7 +735,7 @@ struct hns_roce_caps {
+ 	u32		max_srq_sges;
+ 	u32		max_sq_desc_sz;
+ 	u32		max_rq_desc_sz;
+-	u32		max_srq_desc_sz;
++	u32		rsv2;
+ 	int		max_qp_init_rdma;
+ 	int		max_qp_dest_rdma;
+ 	u32		num_cqs;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index e1716f100dce..fd4e767cd8de 100644
+index f8b747cc4e79..31bfea15cdfc 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2186,8 +2186,10 @@ static void apply_func_caps(struct hns_roce_dev *hr_dev)
- 	caps->num_idx_segs = HNS_ROCE_V2_MAX_IDX_SEGS;
+@@ -1983,7 +1983,6 @@ static void set_default_caps(struct hns_roce_dev *hr_dev)
+ 	caps->max_qp_dest_rdma	= HNS_ROCE_V2_MAX_QP_DEST_RDMA;
+ 	caps->max_sq_desc_sz	= HNS_ROCE_V2_MAX_SQ_DESC_SZ;
+ 	caps->max_rq_desc_sz	= HNS_ROCE_V2_MAX_RQ_DESC_SZ;
+-	caps->max_srq_desc_sz	= HNS_ROCE_V2_MAX_SRQ_DESC_SZ;
+ 	caps->irrl_entry_sz	= HNS_ROCE_V2_IRRL_ENTRY_SZ;
+ 	caps->trrl_entry_sz	= HNS_ROCE_V2_EXT_ATOMIC_TRRL_ENTRY_SZ;
+ 	caps->cqc_entry_sz	= HNS_ROCE_V2_CQC_ENTRY_SZ;
+@@ -2277,7 +2276,6 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 	caps->num_other_vectors	     = resp_a->num_other_vectors;
+ 	caps->max_sq_desc_sz	     = resp_a->max_sq_desc_sz;
+ 	caps->max_rq_desc_sz	     = resp_a->max_rq_desc_sz;
+-	caps->max_srq_desc_sz	     = resp_a->max_srq_desc_sz;
+ 	caps->cqe_sz		     = resp_a->cqe_sz;
  
- 	if (!caps->num_comp_vectors)
--		caps->num_comp_vectors = min_t(u32, caps->eqc_bt_num - 1,
--				  (u32)priv->handle->rinfo.num_vectors - 2);
-+		caps->num_comp_vectors =
-+			min_t(u32, caps->eqc_bt_num - HNS_ROCE_V2_AEQE_VEC_NUM,
-+				(u32)priv->handle->rinfo.num_vectors -
-+		(HNS_ROCE_V2_AEQE_VEC_NUM + HNS_ROCE_V2_ABNORMAL_VEC_NUM));
+ 	caps->mtpt_entry_sz	     = resp_b->mtpt_entry_sz;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 7a613cbe2ad6..bd09109e4848 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -63,7 +63,6 @@
+ #define HNS_ROCE_V2_MAX_QP_DEST_RDMA		128
+ #define HNS_ROCE_V2_MAX_SQ_DESC_SZ		64
+ #define HNS_ROCE_V2_MAX_RQ_DESC_SZ		16
+-#define HNS_ROCE_V2_MAX_SRQ_DESC_SZ		64
+ #define HNS_ROCE_V2_IRRL_ENTRY_SZ		64
+ #define HNS_ROCE_V2_EXT_ATOMIC_TRRL_ENTRY_SZ	100
+ #define HNS_ROCE_V2_CQC_ENTRY_SZ		64
+@@ -1181,7 +1180,7 @@ struct hns_roce_query_pf_caps_a {
+ 	u8 num_other_vectors;
+ 	u8 max_sq_desc_sz;
+ 	u8 max_rq_desc_sz;
+-	u8 max_srq_desc_sz;
++	u8 rsv1;
+ 	u8 cqe_sz;
+ };
  
- 	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09) {
- 		caps->eqe_hop_num = HNS_ROCE_V3_EQE_HOP_NUM;
 -- 
 2.30.0
 
