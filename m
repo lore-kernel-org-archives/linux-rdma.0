@@ -2,21 +2,21 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 431B2C6FA86
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Sep 2022 12:34:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C851C6FA82
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Sep 2022 12:34:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231557AbiIVMeR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Sep 2022 08:34:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56778 "EHLO
+        id S231543AbiIVMeU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Sep 2022 08:34:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56780 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231543AbiIVMeM (ORCPT
+        with ESMTP id S231552AbiIVMeM (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Sep 2022 08:34:12 -0400
 Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66696E720C
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADA3BE720E
         for <linux-rdma@vger.kernel.org>; Thu, 22 Sep 2022 05:34:10 -0700 (PDT)
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4MYF3l1LZJzWgtM;
-        Thu, 22 Sep 2022 20:30:11 +0800 (CST)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.53])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4MYF2t19yZzMpR5;
+        Thu, 22 Sep 2022 20:29:26 +0800 (CST)
 Received: from kwepemm600013.china.huawei.com (7.193.23.68) by
  dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
@@ -24,14 +24,14 @@ Received: from kwepemm600013.china.huawei.com (7.193.23.68) by
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemm600013.china.huawei.com (7.193.23.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 22 Sep 2022 20:34:01 +0800
+ 15.1.2375.31; Thu, 22 Sep 2022 20:34:02 +0800
 From:   Haoyue Xu <xuhaoyue1@hisilicon.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <liangwenpeng@huawei.com>, <xuhaoyue1@hisilicon.com>
-Subject: [PATCH for-next 01/12] RDMA/hns: Cleanup for a spelling error of Asynchronous
-Date:   Thu, 22 Sep 2022 20:33:04 +0800
-Message-ID: <20220922123315.3732205-2-xuhaoyue1@hisilicon.com>
+Subject: [PATCH for-next 03/12] RDMA/hns: Remove unnecessary brackets when getting point
+Date:   Thu, 22 Sep 2022 20:33:06 +0800
+Message-ID: <20220922123315.3732205-4-xuhaoyue1@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20220922123315.3732205-1-xuhaoyue1@hisilicon.com>
 References: <20220922123315.3732205-1-xuhaoyue1@hisilicon.com>
@@ -48,27 +48,55 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Guofeng Yue <yueguofeng@hisilicon.com>
 
-Fixed a spelling error for Asynchronous.
+Delete () when using & to obtain an address.
 
 Signed-off-by: Guofeng Yue <yueguofeng@hisilicon.com>
 Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 +++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 1 +
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 437d5dd4e648..a9dc28fd2962 100644
+index a9dc28fd2962..07a9988d7505 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -6069,7 +6069,7 @@ static irqreturn_t hns_roce_v2_msix_interrupt_eq(int irq, void *eq_ptr)
- 		/* Completion event interrupt */
- 		int_work = hns_roce_v2_ceq_int(hr_dev, eq);
- 	else
--		/* Asychronous event interrupt */
-+		/* Asynchronous event interrupt */
- 		int_work = hns_roce_v2_aeq_int(hr_dev, eq);
+@@ -4613,7 +4613,7 @@ static int modify_qp_init_to_rtr(struct ib_qp *ibqp,
+ 		hr_reg_clear(qpc_mask, QPC_DQPN);
+ 	}
  
- 	return IRQ_RETVAL(int_work);
+-	memcpy(&(context->dmac), dmac, sizeof(u32));
++	memcpy(&context->dmac, dmac, sizeof(u32));
+ 	hr_reg_write(context, QPC_DMAC_H, *((u16 *)(&dmac[4])));
+ 	qpc_mask->dmac = 0;
+ 	hr_reg_clear(qpc_mask, QPC_DMAC_H);
+@@ -5904,12 +5904,12 @@ static void hns_roce_v2_init_irq_work(struct hns_roce_dev *hr_dev,
+ 	if (!irq_work)
+ 		return;
+ 
+-	INIT_WORK(&(irq_work->work), hns_roce_irq_work_handle);
++	INIT_WORK(&irq_work->work, hns_roce_irq_work_handle);
+ 	irq_work->hr_dev = hr_dev;
+ 	irq_work->event_type = eq->event_type;
+ 	irq_work->sub_type = eq->sub_type;
+ 	irq_work->queue_num = queue_num;
+-	queue_work(hr_dev->irq_workq, &(irq_work->work));
++	queue_work(hr_dev->irq_workq, &irq_work->work);
+ }
+ 
+ static void update_eq_db(struct hns_roce_eq *eq)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index ae29780dd63a..ca63463e7d4e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -406,6 +406,7 @@ enum hns_roce_v2_qp_state {
+ struct hns_roce_v2_qp_context_ex {
+ 	__le32 data[64];
+ };
++
+ struct hns_roce_v2_qp_context {
+ 	__le32 byte_4_sqpn_tst;
+ 	__le32 wqe_sge_ba;
 -- 
 2.30.0
 
