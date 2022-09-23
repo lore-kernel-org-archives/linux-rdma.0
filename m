@@ -2,69 +2,69 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C293C6FA90
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Sep 2022 15:56:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 727FFC6FA8B
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Sep 2022 15:56:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231965AbiIWP4J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 23 Sep 2022 11:56:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40124 "EHLO
+        id S232566AbiIWP4U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Sep 2022 11:56:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231837AbiIWP4D (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Sep 2022 11:56:03 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55C4F146FAB
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Sep 2022 08:56:02 -0700 (PDT)
+        with ESMTP id S231693AbiIWP4H (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Sep 2022 11:56:07 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A16AF14768D
+        for <linux-rdma@vger.kernel.org>; Fri, 23 Sep 2022 08:56:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1663948561;
+        s=mimecast20190719; t=1663948564;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=f1rD50vdBgPCmvLBNPOPtby9Vrss+ZY8l15m1i9q/gc=;
-        b=WOPM9PaW3S982zbzb4h8mOV835bdRI0ynZvkCvZeDDScYdLBbvSf+AJQDIHH2TnaKXTc+0
-        D27faiwbCgpDGzkCr3kUmMNE0EOMEvAnckr5wtIRZXqz5+AxFtPH2wzNR6X0GhjjL7IRi1
-        wVAaxkWEsqeYpJmYj8Lo+/opkfhHl1g=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=9qKy0mrwb1ZaeVcnoJdtpT0vU2IyZpITeq2cNcv3elU=;
+        b=LurPLWs6LsWsaRAZ2q62zl2TAJ78YCvwlgwJW4SxDxBp4BjVo0OV8NJK07TZrDjr5rbp3d
+        e7yhlA/SsJ33l5OvrxlJxQ/UwYMq5qJHDmKAoI3+6BMjYUH0sGkFwF09Vt5x44kQcujYvi
+        kizxAN4Wwya0m7BxQOLxEOpKxNFCEcw=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-519-FRW2emSDM9CGkYKLP6H07A-1; Fri, 23 Sep 2022 11:55:59 -0400
-X-MC-Unique: FRW2emSDM9CGkYKLP6H07A-1
-Received: by mail-wr1-f70.google.com with SMTP id c21-20020adfa315000000b0022adc2a2edaso130303wrb.0
-        for <linux-rdma@vger.kernel.org>; Fri, 23 Sep 2022 08:55:59 -0700 (PDT)
+ us-mta-500-7IYWFg0tN1OHYEWZ3HT01g-1; Fri, 23 Sep 2022 11:56:03 -0400
+X-MC-Unique: 7IYWFg0tN1OHYEWZ3HT01g-1
+Received: by mail-wr1-f71.google.com with SMTP id l5-20020adfa385000000b0022a482f8285so119934wrb.5
+        for <linux-rdma@vger.kernel.org>; Fri, 23 Sep 2022 08:56:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date;
-        bh=f1rD50vdBgPCmvLBNPOPtby9Vrss+ZY8l15m1i9q/gc=;
-        b=ykzT5QhRc1qqZq35QL1CrxrTZpNyZANzkgYGgqbQCFTUpCv8OqlXxDCrtsM4R7HsNd
-         EFeSMRcg0X3JRbQZfHoGdRJBNyCC3l/bT6BaW+npZCF8EqWxp1bkgavWee1KR1cRVo68
-         4RFG0BBSO1Kuc1TbWHpD0k5dWyd4mYrwpTMJufJCIv7zLbRTyiN27IzgefDjGW5uToPX
-         muF/ThgpDsEKkJFScmbwQ/AWUpYdtuChXjCoLr/l5mgD5oIwB3PluhHFvQF89cv1y9Di
-         sLqwgdrhNJ9QqdReZ7XoNfQzsdfLL1IOt2JY6gUzo0KKFqAlMGH3C9otU7VxIMiW2g/9
-         KRyw==
-X-Gm-Message-State: ACrzQf069MXlPIGmb7mm1t7n6jnSaETe8eT//2aabpYCUFej6ZfdePSG
-        9WJ9RMLtXLFsDUDrvLGCip0gTRa/YIyK6duFf8fB9T60vQTh0Oq09Y5v0etrPxFYh5D/DCoS5q4
-        J7o2sJ97uxK5vSG2rntQf3w==
-X-Received: by 2002:a5d:610a:0:b0:22a:2a9d:880 with SMTP id v10-20020a5d610a000000b0022a2a9d0880mr5436956wrt.22.1663948558614;
-        Fri, 23 Sep 2022 08:55:58 -0700 (PDT)
-X-Google-Smtp-Source: AMsMyM7Qp9zZ4NuzIci/DpAgTQiB1AsWNZvgRAQooi24eczibkgAWqnA8TmIYsbQfk6ENbU93C431A==
-X-Received: by 2002:a5d:610a:0:b0:22a:2a9d:880 with SMTP id v10-20020a5d610a000000b0022a2a9d0880mr5436937wrt.22.1663948558409;
-        Fri, 23 Sep 2022 08:55:58 -0700 (PDT)
+        bh=9qKy0mrwb1ZaeVcnoJdtpT0vU2IyZpITeq2cNcv3elU=;
+        b=C4NEoS3xAFNtoW52Yp6jPRajncQ17vDEKso6frf4zkdBUTPsV2JZNP8JGZlq7gcYNj
+         CJNp2UI2yEnWObTrvpuz8SjiHTuSpu/5WZVDhIzOyP6+wu5arJaMo0aj1GxvjLAtM2sk
+         iXaKm5E5EARTNFMQnnWwjKLkYd+GOKhS2Ag8TBllCRrmvcCWxjFx+d+LJp5znLGm/xzz
+         XB60m/qn+8qWv88R9VGelE51DuIuGDDCdadFUuYq7Ma8KNCcYpm1BMX6Bhw+RRaR9SEI
+         LkV44jq6byx+16tyydIzCz6RaHg9BrPkWQorkZIumbgdj5tVmdSiEA1xp/t7YfU7IOK4
+         rQkQ==
+X-Gm-Message-State: ACrzQf3cWh4fNDRqDqihOQmaB098uFPsFjENdQ+ALyK2bpbXjYtdpUjL
+        GpZmjHF1ezSMeBJe+N9uI/Sz92aBD/yLdILnPCqY4ygauvxbL5S/lW/WQa8f+UwOxHpBPVBcVJB
+        9cKH3Nj1NVw0IbZO8RO10+Q==
+X-Received: by 2002:a5d:62c8:0:b0:228:67d2:797b with SMTP id o8-20020a5d62c8000000b0022867d2797bmr5570910wrv.462.1663948562602;
+        Fri, 23 Sep 2022 08:56:02 -0700 (PDT)
+X-Google-Smtp-Source: AMsMyM4aPbc4vrsR5Vfq6YATZvPVX52Oz7CjIB9xYibgKcC2wNByVZXJ2pv9DnxuyPBkjc5vbnX2Bw==
+X-Received: by 2002:a5d:62c8:0:b0:228:67d2:797b with SMTP id o8-20020a5d62c8000000b0022867d2797bmr5570899wrv.462.1663948562369;
+        Fri, 23 Sep 2022 08:56:02 -0700 (PDT)
 Received: from vschneid.remote.csb ([185.11.37.247])
-        by smtp.gmail.com with ESMTPSA id i7-20020a5d5587000000b0021badf3cb26sm9055429wrv.63.2022.09.23.08.55.57
+        by smtp.gmail.com with ESMTPSA id i7-20020a5d5587000000b0021badf3cb26sm9055429wrv.63.2022.09.23.08.56.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Sep 2022 08:55:57 -0700 (PDT)
+        Fri, 23 Sep 2022 08:56:01 -0700 (PDT)
 From:   Valentin Schneider <vschneid@redhat.com>
 To:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Cc:     Saeed Mahameed <saeedm@nvidia.com>,
+Cc:     Yury Norov <yury.norov@gmail.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
         Paolo Abeni <pabeni@redhat.com>,
-        Yury Norov <yury.norov@gmail.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         Ingo Molnar <mingo@kernel.org>,
@@ -80,9 +80,9 @@ Cc:     Saeed Mahameed <saeedm@nvidia.com>,
         Gal Pressman <gal@nvidia.com>,
         Tariq Toukan <tariqt@nvidia.com>,
         Jesse Brandeburg <jesse.brandeburg@intel.com>
-Subject: [PATCH v4 2/7] cpumask: Introduce for_each_cpu_andnot()
-Date:   Fri, 23 Sep 2022 16:55:37 +0100
-Message-Id: <20220923155542.1212814-1-vschneid@redhat.com>
+Subject: [PATCH v4 4/7] sched/core: Merge cpumask_andnot()+for_each_cpu() into for_each_cpu_andnot()
+Date:   Fri, 23 Sep 2022 16:55:39 +0100
+Message-Id: <20220923155542.1212814-3-vschneid@redhat.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20220923132527.1001870-1-vschneid@redhat.com>
 References: <20220923132527.1001870-1-vschneid@redhat.com>
@@ -92,76 +92,30 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-for_each_cpu_and() is very convenient as it saves having to allocate a
-temporary cpumask to store the result of cpumask_and(). The same issue
-applies to cpumask_andnot() which doesn't actually need temporary storage
-for iteration purposes.
+This removes the second use of the sched_core_mask temporary mask.
 
-Following what has been done for for_each_cpu_and(), introduce
-for_each_cpu_andnot().
-
+Suggested-by: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Valentin Schneider <vschneid@redhat.com>
 ---
- include/linux/cpumask.h | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ kernel/sched/core.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/include/linux/cpumask.h b/include/linux/cpumask.h
-index 1b442fb2001f..4c69e338bb8c 100644
---- a/include/linux/cpumask.h
-+++ b/include/linux/cpumask.h
-@@ -238,6 +238,25 @@ unsigned int cpumask_next_and(int n, const struct cpumask *src1p,
- 		nr_cpumask_bits, n + 1);
- }
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index ee28253c9ac0..b4c3112b0095 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -360,10 +360,7 @@ static void __sched_core_flip(bool enabled)
+ 	/*
+ 	 * Toggle the offline CPUs.
+ 	 */
+-	cpumask_copy(&sched_core_mask, cpu_possible_mask);
+-	cpumask_andnot(&sched_core_mask, &sched_core_mask, cpu_online_mask);
+-
+-	for_each_cpu(cpu, &sched_core_mask)
++	for_each_cpu_andnot(cpu, cpu_possible_mask, cpu_online_mask)
+ 		cpu_rq(cpu)->core_enabled = enabled;
  
-+/**
-+ * cpumask_next_andnot - get the next cpu in *src1p & ~*src2p
-+ * @n: the cpu prior to the place to search (ie. return will be > @n)
-+ * @src1p: the first cpumask pointer
-+ * @src2p: the second cpumask pointer
-+ *
-+ * Returns >= nr_cpu_ids if no further cpus set in *src1p & ~*src2p
-+ */
-+static inline
-+unsigned int cpumask_next_andnot(int n, const struct cpumask *src1p,
-+				 const struct cpumask *src2p)
-+{
-+	/* -1 is a legal arg here. */
-+	if (n != -1)
-+		cpumask_check(n);
-+	return find_next_andnot_bit(cpumask_bits(src1p), cpumask_bits(src2p),
-+		nr_cpumask_bits, n + 1);
-+}
-+
- /**
-  * for_each_cpu - iterate over every cpu in a mask
-  * @cpu: the (optionally unsigned) integer iterator
-@@ -317,6 +336,26 @@ unsigned int __pure cpumask_next_wrap(int n, const struct cpumask *mask, int sta
- 		(cpu) = cpumask_next_and((cpu), (mask1), (mask2)),	\
- 		(cpu) < nr_cpu_ids;)
- 
-+/**
-+ * for_each_cpu_andnot - iterate over every cpu present in one mask, excluding
-+ *			 those present in another.
-+ * @cpu: the (optionally unsigned) integer iterator
-+ * @mask1: the first cpumask pointer
-+ * @mask2: the second cpumask pointer
-+ *
-+ * This saves a temporary CPU mask in many places.  It is equivalent to:
-+ *	struct cpumask tmp;
-+ *	cpumask_andnot(&tmp, &mask1, &mask2);
-+ *	for_each_cpu(cpu, &tmp)
-+ *		...
-+ *
-+ * After the loop, cpu is >= nr_cpu_ids.
-+ */
-+#define for_each_cpu_andnot(cpu, mask1, mask2)				\
-+	for ((cpu) = -1;						\
-+		(cpu) = cpumask_next_andnot((cpu), (mask1), (mask2)),	\
-+		(cpu) < nr_cpu_ids;)
-+
- /**
-  * cpumask_any_but - return a "random" in a cpumask, but not this one.
-  * @mask: the cpumask to search
+ 	cpus_read_unlock();
 -- 
 2.31.1
 
