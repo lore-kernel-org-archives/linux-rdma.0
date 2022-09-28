@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87307C04A95
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Sep 2022 19:18:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67AC4C6FA90
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Sep 2022 19:18:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234202AbiI1TSn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Sep 2022 15:18:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54582 "EHLO
+        id S234380AbiI1TSv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Sep 2022 15:18:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234170AbiI1TSJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Sep 2022 15:18:09 -0400
+        with ESMTP id S234383AbiI1TSQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Sep 2022 15:18:16 -0400
 Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82FB2F6840;
-        Wed, 28 Sep 2022 12:17:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34EC5E99AE;
+        Wed, 28 Sep 2022 12:18:00 -0700 (PDT)
 Received: from dimapc.. (unknown [109.252.125.248])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 8875866022A0;
-        Wed, 28 Sep 2022 20:17:49 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id F35BD66022B6;
+        Wed, 28 Sep 2022 20:17:55 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1664392672;
-        bh=RCM7cbGa0hbU3izrAQh1wOIWATDaV8057tfGw8XuSMQ=;
+        s=mail; t=1664392679;
+        bh=f3G12g+5czfdXru1FeeGI7Ybfs2QOu1D1lZN+8ABGmM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GWrc/OGwMEkATqkV9fFBn9Lv0V2xa2g53CnBd7McVCOFILkxQafwDMxOde5NsMoX0
-         VUwFPwGFknt6VN5GwQJ+ZBgp+faMC0JKSCRpkCjohCfuR4xE3YhBXKJ1zl4HHraLmB
-         rGS9efU5NaF9V5rKhv4U4mnrwiROVKScS8X4LRKbBXD6QqHojHlCR2B4Mz6WinR3uV
-         nigJS+bBO352mzA4zqkQoj14ynMhRZumJOgfYAMy/R+jgJUnDdQcSjB9uNcLNUTNj5
-         du5q5ipSvdyWS80M0vP36BJAN+bZ36rf44kQ4Cm15tWtkZw0gC9hTy2ABeu70xn6Ku
-         sLfqtzxjXU7pg==
+        b=PtCLdIMfXvqh6cEs8jT8c5CUa4kud+N1s6CpLl8wJwPcqYx63cK46fxVUNSmpB5dW
+         YKBxz53PUOaj5NZTocXMbYgc7BSDkST7AUOg6x9l1RIXwmPsnVn7kzx4TYXHgK27TP
+         bKMXgdJEQfUpZjabDQ1jWXu/u+sUluGsl9CSveFIwr0e16HCNI/xW9v/SE9ObGmklU
+         qgqufjJFDhSWVkok2eQqRvdufhpvSbN+Ff29+ikbqk8pGu6zqBsf4Gy5PmQLj5vq20
+         EivXDNIeK0GpMV/1+gAhSdaPlgZc8AI08eGnsuPu4dLQhxxk2hdVS8zWhB89DgyGbN
+         vEEHMqXY8WSeA==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -76,9 +76,9 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: [PATCH v6 09/21] drm/etnaviv: Prepare to dynamic dma-buf locking specification
-Date:   Wed, 28 Sep 2022 22:15:48 +0300
-Message-Id: <20220928191600.5874-10-dmitry.osipenko@collabora.com>
+Subject: [PATCH v6 11/21] misc: fastrpc: Prepare to dynamic dma-buf locking specification
+Date:   Wed, 28 Sep 2022 22:15:50 +0300
+Message-Id: <20220928191600.5874-12-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.37.3
 In-Reply-To: <20220928191600.5874-1-dmitry.osipenko@collabora.com>
 References: <20220928191600.5874-1-dmitry.osipenko@collabora.com>
@@ -89,28 +89,40 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Prepare Etnaviv driver to the common dynamic dma-buf locking convention
-by starting to use the unlocked versions of dma-buf API functions.
+Prepare fastrpc to the common dynamic dma-buf locking convention by
+starting to use the unlocked versions of dma-buf API functions.
 
 Acked-by: Christian König <christian.koenig@amd.com>
+Acked-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- drivers/gpu/drm/etnaviv/etnaviv_gem_prime.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/fastrpc.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gem_prime.c b/drivers/gpu/drm/etnaviv/etnaviv_gem_prime.c
-index 3fa2da149639..7031db145a77 100644
---- a/drivers/gpu/drm/etnaviv/etnaviv_gem_prime.c
-+++ b/drivers/gpu/drm/etnaviv/etnaviv_gem_prime.c
-@@ -65,7 +65,7 @@ static void etnaviv_gem_prime_release(struct etnaviv_gem_object *etnaviv_obj)
- 	struct iosys_map map = IOSYS_MAP_INIT_VADDR(etnaviv_obj->vaddr);
+diff --git a/drivers/misc/fastrpc.c b/drivers/misc/fastrpc.c
+index 7ff0b63c25e3..1ad580865525 100644
+--- a/drivers/misc/fastrpc.c
++++ b/drivers/misc/fastrpc.c
+@@ -310,8 +310,8 @@ static void fastrpc_free_map(struct kref *ref)
+ 				return;
+ 			}
+ 		}
+-		dma_buf_unmap_attachment(map->attach, map->table,
+-					 DMA_BIDIRECTIONAL);
++		dma_buf_unmap_attachment_unlocked(map->attach, map->table,
++						  DMA_BIDIRECTIONAL);
+ 		dma_buf_detach(map->buf, map->attach);
+ 		dma_buf_put(map->buf);
+ 	}
+@@ -726,7 +726,7 @@ static int fastrpc_map_create(struct fastrpc_user *fl, int fd,
+ 		goto attach_err;
+ 	}
  
- 	if (etnaviv_obj->vaddr)
--		dma_buf_vunmap(etnaviv_obj->base.import_attach->dmabuf, &map);
-+		dma_buf_vunmap_unlocked(etnaviv_obj->base.import_attach->dmabuf, &map);
- 
- 	/* Don't drop the pages for imported dmabuf, as they are not
- 	 * ours, just free the array we allocated:
+-	map->table = dma_buf_map_attachment(map->attach, DMA_BIDIRECTIONAL);
++	map->table = dma_buf_map_attachment_unlocked(map->attach, DMA_BIDIRECTIONAL);
+ 	if (IS_ERR(map->table)) {
+ 		err = PTR_ERR(map->table);
+ 		goto map_err;
 -- 
 2.37.3
 
