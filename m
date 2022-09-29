@@ -2,58 +2,58 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6913C433F5
-	for <linux-rdma@archiver.kernel.org>; Thu, 29 Sep 2022 17:09:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8FFDC43217
+	for <linux-rdma@archiver.kernel.org>; Thu, 29 Sep 2022 17:09:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235215AbiI2RJQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 29 Sep 2022 13:09:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59896 "EHLO
+        id S236115AbiI2RJS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 29 Sep 2022 13:09:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236108AbiI2RJN (ORCPT
+        with ESMTP id S236112AbiI2RJN (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 29 Sep 2022 13:09:13 -0400
-Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com [IPv6:2607:f8b0:4864:20::233])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E32C61CFB81
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Sep 2022 10:09:10 -0700 (PDT)
-Received: by mail-oi1-x233.google.com with SMTP id w13so2244732oiw.8
-        for <linux-rdma@vger.kernel.org>; Thu, 29 Sep 2022 10:09:10 -0700 (PDT)
+Received: from mail-oi1-x229.google.com (mail-oi1-x229.google.com [IPv6:2607:f8b0:4864:20::229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E35451CEDDE
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Sep 2022 10:09:12 -0700 (PDT)
+Received: by mail-oi1-x229.google.com with SMTP id n83so2237540oif.11
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Sep 2022 10:09:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=9I4wcPZ1fJouFFXV3leJFvUefnvjt0shk2pKmQXTP1E=;
-        b=cn/zTU+cny6qJBhEASR2zt1vFlzPdcDUFtJeQeNIX5HJeRJTzL4LQsoif5FF5bxh76
-         5NS7vMMVuBoTznBfRsecROnDlUwZx/fP3QbZDxEcSxDzFdZppzCaIfEe/NdZOzh9vVU+
-         tUi3iCavSrR9yLYlK/wcdaWn6QfBZkS1JarqJjVIuhGKkGHPAwm6rYub8qyMW3Q9dc14
-         Rbp0En4bHTypl/S4qlbpgOgNfGmjQyCsWP/9/hJUqh61y2GVqThzrl9aDeUIauZ/LS25
-         wXUI6JZ0JZFxWi2jhX9bpNCoMR6hhAZeOP5/zG+wmTdQq68nqVd/sm+dMIytHEjVkesL
-         TJmQ==
+        bh=Z7E0TVledxyghIEb8qD3FQSUbtEKPG3PWt+9xJJJOXs=;
+        b=G6jB/Uw6Ch5h35H6rTOjHb83vItvzaQMfkXSSgMYG2oOoRVXeYYJqpBPVPqRXWW+aQ
+         4mxf514pTlQuvFe/nOzwSKh5AkQkPPuveFSw5dgXcc9PmpU8/0h5jpBhTcjv4JnArjny
+         XhjA5opATs5OKktT6bZGuQyEKLYrfMbS6dwQA6w2WoNYipYZ99Sg0DN138S5NKp1Ac89
+         oRS4xD9kmAd4oqWIbvElJ5EdNeXsY3MptBXgaghNnNBcqeu8pBVVejajCxTIyBANSPSb
+         lBHdszZCjqsWk9wxZvgPHyhjdbuXkva0jAeACAUL7lI2yHKYzUjVqT90kUtt5rAlq2cw
+         maeA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date;
-        bh=9I4wcPZ1fJouFFXV3leJFvUefnvjt0shk2pKmQXTP1E=;
-        b=NU9n/M47gWeJYFVlM3+dqdJCWIE97cehyBeanigmDyEx7WNGviw6aX0QYFXU3h+mdV
-         Hn3oBAb18OHqmuNA6XbKZo0KQFEv0gj0ggS3uL80kskz/NwD1faz1d+MJI1H8OiITLBL
-         ZWkRH3LNGLvQsNwHA9w5Reua5QN+DNY4RizwwPLJn9HGVJ1YrE77mqaRcGRZ8AYNo0FP
-         A0c4g82+BN8ciUgXDnZLMzd+MayDwRzjqxKhazl+JBPNBUDWPULRNyfOHZufg62p2i39
-         HZDB1yCF4Za8E6eG6ZKzPJIqsy0LESs2Z/R2BhcsabTaqSFJxNDBsgF+4cS8VUAzixlC
-         jdsw==
-X-Gm-Message-State: ACrzQf3fO+7Sc4eKTBus6JyLLnNR8f57fsBUKYMbYRECt57I9gDA5nRy
-        UHohb4VAT3ZnX3acNGqjgDw=
-X-Google-Smtp-Source: AMsMyM4btOGE4vzDvrshRmq64mBhNmHEHLXDuT+MMGDD7AXkGpmX1w5CMg5B1ccPQXEYm8R0imsMRg==
-X-Received: by 2002:a05:6808:a01:b0:350:4832:2902 with SMTP id n1-20020a0568080a0100b0035048322902mr2009479oij.163.1664471350200;
-        Thu, 29 Sep 2022 10:09:10 -0700 (PDT)
+        bh=Z7E0TVledxyghIEb8qD3FQSUbtEKPG3PWt+9xJJJOXs=;
+        b=vDgVofc7xEttfIXVmYPepENc0owkksGaT3VhZ8psKhfkbQ0eI/5NKE0yGF6vA2y8d+
+         iXF9qu4iWwF7GrpsgOFTVgzr/n9LHY/SzYFJ6tZcP6CdoOI442FVpU66xngJGkjwZytD
+         Cetoo2YYiXMcNkQjggCxSe7gf93056qFQoWZGj+VfdkqtPVkrxbHz2OVL9mF3ArHswm8
+         dFkKh/vFzeh+JkWy2RVsBhGbCXbJbcVCp5+o2qgR7EgiPaGmn+xNYLFEzVAvaI0rmJJW
+         DnXaElzMjtUTdQs4u+HUxdDnQn0+9m82MO9vgyqJyalQo9micgzXx7jLa4IpnMe+lfOR
+         G/3g==
+X-Gm-Message-State: ACrzQf1oYrzsIAotvN9vL6cIsfh+uhP19Pz+h8cZo4SYIGGw3+DiJ4tJ
+        YV/icuZxTtUOyz0ihVucYbg=
+X-Google-Smtp-Source: AMsMyM7OEZnRFI5MeRd+9CgAPArpNfQ4qtTXDUJYJfMifB3V5NF5kpqlKpUz879qrmWj/IXHnziRDA==
+X-Received: by 2002:a05:6808:1997:b0:34f:d372:b790 with SMTP id bj23-20020a056808199700b0034fd372b790mr2038970oib.2.1664471352186;
+        Thu, 29 Sep 2022 10:09:12 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-c4e7-bfae-90ed-ac81.res6.spectrum.com. [2603:8081:140c:1a00:c4e7:bfae:90ed:ac81])
-        by smtp.googlemail.com with ESMTPSA id v17-20020a056808005100b00349a06c581fsm2798557oic.3.2022.09.29.10.09.09
+        by smtp.googlemail.com with ESMTPSA id v17-20020a056808005100b00349a06c581fsm2798557oic.3.2022.09.29.10.09.11
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Sep 2022 10:09:09 -0700 (PDT)
+        Thu, 29 Sep 2022 10:09:11 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v2 04/13] RDMA/rxe: Extend opcodes and headers to support xrc
-Date:   Thu, 29 Sep 2022 12:08:28 -0500
-Message-Id: <20220929170836.17838-5-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v2 06/13] RDMA/rxe: Implement open_xrcd and close_xrcd
+Date:   Thu, 29 Sep 2022 12:08:30 -0500
+Message-Id: <20220929170836.17838-7-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220929170836.17838-1-rpearsonhpe@gmail.com>
 References: <20220929170836.17838-1-rpearsonhpe@gmail.com>
@@ -63,554 +63,175 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Extend rxe_hdr.h to include the xrceth header and
-extend opcode tables in rxe_opcode.c to support xrc operations
-and qps.
+Add rxe_open_xrcd() and rxe_close_xrcd() and add xrcd objects
+to rxe object pools to implement ib_open_xrcd() and ib_close_xrcd().
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_hdr.h    |  36 +++
- drivers/infiniband/sw/rxe/rxe_opcode.c | 379 +++++++++++++++++++++++--
- drivers/infiniband/sw/rxe/rxe_opcode.h |   4 +-
- 3 files changed, 395 insertions(+), 24 deletions(-)
+ drivers/infiniband/sw/rxe/rxe.c       |  2 ++
+ drivers/infiniband/sw/rxe/rxe_param.h |  3 +++
+ drivers/infiniband/sw/rxe/rxe_pool.c  |  8 ++++++++
+ drivers/infiniband/sw/rxe/rxe_pool.h  |  1 +
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 23 +++++++++++++++++++++++
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 11 +++++++++++
+ 6 files changed, 48 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_hdr.h b/drivers/infiniband/sw/rxe/rxe_hdr.h
-index e432f9e37795..e947bcf75209 100644
---- a/drivers/infiniband/sw/rxe/rxe_hdr.h
-+++ b/drivers/infiniband/sw/rxe/rxe_hdr.h
-@@ -900,6 +900,41 @@ static inline void ieth_set_rkey(struct rxe_pkt_info *pkt, u32 rkey)
- 		rxe_opcode[pkt->opcode].offset[RXE_IETH], rkey);
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index 51daac5c4feb..acd22980836e 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -23,6 +23,7 @@ void rxe_dealloc(struct ib_device *ib_dev)
+ 	rxe_pool_cleanup(&rxe->uc_pool);
+ 	rxe_pool_cleanup(&rxe->pd_pool);
+ 	rxe_pool_cleanup(&rxe->ah_pool);
++	rxe_pool_cleanup(&rxe->xrcd_pool);
+ 	rxe_pool_cleanup(&rxe->srq_pool);
+ 	rxe_pool_cleanup(&rxe->qp_pool);
+ 	rxe_pool_cleanup(&rxe->cq_pool);
+@@ -120,6 +121,7 @@ static void rxe_init_pools(struct rxe_dev *rxe)
+ 	rxe_pool_init(rxe, &rxe->uc_pool, RXE_TYPE_UC);
+ 	rxe_pool_init(rxe, &rxe->pd_pool, RXE_TYPE_PD);
+ 	rxe_pool_init(rxe, &rxe->ah_pool, RXE_TYPE_AH);
++	rxe_pool_init(rxe, &rxe->xrcd_pool, RXE_TYPE_XRCD);
+ 	rxe_pool_init(rxe, &rxe->srq_pool, RXE_TYPE_SRQ);
+ 	rxe_pool_init(rxe, &rxe->qp_pool, RXE_TYPE_QP);
+ 	rxe_pool_init(rxe, &rxe->cq_pool, RXE_TYPE_CQ);
+diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
+index 86c7a8bf3cbb..fa4bf177e123 100644
+--- a/drivers/infiniband/sw/rxe/rxe_param.h
++++ b/drivers/infiniband/sw/rxe/rxe_param.h
+@@ -86,6 +86,9 @@ enum rxe_device_param {
+ 	RXE_MAX_QP_INDEX		= DEFAULT_MAX_VALUE,
+ 	RXE_MAX_QP			= DEFAULT_MAX_VALUE - RXE_MIN_QP_INDEX,
+ 
++	RXE_MIN_XRCD_INDEX		= 1,
++	RXE_MAX_XRCD_INDEX		= 128,
++	RXE_MAX_XRCD			= 128,
+ 	RXE_MIN_SRQ_INDEX		= 0x00020001,
+ 	RXE_MAX_SRQ_INDEX		= DEFAULT_MAX_VALUE,
+ 	RXE_MAX_SRQ			= DEFAULT_MAX_VALUE - RXE_MIN_SRQ_INDEX,
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index f50620f5a0a1..b54453b68169 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -42,6 +42,14 @@ static const struct rxe_type_info {
+ 		.max_index	= RXE_MAX_AH_INDEX,
+ 		.max_elem	= RXE_MAX_AH_INDEX - RXE_MIN_AH_INDEX + 1,
+ 	},
++	[RXE_TYPE_XRCD] = {
++		.name		= "xrcd",
++		.size		= sizeof(struct rxe_xrcd),
++		.elem_offset	= offsetof(struct rxe_xrcd, elem),
++		.min_index	= RXE_MIN_XRCD_INDEX,
++		.max_index	= RXE_MAX_XRCD_INDEX,
++		.max_elem	= RXE_MAX_XRCD_INDEX - RXE_MIN_XRCD_INDEX + 1,
++	},
+ 	[RXE_TYPE_SRQ] = {
+ 		.name		= "srq",
+ 		.size		= sizeof(struct rxe_srq),
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.h b/drivers/infiniband/sw/rxe/rxe_pool.h
+index 9d83cb32092f..35ac0746a4b8 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.h
++++ b/drivers/infiniband/sw/rxe/rxe_pool.h
+@@ -11,6 +11,7 @@ enum rxe_elem_type {
+ 	RXE_TYPE_UC,
+ 	RXE_TYPE_PD,
+ 	RXE_TYPE_AH,
++	RXE_TYPE_XRCD,
+ 	RXE_TYPE_SRQ,
+ 	RXE_TYPE_QP,
+ 	RXE_TYPE_CQ,
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 88825edc7dce..c7641bdf3ba1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -280,6 +280,26 @@ static int post_one_recv(struct rxe_rq *rq, const struct ib_recv_wr *ibwr)
+ 	return err;
  }
  
-+/******************************************************************************
-+ * XRC Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_xrceth {
-+	__be32			srqn;
++static int rxe_alloc_xrcd(struct ib_xrcd *ibxrcd, struct ib_udata *udata)
++{
++	struct rxe_dev *rxe = to_rdev(ibxrcd->device);
++	struct rxe_xrcd *xrcd = to_rxrcd(ibxrcd);
++	int err;
++
++	err = rxe_add_to_pool(&rxe->xrcd_pool, xrcd);
++
++	return err;
++}
++
++static int rxe_dealloc_xrcd(struct ib_xrcd *ibxrcd, struct ib_udata *udata)
++{
++	struct rxe_xrcd *xrcd = to_rxrcd(ibxrcd);
++
++	rxe_cleanup(xrcd);
++
++	return 0;
++}
++
+ static int rxe_create_srq(struct ib_srq *ibsrq, struct ib_srq_init_attr *init,
+ 			  struct ib_udata *udata)
+ {
+@@ -1053,6 +1073,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	.alloc_mw = rxe_alloc_mw,
+ 	.alloc_pd = rxe_alloc_pd,
+ 	.alloc_ucontext = rxe_alloc_ucontext,
++	.alloc_xrcd = rxe_alloc_xrcd,
+ 	.attach_mcast = rxe_attach_mcast,
+ 	.create_ah = rxe_create_ah,
+ 	.create_cq = rxe_create_cq,
+@@ -1063,6 +1084,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	.dealloc_mw = rxe_dealloc_mw,
+ 	.dealloc_pd = rxe_dealloc_pd,
+ 	.dealloc_ucontext = rxe_dealloc_ucontext,
++	.dealloc_xrcd = rxe_dealloc_xrcd,
+ 	.dereg_mr = rxe_dereg_mr,
+ 	.destroy_ah = rxe_destroy_ah,
+ 	.destroy_cq = rxe_destroy_cq,
+@@ -1101,6 +1123,7 @@ static const struct ib_device_ops rxe_dev_ops = {
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, rxe_cq, ibcq),
+ 	INIT_RDMA_OBJ_SIZE(ib_pd, rxe_pd, ibpd),
+ 	INIT_RDMA_OBJ_SIZE(ib_qp, rxe_qp, ibqp),
++	INIT_RDMA_OBJ_SIZE(ib_xrcd, rxe_xrcd, ibxrcd),
+ 	INIT_RDMA_OBJ_SIZE(ib_srq, rxe_srq, ibsrq),
+ 	INIT_RDMA_OBJ_SIZE(ib_ucontext, rxe_ucontext, ibuc),
+ 	INIT_RDMA_OBJ_SIZE(ib_mw, rxe_mw, ibmw),
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 5f5cbfcb3569..fb2fbf281232 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -93,6 +93,11 @@ struct rxe_rq {
+ 	struct rxe_queue	*queue;
+ };
+ 
++struct rxe_xrcd {
++	struct ib_xrcd		ibxrcd;
++	struct rxe_pool_elem	elem;
 +};
 +
-+#define XRCETH_SRQN_MASK	(0x00ffffff)
-+
-+static inline u32 __xrceth_srqn(void *arg)
+ struct rxe_srq {
+ 	struct ib_srq		ibsrq;
+ 	struct rxe_pool_elem	elem;
+@@ -381,6 +386,7 @@ struct rxe_dev {
+ 	struct rxe_pool		uc_pool;
+ 	struct rxe_pool		pd_pool;
+ 	struct rxe_pool		ah_pool;
++	struct rxe_pool		xrcd_pool;
+ 	struct rxe_pool		srq_pool;
+ 	struct rxe_pool		qp_pool;
+ 	struct rxe_pool		cq_pool;
+@@ -430,6 +436,11 @@ static inline struct rxe_ah *to_rah(struct ib_ah *ah)
+ 	return ah ? container_of(ah, struct rxe_ah, ibah) : NULL;
+ }
+ 
++static inline struct rxe_xrcd *to_rxrcd(struct ib_xrcd *ibxrcd)
 +{
-+	struct rxe_xrceth *xrceth = arg;
-+
-+	return be32_to_cpu(xrceth->srqn);
++	return ibxrcd ? container_of(ibxrcd, struct rxe_xrcd, ibxrcd) : NULL;
 +}
 +
-+static inline void __xrceth_set_srqn(void *arg, u32 srqn)
-+{
-+	struct rxe_xrceth *xrceth = arg;
-+
-+	xrceth->srqn = cpu_to_be32(srqn & XRCETH_SRQN_MASK);
-+}
-+
-+static inline u32 xrceth_srqn(struct rxe_pkt_info *pkt)
-+{
-+	return __xrceth_srqn(pkt->hdr +
-+		rxe_opcode[pkt->opcode].offset[RXE_XRCETH]);
-+}
-+
-+static inline void xrceth_set_srqn(struct rxe_pkt_info *pkt, u32 srqn)
-+{
-+	__xrceth_set_srqn(pkt->hdr +
-+		rxe_opcode[pkt->opcode].offset[RXE_XRCETH], srqn);
-+}
-+
- enum rxe_hdr_length {
- 	RXE_BTH_BYTES		= sizeof(struct rxe_bth),
- 	RXE_DETH_BYTES		= sizeof(struct rxe_deth),
-@@ -909,6 +944,7 @@ enum rxe_hdr_length {
- 	RXE_ATMACK_BYTES	= sizeof(struct rxe_atmack),
- 	RXE_ATMETH_BYTES	= sizeof(struct rxe_atmeth),
- 	RXE_IETH_BYTES		= sizeof(struct rxe_ieth),
-+	RXE_XRCETH_BYTES	= sizeof(struct rxe_xrceth),
- 	RXE_RDETH_BYTES		= sizeof(struct rxe_rdeth),
- };
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_opcode.c b/drivers/infiniband/sw/rxe/rxe_opcode.c
-index 6b1a1f197c4d..4ae926a37ef8 100644
---- a/drivers/infiniband/sw/rxe/rxe_opcode.c
-+++ b/drivers/infiniband/sw/rxe/rxe_opcode.c
-@@ -15,51 +15,58 @@ struct rxe_wr_opcode_info rxe_wr_opcode_info[] = {
- 	[IB_WR_RDMA_WRITE]				= {
- 		.name	= "IB_WR_RDMA_WRITE",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_INLINE_MASK | WR_WRITE_MASK,
--			[IB_QPT_UC]	= WR_INLINE_MASK | WR_WRITE_MASK,
-+			[IB_QPT_RC]		= WR_INLINE_MASK | WR_WRITE_MASK,
-+			[IB_QPT_UC]		= WR_INLINE_MASK | WR_WRITE_MASK,
-+			[IB_QPT_XRC_INI]	= WR_INLINE_MASK | WR_WRITE_MASK,
- 		},
- 	},
- 	[IB_WR_RDMA_WRITE_WITH_IMM]			= {
- 		.name	= "IB_WR_RDMA_WRITE_WITH_IMM",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_INLINE_MASK | WR_WRITE_MASK,
--			[IB_QPT_UC]	= WR_INLINE_MASK | WR_WRITE_MASK,
-+			[IB_QPT_RC]		= WR_INLINE_MASK | WR_WRITE_MASK,
-+			[IB_QPT_UC]		= WR_INLINE_MASK | WR_WRITE_MASK,
-+			[IB_QPT_XRC_INI]	= WR_INLINE_MASK | WR_WRITE_MASK,
- 		},
- 	},
- 	[IB_WR_SEND]					= {
- 		.name	= "IB_WR_SEND",
- 		.mask	= {
--			[IB_QPT_GSI]	= WR_INLINE_MASK | WR_SEND_MASK,
--			[IB_QPT_RC]	= WR_INLINE_MASK | WR_SEND_MASK,
--			[IB_QPT_UC]	= WR_INLINE_MASK | WR_SEND_MASK,
--			[IB_QPT_UD]	= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_GSI]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_RC]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_UC]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_UD]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_XRC_INI]	= WR_INLINE_MASK | WR_SEND_MASK,
- 		},
- 	},
- 	[IB_WR_SEND_WITH_IMM]				= {
- 		.name	= "IB_WR_SEND_WITH_IMM",
- 		.mask	= {
--			[IB_QPT_GSI]	= WR_INLINE_MASK | WR_SEND_MASK,
--			[IB_QPT_RC]	= WR_INLINE_MASK | WR_SEND_MASK,
--			[IB_QPT_UC]	= WR_INLINE_MASK | WR_SEND_MASK,
--			[IB_QPT_UD]	= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_GSI]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_RC]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_UC]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_UD]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_XRC_INI]	= WR_INLINE_MASK | WR_SEND_MASK,
- 		},
- 	},
- 	[IB_WR_RDMA_READ]				= {
- 		.name	= "IB_WR_RDMA_READ",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_READ_MASK,
-+			[IB_QPT_RC]		= WR_READ_MASK,
-+			[IB_QPT_XRC_INI]	= WR_READ_MASK,
- 		},
- 	},
- 	[IB_WR_ATOMIC_CMP_AND_SWP]			= {
- 		.name	= "IB_WR_ATOMIC_CMP_AND_SWP",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_ATOMIC_MASK,
-+			[IB_QPT_RC]		= WR_ATOMIC_MASK,
-+			[IB_QPT_XRC_INI]	= WR_ATOMIC_MASK,
- 		},
- 	},
- 	[IB_WR_ATOMIC_FETCH_AND_ADD]			= {
- 		.name	= "IB_WR_ATOMIC_FETCH_AND_ADD",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_ATOMIC_MASK,
-+			[IB_QPT_RC]		= WR_ATOMIC_MASK,
-+			[IB_QPT_XRC_INI]	= WR_ATOMIC_MASK,
- 		},
- 	},
- 	[IB_WR_LSO]					= {
-@@ -71,34 +78,39 @@ struct rxe_wr_opcode_info rxe_wr_opcode_info[] = {
- 	[IB_WR_SEND_WITH_INV]				= {
- 		.name	= "IB_WR_SEND_WITH_INV",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_INLINE_MASK | WR_SEND_MASK,
--			[IB_QPT_UC]	= WR_INLINE_MASK | WR_SEND_MASK,
--			[IB_QPT_UD]	= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_RC]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_UC]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_UD]		= WR_INLINE_MASK | WR_SEND_MASK,
-+			[IB_QPT_XRC_INI]	= WR_INLINE_MASK | WR_SEND_MASK,
- 		},
- 	},
- 	[IB_WR_RDMA_READ_WITH_INV]			= {
- 		.name	= "IB_WR_RDMA_READ_WITH_INV",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_READ_MASK,
-+			[IB_QPT_RC]		= WR_READ_MASK,
-+			[IB_QPT_XRC_INI]	= WR_READ_MASK,
- 		},
- 	},
- 	[IB_WR_LOCAL_INV]				= {
- 		.name	= "IB_WR_LOCAL_INV",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_LOCAL_OP_MASK,
-+			[IB_QPT_RC]		= WR_LOCAL_OP_MASK,
-+			[IB_QPT_XRC_INI]	= WR_LOCAL_OP_MASK,
- 		},
- 	},
- 	[IB_WR_REG_MR]					= {
- 		.name	= "IB_WR_REG_MR",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_LOCAL_OP_MASK,
-+			[IB_QPT_RC]		= WR_LOCAL_OP_MASK,
-+			[IB_QPT_XRC_INI]	= WR_LOCAL_OP_MASK,
- 		},
- 	},
- 	[IB_WR_BIND_MW]					= {
- 		.name	= "IB_WR_BIND_MW",
- 		.mask	= {
--			[IB_QPT_RC]	= WR_LOCAL_OP_MASK,
--			[IB_QPT_UC]	= WR_LOCAL_OP_MASK,
-+			[IB_QPT_RC]		= WR_LOCAL_OP_MASK,
-+			[IB_QPT_UC]		= WR_LOCAL_OP_MASK,
-+			[IB_QPT_XRC_INI]	= WR_LOCAL_OP_MASK,
- 		},
- 	},
- };
-@@ -918,6 +930,327 @@ struct rxe_opcode_info rxe_opcode[RXE_NUM_OPCODE] = {
- 		}
- 	},
- 
-+	/* XRC */
-+	[IB_OPCODE_XRC_SEND_FIRST]			= {
-+		.name	= "IB_OPCODE_XRC_SEND_FIRST",
-+		.mask	= RXE_XRCETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK |
-+			  RXE_RWR_MASK | RXE_SEND_MASK | RXE_FIRST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_SEND_MIDDLE]		= {
-+		.name	= "IB_OPCODE_XRC_SEND_MIDDLE",
-+		.mask	= RXE_XRCETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK |
-+			  RXE_SEND_MASK | RXE_MIDDLE_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_SEND_LAST]			= {
-+		.name	= "IB_OPCODE_XRC_SEND_LAST",
-+		.mask	= RXE_XRCETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK |
-+			  RXE_COMP_MASK | RXE_SEND_MASK | RXE_LAST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_SEND_LAST_WITH_IMMEDIATE]		= {
-+		.name	= "IB_OPCODE_XRC_SEND_LAST_WITH_IMMEDIATE",
-+		.mask	= RXE_XRCETH_MASK | RXE_IMMDT_MASK | RXE_PAYLOAD_MASK |
-+			  RXE_REQ_MASK | RXE_COMP_MASK | RXE_SEND_MASK |
-+			  RXE_LAST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_IMMDT_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_IMMDT]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_IMMDT_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_SEND_ONLY]			= {
-+		.name	= "IB_OPCODE_XRC_SEND_ONLY",
-+		.mask	= RXE_XRCETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK |
-+			  RXE_COMP_MASK | RXE_RWR_MASK | RXE_SEND_MASK |
-+			  RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_SEND_ONLY_WITH_IMMEDIATE]		= {
-+		.name	= "IB_OPCODE_XRC_SEND_ONLY_WITH_IMMEDIATE",
-+		.mask	= RXE_XRCETH_MASK | RXE_IMMDT_MASK | RXE_PAYLOAD_MASK |
-+			  RXE_REQ_MASK | RXE_COMP_MASK | RXE_RWR_MASK |
-+			  RXE_SEND_MASK | RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_IMMDT_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_IMMDT]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_IMMDT_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_WRITE_FIRST]		= {
-+		.name	= "IB_OPCODE_XRC_RDMA_WRITE_FIRST",
-+		.mask	= RXE_XRCETH_MASK | RXE_RETH_MASK | RXE_PAYLOAD_MASK |
-+			  RXE_REQ_MASK | RXE_WRITE_MASK | RXE_FIRST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_RETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_RETH]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_RETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_WRITE_MIDDLE]		= {
-+		.name	= "IB_OPCODE_XRC_RDMA_WRITE_MIDDLE",
-+		.mask	= RXE_XRCETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK |
-+			  RXE_WRITE_MASK | RXE_MIDDLE_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_WRITE_LAST]			= {
-+		.name	= "IB_OPCODE_XRC_RDMA_WRITE_LAST",
-+		.mask	= RXE_XRCETH_MASK | RXE_PAYLOAD_MASK | RXE_REQ_MASK |
-+			  RXE_WRITE_MASK | RXE_LAST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_WRITE_LAST_WITH_IMMEDIATE]		= {
-+		.name	= "IB_OPCODE_XRC_RDMA_WRITE_LAST_WITH_IMMEDIATE",
-+		.mask	= RXE_XRCETH_MASK | RXE_IMMDT_MASK | RXE_PAYLOAD_MASK |
-+			  RXE_REQ_MASK | RXE_WRITE_MASK | RXE_COMP_MASK |
-+			  RXE_RWR_MASK | RXE_LAST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_IMMDT_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_IMMDT]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_IMMDT_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_WRITE_ONLY]			= {
-+		.name	= "IB_OPCODE_XRC_RDMA_WRITE_ONLY",
-+		.mask	= RXE_XRCETH_MASK | RXE_RETH_MASK | RXE_PAYLOAD_MASK |
-+			  RXE_REQ_MASK | RXE_WRITE_MASK | RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_RETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_RETH]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_RETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_WRITE_ONLY_WITH_IMMEDIATE]		= {
-+		.name	= "IB_OPCODE_XRC_RDMA_WRITE_ONLY_WITH_IMMEDIATE",
-+		.mask	= RXE_XRCETH_MASK | RXE_RETH_MASK | RXE_IMMDT_MASK |
-+			  RXE_PAYLOAD_MASK | RXE_REQ_MASK | RXE_WRITE_MASK |
-+			  RXE_COMP_MASK | RXE_RWR_MASK | RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_IMMDT_BYTES +
-+			  RXE_RETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_RETH]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_IMMDT]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_RETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_RETH_BYTES +
-+					  RXE_IMMDT_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_READ_REQUEST]			= {
-+		.name	= "IB_OPCODE_XRC_RDMA_READ_REQUEST",
-+		.mask	= RXE_XRCETH_MASK | RXE_RETH_MASK | RXE_REQ_MASK |
-+			  RXE_READ_MASK | RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_RETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_RETH]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_RETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_READ_RESPONSE_FIRST]		= {
-+		.name	= "IB_OPCODE_XRC_RDMA_READ_RESPONSE_FIRST",
-+		.mask	= RXE_AETH_MASK | RXE_PAYLOAD_MASK | RXE_ACK_MASK |
-+			  RXE_FIRST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_AETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_AETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_AETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_READ_RESPONSE_MIDDLE]		= {
-+		.name	= "IB_OPCODE_XRC_RDMA_READ_RESPONSE_MIDDLE",
-+		.mask	= RXE_PAYLOAD_MASK | RXE_ACK_MASK | RXE_MIDDLE_MASK,
-+		.length = RXE_BTH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_READ_RESPONSE_LAST]		= {
-+		.name	= "IB_OPCODE_XRC_RDMA_READ_RESPONSE_LAST",
-+		.mask	= RXE_AETH_MASK | RXE_PAYLOAD_MASK | RXE_ACK_MASK |
-+			  RXE_LAST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_AETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_AETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_AETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_RDMA_READ_RESPONSE_ONLY]		= {
-+		.name	= "IB_OPCODE_XRC_RDMA_READ_RESPONSE_ONLY",
-+		.mask	= RXE_AETH_MASK | RXE_PAYLOAD_MASK | RXE_ACK_MASK |
-+			  RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_AETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_AETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_AETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_ACKNOWLEDGE]			= {
-+		.name	= "IB_OPCODE_XRC_ACKNOWLEDGE",
-+		.mask	= RXE_AETH_MASK | RXE_ACK_MASK | RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_AETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_AETH]	= RXE_BTH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_AETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_ATOMIC_ACKNOWLEDGE]			= {
-+		.name	= "IB_OPCODE_XRC_ATOMIC_ACKNOWLEDGE",
-+		.mask	= RXE_AETH_MASK | RXE_ATMACK_MASK | RXE_ACK_MASK |
-+			  RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_ATMACK_BYTES + RXE_AETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_AETH]	= RXE_BTH_BYTES,
-+			[RXE_ATMACK]	= RXE_BTH_BYTES +
-+					  RXE_AETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_AETH_BYTES +
-+					  RXE_ATMACK_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_COMPARE_SWAP]			= {
-+		.name	= "IB_OPCODE_XRC_COMPARE_SWAP",
-+		.mask	= RXE_XRCETH_MASK | RXE_ATMETH_MASK | RXE_REQ_MASK |
-+			  RXE_ATOMIC_MASK | RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_ATMETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_ATMETH]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_ATMETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_FETCH_ADD]			= {
-+		.name	= "IB_OPCODE_XRC_FETCH_ADD",
-+		.mask	= RXE_XRCETH_MASK | RXE_ATMETH_MASK | RXE_REQ_MASK |
-+			  RXE_ATOMIC_MASK | RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_ATMETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_ATMETH]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_ATMETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_SEND_LAST_WITH_INVALIDATE]		= {
-+		.name	= "IB_OPCODE_XRC_SEND_LAST_WITH_INVALIDATE",
-+		.mask	= RXE_XRCETH_MASK | RXE_IETH_MASK | RXE_PAYLOAD_MASK |
-+			  RXE_REQ_MASK | RXE_COMP_MASK | RXE_SEND_MASK |
-+			  RXE_LAST_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_IETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_IETH]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_IETH_BYTES,
-+		}
-+	},
-+	[IB_OPCODE_XRC_SEND_ONLY_WITH_INVALIDATE]		= {
-+		.name	= "IB_OPCODE_XRC_SEND_ONLY_INV",
-+		.mask	= RXE_XRCETH_MASK | RXE_IETH_MASK | RXE_PAYLOAD_MASK |
-+			  RXE_REQ_MASK | RXE_COMP_MASK | RXE_RWR_MASK |
-+			  RXE_SEND_MASK | RXE_ONLY_MASK,
-+		.length = RXE_BTH_BYTES + RXE_XRCETH_BYTES + RXE_IETH_BYTES,
-+		.offset = {
-+			[RXE_BTH]	= 0,
-+			[RXE_XRCETH]	= RXE_BTH_BYTES,
-+			[RXE_IETH]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES,
-+			[RXE_PAYLOAD]	= RXE_BTH_BYTES +
-+					  RXE_XRCETH_BYTES +
-+					  RXE_IETH_BYTES,
-+		}
-+	},
- };
- 
- static int next_opcode_rc(struct rxe_qp *qp, u32 opcode, int fits)
-diff --git a/drivers/infiniband/sw/rxe/rxe_opcode.h b/drivers/infiniband/sw/rxe/rxe_opcode.h
-index d2b6a8232e92..5528a47f0266 100644
---- a/drivers/infiniband/sw/rxe/rxe_opcode.h
-+++ b/drivers/infiniband/sw/rxe/rxe_opcode.h
-@@ -30,7 +30,7 @@ enum rxe_wr_mask {
- 
- struct rxe_wr_opcode_info {
- 	char			*name;
--	enum rxe_wr_mask	mask[WR_MAX_QPT];
-+	enum rxe_wr_mask	mask[IB_QPT_MAX];
- };
- 
- extern struct rxe_wr_opcode_info rxe_wr_opcode_info[];
-@@ -44,6 +44,7 @@ enum rxe_hdr_type {
- 	RXE_ATMETH,
- 	RXE_ATMACK,
- 	RXE_IETH,
-+	RXE_XRCETH,
- 	RXE_RDETH,
- 	RXE_DETH,
- 	RXE_IMMDT,
-@@ -61,6 +62,7 @@ enum rxe_hdr_mask {
- 	RXE_ATMETH_MASK		= BIT(RXE_ATMETH),
- 	RXE_ATMACK_MASK		= BIT(RXE_ATMACK),
- 	RXE_IETH_MASK		= BIT(RXE_IETH),
-+	RXE_XRCETH_MASK		= BIT(RXE_XRCETH),
- 	RXE_RDETH_MASK		= BIT(RXE_RDETH),
- 	RXE_DETH_MASK		= BIT(RXE_DETH),
- 	RXE_PAYLOAD_MASK	= BIT(RXE_PAYLOAD),
+ static inline struct rxe_srq *to_rsrq(struct ib_srq *srq)
+ {
+ 	return srq ? container_of(srq, struct rxe_srq, ibsrq) : NULL;
 -- 
 2.34.1
 
