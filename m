@@ -2,95 +2,215 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9C22C433FE
-	for <linux-rdma@archiver.kernel.org>; Sat,  1 Oct 2022 10:51:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FA0EC433F5
+	for <linux-rdma@archiver.kernel.org>; Sat,  1 Oct 2022 12:15:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229477AbiJAKvB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 1 Oct 2022 06:51:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44050 "EHLO
+        id S229535AbiJAMPg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 1 Oct 2022 08:15:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229462AbiJAKvA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 1 Oct 2022 06:51:00 -0400
-Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDED7D5B;
-        Sat,  1 Oct 2022 03:50:58 -0700 (PDT)
-Received: by mail-pj1-x1034.google.com with SMTP id gf8so3723789pjb.5;
-        Sat, 01 Oct 2022 03:50:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=902zAy6Vn6wh4uiLUnvbwF2NvhM+4Dk+0jWQAGP5110=;
-        b=GeJYvI8SjMylNFlGT6aW3bAHhTuabf/LT8iyU66IEjxGux+cDbxHhXhIS2kVT6NYeh
-         /Quxr3v3/sG1JBIN2/Ssm/03o7XaJzXBbcSvbLqPtJrhrRUbXXv0nLU8k9Ru0UQPmBsS
-         dbmO50FTZV6Sih1ju6DEMgkWYstzoeStvgjreRgRXfa1RurTk+OFLy9ouWt3ig478CgR
-         oxwgtq6yv56W33hrPBv1SqDGIOzxYXfABN6VHFc1qRFevrFlxwr/GDZY4vvY0SvDMWmU
-         JGs3unyjKn4xz67yatisGk5GpbzMPkD7lKwIqbAYz3R5tE0HMoS94pd9WtmGnLZsTfB1
-         f/bw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=902zAy6Vn6wh4uiLUnvbwF2NvhM+4Dk+0jWQAGP5110=;
-        b=2q0koZE8f0Nzw7ZqD10zkG9bXh9j0o6IveIZMeYuEVCoWroLel/zbSoc+83cFRiYut
-         gB+QQLbh3O5rMsi0/E5FIKSDrSU+nQ25vfLuZ0LqO6aRFMBfzQracelkSSbh7xTnUC5K
-         t1MlA0qjqu7QI2DGuMqRzO3vWrbpCLFoYHRWE3OmIE6MAT3J9UaWt7gt0fQZU1pn3oUf
-         U+B5YvDNbo2baAWHo74VWKbUjLBH0VarZcENJ4vU8tdI1sRp4/WSQfIAG0Spg0JoZyNR
-         F6hnT/Jt0BdaK3A/7nWjyrVIxaSkXoep7QddvI4BWsmP/SsUNFmFtKlI+lG2QZSrNg7h
-         W3Ng==
-X-Gm-Message-State: ACrzQf06+v0OTDlp/KfQ6eHrI8Blw5EmXM1ltfeFs57eotufhSG3oyCe
-        nMDi2mxY7ZApA12OdBO7+8WtAahu/ZAOd7j9a3U=
-X-Google-Smtp-Source: AMsMyM5syCGrkuxycNAvt40JdD4s/zHSLiZSh3m8QlilysmJk1114r/wKlV+1sycEk5/6iGX7V5+2FfptbpbAst/fyU=
-X-Received: by 2002:a17:902:da8a:b0:17b:df43:9235 with SMTP id
- j10-20020a170902da8a00b0017bdf439235mr9749353plx.137.1664621458490; Sat, 01
- Oct 2022 03:50:58 -0700 (PDT)
+        with ESMTP id S229563AbiJAMPf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 1 Oct 2022 08:15:35 -0400
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 714F35D118
+        for <linux-rdma@vger.kernel.org>; Sat,  1 Oct 2022 05:15:34 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6500,9779,10486"; a="328763296"
+X-IronPort-AV: E=Sophos;i="5.93,360,1654585200"; 
+   d="scan'208";a="328763296"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2022 05:15:34 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10486"; a="653848537"
+X-IronPort-AV: E=Sophos;i="5.93,360,1654585200"; 
+   d="scan'208";a="653848537"
+Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
+  by orsmga008.jf.intel.com with ESMTP; 01 Oct 2022 05:15:32 -0700
+From:   yanjun.zhu@linux.dev
+To:     jgg@ziepe.ca, leon@kernel.org, zyjzyj2000@gmail.com,
+        linux-rdma@vger.kernel.org, yanjun.zhu@linux.dev
+Subject: [PATCH 2/6] RDMA/rxe: Support more rdma links in init_net
+Date:   Sun,  2 Oct 2022 00:41:48 -0400
+Message-Id: <20221002044152.933021-3-yanjun.zhu@linux.dev>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20221002044152.933021-1-yanjun.zhu@linux.dev>
+References: <20221002044152.933021-1-yanjun.zhu@linux.dev>
 MIME-Version: 1.0
-References: <20221001020045.8324-1-lizhijian@fujitsu.com>
-In-Reply-To: <20221001020045.8324-1-lizhijian@fujitsu.com>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Sat, 1 Oct 2022 18:50:47 +0800
-Message-ID: <CAD=hENegJLuWZUvCVk66MFUE_m64PbqY7+mG2jZz3+Wyu4i6+w@mail.gmail.com>
-Subject: Re: [PATCH for-next] RDMA: return -EOPNOSUPP for ODP unsupported device
-To:     Li Zhijian <lizhijian@fujitsu.com>
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, Oct 1, 2022 at 10:00 AM Li Zhijian <lizhijian@fujitsu.com> wrote:
->
-> ib_reg_mr(3) which is used to register a MR with specific access flags
-> for specific HCA will set errno when something go wrong.
-> So, here we should return the specific -EOPNOTSUPP when the being
-> requested ODP access flag is unspported by the HCA(such as RXE).
->
-> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-Reviewed-by: Zhu Yanjun <zyjzyj2000@gmail.com>
+In init_net, when several rdma links are created with the command "rdma
+link add", newlink will check whether the udp port 4791 is listening or
+not.
+If not, creating a sock listening on udp port 4791. If yes, increasing the
+reference count of the sock.
 
-Thanks.
-Zhu Yanjun
-> ---
->  include/rdma/ib_verbs.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 975d6e9efbcb..a1f4d53a4bb6 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -4334,7 +4334,7 @@ static inline int ib_check_mr_access(struct ib_device *ib_dev,
->
->         if (flags & IB_ACCESS_ON_DEMAND &&
->             !(ib_dev->attrs.kernel_cap_flags & IBK_ON_DEMAND_PAGING))
-> -               return -EINVAL;
-> +               return -EOPNOTSUPP;
->         return 0;
->  }
->
-> --
-> 2.31.1
->
+Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+---
+ drivers/infiniband/sw/rxe/rxe.c     |  9 ++++-
+ drivers/infiniband/sw/rxe/rxe_net.c | 57 +++++++++++++++++++++--------
+ drivers/infiniband/sw/rxe/rxe_net.h |  1 +
+ 3 files changed, 50 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index a22ff2207b42..84a07638f8df 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -8,6 +8,7 @@
+ #include <net/addrconf.h>
+ #include "rxe.h"
+ #include "rxe_loc.h"
++#include "rxe_net.h"
+ 
+ MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves, Kamal Heib");
+ MODULE_DESCRIPTION("Soft RDMA transport");
+@@ -205,7 +206,7 @@ static int rxe_newlink(const char *ibdev_name, struct net_device *ndev)
+ 	return err;
+ }
+ 
+-static struct rdma_link_ops rxe_link_ops = {
++struct rdma_link_ops rxe_link_ops = {
+ 	.type = "rxe",
+ 	.newlink = rxe_newlink,
+ };
+@@ -215,6 +216,12 @@ static int __init rxe_module_init(void)
+ 	int err;
+ 
+ 	rdma_link_register(&rxe_link_ops);
++	err = rxe_register_notifier();
++	if (err) {
++		pr_err("Failed to register netdev notifier\n");
++		return -1;
++	}
++
+ 	pr_info("loaded\n");
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index c53f4529f098..a20c60d78b50 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -614,19 +614,29 @@ static int rxe_notify(struct notifier_block *not_blk,
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block rxe_net_notifier = {
++struct notifier_block rxe_net_notifier = {
+ 	.notifier_call = rxe_notify,
+ };
+ 
+ static int rxe_net_ipv4_init(void)
+ {
+-	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
+-				htons(ROCE_V2_UDP_DPORT), false);
+-	if (IS_ERR(recv_sockets.sk4)) {
+-		recv_sockets.sk4 = NULL;
++	struct sock *sk;
++	struct socket *sock;
++
++	rcu_read_lock();
++	sk = udp4_lib_lookup(&init_net, 0, 0, htonl(INADDR_ANY),
++			     htons(ROCE_V2_UDP_DPORT), 0);
++	rcu_read_unlock();
++	if (sk)
++		return 0;
++
++	sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT), false);
++	if (IS_ERR(sock)) {
+ 		pr_err("Failed to create IPv4 UDP tunnel\n");
++		recv_sockets.sk4 = NULL;
+ 		return -1;
+ 	}
++	recv_sockets.sk4 = sock;
+ 
+ 	return 0;
+ }
+@@ -634,24 +644,46 @@ static int rxe_net_ipv4_init(void)
+ static int rxe_net_ipv6_init(void)
+ {
+ #if IS_ENABLED(CONFIG_IPV6)
++	struct sock *sk;
++	struct socket *sock;
++
++	rcu_read_lock();
++	sk = udp6_lib_lookup(&init_net, NULL, 0, &in6addr_any,
++			     htons(ROCE_V2_UDP_DPORT), 0);
++	rcu_read_unlock();
++	if (sk)
++		return 0;
+ 
+-	recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
+-						htons(ROCE_V2_UDP_DPORT), true);
+-	if (PTR_ERR(recv_sockets.sk6) == -EAFNOSUPPORT) {
++	sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT), true);
++	if (PTR_ERR(sock) == -EAFNOSUPPORT) {
+ 		recv_sockets.sk6 = NULL;
+ 		pr_warn("IPv6 is not supported, can not create a UDPv6 socket\n");
+ 		return 0;
+ 	}
+ 
+-	if (IS_ERR(recv_sockets.sk6)) {
++	if (IS_ERR(sock)) {
+ 		recv_sockets.sk6 = NULL;
+ 		pr_err("Failed to create IPv6 UDP tunnel\n");
+ 		return -1;
+ 	}
++	recv_sockets.sk6 = sock;
+ #endif
+ 	return 0;
+ }
+ 
++int rxe_register_notifier(void)
++{
++	int err;
++
++	err = register_netdevice_notifier(&rxe_net_notifier);
++	if (err) {
++		pr_err("Failed to register netdev notifier\n");
++		return -1;
++	}
++
++	return 0;
++}
++
+ void rxe_net_exit(void)
+ {
+ 	rxe_release_udp_tunnel(recv_sockets.sk6);
+@@ -663,19 +695,12 @@ int rxe_net_init(void)
+ {
+ 	int err;
+ 
+-	recv_sockets.sk6 = NULL;
+-
+ 	err = rxe_net_ipv4_init();
+ 	if (err)
+ 		return err;
+ 	err = rxe_net_ipv6_init();
+ 	if (err)
+ 		goto err_out;
+-	err = register_netdevice_notifier(&rxe_net_notifier);
+-	if (err) {
+-		pr_err("Failed to register netdev notifier\n");
+-		goto err_out;
+-	}
+ 	return 0;
+ err_out:
+ 	rxe_net_exit();
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.h b/drivers/infiniband/sw/rxe/rxe_net.h
+index 45d80d00f86b..a222c3eeae12 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.h
++++ b/drivers/infiniband/sw/rxe/rxe_net.h
+@@ -18,6 +18,7 @@ struct rxe_recv_sockets {
+ 
+ int rxe_net_add(const char *ibdev_name, struct net_device *ndev);
+ 
++int rxe_register_notifier(void);
+ int rxe_net_init(void);
+ void rxe_net_exit(void);
+ 
+-- 
+2.25.1
+
