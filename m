@@ -2,196 +2,205 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9046DC43217
-	for <linux-rdma@archiver.kernel.org>; Wed,  5 Oct 2022 16:33:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32584C43217
+	for <linux-rdma@archiver.kernel.org>; Wed,  5 Oct 2022 17:47:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230096AbiJEQdk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 5 Oct 2022 12:33:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50462 "EHLO
+        id S230508AbiJERr1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 5 Oct 2022 13:47:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230081AbiJEQdX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 5 Oct 2022 12:33:23 -0400
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D7CB7E010;
-        Wed,  5 Oct 2022 09:33:18 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6500,9779,10491"; a="303182130"
-X-IronPort-AV: E=Sophos;i="5.95,161,1661842800"; 
-   d="scan'208";a="303182130"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2022 09:33:17 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10491"; a="619518193"
-X-IronPort-AV: E=Sophos;i="5.95,161,1661842800"; 
-   d="scan'208";a="619518193"
-Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by orsmga007.jf.intel.com with ESMTP; 05 Oct 2022 09:33:15 -0700
-From:   yanjun.zhu@linux.dev
-To:     jgg@ziepe.ca, leon@kernel.org, zyjzyj2000@gmail.com,
-        linux-rdma@vger.kernel.org, yanjun.zhu@linux.dev,
-        netdev@vger.kernel.org, davem@davemloft.net
-Subject: [PATCHv2 6/6] RDMA/rxe: add the support of net namespace
-Date:   Thu,  6 Oct 2022 04:59:21 -0400
-Message-Id: <20221006085921.1323148-7-yanjun.zhu@linux.dev>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20221006085921.1323148-1-yanjun.zhu@linux.dev>
-References: <20221006085921.1323148-1-yanjun.zhu@linux.dev>
+        with ESMTP id S230042AbiJERrJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 5 Oct 2022 13:47:09 -0400
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5C0480BDB;
+        Wed,  5 Oct 2022 10:45:58 -0700 (PDT)
+Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 295GedKv005552;
+        Wed, 5 Oct 2022 17:45:31 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-transfer-encoding;
+ s=corp-2022-7-12; bh=PAfKF245rJVuyKQIojRzi3hHRTZzW3nXv15RmqODTr4=;
+ b=0aV3/2SVZS5xIpa0qWVT1kpY9eh9NGdlvN9f0B1oWw8FMiSgwZoEZos/o2/kwOsFUVJE
+ vRUw9gxI4j7KIc7Usm70B+OjL+GNF9P3NzuC/JZyuHnzFNEpCGgkLjnqe9BMYY2Q55kN
+ 4o+2Yf3v7uytSiMWgZC04gUWARuoajok13ftIJg94mwNzfwX7f2NRzdVNs0uzAKV7YWF
+ nrS5wX59rVW+vd/o3/g41sj9vh+qs9Vuud/VdN6HEzmRjjGREjwvIpC/KFjL033xj4rU
+ A9EbfFZmrc7aQSejPm6rCMKujdD0fyVjjd72mHmNutSJKZxnbSlfmyTEFCKpOOIQuKQK Iw== 
+Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
+        by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3k15up1e6x-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 05 Oct 2022 17:45:31 +0000
+Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+        by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.5/8.17.1.5) with ESMTP id 295HQq3C029578;
+        Wed, 5 Oct 2022 17:45:30 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+        by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3jxc05t2t2-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 05 Oct 2022 17:45:30 +0000
+Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 295HjUb6024064;
+        Wed, 5 Oct 2022 17:45:30 GMT
+Received: from rsajanku-mac.us.oracle.com (dhcp-10-159-236-222.vpn.oracle.com [10.159.236.222])
+        by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 3jxc05t2sa-1;
+        Wed, 05 Oct 2022 17:45:29 +0000
+From:   Rohit Nair <rohit.sajan.kumar@oracle.com>
+To:     leon@kernel.org, jgg@ziepe.ca, saeedm@nvidia.com,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Cc:     manjunath.b.patil@oracle.com, rama.nichanamatlu@oracle.com,
+        rohit.sajan.kumar@oracle.com,
+        Michael Guralnik <michaelgur@nvidia.com>
+Subject: [PATCH 1/1] IB/mlx5: Add a signature check to received EQEs and CQEs
+Date:   Wed,  5 Oct 2022 10:45:20 -0700
+Message-Id: <20221005174521.63619-1-rohit.sajan.kumar@oracle.com>
+X-Mailer: git-send-email 2.36.0
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.895,Hydra:6.0.528,FMLib:17.11.122.1
+ definitions=2022-10-05_05,2022-10-05_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 mlxlogscore=999
+ suspectscore=0 phishscore=0 bulkscore=0 malwarescore=0 mlxscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2209130000 definitions=main-2210050110
+X-Proofpoint-GUID: 7fg1NbIa4R_lG-oT8MZX2aGtcx9eazeq
+X-Proofpoint-ORIG-GUID: 7fg1NbIa4R_lG-oT8MZX2aGtcx9eazeq
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
+As PRM defines, the bytewise XOR of the EQE and the EQE index should be
+0xff. Otherwise, we can assume we have a corrupt EQE. The same is
+applicable to CQE as well.
 
-Originally init_net is used to indicate the current net namespace.
-Currently more net namespaces are supported.
+Adding a check to verify the EQE and CQE is valid in that aspect and if
+not, dump the CQE and EQE to dmesg to be inspected.
 
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+This patch does not introduce any significant performance degradations
+and has been tested using qperf.
+
+Suggested-by: Michael Guralnik <michaelgur@nvidia.com>
+Signed-off-by: Rohit Nair <rohit.sajan.kumar@oracle.com>
 ---
- drivers/infiniband/sw/rxe/rxe.c     |  2 +-
- drivers/infiniband/sw/rxe/rxe_net.c | 32 +++++++++++++++++------------
- drivers/infiniband/sw/rxe/rxe_net.h |  2 +-
- 3 files changed, 21 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c              | 40 ++++++++++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c | 39 +++++++++++++++++++++++++++
+ 2 files changed, 79 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index 933d8e129c47..927c513ace81 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -196,7 +196,7 @@ static int rxe_newlink(const char *ibdev_name, struct net_device *ndev)
- 		goto err;
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index be189e0..2a6d722 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -441,6 +441,44 @@ static void mlx5_ib_poll_sw_comp(struct mlx5_ib_cq *cq, int num_entries,
  	}
+ }
  
--	err = rxe_net_init();
-+	err = rxe_net_init(ndev);
- 	if (err)
- 		return err;
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 64b11faccfb4..b5955d0c284a 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -31,7 +31,7 @@ static struct dst_entry *rxe_find_route4(struct net_device *ndev,
- 	memcpy(&fl.daddr, daddr, sizeof(*daddr));
- 	fl.flowi4_proto = IPPROTO_UDP;
- 
--	rt = ip_route_output_key(&init_net, &fl);
-+	rt = ip_route_output_key(dev_net(ndev), &fl);
- 	if (IS_ERR(rt)) {
- 		pr_err_ratelimited("no route to %pI4\n", &daddr->s_addr);
- 		return NULL;
-@@ -54,7 +54,8 @@ static struct dst_entry *rxe_find_route6(struct net_device *ndev,
- 		struct sock *sk;
- 
- 		rcu_read_lock();
--		sk = udp6_lib_lookup(&init_net, NULL, 0, &in6addr_any, htons(ROCE_V2_UDP_DPORT), 0);
-+		sk = udp6_lib_lookup(dev_net(ndev), NULL, 0, &in6addr_any,
-+				     htons(ROCE_V2_UDP_DPORT), 0);
- 		rcu_read_unlock();
- 		if (!sk) {
- 			pr_info("file: %s +%d, error\n", __FILE__, __LINE__);
-@@ -546,9 +547,13 @@ int rxe_net_add(const char *ibdev_name, struct net_device *ndev)
- void rxe_net_del(struct ib_device *dev)
- {
- 	struct sock *sk;
-+	struct rxe_dev *rdev;
++static void verify_cqe(struct mlx5_cqe64 *cqe64, struct mlx5_ib_cq *cq)
++{
++	int i = 0;
++	u64 temp_xor = 0;
++	struct mlx5_ib_dev *dev = to_mdev(cq->ibcq.device);
 +
-+	rdev = container_of(dev, struct rxe_dev, ib_dev);
++	u32 cons_index = cq->mcq.cons_index;
++	u64 *eight_byte_raw_cqe = (u64 *)cqe64;
++	u8 *temp_bytewise_xor = (u8 *)(&temp_xor);
++	u8 cqe_bytewise_xor = (cons_index & 0xff) ^
++				((cons_index & 0xff00) >> 8) ^
++				((cons_index & 0xff0000) >> 16);
++
++	for (i = 0; i < sizeof(struct mlx5_cqe64); i += 8) {
++		temp_xor ^= *eight_byte_raw_cqe;
++		eight_byte_raw_cqe++;
++	}
++
++	for (i = 0; i < (sizeof(u64)); i++) {
++		cqe_bytewise_xor ^= *temp_bytewise_xor;
++		temp_bytewise_xor++;
++	}
++
++	if (cqe_bytewise_xor == 0xff)
++		return;
++
++	dev_err(&dev->mdev->pdev->dev,
++		"Faulty CQE - checksum failure: cqe=0x%x cqn=0x%x cqe_bytewise_xor=0x%x\n",
++		cq->ibcq.cqe, cq->mcq.cqn, cqe_bytewise_xor);
++	dev_err(&dev->mdev->pdev->dev,
++		"cons_index=%u arm_sn=%u irqn=%u cqe_size=0x%x\n",
++		cq->mcq.cons_index, cq->mcq.arm_sn, cq->mcq.irqn, cq->mcq.cqe_sz);
++
++	print_hex_dump(KERN_WARNING, "", DUMP_PREFIX_OFFSET,
++		       16, 1, cqe64, sizeof(*cqe64), false);
++	BUG();
++}
++
+ static int mlx5_poll_one(struct mlx5_ib_cq *cq,
+ 			 struct mlx5_ib_qp **cur_qp,
+ 			 struct ib_wc *wc)
+@@ -463,6 +501,8 @@ static int mlx5_poll_one(struct mlx5_ib_cq *cq,
  
- 	rcu_read_lock();
--	sk = udp4_lib_lookup(&init_net, 0, 0, htonl(INADDR_ANY), htons(ROCE_V2_UDP_DPORT), 0);
-+	sk = udp4_lib_lookup(dev_net(rdev->ndev), 0, 0, htonl(INADDR_ANY),
-+			     htons(ROCE_V2_UDP_DPORT), 0);
- 	rcu_read_unlock();
- 	if (!sk)
- 		return;
-@@ -561,7 +566,8 @@ void rxe_net_del(struct ib_device *dev)
- 		rxe_release_udp_tunnel(sk->sk_socket);
+ 	cqe64 = (cq->mcq.cqe_sz == 64) ? cqe : cqe + 64;
  
- 	rcu_read_lock();
--	sk = udp6_lib_lookup(&init_net, NULL, 0, &in6addr_any, htons(ROCE_V2_UDP_DPORT), 0);
-+	sk = udp6_lib_lookup(dev_net(rdev->ndev), NULL, 0, &in6addr_any,
-+			     htons(ROCE_V2_UDP_DPORT), 0);
- 	rcu_read_unlock();
- 	if (!sk)
- 		return;
-@@ -665,19 +671,19 @@ static struct notifier_block rxe_net_notifier = {
- 	.notifier_call = rxe_notify,
- };
++	verify_cqe(cqe64, cq);
++
+ 	++cq->mcq.cons_index;
  
--static int rxe_net_ipv4_init(void)
-+static int rxe_net_ipv4_init(struct net_device *ndev)
- {
- 	struct sock *sk;
- 	struct socket *sock;
- 
- 	rcu_read_lock();
--	sk = udp4_lib_lookup(&init_net, 0, 0, htonl(INADDR_ANY),
-+	sk = udp4_lib_lookup(dev_net(ndev), 0, 0, htonl(INADDR_ANY),
- 			     htons(ROCE_V2_UDP_DPORT), 0);
- 	rcu_read_unlock();
- 	if (sk)
- 		return 0;
- 
--	sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT), false);
-+	sock = rxe_setup_udp_tunnel(dev_net(ndev), htons(ROCE_V2_UDP_DPORT), false);
- 	if (IS_ERR(sock)) {
- 		pr_err("Failed to create IPv4 UDP tunnel\n");
- 		return -1;
-@@ -686,20 +692,20 @@ static int rxe_net_ipv4_init(void)
- 	return 0;
+ 	/* Make sure we read CQ entry contents after we've checked the
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index 229728c..f2a6d8b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -102,6 +102,43 @@ static struct mlx5_core_cq *mlx5_eq_cq_get(struct mlx5_eq *eq, u32 cqn)
+ 	return cq;
  }
  
--static int rxe_net_ipv6_init(void)
-+static int rxe_net_ipv6_init(struct net_device *ndev)
- {
- #if IS_ENABLED(CONFIG_IPV6)
- 	struct sock *sk;
- 	struct socket *sock;
++static void verify_eqe(struct mlx5_eq *eq, struct mlx5_eqe *eqe)
++{
++	u64 *eight_byte_raw_eqe = (u64 *)eqe;
++	u8 eqe_bytewise_xor = (eq->cons_index & 0xff) ^
++			      ((eq->cons_index & 0xff00) >> 8) ^
++			      ((eq->cons_index & 0xff0000) >> 16);
++
++	int i = 0;
++	u64 temp_xor = 0;
++	u8 *temp_bytewise_xor = (u8 *)(&temp_xor);
++
++	for (i = 0; i < sizeof(struct mlx5_eqe); i += 8) {
++		temp_xor ^= *eight_byte_raw_eqe;
++		eight_byte_raw_eqe++;
++	}
++
++	for (i = 0; i < (sizeof(u64)); i++) {
++		eqe_bytewise_xor ^= *temp_bytewise_xor;
++		temp_bytewise_xor++;
++	}
++
++	if (eqe_bytewise_xor == 0xff)
++		return;
++
++	dev_err(&eq->dev->pdev->dev,
++		"Faulty EQE - checksum failure: ci=0x%x eqe_type=0x%x eqe_bytewise_xor=0x%x",
++		eq->cons_index, eqe->type, eqe_bytewise_xor);
++
++	dev_err(&eq->dev->pdev->dev,
++		"EQ addr=%p eqn=%u irqn=%u vec_index=%u",
++		eq, eq->eqn, eq->irqn, eq->vecidx);
++
++	print_hex_dump(KERN_WARNING, "", DUMP_PREFIX_OFFSET,
++		       16, 1, eqe, sizeof(*eqe), false);
++	BUG();
++}
++
+ static int mlx5_eq_comp_int(struct notifier_block *nb,
+ 			    __always_unused unsigned long action,
+ 			    __always_unused void *data)
+@@ -127,6 +164,8 @@ static int mlx5_eq_comp_int(struct notifier_block *nb,
+ 		/* Assume (eqe->type) is always MLX5_EVENT_TYPE_COMP */
+ 		cqn = be32_to_cpu(eqe->data.comp.cqn) & 0xffffff;
  
- 	rcu_read_lock();
--	sk = udp6_lib_lookup(&init_net, NULL, 0, &in6addr_any,
-+	sk = udp6_lib_lookup(dev_net(ndev), NULL, 0, &in6addr_any,
- 			     htons(ROCE_V2_UDP_DPORT), 0);
- 	rcu_read_unlock();
- 	if (sk)
- 		return 0;
- 
--	sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT), true);
-+	sock = rxe_setup_udp_tunnel(dev_net(ndev), htons(ROCE_V2_UDP_DPORT), true);
- 	if (PTR_ERR(sock) == -EAFNOSUPPORT) {
- 		pr_warn("IPv6 is not supported, can not create a UDPv6 socket\n");
- 		return 0;
-@@ -731,14 +737,14 @@ void rxe_net_exit(void)
- 	unregister_netdevice_notifier(&rxe_net_notifier);
- }
- 
--int rxe_net_init(void)
-+int rxe_net_init(struct net_device *ndev)
- {
- 	int err;
- 
--	err = rxe_net_ipv4_init();
-+	err = rxe_net_ipv4_init(ndev);
- 	if (err)
- 		return err;
--	err = rxe_net_ipv6_init();
-+	err = rxe_net_ipv6_init(ndev);
- 	if (err)
- 		goto err_out;
- 	return 0;
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.h b/drivers/infiniband/sw/rxe/rxe_net.h
-index 027b20e1bab6..56249677d692 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.h
-+++ b/drivers/infiniband/sw/rxe/rxe_net.h
-@@ -15,7 +15,7 @@ int rxe_net_add(const char *ibdev_name, struct net_device *ndev);
- void rxe_net_del(struct ib_device *dev);
- 
- int rxe_register_notifier(void);
--int rxe_net_init(void);
-+int rxe_net_init(struct net_device *ndev);
- void rxe_net_exit(void);
- 
- #endif /* RXE_NET_H */
++		verify_eqe(eq, eqe);
++
+ 		cq = mlx5_eq_cq_get(eq, cqn);
+ 		if (likely(cq)) {
+ 			++cq->arm_sn;
 -- 
-2.27.0
+1.8.3.1
 
