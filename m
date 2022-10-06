@@ -2,84 +2,65 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65948C433FE
-	for <linux-rdma@archiver.kernel.org>; Fri,  7 Oct 2022 06:56:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62951C433FE
+	for <linux-rdma@archiver.kernel.org>; Fri,  7 Oct 2022 07:32:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229771AbiJGG4h (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 7 Oct 2022 02:56:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40018 "EHLO
+        id S229802AbiJGHcg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 7 Oct 2022 03:32:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229495AbiJGG4g (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Oct 2022 02:56:36 -0400
-Received: from out2.migadu.com (out2.migadu.com [188.165.223.204])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 095F4A927A
-        for <linux-rdma@vger.kernel.org>; Thu,  6 Oct 2022 23:56:34 -0700 (PDT)
-Message-ID: <ce6d40e7-9955-1eea-732c-bad92333c6db@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1665125793;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=GgVpcqrUgsel6oJ3/zPc/XyjpW73BV9CcYsw6eQFDgk=;
-        b=X4qDPNNdMUr52z6VZGdwtiM2YZt6p4p+eKkuf6IBUQKrXopp1aeIbnGKzwAPGSaMQGNTsC
-        2t9nsI7p4tIMvNHkKw3DGRSF278J5Wy1Jf9g2d60vg/a2ETIYjJAoDNGK3A446zq3eW5uX
-        1KETFLcc37oBaYFjBSLAbYnVn5xSSIw=
-Date:   Fri, 7 Oct 2022 14:56:26 +0800
+        with ESMTP id S229656AbiJGHcg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Oct 2022 03:32:36 -0400
+Received: from ssh248.corpemail.net (ssh248.corpemail.net [210.51.61.248])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1FC3C0696;
+        Fri,  7 Oct 2022 00:32:33 -0700 (PDT)
+Received: from ([60.208.111.195])
+        by ssh248.corpemail.net ((D)) with ASMTP (SSL) id BHN00127;
+        Fri, 07 Oct 2022 15:32:27 +0800
+Received: from localhost.localdomain (10.200.104.82) by
+ jtjnmail201610.home.langchao.com (10.100.2.10) with Microsoft SMTP Server id
+ 15.1.2507.12; Fri, 7 Oct 2022 15:32:28 +0800
+From:   Deming Wang <wangdeming@inspur.com>
+To:     <jgg@ziepe.ca>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Deming Wang <wangdeming@inspur.com>
+Subject: [PATCH] IB/uverbs: fix the typo of optional
+Date:   Thu, 6 Oct 2022 12:14:56 -0400
+Message-ID: <20221006161456.2998-1-wangdeming@inspur.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Subject: Re: [PATCH] rdma: not display the rdma link in other net namespace
-To:     Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leo@kernel.org>, linux-rdma@vger.kernel.org
-References: <20220926024033.284341-1-yanjun.zhu@linux.dev>
- <YzLRvzAH9MqqtSGk@unreal> <4e5d49fe-38a3-4891-3755-3decf8ffebda@linux.dev>
- <YzPkAGs60Kk4QCck@unreal> <fb230416-d336-cca2-24c3-5b804c50a10e@linux.dev>
- <Yz7PsMhkWMH0HXjt@unreal> <99a4b7ea-64df-7de4-2d7a-52e797644e71@linux.dev>
- <Yz8Ak/Pxz13fP4zE@unreal> <Yz8A6az2rIjEDEGk@nvidia.com>
- <Yz/FaiYZO5Y0R7QP@unreal>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Yanjun Zhu <yanjun.zhu@linux.dev>
-In-Reply-To: <Yz/FaiYZO5Y0R7QP@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.200.104.82]
+tUid:   20221007153227d4e058b16bc5f140be625a815f78c71e
+X-Abuse-Reports-To: service@corp-email.com
+Abuse-Reports-To: service@corp-email.com
+X-Complaints-To: service@corp-email.com
+X-Report-Abuse-To: service@corp-email.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Fix the typo of optional in the function of UVERBS_HANDLER.
 
-在 2022/10/7 14:21, Leon Romanovsky 写道:
-> On Thu, Oct 06, 2022 at 01:23:05PM -0300, Jason Gunthorpe wrote:
->> On Thu, Oct 06, 2022 at 07:21:39PM +0300, Leon Romanovsky wrote:
->>
->>>> And in exclusive mode, a rdma link that can not be accessed in net namespace
->>>> A still
->>>>
->>>> appears in net namespace A when running "rdma link show" in net namespace A.
->>>>
->>>> The above is different from others in net namespace.
->>>>
->>>> For example, in net namespace, if net device NIC0 is moved to net namespace
->>>> B from net namespace A,
->>>>
->>>> this NIC0 will not appear in net namespace A when running "ip link" command
->>>> in net namespace A.
->>>>
->>>> Is it a problem?
->>> rdmatool presents IB devices. It has no logic that decides if that
->>> device is usable/operable or not.
->> It should really not report an IB device that is not in the net
->> namespace..
-> It is kernel (nldev.c) job to hide such IB devices and it seems like it
-> does. For devices with help of ib_enum_all_devs() and for links with
-> ib_device_get_by_index().
+Signed-off-by: Deming Wang <wangdeming@inspur.com>
+---
+ drivers/infiniband/core/uverbs_std_types_qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks, Jason and Leon
+diff --git a/drivers/infiniband/core/uverbs_std_types_qp.c b/drivers/infiniband/core/uverbs_std_types_qp.c
+index dd1075466f61..7b4773fa4bc0 100644
+--- a/drivers/infiniband/core/uverbs_std_types_qp.c
++++ b/drivers/infiniband/core/uverbs_std_types_qp.c
+@@ -163,7 +163,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_QP_CREATE)(
+ 					UVERBS_ATTR_CREATE_QP_SRQ_HANDLE))
+ 				return -EINVAL;
+ 
+-			/* send_cq is optinal */
++			/* send_cq is optional */
+ 			if (cap.max_send_wr) {
+ 				send_cq = uverbs_attr_get_obj(attrs,
+ 					UVERBS_ATTR_CREATE_QP_SEND_CQ_HANDLE);
+-- 
+2.27.0
 
-I am working on it. I will send the patch out very soon.
-
-Zhu Yanjun
-
->
-> They both checks netns - rdma_dev_access_netns(device, net).
->
-> Thanks
