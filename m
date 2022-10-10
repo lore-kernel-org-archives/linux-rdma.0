@@ -2,101 +2,84 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AC50C433F5
-	for <linux-rdma@archiver.kernel.org>; Fri, 30 Sep 2022 11:47:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2BCEC433F5
+	for <linux-rdma@archiver.kernel.org>; Fri, 30 Sep 2022 11:56:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231509AbiI3Lrw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 30 Sep 2022 07:47:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60504 "EHLO
+        id S230092AbiI3Lz7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 30 Sep 2022 07:55:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43958 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231379AbiI3Lr2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 30 Sep 2022 07:47:28 -0400
-Received: from mail-pl1-x62c.google.com (mail-pl1-x62c.google.com [IPv6:2607:f8b0:4864:20::62c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA003FFB2D;
-        Fri, 30 Sep 2022 04:44:03 -0700 (PDT)
-Received: by mail-pl1-x62c.google.com with SMTP id v1so3749852plo.9;
-        Fri, 30 Sep 2022 04:44:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date;
-        bh=Gg0A0CsuZvn3gbRKVVoweIsGGQktuRgro3yyKRZC6yo=;
-        b=S+rHi0IQSlE7WkWXkHzEMCYAR1eWbIOMxU34v3/uqSUu6rWSlQ4XA7Mzr4vhHHCauT
-         FoM0gfdBofAk3PbMoCHFuWL64F3WYU1ow8kT2j5JXIjEluv6DMd4+NuK6BpzDklJ/3BK
-         pamHa2SUGU6hFOLg8JtCAPiHwcWNH/ZZolATHka6ri+BTZu09AIDPMFU+tyybnclj5gv
-         txzO5jhYXDkK+cvUhIE0AkSXFlhxH0KFRJD8JnzipQbr/DzJLfinSmEN7ilXrEUq/ZgL
-         UtuOvkB7baze3Yl7SD1duleGsmBFF1OS51ez9Q7WYyPcj91o6q8Cqnma8uNSHzj2z8jd
-         2CRg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date;
-        bh=Gg0A0CsuZvn3gbRKVVoweIsGGQktuRgro3yyKRZC6yo=;
-        b=W5SVhfLSKC8jttS9/8w8kGRtSDENNiTxWBTUpgD+3V7csaB8SPe5vrK+Czz5BDc1Pj
-         /TB7Yd69CDTOTm4SInOK/xKchi0aP+cm9jPuo1u0pEulZ3A856OytEGgi2ldNgEiiiYf
-         DrgR7N3Zj+G8re3mNaYns9KbZuPByb15dQmj77oBhHCWuu/u0frkKI9e3c0gUCM4pE0B
-         kGQx1zu2t+3qtWOhF/inBP2UOpmp/M0egwKtVN/vOYXrWM9lfLcYRe6orX0Z6tH+kZsh
-         +OL6Qm8Rh+TcV7eeiKMehRL5reqcj5zYurpHGS+Jh+uUHICljnxQ8QukymcYX0sfkHkQ
-         yYTQ==
-X-Gm-Message-State: ACrzQf0g94HYmimzWX7BhEPUMhGdiRyu1K2WU17oVPqq6U6cy34fG1+5
-        nv7NUqDHWFzUgJL9d7g9icE=
-X-Google-Smtp-Source: AMsMyM5irRGrmMh154wuYn4XRa9MjbS0fbaOivd2pICaLsfqAP45ZvvxrOMGKbXZv2kxePcQ1XGJog==
-X-Received: by 2002:a17:90a:db85:b0:20a:607a:3701 with SMTP id h5-20020a17090adb8500b0020a607a3701mr1209544pjv.187.1664538242883;
-        Fri, 30 Sep 2022 04:44:02 -0700 (PDT)
-Received: from localhost.localdomain ([49.206.115.111])
-        by smtp.gmail.com with ESMTPSA id g3-20020a170902d1c300b0017a00216965sm1642129plb.218.2022.09.30.04.43.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 30 Sep 2022 04:44:02 -0700 (PDT)
-From:   Praghadeesh T K S <praghadeeshthevendria@gmail.com>
-To:     Boris Pismenny <borisp@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        "GitAuthor: Praghadeesh" <praghadeeshthevendria@gmail.com>,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc:     praghadeeshtks@zohomail.in,
-        linux-kernel-mentees@lists.linuxfoundation.org
-Subject: [PATCH] net: ethernet/mellanox: fix dereference before null check
-Date:   Fri, 30 Sep 2022 17:13:35 +0530
-Message-Id: <20220930114335.608894-1-praghadeeshthevendria@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S229668AbiI3Lz7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 30 Sep 2022 07:55:59 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C160128705;
+        Fri, 30 Sep 2022 04:55:57 -0700 (PDT)
+Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.53])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Mf7s53l0zzpTgj;
+        Fri, 30 Sep 2022 19:52:57 +0800 (CST)
+Received: from dggpemm500013.china.huawei.com (7.185.36.172) by
+ dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Fri, 30 Sep 2022 19:55:55 +0800
+Received: from huawei.com (10.67.174.245) by dggpemm500013.china.huawei.com
+ (7.185.36.172) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Fri, 30 Sep
+ 2022 19:55:55 +0800
+From:   Chen Zhongjin <chenzhongjin@huawei.com>
+To:     <linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
+        <linux-rdma@vger.kernel.org>, <rds-devel@oss.oracle.com>
+CC:     <santosh.shilimkar@oracle.com>, <davem@davemloft.net>,
+        <edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
+        <chenzhongjin@huawei.com>
+Subject: [PATCH -next 2/2] net/rds: Remove unused variable 'total_payload_len'
+Date:   Mon, 10 Oct 2022 11:09:04 +0800
+Message-ID: <20221010030904.2883557-3-chenzhongjin@huawei.com>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20221010030904.2883557-1-chenzhongjin@huawei.com>
+References: <20221010030904.2883557-1-chenzhongjin@huawei.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.67.174.245]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ dggpemm500013.china.huawei.com (7.185.36.172)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-net: ethernet/mellanox: fix dereference before null check
-macsec dereferenced before null check
-bug identified by coverity's linux-next weekly scan
-Coverity CID No: 1525317
+Reported by Clang [-Wunused-but-set-variable]
 
-Signed-off-by: Praghadeesh T K S <praghadeeshthevendria@gmail.com>
+'commit f9fb69adb6c7 ("RDS: make message size limit compliant with spec")'
+This commit introduced the variable 'total_copied'. However this variable
+is never used by other code except iterates itself, so remove it.
+
+Signed-off-by: Chen Zhongjin <chenzhongjin@huawei.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/rds/send.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-index 5da746d..e822c2a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
-@@ -1846,11 +1846,11 @@ int mlx5e_macsec_init(struct mlx5e_priv *priv)
- void mlx5e_macsec_cleanup(struct mlx5e_priv *priv)
- {
- 	struct mlx5e_macsec *macsec = priv->macsec;
--	struct mlx5_core_dev *mdev = macsec->mdev;
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 0c5504068e3c..5e57a1581dc6 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -1114,7 +1114,7 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+ 	struct rds_conn_path *cpath;
+ 	struct in6_addr daddr;
+ 	__u32 scope_id = 0;
+-	size_t total_payload_len = payload_len, rdma_payload_len = 0;
++	size_t rdma_payload_len = 0;
+ 	bool zcopy = ((msg->msg_flags & MSG_ZEROCOPY) &&
+ 		      sock_flag(rds_rs_to_sk(rs), SOCK_ZEROCOPY));
+ 	int num_sgs = DIV_ROUND_UP(payload_len, PAGE_SIZE);
+@@ -1243,7 +1243,6 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+ 	if (ret)
+ 		goto out;
  
- 	if (!macsec)
- 		return;
- 
-+	struct mlx5_core_dev *mdev = macsec->mdev;
- 	mlx5_notifier_unregister(mdev, &macsec->nb);
- 
- 	mlx5e_macsec_fs_cleanup(macsec->macsec_fs);
+-	total_payload_len += rdma_payload_len;
+ 	if (max_t(size_t, payload_len, rdma_payload_len) > RDS_MAX_MSG_SIZE) {
+ 		ret = -EMSGSIZE;
+ 		goto out;
 -- 
-2.25.1
+2.33.0
 
