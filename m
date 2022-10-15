@@ -2,160 +2,152 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E5DFC433FE
-	for <linux-rdma@archiver.kernel.org>; Sat, 15 Oct 2022 02:32:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA65CC433FE
+	for <linux-rdma@archiver.kernel.org>; Sat, 15 Oct 2022 06:38:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229607AbiJOCcy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 14 Oct 2022 22:32:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44896 "EHLO
+        id S229470AbiJOGiX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 15 Oct 2022 02:38:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbiJOCcy (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 14 Oct 2022 22:32:54 -0400
-Received: from esa1.hc1455-7.c3s2.iphmx.com (esa1.hc1455-7.c3s2.iphmx.com [207.54.90.47])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC3DC6F573
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Oct 2022 19:32:52 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6500,9779,10500"; a="92321910"
-X-IronPort-AV: E=Sophos;i="5.95,185,1661785200"; 
-   d="scan'208";a="92321910"
-Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa1.hc1455-7.c3s2.iphmx.com with ESMTP; 15 Oct 2022 11:32:51 +0900
-Received: from oym-m1.gw.nic.fujitsu.com (oym-nat-oym-m1.gw.nic.fujitsu.com [192.168.87.58])
-        by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id AA76CD63B9
-        for <linux-rdma@vger.kernel.org>; Sat, 15 Oct 2022 11:32:49 +0900 (JST)
-Received: from kws-ab1.gw.nic.fujitsu.com (kws-ab1.gw.nic.fujitsu.com [192.51.206.11])
-        by oym-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id D14FDD9947
-        for <linux-rdma@vger.kernel.org>; Sat, 15 Oct 2022 11:32:48 +0900 (JST)
-Received: from [10.167.226.45] (unknown [10.167.226.45])
-        by kws-ab1.gw.nic.fujitsu.com (Postfix) with ESMTP id 03BF21140BF3;
-        Sat, 15 Oct 2022 11:32:47 +0900 (JST)
-Message-ID: <897a692c-89f8-7a14-4031-c4ac4f0c7a9b@fujitsu.com>
-Date:   Sat, 15 Oct 2022 10:32:47 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: [PATCH 2/2] RDMA/rxe: Handle remote errors in the midst of a Read
- reply sequence
-Content-Language: en-US
-To:     =?UTF-8?B?TWF0c3VkYSwgRGFpc3VrZS/mnb7nlLAg5aSn6LyU?= 
-        <matsuda-daisuke@fujitsu.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "leonro@nvidia.com" <leonro@nvidia.com>,
+        with ESMTP id S229459AbiJOGiW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 15 Oct 2022 02:38:22 -0400
+X-Greylist: delayed 70 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 14 Oct 2022 23:38:20 PDT
+Received: from esa5.fujitsucc.c3s2.iphmx.com (esa5.fujitsucc.c3s2.iphmx.com [68.232.159.76])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF6D763857
+        for <linux-rdma@vger.kernel.org>; Fri, 14 Oct 2022 23:38:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
+  t=1665815900; x=1697351900;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=KeXePYeIaul2A5wGX9HpugWWfq3Xbbo6VKhMq4yVs7s=;
+  b=idLWQ8Ov1DDC0AnwVStJK12hSpBDGwDxlmabDLLY3J5w/ZjYaT2Ep0Kj
+   Chs79BEW6On6pERbPdZeGbfjo/AYc9qDwlxg4Q+W1ut5cSZHwdzmlpj0j
+   5REtd7HE6K4QCVxHyjNcECrKgAqaFlQkyrJdUqxOYI478Fc6e1RR7knnS
+   vjBqn2pKePDqcm4YAWXRiW+5rLjP+DnOlWTyg5frcsxWH36TtFvrOWrMS
+   DSOBhTOfRwcJqZuhHf3O5L6fKZTXJ9WaPSdabaSNsPPExQEVe7tpuio4n
+   OxWhOBLe7u1eQoTEiNFr7JGrPzbUbNShrfVhYshA+3+y+kq3RlpQS2Eht
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10500"; a="67758725"
+X-IronPort-AV: E=Sophos;i="5.95,186,1661785200"; 
+   d="scan'208";a="67758725"
+Received: from mail-tycjpn01lp2172.outbound.protection.outlook.com (HELO JPN01-TYC-obe.outbound.protection.outlook.com) ([104.47.23.172])
+  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Oct 2022 15:37:13 +0900
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=KIdchzXorGNqencFxsrmWpCD2dQpsYK3BzlVbsiuL2t/S/4BnN/bjrUd8omtVPYUTe267hEPM2WKc5PrdfHiBsTD1nrdFeL6BFlUaxl0uLISJXyncHElkLsGykntUDbmYeraHPAzdw3AhxW90uveLwA/pHK/ALG+X+YFLTC4Pz65f2Ec4quxpfmM0JemNbgKI8uOAwzxREnDSks4PKAKqHRzw0QRAMwKy0uR2sISCVaeRmxuuqL/EoPgugTZXSOwdkmAT3ZTl1cZttxNn3Fai6yUHLGwdz92LyeljHoER5wrvsxUJeLu6ToiUuL3RM+cKArSAfFBo3NWJWHssFEnOA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=KeXePYeIaul2A5wGX9HpugWWfq3Xbbo6VKhMq4yVs7s=;
+ b=cXUXR3qenFdyuwCaMe+G70m2IeBsrLuSBThzO6aQ4FjYt2mnKVrjaajN0mqi7ZMIOUTy5GnMyl3hOsWpNAkL//8RWy6yKPr7EYikk7x+SdY1P8Jx9CL+W+QA/jNTNld7bspliTL+DioJXLfO12QAUYOYNF6z68t4sVaD3YYB1UyxdNgl2Twh2CxoIFnq9CUK1YUOsSA7BfR/QwZEp9hA+ZPgTLRDSmiSwoSUw0u+wzkeK67M8J2NG6oq+9r5W2gEsjgOP/tO/vgJCWIZ4UOPd1siHWrtzIBgSdafMaOhMeiZVNA6oqu/JHlkXhBjSKy7uE3dWCoQS59tIQyrYFdZzw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
+ dkim=pass header.d=fujitsu.com; arc=none
+Received: from OS3PR01MB9499.jpnprd01.prod.outlook.com (2603:1096:604:1c8::5)
+ by OSZPR01MB8661.jpnprd01.prod.outlook.com (2603:1096:604:185::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5723.29; Sat, 15 Oct
+ 2022 06:37:06 +0000
+Received: from OS3PR01MB9499.jpnprd01.prod.outlook.com
+ ([fe80::5989:c90d:abf4:e100]) by OS3PR01MB9499.jpnprd01.prod.outlook.com
+ ([fe80::5989:c90d:abf4:e100%6]) with mapi id 15.20.5723.029; Sat, 15 Oct 2022
+ 06:37:06 +0000
+From:   "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>
+To:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
         "jgg@nvidia.com" <jgg@nvidia.com>,
-        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>
-References: <20221013014724.3786212-1-matsuda-daisuke@fujitsu.com>
- <20221013014724.3786212-2-matsuda-daisuke@fujitsu.com>
- <bd695f2f-b2d2-02ef-bc4d-ba64e5cc59f9@fujitsu.com>
- <TYCPR01MB8455D4422E8BC3D53ADE32C3E5249@TYCPR01MB8455.jpnprd01.prod.outlook.com>
-From:   Li Zhijian <lizhijian@fujitsu.com>
-In-Reply-To: <TYCPR01MB8455D4422E8BC3D53ADE32C3E5249@TYCPR01MB8455.jpnprd01.prod.outlook.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1408-9.0.0.1002-27202.004
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1408-9.0.1002-27202.004
-X-TMASE-Result: 10--21.178400-10.000000
-X-TMASE-MatchedRID: qA30kLX4rkePvrMjLFD6eK5i3jK3KDOot3aeg7g/usC5IifwYL1+qxmE
-        2Lk72Kw+BHGj1qouCqsuP7aUpb/kCC+3xqQ44pFWIuN48JyY3bkJKBFX4vuNlH7zXMne3nXuDJ9
-        d5gU5UUdEilqyAMpqsuaffHI8kAmiHY/bzRmIaZHknMSTG9lH+ARryDXHx6oXPnZ8FlI6TJoEFi
-        2mbQuRNtNUOK7OXJVWqP+enlh2glOonpzqWq1NCr3+Qwz7LRxRkYC3rjkUXRLe6dEbvIyrxe8bn
-        aofKD1d5ftoiaDwCD3aiOLUKEt9x6ShtiT3ljCYeeUYPMgkiWufmd9HsjZ0U8guLSFFidm5K8Bd
-        2Q/AYyfK7A+F0xO3x5osT/QkpuSDHodpx3o6GrsOWDFvyz6vQNHfa6Fe1HbGmyiLZetSf8kir3k
-        OMJmHTIvKensr4XFRv79FIUygvZzEQdG7H66TyKsQd9qPXhnJ/4rWvpj9UcgD/dHyT/Xh7Q==
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+        "rpearsonhpe@gmail.com" <rpearsonhpe@gmail.com>
+CC:     "leon@kernel.org" <leon@kernel.org>,
+        "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>,
+        "y-goto@fujitsu.com" <y-goto@fujitsu.com>,
+        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>,
+        "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>
+Subject: [PATCH v6 3/8] RDMA/rxe: Extend rxe user ABI to support atomic write
+Thread-Topic: [PATCH v6 3/8] RDMA/rxe: Extend rxe user ABI to support atomic
+ write
+Thread-Index: AQHY4GCKq0h7+6p+dkuko51BHClBmw==
+Date:   Sat, 15 Oct 2022 06:37:05 +0000
+Message-ID: <20221015063648.52285-4-yangx.jy@fujitsu.com>
+References: <20221015063648.52285-1-yangx.jy@fujitsu.com>
+In-Reply-To: <20221015063648.52285-1-yangx.jy@fujitsu.com>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-mailer: git-send-email 2.34.1
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=fujitsu.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: OS3PR01MB9499:EE_|OSZPR01MB8661:EE_
+x-ms-office365-filtering-correlation-id: b478c291-0667-4323-4579-08daae77ad78
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: ebF6QMm5uKjIXubPDv7CdtqJA1UFHr+sI+NbekrwQLL7Yy+BYSG0iZonjNUplxBX/73qhKJRVnaPGmmsxPwNh3WofZbkRhDAAzDh2Ah9+s3uUIVGjQ2XAOE4a0HpXvRN7kLRgDcwo+T1c/J9OpBDycJRGtf5LVQpeE5IeLoAY2uZ9nZjA92T8Bc8obi/ZY2zlSJpXY3wqUJFghiGt8UUdvNrrWIwX6QiDCT/JBSoEGltEHt5oiyYmXJ+eSjV3+qHRqPPqS+mWZmtLMnAFtmwTIQtna5oLLIKdhMA8G2oXfiJf0d7oSO+LVTOwxNbj4oUPx3xa6ro+9Sn7U9AfjyV4F6VGhu3xCR1FpvabXMdWaOXNmgFz+P9dNn2UDTrN97HCZpYa/Nzfks7Db10S5c72A9L2WkIi94+Q0VOTyG62eqJgwiC7WlCfa7nTWtLS65P2hbZkqIBuyKLAuzXQIi6mtXvuUDjanHnk4IId/9VqzLIG+Y9Inl7YS81saW1VmuvMRCaZee/oGp874/q60K9/nmPLiu2p3UOsHg2SoT58Dl4Lq/5XODDTAdGD/0tiBTx034Qzhi3rzsjvqhag7YZaVzlmZy7iSHcFG1bBIbu2nVqKZjuY8VWszKDQnw+Re9vnSNqqX74/nkNp8WmtxKWmGTzZ5lN7cyu+K82B5VS/ChrkC6HkGi0rcfYd+TWcYHU5eVeCRT0Ksm6wFGdc1JacOvwhZ+CpnoN7puTvIFHElaDhJXw2x8b/E2M8MUTgzcXZCCVZpoJlt9+KvNksA5Q0yAAhPu0eNQ4J9xjIysZd2E=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS3PR01MB9499.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(136003)(346002)(376002)(366004)(396003)(451199015)(1590799012)(6486002)(85182001)(316002)(86362001)(38100700002)(36756003)(5660300002)(110136005)(26005)(6512007)(54906003)(478600001)(122000001)(8936002)(4744005)(82960400001)(91956017)(1580799009)(66946007)(76116006)(2616005)(107886003)(66556008)(66476007)(38070700005)(41300700001)(71200400001)(6506007)(66446008)(64756008)(8676002)(2906002)(4326008)(1076003)(186003);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?gb2312?B?dUFwRTcyNW9kam1ybitTTHJZbzJZMzlGVVJMMlVLL2U1RTRsd2NGeXEvd3pJ?=
+ =?gb2312?B?YVRKdlFIb251djNmamlGZ0NDUGNkWmhoRVRXTW5UendMRkM1SjBWajk2NW4z?=
+ =?gb2312?B?ZmxYOTRBdmFKN0xSTEZyNWdCQm1pSTQvYy9rVlVXVFM4cFZaNXF5T0txVkJV?=
+ =?gb2312?B?QlBrKzgzQzlGYWtHK2E5aGFHK28rZkdxR2dJcDdCQjNtbmE0bURzeWkveW5G?=
+ =?gb2312?B?ZzdWcDdSU01DeWZHUFpvcDh3dlJPazVHTDRDVldITU1QVXYyZE9hS281QS92?=
+ =?gb2312?B?UEl6c2UwZWR0TWFmTENOd2pQM3BScVZVU3NwckY0MUR5K1BPWVhRdnpJbVg3?=
+ =?gb2312?B?Z2RPRU5lL1l2THJ3NG53MmZ3T21RNlIybktVUC9UbUZ5eGlOMi9PeG4wSU16?=
+ =?gb2312?B?aE1EWXBxZGZ0Rmh1S0Z5RGRBQVNZelAwZXV4OTNibVdZNTVscjFRckxsc3pr?=
+ =?gb2312?B?TEdRME0wYkZCMUxUeGIreUVUOFRyeXJWK284dEEwYkZjV2ZBYVRBekFQMStH?=
+ =?gb2312?B?OHBwcWNKbjRLZDVieVRhaW9LU0xCeWF0UmVlbHZHSldQWjFXSWNUWUJoYWpP?=
+ =?gb2312?B?aG5KQk5VL0JSMkZXMTBoSTBLTjlXNGFRV1VYVE5QSCtsd3pyamE2UDMyYjV6?=
+ =?gb2312?B?cmN4dDBLTVU4RllxRmUxYjN1bXVGRXlkbVd3di90dEZxMTV0KzNDdXkvY05s?=
+ =?gb2312?B?eno5aFJDWjE0OUIwRzRCV3J2K2dFSENvc1ZMTGMrelhjVW9DR2Z0V3NLMUE0?=
+ =?gb2312?B?Q2ZKUkFYQ0oydzQrcUZuOTB5WGtoTEFaT0VPV2VUUi9meWJFekI4bVNaRTI0?=
+ =?gb2312?B?Unl0NUxhdmQ2MUxFdW1WaTYrR3NSTGpZcEhyRHJ3b3hpeTRqWjhFOHFRSXJu?=
+ =?gb2312?B?ektMTmpPVkhTVzdWMnZ0cjNKUUlwR1BINWJqazZ2T0wrZ1FSbHJRNFRSMEU0?=
+ =?gb2312?B?QW1vekYyZkRsTVVzRE5IZll1cjNscU1sU2JBUGhEVlN1cW1PbVpmZzhjVm8z?=
+ =?gb2312?B?VEhOUGJrOHNDQUpqTkRlRXRPcFphUXhyRUVIbFZPZzFmc1BCZUJ1R3ZCTkMx?=
+ =?gb2312?B?Z3VGZUtWTDVIMXlZcFdFS2tvS3c2azdFUlVFUTJ0U0FrRWlVcmRCRkhKSG1E?=
+ =?gb2312?B?VE56TVo5a1FSZFY2cmNvOXVDamZKamk2dlRJdjFVditJdk1oZlVsRmdOT0dS?=
+ =?gb2312?B?TnBDTFdLMS9HRmxobWZLaTJSWlgxNTR5UUVuZE9Jd3AwL3BDMmUwWUFyZGZV?=
+ =?gb2312?B?UWRQaXdUWXFKNzFQMHo2b2pSdHNWNkdtMzJIWkxvK2dKNXF0NnhyS3JZVG5H?=
+ =?gb2312?B?VDBkZS9rTWlvRW9zaDZIaEFub3FXNFNrMHhUeEMvUGlWL2FjZEU1bkNyYmdZ?=
+ =?gb2312?B?U3pMdFVRMGVlUEh2eWhWQlZqUEJVVlJLVGUrQ3FwaTkrNWpTVk5zWGFrR0hD?=
+ =?gb2312?B?d3I1NHFCR2ZjYUpLL1NTSmZaV09VdlpyZVd6cG5RdUNZdmRyM3RFdG5DNXVN?=
+ =?gb2312?B?T0FGVUxtN1VUeHZMN1M4YjJFMXYzMERjT1lURDBDeWg1NjQxSnJUblhGSFh4?=
+ =?gb2312?B?cHZOYkFEZWFmc1RQbWJKbVMxQWdHQlcxYysrb25WY3dsM2xGY0RPeTFqdGhr?=
+ =?gb2312?B?RzRaclptNm9WcWxZTGV4YzhIVkdWb3dCYWxmWEd3SmhQQnRmUktQYnAvNnpN?=
+ =?gb2312?B?TFpiQ2taZGc1MERMTGQwejJUcytWSm1mMklQcjVXaGcwbS9wcmNxSjRldVNB?=
+ =?gb2312?B?SHE1QTMzR0d6NTZsT29Vai9pSHE0YmVoY2xORnZiN2o2NVd5bXBhbHFjNmZa?=
+ =?gb2312?B?c1NYRnRHSHdBZVhJMEdJY2dEeC81a0w5bmJwSGZHTGxNSGFscmJxbVh4Kyti?=
+ =?gb2312?B?ZnZRVis2RjFDL1BsMDFFR3d5dFAvKzIzUjh2TnE0N0NvSkVNRmkrSXFjUFZM?=
+ =?gb2312?B?eEtHK3JTcm9EY25rV1lJOU1FZ1NUcWdwUEs0NVdnNUZaTEdJRVh5OHFIMmMr?=
+ =?gb2312?B?OWZ5VG5WZjl3OWhqYm5hS3dyYlVUYjRlVE5ja0d3c2MxbGkySTgvd1VreFYy?=
+ =?gb2312?B?QkNiZmFXbkpzMXBWN29FMnFsWU1Xb2srS1BTbWtSZ1ZVMW9YS25pRU1oTE5w?=
+ =?gb2312?B?T2lvVmgvTWZKaWY3cmNJZ0s1TWJKMmIxNFgreFRnZDhiaFZkMi9sYS9Sd1ho?=
+ =?gb2312?B?NXc9PQ==?=
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-OriginatorOrg: fujitsu.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: OS3PR01MB9499.jpnprd01.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b478c291-0667-4323-4579-08daae77ad78
+X-MS-Exchange-CrossTenant-originalarrivaltime: 15 Oct 2022 06:37:05.8216
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: WocYyh7qcVVRSsWSJ3IQM1Z092dLuzlcurilQuNpHgjfeDZ7zBTqDDG1H9W2ePDybc3WHPlIsVI1mY9M89JeTg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSZPR01MB8661
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-
-On 14/10/2022 10:35, Matsuda, Daisuke/松田 大輔 wrote:
-> On Thu, Oct 13, 2022 2:36 PM Li Zhijian wrote:
->> On 13/10/2022 09:47, Daisuke Matsuda wrote:
->>> Requesting nodes do not handle a reported error correctly if it is
->>> generated in the middle of multi-packet Read responses, and the node tries
->>> to resend the request endlessly. Let completer terminate the connection in
->>> that case.
->>>
->>> Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
->>> ---
->>> FOR REVIEWERS:
->>>     I referred to IB Specification Vol 1-Revision-1.5 to make this patch.
->>>     Please see Ch.9.9.2.2, Ch.9.9.2.4.2 and Table 59.
->>>
->>>    drivers/infiniband/sw/rxe/rxe_comp.c | 8 ++++++++
->>>    1 file changed, 8 insertions(+)
->>>
->>> diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
->>> index fb0c008af78c..c9170dd99f3a 100644
->>> --- a/drivers/infiniband/sw/rxe/rxe_comp.c
->>> +++ b/drivers/infiniband/sw/rxe/rxe_comp.c
->>> @@ -200,6 +200,10 @@ static inline enum comp_state check_psn(struct rxe_qp *qp,
->>>    		 */
->>>    		if (pkt->psn == wqe->last_psn)
->>>    			return COMPST_COMP_ACK;
->>> +		else if (pkt->opcode == IB_OPCODE_RC_ACKNOWLEDGE &&
->>> +			 (qp->comp.opcode == IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST ||
->>> +			  qp->comp.opcode == IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE))
-> Hi Zhijian,
-> Thank you for taking a look.
->
->> When IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST or IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE will
->> be assigned to qp->comp.opcode ?
-> This happens in rxe_completer(). Upon receiving a Read reply, 'state' is changed in the following order:
-> [  101.215593] rdma_rxe: qp#17 state = GET ACK
-> [  101.216174] rdma_rxe: qp#17 state = GET WQE
-> [  101.216776] rdma_rxe: qp#17 state = CHECK PSN
-> [  101.217384] rdma_rxe: qp#17 state = CHECK ACK
-> [  101.218008] rdma_rxe: qp#17 state = READ
-> [  101.218556] rdma_rxe: qp#17 state = UPDATE COMP
-> [  101.219188] rdma_rxe: qp#17 state = DONE
-> 'qp->comp.opcode' is filled at COMPST_UPDATE_COMP, and the value is retained
-> until it is overridden by the next incoming reply.
-Thanks for your explanation.
-
-
->
->> I wonder if "(pkt->opcode == IB_OPCODE_RC_ACKNOWLEDGE) "  is enough ?
-> I am not very sure if it is better. I agree your suggestion is correct within the
-> IB transport layer, but RoCEv2 traffic is encapsulated in UDP/IP headers.
-> We may need to take it into consideration that UDP does not guarantee ordered
-> delivery of packets.
->
-> For example, responder can return coalesced ACKs for RDMA Write requests.
-> If ACK packets are swapped in the course of delivery, a packet with older psn can
-> arrive later, and probably it is to be discarded by returning COMPST_DONE here.
->
-> If we just put "(pkt->opcode == IB_OPCODE_RC_ACKNOWLEDGE) ",
-> I am afraid the swapped ACKs may go into wrong path. This is based on my
-> speculation, so please let me know if it is wrong.
-Well, you current changes are quite fit to your patch subject :)
-
-Reviewed-by: Li Zhijian <lizhijian@fujitsu.com>
-
-
-
->
-> Thanks,
-> Daisuke
->
->> Thanks
->> Zhijian
->>
->>
->>> +			return COMPST_CHECK_ACK;
->>>    		else
->>>    			return COMPST_DONE;
->>>    	} else if ((diff > 0) && (wqe->mask & WR_ATOMIC_OR_READ_MASK)) {
->>> @@ -228,6 +232,10 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
->>>
->>>    	case IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST:
->>>    	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
->>> +		/* Check NAK code to handle a remote error */
->>> +		if (pkt->opcode == IB_OPCODE_RC_ACKNOWLEDGE)
->>> +			break;
->>> +
->>>    		if (pkt->opcode != IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE &&
->>>    		    pkt->opcode != IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST) {
->>>    			/* read retries of partial data may restart from
-
+RGVmaW5lIGFuIGF0b21pY193ciBhcnJheSB0byBzdG9yZSA4LWJ5dGUgdmFsdWUuDQoNClNpZ25l
+ZC1vZmYtYnk6IFhpYW8gWWFuZyA8eWFuZ3guanlAZnVqaXRzdS5jb20+DQotLS0NCiBpbmNsdWRl
+L3VhcGkvcmRtYS9yZG1hX3VzZXJfcnhlLmggfCAxICsNCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNl
+cnRpb24oKykNCg0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvdWFwaS9yZG1hL3JkbWFfdXNlcl9yeGUu
+aCBiL2luY2x1ZGUvdWFwaS9yZG1hL3JkbWFfdXNlcl9yeGUuaA0KaW5kZXggNzNmNjc5ZGZkMmRm
+Li5kMjBkMWVjZjA0NmYgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL3VhcGkvcmRtYS9yZG1hX3VzZXJf
+cnhlLmgNCisrKyBiL2luY2x1ZGUvdWFwaS9yZG1hL3JkbWFfdXNlcl9yeGUuaA0KQEAgLTE0Niw2
+ICsxNDYsNyBAQCBzdHJ1Y3QgcnhlX2RtYV9pbmZvIHsNCiAJX191MzIJCQlyZXNlcnZlZDsNCiAJ
+dW5pb24gew0KIAkJX19ERUNMQVJFX0ZMRVhfQVJSQVkoX191OCwgaW5saW5lX2RhdGEpOw0KKwkJ
+X19ERUNMQVJFX0ZMRVhfQVJSQVkoX191OCwgYXRvbWljX3dyKTsNCiAJCV9fREVDTEFSRV9GTEVY
+X0FSUkFZKHN0cnVjdCByeGVfc2dlLCBzZ2UpOw0KIAl9Ow0KIH07DQotLSANCjIuMzQuMQ0K
