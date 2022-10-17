@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8DBFC4167E
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 19:21:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61828C433FE
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 19:21:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231273AbiJQTVW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Oct 2022 15:21:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55130 "EHLO
+        id S231279AbiJQTVX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Oct 2022 15:21:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231130AbiJQTVD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 15:21:03 -0400
+        with ESMTP id S231128AbiJQTVC (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 15:21:02 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 03E4461736;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 03F4274B9B;
         Mon, 17 Oct 2022 12:20:56 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 36FFB20FDA8C; Mon, 17 Oct 2022 12:20:55 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 36FFB20FDA8C
+        id 64A9420FE028; Mon, 17 Oct 2022 12:20:56 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 64A9420FE028
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1666034455;
-        bh=f/L5JWQtlV4EWOSXR6x1yXXG40XtIaw4c4cKTQrFw1k=;
+        s=default; t=1666034456;
+        bh=A8fxUD/nTCAqIoM1mcUZ00zFIWg8IfK6iVDQEpa0CEo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=SMNSsNzz1Ktn+qcDP0mlJpfzvDPRJkyH7RXM6BdKxYyOM1j/Bo8gxnaVH3TlsuDk+
-         H0+pQrkoe18ogUwc6JrjN97BQQACv9gPkqXq+nFsLoWfH/HuCcFKrEseLkh0ufImCm
-         c8X3aXFf2nF10yX4W2qQiduA2K6kOn+CjpU70tV4=
+        b=l9NkBblHyXCR+bOA3ZQItM0wEvL6Bt2uBjYQwFtIo8wcnSrBDHg3LN5aOK2R5pNex
+         qzRE93yMzULau694eLtSnwxB4VJm4sbLPNRjYQq+mlWFfyYlIWgv/NXiSveBD5eqi1
+         zZOV4Jkh0S9d3l4pMDxgCZGA1959E7dCDRSCkBdU=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v7 08/12] net: mana: Define max values for SGL entries
-Date:   Mon, 17 Oct 2022 12:20:37 -0700
-Message-Id: <1666034441-15424-9-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v7 10/12] net: mana: Define data structures for allocating doorbell page from GDMA
+Date:   Mon, 17 Oct 2022 12:20:39 -0700
+Message-Id: <1666034441-15424-11-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1666034441-15424-1-git-send-email-longli@linuxonhyperv.com>
 References: <1666034441-15424-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,73 +51,73 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-The number of maximum SGl entries should be computed from the maximum
-WQE size for the intended queue type and the corresponding OOB data
-size. This guarantees the hardware queue can successfully queue requests
-up to the queue depth exposed to the upper layer.
+The RDMA device needs to allocate doorbell pages for each user context.
+Define the GDMA data structures for use by the RDMA driver.
 
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/mana_en.c | 2 +-
- include/net/mana/gdma.h                       | 7 +++++++
- include/net/mana/mana.h                       | 4 +---
- 3 files changed, 9 insertions(+), 4 deletions(-)
+Change log:
+v4: use EXPORT_SYMBOL_NS
+v7: move mana_gd_allocate_doorbell_page() and mana_gd_destroy_doorbell_page() to the RDMA driver
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index ffa2a0e2c213..f6bcd0cc6cda 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -189,7 +189,7 @@ int mana_start_xmit(struct sk_buff *skb, struct net_device *ndev)
- 	pkg.wqe_req.client_data_unit = 0;
- 
- 	pkg.wqe_req.num_sge = 1 + skb_shinfo(skb)->nr_frags;
--	WARN_ON_ONCE(pkg.wqe_req.num_sge > 30);
-+	WARN_ON_ONCE(pkg.wqe_req.num_sge > MAX_TX_WQE_SGL_ENTRIES);
- 
- 	if (pkg.wqe_req.num_sge <= ARRAY_SIZE(pkg.sgl_array)) {
- 		pkg.wqe_req.sgl = pkg.sgl_array;
+ include/net/mana/gdma.h | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
 diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index 72eaec2470c0..0b0c0cd0b6bd 100644
+index a9b7930dfbf8..bc060b6fa54c 100644
 --- a/include/net/mana/gdma.h
 +++ b/include/net/mana/gdma.h
-@@ -427,6 +427,13 @@ struct gdma_wqe {
- #define MAX_TX_WQE_SIZE 512
- #define MAX_RX_WQE_SIZE 256
- 
-+#define MAX_TX_WQE_SGL_ENTRIES	((GDMA_MAX_SQE_SIZE -			   \
-+			sizeof(struct gdma_sge) - INLINE_OOB_SMALL_SIZE) / \
-+			sizeof(struct gdma_sge))
-+
-+#define MAX_RX_WQE_SGL_ENTRIES	((GDMA_MAX_RQE_SIZE -			   \
-+			sizeof(struct gdma_sge)) / sizeof(struct gdma_sge))
-+
- struct gdma_cqe {
- 	u32 cqe_data[GDMA_COMP_DATA_SIZE / 4];
- 
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 6e9e86fb4c02..713a8f8cca9a 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -265,8 +265,6 @@ struct mana_cq {
- 	int budget;
+@@ -24,11 +24,15 @@ enum gdma_request_type {
+ 	GDMA_GENERATE_TEST_EQE		= 10,
+ 	GDMA_CREATE_QUEUE		= 12,
+ 	GDMA_DISABLE_QUEUE		= 13,
++	GDMA_ALLOCATE_RESOURCE_RANGE	= 22,
++	GDMA_DESTROY_RESOURCE_RANGE	= 24,
+ 	GDMA_CREATE_DMA_REGION		= 25,
+ 	GDMA_DMA_REGION_ADD_PAGES	= 26,
+ 	GDMA_DESTROY_DMA_REGION		= 27,
  };
  
--#define GDMA_MAX_RQE_SGES 15
--
- struct mana_recv_buf_oob {
- 	/* A valid GDMA work request representing the data buffer. */
- 	struct gdma_wqe_request wqe_req;
-@@ -276,7 +274,7 @@ struct mana_recv_buf_oob {
++#define GDMA_RESOURCE_DOORBELL_PAGE	27
++
+ enum gdma_queue_type {
+ 	GDMA_INVALID_QUEUE,
+ 	GDMA_SQ,
+@@ -587,6 +591,26 @@ struct gdma_register_device_resp {
+ 	u32 db_id;
+ }; /* HW DATA */
  
- 	/* SGL of the buffer going to be sent has part of the work request. */
- 	u32 num_sge;
--	struct gdma_sge sgl[GDMA_MAX_RQE_SGES];
-+	struct gdma_sge sgl[MAX_RX_WQE_SGL_ENTRIES];
++struct gdma_allocate_resource_range_req {
++	struct gdma_req_hdr hdr;
++	u32 resource_type;
++	u32 num_resources;
++	u32 alignment;
++	u32 allocated_resources;
++};
++
++struct gdma_allocate_resource_range_resp {
++	struct gdma_resp_hdr hdr;
++	u32 allocated_resources;
++};
++
++struct gdma_destroy_resource_range_req {
++	struct gdma_req_hdr hdr;
++	u32 resource_type;
++	u32 num_resources;
++	u32 allocated_resources;
++};
++
+ /* GDMA_CREATE_QUEUE */
+ struct gdma_create_queue_req {
+ 	struct gdma_req_hdr hdr;
+@@ -695,4 +719,5 @@ void mana_gd_free_memory(struct gdma_mem_info *gmi);
  
- 	/* Required to store the result of mana_gd_post_work_request.
- 	 * gdma_posted_wqe_info.wqe_size_in_bu is required for progressing the
+ int mana_gd_send_request(struct gdma_context *gc, u32 req_len, const void *req,
+ 			 u32 resp_len, void *resp);
++
+ #endif /* _GDMA_H */
 -- 
 2.17.1
 
