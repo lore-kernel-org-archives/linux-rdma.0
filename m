@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E4FC433FE
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 17:24:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C822CC43217
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 17:24:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229885AbiJQRYQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Oct 2022 13:24:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50358 "EHLO
+        id S230232AbiJQRY3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Oct 2022 13:24:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230030AbiJQRYQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 13:24:16 -0400
+        with ESMTP id S230167AbiJQRY1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 13:24:27 -0400
 Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B34372699;
-        Mon, 17 Oct 2022 10:24:14 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D989AF33;
+        Mon, 17 Oct 2022 10:24:21 -0700 (PDT)
 Received: from dimapc.. (109-252-119-114.nat.spd-mgts.ru [109.252.119.114])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 98A5666022A5;
-        Mon, 17 Oct 2022 18:24:07 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id B7BE26602375;
+        Mon, 17 Oct 2022 18:24:16 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1666027452;
-        bh=mNL0kzS7mxVONeStFeS1gkBIV+KbRD8Qq/CCfksLxq4=;
-        h=From:To:Cc:Subject:Date:From;
-        b=UdEuGpXb5Xu/a6MmAi6b2MMlKj5Wvx+FTlQsX0Y59Jh3ql7lpscKlJbw8pcejDtre
-         zqzLS33zCMoGmgGiW5v8iVQj7wFGS8Hrhq/Klz8t7HeWwX6NiWmeqSmNnHevBSxcZM
-         n39n+ALXvsoYD99LbV3mSWi/oLOMeye4RjIMnugQzh8FID2INWwoco7gBh4dInDQIb
-         X7Zt0xC6g53pGk8YqjOzUh45LMoXS5j8pZSI2F6WKRNjw8DAdu6djBwqb+cnUpjP63
-         LL75HeASuunvHFE+TVRCSPxWK55UxrGf+3guyeWFgJOnmFRhFlCgg7/UPLcy1l6QSh
-         juEIhna4ogrNA==
+        s=mail; t=1666027460;
+        bh=EgoLeiRcyZ6rtEkUvPDBuaLVPAM8w09Garsg2bXjQi4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=PrnB+hIpA9nwg2noU4fw+jB4a5k6TAdFBgwjbcFxVz4gk0UicobU4SqAdnv7n/+Fv
+         DJ7sexIP36v9XLtCie4IsYLHM6LIpvhnOmhLdUNDAysHo/uA/+yHjSW79yrwqYRRdx
+         kJHArdUBp/9a/UnH0mVzeItwf3wiKEFMPynUYOrb+cqAybh4okxZQVRLMirSWWRJfH
+         k+Crle1O0httVnbUldJzvMWHEmQmpgPyBbDCm8dUF74V2VrKwJwEppEPNLO9J9mH/t
+         WOp20K9YDLdmcwPdYJlkaOizOtnfkVum8yrn2ZwIpTiD9kxZnJyv1wo7kwmgq/u8ff
+         ON+xlwHL8eqCg==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -76,10 +76,12 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: [PATCH v7 00/21] Move all drivers to a common dma-buf locking convention
-Date:   Mon, 17 Oct 2022 20:22:08 +0300
-Message-Id: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
+Subject: [PATCH v7 02/21] dma-buf: Add unlocked variant of attachment-mapping functions
+Date:   Mon, 17 Oct 2022 20:22:10 +0300
+Message-Id: <20221017172229.42269-3-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.37.3
+In-Reply-To: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
+References: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -87,154 +89,105 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello,
+Add unlocked variant of dma_buf_map/unmap_attachment() that will
+be used by drivers that don't take the reservation lock explicitly.
 
-This series moves all drivers to a dynamic dma-buf locking specification.
-From now on all dma-buf importers are made responsible for holding
-dma-buf's reservation lock around all operations performed over dma-bufs
-in accordance to the locking specification. This allows us to utilize
-reservation lock more broadly around kernel without fearing of a potential
-deadlocks.
+Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
+Acked-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
+---
+ drivers/dma-buf/dma-buf.c | 53 +++++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h   |  6 +++++
+ 2 files changed, 59 insertions(+)
 
-This patchset passes all i915 selftests. It was also tested using VirtIO,
-Panfrost, Lima, Tegra, udmabuf, AMDGPU and Nouveau drivers. I tested cases
-of display+GPU, display+V4L and GPU+V4L dma-buf sharing (where appropriate),
-which covers majority of kernel drivers since rest of the drivers share
-same or similar code paths.
-
-Changelog:
-
-v7: - Rebased on top of recent drm-misc-next.
-
-    - Added ack from Jason Gunthorpe to the RDMA patch.
-
-    - Added iosys_map_clear() to dma_buf_vmap_unlocked(), making it fully
-      consistent with dma_buf_vmap().
-
-v6: - Added r-b from Michael Ruhl to the i915 patch.
-
-    - Added acks from Sumit Semwal and updated commit message of the
-      "Move dma_buf_vmap() to dynamic locking specification" patch like
-      was suggested by Sumit.
-
-    - Added "!dmabuf" check to dma_buf_vmap_unlocked() to match the locked
-      variant of the function, for consistency.
-
-v5: - Added acks and r-bs that were given to v4.
-
-    - Changed i915 preparation patch like was suggested by Michael Ruhl.
-      The scope of reservation locking is smaller now.
-
-v4: - Added dma_buf_mmap() to the "locking convention" documentation,
-      which was missed by accident in v3.
-
-    - Added acks from Christian König, Tomasz Figa and Hans Verkuil that
-      they gave to couple v3 patches.
-
-    - Dropped the "_unlocked" postfix from function names that don't have
-      the locked variant, as was requested by Christian König.
-
-    - Factored out the per-driver preparations into separate patches
-      to ease reviewing of the changes, which is now doable without the
-      global dma-buf functions renaming.
-
-    - Factored out the dynamic locking convention enforcements into separate
-      patches which add the final dma_resv_assert_held(dmabuf->resv) to the
-      dma-buf API functions.
-
-v3: - Factored out dma_buf_mmap_unlocked() and attachment functions
-      into aseparate patches, like was suggested by Christian König.
-
-    - Corrected and factored out dma-buf locking documentation into
-      a separate patch, like was suggested by Christian König.
-
-    - Intel driver dropped the reservation locking fews days ago from
-      its BO-release code path, but we need that locking for the imported
-      GEMs because in the end that code path unmaps the imported GEM.
-      So I added back the locking needed by the imported GEMs, updating
-      the "dma-buf attachment locking specification" patch appropriately.
-
-    - Tested Nouveau+Intel dma-buf import/export combo.
-
-    - Tested udmabuf import to i915/Nouveau/AMDGPU.
-
-    - Fixed few places in Etnaviv, Panfrost and Lima drivers that I missed
-      to switch to locked dma-buf vmapping in the drm/gem: Take reservation
-      lock for vmap/vunmap operations" patch. In a result invalidated the
-      Christian's r-b that he gave to v2.
-
-    - Added locked dma-buf vmap/vunmap functions that are needed for fixing
-      vmappping of Etnaviv, Panfrost and Lima drivers mentioned above.
-      I actually had this change stashed for the drm-shmem shrinker patchset,
-      but then realized that it's already needed by the dma-buf patches.
-      Also improved my tests to better cover these code paths.
-
-v2: - Changed locking specification to avoid problems with a cross-driver
-      ww locking, like was suggested by Christian König. Now the attach/detach
-      callbacks are invoked without the held lock and exporter should take the
-      lock.
-
-    - Added "locking convention" documentation that explains which dma-buf
-      functions and callbacks are locked/unlocked for importers and exporters,
-      which was requested by Christian König.
-
-    - Added ack from Tomasz Figa to the V4L patches that he gave to v1.
-
-Dmitry Osipenko (21):
-  dma-buf: Add unlocked variant of vmapping functions
-  dma-buf: Add unlocked variant of attachment-mapping functions
-  drm/gem: Take reservation lock for vmap/vunmap operations
-  drm/prime: Prepare to dynamic dma-buf locking specification
-  drm/armada: Prepare to dynamic dma-buf locking specification
-  drm/i915: Prepare to dynamic dma-buf locking specification
-  drm/omapdrm: Prepare to dynamic dma-buf locking specification
-  drm/tegra: Prepare to dynamic dma-buf locking specification
-  drm/etnaviv: Prepare to dynamic dma-buf locking specification
-  RDMA/umem: Prepare to dynamic dma-buf locking specification
-  misc: fastrpc: Prepare to dynamic dma-buf locking specification
-  xen/gntdev: Prepare to dynamic dma-buf locking specification
-  media: videobuf2: Prepare to dynamic dma-buf locking specification
-  media: tegra-vde: Prepare to dynamic dma-buf locking specification
-  dma-buf: Move dma_buf_vmap() to dynamic locking specification
-  dma-buf: Move dma_buf_attach() to dynamic locking specification
-  dma-buf: Move dma_buf_map_attachment() to dynamic locking
-    specification
-  dma-buf: Move dma_buf_mmap() to dynamic locking specification
-  dma-buf: Document dynamic locking convention
-  media: videobuf2: Stop using internal dma-buf lock
-  dma-buf: Remove obsoleted internal lock
-
- Documentation/driver-api/dma-buf.rst          |   6 +
- drivers/dma-buf/dma-buf.c                     | 216 +++++++++++++++---
- drivers/gpu/drm/armada/armada_gem.c           |   8 +-
- drivers/gpu/drm/drm_client.c                  |   4 +-
- drivers/gpu/drm/drm_gem.c                     |  24 ++
- drivers/gpu/drm/drm_gem_dma_helper.c          |   6 +-
- drivers/gpu/drm/drm_gem_framebuffer_helper.c  |   6 +-
- drivers/gpu/drm/drm_gem_ttm_helper.c          |   9 +-
- drivers/gpu/drm/drm_prime.c                   |   6 +-
- drivers/gpu/drm/etnaviv/etnaviv_gem_prime.c   |   2 +-
- drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c    |   2 +-
- drivers/gpu/drm/i915/gem/i915_gem_object.c    |  14 ++
- .../drm/i915/gem/selftests/i915_gem_dmabuf.c  |  16 +-
- drivers/gpu/drm/lima/lima_sched.c             |   4 +-
- drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c     |   4 +-
- drivers/gpu/drm/panfrost/panfrost_dump.c      |   4 +-
- drivers/gpu/drm/panfrost/panfrost_perfcnt.c   |   6 +-
- drivers/gpu/drm/qxl/qxl_object.c              |  17 +-
- drivers/gpu/drm/qxl/qxl_prime.c               |   4 +-
- drivers/gpu/drm/tegra/gem.c                   |  17 +-
- drivers/infiniband/core/umem_dmabuf.c         |   7 +-
- .../common/videobuf2/videobuf2-dma-contig.c   |  22 +-
- .../media/common/videobuf2/videobuf2-dma-sg.c |  19 +-
- .../common/videobuf2/videobuf2-vmalloc.c      |  17 +-
- .../platform/nvidia/tegra-vde/dmabuf-cache.c  |   6 +-
- drivers/misc/fastrpc.c                        |   6 +-
- drivers/xen/gntdev-dmabuf.c                   |   8 +-
- include/drm/drm_gem.h                         |   3 +
- include/linux/dma-buf.h                       |  17 +-
- 29 files changed, 325 insertions(+), 155 deletions(-)
-
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index e95fc8dc3aed..3e4060dadb74 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -1100,6 +1100,34 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
+ }
+ EXPORT_SYMBOL_NS_GPL(dma_buf_map_attachment, DMA_BUF);
+ 
++/**
++ * dma_buf_map_attachment_unlocked - Returns the scatterlist table of the attachment;
++ * mapped into _device_ address space. Is a wrapper for map_dma_buf() of the
++ * dma_buf_ops.
++ * @attach:	[in]	attachment whose scatterlist is to be returned
++ * @direction:	[in]	direction of DMA transfer
++ *
++ * Unlocked variant of dma_buf_map_attachment().
++ */
++struct sg_table *
++dma_buf_map_attachment_unlocked(struct dma_buf_attachment *attach,
++				enum dma_data_direction direction)
++{
++	struct sg_table *sg_table;
++
++	might_sleep();
++
++	if (WARN_ON(!attach || !attach->dmabuf))
++		return ERR_PTR(-EINVAL);
++
++	dma_resv_lock(attach->dmabuf->resv, NULL);
++	sg_table = dma_buf_map_attachment(attach, direction);
++	dma_resv_unlock(attach->dmabuf->resv);
++
++	return sg_table;
++}
++EXPORT_SYMBOL_NS_GPL(dma_buf_map_attachment_unlocked, DMA_BUF);
++
+ /**
+  * dma_buf_unmap_attachment - unmaps and decreases usecount of the buffer;might
+  * deallocate the scatterlist associated. Is a wrapper for unmap_dma_buf() of
+@@ -1136,6 +1164,31 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+ }
+ EXPORT_SYMBOL_NS_GPL(dma_buf_unmap_attachment, DMA_BUF);
+ 
++/**
++ * dma_buf_unmap_attachment_unlocked - unmaps and decreases usecount of the buffer;might
++ * deallocate the scatterlist associated. Is a wrapper for unmap_dma_buf() of
++ * dma_buf_ops.
++ * @attach:	[in]	attachment to unmap buffer from
++ * @sg_table:	[in]	scatterlist info of the buffer to unmap
++ * @direction:	[in]	direction of DMA transfer
++ *
++ * Unlocked variant of dma_buf_unmap_attachment().
++ */
++void dma_buf_unmap_attachment_unlocked(struct dma_buf_attachment *attach,
++				       struct sg_table *sg_table,
++				       enum dma_data_direction direction)
++{
++	might_sleep();
++
++	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
++		return;
++
++	dma_resv_lock(attach->dmabuf->resv, NULL);
++	dma_buf_unmap_attachment(attach, sg_table, direction);
++	dma_resv_unlock(attach->dmabuf->resv);
++}
++EXPORT_SYMBOL_NS_GPL(dma_buf_unmap_attachment_unlocked, DMA_BUF);
++
+ /**
+  * dma_buf_move_notify - notify attachments that DMA-buf is moving
+  *
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index 8daa054dd7fe..f11b5bbc2f37 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -627,6 +627,12 @@ int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
+ 			     enum dma_data_direction dir);
+ int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
+ 			   enum dma_data_direction dir);
++struct sg_table *
++dma_buf_map_attachment_unlocked(struct dma_buf_attachment *attach,
++				enum dma_data_direction direction);
++void dma_buf_unmap_attachment_unlocked(struct dma_buf_attachment *attach,
++				       struct sg_table *sg_table,
++				       enum dma_data_direction direction);
+ 
+ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
+ 		 unsigned long);
 -- 
 2.37.3
 
