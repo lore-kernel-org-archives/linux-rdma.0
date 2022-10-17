@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C27AC4167D
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 17:26:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEB05C4332F
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 17:26:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230441AbiJQR0C (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Oct 2022 13:26:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59606 "EHLO
+        id S230447AbiJQR0D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Oct 2022 13:26:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230398AbiJQRZb (ORCPT
+        with ESMTP id S230028AbiJQRZb (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 13:25:31 -0400
-Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D18EE5301C;
-        Mon, 17 Oct 2022 10:24:56 -0700 (PDT)
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72DA66BCDB;
+        Mon, 17 Oct 2022 10:25:05 -0700 (PDT)
 Received: from dimapc.. (109-252-119-114.nat.spd-mgts.ru [109.252.119.114])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id D90EA660238A;
-        Mon, 17 Oct 2022 18:24:47 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id A8AD9660238B;
+        Mon, 17 Oct 2022 18:24:58 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1666027491;
-        bh=/fmhFqKRdyFDSOgw768lCF7vkLc6zTfOgN/CMggxBBU=;
+        s=mail; t=1666027502;
+        bh=rursgbmP7QEQ6FtIuHaTGEHDv1XGwQXcoPlxwDcrJ6M=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VIrv1adCfYeYjyl/ZPvIa+2eitMJaYnVt+F8bcEXKl3KPIGgzE6UfTMJIPZP9TLui
-         8K7QkYfa/uENzMzSrPEukPION9g/2LQilBX3TipN3kH2BDK0qPuPM92xMLJld5nKPK
-         yicLWuPrB/tjot0Wdy+luQ43FEBA5SQjcmsefOM28FwSkUMcRnBw6VH+aE3usBpoJw
-         oyri+ALarLBcxPD1ONJF1boMRpHAfx7xZqtkSFFajZfwAYM3ga3PCS2SmrOevLP0TX
-         RxwY/B3B18geKRsUVs+z5N+iiML1QLMTJNO1DeoUFQBc+u5iujq5S/35O8vXCPXavh
-         xX0nFwsLWuSGg==
+        b=mR3pBAnsTTsC2o5rwzo7UMXYaggyUIyp32bjFE5T+q0znkvf9RzmwbCdqQeq/DdoO
+         j/zRnXyDaxRU0Ur8kCgU6JFoY2ZCM+9ZuBgzO1mRN8LezU0C6qLttQlmN1yU4NiZCA
+         UMOPyj6yCWLZF8RB4JulBJxWGFL/HvxUK003P2LnoMDtNw5IUcs2ihGqpEYlorTdrM
+         dsSrLPjl8lrzfUcjp82RUnx7/Dp/hPvANuNTE6X9GLCcrX8+sZ53B9CG3J8KNc2Erz
+         X/3ZXKMSfz9fBW0m4YNZvxCFMZ9QKrGXz/5aNhM1KIBcNviG1umajO6s62Ata/gwA7
+         Dw+bwnrE9CQCA==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -76,9 +76,9 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: [PATCH v7 10/21] RDMA/umem: Prepare to dynamic dma-buf locking specification
-Date:   Mon, 17 Oct 2022 20:22:18 +0300
-Message-Id: <20221017172229.42269-11-dmitry.osipenko@collabora.com>
+Subject: [PATCH v7 13/21] media: videobuf2: Prepare to dynamic dma-buf locking specification
+Date:   Mon, 17 Oct 2022 20:22:21 +0300
+Message-Id: <20221017172229.42269-14-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.37.3
 In-Reply-To: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
 References: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
@@ -89,41 +89,129 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Prepare InfiniBand drivers to the common dynamic dma-buf locking
+Prepare V4L2 memory allocators to the common dynamic dma-buf locking
 convention by starting to use the unlocked versions of dma-buf API
 functions.
 
-Acked-by: Jason Gunthorpe <jgg@nvidia.com>
+Acked-by: Tomasz Figa <tfiga@chromium.org>
 Acked-by: Christian König <christian.koenig@amd.com>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- drivers/infiniband/core/umem_dmabuf.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/media/common/videobuf2/videobuf2-dma-contig.c | 11 ++++++-----
+ drivers/media/common/videobuf2/videobuf2-dma-sg.c     |  8 ++++----
+ drivers/media/common/videobuf2/videobuf2-vmalloc.c    |  6 +++---
+ 3 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem_dmabuf.c b/drivers/infiniband/core/umem_dmabuf.c
-index 04c04e6d24c3..43b26bc12288 100644
---- a/drivers/infiniband/core/umem_dmabuf.c
-+++ b/drivers/infiniband/core/umem_dmabuf.c
-@@ -26,7 +26,8 @@ int ib_umem_dmabuf_map_pages(struct ib_umem_dmabuf *umem_dmabuf)
- 	if (umem_dmabuf->sgt)
- 		goto wait_fence;
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-contig.c b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+index 678b359717c4..79f4d8301fbb 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-contig.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-contig.c
+@@ -101,7 +101,7 @@ static void *vb2_dc_vaddr(struct vb2_buffer *vb, void *buf_priv)
+ 	if (buf->db_attach) {
+ 		struct iosys_map map;
  
--	sgt = dma_buf_map_attachment(umem_dmabuf->attach, DMA_BIDIRECTIONAL);
-+	sgt = dma_buf_map_attachment_unlocked(umem_dmabuf->attach,
-+					      DMA_BIDIRECTIONAL);
- 	if (IS_ERR(sgt))
- 		return PTR_ERR(sgt);
+-		if (!dma_buf_vmap(buf->db_attach->dmabuf, &map))
++		if (!dma_buf_vmap_unlocked(buf->db_attach->dmabuf, &map))
+ 			buf->vaddr = map.vaddr;
  
-@@ -102,8 +103,8 @@ void ib_umem_dmabuf_unmap_pages(struct ib_umem_dmabuf *umem_dmabuf)
- 		umem_dmabuf->last_sg_trim = 0;
+ 		return buf->vaddr;
+@@ -711,7 +711,7 @@ static int vb2_dc_map_dmabuf(void *mem_priv)
  	}
  
--	dma_buf_unmap_attachment(umem_dmabuf->attach, umem_dmabuf->sgt,
--				 DMA_BIDIRECTIONAL);
-+	dma_buf_unmap_attachment_unlocked(umem_dmabuf->attach, umem_dmabuf->sgt,
-+					  DMA_BIDIRECTIONAL);
+ 	/* get the associated scatterlist for this buffer */
+-	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
++	sgt = dma_buf_map_attachment_unlocked(buf->db_attach, buf->dma_dir);
+ 	if (IS_ERR(sgt)) {
+ 		pr_err("Error getting dmabuf scatterlist\n");
+ 		return -EINVAL;
+@@ -722,7 +722,8 @@ static int vb2_dc_map_dmabuf(void *mem_priv)
+ 	if (contig_size < buf->size) {
+ 		pr_err("contiguous chunk is too small %lu/%lu\n",
+ 		       contig_size, buf->size);
+-		dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++		dma_buf_unmap_attachment_unlocked(buf->db_attach, sgt,
++						  buf->dma_dir);
+ 		return -EFAULT;
+ 	}
  
- 	umem_dmabuf->sgt = NULL;
+@@ -750,10 +751,10 @@ static void vb2_dc_unmap_dmabuf(void *mem_priv)
+ 	}
+ 
+ 	if (buf->vaddr) {
+-		dma_buf_vunmap(buf->db_attach->dmabuf, &map);
++		dma_buf_vunmap_unlocked(buf->db_attach->dmabuf, &map);
+ 		buf->vaddr = NULL;
+ 	}
+-	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++	dma_buf_unmap_attachment_unlocked(buf->db_attach, sgt, buf->dma_dir);
+ 
+ 	buf->dma_addr = 0;
+ 	buf->dma_sgt = NULL;
+diff --git a/drivers/media/common/videobuf2/videobuf2-dma-sg.c b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+index fa69158a65b1..36ecdea8d707 100644
+--- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
++++ b/drivers/media/common/videobuf2/videobuf2-dma-sg.c
+@@ -309,7 +309,7 @@ static void *vb2_dma_sg_vaddr(struct vb2_buffer *vb, void *buf_priv)
+ 
+ 	if (!buf->vaddr) {
+ 		if (buf->db_attach) {
+-			ret = dma_buf_vmap(buf->db_attach->dmabuf, &map);
++			ret = dma_buf_vmap_unlocked(buf->db_attach->dmabuf, &map);
+ 			buf->vaddr = ret ? NULL : map.vaddr;
+ 		} else {
+ 			buf->vaddr = vm_map_ram(buf->pages, buf->num_pages, -1);
+@@ -565,7 +565,7 @@ static int vb2_dma_sg_map_dmabuf(void *mem_priv)
+ 	}
+ 
+ 	/* get the associated scatterlist for this buffer */
+-	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
++	sgt = dma_buf_map_attachment_unlocked(buf->db_attach, buf->dma_dir);
+ 	if (IS_ERR(sgt)) {
+ 		pr_err("Error getting dmabuf scatterlist\n");
+ 		return -EINVAL;
+@@ -594,10 +594,10 @@ static void vb2_dma_sg_unmap_dmabuf(void *mem_priv)
+ 	}
+ 
+ 	if (buf->vaddr) {
+-		dma_buf_vunmap(buf->db_attach->dmabuf, &map);
++		dma_buf_vunmap_unlocked(buf->db_attach->dmabuf, &map);
+ 		buf->vaddr = NULL;
+ 	}
+-	dma_buf_unmap_attachment(buf->db_attach, sgt, buf->dma_dir);
++	dma_buf_unmap_attachment_unlocked(buf->db_attach, sgt, buf->dma_dir);
+ 
+ 	buf->dma_sgt = NULL;
+ }
+diff --git a/drivers/media/common/videobuf2/videobuf2-vmalloc.c b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+index 948152f1596b..7831bf545874 100644
+--- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
++++ b/drivers/media/common/videobuf2/videobuf2-vmalloc.c
+@@ -376,7 +376,7 @@ static int vb2_vmalloc_map_dmabuf(void *mem_priv)
+ 	struct iosys_map map;
+ 	int ret;
+ 
+-	ret = dma_buf_vmap(buf->dbuf, &map);
++	ret = dma_buf_vmap_unlocked(buf->dbuf, &map);
+ 	if (ret)
+ 		return -EFAULT;
+ 	buf->vaddr = map.vaddr;
+@@ -389,7 +389,7 @@ static void vb2_vmalloc_unmap_dmabuf(void *mem_priv)
+ 	struct vb2_vmalloc_buf *buf = mem_priv;
+ 	struct iosys_map map = IOSYS_MAP_INIT_VADDR(buf->vaddr);
+ 
+-	dma_buf_vunmap(buf->dbuf, &map);
++	dma_buf_vunmap_unlocked(buf->dbuf, &map);
+ 	buf->vaddr = NULL;
+ }
+ 
+@@ -399,7 +399,7 @@ static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
+ 	struct iosys_map map = IOSYS_MAP_INIT_VADDR(buf->vaddr);
+ 
+ 	if (buf->vaddr)
+-		dma_buf_vunmap(buf->dbuf, &map);
++		dma_buf_vunmap_unlocked(buf->dbuf, &map);
+ 
+ 	kfree(buf);
  }
 -- 
 2.37.3
