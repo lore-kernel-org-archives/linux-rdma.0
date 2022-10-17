@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3A80C43219
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 17:24:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F266C43219
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 17:24:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230226AbiJQRYd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Oct 2022 13:24:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50912 "EHLO
+        id S230254AbiJQRYg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Oct 2022 13:24:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230229AbiJQRY2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 13:24:28 -0400
-Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D5CB726A1;
-        Mon, 17 Oct 2022 10:24:17 -0700 (PDT)
+        with ESMTP id S230237AbiJQRYd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 13:24:33 -0400
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CF377644;
+        Mon, 17 Oct 2022 10:24:29 -0700 (PDT)
 Received: from dimapc.. (109-252-119-114.nat.spd-mgts.ru [109.252.119.114])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 2F9B2660232A;
-        Mon, 17 Oct 2022 18:24:12 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id 5DDD4660238A;
+        Mon, 17 Oct 2022 18:24:24 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1666027456;
-        bh=Ex3AyquhNB6SUyXxM39A6LQM86DSUXI6d8WILYiNDB4=;
+        s=mail; t=1666027467;
+        bh=4gK+dAA52oPrrxMVr206U9w4dhN67vdQLljv+DOU7UE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=D14SQhLaDc3wymEhfQ7kLOLaTxtKSAiqblynz43C7tbL9D87TBKj9qtbPtRFBl5Ic
-         kvkmX9iLBEezccTFptMYfIZsAxP7NV4mdV6qTt+Lf3Ckfx6h1kPMZGVHErAzDSPl5F
-         P1D6fEHo10EcXP/Bipt6/vA++Ef96gT5IAOt6Aj40ir/ztZO4RQYBUBkohSMkXIFbx
-         WLQ5L+mUh9KjBkUe0zWKlm27XCOHUx7l+LZ6Pu0jBhzR1UzXVlzAEmfsnxx8Grpzmd
-         +KBvqdSOy6UATlaRldthV2/8tkSd2Qa2P/DOAMyCHnepVWOFc+PuG0157aUl6S2IIY
-         kEb5ReGRHuzpw==
+        b=G+h1tmyJEfTpbQtx14VoyTBDJfqaPN2CeSUtryRgG+AsTOVPmxTE5Tgx1yJtxFV8k
+         JQg0/03Qi2BJA7BxufsBusQQzyeNhKsIgtlZZ1x3GvPBi2X2g3lsfG7SaxkY8VLr3b
+         Gb6zmggipQCyqvn7zVrRSQxUFHlQAj7AhutQdSRMWtr/E+oFHmY/rwUydQaBRHqE/H
+         846q2OsYltLRJTekII020DsjATGDKMiEfQDS4ZHDFe5NfzmcyZ933GPSBrQxm+Q1z4
+         IUcyGi2pui8opDcX3qwVaBfkWYvOzUh0lWrlg+Hnop9eCL5f+KysfGi3pfzVqwB2xL
+         NmDJiOlqxowuA==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -76,9 +76,9 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: [PATCH v7 01/21] dma-buf: Add unlocked variant of vmapping functions
-Date:   Mon, 17 Oct 2022 20:22:09 +0300
-Message-Id: <20221017172229.42269-2-dmitry.osipenko@collabora.com>
+Subject: [PATCH v7 04/21] drm/prime: Prepare to dynamic dma-buf locking specification
+Date:   Mon, 17 Oct 2022 20:22:12 +0300
+Message-Id: <20221017172229.42269-5-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.37.3
 In-Reply-To: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
 References: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
@@ -89,89 +89,46 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add unlocked variant of dma_buf_vmap/vunmap() that will be utilized
-by drivers that don't take the reservation lock explicitly.
+Prepare DRM prime core to the common dynamic dma-buf locking convention
+by starting to use the unlocked versions of dma-buf API functions.
 
-Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
-Acked-by: Christian König <christian.koenig@amd.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- drivers/dma-buf/dma-buf.c | 43 +++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h   |  2 ++
- 2 files changed, 45 insertions(+)
+ drivers/gpu/drm/drm_prime.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index efb4990b29e1..e95fc8dc3aed 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -1425,6 +1425,33 @@ int dma_buf_vmap(struct dma_buf *dmabuf, struct iosys_map *map)
- }
- EXPORT_SYMBOL_NS_GPL(dma_buf_vmap, DMA_BUF);
+diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
+index a3f180653b8b..ef50c4e2e509 100644
+--- a/drivers/gpu/drm/drm_prime.c
++++ b/drivers/gpu/drm/drm_prime.c
+@@ -936,7 +936,7 @@ struct drm_gem_object *drm_gem_prime_import_dev(struct drm_device *dev,
  
-+/**
-+ * dma_buf_vmap_unlocked - Create virtual mapping for the buffer object into kernel
-+ * address space. Same restrictions as for vmap and friends apply.
-+ * @dmabuf:	[in]	buffer to vmap
-+ * @map:	[out]	returns the vmap pointer
-+ *
-+ * Unlocked version of dma_buf_vmap()
-+ *
-+ * Returns 0 on success, or a negative errno code otherwise.
-+ */
-+int dma_buf_vmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map)
-+{
-+	int ret;
-+
-+	iosys_map_clear(map);
-+
-+	if (WARN_ON(!dmabuf))
-+		return -EINVAL;
-+
-+	dma_resv_lock(dmabuf->resv, NULL);
-+	ret = dma_buf_vmap(dmabuf, map);
-+	dma_resv_unlock(dmabuf->resv);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_NS_GPL(dma_buf_vmap_unlocked, DMA_BUF);
-+
- /**
-  * dma_buf_vunmap - Unmap a vmap obtained by dma_buf_vmap.
-  * @dmabuf:	[in]	buffer to vunmap
-@@ -1449,6 +1476,22 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, struct iosys_map *map)
- }
- EXPORT_SYMBOL_NS_GPL(dma_buf_vunmap, DMA_BUF);
+ 	get_dma_buf(dma_buf);
  
-+/**
-+ * dma_buf_vunmap_unlocked - Unmap a vmap obtained by dma_buf_vmap.
-+ * @dmabuf:	[in]	buffer to vunmap
-+ * @map:	[in]	vmap pointer to vunmap
-+ */
-+void dma_buf_vunmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map)
-+{
-+	if (WARN_ON(!dmabuf))
-+		return;
-+
-+	dma_resv_lock(dmabuf->resv, NULL);
-+	dma_buf_vunmap(dmabuf, map);
-+	dma_resv_unlock(dmabuf->resv);
-+}
-+EXPORT_SYMBOL_NS_GPL(dma_buf_vunmap_unlocked, DMA_BUF);
-+
- #ifdef CONFIG_DEBUG_FS
- static int dma_buf_debug_show(struct seq_file *s, void *unused)
- {
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 71731796c8c3..8daa054dd7fe 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -632,4 +632,6 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
- 		 unsigned long);
- int dma_buf_vmap(struct dma_buf *dmabuf, struct iosys_map *map);
- void dma_buf_vunmap(struct dma_buf *dmabuf, struct iosys_map *map);
-+int dma_buf_vmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map);
-+void dma_buf_vunmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map);
- #endif /* __DMA_BUF_H__ */
+-	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
++	sgt = dma_buf_map_attachment_unlocked(attach, DMA_BIDIRECTIONAL);
+ 	if (IS_ERR(sgt)) {
+ 		ret = PTR_ERR(sgt);
+ 		goto fail_detach;
+@@ -954,7 +954,7 @@ struct drm_gem_object *drm_gem_prime_import_dev(struct drm_device *dev,
+ 	return obj;
+ 
+ fail_unmap:
+-	dma_buf_unmap_attachment(attach, sgt, DMA_BIDIRECTIONAL);
++	dma_buf_unmap_attachment_unlocked(attach, sgt, DMA_BIDIRECTIONAL);
+ fail_detach:
+ 	dma_buf_detach(dma_buf, attach);
+ 	dma_buf_put(dma_buf);
+@@ -1052,7 +1052,7 @@ void drm_prime_gem_destroy(struct drm_gem_object *obj, struct sg_table *sg)
+ 
+ 	attach = obj->import_attach;
+ 	if (sg)
+-		dma_buf_unmap_attachment(attach, sg, DMA_BIDIRECTIONAL);
++		dma_buf_unmap_attachment_unlocked(attach, sg, DMA_BIDIRECTIONAL);
+ 	dma_buf = attach->dmabuf;
+ 	dma_buf_detach(attach->dmabuf, attach);
+ 	/* remove the reference */
 -- 
 2.37.3
 
