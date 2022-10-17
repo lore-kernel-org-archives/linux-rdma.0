@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9872EC4332F
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 17:26:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C27AC4167D
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 17:26:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230400AbiJQR0C (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S230441AbiJQR0C (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 17 Oct 2022 13:26:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59528 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230392AbiJQRZb (ORCPT
+        with ESMTP id S230398AbiJQRZb (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 13:25:31 -0400
-Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DC5F696C1;
-        Mon, 17 Oct 2022 10:25:00 -0700 (PDT)
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D18EE5301C;
+        Mon, 17 Oct 2022 10:24:56 -0700 (PDT)
 Received: from dimapc.. (109-252-119-114.nat.spd-mgts.ru [109.252.119.114])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
         (Authenticated sender: dmitry.osipenko)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 466526602388;
-        Mon, 17 Oct 2022 18:24:55 +0100 (BST)
+        by madras.collabora.co.uk (Postfix) with ESMTPSA id D90EA660238A;
+        Mon, 17 Oct 2022 18:24:47 +0100 (BST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1666027498;
-        bh=pCSmC3VPtA7CuegS38L6lty54ziB9yvQFvfJf8KB1ik=;
+        s=mail; t=1666027491;
+        bh=/fmhFqKRdyFDSOgw768lCF7vkLc6zTfOgN/CMggxBBU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=gAXB8G//cO3F3j8AWGrPRrvRsVjlCFBgu2qiaGBgXtYsHwRcF+71r0UkKQMsa/ddR
-         zh6WigfOXVJ7d10exRZYGPPM85AnMle9hUdujUVw5Soqan6bvr6KsluDNdaYd9VaQh
-         ivT4hSLz0yaqXGAaHdn/IK3LGCRvesk0p1PK3Q8pwtySNTx1rLRrk4fkymMiiF2/Vc
-         bo2I05eRJP+kiOM9lY+OEFzrflbPhMyHPcbX7qTUxwtl2LsZ0B2paS9YOZeKunO7D5
-         7H3cZ9NTpoEX/UkWelf7EQ3K4NbGTTe42nJE9HbFU0Yn00FR4dW/C+wREaUImxtMFC
-         LEl+iVBw8GnyA==
+        b=VIrv1adCfYeYjyl/ZPvIa+2eitMJaYnVt+F8bcEXKl3KPIGgzE6UfTMJIPZP9TLui
+         8K7QkYfa/uENzMzSrPEukPION9g/2LQilBX3TipN3kH2BDK0qPuPM92xMLJld5nKPK
+         yicLWuPrB/tjot0Wdy+luQ43FEBA5SQjcmsefOM28FwSkUMcRnBw6VH+aE3usBpoJw
+         oyri+ALarLBcxPD1ONJF1boMRpHAfx7xZqtkSFFajZfwAYM3ga3PCS2SmrOevLP0TX
+         RxwY/B3B18geKRsUVs+z5N+iiML1QLMTJNO1DeoUFQBc+u5iujq5S/35O8vXCPXavh
+         xX0nFwsLWuSGg==
 From:   Dmitry Osipenko <dmitry.osipenko@collabora.com>
 To:     David Airlie <airlied@linux.ie>, Gerd Hoffmann <kraxel@redhat.com>,
         Gurchetan Singh <gurchetansingh@chromium.org>,
@@ -76,9 +76,9 @@ Cc:     dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
         amd-gfx@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
         kernel@collabora.com, virtualization@lists.linux-foundation.org,
         linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org
-Subject: [PATCH v7 12/21] xen/gntdev: Prepare to dynamic dma-buf locking specification
-Date:   Mon, 17 Oct 2022 20:22:20 +0300
-Message-Id: <20221017172229.42269-13-dmitry.osipenko@collabora.com>
+Subject: [PATCH v7 10/21] RDMA/umem: Prepare to dynamic dma-buf locking specification
+Date:   Mon, 17 Oct 2022 20:22:18 +0300
+Message-Id: <20221017172229.42269-11-dmitry.osipenko@collabora.com>
 X-Mailer: git-send-email 2.37.3
 In-Reply-To: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
 References: <20221017172229.42269-1-dmitry.osipenko@collabora.com>
@@ -89,49 +89,42 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Prepare gntdev driver to the common dynamic dma-buf locking convention
-by starting to use the unlocked versions of dma-buf API functions.
+Prepare InfiniBand drivers to the common dynamic dma-buf locking
+convention by starting to use the unlocked versions of dma-buf API
+functions.
 
-Acked-by: Juergen Gross <jgross@suse.com>
+Acked-by: Jason Gunthorpe <jgg@nvidia.com>
 Acked-by: Christian König <christian.koenig@amd.com>
 Signed-off-by: Dmitry Osipenko <dmitry.osipenko@collabora.com>
 ---
- drivers/xen/gntdev-dmabuf.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/umem_dmabuf.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/xen/gntdev-dmabuf.c b/drivers/xen/gntdev-dmabuf.c
-index 940e5e9e8a54..4440e626b797 100644
---- a/drivers/xen/gntdev-dmabuf.c
-+++ b/drivers/xen/gntdev-dmabuf.c
-@@ -600,7 +600,7 @@ dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
+diff --git a/drivers/infiniband/core/umem_dmabuf.c b/drivers/infiniband/core/umem_dmabuf.c
+index 04c04e6d24c3..43b26bc12288 100644
+--- a/drivers/infiniband/core/umem_dmabuf.c
++++ b/drivers/infiniband/core/umem_dmabuf.c
+@@ -26,7 +26,8 @@ int ib_umem_dmabuf_map_pages(struct ib_umem_dmabuf *umem_dmabuf)
+ 	if (umem_dmabuf->sgt)
+ 		goto wait_fence;
  
- 	gntdev_dmabuf->u.imp.attach = attach;
+-	sgt = dma_buf_map_attachment(umem_dmabuf->attach, DMA_BIDIRECTIONAL);
++	sgt = dma_buf_map_attachment_unlocked(umem_dmabuf->attach,
++					      DMA_BIDIRECTIONAL);
+ 	if (IS_ERR(sgt))
+ 		return PTR_ERR(sgt);
  
--	sgt = dma_buf_map_attachment(attach, DMA_BIDIRECTIONAL);
-+	sgt = dma_buf_map_attachment_unlocked(attach, DMA_BIDIRECTIONAL);
- 	if (IS_ERR(sgt)) {
- 		ret = ERR_CAST(sgt);
- 		goto fail_detach;
-@@ -658,7 +658,7 @@ dmabuf_imp_to_refs(struct gntdev_dmabuf_priv *priv, struct device *dev,
- fail_end_access:
- 	dmabuf_imp_end_foreign_access(gntdev_dmabuf->u.imp.refs, count);
- fail_unmap:
--	dma_buf_unmap_attachment(attach, sgt, DMA_BIDIRECTIONAL);
-+	dma_buf_unmap_attachment_unlocked(attach, sgt, DMA_BIDIRECTIONAL);
- fail_detach:
- 	dma_buf_detach(dma_buf, attach);
- fail_free_obj:
-@@ -708,8 +708,8 @@ static int dmabuf_imp_release(struct gntdev_dmabuf_priv *priv, u32 fd)
- 	attach = gntdev_dmabuf->u.imp.attach;
+@@ -102,8 +103,8 @@ void ib_umem_dmabuf_unmap_pages(struct ib_umem_dmabuf *umem_dmabuf)
+ 		umem_dmabuf->last_sg_trim = 0;
+ 	}
  
- 	if (gntdev_dmabuf->u.imp.sgt)
--		dma_buf_unmap_attachment(attach, gntdev_dmabuf->u.imp.sgt,
--					 DMA_BIDIRECTIONAL);
-+		dma_buf_unmap_attachment_unlocked(attach, gntdev_dmabuf->u.imp.sgt,
-+						  DMA_BIDIRECTIONAL);
- 	dma_buf = attach->dmabuf;
- 	dma_buf_detach(attach->dmabuf, attach);
- 	dma_buf_put(dma_buf);
+-	dma_buf_unmap_attachment(umem_dmabuf->attach, umem_dmabuf->sgt,
+-				 DMA_BIDIRECTIONAL);
++	dma_buf_unmap_attachment_unlocked(umem_dmabuf->attach, umem_dmabuf->sgt,
++					  DMA_BIDIRECTIONAL);
+ 
+ 	umem_dmabuf->sgt = NULL;
+ }
 -- 
 2.37.3
 
