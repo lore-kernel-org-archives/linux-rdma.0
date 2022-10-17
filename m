@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04675C4167D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16DEDC4167E
 	for <linux-rdma@archiver.kernel.org>; Mon, 17 Oct 2022 19:21:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231150AbiJQTVE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Oct 2022 15:21:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55130 "EHLO
+        id S231160AbiJQTVG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Oct 2022 15:21:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230489AbiJQTUz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 15:20:55 -0400
+        with ESMTP id S230503AbiJQTU4 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Oct 2022 15:20:56 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3B8455C943;
-        Mon, 17 Oct 2022 12:20:52 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6ECB77674E;
+        Mon, 17 Oct 2022 12:20:53 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 2627220FD94A; Mon, 17 Oct 2022 12:20:51 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2627220FD94A
+        id 70DB520FDA80; Mon, 17 Oct 2022 12:20:52 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 70DB520FDA80
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1666034451;
-        bh=rwVxEsxu7JjwiZgZjI9rnYUFS4A1egO/GwxRV1e+7jQ=;
+        s=default; t=1666034452;
+        bh=bXAXXXWrR9V+EThSaWjY7kZ/dnC9Y8q0qjq9clyypqg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=kc+jruWbxnwP879d3wpjLBm89kl2mHT6aC4VrCGQ6HJ+SABxfhWrMBML7MSXSqFEP
-         pXXdQxlyqSj6MVzVRAqj6uMjhizHvseobs69/zl3uFw9vxuOR52RC6abXQ1h5eXNrF
-         EuwswCuXWtfm3LKcPHy7GB9ljAPvqMx/t/FXn3Vg=
+        b=Zo7aKqrw6/7XLlWhnhsuumpm8h0kRZfPhAlpnrpj+hFbxjU+nKkOAdGBk/v0MVZZE
+         sxInTp5qDIo1Ioxmz1r4DwhnSCtVoQ46a5ALG18yCUozXpqlDWV/oEnY4HOSwsJThg
+         brnXg0mz7BbcPeZmNVtxfGPZrKuM5gJB+9rG9VRE=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v7 01/12] net: mana: Add support for auxiliary device
-Date:   Mon, 17 Oct 2022 12:20:30 -0700
-Message-Id: <1666034441-15424-2-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v7 03/12] net: mana: Handle vport sharing between devices
+Date:   Mon, 17 Oct 2022 12:20:32 -0700
+Message-Id: <1666034441-15424-4-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1666034441-15424-1-git-send-email-longli@linuxonhyperv.com>
 References: <1666034441-15424-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,188 +51,150 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-In preparation for supporting MANA RDMA driver, add support for auxiliary
-device in the Ethernet driver. The RDMA device is modeled as an auxiliary
-device to the Ethernet device.
+For outgoing packets, the PF requires the VF to configure the vport with
+corresponding protection domain and doorbell ID for the kernel or user
+context. The vport can't be shared between different contexts.
+
+Implement the logic to exclusively take over the vport by either the
+Ethernet device or RDMA device.
 
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
 Change log:
-v3: define mana_adev_idx_alloc and mana_adev_idx_free as static
-v7: fix a bug that may assign a negative value to adev->id
+v2: use refcount instead of directly using atomic variables
+v4: change to mutex to avoid possible race with refcount
+v5: add detailed comments explaining vport sharing, use EXPORT_SYMBOL_NS
+v6: rebased to rdma-next
 
- drivers/net/ethernet/microsoft/Kconfig        |  1 +
- drivers/net/ethernet/microsoft/mana/gdma.h    |  2 +
- .../ethernet/microsoft/mana/mana_auxiliary.h  | 10 +++
- drivers/net/ethernet/microsoft/mana/mana_en.c | 83 ++++++++++++++++++-
- 4 files changed, 95 insertions(+), 1 deletion(-)
- create mode 100644 drivers/net/ethernet/microsoft/mana/mana_auxiliary.h
+ drivers/net/ethernet/microsoft/mana/mana.h    |  7 +++
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 53 ++++++++++++++++++-
+ 2 files changed, 58 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/microsoft/Kconfig b/drivers/net/ethernet/microsoft/Kconfig
-index fe4e7a7d9c0b..090e6b983243 100644
---- a/drivers/net/ethernet/microsoft/Kconfig
-+++ b/drivers/net/ethernet/microsoft/Kconfig
-@@ -19,6 +19,7 @@ config MICROSOFT_MANA
- 	tristate "Microsoft Azure Network Adapter (MANA) support"
- 	depends on PCI_MSI && X86_64
- 	depends on PCI_HYPERV
-+	select AUXILIARY_BUS
- 	help
- 	  This driver supports Microsoft Azure Network Adapter (MANA).
- 	  So far, the driver is only supported on X86_64.
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/drivers/net/ethernet/microsoft/mana/gdma.h
-index 4a6efe6ada08..f321a2616d03 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma.h
-+++ b/drivers/net/ethernet/microsoft/mana/gdma.h
-@@ -204,6 +204,8 @@ struct gdma_dev {
+diff --git a/drivers/net/ethernet/microsoft/mana/mana.h b/drivers/net/ethernet/microsoft/mana/mana.h
+index d58be64374c8..2883a08dbfb5 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana.h
++++ b/drivers/net/ethernet/microsoft/mana/mana.h
+@@ -380,6 +380,10 @@ struct mana_port_context {
+ 	mana_handle_t port_handle;
+ 	mana_handle_t pf_filter_handle;
  
- 	/* GDMA driver specific pointer */
- 	void *driver_data;
++	/* Mutex for sharing access to vport_use_count */
++	struct mutex vport_mutex;
++	int vport_use_count;
 +
-+	struct auxiliary_device *adev;
+ 	u16 port_idx;
+ 
+ 	bool port_is_up;
+@@ -631,4 +635,7 @@ struct mana_tx_package {
+ 	struct gdma_posted_wqe_info wqe_info;
  };
  
- #define MINIMUM_SUPPORTED_PAGE_SIZE PAGE_SIZE
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_auxiliary.h b/drivers/net/ethernet/microsoft/mana/mana_auxiliary.h
-new file mode 100644
-index 000000000000..373d59756846
---- /dev/null
-+++ b/drivers/net/ethernet/microsoft/mana/mana_auxiliary.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/* Copyright (c) 2022, Microsoft Corporation. */
-+
-+#include "mana.h"
-+#include <linux/auxiliary_bus.h>
-+
-+struct mana_adev {
-+	struct auxiliary_device adev;
-+	struct gdma_dev *mdev;
-+};
++int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
++		   u32 doorbell_pg_id);
++void mana_uncfg_vport(struct mana_port_context *apc);
+ #endif /* _MANA_H */
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 9259a74eca40..8751e475d1ba 100644
+index 8751e475d1ba..efe14a343fd1 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -13,6 +13,19 @@
- #include <net/ip6_checksum.h>
- 
- #include "mana.h"
-+#include "mana_auxiliary.h"
-+
-+static DEFINE_IDA(mana_adev_ida);
-+
-+static int mana_adev_idx_alloc(void)
-+{
-+	return ida_alloc(&mana_adev_ida, GFP_KERNEL);
-+}
-+
-+static void mana_adev_idx_free(int idx)
-+{
-+	ida_free(&mana_adev_ida, idx);
-+}
- 
- /* Microsoft Azure Network Adapter (MANA) functions */
- 
-@@ -2106,6 +2119,69 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
- 	return err;
+@@ -646,13 +646,48 @@ static int mana_query_vport_cfg(struct mana_port_context *apc, u32 vport_index,
+ 	return 0;
  }
  
-+static void adev_release(struct device *dev)
+-static int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
+-			  u32 doorbell_pg_id)
++void mana_uncfg_vport(struct mana_port_context *apc)
 +{
-+	struct mana_adev *madev = container_of(dev, struct mana_adev, adev.dev);
-+
-+	kfree(madev);
++	mutex_lock(&apc->vport_mutex);
++	apc->vport_use_count--;
++	WARN_ON(apc->vport_use_count < 0);
++	mutex_unlock(&apc->vport_mutex);
 +}
++EXPORT_SYMBOL_NS(mana_uncfg_vport, NET_MANA);
 +
-+static void remove_adev(struct gdma_dev *gd)
-+{
-+	struct auxiliary_device *adev = gd->adev;
-+	int id = adev->id;
-+
-+	auxiliary_device_delete(adev);
-+	auxiliary_device_uninit(adev);
-+
-+	mana_adev_idx_free(id);
-+	gd->adev = NULL;
-+}
-+
-+static int add_adev(struct gdma_dev *gd)
-+{
-+	struct auxiliary_device *adev;
-+	struct mana_adev *madev;
-+	int ret;
-+
-+	madev = kzalloc(sizeof(*madev), GFP_KERNEL);
-+	if (!madev)
-+		return -ENOMEM;
-+
-+	adev = &madev->adev;
-+	ret = mana_adev_idx_alloc();
-+	if (ret < 0)
-+		goto idx_fail;
-+	adev->id = ret;
-+
-+	adev->name = "rdma";
-+	adev->dev.parent = gd->gdma_context->dev;
-+	adev->dev.release = adev_release;
-+	madev->mdev = gd;
-+
-+	ret = auxiliary_device_init(adev);
-+	if (ret)
-+		goto init_fail;
-+
-+	ret = auxiliary_device_add(adev);
-+	if (ret)
-+		goto add_fail;
-+
-+	gd->adev = adev;
-+	return 0;
-+
-+add_fail:
-+	auxiliary_device_uninit(adev);
-+
-+init_fail:
-+	mana_adev_idx_free(adev->id);
-+
-+idx_fail:
-+	kfree(madev);
-+
-+	return ret;
-+}
-+
- int mana_probe(struct gdma_dev *gd, bool resuming)
++int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
++		   u32 doorbell_pg_id)
  {
- 	struct gdma_context *gc = gd->gdma_context;
-@@ -2173,6 +2249,8 @@ int mana_probe(struct gdma_dev *gd, bool resuming)
- 				break;
- 		}
- 	}
-+
-+	err = add_adev(gd);
- out:
- 	if (err)
- 		mana_remove(gd, false);
-@@ -2189,6 +2267,10 @@ void mana_remove(struct gdma_dev *gd, bool suspending)
+ 	struct mana_config_vport_resp resp = {};
+ 	struct mana_config_vport_req req = {};
  	int err;
- 	int i;
  
-+	/* adev currently doesn't support suspending, always remove it */
-+	if (gd->adev)
-+		remove_adev(gd);
++	/* This function is used to program the Ethernet port in the hardware
++	 * table. It can be called from the Ethernet driver or the RDMA driver.
++	 *
++	 * For Ethernet usage, the hardware supports only one active user on a
++	 * physical port. The driver checks on the port usage before programming
++	 * the hardware when creating the RAW QP (RDMA driver) or exposing the
++	 * device to kernel NET layer (Ethernet driver).
++	 *
++	 * Because the RDMA driver doesn't know in advance which QP type the
++	 * user will create, it exposes the device with all its ports. The user
++	 * may not be able to create RAW QP on a port if this port is already
++	 * in used by the Ethernet driver from the kernel.
++	 *
++	 * This physical port limitation only applies to the RAW QP. For RC QP,
++	 * the hardware doesn't have this limitation. The user can create RC
++	 * QPs on a physical port up to the hardware limits independent of the
++	 * Ethernet usage on the same port.
++	 */
++	mutex_lock(&apc->vport_mutex);
++	if (apc->vport_use_count > 0) {
++		mutex_unlock(&apc->vport_mutex);
++		return -EBUSY;
++	}
++	apc->vport_use_count++;
++	mutex_unlock(&apc->vport_mutex);
 +
- 	for (i = 0; i < ac->num_ports; i++) {
- 		ndev = ac->ports[i];
- 		if (!ndev) {
-@@ -2221,7 +2303,6 @@ void mana_remove(struct gdma_dev *gd, bool suspending)
+ 	mana_gd_init_req_hdr(&req.hdr, MANA_CONFIG_VPORT_TX,
+ 			     sizeof(req), sizeof(resp));
+ 	req.vport = apc->port_handle;
+@@ -679,9 +714,16 @@ static int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
+ 
+ 	apc->tx_shortform_allowed = resp.short_form_allowed;
+ 	apc->tx_vp_offset = resp.tx_vport_offset;
++
++	netdev_info(apc->ndev, "Configured vPort %llu PD %u DB %u\n",
++		    apc->port_handle, protection_dom_id, doorbell_pg_id);
+ out:
++	if (err)
++		mana_uncfg_vport(apc);
++
+ 	return err;
+ }
++EXPORT_SYMBOL_NS(mana_cfg_vport, NET_MANA);
+ 
+ static int mana_cfg_vport_steering(struct mana_port_context *apc,
+ 				   enum TRI_STATE rx,
+@@ -742,6 +784,9 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
+ 			   resp.hdr.status);
+ 		err = -EPROTO;
+ 	}
++
++	netdev_info(ndev, "Configured steering vPort %llu entries %u\n",
++		    apc->port_handle, num_entries);
+ out:
+ 	kfree(req);
+ 	return err;
+@@ -1804,6 +1849,7 @@ static void mana_destroy_vport(struct mana_port_context *apc)
  	}
  
- 	mana_destroy_eq(ac);
--
- out:
- 	mana_gd_deregister_device(gd);
+ 	mana_destroy_txq(apc);
++	mana_uncfg_vport(apc);
  
+ 	if (gd->gdma_context->is_pf)
+ 		mana_pf_deregister_hw_vport(apc);
+@@ -2076,6 +2122,9 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 	apc->pf_filter_handle = INVALID_MANA_HANDLE;
+ 	apc->port_idx = port_idx;
+ 
++	mutex_init(&apc->vport_mutex);
++	apc->vport_use_count = 0;
++
+ 	ndev->netdev_ops = &mana_devops;
+ 	ndev->ethtool_ops = &mana_ethtool_ops;
+ 	ndev->mtu = ETH_DATA_LEN;
 -- 
 2.17.1
 
