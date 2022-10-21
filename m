@@ -2,47 +2,47 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6B33C43219
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 Oct 2022 13:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6E0BC4332F
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 Oct 2022 13:35:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230224AbiJUNRZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 Oct 2022 09:17:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53844 "EHLO
+        id S229940AbiJUNfC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 Oct 2022 09:35:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230195AbiJUNRY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Oct 2022 09:17:24 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D95425A15C;
-        Fri, 21 Oct 2022 06:17:12 -0700 (PDT)
+        with ESMTP id S230076AbiJUNfB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Oct 2022 09:35:01 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 645253FEF1;
+        Fri, 21 Oct 2022 06:34:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1666358233; x=1697894233;
+  t=1666359299; x=1697895299;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=67TEJpud3tBGYj0e5MnovwOYbbICjK4y1xG4dR2yYi0=;
-  b=JSYW4dpHngrcegdk8AZLnsRos+91tnLMDlRdnSTKbRdPmNxdiFPU4lzW
-   9U5elHUjC8vg2LS0PskXXC6hgJGnIK1doYvbDTnzgZVWjxEUhzkoV+KEP
-   y0QDgqSQQU2hs3cB3Gad2FcjWo+g4HwuKW+Qagj7NMe5zzyzDjew/+/tK
-   iKo7TUAWSZwfsYGl3rp1RQqwP8outde+9u/7sITKtZUWD1X/6S1hoxhxr
-   NIIpku2y5hyH+jXzoFxgp6SzhNbaGAksTZ0vrCyvFqtiUGk+uitru3zUC
-   gHcIB+9kH6gWPfm+GFLgUvna05nYU5O1fQ8jAr54MPbj43HL6ZwncmPXa
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10507"; a="305736330"
+  bh=osQLTHLjWVpHUs3ch1GfhTTRewL1usATqGUUi7FJVFk=;
+  b=XtqGkpZVvifKaq7GKt2shMcMqNeQVmJUjGM9s2GB+iqqjkV3nN4fUj5K
+   vB9z/TIRtjGnpNN+UhmgXEECcEpBBNv7LBBwA3TtLgIKQr+m3ZmV0ZWB5
+   MvIuZ9uD+0husmgyRZRvayrXwW8y4hRLbrbtPax2BtFCtn12Xv7/E32CN
+   mOmL/Swn7HXERqPkDJeqG9ngwZK02ScH3vIy2j4l8AdiYIgfTGDIw11ld
+   99eE7RW015UH6RHNKYQikUqvv1RIazqEe8wXP+sGad4MtTRHbMASrmMPN
+   c1RfeqmYgGEShQH/uvq2TuWhBY2gLeYG5cW3vqzzYzsLbuWggX8oGdyzH
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10507"; a="306995586"
 X-IronPort-AV: E=Sophos;i="5.95,200,1661842800"; 
-   d="scan'208";a="305736330"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Oct 2022 06:16:25 -0700
+   d="scan'208";a="306995586"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Oct 2022 06:34:59 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10507"; a="699338736"
+X-IronPort-AV: E=McAfee;i="6500,9779,10507"; a="661605500"
 X-IronPort-AV: E=Sophos;i="5.95,200,1661842800"; 
-   d="scan'208";a="699338736"
+   d="scan'208";a="661605500"
 Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga004.fm.intel.com with ESMTP; 21 Oct 2022 06:16:20 -0700
+  by orsmga008.jf.intel.com with ESMTP; 21 Oct 2022 06:34:52 -0700
 Received: from andy by smile.fi.intel.com with local (Exim 4.96)
         (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1olrsn-00BAgP-0n;
-        Fri, 21 Oct 2022 16:16:17 +0300
-Date:   Fri, 21 Oct 2022 16:16:17 +0300
+        id 1olsAj-00BBvj-22;
+        Fri, 21 Oct 2022 16:34:49 +0300
+Date:   Fri, 21 Oct 2022 16:34:49 +0300
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     Valentin Schneider <vschneid@redhat.com>
 Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
@@ -68,66 +68,44 @@ Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
         Tariq Toukan <tariqt@nvidia.com>,
         Jesse Brandeburg <jesse.brandeburg@intel.com>
 Subject: Re: [PATCH v5 2/3] sched/topology: Introduce for_each_numa_hop_mask()
-Message-ID: <Y1KboXN0f8dLjqit@smile.fi.intel.com>
+Message-ID: <Y1Kf+aZPIxGCbksM@smile.fi.intel.com>
 References: <20221021121927.2893692-1-vschneid@redhat.com>
  <20221021121927.2893692-3-vschneid@redhat.com>
+ <Y1KboXN0f8dLjqit@smile.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20221021121927.2893692-3-vschneid@redhat.com>
+In-Reply-To: <Y1KboXN0f8dLjqit@smile.fi.intel.com>
 Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Oct 21, 2022 at 01:19:26PM +0100, Valentin Schneider wrote:
-> The recently introduced sched_numa_hop_mask() exposes cpumasks of CPUs
-> reachable within a given distance budget, wrap the logic for iterating over
-> all (distance, mask) values inside an iterator macro.
+On Fri, Oct 21, 2022 at 04:16:17PM +0300, Andy Shevchenko wrote:
+> On Fri, Oct 21, 2022 at 01:19:26PM +0100, Valentin Schneider wrote:
 
 ...
 
->  #ifdef CONFIG_NUMA
-> -extern const struct cpumask *sched_numa_hop_mask(int node, int hops);
-> +extern const struct cpumask *sched_numa_hop_mask(unsigned int node, unsigned int hops);
->  #else
-> -static inline const struct cpumask *sched_numa_hop_mask(int node, int hops)
-> +static inline const struct cpumask *
-> +sched_numa_hop_mask(unsigned int node, unsigned int hops)
->  {
-> -	if (node == NUMA_NO_NODE && !hops)
-> -		return cpu_online_mask;
-> -
->  	return ERR_PTR(-EOPNOTSUPP);
->  }
->  #endif	/* CONFIG_NUMA */
+> > +#define for_each_numa_hop_mask(mask, node)				     \
+> > +	for (unsigned int __hops = 0;					     \
+> > +	     /*								     \
+> > +	      * Unsightly trickery required as we can't both initialize	     \
+> > +	      * @mask and declare __hops in for()'s first clause	     \
+> > +	      */							     \
+> > +	     mask = __hops > 0 ? mask :					     \
+> > +		    node == NUMA_NO_NODE ?				     \
+> > +		    cpu_online_mask : sched_numa_hop_mask(node, 0),	     \
+> > +	     !IS_ERR_OR_NULL(mask);					     \
+> 
+> > +	     __hops++,							     \
+> > +	     mask = sched_numa_hop_mask(node, __hops))
+> 
+> This can be unified with conditional, see for_each_gpio_desc_with_flag() as
+> example how.
 
-I didn't get how the above two changes are related to the 3rd one which
-introduces a for_each type of macro.
+Something like
 
-If you need change int --> unsigned int, perhaps it can be done in a separate
-patch.
-
-The change inside inliner I dunno about. Not an expert.
-
-...
-
-> +#define for_each_numa_hop_mask(mask, node)				     \
-> +	for (unsigned int __hops = 0;					     \
-> +	     /*								     \
-> +	      * Unsightly trickery required as we can't both initialize	     \
-> +	      * @mask and declare __hops in for()'s first clause	     \
-> +	      */							     \
-> +	     mask = __hops > 0 ? mask :					     \
-> +		    node == NUMA_NO_NODE ?				     \
-> +		    cpu_online_mask : sched_numa_hop_mask(node, 0),	     \
-> +	     !IS_ERR_OR_NULL(mask);					     \
-
-> +	     __hops++,							     \
-> +	     mask = sched_numa_hop_mask(node, __hops))
-
-This can be unified with conditional, see for_each_gpio_desc_with_flag() as
-example how.
+	mask = (__hops || node != NUMA_NO_NODE) ? sched_numa_hop_mask(node, __hops) : cpu_online_mask
 
 -- 
 With Best Regards,
