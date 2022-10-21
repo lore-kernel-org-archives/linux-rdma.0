@@ -2,313 +2,138 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC927C433FE
-	for <linux-rdma@archiver.kernel.org>; Fri, 21 Oct 2022 20:03:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37734C38A2D
+	for <linux-rdma@archiver.kernel.org>; Fri, 21 Oct 2022 20:03:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230283AbiJUUDC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 Oct 2022 16:03:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47648 "EHLO
+        id S229776AbiJUUDe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 Oct 2022 16:03:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230285AbiJUUCk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Oct 2022 16:02:40 -0400
-Received: from mail-oa1-x2a.google.com (mail-oa1-x2a.google.com [IPv6:2001:4860:4864:20::2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E378325ED10
-        for <linux-rdma@vger.kernel.org>; Fri, 21 Oct 2022 13:02:39 -0700 (PDT)
-Received: by mail-oa1-x2a.google.com with SMTP id 586e51a60fabf-13af2d12469so4859026fac.13
-        for <linux-rdma@vger.kernel.org>; Fri, 21 Oct 2022 13:02:39 -0700 (PDT)
+        with ESMTP id S230041AbiJUUD0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Oct 2022 16:03:26 -0400
+Received: from mail-oa1-x34.google.com (mail-oa1-x34.google.com [IPv6:2001:4860:4864:20::34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FFBA263B7E
+        for <linux-rdma@vger.kernel.org>; Fri, 21 Oct 2022 13:03:18 -0700 (PDT)
+Received: by mail-oa1-x34.google.com with SMTP id 586e51a60fabf-13ae8117023so4889373fac.9
+        for <linux-rdma@vger.kernel.org>; Fri, 21 Oct 2022 13:03:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=p3kPzmPDjjNhDNGku1w9RH09kAppbd1qvrZUMK/RXkU=;
-        b=jKgSmILPz4yCvkYYjr7Ai3tnR5DNcvUIQ+C/+WvekqSI6vSR5o/D6AIlZQ6sBS90dd
-         j512nCKxEqpMaFRgdT6POdw6dFUEz6AWGuuT2sMdEi1Askuit3bdJrR1s/zwCU6irFNt
-         hWXSuvVxoqdOyGqM/amu4AtvpZdrep2/5hoN/J9ij36i0PcqGcRLGUsPyiX8vl1E07Gs
-         pSZ3ZWYLVxN3whXgp0WaWlAlEfeckpMvPag4UU45CKbbyMuyG4ALQ8uAbMfreVJYGm6N
-         FOIn+IJt7LLpcMiBDb0zD4fhtu0lme971uQL5+w5dOLpTtB3d8dWnwF53d9Nf5bG5OFL
-         lxAw==
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=PRM3ISXSCOAgWY0giM3tFNjXOHiP7T6JUSVvbmPDS/M=;
+        b=NwclfFzSDQlfEjq3w5Oi8QFSACawhKDuyOPc8tcQzT/oS0n8fr1Hg26xmqpRVnOMC3
+         gUnT6fLdtH9LxnSeRJO72AtF+7Eas9SNA3M+Wj+e1Q4Wy3Ju4JbtayedY1evUzs0jgWe
+         tjhsbvKOnucIiMZ0M7nmVnbjCiut+6wbb0tUy2lH6tVGAgfzaAa4QxBAfeGIUrZ/RcxP
+         U12PPiwfPG74IsqVmsNWeKXo2KozjXqLsOpPB3bqMM5up8+FxPEDW69xZd8jKaJ3SfbX
+         mjId7tgqSHr0ZJfsANCPY/8qtV/UvOBaCDUgyBSY4J+abivz+PChllWxARxzsxqrAMW8
+         CVxw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=p3kPzmPDjjNhDNGku1w9RH09kAppbd1qvrZUMK/RXkU=;
-        b=dX7SsSOaCbdSYZqXlfWGe1jN3FyZGJph/XSJh7ckH4mfJG9E19vXYjZncSUJ5upfNj
-         ykBdurr2wg1aDLMVqeTNkG8I8znNlebQv/XiWUhLGryyCNz/MaBKjBzuiD80x5TDiFwn
-         CqZXJcUAfqPgouheaTRfnzdHOBDqOHkFjflnycOL9cNGwVsHIjDHp9cQGp2T7olOTxpC
-         HTdDmCuVHe/FEV164cAss3Fmi0hi2F2O66pAn9/Y4xKa4Zd/Dkn9vJqW1wRYOaDjb+8X
-         BMXemLhyqXZzsshR12jm0laK4avl8f3F4nn07PZ2wPNWsmYFpZq2hS/Dp58WEJh2Ys2X
-         F2tg==
-X-Gm-Message-State: ACrzQf0Q8QbemuYkgrWtcOllE5N/g3yiM2TWY7MAG290VVNTl4682jQ3
-        y+4ACaOwxLoU7PhlDejLCJ3G4guS/HY=
-X-Google-Smtp-Source: AMsMyM5VaQ3iBsF7dm3mVuoqS2WC/h4qZlRWOEu+3JpXqZlYTcT0RJ31pfSoCCVHEQILJ1qVcjYhSg==
-X-Received: by 2002:a05:6870:538d:b0:136:3cc4:78fa with SMTP id h13-20020a056870538d00b001363cc478famr30749320oan.278.1666382538746;
-        Fri, 21 Oct 2022 13:02:18 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=PRM3ISXSCOAgWY0giM3tFNjXOHiP7T6JUSVvbmPDS/M=;
+        b=i76jaKqun+VOBgIpcXZMnX8acVjOaRgl8vb2rplaDVJYYoQwbyib7RWl66Fi0SEg9D
+         PchazA4ed2vvpfXNFQveMfYBKTFKFYfR95o/VQei1N0P5tysXKSuANr3XD3lYAgKSs4e
+         tT9WY4gXMSRMHQrVjh/9UrXv1TqSm596GZtFoWJy1RfHKa/YUxZbK8lPS8Bb+3pRxjUs
+         zn+B2CTXUKh949T+Nz2E8CYAYWnq9b4F4WwkaBYy5OLb5KQ65MReFsU6wM+6A/xR/5gd
+         MWm4QUkc/G2peHr5J/Fz8UbOuAnmBWdiQi63K8doNMT0vVASdSg24wMhQWPp0nNhNehe
+         9joA==
+X-Gm-Message-State: ACrzQf3d+soI0Gb8PR0oZoELqA/Uohp5pEdPcOwCflGtoZrYVy4xsYNa
+        7P8kA6aD75RCgA3hS2Ykb06oj02CG1k=
+X-Google-Smtp-Source: AMsMyM46N+WRFsr4Ucjc1Fw90cQSCr+iWq6wGfWcVPXN2MtbZ/+cE9yNLp4XrFdPTdQV9/PzZqwknw==
+X-Received: by 2002:a05:6870:a2c7:b0:131:d098:9e37 with SMTP id w7-20020a056870a2c700b00131d0989e37mr13151526oak.152.1666382505876;
+        Fri, 21 Oct 2022 13:01:45 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-a860-f1d2-9e17-7593.res6.spectrum.com. [2603:8081:140c:1a00:a860:f1d2:9e17:7593])
-        by smtp.googlemail.com with ESMTPSA id s23-20020a056870631700b00132f141ef2dsm10674684oao.56.2022.10.21.13.02.17
+        by smtp.googlemail.com with ESMTPSA id s23-20020a056870631700b00132f141ef2dsm10674684oao.56.2022.10.21.13.01.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 21 Oct 2022 13:02:18 -0700 (PDT)
+        Fri, 21 Oct 2022 13:01:45 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, leon@kernel.org,
         jhack@hpe.com, ian.ziemba@hpe.com, matsuda-daisuke@fujitsu.com,
         lizhijian@fujitsu.com, haris.phnx@gmail.com,
         linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v2 14/18] RDMA/rxe: Implement disable/enable_task()
-Date:   Fri, 21 Oct 2022 15:01:15 -0500
-Message-Id: <20221021200118.2163-15-rpearsonhpe@gmail.com>
+Subject: [PATCH v2 00/18] Implement work queues for rdma_rxe
+Date:   Fri, 21 Oct 2022 15:01:01 -0500
+Message-Id: <20221021200118.2163-1-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20221021200118.2163-1-rpearsonhpe@gmail.com>
-References: <20221021200118.2163-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Implement common disable_task() and enable_task() routines by
-adding a new PAUSED state to the do_task() state machine.
-These replace tasklet_disable and tasklet_enable with code that
-can be shared with all the task types. Move rxe_sched_task to
-re-schedule the task outside of the locks to avoid a deadlock.
+This patch series implements work queues as an alternative for
+the main tasklets in the rdma_rxe driver. The first few patches
+perform some cleanups of the current tasklet code followed by a
+patch that makes the internal API for task execution pluggable and
+implements an inline and a tasklet based set of functions.
+The remaining patches cleanup the qp reset and error code in the
+three tasklets and modify the locking logic to prevent making
+multiple calls to the tasklet scheduling routine. Finally after
+this preparation the work queue equivalent set of functions is
+added and module parameters are implemented to allow tuning the
+task types.
 
-Signed-off-by: Ian Ziemba <ian.ziemba@hpe.com>
-Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
----
- drivers/infiniband/sw/rxe/rxe_task.c | 107 ++++++++++++++++-----------
- drivers/infiniband/sw/rxe/rxe_task.h |   1 +
- 2 files changed, 66 insertions(+), 42 deletions(-)
+The advantages of the work queue version of deferred task execution
+is mainly that the work queue variant has much better scalability
+and overall performance than the tasklet variant. The tasklet
+performance saturates with one connected queue pair and stays constant.
+The work queue performance is slightly better for one queue pair but
+scales up with the number of connected queue pairs. The perftest
+microbenchmarks in local loopback mode (not a very realistic test
+case) can reach approximately 100Gb/sec with work queues compared to
+about 16Gb/sec for tasklets.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
-index 120693c9a795..d824de82f2ae 100644
---- a/drivers/infiniband/sw/rxe/rxe_task.c
-+++ b/drivers/infiniband/sw/rxe/rxe_task.c
-@@ -6,36 +6,46 @@
- 
- #include "rxe.h"
- 
--/*
-- * this locking is due to a potential race where
-- * a second caller finds the task already running
-- * but looks just after the last call to func
-- */
--static void do_task(struct rxe_task *task)
-+static bool task_is_idle(struct rxe_task *task)
- {
--	unsigned int iterations = RXE_MAX_ITERATIONS;
--	int cont;
--	int ret;
-+	if (task->destroyed)
-+		return false;
- 
- 	spin_lock_bh(&task->lock);
- 	switch (task->state) {
- 	case TASK_STATE_START:
- 		task->state = TASK_STATE_BUSY;
- 		spin_unlock_bh(&task->lock);
--		break;
--
-+		return true;
- 	case TASK_STATE_BUSY:
- 		task->state = TASK_STATE_ARMED;
- 		fallthrough;
- 	case TASK_STATE_ARMED:
--		spin_unlock_bh(&task->lock);
--		return;
--
-+	case TASK_STATE_PAUSED:
-+		break;
- 	default:
-+		WARN_ON(1);
-+		break;
-+	}
-+	spin_unlock_bh(&task->lock);
-+
-+	return false;
-+}
-+
-+static void do_task(struct rxe_task *task)
-+{
-+	unsigned int iterations = RXE_MAX_ITERATIONS;
-+	bool resched = false;
-+	int cont;
-+	int ret;
-+
-+	/* flush out pending tasks */
-+	spin_lock_bh(&task->lock);
-+	if (task->state == TASK_STATE_PAUSED) {
- 		spin_unlock_bh(&task->lock);
--		pr_warn("%s failed with bad state %d\n", __func__, task->state);
- 		return;
- 	}
-+	spin_unlock_bh(&task->lock);
- 
- 	do {
- 		cont = 0;
-@@ -43,47 +53,52 @@ static void do_task(struct rxe_task *task)
- 
- 		spin_lock_bh(&task->lock);
- 		switch (task->state) {
-+		case TASK_STATE_START:
- 		case TASK_STATE_BUSY:
- 			if (ret) {
- 				task->state = TASK_STATE_START;
--			} else if (iterations--) {
-+			} else if (task->type == RXE_TASK_TYPE_INLINE ||
-+					iterations--) {
- 				cont = 1;
- 			} else {
--				/* reschedule the tasklet and exit
--				 * the loop to give up the cpu
--				 */
--				tasklet_schedule(&task->tasklet);
- 				task->state = TASK_STATE_START;
-+				resched = true;
- 			}
- 			break;
--
--		/* someone tried to run the task since the last time we called
--		 * func, so we will call one more time regardless of the
--		 * return value
--		 */
- 		case TASK_STATE_ARMED:
- 			task->state = TASK_STATE_BUSY;
- 			cont = 1;
- 			break;
--
-+		case TASK_STATE_PAUSED:
-+			break;
- 		default:
--			pr_warn("%s failed with bad state %d\n", __func__,
--				task->state);
-+			WARN_ON(1);
-+			break;
- 		}
- 		spin_unlock_bh(&task->lock);
- 	} while (cont);
- 
-+	if (resched)
-+		rxe_sched_task(task);
-+
- 	task->ret = ret;
- }
- 
- static void disable_task(struct rxe_task *task)
- {
--	/* todo */
-+	spin_lock_bh(&task->lock);
-+	task->state = TASK_STATE_PAUSED;
-+	spin_unlock_bh(&task->lock);
- }
- 
- static void enable_task(struct rxe_task *task)
- {
--	/* todo */
-+	spin_lock_bh(&task->lock);
-+	task->state = TASK_STATE_START;
-+	spin_unlock_bh(&task->lock);
-+
-+	/* restart task in case */
-+	rxe_run_task(task);
- }
- 
- /* busy wait until any previous tasks are done */
-@@ -95,7 +110,8 @@ static void cleanup_task(struct rxe_task *task)
- 
- 	do {
- 		spin_lock_bh(&task->lock);
--		idle = (task->state == TASK_STATE_START);
-+		idle = (task->state == TASK_STATE_START ||
-+			task->state == TASK_STATE_PAUSED);
- 		spin_unlock_bh(&task->lock);
- 	} while (!idle);
- }
-@@ -103,22 +119,26 @@ static void cleanup_task(struct rxe_task *task)
- /* silently treat schedule as inline for inline tasks */
- static void inline_sched(struct rxe_task *task)
- {
--	do_task(task);
-+	if (task_is_idle(task))
-+		do_task(task);
- }
- 
- static void inline_run(struct rxe_task *task)
- {
--	do_task(task);
-+	if (task_is_idle(task))
-+		do_task(task);
- }
- 
- static void inline_disable(struct rxe_task *task)
- {
--	disable_task(task);
-+	if (!task->destroyed)
-+		disable_task(task);
- }
- 
- static void inline_enable(struct rxe_task *task)
- {
--	enable_task(task);
-+	if (!task->destroyed)
-+		enable_task(task);
- }
- 
- static void inline_cleanup(struct rxe_task *task)
-@@ -142,31 +162,34 @@ static void inline_init(struct rxe_task *task)
- /* use tsklet_xxx to avoid name collisions with tasklet_xxx */
- static void tsklet_sched(struct rxe_task *task)
- {
--	tasklet_schedule(&task->tasklet);
-+	if (task_is_idle(task))
-+		tasklet_schedule(&task->tasklet);
- }
- 
- static void tsklet_do_task(struct tasklet_struct *tasklet)
- {
- 	struct rxe_task *task = container_of(tasklet, typeof(*task), tasklet);
- 
--	do_task(task);
-+	if (!task->destroyed)
-+		do_task(task);
- }
- 
- static void tsklet_run(struct rxe_task *task)
- {
--	do_task(task);
-+	if (task_is_idle(task))
-+		do_task(task);
- }
- 
- static void tsklet_disable(struct rxe_task *task)
- {
--	disable_task(task);
--	tasklet_disable(&task->tasklet);
-+	if (!task->destroyed)
-+		disable_task(task);
- }
- 
- static void tsklet_enable(struct rxe_task *task)
- {
--	tasklet_enable(&task->tasklet);
--	enable_task(task);
-+	if (!task->destroyed)
-+		enable_task(task);
- }
- 
- static void tsklet_cleanup(struct rxe_task *task)
-diff --git a/drivers/infiniband/sw/rxe/rxe_task.h b/drivers/infiniband/sw/rxe/rxe_task.h
-index d594468fcf56..792832786456 100644
---- a/drivers/infiniband/sw/rxe/rxe_task.h
-+++ b/drivers/infiniband/sw/rxe/rxe_task.h
-@@ -26,6 +26,7 @@ enum {
- 	TASK_STATE_START	= 0,
- 	TASK_STATE_BUSY		= 1,
- 	TASK_STATE_ARMED	= 2,
-+	TASK_STATE_PAUSED	= 3,
- };
- 
- /*
+It is expected that the work queue version will take the place of
+the tasklet version once this patch series is accepted and moved
+upstream. However, for now it is convenient to keep the option of
+easily switching between the versions to help benchmarking and
+debugging.
+
+This patch series is derived from an earlier patch set developed by
+Ian Ziemba at HPE which is used in some Lustre storage clients attached
+to Lustre servers with hard RoCE v2 NICs.
+
+This v2 version of the patch set has some minor changes that address
+comments from Leon Romanovsky regarding locking of the valid parameter
+and the setup parameters for alloc_workqueue. It also has one
+additional cleanup patch.
+
+Bob Pearson (18):
+  RDMA/rxe: Remove redundant header files
+  RDMA/rxe: Remove init of task locks from rxe_qp.c
+  RDMA/rxe: Removed unused name from rxe_task struct
+  RDMA/rxe: Split rxe_run_task() into two subroutines
+  RDMA/rxe: Make rxe_do_task static
+  RDMA/rxe: Rename task->state_lock to task->lock
+  RDMA/rxe: Make task interface pluggable
+  RDMA/rxe: Split rxe_drain_resp_pkts()
+  RDMA/rxe: Simplify reset state handling in rxe_resp.c
+  RDMA/rxe: Handle qp error in rxe_resp.c
+  RDMA/rxe: Cleanup comp tasks in rxe_qp.c
+  RDMA/rxe: Remove __rxe_do_task()
+  RDMA/rxe: Make tasks schedule each other
+  RDMA/rxe: Implement disable/enable_task()
+  RDMA/rxe: Replace TASK_STATE_START by TASK_STATE_IDLE
+  RDMA/rxe: Replace task->destroyed by task state INVALID.
+  RDMA/rxe: Add workqueue support for tasks
+  RDMA/rxe: Add parameters to control task type
+
+ drivers/infiniband/sw/rxe/rxe.c       |   9 +-
+ drivers/infiniband/sw/rxe/rxe_comp.c  |  35 ++-
+ drivers/infiniband/sw/rxe/rxe_net.c   |   4 +-
+ drivers/infiniband/sw/rxe/rxe_qp.c    |  87 +++----
+ drivers/infiniband/sw/rxe/rxe_req.c   |  10 +-
+ drivers/infiniband/sw/rxe/rxe_resp.c  |  75 ++++--
+ drivers/infiniband/sw/rxe/rxe_task.c  | 339 +++++++++++++++++++-------
+ drivers/infiniband/sw/rxe/rxe_task.h  |  77 +++---
+ drivers/infiniband/sw/rxe/rxe_verbs.c |   8 +-
+ 9 files changed, 427 insertions(+), 217 deletions(-)
+
+
+base-commit: 9abf2313adc1ca1b6180c508c25f22f9395cc780
 -- 
 2.34.1
 
