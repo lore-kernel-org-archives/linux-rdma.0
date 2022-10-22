@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFBEAC433FE
-	for <linux-rdma@archiver.kernel.org>; Sat, 22 Oct 2022 00:01:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25C7FFA3744
+	for <linux-rdma@archiver.kernel.org>; Sat, 22 Oct 2022 00:01:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230022AbiJVABs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 21 Oct 2022 20:01:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51540 "EHLO
+        id S230041AbiJVABu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 21 Oct 2022 20:01:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229978AbiJVABm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Oct 2022 20:01:42 -0400
+        with ESMTP id S229980AbiJVABq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 21 Oct 2022 20:01:46 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6848E24FEF7;
-        Fri, 21 Oct 2022 17:01:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 349F826B4BF;
+        Fri, 21 Oct 2022 17:01:43 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id F1D1C20FEEF9; Fri, 21 Oct 2022 17:01:37 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com F1D1C20FEEF9
+        id ED17E20FF4E3; Fri, 21 Oct 2022 17:01:39 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com ED17E20FF4E3
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1666396898;
-        bh=8Z6yW2KqbQl4Wyror+q4zSVQuzt8hLhkxhobys217qM=;
+        s=default; t=1666396899;
+        bh=rxJ1l3XZAaUy7L0ulivQTclU3lx9TfDBngKUNfhY9VY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=dbUl4LPjwC5jlJ9jZDI+pQVcXIq5Apl41tdN1bfZnPSzGxGmmA2f8UdVyvHi7SWS+
-         zc73KeUdY7C2aYxUhb36fCoZH7ER02ZBid/lzavDfWZ87L+VxxkYboWbEFXgT16iNv
-         D1maftXWAXcO0+f/uFr52ABnFqMUMsGw1w9wMPmM=
+        b=sRK8FtnUozfkLyS/YoB/nxmO73Wxfagn8q+u6lK2kMwyds8Gay+L7vAqKr52OY+hg
+         d5VDdtG/5q52K/NwCUv0Q794yuRmzs/ohJtioO8UyCn1FgrIPE9q1FaEa7gKuPMesN
+         ereJhPgalqf4f2GuPWE9MBPr8RSJS0OZocjgBckw=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v9 02/12] net: mana: Record the physical address for doorbell page region
-Date:   Fri, 21 Oct 2022 17:01:19 -0700
-Message-Id: <1666396889-31288-3-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v9 06/12] net: mana: Record port number in netdev
+Date:   Fri, 21 Oct 2022 17:01:23 -0700
+Message-Id: <1666396889-31288-7-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1666396889-31288-1-git-send-email-longli@linuxonhyperv.com>
 References: <1666396889-31288-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,59 +51,28 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-For supporting RDMA device with multiple user contexts with their
-individual doorbell pages, record the start address of doorbell page
-region for use by the RDMA driver to allocate user context doorbell IDs.
+The port number is useful for user-mode application to identify this
+net device based on port index. Set to the correct value in ndev.
 
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
-Change log:
-v6: rebased to rdma-next
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/net/ethernet/microsoft/mana/gdma.h      | 2 ++
- drivers/net/ethernet/microsoft/mana/gdma_main.c | 4 ++++
- 2 files changed, 6 insertions(+)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/drivers/net/ethernet/microsoft/mana/gdma.h
-index f321a2616d03..72eaec2470c0 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma.h
-+++ b/drivers/net/ethernet/microsoft/mana/gdma.h
-@@ -351,9 +351,11 @@ struct gdma_context {
- 	u32			test_event_eq_id;
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 6ad4bc8cbc99..b6303a43fa7c 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -2133,6 +2133,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 	ndev->max_mtu = ndev->mtu;
+ 	ndev->min_mtu = ndev->mtu;
+ 	ndev->needed_headroom = MANA_HEADROOM;
++	ndev->dev_port = port_idx;
+ 	SET_NETDEV_DEV(ndev, gc->dev);
  
- 	bool			is_pf;
-+	phys_addr_t		bar0_pa;
- 	void __iomem		*bar0_va;
- 	void __iomem		*shm_base;
- 	void __iomem		*db_page_base;
-+	phys_addr_t		phys_db_page_base;
- 	u32 db_page_size;
- 
- 	/* Shared memory chanenl (used to bootstrap HWC) */
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index 5f9240182351..0cfe5f15458e 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -44,6 +44,9 @@ static void mana_gd_init_vf_regs(struct pci_dev *pdev)
- 	gc->db_page_base = gc->bar0_va +
- 				mana_gd_r64(gc, GDMA_REG_DB_PAGE_OFFSET);
- 
-+	gc->phys_db_page_base = gc->bar0_pa +
-+				mana_gd_r64(gc, GDMA_REG_DB_PAGE_OFFSET);
-+
- 	gc->shm_base = gc->bar0_va + mana_gd_r64(gc, GDMA_REG_SHM_OFFSET);
- }
- 
-@@ -1367,6 +1370,7 @@ static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	mutex_init(&gc->eq_test_event_mutex);
- 	pci_set_drvdata(pdev, gc);
-+	gc->bar0_pa = pci_resource_start(pdev, 0);
- 
- 	bar0_va = pci_iomap(pdev, bar, 0);
- 	if (!bar0_va)
+ 	netif_carrier_off(ndev);
 -- 
 2.17.1
 
