@@ -2,87 +2,65 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A45CAECAAA1
-	for <linux-rdma@archiver.kernel.org>; Sun, 23 Oct 2022 12:44:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F2E4ECAAA1
+	for <linux-rdma@archiver.kernel.org>; Sun, 23 Oct 2022 13:04:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230318AbiJWMoj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 23 Oct 2022 08:44:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57476 "EHLO
+        id S230131AbiJWNEM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 23 Oct 2022 09:04:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230293AbiJWMo2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Oct 2022 08:44:28 -0400
-Received: from out199-9.us.a.mail.aliyun.com (out199-9.us.a.mail.aliyun.com [47.90.199.9])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60E5E646B;
-        Sun, 23 Oct 2022 05:44:20 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R251e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VSpfJx1_1666529056;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VSpfJx1_1666529056)
-          by smtp.aliyun-inc.com;
-          Sun, 23 Oct 2022 20:44:17 +0800
-From:   "D.Wythe" <alibuda@linux.alibaba.com>
-To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v4 09/10] net/smc: Fix potential panic dues to unprotected smc_llc_srv_add_link()
-Date:   Sun, 23 Oct 2022 20:44:01 +0800
-Message-Id: <1666529042-40828-10-git-send-email-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1666529042-40828-1-git-send-email-alibuda@linux.alibaba.com>
-References: <1666529042-40828-1-git-send-email-alibuda@linux.alibaba.com>
+        with ESMTP id S230071AbiJWNEL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Oct 2022 09:04:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AFA46FA24
+        for <linux-rdma@vger.kernel.org>; Sun, 23 Oct 2022 06:04:10 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3CF47B80B2C
+        for <linux-rdma@vger.kernel.org>; Sun, 23 Oct 2022 13:04:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D07EC433D6;
+        Sun, 23 Oct 2022 13:04:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1666530247;
+        bh=F91TU7xDLwVBsZ12yVUspcO7ppC4dYAVPJPQNnBT+oA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=iSzMwra1NAXS/YnPwQ7Rq8yl2bW+Wsg5j2TAPineWW6PRCCV5z5Sv+3RHxtxy3Qyr
+         fUyLnawI2LTKpUU5oLweZgf2R4b0gWzxBj20HgdHgK17uKf2qC42RrWKQyxsT3l5lH
+         JThGa5zGu0nwwQSFOeiZqS4bmo1K727/+uPxPy7sFsNRiaUhn1KUooq48fzXn/O3TE
+         IP7haZKioTWO1aFUV0zR0DX1NvT1sn0ZZ30/RV5fcbwoQThIJZt5G4oY4KCPCSViMg
+         mnQBCl/GlsKRSbYSx2xfVDhBMEYPcd1UXn+515HNPeeQvLP00QE6bbgQfpWqGhGi06
+         xxfdh7y4Dfcog==
+Date:   Sun, 23 Oct 2022 16:04:03 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Zhu Yanjun <yanjun.zhu@intel.com>
+Cc:     jgg@ziepe.ca, linux-rdma@vger.kernel.org, yanjun.zhu@linux.dev
+Subject: Re: [PATCH 0/3] RDMA net namespace
+Message-ID: <Y1U7w+6emBqrQnkI@unreal>
+References: <20221023220450.2287909-1-yanjun.zhu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221023220450.2287909-1-yanjun.zhu@intel.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "D. Wythe" <alibuda@linux.alibaba.com>
+On Sun, Oct 23, 2022 at 06:04:47PM -0400, Zhu Yanjun wrote:
+> From: Zhu Yanjun <yanjun.zhu@linux.dev>
+> 
+> There are shared and exclusive modes in RDMA net namespace. After
+> discussion with Leon, the above modes are compatible with legacy IB
+> device. 
+> 
+> To the RoCE and iWARP devices, the ib devices should be in the same net
+> namespace with the related net devices regardless of in shared or
+> exclusive mode.
+> 
+> In the first commit, when the net devices are moved to a new net
+> namespace, the related ib devices are also moved to the same net
+> namespace.
 
-After we optimize the parallel capability of SMC-R connection establish,
-there is a certain chance to trigger the following panic:
+I think that rdma_dev_net_ops are supposed to handle this.
 
-PID: 5900   TASK: ffff88c1c8af4100  CPU: 1   COMMAND: "kworker/1:48"
- #0 [ffff9456c1cc79a0] machine_kexec at ffffffff870665b7
- #1 [ffff9456c1cc79f0] __crash_kexec at ffffffff871b4c7a
- #2 [ffff9456c1cc7ab0] crash_kexec at ffffffff871b5b60
- #3 [ffff9456c1cc7ac0] oops_end at ffffffff87026ce7
- #4 [ffff9456c1cc7ae0] page_fault_oops at ffffffff87075715
- #5 [ffff9456c1cc7b58] exc_page_fault at ffffffff87ad0654
- #6 [ffff9456c1cc7b80] asm_exc_page_fault at ffffffff87c00b62
-    [exception RIP: ib_alloc_mr+19]
-    RIP: ffffffffc0c9cce3  RSP: ffff9456c1cc7c38  RFLAGS: 00010202
-    RAX: 0000000000000000  RBX: 0000000000000002  RCX: 0000000000000004
-    RDX: 0000000000000010  RSI: 0000000000000000  RDI: 0000000000000000
-    RBP: ffff88c1ea281d00   R8: 000000020a34ffff   R9: ffff88c1350bbb20
-    R10: 0000000000000000  R11: 0000000000000001  R12: 0000000000000000
-    R13: 0000000000000010  R14: ffff88c1ab040a50  R15: ffff88c1ea281d00
-    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
- #7 [ffff9456c1cc7c60] smc_ib_get_memory_region at ffffffffc0aff6df [smc]
- #8 [ffff9456c1cc7c88] smcr_buf_map_link at ffffffffc0b0278c [smc]
- #9 [ffff9456c1cc7ce0] __smc_buf_create at ffffffffc0b03586 [smc]
-
-The reason here is that when the server tries to create a second link,
-smc_llc_srv_add_link() has no protection and may add a new link to
-link group. This breaks the security environment protected by
-llc_conf_mutex.
-
-Fixes: 2d2209f20189 ("net/smc: first part of add link processing as SMC server")
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- net/smc/af_smc.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 3bac24e..8647d5e 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -1829,8 +1829,10 @@ static int smcr_serv_conf_first_link(struct smc_sock *smc)
- 	smc_llc_link_active(link);
- 	smcr_lgr_set_type(link->lgr, SMC_LGR_SINGLE);
- 
-+	down_write(&link->lgr->llc_conf_mutex);
- 	/* initial contact - try to establish second link */
- 	smc_llc_srv_add_link(link, NULL);
-+	up_write(&link->lgr->llc_conf_mutex);
- 	return 0;
- }
- 
--- 
-1.8.3.1
-
+Thanks
