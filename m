@@ -2,29 +2,29 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3E2DFA3741
-	for <linux-rdma@archiver.kernel.org>; Sun, 23 Oct 2022 12:44:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E7FC433FE
+	for <linux-rdma@archiver.kernel.org>; Sun, 23 Oct 2022 12:44:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230286AbiJWMoZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 23 Oct 2022 08:44:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56932 "EHLO
+        id S230294AbiJWMoh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 23 Oct 2022 08:44:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230242AbiJWMoV (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Oct 2022 08:44:21 -0400
-Received: from out30-44.freemail.mail.aliyun.com (out30-44.freemail.mail.aliyun.com [115.124.30.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4980C5AC46;
-        Sun, 23 Oct 2022 05:44:18 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VSpfJwS_1666529055;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VSpfJwS_1666529055)
+        with ESMTP id S230292AbiJWMo2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Oct 2022 08:44:28 -0400
+Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED47DB84;
+        Sun, 23 Oct 2022 05:44:19 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R691e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VSpfJxN_1666529057;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VSpfJxN_1666529057)
           by smtp.aliyun-inc.com;
-          Sun, 23 Oct 2022 20:44:15 +0800
+          Sun, 23 Oct 2022 20:44:17 +0800
 From:   "D.Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v4 07/10] net/smc: reduce unnecessary blocking in smcr_lgr_reg_rmbs()
-Date:   Sun, 23 Oct 2022 20:43:59 +0800
-Message-Id: <1666529042-40828-8-git-send-email-alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v4 10/10] net/smc: fix application data exception
+Date:   Sun, 23 Oct 2022 20:44:02 +0800
+Message-Id: <1666529042-40828-11-git-send-email-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1666529042-40828-1-git-send-email-alibuda@linux.alibaba.com>
 References: <1666529042-40828-1-git-send-email-alibuda@linux.alibaba.com>
@@ -34,73 +34,84 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-Unlike smc_buf_create() and smcr_buf_unuse(), smcr_lgr_reg_rmbs() is
-exclusive when assigned rmb_desc was not registered, although it can be
-executed in parallel when assigned rmb_desc was registered already
-and only performs read semtamics on it. Hence, we can not simply replace
-it with read semaphore.
+After we optimize the parallel capability of SMC-R connection
+establishment, There is a certain probability that following
+exceptions will occur in the wrk benchmark test:
 
-The idea here is that if the assigned rmb_desc was registered already,
-use read semaphore to protect the critical section, once the assigned
-rmb_desc was not registered, keep using keep write semaphore still
-to keep its exclusivity.
+Running 10s test @ http://11.213.45.6:80
+  8 threads and 64 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     3.72ms   13.94ms 245.33ms   94.17%
+    Req/Sec     1.96k   713.67     5.41k    75.16%
+  155262 requests in 10.10s, 23.10MB read
+Non-2xx or 3xx responses: 3
 
-Thanks to the reusable features of rmb_desc, which allows us to execute
-in parallel in most cases.
+We will find that the error is HTTP 400 error, which is a serious
+exception in our test, which means the application data was
+corrupted.
 
+Consider the following scenarios:
+
+CPU0                            CPU1
+
+buf_desc->used = 0;
+                                cmpxchg(buf_desc->used, 0, 1)
+                                deal_with(buf_desc)
+
+memset(buf_desc->cpu_addr,0);
+
+This will cause the data received by a victim connection to be cleared,
+thus triggering an HTTP 400 error in the server.
+
+This patch exchange the order between clear used and memset, add
+barrier to ensure memory consistency.
+
+Fixes: 1c5526968e27 ("net/smc: Clear memory when release and reuse buffer")
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- net/smc/af_smc.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+ net/smc/smc_core.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 5c12cd7..3bac24e 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -510,11 +510,26 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
- 			     struct smc_buf_desc *rmb_desc)
- {
- 	struct smc_link_group *lgr = link->lgr;
-+	bool do_slow = false;
- 	int i, rc = 0;
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index b09a3fd..448b851 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1401,8 +1401,9 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
  
- 	rc = smc_llc_flow_initiate(lgr, SMC_LLC_FLOW_RKEY);
- 	if (rc)
- 		return rc;
-+
-+	down_read(&lgr->llc_conf_mutex);
-+	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
-+		if (!smc_link_active(&lgr->lnk[i]))
-+			continue;
-+		if (!rmb_desc->is_reg_mr[link->link_idx]) {
-+			up_read(&lgr->llc_conf_mutex);
-+			goto slow_path;
-+		}
-+	}
-+	/* mr register already */
-+	goto fast_path;
-+slow_path:
-+	do_slow = true;
- 	/* protect against parallel smc_llc_cli_rkey_exchange() and
- 	 * parallel smcr_link_reg_buf()
- 	 */
-@@ -526,7 +541,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
- 		if (rc)
- 			goto out;
+ 		smc_buf_free(lgr, is_rmb, buf_desc);
+ 	} else {
+-		buf_desc->used = 0;
+-		memset(buf_desc->cpu_addr, 0, buf_desc->len);
++		/* memzero_explicit provides potential memory barrier semantics */
++		memzero_explicit(buf_desc->cpu_addr, buf_desc->len);
++		WRITE_ONCE(buf_desc->used, 0);
  	}
--
-+fast_path:
- 	/* exchange confirm_rkey msg with peer */
- 	rc = smc_llc_do_confirm_rkey(link, rmb_desc);
- 	if (rc) {
-@@ -535,7 +550,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
+ }
+ 
+@@ -1413,19 +1414,17 @@ static void smc_buf_unuse(struct smc_connection *conn,
+ 		if (!lgr->is_smcd && conn->sndbuf_desc->is_vm) {
+ 			smcr_buf_unuse(conn->sndbuf_desc, false, lgr);
+ 		} else {
+-			conn->sndbuf_desc->used = 0;
+-			memset(conn->sndbuf_desc->cpu_addr, 0,
+-			       conn->sndbuf_desc->len);
++			memzero_explicit(conn->sndbuf_desc->cpu_addr, conn->sndbuf_desc->len);
++			WRITE_ONCE(conn->sndbuf_desc->used, 0);
+ 		}
  	}
- 	rmb_desc->is_conf_rkey = true;
- out:
--	up_write(&lgr->llc_conf_mutex);
-+	do_slow ? up_write(&lgr->llc_conf_mutex) : up_read(&lgr->llc_conf_mutex);
- 	smc_llc_flow_stop(lgr, &lgr->llc_flow_lcl);
- 	return rc;
+ 	if (conn->rmb_desc) {
+ 		if (!lgr->is_smcd) {
+ 			smcr_buf_unuse(conn->rmb_desc, true, lgr);
+ 		} else {
+-			conn->rmb_desc->used = 0;
+-			memset(conn->rmb_desc->cpu_addr, 0,
+-			       conn->rmb_desc->len +
+-			       sizeof(struct smcd_cdc_msg));
++			memzero_explicit(conn->rmb_desc->cpu_addr,
++					 conn->rmb_desc->len + sizeof(struct smcd_cdc_msg));
++			WRITE_ONCE(conn->rmb_desc->used, 0);
+ 		}
+ 	}
  }
 -- 
 1.8.3.1
