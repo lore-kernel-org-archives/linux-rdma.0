@@ -2,126 +2,135 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8F3FECAAA1
-	for <linux-rdma@archiver.kernel.org>; Sun, 23 Oct 2022 05:39:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02C30ECAAA1
+	for <linux-rdma@archiver.kernel.org>; Sun, 23 Oct 2022 12:44:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229588AbiJWFjj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 23 Oct 2022 01:39:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60360 "EHLO
+        id S230143AbiJWMoR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 23 Oct 2022 08:44:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229961AbiJWFjh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Oct 2022 01:39:37 -0400
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39BDD15A39
-        for <linux-rdma@vger.kernel.org>; Sat, 22 Oct 2022 22:39:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1666503574; x=1698039574;
-  h=from:to:subject:date:message-id:in-reply-to:references:
-   mime-version:content-transfer-encoding;
-  bh=k0hNa9sSqDuaDoEKGYzhyGC+62vA6BwjfQQq0pLVRfY=;
-  b=OJsinB5uX0qV3kPs9HEkWGEgNIba7+eMwATVIGEkZw+xyyOoupEbzFAY
-   pYk3c0lB9avoBOnVESps7dajVWOGc0xLQX1MZ39q0SSQvYbYWnaZu5mTM
-   5WgqYNw5ppSDo/OaSY6+Hhnl43SMONYFu3Kir8W/5bvBP7GIhyIr04vWM
-   mZv14kUkmOHapWKJJCtv46nwAF1VvX/E/8BAtOAzxS/h/g+xGuMyIBN3I
-   1XmF/wiBdiz3xyoioVAIKzhw6PYjIj29RZyu2ftzHFG1YuuiZaCxLObA8
-   V/380HepW2vo6CEuQDU63elT6HNbUWohq5MFo2ewvYqpMK4fDDDLSU7Eb
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10508"; a="294632912"
-X-IronPort-AV: E=Sophos;i="5.95,206,1661842800"; 
-   d="scan'208";a="294632912"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2022 22:39:32 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10508"; a="662047012"
-X-IronPort-AV: E=Sophos;i="5.95,206,1661842800"; 
-   d="scan'208";a="662047012"
-Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by orsmga008.jf.intel.com with ESMTP; 22 Oct 2022 22:39:30 -0700
-From:   Zhu Yanjun <yanjun.zhu@intel.com>
-To:     jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org,
-        yanjun.zhu@linux.dev, yanjun.zhu@intel.com
-Subject: [PATCH 3/3] RDMA/core: Get all the ib devices from net devices
-Date:   Sun, 23 Oct 2022 18:04:50 -0400
-Message-Id: <20221023220450.2287909-4-yanjun.zhu@intel.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20221023220450.2287909-1-yanjun.zhu@intel.com>
-References: <20221023220450.2287909-1-yanjun.zhu@intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S229515AbiJWMoQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Oct 2022 08:44:16 -0400
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 685F16D877;
+        Sun, 23 Oct 2022 05:44:15 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R251e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VSpfJvR_1666529052;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VSpfJvR_1666529052)
+          by smtp.aliyun-inc.com;
+          Sun, 23 Oct 2022 20:44:13 +0800
+From:   "D.Wythe" <alibuda@linux.alibaba.com>
+To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: [PATCH net-next v4 02/10] net/smc: fix SMC_CLC_DECL_ERR_REGRMB without smc_server_lgr_pending
+Date:   Sun, 23 Oct 2022 20:43:54 +0800
+Message-Id: <1666529042-40828-3-git-send-email-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1666529042-40828-1-git-send-email-alibuda@linux.alibaba.com>
+References: <1666529042-40828-1-git-send-email-alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-To mlx4/5, the function ib_device_get_by_netdev can not get
-ib devices from net devices.
+As commit 4940a1fdf31c ("net/smc: fix unexpected SMC_CLC_DECL_ERR_REGRMB
+error cause by server") mentioned, it works only when all connection
+creations are completely protected by smc_server_lgr_pending, since we
+already remove this lock, we need to re-fix the issues.
 
-So this function parses all the ib devices to get all the net
-devices, then compares the net devices with the given net device.
-
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+Fixes: 4940a1fdf31c ("net/smc: fix unexpected SMC_CLC_DECL_ERR_REGRMB error cause by server")
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- drivers/infiniband/core/device.c | 39 ++++++++++++++++++++++++++++++--
- 1 file changed, 37 insertions(+), 2 deletions(-)
+ net/smc/af_smc.c   |  2 ++
+ net/smc/smc_core.c | 11 ++++++++---
+ net/smc/smc_core.h | 19 +++++++++++++++++++
+ 3 files changed, 29 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index d38eb1fc2ed7..55e2d75d752e 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2740,14 +2740,49 @@ int ib_dma_virt_map_sg(struct ib_device *dev, struct scatterlist *sg, int nents)
- EXPORT_SYMBOL(ib_dma_virt_map_sg);
- #endif /* CONFIG_INFINIBAND_VIRT_DMA */
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index e369ab6..b55d9ad4 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -2399,6 +2399,7 @@ static void smc_listen_work(struct work_struct *work)
+ 		if (rc)
+ 			goto out_decl;
+ 	}
++	smc_conn_leave_rtoken_pending(new_smc, ini);
+ 	smc_conn_save_peer_info(new_smc, cclc);
+ 	smc_listen_out_connected(new_smc);
+ 	SMC_STAT_SERV_SUCC_INC(sock_net(newclcsock->sk), ini);
+@@ -2407,6 +2408,7 @@ static void smc_listen_work(struct work_struct *work)
+ 	goto out_free;
  
-+static struct ib_device *get_ibdev_from_ndev(struct net_device *ndev)
-+{
-+	unsigned long index;
-+	struct ib_device *dev;
-+	int i;
-+
-+	down_read(&devices_rwsem);
-+	xa_for_each_marked(&devices, index, dev, DEVICE_REGISTERED) {
-+		if (!dev->ops.get_netdev)
-+			continue;
-+
-+		for (i = 0; i < dev->phys_port_cnt; i++) {
-+			struct net_device *netdev;
-+
-+			netdev = dev->ops.get_netdev(dev, i+1);
-+			if (!netdev)
-+				continue;
-+
-+			dev_put(netdev);
-+			if (ndev == netdev) {
-+				up_read(&devices_rwsem);
-+				if (!ib_device_try_get(dev))
-+					dev = NULL;
-+				return dev;
+ out_decl:
++	smc_conn_leave_rtoken_pending(new_smc, ini);
+ 	if (ini && ini->first_contact_local)
+ 		smc_lgr_decision_maker_on_first_contact_done(ini, false /* fail */);
+ 	smc_listen_decline(new_smc, rc, ini ? ini->first_contact_local : 0,
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index fff41c3..c76e9a4 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -2182,14 +2182,19 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
+ 		     lgr->vlan_id == ini->vlan_id) &&
+ 		    (role == SMC_CLNT || ini->is_smcd ||
+ 		    (lgr->conns_num < SMC_RMBS_PER_LGR_MAX &&
+-		      !bitmap_full(lgr->rtokens_used_mask, SMC_RMBS_PER_LGR_MAX)))) {
++		    (SMC_RMBS_PER_LGR_MAX -
++			bitmap_weight(lgr->rtokens_used_mask, SMC_RMBS_PER_LGR_MAX)
++				> atomic_read(&lgr->rtoken_pendings))))) {
+ 			/* link group found */
+ 			ini->first_contact_local = 0;
+ 			conn->lgr = lgr;
+ 			rc = smc_lgr_register_conn(conn, false);
+ 			write_unlock_bh(&lgr->conns_lock);
+-			if (!rc && delayed_work_pending(&lgr->free_work))
+-				cancel_delayed_work(&lgr->free_work);
++			if (!rc) {
++				smc_conn_enter_rtoken_pending(smc, ini);
++				if (delayed_work_pending(&lgr->free_work))
++					cancel_delayed_work(&lgr->free_work);
 +			}
-+		}
-+	}
-+	up_read(&devices_rwsem);
-+	return NULL;
+ 			break;
+ 		}
+ 		write_unlock_bh(&lgr->conns_lock);
+diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
+index ad22751..dae2983 100644
+--- a/net/smc/smc_core.h
++++ b/net/smc/smc_core.h
+@@ -253,6 +253,9 @@ struct smc_link_group {
+ 	struct rb_root		conns_all;	/* connection tree */
+ 	rwlock_t		conns_lock;	/* protects conns_all */
+ 	unsigned int		conns_num;	/* current # of connections */
++	atomic_t		rtoken_pendings;/* number of connection that
++						 * lgr assigned but no rtoken got yet
++						 */
+ 	unsigned short		vlan_id;	/* vlan id of link group */
+ 
+ 	struct list_head	sndbufs[SMC_RMBE_SIZES];/* tx buffers */
+@@ -569,6 +572,22 @@ struct smc_link *smc_switch_conns(struct smc_link_group *lgr,
+ 
+ void smc_lgr_decision_maker_on_first_contact_done(struct smc_init_info *ini, bool success);
+ 
++static inline void smc_conn_enter_rtoken_pending(struct smc_sock *smc, struct smc_init_info *ini)
++{
++	struct smc_link_group *lgr = smc->conn.lgr;
++
++	if (lgr && !ini->first_contact_local)
++		atomic_inc(&lgr->rtoken_pendings);
 +}
 +
- static int rdma_netns_notify(struct notifier_block *not_blk,
- 			     unsigned long event, void *arg)
++static inline void smc_conn_leave_rtoken_pending(struct smc_sock *smc, struct smc_init_info *ini)
++{
++	struct smc_link_group *lgr = smc->conn.lgr;
++
++	if (lgr && !ini->first_contact_local)
++		atomic_dec(&lgr->rtoken_pendings);
++}
++
+ static inline struct smc_link_group *smc_get_lgr(struct smc_link *link)
  {
- 	struct net_device *ndev = netdev_notifier_info_to_dev(arg);
- 	struct ib_device *ibdev = ib_device_get_by_netdev(ndev, RDMA_DRIVER_UNKNOWN);
- 
--	if (!ibdev)
--		return NOTIFY_OK;
-+	if (!ibdev) {
-+		/* This is for MLX4/5 */
-+		ibdev = get_ibdev_from_ndev(ndev);
-+		if (!ibdev)
-+			return NOTIFY_OK;
-+	}
- 
- 	/* This will exclude IB device */
- 	if (rdma_protocol_ib(ibdev, rdma_start_port(ibdev))) {
+ 	return link->lgr;
 -- 
-2.27.0
+1.8.3.1
 
