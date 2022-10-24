@@ -2,102 +2,61 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79C2FFA3743
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99793FA3745
 	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 12:31:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231547AbiJXMah (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Oct 2022 08:30:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58968 "EHLO
+        id S232676AbiJXMaj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Oct 2022 08:30:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233957AbiJXM3F (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 08:29:05 -0400
+        with ESMTP id S234343AbiJXMaF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 08:30:05 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9CE574E39;
-        Mon, 24 Oct 2022 05:02:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D148F5D739;
+        Mon, 24 Oct 2022 05:04:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B7157B811FE;
-        Mon, 24 Oct 2022 12:00:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCE42C433D6;
-        Mon, 24 Oct 2022 12:00:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 31FF6B81181;
+        Mon, 24 Oct 2022 11:47:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40EF5C433D7;
+        Mon, 24 Oct 2022 11:47:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666612802;
-        bh=GAvKdiCXmJ3TdTl3w2z3oNTgZyAdY9zlwgO7MDYfPBo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=TBBVIAZXuUScDHsS+KRrh0jcvp9hHeCkLkbVYjYmOLyIfM0/bqyGPMF9rjWKMyD13
-         gUm53ljsPboY0W5728rR7CqUuBdnDpahlwKe4RXGzGQBWp/y/mEL92gmfVAxCvdKNd
-         lPmiV2CLMW8vTzWh2gMp+5aOLRimiuQbi+cdawNw3OEz60UQZwQi86YQJrGgefBHi5
-         RI850tdyP0ZeqRH0Z+vmteCLhPT/HTwOoYS74C8Eqg1J0ykYSCzEO6i9nHN0J+nx7w
-         +zEmiAOxsxUyRaj03uof/iaDCChxaZ30zkip1/QTJ95ujHNI3fPs05YF9Lodf6jxRU
-         3ua5CvfFIRkjA==
-Date:   Mon, 24 Oct 2022 14:59:58 +0300
+        s=k20201202; t=1666612070;
+        bh=2Xq/Xx65ukmX6CknqA0PZRSw+qJQk8YtM6vyHsXpZA0=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=RFazvBS4s6P+srUXi9c1t6n9vmFmZZOwNA5B+NevoXN5TuABrk22dSuDDrhvgsDeq
+         Ea0Ah1OSwctul3jvVUaLQ8HDT9r5UYlBvcgseaY8ETJE/nXSV772iuhPz6hrwazjnj
+         UMjV7AhnVTZ9aDtTtUB1IwFUrSGoE4aWL7Ad/h1k14aV31CBdCuW4SaLekwa+sTqvl
+         XxxLhgc96RvIIzTr6omIrG0/qkdCuNSuswYovf0T/ky3d4cz4tko/GZci76kjZQPUM
+         vZmdWaQctTQ0DCab6DTKfidWbUcIW+ujUyJuwQWUukX6qsz3LGglDZorAVJqPUNN9d
+         7Pq6zLtL8BVaw==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Li Zhijian <lizhijian@fujitsu.com>
-Cc:     zyjzyj2000@gmail.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Bob Pearson <rpearsonhpe@gmail.com>
-Subject: Re: [PATCH for-next v3 2/2] RDMA/rxe: Fix mr leak in RESPST_ERR_RNR
-Message-ID: <Y1Z+PnTk0Tr7sxcb@unreal>
-References: <1666582315-2-1-git-send-email-lizhijian@fujitsu.com>
- <20221024052049.20577-1-lizhijian@fujitsu.com>
+To:     wangjianli <wangjianli@cdjrlc.com>, jgg@ziepe.ca
+Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <20221022060030.50900-1-wangjianli@cdjrlc.com>
+References: <20221022060030.50900-1-wangjianli@cdjrlc.com>
+Subject: Re: [PATCH] infiniband/core: fix repeated words in comments
+Message-Id: <166661206651.860056.8565656174789482533.b4-ty@kernel.org>
+Date:   Mon, 24 Oct 2022 14:47:46 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221024052049.20577-1-lizhijian@fujitsu.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-Mailer: b4 0.11.0-dev-87e0e
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Oct 24, 2022 at 01:20:49PM +0800, Li Zhijian wrote:
-> rxe_recheck_mr() will increase mr's ref_cnt, so we should call rxe_put(mr)
-> to drop mr's ref_cnt in RESPST_ERR_RNR to avoid below warning:
-> [  633.447883] WARNING: CPU: 0 PID: 4156 at drivers/infiniband/sw/rxe/rxe_pool.c:259 __rxe_cleanup+0x1df/0x240 [rdma_rxe]
-> ...
-> [  633.509482] Call Trace:
-> [  633.510246]  <TASK>
-> [  633.510962]  rxe_dereg_mr+0x4c/0x60 [rdma_rxe]
-> [  633.512123]  ib_dereg_mr_user+0xa8/0x200 [ib_core]
-> [  633.513444]  ib_mr_pool_destroy+0x77/0xb0 [ib_core]
-> [  633.514763]  nvme_rdma_destroy_queue_ib+0x89/0x240 [nvme_rdma]
-> [  633.516230]  nvme_rdma_free_queue+0x40/0x50 [nvme_rdma]
-> [  633.517577]  nvme_rdma_teardown_io_queues.part.0+0xc3/0x120 [nvme_rdma]
-> [  633.519204]  nvme_rdma_error_recovery_work+0x4d/0xf0 [nvme_rdma]
-> [  633.520695]  process_one_work+0x582/0xa40
-> [  633.522987]  ? pwq_dec_nr_in_flight+0x100/0x100
-> [  633.524227]  ? rwlock_bug.part.0+0x60/0x60
-> [  633.525372]  worker_thread+0x2a9/0x700
-> [  633.526437]  ? process_one_work+0xa40/0xa40
-> [  633.527589]  kthread+0x168/0x1a0
-> [  633.528518]  ? kthread_complete_and_exit+0x20/0x20
-> [  633.529792]  ret_from_fork+0x22/0x30
+On Sat, 22 Oct 2022 14:00:30 +0800, wangjianli wrote:
+> Delete the redundant word 'the'.
 > 
-> CC: Bob Pearson <rpearsonhpe@gmail.com>
-> Fixes: 8a1a0be894da ("RDMA/rxe: Replace mr by rkey in responder resources")
-> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
-> V2: remove mr testing
+> 
 
-This should be after ---
+Applied, thanks!
 
-> ---
->  drivers/infiniband/sw/rxe/rxe_resp.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-> index b02639cf8cba..41250154a478 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-> @@ -806,8 +806,10 @@ static enum resp_states read_reply(struct rxe_qp *qp,
->  
->  	skb = prepare_ack_packet(qp, &ack_pkt, opcode, payload,
->  				 res->cur_psn, AETH_ACK_UNLIMITED);
-> -	if (!skb)
-> +	if (!skb) {
-> +		rxe_put(mr);
->  		return RESPST_ERR_RNR;
-> +	}
->  
->  	rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
->  		    payload, RXE_FROM_MR_OBJ);
-> -- 
-> 2.31.1
-> 
+[1/1] infiniband/core: fix repeated words in comments
+      https://git.kernel.org/rdma/rdma/c/c4bb733234b0ff
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
