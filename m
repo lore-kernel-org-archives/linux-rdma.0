@@ -2,43 +2,44 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99793FA3745
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 12:31:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BF60FA3741
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 12:41:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232676AbiJXMaj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Oct 2022 08:30:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53272 "EHLO
+        id S229816AbiJXMka (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Oct 2022 08:40:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234343AbiJXMaF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 08:30:05 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D148F5D739;
-        Mon, 24 Oct 2022 05:04:19 -0700 (PDT)
+        with ESMTP id S234002AbiJXMiK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 08:38:10 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 036478A1C4
+        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 05:06:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 31FF6B81181;
-        Mon, 24 Oct 2022 11:47:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40EF5C433D7;
-        Mon, 24 Oct 2022 11:47:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B20CC612FB
+        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 12:06:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 916D8C433B5;
+        Mon, 24 Oct 2022 12:06:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666612070;
-        bh=2Xq/Xx65ukmX6CknqA0PZRSw+qJQk8YtM6vyHsXpZA0=;
+        s=k20201202; t=1666613167;
+        bh=+QIfaH9URJ62eloK4ZJUGwASquvqQ6KNof3pL+s42Bo=;
         h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=RFazvBS4s6P+srUXi9c1t6n9vmFmZZOwNA5B+NevoXN5TuABrk22dSuDDrhvgsDeq
-         Ea0Ah1OSwctul3jvVUaLQ8HDT9r5UYlBvcgseaY8ETJE/nXSV772iuhPz6hrwazjnj
-         UMjV7AhnVTZ9aDtTtUB1IwFUrSGoE4aWL7Ad/h1k14aV31CBdCuW4SaLekwa+sTqvl
-         XxxLhgc96RvIIzTr6omIrG0/qkdCuNSuswYovf0T/ky3d4cz4tko/GZci76kjZQPUM
-         vZmdWaQctTQ0DCab6DTKfidWbUcIW+ujUyJuwQWUukX6qsz3LGglDZorAVJqPUNN9d
-         7Pq6zLtL8BVaw==
+        b=YC9D12DGQH2IM7PtgN9Me+p4TGqPS8s70NGxDEmHLUoJKHLmKop1eCPb0z32fsGvA
+         ptDsr7U/rJj1UsbZh7/A+yYH5W7Zg15B8le/DMgnR+ojX5cJJZvVTuyqStjNFO/5JQ
+         QZqZcDtAZI2KpUmFvawGhrwk3TG+EMhc9faKBBl+8q7Hfn2dJVtG7HO5YeKp+M+aq3
+         nAbv/Fv9we57uQdp0tG3pknZhw02TLA8js0+mcRXJb/Kps1iqEq+zZSPkfjCbyx8c3
+         TQ5R5I6ZGUNqpD+qrMn5szPYZ4IjhjCnYKk/BDIqyJgc+AcyyPhfvQcFxUD1dIGvPg
+         nCgia/fItig9g==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     wangjianli <wangjianli@cdjrlc.com>, jgg@ziepe.ca
-Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-In-Reply-To: <20221022060030.50900-1-wangjianli@cdjrlc.com>
-References: <20221022060030.50900-1-wangjianli@cdjrlc.com>
-Subject: Re: [PATCH] infiniband/core: fix repeated words in comments
-Message-Id: <166661206651.860056.8565656174789482533.b4-ty@kernel.org>
-Date:   Mon, 24 Oct 2022 14:47:46 +0300
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Haoyue Xu <xuhaoyue1@hisilicon.com>
+Cc:     liangwenpeng@huawei.com, linux-rdma@vger.kernel.org,
+        linuxarm@huawei.com
+In-Reply-To: <20221024083814.1089722-1-xuhaoyue1@hisilicon.com>
+References: <20221024083814.1089722-1-xuhaoyue1@hisilicon.com>
+Subject: Re: [PATCH for-rc 0/2] Two bugfixes
+Message-Id: <166661316293.1125724.15671399753331108431.b4-ty@kernel.org>
+Date:   Mon, 24 Oct 2022 15:06:02 +0300
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -47,15 +48,24 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sat, 22 Oct 2022 14:00:30 +0800, wangjianli wrote:
-> Delete the redundant word 'the'.
+On Mon, 24 Oct 2022 16:38:12 +0800, Haoyue Xu wrote:
+> The patchset includes:
+> 1:The first patch resends the "Disable local invalidate operation."
+> Add a detailed description for it.
+> 2:The second patch fixes the kernel NULL pointer dereference problem in
+> free_mr_init.
 > 
+> Yangyang Li (1):
+>   RDMA/hns: Disable local invalidate operation
 > 
+> [...]
 
 Applied, thanks!
 
-[1/1] infiniband/core: fix repeated words in comments
-      https://git.kernel.org/rdma/rdma/c/c4bb733234b0ff
+[1/2] RDMA/hns: Disable local invalidate operation
+      https://git.kernel.org/rdma/rdma/c/f164c01b38eb40
+[2/2] RDMA/hns: Fix null pointer problem in free_mr_init
+      https://git.kernel.org/rdma/rdma/c/45b2d30f069498
 
 Best regards,
 -- 
