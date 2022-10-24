@@ -2,76 +2,62 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34DB5FA373E
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 12:08:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1EAEFA373E
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 12:27:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232796AbiJXMIO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Oct 2022 08:08:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39238 "EHLO
+        id S233714AbiJXM1t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Oct 2022 08:27:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232661AbiJXMG3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 08:06:29 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D9187E31E
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 04:51:40 -0700 (PDT)
+        with ESMTP id S233717AbiJXM1C (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 08:27:02 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4A2E7C307;
+        Mon, 24 Oct 2022 05:00:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B919161257
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 11:51:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A15A5C43470;
-        Mon, 24 Oct 2022 11:51:39 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 43F0CB8119B;
+        Mon, 24 Oct 2022 11:47:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C9FCC4314D;
+        Mon, 24 Oct 2022 11:47:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666612300;
-        bh=5K4AwVYm4+lHrKZsPJyon9OIUN48UG10z3hs1NxGzGU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=VSg0TGssng1nJPkB8hdNqK2ObMrXi46EqhCy5IIedkk4QRnghs3C2kZKMy9LnSKNA
-         kz+aAoMdDuM7HGwT6bJ8iNAb5JGnm1dla+58UYlpMYVthm3oEuAdTrMqlwjZ03yPJN
-         l1jxZ4GZoEhGiZ0RHzoKmoz03uJ1vV1q5nuM7AzNldw0TXnKhU1BV4OopcJRC3kI+/
-         phIUhmyC3zVmv9HtWP/wFCe8a0kF/Slr5w6qzaYQX1FKvTrSyPHagE1S7LJsO3IzV1
-         o9XwMscdPE5ETpo3a4Xq1djE03gH9ciRB9qW9WBgb+OX8t4SGetK3aN37Z5wNzsZU/
-         zuUSMCQPAdr9w==
-Date:   Mon, 24 Oct 2022 14:51:35 +0300
+        s=k20201202; t=1666612066;
+        bh=a9DyYzOF0kGPJyVRxDBbt84Jje8TtB3dYA4L4TdMtQg=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=eTnffTcl7eLkfpIrRszjDUeKiNH+IrR3nACF9IlRJBNQsjzxXKbsVT/z10pA/sORl
+         RWKAchKD78Rvw9HQSSvjoSf9WhN3pjw8+nRYyY5CLeAHBObzzgUmExTundJsLGhccV
+         M/BAP8p88lOWVMzH3KngT43LgvT+ghF2ynJ516bB8cwZWz/z+a8mKQ9Q2Q0WrMOK65
+         NI3mdy2Iq2I4TI8ne6YH+krQ/+L7PaxQ4L3E3fti9eog8b0G4v494O03razfRGZ1Z3
+         9ftUHxgvjfN8EkIIzNtNaty1B7qEpasSnm0pe+0KGyxkOSCgCm+TrutrUoljRsOoO9
+         GbO6qvsapS1gQ==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>
-Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>
-Subject: Re: [PATCH] RDMA/rxe: Remove the member 'type' of struct rxe_mr
-Message-ID: <Y1Z8R7xB1omokwZ/@unreal>
-References: <20221021134513.17730-1-yangx.jy@fujitsu.com>
+To:     wangjianli <wangjianli@cdjrlc.com>, jgg@ziepe.ca,
+        dennis.dalessandro@cornelisnetworks.com
+Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <20221022055905.49176-1-wangjianli@cdjrlc.com>
+References: <20221022055905.49176-1-wangjianli@cdjrlc.com>
+Subject: Re: [PATCH] hw/qib: fix repeated words in comments
+Message-Id: <166661206142.860056.6523850341310170375.b4-ty@kernel.org>
+Date:   Mon, 24 Oct 2022 14:47:41 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221021134513.17730-1-yangx.jy@fujitsu.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-Mailer: b4 0.11.0-dev-87e0e
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Oct 21, 2022 at 01:45:17PM +0000, yangx.jy@fujitsu.com wrote:
-> The member 'type' is included in both struct rxe_mr and struct ib_mr
-> so remove the duplicate one of struct rxe_mr.
+On Sat, 22 Oct 2022 13:59:05 +0800, wangjianli wrote:
+> Delete the redundant word 'the'.
 > 
-> Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
-> ---
->  drivers/infiniband/sw/rxe/rxe_mr.c    | 16 ++++++++--------
->  drivers/infiniband/sw/rxe/rxe_verbs.h |  1 -
->  2 files changed, 8 insertions(+), 9 deletions(-)
+> 
 
-<...>
+Applied, thanks!
 
->  	default:
->  		pr_warn("%s: mr type (%d) not supported\n",
-> -			__func__, mr->type);
-> +			__func__, mr->ibmr.type);
->  		return -EFAULT;
+[1/1] hw/qib: fix repeated words in comments
+      https://git.kernel.org/rdma/rdma/c/2d5206c4629dfe
 
-<...>
-
-> -	if (unlikely(mr->type != IB_MR_TYPE_MEM_REG)) {
-> -		pr_warn("%s: mr->type (%d) is wrong type\n", __func__, mr->type);
-> +	if (unlikely(mr->ibmr.type != IB_MR_TYPE_MEM_REG)) {
-> +		pr_warn("%s: mr type (%d) is wrong\n", __func__, mr->ibmr.type);
-
-Someone needs to convert pr_*() calls to ibdev_*() prints.
-
-Thanks
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
