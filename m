@@ -2,90 +2,140 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38378ECAAA1
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 18:03:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99B9CECAAA1
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 18:27:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230238AbiJXSD2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Oct 2022 14:03:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40798 "EHLO
+        id S231285AbiJXS1s (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Oct 2022 14:27:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230123AbiJXSCr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 14:02:47 -0400
-Received: from mail-qk1-x72a.google.com (mail-qk1-x72a.google.com [IPv6:2607:f8b0:4864:20::72a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82B7F2BE24
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 09:43:27 -0700 (PDT)
-Received: by mail-qk1-x72a.google.com with SMTP id d13so6409480qko.5
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 09:43:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=PQUAOIAwlBb1Ac+IMwvAIs+PccHrMcnmJEUvE59sduo=;
-        b=jewwKjOp110j3RCbj7CHLjBE8dKB97kT3YOWZrJPH+I0aKVAMllj00IyW4LjSUObNq
-         xZxAev3oxd6QAV4hE5YaXUEwQ94oeJowwRgOVnBVYCVeLA7+SgH23Crl+teu7+moouXr
-         gfuNjRMaQKPr6BvDDAGWe6LVGeKCG8OaK80wRHJUeGWx6m0v2AdBntfj/jIHl2MmQb9n
-         mm8j4G9pPI7B2/mhfoyv1MaZ6w8ykxNfmPwYLQHr9h0ZLbQq4ZWPG3HllMuO/v4hz27Q
-         6gbNQv12/D6WvhnQQUceQqVe8ihCDkBq5rmJBdOlJce/N4Nz7zGsAJlwQp0R9/ienRWm
-         brBA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=PQUAOIAwlBb1Ac+IMwvAIs+PccHrMcnmJEUvE59sduo=;
-        b=0HoB6SPz2Ekyy0+dHYsbuG4FoWa5Rwoszve9jgNHPbqJ4XPBdPsaUSONmRBvFMECgc
-         n71iWSpmm/LReEm4SCZ1Q3EWwxCvN6yRsG/pjhYbMOoyG2mzKqANVxAmqpK8HemZb6cs
-         +60RgSYcXdN4wnfI8bBldX6zWtxMXioyHfZfhTp7iF09GUfu2AyMUDhT+60r4pnGbc5/
-         DSLmM0BpLF9HbHofZTH304Eg5Yowc7mexY+Vo4YUZtNEMP8Fq2SVRjaGhHsItjkmlgbU
-         c5lH9dkDG5shkR2C7nBRUQ5iOlpYiyeGhjWqRbhxS9MkQ8WmNQf+QW4wk8uRy5ezUmHi
-         pWNg==
-X-Gm-Message-State: ACrzQf1VKVIjKx4+fZqtPr0EsjOkXYQLWP3VUdjqAAy6Frqzeq9pETpj
-        CDa8TFsuQszfsDtYSMGDYJ7QPg==
-X-Google-Smtp-Source: AMsMyM4MXMW3GmPJvEEh/mqAM/OPAdIuvpMk9/nnN9yyv8FxhAGbMQqjRxi5gOjjZPTaf43M0wJ8fQ==
-X-Received: by 2002:a05:620a:1a82:b0:6ee:d1b9:95b7 with SMTP id bl2-20020a05620a1a8200b006eed1b995b7mr23057529qkb.128.1666629691890;
-        Mon, 24 Oct 2022 09:41:31 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-47-55-122-23.dhcp-dynamic.fibreop.ns.bellaliant.net. [47.55.122.23])
-        by smtp.gmail.com with ESMTPSA id s17-20020a05620a29d100b006bbf85cad0fsm275754qkp.20.2022.10.24.09.41.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Oct 2022 09:41:31 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.95)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1on0W2-00DXTk-FI;
-        Mon, 24 Oct 2022 13:41:30 -0300
-Date:   Mon, 24 Oct 2022 13:41:30 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Dust Li <dust.li@linux.alibaba.com>
-Cc:     Yanjun Zhu <yanjun.zhu@linux.dev>,
-        Zhu Yanjun <yanjun.zhu@intel.com>, leon@kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH 0/3] RDMA net namespace
-Message-ID: <Y1bAOn6/p/TGDvV+@ziepe.ca>
-References: <20221024011007.GE63658@linux.alibaba.com>
- <20221023220450.2287909-1-yanjun.zhu@intel.com>
- <e4b62ef709c43ff7425d9a02efaecc5c@linux.dev>
- <20221024115228.GF63658@linux.alibaba.com>
- <662d6804-0e16-117e-d4a4-9abd4a2e8c75@linux.dev>
- <20221024143521.GG63658@linux.alibaba.com>
-MIME-Version: 1.0
+        with ESMTP id S231260AbiJXS1d (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 14:27:33 -0400
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (mail-dm3nam02on2059.outbound.protection.outlook.com [40.107.95.59])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD210A47D;
+        Mon, 24 Oct 2022 10:09:32 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Nk5YcLl1dpUm1rECDJNn/SG00gXFavjs1EZa2RRy+vp2BfklX/zO2K4aAWUqEcHq1o/qqvOMZe8UNx/EWOweEFbxAUTzC6ZTs6D4VT78SuNp73jvjlWVWx0RDW8nSWZrb9lihdyr70obDZubhw76Yu+Xx46HRJUcf3i9X1M2xwH9PIPPbj9qnoCF9DWdPGNc13Wdtj7E/OxDuYsdTUfZNdQ3yOu8wHhUPoWpOIblEh64ATGk8UuP2QHXIaesqB+TbtQ89FuMFQJcAqRMI6d6N6meerCElJapMFUhq5SGYthh6g8R89b4WFDLJl1j5Ov4cghDFBSV3oNntp+7y1gwkQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=rMfOtIoNYFx3chhM75KrjYl729PIJ3xogRyhROocmxg=;
+ b=GRG2e5DZV1v+QNeW5kuD6DR05mogmJcc5dWwvvNMnPKyK/wDElfMQWpx1Q1s3uHR33FjMXAeF9U8iD2rf6FxexzR8EIp2iY/8c3PYs7Pr/l94Z4bC3/rOwUEM2ob08dbr46FzLp5w8ERgUGxD0oK9PI63Yj9be+a/oSrjX/LUFxKZRvO2kCH0cecadg2Mycgz3vH++D7ju41sfzlELT9F+NsYXkXXa49dSdMI2lTZsSM+ul8DWeCxrEJYf5oy14g0mrgHmaL9FyKUBUTSIhWcySY8bhF9gTArnZmWlnpytrL0cR6ev/vUI7abY+GqTLh1e1g2i84zdYa2clIsFOKIQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=rMfOtIoNYFx3chhM75KrjYl729PIJ3xogRyhROocmxg=;
+ b=rhKSTdRp6UkpqaeoYm5QGylnUEVa3IGcBPL303jNkTGyeTS9+jD2635ket3auraVTiSCxozjWpP7OqQ0TiopxRLnxbE1+ixARaT3rvstJhCfho2+W+0WSTlG4J4h9HB5uJxN2xR9k9oHonRkQky4i5RfYcJ+QKEDmFnGyLDz9sM8r6CDq+4DGzVaCovvKKxOozcXzBLfxUVkaxWSu6wITWYcIUsnG2jU++1u/X+/oj5JLAqyqCEVX7X2QI3mLRim10C57BmXTtwdRQtLHjlvrVXthfts0VL2jiZMTgI+8EJRk2Wv0GaoblxGft8+rXkcAu0cQBSK7EPJ/KYWu2TuoQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV2PR12MB5869.namprd12.prod.outlook.com (2603:10b6:408:176::16)
+ by MN2PR12MB4336.namprd12.prod.outlook.com (2603:10b6:208:1df::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5746.28; Mon, 24 Oct
+ 2022 17:06:35 +0000
+Received: from LV2PR12MB5869.namprd12.prod.outlook.com
+ ([fe80::7a81:a4e4:bb9c:d1de]) by LV2PR12MB5869.namprd12.prod.outlook.com
+ ([fe80::7a81:a4e4:bb9c:d1de%6]) with mapi id 15.20.5746.021; Mon, 24 Oct 2022
+ 17:06:35 +0000
+Date:   Mon, 24 Oct 2022 14:06:34 -0300
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Li Zhijian <lizhijian@fujitsu.com>
+Cc:     zyjzyj2000@gmail.com, leon@kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Bob Pearson <rpearsonhpe@gmail.com>
+Subject: Re: [PATCH for-next] RDMA/rxe: Fix mr leak in RESPST_ERR_RNR
+Message-ID: <Y1bGGurUBxm4YOJS@nvidia.com>
+References: <20221013040333.21097-1-lizhijian@fujitsu.com>
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20221024143521.GG63658@linux.alibaba.com>
+In-Reply-To: <20221013040333.21097-1-lizhijian@fujitsu.com>
+X-ClientProxiedBy: BL1PR13CA0330.namprd13.prod.outlook.com
+ (2603:10b6:208:2c1::35) To LV2PR12MB5869.namprd12.prod.outlook.com
+ (2603:10b6:408:176::16)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV2PR12MB5869:EE_|MN2PR12MB4336:EE_
+X-MS-Office365-Filtering-Correlation-Id: 798ff933-23ab-43f0-0a4f-08dab5e21b5c
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: apBrEdKeqhYWabRJxMoWGvl4x7fmiKxsGfvuOTCtwvg4wujPiIsySdy8hKkSTPAYrWzBenK7M+jD4SB8m7tvTN0VPvA5JQeGSuTPpASNe02RVogNBJvwJbm75T38jqbXuqjuPnJ2Elj6V6ZVXBzsWTI3sbDuo4/tmTWGuMfB+8uepy4EyOjku9wSv5yICLKhJRszVwVyEwnO0Md1XPsjaxeJErazlCqyskf21TU22EXBd5A1r+8hXLFwTFjqKxwE1JEmGROmhC6nzKZgAd5c8Jr/OTX3jkipk1Inrl6U80nruHIY6spglctFBUYAA+nYkGIeYQLeqVsGNp6bdCZqSm2nOqvcAASshs0QZ+eqyqM/jzWNO2iJ/er42CKpq+vmTyzY9lMd7k0avWX/b3+E6ZWpf+dnNZl/eLjnyah6EXqLM+3hbO2OPKklDFLiyJXFgRff8E/zZly952AKIvAmYaNAZdwvDYERulkgSVpjdUHTPmMf3Z7nSLkjGFotEDZil25qudkG4wn0mwzwQWooVJFfuYDZJ8AeqxTS0wl58IExmpmvyQcLFbb392u9z7JKVSJbQrlLSVepxDJAWJNk4SO3EWlAXsV74il9qc1owyEg2L45IPUP9Dfp5lZhdc+CxJpBZ8jRSjlxgah7kf8T7bmjd03uNzevDFOW1HL07xbjwIbW5FNrFFq7qsP0hMB83LlHG09b7nLb2R9eWWa6qg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR12MB5869.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(136003)(39860400002)(346002)(396003)(376002)(366004)(451199015)(6916009)(36756003)(2906002)(5660300002)(8936002)(66946007)(66476007)(8676002)(4326008)(41300700001)(86362001)(66556008)(316002)(6506007)(6512007)(26005)(83380400001)(186003)(2616005)(38100700002)(6486002)(478600001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?ivpW3ReQvJUJ4wVjpCD1ahyJOtB9uW8VVtL4y7HbOMGCjR3S8m0hLo1Y+cAs?=
+ =?us-ascii?Q?UeSmh8PoeSC5fTJtimGOBaiW35pIPHlOKMCpxh7+U/FaElBsinNAY6k4xvyI?=
+ =?us-ascii?Q?dPp/qMALt00wBoYd1YoYQCYx73ytS8ZNsDthfpbVWMIsRROy8L1V5+6K5ikw?=
+ =?us-ascii?Q?STgyrB7vA49x/veC+3kl5mqfGFyxZd6kWkNzT5rtWi2RfTmlTPNBH1HCUMpk?=
+ =?us-ascii?Q?jwXQ52RRmdntn+YUCD1lbL0YtWaSJ5FVM9M+3yvH/T30NBUqtlUR8HVbAt6H?=
+ =?us-ascii?Q?0xWsLMxWOEi+fI+d3AmxcF1tEQ4xaNf4Y9VH6t5oDqbhnVcsfaWLwHtML24y?=
+ =?us-ascii?Q?Uax88C7EM4ju4sXI/V/4r/NjYz+Zrj9yQ9jX88/eAfwKesCTvmfRi0Kfacj2?=
+ =?us-ascii?Q?iGVgCd4SW3GY/UZ9dAVxAzgjKQ3FFTWy2ESWqrcbCaojiQpnZu9xwwffHJnF?=
+ =?us-ascii?Q?ScEqP5Mrmqk7CjoDOvFGqjvzQSCaSyhVk0o6qeSFkwEi31ndSAPjnyaED5Xd?=
+ =?us-ascii?Q?jptYBI44GYI90BggGhdFIfnr3TpF+Haawc3jBzXvxipyPbCy92B8vN6T4ULo?=
+ =?us-ascii?Q?diGkKb5F9Px+NX4R93UYiPJpnCYj0DolSfXurOJUqLyYz584zwtHJtQPN/aA?=
+ =?us-ascii?Q?2ZysdOSLepPRX+85LGtCCDtkof47qVlxJz10iZa9fr7MUvmUuu71kWyd7Wjw?=
+ =?us-ascii?Q?kOaQmlQrHjzGKetLTUWMa9bk5Bnms/NvXTOZRHjJ19i8CPJpRiye6pxO5xN7?=
+ =?us-ascii?Q?wRa3KoPnjsz7sDKqxF9xMB+N3JS2/zqM5M6FJ/V7xAw7erarSWQ7YAG6qiVV?=
+ =?us-ascii?Q?BPVSdYofhpMNd82dr5pdaK1lEIqreGdt5SExgh/bWlRxqXjTU1FTMnewOF3m?=
+ =?us-ascii?Q?QnAIqB2D37l99JupaoEzTKXgfzy2OMfyDgdaEsz3SXvaXd9fdM87/wE5QPhV?=
+ =?us-ascii?Q?HwdsOW/9fOl+2qf//bibq4WGizMD7PmmcfXPTNgBRb2rSrEMmvrKOCbScP9p?=
+ =?us-ascii?Q?56M5aNQakbUNf8WwvTVk70B3wrVgE5o6NSAKeDrwWUMSbMZ/YuOaIqF00cQK?=
+ =?us-ascii?Q?DbB1I6FH5GwqkWwt6FCLKUmRdc/nv4vAtH0NBHoZGKAKh6aA3KHU21chxFA0?=
+ =?us-ascii?Q?8v9ySHNoV+bnEJddyD8ubPvigUNlwuNISPP44o6dXIH7WIdhFlzzZPiwTlQJ?=
+ =?us-ascii?Q?IdGLDPDEhDcb9z/uaV5lDCVcwB9aMQPXrnZUpZMCI3/660xVIeUCuIoNSNlr?=
+ =?us-ascii?Q?hbvBHBEx0+l/KRvwm/KIKogtMzu6KLR1ca0HjXTPHTTWSqtyeM4U1uNCr5vH?=
+ =?us-ascii?Q?flLZFE7n6wigsjXSvpC58v7pmwYC7W4FxPLcoHjidi9foUWPvkO9fIf3YwxS?=
+ =?us-ascii?Q?RuMYZvSv709mOUhTu8Tt/zMD01fls6MSXkI9jGKuuPJYcqwPY/lZybBuhWwe?=
+ =?us-ascii?Q?c7wgHqgDghOBc5qI2Y08jWxQLjl581XvRBMlCywlnkkXOgKmXzMg7zE4Lhta?=
+ =?us-ascii?Q?gtRHU+xcBUCugIQ+eztxraUB5zyAYhX0vsLKbA5A+Bk+uikyoJfDZc6yLpYG?=
+ =?us-ascii?Q?ytShJ2lHonuVz5UjYs8=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 798ff933-23ab-43f0-0a4f-08dab5e21b5c
+X-MS-Exchange-CrossTenant-AuthSource: LV2PR12MB5869.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Oct 2022 17:06:35.5411
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: S45o96ro2k1SWShIYy6ttC1XyHfhyRAPiJRrkkrUVHq84K/ot4bpaj4PaxtvkS1E
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4336
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Oct 24, 2022 at 10:35:21PM +0800, Dust Li wrote:
+On Thu, Oct 13, 2022 at 12:03:33PM +0800, Li Zhijian wrote:
+> rxe_recheck_mr() will increase mr's ref_cnt, so we should call rxe_put(mr)
+> to drop mr's ref_cnt in RESPST_ERR_RNR to avoid below warning:
+> [  633.447883] WARNING: CPU: 0 PID: 4156 at drivers/infiniband/sw/rxe/rxe_pool.c:259 __rxe_cleanup+0x1df/0x240 [rdma_rxe]
+> ...
+> [  633.509482] Call Trace:
+> [  633.510246]  <TASK>
+> [  633.510962]  rxe_dereg_mr+0x4c/0x60 [rdma_rxe]
+> [  633.512123]  ib_dereg_mr_user+0xa8/0x200 [ib_core]
+> [  633.513444]  ib_mr_pool_destroy+0x77/0xb0 [ib_core]
+> [  633.514763]  nvme_rdma_destroy_queue_ib+0x89/0x240 [nvme_rdma]
+> [  633.516230]  nvme_rdma_free_queue+0x40/0x50 [nvme_rdma]
+> [  633.517577]  nvme_rdma_teardown_io_queues.part.0+0xc3/0x120 [nvme_rdma]
+> [  633.519204]  nvme_rdma_error_recovery_work+0x4d/0xf0 [nvme_rdma]
+> [  633.520695]  process_one_work+0x582/0xa40
+> [  633.522987]  ? pwq_dec_nr_in_flight+0x100/0x100
+> [  633.524227]  ? rwlock_bug.part.0+0x60/0x60
+> [  633.525372]  worker_thread+0x2a9/0x700
+> [  633.526437]  ? process_one_work+0xa40/0xa40
+> [  633.527589]  kthread+0x168/0x1a0
+> [  633.528518]  ? kthread_complete_and_exit+0x20/0x20
+> [  633.529792]  ret_from_fork+0x22/0x30
+> 
+> CC: Bob Pearson <rpearsonhpe@gmail.com>
+> Fixes: 8a1a0be894da ("RDMA/rxe: Replace mr by rkey in responder resources")
+> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_resp.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
 
-> For the netdevice, that's true. But for RDMA, we should not even see
-> the ib device in the containers any more, so I think we cannot create
-> qp/cq, and RDMA is not available for these containers in this case.
-
-Correct, in shared mode the RDMA device should only allow using GID
-table entries that have netdevs that are present in the processe's net
-namespace.
-
-This is, in general, the philosophy. The user is supposed to keep the
-various devices in the namespace in sync, because the kernel cannot
-guess what is correct.
+Applied to for-rc, thanks
 
 Jason
