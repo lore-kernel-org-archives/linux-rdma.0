@@ -2,105 +2,90 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDEEFECAAA1
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 16:30:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38378ECAAA1
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Oct 2022 18:03:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231558AbiJXQaR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 24 Oct 2022 12:30:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40428 "EHLO
+        id S230238AbiJXSD2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Oct 2022 14:03:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232750AbiJXQ3z (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 12:29:55 -0400
-Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77542196EE1
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 08:16:14 -0700 (PDT)
-Received: by mail-oi1-x22d.google.com with SMTP id j188so11150398oih.4
-        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 08:16:14 -0700 (PDT)
+        with ESMTP id S230123AbiJXSCr (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Oct 2022 14:02:47 -0400
+Received: from mail-qk1-x72a.google.com (mail-qk1-x72a.google.com [IPv6:2607:f8b0:4864:20::72a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82B7F2BE24
+        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 09:43:27 -0700 (PDT)
+Received: by mail-qk1-x72a.google.com with SMTP id d13so6409480qko.5
+        for <linux-rdma@vger.kernel.org>; Mon, 24 Oct 2022 09:43:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=HvNKDRU9v+ulGGm0NdZfyIwgLbpAZgjd8aLBNadoLJs=;
-        b=bEgxKyupvH2AqTwNSmggMwpz+CWrURiPErnWrbiLFZGy3+pbZYZ7mpSpqf1Nm/1tVj
-         DXUMTfcmPRaWy3zDFcBlfxjiZIyUfRD9Nf/FqY4agGhoU9FAc9vLU/LaOSFhWHe7sy3e
-         W3lINzGNkEeMf6rQPT+6ywPHcoxjOShGYwidWEa1DtOXqvJIVLZWODInKgl0iyFA142q
-         /+H6pb0Sl49TKmFzSyGbbwsK6vPvWHY1LcrSdYE3gonzXqwDGeoF/926qRY3h36lAjXh
-         wZtAyVdsVpUSE4uTLniJwjoUE1SXlCYw5mv5/m2DvafqY5tD5lqeNbDThiG9hZlveAs8
-         7ReQ==
+        d=ziepe.ca; s=google;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=PQUAOIAwlBb1Ac+IMwvAIs+PccHrMcnmJEUvE59sduo=;
+        b=jewwKjOp110j3RCbj7CHLjBE8dKB97kT3YOWZrJPH+I0aKVAMllj00IyW4LjSUObNq
+         xZxAev3oxd6QAV4hE5YaXUEwQ94oeJowwRgOVnBVYCVeLA7+SgH23Crl+teu7+moouXr
+         gfuNjRMaQKPr6BvDDAGWe6LVGeKCG8OaK80wRHJUeGWx6m0v2AdBntfj/jIHl2MmQb9n
+         mm8j4G9pPI7B2/mhfoyv1MaZ6w8ykxNfmPwYLQHr9h0ZLbQq4ZWPG3HllMuO/v4hz27Q
+         6gbNQv12/D6WvhnQQUceQqVe8ihCDkBq5rmJBdOlJce/N4Nz7zGsAJlwQp0R9/ienRWm
+         brBA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=HvNKDRU9v+ulGGm0NdZfyIwgLbpAZgjd8aLBNadoLJs=;
-        b=wBj+DzQ8vJKt0y98O0VVdi+7h3Bm59Drv3ZPNzh0x2ZFrkqNSRuheJUqFMzi0aZbzS
-         WETkjEIx/RRG2nae00sLQ2aj1ci014F2eX93nyt1+pxxLDiyQl4EVMELxTnGM3/Dgc3t
-         Mrt7YT53SFMPfkzrEqbe3gNgCwsw9w/3RORXPLh/vvVteEsg2H5MPYgeGf28zksVb0hH
-         XYlIEsOW0oCt7sa8mA3nvWnSnlp1sHyN/eyAR7WY3bySHExynDxZub5bV9KIpTKQK8Gr
-         RZTy69xV4Dz23JCkammV4OYMjp7kARv2sLru01ivcuQ5gE8DqIdm1lR8J4M1YjKzcJiJ
-         fS9w==
-X-Gm-Message-State: ACrzQf1Nz6oWt4b9P/1QafSAnur/GWoFvmZLYUa7xa7cEwkD2JT9oTPf
-        LmZbSZu4zw0MXD/GTrpyFiU4Vg3MdUI=
-X-Google-Smtp-Source: AMsMyM5JNO1Nh3e/R9demQq0zEE/3yBUYHG3EN+2VWmiG02AeWaQd8EEl+bD4kx3dq1Ya7ozHB76aw==
-X-Received: by 2002:aca:30c4:0:b0:355:24e0:8583 with SMTP id w187-20020aca30c4000000b0035524e08583mr16111536oiw.42.1666620433072;
-        Mon, 24 Oct 2022 07:07:13 -0700 (PDT)
-Received: from ?IPV6:2603:8081:140c:1a00:1e0:e60:c33:b344? (2603-8081-140c-1a00-01e0-0e60-0c33-b344.res6.spectrum.com. [2603:8081:140c:1a00:1e0:e60:c33:b344])
-        by smtp.gmail.com with ESMTPSA id cc3-20020a05683061c300b00665919f7823sm739600otb.8.2022.10.24.07.07.12
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 24 Oct 2022 07:07:12 -0700 (PDT)
-Message-ID: <be29ec7e-9f9e-40a1-358f-4a44c5defc0c@gmail.com>
-Date:   Mon, 24 Oct 2022 09:07:11 -0500
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=PQUAOIAwlBb1Ac+IMwvAIs+PccHrMcnmJEUvE59sduo=;
+        b=0HoB6SPz2Ekyy0+dHYsbuG4FoWa5Rwoszve9jgNHPbqJ4XPBdPsaUSONmRBvFMECgc
+         n71iWSpmm/LReEm4SCZ1Q3EWwxCvN6yRsG/pjhYbMOoyG2mzKqANVxAmqpK8HemZb6cs
+         +60RgSYcXdN4wnfI8bBldX6zWtxMXioyHfZfhTp7iF09GUfu2AyMUDhT+60r4pnGbc5/
+         DSLmM0BpLF9HbHofZTH304Eg5Yowc7mexY+Vo4YUZtNEMP8Fq2SVRjaGhHsItjkmlgbU
+         c5lH9dkDG5shkR2C7nBRUQ5iOlpYiyeGhjWqRbhxS9MkQ8WmNQf+QW4wk8uRy5ezUmHi
+         pWNg==
+X-Gm-Message-State: ACrzQf1VKVIjKx4+fZqtPr0EsjOkXYQLWP3VUdjqAAy6Frqzeq9pETpj
+        CDa8TFsuQszfsDtYSMGDYJ7QPg==
+X-Google-Smtp-Source: AMsMyM4MXMW3GmPJvEEh/mqAM/OPAdIuvpMk9/nnN9yyv8FxhAGbMQqjRxi5gOjjZPTaf43M0wJ8fQ==
+X-Received: by 2002:a05:620a:1a82:b0:6ee:d1b9:95b7 with SMTP id bl2-20020a05620a1a8200b006eed1b995b7mr23057529qkb.128.1666629691890;
+        Mon, 24 Oct 2022 09:41:31 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-47-55-122-23.dhcp-dynamic.fibreop.ns.bellaliant.net. [47.55.122.23])
+        by smtp.gmail.com with ESMTPSA id s17-20020a05620a29d100b006bbf85cad0fsm275754qkp.20.2022.10.24.09.41.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 24 Oct 2022 09:41:31 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1on0W2-00DXTk-FI;
+        Mon, 24 Oct 2022 13:41:30 -0300
+Date:   Mon, 24 Oct 2022 13:41:30 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Dust Li <dust.li@linux.alibaba.com>
+Cc:     Yanjun Zhu <yanjun.zhu@linux.dev>,
+        Zhu Yanjun <yanjun.zhu@intel.com>, leon@kernel.org,
+        linux-rdma@vger.kernel.org
+Subject: Re: [PATCH 0/3] RDMA net namespace
+Message-ID: <Y1bAOn6/p/TGDvV+@ziepe.ca>
+References: <20221024011007.GE63658@linux.alibaba.com>
+ <20221023220450.2287909-1-yanjun.zhu@intel.com>
+ <e4b62ef709c43ff7425d9a02efaecc5c@linux.dev>
+ <20221024115228.GF63658@linux.alibaba.com>
+ <662d6804-0e16-117e-d4a4-9abd4a2e8c75@linux.dev>
+ <20221024143521.GG63658@linux.alibaba.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.2
-Subject: Re: [PATCH] RDMA/rxe: Remove the member 'type' of struct rxe_mr
-Content-Language: en-US
-To:     Leon Romanovsky <leon@kernel.org>,
-        "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>
-Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>
-References: <20221021134513.17730-1-yangx.jy@fujitsu.com>
- <Y1Z8R7xB1omokwZ/@unreal>
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-In-Reply-To: <Y1Z8R7xB1omokwZ/@unreal>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221024143521.GG63658@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 10/24/22 06:51, Leon Romanovsky wrote:
-> On Fri, Oct 21, 2022 at 01:45:17PM +0000, yangx.jy@fujitsu.com wrote:
->> The member 'type' is included in both struct rxe_mr and struct ib_mr
->> so remove the duplicate one of struct rxe_mr.
->>
->> Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
->> ---
->>  drivers/infiniband/sw/rxe/rxe_mr.c    | 16 ++++++++--------
->>  drivers/infiniband/sw/rxe/rxe_verbs.h |  1 -
->>  2 files changed, 8 insertions(+), 9 deletions(-)
-> 
-> <...>
-> 
->>  	default:
->>  		pr_warn("%s: mr type (%d) not supported\n",
->> -			__func__, mr->type);
->> +			__func__, mr->ibmr.type);
->>  		return -EFAULT;
-> 
-> <...>
-> 
->> -	if (unlikely(mr->type != IB_MR_TYPE_MEM_REG)) {
->> -		pr_warn("%s: mr->type (%d) is wrong type\n", __func__, mr->type);
->> +	if (unlikely(mr->ibmr.type != IB_MR_TYPE_MEM_REG)) {
->> +		pr_warn("%s: mr type (%d) is wrong\n", __func__, mr->ibmr.type);
-> 
-> Someone needs to convert pr_*() calls to ibdev_*() prints.
-> 
-> Thanks
+On Mon, Oct 24, 2022 at 10:35:21PM +0800, Dust Li wrote:
 
-I have a patch laying around that does this. Hoping some of the backlog of rxe patches gets
-accepted so I don't have to backport everything.
+> For the netdevice, that's true. But for RDMA, we should not even see
+> the ib device in the containers any more, so I think we cannot create
+> qp/cq, and RDMA is not available for these containers in this case.
 
-Bob
+Correct, in shared mode the RDMA device should only allow using GID
+table entries that have netdevs that are present in the processe's net
+namespace.
+
+This is, in general, the philosophy. The user is supposed to keep the
+various devices in the namespace in sync, because the kernel cannot
+guess what is correct.
+
+Jason
