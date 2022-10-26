@@ -2,298 +2,178 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6AAAC433FE
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 Oct 2022 09:52:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BA80C433FE
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 Oct 2022 13:13:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233035AbiJZJv7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 26 Oct 2022 05:51:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54212 "EHLO
+        id S233894AbiJZNNW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 26 Oct 2022 09:13:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41694 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233244AbiJZJvy (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Oct 2022 05:51:54 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5E10B7F4D
-        for <linux-rdma@vger.kernel.org>; Wed, 26 Oct 2022 02:51:52 -0700 (PDT)
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4My3qq41gzzVjCd;
-        Wed, 26 Oct 2022 17:47:03 +0800 (CST)
-Received: from kwepemm600013.china.huawei.com (7.193.23.68) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Wed, 26 Oct 2022 17:51:50 +0800
-Received: from localhost.localdomain (10.67.165.2) by
- kwepemm600013.china.huawei.com (7.193.23.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Wed, 26 Oct 2022 17:51:50 +0800
-From:   Haoyue Xu <xuhaoyue1@hisilicon.com>
-To:     <jgg@nvidia.com>, <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <xuhaoyue1@hisilicon.com>
-Subject: [PATCH v2 for-rc 4/5] RDMA/hns: Remove rq inline in kernel
-Date:   Wed, 26 Oct 2022 17:50:53 +0800
-Message-ID: <20221026095054.2384620-5-xuhaoyue1@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20221026095054.2384620-1-xuhaoyue1@hisilicon.com>
-References: <20221026095054.2384620-1-xuhaoyue1@hisilicon.com>
+        with ESMTP id S233759AbiJZNNK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Oct 2022 09:13:10 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51DBAFC1F7;
+        Wed, 26 Oct 2022 06:13:09 -0700 (PDT)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 29QCwTTa002523;
+        Wed, 26 Oct 2022 13:13:03 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=i2E+t/Pe3kj7ipB6NqOEl4e14Vgssw/e2wZiQp6qfS4=;
+ b=YB07XIJl7LQSX4pkh8IoGC5Oz0SgivyFxRl+cH690nhwyE5O3vYRXRaaIPF1qT8nnrk9
+ T0XmcytE+bJab069hkY/JfFwUXfcLENJXWkz/YrPOOMwYLEG+JOBmufmR6NvuvF5Rvzf
+ 4tX3BGifg9t8pHGvraDei42HigFRuJMGufSzu0rVVFegZlVyjdu35I/tTCZ10blV9Pif
+ TLz7O7L4MfBMTPoT5i4GK+7OMe2lkiTuWsW5SZDfCCFucIc7M13cqnTstnMdkyRxhbVD
+ fYml/UeWqjjHjPoc6kzakhCAjENE1J9VKrapgh4oUNHpr2KUEcxGzva3UisGgZ7gc2vs UA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3kf5cc8t6d-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 26 Oct 2022 13:13:02 +0000
+Received: from m0098420.ppops.net (m0098420.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 29QCwb53003515;
+        Wed, 26 Oct 2022 13:13:01 GMT
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+        by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3kf5cc8sxh-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 26 Oct 2022 13:13:01 +0000
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+        by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 29QD4xXH029864;
+        Wed, 26 Oct 2022 13:12:52 GMT
+Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
+        by ppma06ams.nl.ibm.com with ESMTP id 3kc7sj7g4u-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 26 Oct 2022 13:12:52 +0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 29QD7ZQV40042896
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 26 Oct 2022 13:07:35 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 19B6AA4054;
+        Wed, 26 Oct 2022 13:12:50 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id AB034A405B;
+        Wed, 26 Oct 2022 13:12:49 +0000 (GMT)
+Received: from [9.171.65.88] (unknown [9.171.65.88])
+        by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Wed, 26 Oct 2022 13:12:49 +0000 (GMT)
+Message-ID: <35d14144-28f7-6129-d6d3-ba16dae7a646@linux.ibm.com>
+Date:   Wed, 26 Oct 2022 15:12:48 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.0
+Subject: Re: [PATCH net-next v3 00/10] optimize the parallelism of SMC-R
+ connections
+To:     Tony Lu <tonylu@linux.alibaba.com>
+Cc:     "D. Wythe" <alibuda@linux.alibaba.com>, kuba@kernel.org,
+        davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <1666248232-63751-1-git-send-email-alibuda@linux.alibaba.com>
+ <62001adc-129a-d477-c916-7a4cf2000553@linux.alibaba.com>
+ <79e3bccb-55c2-3b92-b14a-7378ef02dd78@linux.ibm.com>
+ <4127d84d-e3b4-ca44-2531-8aed12fdee3f@linux.alibaba.com>
+ <f8ea7943-4267-8b8d-f8b4-831fea7f3963@linux.ibm.com>
+ <Y1d+jDQiyn4LSKlu@TonyMac-Alibaba>
+From:   Jan Karcher <jaka@linux.ibm.com>
+Organization: IBM - Network Linux on Z
+In-Reply-To: <Y1d+jDQiyn4LSKlu@TonyMac-Alibaba>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: v6H8fLsvE4Zk2OZe6YU3NfSeL9ybgeHj
+X-Proofpoint-ORIG-GUID: WV6TO0yESz1bHI3sM6OQMzFraQ2-li7G
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.67.165.2]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- kwepemm600013.china.huawei.com (7.193.23.68)
-X-CFilter-Loop: Reflected
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.895,Hydra:6.0.545,FMLib:17.11.122.1
+ definitions=2022-10-26_06,2022-10-26_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 mlxscore=0
+ malwarescore=0 impostorscore=0 mlxlogscore=593 lowpriorityscore=0
+ bulkscore=0 spamscore=0 phishscore=0 priorityscore=1501 clxscore=1015
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2209130000 definitions=main-2210260073
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Luoyouming <luoyouming@huawei.com>
 
-The kernel space does not support the rq inline feature anymore,
-so remove the code associated with rq inline.
 
-Signed-off-by: Luoyouming <luoyouming@huawei.com>
-Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h | 16 ------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 53 -----------------
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 64 ---------------------
- 3 files changed, 133 deletions(-)
+On 25/10/2022 08:13, Tony Lu wrote:
+> On Mon, Oct 24, 2022 at 03:10:54PM +0200, Jan Karcher wrote:
+>> Hi D. Wythe,
+>>
+>> I reply with the feedback on your fix to your v4 fix.
+>>
+>> Regarding your questions:
+>> We are aware of this situation and we are currently evaluating how we want
+>> to deal with SMC-D in the future because as of right now i can understand
+>> your frustration regarding the SMC-D testing.
+>> Please give me some time to hit up the right people and collect some
+>> information to answer your question. I'll let you know as soon as i have an
+>> answer.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 9ce053fe737d..3f6f328d3a3e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -569,21 +569,6 @@ struct hns_roce_mbox_msg {
- 
- struct hns_roce_dev;
- 
--struct hns_roce_rinl_sge {
--	void			*addr;
--	u32			len;
--};
--
--struct hns_roce_rinl_wqe {
--	struct hns_roce_rinl_sge *sg_list;
--	u32			 sge_cnt;
--};
--
--struct hns_roce_rinl_buf {
--	struct hns_roce_rinl_wqe *wqe_list;
--	u32			 wqe_cnt;
--};
--
- enum {
- 	HNS_ROCE_FLUSH_FLAG = 0,
- };
-@@ -634,7 +619,6 @@ struct hns_roce_qp {
- 	/* 0: flush needed, 1: unneeded */
- 	unsigned long		flush_flag;
- 	struct hns_roce_work	flush_work;
--	struct hns_roce_rinl_buf rq_inl_buf;
- 	struct list_head	node; /* all qps are on a list */
- 	struct list_head	rq_node; /* all recv qps are on a list */
- 	struct list_head	sq_node; /* all send qps are on a list */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index b936bf6e58cc..19e326bda936 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -821,22 +821,10 @@ static void fill_recv_sge_to_wqe(const struct ib_recv_wr *wr, void *wqe,
- static void fill_rq_wqe(struct hns_roce_qp *hr_qp, const struct ib_recv_wr *wr,
- 			u32 wqe_idx, u32 max_sge)
- {
--	struct hns_roce_rinl_sge *sge_list;
- 	void *wqe = NULL;
--	u32 i;
- 
- 	wqe = hns_roce_get_recv_wqe(hr_qp, wqe_idx);
- 	fill_recv_sge_to_wqe(wr, wqe, max_sge, hr_qp->rq.rsv_sge);
--
--	/* rq support inline data */
--	if (hr_qp->rq_inl_buf.wqe_cnt) {
--		sge_list = hr_qp->rq_inl_buf.wqe_list[wqe_idx].sg_list;
--		hr_qp->rq_inl_buf.wqe_list[wqe_idx].sge_cnt = (u32)wr->num_sge;
--		for (i = 0; i < wr->num_sge; i++) {
--			sge_list[i].addr = (void *)(u64)wr->sg_list[i].addr;
--			sge_list[i].len = wr->sg_list[i].length;
--		}
--	}
- }
- 
- static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
-@@ -3612,39 +3600,6 @@ static int hns_roce_v2_req_notify_cq(struct ib_cq *ibcq,
- 	return 0;
- }
- 
--static int hns_roce_handle_recv_inl_wqe(struct hns_roce_v2_cqe *cqe,
--					struct hns_roce_qp *qp,
--					struct ib_wc *wc)
--{
--	struct hns_roce_rinl_sge *sge_list;
--	u32 wr_num, wr_cnt, sge_num;
--	u32 sge_cnt, data_len, size;
--	void *wqe_buf;
--
--	wr_num = hr_reg_read(cqe, CQE_WQE_IDX);
--	wr_cnt = wr_num & (qp->rq.wqe_cnt - 1);
--
--	sge_list = qp->rq_inl_buf.wqe_list[wr_cnt].sg_list;
--	sge_num = qp->rq_inl_buf.wqe_list[wr_cnt].sge_cnt;
--	wqe_buf = hns_roce_get_recv_wqe(qp, wr_cnt);
--	data_len = wc->byte_len;
--
--	for (sge_cnt = 0; (sge_cnt < sge_num) && (data_len); sge_cnt++) {
--		size = min(sge_list[sge_cnt].len, data_len);
--		memcpy((void *)sge_list[sge_cnt].addr, wqe_buf, size);
--
--		data_len -= size;
--		wqe_buf += size;
--	}
--
--	if (unlikely(data_len)) {
--		wc->status = IB_WC_LOC_LEN_ERR;
--		return -EAGAIN;
--	}
--
--	return 0;
--}
--
- static int sw_comp(struct hns_roce_qp *hr_qp, struct hns_roce_wq *wq,
- 		   int num_entries, struct ib_wc *wc)
- {
-@@ -3868,10 +3823,8 @@ static inline bool is_rq_inl_enabled(struct ib_wc *wc, u32 hr_opcode,
- 
- static int fill_recv_wc(struct ib_wc *wc, struct hns_roce_v2_cqe *cqe)
- {
--	struct hns_roce_qp *qp = to_hr_qp(wc->qp);
- 	u32 hr_opcode;
- 	int ib_opcode;
--	int ret;
- 
- 	wc->byte_len = le32_to_cpu(cqe->byte_cnt);
- 
-@@ -3896,12 +3849,6 @@ static int fill_recv_wc(struct ib_wc *wc, struct hns_roce_v2_cqe *cqe)
- 	else
- 		wc->opcode = ib_opcode;
- 
--	if (is_rq_inl_enabled(wc, hr_opcode, cqe)) {
--		ret = hns_roce_handle_recv_inl_wqe(cqe, qp, wc);
--		if (unlikely(ret))
--			return ret;
--	}
--
- 	wc->sl = hr_reg_read(cqe, CQE_SL);
- 	wc->src_qp = hr_reg_read(cqe, CQE_RMT_QPN);
- 	wc->slid = 0;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index e65b899ce82f..b3b84aa0f058 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -433,7 +433,6 @@ static int set_rq_size(struct hns_roce_dev *hr_dev, struct ib_qp_cap *cap,
- 	if (!has_rq) {
- 		hr_qp->rq.wqe_cnt = 0;
- 		hr_qp->rq.max_gs = 0;
--		hr_qp->rq_inl_buf.wqe_cnt = 0;
- 		cap->max_recv_wr = 0;
- 		cap->max_recv_sge = 0;
- 
-@@ -463,12 +462,6 @@ static int set_rq_size(struct hns_roce_dev *hr_dev, struct ib_qp_cap *cap,
- 				    hr_qp->rq.max_gs);
- 
- 	hr_qp->rq.wqe_cnt = cnt;
--	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_RQ_INLINE &&
--	    hr_qp->ibqp.qp_type != IB_QPT_UD &&
--	    hr_qp->ibqp.qp_type != IB_QPT_GSI)
--		hr_qp->rq_inl_buf.wqe_cnt = cnt;
--	else
--		hr_qp->rq_inl_buf.wqe_cnt = 0;
- 
- 	cap->max_recv_wr = cnt;
- 	cap->max_recv_sge = hr_qp->rq.max_gs - hr_qp->rq.rsv_sge;
-@@ -733,49 +726,6 @@ static int hns_roce_qp_has_rq(struct ib_qp_init_attr *attr)
- 	return 1;
- }
- 
--static int alloc_rq_inline_buf(struct hns_roce_qp *hr_qp,
--			       struct ib_qp_init_attr *init_attr)
--{
--	u32 max_recv_sge = init_attr->cap.max_recv_sge;
--	u32 wqe_cnt = hr_qp->rq_inl_buf.wqe_cnt;
--	struct hns_roce_rinl_wqe *wqe_list;
--	int i;
--
--	/* allocate recv inline buf */
--	wqe_list = kcalloc(wqe_cnt, sizeof(struct hns_roce_rinl_wqe),
--			   GFP_KERNEL);
--	if (!wqe_list)
--		goto err;
--
--	/* Allocate a continuous buffer for all inline sge we need */
--	wqe_list[0].sg_list = kcalloc(wqe_cnt, (max_recv_sge *
--				      sizeof(struct hns_roce_rinl_sge)),
--				      GFP_KERNEL);
--	if (!wqe_list[0].sg_list)
--		goto err_wqe_list;
--
--	/* Assign buffers of sg_list to each inline wqe */
--	for (i = 1; i < wqe_cnt; i++)
--		wqe_list[i].sg_list = &wqe_list[0].sg_list[i * max_recv_sge];
--
--	hr_qp->rq_inl_buf.wqe_list = wqe_list;
--
--	return 0;
--
--err_wqe_list:
--	kfree(wqe_list);
--
--err:
--	return -ENOMEM;
--}
--
--static void free_rq_inline_buf(struct hns_roce_qp *hr_qp)
--{
--	if (hr_qp->rq_inl_buf.wqe_list)
--		kfree(hr_qp->rq_inl_buf.wqe_list[0].sg_list);
--	kfree(hr_qp->rq_inl_buf.wqe_list);
--}
--
- static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 			struct ib_qp_init_attr *init_attr,
- 			struct ib_udata *udata, unsigned long addr)
-@@ -784,18 +734,6 @@ static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 	struct hns_roce_buf_attr buf_attr = {};
- 	int ret;
- 
--	if (!udata && hr_qp->rq_inl_buf.wqe_cnt) {
--		ret = alloc_rq_inline_buf(hr_qp, init_attr);
--		if (ret) {
--			ibdev_err(ibdev,
--				  "failed to alloc inline buf, ret = %d.\n",
--				  ret);
--			return ret;
--		}
--	} else {
--		hr_qp->rq_inl_buf.wqe_list = NULL;
--	}
--
- 	ret = set_wqe_buf_attr(hr_dev, hr_qp, &buf_attr);
- 	if (ret) {
- 		ibdev_err(ibdev, "failed to split WQE buf, ret = %d.\n", ret);
-@@ -815,7 +753,6 @@ static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- 	return 0;
- 
- err_inline:
--	free_rq_inline_buf(hr_qp);
- 
- 	return ret;
- }
-@@ -823,7 +760,6 @@ static int alloc_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
- static void free_qp_buf(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- {
- 	hns_roce_mtr_destroy(hr_dev, &hr_qp->mtr);
--	free_rq_inline_buf(hr_qp);
- }
- 
- static inline bool user_qp_has_sdb(struct hns_roce_dev *hr_dev,
--- 
-2.30.0
+Hi Tony (and D.),
+> 
+> Hi Jan,
+> 
+> We sent a RFC [1] to mock SMC-D device for inter-VM communication. The
+> original purpose is not to test, but for now it could be useful for the
+> people who are going to test without physical devices in the community.
 
+I'm aware of the RFC and various people in IBM looked over it.
+
+As stated in the last mail we are aware that the entanglement between 
+SMC-D and ISM is causing problems for the community.
+To give you a little insight:
+
+In order to improve the code quality and usability for the broader 
+community we are working on placing an API between SMC-D and the ISM 
+device. If this API is complete it will be easier to use different 
+"devices" for SMC-D. One could be your device driver for inter-VM 
+communication (ivshmem).
+Another one could be a "Dummy-Device" which just implements the required 
+interface which acts as a loopback device. This would work only in a 
+single Linux instance, thus would be the perfect device to test SMC-D 
+logic for the broad community.
+We would hope that these changes remove the hardware restrictions and 
+that the community picks up the idea and implements devices and improves 
+SMC (including SMC-D and SMC-R) even more in the future!
+
+As i said - and also teased by Alexandra in a respond to your RFC - this 
+API feature is currently being developed and in our internal reviews. 
+This would make your idea with the inter-VM communication a lot easier 
+and would provide a clean base to build upon in the future.
+
+> 
+> This driver basically works but I would improve it for testing. Before
+> that, what do you think about it?
+
+I think it is a great idea and we should definetly give it a shot! I'm 
+also putting a lot in code quality and future maintainability. The API 
+is a key feature there improving the usability for the community and our 
+work as maintainers. So - for the sake of the future of the SMC code 
+base - I'd like to wait with putting your changes upstream for the API 
+and use your idea to see if fits our (and your) requirements.
+
+> 
+> And where to put this driver? In kernel with SMC code or merge into
+> separate SMC test cases. I haven't made up my mind yet.
+
+We are not sure either currently, and have to think about that for a 
+bit. I think your driver could be a classic driver, since it is usable 
+for a real world problem (communication between two VMs on the same 
+host). If we look at the "Dummy-Device" above we see that it does not 
+provide any value beside testing. Feel free to share your ideas on that 
+topic.
+
+> 
+> [1] https://lore.kernel.org/netdev/20220720170048.20806-1-tonylu@linux.alibaba.com/
+> 
+> Cheers,
+> Tony Lu
+
+A friendly disclaimer: Even tho this API feature is pretty far in the 
+development process it can always be that we decide to drop it, if it 
+does not meet our quality expectations. But of course we'll keep you 
+updated.
+
+- Jan
