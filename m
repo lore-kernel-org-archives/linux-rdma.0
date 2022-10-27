@@ -2,115 +2,129 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7110EECAAA1
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Oct 2022 18:56:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24EAFFA3742
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Oct 2022 18:56:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236128AbiJ0S4T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S236266AbiJ0S4T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 27 Oct 2022 14:56:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56468 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236144AbiJ0S4Q (ORCPT
+        with ESMTP id S234815AbiJ0S4Q (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Oct 2022 14:56:16 -0400
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9DE2360B8
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Oct 2022 11:56:11 -0700 (PDT)
-Received: by mail-oi1-x234.google.com with SMTP id s206so3404742oie.3
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Oct 2022 11:56:11 -0700 (PDT)
+Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E60AD1D33C
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Oct 2022 11:56:13 -0700 (PDT)
+Received: by mail-oi1-x22d.google.com with SMTP id l5so3389889oif.7
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Oct 2022 11:56:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=vmmnai3yy6+siJuEOWQiQM7ESkK155WaHovW0sa1DXM=;
-        b=UAPRUe1IgzO5GJHvVjK8s0hUrovNSjnpMscyIKlaTmqav75wk0rldzgGXxYzz/i+cj
-         bIOFvSNTXUHlzqIiyeTHgaRxuq4V/MT4eBbloyg4loYxEBQs7OfqM8107eEZ06eQaGV0
-         dyYyS0Q0sbNshxM3b8b0iM5uFZRd9jiASkNqK4WZZKcNJ73/qlzL2qHX3/tIKrf3eUbz
-         2Bh7kNqZVCEJ+I4MFVXtelhuWIBe0lNkvpnDNIi/0/dsco7P20TtpP4ieGe3c1zrP1QU
-         D/5p2l3CF4I7e2T6BPaD648B7q7I7eFNjG4tBA2Qj2DlTviC6lXsfAO8cjzJFKj+S/i6
-         WSKQ==
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OEmM98qWgdC7JibJI9d8dkTVJi2BBzT4fZsK+PNxQ0c=;
+        b=mlGQy/jmi3dVysoMrth9e0fplnNCx+DgN+sjjKohSkraQQj70yWyuN7aiwKbJEVawT
+         KHJrWS0wixtTiwY15CduEvqu+IxM58ilZrE9vY9QrkywKJJ3i6iClqDaNxq2YzLDqQ4i
+         JIVVjygvJbZsipM7iW0W6OzQHz7n3WAwgZghCxs+pkD9oeq46kg50baVBEmVgwklcDS/
+         3TprY6+4sAnlBXB6akaZoSFzMh2HISzYzXb3mJs2mDjQNKq36C1gC3CtKkVbMRCWZrg+
+         tmhXBq1hzwj1u25/3P8X2+CCMLt20Xfy9mZFUT8/NmFRzUkgE+j1xk85lMG/IvtpINiD
+         PDdw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vmmnai3yy6+siJuEOWQiQM7ESkK155WaHovW0sa1DXM=;
-        b=Fxti9vb3VwTIED3DkZatBaGHH2P+f6JTuPwGbCxKQygYwhW3q/GoMON54FuuBh0686
-         uYvvI96B6tBy/agzJSqvULgK/mXN7Pka1qlZRZTAGfrynkBXxrfYqYX3/Vm6jPcvsGza
-         oulXlBbp3cNWUGGERk8f8efWWj9d/CBa1gqPvg35UAJNe3US9DQfkREHy1B44tzSuLlW
-         bJw13ypTmb5MovCnpkgWCRNY1JgJ+0XVzlUsYRIHC0KBDVfRWKzG+uvZzaNvpYO9KgGU
-         6oMjWu3sm6XLrp4LKZ0afvgMle33li03gRlMUt/tH/2i/8ARk8wq2kV9TxrSD5Km4tLU
-         E63w==
-X-Gm-Message-State: ACrzQf1T9UIRQqlCKBsjPVCgLzN3eY9c+K+9bj0K0aDZu5mbvG7Savt+
-        4T8QLbEzwYSyEBFf1hcJ45c=
-X-Google-Smtp-Source: AMsMyM4dvDcb0+NndGI+m5F0hcJsizyH/NIw20655i0yBjoYtyVYnX7ftdsWUwlVVrb+g5Rt6RxA+A==
-X-Received: by 2002:aca:bbc3:0:b0:355:18ba:8168 with SMTP id l186-20020acabbc3000000b0035518ba8168mr5544620oif.273.1666896971233;
-        Thu, 27 Oct 2022 11:56:11 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=OEmM98qWgdC7JibJI9d8dkTVJi2BBzT4fZsK+PNxQ0c=;
+        b=NpcuosZCXKNuZSq0U5gF6j1pZGgl1DhfVK69Ask72wZrVo0JRl6ynb4JD7r3F91Roj
+         je07Ck3mezU7bl4dIR3tzD86iWFU+xj9SXXXRok5CsgIpsB/QJh49ZZIXKl98LXNVfFM
+         D4w6p8fWPKIJ5QBqfucId8Q3vGn3TG21uQv5ZFofPNtjSj4LDbvqHPu+DffIoTYJcCOB
+         ePC4SnSOYmscC+bur067oL8w+JkgQ+SeRPEncYp9d5lVT/oV5FaZ7pGGHAqFy1uiNoJN
+         2diV8KGf/JK7OM5i8G8zB6YRQH2QsAYjliWaPc1W+5abyz0p/ERv0FESY1fEOlC89JDx
+         eUNA==
+X-Gm-Message-State: ACrzQf2+ZZ1S/Yw9Jgt49+sFdM6qpHTUjoV0nn2/JqT6s1gNBeU9bdpK
+        emYRoTdaFgGQwZ5H7hDWG3k=
+X-Google-Smtp-Source: AMsMyM7usfRuTIulNgdr+aVwJsHe3zAM2vRWFpH8UX92P27faccOluLW1FtbRS1+rbiCbOL463mP1g==
+X-Received: by 2002:a05:6808:1291:b0:359:b6bc:df0c with SMTP id a17-20020a056808129100b00359b6bcdf0cmr4283983oiw.50.1666896973285;
+        Thu, 27 Oct 2022 11:56:13 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-f015-3653-e617-fa3f.res6.spectrum.com. [2603:8081:140c:1a00:f015:3653:e617:fa3f])
-        by smtp.googlemail.com with ESMTPSA id f1-20020a4a8f41000000b0049602fb9b4csm732736ool.46.2022.10.27.11.56.09
+        by smtp.googlemail.com with ESMTPSA id f1-20020a4a8f41000000b0049602fb9b4csm732736ool.46.2022.10.27.11.56.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Oct 2022 11:56:10 -0700 (PDT)
+        Thu, 27 Oct 2022 11:56:12 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, leon@kernel.org, zyjzyj2000@gmail.com,
         jhack@hpe.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 00/17] RDMA/rxe: Enable scatter/gather support for skbs
-Date:   Thu, 27 Oct 2022 13:54:54 -0500
-Message-Id: <20221027185510.33808-1-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 02/17] RDMA/rxe: Isolate request payload code in a subroutine
+Date:   Thu, 27 Oct 2022 13:54:56 -0500
+Message-Id: <20221027185510.33808-3-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20221027185510.33808-1-rpearsonhpe@gmail.com>
+References: <20221027185510.33808-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch series implements support for network devices that can
-handle or produce fragmented packets. This has the performance
-advantage of reducing the number of copies of payloads for large
-packets.
+Isolate the code that fills the payload of a request packet into
+a subroutine named rxe_init_payload().
 
-On the send side packets packets are created with the network and
-roce headers in the linear portion of the skb and the payload in
-skb fragments. The pad and icrc are appended in an additional fragment
-pointing at data stored in free space in the tail of the linear
-buffer.
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+---
+ drivers/infiniband/sw/rxe/rxe_req.c | 34 +++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 14 deletions(-)
 
-On the receive side any fragmented skb is supported.
-
-This patch series is based on the current wip/jgg-for-next branch.
-
-Bob Pearson (17):
-  RDMA/rxe: Isolate code to fill request roce headers
-  RDMA/rxe: Isolate request payload code in a subroutine
-  RDMA/rxe: Isolate code to build request packet
-  RDMA/rxe: Add sg fragment ops
-  RDMA/rxe: Add rxe_add_frag() to rxe_mr.c
-  RDMA/rxe: Add routine to compute the number of frags
-  RDMA/rxe: Extend rxe_mr_copy to support skb frags
-  RDMA/rxe: Add routine to compute number of frags for dma
-  RDMA/rxe: Extend copy_data to support skb frags
-  RDMA/rxe: Replace rxe by qp as a parameter
-  RDMA/rxe: Extend rxe_init_packet() to support frags
-  RDMA/rxe: Extend rxe_icrc.c to support frags
-  RDMA/rxe: Extend rxe_init_req_packet() for frags
-  RDMA/rxe: Extend response packets for frags
-  RDMA/rxe: Extend send/write_data_in() for frags
-  RDMA/rxe: Extend do_read() in rxe_comp,c for frags
-  RDMA/rxe: Enable sg code in rxe
-
- drivers/infiniband/sw/rxe/rxe.c       |   3 +
- drivers/infiniband/sw/rxe/rxe.h       |   3 +
- drivers/infiniband/sw/rxe/rxe_comp.c  |  47 ++-
- drivers/infiniband/sw/rxe/rxe_icrc.c  |  65 +++-
- drivers/infiniband/sw/rxe/rxe_loc.h   |  30 +-
- drivers/infiniband/sw/rxe/rxe_mr.c    | 419 +++++++++++++++++++-------
- drivers/infiniband/sw/rxe/rxe_net.c   | 137 +++++++--
- drivers/infiniband/sw/rxe/rxe_recv.c  |   1 +
- drivers/infiniband/sw/rxe/rxe_req.c   | 286 +++++++++++-------
- drivers/infiniband/sw/rxe/rxe_resp.c  | 209 ++++++++-----
- drivers/infiniband/sw/rxe/rxe_verbs.h |  15 +-
- 11 files changed, 865 insertions(+), 350 deletions(-)
-
-
-base-commit: c9eeabac5e8d27a3f40280908e089058bab39edb
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index bcfbc78c0b53..10a75f4e3608 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -437,6 +437,25 @@ static void rxe_init_roce_hdrs(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
+ 	}
+ }
+ 
++static int rxe_init_payload(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++			    struct rxe_pkt_info *pkt, u32 payload)
++{
++	void *data;
++	int err = 0;
++
++	if (wqe->wr.send_flags & IB_SEND_INLINE) {
++		data = &wqe->dma.inline_data[wqe->dma.sge_offset];
++		memcpy(payload_addr(pkt), data, payload);
++		wqe->dma.resid -= payload;
++		wqe->dma.sge_offset += payload;
++	} else {
++		err = copy_data(qp->pd, 0, &wqe->dma, payload_addr(pkt),
++				payload, RXE_FROM_MR_OBJ);
++	}
++
++	return err;
++}
++
+ static struct sk_buff *init_req_packet(struct rxe_qp *qp,
+ 				       struct rxe_av *av,
+ 				       struct rxe_send_wqe *wqe,
+@@ -473,20 +492,7 @@ static int finish_packet(struct rxe_qp *qp, struct rxe_av *av,
+ 		return err;
+ 
+ 	if (pkt->mask & RXE_WRITE_OR_SEND_MASK) {
+-		if (wqe->wr.send_flags & IB_SEND_INLINE) {
+-			u8 *tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
+-
+-			memcpy(payload_addr(pkt), tmp, payload);
+-
+-			wqe->dma.resid -= payload;
+-			wqe->dma.sge_offset += payload;
+-		} else {
+-			err = copy_data(qp->pd, 0, &wqe->dma,
+-					payload_addr(pkt), payload,
+-					RXE_FROM_MR_OBJ);
+-			if (err)
+-				return err;
+-		}
++		err = rxe_init_payload(qp, wqe, pkt, payload);
+ 		if (bth_pad(pkt)) {
+ 			u8 *pad = payload_addr(pkt) + payload;
+ 
 -- 
 2.34.1
 
