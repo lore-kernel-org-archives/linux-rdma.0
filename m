@@ -2,62 +2,111 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A9FFC67871
-	for <linux-rdma@archiver.kernel.org>; Thu, 27 Oct 2022 09:58:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3797C67871
+	for <linux-rdma@archiver.kernel.org>; Thu, 27 Oct 2022 09:58:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234583AbiJ0J6e (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Oct 2022 05:58:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41230 "EHLO
+        id S235131AbiJ0J6n (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Oct 2022 05:58:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234959AbiJ0J6H (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Oct 2022 05:58:07 -0400
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A295E5ED5
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Oct 2022 02:57:45 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R461e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VTB5LbP_1666864662;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VTB5LbP_1666864662)
+        with ESMTP id S235083AbiJ0J6L (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Oct 2022 05:58:11 -0400
+Received: from out30-56.freemail.mail.aliyun.com (out30-56.freemail.mail.aliyun.com [115.124.30.56])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE1899A283
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Oct 2022 02:57:49 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R931e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045192;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VTB5LcB_1666864664;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VTB5LcB_1666864664)
           by smtp.aliyun-inc.com;
-          Thu, 27 Oct 2022 17:57:43 +0800
+          Thu, 27 Oct 2022 17:57:45 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
-Subject: [PATCH for-next 0/3] RDMA/erdma: Add atomic operations support
-Date:   Thu, 27 Oct 2022 17:57:38 +0800
-Message-Id: <20221027095741.48044-1-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next 2/3] RDMA/erdma: Report atomic capacity when hardware supports atomic feature
+Date:   Thu, 27 Oct 2022 17:57:40 +0800
+Message-Id: <20221027095741.48044-3-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.37.0
+In-Reply-To: <20221027095741.48044-1-chengyou@linux.alibaba.com>
+References: <20221027095741.48044-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+Introduce "capacity flags" field at where hardware put all zeros originally
+in "query device" response. Using this field, hardware can report atomic
+feature if supports.
 
-This series introcuces atomic operations support for erdma driver:
-- #1 extends access rights field in FRMR and REG MR commands to support
-  IB_ACCESS_REMOTE_ATOMIC.
-- #2 gets atomic capacity from hardware, and reports the cap to core.
-- #3 implements the IO-path of atomic WR processing.
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+---
+ drivers/infiniband/hw/erdma/erdma.h       | 1 +
+ drivers/infiniband/hw/erdma/erdma_hw.h    | 5 +++++
+ drivers/infiniband/hw/erdma/erdma_main.c  | 1 +
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 4 ++++
+ 4 files changed, 11 insertions(+)
 
-Thanks,
-Cheng Xu
-
-Cheng Xu (3):
-  RDMA/erdma: Extend access right field of FRMR and REG MR to support
-    atomic
-  RDMA/erdma: Report atomic capacity when hardware supports atomic
-    feature
-  RDMA/erdma: Implement atomic operations support
-
- drivers/infiniband/hw/erdma/erdma.h       |  1 +
- drivers/infiniband/hw/erdma/erdma_cq.c    |  2 ++
- drivers/infiniband/hw/erdma/erdma_hw.h    | 29 +++++++++++++----
- drivers/infiniband/hw/erdma/erdma_main.c  |  1 +
- drivers/infiniband/hw/erdma/erdma_qp.c    | 39 ++++++++++++++++++++---
- drivers/infiniband/hw/erdma/erdma_verbs.c |  7 ++--
- drivers/infiniband/hw/erdma/erdma_verbs.h | 12 ++++---
- 7 files changed, 72 insertions(+), 19 deletions(-)
-
+diff --git a/drivers/infiniband/hw/erdma/erdma.h b/drivers/infiniband/hw/erdma/erdma.h
+index 730783fbc894..bb23d897c710 100644
+--- a/drivers/infiniband/hw/erdma/erdma.h
++++ b/drivers/infiniband/hw/erdma/erdma.h
+@@ -124,6 +124,7 @@ struct erdma_devattr {
+ 	u32 fw_version;
+ 
+ 	unsigned char peer_addr[ETH_ALEN];
++	unsigned long cap_flags;
+ 
+ 	int numa_node;
+ 	enum erdma_cc_alg cc;
+diff --git a/drivers/infiniband/hw/erdma/erdma_hw.h b/drivers/infiniband/hw/erdma/erdma_hw.h
+index 2a9a4c73d52c..808e7ee56d93 100644
+--- a/drivers/infiniband/hw/erdma/erdma_hw.h
++++ b/drivers/infiniband/hw/erdma/erdma_hw.h
+@@ -303,6 +303,7 @@ struct erdma_cmdq_destroy_qp_req {
+ 
+ /* cap qword 0 definition */
+ #define ERDMA_CMD_DEV_CAP_MAX_CQE_MASK GENMASK_ULL(47, 40)
++#define ERDMA_CMD_DEV_CAP_FLAGS_MASK GENMASK_ULL(31, 24)
+ #define ERDMA_CMD_DEV_CAP_MAX_RECV_WR_MASK GENMASK_ULL(23, 16)
+ #define ERDMA_CMD_DEV_CAP_MAX_MR_SIZE_MASK GENMASK_ULL(7, 0)
+ 
+@@ -314,6 +315,10 @@ struct erdma_cmdq_destroy_qp_req {
+ 
+ #define ERDMA_NQP_PER_QBLOCK 1024
+ 
++enum {
++	ERDMA_DEV_CAP_FLAGS_ATOMIC = 1 << 7,
++};
++
+ #define ERDMA_CMD_INFO0_FW_VER_MASK GENMASK_ULL(31, 0)
+ 
+ /* CQE hdr */
+diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
+index 49778bb294ae..e44b06fea595 100644
+--- a/drivers/infiniband/hw/erdma/erdma_main.c
++++ b/drivers/infiniband/hw/erdma/erdma_main.c
+@@ -374,6 +374,7 @@ static int erdma_dev_attrs_init(struct erdma_dev *dev)
+ 	dev->attrs.max_qp = ERDMA_NQP_PER_QBLOCK * ERDMA_GET_CAP(QBLOCK, cap1);
+ 	dev->attrs.max_mr = dev->attrs.max_qp << 1;
+ 	dev->attrs.max_cq = dev->attrs.max_qp << 1;
++	dev->attrs.cap_flags = ERDMA_GET_CAP(FLAGS, cap0);
+ 
+ 	dev->attrs.max_send_wr = ERDMA_MAX_SEND_WR;
+ 	dev->attrs.max_ord = ERDMA_MAX_ORD;
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index f3bf87f17527..d843ce1f35f3 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -288,6 +288,10 @@ int erdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr,
+ 	attr->max_mw = dev->attrs.max_mw;
+ 	attr->max_fast_reg_page_list_len = ERDMA_MAX_FRMR_PA;
+ 	attr->page_size_cap = ERDMA_PAGE_SIZE_SUPPORT;
++
++	if (dev->attrs.cap_flags & ERDMA_DEV_CAP_FLAGS_ATOMIC)
++		attr->atomic_cap = IB_ATOMIC_GLOB;
++
+ 	attr->fw_ver = dev->attrs.fw_version;
+ 
+ 	if (dev->netdev)
 -- 
 2.27.0
 
