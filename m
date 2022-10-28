@@ -2,135 +2,154 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FCF3ECAAA1
-	for <linux-rdma@archiver.kernel.org>; Fri, 28 Oct 2022 00:20:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F8F9C38A02
+	for <linux-rdma@archiver.kernel.org>; Fri, 28 Oct 2022 03:21:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229902AbiJ1AUP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 27 Oct 2022 20:20:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41500 "EHLO
+        id S235532AbiJ1DVe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 27 Oct 2022 23:21:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59496 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234235AbiJ1AUO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Oct 2022 20:20:14 -0400
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38C7145053
-        for <linux-rdma@vger.kernel.org>; Thu, 27 Oct 2022 17:20:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1666916414; x=1698452414;
-  h=date:from:to:cc:subject:message-id:mime-version:
-   content-transfer-encoding;
-  bh=/R3G/9gz6oVwICMIGt08yLNMcwpA76N+/7YquVbYX6A=;
-  b=CN81r4d6K5mpySkNUYldbWjj2/RuJzaJmUpNWEYyba7vgQa+Zi6SPZNs
-   +omJjCLEP+3RHwXP/ryOho//g+kugdWdPiStYcwr7SxFGXzfZb50pj25e
-   EwKkA3k7vujnPSt17RDKkn5ft4iqf42I3cJyQ/jFlP2E4mwhnLek5C1DA
-   EmKJy841yTa18LSeEgV3HrzG3RfdJgiTEgcCtv7vqgyBAE8qL2gSOdkq3
-   x/XHVXLBrvRk8Kq2WClClt1SFtZWaIehBjSAQFKOOmVe/0lT42ngbDPq2
-   r8Kxn5KdrEO5GGop1oHisxdB/9mzOLxxjz2/SrHexgcqBzM83BkpzYplI
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10513"; a="308364272"
-X-IronPort-AV: E=Sophos;i="5.95,219,1661842800"; 
-   d="scan'208";a="308364272"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2022 17:20:14 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10513"; a="665880672"
-X-IronPort-AV: E=Sophos;i="5.95,219,1661842800"; 
-   d="scan'208";a="665880672"
-Received: from lkp-server02.sh.intel.com (HELO b6d29c1a0365) ([10.239.97.151])
-  by orsmga001.jf.intel.com with ESMTP; 27 Oct 2022 17:19:55 -0700
-Received: from kbuild by b6d29c1a0365 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1ooD6I-0009Hz-1X;
-        Fri, 28 Oct 2022 00:19:54 +0000
-Date:   Fri, 28 Oct 2022 08:19:15 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg+lists@ziepe.ca>,
-        Doug Ledford <dledford@redhat.com>
-Subject: [rdma:wip/leon-for-rc] BUILD SUCCESS
- 569ab362c3073a14cad5ba5b20c76d86ff14fa03
-Message-ID: <635b2003.RjHLi6Uzw2KFxMDV%lkp@intel.com>
-User-Agent: Heirloom mailx 12.5 6/20/10
+        with ESMTP id S234995AbiJ1DVd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 27 Oct 2022 23:21:33 -0400
+Received: from out0.migadu.com (out0.migadu.com [IPv6:2001:41d0:2:267::])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A065645DE
+        for <linux-rdma@vger.kernel.org>; Thu, 27 Oct 2022 20:21:30 -0700 (PDT)
+Message-ID: <ddd5fb94-127a-0fc2-cadf-7a0f24fa0d15@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1666927289;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=07Z7tDl1KPXZjyTamSF563LYfb8lh1e0d7sPuIa8N+0=;
+        b=b8QOr3e+26yno/UjpsZGKzzEBy/zC8vcssNNaAM2ct9uas6IRqBKsSc7FVfV1MHh6pQT6O
+        uTkNt+2LjxjiYV3ukw1UA0cekxV571nTWXBETCe+9+2NPeWtikNT/JC67Je2QYAuEbllU9
+        P1zlOFCuN3syiTSWni1prJCiPcB3ez8=
+Date:   Fri, 28 Oct 2022 11:21:23 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH 0/3] RDMA net namespace
+To:     Parav Pandit <parav@nvidia.com>,
+        "dust.li@linux.alibaba.com" <dust.li@linux.alibaba.com>,
+        Zhu Yanjun <yanjun.zhu@intel.com>,
+        "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+References: <PH0PR12MB5481AA6E4D5BBAC76E027458DC339@PH0PR12MB5481.namprd12.prod.outlook.com>
+ <PH0PR12MB54819EFE62D489FD489A307DDC339@PH0PR12MB5481.namprd12.prod.outlook.com>
+ <PH0PR12MB5481D39B0CD65746C9808046DC339@PH0PR12MB5481.namprd12.prod.outlook.com>
+ <PH0PR12MB5481F98B1941FA63985D13E0DC339@PH0PR12MB5481.namprd12.prod.outlook.com>
+ <20221023220450.2287909-1-yanjun.zhu@intel.com>
+ <20221026150113.GG56517@linux.alibaba.com>
+ <20221027023055.GH56517@linux.alibaba.com>
+ <5314ed2c09c1336f5c21cf7c944937e4@linux.dev>
+ <e2e3bc30862d0f6b2fc8296624527e0c@linux.dev>
+ <6d841d006c9a79d9ecb1b1bae8d10a28@linux.dev>
+ <7f5ed21ac410646aba93aac875a0d8a8@linux.dev>
+ <PH0PR12MB54811A129A037D716BFD934CDC339@PH0PR12MB5481.namprd12.prod.outlook.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Yanjun Zhu <yanjun.zhu@linux.dev>
+In-Reply-To: <PH0PR12MB54811A129A037D716BFD934CDC339@PH0PR12MB5481.namprd12.prod.outlook.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-rc
-branch HEAD: 569ab362c3073a14cad5ba5b20c76d86ff14fa03  RDMA/qedr: clean up work queue on failure in qedr_alloc_resources()
 
-elapsed time: 723m
+在 2022/10/27 22:06, Parav Pandit 写道:
+>> From: yanjun.zhu@linux.dev <yanjun.zhu@linux.dev>
+>> Sent: Thursday, October 27, 2022 2:02 AM
+>> To: Parav Pandit <parav@nvidia.com>; dust.li@linux.alibaba.com; Zhu Yanjun
+>> <yanjun.zhu@intel.com>; jgg@ziepe.ca; leon@kernel.org; linux-
+>> rdma@vger.kernel.org
+>> Subject: Re: [PATCH 0/3] RDMA net namespace
+>>
+>> October 27, 2022 11:48 AM, "Parav Pandit" <parav@nvidia.com> wrote:
+>>
+>>>> From: yanjun.zhu@linux.dev <yanjun.zhu@linux.dev>
+>>>> Sent: Wednesday, October 26, 2022 11:39 PM
+>>>>
+>>>> October 27, 2022 11:21 AM, "Parav Pandit" <parav@nvidia.com> wrote:
+>>>>
+>>>> From: yanjun.zhu@linux.dev <yanjun.zhu@linux.dev>
+>>>> Sent: Wednesday, October 26, 2022 11:17 PM
+>>>>
+>>>> October 27, 2022 11:10 AM, "Parav Pandit" <parav@nvidia.com> wrote:
+>>>>
+>>>> From: yanjun.zhu@linux.dev <yanjun.zhu@linux.dev>
+>>>> Sent: Wednesday, October 26, 2022 11:08 PM
+>>>>
+>>>> October 27, 2022 11:01 AM, "Parav Pandit" <parav@nvidia.com> wrote:
+>>>>
+>>>> From: Dust Li <dust.li@linux.alibaba.com>
+>>>> Sent: Wednesday, October 26, 2022 10:31 PM
+>>>>
+>>>> 2. else we are in
+>>>> exclusive mode. When the corresponding netdevice of the RoCE or iWarp
+>>>> device is moved from one net namespace to another, we move the
+>> RDMA
+>>>> device into that net namespace
+>>>>
+>>>> What do you think ?
+>>>>
+>>>> No. one device is not supposed to move other devices.
+>>>> Every device is independent that should be moved by explicit command.
+>>>>
+>>>> Can you show us where we can find this rule "Every device is
+>>>> independent that should be moved by explicit command."?
+>>>>
+>>>> Also changes like above breaks the existing orchestration, it no-go.
+>>>>
+>> And I do not find the rule that you mentioned.
+>>
+>>> There is no Linux kernel subsystem or module to my knowledge that
+>>> attempt to move multiple devices using single command.
+>>> When user executes command , user explicitly give device name "foo",
+>> only "foo" should move.
+>>> Other loosely coupled device whose name is not specified in the ip
+>>> command which has a different life cycle should not move along with "foo".
+>>>
+>>> You are trying to define the new rule that breaks the existing ABI and
+>>> the iproute2 (ip and rdma) command semantics.
+>>> It is implicit that when command is issued on device A, operate on
+>>> device A. This is part of
+>>> iproute2 functioning.
+>> About iproute2, I read this link
+>> https://wiki.linuxfoundation.org/networking/iproute2#documentation
+>>
+>> There is no rules that you mentioned.
+>>
+>> This rule is defined explicitly or implicitly?
+>>
+> Wiki pages links are not the documentation.
+> Man pages of the iproute2 is documentation of iproute2 at [1] and [2].
+>
+> [1] https://man7.org/linux/man-pages/man8/rdma-system.8.html
+> [2] https://man7.org/linux/man-pages/man8/rdma-dev.8.html
+>
+> As I explained, the explicit rule that you are looking for that say "when I modify device foo, it can also modifies the device bar".
+> Because no part of the Linux kernel does that usually, unless the device is representor/control object etc or has parent/child relationship.
+> It is fundamental to a command definition, not a matter of explicit or implicit.
 
-configs tested: 58
-configs skipped: 2
+ From the ABI, iproute2 and current rdma command links, I can not find 
+the rule that you mentioned.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Can you tell me the exact link that make such definition?
 
-gcc tested configs:
-arc                                 defconfig
-alpha                               defconfig
-s390                             allmodconfig
-s390                                defconfig
-s390                             allyesconfig
-x86_64                              defconfig
-x86_64                               rhel-8.3
-x86_64                           allyesconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-arc                              allyesconfig
-alpha                            allyesconfig
-m68k                             allyesconfig
-m68k                             allmodconfig
-x86_64                          rhel-8.3-func
-x86_64                    rhel-8.3-kselftests
-i386                                defconfig
-x86_64                           rhel-8.3-kvm
-x86_64                           rhel-8.3-syz
-riscv                randconfig-r042-20221026
-powerpc                          allmodconfig
-mips                             allyesconfig
-x86_64                         rhel-8.3-kunit
-powerpc                           allnoconfig
-arm                                 defconfig
-x86_64                        randconfig-a002
-arc                  randconfig-r043-20221026
-i386                          randconfig-a012
-s390                 randconfig-r044-20221026
-sh                               allmodconfig
-i386                          randconfig-a014
-x86_64                        randconfig-a004
-i386                          randconfig-a016
-x86_64                        randconfig-a006
-arm64                            allyesconfig
-i386                             allyesconfig
-ia64                             allmodconfig
-arm                              allyesconfig
-i386                          randconfig-a001
-i386                          randconfig-a003
-i386                          randconfig-a005
-x86_64                        randconfig-a015
-x86_64                        randconfig-a013
-x86_64                        randconfig-a011
+>
+> And clearly in this discussion foo and bar are loosely coupled network devices, one is not controlling the other.
+>
+> Also, a rdma device is attached to multiple net devices, primary and other upper devices such as vlan, macvlan etc.
 
-clang tested configs:
-hexagon              randconfig-r045-20221026
-hexagon              randconfig-r041-20221026
-i386                          randconfig-a013
-i386                          randconfig-a011
-x86_64                        randconfig-a001
-x86_64                        randconfig-a003
-x86_64                        randconfig-a005
-i386                          randconfig-a015
-i386                          randconfig-a002
-i386                          randconfig-a004
-i386                          randconfig-a006
-x86_64                        randconfig-a012
-x86_64                        randconfig-a014
-x86_64                        randconfig-a016
+To a RoCE device, how to attach a rdma device to vlan, macvlan?
 
--- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+To "a rdma device is attached to multiple net devices, primary and other 
+upper devices such as vlan, macvlan etc",
+
+Can you show us an example? The rdma device is RoCE device, iWarp or 
+ipoib device?
+
+Zhu Yanjun
+
+>
+>
