@@ -2,61 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19E2FFA3741
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EADD6C38A02
 	for <linux-rdma@archiver.kernel.org>; Sat, 29 Oct 2022 03:10:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229918AbiJ2DKu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 28 Oct 2022 23:10:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33600 "EHLO
+        id S229865AbiJ2DKv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 28 Oct 2022 23:10:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229928AbiJ2DKp (ORCPT
+        with ESMTP id S229635AbiJ2DKp (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 28 Oct 2022 23:10:45 -0400
-Received: from mail-oo1-xc31.google.com (mail-oo1-xc31.google.com [IPv6:2607:f8b0:4864:20::c31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3188329CA4
-        for <linux-rdma@vger.kernel.org>; Fri, 28 Oct 2022 20:10:20 -0700 (PDT)
-Received: by mail-oo1-xc31.google.com with SMTP id g15-20020a4a894f000000b0047f8e899623so1014720ooi.5
-        for <linux-rdma@vger.kernel.org>; Fri, 28 Oct 2022 20:10:20 -0700 (PDT)
+Received: from mail-ot1-x32b.google.com (mail-ot1-x32b.google.com [IPv6:2607:f8b0:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 435E32A959
+        for <linux-rdma@vger.kernel.org>; Fri, 28 Oct 2022 20:10:30 -0700 (PDT)
+Received: by mail-ot1-x32b.google.com with SMTP id r13-20020a056830418d00b0065601df69c0so4014515otu.7
+        for <linux-rdma@vger.kernel.org>; Fri, 28 Oct 2022 20:10:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=KxVc8Xs0oLXoDtXiq0E1glHusFjw0NUoNGpkz6t1r38=;
-        b=bb1bZmn3KXcIPFKxL9i3CBl+a256ZqgrrrEn/Mmi78nIh8j0b/U4HiMzk6k4zDRdw9
-         N7np7qid2oMCGGSMsjGrMebT9bPQ6POM/keXyvhvQn+7JXrb9QyXiL/0lkY7ZR+x5guM
-         s7IvMyQ8J9dm5ooQCQOg44nSvMlix9zjMqbKH51z6RDBBb/Q9SH30QTnGErOgW+CkDxr
-         nGhlj/0/kwQHQ5fZ+qwK7JnUAyiLwxBMhI1VgpAsbJ7bbnqn74HzzZMF+TWkleTbLUGK
-         obHVwZ7sfRxvwMPdXPa45MB3/oa2FX7H/uef6hkfEjkLCPqNFm075uNe80V+yt8SVpPC
-         prcw==
+        bh=oLMAqDdDT7iDgI/SIqz57S3USSjHBvktEV3soMVXD0U=;
+        b=LHOaSQwBUdnerTMbM0+P9aP7rp9JMFBFmUxgtQYLdBHupmT/j8fq2rpI/8RX8io5Fb
+         fqy8URakPS2YQPAxyBdG0rJ/lVa8zElyv2QllLLVIdXQfhUOhLUwPvHlQiFIPkMSiMWl
+         ybzdXBP51y7uO9VZNfrzY/04NuljHmjAfpO4SzZgH0cAh6isYJkHxIB1Qrc3jhOJ2GKe
+         UB58lhCvqvpyuFX4nx7/uPhsNnPXpbBL7Nk2JseMBoOfycls205ufovm1uTIdQWf6jYQ
+         ikohhoVAviDG1R4SFy2gI3Zs7X/w9MEWgrPhewicRwSOz+NxtOg9tt7Umz8aazXYSvJB
+         IGgA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=KxVc8Xs0oLXoDtXiq0E1glHusFjw0NUoNGpkz6t1r38=;
-        b=kJvFhgb9V6GZC0y69geUeGsZZUGlr1Z/VD7qnAAN1vvOmT/LH0XZ0Aa+buttk4EwZo
-         KcNT+y0myXvrgw7r9u+obIHl8dnATQ3a4jAlcbwnMeNPjDwi5wwAhzeFHU0qdswX1tUk
-         7S5xmNTzjpGp0KL2HqSr9sUSbOpv0Vsh1L78SqhGwGDQ/HdKkzZ5qmE5TxN21b3EcaTI
-         lSTqdHLKEeOXRl55WUsaqR0owVMBgg9vaevdRMC9vr50Asrl15YKdSKCh+p92yCRcBgA
-         bdaQCQw4DJJ+cTdkGHYmKNRcf1siGDPihZj0NmtrZn6Lqs/X4pVphF0KDU8z7ofmWXDh
-         LkWQ==
-X-Gm-Message-State: ACrzQf2Z6iE8XaABe43+VMTTlQUwGE6bJiWNkHOegGV4j1niiBJOTedn
-        wx+Gb3m0MTGEWo30+fK+d/k=
-X-Google-Smtp-Source: AMsMyM5KHNdHti1EdQkjfwfGRQBfKq2WyJ14kQCL3xqUwavkfTa5hGyzEXcOjjF6AfroLsWzjs2lJg==
-X-Received: by 2002:a4a:8e81:0:b0:475:811f:3f9e with SMTP id p1-20020a4a8e81000000b00475811f3f9emr1082867ook.35.1667013020042;
-        Fri, 28 Oct 2022 20:10:20 -0700 (PDT)
+        bh=oLMAqDdDT7iDgI/SIqz57S3USSjHBvktEV3soMVXD0U=;
+        b=HZpZsOOjw/sNtmz+k0ShKlmcJQlBvQEnCMlAtfQjxAj6404zmgrOtUcR3TcC/3hKEA
+         yWAxe8DQGGVsGWHue27oz6eZRAq2UTx9XabJr3GPhT+CAs6cATFLsGwk+gT3d/ImFjkL
+         5GbK2ZsRj7Uxnej4vD9o/2peHtleUj6PLxKt0opWuHYL+ahaGGrK/3syEwV8FQFhlpN3
+         PrAmHGWx9Be1vYw1ufpu5pvtYL7OTnMFrnbrTnpB9hhCsNmOJnA5eu6CgWbxC5QE23wh
+         oROj2gqriywOBjrPQVYjTja0nVAB+lo4q98yhd25t0q4rhJWuaCMTnMp/0dtrYsffhqQ
+         pMlg==
+X-Gm-Message-State: ACrzQf2XYeOjx6mHyq4N239v67Qt60mpW8pJacNQFsy3YHo+IJzqoN5G
+        Os6Snto38rXQSVINR66Ar4c=
+X-Google-Smtp-Source: AMsMyM7xOftsJn6dfS6U0EG2TLnEIwzs29MoROezgPA81Hh/YjHfWCXIP29Jo2aKTPpOxi4KYX1NYA==
+X-Received: by 2002:a05:6830:2e3:b0:661:9db6:223e with SMTP id r3-20020a05683002e300b006619db6223emr1235308ote.338.1667013030351;
+        Fri, 28 Oct 2022 20:10:30 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-5d1e-45f3-e9b5-d771.res6.spectrum.com. [2603:8081:140c:1a00:5d1e:45f3:e9b5:d771])
-        by smtp.googlemail.com with ESMTPSA id p3-20020a0568301d4300b006391adb6034sm162493oth.72.2022.10.28.20.10.19
+        by smtp.googlemail.com with ESMTPSA id p3-20020a0568301d4300b006391adb6034sm162493oth.72.2022.10.28.20.10.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 28 Oct 2022 20:10:19 -0700 (PDT)
+        Fri, 28 Oct 2022 20:10:29 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, leon@kernel.org, zyjzyj2000@gmail.com,
         jhack@hpe.com, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>,
-        Ian Ziemba <ian.ziemba@hpe.com>
-Subject: [PATCH for-next v3 02/13] RDMA/rxe: Split rxe_drain_resp_pkts()
-Date:   Fri, 28 Oct 2022 22:09:59 -0500
-Message-Id: <20221029031009.64467-3-rpearsonhpe@gmail.com>
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v3 12/13] RDMA/rxe: Make WORKQUEUE default for RC tasks
+Date:   Fri, 28 Oct 2022 22:10:09 -0500
+Message-Id: <20221029031009.64467-13-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20221029031009.64467-1-rpearsonhpe@gmail.com>
 References: <20221029031009.64467-1-rpearsonhpe@gmail.com>
@@ -66,64 +65,42 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Split rxe_drain_resp_pkts() into two subroutines which perform separate
-functions.
+Change RXE_TASK_TYPE_TASKLET to RXE_TASK_TYPE_WORKQUEUE in rxe_qp.c.
+This makes work queues the default for tasks except for UD completion
+tasks.
 
-Signed-off-by: Ian Ziemba <ian.ziemba@hpe.com>
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_comp.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 66f392810c86..76dc0a4702fd 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -532,17 +532,21 @@ static inline enum comp_state complete_wqe(struct rxe_qp *qp,
- 	return COMPST_GET_WQE;
- }
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index 50f6b8b8ad9d..ca467d8991a9 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -238,9 +238,10 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
  
--static void rxe_drain_resp_pkts(struct rxe_qp *qp, bool notify)
-+static void rxe_drain_resp_pkts(struct rxe_qp *qp)
- {
- 	struct sk_buff *skb;
--	struct rxe_send_wqe *wqe;
--	struct rxe_queue *q = qp->sq.queue;
+ 	skb_queue_head_init(&qp->req_pkts);
  
- 	while ((skb = skb_dequeue(&qp->resp_pkts))) {
- 		rxe_put(qp);
- 		kfree_skb(skb);
- 		ib_device_put(qp->ibqp.device);
- 	}
-+}
-+
-+static void rxe_drain_send_queue(struct rxe_qp *qp, bool notify)
-+{
-+	struct rxe_send_wqe *wqe;
-+	struct rxe_queue *q = qp->sq.queue;
+-	rxe_init_task(&qp->req.task, qp, rxe_requester, RXE_TASK_TYPE_TASKLET);
++	rxe_init_task(&qp->req.task, qp, rxe_requester,
++			RXE_TASK_TYPE_WORKQUEUE);
+ 	rxe_init_task(&qp->comp.task, qp, rxe_completer,
+-			(qp_type(qp) == IB_QPT_RC) ? RXE_TASK_TYPE_TASKLET :
++			(qp_type(qp) == IB_QPT_RC) ? RXE_TASK_TYPE_WORKQUEUE :
+ 						     RXE_TASK_TYPE_INLINE);
  
- 	while ((wqe = queue_head(q, q->type))) {
- 		if (notify) {
-@@ -573,6 +577,7 @@ int rxe_completer(void *arg)
- 	struct sk_buff *skb = NULL;
- 	struct rxe_pkt_info *pkt = NULL;
- 	enum comp_state state;
-+	bool notify;
- 	int ret;
+ 	qp->qp_timeout_jiffies = 0; /* Can't be set for UD/UC in modify_qp */
+@@ -288,7 +289,8 @@ static int rxe_qp_init_resp(struct rxe_dev *rxe, struct rxe_qp *qp,
  
- 	if (!rxe_get(qp))
-@@ -580,8 +585,9 @@ int rxe_completer(void *arg)
+ 	skb_queue_head_init(&qp->resp_pkts);
  
- 	if (!qp->valid || qp->comp.state == QP_STATE_ERROR ||
- 	    qp->comp.state == QP_STATE_RESET) {
--		rxe_drain_resp_pkts(qp, qp->valid &&
--				    qp->comp.state == QP_STATE_ERROR);
-+		notify = qp->valid && (qp->comp.state == QP_STATE_ERROR);
-+		rxe_drain_resp_pkts(qp);
-+		rxe_drain_send_queue(qp, notify);
- 		goto exit;
- 	}
+-	rxe_init_task(&qp->resp.task, qp, rxe_responder, RXE_TASK_TYPE_TASKLET);
++	rxe_init_task(&qp->resp.task, qp, rxe_responder,
++			RXE_TASK_TYPE_WORKQUEUE);
  
+ 	qp->resp.opcode		= OPCODE_NONE;
+ 	qp->resp.msn		= 0;
 -- 
 2.34.1
 
