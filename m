@@ -2,239 +2,122 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 318E0C38A02
-	for <linux-rdma@archiver.kernel.org>; Mon, 31 Oct 2022 12:44:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4116BECAAA1
+	for <linux-rdma@archiver.kernel.org>; Mon, 31 Oct 2022 16:32:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230466AbiJaMoL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 31 Oct 2022 08:44:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60596 "EHLO
+        id S231672AbiJaQcG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 31 Oct 2022 12:32:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47050 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231387AbiJaMnl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 31 Oct 2022 08:43:41 -0400
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2CAFF5B1
-        for <linux-rdma@vger.kernel.org>; Mon, 31 Oct 2022 05:43:07 -0700 (PDT)
-Received: by mail-wr1-x42c.google.com with SMTP id cl5so4148961wrb.9
-        for <linux-rdma@vger.kernel.org>; Mon, 31 Oct 2022 05:43:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20210112.gappssmtp.com; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=d0g3PNQNaq71jLJ4UpVZaKOXefH28jG9imHyeR9aPw8=;
-        b=4eCWxMXB9Aqb/NtwEfrCFCyU7B2E+OE/z4QmM9ekA9NweNMnt09i87EWh+Z3fVtwZ0
-         eMu7wnvImnJE9Ov06G9w/B1zr+c4Hg2GMn3hC7YlPs2kGPmuuxH1CKWjPqK4bqtq6jHz
-         c7qmBl+hcx0FqYJh4gPZWHxI8ztetLCIJg8JNgwzxdLp0ti3wLp4+aKiCc9pixBIs0HH
-         Y4CAx9O5AYiawmzioUs8R96Z3quRY9NlUF0wMkXzNH45jcnCcvrgvnYtXSKdBheXSlLB
-         z4HrUuF2b6A9VoI9hIdDOiR/SivopW988O24OqCrW1hqalfzdVOoTHXEsXpfGNRoGV6J
-         J7Sg==
+        with ESMTP id S231556AbiJaQcF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 31 Oct 2022 12:32:05 -0400
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B726212761;
+        Mon, 31 Oct 2022 09:32:04 -0700 (PDT)
+Received: by mail-pj1-f52.google.com with SMTP id r61-20020a17090a43c300b00212f4e9cccdso16384790pjg.5;
+        Mon, 31 Oct 2022 09:32:04 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=d0g3PNQNaq71jLJ4UpVZaKOXefH28jG9imHyeR9aPw8=;
-        b=4j/I6EdGhy1hOC7Maap95te4HJeOoFQ3oKvrBPS2JqPuzVknJWjeHhyvl4eLWId+n3
-         MYIHCGuOtmX2MFrpkDcdk2Io/eRlxyiUqtYxK2o+MywsiwN2o/dZzaWtHYXfMU93c1Uc
-         mW9gYud6gMAjm0XYVfuie9PQcQ5yZZyZ1G7IAPW74nK+NDwlNXb8FUAgZmvFklbOkiwz
-         QZ8HhNRcrHEiOtodsxO+hsNjRTSX3Su6pOgwer9HFkcTozPdMKfTiY8zwkY3sVVSYezg
-         hPg/qZsHg/6UNDoTD2qJ92sKk9mpy1/b+DsgCck2EUYNHnrsU9LRojN/fl4BFdJmHdne
-         gXxw==
-X-Gm-Message-State: ACrzQf34XMUaFxuqhqELxp+1S7TJiwiBnm4Z+B0OWxb9ZRteElabUd+H
-        j/DS6H4s4BfneN9TiVifi4jCOQ==
-X-Google-Smtp-Source: AMsMyM6H9cuDoRc4K06yGY3dxzpABM2WO8/8ZyIRhfBR7GRvWrinOCzwFFWqyJHqlxFHZPGRnBchVg==
-X-Received: by 2002:a5d:4306:0:b0:236:c907:76f7 with SMTP id h6-20020a5d4306000000b00236c90776f7mr3893781wrq.130.1667220186217;
-        Mon, 31 Oct 2022 05:43:06 -0700 (PDT)
-Received: from localhost ([86.61.181.4])
-        by smtp.gmail.com with ESMTPSA id m13-20020a05600c3b0d00b003bfaba19a8fsm7434850wms.35.2022.10.31.05.43.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 31 Oct 2022 05:43:05 -0700 (PDT)
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     netdev@vger.kernel.org
-Cc:     davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@google.com, tariqt@nvidia.com, moshe@nvidia.com,
-        saeedm@nvidia.com, linux-rdma@vger.kernel.org
-Subject: [patch net-next v3 13/13] net: expose devlink port over rtnetlink
-Date:   Mon, 31 Oct 2022 13:42:48 +0100
-Message-Id: <20221031124248.484405-14-jiri@resnulli.us>
-X-Mailer: git-send-email 2.37.3
-In-Reply-To: <20221031124248.484405-1-jiri@resnulli.us>
-References: <20221031124248.484405-1-jiri@resnulli.us>
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=oqq3jqLTWRS4cM2iifoZtLovQibgnAW+PBZWmfixbMM=;
+        b=7YV15WtWhgSmzXdfYyg9l+Y5J0l2em+qi34mWo9rH6q3pXzUnFvUFdnUEQv4NWt4eJ
+         v5Nqw1IqSd3fSKdSeP4iPcthGoeiTEpKp9GWjNj8cIfObVMrr/ZWF+aiv3di4RFAo8xd
+         bJ0h7UYKz8/TXqs+gjwUJsJArsPZF3meOMl89dPZBUoN92kF05DRAC4TkGTXnaUb4e1p
+         E+WYMQxGBZjksaJ0F7aUf591g56GNxeFJuSCa/0Honl+70WioxwRpkLiw4d+oXcntzzr
+         zC/uHzytnjbCxBKbjuj0JxoMUKgtXjmXma0KhtPdSFCKTaCaAelwDQS4EldM0dE15uT/
+         I/HA==
+X-Gm-Message-State: ACrzQf01B2sRLXRVfr14iFYl57SfLoWFhumkctOUPVMppmtYAPJAIoew
+        zZREnEwi/Q6TtFuB055K0tU=
+X-Google-Smtp-Source: AMsMyM6TS5ZL5TaM1SaOfdHUtz0N7r9Ae3RiNzHWf2h7Z2RKFD1mMOf3CZraVgWmobJCwn9WSMjPmg==
+X-Received: by 2002:a17:902:64c1:b0:186:827e:a0da with SMTP id y1-20020a17090264c100b00186827ea0damr15401249pli.94.1667233923736;
+        Mon, 31 Oct 2022 09:32:03 -0700 (PDT)
+Received: from ?IPV6:2620:15c:211:201:f781:cff2:5c46:49bd? ([2620:15c:211:201:f781:cff2:5c46:49bd])
+        by smtp.gmail.com with ESMTPSA id o8-20020a1709026b0800b00172ea8ff334sm4696343plk.7.2022.10.31.09.32.00
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 31 Oct 2022 09:32:01 -0700 (PDT)
+Message-ID: <b406b5d8-284d-2af3-e37b-44fadd4fb34c@acm.org>
+Date:   Mon, 31 Oct 2022 09:32:00 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.3.0
+Subject: Re: [PATCH] RDMA/srp (gcc13): force int types for max_send_sge and
+ can_queue
+Content-Language: en-US
+To:     "Jiri Slaby (SUSE)" <jirislaby@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, Martin Liska <mliska@suse.cz>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
+References: <20221031114506.10501-1-jirislaby@kernel.org>
+From:   Bart Van Assche <bvanassche@acm.org>
+In-Reply-To: <20221031114506.10501-1-jirislaby@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jiri Pirko <jiri@nvidia.com>
+On 10/31/22 04:45, Jiri Slaby (SUSE) wrote:
+> Since gcc13, each member of an enum has the same type as the enum [1]. And
+> that is inherited from its members. Provided "SRP_TAG_TSK_MGMT = 1U << 31",
+> SRP_MAX_SGE and SRP_TSK_MGMT_SQ_SIZE are unsigned ints.
+> 
+> This results in the following warnings:
+>    include/linux/minmax.h:20:35: error: comparison of distinct pointer types lacks a cast
+>    drivers/infiniband/ulp/srp/ib_srp.c:563:42: note: in expansion of macro 'min'
+> 
+>    include/linux/minmax.h:20:35: error: comparison of distinct pointer types lacks a cast
+>    drivers/infiniband/ulp/srp/ib_srp.c:2369:27: note: in expansion of macro 'min'
+> 
+> Force the use of min_t() instead of min() to use int for all those, as
+> this is what both targets
+>    target->scsi_host->can_queue
+> and
+>    init_attr->cap.max_send_sge
+> are.
+> 
+> [1] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=36113
+> 
+> Cc: Martin Liska <mliska@suse.cz>
+> Cc: Bart Van Assche <bvanassche@acm.org>
+> Cc: Jason Gunthorpe <jgg@ziepe.ca>
+> Cc: Leon Romanovsky <leon@kernel.org>
+> Cc: linux-rdma@vger.kernel.org
+> Signed-off-by: Jiri Slaby (SUSE) <jirislaby@kernel.org>
+> ---
+>   drivers/infiniband/ulp/srp/ib_srp.c | 5 +++--
+>   1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+> index 1075c2ac8fe2..7db487da8293 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.c
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
+> @@ -560,7 +560,8 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+>   	init_attr->cap.max_send_wr     = m * target->queue_size;
+>   	init_attr->cap.max_recv_wr     = target->queue_size + 1;
+>   	init_attr->cap.max_recv_sge    = 1;
+> -	init_attr->cap.max_send_sge    = min(SRP_MAX_SGE, attr->max_send_sge);
+> +	init_attr->cap.max_send_sge    = min_t(int, SRP_MAX_SGE,
+> +			attr->max_send_sge);
+>   	init_attr->sq_sig_type         = IB_SIGNAL_REQ_WR;
+>   	init_attr->qp_type             = IB_QPT_RC;
+>   	init_attr->send_cq             = send_cq;
+> @@ -2366,7 +2367,7 @@ static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
+>   		 * bounce requests back to the SCSI mid-layer.
+>   		 */
+>   		target->scsi_host->can_queue
+> -			= min(ch->req_lim - SRP_TSK_MGMT_SQ_SIZE,
+> +			= min_t(int, ch->req_lim - SRP_TSK_MGMT_SQ_SIZE,
+>   			      target->scsi_host->can_queue);
+>   		target->scsi_host->cmd_per_lun
+>   			= min_t(int, target->scsi_host->can_queue,
 
-Expose devlink port handle related to netdev over rtnetlink. Introduce a
-new nested IFLA attribute to carry the info. Call into devlink code to
-fill-up the nest with existing devlink attributes that are used over
-devlink netlink.
+I don't like this patch because it changes min() into min_t(). The 
+former checks its arguments types while the latter uses casts and hence 
+ignores most information that is present in the argument types. Please 
+split the enum in ib_srp.h instead of changing min() into min_t().
 
-Signed-off-by: Jiri Pirko <jiri@nvidia.com>
----
- include/net/devlink.h        | 14 +++++++++++++
- include/uapi/linux/if_link.h |  2 ++
- net/core/devlink.c           | 20 ++++++++++++++++++
- net/core/rtnetlink.c         | 39 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 75 insertions(+)
+Thanks,
 
-diff --git a/include/net/devlink.h b/include/net/devlink.h
-index 7befad57afd4..fa6e936af1a5 100644
---- a/include/net/devlink.h
-+++ b/include/net/devlink.h
-@@ -1873,6 +1873,9 @@ int devlink_compat_phys_port_name_get(struct net_device *dev,
- int devlink_compat_switch_id_get(struct net_device *dev,
- 				 struct netdev_phys_item_id *ppid);
- 
-+int devlink_nl_port_handle_fill(struct sk_buff *msg, struct devlink_port *devlink_port);
-+size_t devlink_nl_port_handle_size(struct devlink_port *devlink_port);
-+
- #else
- 
- static inline struct devlink *devlink_try_get(struct devlink *devlink)
-@@ -1909,6 +1912,17 @@ devlink_compat_switch_id_get(struct net_device *dev,
- 	return -EOPNOTSUPP;
- }
- 
-+static inline int
-+devlink_nl_port_handle_fill(struct sk_buff *msg, struct devlink_port *devlink_port)
-+{
-+	return 0;
-+}
-+
-+static inline size_t devlink_nl_port_handle_size(struct devlink_port *devlink_port)
-+{
-+	return 0;
-+}
-+
- #endif
- 
- #endif /* _NET_DEVLINK_H_ */
-diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
-index 5e7a1041df3a..9af9da1db4e8 100644
---- a/include/uapi/linux/if_link.h
-+++ b/include/uapi/linux/if_link.h
-@@ -372,6 +372,8 @@ enum {
- 	IFLA_TSO_MAX_SEGS,
- 	IFLA_ALLMULTI,		/* Allmulti count: > 0 means acts ALLMULTI */
- 
-+	IFLA_DEVLINK_PORT,
-+
- 	__IFLA_MAX
- };
- 
-diff --git a/net/core/devlink.c b/net/core/devlink.c
-index 3a454d0045e5..7277169d0b1e 100644
---- a/net/core/devlink.c
-+++ b/net/core/devlink.c
-@@ -880,6 +880,26 @@ static int devlink_nl_put_nested_handle(struct sk_buff *msg, struct devlink *dev
- 	return -EMSGSIZE;
- }
- 
-+int devlink_nl_port_handle_fill(struct sk_buff *msg, struct devlink_port *devlink_port)
-+{
-+	if (devlink_nl_put_handle(msg, devlink_port->devlink))
-+		return -EMSGSIZE;
-+	if (nla_put_u32(msg, DEVLINK_ATTR_PORT_INDEX, devlink_port->index))
-+		return -EMSGSIZE;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(devlink_nl_port_handle_fill);
-+
-+size_t devlink_nl_port_handle_size(struct devlink_port *devlink_port)
-+{
-+	struct devlink *devlink = devlink_port->devlink;
-+
-+	return nla_total_size(strlen(devlink->dev->bus->name) + 1) /* DEVLINK_ATTR_BUS_NAME */
-+	     + nla_total_size(strlen(dev_name(devlink->dev)) + 1) /* DEVLINK_ATTR_DEV_NAME */
-+	     + nla_total_size(4); /* DEVLINK_ATTR_PORT_INDEX */
-+}
-+EXPORT_SYMBOL_GPL(devlink_nl_port_handle_size);
-+
- struct devlink_reload_combination {
- 	enum devlink_reload_action action;
- 	enum devlink_reload_limit limit;
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index 74864dc46a7e..e034c0c8e6cc 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -53,6 +53,7 @@
- #include <net/fib_rules.h>
- #include <net/rtnetlink.h>
- #include <net/net_namespace.h>
-+#include <net/devlink.h>
- 
- #include "dev.h"
- 
-@@ -1038,6 +1039,16 @@ static size_t rtnl_proto_down_size(const struct net_device *dev)
- 	return size;
- }
- 
-+static size_t rtnl_devlink_port_size(const struct net_device *dev)
-+{
-+	size_t size = nla_total_size(0); /* nest IFLA_DEVLINK_PORT */
-+
-+	if (dev->devlink_port)
-+		size += devlink_nl_port_handle_size(dev->devlink_port);
-+
-+	return size;
-+}
-+
- static noinline size_t if_nlmsg_size(const struct net_device *dev,
- 				     u32 ext_filter_mask)
- {
-@@ -1091,6 +1102,7 @@ static noinline size_t if_nlmsg_size(const struct net_device *dev,
- 	       + nla_total_size(4)  /* IFLA_MAX_MTU */
- 	       + rtnl_prop_list_size(dev)
- 	       + nla_total_size(MAX_ADDR_LEN) /* IFLA_PERM_ADDRESS */
-+	       + rtnl_devlink_port_size(dev)
- 	       + 0;
- }
- 
-@@ -1728,6 +1740,30 @@ static int rtnl_fill_proto_down(struct sk_buff *skb,
- 	return -EMSGSIZE;
- }
- 
-+static int rtnl_fill_devlink_port(struct sk_buff *skb,
-+				  const struct net_device *dev)
-+{
-+	struct nlattr *devlink_port_nest;
-+	int ret;
-+
-+	devlink_port_nest = nla_nest_start(skb, IFLA_DEVLINK_PORT);
-+	if (!devlink_port_nest)
-+		return -EMSGSIZE;
-+
-+	if (dev->devlink_port) {
-+		ret = devlink_nl_port_handle_fill(skb, dev->devlink_port);
-+		if (ret < 0)
-+			goto nest_cancel;
-+	}
-+
-+	nla_nest_end(skb, devlink_port_nest);
-+	return 0;
-+
-+nest_cancel:
-+	nla_nest_cancel(skb, devlink_port_nest);
-+	return ret;
-+}
-+
- static int rtnl_fill_ifinfo(struct sk_buff *skb,
- 			    struct net_device *dev, struct net *src_net,
- 			    int type, u32 pid, u32 seq, u32 change,
-@@ -1865,6 +1901,9 @@ static int rtnl_fill_ifinfo(struct sk_buff *skb,
- 			   dev->dev.parent->bus->name))
- 		goto nla_put_failure;
- 
-+	if (rtnl_fill_devlink_port(skb, dev))
-+		goto nla_put_failure;
-+
- 	nlmsg_end(skb, nlh);
- 	return 0;
- 
--- 
-2.37.3
-
+Bart.
