@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93046C433FE
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Nov 2022 20:24:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C2F1C433FE
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Nov 2022 20:24:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230261AbiKAUYE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Nov 2022 16:24:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60248 "EHLO
+        id S230242AbiKAUYG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Nov 2022 16:24:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230008AbiKAUYB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Nov 2022 16:24:01 -0400
-Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E8241EC71
-        for <linux-rdma@vger.kernel.org>; Tue,  1 Nov 2022 13:23:58 -0700 (PDT)
-Received: by mail-ot1-x329.google.com with SMTP id br15-20020a056830390f00b0061c9d73b8bdso9166248otb.6
-        for <linux-rdma@vger.kernel.org>; Tue, 01 Nov 2022 13:23:58 -0700 (PDT)
+        with ESMTP id S230272AbiKAUYF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Nov 2022 16:24:05 -0400
+Received: from mail-ot1-x32c.google.com (mail-ot1-x32c.google.com [IPv6:2607:f8b0:4864:20::32c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBE431EC6B
+        for <linux-rdma@vger.kernel.org>; Tue,  1 Nov 2022 13:24:00 -0700 (PDT)
+Received: by mail-ot1-x32c.google.com with SMTP id 16-20020a9d0490000000b0066938311495so9147073otm.4
+        for <linux-rdma@vger.kernel.org>; Tue, 01 Nov 2022 13:24:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=EJWftdyeXBm9wF1AzRAnKgMZKBrEO1waOP1rNpHh3EI=;
-        b=fi3zbqxZ3FyKXgQyfi+zi6TFRb80WztbO67+09gGmLzlwub0kUj10Tik+aIGHHkn6m
-         CxID6tAwI38ndVqXXz2rWmlGV0WoJnXeeckVXj2AFI0GHJqcJx1E5YHHxFAn8DhLJSBS
-         hs2ekLH+9y3bhHmsqOAEVS+8V2tjYZaNDVqGXoFc1Nblw5gOTF0CyRbJoq+YGM4g5jpr
-         FIIuVXYbOtxNvdx69FEn3MgQWi5OGfIONl2t1P7U9G5M4DmV8RxAXJRECaLF0ljjLFiq
-         PthOsMCqVunb9Ljx6tczVK6iNpdENBmGFXKSftqR/xqdyOBVHVaY6rxld0iqeKlJEYqW
-         ByXQ==
+        bh=3+4PfPgefki07+dnKgvWOv3N2++mu4QJya08px0YDCk=;
+        b=c3avYLq1c/+y2jd5r6e+f4c16VZ4J42Pkzk9o3OcmqzcdrHgzhEYKdziz4JhXV59M5
+         Xor0wG87ZGiGAWmS/T8KufELI4lUWjWQQeR69TUIQ0YIhboHZFuPJBH+QzER7FtKolpK
+         lPoMU5IdV3bg6UygeSqNqr0YleEdOnBVwCxYh92/ZgoQ8PRZxqI5zMEKimkI09QsePJH
+         /K7OkDHlezRJtJs+UKjbZTEj0VDubB0MSTdl6/OYSJUHEgI00TCg7VDOx/2cSA3IWiMa
+         lIbCsYG4+/NtbbJrI6sbeHfoEMVtzHe/T617f0sy1UH/nkDvKu8EUmTGztZAYToGFsue
+         f+dA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=EJWftdyeXBm9wF1AzRAnKgMZKBrEO1waOP1rNpHh3EI=;
-        b=S5r+bLU7qwiOMnncD/nma1PqISgKk3EN93T/CcFofjuddQ79m3HpWo3xfzbxYhlavC
-         f0kl+92VezUSr6rQ3LvzpZHQ/kI/bfK/I5uW9h1rT24i9SBDM5Sl3dfNcEfuVOA08w0j
-         G1aVodAr017r436m8ETE1L+59EuAYmHqfTXxvF1H/IVYBsvgp5uLfh6vfPFB+dOxfQWK
-         14W10OvsRgEbIUy05e62+zQOA5HKSqr9wjd0SpZNZhZ6sAWumlbvmtImZoklMRAoZ6nH
-         TfhC9xbIZP+qDnVRxJdIatdxKlRhiMpMGPGDOXVGzZP7zj8ibGdhD9PAEuk/vbWhowyN
-         bfiA==
-X-Gm-Message-State: ACrzQf2JfIPV2g0SdmC3k6X2vozBTcrA+PJML/3hdL1x1MLGNfXv0eUc
-        qZXK0DpWV7B00XW6KhWW0Ok=
-X-Google-Smtp-Source: AMsMyM4GRQR0jmeW/xXqe9/XJv3wWC+ytDWCUMetHpMKF+2ZqqfwBVJYKUWLrhWlAbctcMEVVR7OhQ==
-X-Received: by 2002:a9d:6d16:0:b0:66b:b674:4a4b with SMTP id o22-20020a9d6d16000000b0066bb6744a4bmr10934041otp.363.1667334237787;
-        Tue, 01 Nov 2022 13:23:57 -0700 (PDT)
+        bh=3+4PfPgefki07+dnKgvWOv3N2++mu4QJya08px0YDCk=;
+        b=L5x7gJ03mUAM/9Zg+Cta8xWYmAo7n17HyjusDvFrWRxkW5SxL5w7HQL8wbFPgrk1/B
+         pCxzXpPo040N5fHuzMOVYe8qj7nEqxzkW0ownhJQwg34UMcUrULBl1eY/OAJ+BPyvMX/
+         HllLCC3Q01QqJan42+SbAWfONDANDmeyTqvzlONtSKe0q8fnvtbU8DiXGHxg1ZAvDxNq
+         Giq7fMuB57QYX9MWXHDY4cyH56W4zDrRZHWjEmhFyVM0dGvl/JJr+l13cwwiS5EJN9+z
+         ATBWtZHHu4Mnu3wsD6bt7ZJK725/nrZAzWJJ6nkSzuYEjH0OYJeu7AboLmRhmwVO11xE
+         dbCg==
+X-Gm-Message-State: ACrzQf2lUxep2VHz0eR8zWAXksHroNyztdKTWov0mYU352RZJVv6+aIQ
+        uBRb4WPK0IiwH+5D6p7q/Ts=
+X-Google-Smtp-Source: AMsMyM43pdMdrGSUSWXOdeTXbRFKlbd5xAUngzfH0HVvaVuB2HaQrstkCJQoIWz1wq9e5gsd4X8YuQ==
+X-Received: by 2002:a05:6830:4120:b0:661:a0a2:3f2e with SMTP id w32-20020a056830412000b00661a0a23f2emr10007119ott.127.1667334240116;
+        Tue, 01 Nov 2022 13:24:00 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-e052-4710-92ba-8142.res6.spectrum.com. [2603:8081:140c:1a00:e052:4710:92ba:8142])
-        by smtp.googlemail.com with ESMTPSA id d22-20020a056830045600b0066210467fb1sm4337493otc.41.2022.11.01.13.23.56
+        by smtp.googlemail.com with ESMTPSA id d22-20020a056830045600b0066210467fb1sm4337493otc.41.2022.11.01.13.23.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Nov 2022 13:23:57 -0700 (PDT)
+        Tue, 01 Nov 2022 13:23:59 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     leon@kernel.org, jgg@nvidia.com, zyjzyj2000@gmail.com,
         jhack@hpe.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 10/16] RDMA/rxe: Replace pr_xxx by rxe_dbg_srq in rxe_srq.c
-Date:   Tue,  1 Nov 2022 15:22:35 -0500
-Message-Id: <20221101202238.32836-11-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 12/16] RDMA/rxe: Replace pr_xxx by rxe_dbg_xxx in rxe_av.c
+Date:   Tue,  1 Nov 2022 15:22:37 -0500
+Message-Id: <20221101202238.32836-13-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20221101202238.32836-1-rpearsonhpe@gmail.com>
 References: <20221101202238.32836-1-rpearsonhpe@gmail.com>
@@ -65,96 +65,184 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Replace calls to rxe_err/warn in rxe_srq.c with rxe_dbg_srq().
+Replace calls to rxe_err/warn() in rxe_av.c with rxe_dbg_ah/qp().
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_srq.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_av.c    | 43 ++++++++++++++++++++++-----
+ drivers/infiniband/sw/rxe/rxe_loc.h   |  8 ++---
+ drivers/infiniband/sw/rxe/rxe_qp.c    |  4 +--
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 13 ++++----
+ 4 files changed, 47 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_srq.c b/drivers/infiniband/sw/rxe/rxe_srq.c
-index 02b39498c370..82e37a41ced4 100644
---- a/drivers/infiniband/sw/rxe/rxe_srq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_srq.c
-@@ -13,13 +13,13 @@ int rxe_srq_chk_init(struct rxe_dev *rxe, struct ib_srq_init_attr *init)
- 	struct ib_srq_attr *attr = &init->attr;
+diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
+index 3b05314ca739..889d7adbd455 100644
+--- a/drivers/infiniband/sw/rxe/rxe_av.c
++++ b/drivers/infiniband/sw/rxe/rxe_av.c
+@@ -14,26 +14,45 @@ void rxe_init_av(struct rdma_ah_attr *attr, struct rxe_av *av)
+ 	memcpy(av->dmac, attr->roce.dmac, ETH_ALEN);
+ }
  
- 	if (attr->max_wr > rxe->attr.max_srq_wr) {
--		pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
-+		rxe_dbg(rxe, "max_wr(%d) > max_srq_wr(%d)\n",
- 			attr->max_wr, rxe->attr.max_srq_wr);
- 		goto err1;
- 	}
- 
- 	if (attr->max_wr <= 0) {
--		pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
-+		rxe_dbg(rxe, "max_wr(%d) <= 0\n", attr->max_wr);
- 		goto err1;
- 	}
- 
-@@ -27,7 +27,7 @@ int rxe_srq_chk_init(struct rxe_dev *rxe, struct ib_srq_init_attr *init)
- 		attr->max_wr = RXE_MIN_SRQ_WR;
- 
- 	if (attr->max_sge > rxe->attr.max_srq_sge) {
--		pr_warn("max_sge(%d) > max_srq_sge(%d)\n",
-+		rxe_dbg(rxe, "max_sge(%d) > max_srq_sge(%d)\n",
- 			attr->max_sge, rxe->attr.max_srq_sge);
- 		goto err1;
- 	}
-@@ -65,7 +65,7 @@ int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
- 	type = QUEUE_TYPE_FROM_CLIENT;
- 	q = rxe_queue_init(rxe, &srq->rq.max_wr, srq_wqe_size, type);
- 	if (!q) {
--		pr_warn("unable to allocate queue for srq\n");
-+		rxe_dbg_srq(srq, "Unable to allocate queue\n");
- 		return -ENOMEM;
- 	}
- 
-@@ -94,24 +94,24 @@ int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
- 		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask)
+-int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
++static int chk_attr(void *obj, struct rdma_ah_attr *attr, bool obj_is_ah)
  {
- 	if (srq->error) {
--		pr_warn("srq in error state\n");
-+		rxe_dbg_srq(srq, "in error state\n");
+ 	const struct ib_global_route *grh = rdma_ah_read_grh(attr);
+ 	struct rxe_port *port;
++	struct rxe_dev *rxe;
++	struct rxe_qp *qp;
++	struct rxe_ah *ah;
+ 	int type;
+ 
++	if (obj_is_ah) {
++		ah = obj;
++		rxe = to_rdev(ah->ibah.device);
++	} else {
++		qp = obj;
++		rxe = to_rdev(qp->ibqp.device);
++	}
++
+ 	port = &rxe->port;
+ 
+ 	if (rdma_ah_get_ah_flags(attr) & IB_AH_GRH) {
+ 		if (grh->sgid_index > port->attr.gid_tbl_len) {
+-			pr_warn("invalid sgid index = %d\n",
+-					grh->sgid_index);
++			if (obj_is_ah)
++				rxe_dbg_ah(ah, "invalid sgid index = %d\n",
++						grh->sgid_index);
++			else
++				rxe_dbg_qp(qp, "invalid sgid index = %d\n",
++						grh->sgid_index);
+ 			return -EINVAL;
+ 		}
+ 
+ 		type = rdma_gid_attr_network_type(grh->sgid_attr);
+ 		if (type < RDMA_NETWORK_IPV4 ||
+ 		    type > RDMA_NETWORK_IPV6) {
+-			pr_warn("invalid network type for rdma_rxe = %d\n",
+-					type);
++			if (obj_is_ah)
++				rxe_dbg_ah(ah, "invalid network type for rdma_rxe = %d\n",
++						type);
++			else
++				rxe_dbg_qp(qp, "invalid network type for rdma_rxe = %d\n",
++						type);
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -41,6 +60,16 @@ int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
+ 	return 0;
+ }
+ 
++int rxe_av_chk_attr(struct rxe_qp *qp, struct rdma_ah_attr *attr)
++{
++	return chk_attr(qp, attr, false);
++}
++
++int rxe_ah_chk_attr(struct rxe_ah *ah, struct rdma_ah_attr *attr)
++{
++	return chk_attr(ah, attr, true);
++}
++
+ void rxe_av_from_attr(u8 port_num, struct rxe_av *av,
+ 		     struct rdma_ah_attr *attr)
+ {
+@@ -121,12 +150,12 @@ struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt, struct rxe_ah **ahp)
+ 		/* only new user provider or kernel client */
+ 		ah = rxe_pool_get_index(&pkt->rxe->ah_pool, ah_num);
+ 		if (!ah) {
+-			pr_warn("Unable to find AH matching ah_num\n");
++			rxe_dbg_qp(pkt->qp, "Unable to find AH matching ah_num\n");
+ 			return NULL;
+ 		}
+ 
+ 		if (rxe_ah_pd(ah) != pkt->qp->pd) {
+-			pr_warn("PDs don't match for AH and QP\n");
++			rxe_dbg_qp(pkt->qp, "PDs don't match for AH and QP\n");
+ 			rxe_put(ah);
+ 			return NULL;
+ 		}
+diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+index c2a5c8814a48..a22476d27b38 100644
+--- a/drivers/infiniband/sw/rxe/rxe_loc.h
++++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+@@ -9,16 +9,12 @@
+ 
+ /* rxe_av.c */
+ void rxe_init_av(struct rdma_ah_attr *attr, struct rxe_av *av);
+-
+-int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr);
+-
++int rxe_av_chk_attr(struct rxe_qp *qp, struct rdma_ah_attr *attr);
++int rxe_ah_chk_attr(struct rxe_ah *ah, struct rdma_ah_attr *attr);
+ void rxe_av_from_attr(u8 port_num, struct rxe_av *av,
+ 		     struct rdma_ah_attr *attr);
+-
+ void rxe_av_to_attr(struct rxe_av *av, struct rdma_ah_attr *attr);
+-
+ void rxe_av_fill_ip_info(struct rxe_av *av, struct rdma_ah_attr *attr);
+-
+ struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt, struct rxe_ah **ahp);
+ 
+ /* rxe_cq.c */
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index bcbfe6068b8b..46f6c74ce00e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -414,11 +414,11 @@ int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
+ 	if (mask & IB_QP_CAP && rxe_qp_chk_cap(rxe, &attr->cap, !!qp->srq))
  		goto err1;
+ 
+-	if (mask & IB_QP_AV && rxe_av_chk_attr(rxe, &attr->ah_attr))
++	if (mask & IB_QP_AV && rxe_av_chk_attr(qp, &attr->ah_attr))
+ 		goto err1;
+ 
+ 	if (mask & IB_QP_ALT_PATH) {
+-		if (rxe_av_chk_attr(rxe, &attr->alt_ah_attr))
++		if (rxe_av_chk_attr(qp, &attr->alt_ah_attr))
+ 			goto err1;
+ 		if (!rdma_is_port_valid(&rxe->ib_dev, attr->alt_port_num))  {
+ 			rxe_dbg_qp(qp, "invalid alt port %d\n", attr->alt_port_num);
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index e6eca21c54e6..025b35bf014e 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -172,10 +172,6 @@ static int rxe_create_ah(struct ib_ah *ibah,
+ 		ah->is_user = false;
  	}
  
- 	if (mask & IB_SRQ_MAX_WR) {
- 		if (attr->max_wr > rxe->attr.max_srq_wr) {
--			pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
-+			rxe_dbg_srq(srq, "max_wr(%d) > max_srq_wr(%d)\n",
- 				attr->max_wr, rxe->attr.max_srq_wr);
- 			goto err1;
- 		}
+-	err = rxe_av_chk_attr(rxe, init_attr->ah_attr);
+-	if (err)
+-		return err;
+-
+ 	err = rxe_add_to_pool_ah(&rxe->ah_pool, ah,
+ 			init_attr->flags & RDMA_CREATE_AH_SLEEPABLE);
+ 	if (err)
+@@ -184,6 +180,12 @@ static int rxe_create_ah(struct ib_ah *ibah,
+ 	/* create index > 0 */
+ 	ah->ah_num = ah->elem.index;
  
- 		if (attr->max_wr <= 0) {
--			pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
-+			rxe_dbg_srq(srq, "max_wr(%d) <= 0\n", attr->max_wr);
- 			goto err1;
- 		}
++	err = rxe_ah_chk_attr(ah, init_attr->ah_attr);
++	if (err) {
++		rxe_cleanup(ah);
++		return err;
++	}
++
+ 	if (uresp) {
+ 		/* only if new user provider */
+ 		err = copy_to_user(&uresp->ah_num, &ah->ah_num,
+@@ -206,10 +208,9 @@ static int rxe_create_ah(struct ib_ah *ibah,
+ static int rxe_modify_ah(struct ib_ah *ibah, struct rdma_ah_attr *attr)
+ {
+ 	int err;
+-	struct rxe_dev *rxe = to_rdev(ibah->device);
+ 	struct rxe_ah *ah = to_rah(ibah);
  
- 		if (srq->limit && (attr->max_wr < srq->limit)) {
--			pr_warn("max_wr (%d) < srq->limit (%d)\n",
-+			rxe_dbg_srq(srq, "max_wr (%d) < srq->limit (%d)\n",
- 				attr->max_wr, srq->limit);
- 			goto err1;
- 		}
-@@ -122,13 +122,13 @@ int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
+-	err = rxe_av_chk_attr(rxe, attr);
++	err = rxe_ah_chk_attr(ah, attr);
+ 	if (err)
+ 		return err;
  
- 	if (mask & IB_SRQ_LIMIT) {
- 		if (attr->srq_limit > rxe->attr.max_srq_wr) {
--			pr_warn("srq_limit(%d) > max_srq_wr(%d)\n",
-+			rxe_dbg_srq(srq, "srq_limit(%d) > max_srq_wr(%d)\n",
- 				attr->srq_limit, rxe->attr.max_srq_wr);
- 			goto err1;
- 		}
- 
- 		if (attr->srq_limit > srq->rq.queue->buf->index_mask) {
--			pr_warn("srq_limit (%d) > cur limit(%d)\n",
-+			rxe_dbg_srq(srq, "srq_limit (%d) > cur limit(%d)\n",
- 				attr->srq_limit,
- 				srq->rq.queue->buf->index_mask);
- 			goto err1;
 -- 
 2.34.1
 
