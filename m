@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB3DCC4332F
-	for <linux-rdma@archiver.kernel.org>; Tue,  1 Nov 2022 20:25:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A7F6C433FE
+	for <linux-rdma@archiver.kernel.org>; Tue,  1 Nov 2022 20:25:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229714AbiKAUYk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 1 Nov 2022 16:24:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60372 "EHLO
+        id S230008AbiKAUYm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 1 Nov 2022 16:24:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60370 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230272AbiKAUYH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Nov 2022 16:24:07 -0400
-Received: from mail-oo1-xc2c.google.com (mail-oo1-xc2c.google.com [IPv6:2607:f8b0:4864:20::c2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1F911EEC4
-        for <linux-rdma@vger.kernel.org>; Tue,  1 Nov 2022 13:24:01 -0700 (PDT)
-Received: by mail-oo1-xc2c.google.com with SMTP id v8-20020a4ab688000000b00486ac81143fso2217195ooo.1
-        for <linux-rdma@vger.kernel.org>; Tue, 01 Nov 2022 13:24:01 -0700 (PDT)
+        with ESMTP id S230310AbiKAUYL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 1 Nov 2022 16:24:11 -0400
+Received: from mail-ot1-x32e.google.com (mail-ot1-x32e.google.com [IPv6:2607:f8b0:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 740DC17052
+        for <linux-rdma@vger.kernel.org>; Tue,  1 Nov 2022 13:24:05 -0700 (PDT)
+Received: by mail-ot1-x32e.google.com with SMTP id a13-20020a9d6e8d000000b00668d65fc44fso9139618otr.9
+        for <linux-rdma@vger.kernel.org>; Tue, 01 Nov 2022 13:24:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=eoJjhKZrbgkuVHlvtoanzHI8drWJoSVBL5ZAF5DXUUE=;
-        b=mON0BaqggleDcSx7LO0ANLbCHUNXUMmLa8kdwjnH3IKKIoJxFWSElCkLke525MxAXN
-         IjYrE3EHmGDy3onk+8A82I0uMWt3BpXUuSqWUmmy97ywkLfpJ5j1qniDbnCs6f/w+/30
-         Wdlun5EM+b6ItgnzLQdxti3rhp709CUt2rgTpZn5DPokrpmjhGOjgoST8Kt8f1Vxnxe3
-         fYxA8IRgkf0yhVgbT7Vi5romgbpNC7px3dwfCUA84RZlyPuSLcApdxqVfbixM1mY3qWF
-         Il1kDKxYh3PNvtXpKuv9bsSLtnJ9vtNzKxhcoTDDVeZTOre1FQPeBmyVOmW00XQ4hoMd
-         HS8Q==
+        bh=wm9xmAep6vmB6XfIEYzr2NGYXLxYsPR4rvmMeyBVmRY=;
+        b=Tt2hooTr6H9TG+OOHxT29v4kXRQ30h8KkE66lsofXG9nFD0EzEKIKNj2/36WVEGEmZ
+         uxRmjl97G5F7Kb2tM9EU4deax4NoKm1zJWxdgvRinNrJIGiSP5in1U+ZOlOnuAi8jHoM
+         /B+BB5BxgcJiiB6EFyIZvekdHeCaa3DrNU1iHpb8t2S7/HeBphwr353LorA2LOJx4nAZ
+         P5EFijPau4D67hx7Q6NbSuL6yyoQ9IjpZv0JmZgDmgLjJeOt3sP5YoyIfkC+xxJpMKuP
+         5ht0t3gdNnZIArVg9tb16W/TVNbnFzi1wiUjXGhBTO4QK+he6DqjRpIoScIKugBMrFzS
+         2RtQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=eoJjhKZrbgkuVHlvtoanzHI8drWJoSVBL5ZAF5DXUUE=;
-        b=y/OTuIDv5yI08liBEJ7Emg3XgG7ZsMx6JhnP23oQ1EOm0t3r8IQ1h4qjlHdL3YZWhp
-         L4+n9I8/RsGhIA3ZIoRf0lGNdDuepBWG4WVbFOxrH1Ru/2F7u8/50srPhc48ti4OPCTh
-         b+Bf5ASqaYjyuFYgkRr/5bDJFZjxNVhbxHD9h8ZvXabtVw0exbRlZaolRAkZjzbzqlfy
-         +7/O/o/heEzrsiR5/ECx9bZjqHxkQBNd0a5QErUSJZ9F+uOZ4purY6oa4Cn++6+STq6N
-         t1ZCENZg0AU0YtH3FPJTQhW9eHQIzQyPrawml/s2z7gIy8yQ/TPEqxAKlp+NXOUvombV
-         fwpg==
-X-Gm-Message-State: ACrzQf0GKOL7ekad2hxhNh+Q3lRZw7DsMZyGUP2HtVqaz0s3EOJ26i92
-        Db1FWlRQCJ9RsIFD3OlUFGc=
-X-Google-Smtp-Source: AMsMyM6wMU69gsgrif/pC0DJWKwKLlDO0buE2mfdoh/8J5oelDGuYkBPipapFKIlf0cvtl0ItdA6pA==
-X-Received: by 2002:a4a:c20e:0:b0:476:59ad:b02b with SMTP id z14-20020a4ac20e000000b0047659adb02bmr8754830oop.65.1667334241222;
-        Tue, 01 Nov 2022 13:24:01 -0700 (PDT)
+        bh=wm9xmAep6vmB6XfIEYzr2NGYXLxYsPR4rvmMeyBVmRY=;
+        b=lqHYFgN+VolErk7yapDAMLJ9xui8AIJGw07pDCXm/ynlinIj6K+2/fiPT5TmDBQEa0
+         AnnvUZ+UdVPMHIW5ExfzGX02imyYwD1t+JpWiL8w7AGkUyT+Lu/2VpZC/6o9SIQGmjYg
+         JcV05bfnLViVqm3A/JItw92S0YHqh/az6B4Ua9LBQqXN33kDiDoF8DbMVfDuwtspO3Ns
+         zzzhTAlj2M5Kxy2rLUdVR4NJl8Kxv0q2+ThRAliOK3VQ59Dydx8cUJJFRnOD9L3rJkmg
+         x38lVMjjVG3gcWSp1okcM8XE3lM4Dr8gVzrh45kCCEhO0FTKu5Jz5f8pEzYDI4w04Moz
+         f9rg==
+X-Gm-Message-State: ACrzQf1Ik6ZAsSxS+MsPLgK9fGhhiKkFtLEyYOUfsjosUC5/6QPOhFiK
+        eYO+B47p0hx2SAHoE4uRK6F85XTHu/0=
+X-Google-Smtp-Source: AMsMyM4rGVXYeSjq6M3hx3+PT6WaJrlOqE9iiS4qk4V0okCwFBQArg47F4Ccd3Nd7uWlKtu4cWAuRg==
+X-Received: by 2002:a05:6830:12cb:b0:66c:6dd9:d983 with SMTP id a11-20020a05683012cb00b0066c6dd9d983mr1959577otq.349.1667334244679;
+        Tue, 01 Nov 2022 13:24:04 -0700 (PDT)
 Received: from ubuntu-22.tx.rr.com (2603-8081-140c-1a00-e052-4710-92ba-8142.res6.spectrum.com. [2603:8081:140c:1a00:e052:4710:92ba:8142])
-        by smtp.googlemail.com with ESMTPSA id d22-20020a056830045600b0066210467fb1sm4337493otc.41.2022.11.01.13.24.00
+        by smtp.googlemail.com with ESMTPSA id d22-20020a056830045600b0066210467fb1sm4337493otc.41.2022.11.01.13.24.03
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Nov 2022 13:24:00 -0700 (PDT)
+        Tue, 01 Nov 2022 13:24:04 -0700 (PDT)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     leon@kernel.org, jgg@nvidia.com, zyjzyj2000@gmail.com,
         jhack@hpe.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 13/16] RDMA/rxe: Replace pr_xxx by rxe_dbg_qp in rxe_task.c
-Date:   Tue,  1 Nov 2022 15:22:38 -0500
-Message-Id: <20221101202238.32836-14-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 16/16] RDMA/rxe: Replace pr_xxx by rxe_dbg in rxe_mmap.c
+Date:   Tue,  1 Nov 2022 15:22:41 -0500
+Message-Id: <20221101202238.32836-17-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20221101202238.32836-1-rpearsonhpe@gmail.com>
 References: <20221101202238.32836-1-rpearsonhpe@gmail.com>
@@ -65,45 +65,44 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Replace calls to pr_err/warn() in rxe_task.c with rxe_dbg_qp().
+Replace calls to rxe_err/warn in rxe_mmap.c with rxe_dbg().
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_task.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_mmap.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
-index 0208d833a41b..60b90e33a884 100644
---- a/drivers/infiniband/sw/rxe/rxe_task.c
-+++ b/drivers/infiniband/sw/rxe/rxe_task.c
-@@ -29,6 +29,7 @@ static void do_task(struct tasklet_struct *t)
- 	int cont;
- 	int ret;
- 	struct rxe_task *task = from_tasklet(task, t, tasklet);
-+	struct rxe_qp *qp = (struct rxe_qp *)task->arg;
- 	unsigned int iterations = RXE_MAX_ITERATIONS;
+diff --git a/drivers/infiniband/sw/rxe/rxe_mmap.c b/drivers/infiniband/sw/rxe/rxe_mmap.c
+index 9149b6095429..a47d72dbc537 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mmap.c
++++ b/drivers/infiniband/sw/rxe/rxe_mmap.c
+@@ -79,7 +79,7 @@ int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
  
- 	spin_lock_bh(&task->lock);
-@@ -47,7 +48,7 @@ static void do_task(struct tasklet_struct *t)
+ 		/* Don't allow a mmap larger than the object. */
+ 		if (size > ip->info.size) {
+-			pr_err("mmap region is larger than the object!\n");
++			rxe_dbg(rxe, "mmap region is larger than the object!\n");
+ 			spin_unlock_bh(&rxe->pending_lock);
+ 			ret = -EINVAL;
+ 			goto done;
+@@ -87,7 +87,7 @@ int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
  
- 	default:
- 		spin_unlock_bh(&task->lock);
--		pr_warn("%s failed with bad state %d\n", __func__, task->state);
-+		rxe_dbg_qp(qp, "failed with bad state %d\n", task->state);
- 		return;
+ 		goto found_it;
+ 	}
+-	pr_warn("unable to find pending mmap info\n");
++	rxe_dbg(rxe, "unable to find pending mmap info\n");
+ 	spin_unlock_bh(&rxe->pending_lock);
+ 	ret = -EINVAL;
+ 	goto done;
+@@ -98,7 +98,7 @@ int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
+ 
+ 	ret = remap_vmalloc_range(vma, ip->obj, 0);
+ 	if (ret) {
+-		pr_err("err %d from remap_vmalloc_range\n", ret);
++		rxe_dbg(rxe, "err %d from remap_vmalloc_range\n", ret);
+ 		goto done;
  	}
  
-@@ -81,8 +82,8 @@ static void do_task(struct tasklet_struct *t)
- 			break;
- 
- 		default:
--			pr_warn("%s failed with bad state %d\n", __func__,
--				task->state);
-+			rxe_dbg_qp(qp, "failed with bad state %d\n",
-+					task->state);
- 		}
- 		spin_unlock_bh(&task->lock);
- 	} while (cont);
 -- 
 2.34.1
 
