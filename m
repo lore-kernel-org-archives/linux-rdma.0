@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F0DEC41535
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:17:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD9D8C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:17:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231417AbiKCTRM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Nov 2022 15:17:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55780 "EHLO
+        id S231484AbiKCTRN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Nov 2022 15:17:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231418AbiKCTQ5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:16:57 -0400
+        with ESMTP id S231478AbiKCTQ7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:16:59 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4F4851F9EA;
-        Thu,  3 Nov 2022 12:16:55 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 385591EC70;
+        Thu,  3 Nov 2022 12:16:58 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 1E40D20C28B1; Thu,  3 Nov 2022 12:16:55 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1E40D20C28B1
+        id 1F62F20C333D; Thu,  3 Nov 2022 12:16:58 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1F62F20C333D
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1667503015;
-        bh=bXAXXXWrR9V+EThSaWjY7kZ/dnC9Y8q0qjq9clyypqg=;
+        s=default; t=1667503018;
+        bh=f/L5JWQtlV4EWOSXR6x1yXXG40XtIaw4c4cKTQrFw1k=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=XiAgn4pxPOH6OgLf1/S5XOkxqHq6BhEV7jqpLeGARodeU1ci9ELhIxcUcLirL4ebU
-         uyUbu/nx+vU2XY81RLNUz5+IU3LLBuIgXzJnX7aUa0axG8Q7FRVXpOhh9HFC9BChV9
-         g92jkg7Uoe5oUeMMU6Q1haWqHhAN8Act3/gASg5I=
+        b=qO8MgNg6yj0Pf+m4kFg4L9NTGzgizxEbILDff/QkD++URDu+f+cILLnHvjCBcr1oP
+         M3O6lFP3zQNWh9s9d7oQMXk5rCZhdK6efdeWkJCX7jYZTq2t2vFNbmJvQlXkDWZ+ag
+         uWLSQaIbilYR3ajarkd+5d7ecp11fc9e58/GiL0I=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v10 03/12] net: mana: Handle vport sharing between devices
-Date:   Thu,  3 Nov 2022 12:16:21 -0700
-Message-Id: <1667502990-2559-4-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v10 08/12] net: mana: Define max values for SGL entries
+Date:   Thu,  3 Nov 2022 12:16:26 -0700
+Message-Id: <1667502990-2559-9-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
 References: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,150 +51,73 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-For outgoing packets, the PF requires the VF to configure the vport with
-corresponding protection domain and doorbell ID for the kernel or user
-context. The vport can't be shared between different contexts.
-
-Implement the logic to exclusively take over the vport by either the
-Ethernet device or RDMA device.
+The number of maximum SGl entries should be computed from the maximum
+WQE size for the intended queue type and the corresponding OOB data
+size. This guarantees the hardware queue can successfully queue requests
+up to the queue depth exposed to the upper layer.
 
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
-Change log:
-v2: use refcount instead of directly using atomic variables
-v4: change to mutex to avoid possible race with refcount
-v5: add detailed comments explaining vport sharing, use EXPORT_SYMBOL_NS
-v6: rebased to rdma-next
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 2 +-
+ include/net/mana/gdma.h                       | 7 +++++++
+ include/net/mana/mana.h                       | 4 +---
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
- drivers/net/ethernet/microsoft/mana/mana.h    |  7 +++
- drivers/net/ethernet/microsoft/mana/mana_en.c | 53 ++++++++++++++++++-
- 2 files changed, 58 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/mana.h b/drivers/net/ethernet/microsoft/mana/mana.h
-index d58be64374c8..2883a08dbfb5 100644
---- a/drivers/net/ethernet/microsoft/mana/mana.h
-+++ b/drivers/net/ethernet/microsoft/mana/mana.h
-@@ -380,6 +380,10 @@ struct mana_port_context {
- 	mana_handle_t port_handle;
- 	mana_handle_t pf_filter_handle;
- 
-+	/* Mutex for sharing access to vport_use_count */
-+	struct mutex vport_mutex;
-+	int vport_use_count;
-+
- 	u16 port_idx;
- 
- 	bool port_is_up;
-@@ -631,4 +635,7 @@ struct mana_tx_package {
- 	struct gdma_posted_wqe_info wqe_info;
- };
- 
-+int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
-+		   u32 doorbell_pg_id);
-+void mana_uncfg_vport(struct mana_port_context *apc);
- #endif /* _MANA_H */
 diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 8751e475d1ba..efe14a343fd1 100644
+index ffa2a0e2c213..f6bcd0cc6cda 100644
 --- a/drivers/net/ethernet/microsoft/mana/mana_en.c
 +++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -646,13 +646,48 @@ static int mana_query_vport_cfg(struct mana_port_context *apc, u32 vport_index,
- 	return 0;
- }
+@@ -189,7 +189,7 @@ int mana_start_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	pkg.wqe_req.client_data_unit = 0;
  
--static int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
--			  u32 doorbell_pg_id)
-+void mana_uncfg_vport(struct mana_port_context *apc)
-+{
-+	mutex_lock(&apc->vport_mutex);
-+	apc->vport_use_count--;
-+	WARN_ON(apc->vport_use_count < 0);
-+	mutex_unlock(&apc->vport_mutex);
-+}
-+EXPORT_SYMBOL_NS(mana_uncfg_vport, NET_MANA);
+ 	pkg.wqe_req.num_sge = 1 + skb_shinfo(skb)->nr_frags;
+-	WARN_ON_ONCE(pkg.wqe_req.num_sge > 30);
++	WARN_ON_ONCE(pkg.wqe_req.num_sge > MAX_TX_WQE_SGL_ENTRIES);
+ 
+ 	if (pkg.wqe_req.num_sge <= ARRAY_SIZE(pkg.sgl_array)) {
+ 		pkg.wqe_req.sgl = pkg.sgl_array;
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 72eaec2470c0..0b0c0cd0b6bd 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -427,6 +427,13 @@ struct gdma_wqe {
+ #define MAX_TX_WQE_SIZE 512
+ #define MAX_RX_WQE_SIZE 256
+ 
++#define MAX_TX_WQE_SGL_ENTRIES	((GDMA_MAX_SQE_SIZE -			   \
++			sizeof(struct gdma_sge) - INLINE_OOB_SMALL_SIZE) / \
++			sizeof(struct gdma_sge))
 +
-+int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
-+		   u32 doorbell_pg_id)
- {
- 	struct mana_config_vport_resp resp = {};
- 	struct mana_config_vport_req req = {};
- 	int err;
- 
-+	/* This function is used to program the Ethernet port in the hardware
-+	 * table. It can be called from the Ethernet driver or the RDMA driver.
-+	 *
-+	 * For Ethernet usage, the hardware supports only one active user on a
-+	 * physical port. The driver checks on the port usage before programming
-+	 * the hardware when creating the RAW QP (RDMA driver) or exposing the
-+	 * device to kernel NET layer (Ethernet driver).
-+	 *
-+	 * Because the RDMA driver doesn't know in advance which QP type the
-+	 * user will create, it exposes the device with all its ports. The user
-+	 * may not be able to create RAW QP on a port if this port is already
-+	 * in used by the Ethernet driver from the kernel.
-+	 *
-+	 * This physical port limitation only applies to the RAW QP. For RC QP,
-+	 * the hardware doesn't have this limitation. The user can create RC
-+	 * QPs on a physical port up to the hardware limits independent of the
-+	 * Ethernet usage on the same port.
-+	 */
-+	mutex_lock(&apc->vport_mutex);
-+	if (apc->vport_use_count > 0) {
-+		mutex_unlock(&apc->vport_mutex);
-+		return -EBUSY;
-+	}
-+	apc->vport_use_count++;
-+	mutex_unlock(&apc->vport_mutex);
++#define MAX_RX_WQE_SGL_ENTRIES	((GDMA_MAX_RQE_SIZE -			   \
++			sizeof(struct gdma_sge)) / sizeof(struct gdma_sge))
 +
- 	mana_gd_init_req_hdr(&req.hdr, MANA_CONFIG_VPORT_TX,
- 			     sizeof(req), sizeof(resp));
- 	req.vport = apc->port_handle;
-@@ -679,9 +714,16 @@ static int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
+ struct gdma_cqe {
+ 	u32 cqe_data[GDMA_COMP_DATA_SIZE / 4];
  
- 	apc->tx_shortform_allowed = resp.short_form_allowed;
- 	apc->tx_vp_offset = resp.tx_vport_offset;
-+
-+	netdev_info(apc->ndev, "Configured vPort %llu PD %u DB %u\n",
-+		    apc->port_handle, protection_dom_id, doorbell_pg_id);
- out:
-+	if (err)
-+		mana_uncfg_vport(apc);
-+
- 	return err;
- }
-+EXPORT_SYMBOL_NS(mana_cfg_vport, NET_MANA);
+diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
+index 6e9e86fb4c02..713a8f8cca9a 100644
+--- a/include/net/mana/mana.h
++++ b/include/net/mana/mana.h
+@@ -265,8 +265,6 @@ struct mana_cq {
+ 	int budget;
+ };
  
- static int mana_cfg_vport_steering(struct mana_port_context *apc,
- 				   enum TRI_STATE rx,
-@@ -742,6 +784,9 @@ static int mana_cfg_vport_steering(struct mana_port_context *apc,
- 			   resp.hdr.status);
- 		err = -EPROTO;
- 	}
-+
-+	netdev_info(ndev, "Configured steering vPort %llu entries %u\n",
-+		    apc->port_handle, num_entries);
- out:
- 	kfree(req);
- 	return err;
-@@ -1804,6 +1849,7 @@ static void mana_destroy_vport(struct mana_port_context *apc)
- 	}
+-#define GDMA_MAX_RQE_SGES 15
+-
+ struct mana_recv_buf_oob {
+ 	/* A valid GDMA work request representing the data buffer. */
+ 	struct gdma_wqe_request wqe_req;
+@@ -276,7 +274,7 @@ struct mana_recv_buf_oob {
  
- 	mana_destroy_txq(apc);
-+	mana_uncfg_vport(apc);
+ 	/* SGL of the buffer going to be sent has part of the work request. */
+ 	u32 num_sge;
+-	struct gdma_sge sgl[GDMA_MAX_RQE_SGES];
++	struct gdma_sge sgl[MAX_RX_WQE_SGL_ENTRIES];
  
- 	if (gd->gdma_context->is_pf)
- 		mana_pf_deregister_hw_vport(apc);
-@@ -2076,6 +2122,9 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
- 	apc->pf_filter_handle = INVALID_MANA_HANDLE;
- 	apc->port_idx = port_idx;
- 
-+	mutex_init(&apc->vport_mutex);
-+	apc->vport_use_count = 0;
-+
- 	ndev->netdev_ops = &mana_devops;
- 	ndev->ethtool_ops = &mana_ethtool_ops;
- 	ndev->mtu = ETH_DATA_LEN;
+ 	/* Required to store the result of mana_gd_post_work_request.
+ 	 * gdma_posted_wqe_info.wqe_size_in_bu is required for progressing the
 -- 
 2.17.1
 
