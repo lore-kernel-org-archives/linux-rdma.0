@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7764C3A5A3
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:17:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 045A2C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:17:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231651AbiKCTRP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Nov 2022 15:17:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55786 "EHLO
+        id S231499AbiKCTRR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Nov 2022 15:17:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231485AbiKCTQ7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:16:59 -0400
+        with ESMTP id S231419AbiKCTQ5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:16:57 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CBF761EC78;
-        Thu,  3 Nov 2022 12:16:58 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D26F01F9F1;
+        Thu,  3 Nov 2022 12:16:55 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id B3B5B20C333F; Thu,  3 Nov 2022 12:16:58 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com B3B5B20C333F
+        id AA09220C28BD; Thu,  3 Nov 2022 12:16:55 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AA09220C28BD
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1667503018;
-        bh=jONrZhhKFLS3dleWg98wZ6FgVfueM2/7lN9acbPbclk=;
+        s=default; t=1667503015;
+        bh=xJ3JkF6Vcd6GI3PssrAc3ksaEXDp0/3rJi7rJ5ZNs8A=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=S6GSu2pyVBVqTewSG+5P3XDJzPDCy+PVJFZyi9XAN6N8DQMAabKrlFqwhE3BVqekL
-         N52l/eYwweHIwhQILB9uMrnVZukWsohVX62yNu46gG+zRuw0bxBnxQnG+V2RQAtmT6
-         W33Mp1PyPwZKfGHCpO5AcmWKzNvHgVc38hOpoyJo=
+        b=JJH8IJBNl/FjcKuA9yvY+cV1DPYUL2dk5PoLbZqC457sepjgZ6ZqvokQZuzQ8MqN1
+         ex96W4wV9oLxFRI+jAtBcBQk0zdJpbkEN3lZ1sRbFwHi6qs2TD44Ec0pcyYAsE33f/
+         CtNRPqOI5cbwqbeCMdjhK3U22wkFs80mgfa200XY=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v10 09/12] net: mana: Define and process GDMA response code GDMA_STATUS_MORE_ENTRIES
-Date:   Thu,  3 Nov 2022 12:16:27 -0700
-Message-Id: <1667502990-2559-10-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v10 04/12] net: mana: Set the DMA device max segment size
+Date:   Thu,  3 Nov 2022 12:16:22 -0700
+Message-Id: <1667502990-2559-5-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
 References: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,45 +51,37 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Ajay Sharma <sharmaajay@microsoft.com>
 
-When doing memory registration, the PF may respond with
-GDMA_STATUS_MORE_ENTRIES to indicate a follow request is needed. This is
-not an error and should be processed as expected.
+MANA hardware doesn't have any restrictions on the DMA segment size, set it
+to the max allowed value.
 
 Signed-off-by: Ajay Sharma <sharmaajay@microsoft.com>
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
- drivers/net/ethernet/microsoft/mana/hw_channel.c | 2 +-
- include/net/mana/gdma.h                          | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+Change log:
+v2: Use the max allowed value as the hardware doesn't have any limit
 
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 76829ab43d40..9d1507eba5b9 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -836,7 +836,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
- 		goto out;
- 	}
+ drivers/net/ethernet/microsoft/mana/gdma_main.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 0cfe5f15458e..4f041b27c07d 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -1363,6 +1363,12 @@ static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	if (err)
+ 		goto release_region;
  
--	if (ctx->status_code) {
-+	if (ctx->status_code && ctx->status_code != GDMA_STATUS_MORE_ENTRIES) {
- 		dev_err(hwc->dev, "HWC: Failed hw_channel req: 0x%x\n",
- 			ctx->status_code);
- 		err = -EPROTO;
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index 0b0c0cd0b6bd..a9b7930dfbf8 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -9,6 +9,8 @@
- 
- #include "shm_channel.h"
- 
-+#define GDMA_STATUS_MORE_ENTRIES	0x00000105
++	err = dma_set_max_seg_size(&pdev->dev, UINT_MAX);
++	if (err) {
++		dev_err(&pdev->dev, "Failed to set dma device segment size\n");
++		goto release_region;
++	}
 +
- /* Structures labeled with "HW DATA" are exchanged with the hardware. All of
-  * them are naturally aligned and hence don't need __packed.
-  */
+ 	err = -ENOMEM;
+ 	gc = vzalloc(sizeof(*gc));
+ 	if (!gc)
 -- 
 2.17.1
 
