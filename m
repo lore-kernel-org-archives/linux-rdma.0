@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBED0C3A589
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11FACC4167D
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:17:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231637AbiKCTRN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Nov 2022 15:17:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55818 "EHLO
+        id S231648AbiKCTRO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Nov 2022 15:17:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231473AbiKCTQ6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:16:58 -0400
+        with ESMTP id S231506AbiKCTRA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:17:00 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8D7A21FCD5;
-        Thu,  3 Nov 2022 12:16:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 78C271F9D9;
+        Thu,  3 Nov 2022 12:16:59 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 6E45020C3338; Thu,  3 Nov 2022 12:16:57 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 6E45020C3338
+        id 505FD20C3342; Thu,  3 Nov 2022 12:16:59 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 505FD20C3342
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1667503017;
-        bh=9o96KL9v/M+VdBJEWVgSsnv2eumQWNZL84myNK5sMHE=;
+        s=default; t=1667503019;
+        bh=XCdAPyY3QKtJwrvrDmLBBK0K2ZN06sCmO+Hdg9ph1/0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=OnKR3ONZbO7ejnHmS5pk1yQ9aUDJwYPH5jbRIkWnTvkVcXC6x1xBnLJQ+gZpEbGyb
-         lAW7jp/NGBxVNv9zsidgwl9DJb72uT8narTkIM93prwqzcUvRgjH4u6dx9yj0uadwa
-         uUMExMC6Ggv4hJi2jje5YHAloIoS+0FVEpJcJiHs=
+        b=C6Z/WFpfWdOMaC0mf0Gbi21zNmf/1y1adLOTceBrcW/gXvGzTATApaNyW4fCaSaHU
+         NcO7c/fA8h2kmt0OUIOklSD2tn2KcvFjpkSTLkkZBevOVyA/4Uwyl0gjRlZb668hve
+         Wlscm8144uitycpMEO7SChoTGlGcOu1os3HsfE9A=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v10 07/12] net: mana: Move header files to a common location
-Date:   Thu,  3 Nov 2022 12:16:25 -0700
-Message-Id: <1667502990-2559-8-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v10 10/12] net: mana: Define data structures for allocating doorbell page from GDMA
+Date:   Thu,  3 Nov 2022 12:16:28 -0700
+Message-Id: <1667502990-2559-11-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
 References: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
@@ -51,149 +51,68 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Long Li <longli@microsoft.com>
 
-In preparation to add MANA RDMA driver, move all the required header files
-to a common location for use by both Ethernet and RDMA drivers.
+The RDMA device needs to allocate doorbell pages for each user context.
+Define the GDMA data structures for use by the RDMA driver.
 
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
 Change log:
-v2: Move headers to include/net/mana, instead of include/linux/mana
+v4: use EXPORT_SYMBOL_NS
+v7: move mana_gd_allocate_doorbell_page() and mana_gd_destroy_doorbell_page() to the RDMA driver
+v8: remove extra line in header file
 
- MAINTAINERS                                                   | 1 +
- drivers/net/ethernet/microsoft/mana/gdma_main.c               | 2 +-
- drivers/net/ethernet/microsoft/mana/hw_channel.c              | 4 ++--
- drivers/net/ethernet/microsoft/mana/mana_bpf.c                | 2 +-
- drivers/net/ethernet/microsoft/mana/mana_en.c                 | 4 ++--
- drivers/net/ethernet/microsoft/mana/mana_ethtool.c            | 2 +-
- drivers/net/ethernet/microsoft/mana/shm_channel.c             | 2 +-
- {drivers/net/ethernet/microsoft => include/net}/mana/gdma.h   | 0
- .../net/ethernet/microsoft => include/net}/mana/hw_channel.h  | 0
- {drivers/net/ethernet/microsoft => include/net}/mana/mana.h   | 0
- .../ethernet/microsoft => include/net}/mana/mana_auxiliary.h  | 0
- .../net/ethernet/microsoft => include/net}/mana/shm_channel.h | 0
- 12 files changed, 9 insertions(+), 8 deletions(-)
- rename {drivers/net/ethernet/microsoft => include/net}/mana/gdma.h (100%)
- rename {drivers/net/ethernet/microsoft => include/net}/mana/hw_channel.h (100%)
- rename {drivers/net/ethernet/microsoft => include/net}/mana/mana.h (100%)
- rename {drivers/net/ethernet/microsoft => include/net}/mana/mana_auxiliary.h (100%)
- rename {drivers/net/ethernet/microsoft => include/net}/mana/shm_channel.h (100%)
+ include/net/mana/gdma.h | 25 +++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 8a5012ba6ff9..8b9a50756c7e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9457,6 +9457,7 @@ F:	include/asm-generic/hyperv-tlfs.h
- F:	include/asm-generic/mshyperv.h
- F:	include/clocksource/hyperv_timer.h
- F:	include/linux/hyperv.h
-+F:	include/net/mana
- F:	include/uapi/linux/hyperv.h
- F:	net/vmw_vsock/hyperv_transport.c
- F:	tools/hv/
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index aab22911f20d..93847ed0e4b3 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -6,7 +6,7 @@
- #include <linux/utsname.h>
- #include <linux/version.h>
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index a9b7930dfbf8..055408a5baf3 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -24,11 +24,15 @@ enum gdma_request_type {
+ 	GDMA_GENERATE_TEST_EQE		= 10,
+ 	GDMA_CREATE_QUEUE		= 12,
+ 	GDMA_DISABLE_QUEUE		= 13,
++	GDMA_ALLOCATE_RESOURCE_RANGE	= 22,
++	GDMA_DESTROY_RESOURCE_RANGE	= 24,
+ 	GDMA_CREATE_DMA_REGION		= 25,
+ 	GDMA_DMA_REGION_ADD_PAGES	= 26,
+ 	GDMA_DESTROY_DMA_REGION		= 27,
+ };
  
--#include "mana.h"
-+#include <net/mana/mana.h>
++#define GDMA_RESOURCE_DOORBELL_PAGE	27
++
+ enum gdma_queue_type {
+ 	GDMA_INVALID_QUEUE,
+ 	GDMA_SQ,
+@@ -587,6 +591,26 @@ struct gdma_register_device_resp {
+ 	u32 db_id;
+ }; /* HW DATA */
  
- static u32 mana_gd_r32(struct gdma_context *g, u64 offset)
- {
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-index 543a5d5c304f..76829ab43d40 100644
---- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
-@@ -1,8 +1,8 @@
- // SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
- /* Copyright (c) 2021, Microsoft Corporation. */
- 
--#include "gdma.h"
--#include "hw_channel.h"
-+#include <net/mana/gdma.h>
-+#include <net/mana/hw_channel.h>
- 
- static int mana_hwc_get_msg_index(struct hw_channel_context *hwc, u16 *msg_id)
- {
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_bpf.c b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-index 421fd39ff3a8..3caea631229c 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_bpf.c
-@@ -8,7 +8,7 @@
- #include <linux/bpf_trace.h>
- #include <net/xdp.h>
- 
--#include "mana.h"
-+#include <net/mana/mana.h>
- 
- void mana_xdp_tx(struct sk_buff *skb, struct net_device *ndev)
- {
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index b6303a43fa7c..ffa2a0e2c213 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -12,8 +12,8 @@
- #include <net/checksum.h>
- #include <net/ip6_checksum.h>
- 
--#include "mana.h"
--#include "mana_auxiliary.h"
-+#include <net/mana/mana.h>
-+#include <net/mana/mana_auxiliary.h>
- 
- static DEFINE_IDA(mana_adev_ida);
- 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-index c530db76880f..6f98de6d7440 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-@@ -5,7 +5,7 @@
- #include <linux/etherdevice.h>
- #include <linux/ethtool.h>
- 
--#include "mana.h"
-+#include <net/mana/mana.h>
- 
- static const struct {
- 	char name[ETH_GSTRING_LEN];
-diff --git a/drivers/net/ethernet/microsoft/mana/shm_channel.c b/drivers/net/ethernet/microsoft/mana/shm_channel.c
-index da255da62176..5553af9c8085 100644
---- a/drivers/net/ethernet/microsoft/mana/shm_channel.c
-+++ b/drivers/net/ethernet/microsoft/mana/shm_channel.c
-@@ -6,7 +6,7 @@
- #include <linux/io.h>
- #include <linux/mm.h>
- 
--#include "shm_channel.h"
-+#include <net/mana/shm_channel.h>
- 
- #define PAGE_FRAME_L48_WIDTH_BYTES 6
- #define PAGE_FRAME_L48_WIDTH_BITS (PAGE_FRAME_L48_WIDTH_BYTES * 8)
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma.h b/include/net/mana/gdma.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/gdma.h
-rename to include/net/mana/gdma.h
-diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.h b/include/net/mana/hw_channel.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/hw_channel.h
-rename to include/net/mana/hw_channel.h
-diff --git a/drivers/net/ethernet/microsoft/mana/mana.h b/include/net/mana/mana.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/mana.h
-rename to include/net/mana/mana.h
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_auxiliary.h b/include/net/mana/mana_auxiliary.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/mana_auxiliary.h
-rename to include/net/mana/mana_auxiliary.h
-diff --git a/drivers/net/ethernet/microsoft/mana/shm_channel.h b/include/net/mana/shm_channel.h
-similarity index 100%
-rename from drivers/net/ethernet/microsoft/mana/shm_channel.h
-rename to include/net/mana/shm_channel.h
++struct gdma_allocate_resource_range_req {
++	struct gdma_req_hdr hdr;
++	u32 resource_type;
++	u32 num_resources;
++	u32 alignment;
++	u32 allocated_resources;
++};
++
++struct gdma_allocate_resource_range_resp {
++	struct gdma_resp_hdr hdr;
++	u32 allocated_resources;
++};
++
++struct gdma_destroy_resource_range_req {
++	struct gdma_req_hdr hdr;
++	u32 resource_type;
++	u32 num_resources;
++	u32 allocated_resources;
++};
++
+ /* GDMA_CREATE_QUEUE */
+ struct gdma_create_queue_req {
+ 	struct gdma_req_hdr hdr;
 -- 
 2.17.1
 
