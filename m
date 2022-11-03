@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11FACC4167D
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:17:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7764C3A5A3
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:17:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231648AbiKCTRO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Nov 2022 15:17:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55862 "EHLO
+        id S231651AbiKCTRP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Nov 2022 15:17:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231506AbiKCTRA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:17:00 -0400
+        with ESMTP id S231485AbiKCTQ7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:16:59 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 78C271F9D9;
-        Thu,  3 Nov 2022 12:16:59 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CBF761EC78;
+        Thu,  3 Nov 2022 12:16:58 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id 505FD20C3342; Thu,  3 Nov 2022 12:16:59 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 505FD20C3342
+        id B3B5B20C333F; Thu,  3 Nov 2022 12:16:58 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com B3B5B20C333F
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1667503019;
-        bh=XCdAPyY3QKtJwrvrDmLBBK0K2ZN06sCmO+Hdg9ph1/0=;
+        s=default; t=1667503018;
+        bh=jONrZhhKFLS3dleWg98wZ6FgVfueM2/7lN9acbPbclk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=C6Z/WFpfWdOMaC0mf0Gbi21zNmf/1y1adLOTceBrcW/gXvGzTATApaNyW4fCaSaHU
-         NcO7c/fA8h2kmt0OUIOklSD2tn2KcvFjpkSTLkkZBevOVyA/4Uwyl0gjRlZb668hve
-         Wlscm8144uitycpMEO7SChoTGlGcOu1os3HsfE9A=
+        b=S6GSu2pyVBVqTewSG+5P3XDJzPDCy+PVJFZyi9XAN6N8DQMAabKrlFqwhE3BVqekL
+         N52l/eYwweHIwhQILB9uMrnVZukWsohVX62yNu46gG+zRuw0bxBnxQnG+V2RQAtmT6
+         W33Mp1PyPwZKfGHCpO5AcmWKzNvHgVc38hOpoyJo=
 From:   longli@linuxonhyperv.com
 To:     "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
@@ -38,9 +38,9 @@ To:     "K. Y. Srinivasan" <kys@microsoft.com>,
 Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         Long Li <longli@microsoft.com>
-Subject: [Patch v10 10/12] net: mana: Define data structures for allocating doorbell page from GDMA
-Date:   Thu,  3 Nov 2022 12:16:28 -0700
-Message-Id: <1667502990-2559-11-git-send-email-longli@linuxonhyperv.com>
+Subject: [Patch v10 09/12] net: mana: Define and process GDMA response code GDMA_STATUS_MORE_ENTRIES
+Date:   Thu,  3 Nov 2022 12:16:27 -0700
+Message-Id: <1667502990-2559-10-git-send-email-longli@linuxonhyperv.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
 References: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
@@ -49,70 +49,47 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
+From: Ajay Sharma <sharmaajay@microsoft.com>
 
-The RDMA device needs to allocate doorbell pages for each user context.
-Define the GDMA data structures for use by the RDMA driver.
+When doing memory registration, the PF may respond with
+GDMA_STATUS_MORE_ENTRIES to indicate a follow request is needed. This is
+not an error and should be processed as expected.
 
+Signed-off-by: Ajay Sharma <sharmaajay@microsoft.com>
 Reviewed-by: Dexuan Cui <decui@microsoft.com>
 Signed-off-by: Long Li <longli@microsoft.com>
 Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
-Change log:
-v4: use EXPORT_SYMBOL_NS
-v7: move mana_gd_allocate_doorbell_page() and mana_gd_destroy_doorbell_page() to the RDMA driver
-v8: remove extra line in header file
+ drivers/net/ethernet/microsoft/mana/hw_channel.c | 2 +-
+ include/net/mana/gdma.h                          | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
- include/net/mana/gdma.h | 25 +++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
-
+diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+index 76829ab43d40..9d1507eba5b9 100644
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
++++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -836,7 +836,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 		goto out;
+ 	}
+ 
+-	if (ctx->status_code) {
++	if (ctx->status_code && ctx->status_code != GDMA_STATUS_MORE_ENTRIES) {
+ 		dev_err(hwc->dev, "HWC: Failed hw_channel req: 0x%x\n",
+ 			ctx->status_code);
+ 		err = -EPROTO;
 diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index a9b7930dfbf8..055408a5baf3 100644
+index 0b0c0cd0b6bd..a9b7930dfbf8 100644
 --- a/include/net/mana/gdma.h
 +++ b/include/net/mana/gdma.h
-@@ -24,11 +24,15 @@ enum gdma_request_type {
- 	GDMA_GENERATE_TEST_EQE		= 10,
- 	GDMA_CREATE_QUEUE		= 12,
- 	GDMA_DISABLE_QUEUE		= 13,
-+	GDMA_ALLOCATE_RESOURCE_RANGE	= 22,
-+	GDMA_DESTROY_RESOURCE_RANGE	= 24,
- 	GDMA_CREATE_DMA_REGION		= 25,
- 	GDMA_DMA_REGION_ADD_PAGES	= 26,
- 	GDMA_DESTROY_DMA_REGION		= 27,
- };
+@@ -9,6 +9,8 @@
  
-+#define GDMA_RESOURCE_DOORBELL_PAGE	27
-+
- enum gdma_queue_type {
- 	GDMA_INVALID_QUEUE,
- 	GDMA_SQ,
-@@ -587,6 +591,26 @@ struct gdma_register_device_resp {
- 	u32 db_id;
- }; /* HW DATA */
+ #include "shm_channel.h"
  
-+struct gdma_allocate_resource_range_req {
-+	struct gdma_req_hdr hdr;
-+	u32 resource_type;
-+	u32 num_resources;
-+	u32 alignment;
-+	u32 allocated_resources;
-+};
++#define GDMA_STATUS_MORE_ENTRIES	0x00000105
 +
-+struct gdma_allocate_resource_range_resp {
-+	struct gdma_resp_hdr hdr;
-+	u32 allocated_resources;
-+};
-+
-+struct gdma_destroy_resource_range_req {
-+	struct gdma_req_hdr hdr;
-+	u32 resource_type;
-+	u32 num_resources;
-+	u32 allocated_resources;
-+};
-+
- /* GDMA_CREATE_QUEUE */
- struct gdma_create_queue_req {
- 	struct gdma_req_hdr hdr;
+ /* Structures labeled with "HW DATA" are exchanged with the hardware. All of
+  * them are naturally aligned and hence don't need __packed.
+  */
 -- 
 2.17.1
 
