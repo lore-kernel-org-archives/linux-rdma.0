@@ -2,77 +2,103 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB95CC43219
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Nov 2022 19:18:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 287BBC4332F
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Nov 2022 05:00:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231638AbiKCTSx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Nov 2022 15:18:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55786 "EHLO
+        id S230205AbiKDFAe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Nov 2022 01:00:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231421AbiKCTQ5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Nov 2022 15:16:57 -0400
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id ECF651FCCC;
-        Thu,  3 Nov 2022 12:16:56 -0700 (PDT)
-Received: by linux.microsoft.com (Postfix, from userid 1004)
-        id D0EB0205DA45; Thu,  3 Nov 2022 12:16:56 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com D0EB0205DA45
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
-        s=default; t=1667503016;
-        bh=rxJ1l3XZAaUy7L0ulivQTclU3lx9TfDBngKUNfhY9VY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-        b=UvhchW1GvcTupM9lxob/3UAP4CMJG77tb/qMMIkMMznwfBtn/JiEDoYDE9kTqfEki
-         NrkH/gg2/IfC/A+NaIR7/z9OZA0vR4Cvy7UEifVZfPfU+oOgMfiknsSrdpUWYyL+8V
-         8eLwC5yLvIH6pl+wj/tJzu5jJ5di8jaRpjbICjYs=
-From:   longli@linuxonhyperv.com
-To:     "K. Y. Srinivasan" <kys@microsoft.com>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        Stephen Hemminger <sthemmin@microsoft.com>,
-        Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>, edumazet@google.com,
-        shiraz.saleem@intel.com, Ajay Sharma <sharmaajay@microsoft.com>
-Cc:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Long Li <longli@microsoft.com>
-Subject: [Patch v10 06/12] net: mana: Record port number in netdev
-Date:   Thu,  3 Nov 2022 12:16:24 -0700
-Message-Id: <1667502990-2559-7-git-send-email-longli@linuxonhyperv.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
-References: <1667502990-2559-1-git-send-email-longli@linuxonhyperv.com>
-Reply-To: longli@microsoft.com
+        with ESMTP id S229539AbiKDFAb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Nov 2022 01:00:31 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80ACA1C924;
+        Thu,  3 Nov 2022 22:00:30 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 43EF4B82BEB;
+        Fri,  4 Nov 2022 05:00:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 432A5C4314B;
+        Fri,  4 Nov 2022 05:00:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1667538027;
+        bh=8Yu68FFz/IN/iw6z8M5F7puwnDwMQ8M52dLpIpPz1qc=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=Gu9GOrgtD6qZ/mexeYWrZbP9Cl4WDrho4OP/vxhf/g5wvHBbyaUt9XJxmOIp+gT2v
+         FIbwYcs91eOoQmm4vBmz7a29plDHMyJSjB8ahlWSEoW4zMNSr7Bnh8EUPmitk1lA3g
+         trHoWEmZrlNWWv3fqk5Gj1F8p/9eBzs0e/GIqREkj+9QBDPOQ5EhdmJHEIusYJyQOb
+         k1MAi9EkckrEJD7b09H2ArFw2GHmyO1pqaE5O2DTuqU/3+pBRd440QW3dVjZlcXy+h
+         uYVHv+LLyHdmDOivwLiff4uubCb5P8VlGweBel/Tc8zcaIrebzOPTdWRs3SYQfWrV3
+         wuTjhp8HFeAGA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id F0612E270EA;
+        Fri,  4 Nov 2022 05:00:26 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [patch net-next v4 00/13] net: fix netdev to devlink_port linkage and
+ expose to user
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <166753802697.27738.796894733261826728.git-patchwork-notify@kernel.org>
+Date:   Fri, 04 Nov 2022 05:00:26 +0000
+References: <20221102160211.662752-1-jiri@resnulli.us>
+In-Reply-To: <20221102160211.662752-1-jiri@resnulli.us>
+To:     Jiri Pirko <jiri@resnulli.us>
+Cc:     netdev@vger.kernel.org, davem@davemloft.net, kuba@kernel.org,
+        pabeni@redhat.com, edumazet@google.com, tariqt@nvidia.com,
+        moshe@nvidia.com, saeedm@nvidia.com, linux-rdma@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
+Hello:
 
-The port number is useful for user-mode application to identify this
-net device based on port index. Set to the correct value in ndev.
+This series was applied to netdev/net-next.git (master)
+by Jakub Kicinski <kuba@kernel.org>:
 
-Reviewed-by: Dexuan Cui <decui@microsoft.com>
-Signed-off-by: Long Li <longli@microsoft.com>
-Acked-by: Haiyang Zhang <haiyangz@microsoft.com>
----
- drivers/net/ethernet/microsoft/mana/mana_en.c | 1 +
- 1 file changed, 1 insertion(+)
+On Wed,  2 Nov 2022 17:01:58 +0100 you wrote:
+> From: Jiri Pirko <jiri@nvidia.com>
+> 
+> Currently, the info about linkage from netdev to the related
+> devlink_port instance is done using ndo_get_devlink_port().
+> This is not sufficient, as it is up to the driver to implement it and
+> some of them don't do that. Also it leads to a lot of unnecessary
+> boilerplate code in all the drivers.
+> 
+> [...]
 
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index 6ad4bc8cbc99..b6303a43fa7c 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -2133,6 +2133,7 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
- 	ndev->max_mtu = ndev->mtu;
- 	ndev->min_mtu = ndev->mtu;
- 	ndev->needed_headroom = MANA_HEADROOM;
-+	ndev->dev_port = port_idx;
- 	SET_NETDEV_DEV(ndev, gc->dev);
- 
- 	netif_carrier_off(ndev);
+Here is the summary with links:
+  - [net-next,v4,01/13] net: devlink: convert devlink port type-specific pointers to union
+    https://git.kernel.org/netdev/net-next/c/3830c5719af6
+  - [net-next,v4,02/13] net: devlink: move port_type_warn_schedule() call to __devlink_port_type_set()
+    https://git.kernel.org/netdev/net-next/c/8573a04404dd
+  - [net-next,v4,03/13] net: devlink: move port_type_netdev_checks() call to __devlink_port_type_set()
+    https://git.kernel.org/netdev/net-next/c/45791e0d00c4
+  - [net-next,v4,04/13] net: devlink: take RTNL in port_fill() function only if it is not held
+    https://git.kernel.org/netdev/net-next/c/d41c9dbd1274
+  - [net-next,v4,05/13] net: devlink: track netdev with devlink_port assigned
+    https://git.kernel.org/netdev/net-next/c/02a68a47eade
+  - [net-next,v4,06/13] net: make drivers to use SET_NETDEV_DEVLINK_PORT to set devlink_port
+    https://git.kernel.org/netdev/net-next/c/ac73d4bf2cda
+  - [net-next,v4,07/13] net: devlink: remove netdev arg from devlink_port_type_eth_set()
+    https://git.kernel.org/netdev/net-next/c/c80965784dbf
+  - [net-next,v4,08/13] net: devlink: remove net namespace check from devlink_nl_port_fill()
+    https://git.kernel.org/netdev/net-next/c/d0f517262933
+  - [net-next,v4,09/13] net: devlink: store copy netdevice ifindex and ifname to allow port_fill() without RTNL held
+    https://git.kernel.org/netdev/net-next/c/31265c1e29eb
+  - [net-next,v4,10/13] net: devlink: add not cleared type warning to port unregister
+    https://git.kernel.org/netdev/net-next/c/e705a621c071
+  - [net-next,v4,11/13] net: devlink: use devlink_port pointer instead of ndo_get_devlink_port
+    https://git.kernel.org/netdev/net-next/c/8eba37f7e9bc
+  - [net-next,v4,12/13] net: remove unused ndo_get_devlink_port
+    https://git.kernel.org/netdev/net-next/c/77df1db80da3
+  - [net-next,v4,13/13] net: expose devlink port over rtnetlink
+    https://git.kernel.org/netdev/net-next/c/dca56c3038c3
+
+You are awesome, thank you!
 -- 
-2.17.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
