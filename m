@@ -2,303 +2,120 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC7FFC43219
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Nov 2022 23:48:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8824DC433FE
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Nov 2022 23:50:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229707AbiKDXsK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Nov 2022 19:48:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36172 "EHLO
+        id S229471AbiKDXuJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Nov 2022 19:50:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229617AbiKDXsH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Nov 2022 19:48:07 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 453682E9D3
-        for <linux-rdma@vger.kernel.org>; Fri,  4 Nov 2022 16:48:06 -0700 (PDT)
+        with ESMTP id S229459AbiKDXuI (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Nov 2022 19:50:08 -0400
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44B4E32078
+        for <linux-rdma@vger.kernel.org>; Fri,  4 Nov 2022 16:50:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667605686; x=1699141686;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=HvgdqjCL5kBkkA8tyx19PZ8+ktvR0fhTuxX747GOor4=;
-  b=Vaq1TsDOxfS7vmOZ6w91y6a2LUmmuWuSfxlnhUfPXAKvJXNv7euLEOmw
-   JtZEUtNKVqcx9vHon5n807IMgmNdmXyFZI4kuOs/2VLalcjjVp5NaElYk
-   V/PiblATPFViH4OD1cdVJ4cEKwUMI8mmVMaJiUrAPXnBBJ4KRCDmrbZdd
-   EAPzufSOeuITJ1o1ZuBokwH1EEX5OKeUuIvmIxD7g45+aWD3YDP9CI1LD
-   BrOW2cAY2O4oaxCM5YjJEdhuwzASZVCk5u3tw500ioo0zA9/6Ze12OUNT
-   oDwFpaQKyj/XOm4mnXavVc+QKtZr0wih3AWjNKeRczN4hPCGRRooZ9/Nd
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10521"; a="289826783"
+  t=1667605808; x=1699141808;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=D1pM2CVSN3ErJS0HZAqBA0+8BXb1ffaW2hp33a90mx4=;
+  b=KQ0qTHKh3SOwBjG0oOJdUtVqU6YXcTHPeTAjglT4Zic+3W7cAuMmxmjm
+   yBpdndn8lY8xouaGXVeCKCt8G85Uj7/cbNxKMy3qGcZN5o+l6yHf6+CYD
+   Ho4Rd+ML4mCAqJTiTjpDH4fh53GCrpmOpBZ4585EfLNqsQ9y9fVLm1KG5
+   ejb0QsIVokrA80C7D/k3+4cSJlVk/+xxwzoRnETI04fd51mvlHaPc8iYZ
+   /TiruALJdeEcX+z6wxXnGTdwGfN9HKzcoRMZQfsk/To0TUsH8yqcWPDVR
+   9ocsUBYkOUb3e/zkeQ+jPaz0F3rQRgKKrb8tkp8fLjqGa49ZhOxYswfXV
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10521"; a="336807322"
 X-IronPort-AV: E=Sophos;i="5.96,139,1665471600"; 
-   d="scan'208";a="289826783"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2022 16:48:04 -0700
-X-IronPort-AV: E=McAfee;i="6500,9779,10521"; a="586352312"
+   d="scan'208";a="336807322"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2022 16:50:07 -0700
+X-IronPort-AV: E=McAfee;i="6500,9779,10521"; a="613244802"
 X-IronPort-AV: E=Sophos;i="5.96,139,1665471600"; 
-   d="scan'208";a="586352312"
+   d="scan'208";a="613244802"
 Received: from ssaleem-mobl1.amr.corp.intel.com ([10.255.38.106])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2022 16:48:04 -0700
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2022 16:50:07 -0700
 From:   Shiraz Saleem <shiraz.saleem@intel.com>
 To:     jgg@nvidia.com, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH for-next 2/3] RDMA/irdma: Fix RQ completion opcode
-Date:   Fri,  4 Nov 2022 18:47:48 -0500
-Message-Id: <20221104234749.1084-3-shiraz.saleem@intel.com>
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Kamal Heib <kamalheib1@gmail.com>
+Subject: [PATCH for-rc] irdma: Report the correct link speed
+Date:   Fri,  4 Nov 2022 18:49:57 -0500
+Message-Id: <20221104234957.1135-1-shiraz.saleem@intel.com>
 X-Mailer: git-send-email 2.35.2
-In-Reply-To: <20221104234749.1084-1-shiraz.saleem@intel.com>
-References: <20221104234749.1084-1-shiraz.saleem@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+The active link speed is currently hard-coded in irdma_query_port due
+to which the port rate in ibstatus does reflect the active link speed.
 
-The opcode written by HW, in the RQ CQE, is the
-RoCEv2/iWARP protocol opcode from the received
-packet and not the SW opcode as currently assumed.
-Fix this by returning the raw operation type and
-queue type in the CQE to irdma_process_cqe and add
-2 helpers set_ib_wc_op_sq set_ib_wc_op_rq to map
-IRDMA HW op types to IB op types.
-
-Note that for iWARP, only Write with Immediate is
-supported so the opcode can only be IB_WC_RECV_RDMA_WITH_IMM
-when there is immediate data present.
+Call ib_get_eth_speed in irdma_query_port to get the active link speed.
 
 Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Reported-by: Kamal Heib <kamalheib1@gmail.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/uk.c    | 16 +++----
- drivers/infiniband/hw/irdma/user.h  |  1 +
- drivers/infiniband/hw/irdma/utils.c |  2 +
- drivers/infiniband/hw/irdma/verbs.c | 94 ++++++++++++++++++++++++-------------
- 4 files changed, 70 insertions(+), 43 deletions(-)
+ drivers/infiniband/hw/irdma/verbs.c | 34 ++--------------------------------
+ 1 file changed, 2 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/infiniband/hw/irdma/uk.c b/drivers/infiniband/hw/irdma/uk.c
-index 4424224..3d2c770 100644
---- a/drivers/infiniband/hw/irdma/uk.c
-+++ b/drivers/infiniband/hw/irdma/uk.c
-@@ -1046,7 +1046,7 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
- 	__le64 *cqe;
- 	struct irdma_qp_uk *qp;
- 	struct irdma_ring *pring = NULL;
--	u32 wqe_idx, q_type;
-+	u32 wqe_idx;
- 	int ret_code;
- 	bool move_cq_head = true;
- 	u8 polarity;
-@@ -1118,7 +1118,7 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
- 		info->ud_vlan_valid = false;
- 	}
- 
--	q_type = (u8)FIELD_GET(IRDMA_CQ_SQ, qword3);
-+	info->q_type = (u8)FIELD_GET(IRDMA_CQ_SQ, qword3);
- 	info->error = (bool)FIELD_GET(IRDMA_CQ_ERROR, qword3);
- 	info->push_dropped = (bool)FIELD_GET(IRDMACQ_PSHDROP, qword3);
- 	info->ipv4 = (bool)FIELD_GET(IRDMACQ_IPV4, qword3);
-@@ -1157,8 +1157,9 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
- 	}
- 	wqe_idx = (u32)FIELD_GET(IRDMA_CQ_WQEIDX, qword3);
- 	info->qp_handle = (irdma_qp_handle)(unsigned long)qp;
-+	info->op_type = (u8)FIELD_GET(IRDMA_CQ_SQ, qword3);
- 
--	if (q_type == IRDMA_CQE_QTYPE_RQ) {
-+	if (info->q_type == IRDMA_CQE_QTYPE_RQ) {
- 		u32 array_idx;
- 
- 		array_idx = wqe_idx / qp->rq_wqe_size_multiplier;
-@@ -1178,10 +1179,6 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
- 
- 		info->bytes_xfered = (u32)FIELD_GET(IRDMACQ_PAYLDLEN, qword0);
- 
--		if (info->imm_valid)
--			info->op_type = IRDMA_OP_TYPE_REC_IMM;
--		else
--			info->op_type = IRDMA_OP_TYPE_REC;
- 		if (qword3 & IRDMACQ_STAG) {
- 			info->stag_invalid_set = true;
- 			info->inv_stag = (u32)FIELD_GET(IRDMACQ_INVSTAG, qword2);
-@@ -1239,11 +1236,10 @@ int irdma_uk_cq_poll_cmpl(struct irdma_cq_uk *cq,
- 				sw_wqe = qp->sq_base[tail].elem;
- 				get_64bit_val(sw_wqe, 24,
- 					      &wqe_qword);
--				op_type = (u8)FIELD_GET(IRDMAQPSQ_OPCODE, wqe_qword);
--				info->op_type = op_type;
-+				info->op_type = (u8)FIELD_GET(IRDMAQPSQ_OPCODE, wqe_qword);
- 				IRDMA_RING_SET_TAIL(qp->sq_ring,
- 						    tail + qp->sq_wrtrk_array[tail].quanta);
--				if (op_type != IRDMAQP_OP_NOP) {
-+				if (info->op_type != IRDMAQP_OP_NOP) {
- 					info->wr_id = qp->sq_wrtrk_array[tail].wrid;
- 					info->bytes_xfered = qp->sq_wrtrk_array[tail].wr_len;
- 					break;
-diff --git a/drivers/infiniband/hw/irdma/user.h b/drivers/infiniband/hw/irdma/user.h
-index f5d3a7c..ac397b7 100644
---- a/drivers/infiniband/hw/irdma/user.h
-+++ b/drivers/infiniband/hw/irdma/user.h
-@@ -245,6 +245,7 @@ struct irdma_cq_poll_info {
- 	u16 ud_vlan;
- 	u8 ud_smac[6];
- 	u8 op_type;
-+	u8 q_type;
- 	bool stag_invalid_set:1; /* or L_R_Key set */
- 	bool push_dropped:1;
- 	bool error:1;
-diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
-index 8dfc9e1..445e69e8 100644
---- a/drivers/infiniband/hw/irdma/utils.c
-+++ b/drivers/infiniband/hw/irdma/utils.c
-@@ -2591,6 +2591,7 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 			sw_wqe = qp->sq_base[wqe_idx].elem;
- 			get_64bit_val(sw_wqe, 24, &wqe_qword);
- 			cmpl->cpi.op_type = (u8)FIELD_GET(IRDMAQPSQ_OPCODE, IRDMAQPSQ_OPCODE);
-+			cmpl->cpi.q_type = IRDMA_CQE_QTYPE_SQ;
- 			/* remove the SQ WR by moving SQ tail*/
- 			IRDMA_RING_SET_TAIL(*sq_ring,
- 				sq_ring->tail + qp->sq_wrtrk_array[sq_ring->tail].quanta);
-@@ -2629,6 +2630,7 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 
- 			cmpl->cpi.wr_id = qp->rq_wrid_array[wqe_idx];
- 			cmpl->cpi.op_type = IRDMA_OP_TYPE_REC;
-+			cmpl->cpi.q_type = IRDMA_CQE_QTYPE_RQ;
- 			/* remove the RQ WR by moving RQ tail */
- 			IRDMA_RING_SET_TAIL(*rq_ring, rq_ring->tail + 1);
- 			ibdev_dbg(iwqp->iwrcq->ibcq.device,
 diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index b2006a0..4f28d99 100644
+index bfa790c..21d1e3b 100644
 --- a/drivers/infiniband/hw/irdma/verbs.c
 +++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -3354,6 +3354,61 @@ static enum ib_wc_status irdma_flush_err_to_ib_wc_status(enum irdma_flush_opcode
- 	}
+@@ -64,36 +64,6 @@ static int irdma_query_device(struct ib_device *ibdev,
  }
  
-+static inline void set_ib_wc_op_sq(struct irdma_cq_poll_info *cq_poll_info,
-+				   struct ib_wc *entry)
-+{
-+	struct irdma_sc_qp *qp;
-+
-+	switch (cq_poll_info->op_type) {
-+	case IRDMA_OP_TYPE_RDMA_WRITE:
-+	case IRDMA_OP_TYPE_RDMA_WRITE_SOL:
-+	entry->opcode = IB_WC_RDMA_WRITE;
-+		break;
-+	case IRDMA_OP_TYPE_RDMA_READ_INV_STAG:
-+	case IRDMA_OP_TYPE_RDMA_READ:
-+		entry->opcode = IB_WC_RDMA_READ;
-+		break;
-+	case IRDMA_OP_TYPE_SEND_SOL:
-+	case IRDMA_OP_TYPE_SEND_SOL_INV:
-+	case IRDMA_OP_TYPE_SEND_INV:
-+	case IRDMA_OP_TYPE_SEND:
-+		entry->opcode = IB_WC_SEND;
-+		break;
-+	case IRDMA_OP_TYPE_FAST_REG_NSMR:
-+		entry->opcode = IB_WC_REG_MR;
-+		break;
-+	case IRDMA_OP_TYPE_INV_STAG:
-+		entry->opcode = IB_WC_LOCAL_INV;
-+		break;
-+	default:
-+		qp = cq_poll_info->qp_handle;
-+		entry->status = IB_WC_GENERAL_ERR;
-+	}
-+}
-+
-+static inline void set_ib_wc_op_rq(struct irdma_cq_poll_info *cq_poll_info,
-+				   struct ib_wc *entry, bool send_imm_support)
-+{
-+	/**
-+	 * iWARP does not support sendImm, so the presence of Imm data
-+	 * must be WriteImm.
-+	 */
-+	if (!send_imm_support) {
-+		entry->opcode = cq_poll_info->imm_valid ?
-+				IB_WC_RECV_RDMA_WITH_IMM : IB_WC_RECV;
-+		return;
-+	}
-+
-+	switch (cq_poll_info->op_type) {
-+	case IB_OPCODE_RDMA_WRITE_ONLY_WITH_IMMEDIATE:
-+	case IB_OPCODE_RDMA_WRITE_LAST_WITH_IMMEDIATE:
-+		entry->opcode = IB_WC_RECV_RDMA_WITH_IMM;
-+		break;
-+	default:
-+		entry->opcode = IB_WC_RECV;
-+	}
-+}
-+
  /**
-  * irdma_process_cqe - process cqe info
-  * @entry: processed cqe
-@@ -3362,7 +3417,6 @@ static enum ib_wc_status irdma_flush_err_to_ib_wc_status(enum irdma_flush_opcode
- static void irdma_process_cqe(struct ib_wc *entry,
- 			      struct irdma_cq_poll_info *cq_poll_info)
- {
--	struct irdma_qp *iwqp;
- 	struct irdma_sc_qp *qp;
- 
- 	entry->wc_flags = 0;
-@@ -3370,7 +3424,6 @@ static void irdma_process_cqe(struct ib_wc *entry,
- 	entry->wr_id = cq_poll_info->wr_id;
- 
- 	qp = cq_poll_info->qp_handle;
--	iwqp = qp->qp_uk.back_qp;
- 	entry->qp = qp->qp_uk.back_qp;
- 
- 	if (cq_poll_info->error) {
-@@ -3403,42 +3456,17 @@ static void irdma_process_cqe(struct ib_wc *entry,
- 		}
+- * irdma_get_eth_speed_and_width - Get IB port speed and width from netdev speed
+- * @link_speed: netdev phy link speed
+- * @active_speed: IB port speed
+- * @active_width: IB port width
+- */
+-static void irdma_get_eth_speed_and_width(u32 link_speed, u16 *active_speed,
+-					  u8 *active_width)
+-{
+-	if (link_speed <= SPEED_1000) {
+-		*active_width = IB_WIDTH_1X;
+-		*active_speed = IB_SPEED_SDR;
+-	} else if (link_speed <= SPEED_10000) {
+-		*active_width = IB_WIDTH_1X;
+-		*active_speed = IB_SPEED_FDR10;
+-	} else if (link_speed <= SPEED_20000) {
+-		*active_width = IB_WIDTH_4X;
+-		*active_speed = IB_SPEED_DDR;
+-	} else if (link_speed <= SPEED_25000) {
+-		*active_width = IB_WIDTH_1X;
+-		*active_speed = IB_SPEED_EDR;
+-	} else if (link_speed <= SPEED_40000) {
+-		*active_width = IB_WIDTH_4X;
+-		*active_speed = IB_SPEED_FDR10;
+-	} else {
+-		*active_width = IB_WIDTH_4X;
+-		*active_speed = IB_SPEED_EDR;
+-	}
+-}
+-
+-/**
+  * irdma_query_port - get port attributes
+  * @ibdev: device pointer from stack
+  * @port: port number for query
+@@ -120,8 +90,8 @@ static int irdma_query_port(struct ib_device *ibdev, u32 port,
+ 		props->state = IB_PORT_DOWN;
+ 		props->phys_state = IB_PORT_PHYS_STATE_DISABLED;
  	}
+-	irdma_get_eth_speed_and_width(SPEED_100000, &props->active_speed,
+-				      &props->active_width);
++
++	ib_get_eth_speed(ibdev, port, &props->active_speed, &props->active_width);
  
--	switch (cq_poll_info->op_type) {
--	case IRDMA_OP_TYPE_RDMA_WRITE:
--	case IRDMA_OP_TYPE_RDMA_WRITE_SOL:
--		entry->opcode = IB_WC_RDMA_WRITE;
--		break;
--	case IRDMA_OP_TYPE_RDMA_READ_INV_STAG:
--	case IRDMA_OP_TYPE_RDMA_READ:
--		entry->opcode = IB_WC_RDMA_READ;
--		break;
--	case IRDMA_OP_TYPE_SEND_INV:
--	case IRDMA_OP_TYPE_SEND_SOL:
--	case IRDMA_OP_TYPE_SEND_SOL_INV:
--	case IRDMA_OP_TYPE_SEND:
--		entry->opcode = IB_WC_SEND;
--		break;
--	case IRDMA_OP_TYPE_FAST_REG_NSMR:
--		entry->opcode = IB_WC_REG_MR;
--		break;
--	case IRDMA_OP_TYPE_INV_STAG:
--		entry->opcode = IB_WC_LOCAL_INV;
--		break;
--	case IRDMA_OP_TYPE_REC_IMM:
--	case IRDMA_OP_TYPE_REC:
--		entry->opcode = cq_poll_info->op_type == IRDMA_OP_TYPE_REC_IMM ?
--			IB_WC_RECV_RDMA_WITH_IMM : IB_WC_RECV;
-+	if (cq_poll_info->q_type == IRDMA_CQE_QTYPE_SQ) {
-+		set_ib_wc_op_sq(cq_poll_info, entry);
-+	} else {
-+		set_ib_wc_op_rq(cq_poll_info, entry,
-+				qp->qp_uk.qp_caps & IRDMA_SEND_WITH_IMM ?
-+				true : false);
- 		if (qp->qp_uk.qp_type != IRDMA_QP_TYPE_ROCE_UD &&
- 		    cq_poll_info->stag_invalid_set) {
- 			entry->ex.invalidate_rkey = cq_poll_info->inv_stag;
- 			entry->wc_flags |= IB_WC_WITH_INVALIDATE;
- 		}
--		break;
--	default:
--		ibdev_err(&iwqp->iwdev->ibdev,
--			  "Invalid opcode = %d in CQE\n", cq_poll_info->op_type);
--		entry->status = IB_WC_GENERAL_ERR;
--		return;
- 	}
- 
- 	if (qp->qp_uk.qp_type == IRDMA_QP_TYPE_ROCE_UD) {
+ 	if (rdma_protocol_roce(ibdev, 1)) {
+ 		props->gid_tbl_len = 32;
 -- 
 1.8.3.1
 
