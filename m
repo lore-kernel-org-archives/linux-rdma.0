@@ -2,182 +2,503 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C59A1C433FE
-	for <linux-rdma@archiver.kernel.org>; Sat,  5 Nov 2022 09:38:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75A74C433FE
+	for <linux-rdma@archiver.kernel.org>; Sat,  5 Nov 2022 14:28:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229469AbiKEJij (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 5 Nov 2022 05:38:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57188 "EHLO
+        id S229713AbiKEO2P (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 5 Nov 2022 10:28:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40512 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229603AbiKEJih (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 5 Nov 2022 05:38:37 -0400
-X-Greylist: delayed 64 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 05 Nov 2022 02:38:31 PDT
-Received: from esa17.fujitsucc.c3s2.iphmx.com (esa17.fujitsucc.c3s2.iphmx.com [216.71.158.34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EC691EC
-        for <linux-rdma@vger.kernel.org>; Sat,  5 Nov 2022 02:38:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
-  t=1667641111; x=1699177111;
-  h=from:to:subject:date:message-id:references:in-reply-to:
-   content-id:content-transfer-encoding:mime-version;
-  bh=0/BH9JIvG6waqFp6fBc1l+wf0C5J9pLmhknSaVhvxRw=;
-  b=EFFeOrZ5Uv6HDnwGW6XhvP/6XU+gn+e2918ZlBXrUwNQh3mxiIlRmmB5
-   Ve3fap1/RLDjCUxFqr+NfATYIqi3P7I6dn3ACShqVzynno15dDZwB3wW/
-   QwF3kOjg7BRJDf2gHcjAYkOelzlcKn4yuwmolsDy+jssZ0dL7IW5l+wGk
-   Uhq5n8ZcW0H4pcgzawUCLQWshO8WPfBF2u3gLjQ5W0AUyRVZk6PNW3pyt
-   Qfj/F0GkUSuc5DZoYS/c/aEEj1F+xLMsGeuydtc/ZogLveEGtjqwYTyTF
-   QIf/MFujGOhhMY0L9ExwUrFhagqAC1mIaIureamGA4Aehzmi4lkOL77xe
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10521"; a="69173863"
-X-IronPort-AV: E=Sophos;i="5.96,140,1665414000"; 
-   d="scan'208";a="69173863"
-Received: from mail-os0jpn01lp2109.outbound.protection.outlook.com (HELO JPN01-OS0-obe.outbound.protection.outlook.com) ([104.47.23.109])
-  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2022 18:37:23 +0900
+        with ESMTP id S229628AbiKEO2O (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 5 Nov 2022 10:28:14 -0400
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2069.outbound.protection.outlook.com [40.107.93.69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94214E1C
+        for <linux-rdma@vger.kernel.org>; Sat,  5 Nov 2022 07:28:12 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Nc9MqSJyf+mIrqiQYOLSrBVWfxFHdrDIr4vYxcBXQhefYZWM3rwrUAG3Tre3w0WXuay3caqSBKcVc2bBLk/QOBLtIcBOr4wv78/NeUX7Q8YL95NkfNFRT5fYyuB/BZFR+A3EpbBkS2Hu/qE1foxqLS7FOmHwhN3zezQUQc4bFby1jFD2qIa3IFETdO37oEL6PNzTmIbvxAy9NsxIZHf/hm1fkPp57rVkNWuEFP0Qsiqf/SbCu9g2XSJ658EupLPDVRXBs3hIz+8fJhqmjkE711gABz+SaWuOnJiHKGGcMSDsoXPs6f//f+JCUPX+/gFCTHozUBWY6Wp8u3pNzNzTyw==
+ b=ettj5JmT0DB9fUHga2ZKr4hVVjYS5y0Po25e65KMZWPI5blmHdQppIZ4n92k9hVGoQLB/l24LRT9K2O6OYIhbqdA7VrtsTOXbrq5tpefqdXR1BAAZ6KNxvn+YI5zshzApWaXdi88kQmmm65Xo25pYZsfLTWxTq7MyfSDTE8GGBM8Pn1X1RBMBkSPJRjWqPXXow9PbDd1nQK8FKxOHvSeNClKp4gV7PPJ5tApufpJr8cgfuZD4YmxYsozkOQ2VKUyx8vU6KPYptc3v7M75WL/UKdEVkLeYFWsmXCF3zs2iO57FqXRevEzwCAOVc3ivK9tBcUjQ1mV3REOsWFluyIKbA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0/BH9JIvG6waqFp6fBc1l+wf0C5J9pLmhknSaVhvxRw=;
- b=ex2UMTouL2lZnTTLZ106yfrdIP11bft57rDvCl3pEpyAZVtKZolX23r8oZymAqUE8rCQKV4k6wIxGbdCQ9K0V04S5BMEZXILtNt2p1XuZZTnDrnKLOcLBuCYdhGIbeFJ+zqToVhDHd6ctiKghQxoPuQNP6XPBjqHD5+T9fnyhlOGQ8PM/5m2dMeqyqDbP9v01iunPHObeIBJrWlMkpgjdid638HIGFMlzj9V+bJ7wyutHXpgWFTHMo1zFFsgMrZkDJwuHS5Dr9QrQvEIO3FO7pnem7FMpyoPLuSgcnjVfTmujZOQ6O3HTXsHoX2jc+1ZXDGeg3PSQH5wOHRo5MOyOQ==
+ bh=I7on1DZRjEIbz4iI2kCm3YdQZvrUyRH2rCCvEp3fGWU=;
+ b=iTAJfNuU1uOmUJoY58HNr7E+PDcr2+fUpvDNVFtq1FhUpJQfAX5q8JXQ6qSXyZVN4nQ3DsD+RB5Azu7AH9OkgjS6OtdAMYBsPq+CGjYPsHQP5CK1RcjztHfrVziDZ/TNrjwaha9gZ9c4ejxMC2eizykBZi9xvptr0PPw7Derkuz4hm+uB2lwPr/zdl6e0frcM0nK0Id+l2Q2bE52Z1JCZvCbTyu3mgK4D99JCQ+5Sp8dLtyiqSOEY4zyGINQm9pqUZQjVZeHJHThO5sJEslO68MWWLiidjE5XMutsBMynjXn0RpebRokan1JbQp4TpLNIE6s+hgo/15GLX1DPEhcIQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
- dkim=pass header.d=fujitsu.com; arc=none
-Received: from OS3PR01MB10390.jpnprd01.prod.outlook.com
- (2603:1096:604:1fb::14) by TYCPR01MB9783.jpnprd01.prod.outlook.com
- (2603:1096:400:20d::11) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5791.24; Sat, 5 Nov
- 2022 09:37:19 +0000
-Received: from OS3PR01MB10390.jpnprd01.prod.outlook.com
- ([fe80::6c12:df68:ca6:7522]) by OS3PR01MB10390.jpnprd01.prod.outlook.com
- ([fe80::6c12:df68:ca6:7522%5]) with mapi id 15.20.5791.024; Sat, 5 Nov 2022
- 09:37:19 +0000
-From:   "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>
-To:     "Daisuke Matsuda (Fujitsu)" <matsuda-daisuke@fujitsu.com>,
-        "leonro@nvidia.com" <leonro@nvidia.com>,
-        "jgg@nvidia.com" <jgg@nvidia.com>,
-        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Subject: Re: [PATCH] RDMA/rxe: Implement packet length validation on responder
-Thread-Topic: [PATCH] RDMA/rxe: Implement packet length validation on
- responder
-Thread-Index: AQHY6qxhzJTaAv9wEUS9pHBlPlHj9q4wHwqA
-Date:   Sat, 5 Nov 2022 09:37:19 +0000
-Message-ID: <09db5954-a1e2-e164-edf2-319cb51bb7cd@fujitsu.com>
-References: <20221028090438.2685345-1-matsuda-daisuke@fujitsu.com>
-In-Reply-To: <20221028090438.2685345-1-matsuda-daisuke@fujitsu.com>
-Accept-Language: en-US, zh-CN
+ smtp.mailfrom=talpey.com; dmarc=pass action=none header.from=talpey.com;
+ dkim=pass header.d=talpey.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=talpey.com;
+Received: from BYAPR01MB4438.prod.exchangelabs.com (2603:10b6:a03:98::12) by
+ MN2PR01MB5901.prod.exchangelabs.com (2603:10b6:208:192::28) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5791.24; Sat, 5 Nov 2022 14:28:07 +0000
+Received: from BYAPR01MB4438.prod.exchangelabs.com
+ ([fe80::6a65:3541:48b7:caf8]) by BYAPR01MB4438.prod.exchangelabs.com
+ ([fe80::6a65:3541:48b7:caf8%3]) with mapi id 15.20.5791.022; Sat, 5 Nov 2022
+ 14:28:07 +0000
+Message-ID: <2f51ffa2-9c9a-91a6-ac8b-dfcaa132881e@talpey.com>
+Date:   Sat, 5 Nov 2022 10:28:05 -0400
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.1
+Subject: Re: [PATCH for-next 1/3] RDMA/irdma: Fix inline for multiple SGE's
 Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.2
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=fujitsu.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: OS3PR01MB10390:EE_|TYCPR01MB9783:EE_
-x-ms-office365-filtering-correlation-id: 7fbbde03-1310-482c-a8ce-08dabf11555c
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: c3Ticbpzr3a5zqUN5Moe/jf2zC1WotQA/kAMPfr2ILBeeyFC3CVPCGiRnXDJh/W7FUdzjgwdlee/DaE6drIiFGJMwJ9MHjy51G2CWbHsyRLfxUYmuzeiCBl+ait7L98NpH+0xOgcczzegsXgWwq2G2pIz6PpwUxdFRMuGth/tbUeKwmpnthzBGt3DR2ItyG5IEcwemzUHaq2lTSMYX9pt4q72aaCwgt3CYu2qdFEsO7zscgkUsFGfbLw/vtHbU97HxKmtSPPysAHY/UU5Am+7oswVKi+CxMx3VGaNUbQ+tPaV3A3JagxsgrAvAovQr5ZaiuVdrMmBJwf6QzAiwKkAOFjDNXEFXHjMdNoR1OE9TPAGGrvNJ9wDbIrYb8e6uMiDo0Wa2I0lutTzNtes0BcJj5pCobKM7dKJqH+2gLwzdovDcKAVzIEtg61ebdCvgOe87TaGYUn/3guewxCrXjphX5x/Y6DNKDEwxgRH5k31w/8QuBN2dRhYTpKe4i9gzms6+RisDif6svRTtH3Fmd+rXJCrmWrqcUzzykhYCQq74qfWWFUsfHSbKW7SDaW93EOBwmUllW2OjiH3OG37hVPe/DDt6tSVSEqEiD3bLWRI9MF1XmMdA+u/nd/ZlFRpBn1edd0AOHbZFFE5RgBq2T0R+DDMe1nldOtOF0895rwskkB89sVFq+mldutYKza1oVi8ZxS5iZg270UUdV906G+lVWCf2ZI8i12NyMwefMz9+ofVd5cjp+N8qFPXGvNObUto4WWFxfLVgyvB/OczZC9n0zYrw7CJXHY3oaqBFA0TfwnffLTpd38sbOB2d+Wc5U14EdylfRMKuTsoq3ktUpisnIlCHmwbbu2jGZ8k0QrmLE=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS3PR01MB10390.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(346002)(39860400002)(376002)(136003)(366004)(396003)(451199015)(1590799012)(38070700005)(31686004)(478600001)(6486002)(71200400001)(82960400001)(38100700002)(122000001)(31696002)(86362001)(26005)(2906002)(6512007)(316002)(8936002)(5660300002)(36756003)(41300700001)(1580799009)(110136005)(66946007)(66476007)(76116006)(66446008)(83380400001)(6506007)(53546011)(85182001)(66556008)(8676002)(2616005)(186003)(64756008)(91956017)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?blBURWFsOU1COVNXemt4ejZMREVCZWtHN2FiaFFYUjZsVnNpcGdYck5PMGZ6?=
- =?utf-8?B?QnFhWFhKTU5SQlNQcVBxbE9ZZWVWTlBKbTkwcy9FQU5HUXcydmhjNzJKR3A3?=
- =?utf-8?B?d0krMFIrcFlPL1YyejB3cjVOaHVtYnF6VS80ZWxvMXJ4eW1XdWlXWmpBRXFH?=
- =?utf-8?B?eHpKMFZEWEN3bWszNVJtd1BIc3RWNmRFK0ZaMTRqKzV3MkIwSFFlRzZnelN5?=
- =?utf-8?B?Q0VyRkxCRExZYTFwTXVybW9VemN4cmpGZy9XRGpXUlJ2M2J4WS9DVUxkbVk2?=
- =?utf-8?B?SUNLOHV4d3UvQ3JUUWdBMG5Ra1pqQlV6OGtnOG5BdDl1YkxjdzlNeGRvVW9T?=
- =?utf-8?B?MUwzYXVUUmkzRWQvT3RyaXFIcm8xU25MOGNFcHpzbFpqaFA1cE5RL01tVURm?=
- =?utf-8?B?T0tCL0xWS0o4TXRvUXV6eWdJNU1hNXpST0VHUVhTQWYxbWhkeGxiTUFYc2pp?=
- =?utf-8?B?c2NSdmxmQXNSUjRjMlNlNS85bnQyTFg0L0prc0xqS0FPUjZEcnorSnVoNEt3?=
- =?utf-8?B?Z3FnREZNWlRhRHd1V0RmWE9QcXJucHBqM1EwOVFnRTkrMzZjbms0MkY2S05r?=
- =?utf-8?B?ZE15djNQQ25zUUQ1TkdrYm1NQ09ObXdkS05Ib204M1cxb2h6ZmIwUEg5aWJv?=
- =?utf-8?B?WWdpcWRaTm9YMVB4S1dZaFE0NnlTTDJzK3ZiRXJrYWZHczBUdVdRUURFUlpJ?=
- =?utf-8?B?MXozZ2tzcTBaZEk1eVdHNk1RaEtmcklZNmJlR1hkSlBMR3hiWlJtSWpEN2NW?=
- =?utf-8?B?UUdkcmhWRnlqWGRLQWJmek82OXpoMEs1azlLYkVoY3UxTk56ZjJ2bTRWbndi?=
- =?utf-8?B?Q3JYY2RST05manI0MzhBaU5IMHdtRGpoNFR1dFNWYktZNlQ2cDRyeWJjL2lB?=
- =?utf-8?B?T0UvTEFFOGNQMWpFNnBlK2MxbEVGVjNtZVp1ako5NUtGWk1GNDFPNHQ5ZXFR?=
- =?utf-8?B?UXZibHo4bWZzTHpTb0l5dTFEaWFKQmkrQ3F4VzlPWjJHMG0wMkdHWGlNOVZR?=
- =?utf-8?B?UkFJaHR2N0ZSc3NTN1didTVrMXlJNzdnMm5LcWprQ1hEaU94YWlQMnRyN3Jz?=
- =?utf-8?B?cDhMZVBxUDVUTWdNSGtOKzFjcWVtVnE1dlZhTU0vbmU2dEwxTFBLN0pxZFBP?=
- =?utf-8?B?TnVKNENuNmFuTUNxN0F3NmlvWWV2OStzZjRFb1VMZ2RDanhTZWMwOHJZVjli?=
- =?utf-8?B?UElxVERVWlNyVS8yTitDVVgxcjRISUdxL250c2EvaUhIU2VaV1hrZTJpOWpH?=
- =?utf-8?B?VmV3RWhkNFNtWlhDM2QybzY2dmNJNW9NNXQveXQ0NGs3YVdJaEV1dmcyaUxB?=
- =?utf-8?B?ZzFyaHZMZUFvYkZkV3NtUEU5V0RPU0VJakVDdnRiL2dXZERXNElnU0dMWngw?=
- =?utf-8?B?NzNyb1JXYmVuL1Q4S3JnVjhHQVdYeHRRaGZkcUlPdnhUY2hpYytWSFhHR0VR?=
- =?utf-8?B?WC9lN1ZKd2tjbWMxd2pYbWs5SFhhNzN2VHlUWXFXa0xyRFRUWjZhOHNaSmFm?=
- =?utf-8?B?SHJTMkZtaG5vYVFKRHNkRkU4QjEzSUNoZ0dMeGZWQldWMDJWOVhlWGhGVnRM?=
- =?utf-8?B?Zk9GTnVKa3JwQ3o4ZFNBM2RqLy93TlpLckxDa1BjZUJzM3FKSUhZMUVQTTd3?=
- =?utf-8?B?Y1lVVm83U1VyYnlQL1g4L2dQdlJuMk94amZ2bHlsNzh4UGVxVmtLS3BELzNq?=
- =?utf-8?B?aVZXaVJ0MzI5Tk50cDdzRXJtRmRTWlljYVhpN1ZNV0xGdFh4UnFVSExxSXdQ?=
- =?utf-8?B?MXpHMGo4QTROQ3ZIYnFYV3hHZjhZcU9wRHVWTlVWL1hZSVU0eEpsLzI5QnBQ?=
- =?utf-8?B?ejkvZlVqZUpDRk9zZGZkVzFycFpwNmsyQzZWcGtwOVl0VkVrZ1FnZkF6dTlQ?=
- =?utf-8?B?MUJpTWc0Y3V0N0dhSEl0Nmw1NUpWZGx5Y0JCTHBObEE2bUZyS3ZXbklUc0dz?=
- =?utf-8?B?eFRHUU9qc0RuM3RLaUhqSWl1bHZ2d25jTkx5TEQ1ZStDYndzTytvRW43WFcy?=
- =?utf-8?B?bVJEUjlIRVYxc1VYVXhTNG15TFNHbGpuNDBqSmlVdTdaZ1NEWFdoNnlGWlJq?=
- =?utf-8?B?Yi9ud2E5UGhFNE1FQUt3V0lQK1VOaXVkTHh3V2hKczN1bG5xYjFxVUdPdmQr?=
- =?utf-8?B?MEwzd1VwM01TcmZGSGN1S2J0d2hRWUw1MlBvMFd1bHhsZ3dZYXphM0VjVnk5?=
- =?utf-8?B?WGc9PQ==?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <90D810E7CE70C74AA0EF2E1F666F5962@jpnprd01.prod.outlook.com>
-Content-Transfer-Encoding: base64
+To:     Shiraz Saleem <shiraz.saleem@intel.com>, jgg@nvidia.com,
+        leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org,
+        Mustafa Ismail <mustafa.ismail@intel.com>
+References: <20221104234749.1084-1-shiraz.saleem@intel.com>
+ <20221104234749.1084-2-shiraz.saleem@intel.com>
+From:   Tom Talpey <tom@talpey.com>
+In-Reply-To: <20221104234749.1084-2-shiraz.saleem@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BL1PR13CA0297.namprd13.prod.outlook.com
+ (2603:10b6:208:2bc::32) To BYAPR01MB4438.prod.exchangelabs.com
+ (2603:10b6:a03:98::12)
 MIME-Version: 1.0
-X-OriginatorOrg: fujitsu.com
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BYAPR01MB4438:EE_|MN2PR01MB5901:EE_
+X-MS-Office365-Filtering-Correlation-Id: d3f3058b-92d4-419d-54ac-08dabf39f524
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 5KGoVKaqKT7sjYRr0RPQnBMQdVcMd5nqPXmIcKuxZeVslbBugsIFgp+J8h4fNtkjj8Qr51KPUPjyvlAFWnhtsCW2Vszol0K5P7q0q7tO9YFndheG7Ex/VKK2501n2YChsKadyPpPkP3DhpytHpsDREm9xPdMEwSaZsTRvqNHcqppNRY4Xw9xjohV7f+F8JYIGpjVnmcewXjO2DfdUlwdZCHroxYaqcZOHF96ND/e0y8hW8skCKlNHvubz3Po9s70AZ/sxJ6NN2XeIihGdPZiKcva/ochPPRMKuI3pZnfho+CpcJXR7UMagp0aUHdl71azvixpBunNxZWswY2YvCnjcSndXMb0XTuh5M1GSkeUsrCNtobmYyZIvg0Oeh65g7yvf7xMTBdWVT1EMIlo8+Pm34XHHlMhXT4GbvYdSB1A5uDwtg5l7GaTPMVpOL0OXY+50Kjwkc4WpN/VX20N8tt299fjnC8Yh8r9VPyc/zeclNbjjfC8R9ZhDMHH5wUAaU2N1NduVMM2lTpB9uNKAV0jt0FDra4HxqZCORlUP7vcFPnUoJnhn+34U869UEmsTqlPmxJTMu3L4QVCnEsEtGYP3bmQZ8jqhJenlGeTigCPChlZFBZ6mKIliJtF9BaxIMY1Vk7dK4Oseb1yyilnf0ZrBiJ8gQRU1s97kHVy/HBCgLjv7l+jvEuzMRs1aZinDcQPnOHlNt66xA4Vjc8jlanezZWeBfC+N2d7Qv5CcEADfhRix8dYodM9dLWMIWtJfsnU2BkeGGYL1uV7lPePkD9UzJvKKNTdaI17i/asMWd78Q=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR01MB4438.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230022)(346002)(136003)(39830400003)(366004)(376002)(396003)(451199015)(30864003)(31686004)(186003)(2906002)(8936002)(6486002)(83380400001)(5660300002)(478600001)(2616005)(26005)(41300700001)(86362001)(31696002)(6512007)(38350700002)(38100700002)(36756003)(8676002)(4326008)(66476007)(66556008)(66946007)(316002)(53546011)(52116002)(6506007)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?TUg3cjZiK0xDOE5HS2dRRlBpdlBXQmorU1VkL3UzUTR4T0ZOb1pxZ3BsWVV5?=
+ =?utf-8?B?NXhmV2prTjNwcTVWdllnYzd5Q3l5WEFNTXErcU1lc1grckFwVjRaWlBFMy84?=
+ =?utf-8?B?UEhPbDFYNVVCZWptMm9SZm1WYlc0YXNIeE1KOGpRWUFIWWt4bVZEQURXYUxX?=
+ =?utf-8?B?UEp3cDFYeHhNeHArYnhoMjFSb0E4QjhCZzRWYy9yMjFSNFVWUHdvSGErSG5K?=
+ =?utf-8?B?S3JacHE3NXR1Z1YrbnpHcVFyTG1WUXlXWnZIbnMvTUxWY0FZMnFVUjVQem5C?=
+ =?utf-8?B?VDZqdTk5dkR6NENxbEZVZVovUnIrQldwVldvQXc0SUJsOFhQc21jeS80L21r?=
+ =?utf-8?B?dU5tVm9wRlJ2Lzc0WGpNSWtESER2ZEd2TkZwdDlUVWlLcDR3ZTFlM2JFdDFJ?=
+ =?utf-8?B?elRFcHY2eHpLcjhkeHlYdVRTOWVHZUVBc2hndXBiUnAzUmc1ZTFJb2hVL1F2?=
+ =?utf-8?B?SjZHcGhoLzhyaTJCNlBGSEVuVGxyVGYyemtFaEMvdThqQlN2dkIvVi9Zc1FZ?=
+ =?utf-8?B?SXRYZUxONytqMSt0UE5UZWEreGRzNWt6bm1qeGVEbHBNc1hKb3JURmN2R1pQ?=
+ =?utf-8?B?eFNVT1F1VzBSdThRMEVHWnVBaEJZZVBidWozQzRWSmhYQkUrR1M3Ri9MbjZX?=
+ =?utf-8?B?MVJlN1I2eDYwMTZGaVVGclJRNHpoblljNHFDci9QcFlFUk5BQmxMNnpsaXFo?=
+ =?utf-8?B?eEtQeWVtRUdlNjRocXRrYmJQWlFpd2o5MmVoVDl6aVMyRkhnSSt5ZnQwVUF1?=
+ =?utf-8?B?aXdwNUJIQi9RSGE1dkgzMi9lNmg0RTZNaWF1NU5WQnUvNTg5VkVBb0ozNEk3?=
+ =?utf-8?B?ZUE4ZVEyYjBTYXM3ZXoyNzNRd1JRUUdLRHl5TUl1Vm84QlpWbTE0WEhJa212?=
+ =?utf-8?B?WVZ0WUliWTNjSFk2RGpKcXE5dTFXanEwVFIrclZKTFIwN2ZaMzQydWdvUkE1?=
+ =?utf-8?B?MStNNEYwRlJnQzhoL0VTdG5xQ2x5OCtRYlRPVDJlNkR3UnNIN2hlZlhJZFBs?=
+ =?utf-8?B?V3N1RkFJQnZYNUR4Mzg5Yy8yMVV0VWo3L0Z6NFBBcjgrYlJwd3B3a2RRc3R5?=
+ =?utf-8?B?Wjk4aUt4OTRwc1YvWVRsV2c4MitOUlpabDhGQVNROU5vVXZnek5TTzlxTktC?=
+ =?utf-8?B?QTRQY0NNdzM5TjNDNXhXTHJLMW5hVmRjN01WdFoyeGFHVmhONkJXUmlIWDZv?=
+ =?utf-8?B?YWp3K2svRkk1NWorNHpTVDhqVEZ0RkhvRUcvdXNmVnNtTFJ4MTRBR3lTSE5B?=
+ =?utf-8?B?bXZCeVBjdHJDRDdiME9UOHNVK3o3dkdQWXZ5QzhWTGprb00xam9IbFJqQWw0?=
+ =?utf-8?B?dy9temY5di8zN1hSdVl0L1BpK01WYk9lYXVncmF5ZHRiMXZQa2xuNTBmN25w?=
+ =?utf-8?B?a01vY2JLTnZvY1ZOOU1FWlkxV1pzc01hek9aS2FzeGswbkppQmdoUjl0Ri80?=
+ =?utf-8?B?d3BrNWVxVzBYZE5haHpMQjRSKzhEMXFuM1RleFM2Szk1ek5tNFhOdUw2ZkVl?=
+ =?utf-8?B?V2lKbmZPSjFRUXVYOEdoWTFiVnUvenArVXIvdW5OWEE1b09iekJXS1F4bzRV?=
+ =?utf-8?B?Q3ZnYjB1RkZVckh1UTZWb0NoK3FLWTNYM2I4RldZZlYrY0lQZW1LWExHeWpn?=
+ =?utf-8?B?V052d3N0ODlMN2VJaW90aWttQVIydlNMdWw4QzEzaUlYSllieloycUdKQXVp?=
+ =?utf-8?B?K05TYzNRbXV1NU0zWWlEODVScHVSQWo5RnhZcUZNUCtTTWYxaEFYUklzaGpO?=
+ =?utf-8?B?NUExczk4anBIbU5TcFB0a1MvLzRlUjV3R3pkdHZWK3hGR0thKzJkeXVFQTJu?=
+ =?utf-8?B?a0QvcHZFSTFBRnM1TUpnaHcvOTRxL1o1M1NxYklEQ3IwVElCZUdleWQ1STBs?=
+ =?utf-8?B?Y2pUUkRTSXJXZTBtZTRjcVpFVjR1TENvcno5OXRRZnBoY2x3cnpPbUxXUUk3?=
+ =?utf-8?B?c0pWcitCK3VLUnJScUdxUFZsN0gxemVERGs0S2hJWk4zK3JnL2FDV045MXUv?=
+ =?utf-8?B?RzNBaFYxaDlxR2M4SWkvZlpQWWN6TWptRDR3YU54aGFXTW9vYmlpaUtUK1pp?=
+ =?utf-8?B?Zk11bUVKd0plVnl2a2hMUG9IQWx6VklCMmJXdW5vTnpCMzAxNFc3MndwcFNT?=
+ =?utf-8?Q?c4CQ=3D?=
+X-OriginatorOrg: talpey.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d3f3058b-92d4-419d-54ac-08dabf39f524
+X-MS-Exchange-CrossTenant-AuthSource: BYAPR01MB4438.prod.exchangelabs.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: OS3PR01MB10390.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7fbbde03-1310-482c-a8ce-08dabf11555c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 05 Nov 2022 09:37:19.3519
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2022 14:28:07.4905
  (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: uUxwhP7Ywt73gc5qVjRoLkkUbLdUQceCH8SunKo4ELMUUyXmdZ7wgG+QQ3+ejUY7inuU0K0LNVcqFqbKHHE4ZA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYCPR01MB9783
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 2b2dcae7-2555-4add-bc80-48756da031d5
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: o5xU9CdEDgty20R3aX1eU5gybXLzzRQ6KpXtxa4+1GXdB/ZxeACctg0F6HyVGrS4
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR01MB5901
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-DQpPbiAyOC8xMC8yMDIyIDE3OjA0LCBEYWlzdWtlIE1hdHN1ZGEgd3JvdGU6DQo+IFRoZSBmdW5j
-dGlvbiBjaGVja19sZW5ndGgoKSBpcyBzdXBwb3NlZCB0byBjaGVjayB0aGUgbGVuZ3RoIG9mIGlu
-Ym91bmQNCj4gcGFja2V0cyBvbiByZXNwb25kZXIsIGJ1dCBpdCBhY3R1YWxseSBoYXMgYmVlbiBh
-IHN0dWIgc2luY2UgdGhlIGRyaXZlciB3YXMNCj4gYm9ybi4gTGV0IGl0IGNoZWNrIHRoZSBwYXls
-b2FkIGxlbmd0aCBhbmQgdGhlIERNQSBsZW5ndGguDQo+DQo+IFNpZ25lZC1vZmYtYnk6IERhaXN1
-a2UgTWF0c3VkYSA8bWF0c3VkYS1kYWlzdWtlQGZ1aml0c3UuY29tPg0KPiAtLS0NCj4gRk9SIFJF
-VklFV0VSUw0KPiAgICBJIHJlZmVycmVkIHRvIElCIFNwZWNpZmljYXRpb24gVm9sIDEtUmV2aXNp
-b24tMS41IHRvIGNyZWF0ZSB0aGlzIHBhdGNoLg0KPiAgICBQbGVhc2Ugc2VlIDkuNy40LjEuNiAo
-cGFnZS4zMzApLg0KPg0KPiAgIGRyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3Jlc3AuYyB8
-IDM2ICsrKysrKysrKysrKysrKysrKysrKystLS0tLS0NCj4gICAxIGZpbGUgY2hhbmdlZCwgMjkg
-aW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkNCj4NCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-aW5maW5pYmFuZC9zdy9yeGUvcnhlX3Jlc3AuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9zdy9yeGUv
-cnhlX3Jlc3AuYw0KPiBpbmRleCBlZDVhMDllODY0MTcuLjYyZTNhODE5NTA3MiAxMDA2NDQNCj4g
-LS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4ZS9yeGVfcmVzcC5jDQo+ICsrKyBiL2RyaXZl
-cnMvaW5maW5pYmFuZC9zdy9yeGUvcnhlX3Jlc3AuYw0KPiBAQCAtMzkwLDE2ICszOTAsMzggQEAg
-c3RhdGljIGVudW0gcmVzcF9zdGF0ZXMgY2hlY2tfcmVzb3VyY2Uoc3RydWN0IHJ4ZV9xcCAqcXAs
-DQo+ICAgc3RhdGljIGVudW0gcmVzcF9zdGF0ZXMgY2hlY2tfbGVuZ3RoKHN0cnVjdCByeGVfcXAg
-KnFwLA0KPiAgIAkJCQkgICAgIHN0cnVjdCByeGVfcGt0X2luZm8gKnBrdCkNCj4gICB7DQo+IC0J
-c3dpdGNoIChxcF90eXBlKHFwKSkgew0KPiAtCWNhc2UgSUJfUVBUX1JDOg0KPiAtCQlyZXR1cm4g
-UkVTUFNUX0NIS19SS0VZOw0KPiArCWludCBtdHUgPSBxcC0+bXR1Ow0KPiArCXUzMiBwYXlsb2Fk
-ID0gcGF5bG9hZF9zaXplKHBrdCk7DQo+ICsJdTMyIGRtYWxlbiA9IHJldGhfbGVuKHBrdCk7DQo+
-ICAgDQo+IC0JY2FzZSBJQl9RUFRfVUM6DQo+IC0JCXJldHVybiBSRVNQU1RfQ0hLX1JLRVk7DQo+
-ICsJLyogUm9DRXYyIHBhY2tldHMgZG8gbm90IGhhdmUgTFJILg0KPiArCSAqIExldCdzIHNraXAg
-Y2hlY2tpbmcgaXQuDQo+ICsJICovDQo+ICAgDQo+IC0JZGVmYXVsdDoNCj4gLQkJcmV0dXJuIFJF
-U1BTVF9DSEtfUktFWTsNCj4gKwlpZiAoKHBrdC0+b3Bjb2RlICYgUlhFX1NUQVJUX01BU0spICYm
-DQo+ICsJICAgIChwa3QtPm9wY29kZSAmIFJYRV9FTkRfTUFTSykpIHsNCj4gKwkJLyogIm9ubHki
-IHBhY2tldHMgKi8NCj4gKwkJaWYgKHBheWxvYWQgPiBtdHUpDQo+ICsJCQlyZXR1cm4gUkVTUFNU
-X0VSUl9MRU5HVEg7DQo+ICsNCj4gKwl9IGVsc2UgaWYgKChwa3QtPm9wY29kZSAmIFJYRV9TVEFS
-VF9NQVNLKSB8fA0KPiArCQkgICAocGt0LT5vcGNvZGUgJiBSWEVfTUlERExFX01BU0spKSB7DQo+
-ICsJCS8qICJmaXJzdCIgb3IgIm1pZGRsZSIgcGFja2V0cyAqLw0KPiArCQlpZiAocGF5bG9hZCAh
-PSBtdHUpDQo+ICsJCQlyZXR1cm4gUkVTUFNUX0VSUl9MRU5HVEg7DQo+ICsNCj4gKwl9IGVsc2Ug
-aWYgKHBrdC0+b3Bjb2RlICYgUlhFX0VORF9NQVNLKSB7DQo+ICsJCS8qICJsYXN0IiBwYWNrZXRz
-ICovDQo+ICsJCWlmICgocGt0LT5wYXlsZW4gPT0gMCkgfHwgKHBrdC0+cGF5bGVuID4gbXR1KSkN
-Cg0KQXMgcGVyIElCQSBzcGVjLCBpIGRpZG4ndCBzZWUgYW55IGRpZmZlcmVuY2UgYWJvdXQgdGhl
-ICdwYWNrZXQgcGF5bG9hZCANCmxlbmd0aCcgZnJvbSBvdGhlcnMsDQoNCnNvIE1heSBJIGtub3cg
-d2h5IGhlcmUgeW91IGFyZSB1c2luZyAncGt0LT5wYXlsZW4nIGluc3RlYWQgb2YgcGF5bG9hZCA/
-DQoNCg0KVGhhbmtzDQoNClpoaWppYW4NCg0KDQoNCj4gKwkJCXJldHVybiBSRVNQU1RfRVJSX0xF
-TkdUSDsNCj4gKwl9DQo+ICsNCj4gKwlpZiAocGt0LT5vcGNvZGUgJiAoUlhFX1dSSVRFX01BU0sg
-fCBSWEVfUkVBRF9NQVNLKSkgew0KPiArCQlpZiAoZG1hbGVuID4gKDEgPDwgMzEpKQ0KPiArCQkJ
-cmV0dXJuIFJFU1BTVF9FUlJfTEVOR1RIOw0KPiAgIAl9DQo+ICsNCj4gKwlyZXR1cm4gUkVTUFNU
-X0NIS19SS0VZOw0KPiAgIH0NCj4gICANCj4gICBzdGF0aWMgZW51bSByZXNwX3N0YXRlcyBjaGVj
-a19ya2V5KHN0cnVjdCByeGVfcXAgKnFwLA==
+On 11/4/2022 7:47 PM, Shiraz Saleem wrote:
+> From: Mustafa Ismail <mustafa.ismail@intel.com>
+> 
+> Currently, inline send and inline write assume a single
+> SGE and only copy data from the first one. Add support
+> for multiple SGE's.
+> 
+> Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
+> Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+> Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> ---
+>   drivers/infiniband/hw/irdma/uk.c    | 148 +++++++++++++++++++++++-------------
+>   drivers/infiniband/hw/irdma/user.h  |  18 +----
+>   drivers/infiniband/hw/irdma/verbs.c |  54 +++++--------
+>   3 files changed, 115 insertions(+), 105 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/irdma/uk.c b/drivers/infiniband/hw/irdma/uk.c
+> index a6e5d35..4424224 100644
+> --- a/drivers/infiniband/hw/irdma/uk.c
+> +++ b/drivers/infiniband/hw/irdma/uk.c
+> @@ -566,21 +566,36 @@ static void irdma_set_mw_bind_wqe_gen_1(__le64 *wqe,
+>   
+>   /**
+>    * irdma_copy_inline_data_gen_1 - Copy inline data to wqe
+> - * @dest: pointer to wqe
+> - * @src: pointer to inline data
+> - * @len: length of inline data to copy
+> + * @wqe: pointer to wqe
+> + * @sge_list: table of pointers to inline data
+> + * @num_sges: Total inline data length
+>    * @polarity: compatibility parameter
+>    */
+> -static void irdma_copy_inline_data_gen_1(u8 *dest, u8 *src, u32 len,
+> -					 u8 polarity)
+> +static void irdma_copy_inline_data_gen_1(u8 *wqe, struct ib_sge *sge_list,
+> +					 u32 num_sges, u8 polarity)
+>   {
+> -	if (len <= 16) {
+> -		memcpy(dest, src, len);
+> -	} else {
+> -		memcpy(dest, src, 16);
+> -		src += 16;
+> -		dest = dest + 32;
+> -		memcpy(dest, src, len - 16);
+> +	u32 quanta_bytes_remaining = 16;
+> +	int i;
+> +
+> +	for (i = 0; i < num_sges; i++) {
+
+We've been bitten by low provider sge limits in fs/cifs/smbdirect.c,
+so we now request only a handful. Looks like this will improve that
+for irdma.
+
+But I am a little surprised to see no bounds checking on num_sges or
+total bytes here, or in irdma_post_send(). So it seems that a malicious
+or buggy consumer can cause significant damage. Is that protected
+elsewhere?
+
+Tom.
+
+> +		u8 *cur_sge = (u8 *)(uintptr_t)sge_list[i].addr;
+> +
+> +		while (sge_list[i].length) {
+> +			u32 bytes_copied;
+> +
+> +			bytes_copied = min(sge_list[i].length, quanta_bytes_remaining);
+> +			memcpy(wqe, cur_sge, bytes_copied);
+> +			wqe += bytes_copied;
+> +			cur_sge += bytes_copied;
+> +			quanta_bytes_remaining -= bytes_copied;
+> +			sge_list[i].length -= bytes_copied;
+> +
+> +			if (!quanta_bytes_remaining) {
+> +				/* Remaining inline bytes reside after the hdr */
+> +				wqe += 16;
+> +				quanta_bytes_remaining = 32;
+> +			}
+> +		}
+>   	}
+>   }
+>   
+> @@ -612,35 +627,50 @@ static void irdma_set_mw_bind_wqe(__le64 *wqe,
+>   
+>   /**
+>    * irdma_copy_inline_data - Copy inline data to wqe
+> - * @dest: pointer to wqe
+> - * @src: pointer to inline data
+> - * @len: length of inline data to copy
+> + * @wqe: pointer to wqe
+> + * @sge_list: table of pointers to inline data
+> + * @num_sges: number of SGE's
+>    * @polarity: polarity of wqe valid bit
+>    */
+> -static void irdma_copy_inline_data(u8 *dest, u8 *src, u32 len, u8 polarity)
+> +static void irdma_copy_inline_data(u8 *wqe, struct ib_sge *sge_list, u32 num_sges,
+> +				   u8 polarity)
+>   {
+>   	u8 inline_valid = polarity << IRDMA_INLINE_VALID_S;
+> -	u32 copy_size;
+> -
+> -	dest += 8;
+> -	if (len <= 8) {
+> -		memcpy(dest, src, len);
+> -		return;
+> -	}
+> -
+> -	*((u64 *)dest) = *((u64 *)src);
+> -	len -= 8;
+> -	src += 8;
+> -	dest += 24; /* point to additional 32 byte quanta */
+> -
+> -	while (len) {
+> -		copy_size = len < 31 ? len : 31;
+> -		memcpy(dest, src, copy_size);
+> -		*(dest + 31) = inline_valid;
+> -		len -= copy_size;
+> -		dest += 32;
+> -		src += copy_size;
+> +	u32 quanta_bytes_remaining = 8;
+> +	bool first_quanta = true;
+> +	int i;
+> +
+> +	wqe += 8;
+> +
+> +	for (i = 0; i < num_sges; i++) {
+> +		u8 *cur_sge = (u8 *)(uintptr_t)sge_list[i].addr;
+> +
+> +		while (sge_list[i].length) {
+> +			u32 bytes_copied;
+> +
+> +			bytes_copied = min(sge_list[i].length, quanta_bytes_remaining);
+> +			memcpy(wqe, cur_sge, bytes_copied);
+> +			wqe += bytes_copied;
+> +			cur_sge += bytes_copied;
+> +			quanta_bytes_remaining -= bytes_copied;
+> +			sge_list[i].length -= bytes_copied;
+> +
+> +			if (!quanta_bytes_remaining) {
+> +				quanta_bytes_remaining = 31;
+> +
+> +				/* Remaining inline bytes reside after the hdr */
+> +				if (first_quanta) {
+> +					first_quanta = false;
+> +					wqe += 16;
+> +				} else {
+> +					*wqe = inline_valid;
+> +					wqe++;
+> +				}
+> +			}
+> +		}
+>   	}
+> +	if (!first_quanta && quanta_bytes_remaining < 31)
+> +		*(wqe + quanta_bytes_remaining) = inline_valid;
+>   }
+>   
+>   /**
+> @@ -679,20 +709,27 @@ int irdma_uk_inline_rdma_write(struct irdma_qp_uk *qp,
+>   			       struct irdma_post_sq_info *info, bool post_sq)
+>   {
+>   	__le64 *wqe;
+> -	struct irdma_inline_rdma_write *op_info;
+> +	struct irdma_rdma_write *op_info;
+>   	u64 hdr = 0;
+>   	u32 wqe_idx;
+>   	bool read_fence = false;
+> +	u32 i, total_size = 0;
+>   	u16 quanta;
+>   
+>   	info->push_wqe = qp->push_db ? true : false;
+> -	op_info = &info->op.inline_rdma_write;
+> +	op_info = &info->op.rdma_write;
+>   
+> -	if (op_info->len > qp->max_inline_data)
+> +	if (unlikely(qp->max_sq_frag_cnt < op_info->num_lo_sges))
+>   		return -EINVAL;
+>   
+> -	quanta = qp->wqe_ops.iw_inline_data_size_to_quanta(op_info->len);
+> -	wqe = irdma_qp_get_next_send_wqe(qp, &wqe_idx, quanta, op_info->len,
+> +	for (i = 0; i < op_info->num_lo_sges; i++)
+> +		total_size += op_info->lo_sg_list[i].length;
+> +
+> +	if (unlikely(total_size > qp->max_inline_data))
+> +		return -EINVAL;
+> +
+> +	quanta = qp->wqe_ops.iw_inline_data_size_to_quanta(total_size);
+> +	wqe = irdma_qp_get_next_send_wqe(qp, &wqe_idx, quanta, total_size,
+>   					 info);
+>   	if (!wqe)
+>   		return -ENOMEM;
+> @@ -705,7 +742,7 @@ int irdma_uk_inline_rdma_write(struct irdma_qp_uk *qp,
+>   
+>   	hdr = FIELD_PREP(IRDMAQPSQ_REMSTAG, op_info->rem_addr.lkey) |
+>   	      FIELD_PREP(IRDMAQPSQ_OPCODE, info->op_type) |
+> -	      FIELD_PREP(IRDMAQPSQ_INLINEDATALEN, op_info->len) |
+> +	      FIELD_PREP(IRDMAQPSQ_INLINEDATALEN, total_size) |
+>   	      FIELD_PREP(IRDMAQPSQ_REPORTRTT, info->report_rtt ? 1 : 0) |
+>   	      FIELD_PREP(IRDMAQPSQ_INLINEDATAFLAG, 1) |
+>   	      FIELD_PREP(IRDMAQPSQ_IMMDATAFLAG, info->imm_data_valid ? 1 : 0) |
+> @@ -719,8 +756,8 @@ int irdma_uk_inline_rdma_write(struct irdma_qp_uk *qp,
+>   		set_64bit_val(wqe, 0,
+>   			      FIELD_PREP(IRDMAQPSQ_IMMDATA, info->imm_data));
+>   
+> -	qp->wqe_ops.iw_copy_inline_data((u8 *)wqe, op_info->data, op_info->len,
+> -					qp->swqe_polarity);
+> +	qp->wqe_ops.iw_copy_inline_data((u8 *)wqe, op_info->lo_sg_list,
+> +					op_info->num_lo_sges, qp->swqe_polarity);
+>   	dma_wmb(); /* make sure WQE is populated before valid bit is set */
+>   
+>   	set_64bit_val(wqe, 24, hdr);
+> @@ -745,20 +782,27 @@ int irdma_uk_inline_send(struct irdma_qp_uk *qp,
+>   			 struct irdma_post_sq_info *info, bool post_sq)
+>   {
+>   	__le64 *wqe;
+> -	struct irdma_post_inline_send *op_info;
+> +	struct irdma_post_send *op_info;
+>   	u64 hdr;
+>   	u32 wqe_idx;
+>   	bool read_fence = false;
+> +	u32 i, total_size = 0;
+>   	u16 quanta;
+>   
+>   	info->push_wqe = qp->push_db ? true : false;
+> -	op_info = &info->op.inline_send;
+> +	op_info = &info->op.send;
+>   
+> -	if (op_info->len > qp->max_inline_data)
+> +	if (unlikely(qp->max_sq_frag_cnt < op_info->num_sges))
+>   		return -EINVAL;
+>   
+> -	quanta = qp->wqe_ops.iw_inline_data_size_to_quanta(op_info->len);
+> -	wqe = irdma_qp_get_next_send_wqe(qp, &wqe_idx, quanta, op_info->len,
+> +	for (i = 0; i < op_info->num_sges; i++)
+> +		total_size += op_info->sg_list[i].length;
+> +
+> +	if (unlikely(total_size > qp->max_inline_data))
+> +		return -EINVAL;
+> +
+> +	quanta = qp->wqe_ops.iw_inline_data_size_to_quanta(total_size);
+> +	wqe = irdma_qp_get_next_send_wqe(qp, &wqe_idx, quanta, total_size,
+>   					 info);
+>   	if (!wqe)
+>   		return -ENOMEM;
+> @@ -773,7 +817,7 @@ int irdma_uk_inline_send(struct irdma_qp_uk *qp,
+>   	hdr = FIELD_PREP(IRDMAQPSQ_REMSTAG, info->stag_to_inv) |
+>   	      FIELD_PREP(IRDMAQPSQ_AHID, op_info->ah_id) |
+>   	      FIELD_PREP(IRDMAQPSQ_OPCODE, info->op_type) |
+> -	      FIELD_PREP(IRDMAQPSQ_INLINEDATALEN, op_info->len) |
+> +	      FIELD_PREP(IRDMAQPSQ_INLINEDATALEN, total_size) |
+>   	      FIELD_PREP(IRDMAQPSQ_IMMDATAFLAG,
+>   			 (info->imm_data_valid ? 1 : 0)) |
+>   	      FIELD_PREP(IRDMAQPSQ_REPORTRTT, (info->report_rtt ? 1 : 0)) |
+> @@ -789,8 +833,8 @@ int irdma_uk_inline_send(struct irdma_qp_uk *qp,
+>   	if (info->imm_data_valid)
+>   		set_64bit_val(wqe, 0,
+>   			      FIELD_PREP(IRDMAQPSQ_IMMDATA, info->imm_data));
+> -	qp->wqe_ops.iw_copy_inline_data((u8 *)wqe, op_info->data, op_info->len,
+> -					qp->swqe_polarity);
+> +	qp->wqe_ops.iw_copy_inline_data((u8 *)wqe, op_info->sg_list,
+> +					op_info->num_sges, qp->swqe_polarity);
+>   
+>   	dma_wmb(); /* make sure WQE is populated before valid bit is set */
+>   
+> diff --git a/drivers/infiniband/hw/irdma/user.h b/drivers/infiniband/hw/irdma/user.h
+> index 2ef6192..f5d3a7c 100644
+> --- a/drivers/infiniband/hw/irdma/user.h
+> +++ b/drivers/infiniband/hw/irdma/user.h
+> @@ -173,14 +173,6 @@ struct irdma_post_send {
+>   	u32 ah_id;
+>   };
+>   
+> -struct irdma_post_inline_send {
+> -	void *data;
+> -	u32 len;
+> -	u32 qkey;
+> -	u32 dest_qp;
+> -	u32 ah_id;
+> -};
+> -
+>   struct irdma_post_rq_info {
+>   	u64 wr_id;
+>   	struct ib_sge *sg_list;
+> @@ -193,12 +185,6 @@ struct irdma_rdma_write {
+>   	struct ib_sge rem_addr;
+>   };
+>   
+> -struct irdma_inline_rdma_write {
+> -	void *data;
+> -	u32 len;
+> -	struct ib_sge rem_addr;
+> -};
+> -
+>   struct irdma_rdma_read {
+>   	struct ib_sge *lo_sg_list;
+>   	u32 num_lo_sges;
+> @@ -241,8 +227,6 @@ struct irdma_post_sq_info {
+>   		struct irdma_rdma_read rdma_read;
+>   		struct irdma_bind_window bind_window;
+>   		struct irdma_inv_local_stag inv_local_stag;
+> -		struct irdma_inline_rdma_write inline_rdma_write;
+> -		struct irdma_post_inline_send inline_send;
+>   	} op;
+>   };
+>   
+> @@ -291,7 +275,7 @@ int irdma_uk_stag_local_invalidate(struct irdma_qp_uk *qp,
+>   				   bool post_sq);
+>   
+>   struct irdma_wqe_uk_ops {
+> -	void (*iw_copy_inline_data)(u8 *dest, u8 *src, u32 len, u8 polarity);
+> +	void (*iw_copy_inline_data)(u8 *dest, struct ib_sge *sge_list, u32 num_sges, u8 polarity);
+>   	u16 (*iw_inline_data_size_to_quanta)(u32 data_size);
+>   	void (*iw_set_fragment)(__le64 *wqe, u32 offset, struct ib_sge *sge,
+>   				u8 valid);
+> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+> index a22afbb..b2006a0 100644
+> --- a/drivers/infiniband/hw/irdma/verbs.c
+> +++ b/drivers/infiniband/hw/irdma/verbs.c
+> @@ -3165,30 +3165,20 @@ static int irdma_post_send(struct ib_qp *ibqp,
+>   				info.stag_to_inv = ib_wr->ex.invalidate_rkey;
+>   			}
+>   
+> -			if (ib_wr->send_flags & IB_SEND_INLINE) {
+> -				info.op.inline_send.data = (void *)(unsigned long)
+> -							   ib_wr->sg_list[0].addr;
+> -				info.op.inline_send.len = ib_wr->sg_list[0].length;
+> -				if (iwqp->ibqp.qp_type == IB_QPT_UD ||
+> -				    iwqp->ibqp.qp_type == IB_QPT_GSI) {
+> -					ah = to_iwah(ud_wr(ib_wr)->ah);
+> -					info.op.inline_send.ah_id = ah->sc_ah.ah_info.ah_idx;
+> -					info.op.inline_send.qkey = ud_wr(ib_wr)->remote_qkey;
+> -					info.op.inline_send.dest_qp = ud_wr(ib_wr)->remote_qpn;
+> -				}
+> +			info.op.send.num_sges = ib_wr->num_sge;
+> +			info.op.send.sg_list = ib_wr->sg_list;
+> +			if (iwqp->ibqp.qp_type == IB_QPT_UD ||
+> +			    iwqp->ibqp.qp_type == IB_QPT_GSI) {
+> +				ah = to_iwah(ud_wr(ib_wr)->ah);
+> +				info.op.send.ah_id = ah->sc_ah.ah_info.ah_idx;
+> +				info.op.send.qkey = ud_wr(ib_wr)->remote_qkey;
+> +				info.op.send.dest_qp = ud_wr(ib_wr)->remote_qpn;
+> +			}
+> +
+> +			if (ib_wr->send_flags & IB_SEND_INLINE)
+>   				err = irdma_uk_inline_send(ukqp, &info, false);
+> -			} else {
+> -				info.op.send.num_sges = ib_wr->num_sge;
+> -				info.op.send.sg_list = ib_wr->sg_list;
+> -				if (iwqp->ibqp.qp_type == IB_QPT_UD ||
+> -				    iwqp->ibqp.qp_type == IB_QPT_GSI) {
+> -					ah = to_iwah(ud_wr(ib_wr)->ah);
+> -					info.op.send.ah_id = ah->sc_ah.ah_info.ah_idx;
+> -					info.op.send.qkey = ud_wr(ib_wr)->remote_qkey;
+> -					info.op.send.dest_qp = ud_wr(ib_wr)->remote_qpn;
+> -				}
+> +			else
+>   				err = irdma_uk_send(ukqp, &info, false);
+> -			}
+>   			break;
+>   		case IB_WR_RDMA_WRITE_WITH_IMM:
+>   			if (ukqp->qp_caps & IRDMA_WRITE_WITH_IMM) {
+> @@ -3205,22 +3195,14 @@ static int irdma_post_send(struct ib_qp *ibqp,
+>   			else
+>   				info.op_type = IRDMA_OP_TYPE_RDMA_WRITE;
+>   
+> -			if (ib_wr->send_flags & IB_SEND_INLINE) {
+> -				info.op.inline_rdma_write.data = (void *)(uintptr_t)ib_wr->sg_list[0].addr;
+> -				info.op.inline_rdma_write.len =
+> -						ib_wr->sg_list[0].length;
+> -				info.op.inline_rdma_write.rem_addr.addr =
+> -						rdma_wr(ib_wr)->remote_addr;
+> -				info.op.inline_rdma_write.rem_addr.lkey =
+> -						rdma_wr(ib_wr)->rkey;
+> +			info.op.rdma_write.num_lo_sges = ib_wr->num_sge;
+> +			info.op.rdma_write.lo_sg_list = ib_wr->sg_list;
+> +			info.op.rdma_write.rem_addr.addr = rdma_wr(ib_wr)->remote_addr;
+> +			info.op.rdma_write.rem_addr.lkey = rdma_wr(ib_wr)->rkey;
+> +			if (ib_wr->send_flags & IB_SEND_INLINE)
+>   				err = irdma_uk_inline_rdma_write(ukqp, &info, false);
+> -			} else {
+> -				info.op.rdma_write.lo_sg_list = (void *)ib_wr->sg_list;
+> -				info.op.rdma_write.num_lo_sges = ib_wr->num_sge;
+> -				info.op.rdma_write.rem_addr.addr = rdma_wr(ib_wr)->remote_addr;
+> -				info.op.rdma_write.rem_addr.lkey = rdma_wr(ib_wr)->rkey;
+> +			else
+>   				err = irdma_uk_rdma_write(ukqp, &info, false);
+> -			}
+>   			break;
+>   		case IB_WR_RDMA_READ_WITH_INV:
+>   			inv_stag = true;
