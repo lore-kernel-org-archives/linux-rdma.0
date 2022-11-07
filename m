@@ -2,71 +2,71 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63083C4332F
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:15:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7DFEC433FE
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:15:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232459AbiKGQPJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Nov 2022 11:15:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39250 "EHLO
+        id S232511AbiKGQPR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Nov 2022 11:15:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39402 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232702AbiKGQPH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:15:07 -0500
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2076.outbound.protection.outlook.com [40.107.94.76])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 580DD6466
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:15:05 -0800 (PST)
+        with ESMTP id S232464AbiKGQPQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:15:16 -0500
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2053.outbound.protection.outlook.com [40.107.220.53])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3519FB48B
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:15:14 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=SW+EwAH0IjXvlj29Us8rZYp/7qCWfojoqm0NoWYQyehgSv8PZWvqdYGlQr1MA4209Kq+LlO8Gf5La6EOzZexfvOdTre0mgxUGapwsyowtMbri8rfHNzFQI11FO3R5DGKh9o1Ip87N6E5m0W53fXAPFg0jXuNp+5dV+UrqjV7+4Dr0c4/QoelnEK6S2fAx0Waebc1c/yHiaqPH1ydM4Uo0yYeSdK0PVL096/isksTRJADLazgONh2OuLTkzniWFyHuszdEbH3fuS0+Xt0IVGb/wsw94oqzbo+Hb70rY87Cm/eSV/5mAtxeAL5EV1vh1doqce5owVbwdSxLGS5C94Yrw==
+ b=nr7TXi2dBvCVEv42IU2zOzj/3V1YtZf/vt+tnolfLIh3nwO7NClnZJWDc79Q7wg3gGX5/r85N+a0v2EzMmiGr53JS5Vdfn/1sMEI6e/fQIFLgWkrJtqngV+h26r+ttTZxGsi+vqNHaorLWnPBTE53QAfrFU6PYQ7qzvQkrOJgYX4jsj6/G5SKTB9r4j8uhRvEgot7FwoHfXv+9T9LGLEq9fp9rsBlaV2hvsBbNJH08E/P5sFuGmgJlTvFKs2UgzQ/PDyx3EUUDf6zp+wVypQ7hQl2bp3eh8tKcA3nLPG98/t/s9abIWmlUYQ69Uzqz1sVnK+ICyAATZuCwj/VpT1Aw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Br0kq16L5UgO2GAGNxVdLvrn0t0X4FBPdIwRgi4wteQ=;
- b=OMm/6N40oa/K17a7LpFr/LfcmFYzCh/TaUmumoj1BEjmhw6gTIOZ1HegQ0a7ogm7gAsE2+4jXw9UxfyqQnvF+FIb14cw1mAKjuYZ2ewyMdELR4moxEflr5XK0vgLMKBthQ1mAIrQo3ut+yyyzKJGR3SjGjZmIxfpq1TeTvUUmdM/4X0DxAf1nIMGzc7rxlFz9794Phcnezb3C+YoI37QJUeqTGUWLGIbfWTk19NUXwUUCa7QSHkdHKa1cFl0R9Vy8GEclAZ4b9SiEvbYSM2kMYEu5hPWJFz06apxw8BhOzIF56UOOLRFEC9mDB+Z/+KsJlw5YskWHRiyRW13sO+R+Q==
+ bh=04Nm7OrzAcL/CD/gEDxOkjTgj43WyMSTk4jirbzT46c=;
+ b=DQSRUWgkdPG5wNPqf5k3dCW1YTh7NkDJKIrPtvyViIuq9MUb8BcrbUM5eh2FelkqbFI3L7L6TepZGEcG6L/9S4xBVXwwpsADyqNg5sJXrbgiTWLBOl7CsmtgQCV4ZmjVf2MlGSZXextBoTBFMcFFrvZ1dT/gmMIiqgfz/v9iM3pN7gq2IMYXCL/6LImw5sEDe/1qMELJnY/e868dSPBBdafJEE7pWdwPeaoYwFCIvbNK9HZ1/3L9tL6GWEdaw/OouoobJWTtknWsjR+YAUyGBx5U+eiJawjmtm71Nb+dChCY7sb3PdqusRJ7bSP0MLvynCL/GxiiR/bNnxLoVeJMDw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ 216.228.118.232) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Br0kq16L5UgO2GAGNxVdLvrn0t0X4FBPdIwRgi4wteQ=;
- b=TLqZDcbv2wFTTw4+Nqz7yXxP1dNjfqBQakkGzAM1V3UMFRjfL6oPpKapcVQGodGRoTLO1nDOgqhuRYTAz25f7xp576Uhc9yOdMalCo2g/9f0p3ZnV52QL/Ra+uCH1FjfxlYAFoeMU31V096zKiwgsiKu0Nb4w5zExq9v+Ro2+OQDGCMf3Jf3i29a5UWDkmyZNqOtoK164ukhyho2JTt61alBqS68woskmvClewpuTCkGq57ERzG99Z1X4KuvhzY6XFscRZHdUVfkWq9x534t/WsxizPA4kxM8AFX13L5RFxqtQCC9AZDLFSk/K2pFtDgc+X88rQ8P8T9ciupStcVRw==
-Received: from DM6PR06CA0013.namprd06.prod.outlook.com (2603:10b6:5:120::26)
- by PH7PR12MB5904.namprd12.prod.outlook.com (2603:10b6:510:1d8::19) with
+ bh=04Nm7OrzAcL/CD/gEDxOkjTgj43WyMSTk4jirbzT46c=;
+ b=kpbP1L/eCqO29KAVu9f8McsJYOx4Azuh4o9GH0slnN6pKZQsmQ4M7ONayNIiOk93UvgFr76q43iuLH3Jx7hNkKCE2avkIexYxu5RMzUCYeKDkbRQzFtH8oOYB9kw3/22L+wOX5Gy4nR2J43pqQLtBpkY9R1r8T3TZeZKVXqcBOALMl5UgbVpxjPo6pHKy/voSBY3OkNgXIUtr4AC+w/2OA5cSky7h2f+2j1x3HXiurhQTeq60MIr8ubBKTqg1fvsSgNssAZp3uXbJ7Qix0pZ48C2ybmjWE6cogUpCQmJ+2bVIlgtzZah5WD8bMtgNvKOgskaDLqKcVv0EmBqynS9yw==
+Received: from DM6PR10CA0002.namprd10.prod.outlook.com (2603:10b6:5:60::15) by
+ PH7PR12MB5784.namprd12.prod.outlook.com (2603:10b6:510:1d3::22) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5791.25; Mon, 7 Nov
- 2022 16:15:01 +0000
-Received: from DM6NAM11FT018.eop-nam11.prod.protection.outlook.com
- (2603:10b6:5:120:cafe::1d) by DM6PR06CA0013.outlook.office365.com
- (2603:10b6:5:120::26) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5791.26; Mon, 7 Nov
+ 2022 16:15:12 +0000
+Received: from DM6NAM11FT084.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:5:60:cafe::af) by DM6PR10CA0002.outlook.office365.com
+ (2603:10b6:5:60::15) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5791.26 via Frontend
- Transport; Mon, 7 Nov 2022 16:15:00 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ Transport; Mon, 7 Nov 2022 16:15:12 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- DM6NAM11FT018.mail.protection.outlook.com (10.13.172.110) with Microsoft SMTP
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ DM6NAM11FT084.mail.protection.outlook.com (10.13.172.132) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5791.20 via Frontend Transport; Mon, 7 Nov 2022 16:15:00 +0000
+ 15.20.5791.20 via Frontend Transport; Mon, 7 Nov 2022 16:15:12 +0000
 Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.26; Mon, 7 Nov 2022
- 08:14:57 -0800
+ 08:15:03 -0800
 Received: from drhqmail201.nvidia.com (10.126.190.180) by
  drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.29; Mon, 7 Nov 2022 08:14:57 -0800
+ 15.2.986.29; Mon, 7 Nov 2022 08:15:03 -0800
 Received: from vdi.nvidia.com (10.127.8.13) by mail.nvidia.com
  (10.126.190.180) with Microsoft SMTP Server id 15.2.986.29 via Frontend
- Transport; Mon, 7 Nov 2022 08:14:55 -0800
+ Transport; Mon, 7 Nov 2022 08:15:01 -0800
 From:   Michael Guralnik <michaelgur@nvidia.com>
 To:     <jgg@nvidia.com>, <leonro@nvidia.com>, <linux-rdma@vger.kernel.org>
 CC:     <maorg@nvidia.com>, <aharonl@nvidia.com>
-Subject: [PATCH v1 rdma-next 2/8] RDMA/mlx5: Generalize mlx5_cache_cache_mr() to fit all cacheable mkeys
-Date:   Mon, 7 Nov 2022 18:14:43 +0200
-Message-ID: <20221107161449.5611-3-michaelgur@nvidia.com>
+Subject: [PATCH v1 rdma-next 5/8] RDMA/mlx5: Introduce mlx5r_cache_rb_key
+Date:   Mon, 7 Nov 2022 18:14:46 +0200
+Message-ID: <20221107161449.5611-6-michaelgur@nvidia.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20221107161449.5611-1-michaelgur@nvidia.com>
 References: <20221107161449.5611-1-michaelgur@nvidia.com>
@@ -74,314 +74,264 @@ MIME-Version: 1.0
 Content-Type: text/plain
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6NAM11FT018:EE_|PH7PR12MB5904:EE_
-X-MS-Office365-Filtering-Correlation-Id: 61f365f3-c9bb-44c2-fcaa-08dac0db38c5
+X-MS-TrafficTypeDiagnostic: DM6NAM11FT084:EE_|PH7PR12MB5784:EE_
+X-MS-Office365-Filtering-Correlation-Id: d209da53-27e4-4290-b067-08dac0db3f9e
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: e3KusM7mj9a+k9kWYywLvNd6qv10DHcpNgzTCq1+8q1CwWxsyVof7hF3pECAhD49m12nVcm7Svy62b8JsdH5lJUFVFaHnHh1POi4siIhT5iAlo9aSRwIB0Emi7pfhecIdh8YGxKA9ocb8Z3FUltlgKK3XSh/S/hvazomqryYAeEy6pqh1m8arY1WDYrNEcTQhhB4mBpgNAPNRJgRehWOwvoNznuSI4VfdJzXWRXGVm25JY7skrahNLrERjBxB14dPAMxhntsJ1tDbsDgy1vZOGNgsC2XO48julkO7cu0ym1mAd664RbC+Jd4oTVhf5bskG8Ax5Q/fxd4HkTvSw2at61ZbGv6H4boNiwpXGYnZfNRidFTvRkfF+I5vyXQGQ4Sk1nQnOUyT52Bl2bQe0Doz0uXQDuZhcRga98cLhTDi0s/6uL8wSnQbvL/HpVgKWLOm9Bs71kBfD3x7JTkLvevD3Ib5YJWxYFWF0SoPtcIF/Z3QrvRO6owg2fM0eTgOehMVd+ZsPYhw5HM5btzGQbnIQtnO5aoxpknMCyoDRV+d1QcBctaYqwrKMMGL8+xFMXTb+1KwCe3k7qx6p9kqpS120i6QrxGvZwBdcIkRS8ohdG39R//3W36EWMyJcudS0m72FQdBsCOS5rcitTFvptB/kn2jGh4iNyOVqYEMeD1yAo/FiZJC/lZwA4HNxUnxCQ0sjfnUj3tC1xkFnDJzX73VG8MEATeX37+ouy6Uzizai8oS1nU/CqBg/lnTclrg8Rfk7QZzIIICNsyYg31gMlilJY285NlveGAap+3ZbBwB6o=
-X-Forefront-Antispam-Report: CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(346002)(376002)(136003)(39860400002)(396003)(451199015)(36840700001)(46966006)(40470700004)(40480700001)(36756003)(7636003)(478600001)(8936002)(26005)(82740400003)(86362001)(36860700001)(82310400005)(41300700001)(107886003)(426003)(186003)(1076003)(47076005)(7696005)(356005)(2616005)(336012)(40460700003)(70206006)(70586007)(4326008)(2906002)(316002)(5660300002)(83380400001)(8676002)(54906003)(6666004)(110136005)(2101003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: 6FmRbbhyPq08JzidSzf6kgMqUslQMMmOJsK7MexYn1qucwPgrwdpPT2GwEm8h7dZDApcWohRJXNSfQZHpJldwiicIomIGndMAPCVklL2eaF9iFMOHXf3S5STEDZhOlny9x4GSe217oi2+Z0gDD9G9POg/TQhXf/z6usbT80PZ4LtBrJ7LOOrVDxGLQj/82ink6xTl3TFNLpepEODCyCjdFpKq8IHS2/s/XQhmqjPD3W+iumrdZQk2I5ZSaYE8Bo0Y5iU5Uh4kxaVFl2IXhnqcwhxLdigtjoR6D/aEtwSppY306nKUgYElg7WUFLUryziIPzWedL4A13P0wq+ce/rppq2OvEA+dLfbtQWszX1UTzybODmsvTek8UUYV9j6ZQ3tEOt0kINlR+KEiV546sDnQnLQYkJ6oAjz4jL5+BKzVJyFXvDSL5nQSR4/obNwDdyYruVmGVe/o4MR3J/fcnjTpiCO0J9OtsO9mBc/eGv00FDgM31dPqbn29eFkXncvutxjura9I4cEsrU9RzXanefTqMNvtWySQjdXBMnSqz0nV4SCS1TH0WSoy6Zge1hT7DRhFEf1Oi/wHalECmoGMeiYY84zx9A5APoiwbvIXjCcEuuzaVPviJMiGsnw2HLQImwtpw1fNNnQ4eU9FORu7nbuW9R62+li1a/iFeR9EPv1LltR7KsHraPRXrI21EU6J4YkEje/MLOTWVUiTQ4JST38bF3jopdkuyAqsomc9TgxIwOC9h3vs1ijmWJsZDkaESq+AqM3U+wRIBaCSrbZxDlzrc7Yjk1DyUfLH1lTOvvTc=
+X-Forefront-Antispam-Report: CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(136003)(346002)(39860400002)(376002)(396003)(451199015)(46966006)(36840700001)(40470700004)(336012)(107886003)(426003)(2616005)(26005)(6666004)(186003)(1076003)(47076005)(7696005)(36860700001)(83380400001)(2906002)(40460700003)(40480700001)(82310400005)(110136005)(54906003)(478600001)(41300700001)(5660300002)(8936002)(4326008)(70586007)(316002)(70206006)(8676002)(36756003)(82740400003)(356005)(7636003)(86362001)(2101003);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Nov 2022 16:15:00.7498
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Nov 2022 16:15:12.2363
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 61f365f3-c9bb-44c2-fcaa-08dac0db38c5
+X-MS-Exchange-CrossTenant-Network-Message-Id: d209da53-27e4-4290-b067-08dac0db3f9e
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT018.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT084.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB5904
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB5784
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Aharon Landau <aharonl@nvidia.com>
 
-All the mkeys that can use UMR, can be cached.
-Generalize the flow so that creation of all mkeys that can be cached
-will go through to the cache instead of reg_create().
-This will allow us to to extend the cache in following patches to
-support additional non-default cache entries.
+In the next patch, I will change the cache structure to an RB tree.
+Introducing the key of the tree.
+The key is all the mkey properties that UMR operations can't modify.
+Using this key to define the cache entries and to search and create
+cache mkeys.
 
 Signed-off-by: Aharon Landau <aharonl@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 +-
- drivers/infiniband/hw/mlx5/mr.c      | 147 +++++++++++++++------------
- drivers/infiniband/hw/mlx5/odp.c     |   9 +-
- 3 files changed, 87 insertions(+), 75 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 14 +++++-
+ drivers/infiniband/hw/mlx5/mr.c      | 73 +++++++++++++++++++---------
+ drivers/infiniband/hw/mlx5/odp.c     |  8 ++-
+ 3 files changed, 69 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index ac948bb3cfe1..84d3b917c33e 100644
+index 84d3b917c33e..939ec3759eba 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1313,9 +1313,9 @@ int mlx5_ib_get_cqe_size(struct ib_cq *ibcq);
- int mlx5_mkey_cache_init(struct mlx5_ib_dev *dev);
- int mlx5_mkey_cache_cleanup(struct mlx5_ib_dev *dev);
+@@ -613,6 +613,16 @@ enum mlx5_mkey_type {
+ 	MLX5_MKEY_INDIRECT_DEVX,
+ };
  
--struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev,
--				       struct mlx5_cache_ent *ent,
--				       int access_flags);
-+struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev, u8 access_mode,
-+				       unsigned int access_flags,
-+				       unsigned int ndescs);
++struct mlx5r_cache_rb_key {
++	unsigned int access_mode;
++	unsigned int access_flags;
++	/*
++	 * keep ndescs as the last member so entries with about the same ndescs
++	 * will be close in the tree
++	 */
++	unsigned int ndescs;
++};
++
+ struct mlx5_ib_mkey {
+ 	u32 key;
+ 	enum mlx5_mkey_type type;
+@@ -732,10 +742,10 @@ struct mlx5_cache_ent {
+ 	unsigned long		stored;
+ 	unsigned long		reserved;
  
- int mlx5_ib_check_mr_status(struct ib_mr *ibmr, u32 check_mask,
- 			    struct ib_mr_status *mr_status);
++	struct mlx5r_cache_rb_key rb_key;
++
+ 	char                    name[4];
+ 	u32                     order;
+-	u32			access_mode;
+-	unsigned int		ndescs;
+ 
+ 	u8 disabled:1;
+ 	u8 fill_to_high_water:1;
 diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 29ad674a9bcd..8ff10944ff16 100644
+index fe5567c57897..e7a3d4fa52d0 100644
 --- a/drivers/infiniband/hw/mlx5/mr.c
 +++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -287,16 +287,18 @@ static int get_mkc_octo_size(unsigned int access_mode, unsigned int ndescs)
+@@ -287,18 +287,18 @@ static int get_mkc_octo_size(unsigned int access_mode, unsigned int ndescs)
  	return ret;
  }
  
--static void set_cache_mkc(struct mlx5_cache_ent *ent, void *mkc)
-+static void set_cache_mkc(struct mlx5_ib_dev *dev, u8 access_mode,
-+			  unsigned int access_flags, unsigned int ndescs,
-+			  void *mkc)
+-static void set_cache_mkc(struct mlx5_ib_dev *dev, u8 access_mode,
+-			  unsigned int access_flags, unsigned int ndescs,
+-			  void *mkc)
++static void set_cache_mkc(struct mlx5_ib_dev *dev,
++			  struct mlx5r_cache_rb_key rb_key, void *mkc)
  {
--	set_mkc_access_pd_addr_fields(mkc, 0, 0, ent->dev->umrc.pd);
-+	set_mkc_access_pd_addr_fields(mkc, access_flags, 0, dev->umrc.pd);
+-	set_mkc_access_pd_addr_fields(mkc, access_flags, 0, dev->umrc.pd);
++	set_mkc_access_pd_addr_fields(mkc, rb_key.access_flags, 0,
++				      dev->umrc.pd);
  	MLX5_SET(mkc, mkc, free, 1);
  	MLX5_SET(mkc, mkc, umr_en, 1);
--	MLX5_SET(mkc, mkc, access_mode_1_0, ent->access_mode & 0x3);
--	MLX5_SET(mkc, mkc, access_mode_4_2, (ent->access_mode >> 2) & 0x7);
-+	MLX5_SET(mkc, mkc, access_mode_1_0, access_mode & 0x3);
-+	MLX5_SET(mkc, mkc, access_mode_4_2, (access_mode >> 2) & 0x7);
+-	MLX5_SET(mkc, mkc, access_mode_1_0, access_mode & 0x3);
+-	MLX5_SET(mkc, mkc, access_mode_4_2, (access_mode >> 2) & 0x7);
++	MLX5_SET(mkc, mkc, access_mode_1_0, rb_key.access_mode & 0x3);
++	MLX5_SET(mkc, mkc, access_mode_4_2, (rb_key.access_mode >> 2) & 0x7);
  
  	MLX5_SET(mkc, mkc, translations_octword_size,
--		 get_mkc_octo_size(ent->access_mode, ent->ndescs));
-+		 get_mkc_octo_size(access_mode, ndescs));
+-		 get_mkc_octo_size(access_mode, ndescs));
++		 get_mkc_octo_size(rb_key.access_mode, rb_key.ndescs));
  	MLX5_SET(mkc, mkc, log_page_size, PAGE_SHIFT);
  }
  
-@@ -315,7 +317,7 @@ static int add_keys(struct mlx5_cache_ent *ent, unsigned int num)
+@@ -317,7 +317,7 @@ static int add_keys(struct mlx5_cache_ent *ent, unsigned int num)
  			return -ENOMEM;
  		mkc = MLX5_ADDR_OF(create_mkey_in, async_create->in,
  				   memory_key_mkey_entry);
--		set_cache_mkc(ent, mkc);
-+		set_cache_mkc(ent->dev, ent->access_mode, 0, ent->ndescs, mkc);
+-		set_cache_mkc(ent->dev, ent->access_mode, 0, ent->ndescs, mkc);
++		set_cache_mkc(ent->dev, ent->rb_key, mkc);
  		async_create->ent = ent;
  
  		err = push_mkey(ent, true, NULL);
-@@ -340,8 +342,10 @@ static int add_keys(struct mlx5_cache_ent *ent, unsigned int num)
- 	return err;
+@@ -343,8 +343,8 @@ static int add_keys(struct mlx5_cache_ent *ent, unsigned int num)
  }
  
--/* Synchronously create a MR in the cache */
--static int create_cache_mkey(struct mlx5_cache_ent *ent, u32 *mkey)
-+/* Synchronously create a cacheable mkey */
-+static int create_cache_mkey(struct mlx5_ib_dev *dev, u8 access_mode,
-+			     unsigned int access_flags, unsigned int ndescs,
-+			     struct mlx5_ib_mkey *mkey)
+ /* Synchronously create a cacheable mkey */
+-static int create_cache_mkey(struct mlx5_ib_dev *dev, u8 access_mode,
+-			     unsigned int access_flags, unsigned int ndescs,
++static int create_cache_mkey(struct mlx5_ib_dev *dev,
++			     struct mlx5r_cache_rb_key rb_key,
+ 			     struct mlx5_ib_mkey *mkey)
  {
  	size_t inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
- 	void *mkc;
-@@ -352,14 +356,9 @@ static int create_cache_mkey(struct mlx5_cache_ent *ent, u32 *mkey)
+@@ -356,7 +356,7 @@ static int create_cache_mkey(struct mlx5_ib_dev *dev, u8 access_mode,
  	if (!in)
  		return -ENOMEM;
  	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
--	set_cache_mkc(ent, mkc);
--
--	err = mlx5_core_create_mkey(ent->dev->mdev, mkey, in, inlen);
--	if (err)
--		goto free_in;
-+	set_cache_mkc(dev, access_mode, access_flags, ndescs, mkc);
+-	set_cache_mkc(dev, access_mode, access_flags, ndescs, mkc);
++	set_cache_mkc(dev, rb_key, mkc);
  
--	WRITE_ONCE(ent->dev->cache.last_add, jiffies);
--free_in:
-+	err = mlx5_ib_create_mkey(dev, mkey, in, inlen);
+ 	err = mlx5_ib_create_mkey(dev, mkey, in, inlen);
  	kfree(in);
- 	return err;
- }
-@@ -637,41 +636,80 @@ static void delayed_cache_work_func(struct work_struct *work)
- 	__cache_work_func(ent);
+@@ -647,7 +647,7 @@ static bool mlx5_ent_get_mkey(struct mlx5_cache_ent *ent, struct mlx5_ib_mr *mr)
+ 	}
+ 
+ 	mr->mmkey.key = pop_stored_mkey(ent);
+-	mr->mmkey.ndescs = ent->ndescs;
++	mr->mmkey.ndescs = ent->rb_key.ndescs;
+ 	mr->mmkey.cache_ent = ent;
+ 	queue_adjust_cache_locked(ent);
+ 	ent->in_use++;
+@@ -668,29 +668,57 @@ static struct mlx5_cache_ent *mkey_cache_ent_from_order(struct mlx5_ib_dev *dev,
+ 	return &cache->ent[order];
  }
  
--struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev,
--				       struct mlx5_cache_ent *ent,
--				       int access_flags)
-+static bool mlx5_ent_get_mkey(struct mlx5_cache_ent *ent, struct mlx5_ib_mr *mr)
+-static bool mlx5_cache_get_mkey(struct mlx5_ib_dev *dev, u8 access_mode,
+-				u8 access_flags, unsigned int ndescs,
++static bool mlx5_cache_get_mkey(struct mlx5_ib_dev *dev,
++				struct mlx5r_cache_rb_key rb_key,
+ 				struct mlx5_ib_mr *mr)
  {
--	struct mlx5_ib_mr *mr;
--	int err;
-+	xa_lock_irq(&ent->mkeys);
-+	if (!ent->stored) {
-+		queue_adjust_cache_locked(ent);
-+		ent->miss++;
-+		xa_unlock_irq(&ent->mkeys);
-+		return false;
-+	}
-+
-+	mr->mmkey.key = pop_stored_mkey(ent);
-+	mr->mmkey.ndescs = ent->ndescs;
-+	mr->mmkey.cache_ent = ent;
-+	queue_adjust_cache_locked(ent);
-+	ent->in_use++;
-+	xa_unlock_irq(&ent->mkeys);
-+	return true;
-+}
-+
-+static struct mlx5_cache_ent *mkey_cache_ent_from_order(struct mlx5_ib_dev *dev,
-+							unsigned int order)
-+{
-+	struct mlx5_mkey_cache *cache = &dev->cache;
-+
-+	if (order < cache->ent[0].order)
-+		return &cache->ent[0];
-+	order = order - cache->ent[0].order;
-+	if (order > MKEY_CACHE_LAST_STD_ENTRY)
-+		return NULL;
-+	return &cache->ent[order];
-+}
-+
-+static bool mlx5_cache_get_mkey(struct mlx5_ib_dev *dev, u8 access_mode,
-+				u8 access_flags, unsigned int ndescs,
-+				struct mlx5_ib_mr *mr)
-+{
-+	struct mlx5_cache_ent *ent;
+ 	struct mlx5_cache_ent *ent;
  
- 	if (!mlx5r_umr_can_reconfig(dev, 0, access_flags))
--		return ERR_PTR(-EOPNOTSUPP);
-+		return false;
+-	if (!mlx5r_umr_can_reconfig(dev, 0, access_flags))
++	if (!mlx5r_umr_can_reconfig(dev, 0, rb_key.access_flags))
+ 		return false;
+ 
+-	if (access_mode == MLX5_MKC_ACCESS_MODE_KSM)
++	if (rb_key.access_mode == MLX5_MKC_ACCESS_MODE_KSM)
+ 		ent = &dev->cache.ent[MLX5_IMR_KSM_CACHE_ENTRY];
+ 
+-	ent = mkey_cache_ent_from_order(dev, order_base_2(ndescs));
++	ent = mkey_cache_ent_from_order(dev, order_base_2(rb_key.ndescs));
+ 	if (!ent)
+ 		return false;
+ 
+ 	return mlx5_ent_get_mkey(ent, mr);
+ }
+ 
++static int get_uchangeable_access_flags(struct mlx5_ib_dev *dev,
++					int access_flags)
++{
++	int ret = 0;
 +
-+	if (access_mode == MLX5_MKC_ACCESS_MODE_KSM)
-+		ent = &dev->cache.ent[MLX5_IMR_KSM_CACHE_ENTRY];
++	if ((access_flags & IB_ACCESS_REMOTE_ATOMIC) &&
++	    MLX5_CAP_GEN(dev->mdev, atomic) &&
++	    MLX5_CAP_GEN(dev->mdev, umr_modify_atomic_disabled))
++		ret |= IB_ACCESS_REMOTE_ATOMIC;
 +
-+	ent = mkey_cache_ent_from_order(dev, order_base_2(ndescs));
-+	if (!ent)
-+		return false;
++	if ((access_flags & IB_ACCESS_RELAXED_ORDERING) &&
++	    MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write) &&
++	    !MLX5_CAP_GEN(dev->mdev, relaxed_ordering_write_umr))
++		ret |= IB_ACCESS_RELAXED_ORDERING;
 +
-+	return mlx5_ent_get_mkey(ent, mr);
++	if ((access_flags & IB_ACCESS_RELAXED_ORDERING) &&
++	    MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read) &&
++	    !MLX5_CAP_GEN(dev->mdev, relaxed_ordering_read_umr))
++		ret |= IB_ACCESS_RELAXED_ORDERING;
++
++	return ret;
 +}
 +
-+struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev, u8 access_mode,
-+				       unsigned int access_flags,
-+				       unsigned int ndescs)
-+{
-+	struct mlx5_ib_mr *mr;
-+	int err;
+ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev, u8 access_mode,
+ 				       unsigned int access_flags,
+ 				       unsigned int ndescs)
+ {
++	struct mlx5r_cache_rb_key rb_key = {
++		.access_mode = access_mode,
++		.access_flags = get_uchangeable_access_flags(dev, access_flags),
++		.ndescs = ndescs
++	};
+ 	struct mlx5_ib_mr *mr;
+ 	int err;
  
- 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
+@@ -698,13 +726,12 @@ struct mlx5_ib_mr *mlx5_mr_cache_alloc(struct mlx5_ib_dev *dev, u8 access_mode,
  	if (!mr)
  		return ERR_PTR(-ENOMEM);
  
--	xa_lock_irq(&ent->mkeys);
--	ent->in_use++;
--
--	if (!ent->stored) {
--		queue_adjust_cache_locked(ent);
--		ent->miss++;
--		xa_unlock_irq(&ent->mkeys);
--		err = create_cache_mkey(ent, &mr->mmkey.key);
-+	if (!mlx5_cache_get_mkey(dev, access_mode, access_flags, ndescs, mr)) {
-+		/*
-+		 * Didn't find an mkey in cache.
-+		 * Create an mkey with the exact needed size.
-+		 */
-+		err = create_cache_mkey(dev, access_mode, access_flags, ndescs,
-+					&mr->mmkey);
+-	if (!mlx5_cache_get_mkey(dev, access_mode, access_flags, ndescs, mr)) {
++	if (!mlx5_cache_get_mkey(dev, rb_key, mr)) {
+ 		/*
+ 		 * Didn't find an mkey in cache.
+ 		 * Create an mkey with the exact needed size.
+ 		 */
+-		err = create_cache_mkey(dev, access_mode, access_flags, ndescs,
+-					&mr->mmkey);
++		err = create_cache_mkey(dev, rb_key, &mr->mmkey);
  		if (err) {
--			xa_lock_irq(&ent->mkeys);
--			ent->in_use--;
--			xa_unlock_irq(&ent->mkeys);
  			kfree(mr);
  			return ERR_PTR(err);
- 		}
--	} else {
--		mr->mmkey.key = pop_stored_mkey(ent);
--		queue_adjust_cache_locked(ent);
--		xa_unlock_irq(&ent->mkeys);
- 	}
--	mr->mmkey.cache_ent = ent;
- 	mr->mmkey.type = MLX5_MKEY_MR;
- 	init_waitqueue_head(&mr->mmkey.wait);
- 	return mr;
-@@ -876,19 +914,6 @@ static int mkey_cache_max_order(struct mlx5_ib_dev *dev)
- 	return MLX5_MAX_UMR_SHIFT;
- }
+@@ -774,6 +801,8 @@ static void delay_time_func(struct timer_list *t)
  
--static struct mlx5_cache_ent *mkey_cache_ent_from_order(struct mlx5_ib_dev *dev,
--							unsigned int order)
--{
--	struct mlx5_mkey_cache *cache = &dev->cache;
--
--	if (order < cache->ent[0].order)
--		return &cache->ent[0];
--	order = order - cache->ent[0].order;
--	if (order > MKEY_CACHE_LAST_STD_ENTRY)
--		return NULL;
--	return &cache->ent[order];
--}
--
- static void set_mr_fields(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
- 			  u64 length, int access_flags, u64 iova)
+ int mlx5_mkey_cache_init(struct mlx5_ib_dev *dev)
  {
-@@ -916,9 +941,8 @@ static struct mlx5_ib_mr *alloc_cacheable_mr(struct ib_pd *pd,
- 					     int access_flags)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
--	struct mlx5_cache_ent *ent;
-+	unsigned int page_size, ndescs;
- 	struct mlx5_ib_mr *mr;
--	unsigned int page_size;
++	struct mlx5r_cache_rb_key rb_key = { .access_mode =
++						    MLX5_MKC_ACCESS_MODE_MTT };
+ 	struct mlx5_mkey_cache *cache = &dev->cache;
+ 	struct mlx5_cache_ent *ent;
+ 	int i;
+@@ -804,8 +833,8 @@ int mlx5_mkey_cache_init(struct mlx5_ib_dev *dev)
+ 		if (ent->order > mkey_cache_max_order(dev))
+ 			continue;
  
- 	if (umem->is_dmabuf)
- 		page_size = mlx5_umem_dmabuf_default_pgsz(umem, iova);
-@@ -927,22 +951,11 @@ static struct mlx5_ib_mr *alloc_cacheable_mr(struct ib_pd *pd,
- 						     0, iova);
- 	if (WARN_ON(!page_size))
- 		return ERR_PTR(-EINVAL);
--	ent = mkey_cache_ent_from_order(
--		dev, order_base_2(ib_umem_num_dma_blocks(umem, page_size)));
--	/*
--	 * Matches access in alloc_cache_mr(). If the MR can't come from the
--	 * cache then synchronously create an uncached one.
--	 */
--	if (!ent || ent->limit == 0 ||
--	    !mlx5r_umr_can_reconfig(dev, 0, access_flags) ||
--	    mlx5_umem_needs_ats(dev, umem, access_flags)) {
--		mutex_lock(&dev->slow_path_mutex);
--		mr = reg_create(pd, umem, iova, access_flags, page_size, false);
--		mutex_unlock(&dev->slow_path_mutex);
--		return mr;
--	}
- 
--	mr = mlx5_mr_cache_alloc(dev, ent, access_flags);
-+	ndescs = ib_umem_num_dma_blocks(umem, page_size);
-+
-+	mr = mlx5_mr_cache_alloc(dev, MLX5_MKC_ACCESS_MODE_MTT,
-+				 access_flags, ndescs);
- 	if (IS_ERR(mr))
- 		return mr;
- 
+-		ent->ndescs = 1 << ent->order;
+-		ent->access_mode = MLX5_MKC_ACCESS_MODE_MTT;
++		rb_key.ndescs = 1 << ent->order;
++		ent->rb_key = rb_key;
+ 		if ((dev->mdev->profile.mask & MLX5_PROF_MASK_MR_CACHE) &&
+ 		    !dev->is_rep && mlx5_core_is_pf(dev->mdev) &&
+ 		    mlx5r_umr_can_load_pas(dev, 0))
 diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index e9a29adef7dc..f7c9eeaa8e79 100644
+index 137143da5959..90339edddfed 100644
 --- a/drivers/infiniband/hw/mlx5/odp.c
 +++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -418,8 +418,8 @@ static struct mlx5_ib_mr *implicit_get_child_mr(struct mlx5_ib_mr *imr,
- 	if (IS_ERR(odp))
- 		return ERR_CAST(odp);
+@@ -1589,10 +1589,14 @@ mlx5_ib_odp_destroy_eq(struct mlx5_ib_dev *dev, struct mlx5_ib_pf_eq *eq)
  
--	mr = mlx5_mr_cache_alloc(dev, &dev->cache.ent[MLX5_IMR_MTT_CACHE_ENTRY],
--				 imr->access_flags);
-+	mr = mlx5_mr_cache_alloc(dev, MLX5_MKC_ACCESS_MODE_MTT,
-+				 imr->access_flags, MLX5_IMR_MTT_ENTRIES);
- 	if (IS_ERR(mr)) {
- 		ib_umem_odp_release(odp);
- 		return mr;
-@@ -493,9 +493,8 @@ struct mlx5_ib_mr *mlx5_ib_alloc_implicit_mr(struct mlx5_ib_pd *pd,
- 	if (IS_ERR(umem_odp))
- 		return ERR_CAST(umem_odp);
+ void mlx5_odp_init_mkey_cache_entry(struct mlx5_cache_ent *ent)
+ {
++	struct mlx5r_cache_rb_key rb_key = {
++		.access_mode = MLX5_MKC_ACCESS_MODE_KSM,
++		.ndescs = mlx5_imr_ksm_entries
++	};
++
+ 	if (!(ent->dev->odp_caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
+ 		return;
+-	ent->ndescs = mlx5_imr_ksm_entries;
+-	ent->access_mode = MLX5_MKC_ACCESS_MODE_KSM;
++	ent->rb_key = rb_key;
+ }
  
--	imr = mlx5_mr_cache_alloc(dev,
--				  &dev->cache.ent[MLX5_IMR_KSM_CACHE_ENTRY],
--				  access_flags);
-+	imr = mlx5_mr_cache_alloc(dev, MLX5_MKC_ACCESS_MODE_KSM, access_flags,
-+				  mlx5_imr_ksm_entries);
- 	if (IS_ERR(imr)) {
- 		ib_umem_odp_release(umem_odp);
- 		return imr;
+ static const struct ib_device_ops mlx5_ib_dev_odp_ops = {
 -- 
 2.17.2
 
