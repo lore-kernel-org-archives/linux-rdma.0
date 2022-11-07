@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB976C4167D
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:21:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07A18C4167E
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:21:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232498AbiKGQVK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Nov 2022 11:21:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42518 "EHLO
+        id S232032AbiKGQVL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Nov 2022 11:21:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232032AbiKGQUe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:20:34 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1360A220D1
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:19:09 -0800 (PST)
+        with ESMTP id S232568AbiKGQUb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:20:31 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C915A2127A
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:18:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1667837949;
+        s=mimecast20190719; t=1667837931;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=vTxiy4wmEQ2Tx61KeZ7EnYpqIVEsJFtTV/INlCwg4Xw=;
-        b=cPkPHNos+I/kdufBnr4lBzz4FYSjFU3FaCcmpe9UOcPHZJuMqFgulvgzibjHFlO2KfPwA3
-        Dzhpu8J34LpVRxab0bPofpFKFoNW54Z1m8tZogdCL1Zx1tNcO4PcV/07Pj4L2lK4AsRvfA
-        pTLOaIQ4ZG7YoXLwScnceqSwYeRdW8Q=
+        bh=8LSm/ABK1dZuzbBLIy952PsCCtserHCfNmIiwyOpplI=;
+        b=RdSdUt2GW5cwaYQVODN5j4c4R2xeYiOKSkGl9NHcM9cde02Y13IOYfP555Iv7e09erBL1n
+        ca6XABgd1Z4+4Hwo2dqlOZ5wI/RqMt61Zm1wg1uu+Qak51rrnzNHG8x6bsi8AYJq+U6Ow2
+        Z8Vv0EUmsC+sqPIb1/QsMm3+veKHtko=
 Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
  [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-128-AohbtXG3NbqOyb9Xxa7ytw-1; Mon, 07 Nov 2022 11:19:05 -0500
-X-MC-Unique: AohbtXG3NbqOyb9Xxa7ytw-1
+ us-mta-491-BzZ6c9HQOyGIJKIwV5MVVA-1; Mon, 07 Nov 2022 11:18:47 -0500
+X-MC-Unique: BzZ6c9HQOyGIJKIwV5MVVA-1
 Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id DF7B33C0F679;
-        Mon,  7 Nov 2022 16:19:04 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 5AA663C0F671;
+        Mon,  7 Nov 2022 16:18:46 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.195.106])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 3E8444B400F;
-        Mon,  7 Nov 2022 16:18:59 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 8D9544B4010;
+        Mon,  7 Nov 2022 16:18:40 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     linux-mm@kvack.org, etnaviv@lists.freedesktop.org,
@@ -61,10 +61,10 @@ Cc:     linux-mm@kvack.org, etnaviv@lists.freedesktop.org,
         David Airlie <airlied@gmail.com>,
         Oded Gabbay <ogabbay@kernel.org>,
         Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH RFC 13/19] media: videobuf-dma-sg: remove FOLL_FORCE usage
-Date:   Mon,  7 Nov 2022 17:17:34 +0100
-Message-Id: <20221107161740.144456-14-david@redhat.com>
+        Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH RFC 10/19] RDMA/umem: remove FOLL_FORCE usage
+Date:   Mon,  7 Nov 2022 17:17:31 +0100
+Message-Id: <20221107161740.144456-11-david@redhat.com>
 In-Reply-To: <20221107161740.144456-1-david@redhat.com>
 References: <20221107161740.144456-1-david@redhat.com>
 MIME-Version: 1.0
@@ -84,54 +84,46 @@ Consequently, FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM is no longer required
 for reliable R/O long-term pinning: FOLL_LONGTERM is sufficient. So stop
 using FOLL_FORCE, which is really only for debugger access.
 
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- drivers/media/v4l2-core/videobuf-dma-sg.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/infiniband/core/umem.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index f75e5eedeee0..234e9f647c96 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -151,17 +151,16 @@ static void videobuf_dma_init(struct videobuf_dmabuf *dma)
- static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 			int direction, unsigned long data, unsigned long size)
- {
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 86d479772fbc..755a9c57db6f 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -156,7 +156,7 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
+ 	struct mm_struct *mm;
+ 	unsigned long npages;
+ 	int pinned, ret;
+-	unsigned int gup_flags = FOLL_WRITE;
 +	unsigned int gup_flags = FOLL_LONGTERM;
- 	unsigned long first, last;
--	int err, rw = 0;
--	unsigned int flags = FOLL_FORCE;
-+	int err;
  
- 	dma->direction = direction;
- 	switch (dma->direction) {
- 	case DMA_FROM_DEVICE:
--		rw = READ;
+ 	/*
+ 	 * If the combination of the addr and size requested for this memory
+@@ -210,8 +210,8 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
+ 
+ 	cur_base = addr & PAGE_MASK;
+ 
+-	if (!umem->writable)
+-		gup_flags |= FOLL_FORCE;
++	if (umem->writable)
 +		gup_flags |= FOLL_WRITE;
- 		break;
- 	case DMA_TO_DEVICE:
--		rw = WRITE;
- 		break;
- 	default:
- 		BUG();
-@@ -177,14 +176,11 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	if (NULL == dma->pages)
- 		return -ENOMEM;
  
--	if (rw == READ)
--		flags |= FOLL_WRITE;
--
- 	dprintk(1, "init user [0x%lx+0x%lx => %lu pages]\n",
- 		data, size, dma->nr_pages);
- 
--	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages,
--			     flags | FOLL_LONGTERM, dma->pages, NULL);
-+	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages, gup_flags,
-+			     dma->pages, NULL);
- 
- 	if (err != dma->nr_pages) {
- 		dma->nr_pages = (err >= 0) ? err : 0;
+ 	while (npages) {
+ 		cond_resched();
+@@ -219,7 +219,7 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
+ 					  min_t(unsigned long, npages,
+ 						PAGE_SIZE /
+ 						sizeof(struct page *)),
+-					  gup_flags | FOLL_LONGTERM, page_list);
++					  gup_flags, page_list);
+ 		if (pinned < 0) {
+ 			ret = pinned;
+ 			goto umem_release;
 -- 
 2.38.1
 
