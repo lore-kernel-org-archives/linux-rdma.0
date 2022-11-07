@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A71CC43219
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:20:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6F9AC4167B
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:20:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232538AbiKGQUI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Nov 2022 11:20:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42348 "EHLO
+        id S232070AbiKGQUK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Nov 2022 11:20:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232240AbiKGQUF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:20:05 -0500
+        with ESMTP id S232016AbiKGQUD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:20:03 -0500
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 446CF18B28
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:18:29 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0453B20BC4
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:18:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1667837908;
+        s=mimecast20190719; t=1667837896;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=cVOAyJTl2MTgo2X9FfMYjP1wgsYUPslaZQjoDmvS5eo=;
-        b=F7ShYpgWJGGm6cI74s3F4CmVtJcoZepqfQJwwFCsvXLg2bNe32R6SOUC8nyyxj1/VOr8dB
-        TT1bIV50WIkFi+XVA2661cfHG/pcGLqUk7o9xevJ4DsI0qq9gUiC8BEbJGi2OLTYiN22hg
-        RAfHMJlzbapgQ6MBo8NiKgXANNQQdc8=
+        bh=jDk9bhO7j0dBiRTBonVIWKZ9rsqO0bmea9iIm0D/070=;
+        b=iFVY41cTTPRSJ1kODRwBXGuHNaqrVjb/x7mEg1GSJ5pfD/hAoWvpFbAqCLyqf3HWkOPFEt
+        Gq2a1XNUS8+MibYDBuwbl2FeJQ76ljUzQ+HZK7dZ1xQzF7QE2iqK/pa+3a8kJADDQS2uxr
+        fQPEiF+vhX6llOOgdwXcH7ZELSfwGqg=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-674-3Mv0bTVcNnGiSvjrzw7oMg-1; Mon, 07 Nov 2022 11:18:24 -0500
-X-MC-Unique: 3Mv0bTVcNnGiSvjrzw7oMg-1
+ us-mta-316-TGbR2pUAPIyw3MgPlt6EzA-1; Mon, 07 Nov 2022 11:18:13 -0500
+X-MC-Unique: TGbR2pUAPIyw3MgPlt6EzA-1
 Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 05639185A7AA;
-        Mon,  7 Nov 2022 16:18:23 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D2455857FAB;
+        Mon,  7 Nov 2022 16:18:11 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.195.106])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A60F24B3FC8;
-        Mon,  7 Nov 2022 16:18:17 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 497EF4B3FC6;
+        Mon,  7 Nov 2022 16:18:05 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     linux-mm@kvack.org, etnaviv@lists.freedesktop.org,
@@ -60,9 +60,9 @@ Cc:     linux-mm@kvack.org, etnaviv@lists.freedesktop.org,
         Lucas Stach <l.stach@pengutronix.de>,
         David Airlie <airlied@gmail.com>,
         Oded Gabbay <ogabbay@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH RFC 06/19] mm: rework handling in do_wp_page() based on private vs. shared mappings
-Date:   Mon,  7 Nov 2022 17:17:27 +0100
-Message-Id: <20221107161740.144456-7-david@redhat.com>
+Subject: [PATCH RFC 04/19] mm: add early FAULT_FLAG_UNSHARE consistency checks
+Date:   Mon,  7 Nov 2022 17:17:25 +0100
+Message-Id: <20221107161740.144456-5-david@redhat.com>
 In-Reply-To: <20221107161740.144456-1-david@redhat.com>
 References: <20221107161740.144456-1-david@redhat.com>
 MIME-Version: 1.0
@@ -72,103 +72,108 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-We want to extent FAULT_FLAG_UNSHARE support to anything mapped into a
-COW mapping (pagecache page, zeropage, PFN, ...), not just anonymous pages.
-Let's prepare for that by handling shared mappings first such that we can
-handle private mappings last.
+For now, FAULT_FLAG_UNSHARE only applies to anonymous pages, which
+implies a COW mapping. Let's hide FAULT_FLAG_UNSHARE early if we're not
+dealing with a COW mapping, such that we treat it like a read fault as
+documented and don't have to worry about the flag throughout all fault
+handlers.
 
-While at it, use folio-based functions instead of page-based functions
-where we touch the code either way.
+While at it, centralize the check for mutual exclusion of
+FAULT_FLAG_UNSHARE and FAULT_FLAG_WRITE and just drop the check that
+either flag is set in the WP handler.
 
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- mm/memory.c | 38 +++++++++++++++++---------------------
- 1 file changed, 17 insertions(+), 21 deletions(-)
+ mm/huge_memory.c |  3 ---
+ mm/hugetlb.c     |  5 -----
+ mm/memory.c      | 23 ++++++++++++++++++++---
+ 3 files changed, 20 insertions(+), 11 deletions(-)
 
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 1d47b3f7b877..7173756d6868 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -1267,9 +1267,6 @@ vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf)
+ 	vmf->ptl = pmd_lockptr(vma->vm_mm, vmf->pmd);
+ 	VM_BUG_ON_VMA(!vma->anon_vma, vma);
+ 
+-	VM_BUG_ON(unshare && (vmf->flags & FAULT_FLAG_WRITE));
+-	VM_BUG_ON(!unshare && !(vmf->flags & FAULT_FLAG_WRITE));
+-
+ 	if (is_huge_zero_pmd(orig_pmd))
+ 		goto fallback;
+ 
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index be572af75d9c..3672c7e06748 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -5316,9 +5316,6 @@ static vm_fault_t hugetlb_wp(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	unsigned long haddr = address & huge_page_mask(h);
+ 	struct mmu_notifier_range range;
+ 
+-	VM_BUG_ON(unshare && (flags & FOLL_WRITE));
+-	VM_BUG_ON(!unshare && !(flags & FOLL_WRITE));
+-
+ 	/*
+ 	 * hugetlb does not support FOLL_FORCE-style write faults that keep the
+ 	 * PTE mapped R/O such as maybe_mkwrite() would do.
+@@ -5328,8 +5325,6 @@ static vm_fault_t hugetlb_wp(struct mm_struct *mm, struct vm_area_struct *vma,
+ 
+ 	/* Let's take out MAP_SHARED mappings first. */
+ 	if (vma->vm_flags & VM_MAYSHARE) {
+-		if (unlikely(unshare))
+-			return 0;
+ 		set_huge_ptep_writable(vma, haddr, ptep);
+ 		return 0;
+ 	}
 diff --git a/mm/memory.c b/mm/memory.c
-index 826353da7b23..41e4c697033a 100644
+index 78e2c58f6f31..fe131273217a 100644
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -3341,7 +3341,7 @@ static vm_fault_t do_wp_page(struct vm_fault *vmf)
- {
- 	const bool unshare = vmf->flags & FAULT_FLAG_UNSHARE;
+@@ -3343,9 +3343,6 @@ static vm_fault_t do_wp_page(struct vm_fault *vmf)
  	struct vm_area_struct *vma = vmf->vma;
--	struct folio *folio;
-+	struct folio *folio = NULL;
+ 	struct folio *folio;
  
+-	VM_BUG_ON(unshare && (vmf->flags & FAULT_FLAG_WRITE));
+-	VM_BUG_ON(!unshare && !(vmf->flags & FAULT_FLAG_WRITE));
+-
  	if (likely(!unshare)) {
  		if (userfaultfd_pte_wp(vma, *vmf->pte)) {
-@@ -3359,13 +3359,12 @@ static vm_fault_t do_wp_page(struct vm_fault *vmf)
- 	}
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+@@ -5150,6 +5147,22 @@ static void lru_gen_exit_fault(void)
+ }
+ #endif /* CONFIG_LRU_GEN */
  
- 	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
--	if (!vmf->page) {
--		if (unlikely(unshare)) {
--			/* No anonymous page -> nothing to do. */
--			pte_unmap_unlock(vmf->pte, vmf->ptl);
--			return 0;
--		}
- 
-+	/*
-+	 * Shared mapping: we are guaranteed to have VM_WRITE and
-+	 * FAULT_FLAG_WRITE set at this point.
-+	 */
-+	if (vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) {
- 		/*
- 		 * VM_MIXEDMAP !pfn_valid() case, or VM_SOFTDIRTY clear on a
- 		 * VM_PFNMAP VMA.
-@@ -3373,20 +3372,19 @@ static vm_fault_t do_wp_page(struct vm_fault *vmf)
- 		 * We should not cow pages in a shared writeable mapping.
- 		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
- 		 */
--		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
--				     (VM_WRITE|VM_SHARED))
-+		if (!vmf->page)
- 			return wp_pfn_shared(vmf);
--
--		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		return wp_page_copy(vmf);
-+		return wp_page_shared(vmf);
- 	}
- 
-+	if (vmf->page)
-+		folio = page_folio(vmf->page);
++static vm_fault_t sanitize_fault_flags(struct vm_area_struct *vma,
++				       unsigned int *flags)
++{
++	if (unlikely(*flags & FAULT_FLAG_UNSHARE)) {
++		if (WARN_ON_ONCE(*flags & FAULT_FLAG_WRITE))
++			return VM_FAULT_SIGSEGV;
++		/*
++		 * FAULT_FLAG_UNSHARE only applies to COW mappings. Let's
++		 * just treat it like an ordinary read-fault otherwise.
++		 */
++		if (!is_cow_mapping(vma->vm_flags))
++			*flags &= ~FAULT_FLAG_UNSHARE;
++	}
++	return 0;
++}
 +
- 	/*
--	 * Take out anonymous pages first, anonymous shared vmas are
--	 * not dirty accountable.
-+	 * Private mapping: create an exclusive anonymous page copy if reuse
-+	 * is impossible. We might miss VM_WRITE for FOLL_FORCE handling.
- 	 */
--	folio = page_folio(vmf->page);
--	if (folio_test_anon(folio)) {
-+	if (folio && folio_test_anon(folio)) {
- 		/*
- 		 * If the page is exclusive to this process we must reuse the
- 		 * page without further checks.
-@@ -3437,19 +3435,17 @@ static vm_fault_t do_wp_page(struct vm_fault *vmf)
- 		/* No anonymous page -> nothing to do. */
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
- 		return 0;
--	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
--					(VM_WRITE|VM_SHARED))) {
--		return wp_page_shared(vmf);
- 	}
- copy:
- 	/*
- 	 * Ok, we need to copy. Oh, well..
- 	 */
--	get_page(vmf->page);
-+	if (folio)
-+		folio_get(folio);
+ /*
+  * By the time we get here, we already hold the mm semaphore
+  *
+@@ -5166,6 +5179,10 @@ vm_fault_t handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
+ 	count_vm_event(PGFAULT);
+ 	count_memcg_event_mm(vma->vm_mm, PGFAULT);
  
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- #ifdef CONFIG_KSM
--	if (PageKsm(vmf->page))
-+	if (folio && folio_test_ksm(folio))
- 		count_vm_event(COW_KSM);
- #endif
- 	return wp_page_copy(vmf);
++	ret = sanitize_fault_flags(vma, &flags);
++	if (ret)
++		return ret;
++
+ 	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
+ 					    flags & FAULT_FLAG_INSTRUCTION,
+ 					    flags & FAULT_FLAG_REMOTE))
 -- 
 2.38.1
 
