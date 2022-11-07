@@ -2,68 +2,78 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16536C4332F
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 08:51:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D962BC4332F
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 08:51:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231460AbiKGIvq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Nov 2022 03:51:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51694 "EHLO
+        id S231476AbiKGIv5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Nov 2022 03:51:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231449AbiKGIvp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 03:51:45 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAB7413DC3
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 00:51:44 -0800 (PST)
+        with ESMTP id S231449AbiKGIvw (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 03:51:52 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B74B15832
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 00:51:51 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5515B60F59
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:51:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FF92C433D6;
-        Mon,  7 Nov 2022 08:51:42 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 22DD6B80E6A
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:51:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A284C433C1;
+        Mon,  7 Nov 2022 08:51:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1667811103;
-        bh=NuqbUG7YIUbuVnICeTUeFbLjbylePWzusqyF/6BSHT4=;
-        h=From:To:Cc:Subject:Date:From;
-        b=OI0DJDPvlTEHEVlTcJl2N6LKVAMsshk6CrgPw/pVjOPhRnki9QL5HOW4INtV2mYR0
-         IHifMBxhFq4QLsBiPL+ix2KGxRv2SSKFn7gkRlNhYvjYTDp5iDL6JqldTLyTAScicq
-         MT3kNAbJOC0NmNu12xJQeS2prU+cHo4hwSvflKv3zQWykIFdqs9YWB5ys4cQYrih69
-         3dOhGntiOK0hjWX0711QQRYEY2v7WANuYSfSZ1ivgSmvZGze8bRn2QdkNdJQ4MPNxe
-         y5ryJojxW5XCMg+7cC7OMnmj7HKzpfuOizicfU2Z/1UhZ0aaXciKXB0dXSGEboHQ6b
-         Cq6ENonu3x8Lg==
+        s=k20201202; t=1667811108;
+        bh=Xm97nTTw9iBpkr85kFkbOLaoix4xkI1EJ8ctSlG9Kuc=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=NOLIOzr8qgKjfCPhQxuHnioy+Vl4NMbnI/7yTc9MVEd9WfCnP1U70ZGrjMPD4D2/1
+         /ugBflhT9Z7fBMaV/O50loBsaWvLlwsFGUdH6nVTevcpQ6xJKAUovppQzymhG4kMRP
+         wOXju5iCw/DTgnjRkeRceMIySvqcZ1OBXt0L/icKS/ODUSrp6ZUvDTi0V9mJWhmwaW
+         WQXy6AC3FzujhYdsQ/zKaUdm3CMASG9Jiw6Yz4+f5J0BEx9f15EFru8tw2kKh4TnA5
+         +Uh+Wa0QtKw4mfTi/IjZcIAmxmvuAlW6LShlzFuorqhkVS8XDgRjlO4UR9+0NqLqlv
+         GN3MaepYXCvKg==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
-        Mark Zhang <markzhang@nvidia.com>,
+Cc:     Mark Zhang <markzhang@nvidia.com>, linux-rdma@vger.kernel.org,
         Michael Guralnik <michaelgur@nvidia.com>,
         Or Har-Toov <ohartoov@nvidia.com>
-Subject: [PATCH rdma-next 0/4] Various core fixes
-Date:   Mon,  7 Nov 2022 10:51:32 +0200
-Message-Id: <cover.1667810736.git.leonro@nvidia.com>
+Subject: [PATCH rdma-next 2/4] RDMA/restrack: Release MR restrack when delete
+Date:   Mon,  7 Nov 2022 10:51:34 +0200
+Message-Id: <703db18e8d4ef628691fb93980a709be673e62e3.1667810736.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.38.1
+In-Reply-To: <cover.1667810736.git.leonro@nvidia.com>
+References: <cover.1667810736.git.leonro@nvidia.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Mark Zhang <markzhang@nvidia.com>
 
-Batch unrelated fixes.
+The MR restrack also needs to be released when delete it, otherwise it
+cause memory leak as the task struct won't be released.
 
-Mark Zhang (3):
-  RDMA/restrack: Release MR restrack when delete
-  RDMA/core: Make sure "ib_port" is valid when access sysfs node
-  RDMA/nldev: Return "-EAGAIN" if the cm_id isn't from expected port
+Fixes: 13ef5539def7 ("RDMA/restrack: Count references to the verbs objects")
+Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/restrack.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Or Har-Toov (1):
-  RDMA/nldev: Use __nlmsg_put instead nlmsg_put
-
- drivers/infiniband/core/nldev.c    | 110 ++++++++++++++---------------
- drivers/infiniband/core/restrack.c |   2 -
- drivers/infiniband/core/sysfs.c    |  17 +++--
- 3 files changed, 64 insertions(+), 65 deletions(-)
-
+diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+index 1f935d9f6178..01a499a8b88d 100644
+--- a/drivers/infiniband/core/restrack.c
++++ b/drivers/infiniband/core/restrack.c
+@@ -343,8 +343,6 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
+ 	rt = &dev->res[res->type];
+ 
+ 	old = xa_erase(&rt->xa, res->id);
+-	if (res->type == RDMA_RESTRACK_MR)
+-		return;
+ 	WARN_ON(old != res);
+ 
+ out:
 -- 
 2.38.1
 
