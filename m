@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11AFAC4332F
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:20:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB6E1C4167E
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:20:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232390AbiKGQUC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Nov 2022 11:20:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42330 "EHLO
+        id S232466AbiKGQUE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Nov 2022 11:20:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231750AbiKGQT7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:19:59 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A29E2098C
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:18:09 -0800 (PST)
+        with ESMTP id S232291AbiKGQUB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:20:01 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B659317
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:18:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1667837888;
+        s=mimecast20190719; t=1667837901;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=1lSxL+XrmZJW7NH2+twP4XE4aLK3QEV8h23a3ZmFqyA=;
-        b=La3rg4OwGD1rG95EGxKdzAGg9sI9y97xe3aqQskNIsjGjtcMk4+AOU8EC2U2wOZ3GfLT0y
-        uWL9orznbmPaB1Q3S1fjtVT7fjVftlAA4iYEKgqCg+00QzuvVxOvqWnHwg8eb21go/2pvh
-        JC7bMlpEWs94sjzdUBC5xgsGzU2GxpA=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=3+oJWZfKWoSUzQaG7FZQskadqtB6uOuGd99hd1wAZnI=;
+        b=VTOxXrIDKp/AkEkQk9IaEhO0xKRQalBL/GWBqNADMXgSbKXzT14Hs1Eizr+nVhEuBtWYOt
+        RPMBNdfWCZUjxSBCRtt3mJDehY8Fqm3XpktaVTGFnUvMWm6XgtGxQj/qKhwpxlsBoFSN7D
+        ejp0dV76wLKogIW2aa0sVDcyE9d2VFA=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-451-PWBvwyXsP6uR-JYwyobXFQ-1; Mon, 07 Nov 2022 11:18:06 -0500
-X-MC-Unique: PWBvwyXsP6uR-JYwyobXFQ-1
+ us-mta-424-yxYkz-LWMkeOtOv1hyz8Xg-1; Mon, 07 Nov 2022 11:18:18 -0500
+X-MC-Unique: yxYkz-LWMkeOtOv1hyz8Xg-1
 Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 080183811F3B;
-        Mon,  7 Nov 2022 16:18:05 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 5E88B806001;
+        Mon,  7 Nov 2022 16:18:17 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.195.106])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 749974B3FC6;
-        Mon,  7 Nov 2022 16:18:00 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 3DB084B3FC6;
+        Mon,  7 Nov 2022 16:18:12 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     linux-mm@kvack.org, etnaviv@lists.freedesktop.org,
@@ -60,9 +60,9 @@ Cc:     linux-mm@kvack.org, etnaviv@lists.freedesktop.org,
         Lucas Stach <l.stach@pengutronix.de>,
         David Airlie <airlied@gmail.com>,
         Oded Gabbay <ogabbay@kernel.org>, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH RFC 03/19] selftests/vm: cow: R/O long-term pinning reliability tests for non-anon pages
-Date:   Mon,  7 Nov 2022 17:17:24 +0100
-Message-Id: <20221107161740.144456-4-david@redhat.com>
+Subject: [PATCH RFC 05/19] mm: add early FAULT_FLAG_WRITE consistency checks
+Date:   Mon,  7 Nov 2022 17:17:26 +0100
+Message-Id: <20221107161740.144456-6-david@redhat.com>
 In-Reply-To: <20221107161740.144456-1-david@redhat.com>
 References: <20221107161740.144456-1-david@redhat.com>
 MIME-Version: 1.0
@@ -72,113 +72,45 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Let's test whether R/O long-term pinning is reliable for non-anonymous
-memory: when R/O long-term pinning a page, the expectation is that we
-break COW early before pinning, such that actual write access via the
-page tables won't break COW later and end up replacing the R/O-pinned
-page in the page table.
+Let's catch abuse of FAULT_FLAG_WRITE early, such that we don't have to
+care in all other handlers and might get "surprises" if we forget to do
+so.
 
-Consequently, R/O long-term pinning in private mappings would only target
-exclusive anonymous pages.
+Write faults without VM_MAYWRITE don't make any sense, and our
+maybe_mkwrite() logic could have hidden such abuse for now.
 
-For now, all tests fail:
-	# [RUN] R/O longterm GUP pin ... with shared zeropage
-	not ok 151 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with memfd
-	not ok 152 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with tmpfile
-	not ok 153 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with huge zeropage
-	not ok 154 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with memfd hugetlb (2048 kB)
-	not ok 155 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP pin ... with memfd hugetlb (1048576 kB)
-	not ok 156 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with shared zeropage
-	not ok 157 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with memfd
-	not ok 158 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with tmpfile
-	not ok 159 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with huge zeropage
-	not ok 160 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with memfd hugetlb (2048 kB)
-	not ok 161 Longterm R/O pin is reliable
-	# [RUN] R/O longterm GUP-fast pin ... with memfd hugetlb (1048576 kB)
-	not ok 162 Longterm R/O pin is reliable
+Write faults without VM_WRITE on something that is not a COW mapping is
+similarly broken, and e.g., do_wp_page() could end up placing an
+anonymous page into a shared mapping, which would be bad.
+
+This is a preparation for reliable R/O long-term pinning of pages in
+private mappings, whereby we want to make sure that we will never break
+COW in a read-only private mapping.
 
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- tools/testing/selftests/vm/cow.c | 28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ mm/memory.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/tools/testing/selftests/vm/cow.c b/tools/testing/selftests/vm/cow.c
-index 93c643bcdcf5..40ba45d0c6b4 100644
---- a/tools/testing/selftests/vm/cow.c
-+++ b/tools/testing/selftests/vm/cow.c
-@@ -534,6 +534,7 @@ static void test_iouring_fork(char *mem, size_t size)
- #endif /* LOCAL_CONFIG_HAVE_LIBURING */
- 
- enum ro_pin_test {
-+	RO_PIN_TEST,
- 	RO_PIN_TEST_SHARED,
- 	RO_PIN_TEST_PREVIOUSLY_SHARED,
- 	RO_PIN_TEST_RO_EXCLUSIVE,
-@@ -566,6 +567,8 @@ static void do_test_ro_pin(char *mem, size_t size, enum ro_pin_test test,
+diff --git a/mm/memory.c b/mm/memory.c
+index fe131273217a..826353da7b23 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -5159,6 +5159,14 @@ static vm_fault_t sanitize_fault_flags(struct vm_area_struct *vma,
+ 		 */
+ 		if (!is_cow_mapping(vma->vm_flags))
+ 			*flags &= ~FAULT_FLAG_UNSHARE;
++	} else if (*flags & FAULT_FLAG_WRITE) {
++		/* Write faults on read-only mappings are impossible ... */
++		if (WARN_ON_ONCE(!(vma->vm_flags & VM_MAYWRITE)))
++			return VM_FAULT_SIGSEGV;
++		/* ... and FOLL_FORCE only applies to COW mappings. */
++		if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE) &&
++				 !is_cow_mapping(vma->vm_flags)))
++			return VM_FAULT_SIGSEGV;
  	}
- 
- 	switch (test) {
-+	case RO_PIN_TEST:
-+		break;
- 	case RO_PIN_TEST_SHARED:
- 	case RO_PIN_TEST_PREVIOUSLY_SHARED:
- 		/*
-@@ -1150,6 +1153,16 @@ static void test_cow(char *mem, const char *smem, size_t size)
- 	free(old);
+ 	return 0;
  }
- 
-+static void test_ro_pin(char *mem, const char *smem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST, false);
-+}
-+
-+static void test_ro_fast_pin(char *mem, const char *smem, size_t size)
-+{
-+	do_test_ro_pin(mem, size, RO_PIN_TEST, true);
-+}
-+
- static void run_with_zeropage(non_anon_test_fn fn, const char *desc)
- {
- 	char *mem, *smem, tmp;
-@@ -1390,7 +1403,7 @@ struct non_anon_test_case {
- };
- 
- /*
-- * Test cases that target any pages in private mappings that are non anonymous:
-+ * Test cases that target any pages in private mappings that are not anonymous:
-  * pages that may get shared via COW ndependent of fork(). This includes
-  * the shared zeropage(s), pagecache pages, ...
-  */
-@@ -1403,6 +1416,19 @@ static const struct non_anon_test_case non_anon_test_cases[] = {
- 		"Basic COW",
- 		test_cow,
- 	},
-+	/*
-+	 * Take a R/O longterm pin. When modifying the page via the page table,
-+	 * the page content change must be visible via the pin.
-+	 */
-+	{
-+		"R/O longterm GUP pin",
-+		test_ro_pin,
-+	},
-+	/* Same as above, but using GUP-fast. */
-+	{
-+		"R/O longterm GUP-fast pin",
-+		test_ro_fast_pin,
-+	},
- };
- 
- static void run_non_anon_test_case(struct non_anon_test_case const *test_case)
 -- 
 2.38.1
 
