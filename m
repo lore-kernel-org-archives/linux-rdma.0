@@ -2,71 +2,71 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07BDCC433FE
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:15:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9852C433FE
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Nov 2022 16:15:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231646AbiKGQPE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Nov 2022 11:15:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39176 "EHLO
+        id S232258AbiKGQPI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Nov 2022 11:15:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232273AbiKGQPD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:15:03 -0500
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2086.outbound.protection.outlook.com [40.107.237.86])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9B0A65E3
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:15:02 -0800 (PST)
+        with ESMTP id S232725AbiKGQPH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Nov 2022 11:15:07 -0500
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam04on2085.outbound.protection.outlook.com [40.107.101.85])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A579D2737
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Nov 2022 08:15:06 -0800 (PST)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ZsTYjGiYs7MsYU9EFBD/TOGuEOD3ZiVEGvCtpnl/6vQiGoyp8c59SMMqCzYAyxFKMGdGAf2LP7wEJHzTqNmRn5q2b1hUk5Q25oVpACyIqUEg0wtRMgEAOWz70W3/HkHc6GNBG9k3g75Ge8MFYmD6eaglNz4QK3sOqTOopMT/AfiJ44Oj4y/5UYGELjpmyBtloY87H7uBEwUHv51Yi+rekcA5EBY2T4JO+z7d2Iv+xOaL/uwqMvvetyB6KJO4nlGGebaxqVx/39aPnaSnWmtArBYyxQro4py+afzsxFnh5SzCgdju511QRCOFnB8aX5g1jnGDc640a4CV/UkPLRdPmQ==
+ b=j6dy78Zh5BE0z/hmTXt/96dJ9aE2yLIVdN2zpm4z6U6/g+6uSH0YrDcZ9xjjuDUJnUe7uquoyLFgr0lboS0kUVn04Y/XNhmh4Z9zfJdyA5tSn6vWvhx4JguuQg3wsy1hQ0fsqYN0wffCDqioqjw0clcv8y0fdJyeBGrQSes1Jyt0A9wrg35W1u2XEWtEOwGulWdvGGevAveWw7AqUxKFGT4UzedoYBnxbUDM+ZmBXJDe0Hv7A9PW4iGBwLUGdBp86Ht54Y4gHqGPMy4dIAPR20zDYsMpj4UNE7MMQAuMfmnWZAkxjmE2szYP3N7isbXOz7ZtLwSiqlsY39U06h5L0w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=TvJW13wlajFFs0c8KichCn6x5YvOhm2H97SxGYFFQIU=;
- b=MgKvKlSC1P5cNSyXg3doY3yzRMp49VECqEv5iJIxsQ9T+MHVSwuAZbYA5YP5V68acU5otn3TFGYttYWEirdhtVVdWfl36TdQKTovgLA89okbMb2JNB6zaZ/l3t0owU+Vs057vq6vOEYGe3/Jl/Khrvk18OMPf4tWUVwNw5qGKkSP8LLbPp8/nHqFYRL845EBSRq9shBjuoeUiiOwRrsE27apsdQJIFBp8XgiQ0lo6DQln5gtQwWL2BsaiPpQMX26ADhu9G1rGup1bv9Me71ziQmRnXUd0XC2IsxwZaXfgF1L7EMBhZj0gXjN9YoQpH+zLa6Iuys8XqLS4caU2CGYoA==
+ bh=7ZwWeRDh+jRV/9MGXPBY0mEL+YbAyqUIYblFR78ssNk=;
+ b=QbDBJpQZJny8edtjiSmrSC5Sn7R9rILU50pHLGOYpjfkNNUp+gZXUNPwJKchG17ReF8Z30ZMhKc4zzXwf4UmwAFFxh/h7eJcgR51ONFC1qn1OO7TdGrFcnGQB9E9+s0I65czJWSKdDDpohdr184Mk4PBYCnybOwwnSSvZp5J1LhGzYmfmTzS+sRxraxqTRsfc4mw0KWe1nffRvMpbybiIVO5osuB2RiHxiOMDIln5F7OArjL7S8wwjUdRk31nJOHJDd2lzMmRXQTpE87lQDemnyu4QZ8le9IeWWwAr78e0pkt2kO+wR5rQisJ1CCn1gREvHU6xTNu2lEOvp0wI6PkA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
+ 216.228.118.233) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=TvJW13wlajFFs0c8KichCn6x5YvOhm2H97SxGYFFQIU=;
- b=XqAV9Znag325zqUZHrTD4IxQPFTcnFQFaXZAuf4/PK8Aez/DQ2DJRUsDl8CyyY0hpD48SBez4NT4GKStfn6YAsj+11Q72eWz7HdibUy+5PSbgagcnKF1Hn+OsP9/OhgdL3B86L4DflqGiVr7AVudTOYqBndGeISFL8W5k12oz1/ydRCMpcsOUy68w3IWsvPXg2tNDYqCnszFlE/QRXjX1Hiku1BGAcrbR2omc30Z9WtSRhtkVwAo7HpH6J9WxXY5ageJV7WNhGpkAsPILED2Iq6+g4ZVH4hiI2qxXBZVh5AfX9E11ajFKpiBe7FqdvTwxQYsxarp7OZ+dNRKHiyYLQ==
-Received: from DM6PR08CA0019.namprd08.prod.outlook.com (2603:10b6:5:80::32) by
- SN7PR12MB6910.namprd12.prod.outlook.com (2603:10b6:806:262::21) with
+ bh=7ZwWeRDh+jRV/9MGXPBY0mEL+YbAyqUIYblFR78ssNk=;
+ b=N4aGqKGcbrXyr1u87FmiMKV/Pl888vLEiikTM/1kr2DGJ90H77MxP4eLBPsPU6Eau93xk19bc619fPT7EXIqhMHLWwOhasj7C71baQFiBbwue2doX2BV/onD3hwWUTRaguPtLBCKh8C4U5d9B5siR9y7V4OMwvOUI8JDZbPGIW2VQDbO2MTyA82So0hOLlW71maCWoZXgJmAVk5NEfnDb8m/lyS6oYlgkINva1W9Wva9PvB1OOQn5asE2jboDK5HsOuIA72BPhS8nWrSPP0XOMQFh4v2ZNV52qCEILAuWnDX8b1//snzbf5B6+0OmDjUoF6H0SmqG/Fd+YE0hYdB4g==
+Received: from DM6PR06CA0015.namprd06.prod.outlook.com (2603:10b6:5:120::28)
+ by SJ0PR12MB6710.namprd12.prod.outlook.com (2603:10b6:a03:44c::7) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5791.26; Mon, 7 Nov
- 2022 16:15:01 +0000
-Received: from DM6NAM11FT051.eop-nam11.prod.protection.outlook.com
- (2603:10b6:5:80:cafe::32) by DM6PR08CA0019.outlook.office365.com
- (2603:10b6:5:80::32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5769.15 via Frontend
- Transport; Mon, 7 Nov 2022 16:15:01 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5791.25; Mon, 7 Nov
+ 2022 16:15:04 +0000
+Received: from DM6NAM11FT018.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:5:120:cafe::a0) by DM6PR06CA0015.outlook.office365.com
+ (2603:10b6:5:120::28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5791.26 via Frontend
+ Transport; Mon, 7 Nov 2022 16:15:03 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- DM6NAM11FT051.mail.protection.outlook.com (10.13.172.243) with Microsoft SMTP
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ DM6NAM11FT018.mail.protection.outlook.com (10.13.172.110) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5791.20 via Frontend Transport; Mon, 7 Nov 2022 16:15:01 +0000
+ 15.20.5791.20 via Frontend Transport; Mon, 7 Nov 2022 16:15:03 +0000
 Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.26; Mon, 7 Nov 2022
- 08:14:55 -0800
+ 08:14:59 -0800
 Received: from drhqmail201.nvidia.com (10.126.190.180) by
  drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.986.29; Mon, 7 Nov 2022 08:14:55 -0800
+ 15.2.986.29; Mon, 7 Nov 2022 08:14:59 -0800
 Received: from vdi.nvidia.com (10.127.8.13) by mail.nvidia.com
  (10.126.190.180) with Microsoft SMTP Server id 15.2.986.29 via Frontend
- Transport; Mon, 7 Nov 2022 08:14:54 -0800
+ Transport; Mon, 7 Nov 2022 08:14:57 -0800
 From:   Michael Guralnik <michaelgur@nvidia.com>
 To:     <jgg@nvidia.com>, <leonro@nvidia.com>, <linux-rdma@vger.kernel.org>
 CC:     <maorg@nvidia.com>, <aharonl@nvidia.com>
-Subject: [PATCH v1 rdma-next 1/8] RDMA/mlx5: Don't keep umrable 'page_shift' in cache entries
-Date:   Mon, 7 Nov 2022 18:14:42 +0200
-Message-ID: <20221107161449.5611-2-michaelgur@nvidia.com>
+Subject: [PATCH v1 rdma-next 3/8] RDMA/mlx5: Remove explicit ODP cache entry
+Date:   Mon, 7 Nov 2022 18:14:44 +0200
+Message-ID: <20221107161449.5611-4-michaelgur@nvidia.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20221107161449.5611-1-michaelgur@nvidia.com>
 References: <20221107161449.5611-1-michaelgur@nvidia.com>
@@ -74,94 +74,77 @@ MIME-Version: 1.0
 Content-Type: text/plain
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6NAM11FT051:EE_|SN7PR12MB6910:EE_
-X-MS-Office365-Filtering-Correlation-Id: fa00a968-808b-4203-a9d3-08dac0db38ed
+X-MS-TrafficTypeDiagnostic: DM6NAM11FT018:EE_|SJ0PR12MB6710:EE_
+X-MS-Office365-Filtering-Correlation-Id: f74bd1a0-a7ac-4e03-575f-08dac0db3a6e
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: IXHkOJ5DJejoMX9vEguScHGwJ2hlk2Mb4jQzYGgoxB8P1cfpwLGmh9qxIHTiZUF1FqSsaNkusfQxGtmqRHu4HvEuUCcH+z9D80AgisekJ9vAzbZ09boDMLDZ4lirhpoC2TIRPZL0svSXa3LSG6skTWXTHTr9oFijVhrbIIjIAkW+GtISFO1Pzmzn+ImbeKp+f0BX2k+beC6HqNSGa11ZtA8B0Gcuqsx+TY/yAg2CDI9Akf4OKDQV6YiHVZMaf6OQ7+yYRw0obRbaUYVD4cwRO02oxHIPFS4UoPUO6CMsIT/VSyGdrY5RwLJ0uMbG6qRHUPPH9NHQasjnRIlGLgUp25U1G4ve6Mm4/B6P+b/ezQDfO1Zf8Lizuam8nCJNocvccMJSwF22/vkpsYf1dJlyulGARfxdiuQpb2GI3orM5QaTMDhDOBPHOA5xaBqxEdbDdk+uG6XpZ1ZEmGmutKIVLNyK1NXawOpMjLa0mNJuNFBpMQunTJ+wXPuDEV/+2cm7hnueb4xC9OqYBezdqDR8GWt5YUiOI6WhScbrI7DGqidARoSSNh86Vdzkdz7mMKd6BK64Pcg/fqC3V/jf5UC8QckrxhG2l2iY2cb9laHJQ8iuSa5vYo5SY+EKPf2phtdVp0V7RSuPQN4MJF4r9dIM+xoF9HoOLBhOGBQrDwok6v43SFA8YDGh2ZxEHb5w561ROoqv93vkEVJAq5MwJThQrkOK0oyLKsyefKpSOeCflKTFXLpt5PK0Tq5EuMK958S6JwfVgDBeeLtnuK1+6FljeEPg3y4/ivAjuvJyGr6mTZA=
-X-Forefront-Antispam-Report: CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(136003)(39860400002)(376002)(396003)(346002)(451199015)(46966006)(40470700004)(36840700001)(2616005)(47076005)(426003)(1076003)(186003)(336012)(107886003)(7696005)(6666004)(26005)(36860700001)(83380400001)(2906002)(40480700001)(40460700003)(8676002)(82310400005)(110136005)(478600001)(316002)(54906003)(41300700001)(5660300002)(8936002)(4326008)(70586007)(70206006)(36756003)(7636003)(356005)(82740400003)(86362001)(2101003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: 5iPFdWaQBrzWbEYH/pG5vA3bSl+YJAshP7L4Fd5COO70otrhEIljD329BxbvvtM+EpBdEHEPjqxw+VPdiiTEJn9dSrWbVjUeKYc7R8DXfGcPUiHWVtLjsl1WQF87OZYNbxBZzxOER5/U8tGAp9+7X5/rIDoikmBEKNFDhmncFpm1fnwhRUupALIF1i7kFFRZjW1p1azAWtSk/vmHWT6sgj/ZFmhQt+LJ8gvaMmv+ertOV3wc7qSuM4HPzLyn7T06UGNfvGbXs+0829BL0sHIxp2ogPcTuleW0pR8WgMx0HA1b9DtwbYDFdUhqLTOh+3yHDSTvXMrfdaoNP+SxK0PMEMOZxxDmJ8090r9uFE5DSwlT2vOlKzXpBGs1iHIie/w7SkGh1lzAsOVjzuLgu/0Kw0x17iapo1X8OaToTHDQO2Pd7uc/k01sGqfZJvbPCCLkC6G3xwjDDP4XNt9cNRTlqA/IQ+eRuaDiwQ727Ww97wA397cy2mww4hRkOTorqABoLpiLc8zytXKeMNkIsKtzR/jkhH1BxhL6cQ7apP7rG++3hEl113PKRAQtmBUWTIl/YA8VUpFVNYldo4FD5dBCAcOPLjJmUbuUeMaNRpdMsaU25kinNfr1tQp4NZSF0XUaxNy5n4FREMOXJn4gaUmnuGuWoNv10R4PbtP3oHYj5IuCqQGLEJ5sNiRQJswsHQBfp8VP3DKimviwCksqJZBZ++/WBcZ9VB0OK0otDZ/CZXVk5arL2hhlYbG68QpCppIHqafwmeITU1jG4OvaUUuTeV0Bsdh7MbTawGglpQzVP8=
+X-Forefront-Antispam-Report: CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230022)(4636009)(396003)(39860400002)(346002)(136003)(376002)(451199015)(46966006)(36840700001)(40470700004)(82310400005)(5660300002)(2906002)(36756003)(6666004)(7696005)(107886003)(82740400003)(70206006)(70586007)(8676002)(4326008)(36860700001)(316002)(54906003)(110136005)(7636003)(86362001)(356005)(83380400001)(41300700001)(40480700001)(336012)(26005)(40460700003)(8936002)(426003)(47076005)(1076003)(186003)(2616005)(478600001)(2101003);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Nov 2022 16:15:01.0410
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Nov 2022 16:15:03.5621
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: fa00a968-808b-4203-a9d3-08dac0db38ed
+X-MS-Exchange-CrossTenant-Network-Message-Id: f74bd1a0-a7ac-4e03-575f-08dac0db3a6e
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT051.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT018.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6910
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB6710
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Aharon Landau <aharonl@nvidia.com>
 
-mkc.log_page_size can be changed using UMR. Therefore, don't treat it as
-a cache entry property.
-Removing it from struct mlx5_cache_ent.
-All cache mkeys will be created with default PAGE_SHIFT, and updated
-with the needed page_shift using UMR when passing them to a user.
+Explicit ODP mkey doesn't have unique properties. There is no need to
+devote to it a special entry. Removing it.
 
 Signed-off-by: Aharon Landau <aharonl@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 1 -
- drivers/infiniband/hw/mlx5/mr.c      | 3 +--
- drivers/infiniband/hw/mlx5/odp.c     | 2 --
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 16 ++--------------
+ include/linux/mlx5/driver.h      |  1 -
+ 2 files changed, 2 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 4a7f7064bd0e..ac948bb3cfe1 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -735,7 +735,6 @@ struct mlx5_cache_ent {
- 	char                    name[4];
- 	u32                     order;
- 	u32			access_mode;
--	u32			page;
- 	unsigned int		ndescs;
- 
- 	u8 disabled:1;
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 410cc5fd2523..29ad674a9bcd 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -297,7 +297,7 @@ static void set_cache_mkc(struct mlx5_cache_ent *ent, void *mkc)
- 
- 	MLX5_SET(mkc, mkc, translations_octword_size,
- 		 get_mkc_octo_size(ent->access_mode, ent->ndescs));
--	MLX5_SET(mkc, mkc, log_page_size, ent->page);
-+	MLX5_SET(mkc, mkc, log_page_size, PAGE_SHIFT);
- }
- 
- /* Asynchronously schedule new MRs to be populated in the cache. */
-@@ -765,7 +765,6 @@ int mlx5_mkey_cache_init(struct mlx5_ib_dev *dev)
- 		if (ent->order > mkey_cache_max_order(dev))
- 			continue;
- 
--		ent->page = PAGE_SHIFT;
- 		ent->ndescs = 1 << ent->order;
- 		ent->access_mode = MLX5_MKC_ACCESS_MODE_MTT;
- 		if ((dev->mdev->profile.mask & MLX5_PROF_MASK_MR_CACHE) &&
 diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index bc97958818bb..e9a29adef7dc 100644
+index f7c9eeaa8e79..137143da5959 100644
 --- a/drivers/infiniband/hw/mlx5/odp.c
 +++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -1595,14 +1595,12 @@ void mlx5_odp_init_mkey_cache_entry(struct mlx5_cache_ent *ent)
+@@ -1591,20 +1591,8 @@ void mlx5_odp_init_mkey_cache_entry(struct mlx5_cache_ent *ent)
+ {
+ 	if (!(ent->dev->odp_caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
+ 		return;
+-
+-	switch (ent->order - 2) {
+-	case MLX5_IMR_MTT_CACHE_ENTRY:
+-		ent->ndescs = MLX5_IMR_MTT_ENTRIES;
+-		ent->access_mode = MLX5_MKC_ACCESS_MODE_MTT;
+-		ent->limit = 0;
+-		break;
+-
+-	case MLX5_IMR_KSM_CACHE_ENTRY:
+-		ent->ndescs = mlx5_imr_ksm_entries;
+-		ent->access_mode = MLX5_MKC_ACCESS_MODE_KSM;
+-		ent->limit = 0;
+-		break;
+-	}
++	ent->ndescs = mlx5_imr_ksm_entries;
++	ent->access_mode = MLX5_MKC_ACCESS_MODE_KSM;
+ }
  
- 	switch (ent->order - 2) {
- 	case MLX5_IMR_MTT_CACHE_ENTRY:
--		ent->page = PAGE_SHIFT;
- 		ent->ndescs = MLX5_IMR_MTT_ENTRIES;
- 		ent->access_mode = MLX5_MKC_ACCESS_MODE_MTT;
- 		ent->limit = 0;
- 		break;
+ static const struct ib_device_ops mlx5_ib_dev_odp_ops = {
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index a12929bc31b2..bc13143f1a87 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -736,7 +736,6 @@ enum {
  
- 	case MLX5_IMR_KSM_CACHE_ENTRY:
--		ent->page = MLX5_KSM_PAGE_SHIFT;
- 		ent->ndescs = mlx5_imr_ksm_entries;
- 		ent->access_mode = MLX5_MKC_ACCESS_MODE_KSM;
- 		ent->limit = 0;
+ enum {
+ 	MKEY_CACHE_LAST_STD_ENTRY = 20,
+-	MLX5_IMR_MTT_CACHE_ENTRY,
+ 	MLX5_IMR_KSM_CACHE_ENTRY,
+ 	MAX_MKEY_CACHE_ENTRIES
+ };
 -- 
 2.17.2
 
