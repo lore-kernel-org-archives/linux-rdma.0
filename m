@@ -2,78 +2,124 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E2C0C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9B50C43219
 	for <linux-rdma@archiver.kernel.org>; Tue,  8 Nov 2022 16:32:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234370AbiKHQcm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Nov 2022 11:32:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57760 "EHLO
+        id S234650AbiKHQcn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Nov 2022 11:32:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234644AbiKHQcj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Nov 2022 11:32:39 -0500
+        with ESMTP id S234651AbiKHQck (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Nov 2022 11:32:40 -0500
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B7D358013
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B94E358BC8
         for <linux-rdma@vger.kernel.org>; Tue,  8 Nov 2022 08:32:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1667925159; x=1699461159;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=ON/U7GK88sLR60XGTF4ZEQZXZjrtUCfJ8daLMyGnizU=;
-  b=E+U6RbUzUh2ePL/PFUUqmTiuqrAZhQnGn3DYCr5CN/dOXIC/RCHsGIsp
-   xIMemuRAyWROKOxaM7mtVmaq7rGVm4d+7riD2mMnpLEDPDq3yzDWMS9cx
-   3kITGorbPAaSxoDcbnpw/RJDXSls+thOnMdFK5DFqnBR78IvNHTj8VQ8/
-   Dz9B+YpdeCWDhSkA703uQgDJxd10h1sP1gAi6KeATp/69YMTFMwrTF8wS
-   Aqg+q+cKy3ZTXS+/qhM874IMH/zXa9gS4Ds5F/SfEooNMVne408QOfH/Q
-   x34WalqBOhmoHxaDp+bavidCHnSL7eb2JvBH3COvBx22KYRKBtDz/S1B6
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="308362500"
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=rY0b3gUYT1pVD9EDue2NvVQdHbOY8BxOiJ9OjBAgANo=;
+  b=e3GFmuxu25pmUWz5zWIuYbaTvHj01CENUTB5tNQ5mZ63gp4u0NEM0Lmm
+   HqRj6H+LUMAbfAS/V8ebx6L4vLMC9vo0LUW5P54cY6dK7w8qDisisAXge
+   SG1sn/5t0VNTYbxgwvtQHLjqWKcSgIX6on84dNIcNozn23jEPnSW8rt//
+   UCBPeNg/qC0zBKVWsQzKBA2JbOb433S6GjClz49+R9R1Xg/7MQzSrSYFX
+   2elwEM9hvoqSMd1MVIRYUJao208TqlbyUUdzyfxfZoUAYlAYRuEspSchY
+   fxijwlbZQeaXl+08kHKr9LB9zehVAgC3zEzyAsiv02ha+2CEXwXcclla/
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="308362504"
 X-IronPort-AV: E=Sophos;i="5.96,148,1665471600"; 
-   d="scan'208";a="308362500"
+   d="scan'208";a="308362504"
 Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 08:32:26 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="881573182"
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 08:32:27 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="881573196"
 X-IronPort-AV: E=Sophos;i="5.96,148,1665471600"; 
-   d="scan'208";a="881573182"
+   d="scan'208";a="881573196"
 Received: from ssaleem-mobl1.amr.corp.intel.com ([10.255.34.193])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 08:30:51 -0800
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 08:30:53 -0800
 From:   Shiraz Saleem <shiraz.saleem@intel.com>
 To:     jgg@nvidia.com, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH v1 for-next 0/3] irdma for-next updates 11-1-2022
-Date:   Tue,  8 Nov 2022 10:29:55 -0600
-Message-Id: <20221108162958.1227-1-shiraz.saleem@intel.com>
+Cc:     linux-rdma@vger.kernel.org,
+        Mustafa Ismail <mustafa.ismail@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: [PATCH v1 for-next 3/3] RDMA/irdma: Do not request 2-level PBLEs for CQ alloc
+Date:   Tue,  8 Nov 2022 10:29:58 -0600
+Message-Id: <20221108162958.1227-4-shiraz.saleem@intel.com>
 X-Mailer: git-send-email 2.35.2
+In-Reply-To: <20221108162958.1227-1-shiraz.saleem@intel.com>
+References: <20221108162958.1227-1-shiraz.saleem@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series adds inline support when multiple SGE's are used
-as well fixes for WC RQ completion opcodes and to not use level 2
-PBLEs for virtual CQs.
+From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Mustafa Ismail (3):
-  RDMA/irdma: Fix inline for multiple SGE's
-  RDMA/irdma: Fix RQ completion opcode
-  RDMA/irdma: Do not request 2-level PBLEs for CQ alloc
+When allocating PBLE's for a large CQ, it is possible
+that a 2-level PBLE is returned which would cause the
+CQ allocation to fail since 1-level is assumed and checked for.
+Fix this by requesting a level one PBLE only.
 
-v0-->v1:
--Fix 0-day warnings in Patch #2
--Fix a bug to get correct op type from the CQE
+Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
+Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+---
+ drivers/infiniband/hw/irdma/verbs.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-Mustafa Ismail (3):
-  RDMA/irdma: Fix inline for multiple SGE's
-  RDMA/irdma: Fix RQ completion opcode
-  RDMA/irdma: Do not request 2-level PBLEs for CQ alloc
-
- drivers/infiniband/hw/irdma/uk.c    | 167 ++++++++++++++++++++++--------------
- drivers/infiniband/hw/irdma/user.h  |  19 +---
- drivers/infiniband/hw/irdma/utils.c |   2 +
- drivers/infiniband/hw/irdma/verbs.c | 160 +++++++++++++++++-----------------
- 4 files changed, 188 insertions(+), 160 deletions(-)
-
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 66406726..e902766 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -2358,9 +2358,10 @@ static bool irdma_check_mr_contiguous(struct irdma_pble_alloc *palloc,
+  * @rf: RDMA PCI function
+  * @iwmr: mr pointer for this memory registration
+  * @use_pbles: flag if to use pble's
++ * @lvl_1_only: request only level 1 pble if true
+  */
+ static int irdma_setup_pbles(struct irdma_pci_f *rf, struct irdma_mr *iwmr,
+-			     bool use_pbles)
++			     bool use_pbles, bool lvl_1_only)
+ {
+ 	struct irdma_pbl *iwpbl = &iwmr->iwpbl;
+ 	struct irdma_pble_alloc *palloc = &iwpbl->pble_alloc;
+@@ -2371,7 +2372,7 @@ static int irdma_setup_pbles(struct irdma_pci_f *rf, struct irdma_mr *iwmr,
+ 
+ 	if (use_pbles) {
+ 		status = irdma_get_pble(rf->pble_rsrc, palloc, iwmr->page_cnt,
+-					false);
++					lvl_1_only);
+ 		if (status)
+ 			return status;
+ 
+@@ -2414,16 +2415,10 @@ static int irdma_handle_q_mem(struct irdma_device *iwdev,
+ 	bool ret = true;
+ 
+ 	pg_size = iwmr->page_size;
+-	err = irdma_setup_pbles(iwdev->rf, iwmr, use_pbles);
++	err = irdma_setup_pbles(iwdev->rf, iwmr, use_pbles, true);
+ 	if (err)
+ 		return err;
+ 
+-	if (use_pbles && palloc->level != PBLE_LEVEL_1) {
+-		irdma_free_pble(iwdev->rf->pble_rsrc, palloc);
+-		iwpbl->pbl_allocated = false;
+-		return -ENOMEM;
+-	}
+-
+ 	if (use_pbles)
+ 		arr = palloc->level1.addr;
+ 
+@@ -2899,7 +2894,7 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
+ 	case IRDMA_MEMREG_TYPE_MEM:
+ 		use_pbles = (iwmr->page_cnt != 1);
+ 
+-		err = irdma_setup_pbles(iwdev->rf, iwmr, use_pbles);
++		err = irdma_setup_pbles(iwdev->rf, iwmr, use_pbles, false);
+ 		if (err)
+ 			goto error;
+ 
 -- 
 1.8.3.1
 
