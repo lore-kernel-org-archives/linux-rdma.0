@@ -2,41 +2,42 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1336C4332F
-	for <linux-rdma@archiver.kernel.org>; Fri, 11 Nov 2022 09:24:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 049E0C4332F
+	for <linux-rdma@archiver.kernel.org>; Fri, 11 Nov 2022 09:25:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233490AbiKKJYB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 11 Nov 2022 04:24:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40918 "EHLO
+        id S233488AbiKKJZG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 11 Nov 2022 04:25:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233493AbiKKJYA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Nov 2022 04:24:00 -0500
-Received: from esa6.hc1455-7.c3s2.iphmx.com (esa6.hc1455-7.c3s2.iphmx.com [68.232.139.139])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C21996C729;
-        Fri, 11 Nov 2022 01:23:55 -0800 (PST)
-X-IronPort-AV: E=McAfee;i="6500,9779,10527"; a="96366187"
+        with ESMTP id S233253AbiKKJZF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 11 Nov 2022 04:25:05 -0500
+X-Greylist: delayed 64 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 11 Nov 2022 01:25:04 PST
+Received: from esa11.hc1455-7.c3s2.iphmx.com (esa11.hc1455-7.c3s2.iphmx.com [207.54.90.137])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64FC16AEE3;
+        Fri, 11 Nov 2022 01:25:04 -0800 (PST)
+X-IronPort-AV: E=McAfee;i="6500,9779,10527"; a="75000946"
 X-IronPort-AV: E=Sophos;i="5.96,156,1665414000"; 
-   d="scan'208";a="96366187"
-Received: from unknown (HELO yto-r1.gw.nic.fujitsu.com) ([218.44.52.217])
-  by esa6.hc1455-7.c3s2.iphmx.com with ESMTP; 11 Nov 2022 18:23:54 +0900
-Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
-        by yto-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 719DCD66A2;
-        Fri, 11 Nov 2022 18:23:52 +0900 (JST)
+   d="scan'208";a="75000946"
+Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
+  by esa11.hc1455-7.c3s2.iphmx.com with ESMTP; 11 Nov 2022 18:23:58 +0900
+Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
+        by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id A28B9DE51A;
+        Fri, 11 Nov 2022 18:23:56 +0900 (JST)
 Received: from m3004.s.css.fujitsu.com (m3004.s.css.fujitsu.com [10.128.233.124])
-        by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id C683FE535F;
-        Fri, 11 Nov 2022 18:23:51 +0900 (JST)
+        by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id E6174D0445;
+        Fri, 11 Nov 2022 18:23:55 +0900 (JST)
 Received: from localhost.localdomain (unknown [10.19.3.107])
-        by m3004.s.css.fujitsu.com (Postfix) with ESMTP id 9083620607A2;
-        Fri, 11 Nov 2022 18:23:51 +0900 (JST)
+        by m3004.s.css.fujitsu.com (Postfix) with ESMTP id AFF8D20607A2;
+        Fri, 11 Nov 2022 18:23:55 +0900 (JST)
 From:   Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
 To:     linux-rdma@vger.kernel.org, leonro@nvidia.com, jgg@nvidia.com,
         zyjzyj2000@gmail.com
 Cc:     nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
         rpearsonhpe@gmail.com, yangx.jy@fujitsu.com, lizhijian@fujitsu.com,
         y-goto@fujitsu.com, Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-Subject: [RFC PATCH v2 1/7] IB/mlx5: Change ib_umem_odp_map_dma_single_page() to retain umem_mutex
-Date:   Fri, 11 Nov 2022 18:22:22 +0900
-Message-Id: <b9974985069900c80b8ff9e6b0b0b346c1592910.1668157436.git.matsuda-daisuke@fujitsu.com>
+Subject: [RFC PATCH v2 3/7] RDMA/rxe: Cleanup code for responder Atomic operations
+Date:   Fri, 11 Nov 2022 18:22:24 +0900
+Message-Id: <7f0b8e11ed7dfcbfb8ce6198680745cc6d106783.1668157436.git.matsuda-daisuke@fujitsu.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1668157436.git.matsuda-daisuke@fujitsu.com>
 References: <cover.1668157436.git.matsuda-daisuke@fujitsu.com>
@@ -47,61 +48,152 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-ib_umem_odp_map_dma_single_page(), which has been used only by the mlx5
-driver, holds umem_mutex on success and releases on failure. This
-behavior is not convenient for other drivers to use it, so change it to
-always retain mutex on return.
+Currently, rxe_responder() directly calls the function to execute Atomic
+operations. This need to be modified to insert some conditional branches
+for the new RDMA Write operation and the ODP feature.
 
 Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
 ---
- drivers/infiniband/core/umem_odp.c | 8 +++-----
- drivers/infiniband/hw/mlx5/odp.c   | 4 +++-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_resp.c | 102 +++++++++++++++++----------
+ 1 file changed, 64 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index e9fa22d31c23..49da6735f7c8 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -328,8 +328,8 @@ static int ib_umem_odp_map_dma_single_page(
-  *
-  * Maps the range passed in the argument to DMA addresses.
-  * The DMA addresses of the mapped pages is updated in umem_odp->dma_list.
-- * Upon success the ODP MR will be locked to let caller complete its device
-- * page table update.
-+ * The umem mutex is locked in this function. Callers are responsible for
-+ * releasing the lock.
-  *
-  * Returns the number of pages mapped in success, negative error code
-  * for failure.
-@@ -453,11 +453,9 @@ int ib_umem_odp_map_dma_and_lock(struct ib_umem_odp *umem_odp, u64 user_virt,
- 			break;
- 		}
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 91f935d60160..03e54cb37d44 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -595,60 +595,86 @@ static struct resp_res *rxe_prepare_res(struct rxe_qp *qp,
+ /* Guarantee atomicity of atomic operations at the machine level. */
+ static DEFINE_SPINLOCK(atomic_ops_lock);
+ 
+-static enum resp_states atomic_reply(struct rxe_qp *qp,
+-					 struct rxe_pkt_info *pkt)
++enum resp_states rxe_process_atomic(struct rxe_qp *qp,
++				    struct rxe_pkt_info *pkt, u64 *vaddr)
+ {
+-	u64 *vaddr;
+ 	enum resp_states ret;
+-	struct rxe_mr *mr = qp->resp.mr;
+ 	struct resp_res *res = qp->resp.res;
+ 	u64 value;
+ 
+-	if (!res) {
+-		res = rxe_prepare_res(qp, pkt, RXE_ATOMIC_MASK);
+-		qp->resp.res = res;
++	/* check vaddr is 8 bytes aligned. */
++	if (!vaddr || (uintptr_t)vaddr & 7) {
++		ret = RESPST_ERR_MISALIGNED_ATOMIC;
++		goto out;
  	}
--	/* upon success lock should stay on hold for the callee */
-+
- 	if (!ret)
- 		ret = dma_index - start_idx;
--	else
--		mutex_unlock(&umem_odp->umem_mutex);
  
- out_put_mm:
- 	mmput_async(owning_mm);
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index bc97958818bb..a0de27651586 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -572,8 +572,10 @@ static int pagefault_real_mr(struct mlx5_ib_mr *mr, struct ib_umem_odp *odp,
- 		access_mask |= ODP_WRITE_ALLOWED_BIT;
+-	if (!res->replay) {
+-		if (mr->state != RXE_MR_STATE_VALID) {
+-			ret = RESPST_ERR_RKEY_VIOLATION;
+-			goto out;
+-		}
++	spin_lock(&atomic_ops_lock);
++	res->atomic.orig_val = value = *vaddr;
  
- 	np = ib_umem_odp_map_dma_and_lock(odp, user_va, bcnt, access_mask, fault);
--	if (np < 0)
-+	if (np < 0) {
-+		mutex_unlock(&odp->umem_mutex);
- 		return np;
+-		vaddr = iova_to_vaddr(mr, qp->resp.va + qp->resp.offset,
+-					sizeof(u64));
++	if (pkt->opcode == IB_OPCODE_RC_COMPARE_SWAP) {
++		if (value == atmeth_comp(pkt))
++			value = atmeth_swap_add(pkt);
++	} else {
++		value += atmeth_swap_add(pkt);
 +	}
  
- 	/*
- 	 * No need to check whether the MTTs really belong to this MR, since
+-		/* check vaddr is 8 bytes aligned. */
+-		if (!vaddr || (uintptr_t)vaddr & 7) {
+-			ret = RESPST_ERR_MISALIGNED_ATOMIC;
+-			goto out;
+-		}
++	*vaddr = value;
++	spin_unlock(&atomic_ops_lock);
+ 
+-		spin_lock_bh(&atomic_ops_lock);
+-		res->atomic.orig_val = value = *vaddr;
++	qp->resp.msn++;
+ 
+-		if (pkt->opcode == IB_OPCODE_RC_COMPARE_SWAP) {
+-			if (value == atmeth_comp(pkt))
+-				value = atmeth_swap_add(pkt);
+-		} else {
+-			value += atmeth_swap_add(pkt);
+-		}
++	/* next expected psn, read handles this separately */
++	qp->resp.psn = (pkt->psn + 1) & BTH_PSN_MASK;
++	qp->resp.ack_psn = qp->resp.psn;
+ 
+-		*vaddr = value;
+-		spin_unlock_bh(&atomic_ops_lock);
++	qp->resp.opcode = pkt->opcode;
++	qp->resp.status = IB_WC_SUCCESS;
+ 
+-		qp->resp.msn++;
++	ret = RESPST_ACKNOWLEDGE;
++out:
++	return ret;
++}
+ 
+-		/* next expected psn, read handles this separately */
+-		qp->resp.psn = (pkt->psn + 1) & BTH_PSN_MASK;
+-		qp->resp.ack_psn = qp->resp.psn;
++static  enum resp_states rxe_atomic_ops(struct rxe_qp *qp,
++					struct rxe_pkt_info *pkt,
++					struct rxe_mr *mr)
++{
++	u64 *vaddr;
++	int ret;
+ 
+-		qp->resp.opcode = pkt->opcode;
+-		qp->resp.status = IB_WC_SUCCESS;
++	vaddr = iova_to_vaddr(mr, qp->resp.va + qp->resp.offset,
++			      sizeof(u64));
++
++	if (pkt->mask & RXE_ATOMIC_MASK) {
++		ret = rxe_process_atomic(qp, pkt, vaddr);
++	} else {
++		/*ATOMIC WRITE operation will come here. */
++		ret = RESPST_ERR_UNSUPPORTED_OPCODE;
+ 	}
+ 
+-	ret = RESPST_ACKNOWLEDGE;
+-out:
++	return ret;
++}
++
++static enum resp_states rxe_atomic_reply(struct rxe_qp *qp,
++					 struct rxe_pkt_info *pkt)
++{
++	struct rxe_mr *mr = qp->resp.mr;
++	struct resp_res *res = qp->resp.res;
++	int ret;
++
++	if (!res) {
++		res = rxe_prepare_res(qp, pkt, RXE_ATOMIC_MASK);
++		qp->resp.res = res;
++	}
++
++	if (!res->replay) {
++		if (mr->state != RXE_MR_STATE_VALID)
++			return RESPST_ERR_RKEY_VIOLATION;
++
++		ret = rxe_atomic_ops(qp, pkt, mr);
++	} else
++		ret = RESPST_ACKNOWLEDGE;
++
+ 	return ret;
+ }
+ 
+@@ -1321,7 +1347,7 @@ int rxe_responder(void *arg)
+ 			state = read_reply(qp, pkt);
+ 			break;
+ 		case RESPST_ATOMIC_REPLY:
+-			state = atomic_reply(qp, pkt);
++			state = rxe_atomic_reply(qp, pkt);
+ 			break;
+ 		case RESPST_ACKNOWLEDGE:
+ 			state = acknowledge(qp, pkt);
 -- 
 2.31.1
 
