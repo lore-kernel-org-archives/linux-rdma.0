@@ -2,31 +2,31 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 071F8C43219
-	for <linux-rdma@archiver.kernel.org>; Sun, 13 Nov 2022 16:36:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 470C3C07E9D
+	for <linux-rdma@archiver.kernel.org>; Sun, 13 Nov 2022 16:36:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235391AbiKMQgB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 13 Nov 2022 11:36:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59102 "EHLO
+        id S235401AbiKMQgC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 13 Nov 2022 11:36:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235392AbiKMQgA (ORCPT
+        with ESMTP id S235397AbiKMQgA (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sun, 13 Nov 2022 11:36:00 -0500
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4315210FE1;
-        Sun, 13 Nov 2022 08:35:59 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85A2C95A7;
+        Sun, 13 Nov 2022 08:36:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
-        :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=rczvEohbP4Tuhdub3uBqOVXlkIWc5YOmLPmvA8PuHak=; b=mi1i5xYt2RJoyJDrEBDhZI+XcY
-        a8Cf8kDgenb+pSjOQ0whpICnRG0uph9i16Ml8EV60aZwINhPhEsroDGa6eSGkNZHDAC+BqFND4LJV
-        R/yXCIbc/z5bgxST/jYUBNPmh83FDvn3rEufPr8KXKJQurOVrEqGM7diEbLXQpzM2zRr2fUhCKcVB
-        CoBXdX5M2T/A/IBmgcD2ta5i4AjE/zCEqeG6NxQyJb2lQEHrk74bjgutlpwxa2x4fCHYwIMJdG2qg
-        9hN75DQ0rOViioGJqAhzT65rDB1G39BT+G1rOCR83F/K1FZbqGxeWtXhmBrdU5sbV6jY7dCp6iv+U
-        lYx9tjxA==;
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=p8fZXFOilxr1b8Vw8YSIZYORkb8OJr3ydr3tjQdLjg4=; b=lSs7voTqaJMI0HO0w/yDtxu1V5
+        bFe2oVzPY3oP8bREwzfNwOfWUgcPhllF1FYQEtFuUdqSntgGpVcEKGvjdMdeRZNgtepgsxwzJLiSn
+        GvChig1xISPaA22YRe2fmw21MmtcqUGwGi1MQGchbpeaxiOepb97cZQSGxx7iCEz0vLWLoLK0kc3z
+        YrVB1crY8jRv7Zr9cNcMJV+zZMfzYNgpLoWblTjEfj+DSomHWeqFcLXkIgabUpr2UAWzxcb1BU95i
+        sOERMpomMz96rkOTLwN3fbdaqSgxsjj3g7QlZtlea2h4gsFZH2Nu8pE5vgZOBKQ0vsKohRmYD3rmk
+        JdGh1NIA==;
 Received: from 213-225-8-167.nat.highway.a1.net ([213.225.8.167] helo=localhost)
         by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1ouFxW-00CLT0-00; Sun, 13 Nov 2022 16:35:50 +0000
+        id 1ouFxL-00CLQc-V1; Sun, 13 Nov 2022 16:35:41 +0000
 From:   Christoph Hellwig <hch@lst.de>
 To:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
@@ -41,12 +41,10 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org,
         iommu@lists.linux.dev, linux-media@vger.kernel.org,
         netdev@vger.kernel.org, linux-s390@vger.kernel.org,
         alsa-devel@alsa-project.org
-Subject: [PATCH 2/7] RDMA/hfi1: don't pass bogus GFP_ flags to dma_alloc_coherent
-Date:   Sun, 13 Nov 2022 17:35:30 +0100
-Message-Id: <20221113163535.884299-3-hch@lst.de>
+Subject: stop drivers from passing GFP_COMP to dma_alloc_coherent
+Date:   Sun, 13 Nov 2022 17:35:28 +0100
+Message-Id: <20221113163535.884299-1-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20221113163535.884299-1-hch@lst.de>
-References: <20221113163535.884299-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
@@ -54,77 +52,23 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-dma_alloc_coherent is an opaque allocator that only uses the GFP_ flags
-for allocation context control.  Don't pass GFP_USER which doesn't make
-sense for a kernel DMA allocation or __GFP_COMP which makes no sense
-for an allocation that can't in any way be converted to a page pointer.
+Hi all,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/infiniband/hw/hfi1/init.c | 21 +++------------------
- 1 file changed, 3 insertions(+), 18 deletions(-)
+this series fixes up various drivers that either try to get a compound
+page from dma_alloc_coherent or more often just did a bit of cargo
+cult copy and paste, and then warns about this flag passed in the
+DMA layer instead of silently clearing it like done by ARM and dma-iommu
+before.
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 436372b314312..24c0f0d257fc9 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1761,17 +1761,11 @@ int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- 	unsigned amt;
- 
- 	if (!rcd->rcvhdrq) {
--		gfp_t gfp_flags;
--
- 		amt = rcvhdrq_size(rcd);
- 
--		if (rcd->ctxt < dd->first_dyn_alloc_ctxt || rcd->is_vnic)
--			gfp_flags = GFP_KERNEL;
--		else
--			gfp_flags = GFP_USER;
- 		rcd->rcvhdrq = dma_alloc_coherent(&dd->pcidev->dev, amt,
- 						  &rcd->rcvhdrq_dma,
--						  gfp_flags | __GFP_COMP);
-+						  GFP_KERNEL);
- 
- 		if (!rcd->rcvhdrq) {
- 			dd_dev_err(dd,
-@@ -1785,7 +1779,7 @@ int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- 			rcd->rcvhdrtail_kvaddr = dma_alloc_coherent(&dd->pcidev->dev,
- 								    PAGE_SIZE,
- 								    &rcd->rcvhdrqtailaddr_dma,
--								    gfp_flags);
-+								    GFP_KERNEL);
- 			if (!rcd->rcvhdrtail_kvaddr)
- 				goto bail_free;
- 		}
-@@ -1821,19 +1815,10 @@ int hfi1_setup_eagerbufs(struct hfi1_ctxtdata *rcd)
- {
- 	struct hfi1_devdata *dd = rcd->dd;
- 	u32 max_entries, egrtop, alloced_bytes = 0;
--	gfp_t gfp_flags;
- 	u16 order, idx = 0;
- 	int ret = 0;
- 	u16 round_mtu = roundup_pow_of_two(hfi1_max_mtu);
- 
--	/*
--	 * GFP_USER, but without GFP_FS, so buffer cache can be
--	 * coalesced (we hope); otherwise, even at order 4,
--	 * heavy filesystem activity makes these fail, and we can
--	 * use compound pages.
--	 */
--	gfp_flags = __GFP_RECLAIM | __GFP_IO | __GFP_COMP;
--
- 	/*
- 	 * The minimum size of the eager buffers is a groups of MTU-sized
- 	 * buffers.
-@@ -1864,7 +1849,7 @@ int hfi1_setup_eagerbufs(struct hfi1_ctxtdata *rcd)
- 			dma_alloc_coherent(&dd->pcidev->dev,
- 					   rcd->egrbufs.rcvtid_size,
- 					   &rcd->egrbufs.buffers[idx].dma,
--					   gfp_flags);
-+					   GFP_KERNEL);
- 		if (rcd->egrbufs.buffers[idx].addr) {
- 			rcd->egrbufs.buffers[idx].len =
- 				rcd->egrbufs.rcvtid_size;
--- 
-2.30.2
-
+Diffstat:
+ arch/arm/mm/dma-mapping.c                     |   17 -----------------
+ drivers/infiniband/hw/hfi1/init.c             |   21 +++------------------
+ drivers/infiniband/hw/qib/qib_iba6120.c       |    2 +-
+ drivers/infiniband/hw/qib/qib_init.c          |   21 ++++-----------------
+ drivers/iommu/dma-iommu.c                     |    3 ---
+ drivers/media/v4l2-core/videobuf-dma-contig.c |   22 ++++++++--------------
+ drivers/net/ethernet/broadcom/cnic.c          |    6 ++----
+ drivers/s390/net/ism_drv.c                    |    3 ++-
+ kernel/dma/mapping.c                          |    8 ++++++++
+ sound/core/memalloc.c                         |    5 ++---
+ 10 files changed, 30 insertions(+), 78 deletions(-)
