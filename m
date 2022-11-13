@@ -2,156 +2,132 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36341C433FE
-	for <linux-rdma@archiver.kernel.org>; Sun, 13 Nov 2022 12:40:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CA7AC433FE
+	for <linux-rdma@archiver.kernel.org>; Sun, 13 Nov 2022 16:36:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235254AbiKMMkz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 13 Nov 2022 07:40:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36414 "EHLO
+        id S235358AbiKMQgA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 13 Nov 2022 11:36:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232884AbiKMMky (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 13 Nov 2022 07:40:54 -0500
-Received: from out2.migadu.com (out2.migadu.com [IPv6:2001:41d0:2:aacc::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF0C41115D;
-        Sun, 13 Nov 2022 04:40:51 -0800 (PST)
-Message-ID: <b7f0b853-5c87-4a1f-4089-29d7e1f4e3e2@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1668343250;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=0TtCNVir8qcE5vf5e8nFQhKvJOQBBq1bDagQs8uQJQ0=;
-        b=AzuS/FTLl5+qMWKnVoEch6xLDyhShOcINOjp6K3djh7Lfs+aUG3XeVIVMP5f3FNBsBoUWm
-        xqGmmjqeoAJ9R2L7aAzAMrY3vObzYjRTn9duDv5w4pxwdawl/N91D7Ok+NSa7xzZaCAJCw
-        5lX8hOM6XvwUZ37kBzDNhe9/emPmN7o=
-Date:   Sun, 13 Nov 2022 20:40:43 +0800
+        with ESMTP id S235380AbiKMQf7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 13 Nov 2022 11:35:59 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3317510FCF;
+        Sun, 13 Nov 2022 08:35:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
+        :Reply-To:Content-Type:Content-ID:Content-Description;
+        bh=QmrATxoWw4i+ZCEet0QcrcoeounoBlCDdVUnFfxBeEE=; b=t5j7lXGJ7y4k7mshKGThP6/oMi
+        PZD5z8vzrJKInWEJS4o8ibNxZiBKoCq226HnMrLpXIidMD9P2aHEZeZmUGoy5rH4j5ndBBQ9aD9x0
+        4vcmIw7caELmyeuHlHqh+IXIushQHrso5BEN7RojMe/GxKraazPWw4GAs2rI9iZFLXGtag+W/kRGT
+        DtraYp58Tzl37x5w7RJKHitxhUygtt0kYRry70+CnVBhmY6rNXj8W3qXpO7jcZ3SIPm80b201dV5J
+        EieadWtmFHV/T7JuVFxN7h280v67rKSYAjdrGOMPrT6A5pqNqlTALgBPVOkb/WUk3itkWgqMhzXJH
+        vYQjJamw==;
+Received: from 213-225-8-167.nat.highway.a1.net ([213.225.8.167] helo=localhost)
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1ouFxR-00CLSB-JY; Sun, 13 Nov 2022 16:35:46 +0000
+From:   Christoph Hellwig <hch@lst.de>
+To:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alexandra Winter <wintera@linux.ibm.com>,
+        Wenjia Zhang <wenjia@linux.ibm.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Robin Murphy <robin.murphy@arm.com>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org,
+        iommu@lists.linux.dev, linux-media@vger.kernel.org,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: [PATCH 1/7] media: videobuf-dma-contig: use dma_mmap_coherent
+Date:   Sun, 13 Nov 2022 17:35:29 +0100
+Message-Id: <20221113163535.884299-2-hch@lst.de>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20221113163535.884299-1-hch@lst.de>
+References: <20221113163535.884299-1-hch@lst.de>
 MIME-Version: 1.0
-Subject: Re: [PATCH for-next v2] RDMA/rxe: Fix mr->map double free
-To:     "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>,
-        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Leon Romanovsky <leon@kernel.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>
-References: <1667099073-2-1-git-send-email-lizhijian@fujitsu.com>
- <6a3ba62e-6116-7f09-b314-d6823671aaa9@fujitsu.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Yanjun Zhu <yanjun.zhu@linux.dev>
-In-Reply-To: <6a3ba62e-6116-7f09-b314-d6823671aaa9@fujitsu.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-在 2022/11/12 11:29, lizhijian@fujitsu.com 写道:
-> ping...
-Hi, Zhijian
+dma_alloc_coherent does not return a physical address, but a DMA address,
+which might be remapped or have an offset.  Passing the DMA address to
+vm_iomap_memory is thus broken.
 
-The changes are too much. I need time to delve into it.
+Use the proper dma_mmap_coherent helper instead, and stop passing
+__GFP_COMP to dma_alloc_coherent, as the memory management inside the
+DMA allocator is hidden from the callers and does not require it.
 
-Zhu Yanjun
+With this the gfp_t argument to __videobuf_dc_alloc can be removed and
+hard coded to GFP_KERNEL.
 
-> 
-> Hi Yanjun
-> 
-> 
-> I hope you could take a look to this bug fix more earlier.
-> 
-> 
-> Thanks
-> Zhijian
-> 
-> 
-> 
-> On 30/10/2022 11:04, Li Zhijian wrote:
->> rxe_mr_cleanup() which tries to free mr->map again will be called
->> when rxe_mr_init_user() fails.
->>
->> [43895.939883] CPU: 0 PID: 4917 Comm: rdma_flush_serv Kdump: loaded Not tainted 6.1.0-rc1-roce-flush+ #25
->> [43895.942341] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.0-0-gd239552ce722-prebuilt.qemu.org 04/01/2014
->> [43895.945208] Call Trace:
->> [43895.946130]  <TASK>
->> [43895.946931]  dump_stack_lvl+0x45/0x5d
->> [43895.948049]  panic+0x19e/0x349
->> [43895.949010]  ? panic_print_sys_info.part.0+0x77/0x77
->> [43895.950356]  ? asm_sysvec_apic_timer_interrupt+0x16/0x20
->> [43895.952589]  ? preempt_count_sub+0x14/0xc0
->> [43895.953809]  end_report.part.0+0x54/0x7c
->> [43895.954993]  ? rxe_mr_cleanup+0x9d/0xf0 [rdma_rxe]
->> [43895.956406]  kasan_report.cold+0xa/0xf
->> [43895.957668]  ? rxe_mr_cleanup+0x9d/0xf0 [rdma_rxe]
->> [43895.959090]  rxe_mr_cleanup+0x9d/0xf0 [rdma_rxe]
->> [43895.960502]  __rxe_cleanup+0x10a/0x1e0 [rdma_rxe]
->> [43895.961983]  rxe_reg_user_mr+0xb7/0xd0 [rdma_rxe]
->> [43895.963456]  ib_uverbs_reg_mr+0x26a/0x480 [ib_uverbs]
->> [43895.964921]  ? __lock_acquire+0x876/0x31e0
->> [43895.966182]  ? ib_uverbs_ex_create_wq+0x630/0x630 [ib_uverbs]
->> [43895.967739]  ? uverbs_fill_udata+0x1c6/0x330 [ib_uverbs]
->> [43895.969204]  ib_uverbs_handler_UVERBS_METHOD_INVOKE_WRITE+0x1a2/0x250 [ib_uverbs]
->> [43895.971126]  ? ib_uverbs_handler_UVERBS_METHOD_QUERY_CONTEXT+0x1a0/0x1a0 [ib_uverbs]
->> [43895.973094]  ? ib_uverbs_handler_UVERBS_METHOD_QUERY_CONTEXT+0x1a0/0x1a0 [ib_uverbs]
->> [43895.975096]  ? uverbs_fill_udata+0x25f/0x330 [ib_uverbs]
->> [43895.976466]  ib_uverbs_cmd_verbs+0x1397/0x15a0 [ib_uverbs]
->> [43895.977930]  ? ib_uverbs_handler_UVERBS_METHOD_QUERY_CONTEXT+0x1a0/0x1a0 [ib_uverbs]
->> [43895.979937]  ? uverbs_fill_udata+0x330/0x330 [ib_uverbs]
->>
->> This issue was fistrly exposed since
->> commit: b18c7da63fcb ("RDMA/rxe: Fix memory leak in error path code")
->> and then we fixed it in
->> commit: 8ff5f5d9d8cf ("RDMA/rxe: Prevent double freeing rxe_map_set()")
->> but this fix was reverted together at last by
->> commit: 1e75550648da (Revert "RDMA/rxe: Create duplicate mapping tables for FMRs")
->>
->> Fixes: 1e75550648da (Revert "RDMA/rxe: Create duplicate mapping tables for FMRs")
->> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
->> ---
->>    drivers/infiniband/sw/rxe/rxe_mr.c | 9 ++-------
->>    1 file changed, 2 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
->> index d4f10c2d1aa7..7c99d1591580 100644
->> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
->> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
->> @@ -99,6 +99,7 @@ static int rxe_mr_alloc(struct rxe_mr *mr, int num_buf)
->>    		kfree(mr->map[i]);
->>    
->>    	kfree(mr->map);
->> +	mr->map = NULL;
->>    err1:
->>    	return -ENOMEM;
->>    }
->> @@ -122,7 +123,6 @@ int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
->>    	int			num_buf;
->>    	void			*vaddr;
->>    	int err;
->> -	int i;
->>    
->>    	umem = ib_umem_get(&rxe->ib_dev, start, length, access);
->>    	if (IS_ERR(umem)) {
->> @@ -163,9 +163,8 @@ int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
->>    				pr_warn("%s: Unable to get virtual address\n",
->>    						__func__);
->>    				err = -ENOMEM;
->> -				goto err_cleanup_map;
->> +				goto err_release_umem;
->>    			}
->> -
->>    			buf->addr = (uintptr_t)vaddr;
->>    			buf->size = PAGE_SIZE;
->>    			num_buf++;
->> @@ -182,10 +181,6 @@ int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
->>    
->>    	return 0;
->>    
->> -err_cleanup_map:
->> -	for (i = 0; i < mr->num_map; i++)
->> -		kfree(mr->map[i]);
->> -	kfree(mr->map);
->>    err_release_umem:
->>    	ib_umem_release(umem);
->>    err_out:
+Fixes: a8f3c203e19b ("[media] videobuf-dma-contig: add cache support")
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/media/v4l2-core/videobuf-dma-contig.c | 22 +++++++------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+index 52312ce2ba056..f2c4393595574 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+@@ -36,12 +36,11 @@ struct videobuf_dma_contig_memory {
+ 
+ static int __videobuf_dc_alloc(struct device *dev,
+ 			       struct videobuf_dma_contig_memory *mem,
+-			       unsigned long size, gfp_t flags)
++			       unsigned long size)
+ {
+ 	mem->size = size;
+-	mem->vaddr = dma_alloc_coherent(dev, mem->size,
+-					&mem->dma_handle, flags);
+-
++	mem->vaddr = dma_alloc_coherent(dev, mem->size, &mem->dma_handle,
++					GFP_KERNEL);
+ 	if (!mem->vaddr) {
+ 		dev_err(dev, "memory alloc size %ld failed\n", mem->size);
+ 		return -ENOMEM;
+@@ -258,8 +257,7 @@ static int __videobuf_iolock(struct videobuf_queue *q,
+ 			return videobuf_dma_contig_user_get(mem, vb);
+ 
+ 		/* allocate memory for the read() method */
+-		if (__videobuf_dc_alloc(q->dev, mem, PAGE_ALIGN(vb->size),
+-					GFP_KERNEL))
++		if (__videobuf_dc_alloc(q->dev, mem, PAGE_ALIGN(vb->size)))
+ 			return -ENOMEM;
+ 		break;
+ 	case V4L2_MEMORY_OVERLAY:
+@@ -295,22 +293,18 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 	BUG_ON(!mem);
+ 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
+ 
+-	if (__videobuf_dc_alloc(q->dev, mem, PAGE_ALIGN(buf->bsize),
+-				GFP_KERNEL | __GFP_COMP))
++	if (__videobuf_dc_alloc(q->dev, mem, PAGE_ALIGN(buf->bsize)))
+ 		goto error;
+ 
+-	/* Try to remap memory */
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-
+ 	/* the "vm_pgoff" is just used in v4l2 to find the
+ 	 * corresponding buffer data structure which is allocated
+ 	 * earlier and it does not mean the offset from the physical
+ 	 * buffer start address as usual. So set it to 0 to pass
+-	 * the sanity check in vm_iomap_memory().
++	 * the sanity check in dma_mmap_coherent().
+ 	 */
+ 	vma->vm_pgoff = 0;
+-
+-	retval = vm_iomap_memory(vma, mem->dma_handle, mem->size);
++	retval = dma_mmap_coherent(q->dev, vma, mem->vaddr, mem->dma_handle,
++				   mem->size);
+ 	if (retval) {
+ 		dev_err(q->dev, "mmap: remap failed with error %d. ",
+ 			retval);
+-- 
+2.30.2
 
