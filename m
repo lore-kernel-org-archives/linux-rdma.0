@@ -2,32 +2,32 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0C88C4332F
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 08:20:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB13C433FE
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 08:20:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238594AbiKPIUm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Nov 2022 03:20:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55306 "EHLO
+        id S238619AbiKPIUo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Nov 2022 03:20:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232891AbiKPIUa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Nov 2022 03:20:30 -0500
-Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2FFA64D8;
-        Wed, 16 Nov 2022 00:20:26 -0800 (PST)
-X-IronPort-AV: E=McAfee;i="6500,9779,10532"; a="95718119"
+        with ESMTP id S232115AbiKPIUc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Nov 2022 03:20:32 -0500
+Received: from esa1.hc1455-7.c3s2.iphmx.com (esa1.hc1455-7.c3s2.iphmx.com [207.54.90.47])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C42AE384;
+        Wed, 16 Nov 2022 00:20:30 -0800 (PST)
+X-IronPort-AV: E=McAfee;i="6500,9779,10532"; a="96201654"
 X-IronPort-AV: E=Sophos;i="5.96,167,1665414000"; 
-   d="scan'208";a="95718119"
-Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
-  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP; 16 Nov 2022 17:20:26 +0900
-Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
-        by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id A84F7E8523;
-        Wed, 16 Nov 2022 17:20:24 +0900 (JST)
+   d="scan'208";a="96201654"
+Received: from unknown (HELO yto-r4.gw.nic.fujitsu.com) ([218.44.52.220])
+  by esa1.hc1455-7.c3s2.iphmx.com with ESMTP; 16 Nov 2022 17:20:26 +0900
+Received: from yto-m3.gw.nic.fujitsu.com (yto-nat-yto-m3.gw.nic.fujitsu.com [192.168.83.66])
+        by yto-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id 2D5F6D3EA3;
+        Wed, 16 Nov 2022 17:20:26 +0900 (JST)
 Received: from kws-ab2.gw.nic.fujitsu.com (kws-ab2.gw.nic.fujitsu.com [192.51.206.12])
-        by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id DF219F687;
-        Wed, 16 Nov 2022 17:20:23 +0900 (JST)
+        by yto-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 7ADC0D968B;
+        Wed, 16 Nov 2022 17:20:25 +0900 (JST)
 Received: from FNSTPC.g08.fujitsu.local (unknown [10.167.226.45])
-        by kws-ab2.gw.nic.fujitsu.com (Postfix) with ESMTP id AF3DF2340D44;
-        Wed, 16 Nov 2022 17:20:22 +0900 (JST)
+        by kws-ab2.gw.nic.fujitsu.com (Postfix) with ESMTP id 5343123401D1;
+        Wed, 16 Nov 2022 17:20:24 +0900 (JST)
 From:   Li Zhijian <lizhijian@fujitsu.com>
 To:     zyjzyj2000@gmail.com, jgg@ziepe.ca, leon@kernel.org,
         Bob Pearson <rpearsonhpe@gmail.com>, linux-rdma@vger.kernel.org
@@ -36,9 +36,9 @@ Cc:     Mark Bloch <mbloch@nvidia.com>, Tom Talpey <tom@talpey.com>,
         Dan Williams <dan.j.williams@intel.com>,
         Xiao Yang <yangx.jy@fujitsu.com>, y-goto@fujitsu.com,
         linux-kernel@vger.kernel.org, Li Zhijian <lizhijian@fujitsu.com>
-Subject: [for-next PATCH v6 08/10] RDMA/rxe: Implement flush completion
-Date:   Wed, 16 Nov 2022 16:19:49 +0800
-Message-Id: <20221116081951.32750-9-lizhijian@fujitsu.com>
+Subject: [for-next PATCH v6 10/10] RDMA/rxe: Enable RDMA FLUSH capability for rxe device
+Date:   Wed, 16 Nov 2022 16:19:51 +0800
+Message-Id: <20221116081951.32750-11-lizhijian@fujitsu.com>
 X-Mailer: git-send-email 2.38.1
 In-Reply-To: <20221116081951.32750-1-lizhijian@fujitsu.com>
 References: <20221116081951.32750-1-lizhijian@fujitsu.com>
@@ -48,50 +48,41 @@ X-TM-AS-GCONF: 00
 X-TM-AS-Product-Ver: IMSS-9.1.0.1408-9.0.0.1002-27266.006
 X-TM-AS-User-Approved-Sender: Yes
 X-TMASE-Version: IMSS-9.1.0.1408-9.0.1002-27266.006
-X-TMASE-Result: 10--2.732800-10.000000
-X-TMASE-MatchedRID: pif/TqAgu++ojsVP+osNyI4V8tCoXo/SwTlc9CcHMZerwqxtE531VNnf
-        JrUSEbFDd5/rOwjY0ImeLHNUN8SOI5cLewwAa76fzr16YOzjZ119LQinZ4QefCP/VFuTOXUTae6
-        hIZpj4MuOhzOa6g8KrYhqyxShGnRGx798Plu9yxIE26s1WQHjCSXbKa0srDJrpBEF2/vs3ZUY9z
-        x6kKakIEBcpLkb91UbHI/mIDtwBKhK6rUsKZM+ehXBt/mUREyAj/ZFF9Wfm7hNy7ppG0IjcFQqk
-        0j7vLVUewMSBDreIdk=
+X-TMASE-Result: 10-3.982300-10.000000
+X-TMASE-MatchedRID: MqppGi75AUU2TliLLcf2acIkzTqL3E/WnQkHrAHoKqay65WOujyvG78F
+        Hrw7frluf146W0iUu2tDc4lSgrowpa8zfGxMvR+8v0DcGXX8NxVULRRq00o2mZsoi2XrUn/Js98
+        n9dYnJNNQSFbL1bvQASdET58jp62Smtxr6dqHjEeaIrdTCsya8Ag4a62DyyQ2iHJY3Cht6aDqtZ
+        MQZaqcwAPQKwJze8HK4UQ+mtTZfIHAppnEk6Iv603AgkyJsFhGwGC8e6520fKw0PJt06oJaHpaQ
+        l5xviY7wxgWdRvK9Un9g+oMf9KM6Q==
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Per IBA SPEC, FLUSH will ack in rdma read response with 0 length.
-
-Use IB_WC_FLUSH (aka IB_UVERBS_WC_FLUSH) code to tell userspace a FLUSH
-completion.
+Now we are ready to enable RDMA FLUSH capability for RXE.
+It can support Global Visibility and Persistence placement types.
 
 Reviewed-by: Zhu Yanjun <zyjzyj2000@gmail.com>
 Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
 ---
- drivers/infiniband/sw/rxe/rxe_comp.c | 4 +++-
+ drivers/infiniband/sw/rxe/rxe_param.h | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 66f392810c86..12252ac6b5c2 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -104,6 +104,7 @@ static enum ib_wc_opcode wr_to_wc_opcode(enum ib_wr_opcode opcode)
- 	case IB_WR_LOCAL_INV:			return IB_WC_LOCAL_INV;
- 	case IB_WR_REG_MR:			return IB_WC_REG_MR;
- 	case IB_WR_BIND_MW:			return IB_WC_BIND_MW;
-+	case IB_WR_FLUSH:			return IB_WC_FLUSH;
- 
- 	default:
- 		return 0xff;
-@@ -274,7 +275,8 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
- 		 */
- 	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
- 		if (wqe->wr.opcode != IB_WR_RDMA_READ &&
--		    wqe->wr.opcode != IB_WR_RDMA_READ_WITH_INV) {
-+		    wqe->wr.opcode != IB_WR_RDMA_READ_WITH_INV &&
-+		    wqe->wr.opcode != IB_WR_FLUSH) {
- 			wqe->status = IB_WC_FATAL_ERR;
- 			return COMPST_ERROR;
- 		}
+diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
+index 86c7a8bf3cbb..c7a82823a041 100644
+--- a/drivers/infiniband/sw/rxe/rxe_param.h
++++ b/drivers/infiniband/sw/rxe/rxe_param.h
+@@ -51,7 +51,9 @@ enum rxe_device_param {
+ 					| IB_DEVICE_SRQ_RESIZE
+ 					| IB_DEVICE_MEM_MGT_EXTENSIONS
+ 					| IB_DEVICE_MEM_WINDOW
+-					| IB_DEVICE_MEM_WINDOW_TYPE_2B,
++					| IB_DEVICE_MEM_WINDOW_TYPE_2B
++					| IB_DEVICE_FLUSH_GLOBAL
++					| IB_DEVICE_FLUSH_PERSISTENT,
+ 	RXE_MAX_SGE			= 32,
+ 	RXE_MAX_WQE_SIZE		= sizeof(struct rxe_send_wqe) +
+ 					  sizeof(struct ib_sge) * RXE_MAX_SGE,
 -- 
 2.31.1
 
