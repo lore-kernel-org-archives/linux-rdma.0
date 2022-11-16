@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB016C4167B
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 10:40:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96ADBC43219
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 10:42:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233420AbiKPKkk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Nov 2022 05:40:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43790 "EHLO
+        id S232434AbiKPKmS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Nov 2022 05:42:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233920AbiKPKiz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Nov 2022 05:38:55 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3AF830555
-        for <linux-rdma@vger.kernel.org>; Wed, 16 Nov 2022 02:29:41 -0800 (PST)
+        with ESMTP id S233117AbiKPKlL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Nov 2022 05:41:11 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 139DB3FBA9
+        for <linux-rdma@vger.kernel.org>; Wed, 16 Nov 2022 02:29:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668594581;
+        s=mimecast20190719; t=1668594592;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=rGA6GaR1az8P6UEdLsolXmCEn/P8qFigXL+8tO23Tsc=;
-        b=PtOiE9tTA/Hj3KFGO4Ar5vToDZ9etuANVpuBiKPW7dMP1l6WX+R2qog0KNioZH2XMWa9EU
-        2Ad2T6dQbx0nGiJI/nCt10YxBEVFtWbDsro7ADliITvt8hBdtE+CFOhKtsmVTGWYZG2b3u
-        UBdy+CkRAIWIzCoqppcs50PwIHjCC0s=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=AW87fgh+ucyp6GPfn9nwvdCWqoK4NWdmiMJ3qK4gV9o=;
+        b=YzfTmHenzVjFzwCRu5tnXCPCpbkjxKgI/mFsWqByBYhXkZnnE61IeW/diMUPbbS3KVRvbV
+        vtHbUnWGaui/FJ9RSafP5fi3iOYy7UjuQL6V7NcMDiZb216inSW6l7Ze09KkwfZnHIoH5z
+        WR2pLokjzNDBOKpReK6jKFGPBblTWe4=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-166-zpGAvGWpOfO4G6I5WZe6qQ-1; Wed, 16 Nov 2022 05:29:34 -0500
-X-MC-Unique: zpGAvGWpOfO4G6I5WZe6qQ-1
+ us-mta-533-2lbboRpqNXmL5tQ6NMs1RA-1; Wed, 16 Nov 2022 05:29:49 -0500
+X-MC-Unique: 2lbboRpqNXmL5tQ6NMs1RA-1
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2B0731C0A10A;
-        Wed, 16 Nov 2022 10:29:33 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E748387A9E1;
+        Wed, 16 Nov 2022 10:29:47 +0000 (UTC)
 Received: from t480s.fritz.box (unknown [10.39.193.216])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 82BA82028E8F;
-        Wed, 16 Nov 2022 10:29:25 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id AD0942028E8F;
+        Wed, 16 Nov 2022 10:29:40 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     x86@kernel.org, linux-alpha@vger.kernel.org,
@@ -68,15 +68,10 @@ Cc:     x86@kernel.org, linux-alpha@vger.kernel.org,
         Arnd Bergmann <arnd@arndb.de>,
         Christoph Hellwig <hch@infradead.org>,
         Alex Williamson <alex.williamson@redhat.com>,
-        David Hildenbrand <david@redhat.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: [PATCH mm-unstable v1 17/20] drm/exynos: remove FOLL_FORCE usage
-Date:   Wed, 16 Nov 2022 11:26:56 +0100
-Message-Id: <20221116102659.70287-18-david@redhat.com>
+        David Hildenbrand <david@redhat.com>
+Subject: [PATCH mm-unstable v1 19/20] habanalabs: remove FOLL_FORCE usage
+Date:   Wed, 16 Nov 2022 11:26:58 +0100
+Message-Id: <20221116102659.70287-20-david@redhat.com>
 In-Reply-To: <20221116102659.70287-1-david@redhat.com>
 References: <20221116102659.70287-1-david@redhat.com>
 MIME-Version: 1.0
@@ -90,33 +85,32 @@ FOLL_FORCE is really only for ptrace access. As we unpin the pinned pages
 using unpin_user_pages_dirty_lock(true), the assumption is that all these
 pages are writable.
 
-FOLL_FORCE in this case seems to be a legacy leftover. Let's just remove
-it.
+FOLL_FORCE in this case seems to be due to copy-and-past from other
+drivers. Let's just remove it.
 
-Cc: Inki Dae <inki.dae@samsung.com>
-Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Acked-by: Oded Gabbay <ogabbay@kernel.org>
+Cc: Oded Gabbay <ogabbay@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- drivers/gpu/drm/exynos/exynos_drm_g2d.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/habanalabs/common/memory.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-index 471fd6c8135f..e19c2ceb3759 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-@@ -477,7 +477,7 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct g2d_data *g2d,
- 	}
+diff --git a/drivers/misc/habanalabs/common/memory.c b/drivers/misc/habanalabs/common/memory.c
+index ef28f3b37b93..e35cca96bbef 100644
+--- a/drivers/misc/habanalabs/common/memory.c
++++ b/drivers/misc/habanalabs/common/memory.c
+@@ -2312,8 +2312,7 @@ static int get_user_memory(struct hl_device *hdev, u64 addr, u64 size,
+ 	if (!userptr->pages)
+ 		return -ENOMEM;
  
- 	ret = pin_user_pages_fast(start, npages,
--				  FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM,
-+				  FOLL_WRITE | FOLL_LONGTERM,
- 				  g2d_userptr->pages);
- 	if (ret != npages) {
- 		DRM_DEV_ERROR(g2d->dev,
+-	rc = pin_user_pages_fast(start, npages,
+-				 FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM,
++	rc = pin_user_pages_fast(start, npages, FOLL_WRITE | FOLL_LONGTERM,
+ 				 userptr->pages);
+ 
+ 	if (rc != npages) {
 -- 
 2.38.1
 
