@@ -2,32 +2,32 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABCF3C4321E
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 08:20:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AEE6C433FE
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 08:20:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231270AbiKPIUg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Nov 2022 03:20:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55440 "EHLO
+        id S233072AbiKPIUh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Nov 2022 03:20:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55466 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232403AbiKPIUY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Nov 2022 03:20:24 -0500
-Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64EB8C2F;
-        Wed, 16 Nov 2022 00:20:22 -0800 (PST)
-X-IronPort-AV: E=McAfee;i="6500,9779,10532"; a="95718099"
+        with ESMTP id S237857AbiKPIU1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Nov 2022 03:20:27 -0500
+Received: from esa6.hc1455-7.c3s2.iphmx.com (esa6.hc1455-7.c3s2.iphmx.com [68.232.139.139])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34DA0C756;
+        Wed, 16 Nov 2022 00:20:25 -0800 (PST)
+X-IronPort-AV: E=McAfee;i="6500,9779,10532"; a="96960396"
 X-IronPort-AV: E=Sophos;i="5.96,167,1665414000"; 
-   d="scan'208";a="95718099"
-Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP; 16 Nov 2022 17:20:20 +0900
-Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
-        by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 96692D6478;
-        Wed, 16 Nov 2022 17:20:18 +0900 (JST)
+   d="scan'208";a="96960396"
+Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
+  by esa6.hc1455-7.c3s2.iphmx.com with ESMTP; 16 Nov 2022 17:20:23 +0900
+Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
+        by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 86284E8523;
+        Wed, 16 Nov 2022 17:20:21 +0900 (JST)
 Received: from kws-ab2.gw.nic.fujitsu.com (kws-ab2.gw.nic.fujitsu.com [192.51.206.12])
-        by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id C2A06BCB68;
-        Wed, 16 Nov 2022 17:20:17 +0900 (JST)
+        by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id B646BD356C;
+        Wed, 16 Nov 2022 17:20:20 +0900 (JST)
 Received: from FNSTPC.g08.fujitsu.local (unknown [10.167.226.45])
-        by kws-ab2.gw.nic.fujitsu.com (Postfix) with ESMTP id 4ECE723401D1;
-        Wed, 16 Nov 2022 17:20:16 +0900 (JST)
+        by kws-ab2.gw.nic.fujitsu.com (Postfix) with ESMTP id 963562340D57;
+        Wed, 16 Nov 2022 17:20:19 +0900 (JST)
 From:   Li Zhijian <lizhijian@fujitsu.com>
 To:     zyjzyj2000@gmail.com, jgg@ziepe.ca, leon@kernel.org,
         Bob Pearson <rpearsonhpe@gmail.com>, linux-rdma@vger.kernel.org
@@ -36,135 +36,97 @@ Cc:     Mark Bloch <mbloch@nvidia.com>, Tom Talpey <tom@talpey.com>,
         Dan Williams <dan.j.williams@intel.com>,
         Xiao Yang <yangx.jy@fujitsu.com>, y-goto@fujitsu.com,
         linux-kernel@vger.kernel.org, Li Zhijian <lizhijian@fujitsu.com>
-Subject: [for-next PATCH v6 00/10] RDMA/rxe: Add RDMA FLUSH operation
-Date:   Wed, 16 Nov 2022 16:19:41 +0800
-Message-Id: <20221116081951.32750-1-lizhijian@fujitsu.com>
+Subject: [for-next PATCH v6 04/10] RDMA/rxe: Allow registering persistent flag for pmem MR only
+Date:   Wed, 16 Nov 2022 16:19:45 +0800
+Message-Id: <20221116081951.32750-5-lizhijian@fujitsu.com>
 X-Mailer: git-send-email 2.38.1
+In-Reply-To: <20221116081951.32750-1-lizhijian@fujitsu.com>
+References: <20221116081951.32750-1-lizhijian@fujitsu.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
 X-TM-AS-Product-Ver: IMSS-9.1.0.1408-9.0.0.1002-27266.006
 X-TM-AS-User-Approved-Sender: Yes
 X-TMASE-Version: IMSS-9.1.0.1408-9.0.1002-27266.006
-X-TMASE-Result: 10--19.334500-10.000000
-X-TMASE-MatchedRID: iooG+Wyw6IMtKcX/Bb98eqoXHZz/dXlxXs5nqGvDCfPfghYDxv+lXaJf
-        gPmvd/XOMlTzREHxnco2l9wtp/y6ssIRMxauaS3UPKN38CLPK0FzNCdGumZsSeCbuVI7hVbLmPM
-        vFiO40LDP253/19/EzfQ6JrmXjZ0m5VojSP95QA8pDEdiwJzEaVvh1cEykiSGagYFlT7hblHEBp
-        jowVhUR8txEIgX3T5MEbtwIm1ojqUf0H3tYJmWPTBgCmbnj9JmxZpjHSMI6w6kob0Y35+HFB6sb
-        AY1dG02b+SLxu/s2gUUIrvjaprIPeC1b7ItfNpSLG6gc1cSnZyhHrZE2+S86xEwRXB+SwEtSikP
-        5EIJEGTE7gW9Nmz5nELIYTs8DylFcAD14WP1J9ieAiCmPx4NwJuJ+Pb8n/VxvCaAzkS8BHs4BrA
-        Twm8horxAi7jPoeEQftwZ3X11IV0=
+X-TMASE-Result: 10--9.829400-10.000000
+X-TMASE-MatchedRID: 5HHZS01SLJwrH07ux06QXUXBhxFdFgcQtGonEOW5g+bRjBmBWsa9ROgU
+        rKBxousFuVbZ8RRkSPuhSdh91d47Acez6vGnS3H6CtzGvPCy/m4Ea8g1x8eqF6ILsEPieIGYttJ
+        z0Nnmewki+t+0AiFaYvL3NxFKQpq1xrdsXS7GN2QZgmFGHqyx68CY5/Mqi1OimAzUQV15ItomZX
+        uPVZCqh8NUkvwuYWUM3BTxUdcaKkIfE8yM4pjsDwtuKBGekqUpI/NGWt0UYPDDEIfvkYfqvoxbN
+        pIwAROVilpmlJdrrK4ZMzcSYFTZT6BVCwXbUWQR
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hey folks,
+Memory region could  support at most 2 flush access flags:
+IB_ACCESS_FLUSH_PERSISTENT and IB_ACCESS_FLUSH_GLOBAL
 
-Changes in V6:
-- rebase to for-next(v6.1-rc1)
-- add Yanjun's reviewed-by except "Allow registering persistent flag for pmem MR only"
-- minimize pmem checking side effect # Jason
-- return EOPNOSUPP if HCA doesn't support flush operation
+But we only allow user to register persistent flush flags to the pmem MR
+where it has the ability of persisting data across power cycles.
 
-These patches are going to implement a *NEW* RDMA opcode "RDMA FLUSH".
-In IB SPEC 1.5[1], 2 new opcodes, ATOMIC WRITE and RDMA FLUSH were
-added in the MEMORY PLACEMENT EXTENSIONS section.
+So register a persistent access flag to a non-pmem MR will be rejected.
 
-This patchset makes SoftRoCE support new RDMA FLUSH on RC service.
-
-You can verify the patchset by building and running the rdma_flush example[2].
-server:
-$ ./rdma_flush_server -s [server_address] -p [port_number]
-client:
-$ ./rdma_flush_client -s [server_address] -p [port_number]
-
-Corresponding pyverbs and tests(tests.test_qpex.QpExTestCase.test_qp_ex_rc_rdma_flush)
-are also added to rdma-core
-
-[1]: https://www.infinibandta.org/wp-content/uploads/2021/08/IBTA-Overview-of-IBTA-Volume-1-Release-1.5-and-MPE-2021-08-17-Secure.pptx
-[2]: https://github.com/zhijianli88/rdma-core/tree/rdma-flush-v5
-
-CC: Xiao Yang <yangx.jy@fujitsu.com>
-CC: "Gotou, Yasunori" <y-goto@fujitsu.com>
-CC: Jason Gunthorpe <jgg@ziepe.ca>
-CC: Zhu Yanjun <zyjzyj2000@gmail.com>
-CC: Leon Romanovsky <leon@kernel.org>
-CC: Bob Pearson <rpearsonhpe@gmail.com>
-CC: Mark Bloch <mbloch@nvidia.com>
-CC: Tom Talpey <tom@talpey.com>
-CC: "Gromadzki, Tomasz" <tomasz.gromadzki@intel.com>
 CC: Dan Williams <dan.j.williams@intel.com>
-CC: linux-rdma@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+---
+V6: Minimize pmem checking side effect # Jason
+V5: make sure the whole MR is pmem # Bob
+V4: set is_pmem more simple
+V2: new scheme check is_pmem # Dan
+    update commit message, get rid of confusing ib_check_flush_access_flags() # Tom
+---
+ drivers/infiniband/sw/rxe/rxe_mr.c | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-Can also access the kernel source in:
-https://github.com/zhijianli88/linux/tree/rdma-flush-v6
-Changes log
-V5: https://lore.kernel.org/lkml/20220927055337.22630-12-lizhijian@fujitsu.com/t/
-V4:
-- rework responder process
-- rebase to v5.19+
-- remove [7/7]: RDMA/rxe: Add RD FLUSH service support since RD is not really supported
-
-V3:
-- Just rebase and commit log and comment updates
-- delete patch-1: "RDMA: mr: Introduce is_pmem", which will be combined into "Allow registering persistent flag for pmem MR only"
-- delete patch-7
-
-V2:
-RDMA: mr: Introduce is_pmem
-   check 1st byte to avoid crossing page boundary
-   new scheme to check is_pmem # Dan
-
-RDMA: Allow registering MR with flush access flags
-   combine with [03/10] RDMA/rxe: Allow registering FLUSH flags for supported device only to this patch # Jason
-   split RDMA_FLUSH to 2 capabilities
-
-RDMA/rxe: Allow registering persistent flag for pmem MR only
-   update commit message, get rid of confusing ib_check_flush_access_flags() # Tom
-
-RDMA/rxe: Implement RC RDMA FLUSH service in requester side
-   extend flush to include length field. # Tom and Tomasz
-
-RDMA/rxe: Implement flush execution in responder side
-   adjust start for WHOLE MR level # Tom
-   don't support DMA mr for flush # Tom
-   check flush return value
-
-RDMA/rxe: Enable RDMA FLUSH capability for rxe device
-   adjust patch's order. move it here from [04/10]
-
-Li Zhijian (10):
-  RDMA: Extend RDMA user ABI to support flush
-  RDMA: Extend RDMA kernel verbs ABI to support flush
-  RDMA/rxe: Extend rxe user ABI to support flush
-  RDMA/rxe: Allow registering persistent flag for pmem MR only
-  RDMA/rxe: Extend rxe packet format to support flush
-  RDMA/rxe: Implement RC RDMA FLUSH service in requester side
-  RDMA/rxe: Implement flush execution in responder side
-  RDMA/rxe: Implement flush completion
-  RDMA/cm: Make QP FLUSHABLE
-  RDMA/rxe: Enable RDMA FLUSH capability for rxe device
-
- drivers/infiniband/core/cm.c            |   3 +-
- drivers/infiniband/sw/rxe/rxe_comp.c    |   4 +-
- drivers/infiniband/sw/rxe/rxe_hdr.h     |  47 +++++++
- drivers/infiniband/sw/rxe/rxe_loc.h     |   1 +
- drivers/infiniband/sw/rxe/rxe_mr.c      |  58 +++++++-
- drivers/infiniband/sw/rxe/rxe_opcode.c  |  17 +++
- drivers/infiniband/sw/rxe/rxe_opcode.h  |  16 ++-
- drivers/infiniband/sw/rxe/rxe_param.h   |   4 +-
- drivers/infiniband/sw/rxe/rxe_req.c     |  15 +-
- drivers/infiniband/sw/rxe/rxe_resp.c    | 176 +++++++++++++++++++++---
- drivers/infiniband/sw/rxe/rxe_verbs.h   |   6 +
- include/rdma/ib_pack.h                  |   3 +
- include/rdma/ib_verbs.h                 |  20 ++-
- include/uapi/rdma/ib_user_ioctl_verbs.h |   2 +
- include/uapi/rdma/ib_user_verbs.h       |  16 +++
- include/uapi/rdma/rdma_user_rxe.h       |   7 +
- 16 files changed, 362 insertions(+), 33 deletions(-)
-
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index bc081002bddc..fd423c015be0 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -111,6 +111,15 @@ void rxe_mr_init_dma(int access, struct rxe_mr *mr)
+ 	mr->ibmr.type = IB_MR_TYPE_DMA;
+ }
+ 
++static bool is_pmem_page(struct page *pg)
++{
++	unsigned long paddr = page_to_phys(pg);;
++
++	return REGION_INTERSECTS ==
++	       region_intersects(paddr, PAGE_SIZE, IORESOURCE_MEM,
++				 IORES_DESC_PERSISTENT_MEMORY);
++}
++
+ int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
+ 		     int access, struct rxe_mr *mr)
+ {
+@@ -148,16 +157,25 @@ int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
+ 	num_buf			= 0;
+ 	map = mr->map;
+ 	if (length > 0) {
+-		buf = map[0]->buf;
++		bool persistent_access = access & IB_ACCESS_FLUSH_PERSISTENT;
+ 
++		buf = map[0]->buf;
+ 		for_each_sgtable_page (&umem->sgt_append.sgt, &sg_iter, 0) {
++			struct page *pg = sg_page_iter_page(&sg_iter);
++
++			if (persistent_access && !is_pmem_page(pg)) {
++				pr_debug("Unable to register persistent access to non-pmem device\n");
++				err = -EINVAL;
++				goto err_release_umem;
++			}
++
+ 			if (num_buf >= RXE_BUF_PER_MAP) {
+ 				map++;
+ 				buf = map[0]->buf;
+ 				num_buf = 0;
+ 			}
+ 
+-			vaddr = page_address(sg_page_iter_page(&sg_iter));
++			vaddr = page_address(pg);
+ 			if (!vaddr) {
+ 				pr_warn("%s: Unable to get virtual address\n",
+ 						__func__);
 -- 
 2.31.1
 
