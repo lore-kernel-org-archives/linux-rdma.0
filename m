@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77744C07E9D
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 10:39:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E302BC433FE
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 10:39:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232572AbiKPKjC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Nov 2022 05:39:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44552 "EHLO
+        id S232846AbiKPKjY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Nov 2022 05:39:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45628 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230003AbiKPKgF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Nov 2022 05:36:05 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B7C010063
-        for <linux-rdma@vger.kernel.org>; Wed, 16 Nov 2022 02:28:45 -0800 (PST)
+        with ESMTP id S232996AbiKPKiJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Nov 2022 05:38:09 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D57225C63
+        for <linux-rdma@vger.kernel.org>; Wed, 16 Nov 2022 02:29:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668594524;
+        s=mimecast20190719; t=1668594546;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=xyj8jS+C9wqOk3KceDQTo75wMiWZgljnGSBlM8HQloY=;
-        b=HyVSO6OqC/gyAIUuVMXoeM1X2q2HGXEdNdaxMdk2Vy95oyYuYPYs+2QP7j1mdL7FrioHdX
-        TbTBqLLcuZ5eaT45BNKl7jbv+D65zT6ecgXqA8ct3duF5iZHVlUxfGqv+aN60svjE9SLxy
-        2lfc7aOUpVzBnsMZbN7Cm+/iLDmyMoE=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=Os9mhvYmMDrU7oRu07Gt40tRhtITIyLN3UTJWIxCBGQ=;
+        b=Np5mjxEQ6nkEvC55WFc+8lnTQduUxuP+2dfPKZNeS2rk/mVM8fhjpQwnWucL2zS360O6zL
+        RbnP6kXzyBTFlhakIQvJ8B2E+axaTZrD34u0z2BLjSCx9ZqeftT79MQqpx70HDKLanLY2+
+        qjkb3nFkqOTWvmQeLXWZKPOlbxCxVc8=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-156-1i0B0n5wO9KbojDzH-noSA-1; Wed, 16 Nov 2022 05:28:39 -0500
-X-MC-Unique: 1i0B0n5wO9KbojDzH-noSA-1
+ us-mta-169-8bSBee3zN2WWjnQux77ZrA-1; Wed, 16 Nov 2022 05:28:54 -0500
+X-MC-Unique: 8bSBee3zN2WWjnQux77ZrA-1
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6CE1B86F132;
-        Wed, 16 Nov 2022 10:28:37 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E444E29ABA07;
+        Wed, 16 Nov 2022 10:28:52 +0000 (UTC)
 Received: from t480s.fritz.box (unknown [10.39.193.216])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D7D7C2028E8F;
-        Wed, 16 Nov 2022 10:28:29 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 8254B20290A5;
+        Wed, 16 Nov 2022 10:28:45 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     x86@kernel.org, linux-alpha@vger.kernel.org,
@@ -69,11 +69,11 @@ Cc:     x86@kernel.org, linux-alpha@vger.kernel.org,
         Christoph Hellwig <hch@infradead.org>,
         Alex Williamson <alex.williamson@redhat.com>,
         David Hildenbrand <david@redhat.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
+        Bernard Metzler <bmt@zurich.ibm.com>,
         Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mm-unstable v1 10/20] RDMA/umem: remove FOLL_FORCE usage
-Date:   Wed, 16 Nov 2022 11:26:49 +0100
-Message-Id: <20221116102659.70287-11-david@redhat.com>
+Subject: [PATCH mm-unstable v1 12/20] RDMA/siw: remove FOLL_FORCE usage
+Date:   Wed, 16 Nov 2022 11:26:51 +0100
+Message-Id: <20221116102659.70287-13-david@redhat.com>
 In-Reply-To: <20221116102659.70287-1-david@redhat.com>
 References: <20221116102659.70287-1-david@redhat.com>
 MIME-Version: 1.0
@@ -93,47 +93,48 @@ Consequently, FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM is no longer required
 for reliable R/O long-term pinning: FOLL_LONGTERM is sufficient. So stop
 using FOLL_FORCE, which is really only for ptrace access.
 
-Tested-by: Leon Romanovsky <leonro@nvidia.com> # Over mlx4 and mlx5.
+Cc: Bernard Metzler <bmt@zurich.ibm.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- drivers/infiniband/core/umem.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/siw/siw_mem.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 86d479772fbc..755a9c57db6f 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -156,7 +156,7 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
- 	struct mm_struct *mm;
- 	unsigned long npages;
- 	int pinned, ret;
--	unsigned int gup_flags = FOLL_WRITE;
-+	unsigned int gup_flags = FOLL_LONGTERM;
+diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
+index 61c17db70d65..b2b33dd3b4fa 100644
+--- a/drivers/infiniband/sw/siw/siw_mem.c
++++ b/drivers/infiniband/sw/siw/siw_mem.c
+@@ -368,7 +368,7 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
+ 	struct mm_struct *mm_s;
+ 	u64 first_page_va;
+ 	unsigned long mlock_limit;
+-	unsigned int foll_flags = FOLL_WRITE;
++	unsigned int foll_flags = FOLL_LONGTERM;
+ 	int num_pages, num_chunks, i, rv = 0;
  
- 	/*
- 	 * If the combination of the addr and size requested for this memory
-@@ -210,8 +210,8 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
+ 	if (!can_do_mlock())
+@@ -391,8 +391,8 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
  
- 	cur_base = addr & PAGE_MASK;
+ 	mmgrab(mm_s);
  
--	if (!umem->writable)
--		gup_flags |= FOLL_FORCE;
-+	if (umem->writable)
-+		gup_flags |= FOLL_WRITE;
+-	if (!writable)
+-		foll_flags |= FOLL_FORCE;
++	if (writable)
++		foll_flags |= FOLL_WRITE;
  
- 	while (npages) {
- 		cond_resched();
-@@ -219,7 +219,7 @@ struct ib_umem *ib_umem_get(struct ib_device *device, unsigned long addr,
- 					  min_t(unsigned long, npages,
- 						PAGE_SIZE /
- 						sizeof(struct page *)),
--					  gup_flags | FOLL_LONGTERM, page_list);
-+					  gup_flags, page_list);
- 		if (pinned < 0) {
- 			ret = pinned;
- 			goto umem_release;
+ 	mmap_read_lock(mm_s);
+ 
+@@ -423,8 +423,7 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
+ 		while (nents) {
+ 			struct page **plist = &umem->page_chunk[i].plist[got];
+ 
+-			rv = pin_user_pages(first_page_va, nents,
+-					    foll_flags | FOLL_LONGTERM,
++			rv = pin_user_pages(first_page_va, nents, foll_flags,
+ 					    plist, NULL);
+ 			if (rv < 0)
+ 				goto out_sem_up;
 -- 
 2.38.1
 
