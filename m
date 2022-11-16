@@ -2,79 +2,129 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 409DBC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9777C43217
 	for <linux-rdma@archiver.kernel.org>; Wed, 16 Nov 2022 02:31:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230211AbiKPCbO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 15 Nov 2022 21:31:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47426 "EHLO
+        id S229560AbiKPCbP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 15 Nov 2022 21:31:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47446 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229560AbiKPCbM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Nov 2022 21:31:12 -0500
+        with ESMTP id S230244AbiKPCbO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 15 Nov 2022 21:31:14 -0500
 Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 963B829353
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Nov 2022 18:31:11 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VUvaC6P_1668565868;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VUvaC6P_1668565868)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE71729379
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Nov 2022 18:31:13 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R461e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VUvYizQ_1668565871;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VUvYizQ_1668565871)
           by smtp.aliyun-inc.com;
-          Wed, 16 Nov 2022 10:31:09 +0800
+          Wed, 16 Nov 2022 10:31:11 +0800
 From:   Cheng Xu <chengyou@linux.alibaba.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
-Subject: [PATCH for-next 0/3] RDMA/erdma: Support flushing all WRs after QP state changed to ERROR
-Date:   Wed, 16 Nov 2022 10:31:04 +0800
-Message-Id: <20221116023107.82835-1-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next 2/3] RDMA/erdma: Implement the lifecycle of reflushing work for each QP
+Date:   Wed, 16 Nov 2022 10:31:06 +0800
+Message-Id: <20221116023107.82835-3-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.37.0
+In-Reply-To: <20221116023107.82835-1-chengyou@linux.alibaba.com>
+References: <20221116023107.82835-1-chengyou@linux.alibaba.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+Each QP has a work for reflushing purpose. In the work, driver will
+report the latest pi to hardware.
 
-This series introduces the support of flushing all WRs posted to hardware
-after QP state changed to ERROR.
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
+---
+ drivers/infiniband/hw/erdma/erdma_hw.h    |  8 ++++++++
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 18 ++++++++++++++++++
+ drivers/infiniband/hw/erdma/erdma_verbs.h |  2 ++
+ 3 files changed, 28 insertions(+)
 
-Old Firmware may not flush the newly posted WRs after QP state chagned to
-ERROR, because it's a little difficult for firmware to get the realtime
-PI (producer index) of QPs, especially for the RQs.
-
-Previously we want to avoid this issue by implementing custom
-drain_{sq/rq} [1], but this has falw, as Tom and Jason pointed out, which
-we also meet in some scenarios, for example, NoF fatal recovery.
-
-So, we introduce a new mechanism to fix this. When registering the ibdev,
-we create a workqueue for reflushing (we name it "reflush", because
-hardware is already start flushing for the QPs at that time, and it's used
-for hardware to flush newly posted WRs). Once QP needs to flush WRs, or
-new WRs posted after flushing, we post a delay work to the workqueue or
-modify the delay time if is already posted. In the work, driver notifies
-the lastest PIs to firmware by CMDQ, so that firmware can flush all the
-newly posted WRs. This applies to kernel QP first.
-
-- #1 adds a workqueue for WRs reflushing.
-- #2 adds a reflushing work for each QP.
-- #4 notifies the lastest PIs to firmware for reflushing.
-
-[1] https://lore.kernel.org/all/20220824094251.23190-3-chengyou@linux.alibaba.com/t/
-
-Thanks,
-Cheng Xu
-
-Cheng Xu (3):
-  RDMA/erdma: Add a workqueue for WRs reflushing
-  RDMA/erdma: Implement the lifecycle of reflushing work for each QP
-  RDMA/erdma: Notify the latest PI to FW for reflushing when necessary
-
- drivers/infiniband/hw/erdma/erdma.h       |  1 +
- drivers/infiniband/hw/erdma/erdma_hw.h    |  8 ++++++
- drivers/infiniband/hw/erdma/erdma_main.c  | 14 +++++++++--
- drivers/infiniband/hw/erdma/erdma_qp.c    | 30 ++++++++++++++++-------
- drivers/infiniband/hw/erdma/erdma_verbs.c | 18 ++++++++++++++
- drivers/infiniband/hw/erdma/erdma_verbs.h |  7 ++++++
- 6 files changed, 67 insertions(+), 11 deletions(-)
-
+diff --git a/drivers/infiniband/hw/erdma/erdma_hw.h b/drivers/infiniband/hw/erdma/erdma_hw.h
+index 1b2e2b70678f..ab371fec610c 100644
+--- a/drivers/infiniband/hw/erdma/erdma_hw.h
++++ b/drivers/infiniband/hw/erdma/erdma_hw.h
+@@ -145,6 +145,7 @@ enum CMDQ_RDMA_OPCODE {
+ 	CMDQ_OPCODE_MODIFY_QP = 3,
+ 	CMDQ_OPCODE_CREATE_CQ = 4,
+ 	CMDQ_OPCODE_DESTROY_CQ = 5,
++	CMDQ_OPCODE_REFLUSH = 6,
+ 	CMDQ_OPCODE_REG_MR = 8,
+ 	CMDQ_OPCODE_DEREG_MR = 9
+ };
+@@ -301,6 +302,13 @@ struct erdma_cmdq_destroy_qp_req {
+ 	u32 qpn;
+ };
+ 
++struct erdma_cmdq_reflush_req {
++	u64 hdr;
++	u32 qpn;
++	u32 sq_pi;
++	u32 rq_pi;
++};
++
+ /* cap qword 0 definition */
+ #define ERDMA_CMD_DEV_CAP_MAX_CQE_MASK GENMASK_ULL(47, 40)
+ #define ERDMA_CMD_DEV_CAP_FLAGS_MASK GENMASK_ULL(31, 24)
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index d843ce1f35f3..5dab1e87975b 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -379,6 +379,21 @@ int erdma_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 	return 0;
+ }
+ 
++static void erdma_flush_worker(struct work_struct *work)
++{
++	struct delayed_work *dwork = to_delayed_work(work);
++	struct erdma_qp *qp =
++		container_of(dwork, struct erdma_qp, reflush_dwork);
++	struct erdma_cmdq_reflush_req req;
++
++	erdma_cmdq_build_reqhdr(&req.hdr, CMDQ_SUBMOD_RDMA,
++				CMDQ_OPCODE_REFLUSH);
++	req.qpn = QP_ID(qp);
++	req.sq_pi = qp->kern_qp.sq_pi;
++	req.rq_pi = qp->kern_qp.rq_pi;
++	erdma_post_cmd_wait(&qp->dev->cmdq, &req, sizeof(req), NULL, NULL);
++}
++
+ static int erdma_qp_validate_cap(struct erdma_dev *dev,
+ 				 struct ib_qp_init_attr *attrs)
+ {
+@@ -735,6 +750,7 @@ int erdma_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 	qp->attrs.max_send_sge = attrs->cap.max_send_sge;
+ 	qp->attrs.max_recv_sge = attrs->cap.max_recv_sge;
+ 	qp->attrs.state = ERDMA_QP_STATE_IDLE;
++	INIT_DELAYED_WORK(&qp->reflush_dwork, erdma_flush_worker);
+ 
+ 	ret = create_qp_cmd(dev, qp);
+ 	if (ret)
+@@ -1028,6 +1044,8 @@ int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
+ 	erdma_modify_qp_internal(qp, &qp_attrs, ERDMA_QP_ATTR_STATE);
+ 	up_write(&qp->state_lock);
+ 
++	cancel_delayed_work_sync(&qp->reflush_dwork);
++
+ 	erdma_cmdq_build_reqhdr(&req.hdr, CMDQ_SUBMOD_RDMA,
+ 				CMDQ_OPCODE_DESTROY_QP);
+ 	req.qpn = QP_ID(qp);
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
+index a5574f0252bb..9f341d032069 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.h
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
+@@ -197,6 +197,8 @@ struct erdma_qp {
+ 	struct erdma_cep *cep;
+ 	struct rw_semaphore state_lock;
+ 
++	struct delayed_work reflush_dwork;
++
+ 	union {
+ 		struct erdma_kqp kern_qp;
+ 		struct erdma_uqp user_qp;
 -- 
 2.27.0
 
