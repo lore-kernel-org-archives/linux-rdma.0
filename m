@@ -2,136 +2,78 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 513E4C433FE
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Nov 2022 12:24:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C578C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Nov 2022 12:58:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239779AbiKQMY4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Nov 2022 07:24:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49918 "EHLO
+        id S233502AbiKQM6D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Nov 2022 07:58:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239694AbiKQMYy (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Nov 2022 07:24:54 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1233911172
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Nov 2022 04:23:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668687833;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=5jdvVC382FTzq1UHx+dqms0RlcCWrWtt69iT+pMSrhc=;
-        b=CORut+raWrAs49WAYBmgMGKxcA6W14LdKITb+5nUVCIIHv+kSFlboRnF8ef8VIxtj7KBZ7
-        y+G+wjO3ZToOBdsUFrngfzUZiX2hbvXGC++8fopW9NUhghN5YxesS/VlObzVNtpvyuJMfn
-        zLQGS6use0jUP7yKmj1oc1mIMN+r354=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-152-7E6Ql98EMOCsVjV3VLo9Gg-1; Thu, 17 Nov 2022 07:23:52 -0500
-X-MC-Unique: 7E6Ql98EMOCsVjV3VLo9Gg-1
-Received: by mail-wr1-f69.google.com with SMTP id h26-20020adfaa9a000000b002364ad63bbcso638967wrc.10
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Nov 2022 04:23:51 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=5jdvVC382FTzq1UHx+dqms0RlcCWrWtt69iT+pMSrhc=;
-        b=FNmDGbpZQqqfJzyKpkmbHpl3H08kwzuolt5NOIhB1dyZe9uzyS5zdGyt9s+E+cjbvL
-         QHEkNNYCpqliRwdmnRyuk8O25o3RvBxrHJNyP0SZ8cmjvEJ6GsKn0nf+wfX90Sg9hPk4
-         t8Jz5QSDVka1KzT0dzdi4gcLcqKAfLStZpTO1IkDZLYmDXpu+8qXVcHUtRetcjwaqQiH
-         mTgBdebTI0rVXz+i6npJNViSYShf++XB5ePOhZI3QVb61nrP1jRcbI6kAub7O3mRj7eK
-         9lUnR0d7vXcKOP5FFuGld3Dc9Y5T89XEi5qLzGJ+vEBo2ZlwG3t+c7iSfx/WM84wuXy4
-         FCvQ==
-X-Gm-Message-State: ANoB5pk6loLBybNgZQ9RTUIcjVbqLI7NXv6dsnImldBcljl145zdjgVQ
-        Kl4NqVHvQNMeWcI2AMalDCitkOjRjF7PsrMlkJnSqHY0sJVAAirl0X1muN6T+DPT5lQ5opWKnGe
-        chcH/woQ4uc/Ep6ZIGoBlR8tGpuFQX+/wgAXd7NwUhzkmMZJa0JlZ9EWB9LUS6YwMYOCkkZBzqQ
-        ==
-X-Received: by 2002:a5d:4ace:0:b0:236:7988:b282 with SMTP id y14-20020a5d4ace000000b002367988b282mr1368755wrs.341.1668687830338;
-        Thu, 17 Nov 2022 04:23:50 -0800 (PST)
-X-Google-Smtp-Source: AA0mqf6CQ2UnPStDreGkKJNcXcxnxWYWv26PNS2guHgtGUV1HlDKjg+B2zZNBBQjpHdL/U5XI5rkiQ==
-X-Received: by 2002:a5d:4ace:0:b0:236:7988:b282 with SMTP id y14-20020a5d4ace000000b002367988b282mr1368719wrs.341.1668687830120;
-        Thu, 17 Nov 2022 04:23:50 -0800 (PST)
-Received: from vschneid.remote.csb ([154.57.232.159])
-        by smtp.gmail.com with ESMTPSA id r4-20020a05600c35c400b003c6b874a0dfsm1315337wmq.14.2022.11.17.04.23.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Nov 2022 04:23:49 -0800 (PST)
-From:   Valentin Schneider <vschneid@redhat.com>
-To:     Yury Norov <yury.norov@gmail.com>
-Cc:     linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Barry Song <baohua@kernel.org>,
-        Ben Segall <bsegall@google.com>,
-        haniel Bristot de Oliveira <bristot@redhat.com>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Gal Pressman <gal@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        Mel Gorman <mgorman@suse.de>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Tariq Toukan <ttoukan.linux@gmail.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        linux-crypto@vger.kernel.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH v2 0/4] cpumask: improve on cpumask_local_spread() locality
-In-Reply-To: <Y3PXw8Hqn+RCMg2J@yury-laptop>
-References: <20221112190946.728270-1-yury.norov@gmail.com>
- <xhsmh7czwyvtj.mognet@vschneid.remote.csb> <Y3PXw8Hqn+RCMg2J@yury-laptop>
-Date:   Thu, 17 Nov 2022 12:23:45 +0000
-Message-ID: <xhsmho7t5ydke.mognet@vschneid.remote.csb>
+        with ESMTP id S239598AbiKQM5h (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Nov 2022 07:57:37 -0500
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A75362055
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Nov 2022 04:57:35 -0800 (PST)
+Received: from dggpemm500020.china.huawei.com (unknown [172.30.72.53])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4NCfxq14GxzJnR2;
+        Thu, 17 Nov 2022 20:54:23 +0800 (CST)
+Received: from dggpemm500002.china.huawei.com (7.185.36.229) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 17 Nov 2022 20:57:32 +0800
+Received: from localhost.localdomain.localdomain (10.175.113.25) by
+ dggpemm500002.china.huawei.com (7.185.36.229) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 17 Nov 2022 20:57:32 +0800
+From:   Xiongfeng Wang <wangxiongfeng2@huawei.com>
+To:     <jgg@nvidia.com>, <leonro@nvidia.com>,
+        <dennis.dalessandro@cornelisnetworks.com>, <jgg@ziepe.ca>,
+        <leon@kernel.org>, <mike.marciniszyn@intel.com>,
+        <michael.j.ruhl@intel.com>
+CC:     <linux-rdma@vger.kernel.org>, <yangyingliang@huawei.com>,
+        <wangxiongfeng2@huawei.com>
+Subject: [PATCH] RDMA/hfi: Decrease PCI device reference count in error path
+Date:   Thu, 17 Nov 2022 21:15:46 +0800
+Message-ID: <20221117131546.113280-1-wangxiongfeng2@huawei.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.113.25]
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+ dggpemm500002.china.huawei.com (7.185.36.229)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 15/11/22 10:32, Yury Norov wrote:
-> On Tue, Nov 15, 2022 at 05:24:56PM +0000, Valentin Schneider wrote:
->>
->> Is this meant as a replacement for [1]?
->
-> No. Your series adds an iterator, and in my experience the code that
-> uses iterators of that sort is almost always better and easier to
-> understand than cpumask_nth() or cpumask_next()-like users.
->
-> My series has the only advantage that it allows keep existing codebase
-> untouched.
->
+pci_get_device() will increase the reference count for the returned
+pci_dev, and also decrease the reference count for the input parameter
+*from* if it is not NULL.
 
-Right
+If we break out the loop in node_affinity_init() with 'dev' not NULL, we
+need to call pci_dev_put() to decrease the reference count. Add missing
+pci_dev_put() in error path.
 
->> I like that this is changing an existing interface so that all current
->> users directly benefit from the change. Now, about half of the users of
->> cpumask_local_spread() use it in a loop with incremental @i parameter,
->> which makes the repeated bsearch a bit of a shame, but then I'm tempted to
->> say the first point makes it worth it.
->>
->> [1]: https://lore.kernel.org/all/20221028164959.1367250-1-vschneid@redhat.com/
->
-> In terms of very common case of sequential invocation of local_spread()
-> for cpus from 0 to nr_cpu_ids, the complexity of my approach is n * log n,
-> and your approach is amortized O(n), which is better. Not a big deal _now_,
-> as you mentioned in the other email. But we never know how things will
-> evolve, right?
->
-> So, I would take both and maybe in comment to cpumask_local_spread()
-> mention that there's a better alternative for those who call the
-> function for all CPUs incrementally.
->
+Fixes: c513de490f80 ("IB/hfi1: Invalid NUMA node information can cause a divide by zero")
+Signed-off-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+---
+ drivers/infiniband/hw/hfi1/affinity.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Ack, sounds good.
-
-> Thanks,
-> Yury
+diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
+index 877f8e84a672..77ee77d4000f 100644
+--- a/drivers/infiniband/hw/hfi1/affinity.c
++++ b/drivers/infiniband/hw/hfi1/affinity.c
+@@ -177,6 +177,8 @@ int node_affinity_init(void)
+ 	for (node = 0; node < node_affinity.num_possible_nodes; node++)
+ 		hfi1_per_node_cntr[node] = 1;
+ 
++	pci_dev_put(dev);
++
+ 	return 0;
+ }
+ 
+-- 
+2.20.1
 
