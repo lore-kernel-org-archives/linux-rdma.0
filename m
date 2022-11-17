@@ -2,88 +2,77 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CDC4C4332F
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Nov 2022 09:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4178DC433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Nov 2022 10:06:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233223AbiKQJwn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Nov 2022 04:52:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38930 "EHLO
+        id S234294AbiKQKGm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Nov 2022 05:06:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230344AbiKQJwm (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Nov 2022 04:52:42 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0199227B02
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Nov 2022 01:52:41 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8FCD461FEF
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Nov 2022 09:52:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 723A9C433D6;
-        Thu, 17 Nov 2022 09:52:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1668678761;
-        bh=NZycOMPj/xUnFUWwc5tT8XQd/v1VTN03mJxsFssZblI=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=ruyo1sgB3AYlFc34wstgVA1vy4fS1XQQLg5jehp9eVB1/ozna/w8BsC6fotizf3Ln
-         daB6/NNlBVYaU3ZocJpUZ0tOrbbFgJdWzrLPBoMqvugd5+0FdO9sJWhPtWUk/sFG9F
-         x5xsKUvpq/rlqHRMNo7/ZlmrKQfu7qBuD9F+btH+Qsv9ayvPBDc7yI41yhVb0FU8z8
-         r8Jfy43Ppospv7dUcP4U6uU6PNfj2/EooqsvoWObn/y8KSWVoqyOxcRdorlkTd7Vok
-         n/d2Cq3EfAklgOYAi3ueZzFdt3UYfBbIJPNnykYhvdjuXDFZJVVB7pYJ1VOrJK9Np5
-         CYxXWgdJwEjrQ==
-Date:   Thu, 17 Nov 2022 11:52:36 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Guoqing Jiang <guoqing.jiang@linux.dev>
+        with ESMTP id S233865AbiKQKGl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Nov 2022 05:06:41 -0500
+Received: from out0.migadu.com (out0.migadu.com [IPv6:2001:41d0:2:267::])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31643231
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Nov 2022 02:06:40 -0800 (PST)
+Subject: Re: [PATCH RFC 00/12] Misc changes for rtrs
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1668679598;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=6IsIXy3slyofN5C7v9kWwuBC72LlM3ZMGQ0H9OFTDHc=;
+        b=c3apde+3utFm7n50Oc9z1E8vH2TUUss4JF3D+JyR+aXCphYwaml7DE5YWtMUcmOfu3oyud
+        YQRYEIi+Y6Fwn+VLl/jRXt7W65TkJssKWSzay4qWzzV9Zw3x9UsbiP7T4a77yHoQCi0/EK
+        LsGYe+Qwknk7NkWmfilog+OYM0Xb+JI=
+To:     Leon Romanovsky <leon@kernel.org>
 Cc:     haris.iqbal@ionos.com, jinpu.wang@ionos.com, jgg@ziepe.ca,
         linux-rdma@vger.kernel.org
-Subject: Re: [PATCH RFC 00/12] Misc changes for rtrs
-Message-ID: <Y3YEZK8BQjQ2DBSr@unreal>
 References: <20221113010823.6436-1-guoqing.jiang@linux.dev>
+ <Y3YEZK8BQjQ2DBSr@unreal>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Guoqing Jiang <guoqing.jiang@linux.dev>
+Message-ID: <b0ec12c5-7fd5-d614-39f8-a53fff537438@linux.dev>
+Date:   Thu, 17 Nov 2022 18:06:38 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221113010823.6436-1-guoqing.jiang@linux.dev>
+In-Reply-To: <Y3YEZK8BQjQ2DBSr@unreal>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, Nov 13, 2022 at 09:08:11AM +0800, Guoqing Jiang wrote:
-> Hi,
-> 
-> Here are some changes for rtrs, please review them.
-> 
-> Thanks,
-> Guoqing
-> 
-> Guoqing Jiang (12):
->   RDMA/rtrs-srv: Remove ib_dev_count from rtrs_srv_ib_ctx
->   RDMA/rtrs-srv: Refactor rtrs_srv_rdma_cm_handler
->   RDMA/rtrs-srv: Only close srv_path if it is just allocated
->   RDMA/rtrs-srv: refactor the handling of failure case in map_cont_bufs
->   RDMA/rtrs-srv: Correct the checking of ib_map_mr_sg
->   RDMA/rtrs-clt: Correct the checking of ib_map_mr_sg
->   RDMA/rtrs-srv: Remove outdated comments from create_con
->   RDMA/rtrs: Kill recon_cnt from several structs
->   RDMA/rtrs: Clean up rtrs_rdma_dev_pd_ops
->   RDMA/rtrs-srv: Remove paths_num
->   RDMA/rtrs-srv: fix several issues in rtrs_srv_destroy_path_files
->   RDMA/rtrs-srv: Remove kobject_del from
->     rtrs_srv_destroy_once_sysfs_root_folders
 
-Can you please resend already reviewed and non-controversial patches as a
-standalone series, so we will be able to apply them?
 
-Thanks
+On 11/17/22 5:52 PM, Leon Romanovsky wrote:
+> On Sun, Nov 13, 2022 at 09:08:11AM +0800, Guoqing Jiang wrote:
+>> Hi,
+>>
+>> Here are some changes for rtrs, please review them.
+>>
+>> Thanks,
+>> Guoqing
+>>
+>> Guoqing Jiang (12):
+>>    RDMA/rtrs-srv: Remove ib_dev_count from rtrs_srv_ib_ctx
+>>    RDMA/rtrs-srv: Refactor rtrs_srv_rdma_cm_handler
+>>    RDMA/rtrs-srv: Only close srv_path if it is just allocated
+>>    RDMA/rtrs-srv: refactor the handling of failure case in map_cont_bufs
+>>    RDMA/rtrs-srv: Correct the checking of ib_map_mr_sg
+>>    RDMA/rtrs-clt: Correct the checking of ib_map_mr_sg
+>>    RDMA/rtrs-srv: Remove outdated comments from create_con
+>>    RDMA/rtrs: Kill recon_cnt from several structs
+>>    RDMA/rtrs: Clean up rtrs_rdma_dev_pd_ops
+>>    RDMA/rtrs-srv: Remove paths_num
+>>    RDMA/rtrs-srv: fix several issues in rtrs_srv_destroy_path_files
+>>    RDMA/rtrs-srv: Remove kobject_del from
+>>      rtrs_srv_destroy_once_sysfs_root_folders
+> Can you please resend already reviewed and non-controversial patches as a
+> standalone series, so we will be able to apply them?
 
-> 
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c       |  12 +-
->  drivers/infiniband/ulp/rtrs/rtrs-pri.h       |   6 -
->  drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c |  13 ++-
->  drivers/infiniband/ulp/rtrs/rtrs-srv.c       | 110 ++++++-------------
->  drivers/infiniband/ulp/rtrs/rtrs-srv.h       |   2 -
->  drivers/infiniband/ulp/rtrs/rtrs.c           |  22 +---
->  6 files changed, 47 insertions(+), 118 deletions(-)
-> 
-> -- 
-> 2.31.1
-> 
+Sure, will send a new v2 series soon.
+
+Thanks,
+Guoqing
