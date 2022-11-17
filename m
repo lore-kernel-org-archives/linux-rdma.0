@@ -2,68 +2,98 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C969EC4332F
-	for <linux-rdma@archiver.kernel.org>; Thu, 17 Nov 2022 10:20:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42FD8C433FE
+	for <linux-rdma@archiver.kernel.org>; Thu, 17 Nov 2022 11:29:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239506AbiKQKUL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 17 Nov 2022 05:20:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55456 "EHLO
+        id S239460AbiKQL3S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 17 Nov 2022 06:29:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239520AbiKQKUH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Nov 2022 05:20:07 -0500
-Received: from out2.migadu.com (out2.migadu.com [IPv6:2001:41d0:2:aacc::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A40C24FF96
-        for <linux-rdma@vger.kernel.org>; Thu, 17 Nov 2022 02:20:06 -0800 (PST)
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1668680405;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=5FHza1rvrmLrZtFWGWRw6X8+BrLZ2Z3GIR74RWWuK+A=;
-        b=pIyJa89n+QxJrpMVB4g6oMIvinp0e/et4O3NxJCEGFXBIZ22B6vr9UCvLBu12WU2WXKnNS
-        Tx0HIVvqS8kOeQ7l50XuUubqm7SGGyKKW43+OsCGjf3FsfdlzrCcVo7n/MmVQHT6CzZ8jt
-        1rjt/STAfL3OCoA/fydr/2X0kNrmGG0=
-From:   Guoqing Jiang <guoqing.jiang@linux.dev>
-To:     haris.iqbal@ionos.com, jinpu.wang@ionos.com, jgg@ziepe.ca,
-        leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH V2 8/8] RDMA/rtrs-srv: Remove kobject_del from rtrs_srv_destroy_once_sysfs_root_folders
-Date:   Thu, 17 Nov 2022 18:19:45 +0800
-Message-Id: <20221117101945.6317-9-guoqing.jiang@linux.dev>
-In-Reply-To: <20221117101945.6317-1-guoqing.jiang@linux.dev>
-References: <20221117101945.6317-1-guoqing.jiang@linux.dev>
+        with ESMTP id S239731AbiKQL3M (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 17 Nov 2022 06:29:12 -0500
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6147043AC3
+        for <linux-rdma@vger.kernel.org>; Thu, 17 Nov 2022 03:29:08 -0800 (PST)
+Received: from dggpeml500023.china.huawei.com (unknown [172.30.72.56])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4NCd313JR2zRpLh;
+        Thu, 17 Nov 2022 19:28:45 +0800 (CST)
+Received: from localhost.localdomain (10.175.101.6) by
+ dggpeml500023.china.huawei.com (7.185.36.114) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 17 Nov 2022 19:29:06 +0800
+From:   Zhang Xiaoxu <zhangxiaoxu5@huawei.com>
+To:     <linux-rdma@vger.kernel.org>, <zhangxiaoxu5@huawei.com>,
+        <zyjzyj2000@gmail.com>, <jgg@ziepe.ca>, <leon@kernel.org>
+Subject: [PATCH] RDMA/rxe: Fix null-ptr-deref in rxe_qp_do_cleanup when socket create failed
+Date:   Thu, 17 Nov 2022 20:33:47 +0800
+Message-ID: <20221117123347.2576350-1-zhangxiaoxu5@huawei.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.101.6]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ dggpeml500023.china.huawei.com (7.185.36.114)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The kobj_paths which is created dynamically by kobject_create_and_add,
-and per the comment above kobject_create_and_add, we only need to call
-kobject_put which is not same as other kobjs such as stats->kobj_stats
-and srv_path->kobj.
+There is a null-ptr-deref when mount.cifs over rdma:
 
-Acked-by: Md Haris Iqbal <haris.iqbal@ionos.com>
-Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
+  BUG: KASAN: null-ptr-deref in rxe_qp_do_cleanup+0x2f3/0x360 [rdma_rxe]
+  Read of size 8 at addr 0000000000000018 by task mount.cifs/3046
+
+  CPU: 2 PID: 3046 Comm: mount.cifs Not tainted 6.1.0-rc5+ #62
+  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-1.fc3
+  Call Trace:
+   <TASK>
+   dump_stack_lvl+0x34/0x44
+   kasan_report+0xad/0x130
+   rxe_qp_do_cleanup+0x2f3/0x360 [rdma_rxe]
+   execute_in_process_context+0x25/0x90
+   __rxe_cleanup+0x101/0x1d0 [rdma_rxe]
+   rxe_create_qp+0x16a/0x180 [rdma_rxe]
+   create_qp.part.0+0x27d/0x340
+   ib_create_qp_kernel+0x73/0x160
+   rdma_create_qp+0x100/0x230
+   _smbd_get_connection+0x752/0x20f0
+   smbd_get_connection+0x21/0x40
+   cifs_get_tcp_session+0x8ef/0xda0
+   mount_get_conns+0x60/0x750
+   cifs_mount+0x103/0xd00
+   cifs_smb3_do_mount+0x1dd/0xcb0
+   smb3_get_tree+0x1d5/0x300
+   vfs_get_tree+0x41/0xf0
+   path_mount+0x9b3/0xdd0
+   __x64_sys_mount+0x190/0x1d0
+   do_syscall_64+0x35/0x80
+   entry_SYSCALL_64_after_hwframe+0x46/0xb0
+
+The root cause of the issue is the socket create failed in
+rxe_qp_init_req().
+
+So add a null ptr check about the sk before reset the dst socket.
+
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Zhang Xiaoxu <zhangxiaoxu5@huawei.com>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-index da8e205ce331..c76ba29da1e2 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-@@ -203,7 +203,6 @@ rtrs_srv_destroy_once_sysfs_root_folders(struct rtrs_srv_path *srv_path)
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index a62bab88415c..4bab641fdd42 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -829,7 +829,7 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
+ 	if (qp->resp.mr)
+ 		rxe_put(qp->resp.mr);
  
- 	mutex_lock(&srv->paths_mutex);
- 	if (!--srv->dev_ref) {
--		kobject_del(srv->kobj_paths);
- 		kobject_put(srv->kobj_paths);
- 		mutex_unlock(&srv->paths_mutex);
- 		device_del(&srv->dev);
+-	if (qp_type(qp) == IB_QPT_RC)
++	if (qp_type(qp) == IB_QPT_RC && qp->sk)
+ 		sk_dst_reset(qp->sk->sk);
+ 
+ 	free_rd_atomic_resources(qp);
 -- 
 2.31.1
 
