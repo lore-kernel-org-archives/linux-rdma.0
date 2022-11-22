@@ -2,106 +2,69 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73024C4332F
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Nov 2022 14:11:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EC19C4332F
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Nov 2022 14:16:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232869AbiKVOLH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 22 Nov 2022 09:11:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34138 "EHLO
+        id S233410AbiKVOQ0 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 22 Nov 2022 09:16:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233740AbiKVOKv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 22 Nov 2022 09:10:51 -0500
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0C491A06A
-        for <linux-rdma@vger.kernel.org>; Tue, 22 Nov 2022 06:10:04 -0800 (PST)
-Received: from dggpeml500023.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4NGmN63dQlzHvy3;
-        Tue, 22 Nov 2022 22:09:26 +0800 (CST)
-Received: from localhost.localdomain (10.175.101.6) by
- dggpeml500023.china.huawei.com (7.185.36.114) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Tue, 22 Nov 2022 22:10:02 +0800
-From:   Zhang Xiaoxu <zhangxiaoxu5@huawei.com>
-To:     <linux-rdma@vger.kernel.org>, <zhangxiaoxu5@huawei.com>,
-        <zyjzyj2000@gmail.com>, <jgg@ziepe.ca>, <leon@kernel.org>
-Subject: [PATCH v2] RDMA/rxe: Fix null-ptr-deref in rxe_qp_do_cleanup when socket create failed
-Date:   Tue, 22 Nov 2022 23:14:37 +0800
-Message-ID: <20221122151437.1057671-1-zhangxiaoxu5@huawei.com>
-X-Mailer: git-send-email 2.31.1
+        with ESMTP id S231808AbiKVOQZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 22 Nov 2022 09:16:25 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F9432D1F7
+        for <linux-rdma@vger.kernel.org>; Tue, 22 Nov 2022 06:16:24 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 12CBBB81B3B
+        for <linux-rdma@vger.kernel.org>; Tue, 22 Nov 2022 14:16:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53BA2C433C1;
+        Tue, 22 Nov 2022 14:16:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1669126581;
+        bh=qb+bMUsf0/xyz+/0Wv8IZUE8xOJA7iSLdc1fOrOTs7I=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=I95OdT3ubAAzLY1whU/PgRzpgIZ0EK6Jp11MaKVONtsScYq/FtSDLFjvzbZZ68cPo
+         lfzhfMjjf1DtTeW7sdJuWSeECybOPz4Mp4sHizXtxDJNT3tdvRQ4qy/PiGexf8RhEc
+         PCrrVFftLitBPeM/xQq1SAH10wKvGUgVdVExzrd73Zs7Cpqi1tDqhhE0dtbg90Gojm
+         4tt6Ic1cs/RQvwoU9x1kkrEqztnV1qKSi6JC+/Hiskej+cOGk//7krjk5blptvAEXq
+         yylM/Yj88Wkw60I4OmT6QJNlb9BUpMPH1oufDKd+DAldDT38nbyS93HQN9EQdS0E8/
+         CCLdQQD6qQCQA==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Shiraz Saleem <shiraz.saleem@intel.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     linux-rdma@vger.kernel.org,
+        Mustafa Ismail <mustafa.ismail@intel.com>
+In-Reply-To: <20221122004410.1471-1-shiraz.saleem@intel.com>
+References: <20221122004410.1471-1-shiraz.saleem@intel.com>
+Subject: Re: [PATCH for-rc] RDMA/irdma: Initialize net_type before checking it
+Message-Id: <166912657823.230160.14617482644281042873.b4-ty@kernel.org>
+Date:   Tue, 22 Nov 2022 16:16:18 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.175.101.6]
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- dggpeml500023.china.huawei.com (7.185.36.114)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-Mailer: b4 0.11.0-dev-87e0e
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-There is a null-ptr-deref when mount.cifs over rdma:
+On Mon, 21 Nov 2022 18:44:10 -0600, Shiraz Saleem wrote:
+> From: Mustafa Ismail <mustafa.ismail@intel.com>
+> 
+> The av->net_type is not initialized before it is checked in
+> irdma_modify_qp_roce. This leads to an incorrect update to the ARP cache
+> and QP context. RoCEv2 connections might fail as result.
+> 
+> Set the net_type using rdma_gid_attr_network_type.
+> 
+> [...]
 
-  BUG: KASAN: null-ptr-deref in rxe_qp_do_cleanup+0x2f3/0x360 [rdma_rxe]
-  Read of size 8 at addr 0000000000000018 by task mount.cifs/3046
+Applied, thanks!
 
-  CPU: 2 PID: 3046 Comm: mount.cifs Not tainted 6.1.0-rc5+ #62
-  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-1.fc3
-  Call Trace:
-   <TASK>
-   dump_stack_lvl+0x34/0x44
-   kasan_report+0xad/0x130
-   rxe_qp_do_cleanup+0x2f3/0x360 [rdma_rxe]
-   execute_in_process_context+0x25/0x90
-   __rxe_cleanup+0x101/0x1d0 [rdma_rxe]
-   rxe_create_qp+0x16a/0x180 [rdma_rxe]
-   create_qp.part.0+0x27d/0x340
-   ib_create_qp_kernel+0x73/0x160
-   rdma_create_qp+0x100/0x230
-   _smbd_get_connection+0x752/0x20f0
-   smbd_get_connection+0x21/0x40
-   cifs_get_tcp_session+0x8ef/0xda0
-   mount_get_conns+0x60/0x750
-   cifs_mount+0x103/0xd00
-   cifs_smb3_do_mount+0x1dd/0xcb0
-   smb3_get_tree+0x1d5/0x300
-   vfs_get_tree+0x41/0xf0
-   path_mount+0x9b3/0xdd0
-   __x64_sys_mount+0x190/0x1d0
-   do_syscall_64+0x35/0x80
-   entry_SYSCALL_64_after_hwframe+0x46/0xb0
+[1/1] RDMA/irdma: Initialize net_type before checking it
+      https://git.kernel.org/rdma/rdma/c/9907526d25c4ad
 
-The root cause of the issue is the socket create failed in
-rxe_qp_init_req().
-
-So move the reset rxe_qp_do_cleanup() after the null ptr check.
-
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Zhang Xiaoxu <zhangxiaoxu5@huawei.com>
----
-v2: Move the rxe_qp_do_cleanup() after the null ptr check
- drivers/infiniband/sw/rxe/rxe_qp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index a62bab88415c..e459fb542b83 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -829,12 +829,12 @@ static void rxe_qp_do_cleanup(struct work_struct *work)
- 	if (qp->resp.mr)
- 		rxe_put(qp->resp.mr);
- 
--	if (qp_type(qp) == IB_QPT_RC)
--		sk_dst_reset(qp->sk->sk);
--
- 	free_rd_atomic_resources(qp);
- 
- 	if (qp->sk) {
-+		if (qp_type(qp) == IB_QPT_RC)
-+			sk_dst_reset(qp->sk->sk);
-+
- 		kernel_sock_shutdown(qp->sk, SHUT_RDWR);
- 		sock_release(qp->sk);
- 	}
+Best regards,
 -- 
-2.31.1
-
+Leon Romanovsky <leon@kernel.org>
