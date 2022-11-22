@@ -2,85 +2,80 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48F76C4332F
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Nov 2022 06:34:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 028F6C4321E
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Nov 2022 09:02:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231899AbiKVGen (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 22 Nov 2022 01:34:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47184 "EHLO
+        id S232991AbiKVJCL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 22 Nov 2022 04:02:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231519AbiKVGem (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 22 Nov 2022 01:34:42 -0500
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72D402DD8
-        for <linux-rdma@vger.kernel.org>; Mon, 21 Nov 2022 22:34:41 -0800 (PST)
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4NGZBs37FpzqSPy;
-        Tue, 22 Nov 2022 14:30:45 +0800 (CST)
-Received: from kwepemm600013.china.huawei.com (7.193.23.68) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Tue, 22 Nov 2022 14:34:39 +0800
-Received: from [10.67.103.121] (10.67.103.121) by
- kwepemm600013.china.huawei.com (7.193.23.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Tue, 22 Nov 2022 14:34:38 +0800
-Subject: Re: [PATCH] RDMA/hns: fix memory leak in hns_roce_alloc_mr()
-To:     Zhengchao Shao <shaozhengchao@huawei.com>,
-        <linux-rdma@vger.kernel.org>, <liangwenpeng@huawei.com>
-CC:     <jgg@ziepe.ca>, <leon@kernel.org>, <liweihang@huawei.com>,
-        <chenglang@huawei.com>, <wangxi11@huawei.com>,
-        <weiyongjun1@huawei.com>, <yuehaibing@huawei.com>
-References: <20221119070834.48502-1-shaozhengchao@huawei.com>
-From:   "xuhaoyue (A)" <xuhaoyue1@hisilicon.com>
-Message-ID: <719e15d3-cda0-ba0b-a749-47fab86c386e@hisilicon.com>
-Date:   Tue, 22 Nov 2022 14:34:38 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.12.0
+        with ESMTP id S232370AbiKVJCK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 22 Nov 2022 04:02:10 -0500
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4128BA456
+        for <linux-rdma@vger.kernel.org>; Tue, 22 Nov 2022 01:02:09 -0800 (PST)
+Received: from canpemm500002.china.huawei.com (unknown [172.30.72.53])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4NGdXq39dgzHw8f;
+        Tue, 22 Nov 2022 17:01:31 +0800 (CST)
+Received: from huawei.com (10.29.88.127) by canpemm500002.china.huawei.com
+ (7.192.104.244) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Tue, 22 Nov
+ 2022 17:02:06 +0800
+From:   Chao Leng <lengchao@huawei.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <lengchao@huawei.com>
+Subject: [for-next PATCH] infiniband:cma: add a parameter for the packet lifetime
+Date:   Tue, 22 Nov 2022 17:02:06 +0800
+Message-ID: <20221122090206.865-1-lengchao@huawei.com>
+X-Mailer: git-send-email 2.16.4
 MIME-Version: 1.0
-In-Reply-To: <20221119070834.48502-1-shaozhengchao@huawei.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.67.103.121]
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- kwepemm600013.china.huawei.com (7.193.23.68)
+Content-Type: text/plain
+X-Originating-IP: [10.29.88.127]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ canpemm500002.china.huawei.com (7.192.104.244)
 X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 2022/11/19 15:08:34, Zhengchao Shao wrote:
-> When hns_roce_mr_enable() failed in hns_roce_alloc_mr(), mr_key is not
-> released. Compiled test only.
-> 
-> Fixes: 9b2cf76c9f05 ("RDMA/hns: Optimize PBL buffer allocation process")
-> Signed-off-by: Zhengchao Shao <shaozhengchao@huawei.com>
-> ---
->  drivers/infiniband/hw/hns/hns_roce_mr.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-> index 845ac7d3831f..37a5cf62f88b 100644
-> --- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-> +++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-> @@ -392,10 +392,10 @@ struct ib_mr *hns_roce_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
->  
->  	return &mr->ibmr;
->  
-> -err_key:
-> -	free_mr_key(hr_dev, mr);
->  err_pbl:
->  	free_mr_pbl(hr_dev, mr);
-> +err_key:
-> +	free_mr_key(hr_dev, mr);
->  err_free:
->  	kfree(mr);
->  	return ERR_PTR(ret);
-> 
+Now the default packet lifetime(CMA_IBOE_PACKET_LIFETIME) is 18.
+That means the minimum ack timeout is 2 seconds(2^(18+1)*4us=2.097seconds).
+The packet lifetime means the maximum transmission time of packets
+on the network, the maximum transmission time of packets is closely
+related to the network. 2 seconds is too long for simple lossless networks.
+The packet lifetime should allow the user to adjust according to the
+network situation.
+So add a parameter for the packet lifetime.
 
-Thank you. For the patch:
-Acked-by Haoyue Xu <xuhaoyue1@hisilicon.com>
+Signed-off-by: Chao Leng <lengchao@huawei.com>
+---
+ drivers/infiniband/core/cma.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-Regards,
-Haoyue
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index cc2222b85c88..8e2ff5d610e3 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -50,6 +50,10 @@ MODULE_LICENSE("Dual BSD/GPL");
+ #define CMA_IBOE_PACKET_LIFETIME 18
+ #define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
+ 
++static unsigned char cma_packet_lifetime = CMA_IBOE_PACKET_LIFETIME;
++module_param_named(packet_lifetime, cma_packet_lifetime, byte, 0644);
++MODULE_PARM_DESC(packet_lifetime, "max transmission time of the packet");
++
+ static const char * const cma_events[] = {
+ 	[RDMA_CM_EVENT_ADDR_RESOLVED]	 = "address resolved",
+ 	[RDMA_CM_EVENT_ADDR_ERROR]	 = "address error",
+@@ -3301,7 +3305,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	if (id_priv->timeout_set && id_priv->timeout)
+ 		route->path_rec->packet_life_time = id_priv->timeout - 1;
+ 	else
+-		route->path_rec->packet_life_time = CMA_IBOE_PACKET_LIFETIME;
++		route->path_rec->packet_life_time = cma_packet_lifetime;
+ 	mutex_unlock(&id_priv->qp_mutex);
+ 
+ 	if (!route->path_rec->mtu) {
+-- 
+2.16.4
+
