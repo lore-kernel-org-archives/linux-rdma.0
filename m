@@ -2,83 +2,130 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A13D9C433FE
-	for <linux-rdma@archiver.kernel.org>; Tue, 22 Nov 2022 00:44:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0200FC433FE
+	for <linux-rdma@archiver.kernel.org>; Tue, 22 Nov 2022 02:13:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230473AbiKVAog (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 21 Nov 2022 19:44:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60760 "EHLO
+        id S232378AbiKVCNR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 21 Nov 2022 21:13:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229733AbiKVAog (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Nov 2022 19:44:36 -0500
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60CD2E09F
-        for <linux-rdma@vger.kernel.org>; Mon, 21 Nov 2022 16:44:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669077875; x=1700613875;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=1uOxMnh9wKwgt1sZW5g8XnAaYuRGbXRkJM0I/Uw5pJA=;
-  b=VcZU3NBCuKErv9+2DMppioD/bUDloLh/J9IXGGLtrOtFjNrRo0+fQ97a
-   lu0Kr57bIE4GFAb5n7MNF50FS3Tv0tixiZHdJub37Z7T+gTuBOS54eL+2
-   43j8BCj20x8y7pZyI1i+XLzOwJA6tMziTjZzOSln16bj4Y0vBADG3/TH0
-   GhqX8UplhVEpDujLJ5f0OCHq2isNxtQR40gIj32qNMfMBoHpT1pwH7QMQ
-   yp5V/53/xJCyIAEp9M1jM+vZzCr7Ri87zOeff8y6nVG598845vxITtQsz
-   9vlmaCPb1DlwCZXxh+rDoDo/Oeb/OUxixdBbKeyKUwBy8nJu3KQpAM6tC
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="294086300"
-X-IronPort-AV: E=Sophos;i="5.96,182,1665471600"; 
-   d="scan'208";a="294086300"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Nov 2022 16:44:34 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10538"; a="672297079"
-X-IronPort-AV: E=Sophos;i="5.96,182,1665471600"; 
-   d="scan'208";a="672297079"
-Received: from ssaleem-mobl1.amr.corp.intel.com ([10.212.96.246])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Nov 2022 16:44:34 -0800
-From:   Shiraz Saleem <shiraz.saleem@intel.com>
-To:     jgg@nvidia.com, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH for-rc] RDMA/irdma: Initialize net_type before checking it
-Date:   Mon, 21 Nov 2022 18:44:10 -0600
-Message-Id: <20221122004410.1471-1-shiraz.saleem@intel.com>
-X-Mailer: git-send-email 2.35.2
+        with ESMTP id S231513AbiKVCNQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Nov 2022 21:13:16 -0500
+Received: from mail-qt1-x82e.google.com (mail-qt1-x82e.google.com [IPv6:2607:f8b0:4864:20::82e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5687061759
+        for <linux-rdma@vger.kernel.org>; Mon, 21 Nov 2022 18:13:15 -0800 (PST)
+Received: by mail-qt1-x82e.google.com with SMTP id h24so8495896qta.9
+        for <linux-rdma@vger.kernel.org>; Mon, 21 Nov 2022 18:13:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=dIRhDVWiab3bjDPVgRSMneOqOqqdAB0Fj+0SdzxoeH4=;
+        b=K9/WYl+a/zA/3Bl3JMxOy+5d3Ranm4/09Q5QOUYmPL+W0lXz42G8zpyJNGRzMOzdXS
+         E4WSrSA1DN2dJD0s+V/3FSjJdyPX9trb4FQbWFaSdL5kQiORd2yX+o3UhWfy0/zonEuF
+         QIgy9V6AC47+aRbaCOfW7turbl5LERJRpytgieuUfzmfLUlgA30D8lb/5h6OoezM5MKX
+         tmHHi5lZ/2dlKzpE0feihA0xoQsMsqiQDQLK9TVvcviwdLfJR0dKJdiHWZr95ilpWvEI
+         /N+Q57aJbsJgU2APNZjNBI3/wphN+7jhTHfREzufA6PWz7pbB98tic7AEiqlJgledR22
+         v8nA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=dIRhDVWiab3bjDPVgRSMneOqOqqdAB0Fj+0SdzxoeH4=;
+        b=EoYeVbKM02n/wLw8wirprpp7X0T6dIhu1pPzINT0IYmUrqfpDLvggx17zQT4XYFrpu
+         ml62cN7C7pjraA2+vYAsWTXUjJzFujOaO/CoE2wECK4XXDzPYxomUZvY4/+MNU24CAdQ
+         5xFoQhFNiByAZBOrOZj2ZNVzvpcmFgIyZd/XgDzJ4ihtoFIasWNq4UsSVu8GzPDlRUVV
+         l5KMnhc9/ohZZ4ikgaaGbrDJ0g2Mj0Pcq8Io3WxCWkkRFXCuFlXpQ232IPhU5Vw9ykiq
+         tEfuqlAn41Qm4AlUgHIhEV5YRQPVgIbJWn5B/Lc+SndhDZ/vOs8mY2n6zLEjYgFX4xIF
+         mAgg==
+X-Gm-Message-State: ANoB5ploERTE0uSxpxVlB+bvrH5I+AtAo7W3iXb8yd1KgQRC1A7AbMgQ
+        AmPOM+3HyP+WHFDWtv1SjOZgB0I+fUPkWQ==
+X-Google-Smtp-Source: AA0mqf7ZUnS7zXBNzp66ZG4R9u/uDVqaGTLIoiFUGabn7Ga5y6kCmFkWwhn/fiyH+teiO3jguTs+zg==
+X-Received: by 2002:a05:622a:5c8e:b0:3a5:5c9e:d453 with SMTP id ge14-20020a05622a5c8e00b003a55c9ed453mr20810640qtb.403.1669083194399;
+        Mon, 21 Nov 2022 18:13:14 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-47-55-122-23.dhcp-dynamic.fibreop.ns.bellaliant.net. [47.55.122.23])
+        by smtp.gmail.com with ESMTPSA id k7-20020ac84787000000b0039cc7ebf46bsm7463590qtq.93.2022.11.21.18.13.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Nov 2022 18:13:13 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1oxIme-009YhX-R6;
+        Mon, 21 Nov 2022 22:13:12 -0400
+Date:   Mon, 21 Nov 2022 22:13:12 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Dmitry Vyukov <dvyukov@google.com>
+Cc:     syzbot <syzbot+5e70d01ee8985ae62a3b@syzkaller.appspotmail.com>,
+        Leon Romanovsky <leon@kernel.org>, chenzhongjin@huawei.com,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        syzkaller-bugs@googlegroups.com, Zhu Yanjun <zyjzyj2000@gmail.com>,
+        Bob Pearson <rpearsonhpe@gmail.com>
+Subject: Re: [syzbot] unregister_netdevice: waiting for DEV to become free (7)
+Message-ID: <Y3wwOPmH1WoRj0Uo@ziepe.ca>
+References: <00000000000060c7e305edbd296a@google.com>
+ <CACT4Y+a=HbyJE3A_SnKm3Be-kcQytxXXF89gZ_cN1gwoAW-Zgw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACT4Y+a=HbyJE3A_SnKm3Be-kcQytxXXF89gZ_cN1gwoAW-Zgw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+On Fri, Nov 18, 2022 at 02:28:53PM +0100, Dmitry Vyukov wrote:
+> On Fri, 18 Nov 2022 at 12:39, syzbot
+> <syzbot+5e70d01ee8985ae62a3b@syzkaller.appspotmail.com> wrote:
+> >
+> > Hello,
+> >
+> > syzbot found the following issue on:
+> >
+> > HEAD commit:    9c8774e629a1 net: eql: Use kzalloc instead of kmalloc/memset
+> > git tree:       net-next
+> > console output: https://syzkaller.appspot.com/x/log.txt?x=17bf6cc8f00000
+> > kernel config:  https://syzkaller.appspot.com/x/.config?x=9eb259db6b1893cf
+> > dashboard link: https://syzkaller.appspot.com/bug?extid=5e70d01ee8985ae62a3b
+> > compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+> > syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1136d592f00000
+> > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1193ae64f00000
+> >
+> > Bisection is inconclusive: the issue happens on the oldest tested release.
+> >
+> > bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=167c33a2f00000
+> > final oops:     https://syzkaller.appspot.com/x/report.txt?x=157c33a2f00000
+> > console output: https://syzkaller.appspot.com/x/log.txt?x=117c33a2f00000
+> >
+> > IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> > Reported-by: syzbot+5e70d01ee8985ae62a3b@syzkaller.appspotmail.com
+> >
+> > iwpm_register_pid: Unable to send a nlmsg (client = 2)
+> > infiniband syj1: RDMA CMA: cma_listen_on_dev, error -98
+> > unregister_netdevice: waiting for vlan0 to become free. Usage count = 2
+> 
+> +RDMA maintainers
+> 
+> There are 4 reproducers and all contain:
+> 
+> r0 = socket$nl_rdma(0x10, 0x3, 0x14)
+> sendmsg$RDMA_NLDEV_CMD_NEWLINK(...)
+> 
+> Also the preceding print looks related (a bug in the error handling
+> path there?):
+> 
+> infiniband syj1: RDMA CMA: cma_listen_on_dev, error -98
 
-The av->net_type is not initialized before it is checked in
-irdma_modify_qp_roce. This leads to an incorrect update to the ARP cache
-and QP context. RoCEv2 connections might fail as result.
+I'm pretty sure it is an rxe bug
 
-Set the net_type using rdma_gid_attr_network_type.
+ib_device_set_netdev() will hold the netdev until the caller destroys
+the ib_device
 
-Fixes: 80005c43d4c8 ("RDMA/irdma: Use net_type to check network type")
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
----
- drivers/infiniband/hw/irdma/verbs.c | 1 +
- 1 file changed, 1 insertion(+)
+rxe calls it during rxe_register_device() because the user asked for a
+stacked ib_device on top of the netdev
 
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index a22afbb..4da5d6f 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -1242,6 +1242,7 @@ int irdma_modify_qp_roce(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		av->attrs = attr->ah_attr;
- 		rdma_gid2ip((struct sockaddr *)&av->sgid_addr, &sgid_attr->gid);
- 		rdma_gid2ip((struct sockaddr *)&av->dgid_addr, &attr->ah_attr.grh.dgid);
-+		av->net_type = rdma_gid_attr_network_type(sgid_attr);
- 		if (av->net_type == RDMA_NETWORK_IPV6) {
- 			__be32 *daddr =
- 				av->dgid_addr.saddr_in6.sin6_addr.in6_u.u6_addr32;
--- 
-1.8.3.1
+Presumably rxe needs to have a notifier to also self destroy the rxe
+device if the underlying net device is to be destroyed?
 
+Can someone from rxe check into this?
+
+Jason
