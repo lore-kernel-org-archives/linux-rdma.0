@@ -2,29 +2,29 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F98DC63703
-	for <linux-rdma@archiver.kernel.org>; Sat, 26 Nov 2022 09:04:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71827C47088
+	for <linux-rdma@archiver.kernel.org>; Sat, 26 Nov 2022 09:04:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229626AbiKZJED (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 26 Nov 2022 04:04:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33594 "EHLO
+        id S229563AbiKZJEE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 26 Nov 2022 04:04:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229450AbiKZJD5 (ORCPT
+        with ESMTP id S229590AbiKZJD5 (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sat, 26 Nov 2022 04:03:57 -0500
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E41F42A70C;
-        Sat, 26 Nov 2022 01:03:53 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R841e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VViBjTZ_1669453431;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VViBjTZ_1669453431)
+Received: from out30-42.freemail.mail.aliyun.com (out30-42.freemail.mail.aliyun.com [115.124.30.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 071E62A720;
+        Sat, 26 Nov 2022 01:03:55 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VViBjU._1669453432;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VViBjU._1669453432)
           by smtp.aliyun-inc.com;
-          Sat, 26 Nov 2022 17:03:51 +0800
+          Sat, 26 Nov 2022 17:03:53 +0800
 From:   "D.Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net-next v6 4/7] net/smc: llc_conf_mutex refactor, replace it with rw_semaphore
-Date:   Sat, 26 Nov 2022 17:03:39 +0800
-Message-Id: <1669453422-38152-5-git-send-email-alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v6 7/7] net/smc: replace mutex rmbs_lock and sndbufs_lock with rw_semaphore
+Date:   Sat, 26 Nov 2022 17:03:42 +0800
+Message-Id: <1669453422-38152-8-git-send-email-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1669453422-38152-1-git-send-email-alibuda@linux.alibaba.com>
 References: <1669453422-38152-1-git-send-email-alibuda@linux.alibaba.com>
@@ -34,236 +34,298 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-llc_conf_mutex was used to protect links and link related configurations
-in the same link group, for example, add or delete links. However,
-in most cases, the protected critical area has only read semantics and
-with no write semantics at all, such as obtaining a usable link or an
-available rmb_desc.
+It's clear that rmbs_lock and sndbufs_lock are aims to protect the
+rmbs list or the sndbufs list.
 
-This patch do simply code refactoring, replace mutex with rw_semaphore,
-replace mutex_lock with down_write and replace mutex_unlock with
-up_write.
+During connection establieshment, smc_buf_get_slot() will always
+be invoked, and it only performs read semantics in rmbs list and
+sndbufs list.
 
-Theoretically, this replacement is equivalent, but after this patch,
-we can distinguish lock granularity according to different semantics
-of critical areas.
+Based on the above considerations, we replace mutex with rw_semaphore.
+Only smc_buf_get_slot() use down_read() to allow smc_buf_get_slot()
+run concurrently, other part use down_write() to keep exclusive
+semantics.
 
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- net/smc/af_smc.c   |  8 ++++----
- net/smc/smc_core.c | 20 ++++++++++----------
- net/smc/smc_core.h |  2 +-
- net/smc/smc_llc.c  | 18 +++++++++---------
- 4 files changed, 24 insertions(+), 24 deletions(-)
+ net/smc/smc_core.c | 55 +++++++++++++++++++++++++++---------------------------
+ net/smc/smc_core.h |  4 ++--
+ net/smc/smc_llc.c  | 16 ++++++++--------
+ 3 files changed, 38 insertions(+), 37 deletions(-)
 
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 52287ee..c4253b5 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -496,7 +496,7 @@ static int smcr_lgr_reg_sndbufs(struct smc_link *link,
- 		return -EINVAL;
- 
- 	/* protect against parallel smcr_link_reg_buf() */
--	mutex_lock(&lgr->llc_conf_mutex);
-+	down_write(&lgr->llc_conf_mutex);
- 	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
- 		if (!smc_link_active(&lgr->lnk[i]))
- 			continue;
-@@ -504,7 +504,7 @@ static int smcr_lgr_reg_sndbufs(struct smc_link *link,
- 		if (rc)
- 			break;
- 	}
--	mutex_unlock(&lgr->llc_conf_mutex);
-+	up_write(&lgr->llc_conf_mutex);
- 	return rc;
- }
- 
-@@ -521,7 +521,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
- 	/* protect against parallel smc_llc_cli_rkey_exchange() and
- 	 * parallel smcr_link_reg_buf()
- 	 */
--	mutex_lock(&lgr->llc_conf_mutex);
-+	down_write(&lgr->llc_conf_mutex);
- 	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
- 		if (!smc_link_active(&lgr->lnk[i]))
- 			continue;
-@@ -538,7 +538,7 @@ static int smcr_lgr_reg_rmbs(struct smc_link *link,
- 	}
- 	rmb_desc->is_conf_rkey = true;
- out:
--	mutex_unlock(&lgr->llc_conf_mutex);
-+	up_write(&lgr->llc_conf_mutex);
- 	smc_llc_flow_stop(lgr, &lgr->llc_flow_lcl);
- 	return rc;
- }
 diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 1c4d669..b571297 100644
+index 2f261c3..3f6e70e 100644
 --- a/net/smc/smc_core.c
 +++ b/net/smc/smc_core.c
-@@ -1385,10 +1385,10 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
- 		rc = smc_llc_flow_initiate(lgr, SMC_LLC_FLOW_RKEY);
- 		if (!rc) {
- 			/* protect against smc_llc_cli_rkey_exchange() */
--			mutex_lock(&lgr->llc_conf_mutex);
-+			down_write(&lgr->llc_conf_mutex);
- 			smc_llc_do_delete_rkey(lgr, buf_desc);
- 			buf_desc->is_conf_rkey = false;
--			mutex_unlock(&lgr->llc_conf_mutex);
-+			up_write(&lgr->llc_conf_mutex);
- 			smc_llc_flow_stop(lgr, &lgr->llc_flow_lcl);
- 		}
- 	}
-@@ -1659,12 +1659,12 @@ static void smc_lgr_free(struct smc_link_group *lgr)
+@@ -1129,8 +1129,8 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
+ 	lgr->freeing = 0;
+ 	lgr->vlan_id = ini->vlan_id;
+ 	refcount_set(&lgr->refcnt, 1); /* set lgr refcnt to 1 */
+-	mutex_init(&lgr->sndbufs_lock);
+-	mutex_init(&lgr->rmbs_lock);
++	init_rwsem(&lgr->sndbufs_lock);
++	init_rwsem(&lgr->rmbs_lock);
+ 	rwlock_init(&lgr->conns_lock);
+ 	for (i = 0; i < SMC_RMBE_SIZES; i++) {
+ 		INIT_LIST_HEAD(&lgr->sndbufs[i]);
+@@ -1377,7 +1377,7 @@ struct smc_link *smc_switch_conns(struct smc_link_group *lgr,
+ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
+ 			   struct smc_link_group *lgr)
+ {
+-	struct mutex *lock;	/* lock buffer list */
++	struct rw_semaphore *lock;	/* lock buffer list */
+ 	int rc;
+ 
+ 	if (is_rmb && buf_desc->is_conf_rkey && !list_empty(&lgr->list)) {
+@@ -1397,9 +1397,9 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
+ 		/* buf registration failed, reuse not possible */
+ 		lock = is_rmb ? &lgr->rmbs_lock :
+ 				&lgr->sndbufs_lock;
+-		mutex_lock(lock);
++		down_write(lock);
+ 		list_del(&buf_desc->list);
+-		mutex_unlock(lock);
++		up_write(lock);
+ 
+ 		smc_buf_free(lgr, is_rmb, buf_desc);
+ 	} else {
+@@ -1503,15 +1503,16 @@ static void smcr_buf_unmap_lgr(struct smc_link *lnk)
  	int i;
  
- 	if (!lgr->is_smcd) {
--		mutex_lock(&lgr->llc_conf_mutex);
-+		down_write(&lgr->llc_conf_mutex);
- 		for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
- 			if (lgr->lnk[i].state != SMC_LNK_UNUSED)
- 				smcr_link_clear(&lgr->lnk[i], false);
- 		}
--		mutex_unlock(&lgr->llc_conf_mutex);
-+		up_write(&lgr->llc_conf_mutex);
- 		smc_llc_lgr_clear(lgr);
+ 	for (i = 0; i < SMC_RMBE_SIZES; i++) {
+-		mutex_lock(&lgr->rmbs_lock);
++		down_write(&lgr->rmbs_lock);
+ 		list_for_each_entry_safe(buf_desc, bf, &lgr->rmbs[i], list)
+ 			smcr_buf_unmap_link(buf_desc, true, lnk);
+-		mutex_unlock(&lgr->rmbs_lock);
+-		mutex_lock(&lgr->sndbufs_lock);
++		up_write(&lgr->rmbs_lock);
++
++		down_write(&lgr->sndbufs_lock);
+ 		list_for_each_entry_safe(buf_desc, bf, &lgr->sndbufs[i],
+ 					 list)
+ 			smcr_buf_unmap_link(buf_desc, false, lnk);
+-		mutex_unlock(&lgr->sndbufs_lock);
++		up_write(&lgr->sndbufs_lock);
  	}
- 
-@@ -1978,12 +1978,12 @@ static void smcr_link_down(struct smc_link *lnk)
- 	} else {
- 		if (lgr->llc_flow_lcl.type != SMC_LLC_FLOW_NONE) {
- 			/* another llc task is ongoing */
--			mutex_unlock(&lgr->llc_conf_mutex);
-+			up_write(&lgr->llc_conf_mutex);
- 			wait_event_timeout(lgr->llc_flow_waiter,
- 				(list_empty(&lgr->list) ||
- 				 lgr->llc_flow_lcl.type == SMC_LLC_FLOW_NONE),
- 				SMC_LLC_WAIT_TIME);
--			mutex_lock(&lgr->llc_conf_mutex);
-+			down_write(&lgr->llc_conf_mutex);
- 		}
- 		if (!list_empty(&lgr->list)) {
- 			smc_llc_send_delete_link(to_lnk, del_link_id,
-@@ -2043,9 +2043,9 @@ static void smc_link_down_work(struct work_struct *work)
- 	if (list_empty(&lgr->list))
- 		return;
- 	wake_up_all(&lgr->llc_msg_waiter);
--	mutex_lock(&lgr->llc_conf_mutex);
-+	down_write(&lgr->llc_conf_mutex);
- 	smcr_link_down(link);
--	mutex_unlock(&lgr->llc_conf_mutex);
-+	up_write(&lgr->llc_conf_mutex);
  }
  
- static int smc_vlan_by_tcpsk_walk(struct net_device *lower_dev,
-@@ -2650,7 +2650,7 @@ static int smcr_buf_map_usable_links(struct smc_link_group *lgr,
- 	int i, rc = 0, cnt = 0;
+@@ -2393,19 +2394,19 @@ int smc_uncompress_bufsize(u8 compressed)
+  * buffer size; if not available, return NULL
+  */
+ static struct smc_buf_desc *smc_buf_get_slot(int compressed_bufsize,
+-					     struct mutex *lock,
++					     struct rw_semaphore *lock,
+ 					     struct list_head *buf_list)
+ {
+ 	struct smc_buf_desc *buf_slot;
  
- 	/* protect against parallel link reconfiguration */
--	mutex_lock(&lgr->llc_conf_mutex);
-+	down_write(&lgr->llc_conf_mutex);
- 	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
- 		struct smc_link *lnk = &lgr->lnk[i];
+-	mutex_lock(lock);
++	down_read(lock);
+ 	list_for_each_entry(buf_slot, buf_list, list) {
+ 		if (cmpxchg(&buf_slot->used, 0, 1) == 0) {
+-			mutex_unlock(lock);
++			up_read(lock);
+ 			return buf_slot;
+ 		}
+ 	}
+-	mutex_unlock(lock);
++	up_read(lock);
+ 	return NULL;
+ }
  
-@@ -2663,7 +2663,7 @@ static int smcr_buf_map_usable_links(struct smc_link_group *lgr,
- 		cnt++;
+@@ -2514,13 +2515,13 @@ int smcr_link_reg_buf(struct smc_link *link, struct smc_buf_desc *buf_desc)
+ 	return 0;
+ }
+ 
+-static int _smcr_buf_map_lgr(struct smc_link *lnk, struct mutex *lock,
++static int _smcr_buf_map_lgr(struct smc_link *lnk, struct rw_semaphore *lock,
+ 			     struct list_head *lst, bool is_rmb)
+ {
+ 	struct smc_buf_desc *buf_desc, *bf;
+ 	int rc = 0;
+ 
+-	mutex_lock(lock);
++	down_write(lock);
+ 	list_for_each_entry_safe(buf_desc, bf, lst, list) {
+ 		if (!buf_desc->used)
+ 			continue;
+@@ -2529,7 +2530,7 @@ static int _smcr_buf_map_lgr(struct smc_link *lnk, struct mutex *lock,
+ 			goto out;
  	}
  out:
--	mutex_unlock(&lgr->llc_conf_mutex);
-+	up_write(&lgr->llc_conf_mutex);
- 	if (!rc && !cnt)
- 		rc = -EINVAL;
+-	mutex_unlock(lock);
++	up_write(lock);
  	return rc;
+ }
+ 
+@@ -2562,37 +2563,37 @@ int smcr_buf_reg_lgr(struct smc_link *lnk)
+ 	int i, rc = 0;
+ 
+ 	/* reg all RMBs for a new link */
+-	mutex_lock(&lgr->rmbs_lock);
++	down_write(&lgr->rmbs_lock);
+ 	for (i = 0; i < SMC_RMBE_SIZES; i++) {
+ 		list_for_each_entry_safe(buf_desc, bf, &lgr->rmbs[i], list) {
+ 			if (!buf_desc->used)
+ 				continue;
+ 			rc = smcr_link_reg_buf(lnk, buf_desc);
+ 			if (rc) {
+-				mutex_unlock(&lgr->rmbs_lock);
++				up_write(&lgr->rmbs_lock);
+ 				return rc;
+ 			}
+ 		}
+ 	}
+-	mutex_unlock(&lgr->rmbs_lock);
++	up_write(&lgr->rmbs_lock);
+ 
+ 	if (lgr->buf_type == SMCR_PHYS_CONT_BUFS)
+ 		return rc;
+ 
+ 	/* reg all vzalloced sndbufs for a new link */
+-	mutex_lock(&lgr->sndbufs_lock);
++	down_write(&lgr->sndbufs_lock);
+ 	for (i = 0; i < SMC_RMBE_SIZES; i++) {
+ 		list_for_each_entry_safe(buf_desc, bf, &lgr->sndbufs[i], list) {
+ 			if (!buf_desc->used || !buf_desc->is_vm)
+ 				continue;
+ 			rc = smcr_link_reg_buf(lnk, buf_desc);
+ 			if (rc) {
+-				mutex_unlock(&lgr->sndbufs_lock);
++				up_write(&lgr->sndbufs_lock);
+ 				return rc;
+ 			}
+ 		}
+ 	}
+-	mutex_unlock(&lgr->sndbufs_lock);
++	up_write(&lgr->sndbufs_lock);
+ 	return rc;
+ }
+ 
+@@ -2712,8 +2713,8 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
+ 	struct smc_link_group *lgr = conn->lgr;
+ 	struct list_head *buf_list;
+ 	int bufsize, bufsize_short;
++	struct rw_semaphore *lock;	/* lock buffer list */
+ 	bool is_dgraded = false;
+-	struct mutex *lock;	/* lock buffer list */
+ 	int sk_buf_size;
+ 
+ 	if (is_rmb)
+@@ -2761,9 +2762,9 @@ static int __smc_buf_create(struct smc_sock *smc, bool is_smcd, bool is_rmb)
+ 		SMC_STAT_RMB_ALLOC(smc, is_smcd, is_rmb);
+ 		SMC_STAT_RMB_SIZE(smc, is_smcd, is_rmb, bufsize);
+ 		buf_desc->used = 1;
+-		mutex_lock(lock);
++		down_write(lock);
+ 		list_add(&buf_desc->list, buf_list);
+-		mutex_unlock(lock);
++		up_write(lock);
+ 		break; /* found */
+ 	}
+ 
+@@ -2837,9 +2838,9 @@ int smc_buf_create(struct smc_sock *smc, bool is_smcd)
+ 	/* create rmb */
+ 	rc = __smc_buf_create(smc, is_smcd, true);
+ 	if (rc) {
+-		mutex_lock(&smc->conn.lgr->sndbufs_lock);
++		down_write(&smc->conn.lgr->sndbufs_lock);
+ 		list_del(&smc->conn.sndbuf_desc->list);
+-		mutex_unlock(&smc->conn.lgr->sndbufs_lock);
++		up_write(&smc->conn.lgr->sndbufs_lock);
+ 		smc_buf_free(smc->conn.lgr, false, smc->conn.sndbuf_desc);
+ 		smc->conn.sndbuf_desc = NULL;
+ 	}
 diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-index fb48f61..f7ec04a 100644
+index f7ec04a..756ed6e 100644
 --- a/net/smc/smc_core.h
 +++ b/net/smc/smc_core.h
-@@ -307,7 +307,7 @@ struct smc_link_group {
- 						/* queue for llc events */
- 			spinlock_t		llc_event_q_lock;
- 						/* protects llc_event_q */
--			struct mutex		llc_conf_mutex;
-+			struct rw_semaphore	llc_conf_mutex;
- 						/* protects lgr reconfig. */
- 			struct work_struct	llc_add_link_work;
- 			struct work_struct	llc_del_link_work;
+@@ -260,9 +260,9 @@ struct smc_link_group {
+ 	unsigned short		vlan_id;	/* vlan id of link group */
+ 
+ 	struct list_head	sndbufs[SMC_RMBE_SIZES];/* tx buffers */
+-	struct mutex		sndbufs_lock;	/* protects tx buffers */
++	struct rw_semaphore	sndbufs_lock;	/* protects tx buffers */
+ 	struct list_head	rmbs[SMC_RMBE_SIZES];	/* rx buffers */
+-	struct mutex		rmbs_lock;	/* protects rx buffers */
++	struct rw_semaphore	rmbs_lock;	/* protects rx buffers */
+ 	u8			first_contact_done; /* if first contact succeed */
+ 
+ 	u8			id[SMC_LGR_ID_SIZE];	/* unique lgr id */
 diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
-index 4ae636f..221ffdc 100644
+index 221ffdc..47146ff 100644
 --- a/net/smc/smc_llc.c
 +++ b/net/smc/smc_llc.c
-@@ -1244,12 +1244,12 @@ static void smc_llc_process_cli_add_link(struct smc_link_group *lgr)
+@@ -650,7 +650,7 @@ static int smc_llc_fill_ext_v2(struct smc_llc_msg_add_link_v2_ext *ext,
  
- 	qentry = smc_llc_flow_qentry_clr(&lgr->llc_flow_lcl);
- 
--	mutex_lock(&lgr->llc_conf_mutex);
-+	down_write(&lgr->llc_conf_mutex);
- 	if (smc_llc_is_local_add_link(&qentry->msg))
- 		smc_llc_cli_add_link_invite(qentry->link, qentry);
- 	else
- 		smc_llc_cli_add_link(qentry->link, qentry);
--	mutex_unlock(&lgr->llc_conf_mutex);
-+	up_write(&lgr->llc_conf_mutex);
- }
- 
- static int smc_llc_active_link_count(struct smc_link_group *lgr)
-@@ -1551,13 +1551,13 @@ static void smc_llc_process_srv_add_link(struct smc_link_group *lgr)
- 
- 	qentry = smc_llc_flow_qentry_clr(&lgr->llc_flow_lcl);
- 
--	mutex_lock(&lgr->llc_conf_mutex);
-+	down_write(&lgr->llc_conf_mutex);
- 	rc = smc_llc_srv_add_link(link, qentry);
- 	if (!rc && lgr->type == SMC_LGR_SYMMETRIC) {
- 		/* delete any asymmetric link */
- 		smc_llc_delete_asym_link(lgr);
- 	}
--	mutex_unlock(&lgr->llc_conf_mutex);
-+	up_write(&lgr->llc_conf_mutex);
- 	kfree(qentry);
- }
- 
-@@ -1624,7 +1624,7 @@ static void smc_llc_process_cli_delete_link(struct smc_link_group *lgr)
- 		smc_lgr_terminate_sched(lgr);
+ 	prim_lnk_idx = link->link_idx;
+ 	lnk_idx = link_new->link_idx;
+-	mutex_lock(&lgr->rmbs_lock);
++	down_write(&lgr->rmbs_lock);
+ 	ext->num_rkeys = lgr->conns_num;
+ 	if (!ext->num_rkeys)
  		goto out;
+@@ -670,7 +670,7 @@ static int smc_llc_fill_ext_v2(struct smc_llc_msg_add_link_v2_ext *ext,
  	}
--	mutex_lock(&lgr->llc_conf_mutex);
-+	down_write(&lgr->llc_conf_mutex);
- 	/* delete single link */
- 	for (lnk_idx = 0; lnk_idx < SMC_LINKS_PER_LGR_MAX; lnk_idx++) {
- 		if (lgr->lnk[lnk_idx].link_id != del_llc->link_num)
-@@ -1658,7 +1658,7 @@ static void smc_llc_process_cli_delete_link(struct smc_link_group *lgr)
- 		smc_lgr_terminate_sched(lgr);
- 	}
- out_unlock:
--	mutex_unlock(&lgr->llc_conf_mutex);
-+	up_write(&lgr->llc_conf_mutex);
+ 	len += i * sizeof(ext->rt[0]);
  out:
- 	kfree(qentry);
+-	mutex_unlock(&lgr->rmbs_lock);
++	up_write(&lgr->rmbs_lock);
+ 	return len;
  }
-@@ -1694,7 +1694,7 @@ static void smc_llc_process_srv_delete_link(struct smc_link_group *lgr)
- 	int active_links;
+ 
+@@ -931,7 +931,7 @@ static int smc_llc_cli_rkey_exchange(struct smc_link *link,
+ 	int rc = 0;
  	int i;
  
--	mutex_lock(&lgr->llc_conf_mutex);
-+	down_write(&lgr->llc_conf_mutex);
- 	qentry = smc_llc_flow_qentry_clr(&lgr->llc_flow_lcl);
- 	lnk = qentry->link;
- 	del_llc = &qentry->msg.delete_link;
-@@ -1750,7 +1750,7 @@ static void smc_llc_process_srv_delete_link(struct smc_link_group *lgr)
- 		smc_llc_add_link_local(lnk);
- 	}
- out:
--	mutex_unlock(&lgr->llc_conf_mutex);
-+	up_write(&lgr->llc_conf_mutex);
- 	kfree(qentry);
+-	mutex_lock(&lgr->rmbs_lock);
++	down_write(&lgr->rmbs_lock);
+ 	num_rkeys_send = lgr->conns_num;
+ 	buf_pos = smc_llc_get_first_rmb(lgr, &buf_lst);
+ 	do {
+@@ -958,7 +958,7 @@ static int smc_llc_cli_rkey_exchange(struct smc_link *link,
+ 			break;
+ 	} while (num_rkeys_send || num_rkeys_recv);
+ 
+-	mutex_unlock(&lgr->rmbs_lock);
++	up_write(&lgr->rmbs_lock);
+ 	return rc;
  }
  
-@@ -2170,7 +2170,7 @@ void smc_llc_lgr_init(struct smc_link_group *lgr, struct smc_sock *smc)
- 	spin_lock_init(&lgr->llc_flow_lock);
- 	init_waitqueue_head(&lgr->llc_flow_waiter);
- 	init_waitqueue_head(&lgr->llc_msg_waiter);
--	mutex_init(&lgr->llc_conf_mutex);
-+	init_rwsem(&lgr->llc_conf_mutex);
- 	lgr->llc_testlink_time = READ_ONCE(net->smc.sysctl_smcr_testlink_time);
+@@ -1041,14 +1041,14 @@ static void smc_llc_save_add_link_rkeys(struct smc_link *link,
+ 	ext = (struct smc_llc_msg_add_link_v2_ext *)((u8 *)lgr->wr_rx_buf_v2 +
+ 						     SMC_WR_TX_SIZE);
+ 	max = min_t(u8, ext->num_rkeys, SMC_LLC_RKEYS_PER_MSG_V2);
+-	mutex_lock(&lgr->rmbs_lock);
++	down_write(&lgr->rmbs_lock);
+ 	for (i = 0; i < max; i++) {
+ 		smc_rtoken_set(lgr, link->link_idx, link_new->link_idx,
+ 			       ext->rt[i].rmb_key,
+ 			       ext->rt[i].rmb_vaddr_new,
+ 			       ext->rt[i].rmb_key_new);
+ 	}
+-	mutex_unlock(&lgr->rmbs_lock);
++	up_write(&lgr->rmbs_lock);
+ }
+ 
+ static void smc_llc_save_add_link_info(struct smc_link *link,
+@@ -1355,7 +1355,7 @@ static int smc_llc_srv_rkey_exchange(struct smc_link *link,
+ 	int rc = 0;
+ 	int i;
+ 
+-	mutex_lock(&lgr->rmbs_lock);
++	down_write(&lgr->rmbs_lock);
+ 	num_rkeys_send = lgr->conns_num;
+ 	buf_pos = smc_llc_get_first_rmb(lgr, &buf_lst);
+ 	do {
+@@ -1380,7 +1380,7 @@ static int smc_llc_srv_rkey_exchange(struct smc_link *link,
+ 		smc_llc_flow_qentry_del(&lgr->llc_flow_lcl);
+ 	} while (num_rkeys_send || num_rkeys_recv);
+ out:
+-	mutex_unlock(&lgr->rmbs_lock);
++	up_write(&lgr->rmbs_lock);
+ 	return rc;
  }
  
 -- 
