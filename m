@@ -2,77 +2,74 @@ Return-Path: <linux-rdma-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BB63C47088
-	for <linux-rdma@archiver.kernel.org>; Thu,  1 Dec 2022 14:37:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E74EC43217
+	for <linux-rdma@archiver.kernel.org>; Thu,  1 Dec 2022 14:39:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231773AbiLAOhv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 1 Dec 2022 09:37:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49964 "EHLO
+        id S231890AbiLAOjv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 1 Dec 2022 09:39:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231859AbiLAOhr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Dec 2022 09:37:47 -0500
-Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 614D6934EC
-        for <linux-rdma@vger.kernel.org>; Thu,  1 Dec 2022 06:37:39 -0800 (PST)
+        with ESMTP id S231879AbiLAOjq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 1 Dec 2022 09:39:46 -0500
+Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 020BDAFCC2
+        for <linux-rdma@vger.kernel.org>; Thu,  1 Dec 2022 06:39:43 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-        s=170520fj; t=1669905459; i=@fujitsu.com;
-        bh=ZK8Efl9z678rw148ueqLeEgrY9S2f6x3CIBXj07afh4=;
-        h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-         MIME-Version:Content-Type;
-        b=Yd2Vr1ve+b5DNhumiz29BPVFIceEz7zavrJBIpEOm2BOjXWCGf6+8f1zbvV8XKZsu
-         SY/YiO0GCE0+vHqMUUV7jtFzUI1j8KNf2Q3TM8HeoyXz9+RBRPV4QeLCnc5qrRyQBW
-         7jv3q1gIMPRtRpawFyL3BR00XwDpZeAPiS1/nrcr09dBZj5yNBSsJCTPIfotN1tU37
-         mEd8SDSABi6YY7Az4QXTcQEl1PkJ3C+CwxbOxR+D0PhU1cQxTl+j9eMYm7LoVjK2E/
-         eSgp9InwKrfPgfEXPf4Yx5npy8mRhuqpd2Kn1QOwSzBPYWfYT5InH2IEgIPuE1/beT
-         A+QBuAfeHN7QQ==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrBIsWRWlGSWpSXmKPExsViZ8ORqGu0pyP
-  Z4MdidYsr//YwWkz5tZTZ4tmhXhaLL1OnMVucP9bP7sDqsXPWXXaPTas62Tx6m9+xeXzeJBfA
-  EsWamZeUX5HAmvFtznXWgjssFReuzWJuYOxj6WLk4hAS2MIo8XXPAlYIZzmTxPWf95khnH2ME
-  lsPPQEq4+RgE1CT2Dn9JZgtIuAtsePGCWYQm1mgXuLw0U2MILawgK9Ew6p+MJtFQEVi/+Y9YD
-  W8Ao4Ss+edYgKxJQQUJKY8fA8U5+DgFHCSWHI9ByQsBFTyfnEnG0S5oMTJmRBrmQUkJA6+eME
-  M0aoo0bbkHzuEXSExa1Yb1Eg1iavnNjFPYBSchaR9FpL2BYxMqxjNilOLylKLdI0M9JKKMtMz
-  SnITM3P0Eqt0E/VSS3XLU4tLdA31EsuL9VKLi/WKK3OTc1L08lJLNjECIyClmHHKDsaeZX/0D
-  jFKcjApifJWd3YkC/El5adUZiQWZ8QXleakFh9ilOHgUJLgPbkTKCdYlJqeWpGWmQOMRpi0BA
-  ePkggv73qgNG9xQWJucWY6ROoUo6KUOG/PLqCEAEgiozQPrg2WAC4xykoJ8zIyMDAI8RSkFuV
-  mlqDKv2IU52BUEubdtg1oCk9mXgnc9FdAi5mAFkeKtYEsLklESEk1MIVc7q69Leq71Tev/pWO
-  8J6Z/BtfCJxg/SIrvUyrd+m9b5KXkgOaz3nejbJwNVip7yMoxOG9UWHGbLGjchVatlP1ImTYb
-  85cfU/g4Q51H8cS7V3Mu2/4vWBaF3vQ7KlBrpr3Hfl3nswvvv2I4n5YL3bndw33spOf55h0sy
-  /1N7j6c4WLkWlmYLlqmYdZzpEXnyfqVy+Z/9lm+z85qYwTG/fJzozLd7n0xl67Vi9mItfUzsi
-  U3PMp724cPOnrlOnQrPhuhlXElebaFQ6PZ0n3dpqYnvGaXWSwtWlBxapF0y04069fSuLPO/zO
-  4Or2yJ0qKz4/3rZywueVn2fqm5mXBKbwVN/tCpjWXjjZrPRrthJLcUaioRZzUXEiACk0+eJ7A
-  wAA
+        s=170520fj; t=1669905580; i=@fujitsu.com;
+        bh=BKzEvjXkcQC50MMgVexxlOQl8mdnH76V6VZPI07bbHE=;
+        h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type;
+        b=cgcyHYk7dlAvla2aZC63FM6adR4XGLWANUVsZH33QVXbD4L+eKY08YU8WhjnXCZZ1
+         e5M5K2Cugsj7xIe0h2wSaw1xhlIbiDdqxAbmTWU2lw1yexd8+++D9TdPt+4JYzlvf2
+         0AjD+5u4bP69kFiqF+W4cJAhVwbCFLopVVVIsDYp59pPyS/pRvvdcSuVosDqHfhAzX
+         C49G3kZe3HPixJpcBCg+Y7GH9Npmf6cdoInTgpYPoKEWJloJzGy3nsQ6k8AWbPnm+W
+         LGfP9ZdVuGGuWTF6LJENUjTwg/C5DwRXVD9MywcB7bJj8V5W1ZoiZ7P/HMUPC73RxT
+         9NN8Yf0UAPMiw==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFvrMIsWRWlGSWpSXmKPExsViZ8ORpLt6T0e
+  ywem/xhZX/u1htJjyaymzxbNDvSwWX6ZOY7Y4f6yf3YHVY+esu+wem1Z1snn0Nr9j8/i8SS6A
+  JYo1My8pvyKBNePhuT2sBRd5Kta8PMrcwHiKq4uRi0NIYCOjxMLJXewQzhImiam77jFBOPsYJ
+  U7OvcDSxcjJwSagJrFz+kswW0TAW2LHjRPMIDazQL3E4aObGLsYOTiEBYIlXr43AQmzCKhITJ
+  x8hR3E5hVwlOi8fIcVxJYQUJCY8vA9M0RcUOLkzCcsEGMkJA6+eMEMUaMo0bbkHzuEXSExa1Y
+  bE4StJnH13CbmCYz8s5C0z0LSvoCRaRWjaXFqUVlqka6hXlJRZnpGSW5iZo5eYpVuol5qqW55
+  anEJUCaxvFgvtbhYr7gyNzknRS8vtWQTIzCcU4rZWXcwvljyR+8QoyQHk5Iob3VnR7IQX1J+S
+  mVGYnFGfFFpTmrxIUYZDg4lCd6TO4FygkWp6akVaZk5wNiCSUtw8CiJ8PKuB0rzFhck5hZnpk
+  OkTjG6cpzfuX8vM8e81xeB5NTZ//YzcywHkzO/th1gFmLJy89LlRLnrdsN1CwA0pxRmgc3GpY
+  WLjHKSgnzMjIwMAjxFKQW5WaWoMq/YhTnYFQS5t22DWgKT2ZeCdwFr4COYwI6LlKsDeS4kkSE
+  lFQDk9xXBcPVB6VDr1qeXpqictEzpUc8JSTmmE543RKNt8wrZp6Nf73Jsz1wVlvQB7P/kpZxF
+  36XTcuqWvL+8O97s54E8Ui/n/78xUabL7efVsX8a5Mp0d1j63Y6foPjU6MVb5e8y9M/vOdeD3
+  PD9pyJenc6uLcFHH6vKcEmpPQp+GtU4flHt6/tbX2TwaezqePJIrvlbA6/t4QdchcL7dObv5t
+  x6rGLDgLzv+1kFdz52OqgXXTMgZ8n3xVneMt23uWYkSzn075yifv5mfO/5d9d0hEjedeiid10
+  h5DIJaYGmdQZLrI/djlfatCL9Dg9qfcZc5ap65wNL9/tNLf+URJ55IpTrcjyDbd84p4LTrCY0
+  qPEUpyRaKjFXFScCABT0+w4hgMAAA==
 X-Env-Sender: yangx.jy@fujitsu.com
-X-Msg-Ref: server-7.tower-591.messagelabs.com!1669905458!126544!1
-X-Originating-IP: [62.60.8.97]
+X-Msg-Ref: server-11.tower-587.messagelabs.com!1669905579!102210!1
+X-Originating-IP: [62.60.8.98]
 X-SYMC-ESS-Client-Auth: outbound-route-from=pass
 X-StarScan-Received: 
 X-StarScan-Version: 9.101.1; banners=-,-,-
 X-VirusChecked: Checked
-Received: (qmail 24822 invoked from network); 1 Dec 2022 14:37:38 -0000
-Received: from unknown (HELO n03ukasimr01.n03.fujitsu.local) (62.60.8.97)
-  by server-7.tower-591.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 1 Dec 2022 14:37:38 -0000
-Received: from n03ukasimr01.n03.fujitsu.local (localhost [127.0.0.1])
-        by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTP id 3B4C81001A4;
-        Thu,  1 Dec 2022 14:37:38 +0000 (GMT)
+Received: (qmail 24316 invoked from network); 1 Dec 2022 14:39:39 -0000
+Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
+  by server-11.tower-587.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 1 Dec 2022 14:39:39 -0000
+Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
+        by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 6CB031B9;
+        Thu,  1 Dec 2022 14:39:39 +0000 (GMT)
 Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
         (No client certificate requested)
-        by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTPS id 2F5D71001A3;
-        Thu,  1 Dec 2022 14:37:38 +0000 (GMT)
+        by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 617EF1B7;
+        Thu,  1 Dec 2022 14:39:39 +0000 (GMT)
 Received: from fcf4c122d5e4.localdomain (10.167.215.54) by
  R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
- (TLS) id 15.0.1497.42; Thu, 1 Dec 2022 14:37:34 +0000
+ (TLS) id 15.0.1497.42; Thu, 1 Dec 2022 14:39:36 +0000
 From:   Xiao Yang <yangx.jy@fujitsu.com>
 To:     <linux-rdma@vger.kernel.org>, <jgg@nvidia.com>,
         <rpearsonhpe@gmail.com>
 CC:     <leon@kernel.org>, <lizhijian@fujitsu.com>, <y-goto@fujitsu.com>,
         <zyjzyj2000@gmail.com>, Xiao Yang <yangx.jy@fujitsu.com>
-Subject: [PATCH v7 3/8] RDMA/rxe: Extend rxe user ABI to support atomic write
-Date:   Thu, 1 Dec 2022 14:37:07 +0000
-Message-ID: <1669905432-14-4-git-send-email-yangx.jy@fujitsu.com>
+Subject: [PATCH v7 5/8] RDMA/rxe: Make requester support atomic write on RC service
+Date:   Thu, 1 Dec 2022 14:39:25 +0000
+Message-ID: <1669905568-62-1-git-send-email-yangx.jy@fujitsu.com>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1669905432-14-1-git-send-email-yangx.jy@fujitsu.com>
-References: <1669905432-14-1-git-send-email-yangx.jy@fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.167.215.54]
@@ -83,25 +80,58 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Define an atomic_wr array to store 8-byte value.
+Make requester process and send an atomic write request on RC service.
 
 Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
 ---
- include/uapi/rdma/rdma_user_rxe.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/sw/rxe/rxe_req.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/rdma/rdma_user_rxe.h b/include/uapi/rdma/rdma_user_rxe.h
-index 73f679dfd2df..d20d1ecf046f 100644
---- a/include/uapi/rdma/rdma_user_rxe.h
-+++ b/include/uapi/rdma/rdma_user_rxe.h
-@@ -146,6 +146,7 @@ struct rxe_dma_info {
- 	__u32			reserved;
- 	union {
- 		__DECLARE_FLEX_ARRAY(__u8, inline_data);
-+		__DECLARE_FLEX_ARRAY(__u8, atomic_wr);
- 		__DECLARE_FLEX_ARRAY(struct rxe_sge, sge);
- 	};
- };
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 4d45f508392f..2713e9058922 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -258,6 +258,10 @@ static int next_opcode_rc(struct rxe_qp *qp, u32 opcode, int fits)
+ 		else
+ 			return fits ? IB_OPCODE_RC_SEND_ONLY_WITH_INVALIDATE :
+ 				IB_OPCODE_RC_SEND_FIRST;
++
++	case IB_WR_ATOMIC_WRITE:
++		return IB_OPCODE_RC_ATOMIC_WRITE;
++
+ 	case IB_WR_REG_MR:
+ 	case IB_WR_LOCAL_INV:
+ 		return opcode;
+@@ -486,6 +490,11 @@ static int finish_packet(struct rxe_qp *qp, struct rxe_av *av,
+ 		}
+ 	}
+ 
++	if (pkt->mask & RXE_ATOMIC_WRITE_MASK) {
++		memcpy(payload_addr(pkt), wqe->dma.atomic_wr, payload);
++		wqe->dma.resid -= payload;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -709,13 +718,15 @@ int rxe_requester(void *arg)
+ 	}
+ 
+ 	mask = rxe_opcode[opcode].mask;
+-	if (unlikely(mask & RXE_READ_OR_ATOMIC_MASK)) {
++	if (unlikely(mask & (RXE_READ_OR_ATOMIC_MASK |
++			RXE_ATOMIC_WRITE_MASK))) {
+ 		if (check_init_depth(qp, wqe))
+ 			goto exit;
+ 	}
+ 
+ 	mtu = get_mtu(qp);
+-	payload = (mask & RXE_WRITE_OR_SEND_MASK) ? wqe->dma.resid : 0;
++	payload = (mask & (RXE_WRITE_OR_SEND_MASK | RXE_ATOMIC_WRITE_MASK)) ?
++			wqe->dma.resid : 0;
+ 	if (payload > mtu) {
+ 		if (qp_type(qp) == IB_QPT_UD) {
+ 			/* C10-93.1.1: If the total sum of all the buffer lengths specified for a
 -- 
 2.34.1
 
