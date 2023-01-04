@@ -2,71 +2,147 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F1FBC46467
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Jan 2023 11:25:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27297C46467
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Jan 2023 12:58:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239144AbjADLZL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 Jan 2023 06:25:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48766 "EHLO
+        id S230087AbjADM6t (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Jan 2023 07:58:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234915AbjADLZI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Jan 2023 06:25:08 -0500
-X-Greylist: delayed 391 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 04 Jan 2023 03:25:06 PST
-Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B4E91AA3C
-        for <linux-rdma@vger.kernel.org>; Wed,  4 Jan 2023 03:25:06 -0800 (PST)
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.66.156])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id E663E40C7B
-        for <linux-rdma@vger.kernel.org>; Wed,  4 Jan 2023 11:18:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-        s=20210803; t=1672831112;
-        bh=VeTy5vNoS5UlAlWubclGKlwWX9XGmqDW+tTxCyyHIMM=;
-        h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-         Reply-To;
-        b=LCrZp0U9B2Us707v1h+rAk9Rn22mtEzaWbSaPnT1BaiA+QFc0zFhhwk4+Kb5haSmc
-         weqM5OYWFzICiG/xXKUYW+J+XA1531nq4wd1UuOowghFStxl9jVeEn+m39W4ath8u6
-         RHDMlI/Rh6UOZ0RdRcfRgiQRl5FmNAiHRAoyzJqrxNDrjNKJUTJH3Vs/kjOhWGyZjl
-         Xt8RjuUX+Mp5Gt6G/1FEpZ+ma635nswQ9GzHX+FjwphwUhpM/EIas7KC4cX6ZmyYt8
-         sLF+2629uKbG+tU4MCKAyja37s8i1ge8fZ/ZD3/Tt7e9V5vejjDQZsEKzgy6Pok25P
-         TCnshMFvfOXQg==
-Received: from juju-4112d9-prod-launchpad-manual-servers-4.lp.internal (localhost [127.0.0.1])
-        by buildd-manager.lp.internal (Postfix) with ESMTP id D39B6BB816
-        for <linux-rdma@vger.kernel.org>; Wed,  4 Jan 2023 11:18:32 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        with ESMTP id S230095AbjADM6m (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Jan 2023 07:58:42 -0500
+Received: from out-23.mta0.migadu.com (out-23.mta0.migadu.com [91.218.175.23])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B47C51005E
+        for <linux-rdma@vger.kernel.org>; Wed,  4 Jan 2023 04:58:41 -0800 (PST)
+Message-ID: <faa77d9a-33c3-f74c-dd85-128bdf86f215@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1672837119;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=vMoOOwUk6T9NFasphEpyoh5lgfld385u5kHXMA63S6s=;
+        b=D800W/uUCD8Lwflqqp06ZqQlGPCdFz/YS16nxMDK9re5WQNUjpKV+0MHfOuGZnAINtfdwn
+        W7Q1Q4CiSyV5tAIUY20pKFSZtCPJWJgYguUrUI/s1KbaoBQ3A8VspXFI2qA8630mbK0Xde
+        hx+/VZkOfZZeAFqiogL3urognu0zB2U=
+Date:   Wed, 4 Jan 2023 20:58:31 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: MANUALDEPWAIT
-To:     Linux RDMA <linux-rdma@vger.kernel.org>
-From:   noreply@launchpad.net
-Subject: [recipe build #3474100] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
-Message-Id: <167283111286.23122.5704298615491148277.launchpad@juju-4112d9-prod-launchpad-manual-servers-4.lp.internal>
-Date:   Wed, 04 Jan 2023 11:18:32 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-X-Generated-By: Launchpad (canonical.com); Revision="31c78762a8046acf7ab47372e5d588ebb3759d2e"; Instance="buildmaster"
-X-Launchpad-Hash: 51fbe912b33793d40c2444782b956f1a7c92d19d
+Subject: Re: [PATCH 1/1] RDMA/irdma: Add support for dmabuf pin memory regions
+To:     Jason Gunthorpe <jgg@ziepe.ca>, Zhu Yanjun <yanjun.zhu@intel.com>
+Cc:     mustafa.ismail@intel.com, shiraz.saleem@intel.com, leon@kernel.org,
+        linux-rdma@vger.kernel.org
+References: <20230103013433.341997-1-yanjun.zhu@intel.com>
+ <Y7S2DO0TFjxgDV6M@ziepe.ca>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Yanjun Zhu <yanjun.zhu@linux.dev>
+In-Reply-To: <Y7S2DO0TFjxgDV6M@ziepe.ca>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
- * State: Dependency wait
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 3 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/3474100/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-116
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/3474100
-Your team Linux RDMA is the requester of the build.
+在 2023/1/4 7:11, Jason Gunthorpe 写道:
+> On Mon, Jan 02, 2023 at 08:34:33PM -0500, Zhu Yanjun wrote:
+>> From: Zhu Yanjun <yanjun.zhu@linux.dev>
+>>
+>> This is a followup to the EFA dmabuf[1]. Irdma driver currently does
+>> not support on-demand-paging(ODP). So it uses habanalabs as the
+>> dmabuf exporter, and irdma as the importer to allow for peer2peer
+>> access through libibverbs.
+>>
+>> In this commit, the function ib_umem_dmabuf_get_pinned() is used.
+>> This function is introduced in EFA dmabuf[1] which allows the driver
+>> to get a dmabuf umem which is pinned and does not require move_notify
+>> callback implementation. The returned umem is pinned and DMA mapped
+>> like standard cpu umems, and is released through ib_umem_release().
+>>
+>> [1]https://lore.kernel.org/lkml/20211007114018.GD2688930@ziepe.ca/t/
+>>
+>> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+>> ---
+>>   drivers/infiniband/hw/irdma/verbs.c | 158 ++++++++++++++++++++++++++++
+>>   1 file changed, 158 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+>> index f6973ea55eda..76dc6e65930a 100644
+>> --- a/drivers/infiniband/hw/irdma/verbs.c
+>> +++ b/drivers/infiniband/hw/irdma/verbs.c
+>> @@ -2912,6 +2912,163 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
+>>   	return ERR_PTR(err);
+>>   }
+>>   
+>> +struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
+>> +				       u64 len, u64 virt,
+>> +				       int fd, int access,
+>> +				       struct ib_udata *udata)
+>> +{
+>> +	struct irdma_device *iwdev = to_iwdev(pd->device);
+>> +	struct irdma_ucontext *ucontext;
+>> +	struct irdma_pble_alloc *palloc;
+>> +	struct irdma_pbl *iwpbl;
+>> +	struct irdma_mr *iwmr;
+>> +	struct irdma_mem_reg_req req;
+>> +	u32 total, stag = 0;
+>> +	u8 shadow_pgcnt = 1;
+>> +	bool use_pbles = false;
+>> +	unsigned long flags;
+>> +	int err = -EINVAL;
+>> +	struct ib_umem_dmabuf *umem_dmabuf;
+>> +
+>> +	if (len > iwdev->rf->sc_dev.hw_attrs.max_mr_size)
+>> +		return ERR_PTR(-EINVAL);
+>> +
+>> +	if (udata->inlen < IRDMA_MEM_REG_MIN_REQ_LEN)
+>> +		return ERR_PTR(-EINVAL);
+>> +
+>> +	umem_dmabuf = ib_umem_dmabuf_get_pinned(pd->device, start, len, fd,
+>> +						access);
+>> +	if (IS_ERR(umem_dmabuf)) {
+>> +		err = PTR_ERR(umem_dmabuf);
+>> +		ibdev_dbg(&iwdev->ibdev, "Failed to get dmabuf umem[%d]\n", err);
+>> +		return ERR_PTR(err);
+>> +	}
+>> +
+>> +	if (ib_copy_from_udata(&req, udata, min(sizeof(req), udata->inlen))) {
+>> +		ib_umem_release(&umem_dmabuf->umem);
+>> +		return ERR_PTR(-EFAULT);
+>> +	}
+>> +
+>> +	iwmr = kzalloc(sizeof(*iwmr), GFP_KERNEL);
+>> +	if (!iwmr) {
+>> +		ib_umem_release(&umem_dmabuf->umem);
+>> +		return ERR_PTR(-ENOMEM);
+>> +	}
+>> +
+>> +	iwpbl = &iwmr->iwpbl;
+>> +	iwpbl->iwmr = iwmr;
+>> +	iwmr->region = &umem_dmabuf->umem;
+>> +	iwmr->ibmr.pd = pd;
+>> +	iwmr->ibmr.device = pd->device;
+>> +	iwmr->ibmr.iova = virt;
+>> +	iwmr->page_size = PAGE_SIZE;
+>> +
+>> +	if (req.reg_type == IRDMA_MEMREG_TYPE_MEM) {
+>> +		iwmr->page_size = ib_umem_find_best_pgsz(iwmr->region,
+>> +							 iwdev->rf->sc_dev.hw_attrs.page_size_cap,
+>> +							 virt);
+> You can't call rdma_umem_for_each_dma_block() without also calling
+> this function to validate that the page_size passed to
+> rdma_umem_for_each_dma_block() is correct.
+Got it. I will fix it in the latest commit.
+>
+> This seems to be an existing bug, please fix it.
+>
+> Also, is there a reason this code is all duplicated from
+> irdma_reg_user_mr? Please split things up like the other drivers to
+> obtain the umem then use shared code to process the umem as required.
 
+Got it.
+
+Zhu Yanjun
+
+>
+> Jason
