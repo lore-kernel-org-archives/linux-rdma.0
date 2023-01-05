@@ -2,167 +2,161 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EBF4C54E76
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Jan 2023 11:24:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AA58C3DA7A
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Jan 2023 13:07:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232877AbjAELYo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Jan 2023 06:24:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56434 "EHLO
+        id S234020AbjAENGt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Jan 2023 08:06:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232968AbjAELYM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Jan 2023 06:24:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5675D4E424;
-        Thu,  5 Jan 2023 03:24:11 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E7A5061997;
-        Thu,  5 Jan 2023 11:24:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB21CC433EF;
-        Thu,  5 Jan 2023 11:24:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1672917850;
-        bh=+YdWlFCN2II6q0dLIQStIb6i/F3D1plt0ZrTVsIafTQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=a0aMajrf0i2lmRfsuBLHHopG3EO71rAr2fSQ+cw2ZGoD3vlt6toNe696srKfbzpdP
-         wWcrRRE4xsJ+026A34i/TLfbOcduoXaOADn81u6vwkplAHajZ9eUxbB4MEVMV/+TJs
-         835PbubIgfAk2UgQyWtCc/ct/OqFAniCHbRPtuC9ag13E/xQUjxL/TmGsnkJKI324L
-         pQrLymVcxayDUrwUzwhPZdbuXa1dZCe/5ss5pKVDMn6LOKe/WXsjVB4/m4pAoyrM0c
-         S5a/yfRILPWRkW+H3OmUanQ7z6vRAsyQPsSnsxTmSq1KkDns9b1NfiWQVi20J1rT7x
-         oaOdFBGn033EA==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Or Har-Toov <ohartoov@nvidia.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
-        Michael Guralnik <michaelgur@nvidia.com>,
-        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH mlx5-next v1 2/4] net/mlx5: Change define name for 0x100 lkey value
-Date:   Thu,  5 Jan 2023 13:23:46 +0200
-Message-Id: <70235ec1155c3bc044a2b5503d40f4f2bfb18e92.1672917578.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.38.1
-In-Reply-To: <cover.1672917578.git.leonro@nvidia.com>
-References: <cover.1672917578.git.leonro@nvidia.com>
+        with ESMTP id S234092AbjAENGT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Jan 2023 08:06:19 -0500
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2062.outbound.protection.outlook.com [40.107.244.62])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBF0757932;
+        Thu,  5 Jan 2023 05:06:10 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=FMUIibjagm1WEXPXj4fbo5QmO/NrwYLCNk1PQV5DSn8bzMkmRzgyOs+LZ+1ZhLBylrfdEFZjl9+WpHwhWlaigCOTSZJXtrJUbNfm14DxNHG8W0pBXEeMT6pA/KztUjVioutiXdcoAF57DGgfRcBbXE2PC7oM+i+jkz6gHOiUFSII3uh4KcJYTRIqh+A131tiyA14RV8ALazbU4qMM1kLOW5WFQseGQxuxfeDOzOaXbh9UjrRBMD7cmktQjRPzcvVT8gNFZrX/a73BVrS6QPAH7v9yYaE81ARa6KAasUaCBHi6F3/d4WQNKgoGzsHFSA90kfl3zYXeGS7o+myedLajg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Ba17J2L2LBZJ8hV+nQ1M6iRc4+cfU5kxNtpQm9V/wqI=;
+ b=f/obU4tnRMLLNbEyvauQg8ykS/08SOm2yJ/3/9UZZt0DIS3U7cpSigtN+rscwJ3nj2Uij7duifNEWango57dUWg05ZhHdWau6W6JE0ZbdT5KqvnRRGnltAGtd/bHeoMVrif/Up9Q02p4CANWS+noQr5FDx075JjTN6ygPZgwKzHDF3yVPVq500wikZJ7li5dDrhYQwMYMQ7rkzQblVnVF4YlN0so150ssga79q7bWlxC2avTPzXcF/9t/bPPUwO6SFiPKL8qfEyX7EVKVb/pX9YiNkZ/kHj8pMeWfrQc+UHImbSaA/9lowWADDDDeGeGo8NY2DIMI7GjtGNRQWnu6g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=kernel.org smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Ba17J2L2LBZJ8hV+nQ1M6iRc4+cfU5kxNtpQm9V/wqI=;
+ b=BMtEVxmNRf6rbekb8M9Oi+/boRadOhq9WpQ29QUTzGlkT9Dm+XOrrmGc8NF2hNutLbl4LNJS+n3U4Ywq15SM4B5ecXUzviM+Zb6w5fy66y3jSNDglwjNK4eR0i+oxq/tNvNzuk0Q0mGbpGMhG6k5B32Neh/c+r6UY1+dPM8QhqiAkM13Mtf+nsXq6D2tqrdaNeft10W9Mgr3I5uYCdEMIbVWLB5kgvPay+S8U9RvUg+meoMvjlmR0RN94IO3UjbBiWzgrW+zzCiS404HSRhZRPv3pAwFShnI1Zp3dzJLy51docZcWrYjVJao1tIZWBi+nubMu0jeCaj5p2VqdAIIZQ==
+Received: from DM6PR02CA0140.namprd02.prod.outlook.com (2603:10b6:5:332::7) by
+ CY8PR12MB7537.namprd12.prod.outlook.com (2603:10b6:930:94::18) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5944.19; Thu, 5 Jan 2023 13:06:09 +0000
+Received: from DM6NAM11FT072.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:5:332:cafe::10) by DM6PR02CA0140.outlook.office365.com
+ (2603:10b6:5:332::7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5986.15 via Frontend
+ Transport; Thu, 5 Jan 2023 13:06:09 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ DM6NAM11FT072.mail.protection.outlook.com (10.13.173.181) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5966.17 via Frontend Transport; Thu, 5 Jan 2023 13:06:09 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Thu, 5 Jan 2023
+ 05:05:58 -0800
+Received: from localhost (10.126.231.37) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.36; Thu, 5 Jan 2023
+ 05:05:57 -0800
+Date:   Thu, 5 Jan 2023 15:05:54 +0200
+From:   Leon Romanovsky <leonro@nvidia.com>
+To:     Saeed Mahameed <saeed@kernel.org>
+CC:     Saeed Mahameed <saeedm@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>, <linux-rdma@vger.kernel.org>,
+        <netdev@vger.kernel.org>
+Subject: Re: [PATCH mlx5-next 0/8] mlx5 IPsec RoCEv2 support and netdev
+ events fixes in RDMA
+Message-ID: <Y7bLMiB9Pb8EUfn0@unreal>
+References: <20230105041756.677120-1-saeed@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230105041756.677120-1-saeed@kernel.org>
+X-Originating-IP: [10.126.231.37]
+X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM6NAM11FT072:EE_|CY8PR12MB7537:EE_
+X-MS-Office365-Filtering-Correlation-Id: f6ac88eb-786e-48ee-f20e-08daef1d9cf6
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: g5Pio9VIS/Y88sk2Nrv+L4KFeA5v8QPFohedKbGqDX7EGq4jHY4RKr9xGDOGPbIsFXZfRWokLJyYudnX/RmGjriI+Zz0XCpNLBGmKVxggwyE6Hb8Ft3hx7tEV+myo+6c1LllLFptQyxHFkT/SiT92tJE1CvU77vh1wTy7mKn+F1vj74l/0WfGKZb8MHC+6WJDgfR4rMBPBSmBS7wyDGpeFlP1Vz/H5Tby6vzvTe26n7XWCohhDnxgmg39LMNPRQCKh/duAj+EDNybdX2zyPRQtepAWOMH9JogbrJFsmusS+hfxTu64OSqlWVkp2pzm7kPuBvjtQgpNH4Is4klzgd7HGDAsNJSmlZpJ9OHyI/s+rmI5ALM38DiGGakYkuAX/PqLV5RJyyJ+/lNCScTBBlMafG9HQW+DECYYzT+vtJiO12XhObheJHQ8+2ydBtOeKvik3GLNNAwbdbCawCVRxpgJ7pbDnbrhsC8lzLQHvbgKLazpm6oPtfK8bea+3JdvdKMuaKrnAo7HGCTTGjNASXaJ2TPvMI6PX0TiB1+azPBz122Vap6MkOn6yVsn0I2gaGvREyHbZNIb2xgmB9yZFQLtlvbnvDdGPL5r5v75K2ZvCsMNRnzkzgIMP0Qxnb+L1amsWpxwedSQe5xTpZm0qeu9lncvibSVD7jc5zyvSQxyJjRMme6YhOVh4pKAgEY8IpQXSMxQ8Cq/MZ9VSlqhFdgg==
+X-Forefront-Antispam-Report: CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230022)(7916004)(4636009)(346002)(39860400002)(136003)(376002)(396003)(451199015)(46966006)(40470700004)(36840700001)(83380400001)(33716001)(36860700001)(336012)(40480700001)(426003)(86362001)(7636003)(82310400005)(8676002)(82740400003)(356005)(47076005)(8936002)(40460700003)(54906003)(2906002)(4326008)(5660300002)(70586007)(6916009)(316002)(70206006)(186003)(16526019)(26005)(41300700001)(6666004)(9686003)(478600001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Jan 2023 13:06:09.1303
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: f6ac88eb-786e-48ee-f20e-08daef1d9cf6
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT072.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7537
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Or Har-Toov <ohartoov@nvidia.com>
+On Wed, Jan 04, 2023 at 08:17:48PM -0800, Saeed Mahameed wrote:
+> From: Saeed Mahameed <saeedm@nvidia.com>
+> 
+> This series includes mlx5 modifications for both net-next and
+> rdma-next trees.
+> 
+> In case of no objections, this series will be applied to net-mlx5 branch
+> first then sent in PR to both rdma and net trees.
 
-Change define of 0x100 lkey value from MLX5_INVALID_LKEY to be
-MLX5_TERMINATE_SCATTER_LIST_LKEY as 0x100 is the value of
-terminate_scatter_list_mkey.
+PR should be based on Linus's -rcX tag and shouldn't include only this patchset.
 
-Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
-Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/odp.c                  | 10 +++++-----
- drivers/infiniband/hw/mlx5/srq.c                  |  2 +-
- drivers/infiniband/hw/mlx5/wr.c                   |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  3 ++-
- include/linux/mlx5/qp.h                           |  2 +-
- 5 files changed, 10 insertions(+), 9 deletions(-)
+Thanks
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index e6e021af6aa9..b4ebeadce67c 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -986,7 +986,7 @@ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
- {
- 	int ret = 0, npages = 0;
- 	u64 io_virt;
--	u32 key;
-+	__be32 key;
- 	u32 byte_count;
- 	size_t bcnt;
- 	int inline_segment;
-@@ -1000,7 +1000,7 @@ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
- 		struct mlx5_wqe_data_seg *dseg = wqe;
- 
- 		io_virt = be64_to_cpu(dseg->addr);
--		key = be32_to_cpu(dseg->lkey);
-+		key = dseg->lkey;
- 		byte_count = be32_to_cpu(dseg->byte_count);
- 		inline_segment = !!(byte_count &  MLX5_INLINE_SEG);
- 		bcnt	       = byte_count & ~MLX5_INLINE_SEG;
-@@ -1014,8 +1014,8 @@ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
- 		}
- 
- 		/* receive WQE end of sg list. */
--		if (receive_queue && bcnt == 0 && key == MLX5_INVALID_LKEY &&
--		    io_virt == 0)
-+		if (receive_queue && bcnt == 0 &&
-+		    key == MLX5_TERMINATE_SCATTER_LIST_LKEY && io_virt == 0)
- 			break;
- 
- 		if (!inline_segment && total_wqe_bytes) {
-@@ -1034,7 +1034,7 @@ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
- 			continue;
- 		}
- 
--		ret = pagefault_single_data_segment(dev, NULL, key,
-+		ret = pagefault_single_data_segment(dev, NULL, be32_to_cpu(key),
- 						    io_virt, bcnt,
- 						    &pfault->bytes_committed,
- 						    bytes_mapped);
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 757756c50cc6..bcceb14a07f9 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -447,7 +447,7 @@ int mlx5_ib_post_srq_recv(struct ib_srq *ibsrq, const struct ib_recv_wr *wr,
- 
- 		if (i < srq->msrq.max_avail_gather) {
- 			scat[i].byte_count = 0;
--			scat[i].lkey       = cpu_to_be32(MLX5_INVALID_LKEY);
-+			scat[i].lkey = MLX5_TERMINATE_SCATTER_LIST_LKEY;
- 			scat[i].addr       = 0;
- 		}
- 	}
-diff --git a/drivers/infiniband/hw/mlx5/wr.c b/drivers/infiniband/hw/mlx5/wr.c
-index 855f3f4fefad..bc44551493e2 100644
---- a/drivers/infiniband/hw/mlx5/wr.c
-+++ b/drivers/infiniband/hw/mlx5/wr.c
-@@ -1252,7 +1252,7 @@ int mlx5_ib_post_recv(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
- 
- 		if (i < qp->rq.max_gs) {
- 			scat[i].byte_count = 0;
--			scat[i].lkey       = cpu_to_be32(MLX5_INVALID_LKEY);
-+			scat[i].lkey = MLX5_TERMINATE_SCATTER_LIST_LKEY;
- 			scat[i].addr       = 0;
- 		}
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 8d36e2de53a9..c76f15505a76 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -825,7 +825,8 @@ static int mlx5e_alloc_rq(struct mlx5e_params *params,
- 			/* check if num_frags is not a pow of two */
- 			if (rq->wqe.info.num_frags < (1 << rq->wqe.info.log_num_frags)) {
- 				wqe->data[f].byte_count = 0;
--				wqe->data[f].lkey = cpu_to_be32(MLX5_INVALID_LKEY);
-+				wqe->data[f].lkey =
-+					MLX5_TERMINATE_SCATTER_LIST_LKEY;
- 				wqe->data[f].addr = 0;
- 			}
- 		}
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index 4657d5c54abe..df55fbb65717 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -36,7 +36,7 @@
- #include <linux/mlx5/device.h>
- #include <linux/mlx5/driver.h>
- 
--#define MLX5_INVALID_LKEY	0x100
-+#define MLX5_TERMINATE_SCATTER_LIST_LKEY cpu_to_be32(0x100)
- /* UMR (3 WQE_BB's) + SIG (3 WQE_BB's) + PSV (mem) + PSV (wire) */
- #define MLX5_SIG_WQE_SIZE	(MLX5_SEND_WQE_BB * 8)
- #define MLX5_DIF_SIZE		8
--- 
-2.38.1
-
+> 
+> 1) From Jiri: fixe a deadlock in mlx5_ib's netdev notifier unregister.
+> 2) From Mark and Patrisious: add IPsec RoCEv2 support.
+> 
+> Thanks,
+> Saeed.
+> 
+> Jiri Pirko (3):
+>   net/mlx5e: Fix trap event handling
+>   net/mlx5e: Propagate an internal event in case uplink netdev changes
+>   RDMA/mlx5: Track netdev to avoid deadlock during netdev notifier
+>     unregister
+> 
+> Mark Zhang (4):
+>   net/mlx5: Implement new destination type TABLE_TYPE
+>   net/mlx5: Add IPSec priorities in RDMA namespaces
+>   net/mlx5: Configure IPsec steering for ingress RoCEv2 traffic
+>   net/mlx5: Configure IPsec steering for egress RoCEv2 traffic
+> 
+> Patrisious Haddad (1):
+>   net/mlx5: Introduce new destination type TABLE_TYPE
+> 
+>  drivers/infiniband/hw/mlx5/main.c             |  78 ++--
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h          |   3 +
+>  .../net/ethernet/mellanox/mlx5/core/Makefile  |   2 +-
+>  .../net/ethernet/mellanox/mlx5/core/devlink.c |   9 +-
+>  .../net/ethernet/mellanox/mlx5/core/devlink.h |   5 +
+>  .../mellanox/mlx5/core/diag/fs_tracepoint.c   |   4 +
+>  .../net/ethernet/mellanox/mlx5/core/en/fs.h   |   1 +
+>  .../mellanox/mlx5/core/en_accel/ipsec.h       |   1 +
+>  .../mellanox/mlx5/core/en_accel/ipsec_fs.c    |  59 ++-
+>  .../net/ethernet/mellanox/mlx5/core/en_main.c |  15 +-
+>  .../net/ethernet/mellanox/mlx5/core/events.c  |   2 +
+>  .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |   6 +
+>  .../net/ethernet/mellanox/mlx5/core/fs_core.c |  44 ++-
+>  .../mellanox/mlx5/core/lib/ipsec_fs_roce.c    | 372 ++++++++++++++++++
+>  .../mellanox/mlx5/core/lib/ipsec_fs_roce.h    |  20 +
+>  .../ethernet/mellanox/mlx5/core/lib/mlx5.h    |   5 -
+>  .../net/ethernet/mellanox/mlx5/core/main.c    |  20 +
+>  include/linux/mlx5/device.h                   |   1 +
+>  include/linux/mlx5/driver.h                   |   5 +
+>  include/linux/mlx5/fs.h                       |   3 +
+>  include/linux/mlx5/mlx5_ifc.h                 |  12 +-
+>  21 files changed, 614 insertions(+), 53 deletions(-)
+>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
+>  create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h
+> 
+> -- 
+> 2.38.1
+> 
