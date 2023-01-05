@@ -2,88 +2,65 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FA86C53210
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45341C3DA7D
 	for <linux-rdma@archiver.kernel.org>; Thu,  5 Jan 2023 11:24:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232732AbjAELYB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S232707AbjAELYB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Thu, 5 Jan 2023 06:24:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56258 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232891AbjAELXz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Jan 2023 06:23:55 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C154650E7E;
-        Thu,  5 Jan 2023 03:23:54 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E16D619D6;
-        Thu,  5 Jan 2023 11:23:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42D48C433D2;
-        Thu,  5 Jan 2023 11:23:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1672917833;
-        bh=J4IQeUKege6YLmfEJkNgDqcK7NVwWSrt7mDfKFJWrOk=;
-        h=From:To:Cc:Subject:Date:From;
-        b=U5HdJ9+PgEYpcIJXa9q9IbRIQHO9pM0JKO4mTvyfopF4V6JPt4zHAv9xgct3uYBnp
-         ixLvd4YPGMTt6EzcZnHvFlnIXeu+2jUFrrPVo5ul6wLXZGQiTURbDuVGSm3lobAnER
-         bIeRLICX9vhharsodTJdx+ftV2oTyTrZTMNCDI/mtC8/pGPZArwT9q6T3xVO1EiPRu
-         ks3oGzA+iDcB/zNozgIFAIlX3DR/OE4hC/zhOu4Lv03MKSh2nTPlXuDZZ63XwswuaA
-         hAZDqpljEaddyWj0fwmtyNUUSsu3fEvsfND21b8uMWYucoDGqLyj4wTJ0UXaP7SRix
-         jN3V9bsgDLpFA==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org,
-        Michael Guralnik <michaelgur@nvidia.com>,
-        netdev@vger.kernel.org, Or Har-Toov <ohartoov@nvidia.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH rdma-next v1 0/4] Rely on firmware to get special mkeys
-Date:   Thu,  5 Jan 2023 13:23:44 +0200
-Message-Id: <cover.1672917578.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.38.1
+        with ESMTP id S232558AbjAELXw (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Jan 2023 06:23:52 -0500
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ED4C50154;
+        Thu,  5 Jan 2023 03:23:51 -0800 (PST)
+Received: from dggpemm100007.china.huawei.com (unknown [172.30.72.56])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4NnkZt6CxzzRqnk;
+        Thu,  5 Jan 2023 19:22:14 +0800 (CST)
+Received: from huawei.com (10.175.103.91) by dggpemm100007.china.huawei.com
+ (7.185.36.116) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Thu, 5 Jan
+ 2023 19:23:47 +0800
+From:   Yang Yingliang <yangyingliang@huawei.com>
+To:     <linux-kernel@vger.kernel.org>, <linux-rdma@vger.kernel.org>
+CC:     <saeedm@nvidia.com>, <moshe@nvidia.com>, <shayd@nvidia.com>,
+        <yangyingliang@huawei.com>
+Subject: [PATCH -next] net/mlx5: fix missing mutex_unlock in mlx5_fw_fatal_reporter_err_work()
+Date:   Thu, 5 Jan 2023 19:42:20 +0800
+Message-ID: <20230105114220.466631-1-yangyingliang@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.103.91]
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+ dggpemm100007.china.huawei.com (7.185.36.116)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+Add missing mutex_unlock() before returning from
+mlx5_fw_fatal_reporter_err_work().
 
-Changelog:
-v1:
- * Use already stored mkeys.terminate_scatter_list_mkey.
-v0: https://lore.kernel.org/all/cover.1672819469.git.leonro@nvidia.com
+Fixes: 9078e843efec ("net/mlx5: Avoid recovery in probe flows")
+Signed-off-by: Yang Yingliang <yangyingliang@huawei.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/health.c | 1 +
+ 1 file changed, 1 insertion(+)
 
------------------------------------------------------------------------
-This series from Or extends mlx5 driver to rely on firmware to get
-special mkey values.
-
-Thanks
-
-Or Har-Toov (4):
-  net/mlx5: Expose bits for querying special mkeys
-  net/mlx5: Change define name for 0x100 lkey value
-  net/mlx5: Use query_special_contexts for mkeys
-  RDMA/mlx5: Use query_special_contexts for mkeys
-
- drivers/infiniband/hw/mlx5/cmd.c              | 30 +++++++------------
- drivers/infiniband/hw/mlx5/cmd.h              |  3 +-
- drivers/infiniband/hw/mlx5/main.c             | 10 +++----
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  8 ++++-
- drivers/infiniband/hw/mlx5/odp.c              | 29 +++++++-----------
- drivers/infiniband/hw/mlx5/srq.c              |  2 +-
- drivers/infiniband/hw/mlx5/wr.c               |  2 +-
- .../net/ethernet/mellanox/mlx5/core/en_main.c |  3 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    | 27 +++++++++++++++++
- include/linux/mlx5/driver.h                   |  1 +
- include/linux/mlx5/mlx5_ifc.h                 | 10 +++++--
- include/linux/mlx5/qp.h                       |  2 +-
- 12 files changed, 75 insertions(+), 52 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+index 96417c5feed7..879555ba847d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/health.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+@@ -677,6 +677,7 @@ static void mlx5_fw_fatal_reporter_err_work(struct work_struct *work)
+ 	mutex_lock(&dev->intf_state_mutex);
+ 	if (test_bit(MLX5_DROP_NEW_HEALTH_WORK, &health->flags)) {
+ 		mlx5_core_err(dev, "health works are not permitted at this stage\n");
++		mutex_unlock(&dev->intf_state_mutex);
+ 		return;
+ 	}
+ 	mutex_unlock(&dev->intf_state_mutex);
 -- 
-2.38.1
+2.25.1
 
