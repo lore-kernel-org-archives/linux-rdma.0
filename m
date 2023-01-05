@@ -2,43 +2,44 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5FCDC54EBD
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Jan 2023 04:19:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 270B8C54EF1
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Jan 2023 04:19:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230116AbjAEESu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 Jan 2023 23:18:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41130 "EHLO
+        id S230481AbjAEESz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Jan 2023 23:18:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230434AbjAEES2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Jan 2023 23:18:28 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D71A53D9EC;
-        Wed,  4 Jan 2023 20:18:16 -0800 (PST)
+        with ESMTP id S231143AbjAEESf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Jan 2023 23:18:35 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 440123F12C;
+        Wed,  4 Jan 2023 20:18:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 81EB1B819AD;
-        Thu,  5 Jan 2023 04:18:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11F9EC433F0;
-        Thu,  5 Jan 2023 04:18:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C34D4B8198C;
+        Thu,  5 Jan 2023 04:18:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D329C433F0;
+        Thu,  5 Jan 2023 04:18:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1672892294;
-        bh=M6HqaU7IB8nFsL897y0FbVJKk1wvmmD+LY057J/xZ2w=;
+        s=k20201202; t=1672892298;
+        bh=iTX+61shDiS83d+w4LmfMVuNSLLqJKR7/KFXinYRwIk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JnQ1wLmECyGQ7ZHnymEHibZP+neUBRvIwv7MuiIjdhLMen8m6RkauO/hrsq6Mf80H
-         Aj/QrSMjxBczDhb2Fy/OYLE/99XGlAzCUVatK6GRptrePWxQXpX1bHSu5W5VuIU02C
-         nrFr7EBFZZY0anhRgeZHKQ4XzOVTfg2cLCCyA+fQ3XJQyE25BM6CFrgy4u7GkY7CcF
-         RHVvZaQg/jffcwr2K/KIc+vffXbEz2EYg/9b12HR3usroNUBcWPQAhRJj4B+rTZyJc
-         BVDGfTpeRa8sFeFkXLZB5BN0iQJRQ85+R/hvddKXfpQBQhosaafVXBXp57YDm+M6Qd
-         voIor81s+NtHQ==
+        b=KXXf0kwxf+QUK/2ULrRDKxPIxt26hKWuzxuFAJOqeuWxM0pjCLi6M1+M+GisGOkqf
+         N61n13ti8prkUwYERGCfoM/7qkkpe47TlfUxPUH2yw3OkSw0xdGS3ukM7x3KMWv0JX
+         NN5S5W6GrQQWQ1EjTEmO7uwGXFmqCZhWd5gHM1VH54vz5cBHU77GaLNIEEfLxXjDOy
+         HBEuXNsjG2QSIVvutVReawYrr2nNb9+5Qk8oiiSbGW0IUz0sVTSs51eMyrXAuI6wIT
+         /Yc1TkfAfKIoDGTkudwbcsTkKK3SqMyVLkZCn/KpBN64fPqaGCz9gcWusANUEp44Hd
+         qgvmzBRROkF9Q==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>
 Cc:     Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Jiri Pirko <jiri@nvidia.com>
-Subject: [PATCH mlx5-next 1/8] net/mlx5e: Fix trap event handling
-Date:   Wed,  4 Jan 2023 20:17:49 -0800
-Message-Id: <20230105041756.677120-2-saeed@kernel.org>
+        netdev@vger.kernel.org, Mark Zhang <markzhang@nvidia.com>,
+        Patrisious Haddad <phaddad@nvidia.com>
+Subject: [PATCH mlx5-next 5/8] net/mlx5: Implement new destination type TABLE_TYPE
+Date:   Wed,  4 Jan 2023 20:17:53 -0800
+Message-Id: <20230105041756.677120-6-saeed@kernel.org>
 X-Mailer: git-send-email 2.38.1
 In-Reply-To: <20230105041756.677120-1-saeed@kernel.org>
 References: <20230105041756.677120-1-saeed@kernel.org>
@@ -48,95 +49,83 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Jiri Pirko <jiri@nvidia.com>
+From: Mark Zhang <markzhang@nvidia.com>
 
-Current code does not return correct return value from event handler.
-Fix it by returning NOTIFY_* and propagate err over newly introduce ctx
-structure.
+Implement new destination type to support flow transition between
+different table types.
+e.g. from NIC_RX to RDMA_RX or from RDMA_TX to NIC_TX.
+The new destination is described in the tracepoint as follows:
+"mlx5_fs_add_rule: rule=00000000d53cd0ed fte=0000000048a8a6ed index=0 sw_action=<> [dst] flow_table_type=7 id:262152"
 
-Signed-off-by: Jiri Pirko <jiri@nvidia.com>
+Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/devlink.c |  9 +++++++--
- drivers/net/ethernet/mellanox/mlx5/core/devlink.h |  5 +++++
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 12 ++++++++----
- 3 files changed, 20 insertions(+), 6 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c    | 4 ++++
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c            | 6 ++++++
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c           | 3 ++-
+ include/linux/mlx5/fs.h                                     | 1 +
+ 4 files changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-index ddb197970c22..6af1e219a9e8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.c
-@@ -263,6 +263,7 @@ static int mlx5_devlink_trap_action_set(struct devlink *devlink,
- 					struct netlink_ext_ack *extack)
- {
- 	struct mlx5_core_dev *dev = devlink_priv(devlink);
-+	struct mlx5_devlink_trap_event_ctx trap_event_ctx;
- 	enum devlink_trap_action action_orig;
- 	struct mlx5_devlink_trap *dl_trap;
- 	int err = 0;
-@@ -289,10 +290,14 @@ static int mlx5_devlink_trap_action_set(struct devlink *devlink,
- 
- 	action_orig = dl_trap->trap.action;
- 	dl_trap->trap.action = action;
-+	trap_event_ctx.trap = &dl_trap->trap;
-+	trap_event_ctx.err = 0;
- 	err = mlx5_blocking_notifier_call_chain(dev, MLX5_DRIVER_EVENT_TYPE_TRAP,
--						&dl_trap->trap);
--	if (err)
-+						&trap_event_ctx);
-+	if (err == NOTIFY_BAD) {
- 		dl_trap->trap.action = action_orig;
-+		err = trap_event_ctx.err;
-+	}
- out:
- 	return err;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
+index 2732128e7a6e..6d73127b7217 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
+@@ -275,6 +275,10 @@ const char *parse_fs_dst(struct trace_seq *p,
+ 				 fs_dest_range_field_to_str(dst->range.field),
+ 				 dst->range.min, dst->range.max);
+ 		break;
++	case MLX5_FLOW_DESTINATION_TYPE_TABLE_TYPE:
++		trace_seq_printf(p, "flow_table_type=%u id:%u\n", dst->ft->type,
++				 dst->ft->id);
++		break;
+ 	case MLX5_FLOW_DESTINATION_TYPE_NONE:
+ 		trace_seq_printf(p, "none\n");
+ 		break;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+index 32d4c967469c..a3a9cc6f15ca 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+@@ -653,6 +653,12 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
+ 				id = dst->dest_attr.sampler_id;
+ 				ifc_type = MLX5_IFC_FLOW_DESTINATION_TYPE_FLOW_SAMPLER;
+ 				break;
++			case MLX5_FLOW_DESTINATION_TYPE_TABLE_TYPE:
++				MLX5_SET(dest_format_struct, in_dests,
++					 destination_table_type, dst->dest_attr.ft->type);
++				id = dst->dest_attr.ft->id;
++				ifc_type = MLX5_IFC_FLOW_DESTINATION_TYPE_TABLE_TYPE;
++				break;
+ 			default:
+ 				id = dst->dest_attr.tir_num;
+ 				ifc_type = MLX5_IFC_FLOW_DESTINATION_TYPE_TIR;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+index 5a85d8c1e797..2333f835fb70 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+@@ -449,7 +449,8 @@ static bool is_fwd_dest_type(enum mlx5_flow_destination_type type)
+ 		type == MLX5_FLOW_DESTINATION_TYPE_VPORT ||
+ 		type == MLX5_FLOW_DESTINATION_TYPE_FLOW_SAMPLER ||
+ 		type == MLX5_FLOW_DESTINATION_TYPE_TIR ||
+-		type == MLX5_FLOW_DESTINATION_TYPE_RANGE;
++		type == MLX5_FLOW_DESTINATION_TYPE_RANGE ||
++		type == MLX5_FLOW_DESTINATION_TYPE_TABLE_TYPE;
  }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/devlink.h b/drivers/net/ethernet/mellanox/mlx5/core/devlink.h
-index fd033df24856..b84cb70eb3ae 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/devlink.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/devlink.h
-@@ -24,6 +24,11 @@ struct mlx5_devlink_trap {
- 	struct list_head list;
+ 
+ static bool check_valid_spec(const struct mlx5_flow_spec *spec)
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index ba6958b49a8e..1d2a0638ae74 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -51,6 +51,7 @@ enum mlx5_flow_destination_type {
+ 	MLX5_FLOW_DESTINATION_TYPE_COUNTER,
+ 	MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM,
+ 	MLX5_FLOW_DESTINATION_TYPE_RANGE,
++	MLX5_FLOW_DESTINATION_TYPE_TABLE_TYPE,
  };
  
-+struct mlx5_devlink_trap_event_ctx {
-+	struct mlx5_trap_ctx *trap;
-+	int err;
-+};
-+
- struct mlx5_core_dev;
- void mlx5_devlink_trap_report(struct mlx5_core_dev *dev, int trap_id, struct sk_buff *skb,
- 			      struct devlink_port *dl_port);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 8d36e2de53a9..a07f13dc4495 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -179,17 +179,21 @@ static void mlx5e_disable_async_events(struct mlx5e_priv *priv)
- static int blocking_event(struct notifier_block *nb, unsigned long event, void *data)
- {
- 	struct mlx5e_priv *priv = container_of(nb, struct mlx5e_priv, blocking_events_nb);
-+	struct mlx5_devlink_trap_event_ctx *trap_event_ctx = data;
- 	int err;
- 
- 	switch (event) {
- 	case MLX5_DRIVER_EVENT_TYPE_TRAP:
--		err = mlx5e_handle_trap_event(priv, data);
-+		err = mlx5e_handle_trap_event(priv, trap_event_ctx->trap);
-+		if (err) {
-+			trap_event_ctx->err = err;
-+			return NOTIFY_BAD;
-+		}
- 		break;
- 	default:
--		netdev_warn(priv->netdev, "Sync event: Unknown event %ld\n", event);
--		err = -EINVAL;
-+		return NOTIFY_DONE;
- 	}
--	return err;
-+	return NOTIFY_OK;
- }
- 
- static void mlx5e_enable_blocking_events(struct mlx5e_priv *priv)
+ enum {
 -- 
 2.38.1
 
