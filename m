@@ -2,45 +2,43 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72FEFC63709
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81DDDC63707
 	for <linux-rdma@archiver.kernel.org>; Thu,  5 Jan 2023 04:19:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230432AbjAEES4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 4 Jan 2023 23:18:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41140 "EHLO
+        id S231179AbjAEES6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Jan 2023 23:18:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231167AbjAEESf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Jan 2023 23:18:35 -0500
+        with ESMTP id S230452AbjAEESa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Jan 2023 23:18:30 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 818F03D1DD;
-        Wed,  4 Jan 2023 20:18:22 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FD763D9F1;
+        Wed,  4 Jan 2023 20:18:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1EA31617F7;
-        Thu,  5 Jan 2023 04:18:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B77EC433D2;
-        Thu,  5 Jan 2023 04:18:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BCEFC6149B;
+        Thu,  5 Jan 2023 04:18:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 157AAC433F0;
+        Thu,  5 Jan 2023 04:18:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1672892301;
-        bh=kzIQ9Q/uKOjOgtTHsDqKdUNObVS5Pu9/69uqGxiXNhQ=;
+        s=k20201202; t=1672892296;
+        bh=tjhtT0Naj9vHUE5H+m7L/09EBKqOtVE6Fou6FAGE1C8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=uRTvr+8sn1GNBYlJ/BCUXudpRlEpVAz8ARH2tCbNtMcfePYodjznTk604mk5jOvaE
-         DUa1ilsG+Y7xN8s/8Opo5hr5LDXpJHVTQg/ts10k/lpfcQzsiTFMVLfjcg2ppPwOSa
-         KGHlNaoD56R3iwNUO9Y3v9IJZgZgkvtltIVbFE5BArQmoCc0+dlzsmHOxQlcMdsR0l
-         GCiMLtZwp7iu7UMUy5KeRWGDpT9T66USQBc5c0vSWi+32jDBoOrJ5rgfZXOGI9U/fe
-         l3akakXx8q0kBBjPhv3GpBRajeAJboupj53fZfXqUMrtRvZByI6mksAlassPBU96Ov
-         IEZXn8fGcM21Q==
+        b=W46y3s5TXv7UoaINszA/+qYBUD1bCEQ3RYpyjJhicjj+WyTRuzbYUaAQxvQNjgtpw
+         2IFloF7WR2iXUVmhX806CzwfY1HMF5mdzlTAc7aDdEUv71GDp+V+GGQz6WgdcPIPR9
+         vBqfUh8a7c2J8xUtjP7lPTzSBjOMCRY0dlcTcnteviqZHklijFyC8XoPl7pSApQEA7
+         pPO1QKRQFdIw5mQ0UXgwnFcI6G8AEdCqSzERXIvico5H0eB4EebtYYodhagLRpiP6C
+         5JmjgibGSIe9FLODTuflkjBfgW/g3XATTuWbgoKDxxZOeLGLk2qIFQih4v1g0mzZh+
+         foV9OuUjaZusg==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>
 Cc:     Jason Gunthorpe <jgg@nvidia.com>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Mark Zhang <markzhang@nvidia.com>,
-        Patrisious Haddad <phaddad@nvidia.com>,
-        Raed Salem <raeds@nvidia.com>
-Subject: [PATCH mlx5-next 8/8] net/mlx5: Configure IPsec steering for egress RoCEv2 traffic
-Date:   Wed,  4 Jan 2023 20:17:56 -0800
-Message-Id: <20230105041756.677120-9-saeed@kernel.org>
+        netdev@vger.kernel.org, Jiri Pirko <jiri@nvidia.com>
+Subject: [PATCH mlx5-next 3/8] RDMA/mlx5: Track netdev to avoid deadlock during netdev notifier unregister
+Date:   Wed,  4 Jan 2023 20:17:51 -0800
+Message-Id: <20230105041756.677120-4-saeed@kernel.org>
 X-Mailer: git-send-email 2.38.1
 In-Reply-To: <20230105041756.677120-1-saeed@kernel.org>
 References: <20230105041756.677120-1-saeed@kernel.org>
@@ -50,247 +48,208 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markzhang@nvidia.com>
+From: Jiri Pirko <jiri@nvidia.com>
 
-Add steering table/rule in RDMA_TX domain, to forward all traffic
-to IPsec crypto table in NIC domain.
+When removing a network namespace with mlx5 devlink instance being in
+it, following callchain is performed:
 
-Signed-off-by: Mark Zhang <markzhang@nvidia.com>
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Reviewed-by: Raed Salem <raeds@nvidia.com>
+cleanup_net (takes down_read(&pernet_ops_rwsem)
+devlink_pernet_pre_exit()
+devlink_reload()
+mlx5_devlink_reload_down()
+mlx5_unload_one_devl_locked()
+mlx5_detach_device()
+del_adev()
+mlx5r_remove()
+__mlx5_ib_remove()
+mlx5_ib_roce_cleanup()
+mlx5_remove_netdev_notifier()
+unregister_netdevice_notifier (takes down_write(&pernet_ops_rwsem)
+
+This deadlocks.
+
+Resolve this by converting to register_netdevice_notifier_dev_net()
+which does not take pernet_ops_rwsem and moves the notifier block around
+according to netdev it takes as arg.
+
+Use previously introduced netdev added/removed events to track uplink
+netdev to be used for register_netdevice_notifier_dev_net() purposes.
+
+Signed-off-by: Jiri Pirko <jiri@nvidia.com>
 Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- .../mellanox/mlx5/core/en_accel/ipsec_fs.c    |  22 +++-
- .../mellanox/mlx5/core/lib/ipsec_fs_roce.c    | 123 +++++++++++++++++-
- .../mellanox/mlx5/core/lib/ipsec_fs_roce.h    |   3 +
- 3 files changed, 142 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c             | 78 +++++++++++++------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  3 +
+ .../net/ethernet/mellanox/mlx5/core/events.c  |  2 +
+ 3 files changed, 59 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-index 512d4f6e69bb..4de528687536 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
-@@ -366,6 +366,14 @@ static int tx_create(struct mlx5_core_dev *mdev, struct mlx5e_ipsec_tx *tx)
- 	return err;
- }
- 
-+static void tx_destroy(struct mlx5e_ipsec_tx *tx)
-+{
-+	mlx5_del_flow_rules(tx->pol.rule);
-+	mlx5_destroy_flow_group(tx->pol.group);
-+	mlx5_destroy_flow_table(tx->ft.pol);
-+	mlx5_destroy_flow_table(tx->ft.sa);
-+}
-+
- static struct mlx5e_ipsec_tx *tx_ft_get(struct mlx5_core_dev *mdev,
- 					struct mlx5e_ipsec *ipsec)
- {
-@@ -379,6 +387,13 @@ static struct mlx5e_ipsec_tx *tx_ft_get(struct mlx5_core_dev *mdev,
- 	err = tx_create(mdev, tx);
- 	if (err)
- 		goto out;
-+
-+	err = mlx5_ipsec_fs_roce_tx_create(ipsec->roce_ipsec, tx->ft.pol, ipsec->mdev);
-+	if (err) {
-+		tx_destroy(tx);
-+		goto out;
-+	}
-+
- skip:
- 	tx->ft.refcnt++;
- out:
-@@ -397,10 +412,9 @@ static void tx_ft_put(struct mlx5e_ipsec *ipsec)
- 	if (tx->ft.refcnt)
- 		goto out;
- 
--	mlx5_del_flow_rules(tx->pol.rule);
--	mlx5_destroy_flow_group(tx->pol.group);
--	mlx5_destroy_flow_table(tx->ft.pol);
--	mlx5_destroy_flow_table(tx->ft.sa);
-+	mlx5_ipsec_fs_roce_tx_destroy(ipsec->roce_ipsec);
-+
-+	tx_destroy(tx);
- out:
- 	mutex_unlock(&tx->ft.mutex);
- }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
-index efc67084f29a..2711892fd5cb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
-@@ -20,9 +20,17 @@ struct mlx5_ipsec_rx_roce {
- 	struct mlx5_flow_namespace *ns_rdma;
- };
- 
-+struct mlx5_ipsec_tx_roce {
-+	struct mlx5_flow_group *g;
-+	struct mlx5_flow_table *ft;
-+	struct mlx5_flow_handle *rule;
-+	struct mlx5_flow_namespace *ns;
-+};
-+
- struct mlx5_ipsec_fs {
- 	struct mlx5_ipsec_rx_roce ipv4_rx;
- 	struct mlx5_ipsec_rx_roce ipv6_rx;
-+	struct mlx5_ipsec_tx_roce tx;
- };
- 
- static void ipsec_fs_roce_setup_udp_dport(struct mlx5_flow_spec *spec, u16 dport)
-@@ -83,6 +91,103 @@ static int ipsec_fs_roce_rx_rule_setup(struct mlx5_flow_destination *default_dst
- 	return err;
- }
- 
-+static int ipsec_fs_roce_tx_rule_setup(struct mlx5_core_dev *mdev, struct mlx5_ipsec_tx_roce *roce,
-+				       struct mlx5_flow_table *pol_ft)
-+{
-+	struct mlx5_flow_destination dst = {};
-+	MLX5_DECLARE_FLOW_ACT(flow_act);
-+	struct mlx5_flow_handle *rule;
-+	int err = 0;
-+
-+	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
-+	dst.type = MLX5_FLOW_DESTINATION_TYPE_TABLE_TYPE;
-+	dst.ft = pol_ft;
-+	rule = mlx5_add_flow_rules(roce->ft, NULL, &flow_act, &dst,
-+				   1);
-+	if (IS_ERR(rule)) {
-+		err = PTR_ERR(rule);
-+		mlx5_core_err(mdev, "Fail to add TX roce ipsec rule err=%d\n",
-+			      err);
-+		goto out;
-+	}
-+	roce->rule = rule;
-+
-+out:
-+	return err;
-+}
-+
-+void mlx5_ipsec_fs_roce_tx_destroy(struct mlx5_ipsec_fs *ipsec_roce)
-+{
-+	struct mlx5_ipsec_tx_roce *tx_roce;
-+
-+	if (!ipsec_roce)
-+		return;
-+
-+	tx_roce = &ipsec_roce->tx;
-+
-+	mlx5_del_flow_rules(tx_roce->rule);
-+	mlx5_destroy_flow_group(tx_roce->g);
-+	mlx5_destroy_flow_table(tx_roce->ft);
-+}
-+
-+#define MLX5_TX_ROCE_GROUP_SIZE BIT(0)
-+
-+int mlx5_ipsec_fs_roce_tx_create(struct mlx5_ipsec_fs *ipsec_roce, struct mlx5_flow_table *pol_ft,
-+				 struct mlx5_core_dev *mdev)
-+{
-+	struct mlx5_flow_table_attr ft_attr = {};
-+	struct mlx5_ipsec_tx_roce *roce;
-+	struct mlx5_flow_table *ft;
-+	struct mlx5_flow_group *g;
-+	int ix = 0;
-+	int err;
-+	u32 *in;
-+
-+	if (!ipsec_roce)
-+		return 0;
-+
-+	roce = &ipsec_roce->tx;
-+
-+	in = kvzalloc(MLX5_ST_SZ_BYTES(create_flow_group_in), GFP_KERNEL);
-+	if (!in)
-+		return -ENOMEM;
-+
-+	ft_attr.max_fte = 1;
-+	ft = mlx5_create_flow_table(roce->ns, &ft_attr);
-+	if (IS_ERR(ft)) {
-+		err = PTR_ERR(ft);
-+		mlx5_core_err(mdev, "Fail to create ipsec tx roce ft err=%d\n", err);
-+		return err;
-+	}
-+
-+	roce->ft = ft;
-+
-+	MLX5_SET_CFG(in, start_flow_index, ix);
-+	ix += MLX5_TX_ROCE_GROUP_SIZE;
-+	MLX5_SET_CFG(in, end_flow_index, ix - 1);
-+	g = mlx5_create_flow_group(ft, in);
-+	if (IS_ERR(g)) {
-+		err = PTR_ERR(g);
-+		mlx5_core_err(mdev, "Fail to create ipsec tx roce group err=%d\n", err);
-+		goto fail;
-+	}
-+	roce->g = g;
-+
-+	err = ipsec_fs_roce_tx_rule_setup(mdev, roce, pol_ft);
-+	if (err) {
-+		mlx5_core_err(mdev, "Fail to create ipsec tx roce rules err=%d\n", err);
-+		goto rule_fail;
-+	}
-+
-+	return 0;
-+
-+rule_fail:
-+	mlx5_destroy_flow_group(roce->g);
-+fail:
-+	mlx5_destroy_flow_table(ft);
-+	return err;
-+}
-+
- struct mlx5_flow_table *mlx5_ipsec_fs_roce_ft_get(struct mlx5_ipsec_fs *ipsec_roce, u32 family)
- {
- 	struct mlx5_ipsec_rx_roce *rx_roce;
-@@ -222,6 +327,8 @@ void mlx5_ipsec_fs_roce_cleanup(struct mlx5_ipsec_fs *ipsec_roce)
- 	kfree(ipsec_roce);
- }
- 
-+#define NIC_RDMA_BOTH_DIRS_CAPS (MLX5_FT_NIC_RX_2_NIC_RX_RDMA | MLX5_FT_NIC_TX_RDMA_2_NIC_TX)
-+
- struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev)
- {
- 	struct mlx5_ipsec_fs *roce_ipsec;
-@@ -230,8 +337,8 @@ struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev)
- 	if (!mlx5_get_roce_state(mdev))
- 		return NULL;
- 
--	if (!(MLX5_CAP_GEN_2(mdev, flow_table_type_2_type) &
--	      MLX5_FT_NIC_RX_2_NIC_RX_RDMA)) {
-+	if ((MLX5_CAP_GEN_2(mdev, flow_table_type_2_type) &
-+	     NIC_RDMA_BOTH_DIRS_CAPS) != NIC_RDMA_BOTH_DIRS_CAPS) {
- 		mlx5_core_dbg(mdev, "Failed to init roce ipsec flow steering, capabilities not supported\n");
- 		return NULL;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c669ef6e47e7..dc32e4518a28 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3012,26 +3012,63 @@ static void mlx5_eth_lag_cleanup(struct mlx5_ib_dev *dev)
  	}
-@@ -249,5 +356,17 @@ struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev)
- 	roce_ipsec->ipv4_rx.ns_rdma = ns;
- 	roce_ipsec->ipv6_rx.ns_rdma = ns;
- 
-+	ns = mlx5_get_flow_namespace(mdev, MLX5_FLOW_NAMESPACE_RDMA_TX_IPSEC);
-+	if (!ns) {
-+		mlx5_core_err(mdev, "Failed to get roce tx ns\n");
-+		goto err_tx;
-+	}
-+
-+	roce_ipsec->tx.ns = ns;
-+
- 	return roce_ipsec;
-+
-+err_tx:
-+	kfree(roce_ipsec);
-+	return NULL;
  }
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h
-index 75ca8f3df4f5..4b69d4e34234 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h
-@@ -11,6 +11,9 @@ void mlx5_ipsec_fs_roce_rx_destroy(struct mlx5_ipsec_fs *ipsec_roce, u32 family)
- int mlx5_ipsec_fs_roce_rx_create(struct mlx5_ipsec_fs *ipsec_roce, struct mlx5_flow_namespace *ns,
- 				 struct mlx5_flow_destination *default_dst, u32 family, u32 level,
- 				 u32 prio, struct mlx5_core_dev *mdev);
-+void mlx5_ipsec_fs_roce_tx_destroy(struct mlx5_ipsec_fs *ipsec_roce);
-+int mlx5_ipsec_fs_roce_tx_create(struct mlx5_ipsec_fs *ipsec_roce, struct mlx5_flow_table *pol_ft,
-+				 struct mlx5_core_dev *mdev);
- void mlx5_ipsec_fs_roce_cleanup(struct mlx5_ipsec_fs *ipsec_roce);
- struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev);
  
+-static int mlx5_add_netdev_notifier(struct mlx5_ib_dev *dev, u32 port_num)
++static void mlx5_netdev_notifier_register(struct mlx5_roce *roce,
++					  struct net_device *netdev)
+ {
+ 	int err;
+ 
+-	dev->port[port_num].roce.nb.notifier_call = mlx5_netdev_event;
+-	err = register_netdevice_notifier(&dev->port[port_num].roce.nb);
+-	if (err) {
+-		dev->port[port_num].roce.nb.notifier_call = NULL;
+-		return err;
+-	}
++	if (roce->tracking_netdev)
++		return;
++	roce->tracking_netdev = netdev;
++	roce->nb.notifier_call = mlx5_netdev_event;
++	err = register_netdevice_notifier_dev_net(netdev, &roce->nb, &roce->nn);
++	WARN_ON(err);
++}
+ 
+-	return 0;
++static void mlx5_netdev_notifier_unregister(struct mlx5_roce *roce)
++{
++	if (!roce->tracking_netdev)
++		return;
++	unregister_netdevice_notifier_dev_net(roce->tracking_netdev, &roce->nb,
++					      &roce->nn);
++	roce->tracking_netdev = NULL;
+ }
+ 
+-static void mlx5_remove_netdev_notifier(struct mlx5_ib_dev *dev, u32 port_num)
++static int mlx5e_mdev_notifier_event(struct notifier_block *nb,
++				     unsigned long event, void *data)
+ {
+-	if (dev->port[port_num].roce.nb.notifier_call) {
+-		unregister_netdevice_notifier(&dev->port[port_num].roce.nb);
+-		dev->port[port_num].roce.nb.notifier_call = NULL;
++	struct mlx5_roce *roce = container_of(nb, struct mlx5_roce, mdev_nb);
++	struct net_device *netdev = data;
++
++	switch (event) {
++	case MLX5_DRIVER_EVENT_UPLINK_NETDEV:
++		if (netdev)
++			mlx5_netdev_notifier_register(roce, netdev);
++		else
++			mlx5_netdev_notifier_unregister(roce);
++		break;
++	default:
++		return NOTIFY_DONE;
+ 	}
++
++	return NOTIFY_OK;
++}
++
++static void mlx5_mdev_netdev_track(struct mlx5_ib_dev *dev, u32 port_num)
++{
++	struct mlx5_roce *roce = &dev->port[port_num].roce;
++
++	roce->mdev_nb.notifier_call = mlx5e_mdev_notifier_event;
++	mlx5_blocking_notifier_register(dev->mdev, &roce->mdev_nb);
++	mlx5_core_uplink_netdev_event_replay(dev->mdev);
++}
++
++static void mlx5_mdev_netdev_untrack(struct mlx5_ib_dev *dev, u32 port_num)
++{
++	struct mlx5_roce *roce = &dev->port[port_num].roce;
++
++	mlx5_blocking_notifier_unregister(dev->mdev, &roce->mdev_nb);
++	mlx5_netdev_notifier_unregister(roce);
+ }
+ 
+ static int mlx5_enable_eth(struct mlx5_ib_dev *dev)
+@@ -3138,7 +3175,7 @@ static void mlx5_ib_unbind_slave_port(struct mlx5_ib_dev *ibdev,
+ 	if (mpi->mdev_events.notifier_call)
+ 		mlx5_notifier_unregister(mpi->mdev, &mpi->mdev_events);
+ 	mpi->mdev_events.notifier_call = NULL;
+-	mlx5_remove_netdev_notifier(ibdev, port_num);
++	mlx5_mdev_netdev_untrack(ibdev, port_num);
+ 	spin_lock(&port->mp.mpi_lock);
+ 
+ 	comps = mpi->mdev_refcnt;
+@@ -3196,12 +3233,7 @@ static bool mlx5_ib_bind_slave_port(struct mlx5_ib_dev *ibdev,
+ 	if (err)
+ 		goto unbind;
+ 
+-	err = mlx5_add_netdev_notifier(ibdev, port_num);
+-	if (err) {
+-		mlx5_ib_err(ibdev, "failed adding netdev notifier for port %u\n",
+-			    port_num + 1);
+-		goto unbind;
+-	}
++	mlx5_mdev_netdev_track(ibdev, port_num);
+ 
+ 	mpi->mdev_events.notifier_call = mlx5_ib_event_slave_port;
+ 	mlx5_notifier_register(mpi->mdev, &mpi->mdev_events);
+@@ -3909,9 +3941,7 @@ static int mlx5_ib_roce_init(struct mlx5_ib_dev *dev)
+ 		port_num = mlx5_core_native_port_num(dev->mdev) - 1;
+ 
+ 		/* Register only for native ports */
+-		err = mlx5_add_netdev_notifier(dev, port_num);
+-		if (err)
+-			return err;
++		mlx5_mdev_netdev_track(dev, port_num);
+ 
+ 		err = mlx5_enable_eth(dev);
+ 		if (err)
+@@ -3920,7 +3950,7 @@ static int mlx5_ib_roce_init(struct mlx5_ib_dev *dev)
+ 
+ 	return 0;
+ cleanup:
+-	mlx5_remove_netdev_notifier(dev, port_num);
++	mlx5_mdev_netdev_untrack(dev, port_num);
+ 	return err;
+ }
+ 
+@@ -3938,7 +3968,7 @@ static void mlx5_ib_roce_cleanup(struct mlx5_ib_dev *dev)
+ 		mlx5_disable_eth(dev);
+ 
+ 		port_num = mlx5_core_native_port_num(dev->mdev) - 1;
+-		mlx5_remove_netdev_notifier(dev, port_num);
++		mlx5_mdev_netdev_untrack(dev, port_num);
+ 	}
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 8b91babdd4c0..7394e7f36ba7 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -832,6 +832,9 @@ struct mlx5_roce {
+ 	rwlock_t		netdev_lock;
+ 	struct net_device	*netdev;
+ 	struct notifier_block	nb;
++	struct netdev_net_notifier nn;
++	struct notifier_block	mdev_nb;
++	struct net_device	*tracking_netdev;
+ 	atomic_t		tx_port_affinity;
+ 	enum ib_port_state last_port_state;
+ 	struct mlx5_ib_dev	*dev;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+index 9459e56ee90a..718cf09c28ce 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+@@ -424,6 +424,7 @@ int mlx5_blocking_notifier_register(struct mlx5_core_dev *dev, struct notifier_b
+ 
+ 	return blocking_notifier_chain_register(&events->sw_nh, nb);
+ }
++EXPORT_SYMBOL(mlx5_blocking_notifier_register);
+ 
+ int mlx5_blocking_notifier_unregister(struct mlx5_core_dev *dev, struct notifier_block *nb)
+ {
+@@ -431,6 +432,7 @@ int mlx5_blocking_notifier_unregister(struct mlx5_core_dev *dev, struct notifier
+ 
+ 	return blocking_notifier_chain_unregister(&events->sw_nh, nb);
+ }
++EXPORT_SYMBOL(mlx5_blocking_notifier_unregister);
+ 
+ int mlx5_blocking_notifier_call_chain(struct mlx5_core_dev *dev, unsigned int event,
+ 				      void *data)
 -- 
 2.38.1
 
