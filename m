@@ -2,178 +2,114 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF176C63707
-	for <linux-rdma@archiver.kernel.org>; Fri,  6 Jan 2023 16:09:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7DF0C3DA7A
+	for <linux-rdma@archiver.kernel.org>; Fri,  6 Jan 2023 16:15:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235017AbjAFQJz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 6 Jan 2023 11:09:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37778 "EHLO
+        id S231384AbjAFQPj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 6 Jan 2023 11:15:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42554 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235290AbjAFQJE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Jan 2023 11:09:04 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9881A76200;
-        Fri,  6 Jan 2023 08:08:53 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 342AA61E1E;
-        Fri,  6 Jan 2023 16:08:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EA65C433EF;
-        Fri,  6 Jan 2023 16:08:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673021332;
-        bh=hGUsvrDCWTVtI40jiZsfyqGjhc8u0VHGyzAvUobubxs=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=iHYk+w1qfEDYWp7DPnNEJ5nM/fZR34TVsVtqFuoGDgzL26W+cQYqECE+7gOAEbY02
-         tuAIqSw5LXCrULqe8B1xL01q1ZDliYLxznbvPCN1XVH0EOzmTdnkvo38TFLF77sNKY
-         +RZEBxdDbV2dDnhP4IS4wf97EWX/FRidTRtuTtHVLqqSfqqVsm0z749vAfSHL/Rtys
-         lgNUC7UD7jpL8Y70kav4OU0uMuFmfHSWTsK3vmVxNa6FfgUL0dQvIwH+7wzAGlcHP0
-         u5ORK02hLptO2lUNJ1kTVs2I7JTJgauvXjKZwDEM9FylhAPu+vjXsrcveLc/ssJpej
-         Irbh2FFmwAgOw==
-Date:   Fri, 6 Jan 2023 10:08:57 -0600
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Kees Cook <keescook@chromium.org>
-Cc:     Potnuri Bharat Teja <bharat@chelsio.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH] RDMA/cxgb4: Replace 0-length arrays with flexible arrays
-Message-ID: <Y7hHmV7xaI/Y1SIg@work>
-References: <20230105223225.never.252-kees@kernel.org>
+        with ESMTP id S231204AbjAFQPi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 6 Jan 2023 11:15:38 -0500
+Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6333FE5B
+        for <linux-rdma@vger.kernel.org>; Fri,  6 Jan 2023 08:15:37 -0800 (PST)
+Received: by mail-yb1-xb2a.google.com with SMTP id t15so2375041ybq.4
+        for <linux-rdma@vger.kernel.org>; Fri, 06 Jan 2023 08:15:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=3A1vzUA9HFSXNRdaWQWHLlpCuOI1nmI5yJWhhjpwAUA=;
+        b=ljdR9dBGuK6eUYoM0rJxFocsXyJnNQJOju3wPlsAlEYRZYcdM4g4tSiCxOgaN1fQ/W
+         Acf+WWfYTEdlMm3n+w2gpkMOXW0hIbV68hC3aPU89GxYWMOhEoRcz+rU9lNR2AFlcGge
+         FeJWfnwrRhQrhBp+Y0ovwrWROl1t/UNhGzvo7Q+n8BhCYxFovQZ5LktUm3VINYcuYuiT
+         CXVzyZ4V/YsdoNQPMGHLViQTSbbDc5phFdFA065gAJlTLTRKhUlHYvMH/Zf1vGIef3y7
+         P4So6eO91mlzDBoE9UGVXukspicrpgHQNfqIsZ3PQgtIjL9Do6VmI9YvFVRyCshjCeNp
+         2IyQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3A1vzUA9HFSXNRdaWQWHLlpCuOI1nmI5yJWhhjpwAUA=;
+        b=ySfe58ZbmxdGTeUcIo7HIP2DktFznqcch2rHAqNAV0ca23dfuuIaNSLXYp2Kn41Nh6
+         kjOfA5fSTywwbQbKtF5hO6rQ7j1uKHuLZMtmdaOKy1fkGj9Oy2jVZpR7sq2xam5rKreU
+         l7kOIFgKgNwp9R9bCZGpuDy73jN0IEeNQnCQqsx2CWBo8EnmzkrgtuEqVV/g4NLZQsFy
+         33FwETCRBcED7TTglmw+LL7++W9WJJo71fNdDQIOLiCqMB5E+0MH+vcDlTKtp4S27AZe
+         woR8QNbj2BvTBtGsSTY+M0gWbQq7Kcu4KHqRXTNxBzsJeucCB7dSM77IngtRZQPNo6rp
+         5RTQ==
+X-Gm-Message-State: AFqh2koGPeLNhWrvsrvvYOhXkRV4vQW5mtgdVzPUUlxA14W0w/IqcIkG
+        bnlrVdQc3m3sNpfbEdXL4MNL4XQCrmIRwFmT
+X-Google-Smtp-Source: AMrXdXtxpu9G3tp2YE/pheJJtCymUzG9B31gkBJf5HL/d8t67k0ELVkBUJHmyOHvhEXFZas/dg+6AQ==
+X-Received: by 2002:a5b:388:0:b0:732:d27:6721 with SMTP id k8-20020a5b0388000000b007320d276721mr57734691ybp.3.1673021736575;
+        Fri, 06 Jan 2023 08:15:36 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-68-50-193.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.50.193])
+        by smtp.gmail.com with ESMTPSA id t11-20020a05620a034b00b006fa31bf2f3dsm720621qkm.47.2023.01.06.08.15.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 06 Jan 2023 08:15:35 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1pDpNX-006PdO-7F;
+        Fri, 06 Jan 2023 12:15:35 -0400
+Date:   Fri, 6 Jan 2023 12:15:35 -0400
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
+Cc:     kamalheib1@gmail.com, shiraz.saleem@intel.com, leon@kernel.org,
+        sashal@kernel.org, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, Igor Raits <igor.raits@gooddata.com>
+Subject: Re: Network do not works with linux >= 6.1.2. Issue bisected to
+ "425c9bd06b7a70796d880828d15c11321bdfb76d" (RDMA/irdma: Report the correct
+ link speed)
+Message-ID: <Y7hJJ5hIxDolYIAV@ziepe.ca>
+References: <CAK8fFZ6A_Gphw_3-QMGKEFQk=sfCw1Qmq0TVZK3rtAi7vb621A@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230105223225.never.252-kees@kernel.org>
+In-Reply-To: <CAK8fFZ6A_Gphw_3-QMGKEFQk=sfCw1Qmq0TVZK3rtAi7vb621A@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Jan 05, 2023 at 02:32:32PM -0800, Kees Cook wrote:
-> Zero-length arrays are deprecated[1]. Replace all remaining
-> 0-length arrays with flexible arrays. Detected with GCC 13, using
-> -fstrict-flex-arrays=3:
-> 
-> In function 'build_rdma_write',
->     inlined from 'c4iw_post_send' at ../drivers/infiniband/hw/cxgb4/qp.c:1173:10:
-> ../drivers/infiniband/hw/cxgb4/qp.c:597:38: warning: array subscript 0 is outside array bounds of 'struct fw_ri_immd[0]' [-Warray-bounds=]
->   597 |                 wqe->write.u.immd_src[0].r2 = 0;
->       |                 ~~~~~~~~~~~~~~~~~~~~~^~~
-> ../drivers/infiniband/hw/cxgb4/t4fw_ri_api.h: In function 'c4iw_post_send':
-> ../drivers/infiniband/hw/cxgb4/t4fw_ri_api.h:567:35: note: while referencing 'immd_src'
->   567 |                 struct fw_ri_immd immd_src[0];
->       |                                   ^~~~~~~~
-> 
-> Additionally drop the unused C99_NOT_SUPPORTED ifndef lines.
-> 
-> [1] https://www.kernel.org/doc/html/latest/process/deprecated.html#zero-length-and-one-element-arrays
-> 
-> Cc: Potnuri Bharat Teja <bharat@chelsio.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: Leon Romanovsky <leon@kernel.org>
-> Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-> Cc: linux-rdma@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+On Fri, Jan 06, 2023 at 08:55:29AM +0100, Jaroslav Pulchart wrote:
+> [  257.967099] task:NetworkManager  state:D stack:0     pid:3387
+> ppid:1      flags:0x00004002
+> [  257.975446] Call Trace:
+> [  257.977901]  <TASK>
+> [  257.980004]  __schedule+0x1eb/0x630
+> [  257.983498]  schedule+0x5a/0xd0
+> [  257.986641]  schedule_timeout+0x11d/0x160
+> [  257.990654]  __wait_for_common+0x90/0x1e0
+> [  257.994666]  ? usleep_range_state+0x90/0x90
+> [  257.998854]  __flush_workqueue+0x13a/0x3f0
+> [  258.002955]  ? __kernfs_remove.part.0+0x11e/0x1e0
+> [  258.007661]  ib_cache_cleanup_one+0x1c/0xe0 [ib_core]
+> [  258.012721]  __ib_unregister_device+0x62/0xa0 [ib_core]
+> [  258.017959]  ib_unregister_device+0x22/0x30 [ib_core]
+> [  258.023024]  irdma_remove+0x1a/0x60 [irdma]
+> [  258.027223]  auxiliary_bus_remove+0x18/0x30
+> [  258.031414]  device_release_driver_internal+0x1aa/0x230
+> [  258.036643]  bus_remove_device+0xd8/0x150
+> [  258.040654]  device_del+0x18b/0x3f0
+> [  258.044149]  ice_unplug_aux_dev+0x42/0x60 [ice]
 
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+We talked about this already - wasn't it on this series?
 
-Thanks!
---
-Gustavo
+Don't hold locks when removing aux devices.
 
-> ---
->  drivers/infiniband/hw/cxgb4/t4fw_ri_api.h | 26 ++++++-----------------
->  1 file changed, 6 insertions(+), 20 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-> index a2f5e29ef226..1f79537fc8d1 100644
-> --- a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-> +++ b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-> @@ -122,9 +122,7 @@ struct fw_ri_dsgl {
->  	__be16	nsge;
->  	__be32	len0;
->  	__be64	addr0;
-> -#ifndef C99_NOT_SUPPORTED
->  	struct fw_ri_dsge_pair sge[];
-> -#endif
->  };
->  
->  struct fw_ri_sge {
-> @@ -138,9 +136,7 @@ struct fw_ri_isgl {
->  	__u8	r1;
->  	__be16	nsge;
->  	__be32	r2;
-> -#ifndef C99_NOT_SUPPORTED
->  	struct fw_ri_sge sge[];
-> -#endif
->  };
->  
->  struct fw_ri_immd {
-> @@ -148,9 +144,7 @@ struct fw_ri_immd {
->  	__u8	r1;
->  	__be16	r2;
->  	__be32	immdlen;
-> -#ifndef C99_NOT_SUPPORTED
->  	__u8	data[];
-> -#endif
->  };
->  
->  struct fw_ri_tpte {
-> @@ -320,9 +314,7 @@ struct fw_ri_res_wr {
->  	__be32 op_nres;
->  	__be32 len16_pkd;
->  	__u64  cookie;
-> -#ifndef C99_NOT_SUPPORTED
->  	struct fw_ri_res res[];
-> -#endif
->  };
->  
->  #define FW_RI_RES_WR_NRES_S	0
-> @@ -562,12 +554,10 @@ struct fw_ri_rdma_write_wr {
->  	__be32 plen;
->  	__be32 stag_sink;
->  	__be64 to_sink;
-> -#ifndef C99_NOT_SUPPORTED
->  	union {
-> -		struct fw_ri_immd immd_src[0];
-> -		struct fw_ri_isgl isgl_src[0];
-> +		DECLARE_FLEX_ARRAY(struct fw_ri_immd, immd_src);
-> +		DECLARE_FLEX_ARRAY(struct fw_ri_isgl, isgl_src);
->  	} u;
-> -#endif
->  };
->  
->  struct fw_ri_send_wr {
-> @@ -581,12 +571,10 @@ struct fw_ri_send_wr {
->  	__be32 plen;
->  	__be32 r3;
->  	__be64 r4;
-> -#ifndef C99_NOT_SUPPORTED
->  	union {
-> -		struct fw_ri_immd immd_src[0];
-> -		struct fw_ri_isgl isgl_src[0];
-> +		DECLARE_FLEX_ARRAY(struct fw_ri_immd, immd_src);
-> +		DECLARE_FLEX_ARRAY(struct fw_ri_isgl, isgl_src);
->  	} u;
-> -#endif
->  };
->  
->  #define FW_RI_SEND_WR_SENDOP_S		0
-> @@ -618,12 +606,10 @@ struct fw_ri_rdma_write_cmpl_wr {
->  		struct fw_ri_isgl isgl_src;
->  	} u_cmpl;
->  	__be64 r3;
-> -#ifndef C99_NOT_SUPPORTED
->  	union fw_ri_write {
-> -		struct fw_ri_immd immd_src[0];
-> -		struct fw_ri_isgl isgl_src[0];
-> +		DECLARE_FLEX_ARRAY(struct fw_ri_immd, immd_src);
-> +		DECLARE_FLEX_ARRAY(struct fw_ri_isgl, isgl_src);
->  	} u;
-> -#endif
->  };
->  
->  struct fw_ri_rdma_read_wr {
-> -- 
-> 2.34.1
-> 
+> [  258.048707]  ice_lag_changeupper_event+0x287/0x2a0 [ice]
+> [  258.054038]  ice_lag_event_handler+0x51/0x130 [ice]
+> [  258.058930]  raw_notifier_call_chain+0x41/0x60
+> [  258.063381]  __netdev_upper_dev_link+0x1a0/0x370
+> [  258.068008]  netdev_master_upper_dev_link+0x3d/0x60
+> [  258.072886]  bond_enslave+0xd16/0x16f0 [bonding]
+> [  258.077517]  ? nla_put+0x28/0x40
+> [  258.080756]  do_setlink+0x26c/0xc10
+> [  258.084249]  ? avc_alloc_node+0x27/0x180
+> [  258.088173]  ? __nla_validate_parse+0x141/0x190
+> [  258.092708]  __rtnl_newlink+0x53a/0x620
+> [  258.096549]  rtnl_newlink+0x44/0x70
+
+Especially not the rtnl.
+
+Jason
