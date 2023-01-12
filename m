@@ -2,572 +2,84 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFC0BC678D4
-	for <linux-rdma@archiver.kernel.org>; Thu, 12 Jan 2023 20:56:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4278C54EBE
+	for <linux-rdma@archiver.kernel.org>; Thu, 12 Jan 2023 22:23:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234575AbjALU4w (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:56:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55438 "EHLO
+        id S234573AbjALWXk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Jan 2023 17:23:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233006AbjALUxU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Jan 2023 15:53:20 -0500
-Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C23571CFCF
-        for <linux-rdma@vger.kernel.org>; Thu, 12 Jan 2023 12:29:52 -0800 (PST)
-Received: by mail-pl1-x636.google.com with SMTP id 17so21409312pll.0
-        for <linux-rdma@vger.kernel.org>; Thu, 12 Jan 2023 12:29:52 -0800 (PST)
+        with ESMTP id S240416AbjALWXA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Jan 2023 17:23:00 -0500
+Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF8931DF30
+        for <linux-rdma@vger.kernel.org>; Thu, 12 Jan 2023 14:18:05 -0800 (PST)
+Received: by mail-pj1-x1032.google.com with SMTP id v13-20020a17090a6b0d00b00219c3be9830so22500027pjj.4
+        for <linux-rdma@vger.kernel.org>; Thu, 12 Jan 2023 14:18:05 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google;
-        h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
-         :from:from:to:cc:subject:date:message-id:reply-to;
-        bh=JoCWfL84Y0iA2/WHIvSttBdarxcoyWBVlj5JK0ef7Sw=;
-        b=iNsiCKsGSHVw4ZxXK4lxudn8KR/85quAEkpxL5oZiaPRId6RCtYE21nEDBNn20fkKg
-         pi+UHxyXPxu7/uiclgJgmjF43PWNaM6fWKCEfUtbg+8zk8mqcoqQufnYXKaqLp/Te1nV
-         MZZg1k1lTgW4zitzhErtzXw5aQk2keOv+hPiY=
+        d=chromium.org; s=google;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=pQuiKZTcysP+X0OflIm+diuT8xEgILcbwkQoyyI8+0o=;
+        b=icewnOc84IIjF3zzON1xLWkC6RiMkayacySIOkPIsqmi6cQtvdd2hQxI3+R1O8RQDu
+         6xssG6vq9iZNtd/vhg2VOo1//h0T38JpbGQGwQn3IyhXa/NsPMuhgLBnr/6c55KwHGD+
+         kcXWnufqryq/ioVn+ogLnxmHf5hhSQx+6+rC8=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=mime-version:references:in-reply-to:message-id:date:subject:cc:to
-         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=JoCWfL84Y0iA2/WHIvSttBdarxcoyWBVlj5JK0ef7Sw=;
-        b=fb2N+ceXia7adimWZinqA8DwwQMQ376vTW2EcJZ0nexw6ZiBkULhnwBSfQXkt1/8EB
-         AUSqi/80Pr6n0htFvuM9C/g908IoUTKJDfQz+qEIJpJHIVrfmRuS/ommyJdRc55cFNpu
-         xGPzxtw/4PfYwJsNB61/HC+QFsgVubxqut5AwzNObhAwPmBtSLnZDjx8vJokF0GiIsV+
-         eM5ZmuCc91BmuzBrKqLfviF4TIICZv1H+yQXxn5/f6BPtidveKpDbScXMRqN19cWwyLR
-         QLpRVADpkkFJjzdNX2sqxfIhYnDBqZL8AvTc1WicbLE0+sO6rc1rIwH9yO+Qbas1yUhX
-         A/wA==
-X-Gm-Message-State: AFqh2ko70gj1d5MfB1iTyoIzxVjTfVXkkdscBriWa7iaQOJGz5CE38dJ
-        YPcwJIFCBOY8yk8euYElY+qojA==
-X-Google-Smtp-Source: AMrXdXvOT8j0Ei+egbgRfwOMtTwXYbfmuqBlY/gZutJnVm+UA4Rdq3pss1ajpK7pN7B3YiYjHCFSCw==
-X-Received: by 2002:a05:6a20:93a7:b0:b6:157d:bf48 with SMTP id x39-20020a056a2093a700b000b6157dbf48mr14422174pzh.43.1673555392090;
-        Thu, 12 Jan 2023 12:29:52 -0800 (PST)
-Received: from C02GC2QQMD6T.wifi.broadcom.net ([192.19.223.252])
-        by smtp.gmail.com with ESMTPSA id 129-20020a630887000000b004777c56747csm10283855pgi.11.2023.01.12.12.29.50
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=pQuiKZTcysP+X0OflIm+diuT8xEgILcbwkQoyyI8+0o=;
+        b=MvGTxYOzcvGmAoZ45akbA8RySFahJCjERR1C2JC2ODJbrfSOIMLuGjpYLxebTCrAq0
+         t9m82tRcWhwsYDsWFlYE9FJ2mc2P63BCVckOV4ChWsKclCJVi4WRIkpwHUu2hJaDchzI
+         laka34dFz1RJpw36SYeW/C05rhBzU8M2YOYC+23jOhZ11WtWbWrviCBqjhUW2iIB6jAw
+         SW9K0rI9DvOooBD+QRBOW4tAptaoFa/YqAFNmj9zB3QBogccZoT7onP8cW3/Aae/7w+7
+         eZR8izx8r1B+vkzQjWCh6o4zGrIcGAprkqEVwFt52MTmvnhOouzpUZIw5Re1aOUYEi1w
+         8AFQ==
+X-Gm-Message-State: AFqh2kqpIMbqkYCQylmXFEfb+E5Vas5rYqZl3YoANUP1UIIzkrPTcZwF
+        2oTmysfPEWkREY4se053xJPvJQ==
+X-Google-Smtp-Source: AMrXdXtXS1FFgjUUavPIWXAX+IH21ePUxx9ZCBLWfdePFzprzmAAeyLXPPq+TeOmmw8PlG9ERGp1IQ==
+X-Received: by 2002:a17:902:db08:b0:194:5d2d:3c31 with SMTP id m8-20020a170902db0800b001945d2d3c31mr5929835plx.11.1673561885371;
+        Thu, 12 Jan 2023 14:18:05 -0800 (PST)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id ij18-20020a170902ab5200b00176e6f553efsm12621992plb.84.2023.01.12.14.18.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Jan 2023 12:29:51 -0800 (PST)
-From:   Ajit Khaparde <ajit.khaparde@broadcom.com>
-To:     ajit.khaparde@broadcom.com
-Cc:     andrew.gospodarek@broadcom.com, davem@davemloft.net,
-        edumazet@google.com, jgg@ziepe.ca, kuba@kernel.org,
-        leon@kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, michael.chan@broadcom.com,
-        netdev@vger.kernel.org, pabeni@redhat.com,
-        selvin.xavier@broadcom.com, Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH net-next v7 4/8] bnxt_en: Use direct API instead of indirection
-Date:   Thu, 12 Jan 2023 12:29:35 -0800
-Message-Id: <20230112202939.19562-5-ajit.khaparde@broadcom.com>
-X-Mailer: git-send-email 2.37.1 (Apple Git-137.1)
-In-Reply-To: <20230112202939.19562-1-ajit.khaparde@broadcom.com>
-References: <20230112202939.19562-1-ajit.khaparde@broadcom.com>
+        Thu, 12 Jan 2023 14:18:04 -0800 (PST)
+Date:   Thu, 12 Jan 2023 14:18:04 -0800
+From:   Kees Cook <keescook@chromium.org>
+To:     "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc:     Cheng Xu <chengyou@linux.alibaba.com>,
+        Kai Shen <kaishen@linux.alibaba.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH][next] RDMA/erdma: Replace zero-length arrays with
+ flexible-array members
+Message-ID: <202301121418.4CCEA8115@keescook>
+References: <Y7zCBqwC1LtabRJ9@work>
 MIME-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000b2295905f216fa61"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y7zCBqwC1LtabRJ9@work>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000b2295905f216fa61
-Content-Transfer-Encoding: 8bit
+On Mon, Jan 09, 2023 at 07:40:22PM -0600, Gustavo A. R. Silva wrote:
+> Zero-length arrays are deprecated[1] and we are moving towards
+> adopting C99 flexible-array members instead. So, replace zero-length
+> arrays, in a couple of structures, with flex-array members.
+> 
+> This helps with the ongoing efforts to tighten the FORTIFY_SOURCE
+> routines on memcpy() and help us make progress towards globally
+> enabling -fstrict-flex-arrays=3 [2].
+> 
+> Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#zero-length-and-one-element-arrays [1]
+> Link: https://gcc.gnu.org/pipermail/gcc-patches/2022-October/602902.html [2]
+> Link: https://github.com/KSPP/linux/issues/78
+> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 
-For a single ULP user there is no need for complicating function
-indirection calls. Remove all this complexity in favour of direct
-function calls exported by the bnxt_en driver. This allows to
-simplify the code greatly. Also remove unused ulp_async_notifier.
+Reviewed-by: Kees Cook <keescook@chromium.org>
 
-Suggested-by: Leon Romanovsky <leonro@nvidia.com>
-Signed-off-by: Ajit Khaparde <ajit.khaparde@broadcom.com>
-Reviewed-by: Andy Gospodarek <andrew.gospodarek@broadcom.com>
-Reviewed-by: Selvin Xavier <selvin.xavier@broadcom.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/bnxt_re/main.c          | 71 ++++-------------
- drivers/net/ethernet/broadcom/bnxt/bnxt.c     |  1 -
- drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c | 76 +++++--------------
- drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h | 25 +++---
- 4 files changed, 45 insertions(+), 128 deletions(-)
-
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 814f1d2e31b5..e1777c8e6d5e 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -350,23 +350,6 @@ static struct bnxt_ulp_ops bnxt_re_ulp_ops = {
- 
- /* RoCE -> Net driver */
- 
--/* Driver registration routines used to let the networking driver (bnxt_en)
-- * to know that the RoCE driver is now installed
-- */
--static int bnxt_re_unregister_netdev(struct bnxt_re_dev *rdev)
--{
--	struct bnxt_en_dev *en_dev;
--	int rc;
--
--	if (!rdev)
--		return -EINVAL;
--
--	en_dev = rdev->en_dev;
--
--	rc = en_dev->en_ops->bnxt_unregister_device(rdev->en_dev);
--	return rc;
--}
--
- static int bnxt_re_register_netdev(struct bnxt_re_dev *rdev)
- {
- 	struct bnxt_en_dev *en_dev;
-@@ -374,26 +357,12 @@ static int bnxt_re_register_netdev(struct bnxt_re_dev *rdev)
- 
- 	en_dev = rdev->en_dev;
- 
--	rc = en_dev->en_ops->bnxt_register_device(en_dev,
--						  &bnxt_re_ulp_ops, rdev);
--	rdev->qplib_res.pdev = rdev->en_dev->pdev;
-+	rc = bnxt_register_dev(en_dev, &bnxt_re_ulp_ops, rdev);
-+	if (!rc)
-+		rdev->qplib_res.pdev = rdev->en_dev->pdev;
- 	return rc;
- }
- 
--static int bnxt_re_free_msix(struct bnxt_re_dev *rdev)
--{
--	struct bnxt_en_dev *en_dev;
--
--	if (!rdev)
--		return -EINVAL;
--
--	en_dev = rdev->en_dev;
--
--	en_dev->en_ops->bnxt_free_msix(rdev->en_dev);
--
--	return 0;
--}
--
- static int bnxt_re_request_msix(struct bnxt_re_dev *rdev)
- {
- 	int rc = 0, num_msix_want = BNXT_RE_MAX_MSIX, num_msix_got;
-@@ -403,9 +372,9 @@ static int bnxt_re_request_msix(struct bnxt_re_dev *rdev)
- 
- 	num_msix_want = min_t(u32, BNXT_RE_MAX_MSIX, num_online_cpus());
- 
--	num_msix_got = en_dev->en_ops->bnxt_request_msix(en_dev,
--							 rdev->msix_entries,
--							 num_msix_want);
-+	num_msix_got = bnxt_req_msix_vecs(en_dev,
-+					  rdev->msix_entries,
-+					  num_msix_want);
- 	if (num_msix_got < BNXT_RE_MIN_MSIX) {
- 		rc = -EINVAL;
- 		goto done;
-@@ -466,7 +435,7 @@ static int bnxt_re_net_ring_free(struct bnxt_re_dev *rdev,
- 	req.ring_id = cpu_to_le16(fw_ring_id);
- 	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
- 			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
--	rc = en_dev->en_ops->bnxt_send_fw_msg(en_dev, &fw_msg);
-+	rc = bnxt_send_msg(en_dev, &fw_msg);
- 	if (rc)
- 		ibdev_err(&rdev->ibdev, "Failed to free HW ring:%d :%#x",
- 			  req.ring_id, rc);
-@@ -503,7 +472,7 @@ static int bnxt_re_net_ring_alloc(struct bnxt_re_dev *rdev,
- 	req.int_mode = ring_attr->mode;
- 	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
- 			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
--	rc = en_dev->en_ops->bnxt_send_fw_msg(en_dev, &fw_msg);
-+	rc = bnxt_send_msg(en_dev, &fw_msg);
- 	if (!rc)
- 		*fw_ring_id = le16_to_cpu(resp.ring_id);
- 
-@@ -531,7 +500,7 @@ static int bnxt_re_net_stats_ctx_free(struct bnxt_re_dev *rdev,
- 	req.stat_ctx_id = cpu_to_le32(fw_stats_ctx_id);
- 	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
- 			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
--	rc = en_dev->en_ops->bnxt_send_fw_msg(en_dev, &fw_msg);
-+	rc = bnxt_send_msg(en_dev, &fw_msg);
- 	if (rc)
- 		ibdev_err(&rdev->ibdev, "Failed to free HW stats context %#x",
- 			  rc);
-@@ -564,7 +533,7 @@ static int bnxt_re_net_stats_ctx_alloc(struct bnxt_re_dev *rdev,
- 	req.stat_ctx_flags = STAT_CTX_ALLOC_REQ_STAT_CTX_FLAGS_ROCE;
- 	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
- 			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
--	rc = en_dev->en_ops->bnxt_send_fw_msg(en_dev, &fw_msg);
-+	rc = bnxt_send_msg(en_dev, &fw_msg);
- 	if (!rc)
- 		*fw_stats_ctx_id = le32_to_cpu(resp.stat_ctx_id);
- 
-@@ -1050,7 +1019,7 @@ static int bnxt_re_query_hwrm_pri2cos(struct bnxt_re_dev *rdev, u8 dir,
- 
- 	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
- 			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
--	rc = en_dev->en_ops->bnxt_send_fw_msg(en_dev, &fw_msg);
-+	rc = bnxt_send_msg(en_dev, &fw_msg);
- 	if (rc)
- 		return rc;
- 
-@@ -1233,7 +1202,7 @@ static void bnxt_re_query_hwrm_intf_version(struct bnxt_re_dev *rdev)
- 	req.hwrm_intf_upd = HWRM_VERSION_UPDATE;
- 	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
- 			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
--	rc = en_dev->en_ops->bnxt_send_fw_msg(en_dev, &fw_msg);
-+	rc = bnxt_send_msg(en_dev, &fw_msg);
- 	if (rc) {
- 		ibdev_err(&rdev->ibdev, "Failed to query HW version, rc = 0x%x",
- 			  rc);
-@@ -1296,20 +1265,12 @@ static void bnxt_re_dev_uninit(struct bnxt_re_dev *rdev)
- 		bnxt_re_net_ring_free(rdev, rdev->rcfw.creq.ring_id, type);
- 		bnxt_qplib_free_rcfw_channel(&rdev->rcfw);
- 	}
--	if (test_and_clear_bit(BNXT_RE_FLAG_GOT_MSIX, &rdev->flags)) {
--		rc = bnxt_re_free_msix(rdev);
--		if (rc)
--			ibdev_warn(&rdev->ibdev,
--				   "Failed to free MSI-X vectors: %#x", rc);
--	}
-+	if (test_and_clear_bit(BNXT_RE_FLAG_GOT_MSIX, &rdev->flags))
-+		bnxt_free_msix_vecs(rdev->en_dev);
- 
- 	bnxt_re_destroy_chip_ctx(rdev);
--	if (test_and_clear_bit(BNXT_RE_FLAG_NETDEV_REGISTERED, &rdev->flags)) {
--		rc = bnxt_re_unregister_netdev(rdev);
--		if (rc)
--			ibdev_warn(&rdev->ibdev,
--				   "Failed to unregister with netdev: %#x", rc);
--	}
-+	if (test_and_clear_bit(BNXT_RE_FLAG_NETDEV_REGISTERED, &rdev->flags))
-+		bnxt_unregister_dev(rdev->en_dev);
- }
- 
- /* worker thread for polling periodic events. Now used for QoS programming*/
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index fc0054c284c5..f24e08bbeaf4 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -2414,7 +2414,6 @@ static int bnxt_async_event_process(struct bnxt *bp,
- 	}
- 	bnxt_queue_sp_work(bp);
- async_event_process_exit:
--	bnxt_ulp_async_events(bp, cmpl);
- 	return 0;
- }
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-index 988b09a9e99e..e7539946759d 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-@@ -28,9 +28,9 @@
- 
- static DEFINE_IDA(bnxt_aux_dev_ids);
- 
--static int bnxt_register_dev(struct bnxt_en_dev *edev,
--			     struct bnxt_ulp_ops *ulp_ops,
--			     void *handle)
-+int bnxt_register_dev(struct bnxt_en_dev *edev,
-+		      struct bnxt_ulp_ops *ulp_ops,
-+		      void *handle)
- {
- 	struct net_device *dev = edev->net;
- 	struct bnxt *bp = netdev_priv(dev);
-@@ -55,8 +55,9 @@ static int bnxt_register_dev(struct bnxt_en_dev *edev,
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(bnxt_register_dev);
- 
--static int bnxt_unregister_dev(struct bnxt_en_dev *edev)
-+void bnxt_unregister_dev(struct bnxt_en_dev *edev)
- {
- 	struct net_device *dev = edev->net;
- 	struct bnxt *bp = netdev_priv(dev);
-@@ -65,7 +66,7 @@ static int bnxt_unregister_dev(struct bnxt_en_dev *edev)
- 
- 	ulp = edev->ulp_tbl;
- 	if (ulp->msix_requested)
--		edev->en_ops->bnxt_free_msix(edev);
-+		bnxt_free_msix_vecs(edev);
- 
- 	if (ulp->max_async_event_id)
- 		bnxt_hwrm_func_drv_rgtr(bp, NULL, 0, true);
-@@ -80,8 +81,9 @@ static int bnxt_unregister_dev(struct bnxt_en_dev *edev)
- 	}
- 	kfree(ulp);
- 	edev->ulp_tbl = NULL;
--	return 0;
-+	return;
- }
-+EXPORT_SYMBOL(bnxt_unregister_dev);
- 
- static void bnxt_fill_msix_vecs(struct bnxt *bp, struct bnxt_msix_entry *ent)
- {
-@@ -103,7 +105,7 @@ static void bnxt_fill_msix_vecs(struct bnxt *bp, struct bnxt_msix_entry *ent)
- 	}
- }
- 
--static int bnxt_req_msix_vecs(struct bnxt_en_dev *edev,
-+int bnxt_req_msix_vecs(struct bnxt_en_dev *edev,
- 			      struct bnxt_msix_entry *ent,
- 			      int num_msix)
- {
-@@ -166,8 +168,9 @@ static int bnxt_req_msix_vecs(struct bnxt_en_dev *edev,
- 	edev->flags |= BNXT_EN_FLAG_MSIX_REQUESTED;
- 	return avail_msix;
- }
-+EXPORT_SYMBOL(bnxt_req_msix_vecs);
- 
--static void bnxt_free_msix_vecs(struct bnxt_en_dev *edev)
-+void bnxt_free_msix_vecs(struct bnxt_en_dev *edev)
- {
- 	struct net_device *dev = edev->net;
- 	struct bnxt *bp = netdev_priv(dev);
-@@ -186,6 +189,7 @@ static void bnxt_free_msix_vecs(struct bnxt_en_dev *edev)
- 
- 	return;
- }
-+EXPORT_SYMBOL(bnxt_free_msix_vecs);
- 
- int bnxt_get_ulp_msix_num(struct bnxt *bp)
- {
-@@ -220,7 +224,7 @@ int bnxt_get_ulp_stat_ctxs(struct bnxt *bp)
- 	return 0;
- }
- 
--static int bnxt_send_msg(struct bnxt_en_dev *edev,
-+int bnxt_send_msg(struct bnxt_en_dev *edev,
- 			 struct bnxt_fw_msg *fw_msg)
- {
- 	struct net_device *dev = edev->net;
-@@ -254,6 +258,7 @@ static int bnxt_send_msg(struct bnxt_en_dev *edev,
- 	hwrm_req_drop(bp, req);
- 	return rc;
- }
-+EXPORT_SYMBOL(bnxt_send_msg);
- 
- static void bnxt_ulp_get(struct bnxt_ulp *ulp)
- {
-@@ -313,14 +318,11 @@ void bnxt_ulp_sriov_cfg(struct bnxt *bp, int num_vfs)
- 		return;
- 	ulp = edev->ulp_tbl;
- 
--	rcu_read_lock();
- 	ops = rcu_dereference(ulp->ulp_ops);
--	if (!ops || !ops->ulp_sriov_config) {
--		rcu_read_unlock();
-+	if (!ops || !ops->ulp_sriov_config)
- 		return;
--	}
-+
- 	bnxt_ulp_get(ulp);
--	rcu_read_unlock();
- 	ops->ulp_sriov_config(ulp->handle, num_vfs);
- 	bnxt_ulp_put(ulp);
- }
-@@ -377,37 +379,9 @@ void bnxt_ulp_irq_restart(struct bnxt *bp, int err)
- 	}
- }
- 
--void bnxt_ulp_async_events(struct bnxt *bp, struct hwrm_async_event_cmpl *cmpl)
--{
--	u16 event_id = le16_to_cpu(cmpl->event_id);
--	struct bnxt_en_dev *edev = bp->edev;
--	struct bnxt_ulp_ops *ops;
--	struct bnxt_ulp *ulp;
--
--	if (!bnxt_ulp_registered(edev))
--		return;
--
--	ulp = edev->ulp_tbl;
--
--	rcu_read_lock();
--
--	ops = rcu_dereference(ulp->ulp_ops);
--	if (!ops || !ops->ulp_async_notifier)
--		goto exit;
--	if (!ulp->async_events_bmap || event_id > ulp->max_async_event_id)
--		goto exit;
--
--	/* Read max_async_event_id first before testing the bitmap. */
--	smp_rmb();
--	if (test_bit(event_id, ulp->async_events_bmap))
--		ops->ulp_async_notifier(ulp->handle, cmpl);
--exit:
--	rcu_read_unlock();
--}
--
--static int bnxt_register_async_events(struct bnxt_en_dev *edev,
--				      unsigned long *events_bmap,
--				      u16 max_id)
-+int bnxt_register_async_events(struct bnxt_en_dev *edev,
-+			       unsigned long *events_bmap,
-+			       u16 max_id)
- {
- 	struct net_device *dev = edev->net;
- 	struct bnxt *bp = netdev_priv(dev);
-@@ -421,15 +395,7 @@ static int bnxt_register_async_events(struct bnxt_en_dev *edev,
- 	bnxt_hwrm_func_drv_rgtr(bp, events_bmap, max_id + 1, true);
- 	return 0;
- }
--
--static const struct bnxt_en_ops bnxt_en_ops_tbl = {
--	.bnxt_register_device	= bnxt_register_dev,
--	.bnxt_unregister_device	= bnxt_unregister_dev,
--	.bnxt_request_msix	= bnxt_req_msix_vecs,
--	.bnxt_free_msix		= bnxt_free_msix_vecs,
--	.bnxt_send_fw_msg	= bnxt_send_msg,
--	.bnxt_register_fw_async_events	= bnxt_register_async_events,
--};
-+EXPORT_SYMBOL(bnxt_register_async_events);
- 
- void bnxt_aux_dev_free(struct bnxt *bp)
- {
-@@ -465,7 +431,6 @@ static void bnxt_aux_dev_release(struct device *dev)
- 		container_of(dev, struct bnxt_aux_dev, aux_dev.dev);
- 	struct bnxt *bp = netdev_priv(bnxt_adev->edev->net);
- 
--	bnxt_adev->edev->en_ops = NULL;
- 	kfree(bnxt_adev->edev);
- 	bnxt_adev->edev = NULL;
- 	bp->edev = NULL;
-@@ -473,7 +438,6 @@ static void bnxt_aux_dev_release(struct device *dev)
- 
- static void bnxt_set_edev_info(struct bnxt_en_dev *edev, struct bnxt *bp)
- {
--	edev->en_ops = &bnxt_en_ops_tbl;
- 	edev->net = bp->dev;
- 	edev->pdev = bp->pdev;
- 	edev->l2_db_size = bp->db_size;
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
-index 5433f3e17746..3bda864db1be 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
-@@ -26,8 +26,6 @@ struct bnxt_msix_entry {
- };
- 
- struct bnxt_ulp_ops {
--	/* async_notifier() cannot sleep (in BH context) */
--	void (*ulp_async_notifier)(void *, struct hwrm_async_event_cmpl *);
- 	void (*ulp_stop)(void *);
- 	void (*ulp_start)(void *);
- 	void (*ulp_sriov_config)(void *, int);
-@@ -63,7 +61,6 @@ struct bnxt_en_dev {
- 						 BNXT_EN_FLAG_ROCEV2_CAP)
- 	#define BNXT_EN_FLAG_MSIX_REQUESTED	0x4
- 	#define BNXT_EN_FLAG_ULP_STOPPED	0x8
--	const struct bnxt_en_ops	*en_ops;
- 	struct bnxt_ulp			*ulp_tbl;
- 	int				l2_db_size;	/* Doorbell BAR size in
- 							 * bytes mapped by L2
-@@ -75,19 +72,6 @@ struct bnxt_en_dev {
- 							 */
- };
- 
--struct bnxt_en_ops {
--	int (*bnxt_register_device)(struct bnxt_en_dev *edev,
--				    struct bnxt_ulp_ops *ulp_ops, void *handle);
--	int (*bnxt_unregister_device)(struct bnxt_en_dev *edev);
--	int (*bnxt_request_msix)(struct bnxt_en_dev *edev,
--				 struct bnxt_msix_entry *ent, int num_msix);
--	void (*bnxt_free_msix)(struct bnxt_en_dev *edev);
--	int (*bnxt_send_fw_msg)(struct bnxt_en_dev *edev,
--				struct bnxt_fw_msg *fw_msg);
--	int (*bnxt_register_fw_async_events)(struct bnxt_en_dev *edev,
--					     unsigned long *events_bmap, u16 max_id);
--};
--
- static inline bool bnxt_ulp_registered(struct bnxt_en_dev *edev)
- {
- 	if (edev && edev->ulp_tbl)
-@@ -107,4 +91,13 @@ void bnxt_ulp_async_events(struct bnxt *bp, struct hwrm_async_event_cmpl *cmpl);
- void bnxt_rdma_aux_device_uninit(struct bnxt *bp);
- void bnxt_rdma_aux_device_init(struct bnxt *bp);
- void bnxt_aux_dev_free(struct bnxt *bp);
-+int bnxt_register_dev(struct bnxt_en_dev *edev, struct bnxt_ulp_ops *ulp_ops,
-+		      void *handle);
-+void bnxt_unregister_dev(struct bnxt_en_dev *edev);
-+int bnxt_req_msix_vecs(struct bnxt_en_dev *edev, struct bnxt_msix_entry *ent,
-+		       int num_msix);
-+void bnxt_free_msix_vecs(struct bnxt_en_dev *edev);
-+int bnxt_send_msg(struct bnxt_en_dev *edev, struct bnxt_fw_msg *fw_msg);
-+int bnxt_register_async_events(struct bnxt_en_dev *edev,
-+			       unsigned long *events_bmap, u16 max_id);
- #endif
 -- 
-2.37.1 (Apple Git-137.1)
-
-
---000000000000b2295905f216fa61
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-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
-pZEyqKnwS1lKCzjX7mV5W955rFsFxChdAKfw0HilwtqdY24mhy62+GeaEkD0gYIj1tCmw9gnQToc
-K+0s7xEunfR9pBrzmOwS3OQbcP0nJ8SmQ8R+reroH6LYuFpaqK1rgQIDAQABo4IB2zCCAdcwDgYD
-VR0PAQH/BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDovL3NlY3Vy
-ZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAuY3J0MEEG
-CCsGAQUFBzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29uYWxzaWdu
-MmNhMjAyMDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0cHM6Ly93
-d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBAMD6gPKA6
-hjhodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2EyMDIwLmNy
-bDAlBgNVHREEHjAcgRphaml0LmtoYXBhcmRlQGJyb2FkY29tLmNvbTATBgNVHSUEDDAKBggrBgEF
-BQcDBDAfBgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQUbrcTuh0mr2qP
-xYdtyDgFeRIiE/gwDQYJKoZIhvcNAQELBQADggEBALrc1TljKrDhXicOaZlzIQyqOEkKAZ324i8X
-OwzA0n2EcPGmMZvgARurvanSLD3mLeeuyq1feCcjfGM1CJFh4+EY7EkbFbpVPOIdstSBhbnAJnOl
-aC/q0wTndKoC/xXBhXOZB8YL/Zq4ZclQLMUO6xi/fFRyHviI5/IrosdrpniXFJ9ukJoOXtvdrEF+
-KlMYg/Deg9xo3wddCqQIsztHSkR4XaANdn+dbLRQpctZ13BY1lim4uz5bYn3M0IxyZWkQ1JuPHCK
-aRJv0SfR88PoI4RB7NCEHqFwARTj1KvFPQi8pK/YISFydZYbZrxQdyWDidqm4wSuJfpE6i0cWvCd
-u50xggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNh
-MTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIwAgwM2Vrj
-4nZK0WWosNswDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIE/vkaEQioYGYzV2vnuE
-fxcJUv0kppAZz6priWPum9EZMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkF
-MQ8XDTIzMDExMjIwMjk1MlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJYIZIAWUD
-BAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcNAQEHMAsG
-CWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCnDRxFhUR+WtFkb+y22qMLqs2t20gYcTHTxRfu
-T2rLkBa2mfvtM9s+zJ9+8KjLsGtWhCt5xuz9l2dk4CU8zbw+j0tymrjKpfFMuuAkNjNThNc7XAM3
-O4iPbsgKniD4RGLnffiTNF5Jsny1xCoQpZ3ir7d2hHLMh9W5ShD/yQLIhRi9Z2OWk6Fhscv9/VVA
-bSgknbDj1GTs+pwjv5jx0JgRVlku2T2JS8Z48bo0WtL67hKmW08/OQK6PQ7yhBdOxQxjBrSPdcNi
-NukUutg74vfOKMPreghVDT2CC3TXcFuf2m42lLHwD1YrkixE1GqzhrpQxm4ePftnH7wgL9d9Ahw0
---000000000000b2295905f216fa61--
+Kees Cook
