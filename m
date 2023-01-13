@@ -2,76 +2,62 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5232C54EBD
-	for <linux-rdma@archiver.kernel.org>; Fri, 13 Jan 2023 05:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26899C678DA
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Jan 2023 07:22:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231716AbjAMFRM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 13 Jan 2023 00:17:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59004 "EHLO
+        id S240793AbjAMHWx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 13 Jan 2023 02:22:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231634AbjAMFRK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 13 Jan 2023 00:17:10 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8F6CC7;
-        Thu, 12 Jan 2023 21:17:09 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        with ESMTP id S239960AbjAMHWV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 13 Jan 2023 02:22:21 -0500
+Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [63.216.63.40])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A8545BA2B;
+        Thu, 12 Jan 2023 23:13:31 -0800 (PST)
+Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6BAA0621E8;
-        Fri, 13 Jan 2023 05:17:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D131C433D2;
-        Fri, 13 Jan 2023 05:17:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673587028;
-        bh=XPE03f0st6e7dXiYlxulIsVQOCCHLqaGs+W0IsPREqw=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=ciGEzOxez/OCF4e08FgXfsSlitf1zK9otw5V4emI1RG8tRqTWcLyp4QiSgsmypjCu
-         3L/MYaimYDNYU1IzSfpiiPebb75nOLzOmjXdHYAPcMFlC7s8Vspz7cfvN1/XAmIpzN
-         jTwL/EvTiU2MDvZRvhPe2hEEAUV1k5cmAoDKa8TnuY04n71mNxMsS9bmdOT5Xl9gLp
-         LaVKtQdrCgAJiv4zyfRtjZjjRe5mP6pmL91MSzVbDJOVcgtg+qu2Zfu1XQKbUwPnlR
-         asPazFo+t/wmU1cYwRk2tNxq/O9KcY39jjpNPctHZzX2YsF/yqKzHPCpFmb283ukwO
-         UmrQji5jqZKfw==
-Date:   Thu, 12 Jan 2023 21:17:07 -0800
-From:   Jakub Kicinski <kuba@kernel.org>
-To:     <yang.yang29@zte.com.cn>
+        by mxhk.zte.com.cn (FangMail) with ESMTPS id 4NtXh75fQdz8RTZF;
+        Fri, 13 Jan 2023 15:13:27 +0800 (CST)
+Received: from szxlzmapp05.zte.com.cn ([10.5.230.85])
+        by mse-fl1.zte.com.cn with SMTP id 30D7DA6U049679;
+        Fri, 13 Jan 2023 15:13:10 +0800 (+08)
+        (envelope-from yang.yang29@zte.com.cn)
+Received: from mapi (szxlzmapp01[null])
+        by mapi (Zmail) with MAPI id mid14;
+        Fri, 13 Jan 2023 15:13:12 +0800 (CST)
+Date:   Fri, 13 Jan 2023 15:13:12 +0800 (CST)
+X-Zmail-TransId: 2b0363c10488ffffffff9d335c5f
+X-Mailer: Zmail v1.0
+Message-ID: <202301131513124870047@zte.com.cn>
+In-Reply-To: <20230112211707.2abb31ad@kernel.org>
+References: 202301111425483027624@zte.com.cn,20230112211707.2abb31ad@kernel.org
+Mime-Version: 1.0
+From:   <yang.yang29@zte.com.cn>
+To:     <kuba@kernel.org>
 Cc:     <santosh.shilimkar@oracle.com>, <davem@davemloft.net>,
         <edumazet@google.com>, <pabeni@redhat.com>,
         <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
         <rds-devel@oss.oracle.com>, <linux-kernel@vger.kernel.org>,
         <xu.panda@zte.com.cn>
-Subject: Re: [PATCH net-next v2] net/rds: use strscpy() to instead of
- strncpy()
-Message-ID: <20230112211707.2abb31ad@kernel.org>
-In-Reply-To: <202301111425483027624@zte.com.cn>
-References: <202301111425483027624@zte.com.cn>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: =?UTF-8?B?UmU6IFtQQVRDSCBuZXQtbmV4dCB2Ml0gbmV0L3JkczogdXNlIHN0cnNjcHkoKSB0byBpbnN0ZWFkIG9mIHN0cm5jcHkoKQ==?=
+Content-Type: text/plain;
+        charset="UTF-8"
+X-MAIL: mse-fl1.zte.com.cn 30D7DA6U049679
+X-Fangmail-Gw-Spam-Type: 0
+X-FangMail-Miltered: at cgslv5.04-192.168.250.137.novalocal with ID 63C10497.000 by FangMail milter!
+X-FangMail-Envelope: 1673594007/4NtXh75fQdz8RTZF/63C10497.000/10.5.228.132/[10.5.228.132]/mse-fl1.zte.com.cn/<yang.yang29@zte.com.cn>
+X-Fangmail-Anti-Spam-Filtered: true
+X-Fangmail-MID-QID: 63C10497.000/4NtXh75fQdz8RTZF
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, 11 Jan 2023 14:25:48 +0800 (CST) yang.yang29@zte.com.cn wrote:
-> From: Xu Panda <xu.panda@zte.com.cn>
-> 
-> The implementation of strscpy() is more robust and safer.
-> That's now the recommended way to copy NUL-terminated strings.
+> What are the differences in behavior between strncpy() and strscpy()?
 
-What are the differences in behavior between strncpy() and strscpy()?
+Strscpy() makes the dest string NUL-terminated, and returns more
+useful value. While strncpy() can initialize the dest string.
 
-> diff --git a/net/rds/stats.c b/net/rds/stats.c
-> index 9e87da43c004..7018c67418f5 100644
-> --- a/net/rds/stats.c
-> +++ b/net/rds/stats.c
-> @@ -88,9 +88,7 @@ void rds_stats_info_copy(struct rds_info_iterator *iter,
->  	size_t i;
-> 
->  	for (i = 0; i < nr; i++) {
-> -		BUG_ON(strlen(names[i]) >= sizeof(ctr.name));
-> -		strncpy(ctr.name, names[i], sizeof(ctr.name) - 1);
-> -		ctr.name[sizeof(ctr.name) - 1] = '\0';
-> +		BUG_ON(strscpy(ctr.name, names[i], sizeof(ctr.name)) < 0);
->  		ctr.value = values[i];
-> 
->  		rds_info_copy(iter, &ctr, sizeof(ctr));
-
+Here we use strscpy() to make dest string NUL-terminated, and use
+return value to check src string size and dest string size. This make
+the code simpler.
