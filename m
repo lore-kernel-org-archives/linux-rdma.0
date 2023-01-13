@@ -2,235 +2,145 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C57B1C54EBE
-	for <linux-rdma@archiver.kernel.org>; Fri, 13 Jan 2023 08:47:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FCFCC3DA78
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Jan 2023 17:33:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240334AbjAMIrs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 13 Jan 2023 03:47:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54012 "EHLO
+        id S230088AbjAMRdX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 13 Jan 2023 12:33:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240048AbjAMIra (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 13 Jan 2023 03:47:30 -0500
-Received: from mail-pl1-x62b.google.com (mail-pl1-x62b.google.com [IPv6:2607:f8b0:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB62FBE15;
-        Fri, 13 Jan 2023 00:47:28 -0800 (PST)
-Received: by mail-pl1-x62b.google.com with SMTP id w3so22807922ply.3;
-        Fri, 13 Jan 2023 00:47:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-language:content-transfer-encoding:in-reply-to:mime-version
-         :user-agent:date:message-id:from:references:cc:to:subject:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=lqfRlgunNZQ9zixZj5B6GFm8+Cty6xSAj9iP8ODfDXo=;
-        b=KBFkcRGy65xjVRdg6XdkMgea7v/++MNW3YwtWjMhPoD64Ms+eZihiw84Gtf8XpDaV+
-         YbVB/pjBw7d5JmMpsVlsCALOhI7E8SILWex+kSZvHCR1d1iRAYVK1CJjb3MjDnjgz93S
-         QV511fOz+Yw50KASJ6TJ2chuznj4pqcb9DkgNCWpaFEf4qeVMwQ3kpkaVjd4rclc9pB4
-         EwIqWaiUJOgLDInUsntgEEl8g60t3fItH9GMVXJmJTUzOqweHtz6/0x4Xw3dCAbrLCmn
-         xyy99pqER+QwK6dSrRUPRrjFzHa2JSvnlUjils+rxlrV2UwKAbHlc6426VyI5T6ODDQc
-         z98g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-language:content-transfer-encoding:in-reply-to:mime-version
-         :user-agent:date:message-id:from:references:cc:to:subject
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=lqfRlgunNZQ9zixZj5B6GFm8+Cty6xSAj9iP8ODfDXo=;
-        b=Qz01TH2sNwCr+odnBxXB4HjNKNocYgByXpjD1CCLBPx1mfbcgLXO15+t1o4VokKFwq
-         TcoUq5hOFd1qg7IxukBoAbvF90wHoWg2b2Kl/ezSjUNGFh6KUfoYDt+PtoH74kjywsGX
-         yimYt9+/ysGhku/wlSE9mSRK4QuXzZ4uoEIoKwlDNk8c6D+NKTPe1HKSthmGmIaAlSMj
-         4Sc+rLHP9ZByIn4k85msRLYC5whCS/219ws0nXrMycOnz3VO6/+kzh/yY7E3dV2jWERL
-         HAMStd17VZ2fPB3jyKjNVRvqvjRCzhRBP8wQ0v6n7EAGApfsP3iejWcBBrzfyr5JXOez
-         OZ3g==
-X-Gm-Message-State: AFqh2ko7Bpf4vEgMerpXWZFMAkUwjzsIDpaMIoCd/NsRfPW3RVy+upuj
-        bA6+bM5bErijEOn8JGLlZ9A=
-X-Google-Smtp-Source: AMrXdXssYB0jvFNyeo4qxRlhenYO+J1Jr4ZKxWTMIt1Mxp2az77OmZ+KAy+fQF4TfTWzUeujaJdCaQ==
-X-Received: by 2002:a17:903:292:b0:188:bd82:2b7c with SMTP id j18-20020a170903029200b00188bd822b7cmr56814077plr.5.1673599648318;
-        Fri, 13 Jan 2023 00:47:28 -0800 (PST)
-Received: from [192.168.1.101] ([166.111.139.111])
-        by smtp.gmail.com with ESMTPSA id m10-20020a170902bb8a00b0019324fbec59sm1877877pls.41.2023.01.13.00.47.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 13 Jan 2023 00:47:27 -0800 (PST)
-Subject: Re: [PATCH] infiniband: sw: rxe: Add NULL checks for qp->resp.mr
-To:     Zhu Yanjun <yanjun.zhu@linux.dev>, zyjzyj2000@gmail.com,
-        jgg@ziepe.ca, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        TOTE Robot <oslab@tsinghua.edu.cn>
-References: <20230113023527.728725-1-baijiaju1990@gmail.com>
- <ec0e983b-15fb-e43f-90e2-d4f79d27298a@linux.dev>
-From:   Jia-Ju Bai <baijiaju1990@gmail.com>
-Message-ID: <c7748a2b-2c27-d171-810c-f3eb56120944@gmail.com>
-Date:   Fri, 13 Jan 2023 16:47:07 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.0
-MIME-Version: 1.0
-In-Reply-To: <ec0e983b-15fb-e43f-90e2-d4f79d27298a@linux.dev>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S229960AbjAMRcz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 13 Jan 2023 12:32:55 -0500
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (mail-dm3nam02on2092.outbound.protection.outlook.com [40.107.95.92])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C91058B52B
+        for <linux-rdma@vger.kernel.org>; Fri, 13 Jan 2023 09:21:57 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Z953gjMrhhJZVzwbLX55YVxHdcvtB5ObVsbdbfCsQbdPZl/4RbxxvZfN+9YgI/RbkGiReJa0sfQ7aypbdnOsW7yrE8Cir2wmh73p5JqjDZ1gVdlcWvsEugI66wGaJjQ+mNY4RzaPfjKr+i+pnOaf05xaoA7TLzll8UXpL8mLOsjMs65R3KX2PoX52C4VjaT1pCXkDzD9enro6mGnkqB8yNoT8x6jyvO4LkRWRRYgH5SgfvitrbHFlxgAPgxa6k7Acdu651n98meZ6UoCE3/a7BJPjYD7z3ACcnHrNUDX2bRe7dBVxdzxUJN4+sV2NsVETMkGs1mv7XZCE5b3HmvChg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=fPCgZBaLL17sPABMgbdohT8kekaRBDZbN2Bvhw1V8iM=;
+ b=LTD4j4rUO2eK5lWWazw9ISPWndWS8yHbkO4rpxQ9i2etbrDipye4i8EOHEy4olyOnSaTlMRej/NYT4MAUKcDnzbWsx1BiTmCJIrFNONelf/Vv2ypRPGwpBCcIiECNwLYi213nY67mpCR3d0tpZwPjicEeDmvtQqZQelDJ93NKU7+qHQD7MNgv7n3AKq6TR3cNKvUZe4moRdLmrjup/oVGc1engk8tGUa+/rkN1WM6teivXlLbqni3EMMtHnmYFVHizmZ8LCu4QyEBiwjTME6Wyk05mXVykqSA7/v5/a3eTjWMugmITVotNqiqOBmmFO2pNv3q3IYKy0pzQFPPqRk7g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=cornelisnetworks.com; dmarc=pass action=none
+ header.from=cornelisnetworks.com; dkim=pass header.d=cornelisnetworks.com;
+ arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fPCgZBaLL17sPABMgbdohT8kekaRBDZbN2Bvhw1V8iM=;
+ b=hIQ6pEqcFVSCDn3Jt1iEX+xYjO5VVV6uD4iO9hiDuGIn45gG0nQVuraGSNwoOs1GZxPpXyvo1DFeAWFsNImPdLngUAY9IhKKnTFbsxNZ9Fgq1OSF2cPFB9C19nVk06WorqK6FZTt6u2XoBVGRWbySWS0uu7R0WtK5LatqT6/Am1nBgBskjjHaY1vlmsh7Hpo1ap7zoY2XWriBMExOeHJ07EPihcPIYb9Flz0BV1/ziVtc/tP9k58RynsSdPJzBoo532viEabV7HlMyXtKru6XgHOSPUa07Jpz97LWcfsW6u5jV3VtCOcyhO8sPQFxbBXARNrvlXIuASdZ5qHg10fGg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=cornelisnetworks.com;
+Received: from BN6PR01MB2610.prod.exchangelabs.com (2603:10b6:404:d0::7) by
+ SJ2PR01MB8193.prod.exchangelabs.com (2603:10b6:a03:4f6::15) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5986.18; Fri, 13 Jan 2023 17:21:53 +0000
+Received: from BN6PR01MB2610.prod.exchangelabs.com
+ ([fe80::5844:6112:4eb1:a8f8]) by BN6PR01MB2610.prod.exchangelabs.com
+ ([fe80::5844:6112:4eb1:a8f8%9]) with mapi id 15.20.6002.013; Fri, 13 Jan 2023
+ 17:21:53 +0000
+Message-ID: <bce1ab36-66e4-465c-e051-94e397d108ba@cornelisnetworks.com>
+Date:   Fri, 13 Jan 2023 12:21:50 -0500
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.6.0
+Subject: Re: [PATCH for-next 0/7] FIXME and other fixes
 Content-Language: en-US
+From:   Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     leonro@nvidia.com, Dean Luick <dean.luick@cornelisnetworks.com>,
+        linux-rdma@vger.kernel.org
+References: <167328561962.1472990.9463955313515395755.stgit@awfm-02.cornelisnetworks.com>
+ <Y718/h2uSTYq5PTa@nvidia.com>
+ <3cf880fa-3374-541f-1996-d30d635db594@cornelisnetworks.com>
+In-Reply-To: <3cf880fa-3374-541f-1996-d30d635db594@cornelisnetworks.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BL0PR0102CA0016.prod.exchangelabs.com
+ (2603:10b6:207:18::29) To BN6PR01MB2610.prod.exchangelabs.com
+ (2603:10b6:404:d0::7)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN6PR01MB2610:EE_|SJ2PR01MB8193:EE_
+X-MS-Office365-Filtering-Correlation-Id: 549aa0e5-f8f0-4685-a5de-08daf58aaa1a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: xhrEWEqWhjmyDgaTNTh7g9VhD9Ea9i59O+0lUVkcxneXkmC9Xxj2125BAYGVq7RlXiY68FRDKvzfMozdKMeqZIzYR3B087G+RP4Un4Mqjlxr0yFpMcGn6OT/zvED85t/OqETGQYqU7PYWGwXOEcPqIN7259JqYiNLkSIPHLSo+bACP/TkK5QdLnDpf7oK6Q75ZUFBVYn9qzgNFJnnM9dtDwDAlIoJufQHM0V3WEzWff4A0ynKZdHV+bsJ1WBZUZ8l6CFaNNGKkN562IYreVtkB4IImaSYKTfgk45HurfS4027XIAuJ4DeZT8wmeGm0j4mBFQ7keDkvgku6DSe3pLI3SsxLjcFxZGSX/wmdmWfVUkRG5w7um7t32Tk53zl2XBjjH7Vb8ibLq1cIXuuQfM4Xqz24IZ3kudPPyaS1RH8vD4/0QtjJmuf7avPi6Sih4UiGwLmFK0QGTecl+ygJcyB9eOQjRi9gJYmt7KnKIcvMfD8pNGQexpl0BbxdMM7slo8keUz6Vjv4dFmXbOn4KHT4s8br8W8fjKtqIOha4Q3wmp0hIJqhQRxNTtvJLRIzsEzAJwNBIlMFuhoEvs/J88Zesf1mIK/MBv+3+IYVsHnBbykYq0ffOwR0+v409nMxQ8I84yPo4G+zKd5G3XYdFr2r9BWaTnKmEjGxsP5LAOH4KXo7d0ah08ROgxHeZd/JM6mnQyUeRmeexudiJyViToxpdvgsGFrqaWHAgepIyjyFVjYxIW2/+T3WamTBG3kXxU/ivxP0Wv4QGhdaVti7aV0Q==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN6PR01MB2610.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(376002)(136003)(366004)(346002)(39840400004)(396003)(451199015)(53546011)(6506007)(38100700002)(38350700002)(2906002)(31686004)(36756003)(186003)(6486002)(26005)(966005)(5660300002)(2616005)(44832011)(4744005)(478600001)(52116002)(316002)(6512007)(86362001)(83380400001)(41300700001)(8936002)(31696002)(4326008)(66476007)(8676002)(66946007)(66556008)(6916009)(43740500002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?bDNCZnZZdzlicGV1eTE5MWR2aGVqZmJ5dEpHcTJ4ZERSZm9HNGFEdUZWWmhM?=
+ =?utf-8?B?aUxtWDl6SUxkYnpxYWFPdkFtSk5xcUQ5eDFYcUZNV0dnTlBmVFFoeTczaG02?=
+ =?utf-8?B?bFJ3UFkrd1Y5Z2xpb1JwemJCd3RsV1RrZjlzalZYbmlaS3UwY0dxUmlxL2ps?=
+ =?utf-8?B?ZGxSQ0Z5ODRveWt3R0FZOExwZTNXaUhGMVdRblp2RXROTDBnVUJXQnFHREM4?=
+ =?utf-8?B?VE83T1h6bmkxWUN4SkQwc1ZqdGx4RUo3UWdLZzFhczdrcXZmSytRTkdjRC9n?=
+ =?utf-8?B?bGd3a29CenZsNnQ5QkZlOUwvWnpKZkc2REdiTGUvODI3ZmF3UHV0dzNWN3dG?=
+ =?utf-8?B?ZmUyaXlmdnU2aXJubk9VNWhoNVJkbU1XZmM2S3BPUnRjZnp0S2FpaFFQVEhz?=
+ =?utf-8?B?UlhxSmZWaDd0bHpzVkY5Zk1XcVEyR082RTdtaTAwNFIyQ29vdHUzcjA1ZGNk?=
+ =?utf-8?B?SmdyYWxmeWV3WENjNXpMYkpPeXlOUDFqdllWK0pBcXJMUjhiUDZDcUdEM1JM?=
+ =?utf-8?B?NzJQU3dENGVXekVDaUxKdnphQ2FUTVpMSy9IUm5UNDY3VlpPaHE1aEdnb0tP?=
+ =?utf-8?B?QnRtUWZoSFV4UEVqSUlGQnRiZnptemRIcTV5ejR3QnNDUGFML0tub3BPQnpl?=
+ =?utf-8?B?WWlXS28rVWhVMjd1eUdCTUxkUTRjT05jZ2JrRktXWWpBMUpMVEFuV2sxNEhN?=
+ =?utf-8?B?ZzFSREovZXVFUHRHQXlaOTFVeXVKSXYrb0poSUVST1FyT3c1QnpWQy9yOHZi?=
+ =?utf-8?B?Ri83UUtXNUxPdlZvNTdyKzF3L1o1cDNsUzd3bHZ5eTNpeHVpY01HeUc4QnRS?=
+ =?utf-8?B?YjhhZFJ1d3ZHdEV6bm5JancySXJtYVEwcDVEbm9HeHNIOFF4Mk9UdG14UFFU?=
+ =?utf-8?B?R2xHZDlKNzlwWHBveXVXRVRpUVVOU3V1Nm9LNW5Ja0VKRGZ6cStsbWZlS1d5?=
+ =?utf-8?B?QkZxaVNISy9EUUxSMmZJSnhGcXBCY0NmbTBLamhrbXhseXFNUXRCOWM4UlpL?=
+ =?utf-8?B?UENDMDUvTWhUa1ZzaU9CaUt4b1ZjWjFBQk03azdkVEZxTHVwWVNpYXpHOVlx?=
+ =?utf-8?B?NDBjMDZuZkg2dVpFMDVFb2lhekhsRytRamFIbzFGYVA3WkFPenltL0hKajFD?=
+ =?utf-8?B?RVQ5Sy9iM1V2aGhzQjk0d0djNDVUS1JjSjIycFgxOFdQay9PVVpiWmt2Zmsz?=
+ =?utf-8?B?SEhTSVJRMU1YOXEzTStzUXE0K1M0eVhtTU50ZUlXVEhVM1dmeERqZVB4eEg3?=
+ =?utf-8?B?NkF3bzdZTmdvY3JIclZjTWtiQ1o1eTFrUzZGRDExTmNPMXphMDN6djBxTnNP?=
+ =?utf-8?B?bUx6T3pwZXgzSnV1a2k4bTMrSDlHUmo1WVh2cFpDUkhqZHZVVDVBOFk2TGtp?=
+ =?utf-8?B?M09paUUzUThrcHcrODhSeG5ma3UxM2NlWTRjQndiY1Y0elRqQW9wa3lTb2x2?=
+ =?utf-8?B?R29nc3hGdnNFQmtQSlY2ZStJdS9iSWZtVHV6TWFXTXljTzZ2WGJocGJ0TTAv?=
+ =?utf-8?B?Rm5WclN2c1NiN3lKYUhRcHFXOU1EUFBhUGRGd1VWNm01YUxRdmhvZWNTK1pq?=
+ =?utf-8?B?R2hPWk1ZZkVXK3BFQXlCN1UrSUNVUVEydTRIUlBKUklyRTNXeGl2bWZSRWt5?=
+ =?utf-8?B?STNzcUN5S3FRTC90OWNhM2FrWmJqWEZQM3hYVVg2V1QzOWdLNXVveStzZmQ1?=
+ =?utf-8?B?ZUdMVmdSMGIzcFNIY2txVUN1NzI5S2Z6dGV4cHJzbE43ZkFZVjJCdXNHZU1E?=
+ =?utf-8?B?K2ZjN1krRFpNOXNxYTFLMldUeUt2UXdXd1FHRU1CVGdhSUIzd0JVY2c5WVRl?=
+ =?utf-8?B?UXBjNXczNGN0Z2RIZmUrUit2eUliTU1kUHllYUxyZDB1MURxZUFqdmlyRUZZ?=
+ =?utf-8?B?Y1VORUtpRWtWTDRTckNrejYrWlpmOUpDNm0wT2gyZW0yOTFGZVMvVTRPZ2Rt?=
+ =?utf-8?B?YWNqTVNsTDdXVnVIWjBLbVlIOVJMWjBYZWxKSkxIMGRuS3pjZGZXT09IeVho?=
+ =?utf-8?B?M1haYk56ZmY0eWdsK2lqUlQxa3pGaXRDT1NabUJIVFRocUl3amlmWkQxU0Qv?=
+ =?utf-8?B?TDRYUlplM2hxTExINUZyZys4bUhpUEFRWG9KZG9SdEo1eFJkTnhJUDNPeGpN?=
+ =?utf-8?B?eXllQ05MVjFLWDJraHNXblQ1ZFNWeHJSVUJUc1ZyWUQ4bHNzSGVPbkFHN1Uy?=
+ =?utf-8?Q?NKBSwZmuTBhYQfGIVurFjZY=3D?=
+X-OriginatorOrg: cornelisnetworks.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 549aa0e5-f8f0-4685-a5de-08daf58aaa1a
+X-MS-Exchange-CrossTenant-AuthSource: BN6PR01MB2610.prod.exchangelabs.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jan 2023 17:21:53.5917
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: sJvx607MmCFG2IIUbEgQtRMTxW6/qZZBsMoNyeZpOW0RKlJZ9+Z7XnTuJVraCk9E6N1n+JpwLOW1Y8KpOmQAU0of0+VqRJdqOqBrre8XDcKiPmjfBlAU0FEhbmdSmUWN
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR01MB8193
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Thanks for the reply :)
-
-I checked the commit 3282a549cf9b, and it said:
-"If responder get a zero-byte RDMA Read request, qp->resp.mr is not set 
-in check_rkey() (see IBA C9-88)."
-Thus, this commit added a NULL check for mr (aliased with qp->resp.mr) 
-in read_reply().
-
-The buggy call trace of the commit 3282a549cf9b is rxe_responder() -> 
-read_reply(qp).
-In the code, there are some possible call traces from rxe_responder():
-
-rxe_responder()
-   execute(qp)
-     write_data_in(qp)
-       err = rxe_mr_copy(qp->resp.mr)
-
-rxe_responder()
-   process_flush(qp)
-     mr = qp->resp.mr
-     start = mr->ibmr.iova;
-     length = mr->ibmr.length
-     rxe_flush_pmem_iova(mr)
-
-rxe_responder()
-   atomic_reply(qp)
-     mr = qp->resp.mr
-     if (mr->state != RXE_MR_STATE_VALID)
-
-rxe_responder()
-   atomic_write_reply(qp)
-     do_atomic_write(qp)
-       mr = qp->resp.mr
-       if (mr->state != RXE_MR_STATE_VALID)
-       dst = iova_to_vaddr(mr)
-
-rxe_responder()
-   read_reply(qp)
-     mr = qp->resp.mr
-     err = rxe_mr_copy(mr)
-
-For these possible call traces, they may share the same qp->resp.mr in 
-the commit 3282a549cf9b.
-Thus, qp->resp.mr should be checked in these call traces.
-I am not quite sure of this, so I am looking forward to your opinions, 
-thanks :)
-
-
-Best wishes,
-Jia-Ju Bai
-
-
-On 2023/1/13 15:53, Zhu Yanjun wrote:
-> 在 2023/1/13 10:35, Jia-Ju Bai 写道:
->> In a previous commit 3282a549cf9b, qp->resp.mr could be NULL. Moreover,
->> in many functions, qp->resp.mr is checked before its dereferences.
->> However, in some functions, this variable is not checked, and thus NULL
->> checks should be added.
->
-> IMO， we should analyze the code snippet one by one.
-> And it is not good to add "NULL check" without futher investigations.
->
-> Zhu Yanjun
+On 1/10/23 4:03 PM, Dennis Dalessandro wrote:
+> On 1/10/23 9:58 AM, Jason Gunthorpe wrote:
+>> On Mon, Jan 09, 2023 at 02:03:58PM -0500, Dennis Dalessandro wrote:
+>>> Dean fixes the FIXME that was left by Jason in the code to use the interval
+>>> notifier.
 >>
->> These results are reported by a static tool written by myself.
->>
->> Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
->> Reported-by: TOTE Robot <oslab@tsinghua.edu.cn>
->> ---
->>   drivers/infiniband/sw/rxe/rxe_resp.c | 47 ++++++++++++++++------------
->>   1 file changed, 27 insertions(+), 20 deletions(-)
->>
->> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c 
->> b/drivers/infiniband/sw/rxe/rxe_resp.c
->> index c74972244f08..2eafa1667a9e 100644
->> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
->> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
->> @@ -621,11 +621,13 @@ static enum resp_states write_data_in(struct 
->> rxe_qp *qp,
->>       int    err;
->>       int data_len = payload_size(pkt);
->>   -    err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
->> -              payload_addr(pkt), data_len, RXE_TO_MR_OBJ);
->> -    if (err) {
->> -        rc = RESPST_ERR_RKEY_VIOLATION;
->> -        goto out;
->> +    if (qp->resp.mr) {
->> +        err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
->> +                  payload_addr(pkt), data_len, RXE_TO_MR_OBJ);
->> +        if (err) {
->> +            rc = RESPST_ERR_RKEY_VIOLATION;
->> +            goto out;
->> +        }
->>       }
->>         qp->resp.va += data_len;
->> @@ -699,11 +701,13 @@ static enum resp_states process_flush(struct 
->> rxe_qp *qp,
->>           start = res->flush.va;
->>           length = res->flush.length;
->>       } else { /* level == IB_FLUSH_MR */
->> -        start = mr->ibmr.iova;
->> -        length = mr->ibmr.length;
->> +        if (mr) {
->> +            start = mr->ibmr.iova;
->> +            length = mr->ibmr.length;
->> +        }
->>       }
->>   -    if (res->flush.type & IB_FLUSH_PERSISTENT) {
->> +    if (mr && res->flush.type & IB_FLUSH_PERSISTENT) {
->>           if (rxe_flush_pmem_iova(mr, start, length))
->>               return RESPST_ERR_RKEY_VIOLATION;
->>           /* Make data persistent. */
->> @@ -742,7 +746,7 @@ static enum resp_states atomic_reply(struct 
->> rxe_qp *qp,
->>           qp->resp.res = res;
->>       }
->>   -    if (!res->replay) {
->> +    if (!res->replay && mr) {
->>           if (mr->state != RXE_MR_STATE_VALID) {
->>               ret = RESPST_ERR_RKEY_VIOLATION;
->>               goto out;
->> @@ -793,15 +797,17 @@ static enum resp_states do_atomic_write(struct 
->> rxe_qp *qp,
->>       int payload = payload_size(pkt);
->>       u64 src, *dst;
->>   -    if (mr->state != RXE_MR_STATE_VALID)
->> +    if (mr && mr->state != RXE_MR_STATE_VALID)
->>           return RESPST_ERR_RKEY_VIOLATION;
->>         memcpy(&src, payload_addr(pkt), payload);
->>   -    dst = iova_to_vaddr(mr, qp->resp.va + qp->resp.offset, payload);
->> -    /* check vaddr is 8 bytes aligned. */
->> -    if (!dst || (uintptr_t)dst & 7)
->> -        return RESPST_ERR_MISALIGNED_ATOMIC;
->> +    if (mr) {
->> +        dst = iova_to_vaddr(mr, qp->resp.va + qp->resp.offset, 
->> payload);
->> +        /* check vaddr is 8 bytes aligned. */
->> +        if (!dst || (uintptr_t)dst & 7)
->> +            return RESPST_ERR_MISALIGNED_ATOMIC;
->> +    }
->>         /* Do atomic write after all prior operations have completed */
->>       smp_store_release(dst, src);
->> @@ -1002,13 +1008,14 @@ static enum resp_states read_reply(struct 
->> rxe_qp *qp,
->>           return RESPST_ERR_RNR;
->>       }
->>   -    err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
->> -              payload, RXE_FROM_MR_OBJ);
->> -    if (mr)
->> +    if (mr) {
->> +        err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
->> +                  payload, RXE_FROM_MR_OBJ);
->>           rxe_put(mr);
->> -    if (err) {
->> -        kfree_skb(skb);
->> -        return RESPST_ERR_RKEY_VIOLATION;
->> +        if (err) {
->> +            kfree_skb(skb);
->> +            return RESPST_ERR_RKEY_VIOLATION;
->> +        }
->>       }
->>         if (bth_pad(&ack_pkt)) {
->
+>> ? Which patch did that?
+> 
+> My fault. The last patch in the previous series [1] was meant to go first here.
+> I got off by 1 when I was splitting the patches out for submit.
+> 
+> [1]
+> https://lore.kernel.org/linux-rdma/167328549178.1472310.9867497376936699488.stgit@awfm-02.cornelisnetworks.com/T/#u
 
+As a side effect of this, can we pull patch 2/7 from this series into the RC?
+
+[PATCH for-next 2/7] IB/hfi1: Assign npages earlier
+
+should go with:
+
+[PATCH for-rc 6/6] IB/hfi1: Remove user expected buffer invalidate race
+
+-Denny
