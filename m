@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CE88C54EBE
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Jan 2023 23:59:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F343C67871
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Jan 2023 23:59:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234749AbjAPX7J (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Jan 2023 18:59:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48438 "EHLO
+        id S235206AbjAPX7L (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Jan 2023 18:59:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235694AbjAPX6q (ORCPT
+        with ESMTP id S235696AbjAPX6q (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Jan 2023 18:58:46 -0500
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEE472C669
-        for <linux-rdma@vger.kernel.org>; Mon, 16 Jan 2023 15:56:50 -0800 (PST)
-Received: by mail-oi1-x231.google.com with SMTP id n8so24686673oih.0
-        for <linux-rdma@vger.kernel.org>; Mon, 16 Jan 2023 15:56:50 -0800 (PST)
+Received: from mail-ot1-x32b.google.com (mail-ot1-x32b.google.com [IPv6:2607:f8b0:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D5522CC54
+        for <linux-rdma@vger.kernel.org>; Mon, 16 Jan 2023 15:56:53 -0800 (PST)
+Received: by mail-ot1-x32b.google.com with SMTP id cm26-20020a056830651a00b00684e5c0108dso3232183otb.9
+        for <linux-rdma@vger.kernel.org>; Mon, 16 Jan 2023 15:56:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=MSc+ZeVhmJVAyrOad5GEnPdKs11Mmr6EK22kGWHehxY=;
-        b=dzSCCWKiOF8AhsJPVQsUwHpoBoPGpnRpCX/xAobpftA5kwfwRiv+rTCNGp7rdSJIuK
-         G/UxzeTNdRB52GWFA1mCZivfuc7dQZVywoNjKsM1ql/kFleMDQ3aQMzCYt96T9y/mrju
-         0Qjlt8Itl/Hich9L2++FJJGHvxne6C6CB9c3O4ueMZ+mlcTwC9HE51o1kqZYKu9AuKlD
-         mFjOiIY1Z5gXC0jbvoZkqCij0WFoSzTsUs7XteUel6Sqe+oFZOttv8lpg0tRcPvPCOlb
-         pDMBFqVFZynvOm4eW4K1Eo1QlknKyZYM6GwZj0YHVGu3lWM2eogzVwqhaz3joh8ou6fK
-         wTnA==
+        bh=+tMrbES7iAPFERVwmrpXMmq8ACmpuWPOnqo2LwvtS/M=;
+        b=LIOpv4rLuiq1pn+KGTXJun84BcjiH5lcU9SWxn94IU/0x+RrE9IED5mPNkf8nkc+CP
+         XSlMBHGoUBi8VgWNWflMXFeyEpIw5T7T6DEUgWfHFdXBjGSx7tPAf1wfr7T69GGaYfir
+         oA6lyRlo6DksPS+lUKjQeQwNTk9zucyF4KANjAPLNAjqqG3yXE9zIeiXWUv41IW1hhxx
+         ykxlyfRhpNDc1GrEfpK5YBnnMUyaJDiInZQwDjd4qJHB85J59p0iV3Fp1+Thk9uD2msc
+         +EHX7svEf461Fv4o1Q5W8yKwTSLdryiXoZ795D9X9QtS0XJUYeB0uWh/z/jiBsBrJHrZ
+         6cHg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=MSc+ZeVhmJVAyrOad5GEnPdKs11Mmr6EK22kGWHehxY=;
-        b=yR1N0p/CEuKX5i1GaESq9hqAeBvmmA99jWNIiYcBOsc9cX/PySCE8Q8Ixhp7i19UH7
-         tc7Rrn3mQwR3d29z4xy57YtpKjYDxcxmIvk+9dlQ1ruR+/wQxilJWEXVEeUvacEJaDNr
-         +TwVlt0lYbMVOQw8vs3GTGskUerJh3bKpevjvpHLGJA1wek4abXicNnl+b/Zs6ZZKZDV
-         XHIoA12PPn/rotTxmVzVpCNSlpfzWt+xu86NNr2WYDX4lk+Iz9aOcbKAO/pIFxwCsMrk
-         HpC0hYSVZHwbCWc4ge66L/q4JDpsuiwi3VVtFS4sKvKwkZ5ROSd+1Pc2mVyjCPvP52rX
-         Ayww==
-X-Gm-Message-State: AFqh2kqDzN3rc9OLGHLc1/+wFrTm101VAzZzsnMnY3mjcW7udvZ7oGIV
-        rI9ns7eoevDiwJTjtuAy2c06ReXNhZ7/eg==
-X-Google-Smtp-Source: AMrXdXu30HIDO7L4jYRnbWftmMukO9kOSZbCH2j/mJEyu8ud1ZgyRV00EWtBP/F/Y57tpdWWY/tblg==
-X-Received: by 2002:a05:6808:128e:b0:35d:d646:3d02 with SMTP id a14-20020a056808128e00b0035dd6463d02mr849688oiw.28.1673913410364;
-        Mon, 16 Jan 2023 15:56:50 -0800 (PST)
+        bh=+tMrbES7iAPFERVwmrpXMmq8ACmpuWPOnqo2LwvtS/M=;
+        b=eiqI0h70sVr7NwLBq5hmGILkA4SzZtnKZCWIBODeTWIgrEqaxEO7qv0n6TfRztp4s+
+         g8iNyhvwRdPRjlBLkU/LXNNR+jJ9qZ4cPPF4lZ72UXnpUxUmcE5aXhYU5DMx5/pyr4qV
+         m8DDTTcw7eDiIu4ZeqNMn01bfKep33PWghCw6jjsi2OSyqXkQIC/ESjEYWcQ5CHp+sU2
+         RekJnEtjrLrF/qI8N/lXtfgYD+26Wg/wuQfI2pxXXN5NHCUIRKDqa6Q3zFFmHR8tpMjC
+         bXkn1biz/l0h3vJJZNk9T2gVd9mG2/jbfwFU0koM3X+rFfocbR1D1WH4cB64kz42Ws4T
+         WfPA==
+X-Gm-Message-State: AFqh2krrA4lHlmdS8XRaAndSZ4RVjVgyNNKV6s9cIyoL75MHrOIasBVS
+        b6Leyg2aKpsPP5uCwptKskIc5Tk50/Iz2A==
+X-Google-Smtp-Source: AMrXdXtTPKmIAJzAbtziAewDXI4PKJVaBX53m9AcsR0Cp15KntaYNfTC3PotQ/grqUgp9wCwgArDPQ==
+X-Received: by 2002:a9d:4e86:0:b0:684:b26e:84ba with SMTP id v6-20020a9d4e86000000b00684b26e84bamr464961otk.11.1673913413001;
+        Mon, 16 Jan 2023 15:56:53 -0800 (PST)
 Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-ea18-3ee9-26d1-7526.res6.spectrum.com. [2603:8081:140c:1a00:ea18:3ee9:26d1:7526])
-        by smtp.gmail.com with ESMTPSA id w17-20020a9d77d1000000b00684e55f4541sm3540546otl.70.2023.01.16.15.56.49
+        by smtp.gmail.com with ESMTPSA id w17-20020a9d77d1000000b00684e55f4541sm3540546otl.70.2023.01.16.15.56.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Jan 2023 15:56:50 -0800 (PST)
+        Mon, 16 Jan 2023 15:56:52 -0800 (PST)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, leonro@nvidia.com,
         yangx.jy@fujitsu.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next v5 2/6] RDMA/rxe: Move rxe_map_mr_sg to rxe_mr.c
-Date:   Mon, 16 Jan 2023 17:55:59 -0600
-Message-Id: <20230116235602.22899-3-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v5 5/6] RDMA/rxe: Cleanup page variables in rxe_mr.c
+Date:   Mon, 16 Jan 2023 17:56:02 -0600
+Message-Id: <20230116235602.22899-6-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230116235602.22899-1-rpearsonhpe@gmail.com>
 References: <20230116235602.22899-1-rpearsonhpe@gmail.com>
@@ -65,122 +65,142 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move rxe_map_mr_sg() to rxe_mr.c where it makes a little more sense.
+Cleanup usage of mr->page_shift and mr->page_mask and introduce
+an extractor for mr->ibmr.page_size. Normal usage in the kernel
+has page_mask masking out offset in page rather than masking out
+the page number. The rxe driver had reversed that which was confusing.
+Implicitly there can be a per mr page_size which was not uniformly
+supported.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_loc.h   |  2 ++
- drivers/infiniband/sw/rxe/rxe_mr.c    | 36 +++++++++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_verbs.c | 36 ---------------------------
- 3 files changed, 38 insertions(+), 36 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_mr.c    | 31 ++++++++++++---------------
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 11 +++++++---
+ 2 files changed, 22 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 948ce4902b10..29b6c2143045 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -69,6 +69,8 @@ int rxe_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
- 		enum rxe_mr_copy_dir dir);
- int copy_data(struct rxe_pd *pd, int access, struct rxe_dma_info *dma,
- 	      void *addr, int length, enum rxe_mr_copy_dir dir);
-+int rxe_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
-+		  int sg_nents, unsigned int *sg_offset);
- void *iova_to_vaddr(struct rxe_mr *mr, u64 iova, int length);
- struct rxe_mr *lookup_mr(struct rxe_pd *pd, int access, u32 key,
- 			 enum rxe_mr_lookup_type type);
 diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 632ee1e516a1..229c7259644c 100644
+index 10484f671977..fdf76df4cf3e 100644
 --- a/drivers/infiniband/sw/rxe/rxe_mr.c
 +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -223,6 +223,42 @@ int rxe_mr_init_fast(int max_pages, struct rxe_mr *mr)
- 	return err;
+@@ -62,6 +62,9 @@ static void rxe_mr_init(int access, struct rxe_mr *mr)
+ 	mr->lkey = mr->ibmr.lkey = lkey;
+ 	mr->rkey = mr->ibmr.rkey = rkey;
+ 
++	mr->ibmr.page_size = PAGE_SIZE;
++	mr->page_mask = PAGE_MASK;
++	mr->page_shift = PAGE_SHIFT;
+ 	mr->state = RXE_MR_STATE_INVALID;
  }
  
-+static int rxe_set_page(struct ib_mr *ibmr, u64 addr)
-+{
-+	struct rxe_mr *mr = to_rmr(ibmr);
-+	struct rxe_map *map;
-+	struct rxe_phys_buf *buf;
-+
-+	if (unlikely(mr->nbuf == mr->num_buf))
-+		return -ENOMEM;
-+
-+	map = mr->map[mr->nbuf / RXE_BUF_PER_MAP];
-+	buf = &map->buf[mr->nbuf % RXE_BUF_PER_MAP];
-+
-+	buf->addr = addr;
-+	buf->size = ibmr->page_size;
-+	mr->nbuf++;
-+
-+	return 0;
-+}
-+
-+int rxe_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
-+		  int sg_nents, unsigned int *sg_offset)
-+{
-+	struct rxe_mr *mr = to_rmr(ibmr);
-+	int n;
-+
-+	mr->nbuf = 0;
-+
-+	n = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, rxe_set_page);
-+
-+	mr->page_shift = ilog2(ibmr->page_size);
-+	mr->page_mask = ibmr->page_size - 1;
-+	mr->offset = ibmr->iova & mr->page_mask;
-+
-+	return n;
-+}
-+
- static void lookup_iova(struct rxe_mr *mr, u64 iova, int *m_out, int *n_out,
- 			size_t *offset_out)
+@@ -151,9 +154,6 @@ int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
+ 		goto err_release_umem;
+ 	}
+ 
+-	mr->page_shift = PAGE_SHIFT;
+-	mr->page_mask = PAGE_SIZE - 1;
+-
+ 	num_buf			= 0;
+ 	map = mr->map;
+ 	if (length > 0) {
+@@ -182,7 +182,7 @@ int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
+ 				goto err_release_umem;
+ 			}
+ 			buf->addr = (uintptr_t)vaddr;
+-			buf->size = PAGE_SIZE;
++			buf->size = mr_page_size(mr);
+ 			num_buf++;
+ 			buf++;
+ 
+@@ -191,10 +191,9 @@ int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
+ 
+ 	mr->umem = umem;
+ 	mr->access = access;
+-	mr->offset = ib_umem_offset(umem);
++	mr->page_offset = ib_umem_offset(umem);
+ 	mr->state = RXE_MR_STATE_VALID;
+ 	mr->ibmr.type = IB_MR_TYPE_USER;
+-	mr->ibmr.page_size = PAGE_SIZE;
+ 
+ 	return 0;
+ 
+@@ -248,29 +247,27 @@ int rxe_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
+ 		  int sg_nents, unsigned int *sg_offset)
  {
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 025b35bf014e..7a902e0a0607 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -948,42 +948,6 @@ static struct ib_mr *rxe_alloc_mr(struct ib_pd *ibpd, enum ib_mr_type mr_type,
- 	return ERR_PTR(err);
- }
- 
--static int rxe_set_page(struct ib_mr *ibmr, u64 addr)
--{
--	struct rxe_mr *mr = to_rmr(ibmr);
--	struct rxe_map *map;
--	struct rxe_phys_buf *buf;
--
--	if (unlikely(mr->nbuf == mr->num_buf))
--		return -ENOMEM;
--
--	map = mr->map[mr->nbuf / RXE_BUF_PER_MAP];
--	buf = &map->buf[mr->nbuf % RXE_BUF_PER_MAP];
--
--	buf->addr = addr;
--	buf->size = ibmr->page_size;
--	mr->nbuf++;
--
--	return 0;
--}
--
--static int rxe_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
--			 int sg_nents, unsigned int *sg_offset)
--{
--	struct rxe_mr *mr = to_rmr(ibmr);
+ 	struct rxe_mr *mr = to_rmr(ibmr);
 -	int n;
 -
 -	mr->nbuf = 0;
--
++	unsigned int page_size = mr_page_size(mr);
+ 
 -	n = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, rxe_set_page);
--
++	mr->page_shift = ilog2(page_size);
++	mr->page_mask = ~((u64)page_size - 1);
++	mr->page_offset = ibmr->iova & (page_size - 1);
+ 
 -	mr->page_shift = ilog2(ibmr->page_size);
 -	mr->page_mask = ibmr->page_size - 1;
 -	mr->offset = ibmr->iova & mr->page_mask;
--
++	mr->nbuf = 0;
+ 
 -	return n;
--}
--
- static ssize_t parent_show(struct device *device,
- 			   struct device_attribute *attr, char *buf)
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, rxe_set_page);
+ }
+ 
+ static void lookup_iova(struct rxe_mr *mr, u64 iova, int *m_out, int *n_out,
+ 			size_t *offset_out)
  {
+-	size_t offset = iova - mr->ibmr.iova + mr->offset;
++	size_t offset = iova - mr->ibmr.iova + mr->page_offset;
+ 	int			map_index;
+ 	int			buf_index;
+ 	u64			length;
+ 
+ 	if (likely(mr->page_shift)) {
+-		*offset_out = offset & mr->page_mask;
++		*offset_out = offset & (mr_page_size(mr) - 1);
+ 		offset >>= mr->page_shift;
+ 		*n_out = offset & mr->map_mask;
+ 		*m_out = offset >> mr->map_shift;
+@@ -329,7 +326,7 @@ int rxe_flush_pmem_iova(struct rxe_mr *mr, u64 iova, int length)
+ 	if (mr->ibmr.type == IB_MR_TYPE_DMA)
+ 		return -EFAULT;
+ 
+-	offset = (iova - mr->ibmr.iova + mr->offset) & mr->page_mask;
++	offset = (iova - mr->ibmr.iova + mr->page_offset) & mr->page_mask;
+ 	while (length > 0) {
+ 		u8 *va;
+ 		int bytes;
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index 691200d99d6b..5c3d1500ca68 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -315,11 +315,11 @@ struct rxe_mr {
+ 	u32			lkey;
+ 	u32			rkey;
+ 	enum rxe_mr_state	state;
+-	u32			offset;
+ 	int			access;
+ 
+-	int			page_shift;
+-	int			page_mask;
++	unsigned int		page_offset;
++	unsigned int		page_shift;
++	u64			page_mask;
+ 	int			map_shift;
+ 	int			map_mask;
+ 
+@@ -334,6 +334,11 @@ struct rxe_mr {
+ 	struct rxe_map		**map;
+ };
+ 
++static inline unsigned int mr_page_size(struct rxe_mr *mr)
++{
++	return mr ? mr->ibmr.page_size : PAGE_SIZE;
++}
++
+ enum rxe_mw_state {
+ 	RXE_MW_STATE_INVALID	= RXE_MR_STATE_INVALID,
+ 	RXE_MW_STATE_FREE	= RXE_MR_STATE_FREE,
 -- 
 2.37.2
 
