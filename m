@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24B79C677F1
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Jan 2023 13:07:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 063A3C46467
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Jan 2023 13:07:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230342AbjAPNHC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Jan 2023 08:07:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56846 "EHLO
+        id S231474AbjAPNHE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Jan 2023 08:07:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231454AbjAPNGk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Jan 2023 08:06:40 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F5674690;
-        Mon, 16 Jan 2023 05:06:27 -0800 (PST)
+        with ESMTP id S230213AbjAPNGu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Jan 2023 08:06:50 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3164A5E5;
+        Mon, 16 Jan 2023 05:06:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F59B60F8A;
-        Mon, 16 Jan 2023 13:06:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB33EC433D2;
-        Mon, 16 Jan 2023 13:06:25 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9DA52B80D31;
+        Mon, 16 Jan 2023 13:06:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84A50C433EF;
+        Mon, 16 Jan 2023 13:06:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673874386;
-        bh=PHPfzcF12XN8XXrVZEoA/iEMhAWm5Si9T+rPS/xKCts=;
+        s=k20201202; t=1673874407;
+        bh=JlISh7ZpJM1JouHMtly+4IcB63O1MxsyN1Eywkp8Wsg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mZYTjnfg8+FBLPGRtA0+2CT/2NZiCZAPxlQotdBoQc+7iqOpGJ4kjallcHjbv/LR9
-         0GhJFlb4ZWZMMxjFdWAx1XgKiNuBzq3s47KxCfkZiqMCbRqYpYfyakYufFMJEiSNHH
-         MzmiRJfjtEmbBuchyPbd6TMJ4OC56i99jm/Q5h1zXjmoSFQqaGVkpJX5XUQKSHxbsz
-         qhmjUCMBS+2IRBX2oNd07bmDxndH/+okE4/k8qxjKbE+dUT1dBdViz0tKlTyrldWB0
-         Ug+Mhk9jzZJ8HkjQBVA0DZiOZafAu0dgraTV+13maJcQ0rKwe9SB2KBx62t0RnALe3
-         l3OZXwnlWC/gg==
+        b=aEBoKJSxCjguG2DHqyA7O8qM4GE3x282g/b/CwTfZAS4zWD4B6wASQ+jEB5v/9zR/
+         ghrEPqNMvev2QZmBhfekV3oRIuWjuTMKqu+Tzfqn8kldJwTA8QYAxUbuyHvhGL80BM
+         QdA4d1/nx3Ly5CVTs3zgz2eyIgWBsTZ5eAcizz+q/laOZkFfW1DiI9wgCVeZrkKahJ
+         +g3SoDr4gJw/IVa0yBpVcsJEhstqA9mYnolCld9y2SO7DzLDOhhyLv3ueEl/plNU8I
+         RLCCMIed/IZ9bzeQdgF5gf/J2ek6Vtx4EP26J7GKfgPLdqlLQWH17T/t1+hT8LCDHf
+         vrmptUx/xttaw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Israel Rukshin <israelr@nvidia.com>,
@@ -50,9 +50,9 @@ Cc:     Israel Rukshin <israelr@nvidia.com>,
         Steven Rostedt <rostedt@goodmis.org>,
         Vishnu Dasa <vdasa@vmware.com>,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next 06/13] RDMA/core: Introduce MR type for crypto operations
-Date:   Mon, 16 Jan 2023 15:05:53 +0200
-Message-Id: <5b8fadc00c0fcc0c0ba3a5dcc9e7b9012c6b5859.1673873422.git.leon@kernel.org>
+Subject: [PATCH rdma-next 11/13] nvme: Introduce a local variable
+Date:   Mon, 16 Jan 2023 15:05:58 +0200
+Message-Id: <cf5bc542e014f465f7ae443e52e70def2993aef1.1673873422.git.leon@kernel.org>
 X-Mailer: git-send-email 2.39.0
 In-Reply-To: <cover.1673873422.git.leon@kernel.org>
 References: <cover.1673873422.git.leon@kernel.org>
@@ -64,286 +64,53 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Israel Rukshin <israelr@nvidia.com>
 
-Add crypto attributes for MKey. With those attributes, the device
-can encrypt/decrypt data when transmitting from memory domain to wire
-domain and when receiving data from wire domain to memory domain.
+The patch doesn't change any logic.
 
 Signed-off-by: Israel Rukshin <israelr@nvidia.com>
-Reviewed-by: Max Gurtovoy <mgurtovoy@nvidia.com>
 Signed-off-by: Leon Romanovsky <leon@kernel.org>
 ---
- drivers/infiniband/core/device.c  |  1 +
- drivers/infiniband/core/mr_pool.c |  2 ++
- drivers/infiniband/core/verbs.c   | 56 ++++++++++++++++++++++++++++++-
- include/rdma/crypto.h             | 43 ++++++++++++++++++++++++
- include/rdma/ib_verbs.h           |  7 ++++
- include/trace/events/rdma_core.h  | 33 ++++++++++++++++++
- 6 files changed, 141 insertions(+), 1 deletion(-)
+ drivers/nvme/host/core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index b2016725c3d8..d9e98fe92b3c 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2599,6 +2599,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, alloc_hw_device_stats);
- 	SET_DEVICE_OP(dev_ops, alloc_hw_port_stats);
- 	SET_DEVICE_OP(dev_ops, alloc_mr);
-+	SET_DEVICE_OP(dev_ops, alloc_mr_crypto);
- 	SET_DEVICE_OP(dev_ops, alloc_mr_integrity);
- 	SET_DEVICE_OP(dev_ops, alloc_mw);
- 	SET_DEVICE_OP(dev_ops, alloc_pd);
-diff --git a/drivers/infiniband/core/mr_pool.c b/drivers/infiniband/core/mr_pool.c
-index c0e2df128b34..d102cb4caefd 100644
---- a/drivers/infiniband/core/mr_pool.c
-+++ b/drivers/infiniband/core/mr_pool.c
-@@ -44,6 +44,8 @@ int ib_mr_pool_init(struct ib_qp *qp, struct list_head *list, int nr,
- 		if (type == IB_MR_TYPE_INTEGRITY)
- 			mr = ib_alloc_mr_integrity(qp->pd, max_num_sg,
- 						   max_num_meta_sg);
-+		else if (type == IB_MR_TYPE_CRYPTO)
-+			mr = ib_alloc_mr_crypto(qp->pd, max_num_sg);
- 		else
- 			mr = ib_alloc_mr(qp->pd, type, max_num_sg);
- 		if (IS_ERR(mr)) {
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 03633d706106..61473fee4b54 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -2179,6 +2179,7 @@ int ib_dereg_mr_user(struct ib_mr *mr, struct ib_udata *udata)
- 	struct ib_pd *pd = mr->pd;
- 	struct ib_dm *dm = mr->dm;
- 	struct ib_sig_attrs *sig_attrs = mr->sig_attrs;
-+	struct ib_crypto_attrs *crypto_attrs = mr->crypto_attrs;
- 	int ret;
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index 7be562a4e1aa..51a9880db6ce 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -1870,6 +1870,7 @@ static void nvme_update_disk_info(struct gendisk *disk,
+ 	sector_t capacity = nvme_lba_to_sect(ns, le64_to_cpu(id->nsze));
+ 	unsigned short bs = 1 << ns->lba_shift;
+ 	u32 atomic_bs, phys_bs, io_opt = 0;
++	struct nvme_ctrl *ctrl = ns->ctrl;
  
- 	trace_mr_dereg(mr);
-@@ -2189,6 +2190,7 @@ int ib_dereg_mr_user(struct ib_mr *mr, struct ib_udata *udata)
- 		if (dm)
- 			atomic_dec(&dm->usecnt);
- 		kfree(sig_attrs);
-+		kfree(crypto_attrs);
- 	}
- 
- 	return ret;
-@@ -2217,7 +2219,8 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
- 		goto out;
- 	}
- 
--	if (mr_type == IB_MR_TYPE_INTEGRITY) {
-+	if (mr_type == IB_MR_TYPE_INTEGRITY ||
-+	    mr_type == IB_MR_TYPE_CRYPTO) {
- 		WARN_ON_ONCE(1);
- 		mr = ERR_PTR(-EINVAL);
- 		goto out;
-@@ -2294,6 +2297,7 @@ struct ib_mr *ib_alloc_mr_integrity(struct ib_pd *pd,
- 	mr->uobject = NULL;
- 	atomic_inc(&pd->usecnt);
- 	mr->need_inval = false;
-+	mr->crypto_attrs = NULL;
- 	mr->type = IB_MR_TYPE_INTEGRITY;
- 	mr->sig_attrs = sig_attrs;
- 
-@@ -2306,6 +2310,56 @@ struct ib_mr *ib_alloc_mr_integrity(struct ib_pd *pd,
- }
- EXPORT_SYMBOL(ib_alloc_mr_integrity);
- 
-+/**
-+ * ib_alloc_mr_crypto() - Allocates a crypto memory region
-+ * @pd:                   protection domain associated with the region
-+ * @max_num_sg:           maximum sg entries available for registration
-+ *
-+ * Notes:
-+ * Memory registration page/sg lists must not exceed max_num_sg.
-+ *
-+ */
-+struct ib_mr *ib_alloc_mr_crypto(struct ib_pd *pd, u32 max_num_sg)
-+{
-+	struct ib_mr *mr;
-+	struct ib_crypto_attrs *crypto_attrs;
-+
-+	if (!pd->device->ops.alloc_mr_crypto) {
-+		mr = ERR_PTR(-EOPNOTSUPP);
-+		goto out;
-+	}
-+
-+	crypto_attrs = kzalloc(sizeof(*crypto_attrs), GFP_KERNEL);
-+	if (!crypto_attrs) {
-+		mr = ERR_PTR(-ENOMEM);
-+		goto out;
-+	}
-+
-+	mr = pd->device->ops.alloc_mr_crypto(pd, max_num_sg);
-+	if (IS_ERR(mr)) {
-+		kfree(crypto_attrs);
-+		goto out;
-+	}
-+
-+	mr->device = pd->device;
-+	mr->pd = pd;
-+	mr->dm = NULL;
-+	mr->uobject = NULL;
-+	atomic_inc(&pd->usecnt);
-+	mr->need_inval = false;
-+	mr->sig_attrs = NULL;
-+	mr->type = IB_MR_TYPE_CRYPTO;
-+	mr->crypto_attrs = crypto_attrs;
-+
-+	rdma_restrack_new(&mr->res, RDMA_RESTRACK_MR);
-+	rdma_restrack_parent_name(&mr->res, &pd->res);
-+	rdma_restrack_add(&mr->res);
-+out:
-+	trace_mr_crypto_alloc(pd, max_num_sg, mr);
-+	return mr;
-+}
-+EXPORT_SYMBOL(ib_alloc_mr_crypto);
-+
- /**
-  * ib_create_dek - Create a DEK (Data Encryption Key) associated with the
-  * specific protection domain.
-diff --git a/include/rdma/crypto.h b/include/rdma/crypto.h
-index cdf287c94737..ba1c6576a8ba 100644
---- a/include/rdma/crypto.h
-+++ b/include/rdma/crypto.h
-@@ -34,6 +34,49 @@ struct ib_crypto_caps {
- 	u32 max_num_deks;
- };
- 
-+/**
-+ * enum ib_crypto_domain - Encryption domain
-+ * According to the encryption domain and the data direction, the HW can
-+ * conclude if need to encrypt or decrypt the data.
-+ * @IB_CRYPTO_ENCRYPTED_WIRE_DOMAIN: encrypted data is in the wire domain.
-+ * @IB_CRYPTO_ENCRYPTED_MEM_DOMAIN: encrypted data is in the memory domain.
-+ */
-+enum ib_crypto_domain {
-+	IB_CRYPTO_ENCRYPTED_WIRE_DOMAIN,
-+	IB_CRYPTO_ENCRYPTED_MEM_DOMAIN,
-+};
-+
-+/**
-+ * enum ib_crypto_standard - Encryption standard
-+ * @IB_CRYPTO_AES_XTS: AES-XTS encryption.
-+ */
-+enum ib_crypto_standard {
-+	IB_CRYPTO_AES_XTS,
-+};
-+
-+/* XTS initial tweak size is up to 128 bits, 16 bytes. */
-+#define IB_CRYPTO_XTS_TWEAK_MAX_SIZE 16
-+
-+/**
-+ * struct ib_crypto_attrs - Parameters for crypto handover operation
-+ * @encrypt_domain: specific encryption domain.
-+ * @encrypt_standard: specific encryption standard.
-+ * @data_unit_size: data unit size in bytes. It might be e.g., the filesystem
-+ *     block size or the disk sector size.
-+ * @xts_init_tweak: a value to be used during encryption of each data unit.
-+ *     This value is incremented by the device for every data_unit_size in the
-+ *     message.
-+ * @dek: Data Encryption Key index.
-+ */
-+struct ib_crypto_attrs {
-+	enum ib_crypto_domain encrypt_domain;
-+	enum ib_crypto_standard encrypt_standard;
-+	int data_unit_size;
-+	/* Today we support only AES-XTS */
-+	u32 xts_init_tweak[IB_CRYPTO_XTS_TWEAK_MAX_SIZE / sizeof(u32)];
-+	u32 dek;
-+};
-+
- /**
-  * enum ib_crypto_key_type - Cryptographic key types
-  * @IB_CRYPTO_KEY_TYPE_AES_XTS: Key of type AES-XTS, which can be used when
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5fb42d553ca1..7507661c78d0 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -876,6 +876,8 @@ __attribute_const__ int ib_rate_to_mbps(enum ib_rate rate);
-  *                            without address translations (VA=PA)
-  * @IB_MR_TYPE_INTEGRITY:     memory region that is used for
-  *                            data integrity operations
-+ * @IB_MR_TYPE_CRYPTO:        memory region that is used for cryptographic
-+ *                            operations
-  */
- enum ib_mr_type {
- 	IB_MR_TYPE_MEM_REG,
-@@ -884,6 +886,7 @@ enum ib_mr_type {
- 	IB_MR_TYPE_USER,
- 	IB_MR_TYPE_DMA,
- 	IB_MR_TYPE_INTEGRITY,
-+	IB_MR_TYPE_CRYPTO,
- };
- 
- enum ib_mr_status_check {
-@@ -1854,6 +1857,7 @@ struct ib_mr {
- 
- 	struct ib_dm      *dm;
- 	struct ib_sig_attrs *sig_attrs; /* only for IB_MR_TYPE_INTEGRITY MRs */
-+	struct ib_crypto_attrs *crypto_attrs; /* only for IB_MR_TYPE_CRYPTO */
  	/*
- 	 * Implementation details of the RDMA core, don't use in drivers:
- 	 */
-@@ -2512,6 +2516,7 @@ struct ib_device_ops {
- 	struct ib_mr *(*alloc_mr_integrity)(struct ib_pd *pd,
- 					    u32 max_num_data_sg,
- 					    u32 max_num_meta_sg);
-+	struct ib_mr *(*alloc_mr_crypto)(struct ib_pd *pd, u32 max_num_sg);
- 	struct ib_dek *(*create_dek)(struct ib_pd *pd,
- 				     struct ib_dek_attr *attr);
- 	void (*destroy_dek)(struct ib_dek *dek);
-@@ -4295,6 +4300,8 @@ struct ib_mr *ib_alloc_mr_integrity(struct ib_pd *pd,
- 				    u32 max_num_data_sg,
- 				    u32 max_num_meta_sg);
+ 	 * The block layer can't support LBA sizes larger than the page size
+@@ -1892,7 +1893,7 @@ static void nvme_update_disk_info(struct gendisk *disk,
+ 		if (id->nsfeat & NVME_NS_FEAT_ATOMICS && id->nawupf)
+ 			atomic_bs = (1 + le16_to_cpu(id->nawupf)) * bs;
+ 		else
+-			atomic_bs = (1 + ns->ctrl->subsys->awupf) * bs;
++			atomic_bs = (1 + ctrl->subsys->awupf) * bs;
+ 	}
  
-+struct ib_mr *ib_alloc_mr_crypto(struct ib_pd *pd, u32 max_num_sg);
-+
- /**
-  * ib_update_fast_reg_key - updates the key portion of the fast_reg MR
-  *   R_Key and L_Key.
-diff --git a/include/trace/events/rdma_core.h b/include/trace/events/rdma_core.h
-index 17642aa54437..b6a3d82b89ca 100644
---- a/include/trace/events/rdma_core.h
-+++ b/include/trace/events/rdma_core.h
-@@ -371,6 +371,39 @@ TRACE_EVENT(mr_integ_alloc,
- 		__entry->max_num_meta_sg, __entry->rc)
- );
+ 	if (id->nsfeat & NVME_NS_FEAT_IO_OPT) {
+@@ -1922,7 +1923,7 @@ static void nvme_update_disk_info(struct gendisk *disk,
+ 		if (IS_ENABLED(CONFIG_BLK_DEV_INTEGRITY) &&
+ 		    (ns->features & NVME_NS_METADATA_SUPPORTED))
+ 			nvme_init_integrity(disk, ns,
+-					    ns->ctrl->max_integrity_segments);
++					    ctrl->max_integrity_segments);
+ 		else if (!nvme_ns_has_pi(ns))
+ 			capacity = 0;
+ 	}
+@@ -1931,7 +1932,7 @@ static void nvme_update_disk_info(struct gendisk *disk,
  
-+TRACE_EVENT(mr_crypto_alloc,
-+	TP_PROTO(
-+		const struct ib_pd *pd,
-+		u32 max_num_sg,
-+		const struct ib_mr *mr
-+	),
-+
-+	TP_ARGS(pd, max_num_sg, mr),
-+
-+	TP_STRUCT__entry(
-+		__field(u32, pd_id)
-+		__field(u32, mr_id)
-+		__field(u32, max_num_sg)
-+		__field(int, rc)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pd_id = pd->res.id;
-+		if (IS_ERR(mr)) {
-+			__entry->mr_id = 0;
-+			__entry->rc = PTR_ERR(mr);
-+		} else {
-+			__entry->mr_id = mr->res.id;
-+			__entry->rc = 0;
-+		}
-+		__entry->max_num_sg = max_num_sg;
-+	),
-+
-+	TP_printk("pd.id=%u mr.id=%u max_num_sg=%u rc=%d",
-+		__entry->pd_id, __entry->mr_id, __entry->max_num_sg,
-+		__entry->rc)
-+);
-+
- TRACE_EVENT(mr_dereg,
- 	TP_PROTO(
- 		const struct ib_mr *mr
+ 	nvme_config_discard(disk, ns);
+ 	blk_queue_max_write_zeroes_sectors(disk->queue,
+-					   ns->ctrl->max_zeroes_sectors);
++					   ctrl->max_zeroes_sectors);
+ }
+ 
+ static bool nvme_ns_is_readonly(struct nvme_ns *ns, struct nvme_ns_info *info)
 -- 
 2.39.0
 
