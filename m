@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3A3AC678DB
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Jan 2023 13:07:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98C13C678DE
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Jan 2023 13:07:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229829AbjAPNHB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Jan 2023 08:07:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55186 "EHLO
+        id S231439AbjAPNHD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Jan 2023 08:07:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231300AbjAPNGj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Jan 2023 08:06:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D700F3A92;
-        Mon, 16 Jan 2023 05:06:20 -0800 (PST)
+        with ESMTP id S231478AbjAPNGk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Jan 2023 08:06:40 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CEF146AD;
+        Mon, 16 Jan 2023 05:06:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 8885CB80D31;
-        Mon, 16 Jan 2023 13:06:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E2E2C433D2;
-        Mon, 16 Jan 2023 13:06:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 298E360F8C;
+        Mon, 16 Jan 2023 13:06:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5839C433EF;
+        Mon, 16 Jan 2023 13:06:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673874378;
-        bh=FGqAyVpLDpa6MeOFTzSFbDozHcqVNx/tnBsc6ttpwoM=;
+        s=k20201202; t=1673874390;
+        bh=IB+veTmklBKw7PiVo8v/NfpEJifNCfbu55nd+mTVPUg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=in1GLNrzq+wqFOE9AjaQ/K0YCORb2NHrxF8tjgbcNj/kIKb2H6NHGODGVottYTQMO
-         hSCapPblNrwwp6gJsN5FxW6/Vks9AoCr/LmQoiE/dkc4qxBb0U8Oj1ndZjy5CjDjiI
-         PQmjUt1pRAF+CAlIhFstqLSerYxKXNovbzYn8WNAuAnfSP5IPDEBLB8xArwA+3tCn8
-         FW/qet4RhByW7xKJPoGynWXG84hWb2hIT/wBSpa/LG7tzX6k71bUS+lW6pwuNvJB/m
-         AyROUjPdB2yGTQpVzslf6xLN3OfmWOXVz4lISPONbX2LmTreM8inz9x683LsyBUvN3
-         pVoCrD78rk9hw==
+        b=Zq1PeBxWasNH9Dc8TC5hkRkJlGnfrUF4cWKlF4/fG9vW4QUdGsdaxsghZtSzGekgL
+         Ql33dt1b+c8IiQ26vu0nGPhqhXCrfk9adXxFZXDxdtwDHR4x6iJ3SaSyZYBepeCwBZ
+         Kc1h7HaqLwA7JpvpcHUpLHDiYeVw/LVwcm3Qkh0MIpAuak9cURPQnFRsQWsR/l+0Yk
+         wUKGvViiPRzzYkrTDFpzf2TnxIG8excmNjlptAdTQM7ps0xm/RB3itb2zPmaoGw6tz
+         ZlhHeHiLEOPWtUTi0h9Lawmhs2MdwmLgHHbEwdPoDN5CS39q3fayP03G9NKAQ6Vrgl
+         DHhkfMNo2J7fQ==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Israel Rukshin <israelr@nvidia.com>,
@@ -50,9 +50,9 @@ Cc:     Israel Rukshin <israelr@nvidia.com>,
         Steven Rostedt <rostedt@goodmis.org>,
         Vishnu Dasa <vdasa@vmware.com>,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next 04/13] RDMA/core: Add cryptographic device capabilities
-Date:   Mon, 16 Jan 2023 15:05:51 +0200
-Message-Id: <4be0048cfe54548acc3730d733009237d8a896f8.1673873422.git.leon@kernel.org>
+Subject: [PATCH rdma-next 07/13] RDMA/core: Add support for creating crypto enabled QPs
+Date:   Mon, 16 Jan 2023 15:05:54 +0200
+Message-Id: <7a772388d517a28052fa5f0b8ea507cb3fe471fe.1673873422.git.leon@kernel.org>
 X-Mailer: git-send-email 2.39.0
 In-Reply-To: <cover.1673873422.git.leon@kernel.org>
 References: <cover.1673873422.git.leon@kernel.org>
@@ -64,84 +64,81 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Israel Rukshin <israelr@nvidia.com>
 
-Some advanced RDMA devices have HW engines with cryptographic
-capabilities. Those devices can encrypt/decrypt data when transmitting
-from memory domain to wire domain and when receiving data from wire
-domain to memory domain. Expose these capabilities via common RDMA
-device attributes. For now, add only AES-XTS cryptographic support.
+Add a list of crypto MRs and introduce a crypto WR type to post
+on those QPs.
 
 Signed-off-by: Israel Rukshin <israelr@nvidia.com>
-Reviewed-by: Max Gurtovoy <mgurtovoy@nvidia.com>
 Signed-off-by: Leon Romanovsky <leon@kernel.org>
 ---
- include/rdma/crypto.h   | 37 +++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h |  2 ++
- 2 files changed, 39 insertions(+)
- create mode 100644 include/rdma/crypto.h
+ drivers/infiniband/core/verbs.c |  3 +++
+ include/rdma/ib_verbs.h         | 12 +++++++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/include/rdma/crypto.h b/include/rdma/crypto.h
-new file mode 100644
-index 000000000000..4779eacb000e
---- /dev/null
-+++ b/include/rdma/crypto.h
-@@ -0,0 +1,37 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/*
-+ * Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-+ */
-+
-+#ifndef _RDMA_CRYPTO_H_
-+#define _RDMA_CRYPTO_H_
-+
-+#include <linux/types.h>
-+
-+/**
-+ * Encryption and decryption operations are done by attaching crypto properties
-+ * to a memory region. Once done, every access to the memory via the crypto
-+ * memory region will result in inline encryption or decryption of the data
-+ * by the RDMA device. The crypto properties contain the Data Encryption Key
-+ * (DEK) and the crypto standard that should be used and its attributes.
-+ */
-+
-+/**
-+ * Cryptographic engines in clear text mode capabilities.
-+ * @IB_CRYPTO_ENGINES_CAP_AES_XTS: Support AES-XTS engine.
-+ */
-+enum {
-+	IB_CRYPTO_ENGINES_CAP_AES_XTS = 1 << 0,
-+};
-+
-+/**
-+ * struct ib_crypto_caps - Cryptographic capabilities
-+ * @crypto_engines: From enum ib_crypto_engines_cap_bits.
-+ * @max_num_deks: Maximum number of Data Encryption Keys.
-+ */
-+struct ib_crypto_caps {
-+	u32 crypto_engines;
-+	u32 max_num_deks;
-+};
-+
-+#endif /* _RDMA_CRYPTO_H_ */
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 61473fee4b54..01aefff6760e 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1223,6 +1223,7 @@ static struct ib_qp *create_qp(struct ib_device *dev, struct ib_pd *pd,
+ 	spin_lock_init(&qp->mr_lock);
+ 	INIT_LIST_HEAD(&qp->rdma_mrs);
+ 	INIT_LIST_HEAD(&qp->sig_mrs);
++	INIT_LIST_HEAD(&qp->crypto_mrs);
+ 
+ 	qp->send_cq = attr->send_cq;
+ 	qp->recv_cq = attr->recv_cq;
+@@ -1363,6 +1364,8 @@ struct ib_qp *ib_create_qp_kernel(struct ib_pd *pd,
+ 				 device->attrs.max_sge_rd);
+ 	if (qp_init_attr->create_flags & IB_QP_CREATE_INTEGRITY_EN)
+ 		qp->integrity_en = true;
++	if (qp_init_attr->create_flags & IB_QP_CREATE_CRYPTO_EN)
++		qp->crypto_en = true;
+ 
+ 	return qp;
+ 
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index cc2ddd4e6c12..83be7e49c5f7 100644
+index 7507661c78d0..1770cd30c0f0 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -40,6 +40,7 @@
- #include <rdma/rdma_counter.h>
- #include <rdma/restrack.h>
- #include <rdma/signature.h>
-+#include <rdma/crypto.h>
- #include <uapi/rdma/rdma_user_ioctl.h>
- #include <uapi/rdma/ib_user_ioctl_verbs.h>
- 
-@@ -450,6 +451,7 @@ struct ib_device_attr {
- 	u64			max_dm_size;
- 	/* Max entries for sgl for optimized performance per READ */
- 	u32			max_sgl_rd;
-+	struct ib_crypto_caps	crypto_caps;
+@@ -1175,6 +1175,8 @@ enum ib_qp_create_flags {
+ 	IB_QP_CREATE_INTEGRITY_EN		= 1ULL << 34,
+ 	/* Create an accelerated UD QP */
+ 	IB_QP_CREATE_NETDEV_USE			= 1ULL << 35,
++	/* The created QP can carry out cryptographic handover operations */
++	IB_QP_CREATE_CRYPTO_EN			= 1ULL << 36,
  };
  
- enum ib_mtu {
+ /*
+@@ -1352,6 +1354,12 @@ enum ib_wr_opcode {
+ 	/* These are kernel only and can not be issued by userspace */
+ 	IB_WR_REG_MR = 0x20,
+ 	IB_WR_REG_MR_INTEGRITY,
++	/*
++	 * It is used to assign crypto properties to a MKey. Use the MKey in
++	 * any RDMA transaction (SEND/RECV/READ/WRITE) to encrypt/decrypt data
++	 * on-the-fly.
++	 */
++	IB_WR_REG_MR_CRYPTO,
+ 
+ 	/* reserve values for low level drivers' internal use.
+ 	 * These values will not be used at all in the ib core layer.
+@@ -1800,6 +1808,7 @@ struct ib_qp {
+ 	int			mrs_used;
+ 	struct list_head	rdma_mrs;
+ 	struct list_head	sig_mrs;
++	struct list_head	crypto_mrs;
+ 	struct ib_srq	       *srq;
+ 	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
+ 	struct list_head	xrcd_list;
+@@ -1822,7 +1831,8 @@ struct ib_qp {
+ 	struct ib_qp_security  *qp_sec;
+ 	u32			port;
+ 
+-	bool			integrity_en;
++	u8			integrity_en:1;
++	u8			crypto_en:1;
+ 	/*
+ 	 * Implementation details of the RDMA core, don't use in drivers:
+ 	 */
 -- 
 2.39.0
 
