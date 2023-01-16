@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4851C677F1
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Jan 2023 13:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F983C678D7
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Jan 2023 13:07:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229908AbjAPNHX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Jan 2023 08:07:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56840 "EHLO
+        id S231450AbjAPNHY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Jan 2023 08:07:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231312AbjAPNGj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Jan 2023 08:06:39 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05E0FAD;
-        Mon, 16 Jan 2023 05:06:25 -0800 (PST)
+        with ESMTP id S229810AbjAPNGm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Jan 2023 08:06:42 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDB2B10AB7;
+        Mon, 16 Jan 2023 05:06:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A4272B80D20;
-        Mon, 16 Jan 2023 13:06:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91A16C433D2;
-        Mon, 16 Jan 2023 13:06:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 78B6360F97;
+        Mon, 16 Jan 2023 13:06:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17886C433D2;
+        Mon, 16 Jan 2023 13:06:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673874382;
-        bh=vAkRimTAOToGcO2FbKESWn7KypzSRbBcz5r9JH5CQXA=;
+        s=k20201202; t=1673874394;
+        bh=AUs3KMfwul5/qoENqpBBsgdpaDQZs+4sjPEYd3EWOgw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ADlWSkwHACNAO2DLud+o3x07DseJaWthyhMStPks9JKa3AMvFD7TCTSQ8TZM0fQ3R
-         TXWvlPdUnDpnYl24ITlNcRdLUTeTLOuuVf9xcSA9ISNpqlNKsN/d5rGkznbmjvxyE9
-         qZiBv/tQlQfwjsPz960Yrq13RsUph72exN6wRTnzpQyRbuVxqrZA+czP5JviwZapIH
-         8BWLxK82/4kZPDyD8SyFfgxbcdcubFqUEE97PWhIiPLmUqRmsm2JDukeuGGnDcrUma
-         aPQAEvN4YMtPALZapqy/W/8UppovupAUSNeAIgEwmJ4niNNuj8tJ9dq2bl4kwefxCs
-         3BkpzLZuxGDVw==
+        b=SZ2qMwj8IZWq9M1yXgCtDldTsT2NjF+yGxfuxQc6UhuH6wTSCTXdN8hzxp4iR5+kx
+         TAs8fTSTQeD+D8cq/Ge6NnfU1ObfO0vh8sL+fE1NrUgSUPSB/hIfwg8T8DR6cXgAN8
+         HaZm5yn7T4ObQhbtMtAuzAPR5t3jE2eMTo9BsF3IDPB/6FuplJNv+huJKbmeS7gjdU
+         SeeCkTOFp03faiW1jae/4mHefqoY/AR6QUy9NgxR+Co+CNVB5Y+zKNylpEHNx23pCI
+         Nrk4md70FmjZ+U4kzzG/nNSdyRbf6vgaoj+wE+KZoYnYo0MvKynZ8kvqgNXJvkpqGQ
+         tJOQAlFnKwrmQ==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Israel Rukshin <israelr@nvidia.com>,
@@ -50,9 +50,9 @@ Cc:     Israel Rukshin <israelr@nvidia.com>,
         Steven Rostedt <rostedt@goodmis.org>,
         Vishnu Dasa <vdasa@vmware.com>,
         Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH mlx5-next 02/13] net/mlx5: Introduce crypto capabilities macro
-Date:   Mon, 16 Jan 2023 15:05:49 +0200
-Message-Id: <561d70fff0ab0ebc5594e371d9faec2a2c934972.1673873422.git.leon@kernel.org>
+Subject: [PATCH rdma-next 05/13] RDMA/core: Add DEK management API
+Date:   Mon, 16 Jan 2023 15:05:52 +0200
+Message-Id: <58e678103d910efbe3481d698169af9dadf70d4b.1673873422.git.leon@kernel.org>
 X-Mailer: git-send-email 2.39.0
 In-Reply-To: <cover.1673873422.git.leon@kernel.org>
 References: <cover.1673873422.git.leon@kernel.org>
@@ -64,68 +64,146 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Israel Rukshin <israelr@nvidia.com>
 
-Add MLX5_CAP_CRYPTO() macro to the list of capabilities.
+Add an API to manage Data Encryption Keys (DEKs). The API allows
+creating and destroying a DEK. DEKs allow encryption and decryption
+of transmitted data and are used in MKeys for crypto operations.
+A crypto setter for the MKey configuration API will be added in the
+following commit.
 
 Signed-off-by: Israel Rukshin <israelr@nvidia.com>
 Reviewed-by: Max Gurtovoy <mgurtovoy@nvidia.com>
 Signed-off-by: Leon Romanovsky <leon@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fw.c   | 6 ++++++
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 1 +
- include/linux/mlx5/device.h                    | 4 ++++
- 3 files changed, 11 insertions(+)
+ drivers/infiniband/core/device.c |  2 ++
+ drivers/infiniband/core/verbs.c  | 32 +++++++++++++++++++++++++++
+ include/rdma/crypto.h            | 38 ++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h          |  3 +++
+ 4 files changed, 75 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index f34e758a2f1f..4603f7ffd8d6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -147,6 +147,12 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
- 	if (err)
- 		return err;
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index a666847bd714..b2016725c3d8 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -2615,6 +2615,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, create_ah);
+ 	SET_DEVICE_OP(dev_ops, create_counters);
+ 	SET_DEVICE_OP(dev_ops, create_cq);
++	SET_DEVICE_OP(dev_ops, create_dek);
+ 	SET_DEVICE_OP(dev_ops, create_flow);
+ 	SET_DEVICE_OP(dev_ops, create_qp);
+ 	SET_DEVICE_OP(dev_ops, create_rwq_ind_table);
+@@ -2632,6 +2633,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, destroy_ah);
+ 	SET_DEVICE_OP(dev_ops, destroy_counters);
+ 	SET_DEVICE_OP(dev_ops, destroy_cq);
++	SET_DEVICE_OP(dev_ops, destroy_dek);
+ 	SET_DEVICE_OP(dev_ops, destroy_flow);
+ 	SET_DEVICE_OP(dev_ops, destroy_flow_action);
+ 	SET_DEVICE_OP(dev_ops, destroy_qp);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 26b021f43ba4..03633d706106 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2306,6 +2306,38 @@ struct ib_mr *ib_alloc_mr_integrity(struct ib_pd *pd,
+ }
+ EXPORT_SYMBOL(ib_alloc_mr_integrity);
  
-+	if (MLX5_CAP_GEN(dev, crypto)) {
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_CRYPTO);
-+		if (err)
-+			return err;
-+	}
++/**
++ * ib_create_dek - Create a DEK (Data Encryption Key) associated with the
++ * specific protection domain.
++ * @pd: The protection domain associated with the DEK.
++ * @attr: The attributes of the DEK.
++ *
++ * Return: Allocated DEK in case of success; IS_ERR() is true in case of an
++ * error, PTR_ERR() returns the error code.
++ */
++struct ib_dek *ib_create_dek(struct ib_pd *pd, struct ib_dek_attr *attr)
++{
++	struct ib_device *device = pd->device;
 +
- 	if (MLX5_CAP_GEN(dev, port_selection_cap)) {
- 		err = mlx5_core_get_caps(dev, MLX5_CAP_PORT_SELECTION);
- 		if (err)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index df134f6d32dc..81348a009666 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1555,6 +1555,7 @@ static const int types[] = {
- 	MLX5_CAP_DEV_SHAMPO,
- 	MLX5_CAP_MACSEC,
- 	MLX5_CAP_ADV_VIRTUALIZATION,
-+	MLX5_CAP_CRYPTO,
++	if (!device->ops.create_dek || !device->ops.destroy_dek)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	return device->ops.create_dek(pd, attr);
++}
++EXPORT_SYMBOL(ib_create_dek);
++
++/**
++ * ib_destroy_dek - Destroys the specified DEK.
++ * @dek: The DEK to destroy.
++ */
++void ib_destroy_dek(struct ib_dek *dek)
++{
++	struct ib_device *device = dek->pd->device;
++
++	device->ops.destroy_dek(dek);
++}
++EXPORT_SYMBOL(ib_destroy_dek);
++
+ /* Multicast groups */
+ 
+ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
+diff --git a/include/rdma/crypto.h b/include/rdma/crypto.h
+index 4779eacb000e..cdf287c94737 100644
+--- a/include/rdma/crypto.h
++++ b/include/rdma/crypto.h
+@@ -34,4 +34,42 @@ struct ib_crypto_caps {
+ 	u32 max_num_deks;
  };
  
- static void mlx5_hca_caps_free(struct mlx5_core_dev *dev)
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 29d4b201c7b2..fd095f0ed3ec 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -1204,6 +1204,7 @@ enum mlx5_cap_type {
- 	MLX5_CAP_VDPA_EMULATION = 0x13,
- 	MLX5_CAP_DEV_EVENT = 0x14,
- 	MLX5_CAP_IPSEC,
-+	MLX5_CAP_CRYPTO = 0x1a,
- 	MLX5_CAP_DEV_SHAMPO = 0x1d,
- 	MLX5_CAP_MACSEC = 0x1f,
- 	MLX5_CAP_GENERAL_2 = 0x20,
-@@ -1466,6 +1467,9 @@ enum mlx5_qcam_feature_groups {
- #define MLX5_CAP_MACSEC(mdev, cap)\
- 	MLX5_GET(macsec_cap, (mdev)->caps.hca[MLX5_CAP_MACSEC]->cur, cap)
- 
-+#define MLX5_CAP_CRYPTO(mdev, cap)\
-+	MLX5_GET(crypto_cap, (mdev)->caps.hca[MLX5_CAP_CRYPTO]->cur, cap)
++/**
++ * enum ib_crypto_key_type - Cryptographic key types
++ * @IB_CRYPTO_KEY_TYPE_AES_XTS: Key of type AES-XTS, which can be used when
++ * IB_CRYPTO_AES_XTS is supported.
++ */
++enum ib_crypto_key_type {
++	IB_CRYPTO_KEY_TYPE_AES_XTS,
++};
 +
- enum {
- 	MLX5_CMD_STAT_OK			= 0x0,
- 	MLX5_CMD_STAT_INT_ERR			= 0x1,
++/**
++ * struct ib_dek_attr - Parameters for DEK (Data Encryption Key)
++ * @key_blob: the key blob that will be used for encryption and decryption of
++ *     transmitted data. Actual size and layout of this field depends on the
++ *     provided key_type and key_blob_size.
++ *     The layout of AES_XTS key is: key1_128b + key2_128b or key1_256b +
++ *     key2_256b.
++ * @key_blob_size: size of the key blob in bytes.
++ * @key_type: specific cryptographic key type.
++ */
++struct ib_dek_attr {
++	const void *key_blob;
++	u32 key_blob_size;
++	enum ib_crypto_key_type key_type;
++};
++
++/**
++ * struct ib_dek - Data Encryption Key
++ * @pd: The protection domain associated with the DEK.
++ * @id: DEK identifier.
++ */
++struct ib_dek {
++	struct ib_pd *pd;
++	u32 id;
++};
++
++struct ib_dek *ib_create_dek(struct ib_pd *pd, struct ib_dek_attr *attr);
++void ib_destroy_dek(struct ib_dek *dek);
++
+ #endif /* _RDMA_CRYPTO_H_ */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 83be7e49c5f7..5fb42d553ca1 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2512,6 +2512,9 @@ struct ib_device_ops {
+ 	struct ib_mr *(*alloc_mr_integrity)(struct ib_pd *pd,
+ 					    u32 max_num_data_sg,
+ 					    u32 max_num_meta_sg);
++	struct ib_dek *(*create_dek)(struct ib_pd *pd,
++				     struct ib_dek_attr *attr);
++	void (*destroy_dek)(struct ib_dek *dek);
+ 	int (*advise_mr)(struct ib_pd *pd,
+ 			 enum ib_uverbs_advise_mr_advice advice, u32 flags,
+ 			 struct ib_sge *sg_list, u32 num_sge,
 -- 
 2.39.0
 
