@@ -2,242 +2,182 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92E72C38159
-	for <linux-rdma@archiver.kernel.org>; Fri, 20 Jan 2023 04:27:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BBD5C678D6
+	for <linux-rdma@archiver.kernel.org>; Fri, 20 Jan 2023 04:32:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229934AbjATE1Z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 19 Jan 2023 23:27:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39606 "EHLO
+        id S230109AbjATEcy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 19 Jan 2023 23:32:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229981AbjATE1R (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Jan 2023 23:27:17 -0500
-Received: from mail-ot1-x32c.google.com (mail-ot1-x32c.google.com [IPv6:2607:f8b0:4864:20::32c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2113B2D2C
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Jan 2023 20:27:04 -0800 (PST)
-Received: by mail-ot1-x32c.google.com with SMTP id x21-20020a056830245500b006865ccca77aso2434535otr.11
-        for <linux-rdma@vger.kernel.org>; Thu, 19 Jan 2023 20:27:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=KHtqh6ofcJMK4QQ4cZYmYePxVtGG+yvnt4mXHNoqTfc=;
-        b=PCwnBYJW8lrPDISsGnXhUDTZZ8q8YefF04eZTgr0Kx6c5zMYK5zUpIQLHBnCLtpLHB
-         Cwnu54H2GPHZbqp/pKcBGyykLowh5VD6LRJoGHOpBEVNpxhFfjO+RdNKx9zgr9DKFEiR
-         b5zC43/QuJ6HmSSn6q18oHPZtC3lV/DPMshARPJB4Mv0dOXAzL+TnSFesGEYlBCgOAr6
-         jrujmlsL2wY4vSThccwLt/df/kbBROkSE5LmxxuQCArrA4dSEhw0Ly2LKDq7mojReW74
-         xhnLrf5z+jFT7beDhOKoNyI4gCI9yACLzH6aJjmM5M8cWL0Y48FtmyBVLfsM+KMGRzSj
-         3QWA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=KHtqh6ofcJMK4QQ4cZYmYePxVtGG+yvnt4mXHNoqTfc=;
-        b=Ka/wpipQHO5Bt7TKdrQ9VGkGKlpQnrakceNNChsj3+aTJ2AIAt2pTkE+S0AOR63Cbz
-         HLFotTWmn9F2JW1xuN8eBEu4GRgo3xEebEkMEkQUmcNyxbZ1QYGsfnVYmMAH45JtuRhA
-         Q+oEHoWj1gJVSe54pLcrR+vBpLFt+/PBBmKpMfn6Cmg7U+nJi5YcC0s9l0R1NYrxatNf
-         zKcLrb+QSG91Y9/WcHawrjcfVJcEV59oW4JZ1KLFqpFiIgH/hMaaekagradaZNYpc+go
-         BxCWdksMBUSgWu9wwO2qw/d5HpZj1GpVPHPekXGiPjs5ZOl2CyI5b3E+hbiVSvlNTMg5
-         2acA==
-X-Gm-Message-State: AFqh2kr8NeMgMWyR6cpc1BwFIoqFX8INkkcCSj9WBCb/3rjcJD999tKi
-        q6FDLRfxa1mfwJpgK9cWcA1fGUq8/jj68Q==
-X-Google-Smtp-Source: AMrXdXs4v2rP7g0e2ZKeNOcRFuWpc9Eefd4AncFdloBAOH0JigLGi+8WHbXFF1/qJouZYZGT+F0fbg==
-X-Received: by 2002:a05:6830:4107:b0:684:d383:396e with SMTP id w7-20020a056830410700b00684d383396emr7528796ott.35.1674188823752;
-        Thu, 19 Jan 2023 20:27:03 -0800 (PST)
-Received: from ?IPV6:2603:8081:140c:1a00:d086:74d8:5274:c0f1? (2603-8081-140c-1a00-d086-74d8-5274-c0f1.res6.spectrum.com. [2603:8081:140c:1a00:d086:74d8:5274:c0f1])
-        by smtp.gmail.com with ESMTPSA id b20-20020a056830105400b006865223e532sm4444079otp.51.2023.01.19.20.27.02
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 19 Jan 2023 20:27:03 -0800 (PST)
-Message-ID: <20809b59-0d7f-b6b0-e51c-026a78f07a86@gmail.com>
-Date:   Thu, 19 Jan 2023 22:27:02 -0600
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-Subject: Re: [PATCH for-next] RDMA/rxe: Handle zero length cases correctly
+        with ESMTP id S230047AbjATEch (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 19 Jan 2023 23:32:37 -0500
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5A9AB4E2A;
+        Thu, 19 Jan 2023 20:32:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1674189131; x=1705725131;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=/mkIt2vhwfN2VSKn9ms6FSvLYMlJwY4GFbr58qPL7XM=;
+  b=Tu6dVTnd7mURFOHzcrGJio3/BbFV9s4i1huRTeZ9+PkgrPXvW2V4sYJa
+   2SBfd0JxV0MV90mTFfdYHDspTyNeoZ7V6FArCuCu2S3tX7gty/uSUDT6C
+   kIBPBEsLQD+on/UCN0cAjt8ur2N8/lPF7yREOKGDiqsMA01Xkuwiqf8I1
+   7Ez2da51qg8eSaEns5su5pkXkaSXgveetUPLEkWrTz+ITL9uHHfrVo4n+
+   XlIZXFkrTWaSoUy0psfATNHLTFbG6zjPp0Z8eeOp3cFThXzzR2xxxyqcc
+   5Q9gD91GE72ynAGpgAHLRCcAwhTfGAvZ2D3l90qKAKnoeQi9gm9HqEdiP
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="411423945"
+X-IronPort-AV: E=Sophos;i="5.97,226,1669104000"; 
+   d="scan'208";a="411423945"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2023 19:49:30 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="768029390"
+X-IronPort-AV: E=Sophos;i="5.97,226,1669104000"; 
+   d="scan'208";a="768029390"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by fmsmga002.fm.intel.com with ESMTP; 18 Jan 2023 19:49:29 -0800
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Wed, 18 Jan 2023 19:49:29 -0800
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Wed, 18 Jan 2023 19:49:28 -0800
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16 via Frontend Transport; Wed, 18 Jan 2023 19:49:28 -0800
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.106)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.16; Wed, 18 Jan 2023 19:49:26 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=k0dlYIM+PFqjnCPATj440PmpSByf0bLppm9lu66U561KXHkga9f9t1F7RZ1BzBfghlH5F73WS/HpNbrDmzdmSYwToGJlbyfn1vAs7jmc+BBogiGMjn8wo2cn49Cd0sos0hiYbeMUXvB5g6MbK13ciruB1BoQrlZGaIaydNUUo9extVmTpAIlqZXWjRyg2zpkHWDuXUcsgArWGBOQWvQ0r6Z++/5/PcJ2mImIc47QxBLwvfHAqABc0IHNs6tRmCpM3OcW/sn+bygXy3YuQ0nwd6hu4a5KZ42HO+ShvPrKOMTemghT7fsZJF6hR1Uri7T8NaN3TAc6gJ/7Lat42FZRRg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=/mkIt2vhwfN2VSKn9ms6FSvLYMlJwY4GFbr58qPL7XM=;
+ b=geE9Ht+rSsw6IK3jOWgbQ94+Hi8ExdaVpw18K1Mi/+uNR6Qx3rWO4YtGc3HujVJswMCN4XMI2/2yj05rUrtBcJGzCZHcu5a/mX+W+CqzOJ45ulCVAKvoqiM1AQqNy0Z3kwC/jWLdji/50c/npGQ30HeSmy8MDyL41DGLZT0s1CUuljktuCIYlu3aHLBXV5fFXB82uMUIFOo5Tv3yPmhTFZ8YqGO4LTaoSAFzKL8A9okc2fkRPFoHia66yTzp/CkvRPMgUybNyk34uLsfFVnMtMd1p3ybzIJSmCC/NqHmWEEG5vvh71q/brvteXi1z6YRz9YJZq2qMyu4JODgz5Mcag==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Received: from BN9PR11MB5276.namprd11.prod.outlook.com (2603:10b6:408:135::18)
+ by SN7PR11MB6948.namprd11.prod.outlook.com (2603:10b6:806:2ab::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.13; Thu, 19 Jan
+ 2023 03:49:17 +0000
+Received: from BN9PR11MB5276.namprd11.prod.outlook.com
+ ([fe80::6a8d:b95:e1b5:d79d]) by BN9PR11MB5276.namprd11.prod.outlook.com
+ ([fe80::6a8d:b95:e1b5:d79d%9]) with mapi id 15.20.6002.025; Thu, 19 Jan 2023
+ 03:49:17 +0000
+From:   "Tian, Kevin" <kevin.tian@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>,
+        Lu Baolu <baolu.lu@linux.intel.com>,
+        Joerg Roedel <joro@8bytes.org>,
+        Matthew Rosato <mjrosato@linux.ibm.com>,
+        Robin Murphy <robin.murphy@arm.com>
+CC:     Alex Williamson <alex.williamson@redhat.com>,
+        "ath10k@lists.infradead.org" <ath10k@lists.infradead.org>,
+        "ath11k@lists.infradead.org" <ath11k@lists.infradead.org>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "iommu@lists.linux.dev" <iommu@lists.linux.dev>,
+        "kvm@vger.kernel.org" <kvm@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-remoteproc@vger.kernel.org" <linux-remoteproc@vger.kernel.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "linux-stm32@st-md-mailman.stormreply.com" 
+        <linux-stm32@st-md-mailman.stormreply.com>,
+        "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>,
+        "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        "virtualization@lists.linux-foundation.org" 
+        <virtualization@lists.linux-foundation.org>
+Subject: RE: [PATCH v2 06/10] iommu/intel: Add a gfp parameter to
+ alloc_pgtable_page()
+Thread-Topic: [PATCH v2 06/10] iommu/intel: Add a gfp parameter to
+ alloc_pgtable_page()
+Thread-Index: AQHZK2brx6V0vKPMHE+RijLSopzesK6lGx3g
+Date:   Thu, 19 Jan 2023 03:49:17 +0000
+Message-ID: <BN9PR11MB527606E038CE8506ECAFBBCC8CC49@BN9PR11MB5276.namprd11.prod.outlook.com>
+References: <0-v2-ce66f632bd0d+484-iommu_map_gfp_jgg@nvidia.com>
+ <6-v2-ce66f632bd0d+484-iommu_map_gfp_jgg@nvidia.com>
+In-Reply-To: <6-v2-ce66f632bd0d+484-iommu_map_gfp_jgg@nvidia.com>
+Accept-Language: en-US
 Content-Language: en-US
-To:     Zhu Yanjun <zyjzyj2000@gmail.com>
-Cc:     jgg@nvidia.com, leonro@nvidia.com, linux-rdma@vger.kernel.org
-References: <20230119190653.6363-1-rpearsonhpe@gmail.com>
- <CAD=hENcdkWchRrvH+KXLXZoaQcZPpnCdV9V9T9mmzkJ13DJKUA@mail.gmail.com>
-From:   Bob Pearson <rpearsonhpe@gmail.com>
-In-Reply-To: <CAD=hENcdkWchRrvH+KXLXZoaQcZPpnCdV9V9T9mmzkJ13DJKUA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: BN9PR11MB5276:EE_|SN7PR11MB6948:EE_
+x-ms-office365-filtering-correlation-id: 45bd557c-0391-435d-a9d5-08daf9d023eb
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: xFB6PO+K8J7PggDYZfQG/clJcBeoTc4ltBNvGk+wkIpluaNkq1AuGvWR1gXiOQ1CGNtSRCG3Zc94c9Dx50/beJyQtCTFFcrac0W5CF0O1Q7Gb0oG2MH4vEFDIRJoWTD+O65uiPY0rF5ZOGwYZKpT/I53k/x/QwaAycVw/MJGuKv54lLN6EbuF9Ki2xvDiJhLhjQhzStQyYwdTYC5Mp44G2SrEu8Ug0PNH/64T1XTMZDwzhOzUU+crWs3vAYthRHSJrv7XJY2LF10hrgOzHYfbEZILjMRwAguVyxfMJ1lHvlXSmFAYP7T344ScPCCB7sTMsMibUkXpLKiltbivypW1fNi8s1gyoQqqdMTb+0MsQ8/4ihdtWPK+xiAj4GNFahiMUcZwfJpflsLyeoihVb1v6BqPVHmXv5LM1A4OdGSrmNup+V7mRRAzf0ed7j//nM6PKgxc7lzjMR5I4zp1rzq1NGXZHZ06FBSZYz40UErGmBotlHf8TilAYpC9uQhmNDqJ0cpAeaEa38gPaMSJzgVRFsOxm1RpnluNw6bogiW+oplyZjFBWScRYpMOVH7fUG0A42VjD8OlkBZ0QLEr758Xd3u5x9gX2z0q8XQCQd2nb6159oBfUrryRsMQQpaa/QbnyXFLG/ParnbcUpYTU7E4K2OZAM/9IjKJBCLW8LYwWlLEC+JcwfGiRPXt5Z2N1FIIcqrnL5vlNnhRfupT+X/cA==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN9PR11MB5276.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(39860400002)(396003)(376002)(346002)(366004)(136003)(451199015)(6506007)(26005)(186003)(9686003)(7696005)(122000001)(71200400001)(33656002)(478600001)(54906003)(316002)(110136005)(76116006)(66946007)(66556008)(64756008)(66446008)(8676002)(4326008)(66476007)(41300700001)(8936002)(52536014)(55016003)(7416002)(2906002)(5660300002)(38070700005)(38100700002)(82960400001)(86362001)(558084003);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?3VaevaxyBhAdtXbT518zU2u+cx50zUvid7/xTrcq+K1PjtwygGxHz2JAVjNs?=
+ =?us-ascii?Q?amu08L93MDaOqSMJaAaf2+rf1OOSfHTjoptlVgR8rpHF5JM6Fl4GRAm+AEeF?=
+ =?us-ascii?Q?wbNwjj8vpGeXvizGBVxfXIqxlZgTa8dQaONknvYNCPP3zOB9VEb5mo8APGQk?=
+ =?us-ascii?Q?EmQoIsz8YgtWdbD0dnE0jQKAqRIKjMw3lenHavOkPcU1hMmIBpH8IYftm8eJ?=
+ =?us-ascii?Q?KNYjkmPaS1xqZlVAO9TrXUWoesvxe77HKtSk1JHB89bD3UM75ErixNdxSE2m?=
+ =?us-ascii?Q?UaZI6Sh1yNusb2TfgW+/Ra8qlxmBqoTK/sz8XOYZhaTo1PEfd4aBOOvQWLp5?=
+ =?us-ascii?Q?x7a8GVM/1a9hWiQkddtORZ8+zfp4/j5KtIKjWzXQu86s+uOBdIK6Vb4umA8p?=
+ =?us-ascii?Q?GWscKtunImsheQAEyM8sqo9LJqpRgIklOH8ZxHGIdcKguld1YRmNltS/crN/?=
+ =?us-ascii?Q?LJgOtwqmtlGt9wKf21JjGSqkHA6IYBMB9CAwKo/NEe7EkTDn9DT6NJDR4xm1?=
+ =?us-ascii?Q?7UKuFnywQg9m7zYBpyzi9C45HFrtC3/+47NX7/Lmw1WLpImzg/hOKM863YMU?=
+ =?us-ascii?Q?D3GumuTYCpaTC9zO8pU5I0+vV0oyu+0Mb0T9DWl0Kj++zOSj2XriBUxMIxk2?=
+ =?us-ascii?Q?JppS4mU07yBIZg7ywbw+Qw7g30DX+UvETK5C5aiuomekRPh3mEn+pmWY8Ezo?=
+ =?us-ascii?Q?VqPUtHqYeahLzTeDoL89QZnXDrj1j0jghdWUIYUV/5FdCn3Us/1k6xWh2m8J?=
+ =?us-ascii?Q?lUb82jUPMMBj4v9D8p62JyHwKyJ9mgrJqThN+kpYtVNDece4AjA1XAjqgo1k?=
+ =?us-ascii?Q?I+KDyW97zmniOhgU0sLFHuMW6EXahBjLbP2vGXycR6PscdbsyzDJLK20MNW0?=
+ =?us-ascii?Q?ZuBBp6VVdnrri/Ragbk1JF91XDTknNaterCQveWr/hAh+Zf/SIJgWuRiAKtW?=
+ =?us-ascii?Q?1Pe4xuVPGFyYdJQeAjczKQ1blmzBwBh2sRMNmTAWaTx8a8A15rvPsa0RdkrD?=
+ =?us-ascii?Q?CATRma0JlCNlBF323uPPcArMV2AdVaZ3ZbGF6OLVVO0IBrzuz4ea6pXSy65C?=
+ =?us-ascii?Q?YFrXHClCVzZhyhUtU18DkoR8QLsCNhY2HFPUm/Eqm7I1NPS5M2inENCW413D?=
+ =?us-ascii?Q?+SGCY0i6Akxn2m2rsV0aLIEEijppmafbFGv5JqQ7d0Cm/UJySYC9Kb3GkxTf?=
+ =?us-ascii?Q?mHraGJvTnDZcVJ+UcF1qAimVpCTjoZnn4x7k3V8ISuKt0POvdDdFV3siWc/u?=
+ =?us-ascii?Q?nuDzFpnbV+QKc7zOnhG/kiBNkmwohj/kX8q+a03zcQRbJ53AQuXzpvpsz8/d?=
+ =?us-ascii?Q?eE9qWpVGDxYfu0CcKlRSVlOWL+Z9mGoqnm/e4ayIvRp3ircfLHwz2Ob5/Ej8?=
+ =?us-ascii?Q?1gllnr9RXH/rHCRjI7JuYdqsmPKq0BKUiqdwGY8VgiwhB/wfVzzcHvEWtm8b?=
+ =?us-ascii?Q?S1RqJi1DzRxHLPFbpMUCQgUwzLQbZhT38RAVd7pNhi0hVsGKmrQI6vsV0Kqe?=
+ =?us-ascii?Q?fN4bvaBgwAWKsNCQbhHEEF2qGqDQlC4oecdNVIhsqSPr+opMCqAzKPNNCw6v?=
+ =?us-ascii?Q?vIU9MZbFQJmptgIL6NmXC/Si/zMHv359VNfyPa1H?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: BN9PR11MB5276.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 45bd557c-0391-435d-a9d5-08daf9d023eb
+X-MS-Exchange-CrossTenant-originalarrivaltime: 19 Jan 2023 03:49:17.6882
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: TJTGXoGGGuu5g2cJ/fJZE8gD4ZGfPfOJ1Hop2o8R1UJK8ZaCjBuk4slC4mtymIITrtFQkIAY3GZFEFR6EsBekg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR11MB6948
+X-OriginatorOrg: intel.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 1/19/23 19:38, Zhu Yanjun wrote:
-> On Fri, Jan 20, 2023 at 3:09 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
->>
->> Currently the rxe driver, in rare situations, can respond incorrectly
->> to zero length operations which are retried. The client does not
->> have to provide an rkey for zero length RDMA operations so the rkey
->> may be invalid. The driver saves this rkey in the responder resources
->> to replay the rdma operation if a retry is required so the second pass
->> will use this (potentially) invalid rkey which may result in memory
->> faults.
->>
->> This patch corrects the driver to ignore the provided rkey if the
->> reth length is zero and make sure to set the mr to NULL. In read_reply()
->> if the length is zero the MR is set to NULL. Warnings are added in
->> the routines in rxe_mr.c to catch NULL MRs when the length is non-zero.
->>
-> 
-> There is a patch in the following link:
-> 
-> https://patchwork.kernel.org/project/linux-rdma/patch/20230113023527.728725-1-baijiaju1990@gmail.com/
-> 
-> Not sure whether it is similar or not.
-> 
-> Zhu Yanjun
-> 
->> Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
->> ---
->>  drivers/infiniband/sw/rxe/rxe_mr.c   |  9 +++++++
->>  drivers/infiniband/sw/rxe/rxe_resp.c | 36 +++++++++++++++++++++-------
->>  2 files changed, 36 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
->> index 072eac4b65d2..134a74f315c2 100644
->> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
->> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
->> @@ -267,6 +267,9 @@ void *iova_to_vaddr(struct rxe_mr *mr, u64 iova, int length)
->>         int m, n;
->>         void *addr;
->>
->> +       if (WARN_ON(!mr))
->> +               return NULL;
->> +
->>         if (mr->state != RXE_MR_STATE_VALID) {
->>                 rxe_dbg_mr(mr, "Not in valid state\n");
->>                 addr = NULL;
->> @@ -305,6 +308,9 @@ int rxe_flush_pmem_iova(struct rxe_mr *mr, u64 iova, int length)
->>         if (length == 0)
->>                 return 0;
->>
->> +       if (WARN_ON(!mr))
->> +               return -EINVAL;
->> +
->>         if (mr->ibmr.type == IB_MR_TYPE_DMA)
->>                 return -EFAULT;
->>
->> @@ -349,6 +355,9 @@ int rxe_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
->>         if (length == 0)
->>                 return 0;
->>
->> +       if (WARN_ON(!mr))
->> +               return -EINVAL;
->> +
->>         if (mr->ibmr.type == IB_MR_TYPE_DMA) {
->>                 u8 *src, *dest;
->>
->> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
->> index c74972244f08..a528dc25d389 100644
->> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
->> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
->> @@ -457,13 +457,23 @@ static enum resp_states rxe_resp_check_length(struct rxe_qp *qp,
->>         return RESPST_CHK_RKEY;
->>  }
->>
->> +/* if the reth length field is zero we can assume nothing
->> + * about the rkey value and should not validate or use it.
->> + * Instead set qp->resp.rkey to 0 which is an invalid rkey
->> + * value since the minimum index part is 1.
->> + */
->>  static void qp_resp_from_reth(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
->>  {
->> +       unsigned int length = reth_len(pkt);
->> +
->>         qp->resp.va = reth_va(pkt);
->>         qp->resp.offset = 0;
->> -       qp->resp.rkey = reth_rkey(pkt);
->> -       qp->resp.resid = reth_len(pkt);
->> -       qp->resp.length = reth_len(pkt);
->> +       qp->resp.resid = length;
->> +       qp->resp.length = length;
->> +       if (length)
->> +               qp->resp.rkey = reth_rkey(pkt);
->> +       else
->> +               qp->resp.rkey = 0;
->>  }
->>
->>  static void qp_resp_from_atmeth(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
->> @@ -512,8 +522,8 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
->>
->>         /* A zero-byte op is not required to set an addr or rkey. See C9-88 */
->>         if ((pkt->mask & RXE_READ_OR_WRITE_MASK) &&
->> -           (pkt->mask & RXE_RETH_MASK) &&
->> -           reth_len(pkt) == 0) {
->> +           (pkt->mask & RXE_RETH_MASK) && reth_len(pkt) == 0) {
->> +               qp->resp.mr = NULL;
->>                 return RESPST_EXECUTE;
->>         }
->>
->> @@ -592,6 +602,7 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
->>         return RESPST_EXECUTE;
->>
->>  err:
->> +       qp->resp.mr = NULL;
->>         if (mr)
->>                 rxe_put(mr);
->>         if (mw)
->> @@ -966,7 +977,10 @@ static enum resp_states read_reply(struct rxe_qp *qp,
->>         }
->>
->>         if (res->state == rdatm_res_state_new) {
->> -               if (!res->replay) {
->> +               if (qp->resp.length == 0) {
->> +                       mr = NULL;
->> +                       qp->resp.mr = NULL;
->> +               } else if (!res->replay) {
->>                         mr = qp->resp.mr;
->>                         qp->resp.mr = NULL;
->>                 } else {
->> @@ -980,9 +994,13 @@ static enum resp_states read_reply(struct rxe_qp *qp,
->>                 else
->>                         opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST;
->>         } else {
->> -               mr = rxe_recheck_mr(qp, res->read.rkey);
->> -               if (!mr)
->> -                       return RESPST_ERR_RKEY_VIOLATION;
->> +               if (qp->resp.length == 0) {
->> +                       mr = NULL;
->> +               } else {
->> +                       mr = rxe_recheck_mr(qp, res->read.rkey);
->> +                       if (!mr)
->> +                               return RESPST_ERR_RKEY_VIOLATION;
->> +               }
->>
->>                 if (res->read.resid > mtu)
->>                         opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE;
->> --
->> 2.37.2
->>
+> From: Jason Gunthorpe <jgg@nvidia.com>
+> Sent: Thursday, January 19, 2023 2:01 AM
+>=20
+> This is eventually called by iommufd through intel_iommu_map_pages() and
+> it should not be forced to atomic. Push the GFP_ATOMIC to all callers.
+>=20
+> Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 
-Zhu,
-
-It relates since he is checking for NULL MRs. But I don't think it addresses the root
-causes. The patch I sent should eliminate NULL MRs together with length != 0 in
-the copy routines. I added WARN_ON's in case someone changes things later and
-we hit this again. (A warning is more useful than a fault which can be very hard
-to diagnose.)
-
-The two changes I made that attack the cause of problems are
-(1) clearing qp->resp.mr in check_rkey() in the alternate paths. The primary
-path demands that it get set with a valid mr. But on the alternate paths it isn't
-set at all and can leave with a stale, invalid or wrong mr value.
-(2) in read_reply() there is an error path where a zero length read fails to get
-acked and the requester retries the operation and sends a second request. This
-will end up in read_reply and as currently written attempt to lookup the rkey and
-turn it into an MR but no valid rkey is required in a zero length operation so this
-is likely to fail. The fixes treats length == 0 as a special case and force a NULL mr.
-This should not trigger a fault in the mr copy/etc. routines since they always
-check for length == 0 and return or require a non zero length.
-
-Thanks,
-
-Bob
-
-
+Reviewed-by: Kevin Tian <kevin.tian@intel.com>
