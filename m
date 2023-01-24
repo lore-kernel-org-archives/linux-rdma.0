@@ -2,77 +2,73 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95FDCC38142
-	for <linux-rdma@archiver.kernel.org>; Tue, 24 Jan 2023 06:32:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4FEDC38142
+	for <linux-rdma@archiver.kernel.org>; Tue, 24 Jan 2023 06:33:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229451AbjAXGcV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 24 Jan 2023 01:32:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45984 "EHLO
+        id S231887AbjAXGdj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 24 Jan 2023 01:33:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233122AbjAXGcG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 24 Jan 2023 01:32:06 -0500
+        with ESMTP id S229791AbjAXGdj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 24 Jan 2023 01:33:39 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E9E93E61C
-        for <linux-rdma@vger.kernel.org>; Mon, 23 Jan 2023 22:31:43 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35515270E;
+        Mon, 23 Jan 2023 22:33:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0B01BB810C6
-        for <linux-rdma@vger.kernel.org>; Tue, 24 Jan 2023 06:31:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C94EC433D2;
-        Tue, 24 Jan 2023 06:31:36 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C7DE5B81074;
+        Tue, 24 Jan 2023 06:33:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFBACC433EF;
+        Tue, 24 Jan 2023 06:33:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1674541897;
-        bh=QnLGe+6JryCPjaOA/9npQgRjj6+bisrLN9YUpTBQpWQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=pfZxwwK38iHqqVW6HKmdxVnE4P27rwZOdYGPW0OhsSmYhEOpxkViuHzbYOONcAOOv
-         e08AOfntOM7D00RJcLPtMs22XSewgHU8IJb+yhfzQBlA1Skst/r1HE6jF05kt1CD8l
-         NhR+YnxY1X3OTTxSeNgksi5lF74ih8HJtbdV25rzgyxfrG8AUOTa+iZgelwL+5LAqm
-         2IsJLSsY9WDTXyomBmL0LJqf6WL1Gu5flCw5SPS0ZoD+dSZDXGj6v6e325dqQz++8E
-         aYrN+TQ43Srx0WSbag7/eMAbDoZKtUUjMrlEiX2V0apGcrKapA93WtZvM2vOybTgmq
-         f6moDZxNgJ39w==
-Date:   Tue, 24 Jan 2023 08:27:09 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Dragos Tatulea <dtatulea@nvidia.com>, linux-rdma@vger.kernel.org,
-        Tariq Toukan <tariqt@nvidia.com>
-Subject: Re: [PATCH rdma-rc v1] IB/IPoIB: Fix legacy IPoIB due to wrong
- number of queues
-Message-ID: <Y896PRioqqz6nVCZ@unreal>
-References: <752143b0eef72a966662ce94526b1ceb5ba4bbb3.1674234106.git.leon@kernel.org>
- <Y8r/BUdb7XMxwVN+@nvidia.com>
- <Y80vs3KQ1QfB+KBf@unreal>
- <Y87SpbbdYE3A+y46@nvidia.com>
+        s=k20201202; t=1674541986;
+        bh=ygLrA6ydiqKtELL1xqan+538SWtwF3JrMerwki8WNX4=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=IhS8inkWwLJfsw0ZFOpViv36UIMiTOHNus38MGc191GNgg4bwtF91Bh52cjni/4ga
+         a+xgMCDZg/1iHYOueoiSFYScC00aAMc7ECneI45ag9HXXbo+Fbnk2529+vldSPHz+E
+         c6CgYgGtZ/xteqdaNtzxTouorHE+Sr2ULxfYySzc8psqiLTEyIxr8sOjUG3cm021j8
+         /uen2BfKLau21IRa2XMgTDSGxSrPEXwLctZqDoZqRfRSBMFHsyiy8bDCp6Ec7qjNGV
+         xEFPrsz5KJ79AJ/n41yhIBbK/mn/F37fu5QTcq+FFk0R6jgPYZUSFj9kUuB1j5Gh+D
+         radTDT9OgJrLQ==
+Date:   Mon, 23 Jan 2023 22:33:05 -0800
+From:   Jakub Kicinski <kuba@kernel.org>
+To:     Ajit Khaparde <ajit.khaparde@broadcom.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     andrew.gospodarek@broadcom.com, davem@davemloft.net,
+        edumazet@google.com, jgg@ziepe.ca, leon@kernel.org,
+        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+        michael.chan@broadcom.com, netdev@vger.kernel.org,
+        pabeni@redhat.com, selvin.xavier@broadcom.com,
+        Leon Romanovsky <leonro@nvidia.com>
+Subject: Re: [PATCH net-next v8 1/8] bnxt_en: Add auxiliary driver support
+Message-ID: <20230123223305.30c586ee@kernel.org>
+In-Reply-To: <20230120060535.83087-2-ajit.khaparde@broadcom.com>
+References: <20230120060535.83087-1-ajit.khaparde@broadcom.com>
+        <20230120060535.83087-2-ajit.khaparde@broadcom.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y87SpbbdYE3A+y46@nvidia.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jan 23, 2023 at 02:32:05PM -0400, Jason Gunthorpe wrote:
-> On Sun, Jan 22, 2023 at 02:44:35PM +0200, Leon Romanovsky wrote:
-> 
-> > > And the return of a really big number from ops->get_num_rx_queues is
-> > > pretty ugly too, ideally that would be fixed to pass in some function
-> > > arguments and obtain the ppriv so it can return the actual maximum
-> > > number of queues and we don't waste a bunch of memory..
-> > 
-> > .get_num_rx_queues() is declared as void, so it can't have any complex
-> > logic except returns some global define.
-> 
-> Well, yes, you'd have to add some arguments..
+On Thu, 19 Jan 2023 22:05:28 -0800 Ajit Khaparde wrote:
+> @@ -13212,6 +13214,7 @@ static void bnxt_remove_one(struct pci_dev *pdev)
+>  	kfree(bp->rss_indir_tbl);
+>  	bp->rss_indir_tbl = NULL;
+>  	bnxt_free_port_stats(bp);
+> +	bnxt_aux_priv_free(bp);
+>  	free_netdev(dev);
 
-Jason, please be realistic.
+You're still freeing the memory in which struct device sits regardless
+of its reference count.
 
-We already were in this place, where we wanted to change netdev stack
-for our IPoIB deadlock. As you probably remember, that didn't went well.
+Greg, is it legal to call:
+  
+	auxiliary_device_delete(adev);  // AKA device_del(&auxdev->dev);
+	auxiliary_device_uninit(adev);  // AKA put_device(&auxdev->dev);
+	free(adev);			// frees struct device
 
-I see a little value to change bunch of netdev drivers just to save some
-bytes in legacy IPoIB.
-
-Thanks
-
->  
-> Jason
+? I tried to explain this three times, maybe there's some wait during
+device_del() I'm not seeing which makes this safe :S
