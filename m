@@ -2,152 +2,58 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BC57C05027
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Feb 2023 10:15:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE694C05027
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Feb 2023 10:55:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231889AbjBBKPN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Feb 2023 05:15:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52016 "EHLO
+        id S230169AbjBBKzy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Feb 2023 05:55:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232001AbjBBKPN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Feb 2023 05:15:13 -0500
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26C0127981
-        for <linux-rdma@vger.kernel.org>; Thu,  2 Feb 2023 02:15:11 -0800 (PST)
-Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3129v4hm000895;
-        Thu, 2 Feb 2023 10:15:09 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=k8EZPwbNwc8OhIyMzZQs00I626CKr3TiJk2qT4TNS+E=;
- b=mhXAAE77B0Fh5sQ6U0Ntd3DsZWlXbnVEv1PJDqhrOL4hyYmayi4JqRLdg00RHh5j90oD
- 6f41RskBUDCIKABzhd11n7pz1XlD/J7fHgWbuAiy0/DHDkxEvyEIHQM0W4HwQJpygOdS
- XlCAsGSuKBPC5Dj89/mT4pSMzOrc+DjCHoUv+xS6J2mUj0+z1gITdimbjFRNIAnxIgq8
- /09XacxjrQdjyQ/BJC/G+6iK0axKnlU8ThFgZsOnlGW0JfrJZ/P/6ggqIyU7lwuBqrEf
- 2hM7YGnqurYIA2Zan80ejt/DOCcF4vB3XeesC2VWO8/lqBdFr5FKu8yOY9LsPdNz1Ndb WA== 
-Received: from ppma02fra.de.ibm.com (47.49.7a9f.ip4.static.sl-reverse.com [159.122.73.71])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ngb088cgt-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 02 Feb 2023 10:15:08 +0000
-Received: from pps.filterd (ppma02fra.de.ibm.com [127.0.0.1])
-        by ppma02fra.de.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 311LgQWu003400;
-        Thu, 2 Feb 2023 10:10:06 GMT
-Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
-        by ppma02fra.de.ibm.com (PPS) with ESMTPS id 3ncvv6ca1w-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 02 Feb 2023 10:10:06 +0000
-Received: from smtpav06.fra02v.mail.ibm.com (smtpav06.fra02v.mail.ibm.com [10.20.54.105])
-        by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 312AA30542074622
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 2 Feb 2023 10:10:04 GMT
-Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id D52FB20049;
-        Thu,  2 Feb 2023 10:10:03 +0000 (GMT)
-Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id AEB282004F;
-        Thu,  2 Feb 2023 10:10:03 +0000 (GMT)
-Received: from rims.zurich.ibm.com (unknown [9.4.69.56])
-        by smtpav06.fra02v.mail.ibm.com (Postfix) with ESMTP;
-        Thu,  2 Feb 2023 10:10:03 +0000 (GMT)
-From:   Bernard Metzler <bmt@zurich.ibm.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     jgg@nvidia.com, leonro@nvidia.com, apopple@nvidia.com,
-        Bernard Metzler <bmt@zurich.ibm.com>
-Subject: [PATCH] RDMA/siw: Fix user page pinning accounting
-Date:   Thu,  2 Feb 2023 11:10:00 +0100
-Message-Id: <20230202101000.402990-1-bmt@zurich.ibm.com>
-X-Mailer: git-send-email 2.32.0
+        with ESMTP id S231520AbjBBKzy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Feb 2023 05:55:54 -0500
+X-Greylist: delayed 90598 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 02 Feb 2023 02:55:53 PST
+Received: from mail.corrib.pl (mail.corrib.pl [185.58.226.145])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 639D810A9A
+        for <linux-rdma@vger.kernel.org>; Thu,  2 Feb 2023 02:55:53 -0800 (PST)
+Received: by mail.corrib.pl (Postfix, from userid 1001)
+        id B3D73A4155; Wed,  1 Feb 2023 09:06:58 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corrib.pl; s=mail;
+        t=1675242466; bh=X6IEpSISwJiYlJ3uA866lskXve3r+4o2hf4z7VM6m5o=;
+        h=Date:From:To:Subject:From;
+        b=GDl/y302KAPIAS3PAXDIYACT4jxMeI5+X7rThBEtDqp6iYbWVR22EUNaPMgWPov+R
+         f3DvQ+RPKBou37eAcj6MQwS3AHq5svX7mPRGLgwPMPI8ftB+SVtYK5pYc/pLrmwwY8
+         fqPcLrD97DBVv4hlGshP/k5SbTuCmGH187mnElfaRLT+oLgp9AYS2reQNdtCQ7bPQz
+         vheX9k8TMq2ytbu9sNsuaFbmjQj6fGuKDtIyITpxQVlV8lRrALCtUbJ+BJ8YW/jP4g
+         kuRzPZrIG2mC9jJbnHEph5azLC17IDq8VJ4kz0q9/MxYekSMM66/yJuT92ou7Lsub3
+         dkYnm96VF1WmQ==
+Received: by mail.corrib.pl for <linux-rdma@vger.kernel.org>; Wed,  1 Feb 2023 09:06:19 GMT
+Message-ID: <20230201074500-0.1.58.fiei.0.gsb58pn8xp@corrib.pl>
+Date:   Wed,  1 Feb 2023 09:06:19 GMT
+From:   =?UTF-8?Q? "Szczepan_Kie=C5=82basa" ?= 
+        <szczepan.kielbasa@corrib.pl>
+To:     <linux-rdma@vger.kernel.org>
+Subject: Faktoring
+X-Mailer: mail.corrib.pl
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: Sjl9m4eF05KHdmPhDkUm4Bv_sCq9cglm
-X-Proofpoint-GUID: Sjl9m4eF05KHdmPhDkUm4Bv_sCq9cglm
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.219,Aquarius:18.0.930,Hydra:6.0.562,FMLib:17.11.122.1
- definitions=2023-02-02_02,2023-02-02_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- clxscore=1015 lowpriorityscore=0 mlxscore=0 mlxlogscore=698
- impostorscore=0 bulkscore=0 suspectscore=0 spamscore=0 phishscore=0
- adultscore=0 malwarescore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2212070000 definitions=main-2302020088
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-To avoid racing with other user memory reservations, immediately
-account full amount of pages to be pinned.
+Dzie=C5=84 dobry,
 
-Fixes: 2251334dcac9 ("rdma/siw: application buffer management")
-Reported-by: Jason Gunthorpe <jgg@nvidia.com>
-Suggested-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Signed-off-by: Bernard Metzler <bmt@zurich.ibm.com>
----
- drivers/infiniband/sw/siw/siw_mem.c | 23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+rozwa=C5=BCali Pa=C5=84stwo wyb=C3=B3r finansowania, kt=C3=B3re spe=C5=82=
+ni potrzeby firmy, zapewniaj=C4=85c natychmiastowy dost=C4=99p do got=C3=B3=
+wki, bez zb=C4=99dnych przestoj=C3=B3w?=20
 
-diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
-index b2b33dd3b4fa..f51ab2ccf151 100644
---- a/drivers/infiniband/sw/siw/siw_mem.c
-+++ b/drivers/infiniband/sw/siw/siw_mem.c
-@@ -398,7 +398,7 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
- 
- 	mlock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
- 
--	if (num_pages + atomic64_read(&mm_s->pinned_vm) > mlock_limit) {
-+	if (atomic64_add_return(num_pages, &mm_s->pinned_vm) > mlock_limit) {
- 		rv = -ENOMEM;
- 		goto out_sem_up;
- 	}
-@@ -411,30 +411,27 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
- 		goto out_sem_up;
- 	}
- 	for (i = 0; num_pages; i++) {
--		int got, nents = min_t(int, num_pages, PAGES_PER_CHUNK);
--
--		umem->page_chunk[i].plist =
-+		int nents = min_t(int, num_pages, PAGES_PER_CHUNK);
-+		struct page **plist =
- 			kcalloc(nents, sizeof(struct page *), GFP_KERNEL);
--		if (!umem->page_chunk[i].plist) {
-+
-+		if (!plist) {
- 			rv = -ENOMEM;
- 			goto out_sem_up;
- 		}
--		got = 0;
-+		umem->page_chunk[i].plist = plist;
- 		while (nents) {
--			struct page **plist = &umem->page_chunk[i].plist[got];
--
- 			rv = pin_user_pages(first_page_va, nents, foll_flags,
- 					    plist, NULL);
- 			if (rv < 0)
- 				goto out_sem_up;
- 
- 			umem->num_pages += rv;
--			atomic64_add(rv, &mm_s->pinned_vm);
- 			first_page_va += rv * PAGE_SIZE;
-+			plist += rv;
- 			nents -= rv;
--			got += rv;
-+			num_pages -= rv;
- 		}
--		num_pages -= got;
- 	}
- out_sem_up:
- 	mmap_read_unlock(mm_s);
-@@ -442,6 +439,10 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
- 	if (rv > 0)
- 		return umem;
- 
-+	/* Adjust accounting for pages not pinned */
-+	if (num_pages)
-+		atomic64_sub(num_pages, &mm_s->pinned_vm);
-+
- 	siw_umem_release(umem, false);
- 
- 	return ERR_PTR(rv);
--- 
-2.32.0
+Przygotowali=C5=9Bmy rozwi=C4=85zania faktoringowe dopasowane do Pa=C5=84=
+stwa bran=C5=BCy i wielko=C5=9Bci firmy, dzi=C4=99ki kt=C3=B3rym, nie mus=
+z=C4=85 Pa=C5=84stwo martwi=C4=87 si=C4=99 o niewyp=C5=82acalno=C5=9B=C4=87=
+ kontrahent=C3=B3w, poniewa=C5=BC transakcje s=C4=85 zabezpieczone i posi=
+adaj=C4=85 gwarancj=C4=99 sp=C5=82aty.=20
+Chc=C4=85 Pa=C5=84stwo przeanalizowa=C4=87 dost=C4=99pne opcje?
 
+
+Pozdrawiam
+Szczepan Kie=C5=82basa
