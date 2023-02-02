@@ -2,87 +2,103 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82EA2C636D4
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Feb 2023 08:20:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3047C63797
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Feb 2023 08:27:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231883AbjBBIU6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Feb 2023 03:20:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38434 "EHLO
+        id S230226AbjBBI1G (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Feb 2023 03:27:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231897AbjBBIU5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Feb 2023 03:20:57 -0500
-X-Greylist: delayed 23979 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 02 Feb 2023 00:20:55 PST
-Received: from out-242.mta1.migadu.com (out-242.mta1.migadu.com [IPv6:2001:41d0:203:375::f2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D842F84B74
-        for <linux-rdma@vger.kernel.org>; Thu,  2 Feb 2023 00:20:55 -0800 (PST)
-Message-ID: <3e3fd166-6a71-cec8-7d85-6d6b2515d7f6@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1675326053;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=OUivNFXjv8moUaUjEogbM+eU3r3jETmBMqQBNTfTjgA=;
-        b=iaPbxOxJv1my76gfF2mKmO3Aa7Fbl6hRurWZVKqWhtaa2av/E9JIITQE1850MUBjirL3JX
-        IlDRJBnjMVA53TvYoeUJiYGAP2Tl2iWGg3N38IFeJtYxl/letInvEZcPMXvYeI1a6h6iV1
-        rqXog+PgBIdxPG82FvTgdZJE9OA0sg8=
-Date:   Thu, 2 Feb 2023 16:20:57 +0800
-MIME-Version: 1.0
-Subject: Re: [PATCH RFC] RDMA/rtrs: Don't call kobject_del for srv_path->kobj
-Content-Language: en-US
-To:     "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>,
-        "haris.iqbal@ionos.com" <haris.iqbal@ionos.com>,
-        "jinpu.wang@ionos.com" <jinpu.wang@ionos.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc:     "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-References: <1675261833-2-1-git-send-email-lizhijian@fujitsu.com>
- <6bcba397-f4f1-26df-f8cd-1dbebf111932@linux.dev>
- <d1751eec-3d48-a8c9-1e3b-3263a4a043a3@fujitsu.com>
- <b82cfec2-b679-7c5a-06fe-a540fddda0f3@linux.dev>
- <fe563b74-efff-2799-ceff-af7af7bf9171@fujitsu.com>
- <42e231f5-63bb-e145-ce80-d9651a9afee1@fujitsu.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Guoqing Jiang <guoqing.jiang@linux.dev>
-In-Reply-To: <42e231f5-63bb-e145-ce80-d9651a9afee1@fujitsu.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+        with ESMTP id S232111AbjBBI1E (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Feb 2023 03:27:04 -0500
+Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9D74841BF;
+        Thu,  2 Feb 2023 00:27:02 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045192;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0Vak2b-x_1675326420;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vak2b-x_1675326420)
+          by smtp.aliyun-inc.com;
+          Thu, 02 Feb 2023 16:27:00 +0800
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        "D. Wythe" <alibuda@linux.alibaba.com>
+Subject: [net-next v7 2/4] net/smc: use read semaphores to reduce unnecessary blocking in smc_buf_create() & smcr_buf_unuse()
+Date:   Thu,  2 Feb 2023 16:26:40 +0800
+Message-Id: <1675326402-109943-3-git-send-email-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1675326402-109943-1-git-send-email-alibuda@linux.alibaba.com>
+References: <1675326402-109943-1-git-send-email-alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
+Following is part of Off-CPU graph during frequent SMC-R short-lived
+processing:
 
-On 2/2/23 15:59, lizhijian@fujitsu.com wrote:
-> 6af4609c18b3 seems make senses, so i don't want to revert it entirely if possible.
->
-> I have a update for this path like below, i am no longer get problem with this new update.
->
-> index c76ba29da1e2..5adba0f754b6 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
-> @@ -312,9 +312,8 @@ void rtrs_srv_destroy_path_files(struct rtrs_srv_path *srv_path)
->    
->           if (srv_path->kobj.state_in_sysfs) {
->                   sysfs_remove_group(&srv_path->kobj, &rtrs_srv_path_attr_group);
-> -               kobject_del(&srv_path->kobj);
->                   kobject_put(&srv_path->kobj);
-> +               rtrs_srv_destroy_once_sysfs_root_folders(srv_path);
->           }
->    
-> -       rtrs_srv_destroy_once_sysfs_root_folders(srv_path);
->    }
+process_one_work				(51.19%)
+smc_close_passive_work			(28.36%)
+	smcr_buf_unuse				(28.34%)
+	rwsem_down_write_slowpath		(28.22%)
 
-Hmm, I overlooked the kobject hierarchy 😅.
+smc_listen_work				(22.83%)
+	smc_clc_wait_msg			(1.84%)
+	smc_buf_create				(20.45%)
+		smcr_buf_map_usable_links
+		rwsem_down_write_slowpath	(20.43%)
+	smcr_lgr_reg_rmbs			(0.53%)
+		rwsem_down_write_slowpath	(0.43%)
+		smc_llc_do_confirm_rkey		(0.08%)
 
-        err = kobject_init_and_add(&srv_path->kobj, &ktype, 
-srv->kobj_paths,
-"%s", str);
+We can clearly see that during the connection establishment time,
+waiting time of connections is not on IO, but on llc_conf_mutex.
 
-Pls send a formal patch, and feel free to add my Acked-by.
+What is more important, the core critical area (smcr_buf_unuse() &
+smc_buf_create()) only perfroms read semantics on links, we can
+easily replace it with read semaphore.
 
-Thanks,
-Guoqing
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+---
+ net/smc/smc_core.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 22ddce6..10a9e09 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1106,10 +1106,10 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
+ 		rc = smc_llc_flow_initiate(lgr, SMC_LLC_FLOW_RKEY);
+ 		if (!rc) {
+ 			/* protect against smc_llc_cli_rkey_exchange() */
+-			down_write(&lgr->llc_conf_mutex);
++			down_read(&lgr->llc_conf_mutex);
+ 			smc_llc_do_delete_rkey(lgr, buf_desc);
+ 			buf_desc->is_conf_rkey = false;
+-			up_write(&lgr->llc_conf_mutex);
++			up_read(&lgr->llc_conf_mutex);
+ 			smc_llc_flow_stop(lgr, &lgr->llc_flow_lcl);
+ 		}
+ 	}
+@@ -2247,7 +2247,7 @@ static int smcr_buf_map_usable_links(struct smc_link_group *lgr,
+ 	int i, rc = 0, cnt = 0;
+ 
+ 	/* protect against parallel link reconfiguration */
+-	down_write(&lgr->llc_conf_mutex);
++	down_read(&lgr->llc_conf_mutex);
+ 	for (i = 0; i < SMC_LINKS_PER_LGR_MAX; i++) {
+ 		struct smc_link *lnk = &lgr->lnk[i];
+ 
+@@ -2260,7 +2260,7 @@ static int smcr_buf_map_usable_links(struct smc_link_group *lgr,
+ 		cnt++;
+ 	}
+ out:
+-	up_write(&lgr->llc_conf_mutex);
++	up_read(&lgr->llc_conf_mutex);
+ 	if (!rc && !cnt)
+ 		rc = -EINVAL;
+ 	return rc;
+-- 
+1.8.3.1
 
