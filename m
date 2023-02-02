@@ -2,58 +2,70 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE694C05027
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Feb 2023 10:55:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 220CAC61DA4
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Feb 2023 11:17:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230169AbjBBKzy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Feb 2023 05:55:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55644 "EHLO
+        id S229761AbjBBLR3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Feb 2023 06:17:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231520AbjBBKzy (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Feb 2023 05:55:54 -0500
-X-Greylist: delayed 90598 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 02 Feb 2023 02:55:53 PST
-Received: from mail.corrib.pl (mail.corrib.pl [185.58.226.145])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 639D810A9A
-        for <linux-rdma@vger.kernel.org>; Thu,  2 Feb 2023 02:55:53 -0800 (PST)
-Received: by mail.corrib.pl (Postfix, from userid 1001)
-        id B3D73A4155; Wed,  1 Feb 2023 09:06:58 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=corrib.pl; s=mail;
-        t=1675242466; bh=X6IEpSISwJiYlJ3uA866lskXve3r+4o2hf4z7VM6m5o=;
-        h=Date:From:To:Subject:From;
-        b=GDl/y302KAPIAS3PAXDIYACT4jxMeI5+X7rThBEtDqp6iYbWVR22EUNaPMgWPov+R
-         f3DvQ+RPKBou37eAcj6MQwS3AHq5svX7mPRGLgwPMPI8ftB+SVtYK5pYc/pLrmwwY8
-         fqPcLrD97DBVv4hlGshP/k5SbTuCmGH187mnElfaRLT+oLgp9AYS2reQNdtCQ7bPQz
-         vheX9k8TMq2ytbu9sNsuaFbmjQj6fGuKDtIyITpxQVlV8lRrALCtUbJ+BJ8YW/jP4g
-         kuRzPZrIG2mC9jJbnHEph5azLC17IDq8VJ4kz0q9/MxYekSMM66/yJuT92ou7Lsub3
-         dkYnm96VF1WmQ==
-Received: by mail.corrib.pl for <linux-rdma@vger.kernel.org>; Wed,  1 Feb 2023 09:06:19 GMT
-Message-ID: <20230201074500-0.1.58.fiei.0.gsb58pn8xp@corrib.pl>
-Date:   Wed,  1 Feb 2023 09:06:19 GMT
-From:   =?UTF-8?Q? "Szczepan_Kie=C5=82basa" ?= 
-        <szczepan.kielbasa@corrib.pl>
-To:     <linux-rdma@vger.kernel.org>
-Subject: Faktoring
-X-Mailer: mail.corrib.pl
+        with ESMTP id S231755AbjBBLR0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Feb 2023 06:17:26 -0500
+Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EECF8AC1C
+        for <linux-rdma@vger.kernel.org>; Thu,  2 Feb 2023 03:16:53 -0800 (PST)
+Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.66.156])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 396673F621
+        for <linux-rdma@vger.kernel.org>; Thu,  2 Feb 2023 11:16:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
+        s=20210803; t=1675336596;
+        bh=nsxx48p+aHTup89v6/wqnz9wBvBgWCywZ4rtdGyOY1Y=;
+        h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
+         Reply-To;
+        b=K11WFHPV3lS00ck7Pzi4tyIYS+H48VEK8rp6HKzvNzblaMZ0xXo0tJx8+aSPczYEb
+         K39e2Q4A2Dm3bMTxqpk8A3CP/6KReNtixiXzEIPQ3Wb4fbSDkRHdxmSoPo9/MIpr7X
+         ASlPkbf7HJlszhaP+pAzzw+nfj0aQS48vrxn/1h1OBGqAc0+8k7PXdARFLUF7JsBY0
+         Nwh+3TNcV8QvZw7g6FTRIqs3Mb9QP2UwbYOMvk4/LkIe9iFweK4KaRCUlQDcRFQt+V
+         ANIbbqWkCXMS6d0A4RSmpD8Yg9u++AiGVRWRLO5jRZtvMVnS5H1mV4mjj2TBuel5+A
+         nrScZNY646GBA==
+Received: from juju-4112d9-prod-launchpad-manual-servers-4.lp.internal (localhost [127.0.0.1])
+        by buildd-manager.lp.internal (Postfix) with ESMTP id 1CB64BB81C
+        for <linux-rdma@vger.kernel.org>; Thu,  2 Feb 2023 11:16:36 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+X-Launchpad-Message-Rationale: Requester @linux-rdma
+X-Launchpad-Message-For: linux-rdma
+X-Launchpad-Notification-Type: recipe-build-status
+X-Launchpad-Build-State: MANUALDEPWAIT
+X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
+To:     Linux RDMA <linux-rdma@vger.kernel.org>
+From:   noreply@launchpad.net
+Subject: [recipe build #3488986] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
+Message-Id: <167533659609.27579.9283823041069923615.launchpad@juju-4112d9-prod-launchpad-manual-servers-4.lp.internal>
+Date:   Thu, 02 Feb 2023 11:16:36 -0000
+Reply-To: noreply@launchpad.net
+Sender: noreply@launchpad.net
+X-Generated-By: Launchpad (canonical.com); Revision="33dc2e2ab7f8e563f52b8c81cbdf9e3946d2097e"; Instance="buildmaster"
+X-Launchpad-Hash: e7f5989ea3b2a5c95bd873ad43c3e1ec5876ca90
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dzie=C5=84 dobry,
+ * State: Dependency wait
+ * Recipe: linux-rdma/rdma-core-daily
+ * Archive: ~linux-rdma/ubuntu/rdma-core-daily
+ * Distroseries: xenial
+ * Duration: 1 minute
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
+aily/+recipebuild/3488986/+files/buildlog.txt.gz
+ * Upload Log:=20
+ * Builder: https://launchpad.net/builders/lcy02-amd64-107
 
-rozwa=C5=BCali Pa=C5=84stwo wyb=C3=B3r finansowania, kt=C3=B3re spe=C5=82=
-ni potrzeby firmy, zapewniaj=C4=85c natychmiastowy dost=C4=99p do got=C3=B3=
-wki, bez zb=C4=99dnych przestoj=C3=B3w?=20
+--=20
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
+ild/3488986
+Your team Linux RDMA is the requester of the build.
 
-Przygotowali=C5=9Bmy rozwi=C4=85zania faktoringowe dopasowane do Pa=C5=84=
-stwa bran=C5=BCy i wielko=C5=9Bci firmy, dzi=C4=99ki kt=C3=B3rym, nie mus=
-z=C4=85 Pa=C5=84stwo martwi=C4=87 si=C4=99 o niewyp=C5=82acalno=C5=9B=C4=87=
- kontrahent=C3=B3w, poniewa=C5=BC transakcje s=C4=85 zabezpieczone i posi=
-adaj=C4=85 gwarancj=C4=99 sp=C5=82aty.=20
-Chc=C4=85 Pa=C5=84stwo przeanalizowa=C4=87 dost=C4=99pne opcje?
-
-
-Pozdrawiam
-Szczepan Kie=C5=82basa
