@@ -2,71 +2,68 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C82C05027
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Feb 2023 08:39:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61A85C05027
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Feb 2023 09:03:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230036AbjBBIjk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Feb 2023 03:39:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55486 "EHLO
+        id S232024AbjBBJDa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Feb 2023 04:03:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232123AbjBBIji (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Feb 2023 03:39:38 -0500
+        with ESMTP id S232283AbjBBJDV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Feb 2023 04:03:21 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 874DF83052;
-        Thu,  2 Feb 2023 00:39:35 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9922D5B9F;
+        Thu,  2 Feb 2023 01:03:13 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E7FFC61920;
-        Thu,  2 Feb 2023 08:39:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBC60C4339B;
-        Thu,  2 Feb 2023 08:39:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3075761A34;
+        Thu,  2 Feb 2023 09:03:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11975C433D2;
+        Thu,  2 Feb 2023 09:03:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675327174;
-        bh=w+LG5iu2OTZCGv8sKvoPSMJuh8GGxV5NutNULbkUb6Q=;
-        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=jKn8yJ/ZtVxpTI0prdZm2ZsELNmfU1C8pB+9bCdxy6jmcMOKv3Y8VilQkd0zBKWAY
-         eM2cjcRsSoGbRHklNOt8PbH7U0TvajUJuPhwY4irBW9GeOaWBx1MrqlKeFS3AORJfT
-         HsNFV5KE1C28RbtfjVmOEkob+uZPWKlPmFWdgYQnxxpEopJTNYw8ABdZdcgiKYrGFs
-         pRjAZqJG8czGrBih/HCbXg6kYYicVLg6tTX9Ga9BZloP1R0cekPTjIPfulGfbd0/An
-         dw5RmoBcTvxzGmARNkHEs+6D4+A1DxihdKo/rfUL2MVWPK0+18CsDBDVuzpcUOmMWZ
-         AJqSwVNW7FN2Q==
+        s=k20201202; t=1675328592;
+        bh=O5PxmLyogSKp6fm3zoyf+RnAlkhGjJZJBmZ6s0sTyks=;
+        h=From:To:Cc:Subject:Date:From;
+        b=AMSWvUgfqRblOJlRnxrkJF2OiQUhCtXBy5xsDiix9Uk49fz7EqjJUrrueNE2bwkLD
+         BG0Wjdttt+5fY85Os6cDu6BB3dYy42Y5MLmZGGu0+mlemd7bchO+L1vOOYiGXms5Yd
+         uq2D/GAYPNABSzFFo4vtxbT5QBdCJfpYkMwXH7WJ3Cs6w8TTzDrjhun85rRqtQ/j4M
+         1PPGfzG22Rfg5wPpQi5ZZyQFAyauIg1AOBwe4zUIDv24Lw5uweDNjpk4RfF89WHOIg
+         6qcx9wnYIxI7zcB+jRWjar/W/kJcT9mBb24XDqporfwneo/MHGdGIyxKpzNLk3TOaz
+         JXHcC2LLkMSeQ==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Long Li <longli@microsoft.com>, Dan Carpenter <error27@gmail.com>
-Cc:     Ajay Sharma <sharmaajay@microsoft.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Dexuan Cui <decui@microsoft.com>, linux-rdma@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-In-Reply-To: <Y8/3Vn8qx00kE9Kk@kili>
-References: <Y8/3Vn8qx00kE9Kk@kili>
-Subject: Re: [PATCH] RDMA/mana_ib: Prevent array underflow in mana_ib_create_qp_raw()
-Message-Id: <167532717017.1954401.2294597501814507302.b4-ty@kernel.org>
-Date:   Thu, 02 Feb 2023 10:39:30 +0200
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org,
+        Michael Guralnik <michaelgur@nvidia.com>
+Subject: [PATCH rdma-next 0/2] Two small fixes to MR cache series
+Date:   Thu,  2 Feb 2023 11:03:05 +0200
+Message-Id: <cover.1675328463.git.leon@kernel.org>
+X-Mailer: git-send-email 2.39.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.12-dev-a055d
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro@nvidia.com>
 
-On Tue, 24 Jan 2023 18:20:54 +0300, Dan Carpenter wrote:
-> The "port" comes from the user and if it is zero then the:
-> 
-> 	ndev = mc->ports[port - 1];
-> 
-> assignment does an out of bounds read.  I have changed the if
-> statement to fix this and to mirror how it is done in
-> mana_ib_create_qp_rss().
-> 
-> [...]
+Hi,
 
-Applied, thanks!
+There are two small patches with fix and cleanup to previously accepted
+MR cache series from Michael.
 
-[1/1] RDMA/mana_ib: Prevent array underflow in mana_ib_create_qp_raw()
-      https://git.kernel.org/rdma/rdma/c/29419daf6c957f
+Thanks
 
-Best regards,
+Leon Romanovsky (2):
+  RDMA/mlx5: Fix MR cache debugfs in switchdev mode
+  RDMA/mlx5: Remove impossible check of mkey cache cleanup failure
+
+ drivers/infiniband/hw/mlx5/main.c    |  7 +------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
+ drivers/infiniband/hw/mlx5/mr.c      | 10 ++++++----
+ 3 files changed, 8 insertions(+), 11 deletions(-)
+
 -- 
-Leon Romanovsky <leon@kernel.org>
+2.39.1
+
