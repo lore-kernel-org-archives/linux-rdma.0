@@ -2,24 +2,24 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A064AC636CD
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Feb 2023 15:49:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D5E0C636CC
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Feb 2023 15:50:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229886AbjBEPtl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 5 Feb 2023 10:49:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44656 "EHLO
+        id S229803AbjBEPt7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 5 Feb 2023 10:49:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229788AbjBEPtY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Feb 2023 10:49:24 -0500
+        with ESMTP id S229841AbjBEPtu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Feb 2023 10:49:50 -0500
 Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0C2961F4B0;
-        Sun,  5 Feb 2023 07:49:13 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0C7511ADE9;
+        Sun,  5 Feb 2023 07:49:23 -0800 (PST)
 Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id 97BD39200C0; Sun,  5 Feb 2023 16:49:12 +0100 (CET)
+        id 60B849200CC; Sun,  5 Feb 2023 16:49:21 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id 910D59200BF;
-        Sun,  5 Feb 2023 15:49:12 +0000 (GMT)
-Date:   Sun, 5 Feb 2023 15:49:12 +0000 (GMT)
+        by angie.orcam.me.uk (Postfix) with ESMTP id 5A74C9200CB;
+        Sun,  5 Feb 2023 15:49:21 +0000 (GMT)
+Date:   Sun, 5 Feb 2023 15:49:21 +0000 (GMT)
 From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
@@ -42,9 +42,9 @@ cc:     Alex Williamson <alex.williamson@redhat.com>,
         linux-pci@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v6 4/7] powerpc/eeh: Rely on `link_active_reporting'
+Subject: [PATCH v6 6/7] PCI: pciehp: Rely on `link_active_reporting'
 In-Reply-To: <alpine.DEB.2.21.2302022022230.45310@angie.orcam.me.uk>
-Message-ID: <alpine.DEB.2.21.2302051441470.33812@angie.orcam.me.uk>
+Message-ID: <alpine.DEB.2.21.2302051459210.33812@angie.orcam.me.uk>
 References: <alpine.DEB.2.21.2302022022230.45310@angie.orcam.me.uk>
 User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
@@ -58,27 +58,44 @@ Active Reporting is available rather than re-retrieving the capability.
 
 Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
 ---
-NB this has been compile-tested only with a PPC64LE configuration.
+NB this has been compile-tested only with PPC64LE and x86-64
+configurations.
 
 New change in v6.
 ---
- arch/powerpc/kernel/eeh_pe.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/pci/hotplug/pciehp_hpc.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-linux-pcie-link-active-reporting-eeh.diff
-Index: linux-macro/arch/powerpc/kernel/eeh_pe.c
+linux-pcie-link-active-reporting-hpc.diff
+Index: linux-macro/drivers/pci/hotplug/pciehp_hpc.c
 ===================================================================
---- linux-macro.orig/arch/powerpc/kernel/eeh_pe.c
-+++ linux-macro/arch/powerpc/kernel/eeh_pe.c
-@@ -671,9 +671,8 @@ static void eeh_bridge_check_link(struct
- 	eeh_ops->write_config(edev, cap + PCI_EXP_LNKCTL, 2, val);
+--- linux-macro.orig/drivers/pci/hotplug/pciehp_hpc.c
++++ linux-macro/drivers/pci/hotplug/pciehp_hpc.c
+@@ -984,7 +984,7 @@ static inline int pcie_hotplug_depth(str
+ struct controller *pcie_init(struct pcie_device *dev)
+ {
+ 	struct controller *ctrl;
+-	u32 slot_cap, slot_cap2, link_cap;
++	u32 slot_cap, slot_cap2;
+ 	u8 poweron;
+ 	struct pci_dev *pdev = dev->port;
+ 	struct pci_bus *subordinate = pdev->subordinate;
+@@ -1030,9 +1030,6 @@ struct controller *pcie_init(struct pcie
+ 	if (dmi_first_match(inband_presence_disabled_dmi_table))
+ 		ctrl->inband_presence_disabled = 1;
  
- 	/* Check link */
--	eeh_ops->read_config(edev, cap + PCI_EXP_LNKCAP, 4, &val);
--	if (!(val & PCI_EXP_LNKCAP_DLLLARC)) {
--		eeh_edev_dbg(edev, "No link reporting capability (0x%08x) \n", val);
-+	if (!edev->pdev->link_active_reporting) {
-+		eeh_edev_dbg(edev, "No link reporting capability\n");
- 		msleep(1000);
- 		return;
- 	}
+-	/* Check if Data Link Layer Link Active Reporting is implemented */
+-	pcie_capability_read_dword(pdev, PCI_EXP_LNKCAP, &link_cap);
+-
+ 	/* Clear all remaining event bits in Slot Status register. */
+ 	pcie_capability_write_word(pdev, PCI_EXP_SLTSTA,
+ 		PCI_EXP_SLTSTA_ABP | PCI_EXP_SLTSTA_PFD |
+@@ -1051,7 +1048,7 @@ struct controller *pcie_init(struct pcie
+ 		FLAG(slot_cap, PCI_EXP_SLTCAP_EIP),
+ 		FLAG(slot_cap, PCI_EXP_SLTCAP_NCCS),
+ 		FLAG(slot_cap2, PCI_EXP_SLTCAP2_IBPD),
+-		FLAG(link_cap, PCI_EXP_LNKCAP_DLLLARC),
++		FLAG(pdev->link_active_reporting, true),
+ 		pdev->broken_cmd_compl ? " (with Cmd Compl erratum)" : "");
+ 
+ 	/*
