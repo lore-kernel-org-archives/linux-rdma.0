@@ -2,372 +2,164 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8333FC64EC6
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Feb 2023 07:36:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAD74C636CC
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Feb 2023 08:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230168AbjBGHga (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Feb 2023 02:36:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57382 "EHLO
+        id S229831AbjBGIaH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Feb 2023 03:30:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229588AbjBGHg2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Feb 2023 02:36:28 -0500
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0575D522;
-        Mon,  6 Feb 2023 23:36:24 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0Vb6MLNj_1675755382;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vb6MLNj_1675755382)
-          by smtp.aliyun-inc.com;
-          Tue, 07 Feb 2023 15:36:22 +0800
-From:   "D. Wythe" <alibuda@linux.alibaba.com>
-To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [net-next 1/2] net/smc: allow confirm/delete rkey response deliver multiplex
-Date:   Tue,  7 Feb 2023 15:36:13 +0800
-Message-Id: <1675755374-107598-2-git-send-email-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1675755374-107598-1-git-send-email-alibuda@linux.alibaba.com>
-References: <1675755374-107598-1-git-send-email-alibuda@linux.alibaba.com>
+        with ESMTP id S229535AbjBGIaG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Feb 2023 03:30:06 -0500
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2040.outbound.protection.outlook.com [40.107.236.40])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 562461A94A
+        for <linux-rdma@vger.kernel.org>; Tue,  7 Feb 2023 00:30:05 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=fnHI2YdSLOwXOzUORbnVWK05Fr5nchHx7w/66yLpsPaLKBCduKTEJ7akvFbM3MgE56SPwjY7z8CDSCnCCUA8ESxLUJ/yQwOXLnCxSEsPWmBW3+LxNC5oeB6HvB2OnXo3GuGwEvZXBTdhfJy8cYPVvfIdXY7SxbJRmiEBh5pV+TlVbRJw9RVCr7c8EjhsV6cjg5U94rasHfW0ziGsWX9BFV3Kn/3xSTx+8k2W79fc1MDNDw4iFwyNvtlf70zAxK3zO+8hJsdkImfijxjurspgkr619qBa1OaxXOIKzf4kNo8j7QUCqJD+vveR/P/r7e2fwkgH5hIik1ep9UdAT0fBdw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=8YVDIQ0K96RAu9ZXJR6RovFeiZ8Pit1u2bVUC7laDgc=;
+ b=dadraiIWFAjKZDK+u84LdSEZNumB6CDcxl1Mm0ujoyO5CpWAGdrB+qo4p6T21+VSqDr4tu5B8uRMT997BAtUKxScPr0xrcK7AKApWbsj/70GzxdQ4iS4p6OGpXZ0jrnOpwX/uuUP2tmOPkuamveX9hnX6O+OXQqtmeb6RV7oigvCANG/j3wkX1sdl80bQSNxxa9xLcMfArCbE0a3JHL4UbUnB2hme3D3/e9UVWhxxKQZPoF3JdA0K7uBvFPCrf1e1KDywZNl9j5BeNgSkf1gZBaCY4YiMOJDFE68IKH/jt3zMLRoL1Dtis77k9nkPTqcj5rQvVLHWja66MOdQzFIkQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8YVDIQ0K96RAu9ZXJR6RovFeiZ8Pit1u2bVUC7laDgc=;
+ b=LYijZgXAIY+oYrNOkCyXyjFjEJDLfaxBHwSyxz7zCkT85GDOr+4XiKj64Uzj0AP7IgIUCIflMnpor2TFVAR0CHwRbizgK/ilnYFrel9H8tosfu1CWCuqp3CJ6B1g2p6cSaVJK5mN7Pgb3ev8w3kyuGiVk2rw/4GdJcD+cJ00y48pDEqLgX4ig5ecBmmBXtRLTnRhyudISQgxF1zGuiIcIl+kAsNz0TBruED/SjmL1JeXr/5/xT6dmi78P69C+Jukrh+AuXUm3ci1ciz/mQ7ueVVYeyS/EIfFSSwv6FY6SR3Vc7BSB5KTDZ6rT0/BMQrZkmUkjtqgR/vGOxlBmJ5rOg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from DM4PR12MB5296.namprd12.prod.outlook.com (2603:10b6:5:39d::21)
+ by SJ1PR12MB6316.namprd12.prod.outlook.com (2603:10b6:a03:455::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6064.34; Tue, 7 Feb
+ 2023 08:30:03 +0000
+Received: from DM4PR12MB5296.namprd12.prod.outlook.com
+ ([fe80::47ee:db31:6123:d1ac]) by DM4PR12MB5296.namprd12.prod.outlook.com
+ ([fe80::47ee:db31:6123:d1ac%9]) with mapi id 15.20.6064.034; Tue, 7 Feb 2023
+ 08:30:03 +0000
+Message-ID: <fd3e4a53-df6d-8e8d-eec1-3f5ec101b4aa@nvidia.com>
+Date:   Tue, 7 Feb 2023 10:29:56 +0200
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
+Subject: Re: ibv_reg_mr hang
+To:     yang <wei.xin@enmotech.com>, linux-rdma@vger.kernel.org
+References: <8DDFF0AC89400BC0+76d0cfd8-78d8-ba3a-9685-fa1596e5a8c9@enmotech.com>
+From:   Maor Gottlieb <maorg@nvidia.com>
+In-Reply-To: <8DDFF0AC89400BC0+76d0cfd8-78d8-ba3a-9685-fa1596e5a8c9@enmotech.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: FR2P281CA0123.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:9d::16) To DM4PR12MB5296.namprd12.prod.outlook.com
+ (2603:10b6:5:39d::21)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: DM4PR12MB5296:EE_|SJ1PR12MB6316:EE_
+X-MS-Office365-Filtering-Correlation-Id: 84304b74-04d5-4c2f-3f6a-08db08e58233
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: t61rLb07N5mLDN6Kp+cfqIqEGMXlUPBx0Kal//AnviRJ4dlwgo+k8oFXFBgR0XgMUtJ0qfqArVVhYuOcTMVOLXmPj6qmhHGI5WcKa6dVYLEN+RNUGmnrWXqRLReGNwKFTBQb82PNQTQyJWKLm1pIFNoBA2IZwRxAWbn+DcRsi2Km6uw9mRcZjqywvt1mg2UnoXlXkUmGMzV8nx4chIVgab8WM9im6MCgb38sdpD14M3mEb0WlVrv+hoSmLGXG6kp/pZTkdtpLuXzt77gwqUflNfRn9IIObAm5gF0nikq8nPczyWf0he3GdhuPIRrku5krSq9o9H8aadkMi7/OrQX7TKyR/H3GPCfmPOX16swkhlQBP8ScdLBnJ4VOn9UpvzOMpAa4kVejcctgQkbtCLkVlJoAQNUI60WzXOsMsqGEpG0J9YVoso+4+qPG8asteGfvlBQ2jPeZY/6j+bqG17h0LT+6eKurWcCi6PHEn+puZmpYFn4fwkU4TNnpAGH70Ia/kyp92k2VUS8io4dW+O7fC9yzhI9/aG0uFUW++9DkXCvMNnJGKgopsyFd20zi88wzOnwp7sf3eb5XJTbAAYtb8BV2em7FrXIXnyaqWuE07SWAbB2Ela+/QtKGTAkEtLXm/JnjJZrDk+MjVzQ4jWR4HxDyPYvsnxGnEi8A2tfyOe6Poir1A/LdHjoETPJSwBG4rFuZ5zvFwHPphmYEUpF9GoHmouBjKY+5qHCAk9VA28=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM4PR12MB5296.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(4636009)(136003)(346002)(39860400002)(376002)(366004)(396003)(451199018)(478600001)(66476007)(83380400001)(8676002)(66556008)(66946007)(7116003)(5660300002)(316002)(8936002)(41300700001)(6666004)(6512007)(186003)(6506007)(6486002)(26005)(2616005)(31696002)(36756003)(86362001)(2906002)(4744005)(38100700002)(31686004)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?eC9GK3hYWEEyV3dtRmZqcUthZ1Y0ZjNuMGZLL1gvbzNiSXN1OTlZMTl5Mm9t?=
+ =?utf-8?B?Zmpzc2dDQjZXL0MvcW1uNWF5aGVkUnduTU92bW10STZtUDhhT3k3NlFXRmFi?=
+ =?utf-8?B?T0hjZWVMOW1qVTZxRkVzNjVMS29VT2I1RW03OVFJN2tqaVpVcENCcDNOTS9j?=
+ =?utf-8?B?ZWx6TmwvMjZpMFB4a0JPOCsreTV6RmRZOWVDWHZyTStUc3ZrS1Q5M3F4dGJB?=
+ =?utf-8?B?eXFsTkRsV2dUUW10R0Y0cUQrQk5nakcvTkpkTUExMXRiZzd5eVhIajBGU1JJ?=
+ =?utf-8?B?K0Y2R2tQaUNNWXpaQXhLWjg4ZmY2MFQ3SCtaclo1WGozRFFINVlJUWp3VUxT?=
+ =?utf-8?B?NG9tcjdOemEwdHU4VU40VUlFN2JBejNGRnp5SHh6a1hHMmN0bjlBTjhFR21F?=
+ =?utf-8?B?bGZLTnlORzNxRVdmcFVjdFJ1SUo5TkR2M2dnQjNramphWWZTK3JnekljLzN4?=
+ =?utf-8?B?dVlFekhhcDNJOE04SFdhK3lRSVVzakkrYUFWSU1uUEZNSGpicGxEc2wrYlVn?=
+ =?utf-8?B?d2trTEU2clVNR0lrNys0VUNvZlpCZmtmY2MvRTVzRCtEays0OXRnZnJlRldj?=
+ =?utf-8?B?cWNacm9lSzdxbEZHTEVkVGJPSUJKdGRSeEJNeXlBNzRaTlVWampWd0dvZ2Jo?=
+ =?utf-8?B?TW5YUDJKcm16WWU3SW96WFFyTVlhY0sxd0lWUlRMdmlId2FhczRHMU14Wk5W?=
+ =?utf-8?B?bkh1V0JLWkxyL0cwNTZ4ZEhUbWh1WWFzOXROTnFUd0c1TEtmblJWWTRpYi84?=
+ =?utf-8?B?OU8xZy9aUDd3eTJwUVhCNHlBbDhGOEVZVzFHOHBhQTBXbmtabmJEQ3dqY0tB?=
+ =?utf-8?B?cG9qUXRjK28xQlE5Y3hJU3NlV0xFMCt1UGU2cWd5MGpUMVQyM2diYzN5eUZo?=
+ =?utf-8?B?cHVsK1k4d05JMk5PTDVVelRMdWJyKzJlTU9xb2FSeXBCTm95bDhUd3UwdjdX?=
+ =?utf-8?B?c3N2MUZkOUZZMDU5MFQwc200emJjQlFUZUV6U0tLK0xNZjhKYnZ2WHpUUTN4?=
+ =?utf-8?B?NVkvQW1FL1dCekZ6bmlzQmVHbC93QVA4b0xIVnpMbWgvSVRkVlFnc1RRSGFS?=
+ =?utf-8?B?dG5VN2k0bm9odkF5MS9uczBpWGVBMXhWQy9yVnhoWlRaSVpmT2dtNFFhTTVH?=
+ =?utf-8?B?YVpKWWFjR2Eva251MjdVcUJRZFlsamVJNFNQNllsMy8yRnZmU3JVd3Uxc1ly?=
+ =?utf-8?B?cE5sdXRhMy9iV0puYU1vTStUSGlUOXlhaXpQK05uUTNtUXF1SHdEZnBVQmI0?=
+ =?utf-8?B?VFJWSTd5SkFtWURLTDhOQkQ4bWRSbXpnTGpJOFJjeEZ1bWtlWnBYTmZiN2RD?=
+ =?utf-8?B?ZUF3Q0ZNdXNqV0FJN0VlVXlZN3VoK2NGS05DMVI1K3RERjVjYkNHQjBCSDhJ?=
+ =?utf-8?B?clR5cncwc0lOQkRHaDhOSmljZFZMNFJQSkdYcnJjVlRPWFViQlpuYWJhUzRi?=
+ =?utf-8?B?dzdyelFSOCtzMUtjL2MxeW8wWVNlWHNiR2RBbEtScnRVRjJ0TUR0eTk2QU0x?=
+ =?utf-8?B?Nzg3OVpURG5IWllpYXFCWTJiR3VXeFEwVFFLTVNDaXFZSGlXUWJyUER0T2Yr?=
+ =?utf-8?B?YjlSbzRxS3FHS3lJUEx0TGJDWnNnZGo1dXkzY2gxdTh2ZXpoMk1NOFA2bk9q?=
+ =?utf-8?B?YmR1UldvZ3VqSzFLODVyQ1NpY3ZTVmZheTJSUGIwUGRiVGFSMlpRWEV6VVNY?=
+ =?utf-8?B?cWtTdzd3eERUNm9ZMlArcjFRNzY2anZUeHd1eklSYUtLV3kxeDZ3V3ZMQjdo?=
+ =?utf-8?B?UDlxYTNQZ3N3MjVIVHk4bjJOaHFpbXIvaEY0R3VZZDN2SkorRmdVZ3RlYXZ3?=
+ =?utf-8?B?TnJsaHlvYXNUNTRpdXk0dTRZb3g4YTdLRDROLy9QSnVFenZNWUdkWWpkZnhV?=
+ =?utf-8?B?aUlvZU4ySjN3bDdwR3NYdlZ1ZU1MTDdSOVNZRG43dThCK0hyNlpTQjE1VldJ?=
+ =?utf-8?B?SFZQNHNqUFhWdldjbUtZM0Y5Wld6YWlaNzhVZSs0cktRQml6WXkxUHhCN1VS?=
+ =?utf-8?B?MEtUZUFJM01nTEFWT1ZDNHh5NzNYVGJRYm1LejV2bGp2UUlqd3ZINy9nWXo3?=
+ =?utf-8?B?eTd0M1k1T3ZucGh1dHNvZW8wQk0ySTlxTThmdExpQXA4OWZIUllVdlVOMVJX?=
+ =?utf-8?Q?BIi5CoaL5BgdsF+2mF2y8v7IG?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 84304b74-04d5-4c2f-3f6a-08db08e58233
+X-MS-Exchange-CrossTenant-AuthSource: DM4PR12MB5296.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Feb 2023 08:30:03.0798
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: uNSqMx+gQMr0HNxyvzE5t0H7Zc9Ff2lVwCZF2VOzTIn3Mvn9hF//uUpdzS8ir/4OXUkL7KioD1BYdPE+qP8NdA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ1PR12MB6316
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "D. Wythe" <alibuda@linux.alibaba.com>
+Hi Yang,
 
-We know that all flows except confirm_rkey and delete_rkey are exclusive,
-confirm/delete rkey flows can run concurrently (local and remote).
+I see it is MLNX_OFED issue.
 
-Although the protocol allows, all flows are actually mutually exclusive
-in implementation, dues to waiting for LLC messages is in serial.
+Please contact official Nvidia support channel.
 
-This aggravates the time for establishing or destroying a SMC-R
-connections, connections have to be queued in smc_llc_wait.
+Thanks,
 
-We use rtokens or rkey to correlate a confirm/delete rkey message
-with its response.
-
-Before sending a message, we put context with rtokens or rkey into
-wait queue. When a response message received, we wakeup the context
-which with the same rtokens or rkey against the response message.
-
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- net/smc/smc_llc.c | 174 +++++++++++++++++++++++++++++++++++++++++-------------
- net/smc/smc_wr.c  |  10 ----
- net/smc/smc_wr.h  |  10 ++++
- 3 files changed, 143 insertions(+), 51 deletions(-)
-
-diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
-index a0840b8..d565909 100644
---- a/net/smc/smc_llc.c
-+++ b/net/smc/smc_llc.c
-@@ -200,6 +200,7 @@ struct smc_llc_msg_delete_rkey_v2 {	/* type 0x29 */
- struct smc_llc_qentry {
- 	struct list_head list;
- 	struct smc_link *link;
-+	void		*private;
- 	union smc_llc_msg msg;
- };
- 
-@@ -479,19 +480,17 @@ int smc_llc_send_confirm_link(struct smc_link *link,
- 	return rc;
- }
- 
--/* send LLC confirm rkey request */
--static int smc_llc_send_confirm_rkey(struct smc_link *send_link,
--				     struct smc_buf_desc *rmb_desc)
-+/* build LLC confirm rkey request */
-+static int smc_llc_build_confirm_rkey_request(struct smc_link *send_link,
-+					      struct smc_buf_desc *rmb_desc,
-+					      struct smc_wr_tx_pend_priv **priv)
- {
- 	struct smc_llc_msg_confirm_rkey *rkeyllc;
--	struct smc_wr_tx_pend_priv *pend;
- 	struct smc_wr_buf *wr_buf;
- 	struct smc_link *link;
- 	int i, rc, rtok_ix;
- 
--	if (!smc_wr_tx_link_hold(send_link))
--		return -ENOLINK;
--	rc = smc_llc_add_pending_send(send_link, &wr_buf, &pend);
-+	rc = smc_llc_add_pending_send(send_link, &wr_buf, priv);
- 	if (rc)
- 		goto put_out;
- 	rkeyllc = (struct smc_llc_msg_confirm_rkey *)wr_buf;
-@@ -521,25 +520,20 @@ static int smc_llc_send_confirm_rkey(struct smc_link *send_link,
- 		cpu_to_be64((uintptr_t)rmb_desc->cpu_addr) :
- 		cpu_to_be64((u64)sg_dma_address
- 			    (rmb_desc->sgt[send_link->link_idx].sgl));
--	/* send llc message */
--	rc = smc_wr_tx_send(send_link, pend);
- put_out:
--	smc_wr_tx_link_put(send_link);
- 	return rc;
- }
- 
--/* send LLC delete rkey request */
--static int smc_llc_send_delete_rkey(struct smc_link *link,
--				    struct smc_buf_desc *rmb_desc)
-+/* build LLC delete rkey request */
-+static int smc_llc_build_delete_rkey_request(struct smc_link *link,
-+					     struct smc_buf_desc *rmb_desc,
-+					     struct smc_wr_tx_pend_priv **priv)
- {
- 	struct smc_llc_msg_delete_rkey *rkeyllc;
--	struct smc_wr_tx_pend_priv *pend;
- 	struct smc_wr_buf *wr_buf;
- 	int rc;
- 
--	if (!smc_wr_tx_link_hold(link))
--		return -ENOLINK;
--	rc = smc_llc_add_pending_send(link, &wr_buf, &pend);
-+	rc = smc_llc_add_pending_send(link, &wr_buf, priv);
- 	if (rc)
- 		goto put_out;
- 	rkeyllc = (struct smc_llc_msg_delete_rkey *)wr_buf;
-@@ -548,10 +542,7 @@ static int smc_llc_send_delete_rkey(struct smc_link *link,
- 	smc_llc_init_msg_hdr(&rkeyllc->hd, link->lgr, sizeof(*rkeyllc));
- 	rkeyllc->num_rkeys = 1;
- 	rkeyllc->rkey[0] = htonl(rmb_desc->mr[link->link_idx]->rkey);
--	/* send llc message */
--	rc = smc_wr_tx_send(link, pend);
- put_out:
--	smc_wr_tx_link_put(link);
- 	return rc;
- }
- 
-@@ -2017,7 +2008,8 @@ static void smc_llc_rx_response(struct smc_link *link,
- 	case SMC_LLC_DELETE_RKEY:
- 		if (flowtype != SMC_LLC_FLOW_RKEY || flow->qentry)
- 			break;	/* drop out-of-flow response */
--		goto assign;
-+		__wake_up(&link->lgr->llc_msg_waiter, TASK_NORMAL, 1, qentry);
-+		goto free;
- 	case SMC_LLC_CONFIRM_RKEY_CONT:
- 		/* not used because max links is 3 */
- 		break;
-@@ -2026,6 +2018,7 @@ static void smc_llc_rx_response(struct smc_link *link,
- 					   qentry->msg.raw.hdr.common.type);
- 		break;
- 	}
-+free:
- 	kfree(qentry);
- 	return;
- assign:
-@@ -2184,25 +2177,98 @@ void smc_llc_link_clear(struct smc_link *link, bool log)
- 	cancel_delayed_work_sync(&link->llc_testlink_wrk);
- }
- 
-+static int smc_llc_rkey_response_wake_function(struct wait_queue_entry *wq_entry,
-+					       unsigned int mode, int sync, void *key)
-+{
-+	struct smc_llc_qentry *except, *incoming;
-+	u8 except_llc_type;
-+
-+	/* not a rkey response */
-+	if (!key)
-+		return 0;
-+
-+	except = wq_entry->private;
-+	incoming = key;
-+
-+	except_llc_type = except->msg.raw.hdr.common.llc_type;
-+
-+	/* except LLC MSG TYPE mismatch */
-+	if (except_llc_type != incoming->msg.raw.hdr.common.llc_type)
-+		return 0;
-+
-+	switch (except_llc_type) {
-+	case SMC_LLC_CONFIRM_RKEY:
-+		if (memcmp(except->msg.confirm_rkey.rtoken, incoming->msg.confirm_rkey.rtoken,
-+			   sizeof(struct smc_rmb_rtoken) *
-+			   except->msg.confirm_rkey.rtoken[0].num_rkeys))
-+			return 0;
-+		break;
-+	case SMC_LLC_DELETE_RKEY:
-+		if (memcmp(except->msg.delete_rkey.rkey, incoming->msg.delete_rkey.rkey,
-+			   sizeof(__be32) * except->msg.delete_rkey.num_rkeys))
-+			return 0;
-+		break;
-+	default:
-+		pr_warn("smc: invalid except llc msg %d.\n", except_llc_type);
-+		return 0;
-+	}
-+
-+	/* match, save hdr */
-+	memcpy(&except->msg.raw.hdr, &incoming->msg.raw.hdr, sizeof(except->msg.raw.hdr));
-+
-+	wq_entry->private = except->private;
-+	return woken_wake_function(wq_entry, mode, sync, NULL);
-+}
-+
- /* register a new rtoken at the remote peer (for all links) */
- int smc_llc_do_confirm_rkey(struct smc_link *send_link,
- 			    struct smc_buf_desc *rmb_desc)
- {
-+	DEFINE_WAIT_FUNC(wait, smc_llc_rkey_response_wake_function);
- 	struct smc_link_group *lgr = send_link->lgr;
--	struct smc_llc_qentry *qentry = NULL;
--	int rc = 0;
-+	long timeout = SMC_LLC_WAIT_TIME;
-+	struct smc_wr_tx_pend_priv *priv;
-+	struct smc_llc_qentry qentry;
-+	struct smc_wr_tx_pend *pend;
-+	int rc = 0, flags;
- 
--	rc = smc_llc_send_confirm_rkey(send_link, rmb_desc);
-+	if (!smc_wr_tx_link_hold(send_link))
-+		return -ENOLINK;
-+
-+	rc = smc_llc_build_confirm_rkey_request(send_link, rmb_desc, &priv);
- 	if (rc)
- 		goto out;
--	/* receive CONFIRM RKEY response from server over RoCE fabric */
--	qentry = smc_llc_wait(lgr, send_link, SMC_LLC_WAIT_TIME,
--			      SMC_LLC_CONFIRM_RKEY);
--	if (!qentry || (qentry->msg.raw.hdr.flags & SMC_LLC_FLAG_RKEY_NEG))
-+
-+	pend = container_of(priv, struct smc_wr_tx_pend, priv);
-+	/* make a copy of send msg */
-+	memcpy(&qentry.msg.confirm_rkey, send_link->wr_tx_bufs[pend->idx].raw,
-+	       sizeof(qentry.msg.confirm_rkey));
-+
-+	qentry.private = wait.private;
-+	wait.private = &qentry;
-+
-+	add_wait_queue(&lgr->llc_msg_waiter, &wait);
-+
-+	/* send llc message */
-+	rc = smc_wr_tx_send(send_link, priv);
-+	smc_wr_tx_link_put(send_link);
-+	if (rc) {
-+		remove_wait_queue(&lgr->llc_msg_waiter, &wait);
-+		goto out;
-+	}
-+
-+	while (!signal_pending(current) && timeout) {
-+		timeout = wait_woken(&wait, TASK_INTERRUPTIBLE, timeout);
-+		if (qentry.msg.raw.hdr.flags & SMC_LLC_FLAG_RESP)
-+			break;
-+	}
-+
-+	remove_wait_queue(&lgr->llc_msg_waiter, &wait);
-+	flags = qentry.msg.raw.hdr.flags;
-+
-+	if (!(flags & SMC_LLC_FLAG_RESP) || flags & SMC_LLC_FLAG_RKEY_NEG)
- 		rc = -EFAULT;
- out:
--	if (qentry)
--		smc_llc_flow_qentry_del(&lgr->llc_flow_lcl);
- 	return rc;
- }
- 
-@@ -2210,26 +2276,52 @@ int smc_llc_do_confirm_rkey(struct smc_link *send_link,
- int smc_llc_do_delete_rkey(struct smc_link_group *lgr,
- 			   struct smc_buf_desc *rmb_desc)
- {
--	struct smc_llc_qentry *qentry = NULL;
-+	DEFINE_WAIT_FUNC(wait, smc_llc_rkey_response_wake_function);
-+	long timeout = SMC_LLC_WAIT_TIME;
-+	struct smc_wr_tx_pend_priv *priv;
-+	struct smc_llc_qentry qentry;
-+	struct smc_wr_tx_pend *pend;
- 	struct smc_link *send_link;
--	int rc = 0;
-+	int rc = 0, flags;
- 
- 	send_link = smc_llc_usable_link(lgr);
--	if (!send_link)
-+	if (!send_link || !smc_wr_tx_link_hold(send_link))
- 		return -ENOLINK;
- 
--	/* protected by llc_flow control */
--	rc = smc_llc_send_delete_rkey(send_link, rmb_desc);
-+	rc = smc_llc_build_delete_rkey_request(send_link, rmb_desc, &priv);
- 	if (rc)
- 		goto out;
--	/* receive DELETE RKEY response from server over RoCE fabric */
--	qentry = smc_llc_wait(lgr, send_link, SMC_LLC_WAIT_TIME,
--			      SMC_LLC_DELETE_RKEY);
--	if (!qentry || (qentry->msg.raw.hdr.flags & SMC_LLC_FLAG_RKEY_NEG))
-+
-+	pend = container_of(priv, struct smc_wr_tx_pend, priv);
-+	/* make a copy of send msg */
-+	memcpy(&qentry.msg.delete_link, send_link->wr_tx_bufs[pend->idx].raw,
-+	       sizeof(qentry.msg.delete_link));
-+
-+	qentry.private = wait.private;
-+	wait.private = &qentry;
-+
-+	add_wait_queue(&lgr->llc_msg_waiter, &wait);
-+
-+	/* send llc message */
-+	rc = smc_wr_tx_send(send_link, priv);
-+	smc_wr_tx_link_put(send_link);
-+	if (rc) {
-+		remove_wait_queue(&lgr->llc_msg_waiter, &wait);
-+		goto out;
-+	}
-+
-+	while (!signal_pending(current) && timeout) {
-+		timeout = wait_woken(&wait, TASK_INTERRUPTIBLE, timeout);
-+		if (qentry.msg.raw.hdr.flags & SMC_LLC_FLAG_RESP)
-+			break;
-+	}
-+
-+	remove_wait_queue(&lgr->llc_msg_waiter, &wait);
-+	flags = qentry.msg.raw.hdr.flags;
-+
-+	if (!(flags & SMC_LLC_FLAG_RESP) || flags & SMC_LLC_FLAG_RKEY_NEG)
- 		rc = -EFAULT;
- out:
--	if (qentry)
--		smc_llc_flow_qentry_del(&lgr->llc_flow_lcl);
- 	return rc;
- }
- 
-diff --git a/net/smc/smc_wr.c b/net/smc/smc_wr.c
-index b0678a4..797dffa 100644
---- a/net/smc/smc_wr.c
-+++ b/net/smc/smc_wr.c
-@@ -37,16 +37,6 @@
- static DEFINE_HASHTABLE(smc_wr_rx_hash, SMC_WR_RX_HASH_BITS);
- static DEFINE_SPINLOCK(smc_wr_rx_hash_lock);
- 
--struct smc_wr_tx_pend {	/* control data for a pending send request */
--	u64			wr_id;		/* work request id sent */
--	smc_wr_tx_handler	handler;
--	enum ib_wc_status	wc_status;	/* CQE status */
--	struct smc_link		*link;
--	u32			idx;
--	struct smc_wr_tx_pend_priv priv;
--	u8			compl_requested;
--};
--
- /******************************** send queue *********************************/
- 
- /*------------------------------- completion --------------------------------*/
-diff --git a/net/smc/smc_wr.h b/net/smc/smc_wr.h
-index 45e9b89..a4ea215 100644
---- a/net/smc/smc_wr.h
-+++ b/net/smc/smc_wr.h
-@@ -46,6 +46,16 @@ struct smc_wr_rx_handler {
- 	u8			type;
- };
- 
-+struct smc_wr_tx_pend {	/* control data for a pending send request */
-+	u64			wr_id;		/* work request id sent */
-+	smc_wr_tx_handler	handler;
-+	enum ib_wc_status	wc_status;	/* CQE status */
-+	struct smc_link		*link;
-+	u32			idx;
-+	struct smc_wr_tx_pend_priv priv;
-+	u8			compl_requested;
-+};
-+
- /* Only used by RDMA write WRs.
-  * All other WRs (CDC/LLC) use smc_wr_tx_send handling WR_ID implicitly
-  */
--- 
-1.8.3.1
-
+נכתב על ידי yang, ב־07/02/2023 בשעה 5:09:
+> when I test with command `ib_send_bw -D5 -d mlx5_1` it hangs forever, 
+> the stack I get from `/proc/pid/stack` is
+>
+>
+> mlx5_ib_post_send_wait+0xce/0x200 [mlx5_ib]
+>
+> mlx5_ib_update_mr-pas+0x299/0x370 [mlx5_ib]
+>
+> create_real_mr+0x1a4/0x200 [mlx5_ib]
+>
+> ib_uverbs_reg_mr+0x17e/0x270 [ib_uverbs]
+>
+> ib_uverbs_handler_UVERBS_METHOD_INVOKE_WRITE+0xdd/0x140 [ib_uverbs]
+>
+> ib_uverbs_run_method+0x229/0x7a0 [ib_uverbs]
+>
+> ib_uverbs_cmd_verbs.isra.5+0x1a5/0x390 [ib_uverbs]
+>
+> ib_uverbs_ioctl+0xb8/0x110 [ib_uverbs]
+>
+> do_vfs_ioctl+0xa4/0x640
+>
+> ksys_vfs_ioctl+0x70/0x80
+>
+> do_syscall_64+0x61/0x250
+>
+> entry_SYSCALL_64_after_hwframe+0x44/0xa9
+>
+> -------------------------------------------------------------------
+>
+> OS:  openEuler 20.03
+>
+> Kernel: 4.19.90-2112.8.0.0131.oel
+>
+> ofed: MLNX_OFED_LINUX-5.7-1.0.2.0
+>
+>
+>
+>
