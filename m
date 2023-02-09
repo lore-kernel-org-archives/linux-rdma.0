@@ -2,36 +2,36 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 921F4C05027
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Feb 2023 03:42:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6949EC05027
+	for <linux-rdma@archiver.kernel.org>; Thu,  9 Feb 2023 03:46:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231163AbjBIDmm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Feb 2023 22:42:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40074 "EHLO
+        id S232823AbjBIDqH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Feb 2023 22:46:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41230 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232469AbjBIDml (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Feb 2023 22:42:41 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 806F7658D;
-        Wed,  8 Feb 2023 19:42:40 -0800 (PST)
+        with ESMTP id S232222AbjBIDqF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Feb 2023 22:46:05 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58B7A234CC;
+        Wed,  8 Feb 2023 19:46:02 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2B130B81FDE;
-        Thu,  9 Feb 2023 03:42:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A11CEC433EF;
-        Thu,  9 Feb 2023 03:42:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CE3766184B;
+        Thu,  9 Feb 2023 03:46:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BE18C433D2;
+        Thu,  9 Feb 2023 03:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675914157;
-        bh=2Zm/cAW7yebiUKLStIpQfsUmcZXWkduQcljqqkFm440=;
+        s=k20201202; t=1675914361;
+        bh=LbDCOyxTlXM//Xe4XvpokkfiCzZao1NybQs5rIALiDg=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=atN1uv1SOwX6Hz5OlKN0N3J0eXfzSjNkM//1G3iGGQ9mmwsQ3/u/Iau9/Zo+e9MIO
-         5BMWf64MT5gJGnHh43kqV3i9XmeBKKbHuQEiCJQT53oYBk3jjWFveH5sid1VUtled7
-         i8DUDhvIVemtnZy/NMm73o8dOIVceOlnzy42wM67hO9pUaQ+AhfhvSexLljnqHgeTr
-         E3+6y/DA1DOObbY+MtXchZGFhOfHX27bzRYWNfpfUf7SGd/xsXtvyvShM+I7JI8wn1
-         +m6Ah7pD3RVzmEWvTBRUB2EqZzWTbRCM4SMmj2SHM0pZ+HFoH8NEEyEhqZzqTlpn7r
-         oOJr3N7HOavcw==
-Date:   Wed, 8 Feb 2023 19:42:36 -0800
+        b=PsddlNOtnBuAynTJOewPRHD4fLSrSJyh9NRWOA4/fbj4FTDBC9aD9CUKOHKfbdl/X
+         VUd20l81bO21WIPRqQxX06fLCGQy1I+YPBaU4PJRr3le3NWly6vLaDNpWvwcEDJrSU
+         HZuJA11uzNH+sBJ9KewelT12dveXEbJGwUsN8A9Ine04OPxsHDEy9RU7Uxc4+0XKTU
+         7NKKzAvTQvjsgZh+1nVbRZA4JcfowmQrn3d5wv7aKrvmwvvep6ZSls0xnPSrCKD/VK
+         qA1IHJUodzF8WRRqmtb3UNlaSU0i0QifqD5hIBb3MWl2MU07NKeZwkfuOvVeSIZfS8
+         V55xDJAVqsYOw==
+Date:   Wed, 8 Feb 2023 19:46:00 -0800
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
@@ -41,39 +41,33 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Saeed Mahameed <saeedm@nvidia.com>, linux-rdma@vger.kernel.org,
         Leon Romanovsky <leonro@nvidia.com>, netdev@vger.kernel.org
 Subject: Re: pull-request: mlx5-next netdev notifier deadlock 2023-02-07
-Message-ID: <Y+RrrJUZ9TTvFvLg@x130>
+Message-ID: <Y+RseKpYCBnXzImH@x130>
 References: <20230208005626.72930-1-saeed@kernel.org>
  <20230208191250.45b23b6f@kernel.org>
+ <20230208191605.719b19db@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <20230208191250.45b23b6f@kernel.org>
+In-Reply-To: <20230208191605.719b19db@kernel.org>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 08 Feb 19:12, Jakub Kicinski wrote:
->On Tue,  7 Feb 2023 16:56:26 -0800 Saeed Mahameed wrote:
->> @@ -674,6 +675,7 @@ struct mlx5e_resources {
->>  	} hw_objs;
->>  	struct devlink_port dl_port;
->>  	struct net_device *uplink_netdev;
->> +	struct mutex uplink_netdev_lock;
+On 08 Feb 19:16, Jakub Kicinski wrote:
+>On Wed, 8 Feb 2023 19:12:50 -0800 Jakub Kicinski wrote:
+>> On Tue,  7 Feb 2023 16:56:26 -0800 Saeed Mahameed wrote:
+>> > @@ -674,6 +675,7 @@ struct mlx5e_resources {
+>> >  	} hw_objs;
+>> >  	struct devlink_port dl_port;
+>> >  	struct net_device *uplink_netdev;
+>> > +	struct mutex uplink_netdev_lock;
+>>
+>> Is this your preferred resolution?
 >
->Is this your preferred resolution?
->
->diff --cc include/linux/mlx5/driver.h
->index 91e8160ed087,cc48aa308269..000000000000
->--- a/include/linux/mlx5/driver.h
->+++ b/include/linux/mlx5/driver.h
->@@@ -670,11 -673,11 +671,12 @@@ struct mlx5e_resources
->                u32                        mkey;
->                struct mlx5_sq_bfreg       bfreg;
->        } hw_objs;
->        struct devlink_port dl_port;
->        struct net_device *uplink_netdev;
->+       struct mutex uplink_netdev_lock;
-> +      struct mlx5_crypto_dek_priv *dek_priv;
+>Ooh, maybe I'm not supposed to pull?
+>Jiri's changes have Change-Ids on them:
 
-Yes, Perfect, thanks.
+Fixed now, same tag, if you wanna go ahead and pull.
+Please let me know if you prefer V2..
+
 
