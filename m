@@ -2,42 +2,42 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4B85C636CD
-	for <linux-rdma@archiver.kernel.org>; Fri, 10 Feb 2023 11:11:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97F4FC05027
+	for <linux-rdma@archiver.kernel.org>; Fri, 10 Feb 2023 11:11:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231752AbjBJLL2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 10 Feb 2023 06:11:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50614 "EHLO
+        id S232157AbjBJLLf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 10 Feb 2023 06:11:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231638AbjBJLLY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 10 Feb 2023 06:11:24 -0500
+        with ESMTP id S231764AbjBJLLc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 10 Feb 2023 06:11:32 -0500
 Received: from mx0b-0016f401.pphosted.com (mx0a-0016f401.pphosted.com [67.231.148.174])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0720570CC8;
-        Fri, 10 Feb 2023 03:11:23 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2901470CE6;
+        Fri, 10 Feb 2023 03:11:31 -0800 (PST)
 Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
-        by mx0a-0016f401.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 31AAm9Sr003405;
-        Fri, 10 Feb 2023 03:11:07 -0800
+        by mx0a-0016f401.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 31AB22Xf025691;
+        Fri, 10 Feb 2023 03:11:21 -0800
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marvell.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
- content-type; s=pfpt0220; bh=o5FLThCbbyYjan4RMRBACwkKc1T5YxsWYdrclgYcxFg=;
- b=RqUMaCWOaIOVILFdzh0iiPFK/Pn2Rks7mZ6TX2pA6L/ln6D/nYCy5ng4YL+fwmuSEbzu
- 00X9sv6QWfQKgpif2WNwkbRydZZV+e6+sgndheiDe4aQSw8bCiOzNZpTRidyBFXkFhJm
- vcGvEd6tgs88qDQJJSrGEtJpg2VaNMjixnDYB13CnAQUYB2Q+oFJ2GuSIWXoIF2PcnST
- tG645MRsyiHKsNkR6+Zgu6V8qKAphm0pjDF7Cf9O9Cv9UutI7k87orwN5IOv51qFj8iG
- tKjMkpQZ9mhlWSLYehR8oijxOobn6IiyMXNUnFSgozDhJJyYpl2TCJOWl6uroZlK9z97 Tg== 
-Received: from dc5-exch01.marvell.com ([199.233.59.181])
-        by mx0a-0016f401.pphosted.com (PPS) with ESMTPS id 3nnf7wgqkp-1
+ content-type; s=pfpt0220; bh=GRGFK9GLfs5dF7tqaDgMvBY0sj8AhevJVwlN7IJ9AZo=;
+ b=JyFpZK0CCSrdoM4bI6HM6c9e5/bKxtETMlInEBq2bAkSKGbs5KYpolNcsyiSFailZenb
+ rR1k9NQ0apda1B8dK0W4vcFf5JN8QPMuFVUItrJ2uyUC4B6OHwZthcrB5QDPeS+AJISy
+ ymXYDr0IiEMIsXXoPbu700H7NiSVyN07kXXBTinbTKdCdYFAyN+6sz70SmOmJbyc2moy
+ 0+K1vyapomF0xrYUvvkiz+YD08FoY7jgXM6u62sl9ghOCaN80vG+Ktc2kmgeFTQERusE
+ PlH3xCtsx25UbOOhHJNTaTegPXQc27INnpP7WtlVPCxEiFP+/N1rFUfsSpOObhfZWyOk Hg== 
+Received: from dc5-exch02.marvell.com ([199.233.59.182])
+        by mx0a-0016f401.pphosted.com (PPS) with ESMTPS id 3nnf7wgqm2-1
         (version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT);
-        Fri, 10 Feb 2023 03:11:07 -0800
-Received: from DC5-EXCH02.marvell.com (10.69.176.39) by DC5-EXCH01.marvell.com
- (10.69.176.38) with Microsoft SMTP Server (TLS) id 15.0.1497.42; Fri, 10 Feb
- 2023 03:11:05 -0800
+        Fri, 10 Feb 2023 03:11:21 -0800
+Received: from DC5-EXCH02.marvell.com (10.69.176.39) by DC5-EXCH02.marvell.com
+ (10.69.176.39) with Microsoft SMTP Server (TLS) id 15.0.1497.42; Fri, 10 Feb
+ 2023 03:11:19 -0800
 Received: from maili.marvell.com (10.69.176.80) by DC5-EXCH02.marvell.com
  (10.69.176.39) with Microsoft SMTP Server id 15.0.1497.42 via Frontend
- Transport; Fri, 10 Feb 2023 03:11:05 -0800
+ Transport; Fri, 10 Feb 2023 03:11:19 -0800
 Received: from hyd1soter3.marvell.com (unknown [10.29.37.12])
-        by maili.marvell.com (Postfix) with ESMTP id B13623F7064;
-        Fri, 10 Feb 2023 03:10:59 -0800 (PST)
+        by maili.marvell.com (Postfix) with ESMTP id D68D95B6939;
+        Fri, 10 Feb 2023 03:11:12 -0800 (PST)
 From:   Hariprasad Kelam <hkelam@marvell.com>
 To:     <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
 CC:     <kuba@kernel.org>, <davem@davemloft.net>, <pabeni@redhat.com>,
@@ -49,16 +49,16 @@ CC:     <kuba@kernel.org>, <davem@davemloft.net>, <pabeni@redhat.com>,
         <tariqt@nvidia.com>, <linux-rdma@vger.kernel.org>,
         <maxtram95@gmail.com>, <naveenm@marvell.com>,
         <bpf@vger.kernel.org>, <hariprasad.netdev@gmail.com>
-Subject: [net-next Patch V4 1/4] sch_htb: Allow HTB priority parameter in offload mode
-Date:   Fri, 10 Feb 2023 16:40:48 +0530
-Message-ID: <20230210111051.13654-2-hkelam@marvell.com>
+Subject: [net-next Patch V4 3/4] octeontx2-pf: Refactor schedular queue alloc/free calls
+Date:   Fri, 10 Feb 2023 16:40:50 +0530
+Message-ID: <20230210111051.13654-4-hkelam@marvell.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20230210111051.13654-1-hkelam@marvell.com>
 References: <20230210111051.13654-1-hkelam@marvell.com>
 MIME-Version: 1.0
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: GOlLd4nUQ1TdmObSPmO0a432ne8YT8zV
-X-Proofpoint-GUID: GOlLd4nUQ1TdmObSPmO0a432ne8YT8zV
+X-Proofpoint-ORIG-GUID: DJp9yypE7OCAtkKIJ7b37qHq3Pn1MG1u
+X-Proofpoint-GUID: DJp9yypE7OCAtkKIJ7b37qHq3Pn1MG1u
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.219,Aquarius:18.0.930,Hydra:6.0.562,FMLib:17.11.170.22
  definitions=2023-02-10_06,2023-02-09_03,2023-02-09_01
@@ -66,102 +66,218 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Naveen Mamindlapalli <naveenm@marvell.com>
+Multiple transmit scheduler queues can be configured at different
+levels to support traffic shaping and scheduling. But on txschq free
+requests, the transmit schedular config in hardware is not getting
+reset. This patch adds support to reset the stale config.
 
-The current implementation of HTB offload returns the EINVAL error
-for unsupported parameters like prio and quantum. This patch removes
-the error returning checks for 'prio' parameter and populates its
-value to tc_htb_qopt_offload structure such that driver can use the
-same.
+The txschq alloc response handler updates the default txschq
+array which is used to configure the transmit packet path from
+SMQ to TL2 levels. However, for new features such as QoS offload
+that requires it's own txschq queues, this handler is still
+invoked and results in undefined behavior. The code now handles
+txschq response in the mbox caller function.
 
-Add prio parameter check in mlx5 driver, as mlx5 devices are not capable
-of supporting the prio parameter when htb offload is used. Report error
-if prio parameter is set to a non-default value.
-
-Signed-off-by: Naveen Mamindlapalli <naveenm@marvell.com>
-Co-developed-by: Rahul Rameshbabu <rrameshbabu@nvidia.com>
-Signed-off-by: Rahul Rameshbabu <rrameshbabu@nvidia.com>
 Signed-off-by: Hariprasad Kelam <hkelam@marvell.com>
+Signed-off-by: Naveen Mamindlapalli <naveenm@marvell.com>
 Signed-off-by: Sunil Kovvuri Goutham <sgoutham@marvell.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en/qos.c | 7 ++++++-
- include/net/pkt_cls.h                            | 1 +
- net/sched/sch_htb.c                              | 7 +++----
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ .../ethernet/marvell/octeontx2/af/rvu_nix.c   | 45 +++++++++++++++++++
+ .../marvell/octeontx2/nic/otx2_common.c       | 36 ++++++++-------
+ .../ethernet/marvell/octeontx2/nic/otx2_pf.c  |  4 --
+ .../ethernet/marvell/octeontx2/nic/otx2_vf.c  |  4 --
+ 4 files changed, 64 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/qos.c b/drivers/net/ethernet/mellanox/mlx5/core/en/qos.c
-index 2842195ee548..b683dc787827 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/qos.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/qos.c
-@@ -379,6 +379,12 @@ int mlx5e_htb_setup_tc(struct mlx5e_priv *priv, struct tc_htb_qopt_offload *htb_
- 	if (!htb && htb_qopt->command != TC_HTB_CREATE)
- 		return -EINVAL;
+diff --git a/drivers/net/ethernet/marvell/octeontx2/af/rvu_nix.c b/drivers/net/ethernet/marvell/octeontx2/af/rvu_nix.c
+index 89e94569e74c..c11859999074 100644
+--- a/drivers/net/ethernet/marvell/octeontx2/af/rvu_nix.c
++++ b/drivers/net/ethernet/marvell/octeontx2/af/rvu_nix.c
+@@ -1677,6 +1677,42 @@ handle_txschq_shaper_update(struct rvu *rvu, int blkaddr, int nixlf,
+ 	return true;
+ }
  
-+	if (htb_qopt->prio) {
-+		NL_SET_ERR_MSG_MOD(htb_qopt->extack,
-+				   "prio parameter is not supported by device with HTB offload enabled.");
-+		return -EINVAL;
++static void nix_reset_tx_schedule(struct rvu *rvu, int blkaddr,
++				  int lvl, int schq)
++{
++	u64 tlx_parent = 0, tlx_schedule = 0;
++
++	switch (lvl) {
++	case NIX_TXSCH_LVL_TL2:
++		tlx_parent   = NIX_AF_TL2X_PARENT(schq);
++		tlx_schedule = NIX_AF_TL2X_SCHEDULE(schq);
++		break;
++	case NIX_TXSCH_LVL_TL3:
++		tlx_parent   = NIX_AF_TL3X_PARENT(schq);
++		tlx_schedule = NIX_AF_TL3X_SCHEDULE(schq);
++		break;
++	case NIX_TXSCH_LVL_TL4:
++		tlx_parent   = NIX_AF_TL4X_PARENT(schq);
++		tlx_schedule = NIX_AF_TL4X_SCHEDULE(schq);
++		break;
++	case NIX_TXSCH_LVL_MDQ:
++		/* no need to reset SMQ_CFG as HW clears this CSR
++		 * on SMQ flush
++		 */
++		tlx_parent   = NIX_AF_MDQX_PARENT(schq);
++		tlx_schedule = NIX_AF_MDQX_SCHEDULE(schq);
++		break;
++	default:
++		return;
 +	}
 +
- 	switch (htb_qopt->command) {
- 	case TC_HTB_CREATE:
- 		if (!mlx5_qos_is_supported(priv->mdev)) {
-@@ -515,4 +521,3 @@ int mlx5e_mqprio_rl_get_node_hw_id(struct mlx5e_mqprio_rl *rl, int tc, u32 *hw_i
- 	*hw_id = rl->leaves_id[tc];
- 	return 0;
- }
--
-diff --git a/include/net/pkt_cls.h b/include/net/pkt_cls.h
-index cd410a87517b..65d50ed60b41 100644
---- a/include/net/pkt_cls.h
-+++ b/include/net/pkt_cls.h
-@@ -854,6 +854,7 @@ struct tc_htb_qopt_offload {
- 	u16 qid;
- 	u64 rate;
- 	u64 ceil;
-+	u8 prio;
- };
- 
- #define TC_HTB_CLASSID_ROOT U32_MAX
-diff --git a/net/sched/sch_htb.c b/net/sched/sch_htb.c
-index 92f2975b6a82..1cd9b48c96cd 100644
---- a/net/sched/sch_htb.c
-+++ b/net/sched/sch_htb.c
-@@ -1814,10 +1814,6 @@ static int htb_change_class(struct Qdisc *sch, u32 classid,
- 			NL_SET_ERR_MSG(extack, "HTB offload doesn't support the quantum parameter");
- 			goto failure;
++	if (tlx_parent)
++		rvu_write64(rvu, blkaddr, tlx_parent, 0x0);
++
++	if (tlx_schedule)
++		rvu_write64(rvu, blkaddr, tlx_schedule, 0x0);
++}
++
+ /* Disable shaping of pkts by a scheduler queue
+  * at a given scheduler level.
+  */
+@@ -2025,6 +2061,7 @@ int rvu_mbox_handler_nix_txsch_alloc(struct rvu *rvu,
+ 				pfvf_map[schq] = TXSCH_MAP(pcifunc, 0);
+ 			nix_reset_tx_linkcfg(rvu, blkaddr, lvl, schq);
+ 			nix_reset_tx_shaping(rvu, blkaddr, nixlf, lvl, schq);
++			nix_reset_tx_schedule(rvu, blkaddr, lvl, schq);
  		}
--		if (hopt->prio) {
--			NL_SET_ERR_MSG(extack, "HTB offload doesn't support the prio parameter");
--			goto failure;
--		}
+ 
+ 		for (idx = 0; idx < req->schq[lvl]; idx++) {
+@@ -2034,6 +2071,7 @@ int rvu_mbox_handler_nix_txsch_alloc(struct rvu *rvu,
+ 				pfvf_map[schq] = TXSCH_MAP(pcifunc, 0);
+ 			nix_reset_tx_linkcfg(rvu, blkaddr, lvl, schq);
+ 			nix_reset_tx_shaping(rvu, blkaddr, nixlf, lvl, schq);
++			nix_reset_tx_schedule(rvu, blkaddr, lvl, schq);
+ 		}
  	}
  
- 	/* Keeping backward compatible with rate_table based iproute2 tc */
-@@ -1913,6 +1909,7 @@ static int htb_change_class(struct Qdisc *sch, u32 classid,
- 					TC_HTB_CLASSID_ROOT,
- 				.rate = max_t(u64, hopt->rate.rate, rate64),
- 				.ceil = max_t(u64, hopt->ceil.rate, ceil64),
-+				.prio = hopt->prio,
- 				.extack = extack,
- 			};
- 			err = htb_offload(dev, &offload_opt);
-@@ -1933,6 +1930,7 @@ static int htb_change_class(struct Qdisc *sch, u32 classid,
- 					TC_H_MIN(parent->common.classid),
- 				.rate = max_t(u64, hopt->rate.rate, rate64),
- 				.ceil = max_t(u64, hopt->ceil.rate, ceil64),
-+				.prio = hopt->prio,
- 				.extack = extack,
- 			};
- 			err = htb_offload(dev, &offload_opt);
-@@ -2018,6 +2016,7 @@ static int htb_change_class(struct Qdisc *sch, u32 classid,
- 				.classid = cl->common.classid,
- 				.rate = max_t(u64, hopt->rate.rate, rate64),
- 				.ceil = max_t(u64, hopt->ceil.rate, ceil64),
-+				.prio = hopt->prio,
- 				.extack = extack,
- 			};
- 			err = htb_offload(dev, &offload_opt);
+@@ -2122,6 +2160,7 @@ static int nix_txschq_free(struct rvu *rvu, u16 pcifunc)
+ 				continue;
+ 			nix_reset_tx_linkcfg(rvu, blkaddr, lvl, schq);
+ 			nix_clear_tx_xoff(rvu, blkaddr, lvl, schq);
++			nix_reset_tx_shaping(rvu, blkaddr, nixlf, lvl, schq);
+ 		}
+ 	}
+ 	nix_clear_tx_xoff(rvu, blkaddr, NIX_TXSCH_LVL_TL1,
+@@ -2160,6 +2199,7 @@ static int nix_txschq_free(struct rvu *rvu, u16 pcifunc)
+ 		for (schq = 0; schq < txsch->schq.max; schq++) {
+ 			if (TXSCH_MAP_FUNC(txsch->pfvf_map[schq]) != pcifunc)
+ 				continue;
++			nix_reset_tx_schedule(rvu, blkaddr, lvl, schq);
+ 			rvu_free_rsrc(&txsch->schq, schq);
+ 			txsch->pfvf_map[schq] = TXSCH_MAP(0, NIX_TXSCHQ_FREE);
+ 		}
+@@ -2219,6 +2259,9 @@ static int nix_txschq_free_one(struct rvu *rvu,
+ 	 */
+ 	nix_clear_tx_xoff(rvu, blkaddr, lvl, schq);
+ 
++	nix_reset_tx_linkcfg(rvu, blkaddr, lvl, schq);
++	nix_reset_tx_shaping(rvu, blkaddr, nixlf, lvl, schq);
++
+ 	/* Flush if it is a SMQ. Onus of disabling
+ 	 * TL2/3 queue links before SMQ flush is on user
+ 	 */
+@@ -2228,6 +2271,8 @@ static int nix_txschq_free_one(struct rvu *rvu,
+ 		goto err;
+ 	}
+ 
++	nix_reset_tx_schedule(rvu, blkaddr, lvl, schq);
++
+ 	/* Free the resource */
+ 	rvu_free_rsrc(&txsch->schq, schq);
+ 	txsch->pfvf_map[schq] = TXSCH_MAP(0, NIX_TXSCHQ_FREE);
+diff --git a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_common.c b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_common.c
+index 73c8d36b6e12..4cb3fab8baae 100644
+--- a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_common.c
++++ b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_common.c
+@@ -716,7 +716,8 @@ EXPORT_SYMBOL(otx2_smq_flush);
+ int otx2_txsch_alloc(struct otx2_nic *pfvf)
+ {
+ 	struct nix_txsch_alloc_req *req;
+-	int lvl;
++	struct nix_txsch_alloc_rsp *rsp;
++	int lvl, schq, rc;
+ 
+ 	/* Get memory to put this msg */
+ 	req = otx2_mbox_alloc_msg_nix_txsch_alloc(&pfvf->mbox);
+@@ -726,8 +727,24 @@ int otx2_txsch_alloc(struct otx2_nic *pfvf)
+ 	/* Request one schq per level */
+ 	for (lvl = 0; lvl < NIX_TXSCH_LVL_CNT; lvl++)
+ 		req->schq[lvl] = 1;
++	rc = otx2_sync_mbox_msg(&pfvf->mbox);
++	if (rc)
++		return rc;
+ 
+-	return otx2_sync_mbox_msg(&pfvf->mbox);
++	rsp = (struct nix_txsch_alloc_rsp *)
++	      otx2_mbox_get_rsp(&pfvf->mbox.mbox, 0, &req->hdr);
++	if (IS_ERR(rsp))
++		return PTR_ERR(rsp);
++
++	/* Setup transmit scheduler list */
++	for (lvl = 0; lvl < NIX_TXSCH_LVL_CNT; lvl++)
++		for (schq = 0; schq < rsp->schq[lvl]; schq++)
++			pfvf->hw.txschq_list[lvl][schq] =
++				rsp->schq_list[lvl][schq];
++
++	pfvf->hw.txschq_link_cfg_lvl     = rsp->link_cfg_lvl;
++
++	return 0;
+ }
+ 
+ int otx2_txschq_stop(struct otx2_nic *pfvf)
+@@ -1641,21 +1658,6 @@ void mbox_handler_cgx_fec_stats(struct otx2_nic *pfvf,
+ 	pfvf->hw.cgx_fec_uncorr_blks += rsp->fec_uncorr_blks;
+ }
+ 
+-void mbox_handler_nix_txsch_alloc(struct otx2_nic *pf,
+-				  struct nix_txsch_alloc_rsp *rsp)
+-{
+-	int lvl, schq;
+-
+-	/* Setup transmit scheduler list */
+-	for (lvl = 0; lvl < NIX_TXSCH_LVL_CNT; lvl++)
+-		for (schq = 0; schq < rsp->schq[lvl]; schq++)
+-			pf->hw.txschq_list[lvl][schq] =
+-				rsp->schq_list[lvl][schq];
+-
+-	pf->hw.txschq_link_cfg_lvl = rsp->link_cfg_lvl;
+-}
+-EXPORT_SYMBOL(mbox_handler_nix_txsch_alloc);
+-
+ void mbox_handler_npa_lf_alloc(struct otx2_nic *pfvf,
+ 			       struct npa_lf_alloc_rsp *rsp)
+ {
+diff --git a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_pf.c b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_pf.c
+index 3f88975e13c1..9ed24bff6b2a 100644
+--- a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_pf.c
++++ b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_pf.c
+@@ -792,10 +792,6 @@ static void otx2_process_pfaf_mbox_msg(struct otx2_nic *pf,
+ 	case MBOX_MSG_NIX_LF_ALLOC:
+ 		mbox_handler_nix_lf_alloc(pf, (struct nix_lf_alloc_rsp *)msg);
+ 		break;
+-	case MBOX_MSG_NIX_TXSCH_ALLOC:
+-		mbox_handler_nix_txsch_alloc(pf,
+-					     (struct nix_txsch_alloc_rsp *)msg);
+-		break;
+ 	case MBOX_MSG_NIX_BP_ENABLE:
+ 		mbox_handler_nix_bp_enable(pf, (struct nix_bp_cfg_rsp *)msg);
+ 		break;
+diff --git a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_vf.c b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_vf.c
+index c84804d16b8a..b7af02b12e05 100644
+--- a/drivers/net/ethernet/marvell/octeontx2/nic/otx2_vf.c
++++ b/drivers/net/ethernet/marvell/octeontx2/nic/otx2_vf.c
+@@ -70,10 +70,6 @@ static void otx2vf_process_vfaf_mbox_msg(struct otx2_nic *vf,
+ 	case MBOX_MSG_NIX_LF_ALLOC:
+ 		mbox_handler_nix_lf_alloc(vf, (struct nix_lf_alloc_rsp *)msg);
+ 		break;
+-	case MBOX_MSG_NIX_TXSCH_ALLOC:
+-		mbox_handler_nix_txsch_alloc(vf,
+-					     (struct nix_txsch_alloc_rsp *)msg);
+-		break;
+ 	case MBOX_MSG_NIX_BP_ENABLE:
+ 		mbox_handler_nix_bp_enable(vf, (struct nix_bp_cfg_rsp *)msg);
+ 		break;
 -- 
 2.17.1
 
