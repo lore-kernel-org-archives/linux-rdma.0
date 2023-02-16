@@ -2,33 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95E70C636CC
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Feb 2023 12:44:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48B49C636D6
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Feb 2023 12:44:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229490AbjBPMow (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Feb 2023 07:44:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55268 "EHLO
+        id S229616AbjBPMox (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Feb 2023 07:44:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229909AbjBPMoq (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Feb 2023 07:44:46 -0500
+        with ESMTP id S230127AbjBPMor (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Feb 2023 07:44:47 -0500
 Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22E501712;
-        Thu, 16 Feb 2023 04:44:44 -0800 (PST)
-Received: from dggpemm500024.china.huawei.com (unknown [172.30.72.55])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4PHZQ76m8SzrRxk;
-        Thu, 16 Feb 2023 20:44:15 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00D1EA7;
+        Thu, 16 Feb 2023 04:44:45 -0800 (PST)
+Received: from dggpemm500024.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4PHZQB2nq2zrS0H;
+        Thu, 16 Feb 2023 20:44:18 +0800 (CST)
 Received: from huawei.com (10.67.175.31) by dggpemm500024.china.huawei.com
  (7.185.36.203) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.17; Thu, 16 Feb
- 2023 20:44:41 +0800
+ 2023 20:44:43 +0800
 From:   GUO Zihua <guozihua@huawei.com>
 To:     <zohar@linux.ibm.com>, <paul@paul-moore.com>
 CC:     <linux-security-module@vger.kernel.org>,
         <linux-rdma@vger.kernel.org>, <dledford@redhat.com>, <jgg@ziepe.ca>
-Subject: [PATCH 4.19 v2 0/5] Backport handling -ESTALE policy update failure to 4.19
-Date:   Thu, 16 Feb 2023 20:42:22 +0800
-Message-ID: <20230216124227.44058-1-guozihua@huawei.com>
+Subject: [PATCH 4.19 v2 4/5] ima: Evaluate error in init_ima()
+Date:   Thu, 16 Feb 2023 20:42:26 +0800
+Message-ID: <20230216124227.44058-5-guozihua@huawei.com>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20230216124227.44058-1-guozihua@huawei.com>
+References: <20230216124227.44058-1-guozihua@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-Originating-IP: [10.67.175.31]
@@ -39,60 +41,37 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This series backports patches in order to resolve the issue discussed here:
-https://lore.kernel.org/selinux/389334fe-6e12-96b2-6ce9-9f0e8fcb85bf@huawei.com/
+From: Roberto Sassu <roberto.sassu@huawei.com>
 
-This required backporting the non-blocking LSM policy update mechanism
-prerequisite patches. As well as bugfixes that follows.
+[ Upstream commit e144d6b265415ddbdc54b3f17f4f95133effa5a8 ]
 
-c66f67414c1f ("IB/core: Don't register each MAD agent for LSM notifier")
-is merged as the prerequisite of 42df744c4166 ("LSM: switch to blocking
-policy update notifiers"). e144d6b26541 ("ima: Evaluate error in
-init_ima()") is merged as a follow up bugfix for b16942455193 ("ima:
-use the lsm policy update notifier"). 483ec26eed42 ("ima: ima/lsm policy
-rule loading logic bug fixes") and 9ff8a616dfab ("ima: Have the LSM free
-its audit rule") is also followup bugfixes. The former would change the
-behavior of rule loading without fixing any criticial bug so I don't
-think it's necessary, while the latter has already been merged.
+Evaluate error in init_ima() before register_blocking_lsm_notifier() and
+return if not zero.
 
-I've tested the patches against said issue and can confirm that the
-issue is fixed.
+Cc: stable@vger.kernel.org # 5.3.x
+Fixes: b16942455193 ("ima: use the lsm policy update notifier")
+Signed-off-by: Roberto Sassu <roberto.sassu@huawei.com>
+Reviewed-by: James Morris <jamorris@linux.microsoft.com>
+Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
+Signed-off-by: GUO Zihua <guozihua@huawei.com>
+---
+ security/integrity/ima/ima_main.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-This is a re-send of the original patchset as the original patchset
-might have a faulty cover letter. The original patchset could be found
-here:
-https://patchwork.kernel.org/project/linux-integrity/list/?series=709367
-
-Change log:
-  v2: Fixed build issue and backport bugfix commits for backported
-patches.
-
-Daniel Jurgens (1):
-  IB/core: Don't register each MAD agent for LSM notifier
-
-GUO Zihua (1):
-  ima: Handle -ESTALE returned by ima_filter_rule_match()
-
-Janne Karhunen (2):
-  LSM: switch to blocking policy update notifiers
-  ima: use the lsm policy update notifier
-
-Roberto Sassu (1):
-  ima: Evaluate error in init_ima()
-
- drivers/infiniband/core/core_priv.h |   5 +
- drivers/infiniband/core/device.c    |   5 +-
- drivers/infiniband/core/security.c  |  51 +++++-----
- include/linux/security.h            |  12 +--
- include/rdma/ib_mad.h               |   3 +-
- security/integrity/ima/ima.h        |   2 +
- security/integrity/ima/ima_main.c   |  11 ++
- security/integrity/ima/ima_policy.c | 151 ++++++++++++++++++++++------
- security/security.c                 |  23 +++--
- security/selinux/hooks.c            |   2 +-
- security/selinux/selinuxfs.c        |   2 +-
- 11 files changed, 193 insertions(+), 74 deletions(-)
-
+diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/ima_main.c
+index 55681872c6ce..fcaaf2c2ba4b 100644
+--- a/security/integrity/ima/ima_main.c
++++ b/security/integrity/ima/ima_main.c
+@@ -557,6 +557,9 @@ static int __init init_ima(void)
+ 		error = ima_init();
+ 	}
+ 
++	if (error)
++		return error;
++
+ 	error = register_blocking_lsm_notifier(&ima_lsm_policy_notifier);
+ 	if (error)
+ 		pr_warn("Couldn't register LSM notifier, error %d\n", error);
 -- 
 2.17.1
 
