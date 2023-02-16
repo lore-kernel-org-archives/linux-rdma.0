@@ -2,236 +2,179 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C9DCC678D5
-	for <linux-rdma@archiver.kernel.org>; Thu, 16 Feb 2023 12:44:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 512D7C61DA4
+	for <linux-rdma@archiver.kernel.org>; Thu, 16 Feb 2023 13:49:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230100AbjBPMoz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 16 Feb 2023 07:44:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55304 "EHLO
+        id S229572AbjBPNtd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 16 Feb 2023 08:49:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230238AbjBPMow (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Feb 2023 07:44:52 -0500
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E718D1712;
-        Thu, 16 Feb 2023 04:44:50 -0800 (PST)
-Received: from dggpemm500024.china.huawei.com (unknown [172.30.72.57])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PHZNb17HVzGpTj;
-        Thu, 16 Feb 2023 20:42:55 +0800 (CST)
-Received: from huawei.com (10.67.175.31) by dggpemm500024.china.huawei.com
- (7.185.36.203) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.17; Thu, 16 Feb
- 2023 20:44:43 +0800
-From:   GUO Zihua <guozihua@huawei.com>
-To:     <zohar@linux.ibm.com>, <paul@paul-moore.com>
-CC:     <linux-security-module@vger.kernel.org>,
-        <linux-rdma@vger.kernel.org>, <dledford@redhat.com>, <jgg@ziepe.ca>
-Subject: [PATCH 4.19 v2 1/5] IB/core: Don't register each MAD agent for LSM notifier
-Date:   Thu, 16 Feb 2023 20:42:23 +0800
-Message-ID: <20230216124227.44058-2-guozihua@huawei.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20230216124227.44058-1-guozihua@huawei.com>
-References: <20230216124227.44058-1-guozihua@huawei.com>
+        with ESMTP id S229482AbjBPNtc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 16 Feb 2023 08:49:32 -0500
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4898E39BBE;
+        Thu, 16 Feb 2023 05:49:31 -0800 (PST)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 31GDP3eP000633;
+        Thu, 16 Feb 2023 13:49:22 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=o9ifNvZeq5Hmh6hCJQ12e1ll1uFMGZJMBoeN7Fx7EbU=;
+ b=i2GyNPJ7AuHmdRUsjkpJ7GXNN5oPZx5z7V9sa5hmexGqLdc/0F8N8VR8FL/XRQUlevRm
+ lfxhUkUMxwyNvaw3KeiSwNsbyF26cPCsN67N20Mjj1dHmqsG/75reQqSBBA1nncqE5vp
+ tgKk9p5+4g4aebsYnZdnWc+qbOHrrs8LAUTHc3JyJ5b2GZJA0xLH/MKz/QqTmDqrZxws
+ NfYY85Uj6saZQT5sDx41knAGAHUUXcC2Heg4SDnQVbC37IKTtNaIoGY2rESYO+LHQ26V
+ 89Zglq/piFRyXONq/dNN2FBE14X0wVQ8dcPc06bnRdEK39CeA6JKiEhcsWJOCu5OAqFp EQ== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3nskd8kmd9-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 16 Feb 2023 13:49:21 +0000
+Received: from m0098399.ppops.net (m0098399.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 31GCUJ43017331;
+        Thu, 16 Feb 2023 13:49:21 GMT
+Received: from ppma04wdc.us.ibm.com (1a.90.2fa9.ip4.static.sl-reverse.com [169.47.144.26])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3nskd8kmcx-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 16 Feb 2023 13:49:20 +0000
+Received: from pps.filterd (ppma04wdc.us.ibm.com [127.0.0.1])
+        by ppma04wdc.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 31GCPfbJ020647;
+        Thu, 16 Feb 2023 13:49:19 GMT
+Received: from smtprelay04.wdc07v.mail.ibm.com ([9.208.129.114])
+        by ppma04wdc.us.ibm.com (PPS) with ESMTPS id 3np2n7ar1e-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 16 Feb 2023 13:49:19 +0000
+Received: from smtpav06.dal12v.mail.ibm.com (smtpav06.dal12v.mail.ibm.com [10.241.53.105])
+        by smtprelay04.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 31GDnH4N25166248
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 16 Feb 2023 13:49:18 GMT
+Received: from smtpav06.dal12v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id A204658055;
+        Thu, 16 Feb 2023 13:49:17 +0000 (GMT)
+Received: from smtpav06.dal12v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 2A7C75805E;
+        Thu, 16 Feb 2023 13:49:16 +0000 (GMT)
+Received: from [9.211.88.109] (unknown [9.211.88.109])
+        by smtpav06.dal12v.mail.ibm.com (Postfix) with ESMTP;
+        Thu, 16 Feb 2023 13:49:15 +0000 (GMT)
+Message-ID: <1b7c95be-d3d9-53c3-3152-cd835314d37c@linux.ibm.com>
+Date:   Thu, 16 Feb 2023 14:49:15 +0100
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.8.0
+Subject: Re: [PATCH net v2] net/smc: fix application data exception
+To:     "D. Wythe" <alibuda@linux.alibaba.com>, kgraul@linux.ibm.com,
+        jaka@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <1676529545-32741-1-git-send-email-alibuda@linux.alibaba.com>
+From:   Wenjia Zhang <wenjia@linux.ibm.com>
+In-Reply-To: <1676529545-32741-1-git-send-email-alibuda@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 0eYrr9OCv4_xy2wwfiGNOLZIRWHxU8Gu
+X-Proofpoint-ORIG-GUID: alCmkdmknF4vh2rYTR5sZBPaZXXsTdxw
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.67.175.31]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- dggpemm500024.china.huawei.com (7.185.36.203)
-X-CFilter-Loop: Reflected
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.219,Aquarius:18.0.930,Hydra:6.0.562,FMLib:17.11.170.22
+ definitions=2023-02-16_10,2023-02-16_01,2023-02-09_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ adultscore=0 phishscore=0 mlxlogscore=999 suspectscore=0 spamscore=0
+ clxscore=1015 impostorscore=0 priorityscore=1501 bulkscore=0 mlxscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2212070000 definitions=main-2302160116
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj@mellanox.com>
 
-[ Upstream commit c66f67414c1f88554485bb2a0abf8b5c0d741de7 ]
 
-When creating many MAD agents in a short period of time, receive packet
-processing can be delayed long enough to cause timeouts while new agents
-are being added to the atomic notifier chain with IRQs disabled.  Notifier
-chain registration and unregstration is an O(n) operation. With large
-numbers of MAD agents being created and destroyed simultaneously the CPUs
-spend too much time with interrupts disabled.
+On 16.02.23 07:39, D. Wythe wrote:
+> From: "D. Wythe" <alibuda@linux.alibaba.com>
+> 
+> There is a certain probability that following
+> exceptions will occur in the wrk benchmark test:
+> 
+> Running 10s test @ http://11.213.45.6:80
+>    8 threads and 64 connections
+>    Thread Stats   Avg      Stdev     Max   +/- Stdev
+>      Latency     3.72ms   13.94ms 245.33ms   94.17%
+>      Req/Sec     1.96k   713.67     5.41k    75.16%
+>    155262 requests in 10.10s, 23.10MB read
+> Non-2xx or 3xx responses: 3
+> 
+> We will find that the error is HTTP 400 error, which is a serious
+> exception in our test, which means the application data was
+> corrupted.
+> 
+> Consider the following scenarios:
+> 
+> CPU0                            CPU1
+> 
+> buf_desc->used = 0;
+>                                  cmpxchg(buf_desc->used, 0, 1)
+>                                  deal_with(buf_desc)
+> 
+> memset(buf_desc->cpu_addr,0);
+> 
+> This will cause the data received by a victim connection to be cleared,
+> thus triggering an HTTP 400 error in the server.
+> 
+> This patch exchange the order between clear used and memset, add
+> barrier to ensure memory consistency.
+> 
+> Fixes: 1c5526968e27 ("net/smc: Clear memory when release and reuse buffer")
+> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+> ---
+> v2: rebase it with latest net tree.
+> 
 
-Instead of each MAD agent registering for it's own LSM notification,
-maintain a list of agents internally and register once, this registration
-already existed for handling the PKeys. This list is write mostly, so a
-normal spin lock is used vs a read/write lock. All MAD agents must be
-checked, so a single list is used instead of breaking them down per
-device.
+Reviewed-by: Wenjia Zhang <wenjia@linux.ibm.com>
 
-Notifier calls are done under rcu_read_lock, so there isn't a risk of
-similar packet timeouts while checking the MAD agents security settings
-when notified.
+>   net/smc/smc_core.c | 17 ++++++++---------
+>   1 file changed, 8 insertions(+), 9 deletions(-)
+> 
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index c305d8d..c19d4b7 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -1120,8 +1120,9 @@ static void smcr_buf_unuse(struct smc_buf_desc *buf_desc, bool is_rmb,
+>   
+>   		smc_buf_free(lgr, is_rmb, buf_desc);
+>   	} else {
+> -		buf_desc->used = 0;
+> -		memset(buf_desc->cpu_addr, 0, buf_desc->len);
+> +		/* memzero_explicit provides potential memory barrier semantics */
+> +		memzero_explicit(buf_desc->cpu_addr, buf_desc->len);
+> +		WRITE_ONCE(buf_desc->used, 0);
+>   	}
+>   }
+>   
+> @@ -1132,19 +1133,17 @@ static void smc_buf_unuse(struct smc_connection *conn,
+>   		if (!lgr->is_smcd && conn->sndbuf_desc->is_vm) {
+>   			smcr_buf_unuse(conn->sndbuf_desc, false, lgr);
+>   		} else {
+> -			conn->sndbuf_desc->used = 0;
+> -			memset(conn->sndbuf_desc->cpu_addr, 0,
+> -			       conn->sndbuf_desc->len);
+> +			memzero_explicit(conn->sndbuf_desc->cpu_addr, conn->sndbuf_desc->len);
+> +			WRITE_ONCE(conn->sndbuf_desc->used, 0);
+>   		}
+>   	}
+>   	if (conn->rmb_desc) {
+>   		if (!lgr->is_smcd) {
+>   			smcr_buf_unuse(conn->rmb_desc, true, lgr);
+>   		} else {
+> -			conn->rmb_desc->used = 0;
+> -			memset(conn->rmb_desc->cpu_addr, 0,
+> -			       conn->rmb_desc->len +
+> -			       sizeof(struct smcd_cdc_msg));
+> +			memzero_explicit(conn->rmb_desc->cpu_addr,
+> +					 conn->rmb_desc->len + sizeof(struct smcd_cdc_msg));
+> +			WRITE_ONCE(conn->rmb_desc->used, 0);
+>   		}
+>   	}
+>   }
 
-Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
-Reviewed-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: GUO Zihua <guozihua@huawei.com>
----
- drivers/infiniband/core/core_priv.h |  5 +++
- drivers/infiniband/core/device.c    |  1 +
- drivers/infiniband/core/security.c  | 51 ++++++++++++++++-------------
- include/rdma/ib_mad.h               |  3 +-
- 4 files changed, 35 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 77c7005c396c..8fd8a822d9b6 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -227,6 +227,7 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
- 				enum ib_qp_type qp_type);
- void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent);
- int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index);
-+void ib_mad_agent_security_change(void);
- #else
- static inline void ib_security_destroy_port_pkey_list(struct ib_device *device)
- {
-@@ -292,6 +293,10 @@ static inline int ib_mad_enforce_security(struct ib_mad_agent_private *map,
- {
- 	return 0;
- }
-+
-+static inline void ib_mad_agent_security_change(void)
-+{
-+}
- #endif
- 
- struct ib_device *ib_device_get_by_index(u32 ifindex);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index ffd0f43e2129..9740614a108d 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -417,6 +417,7 @@ static int ib_security_change(struct notifier_block *nb, unsigned long event,
- 		return NOTIFY_DONE;
- 
- 	schedule_work(&ib_policy_change_work);
-+	ib_mad_agent_security_change();
- 
- 	return NOTIFY_OK;
- }
-diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
-index 6df6cc55fd16..166a4ef9dce0 100644
---- a/drivers/infiniband/core/security.c
-+++ b/drivers/infiniband/core/security.c
-@@ -39,6 +39,10 @@
- #include "core_priv.h"
- #include "mad_priv.h"
- 
-+static LIST_HEAD(mad_agent_list);
-+/* Lock to protect mad_agent_list */
-+static DEFINE_SPINLOCK(mad_agent_list_lock);
-+
- static struct pkey_index_qp_list *get_pkey_idx_qp_list(struct ib_port_pkey *pp)
- {
- 	struct pkey_index_qp_list *pkey = NULL;
-@@ -669,20 +673,18 @@ static int ib_security_pkey_access(struct ib_device *dev,
- 	return security_ib_pkey_access(sec, subnet_prefix, pkey);
- }
- 
--static int ib_mad_agent_security_change(struct notifier_block *nb,
--					unsigned long event,
--					void *data)
-+void ib_mad_agent_security_change(void)
- {
--	struct ib_mad_agent *ag = container_of(nb, struct ib_mad_agent, lsm_nb);
--
--	if (event != LSM_POLICY_CHANGE)
--		return NOTIFY_DONE;
--
--	ag->smp_allowed = !security_ib_endport_manage_subnet(ag->security,
--							     ag->device->name,
--							     ag->port_num);
--
--	return NOTIFY_OK;
-+	struct ib_mad_agent *ag;
-+
-+	spin_lock(&mad_agent_list_lock);
-+	list_for_each_entry(ag,
-+			    &mad_agent_list,
-+			    mad_agent_sec_list)
-+		WRITE_ONCE(ag->smp_allowed,
-+			   !security_ib_endport_manage_subnet(ag->security,
-+				ag->device->name, ag->port_num));
-+	spin_unlock(&mad_agent_list_lock);
- }
- 
- int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
-@@ -693,6 +695,8 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
- 	if (!rdma_protocol_ib(agent->device, agent->port_num))
- 		return 0;
- 
-+	INIT_LIST_HEAD(&agent->mad_agent_sec_list);
-+
- 	ret = security_ib_alloc_security(&agent->security);
- 	if (ret)
- 		return ret;
-@@ -700,22 +704,20 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
- 	if (qp_type != IB_QPT_SMI)
- 		return 0;
- 
-+	spin_lock(&mad_agent_list_lock);
- 	ret = security_ib_endport_manage_subnet(agent->security,
- 						agent->device->name,
- 						agent->port_num);
- 	if (ret)
- 		goto free_security;
- 
--	agent->lsm_nb.notifier_call = ib_mad_agent_security_change;
--	ret = register_lsm_notifier(&agent->lsm_nb);
--	if (ret)
--		goto free_security;
--
--	agent->smp_allowed = true;
--	agent->lsm_nb_reg = true;
-+	WRITE_ONCE(agent->smp_allowed, true);
-+	list_add(&agent->mad_agent_sec_list, &mad_agent_list);
-+	spin_unlock(&mad_agent_list_lock);
- 	return 0;
- 
- free_security:
-+	spin_unlock(&mad_agent_list_lock);
- 	security_ib_free_security(agent->security);
- 	return ret;
- }
-@@ -725,8 +727,11 @@ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
- 	if (!rdma_protocol_ib(agent->device, agent->port_num))
- 		return;
- 
--	if (agent->lsm_nb_reg)
--		unregister_lsm_notifier(&agent->lsm_nb);
-+	if (agent->qp->qp_type == IB_QPT_SMI) {
-+		spin_lock(&mad_agent_list_lock);
-+		list_del(&agent->mad_agent_sec_list);
-+		spin_unlock(&mad_agent_list_lock);
-+	}
- 
- 	security_ib_free_security(agent->security);
- }
-@@ -737,7 +742,7 @@ int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
- 		return 0;
- 
- 	if (map->agent.qp->qp_type == IB_QPT_SMI) {
--		if (!map->agent.smp_allowed)
-+		if (!READ_ONCE(map->agent.smp_allowed))
- 			return -EACCES;
- 		return 0;
- 	}
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index f6ba366051c7..69b838afe2cf 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -610,8 +610,7 @@ struct ib_mad_agent {
- 	u8			rmpp_version;
- 	void			*security;
- 	bool			smp_allowed;
--	bool			lsm_nb_reg;
--	struct notifier_block   lsm_nb;
-+	struct list_head	mad_agent_sec_list;
- };
- 
- /**
--- 
-2.17.1
 
