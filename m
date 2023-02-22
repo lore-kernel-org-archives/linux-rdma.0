@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99450C64ED6
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Feb 2023 23:35:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB12DC64ED8
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Feb 2023 23:35:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232782AbjBVXfn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Feb 2023 18:35:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48446 "EHLO
+        id S232784AbjBVXfm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Feb 2023 18:35:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232770AbjBVXfl (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Feb 2023 18:35:41 -0500
-Received: from mail-oi1-x22c.google.com (mail-oi1-x22c.google.com [IPv6:2607:f8b0:4864:20::22c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3639E474EF
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Feb 2023 15:35:38 -0800 (PST)
-Received: by mail-oi1-x22c.google.com with SMTP id bm20so9056380oib.7
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Feb 2023 15:35:38 -0800 (PST)
+        with ESMTP id S232796AbjBVXfk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Feb 2023 18:35:40 -0500
+Received: from mail-ot1-x332.google.com (mail-ot1-x332.google.com [IPv6:2607:f8b0:4864:20::332])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E700474E5
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Feb 2023 15:35:34 -0800 (PST)
+Received: by mail-ot1-x332.google.com with SMTP id h6-20020a9d7986000000b0068bd8c1e836so1823363otm.3
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Feb 2023 15:35:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Gb1A4fQFC5zuaBljUu2EFf10hcNUwhzBrinSvotfBis=;
-        b=o6q1Qpt1Z4A58O34cwewGqCcrfyrokN6imy2lnlp4gj5SHkwKjAwbCj8bvC0All+dr
-         W7DVJK3Plo5cLuTPCmxhD2sAoYdgu/6QlEz6vjCxMQ05MLrebLdaf8cdj1cEv7nOqiBz
-         Xl5Ti6iIsf/oixNs2qSr/niQHZEeklV7cPfhSMMzfs3cIaA6vxg8AVRVQ/SVvMUwN5OE
-         svh17hJm03k7q1oGP9V+RZiBGH9/xONmt1vi83Oxa4pt1iYKwAkCxnyLh+QTxE865lQz
-         Huh7HfkqcfA3DwoVfAuD4DwvBWVbyL13uo731SLXCchyqYoKXw382rdDCQQd+KKTuz7Z
-         DUnQ==
+        bh=txrG+XyGJdvlPT2WXHV96O7F0Ip9Mn8/lpisEf+j1DI=;
+        b=jfaWxFQlx37/I0cWRKsYOEyfGpBSkJRF+9sTVMaMjYcDMOorZfmrBQ24wCzAbnQ+RY
+         y2ehekvfLV/NPE91wnMYAUL9MRiM7I7skrDyt464k+N4pDELdoNSdJ04UfD+Q0tixOgn
+         yvhNSAMblzFLFs7mz6BA6Ehg8OW+xKP6gukESmGLYvVeGfCfeUj7ltsumkKVDgqK+LeR
+         IgaULLB6+OCxfSINd0K8UE0l9AbtEtfQMAh77MHJHf5ESoqHTUIDwdj/5i6xYYwZV3og
+         Y8GUUzqpxlCgY1/ml0O+UpzsFEg4GYdi1BHSGNd7lpsmURv1Ncby3JKAGocdoio1ybT9
+         sLRg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Gb1A4fQFC5zuaBljUu2EFf10hcNUwhzBrinSvotfBis=;
-        b=el3RUTeTdKWpU6pAYVy2kFn2gx1gkvu8YIX7l+gqbRkyDY8R8hBTRktuMu2SOo44ZR
-         4W6mNnW83mNlgnTgqETgUdlcmuSigUOFwiD/gvJUlzbvz3CntYIGPvWpMtAlq9Hv5fKe
-         ZQCyTu0qkW3f9S5msHDRq6olFZ9umrOa4gRjmw4Ko0aXcVMnlKp7WWqQ9z2z19xJSeU+
-         XoMh4U0JILik0fLhzHvhoc6l23g5pjhEjvkZUTxk8l7mxWAhCePSrkusP+v3Gg9Jd9NG
-         m5tKpQNa1AnLWjLPEzAnChdqEkTCdvWSR6z59a8LtYd9NCig19mcEeGiyPGdFCmTIJK1
-         cGtw==
-X-Gm-Message-State: AO0yUKXdKYfiJcBruS/X0UPp4vSXdfrZZA4FZ6W5h1nDfSJ9C5QU7oaJ
-        SJ8xLwON4sDJre3Y1/4vvymOyTS8alQ=
-X-Google-Smtp-Source: AK7set/sEIh+bNKXE3n/CJOwnEwGa58j0gcBKkos9l4gnKoNgobMuGZDK+DVwOwjuhjLlnea9z1McA==
-X-Received: by 2002:a05:6808:6248:b0:383:b9da:328e with SMTP id dt8-20020a056808624800b00383b9da328emr2834185oib.48.1677108937103;
-        Wed, 22 Feb 2023 15:35:37 -0800 (PST)
+        bh=txrG+XyGJdvlPT2WXHV96O7F0Ip9Mn8/lpisEf+j1DI=;
+        b=ntTmRVL0c1sbPNCjF4m+OkkNr/EkwqCypeL9XJovRJ+R+KtFetY3BQznvbdhCcSgSW
+         aAfclbljkHs7NI+3SmrQ6jsI5uiLybas8rU8140Fopqenhc8RLK18Dn9fL2MPqPweYID
+         s7TMKIDOzuWFU67TgPlXVFT+icEhn7yRB3NnOVhVzi26HSzXv99dUR1/vAN5x8xai4ZH
+         PNmUXFzvzDBqc95S+gp5Lmzdzj51habv9wvxEC2mNs/4o3b6J3xpQDQLyjSycm5bw/k+
+         U7amQZ2iGEzH2uek/jMuPFOjVfNohE0HarM3zfmmGqnyTCxya/UMkQbz/fSACT93mNNU
+         6KSg==
+X-Gm-Message-State: AO0yUKVI3451NpY8a8qx4N1PP+jV3Af4MNw1nT3xL5cEuyihvdSFST8E
+        tz/B4TD1LE+/oHjNS2e4Hz19TGxqYiU=
+X-Google-Smtp-Source: AK7set8I2WIH6QapqN7veHKSNOrRmh9rjDmb6NC9fGzhG9u5kkI1uL8m8+UCX8T6Y4O0HeCbqK5beg==
+X-Received: by 2002:a05:6830:441e:b0:68b:c67c:5d0b with SMTP id q30-20020a056830441e00b0068bc67c5d0bmr1365177otv.10.1677108933465;
+        Wed, 22 Feb 2023 15:35:33 -0800 (PST)
 Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-e92c-8850-3fad-351f.res6.spectrum.com. [2603:8081:140c:1a00:e92c:8850:3fad:351f])
-        by smtp.gmail.com with ESMTPSA id l19-20020a9d7093000000b0068663820588sm2723281otj.44.2023.02.22.15.35.35
+        by smtp.gmail.com with ESMTPSA id l19-20020a9d7093000000b0068663820588sm2723281otj.44.2023.02.22.15.35.30
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Feb 2023 15:35:36 -0800 (PST)
+        Wed, 22 Feb 2023 15:35:31 -0800 (PST)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, matsuda-daisuke@fujitsu.com,
         jhack@hpe.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 7/9] RDMA/rxe: Check for unsupported wr opcodes
-Date:   Wed, 22 Feb 2023 17:32:36 -0600
-Message-Id: <20230222233237.48940-8-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 5/9] RDMA/rxe: Add a warning if refcnt zero in rxe_put
+Date:   Wed, 22 Feb 2023 17:32:34 -0600
+Message-Id: <20230222233237.48940-6-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230222233237.48940-1-rpearsonhpe@gmail.com>
 References: <20230222233237.48940-1-rpearsonhpe@gmail.com>
@@ -65,113 +65,28 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Currently the rxe driver does not check for unsupported work
-request opcodes in posted send work requests. This patch adds
-code to do this and immediately return an error if an
-unsupported opocode is used.
+This patch adds a WARN_ON if the reference count of the object
+passed to __rxe_put() is <= 0. This can only happen if the
+object has already been destroyed so the object will soon be deleted
+which is a driver bug.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c | 37 ++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_pool.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 8dfed5f8b6b7..b70403df20ae 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -695,7 +695,7 @@ static int validate_send_wr(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
- 	return -EINVAL;
- }
+diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+index 3f6bd672cc2d..1b160e36b751 100644
+--- a/drivers/infiniband/sw/rxe/rxe_pool.c
++++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+@@ -244,6 +244,8 @@ int __rxe_get(struct rxe_pool_elem *elem)
  
--static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
-+static int init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
- 			 const struct ib_send_wr *ibwr)
+ int __rxe_put(struct rxe_pool_elem *elem)
  {
- 	wr->wr_id = ibwr->wr_id;
-@@ -746,11 +746,22 @@ static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
- 			wr->wr.reg.key = reg_wr(ibwr)->key;
- 			wr->wr.reg.access = reg_wr(ibwr)->access;
- 			break;
-+		case IB_WR_SEND:
-+		case IB_WR_BIND_MW:
-+		case IB_WR_RDMA_READ_WITH_INV:
-+		case IB_WR_FLUSH:
-+		case IB_WR_ATOMIC_WRITE:
-+			/* nothing to do here */
-+			break;
- 		default:
--			WARN_ON(1);
-+			rxe_err_qp(qp, "unsupported send wr opcode = %d",
-+				   wr->opcode);
-+			return -EOPNOTSUPP;
- 			break;
- 		}
- 	}
-+
-+	return 0;
- }
- 
- static void copy_inline_data_to_wqe(struct rxe_send_wqe *wqe,
-@@ -766,19 +777,22 @@ static void copy_inline_data_to_wqe(struct rxe_send_wqe *wqe,
- 	}
- }
- 
--static void init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
-+static int init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
- 			 unsigned int mask, unsigned int length,
- 			 struct rxe_send_wqe *wqe)
- {
- 	int num_sge = ibwr->num_sge;
-+	int err;
- 
--	init_send_wr(qp, &wqe->wr, ibwr);
-+	err = init_send_wr(qp, &wqe->wr, ibwr);
-+	if (err)
-+		return err;
- 
- 	/* local operation */
- 	if (unlikely(mask & WR_LOCAL_OP_MASK)) {
- 		wqe->mask = mask;
- 		wqe->state = wqe_state_posted;
--		return;
++	if (WARN_ON(kref_read(&elem->ref_cnt) <= 0))
 +		return 0;
- 	}
- 
- 	if (unlikely(ibwr->send_flags & IB_SEND_INLINE))
-@@ -797,6 +811,8 @@ static void init_send_wqe(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
- 	wqe->dma.sge_offset	= 0;
- 	wqe->state		= wqe_state_posted;
- 	wqe->ssn		= atomic_add_return(1, &qp->ssn);
-+
-+	return 0;
+ 	return kref_put(&elem->ref_cnt, rxe_elem_release);
  }
- 
- static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
-@@ -809,8 +825,10 @@ static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
- 	int full;
- 
- 	err = validate_send_wr(qp, ibwr, mask, length);
--	if (err)
-+	if (err) {
-+		rxe_dbg_qp(qp, "malformed wr");
- 		return err;
-+	}
- 
- 	spin_lock_irqsave(&qp->sq.sq_lock, flags);
- 
-@@ -822,7 +840,12 @@ static int post_one_send(struct rxe_qp *qp, const struct ib_send_wr *ibwr,
- 	}
- 
- 	send_wqe = queue_producer_addr(sq->queue, QUEUE_TYPE_FROM_ULP);
--	init_send_wqe(qp, ibwr, mask, length, send_wqe);
-+
-+	err = init_send_wqe(qp, ibwr, mask, length, send_wqe);
-+	if (err) {
-+		rxe_err_qp(qp, "failed to init send wqe");
-+		return err;
-+	}
- 
- 	queue_advance_producer(sq->queue, QUEUE_TYPE_FROM_ULP);
  
 -- 
 2.37.2
