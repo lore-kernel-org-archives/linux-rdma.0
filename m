@@ -2,60 +2,60 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C09B7C61DA4
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Feb 2023 23:35:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC872C636D6
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Feb 2023 23:35:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232785AbjBVXfm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Feb 2023 18:35:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48450 "EHLO
+        id S231844AbjBVXfo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Feb 2023 18:35:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232787AbjBVXfk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Feb 2023 18:35:40 -0500
-Received: from mail-ot1-x332.google.com (mail-ot1-x332.google.com [IPv6:2607:f8b0:4864:20::332])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53F67474E0
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Feb 2023 15:35:31 -0800 (PST)
-Received: by mail-ot1-x332.google.com with SMTP id l13-20020a0568301d6d00b0068f24f576c5so1831629oti.11
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Feb 2023 15:35:31 -0800 (PST)
+        with ESMTP id S232801AbjBVXfm (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Feb 2023 18:35:42 -0500
+Received: from mail-ot1-x32b.google.com (mail-ot1-x32b.google.com [IPv6:2607:f8b0:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2973474EC
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Feb 2023 15:35:39 -0800 (PST)
+Received: by mail-ot1-x32b.google.com with SMTP id dm12-20020a0568303b8c00b0068db1940216so1841488otb.5
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Feb 2023 15:35:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=n/NN8eN0d3QNDkH2Exir7qGeXHhQcj3Oq77A75Cbf/Q=;
-        b=Re4bgv4v8ISbib8KdNYb3ZxCzkvmjQ2RLqenS5hRJZMvyByYfrEZDhtZeY/lM84stJ
-         Kfxy6n8bRGDer9DSRl+TVgPTxVzCWXgNXjjIbQz+MhA9FtfAEkWXm4gOZMKSWHgPVblz
-         +lGUkc8U7OOrRjR+I8j3lASxLChwrWRqheBl2ourJOgLA8VXhkjV5zQRxeQoboYHR+c6
-         DvMVUilnVVTcx/EGU9+uNtC409o/Q+CkDTHqxXoIKWcHtlskS89VjeO2LIpRuALSIfp0
-         hyHPgr03HieKmNf11OSNUwC94DiGLpcNQr35Wq52c/X3RVkz25eVRop8VTqw6AxX9wj2
-         Q+NQ==
+        bh=WzytK9HhWzaSQMdbRM/oFPX9az3MzdnjElHqdZw4N54=;
+        b=J+SVmareSnf+MPzB3rB3+cK445LtV754i109/2QXCr54zrIhxB+LUAySMpD295PYFk
+         fO077VPI/6OB8LPbKYbJMX3BiShtgk3nYaBLHw68HmCKlCtKF8L8NK8TrePy2tNjWxK6
+         AD8DXBhzuyJQICxhCgGze/0oBnT1DfR3DXRDx3uu//AyEAKqCv1Y3Jh3DOLVt1/32TMZ
+         VyYP/znBHGPzE3o7QbKPnncenRlGPVbD6966qroZ8EDyNUFUdeWmaGWNt0RS5egjWLXq
+         3PyFxdVeADhRCxr7Hj648JOqXiRrtfg2GwKilffKg5+qqfdCZo5uxjrc3WO2c8PpmxLk
+         1iLQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=n/NN8eN0d3QNDkH2Exir7qGeXHhQcj3Oq77A75Cbf/Q=;
-        b=3OP8BEtjUhAGz0A2F3Sd5RgIOozPUU3V7K0vFKjGxv3sbWhC7i1ORate6u6p+ST5gJ
-         nSnNGpCC1iVn7K0Hp4ZzVF/C2xvh7A14ko6AkbpXamYtdccoP8uFXWRR795qvQw1M8MA
-         S0A9ytISTSXZj3vC/mdOvkkwTQNrfEhyexas2BJab5KelP4R8lEA1C7u+uhXtJoYmMyD
-         GZ3SKhAK5yj9sZLAjZKKU+j2hqyNZoWS56EAk3lXHKlkujvvwxOcmsDNsm4mtffw3tVg
-         DvWQNaGaZYNBqWTjn2HhcufA7r9GpezJbyL6auFen5PtjuR71SUYveqU/kt0u1ueDvpZ
-         BueA==
-X-Gm-Message-State: AO0yUKXzSqXB9MdacZioq+1SSecJQQ6N+k/C77EGK1id5lsgS3jAU4qt
-        Zl0VOEpUD7hcgCX3ngQrRVg=
-X-Google-Smtp-Source: AK7set8ZIATldAqXCPNBna8/dUuSWhE0DJmM3vUbxm/W/7H5plqb0kc6HhA6O7IikI3FgW6TwngNCg==
-X-Received: by 2002:a05:6830:441e:b0:68b:c67c:5d0b with SMTP id q30-20020a056830441e00b0068bc67c5d0bmr1365118otv.10.1677108930693;
-        Wed, 22 Feb 2023 15:35:30 -0800 (PST)
+        bh=WzytK9HhWzaSQMdbRM/oFPX9az3MzdnjElHqdZw4N54=;
+        b=R1FcLnUk4ufp2YX/JI7tYzE1nzR3VKyyuf3Arw6E+sPjz9cQw6VAwUdjrVIiWbA1aq
+         TMmLvwG29tfFZoRGrLPnPvYKz4sIZR0z5e2HjFTCf9tAp5uZeSGkcBdrarGiWF7xBU6w
+         wZgcAwdjnTf67pd4MAUC81vva1eD9QpVwKKZX/aNnhfAg8GkgNbIB2QDlDfEU+wN7Z5A
+         xHBidhskRVK7GT0nOW5vn0oU2rNYxDxOVU27FJxipnzFHMexlIXxnWAYcFKj5YuzKjU9
+         K0J91PZoQ7xSyax166aP0dcOtKFyNDSSl8V2dp9b1aUniN171B5Vv2pvZFMBHhYQREht
+         qHyQ==
+X-Gm-Message-State: AO0yUKV/9nQBhklkh152GQp9yKhWigOMqpcn/fVnviyaYud7KYZNHujQ
+        dryBUWPE9JpDSIsr15JqeB4=
+X-Google-Smtp-Source: AK7set+wQhQnAfaVMoUKcasbYgHsb0ZenmR06gc3572pnydBNjp/k49qwNyIdnRT5ayVraEilWbVYg==
+X-Received: by 2002:a9d:1b0b:0:b0:68b:ba12:424d with SMTP id l11-20020a9d1b0b000000b0068bba12424dmr5229288otl.29.1677108939356;
+        Wed, 22 Feb 2023 15:35:39 -0800 (PST)
 Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-e92c-8850-3fad-351f.res6.spectrum.com. [2603:8081:140c:1a00:e92c:8850:3fad:351f])
-        by smtp.gmail.com with ESMTPSA id l19-20020a9d7093000000b0068663820588sm2723281otj.44.2023.02.22.15.35.28
+        by smtp.gmail.com with ESMTPSA id l19-20020a9d7093000000b0068663820588sm2723281otj.44.2023.02.22.15.35.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Feb 2023 15:35:29 -0800 (PST)
+        Wed, 22 Feb 2023 15:35:38 -0800 (PST)
 From:   Bob Pearson <rpearsonhpe@gmail.com>
 To:     jgg@nvidia.com, zyjzyj2000@gmail.com, matsuda-daisuke@fujitsu.com,
         jhack@hpe.com, linux-rdma@vger.kernel.org
 Cc:     Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 4/9] RDMA/rxe: Remove extra rxe_get(qp) in rxe_rcv_mcast_pkt
-Date:   Wed, 22 Feb 2023 17:32:33 -0600
-Message-Id: <20230222233237.48940-5-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 8/9] RDMA/rxe: Remove qp reference counting in tasks
+Date:   Wed, 22 Feb 2023 17:32:37 -0600
+Message-Id: <20230222233237.48940-9-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20230222233237.48940-1-rpearsonhpe@gmail.com>
 References: <20230222233237.48940-1-rpearsonhpe@gmail.com>
@@ -65,35 +65,91 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The rxe driver implements UD multicast support by cloning an incoming
-request packet to give one each to the qp's that belong to the multi-
-cast group. If there are N qp's in the group N-1 clones are created
-and for each one a reference is taken to the ib device and a reference
-is taken to the destination qp. This matches the behavior of non
-multicast packets. The packet itself which already has a reference
-to the ib device and the qp is given to the last qp.
+Currently each of the three tasklets requester, completer and
+responder in the rxe driver take and release a reference to the
+qp argument at the beginning and end of the subroutines. The
+caller passing in the qp argument should be responsible for holding
+a reference to qp so these are not required. Further doing so
+breaks the qp cleanup code in rxe_qp_do_cleanup which calls these
+routines after all the references have been dropped so they cannot
+drain the packet and work request queues as intended.
 
-Incorrectly, rxe_rcv_mcast_pkt() takes an additional qp reference
-which is not needed and will prevent the qp from being destroyed
-without an error timeout. This patch removes that qp reference.
+In fact if these routines are deferred by calling tasklet_schedule
+there is no guarantee that the calling code does have a qp reference.
+That is a bug in rxe_task.c which will be fixed in the next patch.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/sw/rxe/rxe_recv.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_comp.c | 4 ----
+ drivers/infiniband/sw/rxe/rxe_req.c  | 5 -----
+ drivers/infiniband/sw/rxe/rxe_resp.c | 4 ----
+ 3 files changed, 13 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index 434a693cd4a5..dd42c347301c 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -241,7 +241,6 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
- 			rxe_rcv_pkt(cpkt, cskb);
- 		} else {
- 			pkt->qp = qp;
--			rxe_get(qp);
- 			rxe_rcv_pkt(pkt, skb);
- 			skb = NULL;	/* mark consumed */
- 		}
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index cbfa16b3a490..6eea13381476 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -584,9 +584,6 @@ int rxe_completer(struct rxe_qp *qp)
+ 	enum comp_state state;
+ 	int ret;
+ 
+-	if (!rxe_get(qp))
+-		return -EAGAIN;
+-
+ 	if (!qp->valid || qp->comp.state == QP_STATE_ERROR ||
+ 	    qp->comp.state == QP_STATE_RESET) {
+ 		rxe_drain_resp_pkts(qp, qp->valid &&
+@@ -787,7 +784,6 @@ int rxe_completer(struct rxe_qp *qp)
+ out:
+ 	if (pkt)
+ 		free_pkt(pkt);
+-	rxe_put(qp);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index f2dc2d191e16..abc65c54bfd6 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -653,9 +653,6 @@ int rxe_requester(struct rxe_qp *qp)
+ 	struct rxe_ah *ah;
+ 	struct rxe_av *av;
+ 
+-	if (!rxe_get(qp))
+-		return -EAGAIN;
+-
+ 	if (unlikely(!qp->valid))
+ 		goto exit;
+ 
+@@ -844,7 +841,5 @@ int rxe_requester(struct rxe_qp *qp)
+ exit:
+ 	ret = -EAGAIN;
+ out:
+-	rxe_put(qp);
+-
+ 	return ret;
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 7cb1b962d665..09271c861cc6 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1450,9 +1450,6 @@ int rxe_responder(struct rxe_qp *qp)
+ 	struct rxe_pkt_info *pkt = NULL;
+ 	int ret;
+ 
+-	if (!rxe_get(qp))
+-		return -EAGAIN;
+-
+ 	qp->resp.aeth_syndrome = AETH_ACK_UNLIMITED;
+ 
+ 	if (!qp->valid)
+@@ -1651,6 +1648,5 @@ int rxe_responder(struct rxe_qp *qp)
+ exit:
+ 	ret = -EAGAIN;
+ out:
+-	rxe_put(qp);
+ 	return ret;
+ }
 -- 
 2.37.2
 
