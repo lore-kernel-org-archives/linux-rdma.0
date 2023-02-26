@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E93C1C64ED6
-	for <linux-rdma@archiver.kernel.org>; Sun, 26 Feb 2023 15:01:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9F8EC7EE23
+	for <linux-rdma@archiver.kernel.org>; Sun, 26 Feb 2023 15:03:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231626AbjBZPB4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 26 Feb 2023 10:01:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35778 "EHLO
+        id S231661AbjBZPDt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 26 Feb 2023 10:03:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231469AbjBZPBJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Feb 2023 10:01:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2AB759F2;
-        Sun, 26 Feb 2023 06:52:52 -0800 (PST)
+        with ESMTP id S231705AbjBZPDd (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 26 Feb 2023 10:03:33 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E9D39EC7;
+        Sun, 26 Feb 2023 06:54:13 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F37E60C38;
-        Sun, 26 Feb 2023 14:51:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A92C3C433D2;
-        Sun, 26 Feb 2023 14:51:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 384DE60C41;
+        Sun, 26 Feb 2023 14:52:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48CD5C433D2;
+        Sun, 26 Feb 2023 14:52:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677423069;
-        bh=F3DEcXwhJLGQ69uA7lr+9d7GHUGyBldAK5RmD6ZXIqw=;
+        s=k20201202; t=1677423172;
+        bh=H5qQtPQraXVrRYOrS3GKBgnyOo2ecO5HI/VgcC2jAE8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=X7FnbdS/vatPpQgqCWFESnFYJQz9fExcqTB9nMM/63sFh/pqyEL/udEQlBV7cST+U
-         r9A1qwIqDEEbnPUuTZu17KYLKAiRUcgA1AaG+n/Eb9omgnOXx8y6HAZcsYUZ0IifRj
-         llRGC04mKn2WCatI4krdKVKvIS+efcX2ocP6OCmplfjnEXc9mwGnE8C/SeiMQR2sQO
-         M1lSuKtYgQXrLssIL3SQwfJAFiaIK8d/03ZSJhi3ViDVuytLXKhy/e4IwVx7Mw57vE
-         xbbqrRzSU8KmcNvPwC+bVHbpQNIk4XJ7oLi6AgNAthN+WEk7LxxqaPdv67u1TWUpAs
-         qHPDBUjDTUINw==
+        b=AZP4GlTnsMZ6ggtOjcI49sIp0shCcSIvNW9xgSmJZS9i2PBjY8E/X6OlLFwghlnJn
+         ictrR/Xy+lGKCMlbcPcelgPrcp5ij1dIYmwY8ZS+B9L/+cvFTJNd0tAaASl614r/IF
+         sDSRHiXx7DV7aH8a+u5XhUHLFn3ZUI6cZ3IXJFDOlP4cIebsE8wuK3Q9bK/a4sV72k
+         JGF9NZUy0lNWPxwU0MqpsiSa77B0xhdMu1kDaOZdXY94SNy+HIofo7Ham46B6RULv+
+         FmZq58Iu7zZTTy0MOrNtVEqw1TRw7fb+qccbjpR1sMXU3EcuBZ7AuIKBbH0VkeepKc
+         RHwewSQ/bOpGw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Shay Drory <shayd@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
@@ -39,12 +39,12 @@ Cc:     Shay Drory <shayd@nvidia.com>, Moshe Shemesh <moshe@nvidia.com>,
         edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
         ferasda@nvidia.com, royno@nvidia.com, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 22/27] net/mlx5: fw_tracer: Fix debug print
-Date:   Sun, 26 Feb 2023 09:50:09 -0500
-Message-Id: <20230226145014.828855-22-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 13/13] net/mlx5: fw_tracer: Fix debug print
+Date:   Sun, 26 Feb 2023 09:52:15 -0500
+Message-Id: <20230226145217.829485-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.0
-In-Reply-To: <20230226145014.828855-1-sashal@kernel.org>
-References: <20230226145014.828855-1-sashal@kernel.org>
+In-Reply-To: <20230226145217.829485-1-sashal@kernel.org>
+References: <20230226145217.829485-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -69,10 +69,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c
-index 40d7bfca37499..0a011a41c039e 100644
+index ef9f932f02263..5a2feadd80f08 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fw_tracer.c
-@@ -603,7 +603,7 @@ static int mlx5_tracer_handle_string_trace(struct mlx5_fw_tracer *tracer,
+@@ -564,7 +564,7 @@ static int mlx5_tracer_handle_string_trace(struct mlx5_fw_tracer *tracer,
  	} else {
  		cur_string = mlx5_tracer_message_get(tracer, tracer_event);
  		if (!cur_string) {
