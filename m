@@ -2,32 +2,32 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FACDC7EE32
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Feb 2023 08:09:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26A5AC7EE33
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Feb 2023 08:09:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229671AbjB1IJI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Feb 2023 03:09:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56100 "EHLO
+        id S229534AbjB1IJJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Feb 2023 03:09:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229534AbjB1IJF (ORCPT
+        with ESMTP id S230084AbjB1IJF (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Feb 2023 03:09:05 -0500
 Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14A331A64C;
-        Tue, 28 Feb 2023 00:08:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3EF9C166D7;
+        Tue, 28 Feb 2023 00:08:56 -0800 (PST)
 Received: from dggpemm500024.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PQqhb3WrFz9tBq;
-        Tue, 28 Feb 2023 16:06:55 +0800 (CST)
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PQqhc1JBzz9tCF;
+        Tue, 28 Feb 2023 16:06:56 +0800 (CST)
 Received: from huawei.com (10.67.175.31) by dggpemm500024.china.huawei.com
  (7.185.36.203) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.21; Tue, 28 Feb
- 2023 16:08:38 +0800
+ 2023 16:08:40 +0800
 From:   GUO Zihua <guozihua@huawei.com>
 To:     <zohar@linux.ibm.com>, <paul@paul-moore.com>
 CC:     <linux-security-module@vger.kernel.org>,
         <linux-rdma@vger.kernel.org>, <dledford@redhat.com>, <jgg@ziepe.ca>
-Subject: [PATCH 4.19 v3 1/6] IB/core: Don't register each MAD agent for LSM notifier
-Date:   Tue, 28 Feb 2023 16:06:25 +0800
-Message-ID: <20230228080630.52370-2-guozihua@huawei.com>
+Subject: [PATCH 4.19 v3 3/6] ima: use the lsm policy update notifier
+Date:   Tue, 28 Feb 2023 16:06:27 +0800
+Message-ID: <20230228080630.52370-4-guozihua@huawei.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20230228080630.52370-1-guozihua@huawei.com>
 References: <20230228080630.52370-1-guozihua@huawei.com>
@@ -41,197 +41,233 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj@mellanox.com>
+From: Janne Karhunen <janne.karhunen@gmail.com>
 
-[ Upstream commit c66f67414c1f88554485bb2a0abf8b5c0d741de7 ]
+[ Upstream commit b169424551930a9325f700f502802f4d515194e5 ]
 
-When creating many MAD agents in a short period of time, receive packet
-processing can be delayed long enough to cause timeouts while new agents
-are being added to the atomic notifier chain with IRQs disabled.  Notifier
-chain registration and unregstration is an O(n) operation. With large
-numbers of MAD agents being created and destroyed simultaneously the CPUs
-spend too much time with interrupts disabled.
+Don't do lazy policy updates while running the rule matching,
+run the updates as they happen.
 
-Instead of each MAD agent registering for it's own LSM notification,
-maintain a list of agents internally and register once, this registration
-already existed for handling the PKeys. This list is write mostly, so a
-normal spin lock is used vs a read/write lock. All MAD agents must be
-checked, so a single list is used instead of breaking them down per
-device.
+Depends on commit f242064c5df3 ("LSM: switch to blocking policy update notifiers")
 
-Notifier calls are done under rcu_read_lock, so there isn't a risk of
-similar packet timeouts while checking the MAD agents security settings
-when notified.
-
-Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
-Reviewed-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Janne Karhunen <janne.karhunen@gmail.com>
+Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
 Signed-off-by: GUO Zihua <guozihua@huawei.com>
 ---
- drivers/infiniband/core/core_priv.h |  5 +++
- drivers/infiniband/core/device.c    |  1 +
- drivers/infiniband/core/security.c  | 51 ++++++++++++++++-------------
- include/rdma/ib_mad.h               |  3 +-
- 4 files changed, 35 insertions(+), 25 deletions(-)
+ security/integrity/ima/ima.h        |   2 +
+ security/integrity/ima/ima_main.c   |   8 ++
+ security/integrity/ima/ima_policy.c | 118 ++++++++++++++++++++++------
+ 3 files changed, 105 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 77c7005c396c..8fd8a822d9b6 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -227,6 +227,7 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
- 				enum ib_qp_type qp_type);
- void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent);
- int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index);
-+void ib_mad_agent_security_change(void);
- #else
- static inline void ib_security_destroy_port_pkey_list(struct ib_device *device)
- {
-@@ -292,6 +293,10 @@ static inline int ib_mad_enforce_security(struct ib_mad_agent_private *map,
- {
- 	return 0;
- }
+diff --git a/security/integrity/ima/ima.h b/security/integrity/ima/ima.h
+index e2916b115b93..dc564ed9a790 100644
+--- a/security/integrity/ima/ima.h
++++ b/security/integrity/ima/ima.h
+@@ -154,6 +154,8 @@ int ima_measurements_show(struct seq_file *m, void *v);
+ unsigned long ima_get_binary_runtime_size(void);
+ int ima_init_template(void);
+ void ima_init_template_list(void);
++int ima_lsm_policy_change(struct notifier_block *nb, unsigned long event,
++			  void *lsm_data);
+ 
+ /*
+  * used to protect h_table and sha_table
+diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/ima_main.c
+index 2d31921fbda4..55681872c6ce 100644
+--- a/security/integrity/ima/ima_main.c
++++ b/security/integrity/ima/ima_main.c
+@@ -41,6 +41,10 @@ int ima_appraise;
+ int ima_hash_algo = HASH_ALGO_SHA1;
+ static int hash_setup_done;
+ 
++static struct notifier_block ima_lsm_policy_notifier = {
++	.notifier_call = ima_lsm_policy_change,
++};
 +
-+static inline void ib_mad_agent_security_change(void)
-+{
+ static int __init hash_setup(char *str)
+ {
+ 	struct ima_template_desc *template_desc = ima_template_desc_current();
+@@ -553,6 +557,10 @@ static int __init init_ima(void)
+ 		error = ima_init();
+ 	}
+ 
++	error = register_blocking_lsm_notifier(&ima_lsm_policy_notifier);
++	if (error)
++		pr_warn("Couldn't register LSM notifier, error %d\n", error);
++
+ 	if (!error)
+ 		ima_update_policy_flag();
+ 
+diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
+index b2dadff3626b..5a15524bca4c 100644
+--- a/security/integrity/ima/ima_policy.c
++++ b/security/integrity/ima/ima_policy.c
+@@ -241,46 +241,124 @@ static int __init default_appraise_policy_setup(char *str)
+ }
+ __setup("ima_appraise_tcb", default_appraise_policy_setup);
+ 
+-static void ima_free_rule(struct ima_rule_entry *entry)
++static void ima_lsm_free_rule(struct ima_rule_entry *entry)
+ {
+ 	int i;
+ 
++	for (i = 0; i < MAX_LSM_RULES; i++) {
++		security_filter_rule_free(entry->lsm[i].rule);
++		kfree(entry->lsm[i].args_p);
++	}
 +}
- #endif
- 
- struct ib_device *ib_device_get_by_index(u32 ifindex);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index ffd0f43e2129..9740614a108d 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -417,6 +417,7 @@ static int ib_security_change(struct notifier_block *nb, unsigned long event,
- 		return NOTIFY_DONE;
- 
- 	schedule_work(&ib_policy_change_work);
-+	ib_mad_agent_security_change();
- 
- 	return NOTIFY_OK;
- }
-diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
-index 6df6cc55fd16..166a4ef9dce0 100644
---- a/drivers/infiniband/core/security.c
-+++ b/drivers/infiniband/core/security.c
-@@ -39,6 +39,10 @@
- #include "core_priv.h"
- #include "mad_priv.h"
- 
-+static LIST_HEAD(mad_agent_list);
-+/* Lock to protect mad_agent_list */
-+static DEFINE_SPINLOCK(mad_agent_list_lock);
 +
- static struct pkey_index_qp_list *get_pkey_idx_qp_list(struct ib_port_pkey *pp)
- {
- 	struct pkey_index_qp_list *pkey = NULL;
-@@ -669,20 +673,18 @@ static int ib_security_pkey_access(struct ib_device *dev,
- 	return security_ib_pkey_access(sec, subnet_prefix, pkey);
- }
- 
--static int ib_mad_agent_security_change(struct notifier_block *nb,
--					unsigned long event,
--					void *data)
-+void ib_mad_agent_security_change(void)
- {
--	struct ib_mad_agent *ag = container_of(nb, struct ib_mad_agent, lsm_nb);
--
--	if (event != LSM_POLICY_CHANGE)
--		return NOTIFY_DONE;
--
--	ag->smp_allowed = !security_ib_endport_manage_subnet(ag->security,
--							     ag->device->name,
--							     ag->port_num);
--
--	return NOTIFY_OK;
-+	struct ib_mad_agent *ag;
-+
-+	spin_lock(&mad_agent_list_lock);
-+	list_for_each_entry(ag,
-+			    &mad_agent_list,
-+			    mad_agent_sec_list)
-+		WRITE_ONCE(ag->smp_allowed,
-+			   !security_ib_endport_manage_subnet(ag->security,
-+				ag->device->name, ag->port_num));
-+	spin_unlock(&mad_agent_list_lock);
- }
- 
- int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
-@@ -693,6 +695,8 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
- 	if (!rdma_protocol_ib(agent->device, agent->port_num))
- 		return 0;
- 
-+	INIT_LIST_HEAD(&agent->mad_agent_sec_list);
-+
- 	ret = security_ib_alloc_security(&agent->security);
- 	if (ret)
- 		return ret;
-@@ -700,22 +704,20 @@ int ib_mad_agent_security_setup(struct ib_mad_agent *agent,
- 	if (qp_type != IB_QPT_SMI)
- 		return 0;
- 
-+	spin_lock(&mad_agent_list_lock);
- 	ret = security_ib_endport_manage_subnet(agent->security,
- 						agent->device->name,
- 						agent->port_num);
- 	if (ret)
- 		goto free_security;
- 
--	agent->lsm_nb.notifier_call = ib_mad_agent_security_change;
--	ret = register_lsm_notifier(&agent->lsm_nb);
--	if (ret)
--		goto free_security;
--
--	agent->smp_allowed = true;
--	agent->lsm_nb_reg = true;
-+	WRITE_ONCE(agent->smp_allowed, true);
-+	list_add(&agent->mad_agent_sec_list, &mad_agent_list);
-+	spin_unlock(&mad_agent_list_lock);
- 	return 0;
- 
- free_security:
-+	spin_unlock(&mad_agent_list_lock);
- 	security_ib_free_security(agent->security);
- 	return ret;
- }
-@@ -725,8 +727,11 @@ void ib_mad_agent_security_cleanup(struct ib_mad_agent *agent)
- 	if (!rdma_protocol_ib(agent->device, agent->port_num))
++static void ima_free_rule(struct ima_rule_entry *entry)
++{
+ 	if (!entry)
  		return;
  
--	if (agent->lsm_nb_reg)
--		unregister_lsm_notifier(&agent->lsm_nb);
-+	if (agent->qp->qp_type == IB_QPT_SMI) {
-+		spin_lock(&mad_agent_list_lock);
-+		list_del(&agent->mad_agent_sec_list);
-+		spin_unlock(&mad_agent_list_lock);
-+	}
- 
- 	security_ib_free_security(agent->security);
- }
-@@ -737,7 +742,7 @@ int ib_mad_enforce_security(struct ib_mad_agent_private *map, u16 pkey_index)
- 		return 0;
- 
- 	if (map->agent.qp->qp_type == IB_QPT_SMI) {
--		if (!map->agent.smp_allowed)
-+		if (!READ_ONCE(map->agent.smp_allowed))
- 			return -EACCES;
- 		return 0;
+ 	kfree(entry->fsname);
++	ima_lsm_free_rule(entry);
++	kfree(entry);
++}
++
++static struct ima_rule_entry *ima_lsm_copy_rule(struct ima_rule_entry *entry)
++{
++	struct ima_rule_entry *nentry;
++	int i, result;
++
++	nentry = kmalloc(sizeof(*nentry), GFP_KERNEL);
++	if (!nentry)
++		return NULL;
++
++	/*
++	 * Immutable elements are copied over as pointers and data; only
++	 * lsm rules can change
++	 */
++	memcpy(nentry, entry, sizeof(*nentry));
++	memset(nentry->lsm, 0, FIELD_SIZEOF(struct ima_rule_entry, lsm));
++
+ 	for (i = 0; i < MAX_LSM_RULES; i++) {
+-		security_filter_rule_free(entry->lsm[i].rule);
+-		kfree(entry->lsm[i].args_p);
++		if (!entry->lsm[i].rule)
++			continue;
++
++		nentry->lsm[i].type = entry->lsm[i].type;
++		nentry->lsm[i].args_p = kstrdup(entry->lsm[i].args_p,
++						GFP_KERNEL);
++		if (!nentry->lsm[i].args_p)
++			goto out_err;
++
++		result = security_filter_rule_init(nentry->lsm[i].type,
++						   Audit_equal,
++						   nentry->lsm[i].args_p,
++						   &nentry->lsm[i].rule);
++		if (result == -EINVAL)
++			pr_warn("ima: rule for LSM \'%d\' is undefined\n",
++				entry->lsm[i].type);
  	}
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index f6ba366051c7..69b838afe2cf 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -610,8 +610,7 @@ struct ib_mad_agent {
- 	u8			rmpp_version;
- 	void			*security;
- 	bool			smp_allowed;
--	bool			lsm_nb_reg;
--	struct notifier_block   lsm_nb;
-+	struct list_head	mad_agent_sec_list;
- };
++	return nentry;
++
++out_err:
++	ima_lsm_free_rule(nentry);
++	kfree(nentry);
++	return NULL;
++}
++
++static int ima_lsm_update_rule(struct ima_rule_entry *entry)
++{
++	struct ima_rule_entry *nentry;
++
++	nentry = ima_lsm_copy_rule(entry);
++	if (!nentry)
++		return -ENOMEM;
++
++	list_replace_rcu(&entry->list, &nentry->list);
++	synchronize_rcu();
++	ima_lsm_free_rule(entry);
+ 	kfree(entry);
++
++	return 0;
+ }
  
+ /*
+  * The LSM policy can be reloaded, leaving the IMA LSM based rules referring
+  * to the old, stale LSM policy.  Update the IMA LSM based rules to reflect
+- * the reloaded LSM policy.  We assume the rules still exist; and BUG_ON() if
+- * they don't.
++ * the reloaded LSM policy.
+  */
+ static void ima_lsm_update_rules(void)
+ {
+-	struct ima_rule_entry *entry;
+-	int result;
+-	int i;
++	struct ima_rule_entry *entry, *e;
++	int i, result, needs_update;
+ 
+-	list_for_each_entry(entry, &ima_policy_rules, list) {
++	list_for_each_entry_safe(entry, e, &ima_policy_rules, list) {
++		needs_update = 0;
+ 		for (i = 0; i < MAX_LSM_RULES; i++) {
+-			if (!entry->lsm[i].rule)
+-				continue;
+-			result = security_filter_rule_init(entry->lsm[i].type,
+-							   Audit_equal,
+-							   entry->lsm[i].args_p,
+-							   &entry->lsm[i].rule);
+-			BUG_ON(!entry->lsm[i].rule);
++			if (entry->lsm[i].rule) {
++				needs_update = 1;
++				break;
++			}
++		}
++		if (!needs_update)
++			continue;
++
++		result = ima_lsm_update_rule(entry);
++		if (result) {
++			pr_err("ima: lsm rule update error %d\n",
++				result);
++			return;
+ 		}
+ 	}
+ }
+ 
++int ima_lsm_policy_change(struct notifier_block *nb, unsigned long event,
++			  void *lsm_data)
++{
++	if (event != LSM_POLICY_CHANGE)
++		return NOTIFY_DONE;
++
++	ima_lsm_update_rules();
++	return NOTIFY_OK;
++}
++
  /**
+  * ima_match_rules - determine whether an inode matches the measure rule.
+  * @rule: a pointer to a rule
+@@ -334,11 +412,10 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
+ 	for (i = 0; i < MAX_LSM_RULES; i++) {
+ 		int rc = 0;
+ 		u32 osid;
+-		int retried = 0;
+ 
+ 		if (!rule->lsm[i].rule)
+ 			continue;
+-retry:
++
+ 		switch (i) {
+ 		case LSM_OBJ_USER:
+ 		case LSM_OBJ_ROLE:
+@@ -361,11 +438,6 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
+ 		default:
+ 			break;
+ 		}
+-		if ((rc < 0) && (!retried)) {
+-			retried = 1;
+-			ima_lsm_update_rules();
+-			goto retry;
+-		}
+ 		if (!rc)
+ 			return false;
+ 	}
 -- 
 2.17.1
 
