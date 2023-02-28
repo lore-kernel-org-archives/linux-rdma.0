@@ -2,32 +2,32 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EDD7C7EE39
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Feb 2023 08:09:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14415C64EC7
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Feb 2023 08:09:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229734AbjB1IJK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Feb 2023 03:09:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56092 "EHLO
+        id S229724AbjB1IJL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Feb 2023 03:09:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230225AbjB1IJF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Feb 2023 03:09:05 -0500
+        with ESMTP id S230267AbjB1IJG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Feb 2023 03:09:06 -0500
 Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6178117CD9;
-        Tue, 28 Feb 2023 00:08:56 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3E711ADE2;
+        Tue, 28 Feb 2023 00:08:59 -0800 (PST)
 Received: from dggpemm500024.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PQqhc1ZVvz9tCN;
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PQqhc3WwHz9tCQ;
         Tue, 28 Feb 2023 16:06:56 +0800 (CST)
 Received: from huawei.com (10.67.175.31) by dggpemm500024.china.huawei.com
  (7.185.36.203) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.21; Tue, 28 Feb
- 2023 16:08:40 +0800
+ 2023 16:08:42 +0800
 From:   GUO Zihua <guozihua@huawei.com>
 To:     <zohar@linux.ibm.com>, <paul@paul-moore.com>
 CC:     <linux-security-module@vger.kernel.org>,
         <linux-rdma@vger.kernel.org>, <dledford@redhat.com>, <jgg@ziepe.ca>
-Subject: [PATCH 4.19 v3 4/6] ima: ima/lsm policy rule loading logic bug fixes
-Date:   Tue, 28 Feb 2023 16:06:28 +0800
-Message-ID: <20230228080630.52370-5-guozihua@huawei.com>
+Subject: [PATCH 4.19 v3 6/6] ima: Handle -ESTALE returned by ima_filter_rule_match()
+Date:   Tue, 28 Feb 2023 16:06:30 +0800
+Message-ID: <20230228080630.52370-7-guozihua@huawei.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20230228080630.52370-1-guozihua@huawei.com>
 References: <20230228080630.52370-1-guozihua@huawei.com>
@@ -41,144 +41,112 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Janne Karhunen <janne.karhunen@gmail.com>
+[ Upstream commit c7423dbdbc9ecef7fff5239d144cad4b9887f4de ]
 
-[ Upstream commit 483ec26eed42bf050931d9a5c5f9f0b5f2ad5f3b ]
+IMA relies on the blocking LSM policy notifier callback to update the
+LSM based IMA policy rules.
 
-Keep the ima policy rules around from the beginning even if they appear
-invalid at the time of loading, as they may become active after an lsm
-policy load.  However, loading a custom IMA policy with unknown LSM
-labels is only safe after we have transitioned from the "built-in"
-policy rules to a custom IMA policy.
+When SELinux update its policies, IMA would be notified and starts
+updating all its lsm rules one-by-one. During this time, -ESTALE would
+be returned by ima_filter_rule_match() if it is called with a LSM rule
+that has not yet been updated. In ima_match_rules(), -ESTALE is not
+handled, and the LSM rule is considered a match, causing extra files
+to be measured by IMA.
 
-Patch also fixes the rule re-use during the lsm policy reload and makes
-some prints a bit more human readable.
-
-Changelog:
-v4:
-- Do not allow the initial policy load refer to non-existing lsm rules.
-v3:
-- Fix too wide policy rule matching for non-initialized LSMs
-v2:
-- Fix log prints
+Fix it by re-initializing a temporary rule if -ESTALE is returned by
+ima_filter_rule_match(). The origin rule in the rule list would be
+updated by the LSM policy notifier callback.
 
 Fixes: b16942455193 ("ima: use the lsm policy update notifier")
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Reported-by: Mimi Zohar <zohar@linux.ibm.com>
-Signed-off-by: Janne Karhunen <janne.karhunen@gmail.com>
-Signed-off-by: Konsta Karsisto <konsta.karsisto@gmail.com>
+Signed-off-by: GUO Zihua <guozihua@huawei.com>
+Reviewed-by: Roberto Sassu <roberto.sassu@huawei.com>
 Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
 Signed-off-by: GUO Zihua <guozihua@huawei.com>
 ---
- security/integrity/ima/ima_policy.c | 46 +++++++++++++++++------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ security/integrity/ima/ima_policy.c | 40 ++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 9 deletions(-)
 
 diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
-index 5a15524bca4c..5256ff008f11 100644
+index 5256ff008f11..e9e15e622cf2 100644
 --- a/security/integrity/ima/ima_policy.c
 +++ b/security/integrity/ima/ima_policy.c
-@@ -264,7 +264,7 @@ static void ima_free_rule(struct ima_rule_entry *entry)
- static struct ima_rule_entry *ima_lsm_copy_rule(struct ima_rule_entry *entry)
+@@ -374,6 +374,9 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
+ 			    enum ima_hooks func, int mask)
  {
- 	struct ima_rule_entry *nentry;
--	int i, result;
-+	int i;
+ 	int i;
++	bool result = false;
++	struct ima_rule_entry *lsm_rule = rule;
++	bool rule_reinitialized = false;
  
- 	nentry = kmalloc(sizeof(*nentry), GFP_KERNEL);
- 	if (!nentry)
-@@ -278,7 +278,7 @@ static struct ima_rule_entry *ima_lsm_copy_rule(struct ima_rule_entry *entry)
- 	memset(nentry->lsm, 0, FIELD_SIZEOF(struct ima_rule_entry, lsm));
- 
- 	for (i = 0; i < MAX_LSM_RULES; i++) {
--		if (!entry->lsm[i].rule)
-+		if (!entry->lsm[i].args_p)
- 			continue;
- 
- 		nentry->lsm[i].type = entry->lsm[i].type;
-@@ -287,13 +287,13 @@ static struct ima_rule_entry *ima_lsm_copy_rule(struct ima_rule_entry *entry)
- 		if (!nentry->lsm[i].args_p)
- 			goto out_err;
- 
--		result = security_filter_rule_init(nentry->lsm[i].type,
--						   Audit_equal,
--						   nentry->lsm[i].args_p,
--						   &nentry->lsm[i].rule);
--		if (result == -EINVAL)
--			pr_warn("ima: rule for LSM \'%d\' is undefined\n",
--				entry->lsm[i].type);
-+		security_filter_rule_init(nentry->lsm[i].type,
-+					  Audit_equal,
-+					  nentry->lsm[i].args_p,
-+					  &nentry->lsm[i].rule);
-+		if (!nentry->lsm[i].rule)
-+			pr_warn("rule for LSM \'%s\' is undefined\n",
-+				(char *)entry->lsm[i].args_p);
- 	}
- 	return nentry;
- 
-@@ -332,7 +332,7 @@ static void ima_lsm_update_rules(void)
- 	list_for_each_entry_safe(entry, e, &ima_policy_rules, list) {
- 		needs_update = 0;
- 		for (i = 0; i < MAX_LSM_RULES; i++) {
--			if (entry->lsm[i].rule) {
-+			if (entry->lsm[i].args_p) {
- 				needs_update = 1;
- 				break;
- 			}
-@@ -342,8 +342,7 @@ static void ima_lsm_update_rules(void)
- 
- 		result = ima_lsm_update_rule(entry);
- 		if (result) {
--			pr_err("ima: lsm rule update error %d\n",
--				result);
-+			pr_err("lsm rule update error %d\n", result);
- 			return;
- 		}
- 	}
-@@ -360,7 +359,7 @@ int ima_lsm_policy_change(struct notifier_block *nb, unsigned long event,
- }
- 
- /**
-- * ima_match_rules - determine whether an inode matches the measure rule.
-+ * ima_match_rules - determine whether an inode matches the policy rule.
-  * @rule: a pointer to a rule
-  * @inode: a pointer to an inode
-  * @cred: a pointer to a credentials structure for user validation
-@@ -413,9 +412,12 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
+ 	if ((rule->flags & IMA_FUNC) &&
+ 	    (rule->func != func && func != POST_SETATTR))
+@@ -412,38 +415,57 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
  		int rc = 0;
  		u32 osid;
  
--		if (!rule->lsm[i].rule)
--			continue;
--
-+		if (!rule->lsm[i].rule) {
-+			if (!rule->lsm[i].args_p)
-+				continue;
-+			else
-+				return false;
-+		}
+-		if (!rule->lsm[i].rule) {
+-			if (!rule->lsm[i].args_p)
++		if (!lsm_rule->lsm[i].rule) {
++			if (!lsm_rule->lsm[i].args_p)
+ 				continue;
+ 			else
+ 				return false;
+ 		}
++
++retry:
  		switch (i) {
  		case LSM_OBJ_USER:
  		case LSM_OBJ_ROLE:
-@@ -733,9 +735,15 @@ static int ima_lsm_rule_init(struct ima_rule_entry *entry,
- 					   entry->lsm[lsm_rule].args_p,
- 					   &entry->lsm[lsm_rule].rule);
- 	if (!entry->lsm[lsm_rule].rule) {
--		kfree(entry->lsm[lsm_rule].args_p);
--		entry->lsm[lsm_rule].args_p = NULL;
--		return -EINVAL;
-+		pr_warn("rule for LSM \'%s\' is undefined\n",
-+			(char *)entry->lsm[lsm_rule].args_p);
+ 		case LSM_OBJ_TYPE:
+ 			security_inode_getsecid(inode, &osid);
+ 			rc = security_filter_rule_match(osid,
+-							rule->lsm[i].type,
++							lsm_rule->lsm[i].type,
+ 							Audit_equal,
+-							rule->lsm[i].rule,
++							lsm_rule->lsm[i].rule,
+ 							NULL);
+ 			break;
+ 		case LSM_SUBJ_USER:
+ 		case LSM_SUBJ_ROLE:
+ 		case LSM_SUBJ_TYPE:
+ 			rc = security_filter_rule_match(secid,
+-							rule->lsm[i].type,
++							lsm_rule->lsm[i].type,
+ 							Audit_equal,
+-							rule->lsm[i].rule,
++							lsm_rule->lsm[i].rule,
+ 							NULL);
+ 		default:
+ 			break;
+ 		}
+-		if (!rc)
+-			return false;
 +
-+		if (ima_rules == &ima_default_rules) {
-+			kfree(entry->lsm[lsm_rule].args_p);
-+			entry->lsm[lsm_rule].args_p = NULL;
-+			result = -EINVAL;
-+		} else
-+			result = 0;
++		if (rc == -ESTALE && !rule_reinitialized) {
++			lsm_rule = ima_lsm_copy_rule(rule);
++			if (lsm_rule) {
++				rule_reinitialized = true;
++				goto retry;
++			}
++		}
++		if (!rc) {
++			result = false;
++			goto out;
++		}
++	}
++	result = true;
++
++out:
++	if (rule_reinitialized) {
++		ima_lsm_free_rule(lsm_rule);
++		kfree(lsm_rule);
  	}
+-	return true;
++	return result;
+ }
  
- 	return result;
+ /*
 -- 
 2.17.1
 
