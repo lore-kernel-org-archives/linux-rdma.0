@@ -2,32 +2,32 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F4CEC7EE37
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EDD7C7EE39
 	for <linux-rdma@archiver.kernel.org>; Tue, 28 Feb 2023 08:09:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229984AbjB1IJJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Feb 2023 03:09:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56098 "EHLO
+        id S229734AbjB1IJK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Feb 2023 03:09:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230258AbjB1IJF (ORCPT
+        with ESMTP id S230225AbjB1IJF (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Feb 2023 03:09:05 -0500
 Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A492D18A8A;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6178117CD9;
         Tue, 28 Feb 2023 00:08:56 -0800 (PST)
 Received: from dggpemm500024.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PQqhb6h4lz9tCC;
-        Tue, 28 Feb 2023 16:06:55 +0800 (CST)
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PQqhc1ZVvz9tCN;
+        Tue, 28 Feb 2023 16:06:56 +0800 (CST)
 Received: from huawei.com (10.67.175.31) by dggpemm500024.china.huawei.com
  (7.185.36.203) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.21; Tue, 28 Feb
- 2023 16:08:39 +0800
+ 2023 16:08:40 +0800
 From:   GUO Zihua <guozihua@huawei.com>
 To:     <zohar@linux.ibm.com>, <paul@paul-moore.com>
 CC:     <linux-security-module@vger.kernel.org>,
         <linux-rdma@vger.kernel.org>, <dledford@redhat.com>, <jgg@ziepe.ca>
-Subject: [PATCH 4.19 v3 2/6] LSM: switch to blocking policy update notifiers
-Date:   Tue, 28 Feb 2023 16:06:26 +0800
-Message-ID: <20230228080630.52370-3-guozihua@huawei.com>
+Subject: [PATCH 4.19 v3 4/6] ima: ima/lsm policy rule loading logic bug fixes
+Date:   Tue, 28 Feb 2023 16:06:28 +0800
+Message-ID: <20230228080630.52370-5-guozihua@huawei.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20230228080630.52370-1-guozihua@huawei.com>
 References: <20230228080630.52370-1-guozihua@huawei.com>
@@ -43,162 +43,142 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Janne Karhunen <janne.karhunen@gmail.com>
 
-[ Upstream commit 42df744c4166af6959eda2df1ee5cde744d4a1c3 ]
+[ Upstream commit 483ec26eed42bf050931d9a5c5f9f0b5f2ad5f3b ]
 
-Atomic policy updaters are not very useful as they cannot
-usually perform the policy updates on their own. Since it
-seems that there is no strict need for the atomicity,
-switch to the blocking variant. While doing so, rename
-the functions accordingly.
+Keep the ima policy rules around from the beginning even if they appear
+invalid at the time of loading, as they may become active after an lsm
+policy load.  However, loading a custom IMA policy with unknown LSM
+labels is only safe after we have transitioned from the "built-in"
+policy rules to a custom IMA policy.
 
+Patch also fixes the rule re-use during the lsm policy reload and makes
+some prints a bit more human readable.
+
+Changelog:
+v4:
+- Do not allow the initial policy load refer to non-existing lsm rules.
+v3:
+- Fix too wide policy rule matching for non-initialized LSMs
+v2:
+- Fix log prints
+
+Fixes: b16942455193 ("ima: use the lsm policy update notifier")
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Reported-by: Mimi Zohar <zohar@linux.ibm.com>
 Signed-off-by: Janne Karhunen <janne.karhunen@gmail.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Acked-by: James Morris <jamorris@linux.microsoft.com>
+Signed-off-by: Konsta Karsisto <konsta.karsisto@gmail.com>
 Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
 Signed-off-by: GUO Zihua <guozihua@huawei.com>
 ---
- drivers/infiniband/core/device.c |  4 ++--
- include/linux/security.h         | 12 ++++++------
- security/security.c              | 23 +++++++++++++----------
- security/selinux/hooks.c         |  2 +-
- security/selinux/selinuxfs.c     |  2 +-
- 5 files changed, 23 insertions(+), 20 deletions(-)
+ security/integrity/ima/ima_policy.c | 46 +++++++++++++++++------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 9740614a108d..77e9c0c3c96b 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -1208,7 +1208,7 @@ static int __init ib_core_init(void)
- 		goto err_mad;
+diff --git a/security/integrity/ima/ima_policy.c b/security/integrity/ima/ima_policy.c
+index 5a15524bca4c..5256ff008f11 100644
+--- a/security/integrity/ima/ima_policy.c
++++ b/security/integrity/ima/ima_policy.c
+@@ -264,7 +264,7 @@ static void ima_free_rule(struct ima_rule_entry *entry)
+ static struct ima_rule_entry *ima_lsm_copy_rule(struct ima_rule_entry *entry)
+ {
+ 	struct ima_rule_entry *nentry;
+-	int i, result;
++	int i;
+ 
+ 	nentry = kmalloc(sizeof(*nentry), GFP_KERNEL);
+ 	if (!nentry)
+@@ -278,7 +278,7 @@ static struct ima_rule_entry *ima_lsm_copy_rule(struct ima_rule_entry *entry)
+ 	memset(nentry->lsm, 0, FIELD_SIZEOF(struct ima_rule_entry, lsm));
+ 
+ 	for (i = 0; i < MAX_LSM_RULES; i++) {
+-		if (!entry->lsm[i].rule)
++		if (!entry->lsm[i].args_p)
+ 			continue;
+ 
+ 		nentry->lsm[i].type = entry->lsm[i].type;
+@@ -287,13 +287,13 @@ static struct ima_rule_entry *ima_lsm_copy_rule(struct ima_rule_entry *entry)
+ 		if (!nentry->lsm[i].args_p)
+ 			goto out_err;
+ 
+-		result = security_filter_rule_init(nentry->lsm[i].type,
+-						   Audit_equal,
+-						   nentry->lsm[i].args_p,
+-						   &nentry->lsm[i].rule);
+-		if (result == -EINVAL)
+-			pr_warn("ima: rule for LSM \'%d\' is undefined\n",
+-				entry->lsm[i].type);
++		security_filter_rule_init(nentry->lsm[i].type,
++					  Audit_equal,
++					  nentry->lsm[i].args_p,
++					  &nentry->lsm[i].rule);
++		if (!nentry->lsm[i].rule)
++			pr_warn("rule for LSM \'%s\' is undefined\n",
++				(char *)entry->lsm[i].args_p);
+ 	}
+ 	return nentry;
+ 
+@@ -332,7 +332,7 @@ static void ima_lsm_update_rules(void)
+ 	list_for_each_entry_safe(entry, e, &ima_policy_rules, list) {
+ 		needs_update = 0;
+ 		for (i = 0; i < MAX_LSM_RULES; i++) {
+-			if (entry->lsm[i].rule) {
++			if (entry->lsm[i].args_p) {
+ 				needs_update = 1;
+ 				break;
+ 			}
+@@ -342,8 +342,7 @@ static void ima_lsm_update_rules(void)
+ 
+ 		result = ima_lsm_update_rule(entry);
+ 		if (result) {
+-			pr_err("ima: lsm rule update error %d\n",
+-				result);
++			pr_err("lsm rule update error %d\n", result);
+ 			return;
+ 		}
+ 	}
+@@ -360,7 +359,7 @@ int ima_lsm_policy_change(struct notifier_block *nb, unsigned long event,
+ }
+ 
+ /**
+- * ima_match_rules - determine whether an inode matches the measure rule.
++ * ima_match_rules - determine whether an inode matches the policy rule.
+  * @rule: a pointer to a rule
+  * @inode: a pointer to an inode
+  * @cred: a pointer to a credentials structure for user validation
+@@ -413,9 +412,12 @@ static bool ima_match_rules(struct ima_rule_entry *rule, struct inode *inode,
+ 		int rc = 0;
+ 		u32 osid;
+ 
+-		if (!rule->lsm[i].rule)
+-			continue;
+-
++		if (!rule->lsm[i].rule) {
++			if (!rule->lsm[i].args_p)
++				continue;
++			else
++				return false;
++		}
+ 		switch (i) {
+ 		case LSM_OBJ_USER:
+ 		case LSM_OBJ_ROLE:
+@@ -733,9 +735,15 @@ static int ima_lsm_rule_init(struct ima_rule_entry *entry,
+ 					   entry->lsm[lsm_rule].args_p,
+ 					   &entry->lsm[lsm_rule].rule);
+ 	if (!entry->lsm[lsm_rule].rule) {
+-		kfree(entry->lsm[lsm_rule].args_p);
+-		entry->lsm[lsm_rule].args_p = NULL;
+-		return -EINVAL;
++		pr_warn("rule for LSM \'%s\' is undefined\n",
++			(char *)entry->lsm[lsm_rule].args_p);
++
++		if (ima_rules == &ima_default_rules) {
++			kfree(entry->lsm[lsm_rule].args_p);
++			entry->lsm[lsm_rule].args_p = NULL;
++			result = -EINVAL;
++		} else
++			result = 0;
  	}
  
--	ret = register_lsm_notifier(&ibdev_lsm_nb);
-+	ret = register_blocking_lsm_notifier(&ibdev_lsm_nb);
- 	if (ret) {
- 		pr_warn("Couldn't register LSM notifier. ret %d\n", ret);
- 		goto err_sa;
-@@ -1244,7 +1244,7 @@ static void __exit ib_core_cleanup(void)
- 	roce_gid_mgmt_cleanup();
- 	nldev_exit();
- 	rdma_nl_unregister(RDMA_NL_LS);
--	unregister_lsm_notifier(&ibdev_lsm_nb);
-+	unregister_blocking_lsm_notifier(&ibdev_lsm_nb);
- 	ib_sa_cleanup();
- 	ib_mad_cleanup();
- 	addr_cleanup();
-diff --git a/include/linux/security.h b/include/linux/security.h
-index 273877cf47bf..81e795c9c09a 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -191,9 +191,9 @@ struct security_mnt_opts {
- 	int num_mnt_opts;
- };
- 
--int call_lsm_notifier(enum lsm_event event, void *data);
--int register_lsm_notifier(struct notifier_block *nb);
--int unregister_lsm_notifier(struct notifier_block *nb);
-+int call_blocking_lsm_notifier(enum lsm_event event, void *data);
-+int register_blocking_lsm_notifier(struct notifier_block *nb);
-+int unregister_blocking_lsm_notifier(struct notifier_block *nb);
- 
- static inline void security_init_mnt_opts(struct security_mnt_opts *opts)
- {
-@@ -409,17 +409,17 @@ int security_inode_getsecctx(struct inode *inode, void **ctx, u32 *ctxlen);
- struct security_mnt_opts {
- };
- 
--static inline int call_lsm_notifier(enum lsm_event event, void *data)
-+static inline int call_blocking_lsm_notifier(enum lsm_event event, void *data)
- {
- 	return 0;
- }
- 
--static inline int register_lsm_notifier(struct notifier_block *nb)
-+static inline int register_blocking_lsm_notifier(struct notifier_block *nb)
- {
- 	return 0;
- }
- 
--static inline  int unregister_lsm_notifier(struct notifier_block *nb)
-+static inline  int unregister_blocking_lsm_notifier(struct notifier_block *nb)
- {
- 	return 0;
- }
-diff --git a/security/security.c b/security/security.c
-index fc1410550b79..4d20a15f18b4 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -38,7 +38,7 @@
- #define SECURITY_NAME_MAX	10
- 
- struct security_hook_heads security_hook_heads __lsm_ro_after_init;
--static ATOMIC_NOTIFIER_HEAD(lsm_notifier_chain);
-+static BLOCKING_NOTIFIER_HEAD(blocking_lsm_notifier_chain);
- 
- char *lsm_names;
- /* Boot-time LSM user choice */
-@@ -180,23 +180,26 @@ void __init security_add_hooks(struct security_hook_list *hooks, int count,
- 		panic("%s - Cannot get early memory.\n", __func__);
- }
- 
--int call_lsm_notifier(enum lsm_event event, void *data)
-+int call_blocking_lsm_notifier(enum lsm_event event, void *data)
- {
--	return atomic_notifier_call_chain(&lsm_notifier_chain, event, data);
-+	return blocking_notifier_call_chain(&blocking_lsm_notifier_chain,
-+					    event, data);
- }
--EXPORT_SYMBOL(call_lsm_notifier);
-+EXPORT_SYMBOL(call_blocking_lsm_notifier);
- 
--int register_lsm_notifier(struct notifier_block *nb)
-+int register_blocking_lsm_notifier(struct notifier_block *nb)
- {
--	return atomic_notifier_chain_register(&lsm_notifier_chain, nb);
-+	return blocking_notifier_chain_register(&blocking_lsm_notifier_chain,
-+						nb);
- }
--EXPORT_SYMBOL(register_lsm_notifier);
-+EXPORT_SYMBOL(register_blocking_lsm_notifier);
- 
--int unregister_lsm_notifier(struct notifier_block *nb)
-+int unregister_blocking_lsm_notifier(struct notifier_block *nb)
- {
--	return atomic_notifier_chain_unregister(&lsm_notifier_chain, nb);
-+	return blocking_notifier_chain_unregister(&blocking_lsm_notifier_chain,
-+						  nb);
- }
--EXPORT_SYMBOL(unregister_lsm_notifier);
-+EXPORT_SYMBOL(unregister_blocking_lsm_notifier);
- 
- /*
-  * Hook list operation macros.
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 41e24df986eb..77f2147709b1 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -199,7 +199,7 @@ static int selinux_lsm_notifier_avc_callback(u32 event)
- {
- 	if (event == AVC_CALLBACK_RESET) {
- 		sel_ib_pkey_flush();
--		call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
-+		call_blocking_lsm_notifier(LSM_POLICY_CHANGE, NULL);
- 	}
- 
- 	return 0;
-diff --git a/security/selinux/selinuxfs.c b/security/selinux/selinuxfs.c
-index 60b3f16bb5c7..4f72d0998580 100644
---- a/security/selinux/selinuxfs.c
-+++ b/security/selinux/selinuxfs.c
-@@ -180,7 +180,7 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
- 		selnl_notify_setenforce(new_value);
- 		selinux_status_update_setenforce(state, new_value);
- 		if (!new_value)
--			call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
-+			call_blocking_lsm_notifier(LSM_POLICY_CHANGE, NULL);
- 	}
- 	length = count;
- out:
+ 	return result;
 -- 
 2.17.1
 
