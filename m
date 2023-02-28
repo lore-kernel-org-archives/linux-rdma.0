@@ -2,31 +2,31 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99BD9C7EE3A
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Feb 2023 09:25:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 048DBC64ED6
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Feb 2023 09:25:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231271AbjB1JZK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Feb 2023 04:25:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38936 "EHLO
+        id S231284AbjB1JZV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Feb 2023 04:25:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230450AbjB1JZI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Feb 2023 04:25:08 -0500
-Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E69D244A9;
-        Tue, 28 Feb 2023 01:25:04 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045168;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=12;SR=0;TI=SMTPD_---0Vcix4yp_1677576301;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vcix4yp_1677576301)
+        with ESMTP id S231268AbjB1JZK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Feb 2023 04:25:10 -0500
+Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E17B55A7;
+        Tue, 28 Feb 2023 01:25:06 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045168;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=12;SR=0;TI=SMTPD_---0Vcix4zZ_1677576303;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vcix4zZ_1677576303)
           by smtp.aliyun-inc.com;
-          Tue, 28 Feb 2023 17:25:01 +0800
+          Tue, 28 Feb 2023 17:25:03 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com,
         ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
         bpf@vger.kernel.org
-Subject: [PATCH bpf-next v3 1/4] net/smc: move smc_sock related structure definition
-Date:   Tue, 28 Feb 2023 17:24:51 +0800
-Message-Id: <1677576294-33411-2-git-send-email-alibuda@linux.alibaba.com>
+Subject: [PATCH bpf-next v3 4/4] bpf/selftests: add selftest for SMC bpf capability
+Date:   Tue, 28 Feb 2023 17:24:54 +0800
+Message-Id: <1677576294-33411-5-git-send-email-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1677576294-33411-1-git-send-email-alibuda@linux.alibaba.com>
 References: <1677576294-33411-1-git-send-email-alibuda@linux.alibaba.com>
@@ -36,517 +36,397 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-This patch only try to move the definition of smc_sock and its
-related structure, from et/smc/smc.h to include/net/smc/smc.h.
-In that way can ebpf generate the BTF ID corresponding to our
-structure.
+This PATCH adds a tiny selftest for SMC bpf capability,
+making decisions on whether to use SMC by collecting
+certain information from kernel smc sock.
 
-Of course, we can also choose to hide the structure and only to
-expose an intermediate structure, but it requires an additional
-transformation. If we need to obtain some information frequently, this
-may cause some performance problems.
+Follow the steps below to run this test.
+
+make -C tools/testing/selftests/bpf
+cd tools/testing/selftests/bpf
+sudo ./test_progs -t bpf_smc
+
+Results shows:
+18      bpf_smc:OK
+Summary: 1/0 PASSED, 0 SKIPPED, 0 FAILED
 
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- include/net/smc.h | 225 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- net/smc/smc.h     | 224 -----------------------------------------------------
- 2 files changed, 225 insertions(+), 224 deletions(-)
+ tools/testing/selftests/bpf/prog_tests/bpf_smc.c |  37 +++
+ tools/testing/selftests/bpf/progs/bpf_smc.c      | 320 +++++++++++++++++++++++
+ 2 files changed, 357 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/bpf_smc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/bpf_smc.c
 
-diff --git a/include/net/smc.h b/include/net/smc.h
-index 597cb93..eccbd37 100644
---- a/include/net/smc.h
-+++ b/include/net/smc.h
-@@ -11,12 +11,17 @@
- #ifndef _SMC_H
- #define _SMC_H
- 
-+#include <net/inet_connection_sock.h>
- #include <linux/device.h>
- #include <linux/spinlock.h>
- #include <linux/types.h>
- #include <linux/wait.h>
- #include "linux/ism.h"
- 
-+#ifdef ATOMIC64_INIT
-+#define KERNEL_HAS_ATOMIC64
-+#endif
+diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_smc.c b/tools/testing/selftests/bpf/prog_tests/bpf_smc.c
+new file mode 100644
+index 0000000..b57326c
+--- /dev/null
++++ b/tools/testing/selftests/bpf/prog_tests/bpf_smc.c
+@@ -0,0 +1,37 @@
++// SPDX-License-Identifier: GPL-2.0
 +
- struct sock;
- 
- #define SMC_MAX_PNETID_LEN	16	/* Max. length of PNET id */
-@@ -90,4 +95,224 @@ struct smcd_dev {
- 	u8 going_away : 1;
- };
- 
-+struct smc_wr_rx_hdr {	/* common prefix part of LLC and CDC to demultiplex */
-+	union {
-+		u8 type;
-+#if defined(__BIG_ENDIAN_BITFIELD)
-+		struct {
-+			u8 llc_version:4,
-+			   llc_type:4;
-+		};
-+#elif defined(__LITTLE_ENDIAN_BITFIELD)
-+		struct {
-+			u8 llc_type:4,
-+			   llc_version:4;
-+		};
-+#endif
-+	};
-+} __aligned(1);
++#include <linux/err.h>
++#include <netinet/tcp.h>
++#include <test_progs.h>
++#include "bpf_smc.skel.h"
 +
-+struct smc_cdc_conn_state_flags {
-+#if defined(__BIG_ENDIAN_BITFIELD)
-+	u8	peer_done_writing : 1;	/* Sending done indicator */
-+	u8	peer_conn_closed : 1;	/* Peer connection closed indicator */
-+	u8	peer_conn_abort : 1;	/* Abnormal close indicator */
-+	u8	reserved : 5;
-+#elif defined(__LITTLE_ENDIAN_BITFIELD)
-+	u8	reserved : 5;
-+	u8	peer_conn_abort : 1;
-+	u8	peer_conn_closed : 1;
-+	u8	peer_done_writing : 1;
-+#endif
-+};
++void test_bpf_smc(void)
++{
++	struct bpf_smc *smc_skel;
++	struct bpf_link *link;
++	int err;
 +
-+struct smc_cdc_producer_flags {
-+#if defined(__BIG_ENDIAN_BITFIELD)
-+	u8	write_blocked : 1;	/* Writing Blocked, no rx buf space */
-+	u8	urg_data_pending : 1;	/* Urgent Data Pending */
-+	u8	urg_data_present : 1;	/* Urgent Data Present */
-+	u8	cons_curs_upd_req : 1;	/* cursor update requested */
-+	u8	failover_validation : 1;/* message replay due to failover */
-+	u8	reserved : 3;
-+#elif defined(__LITTLE_ENDIAN_BITFIELD)
-+	u8	reserved : 3;
-+	u8	failover_validation : 1;
-+	u8	cons_curs_upd_req : 1;
-+	u8	urg_data_present : 1;
-+	u8	urg_data_pending : 1;
-+	u8	write_blocked : 1;
-+#endif
-+};
++	smc_skel = bpf_smc__open();
++	if (!ASSERT_OK_PTR(smc_skel, "skel_open"))
++		return;
 +
-+/* in host byte order */
-+union smc_host_cursor {	/* SMC cursor - an offset in an RMBE */
++	err = bpf_map__set_type(smc_skel->maps.negotiator_map, BPF_MAP_TYPE_HASH);
++	if (!ASSERT_OK(err, "bpf_map__set_type"))
++		goto error;
++
++	err = bpf_map__set_max_entries(smc_skel->maps.negotiator_map, 1);
++	if (!ASSERT_OK(err, "bpf_map__set_type"))
++		goto error;
++
++	err =  bpf_smc__load(smc_skel);
++	if (!ASSERT_OK(err, "skel_load"))
++		goto error;
++
++	link = bpf_map__attach_struct_ops(smc_skel->maps.ops);
++	if (!ASSERT_OK_PTR(link, "bpf_map__attach_struct_ops"))
++		goto error;
++
++	bpf_link__destroy(link);
++error:
++	bpf_smc__destroy(smc_skel);
++}
+diff --git a/tools/testing/selftests/bpf/progs/bpf_smc.c b/tools/testing/selftests/bpf/progs/bpf_smc.c
+new file mode 100644
+index 0000000..4f4a541
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/bpf_smc.c
+@@ -0,0 +1,320 @@
++// SPDX-License-Identifier: GPL-2.0-only
++
++#include <linux/bpf.h>
++#include <linux/stddef.h>
++#include <linux/smc.h>
++#include <stdbool.h>
++#include <linux/types.h>
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_core_read.h>
++#include <bpf/bpf_tracing.h>
++
++#define AF_SMC			(43)
++#define SMC_LISTEN		(10)
++#define SMC_SOCK_CLOSED_TIMING	(0)
++extern unsigned long CONFIG_HZ __kconfig;
++#define HZ CONFIG_HZ
++
++char _license[] SEC("license") = "GPL";
++#define max(a, b) ((a) > (b) ? (a) : (b))
++
++struct sock_common {
++	unsigned char	skc_state;
++	unsigned short	skc_family;
++	__u16	skc_num;
++} __attribute__((preserve_access_index));
++
++struct sock {
++	struct sock_common	__sk_common;
++	int	sk_sndbuf;
++} __attribute__((preserve_access_index));
++
++struct inet_sock {
++	struct sock	sk;
++} __attribute__((preserve_access_index));
++
++struct inet_connection_sock {
++	struct inet_sock	icsk_inet;
++} __attribute__((preserve_access_index));
++
++struct tcp_sock {
++	struct inet_connection_sock	inet_conn;
++	__u32	rcv_nxt;
++	__u32	snd_nxt;
++	__u32	snd_una;
++	__u32	delivered;
++	__u8	syn_data:1,	/* SYN includes data */
++		syn_fastopen:1,	/* SYN includes Fast Open option */
++		syn_fastopen_exp:1,/* SYN includes Fast Open exp. option */
++		syn_fastopen_ch:1, /* Active TFO re-enabling probe */
++		syn_data_acked:1,/* data in SYN is acked by SYN-ACK */
++		save_syn:1,	/* Save headers of SYN packet */
++		is_cwnd_limited:1,/* forward progress limited by snd_cwnd? */
++		syn_smc:1;	/* SYN includes SMC */
++} __attribute__((preserve_access_index));
++
++struct socket {
++	struct sock *sk;
++} __attribute__((preserve_access_index));
++
++union smc_host_cursor {
 +	struct {
-+		u16	reserved;
-+		u16	wrap;		/* window wrap sequence number */
-+		u32	count;		/* cursor (= offset) part */
++		__u16	reserved;
++		__u16	wrap;
++		__u32	count;
 +	};
-+#ifdef KERNEL_HAS_ATOMIC64
-+	atomic64_t		acurs;	/* for atomic processing */
-+#else
-+	u64			acurs;	/* for atomic processing */
-+#endif
-+} __aligned(8);
-+
-+/* in host byte order, except for flag bitfields in network byte order */
-+struct smc_host_cdc_msg {		/* Connection Data Control message */
-+	struct smc_wr_rx_hdr		common; /* .type = 0xFE */
-+	u8				len;	/* length = 44 */
-+	u16				seqno;	/* connection seq # */
-+	u32				token;	/* alert_token */
-+	union smc_host_cursor		prod;		/* producer cursor */
-+	union smc_host_cursor		cons;		/* consumer cursor,
-+							 * piggy backed "ack"
-+							 */
-+	struct smc_cdc_producer_flags	prod_flags;	/* conn. tx/rx status */
-+	struct smc_cdc_conn_state_flags	conn_state_flags; /* peer conn. status*/
-+	u8				reserved[18];
-+} __aligned(8);
-+
-+enum smc_urg_state {
-+	SMC_URG_VALID	= 1,			/* data present */
-+	SMC_URG_NOTYET	= 2,			/* data pending */
-+	SMC_URG_READ	= 3,			/* data was already read */
-+};
++} __attribute__((preserve_access_index));
 +
 +struct smc_connection {
-+	struct rb_node		alert_node;
-+	struct smc_link_group	*lgr;		/* link group of connection */
-+	struct smc_link		*lnk;		/* assigned SMC-R link */
-+	u32			alert_token_local; /* unique conn. id */
-+	u8			peer_rmbe_idx;	/* from tcp handshake */
-+	int			peer_rmbe_size;	/* size of peer rx buffer */
-+	atomic_t		peer_rmbe_space;/* remaining free bytes in peer
-+						 * rmbe
-+						 */
-+	int			rtoken_idx;	/* idx to peer RMB rkey/addr */
++	union smc_host_cursor	tx_curs_sent;
++	union smc_host_cursor	rx_curs_confirmed;
++} __attribute__((preserve_access_index));
 +
-+	struct smc_buf_desc	*sndbuf_desc;	/* send buffer descriptor */
-+	struct smc_buf_desc	*rmb_desc;	/* RMBE descriptor */
-+	int			rmbe_size_short;/* compressed notation */
-+	int			rmbe_update_limit;
-+						/* lower limit for consumer
-+						 * cursor update
-+						 */
++struct smc_sock {
++	struct sock	sk;
++	struct socket	*clcsock;	/* internal tcp socket */
++	struct smc_connection	conn;
++	int use_fallback;
++} __attribute__((preserve_access_index));
 +
-+	struct smc_host_cdc_msg	local_tx_ctrl;	/* host byte order staging
-+						 * buffer for CDC msg send
-+						 * .prod cf. TCP snd_nxt
-+						 * .cons cf. TCP sends ack
-+						 */
-+	union smc_host_cursor	local_tx_ctrl_fin;
-+						/* prod crsr - confirmed by peer
-+						 */
-+	union smc_host_cursor	tx_curs_prep;	/* tx - prepared data
-+						 * snd_max..wmem_alloc
-+						 */
-+	union smc_host_cursor	tx_curs_sent;	/* tx - sent data
-+						 * snd_nxt ?
-+						 */
-+	union smc_host_cursor	tx_curs_fin;	/* tx - confirmed by peer
-+						 * snd-wnd-begin ?
-+						 */
-+	atomic_t		sndbuf_space;	/* remaining space in sndbuf */
-+	u16			tx_cdc_seq;	/* sequence # for CDC send */
-+	u16			tx_cdc_seq_fin;	/* sequence # - tx completed */
-+	spinlock_t		send_lock;	/* protect wr_sends */
-+	atomic_t		cdc_pend_tx_wr; /* number of pending tx CDC wqe
-+						 * - inc when post wqe,
-+						 * - dec on polled tx cqe
-+						 */
-+	wait_queue_head_t	cdc_pend_tx_wq; /* wakeup on no cdc_pend_tx_wr*/
-+	atomic_t		tx_pushing;     /* nr_threads trying tx push */
-+	struct delayed_work	tx_work;	/* retry of smc_cdc_msg_send */
-+	u32			tx_off;		/* base offset in peer rmb */
++static __always_inline struct tcp_sock *tcp_sk(const struct sock *sk)
++{
++	return (struct tcp_sock *)sk;
++}
 +
-+	struct smc_host_cdc_msg	local_rx_ctrl;	/* filled during event_handl.
-+						 * .prod cf. TCP rcv_nxt
-+						 * .cons cf. TCP snd_una
-+						 */
-+	union smc_host_cursor	rx_curs_confirmed; /* confirmed to peer
-+						    * source of snd_una ?
-+						    */
-+	union smc_host_cursor	urg_curs;	/* points at urgent byte */
-+	enum smc_urg_state	urg_state;
-+	bool			urg_tx_pend;	/* urgent data staged */
-+	bool			urg_rx_skip_pend;
-+						/* indicate urgent oob data
-+						 * read, but previous regular
-+						 * data still pending
-+						 */
-+	char			urg_rx_byte;	/* urgent byte */
-+	bool			tx_in_release_sock;
-+						/* flush pending tx data in
-+						 * sock release_cb()
-+						 */
-+	atomic_t		bytes_to_rcv;	/* arrived data,
-+						 * not yet received
-+						 */
-+	atomic_t		splice_pending;	/* number of spliced bytes
-+						 * pending processing
-+						 */
-+#ifndef KERNEL_HAS_ATOMIC64
-+	spinlock_t		acurs_lock;	/* protect cursors */
-+#endif
-+	struct work_struct	close_work;	/* peer sent some closing */
-+	struct work_struct	abort_work;	/* abort the connection */
-+	struct tasklet_struct	rx_tsklet;	/* Receiver tasklet for SMC-D */
-+	u8			rx_off;		/* receive offset:
-+						 * 0 for SMC-R, 32 for SMC-D
-+						 */
-+	u64			peer_token;	/* SMC-D token of peer */
-+	u8			killed : 1;	/* abnormal termination */
-+	u8			freed : 1;	/* normal termiation */
-+	u8			out_of_sync : 1; /* out of sync with peer */
++static __always_inline struct smc_sock *smc_sk(struct sock *sk)
++{
++	return (struct smc_sock *)sk;
++}
++
++struct smc_prediction {
++	/* protection for smc_prediction */
++	struct bpf_spin_lock lock;
++	/* start of time slice */
++	__u64	start_tstamp;
++	/* delta of pacing */
++	__u64	pacing_delta;
++	/* N of closed connections determined as long connections
++	 * in current time slice
++	 */
++	__u32	closed_long_cc;
++	/* N of closed connections in this time slice */
++	__u32	closed_total_cc;
++	/* N of incoming connections determined as long connections
++	 * in current time slice
++	 */
++	__u32	incoming_long_cc;
++	/* last splice rate of long cc */
++	__u32	last_rate_of_lcc;
 +};
 +
-+struct smc_sock {				/* smc sock container */
-+	struct sock		sk;
-+	struct socket		*clcsock;	/* internal tcp socket */
-+	void			(*clcsk_state_change)(struct sock *sk);
-+						/* original stat_change fct. */
-+	void			(*clcsk_data_ready)(struct sock *sk);
-+						/* original data_ready fct. */
-+	void			(*clcsk_write_space)(struct sock *sk);
-+						/* original write_space fct. */
-+	void			(*clcsk_error_report)(struct sock *sk);
-+						/* original error_report fct. */
-+	struct smc_connection	conn;		/* smc connection */
-+	struct smc_sock		*listen_smc;	/* listen parent */
-+	struct work_struct	connect_work;	/* handle non-blocking connect*/
-+	struct work_struct	tcp_listen_work;/* handle tcp socket accepts */
-+	struct work_struct	smc_listen_work;/* prepare new accept socket */
-+	struct list_head	accept_q;	/* sockets to be accepted */
-+	spinlock_t		accept_q_lock;	/* protects accept_q */
-+	bool			limit_smc_hs;	/* put constraint on handshake */
-+	bool			use_fallback;	/* fallback to tcp */
-+	int			fallback_rsn;	/* reason for fallback */
-+	u32			peer_diagnosis; /* decline reason from peer */
-+	atomic_t                queued_smc_hs;  /* queued smc handshakes */
-+	struct inet_connection_sock_af_ops		af_ops;
-+	const struct inet_connection_sock_af_ops	*ori_af_ops;
-+						/* original af ops */
-+	int			sockopt_defer_accept;
-+						/* sockopt TCP_DEFER_ACCEPT
-+						 * value
-+						 */
-+	u8			wait_close_tx_prepared : 1;
-+						/* shutdown wr or close
-+						 * started, waiting for unsent
-+						 * data to be sent
-+						 */
-+	u8			connect_nonblock : 1;
-+						/* non-blocking connect in
-+						 * flight
-+						 */
-+	struct mutex            clcsock_release_lock;
-+						/* protects clcsock of a listen
-+						 * socket
-+						 */
++#define SMC_PREDICTION_MIN_PACING_DELTA                (1llu)
++#define SMC_PREDICTION_MAX_PACING_DELTA                (HZ << 3)
++#define SMC_PREDICTION_MAX_LONGCC_PER_SPLICE           (8)
++#define SMC_PREDICTION_MAX_PORT                        (64)
++#define SMC_PREDICTION_MAX_SPLICE_GAP                  (1)
++#define SMC_PREDICTION_LONGCC_RATE_THRESHOLD           (13189)
++#define SMC_PREDICTION_LONGCC_PACKETS_THRESHOLD        (100)
++#define SMC_PREDICTION_LONGCC_BYTES_THRESHOLD	\
++		(SMC_PREDICTION_LONGCC_PACKETS_THRESHOLD * 1024)
++
++struct {
++	__uint(type, BPF_MAP_TYPE_HASH);
++	__uint(max_entries, SMC_PREDICTION_MAX_PORT);
++	__type(key, __u16);
++	__type(value, struct smc_prediction);
++} negotiator_map SEC(".maps");
++
++
++static inline __u32 smc_prediction_calt_rate(struct smc_prediction *smc_predictor)
++{
++	if (!smc_predictor->closed_total_cc)
++		return smc_predictor->last_rate_of_lcc;
++
++	return (smc_predictor->closed_long_cc << 14) / smc_predictor->closed_total_cc;
++}
++
++static inline struct smc_prediction *smc_prediction_get(__u16 key, __u64 tstamp)
++{
++	struct smc_prediction zero = {}, *smc_predictor;
++	__u32 gap;
++	int err;
++
++	smc_predictor = bpf_map_lookup_elem(&negotiator_map, &key);
++	if (!smc_predictor) {
++		zero.start_tstamp = bpf_jiffies64();
++		zero.pacing_delta = SMC_PREDICTION_MIN_PACING_DELTA;
++		err = bpf_map_update_elem(&negotiator_map, &key, &zero, 0);
++		if (err)
++			return NULL;
++		smc_predictor =  bpf_map_lookup_elem(&negotiator_map, &key);
++		if (!smc_predictor)
++			return NULL;
++	}
++
++	if (tstamp) {
++		bpf_spin_lock(&smc_predictor->lock);
++		gap = (tstamp - smc_predictor->start_tstamp) / smc_predictor->pacing_delta;
++		/* new splice */
++		if (gap > 0) {
++			smc_predictor->start_tstamp = tstamp;
++			smc_predictor->last_rate_of_lcc =
++				(smc_prediction_calt_rate(smc_predictor) * 7) >> (2 + gap);
++			smc_predictor->closed_long_cc = 0;
++			smc_predictor->closed_total_cc = 0;
++			smc_predictor->incoming_long_cc = 0;
++		}
++		bpf_spin_unlock(&smc_predictor->lock);
++	}
++	return smc_predictor;
++}
++
++/* BPF struct ops for smc protocol negotiator */
++struct smc_sock_negotiator_ops {
++	/* ret for negotiate */
++	int (*negotiate)(struct smc_sock *smc);
++
++	/* info gathering timing */
++	void (*collect_info)(struct smc_sock *smc, int timing);
 +};
 +
- #endif	/* _SMC_H */
-diff --git a/net/smc/smc.h b/net/smc/smc.h
-index 5ed765e..6f27f40 100644
---- a/net/smc/smc.h
-+++ b/net/smc/smc.h
-@@ -34,10 +34,6 @@
- extern struct proto smc_proto;
- extern struct proto smc_proto6;
- 
--#ifdef ATOMIC64_INIT
--#define KERNEL_HAS_ATOMIC64
--#endif
--
- enum smc_state {		/* possible states of an SMC socket */
- 	SMC_ACTIVE	= 1,
- 	SMC_INIT	= 2,
-@@ -57,232 +53,12 @@ enum smc_state {		/* possible states of an SMC socket */
- 
- struct smc_link_group;
- 
--struct smc_wr_rx_hdr {	/* common prefix part of LLC and CDC to demultiplex */
--	union {
--		u8 type;
--#if defined(__BIG_ENDIAN_BITFIELD)
--		struct {
--			u8 llc_version:4,
--			   llc_type:4;
--		};
--#elif defined(__LITTLE_ENDIAN_BITFIELD)
--		struct {
--			u8 llc_type:4,
--			   llc_version:4;
--		};
--#endif
--	};
--} __aligned(1);
--
--struct smc_cdc_conn_state_flags {
--#if defined(__BIG_ENDIAN_BITFIELD)
--	u8	peer_done_writing : 1;	/* Sending done indicator */
--	u8	peer_conn_closed : 1;	/* Peer connection closed indicator */
--	u8	peer_conn_abort : 1;	/* Abnormal close indicator */
--	u8	reserved : 5;
--#elif defined(__LITTLE_ENDIAN_BITFIELD)
--	u8	reserved : 5;
--	u8	peer_conn_abort : 1;
--	u8	peer_conn_closed : 1;
--	u8	peer_done_writing : 1;
--#endif
--};
--
--struct smc_cdc_producer_flags {
--#if defined(__BIG_ENDIAN_BITFIELD)
--	u8	write_blocked : 1;	/* Writing Blocked, no rx buf space */
--	u8	urg_data_pending : 1;	/* Urgent Data Pending */
--	u8	urg_data_present : 1;	/* Urgent Data Present */
--	u8	cons_curs_upd_req : 1;	/* cursor update requested */
--	u8	failover_validation : 1;/* message replay due to failover */
--	u8	reserved : 3;
--#elif defined(__LITTLE_ENDIAN_BITFIELD)
--	u8	reserved : 3;
--	u8	failover_validation : 1;
--	u8	cons_curs_upd_req : 1;
--	u8	urg_data_present : 1;
--	u8	urg_data_pending : 1;
--	u8	write_blocked : 1;
--#endif
--};
--
--/* in host byte order */
--union smc_host_cursor {	/* SMC cursor - an offset in an RMBE */
--	struct {
--		u16	reserved;
--		u16	wrap;		/* window wrap sequence number */
--		u32	count;		/* cursor (= offset) part */
--	};
--#ifdef KERNEL_HAS_ATOMIC64
--	atomic64_t		acurs;	/* for atomic processing */
--#else
--	u64			acurs;	/* for atomic processing */
--#endif
--} __aligned(8);
--
--/* in host byte order, except for flag bitfields in network byte order */
--struct smc_host_cdc_msg {		/* Connection Data Control message */
--	struct smc_wr_rx_hdr		common; /* .type = 0xFE */
--	u8				len;	/* length = 44 */
--	u16				seqno;	/* connection seq # */
--	u32				token;	/* alert_token */
--	union smc_host_cursor		prod;		/* producer cursor */
--	union smc_host_cursor		cons;		/* consumer cursor,
--							 * piggy backed "ack"
--							 */
--	struct smc_cdc_producer_flags	prod_flags;	/* conn. tx/rx status */
--	struct smc_cdc_conn_state_flags	conn_state_flags; /* peer conn. status*/
--	u8				reserved[18];
--} __aligned(8);
--
--enum smc_urg_state {
--	SMC_URG_VALID	= 1,			/* data present */
--	SMC_URG_NOTYET	= 2,			/* data pending */
--	SMC_URG_READ	= 3,			/* data was already read */
--};
--
- struct smc_mark_woken {
- 	bool woken;
- 	void *key;
- 	wait_queue_entry_t wait_entry;
- };
- 
--struct smc_connection {
--	struct rb_node		alert_node;
--	struct smc_link_group	*lgr;		/* link group of connection */
--	struct smc_link		*lnk;		/* assigned SMC-R link */
--	u32			alert_token_local; /* unique conn. id */
--	u8			peer_rmbe_idx;	/* from tcp handshake */
--	int			peer_rmbe_size;	/* size of peer rx buffer */
--	atomic_t		peer_rmbe_space;/* remaining free bytes in peer
--						 * rmbe
--						 */
--	int			rtoken_idx;	/* idx to peer RMB rkey/addr */
--
--	struct smc_buf_desc	*sndbuf_desc;	/* send buffer descriptor */
--	struct smc_buf_desc	*rmb_desc;	/* RMBE descriptor */
--	int			rmbe_size_short;/* compressed notation */
--	int			rmbe_update_limit;
--						/* lower limit for consumer
--						 * cursor update
--						 */
--
--	struct smc_host_cdc_msg	local_tx_ctrl;	/* host byte order staging
--						 * buffer for CDC msg send
--						 * .prod cf. TCP snd_nxt
--						 * .cons cf. TCP sends ack
--						 */
--	union smc_host_cursor	local_tx_ctrl_fin;
--						/* prod crsr - confirmed by peer
--						 */
--	union smc_host_cursor	tx_curs_prep;	/* tx - prepared data
--						 * snd_max..wmem_alloc
--						 */
--	union smc_host_cursor	tx_curs_sent;	/* tx - sent data
--						 * snd_nxt ?
--						 */
--	union smc_host_cursor	tx_curs_fin;	/* tx - confirmed by peer
--						 * snd-wnd-begin ?
--						 */
--	atomic_t		sndbuf_space;	/* remaining space in sndbuf */
--	u16			tx_cdc_seq;	/* sequence # for CDC send */
--	u16			tx_cdc_seq_fin;	/* sequence # - tx completed */
--	spinlock_t		send_lock;	/* protect wr_sends */
--	atomic_t		cdc_pend_tx_wr; /* number of pending tx CDC wqe
--						 * - inc when post wqe,
--						 * - dec on polled tx cqe
--						 */
--	wait_queue_head_t	cdc_pend_tx_wq; /* wakeup on no cdc_pend_tx_wr*/
--	atomic_t		tx_pushing;     /* nr_threads trying tx push */
--	struct delayed_work	tx_work;	/* retry of smc_cdc_msg_send */
--	u32			tx_off;		/* base offset in peer rmb */
--
--	struct smc_host_cdc_msg	local_rx_ctrl;	/* filled during event_handl.
--						 * .prod cf. TCP rcv_nxt
--						 * .cons cf. TCP snd_una
--						 */
--	union smc_host_cursor	rx_curs_confirmed; /* confirmed to peer
--						    * source of snd_una ?
--						    */
--	union smc_host_cursor	urg_curs;	/* points at urgent byte */
--	enum smc_urg_state	urg_state;
--	bool			urg_tx_pend;	/* urgent data staged */
--	bool			urg_rx_skip_pend;
--						/* indicate urgent oob data
--						 * read, but previous regular
--						 * data still pending
--						 */
--	char			urg_rx_byte;	/* urgent byte */
--	bool			tx_in_release_sock;
--						/* flush pending tx data in
--						 * sock release_cb()
--						 */
--	atomic_t		bytes_to_rcv;	/* arrived data,
--						 * not yet received
--						 */
--	atomic_t		splice_pending;	/* number of spliced bytes
--						 * pending processing
--						 */
--#ifndef KERNEL_HAS_ATOMIC64
--	spinlock_t		acurs_lock;	/* protect cursors */
--#endif
--	struct work_struct	close_work;	/* peer sent some closing */
--	struct work_struct	abort_work;	/* abort the connection */
--	struct tasklet_struct	rx_tsklet;	/* Receiver tasklet for SMC-D */
--	u8			rx_off;		/* receive offset:
--						 * 0 for SMC-R, 32 for SMC-D
--						 */
--	u64			peer_token;	/* SMC-D token of peer */
--	u8			killed : 1;	/* abnormal termination */
--	u8			freed : 1;	/* normal termiation */
--	u8			out_of_sync : 1; /* out of sync with peer */
--};
--
--struct smc_sock {				/* smc sock container */
--	struct sock		sk;
--	struct socket		*clcsock;	/* internal tcp socket */
--	void			(*clcsk_state_change)(struct sock *sk);
--						/* original stat_change fct. */
--	void			(*clcsk_data_ready)(struct sock *sk);
--						/* original data_ready fct. */
--	void			(*clcsk_write_space)(struct sock *sk);
--						/* original write_space fct. */
--	void			(*clcsk_error_report)(struct sock *sk);
--						/* original error_report fct. */
--	struct smc_connection	conn;		/* smc connection */
--	struct smc_sock		*listen_smc;	/* listen parent */
--	struct work_struct	connect_work;	/* handle non-blocking connect*/
--	struct work_struct	tcp_listen_work;/* handle tcp socket accepts */
--	struct work_struct	smc_listen_work;/* prepare new accept socket */
--	struct list_head	accept_q;	/* sockets to be accepted */
--	spinlock_t		accept_q_lock;	/* protects accept_q */
--	bool			limit_smc_hs;	/* put constraint on handshake */
--	bool			use_fallback;	/* fallback to tcp */
--	int			fallback_rsn;	/* reason for fallback */
--	u32			peer_diagnosis; /* decline reason from peer */
--	atomic_t                queued_smc_hs;  /* queued smc handshakes */
--	struct inet_connection_sock_af_ops		af_ops;
--	const struct inet_connection_sock_af_ops	*ori_af_ops;
--						/* original af ops */
--	int			sockopt_defer_accept;
--						/* sockopt TCP_DEFER_ACCEPT
--						 * value
--						 */
--	u8			wait_close_tx_prepared : 1;
--						/* shutdown wr or close
--						 * started, waiting for unsent
--						 * data to be sent
--						 */
--	u8			connect_nonblock : 1;
--						/* non-blocking connect in
--						 * flight
--						 */
--	struct mutex            clcsock_release_lock;
--						/* protects clcsock of a listen
--						 * socket
--						 * */
--};
--
- static inline struct smc_sock *smc_sk(const struct sock *sk)
- {
- 	return (struct smc_sock *)sk;
++int SEC("struct_ops/bpf_smc_negotiate")
++BPF_PROG(bpf_smc_negotiate, struct smc_sock *smc)
++{
++	struct smc_prediction *smc_predictor;
++	int err, ret = SK_DROP;
++	struct tcp_sock *tp;
++	struct sock *clcsk;
++	__u32 rate = 0;
++	__u16 key;
++
++	/* client side */
++	if (smc == NULL || smc->sk.__sk_common.skc_state != SMC_LISTEN) {
++		/* use Global smc_predictor */
++		key = 0;
++	} else {	/* server side */
++		clcsk = BPF_CORE_READ(smc, clcsock, sk);
++		if (!clcsk)
++			goto error;
++		tp = tcp_sk(clcsk);
++		err = bpf_core_read(&key, sizeof(__u16),
++				    &tp->inet_conn.icsk_inet.sk.__sk_common.skc_num);
++		if (err)
++			goto error;
++	}
++
++	smc_predictor = smc_prediction_get(key, bpf_jiffies64());
++	if (!smc_predictor)
++		return SK_PASS;
++
++	bpf_spin_lock(&smc_predictor->lock);
++
++	if (smc_predictor->incoming_long_cc == 0)
++		goto out_locked_pass;
++
++	if (smc_predictor->incoming_long_cc > SMC_PREDICTION_MAX_LONGCC_PER_SPLICE)
++		goto out_locked_drop;
++
++	rate = smc_prediction_calt_rate(smc_predictor);
++	if (rate < SMC_PREDICTION_LONGCC_RATE_THRESHOLD)
++		goto out_locked_drop;
++
++out_locked_pass:
++	smc_predictor->incoming_long_cc++;
++	bpf_spin_unlock(&smc_predictor->lock);
++	return SK_PASS;
++out_locked_drop:
++	bpf_spin_unlock(&smc_predictor->lock);
++error:
++	return SK_DROP;
++}
++
++void SEC("struct_ops/bpf_smc_collect_info")
++BPF_PROG(bpf_smc_collect_info, struct sock *sk, int timing)
++{
++	struct smc_prediction *smc_predictor;
++	int use_fallback, sndbuf, err;
++	struct smc_sock *smc;
++	struct tcp_sock *tp;
++	struct sock *clcsk;
++	bool match = false;
++	__u16 wrap, count;
++	__u32 delivered;
++	__u16 key;
++
++	/* no info can collect */
++	if (sk == NULL)
++		return;
++
++	/* only fouces on closed */
++	if (timing != SMC_SOCK_CLOSED_TIMING)
++		return;
++
++	/* first check the sk type */
++	if (sk->__sk_common.skc_family == AF_SMC) {
++		smc = smc_sk(sk);
++		clcsk = BPF_CORE_READ(smc, clcsock, sk);
++		if (!clcsk)
++			goto error;
++		tp = tcp_sk(clcsk);
++		/* check if it's fallback */
++		err = bpf_core_read(&use_fallback, sizeof(use_fallback), &smc->use_fallback);
++		if (err)
++			goto error;
++		if (use_fallback)
++			goto fallback;
++		err = bpf_core_read(&wrap, sizeof(__u16), &smc->conn.tx_curs_sent.wrap);
++		if (err)
++			goto error;
++		err = bpf_core_read(&count, sizeof(__u16), &smc->conn.tx_curs_sent.count);
++		if (err)
++			goto error;
++		err = bpf_core_read(&sndbuf, sizeof(int), &clcsk->sk_sndbuf);
++		if (err)
++			goto error;
++		 match = (count + wrap * sndbuf) > SMC_PREDICTION_LONGCC_BYTES_THRESHOLD;
++	} else {
++		smc = NULL;
++		tp = tcp_sk(sk);
++		use_fallback = 1;
++fallback:
++		err = bpf_core_read(&delivered, sizeof(delivered), &tp->delivered);
++		if (err)
++			goto error;
++		match = (delivered > SMC_PREDICTION_LONGCC_PACKETS_THRESHOLD);
++	}
++
++	/* whatever, tp is never NULL */
++	err = bpf_core_read(&key, sizeof(__u16), &tp->inet_conn.icsk_inet.sk.__sk_common.skc_num);
++	if (err)
++		goto error;
++
++	smc_predictor = smc_prediction_get(key, 0);
++	if (!smc_predictor)
++		goto error;
++
++	bpf_spin_lock(&smc_predictor->lock);
++	smc_predictor->closed_total_cc++;
++	if (match) {
++		/* increase stats */
++		smc_predictor->closed_long_cc++;
++		/* try more aggressive */
++		if (smc_predictor->pacing_delta > SMC_PREDICTION_MIN_PACING_DELTA) {
++			if (use_fallback) {
++				smc_predictor->pacing_delta = max(SMC_PREDICTION_MIN_PACING_DELTA,
++						(smc_predictor->pacing_delta * 3) >> 2);
++			}
++		}
++	} else if (!use_fallback) {
++		smc_predictor->pacing_delta <<= 1;
++	}
++	bpf_spin_unlock(&smc_predictor->lock);
++error:
++	return;
++}
++
++SEC(".struct_ops")
++struct smc_sock_negotiator_ops ops = {
++	.negotiate	= (void *)bpf_smc_negotiate,
++	.collect_info	= (void *)bpf_smc_collect_info,
++};
 -- 
 1.8.3.1
 
