@@ -2,181 +2,171 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2797DC61DA3
-	for <linux-rdma@archiver.kernel.org>; Fri,  3 Mar 2023 22:33:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 003C8C61DA3
+	for <linux-rdma@archiver.kernel.org>; Fri,  3 Mar 2023 22:34:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232854AbjCCWdv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 3 Mar 2023 17:33:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36946 "EHLO
+        id S231727AbjCCWeU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 3 Mar 2023 17:34:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232851AbjCCWdg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Mar 2023 17:33:36 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 285761816F;
-        Fri,  3 Mar 2023 14:29:30 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 3E174CE22A5;
-        Fri,  3 Mar 2023 21:43:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0C27C4339B;
-        Fri,  3 Mar 2023 21:43:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677879797;
-        bh=ziEC4mRzw2QHcDPWZ32nHGd0U8w5jht093o+kHHOBEc=;
-        h=From:To:Cc:Subject:Date:From;
-        b=QcaOeplJUAk1kCvtZfntKrSbTkSdOKr74Jp7GQgqPgUVE8SEIlxoMQyP7a4pjYNti
-         rE+U+IINYzEDlRfEDLyEA2bi4yb5XhPG/ZLHr08FQ3r44B972rVryL/t6oFUFJCqWb
-         L1WNiJzT6INooEInCRccis3JkaLQ6FiNSmImrdAJ41bVNJHAeyfIzBfng3TMC8bnQz
-         K4tfvk170sw5AZ/eB4sPjRf9T2Vz7hSoJM95RbBFi53CJoNA2SEAuVhJN7NjaoEepm
-         k0rJorSKPRrlckT7OLtJtD/beEXLWgqZ+sOTPaSPD6omCNbaq8WY8V1WROA8ud6Uxm
-         QBGITjOhosSSQ==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Dean Luick <dean.luick@cornelisnetworks.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 01/60] IB/hfi1: Update RMT size calculation
-Date:   Fri,  3 Mar 2023 16:42:15 -0500
-Message-Id: <20230303214315.1447666-1-sashal@kernel.org>
-X-Mailer: git-send-email 2.39.2
+        with ESMTP id S233019AbjCCWeE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Mar 2023 17:34:04 -0500
+Received: from mail-il1-x133.google.com (mail-il1-x133.google.com [IPv6:2607:f8b0:4864:20::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FF3260D5A
+        for <linux-rdma@vger.kernel.org>; Fri,  3 Mar 2023 14:30:11 -0800 (PST)
+Received: by mail-il1-x133.google.com with SMTP id p13so2720221ilp.11
+        for <linux-rdma@vger.kernel.org>; Fri, 03 Mar 2023 14:30:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1677882537;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=w9Rky0zcPaMb6clSIcXM2O6QspDzfVXkzCsnmwcSWfY=;
+        b=JfWu2WbQki6ywCdVwkKJw0h9E+c+2IXiprJQ1VPw2K0KaEBPZc/afyJtjO5eTLeiIv
+         StLsbBdufT3leI+EbOiAWdH2vkqbWV8olXBdZGik+vcRd8s51LJ9orTQGeaaK18DJDUj
+         xl9yq1rFKcmSBK5R02yzMp1lEq3k+1yvh6xX6YtZKJ50GDJRYMc81JpCWSi2iSUgFuNT
+         mGo/WjNfv5Rb8DXifPQPGulUQSQvKCbaUUi6aa02wa1R34YNMykjPi7J12EuVDrw/cEM
+         8oYIQioSXYqCde2xpbPbXdSI2oHNLyPke9d7DfS1yXtYS2tQ43LmhKMCzx/PBoNPIA4H
+         hmGg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1677882537;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=w9Rky0zcPaMb6clSIcXM2O6QspDzfVXkzCsnmwcSWfY=;
+        b=j8I4qBX/P4s8cQfl41kkjaGuhSFjMnH0M/pSt/Y40pXXgjaU7iPu5pmuZn/L//YbNK
+         cacqQJMyvhUnLJ9dP/dKfkXHydGStCf8AFqyxhtceydCErNQhxWykY6Isq/Zhs7iEirK
+         ejyG2biPIm2TpPWc5Pbuib7ZkRh/DrMVtms252L8cC7E9dOd+t6L28UHjgGq1AVf26E6
+         fKR+TbTtH7pxCD6csAHF1oWA8I+Xa8C3yp9Qo+KMrw8iyTVvlBLuklI7UxH7jSTtZJwQ
+         B87KF5WAXpW9oKWtmHhn2c8qbuSzci83wPwqnC9wOPm00zKPKDzXS/aX5kkIBCtb62lx
+         JJFg==
+X-Gm-Message-State: AO0yUKW5m9U2XCcUSCgIgOEB3kUYlenWrsdICKuOKZE63H+bqmCdhnU9
+        jeTTqhtjmekF96XIZJxx1rgNXXW7klk=
+X-Google-Smtp-Source: AK7set/OmQ2p0/RvJWXEDBAemZSevoX7lvl9G3KFmeio1bdmOPyxJQdNVuflbfPSJH8AjVwHiorX4A==
+X-Received: by 2002:a05:6870:e387:b0:172:55bf:67dc with SMTP id x7-20020a056870e38700b0017255bf67dcmr1926272oad.59.1677881807165;
+        Fri, 03 Mar 2023 14:16:47 -0800 (PST)
+Received: from rpearson-X570-AORUS-PRO-WIFI.tx.rr.com (2603-8081-140c-1a00-de65-7c8e-0940-8c68.res6.spectrum.com. [2603:8081:140c:1a00:de65:7c8e:940:8c68])
+        by smtp.gmail.com with ESMTPSA id zd34-20020a05687127a200b001730afaeb63sm1480740oab.19.2023.03.03.14.16.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 03 Mar 2023 14:16:46 -0800 (PST)
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+To:     jgg@nvidia.com, zyjzyj2000@gmail.com, jhack@hpe.com,
+        linux-rdma@vger.kernel.org
+Cc:     Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH for-next v4 3/4] RDMA/rxe: Extend dbg log messages to err and info
+Date:   Fri,  3 Mar 2023 16:16:23 -0600
+Message-Id: <20230303221623.8053-4-rpearsonhpe@gmail.com>
+X-Mailer: git-send-email 2.37.2
+In-Reply-To: <20230303221623.8053-1-rpearsonhpe@gmail.com>
+References: <20230303221623.8053-1-rpearsonhpe@gmail.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick@cornelisnetworks.com>
+Extend the dbg log messages (e.g. rxe_dbg_xxx) to include
+err and info types. rxe.c is modified to use these new log
+messages as examples.
 
-[ Upstream commit 892ede5a77f337831609fb9c248ac60948061894 ]
-
-Fix possible RMT overflow:  Use the correct netdev size.
-Don't allow adjusted user contexts to go negative.
-
-Fix QOS calculation: Send kernel context count as an argument since
-dd->n_krcv_queues is not yet set up in earliest call.  Do not include
-the control context in the QOS calculation.  Use the same sized
-variable to find the max of krcvq[] entries.
-
-Update the RMT count explanation to make more sense.
-
-Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Link: https://lore.kernel.org/r/167329106946.1472990.18385495251650939054.stgit@awfm-02.cornelisnetworks.com
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
 ---
- drivers/infiniband/hw/hfi1/chip.c | 59 +++++++++++++++++--------------
- 1 file changed, 32 insertions(+), 27 deletions(-)
+ drivers/infiniband/sw/rxe/rxe.c |  8 ++++---
+ drivers/infiniband/sw/rxe/rxe.h | 42 +++++++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index ebe970f76232d..90b672feed83d 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -1056,7 +1056,7 @@ static void read_link_down_reason(struct hfi1_devdata *dd, u8 *ldr);
- static void handle_temp_err(struct hfi1_devdata *dd);
- static void dc_shutdown(struct hfi1_devdata *dd);
- static void dc_start(struct hfi1_devdata *dd);
--static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
-+static int qos_rmt_entries(unsigned int n_krcv_queues, unsigned int *mp,
- 			   unsigned int *np);
- static void clear_full_mgmt_pkey(struct hfi1_pportdata *ppd);
- static int wait_link_transfer_active(struct hfi1_devdata *dd, int wait_ms);
-@@ -13362,7 +13362,6 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 	int ret;
- 	unsigned ngroups;
- 	int rmt_count;
--	int user_rmt_reduced;
- 	u32 n_usr_ctxts;
- 	u32 send_contexts = chip_send_contexts(dd);
- 	u32 rcv_contexts = chip_rcv_contexts(dd);
-@@ -13421,28 +13420,34 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 					 (num_kernel_contexts + n_usr_ctxts),
- 					 &node_affinity.real_cpu_mask);
- 	/*
--	 * The RMT entries are currently allocated as shown below:
--	 * 1. QOS (0 to 128 entries);
--	 * 2. FECN (num_kernel_context - 1 + num_user_contexts +
--	 *    num_netdev_contexts);
--	 * 3. netdev (num_netdev_contexts).
--	 * It should be noted that FECN oversubscribe num_netdev_contexts
--	 * entries of RMT because both netdev and PSM could allocate any receive
--	 * context between dd->first_dyn_alloc_text and dd->num_rcv_contexts,
--	 * and PSM FECN must reserve an RMT entry for each possible PSM receive
--	 * context.
-+	 * RMT entries are allocated as follows:
-+	 * 1. QOS (0 to 128 entries)
-+	 * 2. FECN (num_kernel_context - 1 [a] + num_user_contexts +
-+	 *          num_netdev_contexts [b])
-+	 * 3. netdev (NUM_NETDEV_MAP_ENTRIES)
-+	 *
-+	 * Notes:
-+	 * [a] Kernel contexts (except control) are included in FECN if kernel
-+	 *     TID_RDMA is active.
-+	 * [b] Netdev and user contexts are randomly allocated from the same
-+	 *     context pool, so FECN must cover all contexts in the pool.
- 	 */
--	rmt_count = qos_rmt_entries(dd, NULL, NULL) + (num_netdev_contexts * 2);
--	if (HFI1_CAP_IS_KSET(TID_RDMA))
--		rmt_count += num_kernel_contexts - 1;
--	if (rmt_count + n_usr_ctxts > NUM_MAP_ENTRIES) {
--		user_rmt_reduced = NUM_MAP_ENTRIES - rmt_count;
--		dd_dev_err(dd,
--			   "RMT size is reducing the number of user receive contexts from %u to %d\n",
--			   n_usr_ctxts,
--			   user_rmt_reduced);
--		/* recalculate */
--		n_usr_ctxts = user_rmt_reduced;
-+	rmt_count = qos_rmt_entries(num_kernel_contexts - 1, NULL, NULL)
-+		    + (HFI1_CAP_IS_KSET(TID_RDMA) ? num_kernel_contexts - 1
-+						  : 0)
-+		    + n_usr_ctxts
-+		    + num_netdev_contexts
-+		    + NUM_NETDEV_MAP_ENTRIES;
-+	if (rmt_count > NUM_MAP_ENTRIES) {
-+		int over = rmt_count - NUM_MAP_ENTRIES;
-+		/* try to squish user contexts, minimum of 1 */
-+		if (over >= n_usr_ctxts) {
-+			dd_dev_err(dd, "RMT overflow: reduce the requested number of contexts\n");
-+			return -EINVAL;
-+		}
-+		dd_dev_err(dd, "RMT overflow: reducing # user contexts from %u to %u\n",
-+			   n_usr_ctxts, n_usr_ctxts - over);
-+		n_usr_ctxts -= over;
- 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index d57ba7a5964b..7a7e713de52d 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -160,6 +160,8 @@ void rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu)
  
- 	/* the first N are kernel contexts, the rest are user/netdev contexts */
-@@ -14299,15 +14304,15 @@ static void clear_rsm_rule(struct hfi1_devdata *dd, u8 rule_index)
+ 	port->attr.active_mtu = mtu;
+ 	port->mtu_cap = ib_mtu_enum_to_int(mtu);
++
++	rxe_info_dev(rxe, "Set mtu to %d", port->mtu_cap);
  }
  
- /* return the number of RSM map table entries that will be used for QOS */
--static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
-+static int qos_rmt_entries(unsigned int n_krcv_queues, unsigned int *mp,
- 			   unsigned int *np)
- {
- 	int i;
- 	unsigned int m, n;
--	u8 max_by_vl = 0;
-+	uint max_by_vl = 0;
+ /* called by ifc layer to create new rxe device.
+@@ -179,7 +181,7 @@ static int rxe_newlink(const char *ibdev_name, struct net_device *ndev)
+ 	int err = 0;
  
- 	/* is QOS active at all? */
--	if (dd->n_krcv_queues <= MIN_KERNEL_KCTXTS ||
-+	if (n_krcv_queues < MIN_KERNEL_KCTXTS ||
- 	    num_vls == 1 ||
- 	    krcvqsset <= 1)
- 		goto no_qos;
-@@ -14365,7 +14370,7 @@ static void init_qos(struct hfi1_devdata *dd, struct rsm_map_table *rmt)
+ 	if (is_vlan_dev(ndev)) {
+-		pr_err("rxe creation allowed on top of a real device only\n");
++		rxe_err("rxe creation allowed on top of a real device only");
+ 		err = -EPERM;
+ 		goto err;
+ 	}
+@@ -187,14 +189,14 @@ static int rxe_newlink(const char *ibdev_name, struct net_device *ndev)
+ 	rxe = rxe_get_dev_from_net(ndev);
+ 	if (rxe) {
+ 		ib_device_put(&rxe->ib_dev);
+-		rxe_dbg_dev(rxe, "already configured on %s\n", ndev->name);
++		rxe_err_dev(rxe, "already configured on %s", ndev->name);
+ 		err = -EEXIST;
+ 		goto err;
+ 	}
  
- 	if (!rmt)
- 		goto bail;
--	rmt_entries = qos_rmt_entries(dd, &m, &n);
-+	rmt_entries = qos_rmt_entries(dd->n_krcv_queues - 1, &m, &n);
- 	if (rmt_entries == 0)
- 		goto bail;
- 	qpns_per_vl = 1 << m;
+ 	err = rxe_net_add(ibdev_name, ndev);
+ 	if (err) {
+-		pr_debug("failed to add %s\n", ndev->name);
++		rxe_err("failed to add %s\n", ndev->name);
+ 		goto err;
+ 	}
+ err:
+diff --git a/drivers/infiniband/sw/rxe/rxe.h b/drivers/infiniband/sw/rxe/rxe.h
+index 0757acc38103..bd8a8ea4ea8f 100644
+--- a/drivers/infiniband/sw/rxe/rxe.h
++++ b/drivers/infiniband/sw/rxe/rxe.h
+@@ -58,6 +58,48 @@
+ #define rxe_dbg_mw(mw, fmt, ...) ibdev_dbg((mw)->ibmw.device,		\
+ 		"mw#%d %s:  " fmt, (mw)->elem.index, __func__, ##__VA_ARGS__)
+ 
++#define rxe_err(fmt, ...) pr_err_ratelimited("%s: " fmt "\n", __func__, \
++					##__VA_ARGS__)
++#define rxe_err_dev(rxe, fmt, ...) ibdev_err_ratelimited(&(rxe)->ib_dev, \
++		"%s: " fmt, __func__, ##__VA_ARGS__)
++#define rxe_err_uc(uc, fmt, ...) ibdev_err_ratelimited((uc)->ibuc.device, \
++		"uc#%d %s: " fmt, (uc)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_err_pd(pd, fmt, ...) ibdev_err_ratelimited((pd)->ibpd.device, \
++		"pd#%d %s: " fmt, (pd)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_err_ah(ah, fmt, ...) ibdev_err_ratelimited((ah)->ibah.device, \
++		"ah#%d %s: " fmt, (ah)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_err_srq(srq, fmt, ...) ibdev_err_ratelimited((srq)->ibsrq.device, \
++		"srq#%d %s: " fmt, (srq)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_err_qp(qp, fmt, ...) ibdev_err_ratelimited((qp)->ibqp.device, \
++		"qp#%d %s: " fmt, (qp)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_err_cq(cq, fmt, ...) ibdev_err_ratelimited((cq)->ibcq.device, \
++		"cq#%d %s: " fmt, (cq)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_err_mr(mr, fmt, ...) ibdev_err_ratelimited((mr)->ibmr.device, \
++		"mr#%d %s:  " fmt, (mr)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_err_mw(mw, fmt, ...) ibdev_err_ratelimited((mw)->ibmw.device, \
++		"mw#%d %s:  " fmt, (mw)->elem.index, __func__, ##__VA_ARGS__)
++
++#define rxe_info(fmt, ...) pr_info_ratelimited("%s: " fmt "\n", __func__, \
++					##__VA_ARGS__)
++#define rxe_info_dev(rxe, fmt, ...) ibdev_info_ratelimited(&(rxe)->ib_dev, \
++		"%s: " fmt, __func__, ##__VA_ARGS__)
++#define rxe_info_uc(uc, fmt, ...) ibdev_info_ratelimited((uc)->ibuc.device, \
++		"uc#%d %s: " fmt, (uc)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_info_pd(pd, fmt, ...) ibdev_info_ratelimited((pd)->ibpd.device, \
++		"pd#%d %s: " fmt, (pd)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_info_ah(ah, fmt, ...) ibdev_info_ratelimited((ah)->ibah.device, \
++		"ah#%d %s: " fmt, (ah)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_info_srq(srq, fmt, ...) ibdev_info_ratelimited((srq)->ibsrq.device, \
++		"srq#%d %s: " fmt, (srq)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_info_qp(qp, fmt, ...) ibdev_info_ratelimited((qp)->ibqp.device, \
++		"qp#%d %s: " fmt, (qp)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_info_cq(cq, fmt, ...) ibdev_info_ratelimited((cq)->ibcq.device, \
++		"cq#%d %s: " fmt, (cq)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_info_mr(mr, fmt, ...) ibdev_info_ratelimited((mr)->ibmr.device, \
++		"mr#%d %s:  " fmt, (mr)->elem.index, __func__, ##__VA_ARGS__)
++#define rxe_info_mw(mw, fmt, ...) ibdev_info_ratelimited((mw)->ibmw.device, \
++		"mw#%d %s:  " fmt, (mw)->elem.index, __func__, ##__VA_ARGS__)
++
+ /* responder states */
+ enum resp_states {
+ 	RESPST_NONE,
 -- 
-2.39.2
+2.37.2
 
