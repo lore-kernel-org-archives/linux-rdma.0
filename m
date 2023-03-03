@@ -2,50 +2,50 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE518C7EE43
-	for <linux-rdma@archiver.kernel.org>; Fri,  3 Mar 2023 21:44:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8838BC7EE33
+	for <linux-rdma@archiver.kernel.org>; Fri,  3 Mar 2023 21:49:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232018AbjCCVo3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 3 Mar 2023 16:44:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54826 "EHLO
+        id S232733AbjCCVtl (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 3 Mar 2023 16:49:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232197AbjCCVoE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Mar 2023 16:44:04 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98A9462DA6;
-        Fri,  3 Mar 2023 13:43:14 -0800 (PST)
+        with ESMTP id S232753AbjCCVtE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Mar 2023 16:49:04 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2F616703F;
+        Fri,  3 Mar 2023 13:45:44 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BC0F061931;
-        Fri,  3 Mar 2023 21:43:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDE00C4339B;
-        Fri,  3 Mar 2023 21:43:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id ECFD2B81A09;
+        Fri,  3 Mar 2023 21:45:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59B91C4339B;
+        Fri,  3 Mar 2023 21:45:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677879789;
-        bh=JuKjRaZVkoaiQEQB+xyXbpZsFWy1BStMRXTHDE0ZbCM=;
+        s=k20201202; t=1677879922;
+        bh=08JKqLomuqR8Z+WnXh9Rr9/MR0OoAsnToT9vuZiLzkg=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=qesu1KTdNqOPB2Qn5a5FUuvSeMCOHWmYLVoiGa8NXB1R2EipgDvs3ikSPPICzm0g6
-         UL6pw7vaI+X3kMa5BdRs3/rHPdXuMk9V9cQPsUU4kjV4ioopVLanC051zuXFSVi/nu
-         5pPfJ3Rjev594E35DMQB0CDzdiREEHn9tde5dSpHFmoTgv+TvAIaAR51DfCQEynAgM
-         6mZtQ+22c+lSf8/JhtNEIC/p4g830ID3Pu8JDsT6GOz+2NSD1/jXcwzjAM08NNzh1w
-         BYxL10LmWlmWm3gnuwI1uSYuxQUyM+MxeKigqBzEOsY3xwWTYjePWLHwXcldbLDysG
-         47nRs1SX621Zw==
+        b=mspy/E0ZzxK617jzB3y9Q9XOJS/zR5ao67YYwjTkdbAxxhh4+4pVtf+6QuedYcJ0S
+         3rNbviRNCn6YDg1NkO2ynqzz21tpCeWa9Sqr6mpQWxta/AnfxMiTTsNWUHv82qHIFg
+         Y6tP8bblA8XSQ8QHSgDE6XuzmMcOCDEhh7sPWymGovGzBjGuts2ZBkgUSxJmIYYhDA
+         aJlDxFu3EeO9jSMI6BeEVoraPn8tYV6tHviz4kbvnw+sk/x8IrjtjRVC1hoyRXif5U
+         Cg7Eom6KRU1F4Fv1XFlW9N+/1qF8l7BKJxFvWYPxOSXtLkwORXEok+iXGEP85TyAWB
+         y3Q17anNDHhKw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Kees Cook <keescook@chromium.org>,
         Nathan Chancellor <nathan@kernel.org>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Sasha Levin <sashal@kernel.org>, ndesaulniers@google.com,
-        markzhang@nvidia.com, phaddad@nvidia.com, Jason@zx2c4.com,
-        lengchao@huawei.com, michaelgur@nvidia.com,
-        linux-rdma@vger.kernel.org, llvm@lists.linux.dev
-Subject: [PATCH AUTOSEL 6.2 61/64] RDMA/cma: Distinguish between sockaddr_in and sockaddr_in6 by size
-Date:   Fri,  3 Mar 2023 16:41:03 -0500
-Message-Id: <20230303214106.1446460-61-sashal@kernel.org>
+        markzhang@nvidia.com, Jason@zx2c4.com, phaddad@nvidia.com,
+        haakon.bugge@oracle.com, linux-rdma@vger.kernel.org,
+        llvm@lists.linux.dev
+Subject: [PATCH AUTOSEL 6.1 57/60] RDMA/cma: Distinguish between sockaddr_in and sockaddr_in6 by size
+Date:   Fri,  3 Mar 2023 16:43:11 -0500
+Message-Id: <20230303214315.1447666-57-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230303214106.1446460-1-sashal@kernel.org>
-References: <20230303214106.1446460-1-sashal@kernel.org>
+In-Reply-To: <20230303214315.1447666-1-sashal@kernel.org>
+References: <20230303214315.1447666-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -92,7 +92,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 12 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 68721ff10255e..7e508b15e7761 100644
+index 26d1772179b8f..8730674ceb2e1 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
 @@ -479,13 +479,20 @@ static int compare_netdev_and_ip(int ifindex_a, struct sockaddr *sa,
