@@ -2,181 +2,235 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 181C7C678DB
-	for <linux-rdma@archiver.kernel.org>; Fri,  3 Mar 2023 22:54:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29006C6FA8E
+	for <linux-rdma@archiver.kernel.org>; Sat,  4 Mar 2023 09:17:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231991AbjCCWyO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 3 Mar 2023 17:54:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46598 "EHLO
+        id S229447AbjCDJRa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 4 Mar 2023 04:17:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232060AbjCCWyM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Mar 2023 17:54:12 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E30811B2CF;
-        Fri,  3 Mar 2023 14:53:46 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 729ACB818A4;
-        Fri,  3 Mar 2023 21:47:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75D8DC4339E;
-        Fri,  3 Mar 2023 21:47:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1677880038;
-        bh=kiILXqGGq0h+wtqtWnvVR1ipqj4Zf0m1sKRPOcQmT0A=;
-        h=From:To:Cc:Subject:Date:From;
-        b=C4uv9dOCkbMYY53RvYVMyxK4L1fS14wljcwvCH/GPeg8auugjYIr32gWkO5lG4BBY
-         JFcv4i/P4V0ek18zERh25VihLEJe/wE6iVq4wszreD+oRHZzu+Yfkt1mj7vqiOQJEi
-         hiDMMaCQ0/vs/U6m10aWcdSHzwOxlhFUd9edsI/N5u3zEsl8jPu1ky4QloXYibANeZ
-         Jtn5TBiVxK0h2UhPnjxwx/1HgJCoM3HXLa9DeCO+RjOn4FcxwMnLUQ7OyxehnJDbTa
-         /FFd/Wf7LUqd3wPs8sgN/0zJE8/ID3Wt/9l8yGilbCBLD5yr1FYn9PxH1fV2W4fPIp
-         qbWk3RUGg2Lcw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Dean Luick <dean.luick@cornelisnetworks.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 01/30] IB/hfi1: Update RMT size calculation
-Date:   Fri,  3 Mar 2023 16:46:46 -0500
-Message-Id: <20230303214715.1452256-1-sashal@kernel.org>
-X-Mailer: git-send-email 2.39.2
+        with ESMTP id S229551AbjCDJR3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 4 Mar 2023 04:17:29 -0500
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29EF014212
+        for <linux-rdma@vger.kernel.org>; Sat,  4 Mar 2023 01:17:27 -0800 (PST)
+Received: from kwepemm600013.china.huawei.com (unknown [172.30.72.56])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4PTK1l3PNlz9tG8;
+        Sat,  4 Mar 2023 17:15:23 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.2) by
+ kwepemm600013.china.huawei.com (7.193.23.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.21; Sat, 4 Mar 2023 17:17:24 +0800
+From:   Haoyue Xu <xuhaoyue1@hisilicon.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <xuhaoyue1@hisilicon.com>
+Subject: [PATCH 1/2] RDMA/hns: Add new command to support query vf caps
+Date:   Sat, 4 Mar 2023 17:15:54 +0800
+Message-ID: <20230304091555.2241298-2-xuhaoyue1@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20230304091555.2241298-1-xuhaoyue1@hisilicon.com>
+References: <20230304091555.2241298-1-xuhaoyue1@hisilicon.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.67.165.2]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ kwepemm600013.china.huawei.com (7.193.23.68)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick@cornelisnetworks.com>
+From: Yixing Liu <liuyixing1@huawei.com>
 
-[ Upstream commit 892ede5a77f337831609fb9c248ac60948061894 ]
+The current resource query for vf caps is driven
+by the driver, which is unreasonable. This patch
+adds a new command HNS_ROCE_OPC_QUERY_PF_CAPS_NUM
+to support obtaining vf caps information from firmware.
 
-Fix possible RMT overflow:  Use the correct netdev size.
-Don't allow adjusted user contexts to go negative.
-
-Fix QOS calculation: Send kernel context count as an argument since
-dd->n_krcv_queues is not yet set up in earliest call.  Do not include
-the control context in the QOS calculation.  Use the same sized
-variable to find the max of krcvq[] entries.
-
-Update the RMT count explanation to make more sense.
-
-Signed-off-by: Dean Luick <dean.luick@cornelisnetworks.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Link: https://lore.kernel.org/r/167329106946.1472990.18385495251650939054.stgit@awfm-02.cornelisnetworks.com
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Yixing Liu <liuyixing1@huawei.com>
+Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
 ---
- drivers/infiniband/hw/hfi1/chip.c | 59 +++++++++++++++++--------------
- 1 file changed, 32 insertions(+), 27 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 95 ++++++++++++----------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  1 +
+ 2 files changed, 55 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 88476a1a601a4..4b41f35668b20 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -1097,7 +1097,7 @@ static void read_link_down_reason(struct hfi1_devdata *dd, u8 *ldr);
- static void handle_temp_err(struct hfi1_devdata *dd);
- static void dc_shutdown(struct hfi1_devdata *dd);
- static void dc_start(struct hfi1_devdata *dd);
--static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
-+static int qos_rmt_entries(unsigned int n_krcv_queues, unsigned int *mp,
- 			   unsigned int *np);
- static void clear_full_mgmt_pkey(struct hfi1_pportdata *ppd);
- static int wait_link_transfer_active(struct hfi1_devdata *dd, int wait_ms);
-@@ -13403,7 +13403,6 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 	int ret;
- 	unsigned ngroups;
- 	int rmt_count;
--	int user_rmt_reduced;
- 	u32 n_usr_ctxts;
- 	u32 send_contexts = chip_send_contexts(dd);
- 	u32 rcv_contexts = chip_rcv_contexts(dd);
-@@ -13462,28 +13461,34 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 					 (num_kernel_contexts + n_usr_ctxts),
- 					 &node_affinity.real_cpu_mask);
- 	/*
--	 * The RMT entries are currently allocated as shown below:
--	 * 1. QOS (0 to 128 entries);
--	 * 2. FECN (num_kernel_context - 1 + num_user_contexts +
--	 *    num_netdev_contexts);
--	 * 3. netdev (num_netdev_contexts).
--	 * It should be noted that FECN oversubscribe num_netdev_contexts
--	 * entries of RMT because both netdev and PSM could allocate any receive
--	 * context between dd->first_dyn_alloc_text and dd->num_rcv_contexts,
--	 * and PSM FECN must reserve an RMT entry for each possible PSM receive
--	 * context.
-+	 * RMT entries are allocated as follows:
-+	 * 1. QOS (0 to 128 entries)
-+	 * 2. FECN (num_kernel_context - 1 [a] + num_user_contexts +
-+	 *          num_netdev_contexts [b])
-+	 * 3. netdev (NUM_NETDEV_MAP_ENTRIES)
-+	 *
-+	 * Notes:
-+	 * [a] Kernel contexts (except control) are included in FECN if kernel
-+	 *     TID_RDMA is active.
-+	 * [b] Netdev and user contexts are randomly allocated from the same
-+	 *     context pool, so FECN must cover all contexts in the pool.
- 	 */
--	rmt_count = qos_rmt_entries(dd, NULL, NULL) + (num_netdev_contexts * 2);
--	if (HFI1_CAP_IS_KSET(TID_RDMA))
--		rmt_count += num_kernel_contexts - 1;
--	if (rmt_count + n_usr_ctxts > NUM_MAP_ENTRIES) {
--		user_rmt_reduced = NUM_MAP_ENTRIES - rmt_count;
--		dd_dev_err(dd,
--			   "RMT size is reducing the number of user receive contexts from %u to %d\n",
--			   n_usr_ctxts,
--			   user_rmt_reduced);
--		/* recalculate */
--		n_usr_ctxts = user_rmt_reduced;
-+	rmt_count = qos_rmt_entries(num_kernel_contexts - 1, NULL, NULL)
-+		    + (HFI1_CAP_IS_KSET(TID_RDMA) ? num_kernel_contexts - 1
-+						  : 0)
-+		    + n_usr_ctxts
-+		    + num_netdev_contexts
-+		    + NUM_NETDEV_MAP_ENTRIES;
-+	if (rmt_count > NUM_MAP_ENTRIES) {
-+		int over = rmt_count - NUM_MAP_ENTRIES;
-+		/* try to squish user contexts, minimum of 1 */
-+		if (over >= n_usr_ctxts) {
-+			dd_dev_err(dd, "RMT overflow: reduce the requested number of contexts\n");
-+			return -EINVAL;
-+		}
-+		dd_dev_err(dd, "RMT overflow: reducing # user contexts from %u to %u\n",
-+			   n_usr_ctxts, n_usr_ctxts - over);
-+		n_usr_ctxts -= over;
- 	}
- 
- 	/* the first N are kernel contexts, the rest are user/netdev contexts */
-@@ -14340,15 +14345,15 @@ static void clear_rsm_rule(struct hfi1_devdata *dd, u8 rule_index)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index dbf97fe5948f..9aa83010575e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2239,7 +2239,7 @@ static void apply_func_caps(struct hns_roce_dev *hr_dev)
+ 	set_hem_page_size(hr_dev);
  }
  
- /* return the number of RSM map table entries that will be used for QOS */
--static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
-+static int qos_rmt_entries(unsigned int n_krcv_queues, unsigned int *mp,
- 			   unsigned int *np)
+-static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
++static int hns_roce_query_caps(struct hns_roce_dev *hr_dev)
  {
+ 	struct hns_roce_cmq_desc desc[HNS_ROCE_QUERY_PF_CAPS_CMD_NUM];
+ 	struct hns_roce_caps *caps = &hr_dev->caps;
+@@ -2248,15 +2248,17 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_query_pf_caps_c *resp_c;
+ 	struct hns_roce_query_pf_caps_d *resp_d;
+ 	struct hns_roce_query_pf_caps_e *resp_e;
++	enum hns_roce_opcode_type cmd;
+ 	int ctx_hop_num;
+ 	int pbl_hop_num;
+ 	int ret;
  	int i;
- 	unsigned int m, n;
--	u8 max_by_vl = 0;
-+	uint max_by_vl = 0;
  
- 	/* is QOS active at all? */
--	if (dd->n_krcv_queues <= MIN_KERNEL_KCTXTS ||
-+	if (n_krcv_queues < MIN_KERNEL_KCTXTS ||
- 	    num_vls == 1 ||
- 	    krcvqsset <= 1)
- 		goto no_qos;
-@@ -14406,7 +14411,7 @@ static void init_qos(struct hfi1_devdata *dd, struct rsm_map_table *rmt)
++	cmd = hr_dev->is_vf ? HNS_ROCE_OPC_QUERY_VF_CAPS_NUM :
++	      HNS_ROCE_OPC_QUERY_PF_CAPS_NUM;
++
+ 	for (i = 0; i < HNS_ROCE_QUERY_PF_CAPS_CMD_NUM; i++) {
+-		hns_roce_cmq_setup_basic_desc(&desc[i],
+-					      HNS_ROCE_OPC_QUERY_PF_CAPS_NUM,
+-					      true);
++		hns_roce_cmq_setup_basic_desc(&desc[i], cmd, true);
+ 		if (i < (HNS_ROCE_QUERY_PF_CAPS_CMD_NUM - 1))
+ 			desc[i].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
+ 		else
+@@ -2273,35 +2275,33 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 	resp_d = (struct hns_roce_query_pf_caps_d *)desc[3].data;
+ 	resp_e = (struct hns_roce_query_pf_caps_e *)desc[4].data;
  
- 	if (!rmt)
- 		goto bail;
--	rmt_entries = qos_rmt_entries(dd, &m, &n);
-+	rmt_entries = qos_rmt_entries(dd->n_krcv_queues - 1, &m, &n);
- 	if (rmt_entries == 0)
- 		goto bail;
- 	qpns_per_vl = 1 << m;
+-	caps->local_ca_ack_delay     = resp_a->local_ca_ack_delay;
+-	caps->max_sq_sg		     = le16_to_cpu(resp_a->max_sq_sg);
+-	caps->max_sq_inline	     = le16_to_cpu(resp_a->max_sq_inline);
+-	caps->max_rq_sg		     = le16_to_cpu(resp_a->max_rq_sg);
++	caps->local_ca_ack_delay = resp_a->local_ca_ack_delay;
++	caps->max_sq_sg = le16_to_cpu(resp_a->max_sq_sg);
++	caps->max_sq_inline = le16_to_cpu(resp_a->max_sq_inline);
++	caps->max_rq_sg = le16_to_cpu(resp_a->max_rq_sg);
+ 	caps->max_rq_sg = roundup_pow_of_two(caps->max_rq_sg);
+-	caps->max_srq_sges	     = le16_to_cpu(resp_a->max_srq_sges);
++	caps->max_srq_sges = le16_to_cpu(resp_a->max_srq_sges);
+ 	caps->max_srq_sges = roundup_pow_of_two(caps->max_srq_sges);
+-	caps->num_aeq_vectors	     = resp_a->num_aeq_vectors;
+-	caps->num_other_vectors	     = resp_a->num_other_vectors;
+-	caps->max_sq_desc_sz	     = resp_a->max_sq_desc_sz;
+-	caps->max_rq_desc_sz	     = resp_a->max_rq_desc_sz;
+-	caps->cqe_sz		     = resp_a->cqe_sz;
+-
+-	caps->mtpt_entry_sz	     = resp_b->mtpt_entry_sz;
+-	caps->irrl_entry_sz	     = resp_b->irrl_entry_sz;
+-	caps->trrl_entry_sz	     = resp_b->trrl_entry_sz;
+-	caps->cqc_entry_sz	     = resp_b->cqc_entry_sz;
+-	caps->srqc_entry_sz	     = resp_b->srqc_entry_sz;
+-	caps->idx_entry_sz	     = resp_b->idx_entry_sz;
+-	caps->sccc_sz		     = resp_b->sccc_sz;
+-	caps->max_mtu		     = resp_b->max_mtu;
+-	caps->qpc_sz		     = le16_to_cpu(resp_b->qpc_sz);
+-	caps->min_cqes		     = resp_b->min_cqes;
+-	caps->min_wqes		     = resp_b->min_wqes;
+-	caps->page_size_cap	     = le32_to_cpu(resp_b->page_size_cap);
+-	caps->pkey_table_len[0]	     = resp_b->pkey_table_len;
+-	caps->phy_num_uars	     = resp_b->phy_num_uars;
+-	ctx_hop_num		     = resp_b->ctx_hop_num;
+-	pbl_hop_num		     = resp_b->pbl_hop_num;
++	caps->num_aeq_vectors = resp_a->num_aeq_vectors;
++	caps->num_other_vectors = resp_a->num_other_vectors;
++	caps->max_sq_desc_sz = resp_a->max_sq_desc_sz;
++	caps->max_rq_desc_sz = resp_a->max_rq_desc_sz;
++
++	caps->mtpt_entry_sz = resp_b->mtpt_entry_sz;
++	caps->irrl_entry_sz = resp_b->irrl_entry_sz;
++	caps->trrl_entry_sz = resp_b->trrl_entry_sz;
++	caps->cqc_entry_sz = resp_b->cqc_entry_sz;
++	caps->srqc_entry_sz = resp_b->srqc_entry_sz;
++	caps->idx_entry_sz = resp_b->idx_entry_sz;
++	caps->sccc_sz = resp_b->sccc_sz;
++	caps->max_mtu = resp_b->max_mtu;
++	caps->min_cqes = resp_b->min_cqes;
++	caps->min_wqes = resp_b->min_wqes;
++	caps->page_size_cap = le32_to_cpu(resp_b->page_size_cap);
++	caps->pkey_table_len[0] = resp_b->pkey_table_len;
++	caps->phy_num_uars = resp_b->phy_num_uars;
++	ctx_hop_num = resp_b->ctx_hop_num;
++	pbl_hop_num = resp_b->pbl_hop_num;
+ 
+ 	caps->num_pds = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_PDS);
+ 
+@@ -2324,8 +2324,6 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 	caps->ceqe_depth = 1 << hr_reg_read(resp_d, PF_CAPS_D_CEQ_DEPTH);
+ 	caps->num_comp_vectors = hr_reg_read(resp_d, PF_CAPS_D_NUM_CEQS);
+ 	caps->aeqe_depth = 1 << hr_reg_read(resp_d, PF_CAPS_D_AEQ_DEPTH);
+-	caps->default_aeq_arm_st = hr_reg_read(resp_d, PF_CAPS_D_AEQ_ARM_ST);
+-	caps->default_ceq_arm_st = hr_reg_read(resp_d, PF_CAPS_D_CEQ_ARM_ST);
+ 	caps->reserved_pds = hr_reg_read(resp_d, PF_CAPS_D_RSV_PDS);
+ 	caps->num_uars = 1 << hr_reg_read(resp_d, PF_CAPS_D_NUM_UARS);
+ 	caps->reserved_qps = hr_reg_read(resp_d, PF_CAPS_D_RSV_QPS);
+@@ -2336,10 +2334,6 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 	caps->reserved_cqs = hr_reg_read(resp_e, PF_CAPS_E_RSV_CQS);
+ 	caps->reserved_srqs = hr_reg_read(resp_e, PF_CAPS_E_RSV_SRQS);
+ 	caps->reserved_lkey = hr_reg_read(resp_e, PF_CAPS_E_RSV_LKEYS);
+-	caps->default_ceq_max_cnt = le16_to_cpu(resp_e->ceq_max_cnt);
+-	caps->default_ceq_period = le16_to_cpu(resp_e->ceq_period);
+-	caps->default_aeq_max_cnt = le16_to_cpu(resp_e->aeq_max_cnt);
+-	caps->default_aeq_period = le16_to_cpu(resp_e->aeq_period);
+ 
+ 	caps->qpc_hop_num = ctx_hop_num;
+ 	caps->sccc_hop_num = ctx_hop_num;
+@@ -2357,6 +2351,19 @@ static int hns_roce_query_pf_caps(struct hns_roce_dev *hr_dev)
+ 	if (!(caps->page_size_cap & PAGE_SIZE))
+ 		caps->page_size_cap = HNS_ROCE_V2_PAGE_SIZE_SUPPORTED;
+ 
++	if (!hr_dev->is_vf) {
++		caps->cqe_sz = resp_a->cqe_sz;
++		caps->qpc_sz = le16_to_cpu(resp_b->qpc_sz);
++		caps->default_aeq_arm_st =
++				hr_reg_read(resp_d, PF_CAPS_D_AEQ_ARM_ST);
++		caps->default_ceq_arm_st =
++				hr_reg_read(resp_d, PF_CAPS_D_CEQ_ARM_ST);
++		caps->default_ceq_max_cnt = le16_to_cpu(resp_e->ceq_max_cnt);
++		caps->default_ceq_period = le16_to_cpu(resp_e->ceq_period);
++		caps->default_aeq_max_cnt = le16_to_cpu(resp_e->aeq_max_cnt);
++		caps->default_aeq_period = le16_to_cpu(resp_e->aeq_period);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -2404,7 +2411,11 @@ static int hns_roce_v2_vf_profile(struct hns_roce_dev *hr_dev)
+ 
+ 	hr_dev->func_num = 1;
+ 
+-	set_default_caps(hr_dev);
++	ret = hns_roce_query_caps(hr_dev);
++	if (ret) {
++		dev_err(dev, "failed to query VF caps, ret = %d.\n", ret);
++		return ret;
++	}
+ 
+ 	ret = hns_roce_query_vf_resource(hr_dev);
+ 	if (ret) {
+@@ -2444,9 +2455,11 @@ static int hns_roce_v2_pf_profile(struct hns_roce_dev *hr_dev)
+ 		return ret;
+ 	}
+ 
+-	ret = hns_roce_query_pf_caps(hr_dev);
+-	if (ret)
+-		set_default_caps(hr_dev);
++	ret = hns_roce_query_caps(hr_dev);
++	if (ret) {
++		dev_err(dev, "failed to query PF caps, ret = %d.\n", ret);
++		return ret;
++	}
+ 
+ 	ret = hns_roce_query_pf_resource(hr_dev);
+ 	if (ret) {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index af9d00225cdf..f3ebe953c6ce 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -232,6 +232,7 @@ enum hns_roce_opcode_type {
+ 	HNS_ROCE_OPC_QUERY_FUNC_INFO			= 0x8407,
+ 	HNS_ROCE_OPC_QUERY_PF_CAPS_NUM                  = 0x8408,
+ 	HNS_ROCE_OPC_CFG_ENTRY_SIZE			= 0x8409,
++	HNS_ROCE_OPC_QUERY_VF_CAPS_NUM			= 0x8410,
+ 	HNS_ROCE_OPC_CFG_SGID_TB			= 0x8500,
+ 	HNS_ROCE_OPC_CFG_SMAC_TB			= 0x8501,
+ 	HNS_ROCE_OPC_POST_MB				= 0x8504,
 -- 
-2.39.2
+2.33.0
 
