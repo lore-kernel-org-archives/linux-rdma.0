@@ -2,79 +2,90 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3581C678D5
-	for <linux-rdma@archiver.kernel.org>; Wed,  8 Mar 2023 05:58:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B07EC6FD1E
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Mar 2023 08:17:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229799AbjCHF6X (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 8 Mar 2023 00:58:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44212 "EHLO
+        id S230037AbjCHIRX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 8 Mar 2023 03:17:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229716AbjCHF6X (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Mar 2023 00:58:23 -0500
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C88B7C975;
-        Tue,  7 Mar 2023 21:58:20 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R801e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0VdO9hJB_1678255096;
-Received: from 30.221.150.20(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VdO9hJB_1678255096)
+        with ESMTP id S230036AbjCHIRV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 8 Mar 2023 03:17:21 -0500
+Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3257F14219;
+        Wed,  8 Mar 2023 00:17:19 -0800 (PST)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=8;SR=0;TI=SMTPD_---0VdOgFwo_1678263432;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VdOgFwo_1678263432)
           by smtp.aliyun-inc.com;
-          Wed, 08 Mar 2023 13:58:17 +0800
-Message-ID: <6f918827-c037-ab5d-b3bf-2cd2617e737b@linux.alibaba.com>
-Date:   Wed, 8 Mar 2023 13:58:15 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.8.0
-Subject: Re: [PATCH bpf-next v4 0/4] net/smc: Introduce BPF injection
- capability
-Content-Language: en-US
-To:     Martin KaFai Lau <martin.lau@linux.dev>
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        bpf@vger.kernel.org, kgraul@linux.ibm.com, wenjia@linux.ibm.com,
-        jaka@linux.ibm.com, ast@kernel.org, daniel@iogearbox.net,
-        andrii@kernel.org
-References: <1677602291-1666-1-git-send-email-alibuda@linux.alibaba.com>
- <25cee0eb-a1f9-9f0b-9987-ca6e79e6b752@linux.alibaba.com>
- <f1e87004-4654-8204-2771-32ed13467202@linux.dev>
+          Wed, 08 Mar 2023 16:17:17 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <f1e87004-4654-8204-2771-32ed13467202@linux.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: [PATCH net v2] net/smc: fix NULL sndbuf_desc in smc_cdc_tx_handler()
+Date:   Wed,  8 Mar 2023 16:17:12 +0800
+Message-Id: <1678263432-17329-1-git-send-email-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-Hi Martin
+When performing a stress test on SMC-R by rmmod mlx5_ib driver
+during the wrk/nginx test, we found that there is a probability
+of triggering a panic while terminating all link groups.
 
-I'm very sorry to see your comments on v2  just now...
+This issue dues to the race between smc_smcr_terminate_all()
+and smc_buf_create().
 
-I just checked the email and found that your reply was filtered out by 
-my email terminal. 😭
+			smc_smcr_terminate_all
 
-Thank you very much for your comments. I will try to modify it according 
-to your suggestions.
+smc_buf_create
+/* init */
+conn->sndbuf_desc = NULL;
+...
 
-Best wishes.
+			__smc_lgr_terminate
+				smc_conn_kill
+					smc_close_abort
+						smc_cdc_get_slot_and_msg_send
 
-D. Wythe
+			__softirqentry_text_start
+				smc_wr_tx_process_cqe
+					smc_cdc_tx_handler
+						READ(conn->sndbuf_desc->len);
+						/* panic dues to NULL sndbuf_desc */
 
+conn->sndbuf_desc = xxx;
 
-On 3/8/23 12:44 AM, Martin KaFai Lau wrote:
-> On 3/6/23 7:05 PM, D. Wythe wrote:
->> I wondering if there are any more questions about this PATCH, This 
->> patch seems 
-> May be start with the questions on v2 first.
->
->> to have been hanging for some time.
->>
->> If you have any questions, please let me know.
->>
->>
->> Thanks,
->>
->> D. Wythe
->>
->>
->> Do you have any questions about this PATCH?  If you have any other 
->> questions, please let me know.
->>
+This patch tries to fix the issue by always to check the sndbuf_desc
+before send any cdc msg, to make sure that no null pointer is
+seen during cqe processing.
+
+Fixes: 0b29ec643613 ("net/smc: immediate termination for SMCR link groups")
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+
+v2 -> v1: change retval from EINVAL to ENOBUFS
+
+---
+ net/smc/smc_cdc.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+index 53f63bf..89105e9 100644
+--- a/net/smc/smc_cdc.c
++++ b/net/smc/smc_cdc.c
+@@ -114,6 +114,9 @@ int smc_cdc_msg_send(struct smc_connection *conn,
+ 	union smc_host_cursor cfed;
+ 	int rc;
+ 
++	if (unlikely(!READ_ONCE(conn->sndbuf_desc)))
++		return -ENOBUFS;
++
+ 	smc_cdc_add_pending_send(conn, pend);
+ 
+ 	conn->tx_cdc_seq++;
+-- 
+1.8.3.1
+
