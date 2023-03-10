@@ -2,58 +2,55 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFFDEC64EC4
-	for <linux-rdma@archiver.kernel.org>; Thu,  9 Mar 2023 14:15:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A18CFC64EC4
+	for <linux-rdma@archiver.kernel.org>; Fri, 10 Mar 2023 00:55:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229914AbjCIOPE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Mar 2023 09:15:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48240 "EHLO
+        id S229683AbjCJAzh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 9 Mar 2023 19:55:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55288 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231574AbjCIOO0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Mar 2023 09:14:26 -0500
-Received: from mail-lj1-x22f.google.com (mail-lj1-x22f.google.com [IPv6:2a00:1450:4864:20::22f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 849D55B5DA;
-        Thu,  9 Mar 2023 06:13:17 -0800 (PST)
-Received: by mail-lj1-x22f.google.com with SMTP id h3so1943818lja.12;
-        Thu, 09 Mar 2023 06:13:17 -0800 (PST)
+        with ESMTP id S229721AbjCJAzg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Mar 2023 19:55:36 -0500
+Received: from mail-qv1-xf35.google.com (mail-qv1-xf35.google.com [IPv6:2607:f8b0:4864:20::f35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7F98F5ABE
+        for <linux-rdma@vger.kernel.org>; Thu,  9 Mar 2023 16:55:32 -0800 (PST)
+Received: by mail-qv1-xf35.google.com with SMTP id ev13so2688087qvb.10
+        for <linux-rdma@vger.kernel.org>; Thu, 09 Mar 2023 16:55:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1678371192;
+        d=joelfernandes.org; s=google; t=1678409731;
         h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=0L3e2Gc1woVMAVlvcEHWXDzcW7MDDTkeZvDGMyuHmDM=;
-        b=ZiP8eNuayA+2CcmAR5fDLa1MnQvzgU7G68TvxH2IoGFLGtrWnjeJnXBLCh2l9HMstZ
-         ZcsR2pVrQZXCuPdIwYjs2PQGRO1NtijEFZni5RC8W4tlLosV8KpxEq7s0N6vV/gFEKf+
-         GbUCvkKR6j5GVeK/BomL0ZZ4n5k790VtN1eHSKO98Ly4i+jO7Qaxeo0ppAWkGEJ0A+0h
-         gqpz0jvCe0A/WpvvHDtZ+6bYE0X8wGzle6tbA5HWQW4iZIVpogJE73oHPZyOExHxF4e6
-         UJPH5y8H8psogpWsAxR/fziAK9q9SVCWYRO/u+278qkRguOSL1jH8yoNIkJpWZiVAcM7
-         OYmw==
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=B+uJ25jQ+MXikhQk+40cCXbpkdq02pm9Z8nSn09JPc4=;
+        b=OAybaaeM9yb7q1OS2RJM//hJipMHt5TzwcfAUfPmrxGeQ+nJz0c+YpDgz5qP+tkz5y
+         1q6JuS1iR2pqMe1ualukvZq7A8W+ghiTJqs+5v4Q7STkTteaknPHK/QHf3WgqPCybSJo
+         k4GlfqWGh2ZXG2SSMhCqZuWyWF2838gkmWVtU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678371192;
+        d=1e100.net; s=20210112; t=1678409731;
         h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=0L3e2Gc1woVMAVlvcEHWXDzcW7MDDTkeZvDGMyuHmDM=;
-        b=XnZI2WsVMJTjYrwqBBPIQwU2VHXlF4rHewRNpx/EY0JbqPBgtV/nXnhptMwVAIzX6M
-         s3INjqxFgc4yvgGK/CwmGJ7i7VX6KfRR6fMwiiFa2vw4MLXPtqBP9SQDF6jtRu9pRE3b
-         2C+t7sf9AA6LbnJ4DPg6l6l1w0qcJWcybnJVOyUcqNt0HUdjbWagYo93f2UNaSwaw/F2
-         68916GYzoHQdTwB/KdWA0pnJNSmwOP8HcP5ENWG3nesfTVI7UYk9dZNSEJXR+orOUpau
-         2C599D7xwmoNXZ4ZSKtRT7fEeKjAXqzteOiSOqVgVpbTeJ3oPKakr13gu36okoVPGRDF
-         Id6g==
-X-Gm-Message-State: AO0yUKXjcTNLzdVJ8GXkv0IrLa2vi3heJ+lUYSL2Mm7K4yH8XHx1otjr
-        /yEzAAou5yNjvvxyj59+jnU=
-X-Google-Smtp-Source: AK7set/wGRG6DZwH1goQYuwyWeVqUPotbXSii8soBGsA0hvgGcEXtX1zIA8XR5JqSVge5Z0JqI+ZpQ==
-X-Received: by 2002:a2e:6109:0:b0:294:7028:c66a with SMTP id v9-20020a2e6109000000b002947028c66amr5600373ljb.38.1678371192149;
-        Thu, 09 Mar 2023 06:13:12 -0800 (PST)
-Received: from pc636 (host-95-193-108-241.mobileonline.telia.com. [95.193.108.241])
-        by smtp.gmail.com with ESMTPSA id r19-20020a2e9953000000b00293534d9760sm2963887ljj.127.2023.03.09.06.13.10
+        bh=B+uJ25jQ+MXikhQk+40cCXbpkdq02pm9Z8nSn09JPc4=;
+        b=E4Vza5WiTwxvA9jfWUXSNjY/nxzL0T8FBbEHbFsde0IFoGkZblEQm8PWfCTpJMBCz0
+         bTFwCH/VZd4m4DXfile1KbnlFLRWSSLvcgK0U5An1HNuqVoraRqLehS6xhpvPvP7qryd
+         ifnOmzxELsLWqTyUa9ZQwjzqhr4kkaFrOW2SEwyquEe/sbKx5w1xF9oH5V5aj1AiOhnK
+         XuKebvJDIfNS3GWDyzRJXSjWmXT8Dl48hWbvJCrn09k0knSIYwlj2I58ZaNwxqEzOmrQ
+         tm/kg+J14Gwjsf5tm3l/L2/LjDF5+7cxncLUK49K7dodEe0PN3saED9IpTfQdcleTFlm
+         t5cQ==
+X-Gm-Message-State: AO0yUKXW3hHmqbw97ICVO1+DLF0OgaBR3BPXOQWbwG7IOyHNb9udFYbX
+        BW/MZBuJcZLBQTSDYjtiARbxNg==
+X-Google-Smtp-Source: AK7set8CY2LJIqzBMBqGQ6iHnL0EIZbfa2k6lpmGNjPR7f+vGT6J0SlINuNgn0GupBAs2CyAsQahfw==
+X-Received: by 2002:a05:6214:29ef:b0:56b:fa99:7866 with SMTP id jv15-20020a05621429ef00b0056bfa997866mr38258901qvb.7.1678409730734;
+        Thu, 09 Mar 2023 16:55:30 -0800 (PST)
+Received: from localhost (129.239.188.35.bc.googleusercontent.com. [35.188.239.129])
+        by smtp.gmail.com with ESMTPSA id l17-20020a37f911000000b0074281812276sm297141qkj.97.2023.03.09.16.55.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Mar 2023 06:13:11 -0800 (PST)
-From:   Uladzislau Rezki <urezki@gmail.com>
-X-Google-Original-From: Uladzislau Rezki <urezki@pc636>
-Date:   Thu, 9 Mar 2023 15:13:08 +0100
-To:     Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
-Cc:     Bob Pearson <rpearsonhpe@gmail.com>,
+        Thu, 09 Mar 2023 16:55:29 -0800 (PST)
+Date:   Fri, 10 Mar 2023 00:55:29 +0000
+From:   Joel Fernandes <joel@joelfernandes.org>
+To:     Uladzislau Rezki <urezki@gmail.com>
+Cc:     Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+        Bob Pearson <rpearsonhpe@gmail.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         LKML <linux-kernel@vger.kernel.org>, RCU <rcu@vger.kernel.org>,
         "Paul E . McKenney" <paulmck@kernel.org>,
@@ -67,51 +64,74 @@ Cc:     Bob Pearson <rpearsonhpe@gmail.com>,
         Theodore Ts'o <tytso@mit.edu>, Julian Anastasov <ja@ssi.bg>
 Subject: Re: [PATCH 07/13] RDMA/rxe: Rename kfree_rcu() to
  kfree_rcu_mightsleep()
-Message-ID: <ZAnpdKV/VvvX0TZz@pc636>
+Message-ID: <20230310005529.GA339498@google.com>
 References: <20230201150815.409582-1-urezki@gmail.com>
  <20230201150815.409582-8-urezki@gmail.com>
  <ZAnjnRC1wY3RIFhM@pc636>
+ <ZAnpdKV/VvvX0TZz@pc636>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ZAnjnRC1wY3RIFhM@pc636>
+In-Reply-To: <ZAnpdKV/VvvX0TZz@pc636>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-> On Wed, Feb 01, 2023 at 04:08:13PM +0100, Uladzislau Rezki (Sony) wrote:
-> > The kfree_rcu()'s single argument name is deprecated therefore
-> > rename it to kfree_rcu_mightsleep() variant. The goal is explicitly
-> > underline that it is for sleepable contexts.
+On Thu, Mar 09, 2023 at 03:13:08PM +0100, Uladzislau Rezki wrote:
+> > On Wed, Feb 01, 2023 at 04:08:13PM +0100, Uladzislau Rezki (Sony) wrote:
+> > > The kfree_rcu()'s single argument name is deprecated therefore
+> > > rename it to kfree_rcu_mightsleep() variant. The goal is explicitly
+> > > underline that it is for sleepable contexts.
+> > > 
+> > > Please check the RXE driver in a way that a single argument can
+> > > be used. Briefly looking at it and rcu_head should be embed to
+> > > free an obj over RCU-core. The context might be atomic.
+> > > 
+> > > Cc: Bob Pearson <rpearsonhpe@gmail.com>
+> > > Cc: Jason Gunthorpe <jgg@nvidia.com>
+> > > Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+> > > ---
+> > >  drivers/infiniband/sw/rxe/rxe_pool.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > Could you please add you reviwed-by or Acked-by tags so we can bring
+> > our series with renaming for the next merge window?
 > > 
-> > Please check the RXE driver in a way that a single argument can
-> > be used. Briefly looking at it and rcu_head should be embed to
-> > free an obj over RCU-core. The context might be atomic.
+> > Thanks!
 > > 
-> > Cc: Bob Pearson <rpearsonhpe@gmail.com>
-> > Cc: Jason Gunthorpe <jgg@nvidia.com>
-> > Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-> > ---
-> >  drivers/infiniband/sw/rxe/rxe_pool.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> Could you please add you reviwed-by or Acked-by tags so we can bring
-> our series with renaming for the next merge window?
+> __rxe_cleanup() can be called in two contexts, sleepable and not.
+> Therefore usage of a single argument of the kvfree_rcu() is not correct
+> here.
 > 
-> Thanks!
+> Could you please fix and check your driver? If my above statement
+> is not correct, please provide Acked-by or Reviwed-by tags to the
+> path that is in question.
 > 
-__rxe_cleanup() can be called in two contexts, sleepable and not.
-Therefore usage of a single argument of the kvfree_rcu() is not correct
-here.
+> Otherwise please add an rcu_head in your data to free objects over
+> kvfree_rcu() using double argument API.
+> 
+> Could you please support?
 
-Could you please fix and check your driver? If my above statement
-is not correct, please provide Acked-by or Reviwed-by tags to the
-path that is in question.
+Also this one needs renaming? It came in because of the commit in 6.3-rc1:
+72a03627443d ("RDMA/rxe: Remove rxe_alloc()")
 
-Otherwise please add an rcu_head in your data to free objects over
-kvfree_rcu() using double argument API.
+It could be squashed into this patch itself since it is infiniband related.
 
-Could you please support?
+Paul noticed that this breaks dropping the old API on -next, so it is
+blocking the renaming.
 
---
-Uladzislau Rezki
+---8<-----------------------
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index b10aa1580a64..ae3a100e18fb 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -731,7 +731,7 @@ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ 		return -EINVAL;
+ 
+ 	rxe_cleanup(mr);
+-	kfree_rcu(mr);
++	kfree_rcu_mightsleep(mr);
+ 	return 0;
+ }
+ 
