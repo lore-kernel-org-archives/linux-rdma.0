@@ -2,136 +2,332 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A18CFC64EC4
-	for <linux-rdma@archiver.kernel.org>; Fri, 10 Mar 2023 00:55:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2E5AC6FA99
+	for <linux-rdma@archiver.kernel.org>; Fri, 10 Mar 2023 17:52:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229683AbjCJAzh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 9 Mar 2023 19:55:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55288 "EHLO
+        id S230419AbjCJRwY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 10 Mar 2023 12:52:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52210 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229721AbjCJAzg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 9 Mar 2023 19:55:36 -0500
-Received: from mail-qv1-xf35.google.com (mail-qv1-xf35.google.com [IPv6:2607:f8b0:4864:20::f35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7F98F5ABE
-        for <linux-rdma@vger.kernel.org>; Thu,  9 Mar 2023 16:55:32 -0800 (PST)
-Received: by mail-qv1-xf35.google.com with SMTP id ev13so2688087qvb.10
-        for <linux-rdma@vger.kernel.org>; Thu, 09 Mar 2023 16:55:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=joelfernandes.org; s=google; t=1678409731;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=B+uJ25jQ+MXikhQk+40cCXbpkdq02pm9Z8nSn09JPc4=;
-        b=OAybaaeM9yb7q1OS2RJM//hJipMHt5TzwcfAUfPmrxGeQ+nJz0c+YpDgz5qP+tkz5y
-         1q6JuS1iR2pqMe1ualukvZq7A8W+ghiTJqs+5v4Q7STkTteaknPHK/QHf3WgqPCybSJo
-         k4GlfqWGh2ZXG2SSMhCqZuWyWF2838gkmWVtU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678409731;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=B+uJ25jQ+MXikhQk+40cCXbpkdq02pm9Z8nSn09JPc4=;
-        b=E4Vza5WiTwxvA9jfWUXSNjY/nxzL0T8FBbEHbFsde0IFoGkZblEQm8PWfCTpJMBCz0
-         bTFwCH/VZd4m4DXfile1KbnlFLRWSSLvcgK0U5An1HNuqVoraRqLehS6xhpvPvP7qryd
-         ifnOmzxELsLWqTyUa9ZQwjzqhr4kkaFrOW2SEwyquEe/sbKx5w1xF9oH5V5aj1AiOhnK
-         XuKebvJDIfNS3GWDyzRJXSjWmXT8Dl48hWbvJCrn09k0knSIYwlj2I58ZaNwxqEzOmrQ
-         tm/kg+J14Gwjsf5tm3l/L2/LjDF5+7cxncLUK49K7dodEe0PN3saED9IpTfQdcleTFlm
-         t5cQ==
-X-Gm-Message-State: AO0yUKXW3hHmqbw97ICVO1+DLF0OgaBR3BPXOQWbwG7IOyHNb9udFYbX
-        BW/MZBuJcZLBQTSDYjtiARbxNg==
-X-Google-Smtp-Source: AK7set8CY2LJIqzBMBqGQ6iHnL0EIZbfa2k6lpmGNjPR7f+vGT6J0SlINuNgn0GupBAs2CyAsQahfw==
-X-Received: by 2002:a05:6214:29ef:b0:56b:fa99:7866 with SMTP id jv15-20020a05621429ef00b0056bfa997866mr38258901qvb.7.1678409730734;
-        Thu, 09 Mar 2023 16:55:30 -0800 (PST)
-Received: from localhost (129.239.188.35.bc.googleusercontent.com. [35.188.239.129])
-        by smtp.gmail.com with ESMTPSA id l17-20020a37f911000000b0074281812276sm297141qkj.97.2023.03.09.16.55.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Mar 2023 16:55:29 -0800 (PST)
-Date:   Fri, 10 Mar 2023 00:55:29 +0000
-From:   Joel Fernandes <joel@joelfernandes.org>
-To:     Uladzislau Rezki <urezki@gmail.com>
-Cc:     Zhu Yanjun <zyjzyj2000@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
-        Bob Pearson <rpearsonhpe@gmail.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        LKML <linux-kernel@vger.kernel.org>, RCU <rcu@vger.kernel.org>,
-        "Paul E . McKenney" <paulmck@kernel.org>,
-        Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Philipp Reisner <philipp.reisner@linbit.com>,
-        Bryan Tan <bryantan@vmware.com>,
+        with ESMTP id S230274AbjCJRwX (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 10 Mar 2023 12:52:23 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34AC9132A9D;
+        Fri, 10 Mar 2023 09:52:21 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 996AC61C1D;
+        Fri, 10 Mar 2023 17:52:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E473C433EF;
+        Fri, 10 Mar 2023 17:52:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1678470740;
+        bh=rvULcMQnOcEV1/N95RMElAxf9VjqPaHAYPiwDky8pPQ=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=Nv5HMJ+L9rzqmRtJNmvGRwmH9rIelY67V2THPbNfPoeFwezGCJwBM37yfKe7Msgwq
+         tz9PyTOlKsOhqmuTZi395Q47CU6+ZuD5QYHjkSGzeWLc7mE39o86Tn7T8molP1eYCS
+         DV4LgXSZvyefhfRUlyIPJ1J3drYmwVIYAx+qek/fCvA3IO7JE9sQsKQfUdGLH7a9iF
+         JAYdr+2WoeMGIccYyPAgvXVqMZt+nrFB/ymatMmHFXH7ZYaDmnz0B0hFs/v9J17j29
+         gbbnejZpyP485jG4SWzJu4+r1Trfaur1lBsBfBNwRHeC3TnpaPJ0ojjqEkIjRfOdOD
+         RlVMh6lFhziKw==
+From:   zwisler@kernel.org
+To:     bpf@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Ross Zwisler <zwisler@google.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Hao Luo <haoluo@google.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Jiri Olsa <jolsa@kernel.org>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Mykola Lysenko <mykolal@fb.com>, Shuah Khan <shuah@kernel.org>,
+        Song Liu <song@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Yonghong Song <yhs@fb.com>, linux-kselftest@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
         Steven Rostedt <rostedt@goodmis.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Ariel Levkovich <lariel@nvidia.com>,
-        Theodore Ts'o <tytso@mit.edu>, Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH 07/13] RDMA/rxe: Rename kfree_rcu() to
- kfree_rcu_mightsleep()
-Message-ID: <20230310005529.GA339498@google.com>
-References: <20230201150815.409582-1-urezki@gmail.com>
- <20230201150815.409582-8-urezki@gmail.com>
- <ZAnjnRC1wY3RIFhM@pc636>
- <ZAnpdKV/VvvX0TZz@pc636>
+        "Michael S . Tsirkin" <mst@redhat.com>
+Subject: [PATCH bpf-next v3 2/2] selftests/bpf: use canonical ftrace path
+Date:   Fri, 10 Mar 2023 10:52:09 -0700
+Message-Id: <20230310175209.2130880-2-zwisler@kernel.org>
+X-Mailer: git-send-email 2.40.0.rc1.284.g88254d51c5-goog
+In-Reply-To: <20230310175209.2130880-1-zwisler@kernel.org>
+References: <20230310175209.2130880-1-zwisler@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ZAnpdKV/VvvX0TZz@pc636>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Mar 09, 2023 at 03:13:08PM +0100, Uladzislau Rezki wrote:
-> > On Wed, Feb 01, 2023 at 04:08:13PM +0100, Uladzislau Rezki (Sony) wrote:
-> > > The kfree_rcu()'s single argument name is deprecated therefore
-> > > rename it to kfree_rcu_mightsleep() variant. The goal is explicitly
-> > > underline that it is for sleepable contexts.
-> > > 
-> > > Please check the RXE driver in a way that a single argument can
-> > > be used. Briefly looking at it and rcu_head should be embed to
-> > > free an obj over RCU-core. The context might be atomic.
-> > > 
-> > > Cc: Bob Pearson <rpearsonhpe@gmail.com>
-> > > Cc: Jason Gunthorpe <jgg@nvidia.com>
-> > > Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-> > > ---
-> > >  drivers/infiniband/sw/rxe/rxe_pool.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > Could you please add you reviwed-by or Acked-by tags so we can bring
-> > our series with renaming for the next merge window?
-> > 
-> > Thanks!
-> > 
-> __rxe_cleanup() can be called in two contexts, sleepable and not.
-> Therefore usage of a single argument of the kvfree_rcu() is not correct
-> here.
-> 
-> Could you please fix and check your driver? If my above statement
-> is not correct, please provide Acked-by or Reviwed-by tags to the
-> path that is in question.
-> 
-> Otherwise please add an rcu_head in your data to free objects over
-> kvfree_rcu() using double argument API.
-> 
-> Could you please support?
+From: Ross Zwisler <zwisler@google.com>
 
-Also this one needs renaming? It came in because of the commit in 6.3-rc1:
-72a03627443d ("RDMA/rxe: Remove rxe_alloc()")
+The canonical location for the tracefs filesystem is at /sys/kernel/tracing.
 
-It could be squashed into this patch itself since it is infiniband related.
+But, from Documentation/trace/ftrace.rst:
 
-Paul noticed that this breaks dropping the old API on -next, so it is
-blocking the renaming.
+  Before 4.1, all ftrace tracing control files were within the debugfs
+  file system, which is typically located at /sys/kernel/debug/tracing.
+  For backward compatibility, when mounting the debugfs file system,
+  the tracefs file system will be automatically mounted at:
 
----8<-----------------------
+  /sys/kernel/debug/tracing
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index b10aa1580a64..ae3a100e18fb 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -731,7 +731,7 @@ int rxe_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+Many tests in the bpf selftest code still refer to this older debugfs
+path, so let's update them to avoid confusion.
+
+Signed-off-by: Ross Zwisler <zwisler@google.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ tools/testing/selftests/bpf/get_cgroup_id_user.c    |  8 ++++++--
+ .../selftests/bpf/prog_tests/kprobe_multi_test.c    |  7 ++++++-
+ .../selftests/bpf/prog_tests/task_fd_query_tp.c     |  8 ++++++--
+ .../selftests/bpf/prog_tests/tp_attach_query.c      |  8 ++++++--
+ .../testing/selftests/bpf/prog_tests/trace_printk.c | 10 +++++++---
+ .../selftests/bpf/prog_tests/trace_vprintk.c        | 10 +++++++---
+ .../selftests/bpf/progs/test_stacktrace_map.c       |  2 +-
+ tools/testing/selftests/bpf/progs/test_tracepoint.c |  2 +-
+ tools/testing/selftests/bpf/test_ftrace.sh          |  7 ++++++-
+ tools/testing/selftests/bpf/test_tunnel.sh          | 13 +++++++++----
+ tools/testing/selftests/bpf/trace_helpers.c         |  8 ++++++--
+ 11 files changed, 61 insertions(+), 22 deletions(-)
+
+diff --git a/tools/testing/selftests/bpf/get_cgroup_id_user.c b/tools/testing/selftests/bpf/get_cgroup_id_user.c
+index 156743cf5870..4fa61ac8a0ee 100644
+--- a/tools/testing/selftests/bpf/get_cgroup_id_user.c
++++ b/tools/testing/selftests/bpf/get_cgroup_id_user.c
+@@ -86,8 +86,12 @@ int main(int argc, char **argv)
+ 	pid = getpid();
+ 	bpf_map_update_elem(pidmap_fd, &key, &pid, 0);
+ 
+-	snprintf(buf, sizeof(buf),
+-		 "/sys/kernel/debug/tracing/events/%s/id", probe_name);
++	if (access("/sys/kernel/tracing/trace", F_OK) == 0)
++		snprintf(buf, sizeof(buf),
++			 "/sys/kernel/tracing/events/%s/id", probe_name);
++	else
++		snprintf(buf, sizeof(buf),
++			 "/sys/kernel/debug/tracing/events/%s/id", probe_name);
+ 	efd = open(buf, O_RDONLY, 0);
+ 	if (CHECK(efd < 0, "open", "err %d errno %d\n", efd, errno))
+ 		goto close_prog;
+diff --git a/tools/testing/selftests/bpf/prog_tests/kprobe_multi_test.c b/tools/testing/selftests/bpf/prog_tests/kprobe_multi_test.c
+index 113dba349a57..22be0a9a5a0a 100644
+--- a/tools/testing/selftests/bpf/prog_tests/kprobe_multi_test.c
++++ b/tools/testing/selftests/bpf/prog_tests/kprobe_multi_test.c
+@@ -338,7 +338,12 @@ static int get_syms(char ***symsp, size_t *cntp, bool kernel)
+ 	 * Filtering out duplicates by using hashmap__add, which won't
+ 	 * add existing entry.
+ 	 */
+-	f = fopen("/sys/kernel/debug/tracing/available_filter_functions", "r");
++
++	if (access("/sys/kernel/tracing/trace", F_OK) == 0)
++		f = fopen("/sys/kernel/tracing/available_filter_functions", "r");
++	else
++		f = fopen("/sys/kernel/debug/tracing/available_filter_functions", "r");
++
+ 	if (!f)
  		return -EINVAL;
  
- 	rxe_cleanup(mr);
--	kfree_rcu(mr);
-+	kfree_rcu_mightsleep(mr);
- 	return 0;
- }
+diff --git a/tools/testing/selftests/bpf/prog_tests/task_fd_query_tp.c b/tools/testing/selftests/bpf/prog_tests/task_fd_query_tp.c
+index c717741bf8b6..60f92fd3c37a 100644
+--- a/tools/testing/selftests/bpf/prog_tests/task_fd_query_tp.c
++++ b/tools/testing/selftests/bpf/prog_tests/task_fd_query_tp.c
+@@ -17,8 +17,12 @@ static void test_task_fd_query_tp_core(const char *probe_name,
+ 	if (CHECK(err, "bpf_prog_test_load", "err %d errno %d\n", err, errno))
+ 		goto close_prog;
  
+-	snprintf(buf, sizeof(buf),
+-		 "/sys/kernel/debug/tracing/events/%s/id", probe_name);
++	if (access("/sys/kernel/tracing/trace", F_OK) == 0)
++		snprintf(buf, sizeof(buf),
++			 "/sys/kernel/tracing/events/%s/id", probe_name);
++	else
++		snprintf(buf, sizeof(buf),
++			 "/sys/kernel/debug/tracing/events/%s/id", probe_name);
+ 	efd = open(buf, O_RDONLY, 0);
+ 	if (CHECK(efd < 0, "open", "err %d errno %d\n", efd, errno))
+ 		goto close_prog;
+diff --git a/tools/testing/selftests/bpf/prog_tests/tp_attach_query.c b/tools/testing/selftests/bpf/prog_tests/tp_attach_query.c
+index 770fcc3bb1ba..d3e377fa8e9b 100644
+--- a/tools/testing/selftests/bpf/prog_tests/tp_attach_query.c
++++ b/tools/testing/selftests/bpf/prog_tests/tp_attach_query.c
+@@ -16,8 +16,12 @@ void serial_test_tp_attach_query(void)
+ 	for (i = 0; i < num_progs; i++)
+ 		obj[i] = NULL;
+ 
+-	snprintf(buf, sizeof(buf),
+-		 "/sys/kernel/debug/tracing/events/sched/sched_switch/id");
++	if (access("/sys/kernel/tracing/trace", F_OK) == 0)
++		snprintf(buf, sizeof(buf),
++			 "/sys/kernel/tracing/events/sched/sched_switch/id");
++	else
++		snprintf(buf, sizeof(buf),
++			 "/sys/kernel/debug/tracing/events/sched/sched_switch/id");
+ 	efd = open(buf, O_RDONLY, 0);
+ 	if (CHECK(efd < 0, "open", "err %d errno %d\n", efd, errno))
+ 		return;
+diff --git a/tools/testing/selftests/bpf/prog_tests/trace_printk.c b/tools/testing/selftests/bpf/prog_tests/trace_printk.c
+index cade7f12315f..7b9124d506a5 100644
+--- a/tools/testing/selftests/bpf/prog_tests/trace_printk.c
++++ b/tools/testing/selftests/bpf/prog_tests/trace_printk.c
+@@ -5,7 +5,8 @@
+ 
+ #include "trace_printk.lskel.h"
+ 
+-#define TRACEBUF	"/sys/kernel/debug/tracing/trace_pipe"
++#define TRACEFS_PIPE	"/sys/kernel/tracing/trace_pipe"
++#define DEBUGFS_PIPE	"/sys/kernel/debug/tracing/trace_pipe"
+ #define SEARCHMSG	"testing,testing"
+ 
+ void serial_test_trace_printk(void)
+@@ -34,8 +35,11 @@ void serial_test_trace_printk(void)
+ 	if (!ASSERT_OK(err, "trace_printk__attach"))
+ 		goto cleanup;
+ 
+-	fp = fopen(TRACEBUF, "r");
+-	if (!ASSERT_OK_PTR(fp, "fopen(TRACEBUF)"))
++	if (access(TRACEFS_PIPE, F_OK) == 0)
++		fp = fopen(TRACEFS_PIPE, "r");
++	else
++		fp = fopen(DEBUGFS_PIPE, "r");
++	if (!ASSERT_OK_PTR(fp, "fopen(TRACE_PIPE)"))
+ 		goto cleanup;
+ 
+ 	/* We do not want to wait forever if this test fails... */
+diff --git a/tools/testing/selftests/bpf/prog_tests/trace_vprintk.c b/tools/testing/selftests/bpf/prog_tests/trace_vprintk.c
+index 7a4e313e8558..44ea2fd88f4c 100644
+--- a/tools/testing/selftests/bpf/prog_tests/trace_vprintk.c
++++ b/tools/testing/selftests/bpf/prog_tests/trace_vprintk.c
+@@ -5,7 +5,8 @@
+ 
+ #include "trace_vprintk.lskel.h"
+ 
+-#define TRACEBUF	"/sys/kernel/debug/tracing/trace_pipe"
++#define TRACEFS_PIPE	"/sys/kernel/tracing/trace_pipe"
++#define DEBUGFS_PIPE	"/sys/kernel/debug/tracing/trace_pipe"
+ #define SEARCHMSG	"1,2,3,4,5,6,7,8,9,10"
+ 
+ void serial_test_trace_vprintk(void)
+@@ -27,8 +28,11 @@ void serial_test_trace_vprintk(void)
+ 	if (!ASSERT_OK(err, "trace_vprintk__attach"))
+ 		goto cleanup;
+ 
+-	fp = fopen(TRACEBUF, "r");
+-	if (!ASSERT_OK_PTR(fp, "fopen(TRACEBUF)"))
++	if (access(TRACEFS_PIPE, F_OK) == 0)
++		fp = fopen(TRACEFS_PIPE, "r");
++	else
++		fp = fopen(DEBUGFS_PIPE, "r");
++	if (!ASSERT_OK_PTR(fp, "fopen(TRACE_PIPE)"))
+ 		goto cleanup;
+ 
+ 	/* We do not want to wait forever if this test fails... */
+diff --git a/tools/testing/selftests/bpf/progs/test_stacktrace_map.c b/tools/testing/selftests/bpf/progs/test_stacktrace_map.c
+index 728dbd39eff0..47568007b668 100644
+--- a/tools/testing/selftests/bpf/progs/test_stacktrace_map.c
++++ b/tools/testing/selftests/bpf/progs/test_stacktrace_map.c
+@@ -38,7 +38,7 @@ struct {
+ 	__type(value, stack_trace_t);
+ } stack_amap SEC(".maps");
+ 
+-/* taken from /sys/kernel/debug/tracing/events/sched/sched_switch/format */
++/* taken from /sys/kernel/tracing/events/sched/sched_switch/format */
+ struct sched_switch_args {
+ 	unsigned long long pad;
+ 	char prev_comm[TASK_COMM_LEN];
+diff --git a/tools/testing/selftests/bpf/progs/test_tracepoint.c b/tools/testing/selftests/bpf/progs/test_tracepoint.c
+index 43bd7a20cc50..4cb8bbb6a320 100644
+--- a/tools/testing/selftests/bpf/progs/test_tracepoint.c
++++ b/tools/testing/selftests/bpf/progs/test_tracepoint.c
+@@ -4,7 +4,7 @@
+ #include <vmlinux.h>
+ #include <bpf/bpf_helpers.h>
+ 
+-/* taken from /sys/kernel/debug/tracing/events/sched/sched_switch/format */
++/* taken from /sys/kernel/tracing/events/sched/sched_switch/format */
+ struct sched_switch_args {
+ 	unsigned long long pad;
+ 	char prev_comm[TASK_COMM_LEN];
+diff --git a/tools/testing/selftests/bpf/test_ftrace.sh b/tools/testing/selftests/bpf/test_ftrace.sh
+index 20de7bb873bc..f5109eb0e951 100755
+--- a/tools/testing/selftests/bpf/test_ftrace.sh
++++ b/tools/testing/selftests/bpf/test_ftrace.sh
+@@ -1,6 +1,11 @@
+ #!/bin/bash
+ 
+-TR=/sys/kernel/debug/tracing/
++if [[ -e /sys/kernel/tracing/trace ]]; then
++    TR=/sys/kernel/tracing/
++else
++    TR=/sys/kernel/debug/tracing/
++fi
++
+ clear_trace() { # reset trace output
+     echo > $TR/trace
+ }
+diff --git a/tools/testing/selftests/bpf/test_tunnel.sh b/tools/testing/selftests/bpf/test_tunnel.sh
+index 06857b689c11..2dec7dbf29a2 100755
+--- a/tools/testing/selftests/bpf/test_tunnel.sh
++++ b/tools/testing/selftests/bpf/test_tunnel.sh
+@@ -571,8 +571,13 @@ setup_xfrm_tunnel()
+ 
+ test_xfrm_tunnel()
+ {
++	if [[ -e /sys/kernel/tracing/trace ]]; then
++		TRACE=/sys/kernel/tracing/trace
++	else
++		TRACE=/sys/kernel/debug/tracing/trace
++	fi
+ 	config_device
+-	> /sys/kernel/debug/tracing/trace
++	> ${TRACE}
+ 	setup_xfrm_tunnel
+ 	mkdir -p ${BPF_PIN_TUNNEL_DIR}
+ 	bpftool prog loadall ${BPF_FILE} ${BPF_PIN_TUNNEL_DIR}
+@@ -581,11 +586,11 @@ test_xfrm_tunnel()
+ 		${BPF_PIN_TUNNEL_DIR}/xfrm_get_state
+ 	ip netns exec at_ns0 ping $PING_ARG 10.1.1.200
+ 	sleep 1
+-	grep "reqid 1" /sys/kernel/debug/tracing/trace
++	grep "reqid 1" ${TRACE}
+ 	check_err $?
+-	grep "spi 0x1" /sys/kernel/debug/tracing/trace
++	grep "spi 0x1" ${TRACE}
+ 	check_err $?
+-	grep "remote ip 0xac100164" /sys/kernel/debug/tracing/trace
++	grep "remote ip 0xac100164" ${TRACE}
+ 	check_err $?
+ 	cleanup
+ 
+diff --git a/tools/testing/selftests/bpf/trace_helpers.c b/tools/testing/selftests/bpf/trace_helpers.c
+index 09a16a77bae4..934bf28fc888 100644
+--- a/tools/testing/selftests/bpf/trace_helpers.c
++++ b/tools/testing/selftests/bpf/trace_helpers.c
+@@ -12,7 +12,8 @@
+ #include <sys/mman.h>
+ #include "trace_helpers.h"
+ 
+-#define DEBUGFS "/sys/kernel/debug/tracing/"
++#define TRACEFS_PIPE	"/sys/kernel/tracing/trace_pipe"
++#define DEBUGFS_PIPE	"/sys/kernel/debug/tracing/trace_pipe"
+ 
+ #define MAX_SYMS 300000
+ static struct ksym syms[MAX_SYMS];
+@@ -136,7 +137,10 @@ void read_trace_pipe(void)
+ {
+ 	int trace_fd;
+ 
+-	trace_fd = open(DEBUGFS "trace_pipe", O_RDONLY, 0);
++	if (access(TRACEFS_PIPE, F_OK) == 0)
++		trace_fd = open(TRACEFS_PIPE, O_RDONLY, 0);
++	else
++		trace_fd = open(DEBUGFS_PIPE, O_RDONLY, 0);
+ 	if (trace_fd < 0)
+ 		return;
+ 
+-- 
+2.40.0.rc1.284.g88254d51c5-goog
+
