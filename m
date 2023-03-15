@@ -2,50 +2,50 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E823C61DA4
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Mar 2023 14:55:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0016BC6FD1D
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Mar 2023 14:56:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233282AbjCOOzs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Mar 2023 10:55:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36586 "EHLO
+        id S233330AbjCOO4D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Mar 2023 10:56:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233281AbjCOOz2 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Mar 2023 10:55:28 -0400
+        with ESMTP id S233270AbjCOOzs (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Mar 2023 10:55:48 -0400
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BAEB11E91
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Mar 2023 07:54:33 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83C4D93E04
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Mar 2023 07:54:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1678892073; x=1710428073;
+  t=1678892089; x=1710428089;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=VC9vf+pZ8kV7hM/D8Xm0DQjYINcphuz+F0BEGj0tXDU=;
-  b=K7abnaNCWrGE1Srz7DwBcdumn/4zeDfh8VCDpbJB+Zt69k91wHWwYS13
-   7tAnnu+lY/sKAYbTNjCh66fDqjdbKG3IlqrYTtFsvM9bLMJxVZpVGoyNl
-   xYRfo+FdPa6AatXMd1gMwk99HQkS0niGIFl2u5jFquysq1159lYGZBHXr
-   Tp7FGOS8ENSUzuHq1BTUN03cuvbuLJ8dJ59uy34A6gFxiEstXwGKaNbyt
-   wbi6FlKeA38thwarXhgAcF1ZnBiDCnxxpPPchOn7n9xKSJnZPle0M9yy1
-   HpzkP7HQSot1lqD6MHtNk9JgDgttwIJeRo4nhfREHdQBps/v014KZd7+E
+  bh=tnADPxFQMHiIvqBjqalGRZjmxxBP6LwWe0CVM1b6Bd0=;
+  b=EHs1jbf56NnYvc7Aij3uvlpkpU01JOISkrGPI95iSBDu8/wSKty4IL8V
+   NpCBJNZnBBZ8rSpU1dxK+XSk93nO3yWvGc0GKJOhi6CRPQyaaZiZu00r+
+   xSU9cQo33vdk31BB+I7qWEfZcLxCJ8HDU/umy3btDJm9NkXHN4C2zsQo+
+   Z08d8r6BHoSR3O9F9Xn21F382vG/0vjK/DWwV7DljYSKHUfdOjzcM997d
+   qTwFAeJ3dXDA7XAsuqVMzEYxXU1/uRvkY9DHYCJfuOOY7mGtYBAqrwHSb
+   4M5jcUnhrVy4eDogK4QDjcBcszLY6JG60hY2RKYx0tMk8UWMIIfjCDlPh
    Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="321561526"
+X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="321561537"
 X-IronPort-AV: E=Sophos;i="5.98,262,1673942400"; 
-   d="scan'208";a="321561526"
+   d="scan'208";a="321561537"
 Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Mar 2023 07:52:46 -0700
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Mar 2023 07:52:47 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="748457444"
+X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="748457451"
 X-IronPort-AV: E=Sophos;i="5.98,262,1673942400"; 
-   d="scan'208";a="748457444"
+   d="scan'208";a="748457451"
 Received: from ssaleem-mobl1.amr.corp.intel.com ([10.255.35.84])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Mar 2023 07:52:45 -0700
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Mar 2023 07:52:47 -0700
 From:   Shiraz Saleem <shiraz.saleem@intel.com>
 To:     jgg@nvidia.com, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org,
         Mustafa Ismail <mustafa.ismail@intel.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH for-rc 1/4] RDMA/irdma: Do not generate SW completions for NOPs
-Date:   Wed, 15 Mar 2023 09:52:28 -0500
-Message-Id: <20230315145231.931-2-shiraz.saleem@intel.com>
+Subject: [PATCH for-rc 3/4] RDMA/irdma: Increase iWARP CM default rexmit count
+Date:   Wed, 15 Mar 2023 09:52:30 -0500
+Message-Id: <20230315145231.931-4-shiraz.saleem@intel.com>
 X-Mailer: git-send-email 2.39.0
 In-Reply-To: <20230315145231.931-1-shiraz.saleem@intel.com>
 References: <20230315145231.931-1-shiraz.saleem@intel.com>
@@ -57,33 +57,30 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Currently, artificial SW completions are generated for NOP wqes which can
-generate unexpected completions with wr_id = 0. Skip the generation of
-artificial completions for NOPs.
+When running perftest with large number of connections in iWARP mode, the
+passive side could be slow to respond. Increase the rexmit counter default
+to allow scaling connections.
 
-Fixes: 81091d7696ae ("RDMA/irdma: Add SW mechanism to generate completions on error")
+Fixes: 146b9756f14c ("RDMA/irdma: Add connection manager")
 Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/utils.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/irdma/cm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
-index 445e69e8..7887230 100644
---- a/drivers/infiniband/hw/irdma/utils.c
-+++ b/drivers/infiniband/hw/irdma/utils.c
-@@ -2595,7 +2595,10 @@ void irdma_generate_flush_completions(struct irdma_qp *iwqp)
- 			/* remove the SQ WR by moving SQ tail*/
- 			IRDMA_RING_SET_TAIL(*sq_ring,
- 				sq_ring->tail + qp->sq_wrtrk_array[sq_ring->tail].quanta);
--
-+			if (cmpl->cpi.op_type == IRDMAQP_OP_NOP) {
-+				kfree(cmpl);
-+				continue;
-+			}
- 			ibdev_dbg(iwqp->iwscq->ibcq.device,
- 				  "DEV: %s: adding wr_id = 0x%llx SQ Completion to list qp_id=%d\n",
- 				  __func__, cmpl->cpi.wr_id, qp->qp_id);
+diff --git a/drivers/infiniband/hw/irdma/cm.h b/drivers/infiniband/hw/irdma/cm.h
+index 19c2849..7feadb3 100644
+--- a/drivers/infiniband/hw/irdma/cm.h
++++ b/drivers/infiniband/hw/irdma/cm.h
+@@ -41,7 +41,7 @@
+ #define TCP_OPTIONS_PADDING	3
+ 
+ #define IRDMA_DEFAULT_RETRYS	64
+-#define IRDMA_DEFAULT_RETRANS	8
++#define IRDMA_DEFAULT_RETRANS	32
+ #define IRDMA_DEFAULT_TTL		0x40
+ #define IRDMA_DEFAULT_RTT_VAR		6
+ #define IRDMA_DEFAULT_SS_THRESH		0x3fffffff
 -- 
 1.8.3.1
 
