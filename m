@@ -2,74 +2,78 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E115C7618A
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Mar 2023 13:00:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 550CAC6FD1F
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Mar 2023 13:00:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230387AbjCSNAP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 19 Mar 2023 09:00:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55892 "EHLO
+        id S230457AbjCSNAp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 19 Mar 2023 09:00:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230388AbjCSNAF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Mar 2023 09:00:05 -0400
+        with ESMTP id S230410AbjCSNA1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Mar 2023 09:00:27 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC84F1CBCB;
-        Sun, 19 Mar 2023 05:59:44 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BA113C16;
+        Sun, 19 Mar 2023 05:59:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9C62461045;
-        Sun, 19 Mar 2023 12:59:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3149BC433EF;
-        Sun, 19 Mar 2023 12:59:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 82EB560EF9;
+        Sun, 19 Mar 2023 12:59:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65C03C433D2;
+        Sun, 19 Mar 2023 12:59:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1679230781;
-        bh=gDaXQWRIWOFDoMT2HKKfGlOZpdDfn6wX64P8nzMh+Es=;
-        h=From:To:Cc:Subject:Date:From;
-        b=hbfp9rpyEqLC86zpaz8TqW7HmnnToKcOaEjSY+FBM6HQDAMidkddp7AICPXi165Lh
-         RS/IKB7/luODy41KvMvAQv5xwqQpjFyycZpdT8VLqzGwsVW7m+BmJbDZdxWWhPo1de
-         JOIGe3CYZKEbODIa6Z6BzCngdDswRWyj7HKdGf5tibSD182Q/AFEchMudEFEDelREC
-         toJTSBNAn5FcRaFempiBz1vxPwyL9QzNy1pmcSkHdIuKpo8JXPts+av89TSAT7t2i5
-         uVK309sTF9ci74428DNn0uFkWykA0tQ1O0mFV/PrkDM+lqdOb3vTdFTPF3ipGGlWk/
-         WHmFi8ftFykag==
+        s=k20201202; t=1679230794;
+        bh=NI3wtryqR24WCtVjzVqBt5telCfPc5nDwSLvDaOU4Gg=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=HVav8MbLJB5HK5glCss5oACIC3w32q0EMdDcOdCJyNzHqDD2x0TDZzbZZgTIf7TMg
+         Hjz5I5SJQXtiIm9hMrfBwvyG9aHPtBtysqyVEkxnLzfawYo8K1s+8jFjKUPDlPDov6
+         s+DJU4i9rDQVOWVa5irPo+EhNGkkYL+92qPQMXkQAAnnUqUB6FS+NNj6/L8KXv4CKL
+         fKS2RvCfpk+899a/qP9K4g2001VwDAYlfSIz9CoXAWIzvjI+hlHIgFjdd38ZJEey5G
+         nG+S79JK7b1yOpu9WTF9Jx+qj0cq1DKuOYL07vzCsLSRRccPw/04QF9OPLhLgFaaC/
+         PdYsykeA05v0Q==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
+Cc:     Or Har-Toov <ohartoov@nvidia.com>,
         Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        Or Har-Toov <ohartoov@nvidia.com>,
-        Paolo Abeni <pabeni@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
+        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH rdma-next 0/3] Enable IB out-of-order by default in mlx5
-Date:   Sun, 19 Mar 2023 14:59:29 +0200
-Message-Id: <cover.1679230449.git.leon@kernel.org>
+Subject: [PATCH mlx5-next 3/3] net/mlx5: Set out of order (ooo) by default
+Date:   Sun, 19 Mar 2023 14:59:32 +0200
+Message-Id: <00bd14bfb002ed2338de3296bcd9af27d4770b70.1679230449.git.leon@kernel.org>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <cover.1679230449.git.leon@kernel.org>
+References: <cover.1679230449.git.leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Or Har-Toov <ohartoov@nvidia.com>
 
-Hi,
+When FW supports ooo by default, enable the cap.
 
-This series from Or changes default of IB out-of-order feature and
-allows to the RDMA users to decide if they need to wait for completion
-for all segments or it is enough to wait for last segment completion only.
+Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Thanks
-
-Or Har-Toov (3):
-  net/mlx5: Expose bits for enabling out-of-order by default
-  RDMA/mlx5: Disable out-of-order in integrity enabled QPs
-  net/mlx5: Set out of order (ooo) by default
-
- drivers/infiniband/hw/mlx5/qp.c                |  8 ++++++++
- drivers/net/ethernet/mellanox/mlx5/core/main.c |  3 +++
- include/linux/mlx5/mlx5_ifc.h                  | 10 +++++++---
- 3 files changed, 18 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 540840e80493..564a82ac3787 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -684,6 +684,9 @@ static int handle_hca_cap_roce(struct mlx5_core_dev *dev, void *set_ctx)
+ 	       MLX5_ST_SZ_BYTES(roce_cap));
+ 	MLX5_SET(roce_cap, set_hca_cap, sw_r_roce_src_udp_port, 1);
+ 
++	if (MLX5_CAP_ROCE_MAX(dev, qp_ooo_transmit_default))
++		MLX5_SET(roce_cap, set_hca_cap, qp_ooo_transmit_default, 1);
++
+ 	err = set_caps(dev, set_ctx, MLX5_SET_HCA_CAP_OP_MOD_ROCE);
+ 	return err;
+ }
 -- 
 2.39.2
 
