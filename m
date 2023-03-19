@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 550CAC6FD1F
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Mar 2023 13:00:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F032CC6FD1F
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Mar 2023 13:00:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230457AbjCSNAp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 19 Mar 2023 09:00:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56620 "EHLO
+        id S231124AbjCSNAw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 19 Mar 2023 09:00:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230410AbjCSNA1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Mar 2023 09:00:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BA113C16;
-        Sun, 19 Mar 2023 05:59:56 -0700 (PDT)
+        with ESMTP id S230476AbjCSNA2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 19 Mar 2023 09:00:28 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2260D206B6;
+        Sun, 19 Mar 2023 05:59:59 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 82EB560EF9;
-        Sun, 19 Mar 2023 12:59:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65C03C433D2;
-        Sun, 19 Mar 2023 12:59:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 02C4CB80B91;
+        Sun, 19 Mar 2023 12:59:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D58D7C4339B;
+        Sun, 19 Mar 2023 12:59:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1679230794;
-        bh=NI3wtryqR24WCtVjzVqBt5telCfPc5nDwSLvDaOU4Gg=;
+        s=k20201202; t=1679230785;
+        bh=6Z4VlGlzFyNwLj9RhTs5XzQAa08LX/sHycLA30928Zs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HVav8MbLJB5HK5glCss5oACIC3w32q0EMdDcOdCJyNzHqDD2x0TDZzbZZgTIf7TMg
-         Hjz5I5SJQXtiIm9hMrfBwvyG9aHPtBtysqyVEkxnLzfawYo8K1s+8jFjKUPDlPDov6
-         s+DJU4i9rDQVOWVa5irPo+EhNGkkYL+92qPQMXkQAAnnUqUB6FS+NNj6/L8KXv4CKL
-         fKS2RvCfpk+899a/qP9K4g2001VwDAYlfSIz9CoXAWIzvjI+hlHIgFjdd38ZJEey5G
-         nG+S79JK7b1yOpu9WTF9Jx+qj0cq1DKuOYL07vzCsLSRRccPw/04QF9OPLhLgFaaC/
-         PdYsykeA05v0Q==
+        b=gidYDq0FpAo9/9DdgagO91HN6GyEZMxAQnHnZ5Ys7K1ArbWRvx02HQmpwqHL7c6QS
+         vWJxW/4OEEudZywsYutLLLQ4brZuIbMR0ftWl+h/6O7qB+UIYl1uU6Akhm0ylxbQkD
+         B5vculTkAiq38VcraDIL7Cv1oEYI39DLMMOnEDtoOz0qxOKUrXvYbquUwAQkrl/axV
+         RCdy86kgYMhqV/NALy69n+sIozQUvJGi1LfEHWMfkQ9rpfiuSV6BaZm6qQMJil82XC
+         q+VMNgi437JOAa1XHXDg3QLBsGzRfdeTQO9/u+5Ddv35svxlCoUwQqCp9x1l1WMvCN
+         SHTGDgylchk+w==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Or Har-Toov <ohartoov@nvidia.com>,
@@ -38,9 +38,9 @@ Cc:     Or Har-Toov <ohartoov@nvidia.com>,
         Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH mlx5-next 3/3] net/mlx5: Set out of order (ooo) by default
-Date:   Sun, 19 Mar 2023 14:59:32 +0200
-Message-Id: <00bd14bfb002ed2338de3296bcd9af27d4770b70.1679230449.git.leon@kernel.org>
+Subject: [PATCH mlx5-next 1/3] net/mlx5: Expose bits for enabling out-of-order by default
+Date:   Sun, 19 Mar 2023 14:59:30 +0200
+Message-Id: <75d6dfe263989a05c08c43406132b336ea12d00a.1679230449.git.leon@kernel.org>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <cover.1679230449.git.leon@kernel.org>
 References: <cover.1679230449.git.leon@kernel.org>
@@ -52,28 +52,50 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Or Har-Toov <ohartoov@nvidia.com>
 
-When FW supports ooo by default, enable the cap.
+Add needed HW bits for enabling out-of-order by default and
+use go_back_n when out-of-order is not needed.
 
 Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/mlx5/mlx5_ifc.h | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 540840e80493..564a82ac3787 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -684,6 +684,9 @@ static int handle_hca_cap_roce(struct mlx5_core_dev *dev, void *set_ctx)
- 	       MLX5_ST_SZ_BYTES(roce_cap));
- 	MLX5_SET(roce_cap, set_hca_cap, sw_r_roce_src_udp_port, 1);
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 15a850f52ef2..e4306cd87cd7 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -1077,7 +1077,9 @@ struct mlx5_ifc_roce_cap_bits {
+ 	u8         sw_r_roce_src_udp_port[0x1];
+ 	u8         fl_rc_qp_when_roce_disabled[0x1];
+ 	u8         fl_rc_qp_when_roce_enabled[0x1];
+-	u8         reserved_at_7[0x17];
++	u8         reserved_at_7[0x1];
++	u8	   qp_ooo_transmit_default[0x1];
++	u8         reserved_at_9[0x15];
+ 	u8	   qp_ts_format[0x2];
  
-+	if (MLX5_CAP_ROCE_MAX(dev, qp_ooo_transmit_default))
-+		MLX5_SET(roce_cap, set_hca_cap, qp_ooo_transmit_default, 1);
-+
- 	err = set_caps(dev, set_ctx, MLX5_SET_HCA_CAP_OP_MOD_ROCE);
- 	return err;
- }
+ 	u8         reserved_at_20[0x60];
+@@ -1493,7 +1495,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         reserved_at_b0[0x1];
+ 	u8         uplink_follow[0x1];
+ 	u8         ts_cqe_to_dest_cqn[0x1];
+-	u8         reserved_at_b3[0x7];
++	u8         reserved_at_b3[0x6];
++	u8         go_back_n[0x1];
+ 	u8         shampo[0x1];
+ 	u8         reserved_at_bb[0x5];
+ 
+@@ -3263,7 +3266,8 @@ struct mlx5_ifc_qpc_bits {
+ 	u8         log_rq_stride[0x3];
+ 	u8         no_sq[0x1];
+ 	u8         log_sq_size[0x4];
+-	u8         reserved_at_55[0x3];
++	u8         reserved_at_55[0x1];
++	u8	   retry_mode[0x2];
+ 	u8	   ts_format[0x2];
+ 	u8         reserved_at_5a[0x1];
+ 	u8         rlky[0x1];
 -- 
 2.39.2
 
