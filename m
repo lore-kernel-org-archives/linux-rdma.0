@@ -2,70 +2,76 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D43CDC7618D
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Mar 2023 09:55:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2883CC7619A
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Mar 2023 10:57:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229869AbjCTJzI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Mar 2023 05:55:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46954 "EHLO
+        id S230366AbjCTK5p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Mar 2023 06:57:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229851AbjCTJzG (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Mar 2023 05:55:06 -0400
-Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EE7D2706
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Mar 2023 02:55:00 -0700 (PDT)
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.66.156])
+        with ESMTP id S231239AbjCTK5O (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Mar 2023 06:57:14 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1A2828E93
+        for <linux-rdma@vger.kernel.org>; Mon, 20 Mar 2023 03:54:00 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 06A1D406D4
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Mar 2023 09:47:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-        s=20210803; t=1679305630;
-        bh=pr90rsyVGt7gN7/qeQ1SZFwbO8BRygfXP5TtsX10wdw=;
-        h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-         Reply-To;
-        b=FwYCisegZn2bK4crsI3H9pyQvGkU3I535PuT3VJBaHD+5eJXZCUpVmmf3K7KPqXdM
-         8F3gpZWBAlSGddJMG/jF/M7breevpOtYH6x+CIl1Uahfqrj31p1w7O85LAuStFFpGI
-         gddq3OSoL4oyXv4l/5JBWT+g/xa6iGvSJcISu0aR9FhN9GhxyStQ/JHdLxTT+biWtZ
-         pCuelsvAsLvGVU+b0IlCHs4fE/hSAASG/Ti2u/p4wJIDO2zTCkpkDMyJgplK54lPNn
-         nSJG8bKJHU/ZpEVVlgH7niuc7DPitBIccz7YjcTtEZ4EDFuRApWIU4x8N5kCZYt+EI
-         8tG4T8LLuudYA==
-Received: from juju-4112d9-prod-launchpad-manual-servers-4.lp.internal (localhost [127.0.0.1])
-        by buildd-manager.lp.internal (Postfix) with ESMTP id BA703BDEE6
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Mar 2023 09:46:57 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E86B26137D
+        for <linux-rdma@vger.kernel.org>; Mon, 20 Mar 2023 10:53:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC56FC4339B;
+        Mon, 20 Mar 2023 10:53:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1679309632;
+        bh=PQb4vJReTxLsufR9xu2Zu96GlKoO8Refq00tWkgICyo=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=aIgM//UJtJhr1NXEVBfDCnGFJ+ZJijKIeKGk08iGHK8npdFShqDlIA8k3mXU55oy6
+         BpQoRY0qi/bPvJ91EJgVjShC9J3DUi+zsQNdI6iYs7103/GxexcsjnRHGUyuLv/Ji/
+         W5mN1g78FH1F1m2fuhtJcAh7Kj5lRzGWHz1ohW5YY8dZaKKs4WjuFotk+xMC1BXqKl
+         9axEttTGsm0psGPnz0gfXspfsEtS2fFlStTRp27MHZrOHnNQ++Hoshkd+f0laxbx7v
+         DY16QkyILTBuDPOF6CCY21D0/c4bhMR+80qBxAQ81KTpla10NoqMsKOL3TD9rOytBm
+         ozymd0JRVezMw==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     jgg@ziepe.ca, Cheng Xu <chengyou@linux.alibaba.com>
+Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
+In-Reply-To: <20230320084652.16807-1-chengyou@linux.alibaba.com>
+References: <20230320084652.16807-1-chengyou@linux.alibaba.com>
+Subject: Re: [PATCH for-rc 0/4] RDMA/erdma: erdma fixes 3-20-2023
+Message-Id: <167930962831.1017786.5586100850191984134.b4-ty@kernel.org>
+Date:   Mon, 20 Mar 2023 12:53:48 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Build-State: MANUALDEPWAIT
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-To:     Linux RDMA <linux-rdma@vger.kernel.org>
-From:   noreply@launchpad.net
-Subject: [recipe build #3513090] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
-Message-Id: <167930561773.23548.5885952154526916791.launchpad@juju-4112d9-prod-launchpad-manual-servers-4.lp.internal>
-Date:   Mon, 20 Mar 2023 09:46:57 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-X-Generated-By: Launchpad (canonical.com); Revision="997ba17554f0ee82f56d9282fce82d3e09a43780"; Instance="buildmaster"
-X-Launchpad-Hash: 57e37499c319a87ce3f1a35621a8114b0d4179ed
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.12-dev-a055d
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
- * State: Dependency wait
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/3513090/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-030
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/3513090
-Your team Linux RDMA is the requester of the build.
+On Mon, 20 Mar 2023 16:46:48 +0800, Cheng Xu wrote:
+> Though there is an ongoing patch waiting Jason to take a look, this
+> series with small changes may be accepted with less discussion. So I
+> submit them first.
+> 
+> This series has some fixes for erdma driver:
+> - #1 fixes some typos.
+> - #2 updates the default EQ depth and max_send_wr for SQ.
+> - #3 inlines 4 mtt entries for FRMR to achieve the HW limitation.
+> - #4 defers probing flow if netdevice does not exist temporarily.
+> 
+> [...]
 
+Applied, thanks!
+
+[1/4] RDMA/erdma: Fix some typos
+      https://git.kernel.org/rdma/rdma/c/3fe26c0493e4c2
+[2/4] RDMA/erdma: Update default EQ depth to 4096 and max_send_wr to 8192
+      https://git.kernel.org/rdma/rdma/c/6256aa9ae955d1
+[3/4] RDMA/erdma: Inline mtt entries into WQE if supported
+      https://git.kernel.org/rdma/rdma/c/0dd83a4d775671
+[4/4] RDMA/erdma: Defer probing if netdevice can not be found
+      https://git.kernel.org/rdma/rdma/c/6bd1bca858f173
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
