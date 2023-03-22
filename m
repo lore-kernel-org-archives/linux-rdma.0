@@ -2,126 +2,71 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F0A7C761A6
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Mar 2023 09:33:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2911EC6FD1F
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Mar 2023 11:11:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230182AbjCVJdb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Mar 2023 05:33:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33850 "EHLO
+        id S229810AbjCVLLT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Mar 2023 07:11:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230145AbjCVJda (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Mar 2023 05:33:30 -0400
-Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2672E13DD4
-        for <linux-rdma@vger.kernel.org>; Wed, 22 Mar 2023 02:33:25 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VeQKm7A_1679477602;
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VeQKm7A_1679477602)
-          by smtp.aliyun-inc.com;
-          Wed, 22 Mar 2023 17:33:23 +0800
-From:   Cheng Xu <chengyou@linux.alibaba.com>
-To:     jgg@ziepe.ca, leon@kernel.org
+        with ESMTP id S229436AbjCVLLS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Mar 2023 07:11:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3B5247816
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Mar 2023 04:11:17 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7AF13612DC
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Mar 2023 11:11:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6114DC433EF;
+        Wed, 22 Mar 2023 11:11:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1679483476;
+        bh=WCT+FKAX/5aL1xoN37YcLif4eB26vWovni2Stvl6Xzc=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=aalfOPZo+z//st6ErcHj1xHVa/q0SKj+CTOkbA/lZMzKZhpwKbAB6Wmf/TG3ykjjR
+         8FkqqGmiM3qPCBhpN9k0fQ2u5gwagQYvdpupmcE6pBqZE4R02agRQJvDLMOpEBCOim
+         EEHRtU0oc+QxFzwamYM4kybY3Aq92AoMVaahrupIb/lIrBYSgUx9fO8AHbKmqvbBqL
+         /7GH1a7hpqTk+1K9UdYLQTxrIX6umDWKQLHuvjPrUWLuEGDFCq+kc4HCVGxQo+JJKf
+         ukgUsU3Paa/1ljv2M/AZRSJHWdU6uVzIIv1y/0qV+sSdSyque0pEBhXO0GBlgeTI9+
+         FDzsRs4mbMzHg==
+From:   Leon Romanovsky <leon@kernel.org>
+To:     jgg@ziepe.ca, Cheng Xu <chengyou@linux.alibaba.com>
 Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
-Subject: [PATCH for-next 1/3] RDMA/erdma: Unify byte ordering APIs usage
-Date:   Wed, 22 Mar 2023 17:33:17 +0800
-Message-Id: <20230322093319.84045-2-chengyou@linux.alibaba.com>
-X-Mailer: git-send-email 2.37.0
 In-Reply-To: <20230322093319.84045-1-chengyou@linux.alibaba.com>
 References: <20230322093319.84045-1-chengyou@linux.alibaba.com>
+Subject: Re: [PATCH for-next 0/3] RDMA/erdma: erdma updates 3-22-2023
+Message-Id: <167948347268.1493391.183321560595333511.b4-ty@kernel.org>
+Date:   Wed, 22 Mar 2023 13:11:12 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.12-dev-a055d
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Replace __be32_to_cpu/__cpu_to_be16 with be32_to_cpu/cpu_to_be16.
-And use be32_to_cpu_array to copy and swap byte order to hide the
-loop.
 
-Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
----
- drivers/infiniband/hw/erdma/erdma_cm.h   | 10 +++++-----
- drivers/infiniband/hw/erdma/erdma_cmdq.c | 12 +++++-------
- drivers/infiniband/hw/erdma/erdma_cq.c   |  2 +-
- 3 files changed, 11 insertions(+), 13 deletions(-)
+On Wed, 22 Mar 2023 17:33:16 +0800, Cheng Xu wrote:
+> This series has some updates for erdma driver:
+> - #1 unifies the byte ordering API usage in erdma, removes APIs
+>   prefixing with underlines and introduces be32_to_cpu_array
+>   to copy and swap byte order.
+> - #2 eliminates unnecessary casting of EQ doorbells.
+> - #3 refactors the initialization flow to make code cleaner.
+> 
+> [...]
 
-diff --git a/drivers/infiniband/hw/erdma/erdma_cm.h b/drivers/infiniband/hw/erdma/erdma_cm.h
-index 8a3f998fec9b..a26d80770188 100644
---- a/drivers/infiniband/hw/erdma/erdma_cm.h
-+++ b/drivers/infiniband/hw/erdma/erdma_cm.h
-@@ -33,11 +33,11 @@ struct mpa_rr_params {
-  * MPA request/response Hdr bits & fields
-  */
- enum {
--	MPA_RR_FLAG_MARKERS = __cpu_to_be16(0x8000),
--	MPA_RR_FLAG_CRC = __cpu_to_be16(0x4000),
--	MPA_RR_FLAG_REJECT = __cpu_to_be16(0x2000),
--	MPA_RR_RESERVED = __cpu_to_be16(0x1f00),
--	MPA_RR_MASK_REVISION = __cpu_to_be16(0x00ff)
-+	MPA_RR_FLAG_MARKERS = cpu_to_be16(0x8000),
-+	MPA_RR_FLAG_CRC = cpu_to_be16(0x4000),
-+	MPA_RR_FLAG_REJECT = cpu_to_be16(0x2000),
-+	MPA_RR_RESERVED = cpu_to_be16(0x1f00),
-+	MPA_RR_MASK_REVISION = cpu_to_be16(0x00ff)
- };
- 
- /*
-diff --git a/drivers/infiniband/hw/erdma/erdma_cmdq.c b/drivers/infiniband/hw/erdma/erdma_cmdq.c
-index 6ebfa6989b11..3fd33b85c15a 100644
---- a/drivers/infiniband/hw/erdma/erdma_cmdq.c
-+++ b/drivers/infiniband/hw/erdma/erdma_cmdq.c
-@@ -283,7 +283,7 @@ static void *get_next_valid_cmdq_cqe(struct erdma_cmdq *cmdq)
- 	__be32 *cqe = get_queue_entry(cmdq->cq.qbuf, cmdq->cq.ci,
- 				      cmdq->cq.depth, CQE_SHIFT);
- 	u32 owner = FIELD_GET(ERDMA_CQE_HDR_OWNER_MASK,
--			      __be32_to_cpu(READ_ONCE(*cqe)));
-+			      be32_to_cpu(READ_ONCE(*cqe)));
- 
- 	return owner ^ !!(cmdq->cq.ci & cmdq->cq.depth) ? cqe : NULL;
- }
-@@ -319,7 +319,6 @@ static int erdma_poll_single_cmd_completion(struct erdma_cmdq *cmdq)
- 	__be32 *cqe;
- 	u16 ctx_id;
- 	u64 *sqe;
--	int i;
- 
- 	cqe = get_next_valid_cmdq_cqe(cmdq);
- 	if (!cqe)
-@@ -328,8 +327,8 @@ static int erdma_poll_single_cmd_completion(struct erdma_cmdq *cmdq)
- 	cmdq->cq.ci++;
- 
- 	dma_rmb();
--	hdr0 = __be32_to_cpu(*cqe);
--	sqe_idx = __be32_to_cpu(*(cqe + 1));
-+	hdr0 = be32_to_cpu(*cqe);
-+	sqe_idx = be32_to_cpu(*(cqe + 1));
- 
- 	sqe = get_queue_entry(cmdq->sq.qbuf, sqe_idx, cmdq->sq.depth,
- 			      SQEBB_SHIFT);
-@@ -341,9 +340,8 @@ static int erdma_poll_single_cmd_completion(struct erdma_cmdq *cmdq)
- 	comp_wait->cmd_status = ERDMA_CMD_STATUS_FINISHED;
- 	comp_wait->comp_status = FIELD_GET(ERDMA_CQE_HDR_SYNDROME_MASK, hdr0);
- 	cmdq->sq.ci += cmdq->sq.wqebb_cnt;
--
--	for (i = 0; i < 4; i++)
--		comp_wait->comp_data[i] = __be32_to_cpu(*(cqe + 2 + i));
-+	/* Copy 16B comp data after cqe hdr to outer */
-+	be32_to_cpu_array(comp_wait->comp_data, cqe + 2, 4);
- 
- 	if (cmdq->use_event)
- 		complete(&comp_wait->wait_event);
-diff --git a/drivers/infiniband/hw/erdma/erdma_cq.c b/drivers/infiniband/hw/erdma/erdma_cq.c
-index cabd8678b355..7e2bfa6ed86f 100644
---- a/drivers/infiniband/hw/erdma/erdma_cq.c
-+++ b/drivers/infiniband/hw/erdma/erdma_cq.c
-@@ -11,7 +11,7 @@ static void *get_next_valid_cqe(struct erdma_cq *cq)
- 	__be32 *cqe = get_queue_entry(cq->kern_cq.qbuf, cq->kern_cq.ci,
- 				      cq->depth, CQE_SHIFT);
- 	u32 owner = FIELD_GET(ERDMA_CQE_HDR_OWNER_MASK,
--			      __be32_to_cpu(READ_ONCE(*cqe)));
-+			      be32_to_cpu(READ_ONCE(*cqe)));
- 
- 	return owner ^ !!(cq->kern_cq.ci & cq->depth) ? cqe : NULL;
- }
+Applied, thanks!
+
+[1/3] RDMA/erdma: Unify byte ordering APIs usage
+      https://git.kernel.org/rdma/rdma/c/de19ec778c7a4e
+[2/3] RDMA/erdma: Eliminate unnecessary casting of EQ doorbells
+      https://git.kernel.org/rdma/rdma/c/72769dba6dc0b8
+[3/3] RDMA/erdma: Minor refactor of device init flow
+      https://git.kernel.org/rdma/rdma/c/901d9d62416bae
+
+Best regards,
 -- 
-2.31.1
-
+Leon Romanovsky <leon@kernel.org>
