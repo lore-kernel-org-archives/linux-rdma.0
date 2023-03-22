@@ -2,75 +2,60 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 215F3C6FD1C
-	for <linux-rdma@archiver.kernel.org>; Wed, 22 Mar 2023 09:12:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1722CC6FD1C
+	for <linux-rdma@archiver.kernel.org>; Wed, 22 Mar 2023 09:33:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229812AbjCVJML (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 22 Mar 2023 05:12:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40104 "EHLO
+        id S229686AbjCVJd3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 22 Mar 2023 05:33:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229826AbjCVJMK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Mar 2023 05:12:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4304E5F510;
-        Wed, 22 Mar 2023 02:11:41 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DC67561FCA;
-        Wed, 22 Mar 2023 09:11:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1996C4339B;
-        Wed, 22 Mar 2023 09:11:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1679476300;
-        bh=EvlfZcTxqy9qPXxo4PhPRiUzIho1Q85SM6eI5HhTj0I=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=DA0Lgp/br+pVlUpSmFdrx3vwY3NUCPXGEbrq0Aqv5Nh5Ofa5XAm/h84Aa9tvbkfJM
-         iQMnvSgCxjQa7BPvJV+na7WGt1JneGH7D0jlFRetvC6E9Nr/oV0UMzFSWQhttHbNbE
-         2XiZIez2SvL4KsknKQUNWu28hGpQG+Z6XuzPq6uyDM2Fs4jfruHE4IEbgS8TEVYflp
-         aicYLj6dPVfAlYC1allLHuWS820IjZKhidCpk4foBs2Vqi3zIGNufdmgrfy6V9E+Mz
-         EcF+otwaUosR6q/ycOQ8F17LW0yj2B1WJ7BZN3CT0Gx1kkX6fXx3Ma0sfsO5OCdOBS
-         An7gDqxngQFvw==
-Date:   Wed, 22 Mar 2023 11:11:35 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Michael Guralnik <michaelgur@nvidia.com>,
-        netdev@vger.kernel.org, Patrisious Haddad <phaddad@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: Re: [PATCH rdma-next 0/2] Add Q-counters for representors
-Message-ID: <20230322091135.GY36557@unreal>
-References: <cover.1678974109.git.leon@kernel.org>
+        with ESMTP id S230145AbjCVJd2 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 22 Mar 2023 05:33:28 -0400
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFED114983
+        for <linux-rdma@vger.kernel.org>; Wed, 22 Mar 2023 02:33:24 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R111e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=chengyou@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0VeQFuRW_1679477601;
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0VeQFuRW_1679477601)
+          by smtp.aliyun-inc.com;
+          Wed, 22 Mar 2023 17:33:22 +0800
+From:   Cheng Xu <chengyou@linux.alibaba.com>
+To:     jgg@ziepe.ca, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org, KaiShen@linux.alibaba.com
+Subject: [PATCH for-next 0/3] RDMA/erdma: erdma updates 3-22-2023
+Date:   Wed, 22 Mar 2023 17:33:16 +0800
+Message-Id: <20230322093319.84045-1-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.37.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1678974109.git.leon@kernel.org>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Mar 16, 2023 at 03:45:19PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@nvidia.com>
-> 
-> The following series from Patrisious exports iVF representors counters
-> to be visible by the host.
-> 
-> Thanks
-> 
-> Patrisious Haddad (2):
->   net/mlx5: Introduce other vport query for Q-counters
->   RDMA/mlx5: Expand switchdev Q-counters to expose representor
->     statistics
+Hi,
 
-This patch needs to be resent, so I'm dropping the series from patchworks.
+This series has some updates for erdma driver:
+- #1 unifies the byte ordering API usage in erdma, removes APIs
+  prefixing with underlines and introduces be32_to_cpu_array
+  to copy and swap byte order.
+- #2 eliminates unnecessary casting of EQ doorbells.
+- #3 refactors the initialization flow to make code cleaner.
 
-Thanks
+Thanks,
+Cheng Xu
 
-> 
->  drivers/infiniband/hw/mlx5/counters.c | 161 ++++++++++++++++++++++----
->  include/linux/mlx5/mlx5_ifc.h         |  13 ++-
->  2 files changed, 146 insertions(+), 28 deletions(-)
-> 
-> -- 
-> 2.39.2
-> 
+Cheng Xu (3):
+  RDMA/erdma: Unify byte ordering APIs usage
+  RDMA/erdma: Eliminate unnecessary casting of EQ doorbells
+  RDMA/erdma: Minor refactor of device init flow
+
+ drivers/infiniband/hw/erdma/erdma.h      |  2 +-
+ drivers/infiniband/hw/erdma/erdma_cm.h   | 10 +++---
+ drivers/infiniband/hw/erdma/erdma_cmdq.c | 42 ++++--------------------
+ drivers/infiniband/hw/erdma/erdma_cq.c   |  2 +-
+ drivers/infiniband/hw/erdma/erdma_eq.c   |  9 +++--
+ drivers/infiniband/hw/erdma/erdma_main.c | 39 ++++++++++++++++++----
+ 6 files changed, 51 insertions(+), 53 deletions(-)
+
+-- 
+2.31.1
+
