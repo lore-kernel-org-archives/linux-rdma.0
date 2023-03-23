@@ -2,70 +2,114 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2C1BC6FD1C
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Mar 2023 08:29:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51BE1C6FD1C
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Mar 2023 09:04:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231373AbjCWI3d (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Mar 2023 04:29:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60416 "EHLO
+        id S231189AbjCWJEw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Mar 2023 05:04:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43156 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231374AbjCWI3Y (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Mar 2023 04:29:24 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8460F15C98
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 01:29:19 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 398A0B81FBE
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 08:29:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 644A7C4339B;
-        Thu, 23 Mar 2023 08:29:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1679560156;
-        bh=Lu00AYrFE4WsLr52WEKICqKdI5TmfN0MeYMVMzGK6zM=;
-        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=Fwv7M4nw30EjpINi2CAmXtfuTw3PZvCU7v2eYpmA9QiFJ6u68Uy/wKDHTcLEB1EJQ
-         ludSdDq0DUTxHvzNv0zsZK6MBYlc/NdVoEoCvta1/oQKJX7NJ2JFb/dBhAnkMpYfca
-         NIFSBm73TXFQ6gJ9wU9tLH8+xfNlh3tvm45mNeb1woWBin7BVpMmGsvcgA529C2Y08
-         wC+AiulKYmmuMEPdREEUd0gaGNSw+GdhnuI5pUT72oXTcccVKOvzr3LePtO2/Y/FhR
-         9bPiXOgVbyWX8657XHmraZCVTXkqZqz+OcXwWbmYeHE3aSH/aWGmlkYq98KvwweEnq
-         +SYrmNRHb0PBA==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
-Cc:     Mark Zhang <markzhang@nvidia.com>, linux-rdma@vger.kernel.org,
-        syzbot+8fcbb77276d43cc8b693@syzkaller.appspotmail.com
-In-Reply-To: <58a4a98323b5e6b1282e83f6b76960d06e43b9fa.1679309909.git.leon@kernel.org>
-References: <58a4a98323b5e6b1282e83f6b76960d06e43b9fa.1679309909.git.leon@kernel.org>
-Subject: Re: [PATCH rdma-rc v1] RDMA/cma: Allow UD qp_type to join multicast only
-Message-Id: <167956015290.1726332.163852531252633854.b4-ty@kernel.org>
-Date:   Thu, 23 Mar 2023 10:29:12 +0200
+        with ESMTP id S231277AbjCWJEf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Mar 2023 05:04:35 -0400
+X-Greylist: delayed 61 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 23 Mar 2023 02:04:30 PDT
+Received: from out-46.mta0.migadu.com (out-46.mta0.migadu.com [IPv6:2001:41d0:1004:224b::2e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96BBF1E1F1
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:04:29 -0700 (PDT)
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1679562268;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=WkdvHrdmTL100mQnwE6Lnhv0ImSnOgCjctLH9bKwcXE=;
+        b=Ql7dbPkwPtVVv40kbYJwCExR/7AdHzcbhdBNTehLR3XeqZu/Jmv/PmcxjnWsYUAjuxdZh0
+        YVpI/JPA/YWsSxKClzdFA+R8LA3IgJXs9Ndmn9o8WKA+M3Cb8tqdRkAnfBjpwjaIjVUpfu
+        a3RhpJyDXW5ay6bF9gTQ/ek5kUR7/5s=
+From:   Cai Huoqing <cai.huoqing@linux.dev>
+To:     cai.huoqing@linux.dev
+Cc:     Derek Chickles <dchickles@marvell.com>,
+        Satanand Burla <sburla@marvell.com>,
+        Felix Manlunas <fmanlunas@marvell.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Raju Rangoju <rajur@chelsio.com>,
+        Dariusz Marcinkiewicz <reksio@newterm.pl>,
+        Dimitris Michailidis <dmichail@fungible.com>,
+        Yisen Zhuang <yisen.zhuang@huawei.com>,
+        Salil Mehta <salil.mehta@huawei.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+        Shannon Nelson <shannon.nelson@amd.com>,
+        Brett Creeley <brett.creeley@amd.com>, drivers@pensando.io,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Guangbin Huang <huangguangbin2@huawei.com>,
+        Jian Shen <shenjian15@huawei.com>, Hao Lan <lanhao@huawei.com>,
+        Jie Wang <wangjie125@huawei.com>,
+        Long Li <longli@microsoft.com>, Jiri Pirko <jiri@resnulli.us>,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org
+Subject: [PATCH 6/8] net: mana: Remove redundant pci_clear_master
+Date:   Thu, 23 Mar 2023 17:03:05 +0800
+Message-Id: <20230323090314.22431-6-cai.huoqing@linux.dev>
+In-Reply-To: <20230323090314.22431-1-cai.huoqing@linux.dev>
+References: <20230323090314.22431-1-cai.huoqing@linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.12-dev-a055d
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Remove pci_clear_master to simplify the code,
+the bus-mastering is also cleared in do_pci_disable_device,
+like this:
+./drivers/pci/pci.c:2197
+static void do_pci_disable_device(struct pci_dev *dev)
+{
+	u16 pci_command;
 
-On Mon, 20 Mar 2023 12:59:55 +0200, Leon Romanovsky wrote:
-> As for multicast:
-> - The SIDR is the only mode that makes sense;
-> - Besides PS_UDP, other port spaces like PS_IB is also allowed, as it is
->   UD compatible. In this case qkey also needs to be set [1].
-> 
-> This patch allows only UD qp_type to join multicast, and set qkey to
-> default if it's not set, to fix an uninit-value error: the ib->rec.qkey
-> field is accessed without being initialized.
-> 
-> [...]
+	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
+	if (pci_command & PCI_COMMAND_MASTER) {
+		pci_command &= ~PCI_COMMAND_MASTER;
+		pci_write_config_word(dev, PCI_COMMAND, pci_command);
+	}
 
-Applied, thanks!
+	pcibios_disable_device(dev);
+}.
+And dev->is_busmaster is set to 0 in pci_disable_device.
 
-[1/1] RDMA/cma: Allow UD qp_type to join multicast only
-      https://git.kernel.org/rdma/rdma/c/58e84f6b3e84e4
+Signed-off-by: Cai Huoqing <cai.huoqing@linux.dev>
+---
+ drivers/net/ethernet/microsoft/mana/gdma_main.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Best regards,
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index f9b8f372ec8a..8f3f78b68592 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -1439,7 +1439,6 @@ static int mana_gd_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ release_region:
+ 	pci_release_regions(pdev);
+ disable_dev:
+-	pci_clear_master(pdev);
+ 	pci_disable_device(pdev);
+ 	dev_err(&pdev->dev, "gdma probe failed: err = %d\n", err);
+ 	return err;
+@@ -1458,7 +1457,6 @@ static void mana_gd_remove(struct pci_dev *pdev)
+ 	vfree(gc);
+ 
+ 	pci_release_regions(pdev);
+-	pci_clear_master(pdev);
+ 	pci_disable_device(pdev);
+ }
+ 
 -- 
-Leon Romanovsky <leon@kernel.org>
+2.34.1
+
