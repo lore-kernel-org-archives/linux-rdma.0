@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16B60C76195
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Mar 2023 09:05:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 254AEC6FD1C
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Mar 2023 09:07:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231626AbjCWJFd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Mar 2023 05:05:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43672 "EHLO
+        id S231417AbjCWJHo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Mar 2023 05:07:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230283AbjCWJFD (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Mar 2023 05:05:03 -0400
-X-Greylist: delayed 67 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 23 Mar 2023 02:04:53 PDT
-Received: from out-7.mta1.migadu.com (out-7.mta1.migadu.com [95.215.58.7])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB8011E1F1
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:04:53 -0700 (PDT)
+        with ESMTP id S231451AbjCWJHZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Mar 2023 05:07:25 -0400
+X-Greylist: delayed 168 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 23 Mar 2023 02:06:32 PDT
+Received: from out-51.mta1.migadu.com (out-51.mta1.migadu.com [IPv6:2001:41d0:203:375::33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCFF330B0A
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:06:32 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1679562291;
+        t=1679562222;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ZuGH7lfals9FAOONYzJSHBoUi4ZX1DWn7Ng0ojEzetw=;
-        b=bsykZhx6FsSoBkYkZ46VqTfzECb7zGc/RXwhrTSzX73HpY1FKoBLbvxTiJNDnSLjtOyngo
-        DBfVQGQZFjZjJG0Ft2bkoxLc6CG+b0iCNKVd1YEBhe7ZjpqJG+jUKoI2z4P670P+IlUeBD
-        d9/UO0K6nX2Mxgqqb/9zhmRZv5HLirI=
+        bh=IiRXdKppa9IBGp5kQGEXwtKfuR/2bgkSL+hNdkioQqs=;
+        b=MUeYVTo/T72JuuTmN+VG/0fI78l9KiugDmSXdYzstalg0UCpuRmQnt59kKJLrc/m1EJMnw
+        DzrmAnc9d9SFr3AI5gwjvc7RzfmXkLSjSFlIsjj6iY7Re6eVWnhRYDOI+YFMVHYQtPQUGe
+        Wmizm0ZHpB7aJqHToDYspG/y2xBvCIc=
 From:   Cai Huoqing <cai.huoqing@linux.dev>
 To:     cai.huoqing@linux.dev
 Cc:     Derek Chickles <dchickles@marvell.com>,
@@ -47,17 +47,17 @@ Cc:     Derek Chickles <dchickles@marvell.com>,
         Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
         Shannon Nelson <shannon.nelson@amd.com>,
         Brett Creeley <brett.creeley@amd.com>, drivers@pensando.io,
-        Bjorn Helgaas <bhelgaas@google.com>,
         Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
         Guangbin Huang <huangguangbin2@huawei.com>,
         Jian Shen <shenjian15@huawei.com>, Hao Lan <lanhao@huawei.com>,
         Jie Wang <wangjie125@huawei.com>,
         Long Li <longli@microsoft.com>, Jiri Pirko <jiri@resnulli.us>,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org
-Subject: [PATCH 8/8] ethernet: ec_bhf: Remove redundant pci_clear_master
-Date:   Thu, 23 Mar 2023 17:03:07 +0800
-Message-Id: <20230323090314.22431-8-cai.huoqing@linux.dev>
+Subject: [PATCH 2/8] net: hisilicon: Remove redundant pci_clear_master
+Date:   Thu, 23 Mar 2023 17:03:01 +0800
+Message-Id: <20230323090314.22431-2-cai.huoqing@linux.dev>
 In-Reply-To: <20230323090314.22431-1-cai.huoqing@linux.dev>
 References: <20230323090314.22431-1-cai.huoqing@linux.dev>
 MIME-Version: 1.0
@@ -87,29 +87,80 @@ And dev->is_busmaster is set to 0 in pci_disable_device.
 
 Signed-off-by: Cai Huoqing <cai.huoqing@linux.dev>
 ---
- drivers/net/ethernet/ec_bhf.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c   | 7 ++-----
+ drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c | 6 ++----
+ 2 files changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/net/ethernet/ec_bhf.c b/drivers/net/ethernet/ec_bhf.c
-index 46e3a05e9582..c2c5c589a5e3 100644
---- a/drivers/net/ethernet/ec_bhf.c
-+++ b/drivers/net/ethernet/ec_bhf.c
-@@ -558,7 +558,6 @@ static int ec_bhf_probe(struct pci_dev *dev, const struct pci_device_id *id)
- err_release_regions:
- 	pci_release_regions(dev);
- err_disable_dev:
--	pci_clear_master(dev);
- 	pci_disable_device(dev);
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+index 07ad5f35219e..c3851a6e10c0 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+@@ -11365,7 +11365,7 @@ static int hclge_pci_init(struct hclge_dev *hdev)
+ 	if (!hw->hw.io_base) {
+ 		dev_err(&pdev->dev, "Can't map configuration register space\n");
+ 		ret = -ENOMEM;
+-		goto err_clr_master;
++		goto err_release_regions;
+ 	}
  
- 	return err;
-@@ -577,7 +576,6 @@ static void ec_bhf_remove(struct pci_dev *dev)
- 	free_netdev(net_dev);
+ 	ret = hclge_dev_mem_map(hdev);
+@@ -11378,8 +11378,7 @@ static int hclge_pci_init(struct hclge_dev *hdev)
  
- 	pci_release_regions(dev);
--	pci_clear_master(dev);
- 	pci_disable_device(dev);
+ err_unmap_io_base:
+ 	pcim_iounmap(pdev, hdev->hw.hw.io_base);
+-err_clr_master:
+-	pci_clear_master(pdev);
++err_release_regions:
+ 	pci_release_regions(pdev);
+ err_disable_device:
+ 	pci_disable_device(pdev);
+@@ -11396,7 +11395,6 @@ static void hclge_pci_uninit(struct hclge_dev *hdev)
+ 
+ 	pcim_iounmap(pdev, hdev->hw.hw.io_base);
+ 	pci_free_irq_vectors(pdev);
+-	pci_clear_master(pdev);
+ 	pci_release_mem_regions(pdev);
+ 	pci_disable_device(pdev);
  }
+@@ -11743,7 +11741,6 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
+ 	hclge_devlink_uninit(hdev);
+ err_pci_uninit:
+ 	pcim_iounmap(pdev, hdev->hw.hw.io_base);
+-	pci_clear_master(pdev);
+ 	pci_release_regions(pdev);
+ 	pci_disable_device(pdev);
+ out:
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
+index e84e5be8e59e..f24046250341 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
+@@ -2598,7 +2598,7 @@ static int hclgevf_pci_init(struct hclgevf_dev *hdev)
+ 	if (!hw->hw.io_base) {
+ 		dev_err(&pdev->dev, "can't map configuration register space\n");
+ 		ret = -ENOMEM;
+-		goto err_clr_master;
++		goto err_release_regions;
+ 	}
  
+ 	ret = hclgevf_dev_mem_map(hdev);
+@@ -2609,8 +2609,7 @@ static int hclgevf_pci_init(struct hclgevf_dev *hdev)
+ 
+ err_unmap_io_base:
+ 	pci_iounmap(pdev, hdev->hw.hw.io_base);
+-err_clr_master:
+-	pci_clear_master(pdev);
++err_release_regions:
+ 	pci_release_regions(pdev);
+ err_disable_device:
+ 	pci_disable_device(pdev);
+@@ -2626,7 +2625,6 @@ static void hclgevf_pci_uninit(struct hclgevf_dev *hdev)
+ 		devm_iounmap(&pdev->dev, hdev->hw.hw.mem_base);
+ 
+ 	pci_iounmap(pdev, hdev->hw.hw.io_base);
+-	pci_clear_master(pdev);
+ 	pci_release_regions(pdev);
+ 	pci_disable_device(pdev);
+ }
 -- 
 2.34.1
 
