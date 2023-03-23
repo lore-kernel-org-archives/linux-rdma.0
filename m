@@ -2,570 +2,248 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A82EC6FD1D
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Mar 2023 09:13:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6B51C76195
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Mar 2023 09:13:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231335AbjCWJNH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Mar 2023 05:13:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34334 "EHLO
+        id S231508AbjCWJNO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Mar 2023 05:13:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231334AbjCWJNF (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Mar 2023 05:13:05 -0400
-Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A692D1C304
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:13:00 -0700 (PDT)
-Received: by mail-pl1-x633.google.com with SMTP id c18so21694902ple.11
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:13:00 -0700 (PDT)
+        with ESMTP id S231344AbjCWJNK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Mar 2023 05:13:10 -0400
+Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9F996E9E
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:13:06 -0700 (PDT)
+Received: by mail-pj1-x1033.google.com with SMTP id p3-20020a17090a74c300b0023f69bc7a68so1379667pjl.4
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:13:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1679562780;
+        d=broadcom.com; s=google; t=1679562786;
         h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=ms/XX7KRyq8CiSq7I5q+5IreuMpH/WHIKY0nwRenyck=;
-        b=fNMIxzgqd+eAqVbxd2Z+ETSbHs3eNtblSSJHl8m2Zlad5SRhIDXinRcEwlZVAJLMq2
-         jeHYKGOkCWUEoAKT3/ADInhQ28hzF6xBfbL0VQcAzVWSHeaenxLV+tAB29j8g8lPgQBS
-         t2DDbF+/eBwvf0Tw27OIbg+Nv2hhJBfdXzI28=
+        bh=2SqStE0GBXMornRluarkbbPghxoB3JFkA9Ygfj7gXdY=;
+        b=ARCrpCobPTbPl4W2xUtK3FyNd7m2TZ/jMvKkV3P/0DUAzh2N1GUiMT7Xu/3O+k4bM1
+         snBUbNoo30GXc7Fm7tlwmIdZINwYrG1sDM8j1WyyzSBi96Dnb0Y6ch9iRljbC0fKsVeq
+         JxM40pMBI0PgA8yy9nkA+tH5vxj9hHBvpyBF0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679562780;
+        d=1e100.net; s=20210112; t=1679562786;
         h=references:in-reply-to:message-id:date:subject:cc:to:from
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ms/XX7KRyq8CiSq7I5q+5IreuMpH/WHIKY0nwRenyck=;
-        b=ZqhbMNDGorh6VzWh8fsb5XTtvlEwr09ELUKIW3d403HfQ5ylBXj+gMVRh/fYDCYAHN
-         aaXZKpHuxK9Ph163D3Ty5W19BMNkqyOBMEAwoMU/7RgQodTzl9HjqGxPEpXrWe+3i28k
-         c2fu2LFAPOzFy5AHA1cpP4oLUUhAks3LatUYULfyjC+spAQg1+U2SodUtle8oidKR+ro
-         hPBxlH+6CRz4wV9mI5cZ+Ofvty8AOhEqEasJS8Wx0RriDz3aQZZ8cFsYrBbG1dCFFJHj
-         aahqoIm6WCP+QkzD6U2tz17r1xLzTatXqTdIui+W9zvNblRo4duemvrrYC1KzBEtktlO
-         9ibw==
-X-Gm-Message-State: AO0yUKU41h6V9m4lg/gYSTGAfqGojQv3SD3Tb/LxYGlFPwNjpQVPNibe
-        XXyh6eqAIshOWaq63KedLIBHhQ==
-X-Google-Smtp-Source: AK7set8i8bRwor9ZNS6VeDe9iSuFHrjntW8A9F6bdPV6SKTQeWEIjg1avks2lLUF3wXfKdj6CIe6qA==
-X-Received: by 2002:a05:6a20:4a04:b0:d9:eb9e:c2c1 with SMTP id fr4-20020a056a204a0400b000d9eb9ec2c1mr1957042pzb.27.1679562780067;
-        Thu, 23 Mar 2023 02:13:00 -0700 (PDT)
+        bh=2SqStE0GBXMornRluarkbbPghxoB3JFkA9Ygfj7gXdY=;
+        b=oBemu+49U//4S6qqRQHZkGmfAtrP7hjCV3sCFO2fF58Cj2CX0bObROCo8s7tnHaABj
+         Vp3MVH5g8v4JBrU0sXI5IItovjt1PYptKsGmDcU6zfYP/P/b1U4U/j0tQIGLo9FetlF1
+         uK+8jnNC1IVmM6k4nHy6+Q2hoTAJcIeaMefi2HRr2K2PwQlKGB1nn6cGL5x1yuGF4Apc
+         a31dT6JkNUDSzMFxo7KJ4cT6xNY+hK6Qrimi/ViVUws3jHsEhuJWJHe1+Emh4c/bZaNv
+         U5QEmbrCboX/cmyF6Qu+GILxIrSXaNhnpRLs0t8Q0F2eNvnOMQnirmaOMEHfcGgACOf1
+         tdpA==
+X-Gm-Message-State: AO0yUKW2QzZaY+8tI1UuGBVKvqW7r502Kv00VLAeSLZyOF03SrEoi5Tx
+        VsdMpQoPkoRgu4bPVQxkiFB0VA==
+X-Google-Smtp-Source: AK7set85kxa/nHhYHT35AGwmduPd/52AvFPsoJbQEBgsGfWRmM+431sn2Yv137fWyCj+2iDdbcugoA==
+X-Received: by 2002:a05:6a20:8c11:b0:dd:c5cb:ac86 with SMTP id j17-20020a056a208c1100b000ddc5cbac86mr247299pzh.41.1679562786078;
+        Thu, 23 Mar 2023 02:13:06 -0700 (PDT)
 Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id l20-20020a62be14000000b00627e9ab34b3sm9055114pff.91.2023.03.23.02.12.57
+        by smtp.gmail.com with ESMTPSA id l20-20020a62be14000000b00627e9ab34b3sm9055114pff.91.2023.03.23.02.13.03
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 23 Mar 2023 02:12:59 -0700 (PDT)
+        Thu, 23 Mar 2023 02:13:05 -0700 (PDT)
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
         Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-next 3/7] RDMA/bnxt_re: Convert RCFW_CMD_PREP macro to static inline function
-Date:   Thu, 23 Mar 2023 02:12:15 -0700
-Message-Id: <1679562739-24472-4-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH for-next 5/7] RDMA/bnxt_re: RoCE slow path TLV support
+Date:   Thu, 23 Mar 2023 02:12:17 -0700
+Message-Id: <1679562739-24472-6-git-send-email-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.5.5
 In-Reply-To: <1679562739-24472-1-git-send-email-selvin.xavier@broadcom.com>
 References: <1679562739-24472-1-git-send-email-selvin.xavier@broadcom.com>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000e787c605f78daead"
+        boundary="00000000000042914805f78dafc1"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000e787c605f78daead
+--00000000000042914805f78dafc1
 
-Convert RCFW_CMD_PREP macro to static inline function.
-Also, remove the cmd_flags passed as none of the functions
-are using it.
+Header file to support  TLV encapsulated commands. These
+functions will be used by the driver in the follow up patches.
 
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 55 ++++++++++++---------
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 10 ++--
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.h | 23 ++++-----
- drivers/infiniband/hw/bnxt_re/qplib_sp.c   | 79 ++++++++++++++++++------------
- 4 files changed, 98 insertions(+), 69 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_tlv.h | 162 ++++++++++++++++++++++++++++++
+ 1 file changed, 162 insertions(+)
+ create mode 100644 drivers/infiniband/hw/bnxt_re/qplib_tlv.h
 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index e104ca9..6152df8 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -583,10 +583,11 @@ void bnxt_qplib_destroy_srq(struct bnxt_qplib_res *res,
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct cmdq_destroy_srq req;
- 	struct creq_destroy_srq_resp resp;
--	u16 cmd_flags = 0;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, DESTROY_SRQ, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_DESTROY_SRQ,
-+				 sizeof(req));
- 
- 	/* Configure the request */
- 	req.srq_cid = cpu_to_le32(srq->id);
-@@ -607,7 +608,6 @@ int bnxt_qplib_create_srq(struct bnxt_qplib_res *res,
- 	struct creq_create_srq_resp resp;
- 	struct cmdq_create_srq req;
- 	struct bnxt_qplib_pbl *pbl;
--	u16 cmd_flags = 0;
- 	u16 pg_sz_lvl;
- 	int rc, idx;
- 
-@@ -627,7 +627,9 @@ int bnxt_qplib_create_srq(struct bnxt_qplib_res *res,
- 		goto fail;
- 	}
- 
--	RCFW_CMD_PREP(req, CREATE_SRQ, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_CREATE_SRQ,
-+				 sizeof(req));
- 
- 	/* Configure the request */
- 	req.dpi = cpu_to_le32(srq->dpi->dpi);
-@@ -704,10 +706,11 @@ int bnxt_qplib_query_srq(struct bnxt_qplib_res *res,
- 	struct creq_query_srq_resp resp;
- 	struct bnxt_qplib_rcfw_sbuf *sbuf;
- 	struct creq_query_srq_resp_sb *sb;
--	u16 cmd_flags = 0;
- 	int rc = 0;
- 
--	RCFW_CMD_PREP(req, QUERY_SRQ, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_QUERY_SRQ,
-+				 sizeof(req));
- 
- 	/* Configure the request */
- 	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
-@@ -816,13 +819,14 @@ int bnxt_qplib_create_qp1(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
- 	struct creq_create_qp1_resp resp;
- 	struct cmdq_create_qp1 req;
- 	struct bnxt_qplib_pbl *pbl;
--	u16 cmd_flags = 0;
- 	u32 qp_flags = 0;
- 	u8 pg_sz_lvl;
- 	u32 tbl_indx;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, CREATE_QP1, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_CREATE_QP1,
-+				 sizeof(req));
- 
- 	/* General */
- 	req.type = qp->type;
-@@ -959,13 +963,14 @@ int bnxt_qplib_create_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
- 	struct bnxt_qplib_hwq *xrrq;
- 	struct bnxt_qplib_pbl *pbl;
- 	struct cmdq_create_qp req;
--	u16 cmd_flags = 0;
- 	u32 qp_flags = 0;
- 	u8 pg_sz_lvl;
- 	u32 tbl_indx;
- 	u16 nsge;
- 
--	RCFW_CMD_PREP(req, CREATE_QP, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_CREATE_QP,
-+				 sizeof(req));
- 
- 	/* General */
- 	req.type = qp->type;
-@@ -1233,12 +1238,13 @@ int bnxt_qplib_modify_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct cmdq_modify_qp req;
- 	struct creq_modify_qp_resp resp;
--	u16 cmd_flags = 0;
- 	u32 temp32[4];
- 	u32 bmask;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, MODIFY_QP, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_MODIFY_QP,
-+				 sizeof(req));
- 
- 	/* Filter out the qp_attr_mask based on the state->new transition */
- 	__filter_modify_flags(qp);
-@@ -1339,11 +1345,12 @@ int bnxt_qplib_query_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
- 	struct creq_query_qp_resp resp;
- 	struct bnxt_qplib_rcfw_sbuf *sbuf;
- 	struct creq_query_qp_resp_sb *sb;
--	u16 cmd_flags = 0;
- 	u32 temp32[4];
- 	int i, rc = 0;
- 
--	RCFW_CMD_PREP(req, QUERY_QP, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_QUERY_QP,
-+				 sizeof(req));
- 
- 	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
- 	if (!sbuf)
-@@ -1462,7 +1469,6 @@ int bnxt_qplib_destroy_qp(struct bnxt_qplib_res *res,
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct cmdq_destroy_qp req;
- 	struct creq_destroy_qp_resp resp;
--	u16 cmd_flags = 0;
- 	u32 tbl_indx;
- 	int rc;
- 
-@@ -1470,7 +1476,9 @@ int bnxt_qplib_destroy_qp(struct bnxt_qplib_res *res,
- 	rcfw->qp_tbl[tbl_indx].qp_id = BNXT_QPLIB_QP_ID_INVALID;
- 	rcfw->qp_tbl[tbl_indx].qp_handle = NULL;
- 
--	RCFW_CMD_PREP(req, DESTROY_QP, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_DESTROY_QP,
-+				 sizeof(req));
- 
- 	req.qp_cid = cpu_to_le32(qp->id);
- 	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
-@@ -2039,7 +2047,6 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
- 	struct creq_create_cq_resp resp;
- 	struct bnxt_qplib_pbl *pbl;
- 	struct cmdq_create_cq req;
--	u16 cmd_flags = 0;
- 	u32 pg_sz_lvl;
- 	int rc;
- 
-@@ -2052,7 +2059,9 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
- 	if (rc)
- 		goto exit;
- 
--	RCFW_CMD_PREP(req, CREATE_CQ, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_CREATE_CQ,
-+				 sizeof(req));
- 
- 	if (!cq->dpi) {
- 		dev_err(&rcfw->pdev->dev,
-@@ -2116,10 +2125,11 @@ int bnxt_qplib_resize_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq,
- 	struct cmdq_resize_cq req = {};
- 	struct bnxt_qplib_pbl *pbl;
- 	u32 pg_sz, lvl, new_sz;
--	u16 cmd_flags = 0;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, RESIZE_CQ, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_RESIZE_CQ,
-+				 sizeof(req));
- 	hwq_attr.sginfo = &cq->sg_info;
- 	hwq_attr.res = res;
- 	hwq_attr.depth = new_cqes;
-@@ -2150,10 +2160,11 @@ int bnxt_qplib_destroy_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
- 	struct cmdq_destroy_cq req;
- 	struct creq_destroy_cq_resp resp;
- 	u16 total_cnq_events;
--	u16 cmd_flags = 0;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, DESTROY_CQ, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_DESTROY_CQ,
-+				 sizeof(req));
- 
- 	req.cq_cid = cpu_to_le32(cq->id);
- 	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-index 061b289..1eab451 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-@@ -454,10 +454,11 @@ int bnxt_qplib_deinit_rcfw(struct bnxt_qplib_rcfw *rcfw)
- {
- 	struct cmdq_deinitialize_fw req;
- 	struct creq_deinitialize_fw_resp resp;
--	u16 cmd_flags = 0;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, DEINITIALIZE_FW, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_DEINITIALIZE_FW,
-+				 sizeof(req));
- 	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
- 					  NULL, 0);
- 	if (rc)
-@@ -472,11 +473,12 @@ int bnxt_qplib_init_rcfw(struct bnxt_qplib_rcfw *rcfw,
- {
- 	struct creq_initialize_fw_resp resp;
- 	struct cmdq_initialize_fw req;
--	u16 cmd_flags = 0;
- 	u8 pgsz, lvl;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, INITIALIZE_FW, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_INITIALIZE_FW,
-+				 sizeof(req));
- 	/* Supply (log-base-2-of-host-page-size - base-page-shift)
- 	 * to bono to adjust the doorbell page sizes.
- 	 */
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
-index 0a3d8e7..b7f4d0a 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
-@@ -51,25 +51,26 @@
- #define RCFW_DBR_PCI_BAR_REGION		2
- #define RCFW_DBR_BASE_PAGE_SHIFT	12
- 
--#define RCFW_CMD_PREP(req, CMD, cmd_flags)				\
--	do {								\
--		memset(&(req), 0, sizeof((req)));			\
--		(req).opcode = CMDQ_BASE_OPCODE_##CMD;			\
--		(req).cmd_size = sizeof((req));				\
--		(req).flags = cpu_to_le16(cmd_flags);			\
--	} while (0)
--
--#define RCFW_CMD_WAIT_TIME_MS		20000 /* 20 Seconds timeout */
--
- /* Cmdq contains a fix number of a 16-Byte slots */
- struct bnxt_qplib_cmdqe {
- 	u8		data[16];
- };
- 
-+#define BNXT_QPLIB_CMDQE_UNITS		sizeof(struct bnxt_qplib_cmdqe)
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_tlv.h b/drivers/infiniband/hw/bnxt_re/qplib_tlv.h
+new file mode 100644
+index 0000000..6daa97a
+--- /dev/null
++++ b/drivers/infiniband/hw/bnxt_re/qplib_tlv.h
+@@ -0,0 +1,162 @@
++/* SPDX-License-Identifier: GPL-2.0 or BSD-3-Clause */
 +
-+static inline void bnxt_qplib_rcfw_cmd_prep(struct cmdq_base *req,
-+					    u8 opcode, u8 cmd_size)
++#ifndef __QPLIB_TLV_H__
++#define __QPLIB_TLV_H__
++
++struct roce_tlv {
++	struct tlv tlv;
++	u8 total_size; // in units of 16 byte chunks
++	u8 unused[7];  // for 16 byte alignment
++};
++
++#define CHUNK_SIZE 16
++#define CHUNKS(x) (((x) + CHUNK_SIZE - 1) / CHUNK_SIZE)
++
++static inline  void __roce_1st_tlv_prep(struct roce_tlv *rtlv, u8 tot_chunks,
++					u16 content_bytes, u8 flags)
 +{
-+	memset(req, 0, cmd_size);
-+	req->opcode = opcode;
-+	req->cmd_size = cmd_size;
++	rtlv->tlv.cmd_discr = CMD_DISCR_TLV_ENCAP;
++	rtlv->tlv.tlv_type = TLV_TYPE_ROCE_SP_COMMAND;
++	rtlv->tlv.length = content_bytes;
++	rtlv->tlv.flags = TLV_FLAGS_REQUIRED;
++	rtlv->tlv.flags |= flags ? TLV_FLAGS_MORE : 0;
++	rtlv->total_size = (tot_chunks);
 +}
 +
-+#define RCFW_CMD_WAIT_TIME_MS		20000 /* 20 Seconds timeout */
++static inline void __roce_ext_tlv_prep(struct roce_tlv *rtlv, u16 tlv_type,
++				       u16 content_bytes, u8 more, u8 flags)
++{
++	rtlv->tlv.cmd_discr = CMD_DISCR_TLV_ENCAP;
++	rtlv->tlv.tlv_type = tlv_type;
++	rtlv->tlv.length = content_bytes;
++	rtlv->tlv.flags |= more ? TLV_FLAGS_MORE : 0;
++	rtlv->tlv.flags |= flags ? TLV_FLAGS_REQUIRED : 0;
++}
 +
- /* CMDQ elements */
- #define BNXT_QPLIB_CMDQE_MAX_CNT_256	256
- #define BNXT_QPLIB_CMDQE_MAX_CNT_8192	8192
--#define BNXT_QPLIB_CMDQE_UNITS		sizeof(struct bnxt_qplib_cmdqe)
- #define BNXT_QPLIB_CMDQE_BYTES(depth)	((depth) * BNXT_QPLIB_CMDQE_UNITS)
- 
- static inline u32 bnxt_qplib_cmdqe_npages(u32 depth)
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index 3f4998a..4e27274 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -70,10 +70,11 @@ static void bnxt_qplib_query_version(struct bnxt_qplib_rcfw *rcfw,
- {
- 	struct cmdq_query_version req;
- 	struct creq_query_version_resp resp;
--	u16 cmd_flags = 0;
- 	int rc = 0;
- 
--	RCFW_CMD_PREP(req, QUERY_VERSION, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_QUERY_VERSION,
-+				 sizeof(req));
- 
- 	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
- 					  (void *)&resp, NULL, 0);
-@@ -88,16 +89,17 @@ static void bnxt_qplib_query_version(struct bnxt_qplib_rcfw *rcfw,
- int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
- 			    struct bnxt_qplib_dev_attr *attr, bool vf)
- {
--	struct cmdq_query_func req;
--	struct creq_query_func_resp resp;
--	struct bnxt_qplib_rcfw_sbuf *sbuf;
- 	struct creq_query_func_resp_sb *sb;
--	u16 cmd_flags = 0;
--	u32 temp;
-+	struct bnxt_qplib_rcfw_sbuf *sbuf;
-+	struct creq_query_func_resp resp;
-+	struct cmdq_query_func req;
- 	u8 *tqm_alloc;
- 	int i, rc = 0;
-+	u32 temp;
- 
--	RCFW_CMD_PREP(req, QUERY_FUNC, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_QUERY_FUNC,
-+				 sizeof(req));
- 
- 	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
- 	if (!sbuf) {
-@@ -176,10 +178,11 @@ int bnxt_qplib_set_func_resources(struct bnxt_qplib_res *res,
- {
- 	struct cmdq_set_func_resources req;
- 	struct creq_set_func_resources_resp resp;
--	u16 cmd_flags = 0;
- 	int rc = 0;
- 
--	RCFW_CMD_PREP(req, SET_FUNC_RESOURCES, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_SET_FUNC_RESOURCES,
-+				 sizeof(req));
- 
- 	req.number_of_qp = cpu_to_le32(ctx->qpc_count);
- 	req.number_of_mrw = cpu_to_le32(ctx->mrw_count);
-@@ -247,10 +250,11 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- 	if (update) {
- 		struct cmdq_delete_gid req;
- 		struct creq_delete_gid_resp resp;
--		u16 cmd_flags = 0;
- 		int rc;
- 
--		RCFW_CMD_PREP(req, DELETE_GID, cmd_flags);
-+		bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+					 CMDQ_BASE_OPCODE_DELETE_GID,
-+					 sizeof(req));
- 		if (sgid_tbl->hw_id[index] == 0xFFFF) {
- 			dev_err(&res->pdev->dev,
- 				"GID entry contains an invalid HW id\n");
-@@ -317,10 +321,11 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- 	if (update) {
- 		struct cmdq_add_gid req;
- 		struct creq_add_gid_resp resp;
--		u16 cmd_flags = 0;
- 		int rc;
- 
--		RCFW_CMD_PREP(req, ADD_GID, cmd_flags);
-+		bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+					 CMDQ_BASE_OPCODE_ADD_GID,
-+					 sizeof(req));
- 
- 		req.gid[0] = cpu_to_be32(((u32 *)gid->data)[3]);
- 		req.gid[1] = cpu_to_be32(((u32 *)gid->data)[2]);
-@@ -378,9 +383,10 @@ int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- 	struct creq_modify_gid_resp resp;
- 	struct cmdq_modify_gid req;
- 	int rc;
--	u16 cmd_flags = 0;
- 
--	RCFW_CMD_PREP(req, MODIFY_GID, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_MODIFY_GID,
-+				 sizeof(req));
- 
- 	req.gid[0] = cpu_to_be32(((u32 *)gid->data)[3]);
- 	req.gid[1] = cpu_to_be32(((u32 *)gid->data)[2]);
-@@ -411,12 +417,13 @@ int bnxt_qplib_create_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct cmdq_create_ah req;
- 	struct creq_create_ah_resp resp;
--	u16 cmd_flags = 0;
- 	u32 temp32[4];
- 	u16 temp16[3];
- 	int rc;
- 
--	RCFW_CMD_PREP(req, CREATE_AH, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_CREATE_AH,
-+				 sizeof(req));
- 
- 	memcpy(temp32, ah->dgid.data, sizeof(struct bnxt_qplib_gid));
- 	req.dgid[0] = cpu_to_le32(temp32[0]);
-@@ -454,10 +461,11 @@ void bnxt_qplib_destroy_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct cmdq_destroy_ah req;
- 	struct creq_destroy_ah_resp resp;
--	u16 cmd_flags = 0;
- 
- 	/* Clean up the AH table in the device */
--	RCFW_CMD_PREP(req, DESTROY_AH, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_DESTROY_AH,
-+				 sizeof(req));
- 
- 	req.ah_cid = cpu_to_le32(ah->id);
- 
-@@ -471,7 +479,6 @@ int bnxt_qplib_free_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw)
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct cmdq_deallocate_key req;
- 	struct creq_deallocate_key_resp resp;
--	u16 cmd_flags = 0;
- 	int rc;
- 
- 	if (mrw->lkey == 0xFFFFFFFF) {
-@@ -479,7 +486,9 @@ int bnxt_qplib_free_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw)
- 		return 0;
- 	}
- 
--	RCFW_CMD_PREP(req, DEALLOCATE_KEY, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_DEALLOCATE_KEY,
-+				 sizeof(req));
- 
- 	req.mrw_flags = mrw->type;
- 
-@@ -507,11 +516,12 @@ int bnxt_qplib_alloc_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw)
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct cmdq_allocate_mrw req;
- 	struct creq_allocate_mrw_resp resp;
--	u16 cmd_flags = 0;
- 	unsigned long tmp;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, ALLOCATE_MRW, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_ALLOCATE_MRW,
-+				 sizeof(req));
- 
- 	req.pd_id = cpu_to_le32(mrw->pd->id);
- 	req.mrw_flags = mrw->type;
-@@ -543,10 +553,11 @@ int bnxt_qplib_dereg_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw,
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct cmdq_deregister_mr req;
- 	struct creq_deregister_mr_resp resp;
--	u16 cmd_flags = 0;
- 	int rc;
- 
--	RCFW_CMD_PREP(req, DEREGISTER_MR, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_DEREGISTER_MR,
-+				 sizeof(req));
- 
- 	req.lkey = cpu_to_le32(mrw->lkey);
- 	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
-@@ -572,9 +583,9 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
- 	struct bnxt_qplib_sg_info sginfo = {};
- 	struct creq_register_mr_resp resp;
- 	struct cmdq_register_mr req;
--	u16 cmd_flags = 0, level;
- 	int pages, rc;
- 	u32 pg_size;
-+	u16 level;
- 
- 	if (num_pbls) {
- 		pages = roundup_pow_of_two(num_pbls);
-@@ -602,7 +613,9 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
- 		}
- 	}
- 
--	RCFW_CMD_PREP(req, REGISTER_MR, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_REGISTER_MR,
-+				 sizeof(req));
- 
- 	/* Configure the request */
- 	if (mr->hwq.level == PBL_LVL_MAX) {
-@@ -686,10 +699,11 @@ int bnxt_qplib_get_roce_stats(struct bnxt_qplib_rcfw *rcfw,
- 	struct creq_query_roce_stats_resp resp;
- 	struct bnxt_qplib_rcfw_sbuf *sbuf;
- 	struct creq_query_roce_stats_resp_sb *sb;
--	u16 cmd_flags = 0;
- 	int rc = 0;
- 
--	RCFW_CMD_PREP(req, QUERY_ROCE_STATS, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_BASE_OPCODE_QUERY_ROCE_STATS,
-+				 sizeof(req));
- 
- 	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
- 	if (!sbuf) {
-@@ -766,7 +780,6 @@ int bnxt_qplib_qext_stat(struct bnxt_qplib_rcfw *rcfw, u32 fid,
- 	struct creq_query_roce_stats_ext_resp_sb *sb;
- 	struct cmdq_query_roce_stats_ext req = {};
- 	struct bnxt_qplib_rcfw_sbuf *sbuf;
--	u16 cmd_flags = 0;
- 	int rc;
- 
- 	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
-@@ -776,7 +789,9 @@ int bnxt_qplib_qext_stat(struct bnxt_qplib_rcfw *rcfw, u32 fid,
- 		return -ENOMEM;
- 	}
- 
--	RCFW_CMD_PREP(req, QUERY_ROCE_STATS_EXT, cmd_flags);
-+	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-+				 CMDQ_QUERY_ROCE_STATS_EXT_OPCODE_QUERY_ROCE_STATS,
-+				 sizeof(req));
- 
- 	req.resp_size = ALIGN(sizeof(*sb), BNXT_QPLIB_CMDQE_UNITS);
- 	req.resp_addr = cpu_to_le64(sbuf->dma_addr);
++/*
++ * TLV size in units of 16 byte chunks
++ */
++#define TLV_SIZE ((sizeof(struct roce_tlv) + 15) / 16)
++/*
++ * TLV length in bytes
++ */
++#define TLV_BYTES (TLV_SIZE * 16)
++
++#define HAS_TLV_HEADER(msg) (((struct tlv *)(msg))->cmd_discr == CMD_DISCR_TLV_ENCAP)
++#define GET_TLV_DATA(tlv)   ((void *)&((uint8_t *)(tlv))[TLV_BYTES])
++
++static inline u8 __get_cmdq_base_opcode(struct cmdq_base *req, u32 size)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		return ((struct cmdq_base *)GET_TLV_DATA(req))->opcode;
++	else
++		return req->opcode;
++}
++
++static inline void __set_cmdq_base_opcode(struct cmdq_base *req,
++					  u32 size, u8 val)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		((struct cmdq_base *)GET_TLV_DATA(req))->opcode = val;
++	else
++		req->opcode = val;
++}
++
++static inline __le16 __get_cmdq_base_cookie(struct cmdq_base *req, u32 size)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		return ((struct cmdq_base *)GET_TLV_DATA(req))->cookie;
++	else
++		return req->cookie;
++}
++
++static inline void __set_cmdq_base_cookie(struct cmdq_base *req,
++					  u32 size, __le16 val)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		((struct cmdq_base *)GET_TLV_DATA(req))->cookie = val;
++	else
++		req->cookie = val;
++}
++
++static inline __le64 __get_cmdq_base_resp_addr(struct cmdq_base *req, u32 size)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		return ((struct cmdq_base *)GET_TLV_DATA(req))->resp_addr;
++	else
++		return req->resp_addr;
++}
++
++static inline void __set_cmdq_base_resp_addr(struct cmdq_base *req,
++					     u32 size, __le64 val)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		((struct cmdq_base *)GET_TLV_DATA(req))->resp_addr = val;
++	else
++		req->resp_addr = val;
++}
++
++static inline u8 __get_cmdq_base_resp_size(struct cmdq_base *req, u32 size)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		return ((struct cmdq_base *)GET_TLV_DATA(req))->resp_size;
++	else
++		return req->resp_size;
++}
++
++static inline void __set_cmdq_base_resp_size(struct cmdq_base *req,
++					     u32 size, u8 val)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		((struct cmdq_base *)GET_TLV_DATA(req))->resp_size = val;
++	else
++		req->resp_size = val;
++}
++
++static inline u8 __get_cmdq_base_cmd_size(struct cmdq_base *req, u32 size)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		return ((struct roce_tlv *)(req))->total_size;
++	else
++		return req->cmd_size;
++}
++
++static inline void __set_cmdq_base_cmd_size(struct cmdq_base *req,
++					    u32 size, u8 val)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		((struct cmdq_base *)GET_TLV_DATA(req))->cmd_size = val;
++	else
++		req->cmd_size = val;
++}
++
++static inline __le16 __get_cmdq_base_flags(struct cmdq_base *req, u32 size)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		return ((struct cmdq_base *)GET_TLV_DATA(req))->flags;
++	else
++		return req->flags;
++}
++
++static inline void __set_cmdq_base_flags(struct cmdq_base *req,
++					 u32 size, __le16 val)
++{
++	if (HAS_TLV_HEADER(req) && size > TLV_BYTES)
++		((struct cmdq_base *)GET_TLV_DATA(req))->flags = val;
++	else
++		req->flags = val;
++}
++
++struct bnxt_qplib_tlv_modify_cc_req {
++	struct roce_tlv				tlv_hdr;
++	struct cmdq_modify_roce_cc		base_req;
++	__le64					tlvpad;
++	struct cmdq_modify_roce_cc_gen1_tlv	ext_req;
++};
++
++struct bnxt_qplib_tlv_query_rcc_sb {
++	struct roce_tlv					tlv_hdr;
++	struct creq_query_roce_cc_resp_sb		base_sb;
++	struct creq_query_roce_cc_gen1_resp_sb_tlv	gen1_sb;
++};
++#endif /* __QPLIB_TLV_H__ */
 -- 
 2.5.5
 
 
---000000000000e787c605f78daead
+--00000000000042914805f78dafc1
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -636,14 +314,14 @@ j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
 9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
 hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
 IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIAstQPusH06f
-6F9DBPVaCyucvSvTvTe+a4BT4nbsXruRMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDMyMzA5MTMwMFowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIGfANedj86j4
+yjHyRN7DRcqi/stVm2eka5EfF+RMoS0PMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDMyMzA5MTMwNlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
 YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCCQzvmowQ11Hey9PM0ht8UYM1M1Bmz
-uyKomKn+pmdIKsU2S1d8h56Jx56ea0jse6C5EnN4Uc9VVB+ajvwrJnkoWan3KTaDa5xOkwSdVT9f
-ZA9X2oAGs+h+x5cSMBw/t7skr/Cu36a4u776GhfSoEf5xdhY/wFdHuaVy9u7Au8FeXzbVTydBaGj
-BQg3dWpm16t596IvTjcnLMdJkJww0xCdbew4+e7FE4vwmn8ggsr33dd+NOFBs4iT1F+cGY0dNrtu
-b1xeJTSknZl9qhg1m69zzQqr7RZE60jUlFsjFqw/MezfMj7An23OznRlZZeXQIaFU0mPTiYieyXA
-H95WVclc
---000000000000e787c605f78daead--
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQDh40S5QFQZB7gUfd0MhTGZoGndPMr/
+TxYwYcPkYKooYhGxn2b2YhhMZ4vraIAwyZ+CNRe0l3OHgOfpC62CJZk1nzTR7UAc6YzFaSVvz6rY
+AkEyjm5+pR6Z3mwMCwSS3FKf4Tz81zGrE5ui1/ishnpKO+9NRq544N6qGfPxEhMJLPaFmn8u0YrT
+RF98tl03q8kvmlhsfiS6Cr73tyQqfxQDSq/QYkXv7EzSyxtjW4/G+Wd4We7mc9LukY3qQWyLnC7N
+cS4t0JkMILAL3s94+AoVlipKkEoUVxAu4wOOroLUOwpJ93IYjQqpEHq7IQLUYvs+/LbvX4vWNXJ1
+V2DAgZSp
+--00000000000042914805f78dafc1--
