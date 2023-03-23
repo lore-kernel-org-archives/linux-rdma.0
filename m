@@ -2,30 +2,28 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00EDAC7619A
-	for <linux-rdma@archiver.kernel.org>; Thu, 23 Mar 2023 09:08:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7172EC6FD1C
+	for <linux-rdma@archiver.kernel.org>; Thu, 23 Mar 2023 09:09:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231400AbjCWJIM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 23 Mar 2023 05:08:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44470 "EHLO
+        id S230086AbjCWJJc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 23 Mar 2023 05:09:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230374AbjCWJHx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Mar 2023 05:07:53 -0400
-X-Greylist: delayed 209 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 23 Mar 2023 02:06:59 PDT
-Received: from out-62.mta0.migadu.com (out-62.mta0.migadu.com [91.218.175.62])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 604F633447
-        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:06:58 -0700 (PDT)
+        with ESMTP id S229838AbjCWJJS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 23 Mar 2023 05:09:18 -0400
+Received: from out-6.mta0.migadu.com (out-6.mta0.migadu.com [IPv6:2001:41d0:1004:224b::6])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D9161A978
+        for <linux-rdma@vger.kernel.org>; Thu, 23 Mar 2023 02:08:45 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1679562233;
+        t=1679562206;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=E9VZuBBTp04BDbs+ncOrUcdGIr1MtZeBvyGlNQPB6Mg=;
-        b=tOF2mLSO0gVV24esZPsvixYPG2lfpE5Hm5zHYAZRFK2gto6p6aSp+hW5wQljUvze36l6bP
-        8LdDEhzDomKyHbkjwkzxc7WR2PW9y+SMqiHHA84djwZzJx9VFMvsOUFNfH/Jerlg296PEW
-        5oBHFfiGkj39SEXCIR/boRnxE77C0Yg=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=lTe9LISs2pflvSiuzz8njOhESiOpw5ulrZFB1bo8ej0=;
+        b=uYcoUfKDkxNQ6Id+Oa4CLl9EGelbi8sUDea8HTVwAAcsDQDyAVWO1CZOtQpqSBg17uAAXh
+        My6s84gYx4X746OVkTIgmvhoXolDbjHgA9Kkg8EjTb7bRU0la49hQCaCO8BCOTQ//RyOAy
+        KJhdS0oIe2rn0GN5fBK0vtCp5+r/btY=
 From:   Cai Huoqing <cai.huoqing@linux.dev>
 To:     cai.huoqing@linux.dev
 Cc:     Derek Chickles <dchickles@marvell.com>,
@@ -47,19 +45,17 @@ Cc:     Derek Chickles <dchickles@marvell.com>,
         Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
         Shannon Nelson <shannon.nelson@amd.com>,
         Brett Creeley <brett.creeley@amd.com>, drivers@pensando.io,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
         Bjorn Helgaas <bhelgaas@google.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
         Guangbin Huang <huangguangbin2@huawei.com>,
         Jian Shen <shenjian15@huawei.com>, Hao Lan <lanhao@huawei.com>,
         Jie Wang <wangjie125@huawei.com>,
         Long Li <longli@microsoft.com>, Jiri Pirko <jiri@resnulli.us>,
         netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org
-Subject: [PATCH 3/8] net: cxgb4vf: Remove redundant pci_clear_master
-Date:   Thu, 23 Mar 2023 17:03:02 +0800
-Message-Id: <20230323090314.22431-3-cai.huoqing@linux.dev>
-In-Reply-To: <20230323090314.22431-1-cai.huoqing@linux.dev>
-References: <20230323090314.22431-1-cai.huoqing@linux.dev>
+Subject: [PATCH 1/8] net: liquidio: Remove redundant pci_clear_master
+Date:   Thu, 23 Mar 2023 17:03:00 +0800
+Message-Id: <20230323090314.22431-1-cai.huoqing@linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
@@ -87,28 +83,33 @@ And dev->is_busmaster is set to 0 in pci_disable_device.
 
 Signed-off-by: Cai Huoqing <cai.huoqing@linux.dev>
 ---
- drivers/net/ethernet/chelsio/cxgb4vf/cxgb4vf_main.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/ethernet/cavium/liquidio/lio_main.c    | 1 -
+ drivers/net/ethernet/cavium/liquidio/lio_vf_main.c | 1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/chelsio/cxgb4vf/cxgb4vf_main.c b/drivers/net/ethernet/chelsio/cxgb4vf/cxgb4vf_main.c
-index 63b2bd084130..9ba0864592e8 100644
---- a/drivers/net/ethernet/chelsio/cxgb4vf/cxgb4vf_main.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4vf/cxgb4vf_main.c
-@@ -3258,7 +3258,6 @@ static int cxgb4vf_pci_probe(struct pci_dev *pdev,
+diff --git a/drivers/net/ethernet/cavium/liquidio/lio_main.c b/drivers/net/ethernet/cavium/liquidio/lio_main.c
+index fd7c80edb6e8..9bd1d2d7027d 100644
+--- a/drivers/net/ethernet/cavium/liquidio/lio_main.c
++++ b/drivers/net/ethernet/cavium/liquidio/lio_main.c
+@@ -1129,7 +1129,6 @@ static void octeon_destroy_resources(struct octeon_device *oct)
  
- err_release_regions:
- 	pci_release_regions(pdev);
--	pci_clear_master(pdev);
+ 		fallthrough;
+ 	case OCT_DEV_PCI_ENABLE_DONE:
+-		pci_clear_master(oct->pci_dev);
+ 		/* Disable the device, releasing the PCI INT */
+ 		pci_disable_device(oct->pci_dev);
  
- err_disable_device:
- 	pci_disable_device(pdev);
-@@ -3338,7 +3337,6 @@ static void cxgb4vf_pci_remove(struct pci_dev *pdev)
- 	 * Disable the device and release its PCI resources.
- 	 */
- 	pci_disable_device(pdev);
--	pci_clear_master(pdev);
- 	pci_release_regions(pdev);
- }
+diff --git a/drivers/net/ethernet/cavium/liquidio/lio_vf_main.c b/drivers/net/ethernet/cavium/liquidio/lio_vf_main.c
+index ac196883f07e..e2921aec3da0 100644
+--- a/drivers/net/ethernet/cavium/liquidio/lio_vf_main.c
++++ b/drivers/net/ethernet/cavium/liquidio/lio_vf_main.c
+@@ -577,7 +577,6 @@ static void octeon_destroy_resources(struct octeon_device *oct)
+ 
+ 		fallthrough;
+ 	case OCT_DEV_PCI_ENABLE_DONE:
+-		pci_clear_master(oct->pci_dev);
+ 		/* Disable the device, releasing the PCI INT */
+ 		pci_disable_device(oct->pci_dev);
  
 -- 
 2.34.1
