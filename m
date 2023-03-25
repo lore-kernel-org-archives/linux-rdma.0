@@ -2,224 +2,174 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AEFFC6FD1C
-	for <linux-rdma@archiver.kernel.org>; Sat, 25 Mar 2023 18:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10BE3C6FD1F
+	for <linux-rdma@archiver.kernel.org>; Sat, 25 Mar 2023 18:55:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229977AbjCYSqt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 25 Mar 2023 14:46:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35462 "EHLO
+        id S229582AbjCYSzZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 25 Mar 2023 14:55:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230420AbjCYSot (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 25 Mar 2023 14:44:49 -0400
-Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E234EC7A
-        for <linux-rdma@vger.kernel.org>; Sat, 25 Mar 2023 11:44:47 -0700 (PDT)
-Received: by mail-pj1-x102a.google.com with SMTP id mp3-20020a17090b190300b0023fcc8ce113so8026032pjb.4
-        for <linux-rdma@vger.kernel.org>; Sat, 25 Mar 2023 11:44:47 -0700 (PDT)
+        with ESMTP id S229446AbjCYSzY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 25 Mar 2023 14:55:24 -0400
+Received: from mail-oo1-xc33.google.com (mail-oo1-xc33.google.com [IPv6:2607:f8b0:4864:20::c33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BFB18A6B;
+        Sat, 25 Mar 2023 11:55:23 -0700 (PDT)
+Received: by mail-oo1-xc33.google.com with SMTP id m6-20020a4ae846000000b0053b9059edd5so769751oom.3;
+        Sat, 25 Mar 2023 11:55:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1679769886;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=sp0HcNuWdG6NR7mOGPVZqgq9sxP9ZOanCk/Fyd1G0rk=;
-        b=hT0CZDtgU5r7ZxrGsrwlgr6IkOOf65qZ6j7ECTbIrAKalOWR9m2Yh2NJy4PAmb5SMc
-         mxR0bzl82feta5d5niS6ED4Iqi+LrVH762rZSVGgOBla2A6yPvbMgzChADYg8bhm08+o
-         yH/UenqdOhUhtfFSPMLlKXqAMoudEjqdPtoa8=
+        d=gmail.com; s=20210112; t=1679770522;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=XxsSLWsZvE4szM1gEt4f7Si5Kl8ROd3jLoMcKM80+58=;
+        b=ACIVRz7GnOs5oqbTqChVW3js3iaTUMeheAjffOsvQQT+TiZxhdiDJvLOdXt/Wtf+hL
+         X/Bdz8hXYA9M1pprtPNkKdcylg+fuJbmTEon5FMYeEGe+AY+ejQg+7T1dx5vt13qpI9C
+         wa6Xj9ZInQzBW5d8RdpJq1nZrDrkG8tArPs+YC2oYQw/Y3fRtdlMJ3RoqZAfLoTI7UPo
+         lK63d26Sz16K1e2eVeCQY7UBC44djm0OP3+o0FDNwohLwc8JSF2Wx/5GdBV8nS+X2WPR
+         QCGSJHPlzkU3YDsgGJlbzk4frhRMkzhbwGRWfoqRpBtWvR6O+dE06n/i9TgL4TkhBu2T
+         WQaA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679769886;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=sp0HcNuWdG6NR7mOGPVZqgq9sxP9ZOanCk/Fyd1G0rk=;
-        b=W0b6BilCYqsdYjC1CyJQUxi2LYNuSGq1aEnB7nTgOvDdeQe/c80VDKi746qeLbhHRe
-         hz/AZBzxViZh3zw821VypBG4lptWeNMyS8FNrmHYNpDTZCwF+aMLpHZMsWfgnN7dSycu
-         /c+SAWi11RUsio4gJORaxjukpK/meaJi5yzl5McEGHK5Hj8PIEws3BpOztDpnjgyzYvL
-         e/p85BVtwzl8jTz3bnA6+Rbdk5axZ9NEWnRT+WYLVPLF7myD+1zy7IirrY8s/qoPtcyw
-         cRLBTRYdY5fMXzKbDV5oxMeonVH9AXCAWCpo2ezUIC6jVBcVfK01HPrQ2xnvd8padoI9
-         6V2Q==
-X-Gm-Message-State: AAQBX9fxijOAOIdzRbfSD6BeDUo9TeQnHlE0dLXvnnhPu8G5lB9lovIs
-        up02R3SjjnE0EzdEJV9ZObwEbMmRv3BpIRWaP9Q=
-X-Google-Smtp-Source: AKy350a8DaPjQv9EIG7K0hJ/llmv93Xd3X2wMcBxemU6ql+pOZLz5f82LZiB5airXWoWiDV5z6CMaA==
-X-Received: by 2002:a17:902:c949:b0:1a1:adb0:ed72 with SMTP id i9-20020a170902c94900b001a1adb0ed72mr8203648pla.4.1679769886606;
-        Sat, 25 Mar 2023 11:44:46 -0700 (PDT)
-Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id q12-20020a170902b10c00b0019a70a42b0asm16283031plr.169.2023.03.25.11.44.44
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sat, 25 Mar 2023 11:44:45 -0700 (PDT)
-From:   Selvin Xavier <selvin.xavier@broadcom.com>
-To:     jgg@ziepe.ca, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
-        Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-next v2 6/7] RDAM/bnxt_re: Use tlv apis while processing the slow path commands
-Date:   Sat, 25 Mar 2023 11:44:13 -0700
-Message-Id: <1679769854-30605-7-git-send-email-selvin.xavier@broadcom.com>
-X-Mailer: git-send-email 2.5.5
-In-Reply-To: <1679769854-30605-1-git-send-email-selvin.xavier@broadcom.com>
-References: <1679769854-30605-1-git-send-email-selvin.xavier@broadcom.com>
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="00000000000069882905f7bde7e9"
+        d=1e100.net; s=20210112; t=1679770522;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=XxsSLWsZvE4szM1gEt4f7Si5Kl8ROd3jLoMcKM80+58=;
+        b=piCSuk3ZIpuhUYcxtWLNi8r3tx6yru/qCyC10Rkbo6ErJoskPZ/pX6ojZNjceBX4p/
+         D5Obx3wtGiRH2gU7yiRPG+pPDN3E4uDxOTwgQefCaHaJlfK31aOO/XsOzx1ZIDqJLpLV
+         RQEXo3knNhgN41ZAu5HcLRzeLD2YSfhMjcvIIMLvQvr8Ub3B28KayNdImbsVJUjF7CKL
+         DojwDpW5NSPjPy+w+j6Xs0oSa2h3cCnbdKH8CY82pJDY3APyynYPbL8Ikb1yLGoV4rse
+         TiU3RUIfneQnxz4zjrAayM8P9NXnAao7D5lv2DET6dcAkw0TC+dNI2PGTaWvWgMERFHu
+         WO1g==
+X-Gm-Message-State: AO0yUKUOr/zBq3rO73cEvuZxO7n/Jjs88fO1aK3/Vig1kLsNnYXiVu62
+        WxMTyjWYHrMNZy7K4uqQvSk=
+X-Google-Smtp-Source: AK7set+cb4Ku/IGSZgPqrYUrD0OTrQhX+nWmO6TmeK9Q4sOdCEFg9T1Hgh5qs74QwEPGqxBpSEpYXw==
+X-Received: by 2002:a4a:4111:0:b0:517:4020:60b6 with SMTP id x17-20020a4a4111000000b00517402060b6mr3596459ooa.8.1679770522550;
+        Sat, 25 Mar 2023 11:55:22 -0700 (PDT)
+Received: from localhost ([12.97.180.36])
+        by smtp.gmail.com with ESMTPSA id e20-20020a4a8f14000000b0053dfd96fa61sm1760679ool.39.2023.03.25.11.55.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 25 Mar 2023 11:55:22 -0700 (PDT)
+From:   Yury Norov <yury.norov@gmail.com>
+To:     Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     Yury Norov <yury.norov@gmail.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Pawel Chmielewski <pawel.chmielewski@intel.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Valentin Schneider <vschneid@redhat.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        Gal Pressman <gal@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Barry Song <baohua@kernel.org>
+Subject: [PATCH 0/8] sched/topology: add for_each_numa_cpu() macro
+Date:   Sat, 25 Mar 2023 11:55:06 -0700
+Message-Id: <20230325185514.425745-1-yury.norov@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---00000000000069882905f7bde7e9
+for_each_cpu() is widely used in kernel, and it's beneficial to create
+a NUMA-aware version of the macro.
 
-Use the new TLV APIs for existing slow path commands. The TLV
-APIs will be used to populate extended headers for some of the
-Firmware commands, which will be introduced in the patches that
-follow.
+Recently added for_each_numa_hop_mask() works, but switching existing
+codebase to it is not an easy process.
 
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
----
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+This series adds for_each_numa_cpu(), which is designed to be similar to
+the for_each_cpu(). It allows to convert existing code to NUMA-aware as
+simple as adding a hop iterator variable and passing it inside new macro.
+for_each_numa_cpu() takes care of the rest.
 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-index 7403a4e..06979f7 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
-@@ -49,6 +49,7 @@
- #include "qplib_rcfw.h"
- #include "qplib_sp.h"
- #include "qplib_fp.h"
-+#include "qplib_tlv.h"
- 
- static void bnxt_qplib_service_creq(struct tasklet_struct *t);
- 
-@@ -101,7 +102,7 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw,
- 
- 	pdev = rcfw->pdev;
- 
--	opcode = msg->req->opcode;
-+	opcode = __get_cmdq_base_opcode(msg->req, msg->req_sz);
- 	if (!test_bit(FIRMWARE_INITIALIZED_FLAG, &cmdq->flags) &&
- 	    (opcode != CMDQ_BASE_OPCODE_QUERY_FUNC &&
- 	     opcode != CMDQ_BASE_OPCODE_INITIALIZE_FW &&
-@@ -137,7 +138,7 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw,
- 		cookie |= RCFW_CMD_IS_BLOCKING;
- 
- 	set_bit(cbit, cmdq->cmdq_bitmap);
--	msg->req->cookie = cpu_to_le16(cookie);
-+	__set_cmdq_base_cookie(msg->req, msg->req_sz, cpu_to_le16(cookie));
- 	crsqe = &rcfw->crsqe_tbl[cbit];
- 	if (crsqe->resp) {
- 		spin_unlock_irqrestore(&hwq->lock, flags);
-@@ -153,13 +154,12 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw,
- 	memset(msg->resp, 0, sizeof(*msg->resp));
- 	crsqe->resp = (struct creq_qp_event *)msg->resp;
- 	crsqe->resp->cookie = msg->req->cookie;
--	crsqe->req_size = msg->req->cmd_size;
--	if (msg->req->resp_size && msg->sb) {
-+	crsqe->req_size = __get_cmdq_base_cmd_size(msg->req, msg->req_sz);
-+	if (__get_cmdq_base_resp_size(msg->req, msg->req_sz) && msg->sb) {
- 		struct bnxt_qplib_rcfw_sbuf *sbuf = msg->sb;
--
--		msg->req->resp_addr = cpu_to_le64(sbuf->dma_addr);
--		msg->req->resp_size = (sbuf->size + BNXT_QPLIB_CMDQE_UNITS - 1) /
--				  BNXT_QPLIB_CMDQE_UNITS;
-+		__set_cmdq_base_resp_addr(msg->req, msg->req_sz, cpu_to_le64(sbuf->dma_addr));
-+		__set_cmdq_base_resp_size(msg->req, msg->req_sz,
-+					  ALIGN(sbuf->size, BNXT_QPLIB_CMDQE_UNITS));
+At the moment, we have 2 users of NUMA-aware enumerators. One is
+Melanox's in-tree driver, and another is Intel's in-review driver:
+
+https://lore.kernel.org/lkml/20230216145455.661709-1-pawel.chmielewski@intel.com/
+
+Both real-life examples follow the same pattern:
+
+	for_each_numa_hop_mask(cpus, prev, node) {
+ 		for_each_cpu_andnot(cpu, cpus, prev) {
+ 			if (cnt++ == max_num)
+ 				goto out;
+ 			do_something(cpu);
+ 		}
+		prev = cpus;
  	}
- 
- 	preq = (u8 *)msg->req;
-@@ -214,12 +214,12 @@ int bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
- 		return 0;
- 
- 	do {
--		opcode = msg->req->opcode;
-+		opcode = __get_cmdq_base_opcode(msg->req, msg->req_sz);
- 		rc = __send_message(rcfw, msg);
--		cookie = le16_to_cpu(msg->req->cookie) & RCFW_MAX_COOKIE_VALUE;
-+		cookie = le16_to_cpu(__get_cmdq_base_cookie(msg->req, msg->req_sz)) &
-+				RCFW_MAX_COOKIE_VALUE;
- 		if (!rc)
- 			break;
--
- 		if (!retry_cnt || (rc != -EAGAIN && rc != -EBUSY)) {
- 			/* send failed */
- 			dev_err(&rcfw->pdev->dev, "cmdq[%#x]=%#x send failed\n",
+
+With the new macro, it has a more standard look, like this:
+
+	for_each_numa_cpu(cpu, hop, node, cpu_possible_mask) {
+		if (cnt++ == max_num)
+			break;
+		do_something(cpu);
+ 	}
+
+Straight conversion of existing for_each_cpu() codebase to NUMA-aware
+version with for_each_numa_hop_mask() is difficult because it doesn't
+take a user-provided cpu mask, and eventually ends up with open-coded
+double loop. With for_each_numa_cpu() it shouldn't be a brainteaser.
+Consider the NUMA-ignorant example:
+
+	cpumask_t cpus = get_mask();
+	int cnt = 0, cpu;
+
+	for_each_cpu(cpu, cpus) {
+		if (cnt++ == max_num)
+			break;
+		do_something(cpu);
+ 	}
+
+Converting it to NUMA-aware version would be as simple as:
+
+	cpumask_t cpus = get_mask();
+	int node = get_node();
+	int cnt = 0, hop, cpu;
+
+	for_each_numa_cpu(cpu, hop, node, cpus) {
+		if (cnt++ == max_num)
+			break;
+		do_something(cpu);
+ 	}
+
+The latter looks more verbose and avoids from open-coding that annoying
+double loop. Another advantage is that it works with a 'hop' parameter with
+the clear meaning of NUMA distance, and doesn't make people not familiar
+to enumerator internals bothering with current and previous masks machinery.
+
+Yury Norov (8):
+  lib/find: add find_next_and_andnot_bit()
+  sched/topology: introduce sched_numa_find_next_cpu()
+  sched/topology: add for_each_numa_cpu() macro
+  net: mlx5: switch comp_irqs_request() to using for_each_numa_cpu
+  lib/cpumask: update comment to cpumask_local_spread()
+  sched/topology: export sched_domains_numa_levels
+  lib: add test for for_each_numa_{cpu,hop_mask}()
+  sched: drop for_each_numa_hop_mask()
+
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c | 16 ++----
+ include/linux/find.h                         | 43 ++++++++++++++
+ include/linux/topology.h                     | 39 ++++++++-----
+ kernel/sched/topology.c                      | 59 +++++++++++---------
+ lib/cpumask.c                                |  7 +--
+ lib/find_bit.c                               | 12 ++++
+ lib/test_bitmap.c                            | 16 ++++++
+ 7 files changed, 136 insertions(+), 56 deletions(-)
+
 -- 
-2.5.5
+2.34.1
 
-
---00000000000069882905f7bde7e9
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-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
-FYMZp2DojLAq9f4Oi2OBetbnWxo0WGycXpmq/jC4PUx2u9mazQ79i80VLagGRshWniESXuf+SYG8
-+zBimjld9ZZnwm7itHAZdtme4YYFxx+EHa4PUxPV8t+hPHhsiIjirPa1pVXPbQIDAQABo4IB2zCC
-AdcwDgYDVR0PAQH/BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDov
-L3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAu
-Y3J0MEEGCCsGAQUFBzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29u
-YWxzaWduMmNhMjAyMDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0
-cHM6Ly93d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBA
-MD6gPKA6hjhodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2Ey
-MDIwLmNybDAlBgNVHREEHjAcgRpzZWx2aW4ueGF2aWVyQGJyb2FkY29tLmNvbTATBgNVHSUEDDAK
-BggrBgEFBQcDBDAfBgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQU3TaH
-dsgUhTW3LwObmZ20fj+8Xj8wDQYJKoZIhvcNAQELBQADggEBAAbt6Sptp6ZlTnhM2FDhkVXks68/
-iqvfL/e8wSPVdBxOuiP+8EXGLV3E72KfTTJXMbkcmFpK2K11poBDQJhz0xyOGTESjXNnN6Eqq+iX
-hQtF8xG2lzPq8MijKI4qXk5Vy5DYfwsVfcF0qJw5AhC32nU9uuIPJq8/mQbZfqmoanV/yadootGr
-j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
-9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
-hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
-IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIOEf56DqjVlm
-GvHT0yjveC/KEeK/DuTbWq9Q9AjH1z76MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDMyNTE4NDQ0NlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
-YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCBx1y01Yfakuy0fRDLIZlyPOi5zJLC
-79UMQINFSkr22F0FlEjt3wnuflsjJBPCj7a+mAzRUM+TgAZC+YbmlDoy2/YX5FyBHj+waPSjF3hq
-1MQ9wFVzlEBaT7x7dJF6a/HjsP3cjCXPUr1Xs2dwGFapT6HDpm1eKLnJ5QXoVwjaSuTrD+6XrSZk
-VWLLPsTigaxA7h9zKLJiJFfY+Cq0zFEFEJyOXnwiHm17xcKjVrS7XsTqQXz0qQH596kG6QRtI801
-cPG/dUbVZuXCpbX3H2pRTMCU7juoAGVWp6yCU86av7NlwYCBQOrw+LHDZNPBHdxSzKWeUL4S2AmD
-Z+w8+xmA
---00000000000069882905f7bde7e9--
