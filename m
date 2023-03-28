@@ -2,44 +2,44 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0941C77B62
-	for <linux-rdma@archiver.kernel.org>; Tue, 28 Mar 2023 04:53:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E5F3C76195
+	for <linux-rdma@archiver.kernel.org>; Tue, 28 Mar 2023 04:53:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230468AbjC1ExZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 28 Mar 2023 00:53:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59530 "EHLO
+        id S232183AbjC1Ex5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 28 Mar 2023 00:53:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230269AbjC1ExP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Mar 2023 00:53:15 -0400
-Received: from DM6FTOPR00CU001.outbound.protection.outlook.com (mail-cusazon11020027.outbound.protection.outlook.com [52.101.61.27])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1A8F211F;
-        Mon, 27 Mar 2023 21:53:10 -0700 (PDT)
+        with ESMTP id S231978AbjC1Exk (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 28 Mar 2023 00:53:40 -0400
+Received: from DM6FTOPR00CU001.outbound.protection.outlook.com (mail-cusazon11020018.outbound.protection.outlook.com [52.101.61.18])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70DA52709;
+        Mon, 27 Mar 2023 21:53:18 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=CRdlk7vL2GqwyYg0UqsB6OSy3DfzCcZP7vcJUH5xtr0grTt7Y2n/lPLD/+6SLfcbXJ4pn30KXE3MCc102YKztcffZ3Ptx3iUgrjbn5pGY5tq5E0F048lVho6qTVVPpG8O//e7HZS1Dwx0badxSg8dc9EsaPnNme0IkPx9lEx6RtCFY3G+0YeODwczejc6On3b9mZYEsvXR23d9MYXjNz9Q8BCyHt1iBvoizrbvBzzdguuBr+/FO5/voloGVyFrYu0vP4GRGE3sBPBI1WkfHveiwGqMW7LF5jgpzmZn6zjycubJYsNXY7oozB5AghGL9WYdEThs14ATSHVl4nR65RLw==
+ b=gjDe7V4S1KT3fU9ZcgJghU0Cl3RcJJgX/sHRN/gFXjOykk/YYWI4fxQ0153rKWju0RO+4bKpjtoQDKdNvOW3ezhIgUCJx7TQa4xgfzeTPbs3L8D3wiNbwhiVf+H29ro3F+/4czAiZhiLaz7UYUfikNbhdED0fdcJnazkkx0UGfA5cF0yVUpnPrBMygLs8SbW2DTjRSGfOmeicEajHQ9kdDQ32kap5pceA6b0W8iyi12DdrBxcAE3dXr0rWXlPuXjG8fXNWTYsHQwmE202cboBvoS5wHF2esIYXiDmpw3umlSkWYlzyLQ/ixE8RnoFud8koTMrdrQGRXiLJ9sp9pjvQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=KOudYeSTU9X8aDDWViWGpouAGH7mV9k9HxlIre+s3M8=;
- b=lPq/Us4lsGRTwUosqY8+T07KC2e/dQMTP07PBgf7tU6Za/00vmKO7GBducofuUvAQTdVSSX/cuoxEHm/DnIRa+YZUrFV9eKAiJPoAMM1U5PdJsWYwcQ5VycTAn7VSQOWk5VKT/UnbXVazsA38JmA7K8R/nkT0M67XK0fEVgBOQ5OG0fk4W9msdJz1nJx8q44If8Roq2ZQMEmMHfcj5xjJVtgykZerfQQoNMpB0tZdBesS6YXI0T7XRaXRG1Dep7aifEw2GSSc6wv6YtlDWTkdq8Ycm9BxIdCAW7YD3KDH4pbljqHp6LHle7lqV1ay45lUrVIRgyF/snGVDGY8uaSlw==
+ bh=mIdejf2Qm7gwgjEEPWxewX41SsfdLZbzID/iX5ohE4w=;
+ b=B2vuF0G2Eh/rSc4Nj9aFBH12sQLYOl/UJ3z21KpG7EepSMoYWwihKCYSRmfgNwtPpe3z6ndamBGChbdQv/vMJ74KFx4WCbbRVDU5zj8ma1I4IS9n2PgPVaLKCoXOZHkBc/4Ca++vBvFg/X4BrWg3qzwx+Hr7R7KZorJcVvt2MAGzIMCcYk5LF+Lfyn4pxk1BFLnV2L8/e5T+AUkEK1aOKNr7sMxc4vVh0GK1CUtB3oCnEWCVh+xFrjvhgCnBTuw0+HZHkQUVhx+CaCfA+F8v4nvHTEdeZo9OjhcGpaqIq2wQEUrID3BD5T1qi8yQZlsUSw4roDai0mV/cL3VFqM7nw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=microsoft.com; dmarc=pass action=none
  header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KOudYeSTU9X8aDDWViWGpouAGH7mV9k9HxlIre+s3M8=;
- b=iKgRQvciWYPwtC6cjMTaIznLo5lZei79MWxPQ9ye1qwncVguqouk+gny7b2B4yzYVT9uxUFCBvVszvjYBy7oiIptY9URde9v6jLnYCafxbWjkP2hWjPnpnHKYj1DVRtgsRv7LAA4yQL4fwtLswEyA66XQ/T20JtAb6sDXnEgUrE=
+ bh=mIdejf2Qm7gwgjEEPWxewX41SsfdLZbzID/iX5ohE4w=;
+ b=RCwJJ0f7arhF5MKhj5c0NnmWJXxqdfOemKQGK+ujRX7kqbGE+bBckQc9sgjaRJ+QXAGtLnOTAJabbblPgz7H1VQhidc8kM926n3MdPpJIm8URmrQdXPSGJ/24a0lIEituZGwmiomfG5C/2l4x5Wd/ikz/dPm2MNnk1AZtxFoXTw=
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=microsoft.com;
 Received: from BL0PR2101MB1092.namprd21.prod.outlook.com
  (2603:10b6:207:30::23) by IA1PR21MB3402.namprd21.prod.outlook.com
  (2603:10b6:208:3e1::6) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6277.6; Tue, 28 Mar
- 2023 04:53:09 +0000
+ 2023 04:53:15 +0000
 Received: from BL0PR2101MB1092.namprd21.prod.outlook.com
  ([fe80::97b2:25ca:c44:9b7]) by BL0PR2101MB1092.namprd21.prod.outlook.com
  ([fe80::97b2:25ca:c44:9b7%6]) with mapi id 15.20.6277.005; Tue, 28 Mar 2023
- 04:53:08 +0000
+ 04:53:15 +0000
 From:   Dexuan Cui <decui@microsoft.com>
 To:     bhelgaas@google.com, davem@davemloft.net, decui@microsoft.com,
         edumazet@google.com, haiyangz@microsoft.com, jakeo@microsoft.com,
@@ -50,9 +50,9 @@ To:     bhelgaas@google.com, davem@davemloft.net, decui@microsoft.com,
         boqun.feng@gmail.com
 Cc:     linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Subject: [PATCH 2/6] PCI: hv: Fix a race condition in hv_irq_unmask() that can cause panic
-Date:   Mon, 27 Mar 2023 21:51:18 -0700
-Message-Id: <20230328045122.25850-3-decui@microsoft.com>
+Subject: [PATCH 5/6] PCI: hv: Add a per-bus mutex state_lock
+Date:   Mon, 27 Mar 2023 21:51:21 -0700
+Message-Id: <20230328045122.25850-6-decui@microsoft.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20230328045122.25850-1-decui@microsoft.com>
 References: <20230328045122.25850-1-decui@microsoft.com>
@@ -64,192 +64,346 @@ MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: BL0PR2101MB1092:EE_|IA1PR21MB3402:EE_
-X-MS-Office365-Filtering-Correlation-Id: b948b4d7-4c48-43bc-ddba-08db2f48537c
+X-MS-Office365-Filtering-Correlation-Id: 53069f02-9084-43d5-eede-08db2f48570d
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: +uuPSCWKWZvZBs6o5y31xkxg9obPMtuSfgRzDmWchpDRy3xPGwpJRx+Am99/xX/s22+6+/hsXHkMIQwXmMS0XqedJcLXxGRDHNffEDyeTZZjY5ruNFbj92vu5QKbJC8iKV3KB+Ed6D3WTPQVNipY4sUkiR9a2ZMYMU8UcQttRajeXg0B0nRzmP7zdcPN2aoVqZgTU9RhOfxP/5ukSJvyuu51TIGxiJYHVEYizYcTd5dOAXQ+ArfpyV+ePCwMwQx0EtGm8UWRuoEyYNLPMcC3K2V41Rq/nThAgI1TC2/M88vHd+XvY/GcAFMv4URhwDXcHyI7Q5AqhJkqzWGivlYwIjU6w9llnZ/g08RkkCfgHiFfKWxOLePBQkHKXnK94IrKbJCTRZRFp4DiY4tjGQc/cWdCjHZv0U9TaheE51oIbojixDyeyNkLaBPdoeyzb5ZoppFouy2ecevae4LxzB2zMwcFZX6Fq1ckM+nl380EoGUiworuzY0g8h1DXL3FaXLekOTDJw/m1WdWAOGZYAE1L13D+3WIK25EdxrPrnLifc1ZwP4liEFpvnLcubxuFqmBFKZUFobKJEmyj4uFDua8OxOVz91tzk0NrB3ExsQH7rRaqIbKGI0Po8mxyi8y8+AYVln9zYriBJYVZzwdPJhHHw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR2101MB1092.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(346002)(376002)(366004)(396003)(39860400002)(136003)(451199021)(478600001)(83380400001)(10290500003)(2906002)(1076003)(38100700002)(66899021)(52116002)(7416002)(6486002)(6506007)(6512007)(921005)(2616005)(5660300002)(8936002)(6666004)(316002)(86362001)(82960400001)(82950400001)(186003)(41300700001)(66556008)(66476007)(4326008)(66946007)(8676002)(36756003);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: G9cea6A7CAyau3DXpBEA2Q3twjNYTcV+yKN1PwlvEGP4O/jImp2rKSMW38sdZTtAp9Q7UXaQT3BA98Y296FfJ0gKBcJn4lezFrOcc+s3qxMuApkVzJTtKVCd5GNmDfiH+hb3Q/fZacLLTJAY66PZA9y8i6riNsy9ulqRgvc8rRX1cYLNCqvQ30RM+RpvwsG28zHSkbg/e5ff9x4/vgUJ14/MdEZAqubo1zJNibQzmJkucO8+cH53NytcV58rU8snsa6Pg/Hj7SCXtBcleO5znEZXAtQUxntJkK7mWlSa7HNTZUY0lXuIBaz3YfW2aF+xonoXumx4JpYJzIQV2/hScEF+p7BpxGYu7w3DgMNikZfU7GGlclif/71KutdzSH8MHvH9GEYuBZN7m8eIfn3CteEv+vTfS4RusEsIk5IEepSeSC2Xuft0V2ZyoIYy80oE+Z8hXXh2Fa0kXRjOwNR6I0FBezz+NA1tqnfZgcAyNwUR+LL7wCg9AcqtuYi/HzTMUWhmu031iFPMXDcWMh/eL2DGzpckThkB1XkKRik86z94ICVXse3kNtiJHKXdf8GBEN5O60qwhdiRNEJnO/FwLCEnS+F1ZfktlJ2d7Dw6QCmTnPq9QW+DP6HE32vMLAtyQB19FMsvsicUG8bUZrYV8w==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR2101MB1092.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(346002)(376002)(366004)(396003)(39860400002)(136003)(451199021)(478600001)(83380400001)(10290500003)(2906002)(1076003)(38100700002)(52116002)(7416002)(6486002)(30864003)(6506007)(6512007)(921005)(2616005)(5660300002)(8936002)(6666004)(316002)(86362001)(82960400001)(82950400001)(186003)(41300700001)(66556008)(66476007)(4326008)(66946007)(8676002)(36756003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?N2lOZCDTEWfOfv/VwV60CQETWH9qbGgVFb0cipBELH6+tNKALnFn3ggfOFGd?=
- =?us-ascii?Q?nB761ovuJgxwiotU5sBUXDBcaunLbiNW3Q2XOCJTsHkiFueK+J803dytV4qR?=
- =?us-ascii?Q?+Ooi4f62H6/lh70wpVdJm9TjDqEy/6aNeMzcWnh9KE2gDGL7LwX15CMyJ87I?=
- =?us-ascii?Q?I1P22VHM9p3g0xVB57ER7wzHRZ4c6/W0TmKQU/lVtqMV1Tt2VEj63s9cuitU?=
- =?us-ascii?Q?1yIxVkpOT4tV2YEcPE5LDHQ8zBRsOtBeb7JAl9noKtRCmgKe4GY9DA7A8WlT?=
- =?us-ascii?Q?m9ZWiY19Pv5pdObIOwsGMrFymYhS5W8RhlN65wlvPW/3efe076aE+fkpIju8?=
- =?us-ascii?Q?So9A+uoe5oJh5HwRBvJA+YyN87AX4pK7rM3lL2e2e94NLFg9oEN4jlQoxzFu?=
- =?us-ascii?Q?GuoREd6TIUHMlmITlzCUjxADkeIy4XpX7r0yvnL7oAhkWkIABxKhd5S8ozOa?=
- =?us-ascii?Q?JoBxMWMu7Vf64FeDrrHDBUS2+mFi8z2zdvFjs6+hO/BjvEJiP8tjCjxfTfuB?=
- =?us-ascii?Q?gWgxwGq3oANTRsi5mMn8EkEuSN8a77CSM1KhaYNlJe0fMptKGwUkCQXV2WGK?=
- =?us-ascii?Q?qtLsfn0GC7IgJlmRT1n9LbvfphEPqDm37vANxYof8oJvqlhHCX/snKXNyt9p?=
- =?us-ascii?Q?gM1JPom0hru3neZ5Adpr5zjG6RYbSK6mzYjAe0YeHw9futaLf8Pe/ElUF5xM?=
- =?us-ascii?Q?iiCYvSXGvPm3CTH1KGUcSOnImXMYt72FngBLP27CF8yWoWuUHAPaHrF4TrBZ?=
- =?us-ascii?Q?xZFGU8Bzd1NfMgfEF6xp72rRSelMCB9gs0dgT2xrGUKp0CXE+HXE7AirJkMR?=
- =?us-ascii?Q?Ne+EhJhTFz+PJzJ9lsu9YhNMnTHGdc0/DSrR8ehv+AxI2qclZuovFFZTiQ13?=
- =?us-ascii?Q?DYvhIFb85DxLYTqhwYVjtYcZWbveM4klSucpReVZDN+xd/tbjea4dyClHtEn?=
- =?us-ascii?Q?rEDxIVJISDzimXkRxK5LsGEUs0wHl7qgQg6KI9SFJGVeRtnNc2CFgqNMR/1J?=
- =?us-ascii?Q?MeLxuxUS1WWoHjxPLKiVrQcGRYUITZcH/cDw+5y11lbd3Kr4mtN/smVesm+6?=
- =?us-ascii?Q?Asi2bjLkKYvaYXwVMCQTrz/dq30YQuziccef4IQ6qqkrVmnw+9fl0UASC+Al?=
- =?us-ascii?Q?0KhrDX5DDWgXrToPO3ft77VRabz7GOt+bvpF1TRDjZMZWxin177p/I4VMQ0I?=
- =?us-ascii?Q?Sp2JsvnBeNvX3xCN73aJjRw3hdlGAgS5Z0byYFwKesLijkadFFj7lMM2rjh0?=
- =?us-ascii?Q?Um/4W+ucTHDpC6sZRC46+chqJe2rLTPMHWcalCsHr1iZh335bPZaPBe73Lxn?=
- =?us-ascii?Q?48MrnmKHeciFtbNvrgJzvYde8xTAPid/vXLqxLA7n1WzAYZHPPj/JHXioAG4?=
- =?us-ascii?Q?KOqBDcn2TDYuDpLy8jokl3WdkSNMPZ2Gdmp3r8IDoQxMnz4au6Nqm1S1t4vW?=
- =?us-ascii?Q?JfmkunXMQ6ZJzrq0/lsExwHoo4F1vEFRH+rdhYvca2Wl6PpVwGSNp54Ud7M8?=
- =?us-ascii?Q?jqWSkgZ6g6RJqGfEzwyOOHuwiroCh8GBi7R+mlWrrJbNpruuJjyKSZviv20g?=
- =?us-ascii?Q?82OC8TOFOogF6fUEkU7npOz60xJfrvR3vjT+P8c0Gwz7BDK+PG8pVriuO8aB?=
- =?us-ascii?Q?t3DYV+Kr9Vfp9rqHnAGZVrzkKFztLOxc9TCZEYiVo7iD?=
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?UNDYynaym+7HRVyg4nRH4FtFXrS/1F5ijno4QYnE+banZ8nrUIoz2P8a4Hjo?=
+ =?us-ascii?Q?QIzPpFxI+DWBhVoyfWJQJlvLoewdwjpwI18HooTW3fWMaBr5qSksF56lbGSu?=
+ =?us-ascii?Q?mDNnwrxvts7dRDt4mLBKhpm2t4Zfh1eCetYf7HbzWtrNG1X4AKMjjZqlh9Y7?=
+ =?us-ascii?Q?bDcD6oswzSYpufcv8cJ/6z18RIzKQ23pIY4TbA+Zaqs04dS/2rxSAvYDrg2A?=
+ =?us-ascii?Q?U8jv9LQOzZBPnoGkTssqNIe6SFq89427YAYuHPQMVEpkOXDX+r3yhYy4EHZO?=
+ =?us-ascii?Q?He2FWbMLrBwhNJVLVLPSWqQE6fK6PBYptiWEVeHzlfPU0W8tl9bDwvNtL83L?=
+ =?us-ascii?Q?qLLazAIDO2cUEMaFISVWfUKCFGXYTLA5nJshVUNzcXZc8zQpxhBZCmKwIkxI?=
+ =?us-ascii?Q?w4p80rMUtYBLHY4xnUqyaVu6dvMmOpEohVefC9cJH6SPo/gk5oGFJ/hbmc2s?=
+ =?us-ascii?Q?OwbWy8L2/XBIRaulIAJ00RF68tcuhbogI4mKau0RnT5ERqhE9gsgPTXtpA26?=
+ =?us-ascii?Q?tYMDj0AoH0mdO58I3ffu0F6s6rAE5PEBdkz1rGf1Vn62GroH8AZ3hXanT4HA?=
+ =?us-ascii?Q?0fcC7WzGQ7L63psxKFc1+U0y6RCJeFQbLaOB/UTw5V/IFZsmLqwasKGLW1Oj?=
+ =?us-ascii?Q?An6BsGwh3X74S0zUvjY0aJZwJaghQqF0Z3spNBPT4jgFuGSVT/kJV0j5IpvA?=
+ =?us-ascii?Q?KzYvKUablCB3W/uZVTlepBU+J+/dMDT8ZXDFCBWCnM/mLexABceYP9PLkVZo?=
+ =?us-ascii?Q?6DVtKIBfotdXbm/KNsZN4PVmtL6t7Z1pUX/WJgSdGlSOmn5DDwXLjUyPxQ9q?=
+ =?us-ascii?Q?tDeoNEyKkOU+0uN5nQVKcLEJllczQWGmuHHS9tRxUDfHUH5pWUVUIL2SDM5i?=
+ =?us-ascii?Q?BUJ3L3IXf4uJP1wgm0pmBfulIZlvvUcyyEeafW/wYpQFxwDxsa2w8Sg6RlY6?=
+ =?us-ascii?Q?0aPbmAg58fx+ajERMM0INtXWt1fwH12pO3GGlMXlAGpO3jLPh7RUnxP1NJTv?=
+ =?us-ascii?Q?y/m+kycZQ2+sxgjwj555VD6yel2RXjViyHtoK2fUPbCHlbSAUUHk2CQapFYI?=
+ =?us-ascii?Q?AnRU7gKb2T6HG74yZnFWGk+j8QFvIKJw1hhUDwrnwWKlHxwffRkGZ7hsqgWV?=
+ =?us-ascii?Q?qPA/0WAgUV00PgzLhYoVXj6B2W1P9PksnGR+4RWSnfcJ8ZYdluKyoc838P9d?=
+ =?us-ascii?Q?zIiEljTaG4jVbzWUSU2paKH0Z2CQBbKi/BStDfp8cOIO/40H08EuvSO3aIGG?=
+ =?us-ascii?Q?vtAtAcxuAnd9yhjKjuwAuEcEO4amR2xX6VDjLbRaCmPmf+PEnGLq7eeBqJ4O?=
+ =?us-ascii?Q?xW4ytSj6l3N/s2m+cBD9Pf0HggfrP8slRLlO6yBzbCAG8jYMIEFOO+HxNYeU?=
+ =?us-ascii?Q?xENuOfPvUmsEYS5H4u02XOLdKlNpVRISORx9RVd6/DbbLkWs42mCCJ1c9KEK?=
+ =?us-ascii?Q?UTC75c9lw0CfEA2JhRfRudT7mXn3GA8BZZZ+b0nd27wenkOCCSVsyJMsWvQk?=
+ =?us-ascii?Q?l8NZVEUDPxX2qqFc8Fre2vBk8UIw9/IzpdnxJkijSul5ucwTbOaPCfHmkbFq?=
+ =?us-ascii?Q?0SrGabr31d38yCAHYNIbo4Bs511AO0c23112JPLdzEdY04PxEdZDgjaTQksE?=
+ =?us-ascii?Q?qgeDD3EDnGgnd++XYlSN29a4BQHyKHtbRZtPMfOubWGu?=
 X-OriginatorOrg: microsoft.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b948b4d7-4c48-43bc-ddba-08db2f48537c
+X-MS-Exchange-CrossTenant-Network-Message-Id: 53069f02-9084-43d5-eede-08db2f48570d
 X-MS-Exchange-CrossTenant-AuthSource: BL0PR2101MB1092.namprd21.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Mar 2023 04:53:08.9043
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Mar 2023 04:53:14.9349
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 72f988bf-86f1-41af-91ab-2d7cd011db47
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: l3uu3Tk0EUxPtVBHfFFxfZRTtZ4Jm0/BqKlQjBmRdfMpVJIGvkSYCcSG6khdy1ACU9XjMRCSS3oxwjKZpmRJqg==
+X-MS-Exchange-CrossTenant-UserPrincipalName: bIIp6fxrzNYF+mOUIwQvUt3ObqM4wEGM19nXx9q+VTOH6nNb/BoMFHH8L0lxeK33s8ep72zB9Rd16YP4HIEEbA==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR21MB3402
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-When the host tries to remove a PCI device, the host first sends a
-PCI_EJECT message to the guest, and the guest is supposed to gracefully
-remove the PCI device and send a PCI_EJECTION_COMPLETE message to the host;
-the host then sends a VMBus message CHANNELMSG_RESCIND_CHANNELOFFER to
-the guest (when the guest receives this message, the device is already
-unassigned from the guest) and the guest can do some final cleanup work;
-if the guest fails to respond to the PCI_EJECT message within one minute,
-the host sends the VMBus message CHANNELMSG_RESCIND_CHANNELOFFER and
-removes the PCI device forcibly.
+In the case of fast device addition/removal, it's possible that
+hv_eject_device_work() can start to run before create_root_hv_pci_bus()
+starts to run; as a result, the pci_get_domain_bus_and_slot() in
+hv_eject_device_work() can return a 'pdev' of NULL, and
+hv_eject_device_work() can remove the 'hpdev', and immediately send a
+message PCI_EJECTION_COMPLETE to the host, and the host immediately
+unassigns the PCI device from the guest; meanwhile,
+create_root_hv_pci_bus() and the PCI device driver can be probing the
+dead PCI device and reporting timeout errors.
 
-In the case of fast device addition/removal, it's possible that the PCI
-device driver is still configuring MSI-X interrupts when the guest receives
-the PCI_EJECT message; the channel callback calls hv_pci_eject_device(),
-which sets hpdev->state to hv_pcichild_ejecting, and schedules a work
-hv_eject_device_work(); if the PCI device driver is calling
-pci_alloc_irq_vectors() -> ... -> hv_compose_msi_msg(), we can break the
-while loop in hv_compose_msi_msg() due to the updated hpdev->state, and
-leave data->chip_data with its default value of NULL; later, when the PCI
-device driver calls request_irq() -> ... -> hv_irq_unmask(), the guest
-crashes in hv_arch_irq_unmask() due to data->chip_data being NULL.
+Fix the issue by adding a per-bus mutex 'state_lock' and grabbing the
+mutex before powering on the PCI bus in hv_pci_enter_d0(): when
+hv_eject_device_work() starts to run, it's able to find the 'pdev' and call
+pci_stop_and_remove_bus_device(pdev): if the PCI device driver has
+loaded, the PCI device driver's probe() function is already called in
+create_root_hv_pci_bus() -> pci_bus_add_devices(), and now
+hv_eject_device_work() -> pci_stop_and_remove_bus_device() is able
+to call the PCI device driver's remove() function and remove the device
+reliably; if the PCI device driver hasn't loaded yet, the function call
+hv_eject_device_work() -> pci_stop_and_remove_bus_device() is able to
+remove the PCI device reliably and the PCI device driver's probe()
+function won't be called; if the PCI device driver's probe() is already
+running (e.g., systemd-udev is loading the PCI device driver), it must
+be holding the per-device lock, and after the probe() finishes and releases
+the lock, hv_eject_device_work() -> pci_stop_and_remove_bus_device() is
+able to proceed to remove the device reliably.
 
-Fix the issue by not testing hpdev->state in the while loop: when the
-guest receives PCI_EJECT, the device is still assigned to the guest, and
-the guest has one minute to finish the device removal gracefully. We don't
-really need to (and we should not) test hpdev->state in the loop.
-
-Fixes: de0aa7b2f97d ("PCI: hv: Fix 2 hang issues in hv_compose_msi_msg()")
+Fixes: 4daace0d8ce8 ("PCI: hv: Add paravirtual PCI front-end for Microsoft Hyper-V VMs")
 Signed-off-by: Dexuan Cui <decui@microsoft.com>
 
 ---
- drivers/pci/controller/pci-hyperv.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/pci/controller/pci-hyperv.c | 27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
 
 With the below debug code:
 
-@@ -643,6 +643,9 @@ static void hv_arch_irq_unmask(struct irq_data *data)
- 	pbus = pdev->bus;
- 	hbus = container_of(pbus->sysdata, struct hv_pcibus_device, sysdata);
- 	int_desc = data->chip_data;
-+	if (!int_desc)
-+		dev_warn(&hbus->hdev->device, "%s() can not unmask irq %u\n",
-+			 __func__, data->irq);
+Changes to /drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1727,6 +1727,8 @@ static int probe_one(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	struct devlink *devlink;
+ 	int err;
 
- 	spin_lock_irqsave(&hbus->retarget_msi_interrupt_lock, flags);
-
-@@ -1865,6 +1868,11 @@ static void hv_compose_msi_msg(struct irq_data *data, struct msi_msg *msg)
- 		goto free_int_desc;
++	printk("%s: line %d: sleep 20s: \n", __func__, __LINE__); ssleep(20);
++	printk("%s: line %d: sleep 20s: done\n", __func__, __LINE__);
+ 	devlink = mlx5_devlink_alloc(&pdev->dev);
+ 	if (!devlink) {
+ 		dev_err(&pdev->dev, "devlink alloc failed\n");
+Changes to drivers/pci/controller/pci-hyperv.c
+@@ -2749,6 +2749,7 @@ static void hv_eject_device_work(struct work_struct *work)
+ 	 */
+ 	wslot = wslot_to_devfn(hpdev->desc.win_slot.slot);
+ 	pdev = pci_get_domain_bus_and_slot(hbus->bridge->domain_nr, 0, wslot);
++	printk("%s: 1: line %d: pdev=%px\n", __func__, __LINE__, pdev);
+ 	if (pdev) {
+ 		pci_lock_rescan_remove();
+ 		pci_stop_and_remove_bus_device(pdev);
+@@ -2756,9 +2757,12 @@ static void hv_eject_device_work(struct work_struct *work)
+ 		pci_unlock_rescan_remove();
  	}
 
-+	printk("%s: line %d: irq=%u\n", __func__, __LINE__, data->irq);
-+	{
-+		static bool delayed; //remove the device within the 10s.
-+		if (!delayed) { delayed = true; mdelay(10000); }
-+	}
- 	ret = vmbus_sendpacket_getid(hpdev->hbus->hdev->channel, &ctxt.int_pkts,
- 				     size, (unsigned long)&ctxt.pci_pkt,
- 				     &trans_id, VM_PKT_DATA_INBAND,
++	printk("%s: 2: line %d: pdev=%px: sleeping 10s\n", __func__, __LINE__, pdev); ssleep(10);
++	printk("%s: 3: line %d: pdev=%px: sleeping 10s: done: removing hpdev\n", __func__, __LINE__, pdev);
+ 	spin_lock_irqsave(&hbus->device_list_lock, flags);
+ 	list_del(&hpdev->list_entry);
+ 	spin_unlock_irqrestore(&hbus->device_list_lock, flags);
++	printk("%s: 4: line %d: pdev=%px: hpdev is removed!!!\n", __func__, __LINE__, pdev);
 
-I'm able to repro the below panic:
+ 	if (hpdev->pci_slot)
+ 		pci_destroy_slot(hpdev->pci_slot);
+@@ -2770,6 +2774,7 @@ static void hv_eject_device_work(struct work_struct *work)
+ 	vmbus_sendpacket(hbus->hdev->channel, ejct_pkt,
+ 			 sizeof(*ejct_pkt), 0,
+ 			 VM_PKT_DATA_INBAND, 0);
++	printk("%s: 5: line %d: pdev=%px: sent PCI_EJECTION_COMPLETE\n", __func__, __LINE__, pdev);
 
-[   23.258674] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: PCI VMBus probing: Using version 0x10004
-[   23.271313] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: PCI host bridge to bus 468b:00
-[   23.274554] pci_bus 468b:00: root bus resource [mem 0xfe0000000-0xfe00fffff window]
-[   23.277733] pci_bus 468b:00: No busn resource found for root bus, will use [bus 00-ff]
-[   23.283845] pci 468b:00:02.0: [15b3:1016] type 00 class 0x020000
-[   23.289796] pci 468b:00:02.0: reg 0x10: [mem 0xfe0000000-0xfe00fffff 64bit pref]
-[   23.296463] pci 468b:00:02.0: enabling Extended Tags
+ 	/* For the get_pcichild() in hv_pci_eject_device() */
+ 	put_pcichild(hpdev);
+@@ -3686,7 +3691,10 @@ static int hv_pci_probe(struct hv_device *hdev,
+
+ 	hbus->state = hv_pcibus_probed;
+
++	printk("%s: line %d: create_root_hv_pci_bus=%d: sleeping 10s\n", __func__, __LINE__, ret); ssleep(10);
++	printk("%s: line %d: create_root_hv_pci_bus=%d: sleeping 10s: done\n", __func__, __LINE__, ret);
+ 	ret = create_root_hv_pci_bus(hbus);
++	printk("%s: line %d: create_root_hv_pci_bus=%d\n", __func__, __LINE__, ret);
+ 	if (ret)
+ 		goto free_windows;
+
+I'm able to repro the below timeout errors (remove the PCI VF NIC within 10 seconds after it's assigned)
+
+[   31.445306] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: PCI VMBus probing: Using version 0x10004
+[   31.452133] hv_pci_probe: line 3694: create_root_hv_pci_bus=0: sleeping 10s
+[   34.345256] hv_eject_device_work: 1: line 2752: pdev=0000000000000000
+[   34.350175] hv_eject_device_work: 2: line 2760: pdev=0000000000000000: sleeping 10s
+[   41.650330] hv_pci_probe: line 3695: create_root_hv_pci_bus=0: sleeping 10s: done
+[   41.668443] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: PCI host bridge to bus 468b:00
+[   41.674201] pci_bus 468b:00: root bus resource [mem 0xfe0000000-0xfe00fffff window]
+[   41.680284] pci_bus 468b:00: No busn resource found for root bus, will use [bus 00-ff]
+[   41.688901] pci 468b:00:02.0: [15b3:1016] type 00 class 0x020000
+[   41.695554] pci 468b:00:02.0: reg 0x10: [mem 0xfe0000000-0xfe00fffff 64bit pref]
+[   41.704304] pci 468b:00:02.0: enabling Extended Tags
 ...
-[   23.331300] pci_bus 468b:00: busn_res: [bus 00-ff] end is updated to 00
-[   23.334130] pci 468b:00:02.0: BAR 0: assigned [mem 0xfe0000000-0xfe00fffff 64bit pref]
-[   23.507985] mlx5_core 468b:00:02.0: no default pinctrl state
-[   23.510834] mlx5_core 468b:00:02.0: enabling device (0000 -> 0002)
-[   23.516843] mlx5_core 468b:00:02.0: firmware version: 14.25.8102
-[   23.745069] hv_compose_msi_msg: line 1871: irq=24
-[   33.685554] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: the device is being ejected
-[   33.690855] hv_compose_msi_msg: line 1871: irq=25
-[   33.694797] hv_compose_msi_msg: line 1871: irq=26
-[   33.698884] hv_compose_msi_msg: line 1871: irq=27
-[   33.702910] hv_compose_msi_msg: line 1871: irq=28
-[   33.705726] hv_compose_msi_msg: line 1871: irq=29
-[   33.709644] hv_compose_msi_msg: line 1871: irq=29
-[   33.712182] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: hv_arch_irq_unmask() can not unmask irq 29
-[   33.716625] BUG: kernel NULL pointer dereference, address: 0000000000000008
+[   41.745847] hv_pci_probe: line 3697: create_root_hv_pci_bus=0
+[   41.938950] mlx5_core 468b:00:02.0: no default pinctrl state
+[   41.941462] probe_one: line 1730: sleep 20s:
+[   44.466334] hv_eject_device_work: 3: line 2761: pdev=0000000000000000: sleeping 10s: done: removing hpdev
+[   44.472691] hv_eject_device_work: 4: line 2765: pdev=0000000000000000: hpdev is removed!!!
+[   44.478007] hv_eject_device_work: 5: line 2777: pdev=0000000000000000: sent PCI_EJECTION_COMPLETE
+[   44.480213] hv_netvsc 818fe754-b912-4445-af51-1f584812e3c9 eth0: VF slot 1 removed
+[   63.154376] probe_one: line 1731: sleep 20s: done
+[   63.161610] mlx5_core 468b:00:02.0: firmware version: 65535.65535.65535
+[   83.174538] mlx5_core 468b:00:02.0: wait_fw_init:199:(pid 17): Waiting for FW initialization, timeout abort in 100s (0xffffffff)
+[  103.190543] mlx5_core 468b:00:02.0: wait_fw_init:199:(pid 17): Waiting for FW initialization, timeout abort in 79s (0xffffffff)
+[  123.202507] mlx5_core 468b:00:02.0: wait_fw_init:199:(pid 17): Waiting for FW initialization, timeout abort in 59s (0xffffffff)
+[  143.214547] mlx5_core 468b:00:02.0: wait_fw_init:199:(pid 17): Waiting for FW initialization, timeout abort in 39s (0xffffffff)
+[  163.222594] mlx5_core 468b:00:02.0: wait_fw_init:199:(pid 17): Waiting for FW initialization, timeout abort in 19s (0xffffffff)
+[  183.178629] mlx5_core 468b:00:02.0: mlx5_function_setup:1130:(pid 17): Firmware over 120000 MS in pre-initializing state, aborting
+[  183.186289] mlx5_core 468b:00:02.0: probe_one:1764:(pid 17): mlx5_init_one failed with error code -16
+[  183.192623] mlx5_core: probe of 468b:00:02.0 failed with error -16
+[  183.202701] pci_bus 468b:00: busn_res: [bus 00] is released
+
+With the fix, I'm no longer seeing the timeout errors:
+
+[   31.144066] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: PCI VMBus probing: Using version 0x10004
+[   31.149207] hv_pci_probe: line 3708: create_root_hv_pci_bus=0: sleeping 10s
+[   41.378274] hv_pci_probe: line 3709: create_root_hv_pci_bus=0: sleeping 10s: done
+[   41.397577] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: PCI host bridge to bus 468b:00
+[   41.402799] pci_bus 468b:00: root bus resource [mem 0xfe0000000-0xfe00fffff window]
 ...
-[   33.737426] Workqueue: events work_for_cpu_fn
-[   33.739562] RIP: 0010:hv_irq_unmask+0xc2/0x400 [pci_hyperv]
+[   41.415586] pci 468b:00:02.0: [15b3:1016] type 00 class 0x020000
+[   41.423132] pci 468b:00:02.0: reg 0x10: [mem 0xfe0000000-0xfe00fffff 64bit pref]
 ...
-[   33.778511] Call Trace:
-[   33.779533]  <TASK>
-[   33.780428]  unmask_irq.part.0+0x23/0x40
-[   33.781994]  irq_enable+0x60/0x70
-[   33.783336]  __irq_startup+0x5b/0x80
-[   33.784772]  irq_startup+0x75/0x140
-[   33.786175]  __setup_irq+0x3ae/0x840
-[   33.787586]  request_threaded_irq+0x112/0x180
-[   33.789298]  mlx5_irq_alloc+0x111/0x310 [mlx5_core]
-[   33.791464]  irq_pool_request_vector+0x72/0x80 [mlx5_core]
-[   33.794449]  mlx5_ctrl_irq_request+0xc9/0x160 [mlx5_core]
-[   33.797454]  mlx5_eq_table_create+0x9e/0xb30 [mlx5_core]
-[   33.802127]  mlx5_load+0x54/0x3b0 [mlx5_core]
-[   33.804157]  mlx5_init_one+0x1e6/0x550 [mlx5_core]
-[   33.806347]  probe_one+0x2e5/0x460 [mlx5_core]
-[   33.808664]  local_pci_probe+0x4b/0xb0
-[   33.810377]  work_for_cpu_fn+0x1a/0x30
-[   33.812275]  process_one_work+0x21f/0x430
-[   33.814700]  worker_thread+0x1fa/0x3c0
+[   41.471366] hv_pci_probe: line 3711: create_root_hv_pci_bus=0
+[   41.484371] hv_eject_device_work: 1: line 2761: pdev=ffff90f4c4858000
+[   41.491644] hv_eject_device_work: 2: line 2769: pdev=ffff90f4c4858000: sleeping 10s
+[   51.618268] hv_eject_device_work: 3: line 2770: pdev=ffff90f4c4858000: sleeping 10s: done: removing hpdev
+[   51.625094] hv_eject_device_work: 4: line 2774: pdev=ffff90f4c4858000: hpdev is removed!!!
+[   51.630234] hv_eject_device_work: 5: line 2786: pdev=ffff90f4c4858000: sent PCI_EJECTION_COMPLETE
+[   51.632148] hv_netvsc 818fe754-b912-4445-af51-1f584812e3c9 eth0: VF slot 1 removed
+[   51.647014] pci_bus 468b:00: busn_res: [bus 00] is released
+
+Now the mlx5_core driver is loaded; I try fast device addition/removal again
+and I'm still not seeing the timeout errors:
+
+[  495.622678] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: PCI VMBus probing: Using version 0x10004
+[  495.627791] hv_pci_probe: line 3708: create_root_hv_pci_bus=0: sleeping 10s
+[  505.762550] hv_pci_probe: line 3709: create_root_hv_pci_bus=0: sleeping 10s: done
+[  505.779496] hv_pci b92a0085-468b-407a-a88a-d33fac8edc75: PCI host bridge to bus 468b:00
+[  505.784872] pci_bus 468b:00: root bus resource [mem 0xfe0000000-0xfe00fffff window]
+...
+[  505.798323] pci 468b:00:02.0: [15b3:1016] type 00 class 0x020000
+...
+[  505.868908] probe_one: line 1730: sleep 20s:
+[  525.986578] probe_one: line 1731: sleep 20s: done
+[  525.990717] mlx5_core 468b:00:02.0: enabling device (0000 -> 0002)
+[  525.998339] mlx5_core 468b:00:02.0: firmware version: 14.25.8102
+...
+[  526.381211] hv_netvsc 818fe754-b912-4445-af51-1f584812e3c9 eth0: VF registering: eth1
+[  526.385432] mlx5_core 468b:00:02.0 eth1: joined to eth0
+[  526.389076] mlx5_core 468b:00:02.0 eth1: Disabling LRO, not supported in legacy RQ
+[  526.397276] mlx5_core 468b:00:02.0 eth1: Disabling LRO, not supported in legacy RQ
+[  526.400330] mlx5_core 468b:00:02.0: MLX5E: StrdRq(0) RqSz(1024) StrdSz(256) RxCqeCmprss(0 basic)
+...
+[  526.430803] hv_pci_probe: line 3711: create_root_hv_pci_bus=0
+[  526.443633] hv_eject_device_work: 1: line 2761: pdev=ffff90f4e369b000
+[  526.454819] hv_netvsc 818fe754-b912-4445-af51-1f584812e3c9 eth0: VF unregistering: enP18059s1
+[  526.457828] mlx5_core 468b:00:02.0 enP18059s1 (unregistering): Disabling LRO, not supported in legacy RQ
+[  527.680118] mlx5_core 468b:00:02.0: devm_attr_group_remove: removing group 00000000074d6d6b
+[  527.692794] hv_eject_device_work: 2: line 2769: pdev=ffff90f4e369b000: sleeping 10s
+[  537.762575] hv_eject_device_work: 3: line 2770: pdev=ffff90f4e369b000: sleeping 10s: done: removing hpdev
+[  537.768831] hv_eject_device_work: 4: line 2774: pdev=ffff90f4e369b000: hpdev is removed!!!
+[  537.774313] hv_eject_device_work: 5: line 2786: pdev=ffff90f4e369b000: sent PCI_EJECTION_COMPLETE
+[  537.777737] hv_netvsc 818fe754-b912-4445-af51-1f584812e3c9 eth0: VF slot 1 removed
+[  537.794038] pci_bus 468b:00: busn_res: [bus 00] is released
 
 diff --git a/drivers/pci/controller/pci-hyperv.c b/drivers/pci/controller/pci-hyperv.c
-index b82c7cde19e6..1b11cf739193 100644
+index 48feab095a14..2c0b86b20408 100644
 --- a/drivers/pci/controller/pci-hyperv.c
 +++ b/drivers/pci/controller/pci-hyperv.c
-@@ -643,6 +643,11 @@ static void hv_arch_irq_unmask(struct irq_data *data)
- 	pbus = pdev->bus;
- 	hbus = container_of(pbus->sysdata, struct hv_pcibus_device, sysdata);
- 	int_desc = data->chip_data;
-+	if (!int_desc) {
-+		dev_warn(&hbus->hdev->device, "%s() can not unmask irq %u\n",
-+			 __func__, data->irq);
-+		return;
-+	}
+@@ -489,7 +489,10 @@ struct hv_pcibus_device {
+ 	struct fwnode_handle *fwnode;
+ 	/* Protocol version negotiated with the host */
+ 	enum pci_protocol_version_t protocol_version;
++
++	struct mutex state_lock;
+ 	enum hv_pcibus_state state;
++
+ 	struct hv_device *hdev;
+ 	resource_size_t low_mmio_space;
+ 	resource_size_t high_mmio_space;
+@@ -2512,6 +2515,8 @@ static void pci_devices_present_work(struct work_struct *work)
+ 	if (!dr)
+ 		return;
  
- 	spin_lock_irqsave(&hbus->retarget_msi_interrupt_lock, flags);
- 
-@@ -1911,12 +1916,6 @@ static void hv_compose_msi_msg(struct irq_data *data, struct msi_msg *msg)
- 		hv_pci_onchannelcallback(hbus);
- 		spin_unlock_irqrestore(&channel->sched_lock, flags);
- 
--		if (hpdev->state == hv_pcichild_ejecting) {
--			dev_err_once(&hbus->hdev->device,
--				     "the device is being ejected\n");
--			goto enable_tasklet;
--		}
--
- 		udelay(100);
++	mutex_lock(&hbus->state_lock);
++
+ 	/* First, mark all existing children as reported missing. */
+ 	spin_lock_irqsave(&hbus->device_list_lock, flags);
+ 	list_for_each_entry(hpdev, &hbus->children, list_entry) {
+@@ -2593,6 +2598,8 @@ static void pci_devices_present_work(struct work_struct *work)
+ 		break;
  	}
  
++	mutex_unlock(&hbus->state_lock);
++
+ 	kfree(dr);
+ }
+ 
+@@ -2741,6 +2748,8 @@ static void hv_eject_device_work(struct work_struct *work)
+ 	hpdev = container_of(work, struct hv_pci_dev, wrk);
+ 	hbus = hpdev->hbus;
+ 
++	mutex_lock(&hbus->state_lock);
++
+ 	/*
+ 	 * Ejection can come before or after the PCI bus has been set up, so
+ 	 * attempt to find it and tear down the bus state, if it exists.  This
+@@ -2777,6 +2786,8 @@ static void hv_eject_device_work(struct work_struct *work)
+ 	put_pcichild(hpdev);
+ 	put_pcichild(hpdev);
+ 	/* hpdev has been freed. Do not use it any more. */
++
++	mutex_unlock(&hbus->state_lock);
+ }
+ 
+ /**
+@@ -3562,6 +3573,7 @@ static int hv_pci_probe(struct hv_device *hdev,
+ 		return -ENOMEM;
+ 
+ 	hbus->bridge = bridge;
++	mutex_init(&hbus->state_lock);
+ 	hbus->state = hv_pcibus_init;
+ 	hbus->wslot_res_allocated = -1;
+ 
+@@ -3670,9 +3682,11 @@ static int hv_pci_probe(struct hv_device *hdev,
+ 	if (ret)
+ 		goto free_irq_domain;
+ 
++	mutex_lock(&hbus->state_lock);
++
+ 	ret = hv_pci_enter_d0(hdev);
+ 	if (ret)
+-		goto free_irq_domain;
++		goto release_state_lock;
+ 
+ 	ret = hv_pci_allocate_bridge_windows(hbus);
+ 	if (ret)
+@@ -3690,12 +3704,15 @@ static int hv_pci_probe(struct hv_device *hdev,
+ 	if (ret)
+ 		goto free_windows;
+ 
++	mutex_unlock(&hbus->state_lock);
+ 	return 0;
+ 
+ free_windows:
+ 	hv_pci_free_bridge_windows(hbus);
+ exit_d0:
+ 	(void) hv_pci_bus_exit(hdev, true);
++release_state_lock:
++	mutex_unlock(&hbus->state_lock);
+ free_irq_domain:
+ 	irq_domain_remove(hbus->irq_domain);
+ free_fwnode:
+@@ -3945,20 +3962,26 @@ static int hv_pci_resume(struct hv_device *hdev)
+ 	if (ret)
+ 		goto out;
+ 
++	mutex_lock(&hbus->state_lock);
++
+ 	ret = hv_pci_enter_d0(hdev);
+ 	if (ret)
+ 		goto out;
+ 
+ 	ret = hv_send_resources_allocated(hdev);
+ 	if (ret)
+-		goto out;
++		goto release_state_lock;
+ 
+ 	prepopulate_bars(hbus);
+ 
+ 	hv_pci_restore_msi_state(hbus);
+ 
+ 	hbus->state = hv_pcibus_installed;
++	mutex_unlock(&hbus->state_lock);
+ 	return 0;
++
++release_state_lock:
++	mutex_unlock(&hbus->state_lock);
+ out:
+ 	vmbus_close(hdev->channel);
+ 	return ret;
 -- 
 2.25.1
 
