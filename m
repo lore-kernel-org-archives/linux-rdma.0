@@ -2,135 +2,109 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB3B6C74A5B
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Mar 2023 14:40:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A96EC761AF
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Mar 2023 14:43:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230249AbjC2OkG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 29 Mar 2023 10:40:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40870 "EHLO
+        id S229939AbjC2Onm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 29 Mar 2023 10:43:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230072AbjC2Ojt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Mar 2023 10:39:49 -0400
-Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD4E572BD
-        for <linux-rdma@vger.kernel.org>; Wed, 29 Mar 2023 07:36:43 -0700 (PDT)
-Received: by mail-wr1-x434.google.com with SMTP id j24so16014538wrd.0
-        for <linux-rdma@vger.kernel.org>; Wed, 29 Mar 2023 07:36:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1680100601;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1wnbLglyJ3eA52OV8SdW6bu29+/Ammndwmng0PdQyq4=;
-        b=ugq/1g9YBwG/1tf5t1LALgH0UrL4xYSqR0DVFa02ocSu6KLYuIvrce81O7jv1AiExo
-         jovxehqKJ5gAiDoOdJZYaOJFlxfQM0u38hD/2V4cYqDKQLyn7tc2bwqtjNPQi8FtmRh0
-         KU8K5C96Pu4zVi+okbNpDMuBqhPBPr8G938lWe5JnEVBSseaTDdAFWrLobXvsUBmveAL
-         miFdgsoOMzJzCYa0XPO0dVmaGBwVu4NLBMZsJOi93M6TKKTWsVKvmIfblHMgtVXNTrre
-         tzwtdYFGE9wBD7BXx5iODf2VShqMUbAHDPRxLpVTu0ahb3rDzbSmBLqZcenWSg6guBZF
-         h5Wg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680100601;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=1wnbLglyJ3eA52OV8SdW6bu29+/Ammndwmng0PdQyq4=;
-        b=sJNUYwde3FIo64ICLj1O+fUm5yvJNvB0kHRmIzNfckcb8dzmCjhdea4L1+LjdL2ote
-         PChtzB3fbuTP4tQ6mKZRiSphQAW3Wxls9xkkDmcx08w20ObquVU8zRd+hB43Dd7aMdlo
-         JFoUCgfCo2id4wpUF20ud+6OxSV1nnFWLJPcs/3KSArOAz36tFEaTNxUlq7CrXPmxDEL
-         PsuJW3+PW+Zzj96yD1mxtojYHfseUVjCbaB3z448JAILOmMLfRocFERVuovBa0flxf/m
-         lb/NE/nQ3fyywqVccgpHTVc5s+hfn7WwOzvlyw7a7dhPhkIpDRN/zN45V5kY9Nz1gJTx
-         XWSQ==
-X-Gm-Message-State: AAQBX9fPF1VroaVXJskuIyXrdGCqujTscQlikbDyJ4jfTWdBzdWs45cz
-        MVg3GERFAQSQAybF7dUAgwpyuJZUCNpotRDdlMM=
-X-Google-Smtp-Source: AKy350a8fGtpe6YiOteif9ADW5RFFaoTamblmODlSEVjE7hYvNNQvJ/qSwlgDM2jpXAfPd5v97uw7w==
-X-Received: by 2002:a2e:3309:0:b0:295:733a:3463 with SMTP id d9-20020a2e3309000000b00295733a3463mr6031393ljc.29.1680099828081;
-        Wed, 29 Mar 2023 07:23:48 -0700 (PDT)
-Received: from fedora.. ([85.235.12.219])
-        by smtp.gmail.com with ESMTPSA id u10-20020a2e854a000000b00295b597c8fasm5505492ljj.22.2023.03.29.07.23.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Mar 2023 07:23:47 -0700 (PDT)
-From:   Linus Walleij <linus.walleij@linaro.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>
-Cc:     linux-rdma@vger.kernel.org,
-        Linus Walleij <linus.walleij@linaro.org>
-Subject: [PATCH v2 2/2] RDMA/rxe: Pass a pointer to virt_to_page()
-Date:   Wed, 29 Mar 2023 16:23:41 +0200
-Message-Id: <20230329142341.863175-2-linus.walleij@linaro.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230329142341.863175-1-linus.walleij@linaro.org>
-References: <20230329142341.863175-1-linus.walleij@linaro.org>
+        with ESMTP id S229749AbjC2OnQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Mar 2023 10:43:16 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22FC36E8E
+        for <linux-rdma@vger.kernel.org>; Wed, 29 Mar 2023 07:39:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1680100783;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=eOGvCBK3xTc7UhN8iQW8f99rBt5fCj0lar0/GGKSAUo=;
+        b=H1gL32Xd8l9r+stE1zqaSSIkEvool+TK9K3ywF5RPyJqZ4sgmRtPTgRVYnmlMTGYU/8nou
+        8Olg5i+vH8R7M1uuLjxAiD5odE14uqNlBNiK7W8L7rnAQzOAyH6DFlZh0/s476DBoVL3yC
+        XRVleiX1YtKOUEaKP7JcDg7WRS3eQ6M=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-586-OX_M3mnhOyOLIjTwhOpgsw-1; Wed, 29 Mar 2023 10:39:40 -0400
+X-MC-Unique: OX_M3mnhOyOLIjTwhOpgsw-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 52F783C10ED2;
+        Wed, 29 Mar 2023 14:39:38 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 900FA2166B33;
+        Wed, 29 Mar 2023 14:39:34 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <e128356a-f56f-4c02-7437-dfea38e4194b@suse.de>
+References: <e128356a-f56f-4c02-7437-dfea38e4194b@suse.de> <20230329141354.516864-1-dhowells@redhat.com> <20230329141354.516864-49-dhowells@redhat.com>
+To:     Hannes Reinecke <hare@suse.de>
+cc:     David Howells <dhowells@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, linux-doc@vger.kernel.org,
+        virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
+        linux-sctp@vger.kernel.org, linux-afs@lists.infradead.org,
+        rds-devel@oss.oracle.com, linux-x25@vger.kernel.org,
+        dccp@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Christoph Hellwig <hch@infradead.org>,
+        linux-wpan@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-can@vger.kernel.org, Marc Kleine-Budde <mkl@pengutronix.de>,
+        Al Viro <viro@zeniv.linux.org.uk>, linux-hams@vger.kernel.org,
+        mptcp@lists.linux.dev, Jens Axboe <axboe@kernel.dk>,
+        Christian Brauner <brauner@kernel.org>, netdev@vger.kernel.org,
+        Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org,
+        Chuck Lever III <chuck.lever@oracle.com>,
+        tipc-discussion@lists.sourceforge.net,
+        linux-crypto@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        bpf@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [RFC PATCH v2 48/48] sock: Remove ->sendpage*() in favour of sendmsg(MSG_SPLICE_PAGES)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <518630.1680100773.1@warthog.procyon.org.uk>
+Date:   Wed, 29 Mar 2023 15:39:33 +0100
+Message-ID: <518631.1680100773@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Like the other calls in this function virt_to_page() expects
-a pointer, not an integer.
+Hannes Reinecke <hare@suse.de> wrote:
 
-However since many architectures implement virt_to_pfn() as
-a macro, this function becomes polymorphic and accepts both a
-(unsigned long) and a (void *).
+> > [!] Note: This is a work in progress.  At the moment, some things won't
+> >      build if this patch is applied.  nvme, kcm, smc, tls.
 
-Fix this up with an explicit cast.
+Actually, that needs updating.  nvme and smc now build.
 
-Then we need a second cast to (uintptr_t). This is because
-the kernel robot builds this driver also for the PARISC,
-yielding the following build error on PARISC when casting
-(void *) to virt_to_page():
+> Weelll ... what happens to consumers of kernel_sendpage()?
+> (Let's call them nvme ...)
+> Should they be moved over, too?
 
-drivers/infiniband/sw/rxe/rxe_mr.c: In function 'rxe_set_page':
->> drivers/infiniband/sw/rxe/rxe_mr.c:216:42: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-     216 |         struct page *page = virt_to_page((void *)(iova & mr->page_mask));
-         |                                          ^
-   include/asm-generic/memory_model.h:18:46: note: in definition of macro '__pfn_to_page'
-      18 | #define __pfn_to_page(pfn)      (mem_map + ((pfn) - ARCH_PFN_OFFSET))
-         |                                              ^~~
-   arch/parisc/include/asm/page.h:179:45: note: in expansion of macro '__pa'
-     179 | #define virt_to_page(kaddr)     pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
-         |                                             ^~~~
-   drivers/infiniband/sw/rxe/rxe_mr.c:216:29: note: in expansion of macro 'virt_to_page'
-     216 |         struct page *page = virt_to_page((void *)(iova & mr->page_mask));
-         |                             ^~~~~~~~~~~~
+Patch 42 should address NVMe, I think.  I can't test it, though, as I don't
+have hardware.
 
-First: I think this happens because iova is u64 by design and
-(void *) on PARISC is sometimes 32 bit.
+There should be no callers of kernel_sendmsg() by the end of this patchset,
+and the only remaining implementors of sendpage are Chelsio-TLS, AF_TLS and
+AF_KCM, which as stated in the cover, aren't yet converted and won't build.
 
-Second: compilation of the SW RXE driver on PARISC is made possible
-because it fulfills depends on INFINIBAND_VIRT_DMA since that is just
-def_bool !HIGHMEM and PARISC does not have HIGHMEM.
+> Or what is the general consensus here?
+> 
+> (And what do we do with TLS? It does have a ->sendpage() version, too ...)
 
-By first casting iova to (uintptr_t) it is turned into a u32 on PARISC
-or any other 32bit system and u64 on any 64BIT system.
+I know.  There are three things left that I need to tackle, but I'd like to
+get opinions on some of the other bits and I might need some help with AF_TLS
+and AF_KCM.
 
-Link: https://lore.kernel.org/linux-rdma/202303242000.HmTaa6yB-lkp@intel.com/
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
-ChangeLog v1->v2:
-- Fix up confusion between virtual and physical addresses found
-  by Jason in a separate patch.
-- Fix up compilation on PARISC by additional cast.
-  I don't know if this is the right solution, perhaps RDMA should
-  rather depend on 64BIT if the subsystem is only for 64BIT
-  systems?
----
- drivers/infiniband/sw/rxe/rxe_mr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+That said, should I just remove tls_sw_do_sendpage() since presumably the data
+is going to get copied(?) and encrypted and the source pages aren't going to
+be held onto?
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 8e8250652f9d..a5efb0575956 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -213,7 +213,7 @@ int rxe_mr_init_fast(int max_pages, struct rxe_mr *mr)
- static int rxe_set_page(struct ib_mr *ibmr, u64 iova)
- {
- 	struct rxe_mr *mr = to_rmr(ibmr);
--	struct page *page = virt_to_page(iova & mr->page_mask);
-+	struct page *page = virt_to_page((void *)(uintptr_t)(iova & mr->page_mask));
- 	bool persistent = !!(mr->access & IB_ACCESS_FLUSH_PERSISTENT);
- 	int err;
- 
--- 
-2.34.1
+David
 
