@@ -2,190 +2,155 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B6BFC77B62
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Mar 2023 14:35:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA462C74A5B
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Mar 2023 14:36:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231171AbjC2Ofq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 29 Mar 2023 10:35:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59184 "EHLO
+        id S230314AbjC2Og6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 29 Mar 2023 10:36:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230019AbjC2OfY (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Mar 2023 10:35:24 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 818E46A48;
-        Wed, 29 Mar 2023 07:31:27 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id C8D9E1FDD7;
-        Wed, 29 Mar 2023 14:23:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1680099832; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=JgAqhks0C3IN4+lfZvuY0gbFhTkXdOVc3wNxYkO+XwE=;
-        b=VHJy/t4VnSzbZ4tzrhebOifyuC6pGjl5TQIz/eVAhtxXjcdr04nTTT8d+loIHlGU27b+2j
-        CSu6s44u+410mCUI1AS93mzHeTuhgDd5WeETx5FLlNVkwySfxchYWlJ1RLdkFjFZotLzG/
-        coolDxdnh26L8KxKvBfdG8ioSVVkkIQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1680099832;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=JgAqhks0C3IN4+lfZvuY0gbFhTkXdOVc3wNxYkO+XwE=;
-        b=47xCWD44CmYf+Mf1uCacEcx5m0liEJt4VEk696Atou5kYSzLvIRfiSd0oiNW0K9PV3jU3L
-        lxDHHZyHaPhoaJCw==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 63D1E138FF;
-        Wed, 29 Mar 2023 14:23:52 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id vQXSFvhJJGTPMwAAMHmgww
-        (envelope-from <hare@suse.de>); Wed, 29 Mar 2023 14:23:52 +0000
-Message-ID: <e128356a-f56f-4c02-7437-dfea38e4194b@suse.de>
-Date:   Wed, 29 Mar 2023 16:23:51 +0200
+        with ESMTP id S230099AbjC2Ogp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Mar 2023 10:36:45 -0400
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70B8359F5
+        for <linux-rdma@vger.kernel.org>; Wed, 29 Mar 2023 07:32:43 -0700 (PDT)
+Received: by mail-wr1-f50.google.com with SMTP id y14so15971192wrq.4
+        for <linux-rdma@vger.kernel.org>; Wed, 29 Mar 2023 07:32:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1680100251;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=JNU6UNqUS+WuAbKetud+rmauI0T5YLmIIiBYJJBr/Mk=;
+        b=IRZhtwgLYqyDJddtWVlWAB0Tl/aldF834NoRRgRViPLwXVY/IXF/wJMdn7qcaQCjsY
+         /dqH2w1TGl1y8TnyVjr5EVxV5FXO783D0EaUoVUSr3WuHGnTIXoVLJlZtSWthV5JT7Gp
+         AwTjXwvBW0AcbQnghuA83IQ7m+5Rspgm+vYpUHT3v6gAS/1ZAuqab/n9Mv+9RwBDCOGQ
+         Ym3NIpey7JUxl5h03zoiPBqppQXKO2J2FHM5szw8FD7R9iM94lkOYfJuIEJIcdqZEEDW
+         63o7qXxMb3F2zarZkcV6JsLDVUsAp1U4x1+U8aTJrSZsjdah9Xs1iKhvfg2+9e6ucg5M
+         rniw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680100251;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=JNU6UNqUS+WuAbKetud+rmauI0T5YLmIIiBYJJBr/Mk=;
+        b=CK1YnXbG0naT/wpXpq3dC44RxL05Yu4R+J1xfWuiHiyEGTlg9/tPNAV6p2Qg3M+nOs
+         Xe0yVingl2omkpVwxCFn63bicWmjMt+5tHUk8LXw84Rogcmmw544630oFZ/3jkMtxWAV
+         ryD5DiQkMTIhLhe4WDJh/5nDKk298qoSjY6IG2+xCrcaD/bCTDNqiqqKtyBhKUojq2FN
+         Up/m05kqaxnmxR+0x/Aa9XyLyN1H71+7e1EI0lYlImEeJi/5cHU+fhX2DARyih7eUJHg
+         +k3S141BcD/m6JvHtpqof7GnquBPuZrrOMY+HLwmtqTwuoZmFNohk084HY0oJ8Fam3pQ
+         Tg7Q==
+X-Gm-Message-State: AAQBX9f3Gt8pdu9mcAJ9m68+NWIPL+Zw0l4syJhmac+ouuQzZxcomR47
+        JpUhmvatdF5foI43mLZgVwMW12Zgk0NMvq6OCEs=
+X-Google-Smtp-Source: AKy350YWu8m4GsCwRMcyTMm+yIk6z6s/V+zc2QDgJNprixotZZvBqPMtgdszGSJuj6jG056fFFm5Bg==
+X-Received: by 2002:a2e:b018:0:b0:29c:9209:9ebe with SMTP id y24-20020a2eb018000000b0029c92099ebemr6689214ljk.39.1680099826515;
+        Wed, 29 Mar 2023 07:23:46 -0700 (PDT)
+Received: from fedora.. ([85.235.12.219])
+        by smtp.gmail.com with ESMTPSA id u10-20020a2e854a000000b00295b597c8fasm5505492ljj.22.2023.03.29.07.23.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Mar 2023 07:23:46 -0700 (PDT)
+From:   Linus Walleij <linus.walleij@linaro.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>,
+        Leon Romanovsky <leonro@nvidia.com>
+Cc:     linux-rdma@vger.kernel.org,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Bob Pearson <rpearsonhpe@gmail.com>
+Subject: [PATCH v2 1/2] RDMA/rxe: Treat physical addresses right
+Date:   Wed, 29 Mar 2023 16:23:40 +0200
+Message-Id: <20230329142341.863175-1-linus.walleij@linaro.org>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.8.0
-Subject: Re: [RFC PATCH v2 48/48] sock: Remove ->sendpage*() in favour of
- sendmsg(MSG_SPLICE_PAGES)
-To:     David Howells <dhowells@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>
-Cc:     linux-doc@vger.kernel.org,
-        virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
-        linux-sctp@vger.kernel.org, linux-afs@lists.infradead.org,
-        rds-devel@oss.oracle.com, linux-x25@vger.kernel.org,
-        dccp@vger.kernel.org, linux-rdma@vger.kernel.org,
-        Christoph Hellwig <hch@infradead.org>,
-        linux-wpan@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-can@vger.kernel.org, Marc Kleine-Budde <mkl@pengutronix.de>,
-        Al Viro <viro@zeniv.linux.org.uk>, linux-hams@vger.kernel.org,
-        mptcp@lists.linux.dev, Jens Axboe <axboe@kernel.dk>,
-        Christian Brauner <brauner@kernel.org>, netdev@vger.kernel.org,
-        Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org,
-        Chuck Lever III <chuck.lever@oracle.com>,
-        tipc-discussion@lists.sourceforge.net,
-        linux-crypto@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        bpf@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
-References: <20230329141354.516864-1-dhowells@redhat.com>
- <20230329141354.516864-49-dhowells@redhat.com>
-Content-Language: en-US
-From:   Hannes Reinecke <hare@suse.de>
-In-Reply-To: <20230329141354.516864-49-dhowells@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 3/29/23 16:13, David Howells wrote:
-> [!] Note: This is a work in progress.  At the moment, some things won't
->      build if this patch is applied.  nvme, kcm, smc, tls.
-> 
-> Remove ->sendpage() and ->sendpage_locked().  sendmsg() with
-> MSG_SPLICE_PAGES should be used instead.  This allows multiple pages and
-> multipage folios to be passed through.
-> 
-> Signed-off-by: David Howells <dhowells@redhat.com>
-> Acked-by: Marc Kleine-Budde <mkl@pengutronix.de> # for net/can
-> cc: "David S. Miller" <davem@davemloft.net>
-> cc: Eric Dumazet <edumazet@google.com>
-> cc: Jakub Kicinski <kuba@kernel.org>
-> cc: Paolo Abeni <pabeni@redhat.com>
-> cc: Jens Axboe <axboe@kernel.dk>
-> cc: Matthew Wilcox <willy@infradead.org>
-> cc: bpf@vger.kernel.org
-> cc: dccp@vger.kernel.org
-> cc: linux-afs@lists.infradead.org
-> cc: linux-arm-msm@vger.kernel.org
-> cc: linux-can@vger.kernel.org
-> cc: linux-crypto@vger.kernel.org
-> cc: linux-doc@vger.kernel.org
-> cc: linux-hams@vger.kernel.org
-> cc: linux-kernel@vger.kernel.org
-> cc: linux-rdma@vger.kernel.org
-> cc: linux-sctp@vger.kernel.org
-> cc: linux-wpan@vger.kernel.org
-> cc: linux-x25@vger.kernel.org
-> cc: mptcp@lists.linux.dev
-> cc: netdev@vger.kernel.org
-> cc: rds-devel@oss.oracle.com
-> cc: tipc-discussion@lists.sourceforge.net
-> cc: virtualization@lists.linux-foundation.org
-> ---
->   Documentation/networking/scaling.rst |   4 +-
->   crypto/af_alg.c                      |  29 ------
->   crypto/algif_aead.c                  |  22 +----
->   crypto/algif_rng.c                   |   2 -
->   crypto/algif_skcipher.c              |  14 ---
->   include/linux/net.h                  |   8 --
->   include/net/inet_common.h            |   2 -
->   include/net/sock.h                   |   6 --
->   net/appletalk/ddp.c                  |   1 -
->   net/atm/pvc.c                        |   1 -
->   net/atm/svc.c                        |   1 -
->   net/ax25/af_ax25.c                   |   1 -
->   net/caif/caif_socket.c               |   2 -
->   net/can/bcm.c                        |   1 -
->   net/can/isotp.c                      |   1 -
->   net/can/j1939/socket.c               |   1 -
->   net/can/raw.c                        |   1 -
->   net/core/sock.c                      |  35 +------
->   net/dccp/ipv4.c                      |   1 -
->   net/dccp/ipv6.c                      |   1 -
->   net/ieee802154/socket.c              |   2 -
->   net/ipv4/af_inet.c                   |  21 ----
->   net/ipv4/tcp.c                       |  34 -------
->   net/ipv4/tcp_bpf.c                   |  21 +---
->   net/ipv4/tcp_ipv4.c                  |   1 -
->   net/ipv4/udp.c                       |  22 -----
->   net/ipv4/udp_impl.h                  |   2 -
->   net/ipv4/udplite.c                   |   1 -
->   net/ipv6/af_inet6.c                  |   3 -
->   net/ipv6/raw.c                       |   1 -
->   net/ipv6/tcp_ipv6.c                  |   1 -
->   net/key/af_key.c                     |   1 -
->   net/l2tp/l2tp_ip.c                   |   1 -
->   net/l2tp/l2tp_ip6.c                  |   1 -
->   net/llc/af_llc.c                     |   1 -
->   net/mctp/af_mctp.c                   |   1 -
->   net/mptcp/protocol.c                 |   2 -
->   net/netlink/af_netlink.c             |   1 -
->   net/netrom/af_netrom.c               |   1 -
->   net/packet/af_packet.c               |   2 -
->   net/phonet/socket.c                  |   2 -
->   net/qrtr/af_qrtr.c                   |   1 -
->   net/rds/af_rds.c                     |   1 -
->   net/rose/af_rose.c                   |   1 -
->   net/rxrpc/af_rxrpc.c                 |   1 -
->   net/sctp/protocol.c                  |   1 -
->   net/socket.c                         |  48 ---------
->   net/tipc/socket.c                    |   3 -
->   net/unix/af_unix.c                   | 139 ---------------------------
->   net/vmw_vsock/af_vsock.c             |   3 -
->   net/x25/af_x25.c                     |   1 -
->   net/xdp/xsk.c                        |   1 -
->   52 files changed, 9 insertions(+), 447 deletions(-)
-> 
-Weelll ... what happens to consumers of kernel_sendpage()?
-(Let's call them nvme ...)
-Should they be moved over, too?
+Whenever the IB_MR_TYPE_DMA flag is set in imbr.type, the "iova"
+(I/O virtual address) is not really a virtual address but a physical
+address.
 
-Or what is the general consensus here?
+This means that the use of virt_to_page() on these addresses is also
+incorrect, this needs to be treated and converted to a page using
+the page frame number and pfn_to_page().
 
-(And what do we do with TLS? It does have a ->sendpage() version, too ...)
+Fix up all users in this file.
 
-Cheers,
+Fixes: 592627ccbdff ("RDMA/rxe: Replace rxe_map and rxe_phys_buf by xarray")
+Cc: Bob Pearson <rpearsonhpe@gmail.com>
+Reported-by: Jason Gunthorpe <jgg@nvidia.com>
+Link: https://lore.kernel.org/linux-rdma/ZB2s3GeaN%2FFBpR5K@nvidia.com/
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ChangeLog v1->v2:
+- New patch prepended to patch set.
+---
+ drivers/infiniband/sw/rxe/rxe_mr.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-Hannes
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index b10aa1580a64..8e8250652f9d 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -279,16 +279,20 @@ static int rxe_mr_copy_xarray(struct rxe_mr *mr, u64 iova, void *addr,
+ 	return 0;
+ }
+ 
+-static void rxe_mr_copy_dma(struct rxe_mr *mr, u64 iova, void *addr,
++/*
++ * This function is always called with a physical address as parameter,
++ * since DMA only operates on physical addresses.
++ */
++static void rxe_mr_copy_dma(struct rxe_mr *mr, u64 phys, void *addr,
+ 			    unsigned int length, enum rxe_mr_copy_dir dir)
+ {
+-	unsigned int page_offset = iova & (PAGE_SIZE - 1);
++	unsigned int page_offset = phys & (PAGE_SIZE - 1);
+ 	unsigned int bytes;
+ 	struct page *page;
+ 	u8 *va;
+ 
+ 	while (length) {
+-		page = virt_to_page(iova & mr->page_mask);
++		page = pfn_to_page(phys >> PAGE_SHIFT);
+ 		bytes = min_t(unsigned int, length,
+ 				PAGE_SIZE - page_offset);
+ 		va = kmap_local_page(page);
+@@ -300,7 +304,7 @@ static void rxe_mr_copy_dma(struct rxe_mr *mr, u64 iova, void *addr,
+ 
+ 		kunmap_local(va);
+ 		page_offset = 0;
+-		iova += bytes;
++		phys += bytes;
+ 		addr += bytes;
+ 		length -= bytes;
+ 	}
+@@ -487,8 +491,11 @@ int rxe_mr_do_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
+ 	}
+ 
+ 	if (mr->ibmr.type == IB_MR_TYPE_DMA) {
+-		page_offset = iova & (PAGE_SIZE - 1);
+-		page = virt_to_page(iova & PAGE_MASK);
++		/* In this case iova is a physical address */
++		u64 phys = iova;
++
++		page_offset = phys & (PAGE_SIZE - 1);
++		page = pfn_to_page(phys >> PAGE_SHIFT);
+ 	} else {
+ 		unsigned long index;
+ 		int err;
+@@ -544,8 +551,11 @@ int rxe_mr_do_atomic_write(struct rxe_mr *mr, u64 iova, u64 value)
+ 	}
+ 
+ 	if (mr->ibmr.type == IB_MR_TYPE_DMA) {
+-		page_offset = iova & (PAGE_SIZE - 1);
+-		page = virt_to_page(iova & PAGE_MASK);
++		/* In this case iova is a physical address */
++		u64 phys = iova;
++
++		page_offset = phys & (PAGE_SIZE - 1);
++		page = pfn_to_page(phys >> PAGE_SHIFT);
+ 	} else {
+ 		unsigned long index;
+ 		int err;
+-- 
+2.34.1
 
