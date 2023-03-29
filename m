@@ -2,87 +2,74 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0AD5C77B60
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Mar 2023 10:33:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6654DC6FD18
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Mar 2023 11:05:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230145AbjC2Kdg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 29 Mar 2023 06:33:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40430 "EHLO
+        id S229605AbjC2LFE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 29 Mar 2023 07:05:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230231AbjC2Kdf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Mar 2023 06:33:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD336422C;
-        Wed, 29 Mar 2023 03:33:01 -0700 (PDT)
+        with ESMTP id S229585AbjC2LE7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Mar 2023 07:04:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B6174C01;
+        Wed, 29 Mar 2023 04:04:27 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1154961C36;
-        Wed, 29 Mar 2023 10:32:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7F03C4339B;
-        Wed, 29 Mar 2023 10:32:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8300961C64;
+        Wed, 29 Mar 2023 11:04:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68C7CC433EF;
+        Wed, 29 Mar 2023 11:04:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1680085964;
-        bh=vOYzi7+hcrsUCs2akSC8CMn6+Kisn3S6b62l189uz+E=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=YVeEcyKDS5PnyOWRVI5S+hVao9X9AT3TdMiTGVrzB6m8Shf1WrV/2hPTFyuIgynrA
-         dGAhql7lqrx070bz7/0bfKTMCvIBSh6pnd9+PhsQvE+ra7C2UsrPBeVomDERrMUXG5
-         Ce6ou4DnDAPgcU3D15fa3Xb7HTXSev/fR/5x6Xb0yWiV6aK4ZQyCL1KA7P3zSYIVO6
-         F3vWjsKT4lV8qKAYVbGFtebfHex3aQq7zhZ62FkhODiy6NoZgtdKPfDdasJAPNYjdp
-         DxOHH4bTzeUMpbR7+Z9fMyyYwyYoD+NiEDZzx/EFZXrREvmEd9EuAzuk6fO5jpvrGy
-         3bbn8hIzqx7sw==
-Date:   Wed, 29 Mar 2023 13:32:40 +0300
+        s=k20201202; t=1680087862;
+        bh=Gw9O6ZaC36eb6d88mB4jNAovDbOA35ixW3ce0NWIAKc=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=MMMsvWic7lux1PGqaZjU7nNOa5tbBY2YeWUypzShlfe+O7rJTWNTai6r9yKvOZIZe
+         NsYiUBaL2/FFhqKlEKX80DYuncdqmM0i/pG/afHa5y8qaE9Uesdy29LKQ2RBvqLwIW
+         Yn2qmOJkCmHhP/DXXLmSghNcHKuftc5PwLDwqkjpntCs+E29gT9eeEV1PAqvaYvv8k
+         v/hEjBPhS+YFJ1EFSF4J0V25xoOtucCXTarlKPiAiv5h/LEbF+p1jfMC04ljiNEa3/
+         rrTd/4TfdM4sX8De6qiUeak2ozHl7hzWwLh+pXx+JAzqlMZ7vjAIcDtzVUS9AVVWhL
+         hLjhekCaIHKGg==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Cc:     saeedm@nvidia.com, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, richardcochran@gmail.com,
-        netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Abaci Robot <abaci@linux.alibaba.com>
-Subject: Re: [PATCH 2/2] net/mlx5e: Fix missing error code in
- mlx5e_rx_reporter_err_icosq_cqe_recover()
-Message-ID: <20230329103240.GK831478@unreal>
-References: <20230324025541.38458-1-jiapeng.chong@linux.alibaba.com>
- <20230324025541.38458-2-jiapeng.chong@linux.alibaba.com>
+To:     selvin.xavier@broadcom.com, jgg@ziepe.ca, nathan@kernel.org,
+        ndesaulniers@google.com, Tom Rix <trix@redhat.com>
+Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        llvm@lists.linux.dev
+In-Reply-To: <20230325140559.1336056-1-trix@redhat.com>
+References: <20230325140559.1336056-1-trix@redhat.com>
+Subject: Re: [PATCH] RDMA/bnxt_re: remove unused num_srqne_processed and
+ num_cqne_processed variables
+Message-Id: <168008785879.1076930.16938112248605767834.b4-ty@kernel.org>
+Date:   Wed, 29 Mar 2023 14:04:18 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230324025541.38458-2-jiapeng.chong@linux.alibaba.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.12-dev-a055d
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Mar 24, 2023 at 10:55:41AM +0800, Jiapeng Chong wrote:
-> The error code is missing in this code scenario, add the error code
-> '-EINVAL' to the return value 'err'.
-> 
-> drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c:105 mlx5e_tx_reporter_err_cqe_recover() warn: missing error code 'err'.
-> 
-> Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-> Link: https://bugzilla.openanolis.cn/show_bug.cgi?id=4600
-> Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c
-> index 44c1926843a1..5e2e2449668d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/reporter_tx.c
-> @@ -101,8 +101,10 @@ static int mlx5e_tx_reporter_err_cqe_recover(void *ctx)
->  		goto out;
->  	}
->  
-> -	if (state != MLX5_SQC_STATE_ERR)
-> +	if (state != MLX5_SQC_STATE_ERR) {
-> +		err = -EINVAL;
 
-Same comment as for patch #1.
-
->  		goto out;
-> +	}
->  
->  	mlx5e_tx_disable_queue(sq->txq);
->  
-> -- 
-> 2.20.1.7.g153144c
+On Sat, 25 Mar 2023 10:05:59 -0400, Tom Rix wrote:
+> clang with W=1 reports
+> drivers/infiniband/hw/bnxt_re/qplib_fp.c:303:6: error: variable
+>   'num_srqne_processed' set but not used [-Werror,-Wunused-but-set-variable]
+>         int num_srqne_processed = 0;
+>             ^
+> drivers/infiniband/hw/bnxt_re/qplib_fp.c:304:6: error: variable
+>   'num_cqne_processed' set but not used [-Werror,-Wunused-but-set-variable]
+>         int num_cqne_processed = 0;
+>             ^
+> These variables are not used so remove them.
 > 
+> [...]
+
+Applied, thanks!
+
+[1/1] RDMA/bnxt_re: remove unused num_srqne_processed and num_cqne_processed variables
+      https://git.kernel.org/rdma/rdma/c/1b69f1e3d7449d
+
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
