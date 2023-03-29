@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1246FC74A5B
-	for <linux-rdma@archiver.kernel.org>; Wed, 29 Mar 2023 14:18:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59665C77B6C
+	for <linux-rdma@archiver.kernel.org>; Wed, 29 Mar 2023 14:20:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229928AbjC2OR5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 29 Mar 2023 10:17:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54634 "EHLO
+        id S230509AbjC2OUA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 29 Mar 2023 10:20:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229577AbjC2ORL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Mar 2023 10:17:11 -0400
+        with ESMTP id S229717AbjC2OSl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 29 Mar 2023 10:18:41 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 332B6527A
-        for <linux-rdma@vger.kernel.org>; Wed, 29 Mar 2023 07:15:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D2355FCA
+        for <linux-rdma@vger.kernel.org>; Wed, 29 Mar 2023 07:16:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1680099258;
+        s=mimecast20190719; t=1680099325;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=zHarMfhYqdBKP5ReoH3//xqNxFuro7P2+Q66shvU368=;
-        b=Nwv9LAuM9hsASC1zRCMaYW6YkV7vZPV90U4jixBJuPej7LfQJL5+XXu6/Eqx2SisGFHV7o
-        TK6C+W6oIMwaau/dPyz5Gt38fZPuR6s55qAGIhFLTQUZ/1XYp65GjubPfobJkjqQc0oA8K
-        6qHHnQNmVmKKbiBqMOVqcNt/RZOdX04=
+        bh=uOfuvlKLCw3PwI6FlP4CG+iWtw5a+KyQbWE9E7aqyN8=;
+        b=A1M5/a7BM8wMr88YFuO7fs5DSqMnXfNYio7Q+8ghgEvOaNw6RdSH7tgho4tOB/v3i9DsKu
+        +pHWiGTKirMtFgdCUQzmwnbuyTMWb9/9SnCc9hOrqXK8okyYBO227tPmMGZvCjtFapz992
+        Psedzwsoi5CRlBC/xUk2WR+BCKz143c=
 Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
  [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-338-kG3Hk5VCOq-MrLBrXf1dJQ-1; Wed, 29 Mar 2023 10:14:14 -0400
-X-MC-Unique: kG3Hk5VCOq-MrLBrXf1dJQ-1
-Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+ us-mta-70-Ff7TQ3BGOAynU7ztrXIohw-1; Wed, 29 Mar 2023 10:15:22 -0400
+X-MC-Unique: Ff7TQ3BGOAynU7ztrXIohw-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2DA6A3814592;
-        Wed, 29 Mar 2023 14:14:13 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E073A1C0758E;
+        Wed, 29 Mar 2023 14:15:20 +0000 (UTC)
 Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D3728492C3E;
-        Wed, 29 Mar 2023 14:14:10 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id B3D6F2027042;
+        Wed, 29 Mar 2023 14:15:18 +0000 (UTC)
 From:   David Howells <dhowells@redhat.com>
 To:     Matthew Wilcox <willy@infradead.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -54,20 +54,26 @@ Cc:     David Howells <dhowells@redhat.com>,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         Bernard Metzler <bmt@zurich.ibm.com>,
         Tom Talpey <tom@talpey.com>, linux-rdma@vger.kernel.org
-Subject: [RFC PATCH v2 05/48] mm: Move the page fragment allocator from page_alloc.c into its own file
-Date:   Wed, 29 Mar 2023 15:13:11 +0100
-Message-Id: <20230329141354.516864-6-dhowells@redhat.com>
+Subject: [RFC PATCH v2 30/48] siw: Use sendmsg(MSG_SPLICE_PAGES) rather than sendpage to transmit
+Date:   Wed, 29 Mar 2023 15:13:36 +0100
+Message-Id: <20230329141354.516864-31-dhowells@redhat.com>
 In-Reply-To: <20230329141354.516864-1-dhowells@redhat.com>
 References: <20230329141354.516864-1-dhowells@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.10
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Move the page fragment allocator from page_alloc.c into its own file
-preparatory to changing it.
+When transmitting data, call down into TCP using a single sendmsg with
+MSG_SPLICE_PAGES to indicate that content should be spliced rather than
+performing several sendmsg and sendpage calls to transmit header, data
+pages and trailer.
+
+To make this work, the data is assembled in a bio_vec array and attached to
+a BVEC-type iterator.  The header and trailer (if present) are copied into
+page fragments that can be freed with put_page().
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 cc: Bernard Metzler <bmt@zurich.ibm.com>
@@ -81,297 +87,338 @@ cc: Matthew Wilcox <willy@infradead.org>
 cc: linux-rdma@vger.kernel.org
 cc: netdev@vger.kernel.org
 ---
- mm/Makefile          |   2 +-
- mm/page_alloc.c      | 126 -----------------------------------------
- mm/page_frag_alloc.c | 131 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 132 insertions(+), 127 deletions(-)
- create mode 100644 mm/page_frag_alloc.c
+ drivers/infiniband/sw/siw/siw_qp_tx.c | 234 ++++++--------------------
+ 1 file changed, 48 insertions(+), 186 deletions(-)
 
-diff --git a/mm/Makefile b/mm/Makefile
-index 8e105e5b3e29..4e6dc12b4cbd 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -52,7 +52,7 @@ obj-y			:= filemap.o mempool.o oom_kill.o fadvise.o \
- 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   util.o mmzone.o vmstat.o backing-dev.o \
- 			   mm_init.o percpu.o slab_common.o \
--			   compaction.o \
-+			   compaction.o page_frag_alloc.o \
- 			   interval_tree.o list_lru.o workingset.o \
- 			   debug.o gup.o mmap_lock.o $(mmu-y)
- 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index ac1fc986af44..c08847308907 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5694,132 +5694,6 @@ void free_pages(unsigned long addr, unsigned int order)
- 
- EXPORT_SYMBOL(free_pages);
+diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
+index fa5de40d85d5..fbe80c06d0ca 100644
+--- a/drivers/infiniband/sw/siw/siw_qp_tx.c
++++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
+@@ -312,114 +312,8 @@ static int siw_tx_ctrl(struct siw_iwarp_tx *c_tx, struct socket *s,
+ 	return rv;
+ }
  
 -/*
-- * Page Fragment:
-- *  An arbitrary-length arbitrary-offset area of memory which resides
-- *  within a 0 or higher order page.  Multiple fragments within that page
-- *  are individually refcounted, in the page's reference counter.
+- * 0copy TCP transmit interface: Use MSG_SPLICE_PAGES.
 - *
-- * The page_frag functions below provide a simple allocation framework for
-- * page fragments.  This is used by the network stack and network device
-- * drivers to provide a backing region of memory for use as either an
-- * sk_buff->head, or to be used in the "frags" portion of skb_shared_info.
+- * Using sendpage to push page by page appears to be less efficient
+- * than using sendmsg, even if data are copied.
+- *
+- * A general performance limitation might be the extra four bytes
+- * trailer checksum segment to be pushed after user data.
 - */
--static struct page *__page_frag_cache_refill(struct page_frag_cache *nc,
--					     gfp_t gfp_mask)
+-static int siw_tcp_sendpages(struct socket *s, struct page **page, int offset,
+-			     size_t size)
 -{
--	struct page *page = NULL;
--	gfp_t gfp = gfp_mask;
+-	struct bio_vec bvec;
+-	struct msghdr msg = {
+-		.msg_flags = (MSG_MORE | MSG_DONTWAIT | MSG_SENDPAGE_NOTLAST |
+-			      MSG_SPLICE_PAGES),
+-	};
+-	struct sock *sk = s->sk;
+-	int i = 0, rv = 0, sent = 0;
 -
--#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
--	gfp_mask |= __GFP_COMP | __GFP_NOWARN | __GFP_NORETRY |
--		    __GFP_NOMEMALLOC;
--	page = alloc_pages_node(NUMA_NO_NODE, gfp_mask,
--				PAGE_FRAG_CACHE_MAX_ORDER);
--	nc->size = page ? PAGE_FRAG_CACHE_MAX_SIZE : PAGE_SIZE;
--#endif
--	if (unlikely(!page))
--		page = alloc_pages_node(NUMA_NO_NODE, gfp, 0);
+-	while (size) {
+-		size_t bytes = min_t(size_t, PAGE_SIZE - offset, size);
 -
--	nc->va = page ? page_address(page) : NULL;
+-		if (size + offset <= PAGE_SIZE)
+-			msg.msg_flags = MSG_MORE | MSG_DONTWAIT;
 -
--	return page;
--}
+-		tcp_rate_check_app_limited(sk);
+-		bvec_set_page(&bvec, page[i], bytes, offset);
+-		iov_iter_bvec(&msg.msg_iter, ITER_SOURCE, &bvec, 1, size);
 -
--void __page_frag_cache_drain(struct page *page, unsigned int count)
--{
--	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
+-try_page_again:
+-		lock_sock(sk);
+-		rv = tcp_sendmsg_locked(sk, &msg, size);
+-		release_sock(sk);
 -
--	if (page_ref_sub_and_test(page, count))
--		free_the_page(page, compound_order(page));
--}
--EXPORT_SYMBOL(__page_frag_cache_drain);
--
--void *page_frag_alloc_align(struct page_frag_cache *nc,
--		      unsigned int fragsz, gfp_t gfp_mask,
--		      unsigned int align_mask)
--{
--	unsigned int size = PAGE_SIZE;
--	struct page *page;
--	int offset;
--
--	if (unlikely(!nc->va)) {
--refill:
--		page = __page_frag_cache_refill(nc, gfp_mask);
--		if (!page)
--			return NULL;
--
--#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
--		/* if size can vary use size else just use PAGE_SIZE */
--		size = nc->size;
--#endif
--		/* Even if we own the page, we do not use atomic_set().
--		 * This would break get_page_unless_zero() users.
--		 */
--		page_ref_add(page, PAGE_FRAG_CACHE_MAX_SIZE);
--
--		/* reset page count bias and offset to start of new frag */
--		nc->pfmemalloc = page_is_pfmemalloc(page);
--		nc->pagecnt_bias = PAGE_FRAG_CACHE_MAX_SIZE + 1;
--		nc->offset = size;
--	}
--
--	offset = nc->offset - fragsz;
--	if (unlikely(offset < 0)) {
--		page = virt_to_page(nc->va);
--
--		if (!page_ref_sub_and_test(page, nc->pagecnt_bias))
--			goto refill;
--
--		if (unlikely(nc->pfmemalloc)) {
--			free_the_page(page, compound_order(page));
--			goto refill;
+-		if (rv > 0) {
+-			size -= rv;
+-			sent += rv;
+-			if (rv != bytes) {
+-				offset += rv;
+-				bytes -= rv;
+-				goto try_page_again;
+-			}
+-			offset = 0;
+-		} else {
+-			if (rv == -EAGAIN || rv == 0)
+-				break;
+-			return rv;
 -		}
--
--#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
--		/* if size can vary use size else just use PAGE_SIZE */
--		size = nc->size;
--#endif
--		/* OK, page count is 0, we can safely set it */
--		set_page_count(page, PAGE_FRAG_CACHE_MAX_SIZE + 1);
--
--		/* reset page count bias and offset to start of new frag */
--		nc->pagecnt_bias = PAGE_FRAG_CACHE_MAX_SIZE + 1;
--		offset = size - fragsz;
--		if (unlikely(offset < 0)) {
--			/*
--			 * The caller is trying to allocate a fragment
--			 * with fragsz > PAGE_SIZE but the cache isn't big
--			 * enough to satisfy the request, this may
--			 * happen in low memory conditions.
--			 * We don't release the cache page because
--			 * it could make memory pressure worse
--			 * so we simply return NULL here.
--			 */
--			return NULL;
--		}
+-		i++;
 -	}
--
--	nc->pagecnt_bias--;
--	offset &= align_mask;
--	nc->offset = offset;
--
--	return nc->va + offset;
+-	return sent;
 -}
--EXPORT_SYMBOL(page_frag_alloc_align);
 -
 -/*
-- * Frees a page fragment allocated out of either a compound or order 0 page.
+- * siw_0copy_tx()
+- *
+- * Pushes list of pages to TCP socket. If pages from multiple
+- * SGE's, all referenced pages of each SGE are pushed in one
+- * shot.
 - */
--void page_frag_free(void *addr)
+-static int siw_0copy_tx(struct socket *s, struct page **page,
+-			struct siw_sge *sge, unsigned int offset,
+-			unsigned int size)
 -{
--	struct page *page = virt_to_head_page(addr);
+-	int i = 0, sent = 0, rv;
+-	int sge_bytes = min(sge->length - offset, size);
 -
--	if (unlikely(put_page_testzero(page)))
--		free_the_page(page, compound_order(page));
+-	offset = (sge->laddr + offset) & ~PAGE_MASK;
+-
+-	while (sent != size) {
+-		rv = siw_tcp_sendpages(s, &page[i], offset, sge_bytes);
+-		if (rv >= 0) {
+-			sent += rv;
+-			if (size == sent || sge_bytes > rv)
+-				break;
+-
+-			i += PAGE_ALIGN(sge_bytes + offset) >> PAGE_SHIFT;
+-			sge++;
+-			sge_bytes = min(sge->length, size - sent);
+-			offset = sge->laddr & ~PAGE_MASK;
+-		} else {
+-			sent = rv;
+-			break;
+-		}
+-	}
+-	return sent;
 -}
--EXPORT_SYMBOL(page_frag_free);
 -
- static void *make_alloc_exact(unsigned long addr, unsigned int order,
- 		size_t size)
+ #define MAX_TRAILER (MPA_CRC_SIZE + 4)
+ 
+-static void siw_unmap_pages(struct kvec *iov, unsigned long kmap_mask, int len)
+-{
+-	int i;
+-
+-	/*
+-	 * Work backwards through the array to honor the kmap_local_page()
+-	 * ordering requirements.
+-	 */
+-	for (i = (len-1); i >= 0; i--) {
+-		if (kmap_mask & BIT(i)) {
+-			unsigned long addr = (unsigned long)iov[i].iov_base;
+-
+-			kunmap_local((void *)(addr & PAGE_MASK));
+-		}
+-	}
+-}
+-
+ /*
+  * siw_tx_hdt() tries to push a complete packet to TCP where all
+  * packet fragments are referenced by the elements of one iovec.
+@@ -439,15 +333,14 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
  {
-diff --git a/mm/page_frag_alloc.c b/mm/page_frag_alloc.c
-new file mode 100644
-index 000000000000..bee95824ef8f
---- /dev/null
-+++ b/mm/page_frag_alloc.c
-@@ -0,0 +1,131 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/* Page fragment allocator
-+ *
-+ * Page Fragment:
-+ *  An arbitrary-length arbitrary-offset area of memory which resides within a
-+ *  0 or higher order page.  Multiple fragments within that page are
-+ *  individually refcounted, in the page's reference counter.
-+ *
-+ * The page_frag functions provide a simple allocation framework for page
-+ * fragments.  This is used by the network stack and network device drivers to
-+ * provide a backing region of memory for use as either an sk_buff->head, or to
-+ * be used in the "frags" portion of skb_shared_info.
-+ */
+ 	struct siw_wqe *wqe = &c_tx->wqe_active;
+ 	struct siw_sge *sge = &wqe->sqe.sge[c_tx->sge_idx];
+-	struct kvec iov[MAX_ARRAY];
+-	struct page *page_array[MAX_ARRAY];
++	struct bio_vec bvec[MAX_ARRAY];
+ 	struct msghdr msg = { .msg_flags = MSG_DONTWAIT | MSG_EOR };
++	void *trl, *t;
+ 
+ 	int seg = 0, do_crc = c_tx->do_crc, is_kva = 0, rv;
+ 	unsigned int data_len = c_tx->bytes_unsent, hdr_len = 0, trl_len = 0,
+ 		     sge_off = c_tx->sge_off, sge_idx = c_tx->sge_idx,
+ 		     pbl_idx = c_tx->pbl_idx;
+-	unsigned long kmap_mask = 0L;
+ 
+ 	if (c_tx->state == SIW_SEND_HDR) {
+ 		if (c_tx->use_sendpage) {
+@@ -457,10 +350,15 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
+ 
+ 			c_tx->state = SIW_SEND_DATA;
+ 		} else {
+-			iov[0].iov_base =
+-				(char *)&c_tx->pkt.ctrl + c_tx->ctrl_sent;
+-			iov[0].iov_len = hdr_len =
+-				c_tx->ctrl_len - c_tx->ctrl_sent;
++			const void *hdr = &c_tx->pkt.ctrl + c_tx->ctrl_sent;
++			void *h;
 +
-+#include <linux/export.h>
-+#include <linux/init.h>
-+#include <linux/mm.h>
++			rv = -ENOMEM;
++			hdr_len = c_tx->ctrl_len - c_tx->ctrl_sent;
++			h = page_frag_memdup(NULL, hdr, hdr_len, GFP_NOFS, ULONG_MAX);
++			if (!h)
++				goto done;
++			bvec_set_virt(&bvec[0], h, hdr_len);
+ 			seg = 1;
+ 		}
+ 	}
+@@ -478,28 +376,9 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
+ 		} else {
+ 			is_kva = 1;
+ 		}
+-		if (is_kva && !c_tx->use_sendpage) {
+-			/*
+-			 * tx from kernel virtual address: either inline data
+-			 * or memory region with assigned kernel buffer
+-			 */
+-			iov[seg].iov_base =
+-				(void *)(uintptr_t)(sge->laddr + sge_off);
+-			iov[seg].iov_len = sge_len;
+-
+-			if (do_crc)
+-				crypto_shash_update(c_tx->mpa_crc_hd,
+-						    iov[seg].iov_base,
+-						    sge_len);
+-			sge_off += sge_len;
+-			data_len -= sge_len;
+-			seg++;
+-			goto sge_done;
+-		}
+ 
+ 		while (sge_len) {
+ 			size_t plen = min((int)PAGE_SIZE - fp_off, sge_len);
+-			void *kaddr;
+ 
+ 			if (!is_kva) {
+ 				struct page *p;
+@@ -512,33 +391,12 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
+ 					p = siw_get_upage(mem->umem,
+ 							  sge->laddr + sge_off);
+ 				if (unlikely(!p)) {
+-					siw_unmap_pages(iov, kmap_mask, seg);
+ 					wqe->processed -= c_tx->bytes_unsent;
+ 					rv = -EFAULT;
+ 					goto done_crc;
+ 				}
+-				page_array[seg] = p;
+-
+-				if (!c_tx->use_sendpage) {
+-					void *kaddr = kmap_local_page(p);
+-
+-					/* Remember for later kunmap() */
+-					kmap_mask |= BIT(seg);
+-					iov[seg].iov_base = kaddr + fp_off;
+-					iov[seg].iov_len = plen;
+-
+-					if (do_crc)
+-						crypto_shash_update(
+-							c_tx->mpa_crc_hd,
+-							iov[seg].iov_base,
+-							plen);
+-				} else if (do_crc) {
+-					kaddr = kmap_local_page(p);
+-					crypto_shash_update(c_tx->mpa_crc_hd,
+-							    kaddr + fp_off,
+-							    plen);
+-					kunmap_local(kaddr);
+-				}
 +
-+static struct page *__page_frag_cache_refill(struct page_frag_cache *nc,
-+					     gfp_t gfp_mask)
-+{
-+	struct page *page = NULL;
-+	gfp_t gfp = gfp_mask;
++				bvec_set_page(&bvec[seg], p, plen, fp_off);
+ 			} else {
+ 				/*
+ 				 * Cast to an uintptr_t to preserve all 64 bits
+@@ -552,12 +410,15 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
+ 				 * bits on a 64 bit platform and 32 bits on a
+ 				 * 32 bit platform.
+ 				 */
+-				page_array[seg] = virt_to_page((void *)(va & PAGE_MASK));
+-				if (do_crc)
+-					crypto_shash_update(
+-						c_tx->mpa_crc_hd,
+-						(void *)va,
+-						plen);
++				bvec_set_virt(&bvec[seg], (void *)va, plen);
++			}
 +
-+#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
-+	gfp_mask |= __GFP_COMP | __GFP_NOWARN | __GFP_NORETRY |
-+		    __GFP_NOMEMALLOC;
-+	page = alloc_pages_node(NUMA_NO_NODE, gfp_mask,
-+				PAGE_FRAG_CACHE_MAX_ORDER);
-+	nc->size = page ? PAGE_FRAG_CACHE_MAX_SIZE : PAGE_SIZE;
-+#endif
-+	if (unlikely(!page))
-+		page = alloc_pages_node(NUMA_NO_NODE, gfp, 0);
++			if (do_crc) {
++				void *kaddr = kmap_local_page(bvec[seg].bv_page);
++				crypto_shash_update(c_tx->mpa_crc_hd,
++						    kaddr + bvec[seg].bv_offset,
++						    bvec[seg].bv_len);
++				kunmap_local(kaddr);
+ 			}
+ 
+ 			sge_len -= plen;
+@@ -567,13 +428,12 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
+ 
+ 			if (++seg > (int)MAX_ARRAY) {
+ 				siw_dbg_qp(tx_qp(c_tx), "to many fragments\n");
+-				siw_unmap_pages(iov, kmap_mask, seg-1);
+ 				wqe->processed -= c_tx->bytes_unsent;
+ 				rv = -EMSGSIZE;
+ 				goto done_crc;
+ 			}
+ 		}
+-sge_done:
 +
-+	nc->va = page ? page_address(page) : NULL;
+ 		/* Update SGE variables at end of SGE */
+ 		if (sge_off == sge->length &&
+ 		    (data_len != 0 || wqe->processed < wqe->bytes)) {
+@@ -582,15 +442,8 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
+ 			sge_off = 0;
+ 		}
+ 	}
+-	/* trailer */
+-	if (likely(c_tx->state != SIW_SEND_TRAILER)) {
+-		iov[seg].iov_base = &c_tx->trailer.pad[4 - c_tx->pad];
+-		iov[seg].iov_len = trl_len = MAX_TRAILER - (4 - c_tx->pad);
+-	} else {
+-		iov[seg].iov_base = &c_tx->trailer.pad[c_tx->ctrl_sent];
+-		iov[seg].iov_len = trl_len = MAX_TRAILER - c_tx->ctrl_sent;
+-	}
+ 
++	/* Set the CRC in the trailer */
+ 	if (c_tx->pad) {
+ 		*(u32 *)c_tx->trailer.pad = 0;
+ 		if (do_crc)
+@@ -603,23 +456,29 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
+ 	else if (do_crc)
+ 		crypto_shash_final(c_tx->mpa_crc_hd, (u8 *)&c_tx->trailer.crc);
+ 
+-	data_len = c_tx->bytes_unsent;
+-
+-	if (c_tx->use_sendpage) {
+-		rv = siw_0copy_tx(s, page_array, &wqe->sqe.sge[c_tx->sge_idx],
+-				  c_tx->sge_off, data_len);
+-		if (rv == data_len) {
+-			rv = kernel_sendmsg(s, &msg, &iov[seg], 1, trl_len);
+-			if (rv > 0)
+-				rv += data_len;
+-			else
+-				rv = data_len;
+-		}
++	/* Copy the trailer and add it to the output list */
++	if (likely(c_tx->state != SIW_SEND_TRAILER)) {
++		trl = &c_tx->trailer.pad[4 - c_tx->pad];
++		trl_len = MAX_TRAILER - (4 - c_tx->pad);
+ 	} else {
+-		rv = kernel_sendmsg(s, &msg, iov, seg + 1,
+-				    hdr_len + data_len + trl_len);
+-		siw_unmap_pages(iov, kmap_mask, seg);
++		trl = &c_tx->trailer.pad[c_tx->ctrl_sent];
++		trl_len = MAX_TRAILER - c_tx->ctrl_sent;
+ 	}
 +
-+	return page;
-+}
++	rv = -ENOMEM;
++	t = page_frag_memdup(NULL, trl, trl_len, GFP_NOFS, ULONG_MAX);
++	if (!t)
++		goto done_crc;
++	bvec_set_virt(&bvec[seg], t, trl_len);
 +
-+void __page_frag_cache_drain(struct page *page, unsigned int count)
-+{
-+	VM_BUG_ON_PAGE(page_ref_count(page) == 0, page);
++	data_len = c_tx->bytes_unsent;
 +
-+	if (page_ref_sub_and_test(page, count - 1))
-+		__free_pages(page, compound_order(page));
-+}
-+EXPORT_SYMBOL(__page_frag_cache_drain);
++	if (c_tx->use_sendpage)
++		msg.msg_flags |= MSG_SPLICE_PAGES;
++	iov_iter_bvec(&msg.msg_iter, ITER_SOURCE, bvec, seg + 1,
++		      hdr_len + data_len + trl_len);
++	rv = sock_sendmsg(s, &msg);
 +
-+void *page_frag_alloc_align(struct page_frag_cache *nc,
-+		      unsigned int fragsz, gfp_t gfp_mask,
-+		      unsigned int align_mask)
-+{
-+	unsigned int size = PAGE_SIZE;
-+	struct page *page;
-+	int offset;
-+
-+	if (unlikely(!nc->va)) {
-+refill:
-+		page = __page_frag_cache_refill(nc, gfp_mask);
-+		if (!page)
-+			return NULL;
-+
-+#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
-+		/* if size can vary use size else just use PAGE_SIZE */
-+		size = nc->size;
-+#endif
-+		/* Even if we own the page, we do not use atomic_set().
-+		 * This would break get_page_unless_zero() users.
-+		 */
-+		page_ref_add(page, PAGE_FRAG_CACHE_MAX_SIZE);
-+
-+		/* reset page count bias and offset to start of new frag */
-+		nc->pfmemalloc = page_is_pfmemalloc(page);
-+		nc->pagecnt_bias = PAGE_FRAG_CACHE_MAX_SIZE + 1;
-+		nc->offset = size;
-+	}
-+
-+	offset = nc->offset - fragsz;
-+	if (unlikely(offset < 0)) {
-+		page = virt_to_page(nc->va);
-+
-+		if (page_ref_count(page) != nc->pagecnt_bias)
-+			goto refill;
-+		if (unlikely(nc->pfmemalloc)) {
-+			page_ref_sub(page, nc->pagecnt_bias - 1);
-+			__free_pages(page, compound_order(page));
-+			goto refill;
-+		}
-+
-+#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
-+		/* if size can vary use size else just use PAGE_SIZE */
-+		size = nc->size;
-+#endif
-+		/* OK, page count is 0, we can safely set it */
-+		set_page_count(page, PAGE_FRAG_CACHE_MAX_SIZE + 1);
-+
-+		/* reset page count bias and offset to start of new frag */
-+		nc->pagecnt_bias = PAGE_FRAG_CACHE_MAX_SIZE + 1;
-+		offset = size - fragsz;
-+		if (unlikely(offset < 0)) {
-+			/*
-+			 * The caller is trying to allocate a fragment
-+			 * with fragsz > PAGE_SIZE but the cache isn't big
-+			 * enough to satisfy the request, this may
-+			 * happen in low memory conditions.
-+			 * We don't release the cache page because
-+			 * it could make memory pressure worse
-+			 * so we simply return NULL here.
-+			 */
-+			return NULL;
-+		}
-+	}
-+
-+	nc->pagecnt_bias--;
-+	offset &= align_mask;
-+	nc->offset = offset;
-+
-+	return nc->va + offset;
-+}
-+EXPORT_SYMBOL(page_frag_alloc_align);
-+
-+/*
-+ * Frees a page fragment allocated out of either a compound or order 0 page.
-+ */
-+void page_frag_free(void *addr)
-+{
-+	struct page *page = virt_to_head_page(addr);
-+
-+	__free_pages(page, compound_order(page));
-+}
-+EXPORT_SYMBOL(page_frag_free);
+ 	if (rv < (int)hdr_len) {
+ 		/* Not even complete hdr pushed or negative rv */
+ 		wqe->processed -= data_len;
+@@ -680,6 +539,9 @@ static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
+ 	}
+ done_crc:
+ 	c_tx->do_crc = 0;
++	if (c_tx->state == SIW_SEND_HDR)
++		folio_put(page_folio(bvec[0].bv_page));
++	folio_put(page_folio(bvec[seg].bv_page));
+ done:
+ 	return rv;
+ }
 
