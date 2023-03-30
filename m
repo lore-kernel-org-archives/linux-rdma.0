@@ -2,112 +2,224 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26C0EC6FD1D
-	for <linux-rdma@archiver.kernel.org>; Thu, 30 Mar 2023 09:47:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 167BAC761AF
+	for <linux-rdma@archiver.kernel.org>; Thu, 30 Mar 2023 09:47:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230327AbjC3JrC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 30 Mar 2023 05:47:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42866 "EHLO
+        id S230294AbjC3JrR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 30 Mar 2023 05:47:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41944 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230224AbjC3Jqc (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Mar 2023 05:46:32 -0400
-Received: from mail-pg1-x529.google.com (mail-pg1-x529.google.com [IPv6:2607:f8b0:4864:20::529])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF0257EED
-        for <linux-rdma@vger.kernel.org>; Thu, 30 Mar 2023 02:46:02 -0700 (PDT)
-Received: by mail-pg1-x529.google.com with SMTP id h14so10942743pgj.7
-        for <linux-rdma@vger.kernel.org>; Thu, 30 Mar 2023 02:46:02 -0700 (PDT)
+        with ESMTP id S230016AbjC3Jqx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 30 Mar 2023 05:46:53 -0400
+Received: from mail-pg1-x52e.google.com (mail-pg1-x52e.google.com [IPv6:2607:f8b0:4864:20::52e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A03F776BE
+        for <linux-rdma@vger.kernel.org>; Thu, 30 Mar 2023 02:46:16 -0700 (PDT)
+Received: by mail-pg1-x52e.google.com with SMTP id q206so10941794pgq.9
+        for <linux-rdma@vger.kernel.org>; Thu, 30 Mar 2023 02:46:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1680169562;
-        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=9ErE+5i6C3SL9drLvjfIenDn3hMFuqaT24DhkYo7ZPU=;
-        b=OITvTmHCF+sVoG3C0j1KiW0TrBrnB+KkJB+SJLBO+L293PTstR/wamdembs1O5TuTO
-         8O2ZhTSLi/HpqGul4By9R2Jw3DgWBDamJicedO5YWeYvLI7MIwHxotAoGlFNiP47QmP3
-         E5u/Xb3yu31IAwej7gyOvnUscjYRPtJAcOMkg=
+        d=broadcom.com; s=google; t=1680169573;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=oB1EzrGOSJgPE5yr+g6Qr5guT0BLsqbr18I6TA/1JNA=;
+        b=e/zw/kfYgXh85OtGU8AOuvPe4z5m7Axo9n/EEdP5H+mmHDkSw/HJY11aN16FFh462W
+         nUkVRIQMRmEMAVTtamCmvrcxs249bvZ/s1FUZH/vye60FVrTkVB+mjsutOhKBtI6BsYI
+         d3HtLM1Y16zxMdksCbxGvKAsnsmTcoAW2M4Eg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680169562;
-        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=9ErE+5i6C3SL9drLvjfIenDn3hMFuqaT24DhkYo7ZPU=;
-        b=LtIHTnOlQzluuScouZt2/VnvslQ3Hha+xJcikOItkww6xaD/gBJ5Njw+Nk+hnV21f5
-         iialMb+AkoRC2/l2RqKA9I107Eg90Ztstg56/9Oszha9yhZUnWngWToCNR1gHiIV2XND
-         oxRPTvNTscDxqKjXDElO0oTmjF9RNbFLDQacX/S+IlD443AajinePEt46TixKZVBOM/R
-         7NdfpzRmqk7kxJ8rX019BnKk1N5PNZxlhx/P0ouuKu8gE7Kw6opXjdKOibPCnqZHUzY/
-         pjTTrYU7rAnGmoKKlHLSeOX3lqQSkXaXv/8tr4ws/Cn2TQC3hI8g6Xct3gI7txR8B3Ls
-         +E7Q==
-X-Gm-Message-State: AAQBX9eMvBBvFQA4wWjJy3RHFQXmquzB3mq4WDtjmGCqhK9muELJRlbs
-        Efzhvq6LXpuV0IgcLXySKFdDvd83ZnHC0UzMWfU=
-X-Google-Smtp-Source: AKy350acaVq9pxxGorqlsSJg+GzQvkZbzcHqpdyxCHF7KgVEbUAANB3B8+mCF2HWcYlEOuiXpWq72g==
-X-Received: by 2002:aa7:9601:0:b0:624:2e60:f21e with SMTP id q1-20020aa79601000000b006242e60f21emr21980222pfg.29.1680169562129;
-        Thu, 30 Mar 2023 02:46:02 -0700 (PDT)
+        d=1e100.net; s=20210112; t=1680169573;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=oB1EzrGOSJgPE5yr+g6Qr5guT0BLsqbr18I6TA/1JNA=;
+        b=6ZquJZGaJFNNI3hVQ1rDqw9SbmZ+9ZLEqOhL/iafUizlXRONA7MJFZHsm6vO3Q98oC
+         UYvpf+p4klwizEzs2/chBit3cCMy7rKjIIJUfJlKLNc0dv0dnbb0soE/zt0rDnb9WP3l
+         CGrfS+gx5Us7iKs0P1/Iqzt7D5GZDl47eF6qyilWEdXjhiDw/76DwOj011iQ7Mo0F3Jb
+         V7v72ZO9vP/zY6kcOk3/+GOKZGkI1KH9G3sllDRG+lJGsLeDqacBM0SJmueu3XM7bcBp
+         SPy/e2Pt9n0m6DesMfFyjWiiokqqB0EPeN37iUSguCXll1c+SjT/1iwLJK5O0EuAjoGw
+         CWpg==
+X-Gm-Message-State: AAQBX9f4SwccEulAgD51Ru0jot/3xBJ8nttSr1fOdQLYMxxFwN9U7kuP
+        6GvY4LOFd4f4eQWYnLFq0mvxrg==
+X-Google-Smtp-Source: AKy350aN3X+ozqqYs9h8mO7PuVamJOBsjWAiGKsiaTMWIa26lP+aWxy1HHKPweg0hT7hbM9/tUmHAg==
+X-Received: by 2002:a62:7b10:0:b0:5e2:da34:4aaf with SMTP id w16-20020a627b10000000b005e2da344aafmr21619470pfc.4.1680169573181;
+        Thu, 30 Mar 2023 02:46:13 -0700 (PDT)
 Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id c26-20020aa78e1a000000b00625616f59a1sm24468857pfr.73.2023.03.30.02.45.58
+        by smtp.gmail.com with ESMTPSA id c26-20020aa78e1a000000b00625616f59a1sm24468857pfr.73.2023.03.30.02.46.10
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 30 Mar 2023 02:46:00 -0700 (PDT)
+        Thu, 30 Mar 2023 02:46:11 -0700 (PDT)
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
         Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-next v3 0/7] RDMA/bnxt_re: Enable Congestion control by default
-Date:   Thu, 30 Mar 2023 02:45:33 -0700
-Message-Id: <1680169540-10029-1-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH for-next v3 2/7] RDMA/bnxt_re: Remove HW queue mapping from RoCE Driver
+Date:   Thu, 30 Mar 2023 02:45:35 -0700
+Message-Id: <1680169540-10029-3-git-send-email-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.5.5
+In-Reply-To: <1680169540-10029-1-git-send-email-selvin.xavier@broadcom.com>
+References: <1680169540-10029-1-git-send-email-selvin.xavier@broadcom.com>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000efbaaa05f81af50a"
+        boundary="000000000000979f3e05f81af635"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000efbaaa05f81af50a
+--000000000000979f3e05f81af635
 
-This series includes the code reorgnization in the
-driver control path. HW interface header file is updated
-to the latest version. Also, adds support for a new
-command format which is required for enabling RoCE
-congestion control. 
+bnxt_en driver does the queue mapping for RoCE traffic. Removing the
+queue mapping from RoCE driver.
 
-This series is prepared on top of the resize_cq
-(https://lore.kernel.org/all/1678868215-23626-1-git-send-email-selvin.xavier@broadcom.com/)
-patch which is under review.
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+---
+ drivers/infiniband/hw/bnxt_re/main.c     | 77 --------------------------------
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c | 15 -------
+ drivers/infiniband/hw/bnxt_re/qplib_sp.h |  1 -
+ 3 files changed, 93 deletions(-)
 
-Please review and apply.
-
-Thanks,
-Selvin
-
-v2 -> v3:
- - Fix the sparse warnings
-
-v1 -> v2:
- - Fix the warning reported by kbuild test robot about missing static keyword
- - Reported-by: kernel test robot <lkp@intel.com>
-
-Selvin Xavier (7):
-  RDMA/bnxt_re: Update HW interface headers
-  RDMA/bnxt_re: Remove HW queue mapping from RoCE Driver
-  RDMA/bnxt_re: Convert RCFW_CMD_PREP macro to static inline function
-  RDMA/bnxt_re: Reduce number of argumets to control path command APIs
-  RDMA/bnxt_re: RoCE slow path TLV support
-  RDAM/bnxt_re: Use tlv apis while processing the slow path commands
-  RDMA/bnxt_re: Enable congestion control by default
-
- drivers/infiniband/hw/bnxt_re/main.c          |  101 +-
- drivers/infiniband/hw/bnxt_re/qplib_fp.c      |  161 +-
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c    |   97 +-
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.h    |   66 +-
- drivers/infiniband/hw/bnxt_re/qplib_sp.c      |  337 +-
- drivers/infiniband/hw/bnxt_re/qplib_sp.h      |   68 +-
- drivers/infiniband/hw/bnxt_re/qplib_tlv.h     |  162 +
- drivers/infiniband/hw/bnxt_re/roce_hsi.h      | 7423 +++++++++++++++----------
- drivers/net/ethernet/broadcom/bnxt/bnxt_hsi.h |   81 +
- 9 files changed, 5108 insertions(+), 3388 deletions(-)
- create mode 100644 drivers/infiniband/hw/bnxt_re/qplib_tlv.h
-
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 48bbba7..4aa3442 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -921,49 +921,6 @@ static void bnxt_re_dispatch_event(struct ib_device *ibdev, struct ib_qp *qp,
+ 	}
+ }
+ 
+-#define HWRM_QUEUE_PRI2COS_QCFG_INPUT_FLAGS_IVLAN      0x02
+-static int bnxt_re_query_hwrm_pri2cos(struct bnxt_re_dev *rdev, u8 dir,
+-				      u64 *cid_map)
+-{
+-	struct hwrm_queue_pri2cos_qcfg_input req = {0};
+-	struct hwrm_queue_pri2cos_qcfg_output resp;
+-	struct bnxt_en_dev *en_dev = rdev->en_dev;
+-	struct bnxt_fw_msg fw_msg;
+-	u32 flags = 0;
+-	u8 *qcfgmap, *tmp_map;
+-	int rc = 0, i;
+-
+-	if (!cid_map)
+-		return -EINVAL;
+-
+-	memset(&fw_msg, 0, sizeof(fw_msg));
+-	bnxt_re_init_hwrm_hdr(rdev, (void *)&req,
+-			      HWRM_QUEUE_PRI2COS_QCFG, -1, -1);
+-	flags |= (dir & 0x01);
+-	flags |= HWRM_QUEUE_PRI2COS_QCFG_INPUT_FLAGS_IVLAN;
+-	req.flags = cpu_to_le32(flags);
+-	req.port_id = en_dev->pf_port_id;
+-
+-	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
+-			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
+-	rc = bnxt_send_msg(en_dev, &fw_msg);
+-	if (rc)
+-		return rc;
+-
+-	if (resp.queue_cfg_info) {
+-		ibdev_warn(&rdev->ibdev,
+-			   "Asymmetric cos queue configuration detected");
+-		ibdev_warn(&rdev->ibdev,
+-			   " on device, QoS may not be fully functional\n");
+-	}
+-	qcfgmap = &resp.pri0_cos_queue_id;
+-	tmp_map = (u8 *)cid_map;
+-	for (i = 0; i < IEEE_8021QAZ_MAX_TCS; i++)
+-		tmp_map[i] = qcfgmap[i];
+-
+-	return rc;
+-}
+-
+ static bool bnxt_re_is_qp1_or_shadow_qp(struct bnxt_re_dev *rdev,
+ 					struct bnxt_re_qp *qp)
+ {
+@@ -1056,26 +1013,9 @@ static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
+ 	return prio_map;
+ }
+ 
+-static void bnxt_re_parse_cid_map(u8 prio_map, u8 *cid_map, u16 *cosq)
+-{
+-	u16 prio;
+-	u8 id;
+-
+-	for (prio = 0, id = 0; prio < 8; prio++) {
+-		if (prio_map & (1 << prio)) {
+-			cosq[id] = cid_map[prio];
+-			id++;
+-			if (id == 2) /* Max 2 tcs supported */
+-				break;
+-		}
+-	}
+-}
+-
+ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
+ {
+ 	u8 prio_map = 0;
+-	u64 cid_map;
+-	int rc;
+ 
+ 	/* Get priority for roce */
+ 	prio_map = bnxt_re_get_priority_mask(rdev);
+@@ -1083,23 +1023,6 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
+ 	if (prio_map == rdev->cur_prio_map)
+ 		return 0;
+ 	rdev->cur_prio_map = prio_map;
+-	/* Get cosq id for this priority */
+-	rc = bnxt_re_query_hwrm_pri2cos(rdev, 0, &cid_map);
+-	if (rc) {
+-		ibdev_warn(&rdev->ibdev, "no cos for p_mask %x\n", prio_map);
+-		return rc;
+-	}
+-	/* Parse CoS IDs for app priority */
+-	bnxt_re_parse_cid_map(prio_map, (u8 *)&cid_map, rdev->cosq);
+-
+-	/* Config BONO. */
+-	rc = bnxt_qplib_map_tc2cos(&rdev->qplib_res, rdev->cosq);
+-	if (rc) {
+-		ibdev_warn(&rdev->ibdev, "no tc for cos{%x, %x}\n",
+-			   rdev->cosq[0], rdev->cosq[1]);
+-		return rc;
+-	}
+-
+ 	/* Actual priorities are not programmed as they are already
+ 	 * done by L2 driver; just enable or disable priority vlan tagging
+ 	 */
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+index b802981..3f4998a 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+@@ -679,21 +679,6 @@ int bnxt_qplib_free_fast_reg_page_list(struct bnxt_qplib_res *res,
+ 	return 0;
+ }
+ 
+-int bnxt_qplib_map_tc2cos(struct bnxt_qplib_res *res, u16 *cids)
+-{
+-	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+-	struct cmdq_map_tc_to_cos req;
+-	struct creq_map_tc_to_cos_resp resp;
+-	u16 cmd_flags = 0;
+-
+-	RCFW_CMD_PREP(req, MAP_TC_TO_COS, cmd_flags);
+-	req.cos0 = cpu_to_le16(cids[0]);
+-	req.cos1 = cpu_to_le16(cids[1]);
+-
+-	return bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+-						NULL, 0);
+-}
+-
+ int bnxt_qplib_get_roce_stats(struct bnxt_qplib_rcfw *rcfw,
+ 			      struct bnxt_qplib_roce_stats *stats)
+ {
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+index 5939e8f..96e61db 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+@@ -277,7 +277,6 @@ int bnxt_qplib_alloc_fast_reg_page_list(struct bnxt_qplib_res *res,
+ 					struct bnxt_qplib_frpl *frpl, int max);
+ int bnxt_qplib_free_fast_reg_page_list(struct bnxt_qplib_res *res,
+ 				       struct bnxt_qplib_frpl *frpl);
+-int bnxt_qplib_map_tc2cos(struct bnxt_qplib_res *res, u16 *cids);
+ int bnxt_qplib_get_roce_stats(struct bnxt_qplib_rcfw *rcfw,
+ 			      struct bnxt_qplib_roce_stats *stats);
+ int bnxt_qplib_qext_stat(struct bnxt_qplib_rcfw *rcfw, u32 fid,
 -- 
 2.5.5
 
 
---000000000000efbaaa05f81af50a
+--000000000000979f3e05f81af635
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -178,14 +290,14 @@ j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
 9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
 hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
 IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIJb5jlDjYxIy
-kKN4bl5v7J2l//s/bH+rodzLkxsS1pMcMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDMzMDA5NDYwMlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEILku1zXM3ss3
+9eLr1SGSB3NfyK0Q6HYfGdSeGZjvm+9JMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDMzMDA5NDYxM1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
 YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAdcuHtbXKDu+p6n79qIImGXCV7IqcC
-9gBgIehxEcd4gUwnFNs1SwnbjYfUJzpj+rMhvZAqwwVkGU++kqD0DUDsuuLfVkWSuSoJxNDhzQOt
-p+0ElEtM/bJnHhxXx1vVHhNfKNLuPIl9gDJ4eFj5b46RmULXZUo5KatUiynOZFU75xbCzqMwJrEt
-hjE0DBFUuFDYaC8Js6eoDAZrD4oDaL3SAIt/Zo4TUmr4za3VduxhnziVU4AxUN/kYRGUU/5xN0xO
-hKWBxslr9OcfMYPPuV2cLoXzENjfOcg/LyulFeBLtEHK5LJ6W3FZbncxnZgGq0XoZ46fe6Pr4IIh
-5ereb6tc
---000000000000efbaaa05f81af50a--
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAXKVcexAVa3hC8W2GgnSfF4mLBJOl4
+T55eysYjH1/fIFl3gHG5DasM/EfNI+rsIoeU4BzxMd4Gw4nM0H/RlVsvR2qMvneE//B9Ggx88oy3
+ZlR9ON/2U4uMJFGRtcgVqLc60yIWwt9u1NMAzYsVOHC669Oxz/ALpYph1y8CoZ3Q8gDCggHLJEzO
+XdHYg3uOhc9myMtO5XHkOsvvR3WI4wXxAQBHnZMJ7wxrDY/Mv3/x5ycGfi0PicwSaDWXUegeh/+K
+bgFNeSZVa4J7lbJQbllV0a1nh/eb5gyavcMWCjJEAqyJBGmbLYzgI6HLWwDo9JZRjVg+rZbLbsWh
+vEmGblTu
+--000000000000979f3e05f81af635--
