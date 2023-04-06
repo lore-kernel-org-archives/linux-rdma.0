@@ -2,62 +2,137 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7993AC7618D
-	for <linux-rdma@archiver.kernel.org>; Thu,  6 Apr 2023 08:54:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C865C76196
+	for <linux-rdma@archiver.kernel.org>; Thu,  6 Apr 2023 09:45:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233581AbjDFIy5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 6 Apr 2023 04:54:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40576 "EHLO
+        id S235848AbjDFJpB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 6 Apr 2023 05:45:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234723AbjDFIyz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 Apr 2023 04:54:55 -0400
-X-Greylist: delayed 87419 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 06 Apr 2023 01:54:55 PDT
-Received: from mail.feshiecree.pl (mail.feshiecree.pl [89.40.114.103])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B8724EFD
-        for <linux-rdma@vger.kernel.org>; Thu,  6 Apr 2023 01:54:55 -0700 (PDT)
-Received: by mail.feshiecree.pl (Postfix, from userid 1001)
-        id 1FB64829F4; Wed,  5 Apr 2023 09:27:44 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=feshiecree.pl;
-        s=mail; t=1680683269;
-        bh=hFxZwVw4rIL+JwfEOGI47p+fdoVOAeqVswP6NWoHSHQ=;
-        h=Date:From:To:Subject:From;
-        b=oAQhGeVA05tUfd+dap+dPWjDzETezOKN3w3SD1mXQmNUM8nOFcjOfLD/+VyYy0Bql
-         kvnU1F+Q/0o6SQ4K2V7f5SisrosFYylrRtA6I3JaMPi7KxlFTk+/c0WkUl5niGUNXH
-         a0+ahT1w/iLN5kxZg/iT3ulO9PknGYE1yyzYvqGYQ5gU9HGtL0AA5SUZSiiI6L000K
-         GNA3Xir89dY1COeVIoSh9x/Bi/P47XaVkE8siG3P9J32Tn8mrXAr5hjvvhUntNNYDP
-         J3qRwzqMB1LwiiKN73aYJPDzecdKSGahaE2RDhU88kLB/0ltQ2178aqKVC7ywFM83t
-         wDNZL1uNAVKhA==
-Received: by feshiecree.pl for <linux-rdma@vger.kernel.org>; Wed,  5 Apr 2023 08:27:41 GMT
-Message-ID: <20230405084211-0.1.1u.6hek.0.m5apft526n@feshiecree.pl>
-Date:   Wed,  5 Apr 2023 08:27:41 GMT
-From:   "Krystian Wieczorek" <krystian.wieczorek@feshiecree.pl>
-To:     <linux-rdma@vger.kernel.org>
-Subject: W sprawie samochodu
-X-Mailer: mail.feshiecree.pl
+        with ESMTP id S236612AbjDFJoo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 6 Apr 2023 05:44:44 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A232683DD
+        for <linux-rdma@vger.kernel.org>; Thu,  6 Apr 2023 02:43:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1680774212;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=c83k4BnXfg8o4jtTDXWGTM6Kn2fXWMyaDkEU8sjy210=;
+        b=jCuq9mFEM6qdujBDBxjhi5kY8DqIBYCtP+F2aCpz7gZ8Ds/3fRJllOvg1ER96QLBFu6CqV
+        dlXdELL7VMJOVhvccBO01yqc75ZgD72YAK92gDMiJGDcMBVgCoZaYMVBiMTj7PJzrJCu00
+        q4PCfePi7mgi90rCQkeCQo6g8889HTo=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-576-TYObJh0zMq67k0lTYOLEeg-1; Thu, 06 Apr 2023 05:43:26 -0400
+X-MC-Unique: TYObJh0zMq67k0lTYOLEeg-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 95B0E800B23;
+        Thu,  6 Apr 2023 09:43:25 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id F305A440D8;
+        Thu,  6 Apr 2023 09:43:22 +0000 (UTC)
+From:   David Howells <dhowells@redhat.com>
+To:     netdev@vger.kernel.org
+Cc:     David Howells <dhowells@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Willem de Bruijn <willemdebruijn.kernel@gmail.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Jens Axboe <axboe@kernel.dk>, Jeff Layton <jlayton@kernel.org>,
+        Christian Brauner <brauner@kernel.org>,
+        Chuck Lever III <chuck.lever@oracle.com>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, Bernard Metzler <bmt@zurich.ibm.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, Tom Talpey <tom@talpey.com>,
+        linux-rdma@vger.kernel.org
+Subject: [PATCH net-next v5 11/19] siw: Inline do_tcp_sendpages()
+Date:   Thu,  6 Apr 2023 10:42:37 +0100
+Message-Id: <20230406094245.3633290-12-dhowells@redhat.com>
+In-Reply-To: <20230406094245.3633290-1-dhowells@redhat.com>
+References: <20230406094245.3633290-1-dhowells@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dzie=C5=84 dobry,
+do_tcp_sendpages() is now just a small wrapper around tcp_sendmsg_locked(),
+so inline it, allowing do_tcp_sendpages() to be removed.  This is part of
+replacing ->sendpage() with a call to sendmsg() with MSG_SPLICE_PAGES set.
 
-chcieliby=C5=9Bmy zapewni=C4=87 Pa=C5=84stwu kompleksowe rozwi=C4=85zania=
-, je=C5=9Bli chodzi o system monitoringu GPS.
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: Bernard Metzler <bmt@zurich.ibm.com>
+cc: Jason Gunthorpe <jgg@ziepe.ca>
+cc: Leon Romanovsky <leon@kernel.org>
+cc: Tom Talpey <tom@talpey.com>
+cc: "David S. Miller" <davem@davemloft.net>
+cc: Eric Dumazet <edumazet@google.com>
+cc: Jakub Kicinski <kuba@kernel.org>
+cc: Paolo Abeni <pabeni@redhat.com>
+cc: Jens Axboe <axboe@kernel.dk>
+cc: Matthew Wilcox <willy@infradead.org>
+cc: linux-rdma@vger.kernel.org
+cc: netdev@vger.kernel.org
+---
+ drivers/infiniband/sw/siw/siw_qp_tx.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-Precyzyjne monitorowanie pojazd=C3=B3w na mapach cyfrowych, =C5=9Bledzeni=
-e ich parametr=C3=B3w eksploatacyjnych w czasie rzeczywistym oraz kontrol=
-a paliwa to kluczowe funkcjonalno=C5=9Bci naszego systemu.=20
+diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
+index 05052b49107f..fa5de40d85d5 100644
+--- a/drivers/infiniband/sw/siw/siw_qp_tx.c
++++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
+@@ -313,7 +313,7 @@ static int siw_tx_ctrl(struct siw_iwarp_tx *c_tx, struct socket *s,
+ }
+ 
+ /*
+- * 0copy TCP transmit interface: Use do_tcp_sendpages.
++ * 0copy TCP transmit interface: Use MSG_SPLICE_PAGES.
+  *
+  * Using sendpage to push page by page appears to be less efficient
+  * than using sendmsg, even if data are copied.
+@@ -324,20 +324,27 @@ static int siw_tx_ctrl(struct siw_iwarp_tx *c_tx, struct socket *s,
+ static int siw_tcp_sendpages(struct socket *s, struct page **page, int offset,
+ 			     size_t size)
+ {
++	struct bio_vec bvec;
++	struct msghdr msg = {
++		.msg_flags = (MSG_MORE | MSG_DONTWAIT | MSG_SENDPAGE_NOTLAST |
++			      MSG_SPLICE_PAGES),
++	};
+ 	struct sock *sk = s->sk;
+-	int i = 0, rv = 0, sent = 0,
+-	    flags = MSG_MORE | MSG_DONTWAIT | MSG_SENDPAGE_NOTLAST;
++	int i = 0, rv = 0, sent = 0;
+ 
+ 	while (size) {
+ 		size_t bytes = min_t(size_t, PAGE_SIZE - offset, size);
+ 
+ 		if (size + offset <= PAGE_SIZE)
+-			flags = MSG_MORE | MSG_DONTWAIT;
++			msg.msg_flags = MSG_MORE | MSG_DONTWAIT;
+ 
+ 		tcp_rate_check_app_limited(sk);
++		bvec_set_page(&bvec, page[i], bytes, offset);
++		iov_iter_bvec(&msg.msg_iter, ITER_SOURCE, &bvec, 1, size);
++
+ try_page_again:
+ 		lock_sock(sk);
+-		rv = do_tcp_sendpages(sk, page[i], offset, bytes, flags);
++		rv = tcp_sendmsg_locked(sk, &msg, size);
+ 		release_sock(sk);
+ 
+ 		if (rv > 0) {
 
-Organizowanie pracy pracownik=C3=B3w jest dzi=C4=99ki temu prostsze i bar=
-dziej efektywne, a oszcz=C4=99dno=C5=9Bci i optymalizacja w zakresie pono=
-szonych koszt=C3=B3w, maj=C4=85 dla ka=C5=BCdego przedsi=C4=99biorcy ogro=
-mne znaczenie.
-
-Dopasujemy nasz=C4=85 ofert=C4=99 do Pa=C5=84stwa oczekiwa=C5=84 i potrze=
-b organizacji. Czy mogliby=C5=9Bmy porozmawia=C4=87 o naszej propozycji?
-
-
-Pozdrawiam
-Krystian Wieczorek
