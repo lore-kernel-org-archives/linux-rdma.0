@@ -2,43 +2,43 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BAC7C77B61
-	for <linux-rdma@archiver.kernel.org>; Fri,  7 Apr 2023 16:52:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3CE3C6FD1D
+	for <linux-rdma@archiver.kernel.org>; Fri,  7 Apr 2023 16:52:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229816AbjDGQwk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 7 Apr 2023 12:52:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32864 "EHLO
+        id S229570AbjDGQwp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 7 Apr 2023 12:52:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229570AbjDGQwj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Apr 2023 12:52:39 -0400
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2094.outbound.protection.outlook.com [40.107.244.94])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DE7655B4
-        for <linux-rdma@vger.kernel.org>; Fri,  7 Apr 2023 09:52:38 -0700 (PDT)
+        with ESMTP id S229887AbjDGQwo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Apr 2023 12:52:44 -0400
+Received: from NAM04-BN8-obe.outbound.protection.outlook.com (mail-bn8nam04on2099.outbound.protection.outlook.com [40.107.100.99])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B857555AE
+        for <linux-rdma@vger.kernel.org>; Fri,  7 Apr 2023 09:52:42 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Jae6zoIwq4g+sdScC5mQVMCFLKMotJr/9rEJJgLrpDS0O6FRsanKV9XyaQvsjZ+hlJIHysh/wBefqrbx1bGHgcaSDoWWi2DpCWOjBCssVyR6KZH3OtQmLX9sgxzF59iDu8RV5mRQSXZW3azNlF1yiABkItA1Cmj3AVz2Go7l/DzdNthvTAzYXusWhAqVWGqV9/wzeGcjz0qcSwIdWTCF35AMyb106QYE6azqadbyVNxxGNV06JmbRT3zfJX3dFtyfk5wbmf+vpZBwsuPMeWrwMwkOL0tp2MyQPaQ0dL0XPI2dHzRwVRrdELlFr/WGOdqV1lIRaMwMBs1zbO/F8HHcg==
+ b=lfuFdZobBQ0LB9b4Qboop7Wr9IjoaCheQO+caYceSe2HU7rkdVrL62vlZZlEi7b1mOPv3Dwb3Uy97GtyZjf8RVJeTaIpKYawdSSt2cxx5dnRoUVZZmI3hDjv9Y9IGeecHPCRjNzGu0rpIOb8/Rc3Sm4fvugQ+LRKNR6tycBaSZbcKbb2HLMpK84D3Me4vhzwC1i0rbzd1LX71IHKa3z+TjVnuzA9wcYlwxkFQEy3zo6AMx8AVqb9LTsBvFhmrSFlyWAJkj4VDS31v8CV1daockbdgMeKoSS4FiN/SZHkAdtc6FmrlK6Hg3w44tuahnSUa7ZHzPEgBvxJ1B7oPkONgw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=xv8T9Ki4+9pnS04dHE87FY1gKL0O4ijH3MV1Y8wrWvU=;
- b=IrI4HzSVgBtuNf1qkgz2aeoCvJZPgqYwI9p7rsNWYOEutYwmZrTWsj+VapS5Nkl/Nht2AaagSy24/kE8O2m/ZZoAOOoHreCifCoP3K6nN0MXwc0ab5kIGJkEOEhxmUydEuWTwErOMxKl7AImxEQMpgSHWcQct6MY1GortScyiGOvHTsFhfz3WqnBwipdeHWbLs34bHK2tJMxiEMD68wAifWXxg/DAG+aP2x20+WYkftYVM4rAfIB6ifynFoo+5rfFZWl8/8qK6+LdGVG7jB/oJMlmc81WnMX6TKqiIL9zU4wnPsjARJaDD9nh2McdLftlpT8Qe9c2aFD8d8Lh28F2Q==
+ bh=ZF4ZhfCr12Z/bU8C2WGNuQrPMXUj6+/zwBjrkUskj1k=;
+ b=evtcjWRw6X9BX/zxu466bQgwBc+bc5yAJ/pZf+GAqEGCEcodtscEQ4jn6ceL/TmYS3Pjw+IP7lQ2AqvcTpDoZSrMwelhbqb1bGvY7VVCBgZT5dWyY0ZlUAn09AZqVD0KL9REuX6zbE8m1JVchC7CyKTvzUm6hQp2Coh2CASESxSw968z7XfeZbDe8AYyrs0HOuY7hxQtf7IqjUjVu/8yECAnIMvVJNV0izvrQHVQnZ7pdtifdf2imCOOYBqba0L6bK3h7uFBXwmZ7zfhN1bii5NQ3kOSZDr72V3ewKsIFieg/Y0xXFExbv0KT6zKnUF4LPlnJeUwqghHpJX8/h2yaQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 208.255.156.42) smtp.rcpttodomain=cornelisnetworks.com
+ 208.255.156.42) smtp.rcpttodomain=nvidia.com
  smtp.mailfrom=cornelisnetworks.com; dmarc=bestguesspass action=none
  header.from=cornelisnetworks.com; dkim=none (message not signed); arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xv8T9Ki4+9pnS04dHE87FY1gKL0O4ijH3MV1Y8wrWvU=;
- b=iZ1fUimm+9hQNNRIegnUl29Omrz9X5sdo9lNK304UrhYbbsKQzEwNMnP9RjqQQ9Ufz5E9ism6w0oEk4FzdqMYIpKMA+QE+w+Ou/gF8doHCK9vwSX/DChtuTr3CnHqqCxIeOscnHCuJ0wd7+XDY8dcQVY7BBeKdiXvLWdyRlYz3R88HcMFDA0jbNZn35qFAPrQF/CPX8q51FJPx+4Gj6BuZK/pW5xjYx2pgO+A0c9LwKiowWGL++zdcVqH5kNEy+4F2MXFZ0wEyGhPS7IbBKtaq7FmrlSLh/ucv5wdKgNo2HV5kpqPtXAMvhZOsJS/+DiRF0oGArL3Crspj9fgIgPyg==
-Received: from DS7PR03CA0078.namprd03.prod.outlook.com (2603:10b6:5:3bb::23)
- by BYAPR01MB4776.prod.exchangelabs.com (2603:10b6:a03:84::13) with Microsoft
+ bh=ZF4ZhfCr12Z/bU8C2WGNuQrPMXUj6+/zwBjrkUskj1k=;
+ b=aV4wVbFDvDqA+oRN5BV9/EbuuAjnhO3mAVqbI+2s6CcI9bcdglfqpAhLCzLannG5eKr3yrLtw2dAqoSACrEAY4ZIMSQKVpT1+Kq7qR/k+2lYYhDwgZda5DghfUkXE56KK+2VTwpcEyyaLBaH1JOFkRAKoW8r458RU5x+LS/TOvSFfSqD7VSJHOaqcU14Gp083pPcMJqk1e6zVyJURweiDCzNgapDF5oR8onCdbTBhqKHztxrtb+swgCg6UtXk5yB8YF7wNyoSv38eWdmcIBccl38h545HHCQoPmfUnm2cb9uuFcRf/n7iS+bgA67hF7yUv7lu9ObFp6owE26PlQc0Q==
+Received: from DM6PR13CA0005.namprd13.prod.outlook.com (2603:10b6:5:bc::18) by
+ BL0PR0102MB3492.prod.exchangelabs.com (2603:10b6:207:1e::14) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6277.27; Fri, 7 Apr 2023 16:52:26 +0000
-Received: from DM6NAM11FT101.eop-nam11.prod.protection.outlook.com
- (2603:10b6:5:3bb:cafe::46) by DS7PR03CA0078.outlook.office365.com
- (2603:10b6:5:3bb::23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6277.31 via Frontend
- Transport; Fri, 7 Apr 2023 16:52:26 +0000
+ 15.20.6298.18; Fri, 7 Apr 2023 16:52:35 +0000
+Received: from DM6NAM11FT009.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:5:bc:cafe::b) by DM6PR13CA0005.outlook.office365.com
+ (2603:10b6:5:bc::18) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6298.20 via Frontend
+ Transport; Fri, 7 Apr 2023 16:52:35 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
  header.d=none;dmarc=bestguesspass action=none
@@ -48,90 +48,119 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=awfm-02.cornelisnetworks.com; pr=C
 Received: from awfm-02.cornelisnetworks.com (208.255.156.42) by
- DM6NAM11FT101.mail.protection.outlook.com (10.13.172.208) with Microsoft SMTP
+ DM6NAM11FT009.mail.protection.outlook.com (10.13.173.20) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6298.20 via Frontend Transport; Fri, 7 Apr 2023 16:52:25 +0000
+ 15.20.6277.31 via Frontend Transport; Fri, 7 Apr 2023 16:52:35 +0000
 Received: from 252.162.96.66.static.eigbox.net (localhost [127.0.0.1])
-        by awfm-02.cornelisnetworks.com (8.16.1/8.16.1) with ESMTP id 337GqNpt3027362;
-        Fri, 7 Apr 2023 12:52:23 -0400
-Subject: [PATCH for-next 0/5] Updates for next cycle
+        by awfm-02.cornelisnetworks.com (8.16.1/8.16.1) with ESMTP id 337GqYBa3027384;
+        Fri, 7 Apr 2023 12:52:34 -0400
+Subject: [PATCH for-next 2/5] IB/hfi1: Suppress useless compiler warnings
 From:   Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To:     jgg@nvidia.com, leonro@nvidia.com
-Cc:     Dean Luick <dean.luick@cornelisnetworks.com>,
-        Brendan Cunningham <bcunningham@cornelisnetworks.com>,
-        Ehab Ababneh <ehab.ababneh@cornelisnetworks.com>,
-        Patrick Kelsey <pat.kelsey@cornelisnetworks.com>,
+Cc:     Ehab Ababneh <ehab.ababneh@cornelisnetworks.com>,
         linux-rdma@vger.kernel.org
-Date:   Fri, 07 Apr 2023 12:52:23 -0400
-Message-ID: <168088607365.3027109.2194306496858796762.stgit@252.162.96.66.static.eigbox.net>
+Date:   Fri, 07 Apr 2023 12:52:34 -0400
+Message-ID: <168088635415.3027109.5711716700328939402.stgit@252.162.96.66.static.eigbox.net>
+In-Reply-To: <168088607365.3027109.2194306496858796762.stgit@252.162.96.66.static.eigbox.net>
+References: <168088607365.3027109.2194306496858796762.stgit@252.162.96.66.static.eigbox.net>
 User-Agent: StGit/1.5.dev2+g9ce680a5
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6NAM11FT101:EE_|BYAPR01MB4776:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7c9c93ec-baf2-43b7-3864-08db378876f4
+X-MS-TrafficTypeDiagnostic: DM6NAM11FT009:EE_|BL0PR0102MB3492:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1068add4-1f08-4191-6093-08db37887cc2
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: NmxPvKu/aSDooxk5wEsrZMvrh3bsLXybaLY9hAKuDsldoKz8cuk78k+Ew3Zjjm1juIqajX6r6b1hnhEtQwohv91drhAifdQ4/5OomxpVgl3x8F1dEDaOowsl6TB91Kq/Nw0vRcWoTObKPW3zgWsoFqbwBhxjh0o4yVfdcLC+J78HXv4Gre2B05LzjWL0CCBMg5lCHrqA5LAn2l/x96vUFsqa4W8987Z35JWnubvsBFw7uQHgXuyJXZMqL7QGXhgolN0p2E3g2L0IbERBhdJCieunbNBIWABiCIWaxl1aEpxe1ESNdn6NyDSOe7e3DO/z97V4O+uVbp3TD5SuJV3i4usq2uyZ7i6BIJYWw2N8ibWykGrTj48LVFsZLijsY0HDVhVGg5sESUIIQFNs+vuBVZt+AJa6QYscYEopfA6KP7W4EUimMMlEiy7e8tT7eGsoXuJ3J7T4KqbP2dcl6mJ8FEmt7y2X8aF+A3uBUx7eYH0jOYlPDquKkAhkAuEIL1oGeAhhqdkM1YIKbRJfBu1SbZro/LOTb78uRXgLnzKguPa4nHI/C2Gjbizlw+RzpfRYFWMoa7ZXW+DFSMD4lMJau/zsuLSqH9mWMuqSrkyQu6iMj8tIwPQf9qeEFQf6HeONfurqbpyqzS0rJHi6+r4FuRVMVpjrnFItzPP6STEzFD+xM9xkEajvlZerqUVZQmYcnEUmDI3jHe2C+MB89fnBkL4eKQ0jE7xZ45gMD5bIWcsaND3+ZpCGUO5BfLrYCw48eOvVU9e8JFeT8XrG/nvDow==
-X-Forefront-Antispam-Report: CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:awfm-02.cornelisnetworks.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(396003)(346002)(136003)(376002)(39840400004)(451199021)(36840700001)(46966006)(83380400001)(356005)(5660300002)(47076005)(70206006)(426003)(70586007)(336012)(2906002)(54906003)(41300700001)(44832011)(8936002)(7126003)(316002)(81166007)(4326008)(8676002)(86362001)(478600001)(36860700001)(9686003)(26005)(966005)(186003)(40480700001)(55016003)(103116003)(82310400005)(7696005)(9916002)(24686002)(102196002)(36900700001);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: 9S9KGaB0FI0XeG97TeoIwJfDWqUM0EKPfz/7Mtie/2DVyePgwoUrO7s1aaUMM7YUUq7IGrflnvp4ASCaz5dH30ZkJutjsjCzhDy/lsgUVQ9D4OHM8Oy6Z7nkKGePumivwrl0q7U8U98qXJFvglz4DCmdQRcDus7urc905WmpCY6icKnTjWEloQvVNzz9MP8/g0q7cf5Ca7S1YmQ+enzy3/YHV8eS4Iwxz6+/CjjPtsWwjZHte5dZv6rD9WSUIIUTyHZes/ERNE/jPlO0+61gWkX/DCSCh0eWCTMe0wWvH/5hr3yil/0LGJaDyruSxullWHr35tuG0fCs9NJ0f1GgWx1To/wDrAK97jC7J5cmSp2/+wE8qEYb7G1upt5FRieJI/WFUsozU2hBfPGsovDY6nuqdHtZiO/eGw61db4vrjItNUJvQv8QTardLP0rRgBEHEUPxPSs+w9nP6QZw9l3OxuUQPHvpATijmmo4OS5tKIIj+PivDVqMry14LP6iePaw89CaEaiYBJ0fMliPBrqNTjuv0SvVnjLedi8rD25K3rsj55Ar36BC2O8KF0Oq9kHOj1vuZ0tpKyrQVsblPZNPuyNdnzh44TcfaGSoygP3siWksgOIUvRTWUeYtrg4AzJN+CPJHLYiDoiG4Vi/DiElUeRMHPzSK/Ne4GIF1G4tLUKPLKypatSmW5ERWyq7uz3QuRl5zdR3vDF9sjO3tuJy2vHmZviOxvBx4Q0cqet42cLJ+1AGXpxbsPNi/QvLt9bFwQue9sLbYXDsSfXd0+W9Q==
+X-Forefront-Antispam-Report: CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:awfm-02.cornelisnetworks.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(346002)(376002)(136003)(396003)(39840400004)(451199021)(46966006)(36840700001)(44832011)(2906002)(103116003)(41300700001)(316002)(40480700001)(55016003)(4326008)(5660300002)(8676002)(8936002)(83380400001)(47076005)(70586007)(86362001)(70206006)(7696005)(36860700001)(9686003)(26005)(186003)(7126003)(426003)(336012)(478600001)(82310400005)(356005)(81166007)(9916002)(24686002)(36900700001)(102196002);DIR:OUT;SFP:1102;
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Apr 2023 16:52:25.2447
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Apr 2023 16:52:35.0156
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7c9c93ec-baf2-43b7-3864-08db378876f4
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1068add4-1f08-4191-6093-08db37887cc2
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[awfm-02.cornelisnetworks.com]
-X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT101.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT009.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR01MB4776
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL0PR0102MB3492
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The patches from Patrick by way of Brendan are part of that monster patch [1].
-Brendan has been working on whittling it down to make it more consumable. 
+From: Ehab Ababneh <ehab.ababneh@cornelisnetworks.com>
 
-The other two are minor cleanups.
+These warnings can cause build failure:
 
-[1] https://lore.kernel.org/linux-rdma/167467690923.3649436.11426965323185168102.stgit@awfm-02.cornelisnetworks.com/
+In file included from ./include/trace/define_trace.h:102,
+                 from drivers/infiniband/hw/hfi1/trace_dbg.h:111,
+                 from drivers/infiniband/hw/hfi1/trace.h:15,
+                 from drivers/infiniband/hw/hfi1/trace.c:6:
+drivers/infiniband/hw/hfi1/./trace_dbg.h: In function ‘trace_event_get_offsets_hfi1_trace_template’:
+./include/trace/trace_events.h:261:9: warning: function ‘trace_event_get_offsets_hfi1_trace_template’ might be a candidate for ‘gnu_printf’ format attribute [-Wsuggest-attribute=format]
+  struct trace_event_raw_##call __maybe_unused *entry;  \
+         ^~~~~~~~~~~~~~~~
+drivers/infiniband/hw/hfi1/./trace_dbg.h:25:1: note: in expansion of macro ‘DECLARE_EVENT_CLASS’
+ DECLARE_EVENT_CLASS(hfi1_trace_template,
+ ^~~~~~~~~~~~~~~~~~~
+In file included from ./include/trace/define_trace.h:102,
+                 from drivers/infiniband/hw/hfi1/trace_dbg.h:111,
+                 from drivers/infiniband/hw/hfi1/trace.h:15,
+                 from drivers/infiniband/hw/hfi1/trace.c:6:
+drivers/infiniband/hw/hfi1/./trace_dbg.h: In function ‘trace_event_raw_event_hfi1_trace_template’:
+./include/trace/trace_events.h:386:9: warning: function ‘trace_event_raw_event_hfi1_trace_template’ might be a candidate for ‘gnu_printf’ format attribute [-Wsuggest-attribute=format]
+  struct trace_event_raw_##call *entry;    \
+         ^~~~~~~~~~~~~~~~
+drivers/infiniband/hw/hfi1/./trace_dbg.h:25:1: note: in expansion of macro ‘DECLARE_EVENT_CLASS’
+ DECLARE_EVENT_CLASS(hfi1_trace_template,
+ ^~~~~~~~~~~~~~~~~~~
+In file included from ./include/trace/define_trace.h:103,
+                 from drivers/infiniband/hw/hfi1/trace_dbg.h:111,
+                 from drivers/infiniband/hw/hfi1/trace.h:15,
+                 from drivers/infiniband/hw/hfi1/trace.c:6:
+drivers/infiniband/hw/hfi1/./trace_dbg.h: In function ‘perf_trace_hfi1_trace_template’:
+./include/trace/perf.h:70:9: warning: function ‘perf_trace_hfi1_trace_template’ might be a candidate for ‘gnu_printf’ format attribute [-Wsuggest-attribute=format]
+  struct hlist_head *head;     \
+         ^~~~~~~~~~
+drivers/infiniband/hw/hfi1/./trace_dbg.h:25:1: note: in expansion of macro ‘DECLARE_EVENT_CLASS’
+ DECLARE_EVENT_CLASS(hfi1_trace_template,
+ ^~~~~~~~~~~~~~~~~~~
 
+Solution adapted here is similar to the one in fbbc95a49d5b0
+
+Signed-off-by: Ehab Ababneh <ehab.ababneh@cornelisnetworks.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
+ drivers/infiniband/hw/hfi1/trace_dbg.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Dean Luick (1):
-      IB/hfi1: Remove trace newlines
+diff --git a/drivers/infiniband/hw/hfi1/trace_dbg.h b/drivers/infiniband/hw/hfi1/trace_dbg.h
+index 582b6f68df3d..489395bfb5b3 100644
+--- a/drivers/infiniband/hw/hfi1/trace_dbg.h
++++ b/drivers/infiniband/hw/hfi1/trace_dbg.h
+@@ -22,6 +22,11 @@
+ 
+ #define MAX_MSG_LEN 512
+ 
++#pragma GCC diagnostic push
++#ifndef __clang__
++#pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
++#endif
++
+ DECLARE_EVENT_CLASS(hfi1_trace_template,
+ 		    TP_PROTO(const char *function, struct va_format *vaf),
+ 		    TP_ARGS(function, vaf),
+@@ -36,6 +41,8 @@ DECLARE_EVENT_CLASS(hfi1_trace_template,
+ 			      __get_str(msg))
+ );
+ 
++#pragma GCC diagnostic pop
++
+ /*
+  * It may be nice to macroize the __hfi1_trace but the va_* stuff requires an
+  * actual function to work and can not be in a macro.
 
-Ehab Ababneh (1):
-      IB/hfi1: Suppress useless compiler warnings
-
-Patrick Kelsey (3):
-      IB/hfi1: Fix SDMA mmu_rb_node not being evicted in LRU order
-      IB/hfi1: Fix bugs with non-PAGE_SIZE-end multi-iovec user SDMA requests
-      IB/hfi1: Place struct mmu_rb_handler on cache line start
-
-
- drivers/infiniband/hw/hfi1/chip.c       |  18 +-
- drivers/infiniband/hw/hfi1/driver.c     |   2 +-
- drivers/infiniband/hw/hfi1/file_ops.c   |   2 +-
- drivers/infiniband/hw/hfi1/init.c       |  12 +-
- drivers/infiniband/hw/hfi1/ipoib_tx.c   |   1 +
- drivers/infiniband/hw/hfi1/mmu_rb.c     |  84 +---
- drivers/infiniband/hw/hfi1/mmu_rb.h     |  22 +-
- drivers/infiniband/hw/hfi1/pio.c        |   2 +-
- drivers/infiniband/hw/hfi1/sdma.c       |  21 +-
- drivers/infiniband/hw/hfi1/sdma.h       |  16 +-
- drivers/infiniband/hw/hfi1/sdma_txreq.h |   1 +
- drivers/infiniband/hw/hfi1/trace_dbg.h  |   7 +
- drivers/infiniband/hw/hfi1/trace_mmu.h  |   4 -
- drivers/infiniband/hw/hfi1/user_sdma.c  | 600 +++++++++++++++---------
- drivers/infiniband/hw/hfi1/user_sdma.h  |   5 -
- drivers/infiniband/hw/hfi1/verbs.c      |   4 +-
- drivers/infiniband/hw/hfi1/vnic_sdma.c  |   1 +
- 17 files changed, 470 insertions(+), 332 deletions(-)
-
---
--Denny
 
