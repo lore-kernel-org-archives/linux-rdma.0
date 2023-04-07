@@ -2,25 +2,25 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49EC1C6FD1D
-	for <linux-rdma@archiver.kernel.org>; Fri,  7 Apr 2023 16:52:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F01C6FD1D
+	for <linux-rdma@archiver.kernel.org>; Fri,  7 Apr 2023 16:53:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229935AbjDGQwv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 7 Apr 2023 12:52:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33134 "EHLO
+        id S229832AbjDGQxF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 7 Apr 2023 12:53:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229611AbjDGQwv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Apr 2023 12:52:51 -0400
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2136.outbound.protection.outlook.com [40.107.220.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CF505B92
-        for <linux-rdma@vger.kernel.org>; Fri,  7 Apr 2023 09:52:46 -0700 (PDT)
+        with ESMTP id S229762AbjDGQxE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Apr 2023 12:53:04 -0400
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2116.outbound.protection.outlook.com [40.107.102.116])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F28DD55AE
+        for <linux-rdma@vger.kernel.org>; Fri,  7 Apr 2023 09:52:55 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=JWDTiVKCxC2UXwy/wOqfYAivolwFZqQsvPPB8tQUL/1UnizKLU5H18l5xzwN2/yQPJgO3y2xwUXFwtlwIy6e9n64VzJeQmw/rKjW0AsKMOYFjoJ9OP4RZ1ZTAygJZ88JZXqyB6OQ3LxfBq9FKvnZmZLfoO0EWE+OB9sPhSgy5WC1ibWM5s059vvf7LD8ON1n2mwK3Z4xz/wWmwjAp49knaiMmNEGKk1htSoi36x24cYMvsUX6X34OrQniKuDBwXaQvzjg1XhkahNqsIhd3xt8wBdja0MwgORudEJjT7VGlczcukxboltfjoEse8TmAtsL9flybm1bxHrvgwCP06hRg==
+ b=fvzhFOtbeJSExfwMS2qFjXUSnu9VdDg/o10I8FI57g5+WHFjkjd+yImY/8P+n4ERVCSUhzvOUsFSBDNs/ppQW/125rksEeqALo/EXSdijINmabCLvY8/uQUPq7DpC9bJq49/9FJs6rsFwd6EwjFSRrCiykZBxCcx3ZQMMbRUfbT2m8HpSZUk2RLGZamZmPt3f1fYOI12cGOEutJAvo57ebp8YQYNaeTq6EOljUNP+Zgjl4X08AjG2an+OSl08TQ+9tUR3zyarolUD+ehY+Y45vaGdlwJf2V4bpCJcdExP4xE1x/4X1qyCVpegYX5GXDNqV1v3kIqkt0FJS8RQAgsyA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=C0VuyUTbjuV/ejAK8NY8T4i8+HA6yLNtJR8SbIhpLGo=;
- b=CPFLari7nD6Ib8PopUKtDaO4syv1l0owF6FVRDvDRuKn46Muo6CGho/B23LDzi9mq/euXmFMOR153evqguZxLz4GPl2MRm8MoeLV7BzaYKAniajRD5tp8pHWHFtYQg99rFhXZo3ZuaesUipyoocVhm/dUbEraXraWlDxF1JiT8PfAU++8QV9Py1BEVF1yd/95v9llpf0Ck1K97nOqyHOmpSV78FCDTt7WT3YOpBKoPPabrPiu5DUpdHskcsKQYsFQW0xhIa+ML+jsRLimnrm21rMhLvtzt6WBBcUpz8J2WT5I6e1/G4tPjtA0MF2C/15jKIT70vdyLILYTDJBI5Qlg==
+ bh=PhxdTIX9W6foq67chk/9qyJV8tya5ITAeo13v4GUkms=;
+ b=i8uAVVLta0LrvBhjARm5XwExb+rZBLRKuS/JTIzeiSewXDFsM1puGaDcKZ9n+zXp3D4cV28hq/2XJzRBhfcfNEHLiVwj3PW0yfmrNfHKbbssoClWGpK3usS3gv8YeElbtyvwxcUz/wqSulQqBYFlGthlAbjaWuvemVkxtBwGEErFgzjm+LqPrDeUeHbtgHNUJ6ld3P544CTYk4N0/7fmJBmximSh73dozrJ1IgH7lvarxLnViDi3F+Q/sgnUfJansVw/AGNTF9iHUtkDQ+KEPEp3HeTbBFsTw+jvXyQYPtTiopQnYW4Cbf8X/taLNBEeOLUr+9qFCRS5Gjx6sZC5uA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  208.255.156.42) smtp.rcpttodomain=nvidia.com
  smtp.mailfrom=cornelisnetworks.com; dmarc=bestguesspass action=none
@@ -28,17 +28,17 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cornelisnetworks.com;
  s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=C0VuyUTbjuV/ejAK8NY8T4i8+HA6yLNtJR8SbIhpLGo=;
- b=nNtp3r+sfud+42HlL53Pvtx/90I5H4nNzIgnP5ezso2KMKIWf5CwO41Hz7gG+FGU0JExEM6bUttGua8cEEalpmF7XXeGK1QkC8ssUKUrYZCmIyeX2XTXqp3smy7uR1M3N+YovBR1dt7uK/9FPuerDlj2JinJ/gOzjROByAWU+H9Qf5vFioWMWDA3F9K3TlGXj9l+HllM3x9gOz3M0q9ERQmkgUXOYWPSxsRfBG9qW4zP1vISnA/CVZ7wqjHREU4fKtuTxzatLsvZmnEY8irmqX7df+i5BUWrpHlHTE4TzDb/iomxBgI0LmFKiZ6cD650LLoQlCXffbbUNaV2ukVuUg==
-Received: from MW4P220CA0012.NAMP220.PROD.OUTLOOK.COM (2603:10b6:303:115::17)
- by CH0PR01MB7153.prod.exchangelabs.com (2603:10b6:610:ea::7) with Microsoft
+ bh=PhxdTIX9W6foq67chk/9qyJV8tya5ITAeo13v4GUkms=;
+ b=mWJwppkZr7d0SD3MLBmv49JsHeeKlxvbp6FSjEZw8bhHaObuZjI506u6eMcwhfYwrJjWlPO4guGCltTu8ccy6SVhstUvl4VkpEUk8TE9y0EXmyrVPI/qrcBI9wUg6ToibRqfn3IE/1HHe1t8NlUukHlQjhpSvI3INI01pwNt7O4s4xnl3Bqfcy7mHRzEFMGyUVcD3swYXA9Rx89BuggLPz0/Uednwi6qHawz4natR9bMQeOSkPMwoMIXrJPH9DojNr/T6tC65KzMLCjsG4zsgpo5P3uezRXrOkWqBkaC6f1Kf97F6crrdyk2Z4fN4g2QDVoa4PfXcePk3w2j7myNPA==
+Received: from MW3PR06CA0016.namprd06.prod.outlook.com (2603:10b6:303:2a::21)
+ by BN7PR01MB3988.prod.exchangelabs.com (2603:10b6:406:89::30) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6298.18; Fri, 7 Apr 2023 16:52:40 +0000
-Received: from CO1NAM11FT041.eop-nam11.prod.protection.outlook.com
- (2603:10b6:303:115:cafe::3b) by MW4P220CA0012.outlook.office365.com
- (2603:10b6:303:115::17) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6277.34 via Frontend
- Transport; Fri, 7 Apr 2023 16:52:40 +0000
+ 15.20.6277.28; Fri, 7 Apr 2023 16:52:51 +0000
+Received: from CO1NAM11FT013.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:303:2a:cafe::ae) by MW3PR06CA0016.outlook.office365.com
+ (2603:10b6:303:2a::21) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6277.31 via Frontend
+ Transport; Fri, 7 Apr 2023 16:52:51 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 208.255.156.42)
  smtp.mailfrom=cornelisnetworks.com; dkim=none (message not signed)
  header.d=none;dmarc=bestguesspass action=none
@@ -48,21 +48,21 @@ Received-SPF: Pass (protection.outlook.com: domain of cornelisnetworks.com
  receiver=protection.outlook.com; client-ip=208.255.156.42;
  helo=awfm-02.cornelisnetworks.com; pr=C
 Received: from awfm-02.cornelisnetworks.com (208.255.156.42) by
- CO1NAM11FT041.mail.protection.outlook.com (10.13.174.217) with Microsoft SMTP
+ CO1NAM11FT013.mail.protection.outlook.com (10.13.174.227) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6298.21 via Frontend Transport; Fri, 7 Apr 2023 16:52:40 +0000
+ 15.20.6298.20 via Frontend Transport; Fri, 7 Apr 2023 16:52:50 +0000
 Received: from 252.162.96.66.static.eigbox.net (localhost [127.0.0.1])
-        by awfm-02.cornelisnetworks.com (8.16.1/8.16.1) with ESMTP id 337GqdRb3027393;
-        Fri, 7 Apr 2023 12:52:39 -0400
-Subject: [PATCH for-next 3/5] IB/hfi1: Fix SDMA mmu_rb_node not being evicted
- in LRU order
+        by awfm-02.cornelisnetworks.com (8.16.1/8.16.1) with ESMTP id 337GqnVa3027412;
+        Fri, 7 Apr 2023 12:52:49 -0400
+Subject: [PATCH for-next 5/5] IB/hfi1: Place struct mmu_rb_handler on cache
+ line start
 From:   Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 To:     jgg@nvidia.com, leonro@nvidia.com
 Cc:     Brendan Cunningham <bcunningham@cornelisnetworks.com>,
         Patrick Kelsey <pat.kelsey@cornelisnetworks.com>,
         linux-rdma@vger.kernel.org
-Date:   Fri, 07 Apr 2023 12:52:39 -0400
-Message-ID: <168088635931.3027109.10423156330761536044.stgit@252.162.96.66.static.eigbox.net>
+Date:   Fri, 07 Apr 2023 12:52:49 -0400
+Message-ID: <168088636963.3027109.16959757980497822530.stgit@252.162.96.66.static.eigbox.net>
 In-Reply-To: <168088607365.3027109.2194306496858796762.stgit@252.162.96.66.static.eigbox.net>
 References: <168088607365.3027109.2194306496858796762.stgit@252.162.96.66.static.eigbox.net>
 User-Agent: StGit/1.5.dev2+g9ce680a5
@@ -71,107 +71,138 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: CO1NAM11FT041:EE_|CH0PR01MB7153:EE_
-X-MS-Office365-Filtering-Correlation-Id: 75d739ff-628a-443c-829a-08db3788800e
+X-MS-TrafficTypeDiagnostic: CO1NAM11FT013:EE_|BN7PR01MB3988:EE_
+X-MS-Office365-Filtering-Correlation-Id: b2aef170-d61a-4cba-43f2-08db37888639
 X-MS-Exchange-AtpMessageProperties: SA
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: CMJRM4GM5072B31ycPeF2SwwgAQQ8CDvc5d9LMf2kmlZQgM3nmEHDvGg9FU8AnSg3JIBRu4j6XfSSY5nTxef8XEjHIhGbxBLEPPOBB9zC3XGQj3OGrsDcG6WZ3wXbA8ZCUVik/yOx8gxpKC6zx2cBow/PT7Nw6rfnrmbUJZVtV3JgUzJh5oMlfI8V0V8LQHF3ACNE1tNBT7gQ0KBvNY7eWbJpw+TXIGQ9MEMQGLvr++nNk52dzQ7H2wa5abiBbNsmVNrwZpzQj2xgrn/DTFKUhbPk6gucFWbV+KC9eI/kqjTAy78I5bg81ENYowVCNDQuLHfPR3j3hBt0px/jPeOLK23gQqmvVCW/nSEW8Y/c8/hLIoy1T6YnC94R2xTu89SJFJUCPe+EliQnvJmKD/i7H6tap05Y3k0fmTBoKVOOb3OLW51Dzoc/ggIHLxxBctXqyTb+zFAZJCwKtgCI2ZrmpHn03mWNtxNXvjCvwEpE3+HPQ3d7na9YlnJR30aVSqquiVvy5nDi0DOWwMiLbBjBe6IBHwFHQgeyJRSrPjFH3eve61JY8RZw1oakiPhC9jE5xtkk5un3qk5jYd3/rFoosEJbpucdsyJU6xqmmkq3i4ijiWoZQok7g/kt9T4jzWIPaS/UD4e3hwUl+PJXaZubghKD3Qqyk/vLpfTQSKvfNpezcbW0mIW9c/aTlIJg9i58JSA9B7/3MyrYd9l840lsAEUf+l6hmpbDS4tHzhvzYmQCW42v1BOOtUGjeQ8VigX5LcsR2NdLAVHWnlla0T6vg==
-X-Forefront-Antispam-Report: CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:awfm-02.cornelisnetworks.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(346002)(376002)(396003)(39840400004)(136003)(451199021)(36840700001)(46966006)(40480700001)(36860700001)(336012)(83380400001)(426003)(47076005)(7126003)(54906003)(478600001)(7696005)(186003)(26005)(9686003)(103116003)(2906002)(44832011)(5660300002)(81166007)(316002)(4326008)(356005)(41300700001)(70586007)(86362001)(82310400005)(8676002)(8936002)(70206006)(55016003)(9916002)(24686002)(102196002)(36900700001);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: iEUzS/Oh9waU0Y1u8DK4dVhxeZPyd+MJyYLsUKg1tJIgimc3R2rbLKDcShZiWIvXeUZ69yIM7TVvV0Eh9BHVDjVdoZj6uBDp0Cogrtz8AvAIk81ucIUfTYM/3H5h20WonhjqOqYM2/94ccjAKzLBCNTntK3ftAuH9qjV+l5wAas+bStABU4yIcwgXDv+LJnYdNTJSW468uWgBWlLyLJ9vOeWsrjWAfAFS6rnWdl4A88+sJJ83n6kb8e/zFHU9sXKP081itC0Trsh90ZoPY5vRhdMd7ym7EI0hkVunY24V6EIVx5Prjh69MaSIXW6kmMY87zHuQGZtbbWsp0X2O3lhSM5VVr/SjLE2mTYD0yVZ1Yv1NYkeGBNFv0zdyLJAPFgSwquWde1wRCoY1T3QMoy4CpyYuR8+7GrPAwzvaG1B4qK1DaaMD5IArUBCWnwsmW0anUG8VgT09izh9A3JaQUquFnmqxbIdIXzhd/FRhkEsxa4yrle3rCtaLtbbEq6NlOFvOaIxjp4UDN4UEvEjdMt74GWVeCjw9S5xhJFKXEDo8YrMRWgobijUhwtAYhrTi5a0mqp8j+yHHgA2LWvmTyYaaA+ajVlyBZl03NAS4ZU31yOZgYa5pHeVRUXHhHWxEvW0WjhOf+xVNR3wxOHD9Hu2BYBtAmmesHDuKpE72OAoanmMrhVYnWSW6Vk8QjFpcUo3/GsoByF1eoXN7E8h3wXSpytS8bguCnKTd5CpIvDcRrmsdiJ7DgQQLAAKHnLUCRyl7B0+JC3DPi8dm+AXRPhlhiRuhGlIpnArdCntjvgWDH5ZW0StJDVrmxOj16w6yNkTZz1AE+0hTMGn3fdaaimg==
+X-Forefront-Antispam-Report: CIP:208.255.156.42;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:awfm-02.cornelisnetworks.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230028)(4636009)(346002)(39840400004)(396003)(136003)(376002)(451199021)(46966006)(36840700001)(426003)(81166007)(44832011)(40480700001)(5660300002)(356005)(70586007)(8676002)(41300700001)(103116003)(82310400005)(55016003)(70206006)(4326008)(86362001)(8936002)(186003)(36860700001)(54906003)(47076005)(83380400001)(26005)(478600001)(7126003)(336012)(2906002)(9686003)(7696005)(316002)(9916002)(24686002)(36900700001)(102196002);DIR:OUT;SFP:1102;
 X-OriginatorOrg: cornelisnetworks.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Apr 2023 16:52:40.5009
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Apr 2023 16:52:50.8474
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 75d739ff-628a-443c-829a-08db3788800e
+X-MS-Exchange-CrossTenant-Network-Message-Id: b2aef170-d61a-4cba-43f2-08db37888639
 X-MS-Exchange-CrossTenant-Id: 4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=4dbdb7da-74ee-4b45-8747-ef5ce5ebe68a;Ip=[208.255.156.42];Helo=[awfm-02.cornelisnetworks.com]
-X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT041.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthSource: CO1NAM11FT013.eop-nam11.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH0PR01MB7153
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PR01MB3988
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Patrick Kelsey <pat.kelsey@cornelisnetworks.com>
 
-hfi1_mmu_rb_remove_unless_exact() did not move mmu_rb_node objects in
-mmu_rb_handler->lru_list after getting a cache hit on an mmu_rb_node.
+Place struct mmu_rb_handler on cache line start like so:
 
-As a result, hfi1_mmu_rb_evict() was not guaranteed to evict truly
-least-recently used nodes.
+	struct mmu_rb_handler *h;
+	void *free_ptr;
+	int ret;
 
-This could be a performance issue for an application when that
-application:
-- Uses some long-lived buffers frequently.
-- Uses a large number of buffers once.
-- Hits the mmu_rb_handler cache size or pinned-page limits, forcing
-  mmu_rb_handler cache entries to be evicted.
+	free_ptr = kzalloc(sizeof(*h) + cache_line_size() - 1, GFP_KERNEL);
+	if (!free_ptr)
+		return -ENOMEM;
 
-In this case, the one-time use buffers cause the long-lived buffer
-entries to eventually filter to the end of the LRU list where
-hfi1_mmu_rb_evict() will consider evicting a frequently-used long-lived
-entry instead of evicting one of the one-time use entries.
+	h = PTR_ALIGN(free_ptr, cache_line_size());
 
-Fix this by inserting new mmu_rb_node at the tail of
-mmu_rb_handler->lru_list and move mmu_rb_ndoe to the tail of
-mmu_rb_handler->lru_list when the mmu_rb_node is a hit in
-hfi1_mmu_rb_remove_unless_exact(). Change hfi1_mmu_rb_evict() to evict
-from the head of mmu_rb_handler->lru_list instead of the tail.
+Additionally, move struct mmu_rb_handler fields "root" and "ops_args" to
+start after the next cacheline using the "____cacheline_aligned_in_smp"
+annotation.
 
-Fixes: 0636e9ab8355 ("IB/hfi1: Add cache evict LRU list")
+Allocating an additional cache_line_size() - 1 bytes to place
+struct mmu_rb_handler on a cache line start does increase memory
+consumption.
+
+However, few struct mmu_rb_handler are created when hfi1 is in use.
+As mmu_rb_handler->root and mmu_rb_handler->ops_args are accessed
+frequently, the advantage of having them both within a cache line is
+expected to outweigh the disadvantage of the additional memory
+consumption per struct mmu_rb_handler.
+
 Signed-off-by: Brendan Cunningham <bcunningham@cornelisnetworks.com>
 Signed-off-by: Patrick Kelsey <pat.kelsey@cornelisnetworks.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 ---
- drivers/infiniband/hw/hfi1/mmu_rb.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hfi1/mmu_rb.c |   11 +++++++----
+ drivers/infiniband/hw/hfi1/mmu_rb.h |   14 ++++++++++++--
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
-index 7333646021bb..af46ff203342 100644
+index 71b9ac018887..1cea8b0c78e0 100644
 --- a/drivers/infiniband/hw/hfi1/mmu_rb.c
 +++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
-@@ -130,7 +130,7 @@ int hfi1_mmu_rb_insert(struct mmu_rb_handler *handler,
- 		goto unlock;
- 	}
- 	__mmu_int_rb_insert(mnode, &handler->root);
--	list_add(&mnode->list, &handler->lru_list);
-+	list_add_tail(&mnode->list, &handler->lru_list);
+@@ -46,12 +46,14 @@ int hfi1_mmu_rb_register(void *ops_arg,
+ 			 struct mmu_rb_handler **handler)
+ {
+ 	struct mmu_rb_handler *h;
++	void *free_ptr;
+ 	int ret;
  
- 	ret = handler->ops->insert(handler->ops_arg, mnode);
+-	h = kzalloc(sizeof(*h), GFP_KERNEL);
+-	if (!h)
++	free_ptr = kzalloc(sizeof(*h) + cache_line_size() - 1, GFP_KERNEL);
++	if (!free_ptr)
+ 		return -ENOMEM;
+ 
++	h = PTR_ALIGN(free_ptr, cache_line_size());
+ 	h->root = RB_ROOT_CACHED;
+ 	h->ops = ops;
+ 	h->ops_arg = ops_arg;
+@@ -62,10 +64,11 @@ int hfi1_mmu_rb_register(void *ops_arg,
+ 	INIT_LIST_HEAD(&h->del_list);
+ 	INIT_LIST_HEAD(&h->lru_list);
+ 	h->wq = wq;
++	h->free_ptr = free_ptr;
+ 
+ 	ret = mmu_notifier_register(&h->mn, current->mm);
  	if (ret) {
-@@ -181,8 +181,10 @@ bool hfi1_mmu_rb_remove_unless_exact(struct mmu_rb_handler *handler,
- 	spin_lock_irqsave(&handler->lock, flags);
- 	node = __mmu_rb_search(handler, addr, len);
- 	if (node) {
--		if (node->addr == addr && node->len == len)
-+		if (node->addr == addr && node->len == len) {
-+			list_move_tail(&node->list, &handler->lru_list);
- 			goto unlock;
-+		}
- 		__mmu_int_rb_remove(node, &handler->root);
- 		list_del(&node->list); /* remove from LRU list */
- 		ret = true;
-@@ -206,8 +208,7 @@ void hfi1_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg)
- 	INIT_LIST_HEAD(&del_list);
- 
- 	spin_lock_irqsave(&handler->lock, flags);
--	list_for_each_entry_safe_reverse(rbnode, ptr, &handler->lru_list,
--					 list) {
-+	list_for_each_entry_safe(rbnode, ptr, &handler->lru_list, list) {
- 		if (handler->ops->evict(handler->ops_arg, rbnode, evict_arg,
- 					&stop)) {
- 			__mmu_int_rb_remove(rbnode, &handler->root);
-@@ -219,9 +220,7 @@ void hfi1_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg)
+-		kfree(h);
++		kfree(free_ptr);
+ 		return ret;
  	}
- 	spin_unlock_irqrestore(&handler->lock, flags);
  
--	while (!list_empty(&del_list)) {
--		rbnode = list_first_entry(&del_list, struct mmu_rb_node, list);
--		list_del(&rbnode->list);
-+	list_for_each_entry_safe(rbnode, ptr, &del_list, list) {
- 		handler->ops->remove(handler->ops_arg, rbnode);
- 	}
+@@ -108,7 +111,7 @@ void hfi1_mmu_rb_unregister(struct mmu_rb_handler *handler)
+ 	/* Now the mm may be freed. */
+ 	mmdrop(handler->mn.mm);
+ 
+-	kfree(handler);
++	kfree(handler->free_ptr);
  }
+ 
+ int hfi1_mmu_rb_insert(struct mmu_rb_handler *handler,
+diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.h b/drivers/infiniband/hw/hfi1/mmu_rb.h
+index ed75acdb7b83..c4da064188c9 100644
+--- a/drivers/infiniband/hw/hfi1/mmu_rb.h
++++ b/drivers/infiniband/hw/hfi1/mmu_rb.h
+@@ -33,15 +33,25 @@ struct mmu_rb_ops {
+ };
+ 
+ struct mmu_rb_handler {
++	/*
++	 * struct mmu_notifier is 56 bytes, and spinlock_t is 4 bytes, so
++	 * they fit together in one cache line.  mn is relatively rarely
++	 * accessed, so co-locating the spinlock with it achieves much of
++	 * the cacheline contention reduction of giving the spinlock its own
++	 * cacheline without the overhead of doing so.
++	 */
+ 	struct mmu_notifier mn;
+-	struct rb_root_cached root;
+-	void *ops_arg;
+ 	spinlock_t lock;        /* protect the RB tree */
++
++	/* Begin on a new cachline boundary here */
++	struct rb_root_cached root ____cacheline_aligned_in_smp;
++	void *ops_arg;
+ 	struct mmu_rb_ops *ops;
+ 	struct list_head lru_list;
+ 	struct work_struct del_work;
+ 	struct list_head del_list;
+ 	struct workqueue_struct *wq;
++	void *free_ptr;
+ };
+ 
+ int hfi1_mmu_rb_register(void *ops_arg,
 
 
