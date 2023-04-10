@@ -2,143 +2,112 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 290BDC76196
-	for <linux-rdma@archiver.kernel.org>; Mon, 10 Apr 2023 13:16:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08A6FC77B70
+	for <linux-rdma@archiver.kernel.org>; Mon, 10 Apr 2023 14:14:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbjDJNQx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 10 Apr 2023 09:16:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52156 "EHLO
+        id S229650AbjDJOOn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 10 Apr 2023 10:14:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229740AbjDJNQw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 Apr 2023 09:16:52 -0400
-X-Greylist: delayed 385 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 10 Apr 2023 06:16:50 PDT
-Received: from out-1.mta0.migadu.com (out-1.mta0.migadu.com [91.218.175.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 956E14687
-        for <linux-rdma@vger.kernel.org>; Mon, 10 Apr 2023 06:16:50 -0700 (PDT)
-Message-ID: <0d9c57db-bca3-adb4-71fd-7362e4842917@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1681132224;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=rrUUZvsAwlm5/KXPQHcTI/Rk3/exmYuvJr9dNcmOq1Y=;
-        b=YUSgDu0DcE05FG8fIH6nH66kVVWKfyR9vC3SKrIloaEjiijWja9hCHDaIuyPa8P/p+8wSA
-        gYomeybz9LVCZ6jnC+X2aQ+vqB+D68o3Xpo3Fb6ctCWwlF2DNdZ0jZDnMg1qxTqMS67oVq
-        QQzH4WYXNbEdV4bEE2aVm+Ik2bbI92g=
-Date:   Mon, 10 Apr 2023 21:10:19 +0800
+        with ESMTP id S229928AbjDJOO0 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 10 Apr 2023 10:14:26 -0400
+Received: from smtp-fw-9103.amazon.com (smtp-fw-9103.amazon.com [207.171.188.200])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6882955BC
+        for <linux-rdma@vger.kernel.org>; Mon, 10 Apr 2023 07:14:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1681136062; x=1712672062;
+  h=message-id:date:mime-version:from:to:cc:references:
+   in-reply-to:content-transfer-encoding:subject;
+  bh=SrJib6GYhx1oDevQAexJ1lje5/Npn7SN+NP1UeSoiRk=;
+  b=ZjEygHCxbNraIQsf8zt8k1UlK69bGGCR8E2YN7eTa6GDS9MsyrSkwh99
+   82FKcdfAZrXmlqn99jAWwegpTph/ddAvGYhgFjjmwNK1NwJqMu95ouxQq
+   MXwIUkTY3A1nfKCWfsYXVpn7ApxoEZmI158Nz6iVYCB/ghLZhu5SaEhJQ
+   E=;
+X-IronPort-AV: E=Sophos;i="5.98,333,1673913600"; 
+   d="scan'208";a="1121183847"
+Subject: Re: [PATCH] RDMA/efa: Add rdma write capability to device caps
+Received: from pdx4-co-svc-p1-lb2-vlan3.amazon.com (HELO email-inbound-relay-pdx-2c-m6i4x-e7094f15.us-west-2.amazon.com) ([10.25.36.214])
+  by smtp-border-fw-9103.sea19.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Apr 2023 14:14:14 +0000
+Received: from EX19D014EUA002.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan3.pdx.amazon.com [10.236.137.198])
+        by email-inbound-relay-pdx-2c-m6i4x-e7094f15.us-west-2.amazon.com (Postfix) with ESMTPS id DC8C740E16;
+        Mon, 10 Apr 2023 14:14:13 +0000 (UTC)
+Received: from EX19D045EUC003.ant.amazon.com (10.252.61.236) by
+ EX19D014EUA002.ant.amazon.com (10.252.50.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.26; Mon, 10 Apr 2023 14:14:12 +0000
+Received: from [192.168.7.165] (10.1.213.8) by EX19D045EUC003.ant.amazon.com
+ (10.252.61.236) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1118.26; Mon, 10 Apr
+ 2023 14:14:09 +0000
+Message-ID: <5b9f3728-1fc7-4a87-f516-286718e94dc6@amazon.com>
+Date:   Mon, 10 Apr 2023 17:14:03 +0300
 MIME-Version: 1.0
-Subject: Re: [PATCH for-next 2/3] RDMA/rtrs: Fix rxe_dealloc_pd warning
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.9.1
+From:   "Nachum, Yonatan" <ynachum@amazon.com>
+To:     Leon Romanovsky <leon@kernel.org>
+CC:     <jgg@nvidia.com>, <linux-rdma@vger.kernel.org>,
+        <sleybo@amazon.com>, <mrgolin@amazon.com>,
+        Firas Jahjah <firasj@amazon.com>
+References: <20230404154313.35194-1-ynachum@amazon.com>
+ <20230409073228.GA14869@unreal>
+ <f738b558-f0d9-e69e-0939-a80594063d4c@amazon.com>
+ <20230409172146.GJ182481@unreal>
+ <0c307561-8ee1-061b-6ba3-ceb74eb3a1c8@amazon.com>
+ <20230410123812.GT182481@unreal>
 Content-Language: en-US
-To:     Leon Romanovsky <leon@kernel.org>,
-        Li Zhijian <lizhijian@fujitsu.com>
-Cc:     haris.iqbal@ionos.com, jinpu.wang@ionos.com, jgg@ziepe.ca,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1681108984-2-1-git-send-email-lizhijian@fujitsu.com>
- <1681108984-2-3-git-send-email-lizhijian@fujitsu.com>
- <20230410120809.GN182481@unreal>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Guoqing Jiang <guoqing.jiang@linux.dev>
-In-Reply-To: <20230410120809.GN182481@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+In-Reply-To: <20230410123812.GT182481@unreal>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.1.213.8]
+X-ClientProxiedBy: EX19D032UWA004.ant.amazon.com (10.13.139.56) To
+ EX19D045EUC003.ant.amazon.com (10.252.61.236)
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 
+>>>>>>
+>>>>>>       access_flags &= ~IB_ACCESS_OPTIONAL;
+>>>>>>       if (access_flags & ~supp_access_flags) {
+>>>>>> diff --git a/include/uapi/rdma/efa-abi.h b/include/uapi/rdma/efa-abi.h
+>>>>>> index 74406b4817ce..d94c32f28804 100644
+>>>>>> --- a/include/uapi/rdma/efa-abi.h
+>>>>>> +++ b/include/uapi/rdma/efa-abi.h
+>>>>>> @@ -121,6 +121,7 @@ enum {
+>>>>>>       EFA_QUERY_DEVICE_CAPS_CQ_NOTIFICATIONS = 1 << 2,
+>>>>>>       EFA_QUERY_DEVICE_CAPS_CQ_WITH_SGID     = 1 << 3,
+>>>>>>       EFA_QUERY_DEVICE_CAPS_DATA_POLLING_128 = 1 << 4,
+>>>>>> +     EFA_QUERY_DEVICE_CAPS_RDMA_WRITE = 1 << 5,
+>>>>>
+>>>>> Why do you need special device capability while all rdma-core users
+>>>>> set IBV_ACCESS_REMOTE_WRITE anyway without relying on anything from
+>>>>> providers?
+>>>>>
+>>>>> Thanks
+>>>>
+>>>> We need to query the device because not every device supprort the same RDMA capabilities. Upper layers in the SW stack needs this supported flags to indicate which flows they can use. In addition this is identical to the existing RDMA read support in our code.
+>>>
+>>> Nice, but it doesn't answer my question. Please pay attention to the
+>>> second part of my question "while all rdma-core ....".
+>>>
+>>> Thanks
+>>>
+>>
+>> There are rdma-core users that doesn’t fail on unsupported features but fallback to supported ones. One example is Libfabric EFA provider that emulates RDMA write by read if device write isn’t supported but there are other similar examples. Correct way doing this in user code is by querying rdma-core for device supported capabilities, then selecting a suitable work flow. This is why existing and the additional capability bits are required.
+> 
+> AFAIK, RDMA write is different here as fallback is performed in the kernel and
+> not in the rdma-core provider. So why should EFA be different here?
+> 
+> BTW, Please fix your mailer to break lines, so we will be able to reply
+> on specific sentence with less effort.
+> 
+> Thanks
 
-On 4/10/23 20:08, Leon Romanovsky wrote:
-> On Mon, Apr 10, 2023 at 06:43:03AM +0000, Li Zhijian wrote:
->> The warning occurs when destroying PD whose reference count is not zero.
->>
->> Precodition: clt_path->s.con_num is 2.
->> So 2 cm connection will be created as below:
->> CPU0                                              CPU1
->> init_conns {                              |
->>    create_cm() // a. con[0] created        |
->>                                            |  a'. rtrs_clt_rdma_cm_handler() {
->>                                            |    rtrs_rdma_addr_resolved()
->>                                            |      create_con_cq_qp(con); << con[0]
->>                                            |  }
->>                                            | in this moment, refcnt of PD was increased to 2+
->>                                            |
->>    create_cm() // b. cid = 1, failed       |
->>      destroy_con_cq_qp()                   |
->>        rtrs_ib_dev_put()                   |
->>          dev_free()                        |
->>            ib_dealloc_pd(dev->ib_pd) << PD |
->>             is destroyed, but refcnt is    |
->>             still greater than 0           |
->> }
->>
->> Simply, Here we can avoid this warning by introducing conn own flag to
->> track if its cleanup should drop the PD.
->>
->> -----------------------------------------------
->>   rnbd_client L597: Mapping device /dev/nvme0n1 on session client, (access_mode: rw, nr_poll_queues: 0)
->>   ------------[ cut here ]------------
->>   WARNING: CPU: 0 PID: 26407 at drivers/infiniband/sw/rxe/rxe_pool.c:256 __rxe_cleanup+0x13a/0x170 [rdma_rxe]
->>   Modules linked in: rpcrdma rdma_ucm ib_iser rnbd_client libiscsi rtrs_client scsi_transport_iscsi rtrs_core rdma_cm iw_cm ib_cm crc32_generic rdma_rxe udp_tunnel ib_uverbs ib_core kmem device_dax nd_pmem dax_pmem nd_
->> vme crc32c_intel fuse nvme_core nfit libnvdimm dm_multipath scsi_dh_rdac scsi_dh_emc scsi_dh_alua dm_mirror dm_region_hash dm_log dm_mod
->>   CPU: 0 PID: 26407 Comm: rnbd-client.sh Kdump: loaded Not tainted 6.2.0-rc6-roce-flush+ #53
->>   Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.0-0-gd239552ce722-prebuilt.qemu.org 04/01/2014
->>   RIP: 0010:__rxe_cleanup+0x13a/0x170 [rdma_rxe]
->>   Code: 45 84 e4 0f 84 5a ff ff ff 48 89 ef e8 5f 18 71 f9 84 c0 75 90 be c8 00 00 00 48 89 ef e8 be 89 1f fa 85 c0 0f 85 7b ff ff ff <0f> 0b 41 bc ea ff ff ff e9 71 ff ff ff e8 84 7f 1f fa e9 d0 fe ff
->>   RSP: 0018:ffffb09880b6f5f0 EFLAGS: 00010246
->>   RAX: 0000000000000000 RBX: ffff99401f15d6a8 RCX: 0000000000000000
->>   RDX: 0000000000000001 RSI: ffffffffbac8234b RDI: 00000000ffffffff
->>   RBP: ffff99401f15d6d0 R08: 0000000000000001 R09: 0000000000000001
->>   R10: 0000000000002d82 R11: 0000000000000000 R12: 0000000000000001
->>   R13: ffff994101eff208 R14: ffffb09880b6f6a0 R15: 00000000fffffe00
->>   FS:  00007fe113904740(0000) GS:ffff99413bc00000(0000) knlGS:0000000000000000
->>   CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->>   CR2: 00007ff6cde656c8 CR3: 000000001f108004 CR4: 00000000001706f0
->>   DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
->>   DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
->>   Call Trace:
->>    <TASK>
->>    rxe_dealloc_pd+0x16/0x20 [rdma_rxe]
->>    ib_dealloc_pd_user+0x4b/0x80 [ib_core]
->>    rtrs_ib_dev_put+0x79/0xd0 [rtrs_core]
->>    destroy_con_cq_qp+0x8a/0xa0 [rtrs_client]
->>    init_path+0x1e7/0x9a0 [rtrs_client]
->>    ? __pfx_autoremove_wake_function+0x10/0x10
->>    ? lock_is_held_type+0xd7/0x130
->>    ? rcu_read_lock_sched_held+0x43/0x80
->>    ? pcpu_alloc+0x3dd/0x7d0
->>    ? rtrs_clt_init_stats+0x18/0x40 [rtrs_client]
->>    rtrs_clt_open+0x24f/0x5a0 [rtrs_client]
->>    ? __pfx_rnbd_clt_link_ev+0x10/0x10 [rnbd_client]
->>    rnbd_clt_map_device+0x6a5/0xe10 [rnbd_client]
->>
->> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
->> ---
->>   drivers/infiniband/ulp/rtrs/rtrs-clt.c | 4 ++++
->>   drivers/infiniband/ulp/rtrs/rtrs-clt.h | 1 +
->>   2 files changed, 5 insertions(+)
->>
->> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
->> index c2065fc33a56..4c8f42e46e2f 100644
->> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
->> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
->> @@ -1664,6 +1664,7 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
->>   			return -ENOMEM;
->>   		}
->>   		clt_path->s.dev_ref = 1;
->> +		con->has_dev = true;
->>   		query_fast_reg_mode(clt_path);
->>   		wr_limit = clt_path->s.dev->ib_dev->attrs.max_qp_wr;
->>   		/*
->> @@ -1690,6 +1691,7 @@ static int create_con_cq_qp(struct rtrs_clt_con *con)
->>   		wr_limit = clt_path->s.dev->ib_dev->attrs.max_qp_wr;
->>   		/* Shared between connections */
->>   		clt_path->s.dev_ref++;
-> Without looking in the code, I would expect dev_ref from the line above
-> to perform PD protection.
+Can you please elaborate more on the fallback performed in the kernel?
+What kind of fallback being performed? Is it in create MR/QP?
+Does the fallback happens when providing unsupported write capability
+and to what it fallback to?
 
-Agreed.
-
-Thanks,
-Guoqing
+Thanks
