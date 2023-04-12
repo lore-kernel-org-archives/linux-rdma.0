@@ -2,116 +2,204 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8135C77B6F
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Apr 2023 18:38:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A844C7619A
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Apr 2023 18:57:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230153AbjDLSiC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Apr 2023 14:38:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47214 "EHLO
+        id S229866AbjDLS5b (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Apr 2023 14:57:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229945AbjDLShj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Apr 2023 14:37:39 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8F824ED0
-        for <linux-rdma@vger.kernel.org>; Wed, 12 Apr 2023 11:35:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681324545;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=cSVYWifKD7SQGSjuGFZiN+et2zmCoRo8LLSGhODudbI=;
-        b=aUfmJpIDYPxiCf8pIyG0mKDXjDGoAvT9OPe3C4K0968HYV5RCC3RAmoz78AmEYZZ+d7IKP
-        hgbt3QTX5x63ApzNZoV06T1PyrUMJACutU1vwjMDk4qZFodHNEeHVO43J3nHom7JCsx0mv
-        m1k7taadgQEH2kcAKtmVleZRdDV4qxw=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-119-IbczlyyOObSkDDMDQ8yE3Q-1; Wed, 12 Apr 2023 14:35:39 -0400
-X-MC-Unique: IbczlyyOObSkDDMDQ8yE3Q-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 92D0D800B23;
-        Wed, 12 Apr 2023 18:35:38 +0000 (UTC)
-Received: from firesoul.localdomain (unknown [10.45.242.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 4DB5940C20FA;
-        Wed, 12 Apr 2023 18:35:38 +0000 (UTC)
-Received: from [10.1.1.1] (localhost [IPv6:::1])
-        by firesoul.localdomain (Postfix) with ESMTP id 64F69307372E8;
-        Wed, 12 Apr 2023 20:35:37 +0200 (CEST)
-Subject: [PATCH bpf V9 5/6] mlx4: bpf_xdp_metadata_rx_hash add xdp rss hash
- type
-From:   Jesper Dangaard Brouer <brouer@redhat.com>
-To:     bpf@vger.kernel.org, Stanislav Fomichev <sdf@google.com>,
-        =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Cc:     Jesper Dangaard Brouer <brouer@redhat.com>, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, martin.lau@kernel.org,
-        ast@kernel.org, daniel@iogearbox.net, alexandr.lobakin@intel.com,
-        larysa.zaremba@intel.com, xdp-hints@xdp-project.net,
-        anthony.l.nguyen@intel.com, yoong.siang.song@intel.com,
-        boon.leong.ong@intel.com, intel-wired-lan@lists.osuosl.org,
-        pabeni@redhat.com, jesse.brandeburg@intel.com, kuba@kernel.org,
-        edumazet@google.com, john.fastabend@gmail.com, hawk@kernel.org,
-        davem@davemloft.net, tariqt@nvidia.com, saeedm@nvidia.com,
-        leon@kernel.org, linux-rdma@vger.kernel.org
-Date:   Wed, 12 Apr 2023 20:35:37 +0200
-Message-ID: <168132453736.317773.2296218934638816233.stgit@firesoul>
-In-Reply-To: <168132448251.317773.2526885806604122764.stgit@firesoul>
-References: <168132448251.317773.2526885806604122764.stgit@firesoul>
-User-Agent: StGit/1.4
+        with ESMTP id S229586AbjDLS5b (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Apr 2023 14:57:31 -0400
+Received: from mail-pg1-x52e.google.com (mail-pg1-x52e.google.com [IPv6:2607:f8b0:4864:20::52e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9769646B9
+        for <linux-rdma@vger.kernel.org>; Wed, 12 Apr 2023 11:57:04 -0700 (PDT)
+Received: by mail-pg1-x52e.google.com with SMTP id bs70so6305249pgb.5
+        for <linux-rdma@vger.kernel.org>; Wed, 12 Apr 2023 11:57:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1681325821;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=sHYXkYaef6xMNFmaZnkKzH+IKK7bhNbi9t2F6EAC6M8=;
+        b=TuoQ6JVKp2k/cFPXNyeuO/F/TOiztKMjN9sXg8H64JYl6kg3bdh2aWRaJL6RRsNcKW
+         DJOzoEtWM9RiDETkmdPHNEJQUN+f4QvXeR28ACr0ns+ASVmBQTaFxSYOJguvjPSXOf/L
+         1A4RSQ6Q16cm87R23Tqns/d9AfqB7Tb41aTuaFulG/wxXXKGEK8DcriRQVZne1xIxoIa
+         wrOUXDRrrYKApE4p6AVzkwq942bKDane/X3ICADPACDDMki5/AEJkV0+9eHSOdLC/1ni
+         j8Y+H2FjR7EyDfl1hNal8++dP0IIQNIgQHybab0EHhxH23u5mcmzQakJzPmfMb5rsN4f
+         FtUw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1681325821;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=sHYXkYaef6xMNFmaZnkKzH+IKK7bhNbi9t2F6EAC6M8=;
+        b=V2SeVpoiBCdmPdT/as6y1X9Ccq8mRiuKVOxBytgCGmEOb5lNJciM/eU+9kbEGOfsZR
+         BKNCxrUUiJevdXbDSfb2zFmGtGbKD+VRSAL0p14f0Itv43JC3Et3rhRzO+Xm6thQp0oA
+         +KTAmEw1DxnRoeAsf+T4EhHAFtHDTx0qNzyv5EcPEDL+U4VrI4xeTfK3uGVJ9myAqMpx
+         mKTZHUhYJmlzbuH3cYUsv9wFbqef268+McGMQ1sy5qOO+V6uTyuOtGQMCWYVuxmNxZ1l
+         YUJiSuIbNtAHUdPyVPK7t1tD3QCDO/O9cQX3ZdSHvxOt6JGEOc29hiMOTAerD7eHXGNm
+         y1Dw==
+X-Gm-Message-State: AAQBX9dEE+5L3TSkVo4YJ3FEM8Q/brXN0YbEaRlWI3EFuxc0gZLfMf43
+        XfiH1Jd+cpYeV29kDgOC164GKaNvb82YfL7NoYJmqQ==
+X-Google-Smtp-Source: AKy350asSOWvzYYWk3xZPCNn85M1GUh5aXVd/UqL2CaLUxUIrW5LUiHM1WCh8gu/XhXgKmAXccrklI07joG66CYJ6E4=
+X-Received: by 2002:a65:4681:0:b0:513:6b94:8907 with SMTP id
+ h1-20020a654681000000b005136b948907mr880151pgr.1.1681325820765; Wed, 12 Apr
+ 2023 11:57:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
+References: <168132448251.317773.2526885806604122764.stgit@firesoul> <168132451707.317773.15960209122204110352.stgit@firesoul>
+In-Reply-To: <168132451707.317773.15960209122204110352.stgit@firesoul>
+From:   Stanislav Fomichev <sdf@google.com>
+Date:   Wed, 12 Apr 2023 11:56:49 -0700
+Message-ID: <CAKH8qBu0B1tQBKtGp0-n8eet+4rQRTPE3rrCr5Ve0CG6uYR7Kg@mail.gmail.com>
+Subject: Re: [PATCH bpf V9 1/6] selftests/bpf: xdp_hw_metadata remove
+ bpf_printk and add counters
+To:     Jesper Dangaard Brouer <brouer@redhat.com>
+Cc:     bpf@vger.kernel.org,
+        =?UTF-8?B?VG9rZSBIw7hpbGFuZC1Kw7hyZ2Vuc2Vu?= <toke@redhat.com>,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        martin.lau@kernel.org, ast@kernel.org, daniel@iogearbox.net,
+        alexandr.lobakin@intel.com, larysa.zaremba@intel.com,
+        xdp-hints@xdp-project.net, anthony.l.nguyen@intel.com,
+        yoong.siang.song@intel.com, boon.leong.ong@intel.com,
+        intel-wired-lan@lists.osuosl.org, pabeni@redhat.com,
+        jesse.brandeburg@intel.com, kuba@kernel.org, edumazet@google.com,
+        john.fastabend@gmail.com, hawk@kernel.org, davem@davemloft.net,
+        tariqt@nvidia.com, saeedm@nvidia.com, leon@kernel.org,
+        linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Update API for bpf_xdp_metadata_rx_hash() with arg for xdp rss hash type
-via matching individual Completion Queue Entry (CQE) status bits.
+On Wed, Apr 12, 2023 at 11:35=E2=80=AFAM Jesper Dangaard Brouer
+<brouer@redhat.com> wrote:
+>
+> The tool xdp_hw_metadata can be used by driver developers
+> implementing XDP-hints metadata kfuncs.
+>
+> Remove all bpf_printk calls, as the tool already transfers all the
+> XDP-hints related information via metadata area to AF_XDP
+> userspace process.
+>
+> Add counters for providing remaining information about failure and
+> skipped packet events.
+>
+> Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
 
-Fixes: ab46182d0dcb ("net/mlx4_en: Support RX XDP metadata")
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Acked-by: Toke Høiland-Jørgensen <toke@redhat.com>
 Acked-by: Stanislav Fomichev <sdf@google.com>
----
- drivers/net/ethernet/mellanox/mlx4/en_rx.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-index 73d10aa4c503..332472fe4990 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-@@ -685,11 +685,28 @@ int mlx4_en_xdp_rx_hash(const struct xdp_md *ctx, u32 *hash,
- 			enum xdp_rss_hash_type *rss_type)
- {
- 	struct mlx4_en_xdp_buff *_ctx = (void *)ctx;
-+	struct mlx4_cqe *cqe = _ctx->cqe;
-+	enum xdp_rss_hash_type xht = 0;
-+	__be16 status;
- 
- 	if (unlikely(!(_ctx->dev->features & NETIF_F_RXHASH)))
- 		return -ENODATA;
- 
--	*hash = be32_to_cpu(_ctx->cqe->immed_rss_invalid);
-+	*hash = be32_to_cpu(cqe->immed_rss_invalid);
-+	status = cqe->status;
-+	if (status & cpu_to_be16(MLX4_CQE_STATUS_TCP))
-+		xht = XDP_RSS_L4_TCP;
-+	if (status & cpu_to_be16(MLX4_CQE_STATUS_UDP))
-+		xht = XDP_RSS_L4_UDP;
-+	if (status & cpu_to_be16(MLX4_CQE_STATUS_IPV4 | MLX4_CQE_STATUS_IPV4F))
-+		xht |= XDP_RSS_L3_IPV4;
-+	if (status & cpu_to_be16(MLX4_CQE_STATUS_IPV6)) {
-+		xht |= XDP_RSS_L3_IPV6;
-+		if (cqe->ipv6_ext_mask)
-+			xht |= XDP_RSS_L3_DYNHDR;
-+	}
-+	*rss_type = xht;
-+
- 	return 0;
- }
- 
+nit: maybe those ++ should be __sync_add_and_fetch instead? Then you
+should be able to drop volatile..
 
-
+> ---
+>  .../testing/selftests/bpf/progs/xdp_hw_metadata.c  |   36 ++++++++++++--=
+------
+>  tools/testing/selftests/bpf/xdp_hw_metadata.c      |    4 ++
+>  2 files changed, 24 insertions(+), 16 deletions(-)
+>
+> diff --git a/tools/testing/selftests/bpf/progs/xdp_hw_metadata.c b/tools/=
+testing/selftests/bpf/progs/xdp_hw_metadata.c
+> index 4c55b4d79d3d..8a042343cb0c 100644
+> --- a/tools/testing/selftests/bpf/progs/xdp_hw_metadata.c
+> +++ b/tools/testing/selftests/bpf/progs/xdp_hw_metadata.c
+> @@ -12,6 +12,10 @@ struct {
+>         __type(value, __u32);
+>  } xsk SEC(".maps");
+>
+> +volatile __u64 pkts_skip =3D 0;
+> +volatile __u64 pkts_fail =3D 0;
+> +volatile __u64 pkts_redir =3D 0;
+> +
+>  extern int bpf_xdp_metadata_rx_timestamp(const struct xdp_md *ctx,
+>                                          __u64 *timestamp) __ksym;
+>  extern int bpf_xdp_metadata_rx_hash(const struct xdp_md *ctx,
+> @@ -26,7 +30,7 @@ int rx(struct xdp_md *ctx)
+>         struct udphdr *udp =3D NULL;
+>         struct iphdr *iph =3D NULL;
+>         struct xdp_meta *meta;
+> -       int ret;
+> +       int err;
+>
+>         data =3D (void *)(long)ctx->data;
+>         data_end =3D (void *)(long)ctx->data_end;
+> @@ -46,17 +50,20 @@ int rx(struct xdp_md *ctx)
+>                         udp =3D NULL;
+>         }
+>
+> -       if (!udp)
+> +       if (!udp) {
+> +               pkts_skip++;
+>                 return XDP_PASS;
+> +       }
+>
+> -       if (udp->dest !=3D bpf_htons(9091))
+> +       /* Forwarding UDP:9091 to AF_XDP */
+> +       if (udp->dest !=3D bpf_htons(9091)) {
+> +               pkts_skip++;
+>                 return XDP_PASS;
+> +       }
+>
+> -       bpf_printk("forwarding UDP:9091 to AF_XDP");
+> -
+> -       ret =3D bpf_xdp_adjust_meta(ctx, -(int)sizeof(struct xdp_meta));
+> -       if (ret !=3D 0) {
+> -               bpf_printk("bpf_xdp_adjust_meta returned %d", ret);
+> +       err =3D bpf_xdp_adjust_meta(ctx, -(int)sizeof(struct xdp_meta));
+> +       if (err) {
+> +               pkts_fail++;
+>                 return XDP_PASS;
+>         }
+>
+> @@ -65,20 +72,19 @@ int rx(struct xdp_md *ctx)
+>         meta =3D data_meta;
+>
+>         if (meta + 1 > data) {
+> -               bpf_printk("bpf_xdp_adjust_meta doesn't appear to work");
+> +               pkts_fail++;
+>                 return XDP_PASS;
+>         }
+>
+> -       if (!bpf_xdp_metadata_rx_timestamp(ctx, &meta->rx_timestamp))
+> -               bpf_printk("populated rx_timestamp with %llu", meta->rx_t=
+imestamp);
+> -       else
+> +       err =3D bpf_xdp_metadata_rx_timestamp(ctx, &meta->rx_timestamp);
+> +       if (err)
+>                 meta->rx_timestamp =3D 0; /* Used by AF_XDP as not avail =
+signal */
+>
+> -       if (!bpf_xdp_metadata_rx_hash(ctx, &meta->rx_hash))
+> -               bpf_printk("populated rx_hash with %u", meta->rx_hash);
+> -       else
+> +       err =3D bpf_xdp_metadata_rx_hash(ctx, &meta->rx_hash);
+> +       if (err)
+>                 meta->rx_hash =3D 0; /* Used by AF_XDP as not avail signa=
+l */
+>
+> +       pkts_redir++;
+>         return bpf_redirect_map(&xsk, ctx->rx_queue_index, XDP_PASS);
+>  }
+>
+> diff --git a/tools/testing/selftests/bpf/xdp_hw_metadata.c b/tools/testin=
+g/selftests/bpf/xdp_hw_metadata.c
+> index 1c8acb68b977..3b942ef7297b 100644
+> --- a/tools/testing/selftests/bpf/xdp_hw_metadata.c
+> +++ b/tools/testing/selftests/bpf/xdp_hw_metadata.c
+> @@ -212,7 +212,9 @@ static int verify_metadata(struct xsk *rx_xsk, int rx=
+q, int server_fd)
+>         while (true) {
+>                 errno =3D 0;
+>                 ret =3D poll(fds, rxq + 1, 1000);
+> -               printf("poll: %d (%d)\n", ret, errno);
+> +               printf("poll: %d (%d) skip=3D%llu fail=3D%llu redir=3D%ll=
+u\n",
+> +                      ret, errno, bpf_obj->bss->pkts_skip,
+> +                      bpf_obj->bss->pkts_fail, bpf_obj->bss->pkts_redir)=
+;
+>                 if (ret < 0)
+>                         break;
+>                 if (ret =3D=3D 0)
+>
+>
