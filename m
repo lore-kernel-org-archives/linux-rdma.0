@@ -2,46 +2,46 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F1C3C77B6F
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Apr 2023 18:36:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E891C77B6E
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Apr 2023 18:37:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229830AbjDLSgt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Apr 2023 14:36:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47208 "EHLO
+        id S230115AbjDLShH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Apr 2023 14:37:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229906AbjDLSgs (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Apr 2023 14:36:48 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A79E22D4E
-        for <linux-rdma@vger.kernel.org>; Wed, 12 Apr 2023 11:35:23 -0700 (PDT)
+        with ESMTP id S230010AbjDLSg5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Apr 2023 14:36:57 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA7C84200
+        for <linux-rdma@vger.kernel.org>; Wed, 12 Apr 2023 11:35:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681324522;
+        s=mimecast20190719; t=1681324534;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=sbo5K370N1ezyO8Oyot/jMfQT2LDllm8q8rGrWDuStg=;
-        b=UfyQBnqT+iOaO0m4q6Spy8Bm6yTNpMBOF1AzsRLBufzje8JyV2hqW3pimlQhiCPjIMdZ4Q
-        4ongR51syM2g0XTAZAblFqKmNekMWaL/1ZmfqP1XHcPRj+/XdsHYtUVOXnjlwtQyjGCJ4d
-        AjKoiYiBlxEqWwhV3qlXto3goKgBT8M=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=F4P5FHgst54Guyz7AOdIGfebsTZwoSbmDnoCPryHKKQ=;
+        b=GwIeBZhm4HIw9JAY5D9+6YomtCafG2DmJ8FrSgtek99tI/SGszRoEcKW6EKIlhSfbOJWdg
+        d9VcaytYZyjCd+uidOlqjKRG0V0yE55YdBwIxSIBBqDkN+KFMsUtVNt9rWlZEv3JpqwP23
+        N3I3aNmDIXpo7iOxUxQE3k2QsrFAvrA=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-519-2W7U_7cUP4eevsDphnyHfw-1; Wed, 12 Apr 2023 14:35:19 -0400
-X-MC-Unique: 2W7U_7cUP4eevsDphnyHfw-1
+ us-mta-112-v-buBjvIPLev3p_EzpKltw-1; Wed, 12 Apr 2023 14:35:29 -0400
+X-MC-Unique: v-buBjvIPLev3p_EzpKltw-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 5026F8996F3;
-        Wed, 12 Apr 2023 18:35:18 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 96F513C10689;
+        Wed, 12 Apr 2023 18:35:28 +0000 (UTC)
 Received: from firesoul.localdomain (unknown [10.45.242.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 09C7740C20FA;
-        Wed, 12 Apr 2023 18:35:18 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 2CEA640C83A9;
+        Wed, 12 Apr 2023 18:35:28 +0000 (UTC)
 Received: from [10.1.1.1] (localhost [IPv6:::1])
-        by firesoul.localdomain (Postfix) with ESMTP id 23D69307372E8;
-        Wed, 12 Apr 2023 20:35:17 +0200 (CEST)
-Subject: [PATCH bpf V9 1/6] selftests/bpf: xdp_hw_metadata remove bpf_printk
- and add counters
+        by firesoul.localdomain (Postfix) with ESMTP id 45987307372E8;
+        Wed, 12 Apr 2023 20:35:27 +0200 (CEST)
+Subject: [PATCH bpf V9 3/6] mlx5: bpf_xdp_metadata_rx_hash add xdp rss hash
+ type
 From:   Jesper Dangaard Brouer <brouer@redhat.com>
 To:     bpf@vger.kernel.org, Stanislav Fomichev <sdf@google.com>,
         =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
@@ -55,128 +55,177 @@ Cc:     Jesper Dangaard Brouer <brouer@redhat.com>, netdev@vger.kernel.org,
         edumazet@google.com, john.fastabend@gmail.com, hawk@kernel.org,
         davem@davemloft.net, tariqt@nvidia.com, saeedm@nvidia.com,
         leon@kernel.org, linux-rdma@vger.kernel.org
-Date:   Wed, 12 Apr 2023 20:35:17 +0200
-Message-ID: <168132451707.317773.15960209122204110352.stgit@firesoul>
+Date:   Wed, 12 Apr 2023 20:35:27 +0200
+Message-ID: <168132452723.317773.17006189430871247933.stgit@firesoul>
 In-Reply-To: <168132448251.317773.2526885806604122764.stgit@firesoul>
 References: <168132448251.317773.2526885806604122764.stgit@firesoul>
 User-Agent: StGit/1.4
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The tool xdp_hw_metadata can be used by driver developers
-implementing XDP-hints metadata kfuncs.
+Update API for bpf_xdp_metadata_rx_hash() with arg for xdp rss hash type
+via mapping table.
 
-Remove all bpf_printk calls, as the tool already transfers all the
-XDP-hints related information via metadata area to AF_XDP
-userspace process.
+The mlx5 hardware can also identify and RSS hash IPSEC.  This indicate
+hash includes SPI (Security Parameters Index) as part of IPSEC hash.
 
-Add counters for providing remaining information about failure and
-skipped packet events.
+Extend xdp core enum xdp_rss_hash_type with IPSEC hash type.
 
+Fixes: bc8d405b1ba9 ("net/mlx5e: Support RX XDP metadata")
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Acked-by: Toke Høiland-Jørgensen <toke@redhat.com>
+Acked-by: Stanislav Fomichev <sdf@google.com>
 ---
- .../testing/selftests/bpf/progs/xdp_hw_metadata.c  |   36 ++++++++++++--------
- tools/testing/selftests/bpf/xdp_hw_metadata.c      |    4 ++
- 2 files changed, 24 insertions(+), 16 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |   60 ++++++++++++++++++++++
+ include/linux/mlx5/device.h                      |   14 ++++-
+ include/net/xdp.h                                |    2 +
+ 3 files changed, 73 insertions(+), 3 deletions(-)
 
-diff --git a/tools/testing/selftests/bpf/progs/xdp_hw_metadata.c b/tools/testing/selftests/bpf/progs/xdp_hw_metadata.c
-index 4c55b4d79d3d..8a042343cb0c 100644
---- a/tools/testing/selftests/bpf/progs/xdp_hw_metadata.c
-+++ b/tools/testing/selftests/bpf/progs/xdp_hw_metadata.c
-@@ -12,6 +12,10 @@ struct {
- 	__type(value, __u32);
- } xsk SEC(".maps");
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+index efe609f8e3aa..d9d3b9e1f15a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+@@ -34,6 +34,7 @@
+ #include <net/xdp_sock_drv.h>
+ #include "en/xdp.h"
+ #include "en/params.h"
++#include <linux/bitfield.h>
  
-+volatile __u64 pkts_skip = 0;
-+volatile __u64 pkts_fail = 0;
-+volatile __u64 pkts_redir = 0;
-+
- extern int bpf_xdp_metadata_rx_timestamp(const struct xdp_md *ctx,
- 					 __u64 *timestamp) __ksym;
- extern int bpf_xdp_metadata_rx_hash(const struct xdp_md *ctx,
-@@ -26,7 +30,7 @@ int rx(struct xdp_md *ctx)
- 	struct udphdr *udp = NULL;
- 	struct iphdr *iph = NULL;
- 	struct xdp_meta *meta;
--	int ret;
-+	int err;
- 
- 	data = (void *)(long)ctx->data;
- 	data_end = (void *)(long)ctx->data_end;
-@@ -46,17 +50,20 @@ int rx(struct xdp_md *ctx)
- 			udp = NULL;
- 	}
- 
--	if (!udp)
-+	if (!udp) {
-+		pkts_skip++;
- 		return XDP_PASS;
-+	}
- 
--	if (udp->dest != bpf_htons(9091))
-+	/* Forwarding UDP:9091 to AF_XDP */
-+	if (udp->dest != bpf_htons(9091)) {
-+		pkts_skip++;
- 		return XDP_PASS;
-+	}
- 
--	bpf_printk("forwarding UDP:9091 to AF_XDP");
--
--	ret = bpf_xdp_adjust_meta(ctx, -(int)sizeof(struct xdp_meta));
--	if (ret != 0) {
--		bpf_printk("bpf_xdp_adjust_meta returned %d", ret);
-+	err = bpf_xdp_adjust_meta(ctx, -(int)sizeof(struct xdp_meta));
-+	if (err) {
-+		pkts_fail++;
- 		return XDP_PASS;
- 	}
- 
-@@ -65,20 +72,19 @@ int rx(struct xdp_md *ctx)
- 	meta = data_meta;
- 
- 	if (meta + 1 > data) {
--		bpf_printk("bpf_xdp_adjust_meta doesn't appear to work");
-+		pkts_fail++;
- 		return XDP_PASS;
- 	}
- 
--	if (!bpf_xdp_metadata_rx_timestamp(ctx, &meta->rx_timestamp))
--		bpf_printk("populated rx_timestamp with %llu", meta->rx_timestamp);
--	else
-+	err = bpf_xdp_metadata_rx_timestamp(ctx, &meta->rx_timestamp);
-+	if (err)
- 		meta->rx_timestamp = 0; /* Used by AF_XDP as not avail signal */
- 
--	if (!bpf_xdp_metadata_rx_hash(ctx, &meta->rx_hash))
--		bpf_printk("populated rx_hash with %u", meta->rx_hash);
--	else
-+	err = bpf_xdp_metadata_rx_hash(ctx, &meta->rx_hash);
-+	if (err)
- 		meta->rx_hash = 0; /* Used by AF_XDP as not avail signal */
- 
-+	pkts_redir++;
- 	return bpf_redirect_map(&xsk, ctx->rx_queue_index, XDP_PASS);
+ int mlx5e_xdp_max_mtu(struct mlx5e_params *params, struct mlx5e_xsk_param *xsk)
+ {
+@@ -169,15 +170,72 @@ static int mlx5e_xdp_rx_timestamp(const struct xdp_md *ctx, u64 *timestamp)
+ 	return 0;
  }
  
-diff --git a/tools/testing/selftests/bpf/xdp_hw_metadata.c b/tools/testing/selftests/bpf/xdp_hw_metadata.c
-index 1c8acb68b977..3b942ef7297b 100644
---- a/tools/testing/selftests/bpf/xdp_hw_metadata.c
-+++ b/tools/testing/selftests/bpf/xdp_hw_metadata.c
-@@ -212,7 +212,9 @@ static int verify_metadata(struct xsk *rx_xsk, int rxq, int server_fd)
- 	while (true) {
- 		errno = 0;
- 		ret = poll(fds, rxq + 1, 1000);
--		printf("poll: %d (%d)\n", ret, errno);
-+		printf("poll: %d (%d) skip=%llu fail=%llu redir=%llu\n",
-+		       ret, errno, bpf_obj->bss->pkts_skip,
-+		       bpf_obj->bss->pkts_fail, bpf_obj->bss->pkts_redir);
- 		if (ret < 0)
- 			break;
- 		if (ret == 0)
++/* Mapping HW RSS Type bits CQE_RSS_HTYPE_IP + CQE_RSS_HTYPE_L4 into 4-bits*/
++#define RSS_TYPE_MAX_TABLE	16 /* 4-bits max 16 entries */
++#define RSS_L4		GENMASK(1, 0)
++#define RSS_L3		GENMASK(3, 2) /* Same as CQE_RSS_HTYPE_IP */
++
++/* Valid combinations of CQE_RSS_HTYPE_IP + CQE_RSS_HTYPE_L4 sorted numerical */
++enum mlx5_rss_hash_type {
++	RSS_TYPE_NO_HASH	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IP_NONE) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_NONE)),
++	RSS_TYPE_L3_IPV4	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IPV4) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_NONE)),
++	RSS_TYPE_L4_IPV4_TCP	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IPV4) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_TCP)),
++	RSS_TYPE_L4_IPV4_UDP	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IPV4) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_UDP)),
++	RSS_TYPE_L4_IPV4_IPSEC	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IPV4) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_IPSEC)),
++	RSS_TYPE_L3_IPV6	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IPV6) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_NONE)),
++	RSS_TYPE_L4_IPV6_TCP	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IPV6) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_TCP)),
++	RSS_TYPE_L4_IPV6_UDP	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IPV6) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_UDP)),
++	RSS_TYPE_L4_IPV6_IPSEC	= (FIELD_PREP_CONST(RSS_L3, CQE_RSS_IPV6) |
++				   FIELD_PREP_CONST(RSS_L4, CQE_RSS_L4_IPSEC)),
++};
++
++/* Invalid combinations will simply return zero, allows no boundary checks */
++static const enum xdp_rss_hash_type mlx5_xdp_rss_type[RSS_TYPE_MAX_TABLE] = {
++	[RSS_TYPE_NO_HASH]	 = XDP_RSS_TYPE_NONE,
++	[1]			 = XDP_RSS_TYPE_NONE, /* Implicit zero */
++	[2]			 = XDP_RSS_TYPE_NONE, /* Implicit zero */
++	[3]			 = XDP_RSS_TYPE_NONE, /* Implicit zero */
++	[RSS_TYPE_L3_IPV4]	 = XDP_RSS_TYPE_L3_IPV4,
++	[RSS_TYPE_L4_IPV4_TCP]	 = XDP_RSS_TYPE_L4_IPV4_TCP,
++	[RSS_TYPE_L4_IPV4_UDP]	 = XDP_RSS_TYPE_L4_IPV4_UDP,
++	[RSS_TYPE_L4_IPV4_IPSEC] = XDP_RSS_TYPE_L4_IPV4_IPSEC,
++	[RSS_TYPE_L3_IPV6]	 = XDP_RSS_TYPE_L3_IPV6,
++	[RSS_TYPE_L4_IPV6_TCP]	 = XDP_RSS_TYPE_L4_IPV6_TCP,
++	[RSS_TYPE_L4_IPV6_UDP]   = XDP_RSS_TYPE_L4_IPV6_UDP,
++	[RSS_TYPE_L4_IPV6_IPSEC] = XDP_RSS_TYPE_L4_IPV6_IPSEC,
++	[12]			 = XDP_RSS_TYPE_NONE, /* Implicit zero */
++	[13]			 = XDP_RSS_TYPE_NONE, /* Implicit zero */
++	[14]			 = XDP_RSS_TYPE_NONE, /* Implicit zero */
++	[15]			 = XDP_RSS_TYPE_NONE, /* Implicit zero */
++};
++
+ static int mlx5e_xdp_rx_hash(const struct xdp_md *ctx, u32 *hash,
+ 			     enum xdp_rss_hash_type *rss_type)
+ {
+ 	const struct mlx5e_xdp_buff *_ctx = (void *)ctx;
++	const struct mlx5_cqe64 *cqe = _ctx->cqe;
++	u32 hash_type, l4_type, ip_type, lookup;
+ 
+ 	if (unlikely(!(_ctx->xdp.rxq->dev->features & NETIF_F_RXHASH)))
+ 		return -ENODATA;
+ 
+-	*hash = be32_to_cpu(_ctx->cqe->rss_hash_result);
++	*hash = be32_to_cpu(cqe->rss_hash_result);
++
++	hash_type = cqe->rss_hash_type;
++	BUILD_BUG_ON(CQE_RSS_HTYPE_IP != RSS_L3); /* same mask */
++	ip_type = hash_type & CQE_RSS_HTYPE_IP;
++	l4_type = FIELD_GET(CQE_RSS_HTYPE_L4, hash_type);
++	lookup = ip_type | l4_type;
++	*rss_type = mlx5_xdp_rss_type[lookup];
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 71b06ebad402..1db19a9d26e3 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -36,6 +36,7 @@
+ #include <linux/types.h>
+ #include <rdma/ib_verbs.h>
+ #include <linux/mlx5/mlx5_ifc.h>
++#include <linux/bitfield.h>
+ 
+ #if defined(__LITTLE_ENDIAN)
+ #define MLX5_SET_HOST_ENDIANNESS	0
+@@ -980,14 +981,23 @@ enum {
+ };
+ 
+ enum {
+-	CQE_RSS_HTYPE_IP	= 0x3 << 2,
++	CQE_RSS_HTYPE_IP	= GENMASK(3, 2),
+ 	/* cqe->rss_hash_type[3:2] - IP destination selected for hash
+ 	 * (00 = none,  01 = IPv4, 10 = IPv6, 11 = Reserved)
+ 	 */
+-	CQE_RSS_HTYPE_L4	= 0x3 << 6,
++	CQE_RSS_IP_NONE		= 0x0,
++	CQE_RSS_IPV4		= 0x1,
++	CQE_RSS_IPV6		= 0x2,
++	CQE_RSS_RESERVED	= 0x3,
++
++	CQE_RSS_HTYPE_L4	= GENMASK(7, 6),
+ 	/* cqe->rss_hash_type[7:6] - L4 destination selected for hash
+ 	 * (00 = none, 01 = TCP. 10 = UDP, 11 = IPSEC.SPI
+ 	 */
++	CQE_RSS_L4_NONE		= 0x0,
++	CQE_RSS_L4_TCP		= 0x1,
++	CQE_RSS_L4_UDP		= 0x2,
++	CQE_RSS_L4_IPSEC	= 0x3,
+ };
+ 
+ enum {
+diff --git a/include/net/xdp.h b/include/net/xdp.h
+index a76c4ea203ea..76aa748e7923 100644
+--- a/include/net/xdp.h
++++ b/include/net/xdp.h
+@@ -460,10 +460,12 @@ enum xdp_rss_hash_type {
+ 	XDP_RSS_TYPE_L4_IPV4_TCP     = XDP_RSS_L3_IPV4 | XDP_RSS_L4 | XDP_RSS_L4_TCP,
+ 	XDP_RSS_TYPE_L4_IPV4_UDP     = XDP_RSS_L3_IPV4 | XDP_RSS_L4 | XDP_RSS_L4_UDP,
+ 	XDP_RSS_TYPE_L4_IPV4_SCTP    = XDP_RSS_L3_IPV4 | XDP_RSS_L4 | XDP_RSS_L4_SCTP,
++	XDP_RSS_TYPE_L4_IPV4_IPSEC   = XDP_RSS_L3_IPV4 | XDP_RSS_L4 | XDP_RSS_L4_IPSEC,
+ 
+ 	XDP_RSS_TYPE_L4_IPV6_TCP     = XDP_RSS_L3_IPV6 | XDP_RSS_L4 | XDP_RSS_L4_TCP,
+ 	XDP_RSS_TYPE_L4_IPV6_UDP     = XDP_RSS_L3_IPV6 | XDP_RSS_L4 | XDP_RSS_L4_UDP,
+ 	XDP_RSS_TYPE_L4_IPV6_SCTP    = XDP_RSS_L3_IPV6 | XDP_RSS_L4 | XDP_RSS_L4_SCTP,
++	XDP_RSS_TYPE_L4_IPV6_IPSEC   = XDP_RSS_L3_IPV6 | XDP_RSS_L4 | XDP_RSS_L4_IPSEC,
+ 
+ 	XDP_RSS_TYPE_L4_IPV6_TCP_EX  = XDP_RSS_TYPE_L4_IPV6_TCP  | XDP_RSS_L3_DYNHDR,
+ 	XDP_RSS_TYPE_L4_IPV6_UDP_EX  = XDP_RSS_TYPE_L4_IPV6_UDP  | XDP_RSS_L3_DYNHDR,
 
 
