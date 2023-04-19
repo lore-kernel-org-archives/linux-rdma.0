@@ -2,182 +2,229 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 014C0C6FD18
-	for <linux-rdma@archiver.kernel.org>; Wed, 19 Apr 2023 05:55:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1773C77B73
+	for <linux-rdma@archiver.kernel.org>; Wed, 19 Apr 2023 07:09:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231204AbjDSFzb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 19 Apr 2023 01:55:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49880 "EHLO
+        id S231238AbjDSHJa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 19 Apr 2023 03:09:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231352AbjDSFz3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 19 Apr 2023 01:55:29 -0400
-Received: from esa3.hc1455-7.c3s2.iphmx.com (esa3.hc1455-7.c3s2.iphmx.com [207.54.90.49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B22B47EE8;
-        Tue, 18 Apr 2023 22:54:59 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6600,9927,10684"; a="114046869"
-X-IronPort-AV: E=Sophos;i="5.99,208,1677510000"; 
-   d="scan'208";a="114046869"
-Received: from unknown (HELO yto-r1.gw.nic.fujitsu.com) ([218.44.52.217])
-  by esa3.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Apr 2023 14:52:49 +0900
-Received: from yto-m3.gw.nic.fujitsu.com (yto-nat-yto-m3.gw.nic.fujitsu.com [192.168.83.66])
-        by yto-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id A9595D66B1;
-        Wed, 19 Apr 2023 14:52:46 +0900 (JST)
-Received: from m3003.s.css.fujitsu.com (m3003.s.css.fujitsu.com [10.128.233.114])
-        by yto-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id E31F111C5F;
-        Wed, 19 Apr 2023 14:52:45 +0900 (JST)
-Received: from localhost.localdomain (unknown [10.118.237.106])
-        by m3003.s.css.fujitsu.com (Postfix) with ESMTP id B070B2043C64;
-        Wed, 19 Apr 2023 14:52:45 +0900 (JST)
-From:   Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-To:     linux-rdma@vger.kernel.org, leonro@nvidia.com, jgg@nvidia.com,
-        zyjzyj2000@gmail.com
-Cc:     linux-kernel@vger.kernel.org, rpearsonhpe@gmail.com,
-        yangx.jy@fujitsu.com, lizhijian@fujitsu.com,
-        Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-Subject: [PATCH for-next v4 0/8] On-Demand Paging on SoftRoCE
-Date:   Wed, 19 Apr 2023 14:51:52 +0900
-Message-Id: <cover.1681882651.git.matsuda-daisuke@fujitsu.com>
-X-Mailer: git-send-email 2.39.1
+        with ESMTP id S230153AbjDSHJ3 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 19 Apr 2023 03:09:29 -0400
+Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC1632710;
+        Wed, 19 Apr 2023 00:09:27 -0700 (PDT)
+Received: by mail-wm1-x32b.google.com with SMTP id 5b1f17b1804b1-3f17eb6b10fso2456625e9.3;
+        Wed, 19 Apr 2023 00:09:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1681888166; x=1684480166;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gncw5NSYKJdC+oXb5vIMmABpBB/w2kQIQqkwx1G7ip0=;
+        b=jE/02GvCWwsIBkkZC7nqWL71z3VWDSjb0p+VqxANr0zdhwqFx3PMsodzHk6g1kS+sa
+         u1dlw35nt3ABDoU5sCnbd1mF92h+XdLlAM1W+TzPi0OAnazAyN4Lg5l23Ga0Bn8JyCTH
+         EqKuPdfswmFGbTvPYCGrp6MnFf70HKr2lXONtTEyO0c9rhEtYOWACU2vGaSkMg+gM6ML
+         RV8sFwI6oe1E6q9Jh1ZyN4CbSeuABf5114iupLWs+UHvF1FOEixYyvqyIEuVwuEvkoKP
+         JsA1fMr6BevonVOiJGG7hkXTjLC0nggIzQRKPsbHtpt+E7Lc0nzZS47wzFl4cI1+knFU
+         ngKA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1681888166; x=1684480166;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=gncw5NSYKJdC+oXb5vIMmABpBB/w2kQIQqkwx1G7ip0=;
+        b=QLuo7NdP7sfB2vGnXUW1sgY7pJr8BjuMn9vg6XdotTtPI4ZmghECvMeuJuiQUYvywk
+         VaJ7Yz2Lh9l4XUBqDAmgNX5ZdEPs8sH58JoZ0Z/jSCx3O7snyHfj3635na/SAmwkAMe0
+         KA4bJFgmYjsSarx3j6c4RII8KsNWx9+2qSaKiIaFgXL9Txw6lKlqrI9KiaD9Y5Tb9t5r
+         kGcbcd2jWMCSvAUA1DT/MlEgweNMCFKxoWMtX63p8W+prlGQbizv6SCjN8rF2rCBYptj
+         KL4hCvFd9Pof6wzf2cJWDEvbKOmU418qfYWhqIwd6Cv1AkLF2qATZbDKPiciXkf6fKxE
+         mS7Q==
+X-Gm-Message-State: AAQBX9dn1fi5u0d4MEtwsb63wutF6fvsMBDGedndM1vv+ofcj01wtXIu
+        bcXa+Fj/HQyJoDUXh1cfH40=
+X-Google-Smtp-Source: AKy350YV8zET0vM4q6+vXD1E7cJckJiUb0/Ni6CnVlFipLUT0QudslX6e3wYbpWqftH/rcdvPj/pDQ==
+X-Received: by 2002:adf:e58a:0:b0:2ef:1c8c:1113 with SMTP id l10-20020adfe58a000000b002ef1c8c1113mr4361586wrm.9.1681888166283;
+        Wed, 19 Apr 2023 00:09:26 -0700 (PDT)
+Received: from [192.168.0.103] ([77.124.103.108])
+        by smtp.gmail.com with ESMTPSA id f14-20020a5d58ee000000b002f3e1122c1asm14963527wrd.15.2023.04.19.00.09.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 19 Apr 2023 00:09:25 -0700 (PDT)
+Message-ID: <9975669b-27bf-6903-f908-184946960c25@gmail.com>
+Date:   Wed, 19 Apr 2023 10:09:21 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.9.1
+Subject: Re: [PATCH 2/2] net/mlx4: avoid overloading user/kernel pointers
+Content-Language: en-US
+To:     Arnd Bergmann <arnd@kernel.org>, Yishai Hadas <yishaih@nvidia.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+References: <20230418114730.3674657-1-arnd@kernel.org>
+ <20230418114730.3674657-2-arnd@kernel.org>
+From:   Tariq Toukan <ttoukan.linux@gmail.com>
+In-Reply-To: <20230418114730.3674657-2-arnd@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This patch series implements the On-Demand Paging feature on SoftRoCE(rxe)
-driver, which has been available only in mlx5 driver[1] so far.
 
-The first patch of this series is provided for testing purpose, and it
-should be dropped in the end. It converts triple tasklets to use workqueue
-in order to let them sleep during page-fault. Bob Pearson says he will post
-the patch to do this, and I think we can adopt that. The other patches in
-this series are, I believe, completed works.
 
-I omitted some contents like the motive behind this series for simplicity.
-Please see the cover letter of v3 for more details[2].
+On 18/04/2023 14:47, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> The mlx4_ib_create_cq() and mlx4_init_user_cqes() functions cast
+> between kernel pointers and user pointers, which is confusing
+> and can easily hide bugs.
+> 
+> Change the code to use use the correct address spaces consistently
+> and use separate pointer variables in mlx4_cq_alloc() to avoid
+> mixing them.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> I ran into this while fixing the link error in the first
+> patch, and decided it would be useful to clean up.
+> ---
+>   drivers/infiniband/hw/mlx4/cq.c         | 11 +++++++----
+>   drivers/net/ethernet/mellanox/mlx4/cq.c | 17 ++++++++---------
+>   include/linux/mlx4/device.h             |  2 +-
 
-[Overview]
-When applications register a memory region(MR), RDMA drivers normally pin
-pages in the MR so that physical addresses are never changed during RDMA
-communication. This requires the MR to fit in physical memory and
-inevitably leads to memory pressure. On the other hand, On-Demand Paging
-(ODP) allows applications to register MRs without pinning pages. They are
-paged-in when the driver requires and paged-out when the OS reclaims. As a
-result, it is possible to register a large MR that does not fit in physical
-memory without taking up so much physical memory.
+missed the mlx4_cq_alloc usage in
+drivers/net/ethernet/mellanox/mlx4/en_cq.c.
 
-[How does ODP work?]
-"struct ib_umem_odp" is used to manage pages. It is created for each
-ODP-enabled MR on its registration. This struct holds a pair of arrays
-(dma_list/pfn_list) that serve as a driver page table. DMA addresses and
-PFNs are stored in the driver page table. They are updated on page-in and
-page-out, both of which use the common interfaces in the ib_uverbs layer.
+>   3 files changed, 16 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+> index 4cd738aae53c..b12713fdde99 100644
+> --- a/drivers/infiniband/hw/mlx4/cq.c
+> +++ b/drivers/infiniband/hw/mlx4/cq.c
+> @@ -180,7 +180,8 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+>   	struct mlx4_ib_dev *dev = to_mdev(ibdev);
+>   	struct mlx4_ib_cq *cq = to_mcq(ibcq);
+>   	struct mlx4_uar *uar;
+> -	void *buf_addr;
+> +	void __user *ubuf_addr;
+> +	void *kbuf_addr;
+>   	int err;
+>   	struct mlx4_ib_ucontext *context = rdma_udata_to_drv_context(
+>   		udata, struct mlx4_ib_ucontext, ibucontext);
+> @@ -209,7 +210,8 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+>   			goto err_cq;
+>   		}
+>   
+> -		buf_addr = (void *)(unsigned long)ucmd.buf_addr;
+> +		ubuf_addr = u64_to_user_ptr(ucmd.buf_addr);
+> +		kbuf_addr = NULL;
+>   		err = mlx4_ib_get_cq_umem(dev, &cq->buf, &cq->umem,
+>   					  ucmd.buf_addr, entries);
+>   		if (err)
+> @@ -235,7 +237,8 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+>   		if (err)
+>   			goto err_db;
+>   
+> -		buf_addr = &cq->buf.buf;
+> +		ubuf_addr = NULL;
+> +		kbuf_addr = &cq->buf.buf;
 
-Page-in can occur when requester, responder or completer access an MR in
-order to process RDMA operations. If they find that the pages being
-accessed are not present on physical memory or requisite permissions are
-not set on the pages, they provoke page fault to make the pages present
-with proper permissions and at the same time update the driver page table.
-After confirming the presence of the pages, they execute memory access such
-as read, write or atomic operations.
+Now we should maintain the values of the two pointers before any call. 
+I'm not sure this is less error-prune. One can mistakenly update 
+kbuf_addr for example without nullifying ubuf_addr.
 
-Page-out is triggered by page reclaim or filesystem events (e.g. metadata
-update of a file that is being used as an MR). When creating an ODP-enabled
-MR, the driver registers an MMU notifier callback. When the kernel issues a
-page invalidation notification, the callback is provoked to unmap DMA
-addresses and update the driver page table. After that, the kernel releases
-the pages.
+Also, I'm not a big fan of passing two pointers when exactly one of them 
+is effectively used.
+We can think maybe of passing a union of both types, and a boolean 
+indicating which pointer type is to be used.
 
-[Supported operations]
-All traditional operations are supported on RC connection. The new Atomic
-write[3] and RDMA Flush[4] operations are not included in this patchset. I
-will post them later after this patchset is merged. On UD connection, Send,
-Recv, and SRQ-Recv are supported.
-
-[How to test ODP?]
-There are only a few resources available for testing. pyverbs testcases in
-rdma-core and perftest[5] are recommendable ones. Other than them, the
-ibv_rc_pingpong command can also used for testing. Note that you may have
-to build perftest from upstream because older versions do not handle ODP
-capabilities correctly.
-
-The tree is available from github:
-https://github.com/daimatsuda/linux/tree/odp_v4
-While this series is based on commit f605f26ea196, the tree includes an
-additional bugfix, which is yet to be merged as of today (Apr 19th, 2023).
-https://lore.kernel.org/linux-rdma/20230418090642.1849358-1-matsuda-daisuke@fujitsu.com/
-
-[Future work]
-My next work is to enable the new Atomic write[3] and RDMA Flush[4]
-operations with ODP. After that, I am going to implement the prefetch
-feature. It allows applications to trigger page fault using
-ibv_advise_mr(3) to optimize performance. Some existing software like
-librpma[6] use this feature. Additionally, I think we can also add the
-implicit ODP feature in the future.
-
-[1] [RFC 00/20] On demand paging
-https://www.spinics.net/lists/linux-rdma/msg18906.html
-
-[2] [PATCH for-next v3 0/7] On-Demand Paging on SoftRoCE
-https://lore.kernel.org/lkml/cover.1671772917.git.matsuda-daisuke@fujitsu.com/
-
-[3] [PATCH v7 0/8] RDMA/rxe: Add atomic write operation
-https://lore.kernel.org/linux-rdma/1669905432-14-1-git-send-email-yangx.jy@fujitsu.com/
-
-[4] [for-next PATCH 00/10] RDMA/rxe: Add RDMA FLUSH operation
-https://lore.kernel.org/lkml/20221206130201.30986-1-lizhijian@fujitsu.com/
-
-[5] linux-rdma/perftest: Infiniband Verbs Performance Tests
-https://github.com/linux-rdma/perftest
-
-[6] librpma: Remote Persistent Memory Access Library
-https://github.com/pmem/rpma
-
-v3->v4:
- 1) Re-designed functions that access MRs to use the MR xarray.
- 2) Rebased onto the latest jgg-for-next tree.
-
-v2->v3:
- 1) Removed a patch that changes the common ib_uverbs layer.
- 2) Re-implemented patches for conversion to workqueue.
- 3) Fixed compile errors (happened when CONFIG_INFINIBAND_ON_DEMAND_PAGING=n).
- 4) Fixed some functions that returned incorrect errors.
- 5) Temporarily disabled ODP for RDMA Flush and Atomic Write.
-
-v1->v2:
- 1) Fixed a crash issue reported by Haris Iqbal.
- 2) Tried to make lock patters clearer as pointed out by Romanovsky.
- 3) Minor clean ups and fixes.
-
-Daisuke Matsuda (8):
-  RDMA/rxe: Tentative workqueue implementation
-  RDMA/rxe: Always schedule works before accessing user MRs
-  RDMA/rxe: Make MR functions accessible from other rxe source code
-  RDMA/rxe: Move resp_states definition to rxe_verbs.h
-  RDMA/rxe: Add page invalidation support
-  RDMA/rxe: Allow registering MRs for On-Demand Paging
-  RDMA/rxe: Add support for Send/Recv/Write/Read with ODP
-  RDMA/rxe: Add support for the traditional Atomic operations with ODP
-
- drivers/infiniband/sw/rxe/Makefile    |   2 +
- drivers/infiniband/sw/rxe/rxe.c       |  27 ++-
- drivers/infiniband/sw/rxe/rxe.h       |  37 ---
- drivers/infiniband/sw/rxe/rxe_comp.c  |  12 +-
- drivers/infiniband/sw/rxe/rxe_loc.h   |  49 +++-
- drivers/infiniband/sw/rxe/rxe_mr.c    |  27 +--
- drivers/infiniband/sw/rxe/rxe_odp.c   | 311 ++++++++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_recv.c  |   4 +-
- drivers/infiniband/sw/rxe/rxe_resp.c  |  32 ++-
- drivers/infiniband/sw/rxe/rxe_task.c  |  84 ++++---
- drivers/infiniband/sw/rxe/rxe_task.h  |   6 +-
- drivers/infiniband/sw/rxe/rxe_verbs.c |   5 +-
- drivers/infiniband/sw/rxe/rxe_verbs.h |  39 ++++
- 13 files changed, 535 insertions(+), 100 deletions(-)
- create mode 100644 drivers/infiniband/sw/rxe/rxe_odp.c
-
-base-commit: f605f26ea196a3b49bea249330cbd18dba61a33e
-
--- 
-2.39.1
+>   
+>   		uar = &dev->priv_uar;
+>   		cq->mcq.usage = MLX4_RES_USAGE_DRIVER;
+> @@ -248,7 +251,7 @@ int mlx4_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+>   			    &cq->mcq, vector, 0,
+>   			    !!(cq->create_flags &
+>   			       IB_UVERBS_CQ_FLAGS_TIMESTAMP_COMPLETION),
+> -			    buf_addr, !!udata);
+> +			    ubuf_addr, kbuf_addr);
+>   	if (err)
+>   		goto err_dbmap;
+>   
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/cq.c b/drivers/net/ethernet/mellanox/mlx4/cq.c
+> index 020cb8e2883f..22216f4e409b 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/cq.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/cq.c
+> @@ -287,7 +287,7 @@ static void mlx4_cq_free_icm(struct mlx4_dev *dev, int cqn)
+>   		__mlx4_cq_free_icm(dev, cqn);
+>   }
+>   
+> -static int mlx4_init_user_cqes(void *buf, int entries, int cqe_size)
+> +static int mlx4_init_user_cqes(void __user *buf, int entries, int cqe_size)
+>   {
+>   	int entries_per_copy = PAGE_SIZE / cqe_size;
+>   	size_t copy_size = array_size(entries, cqe_size);
+> @@ -307,7 +307,7 @@ static int mlx4_init_user_cqes(void *buf, int entries, int cqe_size)
+>   
+>   	if (copy_size > PAGE_SIZE) {
+>   		for (i = 0; i < entries / entries_per_copy; i++) {
+> -			err = copy_to_user((void __user *)buf, init_ents, PAGE_SIZE) ?
+> +			err = copy_to_user(buf, init_ents, PAGE_SIZE) ?
+>   				-EFAULT : 0;
+>   			if (err)
+>   				goto out;
+> @@ -315,8 +315,7 @@ static int mlx4_init_user_cqes(void *buf, int entries, int cqe_size)
+>   			buf += PAGE_SIZE;
+>   		}
+>   	} else {
+> -		err = copy_to_user((void __user *)buf, init_ents,
+> -				   copy_size) ?
+> +		err = copy_to_user(buf, init_ents, copy_size) ?
+>   			-EFAULT : 0;
+>   	}
+>   
+> @@ -343,7 +342,7 @@ static void mlx4_init_kernel_cqes(struct mlx4_buf *buf,
+>   int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
+>   		  struct mlx4_mtt *mtt, struct mlx4_uar *uar, u64 db_rec,
+>   		  struct mlx4_cq *cq, unsigned vector, int collapsed,
+> -		  int timestamp_en, void *buf_addr, bool user_cq)
+> +		  int timestamp_en, void __user *ubuf_addr, void *kbuf_addr)
+>   {
+>   	bool sw_cq_init = dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_SW_CQ_INIT;
+>   	struct mlx4_priv *priv = mlx4_priv(dev);
+> @@ -391,13 +390,13 @@ int mlx4_cq_alloc(struct mlx4_dev *dev, int nent,
+>   	cq_context->db_rec_addr     = cpu_to_be64(db_rec);
+>   
+>   	if (sw_cq_init) {
+> -		if (user_cq) {
+> -			err = mlx4_init_user_cqes(buf_addr, nent,
+> +		if (ubuf_addr) {
+> +			err = mlx4_init_user_cqes(ubuf_addr, nent,
+>   						  dev->caps.cqe_size);
+>   			if (err)
+>   				sw_cq_init = false;
+> -		} else {
+> -			mlx4_init_kernel_cqes(buf_addr, nent,
+> +		} else if (kbuf_addr) {
+> +			mlx4_init_kernel_cqes(kbuf_addr, nent,
+>   					      dev->caps.cqe_size);
+>   		}
+>   	}
+> diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+> index 6646634a0b9d..dd8f3396dcba 100644
+> --- a/include/linux/mlx4/device.h
+> +++ b/include/linux/mlx4/device.h
+> @@ -1126,7 +1126,7 @@ void mlx4_free_hwq_res(struct mlx4_dev *mdev, struct mlx4_hwq_resources *wqres,
+>   int mlx4_cq_alloc(struct mlx4_dev *dev, int nent, struct mlx4_mtt *mtt,
+>   		  struct mlx4_uar *uar, u64 db_rec, struct mlx4_cq *cq,
+>   		  unsigned int vector, int collapsed, int timestamp_en,
+> -		  void *buf_addr, bool user_cq);
+> +		  void __user *ubuf_addr, void *kbuf_addr);
+>   void mlx4_cq_free(struct mlx4_dev *dev, struct mlx4_cq *cq);
+>   int mlx4_qp_reserve_range(struct mlx4_dev *dev, int cnt, int align,
+>   			  int *base, u8 flags, u8 usage);
 
