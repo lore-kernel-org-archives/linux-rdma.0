@@ -2,50 +2,50 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 534ECC77B60
-	for <linux-rdma@archiver.kernel.org>; Sun, 23 Apr 2023 14:52:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 731B5C77B73
+	for <linux-rdma@archiver.kernel.org>; Sun, 23 Apr 2023 14:52:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230488AbjDWOwS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 23 Apr 2023 10:52:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58914 "EHLO
+        id S230495AbjDWOwU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 23 Apr 2023 10:52:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230325AbjDWOwR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Apr 2023 10:52:17 -0400
+        with ESMTP id S230486AbjDWOwS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Apr 2023 10:52:18 -0400
 Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC70AE77;
-        Sun, 23 Apr 2023 07:52:16 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDCF7E4C;
+        Sun, 23 Apr 2023 07:52:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1682261536; x=1713797536;
+  t=1682261537; x=1713797537;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=mSMn64fDwA9oOZ4hqlNDcBEYyaVAKEk5r1ra86/ZK2o=;
-  b=PFI77bMa4DaFmMWV9W93RMiMBPOdecFquZjTFEQvQvsWM6CJ//Vf3ttS
-   DZzkxtA5jbHCgP3t6HjsCuWu7Ao57ILRjCNRPI+XswUWCgjkQ+mBSrJH3
-   rN32Ren4jpHXJpZwZzmI9GeAfMASfQs5uZzmn8r22REgS2ItLZQtyAQBZ
-   HihMudgvSYhmGgJKH+vg8hOA7GY0sbIbwxOEUvoFwIpRXNEeNTgK3Omod
-   XBurRlPePu9P1ZKElL3oNouD3qvtryQ7u6+L7eJAgmAnaI1ZNMejQJ63j
-   LqRzGhJ7/zE19tb0kFLcF0At5tUlfqE5z3BzJpfqUdgXBDdqM3LvavfRg
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10689"; a="325890221"
+  bh=DSfAzSMf/l2Xaeaq4nN9qSmuEXyLXgaiESrEmDgD0Po=;
+  b=GOd7x3CmzvNz3WSXG1CWhrEkNgMc0MI65JK0+jNhIyFpPX/cH60+odBN
+   NW8qQOd8ytJp5yOSQJj0cw/4ltkEsIImF+SiFfpcZuMvwEcJ8BLx9BI1c
+   JJrZPv/qyS1DGNWjrb4AkAgnSreG/XtUiXHHRyk2r3y1pGc2iqDRIekqF
+   QTysGJCuHQgr+Lz8Hu4vPYmHl8HMkewLabgC6Bh7rtsjFagNAc+6FU3sc
+   RUBOiWCnjY0DfV89G36jDBNk4PdlbWgk65QlcawUshhnrB6r7njFCK+T9
+   w5evYAF+Y2LZGoPh27Yb23gjR7Q+MM5BRimgh5MNSGOPmqsD0jXf07fM/
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10689"; a="325890246"
 X-IronPort-AV: E=Sophos;i="5.99,220,1677571200"; 
-   d="scan'208";a="325890221"
+   d="scan'208";a="325890246"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Apr 2023 07:52:02 -0700
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Apr 2023 07:52:07 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10689"; a="836680646"
+X-IronPort-AV: E=McAfee;i="6600,9927,10689"; a="836680673"
 X-IronPort-AV: E=Sophos;i="5.99,220,1677571200"; 
-   d="scan'208";a="836680646"
+   d="scan'208";a="836680673"
 Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by fmsmga001.fm.intel.com with ESMTP; 23 Apr 2023 07:52:00 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 23 Apr 2023 07:52:05 -0700
 From:   Zhu Yanjun <yanjun.zhu@intel.com>
 To:     jgg@ziepe.ca, leon@kernel.org, zyjzyj2000@gmail.com,
         linux-rdma@vger.kernel.org, parav@nvidia.com,
         netdev@vger.kernel.org, rain.1986.08.12@gmail.com
 Cc:     Zhu Yanjun <yanjun.zhu@linux.dev>
-Subject: [PATCH rdma-next v4 2/8] RDMA/rxe: Support more rdma links in init_net
-Date:   Sun, 23 Apr 2023 22:48:16 +0800
-Message-Id: <20230423144822.1797465-3-yanjun.zhu@intel.com>
+Subject: [PATCH rdma-next v4 4/8] RDMA/rxe: Implement dellink in rxe
+Date:   Sun, 23 Apr 2023 22:48:18 +0800
+Message-Id: <20230423144822.1797465-5-yanjun.zhu@intel.com>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20230423144822.1797465-1-yanjun.zhu@intel.com>
 References: <20230423144822.1797465-1-yanjun.zhu@intel.com>
@@ -57,172 +57,104 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-In init_net, when several rdma links are created with the command "rdma
-link add", newlink will check whether the udp port 4791 is listening or
-not.
-If not, creating a sock listening on udp port 4791. If yes, increasing the
-reference count of the sock.
+When running "rdma link del" command, dellink function will be called.
+If the sock refcnt is greater than the refcnt needed for udp tunnel,
+the sock refcnt will be decreased by 1.
+
+If equal, the last rdma link is removed. The udp tunnel will be
+destroyed.
 
 Tested-by: Rain River <rain.1986.08.12@gmail.com>
 Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 ---
- drivers/infiniband/sw/rxe/rxe.c     | 12 ++++++-
- drivers/infiniband/sw/rxe/rxe_net.c | 55 +++++++++++++++++++++--------
+ drivers/infiniband/sw/rxe/rxe.c     | 12 +++++++++++-
+ drivers/infiniband/sw/rxe/rxe_net.c | 17 +++++++++++++++--
  drivers/infiniband/sw/rxe/rxe_net.h |  1 +
- 3 files changed, 52 insertions(+), 16 deletions(-)
+ 3 files changed, 27 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index 89b24bc34299..c15d3c5d7a6f 100644
+index c15d3c5d7a6f..ac7e7b0a9dc9 100644
 --- a/drivers/infiniband/sw/rxe/rxe.c
 +++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -8,6 +8,7 @@
- #include <net/addrconf.h>
- #include "rxe.h"
- #include "rxe_loc.h"
-+#include "rxe_net.h"
+@@ -168,10 +168,12 @@ void rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu)
+ /* called by ifc layer to create new rxe device.
+  * The caller should allocate memory for rxe by calling ib_alloc_device.
+  */
++static struct rdma_link_ops rxe_link_ops;
+ int rxe_add(struct rxe_dev *rxe, unsigned int mtu, const char *ibdev_name)
+ {
+ 	rxe_init(rxe);
+ 	rxe_set_mtu(rxe, mtu);
++	rxe->ib_dev.link_ops = &rxe_link_ops;
  
- MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves, Kamal Heib");
- MODULE_DESCRIPTION("Soft RDMA transport");
-@@ -207,14 +208,23 @@ static int rxe_newlink(const char *ibdev_name, struct net_device *ndev)
+ 	return rxe_register_device(rxe, ibdev_name);
+ }
+@@ -208,9 +210,17 @@ static int rxe_newlink(const char *ibdev_name, struct net_device *ndev)
  	return err;
  }
  
--static struct rdma_link_ops rxe_link_ops = {
-+struct rdma_link_ops rxe_link_ops = {
- 	.type = "rxe",
- 	.newlink = rxe_newlink,
- };
- 
- static int __init rxe_module_init(void)
- {
-+	int err;
-+
- 	rdma_link_register(&rxe_link_ops);
-+
-+	err = rxe_register_notifier();
-+	if (err) {
-+		pr_err("Failed to register netdev notifier\n");
-+		return -1;
-+	}
-+
- 	pr_info("loaded\n");
- 	return 0;
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 2bc7361152ea..1b98efa2cf66 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -626,13 +626,23 @@ static struct notifier_block rxe_net_notifier = {
- 
- static int rxe_net_ipv4_init(void)
- {
--	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
--				htons(ROCE_V2_UDP_DPORT), false);
--	if (IS_ERR(recv_sockets.sk4)) {
--		recv_sockets.sk4 = NULL;
-+	struct sock *sk;
-+	struct socket *sock;
-+
-+	rcu_read_lock();
-+	sk = udp4_lib_lookup(&init_net, 0, 0, htonl(INADDR_ANY),
-+			     htons(ROCE_V2_UDP_DPORT), 0);
-+	rcu_read_unlock();
-+	if (sk)
-+		return 0;
-+
-+	sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT), false);
-+	if (IS_ERR(sock)) {
- 		pr_err("Failed to create IPv4 UDP tunnel\n");
-+		recv_sockets.sk4 = NULL;
- 		return -1;
- 	}
-+	recv_sockets.sk4 = sock;
- 
- 	return 0;
- }
-@@ -640,24 +650,46 @@ static int rxe_net_ipv4_init(void)
- static int rxe_net_ipv6_init(void)
- {
- #if IS_ENABLED(CONFIG_IPV6)
-+	struct sock *sk;
-+	struct socket *sock;
-+
-+	rcu_read_lock();
-+	sk = udp6_lib_lookup(&init_net, NULL, 0, &in6addr_any,
-+			     htons(ROCE_V2_UDP_DPORT), 0);
-+	rcu_read_unlock();
-+	if (sk)
-+		return 0;
- 
--	recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
--						htons(ROCE_V2_UDP_DPORT), true);
--	if (PTR_ERR(recv_sockets.sk6) == -EAFNOSUPPORT) {
-+	sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT), true);
-+	if (PTR_ERR(sock) == -EAFNOSUPPORT) {
- 		recv_sockets.sk6 = NULL;
- 		pr_warn("IPv6 is not supported, can not create a UDPv6 socket\n");
- 		return 0;
- 	}
- 
--	if (IS_ERR(recv_sockets.sk6)) {
-+	if (IS_ERR(sock)) {
- 		recv_sockets.sk6 = NULL;
- 		pr_err("Failed to create IPv6 UDP tunnel\n");
- 		return -1;
- 	}
-+	recv_sockets.sk6 = sock;
- #endif
- 	return 0;
- }
- 
-+int rxe_register_notifier(void)
+-struct rdma_link_ops rxe_link_ops = {
++static int rxe_dellink(struct ib_device *dev)
 +{
-+	int err;
-+
-+	err = register_netdevice_notifier(&rxe_net_notifier);
-+	if (err) {
-+		pr_err("Failed to register netdev notifier\n");
-+		return -1;
-+	}
++	rxe_net_del(dev);
 +
 +	return 0;
 +}
 +
++static struct rdma_link_ops rxe_link_ops = {
+ 	.type = "rxe",
+ 	.newlink = rxe_newlink,
++	.dellink = rxe_dellink,
+ };
+ 
+ static int __init rxe_module_init(void)
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 1b98efa2cf66..6071533d67c8 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -533,6 +533,21 @@ int rxe_net_add(const char *ibdev_name, struct net_device *ndev)
+ 	return 0;
+ }
+ 
++#define SK_REF_FOR_TUNNEL	2
++void rxe_net_del(struct ib_device *dev)
++{
++	if (refcount_read(&recv_sockets.sk6->sk->sk_refcnt) > SK_REF_FOR_TUNNEL)
++		__sock_put(recv_sockets.sk6->sk);
++	else
++		rxe_release_udp_tunnel(recv_sockets.sk6);
++
++	if (refcount_read(&recv_sockets.sk4->sk->sk_refcnt) > SK_REF_FOR_TUNNEL)
++		__sock_put(recv_sockets.sk4->sk);
++	else
++		rxe_release_udp_tunnel(recv_sockets.sk4);
++}
++#undef SK_REF_FOR_TUNNEL
++
+ static void rxe_port_event(struct rxe_dev *rxe,
+ 			   enum ib_event_type event)
+ {
+@@ -692,8 +707,6 @@ int rxe_register_notifier(void)
+ 
  void rxe_net_exit(void)
  {
- 	rxe_release_udp_tunnel(recv_sockets.sk6);
-@@ -669,19 +701,12 @@ int rxe_net_init(void)
- {
- 	int err;
+-	rxe_release_udp_tunnel(recv_sockets.sk6);
+-	rxe_release_udp_tunnel(recv_sockets.sk4);
+ 	unregister_netdevice_notifier(&rxe_net_notifier);
+ }
  
--	recv_sockets.sk6 = NULL;
--
- 	err = rxe_net_ipv4_init();
- 	if (err)
- 		return err;
- 	err = rxe_net_ipv6_init();
- 	if (err)
- 		goto err_out;
--	err = register_netdevice_notifier(&rxe_net_notifier);
--	if (err) {
--		pr_err("Failed to register netdev notifier\n");
--		goto err_out;
--	}
- 	return 0;
- err_out:
- 	rxe_net_exit();
 diff --git a/drivers/infiniband/sw/rxe/rxe_net.h b/drivers/infiniband/sw/rxe/rxe_net.h
-index 45d80d00f86b..a222c3eeae12 100644
+index a222c3eeae12..f48f22f3353b 100644
 --- a/drivers/infiniband/sw/rxe/rxe_net.h
 +++ b/drivers/infiniband/sw/rxe/rxe_net.h
-@@ -18,6 +18,7 @@ struct rxe_recv_sockets {
+@@ -17,6 +17,7 @@ struct rxe_recv_sockets {
+ };
  
  int rxe_net_add(const char *ibdev_name, struct net_device *ndev);
++void rxe_net_del(struct ib_device *dev);
  
-+int rxe_register_notifier(void);
+ int rxe_register_notifier(void);
  int rxe_net_init(void);
- void rxe_net_exit(void);
- 
 -- 
 2.27.0
 
