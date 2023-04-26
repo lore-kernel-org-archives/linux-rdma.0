@@ -2,144 +2,90 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E8B6C77B78
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 Apr 2023 09:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE3D3C77B78
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 Apr 2023 09:24:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240185AbjDZJXm (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 26 Apr 2023 05:23:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47582 "EHLO
+        id S235251AbjDZJYz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 26 Apr 2023 05:24:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240087AbjDZJXj (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Apr 2023 05:23:39 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4461146BA
-        for <linux-rdma@vger.kernel.org>; Wed, 26 Apr 2023 02:22:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1682500860;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=hb1p3qZAdlHU1l6iLXytZzmouo7Dtxmm/TUeo1IcTKg=;
-        b=eOe4LWKiBowmpWCS0YJKHhMMk94+kr5NdMcrEzLY1MMfJ50ITb2TSuKNzTOQAuEnGwimkE
-        Lk+QYwsAfLiuuVBzDA8U4e+fyxeWZp3j1YWkvmh07dKNOkdjPp22oZmavvJfdYy8FIhuTK
-        cIvr1Z3gIw7RJZuSKpmon9JGHN8tn3M=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-479-qev4stNbNn-i1c7KcjVaKA-1; Wed, 26 Apr 2023 05:17:15 -0400
-X-MC-Unique: qev4stNbNn-i1c7KcjVaKA-1
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-3f195129aa4so31949965e9.2
-        for <linux-rdma@vger.kernel.org>; Wed, 26 Apr 2023 02:17:15 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682500635; x=1685092635;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=hb1p3qZAdlHU1l6iLXytZzmouo7Dtxmm/TUeo1IcTKg=;
-        b=aU6Xk9Wgi7VfBOieHVQxrhoSBENtlKCvYNb81eCGKHQQ71DrPeiHCpoem9rImoxkL/
-         ysOD12+jnitmppiEF37sQRyzyDbjBCjOq3ouJ47g3Nv2R7LURefcRFUSLP3CpkmtPZE1
-         J0TTLVM8/Lk9Lfnrvf0Uv7nQaETmivQ/pr7i9JX1AN9wHC9Nb18nuDyBUtXKMIN6vyZx
-         Q1PyyKjSBColmt5h/o68ehHDbLM4CCFpMu444OdkvyHP/JfXZS8reQ0m6Z1b2cMnx6Iz
-         uKX0sQVunR8YTdGrOvhdPpXgKkbX1jGdiuUWXZ694omWfZyPHN9rca4O84IOzraPsB35
-         OYsA==
-X-Gm-Message-State: AAQBX9eRUKN6gQe+zuEGNQcvhq7Vw+mTkTUyFcJfijVMTdOtkysWx1T4
-        MCliMvkHNiOUp9QasnwEtXM39MM2mATmEHqaS7FABLVXLbfWwuMsru8zMN6lwtvfC0R3KFl+dDK
-        N1sBq7Vmjj3u/moIzdE4eMg==
-X-Received: by 2002:a05:600c:d6:b0:3f1:75b0:dc47 with SMTP id u22-20020a05600c00d600b003f175b0dc47mr13169966wmm.15.1682500634753;
-        Wed, 26 Apr 2023 02:17:14 -0700 (PDT)
-X-Google-Smtp-Source: AKy350YEVlQWGWn9MXHPZbupRZG32H3oU+0xy3h1QTn2pkKjRSNMnr+VdpDuWb9ZAW4i29YDBnhrOA==
-X-Received: by 2002:a05:600c:d6:b0:3f1:75b0:dc47 with SMTP id u22-20020a05600c00d600b003f175b0dc47mr13169945wmm.15.1682500634432;
-        Wed, 26 Apr 2023 02:17:14 -0700 (PDT)
-Received: from vschneid.remote.csb ([154.57.232.159])
-        by smtp.gmail.com with ESMTPSA id l20-20020a05600c16d400b003f19bca8f03sm10736304wmn.43.2023.04.26.02.17.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Apr 2023 02:17:13 -0700 (PDT)
-From:   Valentin Schneider <vschneid@redhat.com>
-To:     Yury Norov <yury.norov@gmail.com>
-Cc:     Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Pawel Chmielewski <pawel.chmielewski@intel.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Ingo Molnar <mingo@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Vincent Guittot <vincent.guittot@linaro.org>,
-        Dietmar Eggemann <dietmar.eggemann@arm.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Gal Pressman <gal@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Barry Song <baohua@kernel.org>
-Subject: Re: [PATCH v2 2/8] sched/topology: introduce
- sched_numa_find_next_cpu()
-In-Reply-To: <ZEi1/zO9cGccogea@yury-ThinkPad>
-References: <20230420051946.7463-1-yury.norov@gmail.com>
- <20230420051946.7463-3-yury.norov@gmail.com>
- <xhsmh354ol21b.mognet@vschneid.remote.csb>
- <ZEi1/zO9cGccogea@yury-ThinkPad>
-Date:   Wed, 26 Apr 2023 10:17:12 +0100
-Message-ID: <xhsmhwn1zj947.mognet@vschneid.remote.csb>
-MIME-Version: 1.0
-Content-Type: text/plain
+        with ESMTP id S240280AbjDZJYw (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Apr 2023 05:24:52 -0400
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B21F146B3;
+        Wed, 26 Apr 2023 02:24:31 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045168;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=23;SR=0;TI=SMTPD_---0Vh2fpVy_1682501055;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vh2fpVy_1682501055)
+          by smtp.aliyun-inc.com;
+          Wed, 26 Apr 2023 17:24:20 +0800
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com,
+        ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
+        martin.lau@linux.dev, pabeni@redhat.com, song@kernel.org,
+        sdf@google.com, haoluo@google.com, yhs@fb.com, edumazet@google.com,
+        john.fastabend@gmail.com, kpsingh@kernel.org, jolsa@kernel.org,
+        guwen@linux.alibaba.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        bpf@vger.kernel.org
+Subject: [PATCH bpf-next 0/5] net/smc: Introduce BPF injection capability
+Date:   Wed, 26 Apr 2023 17:24:10 +0800
+Message-Id: <1682501055-4736-1-git-send-email-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 25/04/23 22:26, Yury Norov wrote:
-> On Tue, Apr 25, 2023 at 10:54:56AM +0100, Valentin Schneider wrote:
->> On 19/04/23 22:19, Yury Norov wrote:
->> > +/*
->> > + * sched_numa_find_next_cpu() - given the NUMA topology, find the next cpu
->> > + * cpumask: cpumask to find a cpu from
->> > + * cpu: current cpu
->> > + * node: local node
->> > + * hop: (in/out) indicates distance order of current CPU to a local node
->> > + *
->> > + * The function searches for next cpu at a given NUMA distance, indicated
->> > + * by hop, and if nothing found, tries to find CPUs at a greater distance,
->> > + * starting from the beginning.
->> > + *
->> > + * Return: cpu, or >= nr_cpu_ids when nothing found.
->> > + */
->> > +int sched_numa_find_next_cpu(const struct cpumask *cpus, int cpu, int node, unsigned int *hop)
->> > +{
->> > +	unsigned long *cur, *prev;
->> > +	struct cpumask ***masks;
->> > +	unsigned int ret;
->> > +
->> > +	if (*hop >= sched_domains_numa_levels)
->> > +		return nr_cpu_ids;
->> > +
->> > +	masks = rcu_dereference(sched_domains_numa_masks);
->> > +	cur = cpumask_bits(masks[*hop][node]);
->> > +	if (*hop == 0)
->> > +		ret = find_next_and_bit(cpumask_bits(cpus), cur, nr_cpu_ids, cpu);
->> > +	else {
->> > +		prev = cpumask_bits(masks[*hop - 1][node]);
->> > +		ret = find_next_and_andnot_bit(cpumask_bits(cpus), cur, prev, nr_cpu_ids, cpu);
->> > +	}
->> > +
->> > +	if (ret < nr_cpu_ids)
->> > +		return ret;
->> > +
->> > +	*hop += 1;
->> > +	return sched_numa_find_next_cpu(cpus, 0, node, hop);
->> 
->> sched_domains_numa_levels is a fairly small number, so the recursion depth
->> isn't something we really need to worry about - still, the iterative
->> variant of this is fairly straightforward to get to:
->
-> This is a tail recursion. Compiler normally converts it into the loop just
-> as well. At least, my GCC does.
+From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-I'd hope so in 2023! I still prefer the iterative approach as I find it
-more readable, but I'm not /too/ strongly attached to it.
+This patches attempt to introduce BPF injection capability for SMC,
+and add selftest to ensure code stability.
+
+As we all know that the SMC protocol is not suitable for all scenarios,
+especially for short-lived. However, for most applications, they cannot
+guarantee that there are no such scenarios at all. Therefore, apps
+may need some specific strategies to decide shall we need to use SMC
+or not, for example, apps can limit the scope of the SMC to a specific
+IP address or port.
+
+Based on the consideration of transparent replacement, we hope that apps
+can remain transparent even if they need to formulate some specific
+strategies for SMC using. That is, do not need to recompile their code.
+
+On the other hand, we need to ensure the scalability of strategies
+implementation. Although it is simple to use socket options or sysctl,
+it will bring more complexity to subsequent expansion.
+
+Fortunately, BPF can solve these concerns very well, users can write
+thire own strategies in eBPF to choose whether to use SMC or not.
+And it's quite easy for them to modify their strategies in the future.
+
+This patches implement injection capability for SMC via struct_ops.
+In that way, we can add new injection scenarios in the future.
+
+
+D. Wythe (5):
+  net/smc: move smc_sock related structure definition
+  net/smc: allow smc to negotiate protocols on policies
+  net/smc: allow set or get smc negotiator by sockopt
+  bpf: add smc negotiator support in BPF struct_ops
+  bpf/selftests: add selftest for SMC bpf capability
+
+ include/net/smc.h                                | 268 +++++++++++++++++
+ include/uapi/linux/smc.h                         |   1 +
+ kernel/bpf/bpf_struct_ops_types.h                |   4 +
+ net/Makefile                                     |   1 +
+ net/smc/Kconfig                                  |  11 +
+ net/smc/af_smc.c                                 | 203 ++++++++++---
+ net/smc/bpf_smc.c                                | 360 +++++++++++++++++++++++
+ net/smc/smc.h                                    | 224 --------------
+ tools/testing/selftests/bpf/prog_tests/bpf_smc.c | 107 +++++++
+ tools/testing/selftests/bpf/progs/bpf_smc.c      | 265 +++++++++++++++++
+ 10 files changed, 1185 insertions(+), 259 deletions(-)
+ create mode 100644 net/smc/bpf_smc.c
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/bpf_smc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/bpf_smc.c
+
+-- 
+1.8.3.1
 
