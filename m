@@ -2,453 +2,235 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10996C77B7F
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 Apr 2023 09:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3629C7618E
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 Apr 2023 09:30:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240301AbjDZJZN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 26 Apr 2023 05:25:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50002 "EHLO
+        id S239463AbjDZJaQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 26 Apr 2023 05:30:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240324AbjDZJY6 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Apr 2023 05:24:58 -0400
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13D264ECD;
-        Wed, 26 Apr 2023 02:24:33 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R211e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=23;SR=0;TI=SMTPD_---0Vh2fpiL_1682501065;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0Vh2fpiL_1682501065)
-          by smtp.aliyun-inc.com;
-          Wed, 26 Apr 2023 17:24:26 +0800
-From:   "D. Wythe" <alibuda@linux.alibaba.com>
-To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com,
-        ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
-        martin.lau@linux.dev, pabeni@redhat.com, song@kernel.org,
-        sdf@google.com, haoluo@google.com, yhs@fb.com, edumazet@google.com,
-        john.fastabend@gmail.com, kpsingh@kernel.org, jolsa@kernel.org,
-        guwen@linux.alibaba.com
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        bpf@vger.kernel.org
-Subject: [PATCH bpf-next 5/5] bpf/selftests: add selftest for SMC bpf capability
-Date:   Wed, 26 Apr 2023 17:24:15 +0800
-Message-Id: <1682501055-4736-6-git-send-email-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1682501055-4736-1-git-send-email-alibuda@linux.alibaba.com>
-References: <1682501055-4736-1-git-send-email-alibuda@linux.alibaba.com>
+        with ESMTP id S240375AbjDZJ3z (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Apr 2023 05:29:55 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A15C49F0
+        for <linux-rdma@vger.kernel.org>; Wed, 26 Apr 2023 02:29:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1682501340;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Fyxo9X49FJOFaiRGnal9ZnS5FLek6M+ko6PrXrYgFok=;
+        b=eXgePNoayLVF8q49fhoeK3K5yojDiWiyv9Fq9WhrrpEgU4SMtrfpVUTBfjuWaa/UA2HZwl
+        +/sdDXYJcoLqNOf5zmHOqHh29ur9qVH91RG8p45N5OYnmxUXhTwe0t5o+V57dHuX4pmOoX
+        oniBX9U+k/75EKyGOlU2IRjrHKdJ0pE=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-173-Bt2Ac_BiMMuoguE75FSYWA-1; Wed, 26 Apr 2023 05:17:28 -0400
+X-MC-Unique: Bt2Ac_BiMMuoguE75FSYWA-1
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-3f171d38db3so39802665e9.0
+        for <linux-rdma@vger.kernel.org>; Wed, 26 Apr 2023 02:17:28 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682500647; x=1685092647;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Fyxo9X49FJOFaiRGnal9ZnS5FLek6M+ko6PrXrYgFok=;
+        b=bJetDOKzWQ/GV9uCXvY/+JOO9G5kiU/KCyA09TPHrpz02RXFd1ZfKQWxHmpl6qOkJD
+         VzRSBvqJ3N8zlsTxMRZIkQLgnsaZHe9/f/f8E/WyTS3pkFaL8B1xWCF/hxFHsdIo+2ax
+         Nge80U0RkC4c0l/Nv+Z8mJhfi3+Smb6BnlQocKfXfk9ZfUViF6YuztLUpAoBQeYFzQWe
+         eGTbFXaQlBnPu8S/nlfRsY6q5kfaBMr1yAPfZh6bSKkpuocvQc0tCn95hG+O1m0BlllM
+         vtgX/DqpqqLNR1EEQbeCje5QdPkRl+BAEnO3ciA3agHpBTeUDByO+UDWwYObmAQZGZHb
+         wwHQ==
+X-Gm-Message-State: AAQBX9cWlRIVFYzEBM+sRWDY6EVlPv6b1GQbk/T3iEut4Gv9Tzw6HSLR
+        0NKm2hcxgdqjmslehluajoibTWjcRAK5cUvhCltTuMbiujl4UD56qiia/lKFhyrPw/ElrNw5wTm
+        WYEY8efjq9+9pwmhP17w9jA==
+X-Received: by 2002:a7b:cc98:0:b0:3f1:6ebe:d598 with SMTP id p24-20020a7bcc98000000b003f16ebed598mr12093506wma.7.1682500647493;
+        Wed, 26 Apr 2023 02:17:27 -0700 (PDT)
+X-Google-Smtp-Source: AKy350Y1cqYlbWoC4PRl3Cjxhzhb92t9R7b55XlDEdK1Iyg/nOK5imWM0UbQf5LWtbMyf2ijZy/Qog==
+X-Received: by 2002:a7b:cc98:0:b0:3f1:6ebe:d598 with SMTP id p24-20020a7bcc98000000b003f16ebed598mr12093489wma.7.1682500647247;
+        Wed, 26 Apr 2023 02:17:27 -0700 (PDT)
+Received: from vschneid.remote.csb ([154.57.232.159])
+        by smtp.gmail.com with ESMTPSA id e16-20020a5d5950000000b0030490c8ccafsm3246491wri.52.2023.04.26.02.17.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 26 Apr 2023 02:17:26 -0700 (PDT)
+From:   Valentin Schneider <vschneid@redhat.com>
+To:     Yury Norov <yury.norov@gmail.com>
+Cc:     Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Pawel Chmielewski <pawel.chmielewski@intel.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Tariq Toukan <tariqt@nvidia.com>,
+        Gal Pressman <gal@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Barry Song <baohua@kernel.org>
+Subject: Re: [PATCH v2 7/8] lib: add test for for_each_numa_{cpu,hop_mask}()
+In-Reply-To: <ZEi7n4ZJgF2o8Ps9@yury-ThinkPad>
+References: <20230420051946.7463-1-yury.norov@gmail.com>
+ <20230420051946.7463-8-yury.norov@gmail.com>
+ <xhsmh8rehkxzz.mognet@vschneid.remote.csb>
+ <ZEi7n4ZJgF2o8Ps9@yury-ThinkPad>
+Date:   Wed, 26 Apr 2023 10:17:25 +0100
+Message-ID: <xhsmhttx3j93u.mognet@vschneid.remote.csb>
+MIME-Version: 1.0
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "D. Wythe" <alibuda@linux.alibaba.com>
+On 25/04/23 22:50, Yury Norov wrote:
+> Hi Valentin,
+>
+> Thanks for review!
+>
+> On Mon, Apr 24, 2023 at 06:09:52PM +0100, Valentin Schneider wrote:
+>> On 19/04/23 22:19, Yury Norov wrote:
+>> > +	for (node = 0; node < sched_domains_numa_levels; node++) {
+>> > +		unsigned int hop, c = 0;
+>> > +
+>> > +		rcu_read_lock();
+>> > +		for_each_numa_cpu(cpu, hop, node, cpu_online_mask)
+>> > +			expect_eq_uint(cpumask_local_spread(c++, node), cpu);
+>> > +		rcu_read_unlock();
+>> > +	}
+>> 
+>> I'm not fond of the export of sched_domains_numa_levels, especially
+>> considering it's just there for tests.
+>> 
+>> Furthermore, is there any value is testing parity with
+>> cpumask_local_spread()?
+>
+> I wanted to emphasize that new NUMA-aware functions are coherent with
+> each other, just like find_nth_bit() is coherent with find_next_bit().
+>
+> But all that coherence looks important only in non-NUMA case, because
+> client code may depend on fact that next CPU is never less than current.
+> This doesn't hold for NUMA iterators anyways...
+>
 
-This PATCH adds a tiny selftest for SMC bpf capability,
-making decisions on whether to use SMC by collecting
-certain information from kernel smc sock.
+Ah right, I see your point. But yes, distance-ordered walks break this
+assumption.
 
-Follow the steps below to run this test.
+>> Rather, shouldn't we check that using this API does
+>> yield CPUs of increasing NUMA distance?
+>> 
+>> Something like
+>> 
+>>         for_each_node(node) {
+>>                 unsigned int prev_cpu, hop = 0;
+>> 
+>>                 cpu = cpumask_first(cpumask_of_node(node));
+>>                 prev_cpu = cpu;
+>> 
+>>                 rcu_read_lock();
+>> 
+>>                 /* Assert distance is monotonically increasing */
+>>                 for_each_numa_cpu(cpu, hop, node, cpu_online_mask) {
+>>                         expect_ge_uint(cpu_to_node(cpu), cpu_to_node(prev_cpu));
+>>                         prev_cpu = cpu;
+>>                 }
+>> 
+>>                 rcu_read_unlock();
+>>         }
+>
+> Your version of the test looks more straightforward. I need to think
+> for more, but it looks like I can take it in v3.
+>
 
-make -C tools/testing/selftests/bpf
-cd tools/testing/selftests/bpf
-sudo ./test_progs -t smc
+I realized I only wrote half the relevant code - comparing node IDs is
+meaningless, I meant to compare distances as we walk through the
+CPUs... I tested the below against a few NUMA topologies and it seems to be
+sane:
 
-Results shows:
-18/1    bpf_smc/load:OK
-18/2    bpf_smc/update:OK
-18/3    bpf_smc/ref:OK
-18      bpf_smc:OK
-Summary: 1/3 PASSED, 0 SKIPPED, 0 FAILED
-
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- tools/testing/selftests/bpf/prog_tests/bpf_smc.c | 107 +++++++++
- tools/testing/selftests/bpf/progs/bpf_smc.c      | 265 +++++++++++++++++++++++
- 2 files changed, 372 insertions(+)
- create mode 100644 tools/testing/selftests/bpf/prog_tests/bpf_smc.c
- create mode 100644 tools/testing/selftests/bpf/progs/bpf_smc.c
-
-diff --git a/tools/testing/selftests/bpf/prog_tests/bpf_smc.c b/tools/testing/selftests/bpf/prog_tests/bpf_smc.c
-new file mode 100644
-index 0000000..e668857
---- /dev/null
-+++ b/tools/testing/selftests/bpf/prog_tests/bpf_smc.c
-@@ -0,0 +1,107 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/err.h>
-+#include <netinet/tcp.h>
-+#include <test_progs.h>
-+#include "network_helpers.h"
-+#include "bpf_smc.skel.h"
-+
-+#define SOL_SMC 286
-+#define SMC_NEGOTIATOR 2
-+static const char name[] = "apps";
-+
-+void run_smc(void)
+diff --git a/lib/test_bitmap.c b/lib/test_bitmap.c
+index 6becb044a66f0..8f8512d139d58 100644
+--- a/lib/test_bitmap.c
++++ b/lib/test_bitmap.c
+@@ -174,11 +174,23 @@ __check_eq_str(const char *srcfile, unsigned int line,
+ 	return eq;
+ }
+ 
+-#define __expect_eq(suffix, ...)					\
++static bool __init
++__check_ge_uint(const char *srcfile, unsigned int line,
++		const unsigned int a, unsigned int b)
 +{
-+	int fd, err;
-+
-+	fd = socket(AF_SMC, SOCK_STREAM, 0);
-+	ASSERT_GT(fd, 0, "create smc socket");
-+
-+	err = setsockopt(fd, SOL_SMC, SMC_NEGOTIATOR, name, sizeof(name) / sizeof(char));
-+	ASSERT_EQ(err, 0, "setsockopt");
-+
-+	close(fd);
-+}
-+
-+void test_load(void)
-+{
-+	struct bpf_smc *smc_skel;
-+	struct bpf_link *link;
-+
-+	smc_skel = bpf_smc__open_and_load();
-+	if (!ASSERT_OK_PTR(smc_skel, "skel_open"))
-+		return;
-+
-+	link = bpf_map__attach_struct_ops(smc_skel->maps.ops);
-+	if (!ASSERT_OK_PTR(link, "bpf_map__attach_struct_ops"))
-+		goto error;
-+
-+	bpf_link__destroy(link);
-+error:
-+	bpf_smc__destroy(smc_skel);
-+}
-+
-+void test_update(void)
-+{
-+	struct bpf_smc *smc_skel;
-+	struct bpf_link *link;
-+	int err;
-+
-+	smc_skel = bpf_smc__open_and_load();
-+	if (!ASSERT_OK_PTR(smc_skel, "skel_open"))
-+		return;
-+
-+	link = bpf_map__attach_struct_ops(smc_skel->maps.accept);
-+	if (!ASSERT_OK_PTR(link, "bpf_map__attach_struct_ops"))
-+		goto error;
-+
-+	run_smc();
-+	ASSERT_EQ(smc_skel->bss->accept_cnt, 1, "accept_cnt");
-+
-+	err = bpf_link__update_map(link, smc_skel->maps.drop);
-+	ASSERT_OK(err, "update_map");
-+
-+	run_smc();
-+	ASSERT_EQ(smc_skel->bss->accept_cnt, 1, "accept_cnt");
-+	ASSERT_EQ(smc_skel->bss->drop_cnt, 1, "drop_cnt");
-+
-+	bpf_link__destroy(link);
-+error:
-+	bpf_smc__destroy(smc_skel);
-+}
-+
-+void test_ref(void)
-+{
-+	struct bpf_smc *smc_skel;
-+	struct bpf_link *link;
-+	int fd = 0, err;
-+
-+	smc_skel = bpf_smc__open_and_load();
-+	if (!ASSERT_OK_PTR(smc_skel, "skel_open"))
-+		return;
-+
-+	link = bpf_map__attach_struct_ops(smc_skel->maps.accept);
-+	if (!ASSERT_OK_PTR(link, "bpf_map__attach_struct_ops"))
-+		goto error;
-+
-+	fd = socket(AF_SMC, SOCK_STREAM, 0);
-+	ASSERT_GT(fd, 0, "create smc socket");
-+	err = setsockopt(fd, SOL_SMC, SMC_NEGOTIATOR, name, sizeof(name) / sizeof(char));
-+	ASSERT_EQ(err, 0, "setsockopt");
-+	bpf_link__destroy(link);
-+	if (fd > 0)
-+		close(fd);
-+	ASSERT_EQ(smc_skel->bss->accept_release_cnt, 1, "accept_release_cnt");
-+error:
-+	bpf_smc__destroy(smc_skel);
-+}
-+
-+void test_bpf_smc(void)
-+{
-+	if (test__start_subtest("load"))
-+		test_load();
-+	if (test__start_subtest("update"))
-+		test_update();
-+	if (test__start_subtest("ref"))
-+		test_ref();
-+}
-diff --git a/tools/testing/selftests/bpf/progs/bpf_smc.c b/tools/testing/selftests/bpf/progs/bpf_smc.c
-new file mode 100644
-index 0000000..8ff70af
---- /dev/null
-+++ b/tools/testing/selftests/bpf/progs/bpf_smc.c
-@@ -0,0 +1,265 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+
-+#include "vmlinux.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_core_read.h>
-+#include <bpf/bpf_tracing.h>
-+
-+#define AF_SMC			(43)
-+#define SMC_LISTEN		(10)
-+#define SMC_SOCK_CLOSED_TIMING	(0)
-+extern unsigned long CONFIG_HZ __kconfig;
-+#define HZ CONFIG_HZ
-+
-+char _license[] SEC("license") = "GPL";
-+#define max(a, b) ((a) > (b) ? (a) : (b))
-+
-+static __always_inline struct smc_sock *smc_sk(struct sock *sk)
-+{
-+	return (struct smc_sock *)sk;
-+}
-+
-+struct smc_prediction {
-+	/* protection for smc_prediction */
-+	struct bpf_spin_lock lock;
-+	/* start of time slice */
-+	__u64	start_tstamp;
-+	/* delta of pacing */
-+	__u64	pacing_delta;
-+	/* N of closed connections determined as long connections
-+	 * in current time slice
-+	 */
-+	__u32	closed_long_cc;
-+	/* N of closed connections in this time slice */
-+	__u32	closed_total_cc;
-+	/* N of incoming connections determined as long connections
-+	 * in current time slice
-+	 */
-+	__u32	incoming_long_cc;
-+	/* last splice rate of long cc */
-+	__u32	last_rate_of_lcc;
-+};
-+
-+#define SMC_PREDICTION_MIN_PACING_DELTA                (1llu)
-+#define SMC_PREDICTION_MAX_PACING_DELTA                (HZ << 3)
-+#define SMC_PREDICTION_MAX_LONGCC_PER_SPLICE           (8)
-+#define SMC_PREDICTION_MAX_PORT                        (64)
-+#define SMC_PREDICTION_MAX_SPLICE_GAP                  (1)
-+#define SMC_PREDICTION_LONGCC_RATE_THRESHOLD           (13189)
-+#define SMC_PREDICTION_LONGCC_PACKETS_THRESHOLD        (100)
-+#define SMC_PREDICTION_LONGCC_BYTES_THRESHOLD	\
-+		(SMC_PREDICTION_LONGCC_PACKETS_THRESHOLD * 1024)
-+
-+struct {
-+	__uint(type, BPF_MAP_TYPE_HASH);
-+	__uint(max_entries, SMC_PREDICTION_MAX_PORT);
-+	__type(key, __u16);
-+	__type(value, struct smc_prediction);
-+} negotiator_map SEC(".maps");
-+
-+
-+static inline __u32 smc_prediction_calt_rate(struct smc_prediction *smc_predictor)
-+{
-+	if (!smc_predictor->closed_total_cc)
-+		return smc_predictor->last_rate_of_lcc;
-+
-+	return (smc_predictor->closed_long_cc << 14) / smc_predictor->closed_total_cc;
-+}
-+
-+static inline struct smc_prediction *smc_prediction_get(__u16 key, __u64 tstamp)
-+{
-+	struct smc_prediction zero = {}, *smc_predictor;
-+	__u32 gap;
-+	int err;
-+
-+	smc_predictor = bpf_map_lookup_elem(&negotiator_map, &key);
-+	if (!smc_predictor) {
-+		zero.start_tstamp = bpf_jiffies64();
-+		zero.pacing_delta = SMC_PREDICTION_MIN_PACING_DELTA;
-+		err = bpf_map_update_elem(&negotiator_map, &key, &zero, 0);
-+		if (err)
-+			return NULL;
-+		smc_predictor =  bpf_map_lookup_elem(&negotiator_map, &key);
-+		if (!smc_predictor)
-+			return NULL;
++	if (a < b) {
++		pr_err("[%s:%u] expected a(%u) >= b(%u)\n",
++			srcfile, line, a, b);
++		return false;
 +	}
++	return true;
++}
 +
-+	if (tstamp) {
-+		bpf_spin_lock(&smc_predictor->lock);
-+		gap = (tstamp - smc_predictor->start_tstamp) / smc_predictor->pacing_delta;
-+		/* new splice */
-+		if (gap > 0) {
-+			smc_predictor->start_tstamp = tstamp;
-+			smc_predictor->last_rate_of_lcc =
-+				(smc_prediction_calt_rate(smc_predictor) * 7) >> (2 + gap);
-+			smc_predictor->closed_long_cc = 0;
-+			smc_predictor->closed_total_cc = 0;
-+			smc_predictor->incoming_long_cc = 0;
++#define __expect_op(op, suffix, ...)					\
+ 	({								\
+ 		int result = 0;						\
+ 		total_tests++;						\
+-		if (!__check_eq_ ## suffix(__FILE__, __LINE__,		\
++		if (!__check_## op ## _ ## suffix(__FILE__, __LINE__,	\
+ 					   ##__VA_ARGS__)) {		\
+ 			failed_tests++;					\
+ 			result = 1;					\
+@@ -186,6 +198,9 @@ __check_eq_str(const char *srcfile, unsigned int line,
+ 		result;							\
+ 	})
+ 
++#define __expect_eq(suffix, ...) __expect_op(eq, suffix, ##__VA_ARGS__)
++#define __expect_ge(suffix, ...) __expect_op(ge, suffix, ##__VA_ARGS__)
++
+ #define expect_eq_uint(...)		__expect_eq(uint, ##__VA_ARGS__)
+ #define expect_eq_bitmap(...)		__expect_eq(bitmap, ##__VA_ARGS__)
+ #define expect_eq_pbl(...)		__expect_eq(pbl, ##__VA_ARGS__)
+@@ -193,6 +208,8 @@ __check_eq_str(const char *srcfile, unsigned int line,
+ #define expect_eq_clump8(...)		__expect_eq(clump8, ##__VA_ARGS__)
+ #define expect_eq_str(...)		__expect_eq(str, ##__VA_ARGS__)
+ 
++#define expect_ge_uint(...)		__expect_ge(uint, ##__VA_ARGS__)
++
+ static void __init test_zero_clear(void)
+ {
+ 	DECLARE_BITMAP(bmap, 1024);
+@@ -756,12 +773,23 @@ static void __init test_for_each_numa(void)
+ {
+ 	unsigned int cpu, node;
+ 
+-	for (node = 0; node < sched_domains_numa_levels; node++) {
+-		unsigned int hop, c = 0;
++	for_each_node(node) {
++		unsigned int start_cpu, prev_dist, hop = 0;
++
++		cpu = cpumask_first(cpumask_of_node(node));
++		prev_dist = node_distance(node, node);
++		start_cpu = cpu;
+ 
+ 		rcu_read_lock();
+-		for_each_numa_cpu(cpu, hop, node, cpu_online_mask)
+-			expect_eq_uint(cpumask_local_spread(c++, node), cpu);
++
++		/* Assert distance is monotonically increasing */
++		for_each_numa_cpu(cpu, hop, node, cpu_online_mask) {
++			unsigned int dist = node_distance(cpu_to_node(cpu), cpu_to_node(start_cpu));
++
++			expect_ge_uint(dist, prev_dist);
++			prev_dist = dist;
 +		}
-+		bpf_spin_unlock(&smc_predictor->lock);
-+	}
-+	return smc_predictor;
-+}
 +
-+int SEC("struct_ops/bpf_smc_negotiate")
-+BPF_PROG(bpf_smc_negotiate, struct sock *sk)
-+{
-+	struct smc_prediction *smc_predictor;
-+	struct smc_sock *smc = smc_sk(sk);
-+	struct tcp_sock *tp;
-+	__u32 rate = 0;
-+	__u16 key;
-+
-+	/* client side */
-+	if (smc == NULL || smc->sk.__sk_common.skc_state != SMC_LISTEN) {
-+		/* use Global smc_predictor */
-+		key = 0;
-+	} else {	/* server side */
-+		tp = bpf_skc_to_tcp_sock(sk);
-+		if (!tp)
-+			goto error;
-+		key = tp->inet_conn.icsk_inet.sk.__sk_common.skc_num;
-+	}
-+
-+	smc_predictor = smc_prediction_get(key, bpf_jiffies64());
-+	if (!smc_predictor)
-+		return SK_PASS;
-+
-+	bpf_spin_lock(&smc_predictor->lock);
-+
-+	if (smc_predictor->incoming_long_cc == 0)
-+		goto out_locked_pass;
-+
-+	if (smc_predictor->incoming_long_cc > SMC_PREDICTION_MAX_LONGCC_PER_SPLICE)
-+		goto out_locked_drop;
-+
-+	rate = smc_prediction_calt_rate(smc_predictor);
-+	if (rate < SMC_PREDICTION_LONGCC_RATE_THRESHOLD)
-+		goto out_locked_drop;
-+
-+out_locked_pass:
-+	smc_predictor->incoming_long_cc++;
-+	bpf_spin_unlock(&smc_predictor->lock);
-+	return SK_PASS;
-+out_locked_drop:
-+	bpf_spin_unlock(&smc_predictor->lock);
-+error:
-+	return SK_DROP;
-+}
-+
-+void SEC("struct_ops/bpf_smc_collect_info")
-+BPF_PROG(bpf_smc_collect_info, struct sock *sk, int timing)
-+{
-+	struct smc_prediction *smc_predictor;
-+	int use_fallback, sndbuf;
-+	struct smc_sock *smc;
-+	struct tcp_sock *tp;
-+	bool match = false;
-+	__u16 wrap, count;
-+	__u16 key;
-+
-+	/* no info can collect */
-+	if (sk == NULL)
-+		return;
-+
-+	/* only fouces on closed */
-+	if (timing != SMC_SOCK_CLOSED_TIMING)
-+		return;
-+
-+	/* every full smc sock should contains a tcp sock */
-+	tp = bpf_skc_to_tcp_sock(sk);
-+	if (!tp)
-+		return;
-+
-+	smc = smc_sk(sk);
-+	if (smc->use_fallback) {
-+		use_fallback = 1;
-+		match = tp->delivered > SMC_PREDICTION_LONGCC_PACKETS_THRESHOLD;
-+	} else {
-+		wrap = smc->conn.tx_curs_sent.wrap;
-+		count = smc->conn.tx_curs_sent.count;
-+		sndbuf = tp->inet_conn.icsk_inet.sk.sk_sndbuf;
-+		match = (count + wrap * sndbuf) > SMC_PREDICTION_LONGCC_BYTES_THRESHOLD;
-+	}
-+
-+	key = tp->inet_conn.icsk_inet.sk.__sk_common.skc_num;
-+
-+	smc_predictor = smc_prediction_get(key, 0);
-+	if (!smc_predictor)
-+		goto error;
-+
-+	bpf_spin_lock(&smc_predictor->lock);
-+	smc_predictor->closed_total_cc++;
-+	if (match) {
-+		/* increase stats */
-+		smc_predictor->closed_long_cc++;
-+		/* try more aggressive */
-+		if (smc_predictor->pacing_delta > SMC_PREDICTION_MIN_PACING_DELTA) {
-+			if (use_fallback) {
-+				smc_predictor->pacing_delta = max(SMC_PREDICTION_MIN_PACING_DELTA,
-+						(smc_predictor->pacing_delta * 3) >> 2);
-+			}
-+		}
-+	} else if (!use_fallback) {
-+		smc_predictor->pacing_delta <<= 1;
-+	}
-+	bpf_spin_unlock(&smc_predictor->lock);
-+error:
-+	return;
-+}
-+
-+SEC(".struct_ops.link")
-+struct smc_sock_negotiator_ops ops = {
-+	.name = "apps",
-+	.negotiate	= (void *)bpf_smc_negotiate,
-+	.collect_info	= (void *)bpf_smc_collect_info,
-+};
-+
-+int accept_cnt = 0;
-+int drop_cnt = 0;
-+int accept_release_cnt = 0;
-+
-+int SEC("struct_ops/bpf_smc_accept")
-+BPF_PROG(bpf_smc_accept, struct sock *sk)
-+{
-+	return SK_PASS;
-+}
-+
-+void SEC("struct_ops/bpf_smc_accept_init")
-+BPF_PROG(bpf_smc_accept_init, struct sock *sk)
-+{
-+	accept_cnt++;
-+}
-+
-+void SEC("struct_ops/bpf_smc_accept_release")
-+BPF_PROG(bpf_smc_accept_release, struct sock *sk)
-+{
-+	accept_release_cnt++;
-+}
-+
-+int SEC("struct_ops/bpf_smc_drop")
-+BPF_PROG(bpf_smc_drop, struct sock *sk)
-+{
-+	return SK_DROP;
-+}
-+
-+void SEC("struct_ops/bpf_smc_drop_init")
-+BPF_PROG(bpf_smc_drop_init, struct sock *sk)
-+{
-+	drop_cnt++;
-+}
-+
-+SEC(".struct_ops.link")
-+struct smc_sock_negotiator_ops accept = {
-+	.name = "apps",
-+	.init = (void *) bpf_smc_accept_init,
-+	.release = (void *) bpf_smc_accept_release,
-+	.negotiate = (void *) bpf_smc_accept,
-+};
-+
-+SEC(".struct_ops.link")
-+struct smc_sock_negotiator_ops drop = {
-+	.name = "apps",
-+	.init = (void *) bpf_smc_drop_init,
-+	.negotiate = (void *) bpf_smc_drop,
-+};
--- 
-1.8.3.1
+ 		rcu_read_unlock();
+ 	}
+ }
 
