@@ -2,55 +2,54 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38867C7EE26
-	for <linux-rdma@archiver.kernel.org>; Wed,  3 May 2023 09:43:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3A11C7EE29
+	for <linux-rdma@archiver.kernel.org>; Wed,  3 May 2023 09:43:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229967AbjECJne (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 3 May 2023 05:43:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41950 "EHLO
+        id S229781AbjECJng (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 3 May 2023 05:43:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229741AbjECJn3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 May 2023 05:43:29 -0400
-Received: from mail-pf1-x429.google.com (mail-pf1-x429.google.com [IPv6:2607:f8b0:4864:20::429])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 393D9525E;
+        with ESMTP id S229936AbjECJna (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 3 May 2023 05:43:30 -0400
+Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFC9649F2;
         Wed,  3 May 2023 02:43:10 -0700 (PDT)
-Received: by mail-pf1-x429.google.com with SMTP id d2e1a72fcca58-63b60366047so3517270b3a.1;
+Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-63b60365f53so5567457b3a.0;
         Wed, 03 May 2023 02:43:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683106989; x=1685698989;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=VdsI+hHV1SMet6yGeXUXOJdAJPqVlRG1VZCMzWt5U/M=;
-        b=RUGLltaJzJHfMlOrUd7mLzmkL+OCnUg8YTR4vdy9KmncZFHMf27GhuScl9aFI9cpnX
-         oMEIOWxz8M4uAnRbiA8JjcTtzC2hFo1oO9FSaCtXniYO2Qtv536bGWmI+ps3pKSbhtDZ
-         4GAouanyptWEIWyES8oGEbJdBucmuRMzp9gqTBGuOSD6NLQSoSuwyhs4BYzxa1zmHP+S
-         l5DIBFZyuQ6aFGk5YxjTgrb+uvndEMdaE8Yk27OppRECTHaVuEci/88lqt1X1R541kdU
-         XAmgjhlZIRc9qMG6gOobcg/41yA6xj+bwEmRlVSCipW1uiAIvbqU9avyMPXACuv9zfbF
-         JabA==
+        d=gmail.com; s=20221208; t=1683106990; x=1685698990;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=sqvmzpSfh7BOiDMlgneo0+djsuuObhP2Z0rVZr4lDOg=;
+        b=UwZnD9/fcZrkqOZCSC4bWh3iltR4zy8emhX+MwX88jpqXu9K4Shg2M1HnVL0Q+0/Iq
+         E37lv5Aw1Rc4Zfq1bnwyTl9sSK7fjYIPashCAKyCYub7ExiqBQhKa72+acewDM1LAOWA
+         dTO8nu1LkJd6SX0fZ3TF2iBWC2QwXATraPdlM4Dno/IwF0KnVB/8wlO+h/JWP/u45D2O
+         Ui/jXm1HfjHsxrRI05+vK4Fb8Qz11EI74TpMyEWmzQKbkvpo65vKoHH+NIfBoPUQG+Sl
+         fKbyczCRGx2WFq+WcwmrcK6lgM1s+abjL1yls/I8D/S+cSj9gx1PDzlW9c7GIflpKLo9
+         ohMQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683106989; x=1685698989;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=VdsI+hHV1SMet6yGeXUXOJdAJPqVlRG1VZCMzWt5U/M=;
-        b=gfkZrfEeTNJYVVsuJIN/QAviBAihwH+juOXS7YLwmhqid8l2dw7to5NrhipQeiU8Jk
-         2Qbl8qK/zUCdWzr6ztJsr5aUf83RQOl9a6hEjB3gCq4iAvARqDtVLtqNvpW8itUXQeN/
-         9awH3Xfda7ceSHiPU+BIbvw4s5fPuvhMf0woPeZBviAfmfVzbXFJy3/VyGRiztL1U+xP
-         op12S2QtSAur/x6sm/7dlwHEpv2pBTNGApR1/7X3Pysc0/pEXESCL5BbZYNfR3WBbzwZ
-         gdEnRNNPKRChh/qppwnHRMNoTZU+VgBeJpmZhjwnsWP5X3USnhIztcHYMZTZuBicdSfV
-         rRVQ==
-X-Gm-Message-State: AC+VfDymNdDez5o8T4TJbSu9KweCespIGDRRShMwnxWoQwYcIpeJf/2T
-        ArCjaEXPP1M8QSvF2sUi4Ag=
-X-Google-Smtp-Source: ACHHUZ5IqNxLGOmjmTTtU8NedjrsbKCHPIyEkw64UhHFJJMJAy5lwynVr/PZaidTFYzXNcSTzEfHVw==
-X-Received: by 2002:a05:6a00:1a55:b0:63b:7ac8:1be4 with SMTP id h21-20020a056a001a5500b0063b7ac81be4mr29927714pfv.25.1683106989398;
-        Wed, 03 May 2023 02:43:09 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1683106990; x=1685698990;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=sqvmzpSfh7BOiDMlgneo0+djsuuObhP2Z0rVZr4lDOg=;
+        b=jpN+cJDJxx94C/Ki+9L8DOGZCf2LxvJCeI+EMP0lOf+GU9BDi2Ahq7QTKDj/XDwirL
+         BIIHfZJpLwF+atmn+oAwSuFp4ylOFHc67k42j4u2RwiBygKdE5k6oKRcXptxua1WUvQC
+         s1VaxDW/Z8DyFa/ZwVz01/h63Ys2mBeqPXpdfgvDdK8Vaw6rSxevO/GQMfCjcDmsLCpw
+         hpobKRa1JWFonv2kwqo3H0SaeKIh5TxnnvNG1dDJMHypmTcD2eGVHix9sbeFEeZoKxSx
+         galu4MIefw5ZDWHQ8q1Dwtl5pEcPI3tYC6NQDd1CJl5E16Evc3dpGHzxU81dtKgbmfWs
+         Ygew==
+X-Gm-Message-State: AC+VfDyFl19offU6SyGWhNizxp7bu1VpssdopBA18u6D2tc9R1z15OtS
+        BJQaxTMaKBE5kjPHQXbVMdkQYgYmn9Y=
+X-Google-Smtp-Source: ACHHUZ68zLDVQf2eKV+GWEFtaAUCrBh4nVjOqbrBcNzLH77grDT5QnN10SAIAwuYdcVOs3f2UdcPKA==
+X-Received: by 2002:a05:6a00:140e:b0:63d:3f74:9df7 with SMTP id l14-20020a056a00140e00b0063d3f749df7mr26228464pfu.34.1683106990046;
+        Wed, 03 May 2023 02:43:10 -0700 (PDT)
 Received: from debian.me (subs03-180-214-233-11.three.co.id. [180.214.233.11])
-        by smtp.gmail.com with ESMTPSA id j12-20020a056a00174c00b00634b91326a9sm23972464pfc.143.2023.05.03.02.43.08
+        by smtp.gmail.com with ESMTPSA id a10-20020aa780ca000000b00642ea56f06dsm4714307pfn.26.2023.05.03.02.43.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Wed, 03 May 2023 02:43:08 -0700 (PDT)
 Received: by debian.me (Postfix, from userid 1000)
-        id DBE1A10624C; Wed,  3 May 2023 16:43:04 +0700 (WIB)
+        id 72091106250; Wed,  3 May 2023 16:43:04 +0700 (WIB)
 From:   Bagas Sanjaya <bagasdotme@gmail.com>
 To:     Linux Networking <netdev@vger.kernel.org>,
         Linux Random Direct Memory Access 
@@ -70,51 +69,35 @@ Cc:     Saeed Mahameed <saeedm@nvidia.com>,
         Maher Sanalla <msanalla@nvidia.com>,
         Rahul Rameshbabu <rrameshbabu@nvidia.com>,
         Moshe Shemesh <moshe@nvidia.com>
-Subject: [PATCH net 3/4] Documentation: net/mlx5: Add blank line separator before numbered lists
-Date:   Wed,  3 May 2023 16:42:48 +0700
-Message-Id: <20230503094248.28931-4-bagasdotme@gmail.com>
+Subject: [PATCH net 0/4] Documentation fixes for Mellanox mlx5 devlink info
+Date:   Wed,  3 May 2023 16:42:45 +0700
+Message-Id: <20230503094248.28931-1-bagasdotme@gmail.com>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230503094248.28931-1-bagasdotme@gmail.com>
-References: <20230503094248.28931-1-bagasdotme@gmail.com>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1586; i=bagasdotme@gmail.com; h=from:subject; bh=cqUxta75B9+HXP24ZKCVQuvthnc3qFBlG7NEmCz80qo=; b=owGbwMvMwCX2bWenZ2ig32LG02pJDClBOtNF3U1EZXzdRfxevsi99FO5cGf6/CW3rK5++H2e4 Qa/R65rRykLgxgXg6yYIsukRL6m07uMRC60r3WEmcPKBDKEgYtTACZyUpnhn+3XVNfrgR4iRba6 LMuLjbmCv570XD5bP0gw9tDUydLeLYwM051yVz4tSxWZu3mPUuNRgzcMu/O/1hsfEzkqJXqT30m IDwA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=727; i=bagasdotme@gmail.com; h=from:subject; bh=aer6HOi8fhrQqjCrvQO5H7xohlct7D9hbyMhJQSmMaE=; b=owGbwMvMwCX2bWenZ2ig32LG02pJDClBOt0c/+q31OZdnq4UzW/CxJX4Y5n/r6tWx70fJq04t NjRd5ZkRykLgxgXg6yYIsukRL6m07uMRC60r3WEmcPKBDKEgYtTACayNpqRYdbFvP67ryc1a231 ly4WXvO+Izayq3xe20enoNxcufRjAYwMTTteXTn0tDhCb5p9lf9O26zbMt859AQuccqKtpWceHu OAQA=
 X-Developer-Key: i=bagasdotme@gmail.com; a=openpgp; fpr=701B806FDCA5D3A58FFB8F7D7C276C64A5E44A1D
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The doc forgets to add separator before numbered lists, which causes the
-lists to be appended to previous paragraph inline instead.
+Here is fixes for mlx5 devlink info documentation. The first fixes
+htmldocs warnings on the mainline, while the rest is formatting fixes.
 
-Add the missing separator.
+Bagas Sanjaya (4):
+  Documentation: net/mlx5: Wrap vnic reporter devlink commands in code
+    blocks
+  Documentation: net/mlx5: Use bullet and definition lists for vnic
+    counters description
+  Documentation: net/mlx5: Add blank line separator before numbered
+    lists
+  Documentation: net/mlx5: Wrap notes in admonition blocks
 
-Fixes: f2d51e579359b7 ("net/mlx5: Separate mlx5 driver documentation into multiple pages")
-Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
----
- .../device_drivers/ethernet/mellanox/mlx5/devlink.rst           | 2 ++
- 1 file changed, 2 insertions(+)
+ .../ethernet/mellanox/mlx5/devlink.rst        | 60 ++++++++++++-------
+ 1 file changed, 37 insertions(+), 23 deletions(-)
 
-diff --git a/Documentation/networking/device_drivers/ethernet/mellanox/mlx5/devlink.rst b/Documentation/networking/device_drivers/ethernet/mellanox/mlx5/devlink.rst
-index 00687425d8b72d..f962c0975d8428 100644
---- a/Documentation/networking/device_drivers/ethernet/mellanox/mlx5/devlink.rst
-+++ b/Documentation/networking/device_drivers/ethernet/mellanox/mlx5/devlink.rst
-@@ -40,6 +40,7 @@ flow_steering_mode: Device flow steering mode
- ---------------------------------------------
- The flow steering mode parameter controls the flow steering mode of the driver.
- Two modes are supported:
-+
- 1. 'dmfs' - Device managed flow steering.
- 2. 'smfs' - Software/Driver managed flow steering.
- 
-@@ -99,6 +100,7 @@ between representors and stacked devices.
- By default metadata is enabled on the supported devices in E-switch.
- Metadata is applicable only for E-switch in switchdev mode and
- users may disable it when NONE of the below use cases will be in use:
-+
- 1. HCA is in Dual/multi-port RoCE mode.
- 2. VF/SF representor bonding (Usually used for Live migration)
- 3. Stacked devices
+
+base-commit: c6d96df9fa2c1d19525239d4262889cce594ce6c
 -- 
 An old man doll... just what I always wanted! - Clara
 
