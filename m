@@ -2,217 +2,168 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 041D8C77B7D
-	for <linux-rdma@archiver.kernel.org>; Sun,  7 May 2023 18:41:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A680FC77B7D
+	for <linux-rdma@archiver.kernel.org>; Sun,  7 May 2023 21:39:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229793AbjEGSlN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 7 May 2023 14:41:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47136 "EHLO
+        id S231863AbjEGVje (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 7 May 2023 17:39:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229460AbjEGSlM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 7 May 2023 14:41:12 -0400
-Received: from mail-pg1-x52f.google.com (mail-pg1-x52f.google.com [IPv6:2607:f8b0:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67C83A5DF
-        for <linux-rdma@vger.kernel.org>; Sun,  7 May 2023 11:41:10 -0700 (PDT)
-Received: by mail-pg1-x52f.google.com with SMTP id 41be03b00d2f7-528dd896165so2526269a12.2
-        for <linux-rdma@vger.kernel.org>; Sun, 07 May 2023 11:41:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1683484870; x=1686076870;
-        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xKi+WILmmhxYAJe0cmF3E+FCnKhOeE7oiNAvnKnVcbg=;
-        b=Eo1vWlyfTvTFCniVvzSPL0LeM9Nyik+zDnxNnH9UCpC10q0lY2sF4XQ0UwPQ/K3obp
-         t5O65ZNrRXzayERyHf57cKw75p5fctZHRHxDcDNnrW39qgm4uJXfLJeKmX1QkV42rFYM
-         5+/4JE403up5LtXx2x8gnaNOj65APMXOI5uYU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683484870; x=1686076870;
-        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=xKi+WILmmhxYAJe0cmF3E+FCnKhOeE7oiNAvnKnVcbg=;
-        b=UR+aiBNQIsWEbKmn8fXjtc35CNWXnNNLEGSZHaZVquhtYl2COl80Yb2rcDBor9+Rrv
-         P4A7ok+N11MsNFyd15ZPooVqtR0x1nHQHzIPkouGbzDV07G3UI3w7cFOHmt48MtEIUUL
-         tM9ZpmrizPb1mFFdJEyVCF9ugk7x+E0KCVasoMrdIAu80bmlrgztCn35vMt8IcaVQTz4
-         E6xC+VAzwuKVmLWjigAIEPSz7FwIbh3+/28Kr/apdaTZcQhXMnrlbP9iUlYP70vjJ2/K
-         0SyM7xr9G4bZOsIAFhxsdVXUqnWGAo/VWHr3MxFlPhViUPVuGSN1TW2+nLHuEzEFQh7C
-         /jUQ==
-X-Gm-Message-State: AC+VfDw9ML+mxW39x0WEMXWsoCf3zZsuUoALrIXBR5C97HgpPcgHo7Jt
-        +SPPR9UHa8xYWGKAe0kiq89o9gz8gb8027GTA3g=
-X-Google-Smtp-Source: ACHHUZ4nUOKr1IkFz2DsEPuEKq2fEsyAqcOYpBRHBQSMAS56UT1wOzeFgJfLj8AWbvdfoKsThWaAQg==
-X-Received: by 2002:a17:902:ea11:b0:1ac:7f56:de04 with SMTP id s17-20020a170902ea1100b001ac7f56de04mr63979plg.45.1683484869801;
-        Sun, 07 May 2023 11:41:09 -0700 (PDT)
-Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id u5-20020a17090282c500b001aafc8cea5fsm5457306plz.148.2023.05.07.11.41.06
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 07 May 2023 11:41:07 -0700 (PDT)
-From:   Selvin Xavier <selvin.xavier@broadcom.com>
-To:     jgg@ziepe.ca, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Kalesh AP <kalesh-anakkur.purayil@broadcom.com>,
-        Kashyap Desai <kashyap.desai@broadcom.com>
-Subject: [PATCH for-rc] RDMA/bnxt_re: Fix the page_size used during the MR creation
-Date:   Sun,  7 May 2023 11:29:29 -0700
-Message-Id: <1683484169-9539-1-git-send-email-selvin.xavier@broadcom.com>
-X-Mailer: git-send-email 2.5.5
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000abd8d405fb1eddc6"
+        with ESMTP id S229814AbjEGVjc (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 7 May 2023 17:39:32 -0400
+Received: from DM5PR00CU002.outbound.protection.outlook.com (mail-centralusazon11021027.outbound.protection.outlook.com [52.101.62.27])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A4957EC8;
+        Sun,  7 May 2023 14:39:31 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Kf7uxYAaM4xksVNzt85zF/nzWDjyeWa4IkvTZQrOKI2H87imG1Gj3Q0pE+WYuOXT9GiECptiaMmX997+OC7c4VlwK1P3Q7/29IZ7WrL7GSfyFXgb5UB10OzfCX3uD7pDK1Disr8LOc7rAKP9BBC7OtP6hLVAmQ75pkFe0hAFor1Ya0gGV+SBrL8zdhD31cMNTPsErCUbQqhUagM7a8bYTsPtmMf8eHHyI6HzOHxwq/hZV9hDZS1XLnctsqxoIrdmPPzsnoE7OBo8FSaG+BBnZ8wZgUwAI+vfZTv2Al6TodD0Rg6vQAMIvs7GsVeSwZpPEj4e6FiuFfGhuGIafnv0nA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Y4SgVEuOVztsMKhDvIoMJw7HcjSFAXyVwbzbn3pslGI=;
+ b=SQ0VqZishsu6udW0r3yG2+zQgcIG/H1VovWD4/+EjPi0sblIg8HmF7zjPGg5ovJ/cNymsggavh1In+oD7Kgs50X0Pdjvh5Y4r1O1/1DIe4IjhLRNqxFMfj7pRJmG21UOf2XXsrHDgdYdPbIq/BkYp3+CknW/Q5ZzhRClCi4HjIrENYvT+/ksaOc2pk3dhhpBrF2ic0dZEYg8IPT5KwF/Md/EQo2xa13Cc7Mjili93brG7Ipwr34C3goEaBfQvdfGtMHb6af1Vb+y7MW76o1nDRJoM33/QAJkGdiD6rWjdSPJV7gP80DAym5UHbDzmoXUacc/FBd1/IHb7KtErW/QHg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Y4SgVEuOVztsMKhDvIoMJw7HcjSFAXyVwbzbn3pslGI=;
+ b=KlUD52BELT8HShVlMbtrevYlGreTWG2rsYOZWg0TaygrZ3r3MFHoOuEwf21VISyIWDuBppCMn5Hwz0EUQcL3TZo8sftL1QaKU0rwRm9LM2t5IsFRBC7+0KqIpFf84c5taLv/DHlmVY+xY4/8war3IB8xha48+pBZaHuJZCWc12k=
+Received: from PH7PR21MB3116.namprd21.prod.outlook.com (2603:10b6:510:1d0::10)
+ by DS7PR21MB3479.namprd21.prod.outlook.com (2603:10b6:8:90::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6411.2; Sun, 7 May
+ 2023 21:39:27 +0000
+Received: from PH7PR21MB3116.namprd21.prod.outlook.com
+ ([fe80::7745:82a2:4a33:65c5]) by PH7PR21MB3116.namprd21.prod.outlook.com
+ ([fe80::7745:82a2:4a33:65c5%6]) with mapi id 15.20.6411.002; Sun, 7 May 2023
+ 21:39:27 +0000
+From:   Haiyang Zhang <haiyangz@microsoft.com>
+To:     Leon Romanovsky <leon@kernel.org>, Long Li <longli@microsoft.com>
+CC:     Jason Gunthorpe <jgg@ziepe.ca>,
+        Ajay Sharma <sharmaajay@microsoft.com>,
+        Dexuan Cui <decui@microsoft.com>,
+        KY Srinivasan <kys@microsoft.com>,
+        Wei Liu <wei.liu@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH] RDMA/mana_ib: Use v2 version of cfg_rx_steer_req to
+ enable RX coalescing
+Thread-Topic: [PATCH] RDMA/mana_ib: Use v2 version of cfg_rx_steer_req to
+ enable RX coalescing
+Thread-Index: AQHZf4Kxjex9WkNlekCvwwavSM4vhq9Od9yAgADgy0A=
+Date:   Sun, 7 May 2023 21:39:27 +0000
+Message-ID: <PH7PR21MB31168035C903BD666253BF70CA709@PH7PR21MB3116.namprd21.prod.outlook.com>
+References: <1683312708-24872-1-git-send-email-longli@linuxonhyperv.com>
+ <20230507081053.GD525452@unreal>
+In-Reply-To: <20230507081053.GD525452@unreal>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+msip_labels: MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ActionId=2485ae63-c230-4ad8-96da-010ab44a00da;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_ContentBits=0;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Enabled=true;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Method=Standard;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_Name=Internal;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SetDate=2023-05-07T21:35:26Z;MSIP_Label_f42aa342-8706-4288-bd11-ebb85995028c_SiteId=72f988bf-86f1-41af-91ab-2d7cd011db47;
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: PH7PR21MB3116:EE_|DS7PR21MB3479:EE_
+x-ms-office365-filtering-correlation-id: 0db7e0fe-41ef-4220-57df-08db4f438853
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: o9DozYYWcciSyW6r1SQ6uT6MG8Ol/eTBShc19cifIV2Kzp1NT3aWV2yXZ1SEPgyPf+tLKDmri3GjYC7/Q6YEVx083l6uyVIBT8uCaqQJTaaaFnlGqqaFjJhX73oATSw7CBHGqQeZNyOH6tjCFgOzfwZ+9kY78mb79JoX+HPYuPOlSKWkLom3DP1t3AEl1vwWjRYsS5etYGriEWII5pDOCJI5yJ9ew5/lJ2Hh1/WBzmF95hsRIT5EqF8E5QUTx4od17Lxc0I4wqNvSRmWhFppRhwqVlE+5fZWVepzCdUkbyMo8gxmtDbwyhNbWS7G/aDPzZkY5ke/t7VxTL17PoaZCz1FgqrrREq27vc3aVQfuBHZwsCaQEu70dSD6jblp+j4XyBvHGoei6k532uap8dG2QcOqC9+bEktnLRUXng5hHEwisJeqKVrImTdL4pl/VPlkYXpDMVUOZK/1W/jYavieoKjo3adhAMKYDIVXWFuJy8aNFd8QYjzbHvosxi7iL7tOUr3cNAWuuVS4Q6x+XGXSEVnQXM6uj0vG4PllVq3fkntolygXBSSFrdFzXAgo5ZmNhh58PCmwJotBdKGWa8HOALwoyqFqYAZpydzm7q7NI4cUHYY1G2kmDU0ZnFdZDV8tPRVnyNsOde+Ey+J9qVhVUHSyAJ8ViKYyXcoVpgPHBI=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR21MB3116.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(366004)(39860400002)(136003)(346002)(376002)(396003)(451199021)(83380400001)(10290500003)(478600001)(7696005)(71200400001)(54906003)(110136005)(9686003)(6506007)(26005)(53546011)(186003)(8990500004)(7416002)(2906002)(33656002)(52536014)(38100700002)(64756008)(66446008)(66476007)(66556008)(66946007)(76116006)(122000001)(82960400001)(82950400001)(6636002)(4326008)(41300700001)(5660300002)(8676002)(8936002)(786003)(38070700005)(86362001)(55016003)(316002);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?nEEFc4vZ1GTPhaF7aV6RlzwwwPNwTPW5+DLNcU/vWEkIf/f7ZQMiMGNMlyzm?=
+ =?us-ascii?Q?v/XwrNqLOmIhkz8KRcnBwlioivwjeZbYtn79192ismAMhu0YlMX8L0OMn27b?=
+ =?us-ascii?Q?qtcJlt2yQuynNZ1P9xkkKJaN306pXrdTXfpKjOtsfVDW1y17JOxz2MaXNbEj?=
+ =?us-ascii?Q?axNOIy/ucu7eUV5Vd1qXB+8tvomHR6Udk8kTpMiX6tdD/Zenc5roDJKPOpUK?=
+ =?us-ascii?Q?tn4zz89CmYbLV0A1H0qGzlySLtkvKEGFS78mVi+KOTMKM31yu59y60EKOiGp?=
+ =?us-ascii?Q?wXd+tBJXoeZLG7PoXWC6et/qUOyDFvP2ERpUloLoVdD3Z+2bgOxj2MkEWICJ?=
+ =?us-ascii?Q?Wac+vG4daTDA4vKiV+DAEXfxZyjNffLhwzmEYAUIvRNaVvPRT6puzJfNDdK/?=
+ =?us-ascii?Q?1mO/fSgPMxchN0v6o4aeLXSBjFpez9rwwwNe2YGZSyqM9KzEo5U7hqO14oLn?=
+ =?us-ascii?Q?1rhwDQLZGIuucCPNA42kubOysU0x/s8U/m0OKs02GIuL3+Ds26JSOfGHZiQn?=
+ =?us-ascii?Q?13d8vQxAaBaJzYlfKk+9UxdKYFBSs1daV1HZWwQDlV1Hgoi3rPLRLpS5b687?=
+ =?us-ascii?Q?XpAA1yisb8bDk7EzPbJs4QDRtF96pBCkOuy7HguHlB4rNDA0P4pRuZXCKfGz?=
+ =?us-ascii?Q?H/rcx9jlNnB5iNUegZ7UUcwKR2M2/zlvQOqN5jUe2cdaRs6rbIdzzirfn441?=
+ =?us-ascii?Q?bM7a5AF2cSaQaZWCSpr8fseTFm3dBAKeLTwXC0eaN6zyjLLfyo6eoGVuV/7p?=
+ =?us-ascii?Q?AQ5ByBOpA8Wtqz+pNqi25NFw7EFR1FvtlDD8nBnrrQ8RC9yP2kzC3UHsBqr1?=
+ =?us-ascii?Q?I5qSCJsRrROFxfp3o5cnujV0cdu1KjWicRiJDe+P1pIHPOO5J8pkJBaSJaGN?=
+ =?us-ascii?Q?3G6K9u+4zIO+1GS+v2a6vT/HXc+PDwlAGKwMLtcYjCHJS9OP5LFIaZdjhayh?=
+ =?us-ascii?Q?j0IAPLa2zlO18kBvVBJOcLW6+g9nmHm/wB52qaHo5T20ejTMVezWBBS6LQCG?=
+ =?us-ascii?Q?R9BXOZLG2L7MhkGtCqKx9OtWhgJfqenIgYMPKppeBIRRTRb7WMtDVi/Nqb9M?=
+ =?us-ascii?Q?YCMxnuNf8IUt/URAMHU8cYiBeXJmJAt+pCRBjOp6IzUBc3RQnKI7oEQ4Rbhv?=
+ =?us-ascii?Q?lFYfK9MFCE9SXHS6S4OdHq5MepzZLQw3/AlP113Cv+V36pwSZkRIg44fFo3P?=
+ =?us-ascii?Q?S1BHji7Y0izUAU41q9qWKIiqgPQL6tMLGkehv6JzLncqCVhCJ+5r9zoYU0zA?=
+ =?us-ascii?Q?qn0i2ikqhP8kPXfFRdM2CGuGgPLly+tvoKM/Zhkg/QoTIPIKkMV2focPwNh2?=
+ =?us-ascii?Q?twU0jUKltMS17PW5FppA4Y64aw8KRtPBQlf0hj+1ag2R2afZY/VaVJEoQXnF?=
+ =?us-ascii?Q?f/veKnn816AFRh9Y0YnsIbZBbSjRp38LVradC9yfsr9fCxCTh9+Z8A1m3O1m?=
+ =?us-ascii?Q?q+LQImPiRXIqTSXfsrfRFuwHP+N7B4FC+OjIGOEz4FYWzl6JsR//r5OQV0GS?=
+ =?us-ascii?Q?vBAyEKoFoMYdU+S7wlTLVDqjVYpOYDt7P+SBLJqqu3ZBUYkjefPiTbrbG9lU?=
+ =?us-ascii?Q?rejhch4wMV40Vg1YNBAZJvC8PfOB6h5vz/UhHtg0?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR21MB3116.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0db7e0fe-41ef-4220-57df-08db4f438853
+X-MS-Exchange-CrossTenant-originalarrivaltime: 07 May 2023 21:39:27.1230
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: wN8UxlHjG57etxcZcHZ57I0RGh569eUJF94PI6/4QwHorBd9xn1ox/QM40hHZewAgbCibwYq9YFYlyyloM8YHA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR21MB3479
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000abd8d405fb1eddc6
-
-Driver populates the list of pages used for Memory region wrongly when
-page size is more than system page size. This is causing a failure
-when some of the applications that creates MR with page size as 2M.
-Since HW can support multiple page sizes, pass the correct page size
-while creating the MR.
-
-Also, driver need not adjust the number of pages when HW Queues
-are created with user memory. It should work with the number of
-dma blocks returned by ib_umem_num_dma_blocks. Fix this calculation also.
-
-Fixes: 0c4dcd602817 ("RDMA/bnxt_re: Refactor hardware queue memory allocation")
-Fixes: f6919d56388c ("RDMA/bnxt_re: Code refactor while populating user MRs")
-Signed-off-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-Signed-off-by: Kashyap Desai <kashyap.desai@broadcom.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
----
- drivers/infiniband/hw/bnxt_re/qplib_res.c | 12 ++----------
- drivers/infiniband/hw/bnxt_re/qplib_sp.c  |  7 +++----
- 2 files changed, 5 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-index 126d4f2..81b0c5e 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-@@ -215,17 +215,9 @@ int bnxt_qplib_alloc_init_hwq(struct bnxt_qplib_hwq *hwq,
- 			return -EINVAL;
- 		hwq_attr->sginfo->npages = npages;
- 	} else {
--		unsigned long sginfo_num_pages = ib_umem_num_dma_blocks(
--			hwq_attr->sginfo->umem, hwq_attr->sginfo->pgsize);
--
-+		npages = ib_umem_num_dma_blocks(hwq_attr->sginfo->umem,
-+						hwq_attr->sginfo->pgsize);
- 		hwq->is_user = true;
--		npages = sginfo_num_pages;
--		npages = (npages * PAGE_SIZE) /
--			  BIT_ULL(hwq_attr->sginfo->pgshft);
--		if ((sginfo_num_pages * PAGE_SIZE) %
--		     BIT_ULL(hwq_attr->sginfo->pgshft))
--			if (!npages)
--				npages++;
- 	}
- 
- 	if (npages == MAX_PBL_LVL_0_PGS && !hwq_attr->sginfo->nopte) {
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index b802981..bae7d89 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -584,16 +584,15 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
- 		/* Free the hwq if it already exist, must be a rereg */
- 		if (mr->hwq.max_elements)
- 			bnxt_qplib_free_hwq(res, &mr->hwq);
--		/* Use system PAGE_SIZE */
- 		hwq_attr.res = res;
- 		hwq_attr.depth = pages;
--		hwq_attr.stride = buf_pg_size;
-+		hwq_attr.stride = sizeof(dma_addr_t);
- 		hwq_attr.type = HWQ_TYPE_MR;
- 		hwq_attr.sginfo = &sginfo;
- 		hwq_attr.sginfo->umem = umem;
- 		hwq_attr.sginfo->npages = pages;
--		hwq_attr.sginfo->pgsize = PAGE_SIZE;
--		hwq_attr.sginfo->pgshft = PAGE_SHIFT;
-+		hwq_attr.sginfo->pgsize = buf_pg_size;
-+		hwq_attr.sginfo->pgshft = ilog2(buf_pg_size);
- 		rc = bnxt_qplib_alloc_init_hwq(&mr->hwq, &hwq_attr);
- 		if (rc) {
- 			dev_err(&res->pdev->dev,
--- 
-2.5.5
 
 
---000000000000abd8d405fb1eddc6
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+> -----Original Message-----
+> From: Leon Romanovsky <leon@kernel.org>
+> Sent: Sunday, May 7, 2023 4:11 AM
+> To: Long Li <longli@microsoft.com>
+> Cc: Jason Gunthorpe <jgg@ziepe.ca>; Ajay Sharma
+> <sharmaajay@microsoft.com>; Dexuan Cui <decui@microsoft.com>; KY
+> Srinivasan <kys@microsoft.com>; Haiyang Zhang <haiyangz@microsoft.com>;
+> Wei Liu <wei.liu@kernel.org>; David S. Miller <davem@davemloft.net>; Eric
+> Dumazet <edumazet@google.com>; Jakub Kicinski <kuba@kernel.org>; Paolo
+> Abeni <pabeni@redhat.com>; linux-rdma@vger.kernel.org; linux-
+> hyperv@vger.kernel.org; netdev@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Subject: Re: [PATCH] RDMA/mana_ib: Use v2 version of cfg_rx_steer_req to
+> enable RX coalescing
+>=20
+> On Fri, May 05, 2023 at 11:51:48AM -0700, longli@linuxonhyperv.com
+> wrote:
+> > From: Long Li <longli@microsoft.com>
+> >
+> > With RX coalescing, one CQE entry can be used to indicate multiple pack=
+ets
+> > on the receive queue. This saves processing time and PCI bandwidth over
+> > the CQ.
+> >
+> > Signed-off-by: Long Li <longli@microsoft.com>
+> > ---
+> >  drivers/infiniband/hw/mana/qp.c |  5 ++++-
+> >  include/net/mana/mana.h         | 17 +++++++++++++++++
+> >  2 files changed, 21 insertions(+), 1 deletion(-)
+>=20
+> Why didn't you change mana_cfg_vport_steering() too?
 
-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
-FYMZp2DojLAq9f4Oi2OBetbnWxo0WGycXpmq/jC4PUx2u9mazQ79i80VLagGRshWniESXuf+SYG8
-+zBimjld9ZZnwm7itHAZdtme4YYFxx+EHa4PUxPV8t+hPHhsiIjirPa1pVXPbQIDAQABo4IB2zCC
-AdcwDgYDVR0PAQH/BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDov
-L3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAu
-Y3J0MEEGCCsGAQUFBzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29u
-YWxzaWduMmNhMjAyMDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0
-cHM6Ly93d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBA
-MD6gPKA6hjhodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2Ey
-MDIwLmNybDAlBgNVHREEHjAcgRpzZWx2aW4ueGF2aWVyQGJyb2FkY29tLmNvbTATBgNVHSUEDDAK
-BggrBgEFBQcDBDAfBgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQU3TaH
-dsgUhTW3LwObmZ20fj+8Xj8wDQYJKoZIhvcNAQELBQADggEBAAbt6Sptp6ZlTnhM2FDhkVXks68/
-iqvfL/e8wSPVdBxOuiP+8EXGLV3E72KfTTJXMbkcmFpK2K11poBDQJhz0xyOGTESjXNnN6Eqq+iX
-hQtF8xG2lzPq8MijKI4qXk5Vy5DYfwsVfcF0qJw5AhC32nU9uuIPJq8/mQbZfqmoanV/yadootGr
-j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
-9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
-hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
-IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIDynG/x7yiyA
-ZZLqHoIgzTD6ANwHjZzV/dvNRcAirNgqMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDUwNzE4NDExMFowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
-YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAGgiO13eAAA254mDixthfncx+hxaYL
-vNEtLjDdANzYsTpjL+hOzDQGipJ8x/4sz8uFXdclR9LIaZL4ZvPDGxEGxriMz3dX/EO1cVtBlAhh
-f9DCi47Zkrxu/fQJD+izMnHxwvwDu5bQuuW+iy9QgEXU8QJ2gN+FqbOVExRoZzo76erRvbMeIFII
-1tIwYdXiqA4k26ZDVT95t+IyOBSTmmyFXejH24rvLJduVFgRFZ1iJxQ3AzPIOVaARjVLQR0AVrya
-0qBsurzRvw/aKLJm8sNaelAS7dqelESKqpRd4Kkp7CMNavafqjjwMuRA3my0wm3jevQdye4w/73I
-DnNIr6CJ
---000000000000abd8d405fb1eddc6--
+The mana_cfg_vport_steering() is for mana_en (Enthernet) driver, not the
+mana_ib driver.
+
+The changes for mana_en will be done in a separate patch together with
+changes for mana_en RX code patch to support multiple packets / CQE.
+
+Thanks,
+- Haiyang
+
