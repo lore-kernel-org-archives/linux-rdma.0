@@ -2,179 +2,151 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66B61C77B7D
-	for <linux-rdma@archiver.kernel.org>; Wed, 10 May 2023 06:59:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47C42C7EE25
+	for <linux-rdma@archiver.kernel.org>; Wed, 10 May 2023 08:23:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236292AbjEJG7N (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 10 May 2023 02:59:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59062 "EHLO
+        id S236483AbjEJIXq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 10 May 2023 04:23:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236346AbjEJG7F (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 May 2023 02:59:05 -0400
+        with ESMTP id S236273AbjEJIXl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 10 May 2023 04:23:41 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33C096A6A;
-        Tue,  9 May 2023 23:58:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84376E6B;
+        Wed, 10 May 2023 01:23:39 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B5EF62D3D;
-        Wed, 10 May 2023 06:58:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FDC7C433D2;
-        Wed, 10 May 2023 06:58:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1404C63B9A;
+        Wed, 10 May 2023 08:23:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C81FC433EF;
+        Wed, 10 May 2023 08:23:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1683701928;
-        bh=pccrKrakIiTYMfNwkySkFA8teOBn8FrPqIthMon9VT0=;
+        s=k20201202; t=1683707018;
+        bh=/gMniZJi49+b3F2CxP49asUyDF2qocWAllpb4xt4W88=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=aqoQNNerTUZBfWBS9lc6M5Iz1BFB5IxG/bALpkwYFE9w1mUKGsuVUrU7a0ViNAyzT
-         ZzvF0NgCDw5IqIoY0jGN0brourbcNg5tuGq7EGr+MjMiP4ojb9Y0FMgkmTqJGwi/WS
-         EEVFCzSZ/wK+ieQqobY970TYuha+0EMcya6RrwSrBK+IKrQXKUGhWHJxpGYkXG+iOH
-         s08pw6u0sKERda6DO+SPI+q1OMI50eiLAeWv1fwvgZ9FqLH7cyEpPIOA1pKdHbJsr+
-         RWckB75Ex0ryTfcLf3lH9cgQj98JAnbTDxZUwhBMVaOHQOsU/0RYktvhMo1s3lNSC3
-         xZ03J6AoMGZlQ==
-Date:   Wed, 10 May 2023 09:58:44 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Long Li <longli@microsoft.com>
-Cc:     Haiyang Zhang <haiyangz@microsoft.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Ajay Sharma <sharmaajay@microsoft.com>,
-        Dexuan Cui <decui@microsoft.com>,
-        KY Srinivasan <kys@microsoft.com>,
-        Wei Liu <wei.liu@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] RDMA/mana_ib: Use v2 version of cfg_rx_steer_req to
- enable RX coalescing
-Message-ID: <20230510065844.GQ38143@unreal>
-References: <1683312708-24872-1-git-send-email-longli@linuxonhyperv.com>
- <20230507081053.GD525452@unreal>
- <PH7PR21MB31168035C903BD666253BF70CA709@PH7PR21MB3116.namprd21.prod.outlook.com>
- <20230508060938.GA6195@unreal>
- <PH7PR21MB3116031E5E1B5B9B97AE71BCCA719@PH7PR21MB3116.namprd21.prod.outlook.com>
- <20230509073034.GA38143@unreal>
- <PH7PR21MB326324A880890867496A60C5CE769@PH7PR21MB3263.namprd21.prod.outlook.com>
+        b=b0zsNfI9p+LA76L/lfuEQcl/Z4Bl7vyuvAIAHtCL5/O48gu5Hv+tlKn1GZhIzV71x
+         OaQ2kGN1qr/eQB0taX1xmlss6VFcIseUXLJGQGn1m8LDukVUeI5drXLeodBfQV6CYy
+         lgIU79XxfCWt+XQul+U5tJI7b0LMlGf64ZvVZ7jZyb0+ekB2XYE4gpvYL6BQ30piFD
+         qnWwq1J4KI2oPLZYMfSW4e9S9HbSlaauSwlEngGJ6X5HUKC47VvaUQP9UJFaZ6Roum
+         w6NeAg6eC80Snwn0tdb5GuA1zW9M0GZX48Yav8SWrbuhHzonYzzrKmBZZEYxHv6cxU
+         41nEruMRIKgog==
+Date:   Wed, 10 May 2023 10:23:28 +0200
+From:   Lorenzo Pieralisi <lpieralisi@kernel.org>
+To:     Dexuan Cui <decui@microsoft.com>
+Cc:     bhelgaas@google.com, davem@davemloft.net, edumazet@google.com,
+        haiyangz@microsoft.com, jakeo@microsoft.com, kuba@kernel.org,
+        kw@linux.com, kys@microsoft.com, leon@kernel.org,
+        linux-pci@vger.kernel.org, mikelley@microsoft.com,
+        pabeni@redhat.com, robh@kernel.org, saeedm@nvidia.com,
+        wei.liu@kernel.org, longli@microsoft.com, boqun.feng@gmail.com,
+        ssengar@microsoft.com, helgaas@kernel.org,
+        linux-hyperv@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        josete@microsoft.com, stable@vger.kernel.org
+Subject: Re: [PATCH v3 6/6] PCI: hv: Use async probing to reduce boot time
+Message-ID: <ZFtUgCVaneGVKBsW@lpieralisi>
+References: <20230420024037.5921-1-decui@microsoft.com>
+ <20230420024037.5921-7-decui@microsoft.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <PH7PR21MB326324A880890867496A60C5CE769@PH7PR21MB3263.namprd21.prod.outlook.com>
+In-Reply-To: <20230420024037.5921-7-decui@microsoft.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, May 09, 2023 at 07:08:36PM +0000, Long Li wrote:
-> > Subject: Re: [PATCH] RDMA/mana_ib: Use v2 version of cfg_rx_steer_req to
-> > enable RX coalescing
-> > 
-> > On Mon, May 08, 2023 at 02:45:44PM +0000, Haiyang Zhang wrote:
-> > >
-> > >
-> > > > -----Original Message-----
-> > > > From: Leon Romanovsky <leon@kernel.org>
-> > > > Sent: Monday, May 8, 2023 2:10 AM
-> > > > To: Haiyang Zhang <haiyangz@microsoft.com>
-> > > > Cc: Long Li <longli@microsoft.com>; Jason Gunthorpe <jgg@ziepe.ca>;
-> > > > Ajay Sharma <sharmaajay@microsoft.com>; Dexuan Cui
-> > > > <decui@microsoft.com>; KY Srinivasan <kys@microsoft.com>; Wei Liu
-> > <wei.liu@kernel.org>; David S.
-> > > > Miller <davem@davemloft.net>; Eric Dumazet <edumazet@google.com>;
-> > > > Jakub Kicinski <kuba@kernel.org>; Paolo Abeni <pabeni@redhat.com>;
-> > > > linux- rdma@vger.kernel.org; linux-hyperv@vger.kernel.org;
-> > > > netdev@vger.kernel.org; linux-kernel@vger.kernel.org
-> > > > Subject: Re: [PATCH] RDMA/mana_ib: Use v2 version of
-> > > > cfg_rx_steer_req to enable RX coalescing
-> > > >
-> > > > On Sun, May 07, 2023 at 09:39:27PM +0000, Haiyang Zhang wrote:
-> > > > >
-> > > > >
-> > > > > > -----Original Message-----
-> > > > > > From: Leon Romanovsky <leon@kernel.org>
-> > > > > > Sent: Sunday, May 7, 2023 4:11 AM
-> > > > > > To: Long Li <longli@microsoft.com>
-> > > > > > Cc: Jason Gunthorpe <jgg@ziepe.ca>; Ajay Sharma
-> > > > > > <sharmaajay@microsoft.com>; Dexuan Cui <decui@microsoft.com>; KY
-> > > > > > Srinivasan <kys@microsoft.com>; Haiyang Zhang
-> > > > <haiyangz@microsoft.com>;
-> > > > > > Wei Liu <wei.liu@kernel.org>; David S. Miller
-> > > > > > <davem@davemloft.net>; Eric Dumazet <edumazet@google.com>;
-> > Jakub
-> > > > > > Kicinski <kuba@kernel.org>;
-> > > > Paolo
-> > > > > > Abeni <pabeni@redhat.com>; linux-rdma@vger.kernel.org; linux-
-> > > > > > hyperv@vger.kernel.org; netdev@vger.kernel.org; linux-
-> > > > > > kernel@vger.kernel.org
-> > > > > > Subject: Re: [PATCH] RDMA/mana_ib: Use v2 version of
-> > > > > > cfg_rx_steer_req
-> > > > to
-> > > > > > enable RX coalescing
-> > > > > >
-> > > > > > On Fri, May 05, 2023 at 11:51:48AM -0700,
-> > > > > > longli@linuxonhyperv.com
-> > > > > > wrote:
-> > > > > > > From: Long Li <longli@microsoft.com>
-> > > > > > >
-> > > > > > > With RX coalescing, one CQE entry can be used to indicate
-> > > > > > > multiple
-> > > > packets
-> > > > > > > on the receive queue. This saves processing time and PCI
-> > > > > > > bandwidth over the CQ.
-> > > > > > >
-> > > > > > > Signed-off-by: Long Li <longli@microsoft.com>
-> > > > > > > ---
-> > > > > > >  drivers/infiniband/hw/mana/qp.c |  5 ++++-
-> > > > > > >  include/net/mana/mana.h         | 17 +++++++++++++++++
-> > > > > > >  2 files changed, 21 insertions(+), 1 deletion(-)
-> > > > > >
-> > > > > > Why didn't you change mana_cfg_vport_steering() too?
-> > > > >
-> > > > > The mana_cfg_vport_steering() is for mana_en (Enthernet) driver,
-> > > > > not the mana_ib driver.
-> > > > >
-> > > > > The changes for mana_en will be done in a separate patch together
-> > > > > with changes for mana_en RX code patch to support multiple packets /
-> > CQE.
-> > > >
-> > > > I'm aware of the difference between mana_en and mana_ib.
-> > > >
-> > > > The change you proposed doesn't depend on "support multiple packets
-> > > > / CQE."
-> > > > and works perfectly with one packet/CQE also, does it?
-> > >
-> > > No.
-> > > If we add the following setting to the mana_en /
-> > > mana_cfg_vport_steering(), the NIC may put multiple packets in one
-> > > CQE, so we need to have the changes for mana_en RX code path to support
-> > multiple packets / CQE.
-> > > +	req->cqe_coalescing_enable = true;
-> > 
-> > You can leave "cqe_coalescing_enable = false" for ETH and still reuse your new
-> > v2 struct.
+On Wed, Apr 19, 2023 at 07:40:37PM -0700, Dexuan Cui wrote:
+> Commit 414428c5da1c ("PCI: hv: Lock PCI bus on device eject") added
+> pci_lock_rescan_remove() and pci_unlock_rescan_remove() in
+> create_root_hv_pci_bus() and in hv_eject_device_work() to address the
+> race between create_root_hv_pci_bus() and hv_eject_device_work(), but it
+> turns that grabing the pci_rescan_remove_lock mutex is not enough:
+> refer to the earlier fix "PCI: hv: Add a per-bus mutex state_lock".
+
+This is meaningless for a commit log reader, there is nothing to
+refer to.
+
+> Now with hbus->state_lock and other fixes, the race is resolved, so
+
+"other fixes" is meaningless too.
+
+Explain the problem and how you fix it (this patch should be split
+because the Subject does not represent what you are doing precisely,
+see below).
+
+> remove pci_{lock,unlock}_rescan_remove() in create_root_hv_pci_bus():
+> this removes the serialization in hv_pci_probe() and hence allows
+> async-probing (PROBE_PREFER_ASYNCHRONOUS) to work.
 > 
-> I think your proposal will work for both Ethernet and IB.
+> Add the async-probing flag to hv_pci_drv.
+
+Adding the asynchronous probing should be a separate patch and
+I don't think you should send it to stable kernels straight away
+because a) it is not a fix b) it can trigger further regressions.
+
+> pci_{lock,unlock}_rescan_remove() in hv_eject_device_work() and in
+> hv_pci_remove() are still kept: according to the comment before
+> drivers/pci/probe.c: static DEFINE_MUTEX(pci_rescan_remove_lock),
+> "PCI device removal routines should always be executed under this mutex".
+
+This patch should be split, first thing is to fix and document what
+you are changing for pci_{lock,unlock}_rescan_remove() then add
+asynchronous probing.
+
+Lorenzo
+
+> Signed-off-by: Dexuan Cui <decui@microsoft.com>
+> Reviewed-by: Michael Kelley <mikelley@microsoft.com>
+> Reviewed-by: Long Li <longli@microsoft.com>
+> Cc: stable@vger.kernel.org
+> ---
 > 
-> The idea is that we want this patch to change the behavior of the IB driver. We plan to make another patch for the Ethernet driver. This makes it easier to track all changes for a driver.
-
-And I don't want to deal with deletion of v1 struct for two/three kernel
-cycles instead of one patch in one cycle.
-
+> v2:
+>   No change to the patch body.
+>   Improved the commit message [Michael Kelley]
+>   Added Cc:stable
 > 
-> > 
-> > H>
-> > > So we plan to set this cqe_coalescing_enable, and the changes for
-> > > mana_en RX code path to support multiple packets / CQE in another patch.
-> > 
-> > And how does it work with IB without changing anything except this proposed
-> > patch?
+> v3:
+>   Added Michael's and Long Li's Reviewed-by.
+>   Fixed a typo in the commit message: grubing -> grabing [Thanks, Michael!]
 > 
-> The RX CQE Coalescing is implemented in the user-mode. This feature is always turned on from cluster. The user-mode code is written in a way that can deal with both CQE Coalescing and CQE non-coalescing, so it doesn't depend on kernel version for the correct behavior.
-
-Yes, but how does userspace know that CQE coalescing was enabled?
-
-Thanks
-
-> Thanks,
-> Long
+>  drivers/pci/controller/pci-hyperv.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/pci/controller/pci-hyperv.c b/drivers/pci/controller/pci-hyperv.c
+> index 3ae2f99dea8c2..2ea2b1b8a4c9a 100644
+> --- a/drivers/pci/controller/pci-hyperv.c
+> +++ b/drivers/pci/controller/pci-hyperv.c
+> @@ -2312,12 +2312,16 @@ static int create_root_hv_pci_bus(struct hv_pcibus_device *hbus)
+>  	if (error)
+>  		return error;
+>  
+> -	pci_lock_rescan_remove();
+> +	/*
+> +	 * pci_lock_rescan_remove() and pci_unlock_rescan_remove() are
+> +	 * unnecessary here, because we hold the hbus->state_lock, meaning
+> +	 * hv_eject_device_work() and pci_devices_present_work() can't race
+> +	 * with create_root_hv_pci_bus().
+> +	 */
+>  	hv_pci_assign_numa_node(hbus);
+>  	pci_bus_assign_resources(bridge->bus);
+>  	hv_pci_assign_slots(hbus);
+>  	pci_bus_add_devices(bridge->bus);
+> -	pci_unlock_rescan_remove();
+>  	hbus->state = hv_pcibus_installed;
+>  	return 0;
+>  }
+> @@ -4003,6 +4007,9 @@ static struct hv_driver hv_pci_drv = {
+>  	.remove		= hv_pci_remove,
+>  	.suspend	= hv_pci_suspend,
+>  	.resume		= hv_pci_resume,
+> +	.driver = {
+> +		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
+> +	},
+>  };
+>  
+>  static void __exit exit_hv_pci_drv(void)
+> -- 
+> 2.25.1
+> 
