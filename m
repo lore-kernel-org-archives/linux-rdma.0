@@ -2,33 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5BEEC7EE25
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF158C77B7C
 	for <linux-rdma@archiver.kernel.org>; Fri, 12 May 2023 09:24:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240418AbjELJYw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 12 May 2023 05:24:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53286 "EHLO
+        id S240401AbjELJYv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 12 May 2023 05:24:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240343AbjELJYt (ORCPT
+        with ESMTP id S240288AbjELJYt (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 12 May 2023 05:24:49 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C32A0E702;
-        Fri, 12 May 2023 02:24:46 -0700 (PDT)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.55])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4QHjsp3xbkzqSKb;
-        Fri, 12 May 2023 17:20:30 +0800 (CST)
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FB80100D2;
+        Fri, 12 May 2023 02:24:47 -0700 (PDT)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.53])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4QHjxF6StmzpVYh;
+        Fri, 12 May 2023 17:23:29 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.23; Fri, 12 May 2023 17:24:44 +0800
+ 15.1.2507.23; Fri, 12 May 2023 17:24:45 +0800
 From:   Junxian Huang <huangjunxian6@hisilicon.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-rc 0/3] Bugfixes for HNS RoCE
-Date:   Fri, 12 May 2023 17:22:42 +0800
-Message-ID: <20230512092245.344442-1-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 2/3] RDMA/hns: Fix base address table allocation
+Date:   Fri, 12 May 2023 17:22:44 +0800
+Message-ID: <20230512092245.344442-3-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20230512092245.344442-1-huangjunxian6@hisilicon.com>
+References: <20230512092245.344442-1-huangjunxian6@hisilicon.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -40,26 +42,96 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-1.#1: The first patch fixes an error of queried timeout attr on HIP08.
+From: Chengchang Tang <tangchengchang@huawei.com>
 
-2.#2: The second patch checks and adjusts the BT page size to ensure
-      successful resource allocation.
+For hns, the specification of an entry like resource (E.g. WQE/CQE/EQE)
+depends on BT page size, buf page size and hopnum. For user mode, the buf
+page size depends on UMEM. Therefore, the actual specification is
+controlled by BT page size and hopnum.
 
-3.#3: The third patch modifies the value of long message loopback slice
-      to improve traffic balance.
+The current BT page size and hopnum are obtained from firmware. This
+makes the driver inflexible and introduces unnecessary constraints.
+Resource allocation failures occur in many scenarios.
 
-Chengchang Tang (2):
-  RDMA/hns: Fix timeout attr in query qp for HIP08
-  RDMA/hns: Fix base address table allocation
+This patch will calculate whether the BT page size set by firmware is
+sufficient before allocating BT, and increase the BT page size if it is
+insufficient.
 
-Yangyang Li (1):
-  RDMA/hns: Modify the value of long message loopback slice
+Fixes: 1133401412a9 ("RDMA/hns: Optimize base address table config flow for qp buffer")
+Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_mr.c | 43 +++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 25 +++++++++----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  2 +
- drivers/infiniband/hw/hns/hns_roce_mr.c    | 43 ++++++++++++++++++++++
- 3 files changed, 62 insertions(+), 8 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 37a5cf62f88b..14376490ac22 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -33,6 +33,7 @@
+ 
+ #include <linux/vmalloc.h>
+ #include <rdma/ib_umem.h>
++#include <linux/math.h>
+ #include "hns_roce_device.h"
+ #include "hns_roce_cmd.h"
+ #include "hns_roce_hem.h"
+@@ -909,6 +910,44 @@ static int mtr_init_buf_cfg(struct hns_roce_dev *hr_dev,
+ 	return page_cnt;
+ }
+ 
++static u64 cal_pages_per_l1ba(unsigned int ba_per_bt, unsigned int hopnum)
++{
++	return int_pow(ba_per_bt, hopnum - 1);
++}
++
++static unsigned int cal_best_bt_pg_sz(struct hns_roce_dev *hr_dev,
++				      struct hns_roce_mtr *mtr,
++				      unsigned int pg_shift)
++{
++	unsigned long cap = hr_dev->caps.page_size_cap;
++	struct hns_roce_buf_region *re;
++	unsigned int pgs_per_l1ba;
++	unsigned int ba_per_bt;
++	unsigned int ba_num;
++	int i;
++
++	for_each_set_bit_from(pg_shift, &cap, sizeof(cap) * BITS_PER_BYTE) {
++		if (!(BIT(pg_shift) & cap))
++			continue;
++
++		ba_per_bt = BIT(pg_shift) / BA_BYTE_LEN;
++		ba_num = 0;
++		for (i = 0; i < mtr->hem_cfg.region_count; i++) {
++			re = &mtr->hem_cfg.region[i];
++			if (re->hopnum == 0)
++				continue;
++
++			pgs_per_l1ba = cal_pages_per_l1ba(ba_per_bt, re->hopnum);
++			ba_num += DIV_ROUND_UP(re->count, pgs_per_l1ba);
++		}
++
++		if (ba_num <= ba_per_bt)
++			return pg_shift;
++	}
++
++	return 0;
++}
++
+ static int mtr_alloc_mtt(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+ 			 unsigned int ba_page_shift)
+ {
+@@ -917,6 +956,10 @@ static int mtr_alloc_mtt(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+ 
+ 	hns_roce_hem_list_init(&mtr->hem_list);
+ 	if (!cfg->is_direct) {
++		ba_page_shift = cal_best_bt_pg_sz(hr_dev, mtr, ba_page_shift);
++		if (!ba_page_shift)
++			return -ERANGE;
++
+ 		ret = hns_roce_hem_list_request(hr_dev, &mtr->hem_list,
+ 						cfg->region, cfg->region_count,
+ 						ba_page_shift);
+-- 
 2.30.0
 
