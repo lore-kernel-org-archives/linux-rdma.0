@@ -2,115 +2,106 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCB20C7EE31
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 May 2023 09:22:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A904C7EE2A
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 May 2023 09:22:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235531AbjEOJWn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 15 May 2023 05:22:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56430 "EHLO
+        id S238179AbjEOJWp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 15 May 2023 05:22:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239663AbjEOJWR (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 May 2023 05:22:17 -0400
-Received: from mail-pg1-x52c.google.com (mail-pg1-x52c.google.com [IPv6:2607:f8b0:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4ECF91991
-        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 02:18:29 -0700 (PDT)
-Received: by mail-pg1-x52c.google.com with SMTP id 41be03b00d2f7-517ab9a4a13so11499965a12.1
-        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 02:18:29 -0700 (PDT)
+        with ESMTP id S239783AbjEOJWT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 May 2023 05:22:19 -0400
+Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A00951996
+        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 02:18:39 -0700 (PDT)
+Received: by mail-pf1-x42d.google.com with SMTP id d2e1a72fcca58-64ac461af60so3703974b3a.3
+        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 02:18:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1684142309; x=1686734309;
-        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=n2+T6CnYSe/9gOGH1Yc1P0gMIMRAef8MXpZS8LCkVTU=;
-        b=Hl+iqaPO5ogFPbZAP8RPrcxTJLqVAzd8Bx+Q4rUMw3iwyN1aNx7SZbYkbv6J39GIqF
-         AzS5OFo97ZsZ9RKIsyQJRkbc/3pq2kaCOIXTqQwb7Alg9xReQIy9r0jsqxHoEV41gQ5w
-         PZoNZojtpHDhs84N1KTm386N6AFHP9WV32JLo=
+        d=broadcom.com; s=google; t=1684142319; x=1686734319;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=TPxfSQpm79212XqOYDuKx+8bSVWSbK4XbINYYxNqMC4=;
+        b=IlBcDSKXnTzxjQDawTbwMa+TnLbCdVv+vjl3v5m5ZCH6XfkBYDER6V0OKNx5OuUKkb
+         shy85UxgmiTcFe+yG620fdVFMiF+caeTPDr/bOO9UTpHs+ok4tIyPKmUlHPndQQzOzZT
+         Z8JNAcfhq2Lg9fVLejJ7RKuLVpboEIya/Ss50=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684142309; x=1686734309;
-        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=n2+T6CnYSe/9gOGH1Yc1P0gMIMRAef8MXpZS8LCkVTU=;
-        b=TqshAJ43c2oug0aIBjcxxJ5G2n5GfONjiigBaimHy72deP1oPKD4fPNrv119Iogtul
-         Z0asRTHOajVeTtjro+j6Slyvl0X4MASnSGhL0n9zjXr5/Y8ezblg28N14B2gexQP1b6B
-         EvwgGJUly5FPVg67B7QLBOzZ9YCq5OBqpqaOwy1D4RQKyrxYaHqEzq7XWhrq3eLTNV7N
-         N0cxxdlOxcsd5B3k+VW9eoCJPJlPWu9BXaJjCD8S51n8UcEVardcARO3nUAtIRu07IKn
-         qCbLqFmiy7IUGJmXgvEv7rqWtezsYjumnVu+iP3PAhmDIoH/OBwBcCC1Gvij4pQRpfy2
-         vpqw==
-X-Gm-Message-State: AC+VfDyEtVpcZnn4H9fZxeuyecx4XeVS+UgJ084XE7a2y5rQ9RtqmMlL
-        SPTvUy88HcbZqs2G7eHBSiSmYkdL2KmqFoE4Hmc=
-X-Google-Smtp-Source: ACHHUZ7TYUTaHkoh56LzaQWo3n6k+0EBjWlS+ZLk7rYcmUVAhQ6TTz3d+Ha7gWxxuvOecUq6PpVkuA==
-X-Received: by 2002:a05:6a20:3d28:b0:103:9c25:99a3 with SMTP id y40-20020a056a203d2800b001039c2599a3mr21545396pzi.59.1684142308578;
-        Mon, 15 May 2023 02:18:28 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1684142319; x=1686734319;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=TPxfSQpm79212XqOYDuKx+8bSVWSbK4XbINYYxNqMC4=;
+        b=AgWyF2i4gSFLj9Qdwu7swNPXeJuxVhrFqES8CWdBvR5an9HUVoxxsXLg6GrkG9A9Ge
+         wCBfQDJ8F+rn+Oql1Ob5FzZj+1jU3imame9JL6iRTYUORIOU5C4jw7lZsiz8LqQtx9ow
+         jv0f4x+XjgXKviOcoSWE+rRt0Vxy95ee5h4zoNWJzHRhrlCwPwLMNXxcu/SglmPAMqW2
+         FYlW8mm6sJ70qO0Icosa3T3kBUY7cv/oNf4VUGc72rHI4KASsWTUN5YGf33XZis3EncF
+         cn3YZ0iCZY0ZZ9yLu78pPwaWvcKSC9AW4oMTTkKh2x0houDO6fjQPT5BihO1fyHHMtrN
+         1g0Q==
+X-Gm-Message-State: AC+VfDxEzfBkikCX3cOwrzTtgFnKvSyJFtSVcP2jGIfUvXUbElTvsFth
+        OpTozvIinUmLkPzc8DDyYWo68Q==
+X-Google-Smtp-Source: ACHHUZ56kmMHyp9CWyBejBHtbI54wb/Dm3MiUT6gX5Z7jt0RdkN/0s5ZL8vR6clAykD0zSyLH7i9jg==
+X-Received: by 2002:a05:6a20:1455:b0:104:3c82:38c0 with SMTP id a21-20020a056a20145500b001043c8238c0mr16610214pzi.41.1684142319102;
+        Mon, 15 May 2023 02:18:39 -0700 (PDT)
 Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id q7-20020a654947000000b00520f316ebe3sm10402169pgs.62.2023.05.15.02.18.26
+        by smtp.gmail.com with ESMTPSA id q7-20020a654947000000b00520f316ebe3sm10402169pgs.62.2023.05.15.02.18.36
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 15 May 2023 02:18:27 -0700 (PDT)
+        Mon, 15 May 2023 02:18:38 -0700 (PDT)
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
         Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH v3 for-next 0/6] RDMA/bnxt_re: driver update for supporting low latency push
-Date:   Mon, 15 May 2023 02:06:44 -0700
-Message-Id: <1684141610-17588-1-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH v3 for-next 4/6] RDMA/bnxt_re: Move the interface version to chip context structure
+Date:   Mon, 15 May 2023 02:06:48 -0700
+Message-Id: <1684141610-17588-5-git-send-email-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.5.5
+In-Reply-To: <1684141610-17588-1-git-send-email-selvin.xavier@broadcom.com>
+References: <1684141610-17588-1-git-send-email-selvin.xavier@broadcom.com>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000151bb905fbb7f0e2"
+        boundary="000000000000b2f88705fbb7f09a"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000151bb905fbb7f0e2
+--000000000000b2f88705fbb7f09a
 
-The series aims to add support for Low latency push path in
-some of the bnxt devices. The low latency implementation is
-supported only for the user applications. Also, the code
-is modified to use  common mmap helper functions exported
-by IB core. 
+FW interface version check is required for multiple features. Moving
+the interface version to chip context structure.
 
-User library changes are getting submitted in the pull request
-https://github.com/linux-rdma/rdma-core/pull/1321
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+---
+ drivers/infiniband/hw/bnxt_re/main.c       | 2 +-
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Please review.
-
-Thanks,
-Selvin Xavier
-
-v2-> v3:
-  - Rebasing after the merge window
-  - Fix the return value check in bnxt_re_hwrm_qcfg
-
-v1 - v2:
-  - Fixes the review comments from Leon and Jason
-  - As suggested by Jason, implements the new uapi
-    driver definitions for allocating pages in the
-    driver and return the cookie for mmap
-
-Selvin Xavier (6):
-  RDMA/bnxt_re: Use the common mmap helper functions
-  RDMA/bnxt_re: Add disassociate ucontext support
-  RDMA/bnxt_re: Query function capabilities from firmware
-  RDMA/bnxt_re: Move the interface version to chip context structure
-  RDMA/bnxt_re: Reorg the bar mapping
-  RDMA/bnxt_re: Enable low latency push
-
- drivers/infiniband/hw/bnxt_re/bnxt_re.h    |   3 +
- drivers/infiniband/hw/bnxt_re/ib_verbs.c   | 265 ++++++++++++++++++++++++++---
- drivers/infiniband/hw/bnxt_re/ib_verbs.h   |  19 +++
- drivers/infiniband/hw/bnxt_re/main.c       | 117 ++++++++++++-
- drivers/infiniband/hw/bnxt_re/qplib_fp.c   |   4 +-
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |   2 +-
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |   1 +
- drivers/infiniband/hw/bnxt_re/qplib_res.c  | 177 ++++++++++++-------
- drivers/infiniband/hw/bnxt_re/qplib_res.h  |  33 +++-
- drivers/infiniband/hw/bnxt_re/qplib_sp.c   |   3 +
- drivers/infiniband/hw/bnxt_re/qplib_sp.h   |   1 +
- include/uapi/rdma/bnxt_re-abi.h            |  32 ++++
- 12 files changed, 555 insertions(+), 102 deletions(-)
-
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 993fb62..873ee75 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -1087,7 +1087,7 @@ static void bnxt_re_query_hwrm_intf_version(struct bnxt_re_dev *rdev)
+ 			  rc);
+ 		return;
+ 	}
+-	rdev->qplib_ctx.hwrm_intf_ver =
++	rdev->chip_ctx->hwrm_intf_ver =
+ 		(u64)le16_to_cpu(resp.hwrm_intf_major) << 48 |
+ 		(u64)le16_to_cpu(resp.hwrm_intf_minor) << 32 |
+ 		(u64)le16_to_cpu(resp.hwrm_intf_build) << 16 |
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index de90691..f610199 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -593,7 +593,7 @@ int bnxt_qplib_alloc_rcfw_channel(struct bnxt_qplib_res *res,
+ 			"HW channel CREQ allocation failed\n");
+ 		goto fail;
+ 	}
+-	if (ctx->hwrm_intf_ver < HWRM_VERSION_RCFW_CMDQ_DEPTH_CHECK)
++	if (res->cctx->hwrm_intf_ver < HWRM_VERSION_RCFW_CMDQ_DEPTH_CHECK)
+ 		rcfw->cmdq_depth = BNXT_QPLIB_CMDQE_MAX_CNT_256;
+ 	else
+ 		rcfw->cmdq_depth = BNXT_QPLIB_CMDQE_MAX_CNT_8192;
 -- 
 2.5.5
 
 
---000000000000151bb905fbb7f0e2
+--000000000000b2f88705fbb7f09a
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -181,14 +172,14 @@ j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
 9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
 hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
 IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIPIn/YqF+gzw
-7yKm5SN/1gTFycFPjjotS8MWsWgX4yPiMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDUxNTA5MTgyOVowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIBekFxcVCW6T
+zrFf+Budg3r8VChRawrn2tt5cGxCDW6TMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDUxNTA5MTgzOVowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
 YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCGT3JWQdt6lZxpT87Rlg4KBdWtQvnT
-8sAmy7wcEYFX7WHj+4r+KAXQTmPXrX33TVLmwJJX07f/SbsMBt3L0uQnTAOnRNW1xHC1s/+jOWhK
-X0Rnfl5vnyVy8PVgYKkjhF9OEqag8ioBqmjKb5rne5lOula96uhSNit8HhHor6I9RBjLIzpO41tZ
-v0uSyuCjy647kSrWBFY4ItebTBoKZyxi/PR/0uyICfJ3ou818rwdmeAj9NMOpSdMWwq0n3ZwxJDt
-pCd23LGiUWUW3+4tCS2rpG5uD+Hc3q/C92MiTe1K3sp6lr4hn8Wh1XCMm6qHOUGJZI8BDyPK+QHm
-9U/KM2IX
---000000000000151bb905fbb7f0e2--
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQBKi9uaBZ5NthRf+io7vwmrDPk59zmT
+P3BP975nuGUDTBPoVZZXjBKs8L4eRoDSio+AFXRCvft37mFhSx3anDM4RWTChJb8CmQZno8Euvpp
+4EFms/YzC2PIHrDpwIoLPmqFzEuCyBVvyu9TqFCNtRcA0FFDnJbt2KT1nwA0OsBOlOEfGfls1oFA
+C06fPRT+5J5T7b/rEYfzAZBSH52gRR6LYWQxIoqeWp7q7d7HLrEqAdfiKPKYrNDsc1WqTdVmPuH5
+ze97f/FXud1szHQYU65IBJ+AEzoSBCXqLUdTAVWOTuud8bSXoftCFZ3CEP+6PxrdeK6wCFHSltS5
+n6iiubF9
+--000000000000b2f88705fbb7f09a--
