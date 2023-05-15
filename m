@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B3E9C7EE24
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 May 2023 19:12:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45490C7EE25
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 May 2023 19:12:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242888AbjEOTMk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S242991AbjEOTMk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 15 May 2023 15:12:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56394 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242991AbjEOTMh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 May 2023 15:12:37 -0400
+        with ESMTP id S243021AbjEOTMi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 May 2023 15:12:38 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D13B6D045
-        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 12:11:50 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 037727DB2
+        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 12:11:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1684177910;
+        s=mimecast20190719; t=1684177908;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Y+dAhjWUwCEyUcfaJUQDIyKcwL6D1OT6fM26zxHyuAM=;
-        b=V+44PUFm9cx7knOAa34gp6RG+G2oE1sp0Hdh8nmhnaUA5hQ7UR5oXuKscv0bZkBG2FvjdG
-        YBfRnx+VMnpOc+znbrbnsh8NkF+AI+G7bB0MSUxa7Hoj7AF6szIarDFOS3d74kepn6BwmL
-        wcxgewKNYaw2jzE/PTf3U2EHhqNNSNA=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=FlLGF3e0GotZbUDAK+ZiXqGWgkcG4W/tdhm3LcD3Wv0=;
+        b=QD8FCS5kRHnWWSv93wa0M0ayZzN/YJ01728mL7rQxDs+Vd2SeaeoBdxjXfn0+fGNDUbDXF
+        ewoqQ+zJMLGOVgzyq4/vnwrJ4o9UyfQ1nHoDyvcjSfunQ2++e+gIA7fwLeJ2igOa1haqLS
+        Fi26ah3DSuUmt78TWUAZk5wvAgspmMw=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-505-qDgC3vzQOc2_troOJGMMYg-1; Mon, 15 May 2023 15:11:45 -0400
-X-MC-Unique: qDgC3vzQOc2_troOJGMMYg-1
+ us-mta-283-soR4S2qIP9CUaYmKOV-pQw-1; Mon, 15 May 2023 15:11:46 -0400
+X-MC-Unique: soR4S2qIP9CUaYmKOV-pQw-1
 Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6FB5C185A790;
-        Mon, 15 May 2023 19:11:45 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 7E9093C0F199;
+        Mon, 15 May 2023 19:11:46 +0000 (UTC)
 Received: from fedora-x1.redhat.com (unknown [10.22.32.238])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 03D3635453;
-        Mon, 15 May 2023 19:11:44 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 177E363F3D;
+        Mon, 15 May 2023 19:11:46 +0000 (UTC)
 From:   Kamal Heib <kheib@redhat.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     Mustafa Ismail <mustafa.ismail@intel.com>,
@@ -44,11 +44,13 @@ Cc:     Mustafa Ismail <mustafa.ismail@intel.com>,
         Jason Gunthorpe <jgg@ziepe.ca>,
         Leon Romanovsky <leon@kernel.org>,
         Kamal Heib <kheib@redhat.com>
-Subject: [PATCH v2 1/3] RDMA/irdma: Return void from irdma_init_iw_device()
-Date:   Mon, 15 May 2023 15:11:40 -0400
-Message-Id: <20230515191142.413633-2-kheib@redhat.com>
-In-Reply-To: <20230515191142.413633-1-kheib@redhat.com>
+Subject: [PATCH v2 3/3] RDMA/irdma: Move iw device ops initialization
+Date:   Mon, 15 May 2023 15:11:42 -0400
+Message-Id: <20230515191142.413633-4-kheib@redhat.com>
+In-Reply-To: <20230515191142.413633-3-kheib@redhat.com>
 References: <20230515191142.413633-1-kheib@redhat.com>
+ <20230515191142.413633-2-kheib@redhat.com>
+ <20230515191142.413633-3-kheib@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
@@ -56,56 +58,51 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The return value from irdma_init_iw_device() is always 0 - change it to be
-void.
+Move the initialization of the iw device ops to be under the declaration
+of the irdma_iw_dev_ops.
 
 Signed-off-by: Kamal Heib <kheib@redhat.com>
 ---
- drivers/infiniband/hw/irdma/verbs.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/irdma/verbs.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index ab5cdf782785..baaef6ce195c 100644
+index 9ff06feda872..6242ab6af77f 100644
 --- a/drivers/infiniband/hw/irdma/verbs.c
 +++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -4515,7 +4515,7 @@ static void irdma_init_roce_device(struct irdma_device *iwdev)
-  * irdma_init_iw_device - initialization of iwarp rdma device
-  * @iwdev: irdma device
-  */
--static int irdma_init_iw_device(struct irdma_device *iwdev)
-+static void irdma_init_iw_device(struct irdma_device *iwdev)
- {
- 	struct net_device *netdev = iwdev->netdev;
+@@ -4450,8 +4450,16 @@ static const struct ib_device_ops irdma_roce_dev_ops = {
+ };
  
-@@ -4533,8 +4533,6 @@ static int irdma_init_iw_device(struct irdma_device *iwdev)
+ static const struct ib_device_ops irdma_iw_dev_ops = {
+-	.modify_qp = irdma_modify_qp,
+ 	.get_port_immutable = irdma_iw_port_immutable,
++	.iw_accept = irdma_accept,
++	.iw_add_ref = irdma_qp_add_ref,
++	.iw_connect = irdma_connect,
++	.iw_create_listen = irdma_create_listen,
++	.iw_destroy_listen = irdma_destroy_listen,
++	.iw_get_qp = irdma_get_qp,
++	.iw_reject = irdma_reject,
++	.iw_rem_ref = irdma_qp_rem_ref,
++	.modify_qp = irdma_modify_qp,
+ 	.query_gid = irdma_query_gid,
+ };
+ 
+@@ -4522,14 +4530,6 @@ static void irdma_init_iw_device(struct irdma_device *iwdev)
+ 	iwdev->ibdev.node_type = RDMA_NODE_RNIC;
+ 	addrconf_addr_eui48((u8 *)&iwdev->ibdev.node_guid,
+ 			    netdev->dev_addr);
+-	iwdev->ibdev.ops.iw_add_ref = irdma_qp_add_ref;
+-	iwdev->ibdev.ops.iw_rem_ref = irdma_qp_rem_ref;
+-	iwdev->ibdev.ops.iw_get_qp = irdma_get_qp;
+-	iwdev->ibdev.ops.iw_connect = irdma_connect;
+-	iwdev->ibdev.ops.iw_accept = irdma_accept;
+-	iwdev->ibdev.ops.iw_reject = irdma_reject;
+-	iwdev->ibdev.ops.iw_create_listen = irdma_create_listen;
+-	iwdev->ibdev.ops.iw_destroy_listen = irdma_destroy_listen;
  	memcpy(iwdev->ibdev.iw_ifname, netdev->name,
  	       sizeof(iwdev->ibdev.iw_ifname));
  	ib_set_device_ops(&iwdev->ibdev, &irdma_iw_dev_ops);
--
--	return 0;
- }
- 
- /**
-@@ -4544,15 +4542,12 @@ static int irdma_init_iw_device(struct irdma_device *iwdev)
- static int irdma_init_rdma_device(struct irdma_device *iwdev)
- {
- 	struct pci_dev *pcidev = iwdev->rf->pcidev;
--	int ret;
- 
--	if (iwdev->roce_mode) {
-+	if (iwdev->roce_mode)
- 		irdma_init_roce_device(iwdev);
--	} else {
--		ret = irdma_init_iw_device(iwdev);
--		if (ret)
--			return ret;
--	}
-+	else
-+		irdma_init_iw_device(iwdev);
-+
- 	iwdev->ibdev.phys_port_cnt = 1;
- 	iwdev->ibdev.num_comp_vectors = iwdev->rf->ceqs_count;
- 	iwdev->ibdev.dev.parent = &pcidev->dev;
 -- 
 2.40.1
 
