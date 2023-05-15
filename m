@@ -2,126 +2,647 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFBECC77B75
-	for <linux-rdma@archiver.kernel.org>; Mon, 15 May 2023 09:22:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83541C7EE26
+	for <linux-rdma@archiver.kernel.org>; Mon, 15 May 2023 09:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232865AbjEOJWu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 15 May 2023 05:22:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56876 "EHLO
+        id S238172AbjEOJWs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 15 May 2023 05:22:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239726AbjEOJWT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 May 2023 05:22:19 -0400
-Received: from mail-pg1-x52b.google.com (mail-pg1-x52b.google.com [IPv6:2607:f8b0:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1681D173F
-        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 02:18:37 -0700 (PDT)
-Received: by mail-pg1-x52b.google.com with SMTP id 41be03b00d2f7-530638a60e1so5065480a12.2
-        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 02:18:37 -0700 (PDT)
+        with ESMTP id S237674AbjEOJWU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 15 May 2023 05:22:20 -0400
+Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50C061BEF
+        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 02:18:42 -0700 (PDT)
+Received: by mail-pf1-x42d.google.com with SMTP id d2e1a72fcca58-643557840e4so13540191b3a.2
+        for <linux-rdma@vger.kernel.org>; Mon, 15 May 2023 02:18:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1684142316; x=1686734316;
+        d=broadcom.com; s=google; t=1684142322; x=1686734322;
         h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=VRZ/nD055895JmYU846sGu0C711zBZ4bVNVzpTCK3LU=;
-        b=BDpY2PnX9b2D2Z7hBBifsESx90xxRgEn95mWgPgi4rmgBzM2i5z/ZKPOFB4LmT5t5c
-         K8ie/LkHwleQAzR3v/7xyWBW2cErp7AkHeZVw46aGl2rv764C7lSKLMYFUFs+5iess6U
-         V1xSC5RKvw0fTi/dhtEOshlSOg5S/RmsbKwA0=
+        bh=0q9jSKQf9y3n1pk1XRVyLJRkZ1MjTuMNhcF3kbkwrN4=;
+        b=GuEu1GMXvSRXCp+cBW2ew8OwEkEJGOBCHJLnIw6LQ7d+VufLGmHWvz4NgQ4RvUrNe8
+         oue1woEjrZCVPpLTKQqJPNEKsFMgPcAiqNp5X0DPYOqpMgL+d1S4YbirhWp8/bIGh3lf
+         HhZ/r0MR1/e0wCkIPoqI/YP8HyzPWN3ZV/G4s=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684142316; x=1686734316;
+        d=1e100.net; s=20221208; t=1684142322; x=1686734322;
         h=references:in-reply-to:message-id:date:subject:cc:to:from
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=VRZ/nD055895JmYU846sGu0C711zBZ4bVNVzpTCK3LU=;
-        b=iIxTVmQyEHxr+cLwgqTF5ysExdS0tPymdyC8Cf9Bkj4BC0L278Gz0Y7WgQf93ODwnr
-         JSHk7LvdX1OFzoBQr1Ocq/px1fAkLYJDxP1aKcSoAxWe7AAuN3hOWkAh7dspHJMOBp50
-         Dje/DbpHUXE0xRaSLCyw8H3TGpi7WqZQti7wr3El0BcrniKQY7weGnVoocdB+EnT+2pd
-         Yh69+pC1qUqw9p8IJV2m1pbp4tFpyCqhnkDMjUwKO8W63z3NtxJyPB92SV+OmTMymoer
-         HCOTNPWlSaaNPHTrBBXyAcL+tQT+6BTNdTVK0sCi/IpoFJR3iMOS4/daErKZhLEoL0g+
-         3ycw==
-X-Gm-Message-State: AC+VfDyxFY6epf/bUGSJkJwlMFJwQiwr0wZURdiUdwZ10hERJOMjK1FY
-        LQ+S/mAZ176lJsm2I8/wWFH11A==
-X-Google-Smtp-Source: ACHHUZ6c+HhoZ7GMKBrl0gHR5t8tRf5nFa5GD4KS8ChIq7q9m8Yi/8By4NNFqec3N82/T2UT7IPjdQ==
-X-Received: by 2002:a17:90b:388e:b0:252:f52e:97a9 with SMTP id mu14-20020a17090b388e00b00252f52e97a9mr3323928pjb.7.1684142316453;
-        Mon, 15 May 2023 02:18:36 -0700 (PDT)
+        bh=0q9jSKQf9y3n1pk1XRVyLJRkZ1MjTuMNhcF3kbkwrN4=;
+        b=BCq54Z3wZz4uFIUksayCN/KeQL7UmoJRKaKnYCH507bphJSMr0RIJeJ6ZQuh4WdCjZ
+         Itn06i8q3e0De05/ArAte7SkQkuIUqtpoMt/tP8OuUGPQXcgOXDA7h3O9CYoARck7cvD
+         JnITYnFsUP8vQig+uGTXEVSxO3RRC1e29WHrS3JC2PxT1MuOLZtM2u4UV3nb7FyW0ygK
+         4YJ5D40u4fu4uaRLBF5V50uMIAXv/rHcE2PzNQ7HyPkgpIoP0AykAJvwFKm+ZchuwZCG
+         PWo/nu8n01+203mlmbz+kjFuFUawlRSj6DJviMgrEcPauL14AYgd93XRqRSb/4y88M23
+         /fZQ==
+X-Gm-Message-State: AC+VfDyHbmD/29R7gMf6JjCEA22xWdj2NytKlJrTr1pmGfh50Up0K9i3
+        F1G+LBNxAcwxzN9bziBHozt37O4KEP05MyuNqXs=
+X-Google-Smtp-Source: ACHHUZ7jQQrCsJB4D92xtUfaxODB+yHSG4fyoHtdi2gHMJbR1O8L15IPh+SddS+9UukBXSFJVrhz7A==
+X-Received: by 2002:a05:6a20:1583:b0:105:f368:dfc4 with SMTP id h3-20020a056a20158300b00105f368dfc4mr4249661pzj.2.1684142321638;
+        Mon, 15 May 2023 02:18:41 -0700 (PDT)
 Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id q7-20020a654947000000b00520f316ebe3sm10402169pgs.62.2023.05.15.02.18.33
+        by smtp.gmail.com with ESMTPSA id q7-20020a654947000000b00520f316ebe3sm10402169pgs.62.2023.05.15.02.18.39
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 15 May 2023 02:18:35 -0700 (PDT)
+        Mon, 15 May 2023 02:18:41 -0700 (PDT)
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
         Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH v3 for-next 3/6] RDMA/bnxt_re: Query function capabilities from firmware
-Date:   Mon, 15 May 2023 02:06:47 -0700
-Message-Id: <1684141610-17588-4-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH v3 for-next 5/6] RDMA/bnxt_re: Reorg the bar mapping
+Date:   Mon, 15 May 2023 02:06:49 -0700
+Message-Id: <1684141610-17588-6-git-send-email-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.5.5
 In-Reply-To: <1684141610-17588-1-git-send-email-selvin.xavier@broadcom.com>
 References: <1684141610-17588-1-git-send-email-selvin.xavier@broadcom.com>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="0000000000008b848805fbb7f005"
+        boundary="000000000000dbe7c305fbb7f0f6"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---0000000000008b848805fbb7f005
+--000000000000dbe7c305fbb7f0f6
 
-Query Function capabilities to enable advanced features.
+Reorganize the code for allocation and mapping of
+Doorbell pages. Implements new HW command to get the BAR length
+used by L2 driver. These changes are used by the future patch
+which maps the WC Doorbell pages.
+
+Also, introduced a new lock dpi_tbl_lock for synchronize the
+DB page allocation from users.
 
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/main.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+v2->v3:
+	Fix the return value check in bnxt_re_hwrm_qcfg
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c   |   7 +-
+ drivers/infiniband/hw/bnxt_re/main.c       |  71 +++++++++++-
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c   |   4 +-
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |   1 +
+ drivers/infiniband/hw/bnxt_re/qplib_res.c  | 174 +++++++++++++++++++----------
+ drivers/infiniband/hw/bnxt_re/qplib_res.h  |  30 +++--
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c   |   3 +
+ drivers/infiniband/hw/bnxt_re/qplib_sp.h   |   1 +
+ 8 files changed, 213 insertions(+), 78 deletions(-)
 
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 2434174..bc85433 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -606,8 +606,8 @@ int bnxt_re_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 			 * ibv_devinfo and family of application when DPIs
+ 			 * are depleted.
+ 			 */
+-			if (bnxt_qplib_alloc_dpi(&rdev->qplib_res.dpi_tbl,
+-						 &ucntx->dpi, ucntx)) {
++			if (bnxt_qplib_alloc_dpi(&rdev->qplib_res,
++						 &ucntx->dpi, ucntx, BNXT_QPLIB_DPI_TYPE_UC)) {
+ 				rc = -ENOMEM;
+ 				goto dbfail;
+ 			}
+@@ -4075,8 +4075,7 @@ void bnxt_re_dealloc_ucontext(struct ib_ucontext *ib_uctx)
+ 		/* Free DPI only if this is the first PD allocated by the
+ 		 * application and mark the context dpi as NULL
+ 		 */
+-		bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
+-				       &rdev->qplib_res.dpi_tbl, &uctx->dpi);
++		bnxt_qplib_dealloc_dpi(&rdev->qplib_res, &uctx->dpi);
+ 		uctx->dpi.dbr = NULL;
+ 	}
+ }
 diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index a866951..993fb62 100644
+index 873ee75..69d4d8a 100644
 --- a/drivers/infiniband/hw/bnxt_re/main.c
 +++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -83,6 +83,7 @@ static int bnxt_re_netdev_event(struct notifier_block *notifier,
- 				unsigned long event, void *ptr);
- static struct bnxt_re_dev *bnxt_re_from_netdev(struct net_device *netdev);
+@@ -85,6 +85,40 @@ static struct bnxt_re_dev *bnxt_re_from_netdev(struct net_device *netdev);
  static void bnxt_re_dev_uninit(struct bnxt_re_dev *rdev);
-+static int bnxt_re_hwrm_qcaps(struct bnxt_re_dev *rdev);
+ static int bnxt_re_hwrm_qcaps(struct bnxt_re_dev *rdev);
  
++static int bnxt_re_hwrm_qcfg(struct bnxt_re_dev *rdev, u32 *db_len,
++			     u32 *offset);
++static void bnxt_re_set_db_offset(struct bnxt_re_dev *rdev)
++{
++	struct bnxt_qplib_chip_ctx *cctx;
++	struct bnxt_en_dev *en_dev;
++	struct bnxt_qplib_res *res;
++	u32 l2db_len = 0;
++	u32 offset = 0;
++	u32 barlen;
++	int rc;
++
++	res = &rdev->qplib_res;
++	en_dev = rdev->en_dev;
++	cctx = rdev->chip_ctx;
++
++	/* Issue qcfg */
++	rc = bnxt_re_hwrm_qcfg(rdev, &l2db_len, &offset);
++	if (rc)
++		dev_info(rdev_to_dev(rdev),
++			 "Couldn't get DB bar size, Low latency framework is disabled\n");
++	/* set register offsets for both UC and WC */
++	res->dpi_tbl.ucreg.offset = res->is_vf ? BNXT_QPLIB_DBR_VF_DB_OFFSET :
++						 BNXT_QPLIB_DBR_PF_DB_OFFSET;
++	res->dpi_tbl.wcreg.offset = res->dpi_tbl.ucreg.offset;
++
++	/* If WC mapping is disabled by L2 driver then en_dev->l2_db_size
++	 * is equal to the DB-Bar actual size. This indicates that L2
++	 * is mapping entire bar as UC-. RoCE driver can't enable WC mapping
++	 * in such cases and DB-push will be disabled.
++	 */
++	barlen = pci_resource_len(res->pdev, RCFW_DBR_PCI_BAR_REGION);
++}
++
  static void bnxt_re_set_drv_mode(struct bnxt_re_dev *rdev, u8 mode)
  {
-@@ -91,6 +92,9 @@ static void bnxt_re_set_drv_mode(struct bnxt_re_dev *rdev, u8 mode)
- 	cctx = rdev->chip_ctx;
- 	cctx->modes.wqe_mode = bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx) ?
- 			       mode : BNXT_QPLIB_WQE_MODE_STATIC;
-+	if (bnxt_re_hwrm_qcaps(rdev))
-+		dev_err(rdev_to_dev(rdev),
-+			"Failed to query hwrm qcaps\n");
- }
+ 	struct bnxt_qplib_chip_ctx *cctx;
+@@ -116,6 +150,7 @@ static int bnxt_re_setup_chip_ctx(struct bnxt_re_dev *rdev, u8 wqe_mode)
+ {
+ 	struct bnxt_qplib_chip_ctx *chip_ctx;
+ 	struct bnxt_en_dev *en_dev;
++	int rc;
  
- static void bnxt_re_destroy_chip_ctx(struct bnxt_re_dev *rdev)
-@@ -334,6 +338,25 @@ static void bnxt_re_fill_fw_msg(struct bnxt_fw_msg *fw_msg, void *msg,
+ 	en_dev = rdev->en_dev;
+ 
+@@ -134,6 +169,12 @@ static int bnxt_re_setup_chip_ctx(struct bnxt_re_dev *rdev, u8 wqe_mode)
+ 	rdev->qplib_res.is_vf = BNXT_EN_VF(en_dev);
+ 
+ 	bnxt_re_set_drv_mode(rdev, wqe_mode);
++
++	bnxt_re_set_db_offset(rdev);
++	rc = bnxt_qplib_map_db_bar(&rdev->qplib_res);
++	if (rc)
++		return rc;
++
+ 	if (bnxt_qplib_determine_atomics(en_dev->pdev))
+ 		ibdev_info(&rdev->ibdev,
+ 			   "platform doesn't support global atomics.");
+@@ -338,6 +379,30 @@ static void bnxt_re_fill_fw_msg(struct bnxt_fw_msg *fw_msg, void *msg,
  	fw_msg->timeout = timeout;
  }
  
-+/* Query function capabilities using common hwrm */
-+int bnxt_re_hwrm_qcaps(struct bnxt_re_dev *rdev)
++/* Query device config using common hwrm */
++static int bnxt_re_hwrm_qcfg(struct bnxt_re_dev *rdev, u32 *db_len,
++			     u32 *offset)
 +{
 +	struct bnxt_en_dev *en_dev = rdev->en_dev;
-+	struct hwrm_func_qcaps_output resp = {0};
-+	struct hwrm_func_qcaps_input req = {0};
-+	struct bnxt_qplib_chip_ctx *cctx;
++	struct hwrm_func_qcfg_output resp = {0};
++	struct hwrm_func_qcfg_input req = {0};
 +	struct bnxt_fw_msg fw_msg;
++	int rc;
 +
-+	cctx = rdev->chip_ctx;
 +	memset(&fw_msg, 0, sizeof(fw_msg));
 +	bnxt_re_init_hwrm_hdr(rdev, (void *)&req,
-+			      HWRM_FUNC_QCAPS, -1, -1);
++			      HWRM_FUNC_QCFG, -1, -1);
 +	req.fid = cpu_to_le16(0xffff);
 +	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
 +			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
-+	return bnxt_send_msg(en_dev, &fw_msg);
++	rc = bnxt_send_msg(en_dev, &fw_msg);
++	if (!rc) {
++		*db_len = PAGE_ALIGN(le16_to_cpu(resp.l2_doorbell_bar_size_kb) * 1024);
++		*offset = PAGE_ALIGN(le16_to_cpu(resp.legacy_l2_db_size_kb) * 1024);
++	}
++	return rc;
 +}
 +
- static int bnxt_re_net_ring_free(struct bnxt_re_dev *rdev,
- 				 u16 fw_ring_id, int type)
+ /* Query function capabilities using common hwrm */
+ int bnxt_re_hwrm_qcaps(struct bnxt_re_dev *rdev)
  {
+@@ -851,7 +916,6 @@ static void bnxt_re_free_res(struct bnxt_re_dev *rdev)
+ 
+ 	if (rdev->qplib_res.dpi_tbl.max) {
+ 		bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
+-				       &rdev->qplib_res.dpi_tbl,
+ 				       &rdev->dpi_privileged);
+ 	}
+ 	if (rdev->qplib_res.rcfw) {
+@@ -879,9 +943,9 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
+ 	if (rc)
+ 		goto fail;
+ 
+-	rc = bnxt_qplib_alloc_dpi(&rdev->qplib_res.dpi_tbl,
++	rc = bnxt_qplib_alloc_dpi(&rdev->qplib_res,
+ 				  &rdev->dpi_privileged,
+-				  rdev);
++				  rdev, BNXT_QPLIB_DPI_TYPE_KERNEL);
+ 	if (rc)
+ 		goto dealloc_res;
+ 
+@@ -921,7 +985,6 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
+ 		bnxt_qplib_free_nq(&rdev->nq[i]);
+ 	}
+ 	bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
+-			       &rdev->qplib_res.dpi_tbl,
+ 			       &rdev->dpi_privileged);
+ dealloc_res:
+ 	bnxt_qplib_free_res(&rdev->qplib_res);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index f139d4c..8e1dc22 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -659,7 +659,7 @@ int bnxt_qplib_create_srq(struct bnxt_qplib_res *res,
+ 	srq->dbinfo.xid = srq->id;
+ 	srq->dbinfo.db = srq->dpi->dbr;
+ 	srq->dbinfo.max_slot = 1;
+-	srq->dbinfo.priv_db = res->dpi_tbl.dbr_bar_reg_iomem;
++	srq->dbinfo.priv_db = res->dpi_tbl.priv_db;
+ 	if (srq->threshold)
+ 		bnxt_qplib_armen_db(&srq->dbinfo, DBC_DBC_TYPE_SRQ_ARMENA);
+ 	srq->arm_req = false;
+@@ -2103,7 +2103,7 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+ 	cq->dbinfo.hwq = &cq->hwq;
+ 	cq->dbinfo.xid = cq->id;
+ 	cq->dbinfo.db = cq->dpi->dbr;
+-	cq->dbinfo.priv_db = res->dpi_tbl.dbr_bar_reg_iomem;
++	cq->dbinfo.priv_db = res->dpi_tbl.priv_db;
+ 
+ 	bnxt_qplib_armen_db(&cq->dbinfo, DBC_DBC_TYPE_CQ_ARMENA);
+ 
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+index dd56514..4d1ccf1 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+@@ -111,6 +111,7 @@ static inline u32 bnxt_qplib_set_cmd_slots(struct cmdq_base *req)
+ #define RCFW_BLOCKED_CMD_WAIT_COUNT	20000000UL /* 20 sec */
+ 
+ #define HWRM_VERSION_RCFW_CMDQ_DEPTH_CHECK 0x1000900020011ULL
++#define HWRM_VERSION_DEV_ATTR_MAX_DPI  0x1000A0000000DULL
+ 
+ /* Crsq buf is 1024-Byte */
+ struct bnxt_qplib_crsbe {
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+index 920ab87..e1cbe59 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+@@ -704,44 +704,73 @@ static int bnxt_qplib_alloc_pd_tbl(struct bnxt_qplib_res *res,
+ }
+ 
+ /* DPIs */
+-int bnxt_qplib_alloc_dpi(struct bnxt_qplib_dpi_tbl *dpit,
+-			 struct bnxt_qplib_dpi     *dpi,
+-			 void                      *app)
++int bnxt_qplib_alloc_dpi(struct bnxt_qplib_res *res,
++			 struct bnxt_qplib_dpi *dpi,
++			 void *app, u8 type)
+ {
++	struct bnxt_qplib_dpi_tbl *dpit = &res->dpi_tbl;
++	struct bnxt_qplib_reg_desc *reg;
+ 	u32 bit_num;
++	u64 umaddr;
++
++	reg = &dpit->wcreg;
++	mutex_lock(&res->dpi_tbl_lock);
+ 
+ 	bit_num = find_first_bit(dpit->tbl, dpit->max);
+-	if (bit_num == dpit->max)
++	if (bit_num == dpit->max) {
++		mutex_unlock(&res->dpi_tbl_lock);
+ 		return -ENOMEM;
++	}
+ 
+ 	/* Found unused DPI */
+ 	clear_bit(bit_num, dpit->tbl);
+ 	dpit->app_tbl[bit_num] = app;
+ 
+-	dpi->dpi = bit_num;
+-	dpi->dbr = dpit->dbr_bar_reg_iomem + (bit_num * PAGE_SIZE);
+-	dpi->umdbr = dpit->unmapped_dbr + (bit_num * PAGE_SIZE);
++	dpi->bit = bit_num;
++	dpi->dpi = bit_num + (reg->offset - dpit->ucreg.offset) / PAGE_SIZE;
++
++	umaddr = reg->bar_base + reg->offset + bit_num * PAGE_SIZE;
++	dpi->umdbr = umaddr;
++
++	switch (type) {
++	case BNXT_QPLIB_DPI_TYPE_KERNEL:
++		/* priviledged dbr was already mapped just initialize it. */
++		dpi->umdbr = dpit->ucreg.bar_base +
++			     dpit->ucreg.offset + bit_num * PAGE_SIZE;
++		dpi->dbr = dpit->priv_db;
++		dpi->dpi = dpi->bit;
++		break;
++	default:
++		dpi->dbr = ioremap(umaddr, PAGE_SIZE);
++		break;
++	}
+ 
++	dpi->type = type;
++	mutex_unlock(&res->dpi_tbl_lock);
+ 	return 0;
++
+ }
+ 
+ int bnxt_qplib_dealloc_dpi(struct bnxt_qplib_res *res,
+-			   struct bnxt_qplib_dpi_tbl *dpit,
+-			   struct bnxt_qplib_dpi     *dpi)
++			   struct bnxt_qplib_dpi *dpi)
+ {
+-	if (dpi->dpi >= dpit->max) {
+-		dev_warn(&res->pdev->dev, "Invalid DPI? dpi = %d\n", dpi->dpi);
+-		return -EINVAL;
+-	}
+-	if (test_and_set_bit(dpi->dpi, dpit->tbl)) {
+-		dev_warn(&res->pdev->dev, "Freeing an unused DPI? dpi = %d\n",
+-			 dpi->dpi);
++	struct bnxt_qplib_dpi_tbl *dpit = &res->dpi_tbl;
++
++	mutex_lock(&res->dpi_tbl_lock);
++	if (dpi->dpi && dpi->type != BNXT_QPLIB_DPI_TYPE_KERNEL)
++		pci_iounmap(res->pdev, dpi->dbr);
++
++	if (test_and_set_bit(dpi->bit, dpit->tbl)) {
++		dev_warn(&res->pdev->dev,
++			 "Freeing an unused DPI? dpi = %d, bit = %d\n",
++				dpi->dpi, dpi->bit);
++		mutex_unlock(&res->dpi_tbl_lock);
+ 		return -EINVAL;
+ 	}
+ 	if (dpit->app_tbl)
+-		dpit->app_tbl[dpi->dpi] = NULL;
++		dpit->app_tbl[dpi->bit] = NULL;
+ 	memset(dpi, 0, sizeof(*dpi));
+-
++	mutex_unlock(&res->dpi_tbl_lock);
+ 	return 0;
+ }
+ 
+@@ -750,52 +779,38 @@ static void bnxt_qplib_free_dpi_tbl(struct bnxt_qplib_res     *res,
+ {
+ 	kfree(dpit->tbl);
+ 	kfree(dpit->app_tbl);
+-	if (dpit->dbr_bar_reg_iomem)
+-		pci_iounmap(res->pdev, dpit->dbr_bar_reg_iomem);
+-	memset(dpit, 0, sizeof(*dpit));
++	dpit->tbl = NULL;
++	dpit->app_tbl = NULL;
++	dpit->max = 0;
+ }
+ 
+-static int bnxt_qplib_alloc_dpi_tbl(struct bnxt_qplib_res     *res,
+-				    struct bnxt_qplib_dpi_tbl *dpit,
+-				    u32                       dbr_offset)
++static int bnxt_qplib_alloc_dpi_tbl(struct bnxt_qplib_res *res,
++				    struct bnxt_qplib_dev_attr *dev_attr)
+ {
+-	u32 dbr_bar_reg = RCFW_DBR_PCI_BAR_REGION;
+-	resource_size_t bar_reg_base;
+-	u32 dbr_len, bytes;
+-
+-	if (dpit->dbr_bar_reg_iomem) {
+-		dev_err(&res->pdev->dev, "DBR BAR region %d already mapped\n",
+-			dbr_bar_reg);
+-		return -EALREADY;
+-	}
+-
+-	bar_reg_base = pci_resource_start(res->pdev, dbr_bar_reg);
+-	if (!bar_reg_base) {
+-		dev_err(&res->pdev->dev, "BAR region %d resc start failed\n",
+-			dbr_bar_reg);
+-		return -ENOMEM;
+-	}
++	struct bnxt_qplib_dpi_tbl *dpit;
++	struct bnxt_qplib_reg_desc *reg;
++	unsigned long bar_len;
++	u32 dbr_offset;
++	u32 bytes;
+ 
+-	dbr_len = pci_resource_len(res->pdev, dbr_bar_reg) - dbr_offset;
+-	if (!dbr_len || ((dbr_len & (PAGE_SIZE - 1)) != 0)) {
+-		dev_err(&res->pdev->dev, "Invalid DBR length %d\n", dbr_len);
+-		return -ENOMEM;
+-	}
++	dpit = &res->dpi_tbl;
++	reg = &dpit->wcreg;
+ 
+-	dpit->dbr_bar_reg_iomem = ioremap(bar_reg_base + dbr_offset,
+-						  dbr_len);
+-	if (!dpit->dbr_bar_reg_iomem) {
+-		dev_err(&res->pdev->dev,
+-			"FP: DBR BAR region %d mapping failed\n", dbr_bar_reg);
+-		return -ENOMEM;
++	if (!bnxt_qplib_is_chip_gen_p5(res->cctx)) {
++		/* Offest should come from L2 driver */
++		dbr_offset = dev_attr->l2_db_size;
++		dpit->ucreg.offset = dbr_offset;
++		dpit->wcreg.offset = dbr_offset;
+ 	}
+ 
+-	dpit->unmapped_dbr = bar_reg_base + dbr_offset;
+-	dpit->max = dbr_len / PAGE_SIZE;
++	bar_len = pci_resource_len(res->pdev, reg->bar_id);
++	dpit->max = (bar_len - reg->offset) / PAGE_SIZE;
++	if (dev_attr->max_dpi)
++		dpit->max = min_t(u32, dpit->max, dev_attr->max_dpi);
+ 
+-	dpit->app_tbl = kcalloc(dpit->max, sizeof(void *), GFP_KERNEL);
++	dpit->app_tbl = kcalloc(dpit->max,  sizeof(void *), GFP_KERNEL);
+ 	if (!dpit->app_tbl)
+-		goto unmap_io;
++		return -ENOMEM;
+ 
+ 	bytes = dpit->max >> 3;
+ 	if (!bytes)
+@@ -805,17 +820,14 @@ static int bnxt_qplib_alloc_dpi_tbl(struct bnxt_qplib_res     *res,
+ 	if (!dpit->tbl) {
+ 		kfree(dpit->app_tbl);
+ 		dpit->app_tbl = NULL;
+-		goto unmap_io;
++		return -ENOMEM;
+ 	}
+ 
+ 	memset((u8 *)dpit->tbl, 0xFF, bytes);
++	dpit->priv_db = dpit->ucreg.bar_reg + dpit->ucreg.offset;
+ 
+ 	return 0;
+ 
+-unmap_io:
+-	iounmap(dpit->dbr_bar_reg_iomem);
+-	dpit->dbr_bar_reg_iomem = NULL;
+-	return -ENOMEM;
+ }
+ 
+ /* Stats */
+@@ -882,7 +894,7 @@ int bnxt_qplib_alloc_res(struct bnxt_qplib_res *res, struct pci_dev *pdev,
+ 	if (rc)
+ 		goto fail;
+ 
+-	rc = bnxt_qplib_alloc_dpi_tbl(res, &res->dpi_tbl, dev_attr->l2_db_size);
++	rc = bnxt_qplib_alloc_dpi_tbl(res, dev_attr);
+ 	if (rc)
+ 		goto fail;
+ 
+@@ -892,6 +904,46 @@ int bnxt_qplib_alloc_res(struct bnxt_qplib_res *res, struct pci_dev *pdev,
+ 	return rc;
+ }
+ 
++void bnxt_qplib_unmap_db_bar(struct bnxt_qplib_res *res)
++{
++	struct bnxt_qplib_reg_desc *reg;
++
++	reg = &res->dpi_tbl.ucreg;
++	if (reg->bar_reg)
++		pci_iounmap(res->pdev, reg->bar_reg);
++	reg->bar_reg = NULL;
++	reg->bar_base = 0;
++	reg->len = 0;
++	reg->bar_id = 0;
++}
++
++int bnxt_qplib_map_db_bar(struct bnxt_qplib_res *res)
++{
++	struct bnxt_qplib_reg_desc *ucreg;
++	struct bnxt_qplib_reg_desc *wcreg;
++
++	wcreg = &res->dpi_tbl.wcreg;
++	wcreg->bar_id = RCFW_DBR_PCI_BAR_REGION;
++	wcreg->bar_base = pci_resource_start(res->pdev, wcreg->bar_id);
++
++	ucreg = &res->dpi_tbl.ucreg;
++	ucreg->bar_id = RCFW_DBR_PCI_BAR_REGION;
++	ucreg->bar_base = pci_resource_start(res->pdev, ucreg->bar_id);
++	ucreg->len = ucreg->offset + PAGE_SIZE;
++	if (!ucreg->len || ((ucreg->len & (PAGE_SIZE - 1)) != 0)) {
++		dev_err(&res->pdev->dev, "QPLIB: invalid dbr length %d",
++			(int)ucreg->len);
++		return -EINVAL;
++	}
++	ucreg->bar_reg = ioremap(ucreg->bar_base, ucreg->len);
++	if (!ucreg->bar_reg) {
++		dev_err(&res->pdev->dev, "priviledged dpi map failed!");
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
+ int bnxt_qplib_determine_atomics(struct pci_dev *dev)
+ {
+ 	int comp;
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+index 982e2c9..95b1d6c 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+@@ -56,8 +56,12 @@ struct bnxt_qplib_chip_ctx {
+ 	u8	chip_metal;
+ 	u16	hw_stats_size;
+ 	struct bnxt_qplib_drv_modes modes;
++	u64 hwrm_intf_ver;
+ };
+ 
++#define BNXT_QPLIB_DBR_PF_DB_OFFSET     0x10000
++#define BNXT_QPLIB_DBR_VF_DB_OFFSET     0x4000
++
+ #define PTR_CNT_PER_PG		(PAGE_SIZE / sizeof(void *))
+ #define PTR_MAX_IDX_PER_PG	(PTR_CNT_PER_PG - 1)
+ #define PTR_PG(x)		(((x) & ~PTR_MAX_IDX_PER_PG) / PTR_CNT_PER_PG)
+@@ -109,6 +113,7 @@ enum bnxt_qplib_hwrm_pg_size {
+ struct bnxt_qplib_reg_desc {
+ 	u8		bar_id;
+ 	resource_size_t	bar_base;
++	unsigned long	offset;
+ 	void __iomem	*bar_reg;
+ 	size_t		len;
+ };
+@@ -185,18 +190,26 @@ struct bnxt_qplib_sgid_tbl {
+ 	u8				*vlan;
+ };
+ 
++enum {
++	BNXT_QPLIB_DPI_TYPE_KERNEL      = 0,
++	BNXT_QPLIB_DPI_TYPE_UC          = 1,
++};
++
+ struct bnxt_qplib_dpi {
+ 	u32				dpi;
++	u32				bit;
+ 	void __iomem			*dbr;
+ 	u64				umdbr;
++	u8				type;
+ };
+ 
+ struct bnxt_qplib_dpi_tbl {
+ 	void				**app_tbl;
+ 	unsigned long			*tbl;
+ 	u16				max;
+-	void __iomem			*dbr_bar_reg_iomem;
+-	u64				unmapped_dbr;
++	struct bnxt_qplib_reg_desc	ucreg; /* Hold entire DB bar. */
++	struct bnxt_qplib_reg_desc	wcreg;
++	void __iomem			*priv_db;
+ };
+ 
+ struct bnxt_qplib_stats {
+@@ -241,7 +254,6 @@ struct bnxt_qplib_ctx {
+ 	struct bnxt_qplib_tqm_ctx	tqm_ctx;
+ 	struct bnxt_qplib_stats		stats;
+ 	struct bnxt_qplib_vf_res	vf_res;
+-	u64				hwrm_intf_ver;
+ };
+ 
+ struct bnxt_qplib_res {
+@@ -253,6 +265,8 @@ struct bnxt_qplib_res {
+ 	struct bnxt_qplib_pd_tbl	pd_tbl;
+ 	struct bnxt_qplib_sgid_tbl	sgid_tbl;
+ 	struct bnxt_qplib_dpi_tbl	dpi_tbl;
++	/* To protect the dpi table bit map */
++	struct mutex                    dpi_tbl_lock;
+ 	bool				prio;
+ 	bool                            is_vf;
+ };
+@@ -344,11 +358,10 @@ int bnxt_qplib_alloc_pd(struct bnxt_qplib_pd_tbl *pd_tbl,
+ int bnxt_qplib_dealloc_pd(struct bnxt_qplib_res *res,
+ 			  struct bnxt_qplib_pd_tbl *pd_tbl,
+ 			  struct bnxt_qplib_pd *pd);
+-int bnxt_qplib_alloc_dpi(struct bnxt_qplib_dpi_tbl *dpit,
+-			 struct bnxt_qplib_dpi     *dpi,
+-			 void                      *app);
++int bnxt_qplib_alloc_dpi(struct bnxt_qplib_res *res,
++			 struct bnxt_qplib_dpi *dpi,
++			 void *app, u8 type);
+ int bnxt_qplib_dealloc_dpi(struct bnxt_qplib_res *res,
+-			   struct bnxt_qplib_dpi_tbl *dpi_tbl,
+ 			   struct bnxt_qplib_dpi *dpi);
+ void bnxt_qplib_cleanup_res(struct bnxt_qplib_res *res);
+ int bnxt_qplib_init_res(struct bnxt_qplib_res *res);
+@@ -361,6 +374,9 @@ void bnxt_qplib_free_ctx(struct bnxt_qplib_res *res,
+ int bnxt_qplib_alloc_ctx(struct bnxt_qplib_res *res,
+ 			 struct bnxt_qplib_ctx *ctx,
+ 			 bool virt_fn, bool is_p5);
++int bnxt_qplib_map_db_bar(struct bnxt_qplib_res *res);
++void bnxt_qplib_unmap_db_bar(struct bnxt_qplib_res *res);
++
+ int bnxt_qplib_determine_atomics(struct pci_dev *dev);
+ 
+ static inline void bnxt_qplib_hwq_incr_prod(struct bnxt_qplib_hwq *hwq, u32 cnt)
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+index 1714a1e..fe3a22d 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+@@ -170,6 +170,9 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+ 		attr->tqm_alloc_reqs[i * 4 + 3] = *(++tqm_alloc);
+ 	}
+ 
++	if (rcfw->res->cctx->hwrm_intf_ver >= HWRM_VERSION_DEV_ATTR_MAX_DPI)
++		attr->max_dpi = le32_to_cpu(sb->max_dpi);
++
+ 	attr->is_atomic = bnxt_qplib_is_atomic_cap(rcfw);
+ bail:
+ 	bnxt_qplib_rcfw_free_sbuf(rcfw, sbuf);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+index 5de87465..0efd464 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+@@ -72,6 +72,7 @@ struct bnxt_qplib_dev_attr {
+ 	u8				tqm_alloc_reqs[MAX_TQM_ALLOC_REQ];
+ 	bool				is_atomic;
+ 	u16                             dev_cap_flags;
++	u32                             max_dpi;
+ };
+ 
+ struct bnxt_qplib_pd {
 -- 
 2.5.5
 
 
---0000000000008b848805fbb7f005
+--000000000000dbe7c305fbb7f0f6
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -192,14 +713,14 @@ j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
 9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
 hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
 IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIFR1nTWa2dXP
-hxu32Dsz5uMN0Bcm0V/V/rPA5WtCfehLMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDUxNTA5MTgzNlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIM5bDc4xQ6tc
+67OdpJdPDI9EYLbU07otjdw9rU5KDWgEMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDUxNTA5MTg0MlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
 YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQA8lPnD6vLoQ+3Tv6d9oNStND+Dd6gN
-KTkB9nw1EzXQNegpuConedxwXwDKXkK41Wbg6ldeRW9P0n2W4Xj8bMFVtixAvntZ1CtF9nryp2HI
-eVmeoS0ItN/gAVAF16Gis79TBbJYvHG2K6vfLekj067tp9a9u/KdoNK3BAlTA+txuen0IFLACvAi
-0FB4/ctUduABNnjjRInPzpSy+T4NMLSuIswxm8MiANlcSojT5ObWNsfOvSrIQCyiTJF+ge5Zxik/
-TPtdlIfeXK1f5pd5eRd3rMTVuG2QPoG/AKYq+EODj/9ENgGIHKUBEJpHRkwveVw/FGSVcdGDLcLq
-KIiBWtwj
---0000000000008b848805fbb7f005--
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQDhFx6WzQNRZUKNdXH4nq3ygOgD2CLW
+lhr1dz5Fv1D4LN30FRFlJywCxVgURbNBhX99PhDs5jPEqmxysFtPDL+sPK/3dcuV1CHD90f/q2Q9
+CAzxwWGWo39Avc6V5LPUOMsExUJGfZCj4Ks9UDgTehegVQnonVkmsG/UlhamtYnhAtc06+nENabN
+7ACA92829dSjhXWoDgpVJsXqrRw4+cjO3Z+EAROgxuruDHSqTSXRZa6WT5G1re3JybXCOtpH0Z/r
+HxDgRjWjzUW2UkA26nEaOzKjHbRAKKYAiRiQR9XB+A5MsmoJu08GNQisomQJR05P72H4f41DTMGI
+zdUFVygJ
+--000000000000dbe7c305fbb7f0f6--
