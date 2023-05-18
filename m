@@ -2,41 +2,41 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44095C7EE23
-	for <linux-rdma@archiver.kernel.org>; Thu, 18 May 2023 08:22:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6B27C7EE24
+	for <linux-rdma@archiver.kernel.org>; Thu, 18 May 2023 08:22:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230048AbjERIWe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 18 May 2023 04:22:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52428 "EHLO
+        id S230095AbjERIWg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 18 May 2023 04:22:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230049AbjERIWd (ORCPT
+        with ESMTP id S229779AbjERIWd (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 18 May 2023 04:22:33 -0400
-Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E2229C;
-        Thu, 18 May 2023 01:22:30 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6600,9927,10713"; a="117094701"
+Received: from esa3.hc1455-7.c3s2.iphmx.com (esa3.hc1455-7.c3s2.iphmx.com [207.54.90.49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11E2ADF;
+        Thu, 18 May 2023 01:22:31 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6600,9927,10713"; a="117164683"
 X-IronPort-AV: E=Sophos;i="5.99,284,1677510000"; 
-   d="scan'208";a="117094701"
+   d="scan'208";a="117164683"
 Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 May 2023 17:22:27 +0900
-Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
-        by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 66F2CD647A;
-        Thu, 18 May 2023 17:22:24 +0900 (JST)
+  by esa3.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 May 2023 17:22:29 +0900
+Received: from oym-m3.gw.nic.fujitsu.com (oym-nat-oym-m3.gw.nic.fujitsu.com [192.168.87.60])
+        by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 52A0AD6473;
+        Thu, 18 May 2023 17:22:27 +0900 (JST)
 Received: from m3004.s.css.fujitsu.com (m3004.s.css.fujitsu.com [10.128.233.124])
-        by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id A20E4BF3DE;
-        Thu, 18 May 2023 17:22:23 +0900 (JST)
+        by oym-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 83F64D94AA;
+        Thu, 18 May 2023 17:22:26 +0900 (JST)
 Received: from localhost.localdomain (unknown [10.118.237.106])
-        by m3004.s.css.fujitsu.com (Postfix) with ESMTP id 5B508200A4E1;
-        Thu, 18 May 2023 17:22:23 +0900 (JST)
+        by m3004.s.css.fujitsu.com (Postfix) with ESMTP id 3FB84200A4E1;
+        Thu, 18 May 2023 17:22:26 +0900 (JST)
 From:   Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
 To:     linux-rdma@vger.kernel.org, leonro@nvidia.com, jgg@nvidia.com,
         zyjzyj2000@gmail.com
 Cc:     linux-kernel@vger.kernel.org, rpearsonhpe@gmail.com,
         yangx.jy@fujitsu.com, lizhijian@fujitsu.com, y-goto@fujitsu.com,
         Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-Subject: [PATCH for-next v5 2/7] RDMA/rxe: Make MR functions accessible from other rxe source code
-Date:   Thu, 18 May 2023 17:21:47 +0900
-Message-Id: <412a29df988820ba9b7f0e8b4198ecae5b3dc79e.1684397037.git.matsuda-daisuke@fujitsu.com>
+Subject: [PATCH for-next v5 4/7] RDMA/rxe: Add page invalidation support
+Date:   Thu, 18 May 2023 17:21:49 +0900
+Message-Id: <6e9d5e2d1b2a63385d1e4fc2a74c3b11d4909842.1684397037.git.matsuda-daisuke@fujitsu.com>
 X-Mailer: git-send-email 2.39.1
 In-Reply-To: <cover.1684397037.git.matsuda-daisuke@fujitsu.com>
 References: <cover.1684397037.git.matsuda-daisuke@fujitsu.com>
@@ -47,106 +47,90 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Some functions in rxe_mr.c are going to be used in rxe_odp.c, which is to
-be created in the subsequent patch. List the declarations of the functions
-in rxe_loc.h.
+On page invalidation, an MMU notifier callback is invoked to unmap DMA
+addresses and update the driver page table(umem_odp->dma_list). It also
+set the corresponding entries in MR xarray to NULL to prevent any access.
+The callback is registered when an ODP-enabled MR is created.
 
 Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
 ---
- drivers/infiniband/sw/rxe/rxe_loc.h | 14 ++++++++++++++
- drivers/infiniband/sw/rxe/rxe_mr.c  | 18 ++++--------------
- 2 files changed, 18 insertions(+), 14 deletions(-)
+ drivers/infiniband/sw/rxe/Makefile  |  2 ++
+ drivers/infiniband/sw/rxe/rxe_odp.c | 56 +++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+)
+ create mode 100644 drivers/infiniband/sw/rxe/rxe_odp.c
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 804b15e929dd..00fedd1a4980 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -60,7 +60,9 @@ int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
- 
- /* rxe_mr.c */
- u8 rxe_get_next_key(u32 last_key);
-+void rxe_mr_init(int access, struct rxe_mr *mr);
- void rxe_mr_init_dma(int access, struct rxe_mr *mr);
-+int rxe_mr_fill_pages_from_sgt(struct rxe_mr *mr, struct sg_table *sgt);
- int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
- 		     int access, struct rxe_mr *mr);
- int rxe_mr_init_fast(int max_pages, struct rxe_mr *mr);
-@@ -71,6 +73,8 @@ int copy_data(struct rxe_pd *pd, int access, struct rxe_dma_info *dma,
- 	      void *addr, int length, enum rxe_mr_copy_dir dir);
- int rxe_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
- 		  int sg_nents, unsigned int *sg_offset);
-+int rxe_mr_copy_xarray(struct rxe_mr *mr, u64 iova, void *addr,
-+		       unsigned int length, enum rxe_mr_copy_dir dir);
- int rxe_mr_do_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
- 			u64 compare, u64 swap_add, u64 *orig_val);
- int rxe_mr_do_atomic_write(struct rxe_mr *mr, u64 iova, u64 value);
-@@ -82,6 +86,16 @@ int rxe_invalidate_mr(struct rxe_qp *qp, u32 key);
- int rxe_reg_fast_mr(struct rxe_qp *qp, struct rxe_send_wqe *wqe);
- void rxe_mr_cleanup(struct rxe_pool_elem *elem);
- 
-+static inline unsigned long rxe_mr_iova_to_index(struct rxe_mr *mr, u64 iova)
+diff --git a/drivers/infiniband/sw/rxe/Makefile b/drivers/infiniband/sw/rxe/Makefile
+index 5395a581f4bb..93134f1d1d0c 100644
+--- a/drivers/infiniband/sw/rxe/Makefile
++++ b/drivers/infiniband/sw/rxe/Makefile
+@@ -23,3 +23,5 @@ rdma_rxe-y := \
+ 	rxe_task.o \
+ 	rxe_net.o \
+ 	rxe_hw_counters.o
++
++rdma_rxe-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += rxe_odp.o
+diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
+new file mode 100644
+index 000000000000..b69b25e0fef6
+--- /dev/null
++++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+@@ -0,0 +1,56 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * Copyright (c) 2022-2023 Fujitsu Ltd. All rights reserved.
++ */
++
++#include <linux/hmm.h>
++
++#include <rdma/ib_umem_odp.h>
++
++#include "rxe.h"
++
++static void rxe_mr_unset_xarray(struct rxe_mr *mr, unsigned long start,
++				unsigned long end)
 +{
-+	return (iova >> mr->page_shift) - (mr->ibmr.iova >> mr->page_shift);
++	unsigned long lower, upper, idx;
++
++	lower = rxe_mr_iova_to_index(mr, start);
++	upper = rxe_mr_iova_to_index(mr, end);
++
++	/* make elements in xarray NULL */
++	spin_lock(&mr->page_list.xa_lock);
++	for (idx = lower; idx <= upper; idx++)
++		__xa_erase(&mr->page_list, idx);
++	spin_unlock(&mr->page_list.xa_lock);
 +}
 +
-+static inline unsigned long rxe_mr_iova_to_page_offset(struct rxe_mr *mr, u64 iova)
++static bool rxe_ib_invalidate_range(struct mmu_interval_notifier *mni,
++				    const struct mmu_notifier_range *range,
++				    unsigned long cur_seq)
 +{
-+	return iova & (mr_page_size(mr) - 1);
++	struct ib_umem_odp *umem_odp =
++		container_of(mni, struct ib_umem_odp, notifier);
++	struct rxe_mr *mr = umem_odp->private;
++	unsigned long start, end;
++
++	if (!mmu_notifier_range_blockable(range))
++		return false;
++
++	mutex_lock(&umem_odp->umem_mutex);
++	mmu_interval_set_seq(mni, cur_seq);
++
++	start = max_t(u64, ib_umem_start(umem_odp), range->start);
++	end = min_t(u64, ib_umem_end(umem_odp), range->end);
++
++	rxe_mr_unset_xarray(mr, start, end);
++
++	/* update umem_odp->dma_list */
++	ib_umem_odp_unmap_dma_pages(umem_odp, start, end);
++
++	mutex_unlock(&umem_odp->umem_mutex);
++	return true;
 +}
 +
- /* rxe_mw.c */
- int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata);
- int rxe_dealloc_mw(struct ib_mw *ibmw);
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 0e538fafcc20..ffbac6f5e828 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -49,7 +49,7 @@ int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length)
- 				| IB_ACCESS_REMOTE_WRITE	\
- 				| IB_ACCESS_REMOTE_ATOMIC)
- 
--static void rxe_mr_init(int access, struct rxe_mr *mr)
-+void rxe_mr_init(int access, struct rxe_mr *mr)
- {
- 	u32 lkey = mr->elem.index << 8 | rxe_get_next_key(-1);
- 	u32 rkey = (access & IB_ACCESS_REMOTE) ? lkey : 0;
-@@ -77,16 +77,6 @@ void rxe_mr_init_dma(int access, struct rxe_mr *mr)
- 	mr->ibmr.type = IB_MR_TYPE_DMA;
- }
- 
--static unsigned long rxe_mr_iova_to_index(struct rxe_mr *mr, u64 iova)
--{
--	return (iova >> mr->page_shift) - (mr->ibmr.iova >> mr->page_shift);
--}
--
--static unsigned long rxe_mr_iova_to_page_offset(struct rxe_mr *mr, u64 iova)
--{
--	return iova & (mr_page_size(mr) - 1);
--}
--
- static bool is_pmem_page(struct page *pg)
- {
- 	unsigned long paddr = page_to_phys(pg);
-@@ -96,7 +86,7 @@ static bool is_pmem_page(struct page *pg)
- 				 IORES_DESC_PERSISTENT_MEMORY);
- }
- 
--static int rxe_mr_fill_pages_from_sgt(struct rxe_mr *mr, struct sg_table *sgt)
-+int rxe_mr_fill_pages_from_sgt(struct rxe_mr *mr, struct sg_table *sgt)
- {
- 	XA_STATE(xas, &mr->page_list, 0);
- 	struct sg_page_iter sg_iter;
-@@ -247,8 +237,8 @@ int rxe_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sgl,
- 	return ib_sg_to_pages(ibmr, sgl, sg_nents, sg_offset, rxe_set_page);
- }
- 
--static int rxe_mr_copy_xarray(struct rxe_mr *mr, u64 iova, void *addr,
--			      unsigned int length, enum rxe_mr_copy_dir dir)
-+int rxe_mr_copy_xarray(struct rxe_mr *mr, u64 iova, void *addr,
-+		       unsigned int length, enum rxe_mr_copy_dir dir)
- {
- 	unsigned int page_offset = rxe_mr_iova_to_page_offset(mr, iova);
- 	unsigned long index = rxe_mr_iova_to_index(mr, iova);
++const struct mmu_interval_notifier_ops rxe_mn_ops = {
++	.invalidate = rxe_ib_invalidate_range,
++};
 -- 
 2.39.1
 
