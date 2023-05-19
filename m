@@ -2,88 +2,119 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5243C77B75
-	for <linux-rdma@archiver.kernel.org>; Fri, 19 May 2023 10:21:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2AC5C77B7F
+	for <linux-rdma@archiver.kernel.org>; Fri, 19 May 2023 14:03:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231821AbjESKVC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 19 May 2023 06:21:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47080 "EHLO
+        id S229933AbjESODb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 19 May 2023 10:03:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231812AbjESKVB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 May 2023 06:21:01 -0400
-Received: from out-52.mta1.migadu.com (out-52.mta1.migadu.com [95.215.58.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B41F01AD
-        for <linux-rdma@vger.kernel.org>; Fri, 19 May 2023 03:20:59 -0700 (PDT)
-Message-ID: <e13270a2-c149-6194-b283-06fc38efbd9b@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1684491657;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=f2/x6o647fvkKRQ4lSsMEFjqh2VPCvaHWpW8KsvuUhc=;
-        b=udnu0OVvT3ytoawjOfIe1810YEwd+/YchbDwaeS9LLPAfJdSgSv7Fl97genyHxEdc96kNe
-        EalU2SNzYTM70jEQB16CBfoI2denCGZHl/8Vm3EAphdtIBbbAf8Hb6oYHlI/qQ3sUE4lvz
-        g+ULGmlGlNDa2YB2/gt54yw/v2xjMF4=
-Date:   Fri, 19 May 2023 18:20:47 +0800
+        with ESMTP id S229737AbjESODb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 19 May 2023 10:03:31 -0400
+Received: from mail-qv1-xf35.google.com (mail-qv1-xf35.google.com [IPv6:2607:f8b0:4864:20::f35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32B0013A
+        for <linux-rdma@vger.kernel.org>; Fri, 19 May 2023 07:03:30 -0700 (PDT)
+Received: by mail-qv1-xf35.google.com with SMTP id 6a1803df08f44-61b79b93ac5so13351826d6.0
+        for <linux-rdma@vger.kernel.org>; Fri, 19 May 2023 07:03:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1684505009; x=1687097009;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=UYaQcjAX6hEMJzPoH5oWXefv8MMWPJGP3WqUHe0xeGA=;
+        b=lD9hWaN46HATaKxfp3AfY5SN0/+pbJWzIiij5V40K0E78+At/uhCsKtSD//h7V2efE
+         5qigiiKT8kXNGTs9mexE1VWJmppfJ1MqeRJWHeUUVHwqdvYT5b2Jf36d+7RACAlVvNHQ
+         40V2hQJrl5q1BZ6JUYdIi1sgqgDZPCUD9HheysU6nBJ8CLlmDvQiNq97UFGjD8IR2SVu
+         rXiNueXuT+Fs1yd3YqQ11rjEjgORDR2zSqTfAj6z5EN6dsBaSLIP8iBVSoSJeX122tNk
+         t4lm5o0C9JMjLxQfDnGsEtIa2JMegRM6TZzt5ghq5RqMNDUxP3RqByAYb5Xb9p8KKc7q
+         U58Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684505009; x=1687097009;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=UYaQcjAX6hEMJzPoH5oWXefv8MMWPJGP3WqUHe0xeGA=;
+        b=gb5XYDQwGobiKQ+4OaH11WQT0bEna1TSm4x924fENruBAtLCtkS1aYl7Mi86rwyx0Z
+         rRZv4PjJV89tVqF9410SKo8R3gOmjPc50hPRtri+a3B1fSQQWSXVaR8PyISVrTEah+qs
+         X96H1U79F6K8AJWOXhCdrrqykSImXEzte8asK0RKNpzTSl6fWO4aIatUXiUL6VQ69Ave
+         R3oE1hTCWhHBq/gQoiotHVavSJJzpCBBCGkwpla1Fq5TyuObtXBJsO97ULMTXzB3/acg
+         fUymtdcWuAhojWdI5UB1zw6eMn1/DspX3N0TzR08wFAIyOxX/TnGEkwCz7bNEY1WX9jW
+         8h3w==
+X-Gm-Message-State: AC+VfDxSdhxx+wDTp2KEBPBDOOtSiiP21mdL28axzHa8/Gaot1nx10Ja
+        ln4ttyr8rV1UpcruwZ8aoJNkhtodbnNUiufgKgg=
+X-Google-Smtp-Source: ACHHUZ7Ap/Dqsj9lIVrI/XoPQJe66CYPDagzUQaAbsZD3rq30W/rJt8C17XGRqFZGab03LsprTI8Fw==
+X-Received: by 2002:a05:6214:492:b0:623:42c5:6125 with SMTP id pt18-20020a056214049200b0062342c56125mr5734126qvb.7.1684505009137;
+        Fri, 19 May 2023 07:03:29 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-25-194.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.25.194])
+        by smtp.gmail.com with ESMTPSA id ek19-20020ad45993000000b00621253d19f9sm1314834qvb.98.2023.05.19.07.03.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 19 May 2023 07:03:27 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1q00ha-005YXU-HD;
+        Fri, 19 May 2023 11:03:26 -0300
+Date:   Fri, 19 May 2023 11:03:26 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Guoqing Jiang <guoqing.jiang@linux.dev>
+Cc:     leon@kernel.org, pchelkin@ispras.ru,
+        penguin-kernel@i-love.sakura.ne.jp, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH for-rc] RDMA/core: Call dev_put after query_port in
+ iw_query_port
+Message-ID: <ZGeBrhW2S5ukL6PS@ziepe.ca>
+References: <20230519031119.30103-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
-Subject: Re: [PATCH for-next v5 0/7] On-Demand Paging on SoftRoCE
-Content-Language: en-US
-To:     "Daisuke Matsuda (Fujitsu)" <matsuda-daisuke@fujitsu.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "leonro@nvidia.com" <leonro@nvidia.com>,
-        "jgg@nvidia.com" <jgg@nvidia.com>,
-        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>
-Cc:     "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "rpearsonhpe@gmail.com" <rpearsonhpe@gmail.com>,
-        "Xiao Yang (Fujitsu)" <yangx.jy@fujitsu.com>,
-        "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>,
-        "Yasunori Gotou (Fujitsu)" <y-goto@fujitsu.com>
-References: <cover.1684397037.git.matsuda-daisuke@fujitsu.com>
- <0f12adcd-0112-3b0e-57b5-ecf707670bc0@linux.dev>
- <TYCPR01MB8455648A5C9DFFB37FFB172FE57C9@TYCPR01MB8455.jpnprd01.prod.outlook.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Guoqing Jiang <guoqing.jiang@linux.dev>
-In-Reply-To: <TYCPR01MB8455648A5C9DFFB37FFB172FE57C9@TYCPR01MB8455.jpnprd01.prod.outlook.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230519031119.30103-1-guoqing.jiang@linux.dev>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Fri, May 19, 2023 at 11:11:19AM +0800, Guoqing Jiang wrote:
+> There is a UAF report by syzbot.
+> 
+> BUG: KASAN: slab-use-after-free in siw_query_port+0x37b/0x3e0 drivers/infiniband/sw/siw/siw_verbs.c:177
+> Read of size 4 at addr ffff888034efa0e8 by task kworker/1:4/24211
+> 
+> CPU: 1 PID: 24211 Comm: kworker/1:4 Not tainted 6.4.0-rc1-syzkaller-00012-g16a8829130ca #0
+> Hardware name: Google Compute Engine/Google Compute Engine, BIOS Google 04/14/2023
+> Workqueue: infiniband ib_cache_event_task
+> Call Trace:
+>  <TASK>
+>  __dump_stack lib/dump_stack.c:88 [inline]
+>  dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106
+>  print_address_description.constprop.0+0x2c/0x3c0 mm/kasan/report.c:351
+>  print_report mm/kasan/report.c:462 [inline]
+>  kasan_report+0x11c/0x130 mm/kasan/report.c:572
+>  siw_query_port+0x37b/0x3e0 drivers/infiniband/sw/siw/siw_verbs.c:177
+>  iw_query_port drivers/infiniband/core/device.c:2049 [inline]
+>  ib_query_port drivers/infiniband/core/device.c:2090 [inline]
+>  ib_query_port+0x3c4/0x8f0 drivers/infiniband/core/device.c:2082
+>  ib_cache_update.part.0+0xcf/0x920 drivers/infiniband/core/cache.c:1487
+>  ib_cache_update drivers/infiniband/core/cache.c:1561 [inline]
+>  ib_cache_event_task+0x1b1/0x270 drivers/infiniband/core/cache.c:1561
+>  process_one_work+0x99a/0x15e0 kernel/workqueue.c:2405
+>  worker_thread+0x67d/0x10c0 kernel/workqueue.c:2552
+>  kthread+0x344/0x440 kernel/kthread.c:379
+>  ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+>  </TASK>
+> 
+> It happened because netdev could be freed if the last reference
+> is released, but drivers still dereference netdev in query_port.
+> So let's guard query_port with dev_hold and dev_put.
+> 
+> Reported-by: syzbot+79f283f1f4ccc6e8b624@syzkaller.appspotmail.com
+> Closes: https://lore.kernel.org/lkml/0000000000001f992805fb79ce97@google.com/
+> Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
+> ---
+> I guess another option could be call ib_device_get_netdev to get
+> netdev in siw_query_port instead of dereference netdev directly. 
+> If so, then other drivers (irdma_query_port and ocrdma_query_port)
+> may need to make relevant change as well.
 
+Something is wrong in siw if it is UAF'ing it's own memory:
 
-On 5/19/23 17:57, Daisuke Matsuda (Fujitsu) wrote:
-> On Fri, May 19, 2023 3:42 PM Guoqing Jiang wrote:
->> Hello,
->>
->> On 5/18/23 16:21, Daisuke Matsuda wrote:
->>> [2] [PATCH for-next v3 0/7] On-Demand Paging on SoftRoCE
->>> https://lore.kernel.org/lkml/cover.1671772917.git.matsuda-daisuke@fujitsu.com/
->> Quote from above link
->>
->> "There is a problem that data on DAX-enabled filesystem cannot be
->> duplicated with
->> software RAID or other hardware methods."
->>
->> Could you elaborate a bit more about the problem or any links about it?
->> Thank you.
-> I am not an expert of Pmems, but my understanding is as follows:
->
-> Pmem (Persistent memory) is detected as memory device during boot process.
-> Physical addresses are allocated to them just like other memory in DIMM slots,
-> so system have to treat them differently from traditional storage devices like HDD/SSD.
->
-> It may be technically possible to duplicate data using multiple Pmems, but the duplication
-> is practically not useful. For traditional storage devices, you can hot-remove and hot-add
-> them easily on failure. However, Pmems are not attached to hot-pluggable slots. You have
-> to halt the system and open the cabinet to change out the Pmem. This means availability
-> of the system is not improved with data duplication on the same host.
+	attr->max_mtu = ib_mtu_int_to_enum(sdev->netdev->mtu);
 
-I guess pmem with block translation table type would be fine since it 
-can be used
-like normal storage device, but I am not pmem expert as well 😁.
+It needs to protect sedv->netdev somehow on its own.
 
-Thanks,
-Guoqing
+Jason
