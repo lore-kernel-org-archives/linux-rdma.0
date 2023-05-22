@@ -2,104 +2,185 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D86C77B73
-	for <linux-rdma@archiver.kernel.org>; Mon, 22 May 2023 15:58:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E3FC77B73
+	for <linux-rdma@archiver.kernel.org>; Mon, 22 May 2023 18:49:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234589AbjEVP6z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 22 May 2023 11:58:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49642 "EHLO
+        id S233476AbjEVSth (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 22 May 2023 14:49:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234193AbjEVP6x (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 May 2023 11:58:53 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB880103
-        for <linux-rdma@vger.kernel.org>; Mon, 22 May 2023 08:58:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684771131; x=1716307131;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=M0zOjbbJ+hXokX9UQAFQUh5T61+DO+laSJRdN1QSupg=;
-  b=eojvBxe0i9mmJoADJJcpiKl5V4/NWEm2lOOJGjbcww8FPvJU2F2YPr+k
-   k9gx++xGwNWrTEaBqYFrldwu/toOkD2TxnMo0pEid24aPeJnx+L7J45IK
-   44fIpZ1ytOiJMhyW3voFnG8ju7IV/muVggUEv99xGYarMP8zDiA3Ufuuu
-   wb6pQ3gD0JpVYduLi2OitTLa85SIov2uinAM9yqyYvDw+yKXaZyHIU/Ml
-   uwdTu6pAGdW+RKgyY0D+rYUyVXG7HJo+45gWmpbqzyAUmM9nh8bP+8Wld
-   fXMdaNbeDkKFpPf/HV9PfOuJLzHhJtd7nYNfvQ6bsRhdIeCkdBn5kuwer
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10718"; a="337546900"
-X-IronPort-AV: E=Sophos;i="6.00,184,1681196400"; 
-   d="scan'208";a="337546900"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 May 2023 08:58:50 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10718"; a="734312901"
-X-IronPort-AV: E=Sophos;i="6.00,184,1681196400"; 
-   d="scan'208";a="734312901"
-Received: from ssaleem-mobl1.amr.corp.intel.com ([10.92.172.160])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 May 2023 08:58:49 -0700
-From:   Shiraz Saleem <shiraz.saleem@intel.com>
-To:     jgg@nvidia.com, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH for-rc 1/2] RDMA/irdma: Prevent QP use after free
-Date:   Mon, 22 May 2023 10:56:53 -0500
-Message-Id: <20230522155654.1309-3-shiraz.saleem@intel.com>
-X-Mailer: git-send-email 2.39.0
-In-Reply-To: <20230522155654.1309-1-shiraz.saleem@intel.com>
-References: <20230522155654.1309-1-shiraz.saleem@intel.com>
+        with ESMTP id S232881AbjEVStg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 22 May 2023 14:49:36 -0400
+Received: from mail-oo1-xc2a.google.com (mail-oo1-xc2a.google.com [IPv6:2607:f8b0:4864:20::c2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15C59E9;
+        Mon, 22 May 2023 11:49:34 -0700 (PDT)
+Received: by mail-oo1-xc2a.google.com with SMTP id 006d021491bc7-546ee6030e5so3162372eaf.3;
+        Mon, 22 May 2023 11:49:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1684781373; x=1687373373;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=zPnh0GSbi1dq7uAWP5m2L0+IfeMa+LjsQJWktiIr+ME=;
+        b=Q4xsD+MS+hGClA+44HAYaJ6HwnWDJaOjtxi3hPhQPBd3ezUrVg1RWULVFBI8Yjn9Ro
+         BKAHaWhU+KdfVOu8NOjQnC2F/OwhayYvEcfPisXJ26ILOA5Djfe0r9waKwoaeKPcUVk+
+         0plJ8yQZA4gVchhCvV7RGwdQAyZ63FXBm4NJasbBe25aPTiReoRb/2lyDrFJB4ow403z
+         HbMegnpCcMgmlqrWfXebNy9+UFOFb0VMGVl/zv9klwP4f/wWIX4jCnSREOHgWjEV1w14
+         opWNynAQ0lbp0bN9SR7YgcPSjBg+sWTveWNXz1D4+sJxcaqULY/c8bZVsLkXKAvBZspf
+         F8Eg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684781373; x=1687373373;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=zPnh0GSbi1dq7uAWP5m2L0+IfeMa+LjsQJWktiIr+ME=;
+        b=kThTZLLhPEnUbjmMJHR92zumIU4FiOkssm1bkxyaacci0j42F12/44S9kJrtLbsoLB
+         FtdoxQ5scXpyPdX/mip6Oxi+/7+IMQ3AiQykI969gEeF0+9pEJCibhAOSZdJp4Ncw0dm
+         yq7LgA1/2a+NL1m2rJiSOxieVD0GXsOEuqYsZ5KcUT3AVoXFqQOGzz+ReDcdUUU1qiu8
+         +FaGNPMcsC5/272FAkuYwiDPEEnqhpD0+dU+bCs7QcAHEXlt1n8Vsm3GxNmxH/CddVbG
+         WwdVY7MCchCtobAwb/Z0Ghmpi5eQXhzDgXeOzVQiRjQE+KzH85OlNegulgNvqgaencVt
+         /+Kg==
+X-Gm-Message-State: AC+VfDyb+tsUG3X4NwNTMhZy9S7FUU90JDPWGihCAHU3tbC2GxYfgSsl
+        5QTdSB+3uZr8OSjt+M/Tz44LPuHkCW8ttQ==
+X-Google-Smtp-Source: ACHHUZ5tF1GkdvqA6wyObI+k5g1uDTlNWrn8pA+WE6C6RNdTvF1kIKHvfNkgnOpQFdX+zzB8/i9ZFA==
+X-Received: by 2002:a4a:6101:0:b0:547:6a79:18cb with SMTP id n1-20020a4a6101000000b005476a7918cbmr4842602ooc.9.1684781373241;
+        Mon, 22 May 2023 11:49:33 -0700 (PDT)
+Received: from ?IPV6:2603:8081:140c:1a00:738:17c9:f946:babd? (2603-8081-140c-1a00-0738-17c9-f946-babd.res6.spectrum.com. [2603:8081:140c:1a00:738:17c9:f946:babd])
+        by smtp.gmail.com with ESMTPSA id q9-20020acaf209000000b003941dfbf924sm3052754oih.35.2023.05.22.11.49.32
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 22 May 2023 11:49:32 -0700 (PDT)
+Message-ID: <edad669f-e84e-a9ba-9554-87ae1d571931@gmail.com>
+Date:   Mon, 22 May 2023 13:49:31 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.0
+Subject: Re: [PATCH for-next v5 7/7] RDMA/rxe: Add support for the traditional
+ Atomic operations with ODP
+To:     Daisuke Matsuda <matsuda-daisuke@fujitsu.com>,
+        linux-rdma@vger.kernel.org, leonro@nvidia.com, jgg@nvidia.com,
+        zyjzyj2000@gmail.com
+Cc:     linux-kernel@vger.kernel.org, yangx.jy@fujitsu.com,
+        lizhijian@fujitsu.com, y-goto@fujitsu.com
+References: <cover.1684397037.git.matsuda-daisuke@fujitsu.com>
+ <2841b1a86987564f14f15ec5b59f6a8bead86b30.1684397037.git.matsuda-daisuke@fujitsu.com>
+Content-Language: en-US
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+In-Reply-To: <2841b1a86987564f14f15ec5b59f6a8bead86b30.1684397037.git.matsuda-daisuke@fujitsu.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+On 5/18/23 03:21, Daisuke Matsuda wrote:
+> Enable 'fetch and add' and 'compare and swap' operations to manipulate
+> data in an ODP-enabled MR. This is comprised of the following steps:
+>  1. Check the driver page table(umem_odp->dma_list) to see if the target
+>     page is both readable and writable.
+>  2. If not, then trigger page fault to map the page.
+>  3. Update the entry in the MR xarray.
+>  4. Execute the operation.
+> 
+> umem_mutex is used to ensure that dma_list (an array of addresses of an MR)
+> is not changed while it is being checked and that the target page is not
+> invalidated before data access completes.
+> 
+> Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
+> ---
+>  drivers/infiniband/sw/rxe/rxe.c      |  1 +
+>  drivers/infiniband/sw/rxe/rxe_loc.h  |  9 +++++++++
+>  drivers/infiniband/sw/rxe/rxe_odp.c  | 26 ++++++++++++++++++++++++++
+>  drivers/infiniband/sw/rxe/rxe_resp.c |  5 ++++-
+>  4 files changed, 40 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+> index 207a022156f0..abd3267c2873 100644
+> --- a/drivers/infiniband/sw/rxe/rxe.c
+> +++ b/drivers/infiniband/sw/rxe/rxe.c
+> @@ -88,6 +88,7 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
+>  		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_RECV;
+>  		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_WRITE;
+>  		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_READ;
+> +		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_ATOMIC;
+>  		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_SRQ_RECV;
+>  	}
+>  }
+> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+> index 4b95c8c46bdc..b9d2985774ee 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
+> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+> @@ -208,6 +208,9 @@ int rxe_odp_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length,
+>  			 u64 iova, int access_flags, struct rxe_mr *mr);
+>  int rxe_odp_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
+>  		    enum rxe_mr_copy_dir dir);
+> +int rxe_odp_mr_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
+> +			 u64 compare, u64 swap_add, u64 *orig_val);
+> +
+>  #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+>  static inline int
+>  rxe_odp_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
+> @@ -221,6 +224,12 @@ rxe_odp_mr_copy(struct rxe_mr *mr, u64 iova, void *addr,
+>  {
+>  	return -EOPNOTSUPP;
+>  }
+> +static inline int
+> +rxe_odp_mr_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
+> +		     u64 compare, u64 swap_add, u64 *orig_val)
+> +{
+> +	return RESPST_ERR_UNSUPPORTED_OPCODE;
+> +}
+>  
+>  #endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+>  
+> diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
+> index cbe5d0c3fcc4..194b1fab98b7 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_odp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+> @@ -283,3 +283,29 @@ int rxe_odp_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
+>  
+>  	return err;
+>  }
+> +
+> +int rxe_odp_mr_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
+> +			 u64 compare, u64 swap_add, u64 *orig_val)
+> +{
+> +	int err;
+> +	struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
+> +
+> +	/* If pagefault is not required, umem mutex will be held until the
+> +	 * atomic operation completes. Otherwise, it is released and locked
+> +	 * again in rxe_odp_map_range() to let invalidation handler do its
+> +	 * work meanwhile.
+> +	 */
+> +	mutex_lock(&umem_odp->umem_mutex);
+> +
+> +	/* Atomic operations manipulate a single char. */
+> +	err = rxe_odp_map_range(mr, iova, sizeof(char), 0);
+> +	if (err)
+> +		return err;
+> +
+> +	err = rxe_mr_do_atomic_op(mr, iova, opcode, compare,
+> +				  swap_add, orig_val);
+> +
+> +	mutex_unlock(&umem_odp->umem_mutex);
+> +
+> +	return err;
+> +}
+> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+> index 90c31c4f2944..0a918145dc07 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+> @@ -684,7 +684,10 @@ static enum resp_states atomic_reply(struct rxe_qp *qp,
+>  		u64 iova = qp->resp.va + qp->resp.offset;
+>  
+>  		if (mr->odp_enabled)
+> -			err = RESPST_ERR_UNSUPPORTED_OPCODE;
+> +			err = rxe_odp_mr_atomic_op(mr, iova, pkt->opcode,
+> +						   atmeth_comp(pkt),
+> +						   atmeth_swap_add(pkt),
+> +						   &res->atomic.orig_val);
+>  		else
+>  			err = rxe_mr_do_atomic_op(mr, iova, pkt->opcode,
+>  						  atmeth_comp(pkt),
 
-There is a window where the poll cq may use a QP that has been freed.
-This can happen if a CQE is polled before irdma_clean_cqes() can clear
-the CQE's related to the QP and the destroy QP races to free the QP memory.
-then the QP structures are used in irdma_poll_cq.
-Fix this by moving the clearing of CQE's before the reference is removed
-and the QP is destroyed.
-
-Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
----
- drivers/infiniband/hw/irdma/verbs.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 52084651..6a1c266 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -522,11 +522,6 @@ static int irdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 	if (!iwqp->user_mode)
- 		cancel_delayed_work_sync(&iwqp->dwork_flush);
- 
--	irdma_qp_rem_ref(&iwqp->ibqp);
--	wait_for_completion(&iwqp->free_qp);
--	irdma_free_lsmm_rsrc(iwqp);
--	irdma_cqp_qp_destroy_cmd(&iwdev->rf->sc_dev, &iwqp->sc_qp);
--
- 	if (!iwqp->user_mode) {
- 		if (iwqp->iwscq) {
- 			irdma_clean_cqes(iwqp, iwqp->iwscq);
-@@ -534,6 +529,12 @@ static int irdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- 				irdma_clean_cqes(iwqp, iwqp->iwrcq);
- 		}
- 	}
-+
-+	irdma_qp_rem_ref(&iwqp->ibqp);
-+	wait_for_completion(&iwqp->free_qp);
-+	irdma_free_lsmm_rsrc(iwqp);
-+	irdma_cqp_qp_destroy_cmd(&iwdev->rf->sc_dev, &iwqp->sc_qp);
-+
- 	irdma_remove_push_mmap_entries(iwqp);
- 	irdma_free_qp_rsrc(iwqp);
- 
--- 
-1.8.3.1
-
+Reviewed-by: Bob Pearson <rpearsonhpe@gmail.com>
