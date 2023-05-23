@@ -2,70 +2,96 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8D8DC7EE26
-	for <linux-rdma@archiver.kernel.org>; Tue, 23 May 2023 11:25:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A99FAC7EE23
+	for <linux-rdma@archiver.kernel.org>; Tue, 23 May 2023 12:18:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232211AbjEWLZi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 23 May 2023 07:25:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51860 "EHLO
+        id S236580AbjEWMSx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 23 May 2023 08:18:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229889AbjEWLZi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 May 2023 07:25:38 -0400
-Received: from smtp-relay-services-0.canonical.com (smtp-relay-services-0.canonical.com [185.125.188.250])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DB09119
-        for <linux-rdma@vger.kernel.org>; Tue, 23 May 2023 04:25:33 -0700 (PDT)
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.66.156])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by smtp-relay-services-0.canonical.com (Postfix) with ESMTPSA id 3292C429DA
-        for <linux-rdma@vger.kernel.org>; Tue, 23 May 2023 11:16:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-        s=20210803; t=1684840608;
-        bh=WbfEtrzzQzAHzPEN902khr+7ZK/8fOPnoHrmI5JKBOM=;
-        h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-         Reply-To;
-        b=jUsRQQX0agh0Pw1K9Jv7WL5Bm5yGH0xp0VPgO5vS8x4jlK4+EeyWptzYM6Jj9lxLg
-         kBc44z4j+stRDZPjdPV6ukw7+uIumDfF2HYA8nXyK6crLXE3W0wjyfdK6I/8Scr2p8
-         HmnXtwl8RqSPnAgzuzugNxroS53huapcTPMjpQVRBMgSyU6+t4rEZFTr+ec23Uw5pD
-         xrD42GhK9CTcOA0/B/mH3CrE2TJUGRLTtpLYZloYRQFLze/gNdjzMvkchX9fUCD8HF
-         ekzpzqXW5XtnI+j7+5G1F/iHQX7hgT6Xt6YGxx38T0H+ijPhunUKxVQH/b14Iq4dM/
-         3eDQWvWfjCbmw==
-Received: from juju-4112d9-prod-launchpad-manual-servers-4.lp.internal (localhost [127.0.0.1])
-        by buildd-manager.lp.internal (Postfix) with ESMTP id F04CDC0791
-        for <linux-rdma@vger.kernel.org>; Tue, 23 May 2023 11:16:46 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        with ESMTP id S235983AbjEWMSv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 23 May 2023 08:18:51 -0400
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87FE9118;
+        Tue, 23 May 2023 05:18:50 -0700 (PDT)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.54])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4QQYGn1b5WzLmFy;
+        Tue, 23 May 2023 20:17:21 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.2) by
+ kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Tue, 23 May 2023 20:18:48 +0800
+From:   Junxian Huang <huangjunxian6@hisilicon.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 1/3] RDMA/hns: Remove unnecessary QP type checks
+Date:   Tue, 23 May 2023 20:16:39 +0800
+Message-ID: <20230523121641.3132102-2-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20230523121641.3132102-1-huangjunxian6@hisilicon.com>
+References: <20230523121641.3132102-1-huangjunxian6@hisilicon.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Build-State: MANUALDEPWAIT
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-To:     Linux RDMA <linux-rdma@vger.kernel.org>
-From:   noreply@launchpad.net
-Subject: [recipe build #3544665] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
-Message-Id: <168484060698.13576.9774557970310475009.launchpad@juju-4112d9-prod-launchpad-manual-servers-4.lp.internal>
-Date:   Tue, 23 May 2023 11:16:46 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-X-Generated-By: Launchpad (canonical.com); Revision="c43d60b7954ab6ec7298e66f7f5c3ccc58e1a52d"; Instance="buildmaster"
-X-Launchpad-Hash: cdf4362620ebbb18da2ea9f2958e74e8e79cf707
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.67.165.2]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ kwepemi500006.china.huawei.com (7.221.188.68)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
- * State: Dependency wait
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 2 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/3544665/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-060
+It is not necessary to check the type of the queue on IO path
+because unsupported QP type cannot be created.
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/3544665
-Your team Linux RDMA is the requester of the build.
+Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 22 +++-------------------
+ 1 file changed, 3 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index d4c6b9bc0a4e..673fd31b9ecf 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -373,17 +373,10 @@ static int check_send_valid(struct hns_roce_dev *hr_dev,
+ 			    struct hns_roce_qp *hr_qp)
+ {
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	struct ib_qp *ibqp = &hr_qp->ibqp;
+ 
+-	if (unlikely(ibqp->qp_type != IB_QPT_RC &&
+-		     ibqp->qp_type != IB_QPT_GSI &&
+-		     ibqp->qp_type != IB_QPT_UD)) {
+-		ibdev_err(ibdev, "not supported QP(0x%x)type!\n",
+-			  ibqp->qp_type);
+-		return -EOPNOTSUPP;
+-	} else if (unlikely(hr_qp->state == IB_QPS_RESET ||
+-		   hr_qp->state == IB_QPS_INIT ||
+-		   hr_qp->state == IB_QPS_RTR)) {
++	if (unlikely(hr_qp->state == IB_QPS_RESET ||
++		     hr_qp->state == IB_QPS_INIT ||
++		     hr_qp->state == IB_QPS_RTR)) {
+ 		ibdev_err(ibdev, "failed to post WQE, QP state %u!\n",
+ 			  hr_qp->state);
+ 		return -EINVAL;
+@@ -772,15 +765,6 @@ static int check_recv_valid(struct hns_roce_dev *hr_dev,
+ 			    struct hns_roce_qp *hr_qp)
+ {
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	struct ib_qp *ibqp = &hr_qp->ibqp;
+-
+-	if (unlikely(ibqp->qp_type != IB_QPT_RC &&
+-		     ibqp->qp_type != IB_QPT_GSI &&
+-		     ibqp->qp_type != IB_QPT_UD)) {
+-		ibdev_err(ibdev, "unsupported qp type, qp_type = %d.\n",
+-			  ibqp->qp_type);
+-		return -EOPNOTSUPP;
+-	}
+ 
+ 	if (unlikely(hr_dev->state >= HNS_ROCE_DEVICE_STATE_RST_DOWN))
+ 		return -EIO;
+-- 
+2.30.0
 
