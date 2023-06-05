@@ -2,86 +2,96 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04B85C7EE2A
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Jun 2023 10:14:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DA7BC7EE24
+	for <linux-rdma@archiver.kernel.org>; Mon,  5 Jun 2023 10:33:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231907AbjFEKOj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 5 Jun 2023 06:14:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42542 "EHLO
+        id S230233AbjFEKdj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 5 Jun 2023 06:33:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230180AbjFEKOh (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 5 Jun 2023 06:14:37 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7885A118
-        for <linux-rdma@vger.kernel.org>; Mon,  5 Jun 2023 03:14:27 -0700 (PDT)
+        with ESMTP id S229455AbjFEKdi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 5 Jun 2023 06:33:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5990EA
+        for <linux-rdma@vger.kernel.org>; Mon,  5 Jun 2023 03:33:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F053E62214
-        for <linux-rdma@vger.kernel.org>; Mon,  5 Jun 2023 10:14:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA6B3C433A0;
-        Mon,  5 Jun 2023 10:14:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4D772615D7
+        for <linux-rdma@vger.kernel.org>; Mon,  5 Jun 2023 10:33:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E67FC433D2;
+        Mon,  5 Jun 2023 10:33:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1685960066;
-        bh=QfSq/8HGnCI9pJaK2B2ezUlX+KtyUbZYG96XddVGVRc=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WOakJVRCz/AegkEKgyDofqt/y1zbK1eNpXeB66aXedDX5VNakAEPlKYaxNAQUY1LZ
-         jSfkXFCHrRGTqeMvUwli0V6bK/K/hAYmcVLIpJ499AXH6eqX0DHCjrPe6UNTMOvjYi
-         LtCu8qU2SH7EB+gGDY0vQpWGDCagqaTAnmOofiqvX0iFMWRjC0cv924/sFPZyvj+gd
-         KjcZaek2rlktwcfhyhgBsSd4kk8YBLGKWCi6J83dK8zxiVYyOfMIyDi+hlylWe0TkM
-         yf2g+SQMHxYz1Gua/5lJ482zKW/O8Wfh5X7jMr6UjhIXOOs+NSUNgGxHmwmEJXpG53
-         vLw/iDZ/h8GRQ==
+        s=k20201202; t=1685961216;
+        bh=k3vorM0ndnSZlBq4Lc14DAS+r+QOZZs+nS3B6729fCk=;
+        h=From:To:Cc:Subject:Date:From;
+        b=hPySnssZvIeUOHKJicjHVc89Fwr6oA6lxLRTA+c8pm/LK+ymmfVAnu8d8Dy2Jh4ja
+         efA78F8iYPaKUVKCs0hTdhj0eeDtSD/3tTCR7ua4oU0oIQ1rgaVdArDynYYnMXtWPK
+         MoaxaC2FPv0LxJo2nyfpREDP10JZQCOqMSH4q5yd9IS0r5KYWfR3GCxJNlLDvjvERM
+         Ioi6CKYSZvp3INhQ1qSyrUuJszkEg5X1U2cpfD6ZrYd5i6DYlnmKo78DKA/W6G4rE/
+         KFVxZXbsYOHPUI0ua7Sl0rIJrTORX2iBWpFZrpOcPHVkUh8yrgs2+atCRiMQjAJDf1
+         4yEUJadRv6QHw==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Patrisious Haddad <phaddad@nvidia.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH rdma-next v2 1/4] net/mlx5: Nullify qp->dbg pointer post destruction
-Date:   Mon,  5 Jun 2023 13:14:04 +0300
-Message-Id: <1677e52bb642fd8d6062d73a5aa69083c0283dc9.1685953497.git.leon@kernel.org>
+Cc:     Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-rc 00/10] Batch of uverbs and mlx5_ib fixes
+Date:   Mon,  5 Jun 2023 13:33:16 +0300
+Message-Id: <cover.1685960567.git.leon@kernel.org>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <cover.1685953497.git.leon@kernel.org>
-References: <cover.1685953497.git.leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Patrisious Haddad <phaddad@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Nullifying qp->dbg is a preparation for the next patches
-from the series in which mlx5_core_destroy_qp() could actually fail,
-and then it can be called again which causes a kernel crash, since
-qp->dbg was not nullified in previous call.
+Hi,
 
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/debugfs.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+This is my collection of various fixes.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-index bb95b40d25eb..b08b5695ee45 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-@@ -513,11 +513,11 @@ EXPORT_SYMBOL(mlx5_debug_qp_add);
- 
- void mlx5_debug_qp_remove(struct mlx5_core_dev *dev, struct mlx5_core_qp *qp)
- {
--	if (!mlx5_debugfs_root)
-+	if (!mlx5_debugfs_root || !qp->dbg)
- 		return;
- 
--	if (qp->dbg)
--		rem_res_tree(qp->dbg);
-+	rem_res_tree(qp->dbg);
-+	qp->dbg = NULL;
- }
- EXPORT_SYMBOL(mlx5_debug_qp_remove);
- 
+Thanks
+
+Edward Srouji (1):
+  RDMA/uverbs: Restrict usage of privileged QKEYs
+
+Maher Sanalla (1):
+  RDMA/mlx5: Initiate dropless RQ for RAW Ethernet functions
+
+Mark Bloch (2):
+  RDMA/mlx5: Create an indirect flow table for steering anchor
+  RDMA/mlx5: Fix affinity assignment
+
+Mark Zhang (1):
+  RDMA/cma: Always set static rate to 0 for RoCE
+
+Michael Guralnik (1):
+  RDMA/mlx5: Fix mkey cache possible deadlock on cleanup
+
+Patrisious Haddad (3):
+  RDMA/mlx5: Fix Q-counters per vport allocation
+  RDMA/mlx5: Remove vport Q-counters dependency on normal Q-counters
+  RDMA/mlx5: Fix Q-counters query in LAG mode
+
+Yishai Hadas (1):
+  IB/uverbs: Fix to consider event queue closing also upon non-blocking
+    mode
+
+ drivers/infiniband/core/cma.c                 |   4 +-
+ drivers/infiniband/core/uverbs_cmd.c          |   7 +-
+ drivers/infiniband/core/uverbs_main.c         |  12 +-
+ drivers/infiniband/hw/mlx5/counters.c         |  89 ++++--
+ drivers/infiniband/hw/mlx5/fs.c               | 276 +++++++++++++++++-
+ drivers/infiniband/hw/mlx5/fs.h               |  16 +
+ drivers/infiniband/hw/mlx5/main.c             |   3 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  14 +
+ drivers/infiniband/hw/mlx5/mr.c               |  10 +-
+ drivers/infiniband/hw/mlx5/qp.c               |   3 +
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  12 -
+ include/linux/mlx5/driver.h                   |  12 +
+ include/rdma/ib_addr.h                        |  23 --
+ 13 files changed, 401 insertions(+), 80 deletions(-)
+
 -- 
 2.40.1
 
