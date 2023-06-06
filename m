@@ -2,81 +2,83 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CE79C7EE24
-	for <linux-rdma@archiver.kernel.org>; Mon,  5 Jun 2023 23:01:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A0FFC77B7A
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jun 2023 05:50:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231277AbjFEXBK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 5 Jun 2023 19:01:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44760 "EHLO
+        id S232832AbjFFFuX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Jun 2023 01:50:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230212AbjFEXBJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 5 Jun 2023 19:01:09 -0400
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6271B94
-        for <linux-rdma@vger.kernel.org>; Mon,  5 Jun 2023 16:01:08 -0700 (PDT)
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-4f61307827cso654850e87.1
-        for <linux-rdma@vger.kernel.org>; Mon, 05 Jun 2023 16:01:08 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686006067; x=1688598067;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=dcdG1XdA8XnrnFa9/zZB6Q7Yu71aAFsf31yr3Vd3+3k=;
-        b=fPhvkvab68O73FpGU1pdFrvMjs6vMIPv/ZjkOUgoksSrvmyy36oZdPJpDrFuBBaYFa
-         VWLTqp2F8rpJqNmuOQkuNIFee+YonVrJy0OtfXcrxCCykd/2zsNKrTmC+tC+GLTQ5ruS
-         RNrc8sPLDA2m2m1Tm2eDia6HjdaIpmVy+6ex/ACZ4Nql37m4u8XzSpXCdSNFWMyw0N0s
-         tuPqDlMXvS7LMwbiJ/QbWCywY4UM36qFZAjv5ULYgirLBoBb1wyb55RJ8L0pda/m0mot
-         je5MiQoFtWFlIMMnAjRuTCEF3d4vpUQJ86Sqabc5/EFiapI0kRMh5di/vGE9D1hOEn59
-         szRA==
-X-Gm-Message-State: AC+VfDwyy0EurLyZAr2J0OcHTtuRBUX5B4XoREpyP8H7PwE3GGVbYXG+
-        gOO9nTXeVo74aRR/8sO1pkY=
-X-Google-Smtp-Source: ACHHUZ72eyIUbhKoNDoPk0vcakKw9lHDP1Lf/ZUIDhkt85YTOy+WpgALmUD8nldfFIZbrs5eupivEA==
-X-Received: by 2002:a2e:aa1c:0:b0:2b1:a69e:6a8e with SMTP id bf28-20020a2eaa1c000000b002b1a69e6a8emr301259ljb.3.1686006066563;
-        Mon, 05 Jun 2023 16:01:06 -0700 (PDT)
-Received: from [10.100.102.14] (46-117-190-200.bb.netvision.net.il. [46.117.190.200])
-        by smtp.gmail.com with ESMTPSA id z19-20020a2e8853000000b002af15f2a735sm1623369ljj.111.2023.06.05.16.01.05
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 05 Jun 2023 16:01:06 -0700 (PDT)
-Message-ID: <09504ea7-186d-9ede-e01f-87849673b9b2@grimberg.me>
-Date:   Tue, 6 Jun 2023 02:01:04 +0300
+        with ESMTP id S233832AbjFFFuP (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Jun 2023 01:50:15 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60F15E5F
+        for <linux-rdma@vger.kernel.org>; Mon,  5 Jun 2023 22:50:10 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C817462D2D
+        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 05:50:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A970AC433D2;
+        Tue,  6 Jun 2023 05:50:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686030609;
+        bh=Muu6ADIC0JRGip1QeBJMpIv2LMnERS7Mx8kvMIynmHs=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=omohNUtv1PpQHFmXG5v5XtKbHRENZTH1GkpsLVgMgtX3pjbks6/Z6f0N6VEqfnq4F
+         pfw2pW7ALJi2Fxp2DBVcZB4zfmiC5FooM0jqzfnO4Dntymto5jLpbShKTODc2loLf+
+         aegXHgpgYpvuAU0j0ekRiH+/e+EWoodnbtdXp6evkzee5Bfv28Cxw8Q1BJZT8XgmMy
+         /L83ePxQp8afzCsuu1eKGGaebpdlLTJRoQ2mVNBAmj7EOj9zkiTtnD2g4oQm/+xXUi
+         FRa16/jpc9k/UPECzRp4ZG7d00W+j3gV2pL9xafzk6wPBbbQe59dLEpPhAzJcKOXVA
+         AoZ4cytmttLig==
+Date:   Tue, 6 Jun 2023 08:50:04 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Michael Guralnik <michaelgur@nvidia.com>,
+        linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@nvidia.com>
+Subject: Re: [PATCH rdma-rc 06/10] RDMA/mlx5: Fix mkey cache possible
+ deadlock on cleanup
+Message-ID: <20230606055004.GA6830@unreal>
+References: <cover.1685960567.git.leon@kernel.org>
+ <babba5ce5a995ced9ea35133dbc938d2a19510d2.1685960567.git.leon@kernel.org>
+ <ZH4TTgqmYi0/A/bj@nvidia.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH] Revert "IB/core: Fix use workqueue without
- WQ_MEM_RECLAIM"
-Content-Language: en-US
-To:     Jason Gunthorpe <jgg@ziepe.ca>,
-        Maurizio Lombardi <mlombard@redhat.com>
-Cc:     Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
-        linux-nvme@lists.infradead.org, parav@mellanox.com
-References: <20230523155408.48594-1-mlombard@redhat.com>
- <20230523182815.GA2384059@unreal>
- <CAFL455m3T4qrk0Uf5qK7-57Oh6L6AKionfs0mF-imUMYpbqBOg@mail.gmail.com>
- <ZHebeWlpn68Xa1Hd@ziepe.ca>
-From:   Sagi Grimberg <sagi@grimberg.me>
-In-Reply-To: <ZHebeWlpn68Xa1Hd@ziepe.ca>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZH4TTgqmYi0/A/bj@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
->>>> workqueue: WQ_MEM_RECLAIM nvme-wq:nvme_rdma_reconnect_ctrl_work
->>>> [nvme_rdma] is flushing !WQ_MEM_RECLAIM ib_addr:process_one_req [ib_core]
->>>
->>> And why does nvme-wq need WQ_MEM_RECLAIM flag? I wonder if it is really
->>> needed.
->>
->> Adding Sagi Grimberg to cc, he probably knows and can explain it better than me.
+On Mon, Jun 05, 2023 at 01:54:38PM -0300, Jason Gunthorpe wrote:
+> On Mon, Jun 05, 2023 at 01:33:22PM +0300, Leon Romanovsky wrote:
 > 
-> We already allocate so much memory on these paths it is pretty
-> nonsense to claim they are a reclaim context. One allocation on the WQ
-> is not going to be the problem.
-> 
-> Probably this nvme stuff should not be re-using a reclaim marke dWQ
-> for memory allocating work like this, it is kind of nonsensical.
+> > diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+> > index 1ce48e485c5b..f113656e4027 100644
+> > --- a/drivers/infiniband/hw/mlx5/mr.c
+> > +++ b/drivers/infiniband/hw/mlx5/mr.c
+> > @@ -1033,7 +1033,15 @@ void mlx5_mkey_cache_cleanup(struct mlx5_ib_dev *dev)
+> >  		xa_lock_irq(&ent->mkeys);
+> >  		ent->disabled = true;
+> >  		xa_unlock_irq(&ent->mkeys);
+> > -		cancel_delayed_work_sync(&ent->dwork);
+> > +	}
+> > +
+> > +	/* Run the canceling of delayed works on the cache in a separate loop after
+> > +	 * disabling all entries to ensure someone_adding() will not try taking the
+> > +	 * rb_lock while flushing the workqueue.
+> > +	 */
+> > +	for (node = rb_first(root); node; node = rb_next(node)) {
+> > +		ent = rb_entry(node, struct mlx5_cache_ent, node);
+> > +		cancel_delayed_work(&ent->dwork);
+> >  	}
+> >
+> This goes on to kfree end, so this can't drop the sync.
 
-A controller reset runs on this workqueue, which should succeed to allow
-for pages to be flushed to the nvme disk. So I'd say its kind of
-essential that this sequence has a rescuer thread.
+with _sync, we will get same code as it was before.
+Let's put this patch aside.
+
+Thanks
+
+> 
+> Jason
