@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86FF0C77B7A
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jun 2023 07:13:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93A71C7EE2A
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jun 2023 07:13:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235961AbjFFHNC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Jun 2023 03:13:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33722 "EHLO
+        id S236004AbjFFHNE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Jun 2023 03:13:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236004AbjFFHMn (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Jun 2023 03:12:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F3C8E75
-        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 00:12:42 -0700 (PDT)
+        with ESMTP id S236018AbjFFHMp (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Jun 2023 03:12:45 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65900E7C
+        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 00:12:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 363A762B8C
-        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 07:12:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F339C4339E;
-        Tue,  6 Jun 2023 07:12:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EFF0962DE6
+        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 07:12:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46067C43326;
+        Tue,  6 Jun 2023 07:12:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686035561;
-        bh=zvaLiiOWfw1gltxm6jsLUMHZFwJP5r5B6KPxuTZZXmc=;
+        s=k20201202; t=1686035564;
+        bh=SCPGQDaiOmgv4WfRu3mWoyJB1OIsY/K3JEmAQ5RxAxI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BHYS/1ehOL1tXQ0l2/0CMUGeKRfiMw1guGbqqVy8cmEcnzeGbSRIbV8CjE1Do6clg
-         WxOv7J3qQJ3O84heo/ZKEZA+TqVSTbp7cSV+82eAlPXqUJd+Q95zM1TNjKPD9IUUN0
-         3fwF2NnlfgrH52BYTQBQIP06GdJHbcJ9FhRJ1fjV9LaGx0MZI/NCSxaDP6zTd5lNlj
-         sqaafDKapXvhGQhlEcXPKJGlelRM1X3GIra0g2rmaqXdNVgzqfuXcJXaMGjlqiPxpH
-         7+sDm7Oo5H8+zhvh+DFc3AkNrlN97s2wv4YZQrCKYDLHU4tDJzr2yIcDUDuj/Isdwg
-         xOsHmE5ccVCoQ==
+        b=ECYHGwhI0xsGNGsdWTd6IxZpD0TLqszF7toES4OTzahw9JEiKhaziAQMaj7oJVvCf
+         MIEJzgDCX/jlhVP6LRMxg5itW7rq+wlBuGqrM80LAjRmopdn1T0uYJHS9xdELbJvkL
+         2U22hlj7w0t4hwnqYtGxFZ3aWc6D1tzhrSW4vlD5sx0cntVlRPhFDAA2hf0jx2+Vgf
+         RR2iBqyzVZLTU5CmxW/YghXUsCv5TAimH3TCxfMZDvZNplhjqGAX1lQxYCTaLUGNOb
+         1QtwujFauTn4MMxA2UqJQ2EuvjPO63DYPvUVEn8zoNzBzxTcaAXYS52OPVXTLtd6p7
+         qWxorKuHJbwRg==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -40,9 +40,9 @@ Cc:     Saeed Mahameed <saeedm@nvidia.com>, netdev@vger.kernel.org,
         Tariq Toukan <tariqt@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>,
         linux-rdma@vger.kernel.org, Dragos Tatulea <dtatulea@nvidia.com>
-Subject: [net-next 09/15] net/mlx5e: RX, Log error when page_pool size is too large
-Date:   Tue,  6 Jun 2023 00:12:13 -0700
-Message-Id: <20230606071219.483255-10-saeed@kernel.org>
+Subject: [net-next 11/15] net/mlx5e: Remove RX page cache leftovers
+Date:   Tue,  6 Jun 2023 00:12:15 -0700
+Message-Id: <20230606071219.483255-12-saeed@kernel.org>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230606071219.483255-1-saeed@kernel.org>
 References: <20230606071219.483255-1-saeed@kernel.org>
@@ -52,33 +52,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Dragos Tatulea <dtatulea@nvidia.com>
+From: Tariq Toukan <tariqt@nvidia.com>
 
-The page_pool error message is a bit cryptic when the
-requested size is too large. Add a message on the driver
-side to display how many pages were actually requested.
+Remove unused definitions left after the removal
+of the RX page cache feature.
 
-Signed-off-by: Dragos Tatulea <dtatulea@nvidia.com>
-Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en.h | 7 -------
+ 1 file changed, 7 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index a7c526ee5024..579eb8cd928e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -849,6 +849,9 @@ static int mlx5e_alloc_rq(struct mlx5e_params *params,
- 		rq->page_pool = page_pool_create(&pp_params);
- 		if (IS_ERR(rq->page_pool)) {
- 			err = PTR_ERR(rq->page_pool);
-+			if (err == -E2BIG)
-+				mlx5_core_err(mdev, "requested page_pool size is too large: %u",
-+					      pp_params.pool_size);
- 			rq->page_pool = NULL;
- 			goto err_free_by_rq_type;
- 		}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+index 8e999f238194..ceabe57c511a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+@@ -594,13 +594,6 @@ struct mlx5e_mpw_info {
+ 
+ #define MLX5E_MAX_RX_FRAGS 4
+ 
+-/* a single cache unit is capable to serve one napi call (for non-striding rq)
+- * or a MPWQE (for striding rq).
+- */
+-#define MLX5E_CACHE_UNIT (MLX5_MPWRQ_MAX_PAGES_PER_WQE > NAPI_POLL_WEIGHT ? \
+-			  MLX5_MPWRQ_MAX_PAGES_PER_WQE : NAPI_POLL_WEIGHT)
+-#define MLX5E_CACHE_SIZE	(4 * roundup_pow_of_two(MLX5E_CACHE_UNIT))
+-
+ struct mlx5e_rq;
+ typedef void (*mlx5e_fp_handle_rx_cqe)(struct mlx5e_rq*, struct mlx5_cqe64*);
+ typedef struct sk_buff *
 -- 
 2.40.1
 
