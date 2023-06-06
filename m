@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62511C7EE2A
-	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jun 2023 07:12:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 994CAC7EE2E
+	for <linux-rdma@archiver.kernel.org>; Tue,  6 Jun 2023 07:12:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236060AbjFFHMz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 6 Jun 2023 03:12:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33394 "EHLO
+        id S230121AbjFFHM6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 6 Jun 2023 03:12:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235906AbjFFHMd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Jun 2023 03:12:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04015E7F
-        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 00:12:31 -0700 (PDT)
+        with ESMTP id S234820AbjFFHMf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 6 Jun 2023 03:12:35 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6956BE5A
+        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 00:12:34 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7027962DA6
-        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 07:12:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3DE7C433D2;
-        Tue,  6 Jun 2023 07:12:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CDAC762DD8
+        for <linux-rdma@vger.kernel.org>; Tue,  6 Jun 2023 07:12:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DD6CC4339C;
+        Tue,  6 Jun 2023 07:12:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686035550;
-        bh=LvJ3Nqcwx2ubTY72fUCes0Oz3BY+iZ9j20J0IG69fCM=;
+        s=k20201202; t=1686035553;
+        bh=nazBkLhFgUDUTNhrBxWBkILuuUUc4r4ig0UUvi9zxbM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=cZUhdFYvNzdOuokcbi7lpllfMb+RBoR41UkANJsb1/b5Jf1kz4SCveTA4cTfnwW+e
-         KFcERgf9+pBd8WeRNFsgGnxHEk3v28fz+3Ohgp4PtENGTS8V/XZCg2/yCiYWDObE0C
-         qYhNrDw8EJatfWtP8p5halQGcKUdzN+ewshKcV4G3IG3lky8AGzET97QLD9GdwEf6c
-         zcGeQGqiACnSfD97WFz1YQ1KK3x78xkDCxA6zwW0UzU3xdLyqHHK9juvvsfCQicEoI
-         M8QEQgGNh9uaJe3yxUeXu5ubza25d1c7agKaMdnQfz+7wlN+HvSItCMYKUNFMq+sip
-         iJ9db1mwcClgg==
+        b=EXoj2ddee2b6lQEPeSCPsyIAHrUWs8yvk74sIuzrv82y59QW7qb+4l1H68sfwB0Jz
+         nykwrsldQ9RDnMb1y9Q/FG4x5ArCiLTxGqkLcxLq7QIGMVuICYefGPYdkJuQrTjO1c
+         x+F//nlhd4SBKkcVpHuC9Rt26tLgBtWOI8COU1tVuW1EWx7lbghEy5toUxBNHhMXZj
+         F8sk1gzGZgTf1eVOPQWKlYDtdj6qidK3PLx3+45VAThFw8jDC+H1UvjCdo5q+jlIqa
+         xzqoLt+i+4ivWWxnj3EXuAJlyi9DcW1EmD36ASh0A56ZhpRKaFyV6jCEGOjC6gWx7z
+         58aOm2WXb2UBg==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -41,9 +41,9 @@ Cc:     Saeed Mahameed <saeedm@nvidia.com>, netdev@vger.kernel.org,
         Leon Romanovsky <leonro@nvidia.com>,
         linux-rdma@vger.kernel.org, Shay Drory <shayd@nvidia.com>,
         Mark Bloch <mbloch@nvidia.com>
-Subject: [net-next 01/15] RDMA/mlx5: Free second uplink ib port
-Date:   Tue,  6 Jun 2023 00:12:05 -0700
-Message-Id: <20230606071219.483255-2-saeed@kernel.org>
+Subject: [net-next 03/15] net/mlx5: LAG, check if all eswitches are paired for shared FDB
+Date:   Tue,  6 Jun 2023 00:12:07 -0700
+Message-Id: <20230606071219.483255-4-saeed@kernel.org>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230606071219.483255-1-saeed@kernel.org>
 References: <20230606071219.483255-1-saeed@kernel.org>
@@ -55,42 +55,64 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Shay Drory <shayd@nvidia.com>
 
-The cited patch introduce ib port for the slave device uplink in
-case of multiport eswitch. However, this ib port didn't perform
-anything when unloaded.
-Unload the new ib port properly.
+Shared FDB LAG can only work if all eswitches are paired.
+Also, whenever two eswitches are paired, devcom is marked as ready.
 
-Fixes: 27f9e0ccb6da ("net/mlx5: Lag, Add single RDMA device in multiport mode")
+Therefore, in case of device with two eswitches, checking devcom was
+sufficient. However, this is not correct for device with more than
+two eswitches, which will be introduced in downstream patch.
+Hence, check all eswitches are paired explicitly.
+
 Signed-off-by: Shay Drory <shayd@nvidia.com>
 Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/ib_rep.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h | 9 +++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c | 4 +++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
-index ddcfc116b19a..a4db22fe1883 100644
---- a/drivers/infiniband/hw/mlx5/ib_rep.c
-+++ b/drivers/infiniband/hw/mlx5/ib_rep.c
-@@ -126,7 +126,7 @@ mlx5_ib_vport_rep_unload(struct mlx5_eswitch_rep *rep)
- 	    !mlx5_lag_is_master(mdev)) {
- 		struct mlx5_core_dev *peer_mdev;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index c42c16d9ccbc..d3608f198e0a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -779,6 +779,13 @@ static inline int mlx5_eswitch_num_vfs(struct mlx5_eswitch *esw)
+ 	return 0;
+ }
  
--		if (rep->vport == MLX5_VPORT_UPLINK)
-+		if (rep->vport == MLX5_VPORT_UPLINK && !mlx5_lag_is_mpesw(mdev))
- 			return;
- 		peer_mdev = mlx5_lag_get_peer_mdev(mdev);
- 		vport_index += mlx5_eswitch_get_total_vports(peer_mdev);
-@@ -146,6 +146,9 @@ mlx5_ib_vport_rep_unload(struct mlx5_eswitch_rep *rep)
- 		struct mlx5_core_dev *peer_mdev;
- 		struct mlx5_eswitch *esw;
- 
-+		if (mlx5_lag_is_shared_fdb(mdev) && !mlx5_lag_is_master(mdev))
-+			return;
++static inline int mlx5_eswitch_get_npeers(struct mlx5_eswitch *esw)
++{
++	if (mlx5_esw_allowed(esw))
++		return esw->num_peers;
++	return 0;
++}
 +
- 		if (mlx5_lag_is_shared_fdb(mdev)) {
- 			peer_mdev = mlx5_lag_get_peer_mdev(mdev);
- 			esw = peer_mdev->priv.eswitch;
+ static inline struct mlx5_flow_table *
+ mlx5_eswitch_get_slow_fdb(struct mlx5_eswitch *esw)
+ {
+@@ -826,6 +833,8 @@ static inline void
+ mlx5_eswitch_offloads_single_fdb_del_one(struct mlx5_eswitch *master_esw,
+ 					 struct mlx5_eswitch *slave_esw) {}
+ 
++static inline int mlx5_eswitch_get_npeers(struct mlx5_eswitch *esw) { return 0; }
++
+ static inline int
+ mlx5_eswitch_reload_reps(struct mlx5_eswitch *esw)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+index c55e36e0571d..dd8a19d85617 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+@@ -828,7 +828,9 @@ bool mlx5_shared_fdb_supported(struct mlx5_lag *ldev)
+ 				      MLX5_DEVCOM_ESW_OFFLOADS) &&
+ 	    MLX5_CAP_GEN(dev1, lag_native_fdb_selection) &&
+ 	    MLX5_CAP_ESW(dev1, root_ft_on_other_esw) &&
+-	    MLX5_CAP_ESW(dev0, esw_shared_ingress_acl))
++	    MLX5_CAP_ESW(dev0, esw_shared_ingress_acl) &&
++	    mlx5_eswitch_get_npeers(dev0->priv.eswitch) == MLX5_CAP_GEN(dev0, num_lag_ports) - 1 &&
++	    mlx5_eswitch_get_npeers(dev1->priv.eswitch) == MLX5_CAP_GEN(dev1, num_lag_ports) - 1)
+ 		return true;
+ 
+ 	return false;
 -- 
 2.40.1
 
