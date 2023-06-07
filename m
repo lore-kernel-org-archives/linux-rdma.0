@@ -2,126 +2,116 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C082BC7EE25
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jun 2023 21:06:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D904C77B7A
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jun 2023 23:18:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235870AbjFGVGr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Jun 2023 17:06:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34028 "EHLO
+        id S230320AbjFGXSs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Jun 2023 19:18:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236734AbjFGVFI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jun 2023 17:05:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB1BA2D7D
-        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 14:04:43 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4102D649FE
-        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 21:04:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CD85C433AA;
-        Wed,  7 Jun 2023 21:04:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686171876;
-        bh=mrByyCHRUD3MFLkEdjFLeU+JfKMp9/Y7nWbhtLMYeb0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=YMN5CGsSZAeNvo5H5NdVh8sDUEHr1x2f2bAcLyyzD6ymGKeIxb6dx8xwS+eUTh0Qa
-         mhbkfOI4PJ8DjnpFqvK5KaHu7xerWJEjZBRV5gVfrpeXX6bNcEqLCAzTf6nSk11mPi
-         X8PFtK8KppmHhgskQu3NBI8/TBCCtSFU9ghOtDHtmOKrM1jt2OSB3ON0CpXTTFW5k/
-         9b6D0FH1Rw5eyQjKdyqJfyNg/UjPtZldpTF61ncC/cMJLq1rhLzrs21FrU2tCD8Yxj
-         81iu/CFqoTF5diAOKISjxfvR7f1pmSRbs5Vz5t2lD2AYWrPK9UjJ0iCJD4fN5u5UCz
-         5tVCNX6dRMOJg==
-From:   Saeed Mahameed <saeed@kernel.org>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
+        with ESMTP id S231906AbjFGXSq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jun 2023 19:18:46 -0400
+Received: from mail-qt1-x832.google.com (mail-qt1-x832.google.com [IPv6:2607:f8b0:4864:20::832])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A17A32680
+        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 16:18:45 -0700 (PDT)
+Received: by mail-qt1-x832.google.com with SMTP id d75a77b69052e-3f83971680eso9333771cf.0
+        for <linux-rdma@vger.kernel.org>; Wed, 07 Jun 2023 16:18:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1686179925; x=1688771925;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=YIOzJhT0hqKstM2S6gEQTLViDTnNFBm2YwBvNjGNAeI=;
+        b=dyKY0yS96TF3LukPXH++FnWmRIEStl3jjAnrVa0ByfpcXQkA2sKHL0z4wX3+NYtqyC
+         Td7JVNmzPvr52KUNGXUmHGyM//vofyiQv/CpYob8yW0rtlReZXpUGRs/5MfsNU4T2Gth
+         XmiQyRqw5Q7hxjCNfOKUFTMAyRo0y4m3QuFxJ/UpKubVJVSlNXabE6pzuGO8cVryRuDy
+         uf6hVZPOFH1nKtQadyZDhkf1Hdo12bUa6+ThDEe4v5wKylCBU4VBaMqhQs8m9T5mmcUH
+         Fsg4srnZk8aI9jMuPf5dsZP15rUx5CR68VNL9IiybcGhoC2i7eW9mQcZ5E5nqduAPK3G
+         +/lA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686179925; x=1688771925;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=YIOzJhT0hqKstM2S6gEQTLViDTnNFBm2YwBvNjGNAeI=;
+        b=K8u5aUeo+CQG+GhqKMtePpBi8b3WRSDPfkurwYzl7g324KqyDhblAajp5DK/wQu+sS
+         X/TMlETie9VsH6Jh27X3EbIkMlBWvXnQ7hR/VflK3n1F4D7Mr8Ba67aPRBnPScbmZkNm
+         I60d3UnIzC+HQYZhYSK1U6+8sZy7c4GDx8iS19u71q+5fzD7HDF/b3G0Di+BS8ziB5gG
+         FySwWrynNGp+KcuDfh4V/2RjwLZhBpKeyeFxzLvba2eCDcTT4Y6UIirC2FXJG/w+yGd3
+         YrBy4f6Lypub3RHL3XHLCtBL8kMhYhBh+NuNU9iHbht5EBuF3YjNrHOHRQNwxN2BNDna
+         ogBw==
+X-Gm-Message-State: AC+VfDzM1aNtFtSjTQHXRTLLbG8kIku0JiBX/I9KgH6ZFoVjGh7pDiMK
+        vce12p/3rClZFGlJBs8n/nEKtQ==
+X-Google-Smtp-Source: ACHHUZ5iyUE2d3PTdgxxvmoAboA/kaux55d2TBr0vmLzVM/URImo3XCoCol6OqOX1WFL/IwfgbqR5A==
+X-Received: by 2002:ac8:5acf:0:b0:3f8:1ac2:4ece with SMTP id d15-20020ac85acf000000b003f81ac24ecemr447152qtd.34.1686179924792;
+        Wed, 07 Jun 2023 16:18:44 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-25-194.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.25.194])
+        by smtp.gmail.com with ESMTPSA id g13-20020ac8124d000000b003f4a76d4981sm259410qtj.66.2023.06.07.16.18.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 07 Jun 2023 16:18:44 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1q72QN-003Mqb-Al;
+        Wed, 07 Jun 2023 20:18:43 -0300
+Date:   Wed, 7 Jun 2023 20:18:43 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Saeed Mahameed <saeed@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
         Paolo Abeni <pabeni@redhat.com>,
-        Eric Dumazet <edumazet@google.com>
-Cc:     Saeed Mahameed <saeedm@nvidia.com>, netdev@vger.kernel.org,
+        Eric Dumazet <edumazet@google.com>,
+        Saeed Mahameed <saeedm@nvidia.com>, netdev@vger.kernel.org,
         Tariq Toukan <tariqt@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>,
-        linux-rdma@vger.kernel.org, Shay Drory <shayd@nvidia.com>,
-        Mark Bloch <mbloch@nvidia.com>
-Subject: [net-next V2 08/14] net/mlx5: Enable 4 ports VF LAG
-Date:   Wed,  7 Jun 2023 14:04:04 -0700
-Message-Id: <20230607210410.88209-9-saeed@kernel.org>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230607210410.88209-1-saeed@kernel.org>
-References: <20230607210410.88209-1-saeed@kernel.org>
+        linux-rdma@vger.kernel.org, Jiri Pirko <jiri@nvidia.com>
+Subject: Re: [net-next 13/15] net/mlx5: Skip inline mode check after
+ mlx5_eswitch_enable_locked() failure
+Message-ID: <ZIEQU7cLLXXk1Nqy@ziepe.ca>
+References: <20230606071219.483255-1-saeed@kernel.org>
+ <20230606071219.483255-14-saeed@kernel.org>
+ <20230606220117.0696be3e@kernel.org>
+ <ZICP4kWm5moYRKm1@ziepe.ca>
+ <20230607091909.321fc5d7@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230607091909.321fc5d7@kernel.org>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shay Drory <shayd@nvidia.com>
+On Wed, Jun 07, 2023 at 09:19:09AM -0700, Jakub Kicinski wrote:
 
-Now, after all preparation are done, enable 4 ports VF LAG
+> > If it is really important add a 'cc: stable'.
+> > 
+> > If it is sort of important then send it to the -rc tree.
+> > 
+> > Otherwise dump it in the merge window.
+> 
+> You just said that people can't predict the importance of their fixes
+> and yet you draw categories.
 
-Signed-off-by: Shay Drory <shayd@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c    | 4 ++--
- drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c | 5 +++--
- drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h | 2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+The categories exist in our workflow - we have two patch streams to
+Linus and the cc stable mechanism for Greg and others. This is what
+Greg/Linus defined. Maintainers have to funnel patches into these
+streams.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-index 6ce71c42c755..ffd7e17b8ebe 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-@@ -711,7 +711,7 @@ int mlx5_deactivate_lag(struct mlx5_lag *ldev)
- 	return 0;
- }
- 
--#define MLX5_LAG_OFFLOADS_SUPPORTED_PORTS 2
-+#define MLX5_LAG_OFFLOADS_SUPPORTED_PORTS 4
- bool mlx5_lag_check_prereq(struct mlx5_lag *ldev)
- {
- #ifdef CONFIG_MLX5_ESWITCH
-@@ -737,7 +737,7 @@ bool mlx5_lag_check_prereq(struct mlx5_lag *ldev)
- 		if (mlx5_eswitch_mode(ldev->pf[i].dev) != mode)
- 			return false;
- 
--	if (mode == MLX5_ESWITCH_OFFLOADS && ldev->ports != MLX5_LAG_OFFLOADS_SUPPORTED_PORTS)
-+	if (mode == MLX5_ESWITCH_OFFLOADS && ldev->ports > MLX5_LAG_OFFLOADS_SUPPORTED_PORTS)
- 		return false;
- #else
- 	for (i = 0; i < ldev->ports; i++)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c
-index 8472bbb3cd58..78c94b22bdc0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c
-@@ -75,13 +75,14 @@ struct mlx5_devcom *mlx5_devcom_register_device(struct mlx5_core_dev *dev)
- 
- 	if (!mlx5_core_is_pf(dev))
- 		return NULL;
--	if (MLX5_CAP_GEN(dev, num_lag_ports) != MLX5_DEVCOM_PORTS_SUPPORTED)
-+	if (MLX5_CAP_GEN(dev, num_lag_ports) > MLX5_DEVCOM_PORTS_SUPPORTED)
- 		return NULL;
- 
- 	mlx5_dev_list_lock();
- 	sguid0 = mlx5_query_nic_system_image_guid(dev);
- 	list_for_each_entry(iter, &devcom_list, list) {
--		struct mlx5_core_dev *tmp_dev = NULL;
-+		/* There is at least one device in iter */
-+		struct mlx5_core_dev *tmp_dev;
- 
- 		idx = -1;
- 		for (i = 0; i < MLX5_DEVCOM_PORTS_SUPPORTED; i++) {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h
-index bb1970ba8730..d953a01b8eaa 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.h
-@@ -6,7 +6,7 @@
- 
- #include <linux/mlx5/driver.h>
- 
--#define MLX5_DEVCOM_PORTS_SUPPORTED 2
-+#define MLX5_DEVCOM_PORTS_SUPPORTED 4
- 
- enum mlx5_devcom_components {
- 	MLX5_DEVCOM_ESW_OFFLOADS,
--- 
-2.40.1
+I said people have trouble categorizing their own work into each
+stream. Many people legitimately disagree what should go in each
+stream. If patch comes to the list with the best guess then the
+community/maintainer can help and create some consistency.
 
+If people self-censor their Fixes lines this is harder.
+
+Further, there is a legitimate disagreement on what should and should
+not be backported. Keeping the Fixes lines allows everyone to make
+their own choices. If something doesn't go to -rc because it doesn't
+meet Linus's threshold it may still need to be backported.
+
+> > But mark it with Fixes regardless
+> 
+> Every subsystem can make their own rules. In netdev Fixes go to net.
+
+I don't really like this position that every maintainer and every
+subsystem can do whatever they want.
+
+Jason
