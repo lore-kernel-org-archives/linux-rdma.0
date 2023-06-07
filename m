@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FF19C7EE25
-	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jun 2023 21:05:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6BEFC7EE43
+	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jun 2023 21:05:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236163AbjFGVFr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 7 Jun 2023 17:05:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34306 "EHLO
+        id S236215AbjFGVFs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 7 Jun 2023 17:05:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236722AbjFGVFI (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jun 2023 17:05:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4EDD2D79
-        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 14:04:43 -0700 (PDT)
+        with ESMTP id S236792AbjFGVFL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jun 2023 17:05:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72FF62709
+        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 14:04:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E101E649F9
-        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 21:04:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D1B4C43443;
-        Wed,  7 Jun 2023 21:04:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3C087649CB
+        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 21:04:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69391C433B3;
+        Wed,  7 Jun 2023 21:04:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686171875;
-        bh=TvvFLrdrNCJQMZKS4rYmyo47SA0euHg3Lv0phWxoJSM=;
+        s=k20201202; t=1686171879;
+        bh=SCPGQDaiOmgv4WfRu3mWoyJB1OIsY/K3JEmAQ5RxAxI=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PSWxJPR2XDTZfBHykvj3Orgtd0KwdyvdROlOKqzrpvobz37Hfi5QWOXjJb0E/L9hw
-         6SEqTNlgh55ooJYUJlu/eMjueshE324T0W4/0exVgcpm4bMJF+8/ZA0m5I89pttwiM
-         fBAblx+im4Il8qgr0ZtjTVVq108/GDYG6M5xjwwFhsoudIIDJg68vWjoTyy3jeD27o
-         aXdOrmDmF2j167gIQjyZwiee4BoeyxKfaseXStucoYbaxhIwXRBd/msdKQkpu/ENS3
-         ke3Zqfzh1w8LUXsR/wvS9BhE7jW5VF6zEgLpoHZcF57lktX5te74O2JBVwW9AnytJA
-         MRuzzRg++/YLg==
+        b=Ai2ieABfR4pZ0vXRIOQX1GGXYXiqT3Kt76ntXgBnZJIOZZRkmaOsr7sxppodWDRUa
+         JSbPU8CU856HOqI+Wkk+Y6ZzMIjfB3HD2e1ZJFTiUljJqTGl3awPyRHDjnTqxw/a0j
+         sof+81R2TEtvBMCuTmQBUEY2GZkTMyJeMJ4LvcxbFaXNuSEVrz3WucKh8bpaN8Yc6E
+         3WBvxZJ+6QwLb3LVKpTyn8/Zj1ZsKi9iMiolT8DyANIWTxn/FvZ/w1mBJxpJ7k4VvX
+         G167wwTCUX9BwAUpMy1gDHO3Wjk3ajr+Aqm6KSI1v03TuDZ5vGX0EnZWHKY4tuuGCI
+         ddwtPJT2aiUew==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -39,11 +39,10 @@ To:     "David S. Miller" <davem@davemloft.net>,
 Cc:     Saeed Mahameed <saeedm@nvidia.com>, netdev@vger.kernel.org,
         Tariq Toukan <tariqt@nvidia.com>,
         Leon Romanovsky <leonro@nvidia.com>,
-        linux-rdma@vger.kernel.org, Shay Drory <shayd@nvidia.com>,
-        Mark Bloch <mbloch@nvidia.com>
-Subject: [net-next V2 07/14] net/mlx5: LAG, block multiport eswitch LAG in case ldev have more than 2 ports
-Date:   Wed,  7 Jun 2023 14:04:03 -0700
-Message-Id: <20230607210410.88209-8-saeed@kernel.org>
+        linux-rdma@vger.kernel.org, Dragos Tatulea <dtatulea@nvidia.com>
+Subject: [net-next V2 10/14] net/mlx5e: Remove RX page cache leftovers
+Date:   Wed,  7 Jun 2023 14:04:06 -0700
+Message-Id: <20230607210410.88209-11-saeed@kernel.org>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230607210410.88209-1-saeed@kernel.org>
 References: <20230607210410.88209-1-saeed@kernel.org>
@@ -53,40 +52,36 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shay Drory <shayd@nvidia.com>
+From: Tariq Toukan <tariqt@nvidia.com>
 
-multiport eswitch LAG is not supported over more than two ports. Add a check in
-order to block multiport eswitch LAG over such devices.
+Remove unused definitions left after the removal
+of the RX page cache feature.
 
-Signed-off-by: Shay Drory <shayd@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en.h | 7 -------
+ 1 file changed, 7 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-index 0c0ef600f643..0e869a76dfe4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/mpesw.c
-@@ -65,6 +65,7 @@ static int mlx5_mpesw_metadata_set(struct mlx5_lag *ldev)
- 	return err;
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+index 8e999f238194..ceabe57c511a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+@@ -594,13 +594,6 @@ struct mlx5e_mpw_info {
  
-+#define MLX5_LAG_MPESW_OFFLOADS_SUPPORTED_PORTS 2
- static int enable_mpesw(struct mlx5_lag *ldev)
- {
- 	struct mlx5_core_dev *dev0 = ldev->pf[MLX5_LAG_P1].dev;
-@@ -74,6 +75,9 @@ static int enable_mpesw(struct mlx5_lag *ldev)
- 	if (ldev->mode != MLX5_LAG_MODE_NONE)
- 		return -EINVAL;
+ #define MLX5E_MAX_RX_FRAGS 4
  
-+	if (ldev->ports > MLX5_LAG_MPESW_OFFLOADS_SUPPORTED_PORTS)
-+		return -EOPNOTSUPP;
-+
- 	if (mlx5_eswitch_mode(dev0) != MLX5_ESWITCH_OFFLOADS ||
- 	    !MLX5_CAP_PORT_SELECTION(dev0, port_select_flow_table) ||
- 	    !MLX5_CAP_GEN(dev0, create_lag_when_not_master_up) ||
+-/* a single cache unit is capable to serve one napi call (for non-striding rq)
+- * or a MPWQE (for striding rq).
+- */
+-#define MLX5E_CACHE_UNIT (MLX5_MPWRQ_MAX_PAGES_PER_WQE > NAPI_POLL_WEIGHT ? \
+-			  MLX5_MPWRQ_MAX_PAGES_PER_WQE : NAPI_POLL_WEIGHT)
+-#define MLX5E_CACHE_SIZE	(4 * roundup_pow_of_two(MLX5E_CACHE_UNIT))
+-
+ struct mlx5e_rq;
+ typedef void (*mlx5e_fp_handle_rx_cqe)(struct mlx5e_rq*, struct mlx5_cqe64*);
+ typedef struct sk_buff *
 -- 
 2.40.1
 
