@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A6FC77B7A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E618DC8300C
 	for <linux-rdma@archiver.kernel.org>; Wed,  7 Jun 2023 21:05:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236233AbjFGVFt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S236243AbjFGVFt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 7 Jun 2023 17:05:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34106 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236403AbjFGVE7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jun 2023 17:04:59 -0400
+        with ESMTP id S236908AbjFGVFO (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 7 Jun 2023 17:05:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF5782695
-        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 14:04:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D49891721
+        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 14:04:49 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C7EF649ED
-        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 21:04:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 906CFC433A4;
-        Wed,  7 Jun 2023 21:04:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 95066649E4
+        for <linux-rdma@vger.kernel.org>; Wed,  7 Jun 2023 21:04:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7F56C4331E;
+        Wed,  7 Jun 2023 21:04:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686171869;
-        bh=nazBkLhFgUDUTNhrBxWBkILuuUUc4r4ig0UUvi9zxbM=;
+        s=k20201202; t=1686171884;
+        bh=+x5l76jEigP+jfedcLp5qK2IoJnrnOHNChSi6eV9RfE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ixqF92g9FtimdRl9wl2tgBtLY8lLmaL1ch7FB41Ov/AiiYq5VCNPU+NdKq8cAx4k3
-         J/P46xNFwGUbXoJZSM8dbte5KSz8f9fRAujESJA0mJCf/yVR8hbTsTB6VNQcMit5uq
-         ebR/ZZshcZZyTJcxD6H3eYZn/9IK8ldkXQBO3uBrWSmAMYMPUKElcHQU/hKyCbFtZG
-         0LRvhtX1ALWE/FVt4bOtgbG6k0mo7uBu52GUouMtAmXxpI5i5pbhYQc0LeMfmduk5x
-         OYCZwmtpFECxX5851j15k59ByRdFSAtTdX41IgD3s2G/NavKmK8ymg6tOEi0fQyq94
-         03FrTO8QD/fUA==
+        b=PlyRi4egE7WcLCeYsXKBDXKkCCNpShyLc063sG6Cw7H0MBCp9cVtbF+m1Vg1FSUOg
+         3RDim0Fs7km0dhD8Xlx1kX7KPp/Ty1yoEoFek95kfhdH697MkgTXFdDtZnRA4dU3Ut
+         /RaRbeWqRgvOY0WtjRKtLW3nGWRlVUHKTWchFypVwg5o5owFXt6qNXAK5lkJXbrrCR
+         A7+YH1tMwdQhs5a7B/iAYEIJaOOLhSKzLw8DddOkeJPD9rdZJhHFG+kw8Z2ve2GvMI
+         UIQX4oI9p12hQbDltvhDK4owz2AlhCyutDQzliikOcme9tx/hY/USQDpgSQ+Oc1+Ud
+         3n/c9hnIDF+NQ==
 From:   Saeed Mahameed <saeed@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
         Jakub Kicinski <kuba@kernel.org>,
@@ -38,12 +38,10 @@ To:     "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>
 Cc:     Saeed Mahameed <saeedm@nvidia.com>, netdev@vger.kernel.org,
         Tariq Toukan <tariqt@nvidia.com>,
-        Leon Romanovsky <leonro@nvidia.com>,
-        linux-rdma@vger.kernel.org, Shay Drory <shayd@nvidia.com>,
-        Mark Bloch <mbloch@nvidia.com>
-Subject: [net-next V2 03/14] net/mlx5: LAG, check if all eswitches are paired for shared FDB
-Date:   Wed,  7 Jun 2023 14:03:59 -0700
-Message-Id: <20230607210410.88209-4-saeed@kernel.org>
+        Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org
+Subject: [net-next V2 14/14] net/mlx5e: simplify condition after napi budget handling change
+Date:   Wed,  7 Jun 2023 14:04:10 -0700
+Message-Id: <20230607210410.88209-15-saeed@kernel.org>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20230607210410.88209-1-saeed@kernel.org>
 References: <20230607210410.88209-1-saeed@kernel.org>
@@ -53,66 +51,29 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Shay Drory <shayd@nvidia.com>
+From: Jakub Kicinski <kuba@kernel.org>
 
-Shared FDB LAG can only work if all eswitches are paired.
-Also, whenever two eswitches are paired, devcom is marked as ready.
+Since recent commit budget can't be 0 here.
 
-Therefore, in case of device with two eswitches, checking devcom was
-sufficient. However, this is not correct for device with more than
-two eswitches, which will be introduced in downstream patch.
-Hence, check all eswitches are paired explicitly.
-
-Signed-off-by: Shay Drory <shayd@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.h | 9 +++++++++
- drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c | 4 +++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index c42c16d9ccbc..d3608f198e0a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -779,6 +779,13 @@ static inline int mlx5_eswitch_num_vfs(struct mlx5_eswitch *esw)
- 	return 0;
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+index fbb2d963fb7e..a7d9b7cb4297 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c
+@@ -207,7 +207,7 @@ int mlx5e_napi_poll(struct napi_struct *napi, int budget)
+ 		}
+ 		ch_stats->aff_change++;
+ 		aff_change = true;
+-		if (budget && work_done == budget)
++		if (work_done == budget)
+ 			work_done--;
+ 	}
  
-+static inline int mlx5_eswitch_get_npeers(struct mlx5_eswitch *esw)
-+{
-+	if (mlx5_esw_allowed(esw))
-+		return esw->num_peers;
-+	return 0;
-+}
-+
- static inline struct mlx5_flow_table *
- mlx5_eswitch_get_slow_fdb(struct mlx5_eswitch *esw)
- {
-@@ -826,6 +833,8 @@ static inline void
- mlx5_eswitch_offloads_single_fdb_del_one(struct mlx5_eswitch *master_esw,
- 					 struct mlx5_eswitch *slave_esw) {}
- 
-+static inline int mlx5_eswitch_get_npeers(struct mlx5_eswitch *esw) { return 0; }
-+
- static inline int
- mlx5_eswitch_reload_reps(struct mlx5_eswitch *esw)
- {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-index c55e36e0571d..dd8a19d85617 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
-@@ -828,7 +828,9 @@ bool mlx5_shared_fdb_supported(struct mlx5_lag *ldev)
- 				      MLX5_DEVCOM_ESW_OFFLOADS) &&
- 	    MLX5_CAP_GEN(dev1, lag_native_fdb_selection) &&
- 	    MLX5_CAP_ESW(dev1, root_ft_on_other_esw) &&
--	    MLX5_CAP_ESW(dev0, esw_shared_ingress_acl))
-+	    MLX5_CAP_ESW(dev0, esw_shared_ingress_acl) &&
-+	    mlx5_eswitch_get_npeers(dev0->priv.eswitch) == MLX5_CAP_GEN(dev0, num_lag_ports) - 1 &&
-+	    mlx5_eswitch_get_npeers(dev1->priv.eswitch) == MLX5_CAP_GEN(dev1, num_lag_ports) - 1)
- 		return true;
- 
- 	return false;
 -- 
 2.40.1
 
