@@ -2,24 +2,24 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B473C7EE23
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:20:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49A4CC7EE23
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:20:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233254AbjFKRUt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Jun 2023 13:20:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45078 "EHLO
+        id S231952AbjFKRU4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Jun 2023 13:20:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230233AbjFKRUs (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:20:48 -0400
+        with ESMTP id S230233AbjFKRUz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:20:55 -0400
 Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9B5ED199E;
-        Sun, 11 Jun 2023 10:20:21 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7BCA110D0;
+        Sun, 11 Jun 2023 10:20:29 -0700 (PDT)
 Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id E73559200C7; Sun, 11 Jun 2023 19:19:57 +0200 (CEST)
+        id 90AD99200C1; Sun, 11 Jun 2023 19:19:49 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id E0F309200C0;
-        Sun, 11 Jun 2023 18:19:57 +0100 (BST)
-Date:   Sun, 11 Jun 2023 18:19:57 +0100 (BST)
+        by angie.orcam.me.uk (Postfix) with ESMTP id 8B5119200B3;
+        Sun, 11 Jun 2023 18:19:49 +0100 (BST)
+Date:   Sun, 11 Jun 2023 18:19:49 +0100 (BST)
 From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
@@ -42,10 +42,9 @@ cc:     Alex Williamson <alex.williamson@redhat.com>,
         linux-pci@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v9 11/14] PCI: Use `pcie_wait_for_link_status' in
- `pcie_wait_for_link_delay'
+Subject: [PATCH v9 09/14] PCI: Factor our waiting for link training end
 In-Reply-To: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
-Message-ID: <alpine.DEB.2.21.2306111611170.64925@angie.orcam.me.uk>
+Message-ID: <alpine.DEB.2.21.2306111605060.64925@angie.orcam.me.uk>
 References: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
 User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
@@ -54,62 +53,80 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Remove a DLLLA status bit polling loop from `pcie_wait_for_link_delay' 
-and call almost identical code in `pcie_wait_for_link_status' instead.  
-This reduces the lower bound on the polling interval from 10ms to 1ms, 
-possibly increasing the CPU load on the system in favour to reducing 
-the wait time.
+Move code polling for the Link Training bit to clear into a function of 
+its own.
 
 Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
 ---
 New change in v9.
 ---
- drivers/pci/pci.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ drivers/pci/pci.c |   37 ++++++++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 13 deletions(-)
 
-linux-pcie-wait-for-link-delay-status.diff
+linux-pcie-wait-for-link-status.diff
 Index: linux-macro/drivers/pci/pci.c
 ===================================================================
 --- linux-macro.orig/drivers/pci/pci.c
 +++ linux-macro/drivers/pci/pci.c
-@@ -4889,16 +4889,14 @@ static bool pcie_wait_for_link_status(st
- static bool pcie_wait_for_link_delay(struct pci_dev *pdev, bool active,
- 				     int delay)
- {
--	int timeout = PCIE_LINK_RETRAIN_TIMEOUT_MS;
- 	bool ret;
--	u16 lnk_status;
- 
- 	/*
- 	 * Some controllers might not implement link active reporting. In this
- 	 * case, we wait for 1000 ms + any delay requested by the caller.
- 	 */
- 	if (!pdev->link_active_reporting) {
--		msleep(timeout + delay);
-+		msleep(PCIE_LINK_RETRAIN_TIMEOUT_MS + delay);
- 		return true;
- 	}
- 
-@@ -4913,20 +4911,11 @@ static bool pcie_wait_for_link_delay(str
- 	 */
- 	if (active)
- 		msleep(20);
--	for (;;) {
--		pcie_capability_read_word(pdev, PCI_EXP_LNKSTA, &lnk_status);
--		ret = !!(lnk_status & PCI_EXP_LNKSTA_DLLLA);
--		if (ret == active)
--			break;
--		if (timeout <= 0)
--			break;
--		msleep(10);
--		timeout -= 10;
--	}
-+	ret = pcie_wait_for_link_status(pdev, false, active);
- 	if (active && ret)
- 		msleep(delay);
- 
--	return ret == active;
-+	return ret;
+@@ -4850,6 +4850,28 @@ static int pci_pm_reset(struct pci_dev *
  }
  
  /**
++ * pcie_wait_for_link_status - Wait for link training end
++ * @pdev: Device whose link to wait for.
++ *
++ * Return TRUE if successful, or FALSE if training has not completed
++ * within PCIE_LINK_RETRAIN_TIMEOUT_MS milliseconds.
++ */
++static bool pcie_wait_for_link_status(struct pci_dev *pdev)
++{
++	unsigned long end_jiffies;
++	u16 lnksta;
++
++	end_jiffies = jiffies + msecs_to_jiffies(PCIE_LINK_RETRAIN_TIMEOUT_MS);
++	do {
++		pcie_capability_read_word(pdev, PCI_EXP_LNKSTA, &lnksta);
++		if (!(lnksta & PCI_EXP_LNKSTA_LT))
++			break;
++		msleep(1);
++	} while (time_before(jiffies, end_jiffies));
++	return !(lnksta & PCI_EXP_LNKSTA_LT);
++}
++
++/**
+  * pcie_wait_for_link_delay - Wait until link is active or inactive
+  * @pdev: Bridge device
+  * @active: waiting for active or inactive?
+@@ -4916,14 +4938,11 @@ bool pcie_wait_for_link(struct pci_dev *
+  * pcie_retrain_link - Request a link retrain and wait for it to complete
+  * @pdev: Device whose link to retrain.
+  *
+- * Return TRUE if successful, or FALSE if training has not completed
+- * within PCIE_LINK_RETRAIN_TIMEOUT_MS milliseconds.
++ * Return TRUE if successful, or FALSE if training has not completed.
+  */
+ bool pcie_retrain_link(struct pci_dev *pdev)
+ {
+-	unsigned long end_jiffies;
+ 	u16 lnkctl;
+-	u16 lnksta;
+ 
+ 	pcie_capability_read_word(pdev, PCI_EXP_LNKCTL, &lnkctl);
+ 	lnkctl |= PCI_EXP_LNKCTL_RL;
+@@ -4938,15 +4957,7 @@ bool pcie_retrain_link(struct pci_dev *p
+ 		pcie_capability_write_word(pdev, PCI_EXP_LNKCTL, lnkctl);
+ 	}
+ 
+-	/* Wait for link training end. Break out after waiting for timeout. */
+-	end_jiffies = jiffies + msecs_to_jiffies(PCIE_LINK_RETRAIN_TIMEOUT_MS);
+-	do {
+-		pcie_capability_read_word(pdev, PCI_EXP_LNKSTA, &lnksta);
+-		if (!(lnksta & PCI_EXP_LNKSTA_LT))
+-			break;
+-		msleep(1);
+-	} while (time_before(jiffies, end_jiffies));
+-	return !(lnksta & PCI_EXP_LNKSTA_LT);
++	return pcie_wait_for_link_status(pdev);
+ }
+ 
+ /*
