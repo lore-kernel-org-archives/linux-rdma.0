@@ -2,24 +2,24 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D1DC7EE37
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:19:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CCC1C77B7A
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:20:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233455AbjFKRT3 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Jun 2023 13:19:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43428 "EHLO
+        id S229616AbjFKRUV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Jun 2023 13:20:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233879AbjFKRT1 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:19:27 -0400
+        with ESMTP id S230515AbjFKRUU (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:20:20 -0400
 Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 1564A10CC;
-        Sun, 11 Jun 2023 10:19:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 210661BDF;
+        Sun, 11 Jun 2023 10:19:57 -0700 (PDT)
 Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id 69A929200BF; Sun, 11 Jun 2023 19:19:23 +0200 (CEST)
+        id 060279200C4; Sun, 11 Jun 2023 19:19:36 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id 637809200B3;
-        Sun, 11 Jun 2023 18:19:23 +0100 (BST)
-Date:   Sun, 11 Jun 2023 18:19:23 +0100 (BST)
+        by angie.orcam.me.uk (Postfix) with ESMTP id F3F579200C0;
+        Sun, 11 Jun 2023 18:19:36 +0100 (BST)
+Date:   Sun, 11 Jun 2023 18:19:36 +0100 (BST)
 From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
@@ -42,10 +42,9 @@ cc:     Alex Williamson <alex.williamson@redhat.com>,
         linux-pci@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v9 03/14] PCI: Execute `quirk_enable_clear_retrain_link'
- earlier
+Subject: [PATCH v9 06/14] net/mlx5: Rely on `link_active_reporting'
 In-Reply-To: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
-Message-ID: <alpine.DEB.2.21.2305310049000.59226@angie.orcam.me.uk>
+Message-ID: <alpine.DEB.2.21.2305310125370.59226@angie.orcam.me.uk>
 References: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
 User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
@@ -54,41 +53,53 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Make `quirk_enable_clear_retrain_link' `pci_fixup_early' so that any later 
-fixups can rely on `clear_retrain_link' to have been already initialised.
+Use `link_active_reporting' to determine whether Data Link Layer Link 
+Active Reporting is available rather than re-retrieving the capability.
 
 Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
 ---
+NB this has been compile-tested only with PPC64LE and x86-64 
+configurations.
+
 No change from v8.
 
 Changes from v7:
 
-- Reorder from 2/7.
+- Reorder from 5/7.
 
-No change from v6.
+Changes from v6:
 
-No change from v5.
+- Regenerate against 6.3-rc5.
 
-New change in v5.
+New change in v6.
 ---
- drivers/pci/quirks.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-linux-pcie-clear-retrain-link-early.diff
-Index: linux-macro/drivers/pci/quirks.c
+linux-pcie-link-active-reporting-mlx5.diff
+Index: linux-macro/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
 ===================================================================
---- linux-macro.orig/drivers/pci/quirks.c
-+++ linux-macro/drivers/pci/quirks.c
-@@ -2407,9 +2407,9 @@ static void quirk_enable_clear_retrain_l
- 	dev->clear_retrain_link = 1;
- 	pci_info(dev, "Enable PCIe Retrain Link quirk\n");
- }
--DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_PERICOM, 0xe110, quirk_enable_clear_retrain_link);
--DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_PERICOM, 0xe111, quirk_enable_clear_retrain_link);
--DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_PERICOM, 0xe130, quirk_enable_clear_retrain_link);
-+DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_PERICOM, 0xe110, quirk_enable_clear_retrain_link);
-+DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_PERICOM, 0xe111, quirk_enable_clear_retrain_link);
-+DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_PERICOM, 0xe130, quirk_enable_clear_retrain_link);
+--- linux-macro.orig/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
++++ linux-macro/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
+@@ -307,7 +307,6 @@ static int mlx5_pci_link_toggle(struct m
+ 	unsigned long timeout;
+ 	struct pci_dev *sdev;
+ 	int cap, err;
+-	u32 reg32;
  
- static void fixup_rev1_53c810(struct pci_dev *dev)
- {
+ 	/* Check that all functions under the pci bridge are PFs of
+ 	 * this device otherwise fail this function.
+@@ -346,11 +345,8 @@ static int mlx5_pci_link_toggle(struct m
+ 		return err;
+ 
+ 	/* Check link */
+-	err = pci_read_config_dword(bridge, cap + PCI_EXP_LNKCAP, &reg32);
+-	if (err)
+-		return err;
+-	if (!(reg32 & PCI_EXP_LNKCAP_DLLLARC)) {
+-		mlx5_core_warn(dev, "No PCI link reporting capability (0x%08x)\n", reg32);
++	if (!bridge->link_active_reporting) {
++		mlx5_core_warn(dev, "No PCI link reporting capability\n");
+ 		msleep(1000);
+ 		goto restore;
+ 	}
