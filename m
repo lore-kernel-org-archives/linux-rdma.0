@@ -2,24 +2,25 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76AC7C7EE45
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:20:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57603C7EE37
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:21:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233849AbjFKRU4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Jun 2023 13:20:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45280 "EHLO
+        id S233930AbjFKRVR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Jun 2023 13:21:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230156AbjFKRUz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:20:55 -0400
-Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 21BFFE6F;
-        Sun, 11 Jun 2023 10:20:30 -0700 (PDT)
+        with ESMTP id S233888AbjFKRVN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:21:13 -0400
+X-Greylist: delayed 92 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 11 Jun 2023 10:20:49 PDT
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E45F71700;
+        Sun, 11 Jun 2023 10:20:48 -0700 (PDT)
 Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id 529979200C9; Sun, 11 Jun 2023 19:20:02 +0200 (CEST)
+        id 4E8B29200C6; Sun, 11 Jun 2023 19:19:53 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id 4E1479200C0;
-        Sun, 11 Jun 2023 18:20:02 +0100 (BST)
-Date:   Sun, 11 Jun 2023 18:20:02 +0100 (BST)
+        by angie.orcam.me.uk (Postfix) with ESMTP id 4858E9200B3;
+        Sun, 11 Jun 2023 18:19:53 +0100 (BST)
+Date:   Sun, 11 Jun 2023 18:19:53 +0100 (BST)
 From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
@@ -42,10 +43,10 @@ cc:     Alex Williamson <alex.williamson@redhat.com>,
         linux-pci@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v9 12/14] PCI: Provide stub failed link recovery for device
- probing and hot plug
+Subject: [PATCH v9 10/14] PCI: Add support for polling DLLLA to
+ `pcie_retrain_link'
 In-Reply-To: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
-Message-ID: <alpine.DEB.2.21.2306111619570.64925@angie.orcam.me.uk>
+Message-ID: <alpine.DEB.2.21.2306110310540.64925@angie.orcam.me.uk>
 References: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
 User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
@@ -54,62 +55,114 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-This now fails unconditionally and will be always optimised away, but 
-provides for quirks to implement recovery for failed links detected in 
-device probing and device hot plug events.
+Let the caller of `pcie_retrain_link' specify whether they want to use 
+the LT bit or the DLLLA bit of the Link Status Register to determine if 
+link training has completed.  It is up to the caller to verify whether 
+the use of the DLLLA bit, the implementation of which is optional, is 
+valid for the device requested.
 
 Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
 ---
-New change in v9, factored out from 7/7:
-
-- Rename `pcie_downstream_link_retrain' to `pcie_failed_link_retrain'.
-
-- Add stub implementation in "pci.h".
+New change in v9.
 ---
- drivers/pci/pci.c   |    2 ++
- drivers/pci/pci.h   |    4 ++++
- drivers/pci/probe.c |    2 ++
- 3 files changed, 8 insertions(+)
+ drivers/pci/pci.c       |   28 ++++++++++++++++++++--------
+ drivers/pci/pci.h       |    2 +-
+ drivers/pci/pcie/aspm.c |    2 +-
+ 3 files changed, 22 insertions(+), 10 deletions(-)
 
-linux-pcie-failed-link-retrain.diff
+linux-pcie-retrain-link-use-lt.diff
 Index: linux-macro/drivers/pci/pci.c
 ===================================================================
 --- linux-macro.orig/drivers/pci/pci.c
 +++ linux-macro/drivers/pci/pci.c
-@@ -4912,6 +4912,8 @@ static bool pcie_wait_for_link_delay(str
- 	if (active)
- 		msleep(20);
- 	ret = pcie_wait_for_link_status(pdev, false, active);
-+	if (active && !ret)
-+		ret = pcie_failed_link_retrain(pdev);
- 	if (active && ret)
- 		msleep(delay);
+@@ -4850,25 +4850,32 @@ static int pci_pm_reset(struct pci_dev *
+ }
  
+ /**
+- * pcie_wait_for_link_status - Wait for link training end
++ * pcie_wait_for_link_status - Wait for link status change
+  * @pdev: Device whose link to wait for.
++ * @use_lt: Use the LT bit if TRUE, or the DLLLA bit if FALSE.
++ * @active: Waiting for active or inactive?
+  *
+- * Return TRUE if successful, or FALSE if training has not completed
+- * within PCIE_LINK_RETRAIN_TIMEOUT_MS milliseconds.
++ * Return TRUE if successful, or FALSE if status has not changed within
++ * PCIE_LINK_RETRAIN_TIMEOUT_MS milliseconds.
+  */
+-static bool pcie_wait_for_link_status(struct pci_dev *pdev)
++static bool pcie_wait_for_link_status(struct pci_dev *pdev,
++				      bool use_lt, bool active)
+ {
++	u16 lnksta_mask, lnksta_match;
+ 	unsigned long end_jiffies;
+ 	u16 lnksta;
+ 
++	lnksta_mask = use_lt ? PCI_EXP_LNKSTA_LT : PCI_EXP_LNKSTA_DLLLA;
++	lnksta_match = active ? lnksta_mask : 0;
++
+ 	end_jiffies = jiffies + msecs_to_jiffies(PCIE_LINK_RETRAIN_TIMEOUT_MS);
+ 	do {
+ 		pcie_capability_read_word(pdev, PCI_EXP_LNKSTA, &lnksta);
+-		if (!(lnksta & PCI_EXP_LNKSTA_LT))
++		if ((lnksta & lnksta_mask) == lnksta_match)
+ 			break;
+ 		msleep(1);
+ 	} while (time_before(jiffies, end_jiffies));
+-	return !(lnksta & PCI_EXP_LNKSTA_LT);
++	return (lnksta & lnksta_mask) == lnksta_match;
+ }
+ 
+ /**
+@@ -4937,10 +4944,15 @@ bool pcie_wait_for_link(struct pci_dev *
+ /**
+  * pcie_retrain_link - Request a link retrain and wait for it to complete
+  * @pdev: Device whose link to retrain.
++ * @use_lt: Use the LT bit if TRUE, or the DLLLA bit if FALSE, for status.
++ *
++ * Retrain completion status is retrieved from the Link Status Register
++ * according to @use_lt.  It is not verified whether the use of the DLLLA
++ * bit is valid.
+  *
+  * Return TRUE if successful, or FALSE if training has not completed.
+  */
+-bool pcie_retrain_link(struct pci_dev *pdev)
++bool pcie_retrain_link(struct pci_dev *pdev, bool use_lt)
+ {
+ 	u16 lnkctl;
+ 
+@@ -4957,7 +4969,7 @@ bool pcie_retrain_link(struct pci_dev *p
+ 		pcie_capability_write_word(pdev, PCI_EXP_LNKCTL, lnkctl);
+ 	}
+ 
+-	return pcie_wait_for_link_status(pdev);
++	return pcie_wait_for_link_status(pdev, use_lt, !use_lt);
+ }
+ 
+ /*
 Index: linux-macro/drivers/pci/pci.h
 ===================================================================
 --- linux-macro.orig/drivers/pci/pci.h
 +++ linux-macro/drivers/pci/pci.h
-@@ -554,6 +554,10 @@ static inline int pci_dev_specific_disab
- 	return -ENOTTY;
- }
- #endif
-+static inline bool pcie_failed_link_retrain(struct pci_dev *dev)
-+{
-+	return false;
-+}
+@@ -561,7 +561,7 @@ pci_ers_result_t pcie_do_recovery(struct
+ 		pci_ers_result_t (*reset_subordinates)(struct pci_dev *pdev));
  
- /* PCI error reporting and recovery */
- pci_ers_result_t pcie_do_recovery(struct pci_dev *dev,
-Index: linux-macro/drivers/pci/probe.c
+ bool pcie_wait_for_link(struct pci_dev *pdev, bool active);
+-bool pcie_retrain_link(struct pci_dev *pdev);
++bool pcie_retrain_link(struct pci_dev *pdev, bool use_lt);
+ #ifdef CONFIG_PCIEASPM
+ void pcie_aspm_init_link_state(struct pci_dev *pdev);
+ void pcie_aspm_exit_link_state(struct pci_dev *pdev);
+Index: linux-macro/drivers/pci/pcie/aspm.c
 ===================================================================
---- linux-macro.orig/drivers/pci/probe.c
-+++ linux-macro/drivers/pci/probe.c
-@@ -2549,6 +2549,8 @@ void pci_device_add(struct pci_dev *dev,
- 	dma_set_max_seg_size(&dev->dev, 65536);
- 	dma_set_seg_boundary(&dev->dev, 0xffffffff);
+--- linux-macro.orig/drivers/pci/pcie/aspm.c
++++ linux-macro/drivers/pci/pcie/aspm.c
+@@ -257,7 +257,7 @@ static void pcie_aspm_configure_common_c
+ 		reg16 &= ~PCI_EXP_LNKCTL_CCC;
+ 	pcie_capability_write_word(parent, PCI_EXP_LNKCTL, reg16);
  
-+	pcie_failed_link_retrain(dev);
-+
- 	/* Fix up broken headers */
- 	pci_fixup_device(pci_fixup_header, dev);
+-	if (pcie_retrain_link(link->pdev))
++	if (pcie_retrain_link(link->pdev, true))
+ 		return;
  
+ 	/* Training failed. Restore common clock configurations */
