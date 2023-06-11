@@ -2,24 +2,24 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CCC1C77B7A
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:20:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 975B5C7EE37
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:20:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229616AbjFKRUV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Jun 2023 13:20:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44656 "EHLO
+        id S233712AbjFKRU2 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Jun 2023 13:20:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230515AbjFKRUU (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:20:20 -0400
+        with ESMTP id S233294AbjFKRUZ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:20:25 -0400
 Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 210661BDF;
-        Sun, 11 Jun 2023 10:19:57 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 397CE1FE9;
+        Sun, 11 Jun 2023 10:20:01 -0700 (PDT)
 Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id 060279200C4; Sun, 11 Jun 2023 19:19:36 +0200 (CEST)
+        id C29129200BF; Sun, 11 Jun 2023 19:19:27 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id F3F579200C0;
-        Sun, 11 Jun 2023 18:19:36 +0100 (BST)
-Date:   Sun, 11 Jun 2023 18:19:36 +0100 (BST)
+        by angie.orcam.me.uk (Postfix) with ESMTP id C025E9200BB;
+        Sun, 11 Jun 2023 18:19:27 +0100 (BST)
+Date:   Sun, 11 Jun 2023 18:19:27 +0100 (BST)
 From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
@@ -42,9 +42,9 @@ cc:     Alex Williamson <alex.williamson@redhat.com>,
         linux-pci@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v9 06/14] net/mlx5: Rely on `link_active_reporting'
+Subject: [PATCH v9 04/14] PCI: Initialize `link_active_reporting' earlier
 In-Reply-To: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
-Message-ID: <alpine.DEB.2.21.2305310125370.59226@angie.orcam.me.uk>
+Message-ID: <alpine.DEB.2.21.2305310122210.59226@angie.orcam.me.uk>
 References: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
 User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
@@ -53,19 +53,17 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Use `link_active_reporting' to determine whether Data Link Layer Link 
-Active Reporting is available rather than re-retrieving the capability.
+Determine whether Data Link Layer Link Active Reporting is available 
+ahead of calling any fixups so that the cached value can be used there 
+and later on.
 
 Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
 ---
-NB this has been compile-tested only with PPC64LE and x86-64 
-configurations.
-
 No change from v8.
 
 Changes from v7:
 
-- Reorder from 5/7.
+- Reorder from 3/7.
 
 Changes from v6:
 
@@ -73,33 +71,38 @@ Changes from v6:
 
 New change in v6.
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/pci/probe.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-linux-pcie-link-active-reporting-mlx5.diff
-Index: linux-macro/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
+linux-pcie-link-active-reporting-early.diff
+Index: linux-macro/drivers/pci/probe.c
 ===================================================================
---- linux-macro.orig/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
-+++ linux-macro/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
-@@ -307,7 +307,6 @@ static int mlx5_pci_link_toggle(struct m
- 	unsigned long timeout;
- 	struct pci_dev *sdev;
- 	int cap, err;
--	u32 reg32;
+--- linux-macro.orig/drivers/pci/probe.c
++++ linux-macro/drivers/pci/probe.c
+@@ -820,7 +820,6 @@ static void pci_set_bus_speed(struct pci
  
- 	/* Check that all functions under the pci bridge are PFs of
- 	 * this device otherwise fail this function.
-@@ -346,11 +345,8 @@ static int mlx5_pci_link_toggle(struct m
- 		return err;
+ 		pcie_capability_read_dword(bridge, PCI_EXP_LNKCAP, &linkcap);
+ 		bus->max_bus_speed = pcie_link_speed[linkcap & PCI_EXP_LNKCAP_SLS];
+-		bridge->link_active_reporting = !!(linkcap & PCI_EXP_LNKCAP_DLLLARC);
  
- 	/* Check link */
--	err = pci_read_config_dword(bridge, cap + PCI_EXP_LNKCAP, &reg32);
--	if (err)
--		return err;
--	if (!(reg32 & PCI_EXP_LNKCAP_DLLLARC)) {
--		mlx5_core_warn(dev, "No PCI link reporting capability (0x%08x)\n", reg32);
-+	if (!bridge->link_active_reporting) {
-+		mlx5_core_warn(dev, "No PCI link reporting capability\n");
- 		msleep(1000);
- 		goto restore;
- 	}
+ 		pcie_capability_read_word(bridge, PCI_EXP_LNKSTA, &linksta);
+ 		pcie_update_link_speed(bus, linksta);
+@@ -1829,6 +1828,7 @@ int pci_setup_device(struct pci_dev *dev
+ 	int err, pos = 0;
+ 	struct pci_bus_region region;
+ 	struct resource *res;
++	u32 linkcap;
+ 
+ 	hdr_type = pci_hdr_type(dev);
+ 
+@@ -1876,6 +1876,10 @@ int pci_setup_device(struct pci_dev *dev
+ 	/* "Unknown power state" */
+ 	dev->current_state = PCI_UNKNOWN;
+ 
++	/* Set it early to make it available to fixups, etc.  */
++	pcie_capability_read_dword(dev, PCI_EXP_LNKCAP, &linkcap);
++	dev->link_active_reporting = !!(linkcap & PCI_EXP_LNKCAP_DLLLARC);
++
+ 	/* Early fixups, before probing the BARs */
+ 	pci_fixup_device(pci_fixup_early, dev);
+ 
