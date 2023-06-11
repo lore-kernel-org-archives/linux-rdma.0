@@ -2,25 +2,24 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57603C7EE37
-	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:21:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE0A7C7EE37
+	for <linux-rdma@archiver.kernel.org>; Sun, 11 Jun 2023 17:21:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233930AbjFKRVR (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 11 Jun 2023 13:21:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45510 "EHLO
+        id S233888AbjFKRVU (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 11 Jun 2023 13:21:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233888AbjFKRVN (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:21:13 -0400
-X-Greylist: delayed 92 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 11 Jun 2023 10:20:49 PDT
+        with ESMTP id S233992AbjFKRVT (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 11 Jun 2023 13:21:19 -0400
 Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id E45F71700;
-        Sun, 11 Jun 2023 10:20:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CCE1719AA;
+        Sun, 11 Jun 2023 10:20:54 -0700 (PDT)
 Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id 4E8B29200C6; Sun, 11 Jun 2023 19:19:53 +0200 (CEST)
+        id 6DEA69200CB; Sun, 11 Jun 2023 19:20:06 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id 4858E9200B3;
-        Sun, 11 Jun 2023 18:19:53 +0100 (BST)
-Date:   Sun, 11 Jun 2023 18:19:53 +0100 (BST)
+        by angie.orcam.me.uk (Postfix) with ESMTP id 66A4F9200CA;
+        Sun, 11 Jun 2023 18:20:06 +0100 (BST)
+Date:   Sun, 11 Jun 2023 18:20:06 +0100 (BST)
 From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
 To:     Bjorn Helgaas <bhelgaas@google.com>,
         Mahesh J Salgaonkar <mahesh@linux.ibm.com>,
@@ -43,10 +42,10 @@ cc:     Alex Williamson <alex.williamson@redhat.com>,
         linux-pci@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v9 10/14] PCI: Add support for polling DLLLA to
- `pcie_retrain_link'
+Subject: [PATCH v9 13/14] PCI: Add failed link recovery for device reset
+ events
 In-Reply-To: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
-Message-ID: <alpine.DEB.2.21.2306110310540.64925@angie.orcam.me.uk>
+Message-ID: <alpine.DEB.2.21.2306111631050.64925@angie.orcam.me.uk>
 References: <alpine.DEB.2.21.2305310024400.59226@angie.orcam.me.uk>
 User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
@@ -55,114 +54,97 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Let the caller of `pcie_retrain_link' specify whether they want to use 
-the LT bit or the DLLLA bit of the Link Status Register to determine if 
-link training has completed.  It is up to the caller to verify whether 
-the use of the DLLLA bit, the implementation of which is optional, is 
-valid for the device requested.
+Request failed link recovery with any upstream bridge where a device has 
+not come back after reset within PCI_RESET_WAIT time.  Reset the polling 
+interval if recovery succeeded, otherwise continue as usual.
 
 Signed-off-by: Maciej W. Rozycki <macro@orcam.me.uk>
 ---
-New change in v9.
----
- drivers/pci/pci.c       |   28 ++++++++++++++++++++--------
- drivers/pci/pci.h       |    2 +-
- drivers/pci/pcie/aspm.c |    2 +-
- 3 files changed, 22 insertions(+), 10 deletions(-)
+New change in v9, factored out from 7/7:
 
-linux-pcie-retrain-link-use-lt.diff
+- Remove duplicate succesful completion report previously added (not sure 
+  where it came from, possibly an unnoticed leftover from experiments).
+
+- Make the type of `retrain' variable `bool' rather than `int' and invert
+  the logic used.
+
+- Rename `pcie_downstream_link_retrain' to `pcie_failed_link_retrain'.
+
+- Rename `pcie_upstream_link_retrain' to `pcie_parent_link_retrain'.  Add 
+  documentation.
+---
+ drivers/pci/pci.c |   39 ++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 34 insertions(+), 5 deletions(-)
+
+linux-pcie-dev-wait-link-retrain.diff
 Index: linux-macro/drivers/pci/pci.c
 ===================================================================
 --- linux-macro.orig/drivers/pci/pci.c
 +++ linux-macro/drivers/pci/pci.c
-@@ -4850,25 +4850,32 @@ static int pci_pm_reset(struct pci_dev *
+@@ -1146,10 +1146,27 @@ void pci_resume_bus(struct pci_bus *bus)
+ 		pci_walk_bus(bus, pci_resume_one, NULL);
  }
  
- /**
-- * pcie_wait_for_link_status - Wait for link training end
-+ * pcie_wait_for_link_status - Wait for link status change
-  * @pdev: Device whose link to wait for.
-+ * @use_lt: Use the LT bit if TRUE, or the DLLLA bit if FALSE.
-+ * @active: Waiting for active or inactive?
-  *
-- * Return TRUE if successful, or FALSE if training has not completed
-- * within PCIE_LINK_RETRAIN_TIMEOUT_MS milliseconds.
-+ * Return TRUE if successful, or FALSE if status has not changed within
-+ * PCIE_LINK_RETRAIN_TIMEOUT_MS milliseconds.
-  */
--static bool pcie_wait_for_link_status(struct pci_dev *pdev)
-+static bool pcie_wait_for_link_status(struct pci_dev *pdev,
-+				      bool use_lt, bool active)
- {
-+	u16 lnksta_mask, lnksta_match;
- 	unsigned long end_jiffies;
- 	u16 lnksta;
- 
-+	lnksta_mask = use_lt ? PCI_EXP_LNKSTA_LT : PCI_EXP_LNKSTA_DLLLA;
-+	lnksta_match = active ? lnksta_mask : 0;
-+
- 	end_jiffies = jiffies + msecs_to_jiffies(PCIE_LINK_RETRAIN_TIMEOUT_MS);
- 	do {
- 		pcie_capability_read_word(pdev, PCI_EXP_LNKSTA, &lnksta);
--		if (!(lnksta & PCI_EXP_LNKSTA_LT))
-+		if ((lnksta & lnksta_mask) == lnksta_match)
- 			break;
- 		msleep(1);
- 	} while (time_before(jiffies, end_jiffies));
--	return !(lnksta & PCI_EXP_LNKSTA_LT);
-+	return (lnksta & lnksta_mask) == lnksta_match;
- }
- 
- /**
-@@ -4937,10 +4944,15 @@ bool pcie_wait_for_link(struct pci_dev *
- /**
-  * pcie_retrain_link - Request a link retrain and wait for it to complete
-  * @pdev: Device whose link to retrain.
-+ * @use_lt: Use the LT bit if TRUE, or the DLLLA bit if FALSE, for status.
++/**
++ * pcie_parent_link_retrain - Check and retrain link we are downstream from
++ * @dev: PCI device to handle.
 + *
-+ * Retrain completion status is retrieved from the Link Status Register
-+ * according to @use_lt.  It is not verified whether the use of the DLLLA
-+ * bit is valid.
-  *
-  * Return TRUE if successful, or FALSE if training has not completed.
-  */
--bool pcie_retrain_link(struct pci_dev *pdev)
-+bool pcie_retrain_link(struct pci_dev *pdev, bool use_lt)
++ * Return TRUE if the link was retrained, FALSE otherwise.
++ */
++static bool pcie_parent_link_retrain(struct pci_dev *dev)
++{
++	struct pci_dev *bridge;
++
++	bridge = pci_upstream_bridge(dev);
++	if (bridge)
++		return pcie_failed_link_retrain(bridge);
++	else
++		return false;
++}
++
+ static int pci_dev_wait(struct pci_dev *dev, char *reset_type, int timeout)
  {
- 	u16 lnkctl;
++	bool retrain = true;
+ 	int delay = 1;
+-	u32 id;
  
-@@ -4957,7 +4969,7 @@ bool pcie_retrain_link(struct pci_dev *p
- 		pcie_capability_write_word(pdev, PCI_EXP_LNKCTL, lnkctl);
+ 	/*
+ 	 * After reset, the device should not silently discard config
+@@ -1163,21 +1180,33 @@ static int pci_dev_wait(struct pci_dev *
+ 	 * Command register instead of Vendor ID so we don't have to
+ 	 * contend with the CRS SV value.
+ 	 */
+-	pci_read_config_dword(dev, PCI_COMMAND, &id);
+-	while (PCI_POSSIBLE_ERROR(id)) {
++	for (;;) {
++		u32 id;
++
++		pci_read_config_dword(dev, PCI_COMMAND, &id);
++		if (!PCI_POSSIBLE_ERROR(id))
++			break;
++
+ 		if (delay > timeout) {
+ 			pci_warn(dev, "not ready %dms after %s; giving up\n",
+ 				 delay - 1, reset_type);
+ 			return -ENOTTY;
+ 		}
+ 
+-		if (delay > PCI_RESET_WAIT)
++		if (delay > PCI_RESET_WAIT) {
++			if (retrain) {
++				retrain = false;
++				if (pcie_parent_link_retrain(dev)) {
++					delay = 1;
++					continue;
++				}
++			}
+ 			pci_info(dev, "not ready %dms after %s; waiting\n",
+ 				 delay - 1, reset_type);
++		}
+ 
+ 		msleep(delay);
+ 		delay *= 2;
+-		pci_read_config_dword(dev, PCI_COMMAND, &id);
  	}
  
--	return pcie_wait_for_link_status(pdev);
-+	return pcie_wait_for_link_status(pdev, use_lt, !use_lt);
- }
- 
- /*
-Index: linux-macro/drivers/pci/pci.h
-===================================================================
---- linux-macro.orig/drivers/pci/pci.h
-+++ linux-macro/drivers/pci/pci.h
-@@ -561,7 +561,7 @@ pci_ers_result_t pcie_do_recovery(struct
- 		pci_ers_result_t (*reset_subordinates)(struct pci_dev *pdev));
- 
- bool pcie_wait_for_link(struct pci_dev *pdev, bool active);
--bool pcie_retrain_link(struct pci_dev *pdev);
-+bool pcie_retrain_link(struct pci_dev *pdev, bool use_lt);
- #ifdef CONFIG_PCIEASPM
- void pcie_aspm_init_link_state(struct pci_dev *pdev);
- void pcie_aspm_exit_link_state(struct pci_dev *pdev);
-Index: linux-macro/drivers/pci/pcie/aspm.c
-===================================================================
---- linux-macro.orig/drivers/pci/pcie/aspm.c
-+++ linux-macro/drivers/pci/pcie/aspm.c
-@@ -257,7 +257,7 @@ static void pcie_aspm_configure_common_c
- 		reg16 &= ~PCI_EXP_LNKCTL_CCC;
- 	pcie_capability_write_word(parent, PCI_EXP_LNKCTL, reg16);
- 
--	if (pcie_retrain_link(link->pdev))
-+	if (pcie_retrain_link(link->pdev, true))
- 		return;
- 
- 	/* Training failed. Restore common clock configurations */
+ 	if (delay > PCI_RESET_WAIT)
