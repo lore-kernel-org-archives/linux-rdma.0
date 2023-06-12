@@ -2,100 +2,170 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0B6AC7EE2E
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Jun 2023 07:35:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B4B3C7EE25
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Jun 2023 07:39:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231424AbjFLHfT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Jun 2023 03:35:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46818 "EHLO
+        id S233298AbjFLHjN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Jun 2023 03:39:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48858 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233954AbjFLHfS (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Jun 2023 03:35:18 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A959910C4
-        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 00:31:29 -0700 (PDT)
+        with ESMTP id S232917AbjFLHjM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Jun 2023 03:39:12 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4323C10C4
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 00:38:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8E19662005
-        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 07:12:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EAE6C433D2;
-        Mon, 12 Jun 2023 07:12:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9AAB761501
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 07:00:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71DBBC433D2;
+        Mon, 12 Jun 2023 07:00:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686553973;
-        bh=3k/8TS9MX+4MH7Q6FxXV5qskd8KHZiJDATXCzmy98E8=;
-        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=tly+R2QNfoPV197tEYBHywKHXKNXGNy882B98qt7VQX0oJ/t4R+GxG3uR9/bCOoih
-         +UeDjbPoPjMh6Qg2heonb9iqHjdm51+6m6fmIv3HKqZAPWr+gulH98w4sDFydUpTQO
-         QV2d/+dUyOOybvxGLefKr+fZK0iMJN2WQ81AUT80Q1ha2kYXt/EeoxJZmgjl4HoKUM
-         Kte8MAT0x72JFHCCPSsWXcUmm/Pt++hNvwofVJx43JVhZqrFbJ/kwIpibyqPtaevw5
-         WBPbZ7ANyVAF3DfoGuNZYv1uRj1BvhsvEAThm9NoWpumwAV+KtghikYrV5oUqaSbGe
-         NUIQoz6ZHh+3g==
+        s=k20201202; t=1686553253;
+        bh=4SqPBiv41NU6Y3srObFTWiNu+J8KHW3bTix4MHAAM2M=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=SmxD7N5nrg/j1z73K2Iquv5bss4rs6UUpjlnjzQxEdUAYsk+hu0E3o2YxP/2QmwTF
+         4AedlX0Qsfw4E7r30bB9jng01eZLFW+gdb2vCpW3jS0tFAKeQ66s0sh13seVG9Txtj
+         fTED3JzoTF8FKBug0gAJYfTFpU7NsajtsPLMDoRvY0hDmBTDRIJrDFpc7RQXSjCOjz
+         eJ9mnQ03p0z11TChSgHwXAe+qzWM2+wMl4ngskriv7MftEh/4uaZ5F4XACiAwJOFtI
+         ftirjaXWZo0jEltxVLDCedlq2dWB0GiRJLFnR9uhIljE22DS0kem5VyWPCBgDokZ1a
+         p8k18TUUCF3Ow==
+Date:   Mon, 12 Jun 2023 10:00:48 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     jgg@ziepe.ca, Selvin Xavier <selvin.xavier@broadcom.com>
-Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
-        kashyap.desai@broadcom.com
-In-Reply-To: <1686308514-11996-1-git-send-email-selvin.xavier@broadcom.com>
+To:     Selvin Xavier <selvin.xavier@broadcom.com>
+Cc:     jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        andrew.gospodarek@broadcom.com, kashyap.desai@broadcom.com
+Subject: Re: [PATCH v2 for-next 05/17] RDMA/bnxt_re: Enhance the existing
+ functions that wait for FW responses
+Message-ID: <20230612070048.GN12152@unreal>
 References: <1686308514-11996-1-git-send-email-selvin.xavier@broadcom.com>
-Subject: Re: [PATCH v2 for-next 00/17] RDMA/bnxt_re: Control path updates
-Message-Id: <168655396897.1341452.10993400316350894283.b4-ty@kernel.org>
-Date:   Mon, 12 Jun 2023 10:12:48 +0300
+ <1686308514-11996-6-git-send-email-selvin.xavier@broadcom.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.12-dev-a055d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1686308514-11996-6-git-send-email-selvin.xavier@broadcom.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-On Fri, 09 Jun 2023 04:01:37 -0700, Selvin Xavier wrote:
-> This patch series from Kashyap includes code refactoring and some
-> optimizations in the FW control path of the driver. It also address
-> some of the issues seen as we scale up the HW resources.
-> It also includes few bug fixes in the control path.
+On Fri, Jun 09, 2023 at 04:01:42AM -0700, Selvin Xavier wrote:
+> From: Kashyap Desai <kashyap.desai@broadcom.com>
 > 
-> Please review and apply.
+> Use jiffies based timewait instead of counting iteration for
+> commands that block for FW response.
 > 
-> [...]
+> Also add a poll routine for control path commands. This is for
+> polling completion if the waiting commands timeout. This avoids cases
+> where the driver misses completion interrupts.
+> 
+> Signed-off-by: Kashyap Desai <kashyap.desai@broadcom.com>
+> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> ---
+>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 65 +++++++++++++++++++++++-------
+>  1 file changed, 51 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> index 66121fb..3b242cc 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> @@ -53,37 +53,74 @@
+>  
+>  static void bnxt_qplib_service_creq(struct tasklet_struct *t);
+>  
+> -/* Hardware communication channel */
+> +/**
+> + * __wait_for_resp   -	Don't hold the cpu context and wait for response
+> + * @rcfw      -   rcfw channel instance of rdev
+> + * @cookie    -   cookie to track the command
+> + *
+> + * Wait for command completion in sleepable context.
+> + *
+> + * Returns:
+> + * 0 if command is completed by firmware.
+> + * Non zero error code for rest of the case.
 
-Applied, thanks!
+I don't see "return ret;" in this function.
 
-[01/17] RDMA/bnxt_re: wraparound mbox producer index
-        https://git.kernel.org/rdma/rdma/c/0af91306e17ef3
-[02/17] RDMA/bnxt_re: Avoid calling wake_up threads from spin_lock context
-        https://git.kernel.org/rdma/rdma/c/3099bcdc19b701
-[03/17] RDMA/bnxt_re: remove virt_func check while creating RoCE FW channel
-        https://git.kernel.org/rdma/rdma/c/b021186bca9d6b
-[04/17] RDMA/bnxt_re: set fixed command queue depth
-        https://git.kernel.org/rdma/rdma/c/258ee04317dacf
-[05/17] RDMA/bnxt_re: Enhance the existing functions that wait for FW responses
-        https://git.kernel.org/rdma/rdma/c/8cf1d12ad56beb
-[06/17] RDMA/bnxt_re: Avoid the command wait if firmware is inactive
-        https://git.kernel.org/rdma/rdma/c/3022cc15119733
-[07/17] RDMA/bnxt_re: use shadow qd while posting non blocking rcfw command
-        https://git.kernel.org/rdma/rdma/c/65288a22ddd814
-[08/17] RDMA/bnxt_re: Simplify the function that sends the FW commands
-        https://git.kernel.org/rdma/rdma/c/159cf95e42a7ca
-[09/17] RDMA/bnxt_re: add helper function __poll_for_resp
-        https://git.kernel.org/rdma/rdma/c/354f5bd985af95
-[10/17] RDMA/bnxt_re: handle command completions after driver detect a timedout
-        https://git.kernel.org/rdma/rdma/c/691eb7c6110fe0
-[11/17] RDMA/bnxt_re: Add firmware stall check detection
-        https://git.kernel.org/rdma/rdma/c/b6c7256688264f
-[12/17] RDMA/bnxt_re: post destroy_ah for delayed completion of AH creation
-        https://git.kernel.org/rdma/rdma/c/84911cf3b2aa8d
-[13/17] RDMA/bnxt_re: consider timeout of destroy ah as success.
-        https://git.kernel.org/rdma/rdma/c/bb8c93618fb0b8
-[14/17] RDMA/bnxt_re: cancel all control path command waiters upon error.
-        https://git.kernel.org/rdma/rdma/c/a00278521c9107
-[15/17] RDMA/bnxt_re: use firmware provided max request timeout
-        https://git.kernel.org/rdma/rdma/c/f0c875ff629396
-[16/17] RDMA/bnxt_re: remove redundant cmdq_bitmap
-        https://git.kernel.org/rdma/rdma/c/bcfee4ce3e0139
-[17/17] RDMA/bnxt_re: optimize the parameters passed to helper functions
-        https://git.kernel.org/rdma/rdma/c/830f93f47068b1
+> + */
+>  static int __wait_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
+>  {
+>  	struct bnxt_qplib_cmdq_ctx *cmdq;
+>  	u16 cbit;
+> -	int rc;
+> +	int ret;
+>  
+>  	cmdq = &rcfw->cmdq;
+>  	cbit = cookie % rcfw->cmdq_depth;
+> -	rc = wait_event_timeout(cmdq->waitq,
+> -				!test_bit(cbit, cmdq->cmdq_bitmap),
+> -				msecs_to_jiffies(RCFW_CMD_WAIT_TIME_MS));
+> -	return rc ? 0 : -ETIMEDOUT;
+> +
+> +	do {
+> +		/* Non zero means command completed */
+> +		ret = wait_event_timeout(cmdq->waitq,
+> +					 !test_bit(cbit, cmdq->cmdq_bitmap),
+> +					 msecs_to_jiffies(10000));
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+Don't you need to check ret here?
+
+> +
+> +		if (!test_bit(cbit, cmdq->cmdq_bitmap))
+> +			return 0;
+> +
+> +		bnxt_qplib_service_creq(&rcfw->creq.creq_tasklet);
+> +
+> +		if (!test_bit(cbit, cmdq->cmdq_bitmap))
+> +			return 0;
+> +
+> +	} while (true);
+>  };
+>  
+> +/**
+> + * __block_for_resp   -	hold the cpu context and wait for response
+> + * @rcfw      -   rcfw channel instance of rdev
+> + * @cookie    -   cookie to track the command
+> + *
+> + * This function will hold the cpu (non-sleepable context) and
+> + * wait for command completion. Maximum holding interval is 8 second.
+> + *
+> + * Returns:
+> + * -ETIMEOUT if command is not completed in specific time interval.
+> + * 0 if command is completed by firmware.
+> + */
+>  static int __block_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
+>  {
+> -	u32 count = RCFW_BLOCKED_CMD_WAIT_COUNT;
+> -	struct bnxt_qplib_cmdq_ctx *cmdq;
+> +	struct bnxt_qplib_cmdq_ctx *cmdq = &rcfw->cmdq;
+> +	unsigned long issue_time = 0;
+>  	u16 cbit;
+>  
+> -	cmdq = &rcfw->cmdq;
+>  	cbit = cookie % rcfw->cmdq_depth;
+> -	if (!test_bit(cbit, cmdq->cmdq_bitmap))
+> -		goto done;
+> +	issue_time = jiffies;
+> +
+>  	do {
+>  		udelay(1);
+> +
+>  		bnxt_qplib_service_creq(&rcfw->creq.creq_tasklet);
+> -	} while (test_bit(cbit, cmdq->cmdq_bitmap) && --count);
+> -done:
+> -	return count ? 0 : -ETIMEDOUT;
+> +		if (!test_bit(cbit, cmdq->cmdq_bitmap))
+> +			return 0;
+> +
+> +	} while (time_before(jiffies, issue_time + (8 * HZ)));
+> +
+> +	return -ETIMEDOUT;
+>  };
+>  
+>  static int __send_message(struct bnxt_qplib_rcfw *rcfw,
+> -- 
+> 2.5.5
+> 
+
+
