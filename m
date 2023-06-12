@@ -2,413 +2,249 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C155C7EE23
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Jun 2023 10:24:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C434FC7EE25
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Jun 2023 13:05:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234725AbjFLKYd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Jun 2023 06:24:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57678 "EHLO
+        id S233394AbjFLNFQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Jun 2023 09:05:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46570 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233821AbjFLKYJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Jun 2023 06:24:09 -0400
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 423CF127F7
-        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 03:03:04 -0700 (PDT)
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-1b3be39e666so8143915ad.0
-        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 03:03:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1686564043; x=1689156043;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=9KegG0toxEho/r7GT/MVDU2cXK/zdgtYnBmPzSBsVSI=;
-        b=CGqwc+Hn/8yEYNzsSEwKV6gjK1sFgTF87/xpP8FFTH0HYlABwu3m6ZJ8g/aTQ4dnki
-         9OeMZYVTeZq8dlTpTvv++PSfEAqOlTtkcygL6hnIpOWLfNS2DByaL0DXMS9/IgIDrUgf
-         Pvh3n0lOgts58sHGuDWMOzcroN1KIqcCxfeoM=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686564043; x=1689156043;
-        h=references:in-reply-to:message-id:date:subject:cc:to:from
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=9KegG0toxEho/r7GT/MVDU2cXK/zdgtYnBmPzSBsVSI=;
-        b=lQdltf2Y21vWKjuoIHklTZSqeZZuCmpD+i67gaWGkipqOlbowkAweqx7sqINqzUPvI
-         gFdC/FPcwgLC3fI8x+jx7TiWn2djDIMmiEYISt3tOXcqeN27c0fc4wQqEvgcEGOxFL+D
-         Mj4Rvqu+zjcSEKSFt+lqY0q8D8J6g6EpQyx77aVXsRwtTh12853Ah/7D2MjsMTG5JsM3
-         rSbT+SnWVAopErP8ZeS20ENzff1NDVhVg64KDrnRlQm1zmncJayAqJjTmi+0WW+FDDvx
-         hw/+lR7pMLTL4kWoC20fK2C9HMWYAZytShMLXXQiAUdnhoI3wQOPWWpdBIouktHUrqIx
-         6xRA==
-X-Gm-Message-State: AC+VfDyGoPQ15tU/bd9fN//9iB92evA6clxOG4xNGE7GS+QHomHmwQVo
-        bfQjmeZIX43iezC4rFQ4C+pxzQ==
-X-Google-Smtp-Source: ACHHUZ6LNwkuMNPVQ8oAKXSM54nJZK9TtJIN3AXEScu/Bnw4kmsOfF6zbInyhJbc0McZm6BPiMsePQ==
-X-Received: by 2002:a17:902:c205:b0:1b0:ec0:7cff with SMTP id 5-20020a170902c20500b001b00ec07cffmr5850558pll.10.1686564042879;
-        Mon, 12 Jun 2023 03:00:42 -0700 (PDT)
-Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id q16-20020a170902dad000b001ae2b94701fsm7792050plx.21.2023.06.12.03.00.40
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 12 Jun 2023 03:00:42 -0700 (PDT)
-From:   Selvin Xavier <selvin.xavier@broadcom.com>
-To:     jgg@ziepe.ca, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
-        Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH v5 for-next 1/7] RDMA/bnxt_re: Use the common mmap helper functions
-Date:   Mon, 12 Jun 2023 02:48:56 -0700
-Message-Id: <1686563342-15233-2-git-send-email-selvin.xavier@broadcom.com>
-X-Mailer: git-send-email 2.5.5
-In-Reply-To: <1686563342-15233-1-git-send-email-selvin.xavier@broadcom.com>
-References: <1686563342-15233-1-git-send-email-selvin.xavier@broadcom.com>
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000b04e2e05fdebca7e"
+        with ESMTP id S232133AbjFLNFQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Jun 2023 09:05:16 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C010519D;
+        Mon, 12 Jun 2023 06:05:13 -0700 (PDT)
+Received: from dggpemm500005.china.huawei.com (unknown [172.30.72.56])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4QfsKC4GY6zLqgj;
+        Mon, 12 Jun 2023 21:02:07 +0800 (CST)
+Received: from localhost.localdomain (10.69.192.56) by
+ dggpemm500005.china.huawei.com (7.185.36.74) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Mon, 12 Jun 2023 21:05:11 +0800
+From:   Yunsheng Lin <linyunsheng@huawei.com>
+To:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>
+CC:     <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Yunsheng Lin <linyunsheng@huawei.com>,
+        Lorenzo Bianconi <lorenzo@kernel.org>,
+        Alexander Duyck <alexander.duyck@gmail.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
+        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+        <linux-rdma@vger.kernel.org>
+Subject: [PATCH net-next v4 1/5] page_pool: frag API support for 32-bit arch with 64-bit DMA
+Date:   Mon, 12 Jun 2023 21:02:52 +0800
+Message-ID: <20230612130256.4572-2-linyunsheng@huawei.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20230612130256.4572-1-linyunsheng@huawei.com>
+References: <20230612130256.4572-1-linyunsheng@huawei.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.69.192.56]
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ dggpemm500005.china.huawei.com (7.185.36.74)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000b04e2e05fdebca7e
+Currently page_pool_alloc_frag() is not supported in 32-bit
+arch with 64-bit DMA, which seems to be quite common, see
+[1], which means driver may need to handle it when using
+page_pool_alloc_frag() API.
 
-Replace the mmap handling function with common code in
-IB core. Create rdma_user_mmap_entry for each mmap
-resource and add to the ib_core mmap list. Add mmap_free
-verb support. Also, use rdma_user_mmap_io while mapping
-Doorbell pages.
+In order to simplify the driver's work for supporting page
+frag, this patch allows page_pool_alloc_frag() to call
+page_pool_alloc_pages() to return a big page frag without
+page splitting because of overlap issue between pp_frag_count
+and dma_addr_upper in 'struct page' for those arches.
 
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+As page_pool_create() with PP_FLAG_PAGE_FRAG is supported in
+32-bit arch with 64-bit DMA now, mlx5 calls page_pool_create()
+with PP_FLAG_PAGE_FRAG and manipulate the page->pp_frag_count
+directly using the page_pool_defrag_page(), so add a checking
+for it to aoivd writing to page->pp_frag_count that may not
+exist in some arch.
+
+Note that it may aggravate truesize underestimate problem for
+skb as there is no page splitting for those pages, if driver
+need a accuate truesize, it may calculate that according to
+frag size, page order and PAGE_POOL_DMA_USE_PP_FRAG_COUNT
+being true or not. And we may provide a helper for that if it
+turns out to be helpful.
+
+1. https://lore.kernel.org/all/20211117075652.58299-1-linyunsheng@huawei.com/
+
+Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
+CC: Lorenzo Bianconi <lorenzo@kernel.org>
+CC: Alexander Duyck <alexander.duyck@gmail.com>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c  | 113 ++++++++++++++++++++++++------
- drivers/infiniband/hw/bnxt_re/ib_verbs.h  |  15 ++++
- drivers/infiniband/hw/bnxt_re/main.c      |   1 +
- drivers/infiniband/hw/bnxt_re/qplib_res.c |   2 +-
- 4 files changed, 107 insertions(+), 24 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/en_main.c | 10 +++++
+ include/net/page_pool.h                       | 44 ++++++++++++++++---
+ net/core/page_pool.c                          | 18 ++------
+ 3 files changed, 52 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 053afc9..2c08fa8 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -533,12 +533,43 @@ static int bnxt_re_create_fence_mr(struct bnxt_re_pd *pd)
- 	return rc;
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index a7c526ee5024..593cdfbfc035 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -832,6 +832,16 @@ static int mlx5e_alloc_rq(struct mlx5e_params *params,
+ 		/* Create a page_pool and register it with rxq */
+ 		struct page_pool_params pp_params = { 0 };
  
-+static struct bnxt_re_user_mmap_entry*
-+bnxt_re_mmap_entry_insert(struct bnxt_re_ucontext *uctx, u64 mem_offset,
-+			  enum bnxt_re_mmap_flag mmap_flag, u64 *offset)
-+{
-+	struct bnxt_re_user_mmap_entry *entry;
-+	int ret;
-+
-+	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
-+	if (!entry)
-+		return NULL;
-+
-+	entry->mem_offset = mem_offset;
-+	entry->mmap_flag = mmap_flag;
-+
-+	ret = rdma_user_mmap_entry_insert(&uctx->ib_uctx,
-+					  &entry->rdma_entry, PAGE_SIZE);
-+	if (ret) {
-+		kfree(entry);
-+		return NULL;
-+	}
-+	if (offset)
-+		*offset = rdma_user_mmap_get_offset(&entry->rdma_entry);
-+
-+	return entry;
-+}
-+
- /* Protection Domains */
- int bnxt_re_dealloc_pd(struct ib_pd *ib_pd, struct ib_udata *udata)
- {
- 	struct bnxt_re_pd *pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
- 	struct bnxt_re_dev *rdev = pd->rdev;
- 
-+	if (udata) {
-+		rdma_user_mmap_entry_remove(pd->pd_db_mmap);
-+		pd->pd_db_mmap = NULL;
-+	}
-+
- 	bnxt_re_destroy_fence_mr(pd);
- 
- 	if (pd->qplib_pd.id) {
-@@ -557,7 +588,8 @@ int bnxt_re_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- 	struct bnxt_re_ucontext *ucntx = rdma_udata_to_drv_context(
- 		udata, struct bnxt_re_ucontext, ib_uctx);
- 	struct bnxt_re_pd *pd = container_of(ibpd, struct bnxt_re_pd, ib_pd);
--	int rc;
-+	struct bnxt_re_user_mmap_entry *entry = NULL;
-+	int rc = 0;
- 
- 	pd->rdev = rdev;
- 	if (bnxt_qplib_alloc_pd(&rdev->qplib_res.pd_tbl, &pd->qplib_pd)) {
-@@ -567,7 +599,7 @@ int bnxt_re_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- 	}
- 
- 	if (udata) {
--		struct bnxt_re_pd_resp resp;
-+		struct bnxt_re_pd_resp resp = {};
- 
- 		if (!ucntx->dpi.dbr) {
- 			/* Allocate DPI in alloc_pd to avoid failing of
-@@ -584,12 +616,21 @@ int bnxt_re_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
- 		resp.pdid = pd->qplib_pd.id;
- 		/* Still allow mapping this DBR to the new user PD. */
- 		resp.dpi = ucntx->dpi.dpi;
--		resp.dbr = (u64)ucntx->dpi.umdbr;
- 
--		rc = ib_copy_to_udata(udata, &resp, sizeof(resp));
-+		entry = bnxt_re_mmap_entry_insert(ucntx, (u64)ucntx->dpi.umdbr,
-+						  BNXT_RE_MMAP_UC_DB, &resp.dbr);
-+
-+		if (!entry) {
-+			rc = -ENOMEM;
-+			goto dbfail;
++		/* Return error here to avoid writing to page->pp_frag_count in
++		 * mlx5e_page_release_fragmented() for page->pp_frag_count is
++		 * not usable for arch with PAGE_POOL_DMA_USE_PP_FRAG_COUNT
++		 * being true.
++		 */
++		if (PAGE_POOL_DMA_USE_PP_FRAG_COUNT) {
++			err = -EINVAL;
++			goto err_free_by_rq_type;
 +		}
 +
-+		pd->pd_db_mmap = &entry->rdma_entry;
+ 		pp_params.order     = 0;
+ 		pp_params.flags     = PP_FLAG_DMA_MAP | PP_FLAG_DMA_SYNC_DEV | PP_FLAG_PAGE_FRAG;
+ 		pp_params.pool_size = pool_size;
+diff --git a/include/net/page_pool.h b/include/net/page_pool.h
+index 126f9e294389..5c7f7501f300 100644
+--- a/include/net/page_pool.h
++++ b/include/net/page_pool.h
+@@ -33,6 +33,7 @@
+ #include <linux/mm.h> /* Needed by ptr_ring */
+ #include <linux/ptr_ring.h>
+ #include <linux/dma-direction.h>
++#include <linux/dma-mapping.h>
+ 
+ #define PP_FLAG_DMA_MAP		BIT(0) /* Should page_pool do the DMA
+ 					* map/unmap
+@@ -50,6 +51,9 @@
+ 				 PP_FLAG_DMA_SYNC_DEV |\
+ 				 PP_FLAG_PAGE_FRAG)
+ 
++#define PAGE_POOL_DMA_USE_PP_FRAG_COUNT	\
++		(sizeof(dma_addr_t) > sizeof(unsigned long))
 +
-+		rc = ib_copy_to_udata(udata, &resp, min(sizeof(resp), udata->outlen));
- 		if (rc) {
--			ibdev_err(&rdev->ibdev,
--				  "Failed to copy user response\n");
-+			rdma_user_mmap_entry_remove(pd->pd_db_mmap);
-+			rc = -EFAULT;
- 			goto dbfail;
- 		}
- 	}
-@@ -3964,6 +4005,7 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
- 		container_of(ctx, struct bnxt_re_ucontext, ib_uctx);
- 	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
- 	struct bnxt_qplib_dev_attr *dev_attr = &rdev->dev_attr;
-+	struct bnxt_re_user_mmap_entry *entry;
- 	struct bnxt_re_uctx_resp resp = {};
- 	u32 chip_met_rev_num = 0;
- 	int rc;
-@@ -4002,6 +4044,13 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
- 	resp.comp_mask |= BNXT_RE_UCNTX_CMASK_HAVE_MODE;
- 	resp.mode = rdev->chip_ctx->modes.wqe_mode;
+ /*
+  * Fast allocation side cache array/stack
+  *
+@@ -219,8 +223,33 @@ static inline struct page *page_pool_dev_alloc_pages(struct page_pool *pool)
+ 	return page_pool_alloc_pages(pool, gfp);
+ }
  
-+	entry = bnxt_re_mmap_entry_insert(uctx, 0, BNXT_RE_MMAP_SH_PAGE, NULL);
-+	if (!entry) {
-+		rc = -ENOMEM;
-+		goto cfail;
-+	}
-+	uctx->shpage_mmap = &entry->rdma_entry;
+-struct page *page_pool_alloc_frag(struct page_pool *pool, unsigned int *offset,
+-				  unsigned int size, gfp_t gfp);
++struct page *__page_pool_alloc_frag(struct page_pool *pool,
++				    unsigned int *offset, unsigned int size,
++				    gfp_t gfp);
 +
- 	rc = ib_copy_to_udata(udata, &resp, min(udata->outlen, sizeof(resp)));
- 	if (rc) {
- 		ibdev_err(ibdev, "Failed to copy user context");
-@@ -4025,6 +4074,8 @@ void bnxt_re_dealloc_ucontext(struct ib_ucontext *ib_uctx)
- 
- 	struct bnxt_re_dev *rdev = uctx->rdev;
- 
-+	rdma_user_mmap_entry_remove(uctx->shpage_mmap);
-+	uctx->shpage_mmap = NULL;
- 	if (uctx->shpg)
- 		free_page((unsigned long)uctx->shpg);
- 
-@@ -4044,27 +4095,43 @@ int bnxt_re_mmap(struct ib_ucontext *ib_uctx, struct vm_area_struct *vma)
- 	struct bnxt_re_ucontext *uctx = container_of(ib_uctx,
- 						   struct bnxt_re_ucontext,
- 						   ib_uctx);
--	struct bnxt_re_dev *rdev = uctx->rdev;
-+	struct bnxt_re_user_mmap_entry *bnxt_entry;
-+	struct rdma_user_mmap_entry *rdma_entry;
-+	int ret = 0;
- 	u64 pfn;
- 
--	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
-+	rdma_entry = rdma_user_mmap_entry_get(&uctx->ib_uctx, vma);
-+	if (!rdma_entry)
- 		return -EINVAL;
- 
--	if (vma->vm_pgoff) {
--		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--		if (io_remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
--				       PAGE_SIZE, vma->vm_page_prot)) {
--			ibdev_err(&rdev->ibdev, "Failed to map DPI");
--			return -EAGAIN;
--		}
--	} else {
--		pfn = virt_to_phys(uctx->shpg) >> PAGE_SHIFT;
--		if (remap_pfn_range(vma, vma->vm_start,
--				    pfn, PAGE_SIZE, vma->vm_page_prot)) {
--			ibdev_err(&rdev->ibdev, "Failed to map shared page");
--			return -EAGAIN;
--		}
-+	bnxt_entry = container_of(rdma_entry, struct bnxt_re_user_mmap_entry,
-+				  rdma_entry);
-+
-+	switch (bnxt_entry->mmap_flag) {
-+	case BNXT_RE_MMAP_UC_DB:
-+		pfn = bnxt_entry->mem_offset >> PAGE_SHIFT;
-+		ret = rdma_user_mmap_io(ib_uctx, vma, pfn, PAGE_SIZE,
-+					pgprot_noncached(vma->vm_page_prot),
-+				rdma_entry);
-+		break;
-+	case BNXT_RE_MMAP_SH_PAGE:
-+		ret = vm_insert_page(vma, vma->vm_start, virt_to_page(uctx->shpg));
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		break;
- 	}
- 
--	return 0;
-+	rdma_user_mmap_entry_put(rdma_entry);
-+	return ret;
-+}
-+
-+void bnxt_re_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
++static inline struct page *page_pool_alloc_frag(struct page_pool *pool,
++						unsigned int *offset,
++						unsigned int size, gfp_t gfp)
 +{
-+	struct bnxt_re_user_mmap_entry *bnxt_entry;
++	unsigned int max_size = PAGE_SIZE << pool->p.order;
 +
-+	bnxt_entry = container_of(rdma_entry, struct bnxt_re_user_mmap_entry,
-+				  rdma_entry);
++	size = ALIGN(size, dma_get_cache_alignment());
 +
-+	kfree(bnxt_entry);
++	if (WARN_ON(!(pool->p.flags & PP_FLAG_PAGE_FRAG) ||
++		    size > max_size))
++		return NULL;
++
++	/* Don't allow page splitting and allocate one big frag
++	 * for 32-bit arch with 64-bit DMA, corresponding to
++	 * the checking in page_pool_is_last_frag().
++	 */
++	if (PAGE_POOL_DMA_USE_PP_FRAG_COUNT) {
++		*offset = 0;
++		return page_pool_alloc_pages(pool, gfp);
++	}
++
++	return __page_pool_alloc_frag(pool, offset, size, gfp);
++}
+ 
+ static inline struct page *page_pool_dev_alloc_frag(struct page_pool *pool,
+ 						    unsigned int *offset,
+@@ -322,8 +351,14 @@ static inline long page_pool_defrag_page(struct page *page, long nr)
+ static inline bool page_pool_is_last_frag(struct page_pool *pool,
+ 					  struct page *page)
+ {
+-	/* If fragments aren't enabled or count is 0 we were the last user */
++	/* We assume we are the last frag user that is still holding
++	 * on to the page if:
++	 * 1. Fragments aren't enabled.
++	 * 2. We are running in 32-bit arch with 64-bit DMA.
++	 * 3. page_pool_defrag_page() indicate we are the last user.
++	 */
+ 	return !(pool->p.flags & PP_FLAG_PAGE_FRAG) ||
++	       PAGE_POOL_DMA_USE_PP_FRAG_COUNT ||
+ 	       (page_pool_defrag_page(page, 1) == 0);
  }
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-index 31f7e34..dcd31ae 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-@@ -60,6 +60,7 @@ struct bnxt_re_pd {
- 	struct bnxt_re_dev	*rdev;
- 	struct bnxt_qplib_pd	qplib_pd;
- 	struct bnxt_re_fence_data fence;
-+	struct rdma_user_mmap_entry *pd_db_mmap;
- };
  
- struct bnxt_re_ah {
-@@ -136,6 +137,18 @@ struct bnxt_re_ucontext {
- 	struct bnxt_qplib_dpi	dpi;
- 	void			*shpg;
- 	spinlock_t		sh_lock;	/* protect shpg */
-+	struct rdma_user_mmap_entry *shpage_mmap;
-+};
-+
-+enum bnxt_re_mmap_flag {
-+	BNXT_RE_MMAP_SH_PAGE,
-+	BNXT_RE_MMAP_UC_DB,
-+};
-+
-+struct bnxt_re_user_mmap_entry {
-+	struct rdma_user_mmap_entry rdma_entry;
-+	u64 mem_offset;
-+	u8 mmap_flag;
- };
- 
- static inline u16 bnxt_re_get_swqe_size(int nsge)
-@@ -213,6 +226,8 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata);
- void bnxt_re_dealloc_ucontext(struct ib_ucontext *context);
- int bnxt_re_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
-+void bnxt_re_mmap_free(struct rdma_user_mmap_entry *rdma_entry);
-+
- 
- unsigned long bnxt_re_lock_cqs(struct bnxt_re_qp *qp);
- void bnxt_re_unlock_cqs(struct bnxt_re_qp *qp, unsigned long flags);
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index a2c7d3f..acef429 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -545,6 +545,7 @@ static const struct ib_device_ops bnxt_re_dev_ops = {
- 	.get_port_immutable = bnxt_re_get_port_immutable,
- 	.map_mr_sg = bnxt_re_map_mr_sg,
- 	.mmap = bnxt_re_mmap,
-+	.mmap_free = bnxt_re_mmap_free,
- 	.modify_qp = bnxt_re_modify_qp,
- 	.modify_srq = bnxt_re_modify_srq,
- 	.poll_cq = bnxt_re_poll_cq,
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-index 126d4f2..920ab87 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-@@ -813,7 +813,7 @@ static int bnxt_qplib_alloc_dpi_tbl(struct bnxt_qplib_res     *res,
- 	return 0;
- 
- unmap_io:
--	pci_iounmap(res->pdev, dpit->dbr_bar_reg_iomem);
-+	iounmap(dpit->dbr_bar_reg_iomem);
- 	dpit->dbr_bar_reg_iomem = NULL;
- 	return -ENOMEM;
+@@ -357,9 +392,6 @@ static inline void page_pool_recycle_direct(struct page_pool *pool,
+ 	page_pool_put_full_page(pool, page, true);
  }
+ 
+-#define PAGE_POOL_DMA_USE_PP_FRAG_COUNT	\
+-		(sizeof(dma_addr_t) > sizeof(unsigned long))
+-
+ static inline dma_addr_t page_pool_get_dma_addr(struct page *page)
+ {
+ 	dma_addr_t ret = page->dma_addr;
+diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+index a3e12a61d456..9c4118c62997 100644
+--- a/net/core/page_pool.c
++++ b/net/core/page_pool.c
+@@ -14,7 +14,6 @@
+ #include <net/xdp.h>
+ 
+ #include <linux/dma-direction.h>
+-#include <linux/dma-mapping.h>
+ #include <linux/page-flags.h>
+ #include <linux/mm.h> /* for put_page() */
+ #include <linux/poison.h>
+@@ -200,10 +199,6 @@ static int page_pool_init(struct page_pool *pool,
+ 		 */
+ 	}
+ 
+-	if (PAGE_POOL_DMA_USE_PP_FRAG_COUNT &&
+-	    pool->p.flags & PP_FLAG_PAGE_FRAG)
+-		return -EINVAL;
+-
+ #ifdef CONFIG_PAGE_POOL_STATS
+ 	pool->recycle_stats = alloc_percpu(struct page_pool_recycle_stats);
+ 	if (!pool->recycle_stats)
+@@ -715,18 +710,13 @@ static void page_pool_free_frag(struct page_pool *pool)
+ 	page_pool_return_page(pool, page);
+ }
+ 
+-struct page *page_pool_alloc_frag(struct page_pool *pool,
+-				  unsigned int *offset,
+-				  unsigned int size, gfp_t gfp)
++struct page *__page_pool_alloc_frag(struct page_pool *pool,
++				    unsigned int *offset,
++				    unsigned int size, gfp_t gfp)
+ {
+ 	unsigned int max_size = PAGE_SIZE << pool->p.order;
+ 	struct page *page = pool->frag_page;
+ 
+-	if (WARN_ON(!(pool->p.flags & PP_FLAG_PAGE_FRAG) ||
+-		    size > max_size))
+-		return NULL;
+-
+-	size = ALIGN(size, dma_get_cache_alignment());
+ 	*offset = pool->frag_offset;
+ 
+ 	if (page && *offset + size > max_size) {
+@@ -759,7 +749,7 @@ struct page *page_pool_alloc_frag(struct page_pool *pool,
+ 	alloc_stat_inc(pool, fast);
+ 	return page;
+ }
+-EXPORT_SYMBOL(page_pool_alloc_frag);
++EXPORT_SYMBOL(__page_pool_alloc_frag);
+ 
+ static void page_pool_empty_ring(struct page_pool *pool)
+ {
 -- 
-2.5.5
+2.33.0
 
-
---000000000000b04e2e05fdebca7e
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-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
-FYMZp2DojLAq9f4Oi2OBetbnWxo0WGycXpmq/jC4PUx2u9mazQ79i80VLagGRshWniESXuf+SYG8
-+zBimjld9ZZnwm7itHAZdtme4YYFxx+EHa4PUxPV8t+hPHhsiIjirPa1pVXPbQIDAQABo4IB2zCC
-AdcwDgYDVR0PAQH/BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDov
-L3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAu
-Y3J0MEEGCCsGAQUFBzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29u
-YWxzaWduMmNhMjAyMDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0
-cHM6Ly93d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBA
-MD6gPKA6hjhodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2Ey
-MDIwLmNybDAlBgNVHREEHjAcgRpzZWx2aW4ueGF2aWVyQGJyb2FkY29tLmNvbTATBgNVHSUEDDAK
-BggrBgEFBQcDBDAfBgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQU3TaH
-dsgUhTW3LwObmZ20fj+8Xj8wDQYJKoZIhvcNAQELBQADggEBAAbt6Sptp6ZlTnhM2FDhkVXks68/
-iqvfL/e8wSPVdBxOuiP+8EXGLV3E72KfTTJXMbkcmFpK2K11poBDQJhz0xyOGTESjXNnN6Eqq+iX
-hQtF8xG2lzPq8MijKI4qXk5Vy5DYfwsVfcF0qJw5AhC32nU9uuIPJq8/mQbZfqmoanV/yadootGr
-j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
-9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
-hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
-IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIMovnqdlI0u5
-1Z+cme64G1UCw0DPh4E6RCuvL6BZ7IuIMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDYxMjEwMDA0M1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
-YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAn9V7Idr5YueXRSk1ngm2Qf/yX9zM1
-e1caouJ5Ejl3bLnxq+kJ8d58UzjNCdBH4b0M637WAeTWwp3M1fVejUASCySZROE0dM0n0P0dyrih
-Cqi6rDE9+VsYZc0gpCiwEuP5CUFrjDn1FWGe0FpNT9Amhllt+XJCkwew1NV/RM267XmTcaonN4/M
-a8eXDlNELv7BuLfTZlRPm52r6/BMV7kmX705+Ad1oczmhwCvW8zwUf7ysh+eoDWttOWt+StwAW6l
-I6YayrWY/m2rUQxPd12VIzY+fIbl4KoNAmJJjsTrLVs1pfE7DI8L71/C/6owqjvKxnSV+xZcSmgg
-enh8DNL/
---000000000000b04e2e05fdebca7e--
