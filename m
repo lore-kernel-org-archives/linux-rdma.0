@@ -2,118 +2,108 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52005C7EE23
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Jun 2023 06:14:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1E56C7EE23
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Jun 2023 07:34:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231764AbjFLGN4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Jun 2023 02:13:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51706 "EHLO
+        id S234066AbjFLHeX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Jun 2023 03:34:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229573AbjFLGNz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Jun 2023 02:13:55 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE3DE93;
-        Sun, 11 Jun 2023 23:13:54 -0700 (PDT)
+        with ESMTP id S231764AbjFLHeW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Jun 2023 03:34:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BE6B1BC1
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 00:29:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6BB5161F6E;
-        Mon, 12 Jun 2023 06:13:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B004C433EF;
-        Mon, 12 Jun 2023 06:13:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C20446103C
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 07:12:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6847C433D2;
+        Mon, 12 Jun 2023 07:12:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686550433;
-        bh=58MbQy7xKDiKseM5d6mW8cUc/YGdsopViJxC6mgqasw=;
+        s=k20201202; t=1686553957;
+        bh=HG1g8kaMX+IDbgnF39u7ma7cuDqQCxCvUw4nAHPrWHg=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=iqqmYapoPKherGGRx8hLARAa//bmyZ+dt/X+ZAPtzPZglpSDqTneR/j3kA3uqyNUi
-         9PTz0iOSueDU66hcvVYaVsovvg7hBKcYz4wHjVQw+C34oETuB3MyDnyNVbhsoVUQ51
-         nRGHLnKEaYDYZDPgb677soAW9dsp7xNFYtlY+oeJyqFzaEocHS8X/TfFyJzZw0Vg+Y
-         zKY6Yo9Gip0xKZjM0ygd4u+SAR1dmN0+J/udwPAWKQnMKpYF6+gPKIYB7mrhKFgmOh
-         pHXUqYpqTPo2GKG6orVc5WuOEpIZeHZTB8htyUGMq+lxozNIXAfMvO1+973Vbu5fEP
-         JW2UJO/qG7JDA==
-Date:   Mon, 12 Jun 2023 09:13:49 +0300
+        b=kL8ocS7nhQ4k+GKHlL9AZb0WyM5QOQy4oGa40XK3xy573EEla3lOIZQwqFKfoubxC
+         SxUa1bCNrlUBRp8hcYohvUfndC1CNvPwcUmPtCmKNjt5fZF+RGpH+3KgoQfm0Bxsnm
+         CShL9MmRltjLkXJ1L6eFVaRGeY7QcF7qEM6O4M9RPV1g6iMpu97tN5L3wABjxuizdH
+         cP6a85ziRyzjJO1VBcRPRBtFkFJ0FRv1MWZM7xbQZT5iXdhfR9GV5W4O1R3T1BCPHV
+         KSiWgXS/3XRUfKdcwIvlPaR/xECxA99C32jqUg936wQsAWSbV1E8aHBBwR/VpRkW7W
+         b3pHiW11Ei9Jg==
+Date:   Mon, 12 Jun 2023 10:12:32 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Wei Hu <weh@microsoft.com>
-Cc:     Jakub Kicinski <kuba@kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-hyperv@vger.kernel.org" <linux-hyperv@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Long Li <longli@microsoft.com>,
-        Ajay Sharma <sharmaajay@microsoft.com>,
-        "jgg@ziepe.ca" <jgg@ziepe.ca>, KY Srinivasan <kys@microsoft.com>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        "wei.liu@kernel.org" <wei.liu@kernel.org>,
-        Dexuan Cui <decui@microsoft.com>,
-        "davem@davemloft.net" <davem@davemloft.net>,
-        "edumazet@google.com" <edumazet@google.com>,
-        "pabeni@redhat.com" <pabeni@redhat.com>,
-        "vkuznets@redhat.com" <vkuznets@redhat.com>,
-        "ssengar@linux.microsoft.com" <ssengar@linux.microsoft.com>,
-        "shradhagupta@linux.microsoft.com" <shradhagupta@linux.microsoft.com>
-Subject: Re: [PATCH v2 1/1] RDMA/mana_ib: Add EQ interrupt support to mana ib
- driver.
-Message-ID: <20230612061349.GM12152@unreal>
-References: <20230606151747.1649305-1-weh@microsoft.com>
- <20230607213903.470f71ae@kernel.org>
- <SI2P153MB0441DAC4E756A1991A03520FBB54A@SI2P153MB0441.APCP153.PROD.OUTLOOK.COM>
+To:     Selvin Xavier <selvin.xavier@broadcom.com>
+Cc:     jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        andrew.gospodarek@broadcom.com, kashyap.desai@broadcom.com
+Subject: Re: [PATCH v2 for-next 00/17] RDMA/bnxt_re: Control path updates
+Message-ID: <20230612071232.GQ12152@unreal>
+References: <1686308514-11996-1-git-send-email-selvin.xavier@broadcom.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <SI2P153MB0441DAC4E756A1991A03520FBB54A@SI2P153MB0441.APCP153.PROD.OUTLOOK.COM>
+In-Reply-To: <1686308514-11996-1-git-send-email-selvin.xavier@broadcom.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jun 12, 2023 at 04:44:44AM +0000, Wei Hu wrote:
-> Hi Jakub,
+On Fri, Jun 09, 2023 at 04:01:37AM -0700, Selvin Xavier wrote:
+> This patch series from Kashyap includes code refactoring and some
+> optimizations in the FW control path of the driver. It also address
+> some of the issues seen as we scale up the HW resources.
+> It also includes few bug fixes in the control path.
 > 
-> > -----Original Message-----
-> > From: Jakub Kicinski <kuba@kernel.org>
-> > Sent: Thursday, June 8, 2023 12:39 PM
-> > To: Wei Hu <weh@microsoft.com>
-> > Cc: netdev@vger.kernel.org; linux-hyperv@vger.kernel.org; linux-
-> > rdma@vger.kernel.org; Long Li <longli@microsoft.com>; Ajay Sharma
-> > <sharmaajay@microsoft.com>; jgg@ziepe.ca; leon@kernel.org; KY
-> > Srinivasan <kys@microsoft.com>; Haiyang Zhang <haiyangz@microsoft.com>;
-> > wei.liu@kernel.org; Dexuan Cui <decui@microsoft.com>;
-> > davem@davemloft.net; edumazet@google.com; pabeni@redhat.com;
-> > vkuznets@redhat.com; ssengar@linux.microsoft.com;
-> > shradhagupta@linux.microsoft.com
-> > Subject: Re: [PATCH v2 1/1] RDMA/mana_ib: Add EQ interrupt support to
-> > mana ib driver.
-> > 
-> > On Tue,  6 Jun 2023 15:17:47 +0000 Wei Hu wrote:
-> > >  drivers/infiniband/hw/mana/cq.c               |  32 ++++-
-> > >  drivers/infiniband/hw/mana/main.c             |  87 ++++++++++++
-> > >  drivers/infiniband/hw/mana/mana_ib.h          |   4 +
-> > >  drivers/infiniband/hw/mana/qp.c               |  90 +++++++++++-
-> > >  .../net/ethernet/microsoft/mana/gdma_main.c   | 131 ++++++++++--------
-> > >  drivers/net/ethernet/microsoft/mana/mana_en.c |   1 +
-> > >  include/net/mana/gdma.h                       |   9 +-
-> > 
-> > IB and netdev are different subsystem, can you put it on a branch and send a
-> > PR as the cover letter so that both subsystems can pull?
-> > 
-> > Examples:
-> > https://nam06.safelinks.protection.outlook.com/?url=https%3A%2F%2Flore.
-> > kernel.org%2Fall%2F20230607210410.88209-1-
-> > saeed%40kernel.org%2F&data=05%7C01%7Cweh%40microsoft.com%7Cb672
-> > 4a9f672f47d433ef08db67da4ada%7C72f988bf86f141af91ab2d7cd011db47%7C
-> > 1%7C0%7C638217959538674174%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiM
-> > C4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000
-> > %7C%7C%7C&sdata=amO0W8QsR2I5INNNzCNOKEjrsYbzuZ92KXhNdfwSCHA
-> > %3D&reserved=0
-> > https://nam06.safelinks.protection.outlook.com/?url=https%3A%2F%2Flore.
-> > kernel.org%2Fall%2F20230602171302.745492-1-
-> > anthony.l.nguyen%40intel.com%2F&data=05%7C01%7Cweh%40microsoft.co
-> > m%7Cb6724a9f672f47d433ef08db67da4ada%7C72f988bf86f141af91ab2d7cd0
-> > 11db47%7C1%7C0%7C638217959538674174%7CUnknown%7CTWFpbGZsb3d8
-> > eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3
-> > D%7C3000%7C%7C%7C&sdata=A%2BjjtSx%2FvY2T%2BNIEPGuftk%2BCr%2Fv
-> > Yt2Xc1q8B6h2tb6g%3D&reserved=0
+> Please review and apply.
 > 
-> Thanks for you comment. I am  new to the process. I have a few questions regarding to this and hope you can help. First of all, the patch is mostly for IB. Is it possible for the patch to just go through the RDMA branch, since most of the changes are in RDMA? 
+> Thanks,
+> Selvin Xavier
+> 
+> v1 -> v2:
+>  - Fix the warning reported by kbuild test robot in patch 10 about
+>    variables set and not used. Rebased the other patches based on
+>    the modified patch.
+>  - Reported-by: kernel test robot <lkp@intel.com>
+> 
+> Kashyap Desai (17):
+>   RDMA/bnxt_re: wraparound mbox producer index
+>   RDMA/bnxt_re: Avoid calling wake_up threads from spin_lock context
+>   RDMA/bnxt_re: remove virt_func check while creating RoCE FW channel
+>   RDMA/bnxt_re: set fixed command queue depth
+>   RDMA/bnxt_re: Enhance the existing functions that wait for FW
+>     responses
+>   RDMA/bnxt_re: Avoid the command wait if firmware is inactive
+>   RDMA/bnxt_re: use shadow qd while posting non blocking rcfw command
+>   RDMA/bnxt_re: Simplify the function that sends the FW commands
+>   RDMA/bnxt_re: add helper function __poll_for_resp
+>   RDMA/bnxt_re: handle command completions after driver detect a
+>     timedout
+>   RDMA/bnxt_re: Add firmware stall check detection
+>   RDMA/bnxt_re: post destroy_ah for delayed completion of AH creation
+>   RDMA/bnxt_re: consider timeout of destroy ah as success.
+>   RDMA/bnxt_re: cancel all control path command waiters upon error.
+>   RDMA/bnxt_re: use firmware provided max request timeout
+>   RDMA/bnxt_re: remove redundant cmdq_bitmap
+>   RDMA/bnxt_re: optimize the parameters passed to helper functions
 
-Yes, it can, we (RDMA) will handle it.
+I applied whole series as is. It looks good enough, but please address
+my concern about atomit_t.
 
 Thanks
+
+> 
+>  drivers/infiniband/hw/bnxt_re/bnxt_re.h    |   2 +
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c   |  16 +-
+>  drivers/infiniband/hw/bnxt_re/main.c       |  11 +-
+>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 627 ++++++++++++++++++++++-------
+>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  51 ++-
+>  drivers/infiniband/hw/bnxt_re/qplib_res.h  |   1 +
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c   |   8 +-
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.h   |   4 +-
+>  8 files changed, 557 insertions(+), 163 deletions(-)
+
+> 
+> -- 
+> 2.5.5
+> 
+
+
