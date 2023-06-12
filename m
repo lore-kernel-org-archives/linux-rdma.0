@@ -2,150 +2,276 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4432C7EE43
-	for <linux-rdma@archiver.kernel.org>; Mon, 12 Jun 2023 07:50:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BD3EC7EE23
+	for <linux-rdma@archiver.kernel.org>; Mon, 12 Jun 2023 08:04:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233080AbjFLHuc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 12 Jun 2023 03:50:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57318 "EHLO
+        id S233132AbjFLIEZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 12 Jun 2023 04:04:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231822AbjFLHtf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Jun 2023 03:49:35 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A33D1FE4
-        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 00:48:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686556038;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=4o6iBs/cGUwezMGSZngT4KvoAhZmnl7dmMW6aK8mMXs=;
-        b=OODiuA0k/PJWyDuDHRYeegayitMoOzFj3W+4Az9KmRjMN4X4YVxwQxe9+vQ37iWhEPOfxV
-        PpJ3tIrbWsvLQY05AncHOReGFTfeGirAu3eQKKoARNPPtB1g1P7Sbljpxyi3FtxWwMQAq4
-        uKfCal1vd6JiTRSaW9ek9yARuwaC/dA=
-Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com
- [209.85.222.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-670-cbmM7NaqMYS-GGJXbg5sdQ-1; Mon, 12 Jun 2023 03:25:16 -0400
-X-MC-Unique: cbmM7NaqMYS-GGJXbg5sdQ-1
-Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-75ec91f26c8so86316585a.1
-        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 00:25:16 -0700 (PDT)
+        with ESMTP id S231223AbjFLIEJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 12 Jun 2023 04:04:09 -0400
+Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com [IPv6:2607:f8b0:4864:20::233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46584468B
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 01:02:24 -0700 (PDT)
+Received: by mail-oi1-x233.google.com with SMTP id 5614622812f47-39c4c3da9cbso2124271b6e.2
+        for <linux-rdma@vger.kernel.org>; Mon, 12 Jun 2023 01:02:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1686556927; x=1689148927;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=f/qSkIvWYjP8X0VQ1H6dbg9dF0btgVY3RDmPK6ZhCCw=;
+        b=gUptiYrFD+ijO7Pgs+Vgeh0qNxnZnxSR2pNeEAK71VSIg1876MkmUmFZk54mS5EEJl
+         KR/VP8E3zMC3D+6N1CMKQsIKms4buv6rbdhxOrq45srXllRbYii6+xQTHJ7B+Gc7cki6
+         x/9BVFYHvbFQZp61KXnZX4qtHCAI66Nh067D8=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686554716; x=1689146716;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=4o6iBs/cGUwezMGSZngT4KvoAhZmnl7dmMW6aK8mMXs=;
-        b=jASnDRiAKdzLPU0vtprpbhk/voBu1mttbYsH8phAeOnCrwVKCv5v8uzFShg4Gzw8FA
-         G5/pf/4WGuvcweJTpyWloX5QGtoVHusPy1Bjll73Apx0II6rynMSqVugne/EqcxqlQ5Y
-         I2Egbn+2v64FiIzjAvnQUzTJTILqF3d/bCC4Xa6HwTHCY9YGM9j7dv2flpEDG3WbpGN1
-         J2lkQwGzpuPTwLAyVa+s/AashemqsKxrhT8l91R5UcXKJ4gqUKeniz2oRH11Y7Ipq56d
-         ru5AK8OqNVUEIddniHr97k1oWkErLeCKGyCDbrQCkiG+9CMeEUKKoJ0qaS012rIP9Gbc
-         uoSw==
-X-Gm-Message-State: AC+VfDx2EWwVNgCHrNCq6AKgZ348i0RQc+RbHMuZLEckXull3GgDWfTt
-        XUStyUa9NeVWy25MXOx+Cpt+iagx2K7AN2eU/1JNavYSdlSrthJ0cClpQJCN4dZM3+2XirAJHSE
-        l8z9LglUzHxSrGXBV2cOTUA==
-X-Received: by 2002:a05:620a:261b:b0:75d:53ee:ced2 with SMTP id z27-20020a05620a261b00b0075d53eeced2mr9737750qko.3.1686554715877;
-        Mon, 12 Jun 2023 00:25:15 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ5VuifOapEch7jQlR/qS70uakqBc0QmL94RvL3OjCGbDQ+rEyQGny14ZUgrn99WU43OqLM/LQ==
-X-Received: by 2002:a05:620a:261b:b0:75d:53ee:ced2 with SMTP id z27-20020a05620a261b00b0075d53eeced2mr9737716qko.3.1686554715595;
-        Mon, 12 Jun 2023 00:25:15 -0700 (PDT)
-Received: from gerbillo.redhat.com (146-241-250-244.dyn.eolo.it. [146.241.250.244])
-        by smtp.gmail.com with ESMTPSA id v11-20020ae9e30b000000b0074fb15e2319sm2685635qkf.122.2023.06.12.00.25.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 Jun 2023 00:25:15 -0700 (PDT)
-Message-ID: <38dad5cb196741e56d018cea155982928694b2cc.camel@redhat.com>
-Subject: Re: [RFC PATCH v8 03/10] dpll: core: Add DPLL framework base
- functions
-From:   Paolo Abeni <pabeni@redhat.com>
-To:     Jiri Pirko <jiri@resnulli.us>,
-        Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
-Cc:     kuba@kernel.org, vadfed@meta.com, jonathan.lemon@gmail.com,
-        corbet@lwn.net, davem@davemloft.net, edumazet@google.com,
-        vadfed@fb.com, jesse.brandeburg@intel.com,
-        anthony.l.nguyen@intel.com, saeedm@nvidia.com, leon@kernel.org,
-        richardcochran@gmail.com, sj@kernel.org, javierm@redhat.com,
-        ricardo.canuelo@collabora.com, mst@redhat.com, tzimmermann@suse.de,
-        michal.michalik@intel.com, gregkh@linuxfoundation.org,
-        jacek.lawrynowicz@linux.intel.com, airlied@redhat.com,
-        ogabbay@kernel.org, arnd@arndb.de, nipun.gupta@amd.com,
-        axboe@kernel.dk, linux@zary.sk, masahiroy@kernel.org,
-        benjamin.tissoires@redhat.com, geert+renesas@glider.be,
-        milena.olech@intel.com, kuniyu@amazon.com, liuhangbin@gmail.com,
-        hkallweit1@gmail.com, andy.ren@getcruise.com, razor@blackwall.org,
-        idosch@nvidia.com, lucien.xin@gmail.com, nicolas.dichtel@6wind.com,
-        phil@nwl.cc, claudiajkang@gmail.com, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, poros@redhat.com,
-        mschmidt@redhat.com, linux-clk@vger.kernel.org,
-        vadim.fedorenko@linux.dev
-Date:   Mon, 12 Jun 2023 09:25:06 +0200
-In-Reply-To: <ZIWVuPMyKRPv6oyh@nanopsycho>
-References: <20230609121853.3607724-1-arkadiusz.kubalewski@intel.com>
-         <20230609121853.3607724-4-arkadiusz.kubalewski@intel.com>
-         <ZIWVuPMyKRPv6oyh@nanopsycho>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
+        d=1e100.net; s=20221208; t=1686556927; x=1689148927;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=f/qSkIvWYjP8X0VQ1H6dbg9dF0btgVY3RDmPK6ZhCCw=;
+        b=VSCxZBrmUP37RV8lu49srK5mr8RGUWrEwgq0UwlsK6+uTqF8Pt/AfUblbWZAibyrxE
+         Jn0JuQ1VOb6QFfNgwFf4q7maYjBcB5IgMmZpK7rlwrOqBUmq8JhZcY+u2iIpWROvdg3P
+         b68G7L8iUj+JPBgIMeHzGwBfZUrOKt9VSPYRas5YZIlpi924QY6helCpSVm7VhQmb5xV
+         iQXVWgClSvOXhvg5HgSNXL1XOLAZ5sDGuvvIHNo+3axdloYYoNaKblbYl5CVfA+qgp8V
+         HM2LnjEA8W3/kJdd1cd8A/e14GNqF+mXhk1Ec+rBxqF/OVp8XKt1lSDEJTQTdZALGS8r
+         II+Q==
+X-Gm-Message-State: AC+VfDztk6GAdPThKofnYaweAXkgF+//6E8SELPQ4H9D/B/uf6M4DTPR
+        pLMYVuZTLgeyzOkx7+rhIqDbCA2tINvwiTOzq6DDFQ==
+X-Google-Smtp-Source: ACHHUZ4N3SjLld1U4cLg7p7jfOVJs56BUWlhHSAWs5IZUBhYVU1QghqZoL5dtPm/5EqyqlRtF8Kq5cl0EF8JB4UppL8=
+X-Received: by 2002:aca:1009:0:b0:39a:a99a:21a2 with SMTP id
+ 9-20020aca1009000000b0039aa99a21a2mr3359253oiq.40.1686556927045; Mon, 12 Jun
+ 2023 01:02:07 -0700 (PDT)
 MIME-Version: 1.0
+References: <1686308514-11996-1-git-send-email-selvin.xavier@broadcom.com>
+ <1686308514-11996-10-git-send-email-selvin.xavier@broadcom.com> <20230612070417.GO12152@unreal>
+In-Reply-To: <20230612070417.GO12152@unreal>
+From:   Selvin Xavier <selvin.xavier@broadcom.com>
+Date:   Mon, 12 Jun 2023 13:31:54 +0530
+Message-ID: <CA+sbYW3jNWcD+PwKy-KNukVmEsJu3Q0JA-hCeGj329e6Ob=5cQ@mail.gmail.com>
+Subject: Re: [PATCH v2 for-next 09/17] RDMA/bnxt_re: add helper function __poll_for_resp
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        andrew.gospodarek@broadcom.com, kashyap.desai@broadcom.com
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
+        boundary="0000000000008fbbe105fdea22d1"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Sun, 2023-06-11 at 11:36 +0200, Jiri Pirko wrote:
-> Fri, Jun 09, 2023 at 02:18:46PM CEST, arkadiusz.kubalewski@intel.com wrot=
-e:
-> > From: Vadim Fedorenko <vadim.fedorenko@linux.dev>
->=20
-> [...]
->=20
-> > +int dpll_device_register(struct dpll_device *dpll, enum dpll_type type=
-,
-> > +			 const struct dpll_device_ops *ops, void *priv)
+--0000000000008fbbe105fdea22d1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Jun 12, 2023 at 12:34=E2=80=AFPM Leon Romanovsky <leon@kernel.org> =
+wrote:
+>
+> On Fri, Jun 09, 2023 at 04:01:46AM -0700, Selvin Xavier wrote:
+> > From: Kashyap Desai <kashyap.desai@broadcom.com>
+> >
+> > This interface will be used if the driver has not enabled interrupt
+> > and/or interrupt is disabled for a short period of time.
+> > Completion is not possible from interrupt so this interface does
+> > self-polling.
+> >
+> > Signed-off-by: Kashyap Desai <kashyap.desai@broadcom.com>
+> > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> > ---
+> >  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 44 ++++++++++++++++++++++=
++++++++-
+> >  drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  1 +
+> >  2 files changed, 44 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infin=
+iband/hw/bnxt_re/qplib_rcfw.c
+> > index 15f6793..3215f8a 100644
+> > --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> > +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> > @@ -260,6 +260,44 @@ static int __send_message(struct bnxt_qplib_rcfw *=
+rcfw,
+> >       return 0;
+> >  }
+> >
+> > +/**
+> > + * __poll_for_resp   -       self poll completion for rcfw command
+> > + * @rcfw      -   rcfw channel instance of rdev
+> > + * @cookie    -   cookie to track the command
+> > + * @opcode    -   rcfw submitted for given opcode
+> > + *
+> > + * It works same as __wait_for_resp except this function will
+> > + * do self polling in sort interval since interrupt is disabled.
+> > + * This function can not be called from non-sleepable context.
+> > + *
+> > + * Returns:
+> > + * -ETIMEOUT if command is not completed in specific time interval.
+> > + * 0 if command is completed by firmware.
+> > + */
+> > +static int __poll_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie,
+> > +                        u8 opcode)
 > > +{
-> > +	struct dpll_device_registration *reg;
-> > +	bool first_registration =3D false;
+> > +     struct bnxt_qplib_cmdq_ctx *cmdq =3D &rcfw->cmdq;
+> > +     unsigned long issue_time;
+> > +     u16 cbit;
 > > +
-> > +	if (WARN_ON(!ops))
-> > +		return -EINVAL;
-> > +	if (WARN_ON(type < DPLL_TYPE_PPS || type > DPLL_TYPE_MAX))
-> > +		return -EINVAL;
+> > +     cbit =3D cookie % rcfw->cmdq_depth;
+> > +     issue_time =3D jiffies;
 > > +
-> > +	mutex_lock(&dpll_lock);
-> > +	reg =3D dpll_device_registration_find(dpll, ops, priv);
-> > +	if (reg) {
-> > +		mutex_unlock(&dpll_lock);
-> > +		return -EEXIST;
-> > +	}
+> > +     do {
+> > +             if (test_bit(ERR_DEVICE_DETACHED, &cmdq->flags))
+> > +                     return bnxt_qplib_map_rc(opcode);
 > > +
-> > +	reg =3D kzalloc(sizeof(*reg), GFP_KERNEL);
-> > +	if (!reg) {
-> > +		mutex_unlock(&dpll_lock);
-> > +		return -EEXIST;
-> > +	}
-> > +	reg->ops =3D ops;
-> > +	reg->priv =3D priv;
-> > +	dpll->type =3D type;
-> > +	first_registration =3D list_empty(&dpll->registration_list);
-> > +	list_add_tail(&reg->list, &dpll->registration_list);
-> > +	if (!first_registration) {
-> > +		mutex_unlock(&dpll_lock);
-> > +		return 0;
-> > +	}
+> > +             usleep_range(1000, 1001);
 > > +
-> > +	xa_set_mark(&dpll_device_xa, dpll->id, DPLL_REGISTERED);
-> > +	mutex_unlock(&dpll_lock);
-> > +	dpll_device_create_ntf(dpll);
->=20
-> This function is introduced in the next patch. Breaks bissection. Make
-> sure you can compile the code after every patch applied.
+> > +             bnxt_qplib_service_creq(&rcfw->creq.creq_tasklet);
+> > +             if (!test_bit(cbit, cmdq->cmdq_bitmap))
+> > +                     return 0;
+> > +             if (jiffies_to_msecs(jiffies - issue_time) > 10000)
+> > +                     return -ETIMEDOUT;
+> > +     } while (true);
+> > +};
+> > +
+> >  static int __send_message_basic_sanity(struct bnxt_qplib_rcfw *rcfw,
+> >                                      struct bnxt_qplib_cmdqmsg *msg)
+> >  {
+> > @@ -328,8 +366,10 @@ static int __bnxt_qplib_rcfw_send_message(struct b=
+nxt_qplib_rcfw *rcfw,
+> >
+> >       if (msg->block)
+> >               rc =3D __block_for_resp(rcfw, cookie, opcode);
+> > -     else
+> > +     else if (atomic_read(&rcfw->rcfw_intr_enabled))
+>
+> Why atomic_t? It doesn't eliminate the need of locking and if locking
+> exists, you don't need atomic_t.
+The intent of rcfw_intr_enabled was to avoid the locks.  But I agree
+that it will not help. We will  refactor this
+code and move it under a better locking scheme. Will remove atomic
+variables in this path.
+Thanks
+>
+> >               rc =3D __wait_for_resp(rcfw, cookie, opcode);
+> > +     else
+> > +             rc =3D __poll_for_resp(rcfw, cookie, opcode);
+> >       if (rc) {
+> >               /* timed out */
+> >               dev_err(&rcfw->pdev->dev, "cmdq[%#x]=3D%#x timedout (%d)m=
+sec\n",
+> > @@ -796,6 +836,7 @@ void bnxt_qplib_rcfw_stop_irq(struct bnxt_qplib_rcf=
+w *rcfw, bool kill)
+> >       kfree(creq->irq_name);
+> >       creq->irq_name =3D NULL;
+> >       creq->requested =3D false;
+> > +     atomic_set(&rcfw->rcfw_intr_enabled, 0);
+> >  }
+> >
+> >  void bnxt_qplib_disable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw)
+> > @@ -857,6 +898,7 @@ int bnxt_qplib_rcfw_start_irq(struct bnxt_qplib_rcf=
+w *rcfw, int msix_vector,
+> >       creq->requested =3D true;
+> >
+> >       bnxt_qplib_ring_nq_db(&creq->creq_db.dbinfo, res->cctx, true);
+> > +     atomic_inc(&rcfw->rcfw_intr_enabled);
+> >
+> >       return 0;
+> >  }
+> > diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h b/drivers/infin=
+iband/hw/bnxt_re/qplib_rcfw.h
+> > index b7bbbae..089e616 100644
+> > --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+> > +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+> > @@ -221,6 +221,7 @@ struct bnxt_qplib_rcfw {
+> >       u64 oos_prev;
+> >       u32 init_oos_stats;
+> >       u32 cmdq_depth;
+> > +     atomic_t rcfw_intr_enabled;
+> >       struct semaphore rcfw_inflight;
+> >  };
+> >
+> > --
+> > 2.5.5
+> >
+>
+>
 
-WRT, I think the easiest way to solve the above is adding the function
-call in the next patch.
+--0000000000008fbbe105fdea22d1
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-Cheers,
-
-Paolo
-
+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
+FYMZp2DojLAq9f4Oi2OBetbnWxo0WGycXpmq/jC4PUx2u9mazQ79i80VLagGRshWniESXuf+SYG8
++zBimjld9ZZnwm7itHAZdtme4YYFxx+EHa4PUxPV8t+hPHhsiIjirPa1pVXPbQIDAQABo4IB2zCC
+AdcwDgYDVR0PAQH/BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDov
+L3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAu
+Y3J0MEEGCCsGAQUFBzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29u
+YWxzaWduMmNhMjAyMDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0
+cHM6Ly93d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBA
+MD6gPKA6hjhodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2Ey
+MDIwLmNybDAlBgNVHREEHjAcgRpzZWx2aW4ueGF2aWVyQGJyb2FkY29tLmNvbTATBgNVHSUEDDAK
+BggrBgEFBQcDBDAfBgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQU3TaH
+dsgUhTW3LwObmZ20fj+8Xj8wDQYJKoZIhvcNAQELBQADggEBAAbt6Sptp6ZlTnhM2FDhkVXks68/
+iqvfL/e8wSPVdBxOuiP+8EXGLV3E72KfTTJXMbkcmFpK2K11poBDQJhz0xyOGTESjXNnN6Eqq+iX
+hQtF8xG2lzPq8MijKI4qXk5Vy5DYfwsVfcF0qJw5AhC32nU9uuIPJq8/mQbZfqmoanV/yadootGr
+j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
+9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
+hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
+IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIPHntWKzGCRD
+QCEUM9AcSjuxhmujombn3UCBqx2W27isMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDYxMjA4MDIwN1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCmyjxEm5Wv9Rpz+4Cm1AyMrwiN7vi7
+XlffQs76yQqiMVe0S4BHr1GnpslmMdXcVg9Qzu+jBIATDTzDVxUypZJWeVOgkgdgm3zYXuXECohH
+qskiGuLLl8vX85dcv/fMn0Ri43YFf8mWdTF7n++4ce111xY/i2LJbET3IufTC9Kufdb5Fcwc0NIJ
+hEVYTY5nP/Iwa4BhOQUiU6FiJ+RmaqIEf3dcy/g50Scljs6Rsqp+kmJAq4LHJt3kNQ7/nkCSSdTd
+84hwwjevfUCQfrlI2BwCdB/uTHr0lq6yavkPmbWVyWHtjdPaVyAFEa5HEoKGTEdnLNVLJiakjZvt
+z+QVFBop
+--0000000000008fbbe105fdea22d1--
