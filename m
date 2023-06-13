@@ -2,94 +2,104 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8676EC7EE29
-	for <linux-rdma@archiver.kernel.org>; Tue, 13 Jun 2023 13:21:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4428FEB64D7
+	for <linux-rdma@archiver.kernel.org>; Tue, 13 Jun 2023 13:30:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242093AbjFMNV1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 13 Jun 2023 09:21:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35452 "EHLO
+        id S242266AbjFMNap (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 13 Jun 2023 09:30:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240225AbjFMNV0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 13 Jun 2023 09:21:26 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C6241BCD
-        for <linux-rdma@vger.kernel.org>; Tue, 13 Jun 2023 06:20:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686662426;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=G893LCvvQggzr4O1S8GO0nLCHfW4Uq6DoNaOwAAFs4c=;
-        b=ipu9q2Mw3OXZh0J27xkiiP8feqiLkg1N3PlEXldWiUS6zIBhlX+VbW+YfaDoFlv+FZpysP
-        mlDvdi0NDx4XRQoURITyPqcK2uULi3EaEDDFo4fRnnSr/kIjmFVe8Fa8AbqV4Qd55te8wG
-        +aB2bDB3O2lJPGu9e0bSNgdCfw5Mq/g=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-16-qx0D6gcmMoWKRejBCIbnHg-1; Tue, 13 Jun 2023 09:20:24 -0400
-X-MC-Unique: qx0D6gcmMoWKRejBCIbnHg-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C115D28EA6E1;
-        Tue, 13 Jun 2023 13:20:23 +0000 (UTC)
-Received: from metal.redhat.com (unknown [10.45.225.131])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D1502140E951;
-        Tue, 13 Jun 2023 13:20:21 +0000 (UTC)
-From:   Daniel Vacek <neelx@redhat.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     Leon Romanovsky <leon@kernel.org>, Daniel Vacek <neelx@redhat.com>,
-        Rogerio Moraes <rogerio@cadence.com>
-Subject: [PATCH v2] verbs: fix compilation warning with C++20
-Date:   Tue, 13 Jun 2023 15:19:31 +0200
-Message-Id: <20230613131931.738436-1-neelx@redhat.com>
-In-Reply-To: <20230609153147.667674-1-neelx@redhat.com>
-References: <20230609153147.667674-1-neelx@redhat.com>
+        with ESMTP id S235323AbjFMNan (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 13 Jun 2023 09:30:43 -0400
+Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D95C71AA
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Jun 2023 06:30:39 -0700 (PDT)
+Received: by mail-qv1-xf2b.google.com with SMTP id 6a1803df08f44-62df53196edso5435536d6.3
+        for <linux-rdma@vger.kernel.org>; Tue, 13 Jun 2023 06:30:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1686663039; x=1689255039;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=y1wWr1tMbudbOK4z/i9FCl7+zcdXRR+g7ms2GZ5RIas=;
+        b=gFdKAzdsC4Km23ekn6ACrWo5EYSNsh2vy5ZkHcAK7IVtBMlaYRrYIVVlhxpfZSmMg7
+         WYpvSKLd+daLU69dYdZTnTZwY8a3cmpIHKv0ThNZnJ6fy8fnDSuBy/U9xfvo5q6YcOBR
+         IbQp2aY1QmzuFR8osKO90LaK49Pp3V82j9Y6OCpRjFey5CkcH2d3FMqFkUDQ2jEKSofN
+         KtwlkG48oBUAOAnP40DTZRYICSL5npHro95D4voyG+gM2QVGgRzdctKeBVmLql56Ev6D
+         n8hQoPRtiE3QruGuT+BRpyUxWzpgIpAN4gBNLFmDtHmBUhJG12ZW7gmICwI+AcnllmkN
+         l3oA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686663039; x=1689255039;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=y1wWr1tMbudbOK4z/i9FCl7+zcdXRR+g7ms2GZ5RIas=;
+        b=YVHQSbh7mQ7pkAm823s/SPPnL0znLpvz/tC/MFmN+7izfZoMU5labHhKLzsSXHQlyy
+         SZ2fIek2fnoJ7Enckf5e3tdIQLyYi/j82s/9vzzSv1gpYadSzCQpv7B1nluo138XSEze
+         RVVJlP0/VRn9FykyPRjHTKICE8EO+yEBYRt+Fv5rIhS4Dkz5EPTiZj6L6lXVZxVO73AK
+         voQcscIAbMHCy/vIcrWHSkj4+6XXyrmjMI1v0Uiz45dr49naDA4i+LEPmFV4bpOv3DvI
+         xjXPZyMNl9l5i35LhShtuRxJiyzuvHdJmSObmpnV6ehN4FHv05drFsumU+zVeKjnjy96
+         rY2Q==
+X-Gm-Message-State: AC+VfDxmr+D5hRzGGJu1hiwoSksUe8fzLxSrDoXVvJAhO08VK5E4Sh0k
+        PHm1imAvq/xnkyICzE3OP5mZ+w==
+X-Google-Smtp-Source: ACHHUZ4IcAn5/udys+q00pDgo61L01aeH7U8dVDPeDSvd4nHc0VSAtwZb+HE9DprrPHS4pGK0tojOA==
+X-Received: by 2002:ad4:5fc5:0:b0:62d:f6f1:10bf with SMTP id jq5-20020ad45fc5000000b0062df6f110bfmr2155854qvb.51.1686663038949;
+        Tue, 13 Jun 2023 06:30:38 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-25-194.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.25.194])
+        by smtp.gmail.com with ESMTPSA id y16-20020a0ce050000000b006210e0365f7sm3876191qvk.69.2023.06.13.06.30.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 Jun 2023 06:30:38 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1q946X-004wZr-Kz;
+        Tue, 13 Jun 2023 10:30:37 -0300
+Date:   Tue, 13 Jun 2023 10:30:37 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+Cc:     "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        Leon Romanovsky <leon@kernel.org>,
+        "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
+        Damien Le Moal <dlemoal@kernel.org>
+Subject: Re: [PATCH v2] RDMA/cma: prevent rdma id destroy during
+ cma_iw_handler
+Message-ID: <ZIhvfdVOMsN2cXEX@ziepe.ca>
+References: <20230612054237.1855292-1-shinichiro.kawasaki@wdc.com>
+ <ZIcpHbV3oqsjuwfz@ziepe.ca>
+ <3x4kcccwy5s2yhni5t26brhgejj24kxyk7bnlabp5zw2js26eb@kjwyilm5d4wc>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3x4kcccwy5s2yhni5t26brhgejj24kxyk7bnlabp5zw2js26eb@kjwyilm5d4wc>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Our customer reported the below warning whe using Clang v16.0.4 and C++20,
-on a code that includes the header "/usr/include/infiniband/verbs.h":
+On Tue, Jun 13, 2023 at 01:43:43AM +0000, Shinichiro Kawasaki wrote:
+> > I think there is likely some much larger issue with the IW CM if the
+> > cm_id can be destroyed while the iwcm_id is in use? It is weird that
+> > there are two id memories for this :\
+> 
+> My understanding about the call chain to rdma id destroy is as follows. I guess
+> _destory_id calls iw_destory_cm_id before destroying the rdma id, but not sure
+> why it does not wait for cm_id deref by cm_work_handler.
+> 
+> nvme_rdma_teardown_io_queueus
+>  nvme_rdma_stop_io_queues -> chained to cma_iw_handler
+>  nvme_rdma_free_io_queues
+>   nvme_rdma_free_queue
+>    rdma_destroy_id
+>     mutex_lock(&id_priv->handler_mutex)
+>     destroy_id_handler_unlock
+>      mutex_unlock(&id_priv->handler_mutex)
+>      _destory_id
+>        iw_destroy_cm_id
+>        wait_for_completiion(&id_priv->comp)
+>        kfree(id_priv)
 
-error: bitwise operation between different enumeration types ('ibv_access_flags' and
-'ib_uverbs_access_flags') is deprecated [-Werror,-Wdeprecated-enum-enum-conversion]
-                mem->mr = ibv_reg_mr(dev->pd, (void*)start, len, IBV_ACCESS_LOCAL_WRITE);
-                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/usr/include/infiniband/verbs.h:2514:19: note: expanded from macro 'ibv_reg_mr'
-                             ((access) & IBV_ACCESS_OPTIONAL_RANGE) == 0))
-                              ~~~~~~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~
-1 error generated.
+Once a destroy_cm_id() has returned that layer is no longer
+permitted to run or be running in its handlers. The iw cm is broken if
+it allows this, and that is the cause of the bug.
 
-According to the article "Clang 11 warning: Bitwise operation between different
-enumeration types is deprecated":
+Taking more refs within handlers that are already not allowed to be
+running is just racy.
 
-C++20's P1120R0 deprecated bitwise operations between different enums. Such code is
-likely to become ill-formed in C++23. Clang 11 warns about such cases. It should be fixed.
-
-Reported-by: Rogerio Moraes <rogerio@cadence.com>
-Signed-off-by: Daniel Vacek <neelx@redhat.com>
----
- libibverbs/verbs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 03a7a2a7..ed9aed21 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -2590,7 +2590,7 @@ __ibv_reg_mr(struct ibv_pd *pd, void *addr, size_t length, unsigned int access,
- #define ibv_reg_mr(pd, addr, length, access)                                   \
- 	__ibv_reg_mr(pd, addr, length, access,                                 \
- 		     __builtin_constant_p(				       \
--			     ((access) & IBV_ACCESS_OPTIONAL_RANGE) == 0))
-+			     ((int)(access) & IBV_ACCESS_OPTIONAL_RANGE) == 0))
- 
- /**
-  * ibv_reg_mr_iova - Register a memory region with a virtual offset
--- 
-2.40.1
-
+Jason
