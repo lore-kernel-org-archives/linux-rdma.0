@@ -2,131 +2,156 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A76B4EB64DD
-	for <linux-rdma@archiver.kernel.org>; Wed, 21 Jun 2023 13:07:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EC1AEB64D7
+	for <linux-rdma@archiver.kernel.org>; Wed, 21 Jun 2023 14:46:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232252AbjFUNHt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 21 Jun 2023 09:07:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42408 "EHLO
+        id S231408AbjFUOqj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 21 Jun 2023 10:46:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232227AbjFUNHs (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Jun 2023 09:07:48 -0400
-Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 289681998
-        for <linux-rdma@vger.kernel.org>; Wed, 21 Jun 2023 06:07:45 -0700 (PDT)
-Received: by mail-wr1-x429.google.com with SMTP id ffacd0b85a97d-31126037f41so5649308f8f.2
-        for <linux-rdma@vger.kernel.org>; Wed, 21 Jun 2023 06:07:45 -0700 (PDT)
+        with ESMTP id S231187AbjFUOqi (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 21 Jun 2023 10:46:38 -0400
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2125.outbound.protection.outlook.com [40.107.220.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B16C199E;
+        Wed, 21 Jun 2023 07:46:36 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=HA6wZNAbLobQp4yU4VHEcSXIU4oALnmTdUiMD+l3q+Syx9wbI7r1JBtZEcZ+QJ4XfMVxFRS/NiqJKIbxvUWobcPq4bA5qn+hmRCdOa7bcTiejdkyBpZM7CFez55MXinKZb92lL0ZT03N7PhmlNeXE0SS0lqRxNWnqjEAtV66nFTn7slIDVxqtEMmtYOv2ZRBaz8ss4JiVpeXcNw5Owm/nDWekLNTgdsntnX8lp7dlmQf4sVxK6yw7Inw/ZRJWfcm3XW+HdnRxkSM9b7d8AqgqLQp3LU9eorGlsHyzcOUqpJMStnQJoSzFco0aGF4KIsWp0q77jS5DGuieEEPTtpwZA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=txOhYdUzGR0lzwIjDNXNwc4JbjgwGoTrjw/V1LKdRsI=;
+ b=AaGMAbOqR878RkYcRB74A9s2ek/sv8YZPPv2bxdWSsW17g+dYrmkf55R3vPr6ouxkPpPDOWtcyD4qnhsj4daWTTF6lPS5qDqfPrHMrAMBRDXchY55bqoH/Z1SjxxNFHGKr8gUMOhhvTfcOMuR0WabU4b5PBvXmZyXFSrRJ2Sz7A/Q/k165qtqzGTVkcgzycNa/Dmaq+uz4LyMCfPmeNVKN+Gk30/J1CqkWL4GHtDaf087ewbL+K92AQYHPKZq218F0sBUtJ8ajY7gFYPspZ+Uu2zBTPTWxmEa9CwLOZpsnJ/xbtN+p++f8fc007Pt+H8mHjLrO6KH+mzLm4yBwR60A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=corigine.com; dmarc=pass action=none header.from=corigine.com;
+ dkim=pass header.d=corigine.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=resnulli-us.20221208.gappssmtp.com; s=20221208; t=1687352863; x=1689944863;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=TU5pe+asCSSBXdxRD62Pc73zx7uMR0rLSJrHUbp5re0=;
-        b=CkUcMHVR+Z8yWrVCs3aa+R3jQV4jFsz4M5P2+9ftWZgzt/db2V9KrQOJMxJ11GhMwT
-         hAUWMvFrEi/d7CfH6HI+KC5ld9dLAWsTabouLLOzs9dkdlrE7FpQ4f2msqpavhbA422u
-         Cuix2KNbn4SkOv7AgpXv5F+qCn68JKCtGu+8+yEDR5xIpJogQEKUIBdi70OV5u40ETay
-         PH4+qljOaIEG09l2kO/O5FKZplJPDhwdInH3YBc7tz5gLDA/1FS6JieSn676ZDAHvUVq
-         9/0iAliOIzsBAlDf0OM3844UB/cUR0YMJAZTe+YI30MfMoVxhr94NC9haKVShpVdLDCu
-         ng4A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687352863; x=1689944863;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=TU5pe+asCSSBXdxRD62Pc73zx7uMR0rLSJrHUbp5re0=;
-        b=IWGTi+L8Jba5hkMf0EFxP6wMyrp/a4GVB6+abBH0D9QtWlLJ+2QrWKFvDpmlVH/h/l
-         edwLlsXsrv41oBLIIIvhIS/A4Pvw5gV9yPhf8RX2j9wYpsWSj+qKGu5VVkj0oK88W4Ib
-         czqO2vPrrMuBoMtXwfMATUIJBpmX5tilwqZuHmiL1ASA3eqN+U9zpv+pgEmABb96N/y5
-         EN1Unt+Ci3FR/H81TG4dBo1zrKIqWIcUh2OYC8yugCMi/HxpT05m1GyaHgW5GlUWE4Wd
-         ua1CWKohC/zyPzAumCDri904F1IP7WKwIEa5v2efHCJcQvimGYKTkWpjEbL5zuQ8PCAH
-         jtLg==
-X-Gm-Message-State: AC+VfDwuHDf2ia9HS6Z1Gpz8O8T9uNLoxMtLT5qdnpBBQkaMy6/5V0zP
-        YVag0lS4ENR0Ig+VO41/03HsOInIVcl01i8CISw=
-X-Google-Smtp-Source: ACHHUZ4DJdasIxxt0P5VQ3mJXiKww1/aS5p50nS9gK+lncj65MULR6+GXjSyIdfexJKVJjvw3OKC9Q==
-X-Received: by 2002:adf:fe48:0:b0:311:10c0:85f0 with SMTP id m8-20020adffe48000000b0031110c085f0mr12540283wrs.14.1687352863404;
-        Wed, 21 Jun 2023 06:07:43 -0700 (PDT)
-Received: from localhost (host-213-179-129-39.customer.m-online.net. [213.179.129.39])
-        by smtp.gmail.com with ESMTPSA id f7-20020adff8c7000000b0030e6096afb6sm4453467wrq.12.2023.06.21.06.07.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 21 Jun 2023 06:07:42 -0700 (PDT)
-Date:   Wed, 21 Jun 2023 15:07:41 +0200
-From:   Jiri Pirko <jiri@resnulli.us>
-To:     Petr Oros <poros@redhat.com>
-Cc:     Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>,
-        kuba@kernel.org, vadfed@meta.com, jonathan.lemon@gmail.com,
-        pabeni@redhat.com, corbet@lwn.net, davem@davemloft.net,
-        edumazet@google.com, vadfed@fb.com, jesse.brandeburg@intel.com,
-        anthony.l.nguyen@intel.com, saeedm@nvidia.com, leon@kernel.org,
-        richardcochran@gmail.com, sj@kernel.org, javierm@redhat.com,
-        ricardo.canuelo@collabora.com, mst@redhat.com, tzimmermann@suse.de,
-        michal.michalik@intel.com, gregkh@linuxfoundation.org,
-        jacek.lawrynowicz@linux.intel.com, airlied@redhat.com,
-        ogabbay@kernel.org, arnd@arndb.de, nipun.gupta@amd.com,
-        axboe@kernel.dk, linux@zary.sk, masahiroy@kernel.org,
-        benjamin.tissoires@redhat.com, geert+renesas@glider.be,
-        milena.olech@intel.com, kuniyu@amazon.com, liuhangbin@gmail.com,
-        hkallweit1@gmail.com, andy.ren@getcruise.com, razor@blackwall.org,
-        idosch@nvidia.com, lucien.xin@gmail.com, nicolas.dichtel@6wind.com,
-        phil@nwl.cc, claudiajkang@gmail.com, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, mschmidt@redhat.com,
-        linux-clk@vger.kernel.org, vadim.fedorenko@linux.dev
-Subject: Re: [RFC PATCH v8 04/10] dpll: netlink: Add DPLL framework base
- functions
-Message-ID: <ZJL2HUkAtHEw5rq+@nanopsycho>
-References: <20230609121853.3607724-1-arkadiusz.kubalewski@intel.com>
- <20230609121853.3607724-5-arkadiusz.kubalewski@intel.com>
- <c7480d0a71fb8d62108624878f549c0d91d4c9e6.camel@redhat.com>
- <ZJLktA6RJaVo3BdH@nanopsycho>
-MIME-Version: 1.0
+ d=corigine.onmicrosoft.com; s=selector2-corigine-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=txOhYdUzGR0lzwIjDNXNwc4JbjgwGoTrjw/V1LKdRsI=;
+ b=OWL9T+wTrlMu7RHpeMSD6ThxVN2mLC5zrYKWvNoWR8OJXcQSfats6tJsTq8ZfRyOXMcvzy2IYzMaNFTEOucPeXxSA9OkjkzCMa7s4gSurN4ghje2leivim4m88H9foutQjgcg0fh17iUfgqViM8w/1y7pRETgv4kpvPW7vw1K6Y=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=corigine.com;
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com (2603:10b6:510:78::6)
+ by SJ0PR13MB5623.namprd13.prod.outlook.com (2603:10b6:a03:421::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6500.37; Wed, 21 Jun
+ 2023 14:46:31 +0000
+Received: from PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::eb8f:e482:76e0:fe6e]) by PH0PR13MB4842.namprd13.prod.outlook.com
+ ([fe80::eb8f:e482:76e0:fe6e%5]) with mapi id 15.20.6521.023; Wed, 21 Jun 2023
+ 14:46:31 +0000
+Date:   Wed, 21 Jun 2023 16:46:23 +0200
+From:   Simon Horman <simon.horman@corigine.com>
+To:     Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>
+Cc:     linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        Emmanuel Grumbach <emmanuel.grumbach@intel.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Moshe Shemesh <moshe@mellanox.com>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Dean Luick <dean.luick@cornelisnetworks.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Moshe Shemesh <moshe@nvidia.com>, stable@vger.kernel.org
+Subject: Re: [PATCH v3 07/10] net/mlx5: Use RMW accessors for changing LNKCTL
+Message-ID: <ZJMNPzvvRenBH1ur@corigine.com>
+References: <20230620134624.99688-1-ilpo.jarvinen@linux.intel.com>
+ <20230620134624.99688-8-ilpo.jarvinen@linux.intel.com>
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <ZJLktA6RJaVo3BdH@nanopsycho>
+In-Reply-To: <20230620134624.99688-8-ilpo.jarvinen@linux.intel.com>
+X-ClientProxiedBy: AM8P190CA0025.EURP190.PROD.OUTLOOK.COM
+ (2603:10a6:20b:219::30) To PH0PR13MB4842.namprd13.prod.outlook.com
+ (2603:10b6:510:78::6)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH0PR13MB4842:EE_|SJ0PR13MB5623:EE_
+X-MS-Office365-Filtering-Correlation-Id: ce8ac03c-cf95-4bf8-cf65-08db72664d52
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: hMCiNbCURkUd5inbREITYweiAbnnzziZXt45t4Z/8cpXUmuwWlFGjIu9xSKG6cqIprnSMoYrvvWz3i/Wwi9qBPe8+z7HTgU4tP/a2ACsSDI7ajWR7oTC30xqKQ+LABuZz4O505RKDGVi1GeKUFzVsuyXzv0oZZUoa3L1wfcV0ezfKgBc/gcCsT0ZlUOOgCOlMVwSe3njhEWJZH+SYrDrpujo/W75ZpyTtePkPeZZIfcFvbzOVYelPTs6KvSLUl+/gWnoNOKUouqRfUkdMn/819VNL9kK9l02l+31lLTfrgwdmYQ3FeolSyy4b4sATYKD1+frLwt5qxQTR7QE6tGDWW1UteP5+6v+wcxHPx+BSFJ44m+eqEHzVtD1UUal4KPUhMdL/gvFGY6CJZof8xhG1tgvczKeSl+GX6B3lBDyt/VX10BcgxQCJMaJtzBO/irgGnIr7Sh5LKDi+BDce4aEsEKYmJbK8n0kUFGlbsq1qYYdQuUyTmtqJrZERoYlYKHhCLZanzUWNHA4bTHuaXwSjcctwV7lSSx4TE0Di5dnpl3f8u9/s0gqCA54fp+ecAn56pL3fQ4D4Rp8M60enA1owBq4l3VZ4O//mg4tU7mPOSg=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR13MB4842.namprd13.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(39840400004)(136003)(366004)(346002)(376002)(396003)(451199021)(7416002)(8676002)(54906003)(36756003)(2906002)(4744005)(86362001)(186003)(6506007)(6512007)(2616005)(478600001)(41300700001)(8936002)(83380400001)(6666004)(6486002)(4326008)(66476007)(66556008)(6916009)(38100700002)(316002)(66946007)(5660300002)(44832011);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?U0tQc3FmekRQK1JXdTFjZzYrWTRiV0NHWjNtZ2U2OWgrZ2xVd1FLWXhxVnc4?=
+ =?utf-8?B?cnpFUlUvbGNCTHNnSytEV0xXNTJ4TWdXUUt1MGphMHU4aDQ0by9Pbk1ObE1v?=
+ =?utf-8?B?bExuQnFXYnVuc1lxZytsSzgyT04zSk5hdEt5bll3YnVCTzJVUGZMNWh2VmFa?=
+ =?utf-8?B?b0ZEY1pQVUdhekNoeHdSSGNkMlllci9oVjY3OFVUUDQ0elJ0WDUrNVdNNzRJ?=
+ =?utf-8?B?TDJRQlYwTTBGVk9aK2UyeXplMkg3dnhBcEZMYi9aWDRhdFduSHpuUHU5eTVD?=
+ =?utf-8?B?K3A5L0RxQnBhNWIxQ1NpSHRwMG1xRENTZC9nczU0V1ZWdFZJeUFmK2NDNEJZ?=
+ =?utf-8?B?Z0o2cWhEVThpdVRja2ZBY3ZvTE5aSU1mMm9kSzYvWU54MklIb0U5QW53UEhz?=
+ =?utf-8?B?L3hnamlxS3R4U0E3Y0xuRUFtWC9FLzg0ZFlJZjRldWpISXFWRUFRRGxvbit4?=
+ =?utf-8?B?akZjdC9ldkNCeVkwQmhiTVNVSjd1NEpYb3lsS1BWam1USTU0SHRsdmttYTBU?=
+ =?utf-8?B?UFNsL2U5SlV0eUVwL3ZoeUd5N25MZDUvc05qaXRhOEJJSklNY0g2aFVvSTgy?=
+ =?utf-8?B?SzA4a05kcitiRWZRODRQeEtJYWxsUTAxcm9Sbnd2Z0IybmlmcFJuV0QvTVhV?=
+ =?utf-8?B?YXZMUmRGQS94akNmVlVlalNGeVhwUFJPSlc3Ni9xbGxNOFY2VFV1Y3lLY2xI?=
+ =?utf-8?B?WFZUTklaWW5kemIwYUZZalpFS3NmZGJpSmRWMm5MWGJZQXlSK0ZGK0Qva2Ru?=
+ =?utf-8?B?aUV4NFNHbjhBRmN1UkpmRmsrem94cmthZjZtMnZaSHI0OThyeHZnbTdkQ3Vu?=
+ =?utf-8?B?OWZOYklqeHdJaGR1TVNlZkoxcjJiVWJpSXF3RDFsODNZMm9qMnJnRHdZU3E5?=
+ =?utf-8?B?djJ1NVVXTFp6UGYxRXN6WmZtMlEwVWlEK25nRkEzeG9VSmhQQ2g3SnRWZlho?=
+ =?utf-8?B?NmJZeXNoTjRPcUZvUGpwNDl5dXJ0WlFPUVVXYm1qVzc0ODVKVUlvOWFDQ043?=
+ =?utf-8?B?NUQ0Z3RMWTRIYVFuR2JIS3kvV3dwVUVrRkRoY2tmaHdvUEJTT1V5MGpjbXRz?=
+ =?utf-8?B?d1ZoRjZLeDNMODZRdmJYT2k1UDVnTmpweDhwRlp1ZmpJcEsxc2RUMGVBUTNN?=
+ =?utf-8?B?b0dXM2QxQmUrejZaMlc2OU44VlBwVWZHSmhmLzhZQytaVTFHSXhjRFlsbDFr?=
+ =?utf-8?B?UE9rTUJnR1N5MmRSN25wZWtZcm0xaXdlbjYzMUhMMWVsV2Z1ekRLbGFmNUtM?=
+ =?utf-8?B?V3JwWGVSRnN5TitRYUhramJ4OWxHd0hzTnU3N3hWWC9NSDZWcjlSZ0ltalI4?=
+ =?utf-8?B?TWxzeWErR1o4b0ZNZ2t5bmN6TWV0MnN1MGtmM0dCWkcyaUJQaDFMT1VoZk5m?=
+ =?utf-8?B?SXJtRTVleUJ1SnNoZDk5b3JJMC8zekJOSnMyTG5ObmU3RHJYUFdocmc2c2h3?=
+ =?utf-8?B?M05sNXI5YmE0ZzU2Y2NuRE1wd0pQYlpYOGY1dm1Jbkc4TXRDcXM0ZVhaUTdN?=
+ =?utf-8?B?eUtKZm1Yc1kvcVRjZ1J6OExENlFpUCtFMmJPQUZmc0pOSjBISkdQYjdZZmhX?=
+ =?utf-8?B?Z1N6Zk9rTlhQWVM1MXhpZ0d6ekxsdjhxdHJrMkRpajBLcG5EcVJsNzc5K2pV?=
+ =?utf-8?B?RXhWd1ZiMVZ6WUt4Z3VxaC9mTWprSWhKd09mMHVQeGdlNEdkajBjV2QwOURD?=
+ =?utf-8?B?NE1uTzlIOVEwTW5MenAyN2pvMEZGWmdyYVBJZ05SOEF5RHptazFzQ3VpMDZq?=
+ =?utf-8?B?Sy9WZU96MElHbjJwYzZYeklXY1BZTVp6c2wrVVpvUWJETjV3NFFtb2orNWds?=
+ =?utf-8?B?YnlxTlRuRlhsSDFBWktPUENxaEZSNlNJUUpFcmNEOVY5citYcVFYUlg3Z2Z4?=
+ =?utf-8?B?WmMvWWMrNDdXcUJEN2tadFVKVFkyQStuQjZxTUQzZGZFRWhzdlJFVmlqVFRs?=
+ =?utf-8?B?QnhlV3phcld5M05TSkpQQVFONHU4S1RsRjRpdk1McGhteXMwb2JyWEJFNENP?=
+ =?utf-8?B?N1pDWEhVMjRjaEMxTzZSZDFNa21EbjZBRytLalV2a2FnRjkyS1c2a1Fhakxv?=
+ =?utf-8?B?OTJSUjZ5T3ZwaG0reWZKbU5vQy91WXR0cVFQTDNqWDlxYmNqSGNLdVk4YSsy?=
+ =?utf-8?B?Mi9VMFF6QjVaZUFJUTN6RVo2eHFTWllvZVB3UTBmblg4LzdUaHF2QmpoUDNE?=
+ =?utf-8?B?Q0lpNXJSSTlGK212ZzJYMTQ5Z21NK0JreCtKSGllYnZ2N1YyRzEvTCt4MHJk?=
+ =?utf-8?B?TVJJV1YrUnZnTXJyNnJEanZ6ZURBPT0=?=
+X-OriginatorOrg: corigine.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ce8ac03c-cf95-4bf8-cf65-08db72664d52
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR13MB4842.namprd13.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jun 2023 14:46:31.6736
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: fe128f2c-073b-4c20-818e-7246a585940c
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: C14AC+VYW8JRT1V31jWS0ckQTu733REpleWczRicvidYEhMsKiQJD74kbrsdIxcQJjReYDOcMJmZ6HzNMDq+pMGQnbvC1Vfn5gEaE3Bq/wY=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR13MB5623
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Wed, Jun 21, 2023 at 01:53:24PM CEST, jiri@resnulli.us wrote:
->Wed, Jun 21, 2023 at 01:18:59PM CEST, poros@redhat.com wrote:
->>Arkadiusz Kubalewski píše v Pá 09. 06. 2023 v 14:18 +0200:
->>> From: Vadim Fedorenko <vadim.fedorenko@linux.dev>
->
->[...]
->
->Could you perhaps cut out the text you don't comment? Saves some time
->finding your reply.
->
->
->>> +static int
->>> +dpll_set_from_nlattr(struct dpll_device *dpll, struct genl_info
->>> *info)
->>> +{
->>> +       const struct dpll_device_ops *ops = dpll_device_ops(dpll);
->>> +       struct nlattr *tb[DPLL_A_MAX + 1];
->>> +       int ret = 0;
->>> +
->>> +       nla_parse(tb, DPLL_A_MAX, genlmsg_data(info->genlhdr),
->>> +                 genlmsg_len(info->genlhdr), NULL, info->extack);
->>> +       if (tb[DPLL_A_MODE]) {
->>Hi,
->>
->>Here should be something like:
->>               if (!ops->mode_set)
->>                       return -EOPNOTSUPP;
->
->Why? All drivers implement that.
->I believe that it's actullaly better that way. For a called setting up
->the same mode it is the dpll in, there should be 0 return by the driver.
->Note that driver holds this value. I'd like to keep this code as it is.
+On Tue, Jun 20, 2023 at 04:46:21PM +0300, Ilpo Järvinen wrote:
+> Don't assume that only the driver would be accessing LNKCTL of the
+> upstream bridge. ASPM policy changes can trigger write to LNKCTL
+> outside of driver's control.
+> 
+> Use RMW capability accessors which do proper locking to avoid losing
+> concurrent updates to the register value.
+> 
+> Fixes: eabe8e5e88f5 ("net/mlx5: Handle sync reset now event")
+> Suggested-by: Lukas Wunner <lukas@wunner.de>
+> Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+> Reviewed-by: Moshe Shemesh <moshe@nvidia.com>
+> Cc: stable@vger.kernel.org
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c | 9 ++-------
+>  1 file changed, 2 insertions(+), 7 deletions(-)
 
-Actually, you are correct Petr, my mistake. Actually, no driver
-implements this. Arkadiusz, could you please remove this op and
-possibly any other unused  op? It will be added when needed.
+Reviewed-by: Simon Horman <simon.horman@corigine.com>
 
-Thanks!
-
-
->
->[...]
