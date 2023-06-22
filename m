@@ -2,91 +2,98 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 452CCEB64D8
-	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jun 2023 07:56:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 448CAEB64D8
+	for <linux-rdma@archiver.kernel.org>; Thu, 22 Jun 2023 08:19:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229756AbjFVH4A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 22 Jun 2023 03:56:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54096 "EHLO
+        id S229784AbjFVITZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 22 Jun 2023 04:19:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229891AbjFVHz7 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Jun 2023 03:55:59 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4CA7199E
-        for <linux-rdma@vger.kernel.org>; Thu, 22 Jun 2023 00:55:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1687420508;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type;
-        bh=Eox6kzJ0KXGmAxPu1zCtO8SWj1o8YH/kpH0QF8X1TQs=;
-        b=Q3SnjzHyYy+Zr+rIoGHg9gpaNMMNOOxtqgzj87cZyM2v88Ka28jZ1jud6UmS0sJeFmjOrH
-        e6xGsThEl2gBx6IoAVUxNMxLZ+WH1IY8Ygi8zP1xSUjzH7M0uUH9VRstISRSW4rij2KPHg
-        ZbB0ZiI+2bDfchXPXdSEi+AMTRYxXAo=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-499-LBi8kRhoOISu5ZqcD4gBcQ-1; Thu, 22 Jun 2023 03:55:06 -0400
-X-MC-Unique: LBi8kRhoOISu5ZqcD4gBcQ-1
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-31114af5e45so3173556f8f.1
-        for <linux-rdma@vger.kernel.org>; Thu, 22 Jun 2023 00:55:05 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687420505; x=1690012505;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+        with ESMTP id S229978AbjFVITY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 22 Jun 2023 04:19:24 -0400
+Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 178B91FDD
+        for <linux-rdma@vger.kernel.org>; Thu, 22 Jun 2023 01:19:18 -0700 (PDT)
+Received: by mail-ed1-x534.google.com with SMTP id 4fb4d7f45d1cf-51bdc87feb1so1784685a12.3
+        for <linux-rdma@vger.kernel.org>; Thu, 22 Jun 2023 01:19:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=tessares.net; s=google; t=1687421957; x=1690013957;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=Eox6kzJ0KXGmAxPu1zCtO8SWj1o8YH/kpH0QF8X1TQs=;
-        b=KwkeZxb1vRBBP/AtD8eHUeosZ7Qq1nlcCamtdx1BZHOBNN240s6im0mdD08rp9DYTA
-         YvitaZqtozrGaRVdeM6JAQEJJXsWQCZB84wronT6nJFPzy+OMwaGUUTbRMIL37De+1c8
-         2EmfUwunh2GAdI5TwQYf6d8I0TAVPdoqr1wVxccFTPY+9H5v/sDxlX2Kbwt+51BqtnXV
-         a34DoG3KQK4olJgM1/u/VIPxGlD944kG9i1IzWax/ogeaaGyOGrcPfz0p3mj6DCSK9yj
-         0Vjb8d6fefulkW7+x/i4Ih+uezL6DXDkRX7/khfCJnP3bcrvtpT/VwfxXEjtI4B0Wk4s
-         /w7g==
-X-Gm-Message-State: AC+VfDx20Zujw9+q+L1ge0F3UKI2IrvJjND22+oBWUpp1J+wO3IQAy33
-        lOrk3O2Ypwgi65zEadJiu4dbdPUUNzZV9C2X/NigMypGSKmwPOvpdSqWA04uZvLDSsT3oW7RrKG
-        I2XKGiYgh9w2YEGpoQfN9JIU5VQN70+hHBcfCkA==
-X-Received: by 2002:a5d:590c:0:b0:30a:8995:1dbc with SMTP id v12-20020a5d590c000000b0030a89951dbcmr13481419wrd.26.1687420505047;
-        Thu, 22 Jun 2023 00:55:05 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ5XXdP5mBFYeXjHFqCUFXHfOsqZzMCP4KunAaLqWfIWum2C8ZQg8p8aPknYzd7pBcBBJ2gzkZCOOq3kQ/vNoxc=
-X-Received: by 2002:a5d:590c:0:b0:30a:8995:1dbc with SMTP id
- v12-20020a5d590c000000b0030a89951dbcmr13481390wrd.26.1687420504759; Thu, 22
- Jun 2023 00:55:04 -0700 (PDT)
+        bh=jHOSAVpysPPk0w7f3FRoclTHTOeGMXkD/WXz6o43PNs=;
+        b=3Qv846galtOKu5j1ZWBEoKDHHvAGKed9GxYf8jtUaOyAmrvsfZjDSr11Mtds2ZkfsI
+         z8E8JaX+BZgWcwZ2px/vjwXcVXe/G2papWnvWRx6juFbdgri5wzM8KU/VFH3hTMSEY/0
+         VfuMGKTLX1S39ewKkuOV2SpC+iB2Qxt8EdDCl8XAOUYAhUTLDSJj03+VyN3vhCChcTCl
+         lrqf85TQV4hEAXb07GWK4bCN0TBaaVw/tm7VOhXosmsRqHnh6sbKdsnQJ3TgsnBbZGFI
+         ddqk0x6z9ItamUScnrwLYCUjQwH4H12zJ3Nk3UozHB53yrgaeMe70sas3bN2pKoz74Zq
+         Os1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687421957; x=1690013957;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=jHOSAVpysPPk0w7f3FRoclTHTOeGMXkD/WXz6o43PNs=;
+        b=MAJ2qOOtznBvs3nFuHm6766etzsOzKybcDY13TQty2Cg7eVmYYEETUWUvLL4anoVvP
+         Gj14VH7Zev9CRY9CLe7SlLigEgFp51duyV/6VDSrq0WJkIHwQBHERIv6hqrmr/C21CjR
+         qzsFeznX/36snQYbdAiFP45tDhcT2dcNpSXKXPacwYTH8hT5widjkxuazU15K2qk8LzW
+         8t0TKLBipbw2VKRftAPXliNOuDOrwWvhPHzbwRCiPT+LXAeLHDzzNXyJPZGQkJ9tz2d2
+         HK/YK8zvg3deREoHFXBR9m9oy/DdQlEqyAqK64wip3V6Nf+8kVqQXbuq3+/iAHzDfJP8
+         t4hw==
+X-Gm-Message-State: AC+VfDwsDdkPRcFs2LVDeY2M5YgvO07DLHs3JW08Lu4Rc4G8VHjxD8Ev
+        OH5lmrTO4QtRFjwLYuKlvEkceQ==
+X-Google-Smtp-Source: ACHHUZ5DAgOwgq4jsUtrZx0dccBdImVh49Nsq8bOifuGfOiRsZ8BsC2vF2kKv6FbxkokTfB+nxu/0g==
+X-Received: by 2002:a17:907:e93:b0:989:1a52:72b0 with SMTP id ho19-20020a1709070e9300b009891a5272b0mr7626807ejc.36.1687421957297;
+        Thu, 22 Jun 2023 01:19:17 -0700 (PDT)
+Received: from ?IPV6:2a02:578:8593:1200:c154:8b90:b6a7:cb1d? ([2a02:578:8593:1200:c154:8b90:b6a7:cb1d])
+        by smtp.gmail.com with ESMTPSA id q13-20020a170906360d00b009827b97c89csm4166097ejb.102.2023.06.22.01.19.16
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 22 Jun 2023 01:19:17 -0700 (PDT)
+Message-ID: <88685bc2-8467-b999-4b2e-91c381c04d8e@tessares.net>
+Date:   Thu, 22 Jun 2023 10:19:11 +0200
 MIME-Version: 1.0
-From:   Vitaly Grinberg <vgrinber@redhat.com>
-Date:   Thu, 22 Jun 2023 10:54:54 +0300
-Message-ID: <CACLnSDiBML3R_K5ncFsuritvid5nGsBLx5pGR2c9pR9L=qhPiQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v8 00/10] Create common DPLL configuration API
-To:     "Kubalewski, Arkadiusz" <arkadiusz.kubalewski@intel.com>
-Cc:     David Airlie <airlied@redhat.com>, andy.ren@getcruise.com,
-        anthony.l.nguyen@intel.com, arnd@arndb.de, axboe@kernel.dk,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-        claudiajkang@gmail.com, corbet@lwn.net, davem@davemloft.net,
-        edumazet@google.com, geert+renesas@glider.be,
-        gregkh@linuxfoundation.org, hkallweit1@gmail.com,
-        idosch@nvidia.com, intel-wired-lan@lists.osuosl.org,
-        jacek.lawrynowicz@linux.intel.com,
-        Javier Martinez Canillas <javierm@redhat.com>,
-        jesse.brandeburg@intel.com, jiri@resnulli.us,
-        jonathan.lemon@gmail.com, kuba@kernel.org, kuniyu@amazon.com,
-        leon@kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-clk@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux@zary.sk, liuhangbin@gmail.com, lucien.xin@gmail.com,
-        masahiroy@kernel.org, michal.michalik@intel.com,
-        milena.olech@intel.com, Michal Schmidt <mschmidt@redhat.com>,
-        Michael Tsirkin <mst@redhat.com>, netdev@vger.kernel.org,
-        nicolas.dichtel@6wind.com, nipun.gupta@amd.com, ogabbay@kernel.org,
-        Paolo Abeni <pabeni@redhat.com>, phil@nwl.cc,
-        Petr Oros <poros@redhat.com>, razor@blackwall.org,
-        ricardo.canuelo@collabora.com, richardcochran@gmail.com,
-        saeedm@nvidia.com, sj@kernel.org, tzimmermann@suse.de,
-        vadfed@fb.com, vadfed@meta.com, vadim.fedorenko@linux.dev
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.12.0
+Subject: Re: [PATCH 7/8] selftests: mptcp: connect: fix comment typo
+To:     Yueh-Shun Li <shamrocklee@posteo.net>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Tony Nguyen <anthony.l.nguyen@intel.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Kalle Valo <kvalo@kernel.org>,
+        "James E . J . Bottomley" <jejb@linux.ibm.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Andy Whitcroft <apw@canonical.com>,
+        Joe Perches <joe@perches.com>
+Cc:     linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
+        mptcp@lists.linux.dev, linux-kselftest@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20230622012627.15050-1-shamrocklee@posteo.net>
+ <20230622012627.15050-8-shamrocklee@posteo.net>
+Content-Language: en-GB
+From:   Matthieu Baerts <matthieu.baerts@tessares.net>
+In-Reply-To: <20230622012627.15050-8-shamrocklee@posteo.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
-Could it be possible to add PPS DPLL phase offset to the netlink API?
-We are relying on it in the E810-based grandmaster implementation.
-Thanks,
-Vitaly
+Hi Yueh-Shun,
 
+On 22/06/2023 03:26, Yueh-Shun Li wrote:
+> Spell "transmissions" properly.
+> 
+> Found by searching for keyword "tranm".
+> 
+> Signed-off-by: Yueh-Shun Li <shamrocklee@posteo.net>
+
+Reviewed-by: Matthieu Baerts <matthieu.baerts@tessares.net>
+
+Thanks,
+Matt
+-- 
+Tessares | Belgium | Hybrid Access Solutions
+www.tessares.net
