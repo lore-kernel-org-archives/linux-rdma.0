@@ -2,327 +2,256 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1A5AC001DD
-	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jun 2023 12:41:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 256FDEB64DD
+	for <linux-rdma@archiver.kernel.org>; Fri, 23 Jun 2023 12:43:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231696AbjFWMlj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 23 Jun 2023 08:41:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59590 "EHLO
+        id S231558AbjFWMnS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 23 Jun 2023 08:43:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231712AbjFWMlg (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Jun 2023 08:41:36 -0400
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 617482686;
-        Fri, 23 Jun 2023 05:41:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1687524085; x=1719060085;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=oqvfsLtj1L5cQN9tygjW4R0FVUyH7ELF2GpqOO5e6JU=;
-  b=FN/gk+sxFu854lAF300Jgn6DKyH1Km6yEcGxD95an44VU4POe54Two51
-   nR5jHNV0KS8Op/YdVHTRxQR2rQ6BjrYk31yBIosA1309LTjX1+CGtRmZF
-   QX4aC5PJ6CAOVHlloj4GjgjqloxRu392LyrUjMMpDN7Jl5C84P4IbaXuc
-   HRog/3fBe3YQygeqmqXbxtbeAE+zuyVXmIAW6KzqYs74dbn2IfYJbP5Fy
-   PuRTZThtW/xuMdRv5pE5EtVXQ8oxzRMVzqVMXrqwuaBJWiFLWytqz4Opt
-   0FS/xaPd/SlDg89fEDeRLCui9TxOUlPg5nDDRs07FQgr2GOa+Sqk4Eexc
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="341096663"
-X-IronPort-AV: E=Sophos;i="6.01,152,1684825200"; 
-   d="scan'208";a="341096663"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2023 05:41:18 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="785321200"
-X-IronPort-AV: E=Sophos;i="6.01,152,1684825200"; 
-   d="scan'208";a="785321200"
-Received: from amlin-018-114.igk.intel.com ([10.102.18.114])
-  by fmsmga004.fm.intel.com with ESMTP; 23 Jun 2023 05:41:07 -0700
-From:   Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
-To:     kuba@kernel.org, jiri@resnulli.us, arkadiusz.kubalewski@intel.com,
-        vadfed@meta.com, jonathan.lemon@gmail.com, pabeni@redhat.com
-Cc:     corbet@lwn.net, davem@davemloft.net, edumazet@google.com,
-        vadfed@fb.com, jesse.brandeburg@intel.com,
-        anthony.l.nguyen@intel.com, saeedm@nvidia.com, leon@kernel.org,
-        richardcochran@gmail.com, sj@kernel.org, javierm@redhat.com,
-        ricardo.canuelo@collabora.com, mst@redhat.com, tzimmermann@suse.de,
-        michal.michalik@intel.com, gregkh@linuxfoundation.org,
-        jacek.lawrynowicz@linux.intel.com, airlied@redhat.com,
-        ogabbay@kernel.org, arnd@arndb.de, nipun.gupta@amd.com,
-        axboe@kernel.dk, linux@zary.sk, masahiroy@kernel.org,
-        benjamin.tissoires@redhat.com, geert+renesas@glider.be,
-        milena.olech@intel.com, kuniyu@amazon.com, liuhangbin@gmail.com,
-        hkallweit1@gmail.com, andy.ren@getcruise.com, razor@blackwall.org,
-        idosch@nvidia.com, lucien.xin@gmail.com, nicolas.dichtel@6wind.com,
-        phil@nwl.cc, claudiajkang@gmail.com, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, poros@redhat.com,
-        mschmidt@redhat.com, linux-clk@vger.kernel.org,
-        vadim.fedorenko@linux.dev
-Subject: [RFC PATCH v9 05/10] dpll: api header: Add DPLL framework base functions
-Date:   Fri, 23 Jun 2023 14:38:15 +0200
-Message-Id: <20230623123820.42850-6-arkadiusz.kubalewski@intel.com>
-X-Mailer: git-send-email 2.37.3
-In-Reply-To: <20230623123820.42850-1-arkadiusz.kubalewski@intel.com>
-References: <20230623123820.42850-1-arkadiusz.kubalewski@intel.com>
+        with ESMTP id S229961AbjFWMnN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 23 Jun 2023 08:43:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDE7C2969;
+        Fri, 23 Jun 2023 05:42:28 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8268861A44;
+        Fri, 23 Jun 2023 12:42:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DB4BC433C8;
+        Fri, 23 Jun 2023 12:41:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1687524146;
+        bh=ljQRDIRYG4TydFhjD0LuSn8BREerPmb4Ipkpa2QAq6Q=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=apfm6xvoeO6UvUfxPwNSOl0FaLWJ7ShkzzPeuSOb0bank70626+jFCCnlqxUCd2NX
+         mV+Eb3SlbyeKtShM0cPnGoccCVrProiQPYgaM4HyeW5epsbNbu8US+O9nrIP4r+ghW
+         Y8FmG2CVOdPNZ1eNovI71PsOzsGS/p5EOkEcjtA4zTWfFdhpQkNKBq1hEMuzxsWytK
+         w9zTBeB4xmhiyjllhLtRaoNC8lgBTTH19xNIsLsgb+18yFVUlxxLoSku7XQ5A1i1lR
+         WF4IRekFC21BVGIj1AxyqNGVCxMph3jwY74VjiaGchsSc5v31PlBNGYvRkbk2aFmu+
+         9KQZIm3JpdS0g==
+Date:   Fri, 23 Jun 2023 14:41:42 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Steven Rostedt <rostedt@goodmis.org>, Jeremy Kerr <jk@ozlabs.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Arve =?utf-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>,
+        Todd Kjos <tkjos@android.com>,
+        Martijn Coenen <maco@android.com>,
+        Joel Fernandes <joel@joelfernandes.org>,
+        Carlos Llamas <cmllamas@google.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Brad Warrum <bwarrum@linux.ibm.com>,
+        Ritu Agarwal <rituagar@linux.ibm.com>,
+        Eric Van Hensbergen <ericvh@kernel.org>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Christian Schoenebeck <linux_oss@crudebyte.com>,
+        David Sterba <dsterba@suse.com>,
+        David Howells <dhowells@redhat.com>,
+        Marc Dionne <marc.dionne@auristor.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Ian Kent <raven@themaw.net>,
+        Luis de Bethencourt <luisbg@kernel.org>,
+        Salah Triki <salah.triki@gmail.com>,
+        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
+        Eric Biederman <ebiederm@xmission.com>,
+        Kees Cook <keescook@chromium.org>, Chris Mason <clm@fb.com>,
+        Josef Bacik <josef@toxicpanda.com>,
+        Xiubo Li <xiubli@redhat.com>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
+        Joel Becker <jlbec@evilplan.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Tyler Hicks <code@tyhicks.com>,
+        Ard Biesheuvel <ardb@kernel.org>, Gao Xiang <xiang@kernel.org>,
+        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Sungjong Seo <sj1557.seo@samsung.com>,
+        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Jaegeuk Kim <jaegeuk@kernel.org>,
+        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Bob Peterson <rpeterso@redhat.com>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Muchun Song <muchun.song@linux.dev>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Dave Kleikamp <shaggy@kernel.org>, Tejun Heo <tj@kernel.org>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Anna Schumaker <anna@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
+        Anton Altaparmakov <anton@tuxera.com>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Mark Fasheh <mark@fasheh.com>,
+        Joseph Qi <joseph.qi@linux.alibaba.com>,
+        Bob Copeland <me@bobcopeland.com>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Martin Brandenburg <martin@omnibond.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Iurii Zaikin <yzaikin@google.com>,
+        Tony Luck <tony.luck@intel.com>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+        Anders Larsen <al@alarsen.net>,
+        Steve French <sfrench@samba.org>,
+        Paulo Alcantara <pc@manguebit.com>,
+        Ronnie Sahlberg <lsahlber@redhat.com>,
+        Shyam Prasad N <sprasad@microsoft.com>,
+        Tom Talpey <tom@talpey.com>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Phillip Lougher <phillip@squashfs.org.uk>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Evgeniy Dushistov <dushistov@mail.ru>,
+        Hans de Goede <hdegoede@redhat.com>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Damien Le Moal <dlemoal@kernel.org>,
+        Naohiro Aota <naohiro.aota@wdc.com>,
+        Johannes Thumshirn <jth@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+        Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        John Johansen <john.johansen@canonical.com>,
+        Paul Moore <paul@paul-moore.com>,
+        James Morris <jmorris@namei.org>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        Stephen Smalley <stephen.smalley.work@gmail.com>,
+        Eric Paris <eparis@parisplace.org>,
+        Juergen Gross <jgross@suse.com>,
+        Ruihan Li <lrh2000@pku.edu.cn>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Udipto Goswami <quic_ugoswami@quicinc.com>,
+        Linyu Yuan <quic_linyyuan@quicinc.com>,
+        John Keeping <john@keeping.me.uk>,
+        Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
+        Dan Carpenter <error27@gmail.com>,
+        Yuta Hayama <hayama@lineo.co.jp>,
+        Jozef Martiniak <jomajm@gmail.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Sandeep Dhavale <dhavale@google.com>,
+        Dave Chinner <dchinner@redhat.com>,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        ZhangPeng <zhangpeng362@huawei.com>,
+        Viacheslav Dubeyko <slava@dubeyko.com>,
+        Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>,
+        Aditya Garg <gargaditya08@live.com>,
+        Erez Zadok <ezk@cs.stonybrook.edu>,
+        Yifei Liu <yifeliu@cs.stonybrook.edu>,
+        Yu Zhe <yuzhe@nfschina.com>,
+        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+        Oleg Kanatov <okanatov@gmail.com>,
+        "Dr. David Alan Gilbert" <linux@treblig.org>,
+        Jiangshan Yi <yijiangshan@kylinos.cn>,
+        xu xin <cgel.zte@gmail.com>, Stefan Roesch <shr@devkernel.io>,
+        Zhihao Cheng <chengzhihao1@huawei.com>,
+        "Liam R. Howlett" <Liam.Howlett@Oracle.com>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Minghao Chi <chi.minghao@zte.com.cn>,
+        Seth Forshee <sforshee@digitalocean.com>,
+        Zeng Jingxiang <linuszeng@tencent.com>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Mimi Zohar <zohar@linux.ibm.com>,
+        Roberto Sassu <roberto.sassu@huawei.com>,
+        Zhang Yi <yi.zhang@huawei.com>, Tom Rix <trix@redhat.com>,
+        "Fabio M. De Francesco" <fmdefrancesco@gmail.com>,
+        Chen Zhongjin <chenzhongjin@huawei.com>,
+        Zhengchao Shao <shaozhengchao@huawei.com>,
+        Rik van Riel <riel@surriel.com>,
+        Jingyu Wang <jingyuwang_vip@163.com>,
+        Hangyu Hua <hbh25y@gmail.com>, linuxppc-dev@lists.ozlabs.org,
+        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-usb@vger.kernel.org,
+        v9fs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+        linux-afs@lists.infradead.org, autofs@vger.kernel.org,
+        linux-mm@kvack.org, linux-btrfs@vger.kernel.org,
+        ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu,
+        ecryptfs@vger.kernel.org, linux-efi@vger.kernel.org,
+        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
+        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
+        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
+        ntfs3@lists.linux.dev, ocfs2-devel@oss.oracle.com,
+        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
+        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
+        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org,
+        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        bpf@vger.kernel.org, netdev@vger.kernel.org,
+        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
+        selinux@vger.kernel.org
+Subject: Re: [PATCH 00/79] fs: new accessors for inode->i_ctime
+Message-ID: <20230623-wegelagerei-kanzlei-45cdcf5da157@brauner>
+References: <20230621144507.55591-1-jlayton@kernel.org>
+ <20230621152141.5961cf5f@gandalf.local.home>
+ <2a5a069572b46b59dd16fe8d54e549a9b5bbb6eb.camel@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <2a5a069572b46b59dd16fe8d54e549a9b5bbb6eb.camel@kernel.org>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Vadim Fedorenko <vadim.fedorenko@linux.dev>
+On Wed, Jun 21, 2023 at 03:52:27PM -0400, Jeff Layton wrote:
+> On Wed, 2023-06-21 at 15:21 -0400, Steven Rostedt wrote:
+> > On Wed, 21 Jun 2023 10:45:05 -0400
+> > Jeff Layton <jlayton@kernel.org> wrote:
+> > 
+> > > Most of this conversion was done via coccinelle, with a few of the more
+> > > non-standard accesses done by hand. There should be no behavioral
+> > > changes with this set. That will come later, as we convert individual
+> > > filesystems to use multigrain timestamps.
+> > 
+> > BTW, Linus has suggested to me that whenever a conccinelle script is used,
+> > it should be included in the change log.
+> > 
+> 
+> Ok, here's what I have. I note again that my usage of coccinelle is
+> pretty primitive, so I ended up doing a fair bit of by-hand fixing after
+> applying these.
+> 
+> Given the way that this change is broken up into 77 patches by
+> subsystem, to which changelogs should I add it? I could add it to the
+> "infrastructure" patch, but that's the one where I _didn't_ use it. 
+> 
+> Maybe to patch #79 (the one that renames i_ctime)?
 
-DPLL framework is used to represent and configure DPLL devices
-in systems. Each device that has DPLL and can configure sources
-and outputs can use this framework. Netlink interface is used to
-provide configuration data and to receive notification messages
-about changes in the configuration or status of DPLL device.
-Inputs and outputs of the DPLL device are represented as special
-objects which could be dynamically added to and removed from DPLL
-device.
-
-Add kernel api header, make dpll subsystem available to device drivers.
-
-Add/update makefiles/Kconfig to allow compilation of dpll subsystem.
-
-Co-developed-by: Milena Olech <milena.olech@intel.com>
-Signed-off-by: Milena Olech <milena.olech@intel.com>
-Co-developed-by: Michal Michalik <michal.michalik@intel.com>
-Signed-off-by: Michal Michalik <michal.michalik@intel.com>
-Signed-off-by: Vadim Fedorenko <vadim.fedorenko@linux.dev>
-Co-developed-by: Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
-Signed-off-by: Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
----
- MAINTAINERS           |   8 +++
- drivers/Kconfig       |   2 +
- drivers/Makefile      |   1 +
- drivers/dpll/Kconfig  |   7 ++
- drivers/dpll/Makefile |   9 +++
- include/linux/dpll.h  | 144 ++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 171 insertions(+)
- create mode 100644 drivers/dpll/Kconfig
- create mode 100644 drivers/dpll/Makefile
- create mode 100644 include/linux/dpll.h
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index cb14589d14ab..58040fc550b8 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6307,6 +6307,14 @@ F:	Documentation/networking/device_drivers/ethernet/freescale/dpaa2/switch-drive
- F:	drivers/net/ethernet/freescale/dpaa2/dpaa2-switch*
- F:	drivers/net/ethernet/freescale/dpaa2/dpsw*
- 
-+DPLL CLOCK SUBSYSTEM
-+M:	Vadim Fedorenko <vadfed@fb.com>
-+L:	netdev@vger.kernel.org
-+S:	Maintained
-+F:	drivers/dpll/*
-+F:	include/net/dpll.h
-+F:	include/uapi/linux/dpll.h
-+
- DRBD DRIVER
- M:	Philipp Reisner <philipp.reisner@linbit.com>
- M:	Lars Ellenberg <lars.ellenberg@linbit.com>
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 514ae6b24cb2..ce5f63918eba 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -243,4 +243,6 @@ source "drivers/hte/Kconfig"
- 
- source "drivers/cdx/Kconfig"
- 
-+source "drivers/dpll/Kconfig"
-+
- endmenu
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 7241d80a7b29..6fea42a6dd05 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -195,3 +195,4 @@ obj-$(CONFIG_PECI)		+= peci/
- obj-$(CONFIG_HTE)		+= hte/
- obj-$(CONFIG_DRM_ACCEL)		+= accel/
- obj-$(CONFIG_CDX_BUS)		+= cdx/
-+obj-$(CONFIG_DPLL)		+= dpll/
-diff --git a/drivers/dpll/Kconfig b/drivers/dpll/Kconfig
-new file mode 100644
-index 000000000000..a4cae73f20d3
---- /dev/null
-+++ b/drivers/dpll/Kconfig
-@@ -0,0 +1,7 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+#
-+# Generic DPLL drivers configuration
-+#
-+
-+config DPLL
-+  bool
-diff --git a/drivers/dpll/Makefile b/drivers/dpll/Makefile
-new file mode 100644
-index 000000000000..2e5b27850110
---- /dev/null
-+++ b/drivers/dpll/Makefile
-@@ -0,0 +1,9 @@
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Makefile for DPLL drivers.
-+#
-+
-+obj-$(CONFIG_DPLL)      += dpll.o
-+dpll-y                  += dpll_core.o
-+dpll-y                  += dpll_netlink.o
-+dpll-y                  += dpll_nl.o
-diff --git a/include/linux/dpll.h b/include/linux/dpll.h
-new file mode 100644
-index 000000000000..a18bcaa13553
---- /dev/null
-+++ b/include/linux/dpll.h
-@@ -0,0 +1,144 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ *  Copyright (c) 2023 Meta Platforms, Inc. and affiliates
-+ *  Copyright (c) 2023 Intel and affiliates
-+ */
-+
-+#ifndef __DPLL_H__
-+#define __DPLL_H__
-+
-+#include <uapi/linux/dpll.h>
-+#include <linux/device.h>
-+#include <linux/netlink.h>
-+
-+struct dpll_device;
-+struct dpll_pin;
-+
-+struct dpll_device_ops {
-+	int (*mode_get)(const struct dpll_device *dpll, void *dpll_priv,
-+			enum dpll_mode *mode, struct netlink_ext_ack *extack);
-+	int (*mode_set)(const struct dpll_device *dpll, void *dpll_priv,
-+			const enum dpll_mode mode,
-+			struct netlink_ext_ack *extack);
-+	bool (*mode_supported)(const struct dpll_device *dpll, void *dpll_priv,
-+			       const enum dpll_mode mode,
-+			       struct netlink_ext_ack *extack);
-+	int (*source_pin_idx_get)(const struct dpll_device *dpll,
-+				  void *dpll_priv,
-+				  u32 *pin_idx,
-+				  struct netlink_ext_ack *extack);
-+	int (*lock_status_get)(const struct dpll_device *dpll, void *dpll_priv,
-+			       enum dpll_lock_status *status,
-+			       struct netlink_ext_ack *extack);
-+	int (*temp_get)(const struct dpll_device *dpll, void *dpll_priv,
-+			s32 *temp, struct netlink_ext_ack *extack);
-+};
-+
-+struct dpll_pin_ops {
-+	int (*frequency_set)(const struct dpll_pin *pin, void *pin_priv,
-+			     const struct dpll_device *dpll, void *dpll_priv,
-+			     const u64 frequency,
-+			     struct netlink_ext_ack *extack);
-+	int (*frequency_get)(const struct dpll_pin *pin, void *pin_priv,
-+			     const struct dpll_device *dpll, void *dpll_priv,
-+			     u64 *frequency, struct netlink_ext_ack *extack);
-+	int (*direction_set)(const struct dpll_pin *pin, void *pin_priv,
-+			     const struct dpll_device *dpll, void *dpll_priv,
-+			     const enum dpll_pin_direction direction,
-+			     struct netlink_ext_ack *extack);
-+	int (*direction_get)(const struct dpll_pin *pin, void *pin_priv,
-+			     const struct dpll_device *dpll, void *dpll_priv,
-+			     enum dpll_pin_direction *direction,
-+			     struct netlink_ext_ack *extack);
-+	int (*state_on_pin_get)(const struct dpll_pin *pin, void *pin_priv,
-+				const struct dpll_pin *parent_pin,
-+				void *parent_pin_priv,
-+				enum dpll_pin_state *state,
-+				struct netlink_ext_ack *extack);
-+	int (*state_on_dpll_get)(const struct dpll_pin *pin, void *pin_priv,
-+				 const struct dpll_device *dpll,
-+				 void *dpll_priv, enum dpll_pin_state *state,
-+				 struct netlink_ext_ack *extack);
-+	int (*state_on_pin_set)(const struct dpll_pin *pin, void *pin_priv,
-+				const struct dpll_pin *parent_pin,
-+				void *parent_pin_priv,
-+				const enum dpll_pin_state state,
-+				struct netlink_ext_ack *extack);
-+	int (*state_on_dpll_set)(const struct dpll_pin *pin, void *pin_priv,
-+				 const struct dpll_device *dpll,
-+				 void *dpll_priv,
-+				 const enum dpll_pin_state state,
-+				 struct netlink_ext_ack *extack);
-+	int (*prio_get)(const struct dpll_pin *pin,  void *pin_priv,
-+			const struct dpll_device *dpll,  void *dpll_priv,
-+			u32 *prio, struct netlink_ext_ack *extack);
-+	int (*prio_set)(const struct dpll_pin *pin, void *pin_priv,
-+			const struct dpll_device *dpll, void *dpll_priv,
-+			const u32 prio, struct netlink_ext_ack *extack);
-+};
-+
-+struct dpll_pin_frequency {
-+	u64 min;
-+	u64 max;
-+};
-+
-+#define DPLL_PIN_FREQUENCY_RANGE(_min, _max)	\
-+	{					\
-+		.min = _min,			\
-+		.max = _max,			\
-+	}
-+
-+#define DPLL_PIN_FREQUENCY(_val) DPLL_PIN_FREQUENCY_RANGE(_val, _val)
-+#define DPLL_PIN_FREQUENCY_1PPS \
-+	DPLL_PIN_FREQUENCY(DPLL_PIN_FREQUENCY_1_HZ)
-+#define DPLL_PIN_FREQUENCY_10MHZ \
-+	DPLL_PIN_FREQUENCY(DPLL_PIN_FREQUENCY_10_MHZ)
-+#define DPLL_PIN_FREQUENCY_IRIG_B \
-+	DPLL_PIN_FREQUENCY(DPLL_PIN_FREQUENCY_10_KHZ)
-+#define DPLL_PIN_FREQUENCY_DCF77 \
-+	DPLL_PIN_FREQUENCY(DPLL_PIN_FREQUENCY_77_5_KHZ)
-+
-+struct dpll_pin_properties {
-+	const char *board_label;
-+	const char *panel_label;
-+	const char *package_label;
-+	enum dpll_pin_type type;
-+	unsigned long capabilities;
-+	u32 freq_supported_num;
-+	struct dpll_pin_frequency *freq_supported;
-+};
-+
-+struct dpll_device
-+*dpll_device_get(u64 clock_id, u32 dev_driver_id, struct module *module);
-+
-+void dpll_device_put(struct dpll_device *dpll);
-+
-+int dpll_device_register(struct dpll_device *dpll, enum dpll_type type,
-+			 const struct dpll_device_ops *ops, void *priv);
-+
-+void dpll_device_unregister(struct dpll_device *dpll,
-+			    const struct dpll_device_ops *ops, void *priv);
-+
-+struct dpll_pin
-+*dpll_pin_get(u64 clock_id, u32 dev_driver_id, struct module *module,
-+	      const struct dpll_pin_properties *prop);
-+
-+int dpll_pin_register(struct dpll_device *dpll, struct dpll_pin *pin,
-+		      const struct dpll_pin_ops *ops, void *priv);
-+
-+void dpll_pin_unregister(struct dpll_device *dpll, struct dpll_pin *pin,
-+			 const struct dpll_pin_ops *ops, void *priv);
-+
-+void dpll_pin_put(struct dpll_pin *pin);
-+
-+int dpll_pin_on_pin_register(struct dpll_pin *parent, struct dpll_pin *pin,
-+			     const struct dpll_pin_ops *ops, void *priv);
-+
-+void dpll_pin_on_pin_unregister(struct dpll_pin *parent, struct dpll_pin *pin,
-+				const struct dpll_pin_ops *ops, void *priv);
-+
-+int dpll_device_change_ntf(struct dpll_device *dpll);
-+
-+int dpll_pin_change_ntf(struct dpll_pin *pin);
-+
-+#endif
--- 
-2.39.3
-
+That works. I can also put this into a merge commit or pr message.
