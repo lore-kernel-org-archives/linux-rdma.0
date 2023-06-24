@@ -2,420 +2,115 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3070CC001DD
-	for <linux-rdma@archiver.kernel.org>; Sat, 24 Jun 2023 07:41:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD19DC001B1
+	for <linux-rdma@archiver.kernel.org>; Sat, 24 Jun 2023 09:23:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231880AbjFXHlC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 24 Jun 2023 03:41:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46058 "EHLO
+        id S232775AbjFXJXp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 24 Jun 2023 05:23:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231860AbjFXHky (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 24 Jun 2023 03:40:54 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 918D02733
-        for <linux-rdma@vger.kernel.org>; Sat, 24 Jun 2023 00:40:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1687592453; x=1719128453;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=K7YZ4e/xf9HO2ktSHqvXLxBCh70rHVSE8/ma9CZ0sE4=;
-  b=Y0SUqwgNeIP/81TKgqF/zzAX2f6wAkUFMAN+BSpyp6WI199BlLCUaj3r
-   bLxF5PcjrjJdH3NUuPx22zDuPXH5oUxNUjYAhRGCPbGB5qJ/69N4ehHCE
-   GcO6AKCoJwdpGIoKhcYlrU2dV+YT4D+Gm46ARWuy3vTKHyxfxDAOy+2E4
-   LRATe8PfMMzD1qqU5Kaul/Goy1/z6oj+IkENBn+towosQN3Rqf5Mr86Hr
-   bzuG0fkRP3/7jalYcQ6Vb48uld9Tr3DhBc9ZVfpEE/JJ7jysz0weTN3jd
-   lZlWUHS7gX5UxCmRyDyazHafxtCDIWgZ32E0OHxZQzEUQGGXEs7lc0sT8
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="340517912"
-X-IronPort-AV: E=Sophos;i="6.01,154,1684825200"; 
-   d="scan'208";a="340517912"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jun 2023 00:40:28 -0700
-X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="750240744"
-X-IronPort-AV: E=Sophos;i="6.01,154,1684825200"; 
-   d="scan'208";a="750240744"
-Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by orsmga001.jf.intel.com with ESMTP; 24 Jun 2023 00:40:25 -0700
-From:   Zhu Yanjun <yanjun.zhu@intel.com>
-To:     zyjzyj2000@gmail.com, jgg@ziepe.ca, leon@kernel.org,
-        linux-rdma@vger.kernel.org, parav@nvidia.com, lehrer@gmail.com,
-        rpearsonhpe@gmail.com
-Cc:     Zhu Yanjun <yanjun.zhu@linux.dev>,
-        Rain River <rain.1986.08.12@gmail.com>
-Subject: [PATCH v7 7/8] RDMA/rxe: Add the support of net namespace notifier
-Date:   Sat, 24 Jun 2023 15:39:26 +0800
-Message-Id: <20230624073927.707915-8-yanjun.zhu@intel.com>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20230624073927.707915-1-yanjun.zhu@intel.com>
-References: <20230624073927.707915-1-yanjun.zhu@intel.com>
+        with ESMTP id S232574AbjFXJXn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 24 Jun 2023 05:23:43 -0400
+Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 743C219AB
+        for <linux-rdma@vger.kernel.org>; Sat, 24 Jun 2023 02:23:40 -0700 (PDT)
+Received: by mail-ej1-x62a.google.com with SMTP id a640c23a62f3a-98d8c38549dso197738966b.1
+        for <linux-rdma@vger.kernel.org>; Sat, 24 Jun 2023 02:23:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=resnulli-us.20221208.gappssmtp.com; s=20221208; t=1687598619; x=1690190619;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=EuyyoXYkLcFUjNW6aU0LWhkMHFG4qPaiZWIPRvxeeTA=;
+        b=g66y85pUmxbEk8gM1Z1/c1SSekEW4T1k4oAFY2odQs17Fe0i5NQtNAg8YfQ0y5PXDO
+         JQ0h5TKyFH8kEJexF4E5uUAYUUTvoLrtDbttalI/TpRRut0MeLBi39qT+qPR9h2crIJ4
+         twd4vI/Sgf2PrnmqyK4K7Wfk3B5izATUbxSr/5XJzNoy2H7OMyCEm4o7a+q8aRj8ALE4
+         dqMLqsB7Vh2D8EfuzTaNFD6MfGlIax3uCuCFL0a+TPqcfaqOdGNmhNNnmzTkV7GZQG27
+         WzW2S7rjCG8vBIjq8J0kwEv7E4teVB6wT4a9BZsQ0gYmst95bLhaIEBSGkJK5s+jxcOj
+         U1Zw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687598619; x=1690190619;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EuyyoXYkLcFUjNW6aU0LWhkMHFG4qPaiZWIPRvxeeTA=;
+        b=kuHBXLIy7kZekEXEitNa4J7ZP8B8EPiL44Wq//c13yxjwCYGs/2iihY2YgzNzit1tj
+         fUUYveB4AudptnAfkyM+jy2oJSOjvmmqn+5ztPmXARhG5DYnb3E5DmuaW5hD6VKuVYpr
+         oHqRO/7ywej/7xpVGYgu0P56bYtkn74DveQ4irE1uDND3NJCRt4EOJfLLvOyINOKVixj
+         /+JxkDjdJuzbWQVIz1Gs4o92G7TmNwk5JliVrNcmfT9nBFdmvtDRNqAlcpJXqcBKZY0s
+         KsJ3rW1TjJWlFRegr+XvowCRJ6AlTh4/SOV7xdwCMbYdUHUThHGAqCNPu1OB5Ft4Z945
+         Hw7g==
+X-Gm-Message-State: AC+VfDyLQXA8eE2mDX9Mm331qinQrmQcaHED1lK7sIjlBVPPmoW2Vddo
+        qfuIIyjMPWloNaL+A9ls8dBoeQ==
+X-Google-Smtp-Source: ACHHUZ7Hm22TLuZ2uNMqorvhvVqmtSRdvFVMVJyZ7P02nHMQr1v41Obhbu8aAZ5ky21fmiU2Y7E37A==
+X-Received: by 2002:a17:907:2bc8:b0:98d:758:75ed with SMTP id gv8-20020a1709072bc800b0098d075875edmr6033410ejc.75.1687598618680;
+        Sat, 24 Jun 2023 02:23:38 -0700 (PDT)
+Received: from localhost (host-213-179-129-39.customer.m-online.net. [213.179.129.39])
+        by smtp.gmail.com with ESMTPSA id q22-20020a17090622d600b009895af2580asm671367eja.36.2023.06.24.02.23.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 24 Jun 2023 02:23:37 -0700 (PDT)
+Date:   Sat, 24 Jun 2023 11:23:36 +0200
+From:   Jiri Pirko <jiri@resnulli.us>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>,
+        vadfed@meta.com, jonathan.lemon@gmail.com, pabeni@redhat.com,
+        corbet@lwn.net, davem@davemloft.net, edumazet@google.com,
+        vadfed@fb.com, jesse.brandeburg@intel.com,
+        anthony.l.nguyen@intel.com, saeedm@nvidia.com, leon@kernel.org,
+        richardcochran@gmail.com, sj@kernel.org, javierm@redhat.com,
+        ricardo.canuelo@collabora.com, mst@redhat.com, tzimmermann@suse.de,
+        michal.michalik@intel.com, gregkh@linuxfoundation.org,
+        jacek.lawrynowicz@linux.intel.com, airlied@redhat.com,
+        ogabbay@kernel.org, arnd@arndb.de, nipun.gupta@amd.com,
+        axboe@kernel.dk, linux@zary.sk, masahiroy@kernel.org,
+        benjamin.tissoires@redhat.com, geert+renesas@glider.be,
+        milena.olech@intel.com, kuniyu@amazon.com, liuhangbin@gmail.com,
+        hkallweit1@gmail.com, andy.ren@getcruise.com, razor@blackwall.org,
+        idosch@nvidia.com, lucien.xin@gmail.com, nicolas.dichtel@6wind.com,
+        phil@nwl.cc, claudiajkang@gmail.com, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, poros@redhat.com,
+        mschmidt@redhat.com, linux-clk@vger.kernel.org,
+        vadim.fedorenko@linux.dev
+Subject: Re: [RFC PATCH v9 00/10] Create common DPLL configuration API
+Message-ID: <ZJa2GEr6frhHQrS0@nanopsycho>
+References: <20230623123820.42850-1-arkadiusz.kubalewski@intel.com>
+ <ZJW37ynDxJCwHscN@nanopsycho>
+ <20230623085336.1a486ca3@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230623085336.1a486ca3@kernel.org>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
+Fri, Jun 23, 2023 at 05:53:36PM CEST, kuba@kernel.org wrote:
+>On Fri, 23 Jun 2023 17:19:11 +0200 Jiri Pirko wrote:
+>> I don't understand. The discussion in the RFCv8 thread is still going
+>> on. The things I mentioned there are ignored. Like for example:
+>> 1) mode_set op removal
+>> 2) odd ice dpll locking scheme (either fix or describe why it is ok -
+>> 				that's the unfinished discussion)
+>> 3) header file bits squash I suggested. Vadim wrote that it sounds
+>>    reasonable, yet nothing changed
+>> 
+>> I thought we are past this. Why I have to point the same issues over and
+>> over?
+>
+>FWIW I'm lost in the previous thread, so for me there's value in
+>refreshing the series.
+>
+>But you're right, at the very least there should be a summary of
+>outstanding issues / open items / ongoing discussions in the cover
+>letter.
 
-The functions register_pernet_subsys/unregister_pernet_subsys register a
-notifier of net namespace. When a new net namespace is created, the init
-function of rxe will be called to initialize sk4 and sk6 socks. When a
-net namespace is destroyed, the exit function will be called to handle
-sk4 and sk6 socks.
+Well I would like to conclude discussion in one thread before sending
+the next one. What should I do? Should I start the same discussion
+pointing out the same issues in this thread again? This can't work.
 
-The functions rxe_ns_pernet_sk4 and rxe_ns_pernet_sk6 are used to get
-sk4 and sk6 socks.
+Even concluded items are ignored, like 3)
 
-The functions rxe_ns_pernet_set_sk4 and rxe_ns_pernet_set_sk6 are used
-to set sk4 and sk6 socks.
-
-Tested-by: Rain River <rain.1986.08.12@gmail.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
----
- drivers/infiniband/sw/rxe/Makefile  |   3 +-
- drivers/infiniband/sw/rxe/rxe.c     |   9 ++
- drivers/infiniband/sw/rxe/rxe_net.c |  56 ++++++------
- drivers/infiniband/sw/rxe/rxe_ns.c  | 134 ++++++++++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_ns.h  |  17 ++++
- 5 files changed, 193 insertions(+), 26 deletions(-)
- create mode 100644 drivers/infiniband/sw/rxe/rxe_ns.c
- create mode 100644 drivers/infiniband/sw/rxe/rxe_ns.h
-
-diff --git a/drivers/infiniband/sw/rxe/Makefile b/drivers/infiniband/sw/rxe/Makefile
-index 5395a581f4bb..8380f97674cb 100644
---- a/drivers/infiniband/sw/rxe/Makefile
-+++ b/drivers/infiniband/sw/rxe/Makefile
-@@ -22,4 +22,5 @@ rdma_rxe-y := \
- 	rxe_mcast.o \
- 	rxe_task.o \
- 	rxe_net.o \
--	rxe_hw_counters.o
-+	rxe_hw_counters.o \
-+	rxe_ns.o
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index ef632be05e38..96841c56ff3a 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -9,6 +9,7 @@
- #include "rxe.h"
- #include "rxe_loc.h"
- #include "rxe_net.h"
-+#include "rxe_ns.h"
- 
- MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves, Kamal Heib");
- MODULE_DESCRIPTION("Soft RDMA transport");
-@@ -236,6 +237,12 @@ static int __init rxe_module_init(void)
- 		return -1;
- 	}
- 
-+	err = rxe_namespace_init();
-+	if (err) {
-+		pr_err("Failed to register net namespace notifier\n");
-+		return -1;
-+	}
-+
- 	pr_info("loaded\n");
- 	return 0;
- }
-@@ -246,6 +253,8 @@ static void __exit rxe_module_exit(void)
- 	ib_unregister_driver(RDMA_DRIVER_RXE);
- 	rxe_net_exit();
- 
-+	rxe_namespace_exit();
-+
- 	pr_info("unloaded\n");
- }
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 7f9b2e69f3da..b0f588ffe6a7 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -17,6 +17,7 @@
- #include "rxe.h"
- #include "rxe_net.h"
- #include "rxe_loc.h"
-+#include "rxe_ns.h"
- 
- static struct dst_entry *rxe_find_route4(struct rxe_qp *qp,
- 					 struct net_device *ndev,
-@@ -564,33 +565,30 @@ void rxe_net_del(struct ib_device *dev)
- 
- 	rxe = container_of(dev, struct rxe_dev, ib_dev);
- 
--	rcu_read_lock();
--	sk = udp4_lib_lookup(dev_net(rxe->ndev), 0, 0, htonl(INADDR_ANY),
--			     htons(ROCE_V2_UDP_DPORT), 0);
--	rcu_read_unlock();
-+	sk = rxe_ns_pernet_sk4(dev_net(rxe->ndev));
- 	if (!sk)
- 		return;
- 
--	__sock_put(sk);
- 
--	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL)
-+	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL) {
- 		__sock_put(sk);
--	else
-+	} else {
- 		rxe_release_udp_tunnel(sk->sk_socket);
-+		sk = NULL;
-+		rxe_ns_pernet_set_sk4(dev_net(rxe->ndev), sk);
-+	}
- 
--	rcu_read_lock();
--	sk = udp6_lib_lookup(dev_net(rxe->ndev), NULL, 0, &in6addr_any,
--			     htons(ROCE_V2_UDP_DPORT), 0);
--	rcu_read_unlock();
-+	sk = rxe_ns_pernet_sk6(dev_net(rxe->ndev));
- 	if (!sk)
- 		return;
- 
--	__sock_put(sk);
--
--	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL)
-+	if (refcount_read(&sk->sk_refcnt) > SK_REF_FOR_TUNNEL) {
- 		__sock_put(sk);
--	else
-+	} else {
- 		rxe_release_udp_tunnel(sk->sk_socket);
-+		sk = NULL;
-+		rxe_ns_pernet_set_sk6(dev_net(rxe->ndev), sk);
-+	}
- }
- #undef SK_REF_FOR_TUNNEL
- 
-@@ -691,18 +689,18 @@ static int rxe_net_ipv4_init(struct net_device *ndev)
- 	struct sock *sk;
- 	struct socket *sock;
- 
--	rcu_read_lock();
--	sk = udp4_lib_lookup(dev_net(ndev), 0, 0, htonl(INADDR_ANY),
--			     htons(ROCE_V2_UDP_DPORT), 0);
--	rcu_read_unlock();
--	if (sk)
-+	sk = rxe_ns_pernet_sk4(dev_net(ndev));
-+	if (sk) {
-+		sock_hold(sk);
- 		return 0;
-+	}
- 
- 	sock = rxe_setup_udp_tunnel(dev_net(ndev), htons(ROCE_V2_UDP_DPORT), false);
- 	if (IS_ERR(sock)) {
- 		pr_err("Failed to create IPv4 UDP tunnel\n");
- 		return -1;
- 	}
-+	rxe_ns_pernet_set_sk4(dev_net(ndev), sock->sk);
- 
- 	return 0;
- }
-@@ -713,12 +711,11 @@ static int rxe_net_ipv6_init(struct net_device *ndev)
- 	struct sock *sk;
- 	struct socket *sock;
- 
--	rcu_read_lock();
--	sk = udp6_lib_lookup(dev_net(ndev), NULL, 0, &in6addr_any,
--			     htons(ROCE_V2_UDP_DPORT), 0);
--	rcu_read_unlock();
--	if (sk)
-+	sk = rxe_ns_pernet_sk6(dev_net(ndev));
-+	if (sk) {
-+		sock_hold(sk);
- 		return 0;
-+	}
- 
- 	sock = rxe_setup_udp_tunnel(dev_net(ndev), htons(ROCE_V2_UDP_DPORT), true);
- 	if (PTR_ERR(sock) == -EAFNOSUPPORT) {
-@@ -730,6 +727,9 @@ static int rxe_net_ipv6_init(struct net_device *ndev)
- 		pr_err("Failed to create IPv6 UDP tunnel\n");
- 		return -1;
- 	}
-+
-+	rxe_ns_pernet_set_sk6(dev_net(ndev), sock->sk);
-+
- #endif
- 	return 0;
- }
-@@ -759,11 +759,17 @@ int rxe_net_init(struct net_device *ndev)
- 	err = rxe_net_ipv4_init(ndev);
- 	if (err)
- 		return err;
-+
- 	err = rxe_net_ipv6_init(ndev);
- 	if (err)
- 		goto err_out;
-+
- 	return 0;
-+
- err_out:
-+	/* If ipv6 error, release ipv4 resource */
-+	udp_tunnel_sock_release(rxe_ns_pernet_sk4(dev_net(ndev))->sk_socket);
-+	rxe_ns_pernet_set_sk4(dev_net(ndev), NULL);
- 	rxe_net_exit();
- 	return err;
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_ns.c b/drivers/infiniband/sw/rxe/rxe_ns.c
-new file mode 100644
-index 000000000000..29d08899dcda
---- /dev/null
-+++ b/drivers/infiniband/sw/rxe/rxe_ns.c
-@@ -0,0 +1,134 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
-+ */
-+
-+#include <net/sock.h>
-+#include <net/netns/generic.h>
-+#include <net/net_namespace.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/pid_namespace.h>
-+#include <net/udp_tunnel.h>
-+
-+#include "rxe_ns.h"
-+
-+/*
-+ * Per network namespace data
-+ */
-+struct rxe_ns_sock {
-+	struct sock __rcu *rxe_sk4;
-+	struct sock __rcu *rxe_sk6;
-+};
-+
-+/*
-+ * Index to store custom data for each network namespace.
-+ */
-+static unsigned int rxe_pernet_id;
-+
-+/*
-+ * Called for every existing and added network namespaces
-+ */
-+static int __net_init rxe_ns_init(struct net *net)
-+{
-+	/*
-+	 * create (if not present) and access data item in network namespace
-+	 * (net) using the id (net_id)
-+	 */
-+	struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
-+
-+	rcu_assign_pointer(ns_sk->rxe_sk4, NULL); /* initialize sock 4 socket */
-+	rcu_assign_pointer(ns_sk->rxe_sk6, NULL); /* initialize sock 6 socket */
-+	synchronize_rcu();
-+
-+	return 0;
-+}
-+
-+static void __net_exit rxe_ns_exit(struct net *net)
-+{
-+	/*
-+	 * called when the network namespace is removed
-+	 */
-+	struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
-+	struct sock *rxe_sk4 = NULL;
-+	struct sock *rxe_sk6 = NULL;
-+
-+	rcu_read_lock();
-+	rxe_sk4 = rcu_dereference(ns_sk->rxe_sk4);
-+	rxe_sk6 = rcu_dereference(ns_sk->rxe_sk6);
-+	rcu_read_unlock();
-+
-+	/* close socket */
-+	if (rxe_sk4 && rxe_sk4->sk_socket) {
-+		udp_tunnel_sock_release(rxe_sk4->sk_socket);
-+		rcu_assign_pointer(ns_sk->rxe_sk4, NULL);
-+		synchronize_rcu();
-+	}
-+
-+	if (rxe_sk6 && rxe_sk6->sk_socket) {
-+		udp_tunnel_sock_release(rxe_sk6->sk_socket);
-+		rcu_assign_pointer(ns_sk->rxe_sk6, NULL);
-+		synchronize_rcu();
-+	}
-+}
-+
-+/*
-+ * callback to make the module network namespace aware
-+ */
-+static struct pernet_operations rxe_net_ops __net_initdata = {
-+	.init = rxe_ns_init,
-+	.exit = rxe_ns_exit,
-+	.id = &rxe_pernet_id,
-+	.size = sizeof(struct rxe_ns_sock),
-+};
-+
-+struct sock *rxe_ns_pernet_sk4(struct net *net)
-+{
-+	struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
-+	struct sock *sk;
-+
-+	rcu_read_lock();
-+	sk = rcu_dereference(ns_sk->rxe_sk4);
-+	rcu_read_unlock();
-+
-+	return sk;
-+}
-+
-+void rxe_ns_pernet_set_sk4(struct net *net, struct sock *sk)
-+{
-+	struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
-+
-+	rcu_assign_pointer(ns_sk->rxe_sk4, sk);
-+	synchronize_rcu();
-+}
-+
-+struct sock *rxe_ns_pernet_sk6(struct net *net)
-+{
-+	struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
-+	struct sock *sk;
-+
-+	rcu_read_lock();
-+	sk = rcu_dereference(ns_sk->rxe_sk6);
-+	rcu_read_unlock();
-+
-+	return sk;
-+}
-+
-+void rxe_ns_pernet_set_sk6(struct net *net, struct sock *sk)
-+{
-+	struct rxe_ns_sock *ns_sk = net_generic(net, rxe_pernet_id);
-+
-+	rcu_assign_pointer(ns_sk->rxe_sk6, sk);
-+	synchronize_rcu();
-+}
-+
-+int __init rxe_namespace_init(void)
-+{
-+	return register_pernet_subsys(&rxe_net_ops);
-+}
-+
-+void __exit rxe_namespace_exit(void)
-+{
-+	unregister_pernet_subsys(&rxe_net_ops);
-+}
-diff --git a/drivers/infiniband/sw/rxe/rxe_ns.h b/drivers/infiniband/sw/rxe/rxe_ns.h
-new file mode 100644
-index 000000000000..da5bfcea1274
---- /dev/null
-+++ b/drivers/infiniband/sw/rxe/rxe_ns.h
-@@ -0,0 +1,17 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
-+ */
-+
-+#ifndef RXE_NS_H
-+#define RXE_NS_H
-+
-+struct sock *rxe_ns_pernet_sk4(struct net *net);
-+struct sock *rxe_ns_pernet_sk6(struct net *net);
-+void rxe_ns_pernet_set_sk4(struct net *net, struct sock *sk);
-+void rxe_ns_pernet_set_sk6(struct net *net, struct sock *sk);
-+int __init rxe_namespace_init(void);
-+void __exit rxe_namespace_exit(void);
-+
-+#endif /* RXE_NS_H */
--- 
-2.27.0
-
+IDK, this is very frustrating for me. I have to double check everything
+just in case it was not ignored. I don't understand this, there is no
+justification.
