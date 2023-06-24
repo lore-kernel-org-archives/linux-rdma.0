@@ -2,53 +2,50 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5046CEB64DD
-	for <linux-rdma@archiver.kernel.org>; Sat, 24 Jun 2023 07:40:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F954EB64DC
+	for <linux-rdma@archiver.kernel.org>; Sat, 24 Jun 2023 07:40:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231856AbjFXHkx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 24 Jun 2023 03:40:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46024 "EHLO
+        id S230152AbjFXHk4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 24 Jun 2023 03:40:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231848AbjFXHkw (ORCPT
+        with ESMTP id S231843AbjFXHkw (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Sat, 24 Jun 2023 03:40:52 -0400
 Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B521E2733
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DBE0272D
         for <linux-rdma@vger.kernel.org>; Sat, 24 Jun 2023 00:40:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1687592451; x=1719128451;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=2L433t3t7XivMf7/BLMMOehEFWb9xmYbc3vmLChMUMY=;
-  b=U88+GbwPNszHLSwkmqwcgd127OHAxYWaTneuDuasy5bu4IV1Geiu8RWp
-   QA9LAv9KxKiN0r5n9cVA0T3IYV1sucEABF8kw2Qnd/mEKOVGTh5thtUXM
-   g+51kKOgyac674i7gPllUGL2F9+Xnri5uQdUGATmOv1Cl2WarTaHNUlpp
-   qYm1jJkf/tLqUXaA+VRTGLXxIIzv4Kyj58H95MUh+8wYsocgvBpOKEgkR
-   BZGnAPnR8B8GC/OWtPbJHdrTHZlDz3cZ8e7qJ3Hj2ralRKsIU3zQaB1+g
-   d5OIVnLRjRGgDV/oenDxx9HBbAIMZ4539N5o+cCN9aksy4Z+JyhS9oHgB
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="340517873"
+  t=1687592450; x=1719128450;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=76iMsoBzLMB23xO1qFOsLObjj8vXnJ3mnu4nUAoBWdg=;
+  b=a+CK5uYnj0VGCQeNd8/wq2xZ8irpIHE0hmfxqL4XY8XbKfZhM5jSfTJv
+   WKlghOGK5t70zgkdqbWmaLlC8vxLzaBexDw6D01JMNPnZ2cnDxECf96yG
+   713KU41KHM1xxRcx69oudIGpLwz6qROeQJT9f5wWKNfs/VSkmBCl73d/m
+   rIh1/rvVGy6tfFd6RMOSHow9J247hWgXRkNGcEmt9MBdYZQ69TtEPhn8h
+   X/aUyVJdBK8FgLJk9ACBui02vxbsYgri6EXkb5tNe8NOXNIpm7JVO4TC6
+   DqBZUSO1mH+T2plOGc2bhnXSMc1t5KjBjiZduBXTL/U4M4Nm5/VW5SSS7
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="340517859"
 X-IronPort-AV: E=Sophos;i="6.01,154,1684825200"; 
-   d="scan'208";a="340517873"
+   d="scan'208";a="340517859"
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jun 2023 00:40:13 -0700
-X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="750240679"
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jun 2023 00:40:07 -0700
+X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="750240645"
 X-IronPort-AV: E=Sophos;i="6.01,154,1684825200"; 
-   d="scan'208";a="750240679"
+   d="scan'208";a="750240645"
 Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by orsmga001.jf.intel.com with ESMTP; 24 Jun 2023 00:40:10 -0700
+  by orsmga001.jf.intel.com with ESMTP; 24 Jun 2023 00:40:04 -0700
 From:   Zhu Yanjun <yanjun.zhu@intel.com>
 To:     zyjzyj2000@gmail.com, jgg@ziepe.ca, leon@kernel.org,
         linux-rdma@vger.kernel.org, parav@nvidia.com, lehrer@gmail.com,
         rpearsonhpe@gmail.com
-Cc:     Zhu Yanjun <yanjun.zhu@linux.dev>,
-        Rain River <rain.1986.08.12@gmail.com>
-Subject: [PATCH v7 2/8] RDMA/rxe: Support more rdma links in init_net
-Date:   Sat, 24 Jun 2023 15:39:21 +0800
-Message-Id: <20230624073927.707915-3-yanjun.zhu@intel.com>
+Cc:     Zhu Yanjun <yanjun.zhu@linux.dev>
+Subject: [PATCH v7 0/8] Fix the problem that rxe can not work in net
+Date:   Sat, 24 Jun 2023 15:39:19 +0800
+Message-Id: <20230624073927.707915-1-yanjun.zhu@intel.com>
 X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20230624073927.707915-1-yanjun.zhu@intel.com>
-References: <20230624073927.707915-1-yanjun.zhu@intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -57,172 +54,160 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-In init_net, when several rdma links are created with the command "rdma
-link add", newlink will check whether the udp port 4791 is listening or
-not.
-If not, creating a sock listening on udp port 4791. If yes, increasing the
-reference count of the sock.
+When run "ip link add" command to add a rxe rdma link in a net
+namespace, normally this rxe rdma link can not work in a net
+name space.
 
-Tested-by: Rain River <rain.1986.08.12@gmail.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
----
- drivers/infiniband/sw/rxe/rxe.c     | 12 ++++++-
- drivers/infiniband/sw/rxe/rxe_net.c | 55 +++++++++++++++++++++--------
- drivers/infiniband/sw/rxe/rxe_net.h |  1 +
- 3 files changed, 52 insertions(+), 16 deletions(-)
+The root cause is that a sock listening on udp port 4791 is created
+in init_net when the rdma_rxe module is loaded into kernel. That is,
+the sock listening on udp port 4791 is created in init_net. Other net
+namespace is difficult to use this sock.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index 89b24bc34299..c15d3c5d7a6f 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -8,6 +8,7 @@
- #include <net/addrconf.h>
- #include "rxe.h"
- #include "rxe_loc.h"
-+#include "rxe_net.h"
- 
- MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves, Kamal Heib");
- MODULE_DESCRIPTION("Soft RDMA transport");
-@@ -207,14 +208,23 @@ static int rxe_newlink(const char *ibdev_name, struct net_device *ndev)
- 	return err;
- }
- 
--static struct rdma_link_ops rxe_link_ops = {
-+struct rdma_link_ops rxe_link_ops = {
- 	.type = "rxe",
- 	.newlink = rxe_newlink,
- };
- 
- static int __init rxe_module_init(void)
- {
-+	int err;
-+
- 	rdma_link_register(&rxe_link_ops);
-+
-+	err = rxe_register_notifier();
-+	if (err) {
-+		pr_err("Failed to register netdev notifier\n");
-+		return -1;
-+	}
-+
- 	pr_info("loaded\n");
- 	return 0;
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index cd59666158b1..8bdf1b24a3ac 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -633,13 +633,23 @@ static struct notifier_block rxe_net_notifier = {
- 
- static int rxe_net_ipv4_init(void)
- {
--	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
--				htons(ROCE_V2_UDP_DPORT), false);
--	if (IS_ERR(recv_sockets.sk4)) {
--		recv_sockets.sk4 = NULL;
-+	struct sock *sk;
-+	struct socket *sock;
-+
-+	rcu_read_lock();
-+	sk = udp4_lib_lookup(&init_net, 0, 0, htonl(INADDR_ANY),
-+			     htons(ROCE_V2_UDP_DPORT), 0);
-+	rcu_read_unlock();
-+	if (sk)
-+		return 0;
-+
-+	sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT), false);
-+	if (IS_ERR(sock)) {
- 		pr_err("Failed to create IPv4 UDP tunnel\n");
-+		recv_sockets.sk4 = NULL;
- 		return -1;
- 	}
-+	recv_sockets.sk4 = sock;
- 
- 	return 0;
- }
-@@ -647,24 +657,46 @@ static int rxe_net_ipv4_init(void)
- static int rxe_net_ipv6_init(void)
- {
- #if IS_ENABLED(CONFIG_IPV6)
-+	struct sock *sk;
-+	struct socket *sock;
-+
-+	rcu_read_lock();
-+	sk = udp6_lib_lookup(&init_net, NULL, 0, &in6addr_any,
-+			     htons(ROCE_V2_UDP_DPORT), 0);
-+	rcu_read_unlock();
-+	if (sk)
-+		return 0;
- 
--	recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
--						htons(ROCE_V2_UDP_DPORT), true);
--	if (PTR_ERR(recv_sockets.sk6) == -EAFNOSUPPORT) {
-+	sock = rxe_setup_udp_tunnel(&init_net, htons(ROCE_V2_UDP_DPORT), true);
-+	if (PTR_ERR(sock) == -EAFNOSUPPORT) {
- 		recv_sockets.sk6 = NULL;
- 		pr_warn("IPv6 is not supported, can not create a UDPv6 socket\n");
- 		return 0;
- 	}
- 
--	if (IS_ERR(recv_sockets.sk6)) {
-+	if (IS_ERR(sock)) {
- 		recv_sockets.sk6 = NULL;
- 		pr_err("Failed to create IPv6 UDP tunnel\n");
- 		return -1;
- 	}
-+	recv_sockets.sk6 = sock;
- #endif
- 	return 0;
- }
- 
-+int rxe_register_notifier(void)
-+{
-+	int err;
-+
-+	err = register_netdevice_notifier(&rxe_net_notifier);
-+	if (err) {
-+		pr_err("Failed to register netdev notifier\n");
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
- void rxe_net_exit(void)
- {
- 	rxe_release_udp_tunnel(recv_sockets.sk6);
-@@ -676,19 +708,12 @@ int rxe_net_init(void)
- {
- 	int err;
- 
--	recv_sockets.sk6 = NULL;
--
- 	err = rxe_net_ipv4_init();
- 	if (err)
- 		return err;
- 	err = rxe_net_ipv6_init();
- 	if (err)
- 		goto err_out;
--	err = register_netdevice_notifier(&rxe_net_notifier);
--	if (err) {
--		pr_err("Failed to register netdev notifier\n");
--		goto err_out;
--	}
- 	return 0;
- err_out:
- 	rxe_net_exit();
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.h b/drivers/infiniband/sw/rxe/rxe_net.h
-index 45d80d00f86b..a222c3eeae12 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.h
-+++ b/drivers/infiniband/sw/rxe/rxe_net.h
-@@ -18,6 +18,7 @@ struct rxe_recv_sockets {
- 
- int rxe_net_add(const char *ibdev_name, struct net_device *ndev);
- 
-+int rxe_register_notifier(void);
- int rxe_net_init(void);
- void rxe_net_exit(void);
- 
+The following commits will solve this problem.
+
+In the first commit, move the creating sock listening on udp port 4791
+from module_init function to rdma link creating functions. That is,
+after the module rdma_rxe is loaded, the sock will not be created.
+When run "rdma link add ..." command, the sock will be created. So
+when creating a rdma link in the net namespace, the sock will be
+created in this net namespace.
+
+In the second commit, the functions udp4_lib_lookup and udp6_lib_lookup
+will check the sock exists in the net namespace or not. If yes, rdma
+link will increase the reference count of this sock, then continue other
+jobs instead of creating a new sock to listen on udp port 4791. Since the
+network notifier is global, when the module rdma_rxe is loaded, this
+notifier will be registered.
+
+After the rdma link is created, the command "rdma link del" is to
+delete rdma link at the same time the sock is checked. If the reference
+count of this sock is greater than the sock reference count needed by
+udp tunnel, the sock reference count is decreased by one. If equal, it
+indicates that this rdma link is the last one. As such, the udp tunnel
+is shut down and the sock is closed. The above work should be
+implemented in linkdel function. But currently no dellink function in
+rxe. So the 3rd commit addes dellink function pointer. And the 4th
+commit implements the dellink function in rxe.
+
+To now, it is not necessary to keep a global variable to store the sock
+listening udp port 4791. This global variable can be replaced by the
+functions udp4_lib_lookup and udp6_lib_lookup totally. Because the
+function udp6_lib_lookup is in the fast path, a member variable l_sk6
+is added to store the sock. If l_sk6 is NULL, udp6_lib_lookup is called
+to lookup the sock, then the sock is stored in l_sk6, in the future,it
+can be used directly.
+
+All the above work has been done in init_net. And it can also work in
+the net namespace. So the init_net is replaced by the individual net
+namespace. This is what the 6th commit does. Because rxe device is
+dependent on the net device and the sock listening on udp port 4791,
+every rxe device is in exclusive mode in the individual net namespace.
+Other rdma netns operations will be considerred in the future.
+
+In the 7th commit, the register_pernet_subsys/unregister_pernet_subsys
+functions are added. When a new net namespace is created, the init
+function will initialize the sk4 and sk6 socks. Then the 2 socks will
+be released when the net namespace is destroyed. The functions
+rxe_ns_pernet_sk4/rxe_ns_pernet_set_sk4 will get and set sk4 in the net
+namespace. The functions rxe_ns_pernet_sk6/rxe_ns_pernet_set_sk6 will
+handle sk6. Then sk4 and sk6 are used in the previous commits.
+
+As the sk4 and sk6 in pernet namespace can be accessed, it is not
+necessary to add a new l_sk6. As such, in the 8th commit, the l_sk6 is
+replaced with the sk6 in pernet namespace.
+
+Test steps:
+1) Suppose that 2 NICs are in 2 different net namespaces.
+
+  # ip netns exec net0 ip link
+  3: eno2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP
+     link/ether 00:1e:67:a0:22:3f brd ff:ff:ff:ff:ff:ff
+     altname enp5s0
+
+  # ip netns exec net1 ip link
+  4: eno3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel
+     link/ether f8:e4:3b:3b:e4:10 brd ff:ff:ff:ff:ff:ff
+
+2) Add rdma link in the different net namespace
+    net0:
+    # ip netns exec net0 rdma link add rxe0 type rxe netdev eno2
+
+    net1:
+    # ip netns exec net1 rdma link add rxe1 type rxe netdev eno3
+
+3) Run rping test.
+    net0
+    # ip netns exec net0 rping -s -a 192.168.2.1 -C 1&
+    [1] 1737
+    # ip netns exec net1 rping -c -a 192.168.2.1 -d -v -C 1
+    verbose
+    count 1
+    ...
+    ping data: rdma-ping-0: ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqr
+    ...
+
+4) Remove the rdma links from the net namespaces.
+    net0:
+    # ip netns exec net0 ss -lu
+    State     Recv-Q    Send-Q    Local Address:Port    Peer Address:Port    Process
+    UNCONN    0         0         0.0.0.0:4791          0.0.0.0:*
+    UNCONN    0         0         [::]:4791             [::]:*
+
+    # ip netns exec net0 rdma link del rxe0
+
+    # ip netns exec net0 ss -lu
+    State     Recv-Q    Send-Q    Local Address:Port    Peer Address:Port    Process
+
+    net1:
+    # ip netns exec net0 ss -lu
+    State     Recv-Q    Send-Q    Local Address:Port    Peer Address:Port    Process
+    UNCONN    0         0         0.0.0.0:4791          0.0.0.0:*
+    UNCONN    0         0         [::]:4791             [::]:*
+
+    # ip netns exec net1 rdma link del rxe1
+
+    # ip netns exec net0 ss -lu
+    State     Recv-Q    Send-Q    Local Address:Port    Peer Address:Port    Process
+
+V6->V7: Fix the crash problem for drivers like siw.
+
+V5->V6: Fix resource leak problem when rxe_net_init fails. And fix some
+	style problems.
+
+V4->V5: Rebase the commits to V6.4-rc1
+
+V3->V4: Rebase the commits to rdma-next;
+
+V2->V3: 1) Add "rdma link del" example in the cover letter, and use "ss -lu" to
+           verify rdma link is removed.
+        2) Add register_pernet_subsys/unregister_pernet_subsys net namespace
+        3) Replace l_sk6 with sk6 of pernet_name_space
+
+V1->V2: Add the explicit initialization of sk6.
+
+
+Zhu Yanjun (8):
+  RDMA/rxe: Creating listening sock in newlink function
+  RDMA/rxe: Support more rdma links in init_net
+  RDMA/nldev: Add dellink function pointer
+  RDMA/rxe: Implement dellink in rxe
+  RDMA/rxe: Replace global variable with sock lookup functions
+  RDMA/rxe: add the support of net namespace
+  RDMA/rxe: Add the support of net namespace notifier
+  RDMA/rxe: Replace l_sk6 with sk6 in net namespace
+
+ drivers/infiniband/core/nldev.c     |   6 ++
+ drivers/infiniband/sw/rxe/Makefile  |   3 +-
+ drivers/infiniband/sw/rxe/rxe.c     |  35 +++++++-
+ drivers/infiniband/sw/rxe/rxe_net.c | 119 ++++++++++++++++++------
+ drivers/infiniband/sw/rxe/rxe_net.h |   9 +-
+ drivers/infiniband/sw/rxe/rxe_ns.c  | 134 ++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rxe/rxe_ns.h  |  17 ++++
+ include/rdma/rdma_netlink.h         |   2 +
+ 8 files changed, 285 insertions(+), 40 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rxe/rxe_ns.c
+ create mode 100644 drivers/infiniband/sw/rxe/rxe_ns.h
+
 -- 
 2.27.0
 
