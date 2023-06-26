@@ -2,28 +2,28 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17E99EB64DD
-	for <linux-rdma@archiver.kernel.org>; Mon, 26 Jun 2023 09:21:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B2D5C001E0
+	for <linux-rdma@archiver.kernel.org>; Mon, 26 Jun 2023 09:21:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229909AbjFZJVN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 26 Jun 2023 05:21:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34716 "EHLO
+        id S230217AbjFZJVP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 26 Jun 2023 05:21:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229940AbjFZJUw (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jun 2023 05:20:52 -0400
+        with ESMTP id S229960AbjFZJUx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 26 Jun 2023 05:20:53 -0400
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id C06891BE4;
-        Mon, 26 Jun 2023 02:18:20 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 8F58F119;
+        Mon, 26 Jun 2023 02:19:00 -0700 (PDT)
 Received: by linux.microsoft.com (Postfix, from userid 1099)
-        id 559A121C3F2C; Mon, 26 Jun 2023 02:18:20 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 559A121C3F2C
+        id 2481B21C3F2C; Mon, 26 Jun 2023 02:19:00 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 2481B21C3F2C
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-        s=default; t=1687771100;
+        s=default; t=1687771140;
         bh=w0RTwq6xnEh5PToktxOWxF1t6KZX1z6EpuCc02QAfJw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=VHls5pA/ruzwRNkIcImhFmzyr8irMnHGZRx2V6Qjgi+qr8THoNSAGAwg0qUH78FLZ
-         M2PQDhE/cZxJWCL9f7NHyRAHnVNAuU6il0ikj2vt7tX4kK0NtP3N4kGlR0FMKvHUXI
-         xR4St1XZsUv4BYi+UBJmk6aZpJa4pkL9gKC8ih9I=
+        b=koblSqD/2huTtJrCBeUEQy5eNoqXbPICww1juVE4bM7oCKFN9eFyD7AKtHBAxcYca
+         /vfnAMLBZaqKImty5tAGrIrQJMKatGmVIj85erlx6WQALHMJOb5i2brI+YsQwYmeQu
+         IA9wF6IVXuzpu5Bv8ch7eeQvOqO3cEdHXhcZqmsg=
 From:   souradeep chakrabarti <schakrabarti@linux.microsoft.com>
 To:     kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
         decui@microsoft.com, davem@davemloft.net, edumazet@google.com,
@@ -36,11 +36,11 @@ To:     kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
 Cc:     stable@vger.kernel.org, schakrabarti@microsoft.com,
         Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
 Subject: [PATCH 1/2 V3 net] net: mana: Fix MANA VF unload when host is unresponsive
-Date:   Mon, 26 Jun 2023 02:18:18 -0700
-Message-Id: <1687771098-26775-1-git-send-email-schakrabarti@linux.microsoft.com>
+Date:   Mon, 26 Jun 2023 02:18:57 -0700
+Message-Id: <1687771137-26911-1-git-send-email-schakrabarti@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1687771058-26634-1-git-send-email-schakrabarti@linux.microsoft.com>
-References: <1687771058-26634-1-git-send-email-schakrabarti@linux.microsoft.com>
+In-Reply-To: <1687771098-26775-1-git-send-email-schakrabarti@linux.microsoft.com>
+References: <1687771098-26775-1-git-send-email-schakrabarti@linux.microsoft.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
