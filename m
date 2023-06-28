@@ -2,122 +2,200 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BED81EB64DD
-	for <linux-rdma@archiver.kernel.org>; Wed, 28 Jun 2023 08:11:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 115FEEB64D7
+	for <linux-rdma@archiver.kernel.org>; Wed, 28 Jun 2023 08:27:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234004AbjF1IK5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 28 Jun 2023 04:10:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35320 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233133AbjF1IFt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 28 Jun 2023 04:05:49 -0400
-Received: from mail-ot1-x32e.google.com (mail-ot1-x32e.google.com [IPv6:2607:f8b0:4864:20::32e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B888C2D73;
-        Wed, 28 Jun 2023 01:04:15 -0700 (PDT)
-Received: by mail-ot1-x32e.google.com with SMTP id 46e09a7af769-6b44b5adfd3so4480533a34.3;
-        Wed, 28 Jun 2023 01:04:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1687939455; x=1690531455;
-        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=KcRIZBylUodGg6xfwSa+s03103SVj3Aromni82wUePU=;
-        b=B0FEtoQpRUb3J8puVJuM9Z+DAcx79qLsl1w20PIMSoW4+yRiYUaQN3bn7R0yXE5ZAz
-         l1ymLC0TymQw8OU29lcj3ntJEgUZm2u6v4pJb75KJ91bmJqVF9hvi4Go5HQQMBy8pOdf
-         /JE6w+szmm4YpDn5Q+r2m4gbhlXHf2JsT/PAz31EoUWmC37Pw/aOwWu4BswTB27Z6eRq
-         Xw4pzqweeQgSy5nvfh7ITDDkQjQokZ0dPImddUYfsazUy4PnLb6PnQ5dZZUmPYcTC3VB
-         ZczUvJQra1SOR5flzQ6qs/bDl11iyD67i7V1lUJ9+nZOT0zOqq+pXjElrRyE/NpRlhrJ
-         NjuA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687939455; x=1690531455;
-        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=KcRIZBylUodGg6xfwSa+s03103SVj3Aromni82wUePU=;
-        b=dx+rmfYEVZySYxLfSDrMPy9b2RpcvyN0W97+/2UBpYOd15zjIFrkO9eXSnFg9+j6wG
-         pjlZnq2ZHQV3n99WYdKUybmiGHMVKjah9n/QIZv5moPHRS5/jQk5i021cqZYkzxaeqM8
-         5F+MoLJf7ItSlZmYSxhEdLCjs7I4cjzG8ogN22U5jsE3nM9krxJTt5K0dkhMVtMwdEvz
-         RspK9W5nSZUAUIAN9jUoR/jZJ2KxVceU1g6K+50EDn/vYCjHusZEPSmMFzETz6WNYw+Z
-         eJ7uel6nQCmS7HbWXxTtfg1BXuowdgKXAcNFAP1OFN8UM9ErPRwKT1ZtMAUj0hJl6PDf
-         lKew==
-X-Gm-Message-State: AC+VfDzYVJWzkRFJrgsi7Vn8SXxw1I9nGOMv6sauHshbBwe0MBeQE3nI
-        4/fufVo2sIOYri8jABNZhCF8qZDA8bnOSw==
-X-Google-Smtp-Source: ACHHUZ69UkxxcYAdA4L9SDk4thCu0zc7lIFPY7os8Def0ljO2ruAnk0fEj1EBnbrR/THYFgq4CYG4A==
-X-Received: by 2002:a05:6a20:914a:b0:10b:8e96:561 with SMTP id x10-20020a056a20914a00b0010b8e960561mr26061871pzc.62.1687928408592;
-        Tue, 27 Jun 2023 22:00:08 -0700 (PDT)
-Received: from 377044c6c369.cse.ust.hk (191host097.mobilenet.cse.ust.hk. [143.89.191.97])
-        by smtp.gmail.com with ESMTPSA id c24-20020a170902d91800b001b80f3717d5sm3544632plz.123.2023.06.27.22.00.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Jun 2023 22:00:07 -0700 (PDT)
-From:   Chengfeng Ye <dg573847474@gmail.com>
-To:     dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca,
-        leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Chengfeng Ye <dg573847474@gmail.com>
-Subject: [PATCH] IB/hfi1: Fix potential deadlock on &sde->flushlist_lock
-Date:   Wed, 28 Jun 2023 04:59:25 +0000
-Message-Id: <20230628045925.5261-1-dg573847474@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        id S233902AbjF1I1H (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 28 Jun 2023 04:27:07 -0400
+Received: from mga17.intel.com ([192.55.52.151]:64637 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S234066AbjF1IZF (ORCPT <rfc822;linux-rdma@vger.kernel.org>);
+        Wed, 28 Jun 2023 04:25:05 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1687940705; x=1719476705;
+  h=date:from:to:cc:subject:message-id;
+  bh=BKuECJzZcHVU5MEwcqstk9VNEoJG1wo4rZzKRhj8/io=;
+  b=WepXVypwsZWeF+HBbQGpLOz+LX1bFKivuWkNqWfRETMXlGEYtyprbq4z
+   xc/fkSBzY0cR3vAdK48P5NQlTDkDrYnHemfGHZc/Ry43bZ8QOO723IwmD
+   wbw1PBWeNjghiHNtLaxFo8gOewAOwv5Kfi4RAKeSV2g18yQPMrkYYJo7H
+   XxV9gWlDqsezs6hscFFCL3/+CkRWSqFvw5aD3uX66taDUwaOSLQEKLZSC
+   CqRabYWH8Zk5AVgkEN4sDrtusSMk/qmgW3QZPQblRuaF6C2NGJMDDR1Jc
+   La82fnWqupmzyG0nllvTBYIrqBzYv+JNWdAc3TGicPQr/vEv7W4tB6sBJ
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10754"; a="342099984"
+X-IronPort-AV: E=Sophos;i="6.01,164,1684825200"; 
+   d="scan'208";a="342099984"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jun 2023 23:14:14 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10754"; a="890929161"
+X-IronPort-AV: E=Sophos;i="6.01,164,1684825200"; 
+   d="scan'208";a="890929161"
+Received: from lkp-server01.sh.intel.com (HELO 783282924a45) ([10.239.97.150])
+  by orsmga005.jf.intel.com with ESMTP; 27 Jun 2023 23:14:12 -0700
+Received: from kbuild by 783282924a45 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qEORP-000Cvj-0A;
+        Wed, 28 Jun 2023 06:14:11 +0000
+Date:   Wed, 28 Jun 2023 14:13:33 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Subject: [rdma:for-next] BUILD SUCCESS
+ 5f004bcaee4cb552cf1b46a505f18f08777db7e5
+Message-ID: <202306281432.HeN6LXtd-lkp@intel.com>
+User-Agent: s-nail v14.9.24
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-As &sde->flushlist_lock is acquired by timer sdma_err_progress_check()
-through layer of calls under softirq context, other process
-context code acquiring the lock should disable irq.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
+branch HEAD: 5f004bcaee4cb552cf1b46a505f18f08777db7e5  Merge tag 'v6.4' into rdma.git for-next
 
-Possible deadlock scenario
-sdma_send_txreq()
-    -> spin_lock(&sde->flushlist_lock)
-        <timer interrupt>
-        -> sdma_err_progress_check()
-        -> __sdma_process_event()
-        -> sdma_set_state()
-        -> sdma_flush()
-        -> spin_lock_irqsave(&sde->flushlist_lock, flags) (deadlock here)
+elapsed time: 731m
 
-This flaw was found using an experimental static analysis tool we are
-developing for irq-related deadlock.
+configs tested: 133
+configs skipped: 9
 
-The tentative patch fix the potential deadlock by spin_lock_irqsave().
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Signed-off-by: Chengfeng Ye <dg573847474@gmail.com>
----
- drivers/infiniband/hw/hfi1/sdma.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+tested configs:
+alpha                            allyesconfig   gcc  
+alpha                               defconfig   gcc  
+alpha                randconfig-r012-20230627   gcc  
+alpha                randconfig-r016-20230627   gcc  
+alpha                randconfig-r022-20230627   gcc  
+arc                              allyesconfig   gcc  
+arc                          axs103_defconfig   gcc  
+arc                                 defconfig   gcc  
+arc                  randconfig-r043-20230627   gcc  
+arc                        vdk_hs38_defconfig   gcc  
+arm                              allmodconfig   gcc  
+arm                              allyesconfig   gcc  
+arm                                 defconfig   gcc  
+arm                       netwinder_defconfig   clang
+arm                  randconfig-r005-20230627   clang
+arm                  randconfig-r046-20230627   gcc  
+arm                           u8500_defconfig   gcc  
+arm64                            allyesconfig   gcc  
+arm64                               defconfig   gcc  
+arm64                randconfig-r013-20230627   clang
+csky                                defconfig   gcc  
+hexagon              randconfig-r023-20230627   clang
+hexagon              randconfig-r026-20230627   clang
+hexagon              randconfig-r032-20230627   clang
+hexagon              randconfig-r041-20230627   clang
+hexagon              randconfig-r045-20230627   clang
+i386                             allyesconfig   gcc  
+i386         buildonly-randconfig-r004-20230627   gcc  
+i386         buildonly-randconfig-r005-20230627   gcc  
+i386         buildonly-randconfig-r006-20230627   gcc  
+i386                              debian-10.3   gcc  
+i386                                defconfig   gcc  
+i386                 randconfig-i001-20230627   gcc  
+i386                 randconfig-i002-20230627   gcc  
+i386                 randconfig-i003-20230627   gcc  
+i386                 randconfig-i004-20230627   gcc  
+i386                 randconfig-i005-20230627   gcc  
+i386                 randconfig-i006-20230627   gcc  
+i386                 randconfig-i011-20230627   clang
+i386                 randconfig-i012-20230627   clang
+i386                 randconfig-i013-20230627   clang
+i386                 randconfig-i014-20230627   clang
+i386                 randconfig-i015-20230627   clang
+i386                 randconfig-i016-20230627   clang
+i386                 randconfig-r032-20230627   gcc  
+loongarch                        allmodconfig   gcc  
+loongarch                         allnoconfig   gcc  
+loongarch                           defconfig   gcc  
+loongarch            randconfig-r036-20230627   gcc  
+m68k                             allmodconfig   gcc  
+m68k                             allyesconfig   gcc  
+m68k                                defconfig   gcc  
+m68k                 randconfig-r003-20230627   gcc  
+m68k                 randconfig-r005-20230627   gcc  
+m68k                 randconfig-r015-20230627   gcc  
+mips                             allmodconfig   gcc  
+mips                             allyesconfig   gcc  
+mips                        bcm47xx_defconfig   gcc  
+mips                           ci20_defconfig   gcc  
+mips                 randconfig-r011-20230627   gcc  
+mips                 randconfig-r025-20230627   gcc  
+mips                          rb532_defconfig   gcc  
+nios2                               defconfig   gcc  
+nios2                randconfig-r001-20230627   gcc  
+nios2                randconfig-r013-20230627   gcc  
+nios2                randconfig-r014-20230627   gcc  
+openrisc                    or1ksim_defconfig   gcc  
+openrisc             randconfig-r024-20230627   gcc  
+openrisc             randconfig-r031-20230627   gcc  
+parisc                           allyesconfig   gcc  
+parisc                              defconfig   gcc  
+parisc               randconfig-r012-20230627   gcc  
+parisc               randconfig-r026-20230627   gcc  
+parisc64                            defconfig   gcc  
+powerpc                          allmodconfig   gcc  
+powerpc                           allnoconfig   gcc  
+powerpc                       eiger_defconfig   gcc  
+powerpc                    gamecube_defconfig   clang
+powerpc              randconfig-r003-20230627   gcc  
+riscv                            allmodconfig   gcc  
+riscv                             allnoconfig   gcc  
+riscv                            allyesconfig   gcc  
+riscv                               defconfig   gcc  
+riscv                randconfig-r001-20230627   gcc  
+riscv                randconfig-r004-20230627   gcc  
+riscv                randconfig-r014-20230627   clang
+riscv                randconfig-r015-20230627   clang
+riscv                randconfig-r042-20230627   clang
+riscv                          rv32_defconfig   gcc  
+s390                             allmodconfig   gcc  
+s390                             allyesconfig   gcc  
+s390                                defconfig   gcc  
+s390                 randconfig-r002-20230627   gcc  
+s390                 randconfig-r006-20230627   gcc  
+s390                 randconfig-r044-20230627   clang
+sh                               allmodconfig   gcc  
+sh                   randconfig-r024-20230627   gcc  
+sh                           se7705_defconfig   gcc  
+sh                           se7751_defconfig   gcc  
+sparc                            allyesconfig   gcc  
+sparc                               defconfig   gcc  
+sparc64              randconfig-r033-20230627   gcc  
+sparc64              randconfig-r035-20230627   gcc  
+um                               allmodconfig   clang
+um                                allnoconfig   clang
+um                               allyesconfig   clang
+um                                  defconfig   gcc  
+um                             i386_defconfig   gcc  
+um                           x86_64_defconfig   gcc  
+x86_64                           allyesconfig   gcc  
+x86_64       buildonly-randconfig-r001-20230627   gcc  
+x86_64       buildonly-randconfig-r002-20230627   gcc  
+x86_64       buildonly-randconfig-r003-20230627   gcc  
+x86_64                              defconfig   gcc  
+x86_64                                  kexec   gcc  
+x86_64               randconfig-r025-20230627   clang
+x86_64               randconfig-r031-20230627   gcc  
+x86_64               randconfig-x001-20230627   clang
+x86_64               randconfig-x002-20230627   clang
+x86_64               randconfig-x003-20230627   clang
+x86_64               randconfig-x004-20230627   clang
+x86_64               randconfig-x005-20230627   clang
+x86_64               randconfig-x006-20230627   clang
+x86_64               randconfig-x011-20230627   gcc  
+x86_64               randconfig-x012-20230627   gcc  
+x86_64               randconfig-x013-20230627   gcc  
+x86_64               randconfig-x014-20230627   gcc  
+x86_64               randconfig-x015-20230627   gcc  
+x86_64               randconfig-x016-20230627   gcc  
+x86_64                          rhel-8.3-rust   clang
+x86_64                               rhel-8.3   gcc  
+xtensa               randconfig-r022-20230627   gcc  
+xtensa               randconfig-r023-20230627   gcc  
 
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index bb2552dd29c1..0431f575c861 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -2371,9 +2371,9 @@ int sdma_send_txreq(struct sdma_engine *sde,
- 	tx->sn = sde->tail_sn++;
- 	trace_hfi1_sdma_in_sn(sde, tx->sn);
- #endif
--	spin_lock(&sde->flushlist_lock);
-+	spin_lock_irqsave(&sde->flushlist_lock, flags);
- 	list_add_tail(&tx->list, &sde->flushlist);
--	spin_unlock(&sde->flushlist_lock);
-+	spin_unlock_irqrestore(&sde->flushlist_lock, flags);
- 	iowait_inc_wait_count(wait, tx->num_desc);
- 	queue_work_on(sde->cpu, system_highpri_wq, &sde->flush_worker);
- 	ret = -ECOMM;
-@@ -2459,7 +2459,7 @@ int sdma_send_txlist(struct sdma_engine *sde, struct iowait_work *wait,
- 	*count_out = total_count;
- 	return ret;
- unlock_noconn:
--	spin_lock(&sde->flushlist_lock);
-+	spin_lock_irqsave(&sde->flushlist_lock, flags);
- 	list_for_each_entry_safe(tx, tx_next, tx_list, list) {
- 		tx->wait = iowait_ioww_to_iow(wait);
- 		list_del_init(&tx->list);
-@@ -2472,7 +2472,7 @@ int sdma_send_txlist(struct sdma_engine *sde, struct iowait_work *wait,
- 		flush_count++;
- 		iowait_inc_wait_count(wait, tx->num_desc);
- 	}
--	spin_unlock(&sde->flushlist_lock);
-+	spin_unlock_irqrestore(&sde->flushlist_lock, flags);
- 	queue_work_on(sde->cpu, system_highpri_wq, &sde->flush_worker);
- 	ret = -ECOMM;
- 	goto update_tail;
 -- 
-2.17.1
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
