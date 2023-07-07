@@ -2,75 +2,145 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC57DC0015E
-	for <linux-rdma@archiver.kernel.org>; Fri,  7 Jul 2023 10:51:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 066E7EB64D9
+	for <linux-rdma@archiver.kernel.org>; Fri,  7 Jul 2023 10:59:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229787AbjGGKv5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 7 Jul 2023 06:51:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51616 "EHLO
+        id S232565AbjGGK7K (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 7 Jul 2023 06:59:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232799AbjGGKvr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Jul 2023 06:51:47 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BC341FEE;
-        Fri,  7 Jul 2023 03:51:31 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 39E9A618F4;
-        Fri,  7 Jul 2023 10:51:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DABADC433C8;
-        Fri,  7 Jul 2023 10:51:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1688727090;
-        bh=dMjQvPWxzVC76cHGIJsn2XnTQOoQzkZMZV+Gp6SjNoc=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=DzXWq+TsLd9+UoSFGQPsmq3hgM4LcY9udSFATS9UWuXZiFNJWyB3yGhLH7RM4CS3l
-         9KnIQzdut1CSiROHnyHybMwykGtwNtpvZxhABiQgFqpj9OjaVHaGo2rnD77OuC49hV
-         1TRpdcEC8jDYEl6uSbrXQ3usPjzg2JnOKsHPoT34=
-Date:   Fri, 7 Jul 2023 11:16:07 +0100
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
-Cc:     kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
-        decui@microsoft.com, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, longli@microsoft.com,
-        sharmaajay@microsoft.com, leon@kernel.org, cai.huoqing@linux.dev,
-        ssengar@linux.microsoft.com, vkuznets@redhat.com,
-        tglx@linutronix.de, linux-hyperv@vger.kernel.org,
-        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, stable@vger.kernel.org,
-        schakrabarti@microsoft.com
-Subject: Re: [PATCH V2 net] net: mana: Configure hwc timeout from hardware
-Message-ID: <2023070734-skimming-snack-838c@gregkh>
-References: <1688723128-14878-1-git-send-email-schakrabarti@linux.microsoft.com>
+        with ESMTP id S232033AbjGGK7J (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 7 Jul 2023 06:59:09 -0400
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D83E19A5;
+        Fri,  7 Jul 2023 03:59:01 -0700 (PDT)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.56])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Qy9P33kdlz1FDfy;
+        Fri,  7 Jul 2023 18:58:31 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.2) by
+ kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Fri, 7 Jul 2023 18:58:59 +0800
+From:   Junxian Huang <huangjunxian6@hisilicon.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
+Subject: [PATCH v3 for-next] RDMA/core: Get IB width and speed from netdev
+Date:   Fri, 7 Jul 2023 18:56:34 +0800
+Message-ID: <20230707105634.1921046-1-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1688723128-14878-1-git-send-email-schakrabarti@linux.microsoft.com>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.67.165.2]
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+ kwepemi500006.china.huawei.com (7.221.188.68)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Jul 07, 2023 at 02:45:28AM -0700, Souradeep Chakrabarti wrote:
-> At present hwc timeout value is a fixed value.
-> This patch sets the hwc timeout from the hardware.
+From: Haoyue Xu <xuhaoyue1@hisilicon.com>
 
-This really does not describe what is happening here.  Please read the
-documentation for how to write a good changelog text.
+Previously, there was no way to query the number of lanes for a network
+card, so the same netdev_speed would result in a fixed pair of width and
+speed. As network card specifications become more diverse, such fixed
+mode is no longer suitable, so a method is needed to obtain the correct
+width and speed based on the number of lanes.
 
-> 
-> Signed-off-by: Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
-> ---
-> V1 -> V2:
-> * Added return check for mana_gd_query_hwc_timeout
-> * Removed dev_err from mana_gd_query_hwc_timeout
+This patch retrieves netdev lanes and speed from net_device and
+translates them to IB width and speed. Also, add a generic function
+to translating netdev speed to IB speed.
 
-<formletter>
+Signed-off-by: Haoyue Xu <xuhaoyue1@hisilicon.com>
+Signed-off-by: Luoyouming <luoyouming@huawei.com>
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/core/verbs.c | 17 +++++++++++++++--
+ include/rdma/ib_verbs.h         | 26 ++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 2 deletions(-)
 
-This is not the correct way to submit patches for inclusion in the
-stable kernel tree.  Please read:
-    https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
-for how to do this properly.
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index b99b3cc283b6..55a3ac9d01e2 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1880,6 +1880,13 @@ int ib_modify_qp_with_udata(struct ib_qp *ib_qp, struct ib_qp_attr *attr,
+ }
+ EXPORT_SYMBOL(ib_modify_qp_with_udata);
+ 
++static void ib_get_width_and_speed(u32 netdev_speed, u32 lanes,
++				   u16 *speed, u8 *width)
++{
++	*width = ib_int_to_ib_width(lanes);
++	*speed = ib_eth_to_ib_speed(netdev_speed / lanes);
++}
++
+ int ib_get_eth_speed(struct ib_device *dev, u32 port_num, u16 *speed, u8 *width)
+ {
+ 	int rc;
+@@ -1902,10 +1909,16 @@ int ib_get_eth_speed(struct ib_device *dev, u32 port_num, u16 *speed, u8 *width)
+ 
+ 	if (!rc && lksettings.base.speed != (u32)SPEED_UNKNOWN) {
+ 		netdev_speed = lksettings.base.speed;
++		if (lksettings.lanes) {
++			ib_get_width_and_speed(netdev_speed, lksettings.lanes,
++					       speed, width);
++			return 0;
++		}
+ 	} else {
+ 		netdev_speed = SPEED_1000;
+-		pr_warn("%s speed is unknown, defaulting to %u\n", netdev->name,
+-			netdev_speed);
++		if (rc)
++			pr_warn("%s speed is unknown, defaulting to %u\n",
++				netdev->name, netdev_speed);
+ 	}
+ 
+ 	if (netdev_speed <= SPEED_1000) {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1e7774ac808f..7dc926ec7fee 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -552,6 +552,18 @@ static inline int ib_width_enum_to_int(enum ib_port_width width)
+ 	}
+ }
+ 
++static inline int ib_int_to_ib_width(u32 lanes)
++{
++	switch (lanes) {
++	case 1: return IB_WIDTH_1X;
++	case 2: return IB_WIDTH_2X;
++	case 4: return IB_WIDTH_4X;
++	case 8: return IB_WIDTH_8X;
++	case 12: return IB_WIDTH_12X;
++	default: return IB_WIDTH_1X;
++	}
++}
++
+ enum ib_port_speed {
+ 	IB_SPEED_SDR	= 1,
+ 	IB_SPEED_DDR	= 2,
+@@ -563,6 +575,20 @@ enum ib_port_speed {
+ 	IB_SPEED_NDR	= 128,
+ };
+ 
++static inline int ib_eth_to_ib_speed(u32 speed)
++{
++	switch (speed) {
++	case SPEED_2500: return IB_SPEED_SDR;
++	case SPEED_5000: return IB_SPEED_DDR;
++	case SPEED_10000: return IB_SPEED_FDR10;
++	case SPEED_14000: return IB_SPEED_FDR;
++	case SPEED_25000: return IB_SPEED_EDR;
++	case SPEED_50000: return IB_SPEED_HDR;
++	case SPEED_100000: return IB_SPEED_NDR;
++	default: return IB_SPEED_SDR;
++	}
++}
++
+ enum ib_stat_flag {
+ 	IB_STAT_FLAG_OPTIONAL = 1 << 0,
+ };
+-- 
+2.30.0
 
-</formletter>
