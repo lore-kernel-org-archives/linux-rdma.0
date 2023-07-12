@@ -2,32 +2,32 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2706AEB64DD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B399EB64DA
 	for <linux-rdma@archiver.kernel.org>; Wed, 12 Jul 2023 06:03:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231512AbjGLGDS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Jul 2023 02:03:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49426 "EHLO
+        id S231948AbjGLGDT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Jul 2023 02:03:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231260AbjGLGDQ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Jul 2023 02:03:16 -0400
+        with ESMTP id S231992AbjGLGDS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Jul 2023 02:03:18 -0400
 Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 229A810C4;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E724F1BD5;
         Tue, 11 Jul 2023 23:03:04 -0700 (PDT)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.54])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4R16Y52ltgzPkG1;
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.56])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4R16Y6074hzPkG3;
         Wed, 12 Jul 2023 14:00:41 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Wed, 12 Jul 2023 14:03:00 +0800
+ 15.1.2507.27; Wed, 12 Jul 2023 14:03:01 +0800
 From:   Junxian Huang <huangjunxian6@hisilicon.com>
 To:     <jgg@nvidia.com>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-rc 1/3] RDMA/hns: support get xrcd num from firmware
-Date:   Wed, 12 Jul 2023 14:00:31 +0800
-Message-ID: <20230712060033.15961-2-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 3/3] RDMA/hns: Add check and adjust for function resource values
+Date:   Wed, 12 Jul 2023 14:00:33 +0800
+Message-ID: <20230712060033.15961-4-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20230712060033.15961-1-huangjunxian6@hisilicon.com>
 References: <20230712060033.15961-1-huangjunxian6@hisilicon.com>
@@ -42,75 +42,213 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Luoyouming <luoyouming@huawei.com>
+Currently, RoCE driver gets function resource values from firmware
+without validity check. As these resources are mostly related to memory,
+an invalid value may lead to serious consequence such as kernel panic.
 
-Support driver get the num of xrcd from firmware
+This patch adds check for these resource values and adjusts the invalid
+ones.
 
-Signed-off-by: Luoyouming <luoyouming@huawei.com>
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 ++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 3 ++-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 116 ++++++++++++++++++++-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  37 +++++++
+ 2 files changed, 149 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index d4c6b9bc0a4e..fb3ce4af22b5 100644
+index c4b92d8bd98a..dae0e6959fa0 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2093,9 +2093,6 @@ static void apply_func_caps(struct hns_roce_dev *hr_dev)
- 	caps->qpc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
- 	caps->cqc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
+@@ -1650,6 +1650,98 @@ static int hns_roce_config_global_param(struct hns_roce_dev *hr_dev)
+ 	return hns_roce_cmq_send(hr_dev, &desc, 1);
+ }
  
--	caps->num_xrcds = HNS_ROCE_V2_MAX_XRCD_NUM;
--	caps->reserved_xrcds = HNS_ROCE_V2_RSV_XRCD_NUM;
--
- 	caps->num_srqwqe_segs = HNS_ROCE_V2_MAX_SRQWQE_SEGS;
- 	caps->num_idx_segs = HNS_ROCE_V2_MAX_IDX_SEGS;
++static const struct hns_roce_bt_num {
++	u32 res_offset;
++	u32 min;
++	u32 max;
++	enum hns_roce_res_invalid_flag invalid_flag;
++	enum hns_roce_res_revision revision;
++	bool vf_support;
++} bt_num_table[] = {
++	{RES_OFFSET_IN_CAPS(qpc_bt_num), 1,
++	 MAX_QPC_BT_NUM, QPC_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
++	{RES_OFFSET_IN_CAPS(srqc_bt_num), 1,
++	 MAX_SRQC_BT_NUM, SRQC_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
++	{RES_OFFSET_IN_CAPS(cqc_bt_num), 1,
++	 MAX_CQC_BT_NUM, CQC_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
++	{RES_OFFSET_IN_CAPS(mpt_bt_num), 1,
++	 MAX_MPT_BT_NUM, MPT_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
++	{RES_OFFSET_IN_CAPS(sl_num), 1,
++	 MAX_SL_NUM, QID_NUM_INVALID_FLAG, RES_FOR_ALL, true},
++	{RES_OFFSET_IN_CAPS(sccc_bt_num), 1,
++	 MAX_SCCC_BT_NUM, SCCC_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
++	{RES_OFFSET_IN_CAPS(qpc_timer_bt_num), 1,
++	 MAX_QPC_TIMER_BT_NUM, QPC_TIMER_BT_NUM_INVALID_FLAG,
++	 RES_FOR_ALL, false},
++	{RES_OFFSET_IN_CAPS(cqc_timer_bt_num), 1,
++	 MAX_CQC_TIMER_BT_NUM, CQC_TIMER_BT_NUM_INVALID_FLAG,
++	 RES_FOR_ALL, false},
++	{RES_OFFSET_IN_CAPS(gmv_bt_num), 1,
++	 MAX_GMV_BT_NUM, GMV_BT_NUM_INVALID_FLAG,
++	 RES_FOR_HIP09, true},
++	{RES_OFFSET_IN_CAPS(smac_bt_num), 1,
++	 MAX_SMAC_BT_NUM, SMAC_BT_NUM_INVALID_FLAG,
++	 RES_FOR_HIP08, true},
++	{RES_OFFSET_IN_CAPS(sgid_bt_num), 1,
++	 MAX_SGID_BT_NUM, SGID_BT_NUM_INVALID_FLAG,
++	 RES_FOR_HIP08, true},
++};
++
++static inline bool check_res_is_supported(struct hns_roce_dev *hr_dev,
++					  struct hns_roce_bt_num *bt_num_entry)
++{
++	if (!bt_num_entry->vf_support && hr_dev->is_vf)
++		return false;
++
++	if (bt_num_entry->revision == RES_FOR_HIP09 &&
++	    hr_dev->pci_dev->revision <= PCI_REVISION_ID_HIP08)
++		return false;
++
++	if (bt_num_entry->revision == RES_FOR_HIP08 &&
++	    hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
++		return false;
++
++	return true;
++}
++
++static inline void adjust_eqc_bt_num(struct hns_roce_caps *caps,
++				     u16 *invalid_flag)
++{
++	if (caps->eqc_bt_num < caps->num_comp_vectors + caps->num_aeq_vectors ||
++	    caps->eqc_bt_num > MAX_EQC_BT_NUM) {
++		caps->eqc_bt_num = caps->eqc_bt_num > MAX_EQC_BT_NUM ?
++				   MAX_EQC_BT_NUM : caps->num_comp_vectors +
++						    caps->num_aeq_vectors;
++		*invalid_flag |= 1 << EQC_BT_NUM_INVALID_FLAG;
++	}
++}
++
++static u16 adjust_res_caps(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_caps *caps = &hr_dev->caps;
++	u16 invalid_flag = 0;
++	u32 min, max;
++	u32 *res;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(bt_num_table); i++) {
++		if (!check_res_is_supported(hr_dev, &bt_num_table[i]))
++			continue;
++
++		res = (u32 *)((void *)caps + bt_num_table[i].res_offset);
++		min = bt_num_table[i].min;
++		max = bt_num_table[i].max;
++		if (*res < min || *res > max) {
++			*res = *res < min ? min : max;
++			invalid_flag |= 1 << bt_num_table[i].invalid_flag;
++		}
++	}
++
++	adjust_eqc_bt_num(caps, &invalid_flag);
++
++	return invalid_flag;
++}
++
+ static int load_func_res_caps(struct hns_roce_dev *hr_dev, bool is_vf)
+ {
+ 	struct hns_roce_cmq_desc desc[2];
+@@ -1730,11 +1822,19 @@ static int hns_roce_query_pf_resource(struct hns_roce_dev *hr_dev)
+ 	}
  
-@@ -2218,6 +2215,7 @@ static int hns_roce_query_caps(struct hns_roce_dev *hr_dev)
- 	caps->num_cqs = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_CQS);
- 	caps->gid_table_len[0] = hr_reg_read(resp_c, PF_CAPS_C_MAX_GID);
- 	caps->max_cqes = 1 << hr_reg_read(resp_c, PF_CAPS_C_CQ_DEPTH);
-+	caps->num_xrcds = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_XRCDS);
- 	caps->num_mtpts = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_MRWS);
- 	caps->num_qps = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_QPS);
- 	caps->max_qp_init_rdma = hr_reg_read(resp_c, PF_CAPS_C_MAX_ORD);
-@@ -2238,6 +2236,7 @@ static int hns_roce_query_caps(struct hns_roce_dev *hr_dev)
- 	caps->reserved_mrws = hr_reg_read(resp_e, PF_CAPS_E_RSV_MRWS);
- 	caps->chunk_sz = 1 << hr_reg_read(resp_e, PF_CAPS_E_CHUNK_SIZE_SHIFT);
- 	caps->reserved_cqs = hr_reg_read(resp_e, PF_CAPS_E_RSV_CQS);
-+	caps->reserved_xrcds = hr_reg_read(resp_e, PF_CAPS_E_RSV_XRCDS);
- 	caps->reserved_srqs = hr_reg_read(resp_e, PF_CAPS_E_RSV_SRQS);
- 	caps->reserved_lkey = hr_reg_read(resp_e, PF_CAPS_E_RSV_LKEYS);
+ 	ret = load_pf_timer_res_caps(hr_dev);
+-	if (ret)
++	if (ret) {
+ 		dev_err(dev, "failed to load pf timer resource, ret = %d.\n",
+ 			ret);
++		return ret;
++	}
  
+-	return ret;
++	ret = adjust_res_caps(hr_dev);
++	if (ret)
++		dev_warn(dev,
++			 "invalid resource values have been adjusted, invalid_flag = 0x%x.\n",
++			 ret);
++
++	return 0;
+ }
+ 
+ static int hns_roce_query_vf_resource(struct hns_roce_dev *hr_dev)
+@@ -1743,10 +1843,18 @@ static int hns_roce_query_vf_resource(struct hns_roce_dev *hr_dev)
+ 	int ret;
+ 
+ 	ret = load_func_res_caps(hr_dev, true);
+-	if (ret)
++	if (ret) {
+ 		dev_err(dev, "failed to load vf res caps, ret = %d.\n", ret);
++		return ret;
++	}
+ 
+-	return ret;
++	ret = adjust_res_caps(hr_dev);
++	if (ret)
++		dev_warn(dev,
++			 "invalid resource values have been adjusted, invalid_flag = 0x%x.\n",
++			 ret);
++
++	return 0;
+ }
+ 
+ static int __hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev,
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 7033eae2407c..2b87f0cf06ec 100644
+index d9693f6cc802..c2d46383c88c 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -42,7 +42,6 @@
- #define HNS_ROCE_V2_MAX_SRQWQE_SEGS		0x1000000
- #define HNS_ROCE_V2_MAX_IDX_SEGS		0x1000000
- #define HNS_ROCE_V2_MAX_XRCD_NUM		0x1000000
--#define HNS_ROCE_V2_RSV_XRCD_NUM		0
+@@ -972,6 +972,43 @@ struct hns_roce_func_clear {
+ #define CFG_GLOBAL_PARAM_1US_CYCLES CMQ_REQ_FIELD_LOC(9, 0)
+ #define CFG_GLOBAL_PARAM_UDP_PORT CMQ_REQ_FIELD_LOC(31, 16)
  
- #define HNS_ROCE_V2_QP_ACK_TIMEOUT_OFS_HIP08    10
- 
-@@ -1202,6 +1201,7 @@ struct hns_roce_query_pf_caps_c {
- #define PF_CAPS_C_NUM_CQS PF_CAPS_C_FIELD_LOC(51, 32)
- #define PF_CAPS_C_MAX_GID PF_CAPS_C_FIELD_LOC(60, 52)
- #define PF_CAPS_C_CQ_DEPTH PF_CAPS_C_FIELD_LOC(86, 64)
-+#define PF_CAPS_C_NUM_XRCDS PF_CAPS_C_FIELD_LOC(91, 87)
- #define PF_CAPS_C_NUM_MRWS PF_CAPS_C_FIELD_LOC(115, 96)
- #define PF_CAPS_C_NUM_QPS PF_CAPS_C_FIELD_LOC(147, 128)
- #define PF_CAPS_C_MAX_ORD PF_CAPS_C_FIELD_LOC(155, 148)
-@@ -1260,6 +1260,7 @@ struct hns_roce_query_pf_caps_e {
- #define PF_CAPS_E_RSV_MRWS PF_CAPS_E_FIELD_LOC(19, 0)
- #define PF_CAPS_E_CHUNK_SIZE_SHIFT PF_CAPS_E_FIELD_LOC(31, 20)
- #define PF_CAPS_E_RSV_CQS PF_CAPS_E_FIELD_LOC(51, 32)
-+#define PF_CAPS_E_RSV_XRCDS PF_CAPS_E_FIELD_LOC(63, 52)
- #define PF_CAPS_E_RSV_SRQS PF_CAPS_E_FIELD_LOC(83, 64)
- #define PF_CAPS_E_RSV_LKEYS PF_CAPS_E_FIELD_LOC(115, 96)
- 
++enum hns_roce_res_invalid_flag {
++	QPC_BT_NUM_INVALID_FLAG,
++	SRQC_BT_NUM_INVALID_FLAG,
++	CQC_BT_NUM_INVALID_FLAG,
++	MPT_BT_NUM_INVALID_FLAG,
++	EQC_BT_NUM_INVALID_FLAG,
++	SMAC_BT_NUM_INVALID_FLAG,
++	SGID_BT_NUM_INVALID_FLAG,
++	QID_NUM_INVALID_FLAG,
++	SCCC_BT_NUM_INVALID_FLAG,
++	GMV_BT_NUM_INVALID_FLAG,
++	QPC_TIMER_BT_NUM_INVALID_FLAG,
++	CQC_TIMER_BT_NUM_INVALID_FLAG,
++};
++
++enum hns_roce_res_revision {
++	RES_FOR_HIP08,
++	RES_FOR_HIP09,
++	RES_FOR_ALL,
++};
++
++#define RES_OFFSET_IN_CAPS(res) \
++	(offsetof(struct hns_roce_caps, res))
++
++#define MAX_QPC_BT_NUM 2048
++#define MAX_SRQC_BT_NUM 512
++#define MAX_CQC_BT_NUM 512
++#define MAX_MPT_BT_NUM 512
++#define MAX_EQC_BT_NUM 512
++#define MAX_SMAC_BT_NUM 256
++#define MAX_SGID_BT_NUM 256
++#define MAX_SL_NUM 8
++#define MAX_SCCC_BT_NUM 512
++#define MAX_GMV_BT_NUM 256
++#define MAX_QPC_TIMER_BT_NUM 1728
++#define MAX_CQC_TIMER_BT_NUM 1600
++
+ /*
+  * Fields of HNS_ROCE_OPC_QUERY_PF_RES, HNS_ROCE_OPC_QUERY_VF_RES
+  * and HNS_ROCE_OPC_ALLOC_VF_RES
 -- 
 2.30.0
 
