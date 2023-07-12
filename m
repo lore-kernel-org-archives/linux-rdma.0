@@ -2,92 +2,239 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 900BDEB64D9
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Jul 2023 14:30:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B736C001DF
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Jul 2023 15:55:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232947AbjGLOaY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 12 Jul 2023 10:30:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33826 "EHLO
+        id S233536AbjGLPzQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Jul 2023 11:55:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232190AbjGLOaX (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Jul 2023 10:30:23 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A45AB2139
-        for <linux-rdma@vger.kernel.org>; Wed, 12 Jul 2023 07:29:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1689172165;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type;
-        bh=SmfB+i5ITyD8VcQT6H0n4jQbBtZaHz3osNrT9kioxiQ=;
-        b=UuFg+m2Yvq/cYBpAgRMODwJ54BqHfYqmezUXh1VJIWgEP0vfhBG1M0pRo81QTilsuArSDw
-        W8mdLhVObMlcS1VxSYDBJ10HohWfUJe/NMmNu1iW/HDvI1ejebyhz+z5LaQc6zKYXbXzu/
-        HLk7qiwAh7we4NiMCwkxNA8KUHsO9n0=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-246-ltj-OFpzMs2h24ZSSTJyvQ-1; Wed, 12 Jul 2023 10:29:24 -0400
-X-MC-Unique: ltj-OFpzMs2h24ZSSTJyvQ-1
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-31429e93f26so4507824f8f.2
-        for <linux-rdma@vger.kernel.org>; Wed, 12 Jul 2023 07:29:24 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689172163; x=1691764163;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=SmfB+i5ITyD8VcQT6H0n4jQbBtZaHz3osNrT9kioxiQ=;
-        b=KhkmSC9xW7K3LKK18YZYEaWv8ASMhl/iHulWKw63qlnRKG3CW+vwx6N0Z7qr05INvC
-         cfZqe05L3rKWe1PKsOvkz4Pwuv4XpwiXIRURejNjjuqnGYffSp2YyXzXEYQX9rCoqcS4
-         67fBbahlnW0o6iOdWo647p9uzQ/Nx/RPM+Kp4jYPCaAx8+zX6Aew4vj2TgyQl60momqJ
-         NM/WHyYY0x4AmuwBhJbGjcoqsLU23TTQzh7BpYzi9rrIT4idgNqSqlqgiSRDp4MPmrp1
-         xkWCYsj34zd3xv0/kZsC5s/aMA5HImHrV5sJVH/OEG4exKh3vjwweHep40HjbU7leh2p
-         P/3w==
-X-Gm-Message-State: ABy/qLbnSHoUNoS2zs1H53rOe8O6EkcO3CiSxKoNMSnJql562S+EbX+8
-        5IUqjZv+BK+eVMuwCsg3bs4xa4Dtf4xDjMkxQPBR2LFHylZYW/BbjV5cy5J27zb+zCYd4Vp40Zj
-        lv9z7Thep7vSo3tJ4Bz7952tDzBAB13i2ol1BDg==
-X-Received: by 2002:adf:ec8e:0:b0:314:1ebc:6e19 with SMTP id z14-20020adfec8e000000b003141ebc6e19mr17387205wrn.64.1689172163289;
-        Wed, 12 Jul 2023 07:29:23 -0700 (PDT)
-X-Google-Smtp-Source: APBJJlGrLy4XTfg4SYrDedL3LjN5ZHr+LA3Ut1XmsVNXLi1zBJheiu9Ajx5OzglpHTo4/1SshVrdO+NlkBUDSAisljg=
-X-Received: by 2002:adf:ec8e:0:b0:314:1ebc:6e19 with SMTP id
- z14-20020adfec8e000000b003141ebc6e19mr17387145wrn.64.1689172162850; Wed, 12
- Jul 2023 07:29:22 -0700 (PDT)
-MIME-Version: 1.0
-From:   Vitaly Grinberg <vgrinber@redhat.com>
-Date:   Wed, 12 Jul 2023 17:29:12 +0300
-Message-ID: <CACLnSDhA1io1tU0rVvuz6KYx3-c_4zEniLEs3KFUqsvLWATYWw@mail.gmail.com>
-Subject: Re: [RFC PATCH v9 08/10] ice: implement dpll interface to control cgu
-To:     "Kubalewski, Arkadiusz" <arkadiusz.kubalewski@intel.com>
-Cc:     David Airlie <airlied@redhat.com>, andy.ren@getcruise.com,
-        anthony.l.nguyen@intel.com, arnd@arndb.de, axboe@kernel.dk,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-        claudiajkang@gmail.com, corbet@lwn.net, davem@davemloft.net,
-        edumazet@google.com, geert+renesas@glider.be,
-        gregkh@linuxfoundation.org, hkallweit1@gmail.com,
-        idosch@nvidia.com, intel-wired-lan@lists.osuosl.org,
-        jacek.lawrynowicz@linux.intel.com,
-        Javier Martinez Canillas <javierm@redhat.com>,
-        jesse.brandeburg@intel.com, Jiri Pirko <jiri@resnulli.us>,
-        jonathan.lemon@gmail.com, kuba@kernel.org, kuniyu@amazon.com,
-        leon@kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-clk@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux@zary.sk, liuhangbin@gmail.com, lucien.xin@gmail.com,
-        masahiroy@kernel.org, michal.michalik@intel.com,
-        milena.olech@intel.com, Michal Schmidt <mschmidt@redhat.com>,
-        Michael Tsirkin <mst@redhat.com>, netdev@vger.kernel.org,
-        nicolas.dichtel@6wind.com, nipun.gupta@amd.com, ogabbay@kernel.org,
-        Paolo Abeni <pabeni@redhat.com>, phil@nwl.cc,
-        Petr Oros <poros@redhat.com>, razor@blackwall.org,
-        ricardo.canuelo@collabora.com, richardcochran@gmail.com,
-        saeedm@nvidia.com, sj@kernel.org, tzimmermann@suse.de,
-        vadfed@fb.com, vadfed@meta.com, vadim.fedorenko@linux.dev
-Content-Type: text/plain; charset="UTF-8"
+        with ESMTP id S231359AbjGLPzM (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Jul 2023 11:55:12 -0400
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9610A2;
+        Wed, 12 Jul 2023 08:55:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1689177311; x=1720713311;
+  h=date:from:to:cc:subject:message-id;
+  bh=aeg5HCRgPYDSE0YNO6fC7Ggphbri8o6L/nfZbG5eYwY=;
+  b=ChlPUDv7rYDu/obaUP2jZIQ7e0hh7pK/Z0wbKIUdzvmdiUT7JP00AQ6C
+   yObecEx41IPmjrx9tOGLAAJPrwAXxRsrauDF/fzd42TxeAy77GuINs2L7
+   D+2RrokF8Clqujep6/dotjSn/qnaGfbJXRATVPwyDYHvPltcyN55lH1R6
+   fjcA6bIntsJB5o04Wi6JCojXz3Gqz7jGsR7Ul9G5Hpd0GWVFD4S6eaUBO
+   TQde/+yCNdfgkoV/1dkB1j5l0AcFF6UPfHvjj35fYRmFP8Ecdb7wMnhdM
+   hcA/ebGYSgCx0v6Uvunr2ux9lFgZ63TqltmbDPdcffLx9AlBtZjtODxo6
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10769"; a="428664142"
+X-IronPort-AV: E=Sophos;i="6.01,200,1684825200"; 
+   d="scan'208";a="428664142"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2023 08:55:03 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10769"; a="698908470"
+X-IronPort-AV: E=Sophos;i="6.01,200,1684825200"; 
+   d="scan'208";a="698908470"
+Received: from lkp-server01.sh.intel.com (HELO c544d7fc5005) ([10.239.97.150])
+  by orsmga006.jf.intel.com with ESMTP; 12 Jul 2023 08:54:58 -0700
+Received: from kbuild by c544d7fc5005 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qJcB7-0005nL-2z;
+        Wed, 12 Jul 2023 15:54:57 +0000
+Date:   Wed, 12 Jul 2023 23:54:38 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linux Memory Management List <linux-mm@kvack.org>,
+        bpf@vger.kernel.org, kunit-dev@googlegroups.com,
+        linux-kselftest@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org
+Subject: [linux-next:master] BUILD REGRESSION
+ 40b055fe7f276cf2c1da47316c52f2ff9255a68a
+Message-ID: <202307122332.FSootrdK-lkp@intel.com>
+User-Agent: s-nail v14.9.24
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
-I'd like to clarify about the DPLL phase offset requirement. We can
-live without it during the initial submission. The addition of phase
-offset can be an increment to patch v10.
-Thanks,
-Vitaly
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
+branch HEAD: 40b055fe7f276cf2c1da47316c52f2ff9255a68a  Add linux-next specific files for 20230712
 
+Error/Warning reports:
+
+https://lore.kernel.org/oe-kbuild-all/202306122223.HHER4zOo-lkp@intel.com
+https://lore.kernel.org/oe-kbuild-all/202306210212.N0BipYQd-lkp@intel.com
+
+Error/Warning: (recently discovered and may have been fixed)
+
+arch/parisc/kernel/pdt.c:67:6: warning: no previous prototype for 'arch_report_meminfo' [-Wmissing-prototypes]
+kernel/bpf/verifier.c:3959:12: warning: stack frame size (2064) exceeds limit (2048) in '__mark_chain_precision' [-Wframe-larger-than]
+lib/kunit/executor_test.c:138:4: warning: cast from 'void (*)(const void *)' to 'kunit_action_t *' (aka 'void (*)(void *)') converts to incompatible function type [-Wcast-function-type-strict]
+lib/kunit/test.c:775:38: warning: cast from 'void (*)(const void *)' to 'kunit_action_t *' (aka 'void (*)(void *)') converts to incompatible function type [-Wcast-function-type-strict]
+
+Unverified Error/Warning (likely false positive, please contact us if interested):
+
+drivers/net/ethernet/mellanox/mlx5/core/lib/devcom.c:98 mlx5_devcom_register_device() error: uninitialized symbol 'tmp_dev'.
+kernel/trace/trace_functions_graph.c:1012 print_graph_return() warn: bitwise AND condition is false here
+kernel/trace/trace_functions_graph.c:726 print_graph_entry_leaf() warn: bitwise AND condition is false here
+net/wireless/scan.c:373 cfg80211_gen_new_ie() warn: potential spectre issue 'sub->data' [r]
+net/wireless/scan.c:397 cfg80211_gen_new_ie() warn: possible spectre second half.  'ext_id'
+{standard input}: Error: local label `"2" (instance number 9 of a fb label)' is not defined
+
+Error/Warning ids grouped by kconfigs:
+
+gcc_recent_errors
+|-- microblaze-randconfig-m041-20230710
+|   |-- drivers-net-ethernet-mellanox-mlx5-core-lib-devcom.c-mlx5_devcom_register_device()-error:uninitialized-symbol-tmp_dev-.
+|   |-- net-wireless-scan.c-cfg80211_gen_new_ie()-warn:possible-spectre-second-half.-ext_id
+|   `-- net-wireless-scan.c-cfg80211_gen_new_ie()-warn:potential-spectre-issue-sub-data-r
+|-- mips-randconfig-m031-20230710
+|   |-- kernel-trace-trace_functions_graph.c-print_graph_entry_leaf()-warn:bitwise-AND-condition-is-false-here
+|   `-- kernel-trace-trace_functions_graph.c-print_graph_return()-warn:bitwise-AND-condition-is-false-here
+|-- parisc-randconfig-r082-20230710
+|   `-- arch-parisc-kernel-pdt.c:warning:no-previous-prototype-for-arch_report_meminfo
+`-- sh-allmodconfig
+    `-- standard-input:Error:local-label-(instance-number-of-a-fb-label)-is-not-defined
+clang_recent_errors
+|-- hexagon-randconfig-r013-20230712
+|   |-- lib-kunit-executor_test.c:warning:cast-from-void-(-)(const-void-)-to-kunit_action_t-(aka-void-(-)(void-)-)-converts-to-incompatible-function-type
+|   `-- lib-kunit-test.c:warning:cast-from-void-(-)(const-void-)-to-kunit_action_t-(aka-void-(-)(void-)-)-converts-to-incompatible-function-type
+|-- riscv-randconfig-r023-20230712
+|   `-- kernel-bpf-verifier.c:warning:stack-frame-size-()-exceeds-limit-()-in-__mark_chain_precision
+`-- s390-randconfig-r044-20230712
+    |-- lib-kunit-executor_test.c:warning:cast-from-void-(-)(const-void-)-to-kunit_action_t-(aka-void-(-)(void-)-)-converts-to-incompatible-function-type
+    `-- lib-kunit-test.c:warning:cast-from-void-(-)(const-void-)-to-kunit_action_t-(aka-void-(-)(void-)-)-converts-to-incompatible-function-type
+
+elapsed time: 798m
+
+configs tested: 123
+configs skipped: 8
+
+tested configs:
+alpha                            allyesconfig   gcc  
+alpha                               defconfig   gcc  
+alpha                randconfig-r003-20230712   gcc  
+alpha                randconfig-r015-20230712   gcc  
+alpha                randconfig-r025-20230712   gcc  
+arc                              allyesconfig   gcc  
+arc                                 defconfig   gcc  
+arc                     haps_hs_smp_defconfig   gcc  
+arc                  randconfig-r043-20230712   gcc  
+arc                    vdk_hs38_smp_defconfig   gcc  
+arm                              allmodconfig   gcc  
+arm                              allyesconfig   gcc  
+arm                     am200epdkit_defconfig   clang
+arm                     davinci_all_defconfig   clang
+arm                                 defconfig   gcc  
+arm                   milbeaut_m10v_defconfig   clang
+arm                        multi_v7_defconfig   gcc  
+arm                  randconfig-r046-20230712   gcc  
+arm                             rpc_defconfig   gcc  
+arm                       spear13xx_defconfig   clang
+arm64                            allyesconfig   gcc  
+arm64                               defconfig   gcc  
+csky                                defconfig   gcc  
+csky                 randconfig-r034-20230712   gcc  
+hexagon              randconfig-r013-20230712   clang
+hexagon              randconfig-r035-20230712   clang
+hexagon              randconfig-r041-20230712   clang
+hexagon              randconfig-r045-20230712   clang
+i386                             allyesconfig   gcc  
+i386         buildonly-randconfig-r004-20230712   gcc  
+i386         buildonly-randconfig-r005-20230712   gcc  
+i386         buildonly-randconfig-r006-20230712   gcc  
+i386                              debian-10.3   gcc  
+i386                                defconfig   gcc  
+i386                 randconfig-i001-20230712   gcc  
+i386                 randconfig-i002-20230712   gcc  
+i386                 randconfig-i003-20230712   gcc  
+i386                 randconfig-i004-20230712   gcc  
+i386                 randconfig-i005-20230712   gcc  
+i386                 randconfig-i006-20230712   gcc  
+i386                 randconfig-i011-20230712   clang
+i386                 randconfig-i012-20230712   clang
+i386                 randconfig-i013-20230712   clang
+i386                 randconfig-i014-20230712   clang
+i386                 randconfig-i015-20230712   clang
+i386                 randconfig-i016-20230712   clang
+loongarch                        allmodconfig   gcc  
+loongarch                         allnoconfig   gcc  
+loongarch                           defconfig   gcc  
+m68k                             allmodconfig   gcc  
+m68k                             allyesconfig   gcc  
+m68k                                defconfig   gcc  
+microblaze           randconfig-r021-20230712   gcc  
+mips                             allmodconfig   gcc  
+mips                             allyesconfig   gcc  
+mips                 randconfig-r031-20230712   clang
+mips                 randconfig-r032-20230712   clang
+nios2                            alldefconfig   gcc  
+nios2                               defconfig   gcc  
+nios2                randconfig-r001-20230712   gcc  
+parisc                           allyesconfig   gcc  
+parisc                              defconfig   gcc  
+parisc               randconfig-r036-20230712   gcc  
+parisc64                            defconfig   gcc  
+powerpc                          allmodconfig   gcc  
+powerpc                           allnoconfig   gcc  
+powerpc                      bamboo_defconfig   gcc  
+powerpc                      cm5200_defconfig   gcc  
+powerpc                     powernv_defconfig   clang
+powerpc                  storcenter_defconfig   gcc  
+riscv                            allmodconfig   gcc  
+riscv                             allnoconfig   gcc  
+riscv                            allyesconfig   gcc  
+riscv                               defconfig   gcc  
+riscv                randconfig-r023-20230712   clang
+riscv                randconfig-r042-20230712   clang
+riscv                          rv32_defconfig   gcc  
+s390                             allmodconfig   gcc  
+s390                             allyesconfig   gcc  
+s390                                defconfig   gcc  
+s390                 randconfig-r044-20230712   clang
+sh                               allmodconfig   gcc  
+sh                ecovec24-romimage_defconfig   gcc  
+sh                          landisk_defconfig   gcc  
+sh                   randconfig-r033-20230712   gcc  
+sh                        sh7757lcr_defconfig   gcc  
+sh                          urquell_defconfig   gcc  
+sparc                            allyesconfig   gcc  
+sparc                               defconfig   gcc  
+sparc64                          alldefconfig   gcc  
+sparc64              randconfig-r011-20230712   gcc  
+sparc64              randconfig-r014-20230712   gcc  
+um                               allmodconfig   clang
+um                                allnoconfig   clang
+um                               allyesconfig   clang
+um                                  defconfig   gcc  
+um                             i386_defconfig   gcc  
+um                   randconfig-r012-20230712   gcc  
+um                           x86_64_defconfig   gcc  
+x86_64                           allyesconfig   gcc  
+x86_64       buildonly-randconfig-r001-20230712   gcc  
+x86_64       buildonly-randconfig-r002-20230712   gcc  
+x86_64       buildonly-randconfig-r003-20230712   gcc  
+x86_64                              defconfig   gcc  
+x86_64                                  kexec   gcc  
+x86_64               randconfig-r026-20230712   clang
+x86_64               randconfig-x001-20230712   clang
+x86_64               randconfig-x002-20230712   clang
+x86_64               randconfig-x003-20230712   clang
+x86_64               randconfig-x004-20230712   clang
+x86_64               randconfig-x005-20230712   clang
+x86_64               randconfig-x006-20230712   clang
+x86_64               randconfig-x011-20230712   gcc  
+x86_64               randconfig-x012-20230712   gcc  
+x86_64               randconfig-x013-20230712   gcc  
+x86_64               randconfig-x014-20230712   gcc  
+x86_64               randconfig-x015-20230712   gcc  
+x86_64               randconfig-x016-20230712   gcc  
+x86_64                          rhel-8.3-rust   clang
+x86_64                               rhel-8.3   gcc  
+xtensa                              defconfig   gcc  
+xtensa               randconfig-r006-20230712   gcc  
+xtensa               randconfig-r016-20230712   gcc  
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
