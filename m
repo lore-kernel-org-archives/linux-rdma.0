@@ -2,221 +2,115 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 744D8EB64D9
-	for <linux-rdma@archiver.kernel.org>; Wed, 12 Jul 2023 03:42:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2706AEB64DD
+	for <linux-rdma@archiver.kernel.org>; Wed, 12 Jul 2023 06:03:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231241AbjGLDmk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 11 Jul 2023 23:42:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41918 "EHLO
+        id S231512AbjGLGDS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 12 Jul 2023 02:03:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229772AbjGLDmi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 11 Jul 2023 23:42:38 -0400
-Received: from mail-qt1-x831.google.com (mail-qt1-x831.google.com [IPv6:2607:f8b0:4864:20::831])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC81710E3
-        for <linux-rdma@vger.kernel.org>; Tue, 11 Jul 2023 20:42:36 -0700 (PDT)
-Received: by mail-qt1-x831.google.com with SMTP id d75a77b69052e-403b3213d8aso19158971cf.0
-        for <linux-rdma@vger.kernel.org>; Tue, 11 Jul 2023 20:42:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1689133356; x=1691725356;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=AGC+6rPypaLJlCQX7D5f9PQLl8/lGoMDODsVm7b1HB0=;
-        b=3GLId8TpPFMbUN9+cqTJNNfvBWQHOwWggxKJsfePx31Keuk7IDA1cPTlVt51od2qSi
-         YDxpkLxjSX5K7RB9R0IMlh54mcS5SYJRZ6P/MzOUrhAILetGevNyuWSehecm0MkkDY4B
-         cGtibi5VjM67BkjWh3puy/uVWENRwqa13UsXS3DU2fV4AZYmAdnfgTUqRuEGYcJEos5i
-         3GK0UELsxf/4Sb87gmmGZVXLaxsYWNHu7nvKWg9GMmPqrKrHBZIuaZzh7JyXtSERo8y4
-         mTUDMdrI4PgfLk7lPMQBVMLpNHTuOXBGIXb1AK9mchDingX0e+fVFsGsAW8sBts2z52d
-         HkIw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689133356; x=1691725356;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=AGC+6rPypaLJlCQX7D5f9PQLl8/lGoMDODsVm7b1HB0=;
-        b=H3uSSu5ONGqRA19NP0YcrOvt9Pz6EXAasgajxZWIj2S/9t/mKMP95+lxqWSpdD8Hpr
-         m4f/s4Ldbi9Zunwp3dFONhDni09BPhfMp7F9nT9b+p+yjjBjv0DUA74qxzQJ3lP1v/OZ
-         L+zP6SOd6mPY+sS+hWi5InQDedH57/UgVOW5KlcevQeU4Jplbmjl8ZNb9k+dwzDSLmab
-         mIexC4PraCJBI+YrpN4Yi3qBnrNrzdqjQ1d0jeoXMheuEZih3vK734YurKeXTEsjOS7L
-         pyyhSmR3RhDC1jvt+m6ApSfI51IGYF9NcrDw49vHAeqXTAndgn+mfQdITlLM9sPLJGhz
-         6GGg==
-X-Gm-Message-State: ABy/qLbcsZCNqqKAuP3xkV5yBB/yfJwbpY0r5Jc+Cv5xDYcySSSiny1a
-        vxbt+6gwQfsMWtMzoENbF7bLGOUmQb1uIIIs5mfM/g==
-X-Google-Smtp-Source: APBJJlGQk5m4ovyiIS1fPut2mEBR26FBNA+DsJcg5Cn6rSJjDN7JUCMrWohf1AoamlB5EuvcTpqlSalrUzemY5XWjM4=
-X-Received: by 2002:ac8:7c50:0:b0:403:c417:ba9d with SMTP id
- o16-20020ac87c50000000b00403c417ba9dmr1033325qtv.16.1689133355634; Tue, 11
- Jul 2023 20:42:35 -0700 (PDT)
+        with ESMTP id S231260AbjGLGDQ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 12 Jul 2023 02:03:16 -0400
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 229A810C4;
+        Tue, 11 Jul 2023 23:03:04 -0700 (PDT)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.54])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4R16Y52ltgzPkG1;
+        Wed, 12 Jul 2023 14:00:41 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.2) by
+ kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Wed, 12 Jul 2023 14:03:00 +0800
+From:   Junxian Huang <huangjunxian6@hisilicon.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 1/3] RDMA/hns: support get xrcd num from firmware
+Date:   Wed, 12 Jul 2023 14:00:31 +0800
+Message-ID: <20230712060033.15961-2-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20230712060033.15961-1-huangjunxian6@hisilicon.com>
+References: <20230712060033.15961-1-huangjunxian6@hisilicon.com>
 MIME-Version: 1.0
-References: <5e0ac5bb-2cfa-3b58-9503-1e161f3c9bd5@kernel.org>
- <CAHS8izP2fPS56uXKMCnbKnPNn=xhTd0SZ1NRUgnAvyuSeSSjGA@mail.gmail.com>
- <ZKNA9Pkg2vMJjHds@ziepe.ca> <CAHS8izNB0qNaU8OTcwDYmeVPtCrEjTTOhwCHtVsLiyhXmPLsXQ@mail.gmail.com>
- <ZKxDZfVAbVHgNgIM@ziepe.ca> <CAHS8izO3h3yh=CLJgzhLwCVM4SLgf64nnmBtGrXs=vxuJQHnMQ@mail.gmail.com>
- <ZKyZBbKEpmkFkpWV@ziepe.ca> <20230711042708.GA18658@lst.de>
- <20230710215906.49514550@kernel.org> <20230711050445.GA19323@lst.de>
- <ZK1FbjG+VP/zxfO1@ziepe.ca> <20230711090047.37d7fe06@kernel.org>
- <04187826-8dad-d17b-2469-2837bafd3cd5@kernel.org> <20230711093224.1bf30ed5@kernel.org>
- <CAHS8izNHkLF0OowU=p=mSNZss700HKAzv1Oxqu2bvvfX_HxttA@mail.gmail.com>
- <20230711133915.03482fdc@kernel.org> <2263ae79-690e-8a4d-fca2-31aacc5c9bc6@kernel.org>
-In-Reply-To: <2263ae79-690e-8a4d-fca2-31aacc5c9bc6@kernel.org>
-From:   Mina Almasry <almasrymina@google.com>
-Date:   Tue, 11 Jul 2023 20:42:24 -0700
-Message-ID: <CAHS8izP=k8CqUZk7bGUx4ctm4m2kRC2MyEJv+N4+b0cHVkTQmA@mail.gmail.com>
-Subject: Re: Memory providers multiplexing (Was: [PATCH net-next v4 4/5]
- page_pool: remove PP_FLAG_PAGE_FRAG flag)
-To:     David Ahern <dsahern@kernel.org>,
-        Samiullah Khawaja <skhawaja@google.com>,
-        Willem de Bruijn <willemb@google.com>
-Cc:     Jakub Kicinski <kuba@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Christoph Hellwig <hch@lst.de>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        brouer@redhat.com, Alexander Duyck <alexander.duyck@gmail.com>,
-        Yunsheng Lin <linyunsheng@huawei.com>, davem@davemloft.net,
-        pabeni@redhat.com, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Lorenzo Bianconi <lorenzo@kernel.org>,
-        Yisen Zhuang <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Sunil Goutham <sgoutham@marvell.com>,
-        Geetha sowjanya <gakula@marvell.com>,
-        Subbaraya Sundeep <sbhatta@marvell.com>,
-        hariprasad <hkelam@marvell.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Felix Fietkau <nbd@nbd.name>,
-        Ryder Lee <ryder.lee@mediatek.com>,
-        Shayne Chen <shayne.chen@mediatek.com>,
-        Sean Wang <sean.wang@mediatek.com>,
-        Kalle Valo <kvalo@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        Jesper Dangaard Brouer <hawk@kernel.org>,
-        Ilias Apalodimas <ilias.apalodimas@linaro.org>,
-        linux-rdma@vger.kernel.org, linux-wireless@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org,
-        Jonathan Lemon <jonathan.lemon@gmail.com>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
-        logang@deltatee.com, Bjorn Helgaas <bhelgaas@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.67.165.2]
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ kwepemi500006.china.huawei.com (7.221.188.68)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Jul 11, 2023 at 2:39=E2=80=AFPM David Ahern <dsahern@kernel.org> wr=
-ote:
->
-> On 7/11/23 2:39 PM, Jakub Kicinski wrote:
-> > On Tue, 11 Jul 2023 10:06:28 -0700 Mina Almasry wrote:
-> >>>> Any reason not to allow an alternative representation for skb frags =
-than
-> >>>> struct page?
-> >>>
-> >>> I don't think there's a hard technical reason. We can make it work.
-> >>
-> >> I also think we can switch the representation for skb frags to
-> >> something else. However - please do correct me if I'm wrong - I don't
-> >> think that is sufficient for device memory TCP. My understanding is
-> >> that we also need to modify any NIC drivers that want to use device
-> >> memory TCP to understand a new memory type, and the page pool as well
-> >> if that's involved. I think in particular modifying the memory type in
-> >> all the NIC drivers that want to do device memory TCP is difficult. Do
-> >> you think this is feasible?
-> >
-> > That's why I was thinking about adding an abstraction between
-> > the page pool and the driver. Instead of feeding driver pages
-> > a new abstraction could feed the driver just an identifier and a PA.
->
-> skb frag is currently a bio_vec. Overloading the 'struct page' address
-> in that struct with another address is easy to do. Requiring a certain
-> alignment on the address gives you a few low bits to use a flags / magic
-> / etc.
->
-> Overloading len and offset is not really possible - way too much code is
-> affected (e.g., iov walking and MSS / TSO segmenting).
->
-> ie., you could overload page address with a pointer to an object in your
-> new abstraction layer and the struct has the other meta data.
->
-> typedef struct skb_frag {
->         union {
->                 struct bio_vec bvec;
->                 struct new_abstraction abs;
->         };
-> } skb_frag_t;
->
-> where
->
-> struct new_abstraction {
->         void *addr,
->         unsigned int len;
->         unsigned int offset;
-> };
->
-> I have been playing with a similar and it co-exists with the existing
-> code quite well with the constraint on location of len and offset.
->
-> >
-> > Whether we want to support fragmentation in that model or not would
-> > have to be decided.
-> >
-> > We can take pages from the page pool and feed them to drivers via
-> > such an API, but drivers need to stop expecting pages.
->
-> yes, drivers would have to be updated to understand the new format. A
-> downside, but again relatively easy to manage.
->
+From: Luoyouming <luoyouming@huawei.com>
 
-I'm glad to see that you're open to this approach. As far as I
-understand, getting device memory in a struct page form would still be
-preferred, no? And the approach you point to would be a backup plan I
-presume?
+Support driver get the num of xrcd from firmware
 
-Since the good folks on this thread have pointed me to p2pdma to
-address my use case, I've been doing some homework to see if it can
-apply. AFACT so far, it applies, and Willem actually had a prototype
-of it working a while back. The rough approach Willem and I are
-thinking of would be something like:
+Signed-off-by: Luoyouming <luoyouming@huawei.com>
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 5 ++---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 3 ++-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-1. The device memory driver would be the p2pdma provider. It would
-expose a user API which allocates a device memory region, calls
-pci_p2pdma_add_resource() and pci_p2pmem_publish() on it, and returns
-a reference to it to the userspace.
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index d4c6b9bc0a4e..fb3ce4af22b5 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2093,9 +2093,6 @@ static void apply_func_caps(struct hns_roce_dev *hr_dev)
+ 	caps->qpc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
+ 	caps->cqc_timer_hop_num = HNS_ROCE_HOP_NUM_0;
+ 
+-	caps->num_xrcds = HNS_ROCE_V2_MAX_XRCD_NUM;
+-	caps->reserved_xrcds = HNS_ROCE_V2_RSV_XRCD_NUM;
+-
+ 	caps->num_srqwqe_segs = HNS_ROCE_V2_MAX_SRQWQE_SEGS;
+ 	caps->num_idx_segs = HNS_ROCE_V2_MAX_IDX_SEGS;
+ 
+@@ -2218,6 +2215,7 @@ static int hns_roce_query_caps(struct hns_roce_dev *hr_dev)
+ 	caps->num_cqs = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_CQS);
+ 	caps->gid_table_len[0] = hr_reg_read(resp_c, PF_CAPS_C_MAX_GID);
+ 	caps->max_cqes = 1 << hr_reg_read(resp_c, PF_CAPS_C_CQ_DEPTH);
++	caps->num_xrcds = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_XRCDS);
+ 	caps->num_mtpts = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_MRWS);
+ 	caps->num_qps = 1 << hr_reg_read(resp_c, PF_CAPS_C_NUM_QPS);
+ 	caps->max_qp_init_rdma = hr_reg_read(resp_c, PF_CAPS_C_MAX_ORD);
+@@ -2238,6 +2236,7 @@ static int hns_roce_query_caps(struct hns_roce_dev *hr_dev)
+ 	caps->reserved_mrws = hr_reg_read(resp_e, PF_CAPS_E_RSV_MRWS);
+ 	caps->chunk_sz = 1 << hr_reg_read(resp_e, PF_CAPS_E_CHUNK_SIZE_SHIFT);
+ 	caps->reserved_cqs = hr_reg_read(resp_e, PF_CAPS_E_RSV_CQS);
++	caps->reserved_xrcds = hr_reg_read(resp_e, PF_CAPS_E_RSV_XRCDS);
+ 	caps->reserved_srqs = hr_reg_read(resp_e, PF_CAPS_E_RSV_SRQS);
+ 	caps->reserved_lkey = hr_reg_read(resp_e, PF_CAPS_E_RSV_LKEYS);
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 7033eae2407c..2b87f0cf06ec 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -42,7 +42,6 @@
+ #define HNS_ROCE_V2_MAX_SRQWQE_SEGS		0x1000000
+ #define HNS_ROCE_V2_MAX_IDX_SEGS		0x1000000
+ #define HNS_ROCE_V2_MAX_XRCD_NUM		0x1000000
+-#define HNS_ROCE_V2_RSV_XRCD_NUM		0
+ 
+ #define HNS_ROCE_V2_QP_ACK_TIMEOUT_OFS_HIP08    10
+ 
+@@ -1202,6 +1201,7 @@ struct hns_roce_query_pf_caps_c {
+ #define PF_CAPS_C_NUM_CQS PF_CAPS_C_FIELD_LOC(51, 32)
+ #define PF_CAPS_C_MAX_GID PF_CAPS_C_FIELD_LOC(60, 52)
+ #define PF_CAPS_C_CQ_DEPTH PF_CAPS_C_FIELD_LOC(86, 64)
++#define PF_CAPS_C_NUM_XRCDS PF_CAPS_C_FIELD_LOC(91, 87)
+ #define PF_CAPS_C_NUM_MRWS PF_CAPS_C_FIELD_LOC(115, 96)
+ #define PF_CAPS_C_NUM_QPS PF_CAPS_C_FIELD_LOC(147, 128)
+ #define PF_CAPS_C_MAX_ORD PF_CAPS_C_FIELD_LOC(155, 148)
+@@ -1260,6 +1260,7 @@ struct hns_roce_query_pf_caps_e {
+ #define PF_CAPS_E_RSV_MRWS PF_CAPS_E_FIELD_LOC(19, 0)
+ #define PF_CAPS_E_CHUNK_SIZE_SHIFT PF_CAPS_E_FIELD_LOC(31, 20)
+ #define PF_CAPS_E_RSV_CQS PF_CAPS_E_FIELD_LOC(51, 32)
++#define PF_CAPS_E_RSV_XRCDS PF_CAPS_E_FIELD_LOC(63, 52)
+ #define PF_CAPS_E_RSV_SRQS PF_CAPS_E_FIELD_LOC(83, 64)
+ #define PF_CAPS_E_RSV_LKEYS PF_CAPS_E_FIELD_LOC(115, 96)
+ 
+-- 
+2.30.0
 
-2. The NIC driver would be the p2pdma client and orchestrator. It
-would expose a user API which binds an rxq to a pci device. Prior to
-the bind the user API would check that the pci device has published
-p2p memory (pci_has_p2pmem()), and check the the p2p mem is accessible
-to the driver (pci_p2pdma_distance() I think), etc.
-
-3. The NIC would allocate pages from the p2pdma provider for incoming
-packets, and create devmem skbs, and deliver the devmem skbs to the
-user using the support in my RFC. AFACT all that code need not be
-changed.
-
-AFAICT, all the concerns brought up in this thread are sidestepped by
-using p2pdma. I need not allocate struct pages in the core dma-buf
-code anymore (or anywhere), and I need not allocate pgmaps. I would
-just re-use the p2pdma support.
-
-Anyone see any glaring issues with this approach? I plan on trying to
-implement a PoC and sending an RFC v2.
-
-The only pending concern is integration with the page pool, but we
-already have some ideas on how to solve that.
-
-> >
-> > That's for data buffers only, obviously. We can keep using pages
-> > and raw page pool for headers.
->
-> yes.
-
-
-
---=20
-Thanks,
-Mina
