@@ -2,252 +2,379 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E6CCEB64DC
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Jul 2023 06:06:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F331EB64DC
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Jul 2023 06:08:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231360AbjGQGGY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Jul 2023 02:06:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48472 "EHLO
+        id S229920AbjGQGIF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Jul 2023 02:08:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48746 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231349AbjGQGGT (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Jul 2023 02:06:19 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 638F9E4B;
-        Sun, 16 Jul 2023 23:06:14 -0700 (PDT)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4R4BMZ4S3BztR7q;
-        Mon, 17 Jul 2023 14:03:06 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.2) by
- kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Mon, 17 Jul 2023 14:06:10 +0800
-From:   Junxian Huang <huangjunxian6@hisilicon.com>
-To:     <jgg@nvidia.com>, <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH v2 for-rc 3/3] RDMA/hns: Add check and adjust for function resource values
-Date:   Mon, 17 Jul 2023 14:03:40 +0800
-Message-ID: <20230717060340.453850-4-huangjunxian6@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20230717060340.453850-1-huangjunxian6@hisilicon.com>
-References: <20230717060340.453850-1-huangjunxian6@hisilicon.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.67.165.2]
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- kwepemi500006.china.huawei.com (7.221.188.68)
-X-CFilter-Loop: Reflected
+        with ESMTP id S231437AbjGQGHx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Jul 2023 02:07:53 -0400
+Received: from mail-pl1-x62e.google.com (mail-pl1-x62e.google.com [IPv6:2607:f8b0:4864:20::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 309D3E67
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:24 -0700 (PDT)
+Received: by mail-pl1-x62e.google.com with SMTP id d9443c01a7336-1bb2468257fso7039785ad.0
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1689574030; x=1692166030;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=2xFVRjzChlfL32XF9Qls5pCyYcC+GZUnsuC7GMpORfU=;
+        b=h6EhnjIH7rsXSP92pzeatEELmHT2GK7GQdv9/gAAAurWbrTjg8xxX1UgSG6FCGKlT3
+         2Y3AjPaHg8w3nVQadTvtKJKBbBZvws1y5inJNddTLoZUee2JPd55SZUDkbgFPZrDQ2Rb
+         AeWIHjEoyoMvAwWbeD5v2wMdz/s9JaDYgLzec=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1689574030; x=1692166030;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=2xFVRjzChlfL32XF9Qls5pCyYcC+GZUnsuC7GMpORfU=;
+        b=XPebeAC/nuJZ0ZJaeL3h8vxCd4v6Gg+rpHnhFveQkiPgKO4w1D8VMvLcJcwWS1pe3F
+         +cUETHyKXtRO3rv+PXIAmXDOro/XQuaZP3KCEQmQ4iaEvr/lqiYLEaVEqryAQSEAWzHy
+         ySC10vSdG+KyFGp8QKZwtZev86LofU3vzvl/PsWHD8Bu7dA5NXRT3OKsqPLkh4m67kEC
+         G2CfTCrktDSr3Fy/00Zghs4tcNrTXzkv7XNR084eDavdfSrcrkNLyTnuEhvJBbi0UZjo
+         tzD/nUJuZWgD0yWkX3AsfvPHTD6kZt77hO1ebh2DFKlC+5k0bm15mjYlcnA224QuG9xt
+         e3LQ==
+X-Gm-Message-State: ABy/qLYecAiak4O+24PwdAXbXYMEZJ8QNnYo5tfyeGn+YTMH7WSLhwHi
+        9rWShlpCnn9/Lxg3p0g6D67n1w==
+X-Google-Smtp-Source: APBJJlGw1hYpDGRAY4eZNiaVgiQlL/w8gAjo0oStA2HThZCJXsvS0aItrplxSNWDzi7/i+ooSfvpPQ==
+X-Received: by 2002:a17:902:e549:b0:1b8:aef2:773e with SMTP id n9-20020a170902e54900b001b8aef2773emr12516062plf.46.1689574030558;
+        Sun, 16 Jul 2023 23:07:10 -0700 (PDT)
+Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id q17-20020a170902789100b001b9da7b6bc3sm11849632pll.184.2023.07.16.23.07.07
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 16 Jul 2023 23:07:09 -0700 (PDT)
+From:   Selvin Xavier <selvin.xavier@broadcom.com>
+To:     jgg@ziepe.ca, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
+        michael.chan@broadcom.com,
+        Chandramohan Akula <chandramohan.akula@broadcom.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: [PATCH for-next v2 3/7] RDMA/bnxt_re: Initialize Doorbell pacing feature
+Date:   Sun, 16 Jul 2023 22:53:10 -0700
+Message-Id: <1689573194-27687-4-git-send-email-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.5.5
+In-Reply-To: <1689573194-27687-1-git-send-email-selvin.xavier@broadcom.com>
+References: <1689573194-27687-1-git-send-email-selvin.xavier@broadcom.com>
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
+        boundary="000000000000effefe0600a89bda"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Currently, RoCE driver gets function resource values from firmware
-without validity check. As these resources are mostly related to memory,
-an invalid value may lead to serious consequence such as kernel panic.
+--000000000000effefe0600a89bda
 
-This patch adds check for these resource values and adjusts the invalid
-ones.
+From: Chandramohan Akula <chandramohan.akula@broadcom.com>
 
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+Checks for pacing feature capability and get the doorbell pacing
+configuration using FW commands. Allocate a page and initialize
+the pacing parameters for the applications. Cleanup the page and
+de-initialize the pacing during device removal.
+
+Signed-off-by: Chandramohan Akula <chandramohan.akula@broadcom.com>
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 115 ++++++++++++++++++++-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  37 +++++++
- 2 files changed, 148 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h   | 22 +++++++
+ drivers/infiniband/hw/bnxt_re/main.c      | 96 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/bnxt_re/qplib_res.h | 19 ++++++
+ 3 files changed, 137 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index c4b92d8bd98a..f5649fd25042 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1650,6 +1650,97 @@ static int hns_roce_config_global_param(struct hns_roce_dev *hr_dev)
- 	return hns_roce_cmq_send(hr_dev, &desc, 1);
- }
+diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+index ea81b24..1543f80 100644
+--- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
++++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+@@ -112,6 +112,27 @@ struct bnxt_re_gsi_context {
+ #define BNXT_RE_NQ_IDX			1
+ #define BNXT_RE_GEN_P5_MAX_VF		64
  
-+static const struct hns_roce_bt_num {
-+	u32 res_offset;
-+	u32 min;
-+	u32 max;
-+	enum hns_roce_res_invalid_flag invalid_flag;
-+	enum hns_roce_res_revision revision;
-+	bool vf_support;
-+} bt_num_table[] = {
-+	{RES_OFFSET_IN_CAPS(qpc_bt_num), 1,
-+	 MAX_QPC_BT_NUM, QPC_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
-+	{RES_OFFSET_IN_CAPS(srqc_bt_num), 1,
-+	 MAX_SRQC_BT_NUM, SRQC_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
-+	{RES_OFFSET_IN_CAPS(cqc_bt_num), 1,
-+	 MAX_CQC_BT_NUM, CQC_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
-+	{RES_OFFSET_IN_CAPS(mpt_bt_num), 1,
-+	 MAX_MPT_BT_NUM, MPT_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
-+	{RES_OFFSET_IN_CAPS(sl_num), 1,
-+	 MAX_SL_NUM, QID_NUM_INVALID_FLAG, RES_FOR_ALL, true},
-+	{RES_OFFSET_IN_CAPS(sccc_bt_num), 1,
-+	 MAX_SCCC_BT_NUM, SCCC_BT_NUM_INVALID_FLAG, RES_FOR_ALL, true},
-+	{RES_OFFSET_IN_CAPS(qpc_timer_bt_num), 1,
-+	 MAX_QPC_TIMER_BT_NUM, QPC_TIMER_BT_NUM_INVALID_FLAG,
-+	 RES_FOR_ALL, false},
-+	{RES_OFFSET_IN_CAPS(cqc_timer_bt_num), 1,
-+	 MAX_CQC_TIMER_BT_NUM, CQC_TIMER_BT_NUM_INVALID_FLAG,
-+	 RES_FOR_ALL, false},
-+	{RES_OFFSET_IN_CAPS(gmv_bt_num), 1,
-+	 MAX_GMV_BT_NUM, GMV_BT_NUM_INVALID_FLAG,
-+	 RES_FOR_HIP09, true},
-+	{RES_OFFSET_IN_CAPS(smac_bt_num), 1,
-+	 MAX_SMAC_BT_NUM, SMAC_BT_NUM_INVALID_FLAG,
-+	 RES_FOR_HIP08, true},
-+	{RES_OFFSET_IN_CAPS(sgid_bt_num), 1,
-+	 MAX_SGID_BT_NUM, SGID_BT_NUM_INVALID_FLAG,
-+	 RES_FOR_HIP08, true},
++struct bnxt_re_pacing {
++	u64 dbr_db_fifo_reg_off;
++	void *dbr_page;
++	u64 dbr_bar_addr;
++	u32 pacing_algo_th;
++	u32 do_pacing_save;
++	u32 dbq_pacing_time; /* ms */
++	u32 dbr_def_do_pacing;
++	bool dbr_pacing;
 +};
 +
-+static bool check_res_is_supported(struct hns_roce_dev *hr_dev,
-+				   struct hns_roce_bt_num *bt_num_entry)
++#define BNXT_RE_DBR_PACING_TIME 5 /* ms */
++#define BNXT_RE_PACING_ALGO_THRESHOLD 250 /* Entries in DB FIFO */
++#define BNXT_RE_PACING_ALARM_TH_MULTIPLE 2 /* Multiple of pacing algo threshold */
++/* Default do_pacing value when there is no congestion */
++#define BNXT_RE_DBR_DO_PACING_NO_CONGESTION 0x7F /* 1 in 512 probability */
++#define BNXT_RE_DB_FIFO_ROOM_MASK 0x1FFF8000
++#define BNXT_RE_MAX_FIFO_DEPTH 0x2c00
++#define BNXT_RE_DB_FIFO_ROOM_SHIFT 15
++#define BNXT_RE_GRC_FIFO_REG_BASE 0x2000
++
+ struct bnxt_re_dev {
+ 	struct ib_device		ibdev;
+ 	struct list_head		list;
+@@ -171,6 +192,7 @@ struct bnxt_re_dev {
+ 	atomic_t nq_alloc_cnt;
+ 	u32 is_virtfn;
+ 	u32 num_vfs;
++	struct bnxt_re_pacing pacing;
+ };
+ 
+ #define to_bnxt_re_dev(ptr, member)	\
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index b42166f..13cd84d 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -432,9 +432,92 @@ int bnxt_re_hwrm_qcaps(struct bnxt_re_dev *rdev)
+ 		return rc;
+ 	cctx->modes.db_push = le32_to_cpu(resp.flags) & FUNC_QCAPS_RESP_FLAGS_WCB_PUSH_MODE;
+ 
++	cctx->modes.dbr_pacing =
++		le32_to_cpu(resp.flags_ext2) & FUNC_QCAPS_RESP_FLAGS_EXT2_DBR_PACING_EXT_SUPPORTED ?
++		true : false;
+ 	return 0;
+ }
+ 
++static int bnxt_re_hwrm_dbr_pacing_qcfg(struct bnxt_re_dev *rdev)
 +{
-+	if (!bt_num_entry->vf_support && hr_dev->is_vf)
-+		return false;
++	struct hwrm_func_dbr_pacing_qcfg_output resp = {};
++	struct hwrm_func_dbr_pacing_qcfg_input req = {};
++	struct bnxt_en_dev *en_dev = rdev->en_dev;
++	struct bnxt_qplib_chip_ctx *cctx;
++	struct bnxt_fw_msg fw_msg = {};
++	int rc;
 +
-+	if (bt_num_entry->revision == RES_FOR_HIP09 &&
-+	    hr_dev->pci_dev->revision <= PCI_REVISION_ID_HIP08)
-+		return false;
++	cctx = rdev->chip_ctx;
++	bnxt_re_init_hwrm_hdr((void *)&req, HWRM_FUNC_DBR_PACING_QCFG);
++	bnxt_re_fill_fw_msg(&fw_msg, (void *)&req, sizeof(req), (void *)&resp,
++			    sizeof(resp), DFLT_HWRM_CMD_TIMEOUT);
++	rc = bnxt_send_msg(en_dev, &fw_msg);
++	if (rc)
++		return rc;
 +
-+	if (bt_num_entry->revision == RES_FOR_HIP08 &&
-+	    hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
-+		return false;
-+
-+	return true;
++	if ((le32_to_cpu(resp.dbr_stat_db_fifo_reg) &
++	    FUNC_DBR_PACING_QCFG_RESP_DBR_STAT_DB_FIFO_REG_ADDR_SPACE_MASK) ==
++		FUNC_DBR_PACING_QCFG_RESP_DBR_STAT_DB_FIFO_REG_ADDR_SPACE_GRC)
++		cctx->dbr_stat_db_fifo =
++			le32_to_cpu(resp.dbr_stat_db_fifo_reg) &
++			~FUNC_DBR_PACING_QCFG_RESP_DBR_STAT_DB_FIFO_REG_ADDR_SPACE_MASK;
++	return 0;
 +}
 +
-+static void adjust_eqc_bt_num(struct hns_roce_caps *caps, u16 *invalid_flag)
++/* Update the pacing tunable parameters to the default values */
++static void bnxt_re_set_default_pacing_data(struct bnxt_re_dev *rdev)
 +{
-+	if (caps->eqc_bt_num < caps->num_comp_vectors + caps->num_aeq_vectors ||
-+	    caps->eqc_bt_num > MAX_EQC_BT_NUM) {
-+		caps->eqc_bt_num = caps->eqc_bt_num > MAX_EQC_BT_NUM ?
-+				   MAX_EQC_BT_NUM : caps->num_comp_vectors +
-+						    caps->num_aeq_vectors;
-+		*invalid_flag |= 1 << EQC_BT_NUM_INVALID_FLAG;
-+	}
++	struct bnxt_qplib_db_pacing_data *pacing_data = rdev->qplib_res.pacing_data;
++
++	pacing_data->do_pacing = rdev->pacing.dbr_def_do_pacing;
++	pacing_data->pacing_th = rdev->pacing.pacing_algo_th;
++	pacing_data->alarm_th =
++		pacing_data->pacing_th * BNXT_RE_PACING_ALARM_TH_MULTIPLE;
 +}
 +
-+static u16 adjust_res_caps(struct hns_roce_dev *hr_dev)
++static int bnxt_re_initialize_dbr_pacing(struct bnxt_re_dev *rdev)
 +{
-+	struct hns_roce_caps *caps = &hr_dev->caps;
-+	u16 invalid_flag = 0;
-+	u32 min, max;
-+	u32 *res;
-+	int i;
++	if (bnxt_re_hwrm_dbr_pacing_qcfg(rdev))
++		return -EIO;
 +
-+	for (i = 0; i < ARRAY_SIZE(bt_num_table); i++) {
-+		if (!check_res_is_supported(hr_dev, &bt_num_table[i]))
-+			continue;
++	/* Allocate a page for app use */
++	rdev->pacing.dbr_page = (void *)__get_free_page(GFP_KERNEL);
++	if (!rdev->pacing.dbr_page)
++		return -ENOMEM;
 +
-+		res = (u32 *)((void *)caps + bt_num_table[i].res_offset);
-+		min = bt_num_table[i].min;
-+		max = bt_num_table[i].max;
-+		if (*res < min || *res > max) {
-+			*res = *res < min ? min : max;
-+			invalid_flag |= 1 << bt_num_table[i].invalid_flag;
-+		}
-+	}
++	memset((u8 *)rdev->pacing.dbr_page, 0, PAGE_SIZE);
++	rdev->qplib_res.pacing_data = (struct bnxt_qplib_db_pacing_data *)rdev->pacing.dbr_page;
 +
-+	adjust_eqc_bt_num(caps, &invalid_flag);
++	/* MAP HW window 2 for reading db fifo depth */
++	writel(rdev->chip_ctx->dbr_stat_db_fifo & BNXT_GRC_BASE_MASK,
++	       rdev->en_dev->bar0 + BNXT_GRCPF_REG_WINDOW_BASE_OUT + 4);
++	rdev->pacing.dbr_db_fifo_reg_off =
++		(rdev->chip_ctx->dbr_stat_db_fifo & BNXT_GRC_OFFSET_MASK) +
++		 BNXT_RE_GRC_FIFO_REG_BASE;
++	rdev->pacing.dbr_bar_addr =
++		pci_resource_start(rdev->qplib_res.pdev, 0) + rdev->pacing.dbr_db_fifo_reg_off;
 +
-+	return invalid_flag;
++	rdev->pacing.pacing_algo_th = BNXT_RE_PACING_ALGO_THRESHOLD;
++	rdev->pacing.dbq_pacing_time = BNXT_RE_DBR_PACING_TIME;
++	rdev->pacing.dbr_def_do_pacing = BNXT_RE_DBR_DO_PACING_NO_CONGESTION;
++	rdev->pacing.do_pacing_save = rdev->pacing.dbr_def_do_pacing;
++	rdev->qplib_res.pacing_data->fifo_max_depth = BNXT_RE_MAX_FIFO_DEPTH;
++	rdev->qplib_res.pacing_data->fifo_room_mask = BNXT_RE_DB_FIFO_ROOM_MASK;
++	rdev->qplib_res.pacing_data->fifo_room_shift = BNXT_RE_DB_FIFO_ROOM_SHIFT;
++	rdev->qplib_res.pacing_data->grc_reg_offset = rdev->pacing.dbr_db_fifo_reg_off;
++	bnxt_re_set_default_pacing_data(rdev);
++	return 0;
 +}
 +
- static int load_func_res_caps(struct hns_roce_dev *hr_dev, bool is_vf)
++static void bnxt_re_deinitialize_dbr_pacing(struct bnxt_re_dev *rdev)
++{
++	if (rdev->pacing.dbr_page)
++		free_page((u64)rdev->pacing.dbr_page);
++
++	rdev->pacing.dbr_page = NULL;
++	rdev->pacing.dbr_pacing = false;
++}
++
+ static int bnxt_re_net_ring_free(struct bnxt_re_dev *rdev,
+ 				 u16 fw_ring_id, int type)
  {
- 	struct hns_roce_cmq_desc desc[2];
-@@ -1730,11 +1821,19 @@ static int hns_roce_query_pf_resource(struct hns_roce_dev *hr_dev)
+@@ -1217,6 +1300,9 @@ static void bnxt_re_dev_uninit(struct bnxt_re_dev *rdev)
+ 	if (test_and_clear_bit(BNXT_RE_FLAG_GOT_MSIX, &rdev->flags))
+ 		rdev->num_msix = 0;
+ 
++	if (rdev->pacing.dbr_pacing)
++		bnxt_re_deinitialize_dbr_pacing(rdev);
++
+ 	bnxt_re_destroy_chip_ctx(rdev);
+ 	if (test_and_clear_bit(BNXT_RE_FLAG_NETDEV_REGISTERED, &rdev->flags))
+ 		bnxt_unregister_dev(rdev->en_dev);
+@@ -1309,6 +1395,16 @@ static int bnxt_re_dev_init(struct bnxt_re_dev *rdev, u8 wqe_mode)
+ 		goto free_ring;
  	}
  
- 	ret = load_pf_timer_res_caps(hr_dev);
--	if (ret)
-+	if (ret) {
- 		dev_err(dev, "failed to load pf timer resource, ret = %d.\n",
- 			ret);
-+		return ret;
++	if (bnxt_qplib_dbr_pacing_en(rdev->chip_ctx)) {
++		rc = bnxt_re_initialize_dbr_pacing(rdev);
++		if (!rc) {
++			rdev->pacing.dbr_pacing = true;
++		} else {
++			ibdev_err(&rdev->ibdev,
++				  "DBR pacing disabled with error : %d\n", rc);
++			rdev->pacing.dbr_pacing = false;
++		}
 +	}
+ 	rc = bnxt_qplib_get_dev_attr(&rdev->rcfw, &rdev->dev_attr,
+ 				     rdev->is_virtfn);
+ 	if (rc)
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+index d850a55..57161d3 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+@@ -48,6 +48,7 @@ extern const struct bnxt_qplib_gid bnxt_qplib_gid_zero;
+ struct bnxt_qplib_drv_modes {
+ 	u8	wqe_mode;
+ 	bool db_push;
++	bool dbr_pacing;
+ };
  
--	return ret;
-+	ret = adjust_res_caps(hr_dev);
-+	if (ret)
-+		dev_warn(dev,
-+			 "invalid resource values have been adjusted, invalid_flag = 0x%x.\n",
-+			 ret);
-+
-+	return 0;
- }
- 
- static int hns_roce_query_vf_resource(struct hns_roce_dev *hr_dev)
-@@ -1743,10 +1842,18 @@ static int hns_roce_query_vf_resource(struct hns_roce_dev *hr_dev)
- 	int ret;
- 
- 	ret = load_func_res_caps(hr_dev, true);
--	if (ret)
-+	if (ret) {
- 		dev_err(dev, "failed to load vf res caps, ret = %d.\n", ret);
-+		return ret;
-+	}
- 
--	return ret;
-+	ret = adjust_res_caps(hr_dev);
-+	if (ret)
-+		dev_warn(dev,
-+			 "invalid resource values have been adjusted, invalid_flag = 0x%x.\n",
-+			 ret);
-+
-+	return 0;
- }
- 
- static int __hns_roce_set_vf_switch_param(struct hns_roce_dev *hr_dev,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index d9693f6cc802..c2d46383c88c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -972,6 +972,43 @@ struct hns_roce_func_clear {
- #define CFG_GLOBAL_PARAM_1US_CYCLES CMQ_REQ_FIELD_LOC(9, 0)
- #define CFG_GLOBAL_PARAM_UDP_PORT CMQ_REQ_FIELD_LOC(31, 16)
- 
-+enum hns_roce_res_invalid_flag {
-+	QPC_BT_NUM_INVALID_FLAG,
-+	SRQC_BT_NUM_INVALID_FLAG,
-+	CQC_BT_NUM_INVALID_FLAG,
-+	MPT_BT_NUM_INVALID_FLAG,
-+	EQC_BT_NUM_INVALID_FLAG,
-+	SMAC_BT_NUM_INVALID_FLAG,
-+	SGID_BT_NUM_INVALID_FLAG,
-+	QID_NUM_INVALID_FLAG,
-+	SCCC_BT_NUM_INVALID_FLAG,
-+	GMV_BT_NUM_INVALID_FLAG,
-+	QPC_TIMER_BT_NUM_INVALID_FLAG,
-+	CQC_TIMER_BT_NUM_INVALID_FLAG,
+ struct bnxt_qplib_chip_ctx {
+@@ -58,6 +59,17 @@ struct bnxt_qplib_chip_ctx {
+ 	u16	hwrm_cmd_max_timeout;
+ 	struct bnxt_qplib_drv_modes modes;
+ 	u64	hwrm_intf_ver;
++	u32     dbr_stat_db_fifo;
 +};
 +
-+enum hns_roce_res_revision {
-+	RES_FOR_HIP08,
-+	RES_FOR_HIP09,
-+	RES_FOR_ALL,
-+};
++struct bnxt_qplib_db_pacing_data {
++	u32 do_pacing;
++	u32 pacing_th;
++	u32 alarm_th;
++	u32 fifo_max_depth;
++	u32 fifo_room_mask;
++	u32 fifo_room_shift;
++	u32 grc_reg_offset;
+ };
+ 
+ #define BNXT_QPLIB_DBR_PF_DB_OFFSET     0x10000
+@@ -271,6 +283,7 @@ struct bnxt_qplib_res {
+ 	struct mutex                    dpi_tbl_lock;
+ 	bool				prio;
+ 	bool                            is_vf;
++	struct bnxt_qplib_db_pacing_data *pacing_data;
+ };
+ 
+ static inline bool bnxt_qplib_is_chip_gen_p5(struct bnxt_qplib_chip_ctx *cctx)
+@@ -467,4 +480,10 @@ static inline bool _is_ext_stats_supported(u16 dev_cap_flags)
+ 	return dev_cap_flags &
+ 		CREQ_QUERY_FUNC_RESP_SB_EXT_STATS;
+ }
 +
-+#define RES_OFFSET_IN_CAPS(res) \
-+	(offsetof(struct hns_roce_caps, res))
++static inline u8 bnxt_qplib_dbr_pacing_en(struct bnxt_qplib_chip_ctx *cctx)
++{
++	return cctx->modes.dbr_pacing;
++}
 +
-+#define MAX_QPC_BT_NUM 2048
-+#define MAX_SRQC_BT_NUM 512
-+#define MAX_CQC_BT_NUM 512
-+#define MAX_MPT_BT_NUM 512
-+#define MAX_EQC_BT_NUM 512
-+#define MAX_SMAC_BT_NUM 256
-+#define MAX_SGID_BT_NUM 256
-+#define MAX_SL_NUM 8
-+#define MAX_SCCC_BT_NUM 512
-+#define MAX_GMV_BT_NUM 256
-+#define MAX_QPC_TIMER_BT_NUM 1728
-+#define MAX_CQC_TIMER_BT_NUM 1600
-+
- /*
-  * Fields of HNS_ROCE_OPC_QUERY_PF_RES, HNS_ROCE_OPC_QUERY_VF_RES
-  * and HNS_ROCE_OPC_ALLOC_VF_RES
+ #endif /* __BNXT_QPLIB_RES_H__ */
 -- 
-2.30.0
+2.5.5
 
+
+--000000000000effefe0600a89bda
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+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
+FYMZp2DojLAq9f4Oi2OBetbnWxo0WGycXpmq/jC4PUx2u9mazQ79i80VLagGRshWniESXuf+SYG8
++zBimjld9ZZnwm7itHAZdtme4YYFxx+EHa4PUxPV8t+hPHhsiIjirPa1pVXPbQIDAQABo4IB2zCC
+AdcwDgYDVR0PAQH/BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZCaHR0cDov
+L3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJjYTIwMjAu
+Y3J0MEEGCCsGAQUFBzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3IzcGVyc29u
+YWxzaWduMmNhMjAyMDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcCARYmaHR0
+cHM6Ly93d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNVHR8EQjBA
+MD6gPKA6hjhodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNpZ24yY2Ey
+MDIwLmNybDAlBgNVHREEHjAcgRpzZWx2aW4ueGF2aWVyQGJyb2FkY29tLmNvbTATBgNVHSUEDDAK
+BggrBgEFBQcDBDAfBgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGPzzAdBgNVHQ4EFgQU3TaH
+dsgUhTW3LwObmZ20fj+8Xj8wDQYJKoZIhvcNAQELBQADggEBAAbt6Sptp6ZlTnhM2FDhkVXks68/
+iqvfL/e8wSPVdBxOuiP+8EXGLV3E72KfTTJXMbkcmFpK2K11poBDQJhz0xyOGTESjXNnN6Eqq+iX
+hQtF8xG2lzPq8MijKI4qXk5Vy5DYfwsVfcF0qJw5AhC32nU9uuIPJq8/mQbZfqmoanV/yadootGr
+j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
+9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
+hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
+IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEILDJMrLtkaq0
+3FWpMgm/KUW9UXn4IvWy2O7Q+vn+2/EVMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDcxNzA2MDcxMFowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQCb/XeOZGQrThhSswCAHaGK6FNIwv3O
+tqjtyaxLT5SX9dG7HLVaODtITPvntugywPRW1A5lEa31F/gXBsLXPSscRJF5XW9oU6jZ+ykB0MEL
+f9mINO+m+dujSPQI3XTm6SpcdXJE6ipY8K37r7akb6A876cU4LZCpo984qltrHINK3T3o67VCQlw
+u10gASvuZiS1Ggejc8oF5ydtnhwqhc7JK+Dbl3+sFHfxgmVYFdLQ0wfaUwRa1I/XAwP+ithvuM83
+kRvFjCYK1yE34akNQke6vSwUzfvWR1S3pj+GHbchmmvYpkqonq+p+aaZYksP6HJVN5+WrsbtoRUt
+4Ji/dV7x
+--000000000000effefe0600a89bda--
