@@ -2,111 +2,109 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B4F2EB64DC
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Jul 2023 06:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71DB6C0015E
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Jul 2023 06:08:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231297AbjGQGII (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Jul 2023 02:08:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49198 "EHLO
+        id S231343AbjGQGIJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Jul 2023 02:08:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231362AbjGQGHv (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Jul 2023 02:07:51 -0400
-Received: from mail-pl1-x62a.google.com (mail-pl1-x62a.google.com [IPv6:2607:f8b0:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4457E1BDA
-        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:22 -0700 (PDT)
-Received: by mail-pl1-x62a.google.com with SMTP id d9443c01a7336-1b8c81e36c0so24269505ad.0
-        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:22 -0700 (PDT)
+        with ESMTP id S231450AbjGQGHx (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Jul 2023 02:07:53 -0400
+Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 910B01BEB
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:25 -0700 (PDT)
+Received: by mail-pf1-x42b.google.com with SMTP id d2e1a72fcca58-6689430d803so2685276b3a.0
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1689574027; x=1692166027;
+        d=broadcom.com; s=google; t=1689574033; x=1692166033;
         h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=yEwZ/ooqaoePfi3x7c5ER5AbOsIbQBRRB8vCKUyLunE=;
-        b=gBlYeC3cVlIyy5egmMa3DZxml9qMPvddzeT8s9ZGTbUwyiu8hFrUqzGjXwtbdsjJkf
-         0wDTqSGaVB7bj/nyzv3fSfAea3ej21pQqRqkrskiavCbhnL0n3jVsK6Xb9UhA2WyXSCz
-         67MqEpqcRMh/z6gnH35g0wWonL+HKCicx8QDQ=
+        bh=eDa37wfx8pdpmEmn20lXlQWix8R9XQ+Kj8G/KckXPQQ=;
+        b=VBIGWyeltdJnEYN5NcAvL5FrqZ+piR4RSvD9YM29DUZZYM3xlXc3rp6uhJXE+FHqhj
+         xGiY3EGBQm4qSMW+bFdc2xcV5QFUhKgDI2iZJKgnlQ0JPs3FVFMv4F30nJBmN/W//Cp9
+         84H2r/LWJ/PqKu9gRHdPGzUFovs3PO+JbFF6c=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689574027; x=1692166027;
+        d=1e100.net; s=20221208; t=1689574033; x=1692166033;
         h=references:in-reply-to:message-id:date:subject:cc:to:from
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=yEwZ/ooqaoePfi3x7c5ER5AbOsIbQBRRB8vCKUyLunE=;
-        b=Xaxdl7+P0QHm9/PlcVcYwoOpge7KkNLWJ8vEUSxmtGuWPN7zhdDX96LfAK2QKReEyK
-         2SZZ7Uo8L8ltW0ofos//RIpTH7/PAZcnAS0Vdbwts60cAXaH4umiMURfRsZ0RBPXIL1G
-         jf02mG1zXJDeDoZ9ij3ldT90FfaG0/rDm7jCKISKnX631IOxZmFbRPEJzxPF7t6HYuNU
-         VevcFtXPwltZwqTY+eX4oLh5fkeHmiuxeP0b9fp0V/D9EH6r1zdvnNAaM9fOoeYqRqvv
-         GZ6bRmLxkdBA2fgzBYJAw5ZLvANpJiF7EWfJ/PouzwmWhZokwm4eSF9w9G6QaERQDtEU
-         spvA==
-X-Gm-Message-State: ABy/qLYTkfYUbYu5QOW91Gu6Di547dMowonn7KKQejJd1rFbxa/jvHu4
-        TwxCZ+KXzlRxaGlzp04gC/RmXf6aPyT5XhPguu8=
-X-Google-Smtp-Source: APBJJlFtUDzGto6rJ50tBvaZ246HTqjtoYdff/1sC/3bhZRoMvCeGl2bDCecFqLw9M3PPY1TWH2ZrA==
-X-Received: by 2002:a17:902:aa05:b0:1b6:93e8:3ddb with SMTP id be5-20020a170902aa0500b001b693e83ddbmr9567648plb.6.1689574027572;
-        Sun, 16 Jul 2023 23:07:07 -0700 (PDT)
+        bh=eDa37wfx8pdpmEmn20lXlQWix8R9XQ+Kj8G/KckXPQQ=;
+        b=UKJOFOqzZi7AzX2mzKEbeN9cypgpQloR2+w879PdCQm8nMxgRQFu2tiHjXsvfDA5ap
+         zHPUoAstVuP+GcpnhdaTsO1xdGNvg/AxtE7W4JdFdx2l7V4e/hEaAV87n9rS+B6GzVO9
+         toW93HZjiPUDRxj7Y3TcNOnK9zFEhcbbsqT5CSTtGLUb5xgxv3IgVVIgKX659bGndiBV
+         43uoVg64jIYgOIAhrSQFRFPyaavlcLJDa1nzMs9pqc7eJR4Puoq9yA1YJ8j6pGOhpYYY
+         Wg5DYXYOfswkMrkBoU212A3maSkO+3n3UtjG0MftnQpGuQ0JAbkzW/IUVg/9LRg5LdZ8
+         Qekw==
+X-Gm-Message-State: ABy/qLZszjeipBoZQ48h5t1xOwNuA1sHMlir45hZkwP7RU14tCgLQV9o
+        y08i3QEI6v0XYxzxYj/WySwtJCyh+DtNeqfUSIc=
+X-Google-Smtp-Source: APBJJlGf7JS19NdQRLd5InFj//gI4+GdCDZ2KG6k2yb6lPK3ezkFDvqJVMGx4W0zgPT00Be1wAVk4Q==
+X-Received: by 2002:a05:6a20:12c8:b0:135:2b01:3737 with SMTP id v8-20020a056a2012c800b001352b013737mr42408pzg.38.1689574033600;
+        Sun, 16 Jul 2023 23:07:13 -0700 (PDT)
 Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id q17-20020a170902789100b001b9da7b6bc3sm11849632pll.184.2023.07.16.23.07.05
+        by smtp.gmail.com with ESMTPSA id q17-20020a170902789100b001b9da7b6bc3sm11849632pll.184.2023.07.16.23.07.10
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 16 Jul 2023 23:07:06 -0700 (PDT)
+        Sun, 16 Jul 2023 23:07:12 -0700 (PDT)
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
         michael.chan@broadcom.com,
         Chandramohan Akula <chandramohan.akula@broadcom.com>,
         Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-next v2 2/7] bnxt_en: Share the bar0 address with the RoCE driver
-Date:   Sun, 16 Jul 2023 22:53:09 -0700
-Message-Id: <1689573194-27687-3-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH for-next v2 4/7] RDMA/bnxt_re: Enable pacing support for the user apps
+Date:   Sun, 16 Jul 2023 22:53:11 -0700
+Message-Id: <1689573194-27687-5-git-send-email-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.5.5
 In-Reply-To: <1689573194-27687-1-git-send-email-selvin.xavier@broadcom.com>
 References: <1689573194-27687-1-git-send-email-selvin.xavier@broadcom.com>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="000000000000c10d450600a89bc0"
+        boundary="0000000000001d5c0e0600a89c3e"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---000000000000c10d450600a89bc0
+--0000000000001d5c0e0600a89c3e
 
 From: Chandramohan Akula <chandramohan.akula@broadcom.com>
 
-Add a parameter in the bnxt_en_dev structure to share the bar0 address
-with RoCE driver.
+Report the pacing capability to the user applications.
 
-CC: Michael Chan <michael.chan@broadcom.com>
 Signed-off-by: Chandramohan Akula <chandramohan.akula@broadcom.com>
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c | 2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 2 ++
+ include/uapi/rdma/bnxt_re-abi.h          | 1 +
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-index 852eb44..6ba2b93 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c
-@@ -345,7 +345,7 @@ static void bnxt_set_edev_info(struct bnxt_en_dev *edev, struct bnxt *bp)
- 	edev->hw_ring_stats_size = bp->hw_ring_stats_size;
- 	edev->pf_port_id = bp->pf.port_id;
- 	edev->en_state = bp->state;
--
-+	edev->bar0 = bp->bar0;
- 	edev->ulp_tbl->msix_requested = bnxt_get_ulp_msix_num(bp);
- }
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index abef0b8..86b71c7 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -4075,6 +4075,8 @@ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata)
+ 		goto cfail;
+ 	}
+ 	uctx->shpage_mmap = &entry->rdma_entry;
++	if (rdev->pacing.dbr_pacing)
++		resp.comp_mask |= BNXT_RE_UCNTX_CMASK_DBR_PACING_ENABLED;
  
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
-index 80cbc4b..6ff77f0 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h
-@@ -81,6 +81,7 @@ struct bnxt_en_dev {
- 							 * mode only. Will be
- 							 * updated in resume.
- 							 */
-+	void __iomem                    *bar0;
+ 	rc = ib_copy_to_udata(udata, &resp, min(udata->outlen, sizeof(resp)));
+ 	if (rc) {
+diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
+index 8a2a1d4..060bf1d 100644
+--- a/include/uapi/rdma/bnxt_re-abi.h
++++ b/include/uapi/rdma/bnxt_re-abi.h
+@@ -53,6 +53,7 @@ enum {
+ 	BNXT_RE_UCNTX_CMASK_HAVE_CCTX = 0x1ULL,
+ 	BNXT_RE_UCNTX_CMASK_HAVE_MODE = 0x02ULL,
+ 	BNXT_RE_UCNTX_CMASK_WC_DPI_ENABLED = 0x04ULL,
++	BNXT_RE_UCNTX_CMASK_DBR_PACING_ENABLED = 0x08ULL,
  };
  
- static inline bool bnxt_ulp_registered(struct bnxt_en_dev *edev)
+ enum bnxt_re_wqe_mode {
 -- 
 2.5.5
 
 
---000000000000c10d450600a89bc0
+--0000000000001d5c0e0600a89c3e
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -177,14 +175,14 @@ j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
 9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
 hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
 IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIC9SDkLfAvb6
-oiRzDXGF/kU8DG+gGYPNmh5LbO3g0OsHMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDcxNzA2MDcwN1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIJrTbuh0+fcM
+RTRPl2dqqHs2bet+/YYtwgy+sapQP3f1MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDcxNzA2MDcxM1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
 YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAJ25Kc4NlECgCgodgNulsi+XW++TC4
-pnemH3VtmppBnMOlUJlGaTGsAzN4D94ieyUugSh72SRbuc/GUKSi2igPv1hrsnM9D2fJft0YnJmY
-3CGMykWP3hz4waGxelWZlG6I0EP0T5WZ85GklQ9JtsRZLRd9wf8I3hjM32h8mJnrFIAWQ1qjIUDY
-w4/yEWivpxMNjJ02ALjDydb2O+dO26zkMeIY080WZqtj11ujJh5bo0Fh6aQXHAyIrunEXEuIU2zG
-o4Or+/k0Zr1m/aLJt3/DmJ67SbK4+Z7+DJ/TXiADuyoMp7OBvnVaIJcaIs+COrx5CiZ8STnZTwxR
-tgg+LJIT
---000000000000c10d450600a89bc0--
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAoYOMRo0gGorWTmO+gI4Ea31a+aD1h
+kCfdsw+cpK2Gbjqi0q0EBf3YXZT3hAh3bjySPY9wJdevUDDsQKz/AjRRKysiwHXEPnKZ7SV0hz2K
+B97iUoly/7q/GmPy62mkQ56Yx/JFNNRS6w0Nc8ZFac+Su701MBt7NUm7AjmsbJr3nGRfg3Akv0BO
+QAJjqwuPqmCfRpIh/n084bmqqpmlfzLvLLzETH9KV8LmJsnJBLujW5aWpZsGgJyNj+5A2UEarlyp
+hOIG6eEsuz5JfjVUfsXNfr8jY2ss0liJbaneNS2KMp+S7TnV05TTyLbQdVPJ+2J09c0cJos17bOE
+SazAWJZK
+--0000000000001d5c0e0600a89c3e--
