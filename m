@@ -2,196 +2,139 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4189EB64DC
-	for <linux-rdma@archiver.kernel.org>; Mon, 17 Jul 2023 06:08:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EADCC001E0
+	for <linux-rdma@archiver.kernel.org>; Mon, 17 Jul 2023 06:08:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231404AbjGQGIL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 17 Jul 2023 02:08:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49994 "EHLO
+        id S231440AbjGQGIM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 17 Jul 2023 02:08:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231451AbjGQGHx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Jul 2023 02:07:53 -0400
-Received: from mail-pl1-x62a.google.com (mail-pl1-x62a.google.com [IPv6:2607:f8b0:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3B2C1BEE
-        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:25 -0700 (PDT)
-Received: by mail-pl1-x62a.google.com with SMTP id d9443c01a7336-1b9cd6a0051so24970045ad.1
-        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:25 -0700 (PDT)
+        with ESMTP id S231453AbjGQGHy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 17 Jul 2023 02:07:54 -0400
+Received: from mail-pl1-x634.google.com (mail-pl1-x634.google.com [IPv6:2607:f8b0:4864:20::634])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51ADFE73
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:27 -0700 (PDT)
+Received: by mail-pl1-x634.google.com with SMTP id d9443c01a7336-1b8ad907ba4so21991845ad.0
+        for <linux-rdma@vger.kernel.org>; Sun, 16 Jul 2023 23:07:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1689574036; x=1692166036;
+        d=broadcom.com; s=google; t=1689574043; x=1692166043;
         h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
          :cc:subject:date:message-id:reply-to;
-        bh=Q5BvM0TjlfnlDcKjzQaEtFRE4dzBWCgoPSnoidbz/UY=;
-        b=ZQvM81wC8No6udwpjOtBxDoHXs77RjLWhhKrqKMcDTs51O8iy5SVPXAwDZuRFa87so
-         DcEudIMw0AyEbezdDkdpI7IadZXnnZFoejaAuXkLu0mL+xYpllc/bHk2QMgs9oUeDhlP
-         dZNMm5FFASfisGlSHZXkQg6NdVQghBoQSl/7c=
+        bh=4Ag63ZTQxbe1tnXdBJBjms7Oz0xKyZHiZq/crAkHbrs=;
+        b=N+5FaJ3RzBw9nsyTBKYfn+mTf/ly7MHbCrHXNwY5P4A72aBfirdVSz9mP78qviPDh/
+         Ui71mLl/wyKrvFF+qHinLzY5OkCPWVUKoFIhCLEYBooHejSjoVsiGwKb1/t1nDtBnkZk
+         lM7f7fg0r6+dQaqIV0cCzhy7JxKLFuGKdFlHw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689574036; x=1692166036;
+        d=1e100.net; s=20221208; t=1689574043; x=1692166043;
         h=references:in-reply-to:message-id:date:subject:cc:to:from
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Q5BvM0TjlfnlDcKjzQaEtFRE4dzBWCgoPSnoidbz/UY=;
-        b=Beoffs9kKyfkjCnkkJVb2pMF/gzsoipVxyCYT/SjEgDD8RmyCZ2Ym1/6WCUGRctxBP
-         7y8kBcqD5x/Osug3FmGm4PPC6MNjMJ3lp61r0hoeyuup5x+lj45bDK9CnR9Xb4YlYBUq
-         4uLwmSRhwVzbLnA9VLs7Kl7tFGTTAF55uBgNpUX7818Xr7txWvHBgVFLiFxsV9ITnbe4
-         B7Qw/T0HYOfzIhPFmKkGRAIJ3IVfbUqwVqQyZAAx7xmpl2SiweJmVgPeLwHKjr4/DBqV
-         alR6rJSKznGTChAq66lKFJdaxavJJs4uXIZEM655Jj9BuRaNbdwDHNOParlxTe2YLpFb
-         xSjw==
-X-Gm-Message-State: ABy/qLY6KQsAo81b5LjDJuF+v/Lbj0dFWgCUUObTYWZjkuqSUwKkdoNh
-        740tmtgSXzODGzCOpAtoB8P1Qg==
-X-Google-Smtp-Source: APBJJlEfF/fidW1qlURVcX4Srhyc8UO5iTNYUWhXSgHKTfA3CavE4BAp2e5zMTbZX8X0vAcylQLc9A==
-X-Received: by 2002:a17:903:2343:b0:1b8:77b3:6bed with SMTP id c3-20020a170903234300b001b877b36bedmr11889870plh.64.1689574036682;
-        Sun, 16 Jul 2023 23:07:16 -0700 (PDT)
+        bh=4Ag63ZTQxbe1tnXdBJBjms7Oz0xKyZHiZq/crAkHbrs=;
+        b=g9Z3Ts436+YCS+48Pu+KpFMLWQfJwqgUCjgNu1zOszhwHoNUSFxJNiauBiJEmoqu0B
+         gviyRuzuPJ7wqbCcljU4FbkylVlkkrYxNXBMKhA7dKNfYD/3baKiYIlePTQt4VP8YZ09
+         0MJdK0VkkrPVxU9k/272TJm+wy5/VsZ5ojN+13OQ27a8TKWkr+LznSQGPsgp0l+Zp7ma
+         gdquSuPtBkt99J/qVZWHg/NY/raJ++WazipT3mVK3Gx/XfDzLRd6kEUV+EtNn41nQYvS
+         SVluPXXWtsafcIdM4oBqjBIKgFPX76lYqERzaI5a9hxAg7Mg21QXsZWKSTwDegyr+FBq
+         7fSQ==
+X-Gm-Message-State: ABy/qLZUEPfgl+76/tLN3g0LQH+/rjVDHw3AJAgRc3rLySJoDJpKftCw
+        8t+kAKJbdsQyw1R+bwx77UjcFg==
+X-Google-Smtp-Source: APBJJlG5NQtsLFg3xllqKsS7DJ9zXX+usrS4d4ZyKq9DqVwzFOw0cNHkoQZuFXWrAgthJkwHEfnNMg==
+X-Received: by 2002:a17:902:c945:b0:1b2:5689:8686 with SMTP id i5-20020a170902c94500b001b256898686mr10198458pla.63.1689574042990;
+        Sun, 16 Jul 2023 23:07:22 -0700 (PDT)
 Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id q17-20020a170902789100b001b9da7b6bc3sm11849632pll.184.2023.07.16.23.07.13
+        by smtp.gmail.com with ESMTPSA id q17-20020a170902789100b001b9da7b6bc3sm11849632pll.184.2023.07.16.23.07.20
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 16 Jul 2023 23:07:15 -0700 (PDT)
+        Sun, 16 Jul 2023 23:07:21 -0700 (PDT)
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
 To:     jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
         michael.chan@broadcom.com,
         Chandramohan Akula <chandramohan.akula@broadcom.com>,
         Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH for-next v2 5/7] RDMA/bnxt_re: Update alloc_page uapi for pacing
-Date:   Sun, 16 Jul 2023 22:53:12 -0700
-Message-Id: <1689573194-27687-6-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH for-next v2 7/7] RDMA/bnxt_re: Add a new uapi for driver notification
+Date:   Sun, 16 Jul 2023 22:53:14 -0700
+Message-Id: <1689573194-27687-8-git-send-email-selvin.xavier@broadcom.com>
 X-Mailer: git-send-email 2.5.5
 In-Reply-To: <1689573194-27687-1-git-send-email-selvin.xavier@broadcom.com>
 References: <1689573194-27687-1-git-send-email-selvin.xavier@broadcom.com>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="0000000000004b375f0600a89c6d"
+        boundary="000000000000acb1890600a89cdc"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---0000000000004b375f0600a89c6d
+--000000000000acb1890600a89cdc
 
 From: Chandramohan Akula <chandramohan.akula@broadcom.com>
 
-Update the alloc_page uapi functionality for handling the
-mapping of doorbell pacing shared page and bar address.
+Add driver notify uapi for application notifying
+the driver about the doorbell FIFO congestion.
 
 Signed-off-by: Chandramohan Akula <chandramohan.akula@broadcom.com>
 Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 34 +++++++++++++++++++++++++++++---
- drivers/infiniband/hw/bnxt_re/ib_verbs.h |  2 ++
- include/uapi/rdma/bnxt_re-abi.h          |  2 ++
- 3 files changed, 35 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 15 +++++++++++++++
+ include/uapi/rdma/bnxt_re-abi.h          |  4 ++++
+ 2 files changed, 19 insertions(+)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 86b71c7..8238c4b 100644
+index 8238c4b..452fbbc 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -565,6 +565,8 @@ bnxt_re_mmap_entry_insert(struct bnxt_re_ucontext *uctx, u64 mem_offset,
- 		break;
- 	case BNXT_RE_MMAP_UC_DB:
- 	case BNXT_RE_MMAP_WC_DB:
-+	case BNXT_RE_MMAP_DBR_BAR:
-+	case BNXT_RE_MMAP_DBR_PAGE:
- 		ret = rdma_user_mmap_entry_insert(&uctx->ib_uctx,
- 						  &entry->rdma_entry, PAGE_SIZE);
- 		break;
-@@ -4149,6 +4151,18 @@ int bnxt_re_mmap(struct ib_ucontext *ib_uctx, struct vm_area_struct *vma)
- 	case BNXT_RE_MMAP_SH_PAGE:
- 		ret = vm_insert_page(vma, vma->vm_start, virt_to_page(uctx->shpg));
- 		break;
-+	case BNXT_RE_MMAP_DBR_BAR:
-+		pfn = bnxt_entry->mem_offset >> PAGE_SHIFT;
-+		ret = rdma_user_mmap_io(ib_uctx, vma, pfn, PAGE_SIZE,
-+					pgprot_noncached(vma->vm_page_prot),
-+					rdma_entry);
-+		break;
-+	case BNXT_RE_MMAP_DBR_PAGE:
-+		/* Driver doesn't expect write access for user space */
-+		if (vma->vm_flags & VM_WRITE)
-+			return -EFAULT;
-+		ret = vm_insert_page(vma, vma->vm_start, virt_to_page(bnxt_entry->mem_offset));
-+		break;
- 	default:
- 		ret = -EINVAL;
- 		break;
-@@ -4180,7 +4194,7 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_ALLOC_PAGE)(struct uverbs_attr_bundle *
- 	u64 mmap_offset;
- 	u32 length;
- 	u32 dpi;
--	u64 dbr;
-+	u64 addr;
- 	int err;
+@@ -4182,6 +4182,15 @@ void bnxt_re_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
+ 	kfree(bnxt_entry);
+ }
  
- 	uctx = container_of(ib_uverbs_get_ucontext(attrs), struct bnxt_re_ucontext, ib_uctx);
-@@ -4202,19 +4216,30 @@ static int UVERBS_HANDLER(BNXT_RE_METHOD_ALLOC_PAGE)(struct uverbs_attr_bundle *
- 				return -ENOMEM;
- 			length = PAGE_SIZE;
- 			dpi = uctx->wcdpi.dpi;
--			dbr = (u64)uctx->wcdpi.umdbr;
-+			addr = (u64)uctx->wcdpi.umdbr;
- 			mmap_flag = BNXT_RE_MMAP_WC_DB;
- 		} else {
- 			return -EINVAL;
- 		}
- 
- 		break;
-+	case BNXT_RE_ALLOC_DBR_BAR_PAGE:
-+		length = PAGE_SIZE;
-+		addr = (u64)rdev->pacing.dbr_bar_addr;
-+		mmap_flag = BNXT_RE_MMAP_DBR_BAR;
-+		break;
++static int UVERBS_HANDLER(BNXT_RE_METHOD_NOTIFY_DRV)(struct uverbs_attr_bundle *attrs)
++{
++	struct bnxt_re_ucontext *uctx;
 +
-+	case BNXT_RE_ALLOC_DBR_PAGE:
-+		length = PAGE_SIZE;
-+		addr = (u64)rdev->pacing.dbr_page;
-+		mmap_flag = BNXT_RE_MMAP_DBR_PAGE;
-+		break;
++	uctx = container_of(ib_uverbs_get_ucontext(attrs), struct bnxt_re_ucontext, ib_uctx);
++	bnxt_re_pacing_alert(uctx->rdev);
++	return 0;
++}
++
+ static int UVERBS_HANDLER(BNXT_RE_METHOD_ALLOC_PAGE)(struct uverbs_attr_bundle *attrs)
+ {
+ 	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs, BNXT_RE_ALLOC_PAGE_HANDLE);
+@@ -4319,7 +4328,13 @@ DECLARE_UVERBS_NAMED_OBJECT(BNXT_RE_OBJECT_ALLOC_PAGE,
+ 			    &UVERBS_METHOD(BNXT_RE_METHOD_ALLOC_PAGE),
+ 			    &UVERBS_METHOD(BNXT_RE_METHOD_DESTROY_PAGE));
  
- 	default:
- 		return -EOPNOTSUPP;
- 	}
- 
--	entry = bnxt_re_mmap_entry_insert(uctx, dbr, mmap_flag, &mmap_offset);
-+	entry = bnxt_re_mmap_entry_insert(uctx, addr, mmap_flag, &mmap_offset);
- 	if (!entry)
- 		return -ENOMEM;
- 
-@@ -4254,6 +4279,9 @@ static int alloc_page_obj_cleanup(struct ib_uobject *uobject,
- 			uctx->wcdpi.dbr = NULL;
- 		}
- 		break;
-+	case BNXT_RE_MMAP_DBR_BAR:
-+	case BNXT_RE_MMAP_DBR_PAGE:
-+		break;
- 	default:
- 		goto exit;
- 	}
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-index 32d9e9d..f392a09 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-@@ -146,6 +146,8 @@ enum bnxt_re_mmap_flag {
- 	BNXT_RE_MMAP_SH_PAGE,
- 	BNXT_RE_MMAP_UC_DB,
- 	BNXT_RE_MMAP_WC_DB,
-+	BNXT_RE_MMAP_DBR_PAGE,
-+	BNXT_RE_MMAP_DBR_BAR,
++DECLARE_UVERBS_NAMED_METHOD(BNXT_RE_METHOD_NOTIFY_DRV);
++
++DECLARE_UVERBS_GLOBAL_METHODS(BNXT_RE_OBJECT_NOTIFY_DRV,
++			      &UVERBS_METHOD(BNXT_RE_METHOD_NOTIFY_DRV));
++
+ const struct uapi_definition bnxt_re_uapi_defs[] = {
+ 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(BNXT_RE_OBJECT_ALLOC_PAGE),
++	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(BNXT_RE_OBJECT_NOTIFY_DRV),
+ 	{}
  };
- 
- struct bnxt_re_user_mmap_entry {
 diff --git a/include/uapi/rdma/bnxt_re-abi.h b/include/uapi/rdma/bnxt_re-abi.h
-index 060bf1d..78a324f 100644
+index 78a324f..6e7c67a 100644
 --- a/include/uapi/rdma/bnxt_re-abi.h
 +++ b/include/uapi/rdma/bnxt_re-abi.h
-@@ -136,6 +136,8 @@ enum bnxt_re_objects {
+@@ -132,6 +132,7 @@ enum bnxt_re_shpg_offt {
  
- enum bnxt_re_alloc_page_type {
- 	BNXT_RE_ALLOC_WC_PAGE = 0,
-+	BNXT_RE_ALLOC_DBR_BAR_PAGE,
-+	BNXT_RE_ALLOC_DBR_PAGE,
+ enum bnxt_re_objects {
+ 	BNXT_RE_OBJECT_ALLOC_PAGE = (1U << UVERBS_ID_NS_SHIFT),
++	BNXT_RE_OBJECT_NOTIFY_DRV,
  };
  
- enum bnxt_re_var_alloc_page_attrs {
+ enum bnxt_re_alloc_page_type {
+@@ -157,4 +158,7 @@ enum bnxt_re_alloc_page_methods {
+ 	BNXT_RE_METHOD_DESTROY_PAGE,
+ };
+ 
++enum bnxt_re_notify_drv_methods {
++	BNXT_RE_METHOD_NOTIFY_DRV = (1U << UVERBS_ID_NS_SHIFT),
++};
+ #endif /* __BNXT_RE_UVERBS_ABI_H__*/
 -- 
 2.5.5
 
 
---0000000000004b375f0600a89c6d
+--000000000000acb1890600a89cdc
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -262,14 +205,14 @@ j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
 9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
 hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
 IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIJZWEC17TtXU
-ULBFBpnbW/3R0uzWPpfKyOguuM+mgfjDMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDcxNzA2MDcxNlowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIM+6gkezL4dV
+Zid+anDJyp7qbYFO7Ky0Pq2lAJl1LJViMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDcxNzA2MDcyM1owaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
 YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQBMaoEDv7KQEtCF8gKHTU0LaRGFdjvj
-3exVZJcmxGCq/P2KRE5eN+EOBhs4zUYt4Q2YPWT+Ek8cSHv9MnLYEvn2MxwQnYcEcUvW8j8c8QXn
-/E8SZWpU1qZQxe2nkGMJyJdCRykWkkul6q6QCJT38+TLMcPXiouhEIBZY5dkfLCvWWafpLLFHnnn
-O+l/wACSuUjmXe+nm1HAA2WqVQ/sRvtjBdMEmF567LBa1JOTpubZm4uRbD3Dk9CooK/1Rh58ukB4
-ujaXQHm4BNxiTW4Id2tATYAq1hpuKyk5fta9lXAW9FUn8NhnohOy2C+BrU1XysR5BliRqTPG9yXh
-tJASzvOg
---0000000000004b375f0600a89c6d--
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQBFBKyJsIAu9UeAZOOnwOn7UbkudtZJ
+qe7Kxshm0FIXKnBiS6cU9HGTE4emrS/8c0khN3yqxfbyX3dK99tM6aykUiF+9oNjhF3tacJWoIMb
+yL558VAtljr3S5v8ldKdI/33IMO2T6UjxQ0wNbF9LYOAJb3UhgSRlqI30qqtwy3WvgCitXG0ZQ/T
++gX8apyOL1JY9zXfmQwTn38Y+93vmDrN0MvpPjhTI/4OTaGswuIvBNwCugP7MV26CcK1nyVHYNbE
+vBbN+6akiX4Hn5R1CuCfueL9E3Od1yIXrcHzT+UyUYlL9c2VQGqU0mobI7XXjb0QSNfHaR6YkKwu
+KC+0V2rG
+--000000000000acb1890600a89cdc--
