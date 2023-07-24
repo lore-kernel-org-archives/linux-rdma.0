@@ -2,51 +2,53 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 294E4C001DC
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Jul 2023 01:22:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 140A2C001DC
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Jul 2023 01:28:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230280AbjGXBWS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 23 Jul 2023 21:22:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52056 "EHLO
+        id S230368AbjGXB20 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 23 Jul 2023 21:28:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230321AbjGXBWB (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Jul 2023 21:22:01 -0400
+        with ESMTP id S231411AbjGXB1S (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Jul 2023 21:27:18 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F612173E;
-        Sun, 23 Jul 2023 18:21:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2D1E1FE5;
+        Sun, 23 Jul 2023 18:24:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3AE0A60F00;
-        Mon, 24 Jul 2023 01:20:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12437C433CA;
-        Mon, 24 Jul 2023 01:20:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B3AF660F6D;
+        Mon, 24 Jul 2023 01:24:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1600AC433C7;
+        Mon, 24 Jul 2023 01:24:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1690161627;
-        bh=oKRZ7342iBVlzDE1kn3A2Va46KkBuH4Ca37m0mkZYHU=;
+        s=k20201202; t=1690161847;
+        bh=4/cShx6t3Zffwv307oGLU/UFEXFHDP2pM+jRdsE6Mz0=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=r3N80f17H9LrxGxnmgehqYskaskRRqh7AhjdjYmR96jDKQAJJbCDe4L0ijzga621I
-         YkCcGAviP+8wRegwv62zBYCqZV4b9PgMPuwmj3W/nUgDINCH4UYogQ9231X9kMtAAN
-         M+Pkt5eqVGr8aEYntnHwAQGzL9gAIMcIxVlv8cZWPhK9s63s1/TQoOAyeRXvs6MOQI
-         pICGfBLrqQ9s/ijNGNSz0KXhg8ZswKpFd8Ru/PEAFWO8INjfosw1P2sapXES4z4FkO
-         c50JKeyo/T7evdI5d3jrCqSIa7xFTxD0FNpd37r1KEOm6L30t0EOy4vSJCIW17xmMM
-         VPoOs/male4qA==
+        b=t22sw4uKmGobuoUXQL+f5h6Kdbhe4vHpWX/4odufKMkTZKFcq6+F118hs2gHB0G7x
+         RFb8c9gfXm2ne+n6quZgx0tetfwCVAPqTJ5u+MbO+iYEm4RaJSuhEuTO7RkAjnxi/D
+         XCOzewQpKox3oEc3brV9cIsLOgnga+gFfFFc6BPH8wVbOxGMyiyJ7KOMV5aOysuX0W
+         EajPikR15PZD759OaLOBUi8zKqnMU9yVUd8Rz50Afb93OrQ8DBL5tibmo3vsE7rSnZ
+         tYtmHnfkTYQujmiAkmqJZXZ7k3/q4vuu7ILwZeVwoQPQ0VG1/8ZgIKTfBa8ut+LBeM
+         UZzITkXkoaEPQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Patrisious Haddad <phaddad@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.4 46/58] RDMA/mlx5: Return the firmware result upon destroying QP/RQ
-Date:   Sun, 23 Jul 2023 21:13:14 -0400
-Message-Id: <20230724011338.2298062-46-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, matanb@mellanox.com,
+        leonro@mellanox.com, dledford@redhat.com, sean.hefty@intel.com,
+        hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.15 15/23] RDMA/mlx5: Return the firmware result upon destroying QP/RQ
+Date:   Sun, 23 Jul 2023 21:23:26 -0400
+Message-Id: <20230724012334.2317140-15-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230724011338.2298062-1-sashal@kernel.org>
-References: <20230724011338.2298062-1-sashal@kernel.org>
+In-Reply-To: <20230724012334.2317140-1-sashal@kernel.org>
+References: <20230724012334.2317140-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.4.5
+X-stable-base: Linux 5.15.121
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -116,10 +118,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/qpc.c b/drivers/infiniband/hw/mlx5/qpc.c
-index bae0334d6e7f1..aec011557b4a7 100644
+index 8844eacf2380e..e508c0753dd37 100644
 --- a/drivers/infiniband/hw/mlx5/qpc.c
 +++ b/drivers/infiniband/hw/mlx5/qpc.c
-@@ -298,8 +298,7 @@ int mlx5_core_destroy_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp)
+@@ -297,8 +297,7 @@ int mlx5_core_destroy_qp(struct mlx5_ib_dev *dev, struct mlx5_core_qp *qp)
  	MLX5_SET(destroy_qp_in, in, opcode, MLX5_CMD_OP_DESTROY_QP);
  	MLX5_SET(destroy_qp_in, in, qpn, qp->qpn);
  	MLX5_SET(destroy_qp_in, in, uid, qp->uid);
@@ -129,7 +131,7 @@ index bae0334d6e7f1..aec011557b4a7 100644
  }
  
  int mlx5_core_set_delay_drop(struct mlx5_ib_dev *dev,
-@@ -551,14 +550,14 @@ int mlx5_core_xrcd_dealloc(struct mlx5_ib_dev *dev, u32 xrcdn)
+@@ -548,14 +547,14 @@ int mlx5_core_xrcd_dealloc(struct mlx5_ib_dev *dev, u32 xrcdn)
  	return mlx5_cmd_exec_in(dev->mdev, dealloc_xrcd, in);
  }
  
@@ -146,7 +148,7 @@ index bae0334d6e7f1..aec011557b4a7 100644
  }
  
  int mlx5_core_create_rq_tracked(struct mlx5_ib_dev *dev, u32 *in, int inlen,
-@@ -589,8 +588,7 @@ int mlx5_core_destroy_rq_tracked(struct mlx5_ib_dev *dev,
+@@ -586,8 +585,7 @@ int mlx5_core_destroy_rq_tracked(struct mlx5_ib_dev *dev,
  				 struct mlx5_core_qp *rq)
  {
  	destroy_resource_common(dev, rq);
