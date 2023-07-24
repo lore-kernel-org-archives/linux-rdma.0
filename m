@@ -2,169 +2,263 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B81C001B0
-	for <linux-rdma@archiver.kernel.org>; Mon, 24 Jul 2023 01:49:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6715BEB64DD
+	for <linux-rdma@archiver.kernel.org>; Mon, 24 Jul 2023 05:38:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232804AbjGXBtf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 23 Jul 2023 21:49:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54078 "EHLO
+        id S229975AbjGXFiu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 24 Jul 2023 01:38:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232924AbjGXBsJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 23 Jul 2023 21:48:09 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12BFF19AC;
-        Sun, 23 Jul 2023 18:40:27 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AD2AA60F01;
-        Mon, 24 Jul 2023 01:20:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A0B4C433C7;
-        Mon, 24 Jul 2023 01:20:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1690161629;
-        bh=vFnoPmcemCx7cbUhqaGYMFZCKWha1HLUSZN0iFBdRoY=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fh6oxf2Ups+6kdrTs6d12aTX/mOzEZBwFLyn3xdUquyGIYPUyKZUbCLSm4NiYAlsE
-         bVuNOKSf/g1sIltKXZ81W4NojZRnc2BMcxSt0KJlseaJ1+5HM1KpOvdZfwEHO9DDGS
-         mZoEY7tZpa+N2hLJ2GDBf+i1M9LKQ6N3E0Ic2hV0KcXM9MkgTtn3MYE+hpUgPjyBDy
-         qIW654PH29VNWkhcmW5KyDMjTlQE4V27RccYqLv3efp4Lyi0IiXhhsSBF6Zd4sFhWQ
-         2PT9FMpjY4416DLbAgQkSHvcWFQSwOB8yIGm8q/1HRsfe9cgy76/v19NCGZ6kKldRP
-         4XhXdT4l5zAMw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Kashyap Desai <kashyap.desai@broadcom.com>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Leon Romanovsky <leon@kernel.org>,
-        Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.4 47/58] RDMA/bnxt_re: consider timeout of destroy ah as success.
-Date:   Sun, 23 Jul 2023 21:13:15 -0400
-Message-Id: <20230724011338.2298062-47-sashal@kernel.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230724011338.2298062-1-sashal@kernel.org>
-References: <20230724011338.2298062-1-sashal@kernel.org>
-MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.4.5
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S229978AbjGXFiq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 24 Jul 2023 01:38:46 -0400
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 24A79E41;
+        Sun, 23 Jul 2023 22:38:45 -0700 (PDT)
+Received: by linux.microsoft.com (Postfix, from userid 1099)
+        id BD80C23706B2; Sun, 23 Jul 2023 22:38:43 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BD80C23706B2
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+        s=default; t=1690177123;
+        bh=Vy8aTaM39jpBrwLLP52qlYSRU3Ucfpi8knlMTIQeBUQ=;
+        h=From:To:Cc:Subject:Date:From;
+        b=TVHhqvOYywyg6Td7QfQYAtt/DYVyE8cR+X3kMOHypB2B7MKxZj8GktY1Av9sV1Or9
+         fdopSpVLDUVUHSXA70VOEpCnP7R5Lbl1SNjiH3dCkgWnghPf4OjNgNNCGk0P3p1YLC
+         LXkXNnOoZ+LWuRa069/SFlO0C85cTPgatrEsNZ6w=
+From:   Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
+To:     kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+        decui@microsoft.com, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, longli@microsoft.com,
+        sharmaajay@microsoft.com, leon@kernel.org, cai.huoqing@linux.dev,
+        ssengar@linux.microsoft.com, vkuznets@redhat.com,
+        tglx@linutronix.de, linux-hyperv@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Cc:     schakrabarti@microsoft.com,
+        Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
+Subject: [PATCH V5 net-next] net: mana: Configure hwc timeout from hardware
+Date:   Sun, 23 Jul 2023 22:38:40 -0700
+Message-Id: <1690177120-20938-1-git-send-email-schakrabarti@linux.microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Kashyap Desai <kashyap.desai@broadcom.com>
+At present hwc timeout value is a fixed value. This patch sets the hwc
+timeout from the hardware. It now uses a new hardware capability
+GDMA_DRV_CAP_FLAG_1_HWC_TIMEOUT_RECONFIG to query and set the value
+in hwc_timeout.
 
-[ Upstream commit bb8c93618fb0b8567d309f1aebc6df0cd31da1a2 ]
-
-If destroy_ah is timed out, it is likely to be destroyed by firmware
-but it is taking longer time due to temporary slowness
-in processing the rcfw command. In worst case, there might be
-AH resource leak in firmware.
-
-Sending timeout return value can dump warning message from ib_core
-which can be avoided if we map timeout of destroy_ah as success.
-
-Signed-off-by: Kashyap Desai <kashyap.desai@broadcom.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
-Link: https://lore.kernel.org/r/1686308514-11996-14-git-send-email-selvin.xavier@broadcom.com
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
 ---
- drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  2 ++
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 16 ++++++++++++----
- drivers/infiniband/hw/bnxt_re/qplib_sp.c |  8 +++++---
- drivers/infiniband/hw/bnxt_re/qplib_sp.h |  4 ++--
- 4 files changed, 21 insertions(+), 9 deletions(-)
+V4 -> V5:
+* Replaced dev_err in mana_hwc_send_request with dev_dbg.
+---
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 30 ++++++++++++++++++-
+ .../net/ethernet/microsoft/mana/hw_channel.c  | 25 +++++++++++++++-
+ include/net/mana/gdma.h                       | 20 ++++++++++++-
+ include/net/mana/hw_channel.h                 |  5 ++++
+ 4 files changed, 77 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index 2c95e6f3d47ac..eef3ef3fabb42 100644
---- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-+++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -179,6 +179,8 @@ struct bnxt_re_dev {
- #define BNXT_RE_ROCEV2_IPV4_PACKET	2
- #define BNXT_RE_ROCEV2_IPV6_PACKET	3
- 
-+#define BNXT_RE_CHECK_RC(x) ((x) && ((x) != -ETIMEDOUT))
-+
- static inline struct device *rdev_to_dev(struct bnxt_re_dev *rdev)
- {
- 	if (rdev)
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 952811c40c54b..6a086c42f85f6 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -614,12 +614,20 @@ int bnxt_re_destroy_ah(struct ib_ah *ib_ah, u32 flags)
- {
- 	struct bnxt_re_ah *ah = container_of(ib_ah, struct bnxt_re_ah, ib_ah);
- 	struct bnxt_re_dev *rdev = ah->rdev;
-+	bool block = true;
-+	int rc = 0;
- 
--	bnxt_qplib_destroy_ah(&rdev->qplib_res, &ah->qplib_ah,
--			      !(flags & RDMA_DESTROY_AH_SLEEPABLE));
-+	block = !(flags & RDMA_DESTROY_AH_SLEEPABLE);
-+	rc = bnxt_qplib_destroy_ah(&rdev->qplib_res, &ah->qplib_ah, block);
-+	if (BNXT_RE_CHECK_RC(rc)) {
-+		if (rc == -ETIMEDOUT)
-+			rc = 0;
-+		else
-+			goto fail;
-+	}
- 	atomic_dec(&rdev->ah_count);
--
--	return 0;
-+fail:
-+	return rc;
- }
- 
- static u8 bnxt_re_stack_to_dev_nw_type(enum rdma_network_type ntype)
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index b967a17a44beb..10919532bca29 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -468,13 +468,14 @@ int bnxt_qplib_create_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 8f3f78b68592..4537a70e30d4 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -106,6 +106,25 @@ static int mana_gd_query_max_resources(struct pci_dev *pdev)
  	return 0;
  }
  
--void bnxt_qplib_destroy_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
--			   bool block)
-+int bnxt_qplib_destroy_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
-+			  bool block)
++static int mana_gd_query_hwc_timeout(struct pci_dev *pdev, u32 *timeout_val)
++{
++	struct gdma_context *gc = pci_get_drvdata(pdev);
++	struct gdma_query_hwc_timeout_resp resp = {};
++	struct gdma_query_hwc_timeout_req req = {};
++	int err;
++
++	mana_gd_init_req_hdr(&req.hdr, GDMA_QUERY_HWC_TIMEOUT,
++			     sizeof(req), sizeof(resp));
++	req.timeout_ms = *timeout_val;
++	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
++	if (err || resp.hdr.status)
++		return err ? err : -EPROTO;
++
++	*timeout_val = resp.timeout_ms;
++
++	return 0;
++}
++
+ static int mana_gd_detect_devices(struct pci_dev *pdev)
  {
- 	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
- 	struct creq_destroy_ah_resp resp = {};
- 	struct bnxt_qplib_cmdqmsg msg = {};
- 	struct cmdq_destroy_ah req = {};
-+	int rc;
+ 	struct gdma_context *gc = pci_get_drvdata(pdev);
+@@ -879,8 +898,11 @@ int mana_gd_verify_vf_version(struct pci_dev *pdev)
+ 	struct gdma_context *gc = pci_get_drvdata(pdev);
+ 	struct gdma_verify_ver_resp resp = {};
+ 	struct gdma_verify_ver_req req = {};
++	struct hw_channel_context *hwc;
+ 	int err;
  
- 	/* Clean up the AH table in the device */
- 	bnxt_qplib_rcfw_cmd_prep((struct cmdq_base *)&req,
-@@ -485,7 +486,8 @@ void bnxt_qplib_destroy_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
++	hwc = gc->hwc.driver_data;
++
+ 	mana_gd_init_req_hdr(&req.hdr, GDMA_VERIFY_VF_DRIVER_VERSION,
+ 			     sizeof(req), sizeof(resp));
  
- 	bnxt_qplib_fill_cmdqmsg(&msg, &req, &resp, NULL, sizeof(req),
- 				sizeof(resp), block);
--	bnxt_qplib_rcfw_send_message(rcfw, &msg);
-+	rc = bnxt_qplib_rcfw_send_message(rcfw, &msg);
-+	return rc;
+@@ -907,7 +929,13 @@ int mana_gd_verify_vf_version(struct pci_dev *pdev)
+ 			err, resp.hdr.status);
+ 		return err ? err : -EPROTO;
+ 	}
+-
++	if (resp.pf_cap_flags1 & GDMA_DRV_CAP_FLAG_1_HWC_TIMEOUT_RECONFIG) {
++		err = mana_gd_query_hwc_timeout(pdev, &hwc->hwc_timeout);
++		if (err) {
++			dev_err(gc->dev, "Failed to set the hwc timeout %d\n", err);
++			return err;
++		}
++	}
+ 	return 0;
  }
  
- /* MRW */
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-index 5de874659cdfa..4061616048e85 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-@@ -327,8 +327,8 @@ int bnxt_qplib_set_func_resources(struct bnxt_qplib_res *res,
- 				  struct bnxt_qplib_ctx *ctx);
- int bnxt_qplib_create_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
- 			 bool block);
--void bnxt_qplib_destroy_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
--			   bool block);
-+int bnxt_qplib_destroy_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah,
-+			  bool block);
- int bnxt_qplib_alloc_mrw(struct bnxt_qplib_res *res,
- 			 struct bnxt_qplib_mrw *mrw);
- int bnxt_qplib_dereg_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw,
+diff --git a/drivers/net/ethernet/microsoft/mana/hw_channel.c b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+index 2bd1d74021f7..35b5371d89bb 100644
+--- a/drivers/net/ethernet/microsoft/mana/hw_channel.c
++++ b/drivers/net/ethernet/microsoft/mana/hw_channel.c
+@@ -174,7 +174,25 @@ static void mana_hwc_init_event_handler(void *ctx, struct gdma_queue *q_self,
+ 		complete(&hwc->hwc_init_eqe_comp);
+ 		break;
+ 
++	case GDMA_EQE_HWC_SOC_RECONFIG_DATA:
++		type_data.as_uint32 = event->details[0];
++		type = type_data.type;
++		val = type_data.value;
++
++		switch (type) {
++		case HWC_DATA_CFG_HWC_TIMEOUT:
++			hwc->hwc_timeout = val;
++			break;
++
++		default:
++			dev_warn(hwc->dev, "Received unknown reconfig type %u\n", type);
++			break;
++		}
++
++		break;
++
+ 	default:
++		dev_warn(hwc->dev, "Received unknown gdma event %u\n", event->type);
+ 		/* Ignore unknown events, which should never happen. */
+ 		break;
+ 	}
+@@ -704,6 +722,7 @@ int mana_hwc_create_channel(struct gdma_context *gc)
+ 	gd->pdid = INVALID_PDID;
+ 	gd->doorbell = INVALID_DOORBELL;
+ 
++	hwc->hwc_timeout = HW_CHANNEL_WAIT_RESOURCE_TIMEOUT_MS;
+ 	/* mana_hwc_init_queues() only creates the required data structures,
+ 	 * and doesn't touch the HWC device.
+ 	 */
+@@ -770,6 +789,8 @@ void mana_hwc_destroy_channel(struct gdma_context *gc)
+ 	hwc->gdma_dev->doorbell = INVALID_DOORBELL;
+ 	hwc->gdma_dev->pdid = INVALID_PDID;
+ 
++	hwc->hwc_timeout = 0;
++
+ 	kfree(hwc);
+ 	gc->hwc.driver_data = NULL;
+ 	gc->hwc.gdma_context = NULL;
+@@ -818,6 +839,7 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 		dest_vrq = hwc->pf_dest_vrq_id;
+ 		dest_vrcq = hwc->pf_dest_vrcq_id;
+ 	}
++	dev_dbg(hwc->dev, "HWC: timeout %u ms\n", hwc->hwc_timeout);
+ 
+ 	err = mana_hwc_post_tx_wqe(txq, tx_wr, dest_vrq, dest_vrcq, false);
+ 	if (err) {
+@@ -825,7 +847,8 @@ int mana_hwc_send_request(struct hw_channel_context *hwc, u32 req_len,
+ 		goto out;
+ 	}
+ 
+-	if (!wait_for_completion_timeout(&ctx->comp_event, 30 * HZ)) {
++	if (!wait_for_completion_timeout(&ctx->comp_event,
++					 (hwc->hwc_timeout / 1000) * HZ)) {
+ 		dev_err(hwc->dev, "HWC: Request timed out!\n");
+ 		err = -ETIMEDOUT;
+ 		goto out;
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 96c120160f15..88b6ef7ce1a6 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -33,6 +33,7 @@ enum gdma_request_type {
+ 	GDMA_DESTROY_PD			= 30,
+ 	GDMA_CREATE_MR			= 31,
+ 	GDMA_DESTROY_MR			= 32,
++	GDMA_QUERY_HWC_TIMEOUT		= 84, /* 0x54 */
+ };
+ 
+ #define GDMA_RESOURCE_DOORBELL_PAGE	27
+@@ -57,6 +58,8 @@ enum gdma_eqe_type {
+ 	GDMA_EQE_HWC_INIT_EQ_ID_DB	= 129,
+ 	GDMA_EQE_HWC_INIT_DATA		= 130,
+ 	GDMA_EQE_HWC_INIT_DONE		= 131,
++	GDMA_EQE_HWC_SOC_RECONFIG	= 132,
++	GDMA_EQE_HWC_SOC_RECONFIG_DATA	= 133,
+ };
+ 
+ enum {
+@@ -531,10 +534,12 @@ enum {
+  * so the driver is able to reliably support features like busy_poll.
+  */
+ #define GDMA_DRV_CAP_FLAG_1_NAPI_WKDONE_FIX BIT(2)
++#define GDMA_DRV_CAP_FLAG_1_HWC_TIMEOUT_RECONFIG BIT(3)
+ 
+ #define GDMA_DRV_CAP_FLAGS1 \
+ 	(GDMA_DRV_CAP_FLAG_1_EQ_SHARING_MULTI_VPORT | \
+-	 GDMA_DRV_CAP_FLAG_1_NAPI_WKDONE_FIX)
++	 GDMA_DRV_CAP_FLAG_1_NAPI_WKDONE_FIX | \
++	 GDMA_DRV_CAP_FLAG_1_HWC_TIMEOUT_RECONFIG)
+ 
+ #define GDMA_DRV_CAP_FLAGS2 0
+ 
+@@ -664,6 +669,19 @@ struct gdma_disable_queue_req {
+ 	u32 alloc_res_id_on_creation;
+ }; /* HW DATA */
+ 
++/* GDMA_QUERY_HWC_TIMEOUT */
++struct gdma_query_hwc_timeout_req {
++	struct gdma_req_hdr hdr;
++	u32 timeout_ms;
++	u32 reserved;
++};
++
++struct gdma_query_hwc_timeout_resp {
++	struct gdma_resp_hdr hdr;
++	u32 timeout_ms;
++	u32 reserved;
++};
++
+ enum atb_page_size {
+ 	ATB_PAGE_SIZE_4K,
+ 	ATB_PAGE_SIZE_8K,
+diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
+index 6a757a6e2732..3d3b5c881bc1 100644
+--- a/include/net/mana/hw_channel.h
++++ b/include/net/mana/hw_channel.h
+@@ -23,6 +23,10 @@
+ #define HWC_INIT_DATA_PF_DEST_RQ_ID	10
+ #define HWC_INIT_DATA_PF_DEST_CQ_ID	11
+ 
++#define HWC_DATA_CFG_HWC_TIMEOUT 1
++
++#define HW_CHANNEL_WAIT_RESOURCE_TIMEOUT_MS 30000
++
+ /* Structures labeled with "HW DATA" are exchanged with the hardware. All of
+  * them are naturally aligned and hence don't need __packed.
+  */
+@@ -182,6 +186,7 @@ struct hw_channel_context {
+ 
+ 	u32 pf_dest_vrq_id;
+ 	u32 pf_dest_vrcq_id;
++	u32 hwc_timeout;
+ 
+ 	struct hwc_caller_ctx *caller_ctx;
+ };
 -- 
-2.39.2
+2.34.1
 
