@@ -2,168 +2,380 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1979C001DC
-	for <linux-rdma@archiver.kernel.org>; Wed, 26 Jul 2023 14:40:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32867C05051
+	for <linux-rdma@archiver.kernel.org>; Wed, 26 Jul 2023 15:03:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230194AbjGZOkX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 26 Jul 2023 10:40:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59924 "EHLO
+        id S234630AbjGZPDW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 26 Jul 2023 11:03:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231536AbjGZOkW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Jul 2023 10:40:22 -0400
-Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD03819BE
-        for <linux-rdma@vger.kernel.org>; Wed, 26 Jul 2023 07:40:18 -0700 (PDT)
-Received: by mail-yb1-xb33.google.com with SMTP id 3f1490d57ef6-cb19b1b9a36so7479826276.0
-        for <linux-rdma@vger.kernel.org>; Wed, 26 Jul 2023 07:40:18 -0700 (PDT)
+        with ESMTP id S234765AbjGZPDR (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 26 Jul 2023 11:03:17 -0400
+Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B548511B
+        for <linux-rdma@vger.kernel.org>; Wed, 26 Jul 2023 08:03:05 -0700 (PDT)
+Received: by mail-pf1-x42d.google.com with SMTP id d2e1a72fcca58-66c729f5618so6373488b3a.1
+        for <linux-rdma@vger.kernel.org>; Wed, 26 Jul 2023 08:03:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1690382418; x=1690987218;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=Nmzr6WuK9l4UiJUyu4TwrFf4WxNP/E3zsB64Xn/1FBA=;
-        b=MXWzUIi0+u4gAw4eh3fe0fCvnm9xstbJINQ81kELxLH/7nx9VtiW07iG+PgKs4B6O/
-         vFQg4juFFUTGl6LLqp4mJwzLbDlANuyLhq5uqEOIoqCM6imlAjJT7E4Nps1eZQiolBiz
-         8qz8e5DT3+1NZ68ZS4Mvx+/Et/1CdoFrJs270=
+        d=broadcom.com; s=google; t=1690383785; x=1690988585;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=Z+RPQP/qVbJ5oRcoVfRB2hvpzaJ21+HlaV2KcJo9QwA=;
+        b=g/f9CRhaO6c/pkcCpzjNOxeoUJEVawxtvhHAiFbTpraqvFO2WObrWXBhtxWxobnX5C
+         y6qaZSr9hU7LDVxbC7NUw+RKYjHtowTOSWqbkiiOSkQ8jBF1e1VXBEhokmf3FAl115cS
+         t4HmTV7Kp5MnFy7moVEMSmLjyQChM3lXgXqKE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690382418; x=1690987218;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Nmzr6WuK9l4UiJUyu4TwrFf4WxNP/E3zsB64Xn/1FBA=;
-        b=e9ILzM4xdsqnA//GsGafwxiybjPfe561O1BCInZPvfrR3mhisWUxBYXMY0m8VYmC6y
-         x/92razDfYjKzXUM8/UfG0oTT4/rvWvY0lPXh2NJONTnHjECUzRc4oJpoQd3GGsamsXU
-         qboorWjuF6y1Dwg2s1cDraZ7pp1R0yJxA3e06z48Gk2Nktl/G81l58ag+nORpGd9U3/a
-         5HieDzl7USJO6Xpw6mh4QbRMTmE9DAkWO6ocwZp/Z+HTnXkjrNEGhraqZY0G+vLC3yUd
-         nUUrrzDL53xblL34PgTkjf7seQ+WLKdyjxdh8Sb5SfaCYucyxSIKZQZw0kxqpy3BMTuX
-         WbZg==
-X-Gm-Message-State: ABy/qLYglbEtPuBDFLDlKGSNTd+mIELyGlwZQ52WWQ9eQPsd0scrvykx
-        OV7b7mRl2CeQj9AUv8kdS0QFGSomtHqKkP3iA5Xg+Q==
-X-Google-Smtp-Source: APBJJlGXG6SKerQrdipN5LjlLEKJ1wmSiAV253KQdQ5WElHrO+Pg3qEn2tPADWt62H8vmTz9K4jmgd9FdjLiWvUdts8=
-X-Received: by 2002:a25:8b12:0:b0:d08:2101:562d with SMTP id
- i18-20020a258b12000000b00d082101562dmr1780613ybl.34.1690382417931; Wed, 26
- Jul 2023 07:40:17 -0700 (PDT)
-MIME-Version: 1.0
-References: <1690360493-8428-1-git-send-email-selvin.xavier@broadcom.com> <20230726130726.GW11388@unreal>
-In-Reply-To: <20230726130726.GW11388@unreal>
+        d=1e100.net; s=20221208; t=1690383785; x=1690988585;
+        h=references:in-reply-to:message-id:date:subject:cc:to:from
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Z+RPQP/qVbJ5oRcoVfRB2hvpzaJ21+HlaV2KcJo9QwA=;
+        b=FSgf2CmTBBzA1VThf8XyEpd+yCdUTHx9G1zPPVaWOieBd72NHn7AcJB5Zj7izOvQre
+         U49TGJu7R41X4OVhOl8TaLM9Gt06T8RKIdKT3LhKt2nrgb8ZYjy+3LTWI8QN0lZWPy85
+         RazC9u3W6XpHaVdUpffAucqQJgzUVrhRTZkmn4cpmNV0uzjFPGaz3bZstajTfyWFbT5n
+         jzDwIyAbQXv0Cb4PEWCxyL+mntfcJGpMLQZ6yemlG9kfUkiOv6vA9LYzRbs1PsMOMl5k
+         X/2pgy+nm6hgFUf34SO+Oky+p44dEcpcCYS5eQbD8d9TFoX/rxVuAuzmEcUunD9/Ejrl
+         Nlvw==
+X-Gm-Message-State: ABy/qLbhJ7hICNHmklEy9TJyE6o+4Ms3+xhXdaC1ypQ2NhBXajSOHjhR
+        mPCj4jAXCiudrgZpFPUZhznKhA==
+X-Google-Smtp-Source: APBJJlGDbSm0ZgQMSOI1rBDagvy0Hp+cvlRqjVXhE6kvmErtEhls7dACoYgX0lrZC7v27e6nO2ZVpw==
+X-Received: by 2002:a05:6a21:78a8:b0:138:1c5b:24c3 with SMTP id bf40-20020a056a2178a800b001381c5b24c3mr3147912pzc.49.1690383785030;
+        Wed, 26 Jul 2023 08:03:05 -0700 (PDT)
+Received: from dhcp-10-192-206-197.iig.avagotech.net.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id y4-20020a63ad44000000b0055fd10306a2sm12772846pgo.75.2023.07.26.08.03.02
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 26 Jul 2023 08:03:04 -0700 (PDT)
 From:   Selvin Xavier <selvin.xavier@broadcom.com>
-Date:   Wed, 26 Jul 2023 20:10:03 +0530
-Message-ID: <CA+sbYW1cqdUr2_vwPy5BnLFsAqxATP++BR6QfADoe3P_UfEYWA@mail.gmail.com>
-Subject: Re: [PATCH] IB/core: Add more speed parsing in ib_get_eth_speed()
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-        andrew.gospodarek@broadcom.com,
-        Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+To:     jgg@ziepe.ca, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com,
+        Chandramohan Akula <chandramohan.akula@broadcom.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: [PATCH for-next 1/4] bnxt_re: Reorganize the resource stats
+Date:   Wed, 26 Jul 2023 07:51:18 -0700
+Message-Id: <1690383081-15033-2-git-send-email-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.5.5
+In-Reply-To: <1690383081-15033-1-git-send-email-selvin.xavier@broadcom.com>
+References: <1690383081-15033-1-git-send-email-selvin.xavier@broadcom.com>
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
-        boundary="0000000000009330eb060164d3a0"
+        boundary="00000000000010ee370601652505"
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
---0000000000009330eb060164d3a0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+--00000000000010ee370601652505
 
-On Wed, Jul 26, 2023 at 6:37=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
-rote:
->
-> On Wed, Jul 26, 2023 at 01:34:53AM -0700, Selvin Xavier wrote:
-> > From: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-> >
-> > The function ib_get_eth_speed() does not take consideration
-> > of 50G, 56G, 100G and 200G speeds. Added these speeds parsing.
-> > We are not considering the lane width now. This can be enhanced
-> > later.
-> >
-> > Also, refactored the code to use switch case instead of if-else.
-> >
-> > Signed-off-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
-> > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
-> > ---
-> >  drivers/infiniband/core/verbs.c | 34 ++++++++++++++++++++++++++++-----=
--
-> >  1 file changed, 28 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/=
-verbs.c
-> > index b99b3cc..ebd389a 100644
-> > --- a/drivers/infiniband/core/verbs.c
-> > +++ b/drivers/infiniband/core/verbs.c
-> > @@ -1908,22 +1908,44 @@ int ib_get_eth_speed(struct ib_device *dev, u32=
- port_num, u16 *speed, u8 *width)
-> >                       netdev_speed);
-> >       }
-> >
-> > -     if (netdev_speed <=3D SPEED_1000) {
-> > +     switch (netdev_speed) {
-> > +     case SPEED_1000:
-> >               *width =3D IB_WIDTH_1X;
-> >               *speed =3D IB_SPEED_SDR;
-> > -     } else if (netdev_speed <=3D SPEED_10000) {
-> > +             break;
-> > +     case SPEED_10000:
->
-> This conversion is not equal to code before. We have more speeds between
-> SPEED_1000 and SPEED_10000.
->
-> include/uapi/linux/ethtool.h
-> ...
->   1889 #define SPEED_1000              1000
->   1890 #define SPEED_2500              2500
->   1891 #define SPEED_5000              5000
->   1892 #define SPEED_10000             10000
-Sure. We will handle the two cases that are missing and spin a v2 patch.
->
->
-> Thanks
->
->
->
-> >               *width =3D IB_WIDTH_1X;
-> >               *speed =3D IB_SPEED_FDR10;
-> > -     } else if (netdev_speed <=3D SPEED_20000) {
-> > +             break;
-> > +     case SPEED_20000:
-> >               *width =3D IB_WIDTH_4X;
-> >               *speed =3D IB_SPEED_DDR;
-> > -     } else if (netdev_speed <=3D SPEED_25000) {
-> > +             break;
-> > +     case SPEED_25000:
-> >               *width =3D IB_WIDTH_1X;
-> >               *speed =3D IB_SPEED_EDR;
-> > -     } else if (netdev_speed <=3D SPEED_40000) {
-> > +             break;
-> > +     case SPEED_40000:
-> >               *width =3D IB_WIDTH_4X;
-> >               *speed =3D IB_SPEED_FDR10;
-> > -     } else {
-> > +             break;
-> > +     case SPEED_50000:
-> > +             *width =3D IB_WIDTH_2X;
-> > +             *speed =3D IB_SPEED_EDR;
-> > +             break;
-> > +     case SPEED_56000:
-> > +             *width =3D IB_WIDTH_4X;
-> > +             *speed =3D IB_SPEED_FDR;
-> > +             break;
-> > +     case SPEED_100000:
-> > +             *width =3D IB_WIDTH_4X;
-> > +             *speed =3D IB_SPEED_EDR;
-> > +             break;
-> > +     case SPEED_200000:
-> > +             *width =3D IB_WIDTH_4X;
-> > +             *speed =3D IB_SPEED_HDR;
-> > +             break;
-> > +     default:
-> >               *width =3D IB_WIDTH_4X;
-> >               *speed =3D IB_SPEED_EDR;
-> >       }
-> > --
-> > 2.5.5
-> >
->
->
+From: Chandramohan Akula <chandramohan.akula@broadcom.com>
 
---0000000000009330eb060164d3a0
+Move the resource stats to a separate stats structure.
+
+Signed-off-by: Chandramohan Akula <chandramohan.akula@broadcom.com>
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+---
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h     |  7 -----
+ drivers/infiniband/hw/bnxt_re/hw_counters.c | 17 ++++++------
+ drivers/infiniband/hw/bnxt_re/hw_counters.h | 11 ++++++++
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c    | 40 ++++++++++++++---------------
+ drivers/infiniband/hw/bnxt_re/main.c        | 14 +++++-----
+ 5 files changed, 47 insertions(+), 42 deletions(-)
+
+diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+index 2175103..03a1325 100644
+--- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
++++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+@@ -175,16 +175,9 @@ struct bnxt_re_dev {
+ 	struct bnxt_qplib_res		qplib_res;
+ 	struct bnxt_qplib_dpi		dpi_privileged;
+ 
+-	atomic_t			qp_count;
+ 	struct mutex			qp_lock;	/* protect qp list */
+ 	struct list_head		qp_list;
+ 
+-	atomic_t			cq_count;
+-	atomic_t			srq_count;
+-	atomic_t			mr_count;
+-	atomic_t			mw_count;
+-	atomic_t			ah_count;
+-	atomic_t			pd_count;
+ 	/* Max of 2 lossless traffic class supported per port */
+ 	u16				cosq[2];
+ 
+diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.c b/drivers/infiniband/hw/bnxt_re/hw_counters.c
+index 825d512..8310e9a 100644
+--- a/drivers/infiniband/hw/bnxt_re/hw_counters.c
++++ b/drivers/infiniband/hw/bnxt_re/hw_counters.c
+@@ -254,21 +254,22 @@ int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
+ 			    u32 port, int index)
+ {
+ 	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
+-	struct ctx_hw_stats *hw_stats = NULL;
++	struct bnxt_re_res_cntrs *res_s = &rdev->stats.res;
+ 	struct bnxt_qplib_roce_stats *err_s = NULL;
++	struct ctx_hw_stats *hw_stats = NULL;
+ 	int rc  = 0;
+ 
+ 	hw_stats = rdev->qplib_ctx.stats.dma;
+ 	if (!port || !stats)
+ 		return -EINVAL;
+ 
+-	stats->value[BNXT_RE_ACTIVE_QP] = atomic_read(&rdev->qp_count);
+-	stats->value[BNXT_RE_ACTIVE_SRQ] = atomic_read(&rdev->srq_count);
+-	stats->value[BNXT_RE_ACTIVE_CQ] = atomic_read(&rdev->cq_count);
+-	stats->value[BNXT_RE_ACTIVE_MR] = atomic_read(&rdev->mr_count);
+-	stats->value[BNXT_RE_ACTIVE_MW] = atomic_read(&rdev->mw_count);
+-	stats->value[BNXT_RE_ACTIVE_PD] = atomic_read(&rdev->pd_count);
+-	stats->value[BNXT_RE_ACTIVE_AH] = atomic_read(&rdev->ah_count);
++	stats->value[BNXT_RE_ACTIVE_QP] = atomic_read(&res_s->qp_count);
++	stats->value[BNXT_RE_ACTIVE_SRQ] = atomic_read(&res_s->srq_count);
++	stats->value[BNXT_RE_ACTIVE_CQ] = atomic_read(&res_s->cq_count);
++	stats->value[BNXT_RE_ACTIVE_MR] = atomic_read(&res_s->mr_count);
++	stats->value[BNXT_RE_ACTIVE_MW] = atomic_read(&res_s->mw_count);
++	stats->value[BNXT_RE_ACTIVE_PD] = atomic_read(&res_s->pd_count);
++	stats->value[BNXT_RE_ACTIVE_AH] = atomic_read(&res_s->ah_count);
+ 
+ 	if (hw_stats) {
+ 		stats->value[BNXT_RE_RECOVERABLE_ERRORS] =
+diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.h b/drivers/infiniband/hw/bnxt_re/hw_counters.h
+index 7943b2c..4aa6e31 100644
+--- a/drivers/infiniband/hw/bnxt_re/hw_counters.h
++++ b/drivers/infiniband/hw/bnxt_re/hw_counters.h
+@@ -113,6 +113,16 @@ enum bnxt_re_hw_stats {
+ 
+ #define BNXT_RE_NUM_STD_COUNTERS (BNXT_RE_OUT_OF_SEQ_ERR + 1)
+ 
++struct bnxt_re_res_cntrs {
++	atomic_t qp_count;
++	atomic_t cq_count;
++	atomic_t srq_count;
++	atomic_t mr_count;
++	atomic_t mw_count;
++	atomic_t ah_count;
++	atomic_t pd_count;
++};
++
+ struct bnxt_re_rstat {
+ 	struct bnxt_qplib_roce_stats    errs;
+ 	struct bnxt_qplib_ext_stat      ext_stat;
+@@ -120,6 +130,7 @@ struct bnxt_re_rstat {
+ 
+ struct bnxt_re_stats {
+ 	struct bnxt_re_rstat            rstat;
++	struct bnxt_re_res_cntrs        res;
+ };
+ 
+ struct rdma_hw_stats *bnxt_re_ib_alloc_hw_port_stats(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index ec4d163..b28c869 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -602,7 +602,7 @@ int bnxt_re_dealloc_pd(struct ib_pd *ib_pd, struct ib_udata *udata)
+ 		if (!bnxt_qplib_dealloc_pd(&rdev->qplib_res,
+ 					   &rdev->qplib_res.pd_tbl,
+ 					   &pd->qplib_pd))
+-			atomic_dec(&rdev->pd_count);
++			atomic_dec(&rdev->stats.res.pd_count);
+ 	}
+ 	return 0;
+ }
+@@ -665,7 +665,7 @@ int bnxt_re_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 		if (bnxt_re_create_fence_mr(pd))
+ 			ibdev_warn(&rdev->ibdev,
+ 				   "Failed to create Fence-MR\n");
+-	atomic_inc(&rdev->pd_count);
++	atomic_inc(&rdev->stats.res.pd_count);
+ 
+ 	return 0;
+ dbfail:
+@@ -691,7 +691,7 @@ int bnxt_re_destroy_ah(struct ib_ah *ib_ah, u32 flags)
+ 		else
+ 			goto fail;
+ 	}
+-	atomic_dec(&rdev->ah_count);
++	atomic_dec(&rdev->stats.res.ah_count);
+ fail:
+ 	return rc;
+ }
+@@ -777,7 +777,7 @@ int bnxt_re_create_ah(struct ib_ah *ib_ah, struct rdma_ah_init_attr *init_attr,
+ 		wmb(); /* make sure cache is updated. */
+ 		spin_unlock_irqrestore(&uctx->sh_lock, flag);
+ 	}
+-	atomic_inc(&rdev->ah_count);
++	atomic_inc(&rdev->stats.res.ah_count);
+ 
+ 	return 0;
+ }
+@@ -838,7 +838,7 @@ static int bnxt_re_destroy_gsi_sqp(struct bnxt_re_qp *qp)
+ 	bnxt_qplib_destroy_ah(&rdev->qplib_res,
+ 			      &gsi_sah->qplib_ah,
+ 			      true);
+-	atomic_dec(&rdev->ah_count);
++	atomic_dec(&rdev->stats.res.ah_count);
+ 	bnxt_qplib_clean_qp(&qp->qplib_qp);
+ 
+ 	ibdev_dbg(&rdev->ibdev, "Destroy the shadow QP\n");
+@@ -853,7 +853,7 @@ static int bnxt_re_destroy_gsi_sqp(struct bnxt_re_qp *qp)
+ 	mutex_lock(&rdev->qp_lock);
+ 	list_del(&gsi_sqp->list);
+ 	mutex_unlock(&rdev->qp_lock);
+-	atomic_dec(&rdev->qp_count);
++	atomic_dec(&rdev->stats.res.qp_count);
+ 
+ 	kfree(rdev->gsi_ctx.sqp_tbl);
+ 	kfree(gsi_sah);
+@@ -900,7 +900,7 @@ int bnxt_re_destroy_qp(struct ib_qp *ib_qp, struct ib_udata *udata)
+ 	mutex_lock(&rdev->qp_lock);
+ 	list_del(&qp->list);
+ 	mutex_unlock(&rdev->qp_lock);
+-	atomic_dec(&rdev->qp_count);
++	atomic_dec(&rdev->stats.res.qp_count);
+ 
+ 	ib_umem_release(qp->rumem);
+ 	ib_umem_release(qp->sumem);
+@@ -1085,7 +1085,7 @@ static struct bnxt_re_ah *bnxt_re_create_shadow_qp_ah
+ 			  "Failed to allocate HW AH for Shadow QP");
+ 		goto fail;
+ 	}
+-	atomic_inc(&rdev->ah_count);
++	atomic_inc(&rdev->stats.res.ah_count);
+ 
+ 	return ah;
+ 
+@@ -1153,7 +1153,7 @@ static struct bnxt_re_qp *bnxt_re_create_shadow_qp
+ 	INIT_LIST_HEAD(&qp->list);
+ 	mutex_lock(&rdev->qp_lock);
+ 	list_add_tail(&qp->list, &rdev->qp_list);
+-	atomic_inc(&rdev->qp_count);
++	atomic_inc(&rdev->stats.res.qp_count);
+ 	mutex_unlock(&rdev->qp_lock);
+ 	return qp;
+ fail:
+@@ -1535,7 +1535,7 @@ int bnxt_re_create_qp(struct ib_qp *ib_qp, struct ib_qp_init_attr *qp_init_attr,
+ 	mutex_lock(&rdev->qp_lock);
+ 	list_add_tail(&qp->list, &rdev->qp_list);
+ 	mutex_unlock(&rdev->qp_lock);
+-	atomic_inc(&rdev->qp_count);
++	atomic_inc(&rdev->stats.res.qp_count);
+ 
+ 	return 0;
+ qp_destroy:
+@@ -1638,7 +1638,7 @@ int bnxt_re_destroy_srq(struct ib_srq *ib_srq, struct ib_udata *udata)
+ 		nq = qplib_srq->cq->nq;
+ 	bnxt_qplib_destroy_srq(&rdev->qplib_res, qplib_srq);
+ 	ib_umem_release(srq->umem);
+-	atomic_dec(&rdev->srq_count);
++	atomic_dec(&rdev->stats.res.srq_count);
+ 	if (nq)
+ 		nq->budget--;
+ 	return 0;
+@@ -1750,7 +1750,7 @@ int bnxt_re_create_srq(struct ib_srq *ib_srq,
+ 	}
+ 	if (nq)
+ 		nq->budget++;
+-	atomic_inc(&rdev->srq_count);
++	atomic_inc(&rdev->stats.res.srq_count);
+ 	spin_lock_init(&srq->lock);
+ 
+ 	return 0;
+@@ -2876,7 +2876,7 @@ int bnxt_re_destroy_cq(struct ib_cq *ib_cq, struct ib_udata *udata)
+ 	bnxt_qplib_destroy_cq(&rdev->qplib_res, &cq->qplib_cq);
+ 	ib_umem_release(cq->umem);
+ 
+-	atomic_dec(&rdev->cq_count);
++	atomic_dec(&rdev->stats.res.cq_count);
+ 	nq->budget--;
+ 	kfree(cq->cql);
+ 	return 0;
+@@ -2960,7 +2960,7 @@ int bnxt_re_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	cq->cq_period = cq->qplib_cq.period;
+ 	nq->budget++;
+ 
+-	atomic_inc(&rdev->cq_count);
++	atomic_inc(&rdev->stats.res.cq_count);
+ 	spin_lock_init(&cq->cq_lock);
+ 
+ 	if (udata) {
+@@ -3785,7 +3785,7 @@ struct ib_mr *bnxt_re_get_dma_mr(struct ib_pd *ib_pd, int mr_access_flags)
+ 	if (mr_access_flags & (IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ |
+ 			       IB_ACCESS_REMOTE_ATOMIC))
+ 		mr->ib_mr.rkey = mr->ib_mr.lkey;
+-	atomic_inc(&rdev->mr_count);
++	atomic_inc(&rdev->stats.res.mr_count);
+ 
+ 	return &mr->ib_mr;
+ 
+@@ -3818,7 +3818,7 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr, struct ib_udata *udata)
+ 	ib_umem_release(mr->ib_umem);
+ 
+ 	kfree(mr);
+-	atomic_dec(&rdev->mr_count);
++	atomic_dec(&rdev->stats.res.mr_count);
+ 	return rc;
+ }
+ 
+@@ -3886,7 +3886,7 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
+ 		goto fail_mr;
+ 	}
+ 
+-	atomic_inc(&rdev->mr_count);
++	atomic_inc(&rdev->stats.res.mr_count);
+ 	return &mr->ib_mr;
+ 
+ fail_mr:
+@@ -3922,7 +3922,7 @@ struct ib_mw *bnxt_re_alloc_mw(struct ib_pd *ib_pd, enum ib_mw_type type,
+ 	}
+ 	mw->ib_mw.rkey = mw->qplib_mw.rkey;
+ 
+-	atomic_inc(&rdev->mw_count);
++	atomic_inc(&rdev->stats.res.mw_count);
+ 	return &mw->ib_mw;
+ 
+ fail:
+@@ -3943,7 +3943,7 @@ int bnxt_re_dealloc_mw(struct ib_mw *ib_mw)
+ 	}
+ 
+ 	kfree(mw);
+-	atomic_dec(&rdev->mw_count);
++	atomic_dec(&rdev->stats.res.mw_count);
+ 	return rc;
+ }
+ 
+@@ -4010,7 +4010,7 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 
+ 	mr->ib_mr.lkey = mr->qplib_mr.lkey;
+ 	mr->ib_mr.rkey = mr->qplib_mr.lkey;
+-	atomic_inc(&rdev->mr_count);
++	atomic_inc(&rdev->stats.res.mr_count);
+ 
+ 	return &mr->ib_mr;
+ free_umem:
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 6469811..91efa04 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -918,13 +918,13 @@ static struct bnxt_re_dev *bnxt_re_dev_add(struct bnxt_aux_priv *aux_priv,
+ 	rdev->id = rdev->en_dev->pdev->devfn;
+ 	INIT_LIST_HEAD(&rdev->qp_list);
+ 	mutex_init(&rdev->qp_lock);
+-	atomic_set(&rdev->qp_count, 0);
+-	atomic_set(&rdev->cq_count, 0);
+-	atomic_set(&rdev->srq_count, 0);
+-	atomic_set(&rdev->mr_count, 0);
+-	atomic_set(&rdev->mw_count, 0);
+-	atomic_set(&rdev->ah_count, 0);
+-	atomic_set(&rdev->pd_count, 0);
++	atomic_set(&rdev->stats.res.qp_count, 0);
++	atomic_set(&rdev->stats.res.cq_count, 0);
++	atomic_set(&rdev->stats.res.srq_count, 0);
++	atomic_set(&rdev->stats.res.mr_count, 0);
++	atomic_set(&rdev->stats.res.mw_count, 0);
++	atomic_set(&rdev->stats.res.ah_count, 0);
++	atomic_set(&rdev->stats.res.pd_count, 0);
+ 	rdev->cosq[0] = 0xFFFF;
+ 	rdev->cosq[1] = 0xFFFF;
+ 
+-- 
+2.5.5
+
+
+--00000000000010ee370601652505
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -234,14 +446,14 @@ j1Ze9ndr+YDXPpCymOsynmmw0ErHZGGW1OmMpAEt0A+613glWCURLDlP8HONi1wnINV6aDiEf0ad
 9NMGxDsp+YWiRXD3txfo2OMQbpIxM90QfhKKacX8t1J1oAAWxDrLVTJBXBNvz5tr+D1sYwuye93r
 hImmkM1unboxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWdu
 IG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25hbFNpZ24gMiBDQSAyMDIw
-Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEIAzNgLIgO+4r
-Cnmz01X5le3KVPESz2OCp38qHcDzbvpAMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
-hvcNAQkFMQ8XDTIzMDcyNjE0NDAxOFowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
+Agxy+Cu4x/7lM0zxY7cwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcNAQkEMSIEILr+dASmde0i
+FzVHYktTnvL5T0atqeRb5/58xC3hfv0OMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZI
+hvcNAQkFMQ8XDTIzMDcyNjE1MDMwNVowaQYJKoZIhvcNAQkPMVwwWjALBglghkgBZQMEASowCwYJ
 YIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG9w0BAQowCwYJKoZIhvcN
-AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQC7WziB9mcl8oN3pMQ7dKQxEKiHQ/xI
-9jHfyOHUcM0ICJYUhS8N7SacV1kblOhCN8BL0CSD0o2rw6u8k7NpytKpZBJ7jnkOUHDlIojEEgUY
-ieNuNYF1DEE0obVBNF//GqQpZIHb9mcpgIoCXM6vGcfbqTfTHJl6mc64TzOIBc+LygyStZQLLiFA
-pYRaJFoaJqhKLdsG5mot9hs76nF8r0xERwFo/+gH8a9NKjFwVKK279XWxpA0uNpZxfEPzfXKfJo3
-1HOogN/SPWEi6EQgatEpPqvRLM0txw1iYM5Os+v3d/Yvuga2I/LsBGbaarvhwEqMI6aQnzWNf3Jp
-QtaUdBkf
---0000000000009330eb060164d3a0--
+AQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQDJoWr16K6ZpRsb3/XVRDJm0GDJVi+m
+z8ZhkKApwhYKmLEnf9BTMwKfWrrgTodg1dwKSqxvUjplAcLOOQ5iBnnELR/Qj7owA+tgRZnv5vOh
+bYxEUoPbSW/hljWXyM+QbKWb9stUHBEU3L6873gFm+n/fZ+F066KfLvIZxUNiZbRj+7bavQGFJIa
+KYYmTCW+WG9q1JhGO8CSHkXBd0DQVyCj2qxl1pTOBZ9mtGOj7pRk18cGcT185FnzPJuLnzoCgFsh
+7+oWHTQCFrXELbX5AMR4ZsXOcQVET6LlUnDqwZKquDhFHJjw8vtMfiX9EvdO41T7AWC3zbEsmlD6
+RopHFoqP
+--00000000000010ee370601652505--
