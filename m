@@ -2,81 +2,108 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57503C001DF
-	for <linux-rdma@archiver.kernel.org>; Thu,  3 Aug 2023 13:44:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5F76EB64DD
+	for <linux-rdma@archiver.kernel.org>; Thu,  3 Aug 2023 17:58:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236059AbjHCNoH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 3 Aug 2023 09:44:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58578 "EHLO
+        id S230460AbjHCR6v (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 3 Aug 2023 13:58:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236743AbjHCNnZ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Aug 2023 09:43:25 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B4CF5257
-        for <linux-rdma@vger.kernel.org>; Thu,  3 Aug 2023 06:40:22 -0700 (PDT)
+        with ESMTP id S235202AbjHCR6u (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 3 Aug 2023 13:58:50 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5099930E9
+        for <linux-rdma@vger.kernel.org>; Thu,  3 Aug 2023 10:58:48 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AF38061DA7
-        for <linux-rdma@vger.kernel.org>; Thu,  3 Aug 2023 13:40:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 0EB20C433C8;
-        Thu,  3 Aug 2023 13:40:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CE21261E4E
+        for <linux-rdma@vger.kernel.org>; Thu,  3 Aug 2023 17:58:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAD31C433C7;
+        Thu,  3 Aug 2023 17:58:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691070021;
-        bh=Ag34fpOs/ZDN8OnIF2XhhMhBUdy+7vBk5TXYmXAFKUk=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=ab0voQdVrt9tWWx/PplP1mNbUQVh4BH54VWsLFyJpENE2P4djMIVVKA4ih3+t0Qob
-         NG2IyY5suZH8gdWCQiRTmhbIFr7IlU6pWJHGUgWrp9E5ba5GcBZlbLtODGwO9VuVlp
-         j/GzI2aUvYT7Dfv3YndR7h0gHv7zjRj5HvfDMaFWHDWS7K6SluVrkb7zmRKPPv9Z3u
-         eXMk6YIm14uYDUCL4xhK7hDwHlATzCDMCwbf3n2zeLTXqbOJZn+Rm67UtWwuXFrW1r
-         oG2ZSBhm5dOWjmmt58laaxJVDAM2dwrstGBs/asLVLq+tC+GBK6YhJLallVFKi4qBr
-         SZsmFLv0FKI2A==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id EB740C41620;
-        Thu,  3 Aug 2023 13:40:20 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+        s=k20201202; t=1691085527;
+        bh=Lf1c6O0JBMWJkiGMPoPzhBXA3bncbz9VVS1SIKOl2T4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=PMWPlIitp1vCXgHz83R7m7WenUarh4IOAqCxv8BhV9+u1CFJGG5ZiAQv9RHKLBVHs
+         FhNqpeSQBqurLyyYkJ6wfYoPWWZHVk9csH4MQUCshWoJlmRBFuWxrupEfV4015sa7T
+         eBlr40MZ19xlzoMdj7a3bk7sVkxKEhYO1DaAnqFbkmLFWJdNDNFZWnkoqj7Jk4Q9a7
+         1VehAqEd34JgFeLV5MlFeZBWIqErE04QQTmkfBW0GaFQqpYxpZpX/QKGd0Os/z11Tt
+         aFGcEiR0HzzuBZZZTc16IdpYgfX3pVqNBmNJdwASPz1WaIwjHjqlaQTmABWBxcIJ/h
+         x0MzOXP0G+Ebg==
+Date:   Thu, 3 Aug 2023 20:58:42 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Selvin Xavier <selvin.xavier@broadcom.com>
+Cc:     jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        andrew.gospodarek@broadcom.com,
+        Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+Subject: Re: [PATCH for-next v2] IB/core: Add more speed parsing in
+ ib_get_width_and_speed()
+Message-ID: <20230803175842.GF53714@unreal>
+References: <1690966823-8159-1-git-send-email-selvin.xavier@broadcom.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v2] net/mlx4: Remove many unnecessary NULL values
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <169107002095.31149.2986339328309539867.git-patchwork-notify@kernel.org>
-Date:   Thu, 03 Aug 2023 13:40:20 +0000
-References: <20230802040026.2588675-1-ruanjinjie@huawei.com>
-In-Reply-To: <20230802040026.2588675-1-ruanjinjie@huawei.com>
-To:     Ruan Jinjie <ruanjinjie@huawei.com>
-Cc:     tariqt@nvidia.com, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, linux-rdma@vger.kernel.org,
-        netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1690966823-8159-1-git-send-email-selvin.xavier@broadcom.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello:
-
-This patch was applied to netdev/net-next.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
-
-On Wed, 2 Aug 2023 12:00:26 +0800 you wrote:
-> The NULL initialization of the pointers assigned by kzalloc() first is
-> not necessary, because if the kzalloc() failed, the pointers will be
-> assigned NULL, otherwise it works as usual. so remove it.
+On Wed, Aug 02, 2023 at 02:00:23AM -0700, Selvin Xavier wrote:
+> From: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
 > 
-> Signed-off-by: Ruan Jinjie <ruanjinjie@huawei.com>
+> When the Ethernet driver does not provide the number of lanes
+> in the __ethtool_get_link_ksettings() response, the function
+> ib_get_width_and_speed() does not take consideration of 50G,
+> 100G and 200G speeds while calculating the IB width and speed.
+> Update the width and speed for the above netdev speeds.
+> 
+> Signed-off-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 > ---
-> v2:
-> - add the wrong removed NULL hunk code in mlx4_init_hca().
-> - update the commit message.
+> v1 - v2:
+>     - Rebased the patch based on the latest changes in ib_get_width_and_speed
+>     - removed the switch case and use the existing else if check
+> ---
+>  drivers/infiniband/core/verbs.c | 11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
 > 
-> [...]
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 25367bd..41ff559 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -1899,9 +1899,18 @@ static void ib_get_width_and_speed(u32 netdev_speed, u32 lanes,
+>  		} else if (netdev_speed <= SPEED_40000) {
+>  			*width = IB_WIDTH_4X;
+>  			*speed = IB_SPEED_FDR10;
+> -		} else {
+> +		} else if (netdev_speed <= SPEED_50000) {
+> +			*width = IB_WIDTH_2X;
+> +			*speed = IB_SPEED_EDR;
+> +		} else if (netdev_speed <= SPEED_100000) {
+>  			*width = IB_WIDTH_4X;
+>  			*speed = IB_SPEED_EDR;
+> +		} else if (netdev_speed <= SPEED_200000) {
+> +			*width = IB_WIDTH_4X;
+> +			*speed = IB_SPEED_HDR;
 
-Here is the summary with links:
-  - [net-next,v2] net/mlx4: Remove many unnecessary NULL values
-    https://git.kernel.org/netdev/net-next/c/3986892646de
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+SPEED_50000, SPEED_100000 and SPEED_200000 depends on
+ClassPortInfo:CapabilityMask2.is* values.
+
+For example, SPEED_50000 can b IB_WIDTH_2X/IB_SPEED_EDR and IB_WIDTH_1X/IB_SPEED_HDR.
+
+Thanks
+
+> +		} else {
+> +			*width = IB_WIDTH_4X;
+> +			*speed = IB_SPEED_NDR;
+>  		}
+>  
+>  		return;
+> -- 
+> 2.5.5
+> 
 
 
