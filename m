@@ -2,365 +2,234 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33666C001DB
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Aug 2023 15:06:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2A1DC001DE
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Aug 2023 16:01:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231989AbjHDPGn (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Aug 2023 11:06:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46020 "EHLO
+        id S232259AbjHDQBA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Aug 2023 12:01:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231935AbjHDPGe (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Aug 2023 11:06:34 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA43149D6;
-        Fri,  4 Aug 2023 08:06:14 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 180BA21892;
-        Fri,  4 Aug 2023 15:06:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1691161573; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=OkPMFyTxTaVld9drnJlwQB73X9hoguASDIsCqQgORSI=;
-        b=ZUcSVI4x7dqV+ZETnU+id9ax1nx9ZTaMtx51p/+hjxZRqbWAXJPoU52zzEz2LVRUGOSWzx
-        LbCqmCs1dFWwmyd8/S76jVtcClRTYUa7w0kocGCYI3+25i/7rncX/y9NyihbJq/anWoPUz
-        1ekWch33SVvcjQQnoYYWDTZN8HnYD7w=
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id D745D133B5;
-        Fri,  4 Aug 2023 15:06:12 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id kFPFM+QTzWRwSQAAMHmgww
-        (envelope-from <petr.pavlu@suse.com>); Fri, 04 Aug 2023 15:06:12 +0000
-From:   Petr Pavlu <petr.pavlu@suse.com>
-To:     tariqt@nvidia.com, yishaih@nvidia.com, leon@kernel.org
-Cc:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, jgg@ziepe.ca, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Petr Pavlu <petr.pavlu@suse.com>
-Subject: [PATCH net-next 10/10] mlx4: Delete custom device management logic
-Date:   Fri,  4 Aug 2023 17:05:27 +0200
-Message-Id: <20230804150527.6117-11-petr.pavlu@suse.com>
-X-Mailer: git-send-email 2.35.3
-In-Reply-To: <20230804150527.6117-1-petr.pavlu@suse.com>
-References: <20230804150527.6117-1-petr.pavlu@suse.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S232262AbjHDQA5 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Aug 2023 12:00:57 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB5474C0A
+        for <linux-rdma@vger.kernel.org>; Fri,  4 Aug 2023 09:00:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1691164852; x=1722700852;
+  h=date:from:to:cc:subject:message-id;
+  bh=42AfdGtueNkBmVKTEiH7YH6ChvWGMtMCfW2VQR0Id8s=;
+  b=aTFhRCiHX6IbYSCY/L+JgjTI9ACccb5ntEk8oYpD1sayxiEajvE0MYXy
+   F/CnF9cazf3OwBBG0F1s9uwmrFbTsfj6GDjMuyp1JNCGdSC5x6Kl6uKJh
+   X85wk30FNopP0iZBoQvktdBTWjaOOPH5XZsS4ndOOZXkpB0wZ5YdOacJn
+   IXWXlFRWQPvrXz7wFrGUDEZ5Ex4zqSavJvDImCeE497tHt7gxS38EHpl4
+   N7UvsZ3LOBJeA7yenCh23hZyD8pStOaLuQfJ1epWbFuv+3dbs3zbF8obC
+   BvDgEIuxxQnKcm5Y9jZBQoFwgYMc6zD11D3Lec4EQTY5bf550UExheGuJ
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10792"; a="434034154"
+X-IronPort-AV: E=Sophos;i="6.01,255,1684825200"; 
+   d="scan'208";a="434034154"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2023 09:00:40 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10792"; a="733302240"
+X-IronPort-AV: E=Sophos;i="6.01,255,1684825200"; 
+   d="scan'208";a="733302240"
+Received: from lkp-server01.sh.intel.com (HELO d1ccc7e87e8f) ([10.239.97.150])
+  by fmsmga007.fm.intel.com with ESMTP; 04 Aug 2023 09:00:38 -0700
+Received: from kbuild by d1ccc7e87e8f with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qRxED-0002wx-31;
+        Fri, 04 Aug 2023 16:00:37 +0000
+Date:   Sat, 05 Aug 2023 00:00:18 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Doug Ledford <dledford@redhat.com>,
+        Jason Gunthorpe <jgg+lists@ziepe.ca>,
+        linux-rdma@vger.kernel.org
+Subject: [rdma:wip/leon-for-rc] BUILD SUCCESS
+ 4fdfaef71fced490835145631a795497646f4555
+Message-ID: <202308050017.MIvMfbwI-lkp@intel.com>
+User-Agent: s-nail v14.9.24
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-After the conversion to use the auxiliary bus, the custom device
-management is not needed anymore and can be deleted.
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-rc
+branch HEAD: 4fdfaef71fced490835145631a795497646f4555  IB/hfi1: Fix possible panic during hotplug remove
 
-Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
-Tested-by: Leon Romanovsky <leon@kernel.org>
----
- drivers/net/ethernet/mellanox/mlx4/intf.c | 125 ----------------------
- drivers/net/ethernet/mellanox/mlx4/main.c |  28 -----
- drivers/net/ethernet/mellanox/mlx4/mlx4.h |   3 -
- include/linux/mlx4/driver.h               |  10 --
- 4 files changed, 166 deletions(-)
+elapsed time: 1264m
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
-index 16b2c99ff737..c7697ee0dd05 100644
---- a/drivers/net/ethernet/mellanox/mlx4/intf.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
-@@ -38,15 +38,6 @@
- 
- #include "mlx4.h"
- 
--struct mlx4_device_context {
--	struct list_head	list;
--	struct list_head	bond_list;
--	struct mlx4_interface  *intf;
--	void		       *context;
--};
--
--static LIST_HEAD(intf_list);
--static LIST_HEAD(dev_list);
- static DEFINE_MUTEX(intf_mutex);
- static DEFINE_IDA(mlx4_adev_ida);
- 
-@@ -156,77 +147,6 @@ static void del_adev(struct auxiliary_device *adev)
- 	auxiliary_device_uninit(adev);
- }
- 
--static void mlx4_add_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
--{
--	struct mlx4_device_context *dev_ctx;
--
--	dev_ctx = kmalloc(sizeof(*dev_ctx), GFP_KERNEL);
--	if (!dev_ctx)
--		return;
--
--	dev_ctx->intf    = intf;
--	dev_ctx->context = intf->add(&priv->dev);
--
--	if (dev_ctx->context) {
--		spin_lock_irq(&priv->ctx_lock);
--		list_add_tail(&dev_ctx->list, &priv->ctx_list);
--		spin_unlock_irq(&priv->ctx_lock);
--	} else
--		kfree(dev_ctx);
--
--}
--
--static void mlx4_remove_device(struct mlx4_interface *intf, struct mlx4_priv *priv)
--{
--	struct mlx4_device_context *dev_ctx;
--
--	list_for_each_entry(dev_ctx, &priv->ctx_list, list)
--		if (dev_ctx->intf == intf) {
--			spin_lock_irq(&priv->ctx_lock);
--			list_del(&dev_ctx->list);
--			spin_unlock_irq(&priv->ctx_lock);
--
--			intf->remove(&priv->dev, dev_ctx->context);
--			kfree(dev_ctx);
--			return;
--		}
--}
--
--int mlx4_register_interface(struct mlx4_interface *intf)
--{
--	struct mlx4_priv *priv;
--
--	if (!intf->add || !intf->remove)
--		return -EINVAL;
--
--	mutex_lock(&intf_mutex);
--
--	list_add_tail(&intf->list, &intf_list);
--	list_for_each_entry(priv, &dev_list, dev_list) {
--		mlx4_add_device(intf, priv);
--	}
--
--	mutex_unlock(&intf_mutex);
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(mlx4_register_interface);
--
--void mlx4_unregister_interface(struct mlx4_interface *intf)
--{
--	struct mlx4_priv *priv;
--
--	mutex_lock(&intf_mutex);
--
--	list_for_each_entry(priv, &dev_list, dev_list)
--		mlx4_remove_device(intf, priv);
--
--	list_del(&intf->list);
--
--	mutex_unlock(&intf_mutex);
--}
--EXPORT_SYMBOL_GPL(mlx4_unregister_interface);
--
- int mlx4_register_auxiliary_driver(struct mlx4_adrv *madrv)
- {
- 	return auxiliary_driver_register(&madrv->adrv);
-@@ -242,10 +162,7 @@ EXPORT_SYMBOL_GPL(mlx4_unregister_auxiliary_driver);
- int mlx4_do_bond(struct mlx4_dev *dev, bool enable)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
--	struct mlx4_device_context *dev_ctx = NULL, *temp_dev_ctx;
--	unsigned long flags;
- 	int i, ret;
--	LIST_HEAD(bond_list);
- 
- 	if (!(dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_PORT_REMAP))
- 		return -EOPNOTSUPP;
-@@ -267,36 +184,6 @@ int mlx4_do_bond(struct mlx4_dev *dev, bool enable)
- 		dev->flags &= ~MLX4_FLAG_BONDED;
- 	}
- 
--	spin_lock_irqsave(&priv->ctx_lock, flags);
--	list_for_each_entry_safe(dev_ctx, temp_dev_ctx, &priv->ctx_list, list) {
--		if (!(dev_ctx->intf->flags & MLX4_INTFF_BONDING))
--			continue;
--
--		if (mlx4_is_mfunc(dev)) {
--			mlx4_dbg(dev,
--				 "SRIOV, disabled HA mode for intf proto %d\n",
--				 dev_ctx->intf->protocol);
--			continue;
--		}
--
--		list_add_tail(&dev_ctx->bond_list, &bond_list);
--		list_del(&dev_ctx->list);
--	}
--	spin_unlock_irqrestore(&priv->ctx_lock, flags);
--
--	list_for_each_entry(dev_ctx, &bond_list, bond_list) {
--		dev_ctx->intf->remove(dev, dev_ctx->context);
--		dev_ctx->context =  dev_ctx->intf->add(dev);
--
--		spin_lock_irqsave(&priv->ctx_lock, flags);
--		list_add_tail(&dev_ctx->list, &priv->ctx_list);
--		spin_unlock_irqrestore(&priv->ctx_lock, flags);
--
--		mlx4_dbg(dev, "Interface for protocol %d restarted with bonded mode %s\n",
--			 dev_ctx->intf->protocol, enable ?
--			 "enabled" : "disabled");
--	}
--
- 	mutex_lock(&intf_mutex);
- 
- 	for (i = 0; i < ARRAY_SIZE(mlx4_adev_devices); i++) {
-@@ -447,16 +334,11 @@ static int rescan_drivers_locked(struct mlx4_dev *dev)
- 
- int mlx4_register_device(struct mlx4_dev *dev)
- {
--	struct mlx4_priv *priv = mlx4_priv(dev);
--	struct mlx4_interface *intf;
- 	int ret;
- 
- 	mutex_lock(&intf_mutex);
- 
- 	dev->persist->interface_state |= MLX4_INTERFACE_STATE_UP;
--	list_add_tail(&priv->dev_list, &dev_list);
--	list_for_each_entry(intf, &intf_list, list)
--		mlx4_add_device(intf, priv);
- 
- 	ret = rescan_drivers_locked(dev);
- 
-@@ -474,9 +356,6 @@ int mlx4_register_device(struct mlx4_dev *dev)
- 
- void mlx4_unregister_device(struct mlx4_dev *dev)
- {
--	struct mlx4_priv *priv = mlx4_priv(dev);
--	struct mlx4_interface *intf;
--
- 	if (!(dev->persist->interface_state & MLX4_INTERFACE_STATE_UP))
- 		return;
- 
-@@ -495,10 +374,6 @@ void mlx4_unregister_device(struct mlx4_dev *dev)
- 	}
- 	mutex_lock(&intf_mutex);
- 
--	list_for_each_entry(intf, &intf_list, list)
--		mlx4_remove_device(intf, priv);
--
--	list_del(&priv->dev_list);
- 	dev->persist->interface_state &= ~MLX4_INTERFACE_STATE_UP;
- 
- 	rescan_drivers_locked(dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index c4ec7377aa71..2581226836b5 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -42,7 +42,6 @@
- #include <linux/slab.h>
- #include <linux/io-mapping.h>
- #include <linux/delay.h>
--#include <linux/kmod.h>
- #include <linux/etherdevice.h>
- #include <net/devlink.h>
- 
-@@ -1091,27 +1090,6 @@ static int mlx4_slave_cap(struct mlx4_dev *dev)
- 	return err;
- }
- 
--static void mlx4_request_modules(struct mlx4_dev *dev)
--{
--	int port;
--	int has_ib_port = false;
--	int has_eth_port = false;
--#define EN_DRV_NAME	"mlx4_en"
--#define IB_DRV_NAME	"mlx4_ib"
--
--	for (port = 1; port <= dev->caps.num_ports; port++) {
--		if (dev->caps.port_type[port] == MLX4_PORT_TYPE_IB)
--			has_ib_port = true;
--		else if (dev->caps.port_type[port] == MLX4_PORT_TYPE_ETH)
--			has_eth_port = true;
--	}
--
--	if (has_eth_port)
--		request_module_nowait(EN_DRV_NAME);
--	if (has_ib_port || (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE))
--		request_module_nowait(IB_DRV_NAME);
--}
--
- /*
-  * Change the port configuration of the device.
-  * Every user of this function must hold the port mutex.
-@@ -1147,7 +1125,6 @@ int mlx4_change_port_types(struct mlx4_dev *dev,
- 			mlx4_err(dev, "Failed to register device\n");
- 			goto out;
- 		}
--		mlx4_request_modules(dev);
- 	}
- 
- out:
-@@ -3426,9 +3403,6 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
- 	devl_assert_locked(devlink);
- 	dev = &priv->dev;
- 
--	INIT_LIST_HEAD(&priv->ctx_list);
--	spin_lock_init(&priv->ctx_lock);
--
- 	err = mlx4_adev_init(dev);
- 	if (err)
- 		return err;
-@@ -3732,8 +3706,6 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
- 	if (err)
- 		goto err_port;
- 
--	mlx4_request_modules(dev);
--
- 	mlx4_sense_init(dev);
- 	mlx4_start_sense(dev);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index d5050bfb342f..d707b790536f 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -882,9 +882,6 @@ enum {
- struct mlx4_priv {
- 	struct mlx4_dev		dev;
- 
--	struct list_head	dev_list;
--	struct list_head	ctx_list;
--	spinlock_t		ctx_lock;
- 	struct mlx4_adev	**adev;
- 	int			adev_idx;
- 	struct atomic_notifier_head event_nh;
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 9cf157d381c6..69825223081f 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -58,22 +58,12 @@ enum {
- 	MLX4_INTFF_BONDING	= 1 << 0
- };
- 
--struct mlx4_interface {
--	void *			(*add)	 (struct mlx4_dev *dev);
--	void			(*remove)(struct mlx4_dev *dev, void *context);
--	struct list_head	list;
--	enum mlx4_protocol	protocol;
--	int			flags;
--};
--
- struct mlx4_adrv {
- 	struct auxiliary_driver	adrv;
- 	enum mlx4_protocol	protocol;
- 	int			flags;
- };
- 
--int mlx4_register_interface(struct mlx4_interface *intf);
--void mlx4_unregister_interface(struct mlx4_interface *intf);
- int mlx4_register_auxiliary_driver(struct mlx4_adrv *madrv);
- void mlx4_unregister_auxiliary_driver(struct mlx4_adrv *madrv);
- 
+configs tested: 162
+configs skipped: 5
+
+The following configs have been built successfully.
+More configs may be tested in the coming days.
+
+tested configs:
+alpha                            allyesconfig   gcc  
+alpha                               defconfig   gcc  
+alpha                randconfig-r023-20230731   gcc  
+arc                              allyesconfig   gcc  
+arc                                 defconfig   gcc  
+arc                  randconfig-r014-20230803   gcc  
+arc                  randconfig-r026-20230731   gcc  
+arc                  randconfig-r032-20230731   gcc  
+arc                  randconfig-r033-20230731   gcc  
+arc                  randconfig-r043-20230802   gcc  
+arm                              allmodconfig   gcc  
+arm                              allyesconfig   gcc  
+arm                                 defconfig   gcc  
+arm                           h3600_defconfig   gcc  
+arm                  randconfig-r024-20230731   gcc  
+arm                  randconfig-r046-20230802   clang
+arm                        realview_defconfig   gcc  
+arm64                            allyesconfig   gcc  
+arm64                               defconfig   gcc  
+arm64                randconfig-r004-20230731   gcc  
+arm64                randconfig-r013-20230803   clang
+arm64                randconfig-r033-20230731   gcc  
+csky                                defconfig   gcc  
+csky                 randconfig-r006-20230801   gcc  
+csky                 randconfig-r036-20230731   gcc  
+hexagon              randconfig-r004-20230801   clang
+hexagon              randconfig-r012-20230731   clang
+hexagon              randconfig-r015-20230731   clang
+hexagon              randconfig-r041-20230802   clang
+hexagon              randconfig-r045-20230802   clang
+i386                             allyesconfig   gcc  
+i386         buildonly-randconfig-r004-20230731   gcc  
+i386         buildonly-randconfig-r004-20230801   gcc  
+i386         buildonly-randconfig-r005-20230731   gcc  
+i386         buildonly-randconfig-r005-20230801   gcc  
+i386         buildonly-randconfig-r006-20230731   gcc  
+i386         buildonly-randconfig-r006-20230801   gcc  
+i386                              debian-10.3   gcc  
+i386                                defconfig   gcc  
+i386                 randconfig-i001-20230731   gcc  
+i386                 randconfig-i002-20230731   gcc  
+i386                 randconfig-i003-20230731   gcc  
+i386                 randconfig-i004-20230731   gcc  
+i386                 randconfig-i005-20230731   gcc  
+i386                 randconfig-i006-20230731   gcc  
+i386                 randconfig-i011-20230731   clang
+i386                 randconfig-i011-20230801   clang
+i386                 randconfig-i012-20230731   clang
+i386                 randconfig-i012-20230801   clang
+i386                 randconfig-i013-20230731   clang
+i386                 randconfig-i013-20230801   clang
+i386                 randconfig-i014-20230731   clang
+i386                 randconfig-i014-20230801   clang
+i386                 randconfig-i015-20230731   clang
+i386                 randconfig-i015-20230801   clang
+i386                 randconfig-i016-20230731   clang
+i386                 randconfig-i016-20230801   clang
+i386                 randconfig-r014-20230731   clang
+i386                 randconfig-r024-20230731   clang
+loongarch                        allmodconfig   gcc  
+loongarch                         allnoconfig   gcc  
+loongarch                           defconfig   gcc  
+m68k                             allmodconfig   gcc  
+m68k                             allyesconfig   gcc  
+m68k                                defconfig   gcc  
+microblaze           randconfig-r002-20230801   gcc  
+microblaze           randconfig-r025-20230731   gcc  
+mips                             allmodconfig   gcc  
+mips                             allyesconfig   gcc  
+mips                  maltasmvp_eva_defconfig   gcc  
+mips                 randconfig-r005-20230801   clang
+mips                 randconfig-r022-20230731   gcc  
+mips                 randconfig-r032-20230731   clang
+mips                 randconfig-r035-20230731   clang
+nios2                               defconfig   gcc  
+nios2                randconfig-r011-20230731   gcc  
+nios2                randconfig-r035-20230731   gcc  
+openrisc             randconfig-r003-20230731   gcc  
+openrisc             randconfig-r012-20230803   gcc  
+openrisc             randconfig-r016-20230803   gcc  
+parisc                           allyesconfig   gcc  
+parisc                              defconfig   gcc  
+parisc               randconfig-r026-20230731   gcc  
+parisc64                            defconfig   gcc  
+powerpc                          allmodconfig   gcc  
+powerpc                           allnoconfig   gcc  
+powerpc                   currituck_defconfig   gcc  
+powerpc                      katmai_defconfig   clang
+powerpc                     mpc83xx_defconfig   gcc  
+powerpc                       ppc64_defconfig   gcc  
+powerpc                     tqm8548_defconfig   gcc  
+riscv                            allmodconfig   gcc  
+riscv                             allnoconfig   gcc  
+riscv                            allyesconfig   gcc  
+riscv                               defconfig   gcc  
+riscv                randconfig-r021-20230731   clang
+riscv                randconfig-r025-20230731   clang
+riscv                randconfig-r034-20230731   gcc  
+riscv                randconfig-r042-20230802   gcc  
+riscv                          rv32_defconfig   gcc  
+s390                             allmodconfig   gcc  
+s390                             allyesconfig   gcc  
+s390                                defconfig   gcc  
+s390                 randconfig-r001-20230801   gcc  
+s390                 randconfig-r021-20230731   clang
+s390                 randconfig-r044-20230802   gcc  
+sh                               allmodconfig   gcc  
+sh                   randconfig-r003-20230801   gcc  
+sh                   randconfig-r005-20230731   gcc  
+sh                          rsk7203_defconfig   gcc  
+sh                        sh7763rdp_defconfig   gcc  
+sparc                            allyesconfig   gcc  
+sparc                               defconfig   gcc  
+sparc                randconfig-r015-20230803   gcc  
+sparc                randconfig-r023-20230731   gcc  
+sparc                randconfig-r034-20230731   gcc  
+sparc64              randconfig-r011-20230803   gcc  
+sparc64              randconfig-r013-20230731   gcc  
+sparc64              randconfig-r016-20230731   gcc  
+um                               allmodconfig   clang
+um                                allnoconfig   clang
+um                               allyesconfig   clang
+um                                  defconfig   gcc  
+um                             i386_defconfig   gcc  
+um                   randconfig-r001-20230731   clang
+um                           x86_64_defconfig   gcc  
+x86_64                           allyesconfig   gcc  
+x86_64       buildonly-randconfig-r001-20230731   gcc  
+x86_64       buildonly-randconfig-r001-20230801   gcc  
+x86_64       buildonly-randconfig-r002-20230731   gcc  
+x86_64       buildonly-randconfig-r002-20230801   gcc  
+x86_64       buildonly-randconfig-r003-20230731   gcc  
+x86_64       buildonly-randconfig-r003-20230801   gcc  
+x86_64                              defconfig   gcc  
+x86_64                                  kexec   gcc  
+x86_64               randconfig-r031-20230731   gcc  
+x86_64               randconfig-r036-20230731   gcc  
+x86_64               randconfig-x001-20230731   clang
+x86_64               randconfig-x001-20230802   gcc  
+x86_64               randconfig-x002-20230731   clang
+x86_64               randconfig-x002-20230802   gcc  
+x86_64               randconfig-x003-20230731   clang
+x86_64               randconfig-x003-20230802   gcc  
+x86_64               randconfig-x004-20230731   clang
+x86_64               randconfig-x004-20230802   gcc  
+x86_64               randconfig-x005-20230731   clang
+x86_64               randconfig-x005-20230802   gcc  
+x86_64               randconfig-x006-20230731   clang
+x86_64               randconfig-x006-20230802   gcc  
+x86_64               randconfig-x011-20230731   gcc  
+x86_64               randconfig-x012-20230731   gcc  
+x86_64               randconfig-x013-20230731   gcc  
+x86_64               randconfig-x014-20230731   gcc  
+x86_64               randconfig-x015-20230731   gcc  
+x86_64               randconfig-x016-20230731   gcc  
+x86_64                           rhel-8.3-bpf   gcc  
+x86_64                          rhel-8.3-func   gcc  
+x86_64                    rhel-8.3-kselftests   gcc  
+x86_64                         rhel-8.3-kunit   gcc  
+x86_64                           rhel-8.3-ltp   gcc  
+x86_64                          rhel-8.3-rust   clang
+x86_64                               rhel-8.3   gcc  
+
 -- 
-2.35.3
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
