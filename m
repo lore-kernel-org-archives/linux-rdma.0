@@ -2,151 +2,477 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FFEAC001DF
-	for <linux-rdma@archiver.kernel.org>; Fri,  4 Aug 2023 14:17:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACAC7C001DB
+	for <linux-rdma@archiver.kernel.org>; Fri,  4 Aug 2023 15:05:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230265AbjHDORq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 4 Aug 2023 10:17:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47308 "EHLO
+        id S229798AbjHDPFr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 4 Aug 2023 11:05:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230088AbjHDORp (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Aug 2023 10:17:45 -0400
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2069.outbound.protection.outlook.com [40.107.94.69])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F6631BF6
-        for <linux-rdma@vger.kernel.org>; Fri,  4 Aug 2023 07:17:40 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=JiQW+yPGpBCVrT4ouNC97lJfYLPhkDtn12uA3HXaDu+KIfA7Dfo1ybRzbVfeCF3ofcqaqLN14OXNWkwySUDLI2QuZpyFp/wnFQsLHm4DHtNSDExAR/LmwFGCHr3HCT1Oq7HnfQhkYYJ5HozYKZ5FMmrO6Z7hxGrqnu/M6xmShuHAhCHumLJ4Qmddt2ofpTUqFeSsd5iQZbZljuFEiUCODxsUW+IMkj3evAZjxOfzk7WGMfuF7Gsb0c/ht8dXIl29gqDNM8ubNhNLYvOUhiIi2KQfw2c6jCYd+oGw8i5HrnfLv6+PAaq4edIfaORqKixaKPaLIqJOwNjxTyqBnCdRgA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=bfOy0E2Rs7kfiVrkXXq8ZqRwgEc1FpqBOv+9kNCWH4E=;
- b=UwuDcrItygHmQlJeOwMx+0OfH+W8apxwx7AQWldNyKPgy8e7YcZbyAhpVCxn5tcvDgIcuOR6VJyZuE3Wf5VIiJ6UjiraatGuTaBxC4uCQgfOuibaNs/H2ppRs4a0KCQk14dsYC+z0igwagPbYFQ6DTAZiFIiNKXN9MBi0u9gMguSlDAv7VivoxtP/+SQYJRwiIIBfs48H5SSmLHdw4tWXr3nX+v7YPqDYjZLJgoXxpW71OJWrKKTX4qMdEdGBgqM107EEHGh2kY04CPni8jdKM9A88XB0TCXJOrc5eTOgKIRyE5lfi/fw6y/zt/3luE5O+v0qf3DQ2yBqC3LVSSsjg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=bfOy0E2Rs7kfiVrkXXq8ZqRwgEc1FpqBOv+9kNCWH4E=;
- b=pnybok0KBjfU2nBwdmWVUq38oSguC+5zBwbFFgbnAz5+WXvZFiCOf3IiYqvrS28TpNx+nvTI3gsAlvYQjVk86bGZ7PyCppFwvGUme5hPB022zSSoGOYy2M3KT9WAojC0waCYd1rIcjs12YWLyhz5NiYXGfjj0FISToHGLAW4ER1n7cbPNxlyhFobF+Jlf3ebOfgAs/Cel7p7IBpjJGyA/srqR+Pjxgp3PljVMCK7+2XCK5lfm/68p9aFCjy3Eq2Ji59lmbXrfNgEewUnsxohoxD59GKvAq1B2W2kp3HsQnFeCKObOxGETLx43rAnAq6V1criX5LrJ5wvIp7A3aTegg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from LV2PR12MB5869.namprd12.prod.outlook.com (2603:10b6:408:176::16)
- by SJ2PR12MB7847.namprd12.prod.outlook.com (2603:10b6:a03:4d2::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6631.47; Fri, 4 Aug
- 2023 14:17:37 +0000
-Received: from LV2PR12MB5869.namprd12.prod.outlook.com
- ([fe80::5111:16e8:5afe:1da1]) by LV2PR12MB5869.namprd12.prod.outlook.com
- ([fe80::5111:16e8:5afe:1da1%6]) with mapi id 15.20.6631.046; Fri, 4 Aug 2023
- 14:17:37 +0000
-Date:   Fri, 4 Aug 2023 11:17:36 -0300
-From:   Jason Gunthorpe <jgg@nvidia.com>
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     leon@kernel.org, zyjzyj2000@gmail.com, jhack@hpe.com,
-        linux-rdma@vger.kernel.org
-Subject: Re: [PATCH for-next 4/9] RDMA/rxe: Fix delayed send packet handling
-Message-ID: <ZM0IgLe3yv6bsEiB@nvidia.com>
-References: <20230721205021.5394-1-rpearsonhpe@gmail.com>
- <20230721205021.5394-5-rpearsonhpe@gmail.com>
- <ZMf5qhbrgx0lBv20@nvidia.com>
- <f38c7db0-e613-f840-e979-76383460fd7e@gmail.com>
- <ZMf8H4GtL4EZKGd2@nvidia.com>
- <0cfb222c-ff48-daca-d512-3083878100fa@gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0cfb222c-ff48-daca-d512-3083878100fa@gmail.com>
-X-ClientProxiedBy: MN2PR08CA0021.namprd08.prod.outlook.com
- (2603:10b6:208:239::26) To LV2PR12MB5869.namprd12.prod.outlook.com
- (2603:10b6:408:176::16)
+        with ESMTP id S230061AbjHDPFo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 4 Aug 2023 11:05:44 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07D3C49F3;
+        Fri,  4 Aug 2023 08:05:38 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8ACAB6204A;
+        Fri,  4 Aug 2023 15:05:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 652D7C433C8;
+        Fri,  4 Aug 2023 15:05:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1691161536;
+        bh=Lp1Qs8ByJyHcY/oWm72FarFhOl0WVjDkRb6QN+qdPJw=;
+        h=From:To:Cc:Subject:Date:From;
+        b=NC1C5biGN8hoo97HzphtL2XhwO7z3+bwPOD02ABMGlZDqL+tR71B0YxVP9KNNwX1Y
+         SgVOMOj/Gi7k86u8OWy6ladNUVfHGAuOMtESe4pkAfeG4L96Y8a844ot0sQbfI+2Me
+         0WiePtGhwSVjkxS+usxTK88JMge9jQD0LgDjOL44=
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     linux-rdma@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org,
+        Ivan Orlov <ivan.orlov0322@gmail.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
+        Jack Wang <jinpu.wang@ionos.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Yishai Hadas <yishaih@nvidia.com>,
+        Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: [PATCH] infiniband: make all 'class' structures const
+Date:   Fri,  4 Aug 2023 17:05:28 +0200
+Message-ID: <2023080427-commuting-crewless-cbee@gregkh>
+X-Mailer: git-send-email 2.41.0
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: LV2PR12MB5869:EE_|SJ2PR12MB7847:EE_
-X-MS-Office365-Filtering-Correlation-Id: 83dd4216-c38f-4197-f674-08db94f58e06
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: cUT1IgeJB9XvswzOxKeG+gTb5lJY6Sa4fOehiZnMuK+kPEbjCr6MqZhPkoFkNaw7QUs2ySbxyPALF8Irj6Ey8/iX956eRVkAX6Etq5k4yAfU3cdaW97JyeuLgoX85WicEMIfEfaR1lLKISS7EbfxEKmXtBxdHKxJH4gOtxtX73K+tuzhmUW9LXQpe6dZ5mTLO1pl1oah9rLbEMv+j84k4xlmG+ab6Rcn/uYnMqQf/fgLMpgvG+O3jiuVYe90IEbZeL1XtdaiPZlevaqbVocWao0zdUfzdkTX2nBkT1lJSXc4RDEMSkrRPuBxdp+eQOmEQX38jQm30vWe4K8uVxsjOvNt9Aia9uyqDvU9RS6RC5QOD3gmb+Ga9C3Nn0mjuP+gcEN0IzH+DGmoPU6O438V7gPwzp0mmHO2/DAvjQvDtlgCYj+xJMaOtfNs2FI761XK+H+M6S00boz3JlzaDo62am0myzvyMqEcROltXxMnNR2Z2X/q/ymv93fFdSaloBG740ro26c+lxX9ZTl+zV/kMW7pF8LSxnkvnnXPd6FatWzzfEf+hiFYkwDBVhal845o
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR12MB5869.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(39860400002)(366004)(136003)(346002)(396003)(376002)(1800799003)(186006)(451199021)(8936002)(316002)(478600001)(6512007)(2906002)(2616005)(86362001)(5660300002)(53546011)(26005)(6506007)(8676002)(6486002)(36756003)(41300700001)(38100700002)(6916009)(4326008)(66946007)(66476007)(66556008);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?UHC+Pg/xuhYz790q2dsSN+bChkEV+nteRZ3VZULzyYtN4+2q+UcPH0zbrx8Z?=
- =?us-ascii?Q?WYE3pEBGJ4C884LpPHkWFzqppWISv1miVGbm+7X2/xP6dv/ZKW61uruV2MBB?=
- =?us-ascii?Q?WE3gQE6OfJf4aLPZGy4XNhOVSJUHwQv7wnEeB99wL64v7dn4WSNZSR0Lk2XI?=
- =?us-ascii?Q?69AX4oA67iFNHoDGHhI6pHO7gHDP2FaPv0pw05QWJTGzou5EvW0a/zkywUI6?=
- =?us-ascii?Q?QDMtsxUpWY/PGn6fhimjM1EN9enlqy16K7vA1P3VfFX0Eu2oJ5In+uIthI1L?=
- =?us-ascii?Q?3OBoF4bzD0WxH8bAFUMY2NQXcALpQqE9XmHsYG9g0NIGfXkkx0c1Fi52RAPt?=
- =?us-ascii?Q?GedsHOH+xNlkFGMB5b0zWGmSvktTCRn+dcP49fbTXXVm737MkCJDDuQXbj97?=
- =?us-ascii?Q?GskyckFfmV0xHO5TcfKv8GE8L0PvlMClLhpBV4qlbnqIQ3g1JNTW9f3O7xbG?=
- =?us-ascii?Q?BBAihh4tFlQuVYY+xFSSRgPc9i3SU4D8tg9Cyk0d385WtWyAY6M3ZSMyXWWK?=
- =?us-ascii?Q?uwl4u16UQPrmJBojqJT15rSIyvix43y+N2Fa9jwxEJU5b7Emfwl4eU9HoCv+?=
- =?us-ascii?Q?EXB7VcJsucNfhgIlLMvOKwHN8J5Ky8xBkJanpIqUjKsjvTJNb/+oPbniYRfa?=
- =?us-ascii?Q?L8p/eN26c8Syv5dfDPP35HmS+uFqaeXGf/3+Mm8nCLcpRzQiu2KbShHbtoOr?=
- =?us-ascii?Q?Q1wan8SFQvbxx8szRTihEdO7BzvjIYJqKKz2yYUV+6kHxDTZz4gnOYtvtICh?=
- =?us-ascii?Q?W12kK6EGLfCUN8ncIt9agpIZ0NVMaiMRJ3FaYbCI/2rotzofm4++Rfg7q63G?=
- =?us-ascii?Q?zuAwhMCuLib7FafbJAl49T7BFI6yBvE9D7HNG0KBAv++Hchv1FpH7U+HBnta?=
- =?us-ascii?Q?inxBZyQXSuz83js45DO78SkavIsOrZ2erNyVybBYtya1bS3G/5EGnw8QnnLQ?=
- =?us-ascii?Q?L2wR2ZXbBIyVChVcTJ7H8Uli6xLMe+Rix8xOHq5xk3RVcfjHTWTKKnRUUl+7?=
- =?us-ascii?Q?yEWAgvlSpauZzN8YZsA6hzFJko+qJAN4dMOLiAIYLMAC1ND+2FFd++HSo3iv?=
- =?us-ascii?Q?Yr9Yy75q3A8vucqaCUkOVxicuoIggLFzu9JcoF0wZN2YYuAtKF3c6mj+y6AS?=
- =?us-ascii?Q?945XRzYxldNagrYte1P9YEr6LyujWrXzzpxkicqWPNz7HkNrJdpAqtp4tLAo?=
- =?us-ascii?Q?YzYB2MClYgNSoqxiZIRvzZZFee1RatqsBCuZNonpzzQH+uWgaPGU32MuHXnt?=
- =?us-ascii?Q?hJgeNe3cpwVw4ABQfWIfwLh2oquTz4fVvV8UuD/v3hbT8XosE+K7a8nmrkIJ?=
- =?us-ascii?Q?EBS/uvapqcuB83VrGmaRHHARJXJClc64jeB7bpap2fNraSENSIIj9ksvdMFt?=
- =?us-ascii?Q?RRNA6KgdaNFcl0BqwNtarE60Jyt/urKQR1BB0HvfLWay0iebJAfhsu+PfG9G?=
- =?us-ascii?Q?X40qsxDyS2Q9CnJy4RKLP69qyWzECeskkwWPsv/zWGVtM04lfyQ0JVpNjqcZ?=
- =?us-ascii?Q?iX+JAymUhBhkbYi0jbMWGB4AuzEWxz6QeAa4K5flSXhgiDO47sH4u0b7qI8D?=
- =?us-ascii?Q?kDqhZRNCPAznEcW831eKtaDBaAlOraU2JAa00M5A?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 83dd4216-c38f-4197-f674-08db94f58e06
-X-MS-Exchange-CrossTenant-AuthSource: LV2PR12MB5869.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Aug 2023 14:17:37.5509
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: EUAkfw/acthxVJx9SjTkAtMRNrX2SXbiBIUCWcF5z5H06PVlGiGycNllNB8COfMI
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB7847
+X-Developer-Signature: v=1; a=openpgp-sha256; l=13222; i=gregkh@linuxfoundation.org; h=from:subject:message-id; bh=x1TiTpFQGLP2r/d1XyA/DxK+XWsDSrx6Zo2RnD8S76s=; b=owGbwMvMwCRo6H6F97bub03G02pJDClnhbc/klrOasa5XX+u0LQ31clGgvUrNO7mf95r36d2c Mce578XOmJZGASZGGTFFFm+bOM5ur/ikKKXoe1pmDmsTCBDGLg4BWAiEZ8YFjTpbZJ645znNIOL 0+vanpg/U+7+ecIwPzEshoGrb9fmAk+eAi9b4w2LOmfNBAA=
+X-Developer-Key: i=gregkh@linuxfoundation.org; a=openpgp; fpr=F4B60CC5BF78C2214A313DCB3147D40DDB2DFB29
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Jul 31, 2023 at 01:33:15PM -0500, Bob Pearson wrote:
-> On 7/31/23 13:23, Jason Gunthorpe wrote:
-> > On Mon, Jul 31, 2023 at 01:20:35PM -0500, Bob Pearson wrote:
-> >> On 7/31/23 13:12, Jason Gunthorpe wrote:
-> >>> On Fri, Jul 21, 2023 at 03:50:17PM -0500, Bob Pearson wrote:
-> >>>> In cable pull testing some NICs can hold a send packet long enough
-> >>>> to allow ulp protocol stacks to destroy the qp and the cleanup
-> >>>> routines to timeout waiting for all qp references to be released.
-> >>>> When the NIC driver finally frees the SKB the qp pointer is no longer
-> >>>> valid and causes a seg fault in rxe_skb_tx_dtor().
-> >>>>
-> >>>> This patch passes the qp index instead of the qp to the skb destructor
-> >>>> callback function. The call back is required to lookup the qp from the
-> >>>> index and if it has been destroyed the lookup will return NULL and the
-> >>>> qp will not be referenced avoiding the seg fault.
-> >>>
-> >>> And what if it is a different QP returned?
-> >>>
-> >>> Jason
-> >>
-> >> Since we are using xarray cyclic alloc you would have to create 16M QPs before the
-> >> index was reused. This is as good as it gets I think.
-> > 
-> > Sounds terrible, why can't you store the QP pointer instead and hold a
-> > refcount on it?
-> 
-> The goal here was to make packet send semantics to be 'fire and forget' i.e. once we
-> send the packet not have any dependencies hanging around. But we still wanted to count
-> the packets pending to avoid overrunning the send queue.
+From: Ivan Orlov <ivan.orlov0322@gmail.com>
 
-Well, you can't have it both ways really.
+Now that the driver core allows for struct class to be in read-only
+memory, making all 'class' structures to be declared at build time
+placing them into read-only memory, instead of having to be dynamically
+allocated at load time.
 
-Maybe you need another bit of memory to track the packet counters that
-can be refcounted independently of the qp.
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: "Md. Haris Iqbal" <haris.iqbal@ionos.com>
+Cc: Jack Wang <jinpu.wang@ionos.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Yishai Hadas <yishaih@nvidia.com>
+Cc: Ivan Orlov <ivan.orlov0322@gmail.com>
+Cc: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ivan Orlov <ivan.orlov0322@gmail.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/infiniband/core/uverbs_main.c        | 35 +++++-----
+ drivers/infiniband/hw/hfi1/device.c          | 72 +++++++++-----------
+ drivers/infiniband/hw/qib/qib_file_ops.c     | 17 +++--
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c       | 19 +++---
+ drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c |  2 +-
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c       | 15 ++--
+ drivers/infiniband/ulp/rtrs/rtrs-srv.h       |  2 +-
+ 7 files changed, 79 insertions(+), 83 deletions(-)
 
-And wait for those refcounts to zero out before allowing the driver to
-unprobe.
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 7c9c79c13941..bf800f8cb3e4 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -72,12 +72,23 @@ enum {
+ #define IB_UVERBS_BASE_DEV	MKDEV(IB_UVERBS_MAJOR, IB_UVERBS_BASE_MINOR)
+ 
+ static dev_t dynamic_uverbs_dev;
+-static struct class *uverbs_class;
+ 
+ static DEFINE_IDA(uverbs_ida);
+ static int ib_uverbs_add_one(struct ib_device *device);
+ static void ib_uverbs_remove_one(struct ib_device *device, void *client_data);
+ 
++static char *uverbs_devnode(const struct device *dev, umode_t *mode)
++{
++	if (mode)
++		*mode = 0666;
++	return kasprintf(GFP_KERNEL, "infiniband/%s", dev_name(dev));
++}
++
++static const struct class uverbs_class = {
++	.name = "infiniband_verbs",
++	.devnode = uverbs_devnode,
++};
++
+ /*
+  * Must be called with the ufile->device->disassociate_srcu held, and the lock
+  * must be held until use of the ucontext is finished.
+@@ -1117,7 +1128,7 @@ static int ib_uverbs_add_one(struct ib_device *device)
+ 	}
+ 
+ 	device_initialize(&uverbs_dev->dev);
+-	uverbs_dev->dev.class = uverbs_class;
++	uverbs_dev->dev.class = &uverbs_class;
+ 	uverbs_dev->dev.parent = device->dev.parent;
+ 	uverbs_dev->dev.release = ib_uverbs_release_dev;
+ 	uverbs_dev->groups[0] = &dev_attr_group;
+@@ -1235,13 +1246,6 @@ static void ib_uverbs_remove_one(struct ib_device *device, void *client_data)
+ 	put_device(&uverbs_dev->dev);
+ }
+ 
+-static char *uverbs_devnode(const struct device *dev, umode_t *mode)
+-{
+-	if (mode)
+-		*mode = 0666;
+-	return kasprintf(GFP_KERNEL, "infiniband/%s", dev_name(dev));
+-}
+-
+ static int __init ib_uverbs_init(void)
+ {
+ 	int ret;
+@@ -1262,16 +1266,13 @@ static int __init ib_uverbs_init(void)
+ 		goto out_alloc;
+ 	}
+ 
+-	uverbs_class = class_create("infiniband_verbs");
+-	if (IS_ERR(uverbs_class)) {
+-		ret = PTR_ERR(uverbs_class);
++	ret = class_register(&uverbs_class);
++	if (ret) {
+ 		pr_err("user_verbs: couldn't create class infiniband_verbs\n");
+ 		goto out_chrdev;
+ 	}
+ 
+-	uverbs_class->devnode = uverbs_devnode;
+-
+-	ret = class_create_file(uverbs_class, &class_attr_abi_version.attr);
++	ret = class_create_file(&uverbs_class, &class_attr_abi_version.attr);
+ 	if (ret) {
+ 		pr_err("user_verbs: couldn't create abi_version attribute\n");
+ 		goto out_class;
+@@ -1286,7 +1287,7 @@ static int __init ib_uverbs_init(void)
+ 	return 0;
+ 
+ out_class:
+-	class_destroy(uverbs_class);
++	class_unregister(&uverbs_class);
+ 
+ out_chrdev:
+ 	unregister_chrdev_region(dynamic_uverbs_dev,
+@@ -1303,7 +1304,7 @@ static int __init ib_uverbs_init(void)
+ static void __exit ib_uverbs_cleanup(void)
+ {
+ 	ib_unregister_client(&uverbs_client);
+-	class_destroy(uverbs_class);
++	class_unregister(&uverbs_class);
+ 	unregister_chrdev_region(IB_UVERBS_BASE_DEV,
+ 				 IB_UVERBS_NUM_FIXED_MINOR);
+ 	unregister_chrdev_region(dynamic_uverbs_dev,
+diff --git a/drivers/infiniband/hw/hfi1/device.c b/drivers/infiniband/hw/hfi1/device.c
+index 05be0d119f79..b0a00b7aaec5 100644
+--- a/drivers/infiniband/hw/hfi1/device.c
++++ b/drivers/infiniband/hw/hfi1/device.c
+@@ -10,8 +10,29 @@
+ #include "hfi.h"
+ #include "device.h"
+ 
+-static struct class *class;
+-static struct class *user_class;
++static char *hfi1_devnode(const struct device *dev, umode_t *mode)
++{
++	if (mode)
++		*mode = 0600;
++	return kasprintf(GFP_KERNEL, "%s", dev_name(dev));
++}
++
++static const struct class class = {
++	.name = "hfi1",
++	.devnode = hfi1_devnode,
++};
++
++static char *hfi1_user_devnode(const struct device *dev, umode_t *mode)
++{
++	if (mode)
++		*mode = 0666;
++	return kasprintf(GFP_KERNEL, "%s", dev_name(dev));
++}
++
++static const struct class user_class = {
++	.name = "hfi1_user",
++	.devnode = hfi1_user_devnode,
++};
+ static dev_t hfi1_dev;
+ 
+ int hfi1_cdev_init(int minor, const char *name,
+@@ -37,9 +58,9 @@ int hfi1_cdev_init(int minor, const char *name,
+ 	}
+ 
+ 	if (user_accessible)
+-		device = device_create(user_class, NULL, dev, NULL, "%s", name);
++		device = device_create(&user_class, NULL, dev, NULL, "%s", name);
+ 	else
+-		device = device_create(class, NULL, dev, NULL, "%s", name);
++		device = device_create(&class, NULL, dev, NULL, "%s", name);
+ 
+ 	if (IS_ERR(device)) {
+ 		ret = PTR_ERR(device);
+@@ -72,26 +93,6 @@ const char *class_name(void)
+ 	return hfi1_class_name;
+ }
+ 
+-static char *hfi1_devnode(const struct device *dev, umode_t *mode)
+-{
+-	if (mode)
+-		*mode = 0600;
+-	return kasprintf(GFP_KERNEL, "%s", dev_name(dev));
+-}
+-
+-static const char *hfi1_class_name_user = "hfi1_user";
+-static const char *class_name_user(void)
+-{
+-	return hfi1_class_name_user;
+-}
+-
+-static char *hfi1_user_devnode(const struct device *dev, umode_t *mode)
+-{
+-	if (mode)
+-		*mode = 0666;
+-	return kasprintf(GFP_KERNEL, "%s", dev_name(dev));
+-}
+-
+ int __init dev_init(void)
+ {
+ 	int ret;
+@@ -102,27 +103,21 @@ int __init dev_init(void)
+ 		goto done;
+ 	}
+ 
+-	class = class_create(class_name());
+-	if (IS_ERR(class)) {
+-		ret = PTR_ERR(class);
++	ret = class_register(&class);
++	if (ret) {
+ 		pr_err("Could not create device class (err %d)\n", -ret);
+ 		unregister_chrdev_region(hfi1_dev, HFI1_NMINORS);
+ 		goto done;
+ 	}
+-	class->devnode = hfi1_devnode;
+ 
+-	user_class = class_create(class_name_user());
+-	if (IS_ERR(user_class)) {
+-		ret = PTR_ERR(user_class);
++	ret = class_register(&user_class);
++	if (ret) {
+ 		pr_err("Could not create device class for user accessible files (err %d)\n",
+ 		       -ret);
+-		class_destroy(class);
+-		class = NULL;
+-		user_class = NULL;
++		class_unregister(&class);
+ 		unregister_chrdev_region(hfi1_dev, HFI1_NMINORS);
+ 		goto done;
+ 	}
+-	user_class->devnode = hfi1_user_devnode;
+ 
+ done:
+ 	return ret;
+@@ -130,11 +125,8 @@ int __init dev_init(void)
+ 
+ void dev_cleanup(void)
+ {
+-	class_destroy(class);
+-	class = NULL;
+-
+-	class_destroy(user_class);
+-	user_class = NULL;
++	class_unregister(&class);
++	class_unregister(&user_class);
+ 
+ 	unregister_chrdev_region(hfi1_dev, HFI1_NMINORS);
+ }
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index ef85bc8d9384..152952127f13 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -2250,7 +2250,9 @@ static ssize_t qib_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	return qib_user_sdma_writev(rcd, pq, iter_iov(from), from->nr_segs);
+ }
+ 
+-static struct class *qib_class;
++static const struct class qib_class = {
++	.name = "ipath",
++};
+ static dev_t qib_dev;
+ 
+ int qib_cdev_init(int minor, const char *name,
+@@ -2281,7 +2283,7 @@ int qib_cdev_init(int minor, const char *name,
+ 		goto err_cdev;
+ 	}
+ 
+-	device = device_create(qib_class, NULL, dev, NULL, "%s", name);
++	device = device_create(&qib_class, NULL, dev, NULL, "%s", name);
+ 	if (!IS_ERR(device))
+ 		goto done;
+ 	ret = PTR_ERR(device);
+@@ -2325,9 +2327,8 @@ int __init qib_dev_init(void)
+ 		goto done;
+ 	}
+ 
+-	qib_class = class_create("ipath");
+-	if (IS_ERR(qib_class)) {
+-		ret = PTR_ERR(qib_class);
++	ret = class_register(&qib_class);
++	if (ret) {
+ 		pr_err("Could not create device class (err %d)\n", -ret);
+ 		unregister_chrdev_region(qib_dev, QIB_NMINORS);
+ 	}
+@@ -2338,10 +2339,8 @@ int __init qib_dev_init(void)
+ 
+ void qib_dev_cleanup(void)
+ {
+-	if (qib_class) {
+-		class_destroy(qib_class);
+-		qib_class = NULL;
+-	}
++	if (class_is_registered(&qib_class))
++		class_unregister(&qib_class);
+ 
+ 	unregister_chrdev_region(qib_dev, QIB_NMINORS);
+ }
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index b32941dd67cb..b6ee801fd0ff 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -45,7 +45,9 @@ static struct rtrs_rdma_dev_pd dev_pd = {
+ };
+ 
+ static struct workqueue_struct *rtrs_wq;
+-static struct class *rtrs_clt_dev_class;
++static const struct class rtrs_clt_dev_class = {
++	.name = "rtrs-client",
++};
+ 
+ static inline bool rtrs_clt_is_connected(const struct rtrs_clt_sess *clt)
+ {
+@@ -2698,7 +2700,7 @@ static struct rtrs_clt_sess *alloc_clt(const char *sessname, size_t paths_num,
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	clt->dev.class = rtrs_clt_dev_class;
++	clt->dev.class = &rtrs_clt_dev_class;
+ 	clt->dev.release = rtrs_clt_dev_release;
+ 	uuid_gen(&clt->paths_uuid);
+ 	INIT_LIST_HEAD_RCU(&clt->paths_list);
+@@ -3151,16 +3153,17 @@ static const struct rtrs_rdma_dev_pd_ops dev_pd_ops = {
+ 
+ static int __init rtrs_client_init(void)
+ {
+-	rtrs_rdma_dev_pd_init(0, &dev_pd);
++	int ret = 0;
+ 
+-	rtrs_clt_dev_class = class_create("rtrs-client");
+-	if (IS_ERR(rtrs_clt_dev_class)) {
++	rtrs_rdma_dev_pd_init(0, &dev_pd);
++	ret = class_register(&rtrs_clt_dev_class);
++	if (ret) {
+ 		pr_err("Failed to create rtrs-client dev class\n");
+-		return PTR_ERR(rtrs_clt_dev_class);
++		return ret;
+ 	}
+ 	rtrs_wq = alloc_workqueue("rtrs_client_wq", 0, 0);
+ 	if (!rtrs_wq) {
+-		class_destroy(rtrs_clt_dev_class);
++		class_unregister(&rtrs_clt_dev_class);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -3170,7 +3173,7 @@ static int __init rtrs_client_init(void)
+ static void __exit rtrs_client_exit(void)
+ {
+ 	destroy_workqueue(rtrs_wq);
+-	class_destroy(rtrs_clt_dev_class);
++	class_unregister(&rtrs_clt_dev_class);
+ 	rtrs_rdma_dev_pd_deinit(&dev_pd);
+ }
+ 
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
+index 5adba0f754b6..3f305e694fe8 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv-sysfs.c
+@@ -164,7 +164,7 @@ static int rtrs_srv_create_once_sysfs_root_folders(struct rtrs_srv_path *srv_pat
+ 		 */
+ 		goto unlock;
+ 	}
+-	srv->dev.class = rtrs_dev_class;
++	srv->dev.class = &rtrs_dev_class;
+ 	err = dev_set_name(&srv->dev, "%s", srv_path->s.sessname);
+ 	if (err)
+ 		goto unlock;
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.c b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+index c38901e2c8f4..75e56604e462 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.c
+@@ -27,7 +27,9 @@ MODULE_LICENSE("GPL");
+ #define MAX_HDR_SIZE PAGE_SIZE
+ 
+ static struct rtrs_rdma_dev_pd dev_pd;
+-struct class *rtrs_dev_class;
++const struct class rtrs_dev_class = {
++	.name = "rtrs-server",
++};
+ static struct rtrs_srv_ib_ctx ib_ctx;
+ 
+ static int __read_mostly max_chunk_size = DEFAULT_MAX_CHUNK_SIZE;
+@@ -2253,11 +2255,10 @@ static int __init rtrs_server_init(void)
+ 		       err);
+ 		return err;
+ 	}
+-	rtrs_dev_class = class_create("rtrs-server");
+-	if (IS_ERR(rtrs_dev_class)) {
+-		err = PTR_ERR(rtrs_dev_class);
++	err = class_register(&rtrs_dev_class);
++	if (err)
+ 		goto out_err;
+-	}
++
+ 	rtrs_wq = alloc_workqueue("rtrs_server_wq", 0, 0);
+ 	if (!rtrs_wq) {
+ 		err = -ENOMEM;
+@@ -2267,7 +2268,7 @@ static int __init rtrs_server_init(void)
+ 	return 0;
+ 
+ out_dev_class:
+-	class_destroy(rtrs_dev_class);
++	class_unregister(&rtrs_dev_class);
+ out_err:
+ 	return err;
+ }
+@@ -2275,7 +2276,7 @@ static int __init rtrs_server_init(void)
+ static void __exit rtrs_server_exit(void)
+ {
+ 	destroy_workqueue(rtrs_wq);
+-	class_destroy(rtrs_dev_class);
++	class_unregister(&rtrs_dev_class);
+ 	rtrs_rdma_dev_pd_deinit(&dev_pd);
+ }
+ 
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-srv.h b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
+index 2f8a638e36fa..5e325b82ff33 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-srv.h
++++ b/drivers/infiniband/ulp/rtrs/rtrs-srv.h
+@@ -129,7 +129,7 @@ struct rtrs_srv_ib_ctx {
+ 	int			ib_dev_count;
+ };
+ 
+-extern struct class *rtrs_dev_class;
++extern const struct class rtrs_dev_class;
+ 
+ void close_path(struct rtrs_srv_path *srv_path);
+ 
+-- 
+2.41.0
 
-Jason
