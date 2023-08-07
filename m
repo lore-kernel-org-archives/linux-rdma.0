@@ -2,70 +2,131 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8E36C001DB
-	for <linux-rdma@archiver.kernel.org>; Mon,  7 Aug 2023 13:50:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0476C00528
+	for <linux-rdma@archiver.kernel.org>; Mon,  7 Aug 2023 13:54:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234451AbjHGNuu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 7 Aug 2023 09:50:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39052 "EHLO
+        id S232486AbjHGNyv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 7 Aug 2023 09:54:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234449AbjHGNus (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Aug 2023 09:50:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F47310D5
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Aug 2023 06:50:47 -0700 (PDT)
+        with ESMTP id S234618AbjHGNxH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 7 Aug 2023 09:53:07 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 509C81701
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Aug 2023 06:52:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B6E361C2A
-        for <linux-rdma@vger.kernel.org>; Mon,  7 Aug 2023 13:50:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15DE3C433C8;
-        Mon,  7 Aug 2023 13:50:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E107261ACF
+        for <linux-rdma@vger.kernel.org>; Mon,  7 Aug 2023 13:52:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9FF9C433C7;
+        Mon,  7 Aug 2023 13:52:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691416246;
-        bh=IiaPfiXYd0AUXHLQFBjJkkq3d1xVWXohSryY1YDxbt0=;
-        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=Ag3UZBXpOh+mdyedt/XGbLErAqO78iGNI7+//BE93flMYI0T2+18N6DssMW8CPz8v
-         CBJ9K643ApO02UyQ/FwLx/D2D/qA6dcM2HjSOaGO+ztxpOWwkviqIUNj+Mzk+pfp5p
-         VGuwcWzs/EXkL92OBY/tvTNlG8/dlmgS6b7i9KLPNiToCbkNX0rsWkrAz9xtGHCSEG
-         Dd5gSA+cxMUCeEkk4Tw80QXHCeEtZS1HoxhpdfrWu1DO3vtTCDdJw6erBWLjcoQQv/
-         InCVO4h3ATInloR7/rsXmvHojJG/1EYoP6PkKn8pqVN18+wQttE4G9QkrdTp/i39IG
-         MjtzzDxf9BNNw==
+        s=k20201202; t=1691416374;
+        bh=HUxL2xCwz0rw74+xULJz36jPMAfTiUl6sbM/Y/39uCc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=L+hkaqDv5IFh4xFhbiQypmYIXewGkRbCUgJ+ycCnK9B9bwP9s3Ne/H3X73JLfEFYe
+         lWbThcaRiu7vFQ6R8Hl2ZWBn1USkwp2oP4740UJXSqNNWD69b7kdHpYhyOfF0e6ibM
+         nsjDqhpP+TqacUfXIfA3Wak2/OC5+Gz+dgroxgWA2+DjGNN4mhK6WfIQpcOoHgOhS/
+         W3aYPxh0jravDpoM64IjFDOcgQb+fUyawkhCuS13HFmXR/A5ss3ofu5FZakCTZkwJh
+         uUwamfUe4SN7NZFSIeEvYwBH64vOvT68QJ616ctOkjD26GIFCVSEKkXcz0TeUHy7lW
+         C9QlVT99LhlIQ==
+Date:   Mon, 7 Aug 2023 16:52:50 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     jgg@ziepe.ca, yishaih@mellanox.com, raeds@mellanox.com,
-        Xiang Yang <xiangyang3@huawei.com>
-Cc:     linux-rdma@vger.kernel.org
-In-Reply-To: <20230804022525.1916766-1-xiangyang3@huawei.com>
-References: <20230804022525.1916766-1-xiangyang3@huawei.com>
-Subject: Re: [PATCH -next] IB/uverbs: fix an potential error pointer dereference
-Message-Id: <169141624247.96916.412970222122242780.b4-ty@kernel.org>
-Date:   Mon, 07 Aug 2023 16:50:42 +0300
+To:     Selvin Xavier <selvin.xavier@broadcom.com>
+Cc:     jgg@ziepe.ca, linux-rdma@vger.kernel.org,
+        andrew.gospodarek@broadcom.com,
+        Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+Subject: Re: [PATCH for-next v2] IB/core: Add more speed parsing in
+ ib_get_width_and_speed()
+Message-ID: <20230807135250.GB7100@unreal>
+References: <1690966823-8159-1-git-send-email-selvin.xavier@broadcom.com>
+ <20230803175842.GF53714@unreal>
+ <CA+sbYW14vED8cHzvqO-=06yJegqBZqVd76uDma=w+d-Y+T+PsQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.12-dev-a055d
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+sbYW14vED8cHzvqO-=06yJegqBZqVd76uDma=w+d-Y+T+PsQ@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-On Fri, 04 Aug 2023 10:25:25 +0800, Xiang Yang wrote:
-> Smatch reports the warning below:
-> drivers/infiniband/core/uverbs_std_types_counters.c:110
-> ib_uverbs_handler_UVERBS_METHOD_COUNTERS_READ() error: 'uattr'
-> dereferencing possible ERR_PTR()
+On Fri, Aug 04, 2023 at 09:43:28AM +0530, Selvin Xavier wrote:
+> On Thu, Aug 3, 2023 at 11:28 PM Leon Romanovsky <leon@kernel.org> wrote:
+> >
+> > On Wed, Aug 02, 2023 at 02:00:23AM -0700, Selvin Xavier wrote:
+> > > From: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+> > >
+> > > When the Ethernet driver does not provide the number of lanes
+> > > in the __ethtool_get_link_ksettings() response, the function
+> > > ib_get_width_and_speed() does not take consideration of 50G,
+> > > 100G and 200G speeds while calculating the IB width and speed.
+> > > Update the width and speed for the above netdev speeds.
+> > >
+> > > Signed-off-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+> > > Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> > > ---
+> > > v1 - v2:
+> > >     - Rebased the patch based on the latest changes in ib_get_width_and_speed
+> > >     - removed the switch case and use the existing else if check
+> > > ---
+> > >  drivers/infiniband/core/verbs.c | 11 ++++++++++-
+> > >  1 file changed, 10 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> > > index 25367bd..41ff559 100644
+> > > --- a/drivers/infiniband/core/verbs.c
+> > > +++ b/drivers/infiniband/core/verbs.c
+> > > @@ -1899,9 +1899,18 @@ static void ib_get_width_and_speed(u32 netdev_speed, u32 lanes,
+> > >               } else if (netdev_speed <= SPEED_40000) {
+> > >                       *width = IB_WIDTH_4X;
+> > >                       *speed = IB_SPEED_FDR10;
+> > > -             } else {
+> > > +             } else if (netdev_speed <= SPEED_50000) {
+> > > +                     *width = IB_WIDTH_2X;
+> > > +                     *speed = IB_SPEED_EDR;
+> > > +             } else if (netdev_speed <= SPEED_100000) {
+> > >                       *width = IB_WIDTH_4X;
+> > >                       *speed = IB_SPEED_EDR;
+> > > +             } else if (netdev_speed <= SPEED_200000) {
+> > > +                     *width = IB_WIDTH_4X;
+> > > +                     *speed = IB_SPEED_HDR;
+> >
+> >
+> > SPEED_50000, SPEED_100000 and SPEED_200000 depends on
+> > ClassPortInfo:CapabilityMask2.is* values.
+> >
+> > For example, SPEED_50000 can b IB_WIDTH_2X/IB_SPEED_EDR and IB_WIDTH_1X/IB_SPEED_HDR.
+> Agree with that.
+> This reporting can be achieved by the existing code, but the L2 driver
+> needs to report non zero values for lanes in
+> ethtool_ops->get_link_ksettings.
+> Caller of this modified function gets the speed and number of lanes
+> from ethtool_ops->get_link_ksettings.
 > 
-> the return value of uattr maybe ERR_PTR(-ENOENT), fix this by checking
-> the value of uattr before using it.
-> 
-> [...]
+> In this patch we are trying to handle the case where ethtool ops
+> doesn't provide the lanes.  
 
-Applied, thanks!
+Almost all drivers don't support lanes reporting.
 
-[1/1] IB/uverbs: fix an potential error pointer dereference
-      https://git.kernel.org/rdma/rdma/c/26b7d1a27167e7
+> We can  default to some value so that we
+> dont report wrong total link speed (width * speed) for any speed more
+> than 40G.
+> >
+> > Thanks
+> >
+> > > +             } else {
+> > > +                     *width = IB_WIDTH_4X;
+> > > +                     *speed = IB_SPEED_NDR;
+> > >               }
+> > >
+> > >               return;
+> > > --
+> > > 2.5.5
+> > >
+> >
+> >
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+
