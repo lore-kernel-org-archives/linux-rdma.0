@@ -2,195 +2,88 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67419C001B0
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Aug 2023 20:41:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67DB6C41513
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Aug 2023 22:40:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231276AbjHHUlr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:41:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58400 "EHLO
+        id S229832AbjHHWkY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Aug 2023 18:40:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51894 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231614AbjHHUlf (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Aug 2023 16:41:35 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44CF57EC1
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Aug 2023 10:31:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1691515896; x=1723051896;
-  h=date:from:to:cc:subject:message-id;
-  bh=c3yB0FErvp/1cQ21rcsnxXQNoyvzc19LYMymIvJ9dpk=;
-  b=NjS15UvuokLbRphvZbfY1qele9M3iqB/qhCSxqggo4fsjOu04HUenxGA
-   vE7+fbyEMNtLblWIGrZaxUbOkeZ8ARLKxmbqjrJcGKpDhZUnYZjs9Ht9a
-   urNKkFyUQ0RzmkWnV16PD4E2rU5oSW64WoesJ/c3hGfnLOugK0ZAnyJX4
-   ERBb5fgVs+BazZGfqvIO782DlJH+sFq6m98CWAeAiPKmKb6yOwM04SuE5
-   5RRT1piZvnz53VdBP7ipQcPUppMJJB5I75zS7Ajl4Jn7LfZk7mLXu0UaE
-   5qigg6hTFdo1uEJRsxuoVlWu0e8znS2W4tPXMIvB1fsPXIxCvYhYhhOkY
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="434575263"
-X-IronPort-AV: E=Sophos;i="6.01,263,1684825200"; 
-   d="scan'208";a="434575263"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2023 22:42:48 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="731245011"
-X-IronPort-AV: E=Sophos;i="6.01,263,1684825200"; 
-   d="scan'208";a="731245011"
-Received: from lkp-server01.sh.intel.com (HELO d1ccc7e87e8f) ([10.239.97.150])
-  by orsmga002.jf.intel.com with ESMTP; 07 Aug 2023 22:42:48 -0700
-Received: from kbuild by d1ccc7e87e8f with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1qTFUV-00058B-1Y;
-        Tue, 08 Aug 2023 05:42:47 +0000
-Date:   Tue, 08 Aug 2023 13:42:27 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Leon Romanovsky <leon@kernel.org>
-Cc:     Doug Ledford <dledford@redhat.com>,
-        Jason Gunthorpe <jgg+lists@ziepe.ca>,
-        linux-rdma@vger.kernel.org
-Subject: [rdma:wip/leon-for-next] BUILD SUCCESS
- 849b1955ade1c647234d6fadeb70377d9def01ca
-Message-ID: <202308081325.qkyGBBET-lkp@intel.com>
-User-Agent: s-nail v14.9.24
+        with ESMTP id S229664AbjHHWkY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Aug 2023 18:40:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F77DFE;
+        Tue,  8 Aug 2023 15:40:23 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E9E5362DD9;
+        Tue,  8 Aug 2023 22:40:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 47D6AC433CB;
+        Tue,  8 Aug 2023 22:40:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691534422;
+        bh=mJG5rpnaod2qIsDUv4+1eWd5VxYuF2zZBjEDf6ZWRbw=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=EdOiOQeay6hxzk8+2LdvXnESSsYM3tpL224doupU/hg1gYF03WYrrBOWSt2yPf/sl
+         q8UIoLMroC2aQ4uKbO3sfRd9UmiFBVvYuUQNm7fr6yll2yE0rNPO6WV0uPTIAxChby
+         DjmvswUZ7IbxuRNRbPRYxA3se1gEIt/Drl6wQvTXDCvAcZdIgnbly9+EuT6ZN+UYZZ
+         wlunJORpuy9/YXRbbxqzKO6hHFToh2zwYNrDPK/5tHEon8ONkOnyZkhkNiXAYkw7gT
+         5Lr1K6trXmud9GjNe1ggyYUhw2QhkXSWzaYGPeCx+Ab9IAl+mvxDhxp/eb2iBgjNUU
+         lsFGAIdNzR71g==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 1C1A9E270C1;
+        Tue,  8 Aug 2023 22:40:22 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next v2] rtnetlink: remove redundant checks for nlattr
+ IFLA_BRIDGE_MODE
+From:   patchwork-bot+netdevbpf@kernel.org
+Message-Id: <169153442210.29360.11186424124562731879.git-patchwork-notify@kernel.org>
+Date:   Tue, 08 Aug 2023 22:40:22 +0000
+References: <20230807091347.3804523-1-linma@zju.edu.cn>
+In-Reply-To: <20230807091347.3804523-1-linma@zju.edu.cn>
+To:     Lin Ma <linma@zju.edu.cn>
+Cc:     michael.chan@broadcom.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        ajit.khaparde@broadcom.com, sriharsha.basavapatna@broadcom.com,
+        somnath.kotur@broadcom.com, jesse.brandeburg@intel.com,
+        anthony.l.nguyen@intel.com, saeedm@nvidia.com, leon@kernel.org,
+        simon.horman@corigine.com, louis.peens@corigine.com,
+        yinjun.zhang@corigine.com, huanhuan.wang@corigine.com,
+        tglx@linutronix.de, na.wang@corigine.com, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
+        linux-rdma@vger.kernel.org, oss-drivers@corigine.com
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-branch HEAD: 849b1955ade1c647234d6fadeb70377d9def01ca  RDMA: Remove unnecessary NULL values
+Hello:
 
-elapsed time: 944m
+This patch was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-configs tested: 123
-configs skipped: 10
+On Mon,  7 Aug 2023 17:13:47 +0800 you wrote:
+> The commit d73ef2d69c0d ("rtnetlink: let rtnl_bridge_setlink checks
+> IFLA_BRIDGE_MODE length") added the nla_len check in rtnl_bridge_setlink,
+> which is the only caller for ndo_bridge_setlink handlers defined in
+> low-level driver codes. Hence, this patch cleanups the redundant checks in
+> each ndo_bridge_setlink handler function.
+> 
+> Suggested-by: Hangbin Liu <liuhangbin@gmail.com>
+> Signed-off-by: Lin Ma <linma@zju.edu.cn>
+> 
+> [...]
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Here is the summary with links:
+  - [net-next,v2] rtnetlink: remove redundant checks for nlattr IFLA_BRIDGE_MODE
+    https://git.kernel.org/netdev/net-next/c/f1d152eb66a3
 
-tested configs:
-alpha                            allyesconfig   gcc  
-alpha                               defconfig   gcc  
-arc                              allyesconfig   gcc  
-arc                                 defconfig   gcc  
-arc                  randconfig-r023-20230807   gcc  
-arc                  randconfig-r031-20230807   gcc  
-arc                  randconfig-r043-20230807   gcc  
-arm                              allmodconfig   gcc  
-arm                              allyesconfig   gcc  
-arm                                 defconfig   gcc  
-arm                  randconfig-r013-20230807   gcc  
-arm                  randconfig-r014-20230807   gcc  
-arm                  randconfig-r024-20230807   gcc  
-arm                  randconfig-r032-20230807   clang
-arm                  randconfig-r033-20230807   clang
-arm                  randconfig-r046-20230807   gcc  
-arm64                            allyesconfig   gcc  
-arm64                               defconfig   gcc  
-arm64                randconfig-r002-20230807   gcc  
-arm64                randconfig-r022-20230807   clang
-csky                                defconfig   gcc  
-csky                 randconfig-r001-20230807   gcc  
-csky                 randconfig-r014-20230807   gcc  
-csky                 randconfig-r034-20230807   gcc  
-hexagon              randconfig-r011-20230807   clang
-hexagon              randconfig-r013-20230807   clang
-hexagon              randconfig-r031-20230807   clang
-hexagon              randconfig-r041-20230807   clang
-hexagon              randconfig-r045-20230807   clang
-i386                             allyesconfig   gcc  
-i386         buildonly-randconfig-r004-20230807   gcc  
-i386         buildonly-randconfig-r005-20230807   gcc  
-i386         buildonly-randconfig-r006-20230807   gcc  
-i386                              debian-10.3   gcc  
-i386                                defconfig   gcc  
-i386                 randconfig-i001-20230807   gcc  
-i386                 randconfig-i002-20230807   gcc  
-i386                 randconfig-i003-20230807   gcc  
-i386                 randconfig-i004-20230807   gcc  
-i386                 randconfig-i005-20230807   gcc  
-i386                 randconfig-i006-20230807   gcc  
-i386                 randconfig-i011-20230807   clang
-i386                 randconfig-i012-20230807   clang
-i386                 randconfig-i013-20230807   clang
-i386                 randconfig-i014-20230807   clang
-i386                 randconfig-i015-20230807   clang
-i386                 randconfig-i016-20230807   clang
-i386                 randconfig-r012-20230807   clang
-i386                 randconfig-r034-20230807   gcc  
-loongarch                        allmodconfig   gcc  
-loongarch                         allnoconfig   gcc  
-loongarch                           defconfig   gcc  
-loongarch            randconfig-r001-20230807   gcc  
-loongarch            randconfig-r004-20230807   gcc  
-loongarch            randconfig-r032-20230807   gcc  
-m68k                             allmodconfig   gcc  
-m68k                             allyesconfig   gcc  
-m68k                                defconfig   gcc  
-m68k                 randconfig-r015-20230807   gcc  
-m68k                 randconfig-r024-20230807   gcc  
-mips                             allmodconfig   gcc  
-mips                             allyesconfig   gcc  
-mips                 randconfig-r016-20230807   gcc  
-nios2                               defconfig   gcc  
-nios2                randconfig-r005-20230807   gcc  
-nios2                randconfig-r026-20230807   gcc  
-nios2                randconfig-r036-20230807   gcc  
-openrisc             randconfig-r011-20230807   gcc  
-openrisc             randconfig-r021-20230807   gcc  
-parisc                           allyesconfig   gcc  
-parisc                              defconfig   gcc  
-parisc               randconfig-r002-20230807   gcc  
-parisc               randconfig-r015-20230807   gcc  
-parisc64                            defconfig   gcc  
-powerpc                          allmodconfig   gcc  
-powerpc                           allnoconfig   gcc  
-powerpc              randconfig-r012-20230807   clang
-powerpc              randconfig-r035-20230807   gcc  
-riscv                            allmodconfig   gcc  
-riscv                             allnoconfig   gcc  
-riscv                            allyesconfig   gcc  
-riscv                               defconfig   gcc  
-riscv                randconfig-r042-20230807   clang
-riscv                          rv32_defconfig   gcc  
-s390                             allmodconfig   gcc  
-s390                             allyesconfig   gcc  
-s390                                defconfig   gcc  
-s390                 randconfig-r003-20230807   gcc  
-s390                 randconfig-r044-20230807   clang
-sh                               allmodconfig   gcc  
-sh                   randconfig-r033-20230807   gcc  
-sparc                            allyesconfig   gcc  
-sparc                               defconfig   gcc  
-sparc64              randconfig-r025-20230807   gcc  
-um                               allmodconfig   clang
-um                                allnoconfig   clang
-um                               allyesconfig   clang
-um                                  defconfig   gcc  
-um                             i386_defconfig   gcc  
-um                   randconfig-r021-20230807   gcc  
-um                           x86_64_defconfig   gcc  
-x86_64                           allyesconfig   gcc  
-x86_64       buildonly-randconfig-r001-20230807   gcc  
-x86_64       buildonly-randconfig-r002-20230807   gcc  
-x86_64       buildonly-randconfig-r003-20230807   gcc  
-x86_64                              defconfig   gcc  
-x86_64                                  kexec   gcc  
-x86_64               randconfig-r004-20230807   gcc  
-x86_64               randconfig-x001-20230807   clang
-x86_64               randconfig-x002-20230807   clang
-x86_64               randconfig-x003-20230807   clang
-x86_64               randconfig-x004-20230807   clang
-x86_64               randconfig-x005-20230807   clang
-x86_64               randconfig-x006-20230807   clang
-x86_64               randconfig-x011-20230807   gcc  
-x86_64               randconfig-x012-20230807   gcc  
-x86_64               randconfig-x013-20230807   gcc  
-x86_64               randconfig-x014-20230807   gcc  
-x86_64               randconfig-x015-20230807   gcc  
-x86_64               randconfig-x016-20230807   gcc  
-x86_64                          rhel-8.3-rust   clang
-x86_64                               rhel-8.3   gcc  
-xtensa               randconfig-r025-20230807   gcc  
-
+You are awesome, thank you!
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
