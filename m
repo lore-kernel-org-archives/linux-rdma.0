@@ -2,65 +2,72 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA2BFC001B0
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Aug 2023 20:12:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1294C04A6A
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Aug 2023 20:36:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230484AbjHHUMQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Aug 2023 16:12:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41716 "EHLO
+        id S233358AbjHHUgC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Aug 2023 16:36:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230293AbjHHULu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Aug 2023 16:11:50 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6F9329892
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Aug 2023 11:35:50 -0700 (PDT)
+        with ESMTP id S233713AbjHHUfq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Aug 2023 16:35:46 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B77DD1715;
+        Tue,  8 Aug 2023 11:56:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7549262A19
-        for <linux-rdma@vger.kernel.org>; Tue,  8 Aug 2023 18:35:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19AD5C433C8;
-        Tue,  8 Aug 2023 18:35:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4FA1B62A8E;
+        Tue,  8 Aug 2023 18:56:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC9C6C433C9;
+        Tue,  8 Aug 2023 18:56:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691519749;
-        bh=47/2hlJ3s8h9jnVtH7pGTiP1gbLsLE/YxPNB4mNOMfk=;
-        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=qctXwGGQY62tiXm7gkg5dC2OGqjXW+g+fYiSnmbyxwnc6KehGKIW+e/RxszlJKUZp
-         spNLrn/VMBKuuErPy1TZWqdUDFD/AaZ/rl/+rvzJDV71HbUiwhFKoabCVM01XVpl/Y
-         vnhbtiIY2VLfdoSaiVjkhcscvk+USzYWx0ImN1rMFw4ITLWndDH+tgBYc/vV96oeiM
-         zqkx0sMosSTp/BfMzyIC9hy6QVLbV0sAQiNBeI4DtzHoHr6IP97tN6YsmXSE+84FS3
-         qY0c/OVdPji5oQzULoD+xBl0S/xl4U7trakIGtV9CIHX+gRXp8uBtD06G5rY6gbMkl
-         F1AtXii4wSdIQ==
+        s=k20201202; t=1691520967;
+        bh=X7+ZlYY0FSROiWpD/bKqog6jgK40bS0uWHHjKh6wWlQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=tDG9QJkLhPbqqQfBzt3N7r2dsveLSfJMqJQfcq0fGicrdcP6y78WcyFNVY21Ax8h2
+         xFWsWEeiADuI5XUFS3VMfpTD8uKILykVo32nUMolFaKIW2gRP1f/D/pgT4KQ3WAaq5
+         f5epbNJZuODx4njaDNqmunIVfXtw+XWFGFh6yi9Aj9DA962USo9mS/DDPeUIWLIAuF
+         K2B1YZwIHghG31iZS5eaGN2fifNyuh1XCAlL1DexxeTRTdM5hsw8n60uC0lrkn5QC/
+         Le3r2umH3AE1Hbyct6+Oth8getUwyIa9G9uIyc8PvVPq/FN216Ju1RnHtDN5B57Ju2
+         HPBmj5nge99iA==
+Date:   Tue, 8 Aug 2023 21:56:01 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     xuhaoyue1@hisilicon.com, huangjunxian6@hisilicon.com, jgg@ziepe.ca,
-        Yue Haibing <yuehaibing@huawei.com>
-Cc:     linux-rdma@vger.kernel.org
-In-Reply-To: <20230804130418.41728-1-yuehaibing@huawei.com>
-References: <20230804130418.41728-1-yuehaibing@huawei.com>
-Subject: Re: [PATCH -next] RDMA/hns: Remove unused declaration hns_roce_modify_srq()
-Message-Id: <169151974340.542206.15592205131101430164.b4-ty@kernel.org>
-Date:   Tue, 08 Aug 2023 21:35:43 +0300
+To:     Petr Pavlu <petr.pavlu@suse.com>
+Cc:     tariqt@nvidia.com, yishaih@nvidia.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        jgg@ziepe.ca, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next 04/10] mlx4: Get rid of the
+ mlx4_interface.activate callback
+Message-ID: <20230808185601.GI94631@unreal>
+References: <20230804150527.6117-1-petr.pavlu@suse.com>
+ <20230804150527.6117-5-petr.pavlu@suse.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.12-dev-a055d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230804150527.6117-5-petr.pavlu@suse.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-On Fri, 04 Aug 2023 21:04:18 +0800, Yue Haibing wrote:
-> Commit c7bcb13442e1 ("RDMA/hns: Add SRQ support for hip08 kernel mode")
-> declared but never implemented this.
+On Fri, Aug 04, 2023 at 05:05:21PM +0200, Petr Pavlu wrote:
+> The mlx4_interface.activate callback was introduced in commit
+> 79857cd31fe7 ("net/mlx4: Postpone the registration of net_device"). It
+> dealt with a situation when a netdev notifier received a NETDEV_REGISTER
+> event for a new net_device created by mlx4_en but the same device was
+> not yet visible to mlx4_get_protocol_dev(). The callback can be removed
+> now that mlx4_get_protocol_dev() is gone.
 > 
+> Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
+> Tested-by: Leon Romanovsky <leon@kernel.org>
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/en_main.c | 37 +++++++++-----------
+>  drivers/net/ethernet/mellanox/mlx4/intf.c    |  2 --
+>  include/linux/mlx4/driver.h                  |  1 -
+>  3 files changed, 16 insertions(+), 24 deletions(-)
 > 
 
-Applied, thanks!
-
-[1/1] RDMA/hns: Remove unused declaration hns_roce_modify_srq()
-      https://git.kernel.org/rdma/rdma/c/d952f54d01ec2e
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
