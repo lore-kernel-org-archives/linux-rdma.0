@@ -2,74 +2,70 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74732C04A94
-	for <linux-rdma@archiver.kernel.org>; Tue,  8 Aug 2023 17:56:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50EC9C04FE1
+	for <linux-rdma@archiver.kernel.org>; Tue,  8 Aug 2023 17:57:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231852AbjHHR4U (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 8 Aug 2023 13:56:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33322 "EHLO
+        id S232009AbjHHR5Z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 8 Aug 2023 13:57:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231460AbjHHRzt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Aug 2023 13:55:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C6C6A27F;
-        Tue,  8 Aug 2023 09:25:16 -0700 (PDT)
+        with ESMTP id S232100AbjHHR4v (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 8 Aug 2023 13:56:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84A6B2AF13;
+        Tue,  8 Aug 2023 09:25:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4812D6248F;
-        Tue,  8 Aug 2023 10:25:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CB9DC433C7;
-        Tue,  8 Aug 2023 10:25:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 46A6462531;
+        Tue,  8 Aug 2023 12:46:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B258C433C8;
+        Tue,  8 Aug 2023 12:46:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691490357;
-        bh=jcj5AnviVGxOZut2LUZpuwexLCnK8ogmL2HAywZngOY=;
-        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-        b=UkVsqtjaolGtihYMK3/K7O142oSS/rjtnHRkaEJylAmvlmLOPfRp3dHT31f4ltjaS
-         fAkvxtSAKuziR9nO0cdN4f8GIaBx/HPqmcD1GaxA39P8CjHu/wtcjmATssTmgqRUEQ
-         cYn9LT3I8kZi/bNSLJVh6G2tBEdqyAE919A6Yb60oBn5wCTIsxwLIHJ/H0uRvudrhY
-         pJyreENSZ4jLDG/lPO/7rN5aqx7CBhN1C1/xPOgaoN9frO2esncgk/bAN10+CekTM5
-         wAZedoMW70lbAAPnC5KDtf3DYx5uc0pwSEI+SB2FknTRMD2lRXPt8Xgy6V3WOU5l4B
-         KXR7TwEHahDXw==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     linux-rdma@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     linux-kernel@vger.kernel.org,
-        Ivan Orlov <ivan.orlov0322@gmail.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        "Md. Haris Iqbal" <haris.iqbal@ionos.com>,
-        Jack Wang <jinpu.wang@ionos.com>,
-        Yishai Hadas <yishaih@nvidia.com>,
-        Benjamin Tissoires <benjamin.tissoires@redhat.com>
-In-Reply-To: <2023080427-commuting-crewless-cbee@gregkh>
-References: <2023080427-commuting-crewless-cbee@gregkh>
-Subject: Re: [PATCH] infiniband: make all 'class' structures const
-Message-Id: <169149035350.236427.16315785273438930549.b4-ty@kernel.org>
-Date:   Tue, 08 Aug 2023 13:25:53 +0300
+        s=k20201202; t=1691498789;
+        bh=bwqg+nZJaOp58U9gLi7+hIbzVoD6HWVrHABj3u2osQ0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Bv6idbcnou7dvWv3pfCSTobSlZ8fXVeIw2yMmJVRggQHuTlgeo+lUsF5L8mUAfrxw
+         Fb2BkRhuXr61SboC+ZUEBawjWZCulZnmjCs4zf47NOf4EXTLrZlZdXPLIYTdZ5kBGA
+         YdPp9jZSZ0hSZQYFhhy0b4/5OT6RjvfsYvu4qaZ1cKuY54iLY8SbN3WArnkfzPxntX
+         PsuYgLY/tsgFrUsjKdyt/eicIpeXIqk1sy66Iw0BblMhZoNn9tCT4MJJr1JexQSgfA
+         dd1N2mGvCM08nCLESVFn3n3+mWH9CqCwu/xITCIqguMtve2XtiLfah+dEHIN/rNpJw
+         l1P1t+mmv4g1w==
+Date:   Tue, 8 Aug 2023 14:46:23 +0200
+From:   Simon Horman <horms@kernel.org>
+To:     Lin Ma <linma@zju.edu.cn>
+Cc:     michael.chan@broadcom.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        ajit.khaparde@broadcom.com, sriharsha.basavapatna@broadcom.com,
+        somnath.kotur@broadcom.com, jesse.brandeburg@intel.com,
+        anthony.l.nguyen@intel.com, saeedm@nvidia.com, leon@kernel.org,
+        louis.peens@corigine.com, yinjun.zhang@corigine.com,
+        huanhuan.wang@corigine.com, tglx@linutronix.de,
+        na.wang@corigine.com, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org,
+        linux-rdma@vger.kernel.org, oss-drivers@corigine.com
+Subject: Re: [PATCH net-next v2] rtnetlink: remove redundant checks for
+ nlattr IFLA_BRIDGE_MODE
+Message-ID: <ZNI5H4OY1DrFOcq6@vergenet.net>
+References: <20230807091347.3804523-1-linma@zju.edu.cn>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.12-dev-a055d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230807091347.3804523-1-linma@zju.edu.cn>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-On Fri, 04 Aug 2023 17:05:28 +0200, Greg Kroah-Hartman wrote:
-> Now that the driver core allows for struct class to be in read-only
-> memory, making all 'class' structures to be declared at build time
-> placing them into read-only memory, instead of having to be dynamically
-> allocated at load time.
+On Mon, Aug 07, 2023 at 05:13:47PM +0800, Lin Ma wrote:
+> The commit d73ef2d69c0d ("rtnetlink: let rtnl_bridge_setlink checks
+> IFLA_BRIDGE_MODE length") added the nla_len check in rtnl_bridge_setlink,
+> which is the only caller for ndo_bridge_setlink handlers defined in
+> low-level driver codes. Hence, this patch cleanups the redundant checks in
+> each ndo_bridge_setlink handler function.
 > 
-> 
+> Suggested-by: Hangbin Liu <liuhangbin@gmail.com>
+> Signed-off-by: Lin Ma <linma@zju.edu.cn>
 
-Applied, thanks!
+Reviewed-by: Simon Horman <horms@kernel.org>
 
-[1/1] infiniband: make all 'class' structures const
-      https://git.kernel.org/rdma/rdma/c/64917f4c35b3e4
-
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
