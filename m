@@ -2,36 +2,36 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC6D2C0015E
-	for <linux-rdma@archiver.kernel.org>; Wed,  9 Aug 2023 08:29:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A788EC0015E
+	for <linux-rdma@archiver.kernel.org>; Wed,  9 Aug 2023 08:29:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231623AbjHII3p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 9 Aug 2023 04:29:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38968 "EHLO
+        id S231473AbjHII3s (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 9 Aug 2023 04:29:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230025AbjHII3n (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Aug 2023 04:29:43 -0400
+        with ESMTP id S230025AbjHII3s (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 9 Aug 2023 04:29:48 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7281B1736
-        for <linux-rdma@vger.kernel.org>; Wed,  9 Aug 2023 01:29:43 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBE801BD9
+        for <linux-rdma@vger.kernel.org>; Wed,  9 Aug 2023 01:29:47 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A0496305D
-        for <linux-rdma@vger.kernel.org>; Wed,  9 Aug 2023 08:29:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A20EC433CB;
-        Wed,  9 Aug 2023 08:29:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 639C563062
+        for <linux-rdma@vger.kernel.org>; Wed,  9 Aug 2023 08:29:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34A92C433B7;
+        Wed,  9 Aug 2023 08:29:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691569782;
-        bh=FQpnXBy3lpmnpp/A+mHfD0R/otAhVk9p/iMKoBiQYZs=;
+        s=k20201202; t=1691569786;
+        bh=1aEnwy11dk3pN/SydIOG65hSjDquKCZDp+SiD8zbnQU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fyxxqYnFFY4vdJeAjW3SG7wwqCgeXBuMyuWwjwb4Vh9ERct5+u7cLAxe6InfkAdaS
-         cmZL2l5jEPgK0hfMIopbL1X891jxosRvW+r7H2f6Xpl9gailXMmPco7bO/xx6jMAlN
-         bhlNjqymHYmpOi3HZV2pA+o5BG+uM01qtmNnI1m3D+1kHWpMKmHCWm0LVuHEfF0umV
-         LJaHXCediap+thlsosVvi72p0b+42IHLLBmmI//82jj4slHvHqpKdyr468IqHq0non
-         ci5cowM67AmDxxDYqA9DFIq6lUq8oNrOtrHIB5mCyaDMpAjWXRldo+ede5RFvdiP3i
-         4qQR8s07kaAuQ==
+        b=fTGfzcbsaLtciM9Tw4gBdWTRZlGh29jnrZGyHxqySGN23K8HaomV8MTjJLRV13Oj7
+         nUsFjHucemRwhr94dhm/Z7aigBsIEauJea0qYjYeWleaLJ41gFeyn1UaBiaLJz6vya
+         9csQWW6GwYPFUxfU+Chw2waHJhh7f9z601FdoDW8x3gtzI8zJNdszONmBz7eJ7sOJY
+         +AkNJy0mCdLI9fPsCde6uR3XiBqoTeA9MhOE45/gXZdKWF+7opTBYN4tSdKBizwbMA
+         7cIo5BP+qP1oKQa/3ZZ6CGpWmMLB1J8VVnLreojR0GGJbCrHZqQ2iSiiVa5TNUlAt2
+         eEJHhRquL/K5A==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>, Jakub Kicinski <kuba@kernel.org>
 Cc:     Patrisious Haddad <phaddad@nvidia.com>,
@@ -42,9 +42,9 @@ Cc:     Patrisious Haddad <phaddad@nvidia.com>,
         Mark Zhang <markzhang@nvidia.com>, netdev@vger.kernel.org,
         Paolo Abeni <pabeni@redhat.com>, Raed Salem <raeds@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH mlx5-next v1 03/14] net/mlx5: Remove dependency of macsec flow steering on ethernet
-Date:   Wed,  9 Aug 2023 11:29:15 +0300
-Message-ID: <98b9ac3a5e0391cfdd4368731edae839e87fcb42.1691569414.git.leon@kernel.org>
+Subject: [PATCH mlx5-next v1 01/14] macsec: add functions to get macsec real netdevice and check offload
+Date:   Wed,  9 Aug 2023 11:29:13 +0300
+Message-ID: <7f63bb57a0e0d3792e8bd180ad0168d7ffc89b56.1691569414.git.leon@kernel.org>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <cover.1691569414.git.leon@kernel.org>
 References: <cover.1691569414.git.leon@kernel.org>
@@ -56,132 +56,63 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Patrisious Haddad <phaddad@nvidia.com>
 
-Since macsec flow steering was moved to core, it should be independent
-of all ethernet code and structures hence we remove all ethernet header
-includes and redefine ethernet structs internally for macsec_fs usage
-where needed.
+Given a macsec net_device add two functions to return the real net_device
+for that device, and check if that macsec device is offloaded or not.
+
+This is needed for auxiliary drivers that implement MACsec offload, but
+have flows which are triggered over the macsec net_device, this allows
+the drivers in such cases to verify if the device is offloaded or not,
+and to access the real device of that macsec device, which would
+belong to the driver, and would be needed for the offload procedure.
 
 Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
+Reviewed-by: Raed Salem <raeds@nvidia.com>
+Reviewed-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- .../mellanox/mlx5/core/lib/macsec_fs.c        | 43 +++++++++++++++----
- 1 file changed, 34 insertions(+), 9 deletions(-)
+ drivers/net/macsec.c | 15 +++++++++++++++
+ include/net/macsec.h |  2 ++
+ 2 files changed, 17 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-index 46c0af66d72c..ace6b67f1c97 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/macsec_fs.c
-@@ -6,7 +6,6 @@
- #include <linux/mlx5/qp.h>
- #include <linux/if_vlan.h>
- #include "fs_core.h"
--#include "en/fs.h"
- #include "lib/macsec_fs.h"
- #include "mlx5_core.h"
- 
-@@ -57,8 +56,14 @@ struct mlx5e_macsec_tx_rule {
- 	u32 fs_id;
- };
- 
-+struct mlx5_macsec_flow_table {
-+	int num_groups;
-+	struct mlx5_flow_table *t;
-+	struct mlx5_flow_group **g;
-+};
-+
- struct mlx5e_macsec_tables {
--	struct mlx5e_flow_table ft_crypto;
-+	struct mlx5_macsec_flow_table ft_crypto;
- 	struct mlx5_flow_handle *crypto_miss_rule;
- 
- 	struct mlx5_flow_table *ft_check;
-@@ -103,6 +108,26 @@ struct mlx5e_macsec_fs {
- 	struct mlx5e_macsec_rx *rx_fs;
- };
- 
-+static void macsec_fs_destroy_groups(struct mlx5_macsec_flow_table *ft)
-+{
-+	int i;
-+
-+	for (i = ft->num_groups - 1; i >= 0; i--) {
-+		if (!IS_ERR_OR_NULL(ft->g[i]))
-+			mlx5_destroy_flow_group(ft->g[i]);
-+		ft->g[i] = NULL;
-+	}
-+	ft->num_groups = 0;
-+}
-+
-+static void macsec_fs_destroy_flow_table(struct mlx5_macsec_flow_table *ft)
-+{
-+	macsec_fs_destroy_groups(ft);
-+	kfree(ft->g);
-+	mlx5_destroy_flow_table(ft->t);
-+	ft->t = NULL;
-+}
-+
- static void macsec_fs_tx_destroy(struct mlx5e_macsec_fs *macsec_fs)
- {
- 	struct mlx5e_macsec_tx *tx_fs = macsec_fs->tx_fs;
-@@ -142,10 +167,10 @@ static void macsec_fs_tx_destroy(struct mlx5e_macsec_fs *macsec_fs)
- 		tx_tables->crypto_miss_rule = NULL;
- 	}
- 
--	mlx5e_destroy_flow_table(&tx_tables->ft_crypto);
-+	macsec_fs_destroy_flow_table(&tx_tables->ft_crypto);
+diff --git a/drivers/net/macsec.c b/drivers/net/macsec.c
+index 984dfa5d6c11..ffc421d2de16 100644
+--- a/drivers/net/macsec.c
++++ b/drivers/net/macsec.c
+@@ -4240,6 +4240,21 @@ static struct net *macsec_get_link_net(const struct net_device *dev)
+ 	return dev_net(macsec_priv(dev)->real_dev);
  }
  
--static int macsec_fs_tx_create_crypto_table_groups(struct mlx5e_flow_table *ft)
-+static int macsec_fs_tx_create_crypto_table_groups(struct mlx5_macsec_flow_table *ft)
++struct net_device *macsec_get_real_dev(const struct net_device *dev)
++{
++	return macsec_priv(dev)->real_dev;
++}
++EXPORT_SYMBOL_GPL(macsec_get_real_dev);
++
++bool macsec_netdev_is_offloaded(struct net_device *dev)
++{
++	if (!dev)
++		return false;
++
++	return macsec_is_offloaded(macsec_priv(dev));
++}
++EXPORT_SYMBOL_GPL(macsec_netdev_is_offloaded);
++
+ static size_t macsec_get_size(const struct net_device *dev)
  {
- 	int inlen = MLX5_ST_SZ_BYTES(create_flow_group_in);
- 	int mclen = MLX5_ST_SZ_BYTES(fte_match_param);
-@@ -245,7 +270,7 @@ static int macsec_fs_tx_create(struct mlx5e_macsec_fs *macsec_fs)
- 	struct mlx5_flow_destination dest = {};
- 	struct mlx5e_macsec_tables *tx_tables;
- 	struct mlx5_flow_act flow_act = {};
--	struct mlx5e_flow_table *ft_crypto;
-+	struct mlx5_macsec_flow_table *ft_crypto;
- 	struct mlx5_flow_table *flow_table;
- 	struct mlx5_flow_group *flow_group;
- 	struct mlx5_flow_namespace *ns;
-@@ -734,10 +759,10 @@ static void macsec_fs_rx_destroy(struct mlx5e_macsec_fs *macsec_fs)
- 		rx_tables->crypto_miss_rule = NULL;
- 	}
- 
--	mlx5e_destroy_flow_table(&rx_tables->ft_crypto);
-+	macsec_fs_destroy_flow_table(&rx_tables->ft_crypto);
+ 	return  nla_total_size_64bit(8) + /* IFLA_MACSEC_SCI */
+diff --git a/include/net/macsec.h b/include/net/macsec.h
+index 441ed8fd4b5f..75a6f4863c83 100644
+--- a/include/net/macsec.h
++++ b/include/net/macsec.h
+@@ -312,6 +312,8 @@ static inline bool macsec_send_sci(const struct macsec_secy *secy)
+ 	return tx_sc->send_sci ||
+ 		(secy->n_rx_sc > 1 && !tx_sc->end_station && !tx_sc->scb);
  }
++struct net_device *macsec_get_real_dev(const struct net_device *dev);
++bool macsec_netdev_is_offloaded(struct net_device *dev);
  
--static int macsec_fs_rx_create_crypto_table_groups(struct mlx5e_flow_table *ft)
-+static int macsec_fs_rx_create_crypto_table_groups(struct mlx5_macsec_flow_table *ft)
+ static inline void *macsec_netdev_priv(const struct net_device *dev)
  {
- 	int inlen = MLX5_ST_SZ_BYTES(create_flow_group_in);
- 	int mclen = MLX5_ST_SZ_BYTES(fte_match_param);
-@@ -895,10 +920,10 @@ static int macsec_fs_rx_create(struct mlx5e_macsec_fs *macsec_fs)
- 	int inlen = MLX5_ST_SZ_BYTES(create_flow_group_in);
- 	struct mlx5e_macsec_rx *rx_fs = macsec_fs->rx_fs;
- 	struct net_device *netdev = macsec_fs->netdev;
-+	struct mlx5_macsec_flow_table *ft_crypto;
- 	struct mlx5_flow_table_attr ft_attr = {};
- 	struct mlx5_flow_destination dest = {};
- 	struct mlx5e_macsec_tables *rx_tables;
--	struct mlx5e_flow_table *ft_crypto;
- 	struct mlx5_flow_table *flow_table;
- 	struct mlx5_flow_group *flow_group;
- 	struct mlx5_flow_act flow_act = {};
-@@ -1123,11 +1148,11 @@ macsec_fs_rx_add_rule(struct mlx5e_macsec_fs *macsec_fs,
- 	struct net_device *netdev = macsec_fs->netdev;
- 	union mlx5e_macsec_rule *macsec_rule = NULL;
- 	struct mlx5_modify_hdr *modify_hdr = NULL;
-+	struct mlx5_macsec_flow_table *ft_crypto;
- 	struct mlx5_flow_destination dest = {};
- 	struct mlx5e_macsec_tables *rx_tables;
- 	struct mlx5e_macsec_rx_rule *rx_rule;
- 	struct mlx5_flow_act flow_act = {};
--	struct mlx5e_flow_table *ft_crypto;
- 	struct mlx5_flow_handle *rule;
- 	struct mlx5_flow_spec *spec;
- 	int err = 0;
 -- 
 2.41.0
 
