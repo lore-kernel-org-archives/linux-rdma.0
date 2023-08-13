@@ -2,122 +2,152 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12FB4C001DE
-	for <linux-rdma@archiver.kernel.org>; Sun, 13 Aug 2023 14:52:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61F15C001B0
+	for <linux-rdma@archiver.kernel.org>; Sun, 13 Aug 2023 16:54:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231358AbjHMOwe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 13 Aug 2023 10:52:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59962 "EHLO
+        id S229745AbjHMQyx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 13 Aug 2023 12:54:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231312AbjHMOwH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 13 Aug 2023 10:52:07 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC15F170D;
-        Sun, 13 Aug 2023 07:52:08 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        with ESMTP id S229451AbjHMQyw (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 13 Aug 2023 12:54:52 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2F5E1B5;
+        Sun, 13 Aug 2023 09:54:54 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 691691F8D5;
-        Sun, 13 Aug 2023 14:52:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1691938325; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=O9Q66lEIFKkRcUzjXIAp7yKb9m2EclBPlOJJKm5nUB4=;
-        b=vSobd0sP/xXfZQBlkq7rVosb8E8cggVOWqNUGH+NY+5Y4IwjB5kFb1VWTaGQ6hGPhlmS4+
-        TWivho1Kiu/eolnKcgwfnik2cYET8NQkPIJq6ljgbsvgqHpPX3YwGsV2cX96DdohGVUMEr
-        70+v8KuYVCTIva1xGcJxeZ1ghk8V0/E=
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 325F71322C;
-        Sun, 13 Aug 2023 14:52:05 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id EEeJCxXu2GSDFAAAMHmgww
-        (envelope-from <petr.pavlu@suse.com>); Sun, 13 Aug 2023 14:52:05 +0000
-From:   Petr Pavlu <petr.pavlu@suse.com>
-To:     tariqt@nvidia.com, yishaih@nvidia.com, leon@kernel.org
-Cc:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, jgg@ziepe.ca, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Petr Pavlu <petr.pavlu@suse.com>,
-        Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH net-next v2 06/10] mlx4: Avoid resetting MLX4_INTFF_BONDING per driver
-Date:   Sun, 13 Aug 2023 16:51:23 +0200
-Message-Id: <20230813145127.10653-7-petr.pavlu@suse.com>
-X-Mailer: git-send-email 2.35.3
-In-Reply-To: <20230813145127.10653-1-petr.pavlu@suse.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 58EC560E55;
+        Sun, 13 Aug 2023 16:54:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D98C433C7;
+        Sun, 13 Aug 2023 16:54:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1691945693;
+        bh=GtksutdwWQqILgbjQciqv0DjEEChnt/FUIitCik4EPc=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=pIS4xTwAgXo5b81Dl6AwKthfy2l0m5YuPIKPlz8PCPllJlzRN6Gg82bPPj4LGh4C0
+         7fLT4fTpofWZhMcrm+RGVvj6XywjdSxVoWFhDfRlIGmm1RgXDAuoA/vBXN7WHbTx+F
+         mgH1JysUt9TjCtbQtVtjS3gxqrCD6HPBBBPuK+MX1J8BFZdUdTdiCWOOUN1x9ga9Be
+         e68bU2Lg/ni/cL8onPeUbvD/HB6+4UNbcmRtIsElEeo4Q/Bb02bgOSiAvPMw/OGKfe
+         JLcfOFMk+WsNM/GIdCzl4MGZx23odhN9aRxhHMZ/n2kXcP3IlGh6cea0lu93hZb7HN
+         SfWVOzrWRTUMQ==
+Date:   Sun, 13 Aug 2023 19:54:49 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Petr Pavlu <petr.pavlu@suse.com>
+Cc:     tariqt@nvidia.com, yishaih@nvidia.com, davem@davemloft.net,
+        edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+        jgg@ziepe.ca, netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net-next v2 03/10] mlx4: Replace the mlx4_interface.event
+ callback with a notifier
+Message-ID: <20230813165449.GL7707@unreal>
 References: <20230813145127.10653-1-petr.pavlu@suse.com>
+ <20230813145127.10653-4-petr.pavlu@suse.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230813145127.10653-4-petr.pavlu@suse.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The mlx4_core driver has a logic that allows a sub-driver to set the
-MLX4_INTFF_BONDING flag which then causes that function mlx4_do_bond()
-asks the sub-driver to fully re-probe a device when its bonding
-configuration changes.
+On Sun, Aug 13, 2023 at 04:51:20PM +0200, Petr Pavlu wrote:
+> Use a notifier to implement mlx4_dispatch_event() in preparation to
+> switch mlx4_en and mlx4_ib to be an auxiliary device.
+> 
+> A problem is that if the mlx4_interface.event callback was replaced with
+> something as mlx4_adrv.event then the implementation of
+> mlx4_dispatch_event() would need to acquire a lock on a given device
+> before executing this callback. That is necessary because otherwise
+> there is no guarantee that the associated driver cannot get unbound when
+> the callback is running. However, taking this lock is not possible
+> because mlx4_dispatch_event() can be invoked from the hardirq context.
+> Using an atomic notifier allows the driver to accurately record when it
+> wants to receive these events and solves this problem.
+> 
+> A handler registration is done by both mlx4_en and mlx4_ib at the end of
+> their mlx4_interface.add callback. This matches the current situation
+> when mlx4_add_device() would enable events for a given device
+> immediately after this callback, by adding the device on the
+> mlx4_priv.list.
+> 
+> Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
+> Tested-by: Leon Romanovsky <leonro@nvidia.com>
+> Acked-by: Tariq Toukan <tariqt@nvidia.com>
+> ---
+>  drivers/infiniband/hw/mlx4/main.c            | 41 +++++++++++++-------
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h         |  2 +
+>  drivers/net/ethernet/mellanox/mlx4/en_main.c | 27 +++++++++----
+>  drivers/net/ethernet/mellanox/mlx4/intf.c    | 24 ++++++++----
+>  drivers/net/ethernet/mellanox/mlx4/main.c    |  2 +
+>  drivers/net/ethernet/mellanox/mlx4/mlx4.h    |  2 +
+>  drivers/net/ethernet/mellanox/mlx4/mlx4_en.h |  2 +
+>  include/linux/mlx4/driver.h                  |  8 +++-
+>  8 files changed, 77 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+> index 7dd70d778b6b..0761c465120b 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -82,6 +82,8 @@ static const char mlx4_ib_version[] =
+>  static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init);
+>  static enum rdma_link_layer mlx4_ib_port_link_layer(struct ib_device *device,
+>  						    u32 port_num);
+> +static int mlx4_ib_event(struct notifier_block *this, unsigned long event,
+> +			 void *ptr);
+>  
+>  static struct workqueue_struct *wq;
+>  
+> @@ -2836,6 +2838,12 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+>  				do_slave_init(ibdev, j, 1);
+>  		}
+>  	}
+> +
+> +	/* register mlx4 core notifier */
+> +	ibdev->mlx_nb.notifier_call = mlx4_ib_event;
+> +	err = mlx4_register_event_notifier(dev, &ibdev->mlx_nb);
+> +	WARN(err, "failed to register mlx4 event notifier (%d)", err);
+> +
+>  	return ibdev;
+>  
+>  err_notif:
+> @@ -2953,6 +2961,8 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+>  	int p;
+>  	int i;
+>  
+> +	mlx4_unregister_event_notifier(dev, &ibdev->mlx_nb);
+> +
+>  	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_IB)
+>  		devlink_port_type_clear(mlx4_get_devlink_port(dev, i));
+>  	ibdev->ib_active = false;
+> @@ -3173,11 +3183,14 @@ void mlx4_sched_ib_sl2vl_update_work(struct mlx4_ib_dev *ibdev,
+>  	}
+>  }
+>  
+> -static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+> -			  enum mlx4_dev_event event, unsigned long param)
+> +static int mlx4_ib_event(struct notifier_block *this, unsigned long event,
+> +			 void *ptr)
+>  {
+> +	struct mlx4_ib_dev *ibdev =
+> +		container_of(this, struct mlx4_ib_dev, mlx_nb);
+> +	struct mlx4_dev *dev = ibdev->dev;
+> +	unsigned long param = *(unsigned long *)ptr;
 
-Performing this operation is disallowed in mlx4_register_interface()
-when it is detected that any mlx4 device is multifunction (SRIOV). The
-code then resets MLX4_INTFF_BONDING in the driver flags.
+You don't need this assignment here as later, you will cast param again,
+in your next patches:
 
-Move this check directly into mlx4_do_bond(). It provides a better
-separation as mlx4_core no longer directly modifies the sub-driver flags
-and it will allow to get rid of explicitly keeping track of all mlx4
-devices by the intf.c code when it is switched to an auxiliary bus.
+  3227         if (event == MLX4_DEV_EVENT_PORT_MGMT_CHANGE)
+  3228                 eqe = (struct mlx4_eqe *)param;
+  3229         else
+  3230                 p = (int) param;
 
-Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
-Tested-by: Leon Romanovsky <leonro@nvidia.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
-Acked-by: Tariq Toukan <tariqt@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx4/intf.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+so use ptr directly:
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
-index 8b2c1404cb66..30aead34ce08 100644
---- a/drivers/net/ethernet/mellanox/mlx4/intf.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
-@@ -96,11 +96,6 @@ int mlx4_register_interface(struct mlx4_interface *intf)
- 
- 	list_add_tail(&intf->list, &intf_list);
- 	list_for_each_entry(priv, &dev_list, dev_list) {
--		if (mlx4_is_mfunc(&priv->dev) && (intf->flags & MLX4_INTFF_BONDING)) {
--			mlx4_dbg(&priv->dev,
--				 "SRIOV, disabling HA mode for intf proto %d\n", intf->protocol);
--			intf->flags &= ~MLX4_INTFF_BONDING;
--		}
- 		mlx4_add_device(intf, priv);
- 	}
- 
-@@ -155,10 +150,18 @@ int mlx4_do_bond(struct mlx4_dev *dev, bool enable)
- 
- 	spin_lock_irqsave(&priv->ctx_lock, flags);
- 	list_for_each_entry_safe(dev_ctx, temp_dev_ctx, &priv->ctx_list, list) {
--		if (dev_ctx->intf->flags & MLX4_INTFF_BONDING) {
--			list_add_tail(&dev_ctx->bond_list, &bond_list);
--			list_del(&dev_ctx->list);
-+		if (!(dev_ctx->intf->flags & MLX4_INTFF_BONDING))
-+			continue;
-+
-+		if (mlx4_is_mfunc(dev)) {
-+			mlx4_dbg(dev,
-+				 "SRIOV, disabled HA mode for intf proto %d\n",
-+				 dev_ctx->intf->protocol);
-+			continue;
- 		}
-+
-+		list_add_tail(&dev_ctx->bond_list, &bond_list);
-+		list_del(&dev_ctx->list);
- 	}
- 	spin_unlock_irqrestore(&priv->ctx_lock, flags);
- 
--- 
-2.35.3
+         if (event == MLX4_DEV_EVENT_PORT_MGMT_CHANGE)
+                 eqe = param;
+         else
+                 p = *(int *) param;
 
+Thanks
