@@ -2,110 +2,283 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2683FC04FDF
-	for <linux-rdma@archiver.kernel.org>; Wed, 16 Aug 2023 06:53:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6B55C04A94
+	for <linux-rdma@archiver.kernel.org>; Wed, 16 Aug 2023 09:21:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234258AbjHPGwp (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 16 Aug 2023 02:52:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48742 "EHLO
+        id S234219AbjHPJV1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 16 Aug 2023 05:21:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242207AbjHPGwi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Aug 2023 02:52:38 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7750B19A1
-        for <linux-rdma@vger.kernel.org>; Tue, 15 Aug 2023 23:52:37 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0E07563BD7
-        for <linux-rdma@vger.kernel.org>; Wed, 16 Aug 2023 06:52:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A724EC433C7;
-        Wed, 16 Aug 2023 06:52:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1692168756;
-        bh=2AIWKp2sy/1XGCmuzq+BzxxsosNVLkqm9wiJBK2f824=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=NXmpk9FHf7EZA3mi9USxU6WDzCuRwF2to9NXqyWAzJsb9WRaa7dO01/3UC+Wsf3zu
-         ivKMSPJZs7cZEyz4r7XklvhO/BbZSUchaPrawzee71pwUmYeNa0Y2raSUOAooO2Skw
-         ph+3YHjtz9vdf8BfuscQegL5IZju4YiF1e3eH79+dsLGuFZqgqHjO5TL03PJ3oXuGW
-         /MH7uBj2vUf8VM7WS4LgN5eBUqp7USKqSNFd0RyK6W2Bs9JoI3lE0d5PVv8DhXN8wy
-         IlR2ilZxHQecendin8FCkuUB9kzu4omxSzuQQ3nRR1PvOWAl00uJk6hWqutLgdwfjM
-         KB+1BJztsMnrQ==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Mark Bloch <mbloch@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
-        Mark Zhang <markzhang@nvidia.com>, netdev@vger.kernel.org,
-        Paolo Abeni <pabeni@redhat.com>,
-        Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH rdma-next 1/2] RDMA/mlx5: Get upper device only if device is lagged
-Date:   Wed, 16 Aug 2023 09:52:23 +0300
-Message-ID: <117b591f5e6e130aeccc871888084fb92fb43b5a.1692168533.git.leon@kernel.org>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <cover.1692168533.git.leon@kernel.org>
-References: <cover.1692168533.git.leon@kernel.org>
+        with ESMTP id S243289AbjHPJVD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Aug 2023 05:21:03 -0400
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9895D2128;
+        Wed, 16 Aug 2023 02:21:00 -0700 (PDT)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.53])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4RQjHd0kklzVkFb;
+        Wed, 16 Aug 2023 17:18:53 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.2) by
+ kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.31; Wed, 16 Aug 2023 17:20:58 +0800
+From:   Junxian Huang <huangjunxian6@hisilicon.com>
+To:     <jgg@nvidia.com>, <leon@kernel.org>
+CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+        <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
+Subject: [PATCH for-next 2/3] RDMA/hns: Support hns HW stats
+Date:   Wed, 16 Aug 2023 17:18:11 +0800
+Message-ID: <20230816091812.2899366-3-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20230816091812.2899366-1-huangjunxian6@hisilicon.com>
+References: <20230816091812.2899366-1-huangjunxian6@hisilicon.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.67.165.2]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ kwepemi500006.china.huawei.com (7.221.188.68)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <mbloch@nvidia.com>
+From: Chengchang Tang <tangchengchang@huawei.com>
 
-If the RDMA device isn't in LAG mode there is no need
-to try to get the upper device.
+Support query hns HW stats for rdma-tool to help debugging.
 
-Signed-off-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 28 ++++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 51 +++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  1 +
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 79 +++++++++++++++++++++
+ 4 files changed, 159 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f0b394ed7452..215d7b0add8f 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -195,12 +195,18 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 	case NETDEV_CHANGE:
- 	case NETDEV_UP:
- 	case NETDEV_DOWN: {
--		struct net_device *lag_ndev = mlx5_lag_get_roce_netdev(mdev);
- 		struct net_device *upper = NULL;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 9691cfdd7e3d..7f0d0288beb1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -840,6 +840,32 @@ enum hns_roce_device_state {
+ 	HNS_ROCE_DEVICE_STATE_UNINIT,
+ };
  
--		if (lag_ndev) {
--			upper = netdev_master_upper_dev_get(lag_ndev);
--			dev_put(lag_ndev);
-+		if (ibdev->lag_active) {
-+			struct net_device *lag_ndev;
++enum hns_roce_hw_pkt_stat_index {
++	HNS_ROCE_HW_RX_RC_PKT_CNT,
++	HNS_ROCE_HW_RX_UC_PKT_CNT,
++	HNS_ROCE_HW_RX_UD_PKT_CNT,
++	HNS_ROCE_HW_RX_XRC_PKT_CNT,
++	HNS_ROCE_HW_RX_PKT_CNT,
++	HNS_ROCE_HW_RX_ERR_PKT_CNT,
++	HNS_ROCE_HW_RX_CNP_PKT_CNT,
++	HNS_ROCE_HW_TX_RC_PKT_CNT,
++	HNS_ROCE_HW_TX_UC_PKT_CNT,
++	HNS_ROCE_HW_TX_UD_PKT_CNT,
++	HNS_ROCE_HW_TX_XRC_PKT_CNT,
++	HNS_ROCE_HW_TX_PKT_CNT,
++	HNS_ROCE_HW_TX_ERR_PKT_CNT,
++	HNS_ROCE_HW_TX_CNP_PKT_CNT,
++	HNS_ROCE_HW_TRP_GET_MPT_ERR_PKT_CNT,
++	HNS_ROCE_HW_TRP_GET_IRRL_ERR_PKT_CNT,
++	HNS_ROCE_HW_ECN_DB_CNT,
++	HNS_ROCE_HW_RX_BUF_CNT,
++	HNS_ROCE_HW_TRP_RX_SOF_CNT,
++	HNS_ROCE_HW_CQ_CQE_CNT,
++	HNS_ROCE_HW_CQ_POE_CNT,
++	HNS_ROCE_HW_CQ_NOTIFY_CNT,
++	HNS_ROCE_HW_CNT_TOTAL
++};
 +
-+			lag_ndev = mlx5_lag_get_roce_netdev(mdev);
-+			if (lag_ndev) {
-+				upper = netdev_master_upper_dev_get(lag_ndev);
-+				dev_put(lag_ndev);
-+			} else {
-+				goto done;
-+			}
- 		}
+ struct hns_roce_hw {
+ 	int (*cmq_init)(struct hns_roce_dev *hr_dev);
+ 	void (*cmq_exit)(struct hns_roce_dev *hr_dev);
+@@ -882,6 +908,8 @@ struct hns_roce_hw {
+ 	int (*query_cqc)(struct hns_roce_dev *hr_dev, u32 cqn, void *buffer);
+ 	int (*query_qpc)(struct hns_roce_dev *hr_dev, u32 qpn, void *buffer);
+ 	int (*query_mpt)(struct hns_roce_dev *hr_dev, u32 key, void *buffer);
++	int (*query_hw_counter)(struct hns_roce_dev *hr_dev,
++				u64 *stats, u32 port, int *hw_counters);
+ 	const struct ib_device_ops *hns_roce_dev_ops;
+ 	const struct ib_device_ops *hns_roce_dev_srq_ops;
+ };
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index eef143388f65..d82daff2d9bd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1613,6 +1613,56 @@ static int hns_roce_query_func_info(struct hns_roce_dev *hr_dev)
+ 	return 0;
+ }
  
- 		if (ibdev->is_rep)
-@@ -254,9 +260,11 @@ static struct net_device *mlx5_ib_get_netdev(struct ib_device *device,
- 	if (!mdev)
- 		return NULL;
- 
--	ndev = mlx5_lag_get_roce_netdev(mdev);
--	if (ndev)
--		goto out;
-+	if (ibdev->lag_active) {
-+		ndev = mlx5_lag_get_roce_netdev(mdev);
-+		if (ndev)
-+			goto out;
++static int hns_roce_hw_v2_query_counter(struct hns_roce_dev *hr_dev,
++					u64 *stats, u32 port, int *num_counters)
++{
++#define CNT_PER_DESC 3
++	struct hns_roce_cmq_desc *desc;
++	int bd_idx, cnt_idx;
++	__le64 *cnt_data;
++	int desc_num;
++	int ret;
++	int i;
++
++	if (port > hr_dev->caps.num_ports)
++		return -EINVAL;
++
++	desc_num = DIV_ROUND_UP(HNS_ROCE_HW_CNT_TOTAL, CNT_PER_DESC);
++	desc = kcalloc(desc_num, sizeof(*desc), GFP_KERNEL);
++	if (!desc)
++		return -ENOMEM;
++
++	for (i = 0; i < desc_num; i++) {
++		hns_roce_cmq_setup_basic_desc(&desc[i],
++					      HNS_ROCE_OPC_QUERY_COUNTER, true);
++		if (i != desc_num - 1)
++			desc[i].flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_NEXT);
 +	}
++
++	ret = hns_roce_cmq_send(hr_dev, desc, desc_num);
++	if (ret) {
++		ibdev_err(&hr_dev->ib_dev,
++			  "failed to get counter, ret = %d.\n", ret);
++		goto err_out;
++	}
++
++	for (i = 0; i < HNS_ROCE_HW_CNT_TOTAL && i < *num_counters; i++) {
++		bd_idx = i / CNT_PER_DESC;
++		if (!(desc[bd_idx].flag & HNS_ROCE_CMD_FLAG_NEXT) &&
++		    bd_idx != HNS_ROCE_HW_CNT_TOTAL / CNT_PER_DESC)
++			break;
++
++		cnt_data = (__le64 *)&desc[bd_idx].data[0];
++		cnt_idx = i % CNT_PER_DESC;
++		stats[i] = le64_to_cpu(cnt_data[cnt_idx]);
++	}
++	*num_counters = i;
++
++err_out:
++	kfree(desc);
++	return ret;
++}
++
+ static int hns_roce_config_global_param(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_cmq_desc desc;
+@@ -6582,6 +6632,7 @@ static const struct hns_roce_hw hns_roce_hw_v2 = {
+ 	.query_cqc = hns_roce_v2_query_cqc,
+ 	.query_qpc = hns_roce_v2_query_qpc,
+ 	.query_mpt = hns_roce_v2_query_mpt,
++	.query_hw_counter = hns_roce_hw_v2_query_counter,
+ 	.hns_roce_dev_ops = &hns_roce_v2_dev_ops,
+ 	.hns_roce_dev_srq_ops = &hns_roce_v2_dev_srq_ops,
+ };
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index d9693f6cc802..cd97cbee682a 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -198,6 +198,7 @@ enum hns_roce_opcode_type {
+ 	HNS_ROCE_OPC_QUERY_HW_VER			= 0x8000,
+ 	HNS_ROCE_OPC_CFG_GLOBAL_PARAM			= 0x8001,
+ 	HNS_ROCE_OPC_ALLOC_PF_RES			= 0x8004,
++	HNS_ROCE_OPC_QUERY_COUNTER			= 0x8206,
+ 	HNS_ROCE_OPC_QUERY_PF_RES			= 0x8400,
+ 	HNS_ROCE_OPC_ALLOC_VF_RES			= 0x8401,
+ 	HNS_ROCE_OPC_CFG_EXT_LLM			= 0x8403,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 9141eadf33d2..d9d546cdef52 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -515,6 +515,83 @@ static void hns_roce_get_fw_ver(struct ib_device *device, char *str)
+ 		 sub_minor);
+ }
  
- 	/* Ensure ndev does not disappear before we invoke dev_hold()
- 	 */
++#define HNS_ROCE_HW_CNT(ename, cname) \
++	[HNS_ROCE_HW_##ename##_CNT].name = cname
++
++static const struct rdma_stat_desc hns_roce_port_stats_descs[] = {
++	HNS_ROCE_HW_CNT(RX_RC_PKT, "rx_rc_pkt"),
++	HNS_ROCE_HW_CNT(RX_UC_PKT, "rx_uc_pkt"),
++	HNS_ROCE_HW_CNT(RX_UD_PKT, "rx_ud_pkt"),
++	HNS_ROCE_HW_CNT(RX_XRC_PKT, "rx_xrc_pkt"),
++	HNS_ROCE_HW_CNT(RX_PKT, "rx_pkt"),
++	HNS_ROCE_HW_CNT(RX_ERR_PKT, "rx_err_pkt"),
++	HNS_ROCE_HW_CNT(RX_CNP_PKT, "rx_cnp_pkt"),
++	HNS_ROCE_HW_CNT(TX_RC_PKT, "tx_rc_pkt"),
++	HNS_ROCE_HW_CNT(TX_UC_PKT, "tx_uc_pkt"),
++	HNS_ROCE_HW_CNT(TX_UD_PKT, "tx_ud_pkt"),
++	HNS_ROCE_HW_CNT(TX_XRC_PKT, "tx_xrc_pkt"),
++	HNS_ROCE_HW_CNT(TX_PKT, "tx_pkt"),
++	HNS_ROCE_HW_CNT(TX_ERR_PKT, "tx_err_pkt"),
++	HNS_ROCE_HW_CNT(TX_CNP_PKT, "tx_cnp_pkt"),
++	HNS_ROCE_HW_CNT(TRP_GET_MPT_ERR_PKT, "trp_get_mpt_err_pkt"),
++	HNS_ROCE_HW_CNT(TRP_GET_IRRL_ERR_PKT, "trp_get_irrl_err_pkt"),
++	HNS_ROCE_HW_CNT(ECN_DB, "ecn_doorbell"),
++	HNS_ROCE_HW_CNT(RX_BUF, "rx_buffer"),
++	HNS_ROCE_HW_CNT(TRP_RX_SOF, "trp_rx_sof"),
++	HNS_ROCE_HW_CNT(CQ_CQE, "cq_cqe"),
++	HNS_ROCE_HW_CNT(CQ_POE, "cq_poe"),
++	HNS_ROCE_HW_CNT(CQ_NOTIFY, "cq_notify"),
++};
++
++static struct rdma_hw_stats *hns_roce_alloc_hw_port_stats(
++				struct ib_device *device, u32 port_num)
++{
++	struct hns_roce_dev *hr_dev = to_hr_dev(device);
++	u32 port = port_num - 1;
++
++	if (port > hr_dev->caps.num_ports) {
++		ibdev_err(device, "invalid port num.\n");
++		return NULL;
++	}
++
++	if (hr_dev->pci_dev->revision <= PCI_REVISION_ID_HIP08 ||
++	    hr_dev->is_vf)
++		return NULL;
++
++	return rdma_alloc_hw_stats_struct(hns_roce_port_stats_descs,
++					  ARRAY_SIZE(hns_roce_port_stats_descs),
++					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
++}
++
++static int hns_roce_get_hw_stats(struct ib_device *device,
++				 struct rdma_hw_stats *stats,
++				 u32 port, int index)
++{
++	struct hns_roce_dev *hr_dev = to_hr_dev(device);
++	int num_counters = HNS_ROCE_HW_CNT_TOTAL;
++	int ret;
++
++	if (port == 0)
++		return 0;
++
++	if (port > hr_dev->caps.num_ports)
++		return -EINVAL;
++
++	if (hr_dev->pci_dev->revision <= PCI_REVISION_ID_HIP08 ||
++	    hr_dev->is_vf)
++		return -EOPNOTSUPP;
++
++	ret = hr_dev->hw->query_hw_counter(hr_dev, stats->value, port,
++					   &num_counters);
++	if (ret) {
++		ibdev_err(device, "failed to query hw counter, ret = %d\n",
++			  ret);
++		return ret;
++	}
++
++	return num_counters;
++}
++
+ static void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_ib_iboe *iboe = &hr_dev->iboe;
+@@ -557,6 +634,8 @@ static const struct ib_device_ops hns_roce_dev_ops = {
+ 	.query_pkey = hns_roce_query_pkey,
+ 	.query_port = hns_roce_query_port,
+ 	.reg_user_mr = hns_roce_reg_user_mr,
++	.alloc_hw_port_stats = hns_roce_alloc_hw_port_stats,
++	.get_hw_stats = hns_roce_get_hw_stats,
+ 
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, hns_roce_ah, ibah),
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, hns_roce_cq, ib_cq),
 -- 
-2.41.0
+2.30.0
 
