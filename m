@@ -2,72 +2,199 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2628C04A94
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3FDBC41513
 	for <linux-rdma@archiver.kernel.org>; Wed, 16 Aug 2023 06:53:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242200AbjHPGwo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S241085AbjHPGwo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Wed, 16 Aug 2023 02:52:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48738 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242206AbjHPGwd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Aug 2023 02:52:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBED219A1;
-        Tue, 15 Aug 2023 23:52:32 -0700 (PDT)
+        with ESMTP id S242208AbjHPGwn (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 16 Aug 2023 02:52:43 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDAD719A1
+        for <linux-rdma@vger.kernel.org>; Tue, 15 Aug 2023 23:52:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 80FB364D91;
-        Wed, 16 Aug 2023 06:52:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CE55C433C8;
-        Wed, 16 Aug 2023 06:52:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6709564E24
+        for <linux-rdma@vger.kernel.org>; Wed, 16 Aug 2023 06:52:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48707C433C8;
+        Wed, 16 Aug 2023 06:52:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1692168751;
-        bh=9x6XYCIJfZswqP71VF9xof0678DuoczWTBVfmmHFNoE=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Qk2/Mu80XH2lI/JVifFwYdyM/VWRmEtd3lxhgLl3D4U4WZZd//hMvjsf27IRvMF11
-         5CnW8cqLPskd5tnXDQcbSEe9VZRQhQsK8zTeuyiggL+syP8A7DUZGtSiebjdCtYPrJ
-         Pc0jJcDBbsD/NsIt4zs2/b+Ij7VZsNpTUwAywbSvHdLdIAdrcL0KD+Jm9OPh31FQ0D
-         NpMiGJTOrSzM/aaWbqQOeDbKJoBkaK8N7wKrwunNH+b0efvnGQzuJ456UUCluwLQrx
-         NNWLrA3YXqoK3YOFkZ1BN/czm0drz43Ke0ub81Zkz8Vx98WkUSNwvvwg9+rtdEUYmS
-         4n8OJPb9mt3yA==
+        s=k20201202; t=1692168760;
+        bh=abWiWPKwcgaHPVQRZlXrDvbyWt7euJGqA6mcYi7jVrs=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=BFijh41P+NVInGCZcyfdxuBf//Px+ckUMXhH7J8rIx6rDJjNftufP8KaOabxNSxU7
+         dP0iw22bl4SxL/4LlTlrh8BWuvb8dC0VJk3ZwKIQOCDoRlYwppQ6Z/SR5bXYJUg/v8
+         3HOvfu4kCpElSjr2ExTJTzo1Mfeu3CXivpwRaYUdJYL62M/o5gxsfMNLFI7WbUJ9jD
+         ZnhLPAx3krpbFIdN+A3AZ0Ime770idL/pEewkGzw4oZ0qWfCpsMhYNrSb15SFkan+W
+         B87xC9OnaJT9Cak37It9O6F+iDgr83SjohhdPv9uwZCk71Kcd77S4H9zITqrlCJx++
+         MeHwUOkat4z+A==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Mark Bloch <mbloch@nvidia.com>,
+Cc:     Mark Bloch <mbloch@nvidia.com>, Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
         Mark Zhang <markzhang@nvidia.com>, netdev@vger.kernel.org,
         Paolo Abeni <pabeni@redhat.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH rdma-next 0/2] mlx5 RDMA LAG fixes
-Date:   Wed, 16 Aug 2023 09:52:22 +0300
-Message-ID: <cover.1692168533.git.leon@kernel.org>
+Subject: [PATCH rdma-next 2/2] RDMA/mlx5: Send correct port events
+Date:   Wed, 16 Aug 2023 09:52:24 +0300
+Message-ID: <86a8473d0ccea1b66e59eb86457359be9005cfcb.1692168533.git.leon@kernel.org>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <cover.1692168533.git.leon@kernel.org>
+References: <cover.1692168533.git.leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Mark Bloch <mbloch@nvidia.com>
 
-Hi,
+When operating in switchdev mode and with an active LAG, the function
+mlx5_lag_get_roce_netdev() fails to return a valid net device as this
+function is designed specifically for RoCE LAGs.
 
-These two not urgent fixes to mlx5 RDMA LAG logic.
+Consequently, this issue resulted in the driver sending incorrect event
+reports. To address this, a new API is introduced to properly obtain the
+net device. Additionally, some code logic is cleaned up during this
+modification.
 
-Thanks
-
-Mark Bloch (2):
-  RDMA/mlx5: Get upper device only if device is lagged
-  RDMA/mlx5: Send correct port events
-
- drivers/infiniband/hw/mlx5/main.c             | 57 ++++++++++++++-----
- .../net/ethernet/mellanox/mlx5/core/lag/lag.c | 29 ++++++++++
+Signed-off-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/main.c             | 39 +++++++++++++++----
+ .../net/ethernet/mellanox/mlx5/core/lag/lag.c | 29 ++++++++++++++
  include/linux/mlx5/driver.h                   |  2 +
- 3 files changed, 75 insertions(+), 13 deletions(-)
+ 3 files changed, 62 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 215d7b0add8f..8b98200bd94c 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -159,6 +159,29 @@ static struct mlx5_roce *mlx5_get_rep_roce(struct mlx5_ib_dev *dev,
+ 	return NULL;
+ }
+ 
++static bool mlx5_netdev_send_event(struct mlx5_ib_dev *dev,
++				   struct net_device *ndev,
++				   struct net_device *upper,
++				   struct mlx5_roce *roce)
++{
++	if (!dev->ib_active)
++		return false;
++
++	/* Event is about our upper device */
++	if (upper == ndev)
++		return true;
++
++	/* RDMA device not in lag and not in switchdev */
++	if (!dev->is_rep && !upper && ndev == roce->netdev)
++		return true;
++
++	/* RDMA device in switchdev */
++	if (dev->is_rep && ndev == roce->netdev)
++		return true;
++
++	return false;
++}
++
+ static int mlx5_netdev_event(struct notifier_block *this,
+ 			     unsigned long event, void *ptr)
+ {
+@@ -200,7 +223,7 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 		if (ibdev->lag_active) {
+ 			struct net_device *lag_ndev;
+ 
+-			lag_ndev = mlx5_lag_get_roce_netdev(mdev);
++			lag_ndev = mlx5_lag_get_netdev(mdev);
+ 			if (lag_ndev) {
+ 				upper = netdev_master_upper_dev_get(lag_ndev);
+ 				dev_put(lag_ndev);
+@@ -209,13 +232,13 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 			}
+ 		}
+ 
+-		if (ibdev->is_rep)
++		if (ibdev->is_rep) {
+ 			roce = mlx5_get_rep_roce(ibdev, ndev, upper, &port_num);
+-		if (!roce)
+-			return NOTIFY_DONE;
+-		if ((upper == ndev ||
+-		     ((!upper || ibdev->is_rep) && ndev == roce->netdev)) &&
+-		    ibdev->ib_active) {
++			if (!roce)
++				return NOTIFY_DONE;
++		}
++
++		if (mlx5_netdev_send_event(ibdev, ndev, upper, roce)) {
+ 			struct ib_event ibev = { };
+ 			enum ib_port_state port_state;
+ 
+@@ -260,7 +283,7 @@ static struct net_device *mlx5_ib_get_netdev(struct ib_device *device,
+ 	if (!mdev)
+ 		return NULL;
+ 
+-	if (ibdev->lag_active) {
++	if (!ibdev->is_rep && ibdev->lag_active) {
+ 		ndev = mlx5_lag_get_roce_netdev(mdev);
+ 		if (ndev)
+ 			goto out;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+index f0a074b2fcdf..83298e9addd3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lag/lag.c
+@@ -1498,6 +1498,35 @@ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev)
+ }
+ EXPORT_SYMBOL(mlx5_lag_get_roce_netdev);
+ 
++struct net_device *mlx5_lag_get_netdev(struct mlx5_core_dev *dev)
++{
++	struct net_device *ndev = NULL;
++	struct mlx5_lag *ldev;
++	unsigned long flags;
++	int i;
++
++	spin_lock_irqsave(&lag_lock, flags);
++	ldev = mlx5_lag_dev(dev);
++
++	if (!(ldev && __mlx5_lag_is_active(ldev)))
++		goto unlock;
++
++	for (i = 0; i < ldev->ports; i++) {
++		if (ldev->pf[i].dev == dev) {
++			ndev = ldev->pf[i].netdev;
++			break;
++		}
++	}
++
++	if (ndev)
++		dev_hold(ndev);
++
++unlock:
++	spin_unlock_irqrestore(&lag_lock, flags);
++	return ndev;
++}
++EXPORT_SYMBOL(mlx5_lag_get_netdev);
++
+ u8 mlx5_lag_get_slave_port(struct mlx5_core_dev *dev,
+ 			   struct net_device *slave)
+ {
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 25d0528f9219..bc7e3a974f62 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1160,6 +1160,8 @@ bool mlx5_lag_is_master(struct mlx5_core_dev *dev);
+ bool mlx5_lag_is_shared_fdb(struct mlx5_core_dev *dev);
+ bool mlx5_lag_is_mpesw(struct mlx5_core_dev *dev);
+ struct net_device *mlx5_lag_get_roce_netdev(struct mlx5_core_dev *dev);
++
++struct net_device *mlx5_lag_get_netdev(struct mlx5_core_dev *dev);
+ u8 mlx5_lag_get_slave_port(struct mlx5_core_dev *dev,
+ 			   struct net_device *slave);
+ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
 -- 
 2.41.0
 
