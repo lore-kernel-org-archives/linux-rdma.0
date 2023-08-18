@@ -2,77 +2,95 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 559FAC71136
-	for <linux-rdma@archiver.kernel.org>; Fri, 18 Aug 2023 08:24:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 078E3C05052
+	for <linux-rdma@archiver.kernel.org>; Fri, 18 Aug 2023 08:47:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355634AbjHRIXs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 18 Aug 2023 04:23:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58000 "EHLO
+        id S242706AbjHRIqo (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 18 Aug 2023 04:46:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358563AbjHRIXd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Aug 2023 04:23:33 -0400
-Received: from out-49.mta0.migadu.com (out-49.mta0.migadu.com [91.218.175.49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E192E2684
-        for <linux-rdma@vger.kernel.org>; Fri, 18 Aug 2023 01:23:31 -0700 (PDT)
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1692347010;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=jUeWjMC+Lt4smGefr0Lcat/Rgc4mAkUbEeVW6uOHdVY=;
-        b=DKd8wzcnQVsDgLZ9kHnL+oktKM4TVEbKJOseVRT+wNF5UpTxMC3y8JxNXqOSoViBM2zCxM
-        JD43PgEFid9gr/Ythfdcno+xk7ptctApjFD3Oj4WTflFiJNnAT5M8ZslJ7czWKFh9x4GXh
-        1mIT4kq5YogWtOAio9x5q31iWi8MdCQ=
-From:   Guoqing Jiang <guoqing.jiang@linux.dev>
-To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH 1/3] RDMA/siw: Balance the reference of cep->kref in the error path
-Date:   Fri, 18 Aug 2023 16:23:16 +0800
-Message-Id: <20230818082318.17489-2-guoqing.jiang@linux.dev>
-In-Reply-To: <20230818082318.17489-1-guoqing.jiang@linux.dev>
-References: <20230818082318.17489-1-guoqing.jiang@linux.dev>
+        with ESMTP id S1358777AbjHRIqV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 18 Aug 2023 04:46:21 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D36323AAC;
+        Fri, 18 Aug 2023 01:46:06 -0700 (PDT)
+Received: from dggpemm500005.china.huawei.com (unknown [172.30.72.55])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4RRwNb0KLbztSBV;
+        Fri, 18 Aug 2023 16:42:23 +0800 (CST)
+Received: from [10.69.30.204] (10.69.30.204) by dggpemm500005.china.huawei.com
+ (7.185.36.74) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.31; Fri, 18 Aug
+ 2023 16:46:01 +0800
+Subject: Re: [PATCH net-next v6 1/6] page_pool: frag API support for 32-bit
+ arch with 64-bit DMA
+To:     Ilias Apalodimas <ilias.apalodimas@linaro.org>
+CC:     <davem@davemloft.net>, <kuba@kernel.org>, <pabeni@redhat.com>,
+        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Lorenzo Bianconi <lorenzo@kernel.org>,
+        Alexander Duyck <alexander.duyck@gmail.com>,
+        Liang Chen <liangchen.linux@gmail.com>,
+        Alexander Lobakin <aleksander.lobakin@intel.com>,
+        Saeed Mahameed <saeedm@nvidia.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Jesper Dangaard Brouer <hawk@kernel.org>,
+        <linux-rdma@vger.kernel.org>
+References: <20230814125643.59334-1-linyunsheng@huawei.com>
+ <20230814125643.59334-2-linyunsheng@huawei.com>
+ <CAC_iWjKMLoUu4bctrWtK46mpyhQ7LoKe4Nm2t8jZVMM0L9O2xA@mail.gmail.com>
+ <06e89203-9eaf-99eb-99de-e5209819b8b3@huawei.com>
+ <CAC_iWjJ4Pi7Pj9Rm13y4aXBB3RsP9pTsfRf_A-OraXKwaO_xGA@mail.gmail.com>
+ <b71d5f5f-0ea1-3a35-8c90-53ef4ae27e79@huawei.com>
+ <CAC_iWjJbrwSTT9OT3VjzXkCTdcwShWWaaPJUVC0aG2hR5sbkWg@mail.gmail.com>
+From:   Yunsheng Lin <linyunsheng@huawei.com>
+Message-ID: <b8efc2ce-8856-2c9b-2a8c-edf2a819ebe5@huawei.com>
+Date:   Fri, 18 Aug 2023 16:46:01 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101
+ Thunderbird/52.2.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+In-Reply-To: <CAC_iWjJbrwSTT9OT3VjzXkCTdcwShWWaaPJUVC0aG2hR5sbkWg@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.69.30.204]
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ dggpemm500005.china.huawei.com (7.185.36.74)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-The siw_connect can go to err in below after cep is allocated successfully:
+On 2023/8/17 19:43, Ilias Apalodimas wrote:
+>>>>>>
+>>>>>> In order to simplify the driver's work when using frag API
+>>>>>> this patch allows page_pool_alloc_frag() to call
+>>>>>> page_pool_alloc_pages() to return pages for those arches.
+>>>>>
+>>>>> Do we have any use cases of people needing this?  Those architectures
+>>>>> should be long dead and although we have to support them in the
+>>>>> kernel,  I don't personally see the advantage of adjusting the API to
+>>>>> do that.  Right now we have a very clear separation between allocating
+>>>>> pages or fragments.   Why should we hide a page allocation under a
+>>>>> frag allocation?  A driver writer can simply allocate pages for those
+>>>>> boards.  Am I the only one not seeing a clean win here?
+>>>>
+>>>> It is also a part of removing the per page_pool PP_FLAG_PAGE_FRAG flag
+>>>> in this patchset.
+>>>
+>>> Yes, that happens *because* of this patchset.  I am not against the
+>>> change.  In fact, I'll have a closer look tomorrow.  I am just trying
+>>> to figure out if we really need it.  When the recycling patches were
+>>> introduced into page pool we had a very specific reason.  Due to the
+>>> XDP verifier we *had* to allocate a packet per page.  That was
+>>
+>> Did you mean a xdp frame containing a frag page can not be passed to the
+>> xdp core?
+>> What is exact reason why the XDP verifier need a packet per page?
+>> Is there a code block that you can point me to?
+> 
+> It's been a while since I looked at this, but doesn't __xdp_return()
+> still sync the entire page if the mem type comes from page_pool?
 
-1. If siw_cm_alloc_work returns failure. In this case socket is not
-assoicated with cep so siw_cep_put can't be called by siw_socket_disassoc.
-We need to call siw_cep_put twice since cep->kref is increased once after
-it was initialized.
-
-2. If siw_cm_queue_work can't find a work, which means siw_cep_get is not
-called in siw_cm_queue_work, so cep->kref is increased twice by siw_cep_get
-and when associate socket with cep after it was initialized. So we need to
-call siw_cep_put three times (one in siw_socket_disassoc).
-
-3. siw_send_mpareqrep returns error, this scenario is similar as 2.
-
-So we need to remove one siw_cep_put in the error path.
-
-Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
----
- drivers/infiniband/sw/siw/siw_cm.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index da530c0404da..a2605178f4ed 100644
---- a/drivers/infiniband/sw/siw/siw_cm.c
-+++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -1501,7 +1501,6 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 
- 		cep->cm_id = NULL;
- 		id->rem_ref(id);
--		siw_cep_put(cep);
- 
- 		qp->cep = NULL;
- 		siw_cep_put(cep);
--- 
-2.35.3
-
+Yes, I checked that too.
+It is supposed to sync the entire page if the mem type comes from page_pool,
+as it depend on the last freed frag to do the sync_for_device operation.
