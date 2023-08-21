@@ -2,133 +2,119 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BA71EE4993
-	for <linux-rdma@archiver.kernel.org>; Mon, 21 Aug 2023 13:12:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBF30EE49A6
+	for <linux-rdma@archiver.kernel.org>; Mon, 21 Aug 2023 13:12:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232017AbjHUNMt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 21 Aug 2023 09:12:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52292 "EHLO
+        id S235273AbjHUNMv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 21 Aug 2023 09:12:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230435AbjHUNMt (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Aug 2023 09:12:49 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51F3BEB;
-        Mon, 21 Aug 2023 06:12:42 -0700 (PDT)
+        with ESMTP id S235263AbjHUNMu (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Aug 2023 09:12:50 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AE75E2;
+        Mon, 21 Aug 2023 06:12:41 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id D7B3B206BD;
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 4D560206BB;
         Mon, 21 Aug 2023 13:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
         t=1692623560; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=MlkLwPoGSJ/eBik/CH7trGhSdIICH1/nZbIFJG2ENWw=;
-        b=GImSM49SZORkz8eK5AfccoOjASdmb/KHBqijohv8FfjLdSOuVxtJiYneqzdqNtdK1I7rio
-        BrSNhNmXLExsCik0O7jLd+YLEamKUscOhCYvH/P01f6C2dgOKFkLkn+8RqsJV1xrlIpfJl
-        dC5c9fHY94pP5gb9/PyzSWKF+xSlong=
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=ygFItYv4UPWMxUQ84MTzacJm6/mP4OKH60KlGPWpQvs=;
+        b=iV4bUQwfe5rl5u4DX+tNGpQ3JeRu1BL8v+f/PHnKrle8lkdZflf0xu5gVQiJBWeXOjq1HK
+        AXHfW3gwq3zHS0opudGclT6x//eWVEOVhDS6m2Gx9cTStsVqgfN+vVobUUk3Eg11bKpxJQ
+        DjAEi6i70liSsxBNAgVhDG97KjaKxZA=
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 909B513421;
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 0B1AE13421;
         Mon, 21 Aug 2023 13:12:40 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id 4CSDIshi42QUVgAAMHmgww
+        id 6FbZAchi42QUVgAAMHmgww
         (envelope-from <petr.pavlu@suse.com>); Mon, 21 Aug 2023 13:12:40 +0000
 From:   Petr Pavlu <petr.pavlu@suse.com>
 To:     tariqt@nvidia.com, yishaih@nvidia.com, leon@kernel.org
 Cc:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
         pabeni@redhat.com, jgg@ziepe.ca, netdev@vger.kernel.org,
         linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Petr Pavlu <petr.pavlu@suse.com>,
-        Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH net-next v3 02/11] mlx4: Rename member mlx4_en_dev.nb to netdev_nb
-Date:   Mon, 21 Aug 2023 15:12:16 +0200
-Message-Id: <20230821131225.11290-3-petr.pavlu@suse.com>
+        Petr Pavlu <petr.pavlu@suse.com>
+Subject: [PATCH net-next v3 00/11] Convert mlx4 to use auxiliary bus
+Date:   Mon, 21 Aug 2023 15:12:14 +0200
+Message-Id: <20230821131225.11290-1-petr.pavlu@suse.com>
 X-Mailer: git-send-email 2.35.3
-In-Reply-To: <20230821131225.11290-1-petr.pavlu@suse.com>
-References: <20230821131225.11290-1-petr.pavlu@suse.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Rename the mlx4_en_dev.nb notifier_block member to netdev_nb in
-preparation to add a mlx4 core notifier_block.
+This series converts the mlx4 drivers to use auxiliary bus, similarly to
+how mlx5 was converted [1]. The first 6 patches are preparatory changes,
+the remaining 4 are the final conversion.
 
-Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
-Tested-by: Leon Romanovsky <leonro@nvidia.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
-Acked-by: Tariq Toukan <tariqt@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx4/en_main.c   | 14 +++++++-------
- drivers/net/ethernet/mellanox/mlx4/en_netdev.c |  2 +-
- drivers/net/ethernet/mellanox/mlx4/mlx4_en.h   |  2 +-
- 3 files changed, 9 insertions(+), 9 deletions(-)
+Initial motivation for this change was to address a problem related to
+loading mlx4_en/mlx4_ib by mlx4_core using request_module_nowait(). When
+doing such a load in initrd, the operation is asynchronous to any init
+control and can get unexpectedly affected/interrupted by an eventual
+root switch. Using an auxiliary bus leaves these module loads to udevd
+which better integrates with systemd processing. [2]
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-index 6a42bec6bd85..be8ba34c9025 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
-@@ -235,8 +235,8 @@ static void mlx4_en_remove(struct mlx4_dev *dev, void *endev_ptr)
- 	iounmap(mdev->uar_map);
- 	mlx4_uar_free(dev, &mdev->priv_uar);
- 	mlx4_pd_free(dev, mdev->priv_pdn);
--	if (mdev->nb.notifier_call)
--		unregister_netdevice_notifier(&mdev->nb);
-+	if (mdev->netdev_nb.notifier_call)
-+		unregister_netdevice_notifier(&mdev->netdev_nb);
- 	kfree(mdev);
- }
- 
-@@ -252,11 +252,11 @@ static void mlx4_en_activate(struct mlx4_dev *dev, void *ctx)
- 			mdev->pndev[i] = NULL;
- 	}
- 
--	/* register notifier */
--	mdev->nb.notifier_call = mlx4_en_netdev_event;
--	if (register_netdevice_notifier(&mdev->nb)) {
--		mdev->nb.notifier_call = NULL;
--		mlx4_err(mdev, "Failed to create notifier\n");
-+	/* register netdev notifier */
-+	mdev->netdev_nb.notifier_call = mlx4_en_netdev_event;
-+	if (register_netdevice_notifier(&mdev->netdev_nb)) {
-+		mdev->netdev_nb.notifier_call = NULL;
-+		mlx4_err(mdev, "Failed to create netdev notifier\n");
- 	}
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-index 403604ceebc8..7066c426b95c 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-@@ -2967,7 +2967,7 @@ int mlx4_en_netdev_event(struct notifier_block *this,
- 	if (!net_eq(dev_net(ndev), &init_net))
- 		return NOTIFY_DONE;
- 
--	mdev = container_of(this, struct mlx4_en_dev, nb);
-+	mdev = container_of(this, struct mlx4_en_dev, netdev_nb);
- 	dev = mdev->dev;
- 
- 	/* Go into this mode only when two network devices set on two ports
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-index 321f801c1d7c..72a3fea36702 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-@@ -432,7 +432,7 @@ struct mlx4_en_dev {
- 	unsigned long		last_overflow_check;
- 	struct ptp_clock	*ptp_clock;
- 	struct ptp_clock_info	ptp_clock_info;
--	struct notifier_block	nb;
-+	struct notifier_block	netdev_nb;
- };
- 
- 
+General benefit is to get rid of custom interface logic and instead use
+a common facility available for this task. An obvious risk is that some
+new bug is introduced by the conversion.
+
+Leon Romanovsky was kind enough to check for me that the series passes
+their verification tests.
+
+Changes since v2 [3]:
+* Use 'void *' as the event param of mlx4_dispatch_event().
+
+Changes since v1 [4]:
+* Fix a missing definition of the err variable in mlx4_en_add().
+* Remove not needed comments about the event type in mlx4_en_event()
+  and mlx4_ib_event().
+
+[1] https://lore.kernel.org/netdev/20201101201542.2027568-1-leon@kernel.org/
+[2] https://lore.kernel.org/netdev/0a361ac2-c6bd-2b18-4841-b1b991f0635e@suse.com/
+[3] https://lore.kernel.org/netdev/20230813145127.10653-1-petr.pavlu@suse.com/
+[4] https://lore.kernel.org/netdev/20230804150527.6117-1-petr.pavlu@suse.com/
+
+Petr Pavlu (11):
+  mlx4: Get rid of the mlx4_interface.get_dev callback
+  mlx4: Rename member mlx4_en_dev.nb to netdev_nb
+  mlx4: Use 'void *' as the event param of mlx4_dispatch_event()
+  mlx4: Replace the mlx4_interface.event callback with a notifier
+  mlx4: Get rid of the mlx4_interface.activate callback
+  mlx4: Move the bond work to the core driver
+  mlx4: Avoid resetting MLX4_INTFF_BONDING per driver
+  mlx4: Register mlx4 devices to an auxiliary virtual bus
+  mlx4: Connect the ethernet part to the auxiliary bus
+  mlx4: Connect the infiniband part to the auxiliary bus
+  mlx4: Delete custom device management logic
+
+ drivers/infiniband/hw/mlx4/main.c             | 218 ++++++-----
+ drivers/infiniband/hw/mlx4/mlx4_ib.h          |   2 +
+ drivers/net/ethernet/mellanox/mlx4/Kconfig    |   1 +
+ drivers/net/ethernet/mellanox/mlx4/catas.c    |   2 +-
+ drivers/net/ethernet/mellanox/mlx4/cmd.c      |   4 +-
+ drivers/net/ethernet/mellanox/mlx4/en_main.c  | 155 +++++---
+ .../net/ethernet/mellanox/mlx4/en_netdev.c    |  64 +--
+ drivers/net/ethernet/mellanox/mlx4/eq.c       |  15 +-
+ drivers/net/ethernet/mellanox/mlx4/intf.c     | 363 ++++++++++++------
+ drivers/net/ethernet/mellanox/mlx4/main.c     | 110 ++++--
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h     |  18 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h  |   4 +-
+ include/linux/mlx4/device.h                   |  20 +
+ include/linux/mlx4/driver.h                   |  42 +-
+ 14 files changed, 606 insertions(+), 412 deletions(-)
+
+
+base-commit: cb39c35783f26892bb1a72b1115c94fa2e77f4c5
 -- 
 2.35.3
 
