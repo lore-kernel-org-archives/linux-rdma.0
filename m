@@ -2,42 +2,42 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48316EE4993
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD241EE4996
 	for <linux-rdma@archiver.kernel.org>; Mon, 21 Aug 2023 13:12:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235297AbjHUNM5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S235276AbjHUNM5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 21 Aug 2023 09:12:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59328 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235282AbjHUNMw (ORCPT
+        with ESMTP id S235281AbjHUNMw (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 21 Aug 2023 09:12:52 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62FF48F;
-        Mon, 21 Aug 2023 06:12:43 -0700 (PDT)
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6051F2;
+        Mon, 21 Aug 2023 06:12:42 -0700 (PDT)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 11B8B206BF;
-        Mon, 21 Aug 2023 13:12:42 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id 7E6FD206BE;
+        Mon, 21 Aug 2023 13:12:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1692623562; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1692623561; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=EF16vsCa6I0E6ur/tIvsNitlcraEXCA4gqMYY5ndwC4=;
-        b=gw+BOQOOTzgY57mnqKx8/J/mW75JLGObYUeVwU5LqupgQo38+EkqHBP4dWp5rqpBG0Zf6a
-        adAsJ8EPWAdkGxqoU+GUo6C+zIN7TxCfiAv921PsGixc6jr2r9JetleixIf/WWLu2TtUwJ
-        8pOSdImJ3SIJnk+XnRLiYhYrWnP/8RY=
+        bh=mX+Fj1ZShaJzTUnsc9b91eDKyRcsgzYM8HpKYZekB9k=;
+        b=qTrLOTauvozSh0OJLygVIL64KR0GEE59CXotsv1z8cIS5WkHNHq6BDOozybWAHoaLW/qCe
+        NxIPhiNY0DEcZ71asSjWYiufhihPE5DFppk3t0R1DJ8Sh/vZWhIhP5YswZdPToJoqnXWQ9
+        myGF6OfQxGnNuDUH20YEOoYEaUR8+gA=
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id CBD20139BC;
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 325A613421;
         Mon, 21 Aug 2023 13:12:41 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
         by imap2.suse-dmz.suse.de with ESMTPSA
-        id EBkAMcli42QUVgAAMHmgww
+        id iGZCC8li42QUVgAAMHmgww
         (envelope-from <petr.pavlu@suse.com>); Mon, 21 Aug 2023 13:12:41 +0000
 From:   Petr Pavlu <petr.pavlu@suse.com>
 To:     tariqt@nvidia.com, yishaih@nvidia.com, leon@kernel.org
@@ -46,9 +46,9 @@ Cc:     davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
         linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
         Petr Pavlu <petr.pavlu@suse.com>,
         Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH net-next v3 06/11] mlx4: Move the bond work to the core driver
-Date:   Mon, 21 Aug 2023 15:12:20 +0200
-Message-Id: <20230821131225.11290-7-petr.pavlu@suse.com>
+Subject: [PATCH net-next v3 04/11] mlx4: Replace the mlx4_interface.event callback with a notifier
+Date:   Mon, 21 Aug 2023 15:12:18 +0200
+Message-Id: <20230821131225.11290-5-petr.pavlu@suse.com>
 X-Mailer: git-send-email 2.35.3
 In-Reply-To: <20230821131225.11290-1-petr.pavlu@suse.com>
 References: <20230821131225.11290-1-petr.pavlu@suse.com>
@@ -58,332 +58,404 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Function mlx4_en_queue_bond_work() is used in mlx4_en to start a bond
-reconfiguration. It gathers data about a new port map setting, takes
-a reference on the netdev that triggered the change and queues a work
-object on mlx4_en_priv.mdev.workqueue to perform the operation. The
-scheduled work is mlx4_en_bond_work() which calls
-mlx4_bond()/mlx4_unbond() and consequently mlx4_do_bond().
+Use a notifier to implement mlx4_dispatch_event() in preparation to
+switch mlx4_en and mlx4_ib to be an auxiliary device.
 
-At the same time, function mlx4_change_port_types() in mlx4_core might
-be invoked to change the port type configuration. As part of its logic,
-it re-registers the whole device by calling mlx4_unregister_device(),
-followed by mlx4_register_device().
+A problem is that if the mlx4_interface.event callback was replaced with
+something as mlx4_adrv.event then the implementation of
+mlx4_dispatch_event() would need to acquire a lock on a given device
+before executing this callback. That is necessary because otherwise
+there is no guarantee that the associated driver cannot get unbound when
+the callback is running. However, taking this lock is not possible
+because mlx4_dispatch_event() can be invoked from the hardirq context.
+Using an atomic notifier allows the driver to accurately record when it
+wants to receive these events and solves this problem.
 
-The two operations can result in concurrent access to the data about
-currently active interfaces on the device.
-
-Functions mlx4_register_device() and mlx4_unregister_device() lock the
-intf_mutex to gain exclusive access to this data. The current
-implementation of mlx4_do_bond() doesn't do that which could result in
-an unexpected behavior. An updated version of mlx4_do_bond() for use
-with an auxiliary bus goes and locks the intf_mutex when accessing a new
-auxiliary device array.
-
-However, doing so can then result in the following deadlock:
-* A two-port mlx4 device is configured as an Ethernet bond.
-* One of the ports is changed from eth to ib, for instance, by writing
-  into a mlx4_port<x> sysfs attribute file.
-* mlx4_change_port_types() is called to update port types. It invokes
-  mlx4_unregister_device() to unregister the device which locks the
-  intf_mutex and starts removing all associated interfaces.
-* Function mlx4_en_remove() gets invoked and starts destroying its first
-  netdev. This triggers mlx4_en_netdev_event() which recognizes that the
-  configured bond is broken. It runs mlx4_en_queue_bond_work() which
-  takes a reference on the netdev. Removing the netdev now cannot
-  proceed until the work is completed.
-* Work function mlx4_en_bond_work() gets scheduled. It calls
-  mlx4_unbond() -> mlx4_do_bond(). The latter function tries to lock the
-  intf_mutex but that is not possible because it is held already by
-  mlx4_unregister_device().
-
-This particular case could be possibly solved by unregistering the
-mlx4_en_netdev_event() notifier in mlx4_en_remove() earlier, but it
-seems better to decouple mlx4_en more and break this reference order.
-
-Avoid then this scenario by recognizing that the bond reconfiguration
-operates only on a mlx4_dev. The logic to queue and execute the bond
-work can be moved into the mlx4_core driver. Only a reference on the
-respective mlx4_dev object is needed to be taken during the work's
-lifetime. This removes a call from mlx4_en that can directly result in
-needing to lock the intf_mutex, it remains a privilege of the core
-driver.
+A handler registration is done by both mlx4_en and mlx4_ib at the end of
+their mlx4_interface.add callback. This matches the current situation
+when mlx4_add_device() would enable events for a given device
+immediately after this callback, by adding the device on the
+mlx4_priv.list.
 
 Signed-off-by: Petr Pavlu <petr.pavlu@suse.com>
 Tested-by: Leon Romanovsky <leonro@nvidia.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
 Acked-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../net/ethernet/mellanox/mlx4/en_netdev.c    | 62 +-----------------
- drivers/net/ethernet/mellanox/mlx4/main.c     | 65 +++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx4/mlx4.h     |  5 ++
- include/linux/mlx4/device.h                   | 13 ++++
- include/linux/mlx4/driver.h                   | 19 ------
- 5 files changed, 77 insertions(+), 87 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c            | 40 +++++++++++++-------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         |  2 +
+ drivers/net/ethernet/mellanox/mlx4/en_main.c | 26 +++++++++----
+ drivers/net/ethernet/mellanox/mlx4/intf.c    | 24 ++++++++----
+ drivers/net/ethernet/mellanox/mlx4/main.c    |  2 +
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h    |  2 +
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h |  2 +
+ include/linux/mlx4/driver.h                  |  8 +++-
+ 8 files changed, 75 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-index 7066c426b95c..33bbcced8105 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-@@ -2894,63 +2894,6 @@ static const struct xdp_metadata_ops mlx4_xdp_metadata_ops = {
- 	.xmo_rx_hash			= mlx4_en_xdp_rx_hash,
- };
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 2c5fd8174b3c..6debee494a16 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -82,6 +82,8 @@ static const char mlx4_ib_version[] =
+ static void do_slave_init(struct mlx4_ib_dev *ibdev, int slave, int do_init);
+ static enum rdma_link_layer mlx4_ib_port_link_layer(struct ib_device *device,
+ 						    u32 port_num);
++static int mlx4_ib_event(struct notifier_block *this, unsigned long event,
++			 void *param);
  
--struct mlx4_en_bond {
--	struct work_struct work;
--	struct mlx4_en_priv *priv;
--	int is_bonded;
--	struct mlx4_port_map port_map;
--};
--
--static void mlx4_en_bond_work(struct work_struct *work)
--{
--	struct mlx4_en_bond *bond = container_of(work,
--						     struct mlx4_en_bond,
--						     work);
--	int err = 0;
--	struct mlx4_dev *dev = bond->priv->mdev->dev;
--
--	if (bond->is_bonded) {
--		if (!mlx4_is_bonded(dev)) {
--			err = mlx4_bond(dev);
--			if (err)
--				en_err(bond->priv, "Fail to bond device\n");
--		}
--		if (!err) {
--			err = mlx4_port_map_set(dev, &bond->port_map);
--			if (err)
--				en_err(bond->priv, "Fail to set port map [%d][%d]: %d\n",
--				       bond->port_map.port1,
--				       bond->port_map.port2,
--				       err);
--		}
--	} else if (mlx4_is_bonded(dev)) {
--		err = mlx4_unbond(dev);
--		if (err)
--			en_err(bond->priv, "Fail to unbond device\n");
--	}
--	dev_put(bond->priv->dev);
--	kfree(bond);
--}
--
--static int mlx4_en_queue_bond_work(struct mlx4_en_priv *priv, int is_bonded,
--				   u8 v2p_p1, u8 v2p_p2)
--{
--	struct mlx4_en_bond *bond;
--
--	bond = kzalloc(sizeof(*bond), GFP_ATOMIC);
--	if (!bond)
--		return -ENOMEM;
--
--	INIT_WORK(&bond->work, mlx4_en_bond_work);
--	bond->priv = priv;
--	bond->is_bonded = is_bonded;
--	bond->port_map.port1 = v2p_p1;
--	bond->port_map.port2 = v2p_p2;
--	dev_hold(priv->dev);
--	queue_work(priv->mdev->workqueue, &bond->work);
--	return 0;
--}
--
- int mlx4_en_netdev_event(struct notifier_block *this,
- 			 unsigned long event, void *ptr)
- {
-@@ -2960,7 +2903,6 @@ int mlx4_en_netdev_event(struct notifier_block *this,
- 	struct mlx4_dev *dev;
- 	int i, num_eth_ports = 0;
- 	bool do_bond = true;
--	struct mlx4_en_priv *priv;
- 	u8 v2p_port1 = 0;
- 	u8 v2p_port2 = 0;
+ static struct workqueue_struct *wq;
  
-@@ -2995,7 +2937,6 @@ int mlx4_en_netdev_event(struct notifier_block *this,
- 	if ((do_bond && (event != NETDEV_BONDING_INFO)) || !port)
- 		return NOTIFY_DONE;
- 
--	priv = netdev_priv(ndev);
- 	if (do_bond) {
- 		struct netdev_notifier_bonding_info *notifier_info = ptr;
- 		struct netdev_bonding_info *bonding_info =
-@@ -3062,8 +3003,7 @@ int mlx4_en_netdev_event(struct notifier_block *this,
+@@ -2836,6 +2838,12 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 				do_slave_init(ibdev, j, 1);
  		}
  	}
++
++	/* register mlx4 core notifier */
++	ibdev->mlx_nb.notifier_call = mlx4_ib_event;
++	err = mlx4_register_event_notifier(dev, &ibdev->mlx_nb);
++	WARN(err, "failed to register mlx4 event notifier (%d)", err);
++
+ 	return ibdev;
  
--	mlx4_en_queue_bond_work(priv, do_bond,
--				v2p_port1, v2p_port2);
-+	mlx4_queue_bond_work(dev, do_bond, v2p_port1, v2p_port2);
+ err_notif:
+@@ -2953,6 +2961,8 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+ 	int p;
+ 	int i;
  
- 	return NOTIFY_DONE;
++	mlx4_unregister_event_notifier(dev, &ibdev->mlx_nb);
++
+ 	mlx4_foreach_port(i, dev, MLX4_PORT_TYPE_IB)
+ 		devlink_port_type_clear(mlx4_get_devlink_port(dev, i));
+ 	ibdev->ib_active = false;
+@@ -3173,11 +3183,13 @@ void mlx4_sched_ib_sl2vl_update_work(struct mlx4_ib_dev *ibdev,
+ 	}
  }
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 5f3ba8385e23..0ed490b99163 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -1441,7 +1441,7 @@ static int mlx4_mf_unbond(struct mlx4_dev *dev)
- 	return ret;
- }
  
--int mlx4_bond(struct mlx4_dev *dev)
-+static int mlx4_bond(struct mlx4_dev *dev)
+-static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+-			  enum mlx4_dev_event event, void *param)
++static int mlx4_ib_event(struct notifier_block *this, unsigned long event,
++			 void *param)
  {
- 	int ret = 0;
- 	struct mlx4_priv *priv = mlx4_priv(dev);
-@@ -1467,9 +1467,8 @@ int mlx4_bond(struct mlx4_dev *dev)
++	struct mlx4_ib_dev *ibdev =
++		container_of(this, struct mlx4_ib_dev, mlx_nb);
++	struct mlx4_dev *dev = ibdev->dev;
+ 	struct ib_event ibev;
+-	struct mlx4_ib_dev *ibdev = to_mdev((struct ib_device *) ibdev_ptr);
+ 	struct mlx4_eqe *eqe = NULL;
+ 	struct ib_event_work *ew;
+ 	int p = 0;
+@@ -3187,11 +3199,11 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 	    (event == MLX4_DEV_EVENT_PORT_DOWN))) {
+ 		ew = kmalloc(sizeof(*ew), GFP_ATOMIC);
+ 		if (!ew)
+-			return;
++			return NOTIFY_DONE;
+ 		INIT_WORK(&ew->work, handle_bonded_port_state_event);
+ 		ew->ib_dev = ibdev;
+ 		queue_work(wq, &ew->work);
+-		return;
++		return NOTIFY_DONE;
+ 	}
  
- 	return ret;
+ 	switch (event) {
+@@ -3208,7 +3220,7 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 	switch (event) {
+ 	case MLX4_DEV_EVENT_PORT_UP:
+ 		if (p > ibdev->num_ports)
+-			return;
++			return NOTIFY_DONE;
+ 		if (!mlx4_is_slave(dev) &&
+ 		    rdma_port_get_link_layer(&ibdev->ib_dev, p) ==
+ 			IB_LINK_LAYER_INFINIBAND) {
+@@ -3223,7 +3235,7 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 
+ 	case MLX4_DEV_EVENT_PORT_DOWN:
+ 		if (p > ibdev->num_ports)
+-			return;
++			return NOTIFY_DONE;
+ 		ibev.event = IB_EVENT_PORT_ERR;
+ 		break;
+ 
+@@ -3236,7 +3248,7 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 	case MLX4_DEV_EVENT_PORT_MGMT_CHANGE:
+ 		ew = kmalloc(sizeof *ew, GFP_ATOMIC);
+ 		if (!ew)
+-			return;
++			return NOTIFY_DONE;
+ 
+ 		INIT_WORK(&ew->work, handle_port_mgmt_change_event);
+ 		memcpy(&ew->ib_eqe, eqe, sizeof *eqe);
+@@ -3246,7 +3258,7 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 			queue_work(wq, &ew->work);
+ 		else
+ 			handle_port_mgmt_change_event(&ew->work);
+-		return;
++		return NOTIFY_DONE;
+ 
+ 	case MLX4_DEV_EVENT_SLAVE_INIT:
+ 		/* here, p is the slave id */
+@@ -3262,7 +3274,7 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 								       1);
+ 			}
+ 		}
+-		return;
++		return NOTIFY_DONE;
+ 
+ 	case MLX4_DEV_EVENT_SLAVE_SHUTDOWN:
+ 		if (mlx4_is_master(dev)) {
+@@ -3278,22 +3290,22 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
+ 		}
+ 		/* here, p is the slave id */
+ 		do_slave_init(ibdev, p, 0);
+-		return;
++		return NOTIFY_DONE;
+ 
+ 	default:
+-		return;
++		return NOTIFY_DONE;
+ 	}
+ 
+-	ibev.device	      = ibdev_ptr;
++	ibev.device	      = &ibdev->ib_dev;
+ 	ibev.element.port_num = mlx4_is_bonded(ibdev->dev) ? 1 : (u8)p;
+ 
+ 	ib_dispatch_event(&ibev);
++	return NOTIFY_DONE;
  }
--EXPORT_SYMBOL_GPL(mlx4_bond);
  
--int mlx4_unbond(struct mlx4_dev *dev)
-+static int mlx4_unbond(struct mlx4_dev *dev)
- {
- 	int ret = 0;
- 	struct mlx4_priv *priv = mlx4_priv(dev);
-@@ -1496,10 +1495,8 @@ int mlx4_unbond(struct mlx4_dev *dev)
+ static struct mlx4_interface mlx4_ib_interface = {
+ 	.add		= mlx4_ib_add,
+ 	.remove		= mlx4_ib_remove,
+-	.event		= mlx4_ib_event,
+ 	.protocol	= MLX4_PROT_IB_IPV6,
+ 	.flags		= MLX4_INTFF_BONDING
+ };
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 17fee1e73a45..41ca1114a995 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -38,6 +38,7 @@
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/idr.h>
++#include <linux/notifier.h>
  
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(mlx4_unbond);
- 
--
--int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p)
-+static int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p)
- {
- 	u8 port1 = v2p->port1;
- 	u8 port2 = v2p->port2;
-@@ -1541,7 +1538,61 @@ int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p)
- 	mutex_unlock(&priv->bond_mutex);
- 	return err;
- }
--EXPORT_SYMBOL_GPL(mlx4_port_map_set);
-+
-+struct mlx4_bond {
-+	struct work_struct work;
-+	struct mlx4_dev *dev;
-+	int is_bonded;
-+	struct mlx4_port_map port_map;
-+};
-+
-+static void mlx4_bond_work(struct work_struct *work)
-+{
-+	struct mlx4_bond *bond = container_of(work, struct mlx4_bond, work);
-+	int err = 0;
-+
-+	if (bond->is_bonded) {
-+		if (!mlx4_is_bonded(bond->dev)) {
-+			err = mlx4_bond(bond->dev);
-+			if (err)
-+				mlx4_err(bond->dev, "Fail to bond device\n");
-+		}
-+		if (!err) {
-+			err = mlx4_port_map_set(bond->dev, &bond->port_map);
-+			if (err)
-+				mlx4_err(bond->dev,
-+					 "Fail to set port map [%d][%d]: %d\n",
-+					 bond->port_map.port1,
-+					 bond->port_map.port2, err);
-+		}
-+	} else if (mlx4_is_bonded(bond->dev)) {
-+		err = mlx4_unbond(bond->dev);
-+		if (err)
-+			mlx4_err(bond->dev, "Fail to unbond device\n");
-+	}
-+	put_device(&bond->dev->persist->pdev->dev);
-+	kfree(bond);
-+}
-+
-+int mlx4_queue_bond_work(struct mlx4_dev *dev, int is_bonded, u8 v2p_p1,
-+			 u8 v2p_p2)
-+{
-+	struct mlx4_bond *bond;
-+
-+	bond = kzalloc(sizeof(*bond), GFP_ATOMIC);
-+	if (!bond)
-+		return -ENOMEM;
-+
-+	INIT_WORK(&bond->work, mlx4_bond_work);
-+	get_device(&dev->persist->pdev->dev);
-+	bond->dev = dev;
-+	bond->is_bonded = is_bonded;
-+	bond->port_map.port1 = v2p_p1;
-+	bond->port_map.port2 = v2p_p2;
-+	queue_work(mlx4_wq, &bond->work);
-+	return 0;
-+}
-+EXPORT_SYMBOL(mlx4_queue_bond_work);
- 
- static int mlx4_load_fw(struct mlx4_dev *dev)
- {
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index 8dbea814a2f5..73b4fdfd63f4 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -863,6 +863,11 @@ struct mlx4_steer {
- 	struct list_head steer_entries[MLX4_NUM_STEERS];
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_umem.h>
+@@ -644,6 +645,7 @@ struct mlx4_ib_dev {
+ 	spinlock_t		reset_flow_resource_lock;
+ 	struct list_head		qp_list;
+ 	struct mlx4_ib_diag_counters diag_counters[MLX4_DIAG_COUNTERS_TYPES];
++	struct notifier_block	mlx_nb;
  };
  
-+struct mlx4_port_map {
-+	u8	port1;
-+	u8	port2;
-+};
-+
- enum {
- 	MLX4_PCI_DEV_IS_VF		= 1 << 0,
- 	MLX4_PCI_DEV_FORCE_SENSE_PORT	= 1 << 1,
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 6646634a0b9d..049d8a4b044d 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -1087,6 +1087,19 @@ static inline void *mlx4_buf_offset(struct mlx4_buf *buf, int offset)
- 			(offset & (PAGE_SIZE - 1));
+ struct ib_event_work {
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_main.c b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+index 83dae886ade6..31bf625b8158 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_main.c
+@@ -183,10 +183,12 @@ static void mlx4_en_get_profile(struct mlx4_en_dev *mdev)
+ 	}
  }
  
-+static inline int mlx4_is_bonded(struct mlx4_dev *dev)
-+{
-+	return !!(dev->flags & MLX4_FLAG_BONDED);
+-static void mlx4_en_event(struct mlx4_dev *dev, void *endev_ptr,
+-			  enum mlx4_dev_event event, void *param)
++static int mlx4_en_event(struct notifier_block *this, unsigned long event,
++			 void *param)
+ {
+-	struct mlx4_en_dev *mdev = (struct mlx4_en_dev *) endev_ptr;
++	struct mlx4_en_dev *mdev =
++		container_of(this, struct mlx4_en_dev, mlx_nb);
++	struct mlx4_dev *dev = mdev->dev;
+ 	struct mlx4_en_priv *priv;
+ 	int port;
+ 
+@@ -205,7 +207,7 @@ static void mlx4_en_event(struct mlx4_dev *dev, void *endev_ptr,
+ 	case MLX4_DEV_EVENT_PORT_UP:
+ 	case MLX4_DEV_EVENT_PORT_DOWN:
+ 		if (!mdev->pndev[port])
+-			return;
++			return NOTIFY_DONE;
+ 		priv = netdev_priv(mdev->pndev[port]);
+ 		/* To prevent races, we poll the link state in a separate
+ 		  task rather than changing it here */
+@@ -224,10 +226,12 @@ static void mlx4_en_event(struct mlx4_dev *dev, void *endev_ptr,
+ 	default:
+ 		if (port < 1 || port > dev->caps.num_ports ||
+ 		    !mdev->pndev[port])
+-			return;
+-		mlx4_warn(mdev, "Unhandled event %d for port %d\n", event,
++			return NOTIFY_DONE;
++		mlx4_warn(mdev, "Unhandled event %d for port %d\n", (int)event,
+ 			  port);
+ 	}
++
++	return NOTIFY_DONE;
+ }
+ 
+ static void mlx4_en_remove(struct mlx4_dev *dev, void *endev_ptr)
+@@ -235,6 +239,8 @@ static void mlx4_en_remove(struct mlx4_dev *dev, void *endev_ptr)
+ 	struct mlx4_en_dev *mdev = endev_ptr;
+ 	int i;
+ 
++	mlx4_unregister_event_notifier(dev, &mdev->mlx_nb);
++
+ 	mutex_lock(&mdev->state_lock);
+ 	mdev->device_up = false;
+ 	mutex_unlock(&mdev->state_lock);
+@@ -276,7 +282,7 @@ static void mlx4_en_activate(struct mlx4_dev *dev, void *ctx)
+ static void *mlx4_en_add(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_en_dev *mdev;
+-	int i;
++	int err, i;
+ 
+ 	printk_once(KERN_INFO "%s", mlx4_en_version);
+ 
+@@ -339,6 +345,11 @@ static void *mlx4_en_add(struct mlx4_dev *dev)
+ 	mutex_init(&mdev->state_lock);
+ 	mdev->device_up = true;
+ 
++	/* register mlx4 core notifier */
++	mdev->mlx_nb.notifier_call = mlx4_en_event;
++	err = mlx4_register_event_notifier(dev, &mdev->mlx_nb);
++	WARN(err, "failed to register mlx4 event notifier (%d)", err);
++
+ 	return mdev;
+ 
+ err_mr:
+@@ -359,7 +370,6 @@ static void *mlx4_en_add(struct mlx4_dev *dev)
+ static struct mlx4_interface mlx4_en_interface = {
+ 	.add		= mlx4_en_add,
+ 	.remove		= mlx4_en_remove,
+-	.event		= mlx4_en_event,
+ 	.protocol	= MLX4_PROT_ETH,
+ 	.activate	= mlx4_en_activate,
+ };
+diff --git a/drivers/net/ethernet/mellanox/mlx4/intf.c b/drivers/net/ethernet/mellanox/mlx4/intf.c
+index a761971cd0c4..fecb63e69607 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/intf.c
++++ b/drivers/net/ethernet/mellanox/mlx4/intf.c
+@@ -183,17 +183,27 @@ void mlx4_dispatch_event(struct mlx4_dev *dev, enum mlx4_dev_event type,
+ 			 void *param)
+ {
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+-	struct mlx4_device_context *dev_ctx;
+-	unsigned long flags;
+ 
+-	spin_lock_irqsave(&priv->ctx_lock, flags);
++	atomic_notifier_call_chain(&priv->event_nh, type, param);
 +}
-+
-+static inline int mlx4_is_mf_bonded(struct mlx4_dev *dev)
+ 
+-	list_for_each_entry(dev_ctx, &priv->ctx_list, list)
+-		if (dev_ctx->intf->event)
+-			dev_ctx->intf->event(dev, dev_ctx->context, type, param);
++int mlx4_register_event_notifier(struct mlx4_dev *dev,
++				 struct notifier_block *nb)
 +{
-+	return (mlx4_is_bonded(dev) && mlx4_is_mfunc(dev));
++	struct mlx4_priv *priv = mlx4_priv(dev);
+ 
+-	spin_unlock_irqrestore(&priv->ctx_lock, flags);
++	return atomic_notifier_chain_register(&priv->event_nh, nb);
 +}
++EXPORT_SYMBOL(mlx4_register_event_notifier);
 +
-+int mlx4_queue_bond_work(struct mlx4_dev *dev, int is_bonded, u8 v2p_p1,
-+			 u8 v2p_p2);
++int mlx4_unregister_event_notifier(struct mlx4_dev *dev,
++				   struct notifier_block *nb)
++{
++	struct mlx4_priv *priv = mlx4_priv(dev);
 +
- int mlx4_pd_alloc(struct mlx4_dev *dev, u32 *pdn);
- void mlx4_pd_free(struct mlx4_dev *dev, u32 pdn);
- int mlx4_xrcd_alloc(struct mlx4_dev *dev, u32 *xrcdn);
++	return atomic_notifier_chain_unregister(&priv->event_nh, nb);
+ }
++EXPORT_SYMBOL(mlx4_unregister_event_notifier);
+ 
+ int mlx4_register_device(struct mlx4_dev *dev)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 8a5409b00530..5f3ba8385e23 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -3378,6 +3378,8 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
+ 	INIT_LIST_HEAD(&priv->ctx_list);
+ 	spin_lock_init(&priv->ctx_lock);
+ 
++	ATOMIC_INIT_NOTIFIER_HEAD(&priv->event_nh);
++
+ 	mutex_init(&priv->port_mutex);
+ 	mutex_init(&priv->bond_mutex);
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index de5699a4ddaa..8dbea814a2f5 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -47,6 +47,7 @@
+ #include <linux/spinlock.h>
+ #include <net/devlink.h>
+ #include <linux/rwsem.h>
++#include <linux/notifier.h>
+ 
+ #include <linux/mlx4/device.h>
+ #include <linux/mlx4/driver.h>
+@@ -878,6 +879,7 @@ struct mlx4_priv {
+ 	struct list_head	dev_list;
+ 	struct list_head	ctx_list;
+ 	spinlock_t		ctx_lock;
++	struct atomic_notifier_head event_nh;
+ 
+ 	int			pci_dev_data;
+ 	int                     removed;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+index 72a3fea36702..efe3f97b874f 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+@@ -49,6 +49,7 @@
+ #include <linux/ptp_clock_kernel.h>
+ #include <linux/irq.h>
+ #include <net/xdp.h>
++#include <linux/notifier.h>
+ 
+ #include <linux/mlx4/device.h>
+ #include <linux/mlx4/qp.h>
+@@ -433,6 +434,7 @@ struct mlx4_en_dev {
+ 	struct ptp_clock	*ptp_clock;
+ 	struct ptp_clock_info	ptp_clock_info;
+ 	struct notifier_block	netdev_nb;
++	struct notifier_block	mlx_nb;
+ };
+ 
+ 
 diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 0f8c9ba4c574..781d5a0c2faa 100644
+index 032d7f5bfef6..228da8ed7e75 100644
 --- a/include/linux/mlx4/driver.h
 +++ b/include/linux/mlx4/driver.h
-@@ -66,25 +66,6 @@ struct mlx4_interface {
- int mlx4_register_interface(struct mlx4_interface *intf);
- void mlx4_unregister_interface(struct mlx4_interface *intf);
+@@ -34,6 +34,7 @@
+ #define MLX4_DRIVER_H
  
--int mlx4_bond(struct mlx4_dev *dev);
--int mlx4_unbond(struct mlx4_dev *dev);
--static inline int mlx4_is_bonded(struct mlx4_dev *dev)
--{
--	return !!(dev->flags & MLX4_FLAG_BONDED);
--}
--
--static inline int mlx4_is_mf_bonded(struct mlx4_dev *dev)
--{
--	return (mlx4_is_bonded(dev) && mlx4_is_mfunc(dev));
--}
--
--struct mlx4_port_map {
--	u8	port1;
--	u8	port2;
--};
--
--int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p);
--
- int mlx4_register_event_notifier(struct mlx4_dev *dev,
- 				 struct notifier_block *nb);
- int mlx4_unregister_event_notifier(struct mlx4_dev *dev,
+ #include <net/devlink.h>
++#include <linux/notifier.h>
+ #include <linux/mlx4/device.h>
+ 
+ struct mlx4_dev;
+@@ -57,8 +58,6 @@ enum {
+ struct mlx4_interface {
+ 	void *			(*add)	 (struct mlx4_dev *dev);
+ 	void			(*remove)(struct mlx4_dev *dev, void *context);
+-	void			(*event) (struct mlx4_dev *dev, void *context,
+-					  enum mlx4_dev_event event, void *param);
+ 	void			(*activate)(struct mlx4_dev *dev, void *context);
+ 	struct list_head	list;
+ 	enum mlx4_protocol	protocol;
+@@ -87,6 +86,11 @@ struct mlx4_port_map {
+ 
+ int mlx4_port_map_set(struct mlx4_dev *dev, struct mlx4_port_map *v2p);
+ 
++int mlx4_register_event_notifier(struct mlx4_dev *dev,
++				 struct notifier_block *nb);
++int mlx4_unregister_event_notifier(struct mlx4_dev *dev,
++				   struct notifier_block *nb);
++
+ struct devlink_port *mlx4_get_devlink_port(struct mlx4_dev *dev, int port);
+ 
+ #endif /* MLX4_DRIVER_H */
 -- 
 2.35.3
 
