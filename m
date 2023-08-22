@@ -2,102 +2,78 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 219B8EE49A5
-	for <linux-rdma@archiver.kernel.org>; Wed, 23 Aug 2023 02:13:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D55EEE49A5
+	for <linux-rdma@archiver.kernel.org>; Wed, 23 Aug 2023 02:20:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231279AbjHWCN1 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 22 Aug 2023 22:13:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56718 "EHLO
+        id S232211AbjHWCUE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 22 Aug 2023 22:20:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232192AbjHWCN0 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 22 Aug 2023 22:13:26 -0400
-Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 966A8E4E;
-        Tue, 22 Aug 2023 19:13:22 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6600,9927,10810"; a="108546362"
-X-IronPort-AV: E=Sophos;i="6.01,194,1684767600"; 
-   d="scan'208";a="108546362"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2023 11:13:19 +0900
-Received: from yto-m3.gw.nic.fujitsu.com (yto-nat-yto-m3.gw.nic.fujitsu.com [192.168.83.66])
-        by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 9480DC68E5;
-        Wed, 23 Aug 2023 11:13:15 +0900 (JST)
-Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-        by yto-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id BAD24D20AF;
-        Wed, 23 Aug 2023 11:13:14 +0900 (JST)
-Received: from localhost.localdomain (unknown [10.167.234.230])
-        by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id E39766B817;
-        Wed, 23 Aug 2023 11:13:13 +0900 (JST)
-From:   Li Zhijian <lizhijian@fujitsu.com>
-To:     linux-rdma@vger.kernel.org
-Cc:     zyjzyj2000@gmail.com, jgg@ziepe.ca, leon@kernel.org,
-        linux-kernel@vger.kernel.org, rpearsonhpe@gmail.com,
-        Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH 2/2] RDMA/rxe: Call rxe_set_mtu after rxe_register_device
-Date:   Wed, 23 Aug 2023 10:13:06 +0800
-Message-Id: <20230823021306.170901-2-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20230823021306.170901-1-lizhijian@fujitsu.com>
-References: <20230823021306.170901-1-lizhijian@fujitsu.com>
+        with ESMTP id S229497AbjHWCUA (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 22 Aug 2023 22:20:00 -0400
+X-Greylist: delayed 917 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 22 Aug 2023 19:19:57 PDT
+Received: from symantec4.comsats.net.pk (symantec4.comsats.net.pk [203.124.41.30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AA8A185
+        for <linux-rdma@vger.kernel.org>; Tue, 22 Aug 2023 19:19:57 -0700 (PDT)
+X-AuditID: cb7c291e-06dff70000002aeb-e5-64e5544f3fa4
+Received: from iesco.comsatshosting.com (iesco.comsatshosting.com [210.56.28.11])
+        (using TLS with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        by symantec4.comsats.net.pk (Symantec Messaging Gateway) with SMTP id F6.E2.10987.F4455E46; Wed, 23 Aug 2023 05:35:27 +0500 (PKT)
+DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns;
+        d=iesco.com.pk; s=default;
+        h=received:content-type:mime-version:content-transfer-encoding
+          :content-description:subject:to:from:date:reply-to;
+        b=JMBbBOoxceO6nl7LyqkLYVgx5ZVQkZQk1lUXfm9JEDHNvzMV+N6JHln1MvtlxSbgA
+          FO3EcSgmP66SJFANB7cYhLIbJpYVKvY2KOWLdYWhiC4aE1x+0kqvrY3dByDVwghFo
+          s8MtE9YcO/bhkELVXIhahJNpUvf8qbFjy/zAlvaK4=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=iesco.com.pk; s=default;
+        h=reply-to:date:from:to:subject:content-description
+          :content-transfer-encoding:mime-version:content-type;
+        bh=GMzYzcyTxDsE6wX/XHG6MHqAdAiHrhqbmmLQ/TZ1QnQ=;
+        b=VJ6hKvtb3N7KOBJ8iaOxD20Thcs557QOU92TtvO+zmbtKZjiaam1XWR8OcUwD3/FU
+          2t2knLLiOt0miLJYNfBoUzzkhmuxVXbPNk1s+ZmK2xDtiBSV59TW/BcGMgxtbSh7F
+          PVV2OU50WgFfcFfwoVkDF5PcOUipAjTCbMESBicc8=
+Received: from [94.156.6.90] (UnknownHost [94.156.6.90]) by iesco.comsatshosting.com with SMTP;
+   Wed, 23 Aug 2023 04:31:07 +0500
+Message-ID: <F6.E2.10987.F4455E46@symantec4.comsats.net.pk>
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27830.003
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27830.003
-X-TMASE-Result: 10--4.000400-10.000000
-X-TMASE-MatchedRID: 5PeO86FyjNKIYY2hRSylnMQ4mpKyfkqZ0MQw+++ihy/qFRQsrMdGBLbS
-        c9DZ5nsJJCq8bCHd+Z97L4dx4z+0QP9HU1IxzaoJSs47mbT7SAQh9mNF8ZPJ2J4Q+L3BXIWucwh
-        qloOj04py+ROQfAr1jeaffHI8kAmiHY/bzRmIaZGqFx2c/3V5cf3l3BKhUmN/myiLZetSf8nyb6
-        HMFK1qe11j5mhaIsibJ0RPnyOnrZICgmfua/fPXtuW3D6HtXwtBOtTmZPZgcKgolbk5R0jWqi4O
-        rUcQoc5QkbGFj8igiyBx2s7JQ1vW2HbVJe6RBtpX2C5l3vFPxjAYLx7rnbR8rDQ8m3TqgloelpC
-        XnG+JjvDGBZ1G8r1Sf2D6gx/0ozp
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Transfer-Encoding: quoted-printable
+Content-Description: Mail message body
+Subject: Re; Interest,
+To:     linux-rdma@vger.kernel.org
+From:   "Chen Yun" <pso.chairmanbod@iesco.com.pk>
+Date:   Tue, 22 Aug 2023 16:31:20 -0700
+Reply-To: chnyne@gmail.com
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrDLMWRmVeSWpSXmKPExsVyyUKGW9c/5GmKwecTahbPDvWyODB6fN4k
+        F8AYxWWTkpqTWZZapG+XwJWxZN0FloLdzBVt/YtYGhgfM3UxcnJICJhInG/cwNjFyMUhJLCH
+        SeLA6idsIA6LwGpmidaubawQzkNmiWMn5rGDtAgJNDNKHDqiCWLzClhLzNvczQxiMwvoSdyY
+        OoUNIi4ocXLmExaIuLbEsoWvgWo4gGw1ia9dJSBhYQExiU/TloGNFBGQk/h7Zw2YzSagL7Hi
+        azMjiM0ioCqx/PciNoi1UhIbr6xnm8DIPwvJtllIts1Csm0WwrYFjCyrGCWKK3MTgaGWbKKX
+        nJ9bnFhSrJeXWqJXkL2JERiGp2s05XYwLr2UeIhRgINRiYf357onKUKsiWVAXYcYJTiYlUR4
+        pb8/TBHiTUmsrEotyo8vKs1JLT7EKM3BoiTOayv0LFlIID2xJDU7NbUgtQgmy8TBKdXAmHZz
+        gVfetRW7nYMkdTIuneAxPa8isSVI7E5fa+pzG3vhVRUrL37LOps2Jy1YIdrG4Nlc0b0xy7oS
+        ORKMDVqOrhQMDF0yoc5Ua3vvhYkFFqGRaYffTF74bLHl4nxpjeibL7vOFL/8oTfXo/lEt9eS
+        7Z3XvLX4n7CFLJ22raLZpnU+22OdLJ0zSizFGYmGWsxFxYkAV1RO8z8CAAA=
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-rxe_set_mtu() will call rxe_info_dev() to print message, and
-rxe_info_dev() expects dev_name(rxe->ib_dev->dev) has been assigned.
+Re; Interest,
 
-Previously since dev_name() is not set, when a new rxe link is being
-added, 'null' will be used as the dev_name like:
+I am interested in discussing the Investment proposal as I explained
+in my previous mail. May you let me know your interest and the
+possibility of a cooperation aimed for mutual interest.
 
-"(null): rxe_set_mtu: Set mtu to 1024"
+Looking forward to your mail for further discussion.
 
-Move rxe_register_device() earlier to assign the correct dev_name
-so that it can be read by rxe_set_mtu() later.
+Regards
 
-And it's safe to do such change since mtu will not be used during the
-rxe_register_device()
-
-After this change, message becomes:
-"rxe_eth0: rxe_set_mtu: Set mtu to 4096"
-
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
- drivers/infiniband/sw/rxe/rxe.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index cb2c0d54aae1..d29efce6e5ca 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -169,10 +169,13 @@ void rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu)
-  */
- int rxe_add(struct rxe_dev *rxe, unsigned int mtu, const char *ibdev_name)
- {
-+	int ret;
-+
- 	rxe_init(rxe);
-+	ret = rxe_register_device(rxe, ibdev_name);
- 	rxe_set_mtu(rxe, mtu);
- 
--	return rxe_register_device(rxe, ibdev_name);
-+	return ret;
- }
- 
- static int rxe_newlink(const char *ibdev_name, struct net_device *ndev)
--- 
-2.29.2
+------
+Chen Yun - Chairman of CREC
+China Railway Engineering Corporation - CRECG
+China Railway Plaza, No.69 Fuxing Road, Haidian District, Beijing, P.R.
+China
 
