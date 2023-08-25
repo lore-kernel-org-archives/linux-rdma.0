@@ -2,71 +2,62 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC2BFC71133
-	for <linux-rdma@archiver.kernel.org>; Fri, 25 Aug 2023 17:46:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CC65C3DA6F
+	for <linux-rdma@archiver.kernel.org>; Fri, 25 Aug 2023 18:03:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238144AbjHYRpv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 25 Aug 2023 13:45:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50148 "EHLO
+        id S230163AbjHYSCe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 25 Aug 2023 14:02:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234005AbjHYRpk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Aug 2023 13:45:40 -0400
+        with ESMTP id S230298AbjHYSCK (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 25 Aug 2023 14:02:10 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CCFE2128;
-        Fri, 25 Aug 2023 10:45:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74899E54
+        for <linux-rdma@vger.kernel.org>; Fri, 25 Aug 2023 11:02:08 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F012E62D97;
-        Fri, 25 Aug 2023 17:45:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45C77C433C8;
-        Fri, 25 Aug 2023 17:45:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F7D164C74
+        for <linux-rdma@vger.kernel.org>; Fri, 25 Aug 2023 18:02:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 640FFC433C7;
+        Fri, 25 Aug 2023 18:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1692985537;
-        bh=FvFWJfTHnCJBuxAYcJU2vDvioeoRGpbuDc+4qUjlpqE=;
+        s=k20201202; t=1692986527;
+        bh=Z8/p6jdYhLhN7qSwwsCH2vmc8kBxtzCwuJWP9hrCynw=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=NN+b5k9geYk3K1cJNOm+eHUaw9RzRYKdAr4Uhf7S2hAmpYRTMJhHbj/2am0yxYpJ9
-         bv9j/ZLTkpogSFptzQnG2KHXQaDWzKdECGk4Z3uYsfobS/dEuA9riZB+3nVor+fY1D
-         uisXjvytC7giuKf6N1PFGEfB6HemZ7wAy6HBvvDPRPCV6YjaGbo1ZJQepZhaqixTtg
-         I/FA7A5Sw8ui7n4MWwxa7MvKfPG9q5XF3f4BokNLhGO4P/zp0Ck1/05xcrnuYE81PF
-         ZIko3rkLvjUnBWW2Eff9jzWLfh3GICQJUEZq3TuMkvT+8SNHK8rO/kwhZqPQkCXqf1
-         64m7NywDjaW5A==
-Date:   Fri, 25 Aug 2023 10:45:35 -0700
+        b=L1tt1tRlVym9NiFysPOJ8OoK+R3A+lnRWID+aXQYmXJ11t4i0Hs6cqOiQ2vbdtVIU
+         nSMvpyXCgDyeisx55OzfoipqCc5QJFQB2cCg5nArvGJ2XC8cD8UP0BdEg1Krl+NjPd
+         sddiDD7chKmF30diIJST1Tg0Lu9Y1AICUlIKpb9IgluoILExErUbWTdNbqS8nYnpJK
+         gQuAE3yCf+pvOLmU/aBNI9ICD7OUIrBvWVN2sOM8AakWrGdwLmLZtB+nIMWL3poUzG
+         F2A6c2P/CDfNH0iTW/U7+vQYd3rwYr6LvBtmm6d50eOwqwv7cdw0iG4wWcrDMc4VnR
+         8Gp0vSiCcUf9w==
+Date:   Fri, 25 Aug 2023 11:02:05 -0700
 From:   Saeed Mahameed <saeed@kernel.org>
-To:     Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc:     Saeed Mahameed <saeedm@nvidia.com>,
+To:     Jinjie Ruan <ruanjinjie@huawei.com>
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        Saeed Mahameed <saeedm@nvidia.com>,
         Leon Romanovsky <leon@kernel.org>,
-        Gal Pressman <gal@nvidia.com>,
-        Rahul Rameshbabu <rrameshbabu@nvidia.com>,
-        Tariq Toukan <tariqt@nvidia.com>, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] net/mlx5: fix config name in Kconfig parameter
- documentation
-Message-ID: <ZOjov4PvI19Jdgs+@x130>
-References: <20230825125100.26453-1-lukas.bulwahn@gmail.com>
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH net-next] net/mlx5: Use PTR_ERR_OR_ZERO() to simplify code
+Message-ID: <ZOjsnUu+MMBazNan@x130>
+References: <20230822062312.3982963-1-ruanjinjie@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <20230825125100.26453-1-lukas.bulwahn@gmail.com>
+In-Reply-To: <20230822062312.3982963-1-ruanjinjie@huawei.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On 25 Aug 14:51, Lukas Bulwahn wrote:
->Commit a12ba19269d7 ("net/mlx5: Update Kconfig parameter documentation")
->adds documentation on Kconfig options for the mlx5 driver. It refers to the
->config MLX5_EN_MACSEC for MACSec offloading, but the config is actually
->called MLX5_MACSEC.
+On 22 Aug 14:23, Jinjie Ruan wrote:
+>Return PTR_ERR_OR_ZERO() instead of return 0 or PTR_ERR() to
+>simplify code.
 >
->Fix the reference to the right config name in the documentation.
->
->Fixes: a12ba19269d7 ("net/mlx5: Update Kconfig parameter documentation")
->Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
->---
->Saeed, please pick this quick fix to the documentation.
+>Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
 
-Thanks applied to net-next-mlx5.
-
+Applied to net-next-mlx5
 
