@@ -2,93 +2,143 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DB9CC71153
-	for <linux-rdma@archiver.kernel.org>; Mon, 28 Aug 2023 12:16:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52312C71153
+	for <linux-rdma@archiver.kernel.org>; Mon, 28 Aug 2023 18:03:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229596AbjH1MPr (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 28 Aug 2023 08:15:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54562 "EHLO
+        id S232965AbjH1SDW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 28 Aug 2023 14:03:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232283AbjH1MPd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 28 Aug 2023 08:15:33 -0400
-Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2A69D8;
-        Mon, 28 Aug 2023 05:15:29 -0700 (PDT)
-Received: by mail-ed1-x52d.google.com with SMTP id 4fb4d7f45d1cf-51e28cac164so8475964a12.1;
-        Mon, 28 Aug 2023 05:15:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1693224928; x=1693829728;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1n6GwFDOr+hzOGHtIK05YvBf8UtxquAjCgB7KwctWkU=;
-        b=FB56Pgy43qSiXWeEsZlec1LU64H/wQZ+tBbXmBoK/TbDpjeAhm9+1x91U7YWSTq08r
-         NN+CQpeSzAUdmDcPbSWNiM+2tNJ1wQ+MzNlNa1ktdQ93UmVA+pxhTqCh5QeMJk0G9WOd
-         EGXqAT1y3tEpxZj3lrdGQjyeAVcQowITHY1W0f7Xru9VaxNkbGtrxF8LA5uNfDdlj8V5
-         NpdbmAjL2jm3I1QeuQFlyaYJWW3djluVU6XP0ogFoG9NYWY78O1Njz5xgi8EstDEmBGy
-         /l5BuGp6kZnkFFfbURtflSdZmT8KR7Z8eCU+RK2dJlAE9OyrK8JWKIVyHeUaHzwSCICx
-         KRYg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693224928; x=1693829728;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=1n6GwFDOr+hzOGHtIK05YvBf8UtxquAjCgB7KwctWkU=;
-        b=KGEmbrQozI77t3P3QJqZvvlHkXppD7RVMFGpT0uUMLQ/GyZrbsVeytulcp9sU9NTxn
-         IDHTL3JoeYKKcxQteC/2YmLUrJc28VuqHFfQGMqhyOCVQ/z59zR7TLKKpjBT/PcWRV5N
-         pfLYGJsa5iSYROlc6zdzCoEHJZKWEw563oPMbmZ39+L46+M7ynUE4Yi0+hCQoFkopI2o
-         dzkEE6+q+wILYMd5z+9BTREUc5B6hLGa6OjZ3i78gwtOsAbaAZfcqH3cd0XPpKzHISa0
-         n4XatgSKiY/720ZaTHoBiiG+n/S4ZBvWV9hGvF+P1fubv69N3tvLETVbYQOwSYLGJYny
-         AGng==
-X-Gm-Message-State: AOJu0Yzaoc1ovTnDlzI8XjKHAD2aE9CfJ8irABwg7ylnLST2HPkgXsG+
-        OwtLFMkQKdQAFHQEI3Aub5YILUQ919r5dQ30B2K88TV2Xbo=
-X-Google-Smtp-Source: AGHT+IFHS8hbsnfoi+9GwbHqwxNQFWN6JrX4VyytnlSe9RJzo1AgaEsVAuW4S0H7pjLCuYkMVUDys4QYDc7P5qHHuZo=
-X-Received: by 2002:a17:907:6eab:b0:9a1:e5bf:c907 with SMTP id
- sh43-20020a1709076eab00b009a1e5bfc907mr14462671ejc.2.1693224928155; Mon, 28
- Aug 2023 05:15:28 -0700 (PDT)
+        with ESMTP id S232921AbjH1SDS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 28 Aug 2023 14:03:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0893210D;
+        Mon, 28 Aug 2023 11:03:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9BC7A645A0;
+        Mon, 28 Aug 2023 18:03:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84D55C433C7;
+        Mon, 28 Aug 2023 18:03:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1693245795;
+        bh=56VgGQnJgxLhXEe7cwBuaAX3o2oK/hHDJmk8oFYmWUM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=prGCJo0nyHC8hEQHqXmAzPWQSZFeNCzij3e3IVwxBoGhRSw+iqxWaearLadWk713A
+         RxD6ddaVj5TKSgLvtRHyaU4l85LUQ7qwMFGEnqyaZEJ9DV0Z1po+UQt7WiHEzZPM60
+         fF7dEZ8hVix/Qw9WFxbywRdEFHfx8TmXC87qYGPuI60ZXlzGXe57yItJlEfAXTprh7
+         +GLji62zceQbxHHpLzC3/XwA50zLI89t+9R6nYW8UURh1EUTSE/kuLejZwNtQ7yR2o
+         4wgRG0lw+yyzGpyc10MSS85I6E6req4SQACJPBgB4lJPkzMbD89D/JzcOCrnlD0dXU
+         CinaVi2nKQ2aA==
+Date:   Mon, 28 Aug 2023 21:03:10 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Junxian Huang <huangjunxian6@hisilicon.com>
+Cc:     jgg@nvidia.com, linux-rdma@vger.kernel.org, linuxarm@huawei.com,
+        linux-kernel@vger.kernel.org,
+        Michael Margolin <mrgolin@amazon.com>,
+        Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: Re: [PATCH for-next 0/3] RDMA/hns: Add more debugging information
+ for rdma-tool
+Message-ID: <20230828180310.GR6029@unreal>
+References: <20230816091812.2899366-1-huangjunxian6@hisilicon.com>
+ <20230819113212.GN22185@unreal>
+ <7c94dd6a-4fab-10dc-b0bb-2d9caa16a148@hisilicon.com>
 MIME-Version: 1.0
-References: <20230823061141.258864-1-lizhijian@fujitsu.com>
- <f3f30d46-379a-8730-5797-400a77db61c3@linux.dev> <87r0nnczp7.fsf@jogness.linutronix.de>
- <CAD=hENcu4wKELCt61O+p-RtOpaHHoaAQhr7Ygt9pdr9Hc4s2Wg@mail.gmail.com> <87fs43cudc.fsf@jogness.linutronix.de>
-In-Reply-To: <87fs43cudc.fsf@jogness.linutronix.de>
-From:   Zhu Yanjun <zyjzyj2000@gmail.com>
-Date:   Mon, 28 Aug 2023 20:15:15 +0800
-Message-ID: <CAD=hENdkUaFQTKAskbYo72tsXUD5CXht-oMMn_ye3F1S6HHj9A@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] RDMA/rxe: Improve newline in printing messages
-To:     John Ogness <john.ogness@linutronix.de>
-Cc:     Zhu Yanjun <yanjun.zhu@linux.dev>,
-        Li Zhijian <lizhijian@fujitsu.com>, linux-rdma@vger.kernel.org,
-        "pmladek@suse.com" <pmladek@suse.com>,
-        "senozhatsky@chromium.org" <senozhatsky@chromium.org>,
-        Steven Rostedt <rostedt@goodmis.org>, jgg@ziepe.ca,
-        leon@kernel.org, linux-kernel@vger.kernel.org,
-        rpearsonhpe@gmail.com,
-        Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <7c94dd6a-4fab-10dc-b0bb-2d9caa16a148@hisilicon.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Very helpful. Thanks a lot for your explanation.
+On Thu, Aug 24, 2023 at 03:58:15PM +0800, Junxian Huang wrote:
+> 
+> 
+> On 2023/8/19 19:32, Leon Romanovsky wrote:
+> > On Wed, Aug 16, 2023 at 05:18:09PM +0800, Junxian Huang wrote:
+> >> 1. #1: The first patch supports dumping QP/CQ/MR context entirely in raw
+> >>        data with rdma-tool.
+> >>
+> >> 2. #2: The second patch supports query of HW stats with rdma-tool.
+> >>
+> >> 3. #3: The last patch supports query of SW stats with rdma-tool.
+> >>
+> >> Chengchang Tang (3):
+> >>   RDMA/hns: Dump whole QP/CQ/MR resource in raw
+> >>   RDMA/hns: Support hns HW stats
+> > 
+> > These two patches generate static analyzer warnings.
+> > ➜  kernel git:(wip/leon-for-next) mkt ci --rev 0a68261bbbe5
+> > 0a68261bbbe5 (HEAD -> build) RDMA/hns: Dump whole QP/CQ/MR resource in raw
+> > WARNING: 'informations' may be misspelled - perhaps 'information'?
+> > #7:
+> > rdma-tool, but these informations are not enough. It is very
+> >                      ^^^^^^^^^^^^
+> > ➜  kernel git:(wip/leon-for-next) mkt ci
+> > 5a87279591a1 (HEAD -> build) RDMA/hns: Support hns HW stats
+> > drivers/infiniband/hw/hns/hns_roce_hw_v2.c:1651:35: warning: restricted __le16 degrades to integer
+> > 
+> 
+> OK，I'll fix them in V2.
+> 
+> >>   RDMA/hns: Support hns SW stats
+> > 
+> > This is not support SW stats, but actually implementation of SW
+> > statistics which you exposed through rdmatool. That tool is
+> 
+> Yes,
+> 
+> > not right place for such information and debugfs will be better
+> > fit.
+> > 
+> > Thanks
+> > 
+> 
+> but from what I have seen, efa and bnxt_re drivers also use rdmatool
+> to expose SW statisics.
 
-Zhu Yanjun
+I afraid that it was missed in review.
 
-On Mon, Aug 28, 2023 at 6:51=E2=80=AFPM John Ogness <john.ogness@linutronix=
-.de> wrote:
->
-> On 2023-08-28, Zhu Yanjun <zyjzyj2000@gmail.com> wrote:
-> > Do you mean "a newline can help flushing messages out"?
-> > That is, in printk, the message will be buffered until it is full or
-> > it meets a newline?
->
-> Correct. A trailing newline is needed for the record to become
-> "finalized". Only finalized records are pushed out to consoles.
->
-> If there is no trailing newline, the message will be buffered until
-> printk is called using a message with a trailing newline.
->
-> There are some other reasons why it may be flushed. But for sure the
-> flushing will be delayed if there is no trailing newline.
->
-> John Ogness
+> 
+> And could you please explain why rdmatool is not suitable for this?
+
+IMHO, SW statistics are too broad and too coupled with the code to be
+really useful in rdmatool.
+
+Let's take an example, your newly added counter in modify QP.
+It counts number of failure in hns_roce_modify_qp(), but that
+function returns error in such case and users will see it anyway.
+
+So what will give this newly added counter in addition to already known
+by users? The answer is nothing and that answer is almost always applicable
+to SW statistics.
+
+It is unlikely that we can remove from EFA and bnxt_re already added
+counters, but if we can, it will be great.
+
+Thanks
+
+> 
+> Junxian
+> 
+> >>
+> >>  drivers/infiniband/hw/hns/hns_roce_ah.c       |   6 +-
+> >>  drivers/infiniband/hw/hns/hns_roce_cmd.c      |  19 ++-
+> >>  drivers/infiniband/hw/hns/hns_roce_cq.c       |  15 +-
+> >>  drivers/infiniband/hw/hns/hns_roce_device.h   |  50 ++++++
+> >>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c    |  59 +++++++
+> >>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h    |   1 +
+> >>  drivers/infiniband/hw/hns/hns_roce_main.c     | 152 +++++++++++++++++-
+> >>  drivers/infiniband/hw/hns/hns_roce_mr.c       |  26 ++-
+> >>  drivers/infiniband/hw/hns/hns_roce_pd.c       |  10 +-
+> >>  drivers/infiniband/hw/hns/hns_roce_qp.c       |   8 +-
+> >>  drivers/infiniband/hw/hns/hns_roce_restrack.c |  75 +--------
+> >>  drivers/infiniband/hw/hns/hns_roce_srq.c      |   6 +-
+> >>  12 files changed, 325 insertions(+), 102 deletions(-)
+> >>
+> >> --
+> >> 2.30.0
+> >>
