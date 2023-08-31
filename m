@@ -2,189 +2,87 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1EB8C83F01
-	for <linux-rdma@archiver.kernel.org>; Thu, 31 Aug 2023 12:55:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42361C83F12
+	for <linux-rdma@archiver.kernel.org>; Thu, 31 Aug 2023 13:04:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242207AbjHaMzI (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 31 Aug 2023 08:55:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55344 "EHLO
+        id S242601AbjHaNET (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 31 Aug 2023 09:04:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346132AbjHaMyk (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 31 Aug 2023 08:54:40 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1045CF2;
-        Thu, 31 Aug 2023 05:54:36 -0700 (PDT)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Rc1Jh6N3tzVk3s;
-        Thu, 31 Aug 2023 20:52:04 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.2) by
- kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Thu, 31 Aug 2023 20:54:32 +0800
-From:   Junxian Huang <huangjunxian6@hisilicon.com>
-To:     <jgg@nvidia.com>, <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-        <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH v2 for-next 1/2] RDMA/hns: Dump whole QP/CQ/MR resource in raw
-Date:   Thu, 31 Aug 2023 20:51:38 +0800
-Message-ID: <20230831125139.3593067-2-huangjunxian6@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20230831125139.3593067-1-huangjunxian6@hisilicon.com>
-References: <20230831125139.3593067-1-huangjunxian6@hisilicon.com>
+        with ESMTP id S232184AbjHaNES (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 31 Aug 2023 09:04:18 -0400
+Received: from mail.bsc.es (mao.bsc.es [84.88.52.34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EE01BC
+        for <linux-rdma@vger.kernel.org>; Thu, 31 Aug 2023 06:04:14 -0700 (PDT)
+Received: from hop.home (2.152.176.31.dyn.user.ono.com [2.152.176.31])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.bsc.es (Postfix) with ESMTPSA id E45634061881;
+        Thu, 31 Aug 2023 15:04:11 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bsc.es; s=20191012;
+        t=1693487052;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=NnxB0GUvkZQaEbLDuuy5LWX0sefRL/blbYcvf0bXh7s=;
+        b=f6WE9ggQnOdQP4d/FtvfJWaQOUKygusFkwmvMJzewgouTwG/Ycr8HotJ9Z5cMo8/m4nFLS
+        mUus0HXaTk80YUIbzPw3dII2+d8BHs6IPY1foYOkhwkBIcabDM7kZegj14s7OC7Exn3F0s
+        t5/G4HZGhivBfmime069n7t3AIZ6EGDx2ZPs251UDT3K9uYyHkp4kN4RcJvv6aEndFXI5+
+        kkmTDtHWAiu4E9ACGi/UIoIxtIzyv8o+mRQJPlYwK0uR6/27NjfR6X4QtZVKavR3gQJMtt
+        7Igck7LDiDsANeSfJHzSReMqhUga6DljzAI+0ozCl0ou2wLP0Awhxs1auKrFQQ==
+Date:   Thu, 31 Aug 2023 15:04:10 +0200
+From:   Rodrigo Arias <rodrigo.arias@bsc.es>
+To:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc:     linux-rdma@vger.kernel.org,
+        "Koch, Kerry" <kerry.a.koch@cornelisnetworks.com>,
+        "Luick, Dean" <dean.luick@cornelisnetworks.com>,
+        "Cunningham, Brendan" <brendan.cunningham@cornelisnetworks.com>,
+        "Miller, Doug" <Doug.Miller@cornelisnetworks.com>,
+        Ehab Ababneh <ehab.ababneh@cornelisnetworks.com>
+Subject: Re: [bug-report] Oops at hfi1_ipoib_send + hfi1_ipoib_sdma_complete
+ IRQ
+Message-ID: <ZPCPynn0HDxSLBzn@hop.home>
+References: <ZO8dWSh5Y9D8FZG9@hop.home>
+ <5868fabe-a45a-3960-aa4b-d81cff8ef6ec@cornelisnetworks.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.67.165.2]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- kwepemi500006.china.huawei.com (7.221.188.68)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Disposition: inline
+In-Reply-To: <5868fabe-a45a-3960-aa4b-d81cff8ef6ec@cornelisnetworks.com>
+X-Spamd-Result: default: False [-8.38 / 15.00];
+         ARC_NA(0.00)[];
+         FROM_HAS_DN(0.00)[];
+         TO_DN_SOME(0.00)[];
+         TO_MATCH_ENVRCPT_ALL(0.00)[];
+         MIME_GOOD(-0.10)[text/plain];
+         DKIM_SIGNED(0.00)[bsc.es:s=20191012];
+         RCPT_COUNT_SEVEN(0.00)[7];
+         NEURAL_HAM(-0.00)[-1.000];
+         WHITELIST_SENDER_DOMAIN(-5.00)[bsc.es];
+         RCVD_COUNT_ZERO(0.00)[0];
+         FROM_EQ_ENVFROM(0.00)[];
+         MIME_TRACE(0.00)[0:+];
+         ASN(0.00)[asn:6739, ipnet:2.152.0.0/16, country:ES];
+         BAYES_HAM(-3.28)[97.56%]
+X-Copyrighted-Material: Please visit http://www.bsc.es/disclaimer
+X-Rspamd-Server: opsmail02.bsc.es
+X-Rspamd-Queue-Id: E45634061881
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Chengchang Tang <tangchengchang@huawei.com>
+Hi Dennis,
 
-Currently, some fields in the QP/CQ/MR resource can be dumped by
-rdma-tool, but these information is not enough. It is very
-inconvenient to continue to expand on the current field, and it
-will also introduce some trouble to parse these raw data.
+>Thanks for the bug report. We will look into this and see what we can 
+>come up with.
 
-This patch dump whole resource in raw to avoid the above problems.
+Thank you :-)
 
-Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_restrack.c | 75 +------------------
- 1 file changed, 3 insertions(+), 72 deletions(-)
+>I've added some of my engineers to CC. Do you happen to have a 
+>crashdump perchance that you could upload to us?
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_restrack.c b/drivers/infiniband/hw/hns/hns_roce_restrack.c
-index 989a2af2e938..081a01de3055 100644
---- a/drivers/infiniband/hw/hns/hns_roce_restrack.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_restrack.c
-@@ -9,8 +9,6 @@
- #include "hns_roce_device.h"
- #include "hns_roce_hw_v2.h"
- 
--#define MAX_ENTRY_NUM 256
--
- int hns_roce_fill_res_cq_entry(struct sk_buff *msg, struct ib_cq *ib_cq)
- {
- 	struct hns_roce_cq *hr_cq = to_hr_cq(ib_cq);
-@@ -47,8 +45,6 @@ int hns_roce_fill_res_cq_entry_raw(struct sk_buff *msg, struct ib_cq *ib_cq)
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_cq->device);
- 	struct hns_roce_cq *hr_cq = to_hr_cq(ib_cq);
- 	struct hns_roce_v2_cq_context context;
--	u32 data[MAX_ENTRY_NUM] = {};
--	int offset = 0;
- 	int ret;
- 
- 	if (!hr_dev->hw->query_cqc)
-@@ -58,23 +54,7 @@ int hns_roce_fill_res_cq_entry_raw(struct sk_buff *msg, struct ib_cq *ib_cq)
- 	if (ret)
- 		return -EINVAL;
- 
--	data[offset++] = hr_reg_read(&context, CQC_CQ_ST);
--	data[offset++] = hr_reg_read(&context, CQC_SHIFT);
--	data[offset++] = hr_reg_read(&context, CQC_CQE_SIZE);
--	data[offset++] = hr_reg_read(&context, CQC_CQE_CNT);
--	data[offset++] = hr_reg_read(&context, CQC_CQ_PRODUCER_IDX);
--	data[offset++] = hr_reg_read(&context, CQC_CQ_CONSUMER_IDX);
--	data[offset++] = hr_reg_read(&context, CQC_DB_RECORD_EN);
--	data[offset++] = hr_reg_read(&context, CQC_ARM_ST);
--	data[offset++] = hr_reg_read(&context, CQC_CMD_SN);
--	data[offset++] = hr_reg_read(&context, CQC_CEQN);
--	data[offset++] = hr_reg_read(&context, CQC_CQ_MAX_CNT);
--	data[offset++] = hr_reg_read(&context, CQC_CQ_PERIOD);
--	data[offset++] = hr_reg_read(&context, CQC_CQE_HOP_NUM);
--	data[offset++] = hr_reg_read(&context, CQC_CQE_BAR_PG_SZ);
--	data[offset++] = hr_reg_read(&context, CQC_CQE_BUF_PG_SZ);
--
--	ret = nla_put(msg, RDMA_NLDEV_ATTR_RES_RAW, offset * sizeof(u32), data);
-+	ret = nla_put(msg, RDMA_NLDEV_ATTR_RES_RAW, sizeof(context), &context);
- 
- 	return ret;
- }
-@@ -118,8 +98,6 @@ int hns_roce_fill_res_qp_entry_raw(struct sk_buff *msg, struct ib_qp *ib_qp)
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_qp->device);
- 	struct hns_roce_qp *hr_qp = to_hr_qp(ib_qp);
- 	struct hns_roce_v2_qp_context context;
--	u32 data[MAX_ENTRY_NUM] = {};
--	int offset = 0;
- 	int ret;
- 
- 	if (!hr_dev->hw->query_qpc)
-@@ -129,42 +107,7 @@ int hns_roce_fill_res_qp_entry_raw(struct sk_buff *msg, struct ib_qp *ib_qp)
- 	if (ret)
- 		return -EINVAL;
- 
--	data[offset++] = hr_reg_read(&context, QPC_QP_ST);
--	data[offset++] = hr_reg_read(&context, QPC_ERR_TYPE);
--	data[offset++] = hr_reg_read(&context, QPC_CHECK_FLG);
--	data[offset++] = hr_reg_read(&context, QPC_SRQ_EN);
--	data[offset++] = hr_reg_read(&context, QPC_SRQN);
--	data[offset++] = hr_reg_read(&context, QPC_QKEY_XRCD);
--	data[offset++] = hr_reg_read(&context, QPC_TX_CQN);
--	data[offset++] = hr_reg_read(&context, QPC_RX_CQN);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_PRODUCER_IDX);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_CONSUMER_IDX);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_RECORD_EN);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_PRODUCER_IDX);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_CONSUMER_IDX);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_SHIFT);
--	data[offset++] = hr_reg_read(&context, QPC_RQWS);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_SHIFT);
--	data[offset++] = hr_reg_read(&context, QPC_SGE_SHIFT);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_HOP_NUM);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_HOP_NUM);
--	data[offset++] = hr_reg_read(&context, QPC_SGE_HOP_NUM);
--	data[offset++] = hr_reg_read(&context, QPC_WQE_SGE_BA_PG_SZ);
--	data[offset++] = hr_reg_read(&context, QPC_WQE_SGE_BUF_PG_SZ);
--	data[offset++] = hr_reg_read(&context, QPC_RETRY_NUM_INIT);
--	data[offset++] = hr_reg_read(&context, QPC_RETRY_CNT);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_CUR_PSN);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_MAX_PSN);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_FLUSH_IDX);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_MAX_IDX);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_TX_ERR);
--	data[offset++] = hr_reg_read(&context, QPC_SQ_RX_ERR);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_RX_ERR);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_TX_ERR);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_CQE_IDX);
--	data[offset++] = hr_reg_read(&context, QPC_RQ_RTY_TX_ERR);
--
--	ret = nla_put(msg, RDMA_NLDEV_ATTR_RES_RAW, offset * sizeof(u32), data);
-+	ret = nla_put(msg, RDMA_NLDEV_ATTR_RES_RAW, sizeof(context), &context);
- 
- 	return ret;
- }
-@@ -204,8 +147,6 @@ int hns_roce_fill_res_mr_entry_raw(struct sk_buff *msg, struct ib_mr *ib_mr)
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_mr->device);
- 	struct hns_roce_mr *hr_mr = to_hr_mr(ib_mr);
- 	struct hns_roce_v2_mpt_entry context;
--	u32 data[MAX_ENTRY_NUM] = {};
--	int offset = 0;
- 	int ret;
- 
- 	if (!hr_dev->hw->query_mpt)
-@@ -215,17 +156,7 @@ int hns_roce_fill_res_mr_entry_raw(struct sk_buff *msg, struct ib_mr *ib_mr)
- 	if (ret)
- 		return -EINVAL;
- 
--	data[offset++] = hr_reg_read(&context, MPT_ST);
--	data[offset++] = hr_reg_read(&context, MPT_PD);
--	data[offset++] = hr_reg_read(&context, MPT_LKEY);
--	data[offset++] = hr_reg_read(&context, MPT_LEN_L);
--	data[offset++] = hr_reg_read(&context, MPT_LEN_H);
--	data[offset++] = hr_reg_read(&context, MPT_PBL_SIZE);
--	data[offset++] = hr_reg_read(&context, MPT_PBL_HOP_NUM);
--	data[offset++] = hr_reg_read(&context, MPT_PBL_BA_PG_SZ);
--	data[offset++] = hr_reg_read(&context, MPT_PBL_BUF_PG_SZ);
--
--	ret = nla_put(msg, RDMA_NLDEV_ATTR_RES_RAW, offset * sizeof(u32), data);
-+	ret = nla_put(msg, RDMA_NLDEV_ATTR_RES_RAW, sizeof(context), &context);
- 
- 	return ret;
- }
--- 
-2.30.0
+I don't have, but I will try to reproduce it again and get one.
 
+I was trying to use a simpler using iperf3 but no luck so far. Changing 
+the network from Ethernet to IPoIB in ceph is complicated.
+
+Rodrigo.
