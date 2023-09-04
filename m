@@ -2,75 +2,88 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07679C71153
-	for <linux-rdma@archiver.kernel.org>; Sun,  3 Sep 2023 11:26:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3C83C83F2C
+	for <linux-rdma@archiver.kernel.org>; Mon,  4 Sep 2023 08:13:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232613AbjICL02 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 3 Sep 2023 07:26:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37048 "EHLO
+        id S238842AbjIDINF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 4 Sep 2023 04:13:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229599AbjICL01 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 3 Sep 2023 07:26:27 -0400
-X-Greylist: delayed 1188 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 03 Sep 2023 04:26:24 PDT
-Received: from mail.donmintrans.ru (mail.donmintrans.ru [31.133.57.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59F8A124
-        for <linux-rdma@vger.kernel.org>; Sun,  3 Sep 2023 04:26:24 -0700 (PDT)
-Received: from mail.donmintrans.ru (localhost [127.0.0.1])
-        by mail.donmintrans.ru (Postfix) with ESMTP id E849148BC0F
-        for <linux-rdma@vger.kernel.org>; Sun,  3 Sep 2023 14:00:20 +0300 (MSK)
-X-Virus-Scanned: Debian amavisd-new at mail.donmintrans.ru
-Received: from mail.donmintrans.ru ([127.0.0.1])
-        by mail.donmintrans.ru (mail.donmintrans.ru [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id eP0brmkJU7A7 for <linux-rdma@vger.kernel.org>;
-        Sun,  3 Sep 2023 14:00:20 +0300 (MSK)
-Received: from mail.donmintrans.ru (unknown [10.11.5.1])
-        by mail.donmintrans.ru (Postfix) with ESMTP id 342D5487AD8;
-        Sun,  3 Sep 2023 11:54:08 +0300 (MSK)
-From:   "BOOM of SALES" <besgc@hotmail.com>
-Subject: Elevate Your Sales Game Now
-To:     linux-rdma@vger.kernel.org
-Content-Type: text/plain
-Date:   Sun, 3 Sep 2023 05:54:12 -0300
-X-Priority: 5
-Message-Id: <20230903110020.E849148BC0F@mail.donmintrans.ru>
+        with ESMTP id S230494AbjIDINF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 4 Sep 2023 04:13:05 -0400
+Received: from cstnet.cn (smtp84.cstnet.cn [159.226.251.84])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B0B897;
+        Mon,  4 Sep 2023 01:13:00 -0700 (PDT)
+Received: from localhost (unknown [124.16.138.129])
+        by APP-05 (Coremail) with SMTP id zQCowACnrWF3kfVk2CxnCg--.5865S2;
+        Mon, 04 Sep 2023 16:12:39 +0800 (CST)
+From:   Chen Ni <nichen@iscas.ac.cn>
+To:     borisp@nvidia.com, saeedm@nvidia.com, leon@kernel.org,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, sd@queasysnail.net, raeds@nvidia.com,
+        ehakim@nvidia.com, liorna@nvidia.com, phaddad@nvidia.com,
+        atenart@kernel.org
+Cc:     netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Chen Ni <nichen@iscas.ac.cn>
+Subject: [PATCH] net/mlx5e: Add missing check for xa_load
+Date:   Mon,  4 Sep 2023 08:12:10 +0000
+Message-Id: <20230904081210.23901-1-nichen@iscas.ac.cn>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: zQCowACnrWF3kfVk2CxnCg--.5865S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7XrW7JrW5Ww18XryrXF4fZrb_yoW8Jr13pr
+        17AFW7uF1kGw1xXayUZ3y8Wr15Jw4vqa9a9a4fA3yfXw1DArW7Ary5GFy7Arn0krW5CF4q
+        vwn2v3W3Xan8Jr7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDU0xBIdaVrnRJUUUvG14x267AKxVW5JVWrJwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
+        rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
+        1l84ACjcxK6xIIjxv20xvE14v26r4j6ryUM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26r4j
+        6F4UM28EF7xvwVC2z280aVAFwI0_Cr1j6rxdM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
+        Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
+        I7IYx2IY67AKxVWUGVWUXwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
+        4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628v
+        n2kIc2xKxwCY02Avz4vE14v_GFyl42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr
+        0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY
+        17CE14v26r4a6rW5MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcV
+        C0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY
+        6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa
+        73UjIFyTuYvjfUYv38UUUUU
+X-Originating-IP: [124.16.138.129]
+X-CM-SenderInfo: xqlfxv3q6l2u1dvotugofq/
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Dear Business Professional,
+Add check for xa_load() in order to avoid NULL pointer
+dereference.
 
-Ready to elevate your sales game? 
+Fixes: b7c9400cbc48 ("net/mlx5e: Implement MACsec Rx data path using MACsec skb_metadata_dst")
+Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
+---
+ .../net/ethernet/mellanox/mlx5/core/en_accel/macsec.c  | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Look no further! Our 100% VALID email lists are your ticket to global success. 
-
-Choose from our extensive range:
-
-100,000 emails = $150
-500,000 emails = $350
-1 million emails = $500
-5 million emails = $750
-10 million emails = $1000
-
-We also provide segmented email lists by country:
-
-10,000 emails = $150
-50,000 emails = $350
-100,000 emails = $500
-500,000 emails = $750
-1 million emails = $1000
-
-Don't let this game-changing opportunity slip away! 
-
-We're constantly adding new emails to ensure your business stays ahead of the curve!
-
-WhatsApp:
-+55 11 91264 6760
-
-Or Skype:
-jebpatini
-
-
-Best regards,
-AMAZING LISTS
-Unleashing the power of email marketing since 2007
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
+index c9c1db971652..d2467c0bc3c8 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/macsec.c
+@@ -1673,10 +1673,12 @@ void mlx5e_macsec_offload_handle_rx_skb(struct net_device *netdev,
+ 
+ 	rcu_read_lock();
+ 	sc_xarray_element = xa_load(&macsec->sc_xarray, fs_id);
+-	rx_sc = sc_xarray_element->rx_sc;
+-	if (rx_sc) {
+-		dst_hold(&rx_sc->md_dst->dst);
+-		skb_dst_set(skb, &rx_sc->md_dst->dst);
++	if (sc_xarray_element) {
++		rx_sc = sc_xarray_element->rx_sc;
++		if (rx_sc) {
++			dst_hold(&rx_sc->md_dst->dst);
++			skb_dst_set(skb, &rx_sc->md_dst->dst);
++		}
+ 	}
+ 
+ 	rcu_read_unlock();
+-- 
+2.25.1
 
