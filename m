@@ -2,141 +2,86 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68F3BCA0FFD
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Sep 2023 16:03:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8269CC83F2C
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Sep 2023 16:03:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234444AbjIEQBB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:01:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43076 "EHLO
+        id S234482AbjIEQBC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:01:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354151AbjIEJ5o (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Sep 2023 05:57:44 -0400
-Received: from mail-lf1-x12a.google.com (mail-lf1-x12a.google.com [IPv6:2a00:1450:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83FD91BE
-        for <linux-rdma@vger.kernel.org>; Tue,  5 Sep 2023 02:57:39 -0700 (PDT)
-Received: by mail-lf1-x12a.google.com with SMTP id 2adb3069b0e04-501bd6f7d11so901112e87.1
-        for <linux-rdma@vger.kernel.org>; Tue, 05 Sep 2023 02:57:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1693907857; x=1694512657; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=AKHR62ul+UyAMBBLZNZLoFrH8efwjpri67YRyIEqGb8=;
-        b=ZM7D1UmPDfVFkSSO4UqZcDHdPUJVxtVWoKpFrg9rxoI0cQFhOlP0vjw7q3kBalQ/EZ
-         F6UCW83dzlPQN4XyfMOlpe4nFgqLsDbKfzhjP1CGGY+MyrIqXsLq9FMjBqsU4DDbRZnr
-         a9bmE4vOoB2APZkjtjBxV0+H35cYjQ9ZomvklF7I10LV6vRUA9OgYP2JDckETwzLeJep
-         rVSGqiVLgMxatcZ4zWEuBe5OI7Vhe+6Qv3attJa6sxREpOAfdh59Y5JRV3TnDn0f8XIQ
-         aY6Av2gK635lnE8nw43ojaYeQM7D3SEqhfH75kRNZuBkLy9IQoJPGg9+SAirYzM7EScr
-         mRbw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693907857; x=1694512657;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=AKHR62ul+UyAMBBLZNZLoFrH8efwjpri67YRyIEqGb8=;
-        b=kQssiAAKDHANSBcFOzXM7eqEAAgkppPricAV1EkyDbTaCE3yatfDcs+5Jdzq1C99aW
-         I4lpxQYmurhs5AHwHsSBPo1IPmbqOnD+qAL/6E2AGLExDypHoBtN095scmBLkjT/LSyz
-         a/7WMNUxinXs2d4uNo66HneMQRRIxvGHlbbStvvDUoJEMdIUD8IJ1qe+4zpcmHaP8tRu
-         jn1McMABnCJ15CVSVDa1LYWoPXtZI8nmpecT7A+lwq5ntFj0Y3n8XjF3drcJNo68+lDD
-         nnWRJGTbxvuqFCd5+urN1aHsCPSoGs3JCAJzUMIBqbnnY4nS+/IXmYEOX9o6PY15PSrA
-         CgPg==
-X-Gm-Message-State: AOJu0YzNl8mwmzBRa044p66h23eSBdAgaCf+Z2vIYC8Bom9uIFSzS8QW
-        K5rDwiKwfpuXGjDrpT+412Hplw==
-X-Google-Smtp-Source: AGHT+IF/Krv9XoaHXmgTX6hA95PT3mrsyeECELy7hFWygISVfjLi7nO3m0A/foR0u3zSojYLTMDlFA==
-X-Received: by 2002:a19:8c09:0:b0:500:9d6c:913e with SMTP id o9-20020a198c09000000b005009d6c913emr7472258lfd.52.1693907857446;
-        Tue, 05 Sep 2023 02:57:37 -0700 (PDT)
-Received: from localhost ([102.36.222.112])
-        by smtp.gmail.com with ESMTPSA id o3-20020a5d4083000000b0031435731dfasm16913703wrp.35.2023.09.05.02.57.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Sep 2023 02:57:37 -0700 (PDT)
-Date:   Tue, 5 Sep 2023 12:57:34 +0300
-From:   Dan Carpenter <dan.carpenter@linaro.org>
-To:     Ratheesh Kannoth <rkannoth@marvell.com>
-Cc:     netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-        pabeni@redhat.com, ast@kernel.org, daniel@iogearbox.net,
-        hawk@kernel.org, john.fastabend@gmail.com, jiawenwu@trustnetic.com,
-        mengyuanlou@net-swift.com, yang.lee@linux.alibaba.com,
-        error27@gmail.com, linyunsheng@huawei.com,
-        linux-hyperv@vger.kernel.org, kys@microsoft.com,
-        haiyangz@microsoft.com, wei.liu@kernel.org, decui@microsoft.com,
-        longli@microsoft.com, shradhagupta@linux.microsoft.com,
-        linux-hwmon@vger.kernel.org, michael.chan@broadcom.com,
-        richardcochran@gmail.com, jdelvare@suse.com, linux@roeck-us.net,
-        yisen.zhuang@huawei.com, salil.mehta@huawei.com,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, nbd@nbd.name, john@phrozen.org,
-        sean.wang@mediatek.com, Mark-MC.Lee@mediatek.com,
-        lorenzo@kernel.org, matthias.bgg@gmail.com,
-        angelogioacchino.delregno@collabora.com, linux@armlinux.org.uk,
-        linux-rdma@vger.kernel.org, saeedm@nvidia.com, leon@kernel.org,
-        gerhard@engleder-embedded.com, maciej.fijalkowski@intel.com,
-        alexanderduyck@fb.com, wei.fang@nxp.com, shenwei.wang@nxp.com,
-        xiaoning.wang@nxp.com, linux-imx@nxp.com, lgirdwood@gmail.com,
-        broonie@kernel.org, jaswinder.singh@linaro.org,
-        ilias.apalodimas@linaro.org, UNGLinuxDriver@microchip.com,
-        horatiu.vultur@microchip.com, linux-omap@vger.kernel.org,
-        grygorii.strashko@ti.com, simon.horman@corigine.com,
-        vladimir.oltean@nxp.com, aleksander.lobakin@intel.com,
-        linux-stm32@st-md-mailman.stormreply.com,
-        alexandre.torgue@foss.st.com, joabreu@synopsys.com,
-        mcoquelin.stm32@gmail.com, p.zabel@pengutronix.de,
-        thomas.petazzoni@bootlin.com, mw@semihalf.com,
-        sgoutham@marvell.com, gakula@marvell.com, sbhatta@marvell.com,
-        hkelam@marvell.com, xen-devel@lists.xenproject.org,
-        jgross@suse.com, sstabellini@kernel.org,
-        oleksandr_tyshchenko@epam.com, linux-wireless@vger.kernel.org,
-        ryder.lee@mediatek.com, shayne.chen@mediatek.com, kvalo@kernel.org,
-        andrii@kernel.org, martin.lau@linux.dev, song@kernel.org,
-        yonghong.song@linux.dev, kpsingh@kernel.org, sdf@google.com,
-        haoluo@google.com, jolsa@kernel.org
-Subject: Re: [PATCH v1 net] page_pool: Cap queue size to 32k.
-Message-ID: <75bcd331-9a62-486f-a15f-6aebf4d1838b@kadam.mountain>
-References: <20230814060411.2401817-1-rkannoth@marvell.com>
+        with ESMTP id S1354555AbjIEMhN (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Sep 2023 08:37:13 -0400
+Received: from gw.red-soft.ru (red-soft.ru [188.246.186.2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 43CDC1AD;
+        Tue,  5 Sep 2023 05:37:08 -0700 (PDT)
+Received: from localhost.localdomain (unknown [10.81.81.211])
+        (using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by gw.red-soft.ru (Postfix) with ESMTPSA id 276823E1A8B;
+        Tue,  5 Sep 2023 15:37:05 +0300 (MSK)
+Date:   Tue, 5 Sep 2023 15:37:03 +0300
+From:   Artem Chernyshev <artem.chernyshev@red-soft.ru>
+To:     Krzysztof Kozlowski <krzk@kernel.org>
+Cc:     Leon Romanovsky <leon@kernel.org>,
+        Potnuri Bharat Teja <bharat@chelsio.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, lvc-project@linuxtesting.org
+Subject: Re: [PATCH] infiniband: cxgb4: cm: Check skb value
+Message-ID: <ZPcg7/QbN73C/OYK@localhost.localdomain>
+References: <20230904115925.261974-1-artem.chernyshev@red-soft.ru>
+ <fe404996-6568-e2ad-656d-e75523d96637@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230814060411.2401817-1-rkannoth@marvell.com>
+In-Reply-To: <fe404996-6568-e2ad-656d-e75523d96637@kernel.org>
+X-KLMS-Rule-ID: 1
+X-KLMS-Message-Action: clean
+X-KLMS-AntiSpam-Lua-Profiles: 179655 [Sep 05 2023]
+X-KLMS-AntiSpam-Version: 5.9.59.0
+X-KLMS-AntiSpam-Envelope-From: artem.chernyshev@red-soft.ru
+X-KLMS-AntiSpam-Rate: 0
+X-KLMS-AntiSpam-Status: not_detected
+X-KLMS-AntiSpam-Method: none
+X-KLMS-AntiSpam-Auth: dkim=none
+X-KLMS-AntiSpam-Info: LuaCore: 529 529 a773548e495283fecef97c3e587259fde2135fef, {Tracking_from_domain_doesnt_match_to}, d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;127.0.0.199:7.1.2;red-soft.ru:7.1.1, FromAlignment: s
+X-MS-Exchange-Organization-SCL: -1
+X-KLMS-AntiSpam-Interceptor-Info: scan successful
+X-KLMS-AntiPhishing: Clean, bases: 2023/09/05 05:09:00
+X-KLMS-AntiVirus: Kaspersky Security for Linux Mail Server, version 8.0.3.30, bases: 2023/09/05 09:52:00 #21801295
+X-KLMS-AntiVirus-Status: Clean, skipped
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Aug 14, 2023 at 11:34:11AM +0530, Ratheesh Kannoth wrote:
-> Clamp to 32k instead of returning error.
-
-What is the motivation here?  What is the real world impact for the
-users?
-
+On Mon, Sep 04, 2023 at 10:07:26PM +0200, Krzysztof Kozlowski wrote:
+> On 04/09/2023 13:59, Artem Chernyshev wrote:
+> > get_skb() can't allocate skb in case of OOM.
+> > 
+> > Found by Linux Verification Center (linuxtesting.org) with SVACE.
+> > 
+> > Signed-off-by: Artem Chernyshev <artem.chernyshev@red-soft.ru>
+> > ---
+> >  drivers/infiniband/hw/cxgb4/cm.c | 4 ++++
+> >  1 file changed, 4 insertions(+)
+> > 
+> > diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+> > index ced615b5ea09..775da62b38ec 100644
+> > --- a/drivers/infiniband/hw/cxgb4/cm.c
+> > +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> > @@ -1965,6 +1965,10 @@ static int send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
+> >  	int win;
+> >  
+> >  	skb = get_skb(NULL, sizeof(*req), GFP_KERNEL);
+> > +	if (!skb) {
+> > +		pr_err("%s - cannot alloc skb!\n", __func__);
 > 
-> Please find discussion at
-> https://lore.kernel.org/lkml/
-> CY4PR1801MB1911E15D518A77535F6E51E2D308A@CY4PR1801MB1911.
-> namprd18.prod.outlook.com/T/
+> I don't think we print memory allocation failures.
+> 
+> Best regards,
+> Krzysztof
+> 
 
-Please don't break the URL up like this.  I think normally we would just
-write up a normal commit message and use the Link: tag.
+Sure, will fix that in v2
 
-Fixes: ff7d6b27f894 ("page_pool: refurbish version of page_pool code")
-Link: https://lore.kernel.org/lkml/CY4PR1801MB1911E15D518A77535F6E51E2D308A@CY4PR1801MB1911.namprd18.prod.outlook.com/
-Signed-off-by:
-
-> @@ -171,9 +171,10 @@ static int page_pool_init(struct page_pool *pool,
->  	if (pool->p.pool_size)
->  		ring_qsize = pool->p.pool_size;
->  
-> -	/* Sanity limit mem that can be pinned down */
-> +	/* Cap queue size to 32k */
->  	if (ring_qsize > 32768)
-> -		return -E2BIG;
-> +		ring_qsize = 32768;
-> +
->  
->  	/* DMA direction is either DMA_FROM_DEVICE or DMA_BIDIRECTIONAL.
-
-Don't introduce a blank line here.  Checkpatch will complain if you
-have to blank lines in a row.  It won't complain about the patch but it
-will complain if you apply the patch and then re-run checkpatch -f on
-the file.  (I didn't test this but it's wrong either way. :P).
-
-regards,
-dan carpenter
-
+Thanks,
+Artem
