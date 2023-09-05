@@ -2,61 +2,71 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 043E8CA0FF3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20486CA0FFA
 	for <linux-rdma@archiver.kernel.org>; Tue,  5 Sep 2023 16:01:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234598AbjIEQBH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:01:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34596 "EHLO
+        id S232202AbjIEQAy (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:00:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354230AbjIEKMx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Sep 2023 06:12:53 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0638818D;
-        Tue,  5 Sep 2023 03:12:50 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        with ESMTP id S1354525AbjIEMUS (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Sep 2023 08:20:18 -0400
+Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F464B8
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Sep 2023 05:20:14 -0700 (PDT)
+Received: from juju-98d295-prod-launchpad-15.localdomain (buildd-manager.lp.internal [10.131.215.202])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AAA0CB8111D;
-        Tue,  5 Sep 2023 10:12:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13680C433C7;
-        Tue,  5 Sep 2023 10:12:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1693908767;
-        bh=ZjCDQ/N/dcrfzTLkrKNM3dWHoHgfxVCPVZZhdtBTGaM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=tI8+wR+qV4mjYFjLzphBj49wG/chYfuGnasxMlyP3fuqEoPzAymkLd2UqpMWcqqVt
-         PgIuqHQ7xUoqA3qNZbGUAUNUyhgPYLLKjJ4NxJ8bzEd+X76v15aEae+RENql29M+m1
-         oVfim/R9ifkMKdjrqZjQ2NLorNejz5xr9nvRa/hk=
-Date:   Tue, 5 Sep 2023 11:12:44 +0100
-From:   Greg KH <gregkh@linuxfoundation.org>
-To:     Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
-Cc:     jgg@ziepe.ca, leon@kernel.org, benjamin.tissoires@redhat.com,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        yusongping@huawei.com, artem.kuzin@huawei.com
-Subject: Re: [PATCH] RDMA/uverbs: Fix typo of sizeof argument
-Message-ID: <2023090504-tiny-deceased-980d@gregkh>
-References: <20230905101021.1722796-1-konstantin.meskhidze@huawei.com>
+        by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 29DF440663
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Sep 2023 12:20:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
+        s=20210803; t=1693916406;
+        bh=4PRpAOAyVnHbckj7TZ57C34Jz88Pkt6wbbGJ+/P3KXc=;
+        h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
+         Reply-To;
+        b=WAwn6p6NfvVVpFOrjiQZQJbFutekbUukooWuc8Hyqb5apsj0p4u8fdxwboZ1R6QqU
+         8WnPq1pXKntrrs6YLgREQSmRRUyBlxH9IT5eeVyLJuMkLa/ahSoJ0DXEmAKANz/LDJ
+         zfBGcivwLbLeESRzz6ro8G6BzN8Kz9kUbuZvlsAw5lw7RLiaCm6xy0lekjwwvHMzjp
+         DI7cbZG+VMnZyu+FcdEcJ4qnOloriIv414fatvR3qwwrO6ALSgQmxgpT3DyP2YGen/
+         CM2W4el/qxCZ8EhR9UmKM4OXUnLoHlVWydMIICgPeRl6fbBkDF6viuAmeuzAn5Etk1
+         y783BI0RXhShQ==
+Received: from [10.131.215.202] (localhost [127.0.0.1])
+        by juju-98d295-prod-launchpad-15.localdomain (Postfix) with ESMTP id 551F07E6D5
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Sep 2023 12:20:03 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230905101021.1722796-1-konstantin.meskhidze@huawei.com>
+Content-Transfer-Encoding: quoted-printable
+X-Launchpad-Message-Rationale: Requester @linux-rdma
+X-Launchpad-Message-For: linux-rdma
+X-Launchpad-Notification-Type: recipe-build-status
+X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
+X-Launchpad-Build-State: MANUALDEPWAIT
+To:     Linux RDMA <linux-rdma@vger.kernel.org>
+From:   noreply@launchpad.net
+Subject: [recipe build #3599064] of ~linux-rdma rdma-core-daily in xenial: Dependency wait
+Message-Id: <169391640329.2078445.2416918068051291909.launchpad@juju-98d295-prod-launchpad-15>
+Date:   Tue, 05 Sep 2023 12:20:03 -0000
+Reply-To: noreply@launchpad.net
+Sender: noreply@launchpad.net
+X-Generated-By: Launchpad (canonical.com); Revision="203f35b713beed25421591e82c62fdfedf492fe3"; Instance="launchpad-buildd-manager"
+X-Launchpad-Hash: fa5ba476b60d0d671c12bf66584c94ce9735fc2d
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Sep 05, 2023 at 06:10:21PM +0800, Konstantin Meskhidze wrote:
-> Since size of 'hdr' pointer and '*hdr' structure is equal on 64-bit
-> machines issue probably didn't cause any wrong behavior. But anyway,
-> fixing of typo is required.
-> 
-> Fixes: da0f60df7bd5 ("RDMA/uverbs: Prohibit write() calls with too small buffers")
-> Co-developed-by: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+ * State: Dependency wait
+ * Recipe: linux-rdma/rdma-core-daily
+ * Archive: ~linux-rdma/ubuntu/rdma-core-daily
+ * Distroseries: xenial
+ * Duration: 4 minutes
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
+aily/+recipebuild/3599064/+files/buildlog.txt.gz
+ * Upload Log:=20
+ * Builder: https://launchpad.net/builders/lcy02-amd64-071
 
-Please read the documentation for how to use this tag properly (hint,
-you didn't use it properly here...)
+--=20
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
+ild/3599064
+Your team Linux RDMA is the requester of the build.
 
-thanks,
-
-greg k-h
