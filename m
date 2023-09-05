@@ -2,25 +2,25 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23533C83F2C
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Sep 2023 16:01:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27702CA0FFD
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Sep 2023 16:01:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234622AbjIEQBJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:01:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35922 "EHLO
+        id S234643AbjIEQBM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:01:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354286AbjIEKdL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Sep 2023 06:33:11 -0400
+        with ESMTP id S1354221AbjIEKKb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Sep 2023 06:10:31 -0400
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C858E8;
-        Tue,  5 Sep 2023 03:33:06 -0700 (PDT)
-Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.201])
-        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Rg1zs2lvSz6K6K2;
-        Tue,  5 Sep 2023 18:32:57 +0800 (CST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B95E2C2;
+        Tue,  5 Sep 2023 03:10:27 -0700 (PDT)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.207])
+        by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Rg1Nk0Lh7z67Gnx;
+        Tue,  5 Sep 2023 18:05:58 +0800 (CST)
 Received: from mscphis00759.huawei.com (10.123.66.134) by
  lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Tue, 5 Sep 2023 11:33:03 +0100
+ 15.1.2507.31; Tue, 5 Sep 2023 11:10:24 +0100
 From:   Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 To:     <jgg@ziepe.ca>
 CC:     <leon@kernel.org>, <gregkh@linuxfoundation.org>,
@@ -28,14 +28,14 @@ CC:     <leon@kernel.org>, <gregkh@linuxfoundation.org>,
         <linux-kernel@vger.kernel.org>, <yusongping@huawei.com>,
         <artem.kuzin@huawei.com>
 Subject: [PATCH] RDMA/uverbs: Fix typo of sizeof argument
-Date:   Tue, 5 Sep 2023 18:32:58 +0800
-Message-ID: <20230905103258.1738246-1-konstantin.meskhidze@huawei.com>
+Date:   Tue, 5 Sep 2023 18:10:21 +0800
+Message-ID: <20230905101021.1722796-1-konstantin.meskhidze@huawei.com>
 X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
 X-Originating-IP: [10.123.66.134]
-X-ClientProxiedBy: mscpeml500002.china.huawei.com (7.188.26.138) To
+X-ClientProxiedBy: mscpeml100002.china.huawei.com (7.188.26.75) To
  lhrpeml500004.china.huawei.com (7.191.163.9)
 X-CFilter-Loop: Reflected
 Precedence: bulk
@@ -48,7 +48,6 @@ fixing of typo is required.
 
 Fixes: da0f60df7bd5 ("RDMA/uverbs: Prohibit write() calls with too small buffers")
 Co-developed-by: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
-Signed-off-by: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
 Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
 ---
  drivers/infiniband/core/uverbs_main.c | 2 +-
@@ -61,12 +60,12 @@ index 7c9c79c13941..508d6712e14d 100644
 @@ -535,7 +535,7 @@ static ssize_t verify_hdr(struct ib_uverbs_cmd_hdr *hdr,
  	if (hdr->in_words * 4 != count)
  		return -EINVAL;
-
+ 
 -	if (count < method_elm->req_size + sizeof(hdr)) {
 +	if (count < method_elm->req_size + sizeof(*hdr)) {
  		/*
  		 * rdma-core v18 and v19 have a bug where they send DESTROY_CQ
  		 * with a 16 byte write instead of 24. Old kernels didn't
---
+-- 
 2.34.1
 
