@@ -2,74 +2,141 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD0DCA0FF3
-	for <linux-rdma@archiver.kernel.org>; Tue,  5 Sep 2023 16:03:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D3A4CA0FFB
+	for <linux-rdma@archiver.kernel.org>; Tue,  5 Sep 2023 16:03:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234400AbjIEQAz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:00:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52878 "EHLO
+        id S234440AbjIEQA6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:00:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345406AbjIEEHd (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Sep 2023 00:07:33 -0400
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C9CFCCB
-        for <linux-rdma@vger.kernel.org>; Mon,  4 Sep 2023 21:07:29 -0700 (PDT)
-Received: from canpemm500010.china.huawei.com (unknown [172.30.72.54])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4RfsMD6JFqzMl6D;
-        Tue,  5 Sep 2023 12:04:08 +0800 (CST)
-Received: from [10.174.176.93] (10.174.176.93) by
- canpemm500010.china.huawei.com (7.192.105.118) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Tue, 5 Sep 2023 12:07:27 +0800
-Message-ID: <9a9ee4b7-b378-4aeb-6e23-02d2f6dbaa9a@huawei.com>
-Date:   Tue, 5 Sep 2023 12:07:26 +0800
+        with ESMTP id S1354843AbjIEO6f (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 5 Sep 2023 10:58:35 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD1E618C
+        for <linux-rdma@vger.kernel.org>; Tue,  5 Sep 2023 07:58:31 -0700 (PDT)
+Received: from pps.filterd (m0353727.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 385ElaVe009144;
+        Tue, 5 Sep 2023 14:58:28 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=fRMy/8Alh5GmtLn/p+NwaEY+kS5OuoEWOA99xHkFM9A=;
+ b=f6+Vtezs6ERdI+4y95IphHW4g6JaPgTtJi2DAx5+HFvMz5qBcJG+cj+hBZXcXnq/lKU2
+ MCasVQR17prn/p5kcEJoUIVkI8F5aHMT6kwr2LJPh/gEj0BtK/P9gXzf/ahhvlZouMBQ
+ 5u2d4dveITcJyZV9UV1bnFoV9vroLUXBISTG4311r5OX6s/Jb/DimOpP5sQhfTnAeSLy
+ +vO+a3zAEeCL/ADyv+smqvWTcYkVDKPJ8QBjJ/RI0AdgGFIRwGMFdnGc4tcLc8U/AR7y
+ xy//sofSXT8Mow5+6uAeJp65+TOwm8KrBlxoyPaj/JZ56UZyQLToFcfcc5Dhv07TDsVR fQ== 
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3sx6da0919-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 05 Sep 2023 14:58:27 +0000
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+        by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 385EFeVx021433;
+        Tue, 5 Sep 2023 14:58:26 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+        by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3svfrybmek-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 05 Sep 2023 14:58:26 +0000
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+        by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 385EwOGv20447996
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 5 Sep 2023 14:58:24 GMT
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 83A0620043;
+        Tue,  5 Sep 2023 14:58:24 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 666C320040;
+        Tue,  5 Sep 2023 14:58:24 +0000 (GMT)
+Received: from rims.zurich.ibm.com (unknown [9.4.69.66])
+        by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTP;
+        Tue,  5 Sep 2023 14:58:24 +0000 (GMT)
+From:   Bernard Metzler <bmt@zurich.ibm.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     jgg@ziepe.ca, leon@kernel.org, Bernard Metzler <bmt@zurich.ibm.com>
+Subject: [PATCH v2] RDMA/siw: Fix connection failure handling
+Date:   Tue,  5 Sep 2023 16:58:22 +0200
+Message-Id: <20230905145822.446263-1-bmt@zurich.ibm.com>
+X-Mailer: git-send-email 2.38.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.1
-Subject: Re: [PATCH for-rc] RDMA/irdma: Prevent zero-length STAG registration
-To:     Shiraz Saleem <shiraz.saleem@intel.com>, <jgg@nvidia.com>,
-        <leon@kernel.org>
-CC:     <linux-rdma@vger.kernel.org>, <ivan.d.barrera@intel.com>,
-        Christopher Bednarz <christopher.n.bednarz@intel.com>
-References: <20230818144838.1758-1-shiraz.saleem@intel.com>
-From:   "liujian (CE)" <liujian56@huawei.com>
-In-Reply-To: <20230818144838.1758-1-shiraz.saleem@intel.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.174.176.93]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- canpemm500010.china.huawei.com (7.192.105.118)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 1Qb4RWFEXN-lwvAg5kXG3yFaEkmsQ23j
+X-Proofpoint-ORIG-GUID: 1Qb4RWFEXN-lwvAg5kXG3yFaEkmsQ23j
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.267,Aquarius:18.0.957,Hydra:6.0.601,FMLib:17.11.176.26
+ definitions=2023-09-05_10,2023-09-05_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=686 clxscore=1015
+ bulkscore=0 priorityscore=1501 phishscore=0 suspectscore=0 adultscore=0
+ lowpriorityscore=0 mlxscore=0 malwarescore=0 impostorscore=0 spamscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2308100000
+ definitions=main-2309050127
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+In case immediate MPA request processing fails, the newly
+created endpoint unlinks the listening endpoint and is
+ready to be dropped. This special case was not handled
+correctly by the code handling the later TCP socket close,
+causing a NULL dereference crash in siw_cm_work_handler()
+when dereferencing a NULL listener. We now also cancel
+the useless MPA timeout, if immediate MPA request
+processing fails.
 
+This patch furthermore simplifies MPA processing in general:
+Scheduling a useless TCP socket read in sk_data_ready() upcall
+is now surpressed, if the socket is already moved out of
+TCP_ESTABLISHED state.
 
-On 2023/8/18 22:48, Shiraz Saleem wrote:
-> From: Christopher Bednarz <christopher.n.bednarz@intel.com>
-> 
-> Currently irdma allows zero-length STAGs to be programmed in HW during
-> the kernel mode fast register flow. Zero-length MR or STAG registration
-> disable HW memory length checks.
-> 
-> Improve gaps in bounds checking in irdma by preventing zero-length STAG or
-> MR registrations except if the IB_PD_UNSAFE_GLOBAL_RKEY is set.
-> 
-> This addresses the disclosure CVE-2023-25775.
-> 
-> Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
+Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
+Signed-off-by: Bernard Metzler <bmt@zurich.ibm.com>
+---
+ChangeLog v1->v2:
+- Move debug message to now conditional listener drop
+---
+ drivers/infiniband/sw/siw/siw_cm.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-Hello,I would like to consult the CVE. The driver corresponding to the 
-kernel of an earlier version (< 5.14) is i40iw and has similar code 
-logic. Is this CVE also involved?
+diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+index a2605178f4ed..43e776073f49 100644
+--- a/drivers/infiniband/sw/siw/siw_cm.c
++++ b/drivers/infiniband/sw/siw/siw_cm.c
+@@ -976,6 +976,7 @@ static void siw_accept_newconn(struct siw_cep *cep)
+ 			siw_cep_put(cep);
+ 			new_cep->listen_cep = NULL;
+ 			if (rv) {
++				siw_cancel_mpatimer(new_cep);
+ 				siw_cep_set_free(new_cep);
+ 				goto error;
+ 			}
+@@ -1100,9 +1101,12 @@ static void siw_cm_work_handler(struct work_struct *w)
+ 				/*
+ 				 * Socket close before MPA request received.
+ 				 */
+-				siw_dbg_cep(cep, "no mpareq: drop listener\n");
+-				siw_cep_put(cep->listen_cep);
+-				cep->listen_cep = NULL;
++				if (cep->listen_cep) {
++					siw_dbg_cep(cep,
++						"no mpareq: drop listener\n");
++					siw_cep_put(cep->listen_cep);
++					cep->listen_cep = NULL;
++				}
+ 			}
+ 		}
+ 		release_cep = 1;
+@@ -1227,7 +1231,11 @@ static void siw_cm_llp_data_ready(struct sock *sk)
+ 	if (!cep)
+ 		goto out;
+ 
+-	siw_dbg_cep(cep, "state: %d\n", cep->state);
++	siw_dbg_cep(cep, "cep state: %d, socket state %d\n",
++		    cep->state, sk->sk_state);
++
++	if (sk->sk_state != TCP_ESTABLISHED)
++		goto out;
+ 
+ 	switch (cep->state) {
+ 	case SIW_EPSTATE_RDMA_MODE:
+-- 
+2.38.1
 
-> Signed-off-by: Christopher Bednarz <christopher.n.bednarz@intel.com>
-> Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
-> ---
->   drivers/infiniband/hw/irdma/ctrl.c  |  6 ++++++
->   drivers/infiniband/hw/irdma/type.h  |  2 ++
->   drivers/infiniband/hw/irdma/verbs.c | 10 ++++++++--
->   3 files changed, 16 insertions(+), 2 deletions(-)
-> 
-[...]
