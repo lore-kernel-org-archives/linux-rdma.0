@@ -2,121 +2,92 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B88BEB8FD8
-	for <linux-rdma@archiver.kernel.org>; Wed,  6 Sep 2023 13:55:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4856FEC873D
+	for <linux-rdma@archiver.kernel.org>; Thu,  7 Sep 2023 16:30:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241253AbjIFNzu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 6 Sep 2023 09:55:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52018 "EHLO
+        id S238865AbjIGQa7 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 7 Sep 2023 12:30:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239958AbjIFNzu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 6 Sep 2023 09:55:50 -0400
-Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09EFBD7;
-        Wed,  6 Sep 2023 06:55:43 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R221e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046056;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0VrU7-yS_1694008540;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VrU7-yS_1694008540)
-          by smtp.aliyun-inc.com;
-          Wed, 06 Sep 2023 21:55:41 +0800
-From:   "D. Wythe" <alibuda@linux.alibaba.com>
-To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        "D. Wythe" <alibuda@linux.alibaba.com>
-Subject: [RFC net-next 2/2] net/smc: remove locks smc_client_lgr_pending and smc_server_lgr_pending
-Date:   Wed,  6 Sep 2023 21:55:30 +0800
-Message-Id: <1694008530-85087-3-git-send-email-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1694008530-85087-1-git-send-email-alibuda@linux.alibaba.com>
-References: <1694008530-85087-1-git-send-email-alibuda@linux.alibaba.com>
+        with ESMTP id S234794AbjIGQas (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 7 Sep 2023 12:30:48 -0400
+Received: from mail-pg1-x536.google.com (mail-pg1-x536.google.com [IPv6:2607:f8b0:4864:20::536])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85545D151
+        for <linux-rdma@vger.kernel.org>; Thu,  7 Sep 2023 09:29:18 -0700 (PDT)
+Received: by mail-pg1-x536.google.com with SMTP id 41be03b00d2f7-56c2e882416so892685a12.3
+        for <linux-rdma@vger.kernel.org>; Thu, 07 Sep 2023 09:29:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1694104104; x=1694708904; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=f+cQ2MfzLw1WADqz2zgRLT4sBwBSOkrxB3AhO4MOxPo=;
+        b=fSfzX2FaCvrnJACIkRP51FNtJmO5/sqo0LzqHolMZkmmDvQzkpu5qw+uG717jRANlN
+         GEOKNQeCgm2gbk5WRs5IP70YfGz3nnD/ZHQW0Y63rnyj5G3sLb/vDTD+QQF+ZJtE+Hp4
+         BacQy3pZ/3ns0CFpKiiYCn2RrjUk0v+H8cBU6a6NoOGmdhCPpoB1rAwy7lfhoOn5RaIz
+         WVO/L1Ngwut0wTYnNDunxmSt7ITwKppPB2cshIBB5pq4fhNGTGXqme10Mfb5GMJ7xjOI
+         SuIrxcRmbocOv+CeROhgI1LeP8V5nvQFy0/hPmCUnBpFygzCetUi5M5tCOXVZ8UOCSa7
+         bPhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1694104104; x=1694708904;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=f+cQ2MfzLw1WADqz2zgRLT4sBwBSOkrxB3AhO4MOxPo=;
+        b=FVE3e10pKWiT8/vOhT9SN5J9GNua+EqOZxRh2UiptTdIW0F4w2aECAfRYvtV9CE6Ll
+         x/Tg86/DfFGBOr65HMzBNAL4fn6aoXjjJ4KqiNC7pJ2lZcJhgv8S5kLCVvJotDaFYX5a
+         Kw6/TmOYo2MUdA9RzzY6t11WwvWU96rl4X9QdTzjJJ0Yiba912f7SikP9LR4Ub/YkEJo
+         KDVnRCsMp1iT0pBYjZLWCosOJ+NXCg+fVzjQGE39m5d5uREenb3LCYu7yKBSo8rngQCY
+         CNzPymzdf+evcghbrxhOrhM73tzSXvTg52c+OOnmRL2A0EaMqiw2FYNeDm2yS1E254Dr
+         +/QQ==
+X-Gm-Message-State: AOJu0YydHnsStFnyLJe3/9jWdvg67VkfuJ/WcYrgmEJecL2yLmSMeuiT
+        u1+9tRFwmS4uM4iRkzTw4gZHe+PjOfW28YRkBSA=
+X-Google-Smtp-Source: AGHT+IHrBIJuqPG+mbaM+AQrOoCznnafSoTdOsbWiZnoHco2OnVxn+u9eZ14RDvzB35AV4+gpVJ7lA==
+X-Received: by 2002:a05:620a:4511:b0:76c:9391:6922 with SMTP id t17-20020a05620a451100b0076c93916922mr27531022qkp.24.1694103424207;
+        Thu, 07 Sep 2023 09:17:04 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-134-41-202-196.dhcp-dynamic.fibreop.ns.bellaliant.net. [134.41.202.196])
+        by smtp.gmail.com with ESMTPSA id d21-20020a05620a137500b0076ef004f659sm5915009qkl.1.2023.09.07.09.17.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 07 Sep 2023 09:17:03 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+        (envelope-from <jgg@ziepe.ca>)
+        id 1qeHgk-00174a-Vp;
+        Thu, 07 Sep 2023 13:17:02 -0300
+Date:   Thu, 7 Sep 2023 13:17:02 -0300
+From:   Jason Gunthorpe <jgg@ziepe.ca>
+To:     Yi Zhang <yi.zhang@redhat.com>
+Cc:     Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>,
+        Daniel Wagner <dwagner@suse.de>,
+        Leon Romanovsky <leon@kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
+        Damien Le Moal <dlemoal@kernel.org>
+Subject: Re: [PATCH v2] RDMA/cma: prevent rdma id destroy during
+ cma_iw_handler
+Message-ID: <ZPn3fryQDQeckq4k@ziepe.ca>
+References: <3x4kcccwy5s2yhni5t26brhgejj24kxyk7bnlabp5zw2js26eb@kjwyilm5d4wc>
+ <ZIhvfdVOMsN2cXEX@ziepe.ca>
+ <20230613180747.GB12152@unreal>
+ <iclshorg6eyrorloix2bkfsezzbnkwdepschcn5vhk3m2ionxc@oti3l4kvv4ds>
+ <ZIn6ul5jPuxC+uIG@ziepe.ca>
+ <l3gjwsd7hlx5dnl74moxo3rvnbsrejjvur6ykdl3pxiwh52wzp@6hfb4xb2tco3>
+ <g2lh3wh6e6yossw2ktqmxx2rf63m36mumqmx4qbtzvxuygsr6h@gpgftgfigllv>
+ <sqjbjg7cwcpjx6yn7tmitx6ttxlb4pkutgfbhdgxa2hi4hy6wp@ek7z43bwtkso>
+ <3wxdjvmamxdk6s26q4hnxjazuajrp7xynfq7okywc2uzgcdqf4@ydiglvla3k3u>
+ <CAHj4cs_mP7kmnKdm--tEkb_yE0saA7A_BBV21E1RQT8a+J7s0g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHj4cs_mP7kmnKdm--tEkb_yE0saA7A_BBV21E1RQT8a+J7s0g@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: "D. Wythe" <alibuda@linux.alibaba.com>
+On Thu, Sep 07, 2023 at 03:47:03PM +0800, Yi Zhang wrote:
+> Seems I reproduced this issue[3] when I run [1] on the latest
+> linux-block/for-next with kernel config[2].
 
-This patch attempts to remove locks named smc_client_lgr_pending and
-smc_server_lgr_pending, which aim to serialize the creation of link
-group. However, once link group existed already, those locks are
-meaningless, worse still, they make incoming connections have to be
-queued one after the other.
+https://lore.kernel.org/linux-rdma/13441b9b-cc13-f0e0-bd46-f14983dadd49@grimberg.me/
 
-Before attempting to locking at xxx_lgr_pending, trying to invoke
-smc_conn_create() firstly but does not allow it to create link group.
-Once we found we MUST create link group, then we can make lock on it.
-In that way, we can skip meaningless lock.
+So far nobody has come with a solution
 
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- net/smc/smc_clc.h  |  1 +
- net/smc/smc_core.c | 28 ++++++++++++++++++++++++++--
- 2 files changed, 27 insertions(+), 2 deletions(-)
-
-diff --git a/net/smc/smc_clc.h b/net/smc/smc_clc.h
-index c5c8e7d..050484a 100644
---- a/net/smc/smc_clc.h
-+++ b/net/smc/smc_clc.h
-@@ -48,6 +48,7 @@
- #define SMC_CLC_DECL_RELEASEERR	0x03030009  /* release version negotiate failed */
- #define SMC_CLC_DECL_MAXCONNERR	0x0303000a  /* max connections negotiate failed */
- #define SMC_CLC_DECL_MAXLINKERR	0x0303000b  /* max links negotiate failed */
-+#define SMC_CLC_DECL_REQLGR	0x0303000c  /* required create link grou */
- #define SMC_CLC_DECL_MODEUNSUPP	0x03040000  /* smc modes do not match (R or D)*/
- #define SMC_CLC_DECL_RMBE_EC	0x03050000  /* peer has eyecatcher in RMBE    */
- #define SMC_CLC_DECL_OPTUNSUPP	0x03060000  /* fastopen sockopt not supported */
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index bd01dd3..76c82ae 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -1863,8 +1863,7 @@ static bool smcd_lgr_match(struct smc_link_group *lgr,
- 	return lgr->peer_gid == peer_gid && lgr->smcd == smcismdev;
- }
- 
--/* create a new SMC connection (and a new link group if necessary) */
--int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
-+static int __smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini, bool create_lgr)
- {
- 	struct smc_connection *conn = &smc->conn;
- 	struct net *net = sock_net(&smc->sk);
-@@ -1927,6 +1926,8 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
- 
- create:
- 	if (ini->first_contact_local) {
-+		if (!create_lgr)
-+			return SMC_CLC_DECL_REQLGR;
- 		rc = smc_lgr_create(smc, ini);
- 		if (rc)
- 			goto out;
-@@ -1962,6 +1963,29 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
- 	return rc;
- }
- 
-+/* create a new SMC connection (and a new link group if necessary) */
-+int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
-+{
-+	int rc;
-+
-+	/* make no impact on SMCD */
-+	if (ini->is_smcd)
-+		goto locked;
-+
-+	/* try create conn without create lgr first */
-+	rc = __smc_conn_create(smc, ini, /* disallow create lgr */ false);
-+	if (!rc) {
-+		/* not rely on new lgr, unlock lgr pending lock in advance. */
-+		smc_lgr_pending_unlock(ini, ini->mutex);
-+		return 0;
-+	} else if (rc != SMC_CLC_DECL_REQLGR) {
-+		/* that's unexcepted error */
-+		return rc;
-+	}
-+locked:
-+	return __smc_conn_create(smc, ini, /* create lgr if needed */ true);
-+}
-+
- #define SMCD_DMBE_SIZES		6 /* 0 -> 16KB, 1 -> 32KB, .. 6 -> 1MB */
- #define SMCR_RMBE_SIZES		5 /* 0 -> 16KB, 1 -> 32KB, .. 5 -> 512KB */
- 
--- 
-1.8.3.1
-
+Jason
