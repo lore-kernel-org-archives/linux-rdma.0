@@ -2,41 +2,42 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D619EE57CA
-	for <linux-rdma@archiver.kernel.org>; Fri,  8 Sep 2023 06:27:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EDDDEE57CE
+	for <linux-rdma@archiver.kernel.org>; Fri,  8 Sep 2023 06:29:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242097AbjIHG1Z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 8 Sep 2023 02:27:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38640 "EHLO
+        id S232514AbjIHG3f (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 8 Sep 2023 02:29:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242009AbjIHG1U (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 Sep 2023 02:27:20 -0400
-Received: from esa8.hc1455-7.c3s2.iphmx.com (esa8.hc1455-7.c3s2.iphmx.com [139.138.61.253])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F36C1BD8;
-        Thu,  7 Sep 2023 23:27:13 -0700 (PDT)
-X-IronPort-AV: E=McAfee;i="6600,9927,10826"; a="119319382"
+        with ESMTP id S229822AbjIHG3e (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 8 Sep 2023 02:29:34 -0400
+X-Greylist: delayed 101 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 07 Sep 2023 23:28:46 PDT
+Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07EB01FDF;
+        Thu,  7 Sep 2023 23:28:45 -0700 (PDT)
+X-IronPort-AV: E=McAfee;i="6600,9927,10826"; a="131278177"
 X-IronPort-AV: E=Sophos;i="6.02,236,1688396400"; 
-   d="scan'208";a="119319382"
-Received: from unknown (HELO oym-r1.gw.nic.fujitsu.com) ([210.162.30.89])
-  by esa8.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2023 15:27:10 +0900
-Received: from oym-m3.gw.nic.fujitsu.com (oym-nat-oym-m3.gw.nic.fujitsu.com [192.168.87.60])
-        by oym-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id A26FFD29E1;
-        Fri,  8 Sep 2023 15:27:08 +0900 (JST)
+   d="scan'208";a="131278177"
+Received: from unknown (HELO yto-r1.gw.nic.fujitsu.com) ([218.44.52.217])
+  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2023 15:27:01 +0900
+Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
+        by yto-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 8A39CDB3C7;
+        Fri,  8 Sep 2023 15:26:58 +0900 (JST)
 Received: from m3002.s.css.fujitsu.com (msm3.b.css.fujitsu.com [10.128.233.104])
-        by oym-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id DFAEBD9A75;
-        Fri,  8 Sep 2023 15:27:07 +0900 (JST)
+        by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id CE8A9D67AC;
+        Fri,  8 Sep 2023 15:26:57 +0900 (JST)
 Received: from localhost.localdomain (unknown [10.118.237.107])
-        by m3002.s.css.fujitsu.com (Postfix) with ESMTP id 9B53E200537C;
-        Fri,  8 Sep 2023 15:27:07 +0900 (JST)
+        by m3002.s.css.fujitsu.com (Postfix) with ESMTP id 9B9B82005B08;
+        Fri,  8 Sep 2023 15:26:57 +0900 (JST)
 From:   Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
 To:     linux-rdma@vger.kernel.org, leon@kernel.org, jgg@ziepe.ca,
         zyjzyj2000@gmail.com
 Cc:     linux-kernel@vger.kernel.org, rpearsonhpe@gmail.com,
         yangx.jy@fujitsu.com, lizhijian@fujitsu.com, y-goto@fujitsu.com,
         Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-Subject: [PATCH for-next v6 7/7] RDMA/rxe: Add support for the traditional Atomic operations with ODP
-Date:   Fri,  8 Sep 2023 15:26:48 +0900
-Message-Id: <908514dfa6bbeae72d36481d893674b254ee416d.1694153251.git.matsuda-daisuke@fujitsu.com>
+Subject: [PATCH for-next v6 1/7] RDMA/rxe: Always defer tasks on responder and completer to workqueue
+Date:   Fri,  8 Sep 2023 15:26:42 +0900
+Message-Id: <7699a90bc4af10c33c0a46ef6330ed4bb7e7ace6.1694153251.git.matsuda-daisuke@fujitsu.com>
 X-Mailer: git-send-email 2.39.1
 In-Reply-To: <cover.1694153251.git.matsuda-daisuke@fujitsu.com>
 References: <cover.1694153251.git.matsuda-daisuke@fujitsu.com>
@@ -47,132 +48,104 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Enable 'fetch and add' and 'compare and swap' operations to be used with
-ODP. This is comprised of the following steps:
- 1. Verify that the page is present with write permission.
- 2. If OK, execute the operation and exit.
- 3. If not, then trigger page fault to map the page.
- 4. Update the entry in the MR xarray.
- 5. Execute the operation.
+Both responder and completer need to sleep to execute page-fault when used
+with ODP. It can happen when they are going to access user MRs, so tasks
+must be executed in process context for such cases.
 
-umem_mutex is used to ensure that the target page is not invalidated before
-data access completes. It also protects the lists in umem_odp and the MR
-xarray.
+Additionally, current implementation seldom defers tasks to workqueue, but
+instead defers to a softirq context running do_task(). It is called from
+rxe_resp_queue_pkt() and rxe_comp_queue_pkt() in SOFTIRQ_NET_RX context and
+can last until maximum RXE_MAX_ITERATIONS (=1024) loops are executed. The
+problem is the that task execuion appears to be anonymous loads in the
+system and that the loop can throttle other softirqs on the same CPU.
 
+This patch makes responder and completer codes run in process context for
+ODP and the problem described above.
+
+Reviewed-by: Bob Pearson <rpearsonhpe@gmail.com>
 Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
 ---
- drivers/infiniband/sw/rxe/rxe.c      |  1 +
- drivers/infiniband/sw/rxe/rxe_loc.h  |  9 ++++++
- drivers/infiniband/sw/rxe/rxe_odp.c  | 43 ++++++++++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_resp.c |  5 +++-
- 4 files changed, 57 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_comp.c        | 12 +-----------
+ drivers/infiniband/sw/rxe/rxe_hw_counters.c |  1 -
+ drivers/infiniband/sw/rxe/rxe_hw_counters.h |  1 -
+ drivers/infiniband/sw/rxe/rxe_resp.c        | 13 +------------
+ 4 files changed, 2 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index 207a022156f0..abd3267c2873 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -88,6 +88,7 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
- 		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_RECV;
- 		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_WRITE;
- 		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_READ;
-+		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_ATOMIC;
- 		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_SRQ_RECV;
- 	}
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index eeaeff8a1398..0bae9044f362 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -194,6 +194,9 @@ int rxe_odp_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length,
- 			 u64 iova, int access_flags, struct rxe_mr *mr);
- int rxe_odp_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
- 		    enum rxe_mr_copy_dir dir);
-+int rxe_odp_mr_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
-+			 u64 compare, u64 swap_add, u64 *orig_val);
-+
- #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- static inline int
- rxe_odp_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length, u64 iova,
-@@ -207,6 +210,12 @@ rxe_odp_mr_copy(struct rxe_mr *mr, u64 iova, void *addr,
+diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
+index d0bdc2d8adc8..bb016a43330d 100644
+--- a/drivers/infiniband/sw/rxe/rxe_comp.c
++++ b/drivers/infiniband/sw/rxe/rxe_comp.c
+@@ -129,18 +129,8 @@ void retransmit_timer(struct timer_list *t)
+ 
+ void rxe_comp_queue_pkt(struct rxe_qp *qp, struct sk_buff *skb)
  {
- 	return -EOPNOTSUPP;
+-	int must_sched;
+-
+ 	skb_queue_tail(&qp->resp_pkts, skb);
+-
+-	must_sched = skb_queue_len(&qp->resp_pkts) > 1;
+-	if (must_sched != 0)
+-		rxe_counter_inc(SKB_TO_PKT(skb)->rxe, RXE_CNT_COMPLETER_SCHED);
+-
+-	if (must_sched)
+-		rxe_sched_task(&qp->comp.task);
+-	else
+-		rxe_run_task(&qp->comp.task);
++	rxe_sched_task(&qp->comp.task);
  }
-+static inline int
-+rxe_odp_mr_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
-+		     u64 compare, u64 swap_add, u64 *orig_val)
-+{
-+	return RESPST_ERR_UNSUPPORTED_OPCODE;
-+}
  
- #endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
-index da1c0753db93..289c60cbda12 100644
---- a/drivers/infiniband/sw/rxe/rxe_odp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_odp.c
-@@ -268,3 +268,46 @@ int rxe_odp_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
- 
- 	return err;
- }
-+
-+int rxe_odp_mr_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
-+			 u64 compare, u64 swap_add, u64 *orig_val)
-+{
-+	int err;
-+	int retry = 0;
-+	struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
-+
-+	mutex_lock(&umem_odp->umem_mutex);
-+
-+	/* Atomic operations manipulate a single char. */
-+	if (rxe_odp_check_pages(mr, iova, sizeof(char), 0))
-+		goto need_fault;
-+
-+	err = rxe_mr_do_atomic_op(mr, iova, opcode, compare,
-+				  swap_add, orig_val);
-+
-+	mutex_unlock(&umem_odp->umem_mutex);
-+
-+	return err;
-+
-+need_fault:
-+	/* allow max 3 tries for pagefault */
-+	do {
-+		mutex_unlock(&umem_odp->umem_mutex);
-+
-+		if (retry > 2)
-+			return -EFAULT;
-+
-+		/* umem_mutex is locked on success */
-+		err = rxe_odp_do_pagefault_and_lock(mr, iova, sizeof(char), 0);
-+		if (err < 0)
-+			return err;
-+		retry++;
-+	} while (rxe_odp_check_pages(mr, iova, sizeof(char), 0));
-+
-+	err = rxe_mr_do_atomic_op(mr, iova, opcode, compare,
-+				  swap_add, orig_val);
-+
-+	mutex_unlock(&umem_odp->umem_mutex);
-+
-+	return err;
-+}
+ static inline enum comp_state get_wqe(struct rxe_qp *qp,
+diff --git a/drivers/infiniband/sw/rxe/rxe_hw_counters.c b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
+index a012522b577a..dc23cf3a6967 100644
+--- a/drivers/infiniband/sw/rxe/rxe_hw_counters.c
++++ b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
+@@ -14,7 +14,6 @@ static const struct rdma_stat_desc rxe_counter_descs[] = {
+ 	[RXE_CNT_RCV_RNR].name             =  "rcvd_rnr_err",
+ 	[RXE_CNT_SND_RNR].name             =  "send_rnr_err",
+ 	[RXE_CNT_RCV_SEQ_ERR].name         =  "rcvd_seq_err",
+-	[RXE_CNT_COMPLETER_SCHED].name     =  "ack_deferred",
+ 	[RXE_CNT_RETRY_EXCEEDED].name      =  "retry_exceeded_err",
+ 	[RXE_CNT_RNR_RETRY_EXCEEDED].name  =  "retry_rnr_exceeded_err",
+ 	[RXE_CNT_COMP_RETRY].name          =  "completer_retry_err",
+diff --git a/drivers/infiniband/sw/rxe/rxe_hw_counters.h b/drivers/infiniband/sw/rxe/rxe_hw_counters.h
+index 71f4d4fa9dc8..303da0e3134a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_hw_counters.h
++++ b/drivers/infiniband/sw/rxe/rxe_hw_counters.h
+@@ -18,7 +18,6 @@ enum rxe_counters {
+ 	RXE_CNT_RCV_RNR,
+ 	RXE_CNT_SND_RNR,
+ 	RXE_CNT_RCV_SEQ_ERR,
+-	RXE_CNT_COMPLETER_SCHED,
+ 	RXE_CNT_RETRY_EXCEEDED,
+ 	RXE_CNT_RNR_RETRY_EXCEEDED,
+ 	RXE_CNT_COMP_RETRY,
 diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 9159f1bdfc6f..af3e669679a0 100644
+index da470a925efc..969e057bbfd1 100644
 --- a/drivers/infiniband/sw/rxe/rxe_resp.c
 +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -693,7 +693,10 @@ static enum resp_states atomic_reply(struct rxe_qp *qp,
- 		u64 iova = qp->resp.va + qp->resp.offset;
+@@ -46,21 +46,10 @@ static char *resp_state_name[] = {
+ 	[RESPST_EXIT]				= "EXIT",
+ };
  
- 		if (mr->umem->is_odp)
--			err = RESPST_ERR_UNSUPPORTED_OPCODE;
-+			err = rxe_odp_mr_atomic_op(mr, iova, pkt->opcode,
-+						   atmeth_comp(pkt),
-+						   atmeth_swap_add(pkt),
-+						   &res->atomic.orig_val);
- 		else
- 			err = rxe_mr_do_atomic_op(mr, iova, pkt->opcode,
- 						  atmeth_comp(pkt),
+-/* rxe_recv calls here to add a request packet to the input queue */
+ void rxe_resp_queue_pkt(struct rxe_qp *qp, struct sk_buff *skb)
+ {
+-	int must_sched;
+-	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
+-
+ 	skb_queue_tail(&qp->req_pkts, skb);
+-
+-	must_sched = (pkt->opcode == IB_OPCODE_RC_RDMA_READ_REQUEST) ||
+-			(skb_queue_len(&qp->req_pkts) > 1);
+-
+-	if (must_sched)
+-		rxe_sched_task(&qp->resp.task);
+-	else
+-		rxe_run_task(&qp->resp.task);
++	rxe_sched_task(&qp->resp.task);
+ }
+ 
+ static inline enum resp_states get_req(struct rxe_qp *qp,
 -- 
 2.39.1
 
