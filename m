@@ -2,168 +2,89 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12A97EE49A4
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 Sep 2023 01:53:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CA95CA0EC8
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 Sep 2023 22:09:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231847AbjIKBxM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 10 Sep 2023 21:53:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57708 "EHLO
+        id S1357846AbjIKWGd (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:06:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229522AbjIKBxL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 10 Sep 2023 21:53:11 -0400
-Received: from out-222.mta1.migadu.com (out-222.mta1.migadu.com [95.215.58.222])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6605A123
-        for <linux-rdma@vger.kernel.org>; Sun, 10 Sep 2023 18:53:05 -0700 (PDT)
-Message-ID: <7ebe94a5-494d-8d90-f76b-66d762ed1812@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1694397183;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=YHlLcHij1iKROSAf7YrcI+yiR9JTc+9U7/E0Kubf5cM=;
-        b=SB2oGOHsbIKWg1JZxDytdvEwQe1n0VqTR7i6dpYqTipZQQaPWE+HLrTPovR3bR7mzz1Y8J
-        evoKJbfL8cU7VYvAoBdvEE8FY7KlMnTuEd2XqNfZYkKmJtuCao1s5ZsAzN3t1sjy35IO+W
-        sLCpCh5wscbi6Jdi4K322G0Hl6FKKmg=
-Date:   Mon, 11 Sep 2023 09:52:54 +0800
+        with ESMTP id S237313AbjIKMcj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Sep 2023 08:32:39 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F7251B9;
+        Mon, 11 Sep 2023 05:32:35 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CCC9C433C8;
+        Mon, 11 Sep 2023 12:32:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1694435555;
+        bh=12rjUtL5HEALdRFSuOzsv77FTRX5QNcc0RqwVBBnWoQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=O0oZM60k7f/1FvtAP/Ch5Zd8Hfm3Xgwn+THG3BoogI5AgzXnPyRefUfmSWU09ik8A
+         TjWeOmQtJUaGvclbftnB0myTWnZOfU4E0v/geoSc5dHl+qjJck3yp82c1VF6z+eMcg
+         IMUaPBuwBfLv+wB0L71t5HU0xuMqIhkklhWrn+vaqw0+d1DcX8H/Npal9P+gHu51PB
+         74EpqWF55XGa7jtfWunCE0I/aQK5qa4VV2KdOYsxbm5Vvgh5GQdHnDxq3Crh5zP5xa
+         bJKIeSBoyJoRiwSVgu7JwcWtgi3+UtN2eVz53UJHonDrH+z3LONWVk50xDwz8dwR/D
+         fo6CFpLC5Ks3g==
+Date:   Mon, 11 Sep 2023 15:32:31 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     sharmaajay@linuxonhyperv.com
+Cc:     Long Li <longli@microsoft.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Dexuan Cui <decui@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Ajay Sharma <sharmaajay@microsoft.com>
+Subject: Re: [Patch v5 0/5] RDMA/mana_ib
+Message-ID: <20230911123231.GB19469@unreal>
+References: <1694105559-9465-1-git-send-email-sharmaajay@linuxonhyperv.com>
 MIME-Version: 1.0
-Subject: Re: [PATCH v2] RDMA/siw: Fix connection failure handling
-Content-Language: en-US
-To:     Bernard Metzler <BMT@zurich.ibm.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc:     "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>
-References: <20230905145822.446263-1-bmt@zurich.ibm.com>
- <332d5cd8-c0ab-3657-513d-0d385fc4bdca@linux.dev>
- <SN7PR15MB57556369B1A52ACA759A9D9D99EDA@SN7PR15MB5755.namprd15.prod.outlook.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Guoqing Jiang <guoqing.jiang@linux.dev>
-In-Reply-To: <SN7PR15MB57556369B1A52ACA759A9D9D99EDA@SN7PR15MB5755.namprd15.prod.outlook.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1694105559-9465-1-git-send-email-sharmaajay@linuxonhyperv.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On Thu, Sep 07, 2023 at 09:52:34AM -0700, sharmaajay@linuxonhyperv.com wrote:
+> From: Ajay Sharma <sharmaajay@microsoft.com>
+> 
+> Change from v4:
+> Send qp fatal error event to the context that
+> created the qp. Add lookup table for qp.
+> 
+> Ajay Sharma (5):
+>   RDMA/mana_ib : Rename all mana_ib_dev type variables to mib_dev
+>   RDMA/mana_ib : Register Mana IB  device with Management SW
+>   RDMA/mana_ib : Create adapter and Add error eq
+>   RDMA/mana_ib : Query adapter capabilities
+>   RDMA/mana_ib : Send event to qp
 
-On 9/8/23 18:55, Bernard Metzler wrote:
->> -----Original Message-----
->> From: Guoqing Jiang <guoqing.jiang@linux.dev>
->> Sent: Friday, 8 September 2023 03:35
->> To: Bernard Metzler <BMT@zurich.ibm.com>; linux-rdma@vger.kernel.org
->> Cc: jgg@ziepe.ca; leon@kernel.org
->> Subject: [EXTERNAL] Re: [PATCH v2] RDMA/siw: Fix connection failure
->> handling
->>
->> Hi,
->>
->> On 9/5/23 22:58, Bernard Metzler wrote:
->>> In case immediate MPA request processing fails, the newly
->>> created endpoint unlinks the listening endpoint and is
->>> ready to be dropped. This special case was not handled
->>> correctly by the code handling the later TCP socket close,
->>> causing a NULL dereference crash in siw_cm_work_handler()
->>> when dereferencing a NULL listener. We now also cancel
->>> the useless MPA timeout, if immediate MPA request
->>> processing fails.
->>>
->>> This patch furthermore simplifies MPA processing in general:
->>> Scheduling a useless TCP socket read in sk_data_ready() upcall
->>> is now surpressed, if the socket is already moved out of
->>> TCP_ESTABLISHED state.
->>>
->>> Fixes: 6c52fdc244b5 ("rdma/siw: connection management")
->>> Signed-off-by: Bernard Metzler<bmt@zurich.ibm.com>
->>> ---
->>> ChangeLog v1->v2:
->>> - Move debug message to now conditional listener drop
->>> ---
->>>    drivers/infiniband/sw/siw/siw_cm.c | 16 ++++++++++++----
->>>    1 file changed, 12 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/sw/siw/siw_cm.c
->> b/drivers/infiniband/sw/siw/siw_cm.c
->>> index a2605178f4ed..43e776073f49 100644
->>> --- a/drivers/infiniband/sw/siw/siw_cm.c
->>> +++ b/drivers/infiniband/sw/siw/siw_cm.c
->>> @@ -976,6 +976,7 @@ static void siw_accept_newconn(struct siw_cep *cep)
->>>    			siw_cep_put(cep);
->>>    			new_cep->listen_cep = NULL;
->>>    			if (rv) {
->>> +				siw_cancel_mpatimer(new_cep);
->> One question, why siw_cm_work_handler set cep->mpa_timer to NULL instead
->> of call
->> siw_cancel_mpatimer like above? Could it be memory leak issue for
->> cep->mpa_timer?
-> Thanks for reviewing.
->
-> Above in the proposed patch, we cancel a pending
-> MPA timer.
->
-> You are referring to siw_cm.c:1115
->
->          case SIW_CM_WORK_MPATIMEOUT:
->                  cep->mpa_timer = NULL;
->
-> We explicitly set it NULL here since we are handling
-> the timeout, so the MPA timer has fired and we
-> cannot cancel it anymore. At the end of
-> siw_cm_work_handler(), any work, including the MPA
-> timeout, gets recycled to the cep's list of free work
-> items via siw_put_work(). This list is recycled only at
-> the end of the cep's lifetime.
+I didn't look very deep into the series and has three very initial comments.
+1. Please do git log drivers/infiniband/hw/mana/ and use same format for
+commit messages.
+2. Don't invent your own index-to-qp query mechanism in last patch and use xarray.
+3. Once you decided to export mana_gd_register_device, it hinted me that
+it is time to move to auxbus infrastructure.
 
-Got it, and thanks for detailed explanation!
+Thanks
 
->> Let's say mpa_timer is set to NULL before  call siw_cancel_mpatimer.
->>
->>>    				siw_cep_set_free(new_cep);
->>>    				goto error;
->>>    			}
->>> @@ -1100,9 +1101,12 @@ static void siw_cm_work_handler(struct work_struct
->> *w)
->>>    				/*
->>>    				 * Socket close before MPA request received.
->>>    				 */
->>> -				siw_dbg_cep(cep, "no mpareq: drop listener\n");
->>> -				siw_cep_put(cep->listen_cep);
->>> -				cep->listen_cep = NULL;
->>> +				if (cep->listen_cep) {
->>> +					siw_dbg_cep(cep,
->>> +						"no mpareq: drop listener\n");
->>> +					siw_cep_put(cep->listen_cep);
->>> +					cep->listen_cep = NULL;
->>> +				}
->>>    			}
->>>    		}
->>>    		release_cep = 1;
->>> @@ -1227,7 +1231,11 @@ static void siw_cm_llp_data_ready(struct sock *sk)
->>>    	if (!cep)
->>>    		goto out;
->>>
->>> -	siw_dbg_cep(cep, "state: %d\n", cep->state);
->>> +	siw_dbg_cep(cep, "cep state: %d, socket state %d\n",
->>> +		    cep->state, sk->sk_state);
->>> +
->>> +	if (sk->sk_state != TCP_ESTABLISHED)
->>> +		goto out;
->>>
->> Maybe split above to another patch makes more sense, just my $0.02.
->>
-> I preferred to have it in one patch, since it was all triggered
-> by your patch b056327bee09
-> 'RDMA/siw: Balance the reference of cep->kref in the error path'
->
-> Alarmed by that, I re-tested many error cases including a failing
-> MPA request processing, which triggered this NULL bug. It also
-> showed me this useless extra read event processing when the TCP
-> socket is closing while the endpoint is still in MPA handshake mode.
-
-Good to know the background :).
-
-> But you are right, it is not necessarily related. I can split it.
-
-With or without the split, Acked-by: Guoqing Jiang <guoqing.jiang@linux.dev>
-
-Thanks,
-Guoqing
+> 
+>  drivers/infiniband/hw/mana/cq.c               |  12 +-
+>  drivers/infiniband/hw/mana/device.c           |  81 +++--
+>  drivers/infiniband/hw/mana/main.c             | 288 +++++++++++++-----
+>  drivers/infiniband/hw/mana/mana_ib.h          | 102 ++++++-
+>  drivers/infiniband/hw/mana/mr.c               |  42 ++-
+>  drivers/infiniband/hw/mana/qp.c               |  86 +++---
+>  drivers/infiniband/hw/mana/wq.c               |  21 +-
+>  .../net/ethernet/microsoft/mana/gdma_main.c   | 152 +++++----
+>  drivers/net/ethernet/microsoft/mana/mana_en.c |   3 +
+>  include/net/mana/gdma.h                       |  16 +-
+>  10 files changed, 545 insertions(+), 258 deletions(-)
+> 
+> -- 
+> 2.25.1
+> 
