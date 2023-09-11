@@ -2,65 +2,78 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFDBCCA0ED7
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 Sep 2023 22:09:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44B76CA0EDC
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 Sep 2023 22:09:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357891AbjIKWGs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:06:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42144 "EHLO
+        id S1357908AbjIKWGw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:06:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236699AbjIKLOs (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Sep 2023 07:14:48 -0400
+        with ESMTP id S236191AbjIKJzJ (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Sep 2023 05:55:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16C8ECF0;
-        Mon, 11 Sep 2023 04:14:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38324C433C8;
-        Mon, 11 Sep 2023 11:14:43 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54304E67;
+        Mon, 11 Sep 2023 02:55:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86CA4C433C8;
+        Mon, 11 Sep 2023 09:55:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694430883;
-        bh=/jDhCctJTTpe+yJp1NP5C7CQXkmhOYjw0kp2qq1SFo4=;
-        h=From:To:In-Reply-To:References:Subject:Date:From;
-        b=mIJ7JuzOEAJBzg9U6TTsgG7GG40rJS1CGg+1I9F2E4dbhM7unP+Bpy61mn14B1LeF
-         CsR1WWEaQzKt5MFWPra0wqSQf5KHsM6DNAs5xBDRT937x3EkTwlq10PrgCCC4Z4vHX
-         jImRmCIVhcoPZlNGVVdjPnW6pp9uF2WuGhBiNH2MHnv6AIFYLM+4w2okQeWpxolcTn
-         ou3JfbeyXNcqMDpoNPUoZ4igyMqv8nvALDrJe0mJoyjxSHKgVrbJinnz9nezwGCn7l
-         9XWUsnK0M5PGTbkRgAOVzZQMOkZQ6zgD80o0VxH7uGGr+ClJKqTk46cm311sjFeKy1
-         0MqsPMSMxQ/wA==
+        s=k20201202; t=1694426104;
+        bh=LMmzPOoFJ8kcCN6uCTxnOV2KqDObEG8LdXnHzdDdvJ4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=YaSJbLc99njLcSvj9Fjf3gw6T4xhbDF/wg4lu1W8XfGpa8ZJLOHlK/QlNZWZHlApO
+         XFmiKcWVwnUpqLeAsh3CBMrR02JuLRgsbwX8Rp67FkbWS9D1F6bfhPX/7uVJA44Ez8
+         hwNB9v77NEVPtxRN3RXZ5hOiTBvzlse5SPCFBql6QmGmkdEo0MS27oR5iHqQO+n+TW
+         +oXkXWwxgnKmLtwGACCoXXHfWMipVs1ry4iyqbP863VCLA2+6FXRZQhWhrTr7ymwpX
+         vzspl4kaUOznqRIFDpvUVtvi0xli3YarEv/0f3S2JViErlwr4DUdbU5yaJBytcVs6z
+         46HQJ/hBK5XaA==
+Date:   Mon, 11 Sep 2023 12:55:00 +0300
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Selvin Xavier <selvin.xavier@broadcom.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-In-Reply-To: <20230823092912.122674-1-krzysztof.kozlowski@linaro.org>
-References: <20230823092912.122674-1-krzysztof.kozlowski@linaro.org>
-Subject: Re: [PATCH] IB: use capital "OR" for multiple licenses in SPDX
-Message-Id: <169443088009.186307.7609206850299994174.b4-ty@kernel.org>
-Date:   Mon, 11 Sep 2023 14:14:40 +0300
+To:     Rohit Chavan <roheetchavan@gmail.com>
+Cc:     Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] RDMA/core: Fix repeated words in comments
+Message-ID: <20230911095500.GA19469@unreal>
+References: <20230822174857.9003-1-roheetchavan@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.12-dev-a055d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230822174857.9003-1-roheetchavan@gmail.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-On Wed, 23 Aug 2023 11:29:12 +0200, Krzysztof Kozlowski wrote:
-> Documentation/process/license-rules.rst and checkpatch expect the SPDX
-> identifier syntax for multiple licenses to use capital "OR".  Correct it
-> to keep consistent format and avoid copy-paste issues.
+On Tue, Aug 22, 2023 at 11:18:57PM +0530, Rohit Chavan wrote:
+> Corrected the repeated words in the documentation for
+> rdma_replace_ah_attr and ah_attribute.
 > 
+> Signed-off-by: Rohit Chavan <roheetchavan@gmail.com>
+> ---
+>  drivers/infiniband/core/verbs.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index b99b3cc283b6..0c5b24ce3966 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -366,7 +366,7 @@ void rdma_copy_ah_attr(struct rdma_ah_attr *dest,
+>  EXPORT_SYMBOL(rdma_copy_ah_attr);
+> 
+>  /**
+> - * rdma_replace_ah_attr - Replace valid ah_attr with new one.
+> + * rdma_replace_ah_attr - Replace valid ah_attr with new one.
 
-Applied, thanks!
+<...>
 
-[1/1] IB: use capital "OR" for multiple licenses in SPDX
-      https://git.kernel.org/rdma/rdma/c/3ec648c631d27a
+> - * ah_attribute must have valid port_num, sgid_index.
+> + * ah_attribute must have valid port_num, sgid_index.
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+What does this patch fix/change?
+
+Thanks
+
+>   */
+>  static int ib_resolve_unicast_gid_dmac(struct ib_device *device,
+>  				       struct rdma_ah_attr *ah_attr)
+> --
+> 2.30.2
+> 
