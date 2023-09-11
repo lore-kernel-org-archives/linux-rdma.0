@@ -2,78 +2,62 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44B76CA0EDC
-	for <linux-rdma@archiver.kernel.org>; Mon, 11 Sep 2023 22:09:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B29FCA0EE2
+	for <linux-rdma@archiver.kernel.org>; Mon, 11 Sep 2023 22:09:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357908AbjIKWGw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:06:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59048 "EHLO
+        id S1357913AbjIKWGx (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:06:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236191AbjIKJzJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Sep 2023 05:55:09 -0400
+        with ESMTP id S237243AbjIKMSj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Sep 2023 08:18:39 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54304E67;
-        Mon, 11 Sep 2023 02:55:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86CA4C433C8;
-        Mon, 11 Sep 2023 09:55:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B330C125;
+        Mon, 11 Sep 2023 05:18:35 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA78FC433C7;
+        Mon, 11 Sep 2023 12:18:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694426104;
-        bh=LMmzPOoFJ8kcCN6uCTxnOV2KqDObEG8LdXnHzdDdvJ4=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=YaSJbLc99njLcSvj9Fjf3gw6T4xhbDF/wg4lu1W8XfGpa8ZJLOHlK/QlNZWZHlApO
-         XFmiKcWVwnUpqLeAsh3CBMrR02JuLRgsbwX8Rp67FkbWS9D1F6bfhPX/7uVJA44Ez8
-         hwNB9v77NEVPtxRN3RXZ5hOiTBvzlse5SPCFBql6QmGmkdEo0MS27oR5iHqQO+n+TW
-         +oXkXWwxgnKmLtwGACCoXXHfWMipVs1ry4iyqbP863VCLA2+6FXRZQhWhrTr7ymwpX
-         vzspl4kaUOznqRIFDpvUVtvi0xli3YarEv/0f3S2JViErlwr4DUdbU5yaJBytcVs6z
-         46HQJ/hBK5XaA==
-Date:   Mon, 11 Sep 2023 12:55:00 +0300
+        s=k20201202; t=1694434715;
+        bh=Uy5U8uurwFCdmj3LsyWrnSusEsLgxmXe5vcJ0qBvJ/8=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=Mu3komRZtrpxQFRHHwe6A7HOYZJNwnlYnnEN2e43DkxQSHVTfNTCGTHf3wtSau1Tz
+         Hb5NvlqbCN/YDloIR9ANoUpoBsoIvaKIWC/l2BSiypsS54B43WD11UAZ3ae6y18g7V
+         M6nRyZnjRHk8nJLmWpckaEtT6Dd9vcPoLbPfpNlDibDGPQSEEJjq+KfaoUmtdCMSC4
+         2TaRV5EGwabjI8xLOp67pWVlspvJLlVBGcJL3+FTdszYZQM8kMQL8fVaHTCp+YZu4K
+         XFoi+2SAXs3Xk4q6Zj1B4Neh/ix3xYQsKxtobWsp/0s+0eeBehx/SiStb09rHkXSGF
+         ZOZjCOL/syrJQ==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Rohit Chavan <roheetchavan@gmail.com>
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] RDMA/core: Fix repeated words in comments
-Message-ID: <20230911095500.GA19469@unreal>
-References: <20230822174857.9003-1-roheetchavan@gmail.com>
+To:     jgg@ziepe.ca,
+        Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+Cc:     gregkh@linuxfoundation.org, benjamin.tissoires@redhat.com,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        yusongping@huawei.com, artem.kuzin@huawei.com
+In-Reply-To: <20230905103258.1738246-1-konstantin.meskhidze@huawei.com>
+References: <20230905103258.1738246-1-konstantin.meskhidze@huawei.com>
+Subject: Re: [PATCH] RDMA/uverbs: Fix typo of sizeof argument
+Message-Id: <169443471215.409943.2562123584922962009.b4-ty@kernel.org>
+Date:   Mon, 11 Sep 2023 15:18:32 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230822174857.9003-1-roheetchavan@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.12-dev-a055d
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Aug 22, 2023 at 11:18:57PM +0530, Rohit Chavan wrote:
-> Corrected the repeated words in the documentation for
-> rdma_replace_ah_attr and ah_attribute.
+
+On Tue, 05 Sep 2023 18:32:58 +0800, Konstantin Meskhidze wrote:
+> Since size of 'hdr' pointer and '*hdr' structure is equal on 64-bit
+> machines issue probably didn't cause any wrong behavior. But anyway,
+> fixing of typo is required.
 > 
-> Signed-off-by: Rohit Chavan <roheetchavan@gmail.com>
-> ---
->  drivers/infiniband/core/verbs.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index b99b3cc283b6..0c5b24ce3966 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -366,7 +366,7 @@ void rdma_copy_ah_attr(struct rdma_ah_attr *dest,
->  EXPORT_SYMBOL(rdma_copy_ah_attr);
-> 
->  /**
-> - * rdma_replace_ah_attr - Replace valid ah_attr with new one.
-> + * rdma_replace_ah_attr - Replace valid ah_attr with new one.
 
-<...>
+Applied, thanks!
 
-> - * ah_attribute must have valid port_num, sgid_index.
-> + * ah_attribute must have valid port_num, sgid_index.
+[1/1] RDMA/uverbs: Fix typo of sizeof argument
+      https://git.kernel.org/rdma/rdma/c/c489800e0d4809
 
-What does this patch fix/change?
-
-Thanks
-
->   */
->  static int ib_resolve_unicast_gid_dmac(struct ib_device *device,
->  				       struct rdma_ah_attr *ah_attr)
-> --
-> 2.30.2
-> 
+Best regards,
+-- 
+Leon Romanovsky <leon@kernel.org>
