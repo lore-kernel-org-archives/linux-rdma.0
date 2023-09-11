@@ -2,39 +2,39 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BC14CA0EC3
-	for <linux-rdma@archiver.kernel.org>; Tue, 12 Sep 2023 01:49:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A6EBCA0ECF
+	for <linux-rdma@archiver.kernel.org>; Tue, 12 Sep 2023 02:57:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233644AbjILBtO (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 11 Sep 2023 21:49:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38638 "EHLO
+        id S241256AbjILC5S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 11 Sep 2023 22:57:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53518 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234206AbjILBs5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Sep 2023 21:48:57 -0400
+        with ESMTP id S240895AbjILC5J (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 11 Sep 2023 22:57:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 362CE130F8C;
-        Mon, 11 Sep 2023 18:22:26 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 291B4C116B2;
-        Mon, 11 Sep 2023 23:27:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C62110ADC;
+        Mon, 11 Sep 2023 19:27:25 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29624C116A8;
+        Mon, 11 Sep 2023 23:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694474823;
-        bh=NJ/M71WDi1QkA4y2AsQdvINQobLZEouTyfxhdb+/rTw=;
+        s=k20201202; t=1694474432;
+        bh=l1cAuCAFNIz6Fl5qFBOVmXB/EWQK3m8dwpuLOKjgIEI=;
         h=Date:From:To:Cc:Subject:From;
-        b=FVAUGHzTi4iB7U/MVoLNzWRQ1S+LqBGGTyw5bZj4QGTXs+BORi0OQXUm1NCwAPINf
-         mGZ9RFvUv/gcsnVU8VquXHYKJxDDffWVrURGZhKDInW8Y96hfxRSvCEdpHSVK4/ksP
-         /wnW3tLjE7lMn5bnHskEgh9Z0Wg1P26VUPOpJY4vjPQER+39aPxpeOnU1c46YVjjsY
-         Ky32ISstAItKJwyvvbWTAtzM1bW4WuWWLELZvk5w72VNSP3XMoiJiTEe2xWHW2Zq89
-         JZp4ApL1hCWo81eS8wT4ccy5i1IbNqTXxEM1CK7OPmrBofNbv069nuPDxDEEAxce2n
-         2MGSp+9qQEtWA==
-Date:   Mon, 11 Sep 2023 17:27:59 -0600
+        b=aa3DyupXG32KVn0mp2BehxxtZGA8gqdDxOWHLZNORvS4j0w9CEsBrRhf83s2XJah8
+         iKdbsKWj6T4eGKCMiSCVFZCvwLbXiuIxShnus0WM+gPHKRK48O3oRu3PCpnAAhVO63
+         9G2lTXDg5gyQO8JxT6dVDmQzqeskbcCVQK4Ir92FKTJt50tcuOVb1uHk8LvEhSfI2+
+         S2FBJKHUgMvoL7CdL1j4hq3Jayy1sZfGBOwhqWxtRoHL06UgIu1eHguKS5StEIUwV0
+         QCbYtF9aPa0nKBQUd602HTJ5UsJ6O+N+ClncpSc3XdxFBXGMpbYr7EuD0G9A3go+Ct
+         YvfyqBPrjTXRg==
+Date:   Mon, 11 Sep 2023 17:21:28 -0600
 From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
 To:     Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
 Cc:     linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
         "Gustavo A. R. Silva" <gustavoars@kernel.org>,
         linux-hardening@vger.kernel.org
-Subject: [PATCH v2][next] RDMA/core: Use size_{add,mul}() in calls to
+Subject: [PATCH][next] RDMA/core: Use size_{add,mul}() in calls to
  struct_size()
-Message-ID: <ZP+if342EMhModzZ@work>
+Message-ID: <ZP+g+KfsEmEBAHmk@work>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -44,14 +44,12 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 Harden calls to struct_size() with size_add() and size_mul().
 
+This results in no differences in binary output.
+
 Fixes: 467f432a521a ("RDMA/core: Split port and device counter sysfs attributes")
 Fixes: a4676388e2e2 ("RDMA/core: Simplify how the gid_attrs sysfs is created")
 Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 ---
-Changes in v2:
- - Update changelog text: remove the part about binary differences (it
-   was added by mistake).
-
  drivers/infiniband/core/sysfs.c | 10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
