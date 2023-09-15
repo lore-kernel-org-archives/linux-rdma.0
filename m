@@ -2,170 +2,488 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50960EED61E
-	for <linux-rdma@archiver.kernel.org>; Fri, 15 Sep 2023 18:06:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1423CEED61A
+	for <linux-rdma@archiver.kernel.org>; Fri, 15 Sep 2023 18:25:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234172AbjIOSGF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 15 Sep 2023 14:06:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39604 "EHLO
+        id S235863AbjIOSY6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 15 Sep 2023 14:24:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235841AbjIOSFo (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 15 Sep 2023 14:05:44 -0400
-Received: from omta34.uswest2.a.cloudfilter.net (omta34.uswest2.a.cloudfilter.net [35.89.44.33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82C2A19A9
-        for <linux-rdma@vger.kernel.org>; Fri, 15 Sep 2023 11:05:38 -0700 (PDT)
-Received: from eig-obgw-5009a.ext.cloudfilter.net ([10.0.29.176])
-        by cmsmtp with ESMTP
-        id hCX4q9JcZOzKlhDCEqH0sU; Fri, 15 Sep 2023 18:05:38 +0000
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with ESMTPS
-        id hDCCqBCF5r4o2hDCDqh7uw; Fri, 15 Sep 2023 18:05:37 +0000
-X-Authority-Analysis: v=2.4 cv=KIpJsXJo c=1 sm=1 tr=0 ts=65049cf1
- a=1YbLdUo/zbTtOZ3uB5T3HA==:117 a=WzbPXH4gqzPVN0x6HrNMNA==:17
- a=OWjo9vPv0XrRhIrVQ50Ab3nP57M=:19 a=dLZJa+xiwSxG16/P+YVxDGlgEgI=:19
- a=IkcTkHD0fZMA:10 a=zNV7Rl7Rt7sA:10 a=wYkD_t78qR0A:10 a=VwQbUJbxAAAA:8
- a=cm27Pg_UAAAA:8 a=Wrtf5UCP7LI77WHjMVIA:9 a=QEXdDO2ut3YA:10
- a=AjGcO6oz07-iQ99wixmX:22 a=xmb-EsYY8bH0VWELuYED:22
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=kIh9h+51ldocBU9TG/FuWYO4jPEoPniNky9hvQTOqbg=; b=G8Bu3gEKJrGszhS5XS0/ZMRosW
-        6d/T9j7UU7MxDZvrj/IlDqRPPFsGp90IoU237SeEO0psbm25zc7Va9ThSAdrHHpqAiFoMoP0KCCyJ
-        kDRMsHJUe+NECRuDeUDxLLg18Ba5VqJY5EvmcjWtbSt429z7ohaftrqg9+sNpYv+JFoOUcE6CvZqe
-        lMXFl8qcPLkpGLjw4xrn69xiKliAlk7B1ltV0RPj6E2j2Lus4REHF8XpS1YIkR4MKnERzLEoqDPWH
-        H6cz//NAWXwnOxEFSUGFNon2vw+oR6wX7q21DMzGsKbgR2L2/t5F7moJapvtTqAO0X4HA/uCnl8ao
-        28ARowYw==;
-Received: from 187-162-21-192.static.axtel.net ([187.162.21.192]:41712 helo=[192.168.15.8])
-        by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.96)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1qhDCC-000DpQ-05;
-        Fri, 15 Sep 2023 13:05:36 -0500
-Message-ID: <2594c7ff-0301-90aa-d48c-6b4d674f850e@embeddedor.com>
-Date:   Fri, 15 Sep 2023 12:06:21 -0600
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [PATCH v2][next] RDMA/core: Use size_{add,mul}() in calls to
- struct_size()
-To:     Kees Cook <keescook@chromium.org>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-hardening@vger.kernel.org
-References: <ZP+if342EMhModzZ@work> <202309142029.D432EEB8C@keescook>
-Content-Language: en-US
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-In-Reply-To: <202309142029.D432EEB8C@keescook>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 187.162.21.192
-X-Source-L: No
-X-Exim-ID: 1qhDCC-000DpQ-05
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: 187-162-21-192.static.axtel.net ([192.168.15.8]) [187.162.21.192]:41712
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 3
-X-Org:  HG=hgshared;ORG=hostgator;
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
-X-CMAE-Envelope: MS4xfND65Tj4/o6ODEc64i4kBe36vj0zVouhmreIfDDAUAHdvsMw+5qJv9g40/EcnIeqkINzuX5dlsSmLlTzIMUOh9QrGT4y3SKnSuZrAf83BC63II72dEfP
- U2HUiERu/RXsmm8lEKztgU4Wa2KLYbtbgUpkoJEl+LOpQVzX6CwMZEFa9+HHK+MwURj0rQsLFmVNHWj/ScRlsQMeQYLZSOA0UlBkIwwDP8oUgu3Gguee7LLE
+        with ESMTP id S231775AbjIOSYo (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 15 Sep 2023 14:24:44 -0400
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EAE822105;
+        Fri, 15 Sep 2023 11:24:37 -0700 (PDT)
+Received: by linux.microsoft.com (Postfix, from userid 1174)
+        id 84094212BE7A; Fri, 15 Sep 2023 11:24:37 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 84094212BE7A
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
+        s=default; t=1694802277;
+        bh=NkCMp454GTUcOtiLH5kTM0L3OzT2pp424P12IBewYiE=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=MbUX4Cy6Iqcf0q594bx8T3XtF82itDGaw9+YgiDKsAvXowgOXriTMKvuuum4aL3f8
+         j7daVjq4fjNpUJRff6GMuGr4+ukFeQY0/RDlXS+gvkUqRMiQwHi5uRuz2no4e2vzZy
+         qEozz8G6/nJm0Jb8xX9FTNvimKQ4rSMxCWvWzosA=
+From:   sharmaajay@linuxonhyperv.com
+To:     Long Li <longli@microsoft.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Dexuan Cui <decui@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Ajay Sharma <sharmaajay@microsoft.com>
+Subject: [Patch v6 2/5] RDMA/mana_ib : Register Mana IB  device with Management SW
+Date:   Fri, 15 Sep 2023 11:24:27 -0700
+Message-Id: <1694802270-17452-3-git-send-email-sharmaajay@linuxonhyperv.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1694802270-17452-1-git-send-email-sharmaajay@linuxonhyperv.com>
+References: <1694802270-17452-1-git-send-email-sharmaajay@linuxonhyperv.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+From: Ajay Sharma <sharmaajay@microsoft.com>
 
+Each of the MANA infiniband devices must be registered
+with the management software to request services/resources.
+Register the Mana IB device with Management
+which would later help get an adapter handle.
 
-On 9/14/23 21:29, Kees Cook wrote:
-> On Mon, Sep 11, 2023 at 05:27:59PM -0600, Gustavo A. R. Silva wrote:
->> Harden calls to struct_size() with size_add() and size_mul().
-> 
-> Specifically, make sure that open-coded arithmetic cannot cause an
-> overflow/wraparound. (i.e. it will stay saturated at SIZE_MAX.)
+Signed-off-by: Ajay Sharma <sharmaajay@microsoft.com>
+---
+ drivers/infiniband/hw/mana/device.c           | 20 +++++--
+ drivers/infiniband/hw/mana/main.c             | 58 ++++++-------------
+ drivers/infiniband/hw/mana/mana_ib.h          |  1 +
+ drivers/infiniband/hw/mana/mr.c               | 17 ++----
+ drivers/infiniband/hw/mana/qp.c               |  8 +--
+ .../net/ethernet/microsoft/mana/gdma_main.c   |  5 ++
+ include/net/mana/gdma.h                       |  3 +
+ 7 files changed, 54 insertions(+), 58 deletions(-)
 
-Yep; I have another patch where I explain this in similar terms.
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 083f27246ba8..ea4c8c8fc10d 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -78,22 +78,34 @@ static int mana_ib_probe(struct auxiliary_device *adev,
+ 	mib_dev->ib_dev.num_comp_vectors = 1;
+ 	mib_dev->ib_dev.dev.parent = mdev->gdma_context->dev;
+ 
+-	ret = ib_register_device(&mib_dev->ib_dev, "mana_%d",
+-				 mdev->gdma_context->dev);
++	ret = mana_gd_register_device(&mib_dev->gc->mana_ib);
+ 	if (ret) {
+-		ib_dealloc_device(&mib_dev->ib_dev);
+-		return ret;
++		ibdev_err(&mib_dev->ib_dev, "Failed to register device, ret %d",
++			  ret);
++		goto free_ib_device;
+ 	}
+ 
++	ret = ib_register_device(&mib_dev->ib_dev, "mana_%d",
++				 mdev->gdma_context->dev);
++	if (ret)
++		goto deregister_device;
++
+ 	dev_set_drvdata(&adev->dev, mib_dev);
+ 
+ 	return 0;
++
++deregister_device:
++	mana_gd_deregister_device(&mib_dev->gc->mana_ib);
++free_ib_device:
++	ib_dealloc_device(&mib_dev->ib_dev);
++	return ret;
+ }
+ 
+ static void mana_ib_remove(struct auxiliary_device *adev)
+ {
+ 	struct mana_ib_dev *mib_dev = dev_get_drvdata(&adev->dev);
+ 
++	mana_gd_deregister_device(&mib_dev->gc->mana_ib);
+ 	ib_unregister_device(&mib_dev->ib_dev);
+ 	ib_dealloc_device(&mib_dev->ib_dev);
+ }
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 189e774cdab6..2c4e3c496644 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -8,7 +8,7 @@
+ void mana_ib_uncfg_vport(struct mana_ib_dev *mib_dev, struct mana_ib_pd *pd,
+ 			 u32 port)
+ {
+-	struct gdma_dev *gd = mib_dev->gdma_dev;
++	struct gdma_dev *gd = &mib_dev->gc->mana;
+ 	struct mana_port_context *mpc;
+ 	struct net_device *ndev;
+ 	struct mana_context *mc;
+@@ -32,7 +32,7 @@ int mana_ib_cfg_vport(struct mana_ib_dev *mib_dev, u32 port,
+ 		      struct mana_ib_pd *pd,
+ 		      u32 doorbell_id)
+ {
+-	struct gdma_dev *mdev = mib_dev->gdma_dev;
++	struct gdma_dev *mdev = &mib_dev->gc->mana;
+ 	struct mana_port_context *mpc;
+ 	struct mana_context *mc;
+ 	struct net_device *ndev;
+@@ -81,17 +81,16 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 	struct gdma_create_pd_req req = {};
+ 	enum gdma_pd_flags flags = 0;
+ 	struct mana_ib_dev *mib_dev;
+-	struct gdma_dev *mdev;
++
+ 	int err;
+ 
+ 	mib_dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
+-	mdev = mib_dev->gdma_dev;
+ 
+ 	mana_gd_init_req_hdr(&req.hdr, GDMA_CREATE_PD, sizeof(req),
+ 			     sizeof(resp));
+ 
+ 	req.flags = flags;
+-	err = mana_gd_send_request(mdev->gdma_context, sizeof(req), &req,
++	err = mana_gd_send_request(mib_dev->gc, sizeof(req), &req,
+ 				   sizeof(resp), &resp);
+ 
+ 	if (err || resp.hdr.status) {
+@@ -121,17 +120,15 @@ int mana_ib_dealloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 	struct gdma_destory_pd_resp resp = {};
+ 	struct gdma_destroy_pd_req req = {};
+ 	struct mana_ib_dev *mib_dev;
+-	struct gdma_dev *mdev;
+ 	int err;
+ 
+ 	mib_dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
+-	mdev = mib_dev->gdma_dev;
+ 
+ 	mana_gd_init_req_hdr(&req.hdr, GDMA_DESTROY_PD, sizeof(req),
+ 			     sizeof(resp));
+ 
+ 	req.pd_handle = pd->pd_handle;
+-	err = mana_gd_send_request(mdev->gdma_context, sizeof(req), &req,
++	err = mana_gd_send_request(mib_dev->gc, sizeof(req), &req,
+ 				   sizeof(resp), &resp);
+ 
+ 	if (err || resp.hdr.status) {
+@@ -207,17 +204,13 @@ int mana_ib_alloc_ucontext(struct ib_ucontext *ibcontext,
+ 		container_of(ibcontext, struct mana_ib_ucontext, ibucontext);
+ 	struct ib_device *ibdev = ibcontext->device;
+ 	struct mana_ib_dev *mib_dev;
+-	struct gdma_context *gc;
+-	struct gdma_dev *dev;
+ 	int doorbell_page;
+ 	int ret;
+ 
+ 	mib_dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
+-	dev = mib_dev->gdma_dev;
+-	gc = dev->gdma_context;
+ 
+ 	/* Allocate a doorbell page index */
+-	ret = mana_gd_allocate_doorbell_page(gc, &doorbell_page);
++	ret = mana_gd_allocate_doorbell_page(mib_dev->gc, &doorbell_page);
+ 	if (ret) {
+ 		ibdev_dbg(ibdev, "Failed to allocate doorbell page %d\n", ret);
+ 		return ret;
+@@ -236,20 +229,17 @@ void mana_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
+ 		container_of(ibcontext, struct mana_ib_ucontext, ibucontext);
+ 	struct ib_device *ibdev = ibcontext->device;
+ 	struct mana_ib_dev *mib_dev;
+-	struct gdma_context *gc;
+ 	int ret;
+ 
+ 	mib_dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
+-	gc = mib_dev->gdma_dev->gdma_context;
+ 
+-	ret = mana_gd_destroy_doorbell_page(gc, mana_ucontext->doorbell);
++	ret = mana_gd_destroy_doorbell_page(mib_dev->gc, mana_ucontext->doorbell);
+ 	if (ret)
+ 		ibdev_dbg(ibdev, "Failed to destroy doorbell page %d\n", ret);
+ }
+ 
+ static int
+ mana_ib_gd_first_dma_region(struct mana_ib_dev *mib_dev,
+-			    struct gdma_context *gc,
+ 			    struct gdma_create_dma_region_req *create_req,
+ 			    size_t num_pages, mana_handle_t *gdma_region,
+ 			    u32 expected_status)
+@@ -262,7 +252,7 @@ mana_ib_gd_first_dma_region(struct mana_ib_dev *mib_dev,
+ 		struct_size(create_req, page_addr_list, num_pages);
+ 	create_req->page_addr_list_len = num_pages;
+ 
+-	err = mana_gd_send_request(gc, create_req_msg_size, create_req,
++	err = mana_gd_send_request(mib_dev->gc, create_req_msg_size, create_req,
+ 				   sizeof(create_resp), &create_resp);
+ 	if (err || create_resp.hdr.status != expected_status) {
+ 		ibdev_dbg(&mib_dev->ib_dev,
+@@ -282,7 +272,7 @@ mana_ib_gd_first_dma_region(struct mana_ib_dev *mib_dev,
+ }
+ 
+ static int
+-mana_ib_gd_add_dma_region(struct mana_ib_dev *mib_dev, struct gdma_context *gc,
++mana_ib_gd_add_dma_region(struct mana_ib_dev *mib_dev,
+ 			  struct gdma_dma_region_add_pages_req *add_req,
+ 			  unsigned int num_pages, u32 expected_status)
+ {
+@@ -295,7 +285,7 @@ mana_ib_gd_add_dma_region(struct mana_ib_dev *mib_dev, struct gdma_context *gc,
+ 			     add_req_msg_size, sizeof(add_resp));
+ 	add_req->page_addr_list_len = num_pages;
+ 
+-	err = mana_gd_send_request(gc, add_req_msg_size, add_req,
++	err = mana_gd_send_request(mib_dev->gc, add_req_msg_size, add_req,
+ 				   sizeof(add_resp), &add_resp);
+ 	if (err || add_resp.hdr.status != expected_status) {
+ 		ibdev_dbg(&mib_dev->ib_dev,
+@@ -323,18 +313,14 @@ int mana_ib_gd_create_dma_region(struct mana_ib_dev *mib_dev,
+ 	struct ib_block_iter biter;
+ 	size_t max_pgs_add_cmd = 0;
+ 	size_t max_pgs_create_cmd;
+-	struct gdma_context *gc;
+ 	size_t num_pages_total;
+-	struct gdma_dev *mdev;
+ 	unsigned long page_sz;
+ 	unsigned int tail = 0;
+ 	u64 *page_addr_list;
+ 	void *request_buf;
+ 	int err;
+ 
+-	mdev = mib_dev->gdma_dev;
+-	gc = mdev->gdma_context;
+-	hwc = gc->hwc.driver_data;
++	hwc = mib_dev->gc->hwc.driver_data;
+ 
+ 	/* Hardware requires dma region to align to chosen page size */
+ 	page_sz = ib_umem_find_best_pgsz(umem, PAGE_SZ_BM, 0);
+@@ -388,7 +374,7 @@ int mana_ib_gd_create_dma_region(struct mana_ib_dev *mib_dev,
+ 
+ 		if (!num_pages_processed) {
+ 			/* First create message */
+-			err = mana_ib_gd_first_dma_region(mib_dev, gc, create_req,
++			err = mana_ib_gd_first_dma_region(mib_dev, create_req,
+ 							  tail, gdma_region,
+ 							  expected_status);
+ 			if (err)
+@@ -403,7 +389,7 @@ int mana_ib_gd_create_dma_region(struct mana_ib_dev *mib_dev,
+ 			page_addr_list = add_req->page_addr_list;
+ 		} else {
+ 			/* Subsequent create messages */
+-			err = mana_ib_gd_add_dma_region(mib_dev, gc, add_req, tail,
++			err = mana_ib_gd_add_dma_region(mib_dev, add_req, tail,
+ 							expected_status);
+ 			if (err)
+ 				break;
+@@ -429,13 +415,9 @@ int mana_ib_gd_create_dma_region(struct mana_ib_dev *mib_dev,
+ 
+ int mana_ib_gd_destroy_dma_region(struct mana_ib_dev *mib_dev, u64 gdma_region)
+ {
+-	struct gdma_dev *mdev = mib_dev->gdma_dev;
+-	struct gdma_context *gc;
+-
+-	gc = mdev->gdma_context;
+ 	ibdev_dbg(&mib_dev->ib_dev, "destroy dma region 0x%llx\n", gdma_region);
+ 
+-	return mana_gd_destroy_dma_region(gc, gdma_region);
++	return mana_gd_destroy_dma_region(mib_dev->gc, gdma_region);
+ }
+ 
+ int mana_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
+@@ -444,13 +426,11 @@ int mana_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
+ 		container_of(ibcontext, struct mana_ib_ucontext, ibucontext);
+ 	struct ib_device *ibdev = ibcontext->device;
+ 	struct mana_ib_dev *mib_dev;
+-	struct gdma_context *gc;
+ 	phys_addr_t pfn;
+ 	pgprot_t prot;
+ 	int ret;
+ 
+ 	mib_dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
+-	gc = mib_dev->gdma_dev->gdma_context;
+ 
+ 	if (vma->vm_pgoff != 0) {
+ 		ibdev_dbg(ibdev, "Unexpected vm_pgoff %lu\n", vma->vm_pgoff);
+@@ -458,18 +438,18 @@ int mana_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
+ 	}
+ 
+ 	/* Map to the page indexed by ucontext->doorbell */
+-	pfn = (gc->phys_db_page_base +
+-	       gc->db_page_size * mana_ucontext->doorbell) >>
++	pfn = (mib_dev->gc->phys_db_page_base +
++	       mib_dev->gc->db_page_size * mana_ucontext->doorbell) >>
+ 	      PAGE_SHIFT;
+ 	prot = pgprot_writecombine(vma->vm_page_prot);
+ 
+-	ret = rdma_user_mmap_io(ibcontext, vma, pfn, gc->db_page_size, prot,
+-				NULL);
++	ret = rdma_user_mmap_io(ibcontext, vma, pfn, mib_dev->gc->db_page_size,
++				prot, NULL);
+ 	if (ret)
+ 		ibdev_dbg(ibdev, "can't rdma_user_mmap_io ret %d\n", ret);
+ 	else
+ 		ibdev_dbg(ibdev, "mapped I/O pfn 0x%llx page_size %u, ret %d\n",
+-			  pfn, gc->db_page_size, ret);
++			  pfn, mib_dev->gc->db_page_size, ret);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index ee4efd0af278..3a2ba6b96f15 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -30,6 +30,7 @@
+ struct mana_ib_dev {
+ 	struct ib_device ib_dev;
+ 	struct gdma_dev *gdma_dev;
++	struct gdma_context *gc;
+ };
+ 
+ struct mana_ib_wq {
+diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
+index f6a53906204d..3106d1bce837 100644
+--- a/drivers/infiniband/hw/mana/mr.c
++++ b/drivers/infiniband/hw/mana/mr.c
+@@ -29,13 +29,10 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *mib_dev,
+ 				struct mana_ib_mr *mr,
+ 				struct gdma_create_mr_params *mr_params)
+ {
+-	struct gdma_dev *mdev = mib_dev->gdma_dev;
+ 	struct gdma_create_mr_response resp = {};
+ 	struct gdma_create_mr_request req = {};
+-	struct gdma_context *gc;
+ 	int err;
+ 
+-	gc = mdev->gdma_context;
+ 
+ 	mana_gd_init_req_hdr(&req.hdr, GDMA_CREATE_MR, sizeof(req),
+ 			     sizeof(resp));
+@@ -56,7 +53,8 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *mib_dev,
+ 		return -EINVAL;
+ 	}
+ 
+-	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
++	err = mana_gd_send_request(mib_dev->gc, sizeof(req), &req,
++				   sizeof(resp), &resp);
+ 
+ 	if (err || resp.hdr.status) {
+ 		ibdev_dbg(&mib_dev->ib_dev, "Failed to create mr %d, %u", err,
+@@ -77,22 +75,19 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *mib_dev,
+ static int mana_ib_gd_destroy_mr(struct mana_ib_dev *mib_dev, u64 mr_handle)
+ {
+ 	struct gdma_destroy_mr_response resp = {};
+-	struct gdma_dev *mdev = mib_dev->gdma_dev;
+ 	struct gdma_destroy_mr_request req = {};
+-	struct gdma_context *gc;
+ 	int err;
+ 
+-	gc = mdev->gdma_context;
+-
+ 	mana_gd_init_req_hdr(&req.hdr, GDMA_DESTROY_MR, sizeof(req),
+ 			     sizeof(resp));
+ 
+ 	req.mr_handle = mr_handle;
+ 
+-	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
++	err = mana_gd_send_request(mib_dev->gc, sizeof(req), &req,
++				   sizeof(resp), &resp);
+ 	if (err || resp.hdr.status) {
+-		dev_err(gc->dev, "Failed to destroy MR: %d, 0x%x\n", err,
+-			resp.hdr.status);
++		dev_err(mib_dev->gc->dev, "Failed to destroy MR: %d, 0x%x\n",
++			err, resp.hdr.status);
+ 		if (!err)
+ 			err = -EPROTO;
+ 		return err;
+diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
+index 3540bf5bb497..ef3275ac92a0 100644
+--- a/drivers/infiniband/hw/mana/qp.c
++++ b/drivers/infiniband/hw/mana/qp.c
+@@ -21,7 +21,7 @@ static int mana_ib_cfg_vport_steering(struct mana_ib_dev *mib_dev,
+ 	u32 req_buf_size;
+ 	int i, err;
+ 
+-	mdev = mib_dev->gdma_dev;
++	mdev = &mib_dev->gc->mana;
+ 	gc = mdev->gdma_context;
+ 
+ 	req_buf_size =
+@@ -267,7 +267,7 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
+ 		rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
+ 					  ibucontext);
+ 	struct mana_ib_create_qp_resp resp = {};
+-	struct gdma_dev *gd = mib_dev->gdma_dev;
++	struct gdma_dev *gd = &mib_dev->gc->mana;
+ 	struct mana_ib_create_qp ucmd = {};
+ 	struct mana_obj_spec wq_spec = {};
+ 	struct mana_obj_spec cq_spec = {};
+@@ -437,7 +437,7 @@ static int mana_ib_destroy_qp_rss(struct mana_ib_qp *qp,
+ {
+ 	struct mana_ib_dev *mib_dev =
+ 		container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+-	struct gdma_dev *gd = mib_dev->gdma_dev;
++	struct gdma_dev *gd = &mib_dev->gc->mana;
+ 	struct mana_port_context *mpc;
+ 	struct mana_context *mc;
+ 	struct net_device *ndev;
+@@ -464,7 +464,7 @@ static int mana_ib_destroy_qp_raw(struct mana_ib_qp *qp, struct ib_udata *udata)
+ {
+ 	struct mana_ib_dev *mib_dev =
+ 		container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+-	struct gdma_dev *gd = mib_dev->gdma_dev;
++	struct gdma_dev *gd = &mib_dev->gc->mana;
+ 	struct ib_pd *ibpd = qp->ibqp.pd;
+ 	struct mana_port_context *mpc;
+ 	struct mana_context *mc;
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 8f3f78b68592..9fa7a2d6c2b2 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -139,6 +139,9 @@ static int mana_gd_detect_devices(struct pci_dev *pdev)
+ 		if (dev_type == GDMA_DEVICE_MANA) {
+ 			gc->mana.gdma_context = gc;
+ 			gc->mana.dev_id = dev;
++		} else if (dev_type == GDMA_DEVICE_MANA_IB) {
++			gc->mana_ib.dev_id = dev;
++			gc->mana_ib.gdma_context = gc;
+ 		}
+ 	}
+ 
+@@ -940,6 +943,7 @@ int mana_gd_register_device(struct gdma_dev *gd)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(mana_gd_register_device);
+ 
+ int mana_gd_deregister_device(struct gdma_dev *gd)
+ {
+@@ -970,6 +974,7 @@ int mana_gd_deregister_device(struct gdma_dev *gd)
+ 
+ 	return err;
+ }
++EXPORT_SYMBOL(mana_gd_deregister_device);
+ 
+ u32 mana_gd_wq_avail_space(struct gdma_queue *wq)
+ {
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 96c120160f15..e2b212dd722b 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -63,6 +63,7 @@ enum {
+ 	GDMA_DEVICE_NONE	= 0,
+ 	GDMA_DEVICE_HWC		= 1,
+ 	GDMA_DEVICE_MANA	= 2,
++	GDMA_DEVICE_MANA_IB	= 3,
+ };
+ 
+ struct gdma_resource {
+@@ -384,6 +385,8 @@ struct gdma_context {
+ 
+ 	/* Azure network adapter */
+ 	struct gdma_dev		mana;
++	/* rdma device */
++	struct gdma_dev		mana_ib;
+ };
+ 
+ #define MAX_NUM_GDMA_DEVICES	4
+-- 
+2.25.1
 
-I'll send it, shortly.
-
-> 
->>
->> Fixes: 467f432a521a ("RDMA/core: Split port and device counter sysfs attributes")
->> Fixes: a4676388e2e2 ("RDMA/core: Simplify how the gid_attrs sysfs is created")
->> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-> 
-> Reviewed-by: Kees Cook <keescook@chromium.org>
-
-Thanks!
-
---
-Gustavo
-
-> 
-> -Kees
-> 
->> ---
->> Changes in v2:
->>   - Update changelog text: remove the part about binary differences (it
->>     was added by mistake).
->>
->>   drivers/infiniband/core/sysfs.c | 10 +++++-----
->>   1 file changed, 5 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
->> index ee59d7391568..ec5efdc16660 100644
->> --- a/drivers/infiniband/core/sysfs.c
->> +++ b/drivers/infiniband/core/sysfs.c
->> @@ -903,7 +903,7 @@ alloc_hw_stats_device(struct ib_device *ibdev)
->>   	 * Two extra attribue elements here, one for the lifespan entry and
->>   	 * one to NULL terminate the list for the sysfs core code
->>   	 */
->> -	data = kzalloc(struct_size(data, attrs, stats->num_counters + 1),
->> +	data = kzalloc(struct_size(data, attrs, size_add(stats->num_counters, 1)),
->>   		       GFP_KERNEL);
->>   	if (!data)
->>   		goto err_free_stats;
->> @@ -1009,7 +1009,7 @@ alloc_hw_stats_port(struct ib_port *port, struct attribute_group *group)
->>   	 * Two extra attribue elements here, one for the lifespan entry and
->>   	 * one to NULL terminate the list for the sysfs core code
->>   	 */
->> -	data = kzalloc(struct_size(data, attrs, stats->num_counters + 1),
->> +	data = kzalloc(struct_size(data, attrs, size_add(stats->num_counters, 1)),
->>   		       GFP_KERNEL);
->>   	if (!data)
->>   		goto err_free_stats;
->> @@ -1140,7 +1140,7 @@ static int setup_gid_attrs(struct ib_port *port,
->>   	int ret;
->>   
->>   	gid_attr_group = kzalloc(struct_size(gid_attr_group, attrs_list,
->> -					     attr->gid_tbl_len * 2),
->> +					     size_mul(attr->gid_tbl_len, 2)),
->>   				 GFP_KERNEL);
->>   	if (!gid_attr_group)
->>   		return -ENOMEM;
->> @@ -1205,8 +1205,8 @@ static struct ib_port *setup_port(struct ib_core_device *coredev, int port_num,
->>   	int ret;
->>   
->>   	p = kvzalloc(struct_size(p, attrs_list,
->> -				attr->gid_tbl_len + attr->pkey_tbl_len),
->> -		    GFP_KERNEL);
->> +				size_add(attr->gid_tbl_len, attr->pkey_tbl_len)),
->> +		     GFP_KERNEL);
->>   	if (!p)
->>   		return ERR_PTR(-ENOMEM);
->>   	p->ibdev = device;
->> -- 
->> 2.34.1
->>
-> 
