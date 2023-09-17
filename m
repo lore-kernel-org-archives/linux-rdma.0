@@ -2,122 +2,117 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21A45CD37B0
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 11:53:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54BC2C46CA1
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 12:00:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237827AbjIRLwe (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Sep 2023 07:52:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45664 "EHLO
+        id S241603AbjIRMAE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Sep 2023 08:00:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241404AbjIRLwP (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 07:52:15 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1489DFF
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Sep 2023 04:52:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D8E1C433C8;
-        Mon, 18 Sep 2023 11:52:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695037929;
-        bh=jAkhofe4hPDNeeR6tm2n+lT9TNL6CvjuSVdNH+w+OwE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=K8t7NVu2gGEQUbphbHZVW2rtMk6J43AHnWzH8KNov9hBFIrOJAnjeScSL2YCDnL81
-         xHtAq8WG23GF8G6g/4c/na5MCb/L2tQYPQuISbTGJcZX3pjKBSIibNr9n/5fbthRWl
-         q5fbE5SuEPDO/K679c5FRN3H/mnOaSDXTjaJLki1/QLFWbR5zDaTzo6vgSAwstmUge
-         bRHTPYGWpvnjI2U7NymjOf4c9FRr8iGSMQVto4n14z9fXlHkilfXDyetgOZrZgG3JQ
-         GBXFCfaBEzQ2WPnLPJEoS1KwZMkOetgKvuSJu1ZfCJbpJA406oFmF8bhIjO4ht3iXl
-         PXthAeoOD7/VQ==
-Date:   Mon, 18 Sep 2023 14:52:06 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Kamal Heib <kheib@redhat.com>
-Cc:     linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-next v1] RDMA/nldev: Add support for reporting ipoib
- netdev
-Message-ID: <20230918115206.GB103601@unreal>
-References: <20230915183757.510557-1-kheib@redhat.com>
+        with ESMTP id S241888AbjIRL7u (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 07:59:50 -0400
+Received: from omta036.useast.a.cloudfilter.net (omta036.useast.a.cloudfilter.net [44.202.169.35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45539196
+        for <linux-rdma@vger.kernel.org>; Mon, 18 Sep 2023 04:58:23 -0700 (PDT)
+Received: from eig-obgw-5004a.ext.cloudfilter.net ([10.0.29.221])
+        by cmsmtp with ESMTP
+        id iCbVqAgJtDKaKiCtSqVp7T; Mon, 18 Sep 2023 11:58:22 +0000
+Received: from gator4166.hostgator.com ([108.167.133.22])
+        by cmsmtp with ESMTPS
+        id iCtRqndEC10Y1iCtRqFHvI; Mon, 18 Sep 2023 11:58:22 +0000
+X-Authority-Analysis: v=2.4 cv=JeSvEGGV c=1 sm=1 tr=0 ts=65083b5e
+ a=1YbLdUo/zbTtOZ3uB5T3HA==:117 a=P7XfKmiOJ4/qXqHZrN7ymg==:17
+ a=OWjo9vPv0XrRhIrVQ50Ab3nP57M=:19 a=dLZJa+xiwSxG16/P+YVxDGlgEgI=:19
+ a=IkcTkHD0fZMA:10 a=zNV7Rl7Rt7sA:10 a=wYkD_t78qR0A:10
+ a=x2q-Q_5hSYYoW0-ZbgkA:9 a=QEXdDO2ut3YA:10
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
+        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
+        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
+        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=nvWwqffCij7ZgOtkwNJMjICe7Ibafj2Zgck2ZKCHj+I=; b=OROfyzdbVncz6GG+pMxherI3YC
+        FyXaNi6UWptY28NKBaUVsZanCENsl4ntuarg9A9QIckfzZ2eCBd5YWjSAVU/VM8MYiXDtktf27SiG
+        G2StZZy6FlJZ/VEn/oY2pw+ezmtuvTlHfiF3DjoIwcWZxLVJHg0vWJmsaTqwuz+yr2N+l7GIa4Nv2
+        G56JmDNlXdYMakbrUC3DEuM+53x/gT3AziUxQmAHxq8b7LMtPGmgOx4FzYy9HlqltXrjtNcfvHMdx
+        vw03KcKY1GRfi0E69YfEpMMz7iOLLpY4yPCyahC3Pakfy9xgXGq/+dAHuaSYZYoumwOk7Zl6B/+58
+        Zc86hBAg==;
+Received: from [94.239.20.48] (port=44006 helo=[192.168.1.98])
+        by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.96)
+        (envelope-from <gustavo@embeddedor.com>)
+        id 1qiCtQ-000JKv-2L;
+        Mon, 18 Sep 2023 06:58:20 -0500
+Message-ID: <4067fb33-2172-b132-e8c4-0ba21c31b42a@embeddedor.com>
+Date:   Sun, 17 Sep 2023 13:59:26 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230915183757.510557-1-kheib@redhat.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Subject: Re: [PATCH v2][next] RDMA/core: Use size_{add,mul}() in calls to
+ struct_size()
+Content-Language: en-US
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     Kees Cook <keescook@chromium.org>,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+References: <ZP+if342EMhModzZ@work> <202309142029.D432EEB8C@keescook>
+ <2594c7ff-0301-90aa-d48c-6b4d674f850e@embeddedor.com>
+ <20230918104938.GD13757@unreal>
+From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+In-Reply-To: <20230918104938.GD13757@unreal>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - embeddedor.com
+X-BWhitelist: no
+X-Source-IP: 94.239.20.48
+X-Source-L: No
+X-Exim-ID: 1qiCtQ-000JKv-2L
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+X-Source-Sender: ([192.168.1.98]) [94.239.20.48]:44006
+X-Source-Auth: gustavo@embeddedor.com
+X-Email-Count: 3
+X-Org:  HG=hgshared;ORG=hostgator;
+X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
+X-Local-Domain: yes
+X-CMAE-Envelope: MS4xfJQ/iw2hrWJhP0NFGBMIKedWFDXj0cvmUHlVKHRKKU1ra/HLG7+B5evHJwNGMH1exm6SGYm/DuG68K5IFGwBja1q+Eye1mxt9BE162lwIB+v/fmYeDse
+ L7UR88azT2w4NEtkCidZZBV77zcC3uIXKB+OKfPp4+lPZ/6jxT5HNYGc1q1vSV/eBBlsiVOY/VfxMHnZpXVdK3JEqDDh3j9Me7mqhsSQww5iLur9XPxYeZ8k
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Sep 15, 2023 at 02:37:57PM -0400, Kamal Heib wrote:
-> This patch adds support for reporting the ipoib net device for a given
-> RDMA device by calling ib_get_net_dev_by_params() when filling the
-> port's info.
-> 
-> $ rdma link show mlx5_0/1
-> link mlx5_0/1 subnet_prefix fe80:0000:0000:0000 lid 66 sm_lid 3 lmc 0
-> 	state ACTIVE physical_state LINK_UP netdev ibp196s0f0
-> 
-> Signed-off-by: Kamal Heib <kheib@redhat.com>
-> ---
-> v1: Check namespace and query pkey.
-> ---
->  drivers/infiniband/core/nldev.c | 27 ++++++++++++++++++++++++++-
->  1 file changed, 26 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-> index d5d3e4f0de77..f3fa8143cdc7 100644
-> --- a/drivers/infiniband/core/nldev.c
-> +++ b/drivers/infiniband/core/nldev.c
-> @@ -308,10 +308,12 @@ static int fill_port_info(struct sk_buff *msg,
->  			  struct ib_device *device, u32 port,
->  			  const struct net *net)
->  {
-> +	struct net_device *ipoib_netdev = NULL;
->  	struct net_device *netdev = NULL;
->  	struct ib_port_attr attr;
-> -	int ret;
->  	u64 cap_flags = 0;
-> +	u16 pkey;
-> +	int ret;
->  
->  	if (fill_nldev_handle(msg, device))
->  		return -EMSGSIZE;
-> @@ -340,6 +342,26 @@ static int fill_port_info(struct sk_buff *msg,
->  			return -EMSGSIZE;
->  		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_LMC, attr.lmc))
->  			return -EMSGSIZE;
-> +
-> +		ret = ib_query_pkey(device, port, 0, &pkey);
-> +		if (ret)
-> +			goto out;
-> +
-> +		ipoib_netdev = ib_get_net_dev_by_params(device, port,
-> +							pkey,
-> +							NULL, NULL);
-> +		if (ipoib_netdev && net_eq(dev_net(ipoib_netdev), net)) {
-> +			ret = nla_put_u32(msg,
-> +					  RDMA_NLDEV_ATTR_NDEV_INDEX,
-> +					  ipoib_netdev->ifindex);
-> +			if (ret)
-> +				goto out;
-> +			ret = nla_put_string(msg,
-> +					     RDMA_NLDEV_ATTR_NDEV_NAME,
-> +					     ipoib_netdev->name);
-> +			if (ret)
-> +				goto out;
-> +		}
->  	}
->  	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_PORT_STATE, attr.state))
->  		return -EMSGSIZE;
 
-You will leak ipoib_netdev here, need to change return to be "goto out".
 
-Thanks
-
-> @@ -357,6 +379,9 @@ static int fill_port_info(struct sk_buff *msg,
->  	}
->  
->  out:
-> +	if (ipoib_netdev)
-> +		dev_put(ipoib_netdev);
-> +
->  	if (netdev)
->  		dev_put(netdev);
->  	return ret;
-> -- 
-> 2.41.0
+On 9/18/23 04:49, Leon Romanovsky wrote:
+> On Fri, Sep 15, 2023 at 12:06:21PM -0600, Gustavo A. R. Silva wrote:
+>>
+>>
+>> On 9/14/23 21:29, Kees Cook wrote:
+>>> On Mon, Sep 11, 2023 at 05:27:59PM -0600, Gustavo A. R. Silva wrote:
+>>>> Harden calls to struct_size() with size_add() and size_mul().
+>>>
+>>> Specifically, make sure that open-coded arithmetic cannot cause an
+>>> overflow/wraparound. (i.e. it will stay saturated at SIZE_MAX.)
+>>
+>> Yep; I have another patch where I explain this in similar terms.
+>>
+>> I'll send it, shortly.
 > 
+> You missed other places with similar arithmetic.
+> drivers/infiniband/core/device.c:       pdata_rcu = kzalloc(struct_size(pdata_rcu, pdata,
+> drivers/infiniband/core/device.c-                                       rdma_end_port(device) + 1),
+> drivers/infiniband/core/device.c-                           GFP_KERNEL);
+> 
+> drivers/infiniband/core/sa_query.c:     sa_dev = kzalloc(struct_size(sa_dev, port, e - s + 1), GFP_KERNEL);
+> drivers/infiniband/core/user_mad.c:     umad_dev = kzalloc(struct_size(umad_dev, ports, e - s + 1), GFP_KERNEL);
+
+I haven't sent all my patches.
+
+--
+Gustavo
