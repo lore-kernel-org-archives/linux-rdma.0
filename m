@@ -2,91 +2,89 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AA8DCD37B0
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 16:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 694E2CD37B0
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 16:29:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230123AbjIRQSE (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:18:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60602 "EHLO
+        id S229753AbjIRQ30 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:29:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230127AbjIRQRz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 12:17:55 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D44724994
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Sep 2023 09:15:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695053712; x=1726589712;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=ZpMvMReyWpZ34t9yLSWCnm8q363yRNO2iVjm9jIOoos=;
-  b=ByViEAILrgjr+bih3jarXzkW0U2lcz8JEVd3a0Sh0O+sDon893wzOeQI
-   rHTWJyevQA0bW0SFSbkrTDQP2ERtn/nMrWGgVHcrTUG7dp0VQ1lFlnGkr
-   /Zn9ppaPnDaYB8cNn5aFHlalpkQtDTInbttD+dWdQa0TIQpzJ39lWantq
-   jzMoMbEdJq1xsT56y4trPJ0QoBEc5IoTmvz5zdT20EvlCrKAkIHs8Q6xt
-   9dctgxCGbfyq/3zLkma1bEJu2kMVZtuQVb0rJ/7BX4CDsTjlLCrZxc31u
-   A0EZbWW6pCjhCK7nQYIZ8zxkQSMUvpfzFfQnydgDqZO3t5NBbsUJW+IQA
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="379596215"
-X-IronPort-AV: E=Sophos;i="6.02,156,1688454000"; 
-   d="scan'208";a="379596215"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 08:37:06 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="816076926"
-X-IronPort-AV: E=Sophos;i="6.02,156,1688454000"; 
-   d="scan'208";a="816076926"
-Received: from unknown (HELO intel-71.bj.intel.com) ([10.238.154.71])
-  by fmsmga004.fm.intel.com with ESMTP; 18 Sep 2023 08:37:05 -0700
-From:   Zhu Yanjun <yanjun.zhu@intel.com>
-To:     haris.iqbal@ionos.com, jinpu.wang@ionos.com, jgg@ziepe.ca,
-        leon@kernel.org, linux-rdma@vger.kernel.org
-Cc:     Zhu Yanjun <yanjun.zhu@linux.dev>
-Subject: [PATCH 1/1] RDMA/rtrs: Require holding rcu_read_lock explicitly
-Date:   Mon, 18 Sep 2023 23:36:46 +0800
-Message-Id: <20230918153646.338878-1-yanjun.zhu@intel.com>
-X-Mailer: git-send-email 2.27.0
+        with ESMTP id S230107AbjIRQ3G (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 12:29:06 -0400
+Received: from gw.red-soft.ru (red-soft.ru [188.246.186.2])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 99651449D;
+        Mon, 18 Sep 2023 09:25:51 -0700 (PDT)
+Received: from localhost.biz (unknown [10.81.81.211])
+        by gw.red-soft.ru (Postfix) with ESMTPA id 5C95F3E19AE;
+        Mon, 18 Sep 2023 16:56:28 +0300 (MSK)
+From:   Artem Chernyshev <artem.chernyshev@red-soft.ru>
+To:     Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc:     Artem Chernyshev <artem.chernyshev@red-soft.ru>,
+        "David S . Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
+        linux-kernel@vger.kernel.org, lvc-project@linuxtesting.org
+Subject: [PATCH] net: rds: Fix possible NULL-pointer dereference
+Date:   Mon, 18 Sep 2023 16:56:23 +0300
+Message-Id: <20230918135623.630654-1-artem.chernyshev@red-soft.ru>
+X-Mailer: git-send-email 2.37.3
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-KLMS-Rule-ID: 1
+X-KLMS-Message-Action: clean
+X-KLMS-AntiSpam-Lua-Profiles: 179930 [Sep 18 2023]
+X-KLMS-AntiSpam-Version: 5.9.59.0
+X-KLMS-AntiSpam-Envelope-From: artem.chernyshev@red-soft.ru
+X-KLMS-AntiSpam-Rate: 0
+X-KLMS-AntiSpam-Status: not_detected
+X-KLMS-AntiSpam-Method: none
+X-KLMS-AntiSpam-Auth: dkim=none
+X-KLMS-AntiSpam-Info: LuaCore: 530 530 ecb1547b3f72d1df4c71c0b60e67ba6b4aea5432, {Tracking_from_domain_doesnt_match_to}, d41d8cd98f00b204e9800998ecf8427e.com:7.1.1;red-soft.ru:7.1.1;localhost.biz:7.1.1;127.0.0.199:7.1.2, FromAlignment: s
+X-MS-Exchange-Organization-SCL: -1
+X-KLMS-AntiSpam-Interceptor-Info: scan successful
+X-KLMS-AntiPhishing: Clean, bases: 2023/09/18 10:00:00
+X-KLMS-AntiVirus: Kaspersky Security for Linux Mail Server, version 8.0.3.30, bases: 2023/09/18 03:27:00 #21914376
+X-KLMS-AntiVirus-Status: Clean, skipped
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In rds_rdma_cm_event_handler_cmn() check, if conn pointer exists 
+before dereferencing it as rdma_set_service_type() argument
 
-No functional change. The function get_next_path_rr needs to hold
-rcu_read_lock. As such, if no rcu read lock, warnings will pop out.
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
 
-Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+Fixes: fd261ce6a30e ("rds: rdma: update rdma transport for tos")
+Signed-off-by: Artem Chernyshev <artem.chernyshev@red-soft.ru>
 ---
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/rds/rdma_transport.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-index b6ee801fd0ff..bc4b70318bf4 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-@@ -775,7 +775,7 @@ rtrs_clt_get_next_path_or_null(struct list_head *head, struct rtrs_clt_path *clt
-  * Related to @MP_POLICY_RR
-  *
-  * Locks:
-- *    rcu_read_lock() must be hold.
-+ *    rcu_read_lock() must be held.
-  */
- static struct rtrs_clt_path *get_next_path_rr(struct path_it *it)
- {
-@@ -783,6 +783,11 @@ static struct rtrs_clt_path *get_next_path_rr(struct path_it *it)
- 	struct rtrs_clt_path *path;
- 	struct rtrs_clt_sess *clt;
+diff --git a/net/rds/rdma_transport.c b/net/rds/rdma_transport.c
+index d36f3f6b4351..b506d9bd215c 100644
+--- a/net/rds/rdma_transport.c
++++ b/net/rds/rdma_transport.c
+@@ -86,11 +86,13 @@ static int rds_rdma_cm_event_handler_cmn(struct rdma_cm_id *cm_id,
+ 		break;
  
-+	/*
-+	 * Assert that rcu lock must be held
-+	 */
-+	WARN_ON_ONCE(!rcu_read_lock_held());
-+
- 	clt = it->clt;
+ 	case RDMA_CM_EVENT_ADDR_RESOLVED:
+-		rdma_set_service_type(cm_id, conn->c_tos);
+-		rdma_set_min_rnr_timer(cm_id, IB_RNR_TIMER_000_32);
+-		/* XXX do we need to clean up if this fails? */
+-		ret = rdma_resolve_route(cm_id,
+-					 RDS_RDMA_RESOLVE_TIMEOUT_MS);
++		if (conn) {
++			rdma_set_service_type(cm_id, conn->c_tos);
++			rdma_set_min_rnr_timer(cm_id, IB_RNR_TIMER_000_32);
++			/* XXX do we need to clean up if this fails? */
++			ret = rdma_resolve_route(cm_id,
++						 RDS_RDMA_RESOLVE_TIMEOUT_MS);
++		}
+ 		break;
  
- 	/*
+ 	case RDMA_CM_EVENT_ROUTE_RESOLVED:
 -- 
-2.40.1
+2.37.3
 
