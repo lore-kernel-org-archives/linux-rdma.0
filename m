@@ -2,121 +2,112 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49D80CD13D8
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 15:29:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7108CCD37B0
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 15:46:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229498AbjIRP2z (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Sep 2023 11:28:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34926 "EHLO
+        id S229581AbjIRPqH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Sep 2023 11:46:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229617AbjIRP2l (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 11:28:41 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C1DC12A;
-        Mon, 18 Sep 2023 08:26:56 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 1F9761FF93;
-        Mon, 18 Sep 2023 15:24:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1695050653; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=ZTsaizh9uJKTEcz6c5p2g2QGw5JzmlLl2sAISOCHTb0=;
-        b=uNDNyyEycKJBCT8u9QqHT2QXUZQSV7KEwqPhRKMT8g78tvewNow7/PM0Dx8tyzi3UtSwzx
-        cITrOJ3w7steQa1htyVtogiSbMXtJDg/hwSQ96Jf43HJYSsCYwhj25c8Sf6DEVuyfURH1Y
-        aU9810o4zzQKZkEvrA6beovh34oBypU=
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id A48001358A;
-        Mon, 18 Sep 2023 15:24:12 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id 7NFIJ5xrCGVOWQAAMHmgww
-        (envelope-from <mkoutny@suse.com>); Mon, 18 Sep 2023 15:24:12 +0000
-Date:   Mon, 18 Sep 2023 17:24:11 +0200
-From:   Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Fenghua Yu <fenghua.yu@intel.com>,
-        Reinette Chatre <reinette.chatre@intel.com>,
-        Miquel Raynal <miquel.raynal@bootlin.com>,
-        Richard Weinberger <richard@nod.at>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Tejun Heo <tj@kernel.org>,
-        Trond Myklebust <trond.myklebust@hammerspace.com>,
-        Anna Schumaker <anna@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Damien Le Moal <dlemoal@kernel.org>,
-        Naohiro Aota <naohiro.aota@wdc.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
-        linux-nfs@vger.kernel.org, linux-hardening@vger.kernel.org,
-        cgroups@vger.kernel.org
-Subject: Re: [PATCH 15/19] kernfs: split ->kill_sb
-Message-ID: <vqax7efvf5h4agxge5g43pdl6tsa5on5mob74bydydd5vdxwb5@5fj2qgmuxjj3>
-References: <20230913111013.77623-1-hch@lst.de>
- <20230913111013.77623-16-hch@lst.de>
+        with ESMTP id S229473AbjIRPqG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 11:46:06 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92C2D10F5;
+        Mon, 18 Sep 2023 08:44:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1695051884; x=1726587884;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=GntG1C/Of1kw8Cak4jvrKOjbZB9Dh17vQJmAQuf8VNA=;
+  b=CCyiFHOtrnuecVM3tUjigHAESBKnrxnahyRn0XjQWC3ntsfOOcVy3zTe
+   ZUo4VAeyvJGL9i56FHVU1nBnZusfKh+fZuO2HGz6ox47L1C1o/qP1FpPn
+   dWeUS7321BZ8mw5qKZQMqFv4e+PVyT+jqVVeAONtCv6saErVeXUkaJIm0
+   6byhgORv/FfkuP3z6LF/MFouEpM+thDXfZp8HTyUcla1h7e2Y4XpQj0db
+   YMu4e5DL6GM4J2AWf1shHC9kmJww9hPaV24TCFd6w2Z12voAbvujUZwXI
+   IuqAyu/SvX2q4VkECCJplB0cSngtVNz6BDR0BejzgeGZS1MC5hEC+OBqu
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="446112778"
+X-IronPort-AV: E=Sophos;i="6.02,156,1688454000"; 
+   d="scan'208";a="446112778"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 06:11:43 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="811341486"
+X-IronPort-AV: E=Sophos;i="6.02,156,1688454000"; 
+   d="scan'208";a="811341486"
+Received: from nprotaso-mobl1.ccr.corp.intel.com (HELO ijarvine-mobl2.ger.corp.intel.com) ([10.252.49.156])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 06:11:37 -0700
+From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+To:     linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Emmanuel Grumbach <emmanuel.grumbach@intel.com>,
+        linux-kernel@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+Cc:     ath10k@lists.infradead.org, ath11k@lists.infradead.org,
+        ath12k@lists.infradead.org, intel-wired-lan@lists.osuosl.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-bluetooth@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-rdma@vger.kernel.org,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+        =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Subject: [PATCH v2 02/13] PCI/ASPM: Improve pci_set_default_link_state() kerneldoc
+Date:   Mon, 18 Sep 2023 16:10:52 +0300
+Message-Id: <20230918131103.24119-3-ilpo.jarvinen@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230918131103.24119-1-ilpo.jarvinen@linux.intel.com>
+References: <20230918131103.24119-1-ilpo.jarvinen@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="fb5cgu6m55xbwjgl"
-Content-Disposition: inline
-In-Reply-To: <20230913111013.77623-16-hch@lst.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Improve pci_set_default_link_state() documentation:
 
---fb5cgu6m55xbwjgl
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+- Note the link state may get changed if the default policy is in use
+- Better follow kerneldoc formatting guidelines (separate description
+  block and return entries)
 
-On Wed, Sep 13, 2023 at 08:10:09AM -0300, Christoph Hellwig <hch@lst.de> wr=
-ote:
-> Split the kernfs_kill_sb helper into helpers for the new split
-> shutdown_sb and free_sb methods.  Note that resctrl has very odd
-> locking in ->kill_sb, so this commit only releases the locking
-> acquired in rdt_shutdown_sb in rdt_free_sb.  This is not very good
-> code and relies on ->shutdown_sb and ->free_sb to always be called
-> in pairs, which it currently is.  The next commit will try to clean
-> this up.
->=20
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  arch/x86/kernel/cpu/resctrl/rdtgroup.c | 12 +++++++++---
->  fs/kernfs/mount.c                      | 18 ++++++++----------
->  fs/sysfs/mount.c                       |  7 ++++---
->  include/linux/kernfs.h                 |  5 ++---
->  kernel/cgroup/cgroup.c                 | 10 ++++++----
->  5 files changed, 29 insertions(+), 23 deletions(-)
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+---
+ drivers/pci/pcie/aspm.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-Reviewed-by: Michal Koutn=FD <mkoutny@suse.com>
+diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
+index fc909e20365f..860bc94974ec 100644
+--- a/drivers/pci/pcie/aspm.c
++++ b/drivers/pci/pcie/aspm.c
+@@ -1102,14 +1102,18 @@ int pci_disable_link_state(struct pci_dev *pdev, int state)
+ EXPORT_SYMBOL(pci_disable_link_state);
+ 
+ /**
+- * pci_set_default_link_state - Clear and set the default device link state so
+- * that the link may be allowed to enter the specified states. Note that if the
+- * BIOS didn't grant ASPM control to the OS, this does nothing because we can't
+- * touch the LNKCTL register. Also note that this does not enable states
+- * disabled by pci_disable_link_state(). Return 0 or a negative errno.
+- *
++ * pci_set_default_link_state - Set the default device link state
+  * @pdev: PCI device
+  * @state: Mask of ASPM link states to enable
++ *
++ * Set the default device link state so that the link may be allowed to
++ * enter the specified states. If the default policy is in use, the link
++ * state may also be updated to reflect the new default link state. Note
++ * that if the BIOS didn't grant ASPM control to the OS, this does nothing
++ * because we can't touch the LNKCTL register. Also note that this does not
++ * enable states disabled by pci_disable_link_state().
++ *
++ * Return: 0 or a negative errno.
+  */
+ int pci_set_default_link_state(struct pci_dev *pdev, int state)
+ {
+-- 
+2.30.2
 
-(Also, I didn't find a necessity to have kernfs_free_sb(sb) under
-rdtgroup_mutex, so folding the following patch of the series may be fine
-too.)
-
-
---fb5cgu6m55xbwjgl
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQQpEWyjXuwGT2dDBqAGvrMr/1gcjgUCZQhrmQAKCRAGvrMr/1gc
-joA0AQCDANwuvql51NVbMvBdMPjFI6Th8lDr5goiUMJIkDInfAEAgIpZtJp32qUD
-1HpNpPzzwxVHRHauSQjOpc8j5wdn+Qk=
-=yjqf
------END PGP SIGNATURE-----
-
---fb5cgu6m55xbwjgl--
