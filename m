@@ -2,108 +2,174 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48313CD37B0
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 16:36:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5223FCD13D2
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 16:46:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229989AbjIRQgT (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:36:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41084 "EHLO
+        id S230399AbjIRQqt (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:46:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230283AbjIRQgL (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 12:36:11 -0400
-Received: from mail-lf1-x12b.google.com (mail-lf1-x12b.google.com [IPv6:2a00:1450:4864:20::12b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E38D77EFD
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Sep 2023 09:12:47 -0700 (PDT)
-Received: by mail-lf1-x12b.google.com with SMTP id 2adb3069b0e04-502e7d66c1eso7329986e87.1
-        for <linux-rdma@vger.kernel.org>; Mon, 18 Sep 2023 09:12:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1695053566; x=1695658366; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=SNeRgzhkotk5Y/tE9RyRgAf8MdMOlhQwnd3LC8e2DAY=;
-        b=XcCLV4sYQnL44ikgWyyKPeKrMIWghokfjEMGjl/IbzW7bAY6bFfmnOgeORAPdRHQB3
-         N2VLmfMvk3kvW2Dz8BayegOWKfZPLykroEKMGIx7E51C9+J7j5o9WHC4lvHm/YJhiAtG
-         /LIW6D1sClBq4YpB2iJI37hIGY6yAjAaXCY8c7LAWkGyAtTXPMKbgsTWam9A2DBjEuL+
-         fjEUvDJOS6O8pMHwR8kI0bNHmtGeh2ZBlxb57aPznL/CUSOXniJGmxs5NhbTTmPCQhSE
-         L0m0JcCHXT9kf4rTKknhgXxlYjC6mpVNVqP+cIoct8yZMjpt8mmqgMsLd0TLVvJXG7mo
-         el0g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695053566; x=1695658366;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=SNeRgzhkotk5Y/tE9RyRgAf8MdMOlhQwnd3LC8e2DAY=;
-        b=r8JDmz5bPKfzpZ6tBd86fYYuz+VatjNnnSZDIVPVDV6n6UlhOBuXdE+4JSTeiTBp1u
-         Vbo6prlziA85V5l4g0grU2oEHHKUTZK2O7UYazvfT0tu8nasb7RWoEjiMPxlu+81t6xq
-         15fMa3+Ka8c/eMDo0NhqN4MVcuf3UXf60R/j8Al8Z9Dr/CggOYvGBohEXbiyw6Jgyx+a
-         E++sTdNwDC4P6Hme/4zPCueA2sVLHbJ7lPnVD1N6CGLFLpkE9Vrx0KS9aa18/8S5m5n+
-         fAR5kyu7pGDOd7Zw2aqgeiI3OMSJXJeIiBZXfDnWP9S7yEoXS1mdbsP8WLFRpav5gvEK
-         PQvA==
-X-Gm-Message-State: AOJu0YxTgmOq1kNSJunjEhAqGUKQRrLC2Gs8T0Qt0HwEWsUHvWOO1BYd
-        saKsw+f/OApL/hne79okDJSdmz8VnxpLFhwYl7Oh1N1hHDYe8zU/
-X-Google-Smtp-Source: AGHT+IGhokwD4qvoQXRF2wkkb+TAXeuQ4G+9K+aki6Tse8F5xHhnZi3BwxH3GCI5AyoEhRggX6IIZI7IoUTMtdVBKDc=
-X-Received: by 2002:a19:ca13:0:b0:503:afa:e79 with SMTP id a19-20020a19ca13000000b005030afa0e79mr3204137lfg.5.1695053566056;
- Mon, 18 Sep 2023 09:12:46 -0700 (PDT)
+        with ESMTP id S230310AbjIRQqb (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 12:46:31 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D674A1FC9;
+        Mon, 18 Sep 2023 09:17:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1695053858; x=1726589858;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=kDT+yWJAUHrBQ8ex5Uxk7tCrxharMirq80UQzoJeAvk=;
+  b=JubL0SGD129feTlxJbpEtLUy5fAs6Exf+tYTFgooSXcczDpaAndTVc2O
+   IF0Rux7dygTVLWBcC4nqidMxiFnC9c9tQTT7d/0L8LA6pH6wjY6QBCPt4
+   vfW9hx7c70IMqrxn6dvsW/jMsIbI77mMPrXEqzimjXBMRAH0wccmmY+b0
+   ljVmKf0zfF+ds94dkq8IEqhKersOT5Ic7MaP8L3ZF99+f5xWE8YLVQRQ2
+   mtUxcJiutcmG+YrkgBBt6b4bqxU2qPf0VtrarGrLJcyHzlajnCYICAAmf
+   4sOY5Oy5Ju7Rf1jzssP6IFHfna1L8EbF8G0neV4V4BgBdMppJOvGGBUfk
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="446113624"
+X-IronPort-AV: E=Sophos;i="6.02,156,1688454000"; 
+   d="scan'208";a="446113624"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 06:13:53 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="811343130"
+X-IronPort-AV: E=Sophos;i="6.02,156,1688454000"; 
+   d="scan'208";a="811343130"
+Received: from nprotaso-mobl1.ccr.corp.intel.com (HELO ijarvine-mobl2.ger.corp.intel.com) ([10.252.49.156])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 06:13:47 -0700
+From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+To:     linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Rob Herring <robh@kernel.org>,
+        =?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
+        Lukas Wunner <lukas@wunner.de>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Emmanuel Grumbach <emmanuel.grumbach@intel.com>,
+        linux-kernel@vger.kernel.org,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
+Cc:     ath10k@lists.infradead.org, ath11k@lists.infradead.org,
+        ath12k@lists.infradead.org, intel-wired-lan@lists.osuosl.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-bluetooth@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-wireless@vger.kernel.org,
+        netdev@vger.kernel.org,
+        =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Dean Luick <dean.luick@cornelisnetworks.com>
+Subject: [PATCH v2 12/13] RDMA/hfi1: Use pci_disable/enable_link_state()
+Date:   Mon, 18 Sep 2023 16:11:02 +0300
+Message-Id: <20230918131103.24119-13-ilpo.jarvinen@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230918131103.24119-1-ilpo.jarvinen@linux.intel.com>
+References: <20230918131103.24119-1-ilpo.jarvinen@linux.intel.com>
 MIME-Version: 1.0
-References: <20230918153646.338878-1-yanjun.zhu@intel.com>
-In-Reply-To: <20230918153646.338878-1-yanjun.zhu@intel.com>
-From:   Jinpu Wang <jinpu.wang@ionos.com>
-Date:   Mon, 18 Sep 2023 18:12:35 +0200
-Message-ID: <CAMGffE=UFTK8XkcZ-ugTN5CL0CgDDsERWnKaVk37+9wA6FtdqQ@mail.gmail.com>
-Subject: Re: [PATCH 1/1] RDMA/rtrs: Require holding rcu_read_lock explicitly
-To:     Zhu Yanjun <yanjun.zhu@intel.com>
-Cc:     haris.iqbal@ionos.com, jgg@ziepe.ca, leon@kernel.org,
-        linux-rdma@vger.kernel.org, Zhu Yanjun <yanjun.zhu@linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Mon, Sep 18, 2023 at 5:37=E2=80=AFPM Zhu Yanjun <yanjun.zhu@intel.com> w=
-rote:
->
-> From: Zhu Yanjun <yanjun.zhu@linux.dev>
->
-> No functional change. The function get_next_path_rr needs to hold
-> rcu_read_lock. As such, if no rcu read lock, warnings will pop out.
->
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
-Acked-by: Jack Wang <jinpu.wang@ionos.com>
-Thx!
-> ---
->  drivers/infiniband/ulp/rtrs/rtrs-clt.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/=
-ulp/rtrs/rtrs-clt.c
-> index b6ee801fd0ff..bc4b70318bf4 100644
-> --- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> +++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
-> @@ -775,7 +775,7 @@ rtrs_clt_get_next_path_or_null(struct list_head *head=
-, struct rtrs_clt_path *clt
->   * Related to @MP_POLICY_RR
->   *
->   * Locks:
-> - *    rcu_read_lock() must be hold.
-> + *    rcu_read_lock() must be held.
->   */
->  static struct rtrs_clt_path *get_next_path_rr(struct path_it *it)
->  {
-> @@ -783,6 +783,11 @@ static struct rtrs_clt_path *get_next_path_rr(struct=
- path_it *it)
->         struct rtrs_clt_path *path;
->         struct rtrs_clt_sess *clt;
->
-> +       /*
-> +        * Assert that rcu lock must be held
-> +        */
-> +       WARN_ON_ONCE(!rcu_read_lock_held());
-> +
->         clt =3D it->clt;
->
->         /*
-> --
-> 2.40.1
->
+IB/hfi1 driver adjusts ASPM state itself which leaves ASPM service
+driver in PCI core unaware of the link state changes the driver
+implemented.
+
+Call pci_disable_link_state() and pci_enable_link_state() instead of
+adjusting ASPMC field in LNKCTL directly in the driver and let PCI core
+handle the ASPM state management. Remove the functions that handled the
+ASPM changes that are now unnecessary.
+
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Reviewed-by: Dean Luick <dean.luick@cornelisnetworks.com>
+---
+ drivers/infiniband/hw/hfi1/aspm.c | 38 +++----------------------------
+ drivers/infiniband/hw/hfi1/pcie.c |  2 +-
+ 2 files changed, 4 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/aspm.c b/drivers/infiniband/hw/hfi1/aspm.c
+index a3c53be4072c..8e3fc1d4c9c6 100644
+--- a/drivers/infiniband/hw/hfi1/aspm.c
++++ b/drivers/infiniband/hw/hfi1/aspm.c
+@@ -54,45 +54,13 @@ static void aspm_hw_set_l1_ent_latency(struct hfi1_devdata *dd)
+ 	pci_write_config_dword(dd->pcidev, PCIE_CFG_REG_PL3, reg32);
+ }
+ 
+-static void aspm_hw_enable_l1(struct hfi1_devdata *dd)
+-{
+-	struct pci_dev *parent = dd->pcidev->bus->self;
+-
+-	/*
+-	 * If the driver does not have access to the upstream component,
+-	 * it cannot support ASPM L1 at all.
+-	 */
+-	if (!parent)
+-		return;
+-
+-	/* Enable ASPM L1 first in upstream component and then downstream */
+-	pcie_capability_clear_and_set_word(parent, PCI_EXP_LNKCTL,
+-					   PCI_EXP_LNKCTL_ASPMC,
+-					   PCI_EXP_LNKCTL_ASPM_L1);
+-	pcie_capability_clear_and_set_word(dd->pcidev, PCI_EXP_LNKCTL,
+-					   PCI_EXP_LNKCTL_ASPMC,
+-					   PCI_EXP_LNKCTL_ASPM_L1);
+-}
+-
+-void aspm_hw_disable_l1(struct hfi1_devdata *dd)
+-{
+-	struct pci_dev *parent = dd->pcidev->bus->self;
+-
+-	/* Disable ASPM L1 first in downstream component and then upstream */
+-	pcie_capability_clear_and_set_word(dd->pcidev, PCI_EXP_LNKCTL,
+-					   PCI_EXP_LNKCTL_ASPMC, 0x0);
+-	if (parent)
+-		pcie_capability_clear_and_set_word(parent, PCI_EXP_LNKCTL,
+-						   PCI_EXP_LNKCTL_ASPMC, 0x0);
+-}
+-
+ static  void aspm_enable(struct hfi1_devdata *dd)
+ {
+ 	if (dd->aspm_enabled || aspm_mode == ASPM_MODE_DISABLED ||
+ 	    !dd->aspm_supported)
+ 		return;
+ 
+-	aspm_hw_enable_l1(dd);
++	pci_enable_link_state(dd->pcidev, PCI_EXP_LNKCTL_ASPM_L1);
+ 	dd->aspm_enabled = true;
+ }
+ 
+@@ -101,7 +69,7 @@ static  void aspm_disable(struct hfi1_devdata *dd)
+ 	if (!dd->aspm_enabled || aspm_mode == ASPM_MODE_ENABLED)
+ 		return;
+ 
+-	aspm_hw_disable_l1(dd);
++	pci_disable_link_state(dd->pcidev, PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1);
+ 	dd->aspm_enabled = false;
+ }
+ 
+@@ -254,7 +222,7 @@ void aspm_init(struct hfi1_devdata *dd)
+ 	/* Start with ASPM disabled */
+ 	aspm_hw_set_l1_ent_latency(dd);
+ 	dd->aspm_enabled = false;
+-	aspm_hw_disable_l1(dd);
++	pci_disable_link_state(dd->pcidev, PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1);
+ 
+ 	/* Now turn on ASPM if configured */
+ 	aspm_enable_all(dd);
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 08732e1ac966..767f6cb770b6 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -1182,7 +1182,7 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
+ 	 * will be enabled if required later
+ 	 */
+ 	dd_dev_info(dd, "%s: clearing ASPM\n", __func__);
+-	aspm_hw_disable_l1(dd);
++	pci_disable_link_state(dd->pcidev, PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1);
+ 
+ 	/*
+ 	 * step 5f: clear DirectSpeedChange
+-- 
+2.30.2
+
