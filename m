@@ -2,42 +2,42 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86115CD37B0
-	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 15:46:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE4E9CD37B0
+	for <linux-rdma@archiver.kernel.org>; Mon, 18 Sep 2023 15:46:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229757AbjIRPqk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 18 Sep 2023 11:46:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48034 "EHLO
+        id S229785AbjIRPqw (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 18 Sep 2023 11:46:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229777AbjIRPqi (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 11:46:38 -0400
+        with ESMTP id S229742AbjIRPqv (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 18 Sep 2023 11:46:51 -0400
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3E5910F9;
-        Mon, 18 Sep 2023 08:45:24 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB7291BF4;
+        Mon, 18 Sep 2023 08:44:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695051925; x=1726587925;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=fG2lEBkT7mIaWcABDtYlaKTuVQodmkE/Rpx2qX2kUFA=;
-  b=Z3qX81iEm9q3J3rZvsRGetWSeLIJEbSAEiGcre6HL+7VT6l2y2D0SOTQ
-   KnsOVhDsc4F4FlN+i9Vov1ZfcXMrA9YLQEJczkHPuzsi2Vt5aDTsyxq/e
-   KrgmklsmlT8x92tpnrLxHwacqKPZ5FJQYoZJ7QiAL+rYB5KVR0uIvRz43
-   Fv5hzirjgEQnjqNdHc5ApZhmTOAlNvkmQtKuwMN2BF3fOIdm+oz1PA+/K
-   RfYTQQ5ur0vU5Hx8FvDJkxg5zYUhFDJ9MV2Un4zJ/tpLKPsQFWXRaI1UF
-   VDXQ3Kucy2CXpT79mlT1rPQJFPawRUrFakbk2BLNxOc/AQd3t9W6XlW1o
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="446113432"
+  t=1695051881; x=1726587881;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Um9SQvE/5HeieZqdelS3qtLTo5NsX9iapqTm1J+iScg=;
+  b=GJ8nrjEmnxdovECeHs3LHsHcSAU2aiX4tkUMkhSkj7EZQqp0sTA+HHtK
+   NB1YgSLPI5+bp6BuTn5+OIwNLjSfh981g7Y6nD7EOdNROChOUJBpRfdAG
+   gZQQuXTzO+seA1GCfLzG4nu0QTaq52pTaP81QIfZ40iv6tGIAyk/MNP7m
+   xTgFAUgj/QEpgehwjM1nHBAqHmIZdunoeW/R9I6isu0r2jTmabkPy7xPH
+   SAsh+/AdsCeyF5PLzz2D1TWVIei/i40s8jZ3C8zh+F7aQvs8rwh237wMV
+   Wlcspx6St0NT4wTTX30lU3uWnQNw8NaNRTsi66Z35MUwTPIr7CVLYAaMW
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="446112585"
 X-IronPort-AV: E=Sophos;i="6.02,156,1688454000"; 
-   d="scan'208";a="446113432"
+   d="scan'208";a="446112585"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 06:12:46 -0700
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 06:11:29 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="811342282"
+X-IronPort-AV: E=McAfee;i="6600,9927,10837"; a="811341354"
 X-IronPort-AV: E=Sophos;i="6.02,156,1688454000"; 
-   d="scan'208";a="811342282"
+   d="scan'208";a="811341354"
 Received: from nprotaso-mobl1.ccr.corp.intel.com (HELO ijarvine-mobl2.ger.corp.intel.com) ([10.252.49.156])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 06:12:38 -0700
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Sep 2023 06:11:23 -0700
 From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
 To:     linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>,
         Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
@@ -47,26 +47,18 @@ To:     linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>,
         "Rafael J . Wysocki" <rafael@kernel.org>,
         Heiner Kallweit <hkallweit1@gmail.com>,
         Emmanuel Grumbach <emmanuel.grumbach@intel.com>,
-        linux-kernel@vger.kernel.org, Hector Martin <marcan@marcan.st>,
-        Sven Peter <sven@svenpeter.dev>,
-        Alyssa Rosenzweig <alyssa@rosenzweig.io>,
-        Marcel Holtmann <marcel@holtmann.org>,
-        Johan Hedberg <johan.hedberg@gmail.com>,
-        Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-        Bjorn Helgaas <bhelgaas@google.com>, asahi@lists.linux.dev,
-        linux-arm-kernel@lists.infradead.org,
-        linux-bluetooth@vger.kernel.org
+        linux-kernel@vger.kernel.org
 Cc:     ath10k@lists.infradead.org, ath11k@lists.infradead.org,
         ath12k@lists.infradead.org, intel-wired-lan@lists.osuosl.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-bluetooth@vger.kernel.org,
         linux-mediatek@lists.infradead.org, linux-rdma@vger.kernel.org,
         linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
         =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Subject: [PATCH v2 06/13] Bluetooth: hci_bcm4377: Convert aspm disable to quirk
-Date:   Mon, 18 Sep 2023 16:10:56 +0300
-Message-Id: <20230918131103.24119-7-ilpo.jarvinen@linux.intel.com>
+Subject: [PATCH v2 00/13] PCI/ASPM: Make ASPM in core robust and remove driver workarounds
+Date:   Mon, 18 Sep 2023 16:10:50 +0300
+Message-Id: <20230918131103.24119-1-ilpo.jarvinen@linux.intel.com>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230918131103.24119-1-ilpo.jarvinen@linux.intel.com>
-References: <20230918131103.24119-1-ilpo.jarvinen@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -74,92 +66,80 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-pci_disable_link_state() was made reliable regardless of ASPM CONFIG
-and OS being disallowed to change ASPM states to allow drivers to rely
-on pci_disable_link_state() working.
+Previously, ASPM service driver has ignored link state management
+requests when OS is not authorized to touch LNKCTL (or ASPM is not
+configured at all). Because the core interface has not been reliable,
+drivers have create workarounds to force ASPM state by directly
+writing into LNKCTL themselves.
 
-Remove driver working around unreliable pci_disable_link_state() from
-hci_bcm4377 driver and add a PCI quirk to disable ASPM.
+A second problem is lack of symmetric pair for
+pci_disable_link_state(). Any link state disable is permanent (NOTE:
+pci_enable_link_state() despite its name is not a symmetric pair for
+pci_disable_link_state()). The lack of way to re-enable ASPM prevents
+drivers from using pci_disable_link_state() to disabling ASPM for
+certain phases of driver operation and re-enabling it later.
 
-Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
----
- drivers/bluetooth/hci_bcm4377.c | 20 --------------------
- drivers/pci/quirks.c            |  3 +++
- 2 files changed, 3 insertions(+), 20 deletions(-)
+Both cases are problematic because when ASPM is working normally
+through the service driver, it is not aware of the extra link state
+changes drivers perform directly causing the service driver to have
+incorrect view about the ASPM state.
 
-diff --git a/drivers/bluetooth/hci_bcm4377.c b/drivers/bluetooth/hci_bcm4377.c
-index 19ad0e788646..2348ee2380db 100644
---- a/drivers/bluetooth/hci_bcm4377.c
-+++ b/drivers/bluetooth/hci_bcm4377.c
-@@ -490,7 +490,6 @@ struct bcm4377_data;
-  * clear_pciecfg_subsystem_ctrl_bit19: Set to true if bit 19 in the
-  *                                     vendor-specific subsystem control
-  *                                     register has to be cleared
-- * disable_aspm: Set to true if ASPM must be disabled due to hardware errata
-  * broken_ext_scan: Set to true if the chip erroneously claims to support
-  *                  extended scanning
-  * broken_mws_transport_config: Set to true if the chip erroneously claims to
-@@ -509,7 +508,6 @@ struct bcm4377_hw {
- 
- 	unsigned long has_bar0_core2_window2 : 1;
- 	unsigned long clear_pciecfg_subsystem_ctrl_bit19 : 1;
--	unsigned long disable_aspm : 1;
- 	unsigned long broken_ext_scan : 1;
- 	unsigned long broken_mws_transport_config : 1;
- 
-@@ -2222,20 +2220,6 @@ static int bcm4377_probe_of(struct bcm4377_data *bcm4377)
- 	return 0;
- }
- 
--static void bcm4377_disable_aspm(struct bcm4377_data *bcm4377)
--{
--	pci_disable_link_state(bcm4377->pdev,
--			       PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1);
--
--	/*
--	 * pci_disable_link_state can fail if either CONFIG_PCIEASPM is disabled
--	 * or if the BIOS hasn't handed over control to us. We must *always*
--	 * disable ASPM for this device due to hardware errata though.
--	 */
--	pcie_capability_clear_word(bcm4377->pdev, PCI_EXP_LNKCTL,
--				   PCI_EXP_LNKCTL_ASPMC);
--}
--
- static void bcm4377_pci_free_irq_vectors(void *data)
- {
- 	pci_free_irq_vectors(data);
-@@ -2288,9 +2272,6 @@ static int bcm4377_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 		return -ENODEV;
- 	}
- 
--	if (bcm4377->hw->disable_aspm)
--		bcm4377_disable_aspm(bcm4377);
--
- 	ret = pci_reset_function_locked(pdev);
- 	if (ret)
- 		dev_warn(
-@@ -2448,7 +2429,6 @@ static const struct bcm4377_hw bcm4377_hw_variants[] = {
- 		.otp_offset = 0x4120,
- 		.bar0_window1 = 0x1800b000,
- 		.bar0_window2 = 0x1810c000,
--		.disable_aspm = true,
- 		.broken_ext_scan = true,
- 		.send_ptb = bcm4377_send_ptb,
- 	},
-diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index eeec1d6f9023..d6ab0e98013f 100644
---- a/drivers/pci/quirks.c
-+++ b/drivers/pci/quirks.c
-@@ -2502,6 +2502,9 @@ static void quirk_disable_aspm_l0s_l1(struct pci_dev *dev)
-  */
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_ASMEDIA, 0x1080, quirk_disable_aspm_l0s_l1);
- 
-+/* BCM4377 must always disable ASPM due to hardware errata. */
-+DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_BROADCOM, 0x5fa0, quirk_disable_aspm_l0s_l1);
-+
- /*
-  * Some Pericom PCIe-to-PCI bridges in reverse mode need the PCIe Retrain
-  * Link bit cleared after starting the link retrain process to allow this
+Address these problems by making pci_disable_link_state() reliable and
+by providing proper pci_enable_link_state() pair for it (the function
+currently on the way is renamed first to a more descriptive name).
+After core improvements, convert drivers to use the new interface and
+drop the workarounds.
+
+v2:
+- Rebased the series
+- Reorder patches (rename patch first)
+
+Ilpo Järvinen (13):
+  PCI/ASPM: Rename pci_enable_link_state() to
+    pci_set_default_link_state()
+  PCI/ASPM: Improve pci_set_default_link_state() kerneldoc
+  PCI/ASPM: Disable ASPM when driver requests it
+  PCI/ASPM: Move L0S/L1/sub states mask calculation into a helper
+  PCI/ASPM: Add pci_enable_link_state()
+  Bluetooth: hci_bcm4377: Convert aspm disable to quirk
+  mt76: Remove unreliable pci_disable_link_state() workaround
+  e1000e: Remove unreliable pci_disable_link_state{,_locked}()
+    workaround
+  wifi: ath10k: Use pci_disable/enable_link_state()
+  wifi: ath11k: Use pci_disable/enable_link_state()
+  wifi: ath12k: Use pci_disable/enable_link_state()
+  RDMA/hfi1: Use pci_disable/enable_link_state()
+  misc: rtsx: Use pci_disable/enable_link_state()
+
+ drivers/bluetooth/hci_bcm4377.c               |  20 ---
+ drivers/infiniband/hw/hfi1/aspm.c             |  38 +-----
+ drivers/infiniband/hw/hfi1/pcie.c             |   2 +-
+ drivers/misc/cardreader/rts5228.c             |   6 +-
+ drivers/misc/cardreader/rts5261.c             |   6 +-
+ drivers/misc/cardreader/rtsx_pcr.c            |   8 +-
+ drivers/net/ethernet/intel/e1000e/netdev.c    |  77 +----------
+ drivers/net/wireless/ath/ath10k/pci.c         |   8 +-
+ drivers/net/wireless/ath/ath11k/pci.c         |  10 +-
+ drivers/net/wireless/ath/ath12k/pci.c         |  10 +-
+ drivers/net/wireless/mediatek/mt76/Makefile   |   1 -
+ drivers/net/wireless/mediatek/mt76/mt76.h     |   1 -
+ .../net/wireless/mediatek/mt76/mt7615/pci.c   |   2 +-
+ .../net/wireless/mediatek/mt76/mt76x0/pci.c   |   2 +-
+ .../net/wireless/mediatek/mt76/mt76x2/pci.c   |   2 +-
+ .../net/wireless/mediatek/mt76/mt7915/pci.c   |   2 +-
+ .../net/wireless/mediatek/mt76/mt7921/pci.c   |   2 +-
+ .../net/wireless/mediatek/mt76/mt7996/pci.c   |   2 +-
+ drivers/net/wireless/mediatek/mt76/pci.c      |  47 -------
+ drivers/pci/controller/vmd.c                  |   2 +-
+ drivers/pci/pcie/Makefile                     |   1 +
+ drivers/pci/pcie/aspm.c                       | 126 +++++++++++++-----
+ drivers/pci/pcie/aspm_minimal.c               |  66 +++++++++
+ drivers/pci/quirks.c                          |   3 +
+ include/linux/pci.h                           |  10 +-
+ 25 files changed, 199 insertions(+), 255 deletions(-)
+ delete mode 100644 drivers/net/wireless/mediatek/mt76/pci.c
+ create mode 100644 drivers/pci/pcie/aspm_minimal.c
+
 -- 
 2.30.2
 
