@@ -2,83 +2,101 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D2FFCE79B6
-	for <linux-rdma@archiver.kernel.org>; Wed, 20 Sep 2023 10:07:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5372ACE79B9
+	for <linux-rdma@archiver.kernel.org>; Wed, 20 Sep 2023 10:08:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbjITKIC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 20 Sep 2023 06:08:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59726 "EHLO
+        id S234118AbjITKII (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 20 Sep 2023 06:08:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54466 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233629AbjITKIA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 Sep 2023 06:08:00 -0400
+        with ESMTP id S233925AbjITKIE (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 20 Sep 2023 06:08:04 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D90CAC;
-        Wed, 20 Sep 2023 03:07:55 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74E4FC433C8;
-        Wed, 20 Sep 2023 10:07:54 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 815BEAC
+        for <linux-rdma@vger.kernel.org>; Wed, 20 Sep 2023 03:07:59 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EDCEC433C7;
+        Wed, 20 Sep 2023 10:07:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695204475;
-        bh=xHsGR2O0tQHxvQN23PQQPYjCXrNniyRTCpGjvAtMTJU=;
-        h=From:To:Cc:Subject:Date:From;
-        b=QwV26ae0gkcbWwQ+VSZRv0o4tzyxQZdvjmrtm7NxNN9XJkTWqxwGILOcx1HKuf/Kr
-         /uGR4EaEqpiPs7u635xm1JT5TCKugtIRROS3uJQ9BFHqEMseDUgSaJOIqXbZAwKK6N
-         nuYksS3wK9d8cSxk4L9TgavM7QUuMlWlSci4kPyq4rYjG9zpbsBY5ZT9u1JHe6lUkg
-         qo7rCUEOyk6ktSrwSGxONWhf8lQvsngmbJZ+waoEjtChJ+Z88hvF1giPZNaIwHjPFA
-         K2p9JWOawoOnMv6hRoSC1EKVYavVxuRQ829PrzAFtEQwajE9kRubZyDYR/bMYTURZn
-         QzaVNkO79VkdA==
+        s=k20201202; t=1695204478;
+        bh=W9mskMLw14fbfxM2rYmwWGjNyVKja6spum3kDsRFlgg=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=uWPtFpm8bvWxErLdXXvlstAnwm9jJr3Z/pjrsTG990N1K2PtTvshtVM161MtN0DOi
+         gTx7frnR1k0R8h3mCDZOf24qcpGsrvAH6PGlo/7LvsCP+32NPNSu+d6oZcrwN9eZca
+         2T9KW6GVOKBhGX/dFpiFFqexNZRTM0fnAPURnNPzbUmELDpjxyCZuy3YeeviJ1wb0S
+         GZZn01gB3CsRwWAw55By3SF5NxDBf7q6NKe4dlR1CwFN5WT1mnBDtuR2qbLlmTo7dL
+         WKWsdsdlj376Fsb92bsdA+MW/9wo0lL5DqbZ7LXgoeF6QQwKv2UiPuwn9Yx8+HyCnt
+         109QlKyPhd6sQ==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
+Cc:     Or Har-Toov <ohartoov@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, Mark Zhang <markzhang@nvidia.com>,
-        netdev@vger.kernel.org, Or Har-Toov <ohartoov@nvidia.com>,
+        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
+        Mark Zhang <markzhang@nvidia.com>, netdev@vger.kernel.org,
         Paolo Abeni <pabeni@redhat.com>,
-        Patrisious Haddad <phaddad@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH rdma-next 0/6] Add 800Gb (XDR) speed support
-Date:   Wed, 20 Sep 2023 13:07:39 +0300
-Message-ID: <cover.1695204156.git.leon@kernel.org>
+Subject: [PATCH rdma-next 2/6] IB/mlx5: Expose XDR speed through MAD
+Date:   Wed, 20 Sep 2023 13:07:41 +0300
+Message-ID: <d30bdec2a66a8a2edd1d84ee61453c58cf346b43.1695204156.git.leon@kernel.org>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <cover.1695204156.git.leon@kernel.org>
+References: <cover.1695204156.git.leon@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Or Har-Toov <ohartoov@nvidia.com>
 
-Hi,
+Under MAD query port, Report NDR speed when NDR is supported in the port
+capability mask.
 
-This series extends RDMA subsystem and mlx5_ib driver to support 800Gb
-(XDR) speed which was added to IBTA v1.7 specification.
+Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
+Reviewed-by: Mark Zhang <markzhang@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/mad.c | 13 +++++++++++++
+ include/rdma/ib_mad.h            |  2 ++
+ 2 files changed, 15 insertions(+)
 
-Thanks
-
-Or Har-Toov (2):
-  IB/core: Add support for XDR link speed
-  IB/mlx5: Expose XDR speed through MAD
-
-Patrisious Haddad (4):
-  IB/mlx5: Add support for 800G_8X lane speed
-  IB/mlx5: Rename 400G_8X speed to comply to naming convention
-  IB/mlx5: Adjust mlx5 rate mapping to support 800Gb
-  RDMA/ipoib: Add support for XDR speed in ethtool
-
- drivers/infiniband/core/sysfs.c                   |  4 ++++
- drivers/infiniband/core/uverbs_std_types_device.c |  3 ++-
- drivers/infiniband/core/verbs.c                   |  3 +++
- drivers/infiniband/hw/mlx5/mad.c                  | 13 +++++++++++++
- drivers/infiniband/hw/mlx5/main.c                 |  6 +++++-
- drivers/infiniband/hw/mlx5/qp.c                   |  2 +-
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c      |  2 ++
- drivers/net/ethernet/mellanox/mlx5/core/port.c    |  3 ++-
- include/linux/mlx5/port.h                         |  3 ++-
- include/rdma/ib_mad.h                             |  2 ++
- include/rdma/ib_verbs.h                           |  2 ++
- include/uapi/rdma/ib_user_ioctl_verbs.h           |  3 ++-
- 12 files changed, 40 insertions(+), 6 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+index 8102ef113b7e..0c3c4e64812c 100644
+--- a/drivers/infiniband/hw/mlx5/mad.c
++++ b/drivers/infiniband/hw/mlx5/mad.c
+@@ -619,6 +619,19 @@ int mlx5_query_mad_ifc_port(struct ib_device *ibdev, u32 port,
+ 		}
+ 	}
+ 
++	/* Check if extended speeds 2 (XDR/...) are supported */
++	if (props->port_cap_flags & IB_PORT_CAP_MASK2_SUP &&
++	    props->port_cap_flags2 & IB_PORT_EXTENDED_SPEEDS2_SUP) {
++		ext_active_speed = (out_mad->data[56] >> 4) & 0x6;
++
++		switch (ext_active_speed) {
++		case 2:
++			if (props->port_cap_flags2 & IB_PORT_LINK_SPEED_XDR_SUP)
++				props->active_speed = IB_SPEED_XDR;
++			break;
++		}
++	}
++
+ 	/* If reported active speed is QDR, check if is FDR-10 */
+ 	if (props->active_speed == 4) {
+ 		if (dev->port_caps[port - 1].ext_port_cap &
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index 2e3843b761e8..3f1b58d8b4bf 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -277,6 +277,8 @@ enum ib_port_capability_mask2_bits {
+ 	IB_PORT_LINK_WIDTH_2X_SUP		= 1 << 4,
+ 	IB_PORT_LINK_SPEED_HDR_SUP		= 1 << 5,
+ 	IB_PORT_LINK_SPEED_NDR_SUP		= 1 << 10,
++	IB_PORT_EXTENDED_SPEEDS2_SUP            = 1 << 11,
++	IB_PORT_LINK_SPEED_XDR_SUP              = 1 << 12,
+ };
+ 
+ #define OPA_CLASS_PORT_INFO_PR_SUPPORT BIT(26)
 -- 
 2.41.0
 
