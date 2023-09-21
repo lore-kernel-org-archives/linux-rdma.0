@@ -2,98 +2,67 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E359DE7D0A6
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:11:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05D6BE7D0A5
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:22:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230200AbjIURLC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Sep 2023 13:11:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39460 "EHLO
+        id S229610AbjIURWk (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Sep 2023 13:22:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230132AbjIUREx (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:04:53 -0400
+        with ESMTP id S229606AbjIURW1 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:22:27 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0DAE1711
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:02:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14856C4E663;
-        Thu, 21 Sep 2023 12:10:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0109844F5B
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:13:46 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D137EC116D6;
+        Thu, 21 Sep 2023 08:56:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695298243;
-        bh=3zUerJob8LTaLhGfDXM3f8fNe7+0Vp+OP7wcaT6sgF0=;
-        h=From:To:Cc:Subject:Date:From;
-        b=UEI4nhusOGx2X/DJ36lARYRKoo5KvubaseFamdvlR+YELv35D+Ps9pJ9pbXkq3OnP
-         JoWgE04zwdU7oP0s1PH2F+4xjsh3PiJjUsrq95W2FniU4N4yefFdfCebjBlm14j656
-         u5G9eI+SBC/Z/r6nu7TAKyJVraOnhpQqFHa2g08OpZVzghOvPdRAYMRzYaah/SWASA
-         wTzkxCMPIWzbW08MAYVWW7qLf7qia5RLSpKl5wGXbsRprALAgoP09lmURY8WzuWeXb
-         IW6qZpd0km/CXSqxWbJAPFHsjCt6yXB5Xg37vLYeukeIHr4Y/8Hr9Sr/D9cV8hLYPc
-         6tE4GxhLaR64w==
+        s=k20201202; t=1695286608;
+        bh=jQ1EWEvBpLh3BYqFfcE9uDp6iyRI/j+mkJMj85XfgEY=;
+        h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
+        b=rgA2oVDt8m7J63jC7EjsQ9/8tsd3j72q0wxdXrEr8v7II+rc09QUYAqfOsdX849G0
+         aQHL25/pZX2HmcwGHfALYu/aWqdo4JB7TO381TdY8+MT1KqqeG9LD8Oh14fjHCXbIH
+         xiraFLB0oFzu2RDgje6Yx4WWoGHgG+TZmpCPkCm1gkyIwZTHhbsMSrTUnHvrvtY3tp
+         0/lH0f5bmO+C/T6ZVjmEvDQpHAx+yQM9cd6l2wCV5kjwqyFe7O07lgLeMf1b22rv3z
+         OKybGJPeL1+1N70HnMsXTeCRS4YQPaakazKlBqkY9UbCxhmxu6V6Ek5d9UR+XjaGfu
+         16DQfjIT+LHBw==
 From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Leon Romanovsky <leonro@nvidia.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
-        Mark Bloch <mbloch@nvidia.com>, netdev@vger.kernel.org,
-        Paolo Abeni <pabeni@redhat.com>,
-        Patrisious Haddad <phaddad@nvidia.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Simon Horman <horms@kernel.org>
-Subject: [PATCH mlx5-next 0/9] Support IPsec packet offload in multiport RoCE devices
-Date:   Thu, 21 Sep 2023 15:10:26 +0300
-Message-ID: <cover.1695296682.git.leon@kernel.org>
-X-Mailer: git-send-email 2.41.0
+To:     jgg@ziepe.ca, Selvin Xavier <selvin.xavier@broadcom.com>
+Cc:     linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com
+In-Reply-To: <1695199280-13520-1-git-send-email-selvin.xavier@broadcom.com>
+References: <1695199280-13520-1-git-send-email-selvin.xavier@broadcom.com>
+Subject: Re: [PATCH for-rc 0/2] RDMA/bnxt_re: Bug fixes
+Message-Id: <169528660403.2412302.319180607902415174.b4-ty@kernel.org>
+Date:   Thu, 21 Sep 2023 11:56:44 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.12-dev-a055d
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@nvidia.com>
 
-Hi,
+On Wed, 20 Sep 2023 01:41:18 -0700, Selvin Xavier wrote:
+> Couple of important bug fixes for bnxt_re driver.
+> Please review and apply
+> 
+> Thanks,
+> Selvin Xavier
+> 
+> Selvin Xavier (2):
+>   RDMA/bnxt_re: Fix the handling of control path response data
+>   RDMA/bnxt_re: Decrement resource stats correctly
+> 
+> [...]
 
-This series from Patrisious extends mlx5 to support IPsec packet offload
-in multiport devices (MPV, see [1] for more details).
+Applied, thanks!
 
-These devices have single flow steering logic and two netdev interfaces,
-which require extra logic to manage IPsec configurations as they performed
-on netdevs.
+[1/2] RDMA/bnxt_re: Fix the handling of control path response data
+      https://git.kernel.org/rdma/rdma/c/9fc5f9a92fe689
+[2/2] RDMA/bnxt_re: Decrement resource stats correctly
+      https://git.kernel.org/rdma/rdma/c/a83c6927897522
 
-Thanks
-
-[1] https://lore.kernel.org/linux-rdma/20180104152544.28919-1-leon@kernel.org/
-
-Thanks
-
-Patrisious Haddad (9):
-  RDMA/mlx5: Send events from IB driver about device affiliation state
-  net/mlx5: Register mlx5e priv to devcom in MPV mode
-  net/mlx5: Store devcom pointer inside IPsec RoCE
-  net/mlx5: Add alias flow table bits
-  net/mlx5: Implement alias object allow and create functions
-  net/mlx5: Add create alias flow table function to ipsec roce
-  net/mlx5: Configure IPsec steering for egress RoCEv2 MPV traffic
-  net/mlx5: Configure IPsec steering for ingress RoCEv2 MPV traffic
-  net/mlx5: Handle IPsec steering upon master unbind/bind
-
- drivers/infiniband/hw/mlx5/main.c             |  17 +
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c |  70 +++
- drivers/net/ethernet/mellanox/mlx5/core/en.h  |   8 +
- .../mellanox/mlx5/core/en_accel/ipsec.c       |   3 +-
- .../mellanox/mlx5/core/en_accel/ipsec.h       |  25 +-
- .../mellanox/mlx5/core/en_accel/ipsec_fs.c    | 122 +++-
- .../mlx5/core/en_accel/ipsec_offload.c        |   3 +-
- .../net/ethernet/mellanox/mlx5/core/en_main.c |  63 ++
- .../net/ethernet/mellanox/mlx5/core/fs_core.c |  10 +-
- .../ethernet/mellanox/mlx5/core/lib/devcom.h  |   1 +
- .../mellanox/mlx5/core/lib/ipsec_fs_roce.c    | 542 +++++++++++++++++-
- .../mellanox/mlx5/core/lib/ipsec_fs_roce.h    |  14 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    |   6 +
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  22 +
- include/linux/mlx5/device.h                   |   2 +
- include/linux/mlx5/driver.h                   |   2 +
- include/linux/mlx5/mlx5_ifc.h                 |  56 +-
- 17 files changed, 925 insertions(+), 41 deletions(-)
-
+Best regards,
 -- 
-2.41.0
-
+Leon Romanovsky <leon@kernel.org>
