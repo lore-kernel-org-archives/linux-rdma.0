@@ -2,167 +2,127 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DE70E71094
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:03:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8344E71094
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:07:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230007AbjIURDf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Sep 2023 13:03:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44564 "EHLO
+        id S230161AbjIURHK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Sep 2023 13:07:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230039AbjIURC5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:02:57 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCA381BD5
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:01:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 468E4C4E667;
-        Thu, 21 Sep 2023 12:10:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695298258;
-        bh=P72h0L+ZVrn+TdGMG16f/UywYyrtaoYrOTrlMxfbBqs=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=P8I/ZWsbjX++7ZXIiIjLxlStjroC7Jm97O0P5DS04/X63ynTw6MfOGXfgaw+jhvd4
-         aC/ebMcMfBI4MJHHU4yJ5nZbGBEgr0ZrjzHKOkmTvtxOPKQJuZf2mFzNhRpXe4QUrQ
-         0fUVUzU5rexyty3+Jci/Uy8j+wA6TvEuq6PiK/iplNxIVDNjoJqfgWRQsvYKu7JQW9
-         BWa2rf9Q6AwQIjhUDVzljpypailTRWoQ9/H/6C0n32p+ERnAxXJhSgN2M1IEOrZEz5
-         xvvSjzYR9ako4d7xl9OT7ihSP5jPzeVh4VRLdZR5QXml/bD1idCMQvFq/HEvOGuOSj
-         7jGdJzwfFBcBw==
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Jason Gunthorpe <jgg@nvidia.com>
-Cc:     Patrisious Haddad <phaddad@nvidia.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>, linux-rdma@vger.kernel.org,
-        Mark Bloch <mbloch@nvidia.com>, netdev@vger.kernel.org,
-        Paolo Abeni <pabeni@redhat.com>,
-        Saeed Mahameed <saeedm@nvidia.com>,
-        Steffen Klassert <steffen.klassert@secunet.com>,
-        Simon Horman <horms@kernel.org>
-Subject: [PATCH mlx5-next 4/9] net/mlx5: Add alias flow table bits
-Date:   Thu, 21 Sep 2023 15:10:30 +0300
-Message-ID: <544c030f2a78c4adf3fe6b64f97a39cc1bbdabb9.1695296682.git.leon@kernel.org>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <cover.1695296682.git.leon@kernel.org>
-References: <cover.1695296682.git.leon@kernel.org>
+        with ESMTP id S230103AbjIURGe (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:06:34 -0400
+Received: from out-227.mta0.migadu.com (out-227.mta0.migadu.com [IPv6:2001:41d0:1004:224b::e3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5202C4495
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:04:06 -0700 (PDT)
+Message-ID: <c20343e9-44d2-1fbc-4191-7ef19f71fbb3@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1695308920;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=M9/SAz1EzoxnJVrN89NE7Xu5/5CKesHUXGlRvXE1pb4=;
+        b=UwCyKM274bp3lyCTckhxDcmosWuCzvGAQi2vbX80FfVhWUdnEpXvsXnQFrr38Xo/jo514Z
+        bpo+sIUDyw6gKP/Vimh9X0ublgA8Yh/tNfEzgqflmOYsi51FWy4X/fe3nRDpsNOFUqrs90
+        m9OIGW5AS1cYBjhA7jAdUlNyGayTmhU=
+Date:   Thu, 21 Sep 2023 23:08:32 +0800
 MIME-Version: 1.0
+Subject: Re: [bug report] blktests srp/002 hang
+To:     Bob Pearson <rpearsonhpe@gmail.com>,
+        Rain River <rain.1986.08.12@gmail.com>,
+        Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
+Cc:     Bart Van Assche <bvanassche@acm.org>,
+        Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+References: <dsg6rd66tyiei32zaxs6ddv5ebefr5vtxjwz6d2ewqrcwisogl@ge7jzan7dg5u>
+ <8be8f611-e413-9584-7c2e-2c1abf4147be@acm.org>
+ <plrbpd5gg32uaferhjj6ibkt4wqybu3v3y32f4rlhvsruc7cu4@2pgrj2542da2>
+ <18a3ae8c-145b-4c7f-a8f5-67840feeb98c@acm.org>
+ <ab93655f-c187-fdab-6c67-3bfb2d9aa516@gmail.com>
+ <9dd0aa0a-d696-a95b-095b-f54d6d31a6ab@linux.dev>
+ <d3205633-0cd2-f87e-1c40-21b8172b6da3@linux.dev>
+ <nqdsj764d7e56kxevcwnq6qoi6ptuu3bi6ntfakb55vm3toda7@eo3ffzzqrot7>
+ <5a4efe6f-d8c6-84ce-377e-eb64bcad706c@linux.dev>
+ <f50beb15-2cab-dfb9-3b58-ea66e7f114a6@gmail.com>
+ <fe61fdc5-ca8f-2efc-975d-46b99d66c6f5@linux.dev>
+ <afc98035-1bb8-f75c-451a-8e3e39fb74aa@gmail.com>
+ <6fc3b524-af7d-43ce-aa05-5c44ec850b9b@acm.org>
+ <b728f4db-bafa-dd0f-e288-7e3f56e6eae8@gmail.com>
+ <02d7cbf2-b17b-488a-b6e9-ebb728b51c94@acm.org>
+ <b80dae29-3a7c-f039-bc35-08c6e9f91197@gmail.com>
+ <CAJr_XRAy4EHueAP-10=WSEa46j2aQBArdzYsq7OqSqR93Ue+ug@mail.gmail.com>
+ <8aff9124-85c0-8e3b-dc35-1017b1540037@gmail.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <8aff9124-85c0-8e3b-dc35-1017b1540037@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Patrisious Haddad <phaddad@nvidia.com>
 
-Add all the capabilities needed to check for alias object support.
-As well as all the fields or commands needed for its creation and
-the creation of flow table that is able to jump to an alias object.
+在 2023/9/21 22:39, Bob Pearson 写道:
+> On 9/21/23 09:23, Rain River wrote:
+>> On Thu, Sep 21, 2023 at 2:53 AM Bob Pearson <rpearsonhpe@gmail.com> wrote:
+>>> On 9/20/23 12:22, Bart Van Assche wrote:
+>>>> On 9/20/23 10:18, Bob Pearson wrote:
+>>>>> But I have also seen the same behavior in the siw driver which is
+>>>>> completely independent.
+>>>> Hmm ... I haven't seen any hangs yet with the siw driver.
+>>> I was on Ubuntu 6-9 months ago. Currently I don't see hangs on either.
+>>>>> As mentioned above at the moment Ubuntu is failing rarely. But it used to fail reliably (srp/002 about 75% of the time and srp/011 about 99% of the time.) There haven't been any changes to rxe to explain this.
+>>>> I think that Zhu mentioned commit 9b4b7c1f9f54 ("RDMA/rxe: Add workqueue
+>>>> support for rxe tasks")?
+>>> That change happened well before the failures went away. I was seeing failures at the same rate with tasklets
+>>> and wqs. But after updating Ubuntu and the kernel at some point they all went away.
+>> I made tests on the latest Ubuntu with the latest kernel without the
+>> commit 9b4b7c1f9f54 ("RDMA/rxe: Add workqueue support for rxe tasks").
+>> The latest kernel is v6.6-rc2, the commit 9b4b7c1f9f54 ("RDMA/rxe: Add
+>> workqueue support for rxe tasks") is reverted.
+>> I made blktest tests for about 30 times, this problem does not occur.
+>>
+>> So I confirm that without this commit, this hang problem does not
+>> occur on Ubuntu without the commit 9b4b7c1f9f54 ("RDMA/rxe: Add
+>> workqueue support for rxe tasks").
+>>
+>> Nanthan
+>>
+>>>> Thanks,
+>>>>
+>>>> Bart.
+>>>
+> This commit is very important for several reasons. It is needed for the ODP implementation
+> that is in the works from Daisuke Matsuda and also for QP scaling of performance. The work
+> queue implementation scales well with increasing qp number while the tasklet implementation
+> does not. This is critical for the drivers use in large scale storage applications. So, if
+> there is a bug in the work queue implementation it needs to be fixed not reverted.
+>
+> I am still hoping that someone will diagnose what is causing the ULPs to hang in terms of
+> something missing causing it to wait.
 
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- include/linux/mlx5/mlx5_ifc.h | 56 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 55 insertions(+), 1 deletion(-)
+Hi, Bob
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index dd8421d021cf..2b5ae4192de4 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -312,6 +312,7 @@ enum {
- 	MLX5_CMD_OP_QUERY_VHCA_STATE              = 0xb0d,
- 	MLX5_CMD_OP_MODIFY_VHCA_STATE             = 0xb0e,
- 	MLX5_CMD_OP_SYNC_CRYPTO                   = 0xb12,
-+	MLX5_CMD_OP_ALLOW_OTHER_VHCA_ACCESS       = 0xb16,
- 	MLX5_CMD_OP_MAX
- };
- 
-@@ -1934,6 +1935,14 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         match_definer_format_supported[0x40];
- };
- 
-+enum {
-+	MLX5_CROSS_VHCA_OBJ_TO_OBJ_SUPPORTED_LOCAL_FLOW_TABLE_TO_REMOTE_FLOW_TABLE_MISS  = 0x80000,
-+};
-+
-+enum {
-+	MLX5_ALLOWED_OBJ_FOR_OTHER_VHCA_ACCESS_FLOW_TABLE       = 0x200,
-+};
-+
- struct mlx5_ifc_cmd_hca_cap_2_bits {
- 	u8	   reserved_at_0[0x80];
- 
-@@ -1950,7 +1959,11 @@ struct mlx5_ifc_cmd_hca_cap_2_bits {
- 	u8	   migration_tracking_state[0x1];
- 	u8	   reserved_at_ca[0x16];
- 
--	u8	   reserved_at_e0[0xc0];
-+	u8         cross_vhca_object_to_object_supported[0x20];
-+
-+	u8         allowed_object_for_other_vhca_access[0x40];
-+
-+	u8	   reserved_at_140[0x60];
- 
- 	u8	   flow_table_type_2_type[0x8];
- 	u8	   reserved_at_1a8[0x3];
-@@ -6369,6 +6382,28 @@ struct mlx5_ifc_general_obj_out_cmd_hdr_bits {
- 	u8         reserved_at_60[0x20];
- };
- 
-+struct mlx5_ifc_allow_other_vhca_access_in_bits {
-+	u8 opcode[0x10];
-+	u8 uid[0x10];
-+	u8 reserved_at_20[0x10];
-+	u8 op_mod[0x10];
-+	u8 reserved_at_40[0x50];
-+	u8 object_type_to_be_accessed[0x10];
-+	u8 object_id_to_be_accessed[0x20];
-+	u8 reserved_at_c0[0x40];
-+	union {
-+		u8 access_key_raw[0x100];
-+		u8 access_key[8][0x20];
-+	};
-+};
-+
-+struct mlx5_ifc_allow_other_vhca_access_out_bits {
-+	u8 status[0x8];
-+	u8 reserved_at_8[0x18];
-+	u8 syndrome[0x20];
-+	u8 reserved_at_40[0x40];
-+};
-+
- struct mlx5_ifc_modify_header_arg_bits {
- 	u8         reserved_at_0[0x80];
- 
-@@ -6391,6 +6426,24 @@ struct mlx5_ifc_create_match_definer_out_bits {
- 	struct mlx5_ifc_general_obj_out_cmd_hdr_bits general_obj_out_cmd_hdr;
- };
- 
-+struct mlx5_ifc_alias_context_bits {
-+	u8 vhca_id_to_be_accessed[0x10];
-+	u8 reserved_at_10[0xd];
-+	u8 status[0x3];
-+	u8 object_id_to_be_accessed[0x20];
-+	u8 reserved_at_40[0x40];
-+	union {
-+		u8 access_key_raw[0x100];
-+		u8 access_key[8][0x20];
-+	};
-+	u8 metadata[0x80];
-+};
-+
-+struct mlx5_ifc_create_alias_obj_in_bits {
-+	struct mlx5_ifc_general_obj_in_cmd_hdr_bits hdr;
-+	struct mlx5_ifc_alias_context_bits alias_ctx;
-+};
-+
- enum {
- 	MLX5_QUERY_FLOW_GROUP_OUT_MATCH_CRITERIA_ENABLE_OUTER_HEADERS    = 0x0,
- 	MLX5_QUERY_FLOW_GROUP_OUT_MATCH_CRITERIA_ENABLE_MISC_PARAMETERS  = 0x1,
-@@ -11919,6 +11972,7 @@ enum {
- 	MLX5_GENERAL_OBJECT_TYPES_FLOW_METER_ASO = 0x24,
- 	MLX5_GENERAL_OBJECT_TYPES_MACSEC = 0x27,
- 	MLX5_GENERAL_OBJECT_TYPES_INT_KEK = 0x47,
-+	MLX5_GENERAL_OBJECT_TYPES_FLOW_TABLE_ALIAS = 0xff15,
- };
- 
- enum {
--- 
-2.41.0
 
+You submitted this commit 9b4b7c1f9f54 ("RDMA/rxe: Add workqueue support 
+for rxe tasks").
+
+You should be very familiar with this commit.
+
+And this commit causes regression.
+
+So you should delved into the source code to find the root cause, then 
+fix it.
+
+
+Jason && Leon, please comment on this.
+
+
+Best Regards,
+
+Zhu Yanjun
+
+>
+> Bob
