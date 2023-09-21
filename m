@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CE45E7D0A1
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:24:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C36DFE7D0A1
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:24:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229495AbjIURYV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Sep 2023 13:24:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60460 "EHLO
+        id S229877AbjIURYb (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Sep 2023 13:24:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229499AbjIURYA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:24:00 -0400
-Received: from out-221.mta0.migadu.com (out-221.mta0.migadu.com [91.218.175.221])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14F0B86AE
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:05:32 -0700 (PDT)
-Message-ID: <3b220489-5308-2391-235b-b8391d04e991@linux.dev>
+        with ESMTP id S229835AbjIURYL (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:24:11 -0400
+Received: from out-210.mta1.migadu.com (out-210.mta1.migadu.com [95.215.58.210])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F43424869
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:11:31 -0700 (PDT)
+Message-ID: <cd1891e1-75f8-938e-317e-9a9760db7e13@linux.dev>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1695290779;
+        t=1695275225;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=LdKWJ2w335d7PBbzKmbpoSg/0hYsrVxxlFOpD1xdhXc=;
-        b=q7qzzdnDqBXWNuiUFPM4rLiMbqJQXrC4Ly2a6cIlszg9BdoKpYykGnjzLVas2G+7UHnF1s
-        D2DvaFx3kWhoXRgEfHe9LuuWJdZTvSMvUKBX54CbBRIQUCGDLyX78b0a5e6W9TuLuXrMnt
-        H2/Xgg5hISPBgZfSBbxnqQM89QG1Kmc=
-Date:   Thu, 21 Sep 2023 18:06:13 +0800
+        bh=aN+EUH0vaJjZAAWY+RQaRw5xxfN01hvoxcEUTvT6ACw=;
+        b=JxwbhX3i+3E+Yoc0pOM8/UsDWVsL2ZUD7tD7mdZaYMuxw4k2kS/Fi1VEWwLsaSWYwEFnlA
+        QfBhsO+wQTb1ypSJH6uZhrnxYa1Oke1fdEFAEXX4spIsMyhK3zlReAWDvnQ6VLt67nq+zz
+        mZWPPKgt10ZhLl8nrnaWfnoBJE8wrtk=
+Date:   Thu, 21 Sep 2023 13:46:56 +0800
 MIME-Version: 1.0
 Subject: Re: [bug report] blktests srp/002 hang
 To:     Bob Pearson <rpearsonhpe@gmail.com>,
@@ -74,6 +74,7 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 >> support for rxe tasks")?
 > That change happened well before the failures went away. I was seeing failures at the same rate with tasklets
 > and wqs. But after updating Ubuntu and the kernel at some point they all went away.
+
 Thanks, Bob. From what you said, in Ubuntu, this problem does not occur 
 now.
 
@@ -98,6 +99,7 @@ Jason && Leon, please comment on this.
 Thanks a lot.
 
 Zhu Yanjun
+
 >
 >> Thanks,
 >>
