@@ -2,119 +2,70 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5792EE7D0A4
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:49:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D977E7D0A3
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:51:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229877AbjIURtz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Sep 2023 13:49:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37994 "EHLO
+        id S229670AbjIURvS (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Sep 2023 13:51:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51406 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229866AbjIURto (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:49:44 -0400
-Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com [IPv6:2a00:1450:4864:20::22a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0FCDA59966;
-        Thu, 21 Sep 2023 10:20:34 -0700 (PDT)
-Received: by mail-lj1-x22a.google.com with SMTP id 38308e7fff4ca-2bff7d81b5eso20977861fa.0;
-        Thu, 21 Sep 2023 10:20:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1695316832; x=1695921632; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=47DxCGm7i3dYjdPe0Jz5PxJDZuAzH5vpZWnHHkkMyf0=;
-        b=P/3AdJUcIJUSZFnqG2WLk7AqI9pyv0n/7dfWF15/ij7K0k5ruTrd8er4oegBOaNJpt
-         9kHttLkwTDJido+yFenfFrDahQyfbguwwxHA8SHa6aZxmpgx/RtcrcbthawEGrv/QOfB
-         /4bAwz5zZGXHloXhWCOITmEBgf2LmgfZhZWMu1y+rXn9r8cGmr9wgg9nYJH6ZS4DC8Ia
-         GpUA1pw7C7PkWVRQZNCHwi6avRcFctxINRIAjmtXW7USLzLKhZvsbAi9wMJYtkOoYtvH
-         tnN/nyGLwSSrEFg6UF2/OAzlOmrizNJzWfxc8o6CmRu7hqkbyVmI40RTrg+Xm0AuOfgw
-         HX2Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695316832; x=1695921632;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=47DxCGm7i3dYjdPe0Jz5PxJDZuAzH5vpZWnHHkkMyf0=;
-        b=pdd0JDrLBVHxcuEHS2hev2W3Z9FIBRADAYpcTjzLMmvG/8ncoalUNMa0B40Zo+qBhv
-         SFQLT3PWkFUEUCo3FgB6p+A9wXlm/glm2D90PMEyCtzyatzSYb7nBSA63qiPaekhq70d
-         5rw/aCw9JoVxEWh0c+efXgSh6amNFkVk6RxOPDvFuXj2MkS6zwmovL0G5SRchorVYOC2
-         ZGH5CtMo8yFEK5VIpwOLAwNZrkKlxoklb28EuTxpKl4wGbLLl8SG9qUXM54GZJrCebgq
-         hhIVFFfB0P7ltc4/B4yfWd7l6trbjOZH/LNseUtwQT+lCySVr1ryS8fqLiY3JCtkXb5/
-         MKnA==
-X-Gm-Message-State: AOJu0YxfrjYB0E070zSUNmAs6/kF1aXv5iJh5321vPTzzxarrbzg3JpW
-        vYXInBv4YSXOcX5ptOF3jjZ/b1eP1uVIiggeEQGS+Hf3X8M=
-X-Google-Smtp-Source: AGHT+IG4wa4P3EV2VWqYbwr4mrLUiPjm3uQOB/NfeSQg20MaTE2IygaTWD5sEtvOZetepMpVTgGww62MHr5i7tZ8gHQ=
-X-Received: by 2002:a1c:6a04:0:b0:405:1baf:cedd with SMTP id
- f4-20020a1c6a04000000b004051bafceddmr4882760wmc.1.1695306222038; Thu, 21 Sep
- 2023 07:23:42 -0700 (PDT)
+        with ESMTP id S229700AbjIURvF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:51:05 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 129006E9A
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:22:32 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C913C116C8;
+        Thu, 21 Sep 2023 08:27:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1695284840;
+        bh=2xZRFmVWrIywrtLAEU7pZV4pVep3cLRyvYJEyK3qHfw=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=QdDJUeibAz5k+E7pPQjOGh3Psi1MHywN6ivbQtAN509pDLI+2XXCKs9q4QhgyOvua
+         Xb7D5XGr9iraUSGqx61fE+GkXJnklFhVC/4HoQUmxiZi3j8SHugNX4zjBSKBOWuMEH
+         aTUrUkOElNoRG4yNwy7tB42DyaPRtZ9hONvxOl8JEjtVSCsl8NB7CVdVHfzFO5+Erb
+         dlZwxOMVebQHujp1nip+++5lFX3nb4BwZ694Ih+9IU7VZy5FdWONTc/4Rk6ulF2aXr
+         F/HreZwa7kquwBhqvfKlZJHkH19GYfQS2sxJude47b89UqDriVz+os9bcV+1EF0hzy
+         bzLBT+RhAcckw==
+Date:   Thu, 21 Sep 2023 11:27:16 +0300
+From:   Leon Romanovsky <leon@kernel.org>
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Shay Drory <shayd@nvidia.com>, linux-rdma@vger.kernel.org,
+        Michael Guralnik <michaelgur@nvidia.com>
+Subject: Re: [PATCH rdma-rc] RDMA/mlx5: Fix mkey cache possible deadlock on
+ cleanup
+Message-ID: <20230921082716.GC1642130@unreal>
+References: <2c0452d944a865b060709af71940dafc4aad8b89.1695203715.git.leon@kernel.org>
+ <20230920140112.GB13733@nvidia.com>
 MIME-Version: 1.0
-References: <dsg6rd66tyiei32zaxs6ddv5ebefr5vtxjwz6d2ewqrcwisogl@ge7jzan7dg5u>
- <0c5c732c-283c-b29a-0ac2-c32211fc7e17@gmail.com> <yewvcfcketee5qduraajra2g37t2mpxdlmj7aqny3umf7mkavk@wsm5forumsou>
- <8be8f611-e413-9584-7c2e-2c1abf4147be@acm.org> <plrbpd5gg32uaferhjj6ibkt4wqybu3v3y32f4rlhvsruc7cu4@2pgrj2542da2>
- <18a3ae8c-145b-4c7f-a8f5-67840feeb98c@acm.org> <ab93655f-c187-fdab-6c67-3bfb2d9aa516@gmail.com>
- <9dd0aa0a-d696-a95b-095b-f54d6d31a6ab@linux.dev> <d3205633-0cd2-f87e-1c40-21b8172b6da3@linux.dev>
- <nqdsj764d7e56kxevcwnq6qoi6ptuu3bi6ntfakb55vm3toda7@eo3ffzzqrot7>
- <5a4efe6f-d8c6-84ce-377e-eb64bcad706c@linux.dev> <f50beb15-2cab-dfb9-3b58-ea66e7f114a6@gmail.com>
- <fe61fdc5-ca8f-2efc-975d-46b99d66c6f5@linux.dev> <afc98035-1bb8-f75c-451a-8e3e39fb74aa@gmail.com>
- <6fc3b524-af7d-43ce-aa05-5c44ec850b9b@acm.org> <b728f4db-bafa-dd0f-e288-7e3f56e6eae8@gmail.com>
- <02d7cbf2-b17b-488a-b6e9-ebb728b51c94@acm.org> <b80dae29-3a7c-f039-bc35-08c6e9f91197@gmail.com>
-In-Reply-To: <b80dae29-3a7c-f039-bc35-08c6e9f91197@gmail.com>
-From:   Rain River <rain.1986.08.12@gmail.com>
-Date:   Thu, 21 Sep 2023 22:23:07 +0800
-Message-ID: <CAJr_XRAy4EHueAP-10=WSEa46j2aQBArdzYsq7OqSqR93Ue+ug@mail.gmail.com>
-Subject: Re: [bug report] blktests srp/002 hang
-To:     Bob Pearson <rpearsonhpe@gmail.com>
-Cc:     Bart Van Assche <bvanassche@acm.org>,
-        Zhu Yanjun <yanjun.zhu@linux.dev>,
-        Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230920140112.GB13733@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Sep 21, 2023 at 2:53=E2=80=AFAM Bob Pearson <rpearsonhpe@gmail.com>=
- wrote:
->
-> On 9/20/23 12:22, Bart Van Assche wrote:
-> > On 9/20/23 10:18, Bob Pearson wrote:
-> >> But I have also seen the same behavior in the siw driver which is
-> >> completely independent.
-> >
-> > Hmm ... I haven't seen any hangs yet with the siw driver.
->
-> I was on Ubuntu 6-9 months ago. Currently I don't see hangs on either.
-> >
-> >> As mentioned above at the moment Ubuntu is failing rarely. But it used=
- to fail reliably (srp/002 about 75% of the time and srp/011 about 99% of t=
-he time.) There haven't been any changes to rxe to explain this.
-> >
-> > I think that Zhu mentioned commit 9b4b7c1f9f54 ("RDMA/rxe: Add workqueu=
-e
-> > support for rxe tasks")?
->
-> That change happened well before the failures went away. I was seeing fai=
-lures at the same rate with tasklets
-> and wqs. But after updating Ubuntu and the kernel at some point they all =
-went away.
+On Wed, Sep 20, 2023 at 11:01:12AM -0300, Jason Gunthorpe wrote:
+> On Wed, Sep 20, 2023 at 12:56:18PM +0300, Leon Romanovsky wrote:
+> > @@ -1796,6 +1804,10 @@ static int cache_ent_find_and_store(struct mlx5_ib_dev *dev,
+> >  	}
+> >  
+> >  	mutex_lock(&cache->rb_lock);
+> > +	if (cache->disable) {
+> > +		mutex_unlock(&cache->rb_lock);
+> > +		return 0;
+> > +	}
+> 
+> 
+> I don't get this.
+> 
+> Shouldn't we just initialize the ent->disabled to cache->disabled if
+> we happen to be creating a new ent?
 
-I made tests on the latest Ubuntu with the latest kernel without the
-commit 9b4b7c1f9f54 ("RDMA/rxe: Add workqueue support for rxe tasks").
-The latest kernel is v6.6-rc2, the commit 9b4b7c1f9f54 ("RDMA/rxe: Add
-workqueue support for rxe tasks") is reverted.
-I made blktest tests for about 30 times, this problem does not occur.
+I'm convinced that new entries can't be created when we are calling to
+mlx5_mkey_cache_cleanup().
 
-So I confirm that without this commit, this hang problem does not
-occur on Ubuntu without the commit 9b4b7c1f9f54 ("RDMA/rxe: Add
-workqueue support for rxe tasks").
+Thanks
 
-Nanthan
-
->
-> >
-> > Thanks,
-> >
-> > Bart.
->
->
+> 
+> Jason
+> 
