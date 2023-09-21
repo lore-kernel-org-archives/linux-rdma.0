@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B90DE71096
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4293EE71096
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:02:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229726AbjIURCH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Sep 2023 13:02:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60476 "EHLO
+        id S229824AbjIURCi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Sep 2023 13:02:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229806AbjIURCA (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:02:00 -0400
+        with ESMTP id S229960AbjIURCH (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:02:07 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5886C173E
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:00:55 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E720C4E666;
-        Thu, 21 Sep 2023 12:11:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA8AB1BFA
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:01:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44D75C4E668;
+        Thu, 21 Sep 2023 12:11:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695298280;
-        bh=MwYRBNuDIKtuwPlprN1eygpUkSepifoTrEjLPdJHJO0=;
+        s=k20201202; t=1695298267;
+        bh=5s0TNHVNIGX2PdXzgRwpxXcV3ee6qY167sWDIzLvnns=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=OwAGhJ1DiY1PyKLdDXB+adneX2XZC6Ho7W1xH1IcJNysZx/sRMXxNWEzD/pwVBQFM
-         Vku8pQF3XHTYQdU2qtd/jSxcwQ8KWgOsRorrR9KX/OvSU1H/R0qHjbRbBcUxjZMpbi
-         VZVwrTDZuHo8ui/mm0BapqJcDvwsUxhOhJdkzJ2Ty739N23nip88E6drpv9D6V5szY
-         O1j0OxMikBnkNRX4EyLSr6PAdlYMr8RZdxhRLits158lckY8i48DfWI49/rOdMXML4
-         cWtippWuszxtaPV8NBAOS1ryaSNj3DVGiEIYHGX0hHYQAffoDl0yaCsO4PRloe5BI0
-         y1fSOvG5T6UNw==
+        b=CIGPj46LOZjOK8oEq1JbX+YF7C1ZsALj0lAaQTeAQS7N2vEKnoTU195tve58jAcPx
+         C8cx4FWt3zPBdLSdOoQVjJbbT4t0sOZKfkmzzGdlW0CKus8WKbL5IGi4C4Iyu6o+8c
+         Vn81MCCwRZBJJKwvz48An+jUPCVuzTM3AlA8V4BLqPlz93LBjVdEv+16RHPnq2IjB+
+         dq3FrOOlzZhrk2vyxunaQkDwW6t3aiaTtRbqF+fFt91wIQ87SZWNwQHRRLW4lV6RT9
+         fHltTYQuhnJFDQSlif+sIPVDK0m/afIlA6uvv5qYt2bs+8ABV3CleHdxy3VpAEtvbA
+         9t/oXmWN2nxfA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Patrisious Haddad <phaddad@nvidia.com>,
@@ -36,9 +36,9 @@ Cc:     Patrisious Haddad <phaddad@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Steffen Klassert <steffen.klassert@secunet.com>,
         Simon Horman <horms@kernel.org>
-Subject: [PATCH mlx5-next 6/9] net/mlx5: Add create alias flow table function to ipsec roce
-Date:   Thu, 21 Sep 2023 15:10:32 +0300
-Message-ID: <36e15ef41586f2a9aacc65b935de18391eef5607.1695296682.git.leon@kernel.org>
+Subject: [PATCH mlx5-next 3/9] net/mlx5: Store devcom pointer inside IPsec RoCE
+Date:   Thu, 21 Sep 2023 15:10:29 +0300
+Message-ID: <5bb3160ceeb07523542302886da54c78eef0d2af.1695296682.git.leon@kernel.org>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <cover.1695296682.git.leon@kernel.org>
 References: <cover.1695296682.git.leon@kernel.org>
@@ -50,104 +50,132 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Patrisious Haddad <phaddad@nvidia.com>
 
-Implements functions which creates an alias flow table, and check
-if alias flow table creation is even supported, and if successful
-returns the created alias flow table object id.
-
-This function would be used in later patches to allow jumping from
-one vhca to another, in order to add support for MPV mode.
+Store the mlx5e priv devcom component within IPsec RoCE to enable
+the IPsec RoCE code to access the other device's private information.
+This includes retrieving the necessary device information and
+the IPsec database, which helps determine if IPsec is configured or not.
 
 Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
 Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- .../mellanox/mlx5/core/lib/ipsec_fs_roce.c    | 66 +++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c    | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h    | 3 ++-
+ drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c | 5 +++--
+ drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c | 6 +++++-
+ drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h | 5 ++++-
+ 5 files changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
-index 6176680c470c..648f3d7ab68b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
-@@ -4,6 +4,7 @@
- #include "fs_core.h"
- #include "lib/ipsec_fs_roce.h"
- #include "mlx5_core.h"
-+#include <linux/random.h>
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+index 7d4ceb9b9c16..49354bc036ad 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.c
+@@ -870,7 +870,7 @@ void mlx5e_ipsec_init(struct mlx5e_priv *priv)
+ 	}
  
- struct mlx5_ipsec_miss {
- 	struct mlx5_flow_group *group;
-@@ -44,6 +45,71 @@ static void ipsec_fs_roce_setup_udp_dport(struct mlx5_flow_spec *spec,
- 	MLX5_SET(fte_match_param, spec->match_value, outer_headers.udp_dport, dport);
+ 	ipsec->is_uplink_rep = mlx5e_is_uplink_rep(priv);
+-	ret = mlx5e_accel_ipsec_fs_init(ipsec);
++	ret = mlx5e_accel_ipsec_fs_init(ipsec, &priv->devcom);
+ 	if (ret)
+ 		goto err_fs_init;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
+index 06743156ffca..dc8e539dc20e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec.h
+@@ -38,6 +38,7 @@
+ #include <net/xfrm.h>
+ #include <linux/idr.h>
+ #include "lib/aso.h"
++#include "lib/devcom.h"
+ 
+ #define MLX5E_IPSEC_SADB_RX_BITS 10
+ #define MLX5E_IPSEC_ESN_SCOPE_MID 0x80000000L
+@@ -304,7 +305,7 @@ void mlx5e_ipsec_cleanup(struct mlx5e_priv *priv);
+ void mlx5e_ipsec_build_netdev(struct mlx5e_priv *priv);
+ 
+ void mlx5e_accel_ipsec_fs_cleanup(struct mlx5e_ipsec *ipsec);
+-int mlx5e_accel_ipsec_fs_init(struct mlx5e_ipsec *ipsec);
++int mlx5e_accel_ipsec_fs_init(struct mlx5e_ipsec *ipsec, struct mlx5_devcom_comp_dev **devcom);
+ int mlx5e_accel_ipsec_fs_add_rule(struct mlx5e_ipsec_sa_entry *sa_entry);
+ void mlx5e_accel_ipsec_fs_del_rule(struct mlx5e_ipsec_sa_entry *sa_entry);
+ int mlx5e_accel_ipsec_fs_add_pol(struct mlx5e_ipsec_pol_entry *pol_entry);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
+index 7dba4221993f..4315e4f3d6cd 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_fs.c
+@@ -1888,7 +1888,8 @@ void mlx5e_accel_ipsec_fs_cleanup(struct mlx5e_ipsec *ipsec)
+ 	}
  }
  
-+static bool ipsec_fs_create_alias_supported(struct mlx5_core_dev *mdev,
-+					    struct mlx5_core_dev *master_mdev)
-+{
-+	u64 obj_allowed_m = MLX5_CAP_GEN_2_64(master_mdev, allowed_object_for_other_vhca_access);
-+	u32 obj_supp_m = MLX5_CAP_GEN_2(master_mdev, cross_vhca_object_to_object_supported);
-+	u64 obj_allowed = MLX5_CAP_GEN_2_64(mdev, allowed_object_for_other_vhca_access);
-+	u32 obj_supp = MLX5_CAP_GEN_2(mdev, cross_vhca_object_to_object_supported);
+-int mlx5e_accel_ipsec_fs_init(struct mlx5e_ipsec *ipsec)
++int mlx5e_accel_ipsec_fs_init(struct mlx5e_ipsec *ipsec,
++			      struct mlx5_devcom_comp_dev **devcom)
+ {
+ 	struct mlx5_core_dev *mdev = ipsec->mdev;
+ 	struct mlx5_flow_namespace *ns, *ns_esw;
+@@ -1940,7 +1941,7 @@ int mlx5e_accel_ipsec_fs_init(struct mlx5e_ipsec *ipsec)
+ 		ipsec->tx_esw->ns = ns_esw;
+ 		xa_init_flags(&ipsec->rx_esw->ipsec_obj_id_map, XA_FLAGS_ALLOC1);
+ 	} else if (mlx5_ipsec_device_caps(mdev) & MLX5_IPSEC_CAP_ROCE) {
+-		ipsec->roce = mlx5_ipsec_fs_roce_init(mdev);
++		ipsec->roce = mlx5_ipsec_fs_roce_init(mdev, devcom);
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
+index 6e3f178d6f84..6176680c470c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.c
+@@ -31,6 +31,7 @@ struct mlx5_ipsec_fs {
+ 	struct mlx5_ipsec_rx_roce ipv4_rx;
+ 	struct mlx5_ipsec_rx_roce ipv6_rx;
+ 	struct mlx5_ipsec_tx_roce tx;
++	struct mlx5_devcom_comp_dev **devcom;
+ };
+ 
+ static void ipsec_fs_roce_setup_udp_dport(struct mlx5_flow_spec *spec,
+@@ -337,7 +338,8 @@ void mlx5_ipsec_fs_roce_cleanup(struct mlx5_ipsec_fs *ipsec_roce)
+ 	kfree(ipsec_roce);
+ }
+ 
+-struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev)
++struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev,
++					      struct mlx5_devcom_comp_dev **devcom)
+ {
+ 	struct mlx5_ipsec_fs *roce_ipsec;
+ 	struct mlx5_flow_namespace *ns;
+@@ -363,6 +365,8 @@ struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev)
+ 
+ 	roce_ipsec->tx.ns = ns;
+ 
++	roce_ipsec->devcom = devcom;
 +
-+	if (!(obj_supp &
-+	    MLX5_CROSS_VHCA_OBJ_TO_OBJ_SUPPORTED_LOCAL_FLOW_TABLE_TO_REMOTE_FLOW_TABLE_MISS) ||
-+	    !(obj_supp_m &
-+	    MLX5_CROSS_VHCA_OBJ_TO_OBJ_SUPPORTED_LOCAL_FLOW_TABLE_TO_REMOTE_FLOW_TABLE_MISS))
-+		return false;
+ 	return roce_ipsec;
+ 
+ err_tx:
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h
+index 9712d705fe48..75475e126181 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/ipsec_fs_roce.h
+@@ -4,6 +4,8 @@
+ #ifndef __MLX5_LIB_IPSEC_H__
+ #define __MLX5_LIB_IPSEC_H__
+ 
++#include "lib/devcom.h"
 +
-+	if (!(obj_allowed & MLX5_ALLOWED_OBJ_FOR_OTHER_VHCA_ACCESS_FLOW_TABLE) ||
-+	    !(obj_allowed_m & MLX5_ALLOWED_OBJ_FOR_OTHER_VHCA_ACCESS_FLOW_TABLE))
-+		return false;
-+
-+	return true;
-+}
-+
-+static int ipsec_fs_create_aliased_ft(struct mlx5_core_dev *ibv_owner,
-+				      struct mlx5_core_dev *ibv_allowed,
-+				      struct mlx5_flow_table *ft,
-+				      u32 *obj_id)
-+{
-+	u32 aliased_object_id = (ft->type << FT_ID_FT_TYPE_OFFSET) | ft->id;
-+	u16 vhca_id_to_be_accessed = MLX5_CAP_GEN(ibv_owner, vhca_id);
-+	struct mlx5_cmd_allow_other_vhca_access_attr allow_attr = {};
-+	struct mlx5_cmd_alias_obj_create_attr alias_attr = {};
-+	char key[ACCESS_KEY_LEN];
-+	int ret;
-+	int i;
-+
-+	if (!ipsec_fs_create_alias_supported(ibv_owner, ibv_allowed))
-+		return -EOPNOTSUPP;
-+
-+	for (i = 0; i < ACCESS_KEY_LEN; i++)
-+		key[i] = get_random_u64() & 0xFF;
-+
-+	memcpy(allow_attr.access_key, key, ACCESS_KEY_LEN);
-+	allow_attr.obj_type = MLX5_GENERAL_OBJECT_TYPES_FLOW_TABLE_ALIAS;
-+	allow_attr.obj_id = aliased_object_id;
-+
-+	ret = mlx5_cmd_allow_other_vhca_access(ibv_owner, &allow_attr);
-+	if (ret) {
-+		mlx5_core_err(ibv_owner, "Failed to allow other vhca access err=%d\n",
-+			      ret);
-+		return ret;
-+	}
-+
-+	memcpy(alias_attr.access_key, key, ACCESS_KEY_LEN);
-+	alias_attr.obj_id = aliased_object_id;
-+	alias_attr.obj_type = MLX5_GENERAL_OBJECT_TYPES_FLOW_TABLE_ALIAS;
-+	alias_attr.vhca_id = vhca_id_to_be_accessed;
-+	ret = mlx5_cmd_alias_obj_create(ibv_allowed, &alias_attr, obj_id);
-+	if (ret) {
-+		mlx5_core_err(ibv_allowed, "Failed to create alias object err=%d\n",
-+			      ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static int
- ipsec_fs_roce_rx_rule_setup(struct mlx5_core_dev *mdev,
- 			    struct mlx5_flow_destination *default_dst,
+ struct mlx5_ipsec_fs;
+ 
+ struct mlx5_flow_table *
+@@ -20,6 +22,7 @@ int mlx5_ipsec_fs_roce_tx_create(struct mlx5_core_dev *mdev,
+ 				 struct mlx5_ipsec_fs *ipsec_roce,
+ 				 struct mlx5_flow_table *pol_ft);
+ void mlx5_ipsec_fs_roce_cleanup(struct mlx5_ipsec_fs *ipsec_roce);
+-struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev);
++struct mlx5_ipsec_fs *mlx5_ipsec_fs_roce_init(struct mlx5_core_dev *mdev,
++					      struct mlx5_devcom_comp_dev **devcom);
+ 
+ #endif /* __MLX5_LIB_IPSEC_H__ */
 -- 
 2.41.0
 
