@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8333E7D0A3
-	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:27:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9447CE7D0A3
+	for <linux-rdma@archiver.kernel.org>; Thu, 21 Sep 2023 17:27:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230093AbjIUR10 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 21 Sep 2023 13:27:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53446 "EHLO
+        id S229840AbjIUR14 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 21 Sep 2023 13:27:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229854AbjIUR05 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:26:57 -0400
+        with ESMTP id S230104AbjIUR11 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 21 Sep 2023 13:27:27 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E78D212B
-        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:02:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0259BC4E662;
-        Thu, 21 Sep 2023 12:11:01 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 636301987
+        for <linux-rdma@vger.kernel.org>; Thu, 21 Sep 2023 10:01:00 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 843C4C4E661;
+        Thu, 21 Sep 2023 12:10:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695298262;
-        bh=LJeEZiQFuaOyNrJrVDaZTpW+PV2WcnmWrqmXE4pIdCA=;
+        s=k20201202; t=1695298248;
+        bh=DgzUVyO94BHRDEnxLuvZy37u6uHpwfBgskzMDwYtI98=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=PyygfKNdSKO8CwnEUnHtbB9MJCeSMIbFfBbEHrfXnR34FRE+c69xuFIcLDc+K9LDc
-         hvHDFAlAZlyz9OAYmKtI8ZG7RUDKiWQCpqxPMgMwTOhxcwUglbIPzr+a3/eddfouhU
-         Dxuv16iot9bTzUWgFwCwyoefWNEYxz+Gh3VaYrlbEI2m0LjCv5dnyc8zKfbsT1mwvB
-         OYG/ssy5hsM9p4xGENbbO1HnGfyhWwR+Sgs8b0BRPBCQIeZwduiOPXI5+n1RxdBGKF
-         I8vhPLYSLIh9cHJEskS6e0fdfOgCrL5f0pD48kHQXYldEJPufDxQycbclf3k4f/6o8
-         6O05Tl6uVm3bQ==
+        b=tMb9BpcBsEMzhCzh8Se5JYn0XxGARmerYvmTGI7Lu4cRG00Zyiw6Si3oSJ24loxVj
+         CV1Av1f+jAy/L4yEbt3SRmBfSLk0azn/Cn2tasOGmRUoIzwa3vejrMPGxS+NV8KSKk
+         ix23ZVjk20FWWPX9NsLIUXJokqnAxLP+MTe5OuM3CwZnX2iPlkuchoM+TmuJ7nHu6Y
+         ZC3kf1PaCy6dGby5ILVL8d78BCiwRBusFHJFOKKSdrWfoHocjGJlVYwVD+/YBv7dMA
+         SMyPp2W0RRD6MGY/lDNVKBL+Ei9GcOFg3jnmmj7MtxWI+nOzzc09zOiQFmoJBMQ9bQ
+         ov0PJnXs8gRXA==
 From:   Leon Romanovsky <leon@kernel.org>
 To:     Jason Gunthorpe <jgg@nvidia.com>
 Cc:     Patrisious Haddad <phaddad@nvidia.com>,
@@ -36,9 +36,9 @@ Cc:     Patrisious Haddad <phaddad@nvidia.com>,
         Saeed Mahameed <saeedm@nvidia.com>,
         Steffen Klassert <steffen.klassert@secunet.com>,
         Simon Horman <horms@kernel.org>
-Subject: [PATCH mlx5-next 5/9] net/mlx5: Implement alias object allow and create functions
-Date:   Thu, 21 Sep 2023 15:10:31 +0300
-Message-ID: <f45a9c85319fa783186b8988abcd64955b5f2a0c.1695296682.git.leon@kernel.org>
+Subject: [PATCH mlx5-next 1/9] RDMA/mlx5: Send events from IB driver about device affiliation state
+Date:   Thu, 21 Sep 2023 15:10:27 +0300
+Message-ID: <a7491c3e483cfd8d962f5f75b9a25f253043384a.1695296682.git.leon@kernel.org>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <cover.1695296682.git.leon@kernel.org>
 References: <cover.1695296682.git.leon@kernel.org>
@@ -50,156 +50,114 @@ X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: Patrisious Haddad <phaddad@nvidia.com>
 
-Add functions which allow one vhca to access another vhca object,
-and functions that creates an alias object or destroys it.
+Send blocking events from IB driver whenever the device is done being
+affiliated or if it is removed from an affiliation.
 
-Together they can be used to create cross vhca flow table that is able
-jump from the steering domain that is managed by one vport,
-to the steering domain on a different vport.
+This is useful since now the EN driver can register to those event and
+know when a device is affiliated or not.
 
 Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
 Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 70 +++++++++++++++++++
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   | 22 ++++++
- 2 files changed, 92 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c              | 17 +++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/main.c |  6 ++++++
+ include/linux/mlx5/device.h                    |  2 ++
+ include/linux/mlx5/driver.h                    |  2 ++
+ 4 files changed, 27 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index afb348579577..7671c5727ed1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -525,6 +525,7 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
- 	case MLX5_CMD_OP_SAVE_VHCA_STATE:
- 	case MLX5_CMD_OP_LOAD_VHCA_STATE:
- 	case MLX5_CMD_OP_SYNC_CRYPTO:
-+	case MLX5_CMD_OP_ALLOW_OTHER_VHCA_ACCESS:
- 		*status = MLX5_DRIVER_STATUS_ABORTED;
- 		*synd = MLX5_DRIVER_SYND;
- 		return -ENOLINK;
-@@ -728,6 +729,7 @@ const char *mlx5_command_str(int command)
- 	MLX5_COMMAND_STR_CASE(SAVE_VHCA_STATE);
- 	MLX5_COMMAND_STR_CASE(LOAD_VHCA_STATE);
- 	MLX5_COMMAND_STR_CASE(SYNC_CRYPTO);
-+	MLX5_COMMAND_STR_CASE(ALLOW_OTHER_VHCA_ACCESS);
- 	default: return "unknown command opcode";
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index aed5cdea50e6..530d88784e41 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -24,6 +24,7 @@
+ #include <linux/mlx5/vport.h>
+ #include <linux/mlx5/fs.h>
+ #include <linux/mlx5/eswitch.h>
++#include <linux/mlx5/driver.h>
+ #include <linux/list.h>
+ #include <rdma/ib_smi.h>
+ #include <rdma/ib_umem_odp.h>
+@@ -3175,6 +3176,13 @@ static void mlx5_ib_unbind_slave_port(struct mlx5_ib_dev *ibdev,
+ 
+ 	lockdep_assert_held(&mlx5_ib_multiport_mutex);
+ 
++	mlx5_core_mp_event_replay(ibdev->mdev,
++				  MLX5_DRIVER_EVENT_AFFILIATION_REMOVED,
++				  NULL);
++	mlx5_core_mp_event_replay(mpi->mdev,
++				  MLX5_DRIVER_EVENT_AFFILIATION_REMOVED,
++				  NULL);
++
+ 	mlx5_ib_cleanup_cong_debugfs(ibdev, port_num);
+ 
+ 	spin_lock(&port->mp.mpi_lock);
+@@ -3226,6 +3234,7 @@ static bool mlx5_ib_bind_slave_port(struct mlx5_ib_dev *ibdev,
+ 				    struct mlx5_ib_multiport_info *mpi)
+ {
+ 	u32 port_num = mlx5_core_native_port_num(mpi->mdev) - 1;
++	u64 key;
+ 	int err;
+ 
+ 	lockdep_assert_held(&mlx5_ib_multiport_mutex);
+@@ -3254,6 +3263,14 @@ static bool mlx5_ib_bind_slave_port(struct mlx5_ib_dev *ibdev,
+ 
+ 	mlx5_ib_init_cong_debugfs(ibdev, port_num);
+ 
++	key = ibdev->ib_dev.index;
++	mlx5_core_mp_event_replay(mpi->mdev,
++				  MLX5_DRIVER_EVENT_AFFILIATION_DONE,
++				  &key);
++	mlx5_core_mp_event_replay(ibdev->mdev,
++				  MLX5_DRIVER_EVENT_AFFILIATION_DONE,
++				  &key);
++
+ 	return true;
+ 
+ unbind:
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index d17c9c31b165..307ffe6300f8 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -361,6 +361,12 @@ void mlx5_core_uplink_netdev_event_replay(struct mlx5_core_dev *dev)
  }
-@@ -2090,6 +2092,74 @@ int mlx5_cmd_exec_cb(struct mlx5_async_ctx *ctx, void *in, int in_size,
- }
- EXPORT_SYMBOL(mlx5_cmd_exec_cb);
+ EXPORT_SYMBOL(mlx5_core_uplink_netdev_event_replay);
  
-+int mlx5_cmd_allow_other_vhca_access(struct mlx5_core_dev *dev,
-+				     struct mlx5_cmd_allow_other_vhca_access_attr *attr)
++void mlx5_core_mp_event_replay(struct mlx5_core_dev *dev, u32 event, void *data)
 +{
-+	u32 out[MLX5_ST_SZ_DW(allow_other_vhca_access_out)] = {};
-+	u32 in[MLX5_ST_SZ_DW(allow_other_vhca_access_in)] = {};
-+	void *key;
-+
-+	MLX5_SET(allow_other_vhca_access_in,
-+		 in, opcode, MLX5_CMD_OP_ALLOW_OTHER_VHCA_ACCESS);
-+	MLX5_SET(allow_other_vhca_access_in,
-+		 in, object_type_to_be_accessed, attr->obj_type);
-+	MLX5_SET(allow_other_vhca_access_in,
-+		 in, object_id_to_be_accessed, attr->obj_id);
-+
-+	key = MLX5_ADDR_OF(allow_other_vhca_access_in, in, access_key);
-+	memcpy(key, attr->access_key, sizeof(attr->access_key));
-+
-+	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
++	mlx5_blocking_notifier_call_chain(dev, event, data);
 +}
++EXPORT_SYMBOL(mlx5_core_mp_event_replay);
 +
-+int mlx5_cmd_alias_obj_create(struct mlx5_core_dev *dev,
-+			      struct mlx5_cmd_alias_obj_create_attr *alias_attr,
-+			      u32 *obj_id)
-+{
-+	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
-+	u32 in[MLX5_ST_SZ_DW(create_alias_obj_in)] = {};
-+	void *param;
-+	void *attr;
-+	void *key;
-+	int ret;
-+
-+	attr = MLX5_ADDR_OF(create_alias_obj_in, in, hdr);
-+	MLX5_SET(general_obj_in_cmd_hdr,
-+		 attr, opcode, MLX5_CMD_OP_CREATE_GENERAL_OBJECT);
-+	MLX5_SET(general_obj_in_cmd_hdr,
-+		 attr, obj_type, alias_attr->obj_type);
-+	param = MLX5_ADDR_OF(general_obj_in_cmd_hdr, in, op_param);
-+	MLX5_SET(general_obj_create_param, param, alias_object, 1);
-+
-+	attr = MLX5_ADDR_OF(create_alias_obj_in, in, alias_ctx);
-+	MLX5_SET(alias_context, attr, vhca_id_to_be_accessed, alias_attr->vhca_id);
-+	MLX5_SET(alias_context, attr, object_id_to_be_accessed, alias_attr->obj_id);
-+
-+	key = MLX5_ADDR_OF(alias_context, attr, access_key);
-+	memcpy(key, alias_attr->access_key, sizeof(alias_attr->access_key));
-+
-+	ret = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	if (ret)
-+		return ret;
-+
-+	*obj_id = MLX5_GET(general_obj_out_cmd_hdr, out, obj_id);
-+
-+	return 0;
-+}
-+
-+int mlx5_cmd_alias_obj_destroy(struct mlx5_core_dev *dev, u32 obj_id,
-+			       u16 obj_type)
-+{
-+	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
-+	u32 in[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)] = {};
-+
-+	MLX5_SET(general_obj_in_cmd_hdr, in, opcode, MLX5_CMD_OP_DESTROY_GENERAL_OBJECT);
-+	MLX5_SET(general_obj_in_cmd_hdr, in, obj_type, obj_type);
-+	MLX5_SET(general_obj_in_cmd_hdr, in, obj_id, obj_id);
-+
-+	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
- static void destroy_msg_cache(struct mlx5_core_dev *dev)
+ int mlx5_core_get_caps_mode(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type,
+ 			    enum mlx5_cap_mode cap_mode)
  {
- 	struct cmd_msg_cache *ch;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index 124352459c23..19ffd1816474 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -97,6 +97,22 @@ do {								\
- 			     __func__, __LINE__, current->pid,	\
- 			     ##__VA_ARGS__)
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 8fbe22de16ef..820bca965fb6 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -367,6 +367,8 @@ enum mlx5_driver_event {
+ 	MLX5_DRIVER_EVENT_MACSEC_SA_ADDED,
+ 	MLX5_DRIVER_EVENT_MACSEC_SA_DELETED,
+ 	MLX5_DRIVER_EVENT_SF_PEER_DEVLINK,
++	MLX5_DRIVER_EVENT_AFFILIATION_DONE,
++	MLX5_DRIVER_EVENT_AFFILIATION_REMOVED,
+ };
  
-+#define ACCESS_KEY_LEN  32
-+#define FT_ID_FT_TYPE_OFFSET 24
-+
-+struct mlx5_cmd_allow_other_vhca_access_attr {
-+	u16 obj_type;
-+	u32 obj_id;
-+	u8 access_key[ACCESS_KEY_LEN];
-+};
-+
-+struct mlx5_cmd_alias_obj_create_attr {
-+	u32 obj_id;
-+	u16 vhca_id;
-+	u16 obj_type;
-+	u8 access_key[ACCESS_KEY_LEN];
-+};
-+
- static inline void mlx5_printk(struct mlx5_core_dev *dev, int level, const char *format, ...)
- {
- 	struct device *device = dev->device;
-@@ -343,6 +359,12 @@ bool mlx5_eth_supported(struct mlx5_core_dev *dev);
- bool mlx5_rdma_supported(struct mlx5_core_dev *dev);
- bool mlx5_vnet_supported(struct mlx5_core_dev *dev);
- bool mlx5_same_hw_devs(struct mlx5_core_dev *dev, struct mlx5_core_dev *peer_dev);
-+int mlx5_cmd_allow_other_vhca_access(struct mlx5_core_dev *dev,
-+				     struct mlx5_cmd_allow_other_vhca_access_attr *attr);
-+int mlx5_cmd_alias_obj_create(struct mlx5_core_dev *dev,
-+			      struct mlx5_cmd_alias_obj_create_attr *alias_attr,
-+			      u32 *obj_id);
-+int mlx5_cmd_alias_obj_destroy(struct mlx5_core_dev *dev, u32 obj_id, u16 obj_type);
+ enum {
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 92434814c855..52e982bc0f50 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1029,6 +1029,8 @@ bool mlx5_cmd_is_down(struct mlx5_core_dev *dev);
+ void mlx5_core_uplink_netdev_set(struct mlx5_core_dev *mdev, struct net_device *netdev);
+ void mlx5_core_uplink_netdev_event_replay(struct mlx5_core_dev *mdev);
  
- static inline u16 mlx5_core_ec_vf_vport_base(const struct mlx5_core_dev *dev)
- {
++void mlx5_core_mp_event_replay(struct mlx5_core_dev *dev, u32 event, void *data);
++
+ void mlx5_health_cleanup(struct mlx5_core_dev *dev);
+ int mlx5_health_init(struct mlx5_core_dev *dev);
+ void mlx5_start_health_poll(struct mlx5_core_dev *dev);
 -- 
 2.41.0
 
