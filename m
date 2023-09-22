@@ -2,67 +2,65 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 097ACCD484E
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Sep 2023 17:29:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC900CD4847
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Sep 2023 17:37:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232461AbjIVR3p (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Sep 2023 13:29:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36834 "EHLO
+        id S230250AbjIVRhX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Sep 2023 13:37:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233057AbjIVR3S (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 22 Sep 2023 13:29:18 -0400
-Received: from mail-pl1-x62b.google.com (mail-pl1-x62b.google.com [IPv6:2607:f8b0:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 299FC1A7
-        for <linux-rdma@vger.kernel.org>; Fri, 22 Sep 2023 10:29:10 -0700 (PDT)
-Received: by mail-pl1-x62b.google.com with SMTP id d9443c01a7336-1c39f2b4f5aso20120955ad.0
-        for <linux-rdma@vger.kernel.org>; Fri, 22 Sep 2023 10:29:10 -0700 (PDT)
+        with ESMTP id S229576AbjIVRhW (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 22 Sep 2023 13:37:22 -0400
+Received: from mail-pl1-x62c.google.com (mail-pl1-x62c.google.com [IPv6:2607:f8b0:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 323BB192
+        for <linux-rdma@vger.kernel.org>; Fri, 22 Sep 2023 10:37:15 -0700 (PDT)
+Received: by mail-pl1-x62c.google.com with SMTP id d9443c01a7336-1c5dd017b30so17085625ad.0
+        for <linux-rdma@vger.kernel.org>; Fri, 22 Sep 2023 10:37:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1695403750; x=1696008550; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1695404234; x=1696009034; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4qbLpDWUwgzzYPCRaxCJqmb/nv0TKtcjFS6rBqkmcgY=;
-        b=Rmhof9VCSONI8qKtDgVkygB/9N3WKOhTVZNbN1IpQGHyy1Cm/rnPQH4RrzAL29vhf3
-         3xaySxt4zTIVA2CfdsC4DkiOuyIczVoCn/OER7DaWq8UELh5Vzs+H4OBEVxC8Vc/SX5h
-         bIHZ4J+TKjAavKK3Ucs071KIMcDVhPmOY1RbU=
+        bh=aHy2jcM546mf5Nw3NjJJcdsZQ6G2F/rbr9BMeebO220=;
+        b=O5SzPZzR+6krEZXkmLIZZTVGxbfzwGuhhb08vBfcktRzZgV0OhjSFUeS0eNJO58Za8
+         5N2zT2pbwLPH6hOkI/uctlcBJBVMrN7HhBgSjMZpbt2EyzJWaVA97YWO/q//rd7zJGMe
+         SwlHcfYj/6zlOKAkCMq3llOQu8AA/HYzpgc2E=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695403750; x=1696008550;
+        d=1e100.net; s=20230601; t=1695404234; x=1696009034;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=4qbLpDWUwgzzYPCRaxCJqmb/nv0TKtcjFS6rBqkmcgY=;
-        b=IbQjsbDQa/i81Kzds0Ef0REWNFTP8LZHnohY9/kjZkdMYpZrcTiThbnYfum4SsCr4f
-         rGforn15pMHxfmnqMzQDyvomVT+nAPc99MVWDv3uTcC9t6XRMLs1SPovfyL0SvEJjfsC
-         MwNCZSHLKOZ+VwAsj67mHg+YY9sy5AgATLPkT5sqB84rLK355dIKO5rX4keZ9KSHqu9E
-         AiMqIx4IcaJ9lSVmkKTAjjK8Z251m7UmN5e2QCorVGnPe6Cth7DEDTRjLeRixYoXogfL
-         5uO3zmu9b2eARHjfQsKwqkAtK+4Ue88MFq2uzwXEfaaB/Hp+fGscwTSWRKU+z5ONJvpm
-         Sw5A==
-X-Gm-Message-State: AOJu0Yx/L+4o4V/CYjcfDwqg4psth0X8mYwQ6dDtEfAKDKWGcuqI3igW
-        +xa3LVSQ1pnrIBJl2S5KrptZpg==
-X-Google-Smtp-Source: AGHT+IFprIk4Oc3jWBV2j1a3pDx/Ze8ZIDNVrL59U3qfvbK8hQNgJ9g8aEnC5yMh7GVAVWbVI04fiw==
-X-Received: by 2002:a17:903:1109:b0:1bb:d59d:8c57 with SMTP id n9-20020a170903110900b001bbd59d8c57mr130556plh.18.1695403750017;
-        Fri, 22 Sep 2023 10:29:10 -0700 (PDT)
+        bh=aHy2jcM546mf5Nw3NjJJcdsZQ6G2F/rbr9BMeebO220=;
+        b=R67GntF8C9snM5rekZZklmt7bARowJcyNtE33WunykQQBfNySKk5oAb7ezXE68qsLP
+         /O8UVGpqfl7N74cCitvu7Ksugnz7v2gOT6kbz3oTy/zWEL5/CoJaoeEeVQRpIumVQkda
+         3ZN6m6/rO0l3j6hEBtpp3u6gbShSLnnggEY0khu1oCB7jv1NKecSzs2GkzkzU754Optr
+         WMVZHdauPeLrWVZIzDGSCPwbW0Ib7NSXtxXWAQVS+F4lCk6tMzxw03+8Ldcr+P+jSAi7
+         JDMLRWjSPjkjJrOYtIBxBVGF8LLR76T02oWpdsOttzpBQfCCXJIda8+yHmf1b459eurI
+         XoDA==
+X-Gm-Message-State: AOJu0YwSlQIukABRZ4MLLFA56vmHac5qPU8aQwOYPpPICBgseGH7CXGl
+        wjDr2/te1CYkPyg7cHL0J89PLA==
+X-Google-Smtp-Source: AGHT+IForaNfEngbgYzLn0XvlHSaSBMfd2+hDVPVDP0+7yMW2kQR3T0MzlrjAe6sTlVW6GLIrm0kZg==
+X-Received: by 2002:a17:902:dac1:b0:1c3:e4b8:701f with SMTP id q1-20020a170902dac100b001c3e4b8701fmr479521plx.19.1695404234658;
+        Fri, 22 Sep 2023 10:37:14 -0700 (PDT)
 Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id a2-20020a170902ee8200b001b66a71a4a0sm3749961pld.32.2023.09.22.10.29.03
+        by smtp.gmail.com with ESMTPSA id g7-20020a1709029f8700b001b694140d96sm3771126plq.170.2023.09.22.10.37.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 22 Sep 2023 10:29:04 -0700 (PDT)
+        Fri, 22 Sep 2023 10:37:14 -0700 (PDT)
 From:   Kees Cook <keescook@chromium.org>
 To:     Jakub Kicinski <kuba@kernel.org>
 Cc:     Kees Cook <keescook@chromium.org>,
-        Jamal Hadi Salim <jhs@mojatatu.com>,
-        Cong Wang <xiyou.wangcong@gmail.com>,
-        Jiri Pirko <jiri@resnulli.us>,
+        Claudiu Manoil <claudiu.manoil@nxp.com>,
+        Vladimir Oltean <vladimir.oltean@nxp.com>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
         David Ahern <dsahern@kernel.org>,
         Martin KaFai Lau <martin.lau@kernel.org>,
         "Gustavo A. R. Silva" <gustavoars@kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
         Yisen Zhuang <yisen.zhuang@huawei.com>,
         Salil Mehta <salil.mehta@huawei.com>,
-        Claudiu Manoil <claudiu.manoil@nxp.com>,
-        Vladimir Oltean <vladimir.oltean@nxp.com>,
         "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
         Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
@@ -71,6 +69,8 @@ Cc:     Kees Cook <keescook@chromium.org>,
         Alex Elder <elder@kernel.org>,
         Pravin B Shelar <pshelar@ovn.org>,
         Shaokun Zhang <zhangshaokun@hisilicon.com>,
+        Cong Wang <xiyou.wangcong@gmail.com>,
+        Jiri Pirko <jiri@resnulli.us>,
         Nathan Chancellor <nathan@kernel.org>,
         Nick Desaulniers <ndesaulniers@google.com>,
         Tom Rix <trix@redhat.com>, Simon Horman <horms@kernel.org>,
@@ -78,26 +78,26 @@ Cc:     Kees Cook <keescook@chromium.org>,
         linux-rdma@vger.kernel.org, dev@openvswitch.org,
         linux-parisc@vger.kernel.org, llvm@lists.linux.dev,
         linux-hardening@vger.kernel.org
-Subject: [PATCH 14/14] net: sched: Annotate struct tc_pedit with __counted_by
-Date:   Fri, 22 Sep 2023 10:28:56 -0700
-Message-Id: <20230922172858.3822653-14-keescook@chromium.org>
+Subject: [PATCH 11/14] net: enetc: Annotate struct enetc_psfp_gate with __counted_by
+Date:   Fri, 22 Sep 2023 10:28:53 -0700
+Message-Id: <20230922172858.3822653-11-keescook@chromium.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230922172449.work.906-kees@kernel.org>
 References: <20230922172449.work.906-kees@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1707; i=keescook@chromium.org;
- h=from:subject; bh=2t/ZxOWEU2viROo1UvEVFxKv5vcCA9cvfvIY7AUZekI=;
- b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlDc7XaxqapjSBY/SPBC/x04RSUHK/UIttRsNmQ
- BtJyGkw5WiJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZQ3O1wAKCRCJcvTf3G3A
- Jh2RD/0dUjACoTlVEZR/rUTfjAaXcRrjdWj/jRwZhzM+BFjVVrkW2WL4vF8f3OtpT1D37kVC6yt
- 5krc2k1SgI9i4EIbbTCTHDKmLHFMdeNJj5yXkZqGe2kQocQH6O2t4MI9L3hpREI1/FZbqJdfIhP
- O0VkQhiYhU7Nivmec62bTZvgzPCuVjj1QbCRx64McRRzIsCOrxiOJVxaLRn8MXUoag8JHHVtq8N
- C0GRweTtJdTEnvySnkIRdOv1aQSe9bmyu3n6UfeVSb99zjCgoSq6MzdIJIykmvV+ipPWiTOAHXF
- hgcx6Nj7vOyb/udVU8Sy2EyA+QKSJGjs4xelXxxAAt5eYBvynuKGDPq+5enCP676vNeK5lYIcdM
- tjR9wL1D90SxMp0k31niGjQQfhd2hZX207yL3hWHrAmFhKgGM58T6wcW6TJM3kyVNhw0Rsgw57I
- 3Qs/3XpeZD+0L6Yz/nZiIjHP5q0ZEHd8RaV5+RBsuMFOD4sSxoz2dpbIgFlMC5M6rSM3HYp9QRu
- 8bWPWgo4YgaynOSa3gYtVwkMV4winLmyJPRJ1RnvUXpyMWvyDnfoH38MZwyqVEnPdIXXbXejgny
- eDjoni1yyVaDXPOQYroF9Gf+NTE14pE11tfkIsS5+ql+igraxVPAXLcoQzTe5Q1j/7N7pAMKrKE ckNAllL+gDJgldQ==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1477; i=keescook@chromium.org;
+ h=from:subject; bh=UT1ZdosG6thsQKbZuWlvvKtNoMV5v4P0vRQDHVv6AlQ=;
+ b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlDc7XSQgN5HFuzDmTQh0kuKGN8VvhxLvLNcFeh
+ bt51QZ4mKKJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZQ3O1wAKCRCJcvTf3G3A
+ JqYjD/9GzxaHc4IrVjUkBj5/d8FeY4MZoAp8KPJKCM4E/stoQ89RWnkxPvXs2ub51LtTAM7Q8Nq
+ 952ZRLOpGoccIMFSjcVlpFYlDEZRIMMkg06PGDQs8BLBgRp2Xbo/GI6r0attHGC5ruXY6R1djKy
+ TJbXDQFFgVuUfCE3ZiMZG1SgrWkLCsxTlZFBeXY5+pEEWOp6EaAQULbpmh8/N9D4gZE1/vQgF0E
+ 0nrtThbucWqOv2lWVWoESP8KBQ2hbiP04yjKp5QhnvG9ai5TJ7czKEGFFzfw+6WlMuj3ohAC+V8
+ eRoArmKj5/q8DXUTMOGzNsFBobqrSbgfMk+Fu+dvyK+gxTw1urL7a54Rms23bLytd1W3qsH4TdV
+ MjqSkdW0hShdhKqJxvRMw9H0OSSv2T/191tK8eFarSmolgQCBqQkjQN3HORH8VsB7NK8Rls+AZZ
+ ZNO99qTOvddCRUmOlsJli6YplJtOWudvU5OVaGivwWMqWzCqGnASdsSFHSQlyO0vGgy05UCTaTk
+ OlgQNwhDSjtZX7ZovqyZY56wRJXHkVTd8P76Qi0s1d5yI9hxyzGrFnUmCrlF0P8oGHQIJh9h+HQ
+ 9WKEJyCgyiKmb4+eBOVQnfxP063FQtmEVJl/nVl8B4+NKlYVWjZ0PUztJwDm4Ir6xg+DibLIp2O wM3jkIQFKhrIJvA==
 X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -110,15 +110,12 @@ their accesses bounds-checked at run-time checking via CONFIG_UBSAN_BOUNDS
 (for array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
 functions).
 
-As found with Coccinelle[1], add __counted_by for struct tc_pedit.
-Additionally, since the element count member must be set before accessing
-the annotated flexible array member, move its initialization earlier.
+As found with Coccinelle[1], add __counted_by for struct enetc_psfp_gate.
 
 [1] https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci
 
-Cc: Jamal Hadi Salim <jhs@mojatatu.com>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Jiri Pirko <jiri@resnulli.us>
+Cc: Claudiu Manoil <claudiu.manoil@nxp.com>
+Cc: Vladimir Oltean <vladimir.oltean@nxp.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Jakub Kicinski <kuba@kernel.org>
@@ -126,26 +123,22 @@ Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: netdev@vger.kernel.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- net/sched/act_pedit.c | 2 +-
+ drivers/net/ethernet/freescale/enetc/enetc_qos.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/sched/act_pedit.c b/net/sched/act_pedit.c
-index 1ef8fcfa9997..77c407eff3b0 100644
---- a/net/sched/act_pedit.c
-+++ b/net/sched/act_pedit.c
-@@ -515,11 +515,11 @@ static int tcf_pedit_dump(struct sk_buff *skb, struct tc_action *a,
- 		spin_unlock_bh(&p->tcf_lock);
- 		return -ENOBUFS;
- 	}
-+	opt->nkeys = parms->tcfp_nkeys;
+diff --git a/drivers/net/ethernet/freescale/enetc/enetc_qos.c b/drivers/net/ethernet/freescale/enetc/enetc_qos.c
+index 2513b44056c1..b65da49dd926 100644
+--- a/drivers/net/ethernet/freescale/enetc/enetc_qos.c
++++ b/drivers/net/ethernet/freescale/enetc/enetc_qos.c
+@@ -443,7 +443,7 @@ struct enetc_psfp_gate {
+ 	u32 num_entries;
+ 	refcount_t refcount;
+ 	struct hlist_node node;
+-	struct action_gate_entry entries[];
++	struct action_gate_entry entries[] __counted_by(num_entries);
+ };
  
- 	memcpy(opt->keys, parms->tcfp_keys,
- 	       flex_array_size(opt, keys, parms->tcfp_nkeys));
- 	opt->index = p->tcf_index;
--	opt->nkeys = parms->tcfp_nkeys;
- 	opt->flags = parms->tcfp_flags;
- 	opt->action = p->tcf_action;
- 	opt->refcnt = refcount_read(&p->tcf_refcnt) - ref;
+ /* Only enable the green color frame now
 -- 
 2.34.1
 
