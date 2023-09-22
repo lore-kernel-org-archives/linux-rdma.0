@@ -2,62 +2,61 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AE7ACD4847
-	for <linux-rdma@archiver.kernel.org>; Fri, 22 Sep 2023 17:29:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27CB5CD4846
+	for <linux-rdma@archiver.kernel.org>; Fri, 22 Sep 2023 17:29:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232906AbjIVR3S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 22 Sep 2023 13:29:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36674 "EHLO
+        id S232883AbjIVR3T (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 22 Sep 2023 13:29:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232883AbjIVR3N (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 22 Sep 2023 13:29:13 -0400
-Received: from mail-pg1-x534.google.com (mail-pg1-x534.google.com [IPv6:2607:f8b0:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 504DACC3
-        for <linux-rdma@vger.kernel.org>; Fri, 22 Sep 2023 10:29:05 -0700 (PDT)
-Received: by mail-pg1-x534.google.com with SMTP id 41be03b00d2f7-51b4ef5378bso1859897a12.1
-        for <linux-rdma@vger.kernel.org>; Fri, 22 Sep 2023 10:29:05 -0700 (PDT)
+        with ESMTP id S232933AbjIVR3Q (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 22 Sep 2023 13:29:16 -0400
+Received: from mail-pf1-x429.google.com (mail-pf1-x429.google.com [IPv6:2607:f8b0:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C2BF1A1
+        for <linux-rdma@vger.kernel.org>; Fri, 22 Sep 2023 10:29:07 -0700 (PDT)
+Received: by mail-pf1-x429.google.com with SMTP id d2e1a72fcca58-690bf8fdd1aso2212611b3a.2
+        for <linux-rdma@vger.kernel.org>; Fri, 22 Sep 2023 10:29:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1695403744; x=1696008544; darn=vger.kernel.org;
+        d=chromium.org; s=google; t=1695403747; x=1696008547; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=C+fG/1IUZcjxNvMlyP56fbg8HR7JVnjt3riwCi0wfhY=;
-        b=J/+k5jsAmIx4bdTb3V8uyh1rGB+L9KfD5cv+cgSCFbnWoaDnNaiNgkFLhtM61PH467
-         aLZMY4X2BNfN9jeMDjnITDn1Ur9ZDSBXYVOPXb9N1kGtdW3L7q4GRNwhhzjsbrjXHdZe
-         kkT4ggSAQoj3iVDQ+4siAXS/gLXbwnKzYJskc=
+        bh=cr7VMeXLJH8XwB+zD35GqBQrsMI4YcQcUPdvZ9TWxzo=;
+        b=ETuYqYjpeAxjrAEL1zRFWt/PP3eZI9SgqafdsGPe0j/d0XtACtcZDgyPnDXrcT9zpg
+         SRLDJsQMgIu0JAf9ZzHaEFFQcg3D365AXbC8M+qMbbwRlzYFNz7JaxM09Eqa6sXf848/
+         PKgIcPnFEOyPaZzEsqh5JXlQ5MB3W96RKtJm0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695403744; x=1696008544;
+        d=1e100.net; s=20230601; t=1695403747; x=1696008547;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=C+fG/1IUZcjxNvMlyP56fbg8HR7JVnjt3riwCi0wfhY=;
-        b=jOa4H3UifDBC5GywXNTBjHxVBpZcJZeFhg4vuDw2CTCcKMCghNqrCOVhUBpw0ELFI+
-         QdxHqmYEdu2CN36AAZkywX2LGUFrfjOiPdwn3pHQOjScReKFV8Es2oZVIW5aY68sf06f
-         C4TpuC1dFwmLJOya0xoAcXOYYkPlI2m/HZUgXABNnqih1Dm6q5Bj8NrnG34oK8msLUST
-         lxEFdPZMsWNLUD6zUbTXY1/b7nU737t+AYACkxVnUjV6Nv8VbFv0jYXwQ+/vniw+OS4R
-         zJ8YyiLvnyShTFH48b43v0V0KG5AdGItUdS8ZAh4bww3c3yBceWnj7IOelkJ2NvnxJok
-         LZKw==
-X-Gm-Message-State: AOJu0YwTqPG6u6M6yPwKmuBAh/mjkYPAWut765UMVBz2j4jH/cFhzR2U
-        /4zTrEw3rKgCJGT8hwMYPphYOQ==
-X-Google-Smtp-Source: AGHT+IH6S8Qm5OPqgsDQKauIPObSxBk1dvTlx5l1M5gkLGsn8Dxuo+qpskJS1TC+0k22q1ogPLtjUA==
-X-Received: by 2002:a17:90a:fb8c:b0:274:4fb:360a with SMTP id cp12-20020a17090afb8c00b0027404fb360amr385633pjb.16.1695403744652;
-        Fri, 22 Sep 2023 10:29:04 -0700 (PDT)
+        bh=cr7VMeXLJH8XwB+zD35GqBQrsMI4YcQcUPdvZ9TWxzo=;
+        b=CCOiIoVGMqfHy6wTlj73cxQayvy4pmmGzVQwZOCcC5t3pJ+9Ae/qiyBNETTEc+9MHt
+         mRqjNpfvifltfzfTfy99ct2BHeIdmmeF0yg1SYMswHekUMpCIj0ds4xYv/oaBt97W7s+
+         VURHLWHVtrgogHfBI99ndkY+Eny4UBlHKROnsvvpAf923jfhpEHHKhjd1x2eBqIB9I54
+         OMkuxUq/mgT+JxlvCMtR5CHCNkpp7g1c7CNj4mq15vqHAg5XQ1va0sbqWaRWAJTbJx34
+         2wSnzuIG31W0B1iYVSCWa3lRzPhEiP6b/DtFztvAOHAgwY1wb45j+bn+btb2OEnRdHpR
+         29hg==
+X-Gm-Message-State: AOJu0Ywk8AOrCM2EmnWSXOj8IqKCnZrq6m5h6qlCtAPgIaLoCF2iQmAC
+        mS46Ikw2N8qrdw4PdXcZNBk3ug==
+X-Google-Smtp-Source: AGHT+IE0d9nBIyFO0yR0ORoUWZ7+c+aEOlGAafPRRZOxGS/XkTVczyefdXfk1dF4abqqKQnNPwhUbA==
+X-Received: by 2002:a05:6a20:1049:b0:155:1a5a:9e31 with SMTP id gt9-20020a056a20104900b001551a5a9e31mr230381pzc.16.1695403747014;
+        Fri, 22 Sep 2023 10:29:07 -0700 (PDT)
 Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id gq7-20020a17090b104700b0025bd4db25f0sm3544485pjb.53.2023.09.22.10.29.00
+        by smtp.gmail.com with ESMTPSA id j5-20020aa78d05000000b0068fe7e07190sm3461673pfe.3.2023.09.22.10.29.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Fri, 22 Sep 2023 10:29:03 -0700 (PDT)
 From:   Kees Cook <keescook@chromium.org>
 To:     Jakub Kicinski <kuba@kernel.org>
-Cc:     Kees Cook <keescook@chromium.org>,
+Cc:     Kees Cook <keescook@chromium.org>, Long Li <longli@microsoft.com>,
+        Ajay Sharma <sharmaajay@microsoft.com>,
         "K. Y. Srinivasan" <kys@microsoft.com>,
         Haiyang Zhang <haiyangz@microsoft.com>,
         Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
-        Long Li <longli@microsoft.com>,
-        Ajay Sharma <sharmaajay@microsoft.com>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
-        Paolo Abeni <pabeni@redhat.com>, linux-hyperv@vger.kernel.org,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org,
+        linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
         Jamal Hadi Salim <jhs@mojatatu.com>,
         David Ahern <dsahern@kernel.org>,
         Martin KaFai Lau <martin.lau@kernel.org>,
@@ -78,26 +77,26 @@ Cc:     Kees Cook <keescook@chromium.org>,
         linux-kernel@vger.kernel.org, dev@openvswitch.org,
         linux-parisc@vger.kernel.org, llvm@lists.linux.dev,
         linux-hardening@vger.kernel.org
-Subject: [PATCH 07/14] net: mana: Annotate struct mana_rxq with __counted_by
-Date:   Fri, 22 Sep 2023 10:28:49 -0700
-Message-Id: <20230922172858.3822653-7-keescook@chromium.org>
+Subject: [PATCH 09/14] net: mana: Annotate struct hwc_dma_buf with __counted_by
+Date:   Fri, 22 Sep 2023 10:28:51 -0700
+Message-Id: <20230922172858.3822653-9-keescook@chromium.org>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230922172449.work.906-kees@kernel.org>
 References: <20230922172449.work.906-kees@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1560; i=keescook@chromium.org;
- h=from:subject; bh=ZdDX1htO5g9RU0JVxl8E3nenoSp50ETWGlk5dSjb3Pk=;
- b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlDc7XhV+304GTOyf/fNFFzA18xiqgiag6BHBkU
- r6QL6lj+iGJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZQ3O1wAKCRCJcvTf3G3A
- JttUD/4nw3GnIK/006QbQZGOylTpwCOUiis/9zO+cYuRhscdH8v/ABtugcRwPC6Cn46YyRhmelJ
- I2EjfW+CUaswbO+4XodbsNw1MP3/9Rh2Z9hxWJp/ixVY+9Gr/Xso37A3Kx7yx/j9g7cJ5G8FsHR
- BhADK3SY0PK+fm8vEQHbU47FLD+SDObsUZwCTiQppe3Qyj4rtHRPkpvlP8Xtnc3oktAK9NfjPO4
- BYX4lmas+XoVTX/BFSYNV+dbtgn9PgTb5cIcrf+KYs1b21rtyLu7FAM/T0PHhS5lrEfGjiDqIXO
- 0HnCVEXXW+bGsbCUW5vcgJX0NOpM8VO45dmzonA+kMLxzbeOr31HUL+vx9F41U6UFLiosKhC35X
- QKeQKslSIwT9mFn9vcACY3wusuQlm2dm5Gb6CJ6xJhihRmK+yH+a6EZadQqvSoyBI1jX/P4o4cg
- sNTuPs+4n3fXOjGWHI1inrX2o79utjzSj6NnfBHfWaSsJwBy5DLPBUA7QEk5YnSa0PpkGZXbZov
- 542ytPJTcKvRQlZRIwvp7bbD6cF+jq/ZtXo/ut0guz7iB3rUVKztN8ninv86elhhA7yicM598rP
- JLBjpJsix6aeD9dFf7JzIxn3ZYFhogdNT5fm/Nauo9VfLHWZCflPIDWW1LOXoXjv/A12uH/gUeb k+LcfI33E0wxohQ==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1566; i=keescook@chromium.org;
+ h=from:subject; bh=jNN2Wh5TqbkzFZoQFHMYTzfDn0UF7zrm9adldOZuxp8=;
+ b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlDc7XoLVZdYuePM97S+7MA9i5iH3sxyTfQSS08
+ LJB65B+ZZSJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZQ3O1wAKCRCJcvTf3G3A
+ JrxWEACNSgzg8Ycl9Qe1Mp2gIHHXFmJMIrT0z4cUhu6hZZXHD244HpZ8X+SYVMS9HS5syB/r5ZI
+ 2kNn5pZePHECZBA8CM4/TjgpQPlFRdgxHFFqBbfsYgAQnBkEMCTkFfCaKwzzmXVjLJfnpfOortM
+ FaMeXJbItFRrX0Jwcv9cj9UC0k0zGIxwDvhCTpWO0IfrCOoDrV1VzDNtTUJ+XVL78kI1f2l75Ay
+ 34ksMU9kJrH5ASYCmmlwAZNT7ObZi26q0SKJgrSLWhqtq9swbQKnxy3Ask714ZdqhUI+l79qL6z
+ eVDkoz7xmTG/GwFi1Gm0f3aQ4nmQiaJS/EKoN/Moy4R9Pj4PcoP9A6a9JAnbXFsCyfcURk+Xeiu
+ 7d8SiKimBQYQu1t6iC0rdtnDx9AUg+PH6cO3/7ARrrFcYoi21yLy5erMFvLZ/GdTEGrwiQFoiQ+
+ gGAv4IONo4YXXQlC/z8es5uxwPk+UXJ+bvwe+PL8WnXGdKs8QMRXslYTUSIaEP+9YNvPuIawQRM
+ erGitteR+N7KlsLaWaaq/z9LavLhnOua7sOCJQ7cDMa/pNWZDzckInyzoUg8Skf4gmjH2fNF9O7
+ 3+n1k69unddP2rtknBF6q49u18qdd9qXinwaYwqeXq9tyopeLUrF/KsAn9ZP752xrkkWBf6pYiW ZuZJGJuFzQpQdlQ==
 X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -110,41 +109,41 @@ their accesses bounds-checked at run-time checking via CONFIG_UBSAN_BOUNDS
 (for array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
 functions).
 
-As found with Coccinelle[1], add __counted_by for struct mana_rxq.
+As found with Coccinelle[1], add __counted_by for struct hwc_dma_buf.
 
 [1] https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci
 
+Cc: Long Li <longli@microsoft.com>
+Cc: Ajay Sharma <sharmaajay@microsoft.com>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Wei Liu <wei.liu@kernel.org>
 Cc: Dexuan Cui <decui@microsoft.com>
-Cc: Long Li <longli@microsoft.com>
-Cc: Ajay Sharma <sharmaajay@microsoft.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Eric Dumazet <edumazet@google.com>
 Cc: Jakub Kicinski <kuba@kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: linux-hyperv@vger.kernel.org
 Cc: linux-rdma@vger.kernel.org
+Cc: linux-hyperv@vger.kernel.org
 Cc: netdev@vger.kernel.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- include/net/mana/mana.h | 2 +-
+ include/net/mana/hw_channel.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 9f70b4332238..38441be68592 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -338,7 +338,7 @@ struct mana_rxq {
- 	/* MUST BE THE LAST MEMBER:
- 	 * Each receive buffer has an associated mana_recv_buf_oob.
- 	 */
--	struct mana_recv_buf_oob rx_oobs[];
-+	struct mana_recv_buf_oob rx_oobs[] __counted_by(num_rx_buf);
+diff --git a/include/net/mana/hw_channel.h b/include/net/mana/hw_channel.h
+index 3d3b5c881bc1..158b125692c2 100644
+--- a/include/net/mana/hw_channel.h
++++ b/include/net/mana/hw_channel.h
+@@ -121,7 +121,7 @@ struct hwc_dma_buf {
+ 	u32 gpa_mkey;
+ 
+ 	u32 num_reqs;
+-	struct hwc_work_request reqs[];
++	struct hwc_work_request reqs[] __counted_by(num_reqs);
  };
  
- struct mana_tx_qp {
+ typedef void hwc_rx_event_handler_t(void *ctx, u32 gdma_rxq_id,
 -- 
 2.34.1
 
