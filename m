@@ -2,64 +2,64 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45261CE7A8D
-	for <linux-rdma@archiver.kernel.org>; Sat, 23 Sep 2023 07:01:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0FEECE7A88
+	for <linux-rdma@archiver.kernel.org>; Sat, 23 Sep 2023 12:09:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229898AbjIWHBv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 23 Sep 2023 03:01:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53814 "EHLO
+        id S231313AbjIWMJa (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 23 Sep 2023 08:09:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229541AbjIWHBu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 23 Sep 2023 03:01:50 -0400
-Received: from omta034.useast.a.cloudfilter.net (omta034.useast.a.cloudfilter.net [44.202.169.33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7320219B;
-        Sat, 23 Sep 2023 00:01:43 -0700 (PDT)
-Received: from eig-obgw-6008a.ext.cloudfilter.net ([10.0.30.227])
-        by cmsmtp with ESMTP
-        id jnFHqEyp1ez0CjwdiqAXlx; Sat, 23 Sep 2023 07:01:18 +0000
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with ESMTPS
-        id jwe4qNGtHsKmijwe5qIZCW; Sat, 23 Sep 2023 07:01:41 +0000
-X-Authority-Analysis: v=2.4 cv=JOMoDuGb c=1 sm=1 tr=0 ts=650e8d55
- a=1YbLdUo/zbTtOZ3uB5T3HA==:117 a=P7XfKmiOJ4/qXqHZrN7ymg==:17
- a=OWjo9vPv0XrRhIrVQ50Ab3nP57M=:19 a=dLZJa+xiwSxG16/P+YVxDGlgEgI=:19
- a=IkcTkHD0fZMA:10 a=zNV7Rl7Rt7sA:10 a=wYkD_t78qR0A:10 a=NEAV23lmAAAA:8
- a=P8mRVJMrAAAA:8 a=J1Y8HTJGAAAA:8 a=1XWaLZrsAAAA:8 a=VwQbUJbxAAAA:8
- a=20KFwNOVAAAA:8 a=SGADynmgAAAA:8 a=cm27Pg_UAAAA:8 a=YSKGN3ub9cUXa_79IdMA:9
- a=QEXdDO2ut3YA:10 a=Vc1QvrjMcIoGonisw6Ob:22 a=y1Q9-5lHfBjTkpIzbSAN:22
- a=AjGcO6oz07-iQ99wixmX:22 a=zIHXHKGEX091kyoLcxqF:22 a=xmb-EsYY8bH0VWELuYED:22
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=LgYmmzfODs8y0XPv6zoIUmQUpkw1Ll6bzfBPHyYgdGs=; b=Dt+luo231UAv4RRAqbxdrzRyee
-        dU8/FIBvBI6EhTgYFX3/UdwgVkbKx7VrbEPKerDZagGmCKatNEu4qEDC6cNU8Lzq6iVKYiPE+vwcd
-        iobw+Rzr12mcn+p1AOY49b++XnYBFBF+HXQRiyFmctm8u0rwtiHVe4PCyPPbNNqcpN8dLS3cyqs6b
-        MOgZ1/E+yMMYJB5P9D9g1iUd7pzheavabNwkVfBbZsURYktiKpz+C3LPmF//iwWP/+UHHMQ3tzGu4
-        n5qMqZrWc5dQAFwq6z1Z+9OBeU/dKQRVVBFwL32kYiqlLe8DUYbCncJ3Tu3jFeqWLguStel+UA0AM
-        dnaML4LQ==;
-Received: from [94.239.20.48] (port=35188 helo=[192.168.1.98])
-        by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.96)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1qjkNw-000673-1P;
-        Fri, 22 Sep 2023 12:56:12 -0500
-Message-ID: <c9865cdf-98aa-0b7f-d833-80bfa3d67614@embeddedor.com>
-Date:   Fri, 22 Sep 2023 19:57:09 -0600
+        with ESMTP id S231343AbjIWMJa (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 23 Sep 2023 08:09:30 -0400
+Received: from mail-io1-xd2e.google.com (mail-io1-xd2e.google.com [IPv6:2607:f8b0:4864:20::d2e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C80D81AC
+        for <linux-rdma@vger.kernel.org>; Sat, 23 Sep 2023 05:09:23 -0700 (PDT)
+Received: by mail-io1-xd2e.google.com with SMTP id ca18e2360f4ac-76c64da0e46so137954739f.0
+        for <linux-rdma@vger.kernel.org>; Sat, 23 Sep 2023 05:09:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ieee.org; s=google; t=1695470963; x=1696075763; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=XAvg21g6nbbw1h+/pTYxIjGaQhk7mPIWAIow3O+el8w=;
+        b=DLxn7//6yHMxeoMVTrr0qYfohGScaeS52o7/UDk+9PW6VThFl68e7D6/DbtAvdd89d
+         j4tPcCOJdhW7AV9sEMT1a9YVpIa+LScQn5xrcjXeP37Wdw/wFTi6kNGdSm+uvfNLea7h
+         iXPnp5mpMKN8gLjueJl3kO8wLSx9cueoTjppc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695470963; x=1696075763;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=XAvg21g6nbbw1h+/pTYxIjGaQhk7mPIWAIow3O+el8w=;
+        b=dlf8szewigB+TFeE3VmSE50dl/KEbUmsJmriYDi6oEWm/95k06h9eJWBFAYHMhlRYy
+         ZAxGQlm8gNVf77a2NHxdtm59LeCO+vnupHKISkTW7kGQOZbDR6DzNPVk0TppgEStZ8SI
+         HQJ5Q6U5dK8jxNhOnk9g2+whynLlRrGZebu1CVxxGF93/Cipz32G1pujFuQIDpyZejfz
+         XoTFUEMLwzrCeEDTtVA3GU/y9BHBM53u2zDYx0SB9NhGdOSQsgbvYYuczjL46728lJqD
+         eVVQH26soWCJ8Bk12mCvE8QM9kyFSSUqXU3V5rIVXr/q/03jRFs7CZ5mgi3suoklNTa8
+         ekEw==
+X-Gm-Message-State: AOJu0YzAuqeNO79CzVqPcERr6XNA/alidexAWq9cqxwcCLrStHxBFaqs
+        4o9HFVQO1L1NZILq709WpJn+aw==
+X-Google-Smtp-Source: AGHT+IFsU/+zIHTFsRo6MskEzPa2bwVmahshwKY2z15uRkbrNeJwUhIadfi6G6UMDY5d9luXaBJ4hQ==
+X-Received: by 2002:a5e:8d0c:0:b0:790:f866:d71b with SMTP id m12-20020a5e8d0c000000b00790f866d71bmr2106815ioj.13.1695470963122;
+        Sat, 23 Sep 2023 05:09:23 -0700 (PDT)
+Received: from [10.211.55.3] (c-98-61-227-136.hsd1.mn.comcast.net. [98.61.227.136])
+        by smtp.googlemail.com with ESMTPSA id ft16-20020a056638661000b0043a21abd491sm1610905jab.120.2023.09.23.05.09.19
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 23 Sep 2023 05:09:21 -0700 (PDT)
+Message-ID: <6f52f36c-be16-2427-c19f-0e8b3dd2ff5f@ieee.org>
+Date:   Sat, 23 Sep 2023 07:09:19 -0500
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:102.0) Gecko/20100101
  Thunderbird/102.15.1
-Subject: Re: [PATCH 12/14] net: openvswitch: Annotate struct dp_meter with
+Subject: Re: [PATCH 08/14] net: ipa: Annotate struct ipa_power with
  __counted_by
 Content-Language: en-US
 To:     Kees Cook <keescook@chromium.org>, Jakub Kicinski <kuba@kernel.org>
-Cc:     Pravin B Shelar <pshelar@ovn.org>,
+Cc:     Alex Elder <elder@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
-        dev@openvswitch.org, Jamal Hadi Salim <jhs@mojatatu.com>,
+        Jamal Hadi Salim <jhs@mojatatu.com>,
         David Ahern <dsahern@kernel.org>,
         Martin KaFai Lau <martin.lau@kernel.org>,
         "Gustavo A. R. Silva" <gustavoars@kernel.org>,
@@ -73,7 +73,7 @@ Cc:     Pravin B Shelar <pshelar@ovn.org>,
         Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
         Long Li <longli@microsoft.com>,
         Ajay Sharma <sharmaajay@microsoft.com>,
-        Alex Elder <elder@kernel.org>,
+        Pravin B Shelar <pshelar@ovn.org>,
         Shaokun Zhang <zhangshaokun@hisilicon.com>,
         Cong Wang <xiyou.wangcong@gmail.com>,
         Jiri Pirko <jiri@resnulli.us>,
@@ -81,82 +81,66 @@ Cc:     Pravin B Shelar <pshelar@ovn.org>,
         Nick Desaulniers <ndesaulniers@google.com>,
         Tom Rix <trix@redhat.com>, Simon Horman <horms@kernel.org>,
         linux-kernel@vger.kernel.org, linux-hyperv@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-parisc@vger.kernel.org,
-        llvm@lists.linux.dev, linux-hardening@vger.kernel.org
+        linux-rdma@vger.kernel.org, dev@openvswitch.org,
+        linux-parisc@vger.kernel.org, llvm@lists.linux.dev,
+        linux-hardening@vger.kernel.org
 References: <20230922172449.work.906-kees@kernel.org>
- <20230922172858.3822653-12-keescook@chromium.org>
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-In-Reply-To: <20230922172858.3822653-12-keescook@chromium.org>
+ <20230922172858.3822653-8-keescook@chromium.org>
+From:   Alex Elder <elder@ieee.org>
+In-Reply-To: <20230922172858.3822653-8-keescook@chromium.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 94.239.20.48
-X-Source-L: No
-X-Exim-ID: 1qjkNw-000673-1P
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: ([192.168.1.98]) [94.239.20.48]:35188
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 0
-X-Org:  HG=hgshared;ORG=hostgator;
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
-X-CMAE-Envelope: MS4xfGQ8mtCPcMlBC1myYUVv4OqxkyU7Xh6Ssi42u/L7kbVuMNUHh2e2nSOmL2q4USpKmdCb6iS/K64b6LYgpcgGd4GfJ/tvWZX1mLKJV5GrKAICqENp4HFY
- dN4AMnRCzp/ridBzY6NoMOwd8F2M0EEBmhaWHCL1S/QIOVh/CBogSuQIsYsSPTjRWKMkVOwfCPa17RmNIUyopmrpUKxQ//wn7pupjRs1rFf9tekrYaMxvS5R
- zfJ7bJYwJucS+d6TMsB7ZtMRA2T4vmuisaP7RIpO8u/pp2671nzamcY1NrlnsHujZI8nmJXtTA1A7x6QqYq4ltj01lYtJMG2eMT9NYVdv/QFHKARE6G0piYx
- CS//ymEczeOXTOjlWFe1grpZR4zrdVvSzHnDtYo31NN/9rOL1E5A6m5wcCh65mtUGMcX6Zqe
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-
-On 9/22/23 11:28, Kees Cook wrote:
+On 9/22/23 12:28 PM, Kees Cook wrote:
 > Prepare for the coming implementation by GCC and Clang of the __counted_by
 > attribute. Flexible array members annotated with __counted_by can have
 > their accesses bounds-checked at run-time checking via CONFIG_UBSAN_BOUNDS
 > (for array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
 > functions).
 > 
-> As found with Coccinelle[1], add __counted_by for struct dp_meter.
-> 
+> As found with Coccinelle[1], add __counted_by for struct ipa_power.
+
+Looks good, thanks.
+
+Reviewed-by: Alex Elder <elder@linaro.org>
+
+Note that there is some interaction between struct ipa_power_data
+and struct ipa_power (the former is used to initialize the latter).
+Both of these contain flexible arrays counted by another field in
+the structure.  It seems possible that the way these are initialized
+might need slight modification to allow the compiler to do its
+enforcement; if that's the case, please reach out to me.
+
+					-Alex
+
+
 > [1] https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci
 > 
-> Cc: Pravin B Shelar <pshelar@ovn.org>
+> Cc: Alex Elder <elder@kernel.org>
 > Cc: "David S. Miller" <davem@davemloft.net>
 > Cc: Eric Dumazet <edumazet@google.com>
 > Cc: Jakub Kicinski <kuba@kernel.org>
 > Cc: Paolo Abeni <pabeni@redhat.com>
 > Cc: netdev@vger.kernel.org
-> Cc: dev@openvswitch.org
 > Signed-off-by: Kees Cook <keescook@chromium.org>
-
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-
-Thanks
--- 
-Gustavo
-
 > ---
->   net/openvswitch/meter.h | 2 +-
+>   drivers/net/ipa/ipa_power.c | 2 +-
 >   1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/net/openvswitch/meter.h b/net/openvswitch/meter.h
-> index 013de694221f..ed11cd12b512 100644
-> --- a/net/openvswitch/meter.h
-> +++ b/net/openvswitch/meter.h
-> @@ -39,7 +39,7 @@ struct dp_meter {
->   	u32 max_delta_t;
->   	u64 used;
->   	struct ovs_flow_stats stats;
-> -	struct dp_meter_band bands[];
-> +	struct dp_meter_band bands[] __counted_by(n_bands);
+> diff --git a/drivers/net/ipa/ipa_power.c b/drivers/net/ipa/ipa_power.c
+> index 0eaa7a7f3343..e223886123ce 100644
+> --- a/drivers/net/ipa/ipa_power.c
+> +++ b/drivers/net/ipa/ipa_power.c
+> @@ -67,7 +67,7 @@ struct ipa_power {
+>   	spinlock_t spinlock;	/* used with STOPPED/STARTED power flags */
+>   	DECLARE_BITMAP(flags, IPA_POWER_FLAG_COUNT);
+>   	u32 interconnect_count;
+> -	struct icc_bulk_data interconnect[];
+> +	struct icc_bulk_data interconnect[] __counted_by(interconnect_count);
 >   };
 >   
->   struct dp_meter_instance {
+>   /* Initialize interconnects required for IPA operation */
+
