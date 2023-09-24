@@ -2,60 +2,53 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BFA4CE7A8D
-	for <linux-rdma@archiver.kernel.org>; Sun, 24 Sep 2023 01:41:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67938CE7A8B
+	for <linux-rdma@archiver.kernel.org>; Sun, 24 Sep 2023 02:03:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229803AbjIXBl4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 23 Sep 2023 21:41:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53870 "EHLO
+        id S229541AbjIXCDg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 23 Sep 2023 22:03:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229712AbjIXBl4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 23 Sep 2023 21:41:56 -0400
-Received: from omta36.uswest2.a.cloudfilter.net (omta36.uswest2.a.cloudfilter.net [35.89.44.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA292180;
-        Sat, 23 Sep 2023 18:41:49 -0700 (PDT)
-Received: from eig-obgw-5007a.ext.cloudfilter.net ([10.0.29.141])
-        by cmsmtp with ESMTP
-        id k7Q2qwjv9EoVskE84qKPpz; Sun, 24 Sep 2023 01:41:49 +0000
-Received: from gator4166.hostgator.com ([108.167.133.22])
-        by cmsmtp with ESMTPS
-        id kE83qrrpTPNASkE83qgI1T; Sun, 24 Sep 2023 01:41:48 +0000
-X-Authority-Analysis: v=2.4 cv=X8FBlUfe c=1 sm=1 tr=0 ts=650f93dc
- a=1YbLdUo/zbTtOZ3uB5T3HA==:117 a=P7XfKmiOJ4/qXqHZrN7ymg==:17
- a=OWjo9vPv0XrRhIrVQ50Ab3nP57M=:19 a=dLZJa+xiwSxG16/P+YVxDGlgEgI=:19
- a=IkcTkHD0fZMA:10 a=zNV7Rl7Rt7sA:10 a=wYkD_t78qR0A:10 a=NEAV23lmAAAA:8
- a=i0EeH86SAAAA:8 a=J1Y8HTJGAAAA:8 a=1XWaLZrsAAAA:8 a=VwQbUJbxAAAA:8
- a=20KFwNOVAAAA:8 a=cm27Pg_UAAAA:8 a=YSKGN3ub9cUXa_79IdMA:9 a=QEXdDO2ut3YA:10
- a=y1Q9-5lHfBjTkpIzbSAN:22 a=AjGcO6oz07-iQ99wixmX:22 a=xmb-EsYY8bH0VWELuYED:22
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=embeddedor.com; s=default; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-        Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-        List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=QlO38JItyn9oJ4bwMUFFP3FqsNzwUMOqMup3Pv/RlbM=; b=Gkx26kuo9o/AJL/iYhzFoN09LU
-        WMsmG9IcUJxXG+VvqHMCURZfGBb+vkFjRPVV0Pwn7QDXGghrOgZo79R3x/hScOMDhaGal8jrU2DD4
-        sCxs/0oGyUdDvFfx7KlDZcXymiMW539jiVOum6/5rFS3mbqjhwQUbM6MAVyuatF34tgKAdEovYTVz
-        rTytP47tAxm3PfG/B0A+ZheMpSXUu+CRwsPjV7baGkJ7mJKZm8zzVNHpBv5pjlrHsLXpn2OFAtH38
-        Bxq/ldFDJSheMZPRsy6HvD2R8uLLn2tobWxoCyXerJiQIVeLDzmE7iAMTTS3LFH5m3IFAN3tg8ysK
-        F6suFvzw==;
-Received: from [94.239.20.48] (port=55626 helo=[192.168.1.98])
-        by gator4166.hostgator.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.96)
-        (envelope-from <gustavo@embeddedor.com>)
-        id 1qjkIo-000075-35;
-        Fri, 22 Sep 2023 12:50:55 -0500
-Message-ID: <dd13a477-96b5-4348-eeeb-14f21319ed39@embeddedor.com>
-Date:   Fri, 22 Sep 2023 19:51:50 -0600
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.15.1
-Subject: Re: [PATCH 04/14] net: hns: Annotate struct ppe_common_cb with
- __counted_by
-Content-Language: en-US
-To:     Kees Cook <keescook@chromium.org>, Jakub Kicinski <kuba@kernel.org>
-Cc:     Yisen Zhuang <yisen.zhuang@huawei.com>,
-        Salil Mehta <salil.mehta@huawei.com>,
+        with ESMTP id S229775AbjIXCDf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 23 Sep 2023 22:03:35 -0400
+Received: from mail-pg1-x52b.google.com (mail-pg1-x52b.google.com [IPv6:2607:f8b0:4864:20::52b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60427136
+        for <linux-rdma@vger.kernel.org>; Sat, 23 Sep 2023 19:03:29 -0700 (PDT)
+Received: by mail-pg1-x52b.google.com with SMTP id 41be03b00d2f7-577fff1cae6so3280961a12.1
+        for <linux-rdma@vger.kernel.org>; Sat, 23 Sep 2023 19:03:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1695521007; x=1696125807; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=vYVo5GdkTbBgfnivmVoW8KukwKTsj2A6u4CjQwQFBnw=;
+        b=SGLLhABuwI73NA3/AHiKeurFZFCrtZ9/z8Ak3RS++VRDkQVMnDFnEOA9U/FpoOUOJH
+         N4ab3hpVJ9odTyIIOSnLhEtH8al8lU+sASIYFOYEWniMI7Z33DLBGwR+YvI8GJKJc/DP
+         zCPTX3B3mKKdk+gXhtXGAvbgtxQ2ocPZE86qQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695521007; x=1696125807;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vYVo5GdkTbBgfnivmVoW8KukwKTsj2A6u4CjQwQFBnw=;
+        b=qUDpkpuce/To/T+F3k9A9nUs4NQsu1fYrqf4awxdnx3r9szMX8n5XYTJ5A9HaJ3NyM
+         fAQiJT/JqHstSGKHlSATn9iC/aeFde4wWJLWxIbOeMhPh/U19toTmOaFdXvT/BhJUr6x
+         HLjCCtqPn1+/qx3328y+txk15tLRzjzr5AAj90WgRzDWCB27rvVdP9zp899XiGSLEagE
+         PSC0IeBv9YUie78NLWrABosmy19fFhRR1azJsCXYL9yE74BiinUkw3cu+NsGJVU4+UZj
+         k3J1V2IeZ4UMg60JRYhRxNSrgyQddFoI+tZDwvJqEBrUTOZuIlw3eW7KGcs4mq4yEcsS
+         51+Q==
+X-Gm-Message-State: AOJu0YzchvCI8fWye3qc66T15n7ZRdoSURqeZn3GLmjI+vZx+qrkh8l7
+        wr1XfGmr/FjeFTkrAKNKYC1TDw==
+X-Google-Smtp-Source: AGHT+IGasKw5qGGD+KI5YxzCFxg3lZRJ7Ns/75yx0TF2sBm+b8qXZJKFwUDGZ86xbS0T4ovXuXNpDA==
+X-Received: by 2002:a17:90b:11d5:b0:274:ac60:1d57 with SMTP id gv21-20020a17090b11d500b00274ac601d57mr9710054pjb.16.1695521007664;
+        Sat, 23 Sep 2023 19:03:27 -0700 (PDT)
+Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id n6-20020a17090ade8600b002680dfd368dsm5521151pjv.51.2023.09.23.19.03.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 23 Sep 2023 19:03:26 -0700 (PDT)
+Date:   Sat, 23 Sep 2023 19:03:26 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     Alex Elder <elder@ieee.org>
+Cc:     Jakub Kicinski <kuba@kernel.org>, Alex Elder <elder@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
@@ -64,6 +57,8 @@ Cc:     Yisen Zhuang <yisen.zhuang@huawei.com>,
         Martin KaFai Lau <martin.lau@kernel.org>,
         "Gustavo A. R. Silva" <gustavoars@kernel.org>,
         Alexei Starovoitov <ast@kernel.org>,
+        Yisen Zhuang <yisen.zhuang@huawei.com>,
+        Salil Mehta <salil.mehta@huawei.com>,
         Claudiu Manoil <claudiu.manoil@nxp.com>,
         Vladimir Oltean <vladimir.oltean@nxp.com>,
         "K. Y. Srinivasan" <kys@microsoft.com>,
@@ -71,7 +66,6 @@ Cc:     Yisen Zhuang <yisen.zhuang@huawei.com>,
         Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
         Long Li <longli@microsoft.com>,
         Ajay Sharma <sharmaajay@microsoft.com>,
-        Alex Elder <elder@kernel.org>,
         Pravin B Shelar <pshelar@ovn.org>,
         Shaokun Zhang <zhangshaokun@hisilicon.com>,
         Cong Wang <xiyou.wangcong@gmail.com>,
@@ -83,80 +77,58 @@ Cc:     Yisen Zhuang <yisen.zhuang@huawei.com>,
         linux-rdma@vger.kernel.org, dev@openvswitch.org,
         linux-parisc@vger.kernel.org, llvm@lists.linux.dev,
         linux-hardening@vger.kernel.org
+Subject: Re: [PATCH 08/14] net: ipa: Annotate struct ipa_power with
+ __counted_by
+Message-ID: <202309231859.D8467DB23@keescook>
 References: <20230922172449.work.906-kees@kernel.org>
- <20230922172858.3822653-4-keescook@chromium.org>
-From:   "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-In-Reply-To: <20230922172858.3822653-4-keescook@chromium.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - gator4166.hostgator.com
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - embeddedor.com
-X-BWhitelist: no
-X-Source-IP: 94.239.20.48
-X-Source-L: No
-X-Exim-ID: 1qjkIo-000075-35
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: ([192.168.1.98]) [94.239.20.48]:55626
-X-Source-Auth: gustavo@embeddedor.com
-X-Email-Count: 0
-X-Org:  HG=hgshared;ORG=hostgator;
-X-Source-Cap: Z3V6aWRpbmU7Z3V6aWRpbmU7Z2F0b3I0MTY2Lmhvc3RnYXRvci5jb20=
-X-Local-Domain: yes
-X-CMAE-Envelope: MS4xfNJpHygesTnC9s4/oKhsiSlt39atOTOWtv0wJ1wVifhALYIJgEbY4fx/e1uMwTYJ3/8CRN5d3KuTZbbtkim+x5p+/obVSjygLkB93NEpyPKF1THf9WIC
- FCMpFVXXS5HFy1i09t6eTnCSsdXJcltIMiF/7oEdZagp/qFb/RmYoP7hW609X2twlv+xv1qjaaP7zPTJ5Bq+zZ+dTZQKwZBOkHnJQjQ6YDFcie3GoIDxPV9K
- xBBc0wDxcVz04PQXWuiJImSLZCoZTD1O7NkZGRKYWKrSQ1vqBwaO0casmMyjDhykoiJnYGI4OQofBH3kycEiZtXPpMZoNqPgmHpxclNpHeqPvOidWW3koSfT
- roA3/Ne0t4hupZ8ACDMliQXE3dsBHni6H09yww2yse6efyr751H/f9vfHTJ7RKUYinqy1wbD
+ <20230922172858.3822653-8-keescook@chromium.org>
+ <6f52f36c-be16-2427-c19f-0e8b3dd2ff5f@ieee.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6f52f36c-be16-2427-c19f-0e8b3dd2ff5f@ieee.org>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
-
-On 9/22/23 11:28, Kees Cook wrote:
-> Prepare for the coming implementation by GCC and Clang of the __counted_by
-> attribute. Flexible array members annotated with __counted_by can have
-> their accesses bounds-checked at run-time checking via CONFIG_UBSAN_BOUNDS
-> (for array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
-> functions).
+On Sat, Sep 23, 2023 at 07:09:19AM -0500, Alex Elder wrote:
+> On 9/22/23 12:28 PM, Kees Cook wrote:
+> > Prepare for the coming implementation by GCC and Clang of the __counted_by
+> > attribute. Flexible array members annotated with __counted_by can have
+> > their accesses bounds-checked at run-time checking via CONFIG_UBSAN_BOUNDS
+> > (for array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
+> > functions).
+> > 
+> > As found with Coccinelle[1], add __counted_by for struct ipa_power.
 > 
-> As found with Coccinelle[1], add __counted_by for struct ppe_common_cb.
+> Looks good, thanks.
 > 
-> [1] https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci
+> Reviewed-by: Alex Elder <elder@linaro.org>
 > 
-> Cc: Yisen Zhuang <yisen.zhuang@huawei.com>
-> Cc: Salil Mehta <salil.mehta@huawei.com>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Eric Dumazet <edumazet@google.com>
-> Cc: Jakub Kicinski <kuba@kernel.org>
-> Cc: Paolo Abeni <pabeni@redhat.com>
-> Cc: netdev@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+> Note that there is some interaction between struct ipa_power_data
+> and struct ipa_power (the former is used to initialize the latter).
+> Both of these contain flexible arrays counted by another field in
+> the structure.  It seems possible that the way these are initialized
+> might need slight modification to allow the compiler to do its
+> enforcement; if that's the case, please reach out to me.
 
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+I think it's all okay:
 
-Thanks
+struct ipa_power_data {
+        u32 core_clock_rate;
+        u32 interconnect_count;         /* # entries in interconnect_data[] */
+        const struct ipa_interconnect_data *interconnect_data;
+};
+
+"interconnect_data" here is a pointer, not a flexible array. (Yes,
+__counted_by is expected to be expanded in the future for pointers,
+but not yet.) Looking at initializers, I didn't see any problems with
+how struct ipa_power is allocated.
+
+Thanks for the heads-up; I'm sure I'll look at this again when we can
+further expand __counted_by to pointers. :)
+
+-Kees
+
 -- 
-Gustavo
-
-> ---
->   drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.h | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.h b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.h
-> index 0f0e16f9afc0..7e00231c1acf 100644
-> --- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.h
-> +++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_ppe.h
-> @@ -92,7 +92,7 @@ struct ppe_common_cb {
->   	u8 comm_index;   /*ppe_common index*/
->   
->   	u32 ppe_num;
-> -	struct hns_ppe_cb ppe_cb[];
-> +	struct hns_ppe_cb ppe_cb[] __counted_by(ppe_num);
->   
->   };
->   
+Kees Cook
