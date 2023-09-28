@@ -2,85 +2,139 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 488E8E732C5
-	for <linux-rdma@archiver.kernel.org>; Thu, 28 Sep 2023 12:15:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BD40E732D5
+	for <linux-rdma@archiver.kernel.org>; Thu, 28 Sep 2023 13:20:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229581AbjI1MPu (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 28 Sep 2023 08:15:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42814 "EHLO
+        id S231880AbjI1NUj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 28 Sep 2023 09:20:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232328AbjI1MPu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 Sep 2023 08:15:50 -0400
-Received: from mail-qv1-xf2d.google.com (mail-qv1-xf2d.google.com [IPv6:2607:f8b0:4864:20::f2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08F80139
-        for <linux-rdma@vger.kernel.org>; Thu, 28 Sep 2023 05:15:48 -0700 (PDT)
-Received: by mail-qv1-xf2d.google.com with SMTP id 6a1803df08f44-65b0e623189so43467746d6.1
-        for <linux-rdma@vger.kernel.org>; Thu, 28 Sep 2023 05:15:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1695903347; x=1696508147; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=1KoGFF3gG67f7HtS8wXtabehMpcb0H20FLcT60YySvc=;
-        b=HMqOo1Gc8Xtb3EMUKCTRx8xi7WmT1jcdK0Uc2hXomlsQzOhsWcpmgy4FR3FVMajjv/
-         nOTO5Ve/J99rUy50CG43s3WBmNVOPZXhbkgGMCWgV7Z7CpTGoOECvLNoIaT+Fbfh/J21
-         k8ZsDfY+Id2gSmRQm5FzbKjdhtT1T0b4ULvWpEWh9MDeZZDQMlN94yRem/dKTSKYP9c0
-         Foop5S8N7zJFmS3TLeDcHcltYOqX11kBtRnPDcQjPVO6uynjxtlpFV5UAfNiGPzLwVhS
-         /AJ0u0Mm+onLAMq1NjHeiqECa60DNcfkpPpkFo3+jdhHV35W3tZAA1WadvV867Rm2ps7
-         7Oag==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695903347; x=1696508147;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1KoGFF3gG67f7HtS8wXtabehMpcb0H20FLcT60YySvc=;
-        b=Tyn2COlXhza4ZUQorOF09Wp4huwgSt0BeNztB1Gyz7TJXUSQhpqRsh5F+i22jBOSvN
-         GZruANe+RAPszKl8KncGhOB/VnE8v/Sow3iTknY4t1qdXnPICeAEUI+yAlD2NoLXTihw
-         9PeJW9wN+TGIi1fUVCr9ZPIBGZIzm8QMLF9TXXVwaDw7wLmS5AT9RUQQ6ndsAJ6zc5wa
-         bDxBz49wn7hHfOgOe6UaUXHXc5zdcE8ZDEJaV9/YUgOfejzz6txEfTeL6NHd2VYoAnBq
-         VN0oueuDsGyH121XLO6cRJk0mcgAs+tXck5Ag2h5ipU134ukTnk2DqNZ/n47YmMB6l2J
-         wCPA==
-X-Gm-Message-State: AOJu0Yyx9enc12rGgNHS6mYt9mDPWbRPO/RibUXm7cvZd7ZKCcmfuwFb
-        sfOsKhK9HKdfZ2/qGaFzuVJx2Q==
-X-Google-Smtp-Source: AGHT+IFO/ToWCbCZ46SVTe0ZeYuahYfaS+aix1nnBVV8zB6sSjGr7UUq6XnTTgGkxgad33ZGaOimBA==
-X-Received: by 2002:a0c:ab06:0:b0:65b:fa3:4a01 with SMTP id h6-20020a0cab06000000b0065b0fa34a01mr819278qvb.62.1695903347119;
-        Thu, 28 Sep 2023 05:15:47 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-68-26-201.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.26.201])
-        by smtp.gmail.com with ESMTPSA id h19-20020a0cab13000000b0065b121d6251sm3213778qvb.146.2023.09.28.05.15.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 28 Sep 2023 05:15:46 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.95)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1qlpvl-001fTg-Uy;
-        Thu, 28 Sep 2023 09:15:45 -0300
-Date:   Thu, 28 Sep 2023 09:15:45 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     sharmaajay@linuxonhyperv.com
-Cc:     Long Li <longli@microsoft.com>, Leon Romanovsky <leon@kernel.org>,
-        Dexuan Cui <decui@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+        with ESMTP id S231296AbjI1NUj (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 28 Sep 2023 09:20:39 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD37A19D;
+        Thu, 28 Sep 2023 06:20:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 3C67AC433CB;
+        Thu, 28 Sep 2023 13:20:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1695907236;
+        bh=j/2eYg//PJ1GbwZhUAaOz18f7AbRQ4O+NNbYuKt3mq4=;
+        h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
+        b=WRmGiG4AsourgR8PePRCUHkmrHTjGa0GLOwLlRslD9y6Gxglwb/sKdeaYMIiM+m2U
+         HCEzm7JFG1uUimaSxcCst+jqGOAk+LPd5ofcZjp7Dr/INDF6+dXWJzwECnaIlHFcRw
+         LEZBmRJGbn8CUOMTRZ7oRD405kgYVjEhh4TF32uTBtIqzoTuo9rHeIERNGqM3IsJTd
+         E3AOMsUDv9ORWkadDdcnKmhR9zz5DqiW7MH0ddnh45htLMFfazKbEwb6eN+rYXmR1r
+         qDAClZUoaj39Nqk9YphBEF7rdkqlcU4nn2uOKk0jMqKnWUeeRkM0qbnycd10U9Ld3x
+         iYyDOHPWNIO8w==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by smtp.lore.kernel.org (Postfix) with ESMTP id 1CF38E732CF;
+        Thu, 28 Sep 2023 13:20:36 +0000 (UTC)
+From:   Joel Granados via B4 Relay 
+        <devnull+j.granados.samsung.com@kernel.org>
+Date:   Thu, 28 Sep 2023 15:21:26 +0200
+Subject: [PATCH 01/15] cdrom: Remove now superfluous sentinel element from
+ ctl_table array
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230928-jag-sysctl_remove_empty_elem_drivers-v1-1-e59120fca9f9@samsung.com>
+References: <20230928-jag-sysctl_remove_empty_elem_drivers-v1-0-e59120fca9f9@samsung.com>
+In-Reply-To: <20230928-jag-sysctl_remove_empty_elem_drivers-v1-0-e59120fca9f9@samsung.com>
+To:     Luis Chamberlain <mcgrof@kernel.org>, willy@infradead.org,
+        josh@joshtriplett.org, Kees Cook <keescook@chromium.org>,
+        Phillip Potter <phil@philpotter.co.uk>,
+        Clemens Ladisch <clemens@ladisch.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        "James E.J. Bottomley" <jejb@linux.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Doug Gilbert <dgilbert@interlog.com>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Corey Minyard <minyard@acm.org>, Theodore Ts'o <tytso@mit.edu>,
+        "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        David Ahern <dsahern@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
         Eric Dumazet <edumazet@google.com>,
         Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, linux-rdma@vger.kernel.org,
-        linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Ajay Sharma <sharmaajay@microsoft.com>
-Subject: Re: [Patch v6 0/5] RDMA/mana_ib
-Message-ID: <20230928121545.GP13795@ziepe.ca>
-References: <1694802270-17452-1-git-send-email-sharmaajay@linuxonhyperv.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1694802270-17452-1-git-send-email-sharmaajay@linuxonhyperv.com>
+        Paolo Abeni <pabeni@redhat.com>,
+        Robin Holt <robinmholt@gmail.com>,
+        Steve Wahl <steve.wahl@hpe.com>,
+        Russ Weight <russell.h.weight@intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Song Liu <song@kernel.org>,
+        "K. Y. Srinivasan" <kys@microsoft.com>,
+        Haiyang Zhang <haiyangz@microsoft.com>,
+        Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>,
+        David Airlie <airlied@gmail.com>,
+        Daniel Vetter <daniel@ffwll.ch>
+Cc:     linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org,
+        linux-serial@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org,
+        openipmi-developer@lists.sourceforge.net, netdev@vger.kernel.org,
+        linux-raid@vger.kernel.org, linux-hyperv@vger.kernel.org,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        Joel Granados <j.granados@samsung.com>
+X-Mailer: b4 0.13-dev-86aa5
+X-Developer-Signature: v=1; a=openpgp-sha256; l=944; i=j.granados@samsung.com;
+ h=from:subject:message-id; bh=qSsthXDIpINcD2xITRy2TOv8R22x0qMRyMvqjqljpm0=;
+ b=owEB7QES/pANAwAKAbqXzVK3lkFPAcsmYgBlFX3bxBTXVZalX2OxDj+67GtOqe8IxIGJwSLF1
+ iLnIskFGxCJAbMEAAEKAB0WIQSuRwlXJeYxJc7LJ5C6l81St5ZBTwUCZRV92wAKCRC6l81St5ZB
+ T9hZC/wJ7EgDM6vrFYYmNrYQRkQQUSj4jjafOUPMhsZdNSqZu4kVh8xyDtcKgxhctnq+INR87Nr
+ dwm3eyWcssi6Zi3rFSiOI9vdZ2zESFY5OJ4dNUGBRAofgcVpLAvu4ZYQeXaCx7XzSIlzsCyd/dg
+ +Ym3KCHhaY2KSd0wJE8MuZN8/J6RxSwT1SyXgnBMjieGNWnw/mxbi7RnSHxARqjAMrAacvr1pUr
+ vqS9lxYeOv5aKInqTkx7sBu2iXx1/kgQGA7MNqvKgrgooVkICokoKPgcDvDR1nWTDzrnUzKEAa4
+ LroyVmn9iYYNuuXhhBl1BVgWeXVdkN7/r1r69wCAZWcVaadyFOoMNLxRsOvwsw6kynVTfbNOo+4
+ OxoS60XgqKVygBBx6urNukqqtiEYIzpDpU/QU00wUDSoHwIOyq4geKJEjTui+QORzF2/rfMdAii
+ IGAGzQM4oARjvwY26lxvyJdVBd4NtwRMk5g7yxIYVwfBC4G3Y6+/HFF2COHYzGYBEU5es=
+X-Developer-Key: i=j.granados@samsung.com; a=openpgp;
+ fpr=F1F8E46D30F0F6C4A45FF4465895FAAC338C6E77
+X-Endpoint-Received: by B4 Relay for j.granados@samsung.com/default with auth_id=70
+X-Original-From: Joel Granados <j.granados@samsung.com>
+Reply-To: <j.granados@samsung.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Sep 15, 2023 at 11:24:25AM -0700, sharmaajay@linuxonhyperv.com wrote:
-> From: Ajay Sharma <sharmaajay@microsoft.com>
-> 
-> Change from v5:
-> Use xarray for qp lookup.
+From: Joel Granados <j.granados@samsung.com>
 
-this series is malformed somehow, it does not appear in patchworks
+This commit comes at the tail end of a greater effort to remove the
+empty elements at the end of the ctl_table arrays (sentinels) which
+will reduce the overall build time size of the kernel and run time
+memory bloat by ~64 bytes per sentinel (further information Link :
+https://lore.kernel.org/all/ZO5Yx5JFogGi%2FcBo@bombadil.infradead.org/)
 
-Jason
+Remove sentinel element from cdrom_table
+
+Signed-off-by: Joel Granados <j.granados@samsung.com>
+---
+ drivers/cdrom/cdrom.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/cdrom/cdrom.c b/drivers/cdrom/cdrom.c
+index cc2839805983..451907ade389 100644
+--- a/drivers/cdrom/cdrom.c
++++ b/drivers/cdrom/cdrom.c
+@@ -3654,8 +3654,7 @@ static struct ctl_table cdrom_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= cdrom_sysctl_handler
+-	},
+-	{ }
++	}
+ };
+ static struct ctl_table_header *cdrom_sysctl_header;
+ 
+
+-- 
+2.30.2
+
