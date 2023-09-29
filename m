@@ -2,60 +2,61 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D6DE728D5
-	for <linux-rdma@archiver.kernel.org>; Fri, 29 Sep 2023 18:05:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49E06E728CF
+	for <linux-rdma@archiver.kernel.org>; Fri, 29 Sep 2023 18:05:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232985AbjI2SFP (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 29 Sep 2023 14:05:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34176 "EHLO
+        id S233144AbjI2SFQ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 29 Sep 2023 14:05:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233925AbjI2SFE (ORCPT
+        with ESMTP id S233847AbjI2SFE (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Fri, 29 Sep 2023 14:05:04 -0400
-Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 653741B2
+Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA689CC8
         for <linux-rdma@vger.kernel.org>; Fri, 29 Sep 2023 11:04:33 -0700 (PDT)
-Received: by mail-pf1-x42d.google.com with SMTP id d2e1a72fcca58-690bd59322dso11436177b3a.3
+Received: by mail-pl1-x631.google.com with SMTP id d9443c01a7336-1c3d6d88231so109441235ad.0
         for <linux-rdma@vger.kernel.org>; Fri, 29 Sep 2023 11:04:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=chromium.org; s=google; t=1696010673; x=1696615473; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=q/QLRqHS2L1NZ+5Mittg0t9KUpHsT5gMIELAAOGClyI=;
-        b=CnWJmFgDThESeBVrWvndRL7qevdh1LedSSoza2qpzq1NbzCsE5Z+V/JhhSt/4s6hhV
-         a2ZsuSY7lMs1NtZF9tAuBQb/v+ysmbMW0PonovPnMYgGc8bMnpjHz6hKuJTriaMMlcRP
-         BaiWCIy6iTKVZP6TB+a682fT2tPZUp4ZrqpHY=
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=rjv7XjWCeDrMXMYTb/YTTJo8q29FnAz83pH22uwoIO0=;
+        b=g1MY3owXfmVFxC4qubpH9QOenRmlMJxfCvYyfu535aURz8GzIhvHdPQi6Xnp+Q6cZP
+         Dd/hyifEZpAuLeFZ/ZckowK9PM3Rej+d/uOGZNunWhN3cv0KyPO+Za15HExnXJnmcUjr
+         ha8BpBHJmCpV4lWAKEaVTlAymyXWoz6eDqMy8=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20230601; t=1696010673; x=1696615473;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=q/QLRqHS2L1NZ+5Mittg0t9KUpHsT5gMIELAAOGClyI=;
-        b=TXaZTM7SwPR2UEHBG7IyBJmZIAuxkKa3jx96mY8eY+vnJvJ/Ae0+nPcKRzWfppjzib
-         Iirs1x8PHB8f+c/XqlmqgLmR1XboXksmRXr8N8uYZack/LDKFpq4lJ1hjBXRCvlqjCi+
-         VtSTjvRjyWSgc4kmpY1Ah98zGsEevMnknfkc2pT4ZJXKnjKwCmO/YbPmfNgsTGikzUwh
-         kW8aHLQMn2D3y9+255nQg7TSLABbIbWOg/V+i2OUvm0GFtzusJeVMWruZ3LG2YvHFLCf
-         Jo5al52APbiy77UnifydAxVOeVyBe/vBqaG5tAVFdZOp3cnGc0XxidCx/DWqDwuVBp1p
-         wRJA==
-X-Gm-Message-State: AOJu0Yw1HYyoRcyzSzsAzvIb4ZZV78jW24zzPRRoO29jmPtiO2wt8d8v
-        vrMS6lyNYqwsF2LCY/EZzwdW2A==
-X-Google-Smtp-Source: AGHT+IGac3Y+OxZ1Rfapit3zv2uDFcPVgfD1mFi/owGzR0eAKACpnMWPiW7mh4tp2DCOwfeg6BIUyQ==
-X-Received: by 2002:a05:6a20:7d92:b0:15c:fa48:2c09 with SMTP id v18-20020a056a207d9200b0015cfa482c09mr6069263pzj.15.1696010672901;
-        Fri, 29 Sep 2023 11:04:32 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=rjv7XjWCeDrMXMYTb/YTTJo8q29FnAz83pH22uwoIO0=;
+        b=wKeQI6nD43iZ2vc0hmeIJZsy+ClYmOTeJlSlmrjwEKpOsdc+7puVFvChEzT7zwwyA/
+         dnd6nO9ypYpmkFgC1RzlsDTkawkDP+Ac7Fay+ctrr5vu7ow6kuD5a1/xd2oZTMlCRcaz
+         abyAtderSobGD0VcpoftaC66Qy0pvg8BNxrTUcDBR3pC/SyEhsr4uETVWoAmfGdf+eaJ
+         QL3gBPXl7zY1tHo34LNt5kV+ZyZnKjUy1NlVTO1qCrixPY703jAI/rUpGAQ+jsU8AcT6
+         jRdVR2BNsJIegd3yXlOx08kHN8Hum44JGYjwmWAp/kH9Lux9VX8KuugreP8YaWAk8xwo
+         pkrQ==
+X-Gm-Message-State: AOJu0Yx2G9C5reLAWjA1Vf+WRYJBkHbofJBvJj4jeCNQENmOJi5SEHb9
+        28D+Li1kp5opX4wFubrkWHkKpw==
+X-Google-Smtp-Source: AGHT+IEqbxt2iHBD3gT66BfcF4+zqgw5KnT5DPsKrmGXzyU2z5+ZNSV0Qlc7B//NeDlD+AqaM/ce+g==
+X-Received: by 2002:a17:902:ea8d:b0:1bf:c59:c944 with SMTP id x13-20020a170902ea8d00b001bf0c59c944mr5046186plb.22.1696010673179;
+        Fri, 29 Sep 2023 11:04:33 -0700 (PDT)
 Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
-        by smtp.gmail.com with ESMTPSA id gp15-20020a17090adf0f00b002790ded9c6dsm1743374pjb.31.2023.09.29.11.04.32
+        by smtp.gmail.com with ESMTPSA id c4-20020a170902c1c400b001bf8779e051sm9028480plc.289.2023.09.29.11.04.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Fri, 29 Sep 2023 11:04:32 -0700 (PDT)
 From:   Kees Cook <keescook@chromium.org>
 To:     Jason Gunthorpe <jgg@ziepe.ca>
 Cc:     Kees Cook <keescook@chromium.org>,
+        Christian Benvenuti <benve@cisco.com>,
+        Nelson Escobar <neescoba@cisco.com>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
         Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Leon Romanovsky <leon@kernel.org>,
         =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>,
         Avihai Horon <avihaih@nvidia.com>,
         Anand Khoje <anand.a.khoje@oracle.com>,
         Mark Bloch <mbloch@nvidia.com>,
-        Christian Benvenuti <benve@cisco.com>,
-        Nelson Escobar <neescoba@cisco.com>,
         Bernard Metzler <bmt@zurich.ibm.com>,
         Bart Van Assche <bvanassche@acm.org>,
         "Gustavo A. R. Silva" <gustavoars@kernel.org>,
@@ -66,62 +67,66 @@ Cc:     Kees Cook <keescook@chromium.org>,
         Chuck Lever <chuck.lever@oracle.com>,
         Tom Talpey <tom@talpey.com>,
         wangjianli <wangjianli@cdjrlc.com>, linux-kernel@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-hardening@vger.kernel.org,
-        llvm@lists.linux.dev
-Subject: [PATCH 0/7] RDMA: Annotate structs with __counted_by
-Date:   Fri, 29 Sep 2023 11:04:23 -0700
-Message-Id: <20230929180305.work.590-kees@kernel.org>
+        linux-hardening@vger.kernel.org, llvm@lists.linux.dev
+Subject: [PATCH 3/7] RDMA/usnic: Annotate struct usnic_uiom_chunk with __counted_by
+Date:   Fri, 29 Sep 2023 11:04:26 -0700
+Message-Id: <20230929180431.3005464-3-keescook@chromium.org>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230929180305.work.590-kees@kernel.org>
+References: <20230929180305.work.590-kees@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1121; i=keescook@chromium.org;
- h=from:subject:message-id; bh=/4LMpXENw48q7fWMpYL2O5Uv9CCph1q6zJBZxS3OiTQ=;
- b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlFxGtfNnwAB6/IhVqdJxC7ZgaTcIkDx4p62U8K
- 94/n2sAm5mJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZRcRrQAKCRCJcvTf3G3A
- JrPDD/9G/FXBBVcXylRtWq4GKt0j7nGB3Sb1K6AcSlCVxVFBRy+nxwfYQQZr4xtXxsWvyMHA3GO
- an6tniLg3oW6KAqeWlyoWTPCgAB03CJi+G+hDiHHCov15sOhpiT+456fNXINz4dWnuT1qjDocWu
- qVgb/JbcWJ1yknRDBwLxZj8BxmPFaaI0fAk3CBQ1uQGoIuXnpCcwPc3K4LnXUr291JEhvyG1GYm
- 3AoB/bQL+pdZ+iiLJ8Yy/zYhFRiaJJjemNfx4dgeoeVtFYw/5lBL12b3cig48nQ5OYmhzuKV6DH
- J+ivtBBRlahSdgzv3pA7WYfvof4aT9lQPMFU8DAhQwTPxyBIQBQGJcmO6kpVvOYl/RV3fMyaG4O
- AHoNT3KByS2bpG0ExZn6Uudg9PdpU4oZDnBycx9eyVau5Fo5w3iNBmOaONQqpSV8sm21McFz7bc
- PlWSe1ghKr/6+gz6B7c6xuGI5XUCPAgmfeoZK0ImUfSKKq4dMNZQgXsbUKst/+9wQuU6Xes3YQo
- Th5dJxMb43142TKmxCpqx3Rjz4V3QoMFZuIzOmqjdgLuZ4/h/zPhD/7BIsty0C49KtvuHqctwCa
- 6mxhmeKDdB6fYNPos0YZ/L7sWYNIQGJxNq4XbGnQijtT1dR331wWDNTg+3OFKZr5O6Et2PaYOjJ
- nEyQXsh KrnMXw1g==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1357; i=keescook@chromium.org;
+ h=from:subject; bh=PVnuNq2a519xhVqwBmJpJ/aQUk1MR7UGuxLJSDkBI0M=;
+ b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlFxGtOkrR3aIgB88Z3xMRuRsPr/pj6t6EgVcik
+ IpjUEiLnaKJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZRcRrQAKCRCJcvTf3G3A
+ Jo5iEACbnoHJcJyHp7utyWJvDOGHq949IF3S9dIbHV2PkP642qwnvv3riAf4djGdAw0JTTF2VJA
+ MU/bRdHd3fBmNGyf3uqPtz2avADi5Qrp02tF1gz8VOt4pgD6QJHfIkVFJBj04+VrIZuK2Xpusn5
+ zoL6iEHRd/jUJFJlUNUlFEtm10nT5JkbkjpWKBD3g05vhRufE87afPIg60R61DQSA81h73t1O99
+ N8qlbD2jKbuzlEb2IAko+pN/GNVvCV2qahIAEtBS60B3xkkwvKNCrmFJiAxvlqF0iYznuXBuAhb
+ ojrSJRP1p5DwjajmTvpHROPJKipMvIs9Thufh+djwWCvfpWWwetI7bc+evEM/rUF2jiXl7oGOLO
+ zMSAIhCHessLhv0mt6qrDF7OJxSwdxs4/1lRwzQt/aYCgyrWDAdKjUzS8JxgZAqdwdsBTPwD2+v
+ gbbWHmXQQZOltmtew5a6N+hwlDI/zQCj9ZJCvAHH1HIp0cvAYznJNvjkZzsoP+HJKs/UgzFuONt
+ Np1NLzVO+JKDE04zcP4DQftGbxQ5BSm4lRlfttV8DqLSbna6Nixk+T1lcO4SZdykPmMskePTb5G
+ uzmYpw1ScL3aEag5bNei8eBBCxG2sdmOx/PPAsdh8knLy4FlBAed695G3bGcv1GWSKMtnzfP1IF OFHIWV/FkLGL9YQ==
 X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi,
+Prepare for the coming implementation by GCC and Clang of the __counted_by
+attribute. Flexible array members annotated with __counted_by can have
+their accesses bounds-checked at run-time checking via CONFIG_UBSAN_BOUNDS
+(for array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
+functions).
 
-This annotates several structures with the coming __counted_by attribute
-for bounds checking of flexible arrays at run-time. For more details, see
-commit dd06e72e68bc ("Compiler Attributes: Add __counted_by macro").
+As found with Coccinelle[1], add __counted_by for struct usnic_uiom_chunk.
 
-Thanks!
+[1] https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci
 
--Kees
+Cc: Christian Benvenuti <benve@cisco.com>
+Cc: Nelson Escobar <neescoba@cisco.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ drivers/infiniband/hw/usnic/usnic_uiom.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Kees Cook (7):
-  RDMA: Annotate struct rdma_hw_stats with __counted_by
-  RDMA/core: Annotate struct ib_pkey_cache with __counted_by
-  RDMA/usnic: Annotate struct usnic_uiom_chunk with __counted_by
-  RDMA/siw: Annotate struct siw_pbl with __counted_by
-  IB/srp: Annotate struct srp_fr_pool with __counted_by
-  IB/mthca: Annotate struct mthca_icm_table with __counted_by
-  IB/hfi1: Annotate struct tid_rb_node with __counted_by
-
- drivers/infiniband/core/cache.c             | 2 +-
- drivers/infiniband/hw/hfi1/user_exp_rcv.h   | 2 +-
- drivers/infiniband/hw/mthca/mthca_memfree.h | 2 +-
- drivers/infiniband/hw/usnic/usnic_uiom.h    | 2 +-
- drivers/infiniband/sw/siw/siw.h             | 2 +-
- drivers/infiniband/ulp/srp/ib_srp.h         | 2 +-
- include/rdma/ib_verbs.h                     | 2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.h b/drivers/infiniband/hw/usnic/usnic_uiom.h
+index 5a9acf941510..70d51d919d12 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.h
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.h
+@@ -77,7 +77,7 @@ struct usnic_uiom_reg {
+ struct usnic_uiom_chunk {
+ 	struct list_head		list;
+ 	int				nents;
+-	struct scatterlist		page_list[];
++	struct scatterlist		page_list[] __counted_by(nents);
+ };
+ 
+ struct usnic_uiom_pd *usnic_uiom_alloc_pd(struct device *dev);
 -- 
 2.34.1
 
