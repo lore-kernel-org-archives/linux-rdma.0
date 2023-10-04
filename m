@@ -2,123 +2,57 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAD0AE8FDC3
-	for <linux-rdma@archiver.kernel.org>; Wed,  4 Oct 2023 03:42:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A59E6E8FDD1
+	for <linux-rdma@archiver.kernel.org>; Wed,  4 Oct 2023 07:54:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230523AbjJDDmL (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 3 Oct 2023 23:42:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37624 "EHLO
+        id S241586AbjJDHyC (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 4 Oct 2023 03:54:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229815AbjJDDmK (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 3 Oct 2023 23:42:10 -0400
-Received: from out-210.mta0.migadu.com (out-210.mta0.migadu.com [91.218.175.210])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CB5BA7
-        for <linux-rdma@vger.kernel.org>; Tue,  3 Oct 2023 20:42:07 -0700 (PDT)
-Message-ID: <2fcef3c8-808e-8e6a-b23d-9f1b3f98c1f9@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1696390925;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=DWTwkkFRGjvuCbu2qw8R41rNgetDuelLeU3tWzW8MFg=;
-        b=cndYhDK84SaKAfdlCvLG76VmZBdpiqM00hhfI35SyZCZMC1b/egrGzLOTkINeyNi8yoVOT
-        cTzAUW8d3WXR0e21WZfPk0QZtn7IkTsPxMgr1nVwpiYa3yyYZoOIY88gSOecdMEk5VSR5U
-        YyjFrqzu0GB5NOhxc2san1QZArJzkEw=
-Date:   Wed, 4 Oct 2023 11:41:51 +0800
+        with ESMTP id S241572AbjJDHx7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 4 Oct 2023 03:53:59 -0400
+X-Greylist: delayed 494 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 04 Oct 2023 00:53:56 PDT
+Received: from mail.citycodes.pl (mail.citycodes.pl [158.255.215.195])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87776AC
+        for <linux-rdma@vger.kernel.org>; Wed,  4 Oct 2023 00:53:56 -0700 (PDT)
+Received: by mail.citycodes.pl (Postfix, from userid 1001)
+        id CF56D1F46C; Wed,  4 Oct 2023 09:45:39 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=citycodes.pl; s=mail;
+        t=1696405540; bh=mMhfBvhM53FtUQl1P3lyeSY5aDBQYiR8qQBy6YFQHi0=;
+        h=Date:From:To:Subject:From;
+        b=DUU6m5nC5GsDgAyFPLrFIMSjlwYoLWQazetipswmwWB9HmMg1anuIEGeMYHiOU/9W
+         GuYf6Q/CXGHYnULeziXWULKJvOvZfQCk/MYDsYIeLsry2Spu26rg8P+W75qr7D13gY
+         spSTxoR+7kldrCtjAM42mm6rxMrqsJqezeO89U5zkn9TYL65v/AHOmABCjG+/FuXSc
+         yQeqqLEe5oRscj9JgFe9kXvxjQVtTcUTGVVTvXOp3GgS26Y8DCU2hJ/JD8/0led51T
+         PavV+PuumQqP1QLPTYB1TAkEgjvAAvNytZoEd1x38KFWH67LimbfMjxdt5JzKGTd7h
+         Yoe++RcAf7wFA==
+Received: by mail.citycodes.pl for <linux-rdma@vger.kernel.org>; Wed,  4 Oct 2023 07:45:38 GMT
+Message-ID: <20231004084500-0.1.7v.j0pp.0.yagrm9v9fp@citycodes.pl>
+Date:   Wed,  4 Oct 2023 07:45:38 GMT
+From:   "Kamil Lasek" <kamil.lasek@citycodes.pl>
+To:     <linux-rdma@vger.kernel.org>
+Subject: =?UTF-8?Q?Rozszerzenie_Programu_M=C3=B3j_Pr=C4=85d_5.0?=
+X-Mailer: mail.citycodes.pl
 MIME-Version: 1.0
-Subject: Re: [PATCH 1/1] Revert "RDMA/rxe: Add workqueue support for rxe
- tasks"
-To:     Bart Van Assche <bvanassche@acm.org>,
-        Bob Pearson <rpearsonhpe@gmail.com>,
-        Leon Romanovsky <leon@kernel.org>, zyjzyj2000@gmail.com,
-        jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-        matsuda-daisuke@fujitsu.com, shinichiro.kawasaki@wdc.com,
-        linux-scsi@vger.kernel.org, Zhu Yanjun <yanjun.zhu@intel.com>
-References: <20230922163231.2237811-1-yanjun.zhu@intel.com>
- <169572143704.2702191.3921040309512111011.b4-ty@kernel.org>
- <20230926140656.GM1642130@unreal>
- <d3c05064-a88b-4719-a390-6bf9ae01fba5@acm.org>
- <b7b365e3-dd11-bc66-dace-05478766bf41@gmail.com>
- <2d5e02d7-cf84-4170-b1a3-a65316ac84ee@acm.org>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <2d5e02d7-cf84-4170-b1a3-a65316ac84ee@acm.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-在 2023/9/27 4:24, Bart Van Assche 写道:
-> On 9/26/23 11:34, Bob Pearson wrote:
->> I am working to try to reproduce the KASAN warning. Unfortunately,
->> so far I am not able to see it in Ubuntu + Linus' kernel (as you 
->> described) on metal. The config file is different but copies the 
->> CONFIG_KASAN_xxx exactly as yours. With KASAN enabled it hangs on 
->> every iteration of srp/002 but without a KASAN warning. I am now 
->> building an openSuSE VM for qemu and will see if that causes the warning.
-> 
-> Hi Bob,
-> 
-> Did you try to understand the report that I shared? My conclusion from
-> the report is that when using tasklets rxe_completer() only runs after
-> rxe_requester() has finished and also that when using work queues that
-> rxe_completer() may run concurrently with rxe_requester(). This patch
-> seems to fix all issues that I ran into with the rdma_rxe workqueue
-> patch (I have not tried to verify the performance implications of this
-> patch):
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_task.c 
-> b/drivers/infiniband/sw/rxe/rxe_task.c
-> index 1501120d4f52..6cd5d5a7a316 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_task.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_task.c
-> @@ -10,7 +10,7 @@ static struct workqueue_struct *rxe_wq;
-> 
->   int rxe_alloc_wq(void)
->   {
-> -       rxe_wq = alloc_workqueue("rxe_wq", WQ_UNBOUND, WQ_MAX_ACTIVE);
-> +       rxe_wq = alloc_workqueue("rxe_wq", WQ_UNBOUND, 1);
->          if (!rxe_wq)
->                  return -ENOMEM;
+Szanowni Pa=C5=84stwo!
 
-Hi, Bart
+W ramach nowej edycji programu M=C3=B3j Pr=C4=85d mog=C4=85 otrzyma=C4=87=
+ Pa=C5=84stwo dofinansowanie na zakup i monta=C5=BC fotowoltaiki i/lub ma=
+gazynu energii. Maksymalna kwota dofinansowania wynosi 58 tys. z=C5=82.=20
 
-With the above commit, I still found a similar problem. But the problem 
-occurs very rarely. With the following, to now, the problem does not occur.
+Jako firma wyspecjalizowana w tym zakresie zajmiemy si=C4=99 Pa=C5=84stwa=
+ wnioskiem o dofinansowanie oraz instalacj=C4=85 i serwisem dopasowanych =
+do Pa=C5=84stwa budynku paneli s=C5=82onecznych.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_task.c 
-b/drivers/infiniband/sw/rxe/rxe_task.c
-index 1501120d4f52..3189c3705295 100644
---- a/drivers/infiniband/sw/rxe/rxe_task.c
-+++ b/drivers/infiniband/sw/rxe/rxe_task.c
-@@ -10,7 +10,7 @@ static struct workqueue_struct *rxe_wq;
-
-  int rxe_alloc_wq(void)
-  {
--       rxe_wq = alloc_workqueue("rxe_wq", WQ_UNBOUND, WQ_MAX_ACTIVE);
-+       rxe_wq = alloc_workqueue("rxe_wq", WQ_HIGHPRI | WQ_UNBOUND, 1);
-         if (!rxe_wq)
-                 return -ENOMEM;
+B=C4=99d=C4=99 wdzi=C4=99czny za informacj=C4=99 czy s=C4=85 Pa=C5=84stwo=
+ zainteresowani.
 
 
-And with the tasklet, this problem also does not occur.
-
-With "alloc_workqueue("rxe_wq", WQ_HIGHPRI | WQ_UNBOUND, 1);", an 
-ordered workqueue with high priority is allocated.
-
-To the same number of work item, the ordered workqueue has the same 
-runing time with the tasklet. But the tasklet is based on softirq. Its 
-overhead on scheduling is less than workqueue. So in theory, tasklet's 
-performance should be better than the ordered workqueue.
-
-Best Regards,
-Zhu Yanjun
-
-> 
-> Thanks,
-> 
-> Bart.
-
+Pozdrawiam,
+Kamil Lasek
