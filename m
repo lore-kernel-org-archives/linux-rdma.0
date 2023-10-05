@@ -2,144 +2,144 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4528CE7AD45
-	for <linux-rdma@archiver.kernel.org>; Thu,  5 Oct 2023 16:39:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42D02E92717
+	for <linux-rdma@archiver.kernel.org>; Thu,  5 Oct 2023 16:41:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229609AbjJEQio (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 5 Oct 2023 12:38:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40632 "EHLO
+        id S233043AbjJEQke convert rfc822-to-8bit (ORCPT
+        <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 5 Oct 2023 12:40:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230430AbjJEQiO (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Oct 2023 12:38:14 -0400
-Received: from mail-wm1-x331.google.com (mail-wm1-x331.google.com [IPv6:2a00:1450:4864:20::331])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D02EA4237
-        for <linux-rdma@vger.kernel.org>; Thu,  5 Oct 2023 09:12:09 -0700 (PDT)
-Received: by mail-wm1-x331.google.com with SMTP id 5b1f17b1804b1-4053f24c900so80185e9.1
-        for <linux-rdma@vger.kernel.org>; Thu, 05 Oct 2023 09:12:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1696522328; x=1697127128; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0r0z6lg6WCpdjTrIkK0dVsLYyVCZ/7MdG8Aqn4UL8Rc=;
-        b=o681KbIh2TlLlhg8XG13gpUMzwdOWGu93tlv1/AmAQmTSR1pYFOLQ39scqoBCGGlhi
-         4twWQG1uOshmLs2xF5w3/nPDQegq0pHr0IWitMDfaFoK/bDa9m+nCYE67EVozR0MX0+X
-         EyGpMb4MPF9fy3rf61gcJROjNqNa6HcEqJuxmhB+ki0io7BHtCw0U0i/lw4kIKZpWQfR
-         6Kjip00dYddoVNJ958TrIuB6gJsLypWAVPUE31LC1LfuJ6rivEEgPkbYFRhuBmoZQOui
-         QtqcpUzWEIo2mO1rI7Z0w5A7W0peQitW15tx4IKCl23o7rV+GX/ihXN7g61y1pw7elN7
-         oC2A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696522328; x=1697127128;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=0r0z6lg6WCpdjTrIkK0dVsLYyVCZ/7MdG8Aqn4UL8Rc=;
-        b=LgqDm3jdkrdy0/DLXQFaCObDMCMFEByfxurKASlR11afLlDzFCEevPnstDrjkfu1zl
-         2cd5pVFIJUZQMchJWsg6Bs8LGVVvXXcLKFdKaRL1oh56EVUh5KK3zykOj0jJ4L5OTV9v
-         JeW/iuwUTr78fKz0t6b8IjzPwue07PLvPen5oEtKCTPeuG/mYz3ItHo7TvS0SuADlsfr
-         1licMAELImaWyYaxgFGkcG/HJnFcu3tKgqbJ2O1ueric49Ab8r+4o/H8mQ7avo3MPjkn
-         dZ+T/3IsK3v2w+1vdg6TRGDcIjA4l2Th9UE+BSH1adFkOahWe51z7VZby7UO6iaWeeod
-         1zRw==
-X-Gm-Message-State: AOJu0Yz4y6JIuC9qlrMffFqaYs+6wIf3TZtMN4ZG+6juUCOrQDMEyM9A
-        z1ljKs+dBQ7x/mH5W7Ob1T/nXKZ0s4hFjZo3AI1mRA==
-X-Google-Smtp-Source: AGHT+IHsG9cALy9l/AGtf9WGqoTk1+vFPuwod1G0A2HPE9T+W6tIBWkayyF2LSEa5O28SfRy9xIMPv/xnERf3BuOFTY=
-X-Received: by 2002:a05:600c:b93:b0:3fe:eb42:7ec with SMTP id
- fl19-20020a05600c0b9300b003feeb4207ecmr61696wmb.1.1696522327966; Thu, 05 Oct
- 2023 09:12:07 -0700 (PDT)
+        with ESMTP id S234815AbjJEQjV (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 5 Oct 2023 12:39:21 -0400
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on20624.outbound.protection.outlook.com [IPv6:2a01:111:f400:7e8b::624])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F4044492
+        for <linux-rdma@vger.kernel.org>; Wed,  4 Oct 2023 21:45:09 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=lXmFqzxnAdhPmpd22q6R+JvYxI38/EtbH2m8bcMfNVxPq7BgkGMomlgO9mNpPyC62Qws6jXTy1fLur+D6A8zkFovYa2FQl5HMF8PLrL6TKHywpkMFTPDYUtm7opg9kIPjDbMeytHf+hTbF6KhA++eJQ6mWpm4fC7gPowcJH0/ay8hGwUW+VQ9UC14kkqU9so1+ClL0NduVpooCFfWAQPtFIO1FJdMUE2estPT1wsxte/0zvpRq6FdQE6QVcGfX3Sp/NsQi2vO6YTB+4i8lAJe7GneLDIKQ3kxj8o5Vw+10GKhOLvWKvCOsO8YHXHPEW2Bh3Z36vnXdWrtilUokzdhg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=CuhxY+hkYAyks91OkLYtNt+FLuUkhBf/Ud5nOSH3j3M=;
+ b=Q4mtW1OT+bWac5Eix+wS4RRZszg4CI+Xj5Yd0Nk22FalKfkK52B+wrN57DWh1rXpeFbcKHuipJDEOA4WiL9FDu5cbr/f4Sh/PlPEacXBhUuVISoRryaj16C81nh2Y/yC3DjD5uAKQBQ3seVQqKh+F8i0CQ9LsEWolzSlmTYwOJyvdn2KsplCiIbuirte2OizDlETYa8fxeb1x3FbdghrfXhtt/s0hr0lok0v2h1MTx5boQot17ehJd6zVaTjQoTFNmgYpkp+5fM1F7NQKZxO6hVcqrp1r/fNv9xfeHkuq64BCCCDHffPWLzYrgWGhTybFrDyUgOXolnU7e2GCYhDQQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=mellanox.com; dmarc=pass action=none header.from=mellanox.com;
+ dkim=pass header.d=mellanox.com; arc=none
+Received: from PH0PR12MB5481.namprd12.prod.outlook.com (2603:10b6:510:d4::15)
+ by DS7PR12MB8274.namprd12.prod.outlook.com (2603:10b6:8:da::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6838.27; Thu, 5 Oct
+ 2023 04:44:54 +0000
+Received: from PH0PR12MB5481.namprd12.prod.outlook.com
+ ([fe80::4002:4762:330c:a199]) by PH0PR12MB5481.namprd12.prod.outlook.com
+ ([fe80::4002:4762:330c:a199%7]) with mapi id 15.20.6838.033; Thu, 5 Oct 2023
+ 04:44:54 +0000
+From:   Parav Pandit <parav@mellanox.com>
+To:     Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@nvidia.com>
+CC:     Leon Romanovsky <leonro@nvidia.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Subject: RE: [PATCH rdma-rc] RDMA/core: Require admin capabilities to set
+ system parameters
+Thread-Topic: [PATCH rdma-rc] RDMA/core: Require admin capabilities to set
+ system parameters
+Thread-Index: AQHZ9u8dauug70g/Ck219+gVfqfff7A6n07g
+Date:   Thu, 5 Oct 2023 04:44:53 +0000
+Message-ID: <PH0PR12MB548137A0C6B51FE63379D7B4DCCAA@PH0PR12MB5481.namprd12.prod.outlook.com>
+References: <75d329fdd7381b52cbdf87910bef16c9965abb1f.1696443438.git.leon@kernel.org>
+In-Reply-To: <75d329fdd7381b52cbdf87910bef16c9965abb1f.1696443438.git.leon@kernel.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=mellanox.com;
+x-ms-exchange-messagesentrepresentingtype: 1
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: PH0PR12MB5481:EE_|DS7PR12MB8274:EE_
+x-ms-office365-filtering-correlation-id: 28494747-b3ec-42c9-95f1-08dbc55dd15e
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: H3aXI14OQ1xrLW8u3zMphXV0y7teGk6sUYMNuvsjK91uUSclOZwEo5UchcHp/P+yKDpER8tG8nEtemfK2MKQOcswd9LQbSHbS/rEGxtj1RSBf4+tghHHc9jMbGnJmEBfE9eJ3rQBXlryUfzEUNIvRf+y7HvqqP77lIiS0WV/drzb8q2f/u6Taf7pf2ScubpvkiruJ86bVIT6EnrgRUek87ur1l3cgWrLs3u4sPP41PrqHKo9E044fhkobtybS7D5GmK6AuMrPN+iBFwCM7GGe0frAUnCe4o+NZ5GuCWvp4b5MAT6/pWy+88rWo6AmwbgdOsWq49m0dmBjZs5rkgNSsvPlcVviBlQMjOG0d6l+xeoM/qhcDulswgii+912AAm/i3GEJpD7jT5hqPkgeSP79uxRAMQF3Vj0ZE4rabsT9LdC8sC/ssRe4JQCYfFKOvp5MXKncDsz9HZJQ3/iTOZoehkjBkGm1pCHxMSsvdvQmajlrEpHx9qPPXeS7CFf6vG8jDmYzLeo2Blu+9erqeEyrmeIb2bqVkQAqlxVW+17YLgREG+WbCmLj/Frpw7FBVkIJJDzBx/D8xO4pZKsxBbwhdeXW//FUzo1fyS4RvOq8A0dcoZ9Fb6blzz7XVp2oUz
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR12MB5481.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(396003)(366004)(136003)(39860400002)(346002)(376002)(230922051799003)(1800799009)(451199024)(186009)(64100799003)(6506007)(86362001)(9686003)(83380400001)(7696005)(38100700002)(38070700005)(33656002)(55016003)(122000001)(66476007)(4744005)(41300700001)(478600001)(71200400001)(52536014)(8936002)(4326008)(54906003)(66556008)(2906002)(8676002)(5660300002)(110136005)(66946007)(316002)(76116006)(66446008)(26005)(64756008);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?us-ascii?Q?wXG/+nWpVVvVnAol6WuhrLqf/l+2Nab/YFgJQ4h27k70gn3MY94+L5JUXaez?=
+ =?us-ascii?Q?cwLMaAQD9UYsugm7M875yiskkrlrhvBbDT3SQzLO/QFTgTEuz8YMD4mwGjrK?=
+ =?us-ascii?Q?wAVEbdqvsSwJw8ezYfpXYtW2vxq7A4XjlJx7WqjqDe55WMVEt7Xq+o3+1kEz?=
+ =?us-ascii?Q?Dg3VHDVOlrVPRtVjJhhJ6ujdsB6j7t3pz01Vz/TlYl6WwAOFkoJLxQ0jG+bb?=
+ =?us-ascii?Q?G0+DFVTh59MxQr1XeRxf3TqPxtjh5boW2PXr2McrR+tqJjwJscR4vjUqNjGV?=
+ =?us-ascii?Q?bRCp2ru7UNObOCDkNqLkOmM4QLnTwd8IMjUKhzXFisJlPx6E26s/yS6lceYQ?=
+ =?us-ascii?Q?lOKEjyQTYAphhv8FGtC24Zm6ea4x69uTkv07IMSwXcHTsiDoCubCkGigk6+S?=
+ =?us-ascii?Q?vZhJlJo07JLXj6kXiiFema3kPStW6g1tIP5LvoCSq6VHRmsnrxGOyZBE0fOJ?=
+ =?us-ascii?Q?aVEBVXkACgL0xtp9Norga1rG1DIIbiWHoZNMFh58lOhVJy5RVZgl5sjWimsT?=
+ =?us-ascii?Q?xS5d/wCBt+7jL8IaAnsJo83WMsgAI/etp+/4NvYDNOe+Mf6xJgIBvk+1YSgM?=
+ =?us-ascii?Q?sGyormlLMdvnqiS5czMhaoqr4ACSxC7vykiXC3o/Dc0VpzVgI4k5Dto74iBV?=
+ =?us-ascii?Q?4Qr/3sZ+pKARNe89hBQJWeUEyAqVJ+FFVWMqTmxweyusZEgVz6Y/G6hBI8Of?=
+ =?us-ascii?Q?JWhkEeTHAlMPXFWs0V5GR2xxhSknyigCi3yGKM39oIfSw/p/TU7cZ/UdhY2r?=
+ =?us-ascii?Q?8rJYXKANR059aYwUrjbujiUMf+6KMsGJ1lRNCXfwVvxPUKIA05XNUpBR8Apt?=
+ =?us-ascii?Q?8o87peeFIvKOo2bhuAWsT2gT6EuNevKCc3qFRQ2M49bSIEOgP2jwIVJ89fte?=
+ =?us-ascii?Q?uPYV3QMXWhpooJ0EHnRfoLBIr3U3a0UJ5LoCNmM4jCyDWrxZTgg5HZ75KCYC?=
+ =?us-ascii?Q?GFV+a4lzciJZeTq/CcwSBfji2yMDoUq7j2KsFgwdshlY071CocRFXTL1hyah?=
+ =?us-ascii?Q?dWyhFmUglkHUtntBn6dmhOITFwJgjK7TErF8WEirlpVajatmKzwSTJIzXAbG?=
+ =?us-ascii?Q?XfqZEKl49ANPK3TGlMTXa+XACZIR6cr0GGAc6rACKUg9TeI65QduFIlv1P53?=
+ =?us-ascii?Q?FqBMW4yWjx+bfSXiIPVLydAN9LumHuFXbElrnfniAO+S684m9XQ0jN2EM9DU?=
+ =?us-ascii?Q?p+laRg7FoyBQCcRJm/wOkIXyJ63pbVvj6ABK08lceNpI1Ia332BlHXghLoxq?=
+ =?us-ascii?Q?dFbsB8LTJm/Z4TubWF9iRxHOSyYxM199AwORK5lmjHVQyuuiF731fgrXGb7o?=
+ =?us-ascii?Q?ay3CH4FbIyxqM1nYZfZj+Z4hWf2d2/2PRomdU3FE/1Nbh75idBRfq81/VBD7?=
+ =?us-ascii?Q?lN6YNdQCE1WIV7/a6pxLZ0t2sD0xZBlkM5EHz7CND1pjpk5jXNoBSwy75zVW?=
+ =?us-ascii?Q?wd18bj1wPY06qyxlQ3GGy5WLv3JKm8cPIrBFPoAexJK/OrSqxk8MGXi+cDpU?=
+ =?us-ascii?Q?TgQbuh/ZfUWKGssygtFAWLobAtg4yl3Rgg4WsoYRC5WM+1claHsWiR1SNPez?=
+ =?us-ascii?Q?7b/VLkjWhTJZoa207oM=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-References: <20231003145150.2498-1-ansuelsmth@gmail.com> <20231003145150.2498-3-ansuelsmth@gmail.com>
-In-Reply-To: <20231003145150.2498-3-ansuelsmth@gmail.com>
-From:   Eric Dumazet <edumazet@google.com>
-Date:   Thu, 5 Oct 2023 18:11:56 +0200
-Message-ID: <CANn89iK226C-pHUJm7HKMyEtMycGC=KCA2M6kw2KJaUj0cCT6w@mail.gmail.com>
-Subject: Re: [net-next PATCH v2 3/4] netdev: replace napi_reschedule with napi_schedule
-To:     Christian Marangi <ansuelsmth@gmail.com>
-Cc:     Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-        Wolfgang Grandegger <wg@grandegger.com>,
-        Marc Kleine-Budde <mkl@pengutronix.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Chris Snook <chris.snook@gmail.com>,
-        Raju Rangoju <rajur@chelsio.com>,
-        Jeroen de Borst <jeroendb@google.com>,
-        Praveen Kaligineedi <pkaligineedi@google.com>,
-        Shailend Chand <shailend@google.com>,
-        Douglas Miller <dougmill@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Nick Child <nnac123@linux.ibm.com>,
-        Haren Myneni <haren@linux.ibm.com>,
-        Rick Lindsley <ricklind@linux.ibm.com>,
-        Dany Madden <danymadden@us.ibm.com>,
-        Thomas Falcon <tlfalcon@linux.ibm.com>,
-        Tariq Toukan <tariqt@nvidia.com>,
-        Alexandre Torgue <alexandre.torgue@foss.st.com>,
-        Jose Abreu <joabreu@synopsys.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Krzysztof Halasa <khalasa@piap.pl>,
-        Kalle Valo <kvalo@kernel.org>,
-        Jeff Johnson <quic_jjohnson@quicinc.com>,
-        Gregory Greenman <gregory.greenman@intel.com>,
-        Chandrashekar Devegowda <chandrashekar.devegowda@intel.com>,
-        Intel Corporation <linuxwwan@intel.com>,
-        Chiranjeevi Rapolu <chiranjeevi.rapolu@linux.intel.com>,
-        Liu Haijun <haijun.liu@mediatek.com>,
-        M Chetan Kumar <m.chetan.kumar@linux.intel.com>,
-        Ricardo Martinez <ricardo.martinez@linux.intel.com>,
-        Loic Poulain <loic.poulain@linaro.org>,
-        Sergey Ryazanov <ryazanov.s.a@gmail.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Yuanjun Gong <ruc_gongyuanjun@163.com>,
-        Simon Horman <horms@kernel.org>, Rob Herring <robh@kernel.org>,
-        Ziwei Xiao <ziweixiao@google.com>,
-        Rushil Gupta <rushilg@google.com>,
-        Coco Li <lixiaoyan@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Junfeng Guo <junfeng.guo@intel.com>,
-        =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>, Wei Fang <wei.fang@nxp.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Yuri Karpov <YKarpov@ispras.ru>,
-        Zhengchao Shao <shaozhengchao@huawei.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Zheng Zengkai <zhengzengkai@huawei.com>,
-        Lee Jones <lee@kernel.org>,
-        Maximilian Luz <luzmaximilian@gmail.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Dawei Li <set_pte_at@outlook.com>,
-        Anjaneyulu <pagadala.yesu.anjaneyulu@intel.com>,
-        Benjamin Berg <benjamin.berg@intel.com>,
-        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-can@vger.kernel.org, netdev@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-arm-kernel@lists.infradead.org, ath10k@lists.infradead.org,
-        linux-wireless@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-OriginatorOrg: mellanox.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR12MB5481.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 28494747-b3ec-42c9-95f1-08dbc55dd15e
+X-MS-Exchange-CrossTenant-originalarrivaltime: 05 Oct 2023 04:44:53.7969
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: NH5gCVCW6RX4cPPc2Bwj7wpJV/+zafdx4fRM/VvJeljTZzbkg6c5v4mbOK6A2vBYBL1trxaxTFnUkh6TmDrXVg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB8274
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Tue, Oct 3, 2023 at 8:36=E2=80=AFPM Christian Marangi <ansuelsmth@gmail.=
-com> wrote:
->
-> Now that napi_schedule return a bool, we can drop napi_reschedule that
-> does the same exact function. The function comes from a very old commit
-> bfe13f54f502 ("ibm_emac: Convert to use napi_struct independent of struct
-> net_device") and the purpose is actually deprecated in favour of
-> different logic.
->
-> Convert every user of napi_reschedule to napi_schedule.
->
-> Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
-> Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com> # ath10k
-> Acked-by: Nick Child <nnac123@linux.ibm.com> # ibm
-> Acked-by: Marc Kleine-Budde <mkl@pengutronix.de> # for can/dev/rx-offload=
-.c
 
-OK, but I suspect some users of napi_reschedule() might not be race-free...
 
-Reviewed-by: Eric Dumazet <edumazet@google.com>
+> From: Leon Romanovsky <leon@kernel.org>
+> Sent: Wednesday, October 4, 2023 11:48 PM
+> 
+> From: Leon Romanovsky <leonro@nvidia.com>
+> 
+> Like any other set command, require admin permissions to do it.
+> 
+> Cc: stable@vger.kernel.org
+> Fixes: 2b34c5580226 ("RDMA/core: Add command to set ib_core device net
+> namspace sharing mode")
+> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+> ---
+>  drivers/infiniband/core/nldev.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+> index 5c805fa6187f..87b8cd657fb3 100644
+> --- a/drivers/infiniband/core/nldev.c
+> +++ b/drivers/infiniband/core/nldev.c
+> @@ -2595,6 +2595,7 @@ static const struct rdma_nl_cbs
+> nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+>  	},
+>  	[RDMA_NLDEV_CMD_SYS_SET] = {
+>  		.doit = nldev_set_sys_set_doit,
+> +		.flags = RDMA_NL_ADMIN_PERM,
+>  	},
+>  	[RDMA_NLDEV_CMD_STAT_SET] = {
+>  		.doit = nldev_stat_set_doit,
+> --
+> 2.41.0
+
+Reviewed-by: Parav Pandit <parav@nvidia.com>
+
