@@ -2,70 +2,63 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C4FDE9413F
-	for <linux-rdma@archiver.kernel.org>; Sat,  7 Oct 2023 04:02:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42B57E95A65
+	for <linux-rdma@archiver.kernel.org>; Sat,  7 Oct 2023 18:12:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343527AbjJGECM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 7 Oct 2023 00:02:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55048 "EHLO
+        id S234192AbjJGSMf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 7 Oct 2023 14:12:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232856AbjJGECH (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 7 Oct 2023 00:02:07 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C21AC2;
-        Fri,  6 Oct 2023 21:02:05 -0700 (PDT)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.54])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4S2WjX1P0GzNnxZ;
-        Sat,  7 Oct 2023 11:58:08 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.2) by
- kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Sat, 7 Oct 2023 12:02:01 +0800
-From:   Junxian Huang <huangjunxian6@hisilicon.com>
-To:     <jgg@ziepe.ca>, <leon@kernel.org>, <dsahern@gmail.com>,
-        <stephen@networkplumber.org>
-CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, <linux-kernel@vger.kernel.org>,
-        <huangjunxian6@hisilicon.com>
-Subject: [PATCH iproute2-next 1/2] rdma: Update uapi headers
-Date:   Sat, 7 Oct 2023 11:58:54 +0800
-Message-ID: <20231007035855.2273364-2-huangjunxian6@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20231007035855.2273364-1-huangjunxian6@hisilicon.com>
-References: <20231007035855.2273364-1-huangjunxian6@hisilicon.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.67.165.2]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- kwepemi500006.china.huawei.com (7.221.188.68)
-X-CFilter-Loop: Reflected
+        with ESMTP id S229576AbjJGSMf (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 7 Oct 2023 14:12:35 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2DEDA2;
+        Sat,  7 Oct 2023 11:12:34 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 46DC4C433C7;
+        Sat,  7 Oct 2023 18:12:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696702354;
+        bh=TpOPx/Sr4QN5FpAEkkMwbFCyP1+3zLyqqPbm0foazGU=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=IwWwDRSHjlyrpK645TvuKezWbWw46xPYi4cjlYbty45BzAnLYUswnFYogWCuutd69
+         +yofAVb6JgXmw41SGgyPXaQqtYtSa88LAObEEuwTKp3oIdMqYk65mBOy08uzONbzkv
+         f5rYy7+JLkdIFvouaePPnxGHhX9tmv7aMsacKabZ77Vrvi8e/0f1hT7FARCnkTH0gt
+         b57NQKflyPAJJuvo0b3j+W9vYKk+siVn/mPeIl96rOShHZ6RHgjoV6fSgm08/iYSc+
+         wEOOdnc2IhOaaxnlMmlvTijriud7MM2HzxmNa5orU4f6HdXysr4gLYGvmCv88D3jLn
+         +p9PpHexEZ4Jw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 330A4E632D6;
+        Sat,  7 Oct 2023 18:12:34 +0000 (UTC)
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20231006183028.GA1213337@nvidia.com>
+References: <20231006183028.GA1213337@nvidia.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20231006183028.GA1213337@nvidia.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+X-PR-Tracked-Commit-Id: c38d23a54445f9a8aa6831fafc9af0496ba02f9e
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 8fea9f8f180b1817316e7501e601426a4a067466
+Message-Id: <169670235419.17695.1582861629622808625.pr-tracker-bot@kernel.org>
+Date:   Sat, 07 Oct 2023 18:12:34 +0000
+To:     Jason Gunthorpe <jgg@nvidia.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Leon Romanovsky <leonro@nvidia.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Update rdma_netlink.h file upto kernel commit aebf8145e11a
-("RDMA/core: Add support to dump SRQ resource in RAW format")
+The pull request you sent on Fri, 6 Oct 2023 15:30:28 -0300:
 
-Signed-off-by: wenglianfa <wenglianfa@huawei.com>
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- rdma/include/uapi/rdma/rdma_netlink.h | 2 ++
- 1 file changed, 2 insertions(+)
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
 
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index 92c528a0..84f775be 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -299,6 +299,8 @@ enum rdma_nldev_command {
- 
- 	RDMA_NLDEV_CMD_STAT_GET_STATUS,
- 
-+	RDMA_NLDEV_CMD_RES_SRQ_GET_RAW,
-+
- 	RDMA_NLDEV_NUM_OPS
- };
- 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/8fea9f8f180b1817316e7501e601426a4a067466
+
+Thank you!
+
 -- 
-2.30.0
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
