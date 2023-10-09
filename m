@@ -2,79 +2,75 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CCC7E95A8D
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Oct 2023 06:10:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A653E95A91
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Oct 2023 07:19:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345168AbjJIGKs (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Oct 2023 02:10:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59736 "EHLO
+        id S234379AbjJIHTj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Oct 2023 03:19:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345128AbjJIGKr (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Oct 2023 02:10:47 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6684C9E
-        for <linux-rdma@vger.kernel.org>; Sun,  8 Oct 2023 23:10:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E6B9C433C9;
-        Mon,  9 Oct 2023 06:10:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696831843;
-        bh=65v6++6oPlHP2u710xTu9/OHaiW4em/A840mljzzcU8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=qscuviVPbOZgUQtE9x5FbBZDVgshIk6Lgjvq9vXACGt9FDiLGwDVj00oRCO4A2j8k
-         DbqFPBhmHGEk4DcOGOe3Ez/LNZ7z9IcuDR12F7uTpfkASBZj7s4/OOLCaLYoLfoF2Y
-         PJmnMkbWtHILJFB4Eo51xjbbJ75svxXt7W7+GFU+PZBu3yDI3O7rgFb98S+LiVZ+fx
-         CzY2fCfYCHQ7KF++WNdpiw6hMTYKuwEMqXR01t1l2QAGV4RZfYctsn81spDM6fN1lA
-         xhCFC0jKdBS/+HYeLiYHJ1tSKjjzPPssQ0ri5WkFgTNvgj+oJvjlJ5/UpxkTdEYRJR
-         PClofrJw8dFuA==
-Date:   Mon, 9 Oct 2023 09:10:38 +0300
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Selvin Xavier <selvin.xavier@broadcom.com>
-Cc:     jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-        andrew.gospodarek@broadcom.com,
-        Chandramohan Akula <chandramohan.akula@broadcom.com>
-Subject: Re: [PATCH for-next 2/3] RDMA/bnxt_re: Report async events and errors
-Message-ID: <20231009061038.GB5042@unreal>
-References: <1696483889-17427-1-git-send-email-selvin.xavier@broadcom.com>
- <1696483889-17427-3-git-send-email-selvin.xavier@broadcom.com>
+        with ESMTP id S234368AbjJIHTg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Oct 2023 03:19:36 -0400
+X-Greylist: delayed 78 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 09 Oct 2023 00:19:34 PDT
+Received: from out-203.mta0.migadu.com (out-203.mta0.migadu.com [91.218.175.203])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C97DAB
+        for <linux-rdma@vger.kernel.org>; Mon,  9 Oct 2023 00:19:34 -0700 (PDT)
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1696835909;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=wujTffIEecs1ht0iu1YMc8xbjSYOZ3awSnCr40P5Be4=;
+        b=fbtXtPMMnZ7yVS/3nqy48IT1FbCzGJlEdSPcYgrAUiRmCj02rUPw3JKQPDlv6dJ/MqdL1a
+        HgDjKYma/uqze1JZLuRNQWtHl5SyeVGzG6MJnX3Qhe06Op10rWnXZ3AYEU6xOaijC/CPyU
+        sE/HwpHqflSMo8IfZoXWdPnORV9oaCc=
+From:   Guoqing Jiang <guoqing.jiang@linux.dev>
+To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
+Cc:     linux-rdma@vger.kernel.org
+Subject: [PATCH 06/19] RDMA/siw: No need to check term_info.valid before call siw_send_terminate
+Date:   Mon,  9 Oct 2023 15:17:48 +0800
+Message-Id: <20231009071801.10210-7-guoqing.jiang@linux.dev>
+In-Reply-To: <20231009071801.10210-1-guoqing.jiang@linux.dev>
+References: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1696483889-17427-3-git-send-email-selvin.xavier@broadcom.com>
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Wed, Oct 04, 2023 at 10:31:28PM -0700, Selvin Xavier wrote:
-> From: Chandramohan Akula <chandramohan.akula@broadcom.com>
-> 
-> Report QP, SRQ and CQ async events and errors.
-> 
-> Signed-off-by: Chandramohan Akula <chandramohan.akula@broadcom.com>
-> Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
-> ---
->  drivers/infiniband/hw/bnxt_re/main.c | 165 +++++++++++++++++++++++++++++++++--
->  1 file changed, 156 insertions(+), 9 deletions(-)
+Remove the redundate checking since siw_send_terminate check it inside.
 
-<...>
+Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
+---
+ drivers/infiniband/sw/siw/siw_cm.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-> +	if (err_event->res_err_state_reason || err_event->req_err_state_reason) {
-> +		dev_err_once(rdev_to_dev(qp->rdev),
-> +			     "%s %s qp_id: %d cons (%d %d) req (%d %d) res (%d %d)\n",
-> +			     __func__, rdma_is_kernel_res(&qp->ib_qp.res) ? "kernel" : "user",
-> +			     qp->qplib_qp.id,
-> +			     err_event->sq_cons_idx,
-> +			     err_event->rq_cons_idx,
-> +			     err_event->req_slow_path_state,
-> +			     err_event->req_err_state_reason,
-> +			     err_event->res_slow_path_state,
-> +			     err_event->res_err_state_reason);
+diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+index 0a1525d76ba1..c8a9118677d7 100644
+--- a/drivers/infiniband/sw/siw/siw_cm.c
++++ b/drivers/infiniband/sw/siw/siw_cm.c
+@@ -393,8 +393,7 @@ void siw_qp_cm_drop(struct siw_qp *qp, int schedule)
+ 		}
+ 		siw_dbg_cep(cep, "immediate close, state %d\n", cep->state);
+ 
+-		if (qp->term_info.valid)
+-			siw_send_terminate(qp);
++		siw_send_terminate(qp);
+ 
+ 		if (cep->cm_id) {
+ 			switch (cep->state) {
+@@ -1060,7 +1059,7 @@ static void siw_cm_work_handler(struct work_struct *w)
+ 		/*
+ 		 * QP scheduled LLP close
+ 		 */
+-		if (cep->qp && cep->qp->term_info.valid)
++		if (cep->qp)
+ 			siw_send_terminate(cep->qp);
+ 
+ 		if (cep->cm_id)
+-- 
+2.35.3
 
-<...>
-
-> +		dev_err_once(rdev_to_dev(cq->rdev),
-> +			     "%s err reason %d\n", __func__, cqerr->cq_err_reason);
-> +		cq->ib_cq.event_handler(&ibevent, cq->ib_cq.cq_context);
-
-ibdev_*() prints please.
-
-Thanks
