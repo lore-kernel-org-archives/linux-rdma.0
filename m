@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB34CE95A9A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D19BE95A8E
 	for <linux-rdma@archiver.kernel.org>; Mon,  9 Oct 2023 07:25:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345393AbjJIHZg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1345389AbjJIHZg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 9 Oct 2023 03:25:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54124 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345391AbjJIHZe (ORCPT
+        with ESMTP id S1345393AbjJIHZe (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Oct 2023 03:25:34 -0400
 Received: from out-194.mta0.migadu.com (out-194.mta0.migadu.com [IPv6:2001:41d0:1004:224b::c2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59EE6CA
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 414ACC6
         for <linux-rdma@vger.kernel.org>; Mon,  9 Oct 2023 00:25:32 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1696835922;
+        t=1696835930;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Mnb+gGmrjcx+DiyIe1j/ozcPWCSHKPv54GaWtqhVMG0=;
-        b=qttbXwN+P5jgVZkBO1LCbdmnj9I1LKFPe6sDR2nRotUCcr9xJx0U65Pk0qqRAvRNnBKvpk
-        wCkp17zbERfleoS2obm//pjOBPD/4UiKq/k4g/r4kV4LTptCSnw0a12tOtf9bGPAiJRUUS
-        /m6hvR/I1Arq+ko+b6xfhrbRl60dlUY=
+        bh=qflpQaitBDlH+e6lWOqOg5FpkZbQjqOiPiAvj1dqDSo=;
+        b=kTwGYyYhzGARfvhljddZRnvRrD9q0o0j8cpsyD0Cz8dvU+fxLwCiAIzjCkeB4Gh1VONtcL
+        K//gGGJMnYdeL3tvQ2sBwplYZui6RA1Dz8HE4eB7OCyq+XjSdYK3v/lKa06eCncrA8PCvh
+        PM5V8dAkX2CIa7EXJG35P80M1j3La7g=
 From:   Guoqing Jiang <guoqing.jiang@linux.dev>
 To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH 10/19] RDMA/siw: Add one parameter to siw_destroy_cpulist
-Date:   Mon,  9 Oct 2023 15:17:52 +0800
-Message-Id: <20231009071801.10210-11-guoqing.jiang@linux.dev>
+Subject: [PATCH 13/19] RDMA/siw: Simplify siw_qp_id2obj
+Date:   Mon,  9 Oct 2023 15:17:55 +0800
+Message-Id: <20231009071801.10210-14-guoqing.jiang@linux.dev>
 In-Reply-To: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 References: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
@@ -40,79 +40,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-With that we can reuse it in siw_init_cpulist.
+Let's set qp and return it.
 
 Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
 ---
- drivers/infiniband/sw/siw/siw_main.c | 30 +++++++++++++---------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ drivers/infiniband/sw/siw/siw.h | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_main.c b/drivers/infiniband/sw/siw/siw_main.c
-index 1ab62982df74..61ad8ca3d1a2 100644
---- a/drivers/infiniband/sw/siw/siw_main.c
-+++ b/drivers/infiniband/sw/siw/siw_main.c
-@@ -109,6 +109,17 @@ static struct {
- 	int num_nodes;
- } siw_cpu_info;
+diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
+index 44684b74550f..e127ef493296 100644
+--- a/drivers/infiniband/sw/siw/siw.h
++++ b/drivers/infiniband/sw/siw/siw.h
+@@ -601,12 +601,10 @@ static inline struct siw_qp *siw_qp_id2obj(struct siw_device *sdev, int id)
  
-+static void siw_destroy_cpulist(int number)
-+{
-+	int i = 0;
-+
-+	while (i < number)
-+		kfree(siw_cpu_info.tx_valid_cpus[i++]);
-+
-+	kfree(siw_cpu_info.tx_valid_cpus);
-+	siw_cpu_info.tx_valid_cpus = NULL;
-+}
-+
- static int siw_init_cpulist(void)
- {
- 	int i, num_nodes = nr_node_ids;
-@@ -138,24 +149,11 @@ static int siw_init_cpulist(void)
- 
- out_err:
- 	siw_cpu_info.num_nodes = 0;
--	while (--i >= 0)
--		kfree(siw_cpu_info.tx_valid_cpus[i]);
--	kfree(siw_cpu_info.tx_valid_cpus);
--	siw_cpu_info.tx_valid_cpus = NULL;
-+	siw_destroy_cpulist(i);
- 
- 	return -ENOMEM;
+ 	rcu_read_lock();
+ 	qp = xa_load(&sdev->qp_xa, id);
+-	if (likely(qp && kref_get_unless_zero(&qp->ref))) {
+-		rcu_read_unlock();
+-		return qp;
+-	}
++	if (likely(qp && !kref_get_unless_zero(&qp->ref)))
++		qp = NULL;
+ 	rcu_read_unlock();
+-	return NULL;
++	return qp;
  }
  
--static void siw_destroy_cpulist(void)
--{
--	int i = 0;
--
--	while (i < siw_cpu_info.num_nodes)
--		kfree(siw_cpu_info.tx_valid_cpus[i++]);
--
--	kfree(siw_cpu_info.tx_valid_cpus);
--}
--
- /*
-  * Choose CPU with least number of active QP's from NUMA node of
-  * TX interface.
-@@ -558,7 +556,7 @@ static __init int siw_init_module(void)
- 	pr_info("SoftIWARP attach failed. Error: %d\n", rv);
- 
- 	siw_cm_exit();
--	siw_destroy_cpulist();
-+	siw_destroy_cpulist(siw_cpu_info.num_nodes);
- 
- 	return rv;
- }
-@@ -573,7 +571,7 @@ static void __exit siw_exit_module(void)
- 
- 	siw_cm_exit();
- 
--	siw_destroy_cpulist();
-+	siw_destroy_cpulist(siw_cpu_info.num_nodes);
- 
- 	if (siw_crypto_shash)
- 		crypto_free_shash(siw_crypto_shash);
+ static inline u32 qp_id(struct siw_qp *qp)
 -- 
 2.35.3
 
