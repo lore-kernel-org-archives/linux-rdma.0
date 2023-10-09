@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAEFFE95A98
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Oct 2023 07:25:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02F39E95A95
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Oct 2023 07:25:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345395AbjJIHZg (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Oct 2023 03:25:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54110 "EHLO
+        id S1345400AbjJIHZf (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Oct 2023 03:25:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345389AbjJIHZe (ORCPT
+        with ESMTP id S1345374AbjJIHZe (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Oct 2023 03:25:34 -0400
 Received: from out-205.mta0.migadu.com (out-205.mta0.migadu.com [91.218.175.205])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C18FBA
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13EE7AB
         for <linux-rdma@vger.kernel.org>; Mon,  9 Oct 2023 00:25:31 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1696835935;
+        t=1696835924;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=PdnTCxOv9CQfit6Rzs4E4MunKab1E/4yQtlyOvauPYg=;
-        b=qBfQ6qvZQgFAQFQG1q3y9t6MAnyW3sQPM1AJdRQt6ZHXkO3ZeCwJrjJ1srTER3pjKdRXIw
-        vhFblrRTWZdGmXAuGULPujFwtTCY1DjfQ6r0xwfZp9uS2mfDnvqDVdG4HTl/NTuDOfSrZB
-        063qXPnHU0IyT0LMp2TXpdSDUjy3/RY=
+        bh=gl5qHTuqLDGYWhAyLHNhoJmJKVBxFumuNjO3PoAIdw8=;
+        b=K1FGed9FKjvGJOVPhRJ7VIQHg1I2ncoqD6OrN+Jw49r+giOb0JvBmVjPfmspOqynYc8gnk
+        7GT9oKeZUmE58oCRtBaOHdsRSUxTvZp3J25bL5lH/5bib7iHqBqALLDwwBlPvk29HcNtJ9
+        csncC8Y7kQySmscl5LPhzNn8mi2UNlY=
 From:   Guoqing Jiang <guoqing.jiang@linux.dev>
 To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH 15/19] RDMA/siw: Cleanup siw_accept
-Date:   Mon,  9 Oct 2023 15:17:57 +0800
-Message-Id: <20231009071801.10210-16-guoqing.jiang@linux.dev>
+Subject: [PATCH 11/19] RDMA/siw: Introduce siw_cep_set_free_and_put
+Date:   Mon,  9 Oct 2023 15:17:53 +0800
+Message-Id: <20231009071801.10210-12-guoqing.jiang@linux.dev>
 In-Reply-To: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 References: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
@@ -40,127 +40,108 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-With the initialization of rv and the two added label, we can
-simplifiy code a bit.
+Add the helper which can be used in some places.
 
 Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
 ---
- drivers/infiniband/sw/siw/siw_cm.c | 41 ++++++++++--------------------
- 1 file changed, 14 insertions(+), 27 deletions(-)
+ drivers/infiniband/sw/siw/siw_cm.c | 31 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index 987084828786..c3aa5533e75d 100644
+index c8a9118677d7..2f338bb3a24c 100644
 --- a/drivers/infiniband/sw/siw/siw_cm.c
 +++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -1548,7 +1548,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 	struct siw_cep *cep = (struct siw_cep *)id->provider_data;
- 	struct siw_qp *qp;
- 	struct siw_qp_attrs qp_attrs;
--	int rv, max_priv_data = MPA_MAX_PRIVDATA;
-+	int rv = -EINVAL, max_priv_data = MPA_MAX_PRIVDATA;
- 	bool wait_for_peer_rts = false;
+@@ -444,6 +444,12 @@ void siw_cep_put(struct siw_cep *cep)
+ 	kref_put(&cep->ref, __siw_cep_dealloc);
+ }
  
- 	siw_cep_set_inuse(cep);
-@@ -1564,24 +1564,17 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
++static void siw_cep_set_free_and_put(struct siw_cep *cep)
++{
++	siw_cep_set_free(cep);
++	siw_cep_put(cep);
++}
++
+ void siw_cep_get(struct siw_cep *cep)
+ {
+ 	kref_get(&cep->ref);
+@@ -1506,9 +1512,7 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
  
+ 		cep->state = SIW_EPSTATE_CLOSED;
+ 
+-		siw_cep_set_free(cep);
+-
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
+ 
+ 	} else if (s) {
+ 		sock_release(s);
+@@ -1556,16 +1560,14 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
  	if (cep->state != SIW_EPSTATE_RECVD_MPAREQ) {
  		siw_dbg_cep(cep, "out of state\n");
--
--		siw_cep_set_free_and_put(cep);
--
--		return -ECONNRESET;
-+		rv = -ECONNRESET;
-+		goto free_cep;
+ 
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
+ 
+ 		return -ECONNRESET;
  	}
  	qp = siw_qp_id2obj(sdev, params->qpn);
  	if (!qp) {
  		WARN(1, "[QP %d] does not exist\n", params->qpn);
--		siw_cep_set_free_and_put(cep);
--
--		return -EINVAL;
-+		goto free_cep;
- 	}
- 	down_write(&qp->state_lock);
--	if (qp->attrs.state > SIW_QP_STATE_RTR) {
--		rv = -EINVAL;
--		up_write(&qp->state_lock);
--		goto error;
--	}
-+	if (qp->attrs.state > SIW_QP_STATE_RTR)
-+		goto error_unlock;
- 	siw_dbg_cep(cep, "[QP %d]\n", params->qpn);
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
  
- 	if (try_gso && cep->mpa.hdr.params.bits & MPA_RR_FLAG_GSO_EXP) {
-@@ -1595,9 +1588,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 			"[QP %u]: ord %d (max %d), ird %d (max %d)\n",
- 			qp_id(qp), params->ord, sdev->attrs.max_ord,
- 			params->ird, sdev->attrs.max_ird);
--		rv = -EINVAL;
--		up_write(&qp->state_lock);
--		goto error;
-+		goto error_unlock;
+ 		return -EINVAL;
  	}
- 	if (cep->enhanced_rdma_conn_est)
- 		max_priv_data -= sizeof(struct mpa_v2_data);
-@@ -1607,9 +1598,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 			cep,
- 			"[QP %u]: private data length: %d (max %d)\n",
- 			qp_id(qp), params->private_data_len, max_priv_data);
--		rv = -EINVAL;
--		up_write(&qp->state_lock);
--		goto error;
-+		goto error_unlock;
- 	}
- 	if (cep->enhanced_rdma_conn_est) {
- 		if (params->ord > cep->ord) {
-@@ -1618,9 +1607,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 			} else {
- 				cep->ird = params->ird;
- 				cep->ord = params->ord;
--				rv = -EINVAL;
--				up_write(&qp->state_lock);
--				goto error;
-+				goto error_unlock;
- 			}
- 		}
- 		if (params->ird < cep->ird) {
-@@ -1629,8 +1616,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 				params->ird = cep->ird;
- 			else {
- 				rv = -ENOMEM;
--				up_write(&qp->state_lock);
--				goto error;
-+				goto error_unlock;
- 			}
- 		}
- 		if (cep->mpa.v2_ctrl.ord &
-@@ -1677,7 +1663,6 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 				   SIW_QP_ATTR_ORD | SIW_QP_ATTR_IRD |
- 				   SIW_QP_ATTR_MPA);
- 	up_write(&qp->state_lock);
--
- 	if (rv)
- 		goto error;
- 
-@@ -1700,6 +1685,9 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 	siw_cep_set_free(cep);
- 
- 	return 0;
-+
-+error_unlock:
-+	up_write(&qp->state_lock);
- error:
- 	siw_socket_disassoc(cep->sock);
- 	sock_release(cep->sock);
-@@ -1714,9 +1702,8 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 	}
+@@ -1711,8 +1713,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
  	cep->qp = NULL;
  	siw_qp_put(qp);
--
-+free_cep:
- 	siw_cep_set_free_and_put(cep);
--
+ 
+-	siw_cep_set_free(cep);
+-	siw_cep_put(cep);
++	siw_cep_set_free_and_put(cep);
+ 
  	return rv;
+ }
+@@ -1735,8 +1736,7 @@ int siw_reject(struct iw_cm_id *id, const void *pdata, u8 pd_len)
+ 	if (cep->state != SIW_EPSTATE_RECVD_MPAREQ) {
+ 		siw_dbg_cep(cep, "out of state\n");
+ 
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep); /* put last reference */
++		siw_cep_set_free_and_put(cep); /* put last reference */
+ 
+ 		return -ECONNRESET;
+ 	}
+@@ -1753,8 +1753,7 @@ int siw_reject(struct iw_cm_id *id, const void *pdata, u8 pd_len)
+ 
+ 	cep->state = SIW_EPSTATE_CLOSED;
+ 
+-	siw_cep_set_free(cep);
+-	siw_cep_put(cep);
++	siw_cep_set_free_and_put(cep);
+ 
+ 	return 0;
+ }
+@@ -1889,8 +1888,7 @@ int siw_create_listen(struct iw_cm_id *id, int backlog)
+ 		siw_socket_disassoc(s);
+ 		cep->state = SIW_EPSTATE_CLOSED;
+ 
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
+ 	}
+ 	sock_release(s);
+ 
+@@ -1924,8 +1922,7 @@ static void siw_drop_listeners(struct iw_cm_id *id)
+ 			cep->sock = NULL;
+ 		}
+ 		cep->state = SIW_EPSTATE_CLOSED;
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
+ 	}
  }
  
 -- 
