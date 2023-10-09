@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DDBBE95A91
-	for <linux-rdma@archiver.kernel.org>; Mon,  9 Oct 2023 07:25:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E6CCE95A95
+	for <linux-rdma@archiver.kernel.org>; Mon,  9 Oct 2023 07:25:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345406AbjJIHZi (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 9 Oct 2023 03:25:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52924 "EHLO
+        id S1345398AbjJIHZj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 9 Oct 2023 03:25:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345403AbjJIHZh (ORCPT
+        with ESMTP id S1345404AbjJIHZh (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Oct 2023 03:25:37 -0400
-Received: from out-194.mta0.migadu.com (out-194.mta0.migadu.com [IPv6:2001:41d0:1004:224b::c2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B955AAB
+Received: from out-194.mta0.migadu.com (out-194.mta0.migadu.com [91.218.175.194])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5871B6
         for <linux-rdma@vger.kernel.org>; Mon,  9 Oct 2023 00:25:35 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1696835915;
+        t=1696835938;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=8QWXY1PhPhm4onMUTkfyNxSBhqeIIDhkJyYRVb/18AM=;
-        b=KM+XJVtzHaEG5juu6TwM/l33GiRPwCeArO5ZeJTvrqF2A+yTnZ6XyG+HWVMqOJvk/wVwHV
-        GPg5rQThw4fWlzb6jhNiKQNsd5yq0/BKeKnYU9nu/X5WFJhFJO9UBBAxS+faqw8HltXFOv
-        +Ordbmsper10s9Cnm4io+JQAu6c8jzY=
+        bh=t3uNxfrRzizGCqvo3Las43txP0OFGHj8bqkubf4PNLs=;
+        b=qiUK6ExvyLucgpmWkoB9XLaO09hTYbRpAQJq8Q0Pjrz+clZQ9tkD/tFSqVCiYF2JInqnd7
+        n9SfvTdjPDzmZHNz27YfK+4iL9ULUDo6CXA4bm+TXZToP9go9G7d/bMmvpsIRSwnUSCgTe
+        riyTmE4swEQSU9Etc7mwSB5cyzf4MUA=
 From:   Guoqing Jiang <guoqing.jiang@linux.dev>
 To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH 08/19] RDMA/siw: Factor out siw_generic_rx helper
-Date:   Mon,  9 Oct 2023 15:17:50 +0800
-Message-Id: <20231009071801.10210-9-guoqing.jiang@linux.dev>
+Subject: [PATCH 16/19] RDMA/siw: Remove siw_sk_assign_cm_upcalls
+Date:   Mon,  9 Oct 2023 15:17:58 +0800
+Message-Id: <20231009071801.10210-17-guoqing.jiang@linux.dev>
 In-Reply-To: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 References: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
@@ -40,98 +40,59 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Remove the redundant code given they share the same logic.
+Let's move it into siw_sk_save_upcalls, then we only need to
+get sk_callback_lock once. Also rename siw_sk_save_upcalls
+to better align with the new code.
 
 Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
 ---
- drivers/infiniband/sw/siw/siw_qp_rx.c | 53 ++++++++++-----------------
- 1 file changed, 20 insertions(+), 33 deletions(-)
+ drivers/infiniband/sw/siw/siw_cm.c | 19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_qp_rx.c b/drivers/infiniband/sw/siw/siw_qp_rx.c
-index aa7b680452fb..4931c0c57df0 100644
---- a/drivers/infiniband/sw/siw/siw_qp_rx.c
-+++ b/drivers/infiniband/sw/siw/siw_qp_rx.c
-@@ -405,6 +405,20 @@ static struct siw_wqe *siw_rqe_get(struct siw_qp *qp)
- 	return wqe;
+diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+index c3aa5533e75d..6866ec80473c 100644
+--- a/drivers/infiniband/sw/siw/siw_cm.c
++++ b/drivers/infiniband/sw/siw/siw_cm.c
+@@ -39,17 +39,7 @@ static void siw_cm_llp_error_report(struct sock *s);
+ static int siw_cm_upcall(struct siw_cep *cep, enum iw_cm_event_type reason,
+ 			 int status);
+ 
+-static void siw_sk_assign_cm_upcalls(struct sock *sk)
+-{
+-	write_lock_bh(&sk->sk_callback_lock);
+-	sk->sk_state_change = siw_cm_llp_state_change;
+-	sk->sk_data_ready = siw_cm_llp_data_ready;
+-	sk->sk_write_space = siw_cm_llp_write_space;
+-	sk->sk_error_report = siw_cm_llp_error_report;
+-	write_unlock_bh(&sk->sk_callback_lock);
+-}
+-
+-static void siw_sk_save_upcalls(struct sock *sk)
++static void siw_sk_save_and_assign_upcalls(struct sock *sk)
+ {
+ 	struct siw_cep *cep = sk_to_cep(sk);
+ 
+@@ -58,6 +48,10 @@ static void siw_sk_save_upcalls(struct sock *sk)
+ 	cep->sk_data_ready = sk->sk_data_ready;
+ 	cep->sk_write_space = sk->sk_write_space;
+ 	cep->sk_error_report = sk->sk_error_report;
++	sk->sk_state_change = siw_cm_llp_state_change;
++	sk->sk_data_ready = siw_cm_llp_data_ready;
++	sk->sk_write_space = siw_cm_llp_write_space;
++	sk->sk_error_report = siw_cm_llp_error_report;
+ 	write_unlock_bh(&sk->sk_callback_lock);
  }
  
-+static int siw_generic_rx(struct siw_mem *mem_p, struct siw_rx_stream *srx,
-+			  unsigned int *pbl_idx, u64 addr, int bytes)
-+{
-+	int rv;
-+
-+	if (mem_p->mem_obj == NULL)
-+		rv = siw_rx_kva(srx, ib_virt_dma_to_ptr(addr), bytes);
-+	else if (!mem_p->is_pbl)
-+		rv = siw_rx_umem(srx, mem_p->umem, addr, bytes);
-+	else
-+		rv = siw_rx_pbl(srx, pbl_idx, mem_p, addr, bytes);
-+	return rv;
-+}
-+
- /*
-  * siw_proc_send:
-  *
-@@ -485,17 +499,8 @@ int siw_proc_send(struct siw_qp *qp)
- 			break;
- 		}
- 		mem_p = *mem;
--		if (mem_p->mem_obj == NULL)
--			rv = siw_rx_kva(srx,
--				ib_virt_dma_to_ptr(sge->laddr + frx->sge_off),
--				sge_bytes);
--		else if (!mem_p->is_pbl)
--			rv = siw_rx_umem(srx, mem_p->umem,
--					 sge->laddr + frx->sge_off, sge_bytes);
--		else
--			rv = siw_rx_pbl(srx, &frx->pbl_idx, mem_p,
--					sge->laddr + frx->sge_off, sge_bytes);
--
-+		rv = siw_generic_rx(mem_p, srx, &frx->pbl_idx,
-+				    sge->laddr + frx->sge_off, sge_bytes);
- 		if (unlikely(rv != sge_bytes)) {
- 			wqe->processed += rcvd_bytes;
+@@ -156,8 +150,7 @@ static void siw_cep_socket_assoc(struct siw_cep *cep, struct socket *s)
+ 	siw_cep_get(cep);
+ 	s->sk->sk_user_data = cep;
  
-@@ -598,17 +603,8 @@ int siw_proc_write(struct siw_qp *qp)
- 		return -EINVAL;
- 	}
+-	siw_sk_save_upcalls(s->sk);
+-	siw_sk_assign_cm_upcalls(s->sk);
++	siw_sk_save_and_assign_upcalls(s->sk);
+ }
  
--	if (mem->mem_obj == NULL)
--		rv = siw_rx_kva(srx,
--			(void *)(uintptr_t)(srx->ddp_to + srx->fpdu_part_rcvd),
--			bytes);
--	else if (!mem->is_pbl)
--		rv = siw_rx_umem(srx, mem->umem,
--				 srx->ddp_to + srx->fpdu_part_rcvd, bytes);
--	else
--		rv = siw_rx_pbl(srx, &frx->pbl_idx, mem,
--				srx->ddp_to + srx->fpdu_part_rcvd, bytes);
--
-+	rv = siw_generic_rx(mem, srx, &frx->pbl_idx,
-+			    srx->ddp_to + srx->fpdu_part_rcvd, bytes);
- 	if (unlikely(rv != bytes)) {
- 		siw_init_terminate(qp, TERM_ERROR_LAYER_DDP,
- 				   DDP_ETYPE_CATASTROPHIC,
-@@ -849,17 +845,8 @@ int siw_proc_rresp(struct siw_qp *qp)
- 	mem_p = *mem;
- 
- 	bytes = min(srx->fpdu_part_rem, srx->skb_new);
--
--	if (mem_p->mem_obj == NULL)
--		rv = siw_rx_kva(srx,
--			ib_virt_dma_to_ptr(sge->laddr + wqe->processed),
--			bytes);
--	else if (!mem_p->is_pbl)
--		rv = siw_rx_umem(srx, mem_p->umem, sge->laddr + wqe->processed,
--				 bytes);
--	else
--		rv = siw_rx_pbl(srx, &frx->pbl_idx, mem_p,
--				sge->laddr + wqe->processed, bytes);
-+	rv = siw_generic_rx(mem_p, srx, &frx->pbl_idx,
-+			    sge->laddr + wqe->processed, bytes);
- 	if (rv != bytes) {
- 		wqe->wc_status = SIW_WC_GENERAL_ERR;
- 		rv = -EINVAL;
+ static struct siw_cep *siw_cep_alloc(struct siw_device *sdev)
 -- 
 2.35.3
 
