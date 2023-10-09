@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E6CCE95A95
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48269E95A98
 	for <linux-rdma@archiver.kernel.org>; Mon,  9 Oct 2023 07:25:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345398AbjJIHZj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        id S1345405AbjJIHZj (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
         Mon, 9 Oct 2023 03:25:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52936 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345404AbjJIHZh (ORCPT
+        with ESMTP id S1345402AbjJIHZh (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Mon, 9 Oct 2023 03:25:37 -0400
 Received: from out-194.mta0.migadu.com (out-194.mta0.migadu.com [91.218.175.194])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5871B6
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B92BBA6
         for <linux-rdma@vger.kernel.org>; Mon,  9 Oct 2023 00:25:35 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1696835938;
+        t=1696835943;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=t3uNxfrRzizGCqvo3Las43txP0OFGHj8bqkubf4PNLs=;
-        b=qiUK6ExvyLucgpmWkoB9XLaO09hTYbRpAQJq8Q0Pjrz+clZQ9tkD/tFSqVCiYF2JInqnd7
-        n9SfvTdjPDzmZHNz27YfK+4iL9ULUDo6CXA4bm+TXZToP9go9G7d/bMmvpsIRSwnUSCgTe
-        riyTmE4swEQSU9Etc7mwSB5cyzf4MUA=
+        bh=ODcLlWj1fvF2UtTDHuFH4QAZbt0O2LRobAg9Cfb2evk=;
+        b=o+JQ99aMTkZKj4Ig7eTRrv0xDnLE6kQtuEf9IYRdvagToJoEqI6b2lb/12rwFlEMdMdedn
+        XDJ0Zu28iVMBdWFK1WgipMF+7Xw8LBev68ALvx2h2z+yL53hNO36xumrH3RfZ21KtPmPKO
+        ul7+76sNNEMQF/cGcjji2TN80DWvQkA=
 From:   Guoqing Jiang <guoqing.jiang@linux.dev>
 To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH 16/19] RDMA/siw: Remove siw_sk_assign_cm_upcalls
-Date:   Mon,  9 Oct 2023 15:17:58 +0800
-Message-Id: <20231009071801.10210-17-guoqing.jiang@linux.dev>
+Subject: [PATCH 18/19] RDMA/siw: Only check attrs->cap.max_send_wr in siw_create_qp
+Date:   Mon,  9 Oct 2023 15:18:00 +0800
+Message-Id: <20231009071801.10210-19-guoqing.jiang@linux.dev>
 In-Reply-To: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 References: <20231009071801.10210-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
@@ -40,59 +40,58 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Let's move it into siw_sk_save_upcalls, then we only need to
-get sk_callback_lock once. Also rename siw_sk_save_upcalls
-to better align with the new code.
+We can just check max_send_wr here given both max_send_wr and
+max_recv_wr are defined as u32 type, and we also need to ensure
+num_sqe (derived from max_send_wr) shouldn't be zero.
 
 Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
 ---
- drivers/infiniband/sw/siw/siw_cm.c | 19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+ drivers/infiniband/sw/siw/siw_verbs.c | 18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index c3aa5533e75d..6866ec80473c 100644
---- a/drivers/infiniband/sw/siw/siw_cm.c
-+++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -39,17 +39,7 @@ static void siw_cm_llp_error_report(struct sock *s);
- static int siw_cm_upcall(struct siw_cep *cep, enum iw_cm_event_type reason,
- 			 int status);
+diff --git a/drivers/infiniband/sw/siw/siw_verbs.c b/drivers/infiniband/sw/siw/siw_verbs.c
+index dcd69fc01176..ef149ed98946 100644
+--- a/drivers/infiniband/sw/siw/siw_verbs.c
++++ b/drivers/infiniband/sw/siw/siw_verbs.c
+@@ -333,11 +333,10 @@ int siw_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 		goto err_atomic;
+ 	}
+ 	/*
+-	 * NOTE: we allow for zero element SQ and RQ WQE's SGL's
+-	 * but not for a QP unable to hold any WQE (SQ + RQ)
++	 * NOTE: we don't allow for a QP unable to hold any SQ WQE
+ 	 */
+-	if (attrs->cap.max_send_wr + attrs->cap.max_recv_wr == 0) {
+-		siw_dbg(base_dev, "QP must have send or receive queue\n");
++	if (attrs->cap.max_send_wr == 0) {
++		siw_dbg(base_dev, "QP must have send queue\n");
+ 		rv = -EINVAL;
+ 		goto err_atomic;
+ 	}
+@@ -357,21 +356,14 @@ int siw_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attrs,
+ 	if (rv)
+ 		goto err_atomic;
  
--static void siw_sk_assign_cm_upcalls(struct sock *sk)
--{
--	write_lock_bh(&sk->sk_callback_lock);
--	sk->sk_state_change = siw_cm_llp_state_change;
--	sk->sk_data_ready = siw_cm_llp_data_ready;
--	sk->sk_write_space = siw_cm_llp_write_space;
--	sk->sk_error_report = siw_cm_llp_error_report;
--	write_unlock_bh(&sk->sk_callback_lock);
--}
--
--static void siw_sk_save_upcalls(struct sock *sk)
-+static void siw_sk_save_and_assign_upcalls(struct sock *sk)
- {
- 	struct siw_cep *cep = sk_to_cep(sk);
+-	num_sqe = attrs->cap.max_send_wr;
+-	num_rqe = attrs->cap.max_recv_wr;
  
-@@ -58,6 +48,10 @@ static void siw_sk_save_upcalls(struct sock *sk)
- 	cep->sk_data_ready = sk->sk_data_ready;
- 	cep->sk_write_space = sk->sk_write_space;
- 	cep->sk_error_report = sk->sk_error_report;
-+	sk->sk_state_change = siw_cm_llp_state_change;
-+	sk->sk_data_ready = siw_cm_llp_data_ready;
-+	sk->sk_write_space = siw_cm_llp_write_space;
-+	sk->sk_error_report = siw_cm_llp_error_report;
- 	write_unlock_bh(&sk->sk_callback_lock);
- }
+ 	/* All queue indices are derived from modulo operations
+ 	 * on a free running 'get' (consumer) and 'put' (producer)
+ 	 * unsigned counter. Having queue sizes at power of two
+ 	 * avoids handling counter wrap around.
+ 	 */
+-	if (num_sqe)
+-		num_sqe = roundup_pow_of_two(num_sqe);
+-	else {
+-		/* Zero sized SQ is not supported */
+-		rv = -EINVAL;
+-		goto err_out_xa;
+-	}
++	num_sqe = roundup_pow_of_two(attrs->cap.max_send_wr);
++	num_rqe = attrs->cap.max_recv_wr;
+ 	if (num_rqe)
+ 		num_rqe = roundup_pow_of_two(num_rqe);
  
-@@ -156,8 +150,7 @@ static void siw_cep_socket_assoc(struct siw_cep *cep, struct socket *s)
- 	siw_cep_get(cep);
- 	s->sk->sk_user_data = cep;
- 
--	siw_sk_save_upcalls(s->sk);
--	siw_sk_assign_cm_upcalls(s->sk);
-+	siw_sk_save_and_assign_upcalls(s->sk);
- }
- 
- static struct siw_cep *siw_cep_alloc(struct siw_device *sdev)
 -- 
 2.35.3
 
