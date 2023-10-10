@@ -2,70 +2,81 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A55B7CD68FF
-	for <linux-rdma@archiver.kernel.org>; Tue, 10 Oct 2023 07:58:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95F8CCD6900
+	for <linux-rdma@archiver.kernel.org>; Tue, 10 Oct 2023 08:09:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442622AbjJJH6l (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 10 Oct 2023 03:58:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49772 "EHLO
+        id S1346714AbjJJIJq (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 10 Oct 2023 04:09:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442657AbjJJH6k (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 Oct 2023 03:58:40 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86B7891;
-        Tue, 10 Oct 2023 00:58:38 -0700 (PDT)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4S4SpG6zFMztT7V;
-        Tue, 10 Oct 2023 15:53:58 +0800 (CST)
-Received: from localhost.localdomain (10.67.165.2) by
- kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Tue, 10 Oct 2023 15:58:34 +0800
-From:   Junxian Huang <huangjunxian6@hisilicon.com>
-To:     <jgg@ziepe.ca>, <leon@kernel.org>, <dsahern@gmail.com>,
-        <stephen@networkplumber.org>
-CC:     <netdev@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <linuxarm@huawei.com>, <linux-kernel@vger.kernel.org>,
-        <huangjunxian6@hisilicon.com>
-Subject: [PATCH v2 iproute2-next 1/2] rdma: Update uapi headers
-Date:   Tue, 10 Oct 2023 15:55:25 +0800
-Message-ID: <20231010075526.3860869-2-huangjunxian6@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20231010075526.3860869-1-huangjunxian6@hisilicon.com>
-References: <20231010075526.3860869-1-huangjunxian6@hisilicon.com>
+        with ESMTP id S1346700AbjJJIJq (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 10 Oct 2023 04:09:46 -0400
+Received: from us-smtp-delivery-44.mimecast.com (us-smtp-delivery-44.mimecast.com [205.139.111.44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD71FA4
+        for <linux-rdma@vger.kernel.org>; Tue, 10 Oct 2023 01:09:44 -0700 (PDT)
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-288-qRlSN9UqOC2zM01Za9DlmA-1; Tue, 10 Oct 2023 04:09:32 -0400
+X-MC-Unique: qRlSN9UqOC2zM01Za9DlmA-1
+Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A86F3185A79B;
+        Tue, 10 Oct 2023 08:09:30 +0000 (UTC)
+Received: from hog (unknown [10.45.225.250])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 83FF8400F36;
+        Tue, 10 Oct 2023 08:09:26 +0000 (UTC)
+Date:   Tue, 10 Oct 2023 10:09:24 +0200
+From:   Sabrina Dubroca <sd@queasysnail.net>
+To:     "Radu Pirea (NXP OSS)" <radu-nicolae.pirea@oss.nxp.com>
+Cc:     linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+        linux-rdma@vger.kernel.org, sgoutham@marvell.com,
+        gakula@marvell.com, sbhatta@marvell.com, hkelam@marvell.com,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, borisp@nvidia.com, saeedm@nvidia.com,
+        leon@kernel.org, andrew@lunn.ch, hkallweit1@gmail.com,
+        linux@armlinux.org.uk, richardcochran@gmail.com,
+        sebastian.tobuschat@oss.nxp.com, phaddad@nvidia.com,
+        ehakim@nvidia.com, raeds@nvidia.com, atenart@kernel.org
+Subject: Re: [PATCH net v7 0/4] Add update_pn flag
+Message-ID: <ZSUGtMn6hl2Ua8qx@hog>
+References: <20231005180636.672791-1-radu-nicolae.pirea@oss.nxp.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.67.165.2]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- kwepemi500006.china.huawei.com (7.221.188.68)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20231005180636.672791-1-radu-nicolae.pirea@oss.nxp.com>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.10
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Update rdma_netlink.h file upto kernel commit aebf8145e11a
-("RDMA/core: Add support to dump SRQ resource in RAW format")
+2023-10-05, 21:06:32 +0300, Radu Pirea (NXP OSS) wrote:
+> Patches extracted from
+> https://lore.kernel.org/all/20230928084430.1882670-1-radu-nicolae.pirea@oss.nxp.com/
+> Update_pn flag will let the offloaded MACsec implementations to know when
+> the PN is updated.
+> 
+> Radu P.
+> 
+> Radu Pirea (NXP OSS) (4):
+>   net: macsec: indicate next pn update when offloading
+>   octeontx2-pf: mcs: update PN only when update_pn is true
+>   net: phy: mscc: macsec: reject PN update requests
+>   net/mlx5e: macsec: use update_pn flag instead of PN comparation
 
-Signed-off-by: wenglianfa <wenglianfa@huawei.com>
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- rdma/include/uapi/rdma/rdma_netlink.h | 2 ++
- 1 file changed, 2 insertions(+)
+Thanks Radu! For the series:
+Reviewed-by: Sabrina Dubroca <sd@queasysnail.net>
 
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index 92c528a0..84f775be 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -299,6 +299,8 @@ enum rdma_nldev_command {
- 
- 	RDMA_NLDEV_CMD_STAT_GET_STATUS,
- 
-+	RDMA_NLDEV_CMD_RES_SRQ_GET_RAW,
-+
- 	RDMA_NLDEV_NUM_OPS
- };
- 
+
+While reviewing this, I noticed that octeon can leave the HW in an
+inconsistent state during upd_txsa and upd_rxsa: these ops do 2
+separate changes that can both fail, and if the 2nd change fails, we
+don't roll back the first change. This is an older issue (not
+introduced by this patch) and can be looked at later (I don't know
+what happens to the HW and why setting the PN would fail, maybe it's
+not recoverable at that point).
+
 -- 
-2.30.0
+Sabrina
 
