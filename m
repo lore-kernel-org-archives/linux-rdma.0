@@ -2,37 +2,34 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67842CDB474
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DB5CDB482
 	for <linux-rdma@archiver.kernel.org>; Fri, 13 Oct 2023 02:01:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229499AbjJMCBM (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Oct 2023 22:01:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58052 "EHLO
+        id S229498AbjJMCBN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Oct 2023 22:01:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58050 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbjJMCBM (ORCPT
+        with ESMTP id S229461AbjJMCBM (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Oct 2023 22:01:12 -0400
-Received: from out-202.mta0.migadu.com (out-202.mta0.migadu.com [91.218.175.202])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65643C0
-        for <linux-rdma@vger.kernel.org>; Thu, 12 Oct 2023 19:01:09 -0700 (PDT)
+Received: from out-190.mta0.migadu.com (out-190.mta0.migadu.com [91.218.175.190])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EC15BB
+        for <linux-rdma@vger.kernel.org>; Thu, 12 Oct 2023 19:01:08 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1697162467;
+        t=1697162464;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=yCr0tmkbfi1hM9xNQ7B7tOi9VlxCjnKf9yMtZlBIgy0=;
-        b=VgVEo6rhczaB+Df/FeeZdBTru+w0zmu0Fr/Ckj0TAu1xa1rBaenI9qisZJ4fwYChmsbC0C
-        0dDTg/0H6cBui1He5bEOt/vLhdG6QDXJ7u12mvT4BwW+2sEgXHcDdFQSh5hp/7gOUY3Mae
-        0zdv2M0FUMI5ZUF9oxxu3uXnC4Acn1U=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=mNvcnN4L3Nxv39ARz7HUC+uo0G2iZt/a7IkmsMoNw8o=;
+        b=UYkzaApFh/+obJS82EGrVl/JYqMfrooG2l2I0jLE//S597j2XSh4+RW2x+vFctls2DzT5a
+        Ok4xPKQkaZUOnGzVdpjL7qcnJkm7qmME7CDadpfazo0gvsd3bYycMXGkDkXBb3pyXTwGAX
+        KMRlvZHUKFSlKlGKcYOgnNOKjckmgzQ=
 From:   Guoqing Jiang <guoqing.jiang@linux.dev>
 To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH V2 03/20] RDMA/siw: Use iov.iov_len in kernel_sendmsg
-Date:   Fri, 13 Oct 2023 10:00:36 +0800
-Message-Id: <20231013020053.2120-4-guoqing.jiang@linux.dev>
-In-Reply-To: <20231013020053.2120-1-guoqing.jiang@linux.dev>
-References: <20231013020053.2120-1-guoqing.jiang@linux.dev>
+Subject: [PATCH V2 00/20] Cleanup for siw
+Date:   Fri, 13 Oct 2023 10:00:33 +0800
+Message-Id: <20231013020053.2120-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
@@ -40,27 +37,52 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-We can pass iov.iov_len here.
+V2 changes:
+1. address W=1 warning in patch 12 and 19 per the report from lkp.
+2. add one more patch (20th).
 
-Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
----
- drivers/infiniband/sw/siw/siw_qp_tx.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Hi,
 
-diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
-index 6a24e08356e9..2e055b6dcd42 100644
---- a/drivers/infiniband/sw/siw/siw_qp_tx.c
-+++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
-@@ -296,8 +296,7 @@ static int siw_tx_ctrl(struct siw_iwarp_tx *c_tx, struct socket *s,
- 				    (char *)&c_tx->pkt.ctrl + c_tx->ctrl_sent,
- 			    .iov_len = c_tx->ctrl_len - c_tx->ctrl_sent };
- 
--	int rv = kernel_sendmsg(s, &msg, &iov, 1,
--				c_tx->ctrl_len - c_tx->ctrl_sent);
-+	int rv = kernel_sendmsg(s, &msg, &iov, 1, iov.iov_len);
- 
- 	if (rv >= 0) {
- 		c_tx->ctrl_sent += rv;
+This series aim to cleanup siw code, please review and comment!
+
+Thanks,
+Guoqing
+
+Guoqing Jiang (20):
+  RDMA/siw: Introduce siw_get_page
+  RDMA/siw: Introduce siw_srx_update_skb
+  RDMA/siw: Use iov.iov_len in kernel_sendmsg
+  RDMA/siw: Remove goto lable in siw_mmap
+  RDMA/siw: Remove rcu from siw_qp
+  RDMA/siw: No need to check term_info.valid before call
+    siw_send_terminate
+  RDMA/siw: Also goto out_sem_up if pin_user_pages returns 0
+  RDMA/siw: Factor out siw_generic_rx helper
+  RDMA/siw: Introduce SIW_STAG_MAX_INDEX
+  RDMA/siw: Add one parameter to siw_destroy_cpulist
+  RDMA/siw: Introduce siw_cep_set_free_and_put
+  RDMA/siw: Introduce siw_free_cm_id
+  RDMA/siw: Simplify siw_qp_id2obj
+  RDMA/siw: Simplify siw_mem_id2obj
+  RDMA/siw: Cleanup siw_accept
+  RDMA/siw: Remove siw_sk_assign_cm_upcalls
+  RDMA/siw: Fix typo
+  RDMA/siw: Only check attrs->cap.max_send_wr in siw_create_qp
+  RDMA/siw: Introduce siw_destroy_cep_sock
+  RDMA/siw: Update comments for siw_qp_sq_process
+
+ drivers/infiniband/sw/siw/siw.h       |   9 +-
+ drivers/infiniband/sw/siw/siw_cm.c    | 154 +++++++++++---------------
+ drivers/infiniband/sw/siw/siw_main.c  |  30 +++--
+ drivers/infiniband/sw/siw/siw_mem.c   |  22 ++--
+ drivers/infiniband/sw/siw/siw_qp.c    |   2 +-
+ drivers/infiniband/sw/siw/siw_qp_rx.c |  84 ++++++--------
+ drivers/infiniband/sw/siw/siw_qp_tx.c |  39 +++----
+ drivers/infiniband/sw/siw/siw_verbs.c |  23 +---
+ 8 files changed, 144 insertions(+), 219 deletions(-)
+
+
+base-commit: 964168970cef5f5b738fae047e6de2107842feb7
 -- 
 2.35.3
 
