@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1BE2CDB482
-	for <linux-rdma@archiver.kernel.org>; Fri, 13 Oct 2023 02:01:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D368FCDB47E
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Oct 2023 02:01:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229535AbjJMCBV (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Oct 2023 22:01:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45942 "EHLO
+        id S229509AbjJMCBW (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Oct 2023 22:01:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229510AbjJMCBU (ORCPT
+        with ESMTP id S229516AbjJMCBU (ORCPT
         <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Oct 2023 22:01:20 -0400
-Received: from out-197.mta0.migadu.com (out-197.mta0.migadu.com [IPv6:2001:41d0:1004:224b::c5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18E22C0
-        for <linux-rdma@vger.kernel.org>; Thu, 12 Oct 2023 19:01:15 -0700 (PDT)
+Received: from out-198.mta0.migadu.com (out-198.mta0.migadu.com [IPv6:2001:41d0:1004:224b::c6])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D1CDE9
+        for <linux-rdma@vger.kernel.org>; Thu, 12 Oct 2023 19:01:18 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1697162474;
+        t=1697162476;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=S5Kio6sMTzY+BJRABdcLxZmpsUee3tcybD4HaS/lpsc=;
-        b=UZ5XyhnU6wQr2UYiCm8ct06RHL9iHiQ2FzmKIiPqUhVT8NjBNWmO14QyzSZZT51yZtZWML
-        x2Zs/Iy5DgTlCsFW1XVFp81/9pWX04yiW+PfHXb27zoYnnmdLNE9KeZ8grfgYm4tghcPvV
-        u7UTJm/PNfPI5MVoP5ftfdAkqcv0o+U=
+        bh=gl5qHTuqLDGYWhAyLHNhoJmJKVBxFumuNjO3PoAIdw8=;
+        b=OOXTa/fOy2JNuPH2i1wcZzjVO0I+IjvpFOeFxxIHcRALkUiGXly5wbjhKBxy4NzbR3SZ7E
+        7wpmkIMWN8SuLmIgW/7aNC4nMkgM0PpuMWxcdzQrfLFx/e0PBLhZSkaJMdB/o1wLVyAZZn
+        uVuz5klcADY7Sbt+MwobQ+swPnynpmA=
 From:   Guoqing Jiang <guoqing.jiang@linux.dev>
 To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH V2 09/20] RDMA/siw: Introduce SIW_STAG_MAX_INDEX
-Date:   Fri, 13 Oct 2023 10:00:42 +0800
-Message-Id: <20231013020053.2120-10-guoqing.jiang@linux.dev>
+Subject: [PATCH V2 11/20] RDMA/siw: Introduce siw_cep_set_free_and_put
+Date:   Fri, 13 Oct 2023 10:00:44 +0800
+Message-Id: <20231013020053.2120-12-guoqing.jiang@linux.dev>
 In-Reply-To: <20231013020053.2120-1-guoqing.jiang@linux.dev>
 References: <20231013020053.2120-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
@@ -40,59 +40,110 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add the macro to remove magic number in the code.
+Add the helper which can be used in some places.
 
 Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
 ---
- drivers/infiniband/sw/siw/siw_mem.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/infiniband/sw/siw/siw_cm.c | 31 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
-index 92c5776a9eed..ac4502fb0a96 100644
---- a/drivers/infiniband/sw/siw/siw_mem.c
-+++ b/drivers/infiniband/sw/siw/siw_mem.c
-@@ -13,18 +13,20 @@
- #include "siw.h"
- #include "siw_mem.h"
+diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
+index c8a9118677d7..2f338bb3a24c 100644
+--- a/drivers/infiniband/sw/siw/siw_cm.c
++++ b/drivers/infiniband/sw/siw/siw_cm.c
+@@ -444,6 +444,12 @@ void siw_cep_put(struct siw_cep *cep)
+ 	kref_put(&cep->ref, __siw_cep_dealloc);
+ }
  
-+/* Stag lookup is based on its index part only (24 bits). */
-+#define SIW_STAG_MAX_INDEX	0x00ffffff
++static void siw_cep_set_free_and_put(struct siw_cep *cep)
++{
++	siw_cep_set_free(cep);
++	siw_cep_put(cep);
++}
 +
- /*
-- * Stag lookup is based on its index part only (24 bits).
-  * The code avoids special Stag of zero and tries to randomize
-  * STag values between 1 and SIW_STAG_MAX_INDEX.
-  */
- int siw_mem_add(struct siw_device *sdev, struct siw_mem *m)
+ void siw_cep_get(struct siw_cep *cep)
  {
--	struct xa_limit limit = XA_LIMIT(1, 0x00ffffff);
-+	struct xa_limit limit = XA_LIMIT(1, SIW_STAG_MAX_INDEX);
- 	u32 id, next;
+ 	kref_get(&cep->ref);
+@@ -1506,9 +1512,7 @@ int siw_connect(struct iw_cm_id *id, struct iw_cm_conn_param *params)
  
- 	get_random_bytes(&next, 4);
--	next &= 0x00ffffff;
-+	next &= SIW_STAG_MAX_INDEX;
+ 		cep->state = SIW_EPSTATE_CLOSED;
  
- 	if (xa_alloc_cyclic(&sdev->mem_xa, &id, m, limit, &next,
- 	    GFP_KERNEL) < 0)
-@@ -91,7 +93,7 @@ int siw_mr_add_mem(struct siw_mr *mr, struct ib_pd *pd, void *mem_obj,
- {
- 	struct siw_device *sdev = to_siw_dev(pd->device);
- 	struct siw_mem *mem = kzalloc(sizeof(*mem), GFP_KERNEL);
--	struct xa_limit limit = XA_LIMIT(1, 0x00ffffff);
-+	struct xa_limit limit = XA_LIMIT(1, SIW_STAG_MAX_INDEX);
- 	u32 id, next;
+-		siw_cep_set_free(cep);
+-
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
  
- 	if (!mem)
-@@ -107,7 +109,7 @@ int siw_mr_add_mem(struct siw_mr *mr, struct ib_pd *pd, void *mem_obj,
- 	kref_init(&mem->ref);
+ 	} else if (s) {
+ 		sock_release(s);
+@@ -1556,16 +1560,14 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+ 	if (cep->state != SIW_EPSTATE_RECVD_MPAREQ) {
+ 		siw_dbg_cep(cep, "out of state\n");
  
- 	get_random_bytes(&next, 4);
--	next &= 0x00ffffff;
-+	next &= SIW_STAG_MAX_INDEX;
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
  
- 	if (xa_alloc_cyclic(&sdev->mem_xa, &id, mem, limit, &next,
- 	    GFP_KERNEL) < 0) {
+ 		return -ECONNRESET;
+ 	}
+ 	qp = siw_qp_id2obj(sdev, params->qpn);
+ 	if (!qp) {
+ 		WARN(1, "[QP %d] does not exist\n", params->qpn);
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
+ 
+ 		return -EINVAL;
+ 	}
+@@ -1711,8 +1713,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
+ 	cep->qp = NULL;
+ 	siw_qp_put(qp);
+ 
+-	siw_cep_set_free(cep);
+-	siw_cep_put(cep);
++	siw_cep_set_free_and_put(cep);
+ 
+ 	return rv;
+ }
+@@ -1735,8 +1736,7 @@ int siw_reject(struct iw_cm_id *id, const void *pdata, u8 pd_len)
+ 	if (cep->state != SIW_EPSTATE_RECVD_MPAREQ) {
+ 		siw_dbg_cep(cep, "out of state\n");
+ 
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep); /* put last reference */
++		siw_cep_set_free_and_put(cep); /* put last reference */
+ 
+ 		return -ECONNRESET;
+ 	}
+@@ -1753,8 +1753,7 @@ int siw_reject(struct iw_cm_id *id, const void *pdata, u8 pd_len)
+ 
+ 	cep->state = SIW_EPSTATE_CLOSED;
+ 
+-	siw_cep_set_free(cep);
+-	siw_cep_put(cep);
++	siw_cep_set_free_and_put(cep);
+ 
+ 	return 0;
+ }
+@@ -1889,8 +1888,7 @@ int siw_create_listen(struct iw_cm_id *id, int backlog)
+ 		siw_socket_disassoc(s);
+ 		cep->state = SIW_EPSTATE_CLOSED;
+ 
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
+ 	}
+ 	sock_release(s);
+ 
+@@ -1924,8 +1922,7 @@ static void siw_drop_listeners(struct iw_cm_id *id)
+ 			cep->sock = NULL;
+ 		}
+ 		cep->state = SIW_EPSTATE_CLOSED;
+-		siw_cep_set_free(cep);
+-		siw_cep_put(cep);
++		siw_cep_set_free_and_put(cep);
+ 	}
+ }
+ 
 -- 
 2.35.3
 
