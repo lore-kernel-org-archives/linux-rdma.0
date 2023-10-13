@@ -2,35 +2,35 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8903CCDB474
-	for <linux-rdma@archiver.kernel.org>; Fri, 13 Oct 2023 02:01:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52A5BCDB483
+	for <linux-rdma@archiver.kernel.org>; Fri, 13 Oct 2023 02:01:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229517AbjJMCBY (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 12 Oct 2023 22:01:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45942 "EHLO
+        id S229510AbjJMCBZ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 12 Oct 2023 22:01:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45958 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbjJMCBW (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Oct 2023 22:01:22 -0400
-Received: from out-195.mta0.migadu.com (out-195.mta0.migadu.com [91.218.175.195])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9533DCC
-        for <linux-rdma@vger.kernel.org>; Thu, 12 Oct 2023 19:01:19 -0700 (PDT)
+        with ESMTP id S229515AbjJMCBY (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 12 Oct 2023 22:01:24 -0400
+Received: from out-192.mta0.migadu.com (out-192.mta0.migadu.com [IPv6:2001:41d0:1004:224b::c0])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC43CE0
+        for <linux-rdma@vger.kernel.org>; Thu, 12 Oct 2023 19:01:21 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1697162477;
+        t=1697162479;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=QRxoBBa6JHgn47LY0wQmmJn0aLTvNXOdqcRyXTPiNvU=;
-        b=Oxz/3PBJl7/6f7Tyrm0gvebY/1B6hh8wkjxpXvjq0zx8WJ58zQvIq4i8lzehhCgJagsQJM
-        6mOtFfyyIgow1CkL02Qox/XCALC0XFzCdGeXuTDiRSWD6JF/QTgJqUfI/CANIFOc8+6Yj2
-        v4Cty6NGFds9jxUtWUAlvOfF4oBB1+M=
+        bh=OMSTh555TediJZ2XBFHFYP1jKLzfqt9rQZ98RWepIeg=;
+        b=dojnEssmnHqaWkTvqS7aj50HZ/Wy+jVuf/kbxvAA3Qa+hEMDLP0R0QPeZt4aiwCo+7eI4j
+        xyh3egATgdf98h3JKcbvut0BiN061+AzT4TUq4jYfm9sqq68Qvbe0XhdA0lziTOmEy6UIU
+        1Z7Ks62YApfFSkEJHYLTqYav7ejUWfI=
 From:   Guoqing Jiang <guoqing.jiang@linux.dev>
 To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
 Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH V2 12/20] RDMA/siw: Introduce siw_free_cm_id
-Date:   Fri, 13 Oct 2023 10:00:45 +0800
-Message-Id: <20231013020053.2120-13-guoqing.jiang@linux.dev>
+Subject: [PATCH V2 14/20] RDMA/siw: Simplify siw_mem_id2obj
+Date:   Fri, 13 Oct 2023 10:00:47 +0800
+Message-Id: <20231013020053.2120-15-guoqing.jiang@linux.dev>
 In-Reply-To: <20231013020053.2120-1-guoqing.jiang@linux.dev>
 References: <20231013020053.2120-1-guoqing.jiang@linux.dev>
 MIME-Version: 1.0
@@ -40,97 +40,34 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Factor out a helper to simplify code.
+We can set mm then return it.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202310091656.JlrmcNXB-lkp@intel.com/
 Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
 ---
- drivers/infiniband/sw/siw/siw_cm.c | 36 +++++++++++++-----------------
- 1 file changed, 16 insertions(+), 20 deletions(-)
+ drivers/infiniband/sw/siw/siw_mem.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index 2f338bb3a24c..21303bad1281 100644
---- a/drivers/infiniband/sw/siw/siw_cm.c
-+++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -364,6 +364,17 @@ static int siw_cm_upcall(struct siw_cep *cep, enum iw_cm_event_type reason,
- 	return id->event_handler(id, &event);
+diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
+index ac4502fb0a96..2d62f947d330 100644
+--- a/drivers/infiniband/sw/siw/siw_mem.c
++++ b/drivers/infiniband/sw/siw/siw_mem.c
+@@ -53,13 +53,11 @@ struct siw_mem *siw_mem_id2obj(struct siw_device *sdev, int stag_index)
+ 
+ 	rcu_read_lock();
+ 	mem = xa_load(&sdev->mem_xa, stag_index);
+-	if (likely(mem && kref_get_unless_zero(&mem->ref))) {
+-		rcu_read_unlock();
+-		return mem;
+-	}
++	if (likely(mem && !kref_get_unless_zero(&mem->ref)))
++		mem = NULL;
+ 	rcu_read_unlock();
+ 
+-	return NULL;
++	return mem;
  }
  
-+static void siw_free_cm_id(struct siw_cep *cep, bool put_cep)
-+{
-+	if (!cep->cm_id)
-+		return;
-+
-+	cep->cm_id->rem_ref(cep->cm_id);
-+	cep->cm_id = NULL;
-+	if (put_cep)
-+		siw_cep_put(cep);
-+}
-+
- /*
-  * siw_qp_cm_drop()
-  *
-@@ -415,9 +426,7 @@ void siw_qp_cm_drop(struct siw_qp *qp, int schedule)
- 			default:
- 				break;
- 			}
--			cep->cm_id->rem_ref(cep->cm_id);
--			cep->cm_id = NULL;
--			siw_cep_put(cep);
-+			siw_free_cm_id(cep, true);
- 		}
- 		cep->state = SIW_EPSTATE_CLOSED;
- 
-@@ -1175,11 +1184,7 @@ static void siw_cm_work_handler(struct work_struct *w)
- 			sock_release(cep->sock);
- 			cep->sock = NULL;
- 		}
--		if (cep->cm_id) {
--			cep->cm_id->rem_ref(cep->cm_id);
--			cep->cm_id = NULL;
--			siw_cep_put(cep);
--		}
-+		siw_free_cm_id(cep, true);
- 	}
- 	siw_cep_set_free(cep);
- 	siw_put_work(work);
-@@ -1702,10 +1707,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- 
- 	cep->state = SIW_EPSTATE_CLOSED;
- 
--	if (cep->cm_id) {
--		cep->cm_id->rem_ref(id);
--		cep->cm_id = NULL;
--	}
-+	siw_free_cm_id(cep, false);
- 	if (qp->cep) {
- 		siw_cep_put(cep);
- 		qp->cep = NULL;
-@@ -1880,10 +1882,7 @@ int siw_create_listen(struct iw_cm_id *id, int backlog)
- 	if (cep) {
- 		siw_cep_set_inuse(cep);
- 
--		if (cep->cm_id) {
--			cep->cm_id->rem_ref(cep->cm_id);
--			cep->cm_id = NULL;
--		}
-+		siw_free_cm_id(cep, false);
- 		cep->sock = NULL;
- 		siw_socket_disassoc(s);
- 		cep->state = SIW_EPSTATE_CLOSED;
-@@ -1912,10 +1911,7 @@ static void siw_drop_listeners(struct iw_cm_id *id)
- 
- 		siw_cep_set_inuse(cep);
- 
--		if (cep->cm_id) {
--			cep->cm_id->rem_ref(cep->cm_id);
--			cep->cm_id = NULL;
--		}
-+		siw_free_cm_id(cep, false);
- 		if (cep->sock) {
- 			siw_socket_disassoc(cep->sock);
- 			sock_release(cep->sock);
+ static void siw_free_plist(struct siw_page_chunk *chunk, int num_pages,
 -- 
 2.35.3
 
