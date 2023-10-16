@@ -2,78 +2,71 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD5E9CDB482
-	for <linux-rdma@archiver.kernel.org>; Mon, 16 Oct 2023 16:59:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01B34CDB465
+	for <linux-rdma@archiver.kernel.org>; Mon, 16 Oct 2023 22:12:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234645AbjJPQ76 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 16 Oct 2023 12:59:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40460 "EHLO
+        id S233384AbjJPWMJ (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:12:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234616AbjJPQ7k (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Oct 2023 12:59:40 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA4894786;
-        Mon, 16 Oct 2023 09:20:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id A3DE6C433CA;
-        Mon, 16 Oct 2023 16:20:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1697473227;
-        bh=OmDX71W8pnHJvXkCucPAjaUIHG3N468/aXGQVHPVYXQ=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=WuQYN0K2HpIwDAjzQiBVC5JrYoaVVtaLpuWb1pc+cdzeBkr+6x5S/jEu9XDMgt4rY
-         oKm+/HfdeAsovwP8ukPV9BWFziId+OCUwR1IlO/AYEn1kIMRPiaxszRwMciqUDl13n
-         HYdqJywsspuFeiLzrq82PQRmU/+WADdUUISr090Xg2J78wmFOGih6iA6y1ojqQmWDR
-         5nDzZIdcLht1DfVBZ3Phy9MLaFfMP2DkdDGOe822bB3s0dOmy8cbHMNMWd3jcFGrPK
-         OZzB8xOyIlTc9GRPcmlWBSaqtWVhQOdoBCt1HO6Xm7ll5CvrQLY7ApSFUWl0L3RTZX
-         8ZUoKpv9/JvRA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 89C14C04E32;
-        Mon, 16 Oct 2023 16:20:27 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v2 iproute2-next 0/2] rdma: Support dumping SRQ resource in
- raw format
-From:   patchwork-bot+netdevbpf@kernel.org
-Message-Id: <169747322756.5359.10248022521412902967.git-patchwork-notify@kernel.org>
-Date:   Mon, 16 Oct 2023 16:20:27 +0000
-References: <20231010075526.3860869-1-huangjunxian6@hisilicon.com>
-In-Reply-To: <20231010075526.3860869-1-huangjunxian6@hisilicon.com>
-To:     Junxian Huang <huangjunxian6@hisilicon.com>
-Cc:     jgg@ziepe.ca, leon@kernel.org, dsahern@gmail.com,
-        stephen@networkplumber.org, netdev@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linuxarm@huawei.com,
-        linux-kernel@vger.kernel.org
+        with ESMTP id S233984AbjJPWMI (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 16 Oct 2023 18:12:08 -0400
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3D9B7B4;
+        Mon, 16 Oct 2023 15:12:06 -0700 (PDT)
+Received: by linux.microsoft.com (Postfix, from userid 1174)
+        id C34B420B74C0; Mon, 16 Oct 2023 15:12:04 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C34B420B74C0
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxonhyperv.com;
+        s=default; t=1697494324;
+        bh=aobf/RxcZbP6ByTEXUNT39lz8Bz1Q2bXgp7q74BkzHI=;
+        h=From:To:Cc:Subject:Date:From;
+        b=DMBVdAW16SIV0IEbvC46sDXbo1Do3OOB/QOU8izZgyjIBqgi9CVU0i1xKwW3nkttM
+         D94mnsPfX7x8Oi44Ko9ghAysWB4clQJwcJR6qx7OAs7Wu12l0lm31sIpzygw9reeBH
+         ESjCJ0nlsG0ZG5mpgR85ezwvcoOgiw6eP8xzepRo=
+From:   sharmaajay@linuxonhyperv.com
+To:     Long Li <longli@microsoft.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Dexuan Cui <decui@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>
+Cc:     linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Ajay Sharma <sharmaajay@microsoft.com>
+Subject: [Patch v7 0/5] RDMA/mana_ib
+Date:   Mon, 16 Oct 2023 15:11:57 -0700
+Message-Id: <1697494322-26814-1-git-send-email-sharmaajay@linuxonhyperv.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hello:
+From: Ajay Sharma <sharmaajay@microsoft.com>
 
-This series was applied to iproute2/iproute2-next.git (main)
-by David Ahern <dsahern@kernel.org>:
+Change from v5:
+Use xarray for qp lookup.
 
-On Tue, 10 Oct 2023 15:55:24 +0800 you wrote:
-> This patchset adds support to dump SRQ resource in raw format with
-> rdmatool. The corresponding kernel commit is aebf8145e11a
-> ("RDMA/core: Add support to dump SRQ resource in RAW format")
-> 
-> v2 adds the missing change in res_srq_idx_parse_cb().
-> 
-> Junxian Huang (1):
->   rdma: Update uapi headers
-> 
-> [...]
+Ajay Sharma (5):
+  RDMA/mana_ib: Rename all mana_ib_dev type variables to mib_dev
+  RDMA/mana_ib: Register Mana IB  device with Management SW
+  RDMA/mana_ib: Create adapter and Add error eq
+  RDMA/mana_ib: Query adapter capabilities
+  RDMA/mana_ib: Send event to qp
 
-Here is the summary with links:
-  - [v2,iproute2-next,1/2] rdma: Update uapi headers
-    https://git.kernel.org/pub/scm/network/iproute2/iproute2-next.git/commit/?id=cd4315de422e
-  - [v2,iproute2-next,2/2] rdma: Add support to dump SRQ resource in raw format
-    https://git.kernel.org/pub/scm/network/iproute2/iproute2-next.git/commit/?id=07bfa4482d49
+ drivers/infiniband/hw/mana/cq.c               |  12 +-
+ drivers/infiniband/hw/mana/device.c           |  78 +++--
+ drivers/infiniband/hw/mana/main.c             | 290 +++++++++++++-----
+ drivers/infiniband/hw/mana/mana_ib.h          | 102 +++++-
+ drivers/infiniband/hw/mana/mr.c               |  42 ++-
+ drivers/infiniband/hw/mana/qp.c               |  86 +++---
+ drivers/infiniband/hw/mana/wq.c               |  21 +-
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 152 +++++----
+ drivers/net/ethernet/microsoft/mana/mana_en.c |   3 +
+ include/net/mana/gdma.h                       |  16 +-
+ 10 files changed, 543 insertions(+), 259 deletions(-)
 
-You are awesome, thank you!
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.25.1
 
