@@ -2,32 +2,32 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33C19C41513
-	for <linux-rdma@archiver.kernel.org>; Tue, 17 Oct 2023 12:55:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08CE7CDB484
+	for <linux-rdma@archiver.kernel.org>; Tue, 17 Oct 2023 12:56:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234899AbjJQMz6 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 17 Oct 2023 08:55:58 -0400
+        id S234937AbjJQM4A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 17 Oct 2023 08:56:00 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234843AbjJQMz5 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Oct 2023 08:55:57 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39AB3FA;
-        Tue, 17 Oct 2023 05:55:54 -0700 (PDT)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.53])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4S8v3w2w8nzvQC5;
-        Tue, 17 Oct 2023 20:51:08 +0800 (CST)
+        with ESMTP id S234954AbjJQMz7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 17 Oct 2023 08:55:59 -0400
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D61A1F1;
+        Tue, 17 Oct 2023 05:55:57 -0700 (PDT)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.56])
+        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4S8v6J2Fm1z15Nd7;
+        Tue, 17 Oct 2023 20:53:12 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.31; Tue, 17 Oct 2023 20:55:51 +0800
+ 15.1.2507.31; Tue, 17 Oct 2023 20:55:53 +0800
 From:   Junxian Huang <huangjunxian6@hisilicon.com>
 To:     <jgg@ziepe.ca>, <leon@kernel.org>
 CC:     <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
         <linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-rc 1/7] RDMA/hns: Fix printing level of asynchronous events
-Date:   Tue, 17 Oct 2023 20:52:33 +0800
-Message-ID: <20231017125239.164455-2-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 6/7] RDMA/hns: Fix unnecessary port_num transition in HW stats allocation
+Date:   Tue, 17 Oct 2023 20:52:38 +0800
+Message-ID: <20231017125239.164455-7-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20231017125239.164455-1-huangjunxian6@hisilicon.com>
 References: <20231017125239.164455-1-huangjunxian6@hisilicon.com>
@@ -42,50 +42,31 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Chengchang Tang <tangchengchang@huawei.com>
+The num_ports capability of devices should be compared with the
+number of port(i.e. the input param "port_num") but not the port
+index(i.e. port_num - 1).
 
-The current driver will print all asynchronous events. Some of the
-print levels are set improperly, e.g. SRQ limit reach and SRQ last
-wqe reach, which may also occur during normal operation of the software.
-Currently, the information of these event is printed as a warning,
-which causes a large amount of printing even during normal use of the
-application. As a result, the service performance deteriorates.
-
-This patch fixes the printing storms by modifying the print level.
-
-Fixes: b00a92c8f2ca ("RDMA/hns: Move all prints out of irq handle")
-Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
+Fixes: 5a87279591a1 ("RDMA/hns: Support hns HW stats")
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_main.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index d82daff2d9bd..2b8f6489ab3d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5804,7 +5804,7 @@ static void hns_roce_irq_work_handle(struct work_struct *work)
- 	case HNS_ROCE_EVENT_TYPE_COMM_EST:
- 		break;
- 	case HNS_ROCE_EVENT_TYPE_SQ_DRAINED:
--		ibdev_warn(ibdev, "send queue drained.\n");
-+		ibdev_dbg(ibdev, "send queue drained.\n");
- 		break;
- 	case HNS_ROCE_EVENT_TYPE_WQ_CATAS_ERROR:
- 		ibdev_err(ibdev, "local work queue 0x%x catast error, sub_event type is: %d\n",
-@@ -5819,10 +5819,10 @@ static void hns_roce_irq_work_handle(struct work_struct *work)
- 			  irq_work->queue_num, irq_work->sub_type);
- 		break;
- 	case HNS_ROCE_EVENT_TYPE_SRQ_LIMIT_REACH:
--		ibdev_warn(ibdev, "SRQ limit reach.\n");
-+		ibdev_dbg(ibdev, "SRQ limit reach.\n");
- 		break;
- 	case HNS_ROCE_EVENT_TYPE_SRQ_LAST_WQE_REACH:
--		ibdev_warn(ibdev, "SRQ last wqe reach.\n");
-+		ibdev_dbg(ibdev, "SRQ last wqe reach.\n");
- 		break;
- 	case HNS_ROCE_EVENT_TYPE_SRQ_CATAS_ERROR:
- 		ibdev_err(ibdev, "SRQ catas error.\n");
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index d9d546cdef52..e1a88f2d51b6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -547,9 +547,8 @@ static struct rdma_hw_stats *hns_roce_alloc_hw_port_stats(
+ 				struct ib_device *device, u32 port_num)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(device);
+-	u32 port = port_num - 1;
+ 
+-	if (port > hr_dev->caps.num_ports) {
++	if (port_num > hr_dev->caps.num_ports) {
+ 		ibdev_err(device, "invalid port num.\n");
+ 		return NULL;
+ 	}
 -- 
 2.30.0
 
