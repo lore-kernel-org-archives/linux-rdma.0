@@ -2,175 +2,94 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF3CDCDB482
-	for <linux-rdma@archiver.kernel.org>; Wed, 18 Oct 2023 20:29:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44397C41513
+	for <linux-rdma@archiver.kernel.org>; Wed, 18 Oct 2023 20:50:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235015AbjJRU3a (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 18 Oct 2023 16:29:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49532 "EHLO
+        id S231254AbjJRUuB (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 18 Oct 2023 16:50:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344679AbjJRU3I (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Oct 2023 16:29:08 -0400
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D95F71725;
-        Wed, 18 Oct 2023 13:28:49 -0700 (PDT)
-Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 39IKPf7b005991;
-        Wed, 18 Oct 2023 20:28:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- mime-version : subject : to : cc : references : from : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=w4lv6LPBChPxhlnjQXqBLjFAsycxLp+f8TbKWcoIXOQ=;
- b=jnBrn3U/tbk65NKJmn03JgBoVriKZFMYS1IjCMKhLItk994zVIdm/3zHv/A4WS6tEpMr
- LPQNze5tb3kyZpyIaVv+IeasLL5KuWytzRQ37s7Etw2pUFsbKw4IZI1Zk08rK7Uk3327
- DG2ushMDt9cm/GuB7rNk7xRqnLdsXpI7rY7tJkvYt+cNWPJ/E7syaqookUtQI53kJlTa
- C4/t0aMkMU+fPkEJTx1zzVkrlLEIyfWwbAJRR/FAlBakokINKTA6ih8IC9irEmLJMlc1
- FR11Tqv9cIGsyVYjQXxBQk5N/H8XEFvfx9tqxgLwPdGm4XNJ/vOmQiTdTW8d8NTdIYTy GA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ttpcr8bt3-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 18 Oct 2023 20:28:43 +0000
-Received: from m0356516.ppops.net (m0356516.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 39IKQOOr010172;
-        Wed, 18 Oct 2023 20:27:51 GMT
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ttpcr853q-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 18 Oct 2023 20:27:51 +0000
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-        by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 39IK6H0h012855;
-        Wed, 18 Oct 2023 20:26:29 GMT
-Received: from smtprelay07.dal12v.mail.ibm.com ([172.16.1.9])
-        by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3tr5pykyfm-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 18 Oct 2023 20:26:29 +0000
-Received: from smtpav06.wdc07v.mail.ibm.com (smtpav06.wdc07v.mail.ibm.com [10.39.53.233])
-        by smtprelay07.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 39IKQSU337880476
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 18 Oct 2023 20:26:28 GMT
-Received: from smtpav06.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 30FF558055;
-        Wed, 18 Oct 2023 20:26:28 +0000 (GMT)
-Received: from smtpav06.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 6B97A58056;
-        Wed, 18 Oct 2023 20:26:26 +0000 (GMT)
-Received: from [9.171.53.134] (unknown [9.171.53.134])
-        by smtpav06.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-        Wed, 18 Oct 2023 20:26:26 +0000 (GMT)
-Message-ID: <ad5e4191-227e-4a62-a110-472618ef7de1@linux.ibm.com>
-Date:   Wed, 18 Oct 2023 22:26:25 +0200
+        with ESMTP id S230051AbjJRUuB (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 18 Oct 2023 16:50:01 -0400
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFF649B;
+        Wed, 18 Oct 2023 13:49:59 -0700 (PDT)
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-1c9e06f058bso849385ad.0;
+        Wed, 18 Oct 2023 13:49:59 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697662199; x=1698266999;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=HJvsg4Y7eeEKUR6F8yWD8i9+CEex+RR/NTJ0XNlEV/Y=;
+        b=p2SDcYQd1Vj/HLOcTZjL614cL8RTnAlHK6bOqQBi+yPwRYb0il5eOWJEG6oGC2JTzM
+         3k4C8XEtduBndD9Hlz9s292uNgBWkHAXz4qZOvodrbJ/T551UCuvTmkRrq+O7hnKHfnF
+         p/0c5oGMhnXaUiuN+bmDMLFWt+yDso+UyKCbjBfiDlCxsREn/Y4ZcKDhK5NfIP0fZHQ/
+         6Fa3rcNtV/+XALJDLjVfwHJaKAuPG59mXJ+6yHEp9mtppoACFA6ic9eM8Hy3B54M8fHR
+         60N77ZAGeQ4YgaJdCP5lHmspYBqHSx4uvnRuBFWhdaXRlMH21gC5TaN5Kxb8wNE9HS5Q
+         vIYg==
+X-Gm-Message-State: AOJu0Yx+Ad7QCmaAei3yUR4pcHm04xNXV0WsrdzkOc0EH+NBDTjeA+d4
+        JgFYC4WOVhRyYy6797TxCRQ=
+X-Google-Smtp-Source: AGHT+IEsYMYoSas7XDXDlbth4qByY5YAxpQTFxWvXiA0qPcFnrVuwAS7T+bHGDw5PRS6eKUjnyY4mA==
+X-Received: by 2002:a17:902:ec83:b0:1c7:27a1:a9e5 with SMTP id x3-20020a170902ec8300b001c727a1a9e5mr666646plg.33.1697662199256;
+        Wed, 18 Oct 2023 13:49:59 -0700 (PDT)
+Received: from ?IPV6:2620:15c:211:201:66c1:dd00:1e1e:add3? ([2620:15c:211:201:66c1:dd00:1e1e:add3])
+        by smtp.gmail.com with ESMTPSA id x19-20020a1709027c1300b001c3721897fcsm352476pll.277.2023.10.18.13.49.57
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 18 Oct 2023 13:49:58 -0700 (PDT)
+Message-ID: <6f5ed2dd-3809-4805-8d31-de24f3f14486@acm.org>
+Date:   Wed, 18 Oct 2023 13:49:57 -0700
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 5/5] net/smc: put sk reference if close work was
- canceled
-Content-Language: en-GB
-To:     "D. Wythe" <alibuda@linux.alibaba.com>, kgraul@linux.ibm.com,
-        jaka@linux.ibm.com, wintera@linux.ibm.com
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-References: <1697009600-22367-1-git-send-email-alibuda@linux.alibaba.com>
- <1697009600-22367-6-git-send-email-alibuda@linux.alibaba.com>
- <bdcb307f-d2a8-4aef-bb7d-dd87e56ff740@linux.ibm.com>
- <ee641ca5-104b-d1ec-5b2a-e20237c5378a@linux.alibaba.com>
-From:   Wenjia Zhang <wenjia@linux.ibm.com>
-In-Reply-To: <ee641ca5-104b-d1ec-5b2a-e20237c5378a@linux.alibaba.com>
+Subject: Re: [bug report] blktests srp/002 hang
+Content-Language: en-US
+To:     Bob Pearson <rpearsonhpe@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc:     "Daisuke Matsuda (Fujitsu)" <matsuda-daisuke@fujitsu.com>,
+        'Rain River' <rain.1986.08.12@gmail.com>,
+        Zhu Yanjun <yanjun.zhu@linux.dev>,
+        "leon@kernel.org" <leon@kernel.org>,
+        Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>,
+        RDMA mailing list <linux-rdma@vger.kernel.org>,
+        "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+References: <20231017185139.GA691768@ziepe.ca>
+ <c65f92b2-9821-4349-b1f5-7dc2a287946a@gmail.com>
+ <08a8d947-25b5-434c-9ba3-282d298b5bfd@acm.org>
+ <e3d91c4f-b124-4031-9f92-fcb61973a645@gmail.com>
+ <02cd10fd-fd4a-4ad7-9b1d-6d37b070aacf@acm.org>
+ <5c6e69b3-f83b-461d-a08a-37bfbd82f995@gmail.com>
+ <cad2fee4-9359-4614-b36b-c2599dc12358@acm.org>
+ <bf2705ff-716a-45b5-bcc4-8710ea0fb98e@gmail.com>
+ <65b871ef-dd93-4bfb-bae9-c147a87c64d0@acm.org>
+ <dbd9f019-693f-476c-aa4c-739746753d2b@gmail.com>
+ <20231018191735.GC691768@ziepe.ca>
+ <8e7dbd64-856d-47cc-9d2f-73aa101afa11@acm.org>
+ <fb5f6da5-5017-440d-9cb5-38796554366c@gmail.com>
+From:   Bart Van Assche <bvanassche@acm.org>
+In-Reply-To: <fb5f6da5-5017-440d-9cb5-38796554366c@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 2DtDiJKL36EGAKaDx7MWIfUFAWr2KdHM
-X-Proofpoint-ORIG-GUID: RMBk6rVwiO5WiLs4sI0Kpaw5WZOLeIBO
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.980,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2023-10-18_18,2023-10-18_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- bulkscore=0 mlxlogscore=999 adultscore=0 clxscore=1015 malwarescore=0
- spamscore=0 suspectscore=0 phishscore=0 lowpriorityscore=0 impostorscore=0
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2309180000 definitions=main-2310180168
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+On 10/18/23 13:29, Bob Pearson wrote:
+> OK, with clean code from current rdma for-next branch with the .config I sent before, if I run:
+> 
+> rpearson:blktests$ sudo use_siw=1 ./check srp/002
+> [sudo] password for rpearson:
+> srp/002 (File I/O on top of multipath concurrently with logout and login (mq))
+> 
+> It hangs. The dmesg trace is attached.
 
+Thank you for having shared the dmesg output. If the test setup is still 
+in the same state, please try to run the following command:
 
-On 17.10.23 04:06, D. Wythe wrote:
-> 
-> 
-> On 10/13/23 3:04 AM, Wenjia Zhang wrote:
->>
->>
->> On 11.10.23 09:33, D. Wythe wrote:
->>> From: "D. Wythe" <alibuda@linux.alibaba.com>
->>>
->>> Note that we always hold a reference to sock when attempting
->>> to submit close_work. 
->> yes
->> Therefore, if we have successfully
->>> canceled close_work from pending, we MUST release that reference
->>> to avoid potential leaks.
->>>
->> Isn't the corresponding reference already released inside the 
->> smc_close_passive_work()?
->>
-> 
-> Hi Wenjia,
-> 
-> If we successfully cancel the close work from the pending state,
-> it means that smc_close_passive_work() has never been executed.
-> 
-> You can find more details here.
-> 
-> /**
-> * cancel_work_sync - cancel a work and wait for it to finish
-> * @work:the work to cancel
-> *
-> * Cancel @work and wait for its execution to finish. This function
-> * can be used even if the work re-queues itself or migrates to
-> * another workqueue. On return from this function, @work is
-> * guaranteed to be not pending or executing on any CPU.
-> *
-> * cancel_work_sync(&delayed_work->work) must not be used for
-> * delayed_work's. Use cancel_delayed_work_sync() instead.
-> *
-> * The caller must ensure that the workqueue on which @work was last
-> * queued can't be destroyed before this function returns.
-> *
-> * Return:
-> * %true if @work was pending, %false otherwise.
-> */
-> boolcancel_work_sync(structwork_struct *work)
-> {
-> return__cancel_work_timer(work, false);
-> }
-> 
-> Best wishes,
-> D. Wythe
-As I understand, queue_work() would wake up the work if the work is not 
-already on the queue. And the sock_hold() is just prio to the 
-queue_work(). That means, cancel_work_sync() would cancel the work 
-either before its execution or after. If your fix refers to the former 
-case, at this moment, I don't think the reference can be hold, thus it 
-is unnecessary to put it.
-> 
->>> Fixes: 42bfba9eaa33 ("net/smc: immediate termination for SMCD link 
->>> groups")
->>> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
->>> ---
->>>   net/smc/smc_close.c | 3 ++-
->>>   1 file changed, 2 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
->>> index 449ef45..10219f5 100644
->>> --- a/net/smc/smc_close.c
->>> +++ b/net/smc/smc_close.c
->>> @@ -116,7 +116,8 @@ static void smc_close_cancel_work(struct smc_sock 
->>> *smc)
->>>       struct sock *sk = &smc->sk;
->>>         release_sock(sk);
->>> -    cancel_work_sync(&smc->conn.close_work);
->>> +    if (cancel_work_sync(&smc->conn.close_work))
->>> +        sock_put(sk);
->>>       cancel_delayed_work_sync(&smc->conn.tx_work);
->>>       lock_sock(sk);
->>>   }
-> 
+$ dmsetup ls |
+   while read a b; do dmsetup message $a 0 fail_if_no_path; done
+
+If this resolves the hang, this hang is not a kernel bug but a bug in 
+multipathd or in the test scripts.
+
+Thanks,
+
+Bart.
