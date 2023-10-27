@@ -2,143 +2,146 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C57E2C25B67
-	for <linux-rdma@archiver.kernel.org>; Fri, 27 Oct 2023 11:51:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C41B9C25B47
+	for <linux-rdma@archiver.kernel.org>; Fri, 27 Oct 2023 18:07:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345637AbjJ0Lva (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 27 Oct 2023 07:51:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49192 "EHLO
+        id S232225AbjJ0SHz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 27 Oct 2023 14:07:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345686AbjJ0Lv3 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Oct 2023 07:51:29 -0400
-Received: from mail-oo1-xc33.google.com (mail-oo1-xc33.google.com [IPv6:2607:f8b0:4864:20::c33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3876FC1
-        for <linux-rdma@vger.kernel.org>; Fri, 27 Oct 2023 04:51:27 -0700 (PDT)
-Received: by mail-oo1-xc33.google.com with SMTP id 006d021491bc7-58686e94ad7so1138619eaf.3
-        for <linux-rdma@vger.kernel.org>; Fri, 27 Oct 2023 04:51:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1698407486; x=1699012286; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=AY1C0MqkkPvHiCpGxH4xxQxeIQdpsKZJozzC6yq8NBA=;
-        b=oZ9FalBYKjXKFH0kPlqhaHa7NpXBWM5yWrL3KaQMliHqj6FRH7UT2WRywgji5VKBtq
-         XqDA+frsh1vHuQrNRLaf1tB/oCotdnQqtdXQr3pZvTSNxU1l1Rx1m8l8Z/YvkRIK2xdO
-         5ToTVbPH/UKcdttTeHDmzh3IcAZgyAOXxqzpl5txBZuL2hA1oOmWgPHv8sFbm1iC9005
-         qvpdE1zOaSGjEnrUIXbXhdu20+ZUxwYIjFKPsWoLJbqTgLNoy1qj5NDMDQVw2hTUsDcz
-         0HjM+pob/KO0d/KXQIJiQ3bI3sjsKtsFz36aumwttZLlPdzjrEYgllFd4fL33KO3vAgT
-         kN/g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698407486; x=1699012286;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=AY1C0MqkkPvHiCpGxH4xxQxeIQdpsKZJozzC6yq8NBA=;
-        b=ULw2jevE5idnmyLnq7D9EEJRvaBENS7EIFeUx4BLmmcxgbSB6lLrHi7HXnKCSDEcOD
-         Lj3qPHulCx99qOhcwhITnERxNu/OnniSb6adl673F0p2yDfUR+pdO78mVw/bpS+NnwDz
-         OX/kZ+exmK1lfJHvb9RQdh8oQEamNMiViaEQmcxwQD6ZbqIRlk8CW/rVxvSPL6HUNb4H
-         ueP8rNMmiG0A+syGSWzZA3WeNyCsGcM+bZr2FH2ukEMwcXri0GaKkbJAkGhBrHJSYtrq
-         8567YWVCUFUZ+w5OWKXaUsPKnBDmLWsTp7hu88NzmlgwpbjtDqq5ppuJDPRjZcpm9Onu
-         SOkA==
-X-Gm-Message-State: AOJu0YxjziwRHm3tF7gO3ueDxcnkhfjJOfsX8Z/HLE2y2ktd0b+yl0FZ
-        TCuzkD5heLp0r9Mlr6q83F8mFQ==
-X-Google-Smtp-Source: AGHT+IFRGRlTjC6nUfy+ywDwWs3p7RlvHENvyRVZQQ98md/Y+ECf0m3kaD5tHeWWYlNDD1Hjzpkbow==
-X-Received: by 2002:a4a:bc81:0:b0:57d:e5e7:6d00 with SMTP id m1-20020a4abc81000000b0057de5e76d00mr2586465oop.6.1698407486494;
-        Fri, 27 Oct 2023 04:51:26 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-68-26-201.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.26.201])
-        by smtp.gmail.com with ESMTPSA id w12-20020a4aa98c000000b0057b6d8e51ddsm312955oom.40.2023.10.27.04.51.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Oct 2023 04:51:25 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.95)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1qwLN6-005cSE-G4;
-        Fri, 27 Oct 2023 08:51:24 -0300
-Date:   Fri, 27 Oct 2023 08:51:24 -0300
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     Zhu Yanjun <yanjun.zhu@linux.dev>
-Cc:     "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>,
-        Yi Zhang <yi.zhang@redhat.com>,
-        "Daisuke Matsuda (Fujitsu)" <matsuda-daisuke@fujitsu.com>,
-        Zhu Yanjun <yanjun.zhu@intel.com>,
-        "leon@kernel.org" <leon@kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>,
-        Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 1/1] RDMA/rxe: Fix blktests srp lead kernel panic with
- 64k page size
-Message-ID: <20231027115124.GB691768@ziepe.ca>
-References: <20231020140139.GF691768@ziepe.ca>
- <6c57cf0d-c7a7-4aac-9eb2-d8bb1d832232@fujitsu.com>
- <CAHj4cs86fFi+1LMMAzjcdGg1g1gbQwy6QgksC0kYVmNgghLV_w@mail.gmail.com>
- <1ffaeaa4-4ac2-4531-8e0c-586e13c14c97@fujitsu.com>
- <366da960-6036-49c5-ad47-3ae3f4e55452@fujitsu.com>
- <8f705223-6fde-4b29-880b-570349f40db8@fujitsu.com>
- <20231026114221.GT691768@ziepe.ca>
- <2374eb54-6a7e-4a56-b7e9-3aa5c9048fa1@linux.dev>
- <20231026232327.GZ691768@ziepe.ca>
- <2330d7dc-d17d-45d5-a162-f8f95c24c051@linux.dev>
+        with ESMTP id S231360AbjJ0SHy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 27 Oct 2023 14:07:54 -0400
+Received: from DM6FTOPR00CU001.outbound.protection.outlook.com (mail-centralusazon11020003.outbound.protection.outlook.com [52.101.61.3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BEE7FD9;
+        Fri, 27 Oct 2023 11:07:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=EMCBn2kMiesrpcELmZ4QUbAQsZtbyZEURNdeXmwnH17QlLnRDNPywKZ43A1oErTS4hybnTdcasi+9N0OWz9V58wDmBwZ1N+w5eLKCBp8Z7I24vexkZ6doHUD2rhlz5WPYEjqE02WIdLB+2N834dDE+oozXRrBnGBy/S11WROobtryfmS8naykOdyF0wb/ZQatC/m6cPAb4v9Kq0TPqALcFLeDWYrDS85mmvyQsm+kpLDUguqF11EoLe6QJ0GJELB+dW9lTYBX+I4KlsNBANofGllb0b9Oyk8uUqd5xSn9m0SHiROheP7EvgHGygpB/H2pK58bjOLQeNWpo/jKRxOyQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ShfL1zsfe+Uf5JILIL66mY9RziPKGLNbtlGosHYqzDo=;
+ b=ROh5Idz1gChtlmRncAlYoylDAKHLPocDR5fH5zCqkBBo/CIIPxVH5XJo2mCmmGRXhEXSjaoTvrEKhoWbyHUnGpd9h8+TU68Mw/oSjEG01/M6c4EVTB9EfSzlpOH+drfIwAcnJGigX0/4+r5WdchDoleI4+GPenYTQWF+rNDZsTxK30ENY3L1cthOXGnbyE274mK+qyanhi3ShCmqlYEVQBGmi2dTvnOSAcfYOA92Nt50whBIyNX5axwkiPH5NL8xNg56v85MoSKuSxqe77FOEscjRV2oixroP8yICQUyy7v6CDznSo8N3gKzLAPwsyRCAdqEb8WnEG1jMEQ+5GnSng==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ShfL1zsfe+Uf5JILIL66mY9RziPKGLNbtlGosHYqzDo=;
+ b=XcnwuTLisY3hzJIDEKi52bx924hirKRXAGemtI4I32wKEX/rIhEdV4iegDN6G9zB/zwhl9K4w/VL90728lKMXGbBKrzw53Jezg6IaCl25fa7Bj0iy/IveOsKhtNytHN11i6ds6uUaAbVypcatfXU+CHsYAB1h5ka4zig+8e/9jM=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+Received: from BY5PR21MB1443.namprd21.prod.outlook.com (2603:10b6:a03:21f::18)
+ by MW4PR21MB2004.namprd21.prod.outlook.com (2603:10b6:303:68::24) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6933.6; Fri, 27 Oct
+ 2023 18:07:48 +0000
+Received: from BY5PR21MB1443.namprd21.prod.outlook.com
+ ([fe80::c099:1450:81d3:61dd]) by BY5PR21MB1443.namprd21.prod.outlook.com
+ ([fe80::c099:1450:81d3:61dd%4]) with mapi id 15.20.6954.011; Fri, 27 Oct 2023
+ 18:07:48 +0000
+From:   Haiyang Zhang <haiyangz@microsoft.com>
+To:     linux-hyperv@vger.kernel.org, netdev@vger.kernel.org
+Cc:     haiyangz@microsoft.com, decui@microsoft.com,
+        stephen@networkplumber.org, kys@microsoft.com,
+        paulros@microsoft.com, olaf@aepfle.de, vkuznets@redhat.com,
+        davem@davemloft.net, wei.liu@kernel.org, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, leon@kernel.org,
+        longli@microsoft.com, ssengar@linux.microsoft.com,
+        linux-rdma@vger.kernel.org, daniel@iogearbox.net,
+        john.fastabend@gmail.com, bpf@vger.kernel.org, ast@kernel.org,
+        sharmaajay@microsoft.com, hawk@kernel.org, tglx@linutronix.de,
+        shradhagupta@linux.microsoft.com, linux-kernel@vger.kernel.org,
+        Konstantin Taranov <kotaranov@microsoft.com>
+Subject: [PATCH net-next] Use xdp_set_features_flag instead of direct assignment
+Date:   Fri, 27 Oct 2023 11:06:51 -0700
+Message-Id: <1698430011-21562-1-git-send-email-haiyangz@microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
+Content-Type: text/plain
+X-ClientProxiedBy: MW4PR03CA0350.namprd03.prod.outlook.com
+ (2603:10b6:303:dc::25) To BY5PR21MB1443.namprd21.prod.outlook.com
+ (2603:10b6:a03:21f::18)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2330d7dc-d17d-45d5-a162-f8f95c24c051@linux.dev>
+Sender: LKML haiyangz <lkmlhyz@microsoft.com>
+X-MS-Exchange-MessageSentRepresentingType: 2
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BY5PR21MB1443:EE_|MW4PR21MB2004:EE_
+X-MS-Office365-Filtering-Correlation-Id: af73b9b8-c548-4c37-d48c-08dbd717a04d
+X-LD-Processed: 72f988bf-86f1-41af-91ab-2d7cd011db47,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 5y95vUVM5C1JjxGgHXqOEcQAwA5wK0icf0YZ/SRB+IYaLc9WGMZPvlLRwI1Ea73BRBJ3SHMV08GTCYAuUoqOLB/sbiQJw3CmmtF4RVpQia18WqZtIyJstomu88E3bwFlENTkF6U/a9bSxHgcZcN1QIUH55IZlWiE289lWPy92ivWvFRNtNJZeR3Af4oNlBUxLrOpE+TJg8XAE7RdXT5MGJaGZvIyeYcSv+0kpP0uD31vM08DT0vxpm1IjECwwZhklqTXPKa8Y4STPIUa/0eR04nhuwK7iuVdh7CE3tVjjCMOIYTr+jbJc1acnsEHvlc9bQgU5x9uMOfJ/+tTtcSj6QdXeLFpcj5SlWeMWiz7kHKWYIMsR4xtMX4gogphjJpJMpC4dQowmktumWxidxksuobEHEmBJG4g/1hCWw57029KCq+rcrfqRRUwL5GFOJiLSNPxiFAkaYkuZsYLEV3p3FiZrE3xcYCFiVwQna1Mf0YVVCLsH3WTucIQUrf2lkfNXkkvwroF29suin5evA4o9Q2FpdKiSbLIcEPhTI7Bf07ccG2WHvDcvTWNQGscWXEFv47leXtFrqEKlLKQ3Sds/6nzsgnHpPAgegEe8WlG1+vLxV2hERPbHtwBjunWDsVIBmM1mRdD91np+7MKcWt9TzutAgB2GTT2znjkmXOoF24=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR21MB1443.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(136003)(376002)(366004)(39860400002)(346002)(396003)(230922051799003)(451199024)(1800799009)(186009)(64100799003)(38100700002)(7846003)(6506007)(6666004)(52116002)(10290500003)(83380400001)(82960400001)(82950400001)(107886003)(2616005)(6512007)(7416002)(38350700005)(8676002)(4326008)(2906002)(6486002)(5660300002)(8936002)(316002)(66556008)(66476007)(66946007)(36756003)(41300700001)(26005)(478600001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?+DaRE5YgmwM0ESVce0CLJ0I3afDkPVOZu7TbkVxX2EhXI9sMmf2FKH9tivDk?=
+ =?us-ascii?Q?yorjjvWNh80sKgOneP7uGtuO4RNWVHmpGPsZULptwfcTLE/2+1n/SHwxIA3b?=
+ =?us-ascii?Q?jIQo3wA9WQCbOtSrHC02KxNo1pFW+pns0slwgg9desyuJfScxvhN5MJJGlSZ?=
+ =?us-ascii?Q?ufXtODneChKUAR7Q/kG2KpZusETK8oS4Mkek2/WUfSKcBaSO+BQ8NDAspxZJ?=
+ =?us-ascii?Q?JoHu/oJmHsYoouulQK5IVYz/p3Y46/NOYu3LkEh3NfvlmN9S3mNqO+QWArmL?=
+ =?us-ascii?Q?9jDmpZMqpQG4DrG0i3Q0RNCjljKgd5XJTHvGL6veNmmYqhllGSXO3LwrvtRg?=
+ =?us-ascii?Q?I2mP029AYNoaRjTPlpeHO+I/GdJeEZntPPUKGsjs0M/HKN7as7NhaC3b4She?=
+ =?us-ascii?Q?1VETzH6NscP6WY3iBnn1JOtl0hChclRrXZxUL2vbD6JCslk7Xckc907LheQy?=
+ =?us-ascii?Q?aOLv9nz7u9FXyYzsgmlBScCT39gI42UiGtlOPlxnVJUBf/5XY2NWSaviWJhl?=
+ =?us-ascii?Q?EOUiaZo5XM6fgNyPMcvJINNMlqDfNitlJ1YK7azv1Dqa3OtxvDGNM6ZA92p1?=
+ =?us-ascii?Q?1R7aYVqxjdL9P+4uty8A66gFrMbRTh3VRk9gCeGqpE3hSNX9OcHFV1H2g3Of?=
+ =?us-ascii?Q?otnsZoYY9b9unNMakjbVo4joCJ4HOgyGHy9EqYIZXeiMHMPywIBoL0geIG+e?=
+ =?us-ascii?Q?4y0ieo/rhEWJWr3KFGD13iOGWyiT6rkmsuKnVqndzbX/DUZ1G9350/ss8BK7?=
+ =?us-ascii?Q?FrYv7EgeeAIkrYfkQ1IzPfKF8WuEbkXJMn3Wsj4cXfISKrzaMe5c37xF8dD5?=
+ =?us-ascii?Q?gYfKxypPD8NlK7u5DX6yUnleoYt24v1N3rsb85wpAp7c1p87Odq/J8NWb8YX?=
+ =?us-ascii?Q?Uwhyriw0unY2z2H3GaNdux/OmaeJVytuHrzTQlfkVA1x8VR3s86abtxGBn4d?=
+ =?us-ascii?Q?sSC+4XMgc8t21yrXztDZB8fH8MqVJvtyGhsB+1MDuB5ZgJuDrnFSstoI+sE1?=
+ =?us-ascii?Q?1GfUplNklWwjrWncjuIdYXkk2vHlq5g3rRsQ8WpAZy8y5NKRlKUM2QTLVshF?=
+ =?us-ascii?Q?uW2C+SqiF90PHEp+zREqIpX1lnU/FhowDp5exd7S32aM4GaGBHsnnHGxVZNp?=
+ =?us-ascii?Q?BxxQQ+n+kl9+EuNJrpc1TT3ZaxNF5E+V2x1shnMUBY1gewFmqYkLtc1nhRCF?=
+ =?us-ascii?Q?JyAYSAMCbLalkUxRrXrOXglseRWCXZHaT3QmBq6Sl+VtydrEfsRmugQg4x9g?=
+ =?us-ascii?Q?JhG4oOlqvmS7JotofXjJqWcXGBaeFCg7oui4/FJjElblgNY2ae+WdAEHfxtv?=
+ =?us-ascii?Q?vfg6vDpoUgWCfxBpvhEgjsuLJCFsqUF/FvGZkDG92vtAM6B9xiNlADCQosiZ?=
+ =?us-ascii?Q?evKZWCHsEgm7c+E/v1s2sDep/RVj/RAayB4ZleAJrDdOVVrxHAszIA9OP5Re?=
+ =?us-ascii?Q?Ah+VQiKbol3figxggw7QCWdNoGMjSnjnrPO+g7Zko2BaO5NRIq5esWbARXyl?=
+ =?us-ascii?Q?Y05AT3gMZ0btExyuUNWHCblYdMk1gZv36uDhn0FZBfBKEsA9cU57oMhvDzFR?=
+ =?us-ascii?Q?rKaUBghoIqmEtVcLDUF8ckCWxCEWXuApg+H1hNPe?=
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: af73b9b8-c548-4c37-d48c-08dbd717a04d
+X-MS-Exchange-CrossTenant-AuthSource: BY5PR21MB1443.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Oct 2023 18:07:47.9551
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 65i/T8yZ633olQs8clDBWRG5Otb8rk4kodq4yW52YU49kZpXHViVvdz8aZXBDFvc8Rum6VkDFaEe2QpgGhXOQg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR21MB2004
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Fri, Oct 27, 2023 at 12:01:47PM +0800, Zhu Yanjun wrote:
-> 
-> 在 2023/10/27 7:23, Jason Gunthorpe 写道:
-> > On Thu, Oct 26, 2023 at 08:59:34PM +0800, Zhu Yanjun wrote:
-> > > 在 2023/10/26 19:42, Jason Gunthorpe 写道:
-> > > > On Thu, Oct 26, 2023 at 09:05:52AM +0000, Zhijian Li (Fujitsu) wrote:
-> > > > > The root cause is that
-> > > > > 
-> > > > > rxe:rxe_set_page() gets wrong when mr.page_size != PAGE_SIZE where it only stores the *page to xarray.
-> > > > > So the offset will get lost.
-> > > > > 
-> > > > > For example,
-> > > > > store process:
-> > > > > page_size = 0x1000;
-> > > > > PAGE_SIZE = 0x10000;
-> > > > > va0 = 0xffff000020651000;
-> > > > > page_offset = 0 = va & (page_size - 1);
-> > > > > page = va_to_page(va);
-> > > > > xa_store(&mr->page_list, mr->nbuf, page, GFP_KERNEL);
-> > > > > 
-> > > > > load_process:
-> > > > > page = xa_load(&mr->page_list, index);
-> > > > > page_va = kmap_local_page(page) --> it must be a PAGE_SIZE align value, assume it as 0xffff000020650000
-> > > > > va1 = page_va + page_offset = 0xffff000020650000 + 0 = 0xffff000020650000;
-> > > > > 
-> > > > > Obviously, *va0 != va1*, page_offset get lost.
-> > > > > 
-> > > > > 
-> > > > > How to fix:
-> > > > > - revert 325a7eb85199 ("RDMA/rxe: Cleanup page variables in rxe_mr.c")
-> > > > > - don't allow ulp registering mr.page_size != PAGE_SIZE ?
-> > > > Lets do the second one please. Most devices only support PAGE_SIZE anyhow.
-> > > Normally page_size is PAGE_SIZE or the size of the whole compound page (in
-> > > the latest kernel version, it is the size of folio). When compound page or
-> > > folio is taken into account, the page_size is not equal to
-> > > PAGE_SIZE.
-> > folios are always multiples of PAGE_SIZE. rxe splits everything into
-> > PAGE_SIZE units in the xarray.
-> > 
-> > > If the ULP uses the compound page or folio, the similar problem will occur
-> > > again.
-> > No, it won't. We never store folios in the xarray.
-> 
-> Sure.
-> 
-> I mean, in ULP, if folio is used, the page size is set to multiple
-> PAGE_SIZE, but in RXE, the page size is set to PAGE_SIZE.
-> 
-> So the page size in ULP is different with the page size in RXE.
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-There is no such thing as a "page size" in the ULP. rxe is the thing
-that keeps things in PAGE_SIZE units, and it should be fragmenting
-whatever the ulp gives into that. The ULP must simply give virtually
-contiguous runs of memory that are PAGE_SIZE aligned
+This patch uses a helper function for assignment of xdp_features.
+This change simplifies backports.
 
-Jason
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
+---
+ drivers/net/ethernet/microsoft/mana/mana_en.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
+index 48ea4aeeea5d..035f24764ad9 100644
+--- a/drivers/net/ethernet/microsoft/mana/mana_en.c
++++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
+@@ -2687,8 +2687,8 @@ static int mana_probe_port(struct mana_context *ac, int port_idx,
+ 	ndev->features = ndev->hw_features | NETIF_F_HW_VLAN_CTAG_TX |
+ 			 NETIF_F_HW_VLAN_CTAG_RX;
+ 	ndev->vlan_features = ndev->features;
+-	ndev->xdp_features = NETDEV_XDP_ACT_BASIC | NETDEV_XDP_ACT_REDIRECT |
+-			     NETDEV_XDP_ACT_NDO_XMIT;
++	xdp_set_features_flag(ndev, NETDEV_XDP_ACT_BASIC | NETDEV_XDP_ACT_REDIRECT |
++			     NETDEV_XDP_ACT_NDO_XMIT);
+ 
+ 	err = register_netdev(ndev);
+ 	if (err) {
+-- 
+2.25.1
+
