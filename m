@@ -2,90 +2,85 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D865FC4167B
-	for <linux-rdma@archiver.kernel.org>; Thu,  2 Nov 2023 13:00:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B0FDC4332F
+	for <linux-rdma@archiver.kernel.org>; Thu,  2 Nov 2023 13:28:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229665AbjKBNAc (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Thu, 2 Nov 2023 09:00:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52712 "EHLO
+        id S1347433AbjKBN2S (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Thu, 2 Nov 2023 09:28:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229770AbjKBNAa (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Nov 2023 09:00:30 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DD3C12F
-        for <linux-rdma@vger.kernel.org>; Thu,  2 Nov 2023 06:00:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82A02C433C7;
-        Thu,  2 Nov 2023 13:00:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1698930028;
-        bh=Bn5do2X6qYRhafqgB0Lbetk4YmbirnxqIwOyVEb6GGA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=MVECGXUNbMNXbBla8Y99MPGYB71SqHEwkT29uesWzN6ug7/aHrkRjZ3EJf5x8tuoU
-         wLEJRo68A1ELRHuwizBnvAzWxPA2FYTx1qzNpnbaoc56njmingNxPTPSAcbOd+k/Er
-         DF0zqjHqCAkTbbqdI+qjWUP7lldZZMd2uk0OWOvJA/+wQHamne78UDiPeLiSqvhO7N
-         QhTCgt9BpPFxl3YNXGDzeShFU2y++4sgpNJ4K+Jq+WhhuTVAzXy24B+XJuqjGoePoP
-         tiEzskRC6Oe1qM1jirSPukAgpfGug3LkVK8PoN8wtRLPduG8LKu6qwZOKsnLSo1W6e
-         7bTgK9E/foWkQ==
-Date:   Thu, 2 Nov 2023 15:00:23 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Dan Carpenter <dan.carpenter@linaro.org>
-Cc:     linux-rdma@vger.kernel.org, Hiatt@moroto, Don <don.hiatt@intel.com>
-Subject: Re: [bug report] infiniband/hw/mthca: ancient uninitialized variable
-Message-ID: <20231102130023.GG5885@unreal>
-References: <533bc3df-8078-4397-b93d-d1f6cec9b636@moroto.mountain>
+        with ESMTP id S229586AbjKBN2R (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Thu, 2 Nov 2023 09:28:17 -0400
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAFB4182;
+        Thu,  2 Nov 2023 06:28:12 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R341e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0VvWC0w6_1698931688;
+Received: from 30.221.148.226(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VvWC0w6_1698931688)
+          by smtp.aliyun-inc.com;
+          Thu, 02 Nov 2023 21:28:09 +0800
+Message-ID: <1c5ac71a-4685-c962-cbe6-9d907bfcd4fa@linux.alibaba.com>
+Date:   Thu, 2 Nov 2023 21:28:07 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <533bc3df-8078-4397-b93d-d1f6cec9b636@moroto.mountain>
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [PATCH net v1 1/3] net/smc: fix dangling sock under state
+ SMC_APPFINCLOSEWAIT
+Content-Language: en-US
+To:     Wenjia Zhang <wenjia@linux.ibm.com>, kgraul@linux.ibm.com,
+        jaka@linux.ibm.com, wintera@linux.ibm.com
+Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
+References: <1698904324-33238-1-git-send-email-alibuda@linux.alibaba.com>
+ <1698904324-33238-2-git-send-email-alibuda@linux.alibaba.com>
+ <72b57457-43e1-49f7-9670-08bbf03231e1@linux.ibm.com>
+From:   "D. Wythe" <alibuda@linux.alibaba.com>
+In-Reply-To: <72b57457-43e1-49f7-9670-08bbf03231e1@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Nov 02, 2023 at 10:50:36AM +0300, Dan Carpenter wrote:
-> [ This code is very old, but it's also very obviously buggy.  Does
->   anyone know what a good default "out =" value should be? - dan ]
-> 
-> Hello Linus Torvalds,
 
-Hi,
 
-> 
-> The patch 1da177e4c3f4: "Linux-2.6.12-rc2" from Apr 16, 2005
-> (linux-next), leads to the following Smatch static checker warning:
-> 
-> 	drivers/infiniband/hw/mthca/mthca_cmd.c:644 mthca_SYS_EN()
-> 	error: uninitialized symbol 'out'.
+On 11/2/23 6:34 PM, Wenjia Zhang wrote:
+>
+>
+> On 02.11.23 06:52, D. Wythe wrote:
+>> From: "D. Wythe" <alibuda@linux.alibaba.com>
+>>
+>> Considering scenario:
+>>
+>>                 smc_cdc_rx_handler
+>> __smc_release
+>>                 sock_set_flag
+>> smc_close_active()
+>> sock_set_flag
+>>
+>> __set_bit(DEAD)            __set_bit(DONE)
+>>
+>> Dues to __set_bit is not atomic, the DEAD or DONE might be lost.
+>> if the DEAD flag lost, the state SMC_CLOSED  will be never be reached
+>> in smc_close_passive_work:
+>>
+>> if (sock_flag(sk, SOCK_DEAD) &&
+>>     smc_close_sent_any_close(conn)) {
+>>     sk->sk_state = SMC_CLOSED;
+>> } else {
+>>     /* just shutdown, but not yet closed locally */
+>>     sk->sk_state = SMC_APPFINCLOSEWAIT;
+>> }
+>>
+>> Replace sock_set_flags or __set_bit to set_bit will fix this problem.
+>> Since set_bit is atomic.
+>>
+>> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+>> Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
+>
+> Fixes tag?
 
-Thanks for the report, I'll send a patch after merge window.
+ops, i forget that. 🙁
+I will fix it in next version.
 
-> 
-> drivers/infiniband/hw/mthca/mthca_cmd.c
->     636 int mthca_SYS_EN(struct mthca_dev *dev)
->     637 {
->     638         u64 out;
->     639         int ret;
->     640 
->     641         ret = mthca_cmd_imm(dev, 0, &out, 0, 0, CMD_SYS_EN, CMD_TIME_CLASS_D);
-> 
-> We pass out here and it gets used without being initialized.
-> 
->         err = mthca_cmd_post(dev, in_param,
->                              out_param ? *out_param : 0,
->                                          ^^^^^^^^^^
->                              in_modifier, op_modifier,
->                              op, context->token, 1);
-> 
-> It's the same in mthca_cmd_wait() and mthca_cmd_poll().
-> 
->     642 
->     643         if (ret == -ENOMEM)
-> --> 644                 mthca_warn(dev, "SYS_EN DDR error: syn=%x, sock=%d, "
->     645                            "sladdr=%d, SPD source=%s\n",
->     646                            (int) (out >> 6) & 0xf, (int) (out >> 4) & 3,
->     647                            (int) (out >> 1) & 7, (int) out & 1 ? "NVMEM" : "DIMM");
->     648 
->     649         return ret;
->     650 }
-> 
-> regards,
-> dan carpenter
+Thanks.
+D. Wythe
