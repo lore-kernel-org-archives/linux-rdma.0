@@ -2,64 +2,89 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D31FAC41535
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 562ABC4167D
 	for <linux-rdma@archiver.kernel.org>; Fri,  3 Nov 2023 06:07:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229379AbjKCGH4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Fri, 3 Nov 2023 02:07:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55620 "EHLO
+        id S229526AbjKCGHz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Fri, 3 Nov 2023 02:07:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229463AbjKCGHz (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Nov 2023 02:07:55 -0400
-Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5BE619D;
-        Thu,  2 Nov 2023 23:07:51 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0VvYF2G2_1698991660;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VvYF2G2_1698991660)
+        with ESMTP id S229379AbjKCGHy (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Fri, 3 Nov 2023 02:07:54 -0400
+Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7865ED7;
+        Thu,  2 Nov 2023 23:07:50 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046051;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0VvYF2IO_1698991666;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0VvYF2IO_1698991666)
           by smtp.aliyun-inc.com;
-          Fri, 03 Nov 2023 14:07:45 +0800
+          Fri, 03 Nov 2023 14:07:46 +0800
 From:   "D. Wythe" <alibuda@linux.alibaba.com>
 To:     kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com,
         wintera@linux.ibm.com
 Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-Subject: [PATCH net v2 0/3] bugfixs for smc
-Date:   Fri,  3 Nov 2023 14:07:37 +0800
-Message-Id: <1698991660-82957-1-git-send-email-alibuda@linux.alibaba.com>
+Subject: [PATCH net v2 2/3] net/smc: allow cdc msg send rather than drop it with NULL sndbuf_desc
+Date:   Fri,  3 Nov 2023 14:07:39 +0800
+Message-Id: <1698991660-82957-3-git-send-email-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1698991660-82957-1-git-send-email-alibuda@linux.alibaba.com>
+References: <1698991660-82957-1-git-send-email-alibuda@linux.alibaba.com>
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-This patches includes bugfix following:
+This patch re-fix the issues mentioned by commit 22a825c541d7
+("net/smc: fix NULL sndbuf_desc in smc_cdc_tx_handler()").
 
-1. hung state
-2. sock leak
-3. potential panic
+Blocking sending message do solve the issues though, but it also
+prevents the peer to receive the final message. Besides, in logic,
+whether the sndbuf_desc is NULL or not have no impact on the processing
+of cdc message sending.
 
-We have been testing these patches for some time, but
-if you have any questions, please let us know.
+Hence that, this patch allows the cdc message sending but to check the
+sndbuf_desc with care in smc_cdc_tx_handler().
 
---
-v1:
-Fix spelling errors and incorrect function names in descriptions
+Fixes: 22a825c541d7 ("net/smc: fix NULL sndbuf_desc in smc_cdc_tx_handler()")
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
+---
+ net/smc/smc_cdc.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-v2->v1:
-Add fix tags for bugfix patch
-
-D. Wythe (3):
-  net/smc: fix dangling sock under state SMC_APPFINCLOSEWAIT
-  net/smc: allow cdc msg send rather than drop it with NULL sndbuf_desc
-  net/smc: put sk reference if close work was canceled
-
- net/smc/af_smc.c    |  4 ++--
- net/smc/smc.h       |  5 +++++
- net/smc/smc_cdc.c   | 11 +++++------
- net/smc/smc_close.c |  5 +++--
- 4 files changed, 15 insertions(+), 10 deletions(-)
-
+diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+index 01bdb79..3c06625 100644
+--- a/net/smc/smc_cdc.c
++++ b/net/smc/smc_cdc.c
+@@ -28,13 +28,15 @@ static void smc_cdc_tx_handler(struct smc_wr_tx_pend_priv *pnd_snd,
+ {
+ 	struct smc_cdc_tx_pend *cdcpend = (struct smc_cdc_tx_pend *)pnd_snd;
+ 	struct smc_connection *conn = cdcpend->conn;
++	struct smc_buf_desc *sndbuf_desc;
+ 	struct smc_sock *smc;
+ 	int diff;
+ 
++	sndbuf_desc = conn->sndbuf_desc;
+ 	smc = container_of(conn, struct smc_sock, conn);
+ 	bh_lock_sock(&smc->sk);
+-	if (!wc_status) {
+-		diff = smc_curs_diff(cdcpend->conn->sndbuf_desc->len,
++	if (!wc_status && sndbuf_desc) {
++		diff = smc_curs_diff(sndbuf_desc->len,
+ 				     &cdcpend->conn->tx_curs_fin,
+ 				     &cdcpend->cursor);
+ 		/* sndbuf_space is decreased in smc_sendmsg */
+@@ -114,9 +116,6 @@ int smc_cdc_msg_send(struct smc_connection *conn,
+ 	union smc_host_cursor cfed;
+ 	int rc;
+ 
+-	if (unlikely(!READ_ONCE(conn->sndbuf_desc)))
+-		return -ENOBUFS;
+-
+ 	smc_cdc_add_pending_send(conn, pend);
+ 
+ 	conn->tx_cdc_seq++;
 -- 
 1.8.3.1
 
