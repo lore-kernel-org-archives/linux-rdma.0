@@ -2,69 +2,89 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74C83C4332F
-	for <linux-rdma@archiver.kernel.org>; Sun,  5 Nov 2023 10:21:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A82DC4332F
+	for <linux-rdma@archiver.kernel.org>; Sun,  5 Nov 2023 20:19:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229594AbjKEKVN (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sun, 5 Nov 2023 05:21:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52470 "EHLO
+        id S229477AbjKEUTG (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sun, 5 Nov 2023 15:19:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbjKEKVM (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Nov 2023 05:21:12 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 178EDE9
-        for <linux-rdma@vger.kernel.org>; Sun,  5 Nov 2023 02:21:10 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38B80C433C8;
-        Sun,  5 Nov 2023 10:21:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1699179669;
-        bh=czuysCJ3Kxd7yvXveoV4XPQ4w6F6tnAh/OTNcSoARpA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=TYubhvIy3jLrYk5ej+cbFenBPFwstwvMpib9ssHd9fMFis2pzkco0XW9x7mT0ZNf2
-         rB3hUSOcBHh7Wdd1EujZB3DC5UHR9Xyqd4ARzzYVuHT0P7wteCDyvIZdM4xHXDG6YY
-         wG+qTFOv1L5kWYy9HbdnJPExXgnB2PKm9zg+lUB4nejl0/6r2e4TUAmM/8OsbG5hIv
-         2YphVrZIgxqxL3J3Wwa4tg9zioUJSqADSg0QwVjrUJRk7Zt+p1a9CpHhieLjFfwAJL
-         Ec+hogLjRhFgOQopAHcn7a8lcyd7qMPW7hk59fs/Oui1g5ijuU1AD5eTkqszHejugV
-         2uHk8QJ268wRA==
-Date:   Sun, 5 Nov 2023 12:21:05 +0200
-From:   Leon Romanovsky <leon@kernel.org>
-To:     Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc:     Maxim Samoylov <max7255@meta.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Guoqing Jiang <guoqing.jiang@linux.dev>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Christian Benvenuti <benve@cisco.com>,
-        Vadim Fedorenko <vadim.fedorenko@linux.dev>
-Subject: Re: [PATCH v2] IB: rework memlock limit handling code
-Message-ID: <20231105102105.GB11062@unreal>
-References: <20231012082921.546114-1-max7255@meta.com>
- <20231015091959.GC25776@unreal>
- <5fcf502d-71fb-123d-f6ff-f3ffb7c3ba1a@linux.dev>
- <20231023055229.GB10551@unreal>
- <bbefb351-92a2-409f-8bda-f6b5eef8cedc@meta.com>
- <20231102123216.GF5885@unreal>
- <daf453fa-c834-9cf1-0ddc-04abdfa37abb@cornelisnetworks.com>
+        with ESMTP id S229451AbjKEUTF (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sun, 5 Nov 2023 15:19:05 -0500
+Received: from mail-oa1-x2f.google.com (mail-oa1-x2f.google.com [IPv6:2001:4860:4864:20::2f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45EDC90
+        for <linux-rdma@vger.kernel.org>; Sun,  5 Nov 2023 12:19:03 -0800 (PST)
+Received: by mail-oa1-x2f.google.com with SMTP id 586e51a60fabf-1e98e97c824so2434123fac.1
+        for <linux-rdma@vger.kernel.org>; Sun, 05 Nov 2023 12:19:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1699215542; x=1699820342; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:to:subject:user-agent:mime-version:date:message-id:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=Ok40iS372I7EuBxp+PdMgXvF0AA49iDDuOspSwyRa48=;
+        b=HW1nvAhMmbwbtHecDFmghqAio+mLK89Wq+6QXib2cn1BMbX3FRIS5rNSUmDij/ZBz4
+         SlCbfp82hV0Odv3PXC+blqQ0aU4u2k99j5YbMEQ8okNymOpOHRrF/RbkZSk+hO0QOFWg
+         RmnAFY0DH5FYIZ4e80QdUS98ul3tXXi7npoZrJp8IvlhgrI6HuhcsHf6k6cfxafjKwJe
+         W7eyOrIWb+6wqzLvS4LXDgri851YtuJUQBYBCAELtoChHSZhLy8jWaPRZZWuMRrhSIWJ
+         VxiLrGvRa4fWUO8+2kJXi17GW48et/Ks2l74qb6pKwvtVeM3qMU0EZEDrqEgVSqJQcJE
+         G69A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1699215542; x=1699820342;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Ok40iS372I7EuBxp+PdMgXvF0AA49iDDuOspSwyRa48=;
+        b=YlW7lIgf+nkSupRr8+MsP1rXzXtPNtaNFHb4gd6ggC1PaIidsRM1CHLEFTrcWZUqKU
+         7dPyR5z4fR3fApF0pLGahMRLBS6JNNF8Q++7rV4RGFf4cxo7zYivCI1Y/AgPNavA0Od0
+         eeuiPJanzt6an2J63ViQbdwVR06P3q6VqaAbA2ylCIVCx2gkglX9JsOiBVoHF1qlQ9Ds
+         EahCpbsEoHElQaOXVve1Vce7opL8aZI0sEe/qzTnyeGHL2Lq8w0NLRa/yCl93Nj1+LR3
+         b7Ppa/GzxZ7ZDLbfeoml/0ddyEzeuoyP3+QTtXMywA+6pLpWl+3aZkc3+FC9VbYlcei0
+         IGYg==
+X-Gm-Message-State: AOJu0YwdF9WqdNxMxU32ekwrnbnUneouKWKPadf9wFps5iXTpk6mZ1wG
+        Shk4Qvjtjuqk24uScbgVtGo=
+X-Google-Smtp-Source: AGHT+IH/BIx8yteLcSWMBe38yyENglcF9GmhbCwPEV1zOQQAc8cyQspD0T4ASTiQcJ36sVvJeL6RNQ==
+X-Received: by 2002:a05:6870:498a:b0:1dd:4e2:f825 with SMTP id ho10-20020a056870498a00b001dd04e2f825mr5067620oab.8.1699215542498;
+        Sun, 05 Nov 2023 12:19:02 -0800 (PST)
+Received: from ?IPV6:2603:8081:1405:679b:7d5a:f32b:d7fe:f16c? (2603-8081-1405-679b-7d5a-f32b-d7fe-f16c.res6.spectrum.com. [2603:8081:1405:679b:7d5a:f32b:d7fe:f16c])
+        by smtp.gmail.com with ESMTPSA id c5-20020a05687091c500b001dd8c46ed49sm1148649oaf.8.2023.11.05.12.19.01
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 05 Nov 2023 12:19:01 -0800 (PST)
+Message-ID: <a0b998f6-7c03-466e-b163-3317f7a5576c@gmail.com>
+Date:   Sun, 5 Nov 2023 14:19:00 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <daf453fa-c834-9cf1-0ddc-04abdfa37abb@cornelisnetworks.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH for-next 3/6] RDMA/rxe: Register IP mcast address
+To:     Zhu Yanjun <yanjun.zhu@linux.dev>, jgg@nvidia.com,
+        linux-rdma@vger.kernel.org
+References: <20231103204324.9606-1-rpearsonhpe@gmail.com>
+ <20231103204324.9606-4-rpearsonhpe@gmail.com>
+ <30513a47-68c6-410f-bbfb-09211f07b082@linux.dev>
+Content-Language: en-US
+From:   Bob Pearson <rpearsonhpe@gmail.com>
+In-Reply-To: <30513a47-68c6-410f-bbfb-09211f07b082@linux.dev>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-On Thu, Nov 02, 2023 at 04:54:22PM -0400, Dennis Dalessandro wrote:
-> On 11/2/23 8:32 AM, Leon Romanovsky wrote:
-> >>
-> >> So, as for 31.10.2023 I still see siw_umem_get() call used in
-> >> linux-rdma repo in "for-next" branch.
-> > 
-> > I hoped to hear some feedback from Bernard and Dennis.
-> > 
-> 
-> Sorry about that. I thought I did respond about qib.
 
-Dennis, qib probably needs to use ib_umem_get too.
+
+On 11/4/23 07:42, Zhu Yanjun wrote:
 
 > 
-> Acked-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+> Using reverse fir tree, a.k.a. reverse Christmas tree or reverse XMAS 
+> tree, for
+> 
+> variable declarations isn't strictly required, though it is still 
+> preferred.
+> 
+> Zhu Yanjun
+> 
+> 
+Yeah. I usually follow that style for new code (except if there are
+dependencies) but mostly add new variables at the end of the list
+together  because it makes the patch simpler to read. At least it
+does for me. If you care, I am happy to fix this.
+
+Bob
