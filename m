@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A001C0018C
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Nov 2023 16:00:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFCBEC41535
+	for <linux-rdma@archiver.kernel.org>; Tue,  7 Nov 2023 16:03:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344324AbjKGQAX (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Nov 2023 11:00:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60628 "EHLO
+        id S1343791AbjKGQDD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Nov 2023 11:03:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344435AbjKGP7C (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Nov 2023 10:59:02 -0500
+        with ESMTP id S1344406AbjKGQCl (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Nov 2023 11:02:41 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 712E86FB7;
-        Tue,  7 Nov 2023 07:51:53 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8845C433C8;
-        Tue,  7 Nov 2023 15:51:51 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D51C28A6F;
+        Tue,  7 Nov 2023 07:53:48 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61E1BC433C9;
+        Tue,  7 Nov 2023 15:53:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1699372313;
-        bh=rj+7Ib1z/7BrrrgvIDmdpHmalsDP54hABH+5CWARasg=;
+        s=k20201202; t=1699372428;
+        bh=r02ZMxDIEew8bZyoZOGjAAvJ4LsIu5rIFKk0TRNrS7g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=INAeZlOzIP3lz43ggHbS1dH+ENm0s5RDeywlYGum0vpSOFGf4W1qySQcAf/se26fc
-         Zg0lkyfyFHdclDgfioithg+I1aBkui4u3n900vf1lMj0fjNThbBCdWVN3bkiXFQu6i
-         MgaPpSjRvP4s9qlH9kbknM8BBBoeyfeHjzjvwbTCj9HOl4dz7FpadUAw5lB79wt7mZ
-         it68symlRQ4BZy7CFLH1dPtKXDmmB0ulT74ykuYjJM1DUQjkBaE0YeCZEFoit8bGgP
-         VJjakJS50QsTBkN1wqXVS9cOUWRFSbwyV4lMnNgtsOEuOrzCzZINcqOldJAEkzpPLx
-         gKQd+e6NZdswg==
+        b=tHA1Te/oA+VMg8FFx8p3M4w1jC8x4K9C/a3rKvZubJ/391we0ZSqPRciZfas/YXAv
+         nfdplhkr0wIIcRuIQEv/HnjB0hV0dhk0/pakawcsBX2t2DXr5sqcLq5JO00mcL/zME
+         XidZgVb40ZLUXjVx+l0SMCexMhw2qUbm9MTtRPKHhhTPc9wbVNzfkoQJlyFxwuqr3D
+         L/e6/ls+bawsTk0RNbsmHZC+RLA6OwsAusGl4aXzYECTOcQLML+efBtPIN+56g6jBL
+         v5c2KvUm3AhYSeTJv34JaUKPVPKI45NhcgjAyy0ryW/UXOVWyij/zuZCyyycWxbxag
+         I2iXFi20Ev7Hg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
@@ -34,17 +34,17 @@ Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
         Leon Romanovsky <leon@kernel.org>,
         Sasha Levin <sashal@kernel.org>,
         dennis.dalessandro@cornelisnetworks.com, linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 03/22] RDMA/hfi1: Use FIELD_GET() to extract Link Width
-Date:   Tue,  7 Nov 2023 10:51:12 -0500
-Message-ID: <20231107155146.3767610-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 02/12] RDMA/hfi1: Use FIELD_GET() to extract Link Width
+Date:   Tue,  7 Nov 2023 10:53:20 -0500
+Message-ID: <20231107155343.3768464-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.42.0
-In-Reply-To: <20231107155146.3767610-1-sashal@kernel.org>
-References: <20231107155146.3767610-1-sashal@kernel.org>
+In-Reply-To: <20231107155343.3768464-1-sashal@kernel.org>
+References: <20231107155343.3768464-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.15.137
+X-stable-base: Linux 5.4.259
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
@@ -69,18 +69,18 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index a0802332c8cb3..5395cf56fbd90 100644
+index 61362bd6d3ced..111705e6609c9 100644
 --- a/drivers/infiniband/hw/hfi1/pcie.c
 +++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -3,6 +3,7 @@
-  * Copyright(c) 2015 - 2019 Intel Corporation.
+@@ -45,6 +45,7 @@
+  *
   */
  
 +#include <linux/bitfield.h>
  #include <linux/pci.h>
  #include <linux/io.h>
  #include <linux/delay.h>
-@@ -212,12 +213,6 @@ static u32 extract_speed(u16 linkstat)
+@@ -261,12 +262,6 @@ static u32 extract_speed(u16 linkstat)
  	return speed;
  }
  
@@ -93,7 +93,7 @@ index a0802332c8cb3..5395cf56fbd90 100644
  /* read the link status and set dd->{lbus_width,lbus_speed,lbus_info} */
  static void update_lbus_info(struct hfi1_devdata *dd)
  {
-@@ -230,7 +225,7 @@ static void update_lbus_info(struct hfi1_devdata *dd)
+@@ -279,7 +274,7 @@ static void update_lbus_info(struct hfi1_devdata *dd)
  		return;
  	}
  
