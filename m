@@ -2,94 +2,112 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4031CC4332F
-	for <linux-rdma@archiver.kernel.org>; Tue,  7 Nov 2023 23:03:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 686D7C4167B
+	for <linux-rdma@archiver.kernel.org>; Wed,  8 Nov 2023 01:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234038AbjKGXDv (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 7 Nov 2023 18:03:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42128 "EHLO
+        id S232632AbjKHBYh (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Tue, 7 Nov 2023 20:24:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234175AbjKGXDu (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Nov 2023 18:03:50 -0500
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B682910C3
-        for <linux-rdma@vger.kernel.org>; Tue,  7 Nov 2023 15:03:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1699398229; x=1730934229;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=e0fl2w4yaEynuxUISdpEx4g/L2QywUcE/5FfdKlJ4Bo=;
-  b=T9zOPGPwkyeigZIT6+KxF51m0JFbsZ8hdxKiGauUCzEnXngZ9Cc33G1y
-   isBQQyMlNZ+qUbhT1ST/TwrzihMrmI92rTPf9dX0eeadxz4HwSSzintp6
-   dQ/wTfldf9dlWV/H/KlviUfWE7Pvr7PzSTd9MD4p/kUVHcxJVSs2Etyqt
-   vFHQaN28waweIx/Um2j8Mfwbv7T0fxROTifXVKJfN/6zmn07flJZmV6JY
-   0A0CcR1eD7HSK2jBPyMD8n5goHCJsYVoen15iTo5SZZmq+6fk1rQCUGFu
-   q+0uZpYWOyU+IUxVyETLwHpsMOKEdo7JyW8AatIfCPYhWw8QkcpA2ULRQ
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10887"; a="2656608"
-X-IronPort-AV: E=Sophos;i="6.03,284,1694761200"; 
-   d="scan'208";a="2656608"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2023 15:03:49 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.03,284,1694761200"; 
-   d="scan'208";a="3993190"
-Received: from lkp-server01.sh.intel.com (HELO 17d9e85e5079) ([10.239.97.150])
-  by orviesa002.jf.intel.com with ESMTP; 07 Nov 2023 15:03:46 -0800
-Received: from kbuild by 17d9e85e5079 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1r0V6l-0007Se-1o;
-        Tue, 07 Nov 2023 23:03:44 +0000
-Date:   Wed, 8 Nov 2023 07:03:35 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Bob Pearson <rpearsonhpe@gmail.com>, jgg@nvidia.com,
-        yanjun.zhu@linux.dev, linux-rdma@vger.kernel.org
-Cc:     oe-kbuild-all@lists.linux.dev, Bob Pearson <rpearsonhpe@gmail.com>
-Subject: Re: [PATCH for-next v2 6/6] RDMA/rxe: Cleanup mcg lifetime
-Message-ID: <202311080628.qKudDtHK-lkp@intel.com>
-References: <20231106152928.47869-7-rpearsonhpe@gmail.com>
+        with ESMTP id S229769AbjKHBYg (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Tue, 7 Nov 2023 20:24:36 -0500
+Received: from out-171.mta1.migadu.com (out-171.mta1.migadu.com [IPv6:2001:41d0:203:375::ab])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1A98195
+        for <linux-rdma@vger.kernel.org>; Tue,  7 Nov 2023 17:24:33 -0800 (PST)
+Message-ID: <61cbf731-1592-4b2d-b748-901668fe3610@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1699406671;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=UnJmeCmGkR8PgzQegyp8K/o1jg7O7yU7ISwAx8Gsk7I=;
+        b=tAlg/l9MrokO2KGYcLn9pS32qrcotpyM2Ff9MMaS3JPBEPlEwJXfTb7pubQSe+SW2RX5dX
+        /R8fIng8Nd6EFo34KLNoyp9RRpegxy/n3j606iE3n1987O5YG2MQkkCLPkRcDv6r7mO/qI
+        UnDnoWezoOPDJ8ten9/aXq6NhKZxj4Q=
+Date:   Wed, 8 Nov 2023 09:24:27 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231106152928.47869-7-rpearsonhpe@gmail.com>
+Subject: Re: [PATCH for-next 3/6] RDMA/rxe: Register IP mcast address
+To:     Bob Pearson <rpearsonhpe@gmail.com>, jgg@nvidia.com,
+        linux-rdma@vger.kernel.org,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+References: <20231103204324.9606-1-rpearsonhpe@gmail.com>
+ <20231103204324.9606-4-rpearsonhpe@gmail.com>
+ <30513a47-68c6-410f-bbfb-09211f07b082@linux.dev>
+ <a0b998f6-7c03-466e-b163-3317f7a5576c@gmail.com>
+ <0f190158-d39f-45b0-be07-73977bfb40b7@linux.dev>
+ <9759a166-b302-46c0-9277-058152af45ef@gmail.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <9759a166-b302-46c0-9277-058152af45ef@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Bob,
+在 2023/11/7 1:31, Bob Pearson 写道:
+> 
+> 
+> On 11/6/23 07:26, Zhu Yanjun wrote:
+>>
+>> 在 2023/11/6 4:19, Bob Pearson 写道:
+>>>
+>>>
+>>> On 11/4/23 07:42, Zhu Yanjun wrote:
+>>>
+>>>>
+>>>> Using reverse fir tree, a.k.a. reverse Christmas tree or reverse 
+>>>> XMAS tree, for
+>>>>
+>>>> variable declarations isn't strictly required, though it is still 
+>>>> preferred.
+>>>>
+>>>> Zhu Yanjun
+>>>>
+>>>>
+>>> Yeah. I usually follow that style for new code (except if there are
+>>> dependencies) but mostly add new variables at the end of the list
+>>> together  because it makes the patch simpler to read. At least it
+>>> does for me. If you care, I am happy to fix this.
+>>
+>> Yes. It is good to fix it.
+>>
+>> And your commits add mcast address supports. And I think you
+>>
+>> should have the test case in the rdma-core to verify these commits.
+>>
+>> Can you share the test case in the rdma maillist? ^_^
+>>
+>> Zhu Yanjun
+>>
+>>>
+>>> Bob
+> 
+> I could share it but it's not really in a good shape to publish. I
+> have to modify the limits in rxe_param.h to test max_etc. And currently
+> I need to hand edit the send/recv versions to do node to node. In other
+> words just enough to (by hand) work through the use cases enough to
+> convince myself it works using ip maddr and wireshark along with the
+> program.
+> 
+> What you are asking for is a bunch of work to make the test program
+> more like iperf or ib_send_bw. Ideally it should either reload the
+> driver or do something else to let each test case be a clean start.
 
-kernel test robot noticed the following build errors:
+Got it.
+Anyway, a test case in rdma-core is needed to make tests with this feature.
 
-[auto build test ERROR on rdma/for-next]
-[also build test ERROR on linus/master v6.6 next-20231107]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+And this feature is related with mcast. So please also send these 
+commits to NETDEV maillist. NETDEV people can also give us a lot of good 
+advice.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Bob-Pearson/RDMA-rxe-Cleanup-rxe_ah-av_chk_attr/20231107-005913
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git for-next
-patch link:    https://lore.kernel.org/r/20231106152928.47869-7-rpearsonhpe%40gmail.com
-patch subject: [PATCH for-next v2 6/6] RDMA/rxe: Cleanup mcg lifetime
-config: csky-randconfig-002-20231107 (https://download.01.org/0day-ci/archive/20231108/202311080628.qKudDtHK-lkp@intel.com/config)
-compiler: csky-linux-gcc (GCC) 13.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20231108/202311080628.qKudDtHK-lkp@intel.com/reproduce)
+Thanks,
+Zhu Yanjun
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202311080628.qKudDtHK-lkp@intel.com/
+> 
+> In an ideal world there would be a two node version of pyverbs. :-)
+> 
+> Bob
 
-All errors (new ones prefixed by >>):
-
-   csky-linux-ld: drivers/infiniband/sw/rxe/rxe_mcast.o: in function `rxe_mcast_add':
-   rxe_mcast.c:(.text+0x42): undefined reference to `ipv6_sock_mc_join'
-   csky-linux-ld: rxe_mcast.c:(.text+0xa6): undefined reference to `ipv6_sock_mc_drop'
-   csky-linux-ld: drivers/infiniband/sw/rxe/rxe_mcast.o: in function `rxe_cleanup_mcg':
-   rxe_mcast.c:(.text+0x1a4): undefined reference to `ipv6_sock_mc_drop'
->> csky-linux-ld: rxe_mcast.c:(.text+0x1b8): undefined reference to `ipv6_sock_mc_join'
-   csky-linux-ld: rxe_mcast.c:(.text+0x1c4): undefined reference to `ipv6_sock_mc_drop'
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
