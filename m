@@ -2,112 +2,75 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2862C4167D
-	for <linux-rdma@archiver.kernel.org>; Mon, 13 Nov 2023 11:58:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B3AAC4332F
+	for <linux-rdma@archiver.kernel.org>; Mon, 13 Nov 2023 11:59:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230355AbjKML6D (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 13 Nov 2023 06:58:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55558 "EHLO
+        id S230104AbjKML7g (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 13 Nov 2023 06:59:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230358AbjKML6C (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Nov 2023 06:58:02 -0500
-Received: from out-186.mta1.migadu.com (out-186.mta1.migadu.com [IPv6:2001:41d0:203:375::ba])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49E6F10D8
-        for <linux-rdma@vger.kernel.org>; Mon, 13 Nov 2023 03:57:56 -0800 (PST)
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+        with ESMTP id S229731AbjKML7f (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 13 Nov 2023 06:59:35 -0500
+Received: from out-173.mta1.migadu.com (out-173.mta1.migadu.com [IPv6:2001:41d0:203:375::ad])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2F67D70
+        for <linux-rdma@vger.kernel.org>; Mon, 13 Nov 2023 03:59:32 -0800 (PST)
+Message-ID: <3d34553d-f6c3-df40-56bf-db10af8472cc@linux.dev>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1699876674;
+        t=1699876771;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=093OfUVDdBBTiCgvA/nFAiOloFLH2LiE4+GRE+ZYc1Y=;
-        b=q9vohHMYauAPyICkusmrb4u76BbAt197viVew3cslWO4kvRtW8t3oR4TMEUE+MQuatlC2A
-        0CLslRhIeEsukI1KL0g2lcWM+eYoX44nSLy0sOxufBw1y/U6JEYDXIvRyDAQhorHPUu52k
-        MtfsV3lRxDwyWX2tcz9aL8PaEtYyNw4=
-From:   Guoqing Jiang <guoqing.jiang@linux.dev>
-To:     bmt@zurich.ibm.com, jgg@ziepe.ca, leon@kernel.org
-Cc:     linux-rdma@vger.kernel.org
-Subject: [PATCH V5 16/17] RDMA/siw: Introduce siw_destroy_cep_sock
-Date:   Mon, 13 Nov 2023 19:57:25 +0800
-Message-Id: <20231113115726.12762-17-guoqing.jiang@linux.dev>
-In-Reply-To: <20231113115726.12762-1-guoqing.jiang@linux.dev>
-References: <20231113115726.12762-1-guoqing.jiang@linux.dev>
+        bh=ba/iTvwX7U1rcb8p3YfpC1ootop+YbyWbSBICB9HcPM=;
+        b=N7Mll2XjiZ+Nb5BzdChmiP1FQThQKLWV/Y4eIcSC6Iz+ZpjpUZYRRr71MhAjdBa4j+44Ar
+        4oUVTGYFs+pWpky0J4fX3mS+R9MAKNVi9kRHlGTZdW5tbRcitVycMdby7uFQL0VkPoVKy5
+        C5puHuqVihlhFBk+BywvOvTFbunYLY8=
+Date:   Mon, 13 Nov 2023 19:59:27 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH V4 00/18] Cleanup for siw
+Content-Language: en-US
+To:     Leon Romanovsky <leon@kernel.org>
+Cc:     bmt@zurich.ibm.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
+References: <20231027132644.29347-1-guoqing.jiang@linux.dev>
+ <20231113083826.GA51912@unreal>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Guoqing Jiang <guoqing.jiang@linux.dev>
+In-Reply-To: <20231113083826.GA51912@unreal>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Add one helper to simplify code a bit.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202310091735.oG7bTvLR-lkp@intel.com/`
-Acked-by: Bernard Metzler <bmt@zurich.ibm.com>
-Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
----
- drivers/infiniband/sw/siw/siw_cm.c | 26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_cm.c b/drivers/infiniband/sw/siw/siw_cm.c
-index 5c0f9f8bf3db..86323918a570 100644
---- a/drivers/infiniband/sw/siw/siw_cm.c
-+++ b/drivers/infiniband/sw/siw/siw_cm.c
-@@ -367,6 +367,15 @@ static void siw_free_cm_id(struct siw_cep *cep)
- 	cep->cm_id = NULL;
- }
- 
-+static void siw_destroy_cep_sock(struct siw_cep *cep)
-+{
-+	if (cep->sock) {
-+		siw_socket_disassoc(cep->sock);
-+		sock_release(cep->sock);
-+		cep->sock = NULL;
-+	}
-+}
-+
- /*
-  * siw_qp_cm_drop()
-  *
-@@ -423,14 +432,7 @@ void siw_qp_cm_drop(struct siw_qp *qp, int schedule)
- 		}
- 		cep->state = SIW_EPSTATE_CLOSED;
- 
--		if (cep->sock) {
--			siw_socket_disassoc(cep->sock);
--			/*
--			 * Immediately close socket
--			 */
--			sock_release(cep->sock);
--			cep->sock = NULL;
--		}
-+		siw_destroy_cep_sock(cep);
- 		if (cep->qp) {
- 			cep->qp = NULL;
- 			siw_qp_put(qp);
-@@ -1693,9 +1695,7 @@ int siw_accept(struct iw_cm_id *id, struct iw_cm_conn_param *params)
- error_unlock:
- 	up_write(&qp->state_lock);
- error:
--	siw_socket_disassoc(cep->sock);
--	sock_release(cep->sock);
--	cep->sock = NULL;
-+	siw_destroy_cep_sock(cep);
- 
- 	cep->state = SIW_EPSTATE_CLOSED;
- 
-@@ -1740,9 +1740,7 @@ int siw_reject(struct iw_cm_id *id, const void *pdata, u8 pd_len)
- 		cep->mpa.hdr.params.bits |= MPA_RR_FLAG_REJECT; /* reject */
- 		siw_send_mpareqrep(cep, pdata, pd_len);
- 	}
--	siw_socket_disassoc(cep->sock);
--	sock_release(cep->sock);
--	cep->sock = NULL;
-+	siw_destroy_cep_sock(cep);
- 
- 	cep->state = SIW_EPSTATE_CLOSED;
- 
--- 
-2.35.3
+On 11/13/23 16:38, Leon Romanovsky wrote:
+> On Fri, Oct 27, 2023 at 09:26:26PM +0800, Guoqing Jiang wrote:
+>> V4 changes:
+>> 1. add Acked-by tags.
+>> 2. update patch 3 and patch 12 per Bernard's review.
+>> 3. update patch header in patch 18.
+>>
+>> V3 changes:
+>> 1. add Acked-by tags.
+>> 2. drop 2 patches and address other comments.
+>>
+>> Appreciate for Bernard's review!
+>>
+>> V2 changes:
+>> 1. address W=1 warning in patch 12 and 19 per the report from lkp.
+>> 2. add one more patch (20th).
+>>
+>> Hi,
+>>
+>> This series aim to cleanup siw code, please review and comment!
+> This series wasn't sent properly and it doesn't exist in patchworks and lore.
+> Please resend it properly.
 
+Done.
+
+https://lore.kernel.org/linux-rdma/20231113115726.12762-1-guoqing.jiang@linux.dev/T/#t
+
+Thanks,
+Guoqing
