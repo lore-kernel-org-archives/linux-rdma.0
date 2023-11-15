@@ -2,177 +2,228 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F1DC4167D
-	for <linux-rdma@archiver.kernel.org>; Tue, 14 Nov 2023 17:04:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BCC4C48BF9
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Nov 2023 13:49:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233456AbjKNRET (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Tue, 14 Nov 2023 12:04:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49930 "EHLO
+        id S1343868AbjKONtH (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Nov 2023 08:49:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233442AbjKNRES (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Tue, 14 Nov 2023 12:04:18 -0500
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B21DCB8
-        for <linux-rdma@vger.kernel.org>; Tue, 14 Nov 2023 09:04:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1699981454; x=1731517454;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=zxOmDSB1bXtZ53v8/lq3lTjX4uGLeopnE556jUM0y2s=;
-  b=EVYqeeR5rXmLSW/3l4/ze1NBoW1gkwngnU6cr00ctd+J+d63cc9XhOed
-   UoxC05ym2g7i0tLa+J/J62EcEnh7nrj0guLDXPGUWKKm7q5RzEm3KQSUy
-   stSvK6ALj7HIF+JtD91ThS97QAB/UxBezZ1O5ouG8LGUltibOCwnWBWdq
-   YPc9DXMpyumzbDZBi/L8cJm3W7I2+i+09bPVEcX/8Ko/Ywxf7ob9DpdBB
-   TbHs+pwvCJopIWGc79EfvCFwhPQsjMgF04R6ZaUVrhcvcqI9xtHhFAUyZ
-   QDgHpM43HBL/OeCmjJqikeGB2vwIWXw1YuXV5WvAyOrhgO4qG4m6EVraK
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10894"; a="394614918"
-X-IronPort-AV: E=Sophos;i="6.03,302,1694761200"; 
-   d="scan'208";a="394614918"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2023 09:03:16 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10894"; a="908450235"
-X-IronPort-AV: E=Sophos;i="6.03,302,1694761200"; 
-   d="scan'208";a="908450235"
-Received: from ssaleem-mobl1.amr.corp.intel.com ([10.93.66.179])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2023 09:03:16 -0800
-From:   Shiraz Saleem <shiraz.saleem@intel.com>
-To:     jgg@nvidia.com, leon@kernel.org, linux-rdma@vger.kernel.org
-Cc:     Mustafa Ismail <mustafa.ismail@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH for-rc 2/2] RDMA/irdma: Add wait for suspend on SQD
-Date:   Tue, 14 Nov 2023 11:02:46 -0600
-Message-Id: <20231114170246.238-3-shiraz.saleem@intel.com>
-X-Mailer: git-send-email 2.39.0
-In-Reply-To: <20231114170246.238-1-shiraz.saleem@intel.com>
-References: <20231114170246.238-1-shiraz.saleem@intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S1343698AbjKONtG (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Nov 2023 08:49:06 -0500
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 396ECAC;
+        Wed, 15 Nov 2023 05:49:03 -0800 (PST)
+Received: by linux.microsoft.com (Postfix, from userid 1099)
+        id A779420B74C1; Wed, 15 Nov 2023 05:49:02 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A779420B74C1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+        s=default; t=1700056142;
+        bh=6bm+G+2Har0LNkfawvlVKFLAqfQ3KYMWeofqY6dFb2o=;
+        h=From:To:Cc:Subject:Date:From;
+        b=A3ku9EjRqyGx9ZmVJgN5tBccal2hOoVgWTxA4gsPfgo4V14RrsGMkp5wUovzA1a1p
+         hrzJPr3fIGjfPN4Z427qL8K/U6IMadBHXfaciuHRSzwa3qfh0R1H6oHixCHPiEURwO
+         2IJlAvMaj1IbFM8NCOSV3lOYfxCxE0YCtNaq393c=
+From:   Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
+To:     kys@microsoft.com, haiyangz@microsoft.com, wei.liu@kernel.org,
+        decui@microsoft.com, davem@davemloft.net, edumazet@google.com,
+        kuba@kernel.org, pabeni@redhat.com, longli@microsoft.com,
+        sharmaajay@microsoft.com, leon@kernel.org, cai.huoqing@linux.dev,
+        ssengar@linux.microsoft.com, vkuznets@redhat.com,
+        tglx@linutronix.de, linux-hyperv@vger.kernel.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-rdma@vger.kernel.org
+Cc:     schakrabarti@microsoft.com, paulros@microsoft.com,
+        Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
+Subject: [PATCH net-next] net: mana: Assigning IRQ affinity on HT cores
+Date:   Wed, 15 Nov 2023 05:48:45 -0800
+Message-Id: <1700056125-29358-1-git-send-email-schakrabarti@linux.microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+Existing MANA design assigns IRQ affinity to every sibling CPUs, which causes
+IRQ coalescing and may reduce the network performance with RSS.
 
-Currently, there is no wait for the QP suspend to complete on a modify
-to SQD state. Add a wait, after the modify to SQD state, for the Suspend
-Complete AE. While we are at it, update the suspend timeout value in
-irdma_prep_tc_change to use IRDMA_EVENT_TIMEOUT_MS too.
+Improve the performance by adhering the configuration for RSS, which prioritise
+IRQ affinity on HT cores.
 
-Fixes: b48c24c2d710 ("RDMA/irdma: Implement device supported verb APIs")
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Signed-off-by: Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
 ---
- drivers/infiniband/hw/irdma/hw.c    |  6 +++++-
- drivers/infiniband/hw/irdma/main.c  |  2 +-
- drivers/infiniband/hw/irdma/main.h  |  2 +-
- drivers/infiniband/hw/irdma/verbs.c | 21 +++++++++++++++++++++
- drivers/infiniband/hw/irdma/verbs.h |  1 +
- 5 files changed, 29 insertions(+), 3 deletions(-)
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 126 ++++++++++++++++--
+ 1 file changed, 117 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/irdma/hw.c b/drivers/infiniband/hw/irdma/hw.c
-index 8fa7e4a18e73..74f6bc7b7ad1 100644
---- a/drivers/infiniband/hw/irdma/hw.c
-+++ b/drivers/infiniband/hw/irdma/hw.c
-@@ -321,7 +321,11 @@ static void irdma_process_aeq(struct irdma_pci_f *rf)
- 			break;
- 		case IRDMA_AE_QP_SUSPEND_COMPLETE:
- 			if (iwqp->iwdev->vsi.tc_change_pending) {
--				atomic_dec(&iwqp->sc_qp.vsi->qp_suspend_reqs);
-+				if (!atomic_dec_return(&qp->vsi->qp_suspend_reqs))
-+					wake_up(&iwqp->iwdev->suspend_wq);
-+			}
-+			if (iwqp->suspend_pending) {
-+				iwqp->suspend_pending = false;
- 				wake_up(&iwqp->iwdev->suspend_wq);
- 			}
- 			break;
-diff --git a/drivers/infiniband/hw/irdma/main.c b/drivers/infiniband/hw/irdma/main.c
-index 9ac48b4dab41..3f13200ff71b 100644
---- a/drivers/infiniband/hw/irdma/main.c
-+++ b/drivers/infiniband/hw/irdma/main.c
-@@ -48,7 +48,7 @@ static void irdma_prep_tc_change(struct irdma_device *iwdev)
- 	/* Wait for all qp's to suspend */
- 	wait_event_timeout(iwdev->suspend_wq,
- 			   !atomic_read(&iwdev->vsi.qp_suspend_reqs),
--			   IRDMA_EVENT_TIMEOUT);
-+			   msecs_to_jiffies(IRDMA_EVENT_TIMEOUT_MS));
- 	irdma_ws_reset(&iwdev->vsi);
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 6367de0c2c2e..839be819d46e 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -1243,13 +1243,115 @@ void mana_gd_free_res_map(struct gdma_resource *r)
+ 	r->size = 0;
  }
  
-diff --git a/drivers/infiniband/hw/irdma/main.h b/drivers/infiniband/hw/irdma/main.h
-index d66d87bb8bc4..b65bc2ea542f 100644
---- a/drivers/infiniband/hw/irdma/main.h
-+++ b/drivers/infiniband/hw/irdma/main.h
-@@ -78,7 +78,7 @@
- 
- #define MAX_DPC_ITERATIONS	128
- 
--#define IRDMA_EVENT_TIMEOUT		50000
-+#define IRDMA_EVENT_TIMEOUT_MS		5000
- #define IRDMA_VCHNL_EVENT_TIMEOUT	100000
- #define IRDMA_RST_TIMEOUT_HZ		4
- 
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 77a4a12a6493..cb828e3da478 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -1159,6 +1159,21 @@ static u8 irdma_roce_get_vlan_prio(const struct ib_gid_attr *attr, u8 prio)
- 	return prio;
- }
- 
-+static int irdma_wait_for_suspend(struct irdma_qp *iwqp)
++static void cpu_mask_set(cpumask_var_t *filter_mask, cpumask_var_t **filter_mask_list)
 +{
-+	if (!wait_event_timeout(iwqp->iwdev->suspend_wq,
-+				!iwqp->suspend_pending,
-+				msecs_to_jiffies(IRDMA_EVENT_TIMEOUT_MS))) {
-+		iwqp->suspend_pending = false;
-+		ibdev_warn(&iwqp->iwdev->ibdev,
-+			   "modify_qp timed out waiting for suspend. qp_id = %d, last_ae = 0x%x\n",
-+			   iwqp->ibqp.qp_num, iwqp->last_aeq);
-+		return -EBUSY;
-+	}
++	unsigned int core_count = 0, cpu;
++	cpumask_var_t *filter_mask_list_tmp;
 +
-+	return 0;
++	BUG_ON(!filter_mask || !filter_mask_list);
++	filter_mask_list_tmp = *filter_mask_list;
++	cpumask_copy(*filter_mask, cpu_online_mask);
++	/* for each core create a cpumask lookup table,
++	 * which stores all the corresponding siblings
++	 */
++	for_each_cpu(cpu, *filter_mask) {
++		BUG_ON(!alloc_cpumask_var(&filter_mask_list_tmp[core_count], GFP_KERNEL));
++		cpumask_or(filter_mask_list_tmp[core_count], filter_mask_list_tmp[core_count],
++			   topology_sibling_cpumask(cpu));
++		cpumask_andnot(*filter_mask, *filter_mask, topology_sibling_cpumask(cpu));
++		core_count++;
++	}
 +}
 +
- /**
-  * irdma_modify_qp_roce - modify qp request
-  * @ibqp: qp's pointer for modify
-@@ -1422,6 +1437,7 @@ int irdma_modify_qp_roce(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 
- 			info.next_iwarp_state = IRDMA_QP_STATE_SQD;
- 			issue_modify_qp = 1;
-+			iwqp->suspend_pending = true;
- 			break;
- 		case IB_QPS_SQE:
- 		case IB_QPS_ERR:
-@@ -1462,6 +1478,11 @@ int irdma_modify_qp_roce(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 			ctx_info->rem_endpoint_idx = udp_info->arp_idx;
- 			if (irdma_hw_modify_qp(iwdev, iwqp, &info, true))
- 				return -EINVAL;
-+			if (info.next_iwarp_state == IRDMA_QP_STATE_SQD) {
-+				ret = irdma_wait_for_suspend(iwqp);
-+				if (ret)
-+					return ret;
++static int irq_setup(int *irqs, int nvec)
++{
++	cpumask_var_t filter_mask;
++	cpumask_var_t *filter_mask_list;
++	unsigned int cpu_first, cpu, irq_start, cores = 0;
++	int i, core_count = 0, numa_node, cpu_count = 0, err = 0;
++
++	BUG_ON(!alloc_cpumask_var(&filter_mask, GFP_KERNEL));
++	cpus_read_lock();
++	cpumask_copy(filter_mask, cpu_online_mask);
++	/* count the number of cores
++	 */
++	for_each_cpu(cpu, filter_mask) {
++		cpumask_andnot(filter_mask, filter_mask, topology_sibling_cpumask(cpu));
++		cores++;
++	}
++	filter_mask_list = kcalloc(cores, sizeof(cpumask_var_t), GFP_KERNEL);
++	if (!filter_mask_list) {
++		err = -ENOMEM;
++		goto free_irq;
++	}
++	/* if number of cpus are equal to max_queues per port, then
++	 * one extra interrupt for the hardware channel communication.
++	 */
++	if (nvec - 1 == num_online_cpus()) {
++		irq_start = 1;
++		cpu_first = cpumask_first(cpu_online_mask);
++		irq_set_affinity_and_hint(irqs[0], cpumask_of(cpu_first));
++	} else {
++		irq_start = 0;
++	}
++	/* reset the core_count and num_node to 0.
++	 */
++	core_count = 0;
++	numa_node = 0;
++	cpu_mask_set(&filter_mask, &filter_mask_list);
++	/* for each interrupt find the cpu of a particular
++	 * sibling set and if it belongs to the specific numa
++	 * then assign irq to it and clear the cpu bit from
++	 * the corresponding sibling list from filter_mask_list.
++	 * Increase the cpu_count for that node.
++	 * Once all cpus for a numa node is assigned, then
++	 * move to different numa node and continue the same.
++	 */
++	for (i = irq_start; i < nvec; ) {
++		cpu_first = cpumask_first(filter_mask_list[core_count]);
++		if (cpu_first < nr_cpu_ids && cpu_to_node(cpu_first) == numa_node) {
++			irq_set_affinity_and_hint(irqs[i], cpumask_of(cpu_first));
++			cpumask_clear_cpu(cpu_first, filter_mask_list[core_count]);
++			cpu_count = cpu_count + 1;
++			i = i + 1;
++			/* checking if all the cpus are used from the
++			 * particular node.
++			 */
++			if (cpu_count == nr_cpus_node(numa_node)) {
++				numa_node = numa_node + 1;
++				if (numa_node == num_online_nodes()) {
++					cpu_mask_set(&filter_mask, &filter_mask_list);
++					numa_node = 0;
++				}
++				cpu_count = 0;
++				core_count = 0;
++				continue;
 +			}
- 			spin_lock_irqsave(&iwqp->lock, flags);
- 			if (iwqp->iwarp_state == info.curr_iwarp_state) {
- 				iwqp->iwarp_state = info.next_iwarp_state;
-diff --git a/drivers/infiniband/hw/irdma/verbs.h b/drivers/infiniband/hw/irdma/verbs.h
-index c42ac22de00e..cfa140b36395 100644
---- a/drivers/infiniband/hw/irdma/verbs.h
-+++ b/drivers/infiniband/hw/irdma/verbs.h
-@@ -198,6 +198,7 @@ struct irdma_qp {
- 	u8 flush_issued : 1;
- 	u8 sig_all : 1;
- 	u8 pau_mode : 1;
-+	u8 suspend_pending : 1;
- 	u8 rsvd : 1;
- 	u8 iwarp_state;
- 	u16 term_sq_flush_code;
++		}
++		if ((core_count + 1) % cores == 0)
++			core_count = 0;
++		else
++			core_count++;
++	}
++free_irq:
++	cpus_read_unlock();
++	if (filter_mask)
++		free_cpumask_var(filter_mask);
++	if (filter_mask_list) {
++		for (core_count = 0; core_count < cores; core_count++)
++			free_cpumask_var(filter_mask_list[core_count]);
++		kfree(filter_mask_list);
++	}
++	return err;
++}
++
+ static int mana_gd_setup_irqs(struct pci_dev *pdev)
+ {
+ 	unsigned int max_queues_per_port = num_online_cpus();
+ 	struct gdma_context *gc = pci_get_drvdata(pdev);
+ 	struct gdma_irq_context *gic;
+-	unsigned int max_irqs, cpu;
+-	int nvec, irq;
++	unsigned int max_irqs;
++	int nvec, *irqs, irq;
+ 	int err, i = 0, j;
+ 
+ 	if (max_queues_per_port > MANA_MAX_NUM_QUEUES)
+@@ -1261,6 +1363,11 @@ static int mana_gd_setup_irqs(struct pci_dev *pdev)
+ 	nvec = pci_alloc_irq_vectors(pdev, 2, max_irqs, PCI_IRQ_MSIX);
+ 	if (nvec < 0)
+ 		return nvec;
++	irqs = kmalloc_array(nvec, sizeof(int), GFP_KERNEL);
++	if (!irqs) {
++		err = -ENOMEM;
++		goto free_irq_vector;
++	}
+ 
+ 	gc->irq_contexts = kcalloc(nvec, sizeof(struct gdma_irq_context),
+ 				   GFP_KERNEL);
+@@ -1281,20 +1388,20 @@ static int mana_gd_setup_irqs(struct pci_dev *pdev)
+ 			snprintf(gic->name, MANA_IRQ_NAME_SZ, "mana_q%d@pci:%s",
+ 				 i - 1, pci_name(pdev));
+ 
+-		irq = pci_irq_vector(pdev, i);
+-		if (irq < 0) {
+-			err = irq;
++		irqs[i] = pci_irq_vector(pdev, i);
++		if (irqs[i] < 0) {
++			err = irqs[i];
+ 			goto free_irq;
+ 		}
+ 
+-		err = request_irq(irq, mana_gd_intr, 0, gic->name, gic);
++		err = request_irq(irqs[i], mana_gd_intr, 0, gic->name, gic);
+ 		if (err)
+ 			goto free_irq;
+-
+-		cpu = cpumask_local_spread(i, gc->numa_node);
+-		irq_set_affinity_and_hint(irq, cpumask_of(cpu));
+ 	}
+ 
++	err = irq_setup(irqs, nvec);
++	if (err)
++		goto free_irq;
+ 	err = mana_gd_alloc_res_map(nvec, &gc->msix_resource);
+ 	if (err)
+ 		goto free_irq;
+@@ -1314,6 +1421,7 @@ static int mana_gd_setup_irqs(struct pci_dev *pdev)
+ 	}
+ 
+ 	kfree(gc->irq_contexts);
++	kfree(irqs);
+ 	gc->irq_contexts = NULL;
+ free_irq_vector:
+ 	pci_free_irq_vectors(pdev);
 -- 
-1.8.3.1
+2.34.1
 
