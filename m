@@ -2,183 +2,90 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 270C2C48BD7
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Nov 2023 14:33:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB470C072A2
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Nov 2023 15:27:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344065AbjKOOdF (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Nov 2023 09:33:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45202 "EHLO
+        id S229619AbjKOP2A (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Nov 2023 10:28:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45848 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344057AbjKOOdE (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Nov 2023 09:33:04 -0500
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 875C1181;
-        Wed, 15 Nov 2023 06:33:01 -0800 (PST)
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3AFDqmaB006569;
-        Wed, 15 Nov 2023 14:32:55 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- mime-version : subject : to : cc : references : from : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=vNYzonvJUeWWqXdSrIhWgKiUlZPWCbFb6OfWF1QU2wo=;
- b=j0K2FEMiOBpvWR95/1fICXEeci5Zx5aIP1NbFmh7N3IuHYlSL5QU0ekMwaV7hZ+mvKIZ
- X0TRaoZeWv+ZuIgQMw2yddDtgF6AkR+PYX7BaoNrizYEpWJsNacMi7fcW+KNwAi/KQmf
- M7zgPdGnEVPMk1Jlyn5W5xXGDGzbEUCEXC/DLSiGdKdt9TpXTPL45/QRT6Bwk0VcmpRV
- qjTnhv4MwoCRC79q105kXrP2CabG6jWtXnDL1ohw/H2ULUQaCFhgsUSL2HKSOqDktzkF
- 2GypJmlKWJpmMAJhFFFJvjWJDZ67FwPH3CzwJGOyI0UoLwJAKawC8yTsEyKun+3FiqJ/ OQ== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ucy8jh80y-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 15 Nov 2023 14:32:54 +0000
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 3AFDrNVV007426;
-        Wed, 15 Nov 2023 14:32:53 GMT
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ucy8jh7x9-3
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 15 Nov 2023 14:32:53 +0000
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-        by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3AFDnCWN021761;
-        Wed, 15 Nov 2023 14:06:24 GMT
-Received: from smtprelay05.wdc07v.mail.ibm.com ([172.16.1.72])
-        by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3uamayfrjk-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 15 Nov 2023 14:06:24 +0000
-Received: from smtpav01.dal12v.mail.ibm.com (smtpav01.dal12v.mail.ibm.com [10.241.53.100])
-        by smtprelay05.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3AFE6NZM15336056
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 15 Nov 2023 14:06:24 GMT
-Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id B56DF58062;
-        Wed, 15 Nov 2023 14:06:23 +0000 (GMT)
-Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 299CD58064;
-        Wed, 15 Nov 2023 14:06:22 +0000 (GMT)
-Received: from [9.179.28.193] (unknown [9.179.28.193])
-        by smtpav01.dal12v.mail.ibm.com (Postfix) with ESMTP;
-        Wed, 15 Nov 2023 14:06:21 +0000 (GMT)
-Message-ID: <17abf559-ec8b-47e9-b4e4-59adfbc6943b@linux.ibm.com>
-Date:   Wed, 15 Nov 2023 15:06:21 +0100
+        with ESMTP id S230400AbjKOP17 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Nov 2023 10:27:59 -0500
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6862419B
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Nov 2023 07:27:56 -0800 (PST)
+Received: by mail-ed1-x531.google.com with SMTP id 4fb4d7f45d1cf-53d9f001b35so10467912a12.2
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Nov 2023 07:27:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google; t=1700062075; x=1700666875; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=xsuufIm5XNVULohJZKB+MSo5W4fqFo8nrXdNsZ/32qw=;
+        b=iVydB4IiDUa2jWx0/Y9GwvoohOOlFGSlTmkrJyKwTD/Fobt7PZtQ6L22aSd8F+k/FJ
+         mm6MLhwgB/sr3D9x6VzPDHOk/mPta9M0mArpO7dewx1ulv4hyLB6kizkYChfGuTSLbdA
+         OSjwePOEbAZMYr1gJe/MucafP4m+DNujXpuqXngpFN39D5sZiwK2MIIESUN+VFR/czCN
+         UJCreDa+uMGQ/ljup7nA1LX8J7a2uXdyapATP3e5Hgy4EIHI1PA2v8VVb8IIFtmOOAEL
+         NZ3U7rlYB9uk+aaFfotn07XQk+rGMnZKUJYXGu/RoYrAQSy9vinD7jQLpjQ5uxERhcgn
+         +wtA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700062075; x=1700666875;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=xsuufIm5XNVULohJZKB+MSo5W4fqFo8nrXdNsZ/32qw=;
+        b=xL3+ZwBueyTIY8U2uRpo/a7kaZGpHiPhMAdSTjJC1ugpVylupgR9ewo9n1VmoWgSI9
+         IjwHTpGJHUS21m66ccZxDgDMj1ENaAH0r6GSkiZdZi4XUkwzr8/Hk7c26L4r1gTpFu22
+         3V3AUrKEF0FmBO+Ft4WQJVi7zEtGlx9QctltF+wfFyUJxiiakfRGE495Y4EF9yNdcl92
+         KBxC0521QJ3CvHm+Lcq9haboeEx711pleL8OV9ZEolcei4laH/vLof6rFzvKHGRWSnxw
+         8mmJ8y749Wsdq3Jd3eYUfsqPIfImQ8W39Txx2cyGk1hHhwpJck0AXFklC04gDO9TmwkK
+         1uPQ==
+X-Gm-Message-State: AOJu0YyyKACcB/L0QX0q4csSAyJt3VA/pYA9/Zm1N1WvetOipz81/Eml
+        +nxAU8u89ame/eSuQRjwzotyQFEVRV/ClIwkvhg=
+X-Google-Smtp-Source: AGHT+IGK6HbM+jGNGnOLu9u4RUtICbvPzduWwyE9OHPurBiOHBTycC38/txNiWI/uHlS2b9hy3BZZA==
+X-Received: by 2002:a05:6402:1052:b0:543:52be:e6ad with SMTP id e18-20020a056402105200b0054352bee6admr9686231edu.5.1700062074819;
+        Wed, 15 Nov 2023 07:27:54 -0800 (PST)
+Received: from lb01533.fkb.profitbricks.net ([212.227.34.98])
+        by smtp.gmail.com with ESMTPSA id u6-20020a056402064600b00542da55a716sm6577349edx.90.2023.11.15.07.27.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Nov 2023 07:27:54 -0800 (PST)
+From:   Md Haris Iqbal <haris.iqbal@ionos.com>
+To:     linux-rdma@vger.kernel.org
+Cc:     bvanassche@acm.org, leon@kernel.org, jgg@ziepe.ca,
+        haris.iqbal@ionos.com, jinpu.wang@ionos.com
+Subject: [PATCH for-next 0/9] Misc patches for RTRS
+Date:   Wed, 15 Nov 2023 16:27:40 +0100
+Message-Id: <20231115152749.424301-1-haris.iqbal@ionos.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v1] net/smc: avoid data corruption caused by decline
-Content-Language: en-GB
-To:     dust.li@linux.alibaba.com, "D. Wythe" <alibuda@linux.alibaba.com>,
-        kgraul@linux.ibm.com, jaka@linux.ibm.com, wintera@linux.ibm.com
-Cc:     kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org
-References: <1699436909-22767-1-git-send-email-alibuda@linux.alibaba.com>
- <20231113034457.GA121324@linux.alibaba.com>
-From:   Wenjia Zhang <wenjia@linux.ibm.com>
-In-Reply-To: <20231113034457.GA121324@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: ZDCrUeiQ7dAQAE5ASA8qYCsHI89K-Sqp
-X-Proofpoint-ORIG-GUID: e0uqV9OKo_tYLh6jovTcpsmKQ0EjH5fF
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.987,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2023-11-15_13,2023-11-15_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 mlxscore=0
- malwarescore=0 priorityscore=1501 suspectscore=0 lowpriorityscore=0
- clxscore=1015 bulkscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2311060000 definitions=main-2311150113
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
+Hi Jason, hi Leon,
 
+Please consider to include following changes to the next merge window.
 
-On 13.11.23 04:44, Dust Li wrote:
-> On Wed, Nov 08, 2023 at 05:48:29PM +0800, D. Wythe wrote:
->> From: "D. Wythe" <alibuda@linux.alibaba.com>
->>
->> We found a data corruption issue during testing of SMC-R on Redis
->> applications.
->>
->> The benchmark has a low probability of reporting a strange error as
->> shown below.
->>
->> "Error: Protocol error, got "\xe2" as reply type byte"
->>
->> Finally, we found that the retrieved error data was as follows:
->>
->> 0xE2 0xD4 0xC3 0xD9 0x04 0x00 0x2C 0x20 0xA6 0x56 0x00 0x16 0x3E 0x0C
->> 0xCB 0x04 0x02 0x01 0x00 0x00 0x20 0x00 0x00 0x00 0x00 0x00 0x00 0x00
->> 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xE2
->>
->> It is quite obvious that this is a SMC DECLINE message, which means that
->> the applications received SMC protocol message.
->> We found that this was caused by the following situations:
->>
->> client			server
->> 	   proposal
->> 	------------->
->> 	   accept
->> 	<-------------
->> 	   confirm
->> 	------------->
->> wait confirm
->>
->> 	 failed llc confirm
->> 	    x------
->> (after 2s)timeout
->> 			wait rsp
->>
->> wait decline
->>
->> (after 1s) timeout
->> 			(after 2s) timeout
->> 	    decline
->> 	-------------->
->> 	    decline
->> 	<--------------
->>
->> As a result, a decline message was sent in the implementation, and this
->> message was read from TCP by the already-fallback connection.
->>
->> This patch double the client timeout as 2x of the server value,
->> With this simple change, the Decline messages should never cross or
->> collide (during Confirm link timeout).
->>
->> This issue requires an immediate solution, since the protocol updates
->> involve a more long-term solution.
->>
->> Fixes: 0fb0b02bd6fd ("net/smc: adapt SMC client code to use the LLC flow")
->> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
->> ---
->> net/smc/af_smc.c | 2 +-
->> 1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
->> index abd2667..5b91f55 100644
->> --- a/net/smc/af_smc.c
->> +++ b/net/smc/af_smc.c
->> @@ -599,7 +599,7 @@ static int smcr_clnt_conf_first_link(struct smc_sock *smc)
->> 	int rc;
->>
->> 	/* receive CONFIRM LINK request from server over RoCE fabric */
->> -	qentry = smc_llc_wait(link->lgr, NULL, SMC_LLC_WAIT_TIME,
->> +	qentry = smc_llc_wait(link->lgr, NULL, 2 * SMC_LLC_WAIT_TIME,
->> 			      SMC_LLC_CONFIRM_LINK);
-> 
-> It may be difficult for people to understand why LLC_WAIT_TIME is
-> different, especially without any comments explaining its purpose.
-> People are required to use git to find the reason, which I believe is
-> not conducive to easy maintenance.
-> 
-> Best regards,
-> Dust
-> 
-> 
-Good point! @D.Wythe, could you please try to add a simple commet to 
-explain it?
+Jack Wang (4):
+  RDMA/rtrs-srv: Do not unconditionally enable irq
+  RDMA/rtrs-clt: Start hb after path_up
+  RDMA/rtrs-clt: Fix the max_send_wr setting
+  RDMA/rtrs-clt: Remove the warnings for req in_use check
 
-Thanks,
-Wenjia
-> 
->> 	if (!qentry) {
->> 		struct smc_clc_msg_decline dclc;
->> -- 
->> 1.8.3.1
+Md Haris Iqbal (4):
+  RDMA/rtrs-clt: Add warning logs for RDMA events
+  RDMA/rtrs-srv: Check return values while processing info request
+  RDMA/rtrs-srv: Free srv_mr iu only when always_invalidate is true
+  RDMA/rtrs-srv: Destroy path files after making sure no IOs in-flight
+
+Supriti Singh (1):
+  RDMA/rtrs: use %pe to print errors
+
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 15 ++++++-----
+ drivers/infiniband/ulp/rtrs/rtrs-srv.c | 37 +++++++++++++++++++-------
+ drivers/infiniband/ulp/rtrs/rtrs.c     |  4 +--
+ 3 files changed, 37 insertions(+), 19 deletions(-)
+
+-- 
+2.25.1
+
