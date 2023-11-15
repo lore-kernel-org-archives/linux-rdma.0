@@ -2,90 +2,95 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D995CC5AD4C
-	for <linux-rdma@archiver.kernel.org>; Wed, 15 Nov 2023 19:18:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBBD8C5AE4B
+	for <linux-rdma@archiver.kernel.org>; Wed, 15 Nov 2023 19:36:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229575AbjKOTSK (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Wed, 15 Nov 2023 14:18:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52698 "EHLO
+        id S234562AbjKOThA (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Wed, 15 Nov 2023 14:37:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229539AbjKOTSJ (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Nov 2023 14:18:09 -0500
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7E9FA4
-        for <linux-rdma@vger.kernel.org>; Wed, 15 Nov 2023 11:18:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1700075886; x=1731611886;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=yxklAnW6KY8nVk53uBZ74UFVh1e0+Hd9iwhm608ZEy4=;
-  b=mczhEOkgWWBFBYOQAL9pm1UoGpir05HcD7IyhVHOLlOSDhHAD5a+jWvj
-   bSEkit4yq4JAam3me4Xc6xgJvWw4dQKYBP00zVnbc+/jJE+kU2wftsbjF
-   2jc/sMCn/coyH4zKmEPFj/SG3pztaX1KgqQjkKbr1GsOWXTHjTIJC1ust
-   KL+GSGAuv29+e9kTTtIwO4feppjh+nprHvK9GomKgfO8cuuD3OI/xrhfA
-   7jTBeU9OeE4pHrV02RoznNI//5IGT10zjH64y5Lx4wtuxIqJa/Ndyi+/z
-   JsMF8TN9zPzkJOkUrOYsNmPUxeNct0KAAms7ANiQd52IKPswV8nhcGHZH
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="393793039"
-X-IronPort-AV: E=Sophos;i="6.03,305,1694761200"; 
-   d="scan'208";a="393793039"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 11:18:06 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10895"; a="758581304"
-X-IronPort-AV: E=Sophos;i="6.03,305,1694761200"; 
-   d="scan'208";a="758581304"
-Received: from ssaleem-mobl1.amr.corp.intel.com ([10.124.160.113])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Nov 2023 11:18:05 -0800
-From:   Shiraz Saleem <shiraz.saleem@intel.com>
-To:     jgg@nvidia.com, leon@kernel.org, linux-rdma@vger.kernel.org
-Cc:     Mike Marciniszyn <mike.marciniszyn@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [PATCH for-rc 2/3] RDMA/irdma: Ensure iWarp QP queue memory is OS paged aligned
-Date:   Wed, 15 Nov 2023 13:17:51 -0600
-Message-Id: <20231115191752.266-3-shiraz.saleem@intel.com>
-X-Mailer: git-send-email 2.39.0
-In-Reply-To: <20231115191752.266-1-shiraz.saleem@intel.com>
-References: <20231115191752.266-1-shiraz.saleem@intel.com>
+        with ESMTP id S234558AbjKOTg7 (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Wed, 15 Nov 2023 14:36:59 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 96C9212C
+        for <linux-rdma@vger.kernel.org>; Wed, 15 Nov 2023 11:36:56 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62EA6C433C8;
+        Wed, 15 Nov 2023 19:36:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1700077016;
+        bh=zvXd7pFUQNTRC+R6e2nxdu7t0YyF3Z07Sc/sSGBOShU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=mX30fVlc3C4dN0Y/jJFy+nD58Bk8W4+/hxJBTznlD22kYrEuCt+AKXsT1qB7iMJSM
+         zmR637pc5PhI3xYKEsUR/qwIggKssuZfuQE9TtjyDShIHNGvgrKjgt0AO/AT2Xi3Vy
+         kua2dxk7wHwOVpqIVfpDODpihmOA3HrxSBaBaZBt4nT6BwAGIsJLaEPfKq+Q6GEam0
+         /iOAf1HaYvtzRenyVPS8i/L/acpETJZl3i/CRnnFbiIhgf8rWRlHeD144o5HKcu/Ek
+         Ai08LM2uchBA1IQ34Zr+zdCLsPK1ATbppsgxHo30LzmrJToG8lw6WNqazX0PHbtxiP
+         caIWYf8zKfjzw==
+From:   Saeed Mahameed <saeed@kernel.org>
+To:     "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Eric Dumazet <edumazet@google.com>
+Cc:     Saeed Mahameed <saeedm@nvidia.com>, netdev@vger.kernel.org,
+        Tariq Toukan <tariqt@nvidia.com>,
+        Kees Cook <keescook@chromium.org>,
+        Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org,
+        Justin Stitt <justinstitt@google.com>,
+        "Gustavo A . R . Silva" <gustavoars@kernel.org>,
+        Leon Romanovsky <leonro@nvidia.com>
+Subject: [net-next V2 05/13] net/mlx5: Annotate struct mlx5_flow_handle with __counted_by
+Date:   Wed, 15 Nov 2023 11:36:41 -0800
+Message-ID: <20231115193649.8756-6-saeed@kernel.org>
+X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20231115193649.8756-1-saeed@kernel.org>
+References: <20231115193649.8756-1-saeed@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Kees Cook <keescook@chromium.org>
 
-The SQ is shared for between kernel and used by storing
-the kernel page pointer and passing that to a kmap_atomic().
+Prepare for the coming implementation by GCC and Clang of the __counted_by
+attribute. Flexible array members annotated with __counted_by can have
+their accesses bounds-checked at run-time via CONFIG_UBSAN_BOUNDS (for
+array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
+functions).
 
-This then requires that the alignment is PAGE_SIZE aligned.
+As found with Coccinelle[1], add __counted_by for struct mlx5_flow_handle.
 
-Fix by adding an iWarp specific alignment check.
-
-Fixes: e965ef0e7b2c ("RDMA/irdma: Split QP handler into irdma_reg_user_mr_type_qp")
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: netdev@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
+Link: https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci [1]
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Justin Stitt <justinstitt@google.com>
+Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 ---
- drivers/infiniband/hw/irdma/verbs.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 6415ada63c5f..b072aa5179e0 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -2934,6 +2934,11 @@ static int irdma_reg_user_mr_type_qp(struct irdma_mem_reg_req req,
- 	int err;
- 	u8 lvl;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+index 4aed1768b85f..78eb6b7097e1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+@@ -181,7 +181,7 @@ struct mlx5_flow_rule {
  
-+	/* iWarp: Catch page not starting on OS page boundary */
-+	if (!rdma_protocol_roce(&iwdev->ibdev, 1) &&
-+	    ib_umem_offset(iwmr->region))
-+		return -EINVAL;
-+
- 	total = req.sq_pages + req.rq_pages + 1;
- 	if (total > iwmr->page_cnt)
- 		return -EINVAL;
+ struct mlx5_flow_handle {
+ 	int num_rules;
+-	struct mlx5_flow_rule *rule[];
++	struct mlx5_flow_rule *rule[] __counted_by(num_rules);
+ };
+ 
+ /* Type of children is mlx5_flow_group */
 -- 
-1.8.3.1
+2.41.0
 
