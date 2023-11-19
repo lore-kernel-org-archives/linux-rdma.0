@@ -2,30 +2,30 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D66DC2BB3F
-	for <linux-rdma@archiver.kernel.org>; Sun, 19 Nov 2023 01:04:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B95E8C5AD4C
+	for <linux-rdma@archiver.kernel.org>; Sun, 19 Nov 2023 01:32:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229705AbjKSBE5 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Sat, 18 Nov 2023 20:04:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33088 "EHLO
+        id S229924AbjKSBcD (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Sat, 18 Nov 2023 20:32:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229610AbjKSBE4 (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Sat, 18 Nov 2023 20:04:56 -0500
-Received: from out-181.mta0.migadu.com (out-181.mta0.migadu.com [91.218.175.181])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54195194
-        for <linux-rdma@vger.kernel.org>; Sat, 18 Nov 2023 17:04:52 -0800 (PST)
-Message-ID: <62016bca-26fc-4c86-beaa-90560a060c24@linux.dev>
+        with ESMTP id S229610AbjKSBcD (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Sat, 18 Nov 2023 20:32:03 -0500
+Received: from out-171.mta1.migadu.com (out-171.mta1.migadu.com [IPv6:2001:41d0:203:375::ab])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4856C194
+        for <linux-rdma@vger.kernel.org>; Sat, 18 Nov 2023 17:31:59 -0800 (PST)
+Message-ID: <9e56b543-4954-4d5f-8632-db2c235658e2@linux.dev>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1700355890;
+        t=1700357517;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=OpVkl+3ObwgsEaMCKfvfhRWQ0LbonVVeDpSfF3JGJtg=;
-        b=lz7JiBnP9h2kvOzZWvBn1FNV3+69ISXk6XiiZ2Vw9tfWDdOks9/Xkn7vGQm+92/s9xVhRv
-        MlxgVwTgs/3+CqZPgELbFQOE0tjlbG/R8fKuZWMRWpU2Saaaqx6SGrBz7sstqYfn0JGJ0l
-        cI4Mx+IcvMOK3dQ5Ik2JRzdizXUgzqQ=
-Date:   Sun, 19 Nov 2023 09:04:44 +0800
+        bh=kON12cmh++CiZoZz6VJ2REGny1JN2woXCHKTFW9ACWE=;
+        b=QUYLyNIo5FPLt+JOeoV+Sl08/3StnqBBRoH0+IBavdyNWx3Xffe1cl5Yh5lEjsgaaiYioo
+        1woVFu45kGTRg/YsMZqO09JCBYw5RcawX+PhXevFQnD44nxaCsNJt5lm4OZJxjKiWTIxTa
+        QyTowai4TZoCihTJSUdstaRzFxjSpzw=
+Date:   Sun, 19 Nov 2023 09:31:35 +0800
 MIME-Version: 1.0
 Subject: Re: [PATCH for-rc 1/3] RDMA/core: Fix umem iterator when PAGE_SIZE is
  greater then HCA pgsz
@@ -33,7 +33,7 @@ To:     "Marciniszyn, Mike" <mike.marciniszyn@intel.com>,
         "Saleem, Shiraz" <shiraz.saleem@intel.com>,
         "jgg@nvidia.com" <jgg@nvidia.com>,
         "leon@kernel.org" <leon@kernel.org>,
-        RDMA mailing list <linux-rdma@vger.kernel.org>
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 References: <20231115191752.266-1-shiraz.saleem@intel.com>
  <20231115191752.266-2-shiraz.saleem@intel.com>
  <093f16a6-2948-4103-8d27-ea349aa6909c@linux.dev>
@@ -48,33 +48,33 @@ Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-
 在 2023/11/18 22:54, Marciniszyn, Mike 写道:
 >>> From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 >>>
 >>> 64k pages introduce the situation in this diagram when the HCA
+>>
 >> Only ARM64 architecture supports 64K page size?
+> 
 > Arm supports multiple page_sizes.   The problematic combination is when
 > the HCA needs a SMALLER page size than the PAGE_SIZE.
->
-> The kernel configuration can select from
 
-Got it. Thanks a lot. On ARM architecture, some kernel configurations 
-can be
+Thanks a lot. Perhaps RXE also needs this feature "the HCA needs a 
+SMALLER page size than the PAGE_SIZE". But I do not have such test 
+environment at hand.
+If we can setup a test environment on x86_64 architecture, it is very 
+convenient for me to make tests and development.
 
-selected to enable multiple page sizes.
-
->
->> Is it possible that x86_64 also supports 64K page size?
->>
-> x86_64 supports larger page_sizes for TLB optimization, but the default minimum is always 4K.
-
-On x86_64 architecture, how to enable a not-4k page size? For example, 
-16K, 64K and so on.
-
-Thanks a lot.
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 
 Zhu Yanjun
 
->
+> 
+> The kernel configuration can select from
+> 
+>> Is it possible that x86_64 also supports 64K page size?
+>>
+> 
+> x86_64 supports larger page_sizes for TLB optimization, but the default minimum is always 4K.
+> 
 > Mike
+
