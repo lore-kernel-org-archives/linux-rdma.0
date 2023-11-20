@@ -2,93 +2,104 @@ Return-Path: <linux-rdma-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDB3AC2BB3F
-	for <linux-rdma@archiver.kernel.org>; Mon, 20 Nov 2023 15:41:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF2C6C197A0
+	for <linux-rdma@archiver.kernel.org>; Mon, 20 Nov 2023 15:41:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233688AbjKTPlz (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
-        Mon, 20 Nov 2023 10:41:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56384 "EHLO
+        id S233624AbjKTPl4 (ORCPT <rfc822;linux-rdma@archiver.kernel.org>);
+        Mon, 20 Nov 2023 10:41:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232135AbjKTPly (ORCPT
-        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Nov 2023 10:41:54 -0500
-Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 627ACCD
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Nov 2023 07:41:50 -0800 (PST)
-Received: by mail-wm1-x333.google.com with SMTP id 5b1f17b1804b1-40906fc54fdso17403725e9.0
-        for <linux-rdma@vger.kernel.org>; Mon, 20 Nov 2023 07:41:50 -0800 (PST)
+        with ESMTP id S232186AbjKTPlz (ORCPT
+        <rfc822;linux-rdma@vger.kernel.org>); Mon, 20 Nov 2023 10:41:55 -0500
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B794DC8
+        for <linux-rdma@vger.kernel.org>; Mon, 20 Nov 2023 07:41:51 -0800 (PST)
+Received: by mail-wr1-x42e.google.com with SMTP id ffacd0b85a97d-332cb136335so460192f8f.0
+        for <linux-rdma@vger.kernel.org>; Mon, 20 Nov 2023 07:41:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google; t=1700494909; x=1701099709; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=+ew3aX+40gHu+GBvaQN0qcsLyWwoBfaO3pa0r+TG8mM=;
-        b=YLPJpFExm+nmseVZYjBdxRliak2pfIn4KGlHeBV4jXipXlpcvcNyzViQN6HuBA3CnI
-         +7BcbJ6SGCQU3a5/6FoeYVBxYU0b8OpOAu//uZSP4cI2dJNOPzAhyCBW9NcOGHrdvKx+
-         AI5MZhUPP2A5nhWhhu1MkzS+Gjg2ySbvCYg7JRl+Y6MMb/6jgXcLAJffQFDUtkeNBGOp
-         ARJkzeLQEq6rvAeXSBXdUX6XkJRWRGx3hqOR5b1mnn/IaSAuubdzB5mOG8kPW5foWxUx
-         HO0LFFrpUUcLyynbQ5nkYvdaDgp7g6ZItq4thQTKI+D4WnK3eJhdNU27YYoIpw+HY8rI
-         187Q==
+        d=ionos.com; s=google; t=1700494910; x=1701099710; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=BxRGiPmVuAngoWRt/X13RMIN/CXy2q8KaB8SoYPQuMs=;
+        b=BIwY8e+oIR8BgOpdJ+VfnZq9uCbBCa2A6MgZNXYPglIjmXv9aZVWtnpVFqXIB5fM18
+         Q700/1xf5hvl/6/lSgQtSccTsbW6rr2+zEFGbIONH4t4KDHS3+DpSp8zSaK4+46+n3DU
+         RnBEpZpu2JGIjhh0aBkiMCghHKdxPb/1eKnioo+qxFjHBzYskFzfBRk+cdDj8vdAZc2Q
+         8Q/16OPkmshxXcw0tPHUYrDuY188ZdroQUGr3l6/eO2WuUx0qjX3bDP8E7DCDL6kafnS
+         aOTSujfOxMcRVe/gHitdwOnstsdl6IP7LIoi1VqzW9hPorHgFk28nL/0t5aHiy7dPK3j
+         dDKw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700494909; x=1701099709;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=+ew3aX+40gHu+GBvaQN0qcsLyWwoBfaO3pa0r+TG8mM=;
-        b=HvMel1CGrn4XIica2D6K+J8z/UPXzABly+liT3MFDF+OQW8DpwmSSCtDiIV6dLoG7Q
-         cRWBR1nEFKu1HMo2aN4ErSAQqhHdJq2gDbRchwB5LqGoR4krj9nC9Pkse3Ic3QitCyh8
-         Xlfm1h8xR8YhOiHOOicGDqNEm604Vf194xLuDja9yEvYKpXu+BGQgUKU97TvFJpic9i9
-         ZbgLeEGMMWANSzreMeITfmbxo9ElqUClSwFfxKPGl+5ALpt3hlAZxM6sc7emfTccaN5D
-         ZK7xYOw4ePIyqNtmQToSvtgzrrCzZTEB3GWL9i24AqufEtG32GtZnhn54qtQs+LRBJJs
-         oHtA==
-X-Gm-Message-State: AOJu0YwfTE5uObhIUyJHKj/6J6e++Obqdg7LycUhmVYRWcQ/zDTQPB1m
-        dE/qb7eGATzjTeO6+u/SW+DOnUX0FIYDveToVbc=
-X-Google-Smtp-Source: AGHT+IGtwIegdW7r27EC74xNlgByNnneEYLKXUwU6jn0WlHGuZp0hZrvTiryvSAbqSv3VnrC1wvzqw==
-X-Received: by 2002:a05:6000:1449:b0:331:6ad1:81f7 with SMTP id v9-20020a056000144900b003316ad181f7mr6042489wrx.2.1700494908757;
-        Mon, 20 Nov 2023 07:41:48 -0800 (PST)
+        d=1e100.net; s=20230601; t=1700494910; x=1701099710;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=BxRGiPmVuAngoWRt/X13RMIN/CXy2q8KaB8SoYPQuMs=;
+        b=Z3U+a1VnLxp+6IfEFL3o0kjSHGqWOR7GLYNexhE03EzLkUb3/CqEa2/nAdPtfKawjQ
+         OQQwPKn0ymP3Ci6dNXpZ2JkIwHt921+3xwfX1UeK8Jajk4kfJXXQ9kIoI0DGM2dqcYrN
+         qqcY7eSAvN8bkUfNkaKzF81ezffRlz4y/nPC59Ke7CWidPHOt4xshKMKTjPRAYYcNEEK
+         rAqsXFN+LapHqN01+HhTXDsvEasnhZFgZ5rqwLgYKoTCpUwAKHFnIgA9xIxvrSJZsx92
+         wnyUbLM/pCj6voVriI+jxaww4NTrERCHl+Z3OSYhypbpnjPhNe4MdCzwtt7rFSV7D2Zy
+         Ps8w==
+X-Gm-Message-State: AOJu0Yx13OUtHKRxRLixk2fBikLLPWKboTAVsa5XMboHy3qU7qr4o6Hy
+        Q4VpYoHU+dSJyAW8ukDrpxwMWXFXXRxyhWPxmo0=
+X-Google-Smtp-Source: AGHT+IEqjmrW9TSMw6hLFpu2aZwFSeuAruAtTPCzcKTJTyZkYDjOi+FlsjPA7U6vUkfJwoD5qlzcJA==
+X-Received: by 2002:a5d:5f89:0:b0:32d:b06c:80b2 with SMTP id dr9-20020a5d5f89000000b0032db06c80b2mr6075379wrb.0.1700494910230;
+        Mon, 20 Nov 2023 07:41:50 -0800 (PST)
 Received: from lb01533.fkb.profitbricks.net (p200300f00f4ce2a470fb6777c650c5ae.dip0.t-ipconnect.de. [2003:f0:f4c:e2a4:70fb:6777:c650:c5ae])
-        by smtp.gmail.com with ESMTPSA id k6-20020a5d66c6000000b0031c52e81490sm11611461wrw.72.2023.11.20.07.41.47
+        by smtp.gmail.com with ESMTPSA id k6-20020a5d66c6000000b0031c52e81490sm11611461wrw.72.2023.11.20.07.41.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Nov 2023 07:41:48 -0800 (PST)
+        Mon, 20 Nov 2023 07:41:49 -0800 (PST)
 From:   Md Haris Iqbal <haris.iqbal@ionos.com>
 To:     linux-rdma@vger.kernel.org
 Cc:     bvanassche@acm.org, leon@kernel.org, jgg@ziepe.ca,
-        haris.iqbal@ionos.com, jinpu.wang@ionos.com
-Subject: [PATCH v2 for-next 0/9] Misc patches for RTRS
-Date:   Mon, 20 Nov 2023 16:41:37 +0100
-Message-Id: <20231120154146.920486-1-haris.iqbal@ionos.com>
+        haris.iqbal@ionos.com, jinpu.wang@ionos.com,
+        Grzegorz Prajsner <grzegorz.prajsner@ionos.com>
+Subject: [PATCH v2 for-next 2/9] RDMA/rtrs-clt: Start hb after path_up
+Date:   Mon, 20 Nov 2023 16:41:39 +0100
+Message-Id: <20231120154146.920486-3-haris.iqbal@ionos.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20231120154146.920486-1-haris.iqbal@ionos.com>
+References: <20231120154146.920486-1-haris.iqbal@ionos.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-rdma.vger.kernel.org>
 X-Mailing-List: linux-rdma@vger.kernel.org
 
-Hi Jason, hi Leon,
+From: Jack Wang <jinpu.wang@ionos.com>
 
-Please consider to include following changes to the next merge window.
+If we start hb too early, it will confuse server side to close
+the session.
 
-Changes in V2 for all patches:
-	Add Fixes: tag
+Fixes: 6a98d71daea1 ("RDMA/rtrs: client: main functionality")
+Signed-off-by: Jack Wang <jinpu.wang@ionos.com>
+Reviewed-by: Md Haris Iqbal <haris.iqbal@ionos.com>
+Signed-off-by: Grzegorz Prajsner <grzegorz.prajsner@ionos.com>
+---
+ drivers/infiniband/ulp/rtrs/rtrs-clt.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Jack Wang (4):
-  RDMA/rtrs-srv: Do not unconditionally enable irq
-  RDMA/rtrs-clt: Start hb after path_up
-  RDMA/rtrs-clt: Fix the max_send_wr setting
-  RDMA/rtrs-clt: Remove the warnings for req in_use check
-
-Md Haris Iqbal (3):
-  RDMA/rtrs-srv: Check return values while processing info request
-  RDMA/rtrs-srv: Free srv_mr iu only when always_invalidate is true
-  RDMA/rtrs-srv: Destroy path files after making sure no IOs in-flight
-
-Supriti Singh (2):
-  RDMA/rtrs-clt: use %pe to print errors
-  RDMA/rtrs: use %pe to print errors
-
- drivers/infiniband/ulp/rtrs/rtrs-clt.c | 13 +++++----
- drivers/infiniband/ulp/rtrs/rtrs-srv.c | 37 +++++++++++++++++++-------
- drivers/infiniband/ulp/rtrs/rtrs.c     |  4 +--
- 3 files changed, 35 insertions(+), 19 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/rtrs/rtrs-clt.c b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+index 984a4a1db3c8..83ebd9be760e 100644
+--- a/drivers/infiniband/ulp/rtrs/rtrs-clt.c
++++ b/drivers/infiniband/ulp/rtrs/rtrs-clt.c
+@@ -2352,8 +2352,6 @@ static int init_conns(struct rtrs_clt_path *clt_path)
+ 	if (err)
+ 		goto destroy;
+ 
+-	rtrs_start_hb(&clt_path->s);
+-
+ 	return 0;
+ 
+ destroy:
+@@ -2627,6 +2625,7 @@ static int init_path(struct rtrs_clt_path *clt_path)
+ 		goto out;
+ 	}
+ 	rtrs_clt_path_up(clt_path);
++	rtrs_start_hb(&clt_path->s);
+ out:
+ 	mutex_unlock(&clt_path->init_mutex);
+ 
 -- 
 2.25.1
 
