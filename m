@@ -1,40 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FC884B5DA;
-	Thu, 23 Nov 2023 19:04:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F6DF4B5A9;
+	Thu, 23 Nov 2023 19:04:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nqNiMT7r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A76DC433CB;
-	Thu, 23 Nov 2023 19:04:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iEbQgGVx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E835BC433CA;
+	Thu, 23 Nov 2023 19:04:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1700766279;
-	bh=9vQGT/qLYbQVJ6jyB7uTbXrGWb2NZ5AwZAZqn9UW3bc=;
-	h=From:To:Cc:Subject:Date:From;
-	b=nqNiMT7rxoJOGnXcFeFm2ZrNwK4PR5dxH6p5Wml1P94yifzNfv1Yz8OkfJtlJow8l
-	 g9F29qkuH+gMH7cguIGbaMm1Qp/MlUaFpqEPc/PVZjOF5By4ve/6D58RaaDQ9rnvU8
-	 EGrq7cV4mHUhJYJ62vtMDUAj+l5jmkiaavISWE5kEGPNb+lc9Yv5hLvS7BP7B2GWjZ
-	 vJTnow89BCIkB+Kdx7EdLnPpdK6kMimXHikKiEB01ac1q0E0EA8QzOqG6OGSLaN7o6
-	 UZYsyQCkn+koMo4vdoviYWdbMy9Ysrblb7U5p3gzjeGS8G5ILZ+z1YkWPLsBjAcFSw
-	 7MQvBTy9uUv+g==
+	s=k20201202; t=1700766283;
+	bh=xUztf5c6+cDrQVGWca5DAIqwQ3w/w7JoXRRhID515MY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=iEbQgGVxuo5B+LkFE9lNJQsMr3+HPoAKvZldiQRRSTjhFRsd6PUuS8DZjFh/1U7fg
+	 BraPFqCBY6Kutl8+97B/ZKk/rZP89+vzbsMufoKDQgWyqVoVhLQTyp7BM0fmRpCB9W
+	 hwdVPYiHevRo6ysqAED9NuVMaxd5e6dPy6nGCNp3phvKuX0lJ7RIkN59ULD+Fz7hHb
+	 lAwLRhrKM4v5C8lZJdZmKtNoRn2j29FwQDY8iQTqqfOTjWC3v/ZqP9si/HUV/g0c5d
+	 Pfg9ff29ZANEch0NMG6DabapUS49GnGHEj9UYYhDCety0Qp7LVXfxMK0mjcCc8EOYB
+	 xmU8SMS9YQYKQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Leon Romanovsky <leonro@nvidia.com>,
-	Arnd Bergmann <arnd@arndb.de>,
+Cc: Arnd Bergmann <arnd@arndb.de>,
 	Catalin Marinas <catalin.marinas@arm.com>,
 	linux-arch@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	llvm@lists.linux.dev,
 	Michael Guralnik <michaelgur@mellanox.com>,
 	Nathan Chancellor <nathan@kernel.org>,
 	Nick Desaulniers <ndesaulniers@google.com>,
 	Will Deacon <will@kernel.org>
-Subject: [PATCH rdma-next 0/2] Add and use memcpy_toio_64()
-Date: Thu, 23 Nov 2023 21:04:30 +0200
-Message-ID: <cover.1700766072.git.leon@kernel.org>
+Subject: [PATCH rdma-next 2/2] IB/mlx5: Use memcpy_toio_64() for write combining stores
+Date: Thu, 23 Nov 2023 21:04:32 +0200
+Message-ID: <744fdfcd61fa8efa6da8ed432883b5f016c3a86f.1700766072.git.leon@kernel.org>
 X-Mailer: git-send-email 2.42.0
+In-Reply-To: <cover.1700766072.git.leon@kernel.org>
+References: <cover.1700766072.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -43,19 +43,57 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Jason Gunthorpe <jgg@nvidia.com>
 
-This short series adds and utilizes memcpy_toio_64().
+mlx5 has a built in self-test at driver startup to evaluate if the
+platform supports write combining to generate a 64 byte PCIe TLP or
+not. This has proven necessary because a lot of common scenarios end up
+with broken write combining (especially inside virtual machines) and there
+is other way to learn this information.
 
-Jason Gunthorpe (2):
-  arm64/io: add memcpy_toio_64
-  IB/mlx5: Use memcpy_toio_64() for write combining stores
+This self test has been consistently failing on new ARM64 CPU
+designs (specifically with NVIDIA Grace's implementation of Neoverse
+V2). The C loop around writel() generates some pretty terrible ARM64
+assembly, but historically this has worked on a lot of existing ARM64 CPUs
+till now.
 
- arch/arm64/include/asm/io.h      | 20 ++++++++++++++++++++
- drivers/infiniband/hw/mlx5/mem.c |  5 +----
- include/asm-generic/io.h         | 30 ++++++++++++++++++++++++++++++
- 3 files changed, 51 insertions(+), 4 deletions(-)
+We see it succeed about 1 time in 10,000 on the worst effected
+systems. The CPU architects speculate that the load instructions
+interspersed with the stores make it very unreliable.
 
+Change this to use memcpy_toio_64() which provides a block of 4 STP
+instructions on ARM64, and the same writel loop on everything else.
+
+Fixes: 11f552e21755 ("IB/mlx5: Test write combining support")
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/mem.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/mem.c b/drivers/infiniband/hw/mlx5/mem.c
+index 96ffbbaf0a73..26b5590d2164 100644
+--- a/drivers/infiniband/hw/mlx5/mem.c
++++ b/drivers/infiniband/hw/mlx5/mem.c
+@@ -108,7 +108,6 @@ static int post_send_nop(struct mlx5_ib_dev *dev, struct ib_qp *ibqp, u64 wr_id,
+ 	__be32 mmio_wqe[16] = {};
+ 	unsigned long flags;
+ 	unsigned int idx;
+-	int i;
+ 
+ 	if (unlikely(dev->mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR))
+ 		return -EIO;
+@@ -148,9 +147,7 @@ static int post_send_nop(struct mlx5_ib_dev *dev, struct ib_qp *ibqp, u64 wr_id,
+ 	 * we hit doorbell
+ 	 */
+ 	wmb();
+-	for (i = 0; i < 8; i++)
+-		mlx5_write64(&mmio_wqe[i * 2],
+-			     bf->bfreg->map + bf->offset + i * 8);
++	memcpy_toio_64(bf->bfreg->map + bf->offset, mmio_wqe);
+ 	io_stop_wc();
+ 
+ 	bf->offset ^= bf->buf_size;
 -- 
 2.42.0
 
