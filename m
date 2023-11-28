@@ -1,96 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A9Hvk3oC"
-Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C331CC;
-	Tue, 28 Nov 2023 01:28:37 -0800 (PST)
-Received: by mail-ej1-x62f.google.com with SMTP id a640c23a62f3a-a002562bd8bso988439566b.0;
-        Tue, 28 Nov 2023 01:28:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1701163716; x=1701768516; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=/I37Hy+CPxtqaGJSStMJzaZK7V1cChne6wXUX2MFad4=;
-        b=A9Hvk3oCbZRaVXIKKfGepnGcLcNvJfFCshHrc13RyRUH4xZzCclsJbK5TuMAS61+YH
-         fBww3etSsCPpi0ioVhKBE3z9ExuQZNx/F63KsnrN1G6+mfocW4bbccUZv9X9sJJRcMBS
-         XTUkJdjGB7OhMNzI6eP6odf5EDpBVWjvduh+gdVAUH85Vdc9pwDa156EwdZpA3EVudiW
-         qMrvUfJZ2oCcmwjMHJcVO66SgV5okuC81SDxxb0cMBFW4EZ6v/naLrHC5RJ4MTJAdLWc
-         f2so1dD6X/WGRMP7b0gSnqLGbz9Xlf41FuSL5i8fPfKu1vhZm3tDiymEKlz+WlTj818p
-         tb6A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701163716; x=1701768516;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=/I37Hy+CPxtqaGJSStMJzaZK7V1cChne6wXUX2MFad4=;
-        b=NH46r8Ybst3dl5fpuIRPSfouA6n0meHoQyhRG3VLdLZg5N0W4ufMrSD9ZIu2tdl/rG
-         kLtzL7eyWFVlgda7dlft+jdcqkADPYdFbqMZQq9PJwC1PkCDpWIcfoYXL/Qjt3Kf5gWP
-         L8huybxVrcyplHIzHH5WjhM+gpmpip+uOId/5ahDo4psj+TI7MMgneu9wRfj4+dAIkwR
-         XeGVTOnrMaYqFvIRWD2g6a6FAeZVAWEoV4nCMF1HxZGx3QWTiGRN9sbL9b2wzhd9U6AS
-         hex97ThU9Cf5ypuCUVf7KAk3j4b/6sI9YjMCS6cfyuy7GIc7rI5k6bHyOokgP+JKDt5o
-         domQ==
-X-Gm-Message-State: AOJu0Yx3qcu/gMnAtsNLMzZHM7kQ6/Hin0XpIQS+v63ONQC99KAwJhE7
-	VGy98vtp1xBbIWnNOppSHGPdkYzM6yU=
-X-Google-Smtp-Source: AGHT+IFEH4EFXz1SkAIQ0bi87cfTz2YfZJMxHuimsbsOY121G4/9iPjVSo4FUzJwYEYUkxZgVW3udg==
-X-Received: by 2002:a17:906:c791:b0:9ad:8a96:ad55 with SMTP id cw17-20020a170906c79100b009ad8a96ad55mr16418289ejb.14.1701163715664;
-        Tue, 28 Nov 2023 01:28:35 -0800 (PST)
-Received: from [172.27.56.182] ([193.47.165.251])
-        by smtp.gmail.com with ESMTPSA id 20-20020a170906319400b00a097c5162b0sm5140142ejy.87.2023.11.28.01.28.33
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 28 Nov 2023 01:28:35 -0800 (PST)
-Message-ID: <4092804e-6266-47ae-a0f2-9658231fde40@gmail.com>
-Date: Tue, 28 Nov 2023 11:28:32 +0200
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from zju.edu.cn (mail.zju.edu.cn [61.164.42.155])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4E1E0BE;
+	Tue, 28 Nov 2023 01:41:45 -0800 (PST)
+Received: from localhost.localdomain (unknown [10.190.69.212])
+	by mail-app2 (Coremail) with SMTP id by_KCgBHGCiytWVldVgiAA--.57544S4;
+	Tue, 28 Nov 2023 17:41:14 +0800 (CST)
+From: Dinghao Liu <dinghao.liu@zju.edu.cn>
+To: dinghao.liu@zju.edu.cn
+Cc: Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Zhengchao Shao <shaozhengchao@huawei.com>,
+	Simon Horman <horms@kernel.org>,
+	Rahul Rameshbabu <rrameshbabu@nvidia.com>,
+	Aya Levin <ayal@nvidia.com>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] [v2] net/mlx5e: fix a potential double-free in fs_udp_create_groups
+Date: Tue, 28 Nov 2023 17:40:53 +0800
+Message-Id: <20231128094055.5561-1-dinghao.liu@zju.edu.cn>
+X-Mailer: git-send-email 2.17.1
+X-CM-TRANSID:by_KCgBHGCiytWVldVgiAA--.57544S4
+X-Coremail-Antispam: 1UD129KBjvJXoWrZFyUAFWrZF45tw13ur1fXrb_yoW8Jr43pF
+	4kCr9FgryfAw18WwsrZFW8Zr1rCa18t3yF93WSv3ySvwn8tF4xJrn5uFW7ZFW2kFW3JF1Y
+	v34xAw1fAF4DA37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUU9G1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJr0_GcWl84ACjcxK6I8E
+	87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c
+	8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_JrI_
+	JrylYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwI
+	xGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAa
+	w2AFwI0_Jw0_GFyl42xK82IYc2Ij64vIr41l42xK82IY6x8ErcxFaVAv8VW8uw4UJr1UMx
+	C20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAF
+	wI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20x
+	vE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v2
+	0xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxV
+	W8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7VU13ku3UUUUU==
+X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgsIBmVfIgMaAQAksj
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] net/mlx5e: fix a potential double-free in
- fs_udp_create_groups
-Content-Language: en-US
-To: Dinghao Liu <dinghao.liu@zju.edu.cn>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, Zhengchao Shao <shaozhengchao@huawei.com>,
- Rahul Rameshbabu <rrameshbabu@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
- Aya Levin <ayal@nvidia.com>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- Tariq Toukan <tariqt@nvidia.com>
-References: <20231128084303.27227-1-dinghao.liu@zju.edu.cn>
-From: Tariq Toukan <ttoukan.linux@gmail.com>
-In-Reply-To: <20231128084303.27227-1-dinghao.liu@zju.edu.cn>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
+When kcalloc() for ft->g succeeds but kvzalloc() for in fails,
+fs_udp_create_groups() will free ft->g. However, its caller
+fs_udp_create_table() will free ft->g again through calling
+mlx5e_destroy_flow_table(), which will lead to a double-free.
+Fix this by setting ft->g to NULL in fs_udp_create_groups().
 
+Fixes: 1c80bd684388 ("net/mlx5e: Introduce Flow Steering UDP API")
+Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
+---
 
-On 28/11/2023 10:43, Dinghao Liu wrote:
-> When kcalloc() for ft->g succeeds but kvzalloc() for in fails,
-> fs_udp_create_groups() will free ft->g. However, its caller
-> fs_udp_create_table() will free ft->g again through calling
-> mlx5e_destroy_flow_table(), which will lead to a double-free.
-> Fix this by removing the kfree(ft->g) in fs_udp_create_groups().
-> 
-> Fixes: 1c80bd684388 ("net/mlx5e: Introduce Flow Steering UDP API")
-> Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
-> ---
->   drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c | 1 -
->   1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c b/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
-> index be83ad9db82a..806a5093ff63 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
-> @@ -153,7 +153,6 @@ static int fs_udp_create_groups(struct mlx5e_flow_table *ft, enum fs_udp_type ty
->   	ft->g = kcalloc(MLX5E_FS_UDP_NUM_GROUPS, sizeof(*ft->g), GFP_KERNEL);
->   	in = kvzalloc(inlen, GFP_KERNEL);
->   	if  (!in || !ft->g) {
-> -		kfree(ft->g);
->   		kvfree(in);
->   		return -ENOMEM;
->   	}
+Changelog:
 
-Same comment applies here. See the other mail thread.
+v2: Setting ft->g to NULL instead of removing the kfree().
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c b/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
+index be83ad9db82a..e1283531e0b8 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
+@@ -154,6 +154,7 @@ static int fs_udp_create_groups(struct mlx5e_flow_table *ft, enum fs_udp_type ty
+ 	in = kvzalloc(inlen, GFP_KERNEL);
+ 	if  (!in || !ft->g) {
+ 		kfree(ft->g);
++		ft->g = NULL;
+ 		kvfree(in);
+ 		return -ENOMEM;
+ 	}
+-- 
+2.17.1
+
