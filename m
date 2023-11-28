@@ -1,83 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from zju.edu.cn (mail.zju.edu.cn [61.164.42.155])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTP id DDFFADC;
-	Tue, 28 Nov 2023 02:09:42 -0800 (PST)
-Received: from localhost.localdomain (unknown [10.190.69.212])
-	by mail-app3 (Coremail) with SMTP id cC_KCgBn3o3wsmVlDtY0AA--.61010S4;
-	Tue, 28 Nov 2023 17:29:37 +0800 (CST)
-From: Dinghao Liu <dinghao.liu@zju.edu.cn>
-To: dinghao.liu@zju.edu.cn
-Cc: Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F17256774;
+	Tue, 28 Nov 2023 12:30:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bA22Dlsf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E20DC433C7;
+	Tue, 28 Nov 2023 12:30:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1701174607;
+	bh=Hr4nB6qIyAl9SrKx63EHLJuuK3BK3CxkeypRrNZUQbc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=bA22Dlsf3bnDdvMXSPmTUc5ShXV9BFcJhBq6wUNUAiXPIeAo7sCBtQqxPS/P1Sue/
+	 7nM0MlVJxkEs4dR+ho+pQVrw7EMSBSGSn1n1VpucFLuPA7kBwThJh0P9Deuy+OPs0j
+	 s2EcJ28ZWqphrJ6obSr5RuqjbYwzkKg+k/Q1s01IPI3me1n3voVigIqlz86K8zHm3L
+	 anPXVh9QDJbQ3gmTGyCuXf49yhep46SgynozPat5kNP55iHw2M8Gj9A7E0Wa/w+SHU
+	 Jou1l+FAZ6W1FGJ7DGaq74uVhjHX49EoK9AoEBJaAXVjWQ1cVa1oCZAUtHyPVYhcRV
+	 N8XbP/IcjR2kA==
+From: Leon Romanovsky <leon@kernel.org>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Shun Hao <shunh@nvidia.com>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Rahul Rameshbabu <rrameshbabu@nvidia.com>,
-	Zhengchao Shao <shaozhengchao@huawei.com>,
-	Simon Horman <horms@kernel.org>,
-	Aya Levin <ayal@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [v2] net/mlx5e: fix a potential double-free in fs_any_create_groups
-Date: Tue, 28 Nov 2023 17:29:01 +0800
-Message-Id: <20231128092904.2916-1-dinghao.liu@zju.edu.cn>
-X-Mailer: git-send-email 2.17.1
-X-CM-TRANSID:cC_KCgBn3o3wsmVlDtY0AA--.61010S4
-X-Coremail-Antispam: 1UD129KBjvdXoWrKrWxAr45WrW7CF4rKr1fXrb_yoWkKwc_Cr
-	4Iq3Z5JrW2qr4rKw15GrW5JrWIkr4qgrn3AFZIgFZ8t34UCF4UJw1fWF17uFn3uFyUAr98
-	Xr42qF47Cw17tjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbskFc2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wAFIxvE14AK
-	wVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20x
-	vE14v26w1j6s0DM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4UJVW0owA2z4x0Y4vEx4A2
-	jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oVCq3wAS0I0E0xvYzxvE52
-	x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AKxVWUGVWU
-	XwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI4
-	8JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628vn2kIc2xKxwCF04k20xvY
-	0x0EwIxGrwCF04k20xvE74AGY7Cv6cx26r4fKr1UJr1l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr
-	1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE
-	14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7
-	IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E
-	87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73Uj
-	IFyTuYvjfUF9a9DUUUU
-X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgsIBmVfIgMaAQAhsm
+	netdev@vger.kernel.org,
+	Paolo Abeni <pabeni@redhat.com>,
+	Saeed Mahameed <saeedm@nvidia.com>
+Subject: [PATCH mlx5-next 1/5] net/mlx5: Introduce indirect-sw-encap icm properties
+Date: Tue, 28 Nov 2023 14:29:45 +0200
+Message-ID: <79470c08ce852496b03d777749074efd937d5bf6.1701172481.git.leon@kernel.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <cover.1701172481.git.leon@kernel.org>
+References: <cover.1701172481.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-When kcalloc() for ft->g succeeds but kvzalloc() for in fails,
-fs_any_create_groups() will free ft->g. However, its caller
-fs_any_create_table() will free ft->g again through calling
-mlx5e_destroy_flow_table(), which will lead to a double-free.
-Fix this by setting ft->g to NULL in fs_any_create_groups().
+From: Shun Hao <shunh@nvidia.com>
 
-Fixes: 0f575c20bf06 ("net/mlx5e: Introduce Flow Steering ANY API")
-Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
+Add new fields for device memory capabilities, in order to support
+creation of new ICM memory type of SW encap.
+
+Signed-off-by: Shun Hao <shunh@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
+ include/linux/mlx5/mlx5_ifc.h | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-Changelog:
-
-v2: Setting ft->g to NULL instead of removing the kfree().
----
- drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c b/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
-index be83ad9db82a..6207ffe74233 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/fs_tt_redirect.c
-@@ -435,6 +435,7 @@ static int fs_any_create_groups(struct mlx5e_flow_table *ft)
- 	in = kvzalloc(inlen, GFP_KERNEL);
- 	if  (!in || !ft->g) {
- 		kfree(ft->g);
-+		ft->g = NULL;
- 		kvfree(in);
- 		return -ENOMEM;
- 	}
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 6f3631425f38..02b25dc36143 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -1193,7 +1193,8 @@ struct mlx5_ifc_device_mem_cap_bits {
+ 	u8         log_sw_icm_alloc_granularity[0x6];
+ 	u8         log_steering_sw_icm_size[0x8];
+ 
+-	u8         reserved_at_120[0x18];
++	u8         log_indirect_encap_sw_icm_size[0x8];
++	u8         reserved_at_128[0x10];
+ 	u8         log_header_modify_pattern_sw_icm_size[0x8];
+ 
+ 	u8         header_modify_sw_icm_start_address[0x40];
+@@ -1204,7 +1205,11 @@ struct mlx5_ifc_device_mem_cap_bits {
+ 
+ 	u8         memic_operations[0x20];
+ 
+-	u8         reserved_at_220[0x5e0];
++	u8         reserved_at_220[0x20];
++
++	u8         indirect_encap_sw_icm_start_address[0x40];
++
++	u8         reserved_at_280[0x580];
+ };
+ 
+ struct mlx5_ifc_device_event_cap_bits {
 -- 
-2.17.1
+2.43.0
 
