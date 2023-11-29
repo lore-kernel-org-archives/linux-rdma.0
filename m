@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4811819B6;
-	Wed, 29 Nov 2023 01:48:10 -0800 (PST)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.56])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4SgDyJ70R0zvR9X;
-	Wed, 29 Nov 2023 17:47:36 +0800 (CST)
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C719719BC;
+	Wed, 29 Nov 2023 01:48:11 -0800 (PST)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.54])
+	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4SgDsL5CSTzMnVg;
+	Wed, 29 Nov 2023 17:43:18 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Wed, 29 Nov 2023 17:48:08 +0800
+ 15.1.2507.35; Wed, 29 Nov 2023 17:48:09 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-rc 3/6] RDMA/hns: Add a max length of gid table
-Date: Wed, 29 Nov 2023 17:44:31 +0800
-Message-ID: <20231129094434.134528-4-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 6/6] RDMA/hns: Improve the readability of free mr uninit
+Date: Wed, 29 Nov 2023 17:44:34 +0800
+Message-ID: <20231129094434.134528-7-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20231129094434.134528-1-huangjunxian6@hisilicon.com>
 References: <20231129094434.134528-1-huangjunxian6@hisilicon.com>
@@ -31,51 +31,133 @@ X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
  kwepemi500006.china.huawei.com (7.221.188.68)
 X-CFilter-Loop: Reflected
 
-IB-core and rdma-core restrict the sgid_index specified by users,
-which is uint8_t/u8 data type, to only be within the range of 0-255,
-so it's meaningless to support excessively large gid_table_len.
+From: Chengchang Tang <tangchengchang@huawei.com>
 
-On the other hand, ib-core creates as many sysfs gid files as
-gid_table_len, most of which are not only useless because of the
-reason above, but also greatly increase the traversal time of
-the sysfs gid files for applications.
+Extract uninit functions of free mr qp, cq and pd to improve
+readability.
 
-This patch limits the maximum length of gid table to 256.
-
+Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 73 ++++++++++++++--------
+ 1 file changed, 47 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 1ceeedfa225f..8126922b4e21 100644
+index 538f3e8949fc..be02034a8818 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2055,6 +2055,7 @@ static void set_hem_page_size(struct hns_roce_dev *hr_dev)
- /* Apply all loaded caps before setting to hardware */
- static void apply_func_caps(struct hns_roce_dev *hr_dev)
- {
-+#define MAX_GID_TBL_LEN 256
- 	struct hns_roce_caps *caps = &hr_dev->caps;
- 	struct hns_roce_v2_priv *priv = hr_dev->priv;
+@@ -2573,6 +2573,19 @@ static struct ib_pd *free_mr_init_pd(struct hns_roce_dev *hr_dev)
+ 	return pd;
+ }
  
-@@ -2090,8 +2091,14 @@ static void apply_func_caps(struct hns_roce_dev *hr_dev)
- 		caps->gmv_entry_sz = HNS_ROCE_V3_GMV_ENTRY_SZ;
- 
- 		caps->gmv_hop_num = HNS_ROCE_HOP_NUM_0;
--		caps->gid_table_len[0] = caps->gmv_bt_num *
--					(HNS_HW_PAGE_SIZE / caps->gmv_entry_sz);
++static void free_mr_uninit_pd(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_v2_priv *priv = hr_dev->priv;
++	struct hns_roce_v2_free_mr *free_mr = &priv->free_mr;
 +
-+		/* It's meaningless to support excessively large gid_table_len,
-+		 * as the type of sgid_index in kernel struct ib_global_route
-+		 * and userspace struct ibv_global_route are u8/uint8_t (0-255).
-+		 */
-+		caps->gid_table_len[0] = min_t(u32, MAX_GID_TBL_LEN,
-+					 caps->gmv_bt_num *
-+					 (HNS_HW_PAGE_SIZE / caps->gmv_entry_sz));
++	if (!free_mr->rsv_pd)
++		return;
++
++	hns_roce_dealloc_pd(&free_mr->rsv_pd->ibpd, NULL);
++	kfree(free_mr->rsv_pd);
++	free_mr->rsv_pd = NULL;
++}
++
+ static struct ib_cq *free_mr_init_cq(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_v2_priv *priv = hr_dev->priv;
+@@ -2607,6 +2620,19 @@ static struct ib_cq *free_mr_init_cq(struct hns_roce_dev *hr_dev)
+ 	return cq;
+ }
  
- 		caps->gmv_entry_num = caps->gmv_bt_num * (PAGE_SIZE /
- 							  caps->gmv_entry_sz);
++static void free_mr_uninit_cq(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_v2_priv *priv = hr_dev->priv;
++	struct hns_roce_v2_free_mr *free_mr = &priv->free_mr;
++
++	if (!free_mr->rsv_cq)
++		return;
++
++	hns_roce_destroy_cq(&free_mr->rsv_cq->ib_cq, NULL);
++	kfree(free_mr->rsv_cq);
++	free_mr->rsv_cq = NULL;
++}
++
+ static int free_mr_init_qp(struct hns_roce_dev *hr_dev, struct ib_cq *cq,
+ 			   struct ib_qp_init_attr *init_attr, int i)
+ {
+@@ -2638,6 +2664,19 @@ static int free_mr_init_qp(struct hns_roce_dev *hr_dev, struct ib_cq *cq,
+ 	return 0;
+ }
+ 
++static void free_mr_uninit_qp(struct hns_roce_dev *hr_dev, int i)
++{
++	struct hns_roce_v2_priv *priv = hr_dev->priv;
++	struct hns_roce_v2_free_mr *free_mr = &priv->free_mr;
++
++	if (!free_mr->rsv_qp[i])
++		return;
++
++	hns_roce_v2_destroy_qp(&free_mr->rsv_qp[i]->ibqp, NULL);
++	kfree(free_mr->rsv_qp[i]);
++	free_mr->rsv_qp[i] = NULL;
++}
++
+ static void free_mr_exit(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_v2_priv *priv = hr_dev->priv;
+@@ -2645,26 +2684,12 @@ static void free_mr_exit(struct hns_roce_dev *hr_dev)
+ 	struct ib_qp *qp;
+ 	int i;
+ 
+-	for (i = 0; i < ARRAY_SIZE(free_mr->rsv_qp); i++) {
+-		if (free_mr->rsv_qp[i]) {
+-			qp = &free_mr->rsv_qp[i]->ibqp;
+-			hns_roce_v2_destroy_qp(qp, NULL);
+-			kfree(free_mr->rsv_qp[i]);
+-			free_mr->rsv_qp[i] = NULL;
+-		}
+-	}
++	for (i = 0; i < ARRAY_SIZE(free_mr->rsv_qp); i++)
++		free_mr_uninit_qp(hr_dev, i);
+ 
+-	if (free_mr->rsv_cq) {
+-		hns_roce_destroy_cq(&free_mr->rsv_cq->ib_cq, NULL);
+-		kfree(free_mr->rsv_cq);
+-		free_mr->rsv_cq = NULL;
+-	}
++	free_mr_uninit_cq(hr_dev);
+ 
+-	if (free_mr->rsv_pd) {
+-		hns_roce_dealloc_pd(&free_mr->rsv_pd->ibpd, NULL);
+-		kfree(free_mr->rsv_pd);
+-		free_mr->rsv_pd = NULL;
+-	}
++	free_mr_uninit_pd(hr_dev);
+ }
+ 
+ static int free_mr_alloc_res(struct hns_roce_dev *hr_dev)
+@@ -2705,16 +2730,12 @@ static int free_mr_alloc_res(struct hns_roce_dev *hr_dev)
+ 	return 0;
+ 
+ create_failed_qp:
+-	for (i--; i >= 0; i--) {
+-		hns_roce_v2_destroy_qp(&free_mr->rsv_qp[i]->ibqp, NULL);
+-		kfree(free_mr->rsv_qp[i]);
+-	}
+-	hns_roce_destroy_cq(cq, NULL);
+-	kfree(cq);
++	for (i--; i >= 0; i--)
++		free_mr_uninit_qp(hr_dev, i);
++	free_mr_uninit_cq(hr_dev);
+ 
+ create_failed_cq:
+-	hns_roce_dealloc_pd(pd, NULL);
+-	kfree(pd);
++	free_mr_uninit_pd(hr_dev);
+ 
+ 	return ret;
+ }
 -- 
 2.30.0
 
