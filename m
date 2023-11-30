@@ -1,194 +1,228 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W7eNMvhm"
-Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C81B5B9;
-	Wed, 29 Nov 2023 23:36:38 -0800 (PST)
-Received: by mail-pg1-x532.google.com with SMTP id 41be03b00d2f7-5c61d135d74so559563a12.1;
-        Wed, 29 Nov 2023 23:36:38 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lrLEGxD6"
+Received: from mail-pj1-x102c.google.com (mail-pj1-x102c.google.com [IPv6:2607:f8b0:4864:20::102c])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E8A31AD;
+	Thu, 30 Nov 2023 00:19:39 -0800 (PST)
+Received: by mail-pj1-x102c.google.com with SMTP id 98e67ed59e1d1-285c3512f37so711303a91.3;
+        Thu, 30 Nov 2023 00:19:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1701329798; x=1701934598; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=HM3L3d4uonNU2AVbKULv9ZZVZaX9Pb4OKKv/DOGQIic=;
-        b=W7eNMvhm4u6vKTT5BE/Pz3yRs4aVtjM4vv9aUQdqRx404Aj5iGW6+kcS8X4LfN0lz2
-         OqX+qQlcotajMvEHIGgBeMQqso1xtyPp/TnDwsLw64QkbDAJMNRuiRT98J7UQRMY9h+r
-         QkjqEYoThH2ab2q7Ohatfq0vLB15zk0jyjVbc8k4zv6LrrKtkEDPlKRfusGtKIGE5PqX
-         zQ+thn3dg1XY1jBpXg73Kik4o5jYK12DiDabtkkWQqFTJ9L2yU8isfhLbs73/rWZFkQg
-         cc0H77D3Q10c1ywnYFOaU89zU2+Mhn4LVk0fBIlaDFbOlgLE0JJ0lrhCpv7eG3TKoy/8
-         EnDw==
+        d=gmail.com; s=20230601; t=1701332379; x=1701937179; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=X6OyCWwArho/FQSjOaPN8QBeFYZ6JMiey5O4KrBMrWo=;
+        b=lrLEGxD67re0xfGNBv4qYjMiAPBhv8ucEQemGb6dlSJTE7+Fm17zmi0Ga/5sMyIHvB
+         v6kf0bM1L+Ggo2vq6Nw+kpBaHzxP6t8EYpGwMbyl/i4Pgsgx6nup1gAJ5mI6AZY/ipmR
+         1yflm1Y5XAhtpiiA/qme77h/+jxQyg9eYUdYK9qENQqY4QPbPRukrS8XVDDTcyLnMo97
+         rlXEoIChvCmxPFc9D0w2e2Zvk2Cy7eF6NNJijmcFmcL9SazKimyOmpyHyjKe+aHvL8WO
+         ikssaLmnbr+rgzOH7aOBp3OjgfkY0r5V9oW/TezV038yxUfBk16+ADjtPIvpDMMRbJen
+         w8ew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701329798; x=1701934598;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=HM3L3d4uonNU2AVbKULv9ZZVZaX9Pb4OKKv/DOGQIic=;
-        b=LNwoWNKhRaGJGiT/pksRyWiHoGkhfRfpX5mHIdMbP7X6YgG/jus1gAhfiSTUAp6ful
-         qw8g0ABQTFnoxujQ32AmUdnG6JF6bCjWQXVk5Hz94rZsx7wLClBfzEzrLLo5gcLD/B2P
-         LvfETSfCilPr6SVudE3eiwlYPWhOimZSm2xfHTwi/aqbH6ddGRmpBqiVeBqdT7LAFNth
-         KOi/yc1f07RdU6N7bwm/XFyS8KT3YwndxO8hWIdhT6MXBqsRs2c+1ts0n0jlCjrCc4Nu
-         hAAVilW4vk6BSl0j/jjAfzXPOFN/cAxge7q8KH62Ef4UvoA/BPavQtKBFT5N56KclSs9
-         KwaQ==
-X-Gm-Message-State: AOJu0YwvW2nGNSYKq9c9Yelrg3eUYQm5/uTlhKNsKN/fsHXIFXwNmpJQ
-	a8okoxwN+6b1wC+0/kE1tZk=
-X-Google-Smtp-Source: AGHT+IFxMyt3kyViwLPrfAUE/MZ6AbR0oHhQ4e/bUk7EU2otfLkDAJKxYx/bFHBLQfbx7Nwe8f5BEQ==
-X-Received: by 2002:a05:6a20:3d13:b0:18c:177d:2122 with SMTP id y19-20020a056a203d1300b0018c177d2122mr20170491pzi.2.1701329798177;
-        Wed, 29 Nov 2023 23:36:38 -0800 (PST)
-Received: from archie.me ([103.131.18.64])
-        by smtp.gmail.com with ESMTPSA id y8-20020a17090322c800b001cfc4d8eddesm623597plg.180.2023.11.29.23.36.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Nov 2023 23:36:37 -0800 (PST)
-Received: by archie.me (Postfix, from userid 1000)
-	id 9444D10FB5154; Thu, 30 Nov 2023 14:36:34 +0700 (WIB)
-Date: Thu, 30 Nov 2023 14:36:32 +0700
-From: Bagas Sanjaya <bagasdotme@gmail.com>
-To: "Sukruth Sridharan (he/him)" <susridharan@purestorage.com>,
-	Linux Network File System <linux-nfs@vger.kernel.org>,
-	Linux RDMA <linux-rdma@vger.kernel.org>
-Cc: Chuck Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>,
-	Neil Brown <neilb@suse.de>, Olga Kornievskaia <kolga@netapp.com>,
-	Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leonro@nvidia.com>
-Subject: Re: Hung task panic as part of NFS RDMA Disconnect due to possible
- bug on 6.2.0-34-generic client
-Message-ID: <ZWg7gGnvVOYjIhx1@archie.me>
-References: <CAMyEAb9XbL55taNXD_MrTxJz62s6ByDWiK8m1Nxj1_G3pg-M6A@mail.gmail.com>
+        d=1e100.net; s=20230601; t=1701332379; x=1701937179;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=X6OyCWwArho/FQSjOaPN8QBeFYZ6JMiey5O4KrBMrWo=;
+        b=HhivZEGwgKT83PwW9QbsiA6dHiN5sriJZzihB1CiKun8Vo07PnupnZpYg0VbxyG+C9
+         vBypgWT48ubz629qDf4IwHF+ob6pRWKm7MqMaBrZvvAsh1hiKHY9fqgj8paUo6rK+NEG
+         MzzTuiSa70ZFgt6hElgv3fx6KlXCsl/PnwmoaHr/ZU9i0Pb6wIde2P4z4vsvoAPUoIJA
+         tG5OX/FPvJCg42EqGjKLe7CJLvRq8llR0nmiOKRukEWKPF0MRZ6TH042M/UWsQKfOkKL
+         biE+nTKRHZdiVtYPhyZpe8N7g1rUwM8T6OoFfdowtuB7PQMKiPcgGSReYpFzyNL0iRr9
+         ALmQ==
+X-Gm-Message-State: AOJu0YyKTjA69rD3zR4UItmT3bK1dx09ug63352djIjfZUJNwVmNrfYI
+	JoJ+HZalC4uuHlhKpElz+139OzqzXewU25jesb8c6lO90yfJhQ==
+X-Google-Smtp-Source: AGHT+IFIu3C4BfI0cJoeIla2zG8EU5z7irpXTxJVCgoJPGpJEACUvZXTnVBxPpp1QJAFqKBjGTnAvn6QMJB1SJ05Z0g=
+X-Received: by 2002:a17:90b:4aca:b0:285:a179:7177 with SMTP id
+ mh10-20020a17090b4aca00b00285a1797177mr18638384pjb.44.1701332378662; Thu, 30
+ Nov 2023 00:19:38 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Bj68ANcoh+ILJN6F"
-Content-Disposition: inline
-In-Reply-To: <CAMyEAb9XbL55taNXD_MrTxJz62s6ByDWiK8m1Nxj1_G3pg-M6A@mail.gmail.com>
-
-
---Bj68ANcoh+ILJN6F
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+From: xingwei lee <xrivendell7@gmail.com>
+Date: Thu, 30 Nov 2023 16:19:27 +0800
+Message-ID: <CABOYnLwSO7zLH+KVwTUJnV2_Hk+u+5+g8DPanTfLeEg05tFEQQ@mail.gmail.com>
+Subject: WARNING in cleanup_net
+To: linux-kernel@vger.kernel.org
+Cc: santosh.shilimkar@oracle.com, davem@davemloft.net, edumazet@google.com, 
+	kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org, 
+	linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, 
+	syzkaller@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 30, 2023 at 10:52:59AM +0530, Sukruth Sridharan (he/him) wrote:
-> I notice the following hung task panic on 6.2.0-34 kernel during RDMA dis=
-connect
->=20
-> [Wed Nov  1 08:03:54 2023] INFO: task kworker/u16:5:2274646 blocked
-> for more than 120 seconds.
-> [Wed Nov  1 08:03:55 2023]       Tainted: G        W  OE
-> 6.2.0-34-generic #34-Ubuntu
-> [Wed Nov  1 08:03:55 2023] "echo 0 >
-> /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-> [Wed Nov  1 08:03:55 2023] task:kworker/u16:5   state:D stack:0
-> pid:2274646 ppid:2      flags:0x00004000
-> [Wed Nov  1 08:03:55 2023] Workqueue: xprtiod xprt_autoclose [sunrpc]
-> [Wed Nov  1 08:03:55 2023] Call Trace:
-> [Wed Nov  1 08:03:55 2023]  <TASK>
-> [Wed Nov  1 08:03:55 2023]  __schedule+0x2aa/0x610
-> [Wed Nov  1 08:03:55 2023]  schedule+0x63/0x110
-> [Wed Nov  1 08:03:55 2023]  schedule_timeout+0x157/0x170
-> [Wed Nov  1 08:03:55 2023]  wait_for_completion+0x88/0x150
-> [Wed Nov  1 08:03:55 2023]  rpcrdma_xprt_disconnect+0x33f/0x350 [rpcrdma]
-> [Wed Nov  1 08:03:55 2023]  xprt_rdma_close+0x12/0x40 [rpcrdma]
-> [Wed Nov  1 08:03:55 2023]  xprt_autoclose+0x5c/0x120 [sunrpc]
-> [Wed Nov  1 08:03:55 2023]  process_one_work+0x225/0x430
-> [Wed Nov  1 08:03:55 2023]  worker_thread+0x50/0x3e0
-> [Wed Nov  1 08:03:55 2023]  ? __pfx_worker_thread+0x10/0x10
-> [Wed Nov  1 08:03:55 2023]  kthread+0xe9/0x110
-> [Wed Nov  1 08:03:55 2023]  ? __pfx_kthread+0x10/0x10
-> [Wed Nov  1 08:03:55 2023]  ret_from_fork+0x2c/0x50
-> [Wed Nov  1 08:03:55 2023]  </TASK>
->=20
-> The flow which induced the bug is as follows:
-> 1. Client initiates connection
-> 2. Server hands off the response to the first RPC on the connection to
-> the NIC (Mellanox ConnectX-5)
-> 3. NIC tries to send the response around 6 times and fails the response w=
-ith RNR
-> 4. Client issues disconnect (possibly because it didn't receive a respons=
-e)
-> 5. Server cleans up the connection state
-> 6. Client runs into the above panic as part of disconnect while draining =
-the IOs
->=20
-> It looks like re_receiving is set only in rpcrdma_post_recvs, and the
-> reason why it wouldn't be reset is if memory-region allocation code
-> fails.
-> That is possible if disconnect on the client somehow blocks allocation.
->=20
-> void rpcrdma_post_recvs(struct rpcrdma_xprt *r_xprt, int needed, bool tem=
-p)
-> {
->         // ... (some initialization code)
->=20
->     if (atomic_inc_return(&ep->re_receiving) > 1)
->         goto out;
->=20
->         // ... (some allocation code)
->=20
->     if (!wr) // <<<<<<<<<<<<<<<<<< PROBLEM HERE >>>>>>>>>>>>>>>>>>>
->         goto out;
->=20
->         // ... (post recv code, and some error handling)
->=20
->     if (atomic_dec_return(&ep->re_receiving) > 0)
->         complete(&ep->re_done);
->=20
-> out:
->     trace_xprtrdma_post_recvs(r_xprt, count);
->     ep->re_receive_count +=3D count;
->     return;
-> }
->=20
-> static void rpcrdma_xprt_drain(struct rpcrdma_xprt *r_xprt)
-> {
->     struct rpcrdma_ep *ep =3D r_xprt->rx_ep;
->     struct rdma_cm_id *id =3D ep->re_id;
->=20
->     /* Wait for rpcrdma_post_recvs() to leave its critical
->      * section.
->      */
->     if (atomic_inc_return(&ep->re_receiving) > 1) //
-> <<<<<<<<<<<<<<<<<<< This is not reset, so wait gets stuck
-> >>>>>>>>>>>>>>>>>
->         wait_for_completion(&ep->re_done);
->=20
->     /* Flush Receives, then wait for deferred Reply work
->      * to complete.
->      */
->     ib_drain_rq(id->qp);
->=20
->     /* Deferred Reply processing might have scheduled
->      * local invalidations.
->      */
->     ib_drain_sq(id->qp);
->=20
->     rpcrdma_ep_put(ep);
-> }
->=20
-> Can you help conclude if the above theory around the bug being in the
-> client code is right? If not, can you help with steps/data points
-> required to debug this further?
->=20
+Hi
+I found a bug with syzkaller titled "WARNING in cleanup_net" in the
+last upstream.
+=3D* BUG DETAILS =3D*
+kernel commit: 3b47bc037bd44f142ac09848e8d3ecccc726be99
+kernel config: https://syzkaller.appspot.com/text?tag=3DKernelConfig&x=3Df2=
+a9d08825f82ef3
+repro.c/repro.txt:
+https://gist.github.com/xrivendell7/44780af4a9dededc5ff7a7c0583ce3f1
+the crash report=EF=BC=9A
+[ 8584.181281][T11719] bond0 (unregistering): Released all slaves
+[ 8585.839049][T11719] ref_tracker: net notrefcnt@ffff888021ba0220 has
+1/1 users at
+[ 8585.839049][T11719]   sk_alloc+0xaf0/0xbf0
+[ 8585.839049][T11719]   inet6_create+0x39b/0x1300
+[ 8585.839049][T11719]   __sock_create+0x34f/0x850
+[ 8585.839049][T11719]   rds_tcp_listen_init+0xda/0x4f0
+[ 8585.839049][T11719]   rds_tcp_init_net+0x147/0x400
+[ 8585.839049][T11719]   ops_init+0xc4/0x680
+[ 8585.839049][T11719]   setup_net+0x431/0xa80
+[ 8585.839049][T11719]   copy_net_ns+0x313/0x6b0
+[ 8585.839049][T11719]   create_new_namespaces+0x3fb/0xb60
+[ 8585.839049][T11719]   unshare_nsproxy_namespaces+0xd0/0x200
+[ 8585.839049][T11719]   ksys_unshare+0x47c/0xa30
+[ 8585.839049][T11719]   __x64_sys_unshare+0x36/0x50
+[ 8585.839049][T11719]   do_syscall_64+0x40/0x110
+[ 8585.839049][T11719]   entry_SYSCALL_64_after_hwframe+0x63/0x6b
+[ 8585.839049][T11719]
+[ 8585.858614][T11719] ------------[ cut here ]------------
+[ 8585.860037][T11719] WARNING: CPU: 3 PID: 11719 at
+lib/ref_tracker.c:179 ref_tracker_dir_exit+0x3fa/0x6a0
+[ 8585.862152][T11719] Modules linked in:
+[ 8585.863038][T11719] CPU: 3 PID: 11719 Comm: kworker/u8:3 Not
+tainted 6.7.0-rc1-g7475e51b8796-dirty #2
+[ 8585.865268][T11719] Hardware name: QEMU Standard PC (i440FX + PIIX,
+1996), BIOS 1.16.2-1.fc38 04/01/2014
+[ 8585.867345][T11719] Workqueue: netns cleanup_net
+[ 8585.868401][T11719] RIP: 0010:ref_tracker_dir_exit+0x3fa/0x6a0
+[ 8585.869426][T11719] Code: 00 00 4d 39 f5 49 8b 06 4d 89 f7 0f 85 08
+ff ff ff 48 8b 2c 24 31 ff e8 c4 09 d6 fc 48 8b 74 24 18 48 89 ef e8
+67 13 32 06 90 <0f> 0b 90 48 8d 5d 44 31 ff e8 a8 09 d6 fc be 04 00 00
+00 48 89 df
+[ 8585.872786][T11719] RSP: 0018:ffffc9000386fb78 EFLAGS: 00010286
+[ 8585.873790][T11719] RAX: 0000000080000000 RBX: dffffc0000000000
+RCX: 0000000000000000
+[ 8585.875085][T11719] RDX: 0000000000000001 RSI: ffffffff8b2cb900
+RDI: 0000000000000001
+[ 8585.876394][T11719] RBP: ffff888021ba0220 R08: 0000000000000001
+R09: fffffbfff24a13e9
+[ 8585.877808][T11719] R10: ffffffff92509f4f R11: 0000000000000003
+R12: ffff888021ba0270
+[ 8585.879138][T11719] R13: ffff888021ba0270 R14: ffff888021ba0270
+R15: ffff888021ba0270
+[ 8585.880481][T11719] FS: 0000000000000000(0000)
+GS:ffff88823bd00000(0000) knlGS:0000000000000000
+[ 8585.881965][T11719] CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 8585.882719][T11719] CR2: 00007f00c5cd79f0 CR3: 000000000d377000
+CR4: 0000000000750ef0
+[ 8585.883536][T11719] PKRU: 55555554
+[ 8585.883901][T11719] Call Trace:
+[ 8585.884247][T11719] <TASK>
+[ 8585.884561][T11719] ? show_regs+0x9a/0xb0
+[ 8585.885005][T11719] ? __warn+0xf5/0x3c0
+[ 8585.885423][T11719] ? report_bug+0x506/0x5f0
+[ 8585.885900][T11719] ? ref_tracker_dir_exit+0x3fa/0x6a0
+[ 8585.886466][T11719] ? report_bug+0x41c/0x5f0
+[ 8585.886939][T11719] ? handle_bug+0x3d/0x70
+[ 8585.887609][T11719] ? exc_invalid_op+0x17/0x40
+[ 8585.888104][T11719] ? asm_exc_invalid_op+0x1a/0x20
+[ 8585.888646][T11719] ? ref_tracker_dir_exit+0x3fa/0x6a0
+[ 8585.889203][T11719] ? ref_tracker_dir_exit+0x3f9/0x6a0
+[ 8585.889900][T11719] ? ref_tracker_dir_snprint+0xe0/0xe0
+[ 8585.890465][T11719] ? __kmem_cache_free+0xc0/0x180
+[ 8585.890989][T11719] cleanup_net+0x927/0xb70
+[ 8585.891462][T11719] ? unregister_pernet_device+0x80/0x80
+[ 8585.892038][T11719] process_one_work+0x8ab/0x1730
+[ 8585.892564][T11719] ? unregister_pernet_device+0x80/0x80
+[ 8585.893137][T11719] ? workqueue_congested+0x320/0x320
+[ 8585.893692][T11719] ? assign_work+0x1b7/0x260
+[ 8585.894177][T11719] worker_thread+0x931/0x1380
+[ 8585.894683][T11719] ? process_one_work+0x1730/0x1730
+[ 8585.895224][T11719] kthread+0x2d3/0x3b0
+[ 8585.895664][T11719] ? _raw_spin_unlock_irq+0x23/0x50
+[ 8585.896191][T11719] ? kthread_complete_and_exit+0x40/0x40
+[ 8585.896779][T11719] ret_from_fork+0x4e/0x80
+[ 8585.897245][T11719] ? kthread_complete_and_exit+0x40/0x40
+[ 8585.897863][T11719] ret_from_fork_asm+0x11/0x20
+[ 8585.898371][T11719] </TASK>
+[ 8585.898702][T11719] Kernel panic - not syncing: kernel: panic_on_warn se=
+t ...
+[ 8585.899428][T11719] CPU: 3 PID: 11719 Comm: kworker/u8:3 Not
+tainted 6.7.0-rc1-g7475e51b8796-dirty #2
+[ 8585.900572][T11719] Hardware name: QEMU Standard PC (i440FX + PIIX,
+1996), BIOS 1.16.2-1.fc38 04/01/2014
+[ 8585.901550][T11719] Workqueue: netns cleanup_net
+[ 8585.902038][T11719] Call Trace:
+[ 8585.902377][T11719] <TASK>
+[ 8585.902693][T11719] dump_stack_lvl+0xee/0x1e0
+[ 8585.903170][T11719] panic+0x754/0x810
+[ 8585.903805][T11719] ? panic_smp_self_stop+0xa0/0xa0
+[ 8585.904377][T11719] ? show_trace_log_lvl+0x394/0x540
+[ 8585.905159][T11719] ? check_panic_on_warn+0xa4/0xc0
+[ 8585.905742][T11719] ? ref_tracker_dir_exit+0x3fa/0x6a0
+[ 8585.906532][T11719] check_panic_on_warn+0xb8/0xc0
+[ 8585.907108][T11719] __warn+0x101/0x3c0
+[ 8585.907577][T11719] ? report_bug+0x506/0x5f0
+[ 8585.908317][T11719] ? ref_tracker_dir_exit+0x3fa/0x6a0
+[ 8585.909080][T11719] report_bug+0x41c/0x5f0
+[ 8585.909599][T11719] handle_bug+0x3d/0x70
+[ 8585.910089][T11719] exc_invalid_op+0x17/0x40
+[ 8585.910571][T11719] asm_exc_invalid_op+0x1a/0x20
+[ 8585.911115][T11719] RIP: 0010:ref_tracker_dir_exit+0x3fa/0x6a0
+[ 8585.911798][T11719] Code: 00 00 4d 39 f5 49 8b 06 4d 89 f7 0f 85 08
+ff ff ff 48 8b 2c 24 31 ff e8 c4 09 d6 fc 48 8b 74 24 18 48 89 ef e8
+67 13 32 06 90 <0f> 0b 90 48 8d 5d 44 31 ff e8 a8 09 d6 fc be 04 00 00
+00 48 89 df
+[ 8585.914135][T11719] RSP: 0018:ffffc9000386fb78 EFLAGS: 00010286
+[ 8585.914813][T11719] RAX: 0000000080000000 RBX: dffffc0000000000
+RCX: 0000000000000000
+[ 8585.915654][T11719] RDX: 0000000000000001 RSI: ffffffff8b2cb900
+RDI: 0000000000000001
+[ 8585.916556][T11719] RBP: ffff888021ba0220 R08: 0000000000000001
+R09: fffffbfff24a13e9
+[ 8585.917647][T11719] R10: ffffffff92509f4f R11: 0000000000000003
+R12: ffff888021ba0270
+[ 8585.918692][T11719] R13: ffff888021ba0270 R14: ffff888021ba0270
+R15: ffff888021ba0270
+[ 8585.919598][T11719] ? ref_tracker_dir_exit+0x3f9/0x6a0
+[ 8585.920188][T11719] ? ref_tracker_dir_snprint+0xe0/0xe0
+[ 8585.920803][T11719] ? __kmem_cache_free+0xc0/0x180
+[ 8585.921387][T11719] cleanup_net+0x927/0xb70
+[ 8585.921891][T11719] ? unregister_pernet_device+0x80/0x80
+[ 8585.922481][T11719] process_one_work+0x8ab/0x1730
+[ 8585.923093][T11719] ? unregister_pernet_device+0x80/0x80
+[ 8585.923781][T11719] ? workqueue_congested+0x320/0x320
+[ 8585.924385][T11719] ? assign_work+0x1b7/0x260
+[ 8585.924923][T11719] worker_thread+0x931/0x1380
+[ 8585.925467][T11719] ? process_one_work+0x1730/0x1730
+[ 8585.926079][T11719] kthread+0x2d3/0x3b0
+[ 8585.926538][T11719] ? _raw_spin_unlock_irq+0x23/0x50
+[ 8585.927138][T11719] ? kthread_complete_and_exit+0x40/0x40
+[ 8585.927763][T11719] ret_from_fork+0x4e/0x80
+[ 8585.928256][T11719] ? kthread_complete_and_exit+0x40/0x40
+[ 8585.928903][T11719] ret_from_fork_asm+0x11/0x20
+[ 8585.929470][T11719] </TASK>
+[ 8585.930023][T11719] Kernel Offset: disabled
+[ 8585.930517][T11719] Rebooting in 86400 seconds..
+=3D* OTHERS =3D*
+I noticed syzbot has two similar bugs named WARNING in cleanup_net=EF=BC=9A
+https://syzkaller.appspot.com/bug?extid=3D7e1e1bdb852961150198
+https://syzkaller.appspot.com/bug?id=3D14c45b4081250ebeb4a9000f3774da829f7e=
+43b4
 
-Can you verify that the bug still occurs with latest vanilla kernel
-(currently v6.7-rc3)?
+However, these two seem fixed and not related to this.
+Without in-depth analysis, I guess it's maybe a race condition bug and
+the import part may be the refcnt_tracker in socket$rds not handled
+properly but I'm not sure.
 
-Thanks.
-
---=20
-An old man doll... just what I always wanted! - Clara
-
---Bj68ANcoh+ILJN6F
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQSSYQ6Cy7oyFNCHrUH2uYlJVVFOowUCZWg7ewAKCRD2uYlJVVFO
-o2LoAQD/DycCySM1guMz6DbpdVpzp3oHU+m/0FMWHT5Vu0QIJQEAv1BMp5IzPAne
-zyv7DbEj1tZecHdsHzqVgA6taXIhvAU=
-=yVp9
------END PGP SIGNATURE-----
-
---Bj68ANcoh+ILJN6F--
+[ 8585.839049][T11719] ref_tracker: net notrefcnt@ffff888021ba0220 has
+1/1 users at
+[ 8585.839049][T11719]   sk_alloc+0xaf0/0xbf0
+[ 8585.839049][T11719]   inet6_create+0x39b/0x1300
+[ 8585.839049][T11719]   __sock_create+0x34f/0x850
+[ 8585.839049][T11719]   rds_tcp_listen_init+0xda/0x4f0
+[ 8585.839049][T11719]   rds_tcp_init_net+0x147/0x400
+[ 8585.839049][T11719]   ops_init+0xc4/0x680
+[ 8585.839049][T11719]   setup_net+0x431/0xa80
+[ 8585.839049][T11719]   copy_net_ns+0x313/0x6b0
+[ 8585.839049][T11719]   create_new_namespaces+0x3fb/0xb60
+[ 8585.839049][T11719]   unshare_nsproxy_namespaces+0xd0/0x200
+[ 8585.839049][T11719]   ksys_unshare+0x47c/0xa30
+[ 8585.839049][T11719]   __x64_sys_unshare+0x36/0x50
+[ 8585.839049][T11719]   do_syscall_64+0x40/0x110
+[ 8585.839049][T11719]   entry_SYSCALL_64_after_hwframe+0x63/0x6b
