@@ -1,27 +1,30 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Dwx4bOk+"
-Received: from out-174.mta1.migadu.com (out-174.mta1.migadu.com [IPv6:2001:41d0:203:375::ae])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3724E7
-	for <linux-rdma@vger.kernel.org>; Sun,  3 Dec 2023 01:27:35 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="mJw0/6AV"
+Received: from out-180.mta1.migadu.com (out-180.mta1.migadu.com [95.215.58.180])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 721EBE8
+	for <linux-rdma@vger.kernel.org>; Sun,  3 Dec 2023 01:27:38 -0800 (PST)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1701595652;
+	t=1701595655;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=s0TikuCYyL5y892f4EYxpW1CHdKFinNLwfVUKbsLwRA=;
-	b=Dwx4bOk+uBiPNkKBdKWSZrYY+Zj29gAxvL9xjjedz4ZbDr7cnCJKWXg7U64mXabSBL3ceC
-	RcW57DZpiD//cDS5KOJoF3Ad4JMsDW9v6jwW2CabAvsbT9MG0ReP21qtyHJGsVvIdwYipT
-	RFBjwGULQOc1dU8245nUF/+kk1wIk5k=
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=HTxQflORM0ute0ovnCJ1V14VzEpqdJ0ViqQLbjbbRJ8=;
+	b=mJw0/6AV4JUEvJBfYNoRMaZX8cFY3dV+VHfs/ZoNRbo167SrKjPEg1ylTrqDOT1aI76xp8
+	5JgD1SvOBO1X5MP7vcjwhXmS3YVdacskDpGduIjnnpzI24UsUAae3nwL/bEkVjvn0zl50K
+	Q0ouzNQyT+EFNGlyKP0+TqkFYIW1N/o=
 From: Guoqing Jiang <guoqing.jiang@linux.dev>
 To: bmt@zurich.ibm.com,
 	jgg@ziepe.ca,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	guoqing.jiang@linux.dev
-Subject: [PATCH V2 0/4] Misc changes for siw
-Date: Sun,  3 Dec 2023 17:26:51 +0800
-Message-Id: <20231203092655.28102-1-guoqing.jiang@linux.dev>
+Subject: [PATCH V2 1/4] RDMA/siw: Move tx_cpu ahead
+Date: Sun,  3 Dec 2023 17:26:52 +0800
+Message-Id: <20231203092655.28102-2-guoqing.jiang@linux.dev>
+In-Reply-To: <20231203092655.28102-1-guoqing.jiang@linux.dev>
+References: <20231203092655.28102-1-guoqing.jiang@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -31,36 +34,43 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-V2 changes:
-1. Collect tags from Bernard.
-2. Use SIW_QP_STATE_COUNT for siw_qp_state_to_ib_qp_state.
-3. Update commite message for the last patch.
+We can reduce one cacheline for the usage of struct siw_qp.
 
-Thanks for Bernard's review!
+Before,
 
-Hi,
+	/* size: 1928, cachelines: 31, members: 38 */
+	/* sum members: 1920, holes: 2, sum holes: 8 */
+	/* paddings: 4, sum paddings: 13 */
+	/* forced alignments: 3 */
 
-The first two patches try to reduce memory usage, the third
-one fix test_query_rc_qp failure, and the last one clean up
-code a bit.
+after
 
-Please review.
+	/* size: 1920, cachelines: 30, members: 38 */
+	/* paddings: 4, sum paddings: 13 */
+	/* forced alignments: 3 */
 
-Thanks,
-Guoqing
+Acked-by: Bernard Metzler <bmt@zurich.ibm.com>
+Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
+---
+ drivers/infiniband/sw/siw/siw.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Guoqing Jiang (4):
-  RDMA/siw: Move tx_cpu ahead
-  RDMA/siw: Reduce memory usage of struct siw_rx_stream
-  RDMA/siw: Set qp_state in siw_query_qp
-  RDMA/siw: Call orq_get_current if possible
-
- drivers/infiniband/sw/siw/siw.h       | 10 +++++-----
- drivers/infiniband/sw/siw/siw_verbs.c | 10 ++++++++++
- 2 files changed, 15 insertions(+), 5 deletions(-)
-
-
-base-commit: 50af5d12f7e24b85fc10270d7700f4aa1b20b8e4
+diff --git a/drivers/infiniband/sw/siw/siw.h b/drivers/infiniband/sw/siw/siw.h
+index b36d1ec25327..d14bb965af75 100644
+--- a/drivers/infiniband/sw/siw/siw.h
++++ b/drivers/infiniband/sw/siw/siw.h
+@@ -417,10 +417,10 @@ struct siw_iwarp_tx {
+ struct siw_qp {
+ 	struct ib_qp base_qp;
+ 	struct siw_device *sdev;
++	int tx_cpu;
+ 	struct kref ref;
+ 	struct completion qp_free;
+ 	struct list_head devq;
+-	int tx_cpu;
+ 	struct siw_qp_attrs attrs;
+ 
+ 	struct siw_cep *cep;
 -- 
 2.35.3
 
