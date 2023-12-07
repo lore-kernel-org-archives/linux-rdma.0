@@ -1,21 +1,23 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C11E2D53;
-	Thu,  7 Dec 2023 03:46:10 -0800 (PST)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.57])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4SmCBb6hpnzYsnr;
-	Thu,  7 Dec 2023 19:45:27 +0800 (CST)
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F0AAD54;
+	Thu,  7 Dec 2023 03:46:11 -0800 (PST)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.55])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4SmC6L6rCvzShxH;
+	Thu,  7 Dec 2023 19:41:46 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Thu, 7 Dec 2023 19:46:07 +0800
+ 15.1.2507.35; Thu, 7 Dec 2023 19:46:08 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH v2 for-next 0/5] Bugfixes and improvements for hns RoCE
-Date: Thu, 7 Dec 2023 19:42:26 +0800
-Message-ID: <20231207114231.2872104-1-huangjunxian6@hisilicon.com>
+Subject: [PATCH v2 for-next 3/5] RDMA/hns: Add a max length of gid table
+Date: Thu, 7 Dec 2023 19:42:29 +0800
+Message-ID: <20231207114231.2872104-4-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20231207114231.2872104-1-huangjunxian6@hisilicon.com>
+References: <20231207114231.2872104-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -28,27 +30,51 @@ X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
  kwepemi500006.china.huawei.com (7.221.188.68)
 X-CFilter-Loop: Reflected
 
-Here are several bugfixes and improvements for hns RoCE.
+IB-core and rdma-core restrict the sgid_index specified by users,
+which is uint8_t/u8 data type, to only be within the range of 0-255,
+so it's meaningless to support excessively large gid_table_len.
 
-v1 -> v2:
-* Change applying target from -rc to -next
-* Drop patch #6 in v1
+On the other hand, ib-core creates as many sysfs gid files as
+gid_table_len, most of which are not only useless because of the
+reason above, but also greatly increase the traversal time of
+the sysfs gid files for applications.
 
-Chengchang Tang (3):
-  RDMA/hns: Rename the interrupts
-  RDMA/hns: Remove unnecessary checks for NULL in mtr_alloc_bufs()
-  RDMA/hns: Fix memory leak in free_mr_init()
+This patch limits the maximum length of gid table to 256.
 
-Junxian Huang (2):
-  RDMA/hns: Response dmac to userspace
-  RDMA/hns: Add a max length of gid table
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
- drivers/infiniband/hw/hns/hns_roce_ah.c    |  7 +++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 22 +++++++++++++++++-----
- drivers/infiniband/hw/hns/hns_roce_mr.c    |  2 +-
- include/uapi/rdma/hns-abi.h                |  5 +++++
- 4 files changed, 30 insertions(+), 6 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 4258b6daaded..93a71db527d8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2060,6 +2060,7 @@ static void set_hem_page_size(struct hns_roce_dev *hr_dev)
+ /* Apply all loaded caps before setting to hardware */
+ static void apply_func_caps(struct hns_roce_dev *hr_dev)
+ {
++#define MAX_GID_TBL_LEN 256
+ 	struct hns_roce_caps *caps = &hr_dev->caps;
+ 	struct hns_roce_v2_priv *priv = hr_dev->priv;
+ 
+@@ -2095,8 +2096,14 @@ static void apply_func_caps(struct hns_roce_dev *hr_dev)
+ 		caps->gmv_entry_sz = HNS_ROCE_V3_GMV_ENTRY_SZ;
+ 
+ 		caps->gmv_hop_num = HNS_ROCE_HOP_NUM_0;
+-		caps->gid_table_len[0] = caps->gmv_bt_num *
+-					(HNS_HW_PAGE_SIZE / caps->gmv_entry_sz);
++
++		/* It's meaningless to support excessively large gid_table_len,
++		 * as the type of sgid_index in kernel struct ib_global_route
++		 * and userspace struct ibv_global_route are u8/uint8_t (0-255).
++		 */
++		caps->gid_table_len[0] = min_t(u32, MAX_GID_TBL_LEN,
++					 caps->gmv_bt_num *
++					 (HNS_HW_PAGE_SIZE / caps->gmv_entry_sz));
+ 
+ 		caps->gmv_entry_num = caps->gmv_bt_num * (PAGE_SIZE /
+ 							  caps->gmv_entry_sz);
+-- 
 2.30.0
 
