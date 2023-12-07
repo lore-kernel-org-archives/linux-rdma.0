@@ -1,23 +1,21 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C117DD4A;
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C11E2D53;
 	Thu,  7 Dec 2023 03:46:10 -0800 (PST)
-Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.55])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4SmC6L1hJVzShwn;
-	Thu,  7 Dec 2023 19:41:46 +0800 (CST)
+Received: from kwepemi500006.china.huawei.com (unknown [172.30.72.57])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4SmCBb6hpnzYsnr;
+	Thu,  7 Dec 2023 19:45:27 +0800 (CST)
 Received: from localhost.localdomain (10.67.165.2) by
  kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Thu, 7 Dec 2023 19:46:08 +0800
+ 15.1.2507.35; Thu, 7 Dec 2023 19:46:07 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH v2 for-next 1/5] RDMA/hns: Rename the interrupts
-Date: Thu, 7 Dec 2023 19:42:27 +0800
-Message-ID: <20231207114231.2872104-2-huangjunxian6@hisilicon.com>
+Subject: [PATCH v2 for-next 0/5] Bugfixes and improvements for hns RoCE
+Date: Thu, 7 Dec 2023 19:42:26 +0800
+Message-ID: <20231207114231.2872104-1-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20231207114231.2872104-1-huangjunxian6@hisilicon.com>
-References: <20231207114231.2872104-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -30,53 +28,27 @@ X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
  kwepemi500006.china.huawei.com (7.221.188.68)
 X-CFilter-Loop: Reflected
 
-From: Chengchang Tang <tangchengchang@huawei.com>
+Here are several bugfixes and improvements for hns RoCE.
 
-Now, different devices may have the same interrupt name, which
-makes it difficult for users to distinguish between these
-interrupts.
+v1 -> v2:
+* Change applying target from -rc to -next
+* Drop patch #6 in v1
 
-Modify the naming style to be consistent with our network devices.
-Before:
-"hns-aeq-0"
-"hns-ceq-0"
-...
+Chengchang Tang (3):
+  RDMA/hns: Rename the interrupts
+  RDMA/hns: Remove unnecessary checks for NULL in mtr_alloc_bufs()
+  RDMA/hns: Fix memory leak in free_mr_init()
 
-Now:
-"hns-0000:35:00.0-aeq-0"
-"hns-0000:35:00.0-ceq-0"
-...
+Junxian Huang (2):
+  RDMA/hns: Response dmac to userspace
+  RDMA/hns: Add a max length of gid table
 
-Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_ah.c    |  7 +++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 22 +++++++++++++++++-----
+ drivers/infiniband/hw/hns/hns_roce_mr.c    |  2 +-
+ include/uapi/rdma/hns-abi.h                |  5 +++++
+ 4 files changed, 30 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 5d0a7a1394fc..4258b6daaded 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -6473,15 +6473,16 @@ static int __hns_roce_request_irq(struct hns_roce_dev *hr_dev, int irq_num,
- 	/* irq contains: abnormal + AEQ + CEQ */
- 	for (j = 0; j < other_num; j++)
- 		snprintf((char *)hr_dev->irq_names[j], HNS_ROCE_INT_NAME_LEN,
--			 "hns-abn-%d", j);
-+			 "hns-%s-abn-%d", pci_name(hr_dev->pci_dev), j);
- 
- 	for (j = other_num; j < (other_num + aeq_num); j++)
- 		snprintf((char *)hr_dev->irq_names[j], HNS_ROCE_INT_NAME_LEN,
--			 "hns-aeq-%d", j - other_num);
-+			 "hns-%s-aeq-%d", pci_name(hr_dev->pci_dev), j - other_num);
- 
- 	for (j = (other_num + aeq_num); j < irq_num; j++)
- 		snprintf((char *)hr_dev->irq_names[j], HNS_ROCE_INT_NAME_LEN,
--			 "hns-ceq-%d", j - other_num - aeq_num);
-+			 "hns-%s-ceq-%d", pci_name(hr_dev->pci_dev),
-+			 j - other_num - aeq_num);
- 
- 	for (j = 0; j < irq_num; j++) {
- 		if (j < other_num)
--- 
+--
 2.30.0
 
