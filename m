@@ -1,100 +1,79 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65D3D24A16
-	for <linux-rdma@vger.kernel.org>; Mon, 11 Dec 2023 11:26:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MsljIJks"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50D7CC433C7;
-	Mon, 11 Dec 2023 11:26:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1702293987;
-	bh=FQ4Jbq8ycjgSyx+spAZ3FNcBTlXmXwfAE0LVVRy9Eq8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=MsljIJksriDt7P0Q07gR5nnS790xrsoxi6ysCVl6Sh4VL7wO68TyszJtPucc5Og6H
-	 yv68wATg1Wx46g0sgRsqHADygedM5HbnGbeFqg0vIPgHyPKLrNWc10zu8zLs5Nf82h
-	 IxnYG+ytWWv4dDtbUlrXqNB1NXu2Gvg8d5wRBiYyQ3RqctabF5gd8gAnT4JhhcOTaD
-	 p6IkmEqymPxR9szAKTwuf9ZkZH4afz6tyzyaw7P3NRCW15CzOPsUbfJzac4v8M57O0
-	 b2Z5eLwAaZndYSLuVgmhWzfKdYs3tmkSx7PKXNwbyEsJfY8fBJwgEf/+9lIH/GVffT
-	 rnrWeRSRndyqQ==
-Date: Mon, 11 Dec 2023 13:26:23 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: "Margolin, Michael" <mrgolin@amazon.com>
-Cc: jgg@nvidia.com, linux-rdma@vger.kernel.org, sleybo@amazon.com,
-	matua@amazon.com, gal.pressman@linux.dev,
-	Anas Mousa <anasmous@amazon.com>, Firas Jahjah <firasj@amazon.com>
-Subject: Re: [PATCH for-next v2] RDMA/efa: Add EFA query MR support
-Message-ID: <20231211112623.GE4870@unreal>
-References: <20231207142748.10345-1-mrgolin@amazon.com>
- <20231211081032.GB4870@unreal>
- <c9bfd0e3-3640-46da-8a9b-4391c90ed1aa@amazon.com>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="CwcMbPib"
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C2FDBC
+	for <linux-rdma@vger.kernel.org>; Mon, 11 Dec 2023 05:04:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1702299876;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=giFVLOTqkebo2x+oA3YA6G6HzBfr3m1iYomgrY5Darc=;
+	b=CwcMbPibcoZbSyX7HdA/YBISK9AEt+waEIF0cwYMOoCbi6XvHDJ9bBvGb40vT6RfbJXch/
+	oxeflk7U0f64SL2/Xb2ld19k5MSIcyuofTADj+lO6vda+td4C1yfccVjciZ+TF5Ig5wwnP
+	c7XV09s9Cn2/c9TL9ywt93IyxvIPzfc=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-111-X5XFshiTM9O69vzQtEUuRQ-1; Mon, 11 Dec 2023 08:04:35 -0500
+X-MC-Unique: X5XFshiTM9O69vzQtEUuRQ-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.rdu2.redhat.com [10.11.54.7])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D514D830F32;
+	Mon, 11 Dec 2023 13:04:34 +0000 (UTC)
+Received: from metal.redhat.com (unknown [10.45.224.23])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 804F51C060B1;
+	Mon, 11 Dec 2023 13:04:33 +0000 (UTC)
+From: Daniel Vacek <neelx@redhat.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Daniel Vacek <neelx@redhat.com>
+Subject: [PATCH 2/2] IB/ipoib: Clean up redundant netif_addr_lock
+Date: Mon, 11 Dec 2023 14:04:25 +0100
+Message-ID: <20231211130426.1500427-3-neelx@redhat.com>
+In-Reply-To: <20231211130426.1500427-1-neelx@redhat.com>
+References: <20231211130426.1500427-1-neelx@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <c9bfd0e3-3640-46da-8a9b-4391c90ed1aa@amazon.com>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.7
 
-On Mon, Dec 11, 2023 at 12:35:34PM +0200, Margolin, Michael wrote:
-> 
-> On 12/11/2023 10:10 AM, Leon Romanovsky wrote:
-> > CAUTION: This email originated from outside of the organization. Do not click links or open attachments unless you can confirm the sender and know the content is safe.
-> >
-> >
-> >
-> > On Thu, Dec 07, 2023 at 02:27:48PM +0000, Michael Margolin wrote:
-> >> Add EFA driver uapi definitions and register a new query MR method that
-> >> currently returns the physical PCI buses' IDs the device is using to
-> >> reach the MR. Update admin definitions and efa-abi accordingly.
-> >>
-> >> Reviewed-by: Anas Mousa <anasmous@amazon.com>
-> >> Reviewed-by: Firas Jahjah <firasj@amazon.com>
-> >> Signed-off-by: Michael Margolin <mrgolin@amazon.com>
-> >> ---
-> >>  drivers/infiniband/hw/efa/efa.h               |  5 +-
-> >>  .../infiniband/hw/efa/efa_admin_cmds_defs.h   | 31 ++++++++
-> >>  drivers/infiniband/hw/efa/efa_com_cmd.c       |  6 ++
-> >>  drivers/infiniband/hw/efa/efa_com_cmd.h       |  4 +
-> >>  drivers/infiniband/hw/efa/efa_main.c          |  5 ++
-> >>  drivers/infiniband/hw/efa/efa_verbs.c         | 77 +++++++++++++++++++
-> >>  include/uapi/rdma/efa-abi.h                   | 19 +++++
-> >>  7 files changed, 146 insertions(+), 1 deletion(-)
-> > <...>
-> >
-> >> +     /*
-> >> +      * Mask indicating which fields have valid values
-> >> +      * 0 : recv_pci_bus_id
-> >> +      * 1 : rdma_read_pci_bus_id
-> >> +      * 2 : rdma_recv_pci_bus_id
-> >> +      */
-> >> +     u8 validity;
-> > <...>
-> >
-> >>  #define EFA_GID_SIZE 16
-> >> +#define EFA_INVALID_PCI_BUS_ID 0xffff
-> > Is 0xffff value guaranteed by PCI subsystem to be invalid? Why don't you
-> > provide "validity" field to userspace instead?
-> 
-> The 0xffff value in only used internally in the driver to indicate an
-> invalid id and isn't exposed to userspace. For userspace there is a
-> validity field as you suggested:
-> 
-> +       return uverbs_copy_to(attrs,
-> EFA_IB_ATTR_QUERY_MR_RESP_PCI_BUS_ID_VALIDITY,
-> +                             &pci_bus_id_validity,
-> sizeof(pci_bus_id_validity));
+A single memory load does not need to be protected by any lock.
+The same priv->flags are fetched 15 lines ago without locking anyways.
 
-So please rely on your EFA_GET(&cmd_completion.validity, EFA_ADMIN_XXX_PCI_BUS_ID)
-checks when you fill pci_bus_id_validity and not on 0xffff value which can be
-valid from PCI perspective.
+Signed-off-by: Daniel Vacek <neelx@redhat.com>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Thanks
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 8e4f2c8839be..f54e0d212630 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -572,13 +572,9 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 		return;
+ 	}
+ 	priv->local_lid = port_attr.lid;
+-	netif_addr_lock_bh(dev);
+ 
+-	if (!test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
+-		netif_addr_unlock_bh(dev);
++	if (!test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags))
+ 		return;
+-	}
+-	netif_addr_unlock_bh(dev);
+ 
+ 	mutex_lock(&priv->mcast_mutex);
+ 	spin_lock_irq(&priv->lock);
+-- 
+2.43.0
 
-> 
-> 
-> Thanks
-> 
