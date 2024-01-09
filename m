@@ -1,166 +1,91 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from esa3.hc1455-7.c3s2.iphmx.com (esa3.hc1455-7.c3s2.iphmx.com [207.54.90.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA97A224E9;
-	Tue,  9 Jan 2024 08:18:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XZtGb1NT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F52AC433F1;
-	Tue,  9 Jan 2024 08:18:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1704788322;
-	bh=CUhGrW6qhuLcXbuLUpV22kqI6zTuSh9T5/ELNVxH5ws=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=XZtGb1NTGzY6XB2aYRMNdNY15fKBSO4zcgAqXGZFD2MwThLy9mWbPhznoFg1QyJgL
-	 +m5/oTtR2/Gt6P/ae2r7tiUGlvAlwIDRov/n3IC+WueVWJpxvzBIElNp/JkJF2MEp1
-	 9/NKVI2qP8z1u1Q8juT2ek/DRyRejnVZSAe6Wwm1ubra8iCqfF/bu+tSN/rFw1xv3W
-	 UXvttAIdLbeFfscQ3b5EEGJPP4WdH/BHhEY51qeKl9NUs0aMuTI1GTr2IBMF86idJj
-	 LsN6TUxWn696lkLFpQXpNfdrp8LdK1mF+0HXTvdDwn7PNujC/FTSuJOvB70JtHNocC
-	 W2LtgNDouVV8w==
-Date: Tue, 9 Jan 2024 08:18:37 +0000
-From: Simon Horman <horms@kernel.org>
-To: Zhipeng Lu <alexious@zju.edu.cn>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Maor Gottlieb <maorg@mellanox.com>, netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [v2] net/mlx5e: fix a double-free in arfs_create_groups
-Message-ID: <20240109081837.GJ132648@kernel.org>
-References: <20240108152605.3712050-1-alexious@zju.edu.cn>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B67C339FE2;
+	Tue,  9 Jan 2024 08:34:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+X-IronPort-AV: E=McAfee;i="6600,9927,10947"; a="145557037"
+X-IronPort-AV: E=Sophos;i="6.04,182,1695654000"; 
+   d="scan'208";a="145557037"
+Received: from unknown (HELO yto-r4.gw.nic.fujitsu.com) ([218.44.52.220])
+  by esa3.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2024 17:33:05 +0900
+Received: from yto-m3.gw.nic.fujitsu.com (yto-nat-yto-m3.gw.nic.fujitsu.com [192.168.83.66])
+	by yto-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id DCC19CF1C9;
+	Tue,  9 Jan 2024 17:33:01 +0900 (JST)
+Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
+	by yto-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 1C1D09CB75;
+	Tue,  9 Jan 2024 17:33:01 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id AC3CC2663B9;
+	Tue,  9 Jan 2024 17:33:00 +0900 (JST)
+Received: from localhost.localdomain (unknown [10.167.226.45])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 33F2B1A0099;
+	Tue,  9 Jan 2024 16:33:00 +0800 (CST)
+From: Li Zhijian <lizhijian@fujitsu.com>
+To: linux-rdma@vger.kernel.org
+Cc: zyjzyj2000@gmail.com,
+	jgg@ziepe.ca,
+	leon@kernel.org,
+	linux-kernel@vger.kernel.org,
+	rpearsonhpe@gmail.com,
+	Li Zhijian <lizhijian@fujitsu.com>
+Subject: [PATCH for-next v4 2/2] RDMA/rxe: Remove rxe_info from rxe_set_mtu
+Date: Tue,  9 Jan 2024 16:32:53 +0800
+Message-Id: <20240109083253.3629967-2-lizhijian@fujitsu.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20240109083253.3629967-1-lizhijian@fujitsu.com>
+References: <20240109083253.3629967-1-lizhijian@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240108152605.3712050-1-alexious@zju.edu.cn>
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28108.006
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28108.006
+X-TMASE-Result: 10--5.745700-10.000000
+X-TMASE-MatchedRID: zpx2FW2iGB3cT4NrftwVHs69emDs42dd0MQw+++ihy9D0XHWdCmZPOEO
+	iHvBs/Z/eG7OVGjdOcqcRHJVf0LsQ32IKB5eohESEhGH3CRdKUUKW68eInZ/hd9zZd3pUn7Kuk1
+	3zQ8GyD0XLN9wFHzBy+affHI8kAmiHY/bzRmIaZEK3Ma88LL+bn0tCKdnhB58I/9UW5M5dRM+8F
+	JNGdxYq/cUt5lc1lLgkU6UkIr/V+20QRlrBF3eZfPX17vy9WxtWKHSPEaK1CJ1r8k7N0D4e8xvQ
+	1RqHRamwYJE2kpDEyQ=
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On Mon, Jan 08, 2024 at 11:26:04PM +0800, Zhipeng Lu wrote:
-> When `in` allocated by kvzalloc fails, arfs_create_groups will free
-> ft->g and return an error. However, arfs_create_table, the only caller of
-> arfs_create_groups, will hold this error and call to
-> mlx5e_destroy_flow_table, in which the ft->g will be freed again.
-> 
-> Fixes: 1cabe6b0965e ("net/mlx5e: Create aRFS flow tables")
-> Signed-off-by: Zhipeng Lu <alexious@zju.edu.cn>
-> Reviewed-by: Simon Horman <horms@kernel.org>
+commit 9ac01f434a1e ("RDMA/rxe: Extend dbg log messages to err and info")
+newly added this info. But it did only show null device when
+the rdma_rxe is being loaded because dev_name(rxe->ib_dev->dev)
+has not yet been assigned at the moment:
 
-When working on netdev (and probably elsewhere)
-Please don't include Reviewed-by or other tags
-that were explicitly supplied by someone: I don't recall
-supplying the tag above so please drop it.
+"(null): rxe_set_mtu: Set mtu to 1024"
 
-> ---
-> Changelog:
-> 
-> v2: free ft->g just in arfs_create_groups with a unwind ladde.
-> ---
->  .../net/ethernet/mellanox/mlx5/core/en_arfs.c   | 17 +++++++++--------
->  drivers/net/ethernet/mellanox/mlx5/core/en_fs.c |  1 -
->  2 files changed, 9 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-> index bb7f86c993e5..c96f4c571b63 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-> @@ -252,13 +252,14 @@ static int arfs_create_groups(struct mlx5e_flow_table *ft,
->  	int err;
->  	u8 *mc;
->  
-> +	ft->num_groups = 0;
-> +
+Remove it to silent this message, check the mtu from it backend link
+instead if needed.
 
-Although I suggested the above change, I think it
-probably suitable for a separate patch. For one thing,
-this is not mentioned in the patch subject. And for another,
-it's probably better to change one thing at a time.
+CC: Bob Pearson <rpearsonhpe@gmail.com>
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+---
+V4: Remove it rather than re-order rxe_set_mtu() and rxe_register_device()
+---
+ drivers/infiniband/sw/rxe/rxe.c | 2 --
+ 1 file changed, 2 deletions(-)
 
->  	ft->g = kcalloc(MLX5E_ARFS_NUM_GROUPS,
->  			sizeof(*ft->g), GFP_KERNEL);
->  	in = kvzalloc(inlen, GFP_KERNEL);
->  	if  (!in || !ft->g) {
-> -		kfree(ft->g);
-> -		kvfree(in);
-> -		return -ENOMEM;
-> +		err = -ENOMEM;
-> +		goto free_ft;
->  	}
+diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+index a086d588e159..ae466e72fc43 100644
+--- a/drivers/infiniband/sw/rxe/rxe.c
++++ b/drivers/infiniband/sw/rxe/rxe.c
+@@ -160,8 +160,6 @@ void rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu)
+ 
+ 	port->attr.active_mtu = mtu;
+ 	port->mtu_cap = ib_mtu_enum_to_int(mtu);
+-
+-	rxe_info_dev(rxe, "Set mtu to %d\n", port->mtu_cap);
+ }
+ 
+ /* called by ifc layer to create new rxe device.
+-- 
+2.29.2
 
-I would probably have split this up a bit:
-
->  
->  	mc = MLX5_ADDR_OF(create_flow_group_in, in, match_criteria);
-> @@ -278,7 +279,7 @@ static int arfs_create_groups(struct mlx5e_flow_table *ft,
->  		break;
->  	default:
->  		err = -EINVAL;
-> -		goto out;
-> +		goto free_ft;
->  	}
->  
->  	switch (type) {
-> @@ -300,7 +301,7 @@ static int arfs_create_groups(struct mlx5e_flow_table *ft,
->  		break;
->  	default:
->  		err = -EINVAL;
-> -		goto out;
-> +		goto free_ft;
->  	}
->  
->  	MLX5_SET_CFG(in, match_criteria_enable, MLX5_MATCH_OUTER_HEADERS);
-> @@ -327,7 +328,9 @@ static int arfs_create_groups(struct mlx5e_flow_table *ft,
->  err:
->  	err = PTR_ERR(ft->g[ft->num_groups]);
->  	ft->g[ft->num_groups] = NULL;
-> -out:
-> +free_ft:
-> +	kfree(ft->g);
-> +	ft->g = NULL;
->  	kvfree(in);
->  
->  	return err;
-
-I think that I would have named the labels err_*, which
-I think is more idiomatic. So combined with my suggestion
-above, I suggest something like:
-
--err:
-+err_clean_group:
-        err = PTR_ERR(ft->g[ft->num_groups]);
-        ft->g[ft->num_groups] = NULL;
--out:
-+err_free_in:
-        kvfree(in);
-+err_free_g:
-+       kfree(ft->g);
-+	ft->g = NULL;
-
- 	return err;
-
-
-> @@ -343,8 +346,6 @@ static int arfs_create_table(struct mlx5e_flow_steering *fs,
->  	struct mlx5_flow_table_attr ft_attr = {};
->  	int err;
->  
-> -	ft->num_groups = 0;
-> -
->  	ft_attr.max_fte = MLX5E_ARFS_TABLE_SIZE;
->  	ft_attr.level = MLX5E_ARFS_FT_LEVEL;
->  	ft_attr.prio = MLX5E_NIC_PRIO;
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
-> index 777d311d44ef..7b6aa0c8b58d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
-> @@ -883,7 +883,6 @@ void mlx5e_fs_init_l2_addr(struct mlx5e_flow_steering *fs, struct net_device *ne
->  void mlx5e_destroy_flow_table(struct mlx5e_flow_table *ft)
->  {
->  	mlx5e_destroy_groups(ft);
-> -	kfree(ft->g);
->  	mlx5_destroy_flow_table(ft->t);
->  	ft->t = NULL;
-
-Is the above still needed in some cases, and safe in all cases?
