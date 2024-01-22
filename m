@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E16124CDFF;
-	Mon, 22 Jan 2024 23:23:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2AAF04CE10;
+	Mon, 22 Jan 2024 23:23:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705965792; cv=none; b=sRsHdgeYBnVvSBbmVT6WPp9DqKfpNbfX33+5EQp/ppKAyNHLPJ9AZTS+mWt8FERUpiwsj9ngZyoi14XhXfKI1TGjEHoVg3qoJ4MbddJGmhhzu87xlxasINLhnDIy+6FGe3q27NkPVdFevL2UO6JbhbqHRboFq/e7MF6h5txzTPA=
+	t=1705965792; cv=none; b=f4JKg9ag0QaIKjXje3XJdoTSKZ6AdQSch2r7JOMN2h/5R5LofGJBSyonV2sI1eQ+5zZ//BhqmtoEAps4FtdA0o3bAaqJNH2UXBWViIx233zy/dHZ857DLUNwcNFalXI3eUIbzEgnmHFAGY2B0ob/iEAEepFlZf6C8GNaCdVYAGQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1705965792; c=relaxed/simple;
-	bh=eLJhNzdFZj3RlP7C0RvlpZ87zYE+Z2S+CabRM8UsbZQ=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=r5NvJlRdushJJAujNBmxi1ZuIktXic66Fl8TcSlL8ZLyotOMlvEi7/NVb3NFdGACM0KgSLZ+Ki+I3hFFbkEIds7tylzFrsf9cJ3RGmppD8Ufd6NiQmzudYMe1ZSnKkJtIjwgP0a4oSHkXzFq8CSPWtrMco1ZNxg5+t0C37k74BA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=iAt7YVGP; arc=none smtp.client-ip=13.77.154.182
+	bh=L88DAoiSBHD76fYpHeFcca7Y2t8+GzrNgBX+SAW6wuo=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=eIEzFsOkGftRlgJDqlfpSJn6pwrWunElmigQkQ6UhvORYUXzeTqml7eqHeUQqwWTNj7yHoCjt0QHfRWf+lD9fm9xcreXp+L0yOOL4wMet7clnGCza/PmF1JfQBvQ5I4WExhA4/ulm1VoIQqUj1zs8s4vyt1e316NgGtFIwdZDvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=kxWpsLhs; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="iAt7YVGP"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="kxWpsLhs"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 75C2120E2C18;
+	by linux.microsoft.com (Postfix) with ESMTPSA id BBBF520E2C32;
 	Mon, 22 Jan 2024 15:23:10 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 75C2120E2C18
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BBBF520E2C32
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1705965790;
-	bh=nTh23HnZRdP/6Sx5yekzRTq2MwUPNWD0l+ejJL4d8AQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=iAt7YVGPAUXBwHjlUekjBctC05U3DbUMvOVJ/UzaRzdQiAEU/111LXnrg/Z5NN25j
-	 kqBFK2rOqeLWa3jp3HsH+GI4WoDJ6nSl+dgT/EWFK1uS1q3xxBsfG3nrTGiwwfzMNB
-	 w0y4vHsDKpaFATKhWRqqR1lmZwxjF7J/2Tz6kI+Y=
+	bh=ydnT8gvdi2bZa/bNOPVGXK22E60tOprDMH+lbzR3qq4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=kxWpsLhsUJjqXLIoISQt0Clo/JrVGKqLeYJqwOKpEgq4GTjt+7F7IsIrRZzkb0hy4
+	 OIa+LVNXoD5vaNl8FG67WoWvzGHOFMpxJnnhmhGEk/9jPeJ+X2Gaa9655Xdj7+afbT
+	 h8PIIIdnU6xQmcOi2J7RHhh4qM4T8LUXrlpNxWoo=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	sharmaajay@microsoft.com,
@@ -32,10 +32,12 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v1 0/3] RDMA/mana_ib: Introduce three helper functions to clean code
-Date: Mon, 22 Jan 2024 15:22:58 -0800
-Message-Id: <1705965781-3235-1-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v1 3/3] RDMA/mana_ib: introduce mana_ib_install_cq_cb helper function
+Date: Mon, 22 Jan 2024 15:23:01 -0800
+Message-Id: <1705965781-3235-4-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1705965781-3235-1-git-send-email-kotaranov@linux.microsoft.com>
+References: <1705965781-3235-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -44,30 +46,127 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-This patchset aims to remove code repetitions in mana_ib
-as well as to avoid explicit use of the gdma_dev.
-The gdma_dev was either ethernet or IB device depending on
-the usage, which was often easy to confuse and misuse.
+Use a helper function to install callbacks to CQs.
+This patch removes code repetition.
 
-Introduced functions:
-1) mdev_to_gc
-2) mana_ib_get_netdev
-3) mana_ib_install_cq_cb
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+ drivers/infiniband/hw/mana/cq.c      | 21 ++++++++++++++++++++-
+ drivers/infiniband/hw/mana/mana_ib.h |  4 ++--
+ drivers/infiniband/hw/mana/qp.c      | 28 +++++-----------------------
+ 3 files changed, 27 insertions(+), 26 deletions(-)
 
-Konstantin Taranov (3):
-  RDMA/mana_ib: introduce mdev_to_gc helper function
-  RDMA/mana_ib: introduce mana_ib_get_netdev helper function
-  RDMA/mana_ib: introduce mana_ib_install_cq_cb helper function
-
- drivers/infiniband/hw/mana/cq.c      | 25 +++++++-
- drivers/infiniband/hw/mana/main.c    | 40 +++++--------
- drivers/infiniband/hw/mana/mana_ib.h | 20 ++++++-
- drivers/infiniband/hw/mana/mr.c      | 13 +---
- drivers/infiniband/hw/mana/qp.c      | 88 +++++++++-------------------
- 5 files changed, 84 insertions(+), 102 deletions(-)
-
-
-base-commit: 6613476e225e090cc9aad49be7fa504e290dd33d
+diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
+index 3369e7b665f9..83d20c3f048d 100644
+--- a/drivers/infiniband/hw/mana/cq.c
++++ b/drivers/infiniband/hw/mana/cq.c
+@@ -100,10 +100,29 @@ int mana_ib_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
+ 	return 0;
+ }
+ 
+-void mana_ib_cq_handler(void *ctx, struct gdma_queue *gdma_cq)
++static void mana_ib_cq_handler(void *ctx, struct gdma_queue *gdma_cq)
+ {
+ 	struct mana_ib_cq *cq = ctx;
+ 
+ 	if (cq->ibcq.comp_handler)
+ 		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
+ }
++
++int mana_ib_install_cq_cb(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
++{
++	struct gdma_context *gc = mdev_to_gc(mdev);
++	struct gdma_queue *gdma_cq;
++
++	/* Create CQ table entry */
++	WARN_ON(gc->cq_table[cq->id]);
++	gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
++	if (!gdma_cq)
++		return -ENOMEM;
++
++	gdma_cq->cq.context = cq;
++	gdma_cq->type = GDMA_CQ;
++	gdma_cq->cq.callback = mana_ib_cq_handler;
++	gdma_cq->id = cq->id;
++	gc->cq_table[cq->id] = gdma_cq;
++	return 0;
++}
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index d373639e25d4..6a03ae645c01 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -158,6 +158,8 @@ static inline struct net_device *mana_ib_get_netdev(struct ib_device *ibdev, u32
+ 	return mc->ports[port - 1];
+ }
+ 
++int mana_ib_install_cq_cb(struct mana_ib_dev *mdev, struct mana_ib_cq *cq);
++
+ int mana_ib_gd_create_dma_region(struct mana_ib_dev *dev, struct ib_umem *umem,
+ 				 mana_handle_t *gdma_region);
+ 
+@@ -226,6 +228,4 @@ int mana_ib_query_gid(struct ib_device *ibdev, u32 port, int index,
+ void mana_ib_disassociate_ucontext(struct ib_ucontext *ibcontext);
+ 
+ int mana_ib_gd_query_adapter_caps(struct mana_ib_dev *mdev);
+-
+-void mana_ib_cq_handler(void *ctx, struct gdma_queue *gdma_cq);
+ #endif
+diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
+index f5427599e033..5d4c05dcd003 100644
+--- a/drivers/infiniband/hw/mana/qp.c
++++ b/drivers/infiniband/hw/mana/qp.c
+@@ -104,7 +104,6 @@ static int mana_ib_create_qp_rss(struct ib_qp *ibqp, struct ib_pd *pd,
+ 	struct gdma_queue **gdma_cq_allocated;
+ 	mana_handle_t *mana_ind_table;
+ 	struct mana_port_context *mpc;
+-	struct gdma_queue *gdma_cq;
+ 	unsigned int ind_tbl_size;
+ 	struct net_device *ndev;
+ 	struct mana_ib_cq *cq;
+@@ -229,19 +228,11 @@ static int mana_ib_create_qp_rss(struct ib_qp *ibqp, struct ib_pd *pd,
+ 		mana_ind_table[i] = wq->rx_object;
+ 
+ 		/* Create CQ table entry */
+-		WARN_ON(gc->cq_table[cq->id]);
+-		gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
+-		if (!gdma_cq) {
+-			ret = -ENOMEM;
++		ret = mana_ib_install_cq_cb(mdev, cq);
++		if (ret)
+ 			goto fail;
+-		}
+-		gdma_cq_allocated[i] = gdma_cq;
+ 
+-		gdma_cq->cq.context = cq;
+-		gdma_cq->type = GDMA_CQ;
+-		gdma_cq->cq.callback = mana_ib_cq_handler;
+-		gdma_cq->id = cq->id;
+-		gc->cq_table[cq->id] = gdma_cq;
++		gdma_cq_allocated[i] = gc->cq_table[cq->id];
+ 	}
+ 	resp.num_entries = i;
+ 
+@@ -407,18 +398,9 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
+ 	send_cq->id = cq_spec.queue_index;
+ 
+ 	/* Create CQ table entry */
+-	WARN_ON(gc->cq_table[send_cq->id]);
+-	gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
+-	if (!gdma_cq) {
+-		err = -ENOMEM;
++	err = mana_ib_install_cq_cb(mdev, send_cq);
++	if (err)
+ 		goto err_destroy_wq_obj;
+-	}
+-
+-	gdma_cq->cq.context = send_cq;
+-	gdma_cq->type = GDMA_CQ;
+-	gdma_cq->cq.callback = mana_ib_cq_handler;
+-	gdma_cq->id = send_cq->id;
+-	gc->cq_table[send_cq->id] = gdma_cq;
+ 
+ 	ibdev_dbg(&mdev->ib_dev,
+ 		  "ret %d qp->tx_object 0x%llx sq id %llu cq id %llu\n", err,
 -- 
 2.43.0
 
