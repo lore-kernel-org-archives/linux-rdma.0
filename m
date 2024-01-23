@@ -1,308 +1,164 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E15DA4CDEA;
-	Mon, 22 Jan 2024 23:23:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE4CE612E1
+	for <linux-rdma@vger.kernel.org>; Tue, 23 Jan 2024 00:46:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705965793; cv=none; b=tQ5iTjNRL81JiXfCselZ9sapsVJH/QyXJsH40d+FMbnNlxigWdHY6Q+Bf6Qa2VizxJMqgpCUNPuuhc/D4rCIv9/a7DFqSOO2gwEL0iPtwhi6SX7znudSep8rtOCpi2XTgS1bWPg2ADq8q5TyouYOTfZL837QZDdeaBHvVDr3LHs=
+	t=1705970764; cv=none; b=pLzcoY8WUvg0AJcCNrmbJO8YZPDLSqV/F4lOnpCl5Cs1C705bn7erW6hHYj6vRrVeA1c0eIHWlAiVu6KHNtpOFeqPExC8gWir0wHI5r7xwujOL/TioKYUvPGnfaAT54JmBlV5KP524kv141nFJD4aHqU0s2KrV4RrcI6IVCWSFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705965793; c=relaxed/simple;
-	bh=ev11CpI1CRst9txnHGdAHq6y8VnP30fFfDWIpfuk1/0=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=AHMYaxmGmMsSUx5IDqmGzW1IXvC4IF7Cmh2EzxHOIsZNdn8dUhYRCAHkz2iutA/SWyzlmeKltQjnZKmRXHDSKqX/vTyqOPRy0dVSckiNhxCoqrHzSOLbz3IDVwuIPjMR06QgYkRlrGc2rWyjPXFwoAm3r7I7bCmzgScGkR9UR1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Q2l190My; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1705970764; c=relaxed/simple;
+	bh=rhiNkfwcsBY8pN0Aj3OX3M7epOQG7vcAhg9hdXLwAek=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=f3TuJ66tW2b8kFepQCzMsTN738jHOcurAco8WLqWUd5k3KVbVrrK/LKW7Z7/dd6VulL8FUC2mD93Tor2K1IDgEcWRKUPBzq8Ap4krtQdcisCNTbhDtNHbea7TAIhi7VsTtJAR684QYQZlHpnrTYY6zqRAF3JKQyLyL26GtzmeCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=j8KUJJgt; arc=none smtp.client-ip=209.85.210.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Q2l190My"
-Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id A499820E2C2D;
-	Mon, 22 Jan 2024 15:23:10 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A499820E2C2D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1705965790;
-	bh=p0CMPzPJ1hMtyW0IaXyzWg4wbmiRGjXFWNTxjqQ4Z5E=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Q2l190MyEogNFsKyE58HOWaTPjItR75mLH+fvxJkW86TagdMaAkfgLXbIhoZLS7C8
-	 B1/GC5jixoi5MsbnZPSImCtCh2bci+TYREkEx0wW0pc0C6Xko8VIOXFVcBpQdEjT2k
-	 39jB0L5dMn5+oRH4M+xO5uJS5MLrBA04A5lOwz7c=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	sharmaajay@microsoft.com,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="j8KUJJgt"
+Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-6d9344f30caso2315916b3a.1
+        for <linux-rdma@vger.kernel.org>; Mon, 22 Jan 2024 16:46:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1705970762; x=1706575562; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=koLuWwEc6R93KvA47iKWZn4p87NyejoVGKhwRpq6uhs=;
+        b=j8KUJJgt1OC46MRP1rTSCjb3ikE3ot4TXw9Tukg8wx7H+83b6ohP4LHJ9UNddjKRl2
+         fSHxXLpJPJivZGL1FttjKFG88OY1GIfXdbJmN3+4oYrwPx/KuMNiKYcL0usJSbXDhAA/
+         pNz4tVDi9c8HBow8e9NE5hiv1GNBnowyNm78Y=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1705970762; x=1706575562;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=koLuWwEc6R93KvA47iKWZn4p87NyejoVGKhwRpq6uhs=;
+        b=PUOPnZ2sxNXAbpPtpn/XvTVLHcOe2w1i0cqNrmvnVomlI84mAZ+9a3kzgkRhH0fmT2
+         wmzdoJpH7G7ZCtjKPa6zlXHSlgAVbWMd2duJyeiemeX/yKJU6OZjjzFA4IpTmyBjV+RS
+         l7dwdc7Bq2NlKGr7oXkeMDTPdxC2ooiCAxGVUrJ92q5RCpXD+l4w3AKA6DrMLKw5N1Fm
+         Kwyc2pS97uDehaFIhmMZOZFIqqlkMd/cEthgwHb37JUqXsCNcnV3xWbx5IbUN5zrZ15v
+         CfLOT23a5mUTb2gOOjf2KrGZvb5Orv8nFpqlrFVhDLrK9jiLqj06PcBTNU0v0sg7giGf
+         GjDg==
+X-Gm-Message-State: AOJu0YzPmLwMmjbbhH7DamW+4mLI29BAa5TMr86YR2k19fhqzOwqx3SC
+	SwWldUzb8UDkT5KDRZDIIUOgnexvmjYeX3lCCWuMjGB5TgOhgCU7pLcce63IiRRWrLv+Blm7E4g
+	=
+X-Google-Smtp-Source: AGHT+IHnnbXv7LLoQQuo5IERPmQ1aDbHfWs5esMUO9nvMTULeZpbAQsvNcJD7PAXZFLGmSXlcp3hjA==
+X-Received: by 2002:a05:6a00:1385:b0:6d9:bf50:196e with SMTP id t5-20020a056a00138500b006d9bf50196emr7531070pfg.19.1705970761998;
+        Mon, 22 Jan 2024 16:46:01 -0800 (PST)
+Received: from www.outflux.net ([198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id r5-20020aa78b85000000b006dbca81cc36sm5095359pfd.188.2024.01.22.16.45.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 22 Jan 2024 16:45:57 -0800 (PST)
+From: Kees Cook <keescook@chromium.org>
+To: linux-hardening@vger.kernel.org
+Cc: Kees Cook <keescook@chromium.org>,
+	Santosh Shilimkar <santosh.shilimkar@oracle.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	Bill Wendling <morbo@google.com>,
+	Justin Stitt <justinstitt@google.com>,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v1 2/3] RDMA/mana_ib: introduce mana_ib_get_netdev helper function
-Date: Mon, 22 Jan 2024 15:23:00 -0800
-Message-Id: <1705965781-3235-3-git-send-email-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1705965781-3235-1-git-send-email-kotaranov@linux.microsoft.com>
-References: <1705965781-3235-1-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH 29/82] rds: Refactor intentional wrap-around calculation
+Date: Mon, 22 Jan 2024 16:27:04 -0800
+Message-Id: <20240123002814.1396804-29-keescook@chromium.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20240122235208.work.748-kees@kernel.org>
+References: <20240122235208.work.748-kees@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2769; i=keescook@chromium.org;
+ h=from:subject; bh=rhiNkfwcsBY8pN0Aj3OX3M7epOQG7vcAhg9hdXLwAek=;
+ b=owEBbQKS/ZANAwAKAYly9N/cbcAmAcsmYgBlrwgHOI22byaB9aq3JAA27hbl1bc2MNGKba4Qk
+ /4yGoiLhCWJAjMEAAEKAB0WIQSlw/aPIp3WD3I+bhOJcvTf3G3AJgUCZa8IBwAKCRCJcvTf3G3A
+ JrEqD/9OlGCVGN2v0bgu7DOOkBDw0dRbBn44WXpE64TTI2iaigc2NjR7rlxLD88o/toMj5HP2e8
+ +KNhHHhwpn/78Xvy5Fu7OSRDC9Srz2FSdC3GIXCLEy3jHqWqKwpl8s89sAkiyFxj+oaSSd2hp1Z
+ yyDFk5tnp4WFMby/w16JX9RJaUhf0Pac+SlpfX6LIhCtEDu16Ym3Zfy8+niKDzyKzgFnik3iBMB
+ VlX0qsJgWtq/F5TyYJsdRkzQJiC6uqDjRDOmIrgGbtONP4N3x7eTO2RPGiq6W6sD6wqCCTfno+I
+ TOyJBsebkoEC/gOponWRkhVaYuIKk76Rd+mpLbYKMeJ9sXs4c3jKafZerrydOpptCgnp1tAjfY0
+ ubJ/wJ50cALOah3qX7E1BFVlS8g/8Cqst3G86qmJ+jErESB4X+ju8cl4kzQJrDdmKNVd/8RAdsb
+ wNPuvNZwa3p4pqL+xtVz52yuC0AAOm1Ac9cbprphOD3okeaOY4R3ObpX9GV0e/990fYjXWl4bXk
+ aTpyUseDCo88l0yQhgdSuHpJyQLFga2P8uROjArZRuSEBD9HUQ3LrxEC/e8Ns++bdkQ4Yu2PgDo
+ Dty8RA9kx6885engKkChV3U1u51xbiNowBg4oJDE5G4q+gYIHu+fcsm6+5uoTqYHDGNdkR/t2tx b/RZj59k1eBK/EQ==
+X-Developer-Key: i=keescook@chromium.org; a=openpgp; fpr=A5C3F68F229DD60F723E6E138972F4DFDC6DC026
+Content-Transfer-Encoding: 8bit
 
-From: Konstantin Taranov <kotaranov@microsoft.com>
+In an effort to separate intentional arithmetic wrap-around from
+unexpected wrap-around, we need to refactor places that depend on this
+kind of math. One of the most common code patterns of this is:
 
-Use a helper function to access netdevs using a port number.
-This patch removes code repetitions as well as removes the need
-to explicitly use gdma_dev, which was error-prone.
+	VAR + value < VAR
 
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+Notably, this is considered "undefined behavior" for signed and pointer
+types, which the kernel works around by using the -fno-strict-overflow
+option in the build[1] (which used to just be -fwrapv). Regardless, we
+want to get the kernel source to the position where we can meaningfully
+instrument arithmetic wrap-around conditions and catch them when they
+are unexpected, regardless of whether they are signed[2], unsigned[3],
+or pointer[4] types.
+
+Refactor open-coded unsigned wrap-around addition test to use
+check_add_overflow(), retaining the result for later usage (which removes
+the redundant open-coded addition). This paves the way to enabling the
+unsigned wrap-around sanitizer[2] in the future.
+
+Link: https://git.kernel.org/linus/68df3755e383e6fecf2354a67b08f92f18536594 [1]
+Link: https://github.com/KSPP/linux/issues/26 [2]
+Link: https://github.com/KSPP/linux/issues/27 [3]
+Link: https://github.com/KSPP/linux/issues/344 [4]
+Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: netdev@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
+Cc: rds-devel@oss.oracle.com
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- drivers/infiniband/hw/mana/main.c    | 10 ++----
- drivers/infiniband/hw/mana/mana_ib.h | 11 ++++++
- drivers/infiniband/hw/mana/qp.c      | 52 ++++++++++------------------
- 3 files changed, 32 insertions(+), 41 deletions(-)
+ net/rds/info.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index e0f5138ca088..29dd2438d4fe 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -8,13 +8,10 @@
- void mana_ib_uncfg_vport(struct mana_ib_dev *dev, struct mana_ib_pd *pd,
- 			 u32 port)
- {
--	struct gdma_dev *gd = &dev->gdma_dev->gdma_context->mana;
- 	struct mana_port_context *mpc;
- 	struct net_device *ndev;
--	struct mana_context *mc;
- 
--	mc = gd->driver_data;
--	ndev = mc->ports[port];
-+	ndev = mana_ib_get_netdev(&dev->ib_dev, port);
- 	mpc = netdev_priv(ndev);
- 
- 	mutex_lock(&pd->vport_mutex);
-@@ -31,14 +28,11 @@ void mana_ib_uncfg_vport(struct mana_ib_dev *dev, struct mana_ib_pd *pd,
- int mana_ib_cfg_vport(struct mana_ib_dev *dev, u32 port, struct mana_ib_pd *pd,
- 		      u32 doorbell_id)
- {
--	struct gdma_dev *mdev = &dev->gdma_dev->gdma_context->mana;
- 	struct mana_port_context *mpc;
--	struct mana_context *mc;
- 	struct net_device *ndev;
- 	int err;
- 
--	mc = mdev->driver_data;
--	ndev = mc->ports[port];
-+	ndev = mana_ib_get_netdev(&dev->ib_dev, port);
- 	mpc = netdev_priv(ndev);
- 
- 	mutex_lock(&pd->vport_mutex);
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index ebb6537620ee..d373639e25d4 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -147,6 +147,17 @@ static inline struct gdma_context *mdev_to_gc(struct mana_ib_dev *mdev)
- 	return mdev->gdma_dev->gdma_context;
- }
- 
-+static inline struct net_device *mana_ib_get_netdev(struct ib_device *ibdev, u32 port)
-+{
-+	struct mana_ib_dev *mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
-+	struct gdma_context *gc = mdev_to_gc(mdev);
-+	struct mana_context *mc = gc->mana.driver_data;
-+
-+	if (port < 1 || port > mc->num_ports)
-+		return NULL;
-+	return mc->ports[port - 1];
-+}
-+
- int mana_ib_gd_create_dma_region(struct mana_ib_dev *dev, struct ib_umem *umem,
- 				 mana_handle_t *gdma_region);
- 
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index 0c8d6ecfbb2a..f5427599e033 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -106,11 +106,9 @@ static int mana_ib_create_qp_rss(struct ib_qp *ibqp, struct ib_pd *pd,
- 	struct mana_port_context *mpc;
- 	struct gdma_queue *gdma_cq;
- 	unsigned int ind_tbl_size;
--	struct mana_context *mc;
- 	struct net_device *ndev;
- 	struct mana_ib_cq *cq;
- 	struct mana_ib_wq *wq;
--	struct gdma_dev *gd;
- 	struct mana_eq *eq;
- 	struct ib_cq *ibcq;
- 	struct ib_wq *ibwq;
-@@ -118,9 +116,6 @@ static int mana_ib_create_qp_rss(struct ib_qp *ibqp, struct ib_pd *pd,
- 	u32 port;
+diff --git a/net/rds/info.c b/net/rds/info.c
+index b6b46a8214a0..87b35d07ce04 100644
+--- a/net/rds/info.c
++++ b/net/rds/info.c
+@@ -163,6 +163,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
+ 	unsigned long nr_pages = 0;
+ 	unsigned long start;
+ 	rds_info_func func;
++	unsigned long sum;
+ 	struct page **pages = NULL;
  	int ret;
+ 	int len;
+@@ -175,7 +176,8 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
  
--	gd = &gc->mana;
--	mc = gd->driver_data;
--
- 	if (!udata || udata->inlen < sizeof(ucmd))
- 		return -EINVAL;
- 
-@@ -163,12 +158,12 @@ static int mana_ib_create_qp_rss(struct ib_qp *ibqp, struct ib_pd *pd,
- 
- 	/* IB ports start with 1, MANA start with 0 */
- 	port = ucmd.port;
--	if (port < 1 || port > mc->num_ports) {
-+	ndev = mana_ib_get_netdev(pd->device, port);
-+	if (!ndev) {
- 		ibdev_dbg(&mdev->ib_dev, "Invalid port %u in creating qp\n",
- 			  port);
- 		return -EINVAL;
+ 	/* check for all kinds of wrapping and the like */
+ 	start = (unsigned long)optval;
+-	if (len < 0 || len > INT_MAX - PAGE_SIZE + 1 || start + len < start) {
++	if (len < 0 || len > INT_MAX - PAGE_SIZE + 1 ||
++	    check_add_overflow(start, len, &sum)) {
+ 		ret = -EINVAL;
+ 		goto out;
  	}
--	ndev = mc->ports[port - 1];
- 	mpc = netdev_priv(ndev);
+@@ -184,7 +186,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
+ 	if (len == 0)
+ 		goto call_func;
  
- 	ibdev_dbg(&mdev->ib_dev, "rx_hash_function %d port %d\n",
-@@ -206,7 +201,7 @@ static int mana_ib_create_qp_rss(struct ib_qp *ibqp, struct ib_pd *pd,
- 		cq_spec.gdma_region = cq->gdma_region;
- 		cq_spec.queue_size = cq->cqe * COMP_ENTRY_SIZE;
- 		cq_spec.modr_ctx_id = 0;
--		eq = &mc->eqs[cq->comp_vector % gc->max_num_queues];
-+		eq = &mpc->ac->eqs[cq->comp_vector % gc->max_num_queues];
- 		cq_spec.attached_eq = eq->eq->id;
+-	nr_pages = (PAGE_ALIGN(start + len) - (start & PAGE_MASK))
++	nr_pages = (PAGE_ALIGN(sum) - (start & PAGE_MASK))
+ 			>> PAGE_SHIFT;
  
- 		ret = mana_create_wq_obj(mpc, mpc->port_handle, GDMA_RQ,
-@@ -303,7 +298,6 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	struct mana_ib_ucontext *mana_ucontext =
- 		rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
- 					  ibucontext);
--	struct gdma_dev *gd = &mdev->gdma_dev->gdma_context->mana;
- 	struct gdma_context *gc = mdev_to_gc(mdev);
- 	struct mana_ib_create_qp_resp resp = {};
- 	struct mana_ib_create_qp ucmd = {};
-@@ -311,7 +305,6 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	struct mana_obj_spec wq_spec = {};
- 	struct mana_obj_spec cq_spec = {};
- 	struct mana_port_context *mpc;
--	struct mana_context *mc;
- 	struct net_device *ndev;
- 	struct ib_umem *umem;
- 	struct mana_eq *eq;
-@@ -319,8 +312,6 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	u32 port;
- 	int err;
- 
--	mc = gd->driver_data;
--
- 	if (!mana_ucontext || udata->inlen < sizeof(ucmd))
- 		return -EINVAL;
- 
-@@ -331,11 +322,6 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 		return err;
- 	}
- 
--	/* IB ports start with 1, MANA Ethernet ports start with 0 */
--	port = ucmd.port;
--	if (port < 1 || port > mc->num_ports)
--		return -EINVAL;
--
- 	if (attr->cap.max_send_wr > mdev->adapter_caps.max_qp_wr) {
- 		ibdev_dbg(&mdev->ib_dev,
- 			  "Requested max_send_wr %d exceeding limit\n",
-@@ -350,11 +336,17 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 		return -EINVAL;
- 	}
- 
--	ndev = mc->ports[port - 1];
-+	port = ucmd.port;
-+	ndev = mana_ib_get_netdev(ibpd->device, port);
-+	if (!ndev) {
-+		ibdev_dbg(&mdev->ib_dev, "Invalid port %u in creating qp\n",
-+			  port);
-+		return -EINVAL;
-+	}
- 	mpc = netdev_priv(ndev);
- 	ibdev_dbg(&mdev->ib_dev, "port %u ndev %p mpc %p\n", port, ndev, mpc);
- 
--	err = mana_ib_cfg_vport(mdev, port - 1, pd, mana_ucontext->doorbell);
-+	err = mana_ib_cfg_vport(mdev, port, pd, mana_ucontext->doorbell);
- 	if (err)
- 		return -ENODEV;
- 
-@@ -394,8 +386,8 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	cq_spec.gdma_region = send_cq->gdma_region;
- 	cq_spec.queue_size = send_cq->cqe * COMP_ENTRY_SIZE;
- 	cq_spec.modr_ctx_id = 0;
--	eq_vec = send_cq->comp_vector % gd->gdma_context->max_num_queues;
--	eq = &mc->eqs[eq_vec];
-+	eq_vec = send_cq->comp_vector % gc->max_num_queues;
-+	eq = &mpc->ac->eqs[eq_vec];
- 	cq_spec.attached_eq = eq->eq->id;
- 
- 	err = mana_create_wq_obj(mpc, mpc->port_handle, GDMA_SQ, &wq_spec,
-@@ -415,7 +407,7 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	send_cq->id = cq_spec.queue_index;
- 
- 	/* Create CQ table entry */
--	WARN_ON(gd->gdma_context->cq_table[send_cq->id]);
-+	WARN_ON(gc->cq_table[send_cq->id]);
- 	gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
- 	if (!gdma_cq) {
- 		err = -ENOMEM;
-@@ -426,7 +418,7 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	gdma_cq->type = GDMA_CQ;
- 	gdma_cq->cq.callback = mana_ib_cq_handler;
- 	gdma_cq->id = send_cq->id;
--	gd->gdma_context->cq_table[send_cq->id] = gdma_cq;
-+	gc->cq_table[send_cq->id] = gdma_cq;
- 
- 	ibdev_dbg(&mdev->ib_dev,
- 		  "ret %d qp->tx_object 0x%llx sq id %llu cq id %llu\n", err,
-@@ -460,7 +452,7 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	ib_umem_release(umem);
- 
- err_free_vport:
--	mana_ib_uncfg_vport(mdev, pd, port - 1);
-+	mana_ib_uncfg_vport(mdev, pd, port);
- 
- 	return err;
- }
-@@ -498,16 +490,13 @@ static int mana_ib_destroy_qp_rss(struct mana_ib_qp *qp,
- {
- 	struct mana_ib_dev *mdev =
- 		container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
--	struct gdma_dev *gd = &mdev->gdma_dev->gdma_context->mana;
- 	struct mana_port_context *mpc;
--	struct mana_context *mc;
- 	struct net_device *ndev;
- 	struct mana_ib_wq *wq;
- 	struct ib_wq *ibwq;
- 	int i;
- 
--	mc = gd->driver_data;
--	ndev = mc->ports[qp->port - 1];
-+	ndev = mana_ib_get_netdev(qp->ibqp.device, qp->port);
- 	mpc = netdev_priv(ndev);
- 
- 	for (i = 0; i < (1 << ind_tbl->log_ind_tbl_size); i++) {
-@@ -525,15 +514,12 @@ static int mana_ib_destroy_qp_raw(struct mana_ib_qp *qp, struct ib_udata *udata)
- {
- 	struct mana_ib_dev *mdev =
- 		container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
--	struct gdma_dev *gd = &mdev->gdma_dev->gdma_context->mana;
- 	struct ib_pd *ibpd = qp->ibqp.pd;
- 	struct mana_port_context *mpc;
--	struct mana_context *mc;
- 	struct net_device *ndev;
- 	struct mana_ib_pd *pd;
- 
--	mc = gd->driver_data;
--	ndev = mc->ports[qp->port - 1];
-+	ndev = mana_ib_get_netdev(qp->ibqp.device, qp->port);
- 	mpc = netdev_priv(ndev);
- 	pd = container_of(ibpd, struct mana_ib_pd, ibpd);
- 
-@@ -544,7 +530,7 @@ static int mana_ib_destroy_qp_raw(struct mana_ib_qp *qp, struct ib_udata *udata)
- 		ib_umem_release(qp->sq_umem);
- 	}
- 
--	mana_ib_uncfg_vport(mdev, pd, qp->port - 1);
-+	mana_ib_uncfg_vport(mdev, pd, qp->port);
- 
- 	return 0;
- }
+ 	pages = kmalloc_array(nr_pages, sizeof(struct page *), GFP_KERNEL);
 -- 
-2.43.0
+2.34.1
 
