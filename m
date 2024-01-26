@@ -1,111 +1,168 @@
-Received: from out-181.mta0.migadu.com (out-181.mta0.migadu.com [91.218.175.181])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B21B7475
-	for <linux-rdma@vger.kernel.org>; Fri, 26 Jan 2024 02:18:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB287134A3
+	for <linux-rdma@vger.kernel.org>; Fri, 26 Jan 2024 11:05:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235490; cv=none; b=dHgynAVd3GF7io+ORo+G8/B7LrFBiR4TKvfJrtwiBX9eCJnP15KlZg2RpBqCNXBlocJq0sw1A5bJYQZkJp/99c7bCa60eHNhI18rn5D7qit8U4smHWZolbbzqSaPT5qLaOX8iV3GIlfI6FI9LcTjqTWc6BdP0EK1HKb9pe2YaVA=
+	t=1706267139; cv=none; b=HSYAjwOOuv+I0e5OU7AyUPid+6ZIyyco8EJSpmCTLH1XUiYu/z2fMIn1Oy999ovVnTOeQ5ns6WcnhNFMS2HfDFsQ/vzvsLUZo0plXW7C8qBQkojrCX87MEPvxYVf8qnmhIk+WG/KxpjUpZVLFVBVSqbdQtYeFRh0oJvQWWI4M3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235490; c=relaxed/simple;
-	bh=U+0Rv7mAdg2CfouEvvdx3FErzjgvdLl/Y3M/r0HHZMM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=RWtom3PSHOM1XOJRJYFeA+/MeQesf81JwqiT+WDxRNB5dFVqqRntqvFoSI+rl51T0E1YBMTaaSc6G7MAxvcECXQ+W6nxRIAIS4ZsRfOfCxQSNlPYXbMcOhwgeCYxNDs27CYZyT7nXjzwg5Pcwew/jlj2+M46dt6PuBTOMc2sEws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=V84AZO/Y; arc=none smtp.client-ip=91.218.175.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1706267139; c=relaxed/simple;
+	bh=WbXWuA2ENJ6lmkZS3QH6j1mNh5HJOqC5BB7qr/oRaqU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=o4DsMVepRTJugagNHwr6tW9+AeB/TD/kXOx2ogMiomZx52TkyTjMKFi30s8eTXVuxK73iFVTOp+EMmtxVY8f4Csc59s9ynYbQlKBoAYdwMOSR3p7EsodbI3j+4CEN7cCTzkvUWakzEVMPLE/1AeHJx4OGOQB9BIbyaxRHNKFFKE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uDWVumaN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="V84AZO/Y"
-Message-ID: <e550d100-9545-425e-b548-d6a588968b31@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1706235484;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RtosFhdK9WYdAwSe6uRtjgNfTz4hNvwY/HhFzzEUKHA=;
-	b=V84AZO/Y7faFUPXFTT7YC90Me/4PWmIbJTMa5fIBcnJwKjLtusNmNwUU9FMwuy7d+CndrI
-	um/zG7nn3C6eyVY+s1/vshnTSsFd39dV2Mz/P4LJZqQMAIZmGBX9mV8GMd7EPmRj0wbmhU
-	YwP08QNs/qx0Axrw1h+5Z5D+9FiK8js=
-Date: Fri, 26 Jan 2024 10:17:56 +0800
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uDWVumaN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC7ECC433C7;
+	Fri, 26 Jan 2024 11:05:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1706267139;
+	bh=WbXWuA2ENJ6lmkZS3QH6j1mNh5HJOqC5BB7qr/oRaqU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=uDWVumaNWuVATlCOjKE+hGxnwSSCdCwegK20ljUepq60+WFNVgUyDLLhhO+oI/kMO
+	 twu1bjWkF84VlVsdUHqqu4vbdY2MCk1wOH4eBvCupMHCiTS3ceqYeo6SH9RlskwJwP
+	 0aHGsTF4R9A/IjmN5X6N1UTm73Vs5xKSjQCEc/qt4IxLoV1ct/lM5QNmRkoZHGYHl9
+	 G091I6ijG1aceEkSRv+hkXKh8p0HGe6qkb6/wvqwGuZ4wPWwx9U+wq2KcafSDIDCPC
+	 zXZ+p1wNSiZEH73qFUAzjogL/tbqXZbQzrSdPhRnsZKnFBLc2I9PAYxKozqPQD0Mc+
+	 a7fyxECNqz5Cw==
+Date: Fri, 26 Jan 2024 13:05:34 +0200
+From: Leon Romanovsky <leon@kernel.org>
+To: Bernard Metzler <BMT@zurich.ibm.com>
+Cc: Guoqing Jiang <guoqing.jiang@linux.dev>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"jgg@ziepe.ca" <jgg@ziepe.ca>,
+	"ionut_n2001@yahoo.com" <ionut_n2001@yahoo.com>
+Subject: Re: Re: [PATCH] RDMA/siw: Trim size of page array to max size needed
+Message-ID: <20240126110534.GE9841@unreal>
+References: <20240119130532.57146-1-bmt@zurich.ibm.com>
+ <05415e8a-2878-04a7-efeb-4119b95b8fd2@linux.dev>
+ <BY5PR15MB3602E55D5186E1A241489C8B997B2@BY5PR15MB3602.namprd15.prod.outlook.com>
+ <a4496a1e-c7bb-eba3-1095-07b4472786dc@linux.dev>
+ <BY5PR15MB36028A78D66BBEE55A54C67E997A2@BY5PR15MB3602.namprd15.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH rdma-next 5/6] RDMA/mlx5: Change check for cacheable user
- mkeys
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@nvidia.com>
-Cc: Junxian Huang <huangjunxian6@hisilicon.com>,
- Or Har-Toov <ohartoov@nvidia.com>, Edward Srouji <edwards@nvidia.com>,
- linux-rdma@vger.kernel.org, Maor Gottlieb <maorg@nvidia.com>,
- Mark Zhang <markzhang@nvidia.com>, Michael Guralnik <michaelgur@nvidia.com>,
- Tamar Mashiah <tmashiah@nvidia.com>, Yishai Hadas <yishaih@nvidia.com>
-References: <cover.1706185318.git.leon@kernel.org>
- <4641d8f79a88b07925cab0d8cd1ffc032a9115ef.1706185318.git.leon@kernel.org>
- <36037101-dd46-d956-4555-d02eeb04dd0b@hisilicon.com>
- <20240125133824.GM1455070@nvidia.com> <20240125200230.GD9841@unreal>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <20240125200230.GD9841@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+In-Reply-To: <BY5PR15MB36028A78D66BBEE55A54C67E997A2@BY5PR15MB3602.namprd15.prod.outlook.com>
 
-在 2024/1/26 4:02, Leon Romanovsky 写道:
-> On Thu, Jan 25, 2024 at 09:38:24AM -0400, Jason Gunthorpe wrote:
->> On Thu, Jan 25, 2024 at 08:52:57PM +0800, Junxian Huang wrote:
->>>
->>>
->>> On 2024/1/25 20:30, Leon Romanovsky wrote:
->>>> From: Or Har-Toov <ohartoov@nvidia.com>
->>>>
->>>> In the dereg flow, UMEM is not a good enough indication whether an MR
->>>> is from userspace since in mlx5_ib_rereg_user_mr there are some cases
->>>> when a new MR is created and the UMEM of the old MR is set to NULL.
->>>> Currently when mlx5_ib_dereg_mr is called on the old MR, UMEM is NULL
->>>> but cache_ent can be different than NULL. So, the mkey will not be
->>>> destroyed.
->>>> Therefore checking if mkey is from user application and cacheable
->>>> should be done by checking if rb_key or cache_ent exist and all other kind of
->>>> mkeys should be destroyed.
->>>>
->>>> Fixes: dd1b913fb0d0 ("RDMA/mlx5: Cache all user cacheable mkeys on dereg MR flow")
->>>> Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
->>>> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
->>>> ---
->>>>   drivers/infiniband/hw/mlx5/mr.c | 15 ++++++++-------
->>>>   1 file changed, 8 insertions(+), 7 deletions(-)
->>>>
->>>> diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
->>>> index 12bca6ca4760..3c241898e064 100644
->>>> --- a/drivers/infiniband/hw/mlx5/mr.c
->>>> +++ b/drivers/infiniband/hw/mlx5/mr.c
->>>> @@ -1857,6 +1857,11 @@ static int cache_ent_find_and_store(struct mlx5_ib_dev *dev,
->>>>   	return ret;
->>>>   }
->>>>   
->>>> +static bool is_cacheable_mkey(struct mlx5_ib_mkey mkey)
->>>
->>> I think it's better using a pointer as the parameter instead of the struct itself.
->>
->> Indeed, that looks like a typo
+On Thu, Jan 25, 2024 at 05:27:52PM +0000, Bernard Metzler wrote:
 > 
-> It is suboptimal to pass struct by value, because whole struct will be copied,
-
-Agree. With a pointer, an address is passed. With the struct, the whole 
-struct is copied and passed. The overhead of calling function is less 
-with a pointer.
-
-Zhu Yanjun
-
-> but it is not a mistake too.
 > 
-> Thanks
+> > -----Original Message-----
+> > From: Guoqing Jiang <guoqing.jiang@linux.dev>
+> > Sent: Thursday, January 25, 2024 1:15 AM
+> > To: Bernard Metzler <BMT@zurich.ibm.com>; linux-rdma@vger.kernel.org
+> > Cc: jgg@ziepe.ca; leon@kernel.org; ionut_n2001@yahoo.com
+> > Subject: [EXTERNAL] Re: [PATCH] RDMA/siw: Trim size of page array to max
+> > size needed
+> > 
+> > Hi Bernard,
+> > 
+> > On 1/25/24 03:59, Bernard Metzler wrote:
+> > >> -----Original Message-----
+> > >> From: Guoqing Jiang <guoqing.jiang@linux.dev>
+> > >> Sent: Tuesday, January 23, 2024 3:43 AM
+> > >> To: Bernard Metzler <BMT@zurich.ibm.com>; linux-rdma@vger.kernel.org
+> > >> Cc: jgg@ziepe.ca; leon@kernel.org; ionut_n2001@yahoo.com
+> > >> Subject: [EXTERNAL] Re: [PATCH] RDMA/siw: Trim size of page array to
+> > max
+> > >> size needed
+> > >>
+> > >> Hi Bernard,
+> > >>
+> > >> On 1/19/24 21:05, Bernard Metzler wrote:
+> > >>> siw tries sending all parts of an iWarp wire frame in one socket
+> > >>> send operation. If user data can be send without copy, user data
+> > >>> pages for one wire frame are referenced in an fixed size page array.
+> > >>> The size of this array can be made 2 elements smaller, since it
+> > >>> does not reference iWarp header and trailer crc. Trimming
+> > >>> the page array reduces the affected siw_tx_hdt() functions frame
+> > >>> size, staying below 1024 bytes. This avoids the following
+> > >>> compile-time warning:
+> > >>>
+> > >>>    drivers/infiniband/sw/siw/siw_qp_tx.c: In function 'siw_tx_hdt':
+> > >>>    drivers/infiniband/sw/siw/siw_qp_tx.c:677:1: warning: the frame
+> > >>>    size of 1040 bytes is larger than 1024 bytes [-Wframe-larger-
+> > than=]
+> > >> I saw similar warning in my ubuntu 22.04 VM which has below gcc.
+> > >>
+> > >> root@buk:/home/gjiang/linux-mirror# make M=drivers/infiniband/sw/siw/
+> > >> -j16 W=1
+> > >>     CC [M]  drivers/infiniband/sw/siw/siw_qp_tx.o
+> > >> drivers/infiniband/sw/siw/siw_qp_tx.c: In function ‘siw_tx_hdt’:
+> > >> drivers/infiniband/sw/siw/siw_qp_tx.c:665:1: warning: the frame size
+> > of
+> > >> 1440 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+> > >>     665 | }
+> > >>         | ^
+> > >>
+> > > Whew.. that is quite substantially off the target!
+> > > How come different compilers making so much of a difference.
+> > > Guoqing, can you check if the macro computing the maximum number
+> > > of fragments is broken, i.e., computes different values in
+> > > the cases you refer?
+> > 
+> > Sorry, I was wrong 😅.
+> > 
+> > The warning is not relevant with compiler, and it also appears with gcc-
+> > 13.1
+> > after enable KASAN which is used to find out-of-bounds bugs. Also, there
+> > are lots of -Wframe-larger-than warning from other places as well.
+> > 
+> > > Thanks a lot!
+> > > Bernard
+> > >> # gcc --version
+> > >> gcc (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0
+> > >>
+> > >> And it still appears after apply this patch on top of 6.8-rc1.
+> > >>
+> > >> root@buk:/home/gjiang/linux-mirror# git am
+> > >>
+> > ./20240119_bmt_rdma_siw_trim_size_of_page_array_to_max_size_needed.mbx
+> > >> Applying: RDMA/siw: Trim size of page array to max size needed
+> > >> root@buk:/home/gjiang/linux-mirror# make M=drivers/infiniband/sw/siw/
+> > >> -j16 W=1
+> > >>     CC [M]  drivers/infiniband/sw/siw/siw_qp_tx.o
+> > >> drivers/infiniband/sw/siw/siw_qp_tx.c: In function ‘siw_tx_hdt’:
+> > >> drivers/infiniband/sw/siw/siw_qp_tx.c:668:1: warning: the frame size
+> > of
+> > >> 1408 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+> > >>     668 | }
+> > >>         | ^
+> > 
+> > The patch actually reduced the frame size from 1440 to 1408 though it is
+> > still larger than 1024.
+> > 
 > 
->>
->> Thanks,
->> Jason
->>
+> So in your opinion, does this patch fix the issue of having a
+> frame size larger than 1024 bytes for a typical build? I am sure
+> we do not want to optimize the driver for building with KASAN
+> debug options enabled.
 
+But this is how we are running or supposed to run kernels. In any
+sane regression run, KASAN is enabled.
+
+I would speculate that most people who run SIW, use it to test their ULPs.
+
+So I would like to see it fixed for them too.
+
+Thanks
+
+> 
+> The original bug report claimed a frame size of 1040 bytes for a
+> build w/o KASAN, being larger than 1024 bytes by 16 bytes. I
+> think this patch fixes the reported issue.
+> 
+> Thanks a lot,
+> Bernard.
+> 
+> 
+> > Thanks,
+> > Guoqing
+> 
