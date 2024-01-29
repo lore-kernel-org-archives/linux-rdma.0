@@ -1,28 +1,28 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 402A84C629;
-	Mon, 29 Jan 2024 06:21:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A8C904CDE5;
+	Mon, 29 Jan 2024 06:21:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706509293; cv=none; b=TdkxLIO+TqpwqT/nzDjcuwuvrsKbC6gr979pvOOSZwc5v1CNTYoQmo+TGx5osaaTvt6CiB5Tc2/qTZyCNo+EgN36E1dp4RjLQCGT4I0GTXShlGbbBU0Rllc+2MDT9iOcy6A+3I3SFFG7wV9rbd51wSbtpmTaagYTPcAF88iymUI=
+	t=1706509295; cv=none; b=USEOFITGEwQU9B72fT7mNh6Nj8pvczRJXGjuxhku1Is07iIEzE7S+oyS1zaHuMx8p6os754yFwJHug+EgEjmSjEThquujSGzsPGGygmG34Uvvd+BXn+VZD7eX4O8rcNRq38bRls5kF0ZyvvxQs47R33oYVk0vn7wrz8NFoD30CE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706509293; c=relaxed/simple;
-	bh=JWip2UTTjunONm5W+kW2X28AocSMuT6jlRKMeBFBPOA=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=fX5EU0Lfhd9zwlczt5Bjt9Tv46hUecpNLQ5ZsxI2vnNbNzr/N3oxfPyGqpc5iX+N+4wo0SfmxpUSCuusgOAe31sFNq+Beik4p4drrM199AGUBBWsFV1PxsIbHKVsJbvwkfshgU6dJJ+lYW8GTCIOnJI8WSiBK406cv3gVmaJkcQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=C11V5SYu; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1706509295; c=relaxed/simple;
+	bh=v9MDEJ1+0pMadpqw+Z8wm+0v+LwPNN7gls1lvIH64rw=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=iSNhJ/O8uqXVuTaK3LkNm1EvslPDDzTBAkzYBmGxJ+CYVR8UjfjjbolyS1q00r6+ku/Uw+5/LzSMEaH3TNXTrykVJFLdcNXqoCDAyCtPzgPoB71LzGo5+J7wurPMSpjKFHFHrZN3bTB6HGCiaVUUYsg9/q8qYx/wHkVBXjHA50M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=k9AeTemi; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="C11V5SYu"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="k9AeTemi"
 Received: by linux.microsoft.com (Postfix, from userid 1099)
-	id AFFC420E67D4; Sun, 28 Jan 2024 22:21:26 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AFFC420E67D4
+	id 48A0520E67C9; Sun, 28 Jan 2024 22:21:33 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 48A0520E67C9
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1706509286;
-	bh=Qh4vCcMbs6V3VMTJ7hXH2GEKRppPqxUeLFTB/Ig1nok=;
+	s=default; t=1706509293;
+	bh=1onNjZrx6dF0bIPOiAkazIzuK6UO0uUICqgy/1VAkLg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=C11V5SYuf6FExFn0KKr+UA0GfphvYgEKbgmfBpugNq/RJemDlCfcLJHmmENkQaT+r
-	 yg+PlOFu/8Uopt6suDXj6TGUz3jdAh0xNQzC1NPPCIuQ10jsrMR+056At5idjoxIs3
-	 +heXAAG4NSNuH3BYJmXuwHz08GVf06NbgCnmo5Y4=
+	b=k9AeTemifJNcjNJk8+YBWpbkfIcUzKMQv3UJvACAgGqLSwxj39hanEgh+lzmuYYOu
+	 xZ/ixO2ed3yOJhsQ4MaSQg/uqsS+yQm++RwYyeLj8/EA+/tLCmCJhmfB+FoI4baoJP
+	 EuV3yNyATGCbdxtK7fRrZcR7J/T/10TEowtLdcUg=
 From: Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
 To: kys@microsoft.com,
 	haiyangz@microsoft.com,
@@ -44,10 +44,11 @@ To: kys@microsoft.com,
 	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org
 Cc: schakrabarti@microsoft.com,
-	paulros@microsoft.com
-Subject: [PATCH 1/4 V3 net-next] cpumask: add cpumask_weight_andnot()
-Date: Sun, 28 Jan 2024 22:21:04 -0800
-Message-Id: <1706509267-17754-2-git-send-email-schakrabarti@linux.microsoft.com>
+	paulros@microsoft.com,
+	Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
+Subject: [PATCH 4/4 V3 net-next] net: mana: Assigning IRQ affinity on HT cores
+Date: Sun, 28 Jan 2024 22:21:07 -0800
+Message-Id: <1706509267-17754-5-git-send-email-schakrabarti@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1706509267-17754-1-git-send-email-schakrabarti@linux.microsoft.com>
 References: <1706509267-17754-1-git-send-email-schakrabarti@linux.microsoft.com>
@@ -57,100 +58,159 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-From: Yury Norov <yury.norov@gmail.com>
+Existing MANA design assigns IRQ to every CPU, including sibling
+hyper-threads. This may cause multiple IRQs to be active simultaneously
+in the same core and may reduce the network performance.
 
-Similarly to cpumask_weight_and(), cpumask_weight_andnot() is a handy
-helper that may help to avoid creating an intermediate mask just to
-calculate number of bits that set in a 1st given mask, and clear in 2nd
-one.
+Improve the performance by assigning IRQ to non sibling CPUs in local
+NUMA node. The performance improvement we are getting using ntttcp with
+following patch is around 15 percent against existing design and
+approximately 11 percent, when trying to assign one IRQ in each core
+across NUMA nodes, if enough cores are present.
+The change will improve the performance for the system
+with high number of CPU, where number of CPUs in a node is more than
+64 CPUs. Nodes with 64 CPUs or less than 64 CPUs will not be affected
+by this change.
 
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Reviewed-by: Jacob Keller <jacob.e.keller@intel.com>
+The performance study was done using ntttcp tool in Azure.
+The node had 2 nodes with 32 cores each, total 128 vCPU and number of channels
+were 32 for 32 RX rings.
+
+The below table shows a comparison between existing design and new
+design:
+
+IRQ   node-num    core-num   CPU        performance(%)
+1      0 | 0       0 | 0     0 | 0-1     0
+2      0 | 0       0 | 1     1 | 2-3     3
+3      0 | 0       1 | 2     2 | 4-5     10
+4      0 | 0       1 | 3     3 | 6-7     15
+5      0 | 0       2 | 4     4 | 8-9     15
+...
+...
+25     0 | 0       12| 24    24| 48-49   12
+...
+32     0 | 0       15| 31    31| 62-63   12
+33     0 | 0       16| 0     32| 0-1     10
+...
+64     0 | 0       31| 31    63| 62-63   0
+
+Signed-off-by: Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
 ---
- include/linux/bitmap.h  | 12 ++++++++++++
- include/linux/cpumask.h | 13 +++++++++++++
- lib/bitmap.c            |  7 +++++++
- 3 files changed, 32 insertions(+)
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 61 +++++++++++++++----
+ 1 file changed, 50 insertions(+), 11 deletions(-)
 
-diff --git a/include/linux/bitmap.h b/include/linux/bitmap.h
-index 99451431e4d6..5814e9ee40ba 100644
---- a/include/linux/bitmap.h
-+++ b/include/linux/bitmap.h
-@@ -54,6 +54,7 @@ struct device;
-  *  bitmap_full(src, nbits)                     Are all bits set in *src?
-  *  bitmap_weight(src, nbits)                   Hamming Weight: number set bits
-  *  bitmap_weight_and(src1, src2, nbits)        Hamming Weight of and'ed bitmap
-+ *  bitmap_weight_andnot(src1, src2, nbits)     Hamming Weight of andnot'ed bitmap
-  *  bitmap_set(dst, pos, nbits)                 Set specified bit area
-  *  bitmap_clear(dst, pos, nbits)               Clear specified bit area
-  *  bitmap_find_next_zero_area(buf, len, pos, n, mask)  Find bit free area
-@@ -169,6 +170,8 @@ bool __bitmap_subset(const unsigned long *bitmap1,
- unsigned int __bitmap_weight(const unsigned long *bitmap, unsigned int nbits);
- unsigned int __bitmap_weight_and(const unsigned long *bitmap1,
- 				 const unsigned long *bitmap2, unsigned int nbits);
-+unsigned int __bitmap_weight_andnot(const unsigned long *bitmap1,
-+				    const unsigned long *bitmap2, unsigned int nbits);
- void __bitmap_set(unsigned long *map, unsigned int start, int len);
- void __bitmap_clear(unsigned long *map, unsigned int start, int len);
- 
-@@ -425,6 +428,15 @@ unsigned long bitmap_weight_and(const unsigned long *src1,
- 	return __bitmap_weight_and(src1, src2, nbits);
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 05a0ac054823..1332db9a08eb 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -1249,7 +1249,7 @@ void mana_gd_free_res_map(struct gdma_resource *r)
+ 	r->size = 0;
  }
  
-+static __always_inline
-+unsigned long bitmap_weight_andnot(const unsigned long *src1,
-+				   const unsigned long *src2, unsigned int nbits)
-+{
-+	if (small_const_nbits(nbits))
-+		return hweight_long(*src1 & ~(*src2) & BITMAP_LAST_WORD_MASK(nbits));
-+	return __bitmap_weight_andnot(src1, src2, nbits);
-+}
-+
- static __always_inline void bitmap_set(unsigned long *map, unsigned int start,
- 		unsigned int nbits)
+-static __maybe_unused int irq_setup(unsigned int *irqs, unsigned int len, int node)
++static int irq_setup(unsigned int *irqs, unsigned int len, int node)
  {
-diff --git a/include/linux/cpumask.h b/include/linux/cpumask.h
-index cfb545841a2c..228c23eb36d2 100644
---- a/include/linux/cpumask.h
-+++ b/include/linux/cpumask.h
-@@ -719,6 +719,19 @@ static inline unsigned int cpumask_weight_and(const struct cpumask *srcp1,
- 	return bitmap_weight_and(cpumask_bits(srcp1), cpumask_bits(srcp2), small_cpumask_bits);
- }
+ 	const struct cpumask *next, *prev = cpu_none_mask;
+ 	cpumask_var_t cpus __free(free_cpumask_var);
+@@ -1280,13 +1280,16 @@ static __maybe_unused int irq_setup(unsigned int *irqs, unsigned int len, int no
  
-+/**
-+ * cpumask_weight_andnot - Count of bits in (*srcp1 & ~*srcp2)
-+ * @srcp1: the cpumask to count bits (< nr_cpu_ids) in.
-+ * @srcp2: the cpumask to count bits (< nr_cpu_ids) in.
-+ *
-+ * Return: count of bits set in both *srcp1 and *srcp2
-+ */
-+static inline unsigned int cpumask_weight_andnot(const struct cpumask *srcp1,
-+						const struct cpumask *srcp2)
-+{
-+	return bitmap_weight_andnot(cpumask_bits(srcp1), cpumask_bits(srcp2), small_cpumask_bits);
-+}
-+
- /**
-  * cpumask_shift_right - *dstp = *srcp >> n
-  * @dstp: the cpumask result
-diff --git a/lib/bitmap.c b/lib/bitmap.c
-index 09522af227f1..b97692854966 100644
---- a/lib/bitmap.c
-+++ b/lib/bitmap.c
-@@ -348,6 +348,13 @@ unsigned int __bitmap_weight_and(const unsigned long *bitmap1,
- }
- EXPORT_SYMBOL(__bitmap_weight_and);
- 
-+unsigned int __bitmap_weight_andnot(const unsigned long *bitmap1,
-+				const unsigned long *bitmap2, unsigned int bits)
-+{
-+	return BITMAP_WEIGHT(bitmap1[idx] & ~bitmap2[idx], bits);
-+}
-+EXPORT_SYMBOL(__bitmap_weight_andnot);
-+
- void __bitmap_set(unsigned long *map, unsigned int start, int len)
+ static int mana_gd_setup_irqs(struct pci_dev *pdev)
  {
- 	unsigned long *p = map + BIT_WORD(start);
+-	unsigned int max_queues_per_port = num_online_cpus();
+ 	struct gdma_context *gc = pci_get_drvdata(pdev);
++	unsigned int max_queues_per_port;
+ 	struct gdma_irq_context *gic;
+ 	unsigned int max_irqs, cpu;
+-	int nvec, irq;
++	int start_irq_index = 1;
++	int nvec, *irqs, irq;
+ 	int err, i = 0, j;
+ 
++	cpus_read_lock();
++	max_queues_per_port = num_online_cpus();
+ 	if (max_queues_per_port > MANA_MAX_NUM_QUEUES)
+ 		max_queues_per_port = MANA_MAX_NUM_QUEUES;
+ 
+@@ -1294,8 +1297,18 @@ static int mana_gd_setup_irqs(struct pci_dev *pdev)
+ 	max_irqs = max_queues_per_port + 1;
+ 
+ 	nvec = pci_alloc_irq_vectors(pdev, 2, max_irqs, PCI_IRQ_MSIX);
+-	if (nvec < 0)
++	if (nvec < 0) {
++		cpus_read_unlock();
+ 		return nvec;
++	}
++	if (nvec <= num_online_cpus())
++		start_irq_index = 0;
++
++	irqs = kmalloc_array((nvec - start_irq_index), sizeof(int), GFP_KERNEL);
++	if (!irqs) {
++		err = -ENOMEM;
++		goto free_irq_vector;
++	}
+ 
+ 	gc->irq_contexts = kcalloc(nvec, sizeof(struct gdma_irq_context),
+ 				   GFP_KERNEL);
+@@ -1323,17 +1336,41 @@ static int mana_gd_setup_irqs(struct pci_dev *pdev)
+ 			goto free_irq;
+ 		}
+ 
+-		err = request_irq(irq, mana_gd_intr, 0, gic->name, gic);
+-		if (err)
+-			goto free_irq;
+-
+-		cpu = cpumask_local_spread(i, gc->numa_node);
+-		irq_set_affinity_and_hint(irq, cpumask_of(cpu));
++		if (!i) {
++			err = request_irq(irq, mana_gd_intr, 0, gic->name, gic);
++			if (err)
++				goto free_irq;
++
++			/* If number of IRQ is one extra than number of online CPUs,
++			 * then we need to assign IRQ0 (hwc irq) and IRQ1 to
++			 * same CPU.
++			 * Else we will use different CPUs for IRQ0 and IRQ1.
++			 * Also we are using cpumask_local_spread instead of
++			 * cpumask_first for the node, because the node can be
++			 * mem only.
++			 */
++			if (start_irq_index) {
++				cpu = cpumask_local_spread(i, gc->numa_node);
++				irq_set_affinity_and_hint(irq, cpumask_of(cpu));
++			} else {
++				irqs[start_irq_index] = irq;
++			}
++		} else {
++			irqs[i - start_irq_index] = irq;
++			err = request_irq(irqs[i - start_irq_index], mana_gd_intr, 0,
++					  gic->name, gic);
++			if (err)
++				goto free_irq;
++		}
+ 	}
+ 
++	err = irq_setup(irqs, (nvec - start_irq_index), gc->numa_node);
++	if (err)
++		goto free_irq;
++
+ 	gc->max_num_msix = nvec;
+ 	gc->num_msix_usable = nvec;
+-
++	cpus_read_unlock();
+ 	return 0;
+ 
+ free_irq:
+@@ -1346,8 +1383,10 @@ static int mana_gd_setup_irqs(struct pci_dev *pdev)
+ 	}
+ 
+ 	kfree(gc->irq_contexts);
++	kfree(irqs);
+ 	gc->irq_contexts = NULL;
+ free_irq_vector:
++	cpus_read_unlock();
+ 	pci_free_irq_vectors(pdev);
+ 	return err;
+ }
 -- 
 2.34.1
 
