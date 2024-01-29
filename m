@@ -1,28 +1,28 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CCBBB4C61B;
-	Mon, 29 Jan 2024 06:21:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 402A84C629;
+	Mon, 29 Jan 2024 06:21:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706509293; cv=none; b=lKQ65LAeNVoSMpBJToTf1BhqoV3px9DLgmI82jw2owzh6Lt5COgypm5xYf2C9QbnMZuQP9R+zQ6DAopBL8tq/dRgGmIqbdwbgQQ2z+FJX5sDHG3nkuzT+k5uU00/Ku6kkLPSr5ajrnbhtd7a/d5VWUCGGwtuDbY0dioN59I0shc=
+	t=1706509293; cv=none; b=TdkxLIO+TqpwqT/nzDjcuwuvrsKbC6gr979pvOOSZwc5v1CNTYoQmo+TGx5osaaTvt6CiB5Tc2/qTZyCNo+EgN36E1dp4RjLQCGT4I0GTXShlGbbBU0Rllc+2MDT9iOcy6A+3I3SFFG7wV9rbd51wSbtpmTaagYTPcAF88iymUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1706509293; c=relaxed/simple;
-	bh=N8bi7iOk7SkztwFK/cTk8Cvbzl4tKg+IpZOOTeXUr6o=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=Q25Uhfd+1swETI170ojfrD0PWJY+gDo3U4+7Ae3tbHm7WKPPm9TqTjoO/NGOF7lcFpa6jTlmNBNgQeawdoiEft9FH9xGHC91PWTq1Af9+E7VDMO2TG6YtYcuuT8nM/YAba7rFSoICWON/Rikf9lPhPD2u4qIVPl6LFATvMqGZHo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=fTM4uUAS; arc=none smtp.client-ip=13.77.154.182
+	bh=JWip2UTTjunONm5W+kW2X28AocSMuT6jlRKMeBFBPOA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=fX5EU0Lfhd9zwlczt5Bjt9Tv46hUecpNLQ5ZsxI2vnNbNzr/N3oxfPyGqpc5iX+N+4wo0SfmxpUSCuusgOAe31sFNq+Beik4p4drrM199AGUBBWsFV1PxsIbHKVsJbvwkfshgU6dJJ+lYW8GTCIOnJI8WSiBK406cv3gVmaJkcQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=C11V5SYu; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="fTM4uUAS"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="C11V5SYu"
 Received: by linux.microsoft.com (Postfix, from userid 1099)
-	id A45CF20E67DD; Sun, 28 Jan 2024 22:21:31 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A45CF20E67DD
+	id AFFC420E67D4; Sun, 28 Jan 2024 22:21:26 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AFFC420E67D4
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1706509291;
-	bh=cbmGLa7jFFF/JRYGhEzNHaYORqYhPABgjUC6W0VOrNU=;
+	s=default; t=1706509286;
+	bh=Qh4vCcMbs6V3VMTJ7hXH2GEKRppPqxUeLFTB/Ig1nok=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fTM4uUASsrsw0lUMV9oWOriY9qpLMW/WpE9/0DpfNxiqa7rK3epemT4zo6e3Wak8R
-	 Q8NM1fueDR8k8tBeeta4jFwJ0PaGJkxhqod6HEx9GtLH38Nw1NKJZFCC8rlg1yxoJb
-	 KQ5xzutMQDJqqwAEydRUEp/0WLK5OUnSWFSNEm8g=
+	b=C11V5SYuf6FExFn0KKr+UA0GfphvYgEKbgmfBpugNq/RJemDlCfcLJHmmENkQaT+r
+	 yg+PlOFu/8Uopt6suDXj6TGUz3jdAh0xNQzC1NPPCIuQ10jsrMR+056At5idjoxIs3
+	 +heXAAG4NSNuH3BYJmXuwHz08GVf06NbgCnmo5Y4=
 From: Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
 To: kys@microsoft.com,
 	haiyangz@microsoft.com,
@@ -45,9 +45,9 @@ To: kys@microsoft.com,
 	linux-rdma@vger.kernel.org
 Cc: schakrabarti@microsoft.com,
 	paulros@microsoft.com
-Subject: [PATCH 3/4 V3 net-next] net: mana: add a function to spread IRQs per CPUs
-Date: Sun, 28 Jan 2024 22:21:06 -0800
-Message-Id: <1706509267-17754-4-git-send-email-schakrabarti@linux.microsoft.com>
+Subject: [PATCH 1/4 V3 net-next] cpumask: add cpumask_weight_andnot()
+Date: Sun, 28 Jan 2024 22:21:04 -0800
+Message-Id: <1706509267-17754-2-git-send-email-schakrabarti@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1706509267-17754-1-git-send-email-schakrabarti@linux.microsoft.com>
 References: <1706509267-17754-1-git-send-email-schakrabarti@linux.microsoft.com>
@@ -59,134 +59,98 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Yury Norov <yury.norov@gmail.com>
 
-Souradeep investigated that the driver performs faster if IRQs are
-spread on CPUs with the following heuristics:
-
-1. No more than one IRQ per CPU, if possible;
-2. NUMA locality is the second priority;
-3. Sibling dislocality is the last priority.
-
-Let's consider this topology:
-
-Node            0               1
-Core        0       1       2       3
-CPU       0   1   2   3   4   5   6   7
-
-The most performant IRQ distribution based on the above topology
-and heuristics may look like this:
-
-IRQ     Nodes   Cores   CPUs
-0       1       0       0-1
-1       1       1       2-3
-2       1       0       0-1
-3       1       1       2-3
-4       2       2       4-5
-5       2       3       6-7
-6       2       2       4-5
-7       2       3       6-7
-
-The irq_setup() routine introduced in this patch leverages the
-for_each_numa_hop_mask() iterator and assigns IRQs to sibling groups
-as described above.
-
-According to [1], for NUMA-aware but sibling-ignorant IRQ distribution
-based on cpumask_local_spread() performance test results look like this:
-
-./ntttcp -r -m 16
-NTTTCP for Linux 1.4.0
----------------------------------------------------------
-08:05:20 INFO: 17 threads created
-08:05:28 INFO: Network activity progressing...
-08:06:28 INFO: Test run completed.
-08:06:28 INFO: Test cycle finished.
-08:06:28 INFO: #####  Totals:  #####
-08:06:28 INFO: test duration    :60.00 seconds
-08:06:28 INFO: total bytes      :630292053310
-08:06:28 INFO:   throughput     :84.04Gbps
-08:06:28 INFO:   retrans segs   :4
-08:06:28 INFO: cpu cores        :192
-08:06:28 INFO:   cpu speed      :3799.725MHz
-08:06:28 INFO:   user           :0.05%
-08:06:28 INFO:   system         :1.60%
-08:06:28 INFO:   idle           :96.41%
-08:06:28 INFO:   iowait         :0.00%
-08:06:28 INFO:   softirq        :1.94%
-08:06:28 INFO:   cycles/byte    :2.50
-08:06:28 INFO: cpu busy (all)   :534.41%
-
-For NUMA- and sibling-aware IRQ distribution, the same test works
-15% faster:
-
-./ntttcp -r -m 16
-NTTTCP for Linux 1.4.0
----------------------------------------------------------
-08:08:51 INFO: 17 threads created
-08:08:56 INFO: Network activity progressing...
-08:09:56 INFO: Test run completed.
-08:09:56 INFO: Test cycle finished.
-08:09:56 INFO: #####  Totals:  #####
-08:09:56 INFO: test duration    :60.00 seconds
-08:09:56 INFO: total bytes      :741966608384
-08:09:56 INFO:   throughput     :98.93Gbps
-08:09:56 INFO:   retrans segs   :6
-08:09:56 INFO: cpu cores        :192
-08:09:56 INFO:   cpu speed      :3799.791MHz
-08:09:56 INFO:   user           :0.06%
-08:09:56 INFO:   system         :1.81%
-08:09:56 INFO:   idle           :96.18%
-08:09:56 INFO:   iowait         :0.00%
-08:09:56 INFO:   softirq        :1.95%
-08:09:56 INFO:   cycles/byte    :2.25
-08:09:56 INFO: cpu busy (all)   :569.22%
-
-[1] https://lore.kernel.org/all/20231211063726.GA4977@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net/
+Similarly to cpumask_weight_and(), cpumask_weight_andnot() is a handy
+helper that may help to avoid creating an intermediate mask just to
+calculate number of bits that set in a 1st given mask, and clear in 2nd
+one.
 
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Co-developed-by: Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>
+Reviewed-by: Jacob Keller <jacob.e.keller@intel.com>
 ---
- .../net/ethernet/microsoft/mana/gdma_main.c   | 29 +++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ include/linux/bitmap.h  | 12 ++++++++++++
+ include/linux/cpumask.h | 13 +++++++++++++
+ lib/bitmap.c            |  7 +++++++
+ 3 files changed, 32 insertions(+)
 
-diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-index d33b27214539..05a0ac054823 100644
---- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-+++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-@@ -1249,6 +1249,35 @@ void mana_gd_free_res_map(struct gdma_resource *r)
- 	r->size = 0;
+diff --git a/include/linux/bitmap.h b/include/linux/bitmap.h
+index 99451431e4d6..5814e9ee40ba 100644
+--- a/include/linux/bitmap.h
++++ b/include/linux/bitmap.h
+@@ -54,6 +54,7 @@ struct device;
+  *  bitmap_full(src, nbits)                     Are all bits set in *src?
+  *  bitmap_weight(src, nbits)                   Hamming Weight: number set bits
+  *  bitmap_weight_and(src1, src2, nbits)        Hamming Weight of and'ed bitmap
++ *  bitmap_weight_andnot(src1, src2, nbits)     Hamming Weight of andnot'ed bitmap
+  *  bitmap_set(dst, pos, nbits)                 Set specified bit area
+  *  bitmap_clear(dst, pos, nbits)               Clear specified bit area
+  *  bitmap_find_next_zero_area(buf, len, pos, n, mask)  Find bit free area
+@@ -169,6 +170,8 @@ bool __bitmap_subset(const unsigned long *bitmap1,
+ unsigned int __bitmap_weight(const unsigned long *bitmap, unsigned int nbits);
+ unsigned int __bitmap_weight_and(const unsigned long *bitmap1,
+ 				 const unsigned long *bitmap2, unsigned int nbits);
++unsigned int __bitmap_weight_andnot(const unsigned long *bitmap1,
++				    const unsigned long *bitmap2, unsigned int nbits);
+ void __bitmap_set(unsigned long *map, unsigned int start, int len);
+ void __bitmap_clear(unsigned long *map, unsigned int start, int len);
+ 
+@@ -425,6 +428,15 @@ unsigned long bitmap_weight_and(const unsigned long *src1,
+ 	return __bitmap_weight_and(src1, src2, nbits);
  }
  
-+static __maybe_unused int irq_setup(unsigned int *irqs, unsigned int len, int node)
++static __always_inline
++unsigned long bitmap_weight_andnot(const unsigned long *src1,
++				   const unsigned long *src2, unsigned int nbits)
 +{
-+	const struct cpumask *next, *prev = cpu_none_mask;
-+	cpumask_var_t cpus __free(free_cpumask_var);
-+	int cpu, weight;
-+
-+	if (!alloc_cpumask_var(&cpus, GFP_KERNEL))
-+		return -ENOMEM;
-+
-+	rcu_read_lock();
-+	for_each_numa_hop_mask(next, node) {
-+		weight = cpumask_weight_andnot(next, prev);
-+		while (weight > 0) {
-+			cpumask_andnot(cpus, next, prev);
-+			for_each_cpu(cpu, cpus) {
-+				if (len-- == 0)
-+					goto done;
-+				irq_set_affinity_and_hint(*irqs++, topology_sibling_cpumask(cpu));
-+				cpumask_andnot(cpus, cpus, topology_sibling_cpumask(cpu));
-+				--weight;
-+			}
-+		}
-+		prev = next;
-+	}
-+done:
-+	rcu_read_unlock();
-+	return 0;
++	if (small_const_nbits(nbits))
++		return hweight_long(*src1 & ~(*src2) & BITMAP_LAST_WORD_MASK(nbits));
++	return __bitmap_weight_andnot(src1, src2, nbits);
 +}
 +
- static int mana_gd_setup_irqs(struct pci_dev *pdev)
+ static __always_inline void bitmap_set(unsigned long *map, unsigned int start,
+ 		unsigned int nbits)
  {
- 	unsigned int max_queues_per_port = num_online_cpus();
+diff --git a/include/linux/cpumask.h b/include/linux/cpumask.h
+index cfb545841a2c..228c23eb36d2 100644
+--- a/include/linux/cpumask.h
++++ b/include/linux/cpumask.h
+@@ -719,6 +719,19 @@ static inline unsigned int cpumask_weight_and(const struct cpumask *srcp1,
+ 	return bitmap_weight_and(cpumask_bits(srcp1), cpumask_bits(srcp2), small_cpumask_bits);
+ }
+ 
++/**
++ * cpumask_weight_andnot - Count of bits in (*srcp1 & ~*srcp2)
++ * @srcp1: the cpumask to count bits (< nr_cpu_ids) in.
++ * @srcp2: the cpumask to count bits (< nr_cpu_ids) in.
++ *
++ * Return: count of bits set in both *srcp1 and *srcp2
++ */
++static inline unsigned int cpumask_weight_andnot(const struct cpumask *srcp1,
++						const struct cpumask *srcp2)
++{
++	return bitmap_weight_andnot(cpumask_bits(srcp1), cpumask_bits(srcp2), small_cpumask_bits);
++}
++
+ /**
+  * cpumask_shift_right - *dstp = *srcp >> n
+  * @dstp: the cpumask result
+diff --git a/lib/bitmap.c b/lib/bitmap.c
+index 09522af227f1..b97692854966 100644
+--- a/lib/bitmap.c
++++ b/lib/bitmap.c
+@@ -348,6 +348,13 @@ unsigned int __bitmap_weight_and(const unsigned long *bitmap1,
+ }
+ EXPORT_SYMBOL(__bitmap_weight_and);
+ 
++unsigned int __bitmap_weight_andnot(const unsigned long *bitmap1,
++				const unsigned long *bitmap2, unsigned int bits)
++{
++	return BITMAP_WEIGHT(bitmap1[idx] & ~bitmap2[idx], bits);
++}
++EXPORT_SYMBOL(__bitmap_weight_andnot);
++
+ void __bitmap_set(unsigned long *map, unsigned int start, int len)
+ {
+ 	unsigned long *p = map + BIT_WORD(start);
 -- 
 2.34.1
 
