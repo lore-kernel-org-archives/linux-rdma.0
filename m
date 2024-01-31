@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 397536A030;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 418506D1D4;
 	Wed, 31 Jan 2024 10:55:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706698559; cv=none; b=rFpROYn1MjJezdru3mpaR95J/kb7Ip+y7uzeso18wBcUQTNCOq4n7ESQAvcq39xm4DrrS6Lkmb6UUZ9uK6f/91sFzC7kXysyH8YZoKBMa547cnml+xz2x/TrrpDDZspIWnJ+7dM6UdWxPnlbphHg/yylWHwszSBq4HThlwuHnBE=
+	t=1706698561; cv=none; b=s+zox8VCtKW2//vuYXAnlpmOFNol80pQqZ0TSs/i0YugamRxNp3kpDtxFP+UPh0keYPK7X2JeFPmDLrIrNl8rsNHztNTxMGorbLsBw4knRBg8JafKQaEoXUnSYI4rLNvim/L/r10uEIBowlZ73e7ixLu7YTfEozPkK5jYn0N+ZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706698559; c=relaxed/simple;
-	bh=GI6QY98SEMz0zqOuQidUbYonmgSgitJXQUyspqe4rNo=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=fpYF+IoV17o2REa2Tn1PCvaJUZqmrS8QTvwh2/N9p8QvRlZyKNYW6xi3EvvFoqiixxImEm/d1qPi440k3k+arU+1pVXKLjGA0D16uj5XGpbskUivQ23ZhrJNzomYV8OYAo7KZ8GjWxjqi0YGN9VVrlIfL3ev2WvQu3M5ebdTSA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=S3JrxK1p; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1706698561; c=relaxed/simple;
+	bh=ykFVDqFPB4lY6V66losZpGAUIa9JbgeucCmBSnLGxnU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=SgRGU8J/2k2pEe71ZXyf9sZLmwJEiPrD00GpytQ2zb8X1q2mLOkCHD/kyJTRPurVy6DyfZT2ki6lYVRZpoP4StSht/j57nnUswd2PqMg5+lBaeZ88bgyaErJnoUTUgtItuZ9w5iWapJgw5VhW7Xge8A4LO/TfawpHHFhwFAwnvY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=iII5BczB; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="S3JrxK1p"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="iII5BczB"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id C2D7F20B2002;
+	by linux.microsoft.com (Postfix) with ESMTPSA id F3EF920B2004;
 	Wed, 31 Jan 2024 02:55:57 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C2D7F20B2002
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com F3EF920B2004
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1706698557;
-	bh=FQMJvC08Xx+rruS+xJDdv53mAl3GJPxfohVLYNulxEA=;
+	s=default; t=1706698558;
+	bh=snXzVvd1Es1P5EFCe7tEDBGYBTXVzvrZs/jkgBz6PiU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=S3JrxK1pO/X+3876uWpPrkKDWepe9Vt4MtQXVlmCX64d3WHz/zd7d+5oyQgIYhwdO
-	 umuzfIPe5kdz3Z+Pt0J0sWk06449UeLvCdOdjXosVxc53ZsLQ1ojYj283Y0kgxEJJ1
-	 zCjsENNIHlMzHWM35uivZp6tyUSr22W+J5DixdAE=
+	b=iII5BczBqDghQYdz16lH6P0WkkFIkrwADtobdOVYg48E8A/y6nDssi7bcU7GilcPt
+	 JxTK6JBmLHB3cG7sRC1ZYLfEW7JOvSESXczdslow/HlU+mI7SQSgHbeqgwMDPdzcF9
+	 wvrF9w8cUCFoffgzm1B/GFZSkxabAneZfzWj8XnQ=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	sharmaajay@microsoft.com,
@@ -32,9 +32,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v1 2/5] RDMA/mana_ib: Create and destroy rnic adapter
-Date: Wed, 31 Jan 2024 02:55:49 -0800
-Message-Id: <1706698552-25383-3-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v1 4/5] RDMA/mana_ib: Enable RoCE on port 1
+Date: Wed, 31 Jan 2024 02:55:51 -0800
+Message-Id: <1706698552-25383-5-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1706698552-25383-1-git-send-email-kotaranov@linux.microsoft.com>
 References: <1706698552-25383-1-git-send-email-kotaranov@linux.microsoft.com>
@@ -44,126 +44,75 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-This patch adds RNIC creation and destruction.
-If creation of RNIC fails, we support only RAW QPs as they are served by
-ethernet driver.
+Set netdev and RoCEv2 flag to be used in GID population.
+mana_ib is auxiliary device, thus we need GIDs of the master netdev. 
 
 Signed-off-by: Konstantin Taranov <kotaranov@linux.microsoft.com>
 ---
- drivers/infiniband/hw/mana/main.c    | 31 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/mana/mana_ib.h | 29 +++++++++++++++++++++++++++++
- 2 files changed, 60 insertions(+)
+ drivers/infiniband/hw/mana/device.c | 14 ++++++++++++++
+ drivers/infiniband/hw/mana/main.c   | 16 ++++++++++++----
+ 2 files changed, 26 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 11b0410..b9ff3fd 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -53,6 +53,7 @@ static int mana_ib_probe(struct auxiliary_device *adev,
+ {
+ 	struct mana_adev *madev = container_of(adev, struct mana_adev, adev);
+ 	struct gdma_dev *mdev = madev->mdev;
++	struct net_device *upper_ndev;
+ 	struct mana_context *mc;
+ 	struct mana_ib_dev *dev;
+ 	int ret;
+@@ -79,6 +80,19 @@ static int mana_ib_probe(struct auxiliary_device *adev,
+ 	dev->ib_dev.num_comp_vectors = 1;
+ 	dev->ib_dev.dev.parent = mdev->gdma_context->dev;
+ 
++	rcu_read_lock(); /* required to get upper dev */
++	upper_ndev = netdev_master_upper_dev_get_rcu(mc->ports[0]);
++	rcu_read_unlock();
++	if (!upper_ndev) {
++		ibdev_err(&dev->ib_dev, "Failed to get master netdev");
++		goto free_ib_device;
++	}
++	ret = ib_device_set_netdev(&dev->ib_dev, upper_ndev, 1);
++	if (ret) {
++		ibdev_err(&dev->ib_dev, "Failed to set ib netdev, ret %d", ret);
++		goto free_ib_device;
++	}
++
+ 	ret = mana_gd_register_device(&mdev->gdma_context->mana_ib);
+ 	if (ret) {
+ 		ibdev_err(&dev->ib_dev, "Failed to register device, ret %d",
 diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index c64d569..33cd69e 100644
+index 3e05a62..645abf3 100644
 --- a/drivers/infiniband/hw/mana/main.c
 +++ b/drivers/infiniband/hw/mana/main.c
-@@ -581,14 +581,31 @@ static void mana_ib_destroy_eqs(struct mana_ib_dev *mdev)
- 
- void mana_ib_gd_create_rnic_adapter(struct mana_ib_dev *mdev)
+@@ -462,11 +462,19 @@ int mana_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
+ int mana_ib_get_port_immutable(struct ib_device *ibdev, u32 port_num,
+ 			       struct ib_port_immutable *immutable)
  {
-+	struct mana_rnic_create_adapter_resp resp = {};
-+	struct mana_rnic_create_adapter_req req = {};
-+	struct gdma_context *gc = mdev_to_gc(mdev);
- 	int err;
+-	/*
+-	 * This version only support RAW_PACKET
+-	 * other values need to be filled for other types
+-	 */
++	struct mana_ib_dev *mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
++	struct ib_port_attr attr;
++	int err;
++
++	err = ib_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
+ 	immutable->core_cap_flags = RDMA_CORE_PORT_RAW_PACKET;
++	if (port_num == 1 && rnic_is_enabled(mdev))
++		immutable->core_cap_flags |= RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
  
-+	mdev->adapter_handle = INVALID_MANA_HANDLE;
-+
- 	err = mana_ib_create_eqs(mdev);
- 	if (err) {
- 		ibdev_err(&mdev->ib_dev, "Failed to create EQs for RNIC err %d", err);
- 		goto cleanup;
- 	}
- 
-+	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_ADAPTER, sizeof(req), sizeof(resp));
-+	req.hdr.req.msg_version = GDMA_MESSAGE_V2;
-+	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.notify_eq_id = mdev->fatal_err_eq->id;
-+
-+	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-+	if (err) {
-+		ibdev_err(&mdev->ib_dev, "Failed to create RNIC adapter err %d", err);
-+		goto cleanup;
-+	}
-+	mdev->adapter_handle = resp.adapter;
-+
- 	return;
- 
- cleanup:
-@@ -599,5 +616,19 @@ void mana_ib_gd_create_rnic_adapter(struct mana_ib_dev *mdev)
- 
- void mana_ib_gd_destroy_rnic_adapter(struct mana_ib_dev *mdev)
- {
-+	struct mana_rnic_destroy_adapter_resp resp = {};
-+	struct mana_rnic_destroy_adapter_req req = {};
-+	struct gdma_context *gc;
-+
-+	if (!rnic_is_enabled(mdev))
-+		return;
-+
-+	gc = mdev_to_gc(mdev);
-+	mana_gd_init_req_hdr(&req.hdr, MANA_IB_DESTROY_ADAPTER, sizeof(req), sizeof(resp));
-+	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.adapter = mdev->adapter_handle;
-+
-+	mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-+	mdev->adapter_handle = INVALID_MANA_HANDLE;
- 	mana_ib_destroy_eqs(mdev);
+ 	return 0;
  }
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index a4b94ee..96454cf 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -48,6 +48,7 @@ struct mana_ib_adapter_caps {
- struct mana_ib_dev {
- 	struct ib_device ib_dev;
- 	struct gdma_dev *gdma_dev;
-+	mana_handle_t adapter_handle;
- 	struct gdma_queue *fatal_err_eq;
- 	struct mana_ib_adapter_caps adapter_caps;
- };
-@@ -115,6 +116,8 @@ struct mana_ib_rwq_ind_table {
- 
- enum mana_ib_command_code {
- 	MANA_IB_GET_ADAPTER_CAP = 0x30001,
-+	MANA_IB_CREATE_ADAPTER  = 0x30002,
-+	MANA_IB_DESTROY_ADAPTER = 0x30003,
- };
- 
- struct mana_ib_query_adapter_caps_req {
-@@ -143,6 +146,32 @@ struct mana_ib_query_adapter_caps_resp {
- 	u32 max_inline_data_size;
- }; /* HW Data */
- 
-+struct mana_rnic_create_adapter_req {
-+	struct gdma_req_hdr hdr;
-+	u32 notify_eq_id;
-+	u32 reserved;
-+	u64 feature_flags;
-+}; /*HW Data */
-+
-+struct mana_rnic_create_adapter_resp {
-+	struct gdma_resp_hdr hdr;
-+	mana_handle_t adapter;
-+}; /* HW Data */
-+
-+struct mana_rnic_destroy_adapter_req {
-+	struct gdma_req_hdr hdr;
-+	mana_handle_t adapter;
-+}; /*HW Data */
-+
-+struct mana_rnic_destroy_adapter_resp {
-+	struct gdma_resp_hdr hdr;
-+}; /* HW Data */
-+
-+static inline bool rnic_is_enabled(struct mana_ib_dev *mdev)
-+{
-+	return mdev->adapter_handle != INVALID_MANA_HANDLE;
-+}
-+
- static inline struct gdma_context *mdev_to_gc(struct mana_ib_dev *mdev)
- {
- 	return mdev->gdma_dev->gdma_context;
 -- 
 1.8.3.1
 
