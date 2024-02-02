@@ -1,138 +1,66 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8BD3D145328;
-	Fri,  2 Feb 2024 15:06:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from ciao.gmane.io (ciao.gmane.io [116.202.254.214])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BF8722085
+	for <linux-rdma@vger.kernel.org>; Fri,  2 Feb 2024 15:40:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=116.202.254.214
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706886415; cv=none; b=dw0GDQd4PEU4u7l7x31G2bVfkg+x2aQ8x4OknyKdPr8huxPhSpnNFuGuzCrTIksFV44Y2qhAPrZcFEtENsck15cMTi6P8CCfDsO0Ug1IxkKKTtbqHuy4gO8bhtmuqLjyzvPXrb9WR7Uosu1NVQUp9xhp/A/FG2V15U0KijeclY0=
+	t=1706888407; cv=none; b=faXFA7NG2jwWRTOW6te5Md7Yz/ES+QI4NpuqPp6qUE7Ow4nLjRR0/m+JGvebaTzC/WbAGLFrzrhU9UkSTUENUIW2fdnfEYQt5v/pjHdOoUwRd2Srrlw+dXgtXDBgDfo/hEkCfglOWwDcwlsggkIi84AzFdBhkREOVq1n7yJU99c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706886415; c=relaxed/simple;
-	bh=lwkOSAnGEnMRxgE2eYpnXuty91szYnqPYwpQeHF0pik=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=g6rtHq2AojjGiR1ro85PYueNJv7xoQhUadm2xJBnApRmptJKWeyrwaYsNCWtbKMSPKZm/KhCfkNkBIrjJjPE2uShy69LdosKvyGliP3zChGLnewmYNOjZCgSlT7I0w1P4QqZy9imJ5MxmHUe4ibBQ5l2MwfApWL7vmXmaUJ2ir8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=nvzo2Fa2; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="nvzo2Fa2"
-Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 844B920B2003;
-	Fri,  2 Feb 2024 07:06:45 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 844B920B2003
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1706886405;
-	bh=5yXFaEp9vKBshRa+NgGc9Zh0uI+t9u7kQk3cCqXTndQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=nvzo2Fa2Rg1awmzVwTn0wIOcljM+JpU0PKlle5AKjZb6CxMHAGHFTNIrkzVcuuEtJ
-	 rW/WM72KzuHfZTLakJH+fKzIe2+0jzjVWJfqMJOfdI1ytTg/qEOdnsW5JEp6P6eGbn
-	 2Qz2fHvakTs+x1g7fmiA//2l0PUfZ01E5ebca/H4=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	sharmaajay@microsoft.com,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v2 3/5] RDMA/mana_ib: Implement port parameters
-Date: Fri,  2 Feb 2024 07:06:35 -0800
-Message-Id: <1706886397-16600-4-git-send-email-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1706886397-16600-1-git-send-email-kotaranov@linux.microsoft.com>
-References: <1706886397-16600-1-git-send-email-kotaranov@linux.microsoft.com>
+	s=arc-20240116; t=1706888407; c=relaxed/simple;
+	bh=amxXWOA8shkwZCqq409xMVqZnLPj+Od52yEZEeelVY0=;
+	h=To:From:Subject:Date:Message-ID:References:Mime-Version:
+	 Content-Type:Cc; b=hhhyraZ2Vu7uGCPcVxSRAnXSbWG7XlCIdRBsFNZ13WfBtRh1WOglcMDjNW3mJVya33QfvWchJX9Y4D++wqgcaFKaD2zEOyM/ai1XEGN8dLKY2c/CsTDU2X47gEF8v4QJT5rmf9ytJvR+k1LhmIqZGd4ya8Ea7ZY7GNa4KrLP4l4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=applied-asynchrony.com; spf=pass smtp.mailfrom=m.gmane-mx.org; arc=none smtp.client-ip=116.202.254.214
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=applied-asynchrony.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=m.gmane-mx.org
+Received: from list by ciao.gmane.io with local (Exim 4.92)
+	(envelope-from <gldr-linux-rdma@m.gmane-mx.org>)
+	id 1rVve7-00086g-Bs
+	for linux-rdma@vger.kernel.org; Fri, 02 Feb 2024 16:40:03 +0100
+X-Injected-Via-Gmane: http://gmane.org/
+To: linux-rdma@vger.kernel.org
+From: Holger =?iso-8859-1?q?Hoffst=E4tte?= <holger@applied-asynchrony.com>
+Subject: Re: Kernel - 6.7.3 - failed to compile the module
+Date: Fri, 2 Feb 2024 15:32:24 -0000 (UTC)
+Message-ID: <pan$2ed7c$db97fd26$2ea3b30f$fdd2e024@applied-asynchrony.com>
+References: <CAHOGJipx37tUoiSp87Np4b0qzREj60+FEkdi_0X0_JoQW8cYeA@mail.gmail.com>
+	<ZbzwgtGUHK2Dj5eo@archie.me>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+User-Agent: Pan/0.151 (Butcha; a6f63273)
+Cc: linux-kernel@vger.kernel.org,netdev@vger.kernel.org
 
-Implement port parameters for RNIC. Only port 1 is RoCEv2 capable.
+On Fri, 2 Feb 2024 20:39:14 +0700, Bagas Sanjaya wrote:
 
-Signed-off-by: Konstantin Taranov <kotaranov@linux.microsoft.com>
----
- drivers/infiniband/hw/mana/device.c  |  2 ++
- drivers/infiniband/hw/mana/main.c    | 37 +++++++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mana/mana_ib.h |  4 ++++
- 3 files changed, 42 insertions(+), 1 deletion(-)
+> [also Cc: mellanox maintainers]
+> 
+> On Fri, Feb 02, 2024 at 08:55:47AM +0100, Michał Jakubowski wrote:
+>> Regarding: https://bugzilla.kernel.org/show_bug.cgi?id=218445
+>> 
+>>   CC [M]  drivers/gpu/drm/amd/amdgpu/../display/modules/hdcp/hdcp1_execution.o
+>>   CC [M]  drivers/gpu/drm/amd/amdgpu/../display/modules/hdcp/hdcp1_transition.o
+>>   CC [M]  drivers/gpu/drm/amd/amdgpu/../display/modules/hdcp/hdcp2_execution.o
+>>   CC [M]  drivers/gpu/drm/amd/amdgpu/../display/modules/hdcp/hdcp2_transition.o
+>>   LD [M]  drivers/gpu/drm/amd/amdgpu/amdgpu.o
+>>   MODPOST Module.symvers
+>> ERROR: modpost: "sched_numa_hop_mask"
+>> [drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.ko] undefined!
+>> make[2]: *** [scripts/Makefile.modpost:145: Module.symvers] Error 1
+>> make[1]: *** [/usr/src/linux-6.7.3-gentoo/Makefile:1863: modpost] Error 2
+>> make: *** [Makefile:234: __sub-make] Error 2
+> 
+> Do you have above build failure on vanilla v6.7.3? Can you also check current
+> mainline (v6.8-rc2)?
 
-diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
-index d8e8b10..11b0410 100644
---- a/drivers/infiniband/hw/mana/device.c
-+++ b/drivers/infiniband/hw/mana/device.c
-@@ -29,12 +29,14 @@
- 	.destroy_rwq_ind_table = mana_ib_destroy_rwq_ind_table,
- 	.destroy_wq = mana_ib_destroy_wq,
- 	.disassociate_ucontext = mana_ib_disassociate_ucontext,
-+	.get_link_layer = mana_ib_get_link_layer,
- 	.get_port_immutable = mana_ib_get_port_immutable,
- 	.mmap = mana_ib_mmap,
- 	.modify_qp = mana_ib_modify_qp,
- 	.modify_wq = mana_ib_modify_wq,
- 	.query_device = mana_ib_query_device,
- 	.query_gid = mana_ib_query_gid,
-+	.query_pkey = mana_ib_query_pkey,
- 	.query_port = mana_ib_query_port,
- 	.reg_user_mr = mana_ib_reg_user_mr,
- 
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index 33cd69e..3e05a62 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -492,7 +492,42 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
- int mana_ib_query_port(struct ib_device *ibdev, u32 port,
- 		       struct ib_port_attr *props)
- {
--	/* This version doesn't return port properties */
-+	struct net_device *ndev = mana_ib_get_netdev(ibdev, port);
-+
-+	if (!ndev)
-+		return -EINVAL;
-+
-+	memset(props, 0, sizeof(*props));
-+	props->max_mtu = IB_MTU_4096;
-+	props->active_mtu = ib_mtu_int_to_enum(ndev->mtu);
-+
-+	if (netif_carrier_ok(ndev) && netif_running(ndev)) {
-+		props->state = IB_PORT_ACTIVE;
-+		props->phys_state = IB_PORT_PHYS_STATE_LINK_UP;
-+	} else {
-+		props->state = IB_PORT_DOWN;
-+		props->phys_state = IB_PORT_PHYS_STATE_DISABLED;
-+	}
-+
-+	props->active_width = IB_WIDTH_4X;
-+	props->active_speed = IB_SPEED_EDR;
-+	props->pkey_tbl_len = 1;
-+	if (port == 1)
-+		props->gid_tbl_len = 16;
-+
-+	return 0;
-+}
-+
-+enum rdma_link_layer mana_ib_get_link_layer(struct ib_device *device, u32 port_num)
-+{
-+	return IB_LINK_LAYER_ETHERNET;
-+}
-+
-+int mana_ib_query_pkey(struct ib_device *ibdev, u32 port, u16 index, u16 *pkey)
-+{
-+	if (index != 0)
-+		return -EINVAL;
-+	*pkey = IB_DEFAULT_PKEY_FULL;
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 96454cf..196f3c8 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -262,4 +262,8 @@ int mana_ib_query_gid(struct ib_device *ibdev, u32 port, int index,
- void mana_ib_gd_create_rnic_adapter(struct mana_ib_dev *mdev);
- 
- void mana_ib_gd_destroy_rnic_adapter(struct mana_ib_dev *mdev);
-+
-+int mana_ib_query_pkey(struct ib_device *ibdev, u32 port, u16 index, u16 *pkey);
-+
-+enum rdma_link_layer mana_ib_get_link_layer(struct ib_device *device, u32 port_num);
- #endif
--- 
-1.8.3.1
+No need to investigate further, this is caused by an additional non-mainline
+patch that has nothing to do with the mellanox driver.
+
+-h
 
