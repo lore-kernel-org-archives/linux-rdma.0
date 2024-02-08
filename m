@@ -1,72 +1,39 @@
-Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 321441D524
-	for <linux-rdma@vger.kernel.org>; Thu,  8 Feb 2024 03:07:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8784C2D61B;
+	Thu,  8 Feb 2024 03:54:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707361630; cv=none; b=dJFOxrZx9qz0XKl6I3b2VhMzGiUO1qnej3z5orLTGFZP+UzVN3yluPQINQx2jbfS5XWXug53NxcwbCbq+NGVDN0ab8Ioy0Ir6Yb15px5WmUB10HD/D1bjDEmZNwFUzYkmHdBhSp2/qOELNc+QQUwmAKp8PP8BNPiNQ7tPthdKMg=
+	t=1707364492; cv=none; b=FaZZvsaO7s37/iuKEQMICfUbfTz+0BXo8cuzDpOHLjTcIQpferVNzetmZW9xClehfV776WsEXBSU13xZ72HIGTWVRvjem56Cl8HqAwdFzrBW+Ko0/U7y4gxF4OkD3HiWC3fgNHlZK9j9ciELaStPHZ7X6zV0ABPVqYO8pz4zSMk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707361630; c=relaxed/simple;
-	bh=Uh3Rm8V4VHsu71sBjaBczwz61EnKx5fFtPzxEMRZyvI=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=iey75DPiVPGFIVX2fSJYlZ4A+icfwjZNbnNfB11Lcoh5NYgbug2+TcLEekzRUfWCdOs2kZ6wMIndO8sluWSFyyXRkOpo0dbC12aZc+KezEAnt8l7Y/RpsUIlvcf3SYlnVxsGxn3IkyZJXfutYNcONIP/Zuqhl1LDYR9UE94SB2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fastly.com; spf=pass smtp.mailfrom=fastly.com; dkim=pass (1024-bit key) header.d=fastly.com header.i=@fastly.com header.b=v05K2LjN; arc=none smtp.client-ip=209.85.214.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fastly.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fastly.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=fastly.com header.i=@fastly.com header.b="v05K2LjN"
-Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-1d93edfa76dso11829035ad.1
-        for <linux-rdma@vger.kernel.org>; Wed, 07 Feb 2024 19:07:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fastly.com; s=google; t=1707361628; x=1707966428; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=egs7rCfpH1ftbki48KCuJAklsR0MNJ7M7ZSfGS5ub5U=;
-        b=v05K2LjNf419fOZY8Hlm9F1vAYGv552eZ8LjB3QAZwNxzCWxAiapna16aDvXUurOCH
-         9kZIIT3tOXmE5xVMG0c6jYnbwX2GPV4aJzHqdTex24L0BPRZAAnXQXx0FhiB5Xq0yLqy
-         nc9I3mCCyUqty+rNfFQ6Z0TxbWmNHMBUXBQNY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707361628; x=1707966428;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=egs7rCfpH1ftbki48KCuJAklsR0MNJ7M7ZSfGS5ub5U=;
-        b=nzetrRJFy7bqzvbZoZ9CxEkADe+cHPogqj65w1m0EPS6pA2wMKsfvz733vYbSJQmBc
-         4W+PVaM/FjLohkkbXh7hjQ7HMIhXI7qkECUzVk8Lc9MTsUtg5tGF/lreKVk0ivMQkFfq
-         rBzpa2oTAQSpPjDb/a3J0xEtZWFem4hJCgwoXvLN8KSAgCEf2AY3qE6u52w2LuCQycnA
-         /sKeQoxKM7mzOLkiXg+dmtwI0fXIVbMpyoX00nLSGtO2qgsnKhX7YFzONUIEs4260tHQ
-         OXG4zZis7/MbKpy8QZp54vC4EbwZVYuUtZTIbgHxgEAvvJnlnJxCkUkiR18WbaYQpkS7
-         m1Mg==
-X-Gm-Message-State: AOJu0Yz0RDZsNpkhxYP5UDbZUmaVTuM2WqWTs7D0QG3v3gndelO/iZF7
-	JswHioiasoTwnHFLG/WypqUBd/QHr7k4lgqDwEj+fk5ICqT0AxsQlqgGhlYsisg=
-X-Google-Smtp-Source: AGHT+IFeQByc3Ud6HAkpe54Ssf4Ks5auR0GRuMFO0189+CN7FpKYZqgiGhkuedzUoLJa+6jvKIo9Gw==
-X-Received: by 2002:a17:902:6b44:b0:1d9:bc11:66e with SMTP id g4-20020a1709026b4400b001d9bc11066emr6196112plt.37.1707361628549;
-        Wed, 07 Feb 2024 19:07:08 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCWLLVbDAWkfFtyhSVVzh+qvy66GqylkUIRMroRtqJlDWxFeOc32pUB9RrPlUQyPQHQRsIEh7PCjqZYG9FT/j36boFo3nuhugbBy5NNz579ZY6vYDjR8jpJXPRxdTPZ3D+az1RklSBm1Y09QIYvUO/VyKE7LJTRMyRnHzjVW2PTdSsSSztuyIbCEf+5LlBC1NwF7ivTlCmtXDKFgwQraNBX96xDu3UOmSjROOfGxWCEYNoPzo11QOfbOdGgPDBchllmsEGaiTsKw3VOaBZej2Y7/b377piUFa8OF28Qto619MBsAVagNNwpbNMFE28Tj9u6bGGYxi81MfDA4uwItTZBdly95ViAD6ziwyRr1z6fZCj/iNhOmioMGkOa1eACs86sG9wWx0Blp9f/KYMdU24cinrZmGyLEBAcdkMS1/uvJHKjDO6bT
-Received: from localhost.localdomain ([2620:11a:c018:0:ea8:be91:8d1:f59b])
-        by smtp.gmail.com with ESMTPSA id q5-20020a170902c9c500b001d8b8bf8e44sm2235232pld.92.2024.02.07.19.07.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 Feb 2024 19:07:08 -0800 (PST)
-From: Joe Damato <jdamato@fastly.com>
-To: linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Cc: tariqt@nvidia.com,
-	rrameshbabu@nvidia.com,
-	Joe Damato <jdamato@fastly.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Richard Cochran <richardcochran@gmail.com>,
-	Gal Pressman <gal@nvidia.com>,
-	Vadim Fedorenko <vadim.fedorenko@linux.dev>,
-	linux-rdma@vger.kernel.org (open list:MELLANOX MLX5 core VPI driver)
-Subject: [PATCH net-next v3] net/mlx5e: link NAPI instances to queues and IRQs
-Date: Thu,  8 Feb 2024 03:07:00 +0000
-Message-Id: <20240208030702.27296-1-jdamato@fastly.com>
-X-Mailer: git-send-email 2.25.1
+	s=arc-20240116; t=1707364492; c=relaxed/simple;
+	bh=KvC/4wtHpQpAeItSAiId9OmdN/bINh4UnhWq9nt9fZU=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=gXQQOCKS2BYmUNDmzeZGDeIKBlS4k4vnoZlaJnBMpYy/fnXUaeh49vEmiFG//Pi/C+MYlqfEhQdF7gASh7/LQ9gBYfsW7+cz294jTqV9lrr3nWbjncLHZ0bWs7bvHiA/BUxRD4NSlZv+G7caoMw1w/afbuvztovzmI6OBXNDCUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.163.44])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4TVjkB1PvRz1gyfT;
+	Thu,  8 Feb 2024 11:52:50 +0800 (CST)
+Received: from kwepemi500006.china.huawei.com (unknown [7.221.188.68])
+	by mail.maildlp.com (Postfix) with ESMTPS id 38C261404F8;
+	Thu,  8 Feb 2024 11:54:47 +0800 (CST)
+Received: from localhost.localdomain (10.67.165.2) by
+ kwepemi500006.china.huawei.com (7.221.188.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Thu, 8 Feb 2024 11:54:46 +0800
+From: Junxian Huang <huangjunxian6@hisilicon.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>
+CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
+Subject: [PATCH v2 for-next 2/2] RDMA/hns: Support userspace configuring congestion control algorithm with QP granularity
+Date: Thu, 8 Feb 2024 11:50:38 +0800
+Message-ID: <20240208035038.94668-3-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20240208035038.94668-1-huangjunxian6@hisilicon.com>
+References: <20240208035038.94668-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -74,98 +41,295 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ kwepemi500006.china.huawei.com (7.221.188.68)
 
-Make mlx5 compatible with the newly added netlink queue GET APIs.
+Support userspace configuring congestion control algorithm with
+QP granularity. If the algorithm is not specified in userspace,
+use the default one.
 
-Signed-off-by: Joe Damato <jdamato@fastly.com>
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
-v2 -> v3:
-  - Fix commit message subject
-  - call netif_queue_set_napi in mlx5e_ptp_activate_channel and
-    mlx5e_ptp_deactivate_channel to enable/disable NETDEV_QUEUE_TYPE_RX for
-    the PTP channel.
-  - Modify mlx5e_activate_txqsq and mlx5e_deactivate_txqsq to set
-    NETDEV_QUEUE_TYPE_TX which should take care of all TX queues including
-    QoS/HTB and PTP.
-  - Rearrange mlx5e_activate_channel and mlx5e_deactivate_channel for
-    better ordering when setting and unsetting NETDEV_QUEUE_TYPE_RX NAPI
-    structs
+ drivers/infiniband/hw/hns/hns_roce_device.h | 23 +++++--
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 14 +---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  3 +-
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  3 +
+ drivers/infiniband/hw/hns/hns_roce_qp.c     | 71 +++++++++++++++++++++
+ include/uapi/rdma/hns-abi.h                 | 17 +++++
+ 6 files changed, 112 insertions(+), 19 deletions(-)
 
-v1 -> v2:
-  - Move netlink NULL code to mlx5e_deactivate_channel
-  - Move netif_napi_set_irq to mlx5e_open_channel and avoid storing the
-    irq, after netif_napi_add which itself sets the IRQ to -1
-
- drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c  | 3 +++
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 7 +++++++
- 2 files changed, 10 insertions(+)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
-index 078f56a3cbb2..fbbc287d924d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/ptp.c
-@@ -927,6 +927,8 @@ void mlx5e_ptp_activate_channel(struct mlx5e_ptp *c)
- 	int tc;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index c88ba7e053bf..55f2f54e15fb 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -594,11 +594,19 @@ struct hns_roce_work {
+ 	u32 queue_num;
+ };
  
- 	napi_enable(&c->napi);
-+	netif_queue_set_napi(c->netdev, c->rq.ix, NETDEV_QUEUE_TYPE_RX,
-+			     &c->napi);
+-enum cong_type {
+-	CONG_TYPE_DCQCN,
+-	CONG_TYPE_LDCP,
+-	CONG_TYPE_HC3,
+-	CONG_TYPE_DIP,
++enum hns_roce_scc_algo {
++	HNS_ROCE_SCC_ALGO_DCQCN = 0,
++	HNS_ROCE_SCC_ALGO_LDCP,
++	HNS_ROCE_SCC_ALGO_HC3,
++	HNS_ROCE_SCC_ALGO_DIP,
++	HNS_ROCE_SCC_ALGO_TOTAL,
++};
++
++enum hns_roce_cong_type {
++	CONG_TYPE_DCQCN = 1 << HNS_ROCE_SCC_ALGO_DCQCN,
++	CONG_TYPE_LDCP = 1 << HNS_ROCE_SCC_ALGO_LDCP,
++	CONG_TYPE_HC3 = 1 << HNS_ROCE_SCC_ALGO_HC3,
++	CONG_TYPE_DIP = 1 << HNS_ROCE_SCC_ALGO_DIP,
+ };
  
- 	if (test_bit(MLX5E_PTP_STATE_TX, c->state)) {
- 		for (tc = 0; tc < c->num_tc; tc++)
-@@ -951,6 +953,7 @@ void mlx5e_ptp_deactivate_channel(struct mlx5e_ptp *c)
- 			mlx5e_deactivate_txqsq(&c->ptpsq[tc].txqsq);
+ struct hns_roce_qp {
+@@ -644,7 +652,7 @@ struct hns_roce_qp {
+ 	struct list_head	sq_node; /* all send qps are on a list */
+ 	struct hns_user_mmap_entry *dwqe_mmap_entry;
+ 	u32			config;
+-	enum cong_type		cong_type;
++	enum hns_roce_cong_type	cong_type;
+ };
+ 
+ struct hns_roce_ib_iboe {
+@@ -845,7 +853,8 @@ struct hns_roce_caps {
+ 	u16		default_aeq_period;
+ 	u16		default_aeq_arm_st;
+ 	u16		default_ceq_arm_st;
+-	enum cong_type	cong_type;
++	u8		cong_cap;
++	enum hns_roce_cong_type	default_cong_type;
+ };
+ 
+ enum hns_roce_device_state {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 42e28586cefa..21532f213b0f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2209,11 +2209,12 @@ static int hns_roce_query_caps(struct hns_roce_dev *hr_dev)
+ 	caps->max_wqes = 1 << le16_to_cpu(resp_c->sq_depth);
+ 
+ 	caps->num_srqs = 1 << hr_reg_read(resp_d, PF_CAPS_D_NUM_SRQS);
+-	caps->cong_type = hr_reg_read(resp_d, PF_CAPS_D_CONG_TYPE);
++	caps->cong_cap = hr_reg_read(resp_d, PF_CAPS_D_CONG_CAP);
+ 	caps->max_srq_wrs = 1 << le16_to_cpu(resp_d->srq_depth);
+ 	caps->ceqe_depth = 1 << hr_reg_read(resp_d, PF_CAPS_D_CEQ_DEPTH);
+ 	caps->num_comp_vectors = hr_reg_read(resp_d, PF_CAPS_D_NUM_CEQS);
+ 	caps->aeqe_depth = 1 << hr_reg_read(resp_d, PF_CAPS_D_AEQ_DEPTH);
++	caps->default_cong_type = hr_reg_read(resp_d, PF_CAPS_D_DEFAULT_ALG);
+ 	caps->reserved_pds = hr_reg_read(resp_d, PF_CAPS_D_RSV_PDS);
+ 	caps->num_uars = 1 << hr_reg_read(resp_d, PF_CAPS_D_NUM_UARS);
+ 	caps->reserved_qps = hr_reg_read(resp_d, PF_CAPS_D_RSV_QPS);
+@@ -4737,14 +4738,8 @@ enum {
+ static int check_cong_type(struct ib_qp *ibqp,
+ 			   struct hns_roce_congestion_algorithm *cong_alg)
+ {
+-	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+ 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
+ 
+-	if (ibqp->qp_type == IB_QPT_UD || ibqp->qp_type == IB_QPT_GSI)
+-		hr_qp->cong_type = CONG_TYPE_DCQCN;
+-	else
+-		hr_qp->cong_type = hr_dev->caps.cong_type;
+-
+ 	/* different congestion types match different configurations */
+ 	switch (hr_qp->cong_type) {
+ 	case CONG_TYPE_DCQCN:
+@@ -4772,9 +4767,6 @@ static int check_cong_type(struct ib_qp *ibqp,
+ 		cong_alg->wnd_mode_sel = WND_LIMIT;
+ 		break;
+ 	default:
+-		ibdev_warn(&hr_dev->ib_dev,
+-			   "invalid type(%u) for congestion selection.\n",
+-			   hr_qp->cong_type);
+ 		hr_qp->cong_type = CONG_TYPE_DCQCN;
+ 		cong_alg->alg_sel = CONG_DCQCN;
+ 		cong_alg->alg_sub_sel = UNSUPPORT_CONG_LEVEL;
+@@ -4807,7 +4799,7 @@ static int fill_cong_field(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 		return ret;
+ 
+ 	hr_reg_write(context, QPC_CONG_ALGO_TMPL_ID, hr_dev->cong_algo_tmpl_id +
+-		     hr_qp->cong_type * HNS_ROCE_CONG_SIZE);
++		     ilog2(hr_qp->cong_type) * HNS_ROCE_CONG_SIZE);
+ 	hr_reg_clear(qpc_mask, QPC_CONG_ALGO_TMPL_ID);
+ 	hr_reg_write(&context->ext, QPCEX_CONG_ALG_SEL, cong_field.alg_sel);
+ 	hr_reg_clear(&qpc_mask->ext, QPCEX_CONG_ALG_SEL);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index cd97cbee682a..359a74672ba1 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -1214,12 +1214,13 @@ struct hns_roce_query_pf_caps_d {
+ #define PF_CAPS_D_RQWQE_HOP_NUM PF_CAPS_D_FIELD_LOC(21, 20)
+ #define PF_CAPS_D_EX_SGE_HOP_NUM PF_CAPS_D_FIELD_LOC(23, 22)
+ #define PF_CAPS_D_SQWQE_HOP_NUM PF_CAPS_D_FIELD_LOC(25, 24)
+-#define PF_CAPS_D_CONG_TYPE PF_CAPS_D_FIELD_LOC(29, 26)
++#define PF_CAPS_D_CONG_CAP PF_CAPS_D_FIELD_LOC(29, 26)
+ #define PF_CAPS_D_CEQ_DEPTH PF_CAPS_D_FIELD_LOC(85, 64)
+ #define PF_CAPS_D_NUM_CEQS PF_CAPS_D_FIELD_LOC(95, 86)
+ #define PF_CAPS_D_AEQ_DEPTH PF_CAPS_D_FIELD_LOC(117, 96)
+ #define PF_CAPS_D_AEQ_ARM_ST PF_CAPS_D_FIELD_LOC(119, 118)
+ #define PF_CAPS_D_CEQ_ARM_ST PF_CAPS_D_FIELD_LOC(121, 120)
++#define PF_CAPS_D_DEFAULT_ALG PF_CAPS_D_FIELD_LOC(127, 122)
+ #define PF_CAPS_D_RSV_PDS PF_CAPS_D_FIELD_LOC(147, 128)
+ #define PF_CAPS_D_NUM_UARS PF_CAPS_D_FIELD_LOC(155, 148)
+ #define PF_CAPS_D_RSV_QPS PF_CAPS_D_FIELD_LOC(179, 160)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index b55fe6911f9f..e5b678814f58 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -394,6 +394,9 @@ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+ 			resp.config |= HNS_ROCE_RSP_CQE_INLINE_FLAGS;
  	}
  
-+	netif_queue_set_napi(c->netdev, c->rq.ix, NETDEV_QUEUE_TYPE_RX, NULL);
- 	napi_disable(&c->napi);
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index c8e8f512803e..2f1792854dd5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -1806,6 +1806,7 @@ void mlx5e_activate_txqsq(struct mlx5e_txqsq *sq)
- 	set_bit(MLX5E_SQ_STATE_ENABLED, &sq->state);
- 	netdev_tx_reset_queue(sq->txq);
- 	netif_tx_start_queue(sq->txq);
-+	netif_queue_set_napi(sq->channel->netdev, sq->txq_ix, NETDEV_QUEUE_TYPE_TX, &sq->channel->napi);
- }
- 
- void mlx5e_tx_disable_queue(struct netdev_queue *txq)
-@@ -1819,6 +1820,7 @@ void mlx5e_deactivate_txqsq(struct mlx5e_txqsq *sq)
- {
- 	struct mlx5_wq_cyc *wq = &sq->wq;
- 
-+	netif_queue_set_napi(sq->channel->netdev, sq->txq_ix, NETDEV_QUEUE_TYPE_TX, NULL);
- 	clear_bit(MLX5E_SQ_STATE_ENABLED, &sq->state);
- 	synchronize_net(); /* Sync with NAPI to prevent netif_tx_wake_queue. */
- 
-@@ -2560,6 +2562,7 @@ static int mlx5e_open_channel(struct mlx5e_priv *priv, int ix,
- 	c->lag_port = mlx5e_enumerate_lag_port(priv->mdev, ix);
- 
- 	netif_napi_add(netdev, &c->napi, mlx5e_napi_poll);
-+	netif_napi_set_irq(&c->napi, irq);
- 
- 	err = mlx5e_open_queues(c, params, cparam);
- 	if (unlikely(err))
-@@ -2602,12 +2605,16 @@ static void mlx5e_activate_channel(struct mlx5e_channel *c)
- 		mlx5e_activate_xsk(c);
- 	else
- 		mlx5e_activate_rq(&c->rq);
++	if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
++		resp.congest_type  = hr_dev->caps.cong_cap;
 +
-+	netif_queue_set_napi(c->netdev, c->ix, NETDEV_QUEUE_TYPE_RX, &c->napi);
+ 	ret = hns_roce_uar_alloc(hr_dev, &context->uar);
+ 	if (ret)
+ 		goto error_out;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 31b147210688..e22911d6b6a9 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -1004,6 +1004,70 @@ static void free_kernel_wrid(struct hns_roce_qp *hr_qp)
+ 	kfree(hr_qp->sq.wrid);
  }
  
- static void mlx5e_deactivate_channel(struct mlx5e_channel *c)
- {
- 	int tc;
- 
-+	netif_queue_set_napi(c->netdev, c->ix, NETDEV_QUEUE_TYPE_RX, NULL);
++static void default_congest_type(struct hns_roce_dev *hr_dev,
++				 struct hns_roce_qp *hr_qp)
++{
++	struct hns_roce_caps *caps = &hr_dev->caps;
 +
- 	if (test_bit(MLX5E_CHANNEL_STATE_XSK, c->state))
- 		mlx5e_deactivate_xsk(c);
- 	else
++	if (hr_qp->ibqp.qp_type == IB_QPT_UD ||
++	    hr_qp->ibqp.qp_type == IB_QPT_GSI)
++		hr_qp->cong_type = CONG_TYPE_DCQCN;
++	else
++		hr_qp->cong_type = 1 << caps->default_cong_type;
++}
++
++static int set_congest_type(struct hns_roce_qp *hr_qp,
++			    struct hns_roce_ib_create_qp *ucmd)
++{
++	struct hns_roce_dev *hr_dev = to_hr_dev(hr_qp->ibqp.device);
++
++	switch (ucmd->cong_type_flags) {
++	case HNS_ROCE_CREATE_QP_FLAGS_DCQCN:
++		hr_qp->cong_type = CONG_TYPE_DCQCN;
++		break;
++	case HNS_ROCE_CREATE_QP_FLAGS_LDCP:
++		hr_qp->cong_type = CONG_TYPE_LDCP;
++		break;
++	case HNS_ROCE_CREATE_QP_FLAGS_HC3:
++		hr_qp->cong_type = CONG_TYPE_HC3;
++		break;
++	case HNS_ROCE_CREATE_QP_FLAGS_DIP:
++		hr_qp->cong_type = CONG_TYPE_DIP;
++		break;
++	default:
++		hr_qp->cong_type = 0;
++	}
++
++	if (!(hr_qp->cong_type & hr_dev->caps.cong_cap)) {
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "Unsupported congest type 0x%x, cong_cap = 0x%x.\n",
++				      hr_qp->cong_type, hr_dev->caps.cong_cap);
++		return -EOPNOTSUPP;
++	}
++
++	if (hr_qp->ibqp.qp_type == IB_QPT_UD &&
++	    !(hr_qp->cong_type & CONG_TYPE_DCQCN)) {
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "Only DCQCN supported for UD. Unsupported congest type 0x%x.\n",
++				      hr_qp->cong_type);
++		return -EOPNOTSUPP;
++	}
++
++	return 0;
++}
++
++static int set_congest_param(struct hns_roce_dev *hr_dev,
++			     struct hns_roce_qp *hr_qp,
++			     struct hns_roce_ib_create_qp *ucmd)
++{
++	if (ucmd->comp_mask & HNS_ROCE_CREATE_QP_MASK_CONGEST_TYPE)
++		return set_congest_type(hr_qp, ucmd);
++
++	default_congest_type(hr_dev, hr_qp);
++
++	return 0;
++}
++
+ static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 			struct ib_qp_init_attr *init_attr,
+ 			struct ib_udata *udata,
+@@ -1026,6 +1090,9 @@ static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 		return ret;
+ 	}
+ 
++	if (init_attr->qp_type == IB_QPT_XRC_TGT)
++		default_congest_type(hr_dev, hr_qp);
++
+ 	if (udata) {
+ 		ret = ib_copy_from_udata(ucmd, udata,
+ 					 min(udata->inlen, sizeof(*ucmd)));
+@@ -1043,6 +1110,10 @@ static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 			ibdev_err(ibdev,
+ 				  "failed to set user SQ size, ret = %d.\n",
+ 				  ret);
++
++		ret = set_congest_param(hr_dev, hr_qp, ucmd);
++		if (ret)
++			return ret;
+ 	} else {
+ 		if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
+ 			hr_qp->config = HNS_ROCE_EXSGE_FLAGS;
+diff --git a/include/uapi/rdma/hns-abi.h b/include/uapi/rdma/hns-abi.h
+index c996e151081e..757095a6c6fc 100644
+--- a/include/uapi/rdma/hns-abi.h
++++ b/include/uapi/rdma/hns-abi.h
+@@ -81,6 +81,9 @@ struct hns_roce_ib_create_qp {
+ 	__u8    sq_no_prefetch;
+ 	__u8    reserved[5];
+ 	__aligned_u64 sdb_addr;
++	__aligned_u64 comp_mask; /* Use enum hns_roce_create_qp_comp_mask */
++	__aligned_u64 create_flags;
++	__aligned_u64 cong_type_flags;
+ };
+ 
+ enum hns_roce_qp_cap_flags {
+@@ -107,6 +110,17 @@ enum {
+ 	HNS_ROCE_RSP_CQE_INLINE_FLAGS = 1 << 2,
+ };
+ 
++enum hns_roce_congest_type_flags {
++	HNS_ROCE_CREATE_QP_FLAGS_DCQCN = 1 << 0,
++	HNS_ROCE_CREATE_QP_FLAGS_LDCP = 1 << 1,
++	HNS_ROCE_CREATE_QP_FLAGS_HC3 = 1 << 2,
++	HNS_ROCE_CREATE_QP_FLAGS_DIP = 1 << 3,
++};
++
++enum hns_roce_create_qp_comp_mask {
++	HNS_ROCE_CREATE_QP_MASK_CONGEST_TYPE = 1 << 1,
++};
++
+ struct hns_roce_ib_alloc_ucontext_resp {
+ 	__u32	qp_tab_size;
+ 	__u32	cqe_size;
+@@ -114,6 +128,9 @@ struct hns_roce_ib_alloc_ucontext_resp {
+ 	__u32	reserved;
+ 	__u32	config;
+ 	__u32	max_inline_data;
++	__u8	reserved0;
++	__u8	congest_type;
++	__u8	reserved1[6];
+ };
+ 
+ struct hns_roce_ib_alloc_ucontext {
 -- 
-2.25.1
+2.30.0
 
