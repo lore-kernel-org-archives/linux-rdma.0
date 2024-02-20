@@ -1,29 +1,29 @@
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+Received: from out199-1.us.a.mail.aliyun.com (out199-1.us.a.mail.aliyun.com [47.90.199.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFD935C60A;
-	Tue, 20 Feb 2024 07:02:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26EC5A11A;
+	Tue, 20 Feb 2024 07:02:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=47.90.199.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708412532; cv=none; b=G00w3sP0LDph/SyRgCkSI0OOoqc64B5+quq1YHwDSwJRWV1h4/ASc70pIKGHzvDIvRzLc/XujZLuNc7GSOl4AsK9oByx4LGWQunKB/r702RfbrhQDT75gfHXBmjt0svk+IYUoS1t1yuf4eRrSnVCxMsryp96ymOHiqDr0y2pSd4=
+	t=1708412539; cv=none; b=RZ63M9WDfVFtxUBlsHQq81Bf61krAsr5QkR7h0TEX9YBHjlQ031wm+nO6tINOk9bUQs39Q670KPQXtSMNB6DeMuIMbM6yuOzzlSeWk4Rr9/bRh61/0wgAJwkvLJhafaV3lo0Z8EsK4KPtO92ik3Fww3Y6OFO7BaABZ0YRtoI7sk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708412532; c=relaxed/simple;
-	bh=SiTAsqKh8EAlVt3tvGR5Lh2Elhcnf0KiBNWqK87aAHM=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=R40bY3R3eou1tkwqOyJMEyV7cXsILJYNKxNivSqIjU/O6g86T3MN4jfbtkmpEUQ54MG1wEN0g4B8kU3DxJgI1oKiF9l83+o5xr0qODsT3cOQdC8jUUhKHXWk0pIC7kEQleZ6SvKkbXK5YXDaxaCM7sMyUi5huEDZ2ZM4U3MyViQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=mDCUOo62; arc=none smtp.client-ip=115.124.30.130
+	s=arc-20240116; t=1708412539; c=relaxed/simple;
+	bh=KHH6nqnlO3XtD52ILwZrK3g1QIawp8D8BY/Ro4dbtak=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=p8aSBpvfxqIWt5/QXYEk9RmXO3SyLnNed0ScLy5JmUj/fdiDLDg+UHFq3/B4AXSsIEVx/Ng6gr+3Tl5Bl6jwhJITD6M6A5T1Fj/mnAso1HwvG//SC9m2DG1yvlkBhBF3pULyzsVEZIrQjgTcgZnbxttd5T16ufItwRd7fIVwMTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=XWPm01l4; arc=none smtp.client-ip=47.90.199.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="mDCUOo62"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="XWPm01l4"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1708412522; h=From:To:Subject:Date:Message-Id;
-	bh=cOgniKP2yjByNBrFGRtX5j3RCkIgyNcnzJjy9IfWBWI=;
-	b=mDCUOo62S3/AJ6AGzFW5y7ffXHFXm1701eZRHpsho3vg6x1J0U6+Tl5ju5m/bbk7e/mmXr1JeRob/0zXugXUUdNSfty90QsLV+E3fMMq2w1DTBOx1eV0eUxtKoLowAYGtq0EFLoGLJL3oYrBfRceZk4PicH8kIz+k/exqfgYAd8=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R331e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0W0vuXhV_1708412521;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0W0vuXhV_1708412521)
+	t=1708412519; h=From:To:Subject:Date:Message-Id;
+	bh=H78lH3tbMyek+0jhdG1eR22ohdujG/bHb3E38Wi9Cac=;
+	b=XWPm01l4aLFFCwB+Vg4bOlijxRSMtRYHH1WstCdaH/A6bNSJBf5jVjAx9QBlQwl5Z8grg7ABjYAY+d7wLopgoKPw28JY91xkdR/FCQea6fj3VTGqS0fpxVIyb69cCAUeMeQOnlWlm2RH6v7fxvMQqGgjU6eDPgW8aPTH93R17+M=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R211e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045176;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0W0vuXgV_1708412518;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0W0vuXgV_1708412518)
           by smtp.aliyun-inc.com;
-          Tue, 20 Feb 2024 15:02:01 +0800
+          Tue, 20 Feb 2024 15:01:59 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 To: kgraul@linux.ibm.com,
 	wenjia@linux.ibm.com,
@@ -38,9 +38,9 @@ Cc: kuba@kernel.org,
 	tonylu@linux.alibaba.com,
 	pabeni@redhat.com,
 	edumazet@google.com
-Subject: [RFC net-next 18/20] net/smc: add define and macro for smc_negotiation
-Date: Tue, 20 Feb 2024 15:01:43 +0800
-Message-Id: <1708412505-34470-19-git-send-email-alibuda@linux.alibaba.com>
+Subject: [RFC net-next 14/20] net/smc: allow to access the state of inet smc sock
+Date: Tue, 20 Feb 2024 15:01:39 +0800
+Message-Id: <1708412505-34470-15-git-send-email-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1708412505-34470-1-git-send-email-alibuda@linux.alibaba.com>
 References: <1708412505-34470-1-git-send-email-alibuda@linux.alibaba.com>
@@ -52,154 +52,61 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-smc_negotiation is a new way to describe the state of the SMC
-protocol, note that it will only be used by inet sock. It mainly
-describes the following states of SMC sock:
-
-TBD:        Before TCP handshake is completed.
-PREPARE:    TCP is established, and smc is establishing.
-SMC:        smc handshake is established.
-NO_SMC:     sock should act as TCP.
-
-Before this patch, it is determined that these conditions must be
-applied simultaneously to syn_smc/use_fallback/sk_state,
-synchronization of fields needs to be handled with care,
-while syn_smc field cannot be modified at any time. Based on these
-considerations, inet sock uses smc_negotiation to control the
-protocol state.
+As we know, in inet version of smc, smc_sock and tcp_sock coexist,
+this will result in the sk_state field has been accessed and modified by
+both protocols, which can cause obvious exceptions. Therefore, this
+patch modify the state macro for reading and setting the smc state,
+using the icsk field to determine which is the very field needed to
+be accessed or changed.
 
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- net/smc/smc.h      |  1 +
- net/smc/smc_inet.h | 96 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 97 insertions(+)
+ net/smc/smc.h | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
 diff --git a/net/smc/smc.h b/net/smc/smc.h
-index 1675193..538920f 100644
+index 932d61f..e54a30c 100644
 --- a/net/smc/smc.h
 +++ b/net/smc/smc.h
-@@ -252,6 +252,7 @@ struct smc_sock {				/* smc sock container */
+@@ -38,9 +38,6 @@
+ #define KERNEL_HAS_ATOMIC64
+ #endif
+ 
+-#define smc_sk_state(sk)		((sk)->sk_state)
+-#define smc_sk_set_state(sk, state)	(smc_sk_state(sk) = (state))
+-
+ enum smc_state {		/* possible states of an SMC socket */
+ 	SMC_ACTIVE	= 1,
+ 	SMC_INIT	= 2,
+@@ -254,6 +251,7 @@ struct smc_sock {				/* smc sock container */
+ 		struct sock sk;
  	};
  	struct socket		*clcsock;	/* internal tcp socket */
- 	unsigned char		smc_state;	/* smc state used in smc via inet_sk */
-+	unsigned int		isck_smc_negotiation;
- 	unsigned long		smc_sk_flags;	/* smc sock flags used for inet sock */
++	unsigned char		smc_state;	/* smc state used in smc via inet_sk */
  	void			(*clcsk_state_change)(struct sock *sk);
  						/* original stat_change fct. */
-diff --git a/net/smc/smc_inet.h b/net/smc/smc_inet.h
-index 68ecfa0..1f182c0 100644
---- a/net/smc/smc_inet.h
-+++ b/net/smc/smc_inet.h
-@@ -18,6 +18,9 @@
- /* MUST after net/tcp.h or warning */
- #include <net/transp_v6.h>
+ 	void			(*clcsk_data_ready)(struct sock *sk);
+@@ -397,6 +395,20 @@ static __always_inline bool smc_sock_is_inet_sock(const struct sock *sk)
+ 	return inet_test_bit(IS_ICSK, sk);
+ }
  
-+#include <net/smc.h>
-+#include "smc.h"
++#define smc_sk_state(sk)	({				\
++	struct sock *__sk = (sk);				\
++	smc_sock_is_inet_sock(__sk) ?				\
++		smc_sk(__sk)->smc_state : (__sk)->sk_state;	\
++})
 +
- extern struct proto smc_inet_prot;
- extern struct proto smc_inet6_prot;
++static __always_inline void smc_sk_set_state(struct sock *sk, unsigned char state)
++{
++	if (smc_sock_is_inet_sock(sk))
++		smc_sk(sk)->smc_state = state;
++	else
++		sk->sk_state = state;
++}
++
+ #define smc_sock_flag(sk, flag)	sock_flag(sk, flag)
  
-@@ -27,6 +30,99 @@
- extern struct inet_protosw smc_inet_protosw;
- extern struct inet_protosw smc_inet6_protosw;
- 
-+enum smc_inet_sock_negotiation_state {
-+	/* When creating an AF_SMC sock, the state field will be initialized to 0 by default,
-+	 * which is only for logical compatibility with that situation
-+	 * and will never be used.
-+	 */
-+	SMC_NEGOTIATION_COMPATIBLE_WITH_AF_SMC = 0,
-+
-+	/* This connection is still uncertain whether it is an SMC connection or not,
-+	 * It always appears when actively open SMC connection, because it's unclear
-+	 * whether the server supports the SMC protocol and has willing to use SMC.
-+	 */
-+	SMC_NEGOTIATION_TBD = 0x10,
-+
-+	/* This state indicates that this connection is definitely not an SMC connection.
-+	 * and it is absolutely impossible to become an SMC connection again. A fina
-+	 * state.
-+	 */
-+	SMC_NEGOTIATION_NO_SMC = 0x20,
-+
-+	/* This state indicates that this connection is an SMC connection. and it is
-+	 * absolutely impossible to become an not-SMC connection again. A final state.
-+	 */
-+	SMC_NEGOTIATION_SMC = 0x40,
-+
-+	/* This state indicates that this connection is in the process of SMC handshake.
-+	 * It is mainly used to eliminate the ambiguity of syn_smc, because when syn_smc is 1,
-+	 * It may represent remote has support for SMC, or it may just indicate that itself has
-+	 * supports for SMC.
-+	 */
-+	SMC_NEGOTIATION_PREPARE_SMC = 0x80,
-+
-+	/* flags */
-+	SMC_NEGOTIATION_LISTEN_FLAG = 0x01,
-+	SMC_NEGOTIATION_ABORT_FLAG = 0x02,
-+};
-+
-+static __always_inline void isck_smc_negotiation_store(struct smc_sock *smc,
-+						       enum smc_inet_sock_negotiation_state state)
-+{
-+	WRITE_ONCE(smc->isck_smc_negotiation,
-+		   state | (READ_ONCE(smc->isck_smc_negotiation) & 0x0f));
-+}
-+
-+static __always_inline int isck_smc_negotiation_load(struct smc_sock *smc)
-+{
-+	return READ_ONCE(smc->isck_smc_negotiation) & 0xf0;
-+}
-+
-+static __always_inline void isck_smc_negotiation_set_flags(struct smc_sock *smc, int flags)
-+{
-+	smc->isck_smc_negotiation = (smc->isck_smc_negotiation | (flags & 0x0f));
-+}
-+
-+static __always_inline int isck_smc_negotiation_get_flags(struct smc_sock *smc)
-+{
-+	return smc->isck_smc_negotiation & 0x0f;
-+}
-+
-+static __always_inline bool smc_inet_sock_check_fallback_fast(struct sock *sk)
-+{
-+	return !tcp_sk(sk)->syn_smc;
-+}
-+
-+static __always_inline bool smc_inet_sock_check_fallback(struct sock *sk)
-+{
-+	return isck_smc_negotiation_load(smc_sk(sk)) == SMC_NEGOTIATION_NO_SMC;
-+}
-+
-+static __always_inline bool smc_inet_sock_check_smc(struct sock *sk)
-+{
-+	if (smc_inet_sock_check_fallback_fast(sk))
-+		return false;
-+
-+	return isck_smc_negotiation_load(smc_sk(sk)) == SMC_NEGOTIATION_SMC;
-+}
-+
-+static __always_inline bool smc_inet_sock_is_active_open(struct sock *sk)
-+{
-+	return !(isck_smc_negotiation_get_flags(smc_sk(sk)) & SMC_NEGOTIATION_LISTEN_FLAG);
-+}
-+
-+static inline void smc_inet_sock_abort(struct sock *sk)
-+{
-+	write_lock_bh(&sk->sk_callback_lock);
-+	if (isck_smc_negotiation_get_flags(smc_sk(sk)) & SMC_NEGOTIATION_ABORT_FLAG) {
-+		write_unlock_bh(&sk->sk_callback_lock);
-+		return;
-+	}
-+	isck_smc_negotiation_set_flags(smc_sk(sk), SMC_NEGOTIATION_ABORT_FLAG);
-+	write_unlock_bh(&sk->sk_callback_lock);
-+	sk->sk_error_report(sk);
-+}
-+
- /* obtain TCP proto via sock family */
- static __always_inline struct proto *smc_inet_get_tcp_prot(int family)
- {
+ #endif	/* __SMC_H */
 -- 
 1.8.3.1
 
