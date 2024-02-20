@@ -1,126 +1,66 @@
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F7ED5A0EC;
-	Tue, 20 Feb 2024 07:07:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.132
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 990B75C5E3;
+	Tue, 20 Feb 2024 07:57:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708412845; cv=none; b=lDPQNalKcfux3Nnsehk4iCCq0dF6ZpQG+SKTVo2TAF0jS0HqzTcNw49AEJQPN1Fr/ey8FGbqAvYnq8y+Du5VZizaALTJ1xCx4cNGAzA/ButuOAr1PnocNNRQ66qm7jlyyz1bmQWMVQC0oADrdk5f3ReL1N4Nl3qB8SdkE9LnMp4=
+	t=1708415840; cv=none; b=QaRUDw0pzCBu6cLKgh1S1dygJrWWkps0cAXUsBNJ6srNvy4zKs72nxAHHjKT5bu7gnhVJtni3r7rTgY8tDfA3hOTpOvqygWB6OYCEKfoaVfSiQvF0RpD5XpwYQC7jBQ/3VBFqbVRMoj6xIFGNuW2RDOMO2x5lXNA8CCkZ92DQbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708412845; c=relaxed/simple;
-	bh=l28AfzidSu1pRTD2a6149c5GFZhgjtGOmiAePxjJGtU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=b3ygX31ctN8a/eE1HmKNNLvxdIWbIxoPZJoxJSwbxShPKIRcaz+JMkTr5vNdTJqx3uUlC3nvaBV3vBPLwxJeqC2AHj+nS/33I/wI9A12tekULLHzUobOUkmsfSMlLzqyBtXfyXLnGZYrwOk9GzJyCYLNvvj1ScL9GWN9424Atlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=c7qZXbm6; arc=none smtp.client-ip=115.124.30.132
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1708415840; c=relaxed/simple;
+	bh=1JAH+k0oC/h1bHslHgVC/nrMngLSq2FgOoqTHYPd184=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Hw0rMDJy9Lhmud766KwLfx6V6SWCSMQjkPLw+shEpxCPrGB/i/3LWZsFjkmjGBYEXlao8tMKR8+b1ayf8pjIl7rhON+c8bz4wLntEZ89T2vCK+MeueYMoZoBNcZ73uetoyiWRx4Sduf3/P4hs/fZbaP4A+dCBKio1sc1zrXuxQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cvXRzcza; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="c7qZXbm6"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1708412839; h=From:To:Subject:Date:Message-Id;
-	bh=0gYY+oZKSPlQwfXwQJFl5/DHmqexYu6zfCNueOj8rac=;
-	b=c7qZXbm6RngmxkP3CVZN8lmBK5B+s/Pt0qWCPWuQDoMW706zZS4EYCq/Kgjbhq4WfG5ggeYcq0VZYs15DNomPFNwKTRdXcoRCw4qWOkudZ1aoxnrVRmeEgnPR7HXD+ul3rayFUQIDgK57+9uaw8HnDU6bz0z2UoCUByoWn1xWEM=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R761e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046060;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0W0vuXgk_1708412519;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0W0vuXgk_1708412519)
-          by smtp.aliyun-inc.com;
-          Tue, 20 Feb 2024 15:01:59 +0800
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-To: kgraul@linux.ibm.com,
-	wenjia@linux.ibm.com,
-	jaka@linux.ibm.com,
-	wintera@linux.ibm.com,
-	guwen@linux.alibaba.com
-Cc: kuba@kernel.org,
-	davem@davemloft.net,
-	netdev@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	tonylu@linux.alibaba.com,
-	pabeni@redhat.com,
-	edumazet@google.com
-Subject: [RFC net-next 15/20] net/smc: enable access of sock flags of inet smc sock
-Date: Tue, 20 Feb 2024 15:01:40 +0800
-Message-Id: <1708412505-34470-16-git-send-email-alibuda@linux.alibaba.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1708412505-34470-1-git-send-email-alibuda@linux.alibaba.com>
-References: <1708412505-34470-1-git-send-email-alibuda@linux.alibaba.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cvXRzcza"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7734AC433C7;
+	Tue, 20 Feb 2024 07:57:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1708415840;
+	bh=1JAH+k0oC/h1bHslHgVC/nrMngLSq2FgOoqTHYPd184=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=cvXRzczaupLox1sUg0b9gC7YiQvGh3OvZuqQwbpkRJIrwdKvvp8F6UHt6StQ+yg1N
+	 G2jcx7lJyUnCAHwHaYyJSMUH0obcu2xSs6NBay1qdrZnGa0qDZjpzXbTOCOLp3GmUg
+	 Xty4aGH1n0BLB0libaPnj4G3mG+gIJy8lO8eI8wyGU2XuF9lDjICmxDPHr00OZ++ZN
+	 0nZmDLp2NU+aDyrSPD2Ux+oB2gPNQ1psbaabu9at8v64rqBPwrA4xXLLurLkheyaIA
+	 cJoqs3FJqCK4GqVNdq8R7UV4bf9nzWYjZF4HeA2eBYFeS/JRcbML+Z7sv3XRIl0yrm
+	 K8e3mxKe63I1g==
+Date: Tue, 20 Feb 2024 07:57:15 +0000
+From: Simon Horman <horms@kernel.org>
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Or Gerlitz <ogerlitz@mellanox.com>, Eli Cohen <eli@mellanox.com>,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next] net/mlx5: Use kasprintf()
+Message-ID: <20240220075715.GP40273@kernel.org>
+References: <9bb8d927ec172df227f84694dfa5769623f48c89.1707562340.git.christophe.jaillet@wanadoo.fr>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9bb8d927ec172df227f84694dfa5769623f48c89.1707562340.git.christophe.jaillet@wanadoo.fr>
 
-From: "D. Wythe" <alibuda@linux.alibaba.com>
+On Sat, Feb 10, 2024 at 11:53:13AM +0100, Christophe JAILLET wrote:
+> Use kasprintf() instead of open-coding it.
+> This saves some lines of code, avoid a hard-coded magic number and is more
+> robust.
+> 
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> ---
+> If you consider it as a bug fix, should 'name' overflow because of the
+> hard-coded limit, then:
+> Fixes: ac6ea6e81a80 ("net/mlx5_core: Use private health thread for each device")
 
-Since smc_sock and tcp_sock coexist in inet version of smc, the
-sock flags field are shared between tcp and smc. Like the sk_state,
-we also need a extra sock flags filed for smc in inet version, and
-using the icsk field to determine which is the very field needed to
-be accessed or changed.
+TBH I am entirely unsure if an overflow can occur.
+But in any case the change looks good to me.
 
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- net/smc/smc.h | 34 +++++++++++++++++++++++++++++-----
- 1 file changed, 29 insertions(+), 5 deletions(-)
-
-diff --git a/net/smc/smc.h b/net/smc/smc.h
-index e54a30c..1675193 100644
---- a/net/smc/smc.h
-+++ b/net/smc/smc.h
-@@ -252,6 +252,7 @@ struct smc_sock {				/* smc sock container */
- 	};
- 	struct socket		*clcsock;	/* internal tcp socket */
- 	unsigned char		smc_state;	/* smc state used in smc via inet_sk */
-+	unsigned long		smc_sk_flags;	/* smc sock flags used for inet sock */
- 	void			(*clcsk_state_change)(struct sock *sk);
- 						/* original stat_change fct. */
- 	void			(*clcsk_data_ready)(struct sock *sk);
-@@ -385,10 +386,6 @@ void smc_fill_gid_list(struct smc_link_group *lgr,
- int smc_nl_enable_hs_limitation(struct sk_buff *skb, struct genl_info *info);
- int smc_nl_disable_hs_limitation(struct sk_buff *skb, struct genl_info *info);
- 
--static inline void smc_sock_set_flag(struct sock *sk, enum sock_flags flag)
--{
--	set_bit(flag, &sk->sk_flags);
--}
- 
- static __always_inline bool smc_sock_is_inet_sock(const struct sock *sk)
- {
-@@ -409,6 +406,33 @@ static __always_inline void smc_sk_set_state(struct sock *sk, unsigned char stat
- 		sk->sk_state = state;
- }
- 
--#define smc_sock_flag(sk, flag)	sock_flag(sk, flag)
-+static __always_inline bool smc_sock_flag(const struct sock *sk, enum sock_flags flag)
-+{
-+	if (smc_sock_is_inet_sock(sk)) {
-+		switch (flag) {
-+		case SOCK_DEAD:
-+		case SOCK_DONE:
-+			return test_bit(flag, &smc_sk(sk)->smc_sk_flags);
-+		default:
-+			break;
-+		}
-+	}
-+	return sock_flag(sk, flag);
-+}
-+
-+static __always_inline void smc_sock_set_flag(struct sock *sk, enum sock_flags flag)
-+{
-+	if (smc_sock_is_inet_sock(sk)) {
-+		switch (flag) {
-+		case SOCK_DEAD:
-+		case SOCK_DONE:
-+			__set_bit(flag, &smc_sk(sk)->smc_sk_flags);
-+			return;
-+		default:
-+			break;
-+		}
-+	}
-+	set_bit(flag, &sk->sk_flags);
-+}
- 
- #endif	/* __SMC_H */
--- 
-1.8.3.1
-
+Reviewed-by: Simon Horman <horms@kernel.org>
