@@ -1,79 +1,109 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5D12F3DB9A;
-	Mon,  4 Mar 2024 13:52:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8611D5FDB0;
+	Mon,  4 Mar 2024 17:07:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709560376; cv=none; b=Gv2bqYIuPZMn9t96Kk+Q/CY8hnHv7u2O48LIbroil1OHgt7ntz8kE2MaWR7woJCbuaoFE67B04rDZ50llfNCgjSgc8JLG/UOK3z1Sz+cEvXjuAVdoQAgktVhMfanppo6LcgHqjdXvlYhnEX4YQz/Y8cs39HE9UMDCYnBXLJGQy0=
+	t=1709572032; cv=none; b=rXhzmXSnftERKqcfGjb7u03Hor/1mK5socGtvm20SNZR9hJmSQobtQng8vwv87tekyuAhxswZeoKmzIlYRsMr7SI8SzKph18kPX6sW+MGgI0OUvheMkqakH9uxpEt/raSAXahoktUnyqHUD+rmoKCajKTibz19FiYiVoxdEsoLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709560376; c=relaxed/simple;
-	bh=VgKcy/wt8otFtLEAxcf4FH/B26139TXWisSm6/+JazE=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=VaN3olmLOQWcOwFn84yD0Stdp6NpRQzW4qEn8TxJ/mkRTnqcLu/vnw5kAQYhbMzOuVYcm4snz/xubMgJwXBwf4ta0Djn1vRNEAq+6iwTRpnEFmd5yqiJuf/cfc1ZdxSDJFr3atix1+2i86yjg6kshn8FiAex8ykfyS9tYIaKzuY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=jPMT5EX0; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1709572032; c=relaxed/simple;
+	bh=lXtjERnj7O2gxWm2nEqFOD29O6TQACpTdkMEYUhfjZ4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cv/3xXoINu1FwoApF+d/Vgb+27BJ9TvZ4vO136cbiA2GRhggik5eNK/fE/kdpc+Gr//hDXRRBY0OU/uPTYi1dDnckvt46Et4+qv40AuEiQGNpn1+qwZy/pWP8YECTKedE29h9ebIGg/kaEdQii/6wkco12Ou/Q18v9AlYP5xeZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cXYWqCaW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="jPMT5EX0"
-Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 1797020B74C0;
-	Mon,  4 Mar 2024 05:52:47 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1797020B74C0
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1709560367;
-	bh=PwpulH08AbMmhYDOwT7qW2eiML06lbhG8MMra/FdQ18=;
-	h=From:To:Cc:Subject:Date:From;
-	b=jPMT5EX0OAD69cpEVDfCC+1P+D2qcCpPIEVIiELZLGub/shudqSU96en2OZSzyMJ+
-	 HKJTlEn1pdwUlIIxD+VZ4wn8bgxYQ5jIAKuO81HIuDCyaUc5D9x5l/OH/n2WJqlLTk
-	 JTDHfNd87b6A9YISrYlptLiY+8zYcLdpseIGqyHo=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	sharmaajay@microsoft.com,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v3 0/2] RDMA/mana_ib: Improve dma region creation
-Date: Mon,  4 Mar 2024 05:52:39 -0800
-Message-Id: <1709560361-26393-1-git-send-email-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 1.8.3.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cXYWqCaW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71CB6C433F1;
+	Mon,  4 Mar 2024 17:07:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1709572032;
+	bh=lXtjERnj7O2gxWm2nEqFOD29O6TQACpTdkMEYUhfjZ4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=cXYWqCaW2JIaOxS1gttFm9tGZStOXp63YN+FmvcvWMOpoX0DwPC0EnrvisBN8LoMJ
+	 E06egE5RPZbZYZy/dOOeHBawGVdI5cCKeZJxVvKVUo0udtER2crgYu75Q6Xn7gSeBC
+	 HVpl0uybb8gR0jQf6XSDHqDUKGKWDOmERIx+J3Oln4o49z+g7owYsGIQ7nTyyCh004
+	 QnfYh7Kz1RkMuS8sJ7rbHsNsKT7eQz6hGmAhhXwPw+QJErSXWgUiCahKwFFMEkyiwy
+	 oYoonTXAxtvjL4J7DXR8bvg9Flxle4EowyPPrh6Op7oCw5P9NXCUToK2HZQS2F6myQ
+	 Xi2ZYd1cn39WA==
+Date: Mon, 4 Mar 2024 17:07:07 +0000
+From: Simon Horman <horms@kernel.org>
+To: Edward Adam Davis <eadavis@qq.com>
+Cc: syzbot+d4faee732755bba9838e@syzkaller.appspotmail.com,
+	allison.henderson@oracle.com, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+	pabeni@redhat.com, rds-devel@oss.oracle.com,
+	santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
+Subject: Re: [PATCH] net/rds: fix WARNING in rds_conn_connect_if_down
+Message-ID: <20240304170707.GJ403078@kernel.org>
+References: <000000000000c0550506125e4118@google.com>
+ <tencent_25067C49AB2EDF6EE5CC95A7FA86C992F806@qq.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <tencent_25067C49AB2EDF6EE5CC95A7FA86C992F806@qq.com>
 
-From: Konstantin Taranov <kotaranov@microsoft.com>
+On Sun, Mar 03, 2024 at 12:18:57PM +0800, Edward Adam Davis wrote:
+> If connection isn't established yet, get_mr() will fail, trigger connection after
+> get_mr().
+> 
+> Fixes: 584a8279a44a ("RDS: RDMA: return appropriate error on rdma map failures") 
+> Reported-and-tested-by: syzbot+d4faee732755bba9838e@syzkaller.appspotmail.com
+> Signed-off-by: Edward Adam Davis <eadavis@qq.com>
+> ---
+>  net/rds/rdma.c | 3 +++
+>  net/rds/send.c | 6 +-----
+>  2 files changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/net/rds/rdma.c b/net/rds/rdma.c
+> index fba82d36593a..a4e3c5de998b 100644
+> --- a/net/rds/rdma.c
+> +++ b/net/rds/rdma.c
+> @@ -301,6 +301,9 @@ static int __rds_rdma_map(struct rds_sock *rs, struct rds_get_mr_args *args,
+>  			kfree(sg);
+>  		}
+>  		ret = PTR_ERR(trans_private);
+> +		/* Trigger connection so that its ready for the next retry */
+> +		if (ret == -ENODEV)
+> +			rds_conn_connect_if_down(cp->cp_conn);
 
-This patch series fixes an incorrect offset calculation for dma
-regions and adds new functions to create dma regions:
-1)  with iova
-2)  without iova but with zero dma offset
+Hi Edward,
 
-Changes:
-v1->v2:
-Split the patch into 2 commits
-In 1/2, Improved commit messages and added "Fixes:"
-In 2/2, Used correct helpers to get page size for iova and no-iova cases
-In 2/2, Introduced mana helpers to work with iova and no-iova cases
+Elsewhere in this function it is assumed that cp may be NULL.
+Does that need to be taken into account here too?
 
-v2->v3:
-In 2/2, Return -EINVAL on failed ib_umem_find_best_pgoff
-In 2/2, Improved commit message and added "Fixes:"
+Flagged by Smatch.
 
-Konstantin Taranov (2):
-  RDMA/mana_ib: Fix bug in creation of dma regions
-  RDMA/mana_ib: Use virtual address in dma regions for MRs
+>  		goto out;
+>  	}
+>  
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 5e57a1581dc6..fa1640628b2f 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+> @@ -1313,12 +1313,8 @@ int rds_sendmsg(struct socket *sock, struct msghdr *msg, size_t payload_len)
+>  
+>  	/* Parse any control messages the user may have included. */
+>  	ret = rds_cmsg_send(rs, rm, msg, &allocated_mr, &vct);
+> -	if (ret) {
+> -		/* Trigger connection so that its ready for the next retry */
+> -		if (ret ==  -EAGAIN)
+> -			rds_conn_connect_if_down(conn);
+> +	if (ret) 
 
- drivers/infiniband/hw/mana/cq.c      |  4 +--
- drivers/infiniband/hw/mana/main.c    | 42 +++++++++++++++++++++-------
- drivers/infiniband/hw/mana/mana_ib.h |  7 +++--
- drivers/infiniband/hw/mana/mr.c      |  4 +--
- drivers/infiniband/hw/mana/qp.c      |  6 ++--
- drivers/infiniband/hw/mana/wq.c      |  4 +--
- 6 files changed, 46 insertions(+), 21 deletions(-)
+nit: checkpatch warns that there is a trailing space on the line above.
 
+>  		goto out;
+> -	}
+>  
+>  	if (rm->rdma.op_active && !conn->c_trans->xmit_rdma) {
+>  		printk_ratelimited(KERN_NOTICE "rdma_op %p conn xmit_rdma %p\n",
 
-base-commit: 14b526f55ba5916856126f9793309fd6de5c5e7e
 -- 
-2.43.0
-
+pw-bot: changes-requested
