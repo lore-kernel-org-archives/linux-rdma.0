@@ -1,92 +1,72 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62143FB07;
-	Mon,  4 Mar 2024 13:33:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5D1603E468;
+	Mon,  4 Mar 2024 13:52:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709559197; cv=none; b=POM1bgKQoYWUekHjaK78nbrVJmeFJVQVP2FrU82ZP4fGZ0pLNh6O2HeP7KyEQkrh1Ajp2XrNkAl3ElxkDqodhQXhLT7PAcaFd/x7j+D+H1itgEPfxhLNr3qbwIxdYzcWc5/2NwIvVS3Lxhopo0gDOKHk2/QE0TtidMMAQurpbM8=
+	t=1709560374; cv=none; b=B8UyPBKXrWvVtxaYut08Zk6mXnmW6d4jlLtFqv06HGFlPNpwPGSBZ9F5np7/5M9dBcPkMw2AYvSqZpwXFvuoCCRgRqlF8//FmNptFvW2VqDOi6jYpr6sYSSO6pepItHnvcEqbhUaZ6p2YREYpXzHykLwvhl2Xz7gQCS7anB85ec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709559197; c=relaxed/simple;
-	bh=p3LIkl9rC/cvDmNDiTkY3DxMJpyCd0pKeUzStd2zvqE=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=P4MNNgKRl1J5jjeF3ZVSlazGcKMgqkkVOq2X6I2j5GhfvDzfV4Gjk4ONrRXJyjiuwvRiGeE0deCeEhA1zaSI978w3387yjZHXIl8A0Y3+JpgOxHyon7xo/WQ0srEO/R5pOlwbaVCyp9q76ca5hiPdLdjYp1lo9QdVuXJneCRQcs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.44])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4TpKMX0RY4z2BfBT;
-	Mon,  4 Mar 2024 21:30:48 +0800 (CST)
-Received: from kwepemm600012.china.huawei.com (unknown [7.193.23.74])
-	by mail.maildlp.com (Postfix) with ESMTPS id 865B4140118;
-	Mon,  4 Mar 2024 21:33:07 +0800 (CST)
-Received: from [10.174.178.220] (10.174.178.220) by
- kwepemm600012.china.huawei.com (7.193.23.74) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Mon, 4 Mar 2024 21:33:06 +0800
-Message-ID: <c6826eab-3e12-48fb-8e8a-e347571b1446@huawei.com>
-Date: Mon, 4 Mar 2024 21:33:05 +0800
+	s=arc-20240116; t=1709560374; c=relaxed/simple;
+	bh=Tj7WsO02oBY3rpOVtVkrmLamQ8bHlbEb+mt75vTTGAA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=AhVTqWNZ8MgjTNed0jtqHhQ3PTM5IMx5B3U1fT2uIpq6/s5BVaUOwc2Ehz+SqrPpFqe8TRYuVHjjGwoHqkNXsOdp2i9Qy/uwL6wZc4VY1ckyHeoQNBV+J6Nz5u2DYk+CDkNraH1qXm0f7W+Bphy5itFYNx9K5NgnC2Cofdo8kns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=m7HWS9FK; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="m7HWS9FK"
+Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 3050420B74C1;
+	Mon,  4 Mar 2024 05:52:47 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3050420B74C1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1709560367;
+	bh=KEd2yZoIBVvL18aDItKvfvTSbUPB7RV44kXga7k9ang=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=m7HWS9FKynD9hCTJb8HUvOydOjlW7R61XvzXbL3qC2Fp0G3EtiEA4XULAIUhamUB3
+	 rR9dFVAZVtsI89TlNepYowrsTV7CCr4F1LVdGNid7u8LwgnMV1rfobPaT2s+nUHNMv
+	 nDI5hLOb1f63vnGnbmerWmfQL3DQDrO64Mm8UCWs=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	sharmaajay@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v3 1/2] RDMA/mana_ib: Fix bug in creation of dma regions
+Date: Mon,  4 Mar 2024 05:52:40 -0800
+Message-Id: <1709560361-26393-2-git-send-email-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1709560361-26393-1-git-send-email-kotaranov@linux.microsoft.com>
+References: <1709560361-26393-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] RDMA/restrack: Fix potential invalid address access
-Content-Language: en-US
-To: Leon Romanovsky <leon@kernel.org>
-CC: Jason Gunthorpe <jgg@ziepe.ca>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-References: <20240301095514.3598280-1-haowenchao2@huawei.com>
- <20240303125737.GB112581@unreal>
- <a7b2409c-4a3b-472d-a23a-87b12530be6d@huawei.com>
- <20240304073548.GA13620@unreal>
-From: Wenchao Hao <haowenchao2@huawei.com>
-In-Reply-To: <20240304073548.GA13620@unreal>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
- kwepemm600012.china.huawei.com (7.193.23.74)
 
-On 2024/3/4 15:35, Leon Romanovsky wrote:
-> On Mon, Mar 04, 2024 at 11:21:19AM +0800, Wenchao Hao wrote:
->> On 2024/3/3 20:57, Leon Romanovsky wrote:
->>> On Fri, Mar 01, 2024 at 05:55:15PM +0800, Wenchao Hao wrote:
->>>> struct rdma_restrack_entry's kern_name was set to KBUILD_MODNAME
->>>> in ib_create_cq(), while if the module exited but forgot del this
->>>> rdma_restrack_entry, it would cause a invalid address access in
->>>> rdma_restrack_clean() when print the owner of this rdma_restrack_entry.
->>>
->>> How is it possible to exit owner module without cleaning the resources?
->>>
->>
->> I meet this issue with one of our product who develop their owner kernel
->> modules based on ib_core, and there are terrible logic with the exit
->> code which cause resource leak.
->>
->> Of curse it's bug of module who did not clear resource when exit, but
->> I think ib_core should avoid accessing memory of other modules directly
->> to provides better stability.
->>
->> What's more, from the context of rdma_restrack_clean() when print
->> "restack: %s %s object allocated by %s is not freed ...", it seems
->> designed for the above scene where client has bug to alerts there
->> are resource leak, so we should not panic on this log print.
-> 
-> Can you please share the kernel panic?
-> 
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Sorry, there is no stack or panic info recorded. This is because
-another issue of "printk". It seems printk would cause a deadlock
-when printk access invalid address with our kernel.
+Use ib_umem_dma_offset() helper to calculate correct dma offset.
 
-Actually, I found this issue with ftrace/kprobe but not printk, that's
-why it takes me a long time to address it.
+Fixes: 0266a177631d ("RDMA/mana_ib: Add a driver for Microsoft Azure Network Adapter")
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+ drivers/infiniband/hw/mana/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-BTW, I am not developer of rdma, after found the issue, I think it's
-better to enhance, so send this patch, and the patch has been tested with
-the origin scene.
-
-> Thanks
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 29dd2438d..dd570832d 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -348,7 +348,7 @@ int mana_ib_gd_create_dma_region(struct mana_ib_dev *dev, struct ib_umem *umem,
+ 			     sizeof(struct gdma_create_dma_region_resp));
+ 
+ 	create_req->length = umem->length;
+-	create_req->offset_in_page = umem->address & (page_sz - 1);
++	create_req->offset_in_page = ib_umem_dma_offset(umem, page_sz);
+ 	create_req->gdma_page_type = order_base_2(page_sz) - PAGE_SHIFT;
+ 	create_req->page_count = num_pages_total;
+ 
+-- 
+2.43.0
 
