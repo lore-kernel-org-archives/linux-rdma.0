@@ -1,73 +1,89 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2082.outbound.protection.outlook.com [40.107.223.82])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC4977635;
-	Tue,  5 Mar 2024 10:23:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709634210; cv=none; b=B6a6LdKmfkPlsOweNm3B4FKmQ0ivjJ1WJ4fNDXVnmAO87Dxr62MJm73pDoqrnv32YCUVSndUT/Gg4IfBH+EgeXfkoh4x8m3ulgci9IbYIL6e7OgfnpK3gSC4E1WLA9zGhuc//ItC9kFvX5nWQiKYiDoP+oIBEOUhxu+ryp19cOM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709634210; c=relaxed/simple;
-	bh=LoE4Mk2h+x4QygNOYAaQkErlcP1J9OkI1WKvPNtdRq4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pB5CQr+GBatLyIs1t7pRoiwFmYGxWskQr1NvgNxWprlbjtpE2WKnuBfiN3ynVaKLKY/r/Bfxfs+xbutY9erz48RBrnMwZNGcIZxxDFSnHPpXI1W8N9K/+RvurV+iLJFP1PxFlogpqliYwQ7T7SlgIvdUdvcEMZnaxAP6ruHEKMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HuybAGSs; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6167C5FBA5;
+	Tue,  5 Mar 2024 10:24:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.223.82
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1709634256; cv=fail; b=OSvBOtLhg9ZEYbiG9VBlW0tiOh9v933HJk6o1sSsFK1LzFeJOJV31CjfyUwn5XzWDHB4Q3gYYv9N8yhQqHjcKSo9BZemcHy6GUzC6hxX2zHBG0OCobFY/MZecY2BRUo5+7E1MpC1vdLaDphcU10J0N59z3ETxwPJWiuXDwKc+Fc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1709634256; c=relaxed/simple;
+	bh=PCPoEscrqyDenQs86QkKV1wT/niX8KNFD7OhI/8NWEc=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Fjnn0kNb5W+kXWznBC/7La42TgMD+Mobzru1uSNT+Kn53FQUzNvSHQgdx1FXKAD7iiKqC4VZWeidx2Y/huyMeFG7Z0wunLaJyEdakCKL3r8dCxireiPGwG1Vgg0YWxXQgmeLs+UwRQ2PFMyTIby1ejNloV3lGpd5KxyPe/RmSDk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=p0ODYWU/; arc=fail smtp.client-ip=40.107.223.82
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HuybAGSs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 500F6C433C7;
-	Tue,  5 Mar 2024 10:23:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1709634210;
-	bh=LoE4Mk2h+x4QygNOYAaQkErlcP1J9OkI1WKvPNtdRq4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HuybAGSshurhhBSkZ/UzE2+JHtSdHCuONHvu/sjgovbmRc9E4Ia7yRyDtvI9/9bwn
-	 uAp1lDjmK72VGBkOx6cA9srIhHq+S6eNxUnUuwsXOxQj6vdxcjzI0ZODdahoiZArAg
-	 hjfcB88M9d8CtxW6BY4oIaheQYNhWxd7FW7JdyNQvqwtYCf33qaA+ry3klVir8cxCE
-	 l/AHA+dfZRQvykuGu3yFiRyRMengOapKLC9ciWCsCD+4Cu/r4EonZNQOMGxJoDfYt2
-	 vu10cD0Xn9ynq+M8Ju1yF3LAP2LmXVABwOWPuoNHgyW8hWehVo0jvsa7qmEW01was0
-	 UXKCOTnvSsq5g==
-From: Leon Romanovsky <leon@kernel.org>
-To: Christoph Hellwig <hch@lst.de>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Chaitanya Kulkarni <chaitanyak@nvidia.com>
-Cc: Chaitanya Kulkarni <kch@nvidia.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Jens Axboe <axboe@kernel.dk>,
-	Keith Busch <kbusch@kernel.org>,
-	Sagi Grimberg <sagi@grimberg.me>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
-	Kevin Tian <kevin.tian@intel.com>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	=?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev,
-	linux-nvme@lists.infradead.org,
-	kvm@vger.kernel.org,
-	linux-mm@kvack.org,
-	Bart Van Assche <bvanassche@acm.org>,
-	Damien Le Moal <damien.lemoal@opensource.wdc.com>,
-	Amir Goldstein <amir73il@gmail.com>,
-	"josef@toxicpanda.com" <josef@toxicpanda.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	"daniel@iogearbox.net" <daniel@iogearbox.net>,
-	Dan Williams <dan.j.williams@intel.com>,
-	"jack@suse.com" <jack@suse.com>,
-	Leon Romanovsky <leonro@nvidia.com>,
-	Zhu Yanjun <zyjzyj2000@gmail.com>
-Subject: [RFC 15/16] block: add dma_link_range() based API
-Date: Tue,  5 Mar 2024 12:22:16 +0200
-Message-ID: <1e52aa392b9c434f55203c9d630dd06fcdb75c32.1709631413.git.leon@kernel.org>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <cover.1709631800.git.leon@kernel.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="p0ODYWU/"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=LBSAcJCoyX0HLwY4Y7eqLEMwjKKR/Ay8mzXXxTEBQuNzR+M5DHzVoZ0MGfgCjx/r80cf9u0Vgi67xMdL6mPL5j1/BDtP3zR0F4bBU+YteJ/EpZ6SY8eAvmzkX1mJ748KcHtRKj37zL2R54uhYo1CESLHz4m9BYVi5iM29IV8gRdJaGcuJrgoh7qPO9U83ferXXib9clvMFDe7WvYRO3Y4e/urlElPbqdtpUIgHa2eMIpFFWdePn6joMt1FSGQZoPHizFvUAhoE6yyZ0bXd9T38nKhGoeDp/0oUjh2jfaMbLfdUcrWk8JVLYD4HNqFD8IlIqxpG9iI4yq573GYmfA4w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=cKDrPIO/QWk9rI2EOx2e+ni1hyhZbNDxAOjlD7faWi0=;
+ b=fTWu02YTt/g6UDhyF2wNwVyxBH2SesEo72/OOJHgtlw85jkTZ1NqDrqix7FgGXogcbFkBSt0RyR5yrn3VbZBjc9yGqcoJzSTfoUnkJay/UMkXoeNp86IDAng7P3fQkH2jiGglXnY+ImYRq9KFGO4gIWH+RCCctzhZG03Z5nWWuAGtPByq2ntnENS84be4wxtLtu0pA2imSK+0J5E6MIgaMg8nb0b0xqXPT6smQZDxEt4tkzEPLtqbLW3hBmuNEM2BlM1xA5A9W+SBD/OGmdeOIydXRJzlzeNKZOyzniJChP/3D8cG4ynIO9PwbLmJTcri96CCKPyvC3cjdivQsLxhg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.117.161) smtp.rcpttodomain=lst.de smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=cKDrPIO/QWk9rI2EOx2e+ni1hyhZbNDxAOjlD7faWi0=;
+ b=p0ODYWU/87Mkkbz50iYHTOxd5M6/hR47RIWkLWkEodmNbp5OcfXVpX39HTaeaiXqoosNkVy3B3tejiGRqTEDqF7lPmQQec4w9w7jioX7xAbxT2Zzj1tiuBE4UAuwPYqufbTEqYdKsmA0/NnmLujFx7B/FiH+XUEXI//TLXo1Ppa8UCe3uxxZErdajeGVMTI0mWOMIMM1M4Ylp6GdgS+hCde6ju8lQSoGPkKRI0FHTe4Vk0MhqE7vT0ycf4YzjauGGXMqfuD6gzSZYbjncq4YPL+fNTAK7lgLXVUrc1RE2L9iNUWHQ2ZfU2NZeQ9qyVfaBUN1Je/ShhUTQNAe86fLLQ==
+Received: from BN0PR04CA0011.namprd04.prod.outlook.com (2603:10b6:408:ee::16)
+ by SA0PR12MB4399.namprd12.prod.outlook.com (2603:10b6:806:98::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7339.39; Tue, 5 Mar
+ 2024 10:24:11 +0000
+Received: from BN1PEPF00004680.namprd03.prod.outlook.com
+ (2603:10b6:408:ee:cafe::af) by BN0PR04CA0011.outlook.office365.com
+ (2603:10b6:408:ee::16) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7339.39 via Frontend
+ Transport; Tue, 5 Mar 2024 10:24:11 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ BN1PEPF00004680.mail.protection.outlook.com (10.167.243.85) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.7362.11 via Frontend Transport; Tue, 5 Mar 2024 10:24:10 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.41; Tue, 5 Mar 2024
+ 02:23:56 -0800
+Received: from localhost (10.126.231.35) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1258.12; Tue, 5 Mar
+ 2024 02:23:55 -0800
+Date: Tue, 5 Mar 2024 12:23:52 +0200
+From: Leon Romanovsky <leonro@nvidia.com>
+To: Christoph Hellwig <hch@lst.de>, Robin Murphy <robin.murphy@arm.com>,
+	"Marek Szyprowski" <m.szyprowski@samsung.com>, Joerg Roedel
+	<joro@8bytes.org>, "Will Deacon" <will@kernel.org>, Jason Gunthorpe
+	<jgg@ziepe.ca>, Chaitanya Kulkarni <chaitanyak@nvidia.com>
+CC: Jonathan Corbet <corbet@lwn.net>, Jens Axboe <axboe@kernel.dk>, "Keith
+ Busch" <kbusch@kernel.org>, Sagi Grimberg <sagi@grimberg.me>, Yishai Hadas
+	<yishaih@nvidia.com>, Shameer Kolothum
+	<shameerali.kolothum.thodi@huawei.com>, Kevin Tian <kevin.tian@intel.com>,
+	Alex Williamson <alex.williamson@redhat.com>, "=?iso-8859-1?B?Suly9G1l?=
+ Glisse" <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-block@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<iommu@lists.linux.dev>, <linux-nvme@lists.infradead.org>,
+	<kvm@vger.kernel.org>, <linux-mm@kvack.org>, Bart Van Assche
+	<bvanassche@acm.org>, Damien Le Moal <damien.lemoal@opensource.wdc.com>,
+	"Amir Goldstein" <amir73il@gmail.com>, "josef@toxicpanda.com"
+	<josef@toxicpanda.com>, "Martin K. Petersen" <martin.petersen@oracle.com>,
+	"daniel@iogearbox.net" <daniel@iogearbox.net>, Dan Williams
+	<dan.j.williams@intel.com>, "jack@suse.com" <jack@suse.com>, Zhu Yanjun
+	<zyjzyj2000@gmail.com>
+Subject: Re: [RFC 00/16] Split IOMMU DMA mapping operation to two steps
+Message-ID: <20240305102352.GA36868@unreal>
 References: <cover.1709631800.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -75,244 +91,45 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Message-ID: <20240305102216.bttjGxsOGflBQcmmJsatTfcK4RCu_Gz3obdkTa1fov4@z>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <cover.1709631800.git.leon@kernel.org>
+X-ClientProxiedBy: rnnvmail202.nvidia.com (10.129.68.7) To
+ rnnvmail201.nvidia.com (10.129.68.8)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN1PEPF00004680:EE_|SA0PR12MB4399:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0d8c86ec-271c-4d49-a081-08dc3cfe65ec
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	BBIKQi3XwMpwRZW4ws4G0X7csKdJp8PjgE8LcABnBH9f9odwT/jBocsHq95hFFZKTwnBJc3m3SpgzMoffHPT12fgW40PukCC0IttAzgf53Lw3DyJ0zZc3bRl9fTr1bzeOtd8ifH4QDvZJiiHbEUbZo0Z9vFL8kaqbTmLouxu5Kv9MMJcEy2LRwMohZEEKmf0wlsSBzrbAeQt6L7lT2NT/fvvAL4rPDmF0AlnKKdqtuYF+aPDk4Tm2JqHcZ1SNVsdlVOLkNN6aPxaI6vCWo5RkS9AKE1nO9Wjxh4RxcJn8+hyj5LyNMlt56Qu0/8cWG3G56HcxBiw5pPjimsdZSsx21NysqQrq5B/AD5vlgw4sPSUDPTjUSLkcTpBrv3OD7riiME3lXv35NoUqy4AEop5xurJcfFEbUgLvAuFtr4A4CYgdIDF2HgsDRX2IKJoMiCq5Y4hHCzEolrllwd/n4wcCUHesmyToe0vgsLGyNSenqeFq3j1FN8qmT9y4ut636pPgihTaRq4e1r9/35Y027ELem4OfoHKCBeiFF069qHxuJonAdrTMROouAoYyxG+xiVUVbovQvn4se/pgGCyb1N5VjMAff9VcsE3mCdtJZuprb+uvWgqJjKYwyga0aebvHb6DfRtx32+675JmQYzLGUX80ygJHZNC/NcunyKg/GvAJFjieeYwK5WxGFBD+j2sQ1XiYyZjGilY8XgYcl0IWQMriwDOT93sjGlkfSfUGvrMkBgO+y1gcJ4XcLkQqBB6/J
+X-Forefront-Antispam-Report:
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230031)(82310400014)(36860700004)(376005);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Mar 2024 10:24:10.7415
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0d8c86ec-271c-4d49-a081-08dc3cfe65ec
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN1PEPF00004680.namprd03.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA0PR12MB4399
 
-From: Chaitanya Kulkarni <kch@nvidia.com>
+On Tue, Mar 05, 2024 at 12:15:10PM +0200, Leon Romanovsky wrote:
+> This is complimentary part to the proposed LSF/MM topic.
+> https://lore.kernel.org/linux-rdma/22df55f8-cf64-4aa8-8c0b-b556c867b926@linux.dev/T/#m85672c860539fdbbc8fe0f5ccabdc05b40269057
+> 
+> This is posted as RFC to get a feedback on proposed split, but RDMA, VFIO and
+> DMA patches are ready for review and inclusion, the NVMe patches are still in
+> progress as they require agreement on API first.
+> 
+> Thanks
 
-Add two helper functions that are needed to calculate the total DMA
-length of the request blk_rq_get_dma_length() and to create DMA
-mapping blk_rq_dma_map().
+Please ignore this cover letter as it came disconnected from the series
+https://lore.kernel.org/all/a77609c9c9a09214e38b04133e44eee67fe50ab0.1709631413.git.leon@kernel.org
 
-blk_rq_get_dma_length() is used to get the total length of the request,
-when driver is allocating IOVA space for this request with the call to
-dma_alloc_iova(). This length is then initialized to the iova->size and
-passed to allocate iova call chain :-
-dma_map_ops->allov_iova()
-        iommu_dma_alloc_iova()
-                alloc_iova_fast()
-                        iova_rcache_get()
-                                OR
-                        alloc_iova()
-
-blk_rq_dma_map() iterates through bvec list and creates DMA mapping
-for each page using iova parameter with the help of dma_link_range().
-Note that @iova is allocated & pre-initialized using dma_alloc_iova()
-by the caller. After creating a mapping for each page, call into the
-callback function @cb provided by the drive with a mapped DMA address
-for this page, offset into the iova space (needed at the time of
-unlink), length of the mapped page, and page number that is mapped in
-this request. Driver is responsible for using this DMA address to
-complete the mapping of underlying protocol-specific data structures,
-such as NVMe PRPs or NVMe SGLs. This callback approach allows us to
-iterate bvec list only once to create bvec to DMA mapping and use that
-DMA address in driver to build the protocol-specific data structure,
-essentially mapping one bvec page at a time to DMA address and using
-that DMA address to create underlying protocol-specific data structures.
-Finally, returning the number of linked count.
-
-Signed-off-by: Chaitanya Kulkarni <kch@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- block/blk-merge.c      | 156 +++++++++++++++++++++++++++++++++++++++++
- include/linux/blk-mq.h |   9 +++
- 2 files changed, 165 insertions(+)
-
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index 2d470cf2173e..63effc8ac1db 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -583,6 +583,162 @@ int __blk_rq_map_sg(struct request_queue *q, struct request *rq,
- }
- EXPORT_SYMBOL(__blk_rq_map_sg);
- 
-+static dma_addr_t blk_dma_link_page(struct page *page, unsigned int page_offset,
-+				    struct dma_iova_attrs *iova,
-+				    dma_addr_t dma_offset)
-+{
-+	dma_addr_t dma_addr;
-+	int ret;
-+
-+	dma_addr = dma_link_range(page, page_offset, iova, dma_offset);
-+	ret = dma_mapping_error(iova->dev, dma_addr);
-+	if (ret) {
-+		pr_err("dma_mapping_err %d dma_addr 0x%llx dma_offset %llu\n",
-+			ret, dma_addr, dma_offset);
-+		/* better way ? */
-+		dma_addr = 0;
-+	}
-+	return dma_addr;
-+}
-+
-+/**
-+ * blk_rq_dma_map: block layer request to DMA mapping helper.
-+ *
-+ * @req         : [in] request to be mapped
-+ * @cb          : [in] callback to be called for each bvec mapped bvec into
-+ *                     underlaying driver.
-+ * @cb_data     : [in] callback data to be passed, privete to the underlaying
-+ *                     driver.
-+ * @iova        : [in] iova to be used to create DMA mapping for this request's
-+ *                     bvecs.
-+ * Description:
-+ * Iterates through bvec list and create dma mapping between each bvec page
-+ * using @iova with dma_link_range(). Note that @iova needs to be allocated and
-+ * pre-initialized using dma_alloc_iova() by the caller. After creating
-+ * a mapping for each page, call into the callback function @cb provided by
-+ * driver with mapped dma address for this bvec, offset into iova space, length
-+ * of the mapped page, and bvec number that is mapped in this requets. Driver is
-+ * responsible for using this dma address to complete the mapping of underlaying
-+ * protocol specific data structure, such as NVMe PRPs or NVMe SGLs. This
-+ * callback approach allows us to iterate bvec list only once to create bvec to
-+ * DMA mapping & use that dma address in the driver to build the protocol
-+ * specific data structure, essentially mapping one bvec page at a time to DMA
-+ * address and use that DMA address to create underlaying protocol specific
-+ * data structure.
-+ *
-+ * Caller needs to ensure @iova is initialized & allovated with using
-+ * dma_alloc_iova().
-+ */
-+int blk_rq_dma_map(struct request *req, driver_map_cb cb, void *cb_data,
-+		   struct dma_iova_attrs *iova)
-+{
-+	dma_addr_t curr_dma_offset = 0;
-+	dma_addr_t prev_dma_addr = 0;
-+	dma_addr_t dma_addr;
-+	size_t prev_dma_len = 0;
-+	struct req_iterator iter;
-+	struct bio_vec bv;
-+	int linked_cnt = 0;
-+
-+	rq_for_each_bvec(bv, req, iter) {
-+		if (bv.bv_offset + bv.bv_len <= PAGE_SIZE) {
-+			curr_dma_offset = prev_dma_addr + prev_dma_len;
-+
-+			dma_addr = blk_dma_link_page(bv.bv_page, bv.bv_offset,
-+						     iova, curr_dma_offset);
-+			if (!dma_addr)
-+				break;
-+
-+			cb(cb_data, linked_cnt, dma_addr, curr_dma_offset,
-+			   bv.bv_len);
-+
-+			prev_dma_len = bv.bv_len;
-+			prev_dma_addr = dma_addr;
-+			linked_cnt++;
-+		} else {
-+			unsigned nbytes = bv.bv_len;
-+			unsigned total = 0;
-+			unsigned offset, len;
-+
-+			while (nbytes > 0) {
-+				struct page *page = bv.bv_page;
-+
-+				offset = bv.bv_offset + total;
-+				len = min(get_max_segment_size(&req->q->limits,
-+							       page, offset),
-+							       nbytes);
-+
-+				page += (offset >> PAGE_SHIFT);
-+				offset &= ~PAGE_MASK;
-+
-+				curr_dma_offset = prev_dma_addr + prev_dma_len;
-+
-+				dma_addr = blk_dma_link_page(page, offset,
-+							     iova,
-+							     curr_dma_offset);
-+				if (!dma_addr)
-+					break;
-+
-+				cb(cb_data, linked_cnt, dma_addr,
-+				   curr_dma_offset, len);
-+
-+				total += len;
-+				nbytes -= len;
-+
-+				prev_dma_len = len;
-+				prev_dma_addr = dma_addr;
-+				linked_cnt++;
-+			}
-+		}
-+	}
-+	return linked_cnt;
-+}
-+EXPORT_SYMBOL_GPL(blk_rq_dma_map);
-+
-+/*
-+ * Calculate total DMA length needed to satisfy this request.
-+ */
-+size_t blk_rq_get_dma_length(struct request *rq)
-+{
-+	struct request_queue *q = rq->q;
-+	struct bio *bio = rq->bio;
-+	unsigned int offset, len;
-+	struct bvec_iter iter;
-+	size_t dma_length = 0;
-+	struct bio_vec bvec;
-+
-+	if (rq->rq_flags & RQF_SPECIAL_PAYLOAD)
-+		return rq->special_vec.bv_len;
-+
-+	if (!rq->bio)
-+		return 0;
-+
-+	for_each_bio(bio) {
-+		bio_for_each_bvec(bvec, bio, iter) {
-+			unsigned int nbytes = bvec.bv_len;
-+			unsigned int total = 0;
-+
-+			if (bvec.bv_offset + bvec.bv_len <= PAGE_SIZE) {
-+				dma_length += bvec.bv_len;
-+				continue;
-+			}
-+
-+			while (nbytes > 0) {
-+				offset = bvec.bv_offset + total;
-+				len = min(get_max_segment_size(&q->limits,
-+							       bvec.bv_page,
-+							       offset), nbytes);
-+				total += len;
-+				nbytes -= len;
-+				dma_length += len;
-+			}
-+		}
-+	}
-+
-+	return dma_length;
-+}
-+EXPORT_SYMBOL(blk_rq_get_dma_length);
-+
- static inline unsigned int blk_rq_get_max_sectors(struct request *rq,
- 						  sector_t offset)
- {
-diff --git a/include/linux/blk-mq.h b/include/linux/blk-mq.h
-index 7a8150a5f051..80b9c7f2c3a0 100644
---- a/include/linux/blk-mq.h
-+++ b/include/linux/blk-mq.h
-@@ -8,6 +8,7 @@
- #include <linux/scatterlist.h>
- #include <linux/prefetch.h>
- #include <linux/srcu.h>
-+#include <linux/dma-mapping.h>
- 
- struct blk_mq_tags;
- struct blk_flush_queue;
-@@ -1144,7 +1145,15 @@ static inline int blk_rq_map_sg(struct request_queue *q, struct request *rq,
- 
- 	return __blk_rq_map_sg(q, rq, sglist, &last_sg);
- }
-+
-+typedef void (*driver_map_cb)(void *cb_data, u32 cnt, dma_addr_t dma_addr,
-+			      dma_addr_t offset, u32 len);
-+
-+int blk_rq_dma_map(struct request *req, driver_map_cb cb, void *cb_data,
-+		   struct dma_iova_attrs *iova);
-+
- void blk_dump_rq_flags(struct request *, char *);
-+size_t blk_rq_get_dma_length(struct request *rq);
- 
- #ifdef CONFIG_BLK_DEV_ZONED
- static inline unsigned int blk_rq_zone_no(struct request *rq)
--- 
-2.44.0
-
+Thanks
