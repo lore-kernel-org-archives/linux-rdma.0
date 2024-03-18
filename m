@@ -1,36 +1,54 @@
-Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03C4C28DAE;
-	Mon, 18 Mar 2024 09:42:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA8CB2E62B;
+	Mon, 18 Mar 2024 10:09:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710754948; cv=none; b=ahEYq8yK4jXPO9upYAhPVfkg3a/Z+cIUC6mlP3OfpOR2dBB63b9q5WNL7MCrfVQwPiOuZ7+2hjJWUWc1dYPFC43fIujJIMZTYtXj4XvcgdiQLbNAdscd6bqiC+3Jq7KOCB/yR3RyzAkSh/SMCqSAgiiRKbvuIBSdPhAYPPzcLo4=
+	t=1710756549; cv=none; b=MgLq8FykALx2I0ew5pSG/pR+LSiLuAqtZvMX+MmB+tMbexDLuNov1ba64k9kC+UoHmFtGXHvegS75QzkN5+op9L1tKSUnfMCNDpd1qzjsBxnQrRxMfK7iolAGOJoP0Shy5ER1O/K/ASY7RD5vEyDIPYKs3CdfIwB2pR7YJM2VfI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710754948; c=relaxed/simple;
-	bh=3oso5PLbImGkfoKsWCngxnTBzg9vtA8Zgmipm9DvaWs=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=X3HVibUfL/v5COoisogdNKrrdSf2REaMfTjpsqUGmTiv3iGtFECHbSjenKoa/S2zcwxkrqhKM0OxfEWn1k/e04EtcwYJu+5pE+vXC0VBTH3ljujUVdE8hbl0w7pzVHdOz+Fm7KrCbHo2VWYsmj3SK1MueLgzQbB1ktsJ4srzE8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.17])
-	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4TyqFP72W2z1vx2t;
-	Mon, 18 Mar 2024 17:24:57 +0800 (CST)
-Received: from kwepemm600012.china.huawei.com (unknown [7.193.23.74])
-	by mail.maildlp.com (Postfix) with ESMTPS id 59E0F1A0172;
-	Mon, 18 Mar 2024 17:25:43 +0800 (CST)
-Received: from build.huawei.com (10.175.101.6) by
- kwepemm600012.china.huawei.com (7.193.23.74) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Mon, 18 Mar 2024 17:25:42 +0800
-From: Wenchao Hao <haowenchao2@huawei.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: Wenchao Hao <haowenchao2@huawei.com>, <louhongxiang@huawei.com>
-Subject: [PATCH v2] RDMA/restrack: Fix potential invalid address access
-Date: Mon, 18 Mar 2024 17:23:20 +0800
-Message-ID: <20240318092320.1215235-1-haowenchao2@huawei.com>
-X-Mailer: git-send-email 2.32.0
+	s=arc-20240116; t=1710756549; c=relaxed/simple;
+	bh=rWv0xQOrfw2zXF5/DS+hqr6aAayY6jeKTTspmHv0tZ0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=davn3PJ7SSVTfA5NWZ+D0ghdYOOVdqNkDfP96sPizqAJC4PSK8/+7II6hIux2m6hrN9i/v6LvIfQobpt54NE0uK46K3nvfwi7TkSzLsnhKxOOfmFkKKdfW8tSwIHhEYiYwUV+Qiybz2pvylQqkrNiJrts9dyl48T7VUla54tqUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.208.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-568a9c331a3so3718871a12.0;
+        Mon, 18 Mar 2024 03:09:07 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1710756546; x=1711361346;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=PfrwM0z5dA/0if/lpb+f0heKeFjOBQb2hMQ2vWmWw4c=;
+        b=EEcycR3MXPc6njIw3SOmX6Su1GyZhxVtqRaxZN5/xdZLZN6vr9yt4TdrB+FE6ZRMDt
+         NjIRf0BQsdo08Hhc9Mu16CK25sZo6kn53Qv7SLWjtTiY2dnDA0daYRZ6GGanY/Q1QTUc
+         dRse/97dhAKjVddgeOzM+731FKVLNneLD2RkqwzUr0Rd3lNdR2jSiIYmT/Rw7WiADjCM
+         ZYD/88M9+We+5mq8+WycDEpXg8E0LqRz8rgANSmttj5ooHspm+JlrWRMWJPnYCX13ZwD
+         pMSfaW2SvYFEjd+JWZJdjip2veFEsW8b1q8p/rzg400azQLoxy3GGWI2ou9r6k7ZBJg3
+         sB9w==
+X-Forwarded-Encrypted: i=1; AJvYcCX+zeW13Jfht3Zkk13LplQHAyyGo7Re/WiatBieB4fgYjaNaaEsdqqzBTth+kT2wRZtx3dogyJ28Cq0Mmj3ukslBkG4V5fc4/8TXio0itjeXbpceObt4WpzNZBlyQKxx+uogMBcCuRr/g==
+X-Gm-Message-State: AOJu0YzM1WXZ8AMoBTR5Hh1fLi7CI5Oif3qXZj56LeQQZrvApxhvwWkq
+	Qn/M0aV2sGrNgP0sgxn3mo/PxHcpbIx5GA3RuUzhc9lGPKgxGIefml9Ga2Me
+X-Google-Smtp-Source: AGHT+IFcEjGO3MtFbLjYzh/N7Oza1ekaXnPr5iQVNUwdQ5IWy+JcuV05pFBHI2MwJCutaTGYeDsPzg==
+X-Received: by 2002:a17:906:7304:b0:a46:c8e2:40f6 with SMTP id di4-20020a170906730400b00a46c8e240f6mr1055102ejc.1.1710756546019;
+        Mon, 18 Mar 2024 03:09:06 -0700 (PDT)
+Received: from localhost (fwdproxy-lla-116.fbsv.net. [2a03:2880:30ff:74::face:b00c])
+        by smtp.gmail.com with ESMTPSA id jt12-20020a170906dfcc00b00a465f570dcesm4736531ejc.144.2024.03.18.03.09.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 18 Mar 2024 03:09:05 -0700 (PDT)
+From: Breno Leitao <leitao@debian.org>
+To: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>,
+	Leon Romanovsky <leon@kernel.org>
+Cc: kuba@kernel.org,
+	keescook@chromium.org,
+	linux-rdma@vger.kernel.org (open list:HFI1 DRIVER),
+	linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v3] IB/hfi1: allocate dummy net_device dynamically
+Date: Mon, 18 Mar 2024 03:08:57 -0700
+Message-ID: <20240318100858.3696961-1-leitao@debian.org>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -38,99 +56,80 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- kwepemm600012.china.huawei.com (7.193.23.74)
 
-struct rdma_restrack_entry's kern_name was set to KBUILD_MODNAME
-in ib_create_cq(), while if the module exited but forgot del this
-rdma_restrack_entry, it would cause a invalid address access in
-rdma_restrack_clean() when print the owner of this rdma_restrack_entry.
+Embedding net_device into structures prohibits the usage of flexible
+arrays in the net_device structure. For more details, see the discussion
+at [1].
 
-These code is used to help find one forgotten PD release in one of the
-ULPs. But it is not needed anymore, so delete them.
+Un-embed the net_device from struct hfi1_netdev_rx by converting it
+into a pointer. Then use the leverage alloc_netdev() to allocate the
+net_device object at hfi1_alloc_rx().
 
-Signed-off-by: Wenchao Hao <haowenchao2@huawei.com>
+[1] https://lore.kernel.org/all/20240229225910.79e224cf@kernel.org/
+
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+
+v2:
+	* Free struct hfi1_netdev_rx allocation if alloc_netdev() fails
+	* Pass zero as the private size for alloc_netdev().
+	* Remove wrong reference for iwl in the comments
+
+v3:
+	* Re-worded the comment, by removing the first paragraph.
 ---
- drivers/infiniband/core/restrack.c | 51 +-----------------------------
- 1 file changed, 1 insertion(+), 50 deletions(-)
+ drivers/infiniband/hw/hfi1/netdev.h    |  2 +-
+ drivers/infiniband/hw/hfi1/netdev_rx.c | 10 ++++++++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-index 01a499a8b88d..438ed3588175 100644
---- a/drivers/infiniband/core/restrack.c
-+++ b/drivers/infiniband/core/restrack.c
-@@ -37,22 +37,6 @@ int rdma_restrack_init(struct ib_device *dev)
- 	return 0;
- }
- 
--static const char *type2str(enum rdma_restrack_type type)
--{
--	static const char * const names[RDMA_RESTRACK_MAX] = {
--		[RDMA_RESTRACK_PD] = "PD",
--		[RDMA_RESTRACK_CQ] = "CQ",
--		[RDMA_RESTRACK_QP] = "QP",
--		[RDMA_RESTRACK_CM_ID] = "CM_ID",
--		[RDMA_RESTRACK_MR] = "MR",
--		[RDMA_RESTRACK_CTX] = "CTX",
--		[RDMA_RESTRACK_COUNTER] = "COUNTER",
--		[RDMA_RESTRACK_SRQ] = "SRQ",
--	};
--
--	return names[type];
--};
--
- /**
-  * rdma_restrack_clean() - clean resource tracking
-  * @dev:  IB device
-@@ -60,47 +44,14 @@ static const char *type2str(enum rdma_restrack_type type)
- void rdma_restrack_clean(struct ib_device *dev)
- {
- 	struct rdma_restrack_root *rt = dev->res;
--	struct rdma_restrack_entry *e;
--	char buf[TASK_COMM_LEN];
--	bool found = false;
--	const char *owner;
+diff --git a/drivers/infiniband/hw/hfi1/netdev.h b/drivers/infiniband/hw/hfi1/netdev.h
+index 8aa074670a9c..07c8f77c9181 100644
+--- a/drivers/infiniband/hw/hfi1/netdev.h
++++ b/drivers/infiniband/hw/hfi1/netdev.h
+@@ -49,7 +49,7 @@ struct hfi1_netdev_rxq {
+  *		When 0 receive queues will be freed.
+  */
+ struct hfi1_netdev_rx {
+-	struct net_device rx_napi;
++	struct net_device *rx_napi;
+ 	struct hfi1_devdata *dd;
+ 	struct hfi1_netdev_rxq *rxq;
+ 	int num_rx_q;
+diff --git a/drivers/infiniband/hw/hfi1/netdev_rx.c b/drivers/infiniband/hw/hfi1/netdev_rx.c
+index 720d4c85c9c9..cd6e78e257ef 100644
+--- a/drivers/infiniband/hw/hfi1/netdev_rx.c
++++ b/drivers/infiniband/hw/hfi1/netdev_rx.c
+@@ -188,7 +188,7 @@ static int hfi1_netdev_rxq_init(struct hfi1_netdev_rx *rx)
  	int i;
+ 	int rc;
+ 	struct hfi1_devdata *dd = rx->dd;
+-	struct net_device *dev = &rx->rx_napi;
++	struct net_device *dev = rx->rx_napi;
  
- 	for (i = 0 ; i < RDMA_RESTRACK_MAX; i++) {
- 		struct xarray *xa = &dev->res[i].xa;
+ 	rx->num_rx_q = dd->num_netdev_contexts;
+ 	rx->rxq = kcalloc_node(rx->num_rx_q, sizeof(*rx->rxq),
+@@ -360,7 +360,12 @@ int hfi1_alloc_rx(struct hfi1_devdata *dd)
+ 	if (!rx)
+ 		return -ENOMEM;
+ 	rx->dd = dd;
+-	init_dummy_netdev(&rx->rx_napi);
++	rx->rx_napi = alloc_netdev(0, "dummy", NET_NAME_UNKNOWN,
++				   init_dummy_netdev);
++	if (!rx->rx_napi) {
++		kfree(rx);
++		return -ENOMEM;
++	}
  
--		if (!xa_empty(xa)) {
--			unsigned long index;
--
--			if (!found) {
--				pr_err("restrack: %s", CUT_HERE);
--				dev_err(&dev->dev, "BUG: RESTRACK detected leak of resources\n");
--			}
--			xa_for_each(xa, index, e) {
--				if (rdma_is_kernel_res(e)) {
--					owner = e->kern_name;
--				} else {
--					/*
--					 * There is no need to call get_task_struct here,
--					 * because we can be here only if there are more
--					 * get_task_struct() call than put_task_struct().
--					 */
--					get_task_comm(buf, e->task);
--					owner = buf;
--				}
--
--				pr_err("restrack: %s %s object allocated by %s is not freed\n",
--				       rdma_is_kernel_res(e) ? "Kernel" :
--							       "User",
--				       type2str(e->type), owner);
--			}
--			found = true;
--		}
-+		WARN_ON(!xa_empty(xa));
- 		xa_destroy(xa);
+ 	xa_init(&rx->dev_tbl);
+ 	atomic_set(&rx->enabled, 0);
+@@ -374,6 +379,7 @@ void hfi1_free_rx(struct hfi1_devdata *dd)
+ {
+ 	if (dd->netdev_rx) {
+ 		dd_dev_info(dd, "hfi1 rx freed\n");
++		free_netdev(dd->netdev_rx->rx_napi);
+ 		kfree(dd->netdev_rx);
+ 		dd->netdev_rx = NULL;
  	}
--	if (found)
--		pr_err("restrack: %s", CUT_HERE);
--
- 	kfree(rt);
- }
- 
 -- 
-2.32.0
+2.43.0
 
