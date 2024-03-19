@@ -1,79 +1,73 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55BC17BAFB;
-	Tue, 19 Mar 2024 11:30:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9604F2209B;
+	Tue, 19 Mar 2024 17:00:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710847828; cv=none; b=pYefHA5ld9oN3y/Yh401KvORFv/R+fKNyiFqSNRGNvrbvr4xME83pp1qtNlVW91PkT9nFYRPCxwiWGwyUniGywoKNukIgz8Ai9VYiH59PTpoOBNOgijBFu7zqMhFG9K0UwU6WETW8SN55PCoYMA9tgf3GhcfTAHfLIPVU8hdTNo=
+	t=1710867626; cv=none; b=PzP0YueEd3sna/JjgHIEVEx55YrDH5Rk4e5e/7eKomgyrXCVPLKMfXslvgkKDcyiyZIzcn7tdOQuSHbwUbV4Xv0/5TPP2CRUY7UkQ9N0auWQFpKuy8si4r3B+JavOyLfp6/4lbBLIaoFkxJyEomV91O0zO8ZlyMknD3VcMdd3m4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710847828; c=relaxed/simple;
-	bh=dnqTXQz32jKrSI6GbKSQRO/rglIIbJZjU6uIXfVIv24=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=tGbSoeOvgQkZF8saShZaHIeL/cdyVu1bTu52BgLDQhdIGjgaH3n0qmQ/ZvkXzY8hEPbN3oTuventPSRdjG+9yR8GO8J/ItZXENdqCPZw4IjPGIt9VkGXAIJuDG9uj+dE3gL/8UCsNrJ5+d9OkXPxnFq3l3OBuOeQqdTm3LlrGSI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EnFN57yh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710867626; c=relaxed/simple;
+	bh=CNCxoIE+1gPOmlDVw3CbyXIXXBCrmO7yEk/7ckcCOQ0=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=dghpXQE5yLt2jblfOZWQKFDM5pW3d0O0Cz+0g9vVRXh4QDThbxqD8lSWvyZ7dPURg9YMVDv48mGvceSNlh5/TGENCdry/+VCzihux60D1tsd//3y56/ShIfZHhFK9YGv5cD9kQdWGFjaLtVQlppaf1WRPtaDKISAyri1LQ2PH1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=OLhyahVU; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EnFN57yh"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id DA443C433C7;
-	Tue, 19 Mar 2024 11:30:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1710847827;
-	bh=dnqTXQz32jKrSI6GbKSQRO/rglIIbJZjU6uIXfVIv24=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=EnFN57yh7tts4vSMWeMyQaIuUk2IdRewsVKIed1jARE7ms6p+gTfC3sCwnHciq2Aj
-	 Y0MUqZ0U3awUDn5MPEiLPFff/rVnFnDnAtlNDBvL9U6UxNf7vQ3E37cI2LtX8fnv7i
-	 wGcY2v/rRbMp9kDLTq8m0AprJAD8BhuXhR0TUJ3prf+0a9ujJR55ktGnZz1f5/5UVw
-	 MZNV7TV4q0JIS8BoNO3tA1uTIhmSfejvDVIjsg+/eAu6K7Tnhn28L1LjapV/xFGp4y
-	 RLMQ8a+8rDUl+F6gBRlP20i048uAaQj0t5UzThxe5LoQwJ0x+kQ/Uz3gaT9BEGGIfK
-	 +vXI4crY71u9g==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id C653DD982E0;
-	Tue, 19 Mar 2024 11:30:27 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="OLhyahVU"
+Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 3BF0120B74C0;
+	Tue, 19 Mar 2024 10:00:25 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3BF0120B74C0
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1710867625;
+	bh=l15ZMQHRWNCIqM+/Lh6WWvV8nS7fyimXjy0U0UdXknE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=OLhyahVUc44J92zxgPICtslFoYLMrP1WEDqe7EimgUIpkdN8p+3fVzsXK39Z/VTvW
+	 uxaVh2oaEOVOk4SqhVCNooGaGHvPMeETZGW4IJVmbtY5Wjyys2X2tNR6/zof21rW9P
+	 0uhOGlnBgEOquSWFN77v7y5bhFnRFT52ZbRb60qg=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	sharmaajay@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v2 0/4] Define and use mana queues for CQs and WQs
+Date: Tue, 19 Mar 2024 10:00:09 -0700
+Message-Id: <1710867613-4798-1-git-send-email-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net v2] rds: introduce acquire/release ordering in
- acquire/release_in_xmit()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <171084782780.9693.3451064874189878588.git-patchwork-notify@kernel.org>
-Date: Tue, 19 Mar 2024 11:30:27 +0000
-References: <ZfQUxnNTO9AJmzwc@libra05>
-In-Reply-To: <ZfQUxnNTO9AJmzwc@libra05>
-To: Yewon Choi <woni9911@gmail.com>
-Cc: allison.henderson@oracle.com, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com,
- linux-kernel@vger.kernel.org, threeearcat@gmail.com
 
-Hello:
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
-This patch was applied to netdev/net.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
+This patch series aims to reduce code duplication by
+introducing a notion of mana ib queues and corresponding helpers
+to create and destroy them.
 
-On Fri, 15 Mar 2024 18:28:38 +0900 you wrote:
-> acquire/release_in_xmit() work as bit lock in rds_send_xmit(), so they
-> are expected to ensure acquire/release memory ordering semantics.
-> However, test_and_set_bit/clear_bit() don't imply such semantics, on
-> top of this, following smp_mb__after_atomic() does not guarantee release
-> ordering (memory barrier actually should be placed before clear_bit()).
-> 
-> Instead, we use clear_bit_unlock/test_and_set_bit_lock() here.
-> 
-> [...]
+v1->v2:
+* [in 1/4] Added a comment about the ignored return value
+* [in 2/4] Replaced RDMA:mana_ib to RDMA/mana_ib in the subject
+* [in 4/4] Renamed mana_ib_raw_qp to mana_ib_raw_sq
 
-Here is the summary with links:
-  - [net,v2] rds: introduce acquire/release ordering in acquire/release_in_xmit()
-    https://git.kernel.org/netdev/net/c/1422f28826d2
+Konstantin Taranov (4):
+  RDMA/mana_ib: Introduce helpers to create and destroy mana queues
+  RDMA/mana_ib: Use struct mana_ib_queue for CQs
+  RDMA/mana_ib: Use struct mana_ib_queue for WQs
+  RDMA/mana_ib: Use struct mana_ib_queue for RAW QPs
 
-You are awesome, thank you!
+ drivers/infiniband/hw/mana/cq.c      | 52 ++++-------------
+ drivers/infiniband/hw/mana/main.c    | 43 ++++++++++++++
+ drivers/infiniband/hw/mana/mana_ib.h | 31 ++++++----
+ drivers/infiniband/hw/mana/qp.c      | 86 ++++++++++------------------
+ drivers/infiniband/hw/mana/wq.c      | 31 ++--------
+ 5 files changed, 107 insertions(+), 136 deletions(-)
+
+
+base-commit: 96d9cbe2f2ff7abde021bac75eafaceabe9a51fa
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.43.0
 
