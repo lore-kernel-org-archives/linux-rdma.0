@@ -1,203 +1,185 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0D765224D0;
-	Tue, 19 Mar 2024 17:00:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com [209.85.210.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67ACD2555B
+	for <linux-rdma@vger.kernel.org>; Tue, 19 Mar 2024 17:54:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710867627; cv=none; b=YU1UIUGtTeysQeCePyiIAsSCcwIemDn/KIh5vRSC51VrlametPUpPkh2jl8BXv5pjWjX0UZo+l1qgiYnp+95Nb8VjzWS0SVx61bEvbmULtbVmIvJSO6ij5E96GvdWqWlZQXwxs34yCGSpFWEyNRxsNKLO5ujOA1I7JLDZqmVKCY=
+	t=1710870870; cv=none; b=s+lo/RXCzuoFCwP/UqN5vs9RNffHL73tK0VJmTDY/XXICl9bchLAjoqZkr3JGdRepNh/Piw2GSZrBrOBSkPKd/n+26XphCm2yDjcfYHrQuhB6KPnLVHec/H7H63ADHHyg1noPpYAis8RvGxA9Ou/jAiNemoaMPGNk3FSn/+rvao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710867627; c=relaxed/simple;
-	bh=UBzp2+L5DZCxzkUt0BgNm18wsMT0W9aAtI+VywexiCs=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=eW+LGppRqVcVT13os04qFQhC4N4vj6jbQw7dPwXd6iAJ+5stO8XvWqH9fZp+QBJQ71bN80O0fA6A205JqdzKBcvAzl0ZJlQY2b0OwUSyvj9iZ7NhRKTmlHCvVYsD8JXnRhexwjJEi4CVrZNTvHeomNLS/SyKbvekW1JocKd741Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=i5yvrjRO; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1710870870; c=relaxed/simple;
+	bh=Ao9hwGJl4g/w2wap7dwa291kK0JPcDjzl89BAK46zVI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rlcqCx4Z6NjIOcR2RdkzbZwJaLmG/XKopeq+Auo9ht3wIKFSh6zed9sX9iR9pUeftQG9bWCvXObaTMxQWCaREHPUt8+Sd/q5I8324fgtKu+LHSdfrBcnTPYzr7HeRIecDfVwWoEkmVjPPKt5xU6WHHNVc2w6w9DbnB3MND4jTDU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=fiSQBkCC; arc=none smtp.client-ip=209.85.210.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="i5yvrjRO"
-Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 9D2F120B74C4;
-	Tue, 19 Mar 2024 10:00:25 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 9D2F120B74C4
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1710867625;
-	bh=KQpc5b+IMDR1rbzinuEbYLwQYGgKN1HCmxsKitzyTkA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=i5yvrjROVnqBo1R2ENur/kTnwZ5bhwTIrcB3Yilmx70tqWflrD0+vj0Y21aIh/Rg+
-	 6fDaD0dfwZzvKpOtTX1U8i8O3SXvnSWz59GfIB9wqMI06gqihkdpurYOaeA6TXKWUm
-	 dUDMDJoBtz62Lrm/yC9MGK2oFfLa2Ji733YBW9j8=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	sharmaajay@microsoft.com,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v2 4/4] RDMA/mana_ib: Use struct mana_ib_queue for RAW QPs
-Date: Tue, 19 Mar 2024 10:00:13 -0700
-Message-Id: <1710867613-4798-5-git-send-email-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1710867613-4798-1-git-send-email-kotaranov@linux.microsoft.com>
-References: <1710867613-4798-1-git-send-email-kotaranov@linux.microsoft.com>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="fiSQBkCC"
+Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-6e6775fd386so3063652a34.3
+        for <linux-rdma@vger.kernel.org>; Tue, 19 Mar 2024 10:54:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1710870867; x=1711475667; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=D7H3WfkclcieHpBg89GTkZxaS3r7II1qq9xezXi0hVM=;
+        b=fiSQBkCCoYVMvJ7hKOIWrIUIQtWnudcxCwuRJ3SDAmfcoUJ3LKW/OSOt0XJv0ppBom
+         r1b7EUVzGEU34UNgXl0Xub2wg6VFMC2Ly8xIcAY78NHYVcXijpAahLq3KrnWiEfepI+P
+         K3bumXlIk6qPY69qQGjZxTur6D4Xb2RFW85NT0G9m4KZ2ko8G/knkqvxD72SooihwK+Z
+         WaMPr00ehDA2unHvbCRW9HCn68HsloTpQ5rMYa4Uyj9mIfkuCzQfSnPQejaSEhgNZfAo
+         vO51olQglynGFY2d82cFKRUtHCtTWvMs7dccTYup7df0Q48rdZL147340AdvneF3HcRw
+         D7dA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1710870867; x=1711475667;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=D7H3WfkclcieHpBg89GTkZxaS3r7II1qq9xezXi0hVM=;
+        b=hw0sL2UtXM74TFOC5FMV5jSLczfwFZ6Ht4C0wFi+PI6FL+ntsvHSXYx1hcvR/FaJoi
+         OghjHDBsylrw8964HB3G05uTLdYy6fYtgJ5j9TqmgZLag/i0TKjlfU6ysYCTMEnNWwEU
+         zlIs7+qYPCglIJvUfhsXBlLBUuDJtwkS0YarOYT+gmiFxT6CiqSUWUxQrtvuvdCtJBYr
+         ydOBK7oNEh/OMm83E5pVIo+eXP8ePT6raihNkEHYH8Qww+ENp7zxiQvYI9+xdofovjeH
+         mlcJkW3QnuyD5WDQ6UoQgvmXYObGsQTBPDplaIJ20Xh4X3PDrknu7OcCghgMbM5T5bOc
+         3qrQ==
+X-Forwarded-Encrypted: i=1; AJvYcCX9nXnnPa6LzdRbedNTVa7ULSH8WmzX++xFLLPh2nQW5fcUPwRFtNEbucvbNu9Yor1yu2bOKIGP1nskJUY07TH7b5nV8KI329UEuA==
+X-Gm-Message-State: AOJu0Yx83NzO4kgFGfc6VZQQLhz+n3NaakQ+pb7PNa7W2cyo24yB4/ic
+	LHDuqnDo75IDcG0uwZejdZm9oXc/TpsjPgZSnF19d1Zr8DNfDrTAOyhggk+ytPE=
+X-Google-Smtp-Source: AGHT+IFEKHu8FJxVRb4YxsELWM46dNSxNuN3njm0tBeD+R+fEyp1j8c0yaDa2gTZMCaYT5fxKBzgBQ==
+X-Received: by 2002:a05:6870:d20e:b0:222:99cb:2215 with SMTP id g14-20020a056870d20e00b0022299cb2215mr3580439oac.28.1710870867581;
+        Tue, 19 Mar 2024 10:54:27 -0700 (PDT)
+Received: from ziepe.ca ([12.97.180.36])
+        by smtp.gmail.com with ESMTPSA id gh11-20020a056638698b00b00477716fcbb8sm2429986jab.40.2024.03.19.10.54.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 19 Mar 2024 10:54:26 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1rmbVk-001elO-4L;
+	Tue, 19 Mar 2024 12:36:20 -0300
+Date: Tue, 19 Mar 2024 12:36:20 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Leon Romanovsky <leon@kernel.org>, Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+	Chaitanya Kulkarni <chaitanyak@nvidia.com>,
+	Jonathan Corbet <corbet@lwn.net>, Jens Axboe <axboe@kernel.dk>,
+	Keith Busch <kbusch@kernel.org>, Sagi Grimberg <sagi@grimberg.me>,
+	Yishai Hadas <yishaih@nvidia.com>,
+	Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
+	Kevin Tian <kevin.tian@intel.com>,
+	Alex Williamson <alex.williamson@redhat.com>,
+	=?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+	iommu@lists.linux.dev, linux-nvme@lists.infradead.org,
+	kvm@vger.kernel.org, linux-mm@kvack.org,
+	Bart Van Assche <bvanassche@acm.org>,
+	Damien Le Moal <damien.lemoal@opensource.wdc.com>,
+	Amir Goldstein <amir73il@gmail.com>,
+	"josef@toxicpanda.com" <josef@toxicpanda.com>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	"daniel@iogearbox.net" <daniel@iogearbox.net>,
+	Dan Williams <dan.j.williams@intel.com>,
+	"jack@suse.com" <jack@suse.com>, Zhu Yanjun <zyjzyj2000@gmail.com>
+Subject: Re: [RFC RESEND 00/16] Split IOMMU DMA mapping operation to two steps
+Message-ID: <20240319153620.GB66976@ziepe.ca>
+References: <20240306154328.GM9225@ziepe.ca>
+ <20240306162022.GB28427@lst.de>
+ <20240306174456.GO9225@ziepe.ca>
+ <20240306221400.GA8663@lst.de>
+ <20240307000036.GP9225@ziepe.ca>
+ <20240307150505.GA28978@lst.de>
+ <20240307210116.GQ9225@ziepe.ca>
+ <20240308164920.GA17991@lst.de>
+ <20240308202342.GZ9225@ziepe.ca>
+ <20240309161418.GA27113@lst.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240309161418.GA27113@lst.de>
 
-From: Konstantin Taranov <kotaranov@microsoft.com>
+On Sat, Mar 09, 2024 at 05:14:18PM +0100, Christoph Hellwig wrote:
+> On Fri, Mar 08, 2024 at 04:23:42PM -0400, Jason Gunthorpe wrote:
+> > > The DMA API callers really need to know what is P2P or not for
+> > > various reasons.  And they should generally have that information
+> > > available, either from pin_user_pages that needs to special case
+> > > it or from the in-kernel I/O submitter that build it from P2P and
+> > > normal memory.
+> > 
+> > I think that is a BIO thing. RDMA just calls with FOLL_PCI_P2PDMA and
+> > shoves the resulting page list into in a scattertable. It never checks
+> > if any returned page is P2P - it has no reason to care. dma_map_sg()
+> > does all the work.
+> 
+> Right now it does, but that's not really a good interface.  If we have
+> a pin_user_pages variant that only pins until the next relevant P2P
+> boundary and tells you about we can significantly simplify the overall
+> interface.
 
-Use struct mana_ib_queue and its helpers for RAW QPs
+Sorry for the delay, I was away..
 
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
----
- drivers/infiniband/hw/mana/mana_ib.h | 13 +++----
- drivers/infiniband/hw/mana/qp.c      | 54 ++++++++--------------------
- 2 files changed, 22 insertions(+), 45 deletions(-)
+I kind of understand your thinking on the DMA side, but I don't see
+how this is good for users of the API beyond BIO.
 
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index a8953ee80..5d9a6e7cb 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -91,15 +91,16 @@ struct mana_ib_cq {
- 	u32 comp_vector;
- };
- 
-+struct mana_ib_raw_sq {
-+	/* Work queue info */
-+	struct mana_ib_queue queue;
-+	mana_handle_t tx_object;
-+};
-+
- struct mana_ib_qp {
- 	struct ib_qp ibqp;
- 
--	/* Work queue info */
--	struct ib_umem *sq_umem;
--	int sqe;
--	u64 sq_gdma_region;
--	u64 sq_id;
--	mana_handle_t tx_object;
-+	struct mana_ib_raw_sq sq;
- 
- 	/* The port on the IB device, starting with 1 */
- 	u32 port;
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index f606caa75..5818b665e 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -297,7 +297,6 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	struct mana_obj_spec cq_spec = {};
- 	struct mana_port_context *mpc;
- 	struct net_device *ndev;
--	struct ib_umem *umem;
- 	struct mana_eq *eq;
- 	int eq_vec;
- 	u32 port;
-@@ -346,32 +345,15 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	ibdev_dbg(&mdev->ib_dev, "ucmd sq_buf_addr 0x%llx port %u\n",
- 		  ucmd.sq_buf_addr, ucmd.port);
- 
--	umem = ib_umem_get(ibpd->device, ucmd.sq_buf_addr, ucmd.sq_buf_size,
--			   IB_ACCESS_LOCAL_WRITE);
--	if (IS_ERR(umem)) {
--		err = PTR_ERR(umem);
--		ibdev_dbg(&mdev->ib_dev,
--			  "Failed to get umem for create qp-raw, err %d\n",
--			  err);
--		goto err_free_vport;
--	}
--	qp->sq_umem = umem;
--
--	err = mana_ib_create_zero_offset_dma_region(mdev, qp->sq_umem,
--						    &qp->sq_gdma_region);
-+	err = mana_ib_create_queue(mdev, ucmd.sq_buf_addr, ucmd.sq_buf_size, &qp->sq.queue);
- 	if (err) {
- 		ibdev_dbg(&mdev->ib_dev,
--			  "Failed to create dma region for create qp-raw, %d\n",
--			  err);
--		goto err_release_umem;
-+			  "Failed to create queue for create qp-raw, err %d\n", err);
-+		goto err_free_vport;
- 	}
- 
--	ibdev_dbg(&mdev->ib_dev,
--		  "create_dma_region ret %d gdma_region 0x%llx\n",
--		  err, qp->sq_gdma_region);
--
- 	/* Create a WQ on the same port handle used by the Ethernet */
--	wq_spec.gdma_region = qp->sq_gdma_region;
-+	wq_spec.gdma_region = qp->sq.queue.gdma_region;
- 	wq_spec.queue_size = ucmd.sq_buf_size;
- 
- 	cq_spec.gdma_region = send_cq->queue.gdma_region;
-@@ -382,19 +364,19 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	cq_spec.attached_eq = eq->eq->id;
- 
- 	err = mana_create_wq_obj(mpc, mpc->port_handle, GDMA_SQ, &wq_spec,
--				 &cq_spec, &qp->tx_object);
-+				 &cq_spec, &qp->sq.tx_object);
- 	if (err) {
- 		ibdev_dbg(&mdev->ib_dev,
- 			  "Failed to create wq for create raw-qp, err %d\n",
- 			  err);
--		goto err_destroy_dma_region;
-+		goto err_destroy_queue;
- 	}
- 
- 	/* The GDMA regions are now owned by the WQ object */
--	qp->sq_gdma_region = GDMA_INVALID_DMA_REGION;
-+	qp->sq.queue.gdma_region = GDMA_INVALID_DMA_REGION;
- 	send_cq->queue.gdma_region = GDMA_INVALID_DMA_REGION;
- 
--	qp->sq_id = wq_spec.queue_index;
-+	qp->sq.queue.id = wq_spec.queue_index;
- 	send_cq->queue.id = cq_spec.queue_index;
- 
- 	/* Create CQ table entry */
-@@ -404,9 +386,9 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 
- 	ibdev_dbg(&mdev->ib_dev,
- 		  "ret %d qp->tx_object 0x%llx sq id %llu cq id %llu\n", err,
--		  qp->tx_object, qp->sq_id, send_cq->queue.id);
-+		  qp->sq.tx_object, qp->sq.queue.id, send_cq->queue.id);
- 
--	resp.sqid = qp->sq_id;
-+	resp.sqid = qp->sq.queue.id;
- 	resp.cqid = send_cq->queue.id;
- 	resp.tx_vp_offset = pd->tx_vp_offset;
- 
-@@ -425,13 +407,10 @@ static int mana_ib_create_qp_raw(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 	gc->cq_table[send_cq->queue.id] = NULL;
- 
- err_destroy_wq_obj:
--	mana_destroy_wq_obj(mpc, GDMA_SQ, qp->tx_object);
-+	mana_destroy_wq_obj(mpc, GDMA_SQ, qp->sq.tx_object);
- 
--err_destroy_dma_region:
--	mana_ib_gd_destroy_dma_region(mdev, qp->sq_gdma_region);
--
--err_release_umem:
--	ib_umem_release(umem);
-+err_destroy_queue:
-+	mana_ib_destroy_queue(mdev, &qp->sq.queue);
- 
- err_free_vport:
- 	mana_ib_uncfg_vport(mdev, pd, port);
-@@ -505,12 +484,9 @@ static int mana_ib_destroy_qp_raw(struct mana_ib_qp *qp, struct ib_udata *udata)
- 	mpc = netdev_priv(ndev);
- 	pd = container_of(ibpd, struct mana_ib_pd, ibpd);
- 
--	mana_destroy_wq_obj(mpc, GDMA_SQ, qp->tx_object);
-+	mana_destroy_wq_obj(mpc, GDMA_SQ, qp->sq.tx_object);
- 
--	if (qp->sq_umem) {
--		mana_ib_gd_destroy_dma_region(mdev, qp->sq_gdma_region);
--		ib_umem_release(qp->sq_umem);
--	}
-+	mana_ib_destroy_queue(mdev, &qp->sq.queue);
- 
- 	mana_ib_uncfg_vport(mdev, pd, qp->port);
- 
--- 
-2.43.0
+How will this make RDMA better? We have one MR, the MR has pages, the
+HW doesn't care about the SW distinction of p2p, swiotlb, direct,
+encrypted, iommu, etc. It needs to create one HW page list for
+whatever user VA range was given.
 
+Or worse, whatever thing is inside a DMABUF from a DRM
+driver. DMABUF's can have a (dynamic!) mixture of P2P and regular
+AFAIK based on the GPU's migration behavior.
+
+Or triple worse, ODP can dynamically change on a page by page basis
+the type depending on what hmm_range_fault() returns.
+
+So I take it as a requirement that RDMA MUST make single MR's out of a
+hodgepodge of page types. RDMA MRs cannot be split. Multiple MR's are
+not a functional replacement for a single MR.
+
+Go back to the start of what are we trying to do here:
+ 1) Make a DMA API that can support hmm_range_fault() users in a
+    sensible and performant way
+ 2) Make a DMA API that can support RDMA MR's backed by DMABUF's, and
+    user VA's without restriction
+ 3) Allow to remove scatterlist from BIO paths
+ 4) Provide a DMABUF API that is not scatterlist that can feed into
+    the new DMA API - again supporting DMABUF's hodgepodge of types.
+
+I'd like to do all of these things. I know 3 is your highest priority,
+but it is my lowest :)
+
+So, if the new API can only do uniformity I immediately loose #1 -
+hmm_range_fault() can't guarentee anything, so it looses the IOVA
+optimization that Leon's patches illustrate.
+
+For uniformity #2 probably needs multiple DMA API "transactions". This
+is doable, but it is less performant than one "transaction".
+
+#3 is perfectly happy because BIO already creates uniformity
+
+#4 is like #2, there is not guarenteed uniformity inside DMABUF so
+every DMABUF importer needs to take some complexity to deal with
+it. There are many DMABUF importers so this feels like a poor API
+abstraction if we force everyone there to take on complexity.
+
+So I'm just not seeing why this would be better. I think Leon's series
+shows the cost of non-uniformity support is actually pretty
+small. Still, we could do better, if the caller can optionally
+indicate it knows it has uniformity then that can be optimized futher.
+
+I'd like to find something that works well for all of the above, and I
+think abstracting non-uniformity at the API level is important for the
+above reasons.
+
+Can we tweak what Leon has done to keep the hmm_range_fault support
+and non-uniformity for RDMA but add a uniformity optimized flow for
+BIO?
+
+Jason
