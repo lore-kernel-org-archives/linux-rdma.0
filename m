@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A70D718146F;
-	Mon, 25 Mar 2024 07:11:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B3F2181305;
+	Mon, 25 Mar 2024 07:10:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711350668; cv=none; b=JcR36VzpitzcX0ChsjcFAKZeXU80LiuCqyHNdWRbes2+azvShWroZAWutofUeJDUplCrXAzlSq5ec/YOUW77FOviGkeNbB6Fqjf74XbA0DB/QX5UlkD/jPqNFMk29T4cXvdCwcSMtZHcBLXMEFsqmmorrJiLZfOFntQYwf5hkqE=
+	t=1711350653; cv=none; b=K7IhsjEBlACBe3e75Hr1NcIkD7rz8q0ppu1VUBcRJTEuoWkMY4dZQzuRXTTsxiqhpF15wEOI9rTun04WW8c0HPQEcGSrTP/EcidtO2DxLYS+cVQJdPNXx2eq2emmLqvInoFD6Tq9EDDVq3xWIlShY/oAIQIQohq+kozDCFVkC2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711350668; c=relaxed/simple;
-	bh=B5GsqWlQHNO5gyAGYUNoL0BzLN/ZPFlXUtFST/FBM58=;
+	s=arc-20240116; t=1711350653; c=relaxed/simple;
+	bh=L9+oMgTqns9sw9ne/My/DZdwn60k6w1jk+fymbaNaYE=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=V9ICJH6V5hHWiXD2bo3Fctqh/+IVxu7n5nFSLNh8La7svyiHyxiDwurvYGSt8yqQbUyTcQwxSSXb0jLcxu41dCuBrs10C89YW8XUD5aSVLA34wc/BKiKQYnW+VYd1/12DQ9NAgU9ezXQ+CxfoQjyKVbqM1mSEP4akHLGqc6ptL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RjWecleT; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=IStUSYMqhKSJvitKT0tVdguACEAUJYVWwaKcjSyLDxMFohP8N+/h7u562c5GXBjOaxiq5989aeVjftDovPpTocEK0Gt4VATtVXnadBaLFa8xcyW3ZQAq3jZ546QDCHjmsNvyAyb6vTRQZON5vnL11BsPkdlsayzP/572jXD3Hqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=s/+LXerr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RjWecleT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2503DC43390;
-	Mon, 25 Mar 2024 07:11:04 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="s/+LXerr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D49E2C433C7;
+	Mon, 25 Mar 2024 07:10:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711350668;
-	bh=B5GsqWlQHNO5gyAGYUNoL0BzLN/ZPFlXUtFST/FBM58=;
+	s=k20201202; t=1711350653;
+	bh=L9+oMgTqns9sw9ne/My/DZdwn60k6w1jk+fymbaNaYE=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=RjWecleTKJ4gUhd6cWKMnd3A9YcWMwvl2zAC+RnU0DednLVfmKi+swr2VBY2iU/Sd
-	 AXPp0TIZMlJ9bx0aqj+3KPAm0lUuRignz9qlzBz9fUbYzbR2MUtOBnrX8eUl4yDBQn
-	 znftTMGLESwuWD1sfiZFf9XIhRZNDiDf+o+UWQUN+75pfyzqChhnsp+SdaEZyj9NNy
-	 5SGFxDX2IlgB/2VP/Ps3I82vOMKIOFbuTNzWwLcxJbvwr+ucIy0LTfKEJ3O9ND/D1p
-	 im9ZztFBTeD6z4mZnFuUY/9ikBLDDs7z5cO9XaEpceu5EcwxuWJo456k400Cj4Vl3K
-	 bc97J27Cy0QrQ==
+	b=s/+LXerrViBpnwV64FJRv7v83te1MPyMxomjHLvPDg/M1H1aOVEJ0hSAHGUv+riMl
+	 R8MjtDZABIUAZjV7OAFyndyVVnE0jRIQ6ekZMJvqX9M7y8clwA4+Xgym6OmUvDYQjK
+	 glW3Sc8DN/6jtzxPlP1XHWs4YyTJlY2mQBIPPu3oFiYovgLwB/sjGFQDHSBhU8Mg+6
+	 6lh6wernnvtghNv84/NCrQwZJKR2SFsEKwiCN49vhL84wcaGHJXGBG1EsJ/ZEFrwDY
+	 RsTgnbN7NI/RWAekJ1A7+P8iodcmZfevRfAssCW1980tgPJ8fJknHKzZkuYb4Yfr3c
+	 YS/hXzUDvbb9A==
 From: Damien Le Moal <dlemoal@kernel.org>
 To: linux-pci@vger.kernel.org,
 	Bjorn Helgaas <bhelgaas@google.com>,
@@ -49,9 +49,9 @@ To: linux-pci@vger.kernel.org,
 	Eric Dumazet <edumazet@google.com>,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 21/28] scsi: arcmsr: Use PCI_IRQ_INTX
-Date: Mon, 25 Mar 2024 16:09:32 +0900
-Message-ID: <20240325070944.3600338-22-dlemoal@kernel.org>
+Subject: [PATCH 17/28] net: realtek: r8169: Use PCI_IRQ_INTX
+Date: Mon, 25 Mar 2024 16:09:28 +0900
+Message-ID: <20240325070944.3600338-18-dlemoal@kernel.org>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20240325070944.3600338-1-dlemoal@kernel.org>
 References: <20240325070944.3600338-1-dlemoal@kernel.org>
@@ -68,22 +68,22 @@ macro.
 
 Signed-off-by: Damien Le Moal <dlemoal@kernel.org>
 ---
- drivers/scsi/arcmsr/arcmsr_hba.c | 2 +-
+ drivers/net/ethernet/realtek/r8169_main.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
-index ad227e6cb10e..35860c61468b 100644
---- a/drivers/scsi/arcmsr/arcmsr_hba.c
-+++ b/drivers/scsi/arcmsr/arcmsr_hba.c
-@@ -1007,7 +1007,7 @@ arcmsr_request_irq(struct pci_dev *pdev, struct AdapterControlBlock *acb)
- 				goto msi_int1;
- 			}
- 		}
--		nvec = pci_alloc_irq_vectors(pdev, 1, 1, PCI_IRQ_LEGACY);
-+		nvec = pci_alloc_irq_vectors(pdev, 1, 1, PCI_IRQ_INTX);
- 		if (nvec < 1)
- 			return FAILED;
- msi_int1:
+diff --git a/drivers/net/ethernet/realtek/r8169_main.c b/drivers/net/ethernet/realtek/r8169_main.c
+index 5c879a5c86d7..7288afcc8c94 100644
+--- a/drivers/net/ethernet/realtek/r8169_main.c
++++ b/drivers/net/ethernet/realtek/r8169_main.c
+@@ -5076,7 +5076,7 @@ static int rtl_alloc_irq(struct rtl8169_private *tp)
+ 		rtl_lock_config_regs(tp);
+ 		fallthrough;
+ 	case RTL_GIGA_MAC_VER_07 ... RTL_GIGA_MAC_VER_17:
+-		flags = PCI_IRQ_LEGACY;
++		flags = PCI_IRQ_INTX;
+ 		break;
+ 	default:
+ 		flags = PCI_IRQ_ALL_TYPES;
 -- 
 2.44.0
 
