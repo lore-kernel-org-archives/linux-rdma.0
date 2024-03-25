@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE768181495;
-	Mon, 25 Mar 2024 07:11:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 395F2181327;
+	Mon, 25 Mar 2024 07:10:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711350680; cv=none; b=KYX1lNiNOmXEmkCcAhbE/m2OuzN7wLNgvVfYq8ZIhDwxLkym0ICG8/eAhL/DEmgYBqKRvcBFpc4aQQPKGpjaEhfoAQnJrHZHUW5seab2qQb/PfTMoUjjkGnddTf4MxNwSw3hSY7v41RuMovKbYWrhhGZ4SYjS3yDci6qRVc9xEs=
+	t=1711350657; cv=none; b=C25nZs1Z+c8QewNnM01J3PrQ/wUZBjyxmGvV59xs5I921E2TWnYj3trOx9tWXdtyJ9V4XxqrwikNLsoKa2FlKNioQU6sqeusSKZwGwL2haCR0hE+58B4BV7a82ampHWDU4AZXKjdUXPdCswBoGHm1qQB2UrIJJ84TVz6tzoARpE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711350680; c=relaxed/simple;
-	bh=bD3pn7waGVyabrrIrvOuivhv+kWsQE+KY0AsrDgUOwM=;
+	s=arc-20240116; t=1711350657; c=relaxed/simple;
+	bh=XKJ4PdWS7sPUSp/i639lPoqRweHPQBN/JvN8m6hg+pc=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=N8wUEggiWrLqQO7GlSLRP+tJOzjCrJmxLwI/Dq6WdSK9sPi5xcYhO/pkfkgpo7r8r39+bhBy+X0rgQRgKsct9S5+wd/uKFB3AmArAjaia8GttQjQeqhZFv9uKlF7YFGTtFD1bdHDbpL7cKvGB31dQk4tPRd+C8ru9YO0mwsFh7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=q/LGWM1B; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=LZ991KGX2GfLmDzEWtmhsngjr/ZCoXt83QhHp1FxCCZeTnfUDxOhC7X97Ccw+FXOmlFSpADEZZzkbSSOoUe0zopAafolfZ2YBeqbofz8RK/VkuMA7WVYkUccG3S4RqqroEbxL74QYBYR8pyeRipFrZKeIQSBXMs9XTSu1hGnxis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EQF88+Zs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="q/LGWM1B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66983C43394;
-	Mon, 25 Mar 2024 07:11:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EQF88+Zs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BCE5C43390;
+	Mon, 25 Mar 2024 07:10:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711350679;
-	bh=bD3pn7waGVyabrrIrvOuivhv+kWsQE+KY0AsrDgUOwM=;
+	s=k20201202; t=1711350657;
+	bh=XKJ4PdWS7sPUSp/i639lPoqRweHPQBN/JvN8m6hg+pc=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=q/LGWM1B7C6oEXzLyn0OvSQrW0mAYOU7gObAFz+pNpqU7TWGiohm0kB2VOYMbAp6G
-	 8XerHyhTXQ9lBuR1SvmU75R8uPyT300T1voZ4MRUXX78O32A4ws5P54ycc9hiEZIu0
-	 iUGVY7pgXel5vb3yTJwmRm6sWrCF/joWvrZ5l/WPDwMwk4LzxA7JOuYTN//zUArb7g
-	 Y5wwkRJBoJzSHlvM+90D35vHdP3cURyOeeYh4pljIZMKS4MGe4Z0edJl9+FOmBqN2+
-	 1WNTb0dt7g+Qn2dYT0ZKSF7O5EZTCeifqWePGiAULS55uHgPhdxNsr7So3C4RV8Kul
-	 lh45KDw/hcAFg==
+	b=EQF88+Zsdyl9+YqNvdRhZaeBdFtqwsmgLnRE2ZYEQO91OQDEssBs1HPYFOydw2Y/c
+	 q9fVT5yFUBshGdvC1nUwagh7ju47fKIHz84i+Kl0muQiajdyvAcnGrWwVPBVKT9G7i
+	 USMISh4UGA5PG/UwiADc9Diq32hAG2W8nPjC9IMpbUEg9z+qL+RoATwb/JLfpgPlhz
+	 Em6NmF8VDQuJbxefV/WmGaqGuE3aZePf4TtuO3WeiAJagXHfk082h9jsD/qBidsVoD
+	 6tsgfsehwBOgri2r63Ealv34YI6KGsuvwWNrnRxGVU/59jD+ALjfzcF5ZDBs0DLce0
+	 +1KV1UDFRbPWw==
 From: Damien Le Moal <dlemoal@kernel.org>
 To: linux-pci@vger.kernel.org,
 	Bjorn Helgaas <bhelgaas@google.com>,
@@ -49,9 +49,9 @@ To: linux-pci@vger.kernel.org,
 	Eric Dumazet <edumazet@google.com>,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH 24/28] scsi: megaraid: Use PCI_IRQ_INTX
-Date: Mon, 25 Mar 2024 16:09:35 +0900
-Message-ID: <20240325070944.3600338-25-dlemoal@kernel.org>
+Subject: [PATCH 18/28] net: wangxun: Use PCI_IRQ_INTX
+Date: Mon, 25 Mar 2024 16:09:29 +0900
+Message-ID: <20240325070944.3600338-19-dlemoal@kernel.org>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20240325070944.3600338-1-dlemoal@kernel.org>
 References: <20240325070944.3600338-1-dlemoal@kernel.org>
@@ -68,31 +68,40 @@ macro.
 
 Signed-off-by: Damien Le Moal <dlemoal@kernel.org>
 ---
- drivers/scsi/megaraid/megaraid_sas_base.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/wangxun/libwx/wx_lib.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/scsi/megaraid/megaraid_sas_base.c b/drivers/scsi/megaraid/megaraid_sas_base.c
-index 3d4f13da1ae8..631a24d91fa9 100644
---- a/drivers/scsi/megaraid/megaraid_sas_base.c
-+++ b/drivers/scsi/megaraid/megaraid_sas_base.c
-@@ -6300,7 +6300,7 @@ static int megasas_init_fw(struct megasas_instance *instance)
+diff --git a/drivers/net/ethernet/wangxun/libwx/wx_lib.c b/drivers/net/ethernet/wangxun/libwx/wx_lib.c
+index 6dff2c85682d..ae0b940717a8 100644
+--- a/drivers/net/ethernet/wangxun/libwx/wx_lib.c
++++ b/drivers/net/ethernet/wangxun/libwx/wx_lib.c
+@@ -1674,14 +1674,14 @@ static int wx_set_interrupt_capability(struct wx *wx)
+ 	/* minmum one for queue, one for misc*/
+ 	nvecs = 1;
+ 	nvecs = pci_alloc_irq_vectors(pdev, nvecs,
+-				      nvecs, PCI_IRQ_MSI | PCI_IRQ_LEGACY);
++				      nvecs, PCI_IRQ_MSI | PCI_IRQ_INTX);
+ 	if (nvecs == 1) {
+ 		if (pdev->msi_enabled)
+ 			wx_err(wx, "Fallback to MSI.\n");
+ 		else
+-			wx_err(wx, "Fallback to LEGACY.\n");
++			wx_err(wx, "Fallback to INTX.\n");
+ 	} else {
+-		wx_err(wx, "Failed to allocate MSI/LEGACY interrupts. Error: %d\n", nvecs);
++		wx_err(wx, "Failed to allocate MSI/INTX interrupts. Error: %d\n", nvecs);
+ 		return nvecs;
  	}
  
- 	if (!instance->msix_vectors) {
--		i = pci_alloc_irq_vectors(instance->pdev, 1, 1, PCI_IRQ_LEGACY);
-+		i = pci_alloc_irq_vectors(instance->pdev, 1, 1, PCI_IRQ_INTX);
- 		if (i < 0)
- 			goto fail_init_adapter;
- 	}
-@@ -7839,7 +7839,7 @@ megasas_resume(struct device *dev)
- 
- 	if (!instance->msix_vectors) {
- 		rval = pci_alloc_irq_vectors(instance->pdev, 1, 1,
--					     PCI_IRQ_LEGACY);
-+					     PCI_IRQ_INTX);
- 		if (rval < 0)
- 			goto fail_reenable_msix;
- 	}
+@@ -2127,7 +2127,7 @@ void wx_write_eitr(struct wx_q_vector *q_vector)
+  * wx_configure_vectors - Configure vectors for hardware
+  * @wx: board private structure
+  *
+- * wx_configure_vectors sets up the hardware to properly generate MSI-X/MSI/LEGACY
++ * wx_configure_vectors sets up the hardware to properly generate MSI-X/MSI/INTX
+  * interrupts.
+  **/
+ void wx_configure_vectors(struct wx *wx)
 -- 
 2.44.0
 
