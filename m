@@ -1,89 +1,157 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-186.mta1.migadu.com (out-186.mta1.migadu.com [95.215.58.186])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ECCE180A78;
-	Mon, 25 Mar 2024 07:10:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EDC115886D
+	for <linux-rdma@vger.kernel.org>; Mon, 25 Mar 2024 08:06:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.186
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711350623; cv=none; b=kVZJKjbMBS8sNFJkQEgmUd0lUDKnGa4UBUB08Z9RDZO6FLJlszvMiJrVWuR4JuWgFBhj+TYu2Pbp7Yt8HDljzK2U5qe307pRSvtZwKAuo6qhcoU6MzNVS0w0GyoZBOFJQ8qHLHaEBSBAgiK9IcQejYUm4RO7EPn4v6mjNUfGkao=
+	t=1711354004; cv=none; b=Cn1y1FDOxhNfphIxuGPquFEoKBuH/M6lMiodZQ8mbUU0f7s3LRmVeD36VcCW2mNU78ovM0prnjpHKxnMdqjTWvcZBjRbtob5vDIXYtICuQtP4TJ8vQKuAJif8lRJd1YnDuo8tcrsaw4KSzkav+YdYpohhG+6h390PirJ3UV8Cqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711350623; c=relaxed/simple;
-	bh=KkLQLoLOHolnVwU8WzSUkFWnSdadyJIAw3FOxFvQh5c=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uw2Aakfb2GoRzdFERBi/bnPTIXsTDlbrsRzOfCKT3IlZ5B5IcVXWs41gqhxO67OotiP3gbDG0mY4ppCx7UntTgj09JvSjEi2JSj6bM33LnoeMy/iKuBGmqhfh3ZY3gyS/ysYC9cYbOdq1o8qnHxOzTXlrW3FLvjYLURAi7W5OPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WnXLI8pa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1711354004; c=relaxed/simple;
+	bh=pZuKPKaS/70/EEjHqPwvnuI3Nv7pHPqM7eodBdRE2D8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=WJ7QAXT+mq56hnLGZl1CZn8kEzngYo+P3oo6btZgglM3jYu76jP7kESma45kdlJZgAQwpbOGuitgLnwystw0S8cYxu53u8/w5OnXtW5G7zItHzjt93JJ+YiDNS51aEV7HNgbNa3m1OLojLVzzE4rWtICKTVPtVbC/HqvEVfFFxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=PgJSqEQn; arc=none smtp.client-ip=95.215.58.186
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WnXLI8pa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FB97C433F1;
-	Mon, 25 Mar 2024 07:10:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1711350623;
-	bh=KkLQLoLOHolnVwU8WzSUkFWnSdadyJIAw3FOxFvQh5c=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=WnXLI8pazLuu8axfdUP1IUDKa+RGXhWtWmcxs54ikyJPWIpc+81UsGWhXdeGDLvLF
-	 8qOtQ6J1lQEj8938H0XWdiIFr1EhRAKRMQzCbm5Mn12Sx6JOE0cOBb9/P6+jB5ygba
-	 +IOeVIycq1/Sv4/dfBJtXPmgou7mcUQ/WjtmiZtUxbsgX79dj5XyRUvNSMUBLBHtBD
-	 o546ne5y7WyugumesDAlsD01LrVePgBChnNIJ01brLjYysfEmNbMAObaI/cbHE2Jwk
-	 Yf77pF523lr2Q0DNmJ1yispgGK2EYSE/HbS05Oku1NCI1ut792ODF98EPEVARAlVQn
-	 NoZ/Q9X5+5GGg==
-From: Damien Le Moal <dlemoal@kernel.org>
-To: linux-pci@vger.kernel.org,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Manivannan Sadhasivami <manivannan.sadhasivam@linaro.org>,
-	linux-scsi@vger.kernel.org,
-	"Martin K . Petersen" <martin.petersen@oracle.com>,
-	Jaroslav Kysela <perex@perex.cz>,
-	linux-sound@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>,
-	platform-driver-x86@vger.kernel.org,
-	ntb@lists.linux.dev,
-	Lee Jones <lee@kernel.org>,
-	David Airlie <airlied@gmail.com>,
-	amd-gfx@lists.freedesktop.org,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	linux-rdma@vger.kernel.org,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 09/28] mfd: intel-lpss-pci: Use PCI_IRQ_INTX
-Date: Mon, 25 Mar 2024 16:09:20 +0900
-Message-ID: <20240325070944.3600338-10-dlemoal@kernel.org>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20240325070944.3600338-1-dlemoal@kernel.org>
-References: <20240325070944.3600338-1-dlemoal@kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="PgJSqEQn"
+Message-ID: <5d81d6d0-5afc-4d0e-8d2b-445d48921511@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1711353999;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=6kUG+lsqJ1QQuFkGv5dH8HcbXqMG4qHWWB+lJs5BhUk=;
+	b=PgJSqEQnlK7l3dgEAICzgenPT/R0kT+G2wPQWNj7fdwAGAfLkhZhroYVbeLWRZxZVqsISV
+	nla3fzcjJbbRtnfvbWVp4ZgmVPQO4eqIBs4Voz8Ed4tfjgo1HvxyEXrv348RvRkvk+vaGr
+	bt02QaFD7OIEyGVUto41e1XyYMFcSgc=
+Date: Mon, 25 Mar 2024 10:06:33 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Subject: Re: Implementing .shutdown method for efa module
+To: Tao Liu <ltao@redhat.com>, mrgolin@amazon.com, sleybo@amazon.com,
+ jgg@ziepe.ca, leon@kernel.org
+Cc: kexec@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux-rdma@vger.kernel.org
+References: <CAO7dBbVNv5NWRN6hXeo5rNEixn-ctmTLLn2KAKhEBYvvR+Du2w@mail.gmail.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Gal Pressman <gal.pressman@linux.dev>
+Content-Language: en-US
+In-Reply-To: <CAO7dBbVNv5NWRN6hXeo5rNEixn-ctmTLLn2KAKhEBYvvR+Du2w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 
-Use the macro PCI_IRQ_INTX instead of the deprecated PCI_IRQ_LEGACY
-macro.
+On 25/03/2024 4:10, Tao Liu wrote:
+> Hi,
+> 
+> Recently I experienced a kernel panic which is related to efa module
+> when testing kexec -l && kexec -e to switch to a new kernel on AWS
+> i4g.16xlarge instance.
+> 
+> Here is the dmesg log:
+> 
+> [    6.379918] systemd[1]: Mounting FUSE Control File System...
+> [    6.381984] systemd[1]: Mounting Kernel Configuration File System...
+> [    6.383918] systemd[1]: Starting Apply Kernel Variables...
+> [    6.385430] systemd[1]: Started Journal Service.
+> [    6.394221] ACPI: bus type drm_connector registered
+> [    6.421408] systemd-journald[1263]: Received client request to
+> flush runtime journal.
+> [    7.262543] efa 0000:00:1b.0: enabling device (0010 -> 0012)
+> [    7.432420] efa 0000:00:1b.0: Setup irq:191 name:efa-mgmnt@pci:0000:00:1b.0
+> [    7.435581] efa 0000:00:1b.0 efa_0: IB device registered
+> [    7.885564] random: crng init done
+> [    8.139857] XFS (nvme0n1p2): Mounting V5 Filesystem
+> d7003ecc-db6f-4bfb-bf92-60376b6a6563
+> [    8.265233] XFS (nvme0n1p2): Ending clean mount
+> [   10.555612] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
+> 
+> Red Hat Enterprise Linux 9.4 Beta (Plow)
+> Kernel 5.14.0-425.el9.aarch64 on an aarch64
+> 
+> ip-10-0-27-226 login: [   29.940381] kexec_core: Starting new kernel
+> [   30.079279] psci: CPU1 killed (polled 0 ms)
+> [   30.119222] psci: CPU2 killed (polled 0 ms)
+> [   30.199293] psci: CPU3 killed (polled 0 ms)
+> [   30.309214] psci: CPU4 killed (polled 0 ms)
+> [   30.379221] psci: CPU5 killed (polled 0 ms)
+> [   30.419210] psci: CPU6 killed (polled 0 ms)
+> [   30.489207] IRQ 191: no longer affine to CPU7
+> [   30.489667] psci: CPU7 killed (polled 0 ms)
+> ..snip...
+> [   33.849123] psci: CPU63 killed (polled 0 ms)
+> [   33.849943] Bye!
+> [    0.000000] Booting Linux on physical CPU 0x0000000000 [0x413fd0c1]
+> [    0.000000] Linux version 5.14.0-417.el9.aarch64
+> (mockbuild@arm64-025.build.eng.bos.redhat.com) (gcc (GCC) 11.4.1
+> 20231218 (Red Hat 11.4.1-3), GNU ld version 2.35.2-42.el9) #1 SMP
+> PREEMPT_DYNAMIC Thu Feb 1 21:23:03 EST 2024
+> ...snip...
+> [    1.012692] Freeing unused kernel memory: 6016K
+> [    2.370947] Checked W+X mappings: passed, no W+X pages found
+> [    2.370980] Run /init as init process
+> [    2.370982]   with arguments:
+> [    2.370983]     /init
+> [    2.370984]   with environment:
+> [    2.370984]     HOME=/
+> [    2.370985]     TERM=linux
+> [    2.373257] Kernel panic - not syncing: Attempted to kill init!
+> exitcode=0x0000000b
+> [    2.373259] CPU: 1 PID: 1 Comm: init Not tainted 5.14.0-417.el9.aarch64 #1
+> [    2.382240] Hardware name: Amazon EC2 i4g.16xlarge/, BIOS 1.0 11/1/2018
+> [    2.383814] Call trace:
+> [    2.384410]  dump_backtrace+0xa8/0x120
+> [    2.385318]  show_stack+0x1c/0x30
+> [    2.386124]  dump_stack_lvl+0x74/0x8c
+> [    2.387011]  dump_stack+0x14/0x24
+> [    2.387810]  panic+0x158/0x368
+> [    2.388553]  do_exit+0x3a8/0x3b0
+> [    2.389333]  do_group_exit+0x38/0xa4
+> [    2.390195]  get_signal+0x7a4/0x810
+> [    2.391044]  do_signal+0x1bc/0x260
+> [    2.391870]  do_notify_resume+0x108/0x210
+> [    2.392839]  el0_da+0x154/0x160
+> [    2.393603]  el0t_64_sync_handler+0xdc/0x150
+> [    2.394628]  el0t_64_sync+0x17c/0x180
+> [    2.395513] SMP: stopping secondary CPUs
+> [    2.396483] Kernel Offset: 0x586f04e00000 from 0xffff800008000000
+> [    2.397934] PHYS_OFFSET: 0x40000000
+> [    2.398774] CPU features: 0x0,00000101,70020143,10417a0b
+> [    2.400042] Memory Limit: none
+> [    2.400783] ---[ end Kernel panic - not syncing: Attempted to kill
+> init! exitcode=0x0000000b ]---
+> 
+> In the dmesg log, I found "[   30.489207] IRQ 191: no longer affine to
+> CPU7" is suspicious, which is related to efa module. After blacklist
+> efa module from automatic loading when bootup, the kernel panic issue
+> doesn't appear again.
+> 
+> It looks to me it is due to the efa being not properly shutdown during
+> kexec, so the ongoing DMA/interrupts etc overwrite the memory range.
+> 
+> Though the issue is reproduced on rhel's kernel, the upstream kernel
+> [1] doesn't have the .shutdown method implemented either. Since I'm
+> not very familiar with the efa driver, could you please implement the
+> .shutdown method in drivers/infiniband/hw/efa/efa_main.c? Thanks in
+> advance!
 
-Signed-off-by: Damien Le Moal <dlemoal@kernel.org>
----
- drivers/mfd/intel-lpss-pci.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Did you try to reproduce it on upstream kernel?
 
-diff --git a/drivers/mfd/intel-lpss-pci.c b/drivers/mfd/intel-lpss-pci.c
-index 8c00e0c695c5..9f4782bdbf4b 100644
---- a/drivers/mfd/intel-lpss-pci.c
-+++ b/drivers/mfd/intel-lpss-pci.c
-@@ -54,7 +54,7 @@ static int intel_lpss_pci_probe(struct pci_dev *pdev,
- 	if (ret)
- 		return ret;
- 
--	ret = pci_alloc_irq_vectors(pdev, 1, 1, PCI_IRQ_LEGACY);
-+	ret = pci_alloc_irq_vectors(pdev, 1, 1, PCI_IRQ_INTX);
- 	if (ret < 0)
- 		return ret;
- 
--- 
-2.44.0
+> 
+> [1]: https://github.com/torvalds/linux/blob/master/drivers/infiniband/hw/efa/efa_main.c#L674
+> 
+> Thanks,
+> Tao Liu
+> 
 
+Try assigning efa_remove as the shutdown callback:
+    .shutdown = efa_remove,
+
+Does it fix it?
