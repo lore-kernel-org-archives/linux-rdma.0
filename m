@@ -1,57 +1,57 @@
-Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com [209.85.161.50])
+Received: from mail-oo1-f49.google.com (mail-oo1-f49.google.com [209.85.161.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81185200D1
-	for <linux-rdma@vger.kernel.org>; Tue, 26 Mar 2024 17:44:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41829210E4
+	for <linux-rdma@vger.kernel.org>; Tue, 26 Mar 2024 17:44:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711475082; cv=none; b=T637/gM76mnGk0DMh9JigbneiPicAnbMk3w0TEw6gKWyFeCyRYqtdg6Hxj+GmGv85YH4tNqRdL19q6i/wPFjgafkNOwPFo85bbUrI5SqTXOoc0pGU90eYuv0DVBZM0o361Yy81zjoOiEr4BfEVxpkHQm75DN9ZDV56KJSRWC0RQ=
+	t=1711475083; cv=none; b=paW1FEqUHE2SgKe6cczFW+5ullx6TJVzVEXxjsXUjfvKwXB0MZN2aepKnFI7Spu/9j196g/sAprKTeMLifeapQMNQylRmLWCktBapqUfStgS3d/BulC35BwSBKi2gZNbYfLsL+FhjiTtvs3VzhHU/ZDSUnE2M1UsTuPwBmECq1w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711475082; c=relaxed/simple;
-	bh=x5SWuSvv3SMTKBKxaAPrs628VcfWHAdoZKcjlwv9V7g=;
+	s=arc-20240116; t=1711475083; c=relaxed/simple;
+	bh=P7tOOgeY0L2CvvM2QtJqeSL/YwkPxpl3T6DkGN+oUBs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XN3/j89KO4O4vPOtzKzNYKCRkVTmJlg4afTwJdcExb4VORP9wPPcKRFWMHJIuLdVvuzhNbCz2b3BcAZGREvDpgP6nUoIySYwubLZkfs7f8yEMFpCSG7ox0aJvFMIzm0JicafcHkDX+i0CoKrLESdAR0FB9A2wKEXZPKVglnzDNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZlFq7YbS; arc=none smtp.client-ip=209.85.161.50
+	 MIME-Version; b=oj1b5sYAi1HlqBN1iDIiGattdOD0kcjC307Tk4rluLyA82PgiXOjCwLQ64xkpJwLgmpALl7yqDKDjTyk403N+wSjkNxIxnvlm1SHhwnKhb0nrVhuCVrqP81zn886OfJSiuMdaFp0SLLUhqOFF9CEb0Tqr7Z9uej5oVws/LIvbjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JDPrb/5P; arc=none smtp.client-ip=209.85.161.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZlFq7YbS"
-Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-5a53d5aaaa4so1447313eaf.2
-        for <linux-rdma@vger.kernel.org>; Tue, 26 Mar 2024 10:44:40 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JDPrb/5P"
+Received: by mail-oo1-f49.google.com with SMTP id 006d021491bc7-5a5508007fcso1157881eaf.2
+        for <linux-rdma@vger.kernel.org>; Tue, 26 Mar 2024 10:44:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1711475079; x=1712079879; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1711475081; x=1712079881; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=xCjztQYodtMXHgbrSSmzgM11j2HWm+7GDAVbEYgFieI=;
-        b=ZlFq7YbSfFTQoHnVRMC2JvpkSYbH6TmGZWvw/K+8C2i/1BOXw+3qiYuDIQibXBZ+wz
-         hX/UvattUZ/nwHaQSk0xbkcl6o52/STbl/dNv1yS1wtqvXR/UTlIDiOxJyzjGpwrvXou
-         1B4+zO5icuJbToXbRJ6JVRDPc9iG7OS+zsXLPdl3hIX1kgCCs3fP5GdM6wQSjsnUXR3u
-         2sXHD6JWSBrIXsQDMZ/7FVxJJPXc4SrUiyT/YWxVchfQkLTLpngzR1k9JS+dWkeYttfC
-         CbNATdyVJk4DSdsXF8OkR2Wbda7pW5Mdq42Rjla7PC+b3wu03YDsWysI8M4P8verQvGn
-         3NhQ==
+        bh=ofF1b+zvHAVjiqjOdcrJdzZ1L5D5MRm+IjXlS0QMc+8=;
+        b=JDPrb/5Pcx96pJDa7ZJ8OwEXSKWb4te9qi67NtUQFqpOuuIDO9jku4oSEpFZK7cBye
+         Cec1OitnatvGcb1VzlOiTeiH4JGEJRPJzULFlEEcwbYtADgBp3DMFr1mvMx0f3COPyrr
+         H8/dQaF+70zM7piw0Kp/SE/vTkBAkF7nr4kKGZUDQBR4IBX8+Rw5+SF35FnH51TKkzjK
+         mDywDNK+yHlpfJSV+YgzByl8A/lQBlroHX4IYGUYMMjT0CWXNeWbvjsxHBual/u+cNsv
+         R3D8y5Dc8fC7B1NPST4cJC+Q+zYK4IIc1XHDeKzzyFkDbuEKkUxf28izAhQfs0IQDG6E
+         OslA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711475079; x=1712079879;
+        d=1e100.net; s=20230601; t=1711475081; x=1712079881;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=xCjztQYodtMXHgbrSSmzgM11j2HWm+7GDAVbEYgFieI=;
-        b=VN6DA8PD9I2hm9W0qVsGtAHs9nW6vg0bkYoQBPbxUDN7YwX9EThYLLGyFu61Vxx5kH
-         8xRHmeqoHrPdKGOjAYDc5UHYMlQIfNh5qhleCHaRmsV9w9xrRgK7Yi5cFPCP7usPS5cb
-         W1U4Fihua7KcHOrAEY59kTgwGdLy0Msz/L/Dg1VRBddpEixoeaAKg3rOYwMFLK/ckrft
-         HBU0IwaDcoEe6kbhM4HJfLVdzU+O0z8q5gGskAAkbaKyY77b9NFsHUwu6KvRxdmuhBEQ
-         hz+45ayRd45ZTERaW/YJBlPHdZeF6pBDBqZI64ISGpV5Xt7IR/+i2K+r00CJGNqoFL18
-         DmYg==
-X-Forwarded-Encrypted: i=1; AJvYcCXet+q365fwwNMx0kBQ/M1DY1LEQBW+oSbyzBk+0w+jd/fJeEvAWvo3OKUpFwDo9eA8k/9CtkQo2B3jrS/Bugcx+KDl7aQ+girMhQ==
-X-Gm-Message-State: AOJu0Yyr8e+3cpo8aZzcjsC4TlDMDYqCb25egXyK8DdeywVaV9CW9xcW
-	7pc/1HhCFOXvrphZPXwpaSiE6di2e3fBVIIVbWRQd4iLVzdFD6xN
-X-Google-Smtp-Source: AGHT+IHO528N7GUUMdImdoYZM/P2IPpmLrk/QbDTlSQFezayWxq/XIHy//6on8C3/2VpRW2R3wsGlQ==
-X-Received: by 2002:a05:6820:2111:b0:5a5:639a:2fa0 with SMTP id cd17-20020a056820211100b005a5639a2fa0mr4623581oob.0.1711475079494;
-        Tue, 26 Mar 2024 10:44:39 -0700 (PDT)
+        bh=ofF1b+zvHAVjiqjOdcrJdzZ1L5D5MRm+IjXlS0QMc+8=;
+        b=GBKj+/vgOrHSmBHmSQDXT0pgZmo0XUXIyGkmHwA/Ee9xqCodg69ZvVKn66Dzsfu78l
+         B9k9qL1CbIY18MiqpmQbKKx+kDTBKP07WhYI+DpQuYyJGfEDOwrJsYHe0Q79mglneBio
+         VKLayoXiEor6auXKt8hJwgEWBitxyTf2z4hz+vNK1B5EQWgPDHCSk6Ms2w6w9adMxErx
+         F1UdcCsiSYQ5XS0E52vKgTk9zJM3oDSLKCR6I/64Pfoqi9dfDIE97IKdAcRBjanqHmwT
+         QchcePAuSwedmv1MyBF/1Mb4enS9hoMYzZRccoyBEptXBCEI+PkcIkLm/RB0BptpQeaQ
+         UQTw==
+X-Forwarded-Encrypted: i=1; AJvYcCUnQ2oplhFhbp3G95HtlmWrEVI4NNTDGGI2GQiYian1sPnXzk9hZlLp0RCghv+ZQUvTocZRGK6j2DUhFZY8oqv7UmvX1G3tZRX/Xg==
+X-Gm-Message-State: AOJu0YysvUd31wWwJJnWc7ZH/akeiL0Rpj8cHXtsxcCVwc1SWaqfkkSd
+	ZohdzSYHzlNWaORjUEki637wy6TrON0x5qSn3+9Qp3Fa7o5V935f1roWL6Ok+kA=
+X-Google-Smtp-Source: AGHT+IFHxDOKjZsXWsyb1UkXdg8X/1kkT0Q5iAS0Kkp6smZ9Hdk++fIlCjlkjdBEqsl3BHzXMzhLag==
+X-Received: by 2002:a05:6820:20d:b0:5a1:a7b3:3d0 with SMTP id bw13-20020a056820020d00b005a1a7b303d0mr625767oob.4.1711475081321;
+        Tue, 26 Mar 2024 10:44:41 -0700 (PDT)
 Received: from bob-pearson-dev.lan (2603-8081-1405-679b-b62e-99ff-fef9-fa2e.res6.spectrum.com. [2603:8081:1405:679b:b62e:99ff:fef9:fa2e])
-        by smtp.gmail.com with ESMTPSA id i10-20020a056820138a00b005a53e935171sm1399860oow.35.2024.03.26.10.44.38
+        by smtp.gmail.com with ESMTPSA id i10-20020a056820138a00b005a53e935171sm1399860oow.35.2024.03.26.10.44.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 26 Mar 2024 10:44:39 -0700 (PDT)
+        Tue, 26 Mar 2024 10:44:40 -0700 (PDT)
 From: Bob Pearson <rpearsonhpe@gmail.com>
 To: yanjun.zhu@linux.dev,
 	jgg@ziepe.ca,
@@ -59,9 +59,9 @@ To: yanjun.zhu@linux.dev,
 	linux-rdma@vger.kernel.org,
 	jhack@hpe.com
 Cc: Bob Pearson <rpearsonhpe@gmail.com>
-Subject: [PATCH for-next 07/11] RDMA/rxe: Don't call rxe_requester from rxe_completer
-Date: Tue, 26 Mar 2024 12:43:22 -0500
-Message-ID: <20240326174325.300849-9-rpearsonhpe@gmail.com>
+Subject: [PATCH for-next 09/11] RDMA/rxe: Fix incorrect rxe_put in error path
+Date: Tue, 26 Mar 2024 12:43:24 -0500
+Message-ID: <20240326174325.300849-11-rpearsonhpe@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240326174325.300849-2-rpearsonhpe@gmail.com>
 References: <20240326174325.300849-2-rpearsonhpe@gmail.com>
@@ -73,103 +73,47 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Instead of rescheduling rxe_requester from rxe_completer() just extend
-the duration of rxe_sender() by one pass. Setting run_requester_again
-forces rxe_completer() to return 0 which will cause rxe_sender() to be
-called at least one more time.
+In rxe_send() a ref is taken on the qp to keep it alive until the
+kfree_skb() has a chance to call the skb destructor rxe_skb_tx_dtor()
+which drops the reference. If the packet has an incorrect protocol
+the error path just calls kfree_skb() which will call the destructor
+which will drop the ref. Currently the driver also calls rxe_put()
+which is incorrect. Additionally since the packets sent to rxe_send()
+are under the control of the driver and it only ever produces
+IPV4 or IPV6 packets the simplest fix is to remove all the code in
+this block.
 
 Signed-off-by: Bob Pearson <rpearsonhpe@gmail.com>
+Fixes: 9eb7f8e44d13 ("IB/rxe: Move refcounting earlier in rxe_send()")
 ---
- drivers/infiniband/sw/rxe/rxe_comp.c | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_net.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index ea64a25fe876..c41743fbd5f1 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -82,6 +82,8 @@ static unsigned long rnrnak_usec[32] = {
- 	[IB_RNR_TIMER_491_52] = 491520,
- };
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 928508558df4..d1dd440b1e4f 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -366,18 +366,10 @@ static int rxe_send(struct sk_buff *skb, struct rxe_pkt_info *pkt)
+ 	rxe_get(pkt->qp);
+ 	atomic_inc(&pkt->qp->skb_out);
  
-+static int run_requester_again;
-+
- static inline unsigned long rnrnak_jiffies(u8 timeout)
- {
- 	return max_t(unsigned long,
-@@ -325,7 +327,7 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
- 					qp->comp.psn = pkt->psn;
- 					if (qp->req.wait_psn) {
- 						qp->req.wait_psn = 0;
--						rxe_sched_task(&qp->send_task);
-+						run_requester_again = 1;
- 					}
- 				}
- 				return COMPST_ERROR_RETRY;
-@@ -476,7 +478,7 @@ static void do_complete(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
- 	 */
- 	if (qp->req.wait_fence) {
- 		qp->req.wait_fence = 0;
--		rxe_sched_task(&qp->send_task);
-+		run_requester_again = 1;
- 	}
- }
+-	if (skb->protocol == htons(ETH_P_IP)) {
++	if (skb->protocol == htons(ETH_P_IP))
+ 		err = ip_local_out(dev_net(skb_dst(skb)->dev), skb->sk, skb);
+-	} else if (skb->protocol == htons(ETH_P_IPV6)) {
++	else
+ 		err = ip6_local_out(dev_net(skb_dst(skb)->dev), skb->sk, skb);
+-	} else {
+-		rxe_dbg_qp(pkt->qp, "Unknown layer 3 protocol: %d\n",
+-				skb->protocol);
+-		atomic_dec(&pkt->qp->skb_out);
+-		rxe_put(pkt->qp);
+-		kfree_skb(skb);
+-		return -EINVAL;
+-	}
  
-@@ -515,7 +517,7 @@ static inline enum comp_state complete_ack(struct rxe_qp *qp,
- 		if (qp->req.need_rd_atomic) {
- 			qp->comp.timeout_retry = 0;
- 			qp->req.need_rd_atomic = 0;
--			rxe_sched_task(&qp->send_task);
-+			run_requester_again = 1;
- 		}
- 	}
- 
-@@ -541,7 +543,7 @@ static inline enum comp_state complete_wqe(struct rxe_qp *qp,
- 
- 		if (qp->req.wait_psn) {
- 			qp->req.wait_psn = 0;
--			rxe_sched_task(&qp->send_task);
-+			run_requester_again = 1;
- 		}
- 	}
- 
-@@ -654,6 +656,8 @@ int rxe_completer(struct rxe_qp *qp)
- 	int ret;
- 	unsigned long flags;
- 
-+	run_requester_again = 0;
-+
- 	spin_lock_irqsave(&qp->state_lock, flags);
- 	if (!qp->valid || qp_state(qp) == IB_QPS_ERR ||
- 			  qp_state(qp) == IB_QPS_RESET) {
-@@ -737,7 +741,7 @@ int rxe_completer(struct rxe_qp *qp)
- 
- 			if (qp->req.wait_psn) {
- 				qp->req.wait_psn = 0;
--				rxe_sched_task(&qp->send_task);
-+				run_requester_again = 1;
- 			}
- 
- 			state = COMPST_DONE;
-@@ -792,7 +796,7 @@ int rxe_completer(struct rxe_qp *qp)
- 							RXE_CNT_COMP_RETRY);
- 					qp->req.need_retry = 1;
- 					qp->comp.started_retry = 1;
--					rxe_sched_task(&qp->send_task);
-+					run_requester_again = 1;
- 				}
- 				goto done;
- 
-@@ -843,8 +847,9 @@ int rxe_completer(struct rxe_qp *qp)
- 	ret = 0;
- 	goto out;
- exit:
--	ret = -EAGAIN;
-+	ret = (run_requester_again) ? 0 : -EAGAIN;
- out:
-+	run_requester_again = 0;
- 	if (pkt)
- 		free_pkt(pkt);
- 	return ret;
+ 	if (unlikely(net_xmit_eval(err))) {
+ 		rxe_dbg_qp(pkt->qp, "error sending packet: %d\n", err);
 -- 
 2.43.0
 
