@@ -1,27 +1,28 @@
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2067.outbound.protection.outlook.com [40.107.243.67])
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2081.outbound.protection.outlook.com [40.107.94.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA5A6FC08;
-	Mon,  1 Apr 2024 09:06:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.67
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D2EB10979;
+	Mon,  1 Apr 2024 09:06:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.94.81
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711962368; cv=fail; b=HjwaqLst8Se+dqOK6O6w0I/APkYfMrCWwE95DHK6yI5cJAVDDlsuDjbIg/uw6mH+ZGGs1kM8PSHFA1MnrJIRIY8ph5cFJJJtpPx3EFJZbBl5EmqhBz2po6kvwxYB/mJypJXd2Qt4c0zNbmXvQPNxxn0M2nkwCALotUcijg9gkYc=
+	t=1711962372; cv=fail; b=VLuCJvJf8uWjVQzcNf0DOreHXLoUSy9the3Q2jgtUjhFwvmDhkl1wmUPiFXXunKh5Die4eGqO6a+SOvjdeC3F8bgGftAUg1tXEx6wgL7dv0HC6IsuFT5CrbdnVkP/FTMlHEL8pYwxP8GA09AbHJrgIioU1aqiVbIBcxD/Q05sl4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711962368; c=relaxed/simple;
-	bh=3RQhNvI/a+/G/CNiwQT9BUomL9k1rJaJNPucEigaXKg=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ewfoB2nRVVMTawHjyG7s9txowPSJN/B8BYp1wYUxI+Mx/gCq77K9+msOKzhQVcj046b8KrwDPofnjycXAYBRp3n55GVcdDgFStn+DQJLbW0s50cV2LpbojFSO2/p5r6CL5TKVfGGdkdVT7yg44i/8Kuh9aNp6DI3o0uc2oromKs=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=sO5llBTk; arc=fail smtp.client-ip=40.107.243.67
+	s=arc-20240116; t=1711962372; c=relaxed/simple;
+	bh=gcuz4StINLJ0R4led+6b2ZvSdVadYTY2NvXYbT+x4pQ=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=adL9CheM6mX+bX3gbf1+36vZf3RNhvtIEGF3jhfjfuY22kays/mseWLUKiZPdxGK0p7Tl4lzCuXSxC2y8PaX3WOsTz6oY8/f0NKEEvJZ1roYD+q8lt6vInPFzLfebPLIjhBHRH6OXPugQoqW5gKPCRrqf1ALQlCRdxpzWbCotx4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=V0Bznzf5; arc=fail smtp.client-ip=40.107.94.81
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="sO5llBTk"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="V0Bznzf5"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=gye/UyrHBLGuWAm8dlLaXzs3TnDU50g9W2dYCrRmG37ytBX6m6SEL8gXDz7UHHCsVplylwe/w3GWBElcIk8vmiwUOL4t3z8MkIJp4E0WiaPm1iKLospljMrdIj4dA1UTVIwF2m9NRZ8yzAkoY67NP2zf4bv5vjzXKyWUIATtBXE7e02HGR66q1TwrpTuDIt2dyHYbfwhmM/Tg6WUjreDecpxxfamX6niePpNzQ74ejKZuPvzvgceH8+0dntLIhblVF8XLiI+rFxvqGjX0h6K8Z3VPRk8ZdhjaAdhbV78504Upmbuy1x7+5PM258efoq6i1USN+cl6km+TGInEidlGg==
+ b=ZFem7INpRybT16I0m0XOelSn4vQUfB8kVcE4DWfhnO0kWSMz91p7t1U+B5Dkr8q9d5DE/dVB4X/ZkzW3rxXtmZUQ+diRC1gjdYOA8FgBTg2aCy1ZVMlzGSq7EYG1+8kBmI2SVwMCRVU4kYRxHeGrqcAqnhVHdpVoXFN/H2na0gdKwhNnUovO5zcVDuMXg686WwSbdcFyGEf6eW9AfTG22f39vpQz8TPbMVcH3XwNFt09LricE5DY2GfWjwYUANiErNNIl0XW4gUbmw5B4Ad6mt8vZQoFfOsgjNO+uolID1Pk8ma1L4iD2m8/wSKzAEM1VTXAVcaUB4CdIzSxLd0/HQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=rjwbf5IO4kJkSBaQDg53aNMfV/fKVVhUlHFeOxuF4AQ=;
- b=lQKrXOGbq/lDYvVsDrCQz+Mm4Uz3ElRhSfKB2HWGRDCDob+QgLNMgqvbFVTWl/KTzF5oFRTHiGHCKeodICpDxSB3644ef4HLaFoC8UfHvC/Jfuoq74dRhKanAA1wVThiwpNO9O/VQqbTxiLD4iG1z8ypguxphI9OTZ6181bopF8HQ93YXV5RrbaXtPBFMgVigFe8n6YNcbdccgpqur2OdLBsVXDZbWhbepBVbHVaJ2Z8XVEb4xciN5Zsk3hdjGlLBZzDEs12vxU4PHnEQ+DLV9AX4D4GsHKipAGzMFtt9Lg+KiKFhwfX04fIGqPSYDC0HTssadUs2Jqrx88YZn6eLA==
+ bh=gfm2qdOtVqLijsTOFtal1oa1/U+Id+r32Ctod2m4EQc=;
+ b=Vr7mN1vdA5c80jFfIxRKda3boeuGJUPDUADAJvJgcnqIa4BU2aL71QFeKboU+O2zvUn7ouLYSw9NH2XTbme/YqO6/vFv4cvoidAJzQAPR8n8zrWgiNVwQFQwni+PA3lbuHgIH8PnJ43Jcy2Oz8SprgKzhCBh0jImTmMfp4AxLO2Q7B/0EvTE9ahmNfoiWus93TN3+y4qpC0aNN+01mDukNCG+L+UFu1ofVTdPEF2ARSG7UyJfkTo5lJeJzcPpTcRiCKCDjKiIpRthH9myvngzPpNyFu+eRRzj7HTNqu3sCOJTrofshbEkPgK0z2KmFkwPK+I8B42dcBOjT/flNjvmQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.161) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -29,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=rjwbf5IO4kJkSBaQDg53aNMfV/fKVVhUlHFeOxuF4AQ=;
- b=sO5llBTkQ+uzMDIA045xcDrSstEDnfv0VBLtpgiSJLClKOmuLJnz+NY3ZfLl94bvLIvzXyxbtIdz/UgJrWPeqHuH/4dcIIiIqVyTHZczuqiTujB9BWuRiqje/qOUg8l/sIuwLV7ix3qeLY3l4/fSBm+TLr+RuqsirKIjfXI33t+V3jZPt83q8MA6NIsMwKaTou/0OFvVmO2hz3rMOsK/dYpiH/4pWIsiUFkYAf8aaHBE6f/Yk9YCbKMi9JKiSj886YHHFsqU89yu7vc+W6YnmBky4+c4WjNqjaIQd0KIaulQwIDGZK9/MHqvs8RJC/HVfY8DFa16vG6hFp6ifmTXCA==
-Received: from SJ0PR03CA0387.namprd03.prod.outlook.com (2603:10b6:a03:3a1::32)
- by MW6PR12MB8898.namprd12.prod.outlook.com (2603:10b6:303:246::8) with
+ bh=gfm2qdOtVqLijsTOFtal1oa1/U+Id+r32Ctod2m4EQc=;
+ b=V0Bznzf50ozp4FNbLVN8s0RciIR95jNctu5nacbtjH+nJEdvdnZzF07QfujbnIyAIv7iPgSWaQwkcrsnYmGEIdpmUnnmpcqbbJta8aT24UXE16GaDKui4AKOvC+HcMrQf5Cb09YM/M4caFx+PE6Zm4FB93Tv9c4in3mYKXykr2XqVNXBEmcrS5bzYlP47ExngNOaf0CSe0CAw7xKf3KjRgL5j6diVIvkmHpzwW+SU8HL4lSWyUcJ61K11dpCoS5RZmkwJaWdEyJ/rN5hmnbu5KOoCSNB6qHAnZ/+luaMJ1Dgqf4vEQ7c4+ySQ3n7M/xYSdoRMFoYOTim5+vjNn7dVA==
+Received: from SJ0PR03CA0147.namprd03.prod.outlook.com (2603:10b6:a03:33c::32)
+ by PH8PR12MB6939.namprd12.prod.outlook.com (2603:10b6:510:1be::18) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.46; Mon, 1 Apr
- 2024 09:06:03 +0000
-Received: from SJ1PEPF00001CDC.namprd05.prod.outlook.com
- (2603:10b6:a03:3a1:cafe::6) by SJ0PR03CA0387.outlook.office365.com
- (2603:10b6:a03:3a1::32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.43 via Frontend
- Transport; Mon, 1 Apr 2024 09:06:03 +0000
+ 2024 09:06:07 +0000
+Received: from SJ1PEPF00001CDD.namprd05.prod.outlook.com
+ (2603:10b6:a03:33c:cafe::a0) by SJ0PR03CA0147.outlook.office365.com
+ (2603:10b6:a03:33c::32) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.13 via Frontend
+ Transport; Mon, 1 Apr 2024 09:06:07 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -48,28 +49,30 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.117.161 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.117.161) by
- SJ1PEPF00001CDC.mail.protection.outlook.com (10.167.242.4) with Microsoft
+ SJ1PEPF00001CDD.mail.protection.outlook.com (10.167.242.5) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.7452.22 via Frontend Transport; Mon, 1 Apr 2024 09:06:03 +0000
+ 15.20.7452.22 via Frontend Transport; Mon, 1 Apr 2024 09:06:07 +0000
 Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
  (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.986.41; Mon, 1 Apr 2024
- 02:05:50 -0700
+ 02:05:53 -0700
 Received: from sw-mtx-036.mtx.labs.mlnx (10.126.230.35) by
  rnnvmail201.nvidia.com (10.129.68.8) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1258.12; Mon, 1 Apr 2024 02:05:48 -0700
+ 15.2.1258.12; Mon, 1 Apr 2024 02:05:51 -0700
 From: Parav Pandit <parav@nvidia.com>
 To: <netdev@vger.kernel.org>, <davem@davemloft.net>, <edumazet@google.com>,
 	<kuba@kernel.org>, <pabeni@redhat.com>, <corbet@lwn.net>
 CC: <saeedm@nvidia.com>, <leon@kernel.org>, <jiri@resnulli.us>,
 	<shayd@nvidia.com>, <danielj@nvidia.com>, <dchumak@nvidia.com>,
 	<linux-doc@vger.kernel.org>, <linux-rdma@vger.kernel.org>, Parav Pandit
-	<parav@nvidia.com>
-Subject: [net-next 0/2] devlink: Add port function attribute for IO EQs
-Date: Mon, 1 Apr 2024 12:05:29 +0300
-Message-ID: <20240401090531.574575-1-parav@nvidia.com>
+	<parav@nvidia.com>, Jiri Pirko <jiri@nvidia.com>
+Subject: [net-next 2/2] mlx5/core: Support max_io_eqs for a function
+Date: Mon, 1 Apr 2024 12:05:31 +0300
+Message-ID: <20240401090531.574575-3-parav@nvidia.com>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20240401090531.574575-1-parav@nvidia.com>
+References: <20240401090531.574575-1-parav@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -82,90 +85,180 @@ X-ClientProxiedBy: rnnvmail203.nvidia.com (10.129.68.9) To
  rnnvmail201.nvidia.com (10.129.68.8)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ1PEPF00001CDC:EE_|MW6PR12MB8898:EE_
-X-MS-Office365-Filtering-Correlation-Id: d675bd8a-b0f6-4350-0455-08dc522af4fb
+X-MS-TrafficTypeDiagnostic: SJ1PEPF00001CDD:EE_|PH8PR12MB6939:EE_
+X-MS-Office365-Filtering-Correlation-Id: ff0ee1a9-df75-41a6-162d-08dc522af756
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info:
-	UeEj6/IwRd0Z1xjNR0UzVUSaTHOL7hInLFwUHYTQ+oJJiM/gfYye/LoRAd5/UE2nPQYHNB+J35cP2jevOti8qqgVgG7NyeILhKbHlvHwkerqLaiBOMGzI5RjJ37TLZahZd6E5M2/TBN6iBcVsb6l6kpaCeM5PlI05yaCRt9Z9ny7GiccgGRfV/ca34Y0Wy9AjBlL3UzyvWetOkTwSPaYxGfFKgV1o7OMHvXQHsBWiU1G4opeB9G2ujgA1GSbBcqwOn0UCQe/ltoEyTdVtJdPZi0ux4kQ+DzBj7WFl4ECUvskBoPOB9lRhQMwfTfrY8ooZ9V8Df69AaH25owtY001DdpnSWxeSs2f2nAx18L/DN4WXBpRgj0j5e1oZApsmdgiFwveoj92/tUoOVfNeETEtk3O6p+89Y8HnAI0hOSr/T5Hivx+RRsdBCIDBRzyi3XhKbUwgqu3ER/Dp7IG0M1BAzP7US+p1jcRBiis/mP1P9vjwbOQBl/P8vg9xn0Braq52jI/3eY+mTD+RkpNd8v0T4HX1w63KJRb8cUwg8cNSEc7O81J7cSncfUQNL2qYMPs2atr5sGRrAhEYLieTtyaLrTSyN4q9ZSqMQecMrh0NFd2B9HTgs/PM3qattlC7bnoYkm7+b88dxZP45L2VE6wnxLXWEWJxHCc8yTyeYmPBYs2Lt3ZZym3zBB6JcpT2H2Mto/hOgsSgLfAUHsrP5z5SwKNSK2FWYs4Xexgfn/YWdpg/g2IVfw9VFzFvzD4K2EQ
+	NHGQUXXu65UJffr5NnFHjsNikKros5KKkIdzuWPyZ2d0OmlWltaJ/GQF99R7Qs/IJ0Ojk3Odr0EOl6gIZeakSd6tWiHmdOzx6u6N1jt3X+czrJon00rbOlLIVrEWTUeNLeptNZs7R8016MvIYv+NXNyp2Vp5KF5w91WzXX+ulQ8+1UTkaJjEVpKwtsvA0avVJDJFGq4hbinvAfJ9gGSUyw6e2pCHlvvYoSSwVyGI9E/sf4EnQxUpxx/xhqJHafajfoxcSe/YsrjzRQ8HJzwRv/uwMgKrGH8dShl/BHs4bEg3iBldnBgthYO7wd7w4CIdjVceGuivKBe7Pb7wDGMZuYopb6OR4zjRGib4K7thNop6OmkgQGky/yFwL5lVji9H1TIKG7I1XHinF6DZajEA+Y57edVmgfRz9ejmaFxStvbGWNgemTiZjL/2ql5qb/OwEAGhSqJk30/N660TX/i9aUQPM4HVT6xZ6A1tSaNUF4bjAMXs2m8vpLjs53L61PasY2B+6yE7kahZ6FIOgM/lWow9sJp1p3RWn/c1Sdr44H23uzTEQBIOFceNIXE8A6zBZqo3bqFy6Gd6bdYRZGkbYiJydXHtnl/EXTuMR9nQTUWJoNNQtTZ23sZ7NLV9TKRZ9cQ03YQTHoQZGQA8+1/xoSAyG69R3Q/upR2lyNOlQgofeAnFAMTM1yrJCuY5fGqLoKCQUKfU5zr7qrkSAn12nmBOLfAyaHMkZmEjQTLvNmhYE3DfUi3JJnJdkMpsn1IM
 X-Forefront-Antispam-Report:
 	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230031)(7416005)(376005)(82310400014)(36860700004)(1800799015);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Apr 2024 09:06:03.0557
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Apr 2024 09:06:07.0236
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: d675bd8a-b0f6-4350-0455-08dc522af4fb
+X-MS-Exchange-CrossTenant-Network-Message-Id: ff0ee1a9-df75-41a6-162d-08dc522af756
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SJ1PEPF00001CDC.namprd05.prod.outlook.com
+	SJ1PEPF00001CDD.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW6PR12MB8898
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR12MB6939
 
-Currently, PCI SFs and VFs use IO event queues to deliver netdev per
-channel events. The number of netdev channels is a function of IO
-event queues. In the second scenario of an RDMA device, the
-completion vectors are also a function of IO event queues. Currently, an
-administrator on the hypervisor has no means to provision the number
-of IO event queues for the SF device or the VF device. Device/firmware
-determines some arbitrary value for these IO event queues. Due to this,
-the SF netdev channels are unpredictable, and consequently, the
-performance is too.
+Implement get and set for the maximum IO event queues for SF and VF.
+This enables administrator on the hypervisor to control the maximum
+IO event queues which are typically used to derive the maximum and
+default number of net device channels or rdma device completion vectors.
 
-This short series introduces a new port function attribute: max_io_eqs.
-The goal is to provide administrators at the hypervisor level with the
-ability to provision the maximum number of IO event queues for a
-function. This gives the control to the administrator to provision
-right number of IO event queues and have predictable performance.
-
-Examples of when an administrator provisions (set) maximum number of
-IO event queues when using switchdev mode:
-
-  $ devlink port show pci/0000:06:00.0/1
-      pci/0000:06:00.0/1: type eth netdev enp6s0pf0vf0 flavour pcivf pfnum 0 vfnum 0
-          function:
-          hw_addr 00:00:00:00:00:00 roce enable max_io_eqs 10
-
-  $ devlink port function set pci/0000:06:00.0/1 max_io_eqs 20
-
-  $ devlink port show pci/0000:06:00.0/1
-      pci/0000:06:00.0/1: type eth netdev enp6s0pf0vf0 flavour pcivf pfnum 0 vfnum 0
-          function:
-          hw_addr 00:00:00:00:00:00 roce enable max_io_eqs 20
-
-This sets the corresponding maximum IO event queues of the function
-before it is enumerated. Thus, when the VF/SF driver reads the
-capability from the device, it sees the value provisioned by the
-hypervisor. The driver is then able to configure the number of channels
-for the net device, as well as the number of completion vectors
-for the RDMA device. The device/firmware also honors the provisioned
-value, hence any VF/SF driver attempting to create IO EQs
-beyond provisioned value results in an error.
-
-With above setting now, the administrator is able to achieve the 2x
-performance on SFs with 20 channels. In second example when SF was
-provisioned for a container with 2 cpus, the administrator provisioned only
-2 IO event queues, thereby saving device resources.
-
-With the above settings now in place, the administrator achieved 2x
-performance with the SF device with 20 channels. In the second example,
-when the SF was provisioned for a container with 2 CPUs, the administrator
-provisioned only 2 IO event queues, thereby saving device resources.
-
-Parav Pandit (2):
-  devlink: Support setting max_io_eqs
-  mlx5/core: Support max_io_eqs for a function
-
- .../networking/devlink/devlink-port.rst       | 25 +++++
+Signed-off-by: Parav Pandit <parav@nvidia.com>
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+---
  .../mellanox/mlx5/core/esw/devlink_port.c     |  2 +
  .../net/ethernet/mellanox/mlx5/core/eswitch.h |  7 ++
  .../mellanox/mlx5/core/eswitch_offloads.c     | 94 +++++++++++++++++++
- include/net/devlink.h                         | 14 +++
- include/uapi/linux/devlink.h                  |  1 +
- net/devlink/port.c                            | 52 ++++++++++
- 7 files changed, 195 insertions(+)
+ 3 files changed, 103 insertions(+)
 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+index d8e739cbcbce..76d1ed93c773 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/devlink_port.c
+@@ -98,6 +98,8 @@ static const struct devlink_port_ops mlx5_esw_pf_vf_dl_port_ops = {
+ 	.port_fn_ipsec_packet_get = mlx5_devlink_port_fn_ipsec_packet_get,
+ 	.port_fn_ipsec_packet_set = mlx5_devlink_port_fn_ipsec_packet_set,
+ #endif /* CONFIG_XFRM_OFFLOAD */
++	.port_fn_max_io_eqs_get = mlx5_devlink_port_fn_max_io_eqs_get,
++	.port_fn_max_io_eqs_set = mlx5_devlink_port_fn_max_io_eqs_set,
+ };
+ 
+ static void mlx5_esw_offloads_sf_devlink_port_attrs_set(struct mlx5_eswitch *esw,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index 349e28a6dd8d..50ce1ea20dd4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -573,6 +573,13 @@ int mlx5_devlink_port_fn_ipsec_packet_get(struct devlink_port *port, bool *is_en
+ int mlx5_devlink_port_fn_ipsec_packet_set(struct devlink_port *port, bool enable,
+ 					  struct netlink_ext_ack *extack);
+ #endif /* CONFIG_XFRM_OFFLOAD */
++int mlx5_devlink_port_fn_max_io_eqs_get(struct devlink_port *port,
++					u32 *max_io_eqs,
++					struct netlink_ext_ack *extack);
++int mlx5_devlink_port_fn_max_io_eqs_set(struct devlink_port *port,
++					u32 max_io_eqs,
++					struct netlink_ext_ack *extack);
++
+ void *mlx5_eswitch_get_uplink_priv(struct mlx5_eswitch *esw, u8 rep_type);
+ 
+ int __mlx5_eswitch_set_vport_vlan(struct mlx5_eswitch *esw,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index baaae628b0a0..9d9a06a25cac 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -66,6 +66,8 @@
+ 
+ #define MLX5_ESW_FT_OFFLOADS_DROP_RULE (1)
+ 
++#define MLX5_ESW_MAX_CTRL_EQS 4
++
+ static struct esw_vport_tbl_namespace mlx5_esw_vport_tbl_mirror_ns = {
+ 	.max_fte = MLX5_ESW_VPORT_TBL_SIZE,
+ 	.max_num_groups = MLX5_ESW_VPORT_TBL_NUM_GROUPS,
+@@ -4557,3 +4559,95 @@ int mlx5_devlink_port_fn_ipsec_packet_set(struct devlink_port *port,
+ 	return err;
+ }
+ #endif /* CONFIG_XFRM_OFFLOAD */
++
++int mlx5_devlink_port_fn_max_io_eqs_get(struct devlink_port *port, u32 *max_io_eqs,
++					struct netlink_ext_ack *extack)
++{
++	struct mlx5_eswitch *esw = mlx5_devlink_eswitch_nocheck_get(port->devlink);
++	struct mlx5_vport *vport = mlx5_devlink_port_vport_get(port);
++	int query_out_sz = MLX5_ST_SZ_BYTES(query_hca_cap_out);
++	u16 vport_num = vport->vport;
++	void *query_ctx;
++	void *hca_caps;
++	u32 max_eqs;
++	int err;
++
++	if (!MLX5_CAP_GEN(esw->dev, vhca_resource_manager)) {
++		NL_SET_ERR_MSG_MOD(extack, "Device doesn't support VHCA management");
++		return -EOPNOTSUPP;
++	}
++
++	query_ctx = kzalloc(query_out_sz, GFP_KERNEL);
++	if (!query_ctx)
++		return -ENOMEM;
++
++	mutex_lock(&esw->state_lock);
++	err = mlx5_vport_get_other_func_cap(esw->dev, vport_num, query_ctx,
++					    MLX5_CAP_GENERAL);
++	if (err) {
++		NL_SET_ERR_MSG_MOD(extack, "Failed getting HCA caps");
++		goto out;
++	}
++
++	hca_caps = MLX5_ADDR_OF(query_hca_cap_out, query_ctx, capability);
++	max_eqs = MLX5_GET(cmd_hca_cap, hca_caps, max_num_eqs);
++	if (max_eqs < MLX5_ESW_MAX_CTRL_EQS)
++		*max_io_eqs = 0;
++	else
++		*max_io_eqs = max_eqs - MLX5_ESW_MAX_CTRL_EQS;
++out:
++	mutex_unlock(&esw->state_lock);
++	return 0;
++}
++
++int mlx5_devlink_port_fn_max_io_eqs_set(struct devlink_port *port, u32 max_io_eqs,
++					struct netlink_ext_ack *extack)
++{
++	struct mlx5_eswitch *esw = mlx5_devlink_eswitch_nocheck_get(port->devlink);
++	struct mlx5_vport *vport = mlx5_devlink_port_vport_get(port);
++	int query_out_sz = MLX5_ST_SZ_BYTES(query_hca_cap_out);
++	u16 vport_num = vport->vport;
++	u16 max_eqs = max_io_eqs + MLX5_ESW_MAX_CTRL_EQS;
++	void *query_ctx;
++	void *hca_caps;
++	int err;
++
++	if (!MLX5_CAP_GEN(esw->dev, vhca_resource_manager)) {
++		NL_SET_ERR_MSG_MOD(extack, "Device doesn't support VHCA management");
++		return -EOPNOTSUPP;
++	}
++
++	if (max_io_eqs + MLX5_ESW_MAX_CTRL_EQS > USHRT_MAX) {
++		NL_SET_ERR_MSG_MOD(extack, "Supplied value out of range");
++		return -EINVAL;
++	}
++
++	mutex_lock(&esw->state_lock);
++
++	query_ctx = kzalloc(query_out_sz, GFP_KERNEL);
++	if (!query_ctx) {
++		err = -ENOMEM;
++		goto out;
++	}
++
++	err = mlx5_vport_get_other_func_cap(esw->dev, vport_num, query_ctx,
++					    MLX5_CAP_GENERAL);
++	if (err) {
++		NL_SET_ERR_MSG_MOD(extack, "Failed getting HCA caps");
++		goto out_free;
++	}
++
++	hca_caps = MLX5_ADDR_OF(query_hca_cap_out, query_ctx, capability);
++	MLX5_SET(cmd_hca_cap, hca_caps, max_num_eqs, max_eqs);
++
++	err = mlx5_vport_set_other_func_cap(esw->dev, hca_caps, vport_num,
++					    MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE);
++	if (err)
++		NL_SET_ERR_MSG_MOD(extack, "Failed setting HCA roce cap");
++
++out_free:
++	kfree(query_ctx);
++out:
++	mutex_unlock(&esw->state_lock);
++	return err;
++}
 -- 
 2.26.2
 
