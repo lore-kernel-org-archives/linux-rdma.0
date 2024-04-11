@@ -1,242 +1,207 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2080.outbound.protection.outlook.com [40.107.237.80])
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2065.outbound.protection.outlook.com [40.107.94.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DFC81C8213;
-	Thu, 11 Apr 2024 16:46:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.80
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0B541A38C9
+	for <linux-rdma@vger.kernel.org>; Thu, 11 Apr 2024 17:15:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.94.65
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712854003; cv=fail; b=PkycivK05EwYisBSgqAV3ceXdrxhnOr4pbH1Ij6VzthEsqffqyQsWYmDI9PkwwfkAvcztkItpg4CxR76mDkIfi21pfbtmC6skOt/1i6vcCz5h+TjjM0Q0nNU7stGsw5F8LQOywOTMkEhyqRZ1K3KAOoU5vOm56cJd+MmBnAiHfY=
+	t=1712855744; cv=fail; b=OkjMkRR6rQ5V7hd7zXqfwvi+QVJFRdRqhWTKpxZdzRNoTij+4i4Nk0X6hccsBIW8HOhn2DpKDwc7iP3bDlz4+EBI9tVjhNnQFbG5ZvOT4ddJgp1E8CkbRvwLzkQifQYufW29T8uWWXecfCmCKOhVzjI84rZJqwSlg1CVjn91a50=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712854003; c=relaxed/simple;
-	bh=5ff3E288+fhUxGKUV3tFiuspGfkKquvphHosVWIrJ2U=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=OpEdr6fdqTS5vRmdeq7NWEPtHp4MgAiWA+dZwYWvDbYkrgeZfjGKQ74LzXhmSD+r3oDKkBuVlsJ+FXsyA1UvqTa/w32RVGMzN5hkeph3+vjCEVBW+ka8MR4VyLwPvsychEWRSqM3yrf240zEQdYpAzhShdjvEXXqE7/+3+1HDco=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=HVLy/bM1; arc=fail smtp.client-ip=40.107.237.80
+	s=arc-20240116; t=1712855744; c=relaxed/simple;
+	bh=1z2poBK2/w+nzf0VyMgBl3NR8f0sx+k8WvxYi4puZ0k=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=SYba007n/EIn+Z5H8b3Zu9CwqpIGX9FnGcVY66WbY+cdpMjqhc0zewUr4XgDHt1arRovHXWsx1/YrvlUh2rtFv0q8HTUcmjU/QHrHTNLHtRJAAriKXptbiH8QalyRVZ7lgALJXBc16QMVIlrVW4GC2tC+9yoRMd6MXlmlxh2rlw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=rOhrC8Tg; arc=fail smtp.client-ip=40.107.94.65
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="HVLy/bM1"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="rOhrC8Tg"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=T+oQNLGQa/NbW6tJ37APPnOvjTVVe+iHEeWg04fNIXtWJJrQcR/NBHjqwjUWjjUP4fAJq9l5rZd1p5eRriuaQuLMRcH55gJupA80G2Pl/R09OtTutWpYwwwCdPNhKkXQ0VmjjFlymrDpQ2tzZK5WKIPvKMngKPl60vMjYfGUzkJ77OEteC+Rxd2KeV5HaylOGJgKCVUYpGozIqQxZbfliShA2Zi2jhCVmHZavaFu0sb5JBrbwI8KbPJM9MXiZ9XdhuJz6Kl7Cuz2HxAICHcT9KhtZCG256kQ+dxzCZ4i+vU+r40Vdw20iDe8Mbt1gCm9cy9g6RkYkcB4CF4z/WdBPw==
+ b=knCvdgAZqcM3GUTE0W5CoPWW4Ui073ImogXOP1GQxfJAMgeQmTQB0M/PE9ZKqoND+p7KfQEgdvv7nZZXspc6+ep/jQB4hQyQurffj6Duu9TgNfpMu/Sb8DhmeBFThLBXYuL/BHl4wVO5VXJUxctMcWZBYPsdQf2ycCNjDZBj4LjPFN49UQSyS+Kp1xNLuFtxPK1mJaYMpYt7MGc/9GigeaxGI0x1AD5gfir27DlYxfyU6DJWCpZQVgIahCIhXKXnoOe/JxDsudCDZi7+aDBhWhDlOyw+901T7Ws8IQ6ph8Il6kTICJJ4o/GnzyHPYrigBeM1DNVEva59sbh62PHb1A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0NrN9Dwl70wQUv0Iu7xVFQtRrGzGbWKrTpmtmyKfgvc=;
- b=jxvlnCDd2ZKlgbO5AW9FKOHzatHVeEEcZYY5kuaFmSZ/xXrXV5CJFBr8RTVSQk9YB9GjZkSxPYMPEwYHB0KRd8EIQR74jw23NoEKiDMLciGoyPoPGIFMjzww1gt8B3f0EHvYC5CPsjTv/9Gk3o5nSQYn/oCqNtFu6fAqqGgFIQEsSFrSmvsrV/guTwktkAobCLcsLr/dVl5AcdAWMFafKT1Rhxm11tbjpH/rqL80i9iBJ2cA4vkD8wYB2M/MzRFPloztbUogipHKXsTaR1HrSq/cs3dllHwm5L+fzUetsbc/a3E3HlQWRZq70Wy72EgAvqqx7hDVM6g3BjUaY4fF+w==
+ bh=KFY40m8Ec/1OHPXeqiYEjhTPJXuQNVayTTvQNO9P3Os=;
+ b=MN0QGBUhv7AeUhGSzEJWFojiOZ6QJDO6zVZjkQAIjwk2D8c4p28G6VWIYDtZOx7dWpmWlc23MtqMIU+VNlvjnWyN+9+BuooRbe2ZFYPTHJi8bE3a7wpDC9UPBCE5XKevvkrnSwNGyzitFJvF4dJLg1DpGit/9IUnbY1miTjiF05NOj2uFvx2bH+WW8lTxFpIk6as89W+rOQCRozAa4g+X4g/AXqVq7J9ss0JNGatsoqWsIAwpLZ6o4+E2akQ7jvpjJcQToQQGShw/v1Xfn6S9KuccCr0qbVdLy5Y30YzSYXOs/EvJ+jyqMfHrhVkhoJq8VVptPOW1IMHH5pA55IdRA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=0NrN9Dwl70wQUv0Iu7xVFQtRrGzGbWKrTpmtmyKfgvc=;
- b=HVLy/bM132ITWpF3knAxICOesuDINLarM5PcDtjPmCJxNHbbSxjJNX2BOAQtjjGhh2J6yPIiNqPPaAuZqhcbxMKoOsvRBHmA9ErJEuQqaTFPeZA4nFzARtEB7JTLBjGcbUFRuC6GB5ODcffoaFbCHh3HD1WUsEv4vDNvtoYMESn537I/6xae7UPYGVxks4ULoDBbBsdf2P0jOH61hb9FQQfpmYI6zTqUL1AZIoYDdz3PiyzQgUBDUsz2XhWkZQGzzsCtpAxXHQoydhJMi9CBhHLBYiLWrU7IGHf27kcUh8q7rlkYGPYavHnFn9ejnjIjiNZ+8mBWHbwwwGfY5A9Zhw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DM6PR12MB3849.namprd12.prod.outlook.com (2603:10b6:5:1c7::26)
- by SJ2PR12MB8064.namprd12.prod.outlook.com (2603:10b6:a03:4cc::17) with
+ bh=KFY40m8Ec/1OHPXeqiYEjhTPJXuQNVayTTvQNO9P3Os=;
+ b=rOhrC8TgEomBUyJLuubc7Zw4grC10JSr8DJ+qfAbr9dGO8IkzRcQkuyzCPhFzDjb8ale2HAKT3NASKt60nrN/Iogylt0KW7Y9C0pQpjozomylmubnD6Yykno8KtcpjJBtnX3OoYCKpBkLHsI+h2I30okjMPy400FWN748VhruAubQbTd1IB80uVQI8ig5sA+zPwr6NaCphUXuoIkKgpSKUhXMTZ5uv7dphM+aW6Jw3YDviHjVexl5EYfg38xqOYa+mL7ChERHtlE1UTFmZgerZ9aSI48sUZIY1uNPYAfep5mXQhd9SN0Yk4zFoN8bJRMLfAg5iF+Sj54nQcH9Glrvw==
+Received: from SN7PR12MB6840.namprd12.prod.outlook.com (2603:10b6:806:264::14)
+ by DS7PR12MB8083.namprd12.prod.outlook.com (2603:10b6:8:e4::21) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.46; Thu, 11 Apr
- 2024 16:46:30 +0000
-Received: from DM6PR12MB3849.namprd12.prod.outlook.com
- ([fe80::6aec:dbca:a593:a222]) by DM6PR12MB3849.namprd12.prod.outlook.com
- ([fe80::6aec:dbca:a593:a222%5]) with mapi id 15.20.7409.053; Thu, 11 Apr 2024
- 16:46:30 +0000
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Christian Borntraeger <borntraeger@linux.ibm.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Justin Stitt <justinstitt@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Leon Romanovsky <leon@kernel.org>,
-	linux-rdma@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	llvm@lists.linux.dev,
-	Ingo Molnar <mingo@redhat.com>,
-	Bill Wendling <morbo@google.com>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	netdev@vger.kernel.org,
-	Paolo Abeni <pabeni@redhat.com>,
-	Salil Mehta <salil.mehta@huawei.com>,
-	Sven Schnelle <svens@linux.ibm.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	x86@kernel.org,
-	Yisen Zhuang <yisen.zhuang@huawei.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Leon Romanovsky <leonro@mellanox.com>,
-	linux-arch@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Mark Rutland <mark.rutland@arm.com>,
-	Michael Guralnik <michaelgur@mellanox.com>,
-	patches@lists.linux.dev,
-	Niklas Schnelle <schnelle@linux.ibm.com>,
-	Jijie Shao <shaojijie@huawei.com>,
-	Will Deacon <will@kernel.org>
-Subject: [PATCH v3 3/6] s390: Stop using weak symbols for __iowrite64_copy()
-Date: Thu, 11 Apr 2024 13:46:16 -0300
-Message-ID: <3-v3-1893cd8b9369+1925-mlx5_arm_wc_jgg@nvidia.com>
-In-Reply-To: <0-v3-1893cd8b9369+1925-mlx5_arm_wc_jgg@nvidia.com>
-References:
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: BL1PR13CA0249.namprd13.prod.outlook.com
- (2603:10b6:208:2ba::14) To DM6PR12MB3849.namprd12.prod.outlook.com
- (2603:10b6:5:1c7::26)
+ 2024 17:15:39 +0000
+Received: from SN7PR12MB6840.namprd12.prod.outlook.com
+ ([fe80::c07d:14d:c611:903f]) by SN7PR12MB6840.namprd12.prod.outlook.com
+ ([fe80::c07d:14d:c611:903f%4]) with mapi id 15.20.7409.053; Thu, 11 Apr 2024
+ 17:15:39 +0000
+From: Sean Hefty <shefty@nvidia.com>
+To: Etienne AUJAMES <eaujames@ddn.com>
+CC: "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>, Mark
+ Zhang <markzhang@nvidia.com>, "linux-rdma@vger.kernel.org"
+	<linux-rdma@vger.kernel.org>, "Gael.DELBARY@cea.fr" <Gael.DELBARY@cea.fr>,
+	"guillaume.courrier@cea.fr" <guillaume.courrier@cea.fr>, Serguei Smirnov
+	<ssmirnov@whamcloud.com>, Cyril Bordage <cbordage@whamcloud.com>
+Subject: RE: [PATCH rdma-next] IB/cma: Define options to set CM timeouts and
+ retries
+Thread-Topic: [PATCH rdma-next] IB/cma: Define options to set CM timeouts and
+ retries
+Thread-Index: AQHahTm9kjRVWgKBFkKozoFiBcTBOLFehRsggAFuQoCAABHagIADRB8AgAAQi2A=
+Date: Thu, 11 Apr 2024 17:15:39 +0000
+Message-ID:
+ <SN7PR12MB684079A72387EFED4117AA55BD052@SN7PR12MB6840.namprd12.prod.outlook.com>
+References: <ZgxeQbxfKXHkUlQG@eaujamesDDN>
+ <SN7PR12MB68403240EAB2777CB5D8AB5FBD002@SN7PR12MB6840.namprd12.prod.outlook.com>
+ <ZhU9n-f4Zvjs5NZn@eaujamesDDN>
+ <SN7PR12MB68400AC8ADF1F34DE78140E4BD072@SN7PR12MB6840.namprd12.prod.outlook.com>
+ <ZhgJ_F7DEV_IttN8@eaujamesDDN>
+In-Reply-To: <ZhgJ_F7DEV_IttN8@eaujamesDDN>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: SN7PR12MB6840:EE_|DS7PR12MB8083:EE_
+x-ms-office365-filtering-correlation-id: 48c43522-fadd-4429-992f-08dc5a4b02ba
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ B4w9NwR+SlUge0Yg4s+97dFe9OApTaiU2Z3bEhQdRPABsBzXf258Rr2nVApEy8IELM/RA3zychMVJ3uJJrv8Y0SvAYTw7kYQODMX7Qh8yQCyNxkNsdb+hjsqQrTuHtsg0d6D4rJnghuwI8K4rrE0GQVdZHi777LKSuh9BWGoSRok/6U1fyPdqdd1uHbdld1PaXwkZ0DSfTa7NdfJ+NJo5cjGUmJG9DWuL2wHBetizTJ3dChPz8wukXjRD7ucVzY75AVPudJ0IsvglwV02g2ieYQmB1Z0Bk0eeOBsHIeS4ypdHi3GeVHd4afZCuYe8Xo2LyZRMRfnGpAVqvmZ7slAat+m8SWAiAYJ+vRdqaZ+PuiB1U9T24RPwUNnPcHBEh09wh1KgSyo1YWcQb/Zv9SyQo9Q6/HcEpCZ3AjsYmB2i34mnLlyuiTwXxd0OwLy7lypOu4yEiK3SUoOpiva88VrTo0rQ3rWaWUMpT32EaG8M89ejIa8ItPSKK8byxBDTQDK+o3BSp404PWeeoIjqEf05nIMqTrR4kiZZCSBEuHAayVbp4/OHUBsHSGyIHghd7UGNFhirImya5BIYh6bGNezshmiHaQBZ1IgZ3XNPnAVQWUvM2r02hxwqQdFpSfDiurd/tOdcFzSuKGecKEoDP7UGW69VCXm+Bym0SCnrH8lvcgzlgCRDZx55VZSDr4XoYCGwqIYdXsQ2JdD1mRZEGrLhvF5+KFvdZo1l01nopBKaWE=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SN7PR12MB6840.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(376005)(366007)(38070700009);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?Mmo426oIp9YDGU9DTG9mzUfF40d/1oi40ebNgMvamgKPFy4Le75Q9d45MCwd?=
+ =?us-ascii?Q?BDFbyBJTeYzTRoWRYMBASFop9ikjMAkJvAiV8MZkmFNxaWV/UYl6TYW/oDTW?=
+ =?us-ascii?Q?gx7qeCsyyyo/7tdQSWa/FiaF1280cB2wAFxtvVIOElDneKQ4cjY1NoZKM+tF?=
+ =?us-ascii?Q?hSpFvxcvDiOjwATVR8n2bSNTS1b8IRbpbvxNski/wramN3mW6249QN6bfs4a?=
+ =?us-ascii?Q?kpkypCg/drA8y4/QokTt2kKD40/HEbeG8fJXEZWYKFQHiGz/AC0dN2Zn3EaD?=
+ =?us-ascii?Q?ReulSPAcKKBq/P2alxPA2y5L4pJZZRVnW39L3RgeBnptAmvdPIcyFoSulMzy?=
+ =?us-ascii?Q?5T3KR910lxrLrbfEB7VTF94K1BMLep1p36Wf2ZRojCCzoP+BuiekI8F01jH/?=
+ =?us-ascii?Q?y3oHu81OTj3WZJqW/ka66n6q/bkY7TI1MEYEP8nKvXKsnp5xS+vbrY79vuGO?=
+ =?us-ascii?Q?Cc9MdGNCr0zgLF0wjm+PrY+bKmsVO/RqVKiyjf3T9XF8wf6uKMATTX1HrPEb?=
+ =?us-ascii?Q?fkOuSSkV/3kOPHRH41+LpYAz7fIL/3BAV2ivK2HuSEZ52Xf1LCvyEOxuimXG?=
+ =?us-ascii?Q?I/UeDfOLMT1mNx6XtI02GRuGFCefPt178Y2/UxtehfjI7oCdOIQz3sw6/nMN?=
+ =?us-ascii?Q?zjTeTft/dHpc0LUKR262lOO4jN8nwLgZur4PzjTUVlaiolbWvEE2IunrEKzO?=
+ =?us-ascii?Q?WcKddGdF2cpmKp//QY8YTHU3Mb0hI6ljK/jPbutc6AAG3iVHqC5FNRTdpvDI?=
+ =?us-ascii?Q?56mQ34pmxopE8eESnVuUI6oxkDC7xGGurJqAhWtTjSjkJIrg62z6/mW5Ukfw?=
+ =?us-ascii?Q?3oPYEnteMYePYJSlJFHx1wrihWcpuQDi7IP0SaKWiFOu6ouotxUGdTfIRWpb?=
+ =?us-ascii?Q?v2rKGQNE09/XEHXr4rkDMCzyK+p0UkrWaGcEFoqUbtwV2yRXuzQsSv0JLcaP?=
+ =?us-ascii?Q?4hCodtiiV7Q5j02YtwBWaTevEfJT+lfWKj47ICbmrF+LRwzZuPEFgfbNLxMG?=
+ =?us-ascii?Q?OVeEJYj7nF72zg5DNKPOPwtMgwcIf5DsT0idwRnm0y/XeQOV1sJBGBztKmLh?=
+ =?us-ascii?Q?hVbkJgGtg3B0s7vDeb5v82I1lRN4lAw4zH898Q/1gehudUsbZ5myknKexwjs?=
+ =?us-ascii?Q?w4DwEvjnY6kMQLzvbfaogghrN9V7DJH0cWZiTqyNqEDq+sI9k+sf4k74j+To?=
+ =?us-ascii?Q?TLY8CuWQfOA9eq6x7Htd+dP4ZJ9SkXuP7wOdMO8vYIYnUPx8Wbq+uEC4zuTF?=
+ =?us-ascii?Q?GcfypVBHQW2BS1658vbzn6G6LasGxGGKyV1S4U5kA6cC0QhNSmBUyif9HASb?=
+ =?us-ascii?Q?sb4qubcg2iftzzRS8lm5EZGL2SvrOI62z2EmxZrBt/dYHI8AuM5lYK68ZDii?=
+ =?us-ascii?Q?Nr4vDNBtKtgRD4t9ejyru3pD0fX72hErdK2Kssp3k3a54+ajouAKKYP1AdUP?=
+ =?us-ascii?Q?vfue3iFewxNBA9Uw5yyrBBdYQL2wKJBefSaO2sPTPRVRujgpdnhb90kBbRyg?=
+ =?us-ascii?Q?HiFKaYhjvdDfcAFOw7GpGFYVYlJY1Me67Vq4ZzoNGcl+BeYUmZmLtS18n/j7?=
+ =?us-ascii?Q?EQufOBP6s1QqcUiAORA=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DM6PR12MB3849:EE_|SJ2PR12MB8064:EE_
-X-MS-Office365-Filtering-Correlation-Id: c7e18661-fd39-4a1a-89fe-08dc5a46eba3
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	KlfCzdrYJw0UEuCsLzFWUViNz0Atr7Qx3yp8rN9mlnkVJImYi4CCpjFR0MCeWHvm2gEfZOlW2aqtNTqvQHb4zus5Q1yjpZDq2SOtVSsDZipAYkpoGRT3lOLN26oFi67SUt72RNwDkjQXbrqM2shg9FlvwD38TlIHFxhAQYKD1M9OF4ymgibhfmfybfB/6lnNSGuZ1oBmTZkK2gYT7bIkFzPPXqkzcU/8KUBn61A5n27cGbh943LRT1mfgzApOLEiNvIVx7ynTyHv5CmSxatjgVkKgZJQB0+Bgl/RA7PzqDNadFTiG12erE/xX9F3wBOt104C7OqztHLyqafAhminsw7SZTN3H1nCnOPyfyaU4yW1WGeMCf6XNWv1CC1dBlTP375PIDnHU7hzsuuqeKpDx6tYyGSnNW7OVmhgZhXOEEeDlrjljd9LS08jxnBw1mi1TlbWKgXo8pc3i3VRyhMSMwMD8hHmCMQk3jcFgjK8G+q/v8KW5ZBtHqudkQcEDYu0tR24AqcojR3WnyUHZ0LYYqJE0EXSnOhzk/0uaokOEr9nsBDeD4IO7sStUKw+5F3vYcnUBWjzh78/RmoxXernnYgT6esvzdx8q39XjFYFvQHN7+PMbvZwZjLsD5ip13OyWYi2yOy5pCvPTUZNkVsttfb/0BQkO4g+j4YNoFJRf5IM2PolzwAHs2+r+bJcvNMRtu+PvCW4AvsO7cuKkSpEOw==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3849.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(376005)(7416005)(366007)(921011);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?uL8NMwQjLrc6AX25m86UiRvzHhp8hmcrYiEXeqBcC57cJTbfuFR+8T44OEeY?=
- =?us-ascii?Q?Cx7tdGV1d/HAYFkr+UZe+bU93JFBKHIBr519CY7slxbYCHkAvR0hkK1QVjSn?=
- =?us-ascii?Q?535nxBr6btGwNg/H/SqpwUNvtJkTfMiGH9daIyxMo7Xtwxp/eswLhdeAsWkZ?=
- =?us-ascii?Q?Hjc69Pxrzxk7ABWxrtSsthihjKUlBruAUxAubaJjaDqxLbI2rGqy75Uwsi0Z?=
- =?us-ascii?Q?qoIGHltEuNGgJUOTJhqnBAyO60fycUVGQY8Fp+aLfy6sYPGB1t/7xPmn70hj?=
- =?us-ascii?Q?DEnYsI4Zd7g2tfAuV4/V3e5j584Byyaw6VM7LOjoeOnsdF9h2+3PGpc5fSNK?=
- =?us-ascii?Q?iIAaD+DnfowH/WCXvxZwbjBr+JMGUQZ+jnX+KxfgbxmtJERsEOPb0YYSvx8M?=
- =?us-ascii?Q?KTTQPaDBgDVpxx7t2W3xTp5R0W1fRMeAQTMv/nNs1PpVGR6rvXKA5BCnlCn+?=
- =?us-ascii?Q?KB0pXaPJ9VVFHqJeWP3/WBGHaX8Xy+AkKa4OGmgMFAdtC1Vzftbv7u4Oa8oW?=
- =?us-ascii?Q?ivEdWuGdZApaHGfg44DOqBVfOVhMkbCUVApbJ3xvjpbqDv3WBNAiiz7ZQo3A?=
- =?us-ascii?Q?hK6Be/3MrJhNHLTO6MFkhklpZ1lg3PeECXNpQFV8qgt6E2VH6lrq1CAZaXPz?=
- =?us-ascii?Q?H1IUKGHbMAYGVgKNaYaeZ2ppIK6NQMIESRkc7MnQv0eWh2BBrryNMdZL1bqG?=
- =?us-ascii?Q?4FptOTwdFp9mvQgS2Df1JRZ1iIfgGzo4KL0NyiMmItM2eTHxfcwINjOK6oAf?=
- =?us-ascii?Q?8Z2y7mxgmcfuYfhukwX4mDv1zANdfCumoiPL5/n2PPCKjUwGEiIy9LCE7+WK?=
- =?us-ascii?Q?h4+yg3Q8JuTxJgi6XLd+J3Rek3OnJKoE4rOvxugjUTBpYWS32KGPFkDSBga+?=
- =?us-ascii?Q?Rk3qlk/T/FdINcGEcL6fihRM0Np0g4BJEJbGD4sno3U69S8uXLLxoHhPsX6Z?=
- =?us-ascii?Q?q5GgpdsGHf3h2wPxmACYO+R5ijvKE6q3GCR7vRVhE0/AYNhU+7SV8tzK86bq?=
- =?us-ascii?Q?paX7Hreg4wKlPeATHu702pxGdza+Clb1PyzmklsHMkKh1o9rruNH7wSHj8zi?=
- =?us-ascii?Q?3QFuFd/HEU3/qiBkGohuy/Em2bnogLxAZ7CHPASZxNys6nVTPw8edwMuqQOk?=
- =?us-ascii?Q?c+67qJigkd6Pk2xMh/gxToaTbus3bf7t5xStlzI8sPZNMhvqHOSAgVPmnxxv?=
- =?us-ascii?Q?kXXefYlHiPFWgNDbLlohkhx4xo1KEpt4LhjQlwvgO/bz+a0zUJjQYqa2y2fV?=
- =?us-ascii?Q?vxugjE9sfcrZwikMCzZ622lFaRVyXo2grtIHZE9xgKuOll72HuyPduil7jZ4?=
- =?us-ascii?Q?uCK2jCsWSL+sFtRghtbmql8BReTkIdU0myZDdvt9ojG7YD8T57KqLx9n6Wqe?=
- =?us-ascii?Q?aQtVG5DDyF/kOJQ4WQKygvX/SY5+Vqo1lAYK8PeRQYK6P+FNxlpt9csna+4z?=
- =?us-ascii?Q?JYLiraO30PCBcB/myB2SU9GMdWmuM1qA1qrDKKzuc6JuIN6g+OCXvuj6rnMe?=
- =?us-ascii?Q?c6d9y0TLXWVY/GdYYTAcC78ZQSLWhZ4osj6GHTmv5oEHilRdq5NIszXLQ32k?=
- =?us-ascii?Q?l0ALntWy3f0ogeFACQGhkGQXrlhvtM0QFrxuIjd2?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c7e18661-fd39-4a1a-89fe-08dc5a46eba3
-X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3849.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Apr 2024 16:46:22.8471
+X-MS-Exchange-CrossTenant-AuthSource: SN7PR12MB6840.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 48c43522-fadd-4429-992f-08dc5a4b02ba
+X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Apr 2024 17:15:39.4229
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: FMIENZXDu35ZSoupm9JlXaDrxm9gEzo5m+94C+//A7yeYNvlId6XS51RoRP92YfA
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB8064
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 6f0eYmQ4g4O6od4N+4bwp7cUcXipyF69wqmpIF1zfR/7RXbgLvsLqwmeaDHDxeOJ2RmpR5Siayjnoi7ogwKpEQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB8083
 
-Complete switching the __iowriteXX_copy() routines over to use #define and
-arch provided inline/macro functions instead of weak symbols.
+> > A backoff timer can reduce retries.  I don't know how you decide what
+> > the initial backoff should be.  I was going with what seems to be the
+> > behavior with tcp.  Maybe the backoff adjusts based on IB vs RoCE.
+>=20
+> Ok, I understand it now. So, with a retries of 5 and a initial timeout of=
+ 18 (~1s),
+> this would make:
+>=20
+> connect_timeout =3D 1 + 2 + 4 + 8 + 16 + 32 =3D 63s connect_timeout =3D i=
+nitial *
+> (2^(retries + 1) - 1)
 
-S390 has an implementation that simply calls another memcpy
-function. Inline this so the callers don't have to do two jumps.
+Correct - plus random additional time added in to stagger bursts.
 
-Acked-by: Niklas Schnelle <schnelle@linux.ibm.com>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
----
- arch/s390/include/asm/io.h | 7 +++++++
- arch/s390/pci/pci.c        | 6 ------
- include/linux/io.h         | 3 +++
- lib/iomap_copy.c           | 7 +++----
- 4 files changed, 13 insertions(+), 10 deletions(-)
+> > > I don't think that most users needs to tune those parameters. But if
+> > > some use cases require a smaller connection timeout, this should be
+> > > available.
+> > >
+> > > I agree that finding a common ground to adjust the defaults would be
+> > > better but this can be challenging and break non-common fabrics or
+> > > use cases.
+> >
+> > IMO, if we can improve that out of the box experience, that would be id=
+eal.
+> > I agree that there will always be situations where the kernel defaults
+> > are not optimal and either require changing them system wide, or
+> > possibly per rdma_cm_id.
+> >
+> > If we believe that switching to a backoff retry timer is a better
+> > direction or should be an option, does that change the approach for thi=
+s
+> patch?
+> > A retry count still makes sense, but the timeout is more complex.  On
+> > that note, I would specify a timeout in something straightforward, like
+> milliseconds.
+>=20
+> An exponential backoff timer seems to be a good solution to reduce tempor=
+ary
+> contentions (when several node reconnect simultaneously).
+> But it makes the overall connection timeout more complex. That why you
+> don't want to expose the initial CM timeout to the user.
+>=20
+> So, if I follow you here. You suggest to expose only a "connection timeou=
+t in
+> ms" to the user and determine a retries count with that.
 
-diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
-index 00704fc8a54b30..0fbc992d7a5ea7 100644
---- a/arch/s390/include/asm/io.h
-+++ b/arch/s390/include/asm/io.h
-@@ -81,6 +81,13 @@ static inline void __iowrite32_copy(void __iomem *to, const void *from,
- }
- #define __iowrite32_copy __iowrite32_copy
- 
-+static inline void __iowrite64_copy(void __iomem *to, const void *from,
-+				    size_t count)
-+{
-+	zpci_memcpy_toio(to, from, count * 8);
-+}
-+#define __iowrite64_copy __iowrite64_copy
-+
- #endif /* CONFIG_PCI */
- 
- #include <asm-generic/io.h>
-diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-index 26afde0d1ed34c..0de0f6e405b51e 100644
---- a/arch/s390/pci/pci.c
-+++ b/arch/s390/pci/pci.c
-@@ -250,12 +250,6 @@ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
- 	return 0;
- }
- 
--/* combine single writes by using store-block insn */
--void __iowrite64_copy(void __iomem *to, const void *from, size_t count)
--{
--	zpci_memcpy_toio(to, from, count * 8);
--}
--
- void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
- 			   unsigned long prot)
- {
-diff --git a/include/linux/io.h b/include/linux/io.h
-index ce86120ce9d526..42e132808f0035 100644
---- a/include/linux/io.h
-+++ b/include/linux/io.h
-@@ -21,7 +21,10 @@ void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
- #endif
- 
- void __ioread32_copy(void *to, const void __iomem *from, size_t count);
-+
-+#ifndef __iowrite64_copy
- void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
-+#endif
- 
- #ifdef CONFIG_MMU
- int ioremap_page_range(unsigned long addr, unsigned long end,
-diff --git a/lib/iomap_copy.c b/lib/iomap_copy.c
-index 8ddcbb53507dfe..2fd5712fb7c02b 100644
---- a/lib/iomap_copy.c
-+++ b/lib/iomap_copy.c
-@@ -60,9 +60,8 @@ EXPORT_SYMBOL_GPL(__ioread32_copy);
-  * time.  Order of access is not guaranteed, nor is a memory barrier
-  * performed afterwards.
-  */
--void __attribute__((weak)) __iowrite64_copy(void __iomem *to,
--					    const void *from,
--					    size_t count)
-+#ifndef __iowrite64_copy
-+void __iowrite64_copy(void __iomem *to, const void *from, size_t count)
- {
- #ifdef CONFIG_64BIT
- 	u64 __iomem *dst = to;
-@@ -75,5 +74,5 @@ void __attribute__((weak)) __iowrite64_copy(void __iomem *to,
- 	__iowrite32_copy(to, from, count * 2);
- #endif
- }
--
- EXPORT_SYMBOL_GPL(__iowrite64_copy);
-+#endif
--- 
-2.43.2
+Not quite.  I agree with you and wouldn't go this route.
 
+I was saying *if* we expose a timeout value, that we use ms or seconds, not=
+ Infiniband Bizarre Time.
+
+The main point is to avoid exposing options that assume a linear retry time=
+out.
+
+> For example, if an user defines a timeout of 50s (with an initial timeout=
+ of 1s),
+> we should configure 4 retries. But this would make an effective timeout o=
+f 31s.
+>=20
+> I don't like that idea because it hides what is actually done:
+> A user will set a value in ms and he could have several seconds or minute=
+s of
+> difference with what he expect.
+>=20
+> So, I would prefer the kernel TCP way. They defined "tcp_retries2" to con=
+figure
+> the maximum number of retransmissions for an active connection.
+> The initial timeout value is not configurable (TCP_RTO_MIN). And the
+> retransmission timeout is between TCP_RTO_MIN (200ms) and
+> TCP_RTO_MAX (120s).
+
+I prefer the TCP way as well, including a way to configure the system min/m=
+ax timeouts in case the defaults don't work in some environment.  Having a =
+per rdma_cm_id option to change the number of retries seems reasonable.  Pe=
+rsonally, I'd like it so that apps never need to touch it.  Trying to expos=
+e a timeout value is more difficult if we switch to using backoff retry tim=
+er.
+
+- Sean
