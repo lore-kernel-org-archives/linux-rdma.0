@@ -1,47 +1,47 @@
 Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2080.outbound.protection.outlook.com [40.107.237.80])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 037461C689F;
-	Thu, 11 Apr 2024 16:46:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F19AF1C68B2;
+	Thu, 11 Apr 2024 16:46:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.80
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712853995; cv=fail; b=NQXjK3ZsiadK7OsHs1fvX4J9aBqmpOGOvSj77kyEv27DXQvpcZnfxgBaMdM+KULJVUjo/hySVVn0YxCcdv6wA2br17BmF2seXMHtDdXFCse9AFodSDHXKg8+/gzeMHE3nAOJS1drTVNJ2+/VVTZGDlIRmdphz8evrn7vCYK0TgY=
+	t=1712853998; cv=fail; b=SW0g651/D/D7xBW8BoMoMuL31vFU+zmEoNIrs81kixk5BzYzkS7DwbV+bjkCSX5e/xrTtMkVZe8qjlkjPpdbGs+PRTbmvr5pJOI4Tf6jJ3T3Tlq3xRPQAP0sbggudd9fInb/LJj/6B1G2b64zsHoHqAaBciHnEE13nxWbQbqm+s=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712853995; c=relaxed/simple;
-	bh=NOJg/hPWHhcWU41gXULSFdl2k7IGpgNTF2ccfXto48c=;
+	s=arc-20240116; t=1712853998; c=relaxed/simple;
+	bh=NUipXhdaaRbATGALtrVTUHfMEWRHr3DeCPjCoPkzMbM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=ovpMYzH9oBOaYUbVQhpeayyHzGAIBvEGidH42pTM5srRMUaEN+l1pYrHGgAg9Z+AqLvXMOq21fHP2THCgIc0XY3zvZHCWZqijSGcTxpoBRMlI9CAIZfu1OjR3iZ0iVUIK87V19wyu1zIhbTeqtEbNFMYnl6iE7OQE3/ViI+IAS4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=d5b3yzMw; arc=fail smtp.client-ip=40.107.237.80
+	 Content-Type:MIME-Version; b=QGWBBVYXLqeThYXmGG3KPhvRPoc+TuV0/3JTSkQePcTud6iWoUiyi5q2g8uP70ugSzwk6L8lu7L5fWs/P8i/cDB2GG1k/eLu9CT8FG8xG6u0sSE0Hv4+qpndg8KubRyws4rdtVqPdaL+Owz2IGD7r4ro9ddgjXiF5J5kpqRJUwI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=H/N5Z7rI; arc=fail smtp.client-ip=40.107.237.80
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="d5b3yzMw"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="H/N5Z7rI"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TJEMRd1Tx0CtllvCZUIu6q7Fl4LV4yJCj7nzJuH8p+EzuH/jMriR/JT3rq0zAx7OnOS0ZXGU3lgYQKYQkzvYv3L5Je5n3e7uUGbXn4tp12fG55ypLj736xhjjau9FCsSyQxSlseVvw+7HtGy3yqaYeOWzskauPr1bLVjvRqTzN4wJ4tpaDgcZYR4LgrpwOMwCCxOORXqxaZZPx+e+Y0ibJ9GOXWFx/GCekE7phMB8kMg0xz/B/oHJSwVbTBGV8wfpfSUB8EZ5v6jcJdP1hwd4SwYF4AM8dqY8DbHxIAv2opR76GOd8Kk1LQaNqal//R9//8uMLn4H+ZE4EUv5zJHxw==
+ b=DB9VDzG8p/ueiEuC7nw9ZIZ8lmrzeblEMsBJXtxYkCwNLeeb/WqOSbCaAoYAgIvDV4k6rsGeRZ2BGJBv0DcFZ85511PiYFicR04fswPJWWWZhZXKdQWr/yvl9AqFnwXFFMvljSsloldrIGN8vrNzlnrIi4fCFciE9u5TQQzpSrDVFcvuzoaZy8y2PUnTcLLBcDQXiWtQelA4evIR13yMfAyHyaNS2FV6vre6dkCfIn9/wLPCnuitIHA5r7ptOxvL9bymjzhjAk5VHonEJhZ65YRVdFtDngOdWIxaC91wYD5Jq1aCbzw9MzzxGbHPakBjRiao47VWxJ/rOCtXQnrVFA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=QdkM2UeXpLcuC+zg1KbbyqRpkGfk4PfuMlT6xAklK9E=;
- b=Y1kL+svoKTmo08Ir8vy2mQ6rUWm1Q4n7WYM7c4oEfGz1X8vfXGrN6NclA9fhlPu47KMbVYsv34Hv9hOdxHO7tL6AkG1SoHTRVuNTyb1K0f+kzEixUVUfemgVIxkulMwwKCHkMD3CLgrGGCDxYKa0bXOWi7tjP0zWUxH5LZXFMdUnC8VQRux1Jguc3CC1S+qkDnUQRehFwUAbbRQ4Rhh0VEysYYmZBgxYfkhLrU2GcXOLVq31NNie6IokR1LX05rZiJKR1myFFPoGRjznyANKqffzfj1fhBPHbDS0GAz8CczJtSY9fXQIAwMlK8hLlfR8Fm/dEFLo415XcLQbS6B8jw==
+ bh=3gPpaTPtg1xHqEwWLlT6hLXfYBWsyZWBrYOYzEf2EXU=;
+ b=ntbtklFo7HOxmuueCXtpCkPSeswGHpNShcjtB6eiT6+GkyXMBH4VSVx0C0k/wMQiNMyClgzBMUQrkxGQrBKT1CDEYJg1xI85/GdQAajPFLyP8fnRF9lbdcrJPj/1SgNyX4z8p85Cs3//s6T6vfuBWkynzif1kBp773FP/l4Yqw0Gfy+YMBKDWTORVIZZsV10yAXR+L4aQlm8uCdtamaPOwwzSmUMO9AfiPxv2HjRSdGWQ7GTr+DW8VBIrLFhJ29R7vD85awDESRkS4NOx8hcSFSybf2HwNTsbZDFgkU3qUscCd4qvP4I3Zf0RKPqF5J+3/FU+eXFeYpUBtRMir9sCw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=QdkM2UeXpLcuC+zg1KbbyqRpkGfk4PfuMlT6xAklK9E=;
- b=d5b3yzMwZp2PfMPIDS5x7ziKGCf4mR8hJ+OGbldd51xr2V2qPfTgm7T2ACF6oCQjsEmvW8i2/Ic6AlcmWyzf8qpIIohGoovG7SiiffvBPzlLWy9aLI8+5SiYoIcUiK/1Xd6VFJwp64PPaiRjIPrIb9flM/qmuRB0X3antaRhKjpCppBhZLx0gMBQChzm0b7FgDD21cMxrmFrupigbqrY7SlWFkOfHwTQYAg0yQa2X3cUB7QK+20GrndVdvQlRBuk9j8IogxYrHwW0HUravuz9t7Jgba3inzsBdfwVNBtcr2ep3t86gs1nH4DRikmjid4oMbqdyltgAGnugGynPd5tA==
+ bh=3gPpaTPtg1xHqEwWLlT6hLXfYBWsyZWBrYOYzEf2EXU=;
+ b=H/N5Z7rIrxMcLVyGToQM8H8QaxYxl/xYpS55Gbaj0ItEvcY1U2uWaJE1wJh0F/IT3+VHYdg2Wx0f3XNWuNJO3OSWj0UJBc0zIzAjby3cVA+j7gRJ0EncvKko5xA4dn6w3WELLeQiZvbHpt0W503wi1tf2UXXQdwjn8CBy4GX4ku6Rg8Lr90RecLVQ7XTEE/Ubi0QaZ/2ZUKky0wqNxrJrdlDHRq7xG4HCnHTjuxEybKJXDkorW0I9VRfm4WUN9aqsNXG0gfTxdqcudb+da+/4wlMkV5jTB0JfQo7hNZjJe6PGGJTnfTNNWjoQjXzCVfLS5Fx9IKWym010hNESqaDHw==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from DM6PR12MB3849.namprd12.prod.outlook.com (2603:10b6:5:1c7::26)
  by SJ2PR12MB8064.namprd12.prod.outlook.com (2603:10b6:a03:4cc::17) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.46; Thu, 11 Apr
- 2024 16:46:21 +0000
+ 2024 16:46:23 +0000
 Received: from DM6PR12MB3849.namprd12.prod.outlook.com
  ([fe80::6aec:dbca:a593:a222]) by DM6PR12MB3849.namprd12.prod.outlook.com
  ([fe80::6aec:dbca:a593:a222%5]) with mapi id 15.20.7409.053; Thu, 11 Apr 2024
- 16:46:21 +0000
+ 16:46:23 +0000
 From: Jason Gunthorpe <jgg@nvidia.com>
 To: Alexander Gordeev <agordeev@linux.ibm.com>,
 	Andrew Morton <akpm@linux-foundation.org>,
@@ -82,15 +82,15 @@ Cc: Arnd Bergmann <arnd@arndb.de>,
 	Niklas Schnelle <schnelle@linux.ibm.com>,
 	Jijie Shao <shaojijie@huawei.com>,
 	Will Deacon <will@kernel.org>
-Subject: [PATCH v3 4/6] arm64/io: Provide a WC friendly __iowriteXX_copy()
-Date: Thu, 11 Apr 2024 13:46:17 -0300
-Message-ID: <4-v3-1893cd8b9369+1925-mlx5_arm_wc_jgg@nvidia.com>
+Subject: [PATCH v3 1/6] x86: Stop using weak symbols for __iowrite32_copy()
+Date: Thu, 11 Apr 2024 13:46:14 -0300
+Message-ID: <1-v3-1893cd8b9369+1925-mlx5_arm_wc_jgg@nvidia.com>
 In-Reply-To: <0-v3-1893cd8b9369+1925-mlx5_arm_wc_jgg@nvidia.com>
 References:
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: MN2PR07CA0027.namprd07.prod.outlook.com
- (2603:10b6:208:1a0::37) To DM6PR12MB3849.namprd12.prod.outlook.com
+X-ClientProxiedBy: MN2PR07CA0026.namprd07.prod.outlook.com
+ (2603:10b6:208:1a0::36) To DM6PR12MB3849.namprd12.prod.outlook.com
  (2603:10b6:5:1c7::26)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -100,298 +100,179 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: DM6PR12MB3849:EE_|SJ2PR12MB8064:EE_
-X-MS-Office365-Filtering-Correlation-Id: c64ce94c-f38d-4ded-fb14-08dc5a46ea88
+X-MS-Office365-Filtering-Correlation-Id: f32dd621-6a5c-425c-9cc4-08dc5a46eace
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info:
-	FrMUx/egIULNisnlgtTRQjHeUD1fYlXWH3Fr+pttxLHUwtbUq0OXKk/91UfBuXlJjr/mUtrkpdZtgcpxBEsHievATJhHWv/YyU+b0PIkqBtx3B0ACFWsNOlyVZ2rW1ysIUfg8eHuRdAozlUtyzOb4J3bpFDThnsmf3s1AKsnDrzivNTeJHKbjl72pXAW3LxLpYY6ZjAWpXI5LL65bs0FgCHU/INZj82XQAjiQ9qR8nhUCnrL28KLHNye7j9lQDM1Fia1gj2C3LWDxbUF/gsvoykek8ay2OI0HaMCXA4x34SG5ptWQ4ukdrIx/T293QlI7Tt4lMsvnP3HZ0kHaWp5MiyDv/QkeIAGI0SIaYaN9qeVYAZuVmqoyS80/WmgJxE0OtClX4el1KuBUVXazfNidHJvHBMbGTcm4gmo/pDlmkwk6YgnjbwAm7pxoKzDkf/UU+nyu+0g5X6cRQhu7t7/mfIMU2sTuC8OydamA8JlTt4tw0swapwNi/uAetrmHQr+O1V/NhhGNwox5MiCYKK+CwiDBH6+B7ABb5tcBVyvVUzZuNP+iBda15lnWQ93uyMSRmWKPUJ4C3WUXleJZ7kr0dJE+Us3F2lOncQkp0ULAJiiGbzwn7WDfuJWOBAlxWkX0sLggsN4UoPmEsGYrKYWaWQiFup+fKjX+aNA2qIOG3Lt4dvt34Yx5Vu/BDLmQlaCMsEz3+hmD1+eMSV+ljSHaA==
+	OU7S7Hl+VBNhs9Wa8WCFye8hSOeQ4H02MR1sEZ9H3/0TOKntdBY4VfIbNv+TFFus2t3Iwzu1Ci/sYHJMIl5BZCdq3VBLAUhjGEb0amxb4lP2/8LUscLJVrASIfeccbISmOZ7F14NpmYlPkvXM/tPT9noKnA/uJA6J7VnxY1IiFTwl5nEVVUN68Hb3n5GTtefv12NhUU3ywLtqJjHhnzPAVUdpGitdybIcGSyZ7cSTkz9A09FJ3DDTJv3nIh6aMs1VohosHayjYYt8PXrGjB8ec4JLuT4ApE4g+JLUgY3J/nYQYOiJqwzIiJUnygSWDPsO/lG6t8duH7K1NCzoREcLLMpGKxScD5c7c0n8sTJAfuUk8/X6TbdlWd0PWPr2emmjmbUnNLSd3WHKhViNN0gwyAcohXaF2BxoK2rHpL6h8hkwdVMJY5nA8I1oZw2PhGyw15gq0Bl7nLuKdKY0p1IY1kNOS8QCXsf7dsWcU49XqV8z8c22T5ulyf2WZeQJPPAC6SF3CR/rN5dmXX5rkFSPbaxFsozLZAj2Brbsro5aLd8hqJKxTdyQ9OAb8/L19SSahDVc7v5rLsDNnNKcL0szFvFUMFkZV1yjDhPhqTGEY1WuvbO+uEDYuvZAK9xGHVbi5NAEUBSIbXBJXJ//P15S+3svfPwIKBx/nauDRwW3Sbr0uCH/EbAUwgA62UgIV+ygEJd5x4fLcg0VikGD5TNsA==
 X-Forefront-Antispam-Report:
 	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM6PR12MB3849.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(376005)(7416005)(366007)(921011);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?Krto3W5Rf/xWe+ysl1hDaR34+oixAHavmGDs5wLMd0ZMa4niOyJURnoAqahj?=
- =?us-ascii?Q?mJMSHarihLYcUwKaULISaCgS/iNTIoAhzAgNn6weeEeLX0ZizeibithMpXHX?=
- =?us-ascii?Q?DiwNykXWYeuCg1PzTPIZgdoD7xZ/Qamm5crxTE24FOlg8XOtL4tQoxFzIAYG?=
- =?us-ascii?Q?e9PT8JbmXeReVm0mRbtbTpUKEiLcMZ7CMP5/ffjf0JwsV/pXyOeBt74fP1EJ?=
- =?us-ascii?Q?8jzWPNmafggVRfXh8qc82jxl/okACa49tmFZsiir0ToQzTOAEcGdk02apxvu?=
- =?us-ascii?Q?wpdSQvNvKE46wNxwYb5rijbAtI/B8RvHCVAAcWKQtHBZ7rMhR4eGzXxUe3Re?=
- =?us-ascii?Q?b0Paoy635dX4zRtIAWk5rGDoL9kP7Da/1LGqAMAbjl3OORNxR0ErIj3XDuWP?=
- =?us-ascii?Q?E8VsGc6NgC9ZO459JtEOOlDb4Hlp7rGU/pnP+VVUDJXUh1Oz+Zvwq2g6J5gQ?=
- =?us-ascii?Q?tf9toQvTKQha0Jn2ixoUbNFbYsYtOsRR2OXrhKo6n+jURNHR1csXpqjVQVXS?=
- =?us-ascii?Q?MqPtUQ++BY/i713oZasIom6ORZiVuJunR5y20gEukUwIdxbW7eDJa/voSZg7?=
- =?us-ascii?Q?7NUjW1GAL5Hr0tMWkl1LeEY8JFrVv3gN3inqrSik2Pd8Onz1rUoPB/p8yHfb?=
- =?us-ascii?Q?1R0fJAvNJIpXgoSdMNB+uYzHujAiZEix39ZWrmIDRk4uE7f+7Ptr9/VELcvC?=
- =?us-ascii?Q?VDsYHX+4YCIuydBiVDUl5upv2HsxyaYEd3gBETxaaaNQn6y5B8sVP5GlgKfQ?=
- =?us-ascii?Q?8V+exsCkrvcKqp9P79tK40fawz2yT4OX/w1gOdU89GKyxTK2HHiQ3oyL//rK?=
- =?us-ascii?Q?tziMirnGgtxq+1k2vX6WZU3xzKA6edVrVjkgEnQrJNPS2BBFB1dhEeP0lpog?=
- =?us-ascii?Q?lxVY0PpAIZ9MDMxgQAwaUVRdNp6YlhK1cJLede5e0RGtZEP9zc/7XPZ/igsV?=
- =?us-ascii?Q?zQuhK54CfP5YdA5uiDXsv9qiY8nOdxlUDzzSCrZ2Z9uZCnKuRpCbZ6z/8t6T?=
- =?us-ascii?Q?G1IKCM45TAMKq7Qvz0ul6bA1G+A5V67wyO0Tw2WSUIGqZCjr8qvhxEn0b69s?=
- =?us-ascii?Q?Sp2lq/QOjRWWRgjsNeg2rpNbtl8O/CJKdeVkTBJKvQSIVYunfRgYcGUTYxsc?=
- =?us-ascii?Q?ejD2XundUAaAiFnY31XHweJs6yd1kKc+MqJqcHKAfdKJw8MuOZlC9Yh3I8Gz?=
- =?us-ascii?Q?aIaY6LhTTZBbv2O1jh4KSNs4+1UYcb9LMFG+MfodUAT4CRUe72OBTEUN9tlI?=
- =?us-ascii?Q?yeQEmWSXf263yy8Az4tDdAAacwHcPIZkgFRZsBX0kj8tCVDm5ybjToIyql3i?=
- =?us-ascii?Q?iBsgfZYeZFGupAmR6WyaS1O0MaJJUD85nrVKsleQKxjcuUVbS1ceUGcbTQD0?=
- =?us-ascii?Q?SL7DF7nAHN+wdlw6oBOu0VuUcP/jKiJPXgYnfkFF1Mu0pY+hbEPDMoZFeQ8Y?=
- =?us-ascii?Q?q77FtjsSWPxbPhSMxqxNCQl3z5hMLTr5EIyZ/uHXOHS681mct4UnhlTsLukp?=
- =?us-ascii?Q?LaAtYVbhVJ0Hoj8FGkXxGiaWbcnPHrzjDIEDSh3h2sBeWaCettXLRM9eDLKF?=
- =?us-ascii?Q?aDJPipo1XqeX9n706nZ+EolJux7tSvBNyNQND+vp?=
+	=?us-ascii?Q?Txg6XFOW/9TquxGDKyNZXljB30YxpUzdYu5hAM7DraLSVT0ndSxqJsx1neLG?=
+ =?us-ascii?Q?yTUFPX00WOCTmFBOo2Rn3RiuS8SDuNiNVq1/sRP/8dK+HpAK1Ns+qtZW9LFs?=
+ =?us-ascii?Q?dyIEg3/hXQLl3btwP0WBeCANLRmSQVwYzBaqbGlZLOSb46LwGt8zldnUgVXY?=
+ =?us-ascii?Q?I+eNHZxaa7W0iYN2UKSaKslCeCE+339PKgQNRk5HmgfL0lrB+UpUzYO7r0pW?=
+ =?us-ascii?Q?MCrRXYWsATwRVASG6RduY2HketyBKk2dSOXZwcHFE37BkVTnwkgKAGLfiWdL?=
+ =?us-ascii?Q?6arZszUx9xutdPomNJHZC6A2WpgwdAc1lDwAWEKLX0yDyb750C/orz9d43eM?=
+ =?us-ascii?Q?Kl9yo91Y1yc8k0qVXuTN3gZx/Vpjc1EOB3k2cB3LkExBWKLwBhLT+1FQmB0I?=
+ =?us-ascii?Q?2/cv2WfTQnoT+AhFEVKfVqPdNeQUJL4wrhVD03jf24wnpxkVHOteQ0kQvgo4?=
+ =?us-ascii?Q?jHJN7UT1f4stfcuOQ/REjlDEHDSH6TtHnoe9n1F1xgWW0dw2x48zHYpHG9pZ?=
+ =?us-ascii?Q?DQYhLMnOlWF+gsRQTID9nH57oC0GzSZF0kjsKPAPBmbiqPE4Yh2PIKEmaWz9?=
+ =?us-ascii?Q?il4qqDnXvMwd2aluD+ORJ4IMxSq5BWGGpT3xLOUKLJoU5vrfD2iFP91fFo6f?=
+ =?us-ascii?Q?Dj07Ed37lkKu7F5aPMUSxK0g63cwOY7fhPk1vVFEWHompo2sADbWWc7iHR0d?=
+ =?us-ascii?Q?4VCPmj8aPxT4CMLRzebcyy4ZZotXpiVSkb16KnuiMCU+E9Evm4UAwjxEBDhO?=
+ =?us-ascii?Q?bIXcPqBlmLa1HsEqN0zmGNfmERmHrI1GrrS3ILDZh1cSmRLKp8Z4ZhClLjZ8?=
+ =?us-ascii?Q?KfSVJ3cfZngdHmnn+4JzIGZ5whEw4zs9GGXeFU3zQlKw+osoqmV37ZsLNxMl?=
+ =?us-ascii?Q?i0+ULwETaHXK8ftWUU3iintFo8Fn8ccLj0D51YT2W3yokrVXG34EUiwEbQep?=
+ =?us-ascii?Q?kGDemuuJKXk9YEXcO5z0fSNJIT5WGmDKu2IQFyVvPxNLS0SLT3lBpOwYxAFK?=
+ =?us-ascii?Q?bdh6JPVQeEb8VWFHRv+Pvcdd0tVjx6gvlhpwE5xVn/AZceE1fwvS2c/MYRq1?=
+ =?us-ascii?Q?cX0dAlwtwPYsN29aRYBPYnvNM+MYJkPwMeEDBoBHbKJzFZOY69e2lK4ZQtRc?=
+ =?us-ascii?Q?FO4JNMG0cmLYb4AIyVb0nTAMsHCBhjuxG9p9xH6lAdYRDFZd54xk4H+quXsT?=
+ =?us-ascii?Q?Ok0tBI3HVXArxygSL1kHymnNKp7hv8051x2i14YNCNrIwYBB4Diq2JA2Z0o7?=
+ =?us-ascii?Q?wVBjWS6vH7nL+ciaxWftwg4X1pDypIUwTZ+0y0OwdDI2u9T4f4bZ3TLW+oWA?=
+ =?us-ascii?Q?M4TPA3Z4NAs2VCeepQJUU5gqk/5RGEf98MrpSi0p7ZAz0hFYf1I8i1SpU/7/?=
+ =?us-ascii?Q?Gos5UU8TFEe4rLsTSs0GwYP+xmeCoFztefFj1qdv9Lhyv5rOPG8/BxeMoQ+/?=
+ =?us-ascii?Q?QgZrmdByFSh0sTTScRUfOzOs8ZhnO7ClF/2J6cz+A1J1tLFjD0VRkyH2E6dx?=
+ =?us-ascii?Q?3nQuZW6QXuki443HdYgSmsg/cYwErB7qi9z60s0NvxZawvyXr4UYPzCwY1A2?=
+ =?us-ascii?Q?rbJX0zV4pFPvWMpgTTPCa9zQXaWquZI17qUNFJGC?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c64ce94c-f38d-4ded-fb14-08dc5a46ea88
+X-MS-Exchange-CrossTenant-Network-Message-Id: f32dd621-6a5c-425c-9cc4-08dc5a46eace
 X-MS-Exchange-CrossTenant-AuthSource: DM6PR12MB3849.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Apr 2024 16:46:21.0969
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Apr 2024 16:46:21.4794
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: gi1ybZbh//lOL0sZX9HUsV/9B1EQ+Exz9d3YRFh0s+znvjJKJCAlW/IzA/7aT8wJ
+X-MS-Exchange-CrossTenant-UserPrincipalName: kdCiKkIt5BwwTn8c2VYAXmiqGIPWwW6B1wLC+j+bGnFl+i34PF2akqQepPwAn50Y
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR12MB8064
 
-The kernel provides driver support for using write combining IO memory
-through the __iowriteXX_copy() API which is commonly used as an optional
-optimization to generate 16/32/64 byte MemWr TLPs in a PCIe environment.
+Start switching iomap_copy routines over to use #define and arch provided
+inline/macro functions instead of weak symbols.
 
-iomap_copy.c provides a generic implementation as a simple 4/8 byte at a
-time copy loop that has worked well with past ARM64 CPUs, giving a high
-frequency of large TLPs being successfully formed.
+Inline functions allow more compiler optimization and this is often a
+driver hot path.
 
-However modern ARM64 CPUs are quite sensitive to how the write combining
-CPU HW is operated and a compiler generated loop with intermixed
-load/store is not sufficient to frequently generate a large TLP. The CPUs
-would like to see the entire TLP generated by consecutive store
-instructions from registers. Compilers like gcc tend to intermix loads and
-stores and have poor code generation, in part, due to the ARM64 situation
-that writeq() does not codegen anything other than "[xN]". However even
-with that resolved compilers like clang still do not have good code
-generation.
+x86 has the only weak implementation for __iowrite32_copy(), so replace it
+with a static inline containing the same single instruction inline
+assembly. The compiler will generate the "mov edx,ecx" in a more optimal
+way.
 
-This means on modern ARM64 CPUs the rate at which __iowriteXX_copy()
-successfully generates large TLPs is very small (less than 1 in 10,000)
-tries), to the point that the use of WC is pointless.
+Remove iomap_copy_64.S
 
-Implement __iowrite32/64_copy() specifically for ARM64 and use inline
-assembly to build consecutive blocks of STR instructions. Provide direct
-support for 64/32/16 large TLP generation in this manner. Optimize for
-common constant lengths so that the compiler can directly inline the store
-blocks.
-
-This brings the frequency of large TLP generation up to a high level that
-is comparable with older CPU generations.
-
-As the __iowriteXX_copy() family of APIs is intended for use with WC
-incorporate the DGH hint directly into the function.
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: linux-arch@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- arch/arm64/include/asm/io.h | 132 ++++++++++++++++++++++++++++++++++++
- arch/arm64/kernel/io.c      |  42 ++++++++++++
- 2 files changed, 174 insertions(+)
+ arch/x86/include/asm/io.h    | 17 +++++++++++++++++
+ arch/x86/lib/Makefile        |  1 -
+ arch/x86/lib/iomap_copy_64.S | 15 ---------------
+ include/linux/io.h           |  5 ++++-
+ lib/iomap_copy.c             |  6 +++---
+ 5 files changed, 24 insertions(+), 20 deletions(-)
+ delete mode 100644 arch/x86/lib/iomap_copy_64.S
 
-diff --git a/arch/arm64/include/asm/io.h b/arch/arm64/include/asm/io.h
-index 8d825522c55c84..4ff0ae3f6d6690 100644
---- a/arch/arm64/include/asm/io.h
-+++ b/arch/arm64/include/asm/io.h
-@@ -139,6 +139,138 @@ extern void __memset_io(volatile void __iomem *, int, size_t);
- #define memcpy_fromio(a,c,l)	__memcpy_fromio((a),(c),(l))
- #define memcpy_toio(c,a,l)	__memcpy_toio((c),(a),(l))
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index 294cd2a4081812..4b99ed326b1748 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -209,6 +209,23 @@ void memset_io(volatile void __iomem *, int, size_t);
+ #define memcpy_toio memcpy_toio
+ #define memset_io memset_io
  
++#ifdef CONFIG_X86_64
 +/*
-+ * The ARM64 iowrite implementation is intended to support drivers that want to
-+ * use write combining. For instance PCI drivers using write combining with a 64
-+ * byte __iowrite64_copy() expect to get a 64 byte MemWr TLP on the PCIe bus.
-+ *
-+ * Newer ARM core have sensitive write combining buffers, it is important that
-+ * the stores be contiguous blocks of store instructions. Normal memcpy
-+ * approaches have a very low chance to generate write combining.
-+ *
-+ * Since this is the only API on ARM64 that should be used with write combining
-+ * it also integrates the DGH hint which is supposed to lower the latency to
-+ * emit the large TLP from the CPU.
++ * Commit 0f07496144c2 ("[PATCH] Add faster __iowrite32_copy routine for
++ * x86_64") says that circa 2006 rep movsl is noticeably faster than a copy
++ * loop.
 + */
-+
-+static inline void __const_memcpy_toio_aligned32(volatile u32 __iomem *to,
-+						 const u32 *from, size_t count)
++static inline void __iowrite32_copy(void __iomem *to, const void *from,
++				    size_t count)
 +{
-+	switch (count) {
-+	case 8:
-+		asm volatile("str %w0, [%8, #4 * 0]\n"
-+			     "str %w1, [%8, #4 * 1]\n"
-+			     "str %w2, [%8, #4 * 2]\n"
-+			     "str %w3, [%8, #4 * 3]\n"
-+			     "str %w4, [%8, #4 * 4]\n"
-+			     "str %w5, [%8, #4 * 5]\n"
-+			     "str %w6, [%8, #4 * 6]\n"
-+			     "str %w7, [%8, #4 * 7]\n"
-+			     :
-+			     : "rZ"(from[0]), "rZ"(from[1]), "rZ"(from[2]),
-+			       "rZ"(from[3]), "rZ"(from[4]), "rZ"(from[5]),
-+			       "rZ"(from[6]), "rZ"(from[7]), "r"(to));
-+		break;
-+	case 4:
-+		asm volatile("str %w0, [%4, #4 * 0]\n"
-+			     "str %w1, [%4, #4 * 1]\n"
-+			     "str %w2, [%4, #4 * 2]\n"
-+			     "str %w3, [%4, #4 * 3]\n"
-+			     :
-+			     : "rZ"(from[0]), "rZ"(from[1]), "rZ"(from[2]),
-+			       "rZ"(from[3]), "r"(to));
-+		break;
-+	case 2:
-+		asm volatile("str %w0, [%2, #4 * 0]\n"
-+			     "str %w1, [%2, #4 * 1]\n"
-+			     :
-+			     : "rZ"(from[0]), "rZ"(from[1]), "r"(to));
-+		break;
-+	case 1:
-+		__raw_writel(*from, to);
-+		break;
-+	default:
-+		BUILD_BUG();
-+	}
++	asm volatile("rep ; movsl"
++		     : "=&c"(count), "=&D"(to), "=&S"(from)
++		     : "0"(count), "1"(to), "2"(from)
++		     : "memory");
 +}
-+
-+void __iowrite32_copy_full(void __iomem *to, const void *from, size_t count);
-+
-+static inline void __const_iowrite32_copy(void __iomem *to, const void *from,
-+					  size_t count)
-+{
-+	if (count == 8 || count == 4 || count == 2 || count == 1) {
-+		__const_memcpy_toio_aligned32(to, from, count);
-+		dgh();
-+	} else {
-+		__iowrite32_copy_full(to, from, count);
-+	}
-+}
-+
-+#define __iowrite32_copy(to, from, count)                  \
-+	(__builtin_constant_p(count) ?                     \
-+		 __const_iowrite32_copy(to, from, count) : \
-+		 __iowrite32_copy_full(to, from, count))
-+
-+static inline void __const_memcpy_toio_aligned64(volatile u64 __iomem *to,
-+						 const u64 *from, size_t count)
-+{
-+	switch (count) {
-+	case 8:
-+		asm volatile("str %x0, [%8, #8 * 0]\n"
-+			     "str %x1, [%8, #8 * 1]\n"
-+			     "str %x2, [%8, #8 * 2]\n"
-+			     "str %x3, [%8, #8 * 3]\n"
-+			     "str %x4, [%8, #8 * 4]\n"
-+			     "str %x5, [%8, #8 * 5]\n"
-+			     "str %x6, [%8, #8 * 6]\n"
-+			     "str %x7, [%8, #8 * 7]\n"
-+			     :
-+			     : "rZ"(from[0]), "rZ"(from[1]), "rZ"(from[2]),
-+			       "rZ"(from[3]), "rZ"(from[4]), "rZ"(from[5]),
-+			       "rZ"(from[6]), "rZ"(from[7]), "r"(to));
-+		break;
-+	case 4:
-+		asm volatile("str %x0, [%4, #8 * 0]\n"
-+			     "str %x1, [%4, #8 * 1]\n"
-+			     "str %x2, [%4, #8 * 2]\n"
-+			     "str %x3, [%4, #8 * 3]\n"
-+			     :
-+			     : "rZ"(from[0]), "rZ"(from[1]), "rZ"(from[2]),
-+			       "rZ"(from[3]), "r"(to));
-+		break;
-+	case 2:
-+		asm volatile("str %x0, [%2, #8 * 0]\n"
-+			     "str %x1, [%2, #8 * 1]\n"
-+			     :
-+			     : "rZ"(from[0]), "rZ"(from[1]), "r"(to));
-+		break;
-+	case 1:
-+		__raw_writeq(*from, to);
-+		break;
-+	default:
-+		BUILD_BUG();
-+	}
-+}
-+
-+void __iowrite64_copy_full(void __iomem *to, const void *from, size_t count);
-+
-+static inline void __const_iowrite64_copy(void __iomem *to, const void *from,
-+					  size_t count)
-+{
-+	if (count == 8 || count == 4 || count == 2 || count == 1) {
-+		__const_memcpy_toio_aligned64(to, from, count);
-+		dgh();
-+	} else {
-+		__iowrite64_copy_full(to, from, count);
-+	}
-+}
-+
-+#define __iowrite64_copy(to, from, count)                  \
-+	(__builtin_constant_p(count) ?                     \
-+		 __const_iowrite64_copy(to, from, count) : \
-+		 __iowrite64_copy_full(to, from, count))
++#define __iowrite32_copy __iowrite32_copy
++#endif
 +
  /*
-  * I/O memory mapping functions.
+  * ISA space is 'always mapped' on a typical x86 system, no need to
+  * explicitly ioremap() it. The fact that the ISA IO space is mapped
+diff --git a/arch/x86/lib/Makefile b/arch/x86/lib/Makefile
+index 6da73513f02668..98583a9dbab337 100644
+--- a/arch/x86/lib/Makefile
++++ b/arch/x86/lib/Makefile
+@@ -53,7 +53,6 @@ ifneq ($(CONFIG_X86_CMPXCHG64),y)
+         lib-y += atomic64_386_32.o
+ endif
+ else
+-        obj-y += iomap_copy_64.o
+ ifneq ($(CONFIG_GENERIC_CSUM),y)
+         lib-y += csum-partial_64.o csum-copy_64.o csum-wrappers_64.o
+ endif
+diff --git a/arch/x86/lib/iomap_copy_64.S b/arch/x86/lib/iomap_copy_64.S
+deleted file mode 100644
+index 6ff2f56cb0f71a..00000000000000
+--- a/arch/x86/lib/iomap_copy_64.S
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Copyright 2006 PathScale, Inc.  All Rights Reserved.
+- */
+-
+-#include <linux/linkage.h>
+-
+-/*
+- * override generic version in lib/iomap_copy.c
+- */
+-SYM_FUNC_START(__iowrite32_copy)
+-	movl %edx,%ecx
+-	rep movsl
+-	RET
+-SYM_FUNC_END(__iowrite32_copy)
+diff --git a/include/linux/io.h b/include/linux/io.h
+index 235ba7d80a8f0d..ce86120ce9d526 100644
+--- a/include/linux/io.h
++++ b/include/linux/io.h
+@@ -16,7 +16,10 @@
+ struct device;
+ struct resource;
+ 
+-__visible void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
++#ifndef __iowrite32_copy
++void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
++#endif
++
+ void __ioread32_copy(void *to, const void __iomem *from, size_t count);
+ void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
+ 
+diff --git a/lib/iomap_copy.c b/lib/iomap_copy.c
+index 5de7c04e05ef56..8ddcbb53507dfe 100644
+--- a/lib/iomap_copy.c
++++ b/lib/iomap_copy.c
+@@ -16,9 +16,8 @@
+  * time.  Order of access is not guaranteed, nor is a memory barrier
+  * performed afterwards.
   */
-diff --git a/arch/arm64/kernel/io.c b/arch/arm64/kernel/io.c
-index aa7a4ec6a3ae6f..ef48089fbfe1a4 100644
---- a/arch/arm64/kernel/io.c
-+++ b/arch/arm64/kernel/io.c
-@@ -37,6 +37,48 @@ void __memcpy_fromio(void *to, const volatile void __iomem *from, size_t count)
+-void __attribute__((weak)) __iowrite32_copy(void __iomem *to,
+-					    const void *from,
+-					    size_t count)
++#ifndef __iowrite32_copy
++void __iowrite32_copy(void __iomem *to, const void *from, size_t count)
+ {
+ 	u32 __iomem *dst = to;
+ 	const u32 *src = from;
+@@ -28,6 +27,7 @@ void __attribute__((weak)) __iowrite32_copy(void __iomem *to,
+ 		__raw_writel(*src++, dst++);
  }
- EXPORT_SYMBOL(__memcpy_fromio);
+ EXPORT_SYMBOL_GPL(__iowrite32_copy);
++#endif
  
-+/*
-+ * This generates a memcpy that works on a from/to address which is aligned to
-+ * bits. Count is in terms of the number of bits sized quantities to copy. It
-+ * optimizes to use the STR groupings when possible so that it is WC friendly.
-+ */
-+#define memcpy_toio_aligned(to, from, count, bits)                        \
-+	({                                                                \
-+		volatile u##bits __iomem *_to = to;                       \
-+		const u##bits *_from = from;                              \
-+		size_t _count = count;                                    \
-+		const u##bits *_end_from = _from + ALIGN_DOWN(_count, 8); \
-+                                                                          \
-+		for (; _from < _end_from; _from += 8, _to += 8)           \
-+			__const_memcpy_toio_aligned##bits(_to, _from, 8); \
-+		if ((_count % 8) >= 4) {                                  \
-+			__const_memcpy_toio_aligned##bits(_to, _from, 4); \
-+			_from += 4;                                       \
-+			_to += 4;                                         \
-+		}                                                         \
-+		if ((_count % 4) >= 2) {                                  \
-+			__const_memcpy_toio_aligned##bits(_to, _from, 2); \
-+			_from += 2;                                       \
-+			_to += 2;                                         \
-+		}                                                         \
-+		if (_count % 2)                                           \
-+			__const_memcpy_toio_aligned##bits(_to, _from, 1); \
-+	})
-+
-+void __iowrite64_copy_full(void __iomem *to, const void *from, size_t count)
-+{
-+	memcpy_toio_aligned(to, from, count, 64);
-+	dgh();
-+}
-+EXPORT_SYMBOL(__iowrite64_copy_full);
-+
-+void __iowrite32_copy_full(void __iomem *to, const void *from, size_t count)
-+{
-+	memcpy_toio_aligned(to, from, count, 32);
-+	dgh();
-+}
-+EXPORT_SYMBOL(__iowrite32_copy_full);
-+
- /*
-  * Copy data from "real" memory space to IO memory space.
-  */
+ /**
+  * __ioread32_copy - copy data from MMIO space, in 32-bit units
 -- 
 2.43.2
 
