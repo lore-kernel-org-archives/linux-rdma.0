@@ -1,208 +1,88 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1BF6145FF7;
-	Fri, 12 Apr 2024 14:48:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.4])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2EEAB17C6D
+	for <linux-rdma@vger.kernel.org>; Mon, 15 Apr 2024 02:55:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.4
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712933327; cv=none; b=pSXPm+EGl8QbPeWMobr/dUQmD/OAGlcXAW98eQH5irlqgYWOrl+nDHMoQsKs03nsbPvpJQazp+qhEMdnICSK2Tht3iWdi96SyttUL4fVrSxVGul+f3ZQqh+u6nB+6F9JT4mTVPEseEyxDHY9py0LHUsBs22fds24eCuVEOqVCkU=
+	t=1713149731; cv=none; b=SR/SBvH7mmAGH7ed7mUwN7lUNDu7jduNBvnl7Mj591MxYIqA+d3Oy9cSWfWIpDyHScT/3RXySl/rSTLppVLsCoklApzTNHnaGS8phB9vpe41BnjTNhU/PJk/qkhFol/6CbK7B825JNHc1cLOznJ18kT4mjUvhDmy4Q24eR1JvJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712933327; c=relaxed/simple;
-	bh=kabtR8KWJp1tD7U7DLovE/0TfamXboAHVXoNqhGqQ/o=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=HyisDEnUSyGg3wky6oQ3e2ab/90foMhiuokU8+UTqqQ/WRfirbmVO5JbiY2zsl9DwibNwzDW0ayrqC+Tgmu2CWivoEVCtZP5f+FcO4gyTjGzHuJ2uwWBn1xJnF6anjMQ4Jl7QjByUE1WFcnhREmKy8s2+1yD2qfZbRuU/I2XjDI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OJsHa854; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1713149731; c=relaxed/simple;
+	bh=T3x0WQpAZCi2yivHlFX+HNBVpsGtrS8OqSlLj1JgOG0=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=hWC7pTPdJZnZYHeTHB9CkSiifrh6YHW97OHZjdqbmeAx/ipau8Ded2cS6h9wvic2dQzRCYtmIMd5CUz6PAAYTnjk4PsBVRMIJIz6m5N1gpafCjAlpUKWwidBtHSjQ0tDGfEtD4bum35MdLzokbBpyMB1uqB0CHZzDze2GjDgbMc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=Y2tpKM3R; arc=none smtp.client-ip=117.135.210.4
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OJsHa854"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 685E9C4AF18;
-	Fri, 12 Apr 2024 14:48:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1712933326;
-	bh=kabtR8KWJp1tD7U7DLovE/0TfamXboAHVXoNqhGqQ/o=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To:From;
-	b=OJsHa854rZOdPPGu329O3QmWgIpDjvADmkoZUrVKVS2dTNwGs7T7HmX/8M+PYsVCa
-	 Hq7BBvG+ZcqUYlzTuV8oa3YDZY7Di60ugMfVUDDztMWLDZrh3Y64ZtQmEUyQN+RV/c
-	 DJoEBAHXBJzFtA+GckwBp6nC22d71YUfnj8TEo6D3YZtIYw3uTRAf5zHzEnWibrjK5
-	 hvP9P0GJTRq1hbcO8GVSZzAMNtyFkWJER/c2wRonlAXpOLUaVom1f8gbKs2SqwKkgg
-	 yPGx2mTbg5lfYHN+3traEX9uz87oeAv4bbnP/HqEYZjmm9D4DyVQVXF9tLSpyBU3Gs
-	 Hr9PY/0Xks3Yg==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B936C4345F;
-	Fri, 12 Apr 2024 14:48:46 +0000 (UTC)
-From: Joel Granados via B4 Relay <devnull+j.granados.samsung.com@kernel.org>
-Date: Fri, 12 Apr 2024 16:48:32 +0200
-Subject: [PATCH v3 4/4] ax.25: Remove the now superfluous sentinel elements
- from ctl_table array
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="Y2tpKM3R"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=Date:From:Subject:Message-ID:MIME-Version:
+	Content-Type; bh=6yjv2FBVBgeUNkKvYO5qIAJ369bfKTRO9maGwUzlCHg=;
+	b=Y2tpKM3RmtYkZhBfJZi2pgBLNR3/H/EqLqt/kW0TNCW2WP5PpviKE+sUJF1MBS
+	8mgrGw7jj6IwHmabW86cR90i2MZ+sHi7sQaUDSkFfwANWeaxj8wLfxaxx8ByBK6v
+	vXKuyOrr2D+vigEWSKOYZKGK2LmZq/XpDorR9x8h2L2NM=
+Received: from localhost (unknown [183.81.182.182])
+	by gzga-smtp-mta-g1-2 (Coremail) with SMTP id _____wDnN94RlxxmYQJBAQ--.34734S2;
+	Mon, 15 Apr 2024 10:55:14 +0800 (CST)
+Date: Mon, 15 Apr 2024 10:55:12 +0800
+From: Honggang LI <honggangli@163.com>
+To: linux-rdma@vger.kernel.org
+Subject: Question about extra 40 bytes needed for UD receive buffer
+Message-ID: <ZhyXEOC9SMIxjXP1@fc39>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20240412-jag-sysctl_remset_net-v3-4-11187d13c211@samsung.com>
-References: <20240412-jag-sysctl_remset_net-v3-0-11187d13c211@samsung.com>
-In-Reply-To: <20240412-jag-sysctl_remset_net-v3-0-11187d13c211@samsung.com>
-To: "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Alexander Aring <alex.aring@gmail.com>, 
- Stefan Schmidt <stefan@datenfreihafen.org>, 
- Miquel Raynal <miquel.raynal@bootlin.com>, David Ahern <dsahern@kernel.org>, 
- Steffen Klassert <steffen.klassert@secunet.com>, 
- Herbert Xu <herbert@gondor.apana.org.au>, 
- Matthieu Baerts <matttbe@kernel.org>, Mat Martineau <martineau@kernel.org>, 
- Geliang Tang <geliang@kernel.org>, Ralf Baechle <ralf@linux-mips.org>, 
- Remi Denis-Courmont <courmisch@gmail.com>, 
- Allison Henderson <allison.henderson@oracle.com>, 
- David Howells <dhowells@redhat.com>, Marc Dionne <marc.dionne@auristor.com>, 
- Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>, 
- Xin Long <lucien.xin@gmail.com>, Wenjia Zhang <wenjia@linux.ibm.com>, 
- Jan Karcher <jaka@linux.ibm.com>, "D. Wythe" <alibuda@linux.alibaba.com>, 
- Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
- Trond Myklebust <trond.myklebust@hammerspace.com>, 
- Anna Schumaker <anna@kernel.org>, Chuck Lever <chuck.lever@oracle.com>, 
- Jeff Layton <jlayton@kernel.org>, Neil Brown <neilb@suse.de>, 
- Olga Kornievskaia <kolga@netapp.com>, Dai Ngo <Dai.Ngo@oracle.com>, 
- Tom Talpey <tom@talpey.com>, Jon Maloy <jmaloy@redhat.com>, 
- Ying Xue <ying.xue@windriver.com>, Martin Schiller <ms@dev.tdt.de>, 
- Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
- Roopa Prabhu <roopa@nvidia.com>, Nikolay Aleksandrov <razor@blackwall.org>, 
- Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>, 
- Joerg Reuter <jreuter@yaina.de>, Luis Chamberlain <mcgrof@kernel.org>, 
- Kees Cook <keescook@chromium.org>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
- dccp@vger.kernel.org, linux-wpan@vger.kernel.org, mptcp@lists.linux.dev, 
- linux-hams@vger.kernel.org, linux-rdma@vger.kernel.org, 
- rds-devel@oss.oracle.com, linux-afs@lists.infradead.org, 
- linux-sctp@vger.kernel.org, linux-s390@vger.kernel.org, 
- linux-nfs@vger.kernel.org, tipc-discussion@lists.sourceforge.net, 
- linux-x25@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- coreteam@netfilter.org, bridge@lists.linux.dev, lvs-devel@vger.kernel.org, 
- Joel Granados <j.granados@samsung.com>
-X-Mailer: b4 0.13-dev-2d940
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3615;
- i=j.granados@samsung.com; h=from:subject:message-id;
- bh=CsYowwLbkJaYf30UOT/yoW/0LONY7umz9p0pFyf5n0w=;
- b=owJ4nAHtARL+kA0DAAoBupfNUreWQU8ByyZiAGYZScxgWqGgs+HWHWKs1qufcsukehfTFkxB4
- qfcLlXm7S21V4kBswQAAQoAHRYhBK5HCVcl5jElzssnkLqXzVK3lkFPBQJmGUnMAAoJELqXzVK3
- lkFPyIYMAJKeHHeh4RoOTaX1NdP5ohrHbpZVGSiik49E67/0ZPgzvWovZ7wB4Imi076PjZu4bKj
- AW6SArlLiGXRpxRP8lsFLWi8JSxw7/cpw1LABPA/4GMJBEMdOuJidHVg/2HsRjoALLBpHgvp+pZ
- /xtrYavCFZ/+FRq1c4aO6NIIP/2rYJGT9vtCr4ec4V822hrgs9adA5JapsW4m0D7E8a1G72iOA5
- 4aD6ApucM/2+2VmxWx3sz2eg+rkXJBOOdNjqm6UdJDdVw3qz3ZPl6odHuM5WcF+2lPxLEbSGF9c
- k86yuwPNW3t7Vdka4VYc0CdWp2tS9Flt6z00h0vuHHCz6t8jDPvIAGRrRVNIMtKXOaPxaFt7V/P
- 9v/LxFQlQeLS4cAqXZtkUrbXUIe5gV5p0/EwN7393eVg16kZpbMJL31ogZ37+42SheKZa2PFu6W
- ljhF0aXKJhFf7Bt6kP53Fo8OSAj7QMj7JQitj2FIDPZhD+rd20eL9WJNB0Q+bG98xOExHQQV4t8
- Kc=
-X-Developer-Key: i=j.granados@samsung.com; a=openpgp;
- fpr=F1F8E46D30F0F6C4A45FF4465895FAAC338C6E77
-X-Endpoint-Received: by B4 Relay for j.granados@samsung.com/default with
- auth_id=70
-X-Original-From: Joel Granados <j.granados@samsung.com>
-Reply-To: j.granados@samsung.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-CM-TRANSID:_____wDnN94RlxxmYQJBAQ--.34734S2
+X-Coremail-Antispam: 1Uf129KBjvJXoW7tr4rGr1xXw43uF1fuw18Grg_yoW8ZryDpF
+	4rKrsxJF1kW347A3W8ua1kJ34xC3ZYy3W5Cay8Wr48uw15Ww10gFy3KrWYva1DZr1Fkayj
+	qr1Y9r4rCFn0vFDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRwL0rUUUUU=
+X-CM-SenderInfo: 5krqwwxdqjzxi6rwjhhfrp/xtbBDxbBRWVODSrfyQAAsH
 
-From: Joel Granados <j.granados@samsung.com>
+hi,
 
-This commit comes at the tail end of a greater effort to remove the
-empty elements at the end of the ctl_table arrays (sentinels) which will
-reduce the overall build time size of the kernel and run time memory
-bloat by ~64 bytes per sentinel (further information Link :
-https://lore.kernel.org/all/ZO5Yx5JFogGi%2FcBo@bombadil.infradead.org/)
+According to volume 1 of IBAT specification of release 1.4,
 
-Avoid a buffer overflow when traversing the ctl_table by ensuring that
-AX25_MAX_VALUES is the same as the size of ax25_param_table. This is
-done with a BUILD_BUG_ON where ax25_param_table is defined and a
-CONFIG_AX25_DAMA_SLAVE guard in the unnamed enum definition as well as
-in the ax25_dev_device_up and ax25_ds_set_timer functions.
+1) 11.4.1.2 POST RECEIVE REQUEST
+Note that for UD QPs, the first 40 bytes of the buffer(s) referred
+to by the Scatter/Gather list will contain the GRH of the incoming message.
+If no GRH is present, the contents of first 40 bytes of the buffer(s) will
+be undefined. The presence of the GRH will be indicated by a bit in the
+Work Completion.
 
-The overflow happened when the sentinel was removed from
-ax25_param_table. The sentinel's data element was changed when
-CONFIG_AX25_DAMA_SLAVE was undefined. This had no adverse effects as it
-still stopped on the sentinel's null procname but needed to be addressed
-once the sentinel was removed.
+2) 11.4.2.1 POLL FOR COMPLETION
+GRH Present indicator, for UD RQs only. If this indicator is
+set, the first 40 bytes of the buffer(s) referred to by the Scatter/Gather
+list will contain the GRH of the incoming message. If it is not set, the
+contents of first 40 bytes of the buffer(s) will be undefined. Contents 
+of the payload of the message will begin after the first 40 bytes
 
-Signed-off-by: Joel Granados <j.granados@samsung.com>
----
- include/net/ax25.h         | 2 ++
- net/ax25/ax25_dev.c        | 3 +++
- net/ax25/ax25_ds_timer.c   | 4 ++++
- net/ax25/sysctl_net_ax25.c | 3 +--
- 4 files changed, 10 insertions(+), 2 deletions(-)
+3) A17.4.5.2 SCATTERING OF THE L3 HEADER IN UD
+The first 40 bytes of user posted UD Receive Buffers are reserved for the
+L3 header of the incoming packet (as per the InfiniBand Spec Section
+11.4.1.2). In RoCEv2, this area is filled up with the IP header. IPv6 header
+uses the entire 40 bytes. IPv4 headers use the 20 bytes in the second half
+of the reserved 40 bytes area (i.e. offset 20 from the beginning of the
+receive buffer). In this case, the content of the first 20 bytes is undefined.
 
-diff --git a/include/net/ax25.h b/include/net/ax25.h
-index 0d939e5aee4e..eb9cee8252c8 100644
---- a/include/net/ax25.h
-+++ b/include/net/ax25.h
-@@ -139,7 +139,9 @@ enum {
- 	AX25_VALUES_N2,		/* Default N2 value */
- 	AX25_VALUES_PACLEN,	/* AX.25 MTU */
- 	AX25_VALUES_PROTOCOL,	/* Std AX.25, DAMA Slave, DAMA Master */
-+#ifdef CONFIG_AX25_DAMA_SLAVE
- 	AX25_VALUES_DS_TIMEOUT,	/* DAMA Slave timeout */
-+#endif
- 	AX25_MAX_VALUES		/* THIS MUST REMAIN THE LAST ENTRY OF THIS LIST */
- };
- 
-diff --git a/net/ax25/ax25_dev.c b/net/ax25/ax25_dev.c
-index c5462486dbca..af547e185a94 100644
---- a/net/ax25/ax25_dev.c
-+++ b/net/ax25/ax25_dev.c
-@@ -78,7 +78,10 @@ void ax25_dev_device_up(struct net_device *dev)
- 	ax25_dev->values[AX25_VALUES_N2]        = AX25_DEF_N2;
- 	ax25_dev->values[AX25_VALUES_PACLEN]	= AX25_DEF_PACLEN;
- 	ax25_dev->values[AX25_VALUES_PROTOCOL]  = AX25_DEF_PROTOCOL;
-+
-+#ifdef CONFIG_AX25_DAMA_SLAVE
- 	ax25_dev->values[AX25_VALUES_DS_TIMEOUT]= AX25_DEF_DS_TIMEOUT;
-+#endif
- 
- #if defined(CONFIG_AX25_DAMA_SLAVE) || defined(CONFIG_AX25_DAMA_MASTER)
- 	ax25_ds_setup_timer(ax25_dev);
-diff --git a/net/ax25/ax25_ds_timer.c b/net/ax25/ax25_ds_timer.c
-index c4f8adbf8144..8f385d2a7628 100644
---- a/net/ax25/ax25_ds_timer.c
-+++ b/net/ax25/ax25_ds_timer.c
-@@ -49,12 +49,16 @@ void ax25_ds_del_timer(ax25_dev *ax25_dev)
- 
- void ax25_ds_set_timer(ax25_dev *ax25_dev)
- {
-+#ifdef CONFIG_AX25_DAMA_SLAVE
- 	if (ax25_dev == NULL)		/* paranoia */
- 		return;
- 
- 	ax25_dev->dama.slave_timeout =
- 		msecs_to_jiffies(ax25_dev->values[AX25_VALUES_DS_TIMEOUT]) / 10;
- 	mod_timer(&ax25_dev->dama.slave_timer, jiffies + HZ);
-+#else
-+	return;
-+#endif
- }
- 
- /*
-diff --git a/net/ax25/sysctl_net_ax25.c b/net/ax25/sysctl_net_ax25.c
-index db66e11e7fe8..fb9966926e90 100644
---- a/net/ax25/sysctl_net_ax25.c
-+++ b/net/ax25/sysctl_net_ax25.c
-@@ -141,8 +141,6 @@ static const struct ctl_table ax25_param_table[] = {
- 		.extra2		= &max_ds_timeout
- 	},
- #endif
--
--	{ }	/* that's all, folks! */
- };
- 
- int ax25_register_dev_sysctl(ax25_dev *ax25_dev)
-@@ -155,6 +153,7 @@ int ax25_register_dev_sysctl(ax25_dev *ax25_dev)
- 	if (!table)
- 		return -ENOMEM;
- 
-+	BUILD_BUG_ON(AX25_MAX_VALUES != ARRAY_SIZE(ax25_param_table));
- 	for (k = 0; k < AX25_MAX_VALUES; k++)
- 		table[k].data = &ax25_dev->values[k];
- 
 
--- 
-2.43.0
 
+After function `ibv_poll_cq` return 1, the dump of receive buffer of
+`ibv_ud_pingpong` shows there is 40 bytes GRH in the head of receive
+buffer. The first 20 bytes are zeros and the second 20 bytes is a valid
+IP header. At this point, everything works as required by the
+specification rules 1), 2) and 3).
+
+However, I'm confused by the dump of `mckey` receive buffer. The flag
+`IBV_WC_GRH` is set in `ibv_wc.wc_flags`, but there is no GRH in
+the receive buffer. Received data starts from the *first* byte of
+receive buffer. As multicast over UD QP only, can someone please explian
+why there is no GRH in receive buffer and the data starts from the first
+bytes of receive buffer with `IBV_WC_GRH` was set?
+
+Thanks
 
