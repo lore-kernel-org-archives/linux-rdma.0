@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E815D171E4D;
-	Thu, 18 Apr 2024 16:52:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 73615171646;
+	Thu, 18 Apr 2024 16:52:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713459134; cv=none; b=ULQ6nLC1RSlFNU17G+Os6cggLbhesWx+rfcu2RbiGHq3pcv++HftY7tJO7TgMP3SXdRo9wHbGpFpU2Dej7NHKxB/VBTD0cS1zW7fVt0tBFK4sTatmI4tgG9tZn2EBowPAdYAsFw9oOtYWvLHG/iJYNIoUfiHFp5pkVazw+sdDfg=
+	t=1713459134; cv=none; b=e2TqAABTMlhONK3l5XhbAcdgwd63KXpJtScyqnAzvdOBGUFcdxmqsRZ7B6YEBD55+ccHgV30gSSxOTFc1W9ivo+hUmsETyMt59Z3gkrYJwkS7GFYuOM+j6N1LyipoymFVKKyf2WyBQArknxNycLRt3VFOAos3BLH5NUM/YMw/14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1713459134; c=relaxed/simple;
-	bh=P1jKaaFIVDCOd1shZPQNQUq8dSyyRB+AouxP+iSFsSY=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=p7xM8B9oGQKgzkXU14dApZ11byQwhm0875uvbeaUvL3Yvfw/TrgBnYkYVGKenA/pZOTJh8q8nyhrO1RJ2BeypW36x/0WDFwf8Q5UY1lC71+I4uI2+onE80mvjiwadrIp0p+HL6qgOFinWjNGr23i5bl7poa6Kk8PWAmyfzVZ3x0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=aQuP8NeG; arc=none smtp.client-ip=13.77.154.182
+	bh=USYxCd+6xF7K5pkaEdGKIuCmDU74c0xRd5gM491L5uY=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=GvyccN1cM3Coq26xMrrPctQfO0G0vRTKjzwVwGarTPayDGvkqWwFOysPC2b3SWRVZSUOqxRx2QbDbKlXcIOcXJpKY2XQvNbLhWP5myfUfVb15gT49fh98uhsusORdLdiS4eH/BqPstIDCmSkJQK0XycIu78EryS2si6BdIfB2z0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=tFTXJCb+; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="aQuP8NeG"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="tFTXJCb+"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id A3EAB20FD8F6;
+	by linux.microsoft.com (Postfix) with ESMTPSA id 1093220FD8C4;
 	Thu, 18 Apr 2024 09:52:11 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A3EAB20FD8F6
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1093220FD8C4
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1713459131;
-	bh=LYgSVLk66YgQdAnxAyejIaaET5e5BXdpX71D97ms0eo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=aQuP8NeGhL4bt890gwh6NwiSRFptH/Qr8r5eIRLYUX8T6fPhwjiEV2fB9btUWDDwa
-	 Md0JoDc8qSvsjGgZVYXz49HW2uKUu0PWtYhsAkiHgK9TJFNwOthO9rRoMjcQ3aaHEv
-	 BRlbZpSA6BkagarwLmOE/bpFeBeFxvz39UQgL2OU=
+	bh=usFNmjgTL6o5J7+904XNALZFx9gHBIeiQH0Vr4rMqvE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=tFTXJCb+gAVRa5xBhiNQU3IburUjdpK/uVk/+2xq+dt3aHEtd8QM+M2BKC9O7YggH
+	 kOEQHSz5QS3VRxnwnPkuNmdHFU214zT/+qd0WRoYF2proCoApzw91tZk7c1/6pDjMn
+	 Le0WjOhlZLimf9lNA9zG8NrmcX8Xg6Vj+r0QkW1s=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	sharmaajay@microsoft.com,
@@ -32,12 +32,10 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 6/6] RDMA/mana_ib: implement uapi for creation of rnic cq
-Date: Thu, 18 Apr 2024 09:52:05 -0700
-Message-Id: <1713459125-14914-7-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next 0/6] RDMA/mana_ib: Implement RNIC CQs
+Date: Thu, 18 Apr 2024 09:51:59 -0700
+Message-Id: <1713459125-14914-1-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1713459125-14914-1-git-send-email-kotaranov@linux.microsoft.com>
-References: <1713459125-14914-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,135 +44,51 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Enable users to create RNIC CQs.
-With the previous request size, an ethernet CQ is created.
-Use the cq_buf_size from the user to create an RNIC CQ and return its ID.
+This patch series implements creation and destruction of CQs
+which can be used with RC QPs.
 
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
----
- drivers/infiniband/hw/mana/cq.c | 56 ++++++++++++++++++++++++++++++---
- include/uapi/rdma/mana-abi.h    |  7 +++++
- 2 files changed, 59 insertions(+), 4 deletions(-)
+Patches with RC QPs will be sent in the next patch series.
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index 8323085..a62bda7 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -9,17 +9,25 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 		      struct ib_udata *udata)
- {
- 	struct mana_ib_cq *cq = container_of(ibcq, struct mana_ib_cq, ibcq);
-+	struct mana_ib_create_cq_resp resp = {};
-+	struct mana_ib_ucontext *mana_ucontext;
- 	struct ib_device *ibdev = ibcq->device;
- 	struct mana_ib_create_cq ucmd = {};
- 	struct mana_ib_dev *mdev;
-+	bool is_rnic_cq = true;
-+	u32 doorbell;
- 	int err;
- 
- 	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
- 
--	if (udata->inlen < sizeof(ucmd))
-+	cq->comp_vector = attr->comp_vector % ibdev->num_comp_vectors;
-+	cq->cq_handle = INVALID_MANA_HANDLE;
-+
-+	if (udata->inlen < offsetof(struct mana_ib_create_cq, cq_buf_size))
- 		return -EINVAL;
- 
--	cq->comp_vector = attr->comp_vector % ibdev->num_comp_vectors;
-+	if (udata->inlen == offsetof(struct mana_ib_create_cq, cq_buf_size))
-+		is_rnic_cq = false;
- 
- 	err = ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen));
- 	if (err) {
-@@ -28,19 +36,53 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 		return err;
- 	}
- 
--	if (attr->cqe > mdev->adapter_caps.max_qp_wr) {
-+	if (!is_rnic_cq && attr->cqe > mdev->adapter_caps.max_qp_wr) {
- 		ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
- 		return -EINVAL;
- 	}
- 
--	cq->buf_size = attr->cqe * COMP_ENTRY_SIZE;
-+	cq->buf_size = is_rnic_cq ? ucmd.cq_buf_size : attr->cqe * COMP_ENTRY_SIZE;
- 	err = mana_ib_create_queue(mdev, ucmd.buf_addr, cq->buf_size, &cq->queue);
- 	if (err) {
- 		ibdev_dbg(ibdev, "Failed to create queue for create cq, %d\n", err);
- 		return err;
- 	}
- 
-+	mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
-+						  ibucontext);
-+	doorbell = mana_ucontext->doorbell;
-+
-+	if (is_rnic_cq) {
-+		err = mana_ib_gd_create_cq(mdev, cq, doorbell);
-+		if (err) {
-+			ibdev_dbg(ibdev, "Failed to create RNIC cq, %d\n", err);
-+			goto err_destroy_queue;
-+		}
-+
-+		err = mana_ib_install_cq_cb(mdev, cq);
-+		if (err) {
-+			ibdev_dbg(ibdev, "Failed to install cq callback, %d\n", err);
-+			goto err_destroy_rnic_cq;
-+		}
-+	}
-+
-+	resp.cqid = cq->queue.id;
-+	err = ib_copy_to_udata(udata, &resp, min(sizeof(resp), udata->outlen));
-+	if (err) {
-+		ibdev_dbg(&mdev->ib_dev, "Failed to copy to udata, %d\n", err);
-+		goto err_remove_cq_cb;
-+	}
-+
- 	return 0;
-+
-+err_remove_cq_cb:
-+	mana_ib_remove_cq_cb(mdev, cq);
-+err_destroy_rnic_cq:
-+	mana_ib_gd_destroy_cq(mdev, cq);
-+err_destroy_queue:
-+	mana_ib_destroy_queue(mdev, &cq->queue);
-+
-+	return err;
- }
- 
- int mana_ib_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
-@@ -52,6 +94,12 @@ int mana_ib_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata)
- 	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
- 
- 	mana_ib_remove_cq_cb(mdev, cq);
-+
-+	/* Ignore return code as there is not much we can do about it.
-+	 * The error message is printed inside.
-+	 */
-+	mana_ib_gd_destroy_cq(mdev, cq);
-+
- 	mana_ib_destroy_queue(mdev, &cq->queue);
- 
- 	return 0;
-diff --git a/include/uapi/rdma/mana-abi.h b/include/uapi/rdma/mana-abi.h
-index 5fcb31b..8fc9d32 100644
---- a/include/uapi/rdma/mana-abi.h
-+++ b/include/uapi/rdma/mana-abi.h
-@@ -18,6 +18,13 @@
- 
- struct mana_ib_create_cq {
- 	__aligned_u64 buf_addr;
-+	__u32 cq_buf_size;
-+	__u32 reserved;
-+};
-+
-+struct mana_ib_create_cq_resp {
-+	__u32 cqid;
-+	__u32 reserved;
- };
- 
- struct mana_ib_create_qp {
+To create a CQ for RNIC, mana_ib requires creation of EQs
+within mana_ib device. An EQ of mana ethernet cannot be used.
+
+To make the implementation of create_cq cleaner, this series
+also introduces minor changes to mana_cq structure (cqe->buf_size)
+and adds a helper to remove CQ callbacks.
+
+Mana ethernet and mana_ib CQs are different entities which are
+created in different isolation zones (ethernet vs rnic).
+As a result, RNIC cannot use ethenet CQs and ethernet cannot
+use RNIC CQs.
+That is why, we use existing udata request for creation of
+ethernet CQs. If the request has extra fields, then we create
+an RNIC CQ. The kernel-level CQs will be RNIC CQs (in future
+patches).
+
+To preserve backward and forward compatibility with RDMA-CORE,
+we will make the following changes to mana provider in RDMA-CORE:
+
+The rdma-core will request RNIC CQs by default, with the proposed
+request format.
+If the mana has installed an allocator with manadv_set_context_attr,
+then the rdma-core undestands that this is a DPDK use-case and
+requests an ethernet CQ, using old short request format.
+
+Konstantin Taranov (6):
+  RDMA/mana_ib: create EQs for RNIC CQs
+  RDMA/mana_ib: create and destroy RNIC cqs
+  RDMA/mana_ib: replace duplicate cqe with buf_size
+  RDMA/mana_ib: introduce a helper to remove cq callbacks
+  RDMA/mana_ib: boundary check before installing cq callbacks
+  RDMA/mana_ib: implement uapi for creation of rnic cq
+
+ drivers/infiniband/hw/mana/cq.c      | 77 ++++++++++++++++++++----
+ drivers/infiniband/hw/mana/main.c    | 88 +++++++++++++++++++++++++++-
+ drivers/infiniband/hw/mana/mana_ib.h | 36 +++++++++++-
+ drivers/infiniband/hw/mana/qp.c      | 30 ++--------
+ include/uapi/rdma/mana-abi.h         |  7 +++
+ 5 files changed, 200 insertions(+), 38 deletions(-)
+
 -- 
 2.43.0
 
