@@ -1,99 +1,93 @@
-Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1C994F895;
-	Tue, 23 Apr 2024 08:03:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBDA584A4F
+	for <linux-rdma@vger.kernel.org>; Tue, 23 Apr 2024 11:44:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713859392; cv=none; b=B9mJr6cIlREq52RSODeNdRyiHuXUKSbOWihnyw29zFkbaRTNroUVs7YyQGW27ZTqPqUrBroP0KyDx5jWoOwPYf/3VP/pcA0I20PTQ0Tl9w30QIpcOaVJnoi92htqWnMo5nVXOdESdanNjiuByRqFvwEU5gEF4gLUuviVIhsFqv0=
+	t=1713872645; cv=none; b=seR15sla1h+ILqlsAD3HfryatQhy25caXd0kj9k5YdBTZytR/2ODFjmEzcHd/If/+PkUGrCoUgcSYOnFkzsLcNQNIn8Zu1aNevlRhen6pgeiWt8EC1r/RnsTRgRoSgiikTHkjXpBRIF4NSYt053HtkTz4YbvfpqLoF1TKHbvKw8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713859392; c=relaxed/simple;
-	bh=D/3OJwMoANYNDnHN43YEhKh/XOzsWgZJBxcvKVpFvHo=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Pgjt2HeOaWpCD3/KmNZSLYs+dNlSDzoHT6KAie1wwV7ioDLlDYliyTUJ8Fa5RdZOB1OZpEKLO+JJZ2KJuHALyFvtV+HkZ6sLlP4WbvMWS4OVwcudrwd6R1kks1FiHDOaCAy/nWFcDTTuWYA9r708tCXeizJkfwjfxcf31o1+vHU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=Z4eTOEAy; arc=none smtp.client-ip=159.69.126.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
+	s=arc-20240116; t=1713872645; c=relaxed/simple;
+	bh=6/0LlvrN1gpGDZp5aJmUVeP9sPWMqO/MFef6cX7kpcs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Mg8tliq6+N1yleCFFswUZotl6RtnKuelaOjHBAvros+zCA/mc80M2elL1qPtRvA3V65Hr0Ry7gY+45MIN2/flGRhqcZc0CrceIBNyGXDiBjBtXmewQ1YmUBP4qL0vm7wEJsVzo0p9hi1anWL+xAL1BW03eeBTZUGiBC/YAyVP4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=JSjVhsqY; arc=none smtp.client-ip=209.85.128.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="Z4eTOEAy"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1713858962;
-	bh=D/3OJwMoANYNDnHN43YEhKh/XOzsWgZJBxcvKVpFvHo=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=Z4eTOEAyeZGZRhMLErDlHrOzyIn7K/DlkM60MPZgILl0NsHakg85D489lgcJ2pyps
-	 w8ZjrPHlpbLbeknooUuGV8AX44PHoyXa1MFbZ8JyqpCmrdU3drnEDl22/6rS7GAbFk
-	 mLBVLjPqI1ce59ORnQdEOqbJ1Zk5A8F74faI2Ijw=
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Date: Tue, 23 Apr 2024 09:54:36 +0200
-Subject: [PATCH v3 01/11] stackleak: don't modify ctl_table argument
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="JSjVhsqY"
+Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-61587aa956eso61978667b3.1
+        for <linux-rdma@vger.kernel.org>; Tue, 23 Apr 2024 04:44:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1713872642; x=1714477442; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=z1sKCCl7ebl0MIJR/f/QkAnKKTThmqv/7gFM9mRIM98=;
+        b=JSjVhsqYE+B3o+nKJl2VyqLDdobvhVT0cpe6eAD+nKPEurS1Rfk8FdYebTWlsGc6zA
+         0DKXF5wv5LwA0JaOo+60p7JRZv/0AcYfXLU4FbBGUxC9wgWiL/CuJMff4AfQiuLr0umm
+         wSC0/uhqQ3w2aML/PMzX8S+e/dWf9IH4RJWZugPlzI7DkmTmDcVxKZ2/QRAl3Ohj5GPh
+         9lhaNIjLHn5uul2LQBtYcPF5E2ExQFsZkg0Zl8Qfy4e7eE0rw6B1MjeRVlL3SfPvvD4p
+         iimEBcnQJYI0PR6wnA1Tl1DeiQOi7Oj+HesvxY3ukL70qzSeEBwXIy+WEx2qcY5eg4yk
+         8xlQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1713872642; x=1714477442;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=z1sKCCl7ebl0MIJR/f/QkAnKKTThmqv/7gFM9mRIM98=;
+        b=tv0Skk0UGoQ05OVqrBTiaccNHF/Sw/ldxROrLvsnIQj1KzatSGs6VEaVaJUPqMEC1Q
+         VNTu3neoEZcBZ5mOpx+EDv9AhqSJS9NtMePeqRY5qnWU8EpfL7oRpfS57ZlpIQZ5Lk/A
+         eGfZsqZTGl38Gtm80GVpPsaEnBOl+mM9bTrByM1B6C3UDBsCUR8p/UKGQOgKw7Cn0trN
+         aRdZSbvttczgAOYkpEUlc/jw8DXYcTkGnoiFx0zkCFYkmia+wxCsSjh6LlCyJcCA7oCO
+         wQpmjk7dMqjbMSiuXlZNTXVkOxbfLj05D9islC8jeHhHRN3yPWBHfA3o0W9Y7Zebc/cx
+         edOA==
+X-Forwarded-Encrypted: i=1; AJvYcCWfq18KzO3ufNqACVaYIg9K3j/NZR0siGOqlLyjMTG39pbOVtBuPmAz5yPuL53p+kIcDjuwAzFEYyKAqamrPRfryJT5BBixmwQ0Ww==
+X-Gm-Message-State: AOJu0Yzfh1ftNOxiHQhQpgQmy/JUQP8C+ddauYjH+obUzo2DL9s9U6K9
+	4UVfvs44DK3jSsje+RaOz0MW4ztz2GnOgEf7iinZvgCQ9rt7RC22v4+/iR97ua0=
+X-Google-Smtp-Source: AGHT+IHAGRMnMfKun6Sso1s6etTs8eqdIEQLJM8wBLdLQfSB2Mmcqbr2Dnq3AU99ObhConlm2aqaYw==
+X-Received: by 2002:a05:690c:3341:b0:614:8185:2946 with SMTP id fk1-20020a05690c334100b0061481852946mr13628124ywb.42.1713872642685;
+        Tue, 23 Apr 2024 04:44:02 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-80-239.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.80.239])
+        by smtp.gmail.com with ESMTPSA id c3-20020ac85183000000b00436e193f408sm5094927qtn.28.2024.04.23.04.44.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 23 Apr 2024 04:44:02 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1rzEZ7-0038Id-Jp;
+	Tue, 23 Apr 2024 08:44:01 -0300
+Date: Tue, 23 Apr 2024 08:44:01 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Konstantin Taranov <kotaranov@microsoft.com>
+Cc: Nathan Chancellor <nathan@kernel.org>,
+	Konstantin Taranov <kotaranov@linux.microsoft.com>,
+	"sharmaajay@microsoft.com" <sharmaajay@microsoft.com>,
+	Long Li <longli@microsoft.com>, "leon@kernel.org" <leon@kernel.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH rdma-next v3 4/6] RDMA/mana_ib: enable RoCE on port 1
+Message-ID: <20240423114401.GD231144@ziepe.ca>
+References: <1712738551-22075-1-git-send-email-kotaranov@linux.microsoft.com>
+ <1712738551-22075-5-git-send-email-kotaranov@linux.microsoft.com>
+ <20240422193728.GA44715@dev-arch.thelio-3990X>
+ <PAXPR83MB0557DE1F99908341801A11A6B4112@PAXPR83MB0557.EURPRD83.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20240423-sysctl-const-handler-v3-1-e0beccb836e2@weissschuh.net>
-References: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
-In-Reply-To: <20240423-sysctl-const-handler-v3-0-e0beccb836e2@weissschuh.net>
-To: Luis Chamberlain <mcgrof@kernel.org>, 
- Joel Granados <j.granados@samsung.com>, Kees Cook <keescook@chromium.org>
-Cc: Eric Dumazet <edumazet@google.com>, Dave Chinner <david@fromorbit.com>, 
- linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org, 
- linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, 
- linux-mm@kvack.org, linux-security-module@vger.kernel.org, 
- bpf@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
- linux-xfs@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
- linux-perf-users@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- coreteam@netfilter.org, kexec@lists.infradead.org, 
- linux-hardening@vger.kernel.org, bridge@lists.linux.dev, 
- lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org, 
- rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org, 
- linux-nfs@vger.kernel.org, apparmor@lists.ubuntu.com, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-X-Mailer: b4 0.13.0
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1713858961; l=1205;
- i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=D/3OJwMoANYNDnHN43YEhKh/XOzsWgZJBxcvKVpFvHo=;
- b=1RhNomBbqj6XFaD6ZYOxEHBLV6bfBHp2WGUjkt4XBn/Ez17CpMDHBnau1hMCabUBp0fIJIUhv
- lq3ewsWLz9gCbCEhY4DcLZnRRhb9Y2u6rar0aoKgOs7QrHrAJv1mc4Z
-X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
- pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <PAXPR83MB0557DE1F99908341801A11A6B4112@PAXPR83MB0557.EURPRD83.prod.outlook.com>
 
-In a future commit the proc_handlers will change to
-"const struct ctl_table".
-As a preparation for that adapt the logic to work with a temporary
-variable, similar to how it is done in other parts of the kernel.
+On Tue, Apr 23, 2024 at 07:15:41AM +0000, Konstantin Taranov wrote:
+> > I could not really find a consistent return code for when
+> > netdev_master_upper_dev_get_rcu() fails. -ENODEV?
+> 
+> Thanks for catching this! Yes, I think ret = -ENODEV; is appropriate fix.
+> Should I send a patch to rdma-next? Or what should I do now to fix
+> this?
 
-Fixes: 964c9dff0091 ("stackleak: Allow runtime disabling of kernel stack erasing")
-Acked-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
----
- kernel/stackleak.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+Send a patch
 
-diff --git a/kernel/stackleak.c b/kernel/stackleak.c
-index d099f3affcf1..558b9d6d28d3 100644
---- a/kernel/stackleak.c
-+++ b/kernel/stackleak.c
-@@ -27,10 +27,11 @@ static int stack_erasing_sysctl(struct ctl_table *table, int write,
- 	int ret = 0;
- 	int state = !static_branch_unlikely(&stack_erasing_bypass);
- 	int prev_state = state;
-+	struct ctl_table tmp = *table;
- 
--	table->data = &state;
--	table->maxlen = sizeof(int);
--	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+	tmp.data = &state;
-+	tmp.maxlen = sizeof(int);
-+	ret = proc_dointvec_minmax(&tmp, write, buffer, lenp, ppos);
- 	state = !!state;
- 	if (ret || !write || state == prev_state)
- 		return ret;
-
--- 
-2.44.0
-
+Jason
