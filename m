@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4DF63146D5A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4DEB5146D52;
 	Fri, 26 Apr 2024 13:12:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714137167; cv=none; b=cBbQbl8nGr5IqQ1XxG2iuPiAgeqevkywQLR5w8ffbIAzx6kW7GhMGDKddKNYXxGPDYy08tvVVuyfZR+SThA6BM+h5GRtYscMBuuujkYo8xIPMrU6Ty2m/qA5xEAIYRV60woBEJQFHugsqaiPcfPmYuarLWxd7db6In+6ZTIyNu0=
+	t=1714137167; cv=none; b=JIxL8+iiNvK7xBhqB5sQQI47FSb2VKjcNiST57CYspCzjHlvpAQPip5ON3wuQl47BHPFkXvoQE8eHANrnmEa93y+cOecve2ua2gRIi1g4DTmQq9NqTvCd1aengJ3rPBxTOdK2Hr76nB81RbFoqfDFMF/Lh4vFUlAOonWDRqXNns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1714137167; c=relaxed/simple;
-	bh=XXhcj0cDpVh7xPwt8Dp0EC9SyzQNMQnm3miM/hj7FWQ=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=m06ofmYsgYiCsy5tEEM9PrL+yeA8+TWvPGjGmPv7Js7RwPGZnfNWDFGqA1Kwwf4bTjjKEIn1zvImuQhMt9rnZp4MU050l/QjtcBap1+lvJT17E1aDGmuPfT9MKy8kZz88+TE1PupYV3Vy8BfIydQLJQTSWq7QSFFmks7FLyrn8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=eo2RmEZU; arc=none smtp.client-ip=13.77.154.182
+	bh=IgGML0fgJ8FIxgu9wUJmI92FBHaBdGYmeXjsJuCWcd0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=axmpQR7xCnGT/ukViB7fQ5PDffczoHJYPmdBKSxHjqaehSTS/AtIZ1xNvqmjZi2VDlA7J1NBMafZWex7PwESNgXSjutjcrVCBf+zRnsTbPSgsviYslzZ5dSDmQXibTocV3lEhm1cJT5Cpa7SIhayj+c4N0teW/rw07atltnihFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=e4Gzd42/; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="eo2RmEZU"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="e4Gzd42/"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id CA291210EF22;
-	Fri, 26 Apr 2024 06:12:45 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com CA291210EF22
+	by linux.microsoft.com (Postfix) with ESMTPSA id 0827B210EF27;
+	Fri, 26 Apr 2024 06:12:46 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 0827B210EF27
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1714137165;
-	bh=RO8omU3mFuuk6wZAfmhtQuuvQ83q0qcIhS82ZrxUOB0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=eo2RmEZUb5cAqMcv+xAJZ6udM65wQvUF/wqJmKU10KQnVm73JSh7kQdArDWQ8q3kn
-	 kqSG5TlEqoPAiFU3nGdugG/ZSSkxcK8NIpI/4y49khW7tRRCTOV5IY3vRP4i9veOrn
-	 bMOsBM29ZyBGaNGVVZTnqpBBBp3b5kOzDyD9/Qt0=
+	s=default; t=1714137166;
+	bh=gE7Ou1irGU+YLTnkid1jAQnRHHkTvBHMHZzISwJetCA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=e4Gzd42/wsr4nsQ4VCDE/BJDTrKmPveakT64D/+F8p1PV5cKyhfwOnrxw9SakOsif
+	 mzubS1w6bn5GIawW5+8mewLASjRBf6vbaoZBL6m6b/aZVxZ6aslJy+1i9HuHRViNCa
+	 tVziAoUMkysO3ukzVfJHsLwQF2V5syCqXeoTJqW4=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	sharmaajay@microsoft.com,
@@ -32,10 +32,12 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v2 0/5] RDMA/mana_ib: Implement RNIC CQs
-Date: Fri, 26 Apr 2024 06:12:35 -0700
-Message-Id: <1714137160-5222-1-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v2 2/5] RDMA/mana_ib: create and destroy RNIC cqs
+Date: Fri, 26 Apr 2024 06:12:37 -0700
+Message-Id: <1714137160-5222-3-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1714137160-5222-1-git-send-email-kotaranov@linux.microsoft.com>
+References: <1714137160-5222-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -44,61 +46,139 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-This patch series implements creation and destruction of CQs
-which can be used with RC QPs.
+Implement RNIC requests for creation and destruction of RNIC CQs.
 
-Patches with RC QPs will be sent in the next patch series.
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+Reviewed-by: Long Li <longli@microsoft.com>
+---
+ drivers/infiniband/hw/mana/main.c    | 54 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mana/mana_ib.h | 32 +++++++++++++++++
+ 2 files changed, 86 insertions(+)
 
-To create a CQ for RNIC, mana_ib requires creation of EQs
-within mana_ib device. An EQ of mana ethernet cannot be used.
-
-To make the implementation of create_cq cleaner, this series
-also introduces a helper to remove CQ callbacks.
-
-Mana ethernet and mana_ib CQs are different entities which are
-created in different isolation zones (ethernet vs rnic).
-As a result, RNIC cannot use ethenet CQs and ethernet cannot
-use RNIC CQs.
-That is why, we use existing udata request for creation of
-ethernet CQs. If the request has an extra flag, then we create
-an RNIC CQ. The kernel-level CQs will be RNIC CQs (in future
-patches).
-
-To preserve backward and forward compatibility with RDMA-CORE,
-we will make the following changes to mana provider in RDMA-CORE:
-
-The rdma-core will request RNIC CQs by default, with the proposed
-request format and the special flag.
-If the mana has installed an allocator with manadv_set_context_attr,
-then the rdma-core understands that this is a DPDK use-case and
-requests an ethernet CQ, by not setting the flag.
-
-If the user has a new RDMA-core and an old kernel, then the user can
-detect it as the response to create RNIC cq will not have queue id.
-
-If the user has an old RDMA-core, then the flags will be 0 and ethernet
-CQ will be created (as expected by the user).
-
-v1->v2:
-1) removed patch that replace cqe with buf_size
-2) added aditional check of queue id in the remove cb helper
-3) removed buf_size from uapi request and added flags instead. It seems
-to be a better proposal that will not require to increase the ABI version.
-
-Konstantin Taranov (5):
-  RDMA/mana_ib: create EQs for RNIC CQs
-  RDMA/mana_ib: create and destroy RNIC cqs
-  RDMA/mana_ib: introduce a helper to remove cq callbacks
-  RDMA/mana_ib: boundary check before installing cq callbacks
-  RDMA/mana_ib: implement uapi for creation of rnic cq
-
- drivers/infiniband/hw/mana/cq.c      | 74 +++++++++++++++++++----
- drivers/infiniband/hw/mana/main.c    | 88 +++++++++++++++++++++++++++-
- drivers/infiniband/hw/mana/mana_ib.h | 34 +++++++++++
- drivers/infiniband/hw/mana/qp.c      | 26 ++------
- include/uapi/rdma/mana-abi.h         | 12 ++++
- 5 files changed, 200 insertions(+), 34 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 546d059..2a41135 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -834,3 +834,57 @@ int mana_ib_gd_config_mac(struct mana_ib_dev *mdev, enum mana_ib_addr_op op, u8
+ 
+ 	return 0;
+ }
++
++int mana_ib_gd_create_cq(struct mana_ib_dev *mdev, struct mana_ib_cq *cq, u32 doorbell)
++{
++	struct gdma_context *gc = mdev_to_gc(mdev);
++	struct mana_rnic_create_cq_resp resp = {};
++	struct mana_rnic_create_cq_req req = {};
++	int err;
++
++	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_CQ, sizeof(req), sizeof(resp));
++	req.hdr.dev_id = gc->mana_ib.dev_id;
++	req.adapter = mdev->adapter_handle;
++	req.gdma_region = cq->queue.gdma_region;
++	req.eq_id = mdev->eqs[cq->comp_vector]->id;
++	req.doorbell_page = doorbell;
++
++	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
++
++	if (err) {
++		ibdev_err(&mdev->ib_dev, "Failed to create cq err %d", err);
++		return err;
++	}
++
++	cq->queue.id  = resp.cq_id;
++	cq->cq_handle = resp.cq_handle;
++	/* The GDMA region is now owned by the CQ handle */
++	cq->queue.gdma_region = GDMA_INVALID_DMA_REGION;
++
++	return 0;
++}
++
++int mana_ib_gd_destroy_cq(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
++{
++	struct gdma_context *gc = mdev_to_gc(mdev);
++	struct mana_rnic_destroy_cq_resp resp = {};
++	struct mana_rnic_destroy_cq_req req = {};
++	int err;
++
++	if (cq->cq_handle == INVALID_MANA_HANDLE)
++		return 0;
++
++	mana_gd_init_req_hdr(&req.hdr, MANA_IB_DESTROY_CQ, sizeof(req), sizeof(resp));
++	req.hdr.dev_id = gc->mana_ib.dev_id;
++	req.adapter = mdev->adapter_handle;
++	req.cq_handle = cq->cq_handle;
++
++	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
++
++	if (err) {
++		ibdev_err(&mdev->ib_dev, "Failed to destroy cq err %d", err);
++		return err;
++	}
++
++	return 0;
++}
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index bfcf6df..9162f29 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -92,6 +92,7 @@ struct mana_ib_cq {
+ 	struct mana_ib_queue queue;
+ 	int cqe;
+ 	u32 comp_vector;
++	mana_handle_t  cq_handle;
+ };
+ 
+ struct mana_ib_qp {
+@@ -119,6 +120,8 @@ enum mana_ib_command_code {
+ 	MANA_IB_DESTROY_ADAPTER = 0x30003,
+ 	MANA_IB_CONFIG_IP_ADDR	= 0x30004,
+ 	MANA_IB_CONFIG_MAC_ADDR	= 0x30005,
++	MANA_IB_CREATE_CQ       = 0x30008,
++	MANA_IB_DESTROY_CQ      = 0x30009,
+ };
+ 
+ struct mana_ib_query_adapter_caps_req {
+@@ -202,6 +205,31 @@ struct mana_rnic_config_mac_addr_resp {
+ 	struct gdma_resp_hdr hdr;
+ }; /* HW Data */
+ 
++struct mana_rnic_create_cq_req {
++	struct gdma_req_hdr hdr;
++	mana_handle_t adapter;
++	u64 gdma_region;
++	u32 eq_id;
++	u32 doorbell_page;
++}; /* HW Data */
++
++struct mana_rnic_create_cq_resp {
++	struct gdma_resp_hdr hdr;
++	mana_handle_t cq_handle;
++	u32 cq_id;
++	u32 reserved;
++}; /* HW Data */
++
++struct mana_rnic_destroy_cq_req {
++	struct gdma_req_hdr hdr;
++	mana_handle_t adapter;
++	mana_handle_t cq_handle;
++}; /* HW Data */
++
++struct mana_rnic_destroy_cq_resp {
++	struct gdma_resp_hdr hdr;
++}; /* HW Data */
++
+ static inline struct gdma_context *mdev_to_gc(struct mana_ib_dev *mdev)
+ {
+ 	return mdev->gdma_dev->gdma_context;
+@@ -321,4 +349,8 @@ int mana_ib_gd_add_gid(const struct ib_gid_attr *attr, void **context);
+ int mana_ib_gd_del_gid(const struct ib_gid_attr *attr, void **context);
+ 
+ int mana_ib_gd_config_mac(struct mana_ib_dev *mdev, enum mana_ib_addr_op op, u8 *mac);
++
++int mana_ib_gd_create_cq(struct mana_ib_dev *mdev, struct mana_ib_cq *cq, u32 doorbell);
++
++int mana_ib_gd_destroy_cq(struct mana_ib_dev *mdev, struct mana_ib_cq *cq);
+ #endif
 -- 
 2.43.0
 
