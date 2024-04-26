@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4DEF8146D55;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8190F146D69;
 	Fri, 26 Apr 2024 13:12:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714137168; cv=none; b=Ek23phF8LG7rqYUekb/XmxXlqOUCsGWyJNfnwd325ny7u5jWAsELB/6iI+p5M+3JEUBj/UvF7d1enz0/8jaTpsWn6cQeUouliCTWP2kgFn5CRce+2Bp02+AHenh1d4uvW+xi7pq8sAHi10XUQhSgpGkyWpNn+HCMD+4X7ze/npk=
+	t=1714137169; cv=none; b=dc8L3JGM5HEXRyFHG3C6MSbSzXK7eF4JaH9NKKnEyckgxHLKz6v3vMIerUqetETBJr9N3X5CFQLdLtfqB6zu3SncUvx+Lx6AByCwLq/PYiLmVdOgNNBjIFcWDkVsmg6IQOZGQqe+DkYJMGI7zv+eMtBSIKMY5XJRH5/0+KZDHv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714137168; c=relaxed/simple;
-	bh=Usu77U3GYcspHtKEiK5azthR80eo1pinrp+TtsB6MkU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=ul6oX/JnwLwGS3N9gxenTh+NwgkdbhA72ux2/qE3xCQgRnYMdsrA4u/oHpN9tKwDST1w2goEARBFoaCZyCcY3WhsS/6u7KDzE/op78CM7dH2XspflyWiYqxnKxivv7S/qUSFhJvEoCKN8934ISVCukllG9/NZmnj2WE5ln9VbkM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=S47mHtzp; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1714137169; c=relaxed/simple;
+	bh=71RwQwi9TFTUPNDyPLmoKi09b5OBg6kwngITmrLKZ2Y=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=aOmLgGoV2vn4ui6UJox/ws8MkgJsJrvXTbmvCDIlHk+b0tAiqITFf7CvAixDNpvRzbyYklLECjXajlAR66n3PrLuZPnfyEvkow+brdeAuu+p3Z/sC63z9raV8G7DsJS84PQR4qVgkkeJB4h5gKOkznEOe/4exYMTX4u0RiHZfgI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=mUjKyMn7; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="S47mHtzp"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="mUjKyMn7"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id E3788210EF25;
-	Fri, 26 Apr 2024 06:12:45 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E3788210EF25
+	by linux.microsoft.com (Postfix) with ESMTPSA id 39D7C210EF29;
+	Fri, 26 Apr 2024 06:12:46 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 39D7C210EF29
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1714137165;
-	bh=ltCMK8jIH6z2pJvdSWPrhUfu9Ob4wk1gjWILq73eM6I=;
+	s=default; t=1714137166;
+	bh=HfSrTbBlObJZ5QgMLDom1PtUczMN227beKLXYqpagmc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=S47mHtzpRhOyeXa5ecUVA7kMQWNoJJFbLbJwvrRke/JmsYyrKynNbvKEUjHhw3Cg+
-	 /ON2Ni6W8aClC00SX2HxNjkOWH1mT/Iv8OpvUsAgjkokVRpeF5DUo2vB3+kRThKMYd
-	 INAA3ITsv/3IjiJJZJfir1OKm1o0Jrxcs9vYbiaU=
+	b=mUjKyMn7qOr7/Q+0ayG2nOy7nleg3db2XX5+gBFcQ7+i0kyuntO8WfMloWqgy0vtN
+	 Ad/7NFleTrYKOvmaKR/OLa3pI1P+gyXL4KsBpfpwgTR16MdV3VIr55WQ+miwQOhtQI
+	 sv698RBGFXQ18nymwLF+//vM7ol27Rs8cqLeqTjk=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	sharmaajay@microsoft.com,
@@ -32,9 +32,9 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v2 1/5] RDMA/mana_ib: create EQs for RNIC CQs
-Date: Fri, 26 Apr 2024 06:12:36 -0700
-Message-Id: <1714137160-5222-2-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v2 4/5] RDMA/mana_ib: boundary check before installing cq callbacks
+Date: Fri, 26 Apr 2024 06:12:39 -0700
+Message-Id: <1714137160-5222-5-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1714137160-5222-1-git-send-email-kotaranov@linux.microsoft.com>
 References: <1714137160-5222-1-git-send-email-kotaranov@linux.microsoft.com>
@@ -46,85 +46,28 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Create EQs within mana_ib device. Such EQs are required
-for creation of RNIC CQs.
+Add a boundary check inside mana_ib_install_cq_cb to prevent index overflow.
 
+Fixes: 2a31c5a7e0d8 ("RDMA/mana_ib: Introduce mana_ib_install_cq_cb helper function")
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 Reviewed-by: Long Li <longli@microsoft.com>
 ---
- drivers/infiniband/hw/mana/main.c    | 34 ++++++++++++++++++++++++++--
- drivers/infiniband/hw/mana/mana_ib.h |  1 +
- 2 files changed, 33 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mana/cq.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index f540147..546d059 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -658,7 +658,7 @@ int mana_ib_create_eqs(struct mana_ib_dev *mdev)
- {
+diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
+index 298e8f1..688ffe6 100644
+--- a/drivers/infiniband/hw/mana/cq.c
++++ b/drivers/infiniband/hw/mana/cq.c
+@@ -70,6 +70,8 @@ int mana_ib_install_cq_cb(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
  	struct gdma_context *gc = mdev_to_gc(mdev);
- 	struct gdma_queue_spec spec = {};
--	int err;
-+	int err, i;
+ 	struct gdma_queue *gdma_cq;
  
- 	spec.type = GDMA_EQ;
- 	spec.monitor_avl_buf = false;
-@@ -672,12 +672,42 @@ int mana_ib_create_eqs(struct mana_ib_dev *mdev)
- 	if (err)
- 		return err;
- 
-+	mdev->eqs = kcalloc(mdev->ib_dev.num_comp_vectors, sizeof(struct gdma_queue *),
-+			    GFP_KERNEL);
-+	if (!mdev->eqs) {
-+		err = -ENOMEM;
-+		goto destroy_fatal_eq;
-+	}
-+
-+	for (i = 0; i < mdev->ib_dev.num_comp_vectors; i++) {
-+		spec.eq.msix_index = (i + 1) % gc->num_msix_usable;
-+		err = mana_gd_create_mana_eq(mdev->gdma_dev, &spec, &mdev->eqs[i]);
-+		if (err)
-+			goto destroy_eqs;
-+	}
-+
- 	return 0;
-+
-+destroy_eqs:
-+	while (i-- > 0)
-+		mana_gd_destroy_queue(gc, mdev->eqs[i]);
-+	kfree(mdev->eqs);
-+destroy_fatal_eq:
-+	mana_gd_destroy_queue(gc, mdev->fatal_err_eq);
-+	return err;
- }
- 
- void mana_ib_destroy_eqs(struct mana_ib_dev *mdev)
- {
--	mana_gd_destroy_queue(mdev_to_gc(mdev), mdev->fatal_err_eq);
-+	struct gdma_context *gc = mdev_to_gc(mdev);
-+	int i;
-+
-+	mana_gd_destroy_queue(gc, mdev->fatal_err_eq);
-+
-+	for (i = 0; i < mdev->ib_dev.num_comp_vectors; i++)
-+		mana_gd_destroy_queue(gc, mdev->eqs[i]);
-+
-+	kfree(mdev->eqs);
- }
- 
- int mana_ib_gd_create_rnic_adapter(struct mana_ib_dev *mdev)
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index 4c1240d..bfcf6df 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -56,6 +56,7 @@ struct mana_ib_dev {
- 	struct gdma_dev *gdma_dev;
- 	mana_handle_t adapter_handle;
- 	struct gdma_queue *fatal_err_eq;
-+	struct gdma_queue **eqs;
- 	struct mana_ib_adapter_caps adapter_caps;
- };
- 
++	if (cq->queue.id >= gc->max_num_cqs)
++		return -EINVAL;
+ 	/* Create CQ table entry */
+ 	WARN_ON(gc->cq_table[cq->queue.id]);
+ 	gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
 -- 
 2.43.0
 
