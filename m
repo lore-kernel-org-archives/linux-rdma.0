@@ -1,182 +1,283 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2062.outbound.protection.outlook.com [40.107.92.62])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBA8E634;
-	Fri,  3 May 2024 04:32:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.92.62
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714710733; cv=fail; b=h9q0LybwPbFCL19Q9RLFZC6lAHXtZiAT81Fl4E+04P0Ct5lh+UgM/BOCV+hYJUa/cZ+w8gAMPZ5M1TgypHPAFP5a8CqiUbQw+FKmkbiz8ahSiWjooh5RHasuX+iBhQSUZYgkzX3zTWZAdqtXBTjuH0VJIB3Vwj1VprjXA+DPSHw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714710733; c=relaxed/simple;
-	bh=oDXCnHuYSmqlSaAeeF3L4fmOgJAACMdQh523+PDdOBE=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=qVGCTE6CNXAkQf4egULiTvTSY3j1QCF8u35b6zsbrA/OkIblyClzKngwAItzm9o2lfv9Vae8S0ZtxQjcAT0Do+/tWIvivjYAmvvCzMT3HQRdJMG5v2VjkjyfQZme2ShO3ke1SmnHNHamcsEZQS6KGd8MEtaCnW4PT1Td9fJmTtQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=aP8V9z7k; arc=fail smtp.client-ip=40.107.92.62
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 368EEEEDD;
+	Fri,  3 May 2024 05:10:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1714713015; cv=none; b=UeSavgt9JR2T49YWroWqolLBT8CS+EItqAxOfrSoU6YRBDJqIkkrTbimmceXOy/dqRggB3qthAKamE7svS9ecvEXcoIx9swJO4Y4lus5sKFH4eBPW0VRmLKs8AumXHIxDOL6v5d6sWzzxHKZbZPOB79VRZ2rT+f+qpQx/jE9SFw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1714713015; c=relaxed/simple;
+	bh=o2sKVmvdDaNF3kLVWCaEK4/IGPiq1aU+SjHjWzCNIuE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VOYtLht+KJ2LtoOwpgEXPVf4Yr2p4kSYF209WD3KFux7JDBShPRcuw2JNFVQIK6RsenMKJn0NwXHCOjlxTZ1WSWPN3EiNQb2HZPvT04Cv7+fb/oYMueStPWdl/9U0paNkchcXdmzXz8+OO5Lwj6Cyq5o0JFli/IU0Iooal6coVk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=xlMcJP4h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="aP8V9z7k"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hgf9qhVXg7VTt9GrQoIkDtneMI5OHjOf3z4ioA3p2yj8X4AGMX8VsZz0VKiRSSEc+MkFV9X3WDETmxJ3+ivJE96oFz3uy42AGEoHx82pR29MOudcln1ZCo0Gku3QinQ7ao4WJVP7Vzz2OPsFKEbUIjDEs5hoHZ5s46EJNAbfXVJLYOQsJrhgoRN8WTGwhDFzW8SvPTQLuVdCfcBzc2tmC5cOz6TthXDCzLDtJ8N21FBkgSZXjDIOnMZCv5kS15eKKorriHaB15pDcbmiW/Q7jxFdkjmsVn+ZkEW8OxzgqDVOSFNIYISMc25XsKdg1XbyjgxLsEaQRSKsQMy9Rgy5xg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AKh+bu3gtzMehHyoUvDhN4KtgdesAFrqES74OFZghpc=;
- b=C/t1oDVA7Phply7abXhF0sqxg/y1epo/mz44Qv8E/M/X+DLsYNXwAwjyR4peGiitvvmsfG448+tbKhEKI8E2KRMCvL60YHgxn0PcCll8paCjINeOKJnDkDfDZrf9GpgjcNGotjwB5A554JYXPsz8ibiU7nK60ZBjoiFf9LLpxpZdwgHZXTVJelggwUZPgU3UUYXtvoV3H5sLxifqnJ6BajXcnmVRJPwZeqI7a0oIldwiiBPHjxjAois+mgVxJNrqYByot7b1kP2nU6psI1ItmQaiplNrL+0PdhuQzC/jESiTiL054m6S9qlc2xOrVYIvDG9yQhq1cFDNLq+t1qj4VA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.161) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
- dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
- dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=AKh+bu3gtzMehHyoUvDhN4KtgdesAFrqES74OFZghpc=;
- b=aP8V9z7kHoStlUO35/x5LbNm4AzWWh9y80xFrYWrg+7oKQaMw/WyoOHgTY0pndLdynkOVieE/bfi5QMDi2dcNXCXv1eYUbp/6MBYzabd7b67q5jyBP5IHaYiVa4TKLaXYgnp51adgkBUJwFiefT4uFSOr8zqC+DO6bepGIwk4yLFT7tgwGUa3wMgvE6nonpZ1ZK9KEJHhph2QP2DNdUSRaKjIUzX65hSdXfbk/hAe25N1Box2EED3wiABDBUvjI6LFQSUgakFhO6iY1hQ31StmdVyzUc59Q7u4jXYhp9VpbQY498ILh8l70QS3vZ7dqig9kgomXVqsMkR40PAG4rDw==
-Received: from BL1PR13CA0137.namprd13.prod.outlook.com (2603:10b6:208:2bb::22)
- by MN0PR12MB5930.namprd12.prod.outlook.com (2603:10b6:208:37d::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7544.30; Fri, 3 May
- 2024 04:31:36 +0000
-Received: from BL02EPF0001A0FC.namprd03.prod.outlook.com
- (2603:10b6:208:2bb:cafe::4b) by BL1PR13CA0137.outlook.office365.com
- (2603:10b6:208:2bb::22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7544.30 via Frontend
- Transport; Fri, 3 May 2024 04:31:36 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.161) by
- BL02EPF0001A0FC.mail.protection.outlook.com (10.167.242.103) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.7544.18 via Frontend Transport; Fri, 3 May 2024 04:31:35 +0000
-Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
- (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Thu, 2 May 2024
- 21:31:20 -0700
-Received: from nps-server-23.mtl.labs.mlnx (10.126.231.35) by
- rnnvmail201.nvidia.com (10.129.68.8) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.4; Thu, 2 May 2024 21:31:16 -0700
-From: Shay Drory <shayd@nvidia.com>
-To: <netdev@vger.kernel.org>, <pabeni@redhat.com>, <davem@davemloft.net>,
-	<kuba@kernel.org>, <edumazet@google.com>, <gregkh@linuxfoundation.org>,
-	<david.m.ertman@intel.com>
-CC: <rafael@kernel.org>, <ira.weiny@intel.com>, <linux-rdma@vger.kernel.org>,
-	<leon@kernel.org>, <tariqt@nvidia.com>, Shay Drory <shayd@nvidia.com>
-Subject: [PATCH 0/2] Introduce auxiliary bus IRQs sysfs
-Date: Fri, 3 May 2024 07:31:02 +0300
-Message-ID: <20240503043104.381938-1-shayd@nvidia.com>
-X-Mailer: git-send-email 2.38.1
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="xlMcJP4h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39741C116B1;
+	Fri,  3 May 2024 05:10:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1714713014;
+	bh=o2sKVmvdDaNF3kLVWCaEK4/IGPiq1aU+SjHjWzCNIuE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=xlMcJP4hF98Bx4M63beIxyzqtqJPFtYREDPBrKpuXPLSVXAXm7fUinLf2wTOJegEG
+	 IHikNMt4iujwoWGsitP5X5gPy5MYt7uZFLIoX0OfarLNWR+Qj6fAy4nXHcnPqjK4F+
+	 /Sd1T/+1KR2sS/XDmJ4xt8dv5N1knS2epVD8ak9k=
+Date: Fri, 3 May 2024 07:10:11 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Shay Drory <shayd@nvidia.com>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+	kuba@kernel.org, edumazet@google.com, david.m.ertman@intel.com,
+	rafael@kernel.org, ira.weiny@intel.com, linux-rdma@vger.kernel.org,
+	leon@kernel.org, tariqt@nvidia.com, Parav Pandit <parav@nvidia.com>
+Subject: Re: [PATCH 1/2] driver core: auxiliary bus: show auxiliary device
+ IRQs
+Message-ID: <2024050313-next-fried-4360@gregkh>
+References: <20240503043104.381938-1-shayd@nvidia.com>
+ <20240503043104.381938-2-shayd@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: rnnvmail202.nvidia.com (10.129.68.7) To
- rnnvmail201.nvidia.com (10.129.68.8)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF0001A0FC:EE_|MN0PR12MB5930:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3266a01d-9ea3-4bc4-1c7c-08dc6b29eb1a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230031|36860700004|376005|7416005|1800799015;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?K5Wnjc+7v3y3ruAkjOUNSqFDB2YVP95DQ3h9htJ/73OWWUAU3P52N+WqqBkO?=
- =?us-ascii?Q?R6xOCINeeeqHWIrCf3qwx2kVwFKAbaODDvTAr9Qt8+r/1L1DyzhM8f6DqDyt?=
- =?us-ascii?Q?+pzaJlbs95YdovJgLf8gWKXmLpkPHHw11+i4jpXR5umCYkuwYxqpJUBxncMm?=
- =?us-ascii?Q?FWhIMMOkUL0uuKNxzQ7ZVjs55yRAqL+vCUpTsrOKG0Wz2mZL9V/DYnBul7kT?=
- =?us-ascii?Q?mg2A3C+u7b7DFdDOBl/kN7Gqp0LRYbAr8FXknTgnhZsqjz0DFi00rVyVf5od?=
- =?us-ascii?Q?0orL4zzz4I3mO0WhSiVUopsdEFX7ijaOSGp76D/vJO/n/iNDuAyiT6zGZJyR?=
- =?us-ascii?Q?ivr0Hsa6Z76fGlGfCv+jkOpD/fusZgS7RhT6ZnWCAcSWpGlmaCXR8BQKxCf3?=
- =?us-ascii?Q?NyidW9lf//cnNUKL5MSHUy73/rrTcLtZKRYzVJ15gVhMi0cp32CqTNAqg8EO?=
- =?us-ascii?Q?UwjR0MQRxel6+zLI4UCd/PAauQNcko1EWAOCCMptGebPTF+ABxEcFQJhQxid?=
- =?us-ascii?Q?Cwwa2RY9uKNoUwbPJDYafEQPD2LeWaZNvdag35PypOrFgxfgz2CGgFN7rCyU?=
- =?us-ascii?Q?dtHiTooE9J0N+7Op3SyYl0VToJu78ol3nixg8FtK59EnejVv/+1Puu7BNp9B?=
- =?us-ascii?Q?dJUtjybZnH+0HGEFc30dKqM4u6RtNl5YIKKDcBfx4Wfo5I45mSScVHs/+Meb?=
- =?us-ascii?Q?ZaOgyQ21bUWMcFArxhnA4sA547ppGd62GquCAiJ6Zni5w7Q+LZoHu1NX6PwN?=
- =?us-ascii?Q?bwh8S5ybi54RnuZUyCCUpb9IHSJc359SwDG1h79wDhIfYg+EPGglufsWjP4I?=
- =?us-ascii?Q?2NRaAkGvFHYNb2zaDi3Bh7AxTgtfykNPB4KC1RaFyLMKlG0yBi2bhoAmX55L?=
- =?us-ascii?Q?s57B8wsX+MGUWR7fp0RfbBzWOPtHLQ2TdT8eFxC05sw1fUEJ1YJuTU6L8Wi6?=
- =?us-ascii?Q?r74STBj9jy2yEw1NQYJ8ZKSSEQTw/3fFVjTo2a0n2LZnXAIV6R1Sd4i7yfsy?=
- =?us-ascii?Q?6rC4fMfKoyjqr8wnhpVxiqjhqO5HNO6791GrG6/ZaLn+lfMu693CzznwKvjO?=
- =?us-ascii?Q?geHgp/cUKnIveEZ9xl1rxBj1GofjwUuwJSMP/frztUY1oDrwBv3tdtj01nCv?=
- =?us-ascii?Q?7XCo5SYa26yHB6HDkptCxcEMUC6Q5bJ1np60FEacsWFKEMWIS2Jx8qS0h/Vs?=
- =?us-ascii?Q?Dss3B6KoG8jPur6vZa/A84AdZGv/zoCnqXs+FqgCcZfnxpc0bosZdlIIW+6o?=
- =?us-ascii?Q?+nNqmZBQ01pDHGyDd9HlZRZs84hPU6JwSyphe/0I15J6YTofRk6Qw0vbqLp1?=
- =?us-ascii?Q?glYx6ZH9BychIGdnktSRyQTYmGsdVtKVmFGK59qFD9mAWdRLJ9PGa+R/ZhHn?=
- =?us-ascii?Q?sHE1pus=3D?=
-X-Forefront-Antispam-Report:
-	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230031)(36860700004)(376005)(7416005)(1800799015);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 May 2024 04:31:35.9768
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3266a01d-9ea3-4bc4-1c7c-08dc6b29eb1a
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BL02EPF0001A0FC.namprd03.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB5930
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240503043104.381938-2-shayd@nvidia.com>
 
-Today, PCI PFs and VFs, which are anchored on the PCI bus, display their
-IRQ information in the <pci_device>/msi_irqs/<irq_num> sysfs files.
-PCI subfunctions (SFs) are similar to PFs and VFs and these SFs are
-anchored on the auxiliary bus. However, these PCI SFs lack such IRQ
-information on the auxiliary bus, leaving users without visibility into
-which IRQs are used by the SFs. This absence makes it impossible to debug
-situations and to understand the source of interrupts/SFs for performance
-tuning and debug.
+On Fri, May 03, 2024 at 07:31:03AM +0300, Shay Drory wrote:
+> PCI subfunctions (SF) are anchored on the auxiliary bus. PCI physical
+> and virtual functions are anchored on the PCI bus;  the irq information
+> of each such function is visible to users via sysfs directory "msi_irqs"
+> containing file for each irq entry. However, for PCI SFs such information
+> is unavailable. Due to this users have no visibility on IRQs used by the
+> SFs.
+> Secondly, an SF is a multi function device supporting rdma, netdevice
+> and more. Without irq information at the bus level, the user is unable
+> to view or use the affinity of the SF IRQs.
+> 
+> Hence to match to the equivalent PCI PFs and VFs, add "irqs" directory,
+> for supporting auxiliary devices, containing file for each irq entry.
+> 
+> Additionally, the PCI SFs sometimes share the IRQs with peer SFs. This
+> information is also not available to the users. To overcome this
+> limitation, each irq sysfs entry shows if irq is exclusive or shared.
+> 
+> For example:
+> $ ls /sys/bus/auxiliary/devices/mlx5_core.sf.1/irqs/
+> 50  51  52  53  54  55  56  57  58
+> $ cat /sys/bus/auxiliary/devices/mlx5_core.sf.1/irqs/52
+> exclusive
 
-Additionally, the SFs are multifunctional devices supporting RDMA,
-network devices, clocks, and more, similar to their peer PCI PFs and
-VFs. Therefore, it is desirable to have SFs' IRQ information available
-at the bus/device level.
+Not all the world (i.e. not all auxbus users) are PCI devices, right?
+So what happens for non-PCI devices?
 
-To overcome the above limitations, this short series extends the auxiliary
-bus to display IRQ information in sysfs, similar to that of PFs and VFs.
+> 
+> Reviewed-by: Parav Pandit <parav@nvidia.com>
+> Signed-off-by: Shay Drory <shayd@nvidia.com>
+> ---
+>  Documentation/ABI/testing/sysfs-bus-auxiliary |  14 ++
+>  drivers/base/auxiliary.c                      | 170 +++++++++++++++++-
+>  include/linux/auxiliary_bus.h                 |  15 +-
+>  3 files changed, 196 insertions(+), 3 deletions(-)
+>  create mode 100644 Documentation/ABI/testing/sysfs-bus-auxiliary
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-auxiliary b/Documentation/ABI/testing/sysfs-bus-auxiliary
+> new file mode 100644
+> index 000000000000..3b8299d49d9e
+> --- /dev/null
+> +++ b/Documentation/ABI/testing/sysfs-bus-auxiliary
+> @@ -0,0 +1,14 @@
+> +What:		/sys/bus/auxiliary/devices/.../irqs/
+> +Date:		April, 2024
+> +Contact:	Shay Drory <shayd@nvidia.com>
+> +Description:
+> +		The /sys/devices/.../irqs directory contains a variable set of
+> +		files, with each file is named as irq number similar to PCI PF
+> +		or VF's irq number located in msi_irqs directory.
+> +
+> +What:		/sys/bus/auxiliary/devices/.../irqs/<N>
+> +Date:		April, 2024
+> +Contact:	Shay Drory <shayd@nvidia.com>
+> +Description:
+> +		auxiliary devices can share IRQs. This attribute indicates if
+> +		the irq is shared with other SFs or exclusively used by the SF.
+> diff --git a/drivers/base/auxiliary.c b/drivers/base/auxiliary.c
+> index d3a2c40c2f12..5c0efa2081b8 100644
+> --- a/drivers/base/auxiliary.c
+> +++ b/drivers/base/auxiliary.c
+> @@ -158,6 +158,167 @@
+>   *	};
+>   */
+>  
+> +#ifdef CONFIG_SYSFS
+> +/* Xarray of irqs to determine if irq is exclusive or shared. */
+> +static DEFINE_XARRAY(irqs);
+> +/* Protects insertions into the irtqs xarray. */
+> +static DEFINE_MUTEX(irqs_lock);
+> +
+> +struct auxiliary_irq_info {
+> +	struct device_attribute sysfs_attr;
+> +	int irq;
+> +};
+> +
+> +static struct attribute *auxiliary_irq_attrs[] = {
+> +	NULL
+> +};
+> +
+> +static const struct attribute_group auxiliary_irqs_group = {
+> +	.name = "irqs",
+> +	.attrs = auxiliary_irq_attrs,
+> +};
+> +
+> +/**
+> + * Auxiliary devices can share IRQs. Expose to user whether the provided IRQ is
+> + * shared or exclusive.
+> + */
+> +static ssize_t auxiliary_irq_mode_show(struct device *dev,
+> +				       struct device_attribute *attr, char *buf)
+> +{
+> +	struct auxiliary_irq_info *info =
+> +		container_of(attr, struct auxiliary_irq_info, sysfs_attr);
+> +
+> +	if (refcount_read(xa_load(&irqs, info->irq)) > 1)
+> +		return sysfs_emit(buf, "%s\n", "shared");
+> +	else
+> +		return sysfs_emit(buf, "%s\n", "exclusive");
+> +}
+> +
+> +static void auxiliary_irq_destroy(int irq)
+> +{
+> +	refcount_t *ref;
+> +
+> +	xa_lock(&irqs);
+> +	ref = xa_load(&irqs, irq);
+> +	if (refcount_dec_and_test(ref)) {
+> +		__xa_erase(&irqs, irq);
+> +		kfree(ref);
+> +	}
+> +	xa_unlock(&irqs);
+> +}
+> +
+> +static int auxiliary_irq_create(int irq)
+> +{
+> +	refcount_t *ref;
+> +	int ret = 0;
+> +
+> +	mutex_lock(&irqs_lock);
+> +	ref = xa_load(&irqs, irq);
+> +	if (ref && refcount_inc_not_zero(ref))
+> +		goto out;
+> +
+> +	ref = kzalloc(sizeof(ref), GFP_KERNEL);
+> +	if (!ref) {
+> +		ret = -ENOMEM;
+> +		goto out;
+> +	}
+> +
+> +	refcount_set(ref, 1);
+> +	ret = xa_insert(&irqs, irq, ref, GFP_KERNEL);
+> +	if (ret)
+> +		kfree(ref);
+> +
+> +out:
+> +	mutex_unlock(&irqs_lock);
+> +	return ret;
+> +}
+> +
+> +/**
+> + * auxiliary_device_sysfs_irq_add - add a sysfs entry for the given IRQ
+> + * @auxdev: auxiliary bus device to add the sysfs entry.
+> + * @irq: The associated Linux interrupt number.
+> + *
+> + * This function should be called after auxiliary device have successfully
+> + * received the irq.
+> + */
+> +int auxiliary_device_sysfs_irq_add(struct auxiliary_device *auxdev, int irq)
+> +{
+> +	struct device *dev = &auxdev->dev;
+> +	struct auxiliary_irq_info *info;
+> +	int ret;
+> +
+> +	ret = auxiliary_irq_create(irq);
+> +	if (ret)
+> +		return ret;
+> +
+> +	info = kzalloc(sizeof(*info), GFP_KERNEL);
+> +	if (!info) {
+> +		ret = -ENOMEM;
+> +		goto info_err;
+> +	}
+> +
+> +	sysfs_attr_init(&info->sysfs_attr.attr);
+> +	info->sysfs_attr.attr.name = kasprintf(GFP_KERNEL, "%d", irq);
+> +	if (!info->sysfs_attr.attr.name) {
+> +		ret = -ENOMEM;
+> +		goto name_err;
+> +	}
+> +	info->irq = irq;
+> +	info->sysfs_attr.attr.mode = 0444;
+> +	info->sysfs_attr.show = auxiliary_irq_mode_show;
+> +
+> +	ret = xa_insert(&auxdev->irqs, irq, info, GFP_KERNEL);
+> +	if (ret)
+> +		goto auxdev_xa_err;
+> +
+> +	ret = sysfs_add_file_to_group(&dev->kobj, &info->sysfs_attr.attr,
+> +				      auxiliary_irqs_group.name);
+> +	if (ret)
+> +		goto sysfs_add_err;
+> +
+> +	return 0;
+> +
+> +sysfs_add_err:
+> +	xa_erase(&auxdev->irqs, irq);
+> +auxdev_xa_err:
+> +	kfree(info->sysfs_attr.attr.name);
+> +name_err:
+> +	kfree(info);
+> +info_err:
+> +	auxiliary_irq_destroy(irq);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(auxiliary_device_sysfs_irq_add);
+> +
+> +/**
+> + * auxiliary_device_sysfs_irq_remove - remove a sysfs entry for the given IRQ
+> + * @auxdev: auxiliary bus device to add the sysfs entry.
+> + * @irq: the IRQ to remove.
+> + *
+> + * This function should be called to remove an IRQ sysfs entry.
+> + */
+> +void auxiliary_device_sysfs_irq_remove(struct auxiliary_device *auxdev, int irq)
+> +{
+> +	struct auxiliary_irq_info *info = xa_load(&auxdev->irqs, irq);
+> +	struct device *dev = &auxdev->dev;
+> +
+> +	if (WARN_ON(!info))
+> +		return;
+> +
+> +	sysfs_remove_file_from_group(&dev->kobj, &info->sysfs_attr.attr,
+> +				     auxiliary_irqs_group.name);
+> +	xa_erase(&auxdev->irqs, irq);
+> +	kfree(info->sysfs_attr.attr.name);
+> +	kfree(info);
+> +	auxiliary_irq_destroy(irq);
+> +}
+> +EXPORT_SYMBOL(auxiliary_device_sysfs_irq_remove);
 
-It adds an 'irqs' directory under the auxiliary device and includes an
-<irq_num> sysfs file within it. Sometimes, the PCI SF auxiliary devices
-share the IRQ with other SFs, a detail that is also not available to the
-users. Consequently, this <irq_num> file indicates whether the IRQ is
-'exclusive' or 'shared'.
+Any reason this isn't EXPORT_SYMBOL_GPL() like the rest of this file?
+Same for the other export.
 
-For example:
-$ ls /sys/bus/auxiliary/devices/mlx5_core.sf.1/irqs/
-50  51  52  53  54  55  56  57  58
-$ cat /sys/bus/auxiliary/devices/mlx5_core.sf.1/irqs/52
-exclusive
+> +#else /* CONFIG_SYSFS */
+> +int auxiliary_device_sysfs_irq_add(struct auxiliary_device *auxdev, int irq) {return 0; }
+> +void auxiliary_device_sysfs_irq_remove(struct auxiliary_device *auxdev, int irq) {}
+> +#endif
 
-Patch summary:
-==============
-patch-1 adds auxiliary bus to support irqs used by auxiliary device
-patch-2 mlx5 driver using exposing irqs for PCI SF devices via auxiliary
-        bus
+Shouldn't the #ifdef stuff be in a .h file?  Why .c?
 
-Shay Drory (2):
-  driver core: auxiliary bus: show auxiliary device IRQs
-  net/mlx5: Expose SFs IRQs
+And again, why do you think that all aux devices have irqs?
 
- Documentation/ABI/testing/sysfs-bus-auxiliary |  14 ++
- drivers/base/auxiliary.c                      | 170 +++++++++++++++++-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c  |   6 +-
- .../mellanox/mlx5/core/irq_affinity.c         |  15 +-
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   6 +
- .../ethernet/mellanox/mlx5/core/mlx5_irq.h    |  12 +-
- .../net/ethernet/mellanox/mlx5/core/pci_irq.c |  12 +-
- .../ethernet/mellanox/mlx5/core/sf/dev/dev.c  |   2 +-
- include/linux/auxiliary_bus.h                 |  15 +-
- 9 files changed, 237 insertions(+), 15 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-bus-auxiliary
+thanks,
 
--- 
-2.38.1
-
+greg k-h
