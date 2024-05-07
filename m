@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D8EBB14D428;
-	Tue,  7 May 2024 09:53:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9E07114D714;
+	Tue,  7 May 2024 09:53:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715075608; cv=none; b=rThWGttNiiDNAjQitIaXsTX6WzYHZDZpYR8FrYYKv6g6seNjeCN/eBoaHnfY/jdsRW8M+uIpun3UKuuSlCf1d2q5DZCpY3V82rIfgmIjeqpoGbedXS569eMe+uzojNomZsKypIrz155LswWuBpMm66NrpjNIEGQHX1K056hW0Dw=
+	t=1715075609; cv=none; b=giKzW4xj90vukoVxA9HoSekTu5AyR7wnkswafakTis1O6Eaw6zMsp/l9+o4r9/QrucT6RvSvnZgyKg46m+2wN3A1VtI686BKchXtSMgdTt+KHvht4FnKcvf+r0JRYnc0Zxyrv6tApAxNpfa8CgSHJU9E5F35UwVXYtGDqK/hAjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715075608; c=relaxed/simple;
-	bh=vSVNXtPMzlR8FQr73nSL5d4D/Y1fpR7I40Ru5of3Kus=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=H3Zdu1JjVdCinVuh4pOErfyvFQ4F9wUVXNivZR9ObY2d3zNZgTrpVoY7p28N8X1Jy9xunaxIvH3jwxdn4Elfvbi45s4j1l2aSovRGGNx2+5xdBnYcwvoqID+iIXDFkrpG2w9YGNOUqXU6aIwDHSzQwZHu2n6Ue9/fu+M76LyIHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=dcdIJOCa; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1715075609; c=relaxed/simple;
+	bh=aATkdZwAVIo+8tSFMb3c+jbnvPRsopOiumaKJVmkTx0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=GTqf+H0+HIBUWQwgv4wxVClNPJVFXOAA6ONmE8ldhD+Xsn0ZgT3znnh9jx6wtB1s63scrw61GNJsTFOTgyOE+JczZVTnFlB8zc958Cu9v5t5sDp9z8hNEKNusZ6TEboSIL7PzNz6xqH5Cz04viKrc4bpl68z1SF1BmieXG+LGgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=mEeKrAF3; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="dcdIJOCa"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="mEeKrAF3"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id C019220B2C82;
-	Tue,  7 May 2024 02:53:20 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C019220B2C82
+	by linux.microsoft.com (Postfix) with ESMTPSA id 152DF20B2C87;
+	Tue,  7 May 2024 02:53:21 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 152DF20B2C87
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1715075600;
-	bh=DRjxzGa9W7827S8JDXAB+pSXZUdM8d1xIl3Dmk5c4MU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=dcdIJOCaYZ7+ELv65LP6paXcf8lyNqGnHiRJqNScrnNCgMWouTpjPRB0CmCpcRKen
-	 UW2U2jgEvo4BeeMFEVABaerBWhBPyFElg3lc+ImdsQRN60cGBk6lNMMru7/ZdqK/cd
-	 Sp5EOCU0pPGOpj9kRVzCM+oMtijhGBjbaYAAznIc=
+	s=default; t=1715075601;
+	bh=6cDFGREVj/+/FKPys8Z2I4DttGj2j6tW05XiRyEcBbg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=mEeKrAF3sucvuxY+Kx18L91z+faPDJHLArVHuF+6JRLit0GELI+s/nJp9TbeLGNqG
+	 t77ze5dtOc4T0LwE+z0z7zZovRy+ikDuznQQRSdMQaUug9gmaYbXIDyEnW8gihZXRi
+	 zZls66ROVJsHlRQHMPwaLqk5wbGpZ53c31kio32E=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	sharmaajay@microsoft.com,
@@ -32,10 +32,12 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next 0/3] RDMA/mana_ib: Add support of RC QPs
-Date: Tue,  7 May 2024 02:53:12 -0700
-Message-Id: <1715075595-24470-1-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next 3/3] RDMA/mana_ib: Modify QP state
+Date: Tue,  7 May 2024 02:53:15 -0700
+Message-Id: <1715075595-24470-4-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1715075595-24470-1-git-send-email-kotaranov@linux.microsoft.com>
+References: <1715075595-24470-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -44,22 +46,155 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-This patch series enables creation and destruction of RC QPs.
-The RC QP can be transitioned to RTS and be used by rdma-core.
+Implement modify QP state for RC QPs.
 
-Later I will submit rdma-core patches with fully working RC QPs.
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+ drivers/infiniband/hw/mana/mana_ib.h | 37 ++++++++++++++
+ drivers/infiniband/hw/mana/qp.c      | 72 +++++++++++++++++++++++++++-
+ 2 files changed, 107 insertions(+), 2 deletions(-)
 
-Konstantin Taranov (3):
-  RDMA/mana_ib: Create and destroy RC QP
-  RDMA/mana_ib: Implement uapi to create and destroy RC QP
-  RDMA/mana_ib: Modify QP state
-
- drivers/infiniband/hw/mana/main.c    |  59 ++++++++++
- drivers/infiniband/hw/mana/mana_ib.h |  99 +++++++++++++++-
- drivers/infiniband/hw/mana/qp.c      | 165 ++++++++++++++++++++++++++-
- include/uapi/rdma/mana-abi.h         |   9 ++
- 4 files changed, 328 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 5cccbe3..d29dee7 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -140,6 +140,7 @@ enum mana_ib_command_code {
+ 	MANA_IB_DESTROY_CQ      = 0x30009,
+ 	MANA_IB_CREATE_RC_QP    = 0x3000a,
+ 	MANA_IB_DESTROY_RC_QP   = 0x3000b,
++	MANA_IB_SET_QP_STATE	= 0x3000d,
+ };
+ 
+ struct mana_ib_query_adapter_caps_req {
+@@ -286,6 +287,42 @@ struct mana_rnic_destroy_rc_qp_resp {
+ 	struct gdma_resp_hdr hdr;
+ }; /* HW Data */
+ 
++struct mana_ib_ah_attr {
++	u8 src_addr[16];
++	u8 dest_addr[16];
++	u8 src_mac[ETH_ALEN];
++	u8 dest_mac[ETH_ALEN];
++	u8 src_addr_type;
++	u8 dest_addr_type;
++	u8 hop_limit;
++	u8 traffic_class;
++	u16 src_port;
++	u16 dest_port;
++	u32 reserved;
++};
++
++struct mana_rnic_set_qp_state_req {
++	struct gdma_req_hdr hdr;
++	mana_handle_t adapter;
++	mana_handle_t qp_handle;
++	u64 attr_mask;
++	u32 qp_state;
++	u32 path_mtu;
++	u32 rq_psn;
++	u32 sq_psn;
++	u32 dest_qpn;
++	u32 max_dest_rd_atomic;
++	u32 retry_cnt;
++	u32 rnr_retry;
++	u32 min_rnr_timer;
++	u32 reserved;
++	struct mana_ib_ah_attr ah_attr;
++}; /* HW Data */
++
++struct mana_rnic_set_qp_state_resp {
++	struct gdma_resp_hdr hdr;
++}; /* HW Data */
++
+ static inline struct gdma_context *mdev_to_gc(struct mana_ib_dev *mdev)
+ {
+ 	return mdev->gdma_dev->gdma_context;
+diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
+index 14e6adb..5393b6f 100644
+--- a/drivers/infiniband/hw/mana/qp.c
++++ b/drivers/infiniband/hw/mana/qp.c
+@@ -492,11 +492,79 @@ int mana_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
+ 	return -EINVAL;
+ }
+ 
++static int mana_ib_gd_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++				int attr_mask, struct ib_udata *udata)
++{
++	struct mana_ib_dev *mdev = container_of(ibqp->device, struct mana_ib_dev, ib_dev);
++	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
++	struct mana_rnic_set_qp_state_resp resp = {};
++	struct mana_rnic_set_qp_state_req req = {};
++	struct gdma_context *gc = mdev_to_gc(mdev);
++	struct mana_port_context *mpc;
++	struct net_device *ndev;
++	int err;
++
++	mana_gd_init_req_hdr(&req.hdr, MANA_IB_SET_QP_STATE, sizeof(req), sizeof(resp));
++	req.hdr.dev_id = gc->mana_ib.dev_id;
++	req.adapter = mdev->adapter_handle;
++	req.qp_handle = qp->qp_handle;
++	req.qp_state = attr->qp_state;
++	req.attr_mask = attr_mask;
++	req.path_mtu = attr->path_mtu;
++	req.rq_psn = attr->rq_psn;
++	req.sq_psn = attr->sq_psn;
++	req.dest_qpn = attr->dest_qp_num;
++	req.max_dest_rd_atomic = attr->max_dest_rd_atomic;
++	req.retry_cnt = attr->retry_cnt;
++	req.rnr_retry = attr->rnr_retry;
++	req.min_rnr_timer = attr->min_rnr_timer;
++	if (attr_mask & IB_QP_AV) {
++		ndev = mana_ib_get_netdev(&mdev->ib_dev, ibqp->port);
++		if (!ndev) {
++			ibdev_dbg(&mdev->ib_dev, "Invalid port %u in RC QP %u\n",
++				  ibqp->port, ibqp->qp_num);
++			return -EINVAL;
++		}
++		mpc = netdev_priv(ndev);
++		copy_in_reverse(req.ah_attr.src_mac, mpc->mac_addr, ETH_ALEN);
++		copy_in_reverse(req.ah_attr.dest_mac, attr->ah_attr.roce.dmac, ETH_ALEN);
++		copy_in_reverse(req.ah_attr.src_addr, attr->ah_attr.grh.sgid_attr->gid.raw,
++				sizeof(union ib_gid));
++		copy_in_reverse(req.ah_attr.dest_addr, attr->ah_attr.grh.dgid.raw,
++				sizeof(union ib_gid));
++		if (rdma_gid_attr_network_type(attr->ah_attr.grh.sgid_attr) == RDMA_NETWORK_IPV4) {
++			req.ah_attr.src_addr_type = SGID_TYPE_IPV4;
++			req.ah_attr.dest_addr_type = SGID_TYPE_IPV4;
++		} else {
++			req.ah_attr.src_addr_type = SGID_TYPE_IPV6;
++			req.ah_attr.dest_addr_type = SGID_TYPE_IPV6;
++		}
++		req.ah_attr.dest_port = ROCE_V2_UDP_DPORT;
++		req.ah_attr.src_port = rdma_get_udp_sport(attr->ah_attr.grh.flow_label,
++							  ibqp->qp_num, attr->dest_qp_num);
++		req.ah_attr.traffic_class = attr->ah_attr.grh.traffic_class;
++		req.ah_attr.hop_limit = attr->ah_attr.grh.hop_limit;
++	}
++
++	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
++	if (err) {
++		ibdev_err(&mdev->ib_dev, "Failed modify qp err %d", err);
++		return err;
++	}
++
++	return 0;
++}
++
+ int mana_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		      int attr_mask, struct ib_udata *udata)
+ {
+-	/* modify_qp is not supported by this version of the driver */
+-	return -EOPNOTSUPP;
++	switch (ibqp->qp_type) {
++	case IB_QPT_RC:
++		return mana_ib_gd_modify_qp(ibqp, attr, attr_mask, udata);
++	default:
++		ibdev_dbg(ibqp->device, "Modify QP type %u not supported", ibqp->qp_type);
++		return -EOPNOTSUPP;
++	}
+ }
+ 
+ static int mana_ib_destroy_qp_rss(struct mana_ib_qp *qp,
 -- 
 2.43.0
 
