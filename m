@@ -1,111 +1,158 @@
-Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B02232A1D6;
-	Thu,  9 May 2024 18:02:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=204.191.154.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE6DB38382
+	for <linux-rdma@vger.kernel.org>; Thu,  9 May 2024 20:51:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715277780; cv=none; b=miATHtpibwnK5RLaFgE4RUZcNz/ikoRsxj3GFgDBobUQa2cysrKtGCXz2aGFZ1i/PDaWV5glZ/9gaiSAXcZ/+xr29QAyJWyg6zQmP3sbMuSVosrpr3n0oWy756Bu2Kny3kyZJERUSwHpm4fQB+shreXNVcHPXQxjYD+u6DHULRk=
+	t=1715287867; cv=none; b=JB9yT/dKZ6gdkSPgq3F8Zxko0rzAas1MyoH3j3bdKMq688IiG3hpa/MIcYFWNSWBToSoFtqXY5+0hiDO8uYWihxgmNNHkGKdl6eHpIvCk9nOmq886k4W3rOZJch6jsPi+g6UOBdCYKr28DvT988PjUQ1ZYAJIVM6IwGEa5p5Gvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715277780; c=relaxed/simple;
-	bh=KLv7MyynT4KBKlYpMAeljvNPeKJkIWm6jSoOqlGHsOk=;
-	h=Message-ID:Date:MIME-Version:To:Cc:From:Content-Type:Subject; b=p81AScE7JX5KdhKvtEp/BrvywZFeJQtdik2f9vuP6DRT1U7o+dOczOM+Lg2GJVMsjOnpe6WsEfGuPyQtdTX3Y8kWIUXUhLr6G2JusajS1yBnlwVS64sxhPooOywoeUbtsA3gLN+XkhygmziiRI5EpzthFp5bOwsX4XbZ7AkRkwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com; spf=pass smtp.mailfrom=deltatee.com; dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b=qyIg2OFG; arc=none smtp.client-ip=204.191.154.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=deltatee.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=deltatee.com
+	s=arc-20240116; t=1715287867; c=relaxed/simple;
+	bh=ULvDOg8fzMreit7CsVIx5pIp0ST1oc4hCpoTX41YwQ4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=eJbKQmU5N1gVStwpKS84zSMJCs+zYDxKtUw1ewQxi6OUTdh+XSH+2WKT4zvc2verqd0JbTbACoOPXKoyk+/P55rCM/CFjBZ33P1fOaZ7PL2+lIiqxW53nV2If0YzC8CrCqrt9c9NWsixbb6gPX5ZgGqP41aOhVG9S7wq60KSGC4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fastly.com; spf=pass smtp.mailfrom=fastly.com; dkim=pass (1024-bit key) header.d=fastly.com header.i=@fastly.com header.b=oDRxItNP; arc=none smtp.client-ip=209.85.214.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fastly.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fastly.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=deltatee.com header.i=@deltatee.com header.b="qyIg2OFG"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=deltatee.com; s=20200525; h=Subject:From:Cc:To:MIME-Version:Date:Message-ID
-	:references:content-disposition:in-reply-to;
-	bh=KLv7MyynT4KBKlYpMAeljvNPeKJkIWm6jSoOqlGHsOk=; b=qyIg2OFGPzM51pjipX4C+EC6qj
-	2l74tDOz8G9T0E66R4Zp5fo5B56QPOZL34MdAMsVZQpBXkFGucgJTkR3wxnL2EtDnzXBKssNeBszL
-	ob3hr7t6+D2ePbiCBGuLeLyCUffY/8szTtEe3Ung3q2ebRxw1JOEW0qu/rO7gU2/gQNohgZjF1/RS
-	QQy0vuKSJwY2IJJvwhYbCKfagJUCrLw3Tf834fSgR84t9FgBVrzoXIckTXR+wNSCq6/IMBr7gewG6
-	zE96Eu0IrqXy1Rhai0/ETTCYVwoYPVwpXr9S4H94lcV8iyuhHShtUmxfeziMz58jVA31MEcCG1aov
-	kEzWxT3A==;
-Received: from d104-157-31-28.abhsia.telus.net ([104.157.31.28] helo=[192.168.1.250])
-	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.94.2)
-	(envelope-from <logang@deltatee.com>)
-	id 1s57cN-00ELue-Q8; Thu, 09 May 2024 11:31:44 -0600
-Message-ID: <fa2d39cf-b0df-4674-979d-b775d5077bce@deltatee.com>
-Date: Thu, 9 May 2024 11:31:33 -0600
+	dkim=pass (1024-bit key) header.d=fastly.com header.i=@fastly.com header.b="oDRxItNP"
+Received: by mail-pl1-f178.google.com with SMTP id d9443c01a7336-1ed904c2280so8296735ad.2
+        for <linux-rdma@vger.kernel.org>; Thu, 09 May 2024 13:51:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fastly.com; s=google; t=1715287864; x=1715892664; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=6WOWZIIxnPOq21znhA4s7gPvFpmBQHVTMtFbaXbcv/M=;
+        b=oDRxItNPrZ55Izxu62VpTQCiNDFO/4B7qvA6h+lQfNTjdai/d1yAd+86+XOrImbTWm
+         ytSGu+Q4ltJ7NdXmS4Zmd7m2ptz0NLG5j17mCNvxueDcMB4MVVb0cLxeKp2Qg7gcJITY
+         FPcPutI/MxXMEJbvC21RVVZefSgnHQdUfqeXc=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1715287864; x=1715892664;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=6WOWZIIxnPOq21znhA4s7gPvFpmBQHVTMtFbaXbcv/M=;
+        b=Y5nzmeHqW5jgnb7WxDs/FxTfwOarB6lQB5/foDUgMlQ1Q4QtktVksWCbfh2/W7KLje
+         epxMd5TC37jC7kccPFrmfcrfw1AHwyGkr8hEGU21g1JaBSbUQvFkXckAi7Dqmk0jd9/e
+         fuIbvKnBP9RTCrzGjQ7V0bvWbfZts/6gI6ilaEQr5rEGzTRZ/eIjf7FpiD3EuMzQGqtE
+         ZR9bOn+oL2tKTI8uUHUP2SqSEas6tLrIhFN/bojvKXrLJCihBEsz+CoMLZxDlo6seTLv
+         9mhSbK0AduUcRr4e3xOJO9vD4M/WWRYbyld7PukEdojSlgmat6kCayZexTjC/5gAfs74
+         mYIw==
+X-Forwarded-Encrypted: i=1; AJvYcCUVlI9f6nDC7g27choAHFDk/U2XlAO4Jo6JjrWnYU5G9vfZk3bus/0uxtIcvMFZ8B7D17aFI2yvrhpGwfqikoYYekrX209HFBs/sQ==
+X-Gm-Message-State: AOJu0Yzt839Wh2ZtebLAs+ftXBXAF7+PWC471WOL124YrmKOmxlPmliy
+	hIgswjr2J2/zPbAwdkYjs91g/rgXcFbSbY2XPlFSccdvlehm+cxwNB7QSGLd5qsgCHNfv+UIf2w
+	3
+X-Google-Smtp-Source: AGHT+IGHkpejsVXRV8ql1hyGhEzIcKTj2CVCTqG9GuqWnOnXiJfrIi5Kcqs9pXR36nwYHzVi95fM3Q==
+X-Received: by 2002:a17:902:d483:b0:1ed:867:9ea0 with SMTP id d9443c01a7336-1ef4404a894mr8892845ad.57.1715287864055;
+        Thu, 09 May 2024 13:51:04 -0700 (PDT)
+Received: from localhost.localdomain ([2620:11a:c019:0:65e:3115:2f58:c5fd])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1ef0badb959sm18677365ad.85.2024.05.09.13.51.02
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 May 2024 13:51:03 -0700 (PDT)
+From: Joe Damato <jdamato@fastly.com>
+To: linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org
+Cc: mkarsten@uwaterloo.ca,
+	nalramli@fastly.com,
+	Joe Damato <jdamato@fastly.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	linux-rdma@vger.kernel.org (open list:MELLANOX MLX4 core VPI driver),
+	Paolo Abeni <pabeni@redhat.com>,
+	Tariq Toukan <tariqt@nvidia.com>
+Subject: [PATCH net-next v4 0/3] mlx4: Add support for netdev-genl API
+Date: Thu,  9 May 2024 20:50:53 +0000
+Message-Id: <20240509205057.246191-1-jdamato@fastly.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-CA
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Martin Oliveira <Martin.Oliveira@eideticom.com>,
- Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>,
- LKML <linux-kernel@vger.kernel.org>,
- "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
- "linux-mm@kvack.org" <linux-mm@kvack.org>
-From: Logan Gunthorpe <logang@deltatee.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 104.157.31.28
-X-SA-Exim-Rcpt-To: jgg@ziepe.ca, Martin.Oliveira@eideticom.com, hch@lst.de, dan.j.williams@intel.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org
-X-SA-Exim-Mail-From: logang@deltatee.com
-X-Spam-Level: 
-Subject: P2PDMA in Userspace RDMA
-X-SA-Exim-Version: 4.2.1 (built Sat, 13 Feb 2021 17:57:42 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
+Content-Transfer-Encoding: 8bit
 
-Hi Jason,
+Greetings:
 
-We've become interested again in enabling P2PDMA transactions with
-userspace RDMA and the NVMe CMBs we are already exporting to userspace
-from our previous work.
+Welcome to v4.
 
-Enabling FOLL_PCI_P2PDMA in ib_umem_get is almost a trivial change, but
-there are two issues holding us back.
+This series adds support to mlx4 for the netdev-genl API which makes it
+much easier for users and user programs to map NAPI IDs back to
+ifindexes, queues, and IRQs. This is extremely useful for a number of
+use cases, including epoll-based busy poll.
 
-The biggest issue is that we disallowed FOLL_LONGTERM with
-FOLL_PCI_P2PDMA out of concern that P2PDMA had the same problem as
-fs-dax. See [1] to review the discussion from 2 years ago. However, in
-trying to understand the problem again, I'm not sure that concern was
-valid. In P2PDMA, unmap_mapping_range() is strictly only called on
-driver unbind when everything is getting torn down[2]. The next thing
-that happens immediately after the unmap is the tear down of the pgmap
-which drops the elevated reference on the pages and waits for all page's
-reference counts to go back to zero. This will effectively wait until
-all longterm pins involving the memory have been released. This can
-cause a hang on unbind but, in your words, its "annoying not critical".
+In addition, this series includes a patch to generate per-queue
+statistics using the netlink API, as well.
 
-Even if unmap_mapping_range() was happening outside of teardown, the
-P2PDMA code isn't like a regular filesystem in that it fully supports
-the elevated reference counts in the pgmap code and pages cannot be
-reused until the pin releases its reference counts and the count returns
-back to one. So I don't really see how there can be a UAF concern with this.
+To facilitate the stats, patch 1/3 adds a field "alloc_fail" to the ring
+structure.  incremented by the driver in an appropriate place and used
+in patch 3/3 as alloc_fail.
 
-Unless I'm really missing something, it seems P2PDMA does not have the
-same concern as fs-dax and I think it is safe to remove that
-restriction. Any objections?
+Please note: I do not have access to mlx4 hardware, but I've been
+working closely with Martin Karsten from University of Waterloo (CC'd)
+who has very graciously tested my patches on their mlx4 hardware (hence
+his Tested-by attribution in each commit). His latest research work is
+particularly interesting [1] and this series helps to support that (and
+future) work.
 
-The other issue we hit when enabling this feature is the check for
-vma_needs_dirty_tracking() in writable_file_mapping_allowed() during the
-gup flow. This hits because the p2pdma code is using the common
-sysfs/kernfs infrastructure to create the VMA which installs a
-page_mkwrite operator()[4] to change the file update time on write. I
-don't think this feature really makes any sense for the P2PDMA sysfs
-file which is really operating as an allocator in userspace -- the time
-on the file does not really need to reflect the last write of some
-process that wrote to memory allocated using it. So I think removing the
-operator for P2PDMA makes sense, it's just a matter of creating the
-plumbing that allows P2PDMA to indicate this to kernfs. There may be a
-certain amount of bikeshedding on how this might be done, but it doesn't
-seem terribly complicated.
+Martin re-test v4 using Jakub's suggested tool [2] and the
+stats.pkt_byte_sum and stats.qstat_by_ifindex tests passed. He also
+adjusted the queue count and re-ran test to confirm it still passed even
+if the queue count was modified.
 
-Thoughts?
+[1]: https://dl.acm.org/doi/pdf/10.1145/3626780
+[2]: https://lore.kernel.org/lkml/20240423175718.4ad4dc5a@kernel.org/
 
-Logan
+Thanks,
+Joe
 
-[1] https://lore.kernel.org/all/Yy4Ot5MoOhsgYLTQ@ziepe.ca/T/#u
-[2] https://elixir.bootlin.com/linux/v6.8.8/source/drivers/pci/p2pdma.c#L333
-[3] https://elixir.bootlin.com/linux/v6.8.8/source/mm/gup.c#L1029
-[4] https://elixir.bootlin.com/linux/v6.8.8/source/fs/kernfs/file.c#L435
+v3 -> v4:
+ - Patch 1/3: adds alloc_fail field to struct mlx4_en_rx_ring.
+   Increments this new field (instead of dropped as in the last version)
+   on ENOMEM in mlx4_en_alloc_frags.
+ - Patch 2/3: No changes.
+ - Patch 3/3:
+   - Removed Jakub's Reviewed-by since some number of changes were made.
+   - Removed checking the validity of 'i' from both
+     mlx4_get_queue_stats_[rt]x as the core code will ensure i is valid
+     for us.
+   - stats->alloc_fail now uses the new field added in patch 1/3
+     instead of dropped.
+
+v2 -> v3:
+ - Patch 1/3 no longer sets rx_missed_errors. dropped is still
+   incremented on -ENOMEM, though, and reported as alloc_fail in the
+   stats API introduced in patch 3/3.
+ - Patch 2/3: Added Jakub's Acked-by to the commit message, no
+   functional changes.
+ - Patch 3/3: Added Jakub's Reviewed-by to the commit message, no
+   functional changes.
+
+v1 -> v2:
+ - Patch 1/3 now initializes dropped to 0.
+ - Patch 2/3 fix use of uninitialized qtype warning.
+ - Patch 3/3 includes several changes:
+   - mlx4_get_queue_stats_rx and mlx4_get_queue_stats_tx check if i is
+     valid before proceeding.
+   - All initialization to 0xff for stats fields has been omit. The
+     network stack does this before calling into the driver functions, so
+     I've adjusted the driver functions to only set values if there is
+     data to set, leaving the network stack's 0xff in place if not.
+   - mlx4_get_base_stats set all stat fields to 0 individually if there
+     are RX and TX queues.
+
+
+Joe Damato (3):
+  net/mlx4: Track RX allocation failures in a stat
+  net/mlx4: link NAPI instances to queues and IRQs
+  net/mlx4: support per-queue statistics via netlink
+
+ drivers/net/ethernet/mellanox/mlx4/en_cq.c    | 14 ++++
+ .../net/ethernet/mellanox/mlx4/en_netdev.c    | 73 +++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c    |  4 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h  |  2 +
+ 4 files changed, 92 insertions(+), 1 deletion(-)
+
+-- 
+2.25.1
+
