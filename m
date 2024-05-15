@@ -1,50 +1,50 @@
 Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 156C412A14C;
-	Wed, 15 May 2024 12:54:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE854101C8;
+	Wed, 15 May 2024 12:54:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715777688; cv=none; b=ZPQs56phd+qaMw+rKkVlPQFs1GCisu04RiQTtWOeTpJM7mMNAxp+1pUKKRIuMh8kOtHFq/rclWBlgDfEt5Ebm/d/It3Rq+ojFnZ/miEIjHT+e0l0AbdvilwOP7/E5z7LA2vn/dTSDkat/aaMteoys+en5ENirdbtZND1GU4a/7A=
+	t=1715777698; cv=none; b=qhTleSnS7voAYGKp18OWs0rF7SZfLBu99ZeEmH/lZ+C1a3ORs+qzraRMr+Y0AEw0OTXG+eaHpuCcMsYSI7PXkB7xNQUEyx1Z80Kao3msQV7oGA60ImgehkdWEZUw3L0NYeVAouyBlv7jW7T7I/b23RcvMQfyQCvW0TTB+a6amDg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715777688; c=relaxed/simple;
-	bh=BwJptKrYjAbKhxsaZQSlX4GaCMh473E6P/Oc3sa5jBg=;
+	s=arc-20240116; t=1715777698; c=relaxed/simple;
+	bh=wUZJNekknAtY0xAkk6kJRnfr+7rn2D06aTHGKn1Bv90=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=eGukuESUSM/IQRhg6II/IENxMyn5nAajc7BCe2NIlC32Mz0KbgUofnm12zCnLW2kDqoPyszBHD6kElmA3r3HWl40xEcZXW6OX8ITc2YrOBb84qfVuMGAORlWXH5ZMS8F3r4MYw32w5LgUNs+rlLJRf+kED9cVdi4j+igO7xJFSA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=abbjIaF0; arc=none smtp.client-ip=205.220.177.32
+	 MIME-Version:Content-Type; b=PD77YI6FXUn1ZckuTvN+3gWrrJvfULeYM6v+nlYjUskfV+9ZuVDwsdnc/+e3dZeLdmSD7wTt5MlWDJNKtNyWY5TR3Wcphy9Kukb4RoDZ4voR3YBZr0dR/sfrVzSBF7oMHkEPdA/CEc2d3QxluY3oFqV5PrrjtY0VywM5hL6ZQaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=hx28RVeN; arc=none smtp.client-ip=205.220.177.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="abbjIaF0"
-Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44F7nSqc020198;
-	Wed, 15 May 2024 12:54:18 GMT
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="hx28RVeN"
+Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44F7n23v008505;
+	Wed, 15 May 2024 12:54:08 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-type : content-transfer-encoding; s=corp-2023-11-20;
- bh=s0o7+CZvTIXe6mctHjZROAylxKEWHdEvfBwqKM9aQ9o=;
- b=abbjIaF0AwNIVU8KK/hiL64wblA/l9agjjV6C+0tS4HXrSL4j9ZCQ9KNzp0CkxGnStWY
- 4ze8kyDLHTdTGBJoS4omt00OUHuH6EP/D3H7dzTpM3EdkJmj4JTul1DLpiBCzusrMfDX
- Vlk7CTCOBk11ZJN5E0Q+GXgGnUi6C6Gy0wGCqtTT56EfwSuGz3W4Fho1nZWe1OGurpBE
- TgSMh8GZ/umtuGjljh4PPDFVyKRsludETde96qiHo0woiJeZ7wf9Q8HgG2H7+/KH0a/w
- Y+Ei6JIwpj0KSz32mBq/+qGebYmzfxc403btMpNWZMuG+mxUHJS9G/rfQWS+E7oU26T5 /g== 
+ bh=y5Ep9p+cIwPUrjX1dgCqftpNDUoKQDrgqAGsTqnOQGI=;
+ b=hx28RVeNq/YVOuf09oBVYT2LGDZ5RQmlcJ5exnHEZEmvKviuAcO4xu2pE/SY7tWd+KhW
+ 0NRNlenWkE2BUNbAhvA+pas1BbmelpDIak9pZ9ffNfBAHNBUQQBBGaiem9cNSlpPWgWd
+ yms+HZo/6ueYLrBIcQwOq8w4qhTF0Xpj6oyFTeS4YGk8w2iChwoX7DeCoDVMl5BFOoss
+ EDzRaJd9dSqKjbCXRU8Gf7kSFZ75/I0yE68XnyjTxRABN1LVG5cz0UYKtvE9lBsavfhl
+ +ztZPU4XgKP7PP+OYoRjepJthWuAb4bFl0HNuspCz9HISsQok8RCAC6OkLHrrl+CjMce 8g== 
 Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y3rh7d68a-1
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y3t4fcxkj-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 15 May 2024 12:54:18 +0000
+	Wed, 15 May 2024 12:54:08 +0000
 Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44FCoUj7038301;
-	Wed, 15 May 2024 12:54:17 GMT
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44FBLBLx038451;
+	Wed, 15 May 2024 12:54:07 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3y24pxgv26-1
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3y24pxguvp-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 15 May 2024 12:54:17 +0000
+	Wed, 15 May 2024 12:54:07 +0000
 Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44FCmlrp038458;
-	Wed, 15 May 2024 12:54:16 GMT
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44FCmlrj038458;
+	Wed, 15 May 2024 12:54:06 GMT
 Received: from lab61.no.oracle.com (lab61.no.oracle.com [10.172.144.82])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 3y24pxgud9-7;
-	Wed, 15 May 2024 12:54:15 +0000
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 3y24pxgud9-5;
+	Wed, 15 May 2024 12:54:06 +0000
 From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
 To: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com
@@ -61,9 +61,9 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
         Chuck Lever <chuck.lever@oracle.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yang Li <yang.lee@linux.alibaba.com>
-Subject: [PATCH v2 6/6] net/mlx5: Brute force GFP_NOIO
-Date: Wed, 15 May 2024 14:53:42 +0200
-Message-Id: <20240515125342.1069999-7-haakon.bugge@oracle.com>
+Subject: [PATCH v2 4/6] RDMA/cm: Brute force GFP_NOIO
+Date: Wed, 15 May 2024 14:53:40 +0200
+Message-Id: <20240515125342.1069999-5-haakon.bugge@oracle.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20240515125342.1069999-1-haakon.bugge@oracle.com>
 References: <20240515125342.1069999-1-haakon.bugge@oracle.com>
@@ -82,22 +82,22 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 adult
  spamscore=0 phishscore=0 suspectscore=0 mlxlogscore=999 malwarescore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2405010000
  definitions=main-2405150090
-X-Proofpoint-ORIG-GUID: N-dzc11NI8Kv6kMPLKg5cydwUWlPdkj4
-X-Proofpoint-GUID: N-dzc11NI8Kv6kMPLKg5cydwUWlPdkj4
+X-Proofpoint-ORIG-GUID: KnmR6otdKS4p2wIQ7YWGWGOG1z_IZBy2
+X-Proofpoint-GUID: KnmR6otdKS4p2wIQ7YWGWGOG1z_IZBy2
 
-In mlx5_core_init(), we call memalloc_noio_{save,restore} in a parenthetic
+In ib_cm_init(), we call memalloc_noio_{save,restore} in a parenthetic
 fashion when enabled by the module parameter force_noio.
 
-This in order to conditionally enable mlx5_core to work aligned with
+This in order to conditionally enable ib_cm to work aligned with block
 I/O devices. Any work queued later on work-queues created during
 module initialization will inherit the PF_MEMALLOC_{NOIO,NOFS}
 flag(s), due to commit ("workqueue: Inherit NOIO and NOFS alloc
 flags").
 
-We do this in order to enable ULPs using the RDMA stack and the
-mlx5_core driver to be used as a network block I/O device. This to
-support a filesystem on top of a raw block device which uses said
-ULP(s) and the RDMA stack as the network transport layer.
+We do this in order to enable ULPs using the RDMA stack to be used as
+a network block I/O device. This to support a filesystem on top of a
+raw block device which uses said ULP(s) and the RDMA stack as the
+network transport layer.
 
 Under intense memory pressure, we get memory reclaims. Assume the
 filesystem reclaims memory, goes to the raw block device, which calls
@@ -117,62 +117,57 @@ We break this circular dependency by:
 
 Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/cm.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 331ce47f51a17..aa1bf8bb5d15c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -48,6 +48,7 @@
- #include <linux/mlx5/vport.h>
- #include <linux/version.h>
- #include <net/devlink.h>
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 07fb8d3c037f0..767eec38eb57d 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -22,6 +22,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/kdev_t.h>
+ #include <linux/etherdevice.h>
 +#include <linux/sched/mm.h>
- #include "mlx5_core.h"
- #include "lib/eq.h"
- #include "fs_core.h"
-@@ -87,6 +88,10 @@ static unsigned int prof_sel = MLX5_DEFAULT_PROF;
- module_param_named(prof_sel, prof_sel, uint, 0444);
- MODULE_PARM_DESC(prof_sel, "profile selector. Valid range 0 - 2");
  
-+static bool mlx5_core_force_noio;
-+module_param_named(force_noio, mlx5_core_force_noio, bool, 0444);
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_cm.h>
+@@ -35,6 +36,11 @@ MODULE_DESCRIPTION("InfiniBand CM");
+ MODULE_LICENSE("Dual BSD/GPL");
+ 
+ #define CM_DESTROY_ID_WAIT_TIMEOUT 10000 /* msecs */
++
++static bool cm_force_noio;
++module_param_named(force_noio, cm_force_noio, bool, 0444);
 +MODULE_PARM_DESC(force_noio, "Force the use of GFP_NOIO (Y/N)");
 +
- static u32 sw_owner_id[4];
- #define MAX_SW_VHCA_ID (BIT(__mlx5_bit_sz(cmd_hca_cap_2, sw_vhca_id)) - 1)
- static DEFINE_IDA(sw_vhca_ida);
-@@ -2312,8 +2317,12 @@ static void mlx5_core_verify_params(void)
- 
- static int __init mlx5_init(void)
+ static const char * const ibcm_rej_reason_strs[] = {
+ 	[IB_CM_REJ_NO_QP]			= "no QP",
+ 	[IB_CM_REJ_NO_EEC]			= "no EEC",
+@@ -4504,6 +4510,10 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
+ static int __init ib_cm_init(void)
  {
+ 	int ret;
 +	unsigned int noio_flags;
- 	int err;
- 
-+	if (mlx5_core_force_noio)
-+		noio_flags = memalloc_noio_save();
 +
- 	WARN_ONCE(strcmp(MLX5_ADEV_NAME, KBUILD_MODNAME),
- 		  "mlx5_core name not in sync with kernel module name");
++	if (cm_force_noio)
++		noio_flags = memalloc_noio_save();
  
-@@ -2334,7 +2343,7 @@ static int __init mlx5_init(void)
- 	if (err)
- 		goto err_pci;
+ 	INIT_LIST_HEAD(&cm.device_list);
+ 	rwlock_init(&cm.device_lock);
+@@ -4527,10 +4537,13 @@ static int __init ib_cm_init(void)
+ 	if (ret)
+ 		goto error3;
  
 -	return 0;
-+	goto out;
- 
- err_pci:
- 	mlx5_sf_driver_unregister();
-@@ -2342,6 +2351,9 @@ static int __init mlx5_init(void)
- 	mlx5e_cleanup();
- err_debug:
- 	mlx5_unregister_debugfs();
-+out:
-+	if (mlx5_core_force_noio)
++	goto error2;
+ error3:
+ 	destroy_workqueue(cm.wq);
+ error2:
++	if (cm_force_noio)
 +		memalloc_noio_restore(noio_flags);
- 	return err;
++
+ 	return ret;
  }
  
 -- 
