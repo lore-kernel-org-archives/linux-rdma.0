@@ -1,50 +1,50 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBCE6128382;
-	Wed, 15 May 2024 12:54:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0C2612D1EB;
+	Wed, 15 May 2024 12:54:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.165.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715777666; cv=none; b=dfX4V+rBl93i6NvpzTzY2DK8Or8wI7Kj1Zz/VQ5H+D+/y98tNVnA9FM3VQsbr9gi+r/0HFFYw6Da2RIPUm3pjrzEzLvFR9mnml7/bPanhTT7mBtFSmoljITPaDdj9IU+/+N1v3lcGryf7sd/dppZcPcGMKFhfrkUgdmUK/LOJ28=
+	t=1715777670; cv=none; b=lEbgAakJs7jUrJ1NJ6r98N0AyH1iFMquqm4LWNDHB0rohz/jMRA6VHN+xImAEAPq20Ye0td838tyRyyU89NGby6XKYkwgiArSwQoieaanvJI3Jd0qMrBZb8/AY6MLAOPdkhw5YhuBcn69bG8Twkj3Ydfq3rP8NJZCWZhIylsHPM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715777666; c=relaxed/simple;
-	bh=bC51ekxs+x55vMw5lPjDrzXR33HcuoruRI1JEsJzfAQ=;
+	s=arc-20240116; t=1715777670; c=relaxed/simple;
+	bh=WDczq20XbWRkd6erlw7nKOvVwrFt2POHObD/O5KkuIM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=nsoFQqTm0CIwfy5yuhbYfiLswqL/vCf7Uw6ua+5JMe1n5uuQD63n5KcdxLT5p45BcSWj/txuCfYzkBgZHRMBb5TPuYPe49nd+TIyXQwF6Y2VpXge5GfJx2sbgAz3pXPN7nkAsrjpm62d4TCrpVfmEhzusH1M2bxLmzhD+KXMMsA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=jwZU8C3x; arc=none smtp.client-ip=205.220.177.32
+	 MIME-Version:Content-Type; b=sJnMUNALiIaJnEaTdqX/I10PiFAM5dd9BbbF7o28ll5JriT5faSVJ4y/SHRiKGT7BILXy8+sq+i940lf2fuBTgBhpb3x5/rwoB1AFUagg6XZpmAbXHfz9xO0aZi9TNKgSDgPL13exincqgNsvkH1tBkWFhs+evtmJXY8B4nKeQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=Stl2WT2D; arc=none smtp.client-ip=205.220.165.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="jwZU8C3x"
-Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44F7n2n4008508;
-	Wed, 15 May 2024 12:54:04 GMT
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Stl2WT2D"
+Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44F7nmhU007983;
+	Wed, 15 May 2024 12:54:13 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-type : content-transfer-encoding; s=corp-2023-11-20;
- bh=lwFCNObJX0XFJa8hB9AVQPbhaHJVkhAUATWysKIQAgU=;
- b=jwZU8C3x/otvDKVXjLu5jM6iBLWrzNPMqLm5OumM7uLmuVPYNzI/YWNJkaI3BVcJ6d93
- 9049Uz8Mc8W7z6BARMbO/iM/Q1vtmwzbCb9KisAQcr9gK/WmSktePESkZKMCpm9CbOsB
- dQBJznWtdS/sys7Q3VqnqLF0ZfT0gzzX5ujb4N2x/InM3YAZ2fh/L3zxAoTbKY8CEtJr
- 2A5AHO1rnzpsdFcHegQjHOkCFHNx7lFQST/SV5U+vMcXxsX/oC0f3OPwwL+Hg+mOC92g
- CbXP9pGbwGqB8mBlH+acFqjVz1jru3N+i2LXVfiJdyWKsWT7+uJyV0jVuMC4kZfwJT4f 1A== 
+ bh=Oul7kiaHhrfZm4+kHLzEtR9tfTF72t6p8eV981BEwMs=;
+ b=Stl2WT2D3dUP3PdsN7iX9vIfmcdXi13jHmxVEn1gCFzFXFsMHDbVezfv3ahd3GzWYpxH
+ Orcvt54dz4gkROZSox0YWAKms0v6sxJZvUoW66MLUpnaza6KzRxbnNRVTsGKaoKlO4Rl
+ PG04pkr6+zKkOgNm3XR8+7/4Myop1IpYG46uc5F8XnQ3ImYuwx9l8YMxOHifNWnkzj1J
+ ot/uGeB2Pp3d9dSXxq0yCJXh02jx5mnjW8Ab8ldwZowvArPxiLk3Q4jNUpYOLWo23ve0
+ PDKeBaoiYJUhlQ7SU91D3N9ihXVkLUFzqoUfDw3RGBtfuazaqOhtjR7y1JqG/+aeSt8E qw== 
 Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y3t4fcxkc-1
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y3txc2xy4-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 15 May 2024 12:54:03 +0000
+	Wed, 15 May 2024 12:54:12 +0000
 Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44FB3H0j038357;
-	Wed, 15 May 2024 12:54:02 GMT
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44FCoUj4038301;
+	Wed, 15 May 2024 12:54:12 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3y24pxgus7-1
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3y24pxguyk-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 15 May 2024 12:54:02 +0000
+	Wed, 15 May 2024 12:54:12 +0000
 Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44FCmlrg038458;
-	Wed, 15 May 2024 12:54:02 GMT
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44FCmlrm038458;
+	Wed, 15 May 2024 12:54:11 GMT
 Received: from lab61.no.oracle.com (lab61.no.oracle.com [10.172.144.82])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 3y24pxgud9-4;
-	Wed, 15 May 2024 12:54:01 +0000
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 3y24pxgud9-6;
+	Wed, 15 May 2024 12:54:11 +0000
 From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
 To: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com
@@ -61,9 +61,9 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
         Chuck Lever <chuck.lever@oracle.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yang Li <yang.lee@linux.alibaba.com>
-Subject: [PATCH v2 3/6] RDMA/cma: Brute force GFP_NOIO
-Date: Wed, 15 May 2024 14:53:39 +0200
-Message-Id: <20240515125342.1069999-4-haakon.bugge@oracle.com>
+Subject: [PATCH v2 5/6] RDMA/mlx5: Brute force GFP_NOIO
+Date: Wed, 15 May 2024 14:53:41 +0200
+Message-Id: <20240515125342.1069999-6-haakon.bugge@oracle.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20240515125342.1069999-1-haakon.bugge@oracle.com>
 References: <20240515125342.1069999-1-haakon.bugge@oracle.com>
@@ -82,28 +82,28 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 adult
  spamscore=0 phishscore=0 suspectscore=0 mlxlogscore=999 malwarescore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2405010000
  definitions=main-2405150090
-X-Proofpoint-ORIG-GUID: oFChewOnUQFX9hbMFeg7JCRgZXWct7Wm
-X-Proofpoint-GUID: oFChewOnUQFX9hbMFeg7JCRgZXWct7Wm
+X-Proofpoint-GUID: uqAvpFv5BDNlq6wgEzrgXWF0NFwsdt3m
+X-Proofpoint-ORIG-GUID: uqAvpFv5BDNlq6wgEzrgXWF0NFwsdt3m
 
-In cma_init(), we call memalloc_noio_{save,restore} in a parenthetic
+In mlx5_ib_init(), we call memalloc_noio_{save,restore} in a parenthetic
 fashion when enabled by the module parameter force_noio.
 
-This in order to conditionally enable rdma_cm to work aligned with
-block I/O devices. Any work queued later on work-queues created during
+This in order to conditionally enable mlx5_ib to work aligned with
+I/O devices. Any work queued later on work-queues created during
 module initialization will inherit the PF_MEMALLOC_{NOIO,NOFS}
 flag(s), due to commit ("workqueue: Inherit NOIO and NOFS alloc
 flags").
 
-We do this in order to enable ULPs using the RDMA stack to be used as
-a network block I/O device. This to support a filesystem on top of a
-raw block device which uses said ULP(s) and the RDMA stack as the
-network transport layer.
+We do this in order to enable ULPs using the RDMA stack and the
+mlx5_ib driver to be used as a network block I/O device. This to
+support a filesystem on top of a raw block device which uses said
+ULP(s) and the RDMA stack as the network transport layer.
 
 Under intense memory pressure, we get memory reclaims. Assume the
 filesystem reclaims memory, goes to the raw block device, which calls
-into the ULP in question, which calls the RDMA stack. Now, if
-regular GFP_KERNEL allocations in the ULP or the RDMA stack require
-reclaims to be fulfilled, we end up in a circular dependency.
+into the ULP in question, which calls the RDMA stack. Now, if regular
+GFP_KERNEL allocations in ULP or the RDMA stack require reclaims to be
+fulfilled, we end up in a circular dependency.
 
 We break this circular dependency by:
 
@@ -117,64 +117,66 @@ We break this circular dependency by:
 
 Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
 ---
- drivers/infiniband/core/cma.c | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 1e2cd7c8716e8..23a50cc3e81cb 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -50,6 +50,10 @@ MODULE_LICENSE("Dual BSD/GPL");
- #define CMA_IBOE_PACKET_LIFETIME 16
- #define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c2b557e642906..a424d518538ed 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -56,6 +56,10 @@ MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
+ MODULE_DESCRIPTION("Mellanox 5th generation network adapters (ConnectX series) IB driver");
+ MODULE_LICENSE("Dual BSD/GPL");
  
-+static bool cma_force_noio;
-+module_param_named(force_noio, cma_force_noio, bool, 0444);
++static bool mlx5_ib_force_noio;
++module_param_named(force_noio, mlx5_ib_force_noio, bool, 0444);
 +MODULE_PARM_DESC(force_noio, "Force the use of GFP_NOIO (Y/N)");
 +
- static const char * const cma_events[] = {
- 	[RDMA_CM_EVENT_ADDR_RESOLVED]	 = "address resolved",
- 	[RDMA_CM_EVENT_ADDR_ERROR]	 = "address error",
-@@ -5424,6 +5428,10 @@ static struct pernet_operations cma_pernet_operations = {
- static int __init cma_init(void)
+ struct mlx5_ib_event_work {
+ 	struct work_struct	work;
+ 	union {
+@@ -4489,16 +4493,23 @@ static struct auxiliary_driver mlx5r_driver = {
+ 
+ static int __init mlx5_ib_init(void)
  {
- 	int ret;
 +	unsigned int noio_flags;
-+
-+	if (cma_force_noio)
+ 	int ret;
+ 
++	if (mlx5_ib_force_noio)
 +		noio_flags = memalloc_noio_save();
- 
- 	/*
- 	 * There is a rare lock ordering dependency in cma_netdev_callback()
-@@ -5439,8 +5447,10 @@ static int __init cma_init(void)
- 	}
- 
- 	cma_wq = alloc_ordered_workqueue("rdma_cm", WQ_MEM_RECLAIM);
--	if (!cma_wq)
++
+ 	xlt_emergency_page = (void *)__get_free_page(GFP_KERNEL);
+-	if (!xlt_emergency_page)
 -		return -ENOMEM;
-+	if (!cma_wq) {
++	if (!xlt_emergency_page) {
 +		ret = -ENOMEM;
 +		goto out;
 +	}
  
- 	ret = register_pernet_subsys(&cma_pernet_operations);
- 	if (ret)
-@@ -5458,7 +5468,8 @@ static int __init cma_init(void)
- 	if (ret)
- 		goto err_ib;
+ 	mlx5_ib_event_wq = alloc_ordered_workqueue("mlx5_ib_event_wq", 0);
+ 	if (!mlx5_ib_event_wq) {
+ 		free_page((unsigned long)xlt_emergency_page);
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto out;
+ 	}
  
+ 	ret = mlx5_ib_qp_event_init();
+@@ -4515,7 +4526,7 @@ static int __init mlx5_ib_init(void)
+ 	ret = auxiliary_driver_register(&mlx5r_driver);
+ 	if (ret)
+ 		goto drv_err;
 -	return 0;
-+	ret = 0;
 +	goto out;
  
- err_ib:
- 	ib_unregister_client(&cma_client);
-@@ -5469,6 +5480,9 @@ static int __init cma_init(void)
- 	unregister_pernet_subsys(&cma_pernet_operations);
- err_wq:
- 	destroy_workqueue(cma_wq);
+ drv_err:
+ 	auxiliary_driver_unregister(&mlx5r_mp_driver);
+@@ -4526,6 +4537,9 @@ static int __init mlx5_ib_init(void)
+ qp_event_err:
+ 	destroy_workqueue(mlx5_ib_event_wq);
+ 	free_page((unsigned long)xlt_emergency_page);
 +out:
-+	if (cma_force_noio)
++	if (mlx5_ib_force_noio)
 +		memalloc_noio_restore(noio_flags);
  	return ret;
  }
