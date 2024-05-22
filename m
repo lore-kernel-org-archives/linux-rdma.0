@@ -1,50 +1,50 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A3B1448CD;
-	Wed, 22 May 2024 13:55:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.165.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B6D7145B25;
+	Wed, 22 May 2024 13:55:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716386130; cv=none; b=tJw+Obc/f0xkjdxdAWhXLWPahxvuGx6xveZkS7Wnujkl3aup77SQN/otbG28oTDEV/MBN0OCmLdhdu/Sj2mYc5CtEQfHlkve/6RiZAIuZxnwEbBGd+Ejj4u8uWIKg20YbS1xUKv9jvLowfaktPVeKkwY5PqFTTdrbJe+g6VrKLU=
+	t=1716386132; cv=none; b=YKnpnEMaxf69o9/5y7oQY6WXu99fsWvfm86680g1KYgK7jColTTrZnjgOL3tQGWpcRL0/jpWjRHBQ2jNRKlGkGDlKTuSvABSu0Tq+TgcB/GL2lK/ArDGpEvPPkVlK3LbN7H+pbx00tLA2JeTdiGrkD9dfFMa8xDDT+6dw0Ro6rg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716386130; c=relaxed/simple;
-	bh=/eLrnUv/ccO8hCexIgcoaF5RL3XvRmL0xNirt8amung=;
+	s=arc-20240116; t=1716386132; c=relaxed/simple;
+	bh=x6BtFVfPBT7eGGlyetNktXEK7Tg7+wXGKEk5z5Om/YY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ol5zZPKjf3+I0O1NwCks9cEO71hElUJkQTibvTWPMlDAqF4u2autijMJ8/PBrXS+0Z6I7JhKat9TndT0JVtcMLQweZBly+yXqUmykUpb84AAbOPQYaTo9jatdNwON+2cm4M0wBbyZquIKPs3y8CG4/jklmgHxGxXsVkzuBWvZi8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=CbYRpL5y; arc=none smtp.client-ip=205.220.165.32
+	 MIME-Version:Content-Type; b=Mue0YMaqp27EWf8dwbE4w29bp887YoZM+I7XnyaAY0FS9mfUrsxA5t5IB3F5ermRrYQ2jbQY2vpTIe8FzLuUYUCzEGWz7bfP7RN3ZwO7UdqGrGRyheSWX6DsuElCh4UcTXBj3Zmhd3P27f7j10VbMHzM0jGjOGSz1PG7InSLIXs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=VoW+2s9P; arc=none smtp.client-ip=205.220.177.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="CbYRpL5y"
-Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCqrDU006158;
-	Wed, 22 May 2024 13:54:54 GMT
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="VoW+2s9P"
+Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCqUrC022591;
+	Wed, 22 May 2024 13:55:17 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding; s=corp-2023-11-20;
- bh=pbtxMEpfCRIbFycrHWd/2ZSkuy58mLEqJ5dDgR/gKoM=;
- b=CbYRpL5y+nKEXK1yOZjHvafkW9Kq5lh/eUXva9Fk1Pj2m4heQlj3jcaOOcJVaX8CBrER
- ZpnssTftW/SH5FLbYCCaRtbA7F3Jlte/ER5FproHJagOgHmMUQknm2J4rwwqVTjMZWXU
- jfpKcqJbx1AMpii/o/5oYivrkmj2s7sXo6Rnmm3CrO9fbwbunMIejVb3SyDRF+d/LPE7
- Wu1mfCtOX2A04JGM6ZZ0YKhZqpTG/4rzgQYK71l6K+sxAwsZrGNCd9XqP4AdQjQQXf5f
- PdWN/YU1lEWxINMeT3VkSEwpxr0OajzL65ROxxvyhqZ7iBAM5lJnIU/Q/JjPqS2V6oYy 4g== 
+ content-type : content-transfer-encoding; s=corp-2023-11-20;
+ bh=2K+xgQ5YWBHKfRmK0QOxsZIYadN+1nqsW7eWDLqroyU=;
+ b=VoW+2s9PuirWOHz44JeFPEtOB34W3CjzSANTZNDVSIq8ohyAZ1zo6U0Zc+7EUNuRCDTT
+ HhzU4ljWxCs1ZiR93EiJmqLdZa7JlGRvlLQwl1gH3TOQduWcrG5Ha/sy1Dp31H/Mh78s
+ lpIREU6N0jaDnRYmt5f1OajpV02sWDaswPZYswSISwANiFzk74NGHD6zw7UJ9MePREIp
+ 2JLNcI099Yj4tmzEVzVpwkXTFo/8GAi5NOilDMskbj+g9sXG0ngr4zsktzE5yYPbhgs9
+ cVTBeTSKVfWEMUAMm7qhJP7vRWwshTE04/wxWt09YB5UpI/5Jkcuy6xnZ56d/5QydDwa Mw== 
 Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.appoci.oracle.com [147.154.18.20])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y6k8d7qqh-1
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y6kxv7sx2-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 22 May 2024 13:54:53 +0000
+	Wed, 22 May 2024 13:55:17 +0000
 Received: from pps.filterd (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCJjar019632;
-	Wed, 22 May 2024 13:54:52 GMT
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44MDKcE9019530;
+	Wed, 22 May 2024 13:55:16 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3y6js98sy2-1
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3y6js98tcc-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 22 May 2024 13:54:52 +0000
+	Wed, 22 May 2024 13:55:16 +0000
 Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44MDsm2n016070;
-	Wed, 22 May 2024 13:54:51 GMT
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44MDsm3A016070;
+	Wed, 22 May 2024 13:55:15 GMT
 Received: from lab61.no.oracle.com (lab61.no.oracle.com [10.172.144.82])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 3y6js98su1-2;
-	Wed, 22 May 2024 13:54:51 +0000
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 3y6js98su1-9;
+	Wed, 22 May 2024 13:55:15 +0000
 From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
 To: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com
@@ -61,9 +61,9 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
         Chuck Lever <chuck.lever@oracle.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yang Li <yang.lee@linux.alibaba.com>
-Subject: [PATCH v3 1/6] Orabug_list: Drop 36459425
-Date: Wed, 22 May 2024 15:54:33 +0200
-Message-Id: <20240522135444.1685642-2-haakon.bugge@oracle.com>
+Subject: [PATCH v3 4/6] RDMA/cm: Brute force GFP_NOIO
+Date: Wed, 22 May 2024 15:54:40 +0200
+Message-Id: <20240522135444.1685642-9-haakon.bugge@oracle.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20240522135444.1685642-1-haakon.bugge@oracle.com>
 References: <20240522135444.1685642-1-haakon.bugge@oracle.com>
@@ -73,6 +73,7 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.650,FMLib:17.12.28.16
@@ -81,27 +82,94 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxsc
  adultscore=0 mlxlogscore=999 malwarescore=0 suspectscore=0 phishscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2405010000
  definitions=main-2405220093
-X-Proofpoint-GUID: YPkwUK80X36BWKf91leWaqnaAkeuaLAx
-X-Proofpoint-ORIG-GUID: YPkwUK80X36BWKf91leWaqnaAkeuaLAx
+X-Proofpoint-GUID: ch9XShqC5ZFNMlpM96vUEkr-4UNutiS6
+X-Proofpoint-ORIG-GUID: ch9XShqC5ZFNMlpM96vUEkr-4UNutiS6
 
-From: luci <vijayendra.suman@oracle.com>
+In ib_cm_init(), we call memalloc_noio_{save,restore} in a parenthetic
+fashion when enabled by the module parameter force_noio.
 
-Build fix for 6.9 LUCI
+This in order to conditionally enable ib_cm to work aligned with block
+I/O devices. Any work queued later on work-queues created during
+module initialization will inherit the PF_MEMALLOC_{NOIO,NOFS}
+flag(s), due to commit ("workqueue: Inherit NOIO and NOFS alloc
+flags").
 
-Signed-off-by: Luci Bot <fajita_us@oracle.com>
+We do this in order to enable ULPs using the RDMA stack to be used as
+a network block I/O device. This to support a filesystem on top of a
+raw block device which uses said ULP(s) and the RDMA stack as the
+network transport layer.
+
+Under intense memory pressure, we get memory reclaims. Assume the
+filesystem reclaims memory, goes to the raw block device, which calls
+into the ULP in question, which calls the RDMA stack. Now, if regular
+GFP_KERNEL allocations in ULP or the RDMA stack require reclaims to be
+fulfilled, we end up in a circular dependency.
+
+We break this circular dependency by:
+
+1. Force all allocations in the ULP and the relevant RDMA stack to use
+   GFP_NOIO, by means of a parenthetic use of
+   memalloc_noio_{save,restore} on all relevant entry points.
+
+2. Make sure work-queues inherits current->flags
+   wrt. PF_MEMALLOC_{NOIO,NOFS}, such that work executed on the
+   work-queue inherits the same flag(s).
+
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
 ---
- uek-rpm/.Orabug_list | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/cm.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/uek-rpm/.Orabug_list b/uek-rpm/.Orabug_list
-index c5b31288c668c..7becf1b0a9be7 100644
---- a/uek-rpm/.Orabug_list
-+++ b/uek-rpm/.Orabug_list
-@@ -2,3 +2,4 @@
- 34116060 # LUCI Maintainer: Disable OpenSSL 3.0 warnings for v5.18
- 35455153 # [UEK-NEXT] Manage Original OL Signing Keys
- 35641429 # Add uek_kabi.h to LUCI and update check-kabi scripts
-+36459425 # Build fix for 6.9 LUCI
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 07fb8d3c037f0..767eec38eb57d 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -22,6 +22,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/kdev_t.h>
+ #include <linux/etherdevice.h>
++#include <linux/sched/mm.h>
+ 
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_cm.h>
+@@ -35,6 +36,11 @@ MODULE_DESCRIPTION("InfiniBand CM");
+ MODULE_LICENSE("Dual BSD/GPL");
+ 
+ #define CM_DESTROY_ID_WAIT_TIMEOUT 10000 /* msecs */
++
++static bool cm_force_noio;
++module_param_named(force_noio, cm_force_noio, bool, 0444);
++MODULE_PARM_DESC(force_noio, "Force the use of GFP_NOIO (Y/N)");
++
+ static const char * const ibcm_rej_reason_strs[] = {
+ 	[IB_CM_REJ_NO_QP]			= "no QP",
+ 	[IB_CM_REJ_NO_EEC]			= "no EEC",
+@@ -4504,6 +4510,10 @@ static void cm_remove_one(struct ib_device *ib_device, void *client_data)
+ static int __init ib_cm_init(void)
+ {
+ 	int ret;
++	unsigned int noio_flags;
++
++	if (cm_force_noio)
++		noio_flags = memalloc_noio_save();
+ 
+ 	INIT_LIST_HEAD(&cm.device_list);
+ 	rwlock_init(&cm.device_lock);
+@@ -4527,10 +4537,13 @@ static int __init ib_cm_init(void)
+ 	if (ret)
+ 		goto error3;
+ 
+-	return 0;
++	goto error2;
+ error3:
+ 	destroy_workqueue(cm.wq);
+ error2:
++	if (cm_force_noio)
++		memalloc_noio_restore(noio_flags);
++
+ 	return ret;
+ }
+ 
 -- 
 2.31.1
 
