@@ -1,50 +1,50 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A17F31411C6;
-	Wed, 22 May 2024 13:55:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A3B1448CD;
+	Wed, 22 May 2024 13:55:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.165.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716386127; cv=none; b=pjem8qoGWrvWQscvLOSgZKcq2tyFL87mtsAdT4XBnNtMqlIkGCK9LEdOvKErFcbjtrfBIEYGiFx6orQ7c0SBWJDlbkNbcq2IqgbqDSUr9/hUIdWEcTpA+jB3PGK9EG/hJ2TY8HSyIWnKT1rrOxqUJRJHoLzpoQh3PsezLiJKKhA=
+	t=1716386130; cv=none; b=tJw+Obc/f0xkjdxdAWhXLWPahxvuGx6xveZkS7Wnujkl3aup77SQN/otbG28oTDEV/MBN0OCmLdhdu/Sj2mYc5CtEQfHlkve/6RiZAIuZxnwEbBGd+Ejj4u8uWIKg20YbS1xUKv9jvLowfaktPVeKkwY5PqFTTdrbJe+g6VrKLU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716386127; c=relaxed/simple;
-	bh=6N5fPUydPwCdo8b408ssTFRPGAydsftvTekE98oT2vo=;
+	s=arc-20240116; t=1716386130; c=relaxed/simple;
+	bh=/eLrnUv/ccO8hCexIgcoaF5RL3XvRmL0xNirt8amung=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=VbgYjFV19HMJHbAZEGYcCTdmzAVeMSgjzbH8I2QfApxoJ4TPst+eUCyAFxg3LDU/FWHQRC/82ES4gGx1/GEgXA/KHM45GLNFsgfauNDE91MDVB89mR/Ra5UCZAMq1hdEU6lBHsncbG9QELNDQ67f+D+f/tj8Yo1xLpRDTnZjp9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=GM+VLnvB; arc=none smtp.client-ip=205.220.177.32
+	 MIME-Version; b=ol5zZPKjf3+I0O1NwCks9cEO71hElUJkQTibvTWPMlDAqF4u2autijMJ8/PBrXS+0Z6I7JhKat9TndT0JVtcMLQweZBly+yXqUmykUpb84AAbOPQYaTo9jatdNwON+2cm4M0wBbyZquIKPs3y8CG4/jklmgHxGxXsVkzuBWvZi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=CbYRpL5y; arc=none smtp.client-ip=205.220.165.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="GM+VLnvB"
-Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCqgxt023730;
-	Wed, 22 May 2024 13:55:06 GMT
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="CbYRpL5y"
+Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCqrDU006158;
+	Wed, 22 May 2024 13:54:54 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=corp-2023-11-20;
- bh=bOGnrc1BVsuP3kWUt6pR1W/GO+qodCsHYHjULVIOpCY=;
- b=GM+VLnvBoF+DreLPbvQvPs3WD6mYfUdneWVnal+YTzjuPC5DFQK2ANtH704JfC3ZupBV
- WwBnDWaYcx4yjhwxK+kUbkDZJX/wTCouO0OGNG4Q8B3YgIICIzPzL9atL9gebsMBmzDr
- sXZfH+dfT7YGAJo5G6BdAjDCvuV6Ly8CZN0CwPS4jQsx2Kqd6oWi1qSrqfE/0c8e4eHg
- sXLdlLQzE8R969GoctMMPueu2xKGS9tGjjrFfr6sMADtVdesqco09k5r6kyrBQ2OXL8i
- 9+X9LFyPkaGdV0EgslfT+KJe5sUQRPAjtdu9a3pny8zxo5016yhb7z29VaaKZSjvu7fr sQ== 
+ bh=pbtxMEpfCRIbFycrHWd/2ZSkuy58mLEqJ5dDgR/gKoM=;
+ b=CbYRpL5y+nKEXK1yOZjHvafkW9Kq5lh/eUXva9Fk1Pj2m4heQlj3jcaOOcJVaX8CBrER
+ ZpnssTftW/SH5FLbYCCaRtbA7F3Jlte/ER5FproHJagOgHmMUQknm2J4rwwqVTjMZWXU
+ jfpKcqJbx1AMpii/o/5oYivrkmj2s7sXo6Rnmm3CrO9fbwbunMIejVb3SyDRF+d/LPE7
+ Wu1mfCtOX2A04JGM6ZZ0YKhZqpTG/4rzgQYK71l6K+sxAwsZrGNCd9XqP4AdQjQQXf5f
+ PdWN/YU1lEWxINMeT3VkSEwpxr0OajzL65ROxxvyhqZ7iBAM5lJnIU/Q/JjPqS2V6oYy 4g== 
 Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.appoci.oracle.com [147.154.18.20])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y6jreqngd-1
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y6k8d7qqh-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 22 May 2024 13:55:06 +0000
+	Wed, 22 May 2024 13:54:53 +0000
 Received: from pps.filterd (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCAsXk019535;
-	Wed, 22 May 2024 13:55:05 GMT
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCJjar019632;
+	Wed, 22 May 2024 13:54:52 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3y6js98t6a-1
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3y6js98sy2-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 22 May 2024 13:55:05 +0000
+	Wed, 22 May 2024 13:54:52 +0000
 Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44MDsm31016070;
-	Wed, 22 May 2024 13:55:05 GMT
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44MDsm2n016070;
+	Wed, 22 May 2024 13:54:51 GMT
 Received: from lab61.no.oracle.com (lab61.no.oracle.com [10.172.144.82])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 3y6js98su1-6;
-	Wed, 22 May 2024 13:55:04 +0000
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 3y6js98su1-2;
+	Wed, 22 May 2024 13:54:51 +0000
 From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
 To: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com
@@ -61,9 +61,9 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
         Chuck Lever <chuck.lever@oracle.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yang Li <yang.lee@linux.alibaba.com>
-Subject: [PATCH v3 3/6] ml: adjusting build metadata to reflect mainline
-Date: Wed, 22 May 2024 15:54:37 +0200
-Message-Id: <20240522135444.1685642-6-haakon.bugge@oracle.com>
+Subject: [PATCH v3 1/6] Orabug_list: Drop 36459425
+Date: Wed, 22 May 2024 15:54:33 +0200
+Message-Id: <20240522135444.1685642-2-haakon.bugge@oracle.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20240522135444.1685642-1-haakon.bugge@oracle.com>
 References: <20240522135444.1685642-1-haakon.bugge@oracle.com>
@@ -81,54 +81,27 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxsc
  adultscore=0 mlxlogscore=999 malwarescore=0 suspectscore=0 phishscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2405010000
  definitions=main-2405220093
-X-Proofpoint-GUID: kFQ9ceil-5pmcpw8xWP754QdYsPnrR1Y
-X-Proofpoint-ORIG-GUID: kFQ9ceil-5pmcpw8xWP754QdYsPnrR1Y
+X-Proofpoint-GUID: YPkwUK80X36BWKf91leWaqnaAkeuaLAx
+X-Proofpoint-ORIG-GUID: YPkwUK80X36BWKf91leWaqnaAkeuaLAx
 
-From: Luci Bot <fajita@oracle.com>
+From: luci <vijayendra.suman@oracle.com>
 
-Updating defaults to reflect that this is a mainline build
+Build fix for 6.9 LUCI
 
-Signed-off-by: Luci Bot <fajita@oracle.com>
-Reviewed-by: Mark Nicholson <mark.j.nicholson@oracle.com>
+Signed-off-by: Luci Bot <fajita_us@oracle.com>
 ---
- ml-rpm/ol8/{kernel-uek.spec => kernel-mainline.spec} | 2 +-
- ml-rpm/ol9/{kernel-uek.spec => kernel-mainline.spec} | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
- rename ml-rpm/ol8/{kernel-uek.spec => kernel-mainline.spec} (99%)
- rename ml-rpm/ol9/{kernel-uek.spec => kernel-mainline.spec} (99%)
+ uek-rpm/.Orabug_list | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/ml-rpm/ol8/kernel-uek.spec b/ml-rpm/ol8/kernel-mainline.spec
-similarity index 99%
-rename from ml-rpm/ol8/kernel-uek.spec
-rename to ml-rpm/ol8/kernel-mainline.spec
-index e9a4e07f43fe7..ed47eb0706a87 100644
---- a/ml-rpm/ol8/kernel-uek.spec
-+++ b/ml-rpm/ol8/kernel-mainline.spec
-@@ -388,7 +388,7 @@ Summary: Oracle Unbreakable Enterprise Kernel Release 8
- %define kernel_prereq  coreutils, systemd >= 203-2, /usr/bin/kernel-install
- %define initrd_prereq  dracut >= 027
- 
--%define variant %{?build_variant:%{build_variant}}%{!?build_variant:-luci}
-+%define variant %{?build_variant:%{build_variant}}%{!?build_variant:-mainline}
- 
- %define installonly_variant_name kernel%{?build_variant:%{build_variant}}%{!?build_variant:-luci}
- 
-diff --git a/ml-rpm/ol9/kernel-uek.spec b/ml-rpm/ol9/kernel-mainline.spec
-similarity index 99%
-rename from ml-rpm/ol9/kernel-uek.spec
-rename to ml-rpm/ol9/kernel-mainline.spec
-index 0b494c7cf567c..0eb7d20043ed0 100644
---- a/ml-rpm/ol9/kernel-uek.spec
-+++ b/ml-rpm/ol9/kernel-mainline.spec
-@@ -361,7 +361,7 @@ Summary: Oracle Unbreakable Enterprise Kernel Release 8
- %define kernel_prereq  coreutils, systemd >= 203-2, /usr/bin/kernel-install
- %define initrd_prereq  dracut >= 027
- 
--%define variant %{?build_variant:%{build_variant}}%{!?build_variant:-luci}
-+%define variant %{?build_variant:%{build_variant}}%{!?build_variant:-mainline}
- 
- %define installonly_variant_name kernel%{?build_variant:%{build_variant}}%{!?build_variant:-luci}
- 
+diff --git a/uek-rpm/.Orabug_list b/uek-rpm/.Orabug_list
+index c5b31288c668c..7becf1b0a9be7 100644
+--- a/uek-rpm/.Orabug_list
++++ b/uek-rpm/.Orabug_list
+@@ -2,3 +2,4 @@
+ 34116060 # LUCI Maintainer: Disable OpenSSL 3.0 warnings for v5.18
+ 35455153 # [UEK-NEXT] Manage Original OL Signing Keys
+ 35641429 # Add uek_kabi.h to LUCI and update check-kabi scripts
++36459425 # Build fix for 6.9 LUCI
 -- 
 2.31.1
 
