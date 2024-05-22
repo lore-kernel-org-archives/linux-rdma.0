@@ -1,50 +1,50 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A988C145B2D;
-	Wed, 22 May 2024 13:55:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.177.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7226A145FF7;
+	Wed, 22 May 2024 13:55:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.165.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716386132; cv=none; b=TfY2BfbfptQ9WSQNeXnyJJtJAjpfE5ePUwzJJg6P4+rta27zwgu1Hkl3ahslXkY+1Ajgl8rOAhSdfvQ5SpEJcFel4U7rxwqiBnu/wv7DyCYM5Sh4vLeNsm98KOZe295rn5DHzLdD14pXRgsRLuYlx3ASQnGYQY//11yQubVQmh4=
+	t=1716386133; cv=none; b=RmegbWrDYIHgye0GLE8iSU+s1Qj4mPoPI+Esa8QJpeIHyJlzOyDe+viuknP3f19YXAQU8tFbWdf8gEsQ1ZPKiVVWvY3cT7Aau2gElFjvJfXCOniJ5MsHiH1UDKgqLc/wj12PrWa59SagrArOiYvz6ybj89pLG9RyIv5QWLoukDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716386132; c=relaxed/simple;
-	bh=MrpVZ5Axr/2UuHEVUcVkN9rxOh8kZ1Lj/4sURUpwvng=;
+	s=arc-20240116; t=1716386133; c=relaxed/simple;
+	bh=Bgk0V0Er5w/wzbCJE6+tSMRiF1xx3R6+JUR/WBMVwHc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZHNFmhXcCStluovEnpL7BfBit3GzEj3kqPsXhdzVXp7JSwHTIor7GDI8PQt+NpWaARsKhjKCH18WW5QYp+i0wLt4FIVSfKJEPbTO/ZH2bImWL5IauD2+xq8l6mpyWA/FC1aT7Nr/Pi8R1qvGurqwRMqByAIxJ8eySg6ZcOnskzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=FQgWxBe3; arc=none smtp.client-ip=205.220.177.32
+	 MIME-Version; b=osYLvFwFpGTuQ1jNtWeUo4Q/gU4P/PnfzE5xLRHjosCHN7JdhIfCNHihWIhtHdY3KNEmolpxFSV+EYy3aCcfa6iNnlE7nOCgTapubflxY/nmpYBXfZRzXf3WgiYbkly0HUO0FTbH1cK/UMwvI5kHNY+XPG5R7s/idAf/6JalyNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=AIJkqmGf; arc=none smtp.client-ip=205.220.165.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="FQgWxBe3"
-Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCqdEn013781;
-	Wed, 22 May 2024 13:55:13 GMT
+	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="AIJkqmGf"
+Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCqrDW006158;
+	Wed, 22 May 2024 13:55:01 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=corp-2023-11-20;
- bh=8VCdZ6YctjlbVSUNltcvc7m7IvdjWI1xHbgEF6LAwoQ=;
- b=FQgWxBe3ZCeM+DSN2aiTa6DKoBi4zij+gXjbAUQa+0BLIjDrDENe4bux9l6yz9mEfaAd
- 7MwmhNNegLHXr7WzRPhJlL0/1k1wQ3g7XY4/mjOKezlKPtJlDbNDqlO1j343C0CQBAtR
- 2g+aXfbAjfQ2ZVVdXUHdpQhCOtAfqIwxuRLXAvJo05ldI+rVc9ZZOPcaIgb53Ffe9B8a
- RK5T/UFuAs/cVdqhm3GgqeUMf2UpBFqgk/i+mwIPCAZ36MUoPrn2P8QBS/RRtyaz+XcJ
- eKzDyj/PWXaAS9Vr23sBGD+5irmExXO46eNFiIhcqo4UsTs2SFlZvJQNfagOV9BUGikA lQ== 
+ bh=twT+K8oVeAk+YnC4JNSJ2r2sxYlropxrZyjmkmI6lpw=;
+ b=AIJkqmGf2Ylllww7xC7J6Gl6tfiKiFXzMW7QR2DRKtLnvweAPGOgyuHkQLXniTdP6PtN
+ ks/ESVZ/wI3N+iCKanDIsTVOJQdJGJOFjgtX3ZwJch0D1C+QD8y9qgdcG2fY/waidtdJ
+ OogwjzpVZite4NeetV+wdpc4XFUhTxMP/2wdHnfS/pc+7ziv8o+LJsrzXRTMmnNUc1Wr
+ aRowxW+9P+qvss5Q5/HzFUcTenYcBgvRVjRQuxoNmc/NQXusAX7N6pwBgUV+C22iHneT
+ NUyDRQ74uSh92ut1GG94HIDL8o4z3p245VKWBle5217cmNEXmMAHdvpn869GShpQq9BV kw== 
 Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.appoci.oracle.com [147.154.18.20])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y6mcdyt68-1
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3y6k8d7qqx-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 22 May 2024 13:55:13 +0000
+	Wed, 22 May 2024 13:55:00 +0000
 Received: from pps.filterd (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44MCFwa8019529;
-	Wed, 22 May 2024 13:55:12 GMT
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 44MDKcE1019530;
+	Wed, 22 May 2024 13:54:59 GMT
 Received: from pps.reinject (localhost [127.0.0.1])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3y6js98taa-1
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3y6js98t2m-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 22 May 2024 13:55:12 +0000
+	Wed, 22 May 2024 13:54:59 +0000
 Received: from iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44MDsm37016070;
-	Wed, 22 May 2024 13:55:12 GMT
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 44MDsm2t016070;
+	Wed, 22 May 2024 13:54:58 GMT
 Received: from lab61.no.oracle.com (lab61.no.oracle.com [10.172.144.82])
-	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 3y6js98su1-8;
-	Wed, 22 May 2024 13:55:11 +0000
+	by iadpaimrmta02.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTP id 3y6js98su1-4;
+	Wed, 22 May 2024 13:54:58 +0000
 From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
 To: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
         netdev@vger.kernel.org, rds-devel@oss.oracle.com
@@ -61,9 +61,9 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
         Chuck Lever <chuck.lever@oracle.com>,
         Shiraz Saleem <shiraz.saleem@intel.com>,
         Yang Li <yang.lee@linux.alibaba.com>
-Subject: [PATCH v3 4/6] ml: Remove revocation list
-Date: Wed, 22 May 2024 15:54:39 +0200
-Message-Id: <20240522135444.1685642-8-haakon.bugge@oracle.com>
+Subject: [PATCH v3 2/6] ml: renaming metadata directory
+Date: Wed, 22 May 2024 15:54:35 +0200
+Message-Id: <20240522135444.1685642-4-haakon.bugge@oracle.com>
 X-Mailer: git-send-email 2.39.3
 In-Reply-To: <20240522135444.1685642-1-haakon.bugge@oracle.com>
 References: <20240522135444.1685642-1-haakon.bugge@oracle.com>
@@ -81,186 +81,535 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxsc
  adultscore=0 mlxlogscore=999 malwarescore=0 suspectscore=0 phishscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2405010000
  definitions=main-2405220093
-X-Proofpoint-ORIG-GUID: 47pxZdCNrk_mPFS3VihkLX4jWnE2Ed6D
-X-Proofpoint-GUID: 47pxZdCNrk_mPFS3VihkLX4jWnE2Ed6D
+X-Proofpoint-GUID: whrBJ2XC8JF8m5632jgPqIxXy34XKVui
+X-Proofpoint-ORIG-GUID: whrBJ2XC8JF8m5632jgPqIxXy34XKVui
 
 From: Luci Bot <fajita@oracle.com>
 
-Remove revocation list
+Adjusting the metadata directory name to match the legacy mainline system
 
 Signed-off-by: Luci Bot <fajita@oracle.com>
 Reviewed-by: Mark Nicholson <mark.j.nicholson@oracle.com>
 ---
- ml-rpm/ol8/config-aarch64            | 2 --
- ml-rpm/ol8/config-aarch64-container  | 2 --
- ml-rpm/ol8/config-aarch64-debug      | 2 --
- ml-rpm/ol8/config-aarch64-emb3       | 2 --
- ml-rpm/ol8/config-aarch64-emb3-debug | 2 --
- ml-rpm/ol8/config-x86_64             | 2 --
- ml-rpm/ol8/config-x86_64-debug       | 2 --
- ml-rpm/ol9/config-aarch64            | 2 --
- ml-rpm/ol9/config-aarch64-container  | 2 --
- ml-rpm/ol9/config-aarch64-debug      | 2 --
- ml-rpm/ol9/config-x86_64             | 2 --
- ml-rpm/ol9/config-x86_64-debug       | 2 --
- 12 files changed, 24 deletions(-)
+ {uek-rpm => ml-rpm}/ol8/Module.kabi_aarch64         |   0
+ {uek-rpm => ml-rpm}/ol8/Module.kabi_aarch64debug    |   0
+ {uek-rpm => ml-rpm}/ol8/Module.kabi_x86_64          |   0
+ {uek-rpm => ml-rpm}/ol8/Module.kabi_x86_64debug     |   0
+ {uek-rpm => ml-rpm}/ol8/Symtypes.kabi_aarch64       |   0
+ {uek-rpm => ml-rpm}/ol8/Symtypes.kabi_aarch64debug  |   0
+ {uek-rpm => ml-rpm}/ol8/Symtypes.kabi_x86_64        |   0
+ {uek-rpm => ml-rpm}/ol8/Symtypes.kabi_x86_64debug   |   0
+ {uek-rpm => ml-rpm}/ol8/check-kabi                  |   0
+ {uek-rpm => ml-rpm}/ol8/config-aarch64              |   0
+ {uek-rpm => ml-rpm}/ol8/config-aarch64-container    |   0
+ {uek-rpm => ml-rpm}/ol8/config-aarch64-debug        |   0
+ {uek-rpm => ml-rpm}/ol8/config-aarch64-emb3         |   0
+ {uek-rpm => ml-rpm}/ol8/config-aarch64-emb3-debug   |   0
+ {uek-rpm => ml-rpm}/ol8/config-x86_64               |   0
+ {uek-rpm => ml-rpm}/ol8/config-x86_64-container     |   0
+ {uek-rpm => ml-rpm}/ol8/config-x86_64-debug         |   0
+ {uek-rpm => ml-rpm}/ol8/core-emb3-aarch64.list      |   0
+ {uek-rpm => ml-rpm}/ol8/filter-aarch64.sh           |   0
+ {uek-rpm => ml-rpm}/ol8/filter-modules.sh           |   0
+ {uek-rpm => ml-rpm}/ol8/filter-x86_64.sh            |   0
+ {uek-rpm => ml-rpm}/ol8/find-provides               |   0
+ {uek-rpm => ml-rpm}/ol8/generate_bls_conf.sh        |   0
+ {uek-rpm => ml-rpm}/ol8/kabi_lockedlist_aarch64     |   0
+ .../ol8/kabi_lockedlist_aarch64debug                |   0
+ {uek-rpm => ml-rpm}/ol8/kabi_lockedlist_x86_64      |   0
+ {uek-rpm => ml-rpm}/ol8/kabi_lockedlist_x86_64debug |   0
+ {uek-rpm => ml-rpm}/ol8/kabitool                    |   0
+ {uek-rpm => ml-rpm}/ol8/kernel-uek.spec             |   0
+ {uek-rpm => ml-rpm}/ol8/mod-denylist.sh             |   0
+ {uek-rpm => ml-rpm}/ol8/mod-extra.list              |   0
+ {uek-rpm => ml-rpm}/ol8/mod-sign.sh                 |   0
+ {uek-rpm => ml-rpm}/ol8/modules-core-aarch64.list   |   0
+ {uek-rpm => ml-rpm}/ol8/modules-core-x86_64.list    |   0
+ {uek-rpm => ml-rpm}/ol8/perf                        |   0
+ {uek-rpm => ml-rpm}/ol8/secureboot.cer              | Bin
+ {uek-rpm => ml-rpm}/ol8/secureboot_aarch64.cer      | Bin
+ {uek-rpm => ml-rpm}/ol8/securebootca.cer            | Bin
+ {uek-rpm => ml-rpm}/ol8/turbostat                   |   0
+ {uek-rpm => ml-rpm}/ol8/update-el-aarch64           |   0
+ {uek-rpm => ml-rpm}/ol8/update-el-x86               |   0
+ {uek-rpm => ml-rpm}/ol8/x509.genkey                 |   0
+ {uek-rpm => ml-rpm}/ol8/x86_energy_perf_policy      |   0
+ {uek-rpm => ml-rpm}/ol9/Module.kabi_aarch64         |   0
+ {uek-rpm => ml-rpm}/ol9/Module.kabi_aarch64debug    |   0
+ {uek-rpm => ml-rpm}/ol9/Module.kabi_x86_64          |   0
+ {uek-rpm => ml-rpm}/ol9/Module.kabi_x86_64debug     |   0
+ {uek-rpm => ml-rpm}/ol9/Symtypes.kabi_aarch64       |   0
+ {uek-rpm => ml-rpm}/ol9/Symtypes.kabi_aarch64debug  |   0
+ {uek-rpm => ml-rpm}/ol9/Symtypes.kabi_x86_64        |   0
+ {uek-rpm => ml-rpm}/ol9/Symtypes.kabi_x86_64debug   |   0
+ {uek-rpm => ml-rpm}/ol9/check-kabi                  |   0
+ {uek-rpm => ml-rpm}/ol9/config-aarch64              |   0
+ {uek-rpm => ml-rpm}/ol9/config-aarch64-container    |   0
+ {uek-rpm => ml-rpm}/ol9/config-aarch64-debug        |   0
+ {uek-rpm => ml-rpm}/ol9/config-x86_64               |   0
+ {uek-rpm => ml-rpm}/ol9/config-x86_64-container     |   0
+ {uek-rpm => ml-rpm}/ol9/config-x86_64-debug         |   0
+ {uek-rpm => ml-rpm}/ol9/filter-aarch64.sh           |   0
+ {uek-rpm => ml-rpm}/ol9/filter-modules.sh           |   0
+ {uek-rpm => ml-rpm}/ol9/filter-x86_64.sh            |   0
+ {uek-rpm => ml-rpm}/ol9/find-provides               |   0
+ {uek-rpm => ml-rpm}/ol9/generate_bls_conf.sh        |   0
+ {uek-rpm => ml-rpm}/ol9/kabi_lockedlist_aarch64     |   0
+ .../ol9/kabi_lockedlist_aarch64debug                |   0
+ {uek-rpm => ml-rpm}/ol9/kabi_lockedlist_x86_64      |   0
+ {uek-rpm => ml-rpm}/ol9/kabi_lockedlist_x86_64debug |   0
+ {uek-rpm => ml-rpm}/ol9/kabitool                    |   0
+ {uek-rpm => ml-rpm}/ol9/kernel-uek.spec             |   0
+ {uek-rpm => ml-rpm}/ol9/mod-denylist.sh             |   0
+ {uek-rpm => ml-rpm}/ol9/mod-extra.list              |   0
+ {uek-rpm => ml-rpm}/ol9/mod-sign.sh                 |   0
+ {uek-rpm => ml-rpm}/ol9/modules-core-aarch64.list   |   0
+ {uek-rpm => ml-rpm}/ol9/modules-core-x86_64.list    |   0
+ {uek-rpm => ml-rpm}/ol9/perf                        |   0
+ {uek-rpm => ml-rpm}/ol9/secureboot.cer              | Bin
+ {uek-rpm => ml-rpm}/ol9/secureboot_aarch64.cer      | Bin
+ {uek-rpm => ml-rpm}/ol9/securebootca.cer            | Bin
+ {uek-rpm => ml-rpm}/ol9/turbostat                   |   0
+ {uek-rpm => ml-rpm}/ol9/update-el-aarch64           |   0
+ {uek-rpm => ml-rpm}/ol9/update-el-x86               |   0
+ {uek-rpm => ml-rpm}/ol9/x509.genkey                 |   0
+ {uek-rpm => ml-rpm}/ol9/x86_energy_perf_policy      |   0
+ {uek-rpm => ml-rpm}/tools/kabi                      |   0
+ uek-rpm/.Orabug_list                                |   5 -----
+ 85 files changed, 5 deletions(-)
+ rename {uek-rpm => ml-rpm}/ol8/Module.kabi_aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/Module.kabi_aarch64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/Module.kabi_x86_64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/Module.kabi_x86_64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/Symtypes.kabi_aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/Symtypes.kabi_aarch64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/Symtypes.kabi_x86_64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/Symtypes.kabi_x86_64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/check-kabi (100%)
+ rename {uek-rpm => ml-rpm}/ol8/config-aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/config-aarch64-container (100%)
+ rename {uek-rpm => ml-rpm}/ol8/config-aarch64-debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/config-aarch64-emb3 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/config-aarch64-emb3-debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/config-x86_64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/config-x86_64-container (100%)
+ rename {uek-rpm => ml-rpm}/ol8/config-x86_64-debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/core-emb3-aarch64.list (100%)
+ rename {uek-rpm => ml-rpm}/ol8/filter-aarch64.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol8/filter-modules.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol8/filter-x86_64.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol8/find-provides (100%)
+ rename {uek-rpm => ml-rpm}/ol8/generate_bls_conf.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol8/kabi_lockedlist_aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/kabi_lockedlist_aarch64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/kabi_lockedlist_x86_64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/kabi_lockedlist_x86_64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol8/kabitool (100%)
+ rename {uek-rpm => ml-rpm}/ol8/kernel-uek.spec (100%)
+ rename {uek-rpm => ml-rpm}/ol8/mod-denylist.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol8/mod-extra.list (100%)
+ rename {uek-rpm => ml-rpm}/ol8/mod-sign.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol8/modules-core-aarch64.list (100%)
+ rename {uek-rpm => ml-rpm}/ol8/modules-core-x86_64.list (100%)
+ rename {uek-rpm => ml-rpm}/ol8/perf (100%)
+ rename {uek-rpm => ml-rpm}/ol8/secureboot.cer (100%)
+ rename {uek-rpm => ml-rpm}/ol8/secureboot_aarch64.cer (100%)
+ rename {uek-rpm => ml-rpm}/ol8/securebootca.cer (100%)
+ rename {uek-rpm => ml-rpm}/ol8/turbostat (100%)
+ rename {uek-rpm => ml-rpm}/ol8/update-el-aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/update-el-x86 (100%)
+ rename {uek-rpm => ml-rpm}/ol8/x509.genkey (100%)
+ rename {uek-rpm => ml-rpm}/ol8/x86_energy_perf_policy (100%)
+ rename {uek-rpm => ml-rpm}/ol9/Module.kabi_aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/Module.kabi_aarch64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol9/Module.kabi_x86_64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/Module.kabi_x86_64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol9/Symtypes.kabi_aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/Symtypes.kabi_aarch64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol9/Symtypes.kabi_x86_64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/Symtypes.kabi_x86_64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol9/check-kabi (100%)
+ rename {uek-rpm => ml-rpm}/ol9/config-aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/config-aarch64-container (100%)
+ rename {uek-rpm => ml-rpm}/ol9/config-aarch64-debug (100%)
+ rename {uek-rpm => ml-rpm}/ol9/config-x86_64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/config-x86_64-container (100%)
+ rename {uek-rpm => ml-rpm}/ol9/config-x86_64-debug (100%)
+ rename {uek-rpm => ml-rpm}/ol9/filter-aarch64.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol9/filter-modules.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol9/filter-x86_64.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol9/find-provides (100%)
+ rename {uek-rpm => ml-rpm}/ol9/generate_bls_conf.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol9/kabi_lockedlist_aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/kabi_lockedlist_aarch64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol9/kabi_lockedlist_x86_64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/kabi_lockedlist_x86_64debug (100%)
+ rename {uek-rpm => ml-rpm}/ol9/kabitool (100%)
+ rename {uek-rpm => ml-rpm}/ol9/kernel-uek.spec (100%)
+ rename {uek-rpm => ml-rpm}/ol9/mod-denylist.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol9/mod-extra.list (100%)
+ rename {uek-rpm => ml-rpm}/ol9/mod-sign.sh (100%)
+ rename {uek-rpm => ml-rpm}/ol9/modules-core-aarch64.list (100%)
+ rename {uek-rpm => ml-rpm}/ol9/modules-core-x86_64.list (100%)
+ rename {uek-rpm => ml-rpm}/ol9/perf (100%)
+ rename {uek-rpm => ml-rpm}/ol9/secureboot.cer (100%)
+ rename {uek-rpm => ml-rpm}/ol9/secureboot_aarch64.cer (100%)
+ rename {uek-rpm => ml-rpm}/ol9/securebootca.cer (100%)
+ rename {uek-rpm => ml-rpm}/ol9/turbostat (100%)
+ rename {uek-rpm => ml-rpm}/ol9/update-el-aarch64 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/update-el-x86 (100%)
+ rename {uek-rpm => ml-rpm}/ol9/x509.genkey (100%)
+ rename {uek-rpm => ml-rpm}/ol9/x86_energy_perf_policy (100%)
+ rename {uek-rpm => ml-rpm}/tools/kabi (100%)
+ delete mode 100644 uek-rpm/.Orabug_list
 
-diff --git a/ml-rpm/ol8/config-aarch64 b/ml-rpm/ol8/config-aarch64
-index a4df0eba125b6..37d717c5a8d33 100644
---- a/ml-rpm/ol8/config-aarch64
-+++ b/ml-rpm/ol8/config-aarch64
-@@ -2981,8 +2981,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_SWIOTLB_DYNAMIC=y
- CONFIG_DMA_RESTRICTED_POOL=y
- CONFIG_DMA_NUMA_CMA=y
-diff --git a/ml-rpm/ol8/config-aarch64-container b/ml-rpm/ol8/config-aarch64-container
-index d793781f15e3d..0fe9d3ff00c24 100644
---- a/ml-rpm/ol8/config-aarch64-container
-+++ b/ml-rpm/ol8/config-aarch64-container
-@@ -804,8 +804,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_CORDIC=y
- CONFIG_SWIOTLB_DYNAMIC=y
- CONFIG_DMA_RESTRICTED_POOL=y
-diff --git a/ml-rpm/ol8/config-aarch64-debug b/ml-rpm/ol8/config-aarch64-debug
-index c32292309a83b..c53800d995e55 100644
---- a/ml-rpm/ol8/config-aarch64-debug
-+++ b/ml-rpm/ol8/config-aarch64-debug
-@@ -2982,8 +2982,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_SWIOTLB_DYNAMIC=y
- CONFIG_DMA_RESTRICTED_POOL=y
- CONFIG_DMA_NUMA_CMA=y
-diff --git a/ml-rpm/ol8/config-aarch64-emb3 b/ml-rpm/ol8/config-aarch64-emb3
-index 1cf1cc181a2a5..f3242c8fd1526 100644
---- a/ml-rpm/ol8/config-aarch64-emb3
-+++ b/ml-rpm/ol8/config-aarch64-emb3
-@@ -2295,8 +2295,6 @@ CONFIG_SYSTEM_TRUSTED_KEYS="certs/ol_signing_keys.pem"
- CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_CORDIC=m
- CONFIG_DMA_RESTRICTED_POOL=y
- CONFIG_DMA_CMA=y
-diff --git a/ml-rpm/ol8/config-aarch64-emb3-debug b/ml-rpm/ol8/config-aarch64-emb3-debug
-index 39835c5ea13a6..b67b24f5f4128 100644
---- a/ml-rpm/ol8/config-aarch64-emb3-debug
-+++ b/ml-rpm/ol8/config-aarch64-emb3-debug
-@@ -2295,8 +2295,6 @@ CONFIG_SYSTEM_TRUSTED_KEYS="certs/ol_signing_keys.pem"
- CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_CORDIC=m
- CONFIG_DMA_RESTRICTED_POOL=y
- CONFIG_DMA_CMA=y
-diff --git a/ml-rpm/ol8/config-x86_64 b/ml-rpm/ol8/config-x86_64
-index 6fcf000a07e99..3b64dd1e4d726 100644
---- a/ml-rpm/ol8/config-x86_64
-+++ b/ml-rpm/ol8/config-x86_64
-@@ -2844,8 +2844,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_CRC16=y
- CONFIG_CRC_T10DIF=y
- CONFIG_SWIOTLB_DYNAMIC=y
-diff --git a/ml-rpm/ol8/config-x86_64-debug b/ml-rpm/ol8/config-x86_64-debug
-index 6f416ab81a59f..c7e44a1771a2e 100644
---- a/ml-rpm/ol8/config-x86_64-debug
-+++ b/ml-rpm/ol8/config-x86_64-debug
-@@ -2864,8 +2864,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_CRC16=y
- CONFIG_CRC_T10DIF=y
- CONFIG_RANDOM32_SELFTEST=y
-diff --git a/ml-rpm/ol9/config-aarch64 b/ml-rpm/ol9/config-aarch64
-index 3b5feccf3fac6..52016234394da 100644
---- a/ml-rpm/ol9/config-aarch64
-+++ b/ml-rpm/ol9/config-aarch64
-@@ -2984,8 +2984,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_SWIOTLB_DYNAMIC=y
- CONFIG_DMA_RESTRICTED_POOL=y
- CONFIG_DMA_NUMA_CMA=y
-diff --git a/ml-rpm/ol9/config-aarch64-container b/ml-rpm/ol9/config-aarch64-container
-index 3a32908836299..10aab8ae56a80 100644
---- a/ml-rpm/ol9/config-aarch64-container
-+++ b/ml-rpm/ol9/config-aarch64-container
-@@ -818,8 +818,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_CORDIC=y
- CONFIG_SWIOTLB_DYNAMIC=y
- CONFIG_DMA_RESTRICTED_POOL=y
-diff --git a/ml-rpm/ol9/config-aarch64-debug b/ml-rpm/ol9/config-aarch64-debug
-index a263556e04956..6efe07685e993 100644
---- a/ml-rpm/ol9/config-aarch64-debug
-+++ b/ml-rpm/ol9/config-aarch64-debug
-@@ -2985,8 +2985,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_SWIOTLB_DYNAMIC=y
- CONFIG_DMA_RESTRICTED_POOL=y
- CONFIG_DMA_NUMA_CMA=y
-diff --git a/ml-rpm/ol9/config-x86_64 b/ml-rpm/ol9/config-x86_64
-index fefc2541cb166..dc72342bc78ce 100644
---- a/ml-rpm/ol9/config-x86_64
-+++ b/ml-rpm/ol9/config-x86_64
-@@ -2836,8 +2836,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_CRC16=y
- CONFIG_CRC_T10DIF=y
- CONFIG_SWIOTLB_DYNAMIC=y
-diff --git a/ml-rpm/ol9/config-x86_64-debug b/ml-rpm/ol9/config-x86_64-debug
-index 358b2ab724b04..fb67da8c1c03e 100644
---- a/ml-rpm/ol9/config-x86_64-debug
-+++ b/ml-rpm/ol9/config-x86_64-debug
-@@ -2856,8 +2856,6 @@ CONFIG_SYSTEM_EXTRA_CERTIFICATE=y
- CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE=8192
- CONFIG_SECONDARY_TRUSTED_KEYRING=y
- CONFIG_SYSTEM_BLACKLIST_KEYRING=y
--CONFIG_SYSTEM_REVOCATION_LIST=y
--CONFIG_SYSTEM_REVOCATION_KEYS="certs/ol_revocation_keys.pem"
- CONFIG_CRC16=y
- CONFIG_CRC_T10DIF=y
- CONFIG_RANDOM32_SELFTEST=y
+diff --git a/uek-rpm/ol8/Module.kabi_aarch64 b/ml-rpm/ol8/Module.kabi_aarch64
+similarity index 100%
+rename from uek-rpm/ol8/Module.kabi_aarch64
+rename to ml-rpm/ol8/Module.kabi_aarch64
+diff --git a/uek-rpm/ol8/Module.kabi_aarch64debug b/ml-rpm/ol8/Module.kabi_aarch64debug
+similarity index 100%
+rename from uek-rpm/ol8/Module.kabi_aarch64debug
+rename to ml-rpm/ol8/Module.kabi_aarch64debug
+diff --git a/uek-rpm/ol8/Module.kabi_x86_64 b/ml-rpm/ol8/Module.kabi_x86_64
+similarity index 100%
+rename from uek-rpm/ol8/Module.kabi_x86_64
+rename to ml-rpm/ol8/Module.kabi_x86_64
+diff --git a/uek-rpm/ol8/Module.kabi_x86_64debug b/ml-rpm/ol8/Module.kabi_x86_64debug
+similarity index 100%
+rename from uek-rpm/ol8/Module.kabi_x86_64debug
+rename to ml-rpm/ol8/Module.kabi_x86_64debug
+diff --git a/uek-rpm/ol8/Symtypes.kabi_aarch64 b/ml-rpm/ol8/Symtypes.kabi_aarch64
+similarity index 100%
+rename from uek-rpm/ol8/Symtypes.kabi_aarch64
+rename to ml-rpm/ol8/Symtypes.kabi_aarch64
+diff --git a/uek-rpm/ol8/Symtypes.kabi_aarch64debug b/ml-rpm/ol8/Symtypes.kabi_aarch64debug
+similarity index 100%
+rename from uek-rpm/ol8/Symtypes.kabi_aarch64debug
+rename to ml-rpm/ol8/Symtypes.kabi_aarch64debug
+diff --git a/uek-rpm/ol8/Symtypes.kabi_x86_64 b/ml-rpm/ol8/Symtypes.kabi_x86_64
+similarity index 100%
+rename from uek-rpm/ol8/Symtypes.kabi_x86_64
+rename to ml-rpm/ol8/Symtypes.kabi_x86_64
+diff --git a/uek-rpm/ol8/Symtypes.kabi_x86_64debug b/ml-rpm/ol8/Symtypes.kabi_x86_64debug
+similarity index 100%
+rename from uek-rpm/ol8/Symtypes.kabi_x86_64debug
+rename to ml-rpm/ol8/Symtypes.kabi_x86_64debug
+diff --git a/uek-rpm/ol8/check-kabi b/ml-rpm/ol8/check-kabi
+similarity index 100%
+rename from uek-rpm/ol8/check-kabi
+rename to ml-rpm/ol8/check-kabi
+diff --git a/uek-rpm/ol8/config-aarch64 b/ml-rpm/ol8/config-aarch64
+similarity index 100%
+rename from uek-rpm/ol8/config-aarch64
+rename to ml-rpm/ol8/config-aarch64
+diff --git a/uek-rpm/ol8/config-aarch64-container b/ml-rpm/ol8/config-aarch64-container
+similarity index 100%
+rename from uek-rpm/ol8/config-aarch64-container
+rename to ml-rpm/ol8/config-aarch64-container
+diff --git a/uek-rpm/ol8/config-aarch64-debug b/ml-rpm/ol8/config-aarch64-debug
+similarity index 100%
+rename from uek-rpm/ol8/config-aarch64-debug
+rename to ml-rpm/ol8/config-aarch64-debug
+diff --git a/uek-rpm/ol8/config-aarch64-emb3 b/ml-rpm/ol8/config-aarch64-emb3
+similarity index 100%
+rename from uek-rpm/ol8/config-aarch64-emb3
+rename to ml-rpm/ol8/config-aarch64-emb3
+diff --git a/uek-rpm/ol8/config-aarch64-emb3-debug b/ml-rpm/ol8/config-aarch64-emb3-debug
+similarity index 100%
+rename from uek-rpm/ol8/config-aarch64-emb3-debug
+rename to ml-rpm/ol8/config-aarch64-emb3-debug
+diff --git a/uek-rpm/ol8/config-x86_64 b/ml-rpm/ol8/config-x86_64
+similarity index 100%
+rename from uek-rpm/ol8/config-x86_64
+rename to ml-rpm/ol8/config-x86_64
+diff --git a/uek-rpm/ol8/config-x86_64-container b/ml-rpm/ol8/config-x86_64-container
+similarity index 100%
+rename from uek-rpm/ol8/config-x86_64-container
+rename to ml-rpm/ol8/config-x86_64-container
+diff --git a/uek-rpm/ol8/config-x86_64-debug b/ml-rpm/ol8/config-x86_64-debug
+similarity index 100%
+rename from uek-rpm/ol8/config-x86_64-debug
+rename to ml-rpm/ol8/config-x86_64-debug
+diff --git a/uek-rpm/ol8/core-emb3-aarch64.list b/ml-rpm/ol8/core-emb3-aarch64.list
+similarity index 100%
+rename from uek-rpm/ol8/core-emb3-aarch64.list
+rename to ml-rpm/ol8/core-emb3-aarch64.list
+diff --git a/uek-rpm/ol8/filter-aarch64.sh b/ml-rpm/ol8/filter-aarch64.sh
+similarity index 100%
+rename from uek-rpm/ol8/filter-aarch64.sh
+rename to ml-rpm/ol8/filter-aarch64.sh
+diff --git a/uek-rpm/ol8/filter-modules.sh b/ml-rpm/ol8/filter-modules.sh
+similarity index 100%
+rename from uek-rpm/ol8/filter-modules.sh
+rename to ml-rpm/ol8/filter-modules.sh
+diff --git a/uek-rpm/ol8/filter-x86_64.sh b/ml-rpm/ol8/filter-x86_64.sh
+similarity index 100%
+rename from uek-rpm/ol8/filter-x86_64.sh
+rename to ml-rpm/ol8/filter-x86_64.sh
+diff --git a/uek-rpm/ol8/find-provides b/ml-rpm/ol8/find-provides
+similarity index 100%
+rename from uek-rpm/ol8/find-provides
+rename to ml-rpm/ol8/find-provides
+diff --git a/uek-rpm/ol8/generate_bls_conf.sh b/ml-rpm/ol8/generate_bls_conf.sh
+similarity index 100%
+rename from uek-rpm/ol8/generate_bls_conf.sh
+rename to ml-rpm/ol8/generate_bls_conf.sh
+diff --git a/uek-rpm/ol8/kabi_lockedlist_aarch64 b/ml-rpm/ol8/kabi_lockedlist_aarch64
+similarity index 100%
+rename from uek-rpm/ol8/kabi_lockedlist_aarch64
+rename to ml-rpm/ol8/kabi_lockedlist_aarch64
+diff --git a/uek-rpm/ol8/kabi_lockedlist_aarch64debug b/ml-rpm/ol8/kabi_lockedlist_aarch64debug
+similarity index 100%
+rename from uek-rpm/ol8/kabi_lockedlist_aarch64debug
+rename to ml-rpm/ol8/kabi_lockedlist_aarch64debug
+diff --git a/uek-rpm/ol8/kabi_lockedlist_x86_64 b/ml-rpm/ol8/kabi_lockedlist_x86_64
+similarity index 100%
+rename from uek-rpm/ol8/kabi_lockedlist_x86_64
+rename to ml-rpm/ol8/kabi_lockedlist_x86_64
+diff --git a/uek-rpm/ol8/kabi_lockedlist_x86_64debug b/ml-rpm/ol8/kabi_lockedlist_x86_64debug
+similarity index 100%
+rename from uek-rpm/ol8/kabi_lockedlist_x86_64debug
+rename to ml-rpm/ol8/kabi_lockedlist_x86_64debug
+diff --git a/uek-rpm/ol8/kabitool b/ml-rpm/ol8/kabitool
+similarity index 100%
+rename from uek-rpm/ol8/kabitool
+rename to ml-rpm/ol8/kabitool
+diff --git a/uek-rpm/ol8/kernel-uek.spec b/ml-rpm/ol8/kernel-uek.spec
+similarity index 100%
+rename from uek-rpm/ol8/kernel-uek.spec
+rename to ml-rpm/ol8/kernel-uek.spec
+diff --git a/uek-rpm/ol8/mod-denylist.sh b/ml-rpm/ol8/mod-denylist.sh
+similarity index 100%
+rename from uek-rpm/ol8/mod-denylist.sh
+rename to ml-rpm/ol8/mod-denylist.sh
+diff --git a/uek-rpm/ol8/mod-extra.list b/ml-rpm/ol8/mod-extra.list
+similarity index 100%
+rename from uek-rpm/ol8/mod-extra.list
+rename to ml-rpm/ol8/mod-extra.list
+diff --git a/uek-rpm/ol8/mod-sign.sh b/ml-rpm/ol8/mod-sign.sh
+similarity index 100%
+rename from uek-rpm/ol8/mod-sign.sh
+rename to ml-rpm/ol8/mod-sign.sh
+diff --git a/uek-rpm/ol8/modules-core-aarch64.list b/ml-rpm/ol8/modules-core-aarch64.list
+similarity index 100%
+rename from uek-rpm/ol8/modules-core-aarch64.list
+rename to ml-rpm/ol8/modules-core-aarch64.list
+diff --git a/uek-rpm/ol8/modules-core-x86_64.list b/ml-rpm/ol8/modules-core-x86_64.list
+similarity index 100%
+rename from uek-rpm/ol8/modules-core-x86_64.list
+rename to ml-rpm/ol8/modules-core-x86_64.list
+diff --git a/uek-rpm/ol8/perf b/ml-rpm/ol8/perf
+similarity index 100%
+rename from uek-rpm/ol8/perf
+rename to ml-rpm/ol8/perf
+diff --git a/uek-rpm/ol8/secureboot.cer b/ml-rpm/ol8/secureboot.cer
+similarity index 100%
+rename from uek-rpm/ol8/secureboot.cer
+rename to ml-rpm/ol8/secureboot.cer
+diff --git a/uek-rpm/ol8/secureboot_aarch64.cer b/ml-rpm/ol8/secureboot_aarch64.cer
+similarity index 100%
+rename from uek-rpm/ol8/secureboot_aarch64.cer
+rename to ml-rpm/ol8/secureboot_aarch64.cer
+diff --git a/uek-rpm/ol8/securebootca.cer b/ml-rpm/ol8/securebootca.cer
+similarity index 100%
+rename from uek-rpm/ol8/securebootca.cer
+rename to ml-rpm/ol8/securebootca.cer
+diff --git a/uek-rpm/ol8/turbostat b/ml-rpm/ol8/turbostat
+similarity index 100%
+rename from uek-rpm/ol8/turbostat
+rename to ml-rpm/ol8/turbostat
+diff --git a/uek-rpm/ol8/update-el-aarch64 b/ml-rpm/ol8/update-el-aarch64
+similarity index 100%
+rename from uek-rpm/ol8/update-el-aarch64
+rename to ml-rpm/ol8/update-el-aarch64
+diff --git a/uek-rpm/ol8/update-el-x86 b/ml-rpm/ol8/update-el-x86
+similarity index 100%
+rename from uek-rpm/ol8/update-el-x86
+rename to ml-rpm/ol8/update-el-x86
+diff --git a/uek-rpm/ol8/x509.genkey b/ml-rpm/ol8/x509.genkey
+similarity index 100%
+rename from uek-rpm/ol8/x509.genkey
+rename to ml-rpm/ol8/x509.genkey
+diff --git a/uek-rpm/ol8/x86_energy_perf_policy b/ml-rpm/ol8/x86_energy_perf_policy
+similarity index 100%
+rename from uek-rpm/ol8/x86_energy_perf_policy
+rename to ml-rpm/ol8/x86_energy_perf_policy
+diff --git a/uek-rpm/ol9/Module.kabi_aarch64 b/ml-rpm/ol9/Module.kabi_aarch64
+similarity index 100%
+rename from uek-rpm/ol9/Module.kabi_aarch64
+rename to ml-rpm/ol9/Module.kabi_aarch64
+diff --git a/uek-rpm/ol9/Module.kabi_aarch64debug b/ml-rpm/ol9/Module.kabi_aarch64debug
+similarity index 100%
+rename from uek-rpm/ol9/Module.kabi_aarch64debug
+rename to ml-rpm/ol9/Module.kabi_aarch64debug
+diff --git a/uek-rpm/ol9/Module.kabi_x86_64 b/ml-rpm/ol9/Module.kabi_x86_64
+similarity index 100%
+rename from uek-rpm/ol9/Module.kabi_x86_64
+rename to ml-rpm/ol9/Module.kabi_x86_64
+diff --git a/uek-rpm/ol9/Module.kabi_x86_64debug b/ml-rpm/ol9/Module.kabi_x86_64debug
+similarity index 100%
+rename from uek-rpm/ol9/Module.kabi_x86_64debug
+rename to ml-rpm/ol9/Module.kabi_x86_64debug
+diff --git a/uek-rpm/ol9/Symtypes.kabi_aarch64 b/ml-rpm/ol9/Symtypes.kabi_aarch64
+similarity index 100%
+rename from uek-rpm/ol9/Symtypes.kabi_aarch64
+rename to ml-rpm/ol9/Symtypes.kabi_aarch64
+diff --git a/uek-rpm/ol9/Symtypes.kabi_aarch64debug b/ml-rpm/ol9/Symtypes.kabi_aarch64debug
+similarity index 100%
+rename from uek-rpm/ol9/Symtypes.kabi_aarch64debug
+rename to ml-rpm/ol9/Symtypes.kabi_aarch64debug
+diff --git a/uek-rpm/ol9/Symtypes.kabi_x86_64 b/ml-rpm/ol9/Symtypes.kabi_x86_64
+similarity index 100%
+rename from uek-rpm/ol9/Symtypes.kabi_x86_64
+rename to ml-rpm/ol9/Symtypes.kabi_x86_64
+diff --git a/uek-rpm/ol9/Symtypes.kabi_x86_64debug b/ml-rpm/ol9/Symtypes.kabi_x86_64debug
+similarity index 100%
+rename from uek-rpm/ol9/Symtypes.kabi_x86_64debug
+rename to ml-rpm/ol9/Symtypes.kabi_x86_64debug
+diff --git a/uek-rpm/ol9/check-kabi b/ml-rpm/ol9/check-kabi
+similarity index 100%
+rename from uek-rpm/ol9/check-kabi
+rename to ml-rpm/ol9/check-kabi
+diff --git a/uek-rpm/ol9/config-aarch64 b/ml-rpm/ol9/config-aarch64
+similarity index 100%
+rename from uek-rpm/ol9/config-aarch64
+rename to ml-rpm/ol9/config-aarch64
+diff --git a/uek-rpm/ol9/config-aarch64-container b/ml-rpm/ol9/config-aarch64-container
+similarity index 100%
+rename from uek-rpm/ol9/config-aarch64-container
+rename to ml-rpm/ol9/config-aarch64-container
+diff --git a/uek-rpm/ol9/config-aarch64-debug b/ml-rpm/ol9/config-aarch64-debug
+similarity index 100%
+rename from uek-rpm/ol9/config-aarch64-debug
+rename to ml-rpm/ol9/config-aarch64-debug
+diff --git a/uek-rpm/ol9/config-x86_64 b/ml-rpm/ol9/config-x86_64
+similarity index 100%
+rename from uek-rpm/ol9/config-x86_64
+rename to ml-rpm/ol9/config-x86_64
+diff --git a/uek-rpm/ol9/config-x86_64-container b/ml-rpm/ol9/config-x86_64-container
+similarity index 100%
+rename from uek-rpm/ol9/config-x86_64-container
+rename to ml-rpm/ol9/config-x86_64-container
+diff --git a/uek-rpm/ol9/config-x86_64-debug b/ml-rpm/ol9/config-x86_64-debug
+similarity index 100%
+rename from uek-rpm/ol9/config-x86_64-debug
+rename to ml-rpm/ol9/config-x86_64-debug
+diff --git a/uek-rpm/ol9/filter-aarch64.sh b/ml-rpm/ol9/filter-aarch64.sh
+similarity index 100%
+rename from uek-rpm/ol9/filter-aarch64.sh
+rename to ml-rpm/ol9/filter-aarch64.sh
+diff --git a/uek-rpm/ol9/filter-modules.sh b/ml-rpm/ol9/filter-modules.sh
+similarity index 100%
+rename from uek-rpm/ol9/filter-modules.sh
+rename to ml-rpm/ol9/filter-modules.sh
+diff --git a/uek-rpm/ol9/filter-x86_64.sh b/ml-rpm/ol9/filter-x86_64.sh
+similarity index 100%
+rename from uek-rpm/ol9/filter-x86_64.sh
+rename to ml-rpm/ol9/filter-x86_64.sh
+diff --git a/uek-rpm/ol9/find-provides b/ml-rpm/ol9/find-provides
+similarity index 100%
+rename from uek-rpm/ol9/find-provides
+rename to ml-rpm/ol9/find-provides
+diff --git a/uek-rpm/ol9/generate_bls_conf.sh b/ml-rpm/ol9/generate_bls_conf.sh
+similarity index 100%
+rename from uek-rpm/ol9/generate_bls_conf.sh
+rename to ml-rpm/ol9/generate_bls_conf.sh
+diff --git a/uek-rpm/ol9/kabi_lockedlist_aarch64 b/ml-rpm/ol9/kabi_lockedlist_aarch64
+similarity index 100%
+rename from uek-rpm/ol9/kabi_lockedlist_aarch64
+rename to ml-rpm/ol9/kabi_lockedlist_aarch64
+diff --git a/uek-rpm/ol9/kabi_lockedlist_aarch64debug b/ml-rpm/ol9/kabi_lockedlist_aarch64debug
+similarity index 100%
+rename from uek-rpm/ol9/kabi_lockedlist_aarch64debug
+rename to ml-rpm/ol9/kabi_lockedlist_aarch64debug
+diff --git a/uek-rpm/ol9/kabi_lockedlist_x86_64 b/ml-rpm/ol9/kabi_lockedlist_x86_64
+similarity index 100%
+rename from uek-rpm/ol9/kabi_lockedlist_x86_64
+rename to ml-rpm/ol9/kabi_lockedlist_x86_64
+diff --git a/uek-rpm/ol9/kabi_lockedlist_x86_64debug b/ml-rpm/ol9/kabi_lockedlist_x86_64debug
+similarity index 100%
+rename from uek-rpm/ol9/kabi_lockedlist_x86_64debug
+rename to ml-rpm/ol9/kabi_lockedlist_x86_64debug
+diff --git a/uek-rpm/ol9/kabitool b/ml-rpm/ol9/kabitool
+similarity index 100%
+rename from uek-rpm/ol9/kabitool
+rename to ml-rpm/ol9/kabitool
+diff --git a/uek-rpm/ol9/kernel-uek.spec b/ml-rpm/ol9/kernel-uek.spec
+similarity index 100%
+rename from uek-rpm/ol9/kernel-uek.spec
+rename to ml-rpm/ol9/kernel-uek.spec
+diff --git a/uek-rpm/ol9/mod-denylist.sh b/ml-rpm/ol9/mod-denylist.sh
+similarity index 100%
+rename from uek-rpm/ol9/mod-denylist.sh
+rename to ml-rpm/ol9/mod-denylist.sh
+diff --git a/uek-rpm/ol9/mod-extra.list b/ml-rpm/ol9/mod-extra.list
+similarity index 100%
+rename from uek-rpm/ol9/mod-extra.list
+rename to ml-rpm/ol9/mod-extra.list
+diff --git a/uek-rpm/ol9/mod-sign.sh b/ml-rpm/ol9/mod-sign.sh
+similarity index 100%
+rename from uek-rpm/ol9/mod-sign.sh
+rename to ml-rpm/ol9/mod-sign.sh
+diff --git a/uek-rpm/ol9/modules-core-aarch64.list b/ml-rpm/ol9/modules-core-aarch64.list
+similarity index 100%
+rename from uek-rpm/ol9/modules-core-aarch64.list
+rename to ml-rpm/ol9/modules-core-aarch64.list
+diff --git a/uek-rpm/ol9/modules-core-x86_64.list b/ml-rpm/ol9/modules-core-x86_64.list
+similarity index 100%
+rename from uek-rpm/ol9/modules-core-x86_64.list
+rename to ml-rpm/ol9/modules-core-x86_64.list
+diff --git a/uek-rpm/ol9/perf b/ml-rpm/ol9/perf
+similarity index 100%
+rename from uek-rpm/ol9/perf
+rename to ml-rpm/ol9/perf
+diff --git a/uek-rpm/ol9/secureboot.cer b/ml-rpm/ol9/secureboot.cer
+similarity index 100%
+rename from uek-rpm/ol9/secureboot.cer
+rename to ml-rpm/ol9/secureboot.cer
+diff --git a/uek-rpm/ol9/secureboot_aarch64.cer b/ml-rpm/ol9/secureboot_aarch64.cer
+similarity index 100%
+rename from uek-rpm/ol9/secureboot_aarch64.cer
+rename to ml-rpm/ol9/secureboot_aarch64.cer
+diff --git a/uek-rpm/ol9/securebootca.cer b/ml-rpm/ol9/securebootca.cer
+similarity index 100%
+rename from uek-rpm/ol9/securebootca.cer
+rename to ml-rpm/ol9/securebootca.cer
+diff --git a/uek-rpm/ol9/turbostat b/ml-rpm/ol9/turbostat
+similarity index 100%
+rename from uek-rpm/ol9/turbostat
+rename to ml-rpm/ol9/turbostat
+diff --git a/uek-rpm/ol9/update-el-aarch64 b/ml-rpm/ol9/update-el-aarch64
+similarity index 100%
+rename from uek-rpm/ol9/update-el-aarch64
+rename to ml-rpm/ol9/update-el-aarch64
+diff --git a/uek-rpm/ol9/update-el-x86 b/ml-rpm/ol9/update-el-x86
+similarity index 100%
+rename from uek-rpm/ol9/update-el-x86
+rename to ml-rpm/ol9/update-el-x86
+diff --git a/uek-rpm/ol9/x509.genkey b/ml-rpm/ol9/x509.genkey
+similarity index 100%
+rename from uek-rpm/ol9/x509.genkey
+rename to ml-rpm/ol9/x509.genkey
+diff --git a/uek-rpm/ol9/x86_energy_perf_policy b/ml-rpm/ol9/x86_energy_perf_policy
+similarity index 100%
+rename from uek-rpm/ol9/x86_energy_perf_policy
+rename to ml-rpm/ol9/x86_energy_perf_policy
+diff --git a/uek-rpm/tools/kabi b/ml-rpm/tools/kabi
+similarity index 100%
+rename from uek-rpm/tools/kabi
+rename to ml-rpm/tools/kabi
+diff --git a/uek-rpm/.Orabug_list b/uek-rpm/.Orabug_list
+deleted file mode 100644
+index 7becf1b0a9be7..0000000000000
+--- a/uek-rpm/.Orabug_list
++++ /dev/null
+@@ -1,5 +0,0 @@
+-31961009 # [UEK-NEXT] kexec allows kernel whose signature is in the dbx to be booted
+-34116060 # LUCI Maintainer: Disable OpenSSL 3.0 warnings for v5.18
+-35455153 # [UEK-NEXT] Manage Original OL Signing Keys
+-35641429 # Add uek_kabi.h to LUCI and update check-kabi scripts
+-36459425 # Build fix for 6.9 LUCI
 -- 
 2.31.1
 
