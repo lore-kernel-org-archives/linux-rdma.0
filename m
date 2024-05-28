@@ -1,29 +1,29 @@
-Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5E8F1401C;
-	Tue, 28 May 2024 02:30:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 060BCDDBE;
+	Tue, 28 May 2024 02:30:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716863413; cv=none; b=bP32Olc553wZcpNyPVm74J5hg+3lxPWW0vTJrr9HhYplx2ulGhBb4bxzfpztiykAqDOldfL2FRcwiE4z/zvZmQJqLnjWhneaar9uFOgFyP1K5NCPYDiFIrSUmNbI2PY5xvvC/OeBdZD4BWchGUYRUb/tHHAC4R5Esfrwu5r0Gcc=
+	t=1716863416; cv=none; b=L/GAR5Nhg5SOzbSDQRv8jntmG62XGLPbuxtgkzwfFt8hd7ij1ukdBGtJdd0doiPSaOvfhb4/raSJvyiHVHJWdJN66rvfXm+Vb4wanu8s2ZoEi4+yVH2hJXdkw2s+0lJUHRI8Cg7OvDmuioTCFuiHvhgTquJbj3/Rk5YMBgxe5Os=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716863413; c=relaxed/simple;
-	bh=w4OVIhjFqPBRTpT9PQw6dfNUL8lfUKZZjDR8RwJnU6s=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=s/Bp14ObshybMbm8OOTg8OuMaYsl6CWakNUY8Eq9l4Pfg1uLY0atHF+410NEfv+ug9QS0L/N0fsqQEuIf25eLZwZ3JXTWJEzDL+pei9DljLPq27mVFy3WBn8SixwMkJzEOBD/r3tNfTv9uOTuuCMV4Gz1hQIOoeTizU6VI7heAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=gYFiEljQ; arc=none smtp.client-ip=115.124.30.111
+	s=arc-20240116; t=1716863416; c=relaxed/simple;
+	bh=6AOqr5bo+vgIXak9lJuxSkq8KThhOOO0YuHHVi6pccM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=DYBMK3kxPGxvMmMAA0eJsSIVRzwlLzsaK76PDUf9qXdWeg+IW6JzcSZbczEcm7d4hV01h5ww+tgbWXIvZsZUvbnRiBoh5h/JdPIRo0SYcPi5oK4yq5COjfHIA7UTIUeXa8s2uQXyocVAlu6teSSH+YDNpdRNfJ72uNlHcuhh+9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=bT0iKA3Y; arc=none smtp.client-ip=115.124.30.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="gYFiEljQ"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="bT0iKA3Y"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1716863402; h=From:To:Subject:Date:Message-Id;
-	bh=5bpiKf4rTKQWf2YAJ6ozVg/Pql17xQP7M2yLjEU3rLw=;
-	b=gYFiEljQths0/QgmJkdFG6uykFBsKpIiIoRclMq3DhbK7/GuQzIZ+zZQynU9JdSAWPp1s1cyUE8dmexUo56g3LLe9EJpmo5TG5Jq8BFgT4Msdeo/dCTT8pQm64jx9WWAbENVxop2ESS492TAAuvEC577PjICZqh7H9sIval8+8o=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R531e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033068173054;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0W7O6Eib_1716863395;
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0W7O6Eib_1716863395)
+	t=1716863404; h=From:To:Subject:Date:Message-Id;
+	bh=4k1evFX5nePvOyOdv03V8iOae8oaqD8neDybdWBMvMY=;
+	b=bT0iKA3YLypbqHF6eR5cRc0qVwJMiFSYSQmr1h0K6PajPtAOrwa1+ewHuXJbCxYDbvAiIxI9HN7E2nEyxwlcoEkuVaWUvduvRLKTkdlWZZwm+l1cO/s38xMO5nsMDaxwX78QhwjJcUlkggvKcAiNRX94MW2M+TcVFcZL1kB9kec=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R891e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033045075189;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0W7O6EmH_1716863403;
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0W7O6EmH_1716863403)
           by smtp.aliyun-inc.com;
-          Tue, 28 May 2024 10:30:02 +0800
+          Tue, 28 May 2024 10:30:04 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 To: kgraul@linux.ibm.com,
 	wenjia@linux.ibm.com,
@@ -38,10 +38,12 @@ Cc: kuba@kernel.org,
 	tonylu@linux.alibaba.com,
 	pabeni@redhat.com,
 	edumazet@google.com
-Subject: [PATCH net-next v3 0/3] Introduce IPPROTO_SMC
-Date: Tue, 28 May 2024 10:29:51 +0800
-Message-Id: <1716863394-112399-1-git-send-email-alibuda@linux.alibaba.com>
+Subject: [PATCH net-next v3 2/3] net/smc: expose smc proto operations
+Date: Tue, 28 May 2024 10:29:53 +0800
+Message-Id: <1716863394-112399-3-git-send-email-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1716863394-112399-1-git-send-email-alibuda@linux.alibaba.com>
+References: <1716863394-112399-1-git-send-email-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -50,63 +52,251 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 
-This patch allows to create smc socket via AF_INET,
-similar to the following code,
+Externalize smc proto operations (smc_xxx) to allow
+access from files other that af_smc.c
 
-/* create v4 smc sock */
-v4 = socket(AF_INET, SOCK_STREAM, IPPROTO_SMC);
+This is in preparation for the subsequent implementation
+of the AF_INET version of SMC.
 
-/* create v6 smc sock */
-v6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_SMC);
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+---
+ net/smc/af_smc.c | 60 ++++++++++++++++++++++++++++----------------------------
+ net/smc/smc.h    | 33 +++++++++++++++++++++++++++++++
+ 2 files changed, 63 insertions(+), 30 deletions(-)
 
-There are several reasons why we believe it is appropriate here:
-
-1. For smc sockets, it actually use IPv4 (AF-INET) or IPv6 (AF-INET6)
-address. There is no AF_SMC address at all.
-
-2. Create smc socket in the AF_INET(6) path, which allows us to reuse
-the infrastructure of AF_INET(6) path, such as common ebpf hooks.
-Otherwise, smc have to implement it again in AF_SMC path. Such as:
-  1. Replace IPPROTO_TCP with IPPROTO_SMC in the socket() syscall
-     initiated by the user, without the use of LD-PRELOAD.
-  2. Select whether immediate fallback is required based on peer's port/ip
-     before connect().
-
-A very significant result is that we can now use eBPF to implement smc_run
-instead of LD_PRELOAD, who is completely ineffective in scenarios of static
-linking.
-
-Another potential value is that we are attempting to optimize the performance of
-fallback socks, where merging socks is an important part, and it relies on the
-creation of SMC sockets under the AF_INET path. (More information :
-https://lore.kernel.org/netdev/1699442703-25015-1-git-send-email-alibuda@linux.alibaba.com/T/)
-
-v1 -> v2 :
-
-- Code formatting, mainly including alignment and annotation repair.
-- move inet_smc proto ops to inet_smc.c, avoiding af_smc.c becoming too bulky.
-- Fix the issue where refactoring affects the initialization order.
-- Fix compile warning (unused out_inet_prot) while CONFIG_IPV6 was not set.
-
-v3 -> v2 :
-
-- Add Alibaba's copyright information to the newfile
-
-D. Wythe (3):
-  net/smc: refatoring initialization of smc sock
-  net/smc: expose smc proto operations
-  net/smc: Introduce IPPROTO_SMC
-
- include/uapi/linux/in.h |   2 +
- net/smc/Makefile        |   2 +-
- net/smc/af_smc.c        | 183 ++++++++++++++++++++++++++++++------------------
- net/smc/inet_smc.c      | 108 ++++++++++++++++++++++++++++
- net/smc/inet_smc.h      |  34 +++++++++
- net/smc/smc.h           |  38 ++++++++++
- 6 files changed, 297 insertions(+), 70 deletions(-)
- create mode 100644 net/smc/inet_smc.c
- create mode 100644 net/smc/inet_smc.h
-
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index d8c116e..5b7a194 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -170,15 +170,15 @@ static bool smc_hs_congested(const struct sock *sk)
+ 	return false;
+ }
+ 
+-static struct smc_hashinfo smc_v4_hashinfo = {
++struct smc_hashinfo smc_v4_hashinfo = {
+ 	.lock = __RW_LOCK_UNLOCKED(smc_v4_hashinfo.lock),
+ };
+ 
+-static struct smc_hashinfo smc_v6_hashinfo = {
++struct smc_hashinfo smc_v6_hashinfo = {
+ 	.lock = __RW_LOCK_UNLOCKED(smc_v6_hashinfo.lock),
+ };
+ 
+-static int smc_hash_sk(struct sock *sk)
++int smc_hash_sk(struct sock *sk)
+ {
+ 	struct smc_hashinfo *h = sk->sk_prot->h.smc_hash;
+ 	struct hlist_head *head;
+@@ -193,7 +193,7 @@ static int smc_hash_sk(struct sock *sk)
+ 	return 0;
+ }
+ 
+-static void smc_unhash_sk(struct sock *sk)
++void smc_unhash_sk(struct sock *sk)
+ {
+ 	struct smc_hashinfo *h = sk->sk_prot->h.smc_hash;
+ 
+@@ -207,7 +207,7 @@ static void smc_unhash_sk(struct sock *sk)
+  * work which we didn't do because of user hold the sock_lock in the
+  * BH context
+  */
+-static void smc_release_cb(struct sock *sk)
++void smc_release_cb(struct sock *sk)
+ {
+ 	struct smc_sock *smc = smc_sk(sk);
+ 
+@@ -307,7 +307,7 @@ static int __smc_release(struct smc_sock *smc)
+ 	return rc;
+ }
+ 
+-static int smc_release(struct socket *sock)
++int smc_release(struct socket *sock)
+ {
+ 	struct sock *sk = sock->sk;
+ 	struct smc_sock *smc;
+@@ -401,8 +401,8 @@ static struct sock *smc_sock_alloc(struct net *net, struct socket *sock,
+ 	return sk;
+ }
+ 
+-static int smc_bind(struct socket *sock, struct sockaddr *uaddr,
+-		    int addr_len)
++int smc_bind(struct socket *sock, struct sockaddr *uaddr,
++	     int addr_len)
+ {
+ 	struct sockaddr_in *addr = (struct sockaddr_in *)uaddr;
+ 	struct sock *sk = sock->sk;
+@@ -1649,8 +1649,8 @@ static void smc_connect_work(struct work_struct *work)
+ 	release_sock(&smc->sk);
+ }
+ 
+-static int smc_connect(struct socket *sock, struct sockaddr *addr,
+-		       int alen, int flags)
++int smc_connect(struct socket *sock, struct sockaddr *addr,
++		int alen, int flags)
+ {
+ 	struct sock *sk = sock->sk;
+ 	struct smc_sock *smc;
+@@ -2631,7 +2631,7 @@ static void smc_clcsock_data_ready(struct sock *listen_clcsock)
+ 	read_unlock_bh(&listen_clcsock->sk_callback_lock);
+ }
+ 
+-static int smc_listen(struct socket *sock, int backlog)
++int smc_listen(struct socket *sock, int backlog)
+ {
+ 	struct sock *sk = sock->sk;
+ 	struct smc_sock *smc;
+@@ -2696,8 +2696,8 @@ static int smc_listen(struct socket *sock, int backlog)
+ 	return rc;
+ }
+ 
+-static int smc_accept(struct socket *sock, struct socket *new_sock,
+-		      int flags, bool kern)
++int smc_accept(struct socket *sock, struct socket *new_sock,
++	       int flags, bool kern)
+ {
+ 	struct sock *sk = sock->sk, *nsk;
+ 	DECLARE_WAITQUEUE(wait, current);
+@@ -2766,8 +2766,8 @@ static int smc_accept(struct socket *sock, struct socket *new_sock,
+ 	return rc;
+ }
+ 
+-static int smc_getname(struct socket *sock, struct sockaddr *addr,
+-		       int peer)
++int smc_getname(struct socket *sock, struct sockaddr *addr,
++		int peer)
+ {
+ 	struct smc_sock *smc;
+ 
+@@ -2780,7 +2780,7 @@ static int smc_getname(struct socket *sock, struct sockaddr *addr,
+ 	return smc->clcsock->ops->getname(smc->clcsock, addr, peer);
+ }
+ 
+-static int smc_sendmsg(struct socket *sock, struct msghdr *msg, size_t len)
++int smc_sendmsg(struct socket *sock, struct msghdr *msg, size_t len)
+ {
+ 	struct sock *sk = sock->sk;
+ 	struct smc_sock *smc;
+@@ -2818,8 +2818,8 @@ static int smc_sendmsg(struct socket *sock, struct msghdr *msg, size_t len)
+ 	return rc;
+ }
+ 
+-static int smc_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
+-		       int flags)
++int smc_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
++		int flags)
+ {
+ 	struct sock *sk = sock->sk;
+ 	struct smc_sock *smc;
+@@ -2868,8 +2868,8 @@ static __poll_t smc_accept_poll(struct sock *parent)
+ 	return mask;
+ }
+ 
+-static __poll_t smc_poll(struct file *file, struct socket *sock,
+-			     poll_table *wait)
++__poll_t smc_poll(struct file *file, struct socket *sock,
++		  poll_table *wait)
+ {
+ 	struct sock *sk = sock->sk;
+ 	struct smc_sock *smc;
+@@ -2921,7 +2921,7 @@ static __poll_t smc_poll(struct file *file, struct socket *sock,
+ 	return mask;
+ }
+ 
+-static int smc_shutdown(struct socket *sock, int how)
++int smc_shutdown(struct socket *sock, int how)
+ {
+ 	struct sock *sk = sock->sk;
+ 	bool do_shutdown = true;
+@@ -3061,8 +3061,8 @@ static int __smc_setsockopt(struct socket *sock, int level, int optname,
+ 	return rc;
+ }
+ 
+-static int smc_setsockopt(struct socket *sock, int level, int optname,
+-			  sockptr_t optval, unsigned int optlen)
++int smc_setsockopt(struct socket *sock, int level, int optname,
++		   sockptr_t optval, unsigned int optlen)
+ {
+ 	struct sock *sk = sock->sk;
+ 	struct smc_sock *smc;
+@@ -3148,8 +3148,8 @@ static int smc_setsockopt(struct socket *sock, int level, int optname,
+ 	return rc;
+ }
+ 
+-static int smc_getsockopt(struct socket *sock, int level, int optname,
+-			  char __user *optval, int __user *optlen)
++int smc_getsockopt(struct socket *sock, int level, int optname,
++		   char __user *optval, int __user *optlen)
+ {
+ 	struct smc_sock *smc;
+ 	int rc;
+@@ -3174,8 +3174,8 @@ static int smc_getsockopt(struct socket *sock, int level, int optname,
+ 	return rc;
+ }
+ 
+-static int smc_ioctl(struct socket *sock, unsigned int cmd,
+-		     unsigned long arg)
++int smc_ioctl(struct socket *sock, unsigned int cmd,
++	      unsigned long arg)
+ {
+ 	union smc_host_cursor cons, urg;
+ 	struct smc_connection *conn;
+@@ -3261,9 +3261,9 @@ static int smc_ioctl(struct socket *sock, unsigned int cmd,
+  * Note that subsequent recv() calls have to wait till all splice() processing
+  * completed.
+  */
+-static ssize_t smc_splice_read(struct socket *sock, loff_t *ppos,
+-			       struct pipe_inode_info *pipe, size_t len,
+-			       unsigned int flags)
++ssize_t smc_splice_read(struct socket *sock, loff_t *ppos,
++			struct pipe_inode_info *pipe, size_t len,
++			unsigned int flags)
+ {
+ 	struct sock *sk = sock->sk;
+ 	struct smc_sock *smc;
+diff --git a/net/smc/smc.h b/net/smc/smc.h
+index a0accb5..ad755ee 100644
+--- a/net/smc/smc.h
++++ b/net/smc/smc.h
+@@ -34,6 +34,39 @@
+ extern struct proto smc_proto;
+ extern struct proto smc_proto6;
+ 
++extern struct smc_hashinfo smc_v4_hashinfo;
++extern struct smc_hashinfo smc_v6_hashinfo;
++
++int smc_hash_sk(struct sock *sk);
++void smc_unhash_sk(struct sock *sk);
++void smc_release_cb(struct sock *sk);
++
++int smc_release(struct socket *sock);
++int smc_bind(struct socket *sock, struct sockaddr *uaddr,
++	     int addr_len);
++int smc_connect(struct socket *sock, struct sockaddr *addr,
++		int alen, int flags);
++int smc_accept(struct socket *sock, struct socket *new_sock,
++	       int flags, bool kern);
++int smc_getname(struct socket *sock, struct sockaddr *addr,
++		int peer);
++__poll_t smc_poll(struct file *file, struct socket *sock,
++		  poll_table *wait);
++int smc_ioctl(struct socket *sock, unsigned int cmd,
++	      unsigned long arg);
++int smc_listen(struct socket *sock, int backlog);
++int smc_shutdown(struct socket *sock, int how);
++int smc_setsockopt(struct socket *sock, int level, int optname,
++		   sockptr_t optval, unsigned int optlen);
++int smc_getsockopt(struct socket *sock, int level, int optname,
++		   char __user *optval, int __user *optlen);
++int smc_sendmsg(struct socket *sock, struct msghdr *msg, size_t len);
++int smc_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
++		int flags);
++ssize_t smc_splice_read(struct socket *sock, loff_t *ppos,
++			struct pipe_inode_info *pipe, size_t len,
++			unsigned int flags);
++
+ /* smc sock initialization */
+ void smc_sock_init(struct net *net, struct sock *sk, int protocol);
+ /* clcsock initialization */
 -- 
 1.8.3.1
 
