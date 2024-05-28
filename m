@@ -1,42 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7B1116D9AA
-	for <linux-rdma@vger.kernel.org>; Tue, 28 May 2024 12:53:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6779F16DEB0
+	for <linux-rdma@vger.kernel.org>; Tue, 28 May 2024 12:53:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716900803; cv=none; b=T1FtxecZR3/fcW6hKbAbZ4cBddBON0kE1PpMHi4OBDicKdowRQjWNQzubPeWcswwPBRnJjlu3P6uCDqDCZeN6Hcqw/5LR99ByDXxqTrbr77VBlKx0yZQAPURRtU7zaqX/W3pb9h6dVMOEh7QZeNU84fmmCyf0n8umS+bDBCu0f0=
+	t=1716900808; cv=none; b=juSiYxV6kw0bjGzQ7lMDKYk87UacApZVVjKa4F6HAHvV/WkEk6zUu8Kh7UCpaYzhVUfcMYZ5qBKYeRsG4VsEs8P8IkbPsWoJQdQLI/lrVmsJaCtDQt290OqsyQWhLdy3AmX3J+8XEGB/msSQctopqlcnWSvyaui6l2kHlNwzXZw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716900803; c=relaxed/simple;
-	bh=T9X4/Jsk3ptLSS5AoN6LbKLk43UbEhUp3ngVpQOpVI4=;
+	s=arc-20240116; t=1716900808; c=relaxed/simple;
+	bh=8b1Gin9FaAJQpL4LJCGBu7mBYgjW+aJMJ3DuG0aHCh0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hhvFLxmntJNEkVvKVwS5rm9xzvVFhjK8HC8BihH//R0484NEmgDrYXx6g4foEdc3doLTHzt8XxPHm3pmORJ3ttsL1/yrnEuvPth31NsWfDhMo73X75P0UFksWC24nk/ulwvP9+vpsAdg8Q4umi0MCIPIkyNX6bFQAZr4WRyLlXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=B6YvJb6W; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=an3cUilfHeADbMSEHOtCQIm289cNiyV2RDr3FNyLmcUIt50pFUBvNxvXi1Tvg7hwjS4c61w7prcrqtHnnl5cuKV2DYZpUEP9uAXUIa3BrtW7k0IC6rL7JSbTRjByrZRykWdh+BD5Qc7fkGnMSFfBnqw/3ihZxyFAbblY4AXvkCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FMjhTSqD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="B6YvJb6W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B1F4C32789;
-	Tue, 28 May 2024 12:53:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FMjhTSqD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59686C3277B;
+	Tue, 28 May 2024 12:53:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1716900803;
-	bh=T9X4/Jsk3ptLSS5AoN6LbKLk43UbEhUp3ngVpQOpVI4=;
+	s=k20201202; t=1716900807;
+	bh=8b1Gin9FaAJQpL4LJCGBu7mBYgjW+aJMJ3DuG0aHCh0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=B6YvJb6WziXRgphZw9y4+ke7U6PNVoTKeKBVGF/33tsGa7m1a67Nh1ceesRf0m6uw
-	 2AboN+mpCT4JRC7yPQJWijTQMTOQZtodTCnxKlcc15sciO1oVjoJ5poR+lVTBTxwzj
-	 i/y1z+N77zFMkwKnOh2J7OWKJb6TrJYIR9Us8w2xd+raiIaqBvsSs5xdxsG7nn+GWo
-	 N5hK9Daw/eCHRja5gK6nGGioSt9b0ruF4Itlt7eU+9sjVfcKFnCDvjUB4hW2C1xIQm
-	 p3m13NGuhMsWgFWWItfAExps/sLW3E8pFu3QTEydjKtHU1+CJgP+wUBnFedbcPpXvr
-	 38SARouqDNreA==
+	b=FMjhTSqDVj8rVvLrBDoSJ5K32lcqGBO07nuL4qsuD/bQo+KluVZYZMnmMvpkS66Vg
+	 VABZzF9Gr+pY5noPDMzOcjv7jEJ/95GCidIhrepvfM65/yvMNtqHEYtGM8AOluuUqo
+	 FPj2VUPilQdXsSrWKVTxnnSPpHMC2QEhbGRMX860Zqp2LQrWm6cPvrzCyCWYdVpLx7
+	 PUCTZUSF230oRzhb456ERi89LY0+IZueZofEmVAbqdBL4h+M/Wd1zYnIU4IpUNh6BV
+	 lGARCMCbJTDQRr9dxavl6DqbLapbC5w2+4cqSJ6tLZ5axZ5nxFwRCl72ADey2RtjfX
+	 JnSNT6wBJSFEw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Yishai Hadas <yishaih@nvidia.com>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
 	linux-rdma@vger.kernel.org,
 	Mark Zhang <markzhang@nvidia.com>,
 	Michael Guralnik <michaelgur@nvidia.com>,
 	Or Har-Toov <ohartoov@nvidia.com>,
-	Patrisious Haddad <phaddad@nvidia.com>
-Subject: [PATCH rdma-rc 5/6] RDMA/mlx5: Fix unwind flow as part of mlx5_ib_stage_init_init
-Date: Tue, 28 May 2024 15:52:55 +0300
-Message-ID: <aa40615116eda14ec9eca21d52017d632ea89188.1716900410.git.leon@kernel.org>
+	Patrisious Haddad <phaddad@nvidia.com>,
+	Yishai Hadas <yishaih@nvidia.com>
+Subject: [PATCH rdma-rc 1/6] RDMA/cache: Release GID table even if leak is detected
+Date: Tue, 28 May 2024 15:52:51 +0300
+Message-ID: <a62560af06ba82c88ef9194982bfa63d14768ff9.1716900410.git.leon@kernel.org>
 X-Mailer: git-send-email 2.45.1
 In-Reply-To: <cover.1716900410.git.leon@kernel.org>
 References: <cover.1716900410.git.leon@kernel.org>
@@ -48,36 +49,51 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Yishai Hadas <yishaih@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Fix unwind flow as part of mlx5_ib_stage_init_init to use the correct
-goto upon an error.
+When the table is released, we nullify pointer to GID table, it means
+that in case GID entry leak is detected, we will leak table too.
 
-Fixes: 758ce14aee82 ("RDMA/mlx5: Implement MACsec gid addition and deletion")
-Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
-Reviewed-by: Patrisious Haddad <phaddad@nvidia.com>
+Delete code that prevents table destruction.
+
+Fixes: b150c3862d21 ("IB/core: Introduce GID entry reference counts")
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/cache.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 2366c46eebc8..43660c831b22 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3759,10 +3759,10 @@ static int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
- 	spin_lock_init(&dev->dm.lock);
- 	dev->dm.dev = mdev;
- 	return 0;
--err:
--	mlx5r_macsec_dealloc_gids(dev);
- err_mp:
- 	mlx5_ib_cleanup_multiport_master(dev);
-+err:
-+	mlx5r_macsec_dealloc_gids(dev);
- 	return err;
- }
+diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
+index c02a96d3572a..aa62c8c7ca75 100644
+--- a/drivers/infiniband/core/cache.c
++++ b/drivers/infiniband/core/cache.c
+@@ -794,7 +794,6 @@ static struct ib_gid_table *alloc_gid_table(int sz)
+ static void release_gid_table(struct ib_device *device,
+ 			      struct ib_gid_table *table)
+ {
+-	bool leak = false;
+ 	int i;
  
+ 	if (!table)
+@@ -803,15 +802,11 @@ static void release_gid_table(struct ib_device *device,
+ 	for (i = 0; i < table->sz; i++) {
+ 		if (is_gid_entry_free(table->data_vec[i]))
+ 			continue;
+-		if (kref_read(&table->data_vec[i]->kref) > 1) {
+-			dev_err(&device->dev,
+-				"GID entry ref leak for index %d ref=%u\n", i,
+-				kref_read(&table->data_vec[i]->kref));
+-			leak = true;
+-		}
++
++		dev_err(&device->dev,
++			"GID entry ref leak for index %d ref=%u\n", i,
++			kref_read(&table->data_vec[i]->kref));
+ 	}
+-	if (leak)
+-		return;
+ 
+ 	mutex_destroy(&table->lock);
+ 	kfree(table->data_vec);
 -- 
 2.45.1
 
