@@ -1,103 +1,79 @@
-Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20AB2176AB7;
-	Thu, 30 May 2024 10:15:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.100
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B83D417E478;
+	Thu, 30 May 2024 11:55:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717064106; cv=none; b=tLDf1LnMAl/wXPS3ibqXYX6pF52wkJodNn2wSYqar76jUyL6i+6ZyBFh7jmlXBIWu9S3dcR8XlbJ1DSxPm87SZSCqQA3ASUwoV62GnWaLbqBud0YzDG8xsdDEXv4HGZv/dKu7JkkIXSEQWv4W+39booYtY0oxnrjIChjbPm9loc=
+	t=1717070125; cv=none; b=ZhE0s9EnMdGOMLrCKS0xfJSsi1tOAmDm0YvmgpExBjJXTdokfHyLSKPSKzSLddFV/ZSeelrurHsBz2iw8t/ol8gEgJgIKsvnjjJXvDOWScyeCoFcZNwSzpgC6iPcHpbTpjJdtQhBerelk1Z6bGStRU/ZFzYvez/Da7ia9XjM86A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717064106; c=relaxed/simple;
-	bh=i8kpeNVl+8LuhAazbCNqPRnoJ3SJXIs/WARd8X+GA98=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=OcaLGZM56ZAK+CJd+5kWdrCJ6gcetxKRhqBLdG3KiXd6gRoJOnG1Clkz+NHqsVNwLmVDD9gUPA1Gbn5OKM3WyInzDOLrbjehrtggHjG8YaYsyig8C9w09ZnPrTqVp2+YNQ9pTUcZzc15BDP4VxbjssapzcgBljq4jLA/Og4r/sw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=BKhm14Kx; arc=none smtp.client-ip=115.124.30.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1717070125; c=relaxed/simple;
+	bh=QLjiQw7NqssbLJLK2uetUPdOfYeFKGuAmahS5JMoJ/Q=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=lw6pXv4VI/sZ5EgbkLr3VcBnb7ANDnufbkbfeyMnCumaVaxKlhm8/02CHeqg8RSbmXZhJVCr41CYYq0SgUaNnWk++3jAUaozoNWP/xGBAA06XCXjg6vr7vzKl0TeBpQQxQ7ay57AU5B8qB2g5wlgfFsI9vYOYCrFeTu0ugDdWQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=PnA+xJCo; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="BKhm14Kx"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1717064101; h=Message-ID:Date:MIME-Version:Subject:From:To:Content-Type;
-	bh=Vhoc/mHXd1mka1wOnf0UEtM2izt0s85wD68ygO4d5Ls=;
-	b=BKhm14KxlKvHaBS0tiJHICq4PSf3GwOulszmJGG6TRzceVpSiSJlQB4Nj5o+KGNn9T0s3Zrfo5AR2SB/ADZOtIGnY0ul22Y6vVUS0zuXmNnTwoPE1WOBb0vP+/sREOqimbeqsn25HEaXoz8YXSm1XS1Ak/C8IMo3E3qNftz41MI=
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R351e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=maildocker-contentspam033037067113;MF=alibuda@linux.alibaba.com;NM=1;PH=DS;RN=13;SR=0;TI=SMTPD_---0W7WiFO0_1717064099;
-Received: from 30.221.146.99(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0W7WiFO0_1717064099)
-          by smtp.aliyun-inc.com;
-          Thu, 30 May 2024 18:15:00 +0800
-Message-ID: <bd80b8f9-9c86-4a9b-a7ba-07471dcd5a7c@linux.alibaba.com>
-Date: Thu, 30 May 2024 18:14:58 +0800
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="PnA+xJCo"
+Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 57B2C20B915B;
+	Thu, 30 May 2024 04:55:23 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 57B2C20B915B
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1717070123;
+	bh=UBCU0OT+/KidNJ3GcZj3+bBFsfX2yHeRnRPCUIDpm+s=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=PnA+xJCoS71RGwaE3/4twvUHXOWjMHPfS5b6Iqo0XEBC//LXDOXJdPQcZVurVUPrZ
+	 v1d4gKpm9CYG+7pbM1kCtOiLT8iFRx8ZqBfzWMbsSDTZhCURtInZbX1doXfD6rbr1E
+	 u5dQJsFfO1ZrQ2HujyIMVNWeM7jK8qFOIAGwkDUQ=
+From: Konstantin Taranov <kotaranov@linux.microsoft.com>
+To: kotaranov@microsoft.com,
+	sharmaajay@microsoft.com,
+	longli@microsoft.com,
+	jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH rdma-next v2 1/2] RDMA/mana_ib: set node_guid
+Date: Thu, 30 May 2024 04:55:16 -0700
+Message-Id: <1717070117-1234-2-git-send-email-kotaranov@linux.microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1717070117-1234-1-git-send-email-kotaranov@linux.microsoft.com>
+References: <1717070117-1234-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v5 0/3] Introduce IPPROTO_SMC
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-To: kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com,
- wintera@linux.ibm.com, guwen@linux.alibaba.com
-Cc: kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
- tonylu@linux.alibaba.com, pabeni@redhat.com, edumazet@google.com
-References: <1717061440-59937-1-git-send-email-alibuda@linux.alibaba.com>
-Content-Language: en-US
-In-Reply-To: <1717061440-59937-1-git-send-email-alibuda@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 
+From: Konstantin Taranov <kotaranov@microsoft.com>
 
+Use the mac address for the node_guid of the IB device.
 
-On 5/30/24 5:30 PM, D. Wythe wrote:
-> From: "D. Wythe" <alibuda@linux.alibaba.com>
->
-> This patch allows to create smc socket via AF_INET,
-> similar to the following code,
->
-> /* create v4 smc sock */
-> v4 = socket(AF_INET, SOCK_STREAM, IPPROTO_SMC);
->
-> /* create v6 smc sock */
-> v6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_SMC);
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+Reviewed-by: Long Li <longli@microsoft.com>
+---
+ drivers/infiniband/hw/mana/device.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Welcome everyone to try out the eBPF based version of smc_run during 
-testing, I have added a separate command called smc_run.bpf,
-it was equivalent to normal smc_run but with IPPROTO_SMC via eBPF.
-
-You can obtain the code and more info from: 
-https://github.com/D-Wythe/smc-tools
-
-Usage:
-
-smc_run.bpf
-An eBPF implemented smc_run based on IPPROTO_SMC:
-
-1. Support to transparent replacement based on command (Just like smc_run).
-2. Supprot to transparent replacement based on pid configuration. And 
-supports the inheritance of this capability between parent and child 
-processes.
-3. Support to transparent replacement based on per netns configuration.
-
-smc_run.bpf COMMAND
-
-1. Equivalent to smc_run but with IPPROTO_SMC via eBPF
-
-smc_run.bpf -p pid
-
-  1. Add the process with target pid to the map. Afterward, all socket() 
-calls of the process and its descendant processes will be replaced from 
-IPPROTO_TCP to IPPROTO_SMC.
-  2. Mapping will be automatically deleted when process exits.
-  3. Specifically, COMMAND mode is actually works like following:
-
-     smc_run.bpf -p $$
-     COMMAND
-     exit
-
-smc_run.bpf -n 1
-
-  1. Make all socket() calls of the current netns to be replaced from 
-IPPROTO_TCP to IPPROTO_SMC.
-  2. Turn off it by smc_run.bpf -n 0
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 7e09ceb..9a7da2e 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -5,6 +5,7 @@
+ 
+ #include "mana_ib.h"
+ #include <net/mana/mana_auxiliary.h>
++#include <net/addrconf.h>
+ 
+ MODULE_DESCRIPTION("Microsoft Azure Network Adapter IB driver");
+ MODULE_LICENSE("GPL");
+@@ -92,6 +93,7 @@ static int mana_ib_probe(struct auxiliary_device *adev,
+ 		goto free_ib_device;
+ 	}
+ 	ether_addr_copy(mac_addr, upper_ndev->dev_addr);
++	addrconf_addr_eui48((u8 *)&dev->ib_dev.node_guid, upper_ndev->dev_addr);
+ 	ret = ib_device_set_netdev(&dev->ib_dev, upper_ndev, 1);
+ 	rcu_read_unlock();
+ 	if (ret) {
+-- 
+2.43.0
 
