@@ -1,70 +1,99 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4649186E57
-	for <linux-rdma@vger.kernel.org>; Thu, 30 May 2024 14:26:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2E90143C40;
+	Thu, 30 May 2024 14:46:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717079188; cv=none; b=LuPMNQuVw1lAwqkcNvuP6j82AFaarqOehrB6/MwQOWPJHK/ej3+DtYM9zwzQPnSTTSICG7sYVpakFFAR6ETCTj24gWJ1jS5lL/xbLJ/syQ5OyWiCRd0M78wq9LPx3mqXhBxKPBGSXrJBU3ZMmZDfbELGbvEzAJH6QgLHW20stPA=
+	t=1717080371; cv=none; b=AQ97CW+NzmF/8Qnl3g4f9L6lj+Ut2ng9iM6pCttB5Esnh5KJ++3m0MfxegHfju5N8NkNIYMJpY9cwthXLfqxaaCvvamNg9smQsxMWU7ltPfTF/eLvhHCaOmc9gmaNnpBxNl/G/zx8Zku9S8cc18J2aCubZJgaoWMXV9kYWceabQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717079188; c=relaxed/simple;
-	bh=TObWewB/oraAcRI3q4K1+WzbqAXCABz+YNSQ2zIrA6U=;
-	h=From:To:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=MT+P2mfsEbhaJ6SHT2XXVOcdc+orKxuDXLMz4aK/W7WCsFglwgNTdpN2X7RVUq32Ptuja7Is5Y3NgBAIz85FHdrzV/zHcUq2nrDpCL3yfDBfkx0hly5zChjO4M6W6woZixHqSyl7+Oq1int/zeMqfKFOeQgv86virKx7FPQY9jk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V9X3zqcR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717080371; c=relaxed/simple;
+	bh=gGFC3ez7u5SWieL0OmII6ee3CDNqiS9OXFUswGuhEno=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=am9zJJwhPToGpTBEBfKOcm+x9/Qnngtf+UHorRPU02ELe1wRDId3DKQAiQ8yAj7Qv0q0zY5aWe8C2rwggSaHU1CI+TGWETKXJ3aU8KYiWysqlBqDXc6pIGnRVsdRneFe0sRgARvdr08I3sTBZfqvQSj7BwlZy/9TP5o6h7iA3BE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=SEUafb3d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V9X3zqcR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0929CC32782;
-	Thu, 30 May 2024 14:26:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1717079188;
-	bh=TObWewB/oraAcRI3q4K1+WzbqAXCABz+YNSQ2zIrA6U=;
-	h=From:To:In-Reply-To:References:Subject:Date:From;
-	b=V9X3zqcReU1qUDxxex1eN6/+c5NgEgevdFs7Dh4dz7RJEsHnhlt3JUHgPqQoL2kdt
-	 VJ1DicXLdM9yFgSn3RaxJQwH/6uvhz2sLU/ZmIUBeg7pMBoLXtj6/oELAimGZQaNAN
-	 z5xYeMNaJAjpV/NmRBbq2REL41pPE2qbLgAIQLA2IXGUF3ppaRQX66dTQOM3ghUf0R
-	 nO/0RZCq74mtyk6SOpKtANfBz6kW7Rh882E9vld5I7Ds66dDCYBZOELJcDAmWQ1HyE
-	 SSyIDC+IH7omaSlL/ANm3Wr+UniJIFzylmiTtHGa8mz8R3iP0GfN7mxWyzTo2RoOtg
-	 ZCHbHRXcXzr2A==
-From: Leon Romanovsky <leon@kernel.org>
-To: zyjzyj2000@gmail.com, jgg@ziepe.ca, rpearsonhpe@gmail.com, 
- matsuda-daisuke@fujitsu.com, linux-rdma@vger.kernel.org, 
- Honggang LI <honggangli@163.com>
-In-Reply-To: <20240523094617.141148-1-honggangli@163.com>
-References: <20240523094617.141148-1-honggangli@163.com>
-Subject: Re: [PATCH] RDMA/rxe: Fix responder length checking for UD request
- packets
-Message-Id: <171707866514.136408.14977812016177496326.b4-ty@kernel.org>
-Date: Thu, 30 May 2024 17:17:45 +0300
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="SEUafb3d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82693C2BBFC;
+	Thu, 30 May 2024 14:46:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1717080370;
+	bh=gGFC3ez7u5SWieL0OmII6ee3CDNqiS9OXFUswGuhEno=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=SEUafb3dFo6xnl3u40CCvUfUd0W+KN/NehN5BQq6rhjgVL7cEhTLp+1DIEUVrlzHQ
+	 GWVLob3uZdFOS15aSopAaE2Vv8akkX+dIDkQS3/KGkeeWH5nYr5QKm1BoyyFbEjQGP
+	 pLzwGsuqOseXFEBV6sUEwihRW92AXohqhNpSNZGM=
+Date: Thu, 30 May 2024 16:46:15 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Shay Drori <shayd@nvidia.com>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+	kuba@kernel.org, edumazet@google.com, david.m.ertman@intel.com,
+	rafael@kernel.org, ira.weiny@intel.com, linux-rdma@vger.kernel.org,
+	leon@kernel.org, tariqt@nvidia.com, Parav Pandit <parav@nvidia.com>
+Subject: Re: [PATCH net-next v5 1/2] driver core: auxiliary bus: show
+ auxiliary device IRQs
+Message-ID: <2024053007-eldest-extending-3b19@gregkh>
+References: <20240528091144.112829-1-shayd@nvidia.com>
+ <20240528091144.112829-2-shayd@nvidia.com>
+ <2024052829-pretended-dad-ac9b@gregkh>
+ <49c0676c-0b23-4df4-aa3c-d13e578e28f1@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.14-dev
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <49c0676c-0b23-4df4-aa3c-d13e578e28f1@nvidia.com>
 
-
-On Thu, 23 May 2024 17:46:17 +0800, Honggang LI wrote:
-> According to the IBA specification:
-> If a UD request packet is detected with an invalid length, the request
-> shall be an invalid request and it shall be silently dropped by
-> the responder. The responder then waits for a new request packet.
+On Wed, May 29, 2024 at 09:29:33AM +0300, Shay Drori wrote:
 > 
-> commit 689c5421bfe0 ("RDMA/rxe: Fix incorrect responder length checking")
-> defers responder length check for UD QPs in function `copy_data`.
-> But it introduces a regression issue for UD QPs.
 > 
-> [...]
+> On 28/05/2024 21:00, Greg KH wrote:
+> > External email: Use caution opening links or attachments
+> > 
+> > 
+> > On Tue, May 28, 2024 at 12:11:43PM +0300, Shay Drory wrote:
+> > > +#ifdef CONFIG_SYSFS
+> > > +/* Xarray of irqs to determine if irq is exclusive or shared. */
+> > > +static DEFINE_XARRAY(irqs);
+> > > +/* Protects insertions into the irqs xarray. */
+> > > +static DEFINE_MUTEX(irqs_lock);
+> > 
+> > You access the irq xarray without grabbing the lock in places :(
+> > 
+> > But again, I fail to see why the xarray is needed at all, why isn't the
+> > needed information here:
+> > 
+> > > +struct auxiliary_irq_info {
+> > > +     struct device_attribute sysfs_attr;
+> > > +     int irq;
+> > > +};
+> > 
+> > Right there^ should contain everything you need, NOT a global array and
+> > lock at all.
+> 
+> 
+> 1) one xarray is per aux device that indicates which IRQs irqs are used
+> by this device. this xarray is holding the info above.
 
-Applied, thanks!
+Ok, please document that better, it's not obvious.
 
-[1/1] RDMA/rxe: Fix responder length checking for UD request packets
-      https://git.kernel.org/rdma/rdma/c/05301cb42a5567
+> 2) second xarray is global that tracks if irq share between multiple aux
+> devices or exclusive to aux device.
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+That should not be a "global" thing, as now you are getting into what
+the msi irq core should be handling, NOT the aux device.
 
+Userspace should be able to determine, just by the number, if it is
+"shared" or not by looking at them all, so why need to add complex logic
+here to attempt to also mirror this information?
+
+Doesn't the irq layer track this sufficiently?  And it wouldn't even be
+correct if an irq was "shared" by a device that was NOT controlled by an
+aux device so it could be incorrect.
+
+thanks,
+
+greg k-h
