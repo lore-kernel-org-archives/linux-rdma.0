@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B839117E469;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B834C17D357;
 	Thu, 30 May 2024 11:55:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717070125; cv=none; b=H3utH3HjxLFAiSig9q9n9piswbyFl7DmxVJrEn6R7redP8URLwnzDUK00z3zFgx/JBCWpGlr3y/MJAFCT4DqOa4oFms8ObV85zf6Hz9UVT48Ez4zBnH+8WfLbJbyr6om0Z+OWZGPfkPvj3xiUhyN9DHrVdNtSBOqW/HXTnqZgA0=
+	t=1717070126; cv=none; b=Es6O1ZK6ogXvcNymrFDYEdvvJSKaI01P8CuqQK5NcGmD9X2jr6KdWyKn62yUY7j49w+Qck/1ZlEe8S/qAZ9BSd+1qymMxV7LPiKpVEdCezYOQAMd9q+48vYutx9NcP5N7r8NLRBFdO8PVJSZEyQIOHTf/IPWDA7M9miJXvFSeAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717070125; c=relaxed/simple;
-	bh=Opw8RaFJm5BcSRqVOUlh/M4jQ1cC47a2Jr1Nav7FFMc=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=RmkTc8Il+Lfoa7vaY9kA6ljvH1IE1NYMYP/iQyag4Zh/d1VTysp0bGQwHjctQyXJ3MYig7aTNn5tzJXePrnyAmpG/XPXHe2yZyuYoC6h8Cs/AnFRShMAA0CBdkCMT++sQa3MdYVJuHWvnAh8Ih8Rv/88aK/awwf+jqEHVLRQ3sA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=NKEayk30; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1717070126; c=relaxed/simple;
+	bh=Tka6UiC1uoB3TRMiDul+wp8wRtb86hr277VqYplsCxc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=eS3G66lnjIz+xvU5g/bDy0YGB1M2wHK22wJO3yb/c+UzYiGUxwkQBJmQ30VpuCUn6tWVrsqZUVBsYAoiZ6A3g5cX2S9av/TJ1707Me/GNILHMAkqKJrW/W8gbzbXQRA07oQMz4p4pwNZ6f5jYCp2FAW6fnioeW13Fnwwzf1bdWg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=sFzBlGkh; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="NKEayk30"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="sFzBlGkh"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 3E70C20B915A;
+	by linux.microsoft.com (Postfix) with ESMTPSA id 6F59B20B9260;
 	Thu, 30 May 2024 04:55:23 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3E70C20B915A
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 6F59B20B9260
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1717070123;
-	bh=q9fgagC4Yf4H1eJaVbjrrK9BAWBS3+KdKEIrydPSsWI=;
-	h=From:To:Cc:Subject:Date:From;
-	b=NKEayk30hyrl4DIteVd0SHsA0zB1vHIAKg/buxjPWTaO8y0Z/tM7Ml+tzMn9jrUOu
-	 GD/MX9l4dNHBXbuWX/xqIyoK1X8ZS8rv0g6MiJ/+I5diz6b8aRHlRyfjDKsFfI+hGx
-	 1apgYiUx4A14fCEn84Y1xDlN/0Ggh9r8MYBJ9XtY=
+	bh=M3K5XGSDfWbI4lB7ESD4sp7zphrlBgbkJOr4pru6vAk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=sFzBlGkh2b/X90BdWWE4n3KeHDs6wSuxAmIQJbtw6/LXmCS/uLxFZDcopYIU9ZQSl
+	 cFxIhrZJJljW83qBtnNUiavB596sD26CrQ3xjfIF2Q+sZVPskNChZvZC1WTP5Ci2Zy
+	 FVQLZ/eR3PRnoxpucdyCTmedbsCWs0CB6xdDMbds=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	sharmaajay@microsoft.com,
@@ -32,10 +32,12 @@ To: kotaranov@microsoft.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH rdma-next v2 0/2] Fill in capabilities and guid
-Date: Thu, 30 May 2024 04:55:15 -0700
-Message-Id: <1717070117-1234-1-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next v2 2/2] RDMA/mana_ib: extend query device
+Date: Thu, 30 May 2024 04:55:17 -0700
+Message-Id: <1717070117-1234-3-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1717070117-1234-1-git-send-email-kotaranov@linux.microsoft.com>
+References: <1717070117-1234-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -44,21 +46,67 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-This patch series fills in GUID and device properties.
-Most of these properties are required for CM.
+Fill in properties of the ib device.
+Order the assignment in the order of fields in the struct ib_device_attr.
 
-v1->v2:
-* Added a comment to the CA delay
-
-Konstantin Taranov (2):
-  RDMA/mana_ib: set node_guid
-  RDMA/mana_ib: extend query device
-
- drivers/infiniband/hw/mana/device.c  |  2 ++
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+Reviewed-by: Long Li <longli@microsoft.com>
+---
  drivers/infiniband/hw/mana/main.c    | 19 ++++++++++++++++---
  drivers/infiniband/hw/mana/mana_ib.h |  5 +++++
- 3 files changed, 23 insertions(+), 3 deletions(-)
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 2a41135..814a61e 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -547,14 +547,27 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
+ 	struct mana_ib_dev *dev = container_of(ibdev,
+ 			struct mana_ib_dev, ib_dev);
+ 
++	memset(props, 0, sizeof(*props));
++	props->max_mr_size = MANA_IB_MAX_MR_SIZE;
++	props->page_size_cap = PAGE_SZ_BM;
+ 	props->max_qp = dev->adapter_caps.max_qp_count;
+ 	props->max_qp_wr = dev->adapter_caps.max_qp_wr;
++	props->device_cap_flags = IB_DEVICE_RC_RNR_NAK_GEN;
++	props->max_send_sge = dev->adapter_caps.max_send_sge_count;
++	props->max_recv_sge = dev->adapter_caps.max_recv_sge_count;
++	props->max_sge_rd = dev->adapter_caps.max_recv_sge_count;
+ 	props->max_cq = dev->adapter_caps.max_cq_count;
+ 	props->max_cqe = dev->adapter_caps.max_qp_wr;
+ 	props->max_mr = dev->adapter_caps.max_mr_count;
+-	props->max_mr_size = MANA_IB_MAX_MR_SIZE;
+-	props->max_send_sge = dev->adapter_caps.max_send_sge_count;
+-	props->max_recv_sge = dev->adapter_caps.max_recv_sge_count;
++	props->max_pd = dev->adapter_caps.max_pd_count;
++	props->max_qp_rd_atom = dev->adapter_caps.max_inbound_read_limit;
++	props->max_res_rd_atom = props->max_qp_rd_atom * props->max_qp;
++	props->max_qp_init_rd_atom = dev->adapter_caps.max_outbound_read_limit;
++	props->atomic_cap = IB_ATOMIC_NONE;
++	props->masked_atomic_cap = IB_ATOMIC_NONE;
++	props->max_ah = INT_MAX;
++	props->max_pkeys = 1;
++	props->local_ca_ack_delay = MANA_CA_ACK_DELAY;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index 68c3b4f..59a7a35 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -27,6 +27,11 @@
+  */
+ #define MANA_IB_MAX_MR		0xFFFFFFu
+ 
++/*
++ * The CA timeout is approx. 260ms (4us * 2^(DELAY))
++ */
++#define MANA_CA_ACK_DELAY	16
++
+ struct mana_ib_adapter_caps {
+ 	u32 max_sq_id;
+ 	u32 max_rq_id;
 -- 
 2.43.0
 
