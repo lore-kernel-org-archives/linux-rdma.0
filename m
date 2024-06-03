@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8F8B6BB4B;
-	Mon,  3 Jun 2024 10:26:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BDB56BB4B;
+	Mon,  3 Jun 2024 10:27:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717410418; cv=none; b=sQrTpJ4K3B+QmsNcOenN+wbKM/YBW9ROKjxl2UEw7x7T+W9FGppQ49k4qd4YJaGe0v2Y1WTjB9aaNBAF9QH2hz+zdhcTlfLS2rEhG9/jk4//VqOnf+BBqCBMw1w352wvrVHbatY3WAkcbSat1bhobDkCC2y0AkSB1rRjJCRr5IY=
+	t=1717410423; cv=none; b=cZKIAwsBpg2WKtEQZSUG9fur3qsv0uE/vJOZ+tKtNnKPVqaL9pM6IvI2jRIj7bj5QRlB49ZgAAV2E++JHh6as6vHi85+sQjCubU1/2LOk0RnMKd2vlRM8/JzYNyG04+bQwM6g7gSvBi51FKcW3b8VmOFcNsN7ugvEwdLbLMZ27Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717410418; c=relaxed/simple;
-	bh=ODkqJLiXdrTzKoVzimmNYHWmtYzxbkhDeDoEiSlcTTc=;
+	s=arc-20240116; t=1717410423; c=relaxed/simple;
+	bh=0EeD26Nx4xp4Nuic9jGlZHNS5ASGkC3/i+nWrOtDsE4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=axL05/7pNW6NX6IIDtunP5LPaBGQsK5m2aFexhaMeg7Knb/C8/sjmiDNFIPUJQSZllD49I9lUZFfl6V+AzW7rgIuQH0BVOv9GwM7+UgM+N7cBnSuNgvo6CIP1lehTfqkDLxfmpnuWRDwOmPwhWWkmMg4vY4YMDV1DMc2sW46t+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MphIJwmv; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=u8LUGs2g4D2zK7EiXDqa8mZVS3wdgHeZk/Nrw4Ds3W8UuFlOxziY1IP2kwTKJAjml8J06v+WadEq+XgG5Hk1bq4Z1QqI+rNYLumSz2J/SUB+GpS1vWCvfbMoEyDTB+bwpWzi1aCsI1EKIH84TuY0Xs0zIfwsDNn2H6zymy6/FXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fF+RW8G9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MphIJwmv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5BEDC2BD10;
-	Mon,  3 Jun 2024 10:26:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fF+RW8G9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 489ECC2BD10;
+	Mon,  3 Jun 2024 10:27:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1717410418;
-	bh=ODkqJLiXdrTzKoVzimmNYHWmtYzxbkhDeDoEiSlcTTc=;
+	s=k20201202; t=1717410422;
+	bh=0EeD26Nx4xp4Nuic9jGlZHNS5ASGkC3/i+nWrOtDsE4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=MphIJwmvmli3KyRELWWEnXDUQJJc5nqeJNa2PvjJhTu3bbDDYcw/kKlOiELuTSpmW
-	 cRCxvP8ioKRgFRswB+SEOEvwtU76Hllb8LkDq68ldg4IhhGj63XoFMANbB9mjiWHpH
-	 UvSGog2vh87dzsY6gWAk6T4GzLk6M0a8hyVxlWPt0Cy5SBcwBnIFqTiLrPV058OTvd
-	 hnWP8i3zs+EwKxcy2Q4/wdA9OoOCkxyAPIVmg8sz8qUoTxPaaHHgqNIRFrCJJOTCoa
-	 rUKkcEfnbPhML5mMn9jSixo3LeCNDQATwyQkMCvO+CEWdAgMH3Ui39Gk/OT07AKpmN
-	 KBe48QSblCp+w==
+	b=fF+RW8G9PHWL9vaSz7lRDAW7gnf4GiXyBFj5CBn5j//8L3+OEF+/afpATvEEh1Bre
+	 YJn6J083TYw5M7yWea+Jf2JDCgexoHPz16RAUSbpYh+etP64rZlCNWEAe3Gm/6Cext
+	 f+NQJfFm2cwDjDcd2ew4kuCPKBXLLj5a7YhhaY2QToXnIGmePgAqH05cRprJJg87WP
+	 ZBSGULnUMmTbeZ1AlJpiLCh2YfoXaSWhmFqABTn0owHLkfIzm6Ryj4DHr7eSuqbdWX
+	 FI54BYFUnqEimbT8hLDe7g+wwQNzyxS3LRAK0unb1r1TapKGsZkjzQmDu3b0INvOyq
+	 SvG/KfoMySJ8A==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jianbo Liu <jianbol@nvidia.com>,
@@ -37,9 +37,9 @@ Cc: Jianbo Liu <jianbol@nvidia.com>,
 	Paolo Abeni <pabeni@redhat.com>,
 	Saeed Mahameed <saeedm@nvidia.com>,
 	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH rdma-next 3/3] IB/mlx5: Allocate resources just before first QP/SRQ is created
-Date: Mon,  3 Jun 2024 13:26:39 +0300
-Message-ID: <98c3e53a8cc0bdfeb6dec6e5bb8b037d78ab00d8.1717409369.git.leon@kernel.org>
+Subject: [PATCH rdma-next 2/3] IB/mlx5: Create UMR QP just before first reg_mr occurs
+Date: Mon,  3 Jun 2024 13:26:38 +0300
+Message-ID: <55d3c4f8a542fd974d8a4c5816eccfb318a59b38.1717409369.git.leon@kernel.org>
 X-Mailer: git-send-email 2.45.1
 In-Reply-To: <cover.1717409369.git.leon@kernel.org>
 References: <cover.1717409369.git.leon@kernel.org>
@@ -49,288 +49,225 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 From: Jianbo Liu <jianbol@nvidia.com>
 
-Previously, all IB dev resources are initialized on driver load. As
-they are not always used, move the initialization to the time when
-they are needed.
+UMR QP is not used in some cases, so move QP and its CQ creations from
+driver load flow to the time first reg_mr occurs, that is when MR
+interfaces are first called.
 
-To be more specific, move PD (p0) and CQ (c0) initialization to the
-time when the first SRQ is created. and move SRQs（s0 and s1)
-initialization to the time first QP is created. To avoid concurrent
-creations, two new mutexes are also added.
+The initialization of dev->umrc.pd and dev->umrc.lock is still done in
+driver load because pd is needed for mlx5_mkey_cache_init and the lock
+is reused to protect against the concurrent creation.
+
+When testing 4G bytes memory registration latency with rtool [1] and 8
+threads in parallel, there is minor performance degradation (<5% for
+the max latency) is seen for the first reg_mr with this change.
+
+Link: https://github.com/paravmellanox/rtool [1]
 
 Signed-off-by: Jianbo Liu <jianbol@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 149 +++++++++++++++++++--------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   4 +
- drivers/infiniband/hw/mlx5/qp.c      |   4 +
- drivers/infiniband/hw/mlx5/srq.c     |   4 +
- 4 files changed, 118 insertions(+), 43 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    |  3 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +
+ drivers/infiniband/hw/mlx5/mr.c      |  9 +++++
+ drivers/infiniband/hw/mlx5/umr.c     | 55 +++++++++++++++++++++-------
+ drivers/infiniband/hw/mlx5/umr.h     |  3 ++
+ 5 files changed, 58 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index d7a21998d4ca..a7003316d438 100644
+index ec4031e851e6..d7a21998d4ca 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2854,37 +2854,72 @@ static u8 mlx5_get_umr_fence(u8 umr_fence_cap)
- 	}
- }
- 
--static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
-+int mlx5_ib_dev_res_cq_init(struct mlx5_ib_dev *dev)
+@@ -4117,6 +4117,7 @@ static void mlx5_ib_stage_pre_ib_reg_umr_cleanup(struct mlx5_ib_dev *dev)
  {
- 	struct mlx5_ib_resources *devr = &dev->devr;
--	struct ib_srq_init_attr attr;
--	struct ib_device *ibdev;
- 	struct ib_cq_init_attr cq_attr = {.cqe = 1};
--	int port;
-+	struct ib_device *ibdev;
-+	struct ib_pd *pd;
-+	struct ib_cq *cq;
- 	int ret = 0;
+ 	mlx5_mkey_cache_cleanup(dev);
+ 	mlx5r_umr_resource_cleanup(dev);
++	mlx5r_umr_cleanup(dev);
+ }
  
--	ibdev = &dev->ib_dev;
+ static void mlx5_ib_stage_ib_reg_cleanup(struct mlx5_ib_dev *dev)
+@@ -4128,7 +4129,7 @@ static int mlx5_ib_stage_post_ib_reg_umr_init(struct mlx5_ib_dev *dev)
+ {
+ 	int ret;
  
--	if (!MLX5_CAP_GEN(dev->mdev, xrc))
--		return -EOPNOTSUPP;
-+	/*
-+	 * devr->c0 is set once, never changed until device unload.
-+	 * Avoid taking the mutex if initialization is already done.
-+	 */
-+	if (devr->c0)
-+		return 0;
- 
--	devr->p0 = ib_alloc_pd(ibdev, 0);
--	if (IS_ERR(devr->p0))
--		return PTR_ERR(devr->p0);
-+	mutex_lock(&devr->cq_lock);
-+	if (devr->c0)
-+		goto unlock;
- 
--	devr->c0 = ib_create_cq(ibdev, NULL, NULL, NULL, &cq_attr);
--	if (IS_ERR(devr->c0)) {
--		ret = PTR_ERR(devr->c0);
--		goto error1;
-+	ibdev = &dev->ib_dev;
-+	pd = ib_alloc_pd(ibdev, 0);
-+	if (IS_ERR(pd)) {
-+		ret = PTR_ERR(pd);
-+		mlx5_ib_err(dev, "Couldn't allocate PD for res init, err=%d\n", ret);
-+		goto unlock;
- 	}
- 
--	ret = mlx5_cmd_xrcd_alloc(dev->mdev, &devr->xrcdn0, 0);
--	if (ret)
--		goto error2;
-+	cq = ib_create_cq(ibdev, NULL, NULL, NULL, &cq_attr);
-+	if (IS_ERR(cq)) {
-+		ret = PTR_ERR(cq);
-+		mlx5_ib_err(dev, "Couldn't create CQ for res init, err=%d\n", ret);
-+		ib_dealloc_pd(pd);
-+		goto unlock;
-+	}
- 
--	ret = mlx5_cmd_xrcd_alloc(dev->mdev, &devr->xrcdn1, 0);
-+	devr->p0 = pd;
-+	devr->c0 = cq;
-+
-+unlock:
-+	mutex_unlock(&devr->cq_lock);
-+	return ret;
-+}
-+
-+int mlx5_ib_dev_res_srq_init(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_ib_resources *devr = &dev->devr;
-+	struct ib_srq_init_attr attr;
-+	struct ib_srq *s0, *s1;
-+	int ret = 0;
-+
-+	/*
-+	 * devr->s1 is set once, never changed until device unload.
-+	 * Avoid taking the mutex if initialization is already done.
-+	 */
-+	if (devr->s1)
-+		return 0;
-+
-+	mutex_lock(&devr->srq_lock);
-+	if (devr->s1)
-+		goto unlock;
-+
-+	ret = mlx5_ib_dev_res_cq_init(dev);
+-	ret = mlx5r_umr_resource_init(dev);
++	ret = mlx5r_umr_init(dev);
  	if (ret)
--		goto error3;
-+		goto unlock;
+ 		return ret;
  
- 	memset(&attr, 0, sizeof(attr));
- 	attr.attr.max_sge = 1;
-@@ -2892,10 +2927,11 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
- 	attr.srq_type = IB_SRQT_XRC;
- 	attr.ext.cq = devr->c0;
- 
--	devr->s0 = ib_create_srq(devr->p0, &attr);
--	if (IS_ERR(devr->s0)) {
--		ret = PTR_ERR(devr->s0);
--		goto err_create;
-+	s0 = ib_create_srq(devr->p0, &attr);
-+	if (IS_ERR(s0)) {
-+		ret = PTR_ERR(s0);
-+		mlx5_ib_err(dev, "Couldn't create SRQ 0 for res init, err=%d\n", ret);
-+		goto unlock;
- 	}
- 
- 	memset(&attr, 0, sizeof(attr));
-@@ -2903,29 +2939,48 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
- 	attr.attr.max_wr = 1;
- 	attr.srq_type = IB_SRQT_BASIC;
- 
--	devr->s1 = ib_create_srq(devr->p0, &attr);
--	if (IS_ERR(devr->s1)) {
--		ret = PTR_ERR(devr->s1);
--		goto error6;
-+	s1 = ib_create_srq(devr->p0, &attr);
-+	if (IS_ERR(s1)) {
-+		ret = PTR_ERR(s1);
-+		mlx5_ib_err(dev, "Couldn't create SRQ 1 for res init, err=%d\n", ret);
-+		ib_destroy_srq(s0);
-+	}
-+
-+	devr->s0 = s0;
-+	devr->s1 = s1;
-+
-+unlock:
-+	mutex_unlock(&devr->srq_lock);
-+	return ret;
-+}
-+
-+static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
-+{
-+	struct mlx5_ib_resources *devr = &dev->devr;
-+	int port;
-+	int ret;
-+
-+	if (!MLX5_CAP_GEN(dev->mdev, xrc))
-+		return -EOPNOTSUPP;
-+
-+	ret = mlx5_cmd_xrcd_alloc(dev->mdev, &devr->xrcdn0, 0);
-+	if (ret)
-+		return ret;
-+
-+	ret = mlx5_cmd_xrcd_alloc(dev->mdev, &devr->xrcdn1, 0);
-+	if (ret) {
-+		mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn0, 0);
-+		return ret;
- 	}
- 
- 	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
- 		INIT_WORK(&devr->ports[port].pkey_change_work,
- 			  pkey_change_handler);
- 
--	return 0;
-+	mutex_init(&devr->cq_lock);
-+	mutex_init(&devr->srq_lock);
- 
--error6:
--	ib_destroy_srq(devr->s0);
--err_create:
--	mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn1, 0);
--error3:
--	mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn0, 0);
--error2:
--	ib_destroy_cq(devr->c0);
--error1:
--	ib_dealloc_pd(devr->p0);
--	return ret;
-+	return 0;
- }
- 
- static void mlx5_ib_dev_res_cleanup(struct mlx5_ib_dev *dev)
-@@ -2942,12 +2997,20 @@ static void mlx5_ib_dev_res_cleanup(struct mlx5_ib_dev *dev)
- 	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
- 		cancel_work_sync(&devr->ports[port].pkey_change_work);
- 
--	ib_destroy_srq(devr->s1);
--	ib_destroy_srq(devr->s0);
-+	/* After s0/s1 init, they are not unset during the device lifetime. */
-+	if (devr->s1) {
-+		ib_destroy_srq(devr->s1);
-+		ib_destroy_srq(devr->s0);
-+	}
- 	mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn1, 0);
- 	mlx5_cmd_xrcd_dealloc(dev->mdev, devr->xrcdn0, 0);
--	ib_destroy_cq(devr->c0);
--	ib_dealloc_pd(devr->p0);
-+	/* After p0/c0 init, they are not unset during the device lifetime. */
-+	if (devr->c0) {
-+		ib_destroy_cq(devr->c0);
-+		ib_dealloc_pd(devr->p0);
-+	}
-+	mutex_destroy(&devr->cq_lock);
-+	mutex_destroy(&devr->srq_lock);
- }
- 
- static u32 get_core_cap_flags(struct ib_device *ibdev,
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 34e34808958e..b63623336d83 100644
+index a74e6f5798f6..34e34808958e 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -824,11 +824,13 @@ struct mlx5_ib_port_resources {
- 
- struct mlx5_ib_resources {
- 	struct ib_cq	*c0;
-+	struct mutex cq_lock;
- 	u32 xrcdn0;
- 	u32 xrcdn1;
- 	struct ib_pd	*p0;
- 	struct ib_srq	*s0;
- 	struct ib_srq	*s1;
-+	struct mutex srq_lock;
- 	struct mlx5_ib_port_resources ports[2];
+@@ -751,6 +751,8 @@ struct umr_common {
+ 	 */
+ 	struct mutex lock;
+ 	unsigned int state;
++	/* Protects from repeat UMR QP creation */
++	struct mutex init_lock;
  };
  
-@@ -1272,6 +1274,8 @@ to_mmmap(struct rdma_user_mmap_entry *rdma_entry)
- 		struct mlx5_user_mmap_entry, rdma_entry);
- }
+ #define NUM_MKEYS_PER_PAGE \
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index ccb741dc1b37..ba8754e7d362 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1480,6 +1480,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct ib_umem *umem;
++	int err;
  
-+int mlx5_ib_dev_res_cq_init(struct mlx5_ib_dev *dev);
-+int mlx5_ib_dev_res_srq_init(struct mlx5_ib_dev *dev);
- int mlx5_ib_db_map_user(struct mlx5_ib_ucontext *context, unsigned long virt,
- 			struct mlx5_db *db);
- void mlx5_ib_db_unmap_user(struct mlx5_ib_ucontext *context, struct mlx5_db *db);
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 1d09e515aec7..be288cc7a3c0 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3236,6 +3236,10 @@ int mlx5_ib_create_qp(struct ib_qp *ibqp, struct ib_qp_init_attr *attr,
- 	enum ib_qp_type type;
- 	int err;
+ 	if (!IS_ENABLED(CONFIG_INFINIBAND_USER_MEM))
+ 		return ERR_PTR(-EOPNOTSUPP);
+@@ -1487,6 +1488,10 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	mlx5_ib_dbg(dev, "start 0x%llx, iova 0x%llx, length 0x%llx, access_flags 0x%x\n",
+ 		    start, iova, length, access_flags);
  
-+	err = mlx5_ib_dev_res_srq_init(dev);
++	err = mlx5r_umr_resource_init(dev);
 +	if (err)
-+		return err;
++		return ERR_PTR(err);
 +
- 	err = check_qp_type(dev, attr, &type);
- 	if (err)
- 		return err;
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 32c6643d0f7a..ca62bd0ddea8 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -213,6 +213,10 @@ int mlx5_ib_create_srq(struct ib_srq *ib_srq,
- 		return -EINVAL;
+ 	if (access_flags & IB_ACCESS_ON_DEMAND)
+ 		return create_user_odp_mr(pd, start, length, iova, access_flags,
+ 					  udata);
+@@ -1534,6 +1539,10 @@ struct ib_mr *mlx5_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 offset,
+ 		    "offset 0x%llx, virt_addr 0x%llx, length 0x%llx, fd %d, access_flags 0x%x\n",
+ 		    offset, virt_addr, length, fd, access_flags);
+ 
++	err = mlx5r_umr_resource_init(dev);
++	if (err)
++		return ERR_PTR(err);
++
+ 	/* dmabuf requires xlt update via umr to work. */
+ 	if (!mlx5r_umr_can_load_pas(dev, length))
+ 		return ERR_PTR(-EINVAL);
+diff --git a/drivers/infiniband/hw/mlx5/umr.c b/drivers/infiniband/hw/mlx5/umr.c
+index e76142f6fa88..ffc31b01f690 100644
+--- a/drivers/infiniband/hw/mlx5/umr.c
++++ b/drivers/infiniband/hw/mlx5/umr.c
+@@ -135,22 +135,28 @@ static int mlx5r_umr_qp_rst2rts(struct mlx5_ib_dev *dev, struct ib_qp *qp)
+ int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev)
+ {
+ 	struct ib_qp_init_attr init_attr = {};
+-	struct ib_pd *pd;
+ 	struct ib_cq *cq;
+ 	struct ib_qp *qp;
+-	int ret;
++	int ret = 0;
+ 
+-	pd = ib_alloc_pd(&dev->ib_dev, 0);
+-	if (IS_ERR(pd)) {
+-		mlx5_ib_dbg(dev, "Couldn't create PD for sync UMR QP\n");
+-		return PTR_ERR(pd);
+-	}
++
++	/*
++	 * UMR qp is set once, never changed until device unload.
++	 * Avoid taking the mutex if initialization is already done.
++	 */
++	if (dev->umrc.qp)
++		return 0;
++
++	mutex_lock(&dev->umrc.init_lock);
++	/* First user allocates the UMR resources. Skip if already allocated. */
++	if (dev->umrc.qp)
++		goto unlock;
+ 
+ 	cq = ib_alloc_cq(&dev->ib_dev, NULL, 128, 0, IB_POLL_SOFTIRQ);
+ 	if (IS_ERR(cq)) {
+ 		mlx5_ib_dbg(dev, "Couldn't create CQ for sync UMR QP\n");
+ 		ret = PTR_ERR(cq);
+-		goto destroy_pd;
++		goto unlock;
  	}
  
-+	err = mlx5_ib_dev_res_cq_init(dev);
-+	if (err)
-+		return err;
+ 	init_attr.send_cq = cq;
+@@ -160,7 +166,7 @@ int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev)
+ 	init_attr.cap.max_send_sge = 1;
+ 	init_attr.qp_type = MLX5_IB_QPT_REG_UMR;
+ 	init_attr.port_num = 1;
+-	qp = ib_create_qp(pd, &init_attr);
++	qp = ib_create_qp(dev->umrc.pd, &init_attr);
+ 	if (IS_ERR(qp)) {
+ 		mlx5_ib_dbg(dev, "Couldn't create sync UMR QP\n");
+ 		ret = PTR_ERR(qp);
+@@ -171,22 +177,22 @@ int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev)
+ 	if (ret)
+ 		goto destroy_qp;
+ 
+-	dev->umrc.qp = qp;
+ 	dev->umrc.cq = cq;
+-	dev->umrc.pd = pd;
+ 
+ 	sema_init(&dev->umrc.sem, MAX_UMR_WR);
+ 	mutex_init(&dev->umrc.lock);
+ 	dev->umrc.state = MLX5_UMR_STATE_ACTIVE;
++	dev->umrc.qp = qp;
+ 
++	mutex_unlock(&dev->umrc.init_lock);
+ 	return 0;
+ 
+ destroy_qp:
+ 	ib_destroy_qp(qp);
+ destroy_cq:
+ 	ib_free_cq(cq);
+-destroy_pd:
+-	ib_dealloc_pd(pd);
++unlock:
++	mutex_unlock(&dev->umrc.init_lock);
+ 	return ret;
+ }
+ 
+@@ -194,8 +200,31 @@ void mlx5r_umr_resource_cleanup(struct mlx5_ib_dev *dev)
+ {
+ 	if (dev->umrc.state == MLX5_UMR_STATE_UNINIT)
+ 		return;
++	mutex_destroy(&dev->umrc.lock);
++	/* After device init, UMR cp/qp are not unset during the lifetime. */
+ 	ib_destroy_qp(dev->umrc.qp);
+ 	ib_free_cq(dev->umrc.cq);
++}
 +
- 	mutex_init(&srq->mutex);
- 	spin_lock_init(&srq->lock);
- 	srq->msrq.max    = roundup_pow_of_two(init_attr->attr.max_wr + 1);
++int mlx5r_umr_init(struct mlx5_ib_dev *dev)
++{
++	struct ib_pd *pd;
++
++	pd = ib_alloc_pd(&dev->ib_dev, 0);
++	if (IS_ERR(pd)) {
++		mlx5_ib_dbg(dev, "Couldn't create PD for sync UMR QP\n");
++		return PTR_ERR(pd);
++	}
++	dev->umrc.pd = pd;
++
++	mutex_init(&dev->umrc.init_lock);
++
++	return 0;
++}
++
++void mlx5r_umr_cleanup(struct mlx5_ib_dev *dev)
++{
++	mutex_destroy(&dev->umrc.init_lock);
+ 	ib_dealloc_pd(dev->umrc.pd);
+ }
+ 
+diff --git a/drivers/infiniband/hw/mlx5/umr.h b/drivers/infiniband/hw/mlx5/umr.h
+index 3799bb758e49..5f734dc72bef 100644
+--- a/drivers/infiniband/hw/mlx5/umr.h
++++ b/drivers/infiniband/hw/mlx5/umr.h
+@@ -16,6 +16,9 @@
+ int mlx5r_umr_resource_init(struct mlx5_ib_dev *dev);
+ void mlx5r_umr_resource_cleanup(struct mlx5_ib_dev *dev);
+ 
++int mlx5r_umr_init(struct mlx5_ib_dev *dev);
++void mlx5r_umr_cleanup(struct mlx5_ib_dev *dev);
++
+ static inline bool mlx5r_umr_can_load_pas(struct mlx5_ib_dev *dev,
+ 					  size_t length)
+ {
 -- 
 2.45.1
 
