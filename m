@@ -1,28 +1,29 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E17D5145A1D
-	for <linux-rdma@vger.kernel.org>; Tue,  4 Jun 2024 12:14:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83916145A1D
+	for <linux-rdma@vger.kernel.org>; Tue,  4 Jun 2024 12:14:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717503264; cv=none; b=gdpN5IAV5dw53kDjNMGGE6vxyZ26m5tKcdpuHQLK6a/uf52pfS6zsgmb/hDGZhzCesbw8Pmx/SeJl8BZ4t9SkbmJnSoTE8LSvmiAU5T7RTY5L60v/xWWCZ4uGn8UggVan6knYE6Z/yZ17sje6B6dS8IKg/Vm0ltaFYIFj0zDLOc=
+	t=1717503268; cv=none; b=FAAY5k+Z/5+KuMGtE64Awhhc4OlqE7d6iQIk3bud9bHEIdnPYvhnHiLusB8vYKy724sLBBljH2Qq7Rqi2Z5mpF1j9knJNUR8x+zCqqaZsKpDwj/+tx5uDwS+EN/t6E/Nn35n+bjvnBKCRKSrAAmXyaS3Uz/s6fU0gSu7VJa5EZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717503264; c=relaxed/simple;
-	bh=GywndVMWTn9z5KPv1ebAn4b1QO6DeMqETldw1k5A5bM=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mNvwLuK5ev3yY23MoV2Ofwu0JWwtMAaniPtH0invlHQ7br2XGpEL3a9K9eruOQaQGNLM1jP+zyvM1ywYeVik8TCiAxz8hRyjUfDfyxWT+KrcagcPOtoRqCgYa9PsheCTiNhB/j35LRi7Sivy8jTxVpd6Hf1Evnd9UksIjxSgDnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
+	s=arc-20240116; t=1717503268; c=relaxed/simple;
+	bh=i+tm43gU1GDaBgDaHS/R6JgXWnPvo6Va3UlyNZ2td9k=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=WtjOqCBOvBBt1vKNvbWor5D3mjt9KE1VMpgxX6qLUIzszWoJ+U22/YnYje+ZKIS6LWs8bUx2gbFCtlLRHquumMs1d+f0wG2yQS3G8q4kAiJsqRUNXLXh+qib4Yl1HhRnFN/Kj6WviN0ceH1NKK0Y5lcNTjYFoRAyspfhAWMqR14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.252])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4VtqDH0l8gzxRTf;
-	Tue,  4 Jun 2024 20:10:23 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.214])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4VtqDf2DGjz2Cjml;
+	Tue,  4 Jun 2024 20:10:42 +0800 (CST)
 Received: from dggpemf200006.china.huawei.com (unknown [7.185.36.61])
-	by mail.maildlp.com (Postfix) with ESMTPS id CF78D180085;
-	Tue,  4 Jun 2024 20:14:18 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id DA27A1A016F;
+	Tue,  4 Jun 2024 20:14:22 +0800 (CST)
 Received: from DESKTOP-8LI8G6S.china.huawei.com (10.173.124.235) by
  dggpemf200006.china.huawei.com (7.185.36.61) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 4 Jun 2024 20:14:18 +0800
+ 15.2.1544.11; Tue, 4 Jun 2024 20:14:22 +0800
 From: Gonglei <arei.gonglei@huawei.com>
 To: <qemu-devel@nongnu.org>
 CC: <peterx@redhat.com>, <yu.zhang@ionos.com>, <mgalaxy@akamai.com>,
@@ -31,10 +32,12 @@ CC: <peterx@redhat.com>, <yu.zhang@ionos.com>, <mgalaxy@akamai.com>,
 	<mst@redhat.com>, <xiexiangyou@huawei.com>, <linux-rdma@vger.kernel.org>,
 	<lixiao91@huawei.com>, <arei.gonglei@huawei.com>, <jinpu.wang@ionos.com>,
 	Jialin Wang <wangjialin23@huawei.com>
-Subject: [PATCH 0/6] refactor RDMA live migration based on rsocket API
-Date: Tue, 4 Jun 2024 20:14:06 +0800
-Message-ID: <1717503252-51884-1-git-send-email-arei.gonglei@huawei.com>
+Subject: [PATCH 5/6] migration: introduce new RDMA live migration
+Date: Tue, 4 Jun 2024 20:14:11 +0800
+Message-ID: <1717503252-51884-6-git-send-email-arei.gonglei@huawei.com>
 X-Mailer: git-send-email 2.8.2.windows.1
+In-Reply-To: <1717503252-51884-1-git-send-email-arei.gonglei@huawei.com>
+References: <1717503252-51884-1-git-send-email-arei.gonglei@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,67 +50,194 @@ X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
 
 From: Jialin Wang <wangjialin23@huawei.com>
 
-Hi,
+Signed-off-by: Jialin Wang <wangjialin23@huawei.com>
+Signed-off-by: Gonglei <arei.gonglei@huawei.com>
+---
+ migration/meson.build |  2 +
+ migration/migration.c | 11 +++++-
+ migration/rdma.c      | 88 +++++++++++++++++++++++++++++++++++++++++++
+ migration/rdma.h      | 24 ++++++++++++
+ 4 files changed, 124 insertions(+), 1 deletion(-)
+ create mode 100644 migration/rdma.c
+ create mode 100644 migration/rdma.h
 
-This patch series attempts to refactor RDMA live migration by
-introducing a new QIOChannelRDMA class based on the rsocket API.
-
-The /usr/include/rdma/rsocket.h provides a higher level rsocket API
-that is a 1-1 match of the normal kernel 'sockets' API, which hides the
-detail of rdma protocol into rsocket and allows us to add support for
-some modern features like multifd more easily.
-
-Here is the previous discussion on refactoring RDMA live migration using
-the rsocket API:
-
-https://lore.kernel.org/qemu-devel/20240328130255.52257-1-philmd@linaro.org/
-
-We have encountered some bugs when using rsocket and plan to submit them to
-the rdma-core community.
-
-In addition, the use of rsocket makes our programming more convenient,
-but it must be noted that this method introduces multiple memory copies,
-which can be imagined that there will be a certain performance degradation,
-hoping that friends with RDMA network cards can help verify, thank you!
-
-Jialin Wang (6):
-  migration: remove RDMA live migration temporarily
-  io: add QIOChannelRDMA class
-  io/channel-rdma: support working in coroutine
-  tests/unit: add test-io-channel-rdma.c
-  migration: introduce new RDMA live migration
-  migration/rdma: support multifd for RDMA migration
-
- docs/rdma.txt                     |  420 ---
- include/io/channel-rdma.h         |  165 ++
- io/channel-rdma.c                 |  798 ++++++
- io/meson.build                    |    1 +
- io/trace-events                   |   14 +
- meson.build                       |    6 -
- migration/meson.build             |    3 +-
- migration/migration-stats.c       |    5 +-
- migration/migration-stats.h       |    4 -
- migration/migration.c             |   13 +-
- migration/migration.h             |    9 -
- migration/multifd.c               |   10 +
- migration/options.c               |   16 -
- migration/options.h               |    2 -
- migration/qemu-file.c             |    1 -
- migration/ram.c                   |   90 +-
- migration/rdma.c                  | 4205 +----------------------------
- migration/rdma.h                  |   67 +-
- migration/savevm.c                |    2 +-
- migration/trace-events            |   68 +-
- qapi/migration.json               |   13 +-
- scripts/analyze-migration.py      |    3 -
- tests/unit/meson.build            |    1 +
- tests/unit/test-io-channel-rdma.c |  276 ++
- 24 files changed, 1360 insertions(+), 4832 deletions(-)
- delete mode 100644 docs/rdma.txt
- create mode 100644 include/io/channel-rdma.h
- create mode 100644 io/channel-rdma.c
- create mode 100644 tests/unit/test-io-channel-rdma.c
-
+diff --git a/migration/meson.build b/migration/meson.build
+index 4e8a9ccf3e..04e2e16239 100644
+--- a/migration/meson.build
++++ b/migration/meson.build
+@@ -42,3 +42,5 @@ system_ss.add(when: zstd, if_true: files('multifd-zstd.c'))
+ specific_ss.add(when: 'CONFIG_SYSTEM_ONLY',
+                 if_true: files('ram.c',
+                                'target.c'))
++
++system_ss.add(when: rdma, if_true: files('rdma.c'))
+diff --git a/migration/migration.c b/migration/migration.c
+index 6b9ad4ff5f..77c301d351 100644
+--- a/migration/migration.c
++++ b/migration/migration.c
+@@ -25,6 +25,7 @@
+ #include "sysemu/runstate.h"
+ #include "sysemu/sysemu.h"
+ #include "sysemu/cpu-throttle.h"
++#include "rdma.h"
+ #include "ram.h"
+ #include "migration/global_state.h"
+ #include "migration/misc.h"
+@@ -145,7 +146,7 @@ static bool transport_supports_multi_channels(MigrationAddress *addr)
+     } else if (addr->transport == MIGRATION_ADDRESS_TYPE_FILE) {
+         return migrate_mapped_ram();
+     } else {
+-        return false;
++        return addr->transport == MIGRATION_ADDRESS_TYPE_RDMA;
+     }
+ }
+ 
+@@ -644,6 +645,10 @@ static void qemu_start_incoming_migration(const char *uri, bool has_channels,
+         } else if (saddr->type == SOCKET_ADDRESS_TYPE_FD) {
+             fd_start_incoming_migration(saddr->u.fd.str, errp);
+         }
++#ifdef CONFIG_RDMA
++    } else if (addr->transport == MIGRATION_ADDRESS_TYPE_RDMA) {
++        rdma_start_incoming_migration(&addr->u.rdma, errp);
++#endif
+     } else if (addr->transport == MIGRATION_ADDRESS_TYPE_EXEC) {
+         exec_start_incoming_migration(addr->u.exec.args, errp);
+     } else if (addr->transport == MIGRATION_ADDRESS_TYPE_FILE) {
+@@ -2046,6 +2051,10 @@ void qmp_migrate(const char *uri, bool has_channels,
+         } else if (saddr->type == SOCKET_ADDRESS_TYPE_FD) {
+             fd_start_outgoing_migration(s, saddr->u.fd.str, &local_err);
+         }
++#ifdef CONFIG_RDMA
++    } else if (addr->transport == MIGRATION_ADDRESS_TYPE_RDMA) {
++        rdma_start_outgoing_migration(s, &addr->u.rdma, &local_err);
++#endif
+     } else if (addr->transport == MIGRATION_ADDRESS_TYPE_EXEC) {
+         exec_start_outgoing_migration(s, addr->u.exec.args, &local_err);
+     } else if (addr->transport == MIGRATION_ADDRESS_TYPE_FILE) {
+diff --git a/migration/rdma.c b/migration/rdma.c
+new file mode 100644
+index 0000000000..09a4de7f59
+--- /dev/null
++++ b/migration/rdma.c
+@@ -0,0 +1,88 @@
++/*
++ * QEMU live migration via RDMA
++ *
++ * Copyright (c) 2024 HUAWEI TECHNOLOGIES CO., LTD.
++ *
++ * Authors:
++ *  Jialin Wang <wangjialin23@huawei.com>
++ *  Gonglei <arei.gonglei@huawei.com>
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2 or later.
++ * See the COPYING file in the top-level directory.
++ */
++
++#include "qemu/osdep.h"
++#include "io/channel-rdma.h"
++#include "io/channel.h"
++#include "qapi/clone-visitor.h"
++#include "qapi/qapi-types-sockets.h"
++#include "qapi/qapi-visit-sockets.h"
++#include "channel.h"
++#include "migration.h"
++#include "rdma.h"
++#include "trace.h"
++#include <stdio.h>
++
++static struct RDMAOutgoingArgs {
++    InetSocketAddress *addr;
++} outgoing_args;
++
++static void rdma_outgoing_migration(QIOTask *task, gpointer opaque)
++{
++    MigrationState *s = opaque;
++    QIOChannelRDMA *rioc = QIO_CHANNEL_RDMA(qio_task_get_source(task));
++
++    migration_channel_connect(s, QIO_CHANNEL(rioc), outgoing_args.addr->host,
++                              NULL);
++    object_unref(OBJECT(rioc));
++}
++
++void rdma_start_outgoing_migration(MigrationState *s, InetSocketAddress *iaddr,
++                                   Error **errp)
++{
++    QIOChannelRDMA *rioc = qio_channel_rdma_new();
++
++    /* in case previous migration leaked it */
++    qapi_free_InetSocketAddress(outgoing_args.addr);
++    outgoing_args.addr = QAPI_CLONE(InetSocketAddress, iaddr);
++
++    qio_channel_set_name(QIO_CHANNEL(rioc), "migration-rdma-outgoing");
++    qio_channel_rdma_connect_async(rioc, iaddr, rdma_outgoing_migration, s,
++                                   NULL, NULL);
++}
++
++static void coroutine_fn rdma_accept_incoming_migration(void *opaque)
++{
++    QIOChannelRDMA *rioc = opaque;
++    QIOChannelRDMA *cioc;
++
++    while (!migration_has_all_channels()) {
++        cioc = qio_channel_rdma_accept(rioc, NULL);
++
++        qio_channel_set_name(QIO_CHANNEL(cioc), "migration-rdma-incoming");
++        migration_channel_process_incoming(QIO_CHANNEL(cioc));
++        object_unref(OBJECT(cioc));
++    }
++}
++
++void rdma_start_incoming_migration(InetSocketAddress *addr, Error **errp)
++{
++    QIOChannelRDMA *rioc = qio_channel_rdma_new();
++    MigrationIncomingState *mis = migration_incoming_get_current();
++    Coroutine *co;
++    int num = 1;
++
++    qio_channel_set_name(QIO_CHANNEL(rioc), "migration-rdma-listener");
++
++    if (qio_channel_rdma_listen_sync(rioc, addr, num, errp) < 0) {
++        object_unref(OBJECT(rioc));
++        return;
++    }
++
++    mis->transport_data = rioc;
++    mis->transport_cleanup = object_unref;
++
++    qio_channel_set_blocking(QIO_CHANNEL(rioc), false, NULL);
++    co = qemu_coroutine_create(rdma_accept_incoming_migration, rioc);
++    aio_co_schedule(qemu_get_current_aio_context(), co);
++}
+diff --git a/migration/rdma.h b/migration/rdma.h
+new file mode 100644
+index 0000000000..4c3eb9a972
+--- /dev/null
++++ b/migration/rdma.h
+@@ -0,0 +1,24 @@
++/*
++ * QEMU live migration via RDMA
++ *
++ * Copyright (c) 2024 HUAWEI TECHNOLOGIES CO., LTD.
++ *
++ * Authors:
++ *  Jialin Wang <wangjialin23@huawei.com>
++ *  Gonglei <arei.gonglei@huawei.com>
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2 or later.
++ * See the COPYING file in the top-level directory.
++ */
++
++#ifndef QEMU_MIGRATION_RDMA_H
++#define QEMU_MIGRATION_RDMA_H
++
++#include "qemu/sockets.h"
++
++void rdma_start_outgoing_migration(MigrationState *s, InetSocketAddress *addr,
++                                   Error **errp);
++
++void rdma_start_incoming_migration(InetSocketAddress *addr, Error **errp);
++
++#endif /* QEMU_MIGRATION_RDMA_H */
 -- 
 2.43.0
 
