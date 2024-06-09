@@ -1,36 +1,36 @@
 Received: from mail1.fiberby.net (mail1.fiberby.net [193.104.135.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E0273F9D5;
-	Sun,  9 Jun 2024 17:34:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A99DF46421;
+	Sun,  9 Jun 2024 17:34:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.104.135.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717954500; cv=none; b=BFz20hREUo7svrgKugHH8UZC+5G3SRAbFxSCIKO2Gn9MMX+qVK1lLXYy4QUSXPbyXNF/T67TtFE9tivLIHw+AKd60EjlbhwpjNTT8LjVuRHC8pAqi13xiKFKOIrCVoWTA803FZCXyvHp+I4XoyL2sns3/q3jt1WafPYOxXXBrQY=
+	t=1717954500; cv=none; b=k/NiwVXiWzY7m23g0L5hLMc/3UrE6XOLrQJvN/Szl3dyn0oOWC/nhHhg5WPkVbgKQstFXbaVVNJlR8lwh4gGQUO8qAn0kkP2y0A7so6tT4bu0zxsArCpxRHJq2WjXdr6A3aWmtQVErevJakSg6jSfOWEQLN8c4FgHqI1Ug34170=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1717954500; c=relaxed/simple;
-	bh=hm2q1pAYas67Ju2iLNfJUJWg0g77JqWi5aqqeOyq2mU=;
+	bh=ZDyN6Vf+52VBTThrkt6kfLAKDIBCA/WrvNpGqsChE9o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=VhxE12K2Z31bCjz1rLEU8WJ8ul5RYExcFtS/2cpMVZQd+hQxCqqdQxgPwHg5RAPH0csXDsVt1mLNdeTIycuwHeDle9zcu5gtE0vuBQKEPanIu3whvinZ9A7/WBxsTsu65xVTpefbQCSX1fA/cQKoEE3NagqKp8Gk+/CTD+f+3O8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net; spf=pass smtp.mailfrom=fiberby.net; dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b=Ic9e9W4Y; arc=none smtp.client-ip=193.104.135.124
+	 MIME-Version:Content-Type; b=s2jbl5B/pqor6y4zFPmmeP/3Ka1T6yStzYbSpJLFRZikt3M/ft4EMrlgUPAQ/qK2tPsuxH/LVQFhy/nJ5mudM1H7XMFbrmMd6av+tbiBYqNs8kAWPHE67C+z+4UFTGs6tCCUrHP6RYRXNojrWAfacuMh2yGUVulWDo9+E+GYEs4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net; spf=pass smtp.mailfrom=fiberby.net; dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b=fyPN2pAj; arc=none smtp.client-ip=193.104.135.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fiberby.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b="Ic9e9W4Y"
+	dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b="fyPN2pAj"
 Received: from x201s (193-104-135-243.ip4.fiberby.net [193.104.135.243])
-	by mail1.fiberby.net (Postfix) with ESMTPSA id 50297600ED;
+	by mail1.fiberby.net (Postfix) with ESMTPSA id 0B942600DC;
 	Sun,  9 Jun 2024 17:34:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fiberby.net;
 	s=202008; t=1717954494;
-	bh=hm2q1pAYas67Ju2iLNfJUJWg0g77JqWi5aqqeOyq2mU=;
+	bh=ZDyN6Vf+52VBTThrkt6kfLAKDIBCA/WrvNpGqsChE9o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Ic9e9W4Y8BjmcpDTY9+Q/CkfT38xO7CLBYrSEE9ZmBawTBHOQ2yNggOM+d4ggtFJA
-	 LIR7Q8oPjCNLzjg255uXIRFOwfApHPJlvjbJ7K0+FYdn2Vao1F64Bo22O4BA7hVqHk
-	 emdKR5eEiSDKS972m9zuaYZrBIQhAdlDGWljsp+cvO+Gk4/LZE6D67/ZsIpsYsXNgj
-	 ffZKUp0RW417VvfICK/LPjth0X+i3otkZWAjmp5QZLKxp6GxM8KFbEe8J3tj+96luS
-	 grFhSSuuWzGMgY6uw8LPhp4/x0Z6drNOKqjAFWHss8fmaPGcOhKeR1jI1IlU1950uW
-	 U222SYsz2lEnA==
+	b=fyPN2pAjzXZRM/MlyRtHzCD15pnXfj/ao/uVpN1HhdM1z900W9DGQ/YlUM98+reJc
+	 fdWBFXzsXYYkk9i3s+TxGzJOY1kE3yRx25Er6W/g8EMpZDXii5fWJdlT85RgH3Dh9X
+	 BqIzlwaf0T02nIePnnuJzx7F3aLoZtK8sv38IZmBR9C1pLhyj1BqvnURatxHt7cdSN
+	 h41YWCRZl0gp1Kxpr1y5F1OloHCyxAJyC7Mu82Ez4B9Fucc0epw1D5MwfFJGhi6c7T
+	 fi+c7whaMwimgMKPAiP/w5wlkoj8wuyjMbWbtPLqKCxWRnlswfKPTJR3308q2Wxuhm
+	 0Dl0NHsrTJFRQ==
 Received: by x201s (Postfix, from userid 1000)
-	id B0B4D204266; Sun, 09 Jun 2024 17:34:28 +0000 (UTC)
+	id 2D227204695; Sun, 09 Jun 2024 17:34:31 +0000 (UTC)
 From: =?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.net>
 To: netdev@vger.kernel.org
 Cc: =?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.net>,
@@ -53,9 +53,9 @@ Cc: =?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.net>,
 	linux-kernel@vger.kernel.org,
 	Davide Caratti <dcaratti@redhat.com>,
 	i.maximets@ovn.org
-Subject: [PATCH net-next 2/5] sfc: use flow_rule_is_supp_enc_control_flags()
-Date: Sun,  9 Jun 2024 17:33:52 +0000
-Message-ID: <20240609173358.193178-3-ast@fiberby.net>
+Subject: [PATCH net-next 5/5] ice: flower: validate encapsulation control flags
+Date: Sun,  9 Jun 2024 17:33:55 +0000
+Message-ID: <20240609173358.193178-6-ast@fiberby.net>
 X-Mailer: git-send-email 2.45.1
 In-Reply-To: <20240609173358.193178-1-ast@fiberby.net>
 References: <20240609173358.193178-1-ast@fiberby.net>
@@ -68,33 +68,45 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Change the existing check for unsupported encapsulation control flags,
-to use the new helper flow_rule_is_supp_enc_control_flags().
+Encapsulation control flags are currently not used anywhere,
+so all flags are currently unsupported by all drivers.
 
-No functional change, only compile tested.
+This patch adds validation of this assumption, so that
+encapsulation flags may be used in the future.
+
+In case any encapsulation control flags are masked,
+flow_rule_match_has_enc_control_flags() sets a NL extended
+error message, and we return -EOPNOTSUPP.
+
+Only compile tested.
 
 Signed-off-by: Asbjørn Sloth Tønnesen <ast@fiberby.net>
 ---
- drivers/net/ethernet/sfc/tc.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/net/ethernet/intel/ice/ice_tc_lib.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/net/ethernet/sfc/tc.c b/drivers/net/ethernet/sfc/tc.c
-index 9d140203e273a..0d93164988fc6 100644
---- a/drivers/net/ethernet/sfc/tc.c
-+++ b/drivers/net/ethernet/sfc/tc.c
-@@ -387,11 +387,8 @@ static int efx_tc_flower_parse_match(struct efx_nic *efx,
- 		struct flow_match_control fm;
+diff --git a/drivers/net/ethernet/intel/ice/ice_tc_lib.c b/drivers/net/ethernet/intel/ice/ice_tc_lib.c
+index 8bd24b33f3a67..e6923f8121a99 100644
+--- a/drivers/net/ethernet/intel/ice/ice_tc_lib.c
++++ b/drivers/net/ethernet/intel/ice/ice_tc_lib.c
+@@ -1353,6 +1353,7 @@ ice_parse_tunnel_attr(struct net_device *dev, struct flow_rule *rule,
+ 		      struct ice_tc_flower_fltr *fltr)
+ {
+ 	struct ice_tc_flower_lyr_2_4_hdrs *headers = &fltr->outer_headers;
++	struct netlink_ext_ack *extack = fltr->extack;
+ 	struct flow_match_control enc_control;
  
- 		flow_rule_match_enc_control(rule, &fm);
--		if (fm.mask->flags) {
--			NL_SET_ERR_MSG_FMT_MOD(extack, "Unsupported match on enc_control.flags %#x",
--					       fm.mask->flags);
-+		if (flow_rule_has_enc_control_flags(fm.mask->flags, extack))
- 			return -EOPNOTSUPP;
--		}
- 		if (!IS_ALL_ONES(fm.mask->addr_type)) {
- 			NL_SET_ERR_MSG_FMT_MOD(extack, "Unsupported enc addr_type mask %u (key %u)",
- 					       fm.mask->addr_type,
+ 	fltr->tunnel_type = ice_tc_tun_get_type(dev);
+@@ -1373,6 +1374,9 @@ ice_parse_tunnel_attr(struct net_device *dev, struct flow_rule *rule,
+ 
+ 	flow_rule_match_enc_control(rule, &enc_control);
+ 
++	if (flow_rule_has_enc_control_flags(enc_control.mask->flags, extack))
++		return -EOPNOTSUPP;
++
+ 	if (enc_control.key->addr_type == FLOW_DISSECTOR_KEY_IPV4_ADDRS) {
+ 		struct flow_match_ipv4_addrs match;
+ 
 -- 
 2.45.1
 
