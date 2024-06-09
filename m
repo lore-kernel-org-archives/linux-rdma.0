@@ -1,66 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail1.fiberby.net (mail1.fiberby.net [193.104.135.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3592A36AFE;
-	Sun,  9 Jun 2024 10:46:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E0273F9D5;
+	Sun,  9 Jun 2024 17:34:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.104.135.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717929999; cv=none; b=EZT7+25VbqQH2F0mljXstvBRSfQrWjapoaabyX/vmd8Yb7m9zZnBjP2bjaOnXW+LYUaChse+H48ZzDZ9hCRp7WMEfKw+Cu0krBpkaocPnyC1fziW6w/CsBXShjxV2+GYOok/UmRfZcbUiZQ+2NVkKVUZ2xyj/VotpSDR42xwrUU=
+	t=1717954500; cv=none; b=BFz20hREUo7svrgKugHH8UZC+5G3SRAbFxSCIKO2Gn9MMX+qVK1lLXYy4QUSXPbyXNF/T67TtFE9tivLIHw+AKd60EjlbhwpjNTT8LjVuRHC8pAqi13xiKFKOIrCVoWTA803FZCXyvHp+I4XoyL2sns3/q3jt1WafPYOxXXBrQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717929999; c=relaxed/simple;
-	bh=oZVyZWZZBwCAaUHsx7yaJXMgvc7Nm1hC3uysYJopNjk=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=kEUBgacVgxux/0eFYbVwY26gX8nxgp3Haj5u47adV2enUaRyGEFbGVhqcXB5WPWxEb4Yk50UofXTvZ1Fh2IC2DqBVg2TYF70dGSyWM6xvzINjG/7BSGnLFCIuKjfExZKepaPRmXtdrqos5fxKs5I4jy0taDGMKivBoh73MKQbrw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ssHiIplw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1717954500; c=relaxed/simple;
+	bh=hm2q1pAYas67Ju2iLNfJUJWg0g77JqWi5aqqeOyq2mU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=VhxE12K2Z31bCjz1rLEU8WJ8ul5RYExcFtS/2cpMVZQd+hQxCqqdQxgPwHg5RAPH0csXDsVt1mLNdeTIycuwHeDle9zcu5gtE0vuBQKEPanIu3whvinZ9A7/WBxsTsu65xVTpefbQCSX1fA/cQKoEE3NagqKp8Gk+/CTD+f+3O8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net; spf=pass smtp.mailfrom=fiberby.net; dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b=Ic9e9W4Y; arc=none smtp.client-ip=193.104.135.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fiberby.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fiberby.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ssHiIplw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AE3BC2BD10;
-	Sun,  9 Jun 2024 10:46:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1717929998;
-	bh=oZVyZWZZBwCAaUHsx7yaJXMgvc7Nm1hC3uysYJopNjk=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=ssHiIplw5Pq7V6Eipz/ksHJztFGJwho0UsGUr8/SIwKnxbT/zK/iSwFw09IB5Gj7U
-	 6DlfAABZYOD1oaAPA60iojCwS3/OYMbE/U58ipcWTh0a2tfje/Ofpnfjs8EQ/34mzV
-	 DDJyMTwOM9rhK2KUTmImQUNtCyGUkdOOI3WM+Uuk3ODr3Tqn6vpw7zFcxP1Adxg0n9
-	 nxyF0sdl7RObiHC5KV7DSfdbvLIH3nwzzJ2V+JqnYCIcun/jCRNZHPqkt3X/YgJRtZ
-	 PDsAonNNL0THItFpVnDX4112aARQAaJCNWQvyiGM3c822mYFJn/D12u+SsuSEcFaPi
-	 az0Eq+VxWgh2g==
-From: Leon Romanovsky <leon@kernel.org>
-To: kotaranov@microsoft.com, weh@microsoft.com, sharmaajay@microsoft.com, 
- longli@microsoft.com, jgg@ziepe.ca, 
- Konstantin Taranov <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <1717754897-19858-1-git-send-email-kotaranov@linux.microsoft.com>
-References: <1717754897-19858-1-git-send-email-kotaranov@linux.microsoft.com>
-Subject: Re: [PATCH rdma-next v2 1/1] RDMA/mana_ib: process QP error events
- in mana_ib
-Message-Id: <171792999432.122119.10829214321933939042.b4-ty@kernel.org>
-Date: Sun, 09 Jun 2024 13:46:34 +0300
+	dkim=pass (2048-bit key) header.d=fiberby.net header.i=@fiberby.net header.b="Ic9e9W4Y"
+Received: from x201s (193-104-135-243.ip4.fiberby.net [193.104.135.243])
+	by mail1.fiberby.net (Postfix) with ESMTPSA id 50297600ED;
+	Sun,  9 Jun 2024 17:34:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=fiberby.net;
+	s=202008; t=1717954494;
+	bh=hm2q1pAYas67Ju2iLNfJUJWg0g77JqWi5aqqeOyq2mU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Ic9e9W4Y8BjmcpDTY9+Q/CkfT38xO7CLBYrSEE9ZmBawTBHOQ2yNggOM+d4ggtFJA
+	 LIR7Q8oPjCNLzjg255uXIRFOwfApHPJlvjbJ7K0+FYdn2Vao1F64Bo22O4BA7hVqHk
+	 emdKR5eEiSDKS972m9zuaYZrBIQhAdlDGWljsp+cvO+Gk4/LZE6D67/ZsIpsYsXNgj
+	 ffZKUp0RW417VvfICK/LPjth0X+i3otkZWAjmp5QZLKxp6GxM8KFbEe8J3tj+96luS
+	 grFhSSuuWzGMgY6uw8LPhp4/x0Z6drNOKqjAFWHss8fmaPGcOhKeR1jI1IlU1950uW
+	 U222SYsz2lEnA==
+Received: by x201s (Postfix, from userid 1000)
+	id B0B4D204266; Sun, 09 Jun 2024 17:34:28 +0000 (UTC)
+From: =?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.net>
+To: netdev@vger.kernel.org
+Cc: =?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Edward Cree <ecree.xilinx@gmail.com>,
+	Martin Habets <habetsm.xilinx@gmail.com>,
+	linux-net-drivers@amd.com,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	linux-rdma@vger.kernel.org,
+	Jesse Brandeburg <jesse.brandeburg@intel.com>,
+	Tony Nguyen <anthony.l.nguyen@intel.com>,
+	intel-wired-lan@lists.osuosl.org,
+	Louis Peens <louis.peens@corigine.com>,
+	oss-drivers@corigine.com,
+	linux-kernel@vger.kernel.org,
+	Davide Caratti <dcaratti@redhat.com>,
+	i.maximets@ovn.org
+Subject: [PATCH net-next 2/5] sfc: use flow_rule_is_supp_enc_control_flags()
+Date: Sun,  9 Jun 2024 17:33:52 +0000
+Message-ID: <20240609173358.193178-3-ast@fiberby.net>
+X-Mailer: git-send-email 2.45.1
+In-Reply-To: <20240609173358.193178-1-ast@fiberby.net>
+References: <20240609173358.193178-1-ast@fiberby.net>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.14-dev
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+Change the existing check for unsupported encapsulation control flags,
+to use the new helper flow_rule_is_supp_enc_control_flags().
 
-On Fri, 07 Jun 2024 03:08:17 -0700, Konstantin Taranov wrote:
-> Process QP fatal events from the error event queue.
-> For that, find the QP, using QPN from the event, and then call its
-> event_handler. To find the QPs, store created RC QPs in an xarray.
-> 
-> 
+No functional change, only compile tested.
 
-Applied, thanks!
+Signed-off-by: Asbjørn Sloth Tønnesen <ast@fiberby.net>
+---
+ drivers/net/ethernet/sfc/tc.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-[1/1] RDMA/mana_ib: process QP error events in mana_ib
-      https://git.kernel.org/rdma/rdma/c/52f803542f970f
-
-Best regards,
+diff --git a/drivers/net/ethernet/sfc/tc.c b/drivers/net/ethernet/sfc/tc.c
+index 9d140203e273a..0d93164988fc6 100644
+--- a/drivers/net/ethernet/sfc/tc.c
++++ b/drivers/net/ethernet/sfc/tc.c
+@@ -387,11 +387,8 @@ static int efx_tc_flower_parse_match(struct efx_nic *efx,
+ 		struct flow_match_control fm;
+ 
+ 		flow_rule_match_enc_control(rule, &fm);
+-		if (fm.mask->flags) {
+-			NL_SET_ERR_MSG_FMT_MOD(extack, "Unsupported match on enc_control.flags %#x",
+-					       fm.mask->flags);
++		if (flow_rule_has_enc_control_flags(fm.mask->flags, extack))
+ 			return -EOPNOTSUPP;
+-		}
+ 		if (!IS_ALL_ONES(fm.mask->addr_type)) {
+ 			NL_SET_ERR_MSG_FMT_MOD(extack, "Unsupported enc addr_type mask %u (key %u)",
+ 					       fm.mask->addr_type,
 -- 
-Leon Romanovsky <leon@kernel.org>
+2.45.1
 
