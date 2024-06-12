@@ -1,99 +1,107 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8729181312;
-	Wed, 12 Jun 2024 15:55:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25374181CEE
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Jun 2024 16:51:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=82.195.75.108
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718207758; cv=none; b=TqXTeEeTAyXVbweCTjoWfBrrGZJUwDrCPyIDjVgVE3FZ26jyM9Z3RPxx6/LeAjEp3TsP95CT+n6UP0CUMsRsB8M3+YQyKDh1oR2OoF1wnWNVpe8KaS7+09BcaDD6vEo2GpIVOIzC3TiLZ1xqA9gNc9zEuyE5KGmvuf/A4EuNMZA=
+	t=1718211095; cv=none; b=LySMZLvk3zaoP237EmPTxkDEXf8UxU6W3zOcSiRbQ+XyM+0BcFSTYL/5oR7xcfXK0ctjol2scQAqKu86Usd6ILFiG51cmwu3Z/bUynBB27Ml1ojcmOwfpEN0fzJeKK526xlftMusdwsaoJbF6mYySkyp5pXQzPpfyTj0LMjpHHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718207758; c=relaxed/simple;
-	bh=OGohKvk0MjWf9+Q8+mvrBX+1BAlKKRyUXLbfH75xyb4=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=aVOTTwsJpcctQuUjdTM8dhm19LLOc1Dt6AuwIhKCXrejUHcYcJPE5H4DC9Fzyw6QCAdYqEK0nP0ui81Knrinl0W7LiaUbPTrmLHR1XPSyo1uTsFW2/6YtmNxiP9jkihUCMxy7nnZMPsyNeMQ5f1h0fnSNwiH7kbWlovFqnKdm34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kYWVzenO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718211095; c=relaxed/simple;
+	bh=1aYudvM8cCvp16WoKBbeZwXpUAyDEDsHgfRhHSITuDk=;
+	h=From:To:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=NGcSE3/VbDHCzx7yHwwlvJMqvafpzrAi2cYvaJrRwDWmWz21E4hLtW+bOyb88PxxKWXYz1BcFiiN/SAEfjl7vKmrFFXTonlEbDvBXAknocUQzCF+Q0HhMwFvac8ogbfUQOfw4uH5UvfTXw/150Opof2LGYq2ycAKrA3VAy/y6gE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=none smtp.mailfrom=debian.org; dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b=BEh7yi99; arc=none smtp.client-ip=82.195.75.108
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=debian.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kYWVzenO"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 7AEC7C4DDE4;
-	Wed, 12 Jun 2024 15:55:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718207757;
-	bh=OGohKvk0MjWf9+Q8+mvrBX+1BAlKKRyUXLbfH75xyb4=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=kYWVzenO6v46dav7m+6VeeBQvWtkfZ2ijSROLzZNF2xhVox8NT4g6D7nEQ7Yr1CvD
-	 QbMqbzoNwKvtHxN4oOUSJGsdzFSOiqxLCA02gKqMCQ7TCsZzzusBONx5M/RWdCVpV3
-	 EiLccKqgRHfAnZUsG10WiKCsIr5ffuOoIqg1qhcsU6IhDG8FGsX5pkowWNVMy10FlC
-	 cn2EJB/8N7UtSBq02dCqRuSQs3PZ1MDiLAg7XtxdpzyjShLg11I47hWenlonizyvmL
-	 MeVPPNyid+I2VhiIZBpPj5WbK56sRWz78MH6UY8PKtaaCMSFrdgOOixPo+5vEX+bSG
-	 8/iqEXeUVgsUQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 61107C43618;
-	Wed, 12 Jun 2024 15:55:57 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=debian.org header.i=@debian.org header.b="BEh7yi99"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:Content-Type:MIME-Version:Message-ID:
+	Date:References:In-Reply-To:Subject:To:From:Reply-To:Cc:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=1aYudvM8cCvp16WoKBbeZwXpUAyDEDsHgfRhHSITuDk=; b=BEh7yi99eDsMYj+BH9uEhuskk7
+	hbhzyyBTMxD6VNMqaHKm0y/bs1XgAFBYG1z3ohl0U9pKuG2Dvgr3PE3IMMzeyaHUKn+PxNi/sAt7j
+	WMzWu1dN+N+bu680hSO6KxSAmOqLc89T3+ViBIo28vu7vEkKwHBUMt3FEhiYcgjQY9MW8D1BZtFYC
+	QDFYhye2aQohgeTDE8bvXAVzwHSud+ohXU+/59v6xPlB+raysBBdM0VPusjzZx8A+pmT6sFbBzVDN
+	zr7OmKo1HSejDlt48LLMZkG2V+VQ01w9PE0exfORXtT5sZswfQUkTyW03KDIdy1BH/G9sToCJ69hR
+	yTDMSp/A==;
+Received: from authenticated user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.94.2)
+	(envelope-from <peb@debian.org>)
+	id 1sHRC7-007yN5-CA
+	for linux-rdma@vger.kernel.org; Wed, 12 Jun 2024 16:51:31 +0000
+From: =?utf-8?Q?Pierre-Elliott_B=C3=A9cue?= <peb@debian.org>
+To: linux-rdma@vger.kernel.org
+Subject: Re: What's the current status with bnxt_re-abi.h
+In-Reply-To: <87jziucdlj.fsf@daath.pimeys.fr> ("Pierre-Elliott =?utf-8?Q?B?=
+ =?utf-8?Q?=C3=A9cue=22's?=
+	message of "Wed, 12 Jun 2024 18:47:36 +0200")
+References: <87jziucdlj.fsf@daath.pimeys.fr>
+Date: Wed, 12 Jun 2024 18:51:23 +0200
+Message-ID: <87frticdf8.fsf@daath.pimeys.fr>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [f2fs-dev] [PATCH] tracing/treewide: Remove second parameter of
- __assign_str()
-From: patchwork-bot+f2fs@kernel.org
-Message-Id: 
- <171820775738.32393.13116890369510221266.git-patchwork-notify@kernel.org>
-Date: Wed, 12 Jun 2024 15:55:57 +0000
-References: <20240516133454.681ba6a0@rorschach.local.home>
-In-Reply-To: <20240516133454.681ba6a0@rorschach.local.home>
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: linux-kernel@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
- linux-hyperv@vger.kernel.org, kvm@vger.kernel.org,
- dri-devel@lists.freedesktop.org, ath10k@lists.infradead.org,
- Julia.Lawall@inria.fr, linux-s390@vger.kernel.org, dev@openvswitch.org,
- linux-cifs@vger.kernel.org, linux-bcachefs@vger.kernel.org,
- linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org,
- io-uring@vger.kernel.org, torvalds@linux-foundation.org,
- iommu@lists.linux.dev, ath11k@lists.infradead.org,
- linux-media@vger.kernel.org, linux-wpan@vger.kernel.org,
- linux-pm@vger.kernel.org, selinux@vger.kernel.org,
- linux-arm-msm@vger.kernel.org, intel-gfx@lists.freedesktop.org,
- linux-erofs@lists.ozlabs.org, virtualization@lists.linux.dev,
- linux-sound@vger.kernel.org, linux-block@vger.kernel.org,
- ocfs2-devel@lists.linux.dev, mathieu.desnoyers@efficios.com,
- linux-cxl@vger.kernel.org, linux-tegra@vger.kernel.org,
- intel-xe@lists.freedesktop.org, linux-edac@vger.kernel.org,
- linux-hwmon@vger.kernel.org, brcm80211-dev-list.pdl@broadcom.com,
- linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
- linux-wireless@vger.kernel.org, brcm80211@lists.linux.dev,
- linux-f2fs-devel@lists.sourceforge.net, linux-xfs@vger.kernel.org,
- ath12k@lists.infradead.org, tipc-discussion@lists.sourceforge.net,
- mhiramat@kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org,
- freedreno@lists.freedesktop.org, linux-nfs@vger.kernel.org,
- linux-btrfs@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha512; protocol="application/pgp-signature"
+X-Debian-User: peb
 
-Hello:
+--=-=-=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-This patch was applied to jaegeuk/f2fs.git (dev)
-by Steven Rostedt (Google) <rostedt@goodmis.org>:
+Pierre-Elliott B=C3=A9cue <peb@debian.org> wrote on 12/06/2024 at 18:47:36+=
+0200:
 
-On Thu, 16 May 2024 13:34:54 -0400 you wrote:
-> From: "Steven Rostedt (Google)" <rostedt@goodmis.org>
-> 
-> [
->    This is a treewide change. I will likely re-create this patch again in
->    the second week of the merge window of v6.10 and submit it then. Hoping
->    to keep the conflicts that it will cause to a minimum.
-> ]
-> 
-> [...]
+> Hello,
+>
+> In bnxt_re-abi.h, the abi version mentioned is 1. It's used as it's in
+> all libibverbs to determine the min AND max supported ABI.
+>
+> bnxt_re isn't currently mainlined in the kernel,
 
-Here is the summary with links:
-  - [f2fs-dev] tracing/treewide: Remove second parameter of __assign_str()
-    https://git.kernel.org/jaegeuk/f2fs/c/2c92ca849fcc
+Sorry, a word is missing: "Recent bnxt_re isn't currently mainlined"
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+> and those eager to use
+> the driver need to rely on the one provided by broadcom on their
+> website.
+>
+> The thing is, they bumped their ABI version multiple times (current is
+> 6). In the current context, one can't use the manually compiled bnxt_re
+> driver with libibverbs as any call will error due to the bnxt_re abi
+> version being outside of min/max supported abi version.
+>
+> What's the current situation regarding bnxt_re, should we consider
+> libibverb support of bnxt_re as deprecated?
+>
+> Of course I could have missed something, sorry for that if that's the
+> case.
+>
+> Bests,
 
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQJDBAEBCgAtFiEE5CQeth7uIW7ehIz87iFbn7jEWwsFAmZp0gwPHHBlYkBkZWJp
+YW4ub3JnAAoJEO4hW5+4xFsLlfsQAIJAQoyIfYA74lRhoHwiyoimuxulkbXDZGUK
+GCanboRTjkoSFDtTbHBYlvsmeMsbdW3wOu94o3irAnlvzgIj+cq1U7KnrE/d0Lev
+B92dINUfagKHblOylz6ntBSsHrK7bZUhvLaPgVE+w3WbV17flbwxvlNNrw1tjJZL
+Hk6H23KXfcwazQ4tblCEbeBPFKl41VIbdjqBscVCZJ6dF9At+4nWMG3WKOdu3qMM
+7sb6xODaCCAvjWTd9rtFgfbG3xR+fZZCQu5zS/Ks4zSokvCAPpi57Ay6fkQbLHpE
+MLwJOjFpiA/Osqf4eBnbc/NUBZ8HPb8LaNBART7bMBldDlphrwRZT0cuHCGO6cdF
+lhlnq5vwf936kOWGeJ9FY66LVWUhI57O6bMgMeDlfZrmqK0sUpPC4pvwrksj59AQ
++Q9hlhzEMC8JAjdmHuJNk7q9n5KWaE4phY57DcnNR3GclO4IhhA/I5nBAXUk2eYP
+pe9npTrLeRNqnFhszNonk/AOfVCe9eq+OsyEmmJW5lpVShWgYR0Jweg7HRV0DKgi
+H/tkCuggMfxnSWIbAxWlLiUK99lFTfdXx053FjFL28Gl8EP9pNH1ymmJNga7kZNb
+BLf9FdL3Bz4VvOAyk4PBcqtP6Ug7M6eDxlvKig9dCi6qfvd5CEaAqSLPFAtUk4Xs
+zcsmqQ5w
+=18ad
+-----END PGP SIGNATURE-----
+--=-=-=--
