@@ -1,41 +1,41 @@
-Received: from mail02.habana.ai (habanamailrelay02.habana.ai [62.90.112.121])
+Received: from mail02.habana.ai (habanamailrelay.habana.ai [213.57.90.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B89FE1428F2;
-	Thu, 13 Jun 2024 08:28:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.90.112.121
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB8CF39FCE;
+	Thu, 13 Jun 2024 08:29:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.57.90.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718267327; cv=none; b=lBcPmDd5cL4QUwLIRoOlH6F9IngOkaH4FpFsOvFsEc3jeMj/LxRU9p66xeTsqpGdIOX5TgWpnbQpfElZL8IEWg7D8C0hCFHGcLo8+7/4QESYD0A5hetbBIDooVfH0VREBvOs21Pu21wEzLk37/vAYhOnVVWiXeIDhkvg0ibb/Xw=
+	t=1718267343; cv=none; b=X23DfzowqQGU9KZ7ozyC1vKaMaP6FN4je8mU/BHS5TbadErLwrnJb9nmS64XuZffZL4vIFmfunZwaV45M3JYlhAmOSJh0WyzVKA1nwWWOVJ5rMVfd28eh3E7oNzKD6XLVpQtwW3wiyk44ltJMX8LIACNz6LH+pOKB4vgLG6B7D4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718267327; c=relaxed/simple;
-	bh=PDAauWyW5B1v1wiCHgxrM4dxRc4dzF+E5ENWrVlEtOE=;
+	s=arc-20240116; t=1718267343; c=relaxed/simple;
+	bh=IO5pLkJG81kMm9PCrr62ntV88bUeSIGslJaU4y/h6v8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=sdgcUXc3m0Avg19HIX6wlIPED5wr/i61mR8yQugABgyLzVxAdjCs9URmiKh5L3sZ3Y9HMdTUOowQRBeWprBlg6+IcfhsQuk+XrPkURwu4ZIffznOYyLyJlWY8kIZVvxcPWl4D1kPSIxlw9irOJZLEb2+LRbluG7nnHl7nygoCI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai; spf=pass smtp.mailfrom=habana.ai; dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b=VY14y+lt; arc=none smtp.client-ip=62.90.112.121
+	 MIME-Version; b=UTPlL/8367nMz1lnekiTf6QGXYbtNJRAZn7dwB1p/I0gHTBox15ACtcGwOzLSq2kamtRLaWoOpt/FrC12RfVGnRXNlxGHvmQ3weMJRKHhw+rW+RW8k9CYJXa4sp4YuYJw6dxGt6IkWxDGcYiLQIeSwwFtzvIaKedTu6zCJkzHgs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai; spf=pass smtp.mailfrom=habana.ai; dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b=PYK4Tch2; arc=none smtp.client-ip=213.57.90.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=habana.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b="VY14y+lt"
+	dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b="PYK4Tch2"
 Received: internal info suppressed
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=habana.ai; s=default;
-	t=1718266936; bh=PDAauWyW5B1v1wiCHgxrM4dxRc4dzF+E5ENWrVlEtOE=;
+	t=1718266947; bh=IO5pLkJG81kMm9PCrr62ntV88bUeSIGslJaU4y/h6v8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=VY14y+ltTmVmzXQ3aHJUSdTekRF3KU4H2glNzyqug9wpvRJvgYdJIV5ueurTlFnmZ
-	 wKg0rCJq/67k3Vk/Cfzp198WdEffcS9HKmdmnapA63KB/Emn1DRTJIhM5PiCkwVm3a
-	 86ktsLmPIPD2Aapvtu1+4+a9wP8/7dLlNC1l5nBX59/QE/vGms1QmzHO5VXxCbTUhP
-	 hJsXeOLgbFDhzx4LonUCOugDa5mMxVMv/Ht0LvCeRwMHIFvTgkhJ7IJkZfSkRNIPpk
-	 QwmQ7ZOpcvekfBh4dUyGqzRT/3P9xxRQtY2Ot8n1QBwxVDmAQBWo7bt5dsEpgKfxKc
-	 vdcwrgHex4PRA==
+	b=PYK4Tch2K9/4CKdlzVtqtx4OZfY9PfJ/zXpo08p5hBAtFZh0DmLcFCUQIpKbESdAa
+	 3ugep9B5qn0OBHP8sB5XDaDqt6NqUCIRnnlCRhIEJA69grWCXgdlTM06KvzPCPIxm5
+	 ePOWS4zK203v3PkTdmKKnc6wktddo1vkydk1ljN57rMbn9X4fa18HoYGB8dol+VMO4
+	 6LmW0VWjgAcLQIpShshWMSDEdfmFw8+IBlOHvIJBEe8GLIEFfuHo6aGiXsQh90rxef
+	 IIQrX6aA63Kuf4DVs3C6GcPh/zCWdFfp03zZFN1roNyBtTX2srGgRepwrJw+cKm1Le
+	 Y0j2usZotT+6A==
 Received: from oshpigelman-vm-u22.habana-labs.com (localhost [127.0.0.1])
-	by oshpigelman-vm-u22.habana-labs.com (8.15.2/8.15.2/Debian-22ubuntu3) with ESMTP id 45D8M8ha1440009;
+	by oshpigelman-vm-u22.habana-labs.com (8.15.2/8.15.2/Debian-22ubuntu3) with ESMTP id 45D8M8hX1440009;
 	Thu, 13 Jun 2024 11:22:08 +0300
 From: Omer Shpigelman <oshpigelman@habana.ai>
 To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc: ogabbay@kernel.org, oshpigelman@habana.ai, zyehudai@habana.ai
-Subject: [PATCH 05/15] net: hbl_cn: memory trace events
-Date: Thu, 13 Jun 2024 11:21:58 +0300
-Message-Id: <20240613082208.1439968-6-oshpigelman@habana.ai>
+Subject: [PATCH 02/15] net: hbl_cn: memory manager component
+Date: Thu, 13 Jun 2024 11:21:55 +0300
+Message-Id: <20240613082208.1439968-3-oshpigelman@habana.ai>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240613082208.1439968-1-oshpigelman@habana.ai>
 References: <20240613082208.1439968-1-oshpigelman@habana.ai>
@@ -47,7 +47,8 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add trace events for hbl_cn to track memory allocations.
+Add a common memory manager which handles allocation and mapping.
+It manages physical/virtual memory on host/device.
 
 Signed-off-by: Omer Shpigelman <oshpigelman@habana.ai>
 Co-developed-by: Abhilash K V <kvabhilash@habana.ai>
@@ -63,257 +64,373 @@ Signed-off-by: Sagiv Ozeri <sozeri@habana.ai>
 Co-developed-by: Zvika Yehudai <zyehudai@habana.ai>
 Signed-off-by: Zvika Yehudai <zyehudai@habana.ai>
 ---
- .../net/ethernet/intel/hbl_cn/common/hbl_cn.c |  28 ++++-
- .../ethernet/intel/hbl_cn/common/hbl_cn_drv.c |   3 +
- .../intel/hbl_cn/common/hbl_cn_memory.c       |   9 ++
- include/trace/events/habanalabs_cn.h          | 116 ++++++++++++++++++
- 4 files changed, 154 insertions(+), 2 deletions(-)
- create mode 100644 include/trace/events/habanalabs_cn.h
+ .../intel/hbl_cn/common/hbl_cn_memory.c       | 325 +++++++++++++++++-
+ 1 file changed, 322 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
-index 946b11bfa61b..4e910b2cb8ac 100644
---- a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
-@@ -12,6 +12,8 @@
- #include <linux/pci.h>
- #include <linux/slab.h>
- 
-+#include <trace/events/habanalabs_cn.h>
-+
- #define NIC_MIN_WQS_PER_PORT		2
- 
- #define NIC_SEQ_RESETS_TIMEOUT_MS	15000 /* 15 seconds */
-@@ -5892,8 +5894,15 @@ void *__hbl_cn_dma_alloc_coherent(struct hbl_cn_device *hdev, size_t size, dma_a
- 				  gfp_t flag, const char *caller)
- {
- 	const struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	void *ptr;
-+
-+	ptr = asic_funcs->dma_alloc_coherent(hdev, size, dma_handle, flag);
- 
--	return asic_funcs->dma_alloc_coherent(hdev, size, dma_handle, flag);
-+	if (trace_habanalabs_cn_dma_alloc_coherent_enabled())
-+		trace_habanalabs_cn_dma_alloc_coherent(hdev->dev, (u64)(uintptr_t)ptr, *dma_handle,
-+						       size, caller);
-+
-+	return ptr;
- }
- 
- void __hbl_cn_dma_free_coherent(struct hbl_cn_device *hdev, size_t size, void *cpu_addr,
-@@ -5902,14 +5911,25 @@ void __hbl_cn_dma_free_coherent(struct hbl_cn_device *hdev, size_t size, void *c
- 	const struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
- 
- 	asic_funcs->dma_free_coherent(hdev, size, cpu_addr, dma_addr);
-+
-+	if (trace_habanalabs_cn_dma_free_coherent_enabled())
-+		trace_habanalabs_cn_dma_free_coherent(hdev->dev, (u64)(uintptr_t)cpu_addr, dma_addr,
-+						      size, caller);
- }
- 
- void *__hbl_cn_dma_pool_zalloc(struct hbl_cn_device *hdev, size_t size, gfp_t mem_flags,
- 			       dma_addr_t *dma_handle, const char *caller)
- {
- 	const struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	void *ptr;
- 
--	return asic_funcs->dma_pool_zalloc(hdev, size, mem_flags, dma_handle);
-+	ptr = asic_funcs->dma_pool_zalloc(hdev, size, mem_flags, dma_handle);
-+
-+	if (trace_habanalabs_cn_dma_pool_zalloc_enabled())
-+		trace_habanalabs_cn_dma_pool_zalloc(hdev->dev, (u64)(uintptr_t)ptr, *dma_handle,
-+						    size, caller);
-+
-+	return ptr;
- }
- 
- void __hbl_cn_dma_pool_free(struct hbl_cn_device *hdev, void *vaddr, dma_addr_t dma_addr,
-@@ -5918,6 +5938,10 @@ void __hbl_cn_dma_pool_free(struct hbl_cn_device *hdev, void *vaddr, dma_addr_t
- 	const struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
- 
- 	asic_funcs->dma_pool_free(hdev, vaddr, dma_addr);
-+
-+	if (trace_habanalabs_cn_dma_pool_free_enabled())
-+		trace_habanalabs_cn_dma_pool_free(hdev->dev, (u64)(uintptr_t)vaddr, dma_addr, 0,
-+						  caller);
- }
- 
- int hbl_cn_get_reg_pcie_addr(struct hbl_cn_device *hdev, u8 bar_id, u32 reg, u64 *pci_addr)
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_drv.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_drv.c
-index 47eedd27f36e..5ea690509592 100644
---- a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_drv.c
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_drv.c
-@@ -12,6 +12,9 @@
- #include <linux/auxiliary_bus.h>
- #include <linux/sched/clock.h>
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/habanalabs_cn.h>
-+
- #define HBL_DRIVER_AUTHOR	"HabanaLabs Kernel Driver Team"
- 
- #define HBL_DRIVER_DESC		"HabanaLabs AI accelerators Core Network driver"
 diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_memory.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_memory.c
-index 878ecba66aa3..305b5b85acbe 100644
+index 93c97fad6a20..878ecba66aa3 100644
 --- a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_memory.c
 +++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_memory.c
-@@ -6,6 +6,7 @@
+@@ -4,37 +4,356 @@
+  * All Rights Reserved.
+  */
  
- #include <linux/vmalloc.h>
++#include <linux/vmalloc.h>
  #include "hbl_cn.h"
-+#include <trace/events/habanalabs_cn.h>
  
- static int hbl_cn_map_vmalloc_range(struct hbl_cn_ctx *ctx, u64 vmalloc_va, u64 device_va,
- 				    u64 size)
-@@ -201,12 +202,16 @@ static struct hbl_cn_mem_buf *cn_mem_buf_alloc(struct hbl_cn_ctx *ctx, gfp_t gfp
- 
- static int cn_mem_alloc(struct hbl_cn_ctx *ctx, struct hbl_cn_mem_data *mem_data)
- {
+-int hbl_cn_mem_alloc(struct hbl_cn_ctx *ctx, struct hbl_cn_mem_data *mem_data)
++static int hbl_cn_map_vmalloc_range(struct hbl_cn_ctx *ctx, u64 vmalloc_va, u64 device_va,
++				    u64 size)
++{
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = ctx->hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	return aux_ops->vm_dev_mmu_map(aux_dev, ctx->driver_vm_info.vm_handle, HBL_CN_MEM_TYPE_HOST,
++				       vmalloc_va, device_va, size);
++}
++
++static void hbl_cn_unmap_vmalloc_range(struct hbl_cn_ctx *ctx, u64 device_va, u64 size)
++{
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = ctx->hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	aux_ops->vm_dev_mmu_unmap(aux_dev, ctx->driver_vm_info.vm_handle, device_va, size);
++}
++
++static int alloc_mem(struct hbl_cn_mem_buf *buf, gfp_t gfp, struct hbl_cn_mem_data *mem_data)
++{
++	u64 device_addr, size = mem_data->size;
++	struct hbl_cn_ctx *ctx = buf->ctx;
++	u32 mem_id = mem_data->mem_id;
++	struct hbl_cn_device *hdev;
++	void *p = NULL;
++
++	hdev = ctx->hdev;
++
++	switch (mem_id) {
++	case HBL_CN_DRV_MEM_HOST_DMA_COHERENT:
++		if (get_order(size) > MAX_PAGE_ORDER) {
++			dev_err(hdev->dev, "memory size 0x%llx must be less than 0x%lx\n", size,
++				1UL << (PAGE_SHIFT + MAX_PAGE_ORDER));
++			return -ENOMEM;
++		}
++
++		p = hbl_cn_dma_alloc_coherent(hdev, size, &buf->bus_address, GFP_USER | __GFP_ZERO);
++		if (!p) {
++			dev_err(hdev->dev,
++				"failed to allocate 0x%llx of dma memory for the NIC\n", size);
++			return -ENOMEM;
++		}
++
++		break;
++	case HBL_CN_DRV_MEM_HOST_VIRTUAL:
++		p = vmalloc_user(size);
++		if (!p) {
++			dev_err(hdev->dev, "failed to allocate vmalloc memory, size 0x%llx\n",
++				size);
++			return -ENOMEM;
++		}
++
++		break;
++	case HBL_CN_DRV_MEM_HOST_MAP_ONLY:
++		p = mem_data->in.host_map_data.kernel_address;
++		buf->bus_address = mem_data->in.host_map_data.bus_address;
++		break;
++	case HBL_CN_DRV_MEM_DEVICE:
++		if (!hdev->wq_arrays_pool_enable) {
++			dev_err(hdev->dev, "No WQ arrays pool support for device memory\n");
++			return -EOPNOTSUPP;
++		}
++
++		device_addr = (u64)gen_pool_alloc(hdev->wq_arrays_pool, size);
++		if (!device_addr) {
++			dev_err(hdev->dev, "Failed to allocate device memory, size 0x%llx\n", size);
++			return -ENOMEM;
++		}
++
++		buf->device_addr = device_addr;
++		break;
++	default:
++		dev_err(hdev->dev, "Invalid mem_id %d\n", mem_id);
++		return -EINVAL;
++	}
++
++	buf->kernel_address = p;
++	buf->mappable_size = size;
++
++	return 0;
++}
++
++static int map_mem(struct hbl_cn_mem_buf *buf, struct hbl_cn_mem_data *mem_data)
++{
++	struct hbl_cn_ctx *ctx = buf->ctx;
++	struct hbl_cn_device *hdev;
++	int rc;
++
++	hdev = ctx->hdev;
++
++	if (mem_data->mem_id == HBL_CN_DRV_MEM_HOST_DMA_COHERENT) {
++		dev_err(hdev->dev, "Mapping DMA coherent host memory is not yet supported\n");
++		return -EPERM;
++	}
++
++	rc = hbl_cn_map_vmalloc_range(ctx, (u64)buf->kernel_address, mem_data->device_va,
++				      buf->mappable_size);
++	if (rc)
++		return rc;
++
++	buf->device_va = mem_data->device_va;
++
++	return 0;
++}
++
++static void mem_do_release(struct hbl_cn_device *hdev, struct hbl_cn_mem_buf *buf)
++{
++	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
++
++	if (buf->mem_id == HBL_CN_DRV_MEM_HOST_DMA_COHERENT)
++		asic_funcs->dma_free_coherent(hdev, buf->mappable_size, buf->kernel_address,
++					      buf->bus_address);
++	else if (buf->mem_id == HBL_CN_DRV_MEM_HOST_VIRTUAL)
++		vfree(buf->kernel_address);
++	else if (buf->mem_id == HBL_CN_DRV_MEM_DEVICE)
++		gen_pool_free(hdev->wq_arrays_pool, buf->device_addr, buf->mappable_size);
++}
++
++static int __cn_mem_buf_alloc(struct hbl_cn_mem_buf *buf, gfp_t gfp,
++			      struct hbl_cn_mem_data *mem_data)
++{
++	struct hbl_cn_ctx *ctx = buf->ctx;
++	struct hbl_cn_device *hdev;
++	int rc;
++
++	hdev = ctx->hdev;
++
++	if (mem_data->mem_id != HBL_CN_DRV_MEM_DEVICE)
++		mem_data->size = PAGE_ALIGN(mem_data->size);
++
++	rc = alloc_mem(buf, gfp, mem_data);
++	if (rc)
++		return rc;
++
++	if (mem_data->device_va) {
++		mem_data->device_va = PAGE_ALIGN(mem_data->device_va);
++		rc = map_mem(buf, mem_data);
++		if (rc)
++			goto release_mem;
++	}
++
++	return 0;
++
++release_mem:
++	mem_do_release(hdev, buf);
++	return rc;
++}
++
++static struct hbl_cn_mem_buf *cn_mem_buf_alloc(struct hbl_cn_ctx *ctx, gfp_t gfp,
++					       struct hbl_cn_mem_data *mem_data)
++{
++	struct xa_limit id_limit = XA_LIMIT(1, INT_MAX);
 +	struct hbl_cn_device *hdev = ctx->hdev;
- 	struct hbl_cn_mem_buf *buf;
- 
- 	buf = cn_mem_buf_alloc(ctx, GFP_KERNEL, mem_data);
- 	if (!buf)
- 		return -ENOMEM;
- 
-+	trace_habanalabs_cn_mem_alloc(hdev->dev, buf->mem_id, buf->handle, (u64)buf->kernel_address,
-+				      buf->bus_address, buf->device_va, buf->mappable_size);
++	struct hbl_cn_mem_buf *buf;
++	int rc;
++	u32 id;
 +
- 	mem_data->handle = buf->handle;
- 
- 	if (mem_data->mem_id == HBL_CN_DRV_MEM_HOST_DMA_COHERENT)
-@@ -242,6 +247,10 @@ int hbl_cn_mem_alloc(struct hbl_cn_ctx *ctx, struct hbl_cn_mem_data *mem_data)
- 
- static void cn_mem_buf_destroy(struct hbl_cn_mem_buf *buf)
++	buf = kzalloc(sizeof(*buf), gfp);
++	if (!buf)
++		return NULL;
++
++	rc = xa_alloc(&hdev->mem_ids, &id, buf, id_limit, GFP_ATOMIC);
++	if (rc) {
++		dev_err(hdev->dev, "Failed to allocate xarray for a new buffer, rc=%d\n", rc);
++		goto free_buf;
++	}
++
++	buf->ctx = ctx;
++	buf->mem_id = mem_data->mem_id;
++
++	buf->handle = (((u64)id | hdev->mmap_type_flag) << PAGE_SHIFT);
++	kref_init(&buf->refcount);
++
++	rc = __cn_mem_buf_alloc(buf, gfp, mem_data);
++	if (rc)
++		goto remove_xa;
++
++	return buf;
++
++remove_xa:
++	xa_erase(&hdev->mem_ids, lower_32_bits(buf->handle >> PAGE_SHIFT));
++free_buf:
++	kfree(buf);
++	return NULL;
++}
++
++static int cn_mem_alloc(struct hbl_cn_ctx *ctx, struct hbl_cn_mem_data *mem_data)
  {
-+	trace_habanalabs_cn_mem_destroy(buf->ctx->hdev->dev, buf->mem_id, buf->handle,
-+					(u64)buf->kernel_address, buf->bus_address, buf->device_va,
-+					buf->mappable_size);
++	struct hbl_cn_mem_buf *buf;
 +
- 	if (buf->device_va)
- 		hbl_cn_unmap_vmalloc_range(buf->ctx, buf->device_va, buf->mappable_size);
++	buf = cn_mem_buf_alloc(ctx, GFP_KERNEL, mem_data);
++	if (!buf)
++		return -ENOMEM;
++
++	mem_data->handle = buf->handle;
++
++	if (mem_data->mem_id == HBL_CN_DRV_MEM_HOST_DMA_COHERENT)
++		mem_data->addr = (u64)buf->bus_address;
++	else if (mem_data->mem_id == HBL_CN_DRV_MEM_HOST_VIRTUAL)
++		mem_data->addr = (u64)buf->kernel_address;
++	else if (mem_data->mem_id == HBL_CN_DRV_MEM_DEVICE)
++		mem_data->addr = (u64)buf->device_addr;
++
+ 	return 0;
+ }
  
-diff --git a/include/trace/events/habanalabs_cn.h b/include/trace/events/habanalabs_cn.h
-new file mode 100644
-index 000000000000..aca962cf3130
---- /dev/null
-+++ b/include/trace/events/habanalabs_cn.h
-@@ -0,0 +1,116 @@
-+/* SPDX-License-Identifier: GPL-2.0
-+ *
-+ * Copyright 2023 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ *
-+ */
++int hbl_cn_mem_alloc(struct hbl_cn_ctx *ctx, struct hbl_cn_mem_data *mem_data)
++{
++	struct hbl_cn_device *hdev = ctx->hdev;
++	int rc;
 +
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM habanalabs_cn
++	switch (mem_data->mem_id) {
++	case HBL_CN_DRV_MEM_HOST_DMA_COHERENT:
++	case HBL_CN_DRV_MEM_HOST_VIRTUAL:
++	case HBL_CN_DRV_MEM_HOST_MAP_ONLY:
++	case HBL_CN_DRV_MEM_DEVICE:
++		rc = cn_mem_alloc(ctx, mem_data);
++		break;
++	default:
++		dev_dbg(hdev->dev, "Invalid mem_id %d\n", mem_data->mem_id);
++		rc = -EINVAL;
++		break;
++	}
 +
-+#if !defined(_TRACE_HABANALABS_CN_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_HABANALABS_CN_H
++	return rc;
++}
 +
-+#include <linux/tracepoint.h>
++static void cn_mem_buf_destroy(struct hbl_cn_mem_buf *buf)
++{
++	if (buf->device_va)
++		hbl_cn_unmap_vmalloc_range(buf->ctx, buf->device_va, buf->mappable_size);
 +
-+DECLARE_EVENT_CLASS(habanalabs_cn_mem_template,
-+	TP_PROTO(struct device *dev, u32 mem_id, u64 handle, u64 kernel_addr, u64 bus_addr,
-+		 u64 device_va, size_t size),
++	mem_do_release(buf->ctx->hdev, buf);
 +
-+	TP_ARGS(dev, mem_id, handle, kernel_addr, bus_addr, device_va, size),
++	kfree(buf);
++}
 +
-+	TP_STRUCT__entry(
-+		__string(dname, dev_name(dev))
-+		__field(u32, mem_id)
-+		__field(u64, handle)
-+		__field(u64, kernel_addr)
-+		__field(u64, bus_addr)
-+		__field(u64, device_va)
-+		__field(u32, size)
-+	),
+ int hbl_cn_mem_destroy(struct hbl_cn_device *hdev, u64 handle)
+ {
++	struct hbl_cn_mem_buf *buf;
++	int rc;
 +
-+	TP_fast_assign(
-+		__assign_str(dname);
-+		__entry->mem_id = mem_id;
-+		__entry->handle = handle;
-+		__entry->kernel_addr = kernel_addr;
-+		__entry->bus_addr = bus_addr;
-+		__entry->device_va = device_va;
-+		__entry->size = size;
-+	),
++	buf = hbl_cn_mem_buf_get(hdev, handle);
++	if (!buf) {
++		dev_dbg(hdev->dev, "Memory destroy failed, no match for handle 0x%llx\n", handle);
++		return -EINVAL;
++	}
 +
-+	TP_printk("%s: mem_id: %#x, handle: %#llx, kernel_addr: %#llx, bus_addr: %#llx, device_va: %#llx, size: %#x",
-+		  __get_str(dname),
-+		  __entry->mem_id,
-+		  __entry->handle,
-+		  __entry->kernel_addr,
-+		  __entry->bus_addr,
-+		  __entry->device_va,
-+		  __entry->size)
-+);
++	rc = atomic_cmpxchg(&buf->is_destroyed, 0, 1);
++	hbl_cn_mem_buf_put(buf);
++	if (rc) {
++		dev_dbg(hdev->dev, "Memory destroy failed, handle 0x%llx was already destroyed\n",
++			handle);
++		return -EINVAL;
++	}
 +
-+DEFINE_EVENT(habanalabs_cn_mem_template, habanalabs_cn_mem_alloc,
-+	TP_PROTO(struct device *dev, u32 mem_id, u64 handle, u64 kernel_addr, u64 bus_addr,
-+		 u64 device_va, size_t size),
-+	TP_ARGS(dev, mem_id, handle, kernel_addr, bus_addr, device_va, size));
++	rc = hbl_cn_mem_buf_put_handle(hdev, handle);
++	if (rc < 0)
++		return rc;
 +
-+DEFINE_EVENT(habanalabs_cn_mem_template, habanalabs_cn_mem_destroy,
-+	TP_PROTO(struct device *dev, u32 mem_id, u64 handle, u64 kernel_addr, u64 bus_addr,
-+		 u64 device_va, size_t size),
-+	TP_ARGS(dev, mem_id, handle, kernel_addr, bus_addr, device_va, size));
++	if (rc == 0)
++		dev_dbg(hdev->dev, "Handle 0x%llx is destroyed while still in use\n", handle);
 +
-+DECLARE_EVENT_CLASS(habanalabs_cn_dma_alloc_template,
-+	TP_PROTO(struct device *dev, u64 cpu_addr, u64 dma_addr, size_t size, const char *caller),
+ 	return 0;
+ }
+ 
++static void cn_mem_buf_release(struct kref *kref)
++{
++	struct hbl_cn_mem_buf *buf = container_of(kref, struct hbl_cn_mem_buf, refcount);
++	struct hbl_cn_device *hdev = buf->ctx->hdev;
 +
-+	TP_ARGS(dev, cpu_addr, dma_addr, size, caller),
++	xa_erase(&hdev->mem_ids, lower_32_bits(buf->handle >> PAGE_SHIFT));
 +
-+	TP_STRUCT__entry(
-+		__string(dname, dev_name(dev))
-+		__field(u64, cpu_addr)
-+		__field(u64, dma_addr)
-+		__field(u32, size)
-+		__field(const char *, caller)
-+	),
++	cn_mem_buf_destroy(buf);
++}
 +
-+	TP_fast_assign(
-+		__assign_str(dname);
-+		__entry->cpu_addr = cpu_addr;
-+		__entry->dma_addr = dma_addr;
-+		__entry->size = size;
-+		__entry->caller = caller;
-+	),
+ struct hbl_cn_mem_buf *hbl_cn_mem_buf_get(struct hbl_cn_device *hdev, u64 handle)
+ {
+-	return NULL;
++	struct hbl_cn_mem_buf *buf;
 +
-+	TP_printk("%s: cpu_addr: %#llx, dma_addr: %#llx, size: %#x, caller: %s",
-+		  __get_str(dname),
-+		  __entry->cpu_addr,
-+		  __entry->dma_addr,
-+		  __entry->size,
-+		  __entry->caller
-+	)
-+);
++	xa_lock(&hdev->mem_ids);
++	buf = xa_load(&hdev->mem_ids, lower_32_bits(handle >> PAGE_SHIFT));
++	if (!buf) {
++		xa_unlock(&hdev->mem_ids);
++		dev_dbg(hdev->dev, "Buff get failed, no match to handle %#llx\n", handle);
++		return NULL;
++	}
 +
-+DEFINE_EVENT(habanalabs_cn_dma_alloc_template, habanalabs_cn_dma_alloc_coherent,
-+	     TP_PROTO(struct device *dev, u64 cpu_addr, u64 dma_addr, size_t size,
-+		      const char *caller),
-+	     TP_ARGS(dev, cpu_addr, dma_addr, size, caller));
++	kref_get(&buf->refcount);
++	xa_unlock(&hdev->mem_ids);
 +
-+DEFINE_EVENT(habanalabs_cn_dma_alloc_template, habanalabs_cn_dma_free_coherent,
-+	     TP_PROTO(struct device *dev, u64 cpu_addr, u64 dma_addr, size_t size,
-+		      const char *caller),
-+	     TP_ARGS(dev, cpu_addr, dma_addr, size, caller));
++	return buf;
+ }
+ 
+ int hbl_cn_mem_buf_put(struct hbl_cn_mem_buf *buf)
+ {
+-	return 0;
++	return kref_put(&buf->refcount, cn_mem_buf_release);
++}
 +
-+DEFINE_EVENT(habanalabs_cn_dma_alloc_template, habanalabs_cn_dma_pool_zalloc,
-+	     TP_PROTO(struct device *dev, u64 cpu_addr, u64 dma_addr, size_t size,
-+		      const char *caller),
-+	     TP_ARGS(dev, cpu_addr, dma_addr, size, caller));
++static void cn_mem_buf_remove_xa_locked(struct kref *kref)
++{
++	struct hbl_cn_mem_buf *buf = container_of(kref, struct hbl_cn_mem_buf, refcount);
 +
-+DEFINE_EVENT(habanalabs_cn_dma_alloc_template, habanalabs_cn_dma_pool_free,
-+	     TP_PROTO(struct device *dev, u64 cpu_addr, u64 dma_addr, size_t size,
-+		      const char *caller),
-+	     TP_ARGS(dev, cpu_addr, dma_addr, size, caller));
++	__xa_erase(&buf->ctx->hdev->mem_ids, lower_32_bits(buf->handle >> PAGE_SHIFT));
+ }
+ 
+ int hbl_cn_mem_buf_put_handle(struct hbl_cn_device *hdev, u64 handle)
+ {
++	struct hbl_cn_mem_buf *buf;
 +
-+#endif /* if !defined(_TRACE_HABANALABS_CN_H) || defined(TRACE_HEADER_MULTI_READ) */
++	xa_lock(&hdev->mem_ids);
++	buf = xa_load(&hdev->mem_ids, lower_32_bits(handle >> PAGE_SHIFT));
++	if (!buf) {
++		xa_unlock(&hdev->mem_ids);
++		dev_dbg(hdev->dev, "Buff put failed, no match to handle %#llx\n", handle);
++		return -EINVAL;
++	}
 +
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
++	if (kref_put(&buf->refcount, cn_mem_buf_remove_xa_locked)) {
++		xa_unlock(&hdev->mem_ids);
++		cn_mem_buf_destroy(buf);
++		return 1;
++	}
++
++	xa_unlock(&hdev->mem_ids);
+ 	return 0;
+ }
+ 
+ void hbl_cn_mem_init(struct hbl_cn_device *hdev)
+ {
++	xa_init_flags(&hdev->mem_ids, XA_FLAGS_ALLOC);
+ }
+ 
+ void hbl_cn_mem_fini(struct hbl_cn_device *hdev)
+ {
++	struct xarray *mem_ids;
++
++	mem_ids = &hdev->mem_ids;
++
++	if (!xa_empty(mem_ids))
++		dev_crit(hdev->dev, "memory manager is destroyed while not empty!\n");
++
++	xa_destroy(mem_ids);
+ }
 -- 
 2.34.1
 
