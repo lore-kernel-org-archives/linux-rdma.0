@@ -1,40 +1,40 @@
 Received: from mail02.habana.ai (habanamailrelay.habana.ai [213.57.90.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F72A13E8A5
-	for <linux-rdma@vger.kernel.org>; Thu, 13 Jun 2024 08:38:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF4C522F
+	for <linux-rdma@vger.kernel.org>; Thu, 13 Jun 2024 08:38:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.57.90.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718267900; cv=none; b=aY8r3eu12Sjc+yOf3A889jbGbikjz7Nl28bfV9GGLZrr/j93AheWSVpZB5Xu2iL7qQQKyd794B8xNDBprsEjGRropMwDjT2qGVudEvgoAdufZOR0rQXUdt2WJBaQSXpbqAEhFSgrsJwke6bgvNJW1G60pY3q5A0yCLHkWaxOClg=
+	t=1718267901; cv=none; b=TLosiJb2p6ey4rHTJorJyhJ4Z3ZEvYVN+fwMIgYhlQhY0HYHh/kMXUrwr7oQyLPE3BTX/Aj7Dgag9UnxBUH4hnZSMfxnwGCLAEtVpAM4lmGtXTGXZBfHLD0Aaeicx8YrDCA8IikZjV1gPvLNIx/EyJqqHVyU13gY4RQSujLOnVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718267900; c=relaxed/simple;
-	bh=kijB3TDckcsicfjc+VDRlawV692fU+f83dWNt689vfA=;
+	s=arc-20240116; t=1718267901; c=relaxed/simple;
+	bh=Xx5QjQVoMKqAAqKq2XueN4NFlL8Oa8E/tyDn2I7nhn8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Qsieu0lgHGX+/iNUIBGRpklxXX5z+UEH+dVi2OVPlnZVdKDb7enogt+XmoLFUASub4jqwzRXpd0/28K1Qe3bph2eSGpW9va8DEBti7hAhrKKsZls+oEXKQerccXpnDbSmD9VmHK8k00aiLvjIAdCBPMNqWXKnspmnTQIl19iDv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai; spf=pass smtp.mailfrom=habana.ai; dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b=Olo4lOUJ; arc=none smtp.client-ip=213.57.90.13
+	 MIME-Version; b=W7mTBrw6G6ev5Y/feGo3nWLpS9yBMIbvKaEzkLN2lyiRuSopflYBWZI3k00UyUn0+4HSn2W9EGlYdVOytZC75fCKZ7G642GobW8z1hmXGee6rLa46TtrJC5TabwDRqy350b8/GwMaZOOF1gRVzuneqKCgMgWtDBQssruq1MrW0w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai; spf=pass smtp.mailfrom=habana.ai; dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b=O46BeSKm; arc=none smtp.client-ip=213.57.90.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=habana.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b="Olo4lOUJ"
+	dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b="O46BeSKm"
 Received: internal info suppressed
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=habana.ai; s=default;
-	t=1718267901; bh=kijB3TDckcsicfjc+VDRlawV692fU+f83dWNt689vfA=;
+	t=1718267902; bh=Xx5QjQVoMKqAAqKq2XueN4NFlL8Oa8E/tyDn2I7nhn8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Olo4lOUJgAtSNHzdqDlcu/bL0ThfMNgr0HlIRkbk6pvYaKOQ7XxfBgkm244CXQlJt
-	 NOxQKXmrIuYGYaVNgs34NZ0MUMRsWwO4rQRV1UMPEXvEhlQJMGTDIGxL0v2M+qgwcz
-	 6VONHAGkZRUEzf17p+4v6ftS+rPXz7E5dvwA6YlyhXVhlkOj4BXzXuFHfXK+MYx8Eq
-	 Tml80lZE4HA0zs3Xh70z7cBfsyAxuIBG9Tz4RqNoJ1cV7D73ePL6GzVnZrolrFxJfz
-	 wKDVumYg+g7ODQFrRRFK0wC6rcUC3iTn0qlgx/xWLr0eKSmy7PjtWv8UJe6Q/eLhzQ
-	 ZyhZt8mDNOKbQ==
+	b=O46BeSKmI7ciW6QSc8m+QiwAQx5IXgOAq122PYKfsGbE8+U2SV58Oz5VuvM32k6CS
+	 VtFTxiObzdM6CidK0GaCRO7LpWA4AcPK0xQGrlD2InpDUC/+vl+s8t/RyQWh77p+ml
+	 2eNJ9uGF88BxOHc48ps/baYmyXycEjdvjQXYyorSG2EZZYdB8VcRiyx1psc0agOIYi
+	 dtYcwB/UPSyYRKgLXRzIU/pWsDnGP/cZ+yFnRMpmmR2QCwiBP1hR7FZLlZ1jgCWTMa
+	 NmO6M0QHDqwM1BB0Np7eM9ysKr/swGlanVTq1Wzw7tRWcAErwVMGpKpTvMmOGAgjBk
+	 0BVErXGK/+2Vw==
 Received: from oshpigelman-vm-u22.habana-labs.com (localhost [127.0.0.1])
-	by oshpigelman-vm-u22.habana-labs.com (8.15.2/8.15.2/Debian-22ubuntu3) with ESMTP id 45D8c2vY1440923;
+	by oshpigelman-vm-u22.habana-labs.com (8.15.2/8.15.2/Debian-22ubuntu3) with ESMTP id 45D8c2vb1440923;
 	Thu, 13 Jun 2024 11:38:03 +0300
 From: Omer Shpigelman <oshpigelman@habana.ai>
 To: linux-rdma@vger.kernel.org
 Cc: ogabbay@kernel.org, oshpigelman@habana.ai, zyehudai@habana.ai
-Subject: [PATCH 1/4] Update kernel headers
-Date: Thu, 13 Jun 2024 11:37:59 +0300
-Message-Id: <20240613083802.1440904-2-oshpigelman@habana.ai>
+Subject: [PATCH 4/4] tests/hbl: direct verbs tests
+Date: Thu, 13 Jun 2024 11:38:02 +0300
+Message-Id: <20240613083802.1440904-5-oshpigelman@habana.ai>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240613083802.1440904-1-oshpigelman@habana.ai>
 References: <20240613083802.1440904-1-oshpigelman@habana.ai>
@@ -46,7 +46,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-To commit: ?? ("accel/habanalabs/gaudi2: network scaling support").
+Test every DV operation. This includes opening the device via the DV API.
 
 Signed-off-by: Omer Shpigelman <oshpigelman@habana.ai>
 Co-developed-by: Abhilash K V <kvabhilash@habana.ai>
@@ -62,444 +62,360 @@ Signed-off-by: Sagiv Ozeri <sozeri@habana.ai>
 Co-developed-by: Zvika Yehudai <zyehudai@habana.ai>
 Signed-off-by: Zvika Yehudai <zyehudai@habana.ai>
 ---
- kernel-headers/CMakeLists.txt              |   4 +
- kernel-headers/rdma/hbl-abi.h              | 204 +++++++++++++++++++++
- kernel-headers/rdma/hbl_user_ioctl_cmds.h  |  66 +++++++
- kernel-headers/rdma/hbl_user_ioctl_verbs.h | 106 +++++++++++
- kernel-headers/rdma/ib_user_ioctl_verbs.h  |   1 +
- 5 files changed, 381 insertions(+)
- create mode 100644 kernel-headers/rdma/hbl-abi.h
- create mode 100644 kernel-headers/rdma/hbl_user_ioctl_cmds.h
- create mode 100644 kernel-headers/rdma/hbl_user_ioctl_verbs.h
+ tests/CMakeLists.txt |   2 +
+ tests/hbl_base.py    |  89 +++++++++++++++++
+ tests/test_hbldv.py  | 226 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 317 insertions(+)
+ create mode 100644 tests/hbl_base.py
+ create mode 100644 tests/test_hbldv.py
 
-diff --git a/kernel-headers/CMakeLists.txt b/kernel-headers/CMakeLists.txt
-index 82c191cad..b4558b94d 100644
---- a/kernel-headers/CMakeLists.txt
-+++ b/kernel-headers/CMakeLists.txt
-@@ -3,6 +3,9 @@ publish_internal_headers(rdma
-   rdma/cxgb4-abi.h
-   rdma/efa-abi.h
-   rdma/erdma-abi.h
-+  rdma/hbl-abi.h
-+  rdma/hbl_user_ioctl_cmds.h
-+  rdma/hbl_user_ioctl_verbs.h
-   rdma/hns-abi.h
-   rdma/ib_user_ioctl_cmds.h
-   rdma/ib_user_ioctl_verbs.h
-@@ -68,6 +71,7 @@ rdma_kernel_provider_abi(
-   rdma/cxgb4-abi.h
-   rdma/efa-abi.h
-   rdma/erdma-abi.h
-+  rdma/hbl-abi.h
-   rdma/hns-abi.h
-   rdma/ib_user_verbs.h
-   rdma/irdma-abi.h
-diff --git a/kernel-headers/rdma/hbl-abi.h b/kernel-headers/rdma/hbl-abi.h
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index b77ba98cf..4e653a942 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -8,6 +8,7 @@ rdma_python_test(tests
+   base_rdmacm.py
+   cuda_utils.py
+   efa_base.py
++  hbl_base.py
+   irdma_base.py
+   mlx5_base.py
+   mlx5_prm_structs.py
+@@ -23,6 +24,7 @@ rdma_python_test(tests
+   test_efadv.py
+   test_flow.py
+   test_fork.py
++  test_hbldv.py
+   test_mlx5_cq.py
+   test_mlx5_crypto.py
+   test_mlx5_cuda_umem.py
+diff --git a/tests/hbl_base.py b/tests/hbl_base.py
 new file mode 100644
-index 000000000..c545e07c9
+index 000000000..9311d0823
 --- /dev/null
-+++ b/kernel-headers/rdma/hbl-abi.h
-@@ -0,0 +1,204 @@
-+/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) */
-+/*
-+ * Copyright 2022-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
++++ b/tests/hbl_base.py
+@@ -0,0 +1,89 @@
++# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
++# Copyright 2022-2024 HabanaLabs, Ltd.
++# Copyright (C) 2023-2024, Intel Corporation.
++# All Rights Reserved.
 +
-+#ifndef HBL_IB_ABI_USER_H
-+#define HBL_IB_ABI_USER_H
++import unittest
++import os
++import re
 +
-+#include <linux/types.h>
++from pyverbs.providers.hbl.hbldv import HblContext, HblDVContextAttr, \
++    HblDVSetPortEx, HblDVPortExAttr
++from pyverbs.pyverbs_error import PyverbsRDMAError
++from pyverbs.base import PyverbsRDMAError
++from pyverbs.pyverbs_error import PyverbsUserError
++import pyverbs.providers.hbl.hbl_enums as hbl_e
++import pyverbs.providers.hbl.hbldv as hbl
 +
-+/* Increment this value if any changes that break userspace ABI compatibility are made. */
-+#define HBL_IB_UVERBS_ABI_VERSION	1
++from tests.base import PyverbsAPITestCase
 +
-+#define HBL_IB_MTU_8192			6
 +
-+/**
-+ * struct hbl_ibv_alloc_ucontext_req - Request udata for alloc ucontext.
-+ * @ports_mask: Mask of ports associated with this context. 0 is for all available ports.
-+ * @core_fd: Core device file descriptor.
-+ * @use_dvs: Indicates if we're going to use our DVs.
-+ */
-+struct hbl_ibv_alloc_ucontext_req {
-+	__aligned_u64 ports_mask;
-+	__s32 core_fd;
-+	__u8 use_dvs;
-+	__u8 reserved[3];
-+};
++HABANALABS_VENDOR_ID = 0x1da3
 +
-+/**
-+ * enum hbl_ibv_ucontext_cap - Device capabilities.
-+ * @HBL_UCONTEXT_CAP_MMAP_UMR: User memory region.
-+ * @HBL_UCONTEXT_CAP_CC: Congestion control.
-+ */
-+enum hbl_ibv_ucontext_cap {
-+	HBL_UCONTEXT_CAP_MMAP_UMR = 1 << 0,
-+	HBL_UCONTEXT_CAP_CC = 1 << 1,
-+};
 +
-+/**
-+ * struct hbl_ibv_alloc_ucontext_resp - Response udata for alloc ucontext.
-+ * @ports_mask: Mask of ports associated with this context.
-+ * @cap_mask: Capabilities mask.
-+ */
-+struct hbl_ibv_alloc_ucontext_resp {
-+	__aligned_u64 ports_mask;
-+	__aligned_u64 cap_mask;
-+};
++def is_hbl_dev(ctx):
++    dev_attrs = ctx.query_device()
++    return dev_attrs.vendor_id == HABANALABS_VENDOR_ID
 +
-+/**
-+ * struct hbl_ibv_alloc_pd_resp - Response udata for alloc PD.
-+ * @pdn: PD number.
-+ */
-+struct hbl_ibv_alloc_pd_resp {
-+	__u32 pdn;
-+	__u32 reserved;
-+};
 +
-+/**
-+ * enum hbl_ibv_qp_wq_types - QP WQ types.
-+ * @HBL_WQ_WRITE: WRITE or "native" SEND operations are allowed on this QP.
-+ *                NOTE: the last is not supported!
-+ * @HBL_WQ_RECV_RDV: RECEIVE-RDV or WRITE operations are allowed on this QP.
-+ *                   NOTE: posting all operations at the same time is not supported!
-+ * @HBL_WQ_READ_RDV: READ-RDV or WRITE operations are allowed on this QP.
-+ *                   NOTE: posting all operations at the same time is not supported!
-+ * @HBL_WQ_SEND_RDV: SEND-RDV operation is allowed on this QP.
-+ * @HBL_WQ_READ_RDV_ENDP: No operation is allowed on this endpoint QP!
-+ */
-+enum hbl_ibv_qp_wq_types {
-+	HBL_WQ_WRITE = 0x1,
-+	HBL_WQ_RECV_RDV = 0x2,
-+	HBL_WQ_READ_RDV = 0x4,
-+	HBL_WQ_SEND_RDV = 0x8,
-+	HBL_WQ_READ_RDV_ENDP = 0x10,
-+};
++def skip_if_not_hbl_dev(ctx):
++    if not is_hbl_dev(ctx):
++        raise unittest.SkipTest('Can not run the test over non hbl device')
 +
-+/**
-+ * struct hbl_ibv_modify_qp_req - Request udata for modify QP.
-+ * @local_key: Unique key for local memory access.
-+ * @remote_key: Unique key for remote memory access.
-+ * @congestion_wnd: Congestion-Window size.
-+ * @dest_wq_size: Number of WQEs on the destination.
-+ * @priority: Requester/responder QP priority.
-+ * @wq_type: WQ type. e.g. write, rdv etc
-+ * @loopback: QP loopback enable/disable.
-+ * @congestion_en: Congestion-control enable/disable.
-+ * @compression_en: Compression enable/disable.
-+ * @encap_en: Encapsulation enable flag.
-+ * @encap_num: Encapsulation number.
-+ * @wq_granularity: WQ granularity [0 for 32B or 1 for 64B].
-+ */
-+struct hbl_ibv_modify_qp_req {
-+	__u32 local_key;
-+	__u32 remote_key;
-+	__u32 congestion_wnd;
-+	__u32 reserved0;
-+	__u32 dest_wq_size;
-+	__u8 priority;
-+	__u8 wq_type;
-+	__u8 loopback;
-+	__u8 congestion_en;
-+	__u8 reserved1;
-+	__u8 reserved2;
-+	__u8 compression_en;
-+	__u8 reserved3;
-+	__u8 encap_en;
-+	__u8 encap_num;
-+	__u8 reserved4;
-+	__u8 wq_granularity;
-+	__u8 reserved5;
-+	__u8 reserved6[5];
-+};
++def bits(n):
++    b=0
++    while n:
++        if (n & 0x1):
++            yield b
++        b += 1
++        n >>= 1
 +
-+/**
-+ * struct hbl_ibv_modify_qp_resp - Response udata for modify QP.
-+ * @swq_mem_handle: Send WQ mmap handle.
-+ * @rwq_mem_handle: Receive WQ mmap handle.
-+ * @swq_mem_size: Send WQ mmap size.
-+ * @rwq_mem_size: Receive WQ mmap size.
-+ * @qp_num: HBL QP num.
-+ */
-+struct hbl_ibv_modify_qp_resp {
-+	__aligned_u64 swq_mem_handle;
-+	__aligned_u64 rwq_mem_handle;
-+	__u32 swq_mem_size;
-+	__u32 rwq_mem_size;
-+	__u32 qp_num;
-+	__u32 reserved;
-+};
 +
-+/**
-+ * enum hbl_ibv_cq_type - CQ types, used during allocation of CQs.
-+ * @HBL_CQ_TYPE_QP: Standard CQ used for completion of a operation for a QP.
-+ * @HBL_CQ_TYPE_CC: Congestion control CQ.
-+ */
-+enum hbl_ibv_cq_type {
-+	HBL_CQ_TYPE_QP,
-+	HBL_CQ_TYPE_CC,
-+};
++class HblAPITestCase(PyverbsAPITestCase):
++    def __init__(self, methodName='runTest'):
++        super().__init__(methodName)
++        self.fd = None
 +
-+/**
-+ * hbl_ibv_cq_req_flags - CQ req flag used for distinguision between CQ based on attributes.
-+ * @CQ_FLAG_NATIVE: Bit 1 is set, it represents the CQ is called for native create CQ.
-+ */
-+enum hbl_ibv_cq_req_flags {
-+	CQ_FLAG_NATIVE = 1 << 0,
-+};
++    def setUp(self):
++        super().setUp()
++        skip_if_not_hbl_dev(self.ctx)
 +
-+/**
-+ * struct hbl_ibv_create_cq_req - Request udata for create CQ.
-+ * @port_num: IB Port number.
-+ * @cq_type: Type of CQ resource as mentioned in hbl_ibv_cq_type.
-+ * @flags: CQ req flag used for cq attributes.
-+ */
-+struct hbl_ibv_create_cq_req {
-+	__u32 port_num;
-+	__u8 cq_type;
-+	__u8 flags;
-+	__u8 reserved[2];
-+};
++    def create_context(self):
++        try:
++            path = None
++            for file in os.listdir('/dev/accel/'):
++                if re.match('^accel[0-9]+$', file):
++                    path = os.path.join('/dev/accel/', file)
++                    break
 +
-+/**
-+ * struct hbl_ibv_port_create_cq_resp - Response udata for create CQ.
-+ * @mem_handle: Handle for the CQ buffer.
-+ * @pi_handle: Handle for the Pi memory.
-+ * @regs_handle: Handle for the CQ UMR register.
-+ * @regs_offset: Register offset of CQ UMR register.
-+ * @cq_num: CQ number that is allocated.
-+ * @cq_size: Size of the CQ.
-+ */
-+struct hbl_ibv_port_create_cq_resp {
-+	__aligned_u64 mem_handle;
-+	__aligned_u64 pi_handle;
-+	__aligned_u64 regs_handle;
-+	__u32 regs_offset;
-+	__u32 cq_num;
-+	__u32 cq_size;
-+	__u32 reserved;
-+};
++            self.assertNotEqual(path, None, 'No core device found')
 +
-+/**
-+ * struct hbl_ibv_create_cq_resp - Response udata for create CQ.
-+ * @mem_handle: Handle for the CQ buffer.
-+ * @pi_handle: Handle for the Pi memory.
-+ * @regs_handle: Handle for the CQ UMR register.
-+ * @regs_offset: Register offset of CQ UMR register.
-+ * @cq_num: CQ number that is allocated.
-+ * @cq_size: Size of the CQ.
-+ * @port_cq_resp: response data for create CQ per port.
-+ */
-+struct hbl_ibv_create_cq_resp {
-+	__aligned_u64 mem_handle;
-+	__aligned_u64 pi_handle;
-+	__aligned_u64 regs_handle;
-+	__u32 regs_offset;
-+	__u32 cq_num;
-+	__u32 cq_size;
-+	__u32 reserved;
-+	struct hbl_ibv_port_create_cq_resp port_cq_resp[];
-+};
++            self.fd = os.open(path, os.O_RDWR | os.O_CLOEXEC)
++            attr = HblDVContextAttr()
++            attr.ports_mask = 0
++            attr.core_fd = self.fd
++            self.ctx = HblContext(attr, name=self.dev_name)
++        except PyverbsUserError as ex:
++            raise unittest.SkipTest(f'Could not open hbl context ({ex})')
++        except PyverbsRDMAError:
++            raise unittest.SkipTest('Opening hbl context is not supported')
 +
-+#endif /* HBL_IB_ABI_USER_H */
-diff --git a/kernel-headers/rdma/hbl_user_ioctl_cmds.h b/kernel-headers/rdma/hbl_user_ioctl_cmds.h
++        try:
++            # Set ports Ex should be called for all enabled ports
++            ib_ports_mask = self.ctx.query_hbl_device().ports_mask
++            for ib_port in bits(ib_ports_mask):
++                attr = HblDVPortExAttr()
++                attr.port_num = ib_port
++                attr.mem_id = hbl_e.HBLDV_MEM_HOST
++                attr.max_num_of_wqs = 8
++                attr.max_num_of_wqes_in_wq = 16
++                attr.swq_granularity = hbl_e.HBLDV_SWQE_GRAN_32B
++                attr.caps = 1
++                port = HblDVSetPortEx()
++                port.set_port_ex(self.ctx, attr)
++        except PyverbsUserError as ex:
++            raise unittest.SkipTest(f'Could not set port extended params ({ex})')
++
++    def tearDown(self):
++        super().tearDown()
++        os.close(self.fd)
+diff --git a/tests/test_hbldv.py b/tests/test_hbldv.py
 new file mode 100644
-index 000000000..7ac2bf116
+index 000000000..44e84c746
 --- /dev/null
-+++ b/kernel-headers/rdma/hbl_user_ioctl_cmds.h
-@@ -0,0 +1,66 @@
-+/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) */
-+/*
-+ * Copyright 2022-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
++++ b/tests/test_hbldv.py
+@@ -0,0 +1,226 @@
++# SPDX-License-Identifier: (GPL-2.0 OR Linux-OpenIB)
++# Copyright 2022-2024 HabanaLabs, Ltd.
++# Copyright (C) 2023-2024, Intel Corporation.
++# All Rights Reserved.
 +
-+#ifndef HBL_IB_USER_IOCTL_CMDS_H
-+#define HBL_IB_USER_IOCTL_CMDS_H
++"""
++Test module for hbl direct-verbs.
++"""
 +
-+#include <linux/types.h>
-+#include <rdma/ib_user_ioctl_cmds.h>
++import errno
++import unittest
++import struct
++import ctypes
 +
-+enum hbl_ib_objects {
-+	HBL_IB_OBJECT_USR_FIFO = (1U << UVERBS_ID_NS_SHIFT),
-+	HBL_IB_OBJECT_SET_PORT_EX,
-+	HBL_IB_OBJECT_QUERY_PORT,
-+	HBL_IB_OBJECT_RESERVED,
-+	HBL_IB_OBJECT_ENCAP,
-+};
++from pyverbs.providers.hbl.hbldv import (
++    HblDVUserFIFOAttr, HblDVCQattr, HblDVQueryCQ, HblDVCQ, HblDVPortAttr, HblDVQP,
++    HblDVQueryQP, HblDVEncap, HblDVEncapAttr, HblDVEncapOut, HblDVModifyQP
++)
 +
-+enum hbl_ib_usr_fifo_obj_methods {
-+	HBL_IB_METHOD_USR_FIFO_OBJ_CREATE = (1U << UVERBS_ID_NS_SHIFT),
-+	HBL_IB_METHOD_USR_FIFO_OBJ_DESTROY,
-+};
++from pyverbs.base import PyverbsRDMAError
++from pyverbs.pyverbs_error import PyverbsUserError
++import pyverbs.providers.hbl.hbldv as hbl
++import pyverbs.providers.hbl.hbl_enums as hbl_e
++from pyverbs.cq import CQ
++from pyverbs.pd import PD
++import pyverbs.enums as e
++from pyverbs.qp import QPInitAttr, QPAttr
 +
-+enum hbl_ib_usr_fifo_create_attrs {
-+	HBL_IB_ATTR_USR_FIFO_CREATE_IN = (1U << UVERBS_ID_NS_SHIFT),
-+	HBL_IB_ATTR_USR_FIFO_CREATE_OUT,
-+	HBL_IB_ATTR_USR_FIFO_CREATE_HANDLE,
-+};
++from tests.hbl_base import HblAPITestCase
 +
-+enum hbl_ib_usr_fifo_destroy_attrs {
-+	HBL_IB_ATTR_USR_FIFO_DESTROY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+};
 +
-+enum hbl_ib_device_methods {
-+	HBL_IB_METHOD_SET_PORT_EX = (1U << UVERBS_ID_NS_SHIFT),
-+	HBL_IB_METHOD_QUERY_PORT,
-+};
++class HblUserFIFOTest(HblAPITestCase):
++    """
++    Test functionality of the Hbl user FIFO class
++    """
++    def test_hbldv_usr_fifo(self):
++        """
++        Test hbldv_usr_fifo()
++        """
++        try:
++            attr = HblDVUserFIFOAttr()
++            attr.port_num = self.ib_port
++            usr_fifo = hbl.HblDVUserFIFO()
++            usr_fifo.create_usr_fifo(self.ctx, attr)
++            usr_fifo.destroy_usr_fifo()
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 +
-+enum hbl_ib_set_port_ex_attrs {
-+	HBL_IB_ATTR_SET_PORT_EX_IN = (1U << UVERBS_ID_NS_SHIFT),
-+};
++class HblCQTest(HblAPITestCase):
++    """
++    Test functionality of the Hbl CQ class
++    """
++    def test_hbldv_create_cq(self):
++        """
++        Test hbldv_create_cq()
++        """
++        try:
++            num_cqes = 512
++            cq_attr = HblDVCQattr()
++            cq_attr.port_num = self.ib_port
++            cq_attr.cq_type = 0
++            cq_obj = HblDVCQ()
++            cq_obj.create_cq(self.ctx, num_cqes, cq_attr)
++            cq_obj.destroy_cq()
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 +
-+enum hbl_ib_query_port_attrs {
-+	HBL_IB_ATTR_QUERY_PORT_IN = (1U << UVERBS_ID_NS_SHIFT),
-+	HBL_IB_ATTR_QUERY_PORT_OUT,
-+};
++    def test_hbldv_query_cq(self):
++        """
++        Test hbldv_query_cq()
++        """
++        try:
++            num_cqes = 512
++            cq_attr = HblDVCQattr()
++            cq_attr.port_num = self.ib_port
++            cq_attr.cq_type = 0
++            cq_obj = HblDVCQ()
++            cq_obj.create_cq(self.ctx, num_cqes, cq_attr)
++            query_cq_obj = HblDVQueryCQ()
++            cq_obj.query_cq(query_cq_obj)
++            cq_obj.destroy_cq()
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 +
-+enum hbl_ib_encap_methods {
-+	HBL_IB_METHOD_ENCAP_CREATE = (1U << UVERBS_ID_NS_SHIFT),
-+	HBL_IB_METHOD_ENCAP_DESTROY,
-+};
++class HblQueryPortTest(HblAPITestCase):
++    """
++    Test functionality of the Hbl Query port class
++    """
++    def test_hbldv_query_port(self):
++        """
++        Test hbldv_query_port()
++        """
++        try:
++            attr = HblDVPortAttr()
++            port = hbl.HblQueryPort()
++            port.query_port(self.ctx, self.ib_port, attr)
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 +
-+enum hbl_ib_encap_create_attrs {
-+	HBL_IB_ATTR_ENCAP_CREATE_IN = (1U << UVERBS_ID_NS_SHIFT),
-+	HBL_IB_ATTR_ENCAP_CREATE_OUT,
-+	HBL_IB_ATTR_ENCAP_CREATE_HANDLE,
-+};
++class HblQPTest(HblAPITestCase):
++    """
++    Test functionality of the Hbl Query QP class
++    """
++    def test_hbldv_modify_qp(self):
++        """
++        Test hbldv_modify_qp()
++        """
++        try:
++            pd_obj = PD(self.ctx)
++            cq_obj = CQ(self.ctx, 512)
++            qp_init_obj = QPInitAttr(e.IBV_QPT_RC, None, cq_obj, cq_obj)
++            qp_obj = HblDVQP()
++            qp_obj.create_qp(pd_obj, qp_init_obj)
++            qp_attr_obj = QPAttr()
++            qp_attr_obj.qp_state = e.IBV_QPS_INIT
++            qp_attr_obj.port_num = self.ib_port
++            qp_attr_obj.pkey_index = 0
++            qp_modify_attr = HblDVModifyQP()
++            qp_modify_attr.wq_type = 1
++            qp_obj.modify_qp(qp_attr_obj,
++                             e.IBV_QP_STATE | e.IBV_QP_PKEY_INDEX |
++                             e.IBV_QP_PORT | e.IBV_QP_ACCESS_FLAGS, qp_modify_attr)
++            qp_obj.destroy_qp()
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 +
-+enum hbl_ib_encap_destroy_attrs {
-+	HBL_IB_ATTR_ENCAP_DESTROY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+};
++    def test_hbldv_query_qp(self):
++        """
++        Test hbldv_query_qp()
++        """
++        try:
++            cq_obj = CQ(self.ctx, 512)
++            pd_obj = PD(self.ctx)
++            qp_init_obj = QPInitAttr(e.IBV_QPT_RC, None, cq_obj, cq_obj)
++            qp_obj = HblDVQP()
++            qp_obj.create_qp(pd_obj, qp_init_obj)
++            qp_attr_obj = QPAttr()
++            qp_attr_obj.qp_state = e.IBV_QPS_INIT
++            qp_attr_obj.port_num = self.ib_port
++            qp_attr_obj.pkey_index = 0
++            qp_modify_attr = HblDVModifyQP()
++            qp_modify_attr.wq_type = 1
++            qp_obj.modify_qp(qp_attr_obj, e.IBV_QP_STATE | e.IBV_QP_PKEY_INDEX | e.IBV_QP_PORT | e.IBV_QP_ACCESS_FLAGS, qp_modify_attr)
++            query_qp_obj = HblDVQueryQP()
++            qp_obj.query_qp(query_qp_obj)
++            qp_obj.destroy_qp()
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 +
-+#endif /* HBL_IB_USER_IOCTL_CMDS_H */
-diff --git a/kernel-headers/rdma/hbl_user_ioctl_verbs.h b/kernel-headers/rdma/hbl_user_ioctl_verbs.h
-new file mode 100644
-index 000000000..ce896f5c5
---- /dev/null
-+++ b/kernel-headers/rdma/hbl_user_ioctl_verbs.h
-@@ -0,0 +1,106 @@
-+/* SPDX-License-Identifier: (GPL-2.0 WITH Linux-syscall-note) */
-+/*
-+ * Copyright 2022-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
++class HblCCCQTest(HblAPITestCase):
++    """
++    Test functionality of the Hbl CC CQ class
++    """
++    def test_hbldv_create_cq(self):
++        """
++        Test hbldv_create_cq() for CC
++        """
++        if not self.ctx.query_hbl_device().caps & hbl_e.HBLDV_DEVICE_ATTR_CAP_CC:
++            raise unittest.SkipTest('Test not supported on this device')
++        try:
++            num_cqes = 512
++            cq_attr = HblDVCQattr()
++            cq_attr.port_num = self.ib_port
++            cq_attr.cq_type = 1
++            cq_obj = HblDVCQ()
++            cq_obj.create_cq(self.ctx, num_cqes, cq_attr)
++            cq_obj.destroy_cq()
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 +
-+#ifndef HBL_IB_USER_IOCTL_VERBS_H
-+#define HBL_IB_USER_IOCTL_VERBS_H
++    def test_hbldv_query_cq(self):
++        """
++        Test hbldv_query_cq() for CC
++        """
++        if not self.ctx.query_hbl_device().caps & hbl_e.HBLDV_DEVICE_ATTR_CAP_CC:
++            raise unittest.SkipTest('Test not supported on this device')
++        try:
++            num_cqes = 512
++            cq_attr = HblDVCQattr()
++            cq_attr.port_num = self.ib_port
++            cq_attr.cq_type = 1
++            cq_obj = HblDVCQ()
++            cq_obj.create_cq(self.ctx, num_cqes, cq_attr)
++            query_cq_obj = HblDVQueryCQ()
++            cq_obj.query_cq(query_cq_obj)
++            cq_obj.destroy_cq()
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 +
-+#include <linux/types.h>
-+
-+#define HBL_IB_MAX_BP_OFFS		16
-+
-+enum hbl_ib_wq_array_type {
-+	HBL_IB_WQ_ARRAY_TYPE_GENERIC,
-+	HBL_IB_WQ_ARRAY_TYPE_RESERVED1,
-+	HBL_IB_WQ_ARRAY_TYPE_RESERVED2,
-+	HBL_IB_WQ_ARRAY_TYPE_RESERVED3,
-+	HBL_IB_WQ_ARRAY_TYPE_RESERVED4,
-+	HBL_IB_WQ_ARRAY_TYPE_MAX,
-+};
-+
-+struct hbl_wq_array_attr {
-+	__u32 max_num_of_wqs;
-+	__u32 max_num_of_wqes_in_wq;
-+	__u8 mem_id;
-+	__u8 swq_granularity;
-+	__u8 reserved0[6];
-+	__aligned_u64 reserved1[2];
-+};
-+
-+struct hbl_uapi_usr_fifo_create_in {
-+	__u32 port_num;
-+	__u32 reserved0;
-+	__u32 reserved1;
-+	__u32 usr_fifo_num_hint;
-+	__u8 mode;
-+	__u8 reserved2;
-+	__u8 reserved3[6];
-+};
-+
-+struct hbl_uapi_usr_fifo_create_out {
-+	__aligned_u64 ci_handle;
-+	__aligned_u64 regs_handle;
-+	__u32 usr_fifo_num;
-+	__u32 regs_offset;
-+	__u32 size;
-+	__u32 bp_thresh;
-+};
-+
-+struct hbl_uapi_set_port_ex_in {
-+	struct hbl_wq_array_attr wq_arr_attr[HBL_IB_WQ_ARRAY_TYPE_MAX];
-+	/* Pointer to u32 array */
-+	__aligned_u64 qp_wq_bp_offs;
-+	__u32 qp_wq_bp_offs_cnt;
-+	__u32 port_num;
-+	__aligned_u64 reserved0;
-+	__u32 reserved1;
-+	__u8 reserved2;
-+	__u8 advanced;
-+	__u8 adaptive_timeout_en;
-+	__u8 reserved3;
-+};
-+
-+struct hbl_uapi_query_port_in {
-+	__u32 port_num;
-+	__u32 reserved;
-+};
-+
-+struct hbl_uapi_query_port_out {
-+	__u32 max_num_of_qps;
-+	__u32 num_allocated_qps;
-+	__u32 max_allocated_qp_num;
-+	__u32 max_cq_size;
-+	__u32 reserved0;
-+	__u32 reserved1;
-+	__u32 reserved2;
-+	__u32 reserved3;
-+	__u32 reserved4;
-+	__u8 advanced;
-+	__u8 max_num_of_cqs;
-+	__u8 max_num_of_usr_fifos;
-+	__u8 max_num_of_encaps;
-+	__u8 nic_macro_idx;
-+	__u8 nic_phys_port_idx;
-+	__u8 reserved[6];
-+};
-+
-+struct hbl_uapi_encap_create_in {
-+	__aligned_u64 tnl_hdr_ptr;
-+	__u32 tnl_hdr_size;
-+	__u32 port_num;
-+	__u32 ipv4_addr;
-+	__u16 udp_dst_port;
-+	__u16 ip_proto;
-+	__u8 encap_type;
-+	__u8 reserved[7];
-+};
-+
-+struct hbl_uapi_encap_create_out {
-+	__u32 encap_num;
-+	__u32 reserved;
-+};
-+
-+#endif /* HBL_IB_USER_IOCTL_VERBS_H */
-diff --git a/kernel-headers/rdma/ib_user_ioctl_verbs.h b/kernel-headers/rdma/ib_user_ioctl_verbs.h
-index fe15bc7e9..016ac5c8f 100644
---- a/kernel-headers/rdma/ib_user_ioctl_verbs.h
-+++ b/kernel-headers/rdma/ib_user_ioctl_verbs.h
-@@ -255,6 +255,7 @@ enum rdma_driver_id {
- 	RDMA_DRIVER_SIW,
- 	RDMA_DRIVER_ERDMA,
- 	RDMA_DRIVER_MANA,
-+	RDMA_DRIVER_HBL,
- };
- 
- enum ib_uverbs_gid_type {
++class HblEncapTest(HblAPITestCase):
++    """
++    Test functionality of the Hbl Encap class
++    """
++    def test_hbldv_create_encap(self):
++        """
++        Test hbldv_create_encap()
++        """
++        try:
++            encap_attr = HblDVEncapAttr()
++            encap_attr.port_num = self.ib_port
++            encap_attr.encap_type = 2
++            encap_out = HblDVEncapOut()
++            encap_obj = HblDVEncap()
++            encap_attr.tnl_hdr_size = 32
++            encap_obj.create_encap(self.ctx, encap_attr, encap_out)
++            encap_obj.destroy_encap()
++        except PyverbsRDMAError as ex:
++            if ex.error_code in [errno.EOPNOTSUPP, errno.EPROTONOSUPPORT]:
++                raise unittest.SkipTest('Not supported on non hbl devices')
++            raise ex
 -- 
 2.34.1
 
