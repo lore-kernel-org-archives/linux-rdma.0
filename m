@@ -1,41 +1,41 @@
-Received: from mail02.habana.ai (habanamailrelay02.habana.ai [62.90.112.121])
+Received: from mail02.habana.ai (habanamailrelay.habana.ai [213.57.90.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 928FB13EFE4;
-	Thu, 13 Jun 2024 08:23:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.90.112.121
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5480A13D53E;
+	Thu, 13 Jun 2024 08:23:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.57.90.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718266998; cv=none; b=QL5aRC8Td9s8d6KvPPLP/NMPnuO5QtxHUrQr2pgb9sIU27htC75wAIWa/q5ZmCyXpFXuJyQqh234XXwccnzIRuNGAP2tS9y/NEblOcCTn6w5p+GO2xqUt8gAzKV4mTT0p6cFMI9715SafWqwjltjxb83qwbzT3aJ0R0O9OBaPUI=
+	t=1718267003; cv=none; b=d0sHUK3yIhqDVtRH6Xb9e3o0J2rLxHb/rHTqCo/KgqpLSRJTNTPCOzBHscEwd5oce+zGc3tNr80LgzVizkf07S9HljqTnSGxv7cDLLVkafITOk+kGYnUycA1/InuK1qDLrU5sEiH7Y1RQsCKKgN7lP4fIr5E2yeNhuyexUghDAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718266998; c=relaxed/simple;
-	bh=E0TN4H/JRQHvYXFmwJD+4g20Cf0z/4A5nWsj+AQmWVQ=;
+	s=arc-20240116; t=1718267003; c=relaxed/simple;
+	bh=hxsSR8mvsDaoDaOg4lYIJoAebQ0l5pnm1QjYovtxLJM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZBAQfoUWs+XKWoiAvPPbQnUeJNatCNwrmdqZO1R6X7emRDdyl6vPqla3r5PV4Bf30ksedrZGCbWx37CFToTE7h+axFxvZrmvberurTZ9MBiottnqpjOF8K9OBLmK7zssMF+UMJEvYemhlQ0njf48sLu7J40oHILMFPNezEQsI7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai; spf=pass smtp.mailfrom=habana.ai; dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b=L6TR9YnM; arc=none smtp.client-ip=62.90.112.121
+	 MIME-Version; b=NJGHzz8AD7GpLm8Dl4X6F6gBhcRXmg8IlWOpC0J2lJdOXUDiiU8EMGM2tWkXbI4bnDUaESKkvi+4/rXqmlD/piwlvhH5GYjxWgB1r7p1L0vgf503ImdYv9rpDg3DiJocoEjkOKT9cD5fexFjLnZyQuY/9NnTr/4Y8lgt+iU1e20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai; spf=pass smtp.mailfrom=habana.ai; dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b=UXDXSsbo; arc=none smtp.client-ip=213.57.90.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=habana.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b="L6TR9YnM"
+	dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b="UXDXSsbo"
 Received: internal info suppressed
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=habana.ai; s=default;
-	t=1718266936; bh=E0TN4H/JRQHvYXFmwJD+4g20Cf0z/4A5nWsj+AQmWVQ=;
+	t=1718266950; bh=hxsSR8mvsDaoDaOg4lYIJoAebQ0l5pnm1QjYovtxLJM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=L6TR9YnMS1c190isK/CHy8E0i8FqhOno/qJVtiLAw6Q83uQZ1WxGkwXCYi4nlFYk+
-	 vauxgaq4/YFnBvD1LIrlVVuuV8KssCgKvuMPKm12YpLZsPwfjfCVLyfJfmE730hHKP
-	 9o/+3rocAfR9SKtIc8DhhgN2r7aWj9zjwwymbw9KgRDgXSCGFxh6oj7bWwrz8J4mdT
-	 v/qHJaNDFRsm11LBVETnmoB+hGIKo8e2RjpljTjcPQTuMr+TD1VDsZicgLGjLx/e74
-	 RkfkNfNfyPfTiaGQGZ9O5bBpOeDIqkNbEhh5SWdshxeXHJxqsE4rr3vYZj2Ge+2hyR
-	 DhdpfU8tPphvA==
+	b=UXDXSsboQ21G985NMhs/JiPD+4sakPERUx9hc2XPylkqQvVDsM4BrDnWhNfMeMmm2
+	 5/Sr7pR3louymxRfCpBmCmB4NWXE+vOgTE0clBg8ukyXPABJMFcYou/SfjUnqfDUZZ
+	 1q75u/E3ad0UzbMt6jwoCqAOXbKeKfucM6ckKIt1jA0Z1UfEtkrJfqHUgkVzoFdIBK
+	 0CLWVLYVwkFyXStO8QZKCmg2X06XUQUj24NIupnHHpe9JcR1w5y+BJsmCB3Ovxf1su
+	 ZCZixtNwCFlfws000XVol9BFTr652w/hElORxahYewe2/TIGt7Mvo+gpdzRVzjKkbc
+	 ZNBdW+Cq3+tug==
 Received: from oshpigelman-vm-u22.habana-labs.com (localhost [127.0.0.1])
-	by oshpigelman-vm-u22.habana-labs.com (8.15.2/8.15.2/Debian-22ubuntu3) with ESMTP id 45D8M8hW1440009;
-	Thu, 13 Jun 2024 11:22:08 +0300
+	by oshpigelman-vm-u22.habana-labs.com (8.15.2/8.15.2/Debian-22ubuntu3) with ESMTP id 45D8M8hd1440009;
+	Thu, 13 Jun 2024 11:22:11 +0300
 From: Omer Shpigelman <oshpigelman@habana.ai>
 To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc: ogabbay@kernel.org, oshpigelman@habana.ai, zyehudai@habana.ai
-Subject: [PATCH 01/15] net: hbl_cn: add habanalabs Core Network driver
-Date: Thu, 13 Jun 2024 11:21:54 +0300
-Message-Id: <20240613082208.1439968-2-oshpigelman@habana.ai>
+Subject: [PATCH 08/15] net: hbl_cn: gaudi2: ASIC specific support
+Date: Thu, 13 Jun 2024 11:22:01 +0300
+Message-Id: <20240613082208.1439968-9-oshpigelman@habana.ai>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240613082208.1439968-1-oshpigelman@habana.ai>
 References: <20240613082208.1439968-1-oshpigelman@habana.ai>
@@ -47,11 +47,10 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add the hbl_cn driver which will serve both Ethernet and InfiniBand
-drivers.
-hbl_cn is the layer which is used by the satellite drivers for many shared
-operations that are needed by both EN and IB subsystems like QPs, CQs etc.
-The CN driver is initialized via auxiliary bus by the habanalabs driver.
+Add GAUDI2 ASIC support which includes HW specific configurations and
+operations.
+It is initialized on top of the common device layer and has dedicated data
+structures which are passed via auxiliary bus.
 
 Signed-off-by: Omer Shpigelman <oshpigelman@habana.ai>
 Co-developed-by: Abhilash K V <kvabhilash@habana.ai>
@@ -67,9827 +66,10565 @@ Signed-off-by: Sagiv Ozeri <sozeri@habana.ai>
 Co-developed-by: Zvika Yehudai <zyehudai@habana.ai>
 Signed-off-by: Zvika Yehudai <zyehudai@habana.ai>
 ---
- .../device_drivers/ethernet/index.rst         |    1 +
- .../device_drivers/ethernet/intel/hbl.rst     |   82 +
- MAINTAINERS                                   |   11 +
- drivers/net/ethernet/intel/Kconfig            |   20 +
- drivers/net/ethernet/intel/Makefile           |    1 +
- drivers/net/ethernet/intel/hbl_cn/Makefile    |    9 +
- .../net/ethernet/intel/hbl_cn/common/Makefile |    3 +
- .../net/ethernet/intel/hbl_cn/common/hbl_cn.c | 5954 +++++++++++++++++
- .../net/ethernet/intel/hbl_cn/common/hbl_cn.h | 1627 +++++
- .../ethernet/intel/hbl_cn/common/hbl_cn_drv.c |  220 +
- .../intel/hbl_cn/common/hbl_cn_memory.c       |   40 +
- .../ethernet/intel/hbl_cn/common/hbl_cn_phy.c |   33 +
- .../ethernet/intel/hbl_cn/common/hbl_cn_qp.c  |   13 +
- include/linux/habanalabs/cpucp_if.h           |  125 +-
- include/linux/habanalabs/hl_boot_if.h         |    9 +-
- include/linux/net/intel/cn.h                  |  474 ++
- include/linux/net/intel/cn_aux.h              |  298 +
- include/linux/net/intel/cni.h                 |  636 ++
- 18 files changed, 9545 insertions(+), 11 deletions(-)
- create mode 100644 Documentation/networking/device_drivers/ethernet/intel/hbl.rst
- create mode 100644 drivers/net/ethernet/intel/hbl_cn/Makefile
- create mode 100644 drivers/net/ethernet/intel/hbl_cn/common/Makefile
- create mode 100644 drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
- create mode 100644 drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.h
- create mode 100644 drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_drv.c
- create mode 100644 drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_memory.c
- create mode 100644 drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_phy.c
- create mode 100644 drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_qp.c
- create mode 100644 include/linux/net/intel/cn.h
- create mode 100644 include/linux/net/intel/cn_aux.h
- create mode 100644 include/linux/net/intel/cni.h
+ MAINTAINERS                                   |    1 +
+ drivers/net/ethernet/intel/hbl_cn/Makefile    |    3 +
+ .../net/ethernet/intel/hbl_cn/common/hbl_cn.c |    2 +
+ .../net/ethernet/intel/hbl_cn/common/hbl_cn.h |    2 +
+ .../net/ethernet/intel/hbl_cn/gaudi2/Makefile |    3 +
+ .../ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.c  | 5689 +++++++++++++++++
+ .../ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.h  |  427 ++
+ .../intel/hbl_cn/gaudi2/gaudi2_cn_debugfs.c   |  319 +
+ .../intel/hbl_cn/gaudi2/gaudi2_cn_eq.c        |  732 +++
+ .../intel/hbl_cn/gaudi2/gaudi2_cn_phy.c       | 2743 ++++++++
+ include/linux/net/intel/gaudi2.h              |  432 ++
+ include/linux/net/intel/gaudi2_aux.h          |   94 +
+ 12 files changed, 10447 insertions(+)
+ create mode 100644 drivers/net/ethernet/intel/hbl_cn/gaudi2/Makefile
+ create mode 100644 drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.c
+ create mode 100644 drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.h
+ create mode 100644 drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_debugfs.c
+ create mode 100644 drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_eq.c
+ create mode 100644 drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_phy.c
+ create mode 100644 include/linux/net/intel/gaudi2.h
+ create mode 100644 include/linux/net/intel/gaudi2_aux.h
 
-diff --git a/Documentation/networking/device_drivers/ethernet/index.rst b/Documentation/networking/device_drivers/ethernet/index.rst
-index 6932d8c043c2..2fe975aae7b1 100644
---- a/Documentation/networking/device_drivers/ethernet/index.rst
-+++ b/Documentation/networking/device_drivers/ethernet/index.rst
-@@ -40,6 +40,7 @@ Contents:
-    intel/i40e
-    intel/iavf
-    intel/ice
-+   intel/hbl
-    marvell/octeontx2
-    marvell/octeon_ep
-    marvell/octeon_ep_vf
-diff --git a/Documentation/networking/device_drivers/ethernet/intel/hbl.rst b/Documentation/networking/device_drivers/ethernet/intel/hbl.rst
-new file mode 100644
-index 000000000000..ebf436d0da7c
---- /dev/null
-+++ b/Documentation/networking/device_drivers/ethernet/intel/hbl.rst
-@@ -0,0 +1,82 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+======================================================================
-+Linux kernel drivers for HabanaLabs (an Intel company) Network
-+======================================================================
-+
-+Copyright 2020-2024 HabanaLabs, Ltd.
-+Copyright(c) 2023-2024 Intel Corporation.
-+
-+Contents
-+========
-+
-+- Overview
-+- Identifying Your Adapter
-+- Important Notes
-+- Support
-+- Trademarks
-+
-+Overview
-+========
-+
-+These drivers enables the infrastructure for network functionality which is part
-+of the GAUDI ASIC family of AI Accelerators.
-+
-+The network interfaces are mainly used for scaling the training of AI neural
-+networks through ROCEv2 protocol.
-+
-+Driver's information can be obtained using lspci.
-+
-+For questions related to hardware requirements, refer to the documentation
-+supplied with your HabanaLabs adapter. All hardware requirements listed apply to
-+use with Linux.
-+
-+The included network drivers are Core Network, Ethernet and InfiniBand which are
-+all based on the habanalabs driver which serves as the compute driver and the
-+general platform.
-+This is the drivers scheme:
-+
-++------------+  |      +-----+       |    +-------+
-+| INFINIBAND |  |      | NET |       |    | ACCEL |
-++------------+  |      +-----+       |    +-------+
-+                |                    |
-+    +----+      |  +----+   +----+   |  +------------+
-+    | IB |      |  | EN <---| CN |   |  | HABANALABS |
-+    +-^--+      |  +----+   +---^+   |  +------------+
-+      |                       | |              |
-+      +-----------------------+ +--------------+
-+
-+The parent driver is at the arrow base and the son is at the arrow head.
-+The CN driver is both a parent and a son driver.
-+
-+Identifying Your Adapter
-+========================
-+For information on how to identify your adapter, and for the latest Intel
-+network drivers, refer to the Intel Support website:
-+https://www.intel.com/support
-+
-+Important Notes
-+===============
-+
-+hbl_cn main goal is to provide core functionalities that are shared between the
-+Ethernet (hbl_en) and the InfiniBand (hbl) drivers.
-+It contains all core logic that is needed to operate the satellite drivers while
-+keeping them as minimal as possible. Only pure Ethernet/InfiniBand code should
-+reside in the satellite drivers.
-+This code structure ensures a single and common infrastructure layer for both
-+functionalities which makes it easier to modify and maintain.
-+
-+Support
-+=======
-+For general information, go to the Intel support website at:
-+https://www.intel.com/support/
-+
-+If an issue is identified with the released source code on a supported kernel
-+with a supported adapter, email the specific information related to the issue
-+to intel-wired-lan@lists.osuosl.org.
-+
-+Trademarks
-+==========
-+Intel is a trademark or registered trademark of Intel Corporation or its
-+subsidiaries in the United States and/or other countries.
-+
-+* Other names and brands may be claimed as the property of others.
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 8754ac2c259d..e948e33e990d 100644
+index 906224204aba..096439a62129 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -9604,6 +9604,17 @@ F:	include/linux/habanalabs/
- F:	include/trace/events/habanalabs.h
- F:	include/uapi/drm/habanalabs_accel.h
+@@ -9615,6 +9615,7 @@ F:	Documentation/networking/device_drivers/ethernet/intel/hbl.rst
+ F:	drivers/net/ethernet/intel/hbl_cn/
+ F:	include/linux/habanalabs/
+ F:	include/linux/net/intel/cn*
++F:	include/linux/net/intel/gaudi2*
  
-+HABANALABS CORE NETWORK DRIVER
-+M:	Omer Shpigelman <oshpigelman@habana.ai>
-+L:	netdev@vger.kernel.org
-+L:	linux-rdma@vger.kernel.org
-+S:	Supported
-+W:	https://www.habana.ai
-+F:	Documentation/networking/device_drivers/ethernet/intel/hbl.rst
-+F:	drivers/net/ethernet/intel/hbl_cn/
-+F:	include/linux/habanalabs/
-+F:	include/linux/net/intel/cn*
-+
  HACKRF MEDIA DRIVER
  L:	linux-media@vger.kernel.org
- S:	Orphan
-diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
-index e0287fbd501d..0d1b8a2bae99 100644
---- a/drivers/net/ethernet/intel/Kconfig
-+++ b/drivers/net/ethernet/intel/Kconfig
-@@ -397,4 +397,24 @@ config IDPF
- 	  To compile this driver as a module, choose M here. The module
- 	  will be called idpf.
- 
-+config HABANA_CN
-+	tristate "HabanaLabs (an Intel Company) Core Network driver"
-+	depends on X86_64
-+	depends on PCI
-+	select AUXILIARY_BUS
-+	default n
-+	help
-+	  This driver enables the infrastructure for network functionality that
-+	  is part of the GAUDI ASIC family of AI Accelerators.
-+	  For more information on how to identify your adapter, go to the
-+	  Adapter & Driver ID Guide that can be located at:
-+
-+	  <http://support.intel.com>
-+
-+	  More specific information on configuring the driver is in
-+	  <file:Documentation/networking/device_drivers/ethernet/intel/hbl.rst>.
-+
-+	  To compile this driver as a module, choose M here. The module
-+	  will be called habanalabs_cn.
-+
- endif # NET_VENDOR_INTEL
-diff --git a/drivers/net/ethernet/intel/Makefile b/drivers/net/ethernet/intel/Makefile
-index 04c844ef4964..10049a28e336 100644
---- a/drivers/net/ethernet/intel/Makefile
-+++ b/drivers/net/ethernet/intel/Makefile
-@@ -19,3 +19,4 @@ obj-$(CONFIG_IAVF) += iavf/
- obj-$(CONFIG_FM10K) += fm10k/
- obj-$(CONFIG_ICE) += ice/
- obj-$(CONFIG_IDPF) += idpf/
-+obj-$(CONFIG_HABANA_CN) += hbl_cn/
 diff --git a/drivers/net/ethernet/intel/hbl_cn/Makefile b/drivers/net/ethernet/intel/hbl_cn/Makefile
-new file mode 100644
-index 000000000000..84ee2a6d7c3b
---- /dev/null
+index c2c4142f18a0..836b7f7824b4 100644
+--- a/drivers/net/ethernet/intel/hbl_cn/Makefile
 +++ b/drivers/net/ethernet/intel/hbl_cn/Makefile
-@@ -0,0 +1,9 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+#
-+# Makefile for HabanaLabs (an Intel Company) core network driver
-+#
+@@ -8,4 +8,7 @@ obj-$(CONFIG_HABANA_CN) := habanalabs_cn.o
+ include $(src)/common/Makefile
+ habanalabs_cn-y += $(HBL_CN_COMMON_FILES)
+ 
++include $(src)/gaudi2/Makefile
++habanalabs_cn-y += $(HBL_CN_GAUDI2_FILES)
 +
-+obj-$(CONFIG_HABANA_CN) := habanalabs_cn.o
+ habanalabs_cn-$(CONFIG_DEBUG_FS) += common/hbl_cn_debugfs.o
+diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
+index fc7bd6474404..b493b681a3b2 100644
+--- a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
++++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
+@@ -1747,6 +1747,8 @@ static int hbl_cn_set_asic_funcs(struct hbl_cn_device *hdev)
+ {
+ 	switch (hdev->asic_type) {
+ 	case HBL_ASIC_GAUDI2:
++		gaudi2_cn_set_asic_funcs(hdev);
++		break;
+ 	default:
+ 		dev_err(hdev->dev, "Unrecognized ASIC type %d\n", hdev->asic_type);
+ 		return -EINVAL;
+diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.h b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.h
+index 0b96cd3db719..0627a2aa6f0c 100644
+--- a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.h
++++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.h
+@@ -1644,6 +1644,8 @@ void hbl_cn_fw_status_work(struct work_struct *work);
+ int hbl_cn_get_src_ip(struct hbl_cn_port *cn_port, u32 *src_ip);
+ void hbl_cn_ctx_resources_destroy(struct hbl_cn_device *hdev, struct hbl_cn_ctx *ctx);
+ 
++void gaudi2_cn_set_asic_funcs(struct hbl_cn_device *hdev);
 +
-+include $(src)/common/Makefile
-+habanalabs_cn-y += $(HBL_CN_COMMON_FILES)
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/Makefile b/drivers/net/ethernet/intel/hbl_cn/common/Makefile
+ int __hbl_cn_ports_reopen(struct hbl_cn_device *hdev);
+ void __hbl_cn_hard_reset_prepare(struct hbl_cn_device *hdev, bool fw_reset, bool in_teardown);
+ void __hbl_cn_stop(struct hbl_cn_device *hdev);
+diff --git a/drivers/net/ethernet/intel/hbl_cn/gaudi2/Makefile b/drivers/net/ethernet/intel/hbl_cn/gaudi2/Makefile
 new file mode 100644
-index 000000000000..c8cf092db786
+index 000000000000..889776350452
 --- /dev/null
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/Makefile
++++ b/drivers/net/ethernet/intel/hbl_cn/gaudi2/Makefile
 @@ -0,0 +1,3 @@
 +# SPDX-License-Identifier: GPL-2.0-only
-+HBL_CN_COMMON_FILES := common/hbl_cn_drv.o common/hbl_cn.o \
-+	common/hbl_cn_phy.o common/hbl_cn_qp.o common/hbl_cn_memory.o
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
++HBL_CN_GAUDI2_FILES := gaudi2/gaudi2_cn.o gaudi2/gaudi2_cn_phy.o \
++	gaudi2/gaudi2_cn_eq.o gaudi2/gaudi2_cn_debugfs.o
+diff --git a/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.c b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.c
 new file mode 100644
-index 000000000000..946b11bfa61b
+index 000000000000..a1b01c729c31
 --- /dev/null
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.c
-@@ -0,0 +1,5954 @@
++++ b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.c
+@@ -0,0 +1,5689 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/* Copyright 2020-2024 HabanaLabs, Ltd.
 + * Copyright (C) 2023-2024, Intel Corporation.
 + * All Rights Reserved.
 + */
 +
-+#include "hbl_cn.h"
++#include "gaudi2_cn.h"
 +
-+#include <linux/file.h>
-+#include <linux/module.h>
-+#include <linux/overflow.h>
-+#include <linux/pci.h>
-+#include <linux/slab.h>
++#include <linux/circ_buf.h>
++#include <linux/units.h>
 +
-+#define NIC_MIN_WQS_PER_PORT		2
++#define CFG_BAR_ID	0
 +
-+#define NIC_SEQ_RESETS_TIMEOUT_MS	15000 /* 15 seconds */
-+#define NIC_MAX_SEQ_RESETS		3
++#define GAUDI2_NIC_WTD_BP_UPPER_TH_DIFF		24
++#define GAUDI2_NIC_WTD_BP_LOWER_TH_DIFF		26
++#define GAUDI2_NIC_MIN_WQ_SIZE_BP_ENABLED	32
++#define GAUDI2_NIC_MTU_DEFAULT			SZ_8K /* 8KB */
++#define QPC_SANITY_CHECK_INTERVAL_MS		1 /* 1 msec */
++#define NIC_TMR_TIMEOUT_PLDM_US			1000 /* 1 msec */
++#define NIC_TMR_TIMEOUT_PLDM_GRAN		7 /* 512 us */
 +
-+#define HBL_CN_IPV4_PROTOCOL_UDP	17
++#define PERF_BW_WINDOW_MSEC 100
++#define PERF_BW_WINDOW_USEC (PERF_BW_WINDOW_MSEC * USEC_PER_MSEC)
++/* Convert bytes per window into gigabytes per second */
++#define PERF_BW_WINDOW_DIV  ((GIGA * PERF_BW_WINDOW_MSEC) / MSEC_PER_SEC)
 +
-+/* SOB mask is not expected to change across ASIC. Hence common defines. */
-+#define NIC_SOB_INC_MASK		0x80000000
-+#define NIC_SOB_VAL_MASK		0x7fff
++#define IPV4_PROTOCOL_UDP			17
++#define DUMMY_UDP_PORT				8224
++#define GAUDI2_USER_ENCAP_ID			0
 +
-+#define NIC_DUMP_QP_SZ			SZ_4K
++#define GAUDI2_PFC_PRIO_DRIVER			0
++#define GAUDI2_PFC_PRIO_USER_BASE		1
 +
-+#define HBL_AUX2NIC(aux_dev)	\
-+	({ \
-+		struct hbl_aux_dev *__aux_dev = (aux_dev); \
-+		((__aux_dev)->type == HBL_AUX_DEV_ETH) ? \
-+		container_of(__aux_dev, struct hbl_cn_device, en_aux_dev) : \
-+		container_of(__aux_dev, struct hbl_cn_device, ib_aux_dev); \
-+	})
++#define GAUDI2_NIC_MAX_CONG_WND			BIT(23)
++#define GAUDI2_NIC_MAX_SPEED			SPEED_100000
 +
-+#define RAND_STAT_CNT(cnt) \
-+	do { \
-+		u32 __cnt = get_random_u32(); \
-+		(cnt) = __cnt; \
-+		dev_info(hdev->dev, "port %d, %s: %u\n", port, #cnt, __cnt); \
-+	} while (0)
++#define RETRY_COUNT_QPC_SANITY			10
++#define GAUDI2_NIC_MAX_TIMEOUT_RETRIES		0xFE
++#define GAUDI2_NIC_MAX_SEQ_ERR_RETRIES		0xFE
 +
-+struct hbl_cn_stat hbl_cn_mac_fec_stats[] = {
-+	{"correctable_errors", 0x2, 0x3},
-+	{"uncorrectable_errors", 0x4, 0x5}
++/* Actual mask used by HW is smaller than the one declared in
++ * NIC0_QPC0_WQ_BP_2ARC_ADDR_VAL_MASK and NIC0_QPC0_WQ_BP_2QMAN_ADDR_VAL_MASK
++ */
++#define WQ_BP_ADDR_VAL_MASK			0x7FFFFFF
++
++/* User encapsulation 32 bit register offset. */
++#define encap_offset(id) ((id) * 4)
++
++/* We have fixed mapping between SW and HW IDs. */
++#define db_fifo_hw_id(id) ((id) - 1)
++
++/* User doorbell fifo 32 bit register offset. */
++#define db_fifo_offset(id) (db_fifo_hw_id(id) * 4)
++
++/* User doorbell fifo 64 bit register offset. */
++#define db_fifo_offset64(id) (db_fifo_hw_id(id) * 8)
++
++static int gaudi2_cn_ctx_init(struct hbl_cn_ctx *ctx);
++static void gaudi2_cn_ctx_fini(struct hbl_cn_ctx *ctx);
++static void gaudi2_qp_sanity_fini(struct gaudi2_cn_port *gaudi2_port);
++static int gaudi2_qp_sanity_init(struct gaudi2_cn_port *gaudi2_port);
++static void gaudi2_get_default_encap_id(struct hbl_cn_port *cn_port, u32 *id);
++static int gaudi2_encap_set(struct hbl_cn_port *cn_port, u32 encap_id,
++			    struct hbl_cn_encap_xarray_pdata *xa_pdata);
++static void gaudi2_user_cq_set_overrun(struct hbl_cn_user_cq *user_cq, bool set_overrun);
++static int gaudi2_cn_poll_reg(struct hbl_cn_device *hdev, u32 reg, u64 timeout_us,
++			      hbl_cn_poll_cond_func func, void *arg);
++
++enum gaudi2_cn_user_bp_offs {
++	HBL_CNI_USER_BP_OFFS_FW,
++	HBL_CNI_USER_BP_OFFS_QMAN
 +};
 +
-+struct hbl_cn_stat hbl_cn_mac_stats_rx[] = {
-+	{"Octets", 0x0},
-+	{"OctetsReceivedOK", 0x4},
-+	{"aAlignmentErrors", 0x8},
-+	{"aPAUSEMACCtrlFramesReceived", 0xC},
-+	{"aFrameTooLongErrors", 0x10},
-+	{"aInRangeLengthErrors", 0x14},
-+	{"aFramesReceivedOK", 0x18},
-+	{"aFrameCheckSequenceErrors", 0x1C},
-+	{"VLANReceivedOK", 0x20},
-+	{"ifInErrors", 0x24},
-+	{"ifInUcastPkts", 0x28},
-+	{"ifInMulticastPkts", 0x2C},
-+	{"ifInBroadcastPkts", 0x30},
-+	{"DropEvents", 0x34},
-+	{"Pkts", 0x38},
-+	{"UndersizePkts", 0x3C},
-+	{"Pkts64Octets", 0x40},
-+	{"Pkts65to127Octets", 0x44},
-+	{"Pkts128to255Octets", 0x48},
-+	{"Pkts256to511Octets", 0x4C},
-+	{"Pkts512to1023Octets", 0x50},
-+	{"Pkts1024to1518Octets", 0x54},
-+	{"Pkts1519toMaxOctets", 0x58},
-+	{"OversizePkts", 0x5C},
-+	{"Jabbers", 0x60},
-+	{"Fragments", 0x64},
-+	{"aCBFCPAUSERx0", 0x68},
-+	{"aCBFCPAUSERx1", 0x6C},
-+	{"aCBFCPAUSERx2", 0x70},
-+	{"aCBFCPAUSERx3", 0x74},
-+	{"aCBFCPAUSERx4", 0x78},
-+	{"aCBFCPAUSERx5", 0x7C},
-+	{"aCBFCPAUSERx6", 0x80},
-+	{"aCBFCPAUSERx7", 0x84},
-+	{"aMACControlFramesReceived", 0x88}
++struct gaudi2_cn_stat {
++	char str[ETH_GSTRING_LEN];
 +};
 +
-+struct hbl_cn_stat hbl_cn_mac_stats_tx[] = {
-+	{"Octets", 0x0},
-+	{"OctetsTransmittedOK", 0x4},
-+	{"aPAUSEMACCtrlFramesTransmitted", 0x8},
-+	{"aFramesTransmittedOK", 0xC},
-+	{"VLANTransmittedOK", 0x10},
-+	{"ifOutErrors", 0x14},
-+	{"ifOutUcastPkts", 0x18},
-+	{"ifOutMulticastPkts", 0x1C},
-+	{"ifOutBroadcastPkts", 0x20},
-+	{"Pkts64Octets", 0x24},
-+	{"Pkts65to127Octets", 0x28},
-+	{"Pkts128to255Octets", 0x2C},
-+	{"Pkts256to511Octets", 0x30},
-+	{"Pkts512to1023Octets", 0x34},
-+	{"Pkts1024to1518Octets", 0x38},
-+	{"Pkts1519toMaxOctets", 0x3C},
-+	{"aCBFCPAUSETx0", 0x40},
-+	{"aCBFCPAUSETx1", 0x44},
-+	{"aCBFCPAUSETx2", 0x48},
-+	{"aCBFCPAUSETx3", 0x4C},
-+	{"aCBFCPAUSETx4", 0x50},
-+	{"aCBFCPAUSETx5", 0x54},
-+	{"aCBFCPAUSETx6", 0x58},
-+	{"aCBFCPAUSETx7", 0x5C},
-+	{"aMACControlFramesTx", 0x60},
-+	{"Pkts", 0x64}
++static struct gaudi2_cn_stat gaudi2_cn_err_stats[] = {
++	{"Congestion Q err"},
++	{"Eth DB fifo overrun"}
 +};
 +
-+static const char pcs_counters_str[][ETH_GSTRING_LEN] = {
-+	{"pcs_local_faults"},
-+	{"pcs_remote_faults"},
-+	{"pcs_remote_fault_reconfig"},
-+	{"pcs_link_restores"},
-+	{"pcs_link_toggles"},
++/* Gaudi2 FEC (Fwd Error Correction) Stats */
++static struct gaudi2_cn_stat gaudi2_cn_mac_fec_stats[] = {
++	{"cw_corrected_accum"},
++	{"cw_uncorrect_accum"},
++	{"cw_corrected"},
++	{"cw_uncorrect"},
++	{"symbol_err_corrected_lane_0"},
++	{"symbol_err_corrected_lane_1"},
++	{"symbol_err_corrected_lane_2"},
++	{"symbol_err_corrected_lane_3"},
++	{"pre_FEC_SER_int"},
++	{"pre_FEC_SER_exp (negative)"},
++	{"post_FEC_SER_int"},
++	{"post_FEC_SER_exp (negative)"},
 +};
 +
-+static size_t pcs_counters_str_len = ARRAY_SIZE(pcs_counters_str);
-+size_t hbl_cn_mac_fec_stats_len = ARRAY_SIZE(hbl_cn_mac_fec_stats);
-+size_t hbl_cn_mac_stats_rx_len = ARRAY_SIZE(hbl_cn_mac_stats_rx);
-+size_t hbl_cn_mac_stats_tx_len = ARRAY_SIZE(hbl_cn_mac_stats_tx);
++/* Gaudi2 performance Stats */
++static struct gaudi2_cn_stat gaudi2_cn_perf_stats[] = {
++	{"bandwidth_gbps_int"},
++	{"bandwidth_gbps_frac"},
++	{"last_data_latency_usec_int"},
++	{"last_data_latency_usec_frac"},
++};
 +
-+static void qps_stop(struct hbl_cn_device *hdev);
-+static void qp_destroy_work(struct work_struct *work);
-+static int __user_wq_arr_unset(struct hbl_cn_ctx *ctx, struct hbl_cn_port *cn_port, u32 type);
-+static void user_cq_destroy(struct kref *kref);
-+static void set_app_params_clear(struct hbl_cn_device *hdev);
-+static int hbl_cn_ib_cmd_ctrl(struct hbl_aux_dev *aux_dev, void *cn_ib_ctx, u32 op, void *input,
-+			      void *output);
-+static int hbl_cn_ib_query_mem_handle(struct hbl_aux_dev *ib_aux_dev, u64 mem_handle,
-+				      struct hbl_ib_mem_info *info);
++static size_t gaudi2_cn_err_stats_len = ARRAY_SIZE(gaudi2_cn_err_stats);
++static size_t gaudi2_cn_mac_fec_stats_len = ARRAY_SIZE(gaudi2_cn_mac_fec_stats);
++static size_t gaudi2_cn_perf_stats_len = ARRAY_SIZE(gaudi2_cn_perf_stats);
 +
-+static void hbl_cn_reset_stats_counters_port(struct hbl_cn_device *hdev, u32 port);
-+static void hbl_cn_late_init(struct hbl_cn_device *hdev);
-+static void hbl_cn_late_fini(struct hbl_cn_device *hdev);
-+static int hbl_cn_sw_init(struct hbl_cn_device *hdev);
-+static void hbl_cn_sw_fini(struct hbl_cn_device *hdev);
-+static void hbl_cn_spmu_init(struct hbl_cn_port *cn_port, bool full);
-+static int hbl_cn_cmd_port_check(struct hbl_cn_device *hdev, u32 port, u32 flags);
-+static void hbl_cn_qps_stop(struct hbl_cn_port *cn_port);
++#define GAUDI2_SYNDROME_TYPE(syndrome)	(((syndrome) >> 6) & 0x3)
++#define GAUDI2_MAX_SYNDROME_STRING_LEN	256
++#define GAUDI2_MAX_SYNDROME_TYPE	3
 +
-+static int hbl_cn_request_irqs(struct hbl_cn_device *hdev)
++#define GAUDI2_NUM_OF_NIC_RXB_CORE_SEI_CAUSE	2
++#define GAUDI2_NUM_OF_NIC_RXB_CORE_SPI_CAUSE	6
++#define GAUDI2_NUM_OF_NIC_RXE_SEI_CAUSE		4
++#define GAUDI2_NUM_OF_NIC_RXE_SPI_CAUSE		24
++#define GAUDI2_NUM_OF_NIC_QPC_RESP_ERR_CAUSE	7
++
++static const char * const
++gaudi2_cn_rxb_core_sei_interrupts_cause[GAUDI2_NUM_OF_NIC_RXB_CORE_SEI_CAUSE] = {
++	"HBW RRESP error",
++	"LBW RRESP error"
++};
++
++static const char * const
++gaudi2_cn_rxb_core_spi_interrupts_cause[GAUDI2_NUM_OF_NIC_RXB_CORE_SPI_CAUSE] = {
++	"Packet dropped due to no available buffers",
++	"Control pointers count illegal port 0",
++	"Control pointers count illegal port 1",
++	"Control pointers count illegal port 2",
++	"Control pointers count illegal port 3",
++	"Scatter pointers count illegal"
++};
++
++static const char * const
++gaudi2_cn_qpc_resp_err_interrupts_cause[GAUDI2_NUM_OF_NIC_QPC_RESP_ERR_CAUSE] = {
++	"ARC SEI error",
++	"QPC LBW AXI write slv decode err",
++	"QPC LBW AXI write slv err",
++	"QPC HBW AXI write slv decode err",
++	"QPC HBW AXI write slv err",
++	"QPC HBW AXI read slv decode err",
++	"QPC HBW AXI read slv err"
++};
++
++static const char * const gaudi2_cn_rxe_sei_interrupts_cause[GAUDI2_NUM_OF_NIC_RXE_SEI_CAUSE] = {
++	"HBW RRESP error WQE",
++	"HBW RRESP error FNA",
++	"LBW BRESP error",
++	"HBW BRESP error"
++};
++
++static const char * const gaudi2_cn_rxe_spi_interrupts_cause[GAUDI2_NUM_OF_NIC_RXE_SPI_CAUSE] = {
++	"QP invalid",
++	"TS mismatch",
++	"Request CS invalid",
++	"Response CS invalid",
++	"Request PSN invalid",
++	"Request PSN unsent",
++	"Response RKEY invalid",
++	"Response RESYNC invalid",
++	"Packet bad format",
++	"Invalid opcode",
++	"Invalid syndrome",
++	"Invalid min packet size RC",
++	"Invalid max packet size RC",
++	"Invalid min packet size raw",
++	"Invalid max packet size raw",
++	"Tunnel invalid",
++	"WQE index mismatch",
++	"WQ WR opcode invalid",
++	"WQ RDV opcode invalid",
++	"WQ RD opcode invalid",
++	"WQE WR zero",
++	"WQE multi zero",
++	"WQE WE send big",
++	"WQE multi big"
++};
++
++static char qp_syndromes[NIC_MAX_QP_ERR_SYNDROMES][GAUDI2_MAX_SYNDROME_STRING_LEN] = {
++	/* Rx packet errors*/
++	[0x1]  = "[RX] pkt err, pkt bad format",
++	[0x2]  = "[RX] pkt err, pkt tunnel invalid",
++	[0x3]  = "[RX] pkt err, BTH opcode invalid",
++	[0x4]  = "[RX] pkt err, syndrome invalid",
++	[0x5]  = "[RX] pkt err, Reliable QP max size invalid",
++	[0x6]  = "[RX] pkt err, Reliable QP min size invalid",
++	[0x7]  = "[RX] pkt err, Raw min size invalid",
++	[0x8]  = "[RX] pkt err, Raw max size invalid",
++	[0x9]  = "[RX] pkt err, QP invalid",
++	[0xa]  = "[RX] pkt err, Transport Service mismatch",
++	[0xb]  = "[RX] pkt err, QPC Requester QP state invalid",
++	[0xc]  = "[RX] pkt err, QPC Responder QP state invalid",
++	[0xd]  = "[RX] pkt err, QPC Responder resync invalid",
++	[0xe]  = "[RX] pkt err, QPC Requester PSN invalid",
++	[0xf]  = "[RX] pkt err, QPC Requester PSN unset",
++	[0x10] = "[RX] pkt err, QPC Responder RKEY invalid",
++	[0x11] = "[RX] pkt err, WQE index mismatch",
++	[0x12] = "[RX] pkt err, WQE write opcode invalid",
++	[0x13] = "[RX] pkt err, WQE Rendezvous opcode invalid",
++	[0x14] = "[RX] pkt err, WQE Read  opcode invalid",
++	[0x15] = "[RX] pkt err, WQE Write Zero",
++	[0x16] = "[RX] pkt err, WQE multi zero",
++	[0x17] = "[RX] pkt err, WQE Write send big",
++	[0x18] = "[RX] pkt err, WQE multi big",
++
++	/* QPC errors */
++	[0x40] = "[qpc] [TMR] max-retry-cnt exceeded",
++	[0x41] = "[qpc] [req DB] QP not valid",
++	[0x42] = "[qpc] [req DB] security check",
++	[0x43] = "[qpc] [req DB] PI > last-index",
++	[0x44] = "[qpc] [req DB] wq-type is READ",
++	[0x45] = "[qpc] [req TX] QP not valid",
++	[0x46] = "[qpc] [req TX] Rendezvous WQE but wq-type is not WRITE",
++	[0x47] = "[qpc] [req RX] QP not valid",
++	[0x48] = "[qpc] [req RX] max-retry-cnt exceeded",
++	[0x49] = "[qpc] [req RDV] QP not valid",
++	[0x4a] = "[qpc] [req RDV] wrong wq-type",
++	[0x4b] = "[qpc] [req RDV] PI > last-index",
++	[0x4c] = "[qpc] [res TX] QP not valid",
++	[0x4d] = "[qpc] [res RX] QP not valid",
++
++	/* tx packet error */
++	[0x80] = "[TX] pkt error, QPC.wq_type is write does not support WQE.opcode",
++	[0x81] = "[TX] pkt error, QPC.wq_type is rendezvous does not support WQE.opcode",
++	[0x82] = "[TX] pkt error, QPC.wq_type is read does not support WQE.opcode",
++	[0x83] = "[TX] pkt error, QPC.gaudi1 is set does not support WQE.opcode",
++	[0x84] = "[TX] pkt error, WQE.opcode is write but WQE.size is 0",
++	[0x85] =
++		"[TX] pkt error, WQE.opcode is multi-stride|local-stride|multi-dual but WQE.size is 0",
++	[0x86] = "[TX] pkt error, WQE.opcode is send but WQE.size is 0",
++	[0x87] = "[TX] pkt error, WQE.opcode is rendezvous-write|rendezvous-read but WQE.size is 0",
++	[0x88] = "[TX] pkt error, WQE.opcode is write but size > configured max-write-send-size",
++	[0x89] =
++		"[TX] pkt error, WQE.opcode is multi-stride|local-stride|multi-dual but size > configured max-stride-size",
++	[0x8a] =
++		"[TX] pkt error, WQE.opcode is rendezvous-write|rendezvous-read but QPC.remote_wq_log_size <= configured min-remote-log-size",
++	[0x8b] =
++		"[TX] pkt error, WQE.opcode is rendezvous-write but WQE.size != configured rdv-wqe-size (per granularity)",
++	[0x8c] =
++		"[TX] pkt error, WQE.opcode is rendezvous-read but WQE.size != configured rdv-wqe-size (per granularity)",
++	[0x8d] =
++		"[TX] pkt error, WQE.inline is set but WQE.size != configured inline-wqe-size (per granularity)",
++	[0x8e] = "[TX] pkt error, QPC.gaudi1 is set but WQE.inline is set",
++	[0x8f] =
++		"[TX] pkt error, WQE.opcode is multi-stride|local-stride|multi-dual but QPC.swq_granularity is 0",
++	[0x90] = "[TX] pkt error, WQE.opcode != NOP but WQE.reserved0 != 0",
++	[0x91] = "[TX] pkt error, WQE.opcode != NOP but WQE.wqe_index != execution-index [7.0]",
++	[0x92] =
++		"[TX] pkt error, WQE.opcode is multi-stride|local-stride|multi-dual but WQE.size < stride-size",
++	[0x93] =
++		"[TX] pkt error, WQE.reduction_opcode is upscale but WQE.remote_address LSB is not 0",
++	[0x94] = "[TX] pkt error, WQE.reduction_opcode is upscale but does not support WQE.opcode",
++	[0x95] = "[TX] pkt error, RAW packet but WQE.size not supported",
++	[0xB0] = "WQE.opcode is QoS but WQE.inline is set",
++	[0xB1] = "WQE.opcode above 15",
++	[0xB2] = "RAW above MIN",
++	[0xB3] = "RAW below MAX",
++	[0xB4] = "WQE.reduction is disable but reduction-opcode is not 0",
++	[0xB5] = "WQE.opcode is READ-RDV but WQE.inline is set",
++	[0xB6] = "WQE fetch WR size not 4",
++	[0xB7] = "WQE fetch WR addr not mod4",
++	[0xB8] = "RDV last-index",
++	[0xB9] = "Gaudi1 multi-dual",
++	[0xBA] = "WQE bad opcode",
++	[0xBB] = "WQE bad size",
++	[0xBC] = "WQE SE not RAW",
++	[0xBD] = "Gaudi1 tunnal",
++	[0xBE] = "Tunnel 0-size",
++	[0xBF] = "Tunnel max size",
++};
++
++char *gaudi2_cn_qp_err_syndrome_to_str(u32 syndrome)
 +{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
++	int syndrome_type;
++	char *str;
 +
-+	return asic_funcs->request_irqs(hdev);
-+}
-+
-+static void hbl_cn_free_irqs(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs =  hdev->asic_funcs;
-+
-+	asic_funcs->free_irqs(hdev);
-+}
-+
-+static void hbl_cn_synchronize_irqs(struct hbl_aux_dev *cn_aux_dev)
-+{
-+	struct hbl_cn_device *hdev = cn_aux_dev->priv;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+
-+	asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->synchronize_irqs(hdev);
-+}
-+
-+void hbl_cn_get_frac_info(u64 numerator, u64 denominator, u64 *integer, u64 *exp)
-+{
-+	u64 high_digit_n, high_digit_d, integer_tmp, exp_tmp;
-+	u8 num_digits_n, num_digits_d;
-+	int i;
-+
-+	num_digits_d = hbl_cn_get_num_of_digits(denominator);
-+	high_digit_d = denominator;
-+	for (i = 0; i < num_digits_d - 1; i++)
-+		high_digit_d /= 10;
-+
-+	integer_tmp = 0;
-+	exp_tmp = 0;
-+
-+	if (numerator) {
-+		num_digits_n = hbl_cn_get_num_of_digits(numerator);
-+		high_digit_n = numerator;
-+		for (i = 0; i < num_digits_n - 1; i++)
-+			high_digit_n /= 10;
-+
-+		exp_tmp = num_digits_d - num_digits_n;
-+
-+		if (high_digit_n < high_digit_d) {
-+			high_digit_n *= 10;
-+			exp_tmp++;
-+		}
-+
-+		integer_tmp = div_u64(high_digit_n, high_digit_d);
-+	}
-+
-+	*integer = integer_tmp;
-+	*exp = exp_tmp;
-+}
-+
-+int hbl_cn_read_spmu_counters(struct hbl_cn_port *cn_port, u64 out_data[], u32 *num_out_data)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_stat *ignore;
-+	int rc;
-+
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	port_funcs->spmu_get_stats_info(cn_port, &ignore, num_out_data);
-+
-+	/* this function can be called from ethtool, get_statistics ioctl and FW status thread */
-+	mutex_lock(&cn_port->cnt_lock);
-+	rc = port_funcs->spmu_sample(cn_port, *num_out_data, out_data);
-+	mutex_unlock(&cn_port->cnt_lock);
-+
-+	return rc;
-+}
-+
-+static u32 hbl_cn_get_port_toggle_cnt(struct hbl_cn_port *cn_port)
-+{
-+	/* We should not count the first toggle, as it marks that port was brought up for
-+	 * the first time. In case port connection wasn't established, the counter should be 0.
++	/* syndrome comprised from 8 bits
++	 * [2:type, 6:syndrome]
++	 * 6 bits for syndrome
++	 * 2 bits for type
++	 *   0 - rx packet error
++	 *   1 - qp error
++	 *   2 - tx packet error
 +	 */
-+	return cn_port->port_toggle_cnt ? cn_port->port_toggle_cnt - 1 : 0;
-+}
 +
-+static int __hbl_cn_get_cnts_num(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
++	if (syndrome >= NIC_MAX_QP_ERR_SYNDROMES)
++		return "syndrome unknown";
 +
-+	return pcs_counters_str_len +
-+		hdev->asic_funcs->port_funcs->get_cnts_num(cn_port);
-+}
++	syndrome_type = GAUDI2_SYNDROME_TYPE(syndrome);
 +
-+static void __hbl_cn_get_cnts_names(struct hbl_cn_port *cn_port, u8 *data, bool ext)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	int i, len;
++	str = qp_syndromes[syndrome];
++	if (strlen(str))
++		return str;
 +
-+	len = ext ? HBL_IB_CNT_NAME_LEN : ETH_GSTRING_LEN;
-+
-+	for (i = 0; i < pcs_counters_str_len; i++)
-+		memcpy(data + i * len, pcs_counters_str[i], ETH_GSTRING_LEN);
-+	data += i * len;
-+
-+	hdev->asic_funcs->port_funcs->get_cnts_names(cn_port, data, ext);
-+}
-+
-+static void __hbl_cn_get_cnts_values(struct hbl_cn_port *cn_port, u64 *data)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+
-+	data[0] = cn_port->pcs_local_fault_cnt;
-+	data[1] = cn_port->pcs_remote_fault_cnt;
-+	data[2] = cn_port->pcs_remote_fault_reconfig_cnt;
-+	data[3] = cn_port->pcs_link_restore_cnt;
-+	data[4] = hbl_cn_get_port_toggle_cnt(cn_port);
-+
-+	data += pcs_counters_str_len;
-+
-+	hdev->asic_funcs->port_funcs->get_cnts_values(cn_port, data);
-+}
-+
-+static int __hbl_cn_port_hw_init(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+
-+	if (cn_port->disabled) {
-+		dev_err(hdev->dev, "Port %u is disabled\n", cn_port->port);
-+		return -EPERM;
++	switch (syndrome_type) {
++	case 0:
++		str = "RX packet syndrome unknown";
++		break;
++	case 1:
++		str = "QPC syndrome unknown";
++		break;
++	case 2:
++		str = "TX packet syndrome unknown";
++		break;
++	default:
++		str = "syndrome unknown";
++		break;
 +	}
 +
-+	hbl_cn_reset_stats_counters_port(hdev, cn_port->port);
-+
-+	return hdev->asic_funcs->port_funcs->port_hw_init(cn_port);
++	return str;
 +}
 +
-+static void __hbl_cn_port_hw_fini(struct hbl_cn_port *cn_port)
++static void db_fifo_toggle_err_evt(struct hbl_cn_port *cn_port, bool enable)
++{
++	u32 mask = NIC0_QPC0_REQ_STATIC_CONFIG_QM_PUSH_TO_ERR_FIFO_NON_V_MASK |
++		   NIC0_QPC0_REQ_STATIC_CONFIG_QM_PUSH_ERR_PI_EX_LAST_MASK;
++	u32 val = enable ? (mask >> __ffs(mask)) : 0;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	NIC_RMWREG32_SHIFTED(NIC0_QPC0_REQ_STATIC_CONFIG, val, mask);
++}
++
++static void __gaudi2_cn_get_db_fifo_umr(struct hbl_cn_port *cn_port, u32 block_id, u32 offset_id,
++					u64 *umr_block_addr, u32 *umr_db_offset)
 +{
 +	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_funcs *asic_funcs;
++	u32 port = cn_port->port, odd_db_offset;
++	struct gaudi2_cn_device *gaudi2;
 +
-+	asic_funcs = hdev->asic_funcs;
++	gaudi2 = hdev->asic_specific;
++	odd_db_offset = NIC0_UMR0_0_UNSECURE_DOORBELL1_UNSECURE_DB_FIRST32 -
++			NIC0_UMR0_0_UNSECURE_DOORBELL0_UNSECURE_DB_FIRST32;
 +
-+	/* in hard reset the QPs were stopped by hbl_cn_stop called from halt engines */
-+	if (hdev->operational)
-+		hbl_cn_qps_stop(cn_port);
++	/* UMR base address we map to userspace */
++	*umr_block_addr = gaudi2->cfg_base +
++			  NIC_CFG_BASE(port, NIC0_UMR0_0_UNSECURE_DOORBELL0_BASE) +
++			  NIC0_UMR0_0_UNSECURE_DOORBELL0_BASE + (block_id * NIC_UMR_OFFSET);
 +
-+	asic_funcs->port_funcs->port_hw_fini(cn_port);
++	/* Each UMR block hosts 2 doorbell fifos. Get byte offset. */
++	*umr_db_offset = (offset_id & 1) ? odd_db_offset : 0;
 +}
 +
-+bool hbl_cn_comp_device_operational(struct hbl_cn_device *hdev)
++static void gaudi2_cn_get_db_fifo_umr(struct hbl_cn_port *cn_port, u32 id, u64 *umr_block_addr,
++				      u32 *umr_db_offset)
 +{
-+	struct hbl_aux_dev *aux_dev = hdev->cn_aux_dev;
-+	struct hbl_cn_aux_ops *aux_ops;
-+
-+	aux_ops = aux_dev->aux_ops;
-+
-+	return aux_ops->device_operational(aux_dev);
++	__gaudi2_cn_get_db_fifo_umr(cn_port, db_fifo_hw_id(id) / 2, db_fifo_hw_id(id),
++				    umr_block_addr, umr_db_offset);
 +}
 +
-+void hbl_cn_spmu_get_stats_info(struct hbl_cn_port *cn_port, struct hbl_cn_stat **stats,
-+				u32 *n_stats)
++static void db_fifo_push_dummy(struct hbl_cn_port *cn_port, u32 id, int n_dummy, bool is_eth)
 +{
++	u32 port, umr_db_offset, offset_0_31, offset_32_64, db_dummy[2];
 +	struct hbl_cn_device *hdev = cn_port->hdev;
-+
-+	hdev->asic_funcs->port_funcs->spmu_get_stats_info(cn_port, stats, n_stats);
-+}
-+
-+int hbl_cn_reserve_dva_block(struct hbl_cn_ctx *ctx, u64 size, u64 *dva)
-+{
-+	struct hbl_cn_device *hdev = ctx->hdev;
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	return aux_ops->vm_reserve_dva_block(aux_dev, ctx->driver_vm_info.vm_handle, size, dva);
-+}
-+
-+void hbl_cn_unreserve_dva_block(struct hbl_cn_ctx *ctx, u64 dva, u64 size)
-+{
-+	struct hbl_cn_device *hdev = ctx->hdev;
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	aux_ops->vm_unreserve_dva_block(aux_dev, ctx->driver_vm_info.vm_handle, dva, size);
-+}
-+
-+int hbl_cn_get_hw_block_handle(struct hbl_cn_device *hdev, u64 address, u64 *handle)
-+{
-+	return hdev->asic_funcs->get_hw_block_handle(hdev, address, handle);
-+}
-+
-+static int hbl_cn_get_hw_block_addr(struct hbl_cn_device *hdev, u64 handle, u64 *addr, u64 *size)
-+{
-+	return hdev->asic_funcs->get_hw_block_addr(hdev, handle, addr, size);
-+}
-+
-+int hbl_cn_send_cpucp_packet(struct hbl_cn_device *hdev, u32 port, enum cpucp_packet_id pkt_id,
-+			     int val)
-+{
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	return hdev->asic_funcs->port_funcs->send_cpucp_packet(cn_port, pkt_id, val);
-+}
-+
-+static bool hbl_cn_device_operational(struct hbl_aux_dev *aux_dev)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+
-+	return hdev->operational;
-+}
-+
-+static void hbl_cn_hw_access_lock(struct hbl_aux_dev *aux_dev)
-+	__acquires(&hdev->hw_access_lock)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+
-+	mutex_lock(&hdev->hw_access_lock);
-+}
-+
-+static void hbl_cn_hw_access_unlock(struct hbl_aux_dev *aux_dev)
-+	__releases(&hdev->hw_access_lock)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+
-+	mutex_unlock(&hdev->hw_access_lock);
-+}
-+
-+static bool hbl_cn_is_eth_lpbk(struct hbl_aux_dev *aux_dev)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+
-+	return hdev->eth_loopback;
-+}
-+
-+static int hbl_cn_port_hw_init(struct hbl_aux_dev *aux_dev, u32 port)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	return __hbl_cn_port_hw_init(cn_port);
-+}
-+
-+static void hbl_cn_port_hw_fini(struct hbl_aux_dev *aux_dev, u32 port)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	__hbl_cn_port_hw_fini(cn_port);
-+}
-+
-+static int hbl_cn_phy_port_init(struct hbl_aux_dev *aux_dev, u32 port)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	return hdev->asic_funcs->port_funcs->phy_port_init(cn_port);
-+}
-+
-+static void hbl_cn_phy_port_fini(struct hbl_aux_dev *aux_dev, u32 port)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	hdev->asic_funcs->port_funcs->phy_port_fini(cn_port);
-+}
-+
-+static int hbl_cn_set_pfc(struct hbl_aux_dev *aux_dev, u32 port, bool enable)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	cn_port->pfc_enable = enable;
-+
-+	return hdev->asic_funcs->port_funcs->set_pfc(cn_port);
-+}
-+
-+static int hbl_cn_get_cnts_num(struct hbl_aux_dev *aux_dev, u32 port)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	return __hbl_cn_get_cnts_num(cn_port);
-+}
-+
-+static void hbl_cn_get_cnts_names(struct hbl_aux_dev *aux_dev, u32 port, u8 *data)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	__hbl_cn_get_cnts_names(cn_port, data, false);
-+}
-+
-+static void hbl_cn_get_cnts_values(struct hbl_aux_dev *aux_dev, u32 port, u64 *data)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	__hbl_cn_get_cnts_values(cn_port, data);
-+}
-+
-+static bool hbl_cn_get_mac_lpbk(struct hbl_aux_dev *aux_dev, u32 port)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	return cn_port->mac_loopback;
-+}
-+
-+static int hbl_cn_set_mac_lpbk(struct hbl_aux_dev *aux_dev, u32 port, bool enable)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	if (atomic_read(&cn_port->num_of_allocated_qps)) {
-+		dev_dbg(hdev->dev,
-+			"There are active QPs under this port - Can't %s mac loopback\n",
-+			enable ? "enable" : "disable");
-+		return -EBUSY;
-+	}
-+
-+	cn_port->mac_loopback = enable;
-+
-+	if (enable)
-+		hdev->mac_loopback |= BIT(port);
-+	else
-+		hdev->mac_loopback &= ~BIT(port);
-+
-+	return 0;
-+}
-+
-+static int hbl_cn_update_mtu(struct hbl_aux_dev *aux_dev, u32 port, u32 mtu)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	unsigned long qp_id = 0;
-+	struct hbl_cn_qp *qp;
-+	int rc = 0;
-+
-+	cn_port = &hdev->cn_ports[port];
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	mtu += HBL_EN_MAX_HEADERS_SZ;
-+
-+	port_funcs->cfg_lock(cn_port);
-+	xa_for_each(&cn_port->qp_ids, qp_id, qp) {
-+		if (qp->mtu_type == MTU_FROM_NETDEV && qp->mtu != mtu) {
-+			rc = port_funcs->update_qp_mtu(cn_port, qp, mtu);
-+			if (rc) {
-+				dev_err(hdev->dev, "Failed to update MTU, port: %d, qpn: %ld, %d\n",
-+					port, qp_id, rc);
-+				break;
-+			}
-+		}
-+	}
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int hbl_cn_qpc_write(struct hbl_aux_dev *aux_dev, u32 port, void *qpc,
-+			    struct qpc_mask *qpc_mask, u32 qpn, bool is_req)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	int rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	port_funcs->cfg_lock(cn_port);
-+	rc = port_funcs->qpc_write(cn_port, qpc, qpc_mask, qpn, is_req);
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static void hbl_cn_ctrl_lock(struct hbl_aux_dev *aux_dev, u32 port)
-+	__acquires(&cn_port->control_lock)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	mutex_lock(&cn_port->control_lock);
-+}
-+
-+static void hbl_cn_ctrl_unlock(struct hbl_aux_dev *aux_dev, u32 port)
-+	__releases(&cn_port->control_lock)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	mutex_unlock(&cn_port->control_lock);
-+}
-+
-+static int hbl_cn_dispatcher_register_qp(struct hbl_aux_dev *aux_dev, u32 port, u32 asid, u32 qp_id)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	return hbl_cn_eq_dispatcher_register_qp(cn_port, asid, qp_id);
-+}
-+
-+static int hbl_cn_dispatcher_unregister_qp(struct hbl_aux_dev *aux_dev, u32 port, u32 qp_id)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	return hbl_cn_eq_dispatcher_unregister_qp(cn_port, qp_id);
-+}
-+
-+static u32 hbl_cn_get_speed(struct hbl_aux_dev *aux_dev, u32 port)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	return cn_port->speed;
-+}
-+
-+static void hbl_cn_track_ext_port_reset(struct hbl_aux_dev *aux_dev, u32 port, u32 syndrome)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	hbl_cn_track_port_reset(cn_port, syndrome);
-+}
-+
-+static void hbl_cn_port_toggle_count(struct hbl_aux_dev *aux_dev, u32 port)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	cn_port->port_toggle_cnt++;
-+}
-+
-+/* Check for initialized hbl IB device. */
-+bool hbl_cn_is_ibdev(struct hbl_cn_device *hdev)
-+{
-+	return !!hdev->ib_aux_dev.priv;
-+}
-+
-+/* Check for opened hbl IB device. */
-+static bool hbl_cn_is_ibdev_opened(struct hbl_cn_device *hdev)
-+{
-+	return hdev->ib_aux_dev.priv && hdev->ib_device_opened;
-+}
-+
-+static int hbl_cn_ib_alloc_ucontext(struct hbl_aux_dev *ib_aux_dev, int user_fd, void **cn_ib_ctx)
-+{
-+	struct hbl_cn_comp_vm_info *user_vm_info, *driver_vm_info;
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(ib_aux_dev);
-+	struct hbl_aux_dev *aux_dev = hdev->cn_aux_dev;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_cn_ctx *ctx;
-+	int rc;
-+
-+	asic_funcs = hdev->asic_funcs;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	if (!hdev->multi_ctx_support && hdev->ctx) {
-+		dev_err(hdev->dev, "There is already an active user context\n");
-+		return -EBUSY;
-+	}
-+
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	ctx->hdev = hdev;
-+	mutex_init(&ctx->lock);
-+
-+	user_vm_info = &ctx->user_vm_info;
-+	driver_vm_info = &ctx->driver_vm_info;
-+
-+	rc = aux_ops->register_cn_user_context(aux_dev, user_fd, ctx, &ctx->comp_handle,
-+					       &user_vm_info->vm_handle);
-+	if (rc) {
-+		dev_dbg(hdev->dev, "Failed to register user context with FD %d\n", user_fd);
-+		goto release_ctx;
-+	}
-+
-+	if (user_vm_info->vm_handle != ctx->comp_handle) {
-+		rc = aux_ops->get_vm_info(aux_dev, user_vm_info->vm_handle, &user_vm_info->vm_info);
-+		if (rc) {
-+			dev_err(hdev->dev, "Failed to get user VM info for handle 0x%llx\n",
-+				user_vm_info->vm_handle);
-+			goto deregister_ctx;
++	struct gaudi2_cn_device *gaudi2;
++	u64 umr_block_addr;
++	int i;
++
++	gaudi2 = hdev->asic_specific;
++	port = cn_port->port;
++
++	/* 8 bytes dummy doorbell packet with unused QP ID. */
++	db_dummy[0] = 0;
++	db_dummy[1] = NIC_MAX_QP_NUM;
++
++	/* Get DB fifo offset in register configuration space. */
++	gaudi2_cn_get_db_fifo_umr(cn_port, id, &umr_block_addr, &umr_db_offset);
++	offset_0_31 = umr_block_addr - gaudi2->cfg_base + umr_db_offset;
++	offset_32_64 = offset_0_31 + (NIC0_UMR0_0_UNSECURE_DOORBELL0_UNSECURE_DB_SECOND32 -
++				      NIC0_UMR0_0_UNSECURE_DOORBELL0_UNSECURE_DB_FIRST32);
++
++	/* Split user doorbell fifo packets to fit 32 bit registers. */
++	for (i = 0; i < n_dummy; i++)
++		if (is_eth) {
++			NIC_WREG32(NIC0_QPC0_SECURED_DB_FIRST32, db_dummy[0]);
++			NIC_WREG32(NIC0_QPC0_SECURED_DB_SECOND32, db_dummy[1]);
++		} else {
++			WREG32(offset_0_31, db_dummy[0]);
++			WREG32(offset_32_64, db_dummy[1]);
 +		}
 +
-+		if (user_vm_info->vm_info.mmu_mode == HBL_CN_MMU_MODE_NETWORK_TLB)
-+			ctx->user_asid = user_vm_info->vm_info.net_tlb.pasid;
++	if (gaudi2->flush_db_fifo) {
++		if (is_eth)
++			NIC_RREG32(NIC0_QPC0_SECURED_DB_FIRST32);
 +		else
-+			ctx->user_asid = user_vm_info->vm_info.ext_mmu.work_id;
-+	} else {
-+		/* No data transfer in this mode */
-+		ctx->user_asid = -1;
++			RREG32(offset_0_31);
 +	}
-+
-+	rc = aux_ops->vm_create(aux_dev, ctx->comp_handle, 0, &driver_vm_info->vm_handle);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to create driver VM for vompute handle 0x%llx\n",
-+			ctx->comp_handle);
-+		goto deregister_ctx;
-+	}
-+
-+	rc = aux_ops->get_vm_info(aux_dev, driver_vm_info->vm_handle, &driver_vm_info->vm_info);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to get driver VM info for handle 0x%llx\n",
-+			driver_vm_info->vm_handle);
-+		goto destroy_driver_vm;
-+	}
-+
-+	if (driver_vm_info->vm_info.mmu_mode == HBL_CN_MMU_MODE_NETWORK_TLB)
-+		ctx->asid = driver_vm_info->vm_info.net_tlb.pasid;
-+	else
-+		ctx->asid = driver_vm_info->vm_info.ext_mmu.work_id;
-+
-+	/* must be called before calling create_mem_ctx */
-+	rc = asic_funcs->ctx_init(ctx);
-+	if (rc) {
-+		dev_err(hdev->dev, "failed to init user context with ASID %d\n", ctx->asid);
-+		goto destroy_driver_vm;
-+	}
-+
-+	if (ctx->user_asid != -1 && user_vm_info->vm_info.mmu_mode == HBL_CN_MMU_MODE_NETWORK_TLB) {
-+		rc = asic_funcs->create_mem_ctx(ctx, user_vm_info->vm_info.net_tlb.pasid,
-+						user_vm_info->vm_info.net_tlb.page_tbl_addr);
-+		if (rc) {
-+			dev_err(hdev->dev,
-+				"failed to create HW memory context for user VM, FD %d\n", user_fd);
-+			goto ctx_cleanup;
-+		}
-+	}
-+
-+	if (driver_vm_info->vm_info.mmu_mode == HBL_CN_MMU_MODE_NETWORK_TLB) {
-+		rc = asic_funcs->create_mem_ctx(ctx, driver_vm_info->vm_info.net_tlb.pasid,
-+						driver_vm_info->vm_info.net_tlb.page_tbl_addr);
-+		if (rc) {
-+			dev_err(hdev->dev,
-+				"failed to create HW memory context for driver VM, FD %d\n",
-+				user_fd);
-+			goto user_vm_ctx_cleanup;
-+		}
-+	}
-+
-+	*cn_ib_ctx = ctx;
-+	hdev->ib_device_opened = true;
-+	hdev->ctx = ctx;
-+
-+	return 0;
-+
-+user_vm_ctx_cleanup:
-+	if (ctx->user_asid != -1 && user_vm_info->vm_info.mmu_mode == HBL_CN_MMU_MODE_NETWORK_TLB)
-+		asic_funcs->destroy_mem_ctx(ctx, user_vm_info->vm_info.net_tlb.pasid,
-+					    user_vm_info->vm_info.net_tlb.page_tbl_addr);
-+ctx_cleanup:
-+	asic_funcs->ctx_fini(ctx);
-+destroy_driver_vm:
-+	aux_ops->vm_destroy(aux_dev, driver_vm_info->vm_handle);
-+deregister_ctx:
-+	aux_ops->deregister_cn_user_context(aux_dev, user_vm_info->vm_handle);
-+release_ctx:
-+	mutex_destroy(&ctx->lock);
-+	kfree(ctx);
-+
-+	return rc;
 +}
 +
-+static void hbl_cn_ib_dealloc_ucontext(struct hbl_aux_dev *ib_aux_dev, void *cn_ib_ctx)
++static bool db_fifo_reset_cond_func1(u32 val, void *arg)
 +{
-+	struct hbl_cn_comp_vm_info *user_vm_info, *driver_vm_info;
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(ib_aux_dev);
-+	struct hbl_aux_dev *aux_dev = hdev->cn_aux_dev;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_ctx *ctx = cn_ib_ctx;
++	return val;
++}
++
++static bool db_fifo_reset_cond_func2(u32 val, void *arg)
++{
++	return val == (NIC_FIFO_DB_SIZE - 1);
++}
++
++/* Doorbell fifo H/W bug. There is no provision for S/W to reset H/W CI.
++ * Hence, we implement workaround. Push dummy doorbells to db fifos till
++ * CI wraps.
++ */
++static void __db_fifo_reset(struct hbl_cn_port *cn_port, u32 *ci_cpu_addr, u32 id, bool is_eth)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
 +	struct hbl_cn_aux_ops *aux_ops;
++	u32 ci = *ci_cpu_addr, port;
++	struct hbl_aux_dev *aux_dev;
++	int rc;
 +
++	aux_dev = hdev->cn_aux_dev;
 +	aux_ops = aux_dev->aux_ops;
-+	asic_funcs = hdev->asic_funcs;
-+	user_vm_info = &ctx->user_vm_info;
-+	driver_vm_info = &ctx->driver_vm_info;
++	gaudi2_aux_ops = aux_ops->asic_ops;
 +
-+	dev_dbg(hdev->dev, "IB context dealloc\n");
++	/* no need to push dummy doorbells, as the hard will reset itself. However, reset the memory
++	 * where the last CI is stored at.
++	 */
++	if (!hdev->operational) {
++		*ci_cpu_addr = 0;
++		return;
++	}
 +
-+	if (driver_vm_info->vm_info.mmu_mode == HBL_CN_MMU_MODE_NETWORK_TLB)
-+		asic_funcs->destroy_mem_ctx(ctx, driver_vm_info->vm_info.net_tlb.pasid,
-+					    driver_vm_info->vm_info.net_tlb.page_tbl_addr);
++	port = cn_port->port;
 +
-+	if (ctx->user_asid != -1 && user_vm_info->vm_info.mmu_mode == HBL_CN_MMU_MODE_NETWORK_TLB)
-+		asic_funcs->destroy_mem_ctx(ctx, user_vm_info->vm_info.net_tlb.pasid,
-+					    user_vm_info->vm_info.net_tlb.page_tbl_addr);
++	/* Stop HW from throwing below error events.
++	 * 1. Requester DB, invalid QP
++	 * 2. Requester DB, PI > last WQ index
++	 *
++	 * Dummy doorbell piggybacks on the idea that HW updates CI
++	 * even for invalid doorbells. However, EQ error events are
++	 * generated and fifo is pushed to error state.
++	 */
++	db_fifo_toggle_err_evt(cn_port, false);
 +
-+	hbl_cn_ctx_resources_destroy(hdev, ctx);
-+	hdev->asic_funcs->ctx_fini(ctx);
++	/* 1. Another User doorbell fifo HW bug. CI updated by HW is one
++	 * less than number of doorbells pushed.
++	 * 2. We cannot assert if user has pushed any doorbells. i.e
++	 * CI buffer is default 0 or HW updated zero.
++	 *
++	 * To handle above scenario we push 2 dummy doorbells if CI is zero.
++	 * This forces HW to update CI buffer. Hence, ensuring we are not
++	 * dealing with default zero memory.
++	 * Note, driver ensures CI buffer is zeroed out before passing it on to HW.
++	 */
++	if (!ci) {
++		db_fifo_push_dummy(cn_port, id, 2, is_eth);
 +
-+	aux_ops->vm_destroy(aux_dev, driver_vm_info->vm_handle);
-+	aux_ops->deregister_cn_user_context(aux_dev, user_vm_info->vm_handle);
++		rc = gaudi2_aux_ops->poll_mem(aux_dev, ci_cpu_addr, &ci, db_fifo_reset_cond_func1);
++		if (rc && !ci)
++			dev_err(hdev->dev, "Doorbell fifo reset timed out\n");
++	}
 +
-+	hdev->ctx = NULL;
-+	mutex_destroy(&ctx->lock);
-+	kfree(ctx);
++	/* Push dummy doorbells such that HW CI points to fifo base. */
++	db_fifo_push_dummy(cn_port, id, NIC_FIFO_DB_SIZE - ci - 1, is_eth);
 +
-+	hdev->ib_device_opened = false;
-+}
++	/* Wait for HW to absorb dummy doorbells and update CI. */
++	rc = gaudi2_aux_ops->poll_mem(aux_dev, ci_cpu_addr, &ci, db_fifo_reset_cond_func2);
++	if (rc && (ci != (NIC_FIFO_DB_SIZE - 1)))
++		dev_err(hdev->dev, "Doorbell fifo reset timed out, ci: %d\n", ci);
 +
-+static void hbl_cn_ib_query_port(struct hbl_aux_dev *aux_dev, u32 port,
-+				 struct hbl_ib_port_attr *port_attr)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_port *cn_port;
++	db_fifo_toggle_err_evt(cn_port, true);
 +
-+	asic_funcs = hdev->asic_funcs;
-+	cn_port = &hdev->cn_ports[port];
-+
-+	port_attr->open = hbl_cn_is_port_open(cn_port);
-+	port_attr->link_up = cn_port->pcs_link;
-+	port_attr->speed = cn_port->speed;
-+	port_attr->max_msg_sz = asic_funcs->get_max_msg_sz(hdev);
-+	port_attr->num_lanes = hdev->lanes_per_port;
-+	port_attr->max_mtu = SZ_8K;
-+}
-+
-+static inline void parse_fw_ver(struct hbl_cn_device *hdev, char *str, u32 *maj, u16 *min, u16 *sub)
-+{
-+	char *ver = strstr(str, "fw-");
-+	int ret;
-+
-+	if (!ver)
-+		goto failure;
-+
-+	ret = sscanf(ver, "fw-%d.%hu.%hu", maj, min, sub);
-+	if (ret < 3) {
-+failure:
-+		dev_dbg(hdev->dev, "Failed to read version string\n");
-+		*maj = *min = *sub = 0;
++	/* Zero out HW CI buffer address register for added safety. */
++	if (is_eth) {
++		NIC_WREG32(NIC0_QPC0_DBFIFOSECUR_CI_UPD_ADDR_DBFIFO_CI_UPD_ADDR_31_7, 0);
++		NIC_WREG32(NIC0_QPC0_DBFIFOSECUR_CI_UPD_ADDR_DBFIFO_CI_UPD_ADDR_63_32, 0);
++	} else {
++		NIC_WREG32(NIC0_QPC0_DBFIFO0_CI_UPD_ADDR_DBFIFO_CI_UPD_ADDR_31_7 +
++			   db_fifo_offset64(id), 0);
++		NIC_WREG32(NIC0_QPC0_DBFIFO0_CI_UPD_ADDR_DBFIFO_CI_UPD_ADDR_63_32 +
++			   db_fifo_offset64(id), 0);
 +	}
 +}
 +
-+static void hbl_cn_ib_query_device(struct hbl_aux_dev *aux_dev, struct hbl_ib_device_attr *dev_attr)
++static void gaudi2_cn_db_fifo_reset(struct hbl_aux_dev *aux_dev, u32 port)
 +{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_properties *cn_props;
-+	struct hbl_ib_aux_data *aux_data;
-+	u16 minor, sub_ver;
-+	u32 major;
++	struct hbl_cn_device *hdev = container_of(aux_dev, struct hbl_cn_device, en_aux_dev);
++	struct hbl_cn_port *cn_port = &hdev->cn_ports[port];
++	struct gaudi2_cn_port *gaudi2_port;
++	u32 *ci_cpu_addr;
 +
-+	aux_data = aux_dev->aux_data;
-+	cn_props = &hdev->cn_props;
++	gaudi2_port = cn_port->cn_specific;
++	ci_cpu_addr = (u32 *)RING_BUF_ADDRESS(&gaudi2_port->fifo_ring);
 +
-+	if (hdev->cpucp_fw) {
-+		parse_fw_ver(hdev, hdev->fw_ver, &major, &minor, &sub_ver);
-+		dev_attr->fw_ver = ((u64)major << 32) | ((u64)minor << 16) | sub_ver;
-+	}
++	gaudi2_port->db_fifo_pi = 0;
 +
-+	dev_attr->max_mr_size = aux_data->dram_size;
-+
-+	dev_attr->page_size_cap = PAGE_SIZE;
-+
-+	dev_attr->vendor_id = hdev->pdev->vendor;
-+	dev_attr->vendor_part_id = hdev->pdev->device;
-+	dev_attr->hw_ver = hdev->pdev->subsystem_device;
-+
-+	dev_attr->max_qp = cn_props->max_qps_num;
-+
-+	dev_attr->max_qp_wr = aux_data->max_num_of_wqes;
-+	dev_attr->max_cqe = cn_props->user_cq_max_entries;
-+
-+	dev_attr->cqe_size = cn_props->cqe_size;
-+	dev_attr->min_cq_entries = cn_props->user_cq_min_entries;
++	__db_fifo_reset(cn_port, ci_cpu_addr, 0, true);
 +}
 +
-+static void hbl_cn_ib_set_ip_addr_encap(struct hbl_aux_dev *aux_dev, u32 ip_addr, u32 port)
++static int gaudi2_cn_config_wqe_asid(struct hbl_cn_port *cn_port, u32 asid, bool set_asid)
 +{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_port *cn_port;
-+	u32 encap_id;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++	int rc;
 +
-+	asic_funcs = hdev->asic_funcs;
-+	cn_port = &hdev->cn_ports[port];
-+
-+	asic_funcs->port_funcs->set_ip_addr_encap(cn_port, &encap_id, ip_addr);
-+}
-+
-+static char *hbl_cn_ib_qp_syndrome_to_str(struct hbl_aux_dev *aux_dev, u32 syndrome)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+
-+	asic_funcs = hdev->asic_funcs;
-+
-+	return asic_funcs->qp_syndrome_to_str(syndrome);
-+}
-+
-+static int hbl_cn_ib_verify_qp_id(struct hbl_aux_dev *aux_dev, u32 qp_id, u32 port)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	struct hbl_cn_device *hdev;
-+	struct hbl_cn_qp *qp;
-+	int rc = 0;
-+
-+	hdev = HBL_AUX2NIC(aux_dev);
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	cn_port = &hdev->cn_ports[port];
-+
-+	port_funcs->cfg_lock(cn_port);
-+	qp = xa_load(&cn_port->qp_ids, qp_id);
-+
-+	if (IS_ERR_OR_NULL(qp)) {
-+		dev_dbg(hdev->dev, "Failed to find matching QP for handle %d, port %d\n", qp_id,
-+			port);
-+		rc = -EINVAL;
-+		goto cfg_unlock;
-+	}
-+
-+	/* sanity test the port IDs */
-+	if (qp->port != port) {
-+		dev_dbg(hdev->dev, "QP port %d does not match requested port %d\n", qp->port, port);
-+		rc = -EINVAL;
-+		goto cfg_unlock;
-+	}
-+
-+cfg_unlock:
-+	port_funcs->cfg_unlock(cn_port);
++	rc = hbl_cn_send_cpucp_packet(hdev, port, set_asid ? CPUCP_PACKET_NIC_WQE_ASID_SET :
++				      CPUCP_PACKET_NIC_WQE_ASID_UNSET, asid);
++	if (rc)
++		dev_err(hdev->dev, "Failed to %s WQE ASID, port %d, rc %d\n",
++			set_asid ? "set" : "unset", port, rc);
 +
 +	return rc;
 +}
 +
-+static int hbl_cn_ib_dump_qp(struct hbl_aux_dev *aux_dev, struct hbl_ib_dump_qp_attr *attr,
-+			     char *buf, size_t size)
++static int gaudi2_cn_disable_wqe_index_checker(struct hbl_cn_port *cn_port)
 +{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_qp_info qp_info = {};
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
 +	int rc;
 +
-+	asic_funcs = hdev->asic_funcs;
++	rc = hbl_cn_send_cpucp_packet(hdev, port, CPUCP_PACKET_NIC_SET_CHECKERS,
++				      RX_WQE_IDX_MISMATCH);
 +
-+	qp_info.port = attr->port;
-+	qp_info.qpn = attr->qpn;
-+	qp_info.req = attr->req;
-+	qp_info.full_print = attr->full;
-+	qp_info.force_read = attr->force;
-+
-+	rc = asic_funcs->qp_read(hdev, &qp_info, buf, size);
 +	if (rc) {
-+		dev_err(hdev->dev, "Failed to read QP %u, port %u\n", attr->qpn, attr->port);
++		dev_err(hdev->dev,
++			"Failed to disable Rx WQE idx mismatch checker, port %d, rc %d\n", port,
++			rc);
++		return rc;
++	}
++
++	rc = hbl_cn_send_cpucp_packet(hdev, port, CPUCP_PACKET_NIC_SET_CHECKERS,
++				      TX_WQE_IDX_MISMATCH);
++	if (rc) {
++		dev_err(hdev->dev,
++			"Failed to disable Tx WQE idx mismatch checker, port %d, rc %d\n", port,
++			rc);
 +		return rc;
 +	}
 +
 +	return 0;
 +}
 +
-+static int hbl_cn_en_aux_data_init(struct hbl_cn_device *hdev)
++static void *gaudi2_cn_dma_alloc_coherent(struct hbl_cn_device *hdev, size_t size,
++					  dma_addr_t *dma_handle, gfp_t flag)
 +{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	struct hbl_en_aux_data *en_aux_data;
-+	struct hbl_cn_properties *cn_props;
-+	struct hbl_en_aux_ops *en_aux_ops;
-+	struct hbl_aux_dev *en_aux_dev;
-+	char **mac_addr;
-+	int i;
++	const struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct hbl_aux_dev *aux_dev = hdev->cn_aux_dev;
 +
-+	en_aux_dev = &hdev->en_aux_dev;
-+	en_aux_dev->type = HBL_AUX_DEV_ETH;
-+	en_aux_data = en_aux_dev->aux_data;
-+	en_aux_ops = en_aux_dev->aux_ops;
-+	cn_props = &hdev->cn_props;
-+
-+	en_aux_data->pdev = hdev->pdev;
-+	en_aux_data->dev = hdev->dev;
-+	en_aux_data->ports_mask = hdev->ext_ports_mask;
-+	en_aux_data->auto_neg_mask = hdev->auto_neg_mask;
-+	en_aux_data->id = hdev->id;
-+	en_aux_data->fw_ver = hdev->fw_ver;
-+	en_aux_data->qsfp_eeprom = hdev->cpucp_info->qsfp_eeprom;
-+	en_aux_data->pending_reset_long_timeout = hdev->pending_reset_long_timeout;
-+	en_aux_data->max_frm_len = cn_props->max_frm_len;
-+	en_aux_data->raw_elem_size = cn_props->raw_elem_size;
-+	en_aux_data->max_raw_mtu = cn_props->max_raw_mtu;
-+	en_aux_data->min_raw_mtu = cn_props->min_raw_mtu;
-+	en_aux_data->max_num_of_ports = hdev->cn_props.max_num_of_ports;
-+	en_aux_data->has_eq = hdev->has_eq;
-+	en_aux_data->asic_type = hdev->asic_type;
-+
-+	mac_addr = kcalloc(hdev->cn_props.max_num_of_ports, sizeof(*mac_addr), GFP_KERNEL);
-+	if (!mac_addr)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(en_aux_data->ports_mask & BIT(i)))
-+			continue;
-+
-+		mac_addr[i] = hdev->cpucp_info->mac_addrs[i].mac_addr;
-+	}
-+
-+	en_aux_data->mac_addr = mac_addr;
-+
-+	/* set en -> cn ops */
-+	/* device functions */
-+	en_aux_ops->device_operational = hbl_cn_device_operational;
-+	en_aux_ops->hw_access_lock = hbl_cn_hw_access_lock;
-+	en_aux_ops->hw_access_unlock = hbl_cn_hw_access_unlock;
-+	en_aux_ops->is_eth_lpbk = hbl_cn_is_eth_lpbk;
-+	/* port functions */
-+	en_aux_ops->port_hw_init = hbl_cn_port_hw_init;
-+	en_aux_ops->port_hw_fini = hbl_cn_port_hw_fini;
-+	en_aux_ops->phy_init = hbl_cn_phy_port_init;
-+	en_aux_ops->phy_fini = hbl_cn_phy_port_fini;
-+	en_aux_ops->set_pfc = hbl_cn_set_pfc;
-+	en_aux_ops->get_cnts_num = hbl_cn_get_cnts_num;
-+	en_aux_ops->get_cnts_names = hbl_cn_get_cnts_names;
-+	en_aux_ops->get_cnts_values = hbl_cn_get_cnts_values;
-+	en_aux_ops->get_mac_lpbk = hbl_cn_get_mac_lpbk;
-+	en_aux_ops->set_mac_lpbk = hbl_cn_set_mac_lpbk;
-+	en_aux_ops->update_mtu = hbl_cn_update_mtu;
-+	en_aux_ops->qpc_write = hbl_cn_qpc_write;
-+	en_aux_ops->ctrl_lock = hbl_cn_ctrl_lock;
-+	en_aux_ops->ctrl_unlock = hbl_cn_ctrl_unlock;
-+	en_aux_ops->eq_dispatcher_register_qp = hbl_cn_dispatcher_register_qp;
-+	en_aux_ops->eq_dispatcher_unregister_qp = hbl_cn_dispatcher_unregister_qp;
-+	en_aux_ops->get_speed = hbl_cn_get_speed;
-+	en_aux_ops->track_ext_port_reset = hbl_cn_track_ext_port_reset;
-+	en_aux_ops->port_toggle_count = hbl_cn_port_toggle_count;
-+
-+	asic_funcs->set_en_data(hdev);
-+
-+	return 0;
++	return gaudi2->cn_aux_ops->dma_alloc_coherent(aux_dev, size, dma_handle, flag);
 +}
 +
-+static void hbl_cn_en_aux_data_fini(struct hbl_cn_device *hdev)
++static void gaudi2_cn_dma_free_coherent(struct hbl_cn_device *hdev, size_t size, void *cpu_addr,
++					dma_addr_t dma_handle)
 +{
-+	struct hbl_aux_dev *aux_dev = &hdev->en_aux_dev;
-+	struct hbl_en_aux_data *aux_data;
++	const struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct hbl_aux_dev *aux_dev = hdev->cn_aux_dev;
 +
-+	aux_data = aux_dev->aux_data;
-+
-+	kfree(aux_data->mac_addr);
-+	aux_data->mac_addr = NULL;
++	gaudi2->cn_aux_ops->dma_free_coherent(aux_dev, size, cpu_addr, dma_handle);
 +}
 +
-+static int hbl_cn_ib_aux_data_init(struct hbl_cn_device *hdev)
++static void *gaudi2_cn_dma_pool_zalloc(struct hbl_cn_device *hdev, size_t size, gfp_t mem_flags,
++				       dma_addr_t *dma_handle)
 +{
-+	struct hbl_ib_port_cnts_data *cnts_data;
-+	struct hbl_ib_aux_data *ib_aux_data;
-+	struct hbl_ib_aux_ops *ib_aux_ops;
-+	struct hbl_aux_dev *ib_aux_dev;
-+	struct hbl_cn_port *cn_port;
++	const struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct hbl_aux_dev *aux_dev = hdev->cn_aux_dev;
++
++	return gaudi2->cn_aux_ops->dma_pool_zalloc(aux_dev, size, mem_flags, dma_handle);
++}
++
++static void gaudi2_cn_dma_pool_free(struct hbl_cn_device *hdev, void *vaddr, dma_addr_t dma_addr)
++{
++	const struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct hbl_aux_dev *aux_dev = hdev->cn_aux_dev;
++
++	gaudi2->cn_aux_ops->dma_pool_free(aux_dev, vaddr, dma_addr);
++}
++
++static int gaudi2_cn_send_cpu_message(struct hbl_cn_device *hdev, u32 *msg, u16 len, u32 timeout,
++				      u64 *result)
++{
++	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	gaudi2_aux_ops = aux_ops->asic_ops;
++
++	return gaudi2_aux_ops->send_cpu_message(aux_dev, msg, len, timeout, result);
++}
++
++static int gaudi2_cn_poll_reg(struct hbl_cn_device *hdev, u32 reg, u64 timeout_us,
++			      hbl_cn_poll_cond_func func, void *arg)
++{
++	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	gaudi2_aux_ops = aux_ops->asic_ops;
++
++	return gaudi2_aux_ops->poll_reg(aux_dev, reg, timeout_us, func, arg);
++}
++
++static int gaudi2_cn_alloc_cq_rings(struct gaudi2_cn_port *gaudi2_port)
++{
++	u32 elem_size, queue_size, total_queues_size, count;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	struct hbl_cn_ring *ring;
++	dma_addr_t dma_addr;
++	void *cpu_addr;
 +	int rc, i;
 +
-+	ib_aux_dev = &hdev->ib_aux_dev;
-+	ib_aux_dev->type = HBL_AUX_DEV_IB;
-+	ib_aux_data = ib_aux_dev->aux_data;
-+	ib_aux_ops = ib_aux_dev->aux_ops;
++	elem_size = sizeof(struct gaudi2_cqe);
++	count = NIC_CQ_MAX_ENTRIES;
++	queue_size = elem_size * count;
++	total_queues_size = queue_size * GAUDI2_NIC_MAX_CQS_NUM;
 +
-+	ib_aux_data->pdev = hdev->pdev;
-+	ib_aux_data->dev = hdev->dev;
-+	ib_aux_data->ports_mask = hdev->ports_mask;
-+	ib_aux_data->ext_ports_mask = hdev->ext_ports_mask;
-+	ib_aux_data->max_num_of_wqes = hdev->cn_props.max_hw_user_wqs_num;
-+	ib_aux_data->max_num_of_ports = hdev->cn_props.max_num_of_ports;
-+	ib_aux_data->pending_reset_long_timeout = hdev->pending_reset_long_timeout;
-+	ib_aux_data->id = hdev->id;
-+	ib_aux_data->dram_size = hdev->dram_size;
-+	ib_aux_data->mixed_qp_wq_types = hdev->mixed_qp_wq_types;
-+	ib_aux_data->umr_support = hdev->umr_support;
-+	ib_aux_data->cc_support = hdev->cc_support;
-+
-+	ib_aux_data->cnts_data = kcalloc(hdev->cn_props.max_num_of_ports,
-+					 sizeof(*ib_aux_data->cnts_data), GFP_KERNEL);
-+	if (!ib_aux_data->cnts_data)
++	/* The HW expects that all CQs will be located in a physically consecutive memory one after
++	 * the other. Hence we allocate all of them in one chunk.
++	 */
++	cpu_addr = hbl_cn_dma_alloc_coherent(hdev, total_queues_size, &dma_addr, GFP_KERNEL);
++	if (!cpu_addr)
 +		return -ENOMEM;
 +
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(ib_aux_data->ports_mask & BIT(i)))
-+			continue;
++	for (i = 0; i < NIC_CQS_NUM; i++) {
++		ring = &gaudi2_port->cq_rings[i];
++		RING_BUF_ADDRESS(ring) = cpu_addr + i * queue_size;
++		RING_BUF_DMA_ADDRESS(ring) = dma_addr + i * queue_size;
++		/* prevent freeing memory fragments by individual Qs */
++		RING_BUF_SIZE(ring) = i ? 0 : total_queues_size;
++		ring->count = count;
++		ring->elem_size = elem_size;
++		ring->asid = hdev->kernel_asid;
++	}
 +
-+		cn_port = &hdev->cn_ports[i];
-+		cnts_data = &ib_aux_data->cnts_data[i];
-+
-+		cnts_data->num = __hbl_cn_get_cnts_num(cn_port);
-+
-+		cnts_data->names = kcalloc(cnts_data->num, HBL_IB_CNT_NAME_LEN, GFP_KERNEL);
-+		if (!cnts_data->names) {
++	for (i = 0; i < NIC_CQS_NUM; i++) {
++		ring = &gaudi2_port->cq_rings[i];
++		RING_PI_SIZE(ring) = sizeof(u64);
++		RING_PI_ADDRESS(ring) = hbl_cn_dma_pool_zalloc(hdev, RING_PI_SIZE(ring),
++							       GFP_KERNEL | __GFP_ZERO,
++							       &RING_PI_DMA_ADDRESS(ring));
++		if (!RING_PI_ADDRESS(ring)) {
 +			rc = -ENOMEM;
-+			goto free_cnts_data;
++			goto err;
 +		}
-+
-+		__hbl_cn_get_cnts_names(cn_port, cnts_data->names, true);
-+	}
-+
-+	/* set ib -> cn ops */
-+	/* the following functions are used even if the IB verbs API is disabled */
-+	ib_aux_ops->device_operational = hbl_cn_device_operational;
-+	ib_aux_ops->hw_access_lock = hbl_cn_hw_access_lock;
-+	ib_aux_ops->hw_access_unlock = hbl_cn_hw_access_unlock;
-+	ib_aux_ops->alloc_ucontext = hbl_cn_ib_alloc_ucontext;
-+	ib_aux_ops->dealloc_ucontext = hbl_cn_ib_dealloc_ucontext;
-+	ib_aux_ops->query_port = hbl_cn_ib_query_port;
-+	ib_aux_ops->query_device = hbl_cn_ib_query_device;
-+	ib_aux_ops->set_ip_addr_encap = hbl_cn_ib_set_ip_addr_encap;
-+	ib_aux_ops->qp_syndrome_to_str = hbl_cn_ib_qp_syndrome_to_str;
-+	ib_aux_ops->verify_qp_id = hbl_cn_ib_verify_qp_id;
-+	ib_aux_ops->get_cnts_values = hbl_cn_get_cnts_values;
-+	ib_aux_ops->dump_qp = hbl_cn_ib_dump_qp;
-+
-+	/* these functions are used only if the IB verbs API is enabled */
-+	ib_aux_ops->cmd_ctrl = hbl_cn_ib_cmd_ctrl;
-+	ib_aux_ops->query_mem_handle = hbl_cn_ib_query_mem_handle;
-+
-+	return 0;
-+
-+free_cnts_data:
-+	for (--i; i >= 0; i--) {
-+		if (!(ib_aux_data->ports_mask & BIT(i)))
-+			continue;
-+
-+		kfree(ib_aux_data->cnts_data[i].names);
-+	}
-+	kfree(ib_aux_data->cnts_data);
-+
-+	return rc;
-+}
-+
-+static void hbl_cn_ib_aux_data_fini(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_ib_aux_data *aux_data;
-+	struct hbl_aux_dev *aux_dev;
-+	int i;
-+
-+	aux_dev = &hdev->ib_aux_dev;
-+	aux_data = aux_dev->aux_data;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(aux_data->ports_mask & BIT(i)))
-+			continue;
-+
-+		kfree(aux_data->cnts_data[i].names);
-+	}
-+	kfree(aux_data->cnts_data);
-+}
-+
-+static void eth_adev_release(struct device *dev)
-+{
-+	struct hbl_aux_dev *aux_dev = container_of(dev, struct hbl_aux_dev, adev.dev);
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+
-+	hdev->is_eth_aux_dev_initialized = false;
-+}
-+
-+static int hbl_cn_en_aux_drv_init(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_aux_dev *aux_dev = &hdev->en_aux_dev;
-+	struct auxiliary_device *adev;
-+	int rc;
-+
-+	rc = hbl_cn_en_aux_data_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "eth aux data init failed\n");
-+		return rc;
-+	}
-+
-+	adev = &aux_dev->adev;
-+	adev->id = hdev->id;
-+	adev->name = "en";
-+	adev->dev.parent = hdev->dev;
-+	adev->dev.release = eth_adev_release;
-+
-+	rc = auxiliary_device_init(adev);
-+	if (rc) {
-+		dev_err(hdev->dev, "eth auxiliary_device_init failed\n");
-+		goto aux_data_free;
-+	}
-+
-+	rc = auxiliary_device_add(adev);
-+	if (rc) {
-+		dev_err(hdev->dev, "eth auxiliary_device_add failed\n");
-+		goto uninit_adev;
-+	}
-+
-+	hdev->is_eth_aux_dev_initialized = true;
-+
-+	return 0;
-+
-+uninit_adev:
-+	auxiliary_device_uninit(adev);
-+aux_data_free:
-+	hbl_cn_en_aux_data_fini(hdev);
-+
-+	return rc;
-+}
-+
-+static void hbl_cn_en_aux_drv_fini(struct hbl_cn_device *hdev)
-+{
-+	struct auxiliary_device *adev;
-+
-+	if (!hdev->is_eth_aux_dev_initialized)
-+		return;
-+
-+	adev = &hdev->en_aux_dev.adev;
-+
-+	auxiliary_device_delete(adev);
-+	auxiliary_device_uninit(adev);
-+
-+	hbl_cn_en_aux_data_fini(hdev);
-+}
-+
-+static void ib_adev_release(struct device *dev)
-+{
-+	struct hbl_aux_dev *aux_dev = container_of(dev, struct hbl_aux_dev, adev.dev);
-+	struct hbl_cn_device *hdev;
-+
-+	hdev = container_of(aux_dev, struct hbl_cn_device, ib_aux_dev);
-+
-+	hdev->is_ib_aux_dev_initialized = false;
-+}
-+
-+static int hbl_cn_ib_aux_drv_init(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_aux_dev *aux_dev = &hdev->ib_aux_dev;
-+	struct auxiliary_device *adev;
-+	int rc;
-+
-+	if (!hdev->ib_support)
-+		return 0;
-+
-+	rc = hbl_cn_ib_aux_data_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "IB aux data init failed\n");
-+		return rc;
-+	}
-+
-+	adev = &aux_dev->adev;
-+	adev->id = hdev->id;
-+	adev->name = "ib";
-+	adev->dev.parent = hdev->dev;
-+	adev->dev.release = ib_adev_release;
-+
-+	rc = auxiliary_device_init(adev);
-+	if (rc) {
-+		dev_err(hdev->dev, "ib auxiliary_device_init failed\n");
-+		goto aux_data_free;
-+	}
-+
-+	rc = auxiliary_device_add(adev);
-+	if (rc) {
-+		dev_err(hdev->dev, "ib auxiliary_device_add failed\n");
-+		goto uninit_adev;
-+	}
-+
-+	hdev->is_ib_aux_dev_initialized = true;
-+
-+	return 0;
-+
-+uninit_adev:
-+	auxiliary_device_uninit(adev);
-+aux_data_free:
-+	hbl_cn_ib_aux_data_fini(hdev);
-+
-+	return rc;
-+}
-+
-+static void hbl_cn_ib_aux_drv_fini(struct hbl_cn_device *hdev)
-+{
-+	struct auxiliary_device *adev;
-+
-+	if (!hdev->ib_support || !hdev->is_ib_aux_dev_initialized)
-+		return;
-+
-+	adev = &hdev->ib_aux_dev.adev;
-+
-+	auxiliary_device_delete(adev);
-+	auxiliary_device_uninit(adev);
-+
-+	hbl_cn_ib_aux_data_fini(hdev);
-+}
-+
-+void hbl_cn_internal_port_fini_locked(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+
-+	asic_funcs = hdev->asic_funcs;
-+
-+	if (!cn_port->port_open)
-+		return;
-+
-+	cn_port->port_open = false;
-+
-+	/* verify that the port is marked as closed before continuing */
-+	mb();
-+
-+	asic_funcs->port_funcs->phy_port_fini(cn_port);
-+
-+	__hbl_cn_port_hw_fini(cn_port);
-+}
-+
-+static void hbl_cn_internal_ports_fini(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_port *cn_port;
-+	int i;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)) || (hdev->ext_ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		mutex_lock(&cn_port->control_lock);
-+
-+		hbl_cn_internal_port_fini_locked(cn_port);
-+
-+		mutex_unlock(&cn_port->control_lock);
-+	}
-+}
-+
-+void hbl_cn_ports_cancel_status_work(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_port *cn_port;
-+	int i;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		cancel_delayed_work_sync(&cn_port->fw_status_work);
-+	}
-+}
-+
-+int hbl_cn_internal_port_init_locked(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	u32 port = cn_port->port;
-+	int rc;
-+
-+	asic_funcs = hdev->asic_funcs;
-+
-+	rc = __hbl_cn_port_hw_init(cn_port);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to configure the HW, port: %d, %d", port, rc);
-+		return rc;
-+	}
-+
-+	rc = asic_funcs->port_funcs->phy_port_init(cn_port);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to configure the HW, port: %d, %d", port, rc);
-+		goto phy_fail;
-+	}
-+
-+	cn_port->port_open = true;
-+
-+	return 0;
-+
-+phy_fail:
-+	__hbl_cn_port_hw_fini(cn_port);
-+
-+	return rc;
-+}
-+
-+static int hbl_cn_internal_ports_init(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_port *cn_port;
-+	u32 port;
-+	int rc, i;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)) || (hdev->ext_ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+		port = cn_port->port;
-+
-+		mutex_lock(&cn_port->control_lock);
-+
-+		rc = hbl_cn_internal_port_init_locked(cn_port);
-+		if (rc) {
-+			dev_err(hdev->dev, "Failed to configure the HW, port: %d, %d", port, rc);
-+			mutex_unlock(&cn_port->control_lock);
-+			goto port_init_fail;
-+		}
-+
-+		mutex_unlock(&cn_port->control_lock);
-+	}
-+
-+	return 0;
-+
-+port_init_fail:
-+	hbl_cn_internal_ports_fini(hdev);
-+
-+	return rc;
-+}
-+
-+static int hbl_cn_kernel_ctx_init(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	return asic_funcs->kernel_ctx_init(hdev, hdev->kernel_asid);
-+}
-+
-+static void hbl_cn_kernel_ctx_fini(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->kernel_ctx_fini(hdev, hdev->kernel_asid);
-+}
-+
-+static void hbl_cn_mac_loopback_init(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_en_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+	u32 port = cn_port->port;
-+	bool enable;
-+
-+	aux_dev = &hdev->en_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	enable = !!(hdev->mac_loopback & BIT(port));
-+	cn_port->mac_loopback = enable;
-+
-+	if (cn_port->eth_enable && aux_ops->set_dev_lpbk)
-+		aux_ops->set_dev_lpbk(aux_dev, port, enable);
-+}
-+
-+static int hbl_cn_core_init(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	struct hbl_cn_macro *cn_macro;
-+	struct hbl_cn_port *cn_port;
-+	int rc, i, port_cnt = 0;
-+	u32 port;
-+
-+	/* RX packet drop config is not preserved across hard reset. */
-+	hdev->rx_drop_percent = 0;
-+
-+	if (hdev->load_phy_fw) {
-+		if (hdev->cn_props.is_phy_fw_binary) {
-+			rc = hbl_cn_phy_has_binary_fw(hdev);
-+			if (rc) {
-+				dev_err(hdev->dev, "F/W file was not found\n");
-+				return rc;
-+			}
-+		}
-+
-+		rc = asic_funcs->phy_fw_load_all(hdev);
-+		if (rc) {
-+			dev_err(hdev->dev, "F/W load for all failed\n");
-+			return rc;
-+		}
-+	}
-+
-+	if (hdev->phy_config_fw)
-+		dev_dbg(hdev->dev, "F/W CRC: 0x%x\n", asic_funcs->phy_get_crc(hdev));
-+
-+	for (i = 0; i < hdev->cn_props.num_of_macros; i++) {
-+		hdev->cn_macros[i].phy_macro_needs_reset = true;
-+		hdev->cn_macros[i].rec_link_sts = 0;
-+	}
-+
-+	memset(hdev->phy_ber_info, 0,
-+	       hdev->cn_props.max_num_of_lanes * sizeof(struct hbl_cn_ber_info));
-+
-+	rc = asic_funcs->core_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "core init failed\n");
-+		return rc;
-+	}
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++, port_cnt++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+		cn_macro = cn_port->cn_macro;
-+		port = cn_port->port;
-+
-+		/* In case this port got disabled, enable it back here */
-+		cn_port->disabled = false;
-+		/* Port toggle count should be reinitialized for each port upond hard reset only */
-+		cn_port->port_toggle_cnt = 0;
-+		cn_port->port_toggle_cnt_prev = 0;
-+
-+		/* Reset the macro PHY once on boot.
-+		 * This function resets all the 4 lanes in the PHY macro, therefore only one of the
-+		 * two ports of the macro should call it.
-+		 */
-+		if (hdev->phy_config_fw && cn_macro->phy_macro_needs_reset) {
-+			rc = asic_funcs->phy_reset_macro(cn_macro);
-+			if (rc) {
-+				dev_err(hdev->dev, "PHY reset macro failed for port %d\n", port);
-+				goto err;
-+			}
-+
-+			cn_macro->phy_macro_needs_reset = false;
-+		}
-+
-+		hbl_cn_spmu_init(cn_port, false);
-+
-+		cn_port->auto_neg_enable = !!(hdev->auto_neg_mask & BIT(port));
-+
-+		if (!hdev->in_reset)
-+			cn_port->eth_enable = !!(BIT(port) & hdev->ext_ports_mask);
-+
-+		/* This function must be called after setting cn_port->eth_enable */
-+		hbl_cn_mac_loopback_init(cn_port);
 +	}
 +
 +	return 0;
 +
 +err:
-+	asic_funcs->core_fini(hdev);
++	/* free the allocated rings indices */
++	for (--i; i >= 0; i--) {
++		ring = &gaudi2_port->cq_rings[i];
++		hbl_cn_dma_pool_free(hdev, RING_PI_ADDRESS(ring), RING_PI_DMA_ADDRESS(ring));
++	}
++
++	/* free rings memory */
++	hbl_cn_dma_free_coherent(hdev, total_queues_size, cpu_addr, dma_addr);
 +
 +	return rc;
 +}
 +
-+static void hbl_cn_core_fini(struct hbl_cn_device *hdev)
++static void gaudi2_cn_free_cq_rings(struct gaudi2_cn_port *gaudi2_port)
 +{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	struct hbl_cn_ring *ring;
++	int i;
 +
-+	asic_funcs->core_fini(hdev);
++	for (i = 0; i < NIC_CQS_NUM; i++) {
++		ring = &gaudi2_port->cq_rings[i];
++		hbl_cn_dma_pool_free(hdev, RING_PI_ADDRESS(ring), RING_PI_DMA_ADDRESS(ring));
++	}
++
++	/* the entire CQs memory is allocated as one chunk and stored at index 0 */
++	ring = &gaudi2_port->cq_rings[0];
++	hbl_cn_dma_free_coherent(hdev, RING_BUF_SIZE(ring), RING_BUF_ADDRESS(ring),
++				 RING_BUF_DMA_ADDRESS(ring));
 +}
 +
-+static void wq_arrays_pool_destroy(struct hbl_cn_device *hdev)
++static int gaudi2_cn_alloc_rings_resources(struct gaudi2_cn_port *gaudi2_port)
 +{
-+	if (!hdev->wq_arrays_pool_enable)
-+		return;
-+
-+	gen_pool_destroy(hdev->wq_arrays_pool);
-+}
-+
-+static int wq_arrays_pool_alloc(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_properties *cn_props;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
 +	int rc;
 +
-+	if (!hdev->wq_arrays_pool_enable)
-+		return 0;
-+
-+	cn_props = &hdev->cn_props;
-+
-+	hdev->wq_arrays_pool = gen_pool_create(ilog2(hdev->cache_line_size), -1);
-+	if (!hdev->wq_arrays_pool) {
-+		dev_err(hdev->dev, "Failed to create a pool to manage WQ arrays on HBM\n");
-+		rc = -ENOMEM;
-+		goto gen_pool_create_fail;
-+	}
-+
-+	gen_pool_set_algo(hdev->wq_arrays_pool, gen_pool_best_fit, NULL);
-+
-+	rc = gen_pool_add(hdev->wq_arrays_pool, cn_props->wq_base_addr, cn_props->wq_base_size,
-+			  -1);
++	rc = hbl_cn_alloc_ring(hdev, &gaudi2_port->fifo_ring,
++			       ALIGN(sizeof(u32), DEVICE_CACHE_LINE_SIZE), 1);
 +	if (rc) {
-+		dev_err(hdev->dev, "Failed to add memory to the WQ arrays pool\n");
-+		goto gen_pool_add_fail;
-+	}
-+
-+	return 0;
-+
-+gen_pool_add_fail:
-+	gen_pool_destroy(hdev->wq_arrays_pool);
-+gen_pool_create_fail:
-+	return rc;
-+}
-+
-+int __hbl_cn_ports_reopen(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_en_aux_ops *aux_ops;
-+	struct hbl_aux_dev *en_aux_dev;
-+	int rc;
-+
-+	en_aux_dev = &hdev->en_aux_dev;
-+	aux_ops = en_aux_dev->aux_ops;
-+
-+	rc = hbl_cn_kernel_ctx_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to init kernel context\n");
++		dev_err(hdev->dev, "Failed to allocate fifo ring\n");
 +		return rc;
 +	}
 +
-+	rc = hbl_cn_core_init(hdev);
++	rc = hbl_cn_alloc_ring(hdev, &gaudi2_port->rx_ring, NIC_RAW_ELEM_SIZE,
++			       NIC_RX_RING_PKT_NUM);
 +	if (rc) {
-+		dev_err(hdev->dev, "Failed to init core\n");
-+		goto core_init_fail;
++		dev_err(hdev->dev, "Failed to allocate RX ring\n");
++		goto err_rx_ring;
 +	}
 +
-+	rc = hbl_cn_internal_ports_init(hdev);
++	rc = hbl_cn_alloc_ring(hdev, &gaudi2_port->wq_ring, sizeof(struct gaudi2_sq_wqe),
++			       QP_WQE_NUM_REC);
 +	if (rc) {
-+		dev_err(hdev->dev, "Failed to init internal ports\n");
-+		goto internal_ports_fail;
++		dev_err(hdev->dev, "Failed to allocate WQ ring\n");
++		goto err_wq_ring;
 +	}
 +
-+	hdev->in_reset = false;
-+	hdev->fw_reset = false;
-+	hdev->operational = true;
++	rc = hbl_cn_alloc_ring(hdev, &gaudi2_port->eq_ring, sizeof(struct hbl_cn_eqe),
++			       NIC_EQ_RING_NUM_REC);
++	if (rc) {
++		dev_err(hdev->dev, "Failed to allocate EQ ring\n");
++		goto err_eq_ring;
++	}
 +
-+	if (aux_ops->ports_reopen) {
-+		rc = aux_ops->ports_reopen(en_aux_dev);
-+		if (rc) {
-+			dev_err(hdev->dev, "Failed to reopen en ports\n");
-+			goto en_ports_reopen_fail;
-+		}
++	rc = gaudi2_cn_alloc_cq_rings(gaudi2_port);
++	if (rc) {
++		dev_err(hdev->dev, "Failed to allocate CQ rings\n");
++		goto err_cq_rings;
 +	}
 +
 +	return 0;
 +
-+en_ports_reopen_fail:
-+	hdev->operational = false;
-+	hbl_cn_internal_ports_fini(hdev);
-+internal_ports_fail:
-+	hbl_cn_core_fini(hdev);
-+core_init_fail:
-+	hbl_cn_kernel_ctx_fini(hdev);
++err_cq_rings:
++	hbl_cn_free_ring(hdev, &gaudi2_port->eq_ring);
++err_eq_ring:
++	hbl_cn_free_ring(hdev, &gaudi2_port->wq_ring);
++err_wq_ring:
++	hbl_cn_free_ring(hdev, &gaudi2_port->rx_ring);
++err_rx_ring:
++	hbl_cn_free_ring(hdev, &gaudi2_port->fifo_ring);
 +
 +	return rc;
 +}
 +
-+void __hbl_cn_stop(struct hbl_cn_device *hdev)
++static void gaudi2_cn_free_rings_resources(struct gaudi2_cn_port *gaudi2_port)
 +{
-+	struct hbl_en_aux_ops *aux_ops;
-+	struct hbl_aux_dev *en_aux_dev;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
 +
-+	en_aux_dev = &hdev->en_aux_dev;
-+	aux_ops = en_aux_dev->aux_ops;
-+
-+	/* Cancelling all outstanding works for all ports should be done first when stopping */
-+	hdev->asic_funcs->ports_cancel_status_work(hdev);
-+
-+	qps_stop(hdev);
-+
-+	if (aux_ops->ports_stop)
-+		aux_ops->ports_stop(en_aux_dev);
-+
-+	hbl_cn_internal_ports_fini(hdev);
-+	hbl_cn_core_fini(hdev);
-+	hbl_cn_kernel_ctx_fini(hdev);
++	gaudi2_cn_free_cq_rings(gaudi2_port);
++	hbl_cn_free_ring(hdev, &gaudi2_port->eq_ring);
++	hbl_cn_free_ring(hdev, &gaudi2_port->wq_ring);
++	hbl_cn_free_ring(hdev, &gaudi2_port->rx_ring);
++	hbl_cn_free_ring(hdev, &gaudi2_port->fifo_ring);
 +}
 +
-+void __hbl_cn_hard_reset_prepare(struct hbl_cn_device *hdev, bool fw_reset, bool in_teardown)
++static void gaudi2_cn_reset_rings(struct gaudi2_cn_port *gaudi2_port)
 +{
-+	struct hbl_en_aux_ops *aux_ops;
-+	struct hbl_aux_dev *en_aux_dev;
++	struct hbl_cn_ring *cq_ring;
 +
-+	en_aux_dev = &hdev->en_aux_dev;
-+	aux_ops = en_aux_dev->aux_ops;
-+
-+	hdev->in_reset = true;
-+	hdev->fw_reset = fw_reset;
-+	hdev->in_teardown = in_teardown;
-+	hdev->operational = false;
-+
-+	mutex_lock(&hdev->hw_access_lock);
-+	mutex_unlock(&hdev->hw_access_lock);
-+
-+	if (aux_ops->ports_stop_prepare)
-+		aux_ops->ports_stop_prepare(en_aux_dev);
++	/* Reset CQ ring HW PI and shadow PI/CI */
++	cq_ring = &gaudi2_port->cq_rings[NIC_CQ_RDMA_IDX];
++	*((u32 *)RING_PI_ADDRESS(cq_ring)) = 0;
++	cq_ring->pi_shadow = 0;
++	cq_ring->ci_shadow = 0;
 +}
 +
-+void hbl_cn_hard_reset_prepare(struct hbl_aux_dev *cn_aux_dev, bool fw_reset, bool in_teardown)
++static void gaudi2_cn_port_sw_fini(struct hbl_cn_port *cn_port)
 +{
-+	struct hbl_cn_device *hdev = cn_aux_dev->priv;
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
 +
-+	__hbl_cn_hard_reset_prepare(hdev, fw_reset, in_teardown);
++	mutex_destroy(&gaudi2_port->qp_destroy_lock);
++	mutex_destroy(&gaudi2_port->cfg_lock);
++
++	hbl_cn_eq_dispatcher_fini(cn_port);
++	gaudi2_cn_free_rings_resources(gaudi2_port);
 +}
 +
-+int hbl_cn_send_port_cpucp_status(struct hbl_aux_dev *aux_dev, u32 port, u8 cmd, u8 period)
++static void link_eqe_init(struct hbl_cn_port *cn_port)
 +{
-+	struct hbl_cn_device *hdev = aux_dev->priv;
-+	struct hbl_cn_port *cn_port;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	if (cmd > HBL_CN_STATUS_PERIODIC_STOP) {
-+		dev_err(hdev->dev, "Received invalid CN status cmd (%d) from F/W, port %d", cmd,
-+			port);
-+		return -EINVAL;
-+	}
-+
-+	hdev->status_cmd = cmd;
-+	hdev->status_period = (cmd == HBL_CN_STATUS_PERIODIC_START) ? period : 0;
-+
-+	if (cmd == HBL_CN_STATUS_PERIODIC_STOP)
-+		cancel_delayed_work_sync(&cn_port->fw_status_work);
-+	else
-+		queue_delayed_work(cn_port->wq, &cn_port->fw_status_work, 0);
-+
-+	return 0;
++	/* Init only header. Data field(i.e. link status) would be updated
++	 * when event is ready to be sent to user.
++	 */
++	cn_port->link_eqe.data[0] = EQE_HEADER(true, EQE_LINK_STATUS);
 +}
 +
-+static void hbl_cn_get_cpucp_info(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	aux_ops->get_cpucp_info(aux_dev, hdev->cpucp_info);
-+}
-+
-+static int hbl_cn_ports_reopen(struct hbl_aux_dev *aux_dev)
-+{
-+	struct hbl_cn_device *hdev = aux_dev->priv;
-+	int rc;
-+
-+	/* update CPUCP info after device reset */
-+	hbl_cn_get_cpucp_info(hdev);
-+
-+	rc = hbl_cn_request_irqs(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to request IRQs\n");
-+		return rc;
-+	}
-+
-+	rc = __hbl_cn_ports_reopen(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to reopen ports\n");
-+		goto free_irqs;
-+	}
-+
-+	return 0;
-+
-+free_irqs:
-+	hbl_cn_free_irqs(hdev);
-+
-+	return rc;
-+}
-+
-+static void hbl_cn_stop(struct hbl_aux_dev *aux_dev)
-+{
-+	struct hbl_cn_device *hdev = aux_dev->priv;
-+
-+	__hbl_cn_stop(hdev);
-+
-+	hbl_cn_synchronize_irqs(aux_dev);
-+	hbl_cn_free_irqs(hdev);
-+}
-+
-+static int hbl_cn_set_static_properties(struct hbl_cn_device *hdev)
-+{
-+	return hdev->asic_funcs->set_static_properties(hdev);
-+}
-+
-+static int hbl_cn_set_dram_properties(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	return asic_funcs->set_dram_properties(hdev);
-+}
-+
-+static int hbl_cn_set_asic_funcs(struct hbl_cn_device *hdev)
-+{
-+	switch (hdev->asic_type) {
-+	case HBL_ASIC_GAUDI2:
-+	default:
-+		dev_err(hdev->dev, "Unrecognized ASIC type %d\n", hdev->asic_type);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+int hbl_cn_dev_init(struct hbl_cn_device *hdev)
-+{
-+	int rc;
-+
-+	if (!hdev->ports_mask) {
-+		dev_err(hdev->dev, "All ports are disabled\n");
-+		return -EINVAL;
-+	}
-+
-+	/* must be called first to init the ASIC funcs */
-+	rc = hbl_cn_set_asic_funcs(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "failed to set ASIC aux ops\n");
-+		return rc;
-+	}
-+
-+	/* get CPUCP info before initializing the device */
-+	hbl_cn_get_cpucp_info(hdev);
-+
-+	/* init static cn properties */
-+	rc = hbl_cn_set_static_properties(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to set static properties\n");
-+		return rc;
-+	}
-+
-+	/* init DRAM cn properties */
-+	rc = hbl_cn_set_dram_properties(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "failed to set DRAM properties\n");
-+		return rc;
-+	}
-+
-+	rc = hbl_cn_sw_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "SW init failed\n");
-+		return rc;
-+	}
-+
-+	rc = hbl_cn_request_irqs(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to request IRQs\n");
-+		goto request_irqs_fail;
-+	}
-+
-+	rc = hbl_cn_kernel_ctx_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to init kernel context\n");
-+		goto kernel_ctx_init_fail;
-+	}
-+
-+	rc = hbl_cn_core_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to init core\n");
-+		goto core_init_fail;
-+	}
-+
-+	rc = hbl_cn_internal_ports_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to init internal ports\n");
-+		goto internal_ports_init_fail;
-+	}
-+
-+	rc = wq_arrays_pool_alloc(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to init WQ arrays pool\n");
-+		goto wq_arrays_pool_alloc_fail;
-+	}
-+
-+	hbl_cn_mem_init(hdev);
-+
-+	hdev->operational = true;
-+
-+	rc = hbl_cn_en_aux_drv_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to init Ethernet driver\n");
-+		goto en_aux_drv_fail;
-+	}
-+
-+	rc = hbl_cn_ib_aux_drv_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to init IB driver\n");
-+		goto ib_aux_drv_fail;
-+	}
-+
-+	hbl_cn_late_init(hdev);
-+
-+	hdev->is_initialized = true;
-+
-+	return 0;
-+
-+ib_aux_drv_fail:
-+	hbl_cn_en_aux_drv_fini(hdev);
-+en_aux_drv_fail:
-+	hdev->operational = false;
-+	hbl_cn_mem_fini(hdev);
-+	wq_arrays_pool_destroy(hdev);
-+wq_arrays_pool_alloc_fail:
-+	hbl_cn_internal_ports_fini(hdev);
-+internal_ports_init_fail:
-+	hbl_cn_core_fini(hdev);
-+core_init_fail:
-+	hbl_cn_kernel_ctx_fini(hdev);
-+kernel_ctx_init_fail:
-+	hbl_cn_free_irqs(hdev);
-+request_irqs_fail:
-+	hbl_cn_sw_fini(hdev);
-+
-+	return rc;
-+}
-+
-+void hbl_cn_dev_fini(struct hbl_cn_device *hdev)
-+{
-+	if (!hdev->is_initialized)
-+		return;
-+
-+	hdev->is_initialized = false;
-+
-+	if (hdev->hw_stop_during_teardown) {
-+		hbl_cn_hard_reset_prepare(hdev->cn_aux_dev, false, true);
-+		hbl_cn_stop(hdev->cn_aux_dev);
-+	}
-+
-+	hbl_cn_late_fini(hdev);
-+
-+	hbl_cn_ib_aux_drv_fini(hdev);
-+	/* must be called after MSI was disabled */
-+	hbl_cn_en_aux_drv_fini(hdev);
-+	hbl_cn_mem_fini(hdev);
-+	wq_arrays_pool_destroy(hdev);
-+	hbl_cn_sw_fini(hdev);
-+}
-+
-+static int hbl_cn_cmd_port_check(struct hbl_cn_device *hdev, u32 port, u32 flags)
-+{
-+	bool check_open = flags & NIC_PORT_CHECK_OPEN,
-+		check_enable = (flags & NIC_PORT_CHECK_ENABLE) || check_open,
-+		print_on_err = flags & NIC_PORT_PRINT_ON_ERR;
-+	struct hbl_cn_port *cn_port;
-+
-+	if (port >= hdev->cn_props.max_num_of_ports) {
-+		if (print_on_err)
-+			dev_dbg(hdev->dev, "Invalid port %d\n", port);
-+		return -EINVAL;
-+	}
-+
-+	if (check_enable && !(hdev->ports_mask & BIT(port))) {
-+		if (print_on_err)
-+			dev_dbg(hdev->dev, "Port %d is disabled\n", port);
-+		return -ENODEV;
-+	}
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	if (check_open && !hbl_cn_is_port_open(cn_port)) {
-+		if (print_on_err)
-+			dev_dbg(hdev->dev, "Port %d is closed\n", port);
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static void hbl_cn_get_qp_id_range(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id)
++static int gaudi2_cn_port_sw_init(struct hbl_cn_port *cn_port)
 +{
 +	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_funcs *asic_funcs;
++	struct gaudi2_cn_port *gaudi2_port;
++	struct gaudi2_cn_device *gaudi2;
++	u32 port = cn_port->port;
++	int rc;
 +
-+	asic_funcs = hdev->asic_funcs;
++	gaudi2 = hdev->asic_specific;
++	gaudi2_port = &gaudi2->cn_ports[port];
++	gaudi2_port->hdev = hdev;
++	gaudi2_port->cn_port = cn_port;
++	cn_port->cn_specific = gaudi2_port;
 +
-+	asic_funcs->port_funcs->get_qp_id_range(cn_port, min_id, max_id);
++	cn_port->cn_macro = &hdev->cn_macros[port >> 1];
 +
-+	/* Take the minimum between the max id supported by the port and the max id supported by
-+	 * the WQs number the user asked to allocate.
++	INIT_DELAYED_WORK(&cn_port->fw_status_work, hbl_cn_fw_status_work);
++
++	rc = gaudi2_cn_alloc_rings_resources(gaudi2_port);
++	if (rc) {
++		dev_err(hdev->dev, "Failed to alloc rings, port: %d, %d\n", port, rc);
++		return rc;
++	}
++
++	hbl_cn_eq_dispatcher_init(gaudi2_port->cn_port);
++
++	mutex_init(&gaudi2_port->cfg_lock);
++	mutex_init(&gaudi2_port->qp_destroy_lock);
++
++	/* Userspace might not be notified immediately of link event from HW.
++	 * e.g. if serdes is not yet configured or link is not stable, SW might
++	 * defer sending link event to userspace.
++	 * Hence we cache HW link EQE and updated with real link status just
++	 * before sending to userspace.
 +	 */
-+	*max_id = min(cn_port->qp_idx_offset + cn_port->num_of_wqs - 1, *max_id);
++	link_eqe_init(cn_port);
++
++	return 0;
 +}
 +
-+static void hbl_cn_qp_do_release(struct hbl_cn_qp *qp)
++static int gaudi2_cn_macro_sw_init(struct hbl_cn_macro *cn_macro)
 +{
-+	struct hbl_cn_qpc_drain_attr drain_attr = { .wait_for_idle = false, };
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
++	return 0;
++}
 +
-+	if (IS_ERR_OR_NULL(qp))
++static void gaudi2_cn_macro_sw_fini(struct hbl_cn_macro *cn_macro)
++{
++}
++
++static int gaudi2_cn_set_pfc(struct hbl_cn_port *cn_port)
++{
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port, val = 0;
++	int i, start_lane;
++
++	val |= NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG_TX_ENA_MASK |
++		NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG_RX_ENA_MASK |
++		NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG_PROMIS_EN_MASK |
++		NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG_TX_PAD_EN_MASK;
++
++	if (cn_port->pfc_enable) {
++		val |= NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG_PFC_MODE_MASK;
++	} else {
++		val |= NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG_PAUSE_IGNORE_MASK |
++		       NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG_CNTL_FRAME_ENA_MASK;
++	}
++
++	/* Write the value for each lane under this port */
++	start_lane = (port & 1) ? (NIC_MAC_NUM_OF_LANES / 2) : NIC_MAC_LANES_START;
++
++	for (i = start_lane; i < start_lane + (NIC_MAC_NUM_OF_LANES / 2); i++)
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG + MAC_CH_OFFSET(i), val);
++
++	return 0;
++}
++
++static int gaudi2_cn_config_port_hw_txs(struct gaudi2_cn_port *gaudi2_port)
++{
++	u32 txs_schedq, txs_fence_idx, txs_pi, txs_ci, txs_tail, txs_head, txs_timeout_31_0,
++	    timeout_47_32, prio, txs_port, rl_en_log_time;
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct cpucp_cn_init_hw_mem_packet pkt;
++	struct hbl_cn_properties *cn_prop;
++	struct hbl_cn_device *hdev;
++	u32 port = cn_port->port;
++	bool use_cpucp;
++	u64 txs_addr;
++	int i, rc;
++
++	hdev = gaudi2_port->hdev;
++	cn_prop = &hdev->cn_props;
++
++	txs_addr = cn_prop->txs_base_addr + port * cn_prop->txs_base_size;
++
++	use_cpucp = !!(hdev->fw_app_cpu_boot_dev_sts0 & CPU_BOOT_DEV_STS0_NIC_MEM_CLEAR_EN);
++	if (use_cpucp) {
++		memset(&pkt, 0, sizeof(pkt));
++		pkt.cpucp_pkt.ctl = cpu_to_le32(CPUCP_PACKET_NIC_INIT_TXS_MEM <<
++						CPUCP_PKT_CTL_OPCODE_SHIFT);
++		pkt.cpucp_pkt.port_index = cpu_to_le32(port);
++		pkt.mem_base_addr = cpu_to_le64(txs_addr + TXS_FREE_OFFS);
++		pkt.num_entries = cpu_to_le16(TXS_FREE_NUM_ENTRIES);
++		pkt.entry_size = cpu_to_le16(TXS_ENT_SIZE);
++		pkt.granularity = cpu_to_le16(TXS_GRANULARITY);
++
++		rc = gaudi2_cn_send_cpu_message(hdev, (u32 *)&pkt, sizeof(pkt), 0, NULL);
++
++		if (rc) {
++			dev_err(hdev->dev,
++				"Failed to handle CPU-CP pkt %u, error %d\n",
++				CPUCP_PACKET_NIC_INIT_TXS_MEM, rc);
++			return rc;
++		}
++	} else {
++		/* TX sched-Qs list */
++		for (i = 0; i < TXS_FREE_NUM_ENTRIES; i++)
++			hbl_cn_dram_writel(hdev, TXS_GRANULARITY + i,
++					   txs_addr + TXS_FREE_OFFS + i * TXS_ENT_SIZE);
++
++		/* Perform read to flush the writes */
++		hbl_cn_dram_readl(hdev, txs_addr);
++	}
++
++	WARN_ON_CACHE_UNALIGNED(txs_addr + TXS_FIFO_OFFS);
++
++	/* set TX sched queues address */
++	NIC_WREG32(NIC0_TXS0_BASE_ADDRESS_63_32, upper_32_bits(txs_addr + TXS_FIFO_OFFS));
++	NIC_WREG32(NIC0_TXS0_BASE_ADDRESS_31_7, lower_32_bits(txs_addr + TXS_FIFO_OFFS) >> 7);
++
++	/* Set access to bypass the MMU (old style configuration) */
++	NIC_WREG32(NIC0_TXS0_AXI_USER_LO, 0x400);
++
++	NIC_WREG32(NIC0_TXS0_FREE_LIST_PUSH_MASK_EN, 1);
++
++	txs_fence_idx = 0;
++	txs_pi = 0;
++	txs_ci = 0;
++	txs_tail = 0;
++	txs_head = 0;
++	txs_timeout_31_0 = 0;
++	timeout_47_32 = 0;
++	prio = 0;
++	txs_port = 0;
++	rl_en_log_time = 0;
++
++	/* Gaudi2 TXS implements 256 schedule-Qs.
++	 * These queues are hard-divided to 4x64 priority groups of Qs.
++	 *    (The first and last Q group-relative numbers of each group (0-63) can be configured
++	 *     via NIC0_TXS0_FIRST_SCHEDQ_ID and NIC0_TXS0_LAST_SCHEDQ_ID, We will use its
++	 *     default values of 0 and 63 respectively).
++	 * From the above pools we need to allocate and configure:
++	 *   256 Qs (0-255) are evenly divided between the 4 possible ports so each port is
++	 *       assigned with 64 Qs.
++	 *   The 64 Qs are divided between the 4 possible priorities generating 16
++	 *   priority-granularity groups of which:
++	 *   - The Last group is dedicated for Ethernet (RAW_SCHED_Q).
++	 *   - The last-1 group is dedicated for the RDMA responder (RES_SCHED_Q)
++	 *   - The Last-2 group is dedicated for the RDMA Req (REQ_SCHED_Q)
++	 *   - The remaining Qs will be used by the BBR when supported.
++	 */
++	for (i = 0; i < TXS_SCHEDQ; i++) {
++		/* main sched Qs */
++		txs_port = i / TXS_PORT_NUM_SCHEDQS;
++
++		prio = i % HBL_EN_PFC_PRIO_NUM;
++		txs_schedq = (timeout_47_32 & 0xFFFF) | ((prio & 0x3) << 16) |
++			     ((txs_port & 1) << 18) | ((rl_en_log_time & 0x3F) << 19);
++		txs_tail = i;
++		txs_head = i;
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_DESC_31_0, txs_fence_idx);
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_DESC_63_32, txs_pi);
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_DESC_95_64, txs_ci);
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_DESC_127_96, txs_tail);
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_DESC_159_128, txs_head);
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_DESC_191_160, txs_timeout_31_0);
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_DESC_217_192, txs_schedq);
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_FIFO, i);
++		NIC_WREG32(NIC0_TXS0_SCHEDQ_UPDATE_EN, 1);
++	}
++
++	NIC_WREG32(NIC0_TXS0_TICK_WRAP, 100);
++
++	NIC_WREG32(NIC0_TXS0_SCAN_TIME_COMPARE_0, 4);
++	NIC_WREG32(NIC0_TXS0_SCAN_TIME_COMPARE_1, 0);
++	NIC_WREG32(NIC0_TXS0_TMR_SCAN_EN, 1);
++
++	NIC_WREG32(NIC0_TXS0_BASE_ADDRESS_FREE_LIST_63_32,
++		   upper_32_bits(txs_addr + TXS_FREE_OFFS));
++
++	NIC_WREG32(NIC0_TXS0_BASE_ADDRESS_FREE_LIST_31_0,
++		   lower_32_bits(txs_addr + TXS_FREE_OFFS));
++
++	NIC_WREG32(NIC0_TXS0_LIST_MASK,
++		   ~(0xFFFFFFFF << (ilog2(TXS_FREE_NUM_ENTRIES) - 5)));
++	NIC_WREG32(NIC0_TXS0_PRODUCER_UPDATE, TXS_FREE_NUM_ENTRIES);
++	NIC_WREG32(NIC0_TXS0_PRODUCER_UPDATE_EN, 1);
++	NIC_WREG32(NIC0_TXS0_PRODUCER_UPDATE_EN, 0);
++	NIC_WREG32(NIC0_TXS0_LIST_MEM_READ_MASK, 0);
++	NIC_WREG32(NIC0_TXS0_PUSH_LOCK_EN, 1);
++
++	/* disable burst size optimization */
++	NIC_WREG32(NIC0_TXS0_IGNORE_BURST_EN, 0);
++
++	return 0;
++}
++
++static void gaudi2_cn_config_port_hw_txe(struct gaudi2_cn_port *gaudi2_port, u64 mac_addr)
++{
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	struct hbl_cn_properties *cn_prop;
++	u32 port;
++
++	cn_prop = &hdev->cn_props;
++	port = gaudi2_port->cn_port->port;
++
++	/* set the base address of the raw wq */
++	NIC_WREG32(NIC0_TXE0_SQ_BASE_ADDRESS_63_32_0,
++		   upper_32_bits(RING_BUF_DMA_ADDRESS(&gaudi2_port->wq_ring)));
++
++	NIC_WREG32(NIC0_TXE0_SQ_BASE_ADDRESS_31_0_0,
++		   lower_32_bits(RING_BUF_DMA_ADDRESS(&gaudi2_port->wq_ring)));
++
++	NIC_WREG32(NIC0_TXE0_LOG_MAX_WQ_SIZE_0, WQ_BUFFER_LOG_SIZE - 2);
++
++	/* map: prio#0-dscp#0, prio#1-dscp#0, prio#2-dscp#16, prio#3-dscp#24 */
++	NIC_WREG32(NIC0_TXE0_PRIO_TO_DSCP_0, 0x18100000);
++
++	NIC_WREG32(NIC0_TXE0_PORT0_MAC_CFG_47_32, (mac_addr >> 32) & 0xFFFF);
++	NIC_WREG32(NIC0_TXE0_PORT0_MAC_CFG_31_0, mac_addr & 0xFFFFFFFF);
++	NIC_WREG32(NIC0_TXE0_PORT1_MAC_CFG_47_32, (mac_addr >> 32) & 0xFFFF);
++	NIC_WREG32(NIC0_TXE0_PORT1_MAC_CFG_31_0, mac_addr & 0xFFFFFFFF);
++
++	/* set MMU bypass for kernel WQ */
++	NIC_WREG32(NIC0_TXE0_WQE_USER_CFG, 0x1);
++
++	NIC_WREG32(NIC0_TXE0_WQE_PREFETCH_CFG, 0x3);
++
++	NIC_WREG32(NIC0_TXE0_BTH_MKEY, 0xffff);
++
++	/* 100ms BW window size */
++	NIC_WREG32(NIC0_TXE0_STATS_CFG0, cn_prop->clk * PERF_BW_WINDOW_USEC);
++	NIC_RMWREG32(NIC0_TXE0_STATS_CFG1, 1, NIC0_TXE0_STATS_CFG1_LATENCY_ENABLE_MASK);
++	NIC_RMWREG32(NIC0_TXE0_STATS_CFG1, 0, NIC0_TXE0_STATS_CFG1_WIN_TYPE_MASK);
++	NIC_RMWREG32(NIC0_TXE0_STATS_CFG1, 0, NIC0_TXE0_STATS_CFG1_WIN_SAMP_LATENCY_MASK);
++	NIC_RMWREG32(NIC0_TXE0_STATS_CFG1, 3, NIC0_TXE0_STATS_CFG1_TOT_TYPE_MASK);
++	NIC_RMWREG32(NIC0_TXE0_STATS_CFG1, 1, NIC0_TXE0_STATS_CFG1_ENABLE_MASK);
++	NIC_RMWREG32(NIC0_TXE0_STATS_CFG2, 0, NIC0_TXE0_STATS_CFG2_LATENCY_WRAP_EN_MASK);
++	/* 2us latency window size */
++	NIC_RMWREG32(NIC0_TXE0_STATS_CFG2, 2 * cn_prop->clk,
++		     NIC0_TXE0_STATS_CFG2_LATENCY_MAX_VAL_MASK);
++}
++
++static void gaudi2_cn_config_port_hw_qpc(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	u64 req_qpc_base_addr, res_qpc_base_addr;
++	struct hbl_cn_properties *cn_prop;
++	struct hbl_cn_device *hdev;
++	u32 port = cn_port->port;
++
++	hdev = gaudi2_port->hdev;
++	cn_prop = &hdev->cn_props;
++
++	req_qpc_base_addr = cn_prop->req_qpc_base_addr + port * cn_prop->req_qpc_base_size;
++	res_qpc_base_addr = cn_prop->res_qpc_base_addr + port * cn_prop->res_qpc_base_size;
++
++	WARN_ON_CACHE_UNALIGNED(req_qpc_base_addr);
++	WARN_ON_CACHE_UNALIGNED(res_qpc_base_addr);
++
++	NIC_WREG32(NIC0_QPC0_REQ_BASE_ADDRESS_63_32, upper_32_bits(req_qpc_base_addr));
++	NIC_WREG32(NIC0_QPC0_REQ_BASE_ADDRESS_31_7, lower_32_bits(req_qpc_base_addr) >> 7);
++
++	NIC_WREG32(NIC0_QPC0_RES_BASE_ADDRESS_63_32, upper_32_bits(res_qpc_base_addr));
++	NIC_WREG32(NIC0_QPC0_RES_BASE_ADDRESS_31_7, lower_32_bits(res_qpc_base_addr) >> 7);
++
++	NIC_WREG32(NIC0_QPC0_RES_QPC_CACHE_INVALIDATE, 1);
++	NIC_WREG32(NIC0_QPC0_REQ_QPC_CACHE_INVALIDATE, 1);
++	NIC_WREG32(NIC0_QPC0_RES_QPC_CACHE_INVALIDATE, 0);
++	NIC_WREG32(NIC0_QPC0_REQ_QPC_CACHE_INVALIDATE, 0);
++
++	NIC_WREG32(NIC0_QPC0_INTERRUPT_CAUSE, 0);
++
++	/* Configure MMU-BP override for DB-FIFOs */
++	NIC_WREG32(NIC0_QPC0_AXUSER_DB_FIFO_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_WREG32(NIC0_QPC0_AXUSER_DB_FIFO_HB_RD_OVRD_LO, 0xFFFFFBFF);
++
++	WARN_ON_CACHE_UNALIGNED(RING_BUF_DMA_ADDRESS(&gaudi2_port->fifo_ring));
++
++	/* Configure doorbell */
++	NIC_WREG32(NIC0_QPC0_DBFIFOSECUR_CI_UPD_ADDR_DBFIFO_CI_UPD_ADDR_63_32,
++		   upper_32_bits(RING_BUF_DMA_ADDRESS(&gaudi2_port->fifo_ring)));
++	NIC_WREG32(NIC0_QPC0_DBFIFOSECUR_CI_UPD_ADDR_DBFIFO_CI_UPD_ADDR_31_7,
++		   lower_32_bits(RING_BUF_DMA_ADDRESS(&gaudi2_port->fifo_ring)) >> 7);
++
++	gaudi2_cn_eq_dispatcher_register_db(gaudi2_port, hdev->kernel_asid,
++					    GAUDI2_DB_FIFO_SECURE_HW_ID);
++
++	/* Configure MMU-BP override for error-FIFO */
++	NIC_WREG32(NIC0_QPC0_AXUSER_ERR_FIFO_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_WREG32(NIC0_QPC0_AXUSER_ERR_FIFO_HB_RD_OVRD_LO, 0xFFFFFBFF);
++
++	NIC_WREG32(NIC0_QPC0_RETRY_COUNT_MAX,
++		   (GAUDI2_NIC_MAX_TIMEOUT_RETRIES << NIC0_QPC0_RETRY_COUNT_MAX_TIMEOUT_SHIFT) |
++		   (GAUDI2_NIC_MAX_SEQ_ERR_RETRIES <<
++			NIC0_QPC0_RETRY_COUNT_MAX_SEQUENCE_ERROR_SHIFT));
++
++	/* Configure MMU-BP override for QPCs */
++	NIC_WREG32(NIC0_QPC0_AXUSER_QPC_REQ_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_WREG32(NIC0_QPC0_AXUSER_QPC_REQ_HB_RD_OVRD_LO, 0xFFFFFBFF);
++	NIC_WREG32(NIC0_QPC0_AXUSER_QPC_RESP_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_WREG32(NIC0_QPC0_AXUSER_QPC_RESP_HB_RD_OVRD_LO, 0xFFFFFBFF);
++
++	/* Configure MMU-BP override for Congestion-Queue */
++	NIC_WREG32(NIC0_QPC0_AXUSER_CONG_QUE_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_WREG32(NIC0_QPC0_AXUSER_CONG_QUE_HB_RD_OVRD_LO, 0xFFFFFBFF);
++
++	NIC_RMWREG32(NIC0_QPC0_REQ_STATIC_CONFIG, 1,
++		     NIC0_QPC0_REQ_STATIC_CONFIG_QM_MOVEQP2ERR_SECUR_ERR_MASK);
++	NIC_RMWREG32(NIC0_QPC0_REQ_STATIC_CONFIG, 0,
++		     NIC0_QPC0_REQ_STATIC_CONFIG_QM_PUSH_TO_ERROR_ASID_MASK);
++	NIC_RMWREG32(NIC0_QPC0_REQ_STATIC_CONFIG, 1,
++		     NIC0_QPC0_REQ_STATIC_CONFIG_QM_UPD_IGNORE_ASID_ERR_MASK);
++	NIC_RMWREG32(NIC0_QPC0_REQ_STATIC_CONFIG, 0,
++		     NIC0_QPC0_REQ_STATIC_CONFIG_QM_MOVEQP2ERR_ASID_ERR_MASK);
++	NIC_RMWREG32(NIC0_QPC0_REQ_STATIC_CONFIG, 1,
++		     NIC0_QPC0_REQ_STATIC_CONFIG_QM_PUSH_TO_ERROR_SECURITY_MASK);
++
++	/* Disable the WTD back-pressure mechanism to ARC and QMAN - it will be
++	 * enabled later on by the user.
++	 */
++	NIC_RMWREG32_SHIFTED(NIC0_QPC0_WTD_CONFIG, 0, NIC0_QPC0_WTD_CONFIG_WQ_BP_2ARC_EN_MASK |
++			     NIC0_QPC0_WTD_CONFIG_WQ_BP_2QMAN_EN_MASK);
++}
++
++static void gaudi2_cn_config_port_hw_rxe(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_ring *cq_ring = &gaudi2_port->cq_rings[NIC_CQ_RAW_IDX];
++	struct hbl_cn_properties *cn_prop = &gaudi2_port->hdev->cn_props;
++	struct hbl_cn_ring *rx_ring = &gaudi2_port->rx_ring;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = gaudi2_port->cn_port->port;
++	u32 rx_mem_addr_lo, rx_mem_addr_hi;
++	int i;
++
++	rx_mem_addr_lo = lower_32_bits(RING_BUF_DMA_ADDRESS(rx_ring));
++	rx_mem_addr_hi = upper_32_bits(RING_BUF_DMA_ADDRESS(rx_ring));
++
++	NIC_WREG32(NIC0_RXE0_RAW_QPN_P0_0, RAW_QPN);
++	NIC_WREG32(NIC0_RXE0_RAW_QPN_P0_1, RAW_QPN);
++	NIC_WREG32(NIC0_RXE0_RAW_QPN_P1_0, RAW_QPN);
++	NIC_WREG32(NIC0_RXE0_RAW_QPN_P1_1, RAW_QPN);
++	NIC_WREG32(NIC0_RXE0_RAW_QPN_P2_0, RAW_QPN);
++	NIC_WREG32(NIC0_RXE0_RAW_QPN_P2_1, RAW_QPN);
++	NIC_WREG32(NIC0_RXE0_RAW_QPN_P3_0, RAW_QPN);
++	NIC_WREG32(NIC0_RXE0_RAW_QPN_P3_1, RAW_QPN);
++
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_LO_P0_0, rx_mem_addr_lo);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_LO_P0_1, rx_mem_addr_lo);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_HI_P0_0, rx_mem_addr_hi);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_HI_P0_1, rx_mem_addr_hi);
++
++	/* #define NIC5_RXE1_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_SHIFT 0   */
++	/* #define NIC5_RXE1_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK  0xF */
++
++	/* #define NIC5_RXE1_RAW_MISC_P2_LOG_BUFFER_SIZE_MASK_P2_SHIFT 15 */
++	/* #define NIC5_RXE1_RAW_MISC_P2_LOG_BUFFER_SIZE_MASK_P2_MASK     */
++	/* 0xF8000                                                        */
++
++	NIC_WREG32(NIC0_RXE0_RAW_MISC_P0_0,
++		   (ilog2(rx_ring->elem_size) & NIC0_RXE0_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK) |
++		   ((ilog2(rx_ring->count) & 0x1F) << 15));
++
++	NIC_WREG32(NIC0_RXE0_RAW_MISC_P0_1,
++		   (ilog2(rx_ring->elem_size) & NIC0_RXE0_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK) |
++		   ((ilog2(rx_ring->count) & 0x1F) << 15));
++
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_LO_P1_0, rx_mem_addr_lo);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_LO_P1_1, rx_mem_addr_lo);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_HI_P1_0, rx_mem_addr_hi);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_HI_P1_1, rx_mem_addr_hi);
++
++	NIC_WREG32(NIC0_RXE0_RAW_MISC_P1_0,
++		   (ilog2(rx_ring->elem_size) & NIC0_RXE0_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK) |
++		   ((ilog2(rx_ring->count) & 0x1F) << 15));
++
++	NIC_WREG32(NIC0_RXE0_RAW_MISC_P1_1,
++		   (ilog2(rx_ring->elem_size) & NIC0_RXE0_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK) |
++		   ((ilog2(rx_ring->count) & 0x1F) << 15));
++
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_LO_P2_0, rx_mem_addr_lo);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_LO_P2_1, rx_mem_addr_lo);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_HI_P2_0, rx_mem_addr_hi);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_HI_P2_1, rx_mem_addr_hi);
++
++	NIC_WREG32(NIC0_RXE0_RAW_MISC_P2_0,
++		   (ilog2(rx_ring->elem_size) & NIC0_RXE0_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK) |
++		   ((ilog2(rx_ring->count) & 0x1F) << 15));
++
++	NIC_WREG32(NIC0_RXE0_RAW_MISC_P2_1,
++		   (ilog2(rx_ring->elem_size) & NIC0_RXE0_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK) |
++		   ((ilog2(rx_ring->count) & 0x1F) << 15));
++
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_LO_P3_0, rx_mem_addr_lo);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_LO_P3_1, rx_mem_addr_lo);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_HI_P3_0, rx_mem_addr_hi);
++	NIC_WREG32(NIC0_RXE0_RAW_BASE_HI_P3_1, rx_mem_addr_hi);
++
++	NIC_WREG32(NIC0_RXE0_RAW_MISC_P3_0,
++		   (ilog2(rx_ring->elem_size) & NIC0_RXE0_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK) |
++		   ((ilog2(rx_ring->count) & 0x1F) << 15));
++
++	NIC_WREG32(NIC0_RXE0_RAW_MISC_P3_1,
++		   (ilog2(rx_ring->elem_size) & NIC0_RXE0_RAW_MISC_P2_LOG_RAW_ENTRY_SIZE_P2_MASK) |
++		   ((ilog2(rx_ring->count) & 0x1F) << 15));
++
++	NIC_WREG32(NIC0_RXE0_CQ_BASE_ADDR_63_32, upper_32_bits(RING_BUF_DMA_ADDRESS(cq_ring)));
++	NIC_WREG32(NIC0_RXE0_CQ_BASE_ADDR_31_7,
++		   lower_32_bits(RING_BUF_DMA_ADDRESS(cq_ring)) & 0xFFFFFF80);
++
++	NIC_WREG32(NIC0_RXE0_CQ_PI_ADDR_HI_0,
++		   upper_32_bits(RING_PI_DMA_ADDRESS(cq_ring)));
++	NIC_WREG32(NIC0_RXE0_CQ_PI_ADDR_LO_0,
++		   lower_32_bits(RING_PI_DMA_ADDRESS(cq_ring)) & 0xFFFFFF80);
++
++	/* Set the max CQ size */
++	NIC_WREG32(NIC0_RXE0_CQ_LOG_MAX_SIZE, ilog2(NIC_CQ_MAX_ENTRIES));
++
++	/* Set the actual single CQ size log2(number of entries in cq)*/
++	NIC_WREG32(NIC0_RXE0_CQ_LOG_SIZE_0, ilog2(cq_ring->count));
++
++	/* Initialize MMU-BP for all CQs */
++	for (i = 0; i < cn_prop->max_cqs; i++)
++		NIC_WREG32(NIC0_RXE0_AXUSER_AXUSER_CQ0_HB_WR_OVRD_LO +
++			   (i * NIC_RXE_AXUSER_AXUSER_CQ_OFFSET), 0xFFFFFBFF);
++
++	NIC_WREG32(NIC0_RXE0_CQ_WRITE_INDEX_0, 0);
++	NIC_WREG32(NIC0_RXE0_CQ_PRODUCER_INDEX_0, 0);
++	NIC_WREG32(NIC0_RXE0_CQ_CONSUMER_INDEX_0, 0);
++
++	/* enable, pi-update and completion-events */
++	NIC_WREG32(NIC0_RXE0_CQ_CFG_0, 1 << NIC0_RXE0_CQ_CFG_WRITE_PI_EN_SHIFT |
++		   1 << NIC0_RXE0_CQ_CFG_ENABLE_SHIFT);
++
++	/* disable all RDMA CQs */
++	for (i = 1; i < cn_prop->max_cqs; i++)
++		NIC_WREG32(NIC0_RXE0_CQ_CFG_0 + i * 4, 0);
++
++	/* set MMU bypass for kernel WQ */
++	NIC_WREG32(NIC0_RXE0_ARUSER_MMU_BP, 0x1);
++
++	/* set SPMU RXE counters of Group 1 */
++	NIC_WREG32(NIC0_RXE0_DBG_SPMU_SELECT, 0x1);
++}
++
++static void gaudi2_cn_config_hw_mac_filter(struct gaudi2_cn_port *gaudi2_port, u64 mac_addr)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port;
++
++	if (cn_port->eth_enable) {
++		if (port & 1) {
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_31_0_2,
++					 mac_addr & 0xFFFFFFFF);
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_47_32_2,
++					 (mac_addr >> 32) & 0xFFFF);
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_31_0_MASK_2, 0);
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_47_32_MASK_2, 0);
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RAW0_MAC_31_0_2,
++					 mac_addr & 0xFFFFFFFF);
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RAW0_MAC_47_32_2,
++					 (mac_addr >> 32) & 0xFFFF);
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RAW0_MAC_31_0_MASK_2, 0);
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RAW0_MAC_47_32_MASK_2, 0);
++		} else {
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_31_0_0,
++					 mac_addr & 0xFFFFFFFF);
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_47_32_0,
++					 (mac_addr >> 32) & 0xFFFF);
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_31_0_MASK_0, 0);
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_47_32_MASK_0, 0);
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RAW0_MAC_31_0_0,
++					 mac_addr & 0xFFFFFFFF);
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RAW0_MAC_47_32_0,
++					 (mac_addr >> 32) & 0xFFFF);
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RAW0_MAC_31_0_MASK_0, 0);
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RAW0_MAC_47_32_MASK_0, 0);
++		}
++	} else {
++		if (port & 1) {
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_31_0_MASK_2, 0xFFFFFFFF);
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_47_32_MASK_2, 0xFFFF);
++		} else {
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_31_0_MASK_0, 0xFFFFFFFF);
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TS_RC_MAC_47_32_MASK_0, 0xFFFF);
++		}
++	}
++}
++
++static int gaudi2_cn_hw_mac_ch_reset(struct gaudi2_cn_port *gaudi2_port, int lane)
++{
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = gaudi2_port->cn_port->port;
++	ktime_t timeout;
++	u32 read_reg;
++
++	if (hdev->skip_mac_reset)
++		return 0;
++
++	timeout = ktime_add_ms(ktime_get(), hdev->pending_reset_long_timeout * 1000ull);
++
++	do {
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_CONTROL1 + MAC_CH_OFFSET(lane),
++				 BIT(NIC0_MAC_CH0_MAC_PCS_CONTROL1_FLD_RESET_SHIFT));
++		usleep_range(50, 200);
++
++		read_reg = NIC_MACRO_RREG32(NIC0_MAC_CH0_MAC_PCS_CONTROL1 + MAC_CH_OFFSET(lane));
++	} while ((read_reg & NIC0_MAC_CH0_MAC_PCS_CONTROL1_FLD_RESET_MASK) &&
++		ktime_compare(ktime_get(), timeout) < 0);
++
++	if (read_reg & NIC0_MAC_CH0_MAC_PCS_CONTROL1_FLD_RESET_MASK) {
++		dev_err(hdev->dev, "Timeout while MAC channel %d reset\n", lane);
++		return -EBUSY;
++	}
++
++	return 0;
++}
++
++static void gaudi2_cn_hw_mac_port_config_lane_speed(struct gaudi2_cn_port *gaudi2_port, int i)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port;
++
++	switch (cn_port->speed) {
++	case SPEED_25000:
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL_INTVL + MAC_CH_OFFSET(i),
++				 REGMASK(0x4FFF,
++					 NIC0_MAC_CH0_MAC_PCS_VENDOR_VL_INTVL_MARKER_COUNTER));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_PCS_MODE + MAC_CH_OFFSET(i),
++				 REGMASK(1, NIC0_MAC_CH0_MAC_PCS_VENDOR_PCS_MODE_ENA_CLAUSE49) |
++				 REGMASK(1, NIC0_MAC_CH0_MAC_PCS_VENDOR_PCS_MODE_HI_BER25));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xC1, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0_M0) |
++				 REGMASK(0x68, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x21, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xF0, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0_M0) |
++				 REGMASK(0xC4, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xE6, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xC5, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0_M0) |
++				 REGMASK(0x65, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x9B, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xA2, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0_M0) |
++				 REGMASK(0x79, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x3D,  NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_1_M2));
++		break;
++	case SPEED_50000:
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL_INTVL + MAC_CH_OFFSET(i),
++				 REGMASK(0x4FFF,
++					 NIC0_MAC_CH0_MAC_PCS_VENDOR_VL_INTVL_MARKER_COUNTER));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_PCS_MODE + MAC_CH_OFFSET(i), 0x0);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x90, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0_M0) |
++				 REGMASK(0x76, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x47, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xF0, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0_M0) |
++				 REGMASK(0xC4, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xE6, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xC5, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0_M0) |
++				 REGMASK(0x65, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x9B, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xA2, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0_M0) |
++				 REGMASK(0x79, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x3D, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_1_M2));
++		break;
++	case SPEED_100000:
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL_INTVL + MAC_CH_OFFSET(i),
++				 REGMASK(0x3FFF,
++					 NIC0_MAC_CH0_MAC_PCS_VENDOR_VL_INTVL_MARKER_COUNTER));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_PCS_MODE + MAC_CH_OFFSET(i), 0x0);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xC1, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0_M0) |
++				 REGMASK(0x68, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x21, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL0_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x9D, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0_M0) |
++				 REGMASK(0x71, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x8E, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL1_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x59, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0_M0) |
++				 REGMASK(0x4B, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xE8, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL2_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x4D, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0_M0) |
++				 REGMASK(0x95, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_0_M1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x7B, NIC0_MAC_CH0_MAC_PCS_VENDOR_VL3_1_M2));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL4_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x7F5, NIC0_MAC_CH0_MAC_PCS_VL4_0_VL4_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL4_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x9, NIC0_MAC_CH0_MAC_PCS_VL4_1_VL4_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL5_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x14DD, NIC0_MAC_CH0_MAC_PCS_VL5_0_VL5_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL5_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xC2, NIC0_MAC_CH0_MAC_PCS_VL5_1_VL5_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL6_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x4A9A, NIC0_MAC_CH0_MAC_PCS_VL6_0_VL6_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL6_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x26, NIC0_MAC_CH0_MAC_PCS_VL6_1_VL6_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL7_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x457B, NIC0_MAC_CH0_MAC_PCS_VL7_0_VL7_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL7_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x66, NIC0_MAC_CH0_MAC_PCS_VL7_1_VL7_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL8_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x24A0, NIC0_MAC_CH0_MAC_PCS_VL8_0_VL8_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL8_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x76, NIC0_MAC_CH0_MAC_PCS_VL8_1_VL8_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL9_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xC968, NIC0_MAC_CH0_MAC_PCS_VL9_0_VL9_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL9_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xFB, NIC0_MAC_CH0_MAC_PCS_VL9_1_VL9_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL10_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x6CFD, NIC0_MAC_CH0_MAC_PCS_VL10_0_VL10_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL10_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x99, NIC0_MAC_CH0_MAC_PCS_VL10_1_VL10_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL11_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x91B9, NIC0_MAC_CH0_MAC_PCS_VL11_0_VL11_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL11_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x55, NIC0_MAC_CH0_MAC_PCS_VL11_1_VL11_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL12_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xB95C, NIC0_MAC_CH0_MAC_PCS_VL12_0_VL12_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL12_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xB2, NIC0_MAC_CH0_MAC_PCS_VL12_1_VL12_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL13_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xF81A, NIC0_MAC_CH0_MAC_PCS_VL13_0_VL13_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL13_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xBD, NIC0_MAC_CH0_MAC_PCS_VL13_1_VL13_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL14_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xC783, NIC0_MAC_CH0_MAC_PCS_VL14_0_VL14_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL14_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xCA, NIC0_MAC_CH0_MAC_PCS_VL14_1_VL14_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL15_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x3635, NIC0_MAC_CH0_MAC_PCS_VL15_0_VL15_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL15_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xCD, NIC0_MAC_CH0_MAC_PCS_VL15_1_VL15_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL16_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x31C4, NIC0_MAC_CH0_MAC_PCS_VL16_0_VL16_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL16_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x4C, NIC0_MAC_CH0_MAC_PCS_VL16_1_VL16_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL17_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xD6AD, NIC0_MAC_CH0_MAC_PCS_VL17_0_VL17_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL17_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xB7, NIC0_MAC_CH0_MAC_PCS_VL17_1_VL17_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL18_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0x665F, NIC0_MAC_CH0_MAC_PCS_VL18_0_VL18_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL18_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0x2A, NIC0_MAC_CH0_MAC_PCS_VL18_1_VL18_1));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL19_0 + MAC_CH_OFFSET(i),
++				 REGMASK(0xF0C0, NIC0_MAC_CH0_MAC_PCS_VL19_0_VL19_0));
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_PCS_VL19_1 + MAC_CH_OFFSET(i),
++				 REGMASK(0xE5, NIC0_MAC_CH0_MAC_PCS_VL19_1_VL19_1));
++		break;
++	default:
++		dev_err(hdev->dev, "unknown port %d speed %dMb/s, cannot set MAC XPCS\n", port,
++			cn_port->speed);
 +		return;
++	}
++}
 +
-+	cn_port = qp->cn_port;
-+	port_funcs = cn_port->hdev->asic_funcs->port_funcs;
++static void gaudi2_cn_hw_mac_port_config(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port;
++	int i, start_lane;
++
++	start_lane = (port & 1) ? (NIC_MAC_NUM_OF_LANES / 2) : NIC_MAC_LANES_START;
++
++	for (i = start_lane; i < start_lane + (NIC_MAC_NUM_OF_LANES / 2); i++) {
++		gaudi2_cn_hw_mac_ch_reset(gaudi2_port, i);
++
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_FRM_LENGTH + MAC_CH_OFFSET(i),
++				 NIC_MAC_MAX_FRM_LEN);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_COMMAND_CONFIG + MAC_CH_OFFSET(i), 0x2913);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_TX_FIFO_SECTIONS + MAC_CH_OFFSET(i), 0x4);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_RX_FIFO_SECTIONS + MAC_CH_OFFSET(i), 0x4);
++
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL01_PAUSE_QUANTA + MAC_CH_OFFSET(i),
++				 0xFFFFFFFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL01_QUANTA_THRESH + MAC_CH_OFFSET(i),
++				 0x7FFF7FFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL23_PAUSE_QUANTA + MAC_CH_OFFSET(i),
++				 0xFFFFFFFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL23_QUANTA_THRESH + MAC_CH_OFFSET(i),
++				 0x7FFF7FFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL45_PAUSE_QUANTA + MAC_CH_OFFSET(i),
++				 0xFFFFFFFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL45_QUANTA_THRESH + MAC_CH_OFFSET(i),
++				 0x7FFF7FFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL67_PAUSE_QUANTA + MAC_CH_OFFSET(i),
++				 0xFFFFFFFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL67_QUANTA_THRESH + MAC_CH_OFFSET(i),
++				 0x7FFF7FFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL89_PAUSE_QUANTA + MAC_CH_OFFSET(i),
++				 0xFFFFFFFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL89_QUANTA_THRESH + MAC_CH_OFFSET(i),
++				 0x7FFF7FFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL1011_PAUSE_QUANTA + MAC_CH_OFFSET(i),
++				 0xFFFFFFFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL1011_QUANTA_THRESH + MAC_CH_OFFSET(i),
++				 0x7FFF7FFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL1213_PAUSE_QUANTA + MAC_CH_OFFSET(i),
++				 0xFFFFFFFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL1213_QUANTA_THRESH + MAC_CH_OFFSET(i),
++				 0x7FFF7FFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL1415_PAUSE_QUANTA + MAC_CH_OFFSET(i),
++				 0xFFFFFFFF);
++		NIC_MACRO_WREG32(NIC0_MAC_CH0_MAC_128_CL1415_QUANTA_THRESH + MAC_CH_OFFSET(i),
++				 0x7FFF7FFF);
++
++		gaudi2_cn_hw_mac_port_config_lane_speed(gaudi2_port, i);
++	}
++}
++
++static void gaudi2_cn_enable_port_interrupts(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	/* enable RXE block interrupts. RXE SPI interrupts should stay masked out,
++	 * they generate a lot of events which are not fatal errors
++	 */
++	NIC_WREG32(NIC0_RXE0_SEI_INTR_MASK, 0x0);
++
++	/* enable TXS block interrupts */
++	NIC_WREG32(NIC0_TXS0_INTERRUPT_MASK, 0x0);
++
++	/* enable TXE block interrupts */
++	NIC_WREG32(NIC0_TXE0_INTERRUPT_MASK, 0x0);
++
++	/* enable QPC response error interrupts */
++	NIC_WREG32(NIC0_QPC0_INTERRUPT_RESP_ERR_MASK, 0x0);
++}
++
++static void gaudi2_cn_disable_port_interrupts(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	/* disable RXE block interrupts */
++	NIC_WREG32(NIC0_RXE0_SEI_INTR_MASK, 0xF);
++
++	/* disable TXS block interrupts */
++	NIC_WREG32(NIC0_TXS0_INTERRUPT_MASK, 0xF);
++
++	/* disable TXE block interrupts */
++	NIC_WREG32(NIC0_TXE0_INTERRUPT_MASK, 0x7F);
++
++	/* disable QPC response error interrupts */
++	NIC_WREG32(NIC0_QPC0_INTERRUPT_RESP_ERR_MASK, 0x7F);
++}
++
++static int gaudi2_cn_hw_port_config(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port;
++	u64 mac_addr = 0;
++	int i, rc = 0;
++
++	for (i = 0; i < ETH_ALEN; i++) {
++		mac_addr <<= 8;
++		mac_addr |= hdev->cpucp_info->mac_addrs[port].mac_addr[i];
++	}
++
++	/* TXS Configuration */
++	rc = gaudi2_cn_config_port_hw_txs(gaudi2_port);
++	if (rc)
++		return rc;
++
++	/* TXE Configuration */
++	gaudi2_cn_config_port_hw_txe(gaudi2_port, mac_addr);
++
++	/* QPC Configuration */
++	gaudi2_cn_config_port_hw_qpc(gaudi2_port);
++
++	/* RXE Configuration */
++	gaudi2_cn_config_port_hw_rxe(gaudi2_port);
++
++	/* MAC filtering */
++	gaudi2_cn_config_hw_mac_filter(gaudi2_port, mac_addr);
++
++	/* Lanes Configuration */
++	gaudi2_cn_hw_mac_port_config(gaudi2_port);
++
++	/* PFC Configuration */
++	gaudi2_cn_set_pfc(cn_port);
++
++	/* Enable port GIC interrupts - required only if running on PLDM */
++	if (hdev->pldm)
++		gaudi2_cn_enable_port_interrupts(cn_port);
++
++	return rc;
++}
++
++void gaudi2_cn_hw_mac_loopback_cfg(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_port *cn_port;
++	struct hbl_cn_device *hdev;
++	u32 port, val;
++
++	cn_port = gaudi2_port->cn_port;
++	hdev = cn_port->hdev;
++	port = cn_port->port;
++	val = !!cn_port->mac_loopback;
++
++	if (port & 1) {
++		/* odd ports use lanes 2,3 */
++		NIC_MACRO_RMWREG32(NIC0_MAC_CH2_MAC_PCS_CONTROL1, val,
++				   NIC0_MAC_CH0_MAC_PCS_CONTROL1_LOOPBACK_MASK);
++		NIC_MACRO_RMWREG32(NIC0_MAC_CH3_MAC_PCS_CONTROL1, val,
++				   NIC0_MAC_CH0_MAC_PCS_CONTROL1_LOOPBACK_MASK);
++	} else {
++		/* even ports use lanes 0,1 */
++		NIC_MACRO_RMWREG32(NIC0_MAC_CH0_MAC_PCS_CONTROL1, val,
++				   NIC0_MAC_CH0_MAC_PCS_CONTROL1_LOOPBACK_MASK);
++		NIC_MACRO_RMWREG32(NIC0_MAC_CH1_MAC_PCS_CONTROL1, val,
++				   NIC0_MAC_CH0_MAC_PCS_CONTROL1_LOOPBACK_MASK);
++	}
++
++	/* flush cfg */
++	NIC_MACRO_RREG32(NIC0_MAC_CH0_MAC_PCS_CONTROL1);
++}
++
++bool gaudi2_cn_is_cq_in_overrun(struct hbl_cn_port *cn_port, u8 cq_id)
++{
++	struct hbl_cn_user_cq *user_cq;
++	bool is_cq_in_overrun = false;
++
++	user_cq = hbl_cn_user_cq_get(cn_port, cq_id);
++	if (user_cq) {
++		is_cq_in_overrun = user_cq->qp_set_overrun_cnt > 0;
++		hbl_cn_user_cq_put(user_cq);
++	}
++
++	return is_cq_in_overrun;
++}
++
++static void gaudi2_cn_qp_pre_destroy(struct hbl_cn_qp *qp)
++{
++	struct hbl_cn_port *cn_port = qp->cn_port;
++	struct gaudi2_cn_port *gaudi2_port;
++
++	gaudi2_port = cn_port->cn_specific;
++
++	mutex_lock(&gaudi2_port->qp_destroy_lock);
++
++	/* only the first QP should enable MAC loopback */
++	if (++gaudi2_port->qp_destroy_cnt == 1 && !cn_port->mac_loopback && !cn_port->pcs_link) {
++		cn_port->mac_loopback = true;
++		gaudi2_cn_hw_mac_loopback_cfg(gaudi2_port);
++		gaudi2_port->qp_destroy_mac_lpbk = true;
++	}
++
++	mutex_unlock(&gaudi2_port->qp_destroy_lock);
++}
++
++static void gaudi2_cn_qp_post_destroy(struct hbl_cn_qp *qp)
++{
++	struct hbl_cn_port *cn_port = qp->cn_port;
++	struct gaudi2_cn_port *gaudi2_port;
++
++	gaudi2_port = cn_port->cn_specific;
++
++	mutex_lock(&gaudi2_port->qp_destroy_lock);
++
++	/* only the last QP should disable MAC loopback */
++	if (!--gaudi2_port->qp_destroy_cnt && gaudi2_port->qp_destroy_mac_lpbk) {
++		cn_port->mac_loopback = false;
++		gaudi2_cn_hw_mac_loopback_cfg(gaudi2_port);
++		gaudi2_port->qp_destroy_mac_lpbk = false;
++	}
++
++	mutex_unlock(&gaudi2_port->qp_destroy_lock);
++}
++
++static int gaudi2_cn_hw_config(struct gaudi2_cn_port *gaudi2_port)
++{
++	int rc = 0;
++
++	rc = gaudi2_cn_hw_port_config(gaudi2_port);
++	if (rc)
++		return rc;
++
++	gaudi2_cn_hw_mac_loopback_cfg(gaudi2_port);
++
++	return rc;
++}
++
++static int gaudi2_cn_port_hw_init(struct hbl_cn_port *cn_port)
++{
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port;
++	int rc;
++
++	gaudi2_cn_reset_rings(gaudi2_port);
++
++	/* register the Eth CQ with the event dispatcher */
++	rc = hbl_cn_eq_dispatcher_register_cq(cn_port, gaudi2_port->cq_rings[NIC_CQ_RAW_IDX].asid,
++					      NIC_CQ_RAW_IDX);
++	if (rc) {
++		dev_err(hdev->dev, "failed to register port %d CQ %d with cn_eq_sw\n", port,
++			NIC_CQ_RAW_IDX);
++		goto cq_register_fail;
++	}
++
++	rc = gaudi2_cn_hw_config(gaudi2_port);
++	if (rc)
++		goto cq_init_fail;
++
++	cn_port->eq_handler_enable = true;
++
++	rc = gaudi2_qp_sanity_init(gaudi2_port);
++	if (rc) {
++		dev_err(hdev->dev, "Failed to init QP sanity, port: %d, %d\n", port, rc);
++		goto cq_init_fail;
++	}
++
++	return 0;
++
++cq_init_fail:
++	cn_port->eq_handler_enable = false;
++	hbl_cn_eq_dispatcher_unregister_cq(cn_port, NIC_CQ_RAW_IDX);
++cq_register_fail:
++
++	return rc;
++}
++
++static void gaudi2_cn_port_hw_fini(struct hbl_cn_port *cn_port)
++{
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++
++	/* Disable port GIC interrupts - required only if running on PLDM */
++	if (hdev->pldm)
++		gaudi2_cn_disable_port_interrupts(cn_port);
++
++	gaudi2_qp_sanity_fini(gaudi2_port);
++
++	cn_port->eq_handler_enable = false;
++
++	hbl_cn_eq_dispatcher_unregister_cq(cn_port, NIC_CQ_RAW_IDX);
++	hbl_cn_eq_dispatcher_unregister_db(cn_port, GAUDI2_DB_FIFO_SECURE_HW_ID);
++
++	hbl_cn_eq_dispatcher_reset(cn_port);
++}
++
++static bool qpc_op_cond_func(u32 val, void *arg)
++{
++	return !val;
++}
++
++/* must be called under mutex_lock(&cn_port->qpc_lock) */
++static int gaudi2_cn_qpc_op(struct hbl_cn_port *cn_port, u64 ctrl, bool wait_for_completion)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++	int rc = 0;
++
++	NIC_WREG32(NIC0_QPC0_GW_CTRL, ctrl);
++
++	NIC_WREG32(NIC0_QPC0_GW_BUSY, 1);
++
++	/* do not poll on registers when reset was initiated by FW */
++	if (wait_for_completion && !hdev->fw_reset) {
++		u32 addr = NIC0_QPC0_GW_BUSY + NIC_CFG_BASE(port, NIC0_QPC0_GW_BUSY);
++
++		rc = gaudi2_cn_poll_reg(hdev, addr, hdev->qpc_cache_inv_timeout, qpc_op_cond_func,
++					NULL);
++	}
++
++	return rc;
++}
++
++static int gaudi2_cn_qpc_write_masked(struct hbl_cn_port *cn_port, const void *qpc_data,
++				      const struct qpc_mask *qpc_mask, u32 qpn, bool is_req,
++				      bool force_doorbell)
++{
++	struct hbl_cn_device *hdev;
++	u32 port, data_size, ctrl;
++	const u32 *mask, *data;
++	int i, rc;
++
++	hdev = cn_port->hdev;
++	port = cn_port->port;
++	data_size = is_req ? sizeof(struct gaudi2_qpc_requester) :
++		    sizeof(struct gaudi2_qpc_responder);
++	mask = (const u32 *)qpc_mask;
++	data = qpc_data;
++
++	/* Don't write to the Gw if its busy with prev operation */
++	if (NIC_RREG32(NIC0_QPC0_GW_BUSY)) {
++		if (hbl_cn_comp_device_operational(hdev))
++			dev_err(hdev->dev, "Cannot write to port %d QP %d %s QPC, GW is busy\n",
++				port, qpn, is_req ? "requester" : "responder");
++
++		return (hdev->in_teardown && hdev->hw_invalid_while_teardown) ? 0 : -EBUSY;
++	}
++
++	/* Copy the mask and data to the gateway regs.
++	 * Only the data bits with their corresponding mask-bits set will be written
++	 * to the HW.
++	 */
++	for (i = 0; i < (sizeof(struct qpc_mask) / sizeof(u32)); i++)
++		NIC_WREG32(NIC0_QPC0_GW_MASK_0 + i * sizeof(u32), mask[i]);
++
++	for (i = 0; i < (data_size / sizeof(u32)); i++)
++		NIC_WREG32(NIC0_QPC0_GW_DATA_0 + i * sizeof(u32), data[i]);
++
++	ctrl = (is_req << NIC0_QPC0_GW_CTRL_REQUESTER_SHIFT) | qpn |
++	       (!!force_doorbell << NIC0_QPC0_GW_CTRL_DOORBELL_FORCE_SHIFT);
++
++	rc = gaudi2_cn_qpc_op(cn_port, ctrl, true);
++	if (rc && hbl_cn_comp_device_operational(hdev))
++		/* Device might not respond during reset if the reset was due to error */
++		dev_err(hdev->dev, "%s QPC GW write timeout, port: %d, qpn: %u\n",
++			is_req ? "requester" : "responder", port, qpn);
++
++	return rc;
++}
++
++bool gaudi2_handle_qp_error_retry(struct hbl_cn_port *cn_port, u32 qpn)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct hbl_cn_asic_port_funcs *port_funcs;
++	struct gaudi2_qpc_requester req_qpc = {};
++	struct qpc_mask mask = {};
++	int port = cn_port->port;
++	u8 max_retry_timeout;
++	struct hbl_cn_qp *qp;
++	int rc, retry = 5;
++	u8 timeout_max;
++	u64 wq_delay;
++
++	port_funcs = hdev->asic_funcs->port_funcs;
++	port_funcs->cfg_lock(cn_port);
++	qp = xa_load(&cn_port->qp_ids, qpn);
++
++	if (!qp) {
++		port_funcs->cfg_unlock(cn_port);
++		dev_err(hdev->dev, "adaptive retry, port %d, QP: %d is null\n",
++			port, qpn);
++
++		return false;
++	}
 +
 +	cancel_delayed_work(&qp->adaptive_tmr_reset);
 +
-+	port_funcs->qp_pre_destroy(qp);
++	timeout_max = qp->timeout_granularity + NIC_ADAPTIVE_TIMEOUT_RANGE / 2;
++	if (qp->timeout_curr < timeout_max) {
++		qp->timeout_curr++;
++		/* clear QP error */
++		REQ_QPC_SET_ERR(mask, 1);
++		REQ_QPC_SET_ERR(req_qpc, 0);
++		REQ_QPC_SET_TIMEOUT_RETRY_COUNT(mask, 0xff);
++		REQ_QPC_SET_TIMEOUT_RETRY_COUNT(req_qpc, 0);
++		REQ_QPC_SET_TM_GRANULARITY(mask, 0x7f);
++		REQ_QPC_SET_TM_GRANULARITY(req_qpc, qp->timeout_curr);
 +
-+	/* QP was found before, hence use xa_store to replace the pointer but don't release index.
-+	 * xa_store should not fail in such scenario.
-+	 */
-+	xa_store(&qp->cn_port->qp_ids, qp->qp_id, NULL, GFP_KERNEL);
++		do {
++			rc = gaudi2_cn_qpc_write_masked(cn_port, &req_qpc, &mask, qp->qp_id,
++							true, true);
++			if (rc)
++				dev_err(hdev->dev, "failed to write QPC port %d, %d, err %d\n",
++					port, qpn, rc);
 +
-+	/* drain the Req QP now in order to make sure that accesses to the WQ will not
-+	 * be performed from this point on.
-+	 * Waiting for the WQ to drain is performed in the reset work
-+	 */
-+	hbl_cn_qp_modify(cn_port, qp, CN_QP_STATE_SQD, &drain_attr);
++			rc = gaudi2_cn_qpc_read(cn_port, &req_qpc, qp->qp_id, true);
++			if (rc)
++				dev_err(hdev->dev, "failed to read QPC port %d, %d, err %d\n",
++					port, qpn, rc);
++			if (!REQ_QPC_GET_ERROR(req_qpc))
++				break;
++			retry--;
++		} while (retry);
 +
-+	queue_work(cn_port->qp_wq, &qp->async_work);
-+}
++		if (!retry) {
++			port_funcs->cfg_unlock(cn_port);
++			dev_err(hdev->dev, "failed to clear QPC error port %d, %d\n", port, qpn);
 +
-+static void qp_adaptive_tmr_reset(struct work_struct *work)
-+{
-+	struct hbl_cn_qp *qp = container_of(work, struct hbl_cn_qp, adaptive_tmr_reset.work);
-+	struct hbl_cn_port *cn_port = qp->cn_port;
-+	struct hbl_cn_device *hdev;
++			return false;
++		}
 +
-+	hdev = cn_port->hdev;
++		dev_dbg_ratelimited(hdev->dev, "dropping Port-%d QP error on qp %d\n",
++				    port, qp->qp_id);
 +
-+	hdev->asic_funcs->port_funcs->adaptive_tmr_reset(qp);
-+}
++		max_retry_timeout = GAUDI2_NIC_MAX_TIMEOUT_RETRIES / NIC_ADAPTIVE_TIMEOUT_RANGE;
++		wq_delay = NIC_GRAN_TO_USEC(qp->timeout_curr) * max_retry_timeout *
++			   NIC_TMR_RESET_FACTOR;
++		queue_delayed_work(cn_port->qp_wq, &qp->adaptive_tmr_reset,
++				   msecs_to_jiffies(wq_delay / 1000));
 +
-+static int alloc_qp(struct hbl_cn_device *hdev, struct hbl_cn_ctx *ctx,
-+		    struct hbl_cni_alloc_conn_in *in, struct hbl_cni_alloc_conn_out *out)
-+{
-+	struct hbl_cn_wq_array_properties *swq_arr_props, *rwq_arr_props;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	struct xa_limit id_limit;
-+	u32 min_id, max_id, port;
-+	struct hbl_cn_qp *qp;
-+	int id, rc;
++		port_funcs->cfg_unlock(cn_port);
 +
-+	port = in->port;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
-+	if (!qp)
-+		return -ENOMEM;
-+
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	cn_port = &hdev->cn_ports[port];
-+	qp->cn_port = cn_port;
-+	qp->port = port;
-+	qp->ctx = ctx;
-+	qp->curr_state = CN_QP_STATE_RESET;
-+	INIT_WORK(&qp->async_work, qp_destroy_work);
-+	INIT_DELAYED_WORK(&qp->adaptive_tmr_reset, qp_adaptive_tmr_reset);
-+
-+	hbl_cn_get_qp_id_range(cn_port, &min_id, &max_id);
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	if (!cn_port->set_app_params) {
-+		dev_dbg(hdev->dev,
-+			"Failed to allocate QP, set_app_params wasn't called yet, port %d\n", port);
-+		rc = -EPERM;
-+		goto error_exit;
++		return true;
 +	}
 +
-+	swq_arr_props = &cn_port->wq_arr_props[HBL_CNI_USER_WQ_SEND];
-+	rwq_arr_props = &cn_port->wq_arr_props[HBL_CNI_USER_WQ_RECV];
-+
-+	if (!swq_arr_props->enabled || !rwq_arr_props->enabled) {
-+		dev_dbg(hdev->dev, "Failed to allocate QP as WQs are not configured, port %d\n",
-+			port);
-+		rc = -EPERM;
-+		goto error_exit;
-+	}
-+
-+	if (swq_arr_props->under_unset || rwq_arr_props->under_unset) {
-+		dev_dbg(hdev->dev, "Failed to allocate QP as WQs are under unset, port %d\n", port);
-+		rc = -EPERM;
-+		goto error_exit;
-+	}
-+
-+	id_limit = XA_LIMIT(min_id, max_id);
-+	rc = xa_alloc(&cn_port->qp_ids, &id, qp, id_limit, GFP_KERNEL);
-+	if (rc) {
-+		dev_dbg(hdev->dev, "Failed allocate QP IDR entry, port %d", port);
-+		goto error_exit;
-+	}
-+
-+	qp->qp_id = id;
-+
-+	rc = port_funcs->register_qp(cn_port, id, ctx->asid);
-+	if (rc) {
-+		dev_dbg(hdev->dev, "Failed to register QP %d, port %d\n", id, port);
-+		goto qp_register_error;
-+	}
-+
-+	atomic_inc(&cn_port->num_of_allocated_qps);
++	qp->timeout_curr = qp->timeout_granularity - (NIC_ADAPTIVE_TIMEOUT_RANGE >> 1);
 +
 +	port_funcs->cfg_unlock(cn_port);
 +
-+	out->conn_id = id;
-+
-+	return 0;
-+
-+qp_register_error:
-+	xa_erase(&qp->cn_port->qp_ids, qp->qp_id);
-+error_exit:
-+	port_funcs->cfg_unlock(cn_port);
-+	kfree(qp);
-+	return rc;
++	return false;
 +}
 +
-+u32 hbl_cn_get_wq_array_type(bool is_send)
++static int gaudi2_cn_qpc_write(struct hbl_cn_port *cn_port, void *qpc, struct qpc_mask *qpc_mask,
++			       u32 qpn, bool is_req)
 +{
-+	return is_send ? HBL_CNI_USER_WQ_SEND : HBL_CNI_USER_WQ_RECV;
++	u32 data_size = is_req ? sizeof(struct gaudi2_qpc_requester) :
++			sizeof(struct gaudi2_qpc_responder);
++	struct qpc_mask mask = {};
++
++	if (!qpc_mask) {
++		/* NULL mask flags full QPC write */
++		memset(&mask, 0xFF, data_size);
++		qpc_mask = &mask;
++	}
++
++	return gaudi2_cn_qpc_write_masked(cn_port, qpc, qpc_mask, qpn, is_req, false);
 +}
 +
-+static int alloc_and_map_wq(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp, u32 n_wq,
-+			    bool is_swq)
++static int gaudi2_cn_qpc_invalidate(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp, bool is_req)
 +{
-+	u32 wq_arr_type, wqe_size, qp_idx_offset, wq_idx;
-+	struct hbl_cn_wq_array_properties *wq_arr_props;
-+	struct hbl_cn_mem_data mem_data = {};
-+	struct hbl_cn_properties *cn_props;
-+	struct hbl_cn_device *hdev;
-+	struct hbl_cn_mem_buf *buf;
-+	u64 wq_arr_size, wq_size;
++	struct gaudi2_qpc_requester req_qpc = {};
++	struct gaudi2_qpc_responder res_qpc = {};
++	struct qpc_mask mask = {};
++	void *qpc;
 +	int rc;
 +
-+	hdev = cn_port->hdev;
-+	cn_props = &hdev->cn_props;
-+	qp_idx_offset = cn_port->qp_idx_offset;
-+	wq_idx = qp->qp_id - qp_idx_offset;
-+
-+	wq_arr_type = hbl_cn_get_wq_array_type(is_swq);
-+	wq_arr_props = &cn_port->wq_arr_props[wq_arr_type];
-+	wqe_size = is_swq ? cn_port->swqe_size : cn_props->rwqe_size;
-+
-+	if (wq_arr_props->dva_base) {
-+		mem_data.mem_id = HBL_CN_DRV_MEM_HOST_VIRTUAL;
-+		mem_data.size = PAGE_ALIGN(n_wq * wqe_size);
-+
-+		/* Get offset into device VA block pre-allocated for SWQ.
-+		 *
-+		 * Note: HW indexes into SWQ array using qp_id.
-+		 * In general, it's HW requirement to leave holes in a WQ array if corresponding QP
-+		 * indexes are allocated on another WQ array.
++	if (is_req) {
++		/* use Congestion window mode with RTT state disabled &
++		 * window size 0 to force REQ Tx stop, while Rx remains
++		 * active.
 +		 */
-+		mem_data.device_va = wq_arr_props->dva_base + wq_arr_props->offset +
-+				     wq_arr_props->wq_size * wq_idx;
++		REQ_QPC_SET_CONGESTION_MODE(mask, 3);
++		REQ_QPC_SET_RTT_STATE(mask, 3);
++		REQ_QPC_SET_CONGESTION_WIN(mask, GENMASK(23, 0));
 +
-+		/* Check for out of range. */
-+		if (mem_data.device_va + mem_data.size >
-+			wq_arr_props->dva_base + wq_arr_props->dva_size) {
-+			dev_dbg(hdev->dev,
-+				"Out of range device VA. device_va 0x%llx, size 0x%llx\n",
-+				mem_data.device_va, mem_data.size);
-+			return -EINVAL;
-+		}
++		REQ_QPC_SET_CONGESTION_MODE(req_qpc, 2);
++		REQ_QPC_SET_RTT_STATE(req_qpc, 0);
++		REQ_QPC_SET_CONGESTION_WIN(req_qpc, 0);
++		qpc = &req_qpc;
 +	} else {
-+		/* DMA coherent allocate case. Memory for WQ array is already allocated in
-+		 * user_wq_arr_set(). Here we use the allocated base addresses and QP id to
-+		 * calculate the CPU & bus addresses of the WQ for current QP and return that
-+		 * handle to the user. User may mmap() this handle returned by set_req_qp_ctx()
-+		 * to write WQEs.
++		RES_QPC_SET_VALID(mask, 1);
++		RES_QPC_SET_VALID(res_qpc, 0);
++		qpc = &res_qpc;
++	}
++
++	rc = gaudi2_cn_qpc_write_masked(cn_port, qpc, &mask, qp->qp_id, is_req, false);
++
++	if (is_req) {
++		/* Allow CQ overrun to make sure QP drain is successful. In case PFC is sent due to
++		 * CQ overflow, no Tx can be sent until CQ releases the back-pressure. If in the
++		 * meanwhile a QP needs to be invalidated, no tx will be sent in the QP drain stage.
++		 * This will cause Tx slices to be stuck after the QP drain stage has finished.
++		 * Next when the CQ will be destroyed, it will release the back-pressure, causing
++		 * the stuck Tx slices to be sent (as there's no more back-pressure). Since no QP
++		 * is allocated anymore, AXI errors and QP invalid errors will be received.
++		 * As a workaround to the issue above, allow overrun to the associated CQ of the
++		 * invalidated QP. This will release the back-pressure before the drain stage, and
++		 * will allow all needed tx packets to be drained successfully. Once the drain stage
++		 * is done, and the QP is cleared, disable CQ overrun.
 +		 */
-+		mem_data.mem_id = HBL_CN_DRV_MEM_HOST_MAP_ONLY;
-+
-+		buf = hbl_cn_mem_buf_get(hdev, wq_arr_props->handle);
-+		if (!buf) {
-+			dev_err(hdev->dev, "Failed to retrieve WQ arr handle for port %d\n",
-+				cn_port->port);
-+			return -EINVAL;
++		if (!qp->force_cq_overrun && qp->req_user_cq) {
++			qp->force_cq_overrun = true;
++			gaudi2_user_cq_set_overrun(qp->req_user_cq, true);
 +		}
 +
-+		/* Actual size to allocate. Page aligned since we mmap to user. */
-+		mem_data.size = PAGE_ALIGN(n_wq * wqe_size);
-+		wq_size = wq_arr_props->wq_size;
-+		wq_arr_size = buf->mappable_size;
-+
-+		 /* Get offset into kernel buffer block pre-allocated for SWQ. */
-+		mem_data.in.host_map_data.kernel_address = buf->kernel_address +
-+							   wq_arr_props->offset + wq_size * wq_idx;
-+
-+		mem_data.in.host_map_data.bus_address = buf->bus_address + wq_arr_props->offset +
-+							wq_size * wq_idx;
-+
-+		/* Check for out of range. */
-+		if ((u64)mem_data.in.host_map_data.kernel_address + mem_data.size >
-+		    (u64)buf->kernel_address + wq_arr_size) {
-+			dev_dbg(hdev->dev,
-+				"Out of range kernel addr. kernel addr 0x%p, size 0x%llx\n",
-+				mem_data.in.host_map_data.kernel_address, mem_data.size);
-+			return -EINVAL;
-+		}
++		/* H/W bug H6-3379: the TXE WQ cache is disabled, thus no need to invalidate it */
 +	}
 +
-+	/* Allocate host vmalloc memory and map its physical pages to PMMU. */
-+	rc = hbl_cn_mem_alloc(qp->ctx, &mem_data);
-+	if (rc) {
-+		dev_dbg(hdev->dev, "Failed to allocate %s. Port %d, QP %d\n",
-+			is_swq ? "SWQ" : "RWQ", cn_port->port, qp->qp_id);
++	return rc;
++}
++
++static int gaudi2_cn_qpc_clear(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp, bool is_req)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct gaudi2_qpc_requester req_qpc = {};
++	struct gaudi2_qpc_responder res_qpc = {};
++	u32 port = cn_port->port;
++	struct qpc_mask mask;
++	void *qpc;
++	int rc;
++
++	qpc = is_req ? (void *)&req_qpc : (void *)&res_qpc;
++
++	if (qp->force_cq_overrun && is_req) {
++		qp->force_cq_overrun = false;
++		if (qp->req_user_cq)
++			gaudi2_user_cq_set_overrun(qp->req_user_cq, false);
++	}
++
++	memset(&mask, 0xFF, sizeof(mask));
++
++	rc =  gaudi2_cn_qpc_write_masked(cn_port, qpc, &mask, qp->qp_id, is_req, false);
++	if (rc)
 +		return rc;
-+	}
 +
-+	/* Retrieve mmap handle. */
-+	if (is_swq) {
-+		qp->swq_handle = mem_data.handle;
-+		qp->swq_size = mem_data.size;
-+	} else {
-+		qp->rwq_handle = mem_data.handle;
-+		qp->rwq_size = mem_data.size;
++	if (is_req) {
++		/* Invalidate RXE WQE cache */
++		NIC_RMWREG32(NIC0_RXE0_CACHE_CFG, 1, NIC0_RXE0_CACHE_CFG_INVALIDATION_MASK);
++		NIC_RREG32(NIC0_RXE0_CACHE_CFG);
++
++		NIC_RMWREG32(NIC0_RXE0_CACHE_CFG, 0, NIC0_RXE0_CACHE_CFG_INVALIDATION_MASK);
++		NIC_RREG32(NIC0_RXE0_CACHE_CFG);
 +	}
 +
 +	return 0;
 +}
 +
-+static int set_req_qp_ctx(struct hbl_cn_device *hdev, struct hbl_cni_req_conn_ctx_in *in,
-+			  struct hbl_cni_req_conn_ctx_out *out)
++int gaudi2_cn_qpc_read(struct hbl_cn_port *cn_port, void *qpc, u32 qpn, bool is_req)
 +{
-+	struct hbl_cn_wq_array_properties *swq_arr_props, *rwq_arr_props;
-+	struct hbl_cn_encap_xarray_pdata *encap_data;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	u32 wq_size, port, max_wq_size;
-+	struct hbl_cn_port *cn_port;
-+	struct hbl_cn_qp *qp;
-+	int rc;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	bool force_doorbell = false;
++	u32 *data, port, size;
++	int i, rc;
++	u64 ctrl;
 +
-+	port = in->port;
++	port = cn_port->port;
++	data = qpc;
++	size = is_req ? sizeof(struct gaudi2_qpc_requester) : sizeof(struct gaudi2_qpc_responder);
 +
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
++	/* Don't write to the Gw if its busy with prev operation */
++	if (NIC_RREG32(NIC0_QPC0_GW_BUSY)) {
++		if (hbl_cn_comp_device_operational(hdev))
++			dev_err(hdev->dev, "Cannot read from port %d QP %d %s QPC, GW is busy\n",
++				port, qpn, is_req ? "requester" : "responder");
++
++		return (hdev->in_teardown && hdev->hw_invalid_while_teardown) ? 0 : -EBUSY;
++	}
++
++	/* Clear the mask gateway regs which will cause the operation to be a read */
++	for (i = 0; i < QPC_GW_MASK_REG_NUM; i++)
++		NIC_WREG32(NIC0_QPC0_GW_MASK_0 + i * sizeof(u32), 0);
++
++	ctrl = (is_req << NIC0_QPC0_GW_CTRL_REQUESTER_SHIFT) | qpn |
++	       (!!force_doorbell << NIC0_QPC0_GW_CTRL_DOORBELL_FORCE_SHIFT);
++	rc = gaudi2_cn_qpc_op(cn_port, ctrl, true);
 +	if (rc)
 +		return rc;
 +
-+	asic_funcs = hdev->asic_funcs;
-+	port_funcs = asic_funcs->port_funcs;
-+	cn_port = &hdev->cn_ports[port];
-+
-+	if (in->timer_granularity > NIC_TMR_TIMEOUT_MAX_GRAN) {
-+		dev_err(hdev->dev,
-+			"timer granularity %d is not supported\n", in->timer_granularity);
-+		return -EINVAL;
-+	}
-+
-+	if (!in->timer_granularity && !hbl_cn_is_ibdev_opened(hdev))
-+		in->timer_granularity = NIC_TMR_TIMEOUT_DEFAULT_GRAN;
-+
-+	port_funcs->cfg_lock(cn_port);
-+	qp = xa_load(&cn_port->qp_ids, in->conn_id);
-+
-+	if (IS_ERR_OR_NULL(qp)) {
-+		dev_dbg(hdev->dev, "Failed to find matching QP for handle %d, port %d\n",
-+			in->conn_id, port);
-+		rc = -EINVAL;
-+		goto cfg_unlock;
-+	}
-+
-+	/* sanity test the port IDs */
-+	if (qp->port != port) {
-+		dev_dbg(hdev->dev, "QP port %d does not match requested port %d\n", qp->port, port);
-+		rc = -EINVAL;
-+		goto cfg_unlock;
-+	}
-+
-+	if (in->encap_en) {
-+		encap_data = xa_load(&cn_port->encap_ids, in->encap_id);
-+		if (!encap_data) {
-+			dev_dbg_ratelimited(hdev->dev,
-+					    "Encapsulation ID %d not found, ignoring\n",
-+					    in->encap_id);
-+			in->encap_en = 0;
-+			in->encap_id = 0;
-+		}
-+	}
-+
-+	if (qp->is_req) {
-+		dev_dbg(hdev->dev, "Port %d, QP %d - Requester QP is already set\n", port,
-+			qp->qp_id);
-+		rc = -EINVAL;
-+		goto cfg_unlock;
-+	}
-+
-+	wq_size = in->wq_size;
-+
-+	/* verify that size does not exceed wq_array size */
-+	max_wq_size = cn_port->num_of_wq_entries;
-+
-+	if (wq_size > max_wq_size) {
-+		dev_dbg(hdev->dev,
-+			"Port %d, Requester QP %d - requested size (%d) > max size (%d)\n", port,
-+			qp->qp_id, wq_size, max_wq_size);
-+		rc = -EINVAL;
-+		goto cfg_unlock;
-+	}
-+
-+	swq_arr_props = &cn_port->wq_arr_props[HBL_CNI_USER_WQ_SEND];
-+	rwq_arr_props = &cn_port->wq_arr_props[HBL_CNI_USER_WQ_RECV];
-+
-+	if (!swq_arr_props->on_device_mem) {
-+		rc = alloc_and_map_wq(cn_port, qp, wq_size, true);
-+		if (rc)
-+			goto cfg_unlock;
-+
-+		out->swq_mem_handle = qp->swq_handle;
-+		out->swq_mem_size = qp->swq_size;
-+	}
-+
-+	if (!rwq_arr_props->on_device_mem) {
-+		rc = alloc_and_map_wq(cn_port, qp, wq_size, false);
-+		if (rc)
-+			goto err_free_swq;
-+
-+		out->rwq_mem_handle = qp->rwq_handle;
-+		out->rwq_mem_size = qp->rwq_size;
-+	}
-+
-+	qp->remote_key = in->remote_key;
-+
-+	rc = hbl_cn_qp_modify(cn_port, qp, CN_QP_STATE_RTS, in);
-+	if (rc)
-+		goto err_free_rwq;
-+
-+	port_funcs->cfg_unlock(cn_port);
++	for (i = 0; i < size / sizeof(u32); i++)
++		data[i] = NIC_RREG32(NIC0_QPC0_GW_DATA_0 + i * sizeof(u32));
 +
 +	return 0;
-+
-+err_free_rwq:
-+	if (qp->rwq_handle) {
-+		hbl_cn_mem_destroy(hdev, qp->rwq_handle);
-+		qp->rwq_handle = 0;
-+		out->rwq_mem_handle = qp->rwq_handle;
-+		if (!rwq_arr_props->dva_base) {
-+			int ret;
-+
-+			ret = hbl_cn_mem_buf_put_handle(hdev, rwq_arr_props->handle);
-+			if (ret == 1)
-+				rwq_arr_props->handle = 0;
-+		}
-+	}
-+err_free_swq:
-+	if (qp->swq_handle) {
-+		hbl_cn_mem_destroy(hdev, qp->swq_handle);
-+		qp->swq_handle = 0;
-+		out->swq_mem_handle = qp->swq_handle;
-+		if (!swq_arr_props->dva_base) {
-+			int ret;
-+
-+			ret = hbl_cn_mem_buf_put_handle(hdev, swq_arr_props->handle);
-+			if (ret == 1)
-+				swq_arr_props->handle = 0;
-+		}
-+	}
-+cfg_unlock:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
 +}
 +
-+static int set_res_qp_ctx(struct hbl_cn_device *hdev, struct hbl_cni_res_conn_ctx_in *in)
++static int gaudi2_cn_qpc_query(struct hbl_cn_port *cn_port, u32 qpn, bool is_req,
++			       struct hbl_cn_qpc_attr *attr)
 +{
-+	struct hbl_cn_encap_xarray_pdata *encap_data;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_port *cn_port;
-+	struct hbl_cn_qp *qp;
-+	u32 port;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct gaudi2_qpc_requester req_qpc;
++	struct gaudi2_qpc_responder res_qpc;
++	u32 port = cn_port->port;
 +	int rc;
 +
-+	port = in->port;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	asic_funcs = hdev->asic_funcs;
-+	port_funcs = asic_funcs->port_funcs;
-+	cn_port = &hdev->cn_ports[port];
-+
-+	port_funcs->cfg_lock(cn_port);
-+	qp = xa_load(&cn_port->qp_ids, in->conn_id);
-+
-+	if (IS_ERR_OR_NULL(qp)) {
-+		dev_dbg(hdev->dev, "Failed to find matching QP for handle %d, port %d\n",
-+			in->conn_id, port);
-+		rc = -EINVAL;
-+		goto unlock_cfg;
-+	}
-+
-+	if (in->encap_en) {
-+		encap_data = xa_load(&cn_port->encap_ids, in->encap_id);
-+		if (!encap_data) {
-+			dev_dbg_ratelimited(hdev->dev,
-+					    "Encapsulation ID %d not found, ignoring\n",
-+					    in->encap_id);
-+			in->encap_en = 0;
-+			in->encap_id = 0;
-+		}
-+	}
-+
-+	if (qp->is_res) {
-+		dev_dbg(hdev->dev, "Port %d, QP %d - Responder QP is already set\n", port,
-+			qp->qp_id);
-+		rc = -EINVAL;
-+		goto unlock_cfg;
-+	}
-+
-+	/* sanity test the port IDs */
-+	if (qp->port != port) {
-+		dev_dbg(hdev->dev, "QP port %d does not match requested port %d\n", qp->port, port);
-+		rc = -EINVAL;
-+		goto unlock_cfg;
-+	}
-+
-+	qp->local_key = in->local_key;
-+
-+	if (qp->curr_state == CN_QP_STATE_RESET) {
-+		rc = hbl_cn_qp_modify(cn_port, qp, CN_QP_STATE_INIT, NULL);
++	if (is_req) {
++		rc = gaudi2_cn_qpc_read(cn_port, (void *)&req_qpc, qpn, is_req);
 +		if (rc)
-+			goto unlock_cfg;
-+	}
++			goto out_err;
 +
-+	/* all is well, we are ready to receive */
-+	rc = hbl_cn_qp_modify(cn_port, qp, CN_QP_STATE_RTR, in);
-+
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+
-+unlock_cfg:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+/* must be called under the port cfg lock */
-+u32 hbl_cn_get_max_qp_id(struct hbl_cn_port *cn_port)
-+{
-+	int max_qp_id = cn_port->qp_idx_offset;
-+	unsigned long qp_id = 0;
-+	struct hbl_cn_qp *qp;
-+
-+	xa_for_each(&cn_port->qp_ids, qp_id, qp)
-+		if (qp->qp_id > max_qp_id)
-+			max_qp_id = qp->qp_id;
-+
-+	return max_qp_id;
-+}
-+
-+static void qp_destroy_work(struct work_struct *work)
-+{
-+	struct hbl_cn_qp *qp = container_of(work, struct hbl_cn_qp, async_work);
-+	struct hbl_cn_wq_array_properties *swq_arr_props, *rwq_arr_props;
-+	struct hbl_cn_port *cn_port = qp->cn_port;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_qpc_drain_attr drain_attr;
-+	struct hbl_cn_qpc_reset_attr rst_attr;
-+	struct hbl_cn_ctx *ctx = qp->ctx;
-+	struct hbl_cn_device *hdev;
-+	int rc;
-+
-+	hdev = cn_port->hdev;
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	if (!hdev->operational) {
-+		drain_attr.wait_for_idle = false;
-+		rst_attr.reset_mode = hdev->qp_reset_mode;
++		attr->valid = REQ_QPC_GET_VALID(req_qpc);
++		attr->in_work = REQ_QPC_GET_IN_WORK(req_qpc);
++		attr->error = REQ_QPC_GET_ERROR(req_qpc);
 +	} else {
-+		drain_attr.wait_for_idle = true;
-+		rst_attr.reset_mode = CN_QP_RESET_MODE_GRACEFUL;
++		rc = gaudi2_cn_qpc_read(cn_port, (void *)&res_qpc, qpn, is_req);
++		if (rc)
++			goto out_err;
++
++		attr->valid = RES_QPC_GET_VALID(res_qpc);
++		attr->in_work = RES_QPC_GET_IN_WORK(res_qpc);
++		attr->conn_state = RES_QPC_GET_CONN_STATE(res_qpc);
 +	}
-+
-+	/* Complete the wait for SQ to drain. To allow parallel QPs destruction, don't take the cfg
-+	 * lock here. This is safe because SQD->SQD QP transition is a simple wait to drain the QP
-+	 * without any access to the HW.
-+	 */
-+	if (qp->curr_state == CN_QP_STATE_SQD)
-+		hbl_cn_qp_modify(cn_port, qp, CN_QP_STATE_SQD, &drain_attr);
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	hbl_cn_qp_modify(cn_port, qp, CN_QP_STATE_RESET, &rst_attr);
-+
-+	port_funcs->unregister_qp(cn_port, qp->qp_id);
-+
-+	swq_arr_props = &cn_port->wq_arr_props[HBL_CNI_USER_WQ_SEND];
-+	rwq_arr_props = &cn_port->wq_arr_props[HBL_CNI_USER_WQ_RECV];
-+
-+	if (qp->swq_handle) {
-+		hbl_cn_mem_destroy(hdev, qp->swq_handle);
-+		qp->swq_handle = 0;
-+		if (!swq_arr_props->dva_base) {
-+			rc = hbl_cn_mem_buf_put_handle(hdev, swq_arr_props->handle);
-+			if (rc == 1)
-+				swq_arr_props->handle = 0;
-+		}
-+	}
-+
-+	if (qp->rwq_handle) {
-+		hbl_cn_mem_destroy(hdev, qp->rwq_handle);
-+		qp->rwq_handle = 0;
-+		if (!rwq_arr_props->dva_base) {
-+			rc = hbl_cn_mem_buf_put_handle(hdev, rwq_arr_props->handle);
-+			if (rc == 1)
-+				rwq_arr_props->handle = 0;
-+		}
-+	}
-+
-+	xa_erase(&cn_port->qp_ids, qp->qp_id);
-+
-+	if (atomic_dec_and_test(&cn_port->num_of_allocated_qps)) {
-+		if (swq_arr_props->under_unset)
-+			__user_wq_arr_unset(ctx, cn_port, HBL_CNI_USER_WQ_SEND);
-+
-+		if (rwq_arr_props->under_unset)
-+			__user_wq_arr_unset(ctx, cn_port, HBL_CNI_USER_WQ_RECV);
-+	}
-+
-+	if (qp->req_user_cq)
-+		hbl_cn_user_cq_put(qp->req_user_cq);
-+
-+	if (qp->res_user_cq)
-+		hbl_cn_user_cq_put(qp->res_user_cq);
-+
-+	port_funcs->qp_post_destroy(qp);
-+
-+	/* hbl_cn_mem_destroy should be included inside lock not due to protection.
-+	 * The handles (swq_handle and rwq_handle) are created based on QP id.
-+	 * Lock is to avoid concurrent memory access from a new handle created before freeing
-+	 * memory.
-+	 */
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	kfree(qp);
-+}
-+
-+static void qps_drain_async_work(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_port *cn_port;
-+	int i, num_gen_qps;
-+
-+	/* wait for the workers to complete */
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		drain_workqueue(cn_port->qp_wq);
-+
-+		num_gen_qps = atomic_read(&cn_port->num_of_allocated_qps);
-+		if (num_gen_qps)
-+			dev_warn(hdev->dev, "Port %d still has %d QPs alive\n", i, num_gen_qps);
-+	}
-+}
-+
-+static inline int __must_check PTR_ERR_OR_EINVAL(__force const void *ptr)
-+{
-+	if (IS_ERR(ptr))
-+		return PTR_ERR(ptr);
-+	else
-+		return -EINVAL;
-+}
-+
-+static int destroy_qp(struct hbl_cn_device *hdev, struct hbl_cni_destroy_conn_in *in)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_port *cn_port;
-+	struct hbl_cn_qp *qp;
-+	u32 port, flags;
-+	int rc;
-+
-+	port = in->port;
-+
-+	if (port >= hdev->cn_props.max_num_of_ports) {
-+		dev_dbg(hdev->dev, "Invalid port %d\n", port);
-+		return -EINVAL;
-+	}
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	/* in case of destroying QPs of external ports, the port may be already closed by a user
-+	 * issuing "ip link set down" command so we only check if the port is enabled in these
-+	 * ports.
-+	 */
-+	flags = cn_port->eth_enable ? NIC_PORT_CHECK_ENABLE : NIC_PORT_CHECK_OPEN;
-+	flags |= NIC_PORT_PRINT_ON_ERR;
-+	rc = hbl_cn_cmd_port_check(hdev, port, flags);
-+	if (rc)
-+		return rc;
-+
-+	asic_funcs = hdev->asic_funcs;
-+	port_funcs = asic_funcs->port_funcs;
-+
-+	/* prevent reentrancy by locking the whole process of destroy_qp */
-+	port_funcs->cfg_lock(cn_port);
-+	qp = xa_load(&cn_port->qp_ids, in->conn_id);
-+
-+	if (IS_ERR_OR_NULL(qp)) {
-+		rc = PTR_ERR_OR_EINVAL(qp);
-+		goto out_err;
-+	}
-+
-+	hbl_cn_qp_do_release(qp);
-+
-+	port_funcs->cfg_unlock(cn_port);
 +
 +	return 0;
 +
 +out_err:
-+	port_funcs->cfg_unlock(cn_port);
++	dev_err(hdev->dev, "%s QPC GW read timeout, port: %d, qpn: %u\n",
++		is_req ? "requester" : "responder", port, qpn);
++	return rc;
++}
++
++int gaudi2_cn_wqe_read(struct hbl_cn_port *cn_port, void *wqe, u32 qpn, u32 wqe_idx, bool is_tx)
++{
++	u64 wq_base_addr_upper, wq_base_addr_lower, wq_size_cline_log, ctrl,
++	    req_qpc_base_addr_upper, req_qpc_base_addr_lower, wqe_offset;
++	u32 *data, port, wqe_cline_idx, num_of_wqe_in_cline;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	int i, rc;
++
++	port = cn_port->port;
++	data = wqe;
++
++	if (is_tx) {
++		wq_base_addr_upper = NIC_RREG32(NIC0_TXE0_SQ_BASE_ADDRESS_63_32_1);
++		wq_base_addr_lower = NIC_RREG32(NIC0_TXE0_SQ_BASE_ADDRESS_31_0_1);
++		wq_size_cline_log = NIC_RREG32(NIC0_TXE0_LOG_MAX_WQ_SIZE_1);
++		num_of_wqe_in_cline = TX_WQE_NUM_IN_CLINE;
++	} else {
++		wq_base_addr_upper = NIC_RREG32(NIC0_RXE0_WIN1_WQ_BASE_HI);
++		wq_base_addr_lower = NIC_RREG32(NIC0_RXE0_WIN1_WQ_BASE_LO);
++		wq_size_cline_log = NIC_RREG32(NIC0_RXE0_WIN1_WQ_MISC);
++		num_of_wqe_in_cline = RX_WQE_NUM_IN_CLINE;
++	}
++	wqe_cline_idx = wqe_idx / num_of_wqe_in_cline;
++
++	req_qpc_base_addr_upper = NIC_RREG32(NIC0_TXE0_SQ_BASE_ADDRESS_63_32_1);
++	req_qpc_base_addr_lower = NIC_RREG32(NIC0_QPC0_REQ_BASE_ADDRESS_31_7);
++
++	/* Don't write to the Gw if its busy with prev operation */
++	if (NIC_RREG32(NIC0_QPC0_GW_BUSY)) {
++		if (hbl_cn_comp_device_operational(hdev))
++			dev_err(hdev->dev,
++				"Cannot read wqe from port %d QP %d, GW is busy\n", port, qpn);
++
++		return -EBUSY;
++	}
++
++	WARN_ON_CACHE_UNALIGNED(wq_base_addr_lower);
++
++	/* Hacking the QPC base address to read WQ */
++	NIC_WREG32(NIC0_QPC0_REQ_BASE_ADDRESS_63_32, wq_base_addr_upper);
++	NIC_WREG32(NIC0_QPC0_REQ_BASE_ADDRESS_31_7, wq_base_addr_lower >> 7);
++
++	/* Clear the mask gateway regs which will cause the operation to be a read */
++	for (i = 0; i < QPC_GW_MASK_REG_NUM; i++)
++		NIC_WREG32(NIC0_QPC0_GW_MASK_0 + i * sizeof(u32), 0);
++
++	/* Calculate the WQE offset in cache line units */
++	wqe_offset = (1ULL << wq_size_cline_log) * qpn + wqe_cline_idx;
++	ctrl = NIC0_QPC0_GW_CTRL_REQUESTER_MASK + wqe_offset;
++	rc = gaudi2_cn_qpc_op(cn_port, ctrl, true);
++	if (rc)
++		goto exit;
++
++	/* H/W reads in cache line size */
++	for (i = 0; i < 32; i++)
++		data[i] = NIC_RREG32(NIC0_QPC0_GW_DATA_0 + i * sizeof(u32));
++
++exit:
++	/* Restore the configuration */
++	NIC_WREG32(NIC0_QPC0_REQ_BASE_ADDRESS_63_32, req_qpc_base_addr_upper);
++	NIC_WREG32(NIC0_QPC0_REQ_BASE_ADDRESS_31_7, req_qpc_base_addr_lower);
 +
 +	return rc;
 +}
 +
-+static void hbl_cn_qps_stop(struct hbl_cn_port *cn_port)
++static bool is_valid_mtu(u16 mtu)
 +{
-+	struct hbl_cn_asic_port_funcs *port_funcs = cn_port->hdev->asic_funcs->port_funcs;
-+	struct hbl_cn_qpc_drain_attr drain = { .wait_for_idle = false, };
-+	unsigned long qp_id = 0;
-+	struct hbl_cn_qp *qp;
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	xa_for_each(&cn_port->qp_ids, qp_id, qp) {
-+		if (IS_ERR_OR_NULL(qp))
-+			continue;
-+
-+		hbl_cn_qp_modify(cn_port, qp, CN_QP_STATE_QPD, (void *)&drain);
-+	}
-+
-+	port_funcs->cfg_unlock(cn_port);
++	return (mtu == SZ_1K) || (mtu == SZ_2K) || (mtu == SZ_4K) || (mtu == SZ_8K);
 +}
 +
-+static void qps_stop(struct hbl_cn_device *hdev)
++static int normalize_priority(struct hbl_cn_device *hdev, u32 priority, enum hbl_ts_type type,
++			      bool is_req, u32 *norm_priority)
 +{
-+	struct hbl_cn_port *cn_port;
-+	int i;
-+
-+	/* stop the QPs */
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		hbl_cn_qps_stop(cn_port);
++	/* Ethernet and Responder get the highest priority */
++	if (!is_req || type == TS_RAW) {
++		*norm_priority = GAUDI2_PFC_PRIO_DRIVER;
++		return 0;
 +	}
++
++	/* Req priority can vary from 1 to 3 */
++	if (priority < GAUDI2_PFC_PRIO_USER_BASE || priority >= HBL_EN_PFC_PRIO_NUM)
++		return -EINVAL;
++
++	*norm_priority = priority;
++	return 0;
 +}
 +
-+static int user_wq_arr_set(struct hbl_cn_device *hdev, struct hbl_cni_user_wq_arr_set_in *in,
-+			   struct hbl_cni_user_wq_arr_set_out *out, struct hbl_cn_ctx *ctx)
++static u32 gaudi2_cn_txs_get_schedq_num(u32 priority, bool is_req)
 +{
-+	u32 port, type, num_of_wqs, num_of_wq_entries, min_wqs_per_port, mem_id;
-+	struct hbl_cn_wq_array_properties *wq_arr_props;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_properties *cn_props;
++	u32 prio_q_group;
++
++	/* prio-group numbering start from 1 - normalize it to Zero */
++	prio_q_group = (is_req ? TXS_PORT_REQ_SCHED_Q : TXS_PORT_RES_SCHED_Q);
++
++	return prio_q_group * HBL_EN_PFC_PRIO_NUM + priority;
++}
++
++static void gaudi2_default_encap_set(struct hbl_cn_port *cn_port, u32 *encap_id, u32 src_ip)
++{
++	struct hbl_cn_encap_xarray_pdata encap_data;
++	u8 dummy_hdr[NIC_MAX_TNL_HDR_SIZE] = {};
++
++	gaudi2_get_default_encap_id(cn_port, encap_id);
++
++	if (!src_ip && hbl_cn_get_src_ip(cn_port, &src_ip)) {
++		dev_dbg(cn_port->hdev->dev, "failed to get interface IP, using 0\n");
++		src_ip = 0;
++	}
++
++	memset(dummy_hdr, 0xa5, sizeof(dummy_hdr));
++
++	encap_data.port = cn_port->port;
++	encap_data.id = *encap_id;
++	encap_data.src_ip = src_ip;
++	encap_data.encap_type = HBL_CNI_ENCAP_OVER_UDP;
++	encap_data.encap_type_data = DUMMY_UDP_PORT;
++	encap_data.encap_header = dummy_hdr;
++	encap_data.encap_header_size = sizeof(dummy_hdr);
++
++	gaudi2_encap_set(cn_port, *encap_id, &encap_data);
++}
++
++static int gaudi2_cn_validate_timeout(u8 gran)
++{
++	u64 tmr_timeout_us;
++	int ret = 0;
++
++	tmr_timeout_us = NIC_GRAN_TO_USEC(gran);
++
++	/* This check guarantees that we can't overflow the PSN window within a timer period,
++	 * meaning that it needs to ensure that the time it takes to transmit the total amount
++	 * of bits ofall packets is greater than the timeout value. note that we take the
++	 * "worst case" values, i.e. min MTU and max speed.
++	 *
++	 * MAX_CONG_WND * MIN_MTU [bits]
++	 * ----------------------------- > TIMEOUT [s]
++	 *      SPEED [bits/s]
++	 *
++	 * ==>
++	 *
++	 * GAUDI2_NIC_MAX_CONG_WND * (NIC_RAW_MIN_MTU [bytes] * BITS_PER_BYTE)
++	 * ------------------------------------------------------------------- >
++	 *                 GAUDI2_NIC_MAX_SPEED [Mbits/sec] * 1M
++	 *
++	 * NIC_TMR_TIMEOUT_US [usec]
++	 * -------------------------
++	 *      1M
++	 * ==>
++	 *
++	 * GAUDI2_NIC_MAX_CONG_WND * (NIC_RAW_MIN_MTU * BITS_PER_BYTE) >
++	 *    NIC_TMR_TIMEOUT_US * GAUDI2_NIC_MAX_SPEED
++	 */
++	if ((((u64)GAUDI2_NIC_MAX_CONG_WND) * ((u64)(NIC_RAW_MIN_MTU * BITS_PER_BYTE))) <=
++	    (tmr_timeout_us * ((u64)GAUDI2_NIC_MAX_SPEED)))
++		ret = -EINVAL;
++
++	return ret;
++}
++
++static int gaudi2_set_req_qp_ctx(struct hbl_cn_device *hdev, struct hbl_cni_req_conn_ctx_in *in,
++				 struct hbl_cn_qp *qp)
++{
++	u8 mac[ETH_ALEN], cqn, encap_en, timer_granularity;
++	struct gaudi2_qpc_requester req_qpc;
++	struct gaudi2_cn_port *gaudi2_port;
++	struct hbl_cn_user_cq *user_cq;
++	struct hbl_en_aux_ops *aux_ops;
++	u32 port, priority, encap_id;
 +	struct hbl_cn_port *cn_port;
-+	char *type_str;
++	struct hbl_aux_dev *aux_dev;
 +	int rc;
 +
-+	if (in->swq_granularity > HBL_CNI_SWQE_GRAN_64B) {
-+		dev_dbg(hdev->dev, "Invalid send WQE granularity %d\n", in->swq_granularity);
-+		return -EINVAL;
-+	}
-+
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	cn_props = &hdev->cn_props;
-+
-+	type = in->type;
-+
-+	if (type > cn_props->max_wq_arr_type) {
-+		dev_dbg(hdev->dev, "invalid type %d, can't set user WQ\n", type);
-+		return -EINVAL;
-+	}
-+
-+	mem_id = in->mem_id;
-+
-+	if (mem_id != HBL_CNI_MEM_HOST && mem_id != HBL_CNI_MEM_DEVICE) {
-+		dev_dbg(hdev->dev, "invalid memory type %d for user WQ\n", mem_id);
-+		return -EINVAL;
-+	}
-+
 +	port = in->port;
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
++	cn_port = &hdev->cn_ports[port];
++	gaudi2_port = cn_port->cn_specific;
++	aux_dev = &hdev->en_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	/* In case user didn't set encap, unset for internal ports. */
++	encap_id = 0;
++	encap_en = 0;
++
++	/* Enforce sender (remote) WQ to be at least 4 times bigger than receiver WQ to avoid H/W
++	 * bug - RDV roll-back may stuck the QP.
++	 */
++	if (in->wq_type == QPC_REQ_WQ_TYPE_WRITE && in->wq_remote_log_size &&
++	    (in->wq_size * 4 > BIT(in->wq_remote_log_size))) {
++		dev_dbg(hdev->dev, "Invalid RDV WQ size. local %d, remote %lu, port %d\n",
++			in->wq_size, BIT(in->wq_remote_log_size), port);
++		return -EINVAL;
++	}
++
++	if (in->mtu && !is_valid_mtu(in->mtu)) {
++		dev_dbg(hdev->dev, "MTU of %u is not supported, port %d\n", in->mtu, port);
++		return -EINVAL;
++	}
++
++	if (normalize_priority(hdev, in->priority, TS_RC, true, &priority)) {
++		dev_dbg(hdev->dev, "Unsupported priority value %u, port %d\n", in->priority, port);
++		return -EINVAL;
++	}
++
++	/* H6-3399: Below configuration isn't valid due to H/W bug, i.e.: using encap_id for src IP
++	 * settings w/o encapsulation isn't allowed.
++	 */
++	if (!in->encap_en && in->encap_id) {
++		dev_dbg(hdev->dev,
++			"Encapsulation ID %d can't be set when encapsulation disable, port %d\n",
++			in->encap_id, port);
++		return -EINVAL;
++	}
++
++	/* Due to H/W bug H6-3280, it was decided to allow congestion control for external ports
++	 * only - the user shouldn't enable it for internal ports.
++	 */
++	if (!cn_port->eth_enable && in->congestion_en) {
++		dev_err(hdev->dev,
++			"congestion control should be disabled for internal ports, port %d mode %u\n",
++			port, in->congestion_en);
++		return -EINVAL;
++	}
++
++	if (cn_port->bp_enable && in->wq_size < GAUDI2_NIC_MIN_WQ_SIZE_BP_ENABLED) {
++		dev_err(hdev->dev,
++			"WQ size (%d) can't be smaller than %d when back pressure is enabled, port %d\n",
++			in->wq_size, GAUDI2_NIC_MIN_WQ_SIZE_BP_ENABLED, port);
++		return -EINVAL;
++	}
++
++	timer_granularity = hdev->pldm ? NIC_TMR_TIMEOUT_PLDM_GRAN : in->timer_granularity;
++
++	/* gran 0 is a special case for the highest timeout supported by hw */
++	if (timer_granularity && gaudi2_cn_validate_timeout(timer_granularity)) {
++		dev_err(hdev->dev,
++			"timer granularity %d is not supported\n", timer_granularity);
++		return -EINVAL;
++	}
++
++	if (gaudi2_port->adaptive_timeout_en) {
++		qp->timeout_granularity = timer_granularity;
++		qp->timeout_curr = timer_granularity - (NIC_ADAPTIVE_TIMEOUT_RANGE >> 1);
++		timer_granularity = qp->timeout_curr;
++	}
++
++	if (in->cq_number) {
++		/* User CQ. */
++		cqn = in->cq_number;
++
++		user_cq = hbl_cn_user_cq_get(cn_port, cqn);
++		if (!user_cq) {
++			dev_dbg(hdev->dev, "CQ %d is invalid, port %d\n", cqn, port);
++			return -EINVAL;
++		}
++
++		qp->req_user_cq = user_cq;
++	} else {
++		/* No CQ. */
++		cqn = NIC_CQ_RDMA_IDX;
++	}
++
++	if (cn_port->eth_enable)
++		memcpy(mac, in->dst_mac_addr, ETH_ALEN);
++	else
++		/* in this case the MAC is irrelevant so use broadcast */
++		eth_broadcast_addr(mac);
++
++	memset(&req_qpc, 0, sizeof(req_qpc));
++
++	REQ_QPC_SET_DST_QP(req_qpc, in->dst_conn_id);
++	REQ_QPC_SET_PORT(req_qpc, 0); /* Always select lane 0 */
++	REQ_QPC_SET_PRIORITY(req_qpc, 3);
++	REQ_QPC_SET_RKEY(req_qpc, qp->remote_key);
++	REQ_QPC_SET_DST_IP(req_qpc, in->dst_ip_addr);
++	REQ_QPC_SET_DST_MAC_LSB(req_qpc, *(u32 *)mac);
++	REQ_QPC_SET_DST_MAC_MSB(req_qpc, *(u16 *)(mac + 4));
++
++	REQ_QPC_SET_SCHD_Q_NUM(req_qpc, gaudi2_cn_txs_get_schedq_num(priority, true));
++	REQ_QPC_SET_TM_GRANULARITY(req_qpc, timer_granularity);
++
++	REQ_QPC_SET_TRANSPORT_SERVICE(req_qpc, TS_RC);
++	REQ_QPC_SET_BURST_SIZE(req_qpc, QPC_REQ_BURST_SIZE);
++	REQ_QPC_SET_LAST_IDX(req_qpc, in->wq_size - 1);
++
++	REQ_QPC_SET_WQ_BASE_ADDR(req_qpc, 1);
++
++	/* In case the user didn't specify MTU, set the one from netdev.
++	 * If there is no netdev, use the default value.
++	 */
++	if (in->mtu) {
++		qp->mtu = in->mtu;
++		qp->mtu_type = MTU_FROM_USER;
++	} else if (cn_port->eth_enable) {
++		if (aux_ops->get_mtu)
++			qp->mtu = aux_ops->get_mtu(aux_dev, port) + HBL_EN_MAX_HEADERS_SZ;
++		else
++			qp->mtu = GAUDI2_NIC_MTU_DEFAULT;
++
++		qp->mtu_type = MTU_FROM_NETDEV;
++	} else {
++		qp->mtu = GAUDI2_NIC_MTU_DEFAULT;
++		qp->mtu_type = MTU_DEFAULT;
++	}
++
++	REQ_QPC_SET_MTU(req_qpc, ilog2(roundup_pow_of_two(qp->mtu)) - 10);
++
++	/* GAUDI1 mode is not used and hence set to 0 */
++	REQ_QPC_SET_MOD_GAUDI1(req_qpc, 0);
++	REQ_QPC_SET_SWQ_GRANULARITY(req_qpc, in->swq_granularity);
++	REQ_QPC_SET_CQ_NUM(req_qpc, cqn);
++
++	/* Protect the HW from zero value */
++	REQ_QPC_SET_REMOTE_WQ_LOG_SZ(req_qpc, in->wq_remote_log_size ? in->wq_remote_log_size : 2);
++
++	/* config MMU-BP */
++	REQ_QPC_SET_DATA_MMU_BYPASS(req_qpc, 0);
++
++	/* ASID is also used as protection-domain, so always configure it */
++	REQ_QPC_SET_ASID(req_qpc, qp->ctx->user_asid);
++
++	REQ_QPC_SET_ACKREQ_FREQ(req_qpc, 8);
++	REQ_QPC_SET_WQ_TYPE(req_qpc, in->wq_type);
++
++	/* user QP - unsecured trust level */
++	REQ_QPC_SET_TRUST_LEVEL(req_qpc, UNSECURED);
++
++	/* Congestion control configurations are done for external ports only - for internal ports
++	 * congestion control will be disabled.
++	 */
++	if (cn_port->eth_enable) {
++		u32 congestion_wnd;
++
++		if (in->congestion_wnd > GAUDI2_NIC_MAX_CONG_WND) {
++			dev_dbg(hdev->dev,
++				"Congestion window size(%u) can't be > max allowed size(%lu), port %d\n",
++				in->congestion_wnd, GAUDI2_NIC_MAX_CONG_WND, port);
++		return -EINVAL;
++		}
++
++		/* congestion_mode:
++		 * 0: no congestion
++		 * 1: congestion control (BBR/SWIFT)
++		 * 2: congestion window
++		 *
++		 * REQ_QPC_SET_CONGESTION_MODE set those modes.
++		 * REQ_QPC_SET_RTT_STATE enable the CC-CQ mechanism (relevant for BBR/SWIFT only).
++		 * when user does not set congestion_en we set congestion to mode 2
++		 * so we still have cc via the CONGESTION_WIN.
++		 */
++		REQ_QPC_SET_CONGESTION_MODE(req_qpc, (in->congestion_en) ? 1 : 2);
++
++		REQ_QPC_SET_RTT_STATE(req_qpc, in->congestion_en);
++
++		congestion_wnd = in->congestion_wnd ? in->congestion_wnd : GAUDI2_NIC_MAX_CONG_WND;
++		REQ_QPC_SET_CONGESTION_WIN(req_qpc, congestion_wnd);
++	}
++
++	if (in->encap_en) {
++		encap_id = in->encap_id;
++		encap_en = in->encap_en;
++	} else if (cn_port->eth_enable) {
++		gaudi2_get_default_encap_id(cn_port, &encap_id);
++		encap_en = 1;
++	}
++
++	REQ_QPC_SET_ENCAP_ENABLE(req_qpc, encap_en);
++	REQ_QPC_SET_ENCAP_TYPE(req_qpc, encap_id);
++
++	REQ_QPC_SET_VALID(req_qpc, 1);
++
++	rc = gaudi2_cn_qpc_write(cn_port, &req_qpc, NULL, in->conn_id, true);
 +	if (rc)
-+		return rc;
++		goto qpc_write_fail;
++
++	if (gaudi2_port->advanced && cn_port->bp_enable &&
++	    in->wq_size < gaudi2_port->min_qp_size) {
++		gaudi2_port->min_qp_size = in->wq_size;
++
++		/* The back-pressure thresholds values describe the occupancy of the QP,
++		 * thus should be configured to be the size of the smallest QP minus some
++		 * defined numbers (currently 24/26 for the upper/lower thresholds
++		 * respectively).
++		 */
++		NIC_WREG32(NIC0_QPC0_WQ_UPPER_THRESHOLD,
++			   gaudi2_port->min_qp_size - GAUDI2_NIC_WTD_BP_UPPER_TH_DIFF);
++		NIC_WREG32(NIC0_QPC0_WQ_LOWER_THRESHOLD,
++			   gaudi2_port->min_qp_size - GAUDI2_NIC_WTD_BP_LOWER_TH_DIFF);
++	}
++
++	return 0;
++
++qpc_write_fail:
++	if (qp->req_user_cq) {
++		hbl_cn_user_cq_put(qp->req_user_cq);
++		qp->req_user_cq = NULL;
++	}
++
++	return rc;
++}
++
++static int gaudi2_set_res_qp_ctx(struct hbl_cn_device *hdev, struct hbl_cni_res_conn_ctx_in *in,
++				 struct hbl_cn_qp *qp)
++{
++	u8 mac[ETH_ALEN], cqn, encap_en, wq_mmu_bypass;
++	u32 port = in->port, priority, encap_id;
++	struct gaudi2_qpc_responder res_qpc;
++	struct hbl_cn_user_cq *user_cq;
++	struct hbl_cn_port *cn_port;
++	int rc;
 +
 +	cn_port = &hdev->cn_ports[port];
 +
-+	wq_arr_props = &cn_port->wq_arr_props[type];
-+	type_str = wq_arr_props->type_str;
++	/* In case user didn't set encap, unset for internal ports. */
++	encap_id = 0;
++	encap_en = 0;
 +
-+	/* For generic WQs minimum number of wqs required is 2, one for raw eth and one for rdma */
-+	min_wqs_per_port = NIC_MIN_WQS_PER_PORT;
-+	if (in->num_of_wqs < min_wqs_per_port) {
-+		dev_dbg(hdev->dev, "number of %s WQs must be minimum %d, port %d\n", type_str,
-+			min_wqs_per_port, port);
-+		return -EINVAL;
-+	}
-+
-+	/* H/W limitation */
-+	if (in->num_of_wqs > cn_props->max_hw_qps_num) {
-+		dev_dbg(hdev->dev, "number of %s WQs (0x%x) can't be bigger than 0x%x, port %d\n",
-+			type_str, in->num_of_wqs, cn_props->max_hw_qps_num, port);
-+		return -EINVAL;
-+	}
-+
-+	if (!is_power_of_2(in->num_of_wq_entries)) {
-+		dev_dbg(hdev->dev,
-+			"number of %s WQ entries (0x%x) must be a power of 2, port %d\n", type_str,
-+			in->num_of_wq_entries, port);
-+		return -EINVAL;
-+	}
-+
-+	/* H/W limitation */
-+	if (in->num_of_wq_entries < cn_props->min_hw_user_wqs_num) {
-+		dev_dbg(hdev->dev,
-+			"number of %s WQ entries (0x%x) must be at least %d, port %d\n", type_str,
-+			in->num_of_wq_entries, cn_props->min_hw_user_wqs_num, port);
-+		return -EINVAL;
-+	}
-+
-+	/* H/W limitation */
-+	if (in->num_of_wq_entries > cn_props->max_hw_user_wqs_num) {
-+		dev_dbg(hdev->dev,
-+			"number of %s WQ entries (0x%x) can't be bigger than 0x%x, port %d\n",
-+			type_str, in->num_of_wq_entries, cn_props->max_hw_user_wqs_num, port);
-+		return -EINVAL;
-+	}
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	if (!cn_port->set_app_params) {
-+		dev_dbg(hdev->dev,
-+			"Failed to set %s WQ array, set_app_params wasn't called yet, port %d\n",
-+			type_str, port);
-+		rc = -EPERM;
-+		goto out;
-+	}
-+
-+	/* we first check the wq_under_unset condition since a prev WQ unset (async) operation may
-+	 * still be in progress, and since in such cases we would like to return -EAGAIN to the
-+	 * caller and not -EINVAL
++	/* H6-3399: Below configuration isn't valid due to H/W bug, i.e.: using encap_id for src IP
++	 * settings w/o encapsulation isn't allowed.
 +	 */
-+	if (wq_arr_props->enabled && wq_arr_props->under_unset) {
-+		dev_dbg_ratelimited(hdev->dev,
-+				    "Retry to set %s WQ array as it is under unset, port %d\n",
-+				    type_str, port);
-+		rc = -EAGAIN;
-+		goto out;
-+	}
-+
-+	if (wq_arr_props->enabled) {
-+		dev_dbg(hdev->dev, "%s WQ array is already enabled, port %d\n", type_str, port);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (wq_arr_props->under_unset) {
++	if (!in->encap_en && in->encap_id) {
 +		dev_dbg(hdev->dev,
-+			"Failed to set %s WQ array as it is not enabled and under unset, port %d\n",
-+			type_str, port);
-+		rc = -EPERM;
-+		goto out;
++			"Encapsulation ID %d can't be set when encapsulation disable, port %d\n",
++			in->encap_id, port);
++		return -EINVAL;
 +	}
 +
-+	num_of_wq_entries = cn_port->num_of_wq_entries;
-+	num_of_wqs = cn_port->num_of_wqs;
++	if (cn_port->eth_enable)
++		memcpy(mac, in->dst_mac_addr, ETH_ALEN);
++	else
++		/* in this case the MAC is irrelevant so use broadcast */
++		eth_broadcast_addr(mac);
 +
-+	if (num_of_wq_entries && num_of_wq_entries != in->num_of_wq_entries) {
-+		dev_dbg(hdev->dev, "%s WQ number of entries (0x%x) should be 0x%x, port %d\n",
-+			type_str, in->num_of_wq_entries, num_of_wq_entries, port);
-+		rc = -EINVAL;
-+		goto out;
++	if (normalize_priority(hdev, in->priority, TS_RC, false, &priority)) {
++		dev_dbg(hdev->dev, "Unsupported priority value %u, port %d\n", in->priority, port);
++		return -EINVAL;
 +	}
 +
-+	if (num_of_wqs && num_of_wqs != in->num_of_wqs) {
-+		dev_dbg(hdev->dev, "%s WQs number (0x%x) should be 0x%x, port %d\n",
-+			type_str, in->num_of_wqs, num_of_wqs, port);
-+		rc = -EINVAL;
-+		goto out;
++	if (in->cq_number) {
++		/* User CQ. */
++		cqn = in->cq_number;
++
++		user_cq = hbl_cn_user_cq_get(cn_port, cqn);
++		if (!user_cq) {
++			dev_dbg(hdev->dev, "CQ %d is invalid, port %d\n", cqn, port);
++			return -EINVAL;
++		}
++
++		qp->res_user_cq = user_cq;
++	} else {
++		/* No CQ. */
++		cqn = NIC_CQ_RDMA_IDX;
 +	}
 +
-+	rc = hdev->asic_funcs->user_wq_arr_set(hdev, in, out, ctx);
-+	if (rc) {
-+		dev_err(hdev->dev, "%s WQ array set failed, port %d, err %d\n", type_str, port, rc);
-+		goto out;
++	memset(&res_qpc, 0, sizeof(res_qpc));
++
++	RES_QPC_SET_DST_QP(res_qpc, in->dst_conn_id);
++	RES_QPC_SET_PORT(res_qpc, 0); /* Always select lane 0 */
++	RES_QPC_SET_PRIORITY(res_qpc, 2);
++	RES_QPC_SET_LKEY(res_qpc, qp->local_key);
++	RES_QPC_SET_DST_IP(res_qpc, in->dst_ip_addr);
++	RES_QPC_SET_DST_MAC_LSB(res_qpc, *(u32 *)mac);
++	RES_QPC_SET_DST_MAC_MSB(res_qpc, *(u16 *)(mac + 4));
++
++	RES_QPC_SET_TRANSPORT_SERVICE(res_qpc, TS_RC);
++
++	/* config MMU-BP
++	 * In RDV QPs, the responded side is not used for 'real' user data but
++	 * rather to pass WQEs as data, therefore the QPC MMU-BP attribute shall
++	 * be taken according to the configuration of the WQ array.
++	 */
++	wq_mmu_bypass = cn_port->wq_arr_props[HBL_CNI_USER_WQ_SEND].wq_mmu_bypass;
++
++	if (!(in->rdv && wq_mmu_bypass))
++		RES_QPC_SET_DATA_MMU_BYPASS(res_qpc, 0);
++	else
++		RES_QPC_SET_DATA_MMU_BYPASS(res_qpc, 1);
++
++	/* ASID is also used as protection-domain, so always configure it */
++	RES_QPC_SET_ASID(res_qpc, qp->ctx->user_asid);
++
++	RES_QPC_SET_PEER_QP(res_qpc, in->conn_peer);
++	RES_QPC_SET_SCHD_Q_NUM(res_qpc, gaudi2_cn_txs_get_schedq_num(priority, false));
++
++	/* for rdv QPs RXE responder takes its security-level from QPC */
++	if (in->rdv)
++		RES_QPC_SET_TRUST_LEVEL(res_qpc, SECURED);
++	else
++		RES_QPC_SET_TRUST_LEVEL(res_qpc, UNSECURED);
++
++	/* GAUDI1 mode is not used and hence set to 0 */
++	RES_QPC_SET_MOD_GAUDI1(res_qpc, 0);
++
++	RES_QPC_SET_CQ_NUM(res_qpc, cqn);
++	RES_QPC_SET_PEER_WQ_GRAN(res_qpc, in->wq_peer_granularity);
++
++	if (in->encap_en) {
++		encap_id = in->encap_id;
++		encap_en = in->encap_en;
++	} else if (cn_port->eth_enable) {
++		gaudi2_get_default_encap_id(cn_port, &encap_id);
++		encap_en = 1;
 +	}
 +
-+	cn_port->num_of_wq_entries = in->num_of_wq_entries;
-+	cn_port->num_of_wqs = in->num_of_wqs;
++	RES_QPC_SET_ENCAP_ENABLE(res_qpc, encap_en);
++	RES_QPC_SET_ENCAP_TYPE(res_qpc, encap_id);
 +
-+	wq_arr_props->enabled = true;
++	RES_QPC_SET_VALID(res_qpc, 1);
 +
-+out:
-+	port_funcs->cfg_unlock(cn_port);
++	rc = gaudi2_cn_qpc_write(cn_port, &res_qpc, NULL, in->conn_id, false);
++	if (rc)
++		goto qpc_write_fail;
++
++	return 0;
++
++qpc_write_fail:
++	if (qp->res_user_cq) {
++		hbl_cn_user_cq_put(qp->res_user_cq);
++		qp->res_user_cq = NULL;
++	}
 +
 +	return rc;
 +}
 +
-+static int __user_wq_arr_unset(struct hbl_cn_ctx *ctx, struct hbl_cn_port *cn_port, u32 type)
++static int gaudi2_cn_update_qp_mtu(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp, u32 mtu)
 +{
++	struct gaudi2_qpc_requester req_qpc = {};
++	struct qpc_mask mask = {};
++
++	/* MTU field is 2 bits wide */
++	REQ_QPC_SET_MTU(mask, 0x3);
++	REQ_QPC_SET_MTU(req_qpc, ilog2(roundup_pow_of_two(mtu)) - 10);
++
++	return gaudi2_cn_qpc_write_masked(cn_port, &req_qpc, &mask, qp->qp_id, true, false);
++}
++
++static int gaudi2_user_wq_arr_set(struct hbl_cn_device *hdev, struct hbl_cni_user_wq_arr_set_in *in,
++				  struct hbl_cni_user_wq_arr_set_out *out, struct hbl_cn_ctx *ctx)
++{
++	u64 wq_base_addr, wq_size_cline_log, wq_size, wq_arr_size, num_of_wqs, num_of_wq_entries;
++	u32 wqe_size, rw_asid, type, port, wqe_asid, alignment_size;
 +	struct hbl_cn_wq_array_properties *wq_arr_props;
-+	struct hbl_cn_device *hdev;
-+	char *type_str;
-+	u32 port;
++	struct hbl_cn_mem_data mem_data = {};
++	struct gaudi2_cn_port *gaudi2_port;
++	struct hbl_cn_port *cn_port;
++	bool phys_addr = true;
 +	int rc;
 +
-+	hdev = ctx->hdev;
++	type = in->type;
++	port = in->port;
++	cn_port = &hdev->cn_ports[port];
++	gaudi2_port = cn_port->cn_specific;
++
 +	wq_arr_props = &cn_port->wq_arr_props[type];
-+	type_str = wq_arr_props->type_str;
++	num_of_wqs = in->num_of_wqs;
++
++	if (wq_arr_props->is_send) {
++		wqe_size = (in->swq_granularity == HBL_CNI_SWQE_GRAN_64B) ?
++			   NIC_SEND_WQE_SIZE_MULTI_STRIDE : NIC_SEND_WQE_SIZE;
++		cn_port->swqe_size = wqe_size;
++	} else {
++		wqe_size = NIC_RECV_WQE_SIZE;
++	}
++
++	if (in->mem_id == HBL_CNI_MEM_HOST) {
++		alignment_size = PAGE_SIZE / min(NIC_SEND_WQE_SIZE, NIC_RECV_WQE_SIZE);
++		num_of_wq_entries = ALIGN(in->num_of_wq_entries, alignment_size);
++		wq_size = num_of_wq_entries * wqe_size;
++		wqe_asid = ctx->asid;
++		wq_arr_props->wq_size = wq_size;
++		wq_size_cline_log = ilog2(wq_size / DEVICE_CACHE_LINE_SIZE);
++		mem_data.mem_id = HBL_CN_DRV_MEM_HOST_DMA_COHERENT;
++	} else {
++		num_of_wq_entries = in->num_of_wq_entries;
++		wq_size = ALIGN(num_of_wq_entries * wqe_size, DEVICE_CACHE_LINE_SIZE);
++		mem_data.mem_id = HBL_CN_DRV_MEM_DEVICE;
++		mem_data.in.device_mem_data.port = port;
++		mem_data.in.device_mem_data.type = type;
++		wqe_asid = hdev->kernel_asid;
++		/* device wants the size in units of cache-line */
++		wq_size_cline_log = ilog2((num_of_wq_entries * wqe_size) / DEVICE_CACHE_LINE_SIZE);
++	}
++
++	wq_arr_size = num_of_wqs * wq_size;
++
++	/* We use the MMU whenever the WQ allocation is more than the 4MB DMA coherent memory
++	 * constraint. We need not allocate memory if we are using MMU. We reserve the VA in the
++	 * PMMU and allocate the actual memory inside set_req_qp_ctx and map to this virtual address
++	 * space.
++	 */
++	if (wq_arr_size > DMA_COHERENT_MAX_SIZE && in->mem_id == HBL_CNI_MEM_HOST) {
++		if (!hdev->mmu_enable) {
++			dev_dbg(hdev->dev,
++				"MMU not enabled. For allocations greater than %llx, MMU needs to be enabled, wq_arr_size : 0x%llx, port: %d\n",
++				(u64)DMA_COHERENT_MAX_SIZE, wq_arr_size, port);
++			return -EINVAL;
++		}
++		phys_addr = false;
++
++		rc = hbl_cn_reserve_wq_dva(ctx, cn_port, wq_arr_size, type, &wq_base_addr);
++		if (rc)
++			return rc;
++	} else {
++		mem_data.size = wq_arr_size;
++
++		rc = hbl_cn_mem_alloc(ctx, &mem_data);
++		if (rc) {
++			dev_dbg(hdev->dev, "Failed to allocate WQ: %d\n", rc);
++			return rc;
++		}
++
++		wq_base_addr = mem_data.addr;
++		wq_arr_props->handle = mem_data.handle;
++	}
++
++	wq_arr_props->on_device_mem = in->mem_id == HBL_CNI_MEM_DEVICE;
++
++	dev_dbg(hdev->dev,
++		"port %d: WQ-> type:%u addr=0x%llx log_size:%llu wqe_asid:%u mmu_bp:%u\n", port,
++		type, wq_base_addr, wq_size_cline_log, wqe_asid, phys_addr ? 1 : 0);
++
++	if (wq_arr_props->is_send) {
++		NIC_WREG32(NIC0_TXE0_SQ_BASE_ADDRESS_63_32_1, upper_32_bits(wq_base_addr));
++		NIC_WREG32(NIC0_TXE0_SQ_BASE_ADDRESS_31_0_1, lower_32_bits(wq_base_addr));
++
++		NIC_WREG32(NIC0_TXE0_LOG_MAX_WQ_SIZE_1, wq_size_cline_log);
++
++		/* configure WQ MMU
++		 * currently user app has the index of 1
++		 */
++		if (phys_addr)
++			NIC_WREG32(NIC0_TXE0_WQE_USER_CFG,
++				   NIC_RREG32(NIC0_TXE0_WQE_USER_CFG) | (1 << 1));
++		else
++			NIC_WREG32(NIC0_TXE0_WQE_USER_CFG,
++				   NIC_RREG32(NIC0_TXE0_WQE_USER_CFG) & ~(1 << 1));
++
++		/* Set secured ASID config. The security is enabled for WQs on HBM such that it can
++		 * be accessed only with process whose ASID is wqe_asid. Here we program ASID '0' so
++		 * that only the CN HW can access the WQs on HBM.
++		 * There is a provision to unset the previous ASID settings, so we set the
++		 * ASID only in case of WQ on HBM and unset it in the wq_arr_unset.
++		 */
++		if (wqe_asid != ctx->asid) {
++			rc = gaudi2_cn_config_wqe_asid(cn_port, wqe_asid, true);
++			if (rc)
++				goto set_asid_fail;
++		}
++
++		rw_asid = (ctx->asid <<	ARC_FARM_KDMA_CTX_AXUSER_HB_ASID_RD_SHIFT) |
++			  (ctx->asid << ARC_FARM_KDMA_CTX_AXUSER_HB_ASID_WR_SHIFT);
++
++		NIC_WREG32(NIC0_QM0_AXUSER_NONSECURED_HB_ASID, rw_asid);
++		NIC_WREG32(NIC0_QM0_AXUSER_NONSECURED_HB_MMU_BP, phys_addr ? 0x1 : 0);
++
++		if (gaudi2_port->advanced) {
++			/* enable override of asid */
++			NIC_WREG32(NIC0_QPC0_AXUSER_TXWQE_LBW_QMAN_BP_HB_WR_OVRD_LO, 0xfffff800);
++			NIC_WREG32(NIC0_QPC0_AXUSER_TXWQE_LBW_QMAN_BP_HB_RD_OVRD_LO, 0xfffff800);
++			NIC_WREG32(NIC0_QPC0_AXUSER_TXWQE_LBW_QMAN_BP_HB_ASID, wqe_asid);
++			/* Configure MMU-BP override for TX-WQs */
++			NIC_WREG32(NIC0_QPC0_AXUSER_TXWQE_LBW_QMAN_BP_HB_MMU_BP,
++				   phys_addr ? 0x1 : 0);
++
++			/* configure the QPC with the Tx WQ parameters */
++			NIC_WREG32(NIC0_QPC0_TX_WQ_BASE_ADDR_63_32_1,
++				   upper_32_bits(wq_base_addr));
++			NIC_WREG32(NIC0_QPC0_TX_WQ_BASE_ADDR_31_0_1, lower_32_bits(wq_base_addr));
++			NIC_WREG32(NIC0_QPC0_LOG_MAX_TX_WQ_SIZE_1, wq_size_cline_log);
++			NIC_WREG32(NIC0_QPC0_MMU_BYPASS_TX_WQ_1, phys_addr ? 0x1 : 0);
++
++			/* rendezvous configuration for send work queue */
++			NIC_WREG32(NIC0_RXE0_RDV_SEND_WQ_BASE_ADDR_HI,
++				   upper_32_bits(wq_base_addr));
++			NIC_WREG32(NIC0_RXE0_RDV_SEND_WQ_BASE_ADDR_LO,
++				   lower_32_bits(wq_base_addr));
++			NIC_WREG32(NIC0_RXE0_RDV_LOG_MAX_WQ_SIZE, wq_size_cline_log);
++
++			if (num_of_wq_entries < gaudi2_port->min_qp_size) {
++				gaudi2_port->min_qp_size = (u32)num_of_wq_entries;
++
++				/* The back-pressure thresholds values describe the occupancy of
++				 * the QP, thus should be configured to be the size of the smallest
++				 * QP minus some defined numbers (currently 4/8 for the
++				 * upper/lower thresholds respectively).
++				 */
++				NIC_WREG32(NIC0_QPC0_WQ_UPPER_THRESHOLD,
++					   gaudi2_port->min_qp_size -
++					   GAUDI2_NIC_WTD_BP_UPPER_TH_DIFF);
++				NIC_WREG32(NIC0_QPC0_WQ_LOWER_THRESHOLD,
++					   gaudi2_port->min_qp_size -
++					   GAUDI2_NIC_WTD_BP_LOWER_TH_DIFF);
++			}
++		}
++	} else {
++		NIC_WREG32(NIC0_RXE0_WIN1_WQ_BASE_HI, upper_32_bits(wq_base_addr));
++		NIC_WREG32(NIC0_RXE0_WIN1_WQ_BASE_LO, lower_32_bits(wq_base_addr));
++
++		NIC_WREG32(NIC0_RXE0_WIN1_WQ_MISC, wq_size_cline_log);
++
++		/* configure WQ MMU for RXE */
++		if (phys_addr)
++			NIC_WREG32(NIC0_RXE0_ARUSER_MMU_BP,
++				   NIC_RREG32(NIC0_RXE0_ARUSER_MMU_BP) | (1 << 1));
++		else
++			NIC_WREG32(NIC0_RXE0_ARUSER_MMU_BP,
++				   NIC_RREG32(NIC0_RXE0_ARUSER_MMU_BP) & ~(1 << 1));
++
++		if (wqe_asid != ctx->asid) {
++			/* enable override of asid bit before changing asid */
++			NIC_WREG32(NIC0_RXE0_WQE_ARUSER_HB_RD_OVRD_LO, 0xFFFFFc00);
++			/* change asid to secured asid */
++			NIC_WREG32(NIC0_RXE0_WQE_ARUSER_HB_ASID, wqe_asid);
++		} else {
++			NIC_WREG32(NIC0_RXE0_WQE_ARUSER_HB_RD_OVRD_LO, 0xFFFFFFFF);
++		}
++
++		if (gaudi2_port->advanced) {
++			/* enable override of asid */
++			NIC_WREG32(NIC0_QPC0_AXUSER_RXWQE_HB_WR_OVRD_LO, 0xFFFFF800);
++			NIC_WREG32(NIC0_QPC0_AXUSER_RXWQE_HB_RD_OVRD_LO, 0xFFFFF800);
++			NIC_WREG32(NIC0_QPC0_AXUSER_RXWQE_HB_ASID, wqe_asid);
++			/* Configure MMU-BP override for RX-WQs */
++			NIC_WREG32(NIC0_QPC0_AXUSER_RXWQE_HB_MMU_BP, phys_addr ? 0x1 : 0);
++
++			/* configure the QPC with the Rx WQ parameters */
++			NIC_WREG32(NIC0_QPC0_RX_WQ_BASE_ADDR_63_32_1,
++				   upper_32_bits(wq_base_addr));
++			NIC_WREG32(NIC0_QPC0_RX_WQ_BASE_ADDR_31_0_1,
++				   lower_32_bits(wq_base_addr));
++			NIC_WREG32(NIC0_QPC0_LOG_MAX_RX_WQ_SIZE_1, wq_size_cline_log);
++			NIC_WREG32(NIC0_QPC0_MMU_BYPASS_RX_WQ_1, phys_addr ? 0x1 : 0);
++
++			/* rendezvous configuration for receive work queue */
++			NIC_WREG32(NIC0_RXE0_WIN0_WQ_BASE_HI, (upper_32_bits(wq_base_addr)));
++			NIC_WREG32(NIC0_RXE0_WIN0_WQ_BASE_LO, lower_32_bits(wq_base_addr));
++			NIC_WREG32(NIC0_RXE0_WIN0_WQ_MISC, wq_size_cline_log);
++		}
++	}
++
++	/* We are using a separate flag for wq mmu bypass as the hdev->mmu_bypass is being used by
++	 * other CN data structures.
++	 */
++	wq_arr_props->wq_mmu_bypass = phys_addr;
++
++	return 0;
++
++set_asid_fail:
++	if (phys_addr)
++		hbl_cn_mem_destroy(hdev, mem_data.handle);
++	else
++		hbl_cn_unreserve_dva_block(ctx, wq_arr_props->dva_base, wq_arr_props->dva_size);
++
++	return rc;
++}
++
++static int gaudi2_user_wq_arr_unset(struct hbl_cn_ctx *ctx, struct hbl_cn_port *cn_port, u32 type)
++{
++	struct hbl_cn_wq_array_properties *wq_arr_props = &cn_port->wq_arr_props[type];
++	struct hbl_cn_device *hdev = ctx->hdev;
++	u32 port = cn_port->port;
++	int rc = 0;
++
++	if (wq_arr_props->is_send) {
++		NIC_WREG32(NIC0_QPC0_TX_WQ_BASE_ADDR_63_32_1, 0);
++		NIC_WREG32(NIC0_QPC0_TX_WQ_BASE_ADDR_31_0_1, 0);
++		NIC_WREG32(NIC0_QPC0_LOG_MAX_TX_WQ_SIZE_1, 0);
++
++		NIC_WREG32(NIC0_TXE0_SQ_BASE_ADDRESS_63_32_1, 0);
++		NIC_WREG32(NIC0_TXE0_SQ_BASE_ADDRESS_31_0_1, 0);
++		NIC_WREG32(NIC0_TXE0_LOG_MAX_WQ_SIZE_1, 0);
++
++		if (wq_arr_props->on_device_mem)
++			gaudi2_cn_config_wqe_asid(cn_port, 0, false);
++	} else {
++		NIC_WREG32(NIC0_QPC0_RX_WQ_BASE_ADDR_63_32_1, 0);
++		NIC_WREG32(NIC0_QPC0_RX_WQ_BASE_ADDR_31_0_1, 0);
++		NIC_WREG32(NIC0_QPC0_LOG_MAX_RX_WQ_SIZE_1, 0);
++
++		NIC_WREG32(NIC0_RXE0_WIN1_WQ_BASE_LO, 0);
++		NIC_WREG32(NIC0_RXE0_WIN1_WQ_BASE_HI, 0);
++		NIC_WREG32(NIC0_RXE0_WIN1_WQ_MISC, 0);
++	}
++
++	if (wq_arr_props->dva_base) {
++		hbl_cn_unreserve_wq_dva(ctx, cn_port, type);
++	} else {
++		rc = hbl_cn_mem_destroy(hdev, wq_arr_props->handle);
++		if (!rc)
++			wq_arr_props->handle = 0;
++	}
++
++	return rc;
++}
++
++static void gaudi2_get_cq_id_range(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id)
++{
++	*min_id = NIC_MIN_CQ_ID;
++	*max_id = NIC_MAX_CQ_ID;
++}
++
++static int gaudi2_user_cq_set(struct hbl_cn_user_cq *user_cq,
++			      struct hbl_cni_user_cq_set_in_params *in,
++			      struct hbl_cni_user_cq_set_out_params *out)
++{
++	u64 mem_handle, pi_handle, regs_handle, pi_device_addr, umr_block_addr;
++	u32 port, id = user_cq->id, offset = id * 4, regs_offset;
++	struct hbl_cn_port *cn_port = user_cq->cn_port;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct hbl_cn_ctx *ctx = user_cq->ctx;
++	struct gaudi2_cn_port *gaudi2_port;
++	struct gaudi2_cn_device *gaudi2;
++	struct hbl_cn_mem_data mem_data;
++	int rc;
++
++	gaudi2 = hdev->asic_specific;
 +	port = cn_port->port;
 +
-+	rc = hdev->asic_funcs->port_funcs->user_wq_arr_unset(ctx, cn_port, type);
-+	if (rc)
-+		dev_err(hdev->dev, "%s WQ array unset failed, port %d, err %d\n", type_str, port,
-+			rc);
-+
-+	wq_arr_props->enabled = false;
-+	wq_arr_props->under_unset = false;
-+
-+	if (!cn_port->wq_arr_props[HBL_CNI_USER_WQ_SEND].enabled &&
-+	    !cn_port->wq_arr_props[HBL_CNI_USER_WQ_RECV].enabled) {
-+		cn_port->num_of_wq_entries = 0;
-+		cn_port->num_of_wqs = 0;
-+	}
-+
-+	return rc;
-+}
-+
-+static int user_wq_arr_unset(struct hbl_cn_device *hdev, struct hbl_cni_user_wq_arr_unset_in *in,
-+			     struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_wq_array_properties *wq_arr_props;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_properties *cn_props;
-+	struct hbl_cn_port *cn_port;
-+	u32 port, type;
-+	char *type_str;
-+	int rc;
-+
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	cn_props = &hdev->cn_props;
-+
-+	type = in->type;
-+
-+	if (type > cn_props->max_wq_arr_type) {
-+		dev_dbg(hdev->dev, "invalid type %d, can't unset user WQ\n", type);
-+		return -EINVAL;
-+	}
-+
-+	port = in->port;
-+
-+	/* No need to check if the port is open because internal ports are always open and external
-+	 * ports might be closed by a user command e.g. "ip link set down" after a WQ was
-+	 * configured, but we still want to unset it.
-+	 */
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_ENABLE | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	wq_arr_props = &cn_port->wq_arr_props[type];
-+	type_str = wq_arr_props->type_str;
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	if (!wq_arr_props->enabled) {
-+		dev_dbg(hdev->dev, "%s WQ array is disabled, port %d\n", type_str, port);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (wq_arr_props->under_unset) {
-+		dev_dbg(hdev->dev, "%s WQ array is already under unset, port %d\n", type_str, port);
-+		rc = -EPERM;
-+		goto out;
-+	}
-+
-+	/* Allocated QPs might still use the WQ, hence unset the WQ once they are destroyed */
-+	if (atomic_read(&cn_port->num_of_allocated_qps)) {
-+		wq_arr_props->under_unset = true;
-+		rc = 0;
-+		goto out;
-+	}
-+
-+	rc = __user_wq_arr_unset(ctx, cn_port, type);
-+out:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int alloc_user_cq_id(struct hbl_cn_device *hdev, struct hbl_cni_alloc_user_cq_id_in *in,
-+			    struct hbl_cni_alloc_user_cq_id_out *out, struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs = hdev->asic_funcs->port_funcs;
-+	struct hbl_cn_properties *cn_props = &hdev->cn_props;
-+	u32 min_id, max_id, port, flags;
-+	struct hbl_cn_user_cq *user_cq;
-+	struct hbl_cn_port *cn_port;
-+	struct xa_limit id_limit;
-+	int id, rc;
-+
-+	port = in->port;
-+	flags = NIC_PORT_PRINT_ON_ERR;
-+
-+	if (!cn_props->force_cq)
-+		flags |= NIC_PORT_CHECK_OPEN;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, port, flags);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	user_cq = kzalloc(sizeof(*user_cq), GFP_KERNEL);
-+	if (!user_cq)
-+		return -ENOMEM;
-+
-+	user_cq->state = USER_CQ_STATE_ALLOC;
-+	user_cq->ctx = ctx;
-+	user_cq->cn_port = cn_port;
-+	kref_init(&user_cq->refcount);
-+
-+	port_funcs->get_cq_id_range(cn_port, &min_id, &max_id);
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	if (!cn_port->set_app_params) {
++	if (!hdev->mmu_bypass) {
 +		dev_dbg(hdev->dev,
-+			"Failed to allocate a CQ ID, set_app_params wasn't called yet, port %d\n",
++			"Allocation of non physical CQ %d dma-mem is not supported, port %d\n", id,
 +			port);
-+		rc = -EPERM;
-+		goto cfg_unlock;
++		return -EOPNOTSUPP;
 +	}
 +
-+	id_limit = XA_LIMIT(min_id, max_id);
-+	rc = xa_alloc(&cn_port->cq_ids, &id, user_cq, id_limit, GFP_KERNEL);
++	gaudi2_port = &gaudi2->cn_ports[port];
++
++	memset(&mem_data, 0, sizeof(mem_data));
++	mem_data.mem_id = HBL_CN_DRV_MEM_HOST_MAP_ONLY;
++	mem_data.in.host_map_data.bus_address = RING_BUF_DMA_ADDRESS(&gaudi2_port->cq_rings[0]) +
++						(id * NIC_TOTAL_CQ_MEM_SIZE);
++	mem_data.in.host_map_data.kernel_address = RING_BUF_ADDRESS(&gaudi2_port->cq_rings[0]) +
++						   (id * NIC_TOTAL_CQ_MEM_SIZE);
++	mem_data.size = in->num_of_cqes * CQE_SIZE;
++	rc = hbl_cn_mem_alloc(ctx, &mem_data);
 +	if (rc) {
-+		dev_err(hdev->dev, "No available user CQ, port %d\n", port);
-+		goto cfg_unlock;
-+	}
-+
-+	user_cq->id = id;
-+
-+	mutex_init(&user_cq->overrun_lock);
-+
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	dev_dbg(hdev->dev, "Allocating CQ id %d in port %d", id, port);
-+
-+	out->id = id;
-+
-+	return 0;
-+
-+cfg_unlock:
-+	port_funcs->cfg_unlock(cn_port);
-+	kfree(user_cq);
-+
-+	return rc;
-+}
-+
-+static bool validate_cq_id_range(struct hbl_cn_port *cn_port, u32 cq_id)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	u32 min_id, max_id;
-+
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	port_funcs->get_cq_id_range(cn_port, &min_id, &max_id);
-+
-+	return (cq_id >= min_id) && (cq_id <= max_id);
-+}
-+
-+static int __user_cq_set(struct hbl_cn_device *hdev, struct hbl_cni_user_cq_set_in_params *in,
-+			 struct hbl_cni_user_cq_set_out_params *out)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs = hdev->asic_funcs->port_funcs;
-+	struct hbl_cn_properties *cn_props = &hdev->cn_props;
-+	struct hbl_cn_user_cq *user_cq;
-+	struct hbl_cn_port *cn_port;
-+	u32 port, flags, id;
-+	int rc;
-+
-+	id = in->id;
-+	port = in->port;
-+
-+	flags = NIC_PORT_PRINT_ON_ERR;
-+
-+	if (!cn_props->force_cq)
-+		flags |= NIC_PORT_CHECK_OPEN;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, port, flags);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	if (!validate_cq_id_range(cn_port, id)) {
-+		dev_dbg(hdev->dev, "user CQ %d is invalid, port %d\n", id, port);
-+		return -EINVAL;
-+	}
-+
-+	if (in->num_of_cqes < cn_props->user_cq_min_entries) {
-+		dev_dbg(hdev->dev,
-+			"user CQ %d buffer length must be at least 0x%x entries, port %d\n",
-+			id, cn_props->user_cq_min_entries, port);
-+		return -EINVAL;
-+	}
-+
-+	if (!is_power_of_2(in->num_of_cqes)) {
-+		dev_dbg(hdev->dev, "user CQ %d buffer length must be at power of 2, port %d\n",
-+			id, port);
-+		return -EINVAL;
-+	}
-+
-+	if (in->num_of_cqes > cn_props->user_cq_max_entries) {
-+		dev_dbg(hdev->dev,
-+			"user CQ %d buffer length must not be more than 0x%x entries, port %d\n",
-+			id, cn_props->user_cq_max_entries, port);
-+		return -EINVAL;
-+	}
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	/* Validate if user CQ is allocated. */
-+	user_cq = xa_load(&cn_port->cq_ids, id);
-+	if (!user_cq) {
-+		dev_dbg(hdev->dev, "user CQ %d wasn't allocated, port %d\n", id, port);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	/* Validate that user CQ is in ALLOC state. */
-+	if (user_cq->state != USER_CQ_STATE_ALLOC) {
-+		dev_dbg(hdev->dev, "user CQ %d set failed, current state %d, port %d\n",
-+			id, user_cq->state, port);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	rc = port_funcs->user_cq_set(user_cq, in, out);
-+	if (rc) {
-+		dev_dbg(hdev->dev, "user CQ %d set failed, port %d\n", id, port);
-+		goto out;
-+	}
-+
-+	user_cq->state = USER_CQ_STATE_SET;
-+out:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int user_cq_id_set(struct hbl_cn_device *hdev, struct hbl_cni_user_cq_id_set_in *in,
-+			  struct hbl_cni_user_cq_id_set_out *out)
-+{
-+	struct hbl_cni_user_cq_set_out_params out2 = {};
-+	struct hbl_cni_user_cq_set_in_params in2 = {};
-+	int rc;
-+
-+	in2.port = in->port;
-+	in2.num_of_cqes = in->num_of_cqes;
-+	in2.id = in->id;
-+
-+	rc = __user_cq_set(hdev, &in2, &out2);
-+	if (rc)
-+		return rc;
-+
-+	out->mem_handle = out2.mem_handle;
-+	out->pi_handle = out2.pi_handle;
-+	out->regs_handle = out2.regs_handle;
-+	out->regs_offset = out2.regs_offset;
-+
-+	return 0;
-+}
-+
-+static void user_cq_destroy(struct kref *kref)
-+{
-+	struct hbl_cn_user_cq *user_cq = container_of(kref, struct hbl_cn_user_cq, refcount);
-+	struct hbl_cn_port *cn_port = user_cq->cn_port;
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	/* Destroy the remaining resources allocated during SET state. The below callback needs to
-+	 * be called only if the CQ moved to unset from set state. This is because, this resource
-+	 * was created only during set state. If the CQ moved directly to unset from alloc then we
-+	 * shouldn't be trying to clear the resource.
-+	 */
-+	if (user_cq->state == USER_CQ_STATE_SET_TO_UNSET)
-+		port_funcs->user_cq_destroy(user_cq);
-+
-+	mutex_destroy(&user_cq->overrun_lock);
-+	xa_erase(&cn_port->cq_ids, user_cq->id);
-+	kfree(user_cq);
-+}
-+
-+struct hbl_cn_user_cq *hbl_cn_user_cq_get(struct hbl_cn_port *cn_port, u8 cq_id)
-+{
-+	struct hbl_cn_user_cq *user_cq;
-+
-+	user_cq = xa_load(&cn_port->cq_ids, cq_id);
-+	if (!user_cq || user_cq->state != USER_CQ_STATE_SET)
-+		return NULL;
-+
-+	kref_get(&user_cq->refcount);
-+
-+	return user_cq;
-+}
-+
-+int hbl_cn_user_cq_put(struct hbl_cn_user_cq *user_cq)
-+{
-+	return kref_put(&user_cq->refcount, user_cq_destroy);
-+}
-+
-+static int user_cq_unset_locked(struct hbl_cn_user_cq *user_cq, bool warn_if_alive)
-+{
-+	struct hbl_cn_port *cn_port = user_cq->cn_port;
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	u32 port = cn_port->port, id = user_cq->id;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	int rc = 0, ret;
-+
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	/* Call unset only if the CQ has already been SET */
-+	if (user_cq->state == USER_CQ_STATE_SET) {
-+		rc = port_funcs->user_cq_unset(user_cq);
-+		if (rc)
-+			dev_dbg(hdev->dev, "user CQ %d unset failed, port %d\n", id, port);
-+
-+		user_cq->state = USER_CQ_STATE_SET_TO_UNSET;
-+	} else {
-+		user_cq->state = USER_CQ_STATE_ALLOC_TO_UNSET;
-+	}
-+
-+	/* we'd like to destroy even if the unset callback returned error */
-+	ret = hbl_cn_user_cq_put(user_cq);
-+
-+	if (warn_if_alive && ret != 1)
-+		dev_warn(hdev->dev, "user CQ %d was not destroyed, port %d\n", id, port);
-+
-+	return rc;
-+}
-+
-+static int __user_cq_unset(struct hbl_cn_device *hdev, struct hbl_cni_user_cq_unset_in_params *in)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs = hdev->asic_funcs->port_funcs;
-+	struct hbl_cn_properties *cn_props = &hdev->cn_props;
-+	struct hbl_cn_user_cq *user_cq;
-+	struct hbl_cn_port *cn_port;
-+	u32 port, flags, id;
-+	int rc;
-+
-+	port = in->port;
-+	id = in->id;
-+
-+	if (port >= cn_props->max_num_of_ports) {
-+		dev_dbg(hdev->dev, "Invalid port %d\n", port);
-+		return -EINVAL;
-+	}
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	flags = NIC_PORT_PRINT_ON_ERR;
-+
-+	/* Unless force_cq flag in enabled, in case of user CQ unset of external ports, the port
-+	 * may be already closed by the user, so we only check if the port is enabled.
-+	 */
-+	if (!cn_props->force_cq)
-+		flags |= cn_port->eth_enable ? NIC_PORT_CHECK_ENABLE : NIC_PORT_CHECK_OPEN;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, port, flags);
-+	if (rc)
-+		return rc;
-+
-+	if (!validate_cq_id_range(cn_port, id)) {
-+		dev_dbg(hdev->dev, "user CQ %d is invalid, port %d\n", id, port);
-+		return -EINVAL;
-+	}
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	/* Validate if user CQ is allocated. */
-+	user_cq = xa_load(&cn_port->cq_ids, id);
-+	if (!user_cq) {
-+		dev_dbg(hdev->dev, "user CQ %d wasn't allocated, port %d\n", id, port);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	rc = user_cq_unset_locked(user_cq, false);
-+out:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int user_cq_id_unset(struct hbl_cn_device *hdev, struct hbl_cni_user_cq_id_unset_in *in)
-+{
-+	struct hbl_cni_user_cq_unset_in_params in2 = {};
-+
-+	in2.port = in->port;
-+	in2.id = in->id;
-+
-+	return __user_cq_unset(hdev, &in2);
-+}
-+
-+static int user_set_app_params(struct hbl_cn_device *hdev,
-+			       struct hbl_cni_set_user_app_params_in *in, struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	bool modify_wqe_checkers;
-+	u32 port;
-+	int rc;
-+
-+	port_funcs = asic_funcs->port_funcs;
-+
-+	port = in->port;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	/* We must take rtnl_lock here prior to taking cfg_lock, as we may land into flow that
-+	 * extracts the IP port and that can cause a deadlock in case an operation from the
-+	 * net subsystem that requires the cfg_lock is executed at the same time. As such operation
-+	 * will first obtain rtnl_lock and then will try to take a cfg_lock, hence a deadlock.
-+	 */
-+	rtnl_lock();
-+	port_funcs->cfg_lock(cn_port);
-+
-+	rc = asic_funcs->user_set_app_params(hdev, in, &modify_wqe_checkers, ctx);
-+	if (rc)
-+		goto out;
-+
-+	if (modify_wqe_checkers) {
-+		rc = hdev->asic_funcs->port_funcs->disable_wqe_index_checker(cn_port);
-+		if (rc) {
-+			dev_err(hdev->dev, "Failed disable wqe index checker, port %d rc %d\n",
-+				port, rc);
-+			goto out;
-+		}
-+	}
-+
-+	cn_port->set_app_params = true;
-+
-+out:
-+	port_funcs->cfg_unlock(cn_port);
-+	rtnl_unlock();
-+
-+	return rc;
-+}
-+
-+static int user_get_app_params(struct hbl_cn_device *hdev,
-+			       struct hbl_cni_get_user_app_params_in *in,
-+			       struct hbl_cni_get_user_app_params_out *out)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	u32 port;
-+	int rc;
-+
-+	port_funcs = asic_funcs->port_funcs;
-+
-+	port = in->port;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	port_funcs->cfg_lock(cn_port);
-+	asic_funcs->user_get_app_params(hdev, in, out);
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return 0;
-+}
-+
-+static int eq_poll(struct hbl_cn_device *hdev, struct hbl_cn_ctx *ctx,
-+		   struct hbl_cni_eq_poll_in *in, struct hbl_cni_eq_poll_out *out)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	struct hbl_cn_port *cn_port;
-+	u32 port;
-+	int rc;
-+
-+	port = in->port;
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+	rc = asic_funcs->port_funcs->eq_poll(cn_port, ctx->asid, out);
-+	switch (rc) {
-+	case 0:
-+		out->status = HBL_CNI_EQ_POLL_STATUS_SUCCESS;
-+		break;
-+	case -EOPNOTSUPP:
-+		out->status = HBL_CNI_EQ_POLL_STATUS_ERR_UNSUPPORTED_OP;
-+		break;
-+	case -EINVAL:
-+		out->status = HBL_CNI_EQ_POLL_STATUS_ERR_NO_SUCH_PORT;
-+		break;
-+	case -ENXIO:
-+		out->status = HBL_CNI_EQ_POLL_STATUS_ERR_PORT_DISABLED;
-+		break;
-+	case -ENODATA:
-+		out->status = HBL_CNI_EQ_POLL_STATUS_EQ_EMPTY;
-+		break;
-+	case -ESRCH:
-+		out->status = HBL_CNI_EQ_POLL_STATUS_ERR_NO_SUCH_EQ;
-+		break;
-+	default:
-+		out->status = HBL_CNI_EQ_POLL_STATUS_ERR_UNDEF;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static void get_user_db_fifo_id_range(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id,
-+				      u32 id_hint)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+
-+	port_funcs = cn_port->hdev->asic_funcs->port_funcs;
-+
-+	/* id_hint comes from user. Driver enforces allocation of the requested
-+	 * db fifo HW resource. i.e. driver fails if requested resource is not
-+	 * available. Reason, user stack has hard coded user fifo resource IDs.
-+	 */
-+	if (id_hint) {
-+		*min_id = id_hint;
-+		*max_id = id_hint;
-+	} else {
-+		port_funcs->get_db_fifo_id_range(cn_port, min_id, max_id);
-+	}
-+}
-+
-+static int alloc_user_db_fifo(struct hbl_cn_device *hdev, struct hbl_cn_ctx *ctx,
-+			      struct hbl_cni_alloc_user_db_fifo_in *in,
-+			      struct hbl_cni_alloc_user_db_fifo_out *out)
-+{
-+	struct hbl_cn_db_fifo_xarray_pdata *xa_pdata;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	struct xa_limit id_limit;
-+	u32 min_id, max_id;
-+	int rc, id;
-+	u32 port;
-+
-+	port = in->port;
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	get_user_db_fifo_id_range(cn_port, &min_id, &max_id, in->id_hint);
-+
-+	/* IDR private data. */
-+	xa_pdata = kzalloc(sizeof(*xa_pdata), GFP_KERNEL);
-+	if (!xa_pdata)
-+		return -ENOMEM;
-+
-+	xa_pdata->asid = ctx->asid;
-+	xa_pdata->state = DB_FIFO_STATE_ALLOC;
-+	xa_pdata->port = port;
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	if (!cn_port->set_app_params) {
-+		dev_dbg(hdev->dev,
-+			"Failed to allocate DB FIFO, set_app_params wasn't called yet, port %d\n",
++		dev_dbg(hdev->dev, "user CQ %d buffer allocation failed, rc %d, port %d\n", id, rc,
 +			port);
-+		rc = -EPERM;
-+		goto cfg_unlock;
-+	}
-+
-+	id_limit = XA_LIMIT(min_id, max_id);
-+	rc = xa_alloc(&cn_port->db_fifo_ids, &id, xa_pdata, id_limit, GFP_KERNEL);
-+	if (rc) {
-+		dev_dbg_ratelimited(hdev->dev, "DB FIFO ID allocation failed, port %d\n", port);
-+		goto cfg_unlock;
-+	}
-+
-+	xa_pdata->id = id;
-+
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	out->id = id;
-+
-+	return 0;
-+
-+cfg_unlock:
-+	port_funcs->cfg_unlock(cn_port);
-+	kfree(xa_pdata);
-+	return rc;
-+}
-+
-+static int validate_db_fifo_id_range(struct hbl_cn_port *cn_port, u32 db_fifo_id)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_device *hdev;
-+	u32 min_id, max_id;
-+
-+	hdev = cn_port->hdev;
-+	asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->port_funcs->get_db_fifo_id_range(cn_port, &min_id, &max_id);
-+
-+	if (db_fifo_id < min_id || db_fifo_id > max_id) {
-+		dev_dbg_ratelimited(hdev->dev, "Invalid db fifo ID, %d, port: %d\n", db_fifo_id,
-+				    cn_port->port);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int validate_db_fifo_mode(struct hbl_cn_port *cn_port, u8 fifo_mode)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_device *hdev;
-+	u32 modes_mask;
-+
-+	hdev = cn_port->hdev;
-+	asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->port_funcs->get_db_fifo_modes_mask(cn_port, &modes_mask);
-+
-+	if (!(BIT(fifo_mode) & modes_mask)) {
-+		dev_dbg_ratelimited(hdev->dev, "Invalid db fifo mode, %d, port: %d\n", fifo_mode,
-+				    cn_port->port);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int validate_db_fifo_ioctl(struct hbl_cn_port *cn_port, u32 db_fifo_id)
-+{
-+	return validate_db_fifo_id_range(cn_port, db_fifo_id);
-+}
-+
-+static int user_db_fifo_unset_and_free(struct hbl_cn_port *cn_port,
-+				       struct hbl_cn_db_fifo_xarray_pdata *xa_pdata)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	int rc = 0;
-+
-+	asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->port_funcs->db_fifo_unset(cn_port, xa_pdata->id, xa_pdata);
-+
-+	/* Destroy CI buffer if we allocated one.
-+	 * Note: Not all DB fifo modes need CI memory buffer.
-+	 * Track CI via sync objects.
-+	 * If there is an issue in destroying the CI memory, then we might exit this function
-+	 * without freeing the db_fifo_pool. This would cause a kernel assertion when we try to do
-+	 * rmmod as the gen_alloc_destroy for db_fifo_pool would fail as there are allocations
-+	 * still left in the pool. So, the db_fifo_pool needs to be freed irrespective of the ci
-+	 * memory being destroyed or not.
-+	 */
-+	if (xa_pdata->ci_mmap_handle)
-+		rc = hbl_cn_mem_destroy(hdev, xa_pdata->ci_mmap_handle);
-+
-+	asic_funcs->port_funcs->db_fifo_free(cn_port, xa_pdata->db_pool_addr, xa_pdata->fifo_size);
-+
-+	return rc;
-+}
-+
-+static int user_db_fifo_set(struct hbl_cn_device *hdev, struct hbl_cn_ctx *ctx,
-+			    struct hbl_cni_user_db_fifo_set_in *in,
-+			    struct hbl_cni_user_db_fifo_set_out *out)
-+{
-+	u64 umr_block_addr, umr_mmap_handle, ci_mmap_handle = 0, ci_device_handle;
-+	struct hbl_cn_db_fifo_xarray_pdata *xa_pdata;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_mem_data mem_data = {};
-+	struct hbl_cn_port *cn_port;
-+	u32 umr_db_offset, port, id;
-+	int rc;
-+
-+	port = in->port;
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
 +		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	id = in->id;
-+
-+	rc = validate_db_fifo_ioctl(cn_port, id);
-+	if (rc)
-+		return rc;
-+
-+	/* Get allocated ID private data. Having meta data associated with IDR also helps validate
-+	 * that user do not trick kernel into configuring db fifo HW for an unallocated ID.
-+	 */
-+	port_funcs->cfg_lock(cn_port);
-+	xa_pdata = xa_load(&cn_port->db_fifo_ids, id);
-+	if (!xa_pdata) {
-+		dev_dbg_ratelimited(hdev->dev, "DB FIFO ID %d is not allocated, port: %d\n", id,
-+				    port);
-+		rc = -EINVAL;
-+		goto cfg_unlock;
 +	}
 +
-+	rc = validate_db_fifo_mode(cn_port, in->mode);
-+	if (rc)
-+		goto cfg_unlock;
++	mem_handle = mem_data.handle;
 +
-+	xa_pdata->fifo_mode = in->mode;
-+
-+	/* User may call db_fifo_set multiple times post db_fifo_alloc. So, before doing any
-+	 * further register changes, make sure to unset the previous settings for this id
-+	 */
-+	if (xa_pdata->state == DB_FIFO_STATE_SET) {
-+		rc = user_db_fifo_unset_and_free(cn_port, xa_pdata);
-+		if (rc) {
-+			dev_dbg(hdev->dev, "Fail to unset DB FIFO %d before set, port %d\n", id,
-+				port);
-+			goto cfg_unlock;
-+		}
-+	}
-+
-+	rc = port_funcs->db_fifo_allocate(cn_port, xa_pdata);
-+	if (rc) {
-+		dev_dbg(hdev->dev, "DB FIFO %d allocation failed, port %d, mode %d\n", id, port,
-+			in->mode);
-+		goto cfg_unlock;
-+	}
-+
-+	/* Get the user mapped register(UMR) block address and
-+	 * db fifo offset associated with the ID.
-+	 */
-+	port_funcs->get_db_fifo_umr(cn_port, id, &umr_block_addr, &umr_db_offset);
-+
-+	/* Get mmap handle for UMR block. */
-+	rc = hbl_cn_get_hw_block_handle(hdev, umr_block_addr, &umr_mmap_handle);
-+	if (rc) {
-+		dev_dbg_ratelimited(hdev->dev,
-+				    "Failed to get UMR mmap handle of DB FIFO %d, port %d\n", id,
-+				    port);
-+		goto free_db_fifo;
-+	}
-+
-+	/* Allocate a consumer-index(CI) buffer in host kernel.
-+	 * HW updates CI when it pops a db fifo. User mmaps CI buffer and may poll to read current
-+	 * CI.
++	/* Allocate a producer-index (PI) buffer in host kernel.
++	 * HW updates PI when it pushes an entry to a CQ.
++	 * User mmaps PI buffer and may poll to read current PI.
++	 *
 +	 * Allocate page size, else we risk exposing kernel data to userspace inadvertently.
 +	 */
-+	mem_data.mem_id = HBL_CN_DRV_MEM_HOST_DMA_COHERENT;
-+	mem_data.size = PAGE_SIZE;
-+	rc = hbl_cn_mem_alloc(ctx, &mem_data);
-+	if (rc) {
-+		dev_dbg_ratelimited(hdev->dev,
-+				    "DB FIFO id %d, CI buffer allocation failed, port %d\n",
-+				    id, port);
-+		goto free_db_fifo;
-+	}
-+
-+	ci_mmap_handle = mem_data.handle;
-+	ci_device_handle = mem_data.addr;
-+
-+	rc = port_funcs->db_fifo_set(cn_port, ctx, id, ci_device_handle, xa_pdata);
-+	if (rc) {
-+		dev_dbg_ratelimited(hdev->dev, "DB FIFO id %d, HW config failed, port %d\n", id,
-+				    port);
-+		goto free_ci;
-+	}
-+
-+	/* Cache IDR metadata and init IOCTL out. */
-+	out->ci_handle = ci_mmap_handle;
-+	out->regs_handle = umr_mmap_handle;
-+	out->regs_offset = umr_db_offset;
-+
-+	xa_pdata->ci_mmap_handle = out->ci_handle;
-+	xa_pdata->umr_mmap_handle = out->regs_handle;
-+	xa_pdata->umr_db_offset = out->regs_offset;
-+	xa_pdata->state = DB_FIFO_STATE_SET;
-+
-+	out->fifo_size = xa_pdata->fifo_size;
-+	out->fifo_bp_thresh = xa_pdata->fifo_size / 2;
-+
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return 0;
-+
-+free_ci:
-+	if (ci_mmap_handle)
-+		hbl_cn_mem_destroy(hdev, ci_mmap_handle);
-+free_db_fifo:
-+	port_funcs->db_fifo_free(cn_port, xa_pdata->db_pool_addr, xa_pdata->fifo_size);
-+cfg_unlock:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int __user_db_fifo_unset(struct hbl_cn_port *cn_port,
-+				struct hbl_cn_db_fifo_xarray_pdata *xa_pdata)
-+{
-+	u32 id = xa_pdata->id;
-+	int rc = 0;
-+
-+	/* User may call unset or the context may be destroyed while a db fifo is still in
-+	 * allocated state. When we call alloc_user_db_fifo next time, we would skip that
-+	 * particular id. This way, the id is blocked indefinitely until a full reset is done.
-+	 * So to fix this issue, we maintain the state of the idr. Perform unset only if set had
-+	 * been previously done for the idr.
-+	 */
-+	if (xa_pdata->state == DB_FIFO_STATE_SET)
-+		rc = user_db_fifo_unset_and_free(cn_port, xa_pdata);
-+
-+	kfree(xa_pdata);
-+	xa_erase(&cn_port->db_fifo_ids, id);
-+
-+	return rc;
-+}
-+
-+static int user_db_fifo_unset(struct hbl_cn_device *hdev, struct hbl_cni_user_db_fifo_unset_in *in)
-+{
-+	struct hbl_cn_db_fifo_xarray_pdata *xa_pdata;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	int rc;
-+	u32 id;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, in->port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[in->port];
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	id = in->id;
-+
-+	rc = validate_db_fifo_ioctl(cn_port, id);
-+	if (rc)
-+		return rc;
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	xa_pdata = xa_load(&cn_port->db_fifo_ids, id);
-+	if (!xa_pdata) {
-+		dev_dbg_ratelimited(hdev->dev, "DB fifo ID %d is not allocated, port: %d\n", id,
-+				    in->port);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	rc = __user_db_fifo_unset(cn_port, xa_pdata);
-+out:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int user_encap_alloc(struct hbl_cn_device *hdev, struct hbl_cni_user_encap_alloc_in *in,
-+			    struct hbl_cni_user_encap_alloc_out *out)
-+{
-+	struct hbl_cn_encap_xarray_pdata *xa_pdata;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	struct xa_limit id_limit;
-+	u32 min_id, max_id;
-+	int rc, id;
-+	u32 port;
-+
-+	port = in->port;
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	port_funcs->get_encap_id_range(cn_port, &min_id, &max_id);
-+
-+	/* IDR private data. */
-+	xa_pdata = kzalloc(sizeof(*xa_pdata), GFP_KERNEL);
-+	if (!xa_pdata)
-+		return -ENOMEM;
-+
-+	xa_pdata->port = port;
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	if (!cn_port->set_app_params) {
-+		dev_dbg(hdev->dev,
-+			"Failed to allocate encapsulation ID, set_app_params wasn't called yet, port %d\n",
-+			port);
-+		rc = -EPERM;
-+		goto cfg_unlock;
-+	}
-+
-+	id_limit = XA_LIMIT(min_id, max_id);
-+	rc = xa_alloc(&cn_port->encap_ids, &id, xa_pdata, id_limit, GFP_KERNEL);
-+	if (rc) {
-+		dev_dbg_ratelimited(hdev->dev, "Encapsulation ID allocation failed, port %d\n",
-+				    port);
-+		goto cfg_unlock;
-+	}
-+
-+	xa_pdata->id = id;
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	out->id = id;
-+
-+	return 0;
-+
-+cfg_unlock:
-+	port_funcs->cfg_unlock(cn_port);
-+	kfree(xa_pdata);
-+
-+	return rc;
-+}
-+
-+static int validate_encap_id_range(struct hbl_cn_port *cn_port, u32 encap_id)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_device *hdev;
-+	u32 min_id, max_id;
-+
-+	hdev = cn_port->hdev;
-+	asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->port_funcs->get_encap_id_range(cn_port, &min_id, &max_id);
-+
-+	if (encap_id < min_id || encap_id > max_id) {
-+		dev_dbg_ratelimited(hdev->dev, "Invalid encapsulation ID, %d\n", encap_id);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int validate_encap_ioctl(struct hbl_cn_port *cn_port, u32 encap_id)
-+{
-+	return validate_encap_id_range(cn_port, encap_id);
-+}
-+
-+static bool is_encap_supported(struct hbl_cn_device *hdev, struct hbl_cni_user_encap_set_in *in)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	return asic_funcs->is_encap_supported(hdev, in);
-+}
-+
-+static int user_encap_set(struct hbl_cn_device *hdev, struct hbl_cni_user_encap_set_in *in)
-+{
-+	struct hbl_cn_encap_xarray_pdata *xa_pdata;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	u32 id, encap_type_data = 0;
-+	void *encap_header = NULL;
-+	int rc;
-+
-+	/* Check if the user request for encap set is supported */
-+	if (!is_encap_supported(hdev, in))
-+		return -EOPNOTSUPP;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, in->port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[in->port];
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	id = in->id;
-+
-+	rc = validate_encap_ioctl(cn_port, id);
-+	if (rc)
-+		return rc;
-+
-+	switch (in->encap_type) {
-+	case HBL_CNI_ENCAP_OVER_IPV4:
-+		encap_type_data = in->ip_proto;
-+		break;
-+	case HBL_CNI_ENCAP_OVER_UDP:
-+		encap_type_data = in->udp_dst_port;
-+		break;
-+	case HBL_CNI_ENCAP_NONE:
-+		/* No encapsulation/tunneling mode. Just set
-+		 * source IPv4 address and UDP protocol.
-+		 */
-+		encap_type_data = HBL_CN_IPV4_PROTOCOL_UDP;
-+		break;
-+	default:
-+		dev_dbg_ratelimited(hdev->dev, "Invalid encapsulation type, %d\n", in->encap_type);
-+		return -EINVAL;
-+	}
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	xa_pdata = xa_load(&cn_port->encap_ids, id);
-+	if (!xa_pdata) {
-+		dev_dbg_ratelimited(hdev->dev, "Encapsulation ID %d is not allocated\n", id);
-+		rc = -EINVAL;
-+		goto cfg_unlock;
-+	}
-+
-+	/* There could be a use case wherein the user allocates a encap ID and then calls encap_set
-+	 * with IPv4 encap. Now, without doing a unset, the user can call the encap_set with UDP
-+	 * encap or encap_none. In this case, we should be clearing the existing settings as well
-+	 * as freeing any allocated buffer. So, call unset API to clear the settings
-+	 */
-+	port_funcs->encap_unset(cn_port, id, xa_pdata);
-+
-+	if (xa_pdata->encap_type != HBL_CNI_ENCAP_NONE)
-+		kfree(xa_pdata->encap_header);
-+
-+	if (in->encap_type != HBL_CNI_ENCAP_NONE) {
-+		if (in->tnl_hdr_size > NIC_MAX_TNL_HDR_SIZE) {
-+			dev_dbg_ratelimited(hdev->dev, "Invalid tunnel header size, %d\n",
-+					    in->tnl_hdr_size);
-+			rc = -EINVAL;
-+			goto cfg_unlock;
-+		}
-+
-+		/* Align encapsulation header to 32bit register fields. */
-+		encap_header = kzalloc(ALIGN(in->tnl_hdr_size, 4), GFP_KERNEL);
-+		if (!encap_header) {
-+			rc = -ENOMEM;
-+			goto cfg_unlock;
-+		}
-+
-+		rc = copy_from_user(encap_header, u64_to_user_ptr(in->tnl_hdr_ptr),
-+				    in->tnl_hdr_size);
-+		if (rc) {
-+			dev_dbg_ratelimited(hdev->dev,
-+					    "Copy encapsulation header data failed, %d\n", rc);
-+			rc = -EFAULT;
-+			goto free_header;
-+		}
-+
-+		xa_pdata->encap_header = encap_header;
-+		xa_pdata->encap_header_size = in->tnl_hdr_size;
-+	}
-+
-+	xa_pdata->encap_type = in->encap_type;
-+	xa_pdata->encap_type_data = encap_type_data;
-+	xa_pdata->src_ip = in->ipv4_addr;
-+	xa_pdata->is_set = true;
-+
-+	rc = port_funcs->encap_set(cn_port, id, xa_pdata);
-+	if (rc)
-+		goto free_header;
-+
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return 0;
-+
-+free_header:
-+	if (in->encap_type != HBL_CNI_ENCAP_NONE)
-+		kfree(encap_header);
-+cfg_unlock:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int user_encap_unset(struct hbl_cn_device *hdev, struct hbl_cni_user_encap_unset_in *in)
-+{
-+	struct hbl_cn_encap_xarray_pdata *xa_pdata;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	int rc;
-+	u32 id;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, in->port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[in->port];
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	id = in->id;
-+
-+	rc = validate_encap_ioctl(cn_port, id);
-+	if (rc)
-+		return rc;
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	xa_pdata = xa_load(&cn_port->encap_ids, id);
-+	if (!xa_pdata) {
-+		dev_dbg_ratelimited(hdev->dev, "Encapsulation ID %d is not allocated\n", id);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (xa_pdata->is_set) {
-+		port_funcs->encap_unset(cn_port, id, xa_pdata);
-+
-+		if (xa_pdata->encap_type != HBL_CNI_ENCAP_NONE)
-+			kfree(xa_pdata->encap_header);
-+	}
-+
-+	xa_erase(&cn_port->encap_ids, id);
-+	kfree(xa_pdata);
-+
-+out:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int user_ccq_set(struct hbl_cn_device *hdev, struct hbl_cni_user_ccq_set_in *in,
-+			struct hbl_cni_user_ccq_set_out *out, struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs = hdev->asic_funcs->port_funcs;
-+	u64 ccq_mmap_handle, ccq_device_addr, pi_mmap_handle, pi_device_addr;
-+	struct hbl_cn_mem_data mem_data = {};
-+	struct hbl_cn_port *cn_port;
-+	u32 port, ccqn;
-+	int rc;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, in->port, NIC_PORT_CHECK_OPEN | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	port = in->port;
-+
-+	if (!hdev->mmu_bypass) {
-+		dev_dbg(hdev->dev, "Allocation of non physical dma-mem is not supported, port %d\n",
-+			port);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (!is_power_of_2(in->num_of_entries)) {
-+		dev_dbg(hdev->dev, "user CCQ buffer length must be at power of 2, port %d\n",
-+			port);
-+		return -EINVAL;
-+	}
-+
-+	if (in->num_of_entries > USER_CCQ_MAX_ENTRIES ||
-+	    in->num_of_entries < USER_CCQ_MIN_ENTRIES) {
-+		dev_dbg(hdev->dev, "CCQ buffer length invalid 0x%x, port %d\n", in->num_of_entries,
-+			port);
-+		return -EINVAL;
-+	}
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	if (!cn_port->set_app_params) {
-+		dev_dbg(hdev->dev,
-+			"Failed to set CCQ handler, set_app_params wasn't called yet, port %d\n",
-+			port);
-+		rc = -EPERM;
-+		goto cfg_unlock;
-+	}
-+
-+	if (cn_port->ccq_enable) {
-+		dev_dbg(hdev->dev, "Failed setting CCQ handler - it is already set, port %d\n",
-+			port);
-+		rc = -EBUSY;
-+		goto cfg_unlock;
-+	}
-+
-+	/* Allocate the queue memory buffer in host kernel */
-+	mem_data.mem_id = HBL_CN_DRV_MEM_HOST_DMA_COHERENT;
-+	mem_data.size = in->num_of_entries * CC_CQE_SIZE;
-+	rc = hbl_cn_mem_alloc(ctx, &mem_data);
-+	if (rc) {
-+		dev_err(hdev->dev, "CCQ memory buffer allocation failed, port %d\n", port);
-+		goto cfg_unlock;
-+	}
-+
-+	ccq_mmap_handle = mem_data.handle;
-+	ccq_device_addr = mem_data.addr;
-+
-+	/* Allocate a producer-index (PI) buffer in host kernel */
 +	memset(&mem_data, 0, sizeof(mem_data));
 +	mem_data.mem_id = HBL_CN_DRV_MEM_HOST_DMA_COHERENT;
 +	mem_data.size = PAGE_SIZE;
 +	rc = hbl_cn_mem_alloc(ctx, &mem_data);
 +	if (rc) {
-+		dev_err(hdev->dev, "CCQ PI buffer allocation failed, port %d\n", port);
-+		goto free_ccq;
-+	}
-+
-+	pi_mmap_handle = mem_data.handle;
-+	pi_device_addr = mem_data.addr;
-+
-+	port_funcs->user_ccq_set(cn_port, ccq_device_addr, pi_device_addr, in->num_of_entries,
-+				 &ccqn);
-+
-+	rc = hbl_cn_eq_dispatcher_register_ccq(cn_port, ctx->asid, ccqn);
-+	if (rc) {
-+		dev_err(hdev->dev, "failed to register CCQ EQ handler, port %u, asid %u\n", port,
-+			ctx->asid);
-+		goto free_pi;
-+	}
-+
-+	cn_port->ccq_handle = ccq_mmap_handle;
-+	cn_port->ccq_pi_handle = pi_mmap_handle;
-+
-+	out->mem_handle = cn_port->ccq_handle;
-+	out->pi_handle = cn_port->ccq_pi_handle;
-+	out->id = ccqn;
-+
-+	cn_port->ccq_enable = true;
-+
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return 0;
-+
-+free_pi:
-+	hbl_cn_mem_destroy(hdev, pi_mmap_handle);
-+free_ccq:
-+	hbl_cn_mem_destroy(hdev, ccq_mmap_handle);
-+cfg_unlock:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int __user_ccq_unset(struct hbl_cn_device *hdev, struct hbl_cn_ctx *ctx, u32 port)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	bool has_errors = false;
-+	u32 ccqn;
-+	int rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+	port_funcs->user_ccq_unset(cn_port, &ccqn);
-+
-+	rc = hbl_cn_mem_destroy(hdev, cn_port->ccq_pi_handle);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to free CCQ PI memory, port %d\n", port);
-+		has_errors = true;
-+	}
-+
-+	rc = hbl_cn_mem_destroy(hdev, cn_port->ccq_handle);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to free CCQ memory, port %d\n", port);
-+		has_errors = true;
-+	}
-+
-+	rc = hbl_cn_eq_dispatcher_unregister_ccq(cn_port, ctx->asid, ccqn);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to unregister CCQ EQ handler, port %u, asid %u\n", port,
-+			ctx->asid);
-+		has_errors = true;
-+	}
-+
-+	if (has_errors)
-+		return -EIO;
-+
-+	cn_port->ccq_enable = false;
-+
-+	return 0;
-+}
-+
-+static int user_ccq_unset(struct hbl_cn_device *hdev, struct hbl_cni_user_ccq_unset_in *in,
-+			  struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs = hdev->asic_funcs->port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	u32 port;
-+	int rc;
-+
-+	port = in->port;
-+
-+	rc = hbl_cn_cmd_port_check(hdev, port, NIC_PORT_CHECK_ENABLE | NIC_PORT_PRINT_ON_ERR);
-+	if (rc)
-+		return rc;
-+
-+	cn_port = &hdev->cn_ports[port];
-+
-+	port_funcs->cfg_lock(cn_port);
-+
-+	if (!cn_port->ccq_enable) {
-+		dev_dbg(hdev->dev, "Failed unsetting CCQ handler - it is already unset, port %u\n",
-+			port);
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	rc = __user_ccq_unset(hdev, ctx, in->port);
-+out:
-+	port_funcs->cfg_unlock(cn_port);
-+
-+	return rc;
-+}
-+
-+static int dump_qp(struct hbl_cn_device *hdev, struct hbl_cni_dump_qp_in *in)
-+{
-+	struct hbl_cn_qp_info qp_info = {};
-+	u32 buf_size;
-+	char *buf;
-+	int rc;
-+
-+	buf_size = in->user_buf_size;
-+
-+	if (!buf_size || buf_size > NIC_DUMP_QP_SZ) {
-+		dev_err(hdev->dev, "Invalid buffer size %u\n", buf_size);
-+		return -EINVAL;
-+	}
-+
-+	buf = kzalloc(buf_size, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	qp_info.port = in->port;
-+	qp_info.qpn = in->qpn;
-+	qp_info.req = in->req;
-+	qp_info.full_print = true;
-+	qp_info.force_read = true;
-+
-+	rc = hdev->asic_funcs->qp_read(hdev, &qp_info, buf, buf_size);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to read QP %u, port %u\n", in->qpn, in->port);
-+		goto out;
-+	}
-+
-+	if (copy_to_user((void __user *)(uintptr_t)in->user_buf, buf, buf_size)) {
-+		dev_err(hdev->dev, "copy to user failed in debug ioctl\n");
-+		rc = -EFAULT;
-+		goto out;
-+	}
-+
-+out:
-+	kfree(buf);
-+	return rc;
-+}
-+
-+static int __hbl_cn_control(struct hbl_cn_device *hdev, u32 op, void *input, void *output,
-+			    struct hbl_cn_ctx *ctx)
-+{
-+	int rc;
-+
-+	if (!(hdev->ctrl_op_mask & BIT(op))) {
-+		dev_dbg(hdev->dev, "CN control request %d is not supported on this device\n", op);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	switch (op) {
-+	case HBL_CNI_OP_ALLOC_CONN:
-+		rc = alloc_qp(hdev, ctx, input, output);
-+		break;
-+	case HBL_CNI_OP_SET_REQ_CONN_CTX:
-+		rc = set_req_qp_ctx(hdev, input, output);
-+		break;
-+	case HBL_CNI_OP_SET_RES_CONN_CTX:
-+		rc = set_res_qp_ctx(hdev, input);
-+		break;
-+	case HBL_CNI_OP_DESTROY_CONN:
-+		rc = destroy_qp(hdev, input);
-+		break;
-+	case HBL_CNI_OP_USER_WQ_SET:
-+		rc = user_wq_arr_set(hdev, input, output, ctx);
-+		break;
-+	case HBL_CNI_OP_USER_WQ_UNSET:
-+		rc = user_wq_arr_unset(hdev, input, ctx);
-+		break;
-+	case HBL_CNI_OP_ALLOC_USER_CQ_ID:
-+		rc = alloc_user_cq_id(hdev, input, output, ctx);
-+		break;
-+	case HBL_CNI_OP_SET_USER_APP_PARAMS:
-+		rc = user_set_app_params(hdev, input, ctx);
-+		break;
-+	case HBL_CNI_OP_GET_USER_APP_PARAMS:
-+		rc = user_get_app_params(hdev, input, output);
-+		break;
-+	case HBL_CNI_OP_EQ_POLL:
-+		rc = eq_poll(hdev, ctx, input, output);
-+		break;
-+	case HBL_CNI_OP_ALLOC_USER_DB_FIFO:
-+		rc = alloc_user_db_fifo(hdev, ctx, input, output);
-+		break;
-+	case HBL_CNI_OP_USER_DB_FIFO_SET:
-+		rc = user_db_fifo_set(hdev, ctx, input, output);
-+		break;
-+	case HBL_CNI_OP_USER_DB_FIFO_UNSET:
-+		rc = user_db_fifo_unset(hdev, input);
-+		break;
-+	case HBL_CNI_OP_USER_ENCAP_ALLOC:
-+		rc = user_encap_alloc(hdev, input, output);
-+		break;
-+	case HBL_CNI_OP_USER_ENCAP_SET:
-+		rc = user_encap_set(hdev, input);
-+		break;
-+	case HBL_CNI_OP_USER_ENCAP_UNSET:
-+		rc = user_encap_unset(hdev, input);
-+		break;
-+	case HBL_CNI_OP_USER_CCQ_SET:
-+		rc = user_ccq_set(hdev, input, output, ctx);
-+		break;
-+	case HBL_CNI_OP_USER_CCQ_UNSET:
-+		rc = user_ccq_unset(hdev, input, ctx);
-+		break;
-+	case HBL_CNI_OP_USER_CQ_ID_SET:
-+		rc = user_cq_id_set(hdev, input, output);
-+		break;
-+	case HBL_CNI_OP_USER_CQ_ID_UNSET:
-+		rc = user_cq_id_unset(hdev, input);
-+		break;
-+	case HBL_CNI_OP_DUMP_QP:
-+		rc = dump_qp(hdev, input);
-+		break;
-+	default:
-+		/* we shouldn't get here as we check the opcode mask before */
-+		dev_dbg(hdev->dev, "Invalid CN control request %d\n", op);
-+		return -EINVAL;
-+	}
-+
-+	return rc;
-+}
-+
-+static int hbl_cn_ib_cmd_ctrl(struct hbl_aux_dev *aux_dev, void *cn_ib_ctx, u32 op, void *input,
-+			      void *output)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(aux_dev);
-+	struct hbl_cn_ctx *ctx = cn_ib_ctx;
-+	int rc;
-+
-+	mutex_lock(&ctx->lock);
-+
-+	do
-+		rc = __hbl_cn_control(hdev, op, input, output, ctx);
-+	while (rc == -EAGAIN);
-+
-+	mutex_unlock(&ctx->lock);
-+
-+	return rc;
-+}
-+
-+static enum hbl_ib_mem_type mem_id_to_mem_type(enum hbl_cn_drv_mem_id id)
-+{
-+	switch (id) {
-+	case HBL_CN_DRV_MEM_HOST_DMA_COHERENT:
-+		return HBL_IB_MEM_HOST_DMA_COHERENT;
-+	case HBL_CN_DRV_MEM_HOST_VIRTUAL:
-+		return HBL_IB_MEM_HOST_VIRTUAL;
-+	case HBL_CN_DRV_MEM_DEVICE:
-+		return HBL_IB_MEM_DEVICE;
-+	case HBL_CN_DRV_MEM_HOST_MAP_ONLY:
-+		return HBL_IB_MEM_HOST_MAP_ONLY;
-+	case HBL_CN_DRV_MEM_INVALID:
-+	default:
-+		return HBL_IB_MEM_INVALID;
-+	}
-+}
-+
-+static int hbl_cn_ib_query_mem_handle(struct hbl_aux_dev *ib_aux_dev, u64 mem_handle,
-+				      struct hbl_ib_mem_info *info)
-+{
-+	struct hbl_cn_device *hdev = HBL_AUX2NIC(ib_aux_dev);
-+	struct hbl_cn_mem_buf *buf;
-+	u64 mem_type;
-+
-+	mem_type = (mem_handle >> PAGE_SHIFT) & HBL_CN_MMAP_TYPE_MASK;
-+
-+	memset(info, 0, sizeof(*info));
-+	info->mem_handle = mem_handle;
-+
-+	switch (mem_type) {
-+	case HBL_CN_MMAP_TYPE_BLOCK:
-+		info->mtype = HBL_IB_MEM_HW_BLOCK;
-+		if (!hbl_cn_get_hw_block_addr(hdev, mem_handle, &info->bus_addr, &info->size))
-+			return 0;
-+
-+		dev_err(hdev->dev, "NIC: No hw block address for handle %#llx\n", mem_handle);
-+		break;
-+	case HBL_CN_MMAP_TYPE_CN_MEM:
-+		buf = hbl_cn_mem_buf_get(hdev, mem_handle);
-+		if (!buf) {
-+			dev_err(hdev->dev, "NIC: No buffer for handle %#llx\n", mem_handle);
-+			break;
-+		}
-+
-+		info->cpu_addr = buf->kernel_address;
-+		info->bus_addr = buf->bus_address;
-+		info->size = buf->mappable_size;
-+		info->vmalloc = false;
-+		info->mtype = mem_id_to_mem_type(buf->mem_id);
-+
-+		hbl_cn_mem_buf_put(buf);
-+		return 0;
-+	default:
-+		dev_err(hdev->dev, "NIC: Invalid handle %#llx\n", mem_handle);
-+		break;
-+	}
-+	return -EINVAL;
-+}
-+
-+static void qps_destroy(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs = hdev->asic_funcs->port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	unsigned long qp_id = 0;
-+	struct hbl_cn_qp *qp;
-+	int i;
-+
-+	/* destroy the QPs */
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		/* protect against destroy_qp occurring in parallel */
-+		port_funcs->cfg_lock(cn_port);
-+
-+		xa_for_each(&cn_port->qp_ids, qp_id, qp) {
-+			if (IS_ERR_OR_NULL(qp))
-+				continue;
-+
-+			hbl_cn_qp_do_release(qp);
-+		}
-+
-+		port_funcs->cfg_unlock(cn_port);
-+	}
-+
-+	/* wait for the workers to complete */
-+	qps_drain_async_work(hdev);
-+
-+	/* Verify the lists are empty */
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		port_funcs->cfg_lock(cn_port);
-+
-+		xa_for_each(&cn_port->qp_ids, qp_id, qp)
-+			dev_err_ratelimited(hdev->dev, "Port %d QP %ld is still alive\n",
-+					    cn_port->port, qp_id);
-+
-+		port_funcs->cfg_unlock(cn_port);
-+	}
-+}
-+
-+static void user_cqs_destroy(struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_device *hdev = ctx->hdev;
-+	struct hbl_cn_properties *cn_props;
-+	struct hbl_cn_user_cq *user_cq;
-+	struct hbl_cn_port *cn_port;
-+	unsigned long id;
-+	int i;
-+
-+	cn_props = &hdev->cn_props;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!cn_props->force_cq && !(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		xa_for_each(&cn_port->cq_ids, id, user_cq) {
-+			if (user_cq->state == USER_CQ_STATE_ALLOC)
-+				hbl_cn_user_cq_put(user_cq);
-+			else if (user_cq->state == USER_CQ_STATE_SET)
-+				user_cq_unset_locked(user_cq, true);
-+		}
-+	}
-+}
-+
-+static void wq_arrs_destroy(struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_wq_array_properties *wq_arr_props;
-+	struct hbl_cn_device *hdev = ctx->hdev;
-+	struct hbl_cn_port *cn_port;
-+	u32 type;
-+	int i;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		wq_arr_props = cn_port->wq_arr_props;
-+
-+		for (type = 0; type < HBL_CNI_USER_WQ_TYPE_MAX; type++) {
-+			if (wq_arr_props[type].enabled)
-+				__user_wq_arr_unset(ctx, cn_port, type);
-+		}
-+	}
-+}
-+
-+static void ccqs_destroy(struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_device *hdev = ctx->hdev;
-+	struct hbl_cn_port *cn_port;
-+	int port;
-+
-+	for (port = 0; port < hdev->cn_props.max_num_of_ports; port++) {
-+		if (!(hdev->ports_mask & BIT(port)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[port];
-+		if (cn_port->ccq_enable)
-+			__user_ccq_unset(hdev, ctx, port);
-+	}
-+}
-+
-+static void user_db_fifos_destroy(struct hbl_cn_ctx *ctx)
-+{
-+	struct hbl_cn_db_fifo_xarray_pdata *xa_pdata;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_port *cn_port;
-+	struct hbl_cn_device *hdev;
-+	unsigned long id;
-+	int i;
-+
-+	hdev = ctx->hdev;
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		port_funcs->cfg_lock(cn_port);
-+
-+		xa_for_each(&cn_port->db_fifo_ids, id, xa_pdata)
-+			if (xa_pdata->asid == ctx->asid)
-+				__user_db_fifo_unset(cn_port, xa_pdata);
-+
-+		port_funcs->cfg_unlock(cn_port);
-+	}
-+}
-+
-+static void encap_ids_destroy(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs = hdev->asic_funcs->port_funcs;
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	struct hbl_cn_encap_xarray_pdata *xa_pdata;
-+	struct hbl_cn_port *cn_port;
-+	unsigned long encap_id;
-+	int i;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		port_funcs->cfg_lock(cn_port);
-+
-+		xa_for_each(&cn_port->encap_ids, encap_id, xa_pdata) {
-+			asic_funcs->port_funcs->encap_unset(cn_port, encap_id, xa_pdata);
-+
-+			if (xa_pdata->encap_type != HBL_CNI_ENCAP_NONE)
-+				kfree(xa_pdata->encap_header);
-+
-+			kfree(xa_pdata);
-+			xa_erase(&cn_port->encap_ids, encap_id);
-+		}
-+
-+		port_funcs->cfg_unlock(cn_port);
-+	}
-+}
-+
-+static void set_app_params_clear(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_port *cn_port;
-+	u32 max_num_of_ports, port;
-+
-+	asic_funcs = hdev->asic_funcs;
-+	max_num_of_ports = hdev->cn_props.max_num_of_ports;
-+
-+	asic_funcs->app_params_clear(hdev);
-+
-+	for (port = 0; port < max_num_of_ports; port++) {
-+		if (!(hdev->ports_mask & BIT(port)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[port];
-+		cn_port->set_app_params = false;
-+	}
-+}
-+
-+void hbl_cn_ctx_resources_destroy(struct hbl_cn_device *hdev, struct hbl_cn_ctx *ctx)
-+{
-+	qps_destroy(hdev);
-+	user_cqs_destroy(ctx);
-+	wq_arrs_destroy(ctx);
-+	ccqs_destroy(ctx);
-+	user_db_fifos_destroy(ctx);
-+	encap_ids_destroy(hdev);
-+	set_app_params_clear(hdev);
-+}
-+
-+int hbl_cn_alloc_ring(struct hbl_cn_device *hdev, struct hbl_cn_ring *ring, int elem_size,
-+		      int count)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	int rc;
-+
-+	ring->count = count;
-+	ring->elem_size = elem_size;
-+	ring->asid = hdev->kernel_asid;
-+
-+	RING_BUF_SIZE(ring) = elem_size * count;
-+	RING_BUF_ADDRESS(ring) = hbl_cn_dma_alloc_coherent(hdev, RING_BUF_SIZE(ring),
-+							   &RING_BUF_DMA_ADDRESS(ring), GFP_KERNEL);
-+	if (!RING_BUF_ADDRESS(ring))
-+		return -ENOMEM;
-+
-+	/* ring's idx_ptr shall point on pi/ci address */
-+	RING_PI_SIZE(ring) = sizeof(u64);
-+	RING_PI_ADDRESS(ring) = hbl_cn_dma_pool_zalloc(hdev, RING_PI_SIZE(ring),
-+						       GFP_KERNEL | __GFP_ZERO,
-+						       &RING_PI_DMA_ADDRESS(ring));
-+	if (!RING_PI_ADDRESS(ring)) {
-+		rc = -ENOMEM;
++		dev_dbg(hdev->dev, "user CQ %d PI buffer allocation failed, rc %d, port %d\n", id,
++			rc, port);
 +		goto pi_alloc_fail;
 +	}
 +
++	pi_handle = mem_data.handle;
++	pi_device_addr = mem_data.addr;
++
++	NIC_WREG32(NIC0_RXE0_CQ_LOG_SIZE_0 + offset, ilog2(in->num_of_cqes));
++	NIC_WREG32(NIC0_RXE0_CQ_PI_ADDR_HI_0 + offset, upper_32_bits(pi_device_addr));
++	NIC_WREG32(NIC0_RXE0_CQ_PI_ADDR_LO_0 + offset, lower_32_bits(pi_device_addr));
++
++	/* reset the PI+CI for this CQ */
++	NIC_WREG32(NIC0_RXE0_CQ_WRITE_INDEX_0 + offset, 0);
++	NIC_WREG32(NIC0_RXE0_CQ_PRODUCER_INDEX_0 + offset, 0);
++	NIC_WREG32(NIC0_RXE0_CQ_CONSUMER_INDEX_0 + offset, 0);
++	NIC_WREG32(NIC0_RXE0_CQ_CFG_0 + offset, NIC0_RXE0_CQ_CFG_WRITE_PI_EN_MASK |
++		   NIC0_RXE0_CQ_CFG_ENABLE_MASK);
++
++	/* CQs 0 and 1 are secured and hence reserved so skip them for block addr calculation */
++	__gaudi2_cn_get_db_fifo_umr(cn_port, (id >> 1) - 1, id, &umr_block_addr, &regs_offset);
++
++	/* add CQ offset */
++	regs_offset += NIC0_UMR0_0_COMPLETION_QUEUE_CI_1_CQ_NUMBER -
++		       NIC0_UMR0_0_UNSECURE_DOORBELL1_UNSECURE_DB_FIRST32;
++
++	/* get mmap handle for UMR block */
++	rc = hbl_cn_get_hw_block_handle(hdev, umr_block_addr, &regs_handle);
++	if (rc) {
++		dev_dbg(hdev->dev, "Failed to get user CQ %d UMR block, rc %d, port %d\n", id, rc,
++			port);
++		goto umr_get_fail;
++	}
++
++	rc = hbl_cn_eq_dispatcher_register_cq(cn_port, ctx->asid, id);
++	if (rc) {
++		dev_err(hdev->dev, "failed to register CQ %d, rc %d, port %d\n", id, rc, port);
++		goto eq_register_fail;
++	}
++
++	out->mem_handle = mem_handle;
++	out->regs_handle = regs_handle;
++	out->regs_offset = regs_offset;
++	out->pi_handle = pi_handle;
++
++	user_cq->mem_handle = mem_handle;
++	user_cq->pi_handle = pi_handle;
++
 +	return 0;
 +
++eq_register_fail:
++umr_get_fail:
++	hbl_cn_mem_destroy(hdev, pi_handle);
 +pi_alloc_fail:
-+	asic_funcs->dma_free_coherent(hdev, RING_BUF_SIZE(ring), RING_BUF_ADDRESS(ring),
-+				      RING_BUF_DMA_ADDRESS(ring));
++	hbl_cn_mem_destroy(hdev, mem_handle);
 +
 +	return rc;
 +}
 +
-+void hbl_cn_free_ring(struct hbl_cn_device *hdev, struct hbl_cn_ring *ring)
++static int gaudi2_user_cq_unset(struct hbl_cn_user_cq *user_cq)
 +{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->dma_pool_free(hdev, RING_PI_ADDRESS(ring), RING_PI_DMA_ADDRESS(ring));
-+
-+	asic_funcs->dma_free_coherent(hdev, RING_BUF_SIZE(ring), RING_BUF_ADDRESS(ring),
-+				      RING_BUF_DMA_ADDRESS(ring));
-+}
-+
-+static void hbl_cn_randomize_status_cnts(struct hbl_cn_port *cn_port,
-+					 struct hbl_cn_cpucp_status *status)
-+{
++	struct hbl_cn_port *cn_port = user_cq->cn_port;
++	u32 port, id = user_cq->id, offset = id * 4;
 +	struct hbl_cn_device *hdev = cn_port->hdev;
-+	u32 port = cn_port->port;
-+
-+	RAND_STAT_CNT(status->high_ber_reinit);
-+	RAND_STAT_CNT(status->correctable_err_cnt);
-+	RAND_STAT_CNT(status->uncorrectable_err_cnt);
-+	RAND_STAT_CNT(status->bad_format_cnt);
-+	RAND_STAT_CNT(status->responder_out_of_sequence_psn_cnt);
-+}
-+
-+static void hbl_cn_get_status(struct hbl_cn_port *cn_port, struct hbl_cn_cpucp_status *status)
-+{
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	u32 port = cn_port->port;
-+
-+	/* Port toggle counter should always be filled regardless of the logical state of the
-+	 * port.
-+	 */
-+	status->port_toggle_cnt = hbl_cn_get_port_toggle_cnt(cn_port);
-+
-+	status->port = port;
-+	status->up = hbl_cn_is_port_open(cn_port);
-+
-+	if (!status->up)
-+		return;
-+
-+	status->pcs_link = cn_port->pcs_link;
-+	status->phy_ready = cn_port->phy_fw_tuned;
-+	status->auto_neg = cn_port->auto_neg_enable;
-+
-+	if (hdev->rand_status) {
-+		hbl_cn_randomize_status_cnts(cn_port, status);
-+		return;
-+	}
-+
-+	status->high_ber_reinit = cn_port->pcs_remote_fault_reconfig_cnt;
-+
-+	/* Each ASIC will fill the rest of the statistics */
-+	hdev->asic_funcs->port_funcs->get_status(cn_port, status);
-+}
-+
-+static void hbl_cn_convert_cpucp_status(struct cpucp_nic_status *to,
-+					struct hbl_cn_cpucp_status *from)
-+{
-+	to->port = cpu_to_le32(from->port);
-+	to->bad_format_cnt = cpu_to_le32(from->bad_format_cnt);
-+	to->responder_out_of_sequence_psn_cnt =
-+					cpu_to_le32(from->responder_out_of_sequence_psn_cnt);
-+	to->high_ber_reinit = cpu_to_le32(from->high_ber_reinit);
-+	to->correctable_err_cnt = cpu_to_le32(from->correctable_err_cnt);
-+	to->uncorrectable_err_cnt = cpu_to_le32(from->uncorrectable_err_cnt);
-+	to->retraining_cnt = cpu_to_le32(from->retraining_cnt);
-+	to->up = from->up;
-+	to->pcs_link = from->pcs_link;
-+	to->phy_ready = from->phy_ready;
-+	to->auto_neg = from->auto_neg;
-+	to->timeout_retransmission_cnt = cpu_to_le32(from->timeout_retransmission_cnt);
-+	to->high_ber_cnt = cpu_to_le32(from->high_ber_cnt);
-+	to->pre_fec_ser.integer = cpu_to_le16(from->pre_fec_ser.integer);
-+	to->pre_fec_ser.exp = cpu_to_le16(from->pre_fec_ser.exp);
-+	to->post_fec_ser.integer = cpu_to_le16(from->post_fec_ser.integer);
-+	to->post_fec_ser.exp = cpu_to_le16(from->post_fec_ser.exp);
-+	to->bandwidth.integer = cpu_to_le16(from->bandwidth.integer);
-+	to->bandwidth.frac = cpu_to_le16(from->bandwidth.frac);
-+	to->lat.integer = cpu_to_le16(from->lat.integer);
-+	to->lat.frac = cpu_to_le16(from->lat.frac);
-+	to->port_toggle_cnt = cpu_to_le32(from->port_toggle_cnt);
-+}
-+
-+static int hbl_cn_send_cpucp_status(struct hbl_cn_device *hdev, u32 port,
-+				    struct hbl_cn_cpucp_status *cn_status)
-+{
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct cpucp_nic_status_packet *pkt;
-+	struct cpucp_nic_status status = {};
-+	struct hbl_cn_properties *cn_props;
-+	size_t total_pkt_size, data_size;
-+	struct hbl_cn_port *cn_port;
-+	u64 result;
-+	int rc;
-+
-+	cn_props = &hdev->cn_props;
-+	data_size = cn_props->status_packet_size;
-+	asic_funcs = hdev->asic_funcs;
-+	port_funcs = asic_funcs->port_funcs;
-+	cn_port = &hdev->cn_ports[port];
-+
-+	total_pkt_size = sizeof(struct cpucp_nic_status_packet) + data_size;
-+
-+	/* data should be aligned to 8 bytes in order to CPU-CP to copy it */
-+	total_pkt_size = (total_pkt_size + 0x7) & ~0x7;
-+
-+	/* total_pkt_size is casted to u16 later on */
-+	if (total_pkt_size > USHRT_MAX) {
-+		dev_err(hdev->dev, "NIC status data is too big\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	pkt = kzalloc(total_pkt_size, GFP_KERNEL);
-+	if (!pkt) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+
-+	hbl_cn_convert_cpucp_status(&status, cn_status);
-+
-+	pkt->length = cpu_to_le32(data_size / sizeof(u32));
-+	memcpy(&pkt->data, &status, data_size);
-+
-+	pkt->cpucp_pkt.ctl = cpu_to_le32(CPUCP_PACKET_NIC_STATUS << CPUCP_PKT_CTL_OPCODE_SHIFT);
-+
-+	rc = asic_funcs->send_cpu_message(hdev, (u32 *)pkt, total_pkt_size, 0, &result);
-+	if (rc)
-+		dev_err(hdev->dev, "failed to send NIC status, port %d\n", port);
-+
-+	kfree(pkt);
-+out:
-+	port_funcs->post_send_status(cn_port);
-+
-+	return rc;
-+}
-+
-+void hbl_cn_fw_status_work(struct work_struct *work)
-+{
-+	struct hbl_cn_port *cn_port = container_of(work, struct hbl_cn_port, fw_status_work.work);
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_cpucp_status status = {};
-+	u32 port = cn_port->port;
-+	int rc;
-+
-+	hbl_cn_get_status(cn_port, &status);
-+
-+	rc = hbl_cn_send_cpucp_status(hdev, port, &status);
-+	if (rc)
-+		return;
-+
-+	if (hdev->status_cmd == HBL_CN_STATUS_PERIODIC_START)
-+		queue_delayed_work(cn_port->wq, &cn_port->fw_status_work,
-+				   msecs_to_jiffies(hdev->status_period * 1000));
-+}
-+
-+static void cn_port_sw_fini(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = cn_port->hdev->asic_funcs;
-+
-+	if (!cn_port->sw_initialized)
-+		return;
-+
-+	cn_port->sw_initialized = false;
-+
-+	asic_funcs->port_funcs->port_sw_fini(cn_port);
-+
-+	xa_destroy(&cn_port->cq_ids);
-+	xa_destroy(&cn_port->encap_ids);
-+	xa_destroy(&cn_port->db_fifo_ids);
-+	xa_destroy(&cn_port->qp_ids);
-+
-+	mutex_destroy(&cn_port->cnt_lock);
-+	mutex_destroy(&cn_port->control_lock);
-+
-+	kfree(cn_port->reset_tracker);
-+
-+	destroy_workqueue(cn_port->qp_wq);
-+	destroy_workqueue(cn_port->wq);
-+}
-+
-+static void cn_wq_arr_props_init(struct hbl_cn_wq_array_properties *wq_arr_props)
-+{
-+	wq_arr_props[HBL_CNI_USER_WQ_SEND].type_str = "send";
-+	wq_arr_props[HBL_CNI_USER_WQ_SEND].is_send = true;
-+
-+	wq_arr_props[HBL_CNI_USER_WQ_RECV].type_str = "recv";
-+	wq_arr_props[HBL_CNI_USER_WQ_RECV].is_send = false;
-+}
-+
-+static int cn_port_sw_init(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_wq_array_properties *wq_arr_props;
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_reset_tracker *reset_tracker;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	u32 port, max_qp_error_syndromes;
-+	char wq_name[32] = {0};
-+	int rc;
 +
 +	port = cn_port->port;
-+	asic_funcs = hdev->asic_funcs;
-+	port_funcs = asic_funcs->port_funcs;
-+	wq_arr_props = cn_port->wq_arr_props;
-+	reset_tracker = NULL;
 +
-+	snprintf(wq_name, sizeof(wq_name) - 1, "hbl%u-cn%d-wq", hdev->id, port);
-+	cn_port->wq = alloc_workqueue(wq_name, 0, 0);
-+	if (!cn_port->wq) {
-+		dev_err(hdev->dev, "Failed to create WQ, port: %d\n", port);
-+		return -ENOMEM;
-+	}
++	hbl_cn_eq_dispatcher_unregister_cq(cn_port, id);
 +
-+	snprintf(wq_name, sizeof(wq_name) - 1, "hbl%u-cn%d-qp-wq", hdev->id, port);
-+	cn_port->qp_wq = alloc_workqueue(wq_name, WQ_UNBOUND, 0);
-+	if (!cn_port->qp_wq) {
-+		dev_err(hdev->dev, "Failed to create QP WQ, port: %d\n", port);
-+		rc = -ENOMEM;
-+		goto qp_wq_err;
-+	}
++	NIC_RMWREG32(NIC0_RXE0_CQ_CFG_0 + offset, 0, NIC0_RXE0_CQ_CFG_WRITE_PI_EN_MASK);
++	/* flush the new cfg */
++	NIC_RREG32(NIC0_RXE0_CQ_CFG_0 + offset);
 +
-+	max_qp_error_syndromes = hdev->cn_props.max_qp_error_syndromes;
-+	if (max_qp_error_syndromes) {
-+		reset_tracker = kcalloc(max_qp_error_syndromes, sizeof(*reset_tracker), GFP_KERNEL);
-+		if (!reset_tracker) {
-+			rc = -ENOMEM;
-+			goto reset_tracker_err;
-+		}
++	NIC_WREG32(NIC0_RXE0_CQ_PI_ADDR_HI_0 + offset, 0);
++	NIC_WREG32(NIC0_RXE0_CQ_PI_ADDR_LO_0 + offset, 0);
 +
-+		cn_port->reset_tracker = reset_tracker;
-+	}
-+
-+	mutex_init(&cn_port->control_lock);
-+	mutex_init(&cn_port->cnt_lock);
-+
-+	xa_init_flags(&cn_port->qp_ids, XA_FLAGS_ALLOC);
-+	xa_init_flags(&cn_port->db_fifo_ids, XA_FLAGS_ALLOC);
-+	xa_init_flags(&cn_port->encap_ids, XA_FLAGS_ALLOC);
-+	xa_init_flags(&cn_port->cq_ids, XA_FLAGS_ALLOC);
-+
-+	INIT_DELAYED_WORK(&cn_port->link_status_work, port_funcs->phy_link_status_work);
-+
-+	cn_port->speed = asic_funcs->get_default_port_speed(hdev);
-+	cn_port->pfc_enable = true;
-+	cn_port->pflags = PFLAGS_PCS_LINK_CHECK | PFLAGS_PHY_AUTO_NEG_LPBK;
-+
-+	cn_wq_arr_props_init(wq_arr_props);
-+
-+	rc = port_funcs->port_sw_init(cn_port);
-+	if (rc)
-+		goto sw_init_err;
-+
-+	cn_port->sw_initialized = true;
++	/* only unmaps as the HW might still access this memory */
++	hbl_cn_mem_destroy(hdev, user_cq->mem_handle);
++	/* unmaps and frees as we disabled the PI flag and the HW won't access this memory */
++	hbl_cn_mem_destroy(hdev, user_cq->pi_handle);
 +
 +	return 0;
-+
-+sw_init_err:
-+	xa_destroy(&cn_port->cq_ids);
-+	xa_destroy(&cn_port->encap_ids);
-+	xa_destroy(&cn_port->db_fifo_ids);
-+	xa_destroy(&cn_port->qp_ids);
-+
-+	mutex_destroy(&cn_port->cnt_lock);
-+	mutex_destroy(&cn_port->control_lock);
-+
-+	if (max_qp_error_syndromes)
-+		kfree(reset_tracker);
-+reset_tracker_err:
-+	destroy_workqueue(cn_port->qp_wq);
-+qp_wq_err:
-+	destroy_workqueue(cn_port->wq);
-+
-+	return rc;
 +}
 +
-+static int cn_macro_sw_init(struct hbl_cn_macro *cn_macro)
++static void gaudi2_user_cq_set_overrun(struct hbl_cn_user_cq *user_cq, bool set_overrun)
 +{
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+
-+	asic_funcs = cn_macro->hdev->asic_funcs;
-+
-+	return asic_funcs->macro_sw_init(cn_macro);
-+}
-+
-+static void cn_macro_sw_fini(struct hbl_cn_macro *cn_macro)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+
-+	asic_funcs = cn_macro->hdev->asic_funcs;
-+
-+	asic_funcs->macro_sw_fini(cn_macro);
-+}
-+
-+static void hbl_cn_sw_fini(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	int i;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++)
-+		cn_port_sw_fini(&hdev->cn_ports[i]);
-+
-+	for (i = 0; i < hdev->cn_props.num_of_macros; i++)
-+		cn_macro_sw_fini(&hdev->cn_macros[i]);
-+
-+	asic_funcs->sw_fini(hdev);
-+
-+	kfree(hdev->ib_aux_dev.aux_data);
-+	kfree(hdev->ib_aux_dev.aux_ops);
-+	kfree(hdev->en_aux_dev.aux_data);
-+	kfree(hdev->en_aux_dev.aux_ops);
-+	kfree(hdev->mac_lane_remap);
-+	kfree(hdev->phy_ber_info);
-+	kfree(hdev->phy_tx_taps);
-+	kfree(hdev->cn_macros);
-+	kfree(hdev->cn_ports);
-+}
-+
-+static int hbl_cn_sw_init(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+	struct hbl_cn_macro *cn_macro, *cn_macros;
-+	int rc, i, macro_cnt = 0, port_cnt = 0;
-+	struct hbl_cn_port *cn_port, *cn_ports;
-+	struct hbl_en_aux_data *en_aux_data;
-+	struct hbl_ib_aux_data *ib_aux_data;
-+	struct hbl_en_aux_ops *en_aux_ops;
-+	struct hbl_ib_aux_ops *ib_aux_ops;
-+	struct hbl_cn_ber_info *ber_info;
-+	struct hbl_cn_tx_taps *tx_taps;
-+	u32 *mac_lane_remap;
-+
-+	asic_funcs->pre_sw_init(hdev);
-+
-+	/* Allocate per port common structure array */
-+	cn_ports = kcalloc(hdev->cn_props.max_num_of_ports, sizeof(*cn_ports), GFP_KERNEL);
-+	if (!cn_ports)
-+		return -ENOMEM;
-+
-+	/* Allocate per macro common structure array */
-+	cn_macros = kcalloc(hdev->cn_props.num_of_macros, sizeof(*cn_macros), GFP_KERNEL);
-+	if (!cn_macros) {
-+		rc = -ENOMEM;
-+		goto macro_alloc_fail;
-+	}
-+
-+	tx_taps = kcalloc(hdev->cn_props.max_num_of_lanes, sizeof(*tx_taps), GFP_KERNEL);
-+	if (!tx_taps) {
-+		rc = -ENOMEM;
-+		goto taps_alloc_fail;
-+	}
-+
-+	ber_info = kcalloc(hdev->cn_props.max_num_of_lanes, sizeof(*ber_info), GFP_KERNEL);
-+	if (!ber_info) {
-+		rc = -ENOMEM;
-+		goto ber_info_alloc_fail;
-+	}
-+
-+	mac_lane_remap = kcalloc(hdev->cn_props.num_of_macros, sizeof(*mac_lane_remap),
-+				 GFP_KERNEL);
-+	if (!mac_lane_remap) {
-+		rc = -ENOMEM;
-+		goto mac_remap_alloc_fail;
-+	}
-+
-+	en_aux_data = kzalloc(sizeof(*en_aux_data), GFP_KERNEL);
-+	if (!en_aux_data) {
-+		rc = -ENOMEM;
-+		goto en_aux_data_alloc_fail;
-+	}
-+
-+	en_aux_ops = kzalloc(sizeof(*en_aux_ops), GFP_KERNEL);
-+	if (!en_aux_ops) {
-+		rc = -ENOMEM;
-+		goto en_aux_ops_alloc_fail;
-+	}
-+
-+	ib_aux_data = kzalloc(sizeof(*ib_aux_data), GFP_KERNEL);
-+	if (!ib_aux_data) {
-+		rc = -ENOMEM;
-+		goto ib_aux_data_alloc_fail;
-+	}
-+
-+	ib_aux_ops = kzalloc(sizeof(*ib_aux_ops), GFP_KERNEL);
-+	if (!ib_aux_ops) {
-+		rc = -ENOMEM;
-+		goto ib_aux_ops_alloc_fail;
-+	}
-+
-+	hdev->en_aux_dev.aux_data = en_aux_data;
-+	hdev->en_aux_dev.aux_ops = en_aux_ops;
-+	hdev->ib_aux_dev.aux_data = ib_aux_data;
-+	hdev->ib_aux_dev.aux_ops = ib_aux_ops;
-+
-+	hdev->phy_tx_taps = tx_taps;
-+	hdev->phy_ber_info = ber_info;
-+	hdev->mac_lane_remap = mac_lane_remap;
-+	hdev->phy_config_fw = !hdev->pldm && !hdev->skip_phy_init;
-+	hdev->mmu_bypass = true;
-+	hdev->phy_calc_ber_wait_sec = 30;
-+
-+	rc = asic_funcs->sw_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "ASIC SW init failed\n");
-+		goto sw_init_fail;
-+	}
-+
-+	hdev->cn_ports = cn_ports;
-+	hdev->cn_macros = cn_macros;
-+	for (i = 0; i < hdev->cn_props.num_of_macros; i++, macro_cnt++) {
-+		cn_macro = &hdev->cn_macros[i];
-+
-+		cn_macro->hdev = hdev;
-+		cn_macro->idx = i;
-+
-+		rc = cn_macro_sw_init(cn_macro);
-+		if (rc) {
-+			dev_err(hdev->dev, "Macro %d SW init failed\n", i);
-+			goto macro_init_fail;
-+		}
-+	}
-+
-+	/* At this stage, we don't know how many ports we have, so we must
-+	 * allocate for the maximum number of ports (and also free all of them
-+	 * in sw_fini)
-+	 */
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++, port_cnt++) {
-+		cn_port = &hdev->cn_ports[i];
-+		cn_port->hdev = hdev;
-+		cn_port->port = i;
-+		atomic_set(&cn_port->num_of_allocated_qps, 0);
-+		rc = cn_port_sw_init(cn_port);
-+		if (rc) {
-+			dev_err(hdev->dev, "S/W init failed, port %d\n", i);
-+			goto port_init_fail;
-+		}
-+	}
-+
-+	return 0;
-+
-+port_init_fail:
-+	for (i = 0; i < port_cnt; i++)
-+		cn_port_sw_fini(&hdev->cn_ports[i]);
-+
-+macro_init_fail:
-+	for (i = 0; i < macro_cnt; i++)
-+		cn_macro_sw_fini(&hdev->cn_macros[i]);
-+
-+	asic_funcs->sw_fini(hdev);
-+sw_init_fail:
-+	kfree(ib_aux_ops);
-+ib_aux_ops_alloc_fail:
-+	kfree(ib_aux_data);
-+ib_aux_data_alloc_fail:
-+	kfree(en_aux_ops);
-+en_aux_ops_alloc_fail:
-+	kfree(en_aux_data);
-+en_aux_data_alloc_fail:
-+	kfree(mac_lane_remap);
-+mac_remap_alloc_fail:
-+	kfree(ber_info);
-+ber_info_alloc_fail:
-+	kfree(tx_taps);
-+taps_alloc_fail:
-+	kfree(cn_macros);
-+macro_alloc_fail:
-+	kfree(cn_ports);
-+
-+	return rc;
-+}
-+
-+static void hbl_cn_late_init(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	/* compute2cn */
-+	aux_ops->ports_reopen = hbl_cn_ports_reopen;
-+	aux_ops->ports_stop_prepare = hbl_cn_hard_reset_prepare;
-+	aux_ops->ports_stop = hbl_cn_stop;
-+	aux_ops->synchronize_irqs = hbl_cn_synchronize_irqs;
-+
-+	hdev->asic_funcs->late_init(hdev);
-+}
-+
-+static void hbl_cn_late_fini(struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	/* compute2cn */
-+	aux_ops->ports_reopen = NULL;
-+	aux_ops->ports_stop_prepare = NULL;
-+	aux_ops->ports_stop = NULL;
-+	aux_ops->synchronize_irqs = NULL;
-+
-+	hdev->asic_funcs->late_fini(hdev);
-+}
-+
-+bool hbl_cn_is_port_open(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_aux_dev *aux_dev = &cn_port->hdev->en_aux_dev;
-+	struct hbl_en_aux_ops *aux_ops = aux_dev->aux_ops;
-+	u32 port = cn_port->port;
-+
-+	if (cn_port->eth_enable && aux_ops->is_port_open)
-+		return aux_ops->is_port_open(aux_dev, port);
-+
-+	return cn_port->port_open;
-+}
-+
-+u32 hbl_cn_get_pflags(struct hbl_cn_port *cn_port)
-+{
++	struct hbl_cn_port *cn_port = user_cq->cn_port;
 +	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_en_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+	u32 port = cn_port->port;
++	u32 port, offset = user_cq->id * 4;
++	bool update_cq_cfg = false;
 +
-+	aux_dev = &hdev->en_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
++	port = cn_port->port;
 +
-+	if (cn_port->eth_enable && aux_ops->get_pflags)
-+		return aux_ops->get_pflags(aux_dev, port);
++	mutex_lock(&user_cq->overrun_lock);
 +
-+	return cn_port->pflags;
-+}
-+
-+u8 hbl_cn_get_num_of_digits(u64 num)
-+{
-+	u8 n_digits = 0;
-+
-+	while (num) {
-+		n_digits++;
-+		num /= 10;
++	/* only the first QP should enable CQ overrun, and the last QP should disable overrun */
++	if (set_overrun && user_cq->qp_set_overrun_cnt == 0) {
++		user_cq->qp_set_overrun_cnt++;
++		update_cq_cfg = true;
++	} else if (!set_overrun && user_cq->qp_set_overrun_cnt == 1) {
++		user_cq->qp_set_overrun_cnt--;
++		update_cq_cfg = true;
 +	}
 +
-+	return n_digits;
++	if (update_cq_cfg)
++		NIC_RMWREG32(NIC0_RXE0_CQ_CFG_0 + offset, set_overrun,
++			     NIC0_RXE0_CQ_CFG_OVERRUN_EN_MASK);
++
++	mutex_unlock(&user_cq->overrun_lock);
 +}
 +
-+static void hbl_cn_spmu_init(struct hbl_cn_port *cn_port, bool full)
++static void gaudi2_user_cq_destroy(struct hbl_cn_user_cq *user_cq)
 +{
-+	u32 spmu_events[NIC_SPMU_STATS_LEN_MAX], num_event_types, port = cn_port->port;
++	struct hbl_cn_port *cn_port = user_cq->cn_port;
 +	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_stat *event_types;
-+	int rc, i;
++	u32 port, offset = user_cq->id * 4;
 +
-+	if (!hdev->supports_coresight)
-+		return;
++	port = cn_port->port;
 +
-+	port_funcs = hdev->asic_funcs->port_funcs;
-+
-+	port_funcs->spmu_get_stats_info(cn_port, &event_types, &num_event_types);
-+	num_event_types = min_t(u32, num_event_types, NIC_SPMU_STATS_LEN_MAX);
-+
-+	for (i = 0; i < num_event_types; i++)
-+		spmu_events[i] = event_types[i].lo_offset;
-+
-+	if (full) {
-+		rc = port_funcs->spmu_config(cn_port, num_event_types, spmu_events, false);
-+		if (rc)
-+			dev_err(hdev->dev, "Failed to disable spmu for port %d\n", port);
-+	}
-+
-+	rc = port_funcs->spmu_config(cn_port, num_event_types, spmu_events, true);
-+	if (rc)
-+		dev_err(hdev->dev, "Failed to enable spmu for port %d\n", port);
++	NIC_WREG32(NIC0_RXE0_CQ_CFG_0 + offset, 0);
++	NIC_WREG32(NIC0_RXE0_CQ_LOG_SIZE_0 + offset, 0);
 +}
 +
-+static void hbl_cn_reset_stats_counters_port(struct hbl_cn_device *hdev, u32 port)
++static void gaudi2_set_advanced_op_mask(struct hbl_cn_device *hdev, bool advanced)
 +{
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_en_aux_ops *aux_ops;
++	u64 advanced_op_mask = BIT(HBL_CNI_OP_USER_CCQ_SET) | BIT(HBL_CNI_OP_USER_CCQ_UNSET);
++
++	if (advanced)
++		hdev->ctrl_op_mask |= advanced_op_mask;
++	else
++		hdev->ctrl_op_mask &= ~advanced_op_mask;
++}
++
++static int gaudi2_user_set_app_params(struct hbl_cn_device *hdev,
++				      struct hbl_cni_set_user_app_params_in *in,
++				      bool *modify_wqe_checkers, struct hbl_cn_ctx *ctx)
++{
++	u32 port = in->port, bp_offs_fw, bp_offs_qman, encap_id, wtd_config;
++	struct gaudi2_cn_port *gaudi2_port;
 +	struct hbl_cn_port *cn_port;
-+	struct hbl_aux_dev *aux_dev;
 +
 +	cn_port = &hdev->cn_ports[port];
-+	aux_dev = &hdev->en_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+	port_funcs = hdev->asic_funcs->port_funcs;
 +
-+	/* Ethernet */
-+	if (cn_port->eth_enable && aux_ops->reset_stats)
-+		aux_ops->reset_stats(aux_dev, port);
++	if (cn_port->set_app_params) {
++		dev_dbg(hdev->dev, "App params were already set, port %d\n", port);
++		return -EPERM;
++	}
 +
-+	/* MAC */
-+	port_funcs->reset_mac_stats(cn_port);
++	gaudi2_port = cn_port->cn_specific;
++	gaudi2_port->advanced = in->advanced;
++	gaudi2_port->adaptive_timeout_en = in->adaptive_timeout_en;
 +
-+	/* SPMU */
-+	hbl_cn_spmu_init(cn_port, true);
++	/* Enable\disable advanced operations */
++	gaudi2_set_advanced_op_mask(hdev, (bool)gaudi2_port->advanced);
 +
-+	/* XPCS91 */
-+	cn_port->correctable_errors_cnt = 0;
-+	cn_port->uncorrectable_errors_cnt = 0;
++	bp_offs_fw = in->bp_offs[HBL_CNI_USER_BP_OFFS_FW];
++	bp_offs_qman = in->bp_offs[HBL_CNI_USER_BP_OFFS_QMAN];
 +
-+	/* PCS */
-+	cn_port->pcs_local_fault_cnt = 0;
-+	cn_port->pcs_remote_fault_cnt = 0;
-+	cn_port->pcs_remote_fault_reconfig_cnt = 0;
-+	cn_port->pcs_link_restore_cnt = 0;
++	/* Validate the parameters before performing any register changes */
++	if ((bp_offs_fw) || (bp_offs_qman)) {
++		if (!gaudi2_port->advanced) {
++			dev_dbg(hdev->dev,
++				"Port %u: advanced flag is disabled - can't set back-pressue\n",
++				port);
++			return -EINVAL;
++		}
 +
-+	/* Congestion Queue */
-+	cn_port->cong_q_err_cnt = 0;
++		if ((bp_offs_fw) && (bp_offs_fw & ~WQ_BP_ADDR_VAL_MASK)) {
++			dev_dbg(hdev->dev, "Port %u: invalid ARC BP offset 0x%x\n", port,
++				bp_offs_fw);
++			return -EINVAL;
++		}
++
++		if ((bp_offs_qman) && (bp_offs_qman & ~WQ_BP_ADDR_VAL_MASK)) {
++			dev_dbg(hdev->dev, "Port %u: invalid QMAN BP offset 0x%x\n", port,
++				bp_offs_qman);
++			return -EINVAL;
++		}
++
++		gaudi2_port->min_qp_size = U32_MAX;
++
++		/* Enable BP for DB */
++		wtd_config = NIC_RREG32(NIC0_QPC0_WTD_CONFIG) |
++			     NIC0_QPC0_WTD_CONFIG_WQ_BP_DB_ACCOUNTED_MASK;
++
++		if (bp_offs_fw) {
++			/* Enable WTD BP to ARC */
++			wtd_config |= NIC0_QPC0_WTD_CONFIG_WQ_BP_2ARC_EN_MASK;
++
++			/* Set the offset in the ARC memory to signal the BP*/
++			NIC_WREG32(NIC0_QPC0_WQ_BP_2ARC_ADDR, bp_offs_fw);
++		}
++
++		if (bp_offs_qman) {
++			/* Enable WTD BP to QMAN */
++			wtd_config |= NIC0_QPC0_WTD_CONFIG_WQ_BP_2QMAN_EN_MASK;
++
++			/* Set the offset in the QMAN memory to signal the BP*/
++			NIC_WREG32(NIC0_QPC0_WQ_BP_2QMAN_ADDR, bp_offs_qman);
++		}
++
++		NIC_WREG32(NIC0_QPC0_WTD_CONFIG, wtd_config);
++
++		*modify_wqe_checkers = true;
++		cn_port->bp_enable = true;
++	} else {
++		cn_port->bp_enable = false;
++		*modify_wqe_checkers = false;
++	}
++
++	if (gaudi2_port->adaptive_timeout_en) {
++		u8 max_retry_timeout = GAUDI2_NIC_MAX_TIMEOUT_RETRIES / NIC_ADAPTIVE_TIMEOUT_RANGE;
++
++		NIC_WREG32(NIC0_QPC0_RETRY_COUNT_MAX,
++			   (max_retry_timeout << NIC0_QPC0_RETRY_COUNT_MAX_TIMEOUT_SHIFT) |
++			   (max_retry_timeout << NIC0_QPC0_RETRY_COUNT_MAX_SEQUENCE_ERROR_SHIFT));
++	}
++
++	/* configure port's encapsulation for source ip-address automatically */
++	if (cn_port->eth_enable)
++		gaudi2_default_encap_set(cn_port, &encap_id, 0);
++
++	return 0;
 +}
 +
-+void hbl_cn_reset_stats_counters(struct hbl_cn_device *hdev)
++static void gaudi2_user_get_app_params(struct hbl_cn_device *hdev,
++				       struct hbl_cni_get_user_app_params_in *in,
++				       struct hbl_cni_get_user_app_params_out *out)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct hbl_cn_port *cn_port;
++
++	cn_port = gaudi2->cn_ports[in->port].cn_port;
++	out->max_num_of_qps = NIC_MAX_QP_NUM;
++	/* always include the Ethernet QP */
++	out->num_allocated_qps = 1 + atomic_read(&cn_port->num_of_allocated_qps);
++	out->max_allocated_qp_idx = hbl_cn_get_max_qp_id(cn_port);
++	out->max_cq_size = CQE_SIZE * NIC_CQ_MAX_ENTRIES;
++
++	/* Two CQs are reserved - one for the Ethernet and one for the driver CQ. We could use the
++	 * driver CQ as a user CQ but in each UMR there are 2 CQs and since CQ idx 0 is reserved for
++	 * Ethernet, also CQ idx 1 is unavailable.
++	 */
++	out->max_num_of_cqs = GAUDI2_NIC_MAX_CQS_NUM - NIC_CQS_NUM;
++	out->max_num_of_db_fifos = GAUDI2_MAX_DB_FIFO_ID - GAUDI2_MIN_DB_FIFO_ID + 1;
++	out->max_num_of_encaps = GAUDI2_MAX_ENCAP_ID - GAUDI2_MIN_ENCAP_ID + 1;
++}
++
++static void gaudi2_cn_stop_traffic_macro(struct hbl_cn_macro *cn_macro)
++{
++	struct hbl_cn_device *hdev = cn_macro->hdev;
++	u32 port = cn_macro->idx << 1; /* the index of the first port in the macro */
++	int i;
++
++	for (i = 0; i < 8; i++)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_DROP_THRESHOLD_0 + i * 4, 0);
++
++	usleep_range(1000, 2000);
++
++	NIC_MACRO_RMWREG32(NIC0_TMR_TMR_CACHES_CFG, 1,
++			   NIC0_TMR_TMR_CACHES_CFG_LIST_CACHE_STOP_MASK);
++	NIC_MACRO_RMWREG32(NIC0_TMR_TMR_CACHES_CFG, 1,
++			   NIC0_TMR_TMR_CACHES_CFG_FREE_LIST_CACHE_STOP_MASK);
++	NIC_MACRO_RMWREG32(NIC0_TMR_TMR_CACHES_CFG, 1,
++			   NIC0_TMR_TMR_CACHES_CFG_STATE_CACHE_STOP_MASK);
++
++	usleep_range(1000, 2000);
++
++	/* Flush all the writes */
++	NIC_MACRO_RREG32(NIC0_TMR_TMR_CACHES_CFG);
++}
++
++static void gaudi2_cn_stop_traffic_port(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	NIC_RMWREG32(NIC0_QPC0_REQ_STATIC_CONFIG, 1,
++		     NIC0_QPC0_REQ_STATIC_CONFIG_CACHE_STOP_MASK);
++	NIC_RMWREG32(NIC0_QPC0_RES_STATIC_CONFIG, 1,
++		     NIC0_QPC0_RES_STATIC_CONFIG_CACHE_STOP_MASK);
++	NIC_RMWREG32(NIC0_TXS0_CACHE_CFG, 1,
++		     NIC0_TXS0_CACHE_CFG_LIST_CACHE_STOP_MASK);
++	NIC_RMWREG32(NIC0_TXS0_CACHE_CFG, 1,
++		     NIC0_TXS0_CACHE_CFG_FREE_LIST_CACHE_STOP_MASK);
++
++	/* Flush all the writes */
++	NIC_MACRO_RREG32(NIC0_TXS0_CACHE_CFG);
++}
++
++static bool gaudi2_cn_is_macro_enabled(struct hbl_cn_macro *cn_macro)
++{
++	struct hbl_cn_device *hdev = cn_macro->hdev;
++	u32 port1, port2;
++
++	port1 = cn_macro->idx << 1; /* the index of the first port in the macro */
++	port2 = port1 + 1;
++
++	return (hdev->ports_mask & BIT(port1)) || (hdev->ports_mask & BIT(port2));
++}
++
++/* FW must be aligned with any changes done to this function */
++static void gaudi2_cn_stop_traffic(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_macro *cn_macro;
++	int i;
++
++	for (i = 0; i < hdev->cn_props.num_of_macros; i++) {
++		cn_macro = &hdev->cn_macros[i];
++
++		if (!gaudi2_cn_is_macro_enabled(cn_macro))
++			continue;
++
++		gaudi2_cn_stop_traffic_macro(cn_macro);
++	}
++
++	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		gaudi2_cn_stop_traffic_port(&hdev->cn_ports[i]);
++	}
++}
++
++static void gaudi2_cn_set_speed(struct hbl_cn_device *hdev)
 +{
 +	struct hbl_cn_port *cn_port;
++	int i;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		cn_port = &hdev->cn_ports[i];
++		cn_port->speed = hdev->phy_set_nrz ? SPEED_25000 : SPEED_100000;
++	}
++}
++
++static void gaudi2_cn_config_hw_mac(struct hbl_cn_macro *cn_macro)
++{
++	struct hbl_cn_device *hdev = cn_macro->hdev;
++	struct gaudi2_cn_device *gaudi2;
++	u32 port, speed;
++
++	gaudi2 = hdev->asic_specific;
++	/* the index of the first port in the macro */
++	port = cn_macro->idx << 1;
++	speed = hdev->cn_ports[port].speed;
++
++	switch (speed) {
++	case SPEED_25000:
++		/* AC_SD_CFG: sd_n2 = 0, sd_8x = 0 */
++		NIC_MACRO_WREG32(PRT0_MAC_CORE_MAC_SD_CFG, 0xF0FF00);
++
++		/* KP_MODE = 0, FEC91_EN = 1, FEC91_1LANE = 1 */
++		NIC_MACRO_WREG32(PRT0_MAC_CORE_MAC_FEC91_CFG, 0x60F);
++		NIC_MACRO_WREG32(PRT0_MAC_CORE_MAC_PCS_CFG, 0x0);
++		NIC_MACRO_WREG32(PRT0_MAC_CORE_MAC_FC_FEC_CFG, 0x0);
++		break;
++	case SPEED_50000:
++		NIC_MACRO_WREG32(PRT0_MAC_CORE_MAC_SD_CFG, 0xF0FFF0);
++		NIC_MACRO_WREG32(PRT0_MAC_CORE_MAC_FEC91_CFG, 0xFF);
++		NIC_MACRO_WREG32(PRT0_MAC_CORE_MAC_PCS_CFG, 0x0);
++
++		if (gaudi2->mac_rs_fec_ctrl_support) {
++			NIC_MACRO_WREG32(NIC0_MAC_RS_FEC_RSFEC_CONTROL, 0x400);
++			NIC_MACRO_WREG32(NIC0_MAC_RS_FEC_RSFEC1_CONTROL, 0x400);
++			NIC_MACRO_WREG32(NIC0_MAC_RS_FEC_RSFEC2_CONTROL, 0x400);
++			NIC_MACRO_WREG32(NIC0_MAC_RS_FEC_RSFEC3_CONTROL, 0x400);
++		}
++		break;
++	case SPEED_100000:
++		NIC_MACRO_WREG32(PRT0_MAC_CORE_MAC_FEC91_CFG, 0xFF);
++		break;
++	default:
++		dev_err(hdev->dev, "unknown speed %dMb/s, cannot set MAC\n", speed);
++	}
++}
++
++static void gaudi2_cn_config_hw_rxb(struct hbl_cn_macro *cn_macro)
++{
++	u32 dynamic_credits, static_credits, drop_th, small_pkt_drop_th, xoff_th, xon_th, val;
++	struct hbl_cn_device *hdev = cn_macro->hdev;
++	u32 port = cn_macro->idx << 1; /* the index of the first port in the macro */
++	int i;
++
++	/* Set iCRC calculation & verification with reversed bytes */
++	NIC_MACRO_WREG32(NIC0_RXB_CORE_ICRC_CFG, 0x2);
++
++	/* Assuming 1 effective priority per port divided between 2 physical ports. */
++	static_credits = RXB_NUM_STATIC_CREDITS;
++	dynamic_credits = 0;
++	drop_th = static_credits - RXB_DROP_TH_DEPTH;
++	xoff_th = static_credits - RXB_XOFF_TH_DEPTH;
++	xon_th = xoff_th - RXB_XON_TH_DEPTH;
++	small_pkt_drop_th = static_credits - RXB_DROP_SMALL_TH_DEPTH;
++
++	/* Dynamic credits (global) */
++	NIC_MACRO_WREG32(NIC0_RXB_CORE_MAX_DYNAMIC, dynamic_credits);
++
++	val = static_credits | (static_credits << 13);
++	for (i = 0; i < 8; i++)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_MAX_STATIC_CREDITS_0 + i * 4, val);
++
++	/* Drop threshold (per port/prio) */
++	val = drop_th | (drop_th << 13);
++	for (i = 0; i < 8; i++)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_DROP_THRESHOLD_0 + i * 4, val);
++
++	/* Drop threshold for small packets (per port/prio) */
++	val = small_pkt_drop_th | (small_pkt_drop_th << 13);
++	for (i = 0; i < 8; i++)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_DROP_SMALL_THRESHOLD_0 + i * 4, val);
++
++	/* XOFF threshold (per port/prio) */
++	val = xoff_th | (xoff_th << 13);
++	for (i = 0; i < 8; i++)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_XOFF_THRESHOLD_0 + i * 4, val);
++
++	/* XON threshold (per port/prio) */
++	val = xon_th | (xon_th << 13);
++	for (i = 0; i < 8; i++)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_XON_THRESHOLD_0 + i * 4, val);
++
++	/* All DSCP values should be mapped to PRIO 0 */
++	for (i = 0; i < 8; i++)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_DSCP2PRIO_0 + i * 4, 0);
++
++	/* set priority 0 as default priority to all ports and set the RXB to take the priority
++	 * according to the incoming port.
++	 */
++	NIC_MACRO_WREG32(NIC0_RXB_CORE_PORT_DEFAULT_PRIO, 0x0);
++	NIC_MACRO_WREG32(NIC0_RXB_CORE_PORT_TRUST_LEVEL, 0);
++
++	/* spread PAUSE on all prios (i.e. global pause) */
++	NIC_MACRO_WREG32(NIC0_RXB_CORE_MAC_PFC_MODE, 0x2);
++}
++
++static void gaudi2_cn_config_hw_txb(struct hbl_cn_macro *cn_macro)
++{
++	struct hbl_cn_device *hdev = cn_macro->hdev;
++	u32 port = cn_macro->idx << 1; /* the index of the first port in the macro */
++	u32 speed;
++
++	speed = hdev->cn_ports[port].speed;
++
++	/* Set iCRC calculation & generation with reversed bytes */
++	NIC_MACRO_WREG32(NIC0_TXB_ICRC_CFG, 0x2);
++
++	NIC_MACRO_WREG32(NIC0_TXB_GLOBAL_PAUSE, 0x0);
++
++	switch (speed) {
++	case SPEED_25000:
++		fallthrough;
++	case SPEED_50000:
++		NIC_MACRO_WREG32(NIC0_TXB_TDM_PORT_ARB_MASK, 0x7BDE);
++		break;
++	case SPEED_100000:
++		NIC_MACRO_WREG32(NIC0_TXB_TDM_PORT_ARB_MASK, 0xBBEE);
++		break;
++	default:
++		dev_err(hdev->dev, "unknown port %d speed %dMb/s, cannot set TDM mask\n", port,
++			speed);
++	}
++}
++
++static int gaudi2_cn_config_hw_tmr(struct hbl_cn_macro *cn_macro)
++{
++	struct cpucp_cn_init_hw_mem_packet pkt;
++	struct hbl_cn_properties *cn_prop;
++	u64 tmr_addr, nic_tmr_timeout_us;
++	struct hbl_cn_device *hdev;
++	bool use_cpucp;
++	int i, rc;
++	u32 port;
++
++	port = cn_macro->idx << 1; /* the index of the first port in the macro */
++	hdev = cn_macro->hdev;
++	cn_prop = &hdev->cn_props;
++
++	tmr_addr = cn_prop->tmr_base_addr + cn_macro->idx * cn_prop->tmr_base_size;
++
++	use_cpucp = !!(hdev->fw_app_cpu_boot_dev_sts0 & CPU_BOOT_DEV_STS0_NIC_MEM_CLEAR_EN);
++	if (use_cpucp) {
++		memset(&pkt, 0, sizeof(pkt));
++		pkt.cpucp_pkt.ctl = cpu_to_le32(CPUCP_PACKET_NIC_INIT_TMR_MEM <<
++						CPUCP_PKT_CTL_OPCODE_SHIFT);
++		pkt.cpucp_pkt.macro_index = cpu_to_le32(cn_macro->idx);
++		pkt.mem_base_addr = cpu_to_le64(tmr_addr + TMR_FREE_OFFS);
++		pkt.num_entries = cpu_to_le16(TMR_FREE_NUM_ENTRIES);
++		pkt.entry_size = cpu_to_le16(TMR_ENT_SIZE);
++		pkt.granularity = cpu_to_le16(TMR_GRANULARITY);
++
++		rc = gaudi2_cn_send_cpu_message(hdev, (u32 *)&pkt, sizeof(pkt), 0, NULL);
++		if (rc) {
++			dev_err(hdev->dev, "Failed to handle CPU-CP pkt %u, error %d\n",
++				CPUCP_PACKET_NIC_INIT_TMR_MEM, rc);
++			return rc;
++		}
++	} else {
++		/* Timer free list */
++		for (i = 0; i < TMR_FREE_NUM_ENTRIES; i++) {
++			hbl_cn_dram_writel(hdev, TMR_GRANULARITY + i,
++					   tmr_addr + TMR_FREE_OFFS + i * TMR_ENT_SIZE);
++
++			if ((i % NIC_MAX_COMBINED_WRITES) == 0)
++				hbl_cn_dram_readl(hdev,
++						  tmr_addr + TMR_FREE_OFFS + i * TMR_ENT_SIZE);
++		}
++
++		/* Perform read to flush the writes */
++		hbl_cn_dram_readl(hdev, tmr_addr);
++	}
++
++	WARN_ON_CACHE_UNALIGNED(tmr_addr + TMR_FIFO_OFFS);
++	WARN_ON_CACHE_UNALIGNED(tmr_addr + TMR_FSM0_OFFS);
++
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_BASE_ADDRESS_63_32,
++			 upper_32_bits(tmr_addr + TMR_FIFO_OFFS));
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_BASE_ADDRESS_31_7,
++			 lower_32_bits(tmr_addr + TMR_FIFO_OFFS) >> 7);
++
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_BASE_ADDRESS_FREE_LIST_63_32,
++			 upper_32_bits(tmr_addr + TMR_FREE_OFFS));
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_BASE_ADDRESS_FREE_LIST_31_0,
++			 lower_32_bits(tmr_addr + TMR_FREE_OFFS));
++
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_CACHE_BASE_ADDR_63_32,
++			 upper_32_bits(tmr_addr + TMR_FSM0_OFFS));
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_CACHE_BASE_ADDR_31_7,
++			 lower_32_bits(tmr_addr + TMR_FSM0_OFFS) >> 7);
++
++	/* configure MMU-BP for TIMERS */
++	NIC_MACRO_WREG32(NIC0_TMR_AXUSER_TMR_FREE_LIST_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_MACRO_WREG32(NIC0_TMR_AXUSER_TMR_FREE_LIST_HB_RD_OVRD_LO, 0xFFFFFBFF);
++
++	NIC_MACRO_WREG32(NIC0_TMR_AXUSER_TMR_FIFO_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_MACRO_WREG32(NIC0_TMR_AXUSER_TMR_FIFO_HB_RD_OVRD_LO, 0xFFFFFBFF);
++
++	NIC_MACRO_WREG32(NIC0_TMR_AXUSER_TMR_FSM_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_MACRO_WREG32(NIC0_TMR_AXUSER_TMR_FSM_HB_RD_OVRD_LO, 0xFFFFFBFF);
++	/* Perform read to flush the writes */
++	NIC_MACRO_RREG32(NIC0_TMR_AXUSER_TMR_FSM_HB_RD_OVRD_LO);
++
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_DESC_31_0, 0);
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_DESC_63_32, 0);
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_DESC_95_64, 0);
++
++	for (i = 0; i < TMR_GRANULARITY; i++) {
++		/* Set the amount of ticks for timeout. */
++		nic_tmr_timeout_us = ((i == 0) || (i >= 32)) ?
++				      GENMASK_ULL(46, 0) :
++				      (u64)(hdev->pldm ? NIC_TMR_TIMEOUT_PLDM_US :
++					    (1ULL << (i + 2)));
++
++		NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_DESC_191_160,
++				 lower_32_bits(nic_tmr_timeout_us));
++		NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_DESC_216_192,
++				 upper_32_bits(nic_tmr_timeout_us));
++		NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_DESC_127_96, i);
++		NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_DESC_159_128, i);
++		NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_FIFO, i);
++		NIC_MACRO_WREG32(NIC0_TMR_TMR_SCHEDQ_UPDATE_EN, 1);
++	}
++
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_SCAN_TIMER_COMP_31_0, 10);
++
++	/* Set the number of clock's cycles for a single tick in order to have 1 usec per tick.
++	 * i.e.: 1/frequency_in_MHz * num_of_clk_cycles = 1 usec
++	 */
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_TICK_WRAP, cn_prop->clk);
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_LIST_MASK,
++			 ~(0xFFFFFFFF << (ilog2(TMR_FREE_NUM_ENTRIES) - 5)));
++
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_PRODUCER_UPDATE, TMR_FREE_NUM_ENTRIES);
++	/* Latch the TMR value */
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_PRODUCER_UPDATE_EN, 1);
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_PRODUCER_UPDATE_EN, 0);
++
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_LIST_MEM_READ_MASK, 0);
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_PUSH_LOCK_EN, 1);
++	NIC_MACRO_WREG32(NIC0_TMR_TMR_TIMER_EN, 1);
++	NIC_MACRO_WREG32(NIC0_TMR_FREE_LIST_PUSH_MASK_EN, 0);
++
++	/* Perform read from the device to flush all configurations */
++	NIC_MACRO_RREG32(NIC0_TMR_TMR_TIMER_EN);
++
++	return 0;
++}
++
++static void gaudi2_cn_enable_gic_macro_interrupts(struct hbl_cn_macro *cn_macro)
++{
++	struct hbl_cn_device *hdev;
++	u32 port;
++
++	port = cn_macro->idx << 1; /* the index of the first port in the macro */
++	hdev = cn_macro->hdev;
++
++	/* enable TMR block interrupts */
++	NIC_MACRO_WREG32(NIC0_TMR_INTERRUPT_MASK, 0x0);
++
++	/* enable RXB_CORE block interrupts */
++	NIC_MACRO_WREG32(NIC0_RXB_CORE_SEI_INTR_MASK, 0x0);
++	NIC_MACRO_WREG32(NIC0_RXB_CORE_SPI_INTR_MASK, 0x0);
++}
++
++static void gaudi2_cn_disable_gic_macro_interrupts(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_macro *cn_macro;
 +	u32 port;
 +	int i;
 +
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
++	for (i = 0; i < NIC_NUMBER_OF_MACROS; i++) {
++		cn_macro = &hdev->cn_macros[i];
++		port = cn_macro->idx << 1; /* the index of the first port in the macro */
++
++		/* It's not allowed to configure a macro that both of its ports are not enabled */
++		if (!gaudi2_cn_is_macro_enabled(cn_macro))
 +			continue;
 +
-+		cn_port = &hdev->cn_ports[i];
++		/* disable TMR block interrupts */
++		NIC_MACRO_WREG32(NIC0_TMR_INTERRUPT_MASK, 0xF);
 +
-+		if (!hbl_cn_is_port_open(cn_port))
-+			continue;
-+
-+		port = cn_port->port;
-+
-+		hbl_cn_reset_stats_counters_port(hdev, port);
++		/* disable RXB_CORE block interrupts */
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_SEI_INTR_MASK, 0x3);
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_SPI_INTR_MASK, 0x3F);
 +	}
 +}
 +
-+void hbl_cn_reset_ports_toggle_counters(struct hbl_cn_device *hdev)
++static int gaudi2_cn_hw_macro_config(struct hbl_cn_macro *cn_macro)
 +{
-+	struct hbl_cn_port *cn_port;
-+	int i;
-+
-+	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
-+		if (!(hdev->ports_mask & BIT(i)))
-+			continue;
-+
-+		cn_port = &hdev->cn_ports[i];
-+
-+		cn_port->port_toggle_cnt = 0;
-+		cn_port->port_toggle_cnt_prev = 0;
-+	}
-+}
-+
-+/* The following implements the events dispatcher
-+ * Each application registering with the device is assigned a unique ASID
-+ * by the driver, it is also being associated with a SW-EQ by the dispatcher
-+ * (The Eth driver is handled by the kernel associated with ASID 0).
-+ * during the lifetime of the app/ASID, each resource allocated to it
-+ * that can generate events (such as QP and CQ) is being associated by the
-+ * dispatcher the appropriate ASID.
-+ * During the course of work of the NIC, the HW EQ is accessed
-+ * (by poling or interrupt), and for each event found in it
-+ * - The resource ID which generated the event is retrieved from it (CQ# or QP#)
-+ * - The ASID it retrieved from the ASID-resource association lists,
-+ * - The event is inserted to the ASID-specific SW-EQ to be retrieved later on
-+ *   by the app. An exception is the Eth driver which as for today is tightly
-+ *   coupled with the EQ so the dispatcher calls the Eth event handling routine
-+ *   (if registered) immediately after dispatching the events to the SW-EQs.
-+ * Note: The Link events which are always handled by the Eth driver (ASID 0).
-+ */
-+
-+struct hbl_cn_ev_dq *hbl_cn_cqn_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 cqn,
-+				      struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_properties *cn_prop = &hdev->cn_props;
-+	struct hbl_cn_ev_dq *dq;
-+
-+	if (cqn >= cn_prop->max_cqs)
-+		return NULL;
-+
-+	dq = ev_dqs->cq_dq[cqn];
-+	if (!dq || !dq->associated)
-+		return NULL;
-+
-+	return dq;
-+}
-+
-+struct hbl_cn_ev_dq *hbl_cn_ccqn_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 ccqn,
-+				       struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_properties *cn_prop = &hdev->cn_props;
-+	struct hbl_cn_ev_dq *dq;
-+
-+	if (ccqn >= cn_prop->max_ccqs)
-+		return NULL;
-+
-+	dq = ev_dqs->ccq_dq[ccqn];
-+	if (!dq || !dq->associated)
-+		return NULL;
-+
-+	return dq;
-+}
-+
-+struct hbl_cn_dq_qp_info *hbl_cn_get_qp_info(struct hbl_cn_ev_dqs *ev_dqs, u32 qpn)
-+{
-+	struct hbl_cn_dq_qp_info *qp_info = NULL;
-+
-+	hash_for_each_possible(ev_dqs->qps, qp_info, node, qpn)
-+		if (qpn == qp_info->qpn)
-+			return qp_info;
-+
-+	return NULL;
-+}
-+
-+struct hbl_cn_ev_dq *hbl_cn_qpn_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 qpn)
-+{
-+	struct hbl_cn_dq_qp_info *qp_info = hbl_cn_get_qp_info(ev_dqs, qpn);
-+
-+	if (qp_info)
-+		return qp_info->dq;
-+
-+	return NULL;
-+}
-+
-+struct hbl_cn_ev_dq *hbl_cn_dbn_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 dbn,
-+				      struct hbl_cn_device *hdev)
-+{
-+	struct hbl_cn_properties *cn_prop = &hdev->cn_props;
-+	struct hbl_cn_ev_dq *dq;
-+
-+	if (dbn >= cn_prop->max_db_fifos)
-+		return NULL;
-+
-+	dq = ev_dqs->db_dq[dbn];
-+	if (!dq || !dq->associated)
-+		return NULL;
-+
-+	return dq;
-+}
-+
-+struct hbl_cn_ev_dq *hbl_cn_asid_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 asid)
-+{
-+	struct hbl_cn_ev_dq *dq;
-+	int i;
-+
-+	for (i = 0; i < NIC_NUM_CONCUR_ASIDS; i++) {
-+		dq = &ev_dqs->edq[i];
-+		if (dq->associated && dq->asid == asid)
-+			return dq;
-+	}
-+
-+	return NULL;
-+}
-+
-+static void hbl_cn_dq_reset(struct hbl_cn_ev_dq *dq)
-+{
-+	struct hbl_cn_eq_raw_buf *buf = &dq->buf;
-+
-+	dq->overflow = 0;
-+	buf->tail = 0;
-+	buf->head = buf->tail;
-+	buf->events_count = 0;
-+	memset(buf->events, 0, sizeof(buf->events));
-+}
-+
-+bool hbl_cn_eq_dispatcher_is_empty(struct hbl_cn_ev_dq *dq)
-+{
-+	return (dq->buf.events_count == 0);
-+}
-+
-+bool hbl_cn_eq_dispatcher_is_full(struct hbl_cn_ev_dq *dq)
-+{
-+	return (dq->buf.events_count == (NIC_EQ_INFO_BUF_SIZE - 1));
-+}
-+
-+void hbl_cn_eq_dispatcher_init(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	int i;
-+
-+	hash_init(ev_dqs->qps);
-+	mutex_init(&ev_dqs->lock);
-+
-+	hbl_cn_dq_reset(&ev_dqs->default_edq);
-+
-+	for (i = 0; i < NIC_NUM_CONCUR_ASIDS; i++)
-+		hbl_cn_dq_reset(&ev_dqs->edq[i]);
-+
-+	for (i = 0; i < NIC_DRV_MAX_CQS_NUM; i++)
-+		ev_dqs->cq_dq[i] = NULL;
-+
-+	for (i = 0; i < NIC_DRV_NUM_DB_FIFOS; i++)
-+		ev_dqs->db_dq[i] = NULL;
-+}
-+
-+void hbl_cn_eq_dispatcher_fini(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_ev_dqs *edqs = ev_dqs;
-+	struct hbl_cn_dq_qp_info *qp_info;
-+	u32 port = cn_port->port;
-+	struct hlist_node *tmp;
-+	int i;
-+
-+	if (!hash_empty(edqs->qps))
-+		dev_err(hdev->dev, "port %d dispatcher is closed while there are QPs in use\n",
-+			port);
-+
-+	hash_for_each_safe(edqs->qps, i, tmp, qp_info, node) {
-+		dev_err_ratelimited(hdev->dev, "port %d QP %d was not destroyed\n", port,
-+				    qp_info->qpn);
-+		hash_del(&qp_info->node);
-+		kfree(qp_info);
-+	}
-+
-+	mutex_destroy(&ev_dqs->lock);
-+}
-+
-+void hbl_cn_eq_dispatcher_reset(struct hbl_cn_port *cn_port)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_ev_dqs *edqs = ev_dqs;
-+	int i;
-+
-+	mutex_lock(&edqs->lock);
-+
-+	hbl_cn_dq_reset(&edqs->default_edq);
-+
-+	for (i = 0; i < NIC_NUM_CONCUR_ASIDS; i++)
-+		hbl_cn_dq_reset(&edqs->edq[i]);
-+
-+	mutex_unlock(&edqs->lock);
-+}
-+
-+int hbl_cn_eq_dispatcher_associate_dq(struct hbl_cn_port *cn_port, u32 asid)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_ev_dq *dq;
-+	int i, rc = -ENOSPC;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	dq = hbl_cn_asid_to_dq(ev_dqs, asid);
-+	if (dq) {
-+		rc = 0;
-+		goto exit;
-+	}
-+
-+	for (i = 0; i < NIC_NUM_CONCUR_ASIDS; i++) {
-+		dq = &ev_dqs->edq[i];
-+		if (!dq->associated) {
-+			dq->associated = true;
-+			dq->asid = asid;
-+			rc = 0;
-+			break;
-+		}
-+	}
-+
-+exit:
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return rc;
-+}
-+
-+int hbl_cn_eq_dispatcher_dissociate_dq(struct hbl_cn_port *cn_port, u32 asid)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_ev_dq *dq;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	dq = hbl_cn_asid_to_dq(ev_dqs, asid);
-+	if (!dq)
-+		goto exit;
-+
-+	hbl_cn_dq_reset(dq);
-+	dq->associated = false;
-+	dq->asid = U32_MAX;
-+
-+exit:
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return 0;
-+}
-+
-+int hbl_cn_eq_dispatcher_register_qp(struct hbl_cn_port *cn_port, u32 asid, u32 qp_id)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_dq_qp_info *qp_info;
-+	struct hbl_cn_ev_dq *dq;
-+	int rc = 0;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	/* check if such qp is already registered and if with the same asid */
-+	dq = hbl_cn_qpn_to_dq(ev_dqs, qp_id);
-+	if (dq) {
-+		if (dq->asid != asid)
-+			rc = -EINVAL;
-+
-+		goto exit;
-+	}
-+
-+	/* find the dq associated with the given asid */
-+	dq = hbl_cn_asid_to_dq(ev_dqs, asid);
-+	if (!dq) {
-+		rc = -ENODATA;
-+		goto exit;
-+	}
-+
-+	/* register the QP */
-+	qp_info = kmalloc(sizeof(*qp_info), GFP_KERNEL);
-+	if (!qp_info) {
-+		rc = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	qp_info->dq = dq;
-+	qp_info->qpn = qp_id;
-+	hash_add(ev_dqs->qps, &qp_info->node, qp_id);
-+
-+exit:
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return rc;
-+}
-+
-+int hbl_cn_eq_dispatcher_unregister_qp(struct hbl_cn_port *cn_port, u32 qp_id)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_dq_qp_info *qp_info;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	qp_info = hbl_cn_get_qp_info(ev_dqs, qp_id);
-+	if (qp_info) {
-+		hash_del(&qp_info->node);
-+		kfree(qp_info);
-+	}
-+
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return 0;
-+}
-+
-+int hbl_cn_eq_dispatcher_register_cq(struct hbl_cn_port *cn_port, u32 asid, u32 cqn)
-+{
-+	struct hbl_cn_properties *cn_prop = &cn_port->hdev->cn_props;
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_ev_dq *dq;
-+	int rc = 0;
-+
-+	if (cqn >= cn_prop->max_cqs)
-+		return -EINVAL;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	/* check if such qp is already registered and if with the same
-+	 * asid
-+	 */
-+	dq = ev_dqs->cq_dq[cqn];
-+	if (dq) {
-+		if (dq->asid != asid)
-+			rc = -EINVAL;
-+
-+		goto exit;
-+	}
-+
-+	/* find the dq associated with the given asid */
-+	dq = hbl_cn_asid_to_dq(ev_dqs, asid);
-+	if (!dq) {
-+		rc = -ENODATA;
-+		goto exit;
-+	}
-+
-+	ev_dqs->cq_dq[cqn] = dq;
-+
-+exit:
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return rc;
-+}
-+
-+int hbl_cn_eq_dispatcher_unregister_cq(struct hbl_cn_port *cn_port, u32 cqn)
-+{
-+	struct hbl_cn_properties *cn_prop = &cn_port->hdev->cn_props;
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+
-+	if (cqn >= cn_prop->max_cqs)
-+		return -EINVAL;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	ev_dqs->cq_dq[cqn] = NULL;
-+
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return 0;
-+}
-+
-+int hbl_cn_eq_dispatcher_register_ccq(struct hbl_cn_port *cn_port, u32 asid, u32 ccqn)
-+{
-+	struct hbl_cn_properties *cn_prop = &cn_port->hdev->cn_props;
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_ev_dq *dq;
-+	int rc = 0;
-+
-+	if (ccqn >= cn_prop->max_ccqs)
-+		return -EINVAL;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	/* check if such qp is already registered and if with the same asid */
-+	dq = ev_dqs->ccq_dq[ccqn];
-+	if (dq) {
-+		rc = -EINVAL;
-+		goto exit;
-+	}
-+
-+	/* find the dq associated with the given asid */
-+	dq = hbl_cn_asid_to_dq(ev_dqs, asid);
-+	if (!dq) {
-+		rc = -ENODATA;
-+		goto exit;
-+	}
-+
-+	ev_dqs->ccq_dq[ccqn] = dq;
-+
-+exit:
-+	mutex_unlock(&ev_dqs->lock);
-+	return rc;
-+}
-+
-+int hbl_cn_eq_dispatcher_unregister_ccq(struct hbl_cn_port *cn_port, u32 asid, u32 ccqn)
-+{
-+	struct hbl_cn_properties *cn_prop = &cn_port->hdev->cn_props;
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+
-+	if (ccqn >= cn_prop->max_ccqs)
-+		return -EINVAL;
-+
-+	if (!hbl_cn_asid_to_dq(ev_dqs, asid))
-+		return -ENODATA;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	ev_dqs->ccq_dq[ccqn] = NULL;
-+
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return 0;
-+}
-+
-+int hbl_cn_eq_dispatcher_register_db(struct hbl_cn_port *cn_port, u32 asid, u32 dbn)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_ev_dq *dq;
-+	u32 min, max;
-+	int rc = 0;
-+
-+	cn_port->hdev->asic_funcs->port_funcs->get_db_fifo_hw_id_range(cn_port, &min, &max);
-+	if (dbn < min || dbn > max) {
-+		dev_err(cn_port->hdev->dev,
-+			"Failed to register dbn %u to the dispatcher (valid range %u-%u)\n", dbn,
-+			min, max);
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	/* check if doorbell is already registered and if so is it with the same
-+	 * asid
-+	 */
-+	dq = ev_dqs->db_dq[dbn];
-+	if (dq) {
-+		if (dq->asid != asid)
-+			rc = -EINVAL;
-+
-+		goto exit;
-+	}
-+
-+	/* find the dq associated with the given asid and transport */
-+	dq = hbl_cn_asid_to_dq(ev_dqs, asid);
-+	if (!dq) {
-+		rc = -ENODATA;
-+		goto exit;
-+	}
-+
-+	ev_dqs->db_dq[dbn] = dq;
-+
-+exit:
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return rc;
-+}
-+
-+int hbl_cn_eq_dispatcher_unregister_db(struct hbl_cn_port *cn_port, u32 dbn)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	u32 min, max;
-+
-+	cn_port->hdev->asic_funcs->port_funcs->get_db_fifo_hw_id_range(cn_port, &min, &max);
-+	if (dbn < min || dbn > max) {
-+		dev_err(cn_port->hdev->dev,
-+			"Failed to unregister dbn %u from the dispatcher (valid range %u-%u)\n",
-+			dbn, min, max);
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	ev_dqs->db_dq[dbn] = NULL;
-+
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return 0;
-+}
-+
-+static int __hbl_cn_eq_dispatcher_enqueue(struct hbl_cn_port *cn_port, struct hbl_cn_ev_dq *dq,
-+					  const struct hbl_cn_eqe *eqe)
-+{
-+	struct hbl_aux_dev *aux_dev = &cn_port->hdev->ib_aux_dev;
-+	struct hbl_ib_aux_ops *aux_ops = aux_dev->aux_ops;
-+
-+	if (hbl_cn_eq_dispatcher_is_full(dq)) {
-+		dq->overflow++;
-+		return -ENOSPC;
-+	}
-+
-+	memcpy(&dq->buf.events[dq->buf.head], eqe, min(sizeof(*eqe), sizeof(dq->buf.events[0])));
-+	dq->buf.head = (dq->buf.head + 1) & (NIC_EQ_INFO_BUF_SIZE - 1);
-+	dq->buf.events_count++;
-+
-+	/* If IB device exist, call work scheduler for hbl to poll eq */
-+	if (aux_ops->eqe_work_schd)
-+		aux_ops->eqe_work_schd(aux_dev, cn_port->port);
-+
-+	return 0;
-+}
-+
-+/* Broadcast event to all user ASIDs */
-+int hbl_cn_eq_dispatcher_enqueue_bcast(struct hbl_cn_port *cn_port, const struct hbl_cn_eqe *eqe)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_ev_dq *dq;
-+	int i, rc = 0;
-+
-+	if (!hbl_cn_is_port_open(cn_port))
-+		return 0;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	for (i = 0; i < NIC_NUM_CONCUR_ASIDS; i++) {
-+		if (i == hdev->kernel_asid)
-+			continue;
-+
-+		dq = hbl_cn_asid_to_dq(ev_dqs, i);
-+		if (!dq)
-+			continue;
-+
-+		rc = __hbl_cn_eq_dispatcher_enqueue(cn_port, dq, eqe);
-+		if (rc) {
-+			dev_dbg_ratelimited(cn_port->hdev->dev,
-+					    "Port %d, failed to enqueue dispatcher for ASID %d. %d\n",
-+					    cn_port->port, i, rc);
-+			break;
-+		}
-+	}
-+
-+	mutex_unlock(&ev_dqs->lock);
-+
-+	return rc;
-+}
-+
-+int hbl_cn_eq_dispatcher_enqueue(struct hbl_cn_port *cn_port, const struct hbl_cn_eqe *eqe)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+	struct hbl_cn_ev_dq *dq;
 +	int rc;
 +
-+	if (!hbl_cn_is_port_open(cn_port))
-+		return 0;
++	/* the following registers are shared between each pair of ports */
 +
-+	port_funcs = cn_port->hdev->asic_funcs->port_funcs;
++	/* MAC Configuration */
++	gaudi2_cn_config_hw_mac(cn_macro);
 +
-+	mutex_lock(&ev_dqs->lock);
++	/* RXB Configuration */
++	gaudi2_cn_config_hw_rxb(cn_macro);
 +
-+	dq = port_funcs->eq_dispatcher_select_dq(cn_port, eqe);
-+	if (!dq) {
-+		rc = -ENODATA;
-+		goto exit;
-+	}
++	/* TXB Configuration */
++	gaudi2_cn_config_hw_txb(cn_macro);
 +
-+	rc = __hbl_cn_eq_dispatcher_enqueue(cn_port, dq, eqe);
-+	if (rc)
-+		dev_dbg_ratelimited(cn_port->hdev->dev,
-+				    "Port %d, failed to enqueue dispatcher. %d\n", cn_port->port,
-+				    rc);
-+
-+exit:
-+	mutex_unlock(&ev_dqs->lock);
-+	return rc;
-+}
-+
-+int hbl_cn_eq_dispatcher_dequeue(struct hbl_cn_port *cn_port, u32 asid, struct hbl_cn_eqe *eqe,
-+				 bool is_default)
-+{
-+	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
-+	struct hbl_cn_ev_dq *dq;
-+	int rc;
-+
-+	mutex_lock(&ev_dqs->lock);
-+
-+	if (is_default)
-+		dq = &ev_dqs->default_edq;
-+	else
-+		dq = hbl_cn_asid_to_dq(ev_dqs, asid);
-+
-+	if (!dq) {
-+		rc = -ESRCH;
-+		goto exit;
-+	}
-+
-+	if (hbl_cn_eq_dispatcher_is_empty(dq)) {
-+		rc = -ENODATA;
-+		goto exit;
-+	}
-+
-+	/* We do a copy here instead of returning a pointer since a reset or
-+	 * destroy operation may occur after we return from the routine
-+	 */
-+	memcpy(eqe, &dq->buf.events[dq->buf.tail], min(sizeof(*eqe), sizeof(dq->buf.events[0])));
-+
-+	dq->buf.tail = (dq->buf.tail + 1) & (NIC_EQ_INFO_BUF_SIZE - 1);
-+	dq->buf.events_count--;
-+	rc = 0;
-+
-+exit:
-+	mutex_unlock(&ev_dqs->lock);
-+	return rc;
-+}
-+
-+u32 hbl_cn_dram_readl(struct hbl_cn_device *hdev, u64 addr)
-+{
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	return aux_ops->dram_readl(aux_dev, addr);
-+}
-+
-+void hbl_cn_dram_writel(struct hbl_cn_device *hdev, u32 val, u64 addr)
-+{
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	aux_ops->dram_writel(aux_dev, val, addr);
-+}
-+
-+u32 hbl_cn_rreg(struct hbl_cn_device *hdev, u32 reg)
-+{
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	return aux_ops->rreg(aux_dev, reg);
-+}
-+
-+void hbl_cn_wreg(struct hbl_cn_device *hdev, u32 reg, u32 val)
-+{
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
-+
-+	return aux_ops->wreg(aux_dev, reg, val);
-+}
-+
-+int hbl_cn_reserve_wq_dva(struct hbl_cn_ctx *ctx, struct hbl_cn_port *cn_port, u64 wq_arr_size,
-+			  u32 type, u64 *dva)
-+{
-+	struct hbl_cn_wq_array_properties *wq_arr_props;
-+	int rc;
-+
-+	/* The Device VA block for WQ array is just reserved here. It will be backed by host
-+	 * physical pages once the MMU mapping is done via hbl_map_vmalloc_range inside the
-+	 * alloc_and_map_wq. Using host page alignment ensures we start with offset 0, both
-+	 * on host and device side.
-+	 */
-+	rc = hbl_cn_reserve_dva_block(ctx, wq_arr_size, dva);
++	/* TMR Configuration */
++	rc = gaudi2_cn_config_hw_tmr(cn_macro);
 +	if (rc)
 +		return rc;
 +
-+	wq_arr_props = &cn_port->wq_arr_props[type];
++	/* Enable GIC macro interrupts - required only if running on PLDM */
++	if (cn_macro->hdev->pldm)
++		gaudi2_cn_enable_gic_macro_interrupts(cn_macro);
 +
-+	wq_arr_props->dva_base = *dva;
-+	wq_arr_props->dva_size = wq_arr_size;
++	return rc;
++}
++
++static int gaudi2_cn_macros_hw_config(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_macro *cn_macro;
++	int i, rc = 0;
++
++	for (i = 0; i < NIC_NUMBER_OF_MACROS; i++) {
++		cn_macro = &hdev->cn_macros[i];
++
++		if (!gaudi2_cn_is_macro_enabled(cn_macro))
++			continue;
++
++		rc = gaudi2_cn_hw_macro_config(cn_macro);
++		if (rc)
++			return rc;
++	}
++
++	return rc;
++}
++
++static int gaudi2_cn_core_init(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_properties *cn_prop = &hdev->cn_props;
++	u64 nic_dram_alloc_size;
++	int rc;
++
++	nic_dram_alloc_size = cn_prop->nic_drv_end_addr - cn_prop->nic_drv_base_addr;
++	if (nic_dram_alloc_size > cn_prop->nic_drv_size) {
++		dev_err(hdev->dev, "DRAM allocation for CN (%lluMB) shouldn't exceed %lluMB\n",
++			div_u64(nic_dram_alloc_size, SZ_1M),
++			div_u64(cn_prop->nic_drv_size, SZ_1M));
++		return -ENOMEM;
++	}
++
++	rc = gaudi2_cn_phy_init(hdev);
++	if (rc)
++		return rc;
++
++	/* This function must be called before configuring the macros */
++	gaudi2_cn_set_speed(hdev);
++
++	rc = gaudi2_cn_macros_hw_config(hdev);
++	if (rc)
++		return rc;
++
++	return gaudi2_cn_eq_init(hdev);
++}
++
++static void gaudi2_cn_core_fini(struct hbl_cn_device *hdev)
++{
++	gaudi2_cn_eq_fini(hdev);
++
++	/* Disable GIC macro interrupts - required only if running on PLDM */
++	if (hdev->pldm)
++		gaudi2_cn_disable_gic_macro_interrupts(hdev);
++
++	gaudi2_cn_stop_traffic(hdev);
++}
++
++static int gaudi2_cn_ctx_dispatcher_init(struct hbl_cn_device *hdev, u32 asid)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_cn_port *gaudi2_port;
++	struct hbl_cn_port *cn_port;
++	int i, j, rc = 0;
++	u32 port;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		gaudi2_port = &gaudi2->cn_ports[i];
++		cn_port = gaudi2_port->cn_port;
++		port = cn_port->port;
++
++		rc = hbl_cn_eq_dispatcher_associate_dq(gaudi2_port->cn_port, asid);
++		if (rc) {
++			dev_err(hdev->dev,
++				"failed to associate ASID %d with port %d event dispatcher (err %d)\n",
++				asid, port, rc);
++			goto associate_error;
++		}
++	}
++
++	return 0;
++
++associate_error:
++	/* dissociate the associated dqs */
++	for (j = 0; j < i; j++) {
++		gaudi2_port = &gaudi2->cn_ports[j];
++		hbl_cn_eq_dispatcher_dissociate_dq(gaudi2_port->cn_port, asid);
++	}
++
++	return rc;
++}
++
++static void gaudi2_cn_ctx_dispatcher_fini(struct hbl_cn_device *hdev, u32 asid)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_cn_port *gaudi2_port;
++	int i;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++)
++		if (hdev->ports_mask & BIT(i)) {
++			gaudi2_port = &gaudi2->cn_ports[i];
++			hbl_cn_eq_dispatcher_dissociate_dq(gaudi2_port->cn_port, asid);
++		}
++}
++
++static int gaudi2_cn_kernel_ctx_init(struct hbl_cn_device *hdev, u32 asid)
++{
++	return gaudi2_cn_ctx_dispatcher_init(hdev, asid);
++}
++
++static void gaudi2_cn_kernel_ctx_fini(struct hbl_cn_device *hdev, u32 asid)
++{
++	gaudi2_cn_ctx_dispatcher_fini(hdev, asid);
++}
++
++static int gaudi2_cn_ctx_init(struct hbl_cn_ctx *ctx)
++{
++	return gaudi2_cn_ctx_dispatcher_init(ctx->hdev, ctx->asid);
++}
++
++static void gaudi2_cn_ctx_fini(struct hbl_cn_ctx *ctx)
++{
++	gaudi2_cn_ctx_dispatcher_fini(ctx->hdev, ctx->asid);
++}
++
++static void gaudi2_cn_configure_cq(struct hbl_aux_dev *aux_dev, u32 port, u16 coalesce_usec,
++				   bool enable)
++{
++	struct hbl_cn_device *hdev = container_of(aux_dev, struct hbl_cn_device, en_aux_dev);
++	struct hbl_cn_properties *cn_prop = &hdev->cn_props;
++	u32 arm_timeout;
++
++	/* Calc timeout in ticks.
++	 * result/value of 0 is interpreted as ASAP but since a value of Zero is an invalid value
++	 * we modify it to 1.
++	 */
++	arm_timeout = coalesce_usec ? cn_prop->clk * coalesce_usec : 1;
++
++	/* disable the current timer before configuring the new time */
++	NIC_RMWREG32(NIC0_RXE0_CQ_ARM_TIMEOUT_EN, 0, BIT(NIC_CQ_RAW_IDX));
++	NIC_RREG32(NIC0_RXE0_CQ_ARM_TIMEOUT_EN);
++
++	/* if enable - configure the new timer and enable it */
++	if (enable) {
++		NIC_WREG32(NIC0_RXE0_CQ_ARM_TIMEOUT, arm_timeout);
++		NIC_RMWREG32(NIC0_RXE0_CQ_ARM_TIMEOUT_EN, 1, BIT(NIC_CQ_RAW_IDX));
++	}
++}
++
++static void gaudi2_cn_arm_cq(struct hbl_aux_dev *aux_dev, u32 port, u32 index)
++{
++	struct hbl_cn_device *hdev = container_of(aux_dev, struct hbl_cn_device, en_aux_dev);
++
++	NIC_WREG32(NIC0_QPC0_ARM_CQ_NUM, NIC_CQ_RAW_IDX);
++	NIC_WREG32(NIC0_QPC0_ARM_CQ_INDEX, index);
++}
++
++static void gaudi2_cn_write_rx_ci(struct hbl_aux_dev *aux_dev, u32 port, u32 ci)
++{
++	struct hbl_cn_device *hdev = container_of(aux_dev, struct hbl_cn_device, en_aux_dev);
++
++	NIC_WREG32(NIC0_QPC0_SECURED_CQ_NUMBER, NIC_CQ_RAW_IDX);
++	NIC_WREG32(NIC0_QPC0_SECURED_CQ_CONSUMER_INDEX, ci);
++}
++
++static void gaudi2_cn_get_pfc_cnts(struct hbl_aux_dev *aux_dev, u32 port, int pfc_prio,
++				   u64 *indications, u64 *requests)
++{
++	struct hbl_cn_device *hdev = container_of(aux_dev, struct hbl_cn_device, en_aux_dev);
++	u64 reg_addr, lo_part, hi_part;
++
++	reg_addr = (port & 1) ? NIC0_MAC_GLOB_STAT_RX2_ACBFCPAUSEFRAMESRECEIVED0_2 :
++		   NIC0_MAC_GLOB_STAT_RX0_ACBFCPAUSEFRAMESRECEIVED0;
++
++	reg_addr += (4 * pfc_prio);
++
++	lo_part = NIC_MACRO_RREG32(reg_addr);
++	hi_part = NIC_MACRO_RREG32(NIC0_MAC_GLOB_STAT_CONTROL_REG_DATA_HI);
++	*indications = lo_part | (hi_part << 32);
++
++	reg_addr = (port & 1) ? NIC0_MAC_GLOB_STAT_TX2_ACBFCPAUSEFRAMESTRANSMITTED0_2 :
++		   NIC0_MAC_GLOB_STAT_TX0_ACBFCPAUSEFRAMESTRANSMITTED0;
++
++	reg_addr += (4 * pfc_prio);
++
++	lo_part = NIC_MACRO_RREG32(reg_addr);
++	hi_part = NIC_MACRO_RREG32(NIC0_MAC_GLOB_STAT_CONTROL_REG_DATA_HI);
++	*requests = lo_part | (hi_part << 32);
++}
++
++static int gaudi2_cn_ring_tx_doorbell(struct hbl_aux_dev *aux_dev, u32 port, u32 pi,
++				      bool *full_after_tx)
++{
++	struct hbl_cn_device *hdev = container_of(aux_dev, struct hbl_cn_device, en_aux_dev);
++	u32 db_fifo_ci = 0, db_fifo_pi = 0, space_left_in_db_fifo = 0;
++	struct gaudi2_cn_port *gaudi2_port;
++	struct hbl_cn_port *cn_port;
++
++	cn_port = &hdev->cn_ports[port];
++	gaudi2_port = cn_port->cn_specific;
++
++	db_fifo_ci = *((u32 *)RING_CI_ADDRESS(&gaudi2_port->fifo_ring));
++	db_fifo_pi = gaudi2_port->db_fifo_pi;
++
++	space_left_in_db_fifo = CIRC_SPACE(db_fifo_pi, db_fifo_ci, NIC_FIFO_DB_SIZE);
++
++	if (!space_left_in_db_fifo) {
++		dev_dbg_ratelimited(hdev->dev, "port %d DB fifo full. PI %d, CI %d\n", port,
++				    db_fifo_pi, db_fifo_ci);
++		return -EBUSY;
++	}
++
++	NIC_WREG32(NIC0_QPC0_SECURED_DB_FIRST32, pi);
++	NIC_WREG32(NIC0_QPC0_SECURED_DB_SECOND32, RAW_QPN);
++
++	/* Incrementing local PI and wrap around at the size of NIC_FIFO_DB_SIZE */
++	gaudi2_port->db_fifo_pi = (gaudi2_port->db_fifo_pi + 1) & (NIC_FIFO_DB_SIZE - 1);
++
++	*full_after_tx = !(CIRC_SPACE(gaudi2_port->db_fifo_pi, db_fifo_ci, NIC_FIFO_DB_SIZE));
 +
 +	return 0;
 +}
 +
-+void hbl_cn_unreserve_wq_dva(struct hbl_cn_ctx *ctx, struct hbl_cn_port *cn_port, u32 type)
++static void gaudi2_cn_compute_reset_prepare(struct hbl_aux_dev *aux_dev)
 +{
-+	struct hbl_cn_wq_array_properties *wq_arr_props = &cn_port->wq_arr_props[type];
++	struct hbl_cn_device *hdev = aux_dev->priv;
++	struct gaudi2_cn_device *gaudi2;
 +
-+	hbl_cn_unreserve_dva_block(ctx, wq_arr_props->dva_base, wq_arr_props->dva_size);
-+	wq_arr_props->dva_base = 0;
++	gaudi2 = hdev->asic_specific;
++	gaudi2->in_compute_reset = true;
++
++	gaudi2_cn_eq_enter_temporal_polling_mode(hdev);
++	gaudi2_cn_phy_flush_link_status_work(hdev);
 +}
 +
-+void hbl_cn_track_port_reset(struct hbl_cn_port *cn_port, u32 syndrome)
++static void gaudi2_cn_compute_reset_late_init(struct hbl_aux_dev *aux_dev)
++{
++	struct hbl_cn_device *hdev = aux_dev->priv;
++	struct gaudi2_cn_device *gaudi2;
++
++	gaudi2_cn_eq_exit_temporal_polling_mode(hdev);
++
++	gaudi2 = hdev->asic_specific;
++	gaudi2->in_compute_reset = false;
++}
++
++static void gaudi2_handle_cn_port_reset_locked(struct hbl_cn_port *cn_port)
++{
++	struct gaudi2_en_aux_ops *gaudi2_en_aux_ops;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct gaudi2_cn_device *gaudi2;
++
++	gaudi2 = hdev->asic_specific;
++	gaudi2_en_aux_ops = &gaudi2->en_aux_ops;
++
++	if (hdev->ext_ports_mask & BIT(cn_port->port)) {
++		dev_err_ratelimited(hdev->dev, "port %d, going to reset\n", cn_port->port);
++		if (gaudi2_en_aux_ops->port_reset_locked)
++			gaudi2_en_aux_ops->port_reset_locked(&hdev->en_aux_dev, cn_port->port);
++	} else {
++		hbl_cn_internal_port_fini_locked(cn_port);
++		hbl_cn_internal_port_init_locked(cn_port);
++	}
++}
++
++static void gaudi2_cn_print_event(struct hbl_cn_device *hdev, u16 event_type, bool ratelimited,
++				  const char *fmt, ...)
++{
++	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	struct va_format vaf;
++	va_list args;
++	char *name;
++
++	aux_dev = hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	gaudi2_aux_ops = aux_ops->asic_ops;
++
++	name = gaudi2_aux_ops->get_event_name(aux_dev, event_type);
++
++	va_start(args, fmt);
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	if (ratelimited)
++		dev_err_ratelimited(hdev->dev, "%s: %pV\n", name, &vaf);
++	else
++		dev_err(hdev->dev, "%s: %pV\n", name, &vaf);
++
++	va_end(args);
++}
++
++static int gaudi2_handle_error(struct hbl_cn_device *hdev, u16 event_type, u8 macro_index,
++			       struct hbl_cn_eq_intr_cause *intr_cause)
++{
++	u32 intr_cause_data, port, first_port, last_port, num_of_ports_in_macro, intr_type,
++	    error_count = 0;
++	int idx, i;
++
++	num_of_ports_in_macro = NIC_NUMBER_OF_ENGINES / NIC_NUMBER_OF_MACROS;
++	first_port = macro_index * num_of_ports_in_macro;
++	last_port = (macro_index + 1) * num_of_ports_in_macro - 1;
++	intr_type = intr_cause->intr_type;
++
++	if (!intr_type || intr_type > HBL_CN_CPUCP_INTR_TXE) {
++		gaudi2_cn_print_event(hdev, event_type, true, "port %u: invalid interrupt type %u",
++				      macro_index, intr_type);
++		return 1;
++	}
++
++	intr_cause_data = (u32)intr_cause->intr_cause[0].intr_cause_data;
++
++	switch (intr_type) {
++	case HBL_CN_CPUCP_INTR_TMR:
++		gaudi2_cn_print_event(hdev, event_type, true,
++				      "TMR error on macro %d cause 0x%x", macro_index,
++				      intr_cause_data);
++		return 1;
++	case HBL_CN_CPUCP_INTR_RXB_CORE_SPI:
++		for (i = 0; i < GAUDI2_NUM_OF_NIC_RXB_CORE_SPI_CAUSE; i++) {
++			if (!(intr_cause_data & BIT(i)))
++				continue;
++
++			gaudi2_cn_print_event(hdev, event_type, true,
++					      "RXB CORE SPI error on macro %d cause: %s. cause bit %d",
++					      macro_index,
++					      gaudi2_cn_rxb_core_spi_interrupts_cause[i], i);
++			error_count++;
++		}
++
++		return error_count;
++	case HBL_CN_CPUCP_INTR_RXB_CORE_SEI:
++		for (i = 0; i < GAUDI2_NUM_OF_NIC_RXB_CORE_SEI_CAUSE; i++) {
++			if (!(intr_cause_data & BIT(i)))
++				continue;
++
++			gaudi2_cn_print_event(hdev, event_type, true,
++					      "RXB CORE SEI error on macro %d cause: %s. cause bit %d",
++					      macro_index,
++					      gaudi2_cn_rxb_core_sei_interrupts_cause[i], i);
++			error_count++;
++		}
++
++		return error_count;
++	}
++
++	for (port = first_port, idx = 0; port <= last_port; port++, idx++) {
++		/* check that port is indeed enabled in the macro */
++		if (!(hdev->ports_mask & BIT(port)))
++			continue;
++
++		intr_cause_data = (u32)intr_cause->intr_cause[idx].intr_cause_data;
++		if (!intr_cause_data)
++			continue;
++
++		switch (intr_type) {
++		case HBL_CN_CPUCP_INTR_QPC_RESP_ERR:
++			for (i = 0; i < GAUDI2_NUM_OF_NIC_QPC_RESP_ERR_CAUSE; i++) {
++				if (!(intr_cause_data & BIT(i)))
++					continue;
++
++				gaudi2_cn_print_event(hdev, event_type, true,
++						      "QPC response error on port %d cause: %s. cause bit %d",
++						      port,
++						      gaudi2_cn_qpc_resp_err_interrupts_cause[i],
++						      i);
++				error_count++;
++			}
++
++			break;
++		case HBL_CN_CPUCP_INTR_RXE_SPI:
++			for (i = 0; i < GAUDI2_NUM_OF_NIC_RXE_SPI_CAUSE; i++) {
++				if (!(intr_cause_data & BIT(i)))
++					continue;
++
++				dev_dbg_ratelimited(hdev->dev,
++						    "RXE SPI error on port %d cause: %s. cause bit %d\n",
++						    port, gaudi2_cn_rxe_spi_interrupts_cause[i],
++						    i);
++				error_count++;
++			}
++
++			break;
++		case HBL_CN_CPUCP_INTR_RXE_SEI:
++			for (i = 0; i < GAUDI2_NUM_OF_NIC_RXE_SEI_CAUSE; i++) {
++				if (!(intr_cause_data & BIT(i)))
++					continue;
++
++				gaudi2_cn_print_event(hdev, event_type, true,
++						      "RXE SEI error on port %d cause: %s. cause bit %d",
++						      port,
++						      gaudi2_cn_rxe_sei_interrupts_cause[i], i);
++				error_count++;
++			}
++
++			break;
++		case HBL_CN_CPUCP_INTR_TXS:
++			gaudi2_cn_print_event(hdev, event_type, true,
++					      "TXS error on port %d cause 0x%x", port,
++					      intr_cause_data);
++			error_count++;
++			break;
++		case HBL_CN_CPUCP_INTR_TXE:
++			gaudi2_cn_print_event(hdev, event_type, true,
++					      "TXE error on port %d cause 0x%x", port,
++					      intr_cause_data);
++			error_count++;
++			break;
++		default:
++			gaudi2_cn_print_event(hdev, event_type, true,
++					      "Invalid interrupt type port %d", port);
++		}
++	}
++
++	return error_count;
++}
++
++static void gaudi2_cn_convert_intr_cause(struct hbl_cn_eq_intr_cause *to,
++					 struct hl_eq_nic_intr_cause *from)
++{
++	int i;
++
++	to->intr_type = le32_to_cpu(from->intr_type);
++
++	for (i = 0; i < MAX_PORTS_PER_NIC; i++)
++		to->intr_cause[i].intr_cause_data =
++						le64_to_cpu(from->intr_cause[i].intr_cause_data);
++}
++
++static int gaudi2_cn_sw_err_event(struct hbl_aux_dev *aux_dev, u16 event_type, u8 macro_index,
++				  struct hl_eq_nic_intr_cause *intr_cause_cpucp)
++{
++	u32 qpc_intr_cause, port, first_port, last_port, num_of_ports_in_macro, error_count = 0;
++	struct hbl_cn_device *hdev = aux_dev->priv;
++	struct hbl_cn_eq_intr_cause intr_cause;
++	struct hbl_cn_port *cn_port;
++
++	gaudi2_cn_convert_intr_cause(&intr_cause, intr_cause_cpucp);
++
++	num_of_ports_in_macro = NIC_NUMBER_OF_ENGINES / NIC_NUMBER_OF_MACROS;
++	first_port = macro_index * num_of_ports_in_macro;
++	last_port = (macro_index + 1) * num_of_ports_in_macro - 1;
++
++	for (port = first_port; port <= last_port; port++) {
++		/* check that port is indeed enabled in the macro */
++		if (!(hdev->ports_mask & BIT(port)))
++			continue;
++
++		qpc_intr_cause = NIC_RREG32(NIC0_QPC0_INTERRUPT_CAUSE);
++
++		/* eqe interrupts are mapped to MSI except interrupt on error event queue
++		 * which is handled here, in such case port reset is required.
++		 */
++		if (!(qpc_intr_cause & 0x400))
++			continue;
++
++		gaudi2_cn_print_event(hdev, event_type, true, "QPC EQ error on port %d", port);
++		NIC_WREG32(NIC0_QPC0_INTERRUPT_CLR, 0x400);
++		error_count++;
++
++		cn_port = &hdev->cn_ports[port];
++		mutex_lock(&cn_port->control_lock);
++		hbl_cn_track_port_reset(cn_port, NIC_EQ_ERR_SYNDROME);
++		gaudi2_handle_cn_port_reset_locked(cn_port);
++		mutex_unlock(&cn_port->control_lock);
++	}
++
++	error_count += gaudi2_handle_error(hdev, event_type, macro_index, &intr_cause);
++
++	return error_count;
++}
++
++static int gaudi2_cn_axi_error_response_event(struct hbl_aux_dev *aux_dev, u16 event_type,
++					      u8 macro_index,
++					      struct hl_eq_nic_intr_cause *intr_cause_cpucp)
++{
++	struct hbl_cn_device *hdev = aux_dev->priv;
++	struct hbl_cn_eq_intr_cause intr_cause;
++
++	gaudi2_cn_convert_intr_cause(&intr_cause, intr_cause_cpucp);
++
++	return gaudi2_handle_error(hdev, event_type, macro_index, &intr_cause);
++}
++
++static void gaudi2_cn_pre_sw_init(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_properties *cn_prop = &hdev->cn_props;
++
++	cn_prop->phy_base_addr = NIC0_PHY_BASE;
++	cn_prop->max_hw_qps_num = NIC_HW_MAX_QP_NUM;
++	cn_prop->max_qps_num = NIC_MAX_QP_NUM;
++	cn_prop->max_hw_user_wqs_num = USER_WQES_MAX_NUM;
++	cn_prop->min_hw_user_wqs_num = USER_WQES_MIN_NUM;
++	cn_prop->rwqe_size = NIC_RECV_WQE_SIZE;
++	cn_prop->force_cq = false;
++	cn_prop->max_num_of_lanes = NIC_MAX_NUM_OF_LANES;
++	cn_prop->num_of_macros = NIC_NUMBER_OF_MACROS;
++	cn_prop->max_cqs = GAUDI2_NIC_MAX_CQS_NUM;
++	cn_prop->max_ccqs = NIC_MAX_CCQS_NUM;
++	cn_prop->max_db_fifos = GAUDI2_NIC_NUM_DB_FIFOS;
++	cn_prop->user_cq_min_entries = NIC_CQ_USER_MIN_ENTRIES;
++	cn_prop->user_cq_max_entries = NIC_CQ_USER_MAX_ENTRIES;
++	cn_prop->cqe_size = CQE_SIZE;
++	cn_prop->max_frm_len = NIC_MAX_FRM_LEN;
++	cn_prop->raw_elem_size = NIC_RAW_ELEM_SIZE;
++	cn_prop->max_raw_mtu = NIC_RAW_MAX_MTU;
++	cn_prop->min_raw_mtu = NIC_RAW_MIN_MTU;
++	cn_prop->max_wq_arr_type = HBL_CNI_USER_WQ_RECV;
++	cn_prop->is_phy_fw_binary = true;
++}
++
++static int gaudi2_cn_sw_init(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_ring **rx_rings, **cq_rings, **wq_rings;
++	struct gaudi2_cn_aux_data *gaudi2_cn_aux_data;
++	struct gaudi2_en_aux_data *gaudi2_en_aux_data;
++	struct gaudi2_en_aux_ops *gaudi2_en_aux_ops;
++	struct hbl_cn_aux_data *cn_aux_data;
++	struct hbl_en_aux_data *en_aux_data;
++	struct hbl_cn_aux_ops *cn_aux_ops;
++	struct hbl_en_aux_ops *en_aux_ops;
++	struct gaudi2_cn_device *gaudi2;
++	struct hbl_aux_dev *cn_aux_dev;
++	struct hbl_aux_dev *en_aux_dev;
++	int rc;
++
++	BUILD_BUG_ON_NOT_POWER_OF_2(NIC_RAW_ELEM_SIZE);
++	BUILD_BUG_ON_NOT_POWER_OF_2(NIC_RX_RING_PKT_NUM);
++	BUILD_BUG_ON_NOT_POWER_OF_2(NIC_CQ_MAX_ENTRIES);
++	BUILD_BUG_ON_NOT_POWER_OF_2(NIC_EQ_RING_NUM_REC);
++
++	gaudi2 = kzalloc(sizeof(*gaudi2), GFP_KERNEL);
++	if (!gaudi2)
++		return -ENOMEM;
++
++	rx_rings = kcalloc(NIC_NUMBER_OF_PORTS, sizeof(*rx_rings), GFP_KERNEL);
++	if (!rx_rings) {
++		rc = -ENOMEM;
++		goto rx_rings_fail;
++	}
++
++	cq_rings = kcalloc(NIC_NUMBER_OF_PORTS, sizeof(*cq_rings), GFP_KERNEL);
++	if (!cq_rings) {
++		rc = -ENOMEM;
++		goto cq_rings_fail;
++	}
++
++	wq_rings = kcalloc(NIC_NUMBER_OF_PORTS, sizeof(*wq_rings), GFP_KERNEL);
++	if (!wq_rings) {
++		rc = -ENOMEM;
++		goto qp_rings_fail;
++	}
++
++	hdev->asic_specific = gaudi2;
++
++	cn_aux_dev = hdev->cn_aux_dev;
++	cn_aux_data = cn_aux_dev->aux_data;
++	cn_aux_ops = cn_aux_dev->aux_ops;
++	gaudi2_cn_aux_data = cn_aux_data->asic_specific;
++	gaudi2->cn_aux_ops = cn_aux_ops->asic_ops;
++
++	gaudi2->temporal_polling = !hdev->poll_enable;
++	gaudi2->fw_security_enabled = gaudi2_cn_aux_data->fw_security_enabled;
++	gaudi2->msix_enabled = gaudi2_cn_aux_data->msix_enabled;
++	gaudi2->cfg_base = gaudi2_cn_aux_data->cfg_base;
++	gaudi2->irq_num_port_base = gaudi2_cn_aux_data->irq_num_port_base;
++	gaudi2->sob_id_base = gaudi2_cn_aux_data->sob_id_base;
++	gaudi2->sob_inc_cfg_val = gaudi2_cn_aux_data->sob_inc_cfg_val;
++	gaudi2->setup_type = gaudi2_cn_aux_data->setup_type;
++
++	gaudi2_en_aux_data = &gaudi2->en_aux_data;
++	gaudi2_en_aux_ops = &gaudi2->en_aux_ops;
++
++	en_aux_dev = &hdev->en_aux_dev;
++	en_aux_data = en_aux_dev->aux_data;
++	en_aux_ops = en_aux_dev->aux_ops;
++	en_aux_data->asic_specific = gaudi2_en_aux_data;
++	en_aux_ops->asic_ops = gaudi2_en_aux_ops;
++
++	gaudi2_en_aux_data->rx_rings = rx_rings;
++	gaudi2_en_aux_data->cq_rings = cq_rings;
++	gaudi2_en_aux_data->wq_rings = wq_rings;
++	gaudi2_en_aux_data->kernel_asid = hdev->kernel_asid;
++	gaudi2_en_aux_data->raw_qpn = RAW_QPN;
++	gaudi2_en_aux_data->tx_ring_len = NIC_TX_BUF_SIZE;
++	gaudi2_en_aux_data->schedq_num = TXS_PORT_RAW_SCHED_Q * HBL_EN_PFC_PRIO_NUM +
++					 GAUDI2_PFC_PRIO_DRIVER;
++
++	/* As a W/A for H/W bug H6-3399, we increase our Tx packets by padding them with bigger
++	 * value than the default. This should keep the MAC in the other side busier on each packet
++	 * processing, hence decrease the rate that it pushes the packet towards the Rx.
++	 */
++	gaudi2_en_aux_data->pad_size = NIC_SKB_PAD_SIZE;
++
++	/* en2cn */
++	gaudi2_en_aux_ops->configure_cq = gaudi2_cn_configure_cq;
++	gaudi2_en_aux_ops->arm_cq = gaudi2_cn_arm_cq;
++	gaudi2_en_aux_ops->write_rx_ci = gaudi2_cn_write_rx_ci;
++	gaudi2_en_aux_ops->get_pfc_cnts = gaudi2_cn_get_pfc_cnts;
++	gaudi2_en_aux_ops->ring_tx_doorbell = gaudi2_cn_ring_tx_doorbell;
++	gaudi2_en_aux_ops->qp_err_syndrome_to_str = gaudi2_cn_qp_err_syndrome_to_str;
++	gaudi2_en_aux_ops->db_fifo_reset = gaudi2_cn_db_fifo_reset;
++
++	hdev->ctrl_op_mask = BIT(HBL_CNI_OP_ALLOC_CONN) |
++			     BIT(HBL_CNI_OP_SET_REQ_CONN_CTX) |
++			     BIT(HBL_CNI_OP_SET_RES_CONN_CTX) |
++			     BIT(HBL_CNI_OP_DESTROY_CONN) |
++			     BIT(HBL_CNI_OP_USER_WQ_SET) |
++			     BIT(HBL_CNI_OP_USER_WQ_UNSET) |
++			     BIT(HBL_CNI_OP_SET_USER_APP_PARAMS) |
++			     BIT(HBL_CNI_OP_GET_USER_APP_PARAMS) |
++			     BIT(HBL_CNI_OP_ALLOC_USER_DB_FIFO) |
++			     BIT(HBL_CNI_OP_USER_DB_FIFO_SET) |
++			     BIT(HBL_CNI_OP_USER_DB_FIFO_UNSET) |
++			     BIT(HBL_CNI_OP_EQ_POLL) |
++			     BIT(HBL_CNI_OP_USER_ENCAP_ALLOC) |
++			     BIT(HBL_CNI_OP_USER_ENCAP_SET) |
++			     BIT(HBL_CNI_OP_USER_ENCAP_UNSET) |
++			     BIT(HBL_CNI_OP_ALLOC_USER_CQ_ID) |
++			     BIT(HBL_CNI_OP_USER_CQ_ID_SET) |
++			     BIT(HBL_CNI_OP_USER_CQ_ID_UNSET) |
++			     BIT(HBL_CNI_OP_DUMP_QP);
++
++	hdev->debugfs_supp_mask = BIT(NIC_MAC_LOOPBACK) |
++				  BIT(NIC_PAM4_TX_TAPS) |
++				  BIT(NIC_NRZ_TX_TAPS) |
++				  BIT(NIC_POLARITY) |
++				  BIT(NIC_QP) |
++				  BIT(NIC_WQE) |
++				  BIT(NIC_RESET_CNT) |
++				  BIT(NIC_MAC_LANE_REMAP) |
++				  BIT(NIC_RAND_STATUS) |
++				  BIT(NIC_MMU_BYPASS) |
++				  BIT(NIC_ETH_LOOPBACK) |
++				  BIT(NIC_PHY_REGS_PRINT) |
++				  BIT(NIC_SHOW_INTERNAL_PORTS_STATUS) |
++				  BIT(NIC_PRINT_FEC_STATS) |
++				  BIT(NIC_DISABLE_DECAP) |
++				  BIT(NIC_PHY_SET_NRZ) |
++				  BIT(NIC_PHY_DUMP_SERDES_PARAMS) |
++				  BIT(NIC_PHY_CALC_BER) |
++				  BIT(NIC_PHY_CALC_BER_WAIT_SEC) |
++				  BIT(NIC_OVERRIDE_PORT_STATUS) |
++				  BIT(NIC_ACCUMULATE_FEC_DURATION) |
++				  BIT(NIC_PHY_FORCE_FIRST_TX_TAPS_CFG);
++
++	hdev->ib_support = true;
++	hdev->qpc_cache_inv_timeout = hdev->pldm ? NIC_PLDM_QPC_INV_USEC :
++				      NIC_QPC_INV_USEC;
++	hdev->qp_wait_for_idle = true;
++	hdev->qp_reset_mode = CN_QP_RESET_MODE_HARD;
++	hdev->hw_invalid_while_teardown = false;
++	hdev->has_eq = true;
++	hdev->umr_support = true;
++	hdev->cc_support = true;
++
++	gaudi2->mac_rs_fec_ctrl_support = true;
++	gaudi2->flush_db_fifo = false;
++
++	hdev->cn_props.max_qp_error_syndromes = NIC_MAX_QP_ERR_SYNDROMES;
++	hdev->cn_props.status_packet_size = sizeof(struct cpucp_nic_status);
++
++	hdev->wq_arrays_pool_enable = true;
++	hdev->mmap_type_flag = HBL_CN_MMAP_TYPE_CN_MEM;
++
++	return 0;
++
++qp_rings_fail:
++	kfree(cq_rings);
++cq_rings_fail:
++	kfree(rx_rings);
++rx_rings_fail:
++	kfree(gaudi2);
++
++	return rc;
++}
++
++static void gaudi2_cn_sw_fini(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_en_aux_data *en_aux_data;
++
++	en_aux_data = &gaudi2->en_aux_data;
++
++	kfree(en_aux_data->wq_rings);
++	kfree(en_aux_data->cq_rings);
++	kfree(en_aux_data->rx_rings);
++	kfree(gaudi2);
++}
++
++static void gaudi2_cn_set_en_data(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_en_aux_data *gaudi2_aux_data;
++	struct gaudi2_cn_port *gaudi2_port;
++	struct hbl_en_aux_data *aux_data;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_cn_port *cn_port;
++	struct hbl_aux_dev *aux_dev;
++	int i;
++
++	aux_dev = &hdev->en_aux_dev;
++	aux_data = aux_dev->aux_data;
++	gaudi2_aux_data = &gaudi2->en_aux_data;
++	aux_data->asic_specific = gaudi2_aux_data;
++	aux_ops = aux_dev->aux_ops;
++	aux_ops->asic_ops = &gaudi2->en_aux_ops;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		cn_port = &hdev->cn_ports[i];
++		gaudi2_port = cn_port->cn_specific;
++
++		if (cn_port->eth_enable) {
++			gaudi2_aux_data->rx_rings[i] = &gaudi2_port->rx_ring;
++			gaudi2_aux_data->cq_rings[i] = &gaudi2_port->cq_rings[NIC_CQ_RAW_IDX];
++			gaudi2_aux_data->wq_rings[i] = &gaudi2_port->wq_ring;
++		}
++	}
++}
++
++static int gaudi2_register_qp(struct hbl_cn_port *cn_port, u32 qp_id, u32 asid)
++{
++	return hbl_cn_eq_dispatcher_register_qp(cn_port, asid, qp_id);
++}
++
++static void gaudi2_unregister_qp(struct hbl_cn_port *cn_port, u32 qp_id)
++{
++	hbl_cn_eq_dispatcher_unregister_qp(cn_port, qp_id);
++}
++
++static void gaudi2_get_qp_id_range(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id)
++{
++	*min_id = NIC_MIN_CONN_ID;
++	*max_id = NIC_MAX_CONN_ID;
++}
++
++static u8 gaudi2_qp_event_is_req_event(struct hbl_cn_eqe *eqe)
++{
++	char synd_str_to_lower[GAUDI2_MAX_SYNDROME_STRING_LEN] = {};
++	u32 synd = EQE_QP_EVENT_ERR_SYND(eqe);
++	char *synd_str;
++
++	synd_str = gaudi2_cn_qp_err_syndrome_to_str(synd);
++
++	if (strlen(synd_str)) {
++		strscpy(synd_str_to_lower, synd_str, sizeof(synd_str_to_lower));
++		hbl_cn_strtolower(synd_str_to_lower);
++
++		if (strnstr(synd_str_to_lower, "req", strlen(synd_str_to_lower)))
++			return 1;
++	}
++
++	return 0;
++}
++
++static int gaudi2_eq_poll(struct hbl_cn_port *cn_port, u32 asid, struct hbl_cni_eq_poll_out *event)
++{
++	u32 ev_type, ev_valid, port = cn_port->port;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct hbl_cn_eqe eqe;
++	int rc;
++
++	rc = hbl_cn_eq_dispatcher_dequeue(cn_port, asid, &eqe, false);
++	if (rc)
++		return rc;
++
++	ev_valid = EQE_IS_VALID(&eqe);
++	if (!ev_valid) {
++		dev_dbg_ratelimited(hdev->dev,
++				    "got EQE invalid entry while expecting a valid one\n");
++			return -ENODATA;
++	}
++
++	ev_type = EQE_TYPE(&eqe);
++	switch (ev_type) {
++	case EQE_COMP_ERR:
++		event->ev_type = HBL_CNI_EQ_EVENT_TYPE_CQ_ERR;
++		event->idx = EQE_CQ_EVENT_CQ_NUM(&eqe);
++		break;
++	case EQE_QP_ERR:
++		event->ev_type = HBL_CNI_EQ_EVENT_TYPE_QP_ERR;
++		event->idx = EQE_RAW_TX_EVENT_QPN(&eqe);
++		event->rest_occurred = EQE_QP_EVENT_RESET(&eqe);
++		event->is_req = gaudi2_qp_event_is_req_event(&eqe);
++		break;
++	case EQE_DB_FIFO_OVERRUN:
++		event->ev_type = HBL_CNI_EQ_EVENT_TYPE_DB_FIFO_ERR;
++		event->idx = EQE_DB_EVENT_DB_NUM(&eqe);
++		break;
++	case EQE_CONG:
++		/* completion ready in cc comp queue */
++		event->ev_type = HBL_CNI_EQ_EVENT_TYPE_CCQ;
++		event->idx = EQE_CQ_EVENT_CQ_NUM(&eqe);
++		break;
++	case EQE_LINK_STATUS:
++		event->ev_type = HBL_CNI_EQ_EVENT_TYPE_LINK_STATUS;
++		break;
++	case EQE_QP_ALIGN_COUNTERS:
++		event->ev_type = HBL_CNI_EQ_EVENT_TYPE_QP_ALIGN_COUNTERS;
++		event->idx = EQE_SW_EVENT_QPN(&eqe);
++		break;
++	default:
++		/* if the event should not be reported to the user then return
++		 * as if no event was found
++		 */
++		dev_dbg_ratelimited(hdev->dev, "dropping Port-%d event %d report to user\n", port,
++				    ev_type);
++		return -ENODATA;
++	}
++
++	/* fill the vevent-specific data */
++	event->ev_data = eqe.data[2];
++
++	return 0;
++}
++
++static void gaudi2_get_db_fifo_id_range(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id)
++{
++	*min_id = GAUDI2_MIN_DB_FIFO_ID;
++	*max_id = GAUDI2_MAX_DB_FIFO_ID;
++}
++
++static void gaudi2_get_db_fifo_hw_id_range(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id)
++{
++	*min_id = db_fifo_hw_id(GAUDI2_MIN_DB_FIFO_ID);
++	*max_id = GAUDI2_DB_FIFO_SECURE_HW_ID;
++}
++
++static void gaudi2_get_db_fifo_modes_mask(struct hbl_cn_port *cn_port, u32 *mode_mask)
++{
++	*mode_mask = BIT(HBL_CNI_DB_FIFO_TYPE_DB) | BIT(HBL_CNI_DB_FIFO_TYPE_CC);
++}
++
++static int gaudi2_db_fifo_allocate(struct hbl_cn_port *cn_port,
++				   struct hbl_cn_db_fifo_xarray_pdata *xa_pdata)
 +{
 +	struct hbl_cn_device *hdev = cn_port->hdev;
-+	struct hbl_cn_reset_tracker *reset_tracker;
-+	unsigned long timestamp_jiffies = jiffies;
-+	u32 max_qp_error_syndromes;
++	u32 fifo_size;
 +
-+	max_qp_error_syndromes = hdev->cn_props.max_qp_error_syndromes;
-+	if (syndrome >= max_qp_error_syndromes) {
-+		dev_dbg(hdev->dev, "Invalid syndrome %u\n", syndrome);
-+		return;
++	switch (xa_pdata->fifo_mode) {
++	case HBL_CNI_DB_FIFO_TYPE_DB:
++	case HBL_CNI_DB_FIFO_TYPE_CC:
++		fifo_size = DB_FIFO_SIZE;
++		break;
++	default:
++		dev_dbg(hdev->dev, "Port %d, invalid DB fifo mode: %d. Allocation failed\n",
++			cn_port->port, xa_pdata->fifo_mode);
++		return -EINVAL;
 +	}
 +
-+	reset_tracker = &cn_port->reset_tracker[syndrome];
++	xa_pdata->fifo_size = fifo_size;
 +
-+	/* In case the timeout passed, reset the tracker parameters and return */
-+	if (time_after_eq(timestamp_jiffies, reset_tracker->timeout_jiffies)) {
-+		reset_tracker->num_seq_resets = 1;
-+		reset_tracker->timeout_jiffies = timestamp_jiffies +
-+						 msecs_to_jiffies(NIC_SEQ_RESETS_TIMEOUT_MS);
-+		return;
-+	}
++	return 0;
++}
 +
-+	reset_tracker->num_seq_resets++;
++static void gaudi2_db_fifo_free(struct hbl_cn_port *cn_port, u32 db_pool_offset, u32 fifo_size)
++{
++}
 +
-+	/* In case the max sequential resets was reached before we passed the timeout,
-+	 * disable that port.
++static int gaudi2_db_fifo_set(struct hbl_cn_port *cn_port, struct hbl_cn_ctx *ctx, u32 id,
++			      u64 ci_device_handle, struct hbl_cn_db_fifo_xarray_pdata *xa_pdata)
++{
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++	u32 mmu_bypass;
++	u8 is_cc;
++	u32 val;
++	int rc;
++
++	rc = gaudi2_cn_eq_dispatcher_register_db(gaudi2_port, ctx->asid, db_fifo_hw_id(id));
++	if (rc)
++		return rc;
++
++	WARN_ON_CACHE_UNALIGNED(ci_device_handle);
++
++	/* Config HW to use memory buffer for updating
++	 * consumer-index(CI) when it pops fifo.
 +	 */
-+	if (reset_tracker->num_seq_resets == NIC_MAX_SEQ_RESETS) {
-+		dev_err(hdev->dev,
-+			"Disabling port %u due to %d sequential resets, syndrome %u\n",
-+			cn_port->port, NIC_MAX_SEQ_RESETS, syndrome);
-+		cn_port->disabled = true;
++	NIC_WREG32(NIC0_QPC0_DBFIFO0_CI_UPD_ADDR_DBFIFO_CI_UPD_ADDR_31_7 + db_fifo_offset64(id),
++		   lower_32_bits(ci_device_handle) >> 7);
++	NIC_WREG32(NIC0_QPC0_DBFIFO0_CI_UPD_ADDR_DBFIFO_CI_UPD_ADDR_63_32 + db_fifo_offset64(id),
++		   upper_32_bits(ci_device_handle));
++
++	is_cc = (xa_pdata->fifo_mode == HBL_CNI_DB_FIFO_TYPE_CC);
++	/* We use generic H/W FIFOs. Configured as a userspace doorbell or congestion control FIFO.
++	 */
++	NIC_WREG32(NIC0_QPC0_DB_FIFO_CFG_0 + db_fifo_offset(id), is_cc);
++
++	mmu_bypass = !!(hdev->mmu_bypass);
++	val = ctx->asid;
++	val |= mmu_bypass << NIC0_QPC0_DB_FIFO_USER_OVRD_MMU_BYPASS_SHIFT;
++	NIC_WREG32(NIC0_QPC0_DB_FIFO_USER_OVRD_0 + db_fifo_offset(id), val);
++
++	return 0;
++}
++
++static void db_fifo_reset(struct hbl_cn_port *cn_port, u32 id, u64 mmap_handle)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct hbl_cn_mem_buf *buf;
++	u32 *ci_cpu_addr;
++
++	buf = hbl_cn_mem_buf_get(hdev, mmap_handle);
++	if (!buf) {
++		dev_err(hdev->dev, "Failed to retrieve port %d db fifo CI memory\n",
++			cn_port->port);
++		return;
++	}
++
++	/* Read latest HW updated CI */
++	ci_cpu_addr = (u32 *)buf->kernel_address;
++
++	__db_fifo_reset(cn_port, ci_cpu_addr, id, false);
++
++	hbl_cn_mem_buf_put(buf);
++}
++
++static void gaudi2_db_fifo_unset(struct hbl_cn_port *cn_port, u32 id,
++				 struct hbl_cn_db_fifo_xarray_pdata *xa_pdata)
++{
++	db_fifo_reset(cn_port, id, xa_pdata->ci_mmap_handle);
++
++	hbl_cn_eq_dispatcher_unregister_db(cn_port, db_fifo_hw_id(id));
++}
++
++static void gaudi2_get_encap_id_range(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id)
++{
++	if (cn_port->port & 0x1) {
++		*min_id = GAUDI2_USER_ENCAP_ID + 2;
++		*max_id = GAUDI2_USER_ENCAP_ID + 2;
++	} else {
++		*min_id = GAUDI2_USER_ENCAP_ID;
++		*max_id = GAUDI2_USER_ENCAP_ID;
 +	}
 +}
 +
-+void hbl_cn_eq_handler(struct hbl_cn_port *cn_port)
++static void gaudi2_get_default_encap_id(struct hbl_cn_port *cn_port, u32 *id)
 +{
-+	struct hbl_en_aux_ops *en_aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+	struct hbl_cn_device *hdev;
-+	struct hbl_cn_eqe eqe;
-+	u32 port;
++	u32 min, max;
 +
-+	if (!cn_port->eq_handler_enable)
++	gaudi2_get_encap_id_range(cn_port, &min, &max);
++	*id = max + 1;
++}
++
++static int gaudi2_encap_set(struct hbl_cn_port *cn_port, u32 encap_id,
++			    struct hbl_cn_encap_xarray_pdata *xa_pdata)
++{
++	u32 encap_hdr_offset = NIC0_TXE0_ENCAP_DATA_63_32_0 - NIC0_TXE0_ENCAP_DATA_31_0_0;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 *encap_header = xa_pdata->encap_header;
++	u32 encap_cfg = 0, decap_cfg = 0;
++	u32 port = cn_port->port;
++	u32 hdr_size;
++	int i;
++
++	NIC_WREG32(NIC0_TXE0_SOURCE_IP_PORT0_0 + encap_offset(encap_id), xa_pdata->src_ip);
++
++	encap_cfg |= xa_pdata->encap_type_data & NIC0_TXE0_ENCAP_CFG_IPV4_PROTOCOL_UDP_DEST_MASK;
++
++	if (xa_pdata->encap_type == HBL_CNI_ENCAP_NONE) {
++		NIC_WREG32(NIC0_TXE0_ENCAP_CFG_0 + encap_offset(encap_id), encap_cfg);
++		return 0;
++	}
++
++	if (!IS_ALIGNED(xa_pdata->encap_header_size, sizeof(u32))) {
++		dev_err(hdev->dev, "Encap header size(%d) must be a multiple of %ld\n",
++			xa_pdata->encap_header_size, sizeof(u32));
++		return -EINVAL;
++	}
++
++	hdr_size = xa_pdata->encap_header_size / sizeof(u32);
++	encap_cfg |= (hdr_size << NIC0_TXE0_ENCAP_CFG_ENCAP_SIZE_SHIFT) &
++			NIC0_TXE0_ENCAP_CFG_ENCAP_SIZE_MASK;
++
++	if (xa_pdata->encap_type == HBL_CNI_ENCAP_OVER_UDP) {
++		encap_cfg |= BIT(NIC0_TXE0_ENCAP_CFG_HDR_FORMAT_SHIFT);
++		if (!hdev->is_decap_disabled) {
++			decap_cfg |= NIC0_RXB_CORE_TNL_DECAP_UDP_VALID_MASK;
++			decap_cfg |= (xa_pdata->encap_type_data <<
++				      NIC0_RXB_CORE_TNL_DECAP_UDP_UDP_DEST_PORT_SHIFT) &
++				     NIC0_RXB_CORE_TNL_DECAP_UDP_UDP_DEST_PORT_MASK;
++			decap_cfg |= (hdr_size << NIC0_RXB_CORE_TNL_DECAP_UDP_TNL_SIZE_SHIFT) &
++				     NIC0_RXB_CORE_TNL_DECAP_UDP_TNL_SIZE_MASK;
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TNL_DECAP_UDP_0 + encap_offset(encap_id),
++					 decap_cfg);
++		}
++	} else if (xa_pdata->encap_type == HBL_CNI_ENCAP_OVER_IPV4) {
++		if (!hdev->is_decap_disabled) {
++			decap_cfg |= NIC0_RXB_CORE_TNL_DECAP_IPV4_VALID_MASK;
++			decap_cfg |= (xa_pdata->encap_type_data <<
++				      NIC0_RXB_CORE_TNL_DECAP_IPV4_IPV4_PROTOCOL_SHIFT) &
++				     NIC0_RXB_CORE_TNL_DECAP_IPV4_IPV4_PROTOCOL_MASK;
++			decap_cfg |= (hdr_size << NIC0_RXB_CORE_TNL_DECAP_IPV4_TNL_SIZE_SHIFT) &
++				     NIC0_RXB_CORE_TNL_DECAP_IPV4_TNL_SIZE_MASK;
++
++			NIC_MACRO_WREG32(NIC0_RXB_CORE_TNL_DECAP_IPV4_0 + encap_offset(encap_id),
++					 decap_cfg);
++		}
++	}
++
++	NIC_WREG32(NIC0_TXE0_ENCAP_CFG_0 + encap_offset(encap_id), encap_cfg);
++
++	/* Encapsulation header is already aligned to 32 bits. Hence, it's
++	 * safe to access it in chunks of 4 bytes.
++	 */
++	for (i = 0; i * sizeof(u32) < xa_pdata->encap_header_size; i++)
++		NIC_WREG32(NIC0_TXE0_ENCAP_DATA_31_0_0 + encap_hdr_offset * i +
++			   encap_offset(encap_id), encap_header[i]);
++
++	return 0;
++}
++
++static void gaudi2_encap_unset(struct hbl_cn_port *cn_port, u32 encap_id,
++			       struct hbl_cn_encap_xarray_pdata *xa_pdata)
++{
++	u32 encap_hdr_offset = NIC0_TXE0_ENCAP_DATA_63_32_0 - NIC0_TXE0_ENCAP_DATA_31_0_0;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++	int i;
++
++	NIC_WREG32(NIC0_TXE0_SOURCE_IP_PORT0_0 + encap_offset(encap_id), 0);
++	NIC_WREG32(NIC0_TXE0_ENCAP_CFG_0 + encap_offset(encap_id), 0);
++
++	if (xa_pdata->encap_type == HBL_CNI_ENCAP_OVER_UDP)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_TNL_DECAP_UDP_0 + encap_offset(encap_id), 0);
++	else if (xa_pdata->encap_type == HBL_CNI_ENCAP_OVER_IPV4)
++		NIC_MACRO_WREG32(NIC0_RXB_CORE_TNL_DECAP_IPV4_0 + encap_offset(encap_id), 0);
++
++	for (i = 0; i * sizeof(u32) < xa_pdata->encap_header_size; i++)
++		NIC_WREG32(NIC0_TXE0_ENCAP_DATA_31_0_0 + encap_hdr_offset * i +
++			   encap_offset(encap_id), 0);
++}
++
++static u32 gaudi2_cn_get_default_port_speed(struct hbl_cn_device *hdev)
++{
++	return SPEED_100000;
++}
++
++static void gaudi2_cn_get_cnts_names(struct hbl_cn_port *cn_port, u8 *data, bool ext)
++{
++	char str[HBL_IB_CNT_NAME_LEN], *rx_fmt, *tx_fmt;
++	struct hbl_cn_stat *spmu_stats;
++	u32 n_spmu_stats;
++	int i, len;
++
++	if (ext) {
++		len = HBL_IB_CNT_NAME_LEN;
++		rx_fmt = "rx_%s";
++		tx_fmt = "tx_%s";
++	} else {
++		len = ETH_GSTRING_LEN;
++		rx_fmt = "%s";
++		tx_fmt = "%s";
++	}
++
++	hbl_cn_spmu_get_stats_info(cn_port, &spmu_stats, &n_spmu_stats);
++
++	for (i = 0; i < n_spmu_stats; i++)
++		memcpy(data + i * len, spmu_stats[i].str, ETH_GSTRING_LEN);
++	data += i * len;
++
++	if (!cn_port->hdev->skip_mac_cnts) {
++		for (i = 0; i < hbl_cn_mac_stats_rx_len; i++) {
++			memset(str, 0, len);
++			snprintf(str, len, rx_fmt, hbl_cn_mac_stats_rx[i].str);
++			memcpy(data + i * len, str, len);
++		}
++		data += i * len;
++
++		for (i = 0; i < gaudi2_cn_mac_fec_stats_len; i++)
++			memcpy(data + i * len, gaudi2_cn_mac_fec_stats[i].str, ETH_GSTRING_LEN);
++		data += i * len;
++
++		for (i = 0; i < hbl_cn_mac_stats_tx_len; i++) {
++			memset(str, 0, len);
++			snprintf(str, len, tx_fmt, hbl_cn_mac_stats_tx[i].str);
++			memcpy(data + i * len, str, len);
++		}
++		data += i * len;
++	}
++
++	for (i = 0; i < gaudi2_cn_err_stats_len; i++)
++		memcpy(data + i * len, gaudi2_cn_err_stats[i].str, ETH_GSTRING_LEN);
++	data += i * len;
++
++	for (i = 0; i < gaudi2_cn_perf_stats_len; i++)
++		memcpy(data + i * len, gaudi2_cn_perf_stats[i].str, ETH_GSTRING_LEN);
++}
++
++static int gaudi2_cn_get_cnts_num(struct hbl_cn_port *cn_port)
++{
++	int n_spmu_stats, mac_counters;
++	struct hbl_cn_stat *ignore;
++
++	hbl_cn_spmu_get_stats_info(cn_port, &ignore, &n_spmu_stats);
++
++	mac_counters = !cn_port->hdev->skip_mac_cnts ? hbl_cn_mac_stats_rx_len +
++		       hbl_cn_mac_stats_tx_len + gaudi2_cn_mac_fec_stats_len : 0;
++
++	return n_spmu_stats + mac_counters + gaudi2_cn_err_stats_len + gaudi2_cn_perf_stats_len;
++}
++
++static int gaudi2_cn_get_mac_tx_stats(struct hbl_cn_port *cn_port, u64 *data)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u64 start_reg, lo_part, hi_part;
++	u32 port = cn_port->port;
++	int i;
++
++	start_reg = (port & 1) ? NIC0_MAC_GLOB_STAT_TX2_ETHERSTATSOCTETS_6 :
++		    NIC0_MAC_GLOB_STAT_TX0_ETHERSTATSOCTETS_4;
++
++	for (i = 0; i < hbl_cn_mac_stats_tx_len; i++) {
++		lo_part = NIC_MACRO_RREG32(start_reg + hbl_cn_mac_stats_tx[i].lo_offset);
++		/* Upper part must be read after lower part, since the upper part register
++		 * gets its value only after the lower part was read.
++		 */
++		hi_part = NIC_MACRO_RREG32(NIC0_MAC_GLOB_STAT_CONTROL_REG_DATA_HI);
++
++		data[i] = lo_part | (hi_part << 32);
++	}
++
++	return i;
++}
++
++static int gaudi2_cn_get_mac_rx_stats(struct hbl_cn_port *cn_port, u64 *data)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u64 start_reg, lo_part, hi_part;
++	u32 port = cn_port->port;
++	int i;
++
++	start_reg = (port & 1) ? NIC0_MAC_GLOB_STAT_RX2_ETHERSTATSOCTETS_2 :
++		    NIC0_MAC_GLOB_STAT_RX0_ETHERSTATSOCTETS;
++
++	for (i = 0; i < hbl_cn_mac_stats_rx_len; i++) {
++		lo_part = NIC_MACRO_RREG32(start_reg + hbl_cn_mac_stats_rx[i].lo_offset);
++		/* Upper part must be read after lower part, since the upper part register
++		 * gets its value only after the lower part was read.
++		 */
++		hi_part = NIC_MACRO_RREG32(NIC0_MAC_GLOB_STAT_CONTROL_REG_DATA_HI);
++
++		data[i] = lo_part | (hi_part << 32);
++	}
++
++	return i;
++}
++
++static int __gaudi2_cn_get_mac_fec_stats(struct hbl_cn_port *cn_port, u64 *data)
++{
++	u64 start_jiffies, diff_ms, numerator, denominator, integer, exp;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++	int i;
++
++	if (!data)
++		return 0;
++
++	/* Read the relevant registers in order to clear them */
++	if (port & 1) {
++		cn_port->correctable_errors_cnt +=
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC2_CCW_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC2_CCW_HI) << 16);
++		cn_port->uncorrectable_errors_cnt +=
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC2_NCCW_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC2_NCCW_HI) << 16);
++
++		for (i = 0; i < 8; i++)
++			NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR4_LO + 4 * i);
++	} else {
++		cn_port->correctable_errors_cnt +=
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_CCW_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_CCW_HI) << 16);
++		cn_port->uncorrectable_errors_cnt +=
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_NCCW_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_NCCW_HI) << 16);
++
++		for (i = 0; i < 8; i++)
++			NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR0_LO + 4 * i);
++	}
++
++	start_jiffies = jiffies;
++
++	/* sleep some time to accumulate stats */
++	msleep(hdev->accumulate_fec_duration);
++
++	diff_ms = jiffies_to_msecs(jiffies - start_jiffies);
++
++	if (port & 1) {
++		data[FEC_CW_CORRECTED] = NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC2_CCW_LO) |
++					 (NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC2_CCW_HI) << 16);
++		data[FEC_CW_UNCORRECTED] = NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC2_NCCW_LO) |
++					   (NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC2_NCCW_HI) <<
++					    16);
++		data[FEC_SYMBOL_ERR_CORRECTED_LANE_0] =
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR4_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR4_HI) <<
++					 16);
++		data[FEC_SYMBOL_ERR_CORRECTED_LANE_1] =
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR5_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR5_HI) <<
++					 16);
++		data[FEC_SYMBOL_ERR_CORRECTED_LANE_2] =
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR6_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR6_HI) <<
++					 16);
++		data[FEC_SYMBOL_ERR_CORRECTED_LANE_3] =
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR7_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR7_HI) <<
++					 16);
++	} else {
++		data[FEC_CW_CORRECTED] = NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_CCW_LO) |
++					 (NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_CCW_HI) << 16);
++		data[FEC_CW_UNCORRECTED] = NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_NCCW_LO) |
++					   (NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_NCCW_HI) <<
++					    16);
++		data[FEC_SYMBOL_ERR_CORRECTED_LANE_0] =
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR0_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR0_HI) <<
++					 16);
++		data[FEC_SYMBOL_ERR_CORRECTED_LANE_1] =
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR1_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR1_HI) <<
++					 16);
++		data[FEC_SYMBOL_ERR_CORRECTED_LANE_2] =
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR2_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR2_HI) <<
++					 16);
++		data[FEC_SYMBOL_ERR_CORRECTED_LANE_3] =
++					NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR3_LO) |
++					(NIC_MACRO_RREG32(NIC0_MAC_RS_FEC_RSFEC_SYMBLERR3_HI) <<
++					 16);
++	}
++
++	cn_port->correctable_errors_cnt += data[FEC_CW_CORRECTED];
++	cn_port->uncorrectable_errors_cnt += data[FEC_CW_UNCORRECTED];
++
++	data[FEC_CW_CORRECTED_ACCUM] = cn_port->correctable_errors_cnt;
++	data[FEC_CW_UNCORRECTED_ACCUM] = cn_port->uncorrectable_errors_cnt;
++
++	/* The denominator is the total number of symbols in the measured time T ms
++	 * (100G bits/sec = 10G sym/sec = 10G * T/1000 sym = 1G * T / 100 sym)
++	 */
++	denominator = div_u64((u64)BIT(30) * diff_ms, 100);
++
++	/* Pre FEC: the numerator is the sum of uncorrected symbols (~= uncorrected_cw * 16) and
++	 * corrected symbols.
++	 */
++	numerator = data[FEC_CW_UNCORRECTED] << 4;
++	for (i = 0; i < 4; i++)
++		numerator += data[FEC_SYMBOL_ERR_CORRECTED_LANE_0 + i];
++
++	hbl_cn_get_frac_info(numerator, denominator, &integer, &exp);
++
++	data[FEC_PRE_FEC_SER_INT] = integer;
++	data[FEC_PRE_FEC_SER_EXP] = exp;
++
++	/* Post FEC: the numerator is the uncorrected symbols (~= uncorrected_cw * 16) */
++	numerator = data[FEC_CW_UNCORRECTED] << 4;
++
++	hbl_cn_get_frac_info(numerator, denominator, &integer, &exp);
++
++	data[FEC_POST_FEC_SER_INT] = integer;
++	data[FEC_POST_FEC_SER_EXP] = exp;
++
++	return (int)gaudi2_cn_mac_fec_stats_len;
++}
++
++static int gaudi2_cn_get_mac_stats(struct hbl_cn_port *cn_port, u64 *data)
++{
++	int cnt = 0;
++
++	if (cn_port->hdev->skip_mac_cnts)
++		return 0;
++
++	cnt += gaudi2_cn_get_mac_rx_stats(cn_port, &data[cnt]);
++	cnt += __gaudi2_cn_get_mac_fec_stats(cn_port, &data[cnt]);
++	cnt += gaudi2_cn_get_mac_tx_stats(cn_port, &data[cnt]);
++
++	return cnt;
++}
++
++static int gaudi2_cn_get_err_stats(struct hbl_cn_port *cn_port, u64 *data)
++{
++	struct gaudi2_en_aux_ops *gaudi2_en_aux_ops;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct gaudi2_cn_device *gaudi2;
++	struct hbl_aux_dev *aux_dev;
++	int i = 0;
++
++	gaudi2 = hdev->asic_specific;
++	aux_dev = &hdev->en_aux_dev;
++	gaudi2_en_aux_ops = &gaudi2->en_aux_ops;
++
++	data[i++] = cn_port->cong_q_err_cnt;
++
++	if (cn_port->eth_enable && gaudi2_en_aux_ops->get_overrun_cnt)
++		data[i++] = gaudi2_en_aux_ops->get_overrun_cnt(aux_dev, cn_port->port);
++	else
++		data[i++] = 0;
++
++	return i;
++}
++
++static int gaudi2_cn_get_perf_stats(struct hbl_cn_port *cn_port, u64 *data)
++{
++	u64 lat_dividend, lat_divisor, lat_int, lat_frac;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct hbl_cn_properties *cn_prop;
++	u64 bw_dividend, bw_int, bw_frac;
++	u32 port = cn_port->port;
++
++	cn_prop = &hdev->cn_props;
++
++	/* Bandwidth calculation */
++	bw_dividend = (((u64)NIC_RREG32(NIC0_TXE0_STATS_MEAS_WIN_BYTES_MSB)) << 32) |
++		      NIC_RREG32(NIC0_TXE0_STATS_MEAS_WIN_BYTES_LSB);
++
++	/* bytes to bits */
++	bw_dividend *= BITS_PER_BYTE;
++
++	bw_int = div_u64(bw_dividend, PERF_BW_WINDOW_DIV);
++	bw_frac = ((bw_dividend - PERF_BW_WINDOW_DIV * bw_int) * 10) / PERF_BW_WINDOW_DIV;
++
++	/* In case there is no traffic (BW=0), the latency will show the last measured value (when
++	 * there was traffic). Therefore, we need to clear it.
++	 */
++	if (bw_int == 0 && bw_frac == 0) {
++		lat_int = 0;
++		lat_frac = 0;
++	} else {
++		/* Latency calculation */
++		lat_dividend = (((u64)NIC_RREG32(NIC0_TXE0_STATS_TOT_BYTES_MSB)) << 32) |
++			       NIC_RREG32(NIC0_TXE0_STATS_TOT_BYTES_LSB);
++		lat_divisor = cn_prop->clk;
++
++		lat_int = div_u64(lat_dividend, lat_divisor);
++		lat_frac = ((lat_dividend - lat_divisor * lat_int) * 10) / lat_divisor;
++	}
++
++	data[PERF_BANDWIDTH_INT] = bw_int;
++	data[PERF_BANDWIDTH_FRAC] = bw_frac;
++	data[PERF_LATENCY_INT] = lat_int;
++	data[PERF_LATENCY_FRAC] = lat_frac;
++
++	return (int)gaudi2_cn_perf_stats_len;
++}
++
++static void gaudi2_cn_get_cnts_values(struct hbl_cn_port *cn_port, u64 *data)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 cnt = 0;
++	int rc;
++
++	rc = hbl_cn_read_spmu_counters(cn_port, &data[cnt], &cnt);
++	if (rc)
++		dev_err(hdev->dev, "Failed to get SPMU counters, port %d\n", cn_port->port);
++
++	cnt += gaudi2_cn_get_mac_stats(cn_port, &data[cnt]);
++	cnt += gaudi2_cn_get_err_stats(cn_port, &data[cnt]);
++	cnt += gaudi2_cn_get_perf_stats(cn_port, &data[cnt]);
++}
++
++static void gaudi2_cn_reset_mac_stats(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	NIC_MACRO_WREG32(NIC0_MAC_GLOB_STAT_CONTROL_REG_STATN_CONFIG,
++			 BIT(NIC0_MAC_GLOB_STAT_CONTROL_REG_STATN_CONFIG_F_RESET_SHIFT));
++}
++
++void gaudi2_cn_get_mac_fec_stats(struct hbl_cn_port *cn_port, u64 *data)
++{
++	__gaudi2_cn_get_mac_fec_stats(cn_port, data);
++}
++
++/* HW bug: QP stuck in limited state in case there is a race between timeout and receive ACK.
++ * Description: When timeout occurs QPC resets NTS to ONA. If an ACK arives to the RX, the RX reads
++ * the QPC and timeout occurs after the read response to the RX and before the RX update indication,
++ * the NTS will rollback to the ONA.
++ * After the RX handles the ACK, it will do an update, and may advance the ONA ahead of the NTS.
++ * In this case the QP will go into limited state forever: NTS - ONA > congestion window
++ */
++static void __qpc_sanity_check(struct gaudi2_cn_port *gaudi2_port, u32 qpn)
++{
++	u32 ona_psn, nts_psn, in_work, bcs_psn, bcc_psn, ona_rem_pi, consumer_idx, execution_idx,
++	    is_valid, port, wq_type;
++	int rc, retry_cnt_in_work = 0, retry_cnt_qpc_timeout = 0;
++	struct gaudi2_qpc_requester req_qpc = {};
++	struct qpc_mask qpc_mask = {};
++	struct hbl_cn_port *cn_port;
++	struct hbl_cn_device *hdev;
++
++	cn_port = gaudi2_port->cn_port;
++	hdev = cn_port->hdev;
++	port = cn_port->port;
++
++retry:
++	rc = gaudi2_cn_qpc_read(cn_port, (void *)&req_qpc, qpn, true);
++	if (rc) {
++		dev_err_ratelimited(hdev->dev, "Requester port %d QPC %d read failed\n", port, qpn);
++		return;
++	}
++
++	is_valid = REQ_QPC_GET_VALID(req_qpc);
++	if (!is_valid)
 +		return;
 +
++	/* When the timeout retry counter is non zero, an ack could potentially arrive and increase
++	 * ONA, after QPC was read.
++	 */
++	if (REQ_QPC_GET_TIMEOUT_RETRY_COUNT(req_qpc)) {
++		if (retry_cnt_qpc_timeout < RETRY_COUNT_QPC_SANITY) {
++			dev_dbg(hdev->dev, "QPC timeout retry count > 0, trying again #%d\n",
++				retry_cnt_qpc_timeout);
++			usleep_range(1000, 1500);
++			retry_cnt_qpc_timeout++;
++			goto retry;
++		} else {
++			dev_dbg(hdev->dev,
++				"Can't apply fix. QPC timeout retry count > 0, after %d QPC reads",
++				retry_cnt_qpc_timeout);
++			return;
++		}
++	}
++
++	in_work = REQ_QPC_GET_IN_WORK(req_qpc);
++
++	ona_psn = REQ_QPC_GET_ONA_PSN(req_qpc);
++	nts_psn = REQ_QPC_GET_NTS_PSN(req_qpc);
++
++	bcs_psn = REQ_QPC_GET_BCS_PSN(req_qpc);
++	bcc_psn = REQ_QPC_GET_BCC_PSN(req_qpc);
++
++	consumer_idx = REQ_QPC_GET_CONSUMER_IDX(req_qpc);
++	execution_idx = REQ_QPC_GET_EXECUTION_IDX(req_qpc);
++
++	ona_rem_pi = REQ_QPC_GET_OLDEST_UNACKED_REMOTE_PRODUCER_IDX(req_qpc);
++
++	wq_type = REQ_QPC_GET_WQ_TYPE(req_qpc);
++
++	/* We hit the HW bug. Unacknowledged PSN can never be greater than next
++	 * PSN to be sent out.
++	 */
++	if (NIC_IS_PSN_CYCLIC_BIG(ona_psn, nts_psn)) {
++		struct hbl_cn_eqe eqe;
++
++		dev_dbg(hdev->dev,
++			"ona_psn(%d) nts_psn(%d), bcc_psn(%d) bcs_psn(%d), consumer_idx(%d) execution_idx(%d). Retry_cnt %d\n",
++			ona_psn, nts_psn, bcc_psn, bcs_psn, consumer_idx, execution_idx,
++			retry_cnt_in_work);
++
++		/* Wait till HW stops working on QPC. */
++		if (in_work && retry_cnt_in_work < RETRY_COUNT_QPC_SANITY) {
++			usleep_range(1000, 1500);
++			retry_cnt_in_work++;
++			goto retry;
++		}
++
++		dev_dbg(hdev->dev, "Port %d QP %d in limited state. Applying fix.\n", port, qpn);
++
++		/* Force update QPC fields. */
++
++		REQ_QPC_SET_NTS_PSN(qpc_mask, 0xffffff);
++		REQ_QPC_SET_BCS_PSN(qpc_mask, 0xffffff);
++		REQ_QPC_SET_EXECUTION_IDX(qpc_mask, 0x3fffff);
++		if (wq_type == QPC_REQ_WQ_TYPE_WRITE)
++			REQ_QPC_SET_REMOTE_PRODUCER_IDX(qpc_mask, 0x3fffff);
++
++		REQ_QPC_SET_NTS_PSN(req_qpc, ona_psn);
++		REQ_QPC_SET_BCS_PSN(req_qpc, bcc_psn);
++		REQ_QPC_SET_EXECUTION_IDX(req_qpc, consumer_idx);
++		if (wq_type == QPC_REQ_WQ_TYPE_WRITE)
++			REQ_QPC_SET_REMOTE_PRODUCER_IDX(req_qpc, ona_rem_pi);
++
++		rc = gaudi2_cn_qpc_write_masked(cn_port, (void *)&req_qpc, &qpc_mask, qpn, true,
++						true);
++		if (rc)
++			dev_err(hdev->dev, "Requester port %d QPC %d write failed\n", port, qpn);
++
++		eqe.data[0] = EQE_HEADER(true, EQE_QP_ALIGN_COUNTERS);
++		eqe.data[1] = qpn;
++
++		rc = hbl_cn_eq_dispatcher_enqueue(cn_port, &eqe);
++		if (rc)
++			dev_err(hdev->dev, "port %d QPC %d failed dispatching EQ event %d\n", port,
++				qpn, EQE_QP_ALIGN_COUNTERS);
++	}
++}
++
++/* We sanitize one QP at a time since it's high latency operation,
++ * too heavy to do it in one shot. We mitigate this via interleaving
++ * with thread scheduling.
++ */
++static void gaudi2_qp_sanity_work(struct work_struct *work)
++{
++	struct gaudi2_cn_port *gaudi2_port = container_of(work, struct gaudi2_cn_port,
++							  qp_sanity_work.work);
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	unsigned long qp_id = 0;
++	u32 timeout_cnt, port;
++	struct hbl_cn_qp *qp;
++
++	port = cn_port->port;
++	timeout_cnt = NIC_RREG32(NIC0_QPC0_NUM_TIMEOUTS);
++
++	if (gaudi2_port->qp_timeout_cnt == timeout_cnt)
++		goto done;
++
++	gaudi2_port->qp_timeout_cnt = timeout_cnt;
++
++	mutex_lock(&gaudi2_port->cfg_lock);
++	xa_for_each(&cn_port->qp_ids, qp_id, qp)
++		if (qp && qp->is_req)
++			__qpc_sanity_check(gaudi2_port, qp_id);
++	mutex_unlock(&gaudi2_port->cfg_lock);
++
++done:
++	queue_delayed_work(gaudi2_port->qp_sanity_wq, &gaudi2_port->qp_sanity_work,
++			   msecs_to_jiffies(QPC_SANITY_CHECK_INTERVAL_MS));
++}
++
++static int gaudi2_qp_sanity_init(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port;
++	char wq_name[30] = {0};
++
++	/* The qp sanity work is relevant only for external ports */
++	if (!cn_port->eth_enable)
++		return 0;
++
++	snprintf(wq_name, sizeof(wq_name) - 1, "hbl%u-cn%d-qp-sanity", hdev->id, port);
++
++	gaudi2_port->qp_sanity_wq = alloc_ordered_workqueue(wq_name, 0);
++	if (!gaudi2_port->qp_sanity_wq) {
++		dev_err(hdev->dev, "Failed to create QP sanity WQ, port: %d\n", port);
++		return -ENOMEM;
++	}
++
++	INIT_DELAYED_WORK(&gaudi2_port->qp_sanity_work, gaudi2_qp_sanity_work);
++	queue_delayed_work(gaudi2_port->qp_sanity_wq, &gaudi2_port->qp_sanity_work,
++			   msecs_to_jiffies(QPC_SANITY_CHECK_INTERVAL_MS));
++
++	return 0;
++}
++
++static void gaudi2_qp_sanity_fini(struct gaudi2_cn_port *gaudi2_port)
++{
++	if (!gaudi2_port->qp_sanity_wq)
++		return;
++
++	cancel_delayed_work_sync(&gaudi2_port->qp_sanity_work);
++	destroy_workqueue(gaudi2_port->qp_sanity_wq);
++}
++
++static void gaudi2_cn_user_ccq_set(struct hbl_cn_port *cn_port, u64 ccq_device_addr,
++				   u64 pi_device_addr, u32 num_of_entries, u32 *ccqn)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	WARN_ON_CACHE_UNALIGNED(ccq_device_addr);
++	WARN_ON_CACHE_UNALIGNED(pi_device_addr);
++
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_BASE_ADDR_63_32, upper_32_bits(ccq_device_addr));
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_BASE_ADDR_31_7, ((ccq_device_addr >> 7) & 0x1FFFFFF));
++
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_PI_ADDR_63_32, upper_32_bits(pi_device_addr));
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_PI_ADDR_31_7, ((pi_device_addr >> 7) & 0x1FFFFFF));
++
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_WRITE_INDEX, 0);
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_PRODUCER_INDEX, 0);
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_CONSUMER_INDEX, 0);
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_CONSUMER_INDEX_CB, 0);
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_LOG_SIZE, ilog2(num_of_entries));
++
++	/* set enable + update-pi
++	 * set overrun-en to allow overrun of ci since a HW bug exist
++	 * in Gaudi2 which prevents updating ci.
++	 */
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_CFG, NIC0_QPC0_CONG_QUE_CFG_ENABLE_MASK |
++		   NIC0_QPC0_CONG_QUE_CFG_OVERRUN_EN_MASK |
++		   NIC0_QPC0_CONG_QUE_CFG_WRITE_PI_EN_MASK);
++
++	/* gaudi2 has only 1 CCQ. Therefore, set 0 as ccqn. */
++	*ccqn = 0;
++}
++
++static void  gaudi2_cn_user_ccq_unset(struct hbl_cn_port *cn_port, u32 *ccqn)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_CFG, 0);
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_PI_ADDR_63_32, 0);
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_PI_ADDR_31_7, 0);
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_BASE_ADDR_63_32, 0);
++	NIC_WREG32(NIC0_QPC0_CONG_QUE_BASE_ADDR_31_7, 0);
++
++	/* gaudi2 has only 1 CCQ. Therefore, set 0 as ccqn. */
++	*ccqn = 0;
++}
++
++static void gaudi2_cn_get_spmu_data(struct hbl_cn_port *cn_port, struct hbl_cn_cpucp_status *status)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u64 spmu_data[NIC_SPMU_STATS_LEN_MAX];
++	u32 port = cn_port->port, ignore;
++	int rc;
++
++	memset(spmu_data, 0, sizeof(spmu_data));
++
++	rc = hbl_cn_read_spmu_counters(cn_port, spmu_data, &ignore);
++	if (rc) {
++		dev_err(hdev->dev, "Failed to get SPMU counters, port %d, %d\n", port, rc);
++		return;
++	}
++
++	status->bad_format_cnt = 0;
++	status->responder_out_of_sequence_psn_cnt = spmu_data[3];
++}
++
++static void gaudi2_cn_get_fec_status(struct hbl_cn_port *cn_port,
++				     struct hbl_cn_cpucp_status *status)
++{
++	u64 fec_data[FEC_STAT_LAST];
++
++	memset(fec_data, 0, sizeof(fec_data));
++
++	gaudi2_cn_get_mac_fec_stats(cn_port, fec_data);
++
++	status->correctable_err_cnt = fec_data[FEC_CW_CORRECTED_ACCUM];
++	status->uncorrectable_err_cnt = fec_data[FEC_CW_UNCORRECTED_ACCUM];
++	status->pre_fec_ser.integer = fec_data[FEC_PRE_FEC_SER_INT];
++	status->pre_fec_ser.exp = fec_data[FEC_PRE_FEC_SER_EXP];
++	status->post_fec_ser.integer = fec_data[FEC_POST_FEC_SER_INT];
++	status->post_fec_ser.exp = fec_data[FEC_POST_FEC_SER_EXP];
++}
++
++static void gaudi2_cn_get_perf_status(struct hbl_cn_port *cn_port,
++				      struct hbl_cn_cpucp_status *status)
++{
++	u64 perf_data[PERF_STAT_LAST];
++
++	memset(perf_data, 0, sizeof(perf_data));
++
++	gaudi2_cn_get_perf_stats(cn_port, perf_data);
++
++	status->bandwidth.integer = perf_data[PERF_BANDWIDTH_INT];
++	status->bandwidth.frac = perf_data[PERF_BANDWIDTH_FRAC];
++	status->lat.integer = perf_data[PERF_LATENCY_INT];
++	status->lat.frac = perf_data[PERF_LATENCY_FRAC];
++}
++
++static u32 gaudi2_cn_get_timeout_retransmission_cnt(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	return NIC_RREG32(NIC0_QPC0_NUM_TIMEOUTS);
++}
++
++static u32 gaudi2_cn_get_high_ber_cnt(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	if (port & 1)
++		return NIC_RREG32(NIC0_MAC_CH2_MAC_PCS_BER_HIGH_ORDER_CNT);
++	else
++		return NIC_RREG32(NIC0_MAC_CH0_MAC_PCS_BER_HIGH_ORDER_CNT);
++}
++
++static void gaudi2_cn_get_status(struct hbl_cn_port *cn_port, struct hbl_cn_cpucp_status *status)
++{
++	u32 timeout_retransmission_cnt, high_ber_cnt;
++
++	gaudi2_cn_get_spmu_data(cn_port, status);
++	gaudi2_cn_get_fec_status(cn_port, status);
++	gaudi2_cn_get_perf_status(cn_port, status);
++
++	timeout_retransmission_cnt = gaudi2_cn_get_timeout_retransmission_cnt(cn_port);
++	high_ber_cnt = gaudi2_cn_get_high_ber_cnt(cn_port);
++
++	status->timeout_retransmission_cnt = timeout_retransmission_cnt;
++	status->high_ber_cnt = high_ber_cnt;
++}
++
++static void gaudi2_cn_cfg_lock(struct hbl_cn_port *cn_port)
++	__acquires(&gaudi2_port->cfg_lock)
++{
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
++
++	mutex_lock(&gaudi2_port->cfg_lock);
++}
++
++static void gaudi2_cn_cfg_unlock(struct hbl_cn_port *cn_port)
++	__releases(&gaudi2_port->cfg_lock)
++{
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
++
++	mutex_unlock(&gaudi2_port->cfg_lock);
++}
++
++static bool gaudi2_cn_cfg_is_locked(struct hbl_cn_port *cn_port)
++{
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
++
++	return mutex_is_locked(&gaudi2_port->cfg_lock);
++}
++
++static u32 gaudi2_cn_get_max_msg_sz(struct hbl_cn_device *hdev)
++{
++	return SZ_1G;
++}
++
++static void gaudi2_cn_app_params_clear(struct hbl_cn_device *hdev)
++{
++}
++
++static void gaudi2_cn_set_port_status(struct hbl_cn_port *cn_port, bool up)
++{
++	cn_port->link_eqe.data[2] = !!up;
++}
++
++static void gaudi2_cn_adaptive_tmr_reset(struct hbl_cn_qp *qp)
++{
++	struct hbl_cn_port *cn_port = qp->cn_port;
++	struct hbl_cn_asic_port_funcs *port_funcs;
++	struct gaudi2_qpc_requester req_qpc;
++	struct hbl_cn_device *hdev;
++	u64 retry_count;
++	u8 user_gran;
++	u32 rc;
++
 +	hdev = cn_port->hdev;
-+	aux_dev = &hdev->en_aux_dev;
-+	en_aux_ops = aux_dev->aux_ops;
++	user_gran = qp->timeout_granularity - NIC_ADAPTIVE_TIMEOUT_RANGE / 2;
++
++	port_funcs = hdev->asic_funcs->port_funcs;
++
++	port_funcs->cfg_lock(cn_port);
++	rc = gaudi2_cn_qpc_read(cn_port, &req_qpc, qp->qp_id, true);
++
++	if (rc)
++		goto out;
++
++	retry_count = REQ_QPC_GET_TIMEOUT_RETRY_COUNT(req_qpc);
++
++	if (!retry_count) {
++		if (qp->timeout_curr != user_gran)
++			qp->timeout_curr = user_gran;
++	} else if (qp->timeout_curr == user_gran) {
++		dev_err(hdev->dev, "Retry count is %lld, but current gran is already reset\n",
++			retry_count);
++	} else if (!REQ_QPC_GET_ERROR(req_qpc)) {
++		queue_delayed_work(cn_port->qp_wq, &qp->adaptive_tmr_reset,
++				   msecs_to_jiffies(5));
++	}
++
++out:
++	port_funcs->cfg_unlock(cn_port);
++}
++
++static int gaudi2_cn_send_cpucp_packet(struct hbl_cn_port *cn_port, enum cpucp_packet_id packet_id,
++				       int val)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct cpucp_packet pkt;
++	u32 port;
++	int rc;
++
++	port = cn_port->port;
++
++	memset(&pkt, 0, sizeof(pkt));
++	pkt.ctl = cpu_to_le32(packet_id << CPUCP_PKT_CTL_OPCODE_SHIFT);
++	pkt.value = cpu_to_le64(val);
++	pkt.macro_index = cpu_to_le32(port);
++
++	rc = gaudi2_cn_send_cpu_message(hdev, (u32 *)&pkt, sizeof(pkt), 0, NULL);
++	if (rc)
++		dev_err(hdev->dev,
++			"Failed to send cpucp packet, port %d packet id %d, val %d, error %d\n",
++			port, packet_id, val, rc);
++
++	return rc;
++}
++
++static void gaudi2_cn_spmu_get_stats_info(struct hbl_cn_port *cn_port, struct hbl_cn_stat **stats,
++					  u32 *n_stats)
++{
++	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = cn_port->hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	gaudi2_aux_ops = aux_ops->asic_ops;
++
++	gaudi2_aux_ops->spmu_get_stats_info(aux_dev, cn_port->port, stats, n_stats);
++}
++
++static int gaudi2_cn_spmu_config(struct hbl_cn_port *cn_port, u32 num_event_types,
++				 u32 event_types[], bool enable)
++{
++	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = cn_port->hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	gaudi2_aux_ops = aux_ops->asic_ops;
++
++	return gaudi2_aux_ops->spmu_config(aux_dev, cn_port->port, num_event_types, event_types,
++					   enable);
++}
++
++static int gaudi2_cn_spmu_sample(struct hbl_cn_port *cn_port, u32 num_out_data, u64 out_data[])
++{
++	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = cn_port->hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	gaudi2_aux_ops = aux_ops->asic_ops;
++
++	return gaudi2_aux_ops->spmu_sample(aux_dev, cn_port->port, num_out_data, out_data);
++}
++
++static void gaudi2_cn_post_send_status(struct hbl_cn_port *cn_port)
++{
++	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
++	struct hbl_cn_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = cn_port->hdev->cn_aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	gaudi2_aux_ops = aux_ops->asic_ops;
++
++	gaudi2_aux_ops->post_send_status(aux_dev, cn_port->port);
++}
++
++static int gaudi2_cn_inject_rx_err(struct hbl_cn_device *hdev, u8 drop_percent)
++{
++	/* NoOps */
++	return 0;
++}
++
++static bool gaudi2_cn_is_encap_supported(struct hbl_cn_device *hdev,
++					 struct hbl_cni_user_encap_set_in *in)
++{
++	if (in->encap_type != HBL_CNI_ENCAP_OVER_UDP) {
++		dev_dbg(hdev->dev, "Encap type %u is not supported\n", in->encap_type);
++		return false;
++	}
++
++	if (in->tnl_hdr_size != NIC_MAX_TNL_HDR_SIZE) {
++		dev_dbg(hdev->dev, "Encap hdr-size must be %d\n", NIC_MAX_TNL_HDR_SIZE);
++		return false;
++	}
++
++	return true;
++}
++
++static int gaudi2_cn_set_static_properties(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_properties *cn_prop = &hdev->cn_props;
++	struct hbl_cn_aux_data *cn_aux_data;
++	struct hbl_aux_dev *cn_aux_dev;
++
++	cn_aux_dev = hdev->cn_aux_dev;
++	cn_aux_data = cn_aux_dev->aux_data;
++
++	cn_prop->max_num_of_ports = NIC_NUMBER_OF_PORTS;
++	cn_prop->macro_cfg_size = cn_aux_data->macro_cfg_size;
++	cn_prop->txs_base_size = TXS_TOTAL_PORT_SIZE;
++	cn_prop->tmr_base_size = TMR_TOTAL_MACRO_SIZE;
++	cn_prop->req_qpc_base_size = REQ_QPC_TOTAL_PORT_SIZE;
++	cn_prop->res_qpc_base_size = RES_QPC_TOTAL_PORT_SIZE;
++	cn_prop->clk = cn_aux_data->clk;
++
++	return 0;
++}
++
++static int gaudi2_cn_set_dram_properties(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_properties *cn_prop = &hdev->cn_props;
++	struct hbl_cn_aux_data *cn_aux_data;
++	struct hbl_aux_dev *cn_aux_dev;
++	u64 nic_drv_addr, nic_drv_size;
++
++	cn_aux_dev = hdev->cn_aux_dev;
++	cn_aux_data = cn_aux_dev->aux_data;
++	nic_drv_addr = cn_aux_data->nic_drv_addr;
++	nic_drv_size = cn_aux_data->nic_drv_size;
++
++	cn_prop->nic_drv_addr = nic_drv_addr;
++	cn_prop->nic_drv_base_addr = NIC_DRV_BASE_ADDR(nic_drv_addr);
++	cn_prop->nic_drv_end_addr = NIC_DRV_END_ADDR(nic_drv_addr, nic_drv_size);
++	cn_prop->wq_base_addr = WQ_BASE_ADDR(nic_drv_addr);
++	cn_prop->txs_base_addr = TXS_BASE_ADDR(nic_drv_addr);
++	cn_prop->tmr_base_addr = TMR_BASE_ADDR(nic_drv_addr);
++	cn_prop->req_qpc_base_addr = REQ_QPC_BASE_ADDR(nic_drv_addr);
++	cn_prop->res_qpc_base_addr = RES_QPC_BASE_ADDR(nic_drv_addr);
++	cn_prop->nic_drv_size = nic_drv_size;
++	cn_prop->wq_base_size = WQ_BASE_SIZE(nic_drv_addr, nic_drv_size);
++
++	return 0;
++}
++
++static void gaudi2_cn_late_init(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_aux_ops *gaudi2_cn_aux_ops;
++	struct hbl_cn_aux_ops *cn_aux_ops;
++
++	cn_aux_ops = hdev->cn_aux_dev->aux_ops;
++	gaudi2_cn_aux_ops = cn_aux_ops->asic_ops;
++
++	/* compute2cn */
++	gaudi2_cn_aux_ops->reset_prepare = gaudi2_cn_compute_reset_prepare;
++	gaudi2_cn_aux_ops->reset_late_init = gaudi2_cn_compute_reset_late_init;
++	gaudi2_cn_aux_ops->sw_err_event_handler = gaudi2_cn_sw_err_event;
++	gaudi2_cn_aux_ops->axi_error_response_event_handler = gaudi2_cn_axi_error_response_event;
++	gaudi2_cn_aux_ops->ports_stop_prepare = hbl_cn_hard_reset_prepare;
++	gaudi2_cn_aux_ops->send_port_cpucp_status = hbl_cn_send_port_cpucp_status;
++}
++
++static void gaudi2_cn_late_fini(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_aux_ops *gaudi2_cn_aux_ops;
++	struct hbl_cn_aux_ops *cn_aux_ops;
++
++	cn_aux_ops = hdev->cn_aux_dev->aux_ops;
++	gaudi2_cn_aux_ops = cn_aux_ops->asic_ops;
++
++	/* compute2cn */
++	gaudi2_cn_aux_ops->reset_prepare = NULL;
++	gaudi2_cn_aux_ops->reset_late_init = NULL;
++	gaudi2_cn_aux_ops->sw_err_event_handler = NULL;
++	gaudi2_cn_aux_ops->axi_error_response_event_handler = NULL;
++	gaudi2_cn_aux_ops->ports_stop_prepare = NULL;
++	gaudi2_cn_aux_ops->send_port_cpucp_status = NULL;
++}
++
++static int gaudi2_cn_get_hw_block_handle(struct hbl_cn_device *hdev, u64 address, u64 *handle)
++{
++	hbl_cn_get_self_hw_block_handle(hdev, address, handle);
++
++	return 0;
++}
++
++static int gaudi2_cn_get_hw_block_addr(struct hbl_cn_device *hdev, u64 handle, u64 *addr, u64 *size)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	u32 reg;
++	int rc;
++
++	*size = HBL_CN_BLOCK_SIZE;
++	reg = hbl_cn_hw_block_handle_to_addr32(hdev, handle) - lower_32_bits(gaudi2->cfg_base);
++
++	rc = hbl_cn_get_reg_pcie_addr(hdev, CFG_BAR_ID, reg, addr);
++	if (rc)
++		dev_err(hdev->dev, "Failed to get hw block address for register 0x%x", reg);
++
++	return rc;
++}
++
++static struct hbl_cn_asic_port_funcs gaudi2_cn_port_funcs = {
++	.port_hw_init = gaudi2_cn_port_hw_init,
++	.port_hw_fini = gaudi2_cn_port_hw_fini,
++	.phy_port_init = gaudi2_cn_phy_port_init,
++	.phy_port_start_stop = gaudi2_cn_phy_port_start_stop,
++	.phy_port_power_up = gaudi2_cn_phy_port_power_up,
++	.phy_port_reconfig = gaudi2_cn_phy_port_reconfig,
++	.phy_port_fini = gaudi2_cn_phy_port_fini,
++	.phy_link_status_work = gaudi2_cn_phy_link_status_work,
++	.update_qp_mtu = gaudi2_cn_update_qp_mtu,
++	.user_wq_arr_unset = gaudi2_user_wq_arr_unset,
++	.get_cq_id_range = gaudi2_get_cq_id_range,
++	.user_cq_set = gaudi2_user_cq_set,
++	.user_cq_unset = gaudi2_user_cq_unset,
++	.user_cq_destroy = gaudi2_user_cq_destroy,
++	.get_cnts_num = gaudi2_cn_get_cnts_num,
++	.get_cnts_names = gaudi2_cn_get_cnts_names,
++	.get_cnts_values = gaudi2_cn_get_cnts_values,
++	.port_sw_init = gaudi2_cn_port_sw_init,
++	.port_sw_fini = gaudi2_cn_port_sw_fini,
++	.register_qp = gaudi2_register_qp,
++	.unregister_qp = gaudi2_unregister_qp,
++	.get_qp_id_range = gaudi2_get_qp_id_range,
++	.eq_poll = gaudi2_eq_poll,
++	.eq_dispatcher_select_dq = gaudi2_cn_eq_dispatcher_select_dq,
++	.get_db_fifo_id_range = gaudi2_get_db_fifo_id_range,
++	.get_db_fifo_hw_id_range = gaudi2_get_db_fifo_hw_id_range,
++	.db_fifo_set = gaudi2_db_fifo_set,
++	.db_fifo_unset = gaudi2_db_fifo_unset,
++	.get_db_fifo_umr = gaudi2_cn_get_db_fifo_umr,
++	.get_db_fifo_modes_mask = gaudi2_get_db_fifo_modes_mask,
++	.db_fifo_allocate = gaudi2_db_fifo_allocate,
++	.db_fifo_free = gaudi2_db_fifo_free,
++	.set_pfc = gaudi2_cn_set_pfc,
++	.get_encap_id_range = gaudi2_get_encap_id_range,
++	.encap_set = gaudi2_encap_set,
++	.encap_unset = gaudi2_encap_unset,
++	.set_ip_addr_encap = gaudi2_default_encap_set,
++	.qpc_write = gaudi2_cn_qpc_write,
++	.qpc_invalidate = gaudi2_cn_qpc_invalidate,
++	.qpc_query = gaudi2_cn_qpc_query,
++	.qpc_clear = gaudi2_cn_qpc_clear,
++	.user_ccq_set = gaudi2_cn_user_ccq_set,
++	.user_ccq_unset = gaudi2_cn_user_ccq_unset,
++	.reset_mac_stats = gaudi2_cn_reset_mac_stats,
++	.collect_fec_stats = gaudi2_cn_debugfs_collect_fec_stats,
++	.disable_wqe_index_checker = gaudi2_cn_disable_wqe_index_checker,
++	.get_status = gaudi2_cn_get_status,
++	.cfg_lock = gaudi2_cn_cfg_lock,
++	.cfg_unlock = gaudi2_cn_cfg_unlock,
++	.cfg_is_locked = gaudi2_cn_cfg_is_locked,
++	.qp_pre_destroy = gaudi2_cn_qp_pre_destroy,
++	.qp_post_destroy = gaudi2_cn_qp_post_destroy,
++	.set_port_status = gaudi2_cn_set_port_status,
++	.send_cpucp_packet = gaudi2_cn_send_cpucp_packet,
++	.adaptive_tmr_reset = gaudi2_cn_adaptive_tmr_reset,
++	.spmu_get_stats_info = gaudi2_cn_spmu_get_stats_info,
++	.spmu_config = gaudi2_cn_spmu_config,
++	.spmu_sample = gaudi2_cn_spmu_sample,
++	.post_send_status = gaudi2_cn_post_send_status,
++};
++
++static struct hbl_cn_asic_funcs gaudi2_cn_funcs = {
++	.core_init = gaudi2_cn_core_init,
++	.core_fini = gaudi2_cn_core_fini,
++	.set_req_qp_ctx = gaudi2_set_req_qp_ctx,
++	.set_res_qp_ctx = gaudi2_set_res_qp_ctx,
++	.user_wq_arr_set = gaudi2_user_wq_arr_set,
++	.user_set_app_params = gaudi2_user_set_app_params,
++	.user_get_app_params = gaudi2_user_get_app_params,
++	.phy_reset_macro = gaudi2_cn_phy_reset_macro,
++	.phy_get_crc = gaudi2_cn_phy_get_crc,
++	.get_phy_fw_name = gaudi2_cn_phy_get_fw_name,
++	.phy_fw_load_all = gaudi2_cn_phy_fw_load_all,
++	.get_default_port_speed = gaudi2_cn_get_default_port_speed,
++	.pre_sw_init = gaudi2_cn_pre_sw_init,
++	.sw_init = gaudi2_cn_sw_init,
++	.sw_fini = gaudi2_cn_sw_fini,
++	.macro_sw_init = gaudi2_cn_macro_sw_init,
++	.macro_sw_fini = gaudi2_cn_macro_sw_fini,
++	.kernel_ctx_init = gaudi2_cn_kernel_ctx_init,
++	.kernel_ctx_fini = gaudi2_cn_kernel_ctx_fini,
++	.ctx_init = gaudi2_cn_ctx_init,
++	.ctx_fini = gaudi2_cn_ctx_fini,
++	.qp_read = gaudi2_cn_debugfs_qp_read,
++	.wqe_read = gaudi2_cn_debugfs_wqe_read,
++	.set_en_data = gaudi2_cn_set_en_data,
++	.request_irqs = gaudi2_cn_eq_request_irqs,
++	.synchronize_irqs = gaudi2_cn_eq_sync_irqs,
++	.free_irqs = gaudi2_cn_eq_free_irqs,
++	.phy_dump_serdes_params = gaudi2_cn_phy_dump_serdes_params,
++	.get_max_msg_sz = gaudi2_cn_get_max_msg_sz,
++	.qp_syndrome_to_str = gaudi2_cn_qp_err_syndrome_to_str,
++	.app_params_clear = gaudi2_cn_app_params_clear,
++	.inject_rx_err = gaudi2_cn_inject_rx_err,
++	.is_encap_supported = gaudi2_cn_is_encap_supported,
++	.set_static_properties = gaudi2_cn_set_static_properties,
++	.set_dram_properties = gaudi2_cn_set_dram_properties,
++	.late_init = gaudi2_cn_late_init,
++	.late_fini = gaudi2_cn_late_fini,
++	.get_hw_block_handle = gaudi2_cn_get_hw_block_handle,
++	.get_hw_block_addr = gaudi2_cn_get_hw_block_addr,
++	.dma_alloc_coherent = gaudi2_cn_dma_alloc_coherent,
++	.dma_free_coherent = gaudi2_cn_dma_free_coherent,
++	.dma_pool_zalloc = gaudi2_cn_dma_pool_zalloc,
++	.dma_pool_free = gaudi2_cn_dma_pool_free,
++	.send_cpu_message = gaudi2_cn_send_cpu_message,
++	.ports_cancel_status_work = hbl_cn_ports_cancel_status_work,
++	.port_funcs = &gaudi2_cn_port_funcs,
++};
++
++void gaudi2_cn_set_asic_funcs(struct hbl_cn_device *hdev)
++{
++	hdev->asic_funcs = &gaudi2_cn_funcs;
++}
+diff --git a/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.h b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.h
+new file mode 100644
+index 000000000000..58a0d4e86d47
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn.h
+@@ -0,0 +1,427 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#ifndef GAUDI2_CN_H_
++#define GAUDI2_CN_H_
++
++#include <linux/net/intel/gaudi2.h>
++
++#include "../common/hbl_cn.h"
++#include "asic_reg/gaudi2_regs.h"
++
++#define NIC_NUMBER_OF_MACROS		12
++#define NIC_NUMBER_OF_ENGINES		(NIC_NUMBER_OF_MACROS * 2)
++#define NIC_MAX_NUMBER_OF_PORTS		(NIC_NUMBER_OF_ENGINES * 2)
++#define NIC_MAX_FIFO_RINGS		32
++#define NIC_MAC_NUM_OF_LANES		4
++#define NIC_MAC_LANES_START		0
++#define NIC_NUMBER_OF_EQS		1
++#define DEVICE_CACHE_LINE_SIZE		128
++#define NIC_SEND_WQE_SIZE		32
++#define NIC_SEND_WQE_SIZE_MULTI_STRIDE	64
++#define NIC_RECV_WQE_SIZE		16
++#define DB_FIFO_ELEMENT_SIZE		8
++/* 4 entries of 32 bit each i.e. 16 bytes */
++#define NIC_RAW_EQE_SIZE		16
++#define NIC_MAX_CCQS_NUM		1
++#define NIC_HW_MAX_QP_NUM		BIT(24) /* 16M (per port) */
++
++#define NIC_NUMBER_OF_PORTS		NIC_NUMBER_OF_ENGINES
++#define NIC_MAX_NUM_OF_LANES		(NIC_NUMBER_OF_MACROS * NIC_MAC_LANES)
++#define NIC_CQS_NUM			2 /* For Raw and RDMA */
++#define NIC_EQ_ERR_SYNDROME		0
++#define NIC_QP_ERR_RETRY_SYNDROME	0x40
++#define NIC_MAX_QP_ERR_SYNDROMES	0x100
++#define GAUDI2_NIC_MAX_CQS_NUM		16
++
++/* make sure generic max CCQs number is always larger than h/w specific max CCQs number */
++static_assert(NIC_MAX_CCQS_NUM <= NIC_DRV_MAX_CCQS_NUM);
++
++#define GAUDI2_NIC_NUM_DB_FIFOS			32
++
++/* writing to the device memory-mapped dram using the writel or writeb commands (for example) is
++ * subject to the write-combined rules, meaning that writes temporarily stored in a buffer and are
++ * released together later in burst mode towards the device.
++ * Due to the high latencies in the PLDM such writes take a lot of time which may lead to system
++ * hangs. The burst issue gets more severe if ports are opened in parallel as each port accesses
++ * this memory, therefore we limit the amount of pending writes by inserting reads every several
++ * writes which causes the pending writes to be flushed to the device.
++ */
++#define NIC_MAX_COMBINED_WRITES	0x2000
++
++#define NIC_MAX_RC_MTU		SZ_8K
++
++#define UDP_HDR_SIZE		8
++
++/* This is the max frame length the H/W supports (Tx/Rx) */
++#define NIC_MAX_RDMA_HDRS	128
++#define NIC_MAX_TNL_HDR_SIZE	32 /* Bytes */
++#define NIC_MAX_TNL_HDRS	(NIC_MAX_TNL_HDR_SIZE + UDP_HDR_SIZE)
++#define NIC_MAX_FRM_LEN		(NIC_MAX_RC_MTU + NIC_MAX_RDMA_HDRS)
++#define NIC_MAC_MAX_FRM_LEN	(NIC_MAX_FRM_LEN + HBL_EN_MAX_HEADERS_SZ + NIC_MAX_TNL_HDRS)
++#define NIC_RAW_MIN_MTU		(SZ_1K - HBL_EN_MAX_HEADERS_SZ)
++#define NIC_RAW_MAX_MTU		(NIC_MAX_RC_MTU - HBL_EN_MAX_HEADERS_SZ)
++
++/* This is the size of an element size in the RAW buffer - note that it is different than
++ * NIC_MAX_FRM_LEN, because it has to be power of 2.
++ */
++#define NIC_RAW_ELEM_SIZE	(2 * NIC_MAX_RC_MTU)
++
++#define NIC_RX_RING_PKT_NUM	BIT(8)
++
++#define NIC_MIN_CONN_ID		1
++#define NIC_MAX_CONN_ID		(BIT(13) - 1) /* 8K QPs */
++
++#define NIC_MAX_QP_NUM		(NIC_MAX_CONN_ID + 1)
++
++/* Number of available QPs must not exceed NIC_HW_MAX_QP_NUM */
++static_assert(NIC_MAX_QP_NUM <= NIC_HW_MAX_QP_NUM);
++
++/* Allocate an extra QP to be used as dummy QP. */
++#define REQ_QPC_TOTAL_PORT_SIZE		((NIC_MAX_QP_NUM + 1) * sizeof(struct gaudi2_qpc_requester))
++#define RES_QPC_TOTAL_PORT_SIZE		ALIGN((NIC_MAX_QP_NUM + 1) * \
++					      sizeof(struct gaudi2_qpc_responder),  \
++					      DEVICE_CACHE_LINE_SIZE)
++
++#define TMR_ENT_SIZE		4
++#define TMR_GRANULARITY		256
++#define TMR_FSM_SIZE		ALIGN(NIC_MAX_QP_NUM, DEVICE_CACHE_LINE_SIZE)
++/* each timer serves two NICs, hence multiply by 2 */
++#define TMR_FIFO_SIZE		ALIGN((NIC_MAX_QP_NUM * 2 * TMR_ENT_SIZE) + \
++				      DEVICE_CACHE_LINE_SIZE * TMR_GRANULARITY, \
++				      DEVICE_CACHE_LINE_SIZE)
++#define TMR_FREE_NUM_ENTRIES	(TMR_FIFO_SIZE / DEVICE_CACHE_LINE_SIZE)
++#define TMR_FREE_SIZE		ALIGN(TMR_FREE_NUM_ENTRIES * TMR_ENT_SIZE, \
++				      DEVICE_CACHE_LINE_SIZE)
++#define TMR_TOTAL_MACRO_SIZE	(TMR_FSM_SIZE * 2 + TMR_FREE_SIZE + TMR_FIFO_SIZE)
++
++#define TMR_FSM0_OFFS		0
++#define TMR_FREE_OFFS		(TMR_FSM0_OFFS + 2 * TMR_FSM_SIZE)
++#define TMR_FIFO_OFFS		(TMR_FREE_OFFS + TMR_FREE_SIZE)
++
++#define TXS_ENT_SIZE		4
++#define TXS_GRANULARITY		256
++#define TXS_FIFO_SIZE		ALIGN((NIC_MAX_QP_NUM * 2 * TXS_ENT_SIZE) + \
++				      DEVICE_CACHE_LINE_SIZE * TXS_GRANULARITY, \
++				      DEVICE_CACHE_LINE_SIZE)
++#define TXS_FREE_NUM_ENTRIES	(TXS_FIFO_SIZE / DEVICE_CACHE_LINE_SIZE)
++#define TXS_FREE_SIZE		ALIGN(TXS_FREE_NUM_ENTRIES * TXS_ENT_SIZE, \
++				      DEVICE_CACHE_LINE_SIZE)
++#define TXS_TOTAL_PORT_SIZE	(TXS_FREE_SIZE + TXS_FIFO_SIZE)
++
++#define TXS_FREE_OFFS		0
++#define TXS_FIFO_OFFS		(TXS_FREE_OFFS + TXS_FREE_SIZE)
++
++#define TXS_NUM_PORTS		NIC_MAC_LANES
++#define TXS_SCHEDQ		TXS_GRANULARITY
++#define TXS_NUM_SCHEDQS		TXS_SCHEDQ
++
++#define TXS_PORT_NUM_SCHEDQS		(TXS_NUM_SCHEDQS / TXS_NUM_PORTS)
++#define TXS_PORT_NUM_SCHED_GRANS	(TXS_PORT_NUM_SCHEDQS / HBL_EN_PFC_PRIO_NUM)
++#define TXS_PORT_RAW_SCHED_Q		(TXS_PORT_NUM_SCHED_GRANS - QPC_RAW_SCHED_Q)
++#define TXS_PORT_RES_SCHED_Q		(TXS_PORT_NUM_SCHED_GRANS - QPC_RES_SCHED_Q)
++#define TXS_PORT_REQ_SCHED_Q		(TXS_PORT_NUM_SCHED_GRANS - QPC_REQ_SCHED_Q)
++
++#define RXB_NUM_BUFFS			2880
++#define RXB_BUFF_SIZE			128 /* size in bytes */
++#define RXB_NUM_MTU_BUFFS		((NIC_MAX_FRM_LEN / RXB_BUFF_SIZE) + 1)
++#define RXB_DROP_SMALL_TH_DEPTH		3
++#define RXB_DROP_TH_DEPTH		(1 * RXB_NUM_MTU_BUFFS)
++#define RXB_XOFF_TH_DEPTH		(11 * RXB_NUM_MTU_BUFFS)
++#define RXB_XON_TH_DEPTH		(1 * RXB_NUM_MTU_BUFFS)
++#define RXB_NUM_STATIC_CREDITS		(RXB_NUM_BUFFS / 2)
++
++#define SECTION_ALIGN_SIZE		0x100000ull
++#define NIC_DRV_BASE_ADDR(nic_drv_addr)	ALIGN(nic_drv_addr, SECTION_ALIGN_SIZE)
++
++#define NIC_DRV_END_ADDR(nic_drv_addr, nic_drv_size) \
++					ALIGN(((nic_drv_addr) + (nic_drv_size)), \
++					      SECTION_ALIGN_SIZE)
++
++#define REQ_QPC_BASE_ADDR		NIC_DRV_BASE_ADDR
++
++#define RES_QPC_BASE_ADDR(nic_drv_addr)	(REQ_QPC_BASE_ADDR(nic_drv_addr) + \
++					 ALIGN(NIC_NUMBER_OF_ENGINES * REQ_QPC_TOTAL_PORT_SIZE, \
++					       SECTION_ALIGN_SIZE))
++
++#define TMR_BASE_ADDR(nic_drv_addr)	(RES_QPC_BASE_ADDR(nic_drv_addr) + \
++					 ALIGN(NIC_NUMBER_OF_ENGINES * RES_QPC_TOTAL_PORT_SIZE, \
++					       SECTION_ALIGN_SIZE))
++
++#define TXS_BASE_ADDR(nic_drv_addr)	(TMR_BASE_ADDR(nic_drv_addr) + \
++					 ALIGN(NIC_NUMBER_OF_MACROS * TMR_TOTAL_MACRO_SIZE, \
++					       SECTION_ALIGN_SIZE))
++
++#define WQ_BASE_ADDR(nic_drv_addr)	(TXS_BASE_ADDR(nic_drv_addr) + \
++					 ALIGN(NIC_NUMBER_OF_ENGINES * TXS_TOTAL_PORT_SIZE, \
++					       SECTION_ALIGN_SIZE))
++
++/* Unlike the other port related sizes, this size is shared between all the engines */
++#define WQ_BASE_SIZE(nic_drv_addr, nic_drv_size) \
++	({ \
++		u64 __nic_drv_addr = (nic_drv_addr); \
++		NIC_DRV_END_ADDR(__nic_drv_addr, (nic_drv_size)) - WQ_BASE_ADDR(__nic_drv_addr); \
++	})
++
++#define WQ_BUFFER_LOG_SIZE		8
++#define WQ_BUFFER_SIZE			(1 << (WQ_BUFFER_LOG_SIZE))
++#define CQE_SIZE			sizeof(struct gaudi2_cqe)
++#define NIC_CQ_RAW_IDX			0
++#define NIC_CQ_RDMA_IDX			1
++#define QP_WQE_NUM_REC			128
++#define TX_WQE_NUM_IN_CLINE		(DEVICE_CACHE_LINE_SIZE / NIC_SEND_WQE_SIZE_MULTI_STRIDE)
++#define RX_WQE_NUM_IN_CLINE		(DEVICE_CACHE_LINE_SIZE / NIC_RECV_WQE_SIZE)
++#define RAW_QPN				0
++
++#define NIC_FIFO_DB_SIZE		64
++#define NIC_TX_BUF_SIZE			QP_WQE_NUM_REC
++#define NIC_CQ_MAX_ENTRIES		BIT(13)
++#define NIC_EQ_RING_NUM_REC		BIT(18)
++
++/* if not equal, the size of the WQ must be considered when checking data bounds in en_tx_done */
++static_assert(NIC_TX_BUF_SIZE == QP_WQE_NUM_REC);
++
++#define NIC_TOTAL_CQ_MEM_SIZE		(NIC_CQ_MAX_ENTRIES * CQE_SIZE)
++
++#define NIC_CQ_USER_MIN_ENTRIES		4
++#define NIC_CQ_USER_MAX_ENTRIES		NIC_CQ_MAX_ENTRIES
++
++#define NIC_MIN_CQ_ID			NIC_CQS_NUM
++#define NIC_MAX_CQ_ID			(GAUDI2_NIC_MAX_CQS_NUM - 1)
++
++static_assert(NIC_CQ_RDMA_IDX < GAUDI2_NIC_MAX_CQS_NUM);
++static_assert(NIC_CQ_RAW_IDX < GAUDI2_NIC_MAX_CQS_NUM);
++
++#define USER_WQES_MIN_NUM		16
++#define USER_WQES_MAX_NUM		BIT(15) /* 32K */
++
++#define NIC_RXE_AXUSER_AXUSER_CQ_OFFSET (NIC0_RXE0_AXUSER_AXUSER_CQ1_HB_ASID - \
++					 NIC0_RXE0_AXUSER_AXUSER_CQ0_HB_ASID)
++
++/* Unsecure userspace doorbell fifo IDs as reported to the user, HW IDs are 0-29 */
++#define GAUDI2_MIN_DB_FIFO_ID	1
++#define GAUDI2_MAX_DB_FIFO_ID	30
++
++#define GAUDI2_DB_FIFO_SECURE_HW_ID	30
++#define GAUDI2_DB_FIFO_PRIVILEGE_HW_ID	31
++
++/* The size of the DB FIFO in bytes is constant */
++#define DB_FIFO_ENTRY_SIZE	8
++#define DB_FIFO_NUM_OF_ENTRIES	64
++#define DB_FIFO_SIZE		(DB_FIFO_NUM_OF_ENTRIES * DB_FIFO_ENTRY_SIZE)
++
++/* User encapsulation IDs. There are 8 encaps and 4 decap resources available per macro.
++ * So for now let's allow the max of 2 encaps per port.
++ */
++#define GAUDI2_MIN_ENCAP_ID	0
++#define GAUDI2_MAX_ENCAP_ID	1
++
++#define QPC_GW_MASK_REG_NUM	(((NIC0_QPC0_GW_MASK_31 - NIC0_QPC0_GW_MASK_0) >> 2) + 1)
++
++#define NIC_CFG_LO_SIZE		(NIC0_QPC1_REQ_STATIC_CONFIG - NIC0_QPC0_REQ_STATIC_CONFIG)
++
++#define NIC_CFG_HI_SIZE		(NIC0_RXE1_CONTROL - NIC0_RXE0_CONTROL)
++
++#define NIC_CFG_BASE(port, reg) \
++	({ \
++		u32 __port = (port); \
++		u32 __reg = (reg); \
++		(u64)(NIC_MACRO_CFG_BASE(__port) + ((__reg < NIC0_RXE0_CONTROL) ? \
++		(NIC_CFG_LO_SIZE * (u64)(__port & 1)) : (NIC_CFG_HI_SIZE * (u64)(__port & 1)))); \
++	})
++
++#define NIC_RREG32(reg) \
++	({ \
++		u32 _reg = (reg); \
++		RREG32(NIC_CFG_BASE(port, _reg) + _reg); \
++	})
++
++#define NIC_WREG32(reg, val) \
++	({ \
++		u32 _reg = (reg); \
++		WREG32(NIC_CFG_BASE(port, _reg) + _reg, (val)); \
++	})
++
++#define NIC_RMWREG32(reg, val, mask) \
++	({ \
++		u32 _reg = (reg); \
++		RMWREG32(NIC_CFG_BASE(port, _reg) + _reg, (val), (mask)); \
++	})
++
++#define NIC_RMWREG32_SHIFTED(reg, val, mask) \
++	({ \
++		u32 _reg = (reg); \
++		RMWREG32_SHIFTED(NIC_CFG_BASE(port, _reg) + _reg, (val), (mask)); \
++	})
++
++#define MAC_CH_OFFSET(lane) ((NIC0_MAC_CH1_MAC_PCS_BASE - NIC0_MAC_CH0_MAC_PCS_BASE) * (lane))
++
++#define WARN_ON_CACHE_UNALIGNED(addr) WARN_ON_ONCE(!IS_ALIGNED(addr, DEVICE_CACHE_LINE_SIZE))
++
++enum gaudi2_cn_mac_fec_stats_type {
++	FEC_CW_CORRECTED_ACCUM,
++	FEC_CW_UNCORRECTED_ACCUM,
++	FEC_CW_CORRECTED,
++	FEC_CW_UNCORRECTED,
++	FEC_SYMBOL_ERR_CORRECTED_LANE_0,
++	FEC_SYMBOL_ERR_CORRECTED_LANE_1,
++	FEC_SYMBOL_ERR_CORRECTED_LANE_2,
++	FEC_SYMBOL_ERR_CORRECTED_LANE_3,
++	FEC_PRE_FEC_SER_INT,
++	FEC_PRE_FEC_SER_EXP,
++	FEC_POST_FEC_SER_INT,
++	FEC_POST_FEC_SER_EXP,
++	FEC_STAT_LAST
++};
++
++enum gaudi2_cn_perf_stats_type {
++	PERF_BANDWIDTH_INT,
++	PERF_BANDWIDTH_FRAC,
++	PERF_LATENCY_INT,
++	PERF_LATENCY_FRAC,
++	PERF_STAT_LAST
++};
++
++enum gaudi2_cn_pcs_link_state {
++	PCS_LINK_STATE_SETTLING,
++	PCS_LINK_STATE_STRESS,
++	PCS_LINK_STATE_STEADY
++};
++
++struct gaudi2_cn_port;
++
++/**
++ * struct gaudi2_cn_port - manage specific port.
++ * @hdev: habanalabs device structure.
++ * @cn_port: pointer to a common device structure.
++ * @fifo_ring: rings array for doorbell H/W interface.
++ * @wq_ring: raw work queue ring.
++ * @rx_ring: raw skb ring.
++ * @cq_ring: ring array for the completion queue of raw/rdma packets.
++ * @eq_ring: ring for the event queue.
++ * @eq_work: EQ work for processing events (e.g Tx completion).
++ * @qp_sanity_work: QPC sanity check worker.
++ * @qp_sanity_wq: QPC sanity worker thread.
++ * @cfg_lock: Serializes the port configuration.
++ * @qp_destroy_lock: protects the MAC loopback switching for QP destroy flow.
++ * @pcs_link_stady_state_ts: the timestamp to move to the pcs link steady state.
++ * @pcs_link_state: the current pcs link state.
++ * @qp_destroy_cnt: number of QPs currently under destruction.
++ * @min_qp_size: the size of the smallest QP.
++ * @db_fifo_pi: DB fifo ring producer index.
++ * @qp_timeout_cnt: count of timeouts occurred on a port operating a QP.
++ * @pcs_link_samples_per_sec: the number of times we check the pcs link in a second.
++ * @advanced: true if advanced features are supported.
++ * @adaptive_timeout_en: enable adaptive timeout feature.
++ * @qp_destroy_mac_lpbk: port in is MAC loopback due to QP destroy flow.
++ * @initial_tx_taps_cfg: first tx taps config since the last PHY power-up.
++ * @tx_taps_cfg: current tx taps config.
++ * @tx_taps_modified: flag to indicate if tx_taps were modified due to remote faults.
++ */
++struct gaudi2_cn_port {
++	struct hbl_cn_device *hdev;
++	struct hbl_cn_port *cn_port;
++	struct hbl_cn_ring fifo_ring;
++	struct hbl_cn_ring wq_ring;
++	struct hbl_cn_ring rx_ring;
++	struct hbl_cn_ring cq_rings[NIC_CQS_NUM];
++	struct hbl_cn_ring eq_ring;
++	struct delayed_work eq_work;
++	struct delayed_work qp_sanity_work;
++	struct workqueue_struct *qp_sanity_wq;
++	/* Serializes the port configuration */
++	struct mutex cfg_lock;
++	/* protects the MAC loopback switching for QP destroy flow */
++	struct mutex qp_destroy_lock;
++	ktime_t pcs_link_stady_state_ts;
++	enum gaudi2_cn_pcs_link_state pcs_link_state;
++	u32 qp_destroy_cnt;
++	u32 min_qp_size;
++	u32 db_fifo_pi;
++	u32 qp_timeout_cnt;
++	u32 pcs_link_samples_per_sec;
++	u8 advanced;
++	u8 adaptive_timeout_en;
++	u8 qp_destroy_mac_lpbk;
++	u8 initial_tx_taps_cfg;
++	u8 tx_taps_cfg;
++	u8 tx_taps_modified;
++};
++
++/**
++ * struct gaudi2_cn_device - ASIC specific manage structure.
++ * @cn_ports: array that holds all ports manage structures.
++ * @cn_macros: array that holds all macro manage structures.
++ * @en_aux_data: data to be used by the Ethernet driver.
++ * @en_aux_ops: functions for Ethernet <-> CN drivers communication.
++ * @cn_aux_ops: functions for CN <-> compute drivers communication.
++ * @setup_type: type of setup connectivity.
++ * @cfg_base: configuration space base address.
++ * @irq_num_port_base: base IRQ number for port EQ.
++ * @sob_id_base: first reserved SOB ID.
++ * @sob_inc_cfg_val: configuration value for incrementing SOB by one.
++ * @fw_security_enabled: FW security enabled.
++ * @msix_enabled: MSI-X enabled.
++ * @temporal_polling: EQ polling activity is temporal and is used only in specific cases.
++ * @flush_db_fifo: force flush DB FIFO after a write.
++ * @in_compute_reset: device is under compute reset.
++ * @mac_rs_fec_ctrl_support: Is MAC_RS_FEC_CONTROL block supported.
++ */
++struct gaudi2_cn_device {
++	struct gaudi2_cn_port cn_ports[NIC_NUMBER_OF_PORTS];
++	struct gaudi2_en_aux_data en_aux_data;
++	struct gaudi2_en_aux_ops en_aux_ops;
++	struct gaudi2_cn_aux_ops *cn_aux_ops;
++	enum gaudi2_setup_type setup_type;
++	u64 cfg_base;
++	u32 irq_num_port_base;
++	u32 sob_id_base;
++	u32 sob_inc_cfg_val;
++	u8 fw_security_enabled;
++	u8 msix_enabled;
++	u8 temporal_polling;
++	u8 flush_db_fifo;
++	u8 in_compute_reset;
++	u8 mac_rs_fec_ctrl_support;
++};
++
++int gaudi2_cn_eq_init(struct hbl_cn_device *hdev);
++void gaudi2_cn_eq_fini(struct hbl_cn_device *hdev);
++int gaudi2_cn_debugfs_qp_read(struct hbl_cn_device *hdev, struct hbl_cn_qp_info *qp_info, char *buf,
++			      size_t bsize);
++int gaudi2_cn_debugfs_wqe_read(struct hbl_cn_device *hdev, char *buf, size_t bsize);
++void gaudi2_cn_debugfs_collect_fec_stats(struct hbl_cn_port *cn_port, char *buf, size_t size);
++int gaudi2_cn_eq_dispatcher_register_db(struct gaudi2_cn_port *gaudi2_cn, u32 asid, u32 dbn);
++int gaudi2_cn_eq_request_irqs(struct hbl_cn_device *hdev);
++void gaudi2_cn_eq_sync_irqs(struct hbl_cn_device *hdev);
++void gaudi2_cn_eq_free_irqs(struct hbl_cn_device *hdev);
++struct hbl_cn_ev_dq *gaudi2_cn_eq_dispatcher_select_dq(struct hbl_cn_port *cn_port,
++						       const struct hbl_cn_eqe *eqe);
++char *gaudi2_cn_qp_err_syndrome_to_str(u32 syndrome);
++int gaudi2_cn_qpc_read(struct hbl_cn_port *cn_port, void *qpc, u32 qpn, bool is_req);
++int gaudi2_cn_wqe_read(struct hbl_cn_port *cn_port, void *wqe, u32 qpn, u32 wqe_idx, bool is_tx);
++void gaudi2_cn_hw_mac_loopback_cfg(struct gaudi2_cn_port *gaudi2_cn);
++int gaudi2_cn_set_info(struct hbl_cn_device *hdev, bool get_from_fw);
++int gaudi2_cn_phy_reset_macro(struct hbl_cn_macro *cn_macro);
++int gaudi2_cn_phy_init(struct hbl_cn_device *hdev);
++void gaudi2_cn_eq_enter_temporal_polling_mode(struct hbl_cn_device *hdev);
++void gaudi2_cn_eq_exit_temporal_polling_mode(struct hbl_cn_device *hdev);
++void gaudi2_cn_phy_flush_link_status_work(struct hbl_cn_device *hdev);
++int gaudi2_cn_phy_port_init(struct hbl_cn_port *cn_port);
++void gaudi2_cn_phy_port_start_stop(struct hbl_cn_port *cn_port, bool is_start);
++const char *gaudi2_cn_phy_get_fw_name(void);
++int gaudi2_cn_phy_fw_load_all(struct hbl_cn_device *hdev);
++u16 gaudi2_cn_phy_get_crc(struct hbl_cn_device *hdev);
++int gaudi2_cn_phy_port_power_up(struct hbl_cn_port *cn_port);
++void gaudi2_cn_phy_port_reconfig(struct hbl_cn_port *cn_port);
++void gaudi2_cn_phy_port_fini(struct hbl_cn_port *cn_port);
++void gaudi2_cn_phy_link_status_work(struct work_struct *work);
++void gaudi2_cn_phy_dump_serdes_params(struct hbl_cn_device *hdev, char *buf, size_t size);
++void gaudi2_cn_get_mac_fec_stats(struct hbl_cn_port *cn_port, u64 *data);
++bool gaudi2_cn_is_cq_in_overrun(struct hbl_cn_port *cn_port, u8 cq_id);
++bool gaudi2_handle_qp_error_retry(struct hbl_cn_port *cn_port, u32 qpn);
++
++#endif /* GAUDI2_CN_H_ */
+diff --git a/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_debugfs.c b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_debugfs.c
+new file mode 100644
+index 000000000000..3acd8b8b0f4a
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_debugfs.c
+@@ -0,0 +1,319 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#include "gaudi2_cn.h"
++
++#define _fsnprintf(buf, size, fmt, ...)							\
++		do {									\
++			if (full_print)							\
++				__snprintf(buf, size, fmt, ##__VA_ARGS__);		\
++											\
++		} while (0)
++
++static int gaudi2_cn_debugfs_qpc_req_parse(struct hbl_cn_device *hdev,
++					   struct hbl_cn_qp_info *qp_info,
++					   struct gaudi2_qpc_requester *req, char *buf,
++					   size_t bsize)
++{
++	bool full_print, force_read;
++
++	force_read = qp_info->force_read;
++	full_print = qp_info->full_print;
++
++	__snprintf(buf, bsize, "Valid: %lld\n", REQ_QPC_GET_VALID(*req));
++	if (strlen(buf) >= bsize)
++		return -EFBIG;
++
++	if (!force_read && !REQ_QPC_GET_VALID(*req))
++		return 0;
++
++	__snprintf(buf, bsize, "Error: %lld\n", REQ_QPC_GET_ERROR(*req));
++	if (strlen(buf) >= bsize)
++		return -EFBIG;
++
++	if (!force_read && REQ_QPC_GET_ERROR(*req))
++		return 0;
++
++	_fsnprintf(buf, bsize, "in_work: 0x%llx\n", REQ_QPC_GET_IN_WORK(*req));
++	_fsnprintf(buf, bsize, "trusted: 0x%llx\n", REQ_QPC_GET_TRUST_LEVEL(*req));
++	_fsnprintf(buf, bsize, "WQ addr: 0x%llx\n", REQ_QPC_GET_WQ_BASE_ADDR(*req));
++	_fsnprintf(buf, bsize, "MTU: 0x%llx\n", REQ_QPC_GET_MTU(*req));
++	_fsnprintf(buf, bsize, "cong mode: 0x%llx\n", REQ_QPC_GET_CONGESTION_MODE(*req));
++	_fsnprintf(buf, bsize, "priority: 0x%llx\n", REQ_QPC_GET_PRIORITY(*req));
++	_fsnprintf(buf, bsize, "transport service: 0x%llx\n", REQ_QPC_GET_TRANSPORT_SERVICE(*req));
++	_fsnprintf(buf, bsize, "SWQ gran: 0x%llx\n", REQ_QPC_GET_SWQ_GRANULARITY(*req));
++	__snprintf(buf, bsize, "WQ type: 0x%llx\n", REQ_QPC_GET_WQ_TYPE(*req));
++	_fsnprintf(buf, bsize, "port/lane: 0x%llx\n", REQ_QPC_GET_PORT(*req));
++	_fsnprintf(buf, bsize, "Gaudi1 mode: 0x%llx\n", REQ_QPC_GET_MOD_GAUDI1(*req));
++	__snprintf(buf, bsize, "data MMU BP: 0x%llx\n", REQ_QPC_GET_DATA_MMU_BYPASS(*req));
++	_fsnprintf(buf, bsize, "PSN delivered: 0x%llx\n", REQ_QPC_GET_PSN_DELIVERED(*req));
++	_fsnprintf(buf, bsize, "pacing time: 0x%llx\n", REQ_QPC_GET_PACING_TIME(*req));
++	_fsnprintf(buf, bsize, "Ackreq freq: 0x%llx\n", REQ_QPC_GET_ACKREQ_FREQ(*req));
++	_fsnprintf(buf, bsize, "PSN since ackreq: 0x%llx\n", REQ_QPC_GET_PSN_SINCE_ACKREQ(*req));
++	__snprintf(buf, bsize, "oldest unacked remote PI: 0x%llx\n",
++		   REQ_QPC_GET_OLDEST_UNACKED_REMOTE_PRODUCER_IDX(*req));
++	__snprintf(buf, bsize, "remote CI: 0x%llx\n", REQ_QPC_GET_REMOTE_CONSUMER_IDX(*req));
++	__snprintf(buf, bsize, "remote PI: 0x%llx\n", REQ_QPC_GET_REMOTE_PRODUCER_IDX(*req));
++	__snprintf(buf, bsize, "local PI: 0x%llx\n", REQ_QPC_GET_LOCAL_PRODUCER_IDX(*req));
++	__snprintf(buf, bsize, "local CI: 0x%llx\n", REQ_QPC_GET_CONSUMER_IDX(*req));
++	__snprintf(buf, bsize, "local EI: 0x%llx\n", REQ_QPC_GET_EXECUTION_IDX(*req));
++	__snprintf(buf, bsize, "last index: 0x%llx\n", REQ_QPC_GET_LAST_IDX(*req));
++	__snprintf(buf, bsize, "ASID: 0x%llx\n", REQ_QPC_GET_ASID(*req));
++	_fsnprintf(buf, bsize, "burst size: 0x%llx\n", REQ_QPC_GET_BURST_SIZE(*req));
++	_fsnprintf(buf, bsize, "CC RTT PSN: 0x%llx\n", REQ_QPC_GET_RTT_MARKED_PSN(*req));
++	_fsnprintf(buf, bsize, "CC RTT timestamp: 0x%llx\n", REQ_QPC_GET_RTT_TIMESTAMP(*req));
++	_fsnprintf(buf, bsize, "congestion window: 0x%llx\n", REQ_QPC_GET_CONGESTION_WIN(*req));
++	_fsnprintf(buf, bsize, "encap en: 0x%llx\n", REQ_QPC_GET_ENCAP_ENABLE(*req));
++	_fsnprintf(buf, bsize, "RTT state: 0x%llx\n", REQ_QPC_GET_RTT_STATE(*req));
++	_fsnprintf(buf, bsize, "CQ num: 0x%llx\n", REQ_QPC_GET_CQ_NUM(*req));
++	_fsnprintf(buf, bsize, "congestion window NMA: 0x%llx\n",
++		   REQ_QPC_GET_CONGESTION_NON_MARKED_ACK(*req));
++	_fsnprintf(buf, bsize, "encap type: 0x%llx\n", REQ_QPC_GET_ENCAP_TYPE(*req));
++	__snprintf(buf, bsize, "remote WQ log bsize: 0x%llx\n", REQ_QPC_GET_REMOTE_WQ_LOG_SZ(*req));
++	_fsnprintf(buf, bsize, "congestion window MA: 0x%llx\n",
++		   REQ_QPC_GET_CONGESTION_MARKED_ACK(*req));
++	_fsnprintf(buf, bsize, "WQ back-press: 0x%llx\n", REQ_QPC_GET_WQ_BACK_PRESSURE(*req));
++	_fsnprintf(buf, bsize, "timeout gran: 0x%llx\n", REQ_QPC_GET_TM_GRANULARITY(*req));
++	__snprintf(buf, bsize, "BCC PSN: 0x%llx\n", REQ_QPC_GET_BCC_PSN(*req));
++	__snprintf(buf, bsize, "ONA PSN: 0x%llx\n", REQ_QPC_GET_ONA_PSN(*req));
++	_fsnprintf(buf, bsize, "sched Q: 0x%llx\n", REQ_QPC_GET_SCHD_Q_NUM(*req));
++	__snprintf(buf, bsize, "BCS PSN: 0x%llx\n", REQ_QPC_GET_BCS_PSN(*req));
++	__snprintf(buf, bsize, "NTS PSN: 0x%llx\n", REQ_QPC_GET_NTS_PSN(*req));
++	_fsnprintf(buf, bsize, "timeout retry cnt: 0x%llx\n",
++		   REQ_QPC_GET_TIMEOUT_RETRY_COUNT(*req));
++	_fsnprintf(buf, bsize, "seq ERR retry cnt: 0x%llx\n",
++		   REQ_QPC_GET_SEQUENCE_ERROR_RETRY_COUNT(*req));
++	__snprintf(buf, bsize, "dst MAC: %04llx%08llx\n", REQ_QPC_GET_DST_MAC_MSB(*req),
++		   REQ_QPC_GET_DST_MAC_LSB(*req));
++	_fsnprintf(buf, bsize, "dst ipv4: 0x%llx\n", REQ_QPC_GET_DST_IP(*req));
++	_fsnprintf(buf, bsize, "remote key: 0x%llx\n", REQ_QPC_GET_RKEY(*req));
++	_fsnprintf(buf, bsize, "multi-stride state: 0x%016llx%08llx\n",
++		   REQ_QPC_GET_MULTI_STRIDE_STATE_MSB(*req),
++		   REQ_QPC_GET_MULTI_STRIDE_STATE_LSB(*req));
++	_fsnprintf(buf, bsize, "dest QP: 0x%llx\n", REQ_QPC_GET_DST_QP(*req));
++
++	/* make sure the caller is aware that the buffer it is using is not long enough */
++	if (strlen(buf) >= bsize)
++		return -EFBIG;
++
++	return 0;
++}
++
++static int gaudi2_cn_debugfs_qpc_res_parse(struct hbl_cn_device *hdev,
++					   struct hbl_cn_qp_info *qp_info,
++					   struct gaudi2_qpc_responder *res, char *buf,
++					   size_t bsize)
++{
++	bool full_print, force_read;
++
++	force_read = qp_info->force_read;
++	full_print = qp_info->full_print;
++
++	__snprintf(buf, bsize, "Valid: %lld\n", RES_QPC_GET_VALID(*res));
++	if (strlen(buf) >= bsize)
++		return -EFBIG;
++
++	if (!force_read && !RES_QPC_GET_VALID(*res))
++		return 0;
++
++	_fsnprintf(buf, bsize, "in work: 0x%llx\n", RES_QPC_GET_IN_WORK(*res));
++	_fsnprintf(buf, bsize, "peer WQ gran: 0x%llx\n", RES_QPC_GET_PEER_WQ_GRAN(*res));
++	_fsnprintf(buf, bsize, "CQ num: 0x%llx\n", RES_QPC_GET_CQ_NUM(*res));
++	__snprintf(buf, bsize, "cyc_idx: 0x%llx\n", RES_QPC_GET_CYCLIC_IDX(*res));
++	_fsnprintf(buf, bsize, "encap EN: 0x%llx\n", RES_QPC_GET_ENCAP_ENABLE(*res));
++	_fsnprintf(buf, bsize, "encap type: 0x%llx\n", RES_QPC_GET_ENCAP_TYPE(*res));
++	__snprintf(buf, bsize, "data MMU BP: 0x%llx\n", RES_QPC_GET_DATA_MMU_BYPASS(*res));
++	_fsnprintf(buf, bsize, "Gaudi1 mode: 0x%llx\n", RES_QPC_GET_MOD_GAUDI1(*res));
++	_fsnprintf(buf, bsize, "trust level: 0x%llx\n", RES_QPC_GET_TRUST_LEVEL(*res));
++	__snprintf(buf, bsize, "expected PSN: 0x%llx\n", RES_QPC_GET_EXPECTED_PSN(*res));
++	_fsnprintf(buf, bsize, "sched Q: 0x%llx\n", RES_QPC_GET_SCHD_Q_NUM(*res));
++	_fsnprintf(buf, bsize, "peer QP: 0x%llx\n", RES_QPC_GET_PEER_QP(*res));
++	__snprintf(buf, bsize, "ASID: 0x%llx\n", RES_QPC_GET_ASID(*res));
++	_fsnprintf(buf, bsize, "transport service: 0x%llx\n", RES_QPC_GET_TRANSPORT_SERVICE(*res));
++	_fsnprintf(buf, bsize, "ECN count: 0x%llx\n", RES_QPC_GET_ECN_COUNT(*res));
++	__snprintf(buf, bsize, "dst MAC: %04llx%08llx\n", RES_QPC_GET_DST_MAC_MSB(*res),
++		   RES_QPC_GET_DST_MAC_LSB(*res));
++	__snprintf(buf, bsize, "dst ipv4: 0x%llx\n", RES_QPC_GET_DST_IP(*res));
++	_fsnprintf(buf, bsize, "local key: 0x%llx\n", RES_QPC_GET_LKEY(*res));
++	_fsnprintf(buf, bsize, "NACK syndrome: 0x%llx\n", RES_QPC_GET_NACK_SYNDROME(*res));
++	__snprintf(buf, bsize, "conn state: 0x%llx\n", RES_QPC_GET_CONN_STATE(*res));
++	_fsnprintf(buf, bsize, "priority: 0x%llx\n", RES_QPC_GET_PRIORITY(*res));
++	_fsnprintf(buf, bsize, "port/lane: 0x%llx\n", RES_QPC_GET_PORT(*res));
++	_fsnprintf(buf, bsize, "dest QP: 0x%llx\n", RES_QPC_GET_DESTINATION_QP(*res));
++
++	/* make sure the caller is aware that the buffer it is using is not long enough */
++	if (strlen(buf) >= bsize)
++		return -EFBIG;
++
++	return 0;
++}
++
++int gaudi2_cn_debugfs_qp_read(struct hbl_cn_device *hdev, struct hbl_cn_qp_info *qp_info, char *buf,
++			      size_t bsize)
++{
++	struct hbl_cn_asic_port_funcs *port_funcs;
++	struct gaudi2_qpc_requester qpc_req = {};
++	struct gaudi2_qpc_responder qpc_res = {};
++	struct hbl_cn_port *cn_port;
++	u32 port, qpn;
++	void *qpc;
++	bool req;
++	int rc;
++
++	req = qp_info->req;
++	port = qp_info->port;
++	qpn = qp_info->qpn;
++
++	port_funcs = hdev->asic_funcs->port_funcs;
++	cn_port = &hdev->cn_ports[port];
++	qpc = req ? (void *)&qpc_req : (void *)&qpc_res;
++
++	if (!hbl_cn_is_port_open(cn_port)) {
++		dev_err(hdev->dev,
++			"Cannot read port %d QP %d, port is not initialized\n", port, qpn);
++		return -EPERM;
++	}
++
++	port_funcs->cfg_lock(cn_port);
++	rc = gaudi2_cn_qpc_read(cn_port, qpc, qpn, req);
++	port_funcs->cfg_unlock(cn_port);
++	if (rc)
++		return rc;
++
++	__snprintf(buf, bsize, "port %d, qpn %d, req %d:\n", port, qpn, req);
++	if (strlen(buf) >= bsize)
++		return -EFBIG;
++
++	if (req)
++		rc = gaudi2_cn_debugfs_qpc_req_parse(hdev, qp_info, &qpc_req, buf, bsize);
++	else
++		rc = gaudi2_cn_debugfs_qpc_res_parse(hdev, qp_info, &qpc_res, buf, bsize);
++
++	return rc;
++}
++
++static int gaudi2_cn_debugfs_wqe_parse(struct hbl_cn_device *hdev, struct hbl_cn_wqe_info *wqe_info,
++				       void *wqe, char *buf, size_t bsize)
++{
++	struct gaudi2_sq_wqe *sq_wqe;
++	struct gaudi2_rq_wqe *rq_wqe;
++	u8 i;
++
++	if (wqe_info->tx) {
++		i = wqe_info->wqe_idx % TX_WQE_NUM_IN_CLINE;
++		sq_wqe = &(((struct gaudi2_sq_wqe *)wqe)[i]);
++		__snprintf(buf, bsize, "opcode: 0x%llx\n", TX_WQE_GET_OPCODE(*sq_wqe));
++		__snprintf(buf, bsize, "trace event data: 0x%llx\n",
++			   TX_WQE_GET_TRACE_EVENT_DATA(*sq_wqe));
++		__snprintf(buf, bsize, "trace event: 0x%llx\n", TX_WQE_GET_TRACE_EVENT(*sq_wqe));
++		__snprintf(buf, bsize, "WQE index: 0x%llx\n", TX_WQE_GET_WQE_INDEX(*sq_wqe));
++		__snprintf(buf, bsize, "reduction opcode: 0x%llx\n",
++			   TX_WQE_GET_REDUCTION_OPCODE(*sq_wqe));
++		__snprintf(buf, bsize, "SE: 0x%llx\n", TX_WQE_GET_SE(*sq_wqe));
++		__snprintf(buf, bsize, "inline: 0x%llx\n", TX_WQE_GET_INLINE(*sq_wqe));
++		__snprintf(buf, bsize, "ackreq: 0x%llx\n", TX_WQE_GET_ACKREQ(*sq_wqe));
++		__snprintf(buf, bsize, "size: 0x%llx\n", TX_WQE_GET_SIZE(*sq_wqe));
++		__snprintf(buf, bsize, "local address LSB: 0x%llx\n",
++			   TX_WQE_GET_LOCAL_ADDR_LSB(*sq_wqe));
++		__snprintf(buf, bsize, "local address MSB: 0x%llx\n",
++			   TX_WQE_GET_LOCAL_ADDR_MSB(*sq_wqe));
++		__snprintf(buf, bsize, "remote address LSB: 0x%llx\n",
++			   TX_WQE_GET_REMOTE_ADDR_LSB(*sq_wqe));
++		__snprintf(buf, bsize, "remote address MSB: 0x%llx\n",
++			   TX_WQE_GET_REMOTE_ADDR_MSB(*sq_wqe));
++		__snprintf(buf, bsize, "tag: 0x%llx\n", TX_WQE_GET_TAG(*sq_wqe));
++		__snprintf(buf, bsize, "remote SOB: 0x%llx\n", TX_WQE_GET_REMOTE_SOB(*sq_wqe));
++		__snprintf(buf, bsize, "remote SOB data: 0x%llx\n",
++			   TX_WQE_GET_REMOTE_SOB_DATA(*sq_wqe));
++		__snprintf(buf, bsize, "SOB command: 0x%llx\n", TX_WQE_GET_SOB_CMD(*sq_wqe));
++		__snprintf(buf, bsize, "completion type: 0x%llx\n",
++			   TX_WQE_GET_COMPLETION_TYPE(*sq_wqe));
++	} else {
++		i = wqe_info->wqe_idx % RX_WQE_NUM_IN_CLINE;
++		rq_wqe = &(((struct gaudi2_rq_wqe *)wqe)[i]);
++		__snprintf(buf, bsize, "opcode: 0x%llx\n", RX_WQE_GET_OPCODE(*rq_wqe));
++		__snprintf(buf, bsize, "WQE index: 0x%llx\n", RX_WQE_GET_WQE_INDEX(*rq_wqe));
++		__snprintf(buf, bsize, "SOB command: 0x%llx\n", RX_WQE_GET_SOB_CMD(*rq_wqe));
++		__snprintf(buf, bsize, "local SOB: 0x%llx\n", RX_WQE_GET_LOCAL_SOB(*rq_wqe));
++		__snprintf(buf, bsize, "local SOB data: 0x%llx\n",
++			   RX_WQE_GET_LOCAL_SOB_DATA(*rq_wqe));
++		__snprintf(buf, bsize, "completion type: 0x%llx\n",
++			   RX_WQE_GET_COMPLETION_TYPE(*rq_wqe));
++		__snprintf(buf, bsize, "size: 0x%llx\n", RX_WQE_GET_SIZE(*rq_wqe));
++		__snprintf(buf, bsize, "tag: 0x%llx\n", RX_WQE_GET_TAG(*rq_wqe));
++	}
++
++	/* Make sure the caller is aware that the buffer used isn't big enough */
++	if (strlen(buf) >= bsize)
++		return -EFBIG;
++
++	return 0;
++}
++
++int gaudi2_cn_debugfs_wqe_read(struct hbl_cn_device *hdev, char *buf, size_t bsize)
++{
++	struct gaudi2_sq_wqe sq_wqe[TX_WQE_NUM_IN_CLINE] = {};
++	struct gaudi2_rq_wqe rq_wqe[RX_WQE_NUM_IN_CLINE] = {};
++	struct hbl_cn_asic_port_funcs *port_funcs;
++	struct hbl_cn_wqe_info *wqe_info;
++	struct hbl_cn_port *cn_port;
++	u32 port, qpn, wqe_idx;
++	void *wqe;
++	bool tx;
++	int rc;
++
++	port_funcs = hdev->asic_funcs->port_funcs;
++
++	/* Get the details of the WQE to read as written by the user via debugfs */
++	wqe_info = &hdev->wqe_info;
++	tx = wqe_info->tx;
++	port = wqe_info->port;
++	qpn = wqe_info->qpn;
++	wqe_idx = wqe_info->wqe_idx;
++
++	cn_port = &hdev->cn_ports[port];
++	wqe = tx ? (void *)&sq_wqe : (void *)&rq_wqe;
++
++	if (!hbl_cn_is_port_open(cn_port)) {
++		dev_err(hdev->dev,
++			"Cannot read port %d QP %d, port is not initialized\n", port, qpn);
++		return -EPERM;
++	}
++
++	port_funcs->cfg_lock(cn_port);
++	rc = gaudi2_cn_wqe_read(cn_port, wqe, qpn, wqe_idx, tx);
++	port_funcs->cfg_unlock(cn_port);
++	if (rc)
++		goto exit;
++
++	__snprintf(buf, bsize, "port %d, qpn %d, wqe_idx %d, tx %d:\n", port, qpn, wqe_idx, tx);
++
++	rc = gaudi2_cn_debugfs_wqe_parse(hdev, wqe_info, wqe, buf, bsize);
++
++exit:
++	return rc;
++}
++
++void gaudi2_cn_debugfs_collect_fec_stats(struct hbl_cn_port *cn_port, char *buf, size_t size)
++{
++	u32 port = cn_port->port;
++	u64 data[FEC_STAT_LAST];
++	ssize_t len;
++
++	gaudi2_cn_get_mac_fec_stats(cn_port, data);
++
++	len = strlen(buf);
++	if ((size - len) <= 1)
++		return;
++
++	if (cn_port->pcs_link)
++		snprintf(buf + len, size - len,
++			 "Port %u: pre_fec_SER: %llue-%llu post_fec_SER: %llue-%llu\n", port,
++			 data[FEC_PRE_FEC_SER_INT], data[FEC_PRE_FEC_SER_EXP],
++			 data[FEC_POST_FEC_SER_INT], data[FEC_POST_FEC_SER_EXP]);
++	else
++		snprintf(buf + len, size - len, "Port %u: Link is down\n", port);
++}
+diff --git a/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_eq.c b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_eq.c
+new file mode 100644
+index 000000000000..68f6367f3798
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_eq.c
+@@ -0,0 +1,732 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#include <linux/pci.h>
++
++#include "gaudi2_cn.h"
++
++#define GAUDI2_NIC_MAX_STRING_LEN	64
++
++static const char
++gaudi2_cn_eq_irq_name[NIC_NUMBER_OF_ENGINES][GAUDI2_NIC_MAX_STRING_LEN] = {
++	"gaudi2 cn0 qpc0 EQ",
++	"gaudi2 cn0 qpc1 EQ",
++	"gaudi2 cn1 qpc0 EQ",
++	"gaudi2 cn1 qpc1 EQ",
++	"gaudi2 cn2 qpc0 EQ",
++	"gaudi2 cn2 qpc1 EQ",
++	"gaudi2 cn3 qpc0 EQ",
++	"gaudi2 cn3 qpc1 EQ",
++	"gaudi2 cn4 qpc0 EQ",
++	"gaudi2 cn4 qpc1 EQ",
++	"gaudi2 cn5 qpc0 EQ",
++	"gaudi2 cn5 qpc1 EQ",
++	"gaudi2 cn6 qpc0 EQ",
++	"gaudi2 cn6 qpc1 EQ",
++	"gaudi2 cn7 qpc0 EQ",
++	"gaudi2 cn7 qpc1 EQ",
++	"gaudi2 cn8 qpc0 EQ",
++	"gaudi2 cn8 qpc1 EQ",
++	"gaudi2 cn9 qpc0 EQ",
++	"gaudi2 cn9 qpc1 EQ",
++	"gaudi2 cn10 qpc0 EQ",
++	"gaudi2 cn10 qpc1 EQ",
++	"gaudi2 cn11 qpc0 EQ",
++	"gaudi2 cn11 qpc1 EQ",
++};
++
++/* Event queues for all the ports are initialized ahead of port-specific initialization regardless
++ * of being enabled or not. We do the same for their IRQs.
++ */
++static irqreturn_t gaudi2_cn_eq_threaded_isr(int irq, void *arg);
++
++int gaudi2_cn_eq_request_irqs(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_cn_port *gaudi2_port;
++	int i, rc, irq;
++
++	if (!gaudi2->msix_enabled)
++		return 0;
++
++	/* IRQs should be allocated if polling activity is only temporal */
++	if (hdev->poll_enable && !gaudi2->temporal_polling)
++		return 0;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		gaudi2_port = &gaudi2->cn_ports[i];
++		irq = pci_irq_vector(hdev->pdev, gaudi2->irq_num_port_base + i);
++		rc = request_threaded_irq(irq, NULL, gaudi2_cn_eq_threaded_isr, IRQF_ONESHOT,
++					  gaudi2_cn_eq_irq_name[i], gaudi2_port);
++		if (rc) {
++			dev_err(hdev->dev, "Failed to request IRQ %d for port %d\n", irq, i);
++			goto irq_fail;
++		}
++	}
++
++	return 0;
++
++irq_fail:
++	for (i--; i >= 0; i--) {
++		gaudi2_port = &gaudi2->cn_ports[i];
++		irq = pci_irq_vector(hdev->pdev, gaudi2->irq_num_port_base + i);
++		free_irq(irq, gaudi2_port);
++	}
++	return rc;
++}
++
++void gaudi2_cn_eq_sync_irqs(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	int i, irq;
++
++	if (!gaudi2->msix_enabled)
++		return;
++
++	/* IRQs are allocated if polling is temporal so return only if polling mode is constant */
++	if (hdev->poll_enable && !gaudi2->temporal_polling)
++		return;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		irq = pci_irq_vector(hdev->pdev, gaudi2->irq_num_port_base + i);
++		synchronize_irq(irq);
++	}
++}
++
++void gaudi2_cn_eq_free_irqs(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_cn_port *gaudi2_port;
++	int i, irq;
++
++	if (!gaudi2->msix_enabled)
++		return;
++
++	/* IRQs are allocated if polling is temporal so return only if polling mode is constant */
++	if (hdev->poll_enable && !gaudi2->temporal_polling)
++		return;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		gaudi2_port = &gaudi2->cn_ports[i];
++		irq = pci_irq_vector(hdev->pdev, gaudi2->irq_num_port_base + i);
++		free_irq(irq, gaudi2_port);
++	}
++}
++
++/* HW per port link/lane status mask */
++static u32 gaudi2_cn_get_link_status_mask(struct gaudi2_cn_port *gaudi2_port)
++{
++	switch (gaudi2_port->cn_port->speed) {
++	case SPEED_50000:
++		/* In 50GbE mode, HW supports up to 2 SERDES
++		 * links per port.
++		 * Note: SW uses fixed link 0 per port for
++		 * transmission. Link 1 is unused.
++		 */
++		return 0x3;
++	case SPEED_25000:
++		fallthrough;
++	case SPEED_100000:
++		/* In 100GbE mode, HW supports only one
++		 * SERDES link per port.
++		 */
++		return 0x1;
++	default:
++		dev_err(gaudi2_port->hdev->dev, "Unsupported speed %d\n",
++			gaudi2_port->cn_port->speed);
++	}
++
++	return 0;
++}
++
++static void gaudi2_cn_link_event_handler(struct gaudi2_cn_port *gaudi2_port)
++{
++	u32 curr_link_sts, link_sts_change, link_status_mask, port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	struct gaudi2_cn_port *gaudi2_port_curr;
++	u8 l, cn_m, port_offset, port_shift;
++	struct hbl_cn_port *cn_port_curr;
++	struct gaudi2_cn_device *gaudi2;
++	struct hbl_cn_macro *cn_macro;
++	bool link_up, prev_link_up;
++
++	gaudi2 = hdev->asic_specific;
++	port = gaudi2_port->cn_port->port;
++	cn_macro = gaudi2_port->cn_port->cn_macro;
++
++	curr_link_sts = (NIC_MACRO_RREG32(PRT0_MAC_CORE_MAC_REC_STS0) &
++			 PRT0_MAC_CORE_MAC_REC_STS0_REC_LINK_STS_MASK) >>
++			PRT0_MAC_CORE_MAC_REC_STS0_REC_LINK_STS_SHIFT;
++
++	/* get the change on the serdes by XOR with previous val */
++	link_sts_change = curr_link_sts ^ cn_macro->rec_link_sts;
++
++	/* store current value as previous (for next round) */
++	cn_macro->rec_link_sts = curr_link_sts;
++
++	/* calc the MACRO its link-change we need to handle */
++	cn_m = port >> 1;
++
++	/* Iterate all SERDES links and check which one was changed */
++	for (l = 0; l < NIC_MAC_LANES; l++) {
++		if (!(link_sts_change & BIT(l)))
++			continue;
++
++		/* calc port offset from current link
++		 * (2 ports per macro and 2 links per port)
++		 */
++		port_offset = l >> 1;
++		port_shift = port_offset ? 2 : 0;
++
++		/* get the port struct to handle its link according to the
++		 * current SERDES link index
++		 */
++		gaudi2_port_curr = &gaudi2->cn_ports[cn_m * 2 + port_offset];
++		cn_port_curr = gaudi2_port_curr->cn_port;
++
++		mutex_lock(&cn_port_curr->control_lock);
++
++		/* Skip in case the port is closed because the port_close method took care of
++		 * disabling the carrier and stopping the queue.
++		 */
++		if (!hbl_cn_is_port_open(cn_port_curr)) {
++			mutex_unlock(&cn_port_curr->control_lock);
++			continue;
++		}
++
++		link_status_mask = gaudi2_cn_get_link_status_mask(gaudi2_port_curr);
++		link_up = (curr_link_sts >> port_shift) & link_status_mask;
++		prev_link_up = cn_port_curr->pcs_link;
++
++		if (prev_link_up != link_up && !link_up) {
++			mutex_lock(&gaudi2_port_curr->qp_destroy_lock);
++
++			if (gaudi2_port_curr->qp_destroy_cnt && !cn_port_curr->mac_loopback) {
++				cn_port_curr->mac_loopback = true;
++				gaudi2_cn_hw_mac_loopback_cfg(gaudi2_port_curr);
++				gaudi2_port_curr->qp_destroy_mac_lpbk = true;
++			}
++
++			mutex_unlock(&gaudi2_port_curr->qp_destroy_lock);
++		}
++
++		/* Record the current link status that we got.
++		 * In case it is UP, and PHY is not ready, we don't want to actually set it and
++		 * reflect it to the user - this will be done later once the PHY will be ready.
++		 */
++		cn_port_curr->eq_pcs_link = link_up;
++
++		/* In case of link DOWN, set the actual link and reflect it to the user */
++		if (!link_up)
++			cn_port_curr->pcs_link = false;
++
++		/* Set the actual link status that is reflected to the user and print it in case
++		 * either we don't have PHY or we have PHY and it's ready.
++		 */
++		if (!hdev->phy_config_fw || cn_port_curr->phy_fw_tuned) {
++			cn_port_curr->pcs_link = link_up;
++			hbl_cn_phy_set_port_status(cn_port_curr, link_up);
++		}
++
++		mutex_unlock(&cn_port_curr->control_lock);
++	}
++}
++
++static void gaudi2_cn_eq_dispatcher_default_handler(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 event_type, port, synd;
++	struct hbl_cn_eqe eqe;
++
 +	port = cn_port->port;
 +
 +	mutex_lock(&cn_port->control_lock);
 +
-+	if (!hbl_cn_is_port_open(cn_port)) {
-+		dev_dbg(hdev->dev, "ignoring events while port %d closed", port);
-+		goto out;
++	while (!hbl_cn_eq_dispatcher_dequeue(cn_port, hdev->kernel_asid, &eqe, true)) {
++		if (!EQE_IS_VALID(&eqe)) {
++			dev_warn_ratelimited(hdev->dev,
++					     "Port-%d got invalid EQE on default queue!\n", port);
++			continue;
++		}
++
++		event_type = EQE_TYPE(&eqe);
++
++		switch (event_type) {
++		case EQE_COMP:
++			dev_warn_ratelimited(hdev->dev, "Port-%d comp event for invalid CQ:%d\n",
++					     port, EQE_CQ_EVENT_CQ_NUM(&eqe));
++			break;
++		case EQE_RAW_TX_COMP:
++			dev_warn_ratelimited(hdev->dev,
++					     "Port-%d raw-tx-comp event for invalid QP:%d\n",
++					     port, EQE_RAW_TX_EVENT_QPN(&eqe));
++			break;
++		case EQE_QP_ERR:
++			synd = EQE_QP_EVENT_ERR_SYND(&eqe);
++			dev_warn_ratelimited(hdev->dev,
++					     "Port-%d qp-err event: %d ,%s, for invalid QP:%d\n",
++					     port, synd, gaudi2_cn_qp_err_syndrome_to_str(synd),
++					     EQE_QP_EVENT_QPN(&eqe));
++			break;
++		case EQE_COMP_ERR:
++			dev_warn_ratelimited(hdev->dev, "Port-%d cq-err event for invalid CQ:%d\n",
++					     port, EQE_CQ_EVENT_CQ_NUM(&eqe));
++			break;
++		case EQE_DB_FIFO_OVERRUN:
++			dev_warn_ratelimited(hdev->dev,
++					     "Port-%d db-fifo overrun event for invalid DB:%d\n",
++					     port, EQE_DB_EVENT_DB_NUM(&eqe));
++			break;
++		case EQE_CONG:
++			dev_warn_ratelimited(hdev->dev,
++					     "Port-%d congestion event for invalid CCQ:%d\n",
++					     port, EQE_CQ_EVENT_CCQ_NUM(&eqe));
++			break;
++		case EQE_CONG_ERR:
++			/* congestion error due to cc cq hw bug is known */
++			cn_port->cong_q_err_cnt++;
++			dev_dbg_ratelimited(hdev->dev, "Port-%d congestion error event\n", port);
++			break;
++		case EQE_QP_ALIGN_COUNTERS:
++			dev_warn_ratelimited(hdev->dev,
++					     "Port-%d QP align counters event, for invalid QP:%d\n",
++					     port, EQE_SW_EVENT_QPN(&eqe));
++			break;
++		default:
++			dev_warn_ratelimited(hdev->dev, "Port-%d unsupported event type: %d",
++					     port, event_type);
++		}
 +	}
 +
-+	if (en_aux_ops->handle_eqe)
-+		while (!hbl_cn_eq_dispatcher_dequeue(cn_port, hdev->kernel_asid, &eqe, false))
-+			en_aux_ops->handle_eqe(aux_dev, port, &eqe);
-+
-+out:
 +	mutex_unlock(&cn_port->control_lock);
 +}
 +
-+void hbl_cn_get_self_hw_block_handle(struct hbl_cn_device *hdev, u64 address, u64 *handle)
++static void cn_eq_handler(struct gaudi2_cn_port *gaudi2_port)
 +{
-+	*handle = lower_32_bits(address) | (HBL_CN_MMAP_TYPE_BLOCK);
-+	*handle <<= PAGE_SHIFT;
-+}
-+
-+u32 hbl_cn_hw_block_handle_to_addr32(struct hbl_cn_device *hdev, u64 handle)
-+{
-+	return lower_32_bits(handle >> PAGE_SHIFT);
-+}
-+
-+void *__hbl_cn_dma_alloc_coherent(struct hbl_cn_device *hdev, size_t size, dma_addr_t *dma_handle,
-+				  gfp_t flag, const char *caller)
-+{
-+	const struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	return asic_funcs->dma_alloc_coherent(hdev, size, dma_handle, flag);
-+}
-+
-+void __hbl_cn_dma_free_coherent(struct hbl_cn_device *hdev, size_t size, void *cpu_addr,
-+				dma_addr_t dma_addr, const char *caller)
-+{
-+	const struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->dma_free_coherent(hdev, size, cpu_addr, dma_addr);
-+}
-+
-+void *__hbl_cn_dma_pool_zalloc(struct hbl_cn_device *hdev, size_t size, gfp_t mem_flags,
-+			       dma_addr_t *dma_handle, const char *caller)
-+{
-+	const struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	return asic_funcs->dma_pool_zalloc(hdev, size, mem_flags, dma_handle);
-+}
-+
-+void __hbl_cn_dma_pool_free(struct hbl_cn_device *hdev, void *vaddr, dma_addr_t dma_addr,
-+			    const char *caller)
-+{
-+	const struct hbl_cn_asic_funcs *asic_funcs = hdev->asic_funcs;
-+
-+	asic_funcs->dma_pool_free(hdev, vaddr, dma_addr);
-+}
-+
-+int hbl_cn_get_reg_pcie_addr(struct hbl_cn_device *hdev, u8 bar_id, u32 reg, u64 *pci_addr)
-+{
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hbl_aux_dev *aux_dev;
-+	u64 offset;
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 event_type, port, synd, qpn;
++	bool qp_retry_handled = false;
++	struct hbl_cn_ring *eq_ring;
++	struct hbl_cn_eqe *eqe_p;
 +	int rc;
 +
-+	aux_dev = hdev->cn_aux_dev;
-+	aux_ops = aux_dev->aux_ops;
++	eq_ring = &gaudi2_port->eq_ring;
++	port = cn_port->port;
 +
-+	rc = aux_ops->get_reg_pcie_addr(aux_dev, reg, &offset);
++	/* read the producer index from HW once. New event, received
++	 * after the "read once", will be handled in the next callback.
++	 */
++	eq_ring->pi_shadow = *((u32 *)RING_PI_ADDRESS(eq_ring));
++
++	while (eq_ring->ci_shadow != eq_ring->pi_shadow) {
++		eqe_p = (struct hbl_cn_eqe *)RING_BUF_ADDRESS(eq_ring) +
++			(eq_ring->ci_shadow & (eq_ring->count - 1));
++		if (!EQE_IS_VALID(eqe_p)) {
++			dev_warn_ratelimited(hdev->dev,
++					     "Port-%d got invalid EQE on EQ (eq.data[0] 0x%x, ci 0x%x, pi 0x%x)\n",
++					     port, eqe_p->data[0], eq_ring->ci_shadow,
++					     eq_ring->pi_shadow);
++		} else {
++			event_type = EQE_TYPE(eqe_p);
++
++			if (event_type == EQE_QP_ERR) {
++				synd = EQE_QP_EVENT_ERR_SYND(eqe_p);
++				if (gaudi2_port->adaptive_timeout_en && synd ==
++				    NIC_QP_ERR_RETRY_SYNDROME) {
++					qpn = EQE_RAW_TX_EVENT_QPN(eqe_p);
++					if (qpn != RAW_QPN)
++						qp_retry_handled =
++							gaudi2_handle_qp_error_retry(cn_port, qpn);
++				}
++			}
++
++			/* In case this is link event, we handle it now and the dispatcher won't be
++			 * involved.
++			 */
++			if (event_type == EQE_LINK_STATUS) {
++				gaudi2_cn_link_event_handler(gaudi2_port);
++			/* ignore CQ errors when CQ is in overrun, as CQ overflow errors are
++			 * expected.
++			 */
++			} else if (!qp_retry_handled && ((event_type != EQE_COMP_ERR) ||
++				!gaudi2_cn_is_cq_in_overrun(cn_port, EQE_CQ_EVENT_CQ_NUM(eqe_p)))) {
++				rc = hbl_cn_eq_dispatcher_enqueue(cn_port, eqe_p);
++				if (rc)
++					dev_warn_ratelimited(hdev->dev,
++							     "failed to dispatch event %d, err %d\n",
++							     event_type, rc);
++			}
++
++			/* Mark the EQ-entry is not valid */
++			EQE_SET_INVALID(eqe_p);
++		}
++
++		eq_ring->rep_idx++;
++		eq_ring->ci_shadow = (eq_ring->ci_shadow + 1) & EQ_IDX_MASK;
++
++		/* Update the HW consumer index, every quarter ring, with an
++		 * absolute value (ci_shadow is a wrap-around value).
++		 * Use the read producer index value for that.
++		 */
++		if (eq_ring->rep_idx > (eq_ring->count / 4) - 1) {
++			eq_ring->rep_idx = 0;
++			NIC_WREG32(NIC0_QPC0_EVENT_QUE_CONSUMER_INDEX, eq_ring->ci_shadow);
++		}
++	}
++
++	if (!qp_retry_handled) {
++		hbl_cn_eq_handler(cn_port);
++
++		/* Handle unknown resources and events */
++		gaudi2_cn_eq_dispatcher_default_handler(gaudi2_port);
++	}
++}
++
++static inline void gaudi2_cn_eq_clr_interrupts(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = gaudi2_port->cn_port->port;
++
++	/* Release the HW to allow more EQ interrupts.
++	 * No need for interrupt masking. As long as the SW hasn't set the clear reg,
++	 * new interrupts won't be raised
++	 */
++	NIC_WREG32(NIC0_QPC0_INTERRUPT_CLR, 0x200);
++
++	/* flush write so the interrupt will be cleared as soon as possible */
++	NIC_RREG32(NIC0_QPC0_INTERRUPT_CLR);
++}
++
++static void gaudi2_cn_eq_work(struct work_struct *work)
++{
++	struct gaudi2_cn_port *gaudi2_port = container_of(work, struct gaudi2_cn_port,
++							  eq_work.work);
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++
++	cn_eq_handler(gaudi2_port);
++
++	if (hdev->poll_enable)
++		schedule_delayed_work(&gaudi2_port->eq_work, msecs_to_jiffies(1));
++	else
++		gaudi2_cn_eq_clr_interrupts(gaudi2_port);
++}
++
++/* Use this routine when working with real HW */
++static irqreturn_t gaudi2_cn_eq_threaded_isr(int irq, void *arg)
++{
++	struct gaudi2_cn_port *gaudi2_port = arg;
++
++	gaudi2_cn_eq_clr_interrupts(gaudi2_port);
++	cn_eq_handler(gaudi2_port);
++
++	return IRQ_HANDLED;
++}
++
++static void gaudi2_cn_eq_hw_config(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_ring *ring = &gaudi2_port->eq_ring;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = gaudi2_port->cn_port->port;
++
++	WARN_ON_CACHE_UNALIGNED(RING_PI_DMA_ADDRESS(ring));
++	WARN_ON_CACHE_UNALIGNED(RING_BUF_DMA_ADDRESS(ring));
++
++	/* set base address for event queue */
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_PI_ADDR_63_32, upper_32_bits(RING_PI_DMA_ADDRESS(ring)));
++
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_PI_ADDR_31_7,
++		   lower_32_bits(RING_PI_DMA_ADDRESS(ring)) >> 7);
++
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_BASE_ADDR_63_32,
++		   upper_32_bits(RING_BUF_DMA_ADDRESS(ring)));
++
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_BASE_ADDR_31_7,
++		   lower_32_bits(RING_BUF_DMA_ADDRESS(ring)) >> 7);
++
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_LOG_SIZE, ilog2(ring->count));
++
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_WRITE_INDEX, 0);
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_PRODUCER_INDEX, 0);
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_CONSUMER_INDEX, 0);
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_CONSUMER_INDEX_CB, 0);
++
++	NIC_WREG32(NIC0_QPC0_EVENT_QUE_CFG, NIC0_QPC0_EVENT_QUE_CFG_INTERRUPT_PER_EQE_MASK |
++		   NIC0_QPC0_EVENT_QUE_CFG_WRITE_PI_EN_MASK | NIC0_QPC0_EVENT_QUE_CFG_ENABLE_MASK);
++
++	NIC_WREG32(NIC0_QPC0_AXUSER_EV_QUE_LBW_INTR_HB_WR_OVRD_LO, 0xFFFFFBFF);
++	NIC_WREG32(NIC0_QPC0_AXUSER_EV_QUE_LBW_INTR_HB_RD_OVRD_LO, 0xFFFFFBFF);
++
++	/* reset SW indices */
++	*((u32 *)RING_PI_ADDRESS(ring)) = 0;
++	ring->pi_shadow = 0;
++	ring->ci_shadow = 0;
++	ring->rep_idx = 0;
++}
++
++static void gaudi2_cn_eq_interrupts_enable_conditionally(struct gaudi2_cn_port *gaudi2_port,
++							 bool poll_enable)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port, sob_id;
++	struct gaudi2_cn_device *gaudi2;
++
++	gaudi2 = hdev->asic_specific;
++
++	if (poll_enable) {
++		/* Masking all QPC Interrupts except EQ wire int */
++		NIC_WREG32(NIC0_QPC0_INTERRUPT_MASK, 0x3FF);
++		NIC_WREG32(NIC0_QPC0_INTERRUPT_EN,
++			   NIC0_QPC0_INTERRUPT_EN_INTERRUPT10_WIRE_EN_MASK);
++	} else {
++		sob_id = gaudi2->sob_id_base + port;
++		NIC_WREG32(NIC0_QPC0_INTERRUPT_BASE_9,
++			   DCORE0_SYNC_MNGR_OBJS_SOB_OBJ_0 + sob_id * sizeof(u32));
++		NIC_WREG32(NIC0_QPC0_INTERRUPT_DATA_9, gaudi2->sob_inc_cfg_val);
++
++		/* Masking all QPC Interrupts except EQ int and error event queue int */
++		NIC_WREG32(NIC0_QPC0_INTERRUPT_MASK, 0x1FF);
++
++		NIC_WREG32(NIC0_QPC0_INTERRUPT_EN,
++			   NIC0_QPC0_INTERRUPT_EN_INTERRUPT9_MSI_EN_MASK |
++			   NIC0_QPC0_INTERRUPT_EN_INTERRUPT10_WIRE_EN_MASK);
++	}
++
++	/* flush */
++	NIC_RREG32(NIC0_QPC0_INTERRUPT_EN);
++}
++
++static void gaudi2_cn_eq_interrupts_disable(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++	u32 port = cn_port->port;
++
++	/* disabling and masking all QPC Interrupts */
++	NIC_WREG32(NIC0_QPC0_INTERRUPT_EN, 0);
++	NIC_WREG32(NIC0_QPC0_INTERRUPT_MASK, 0x7FF);
++
++	/* flush */
++	NIC_RREG32(NIC0_QPC0_INTERRUPT_EN);
++}
++
++void gaudi2_cn_eq_enter_temporal_polling_mode(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_cn_port *gaudi2_port;
++	int i;
++
++	if (hdev->poll_enable)
++		return;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		gaudi2_port = &gaudi2->cn_ports[i];
++		gaudi2_cn_eq_interrupts_enable_conditionally(gaudi2_port, true);
++	}
++
++	hdev->poll_enable = true;
++
++	/* wait for ISRs to complete before scheduling the polling work */
++	gaudi2_cn_eq_sync_irqs(hdev);
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		gaudi2_port = &gaudi2->cn_ports[i];
++		schedule_delayed_work(&gaudi2_port->eq_work, msecs_to_jiffies(1));
++	}
++}
++
++void gaudi2_cn_eq_exit_temporal_polling_mode(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_cn_port *gaudi2_port;
++	int i;
++
++	if (!hdev->poll_enable)
++		return;
++
++	if (!gaudi2->temporal_polling)
++		return;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		gaudi2_port = &gaudi2->cn_ports[i];
++		cancel_delayed_work_sync(&gaudi2_port->eq_work);
++	}
++
++	hdev->poll_enable = false;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		gaudi2_port = &gaudi2->cn_ports[i];
++		gaudi2_cn_eq_interrupts_enable_conditionally(gaudi2_port, false);
++		/* Schedule the work as interrupts may be pending but not acked thus preventing
++		 * interrupts from triggering.
++		 * Double scheduling avoidance of the work (from the ISR and from here)
++		 * is done by the WQ scheduler itself.
++		 */
++		schedule_delayed_work(&gaudi2_port->eq_work, 0);
++	}
++}
++
++static int gaudi2_cn_eq_port_init(struct gaudi2_cn_port *gaudi2_port)
++{
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++
++	gaudi2_cn_eq_hw_config(gaudi2_port);
++
++	/* we disable eq handler here in order to prevent a crash if a race occurs
++	 * between the work-queue calling the handler routine and the eth driver
++	 * unregistering it.
++	 */
++	gaudi2_port->cn_port->eq_handler_enable = false;
++
++	INIT_DELAYED_WORK(&gaudi2_port->eq_work, gaudi2_cn_eq_work);
++
++	gaudi2_cn_eq_interrupts_enable_conditionally(gaudi2_port, hdev->poll_enable);
++
++	if (hdev->poll_enable)
++		schedule_delayed_work(&gaudi2_port->eq_work, msecs_to_jiffies(1));
++
++	return 0;
++}
++
++static void gaudi2_cn_eq_port_fini(struct gaudi2_cn_port *gaudi2_port)
++{
++	gaudi2_cn_eq_interrupts_disable(gaudi2_port);
++	cancel_delayed_work_sync(&gaudi2_port->eq_work);
++	gaudi2_port->cn_port->eq_handler_enable = false;
++}
++
++int gaudi2_cn_eq_init(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	struct gaudi2_cn_port *gaudi2_port;
++	int rc, i, port_cnt = 0;
++	u32 port;
++
++	/* Need to reset the value of 'poll_enable' for a case that we entered temporal polling mode
++	 * but didn't exit it (e.g. during a failing soft-reset).
++	 * The original value is actually the inverse of 'temporal_polling' which is set once in
++	 * sw_init and is constant.
++	 */
++	hdev->poll_enable = !gaudi2->temporal_polling;
++
++	/* Due to H/W bug on gaudi2, link events for both even and odd ports arrive only on the odd
++	 * port in the macro. Therefore, need to initialize all EQs of all ports regardless of their
++	 * enablement.
++	 */
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++, port_cnt++) {
++		gaudi2_port = &gaudi2->cn_ports[i];
++		port = gaudi2_port->cn_port->port;
++
++		rc = gaudi2_cn_eq_port_init(gaudi2_port);
++		if (rc) {
++			dev_err(hdev->dev, "Failed to init the hardware EQ, port: %d, %d\n", port,
++				rc);
++			goto err;
++		}
++	}
++
++	return 0;
++
++err:
++	for (i = 0; i < port_cnt; i++)
++		gaudi2_cn_eq_port_fini(&gaudi2->cn_ports[i]);
++
++	return rc;
++}
++
++void gaudi2_cn_eq_fini(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	int i;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++)
++		gaudi2_cn_eq_port_fini(&gaudi2->cn_ports[i]);
++}
++
++/* event dispatcher
++ *
++ * In gaudi2 each port has a single EQ. The HW writes all the related events
++ * to this EQ. Since multiple applications can use the port at the same time we
++ * need to have a way to dispatch the app-related events to the correct
++ * application, these events will be read later on by the IB API.
++ */
++
++struct hbl_cn_ev_dq *gaudi2_cn_eq_dispatcher_select_dq(struct hbl_cn_port *cn_port,
++						       const struct hbl_cn_eqe *eqe)
++{
++	struct gaudi2_cn_port *gaudi2_port = (struct gaudi2_cn_port *)cn_port->cn_specific;
++	struct hbl_cn_ev_dqs *ev_dqs = &cn_port->ev_dqs;
++	struct hbl_cn_ev_dq *dq = NULL;
++	u32 event_type = EQE_TYPE(eqe);
++	u32 cqn, qpn, dbn, ccqn;
++
++	switch (event_type) {
++	case EQE_COMP:
++		fallthrough;
++	case EQE_COMP_ERR:
++		cqn = EQE_CQ_EVENT_CQ_NUM(eqe);
++		dq = hbl_cn_cqn_to_dq(ev_dqs, cqn, gaudi2_port->hdev);
++		break;
++	case EQE_QP_ERR:
++		qpn = EQE_QP_EVENT_QPN(eqe);
++		dq = hbl_cn_qpn_to_dq(ev_dqs, qpn);
++		break;
++	case EQE_RAW_TX_COMP:
++		qpn = EQE_RAW_TX_EVENT_QPN(eqe);
++		dq = hbl_cn_qpn_to_dq(ev_dqs, qpn);
++		break;
++	case EQE_DB_FIFO_OVERRUN:
++		dbn = EQE_DB_EVENT_DB_NUM(eqe);
++		dq = hbl_cn_dbn_to_dq(ev_dqs, dbn, gaudi2_port->hdev);
++		break;
++	case EQE_CONG:
++		ccqn = EQE_CQ_EVENT_CCQ_NUM(eqe);
++		dq = hbl_cn_ccqn_to_dq(ev_dqs, ccqn, gaudi2_port->hdev);
++		break;
++	case EQE_QP_ALIGN_COUNTERS:
++		qpn = EQE_SW_EVENT_QPN(eqe);
++		dq = hbl_cn_qpn_to_dq(ev_dqs, qpn);
++		break;
++	case EQE_CONG_ERR:
++		fallthrough;
++	case EQE_RESERVED:
++		fallthrough;
++	default:
++		dq = &ev_dqs->default_edq;
++	}
++
++	/* Unknown resources and events should be handled by default events
++	 * dispatch queue.
++	 */
++	return IS_ERR_OR_NULL(dq) ? &ev_dqs->default_edq : dq;
++}
++
++int gaudi2_cn_eq_dispatcher_register_db(struct gaudi2_cn_port *gaudi2_port, u32 asid, u32 dbn)
++{
++	struct hbl_cn_device *hdev = gaudi2_port->hdev;
++
++	if (dbn == GAUDI2_DB_FIFO_PRIVILEGE_HW_ID)
++		return -EINVAL;
++
++	if (asid != hdev->kernel_asid && dbn == GAUDI2_DB_FIFO_SECURE_HW_ID)
++		return -EINVAL;
++
++	return hbl_cn_eq_dispatcher_register_db(gaudi2_port->cn_port, asid, dbn);
++}
+diff --git a/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_phy.c b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_phy.c
+new file mode 100644
+index 000000000000..2837fc11c43a
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_cn/gaudi2/gaudi2_cn_phy.c
+@@ -0,0 +1,2743 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#include <linux/module.h>
++#include <linux/firmware.h>
++
++#include "gaudi2_cn.h"
++
++#define NIC_PHY_CFG_SIZE (NIC0_SERDES1_LANE0_REGISTER_0P00 - NIC0_SERDES0_LANE0_REGISTER_0P00)
++
++#define NIC_PHY_CFG_BASE(port) \
++		({ \
++			u32 __port = (port); \
++			((u64)(NIC_MACRO_CFG_BASE(__port) + \
++			NIC_PHY_CFG_SIZE * (u64)((__port) & 1))); \
++		})
++
++#define LANE_LO_OFF (NIC0_SERDES0_LANE1_REGISTER_0P00 - NIC0_SERDES0_LANE0_REGISTER_0P00)
++
++#define LANE_HI_OFF (NIC0_SERDES0_LANE1_REGISTER_AI00 - NIC0_SERDES0_LANE0_REGISTER_AI00)
++
++#define LANE_OFF(reg, lane) \
++		({ \
++			u32 __lane = lane; \
++			((reg) < NIC0_SERDES0_LANE0_REGISTER_AI00) ? \
++			((__lane) * LANE_LO_OFF) : ((__lane) * LANE_HI_OFF); \
++		})
++
++#define PHY_PRINT(port, lane, op, val, reg) \
++	({ \
++		if (hdev->phy_regs_print) { \
++			u32 __port = (port); \
++			dev_info(hdev->dev, "[%s],Nic,%u,Port,%u,Lane,%d,%s,0x%08x,0x%08llx\n", \
++				 __func__, __port >> 1, __port & 0x1, (lane), (op), (val), (reg)); \
++			usleep_range(1000, 2000); \
++		} \
++	})
++
++#define NIC_PHY_RREG32(reg) \
++	({ \
++		u32 _port = port; \
++		u64 _reg = NIC_PHY_CFG_BASE(_port) + (reg); \
++		u32 _val = RREG32(_reg); \
++		PHY_PRINT(_port, -1, "read", _val, _reg); \
++		_val; \
++	})
++
++#define NIC_PHY_WREG32(reg, val) \
++	do { \
++		u32 _port = port; \
++		u64 _reg = NIC_PHY_CFG_BASE(_port) + (reg); \
++		u32 _val = (val); \
++		WREG32(_reg, _val); \
++		PHY_PRINT(_port, -1, "write", _val, _reg); \
++	} while (0)
++
++#define NIC_PHY_RMWREG32(reg, val, mask) \
++	do { \
++		u32 _port = port; \
++		u64 _reg = NIC_PHY_CFG_BASE(_port) + (reg); \
++		u32 _val = (val); \
++		u32 _mask = (mask); \
++		u32 _tmp = RREG32(_reg); \
++		PHY_PRINT(_port, -1, "read(rmw)", _tmp, _reg); \
++		_tmp &= ~_mask; \
++		_tmp |= (_val << __ffs(_mask)); \
++		WREG32(_reg, _tmp); \
++		PHY_PRINT(_port, -1, "write(rmw)", _tmp, _reg); \
++	} while (0)
++
++#define NIC_PHY_RREG32_LANE(reg) \
++	({ \
++		u32 _port = port; \
++		u32 _lane = lane; \
++		u64 _reg = (reg); \
++		u64 __reg = NIC_PHY_CFG_BASE(_port) + _reg + LANE_OFF(_reg, _lane); \
++		u32 _val = RREG32(__reg); \
++		PHY_PRINT(_port, _lane, "read", _val, __reg); \
++		_val; \
++	})
++
++#define NIC_PHY_WREG32_LANE(reg, val) \
++	do { \
++		u32 _port = port; \
++		u32 _lane = lane; \
++		u64 _reg = (reg); \
++		u64 __reg = NIC_PHY_CFG_BASE(_port) + _reg + LANE_OFF(_reg, _lane); \
++		u32 _val = (val); \
++		WREG32(__reg, _val); \
++		PHY_PRINT(_port, _lane, "write", _val, __reg); \
++	} while (0)
++
++#define NIC_PHY_RMWREG32_LANE(reg, val, mask) \
++	do { \
++		u32 _port = port; \
++		u32 _lane = lane; \
++		u64 _reg = (reg); \
++		u64 __reg = NIC_PHY_CFG_BASE(_port) + _reg + LANE_OFF(_reg, _lane); \
++		u32 _val = (val); \
++		u32 _mask = (mask); \
++		u32 _tmp = RREG32(__reg); \
++		PHY_PRINT(_port, _lane, "read(rmw)", _tmp, __reg); \
++		_tmp &= ~_mask; \
++		_tmp |= (_val << __ffs(_mask)); \
++		WREG32(__reg, _tmp); \
++		PHY_PRINT(_port, _lane, "write(rmw)", _tmp, __reg); \
++	} while (0)
++
++#define NIC_PHY_READ_COUNTS_PER_MS		100000
++#define NIC_PHY_FW_TIME_CONSTANT_RATIO		64
++#define NIC_PHY_FW_TUNING_INTERVAL_MS		100
++#define NIC_PHY_FW_TUNING_TIMEOUT_MS		(30 * MSEC_PER_SEC) /* 30 seconds */
++#define NIC_PHY_PAM4_BER_FACTOR			53125000
++#define NIC_PHY_NRZ_BER_FACTOR			25781250
++
++#define NIC_PHY_TX_POL_MASK_HL225		0xF00000000430
++#define NIC_PHY_RX_POL_MASK_HL225		0x0FFFFFFFFBCF
++#define NIC_PHY_TX_POL_MASK_HLS2		0x0
++#define NIC_PHY_RX_POL_MASK_HLS2		0x0
++
++#define NIC_PHY_PCS_LINK_DOWN_TH_S		5
++#define NIC_PHY_MAC_REMOTE_FAULT_TH_S		10
++
++#define NIC_PHY_PCS_SETTLING_WAIT_MS		(5 * MSEC_PER_SEC)
++#define NIC_PHY_PCS_STRESS_INT_MS		10
++#define NIC_PHY_PCS_STEADY_STATE_INT_MS		(1 * MSEC_PER_SEC)
++
++#define NIC_PHY_PCS_TESTING_WINDOW_S		20
++#define NIC_PHY_PCS_TESTING_WINDOW_MS		(NIC_PHY_PCS_TESTING_WINDOW_S * MSEC_PER_SEC)
++#define NIC_PHY_PCS_STRESS_WINDOW_MS \
++		(NIC_PHY_PCS_TESTING_WINDOW_MS - NIC_PHY_PCS_SETTLING_WAIT_MS)
++
++#define NIC_PHY_PCS_MAX_LINK_TOGGLES		5
++
++enum tx_taps_sets {
++	NIC_PHY_TX_TAPS_SET_1 = 0,
++	NIC_PHY_TX_TAPS_SET_2,
++	NIC_PHY_TX_TAPS_SET_3,
++	NIC_PHY_TX_TAPS_SET_4,
++
++	NIC_PHY_TX_TAPS_NUM_SETS
++};
++
++#define NIC_PHY_DEFAULT_TX_TAPS_DEFAULT		NIC_PHY_TX_TAPS_SET_1
++
++struct hbl_cn_tx_taps tx_taps_set_array[NIC_PHY_TX_TAPS_NUM_SETS] = {
++	{.pam4_taps = {2, -10, 23, 0, 0}, .nrz_taps = {0, -10, 26, 0, 0}},
++	{.pam4_taps = {0, -6, 22, 0, 0}, .nrz_taps = {0, -10, 26, 0, 0}},
++	{.pam4_taps = {3, -12, 21, 0, 0}, .nrz_taps = {0, -10, 26, 0, 0}},
++	{.pam4_taps = {1, -7, 18, 0, 0}, .nrz_taps = {0, -10, 26, 0, 0}},
++};
++
++static enum tx_taps_sets tx_taps_cfg_array[][2] = {
++	{NIC_PHY_TX_TAPS_SET_1, NIC_PHY_TX_TAPS_SET_1},
++	{NIC_PHY_TX_TAPS_SET_1, NIC_PHY_TX_TAPS_SET_2},
++	{NIC_PHY_TX_TAPS_SET_2, NIC_PHY_TX_TAPS_SET_1},
++	{NIC_PHY_TX_TAPS_SET_2, NIC_PHY_TX_TAPS_SET_2},
++	{NIC_PHY_TX_TAPS_SET_1, NIC_PHY_TX_TAPS_SET_3},
++	{NIC_PHY_TX_TAPS_SET_3, NIC_PHY_TX_TAPS_SET_1},
++	{NIC_PHY_TX_TAPS_SET_3, NIC_PHY_TX_TAPS_SET_3},
++	{NIC_PHY_TX_TAPS_SET_1, NIC_PHY_TX_TAPS_SET_4},
++	{NIC_PHY_TX_TAPS_SET_4, NIC_PHY_TX_TAPS_SET_1},
++	{NIC_PHY_TX_TAPS_SET_4, NIC_PHY_TX_TAPS_SET_4}
++};
++
++static size_t tx_taps_num_cfgs = ARRAY_SIZE(tx_taps_cfg_array);
++
++#define NIC_MAC_LANE_MAP(lane_0, lane_1, lane_2, lane_3) \
++	(((lane_0) & \
++	NIC0_PHY_PHY_ASYNC_LANE_SWAP_SERDES0_TX0_SWAP_ID_MASK) | \
++	(((lane_1) & \
++	NIC0_PHY_PHY_ASYNC_LANE_SWAP_SERDES0_TX0_SWAP_ID_MASK) << \
++	NIC0_PHY_PHY_ASYNC_LANE_SWAP_SERDES0_TX1_SWAP_ID_SHIFT) | \
++	(((lane_2) & \
++	NIC0_PHY_PHY_ASYNC_LANE_SWAP_SERDES0_TX0_SWAP_ID_MASK) << \
++	NIC0_PHY_PHY_ASYNC_LANE_SWAP_SERDES1_TX0_SWAP_ID_SHIFT) | \
++	(((lane_3) & \
++	NIC0_PHY_PHY_ASYNC_LANE_SWAP_SERDES0_TX0_SWAP_ID_MASK) << \
++	NIC0_PHY_PHY_ASYNC_LANE_SWAP_SERDES1_TX1_SWAP_ID_SHIFT))
++
++/* Lane map for HL-225 */
++static u32 default_cn_mac_lane_remap[] = {
++	/* MACRO 0 */
++	NIC_MAC_LANE_MAP(NIC_MAC_LANE_3, NIC_MAC_LANE_1, NIC_MAC_LANE_0, NIC_MAC_LANE_2),
++	/* MACRO 1-10. Use default HW power on reset mapping. */
++	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	/* MACRO 11 */
++	NIC_MAC_LANE_MAP(NIC_MAC_LANE_1, NIC_MAC_LANE_0, NIC_MAC_LANE_3, NIC_MAC_LANE_2),
++};
++
++/* Firmware lane mapping per macro are nibbles.
++ * e.g. 0x3210 maps to lane 3/2/1/0
++ */
++#define FW_PARSE_LANE_MAP(macro, lane) \
++	({ \
++		u32 _lane = (lane); \
++		((macro) & (0xf << (_lane * 4))) >> (_lane * 4); \
++	})
++
++enum lane_state {
++	READY,
++	NOT_READY,
++	FAILURE
++};
++
++#define GAUDI2_PHY_FW_FILE	"habanalabs/gaudi2/gaudi2_cn_fw.bin"
++
++MODULE_FIRMWARE(GAUDI2_PHY_FW_FILE);
++
++const char *gaudi2_cn_phy_get_fw_name(void)
++{
++	return GAUDI2_PHY_FW_FILE;
++}
++
++static int get_tx_lane_in_macro(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	u32 lane_in_macro, lane_swap_val;
++	int tx_lane;
++
++	lane_in_macro = (port & 0x1) * 2 + lane;
++	lane_swap_val = hdev->mac_lane_remap[port >> 1];
++
++	if (!lane_swap_val)
++		return lane_in_macro;
++
++	for (tx_lane = 0; tx_lane < NIC_MAC_NUM_OF_LANES; tx_lane++) {
++		if (((lane_swap_val >> (tx_lane * 2)) & 0x3) == lane_in_macro)
++			break;
++	}
++
++	return tx_lane;
++}
++
++static void get_tx_port_and_lane(struct hbl_cn_device *hdev, u32 port, int lane, u32 *tx_port,
++				 int *tx_lane)
++{
++	struct hbl_cn_port *cn_port = &hdev->cn_ports[port];
++	u32 tx_lane_in_macro, abs_tx_lane_idx;
++
++	if (!cn_port->auto_neg_enable) {
++		*tx_port = port;
++		*tx_lane = lane;
++		return;
++	}
++
++	tx_lane_in_macro = get_tx_lane_in_macro(hdev, port, lane);
++	abs_tx_lane_idx = (port >> 1) * NIC_MAC_NUM_OF_LANES + tx_lane_in_macro;
++
++	*tx_port = abs_tx_lane_idx >> 1;
++	*tx_lane = abs_tx_lane_idx & 0x1;
++}
++
++static bool is_lane_swapping(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	u32 tx_port;
++	int tx_lane;
++
++	get_tx_port_and_lane(hdev, port, lane, &tx_port, &tx_lane);
++
++	return (tx_port != port) || (tx_lane != lane);
++}
++
++static void set_fw_lane_mapping(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_cpucp_info *cpucp_info = hdev->cpucp_info;
++	u16 cpu_macro_tx_swap_map;
++	int i;
++
++	for (i = 0; i < NIC_NUMBER_OF_MACROS; i++) {
++		cpu_macro_tx_swap_map = cpucp_info->tx_swap_map[i];
++		hdev->mac_lane_remap[i] = NIC_MAC_LANE_MAP(FW_PARSE_LANE_MAP(cpu_macro_tx_swap_map,
++									     0), /* lane 0 */
++							   FW_PARSE_LANE_MAP(cpu_macro_tx_swap_map,
++									     1), /* lane 1 */
++							   FW_PARSE_LANE_MAP(cpu_macro_tx_swap_map,
++									     2), /* lane 2 */
++							   FW_PARSE_LANE_MAP(cpu_macro_tx_swap_map,
++									     3)); /* lane 3 */
++	}
++}
++
++static void mac_lane_remap(struct hbl_cn_device *hdev, u32 port)
++{
++	if (hdev->mac_lane_remap[port >> 1])
++		NIC_MACRO_WREG32(NIC0_PHY_PHY_ASYNC_LANE_SWAP, hdev->mac_lane_remap[port >> 1]);
++}
++
++static void soft_reset(struct hbl_cn_device *hdev, u32 port)
++{
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980D, 0x888,
++			 NIC0_SERDES0_REGISTER_980D_DOMAIN_RESET_MASK);
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980D, 0x0,
++			 NIC0_SERDES0_REGISTER_980D_DOMAIN_RESET_MASK);
++}
++
++static void logic_reset(struct hbl_cn_device *hdev, u32 port)
++{
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980D, 0x777,
++			 NIC0_SERDES0_REGISTER_980D_DOMAIN_RESET_MASK);
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980D, 0x0,
++			 NIC0_SERDES0_REGISTER_980D_DOMAIN_RESET_MASK);
++}
++
++static void cpu_reset(struct hbl_cn_device *hdev, u32 port)
++{
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980D, 0xAAA,
++			 NIC0_SERDES0_REGISTER_980D_DOMAIN_RESET_MASK);
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980D, 0x0,
++			 NIC0_SERDES0_REGISTER_980D_DOMAIN_RESET_MASK);
++}
++
++static int fw_cmd(struct hbl_cn_device *hdev, u32 port, u32 cmd, u32 *detail, u32 expected_res,
++		  u32 *res_ptr)
++{
++	u32 res, val, checks = 0;
++
++	if (detail)
++		NIC_PHY_WREG32(NIC0_SERDES0_REGISTER_9816, *detail);
++
++	NIC_PHY_WREG32(NIC0_SERDES0_REGISTER_9815, cmd);
++
++	do {
++		usleep_range(1000, 2000);
++		res = NIC_PHY_RREG32(NIC0_SERDES0_REGISTER_9815);
++		if (checks++ > NIC_PHY_READ_COUNTS_PER_MS) {
++			dev_dbg(hdev->dev, "timeout for PHY cmd 0x%x port %u\n", cmd, port);
++			return -ETIMEDOUT;
++		}
++	} while (res == cmd);
++
++	val = (res >> 8) & 0xF;
++
++	if (val != expected_res) {
++		dev_dbg(hdev->dev, "cmd 0x%x returned error 0x%x port %u\n", cmd, val, port);
++		return -EFAULT;
++	}
++
++	*res_ptr = res;
++
++	return 0;
++}
++
++static void clock_init(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	u32 first_val, second_val;
++
++	if (port & 0x1) { /* raven 1 */
++		if (lane == 0) {
++			first_val = 0xA9E0;
++			second_val = 0x9B9E;
++		} else { /* lane 1 */
++			first_val = 0xA9E0;
++			second_val = 0x9B9E;
++		}
++	} else { /* raven 0 */
++		if (lane == 0) {
++			first_val = 0x59E0;
++			second_val = 0x9B5E;
++		} else { /* lane 1 */
++			first_val = 0xA9E0;
++			second_val = 0x9B9E;
++		}
++	}
++
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PCC, first_val);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0NF3, second_val);
++}
++
++static u32 int_to_twos(s32 val, u8 bitwidth)
++{
++	return val < 0 ? (1 << bitwidth) + val : val;
++}
++
++static int twos_to_int(unsigned int val, u8 bitwidth)
++{
++	u32 mask = 1 << (bitwidth - 1);
++
++	return -(val & mask) + (val & ~mask);
++}
++
++static void set_tx_taps(struct hbl_cn_device *hdev, u32 port, int lane, s32 tx_pre2, s32 tx_pre1,
++			s32 tx_main, s32 tx_post1, s32 tx_post2, bool pam4)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA5, int_to_twos(tx_pre2, 8),
++			      NIC0_SERDES0_LANE0_REGISTER_0PA5_TX_PRE_2_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA7, int_to_twos(tx_pre1, 8),
++			      NIC0_SERDES0_LANE0_REGISTER_0PA7_TX_PRE_1_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA9, int_to_twos(tx_main, 8),
++			      NIC0_SERDES0_LANE0_REGISTER_0PA9_TX_MAIN_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAB, int_to_twos(tx_post1, 8),
++			      NIC0_SERDES0_LANE0_REGISTER_0PAB_TX_POST_1_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAD, int_to_twos(tx_post2, 8),
++			      NIC0_SERDES0_LANE0_REGISTER_0PAD_TX_POST_2_MASK);
++
++	dev_dbg(hdev->dev, "Card %u Port %u lane %d: set %s tx taps [%d,%d,%d,%d,%d]\n",
++		hdev->card_location, port, lane, pam4 ? "PAM4" : "NRZ", tx_pre2, tx_pre1, tx_main,
++		tx_post1, tx_post2);
++}
++
++static void set_tx_taps_cfg(struct hbl_cn_device *hdev, u32 port, int lane, u8 cfg, bool pam4,
++			    bool reset_taps)
++{
++	enum tx_taps_sets set_id;
++	u32 abs_lane_idx;
++	s32 *taps;
++
++	set_id = tx_taps_cfg_array[cfg][lane];
++	abs_lane_idx = (port << 1) + lane;
++
++	if (pam4) {
++		taps = hdev->phy_tx_taps[abs_lane_idx].pam4_taps;
++		memcpy(taps, tx_taps_set_array[set_id].pam4_taps,
++		       sizeof(hdev->phy_tx_taps[abs_lane_idx].pam4_taps));
++	} else {
++		taps = hdev->phy_tx_taps[abs_lane_idx].nrz_taps;
++		memcpy(taps, tx_taps_set_array[set_id].nrz_taps,
++		       sizeof(hdev->phy_tx_taps[abs_lane_idx].nrz_taps));
++	}
++
++	if (reset_taps) {
++		/* Here we first reset the Tx taps (setting all to zero) in order to force link
++		 * down on the remote port, so it will have a "fresh start" when setting the next
++		 * Tx taps set.
++		 */
++		set_tx_taps(hdev, port, lane, 0, 0, 0, 0, 0, pam4);
++		msleep(100);
++	}
++
++	set_tx_taps(hdev, port, lane, taps[0], taps[1], taps[2], taps[3], taps[4], pam4);
++}
++
++static u8 get_curr_tx_taps_cfg(struct hbl_cn_device *hdev, u32 port)
++{
++	struct gaudi2_cn_port *gaudi2_port = hdev->cn_ports[port].cn_specific;
++
++	return gaudi2_port->tx_taps_cfg;
++}
++
++static void init_pam4_tx(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA1, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA2, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA3, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA4, 0x0);
++	/* data quite */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x6320);
++	/* auto symmetric, scale */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAF, 0xFAC9);
++	/* data, prbs */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, 0x4000);
++	/* cursor -2 */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA5, 0x100);
++	/* cursor -1 */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA7, 0xF900);
++	/* cursor -main */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA9, 0x1700);
++	/* cursor +1 */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAB, 0x0);
++	/* cursor +2 */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAD, 0x0);
++}
++
++static void init_pam4_rx(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	/* ac-couple always */
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PF8, 0x1,
++			      NIC0_SERDES0_LANE0_REGISTER_0PF8_AC_COUPLE_EN_MASK);
++}
++
++static void set_lane_mode_tx(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4)
++{
++	if (pam4) {
++		/* Disable NRZ mode */
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, 0x0,
++				      NIC0_SERDES0_LANE0_REGISTER_0PB0_TX_NRZ_MODE_MASK);
++		/* Disable NRZ PRBS Generator */
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, 0x0,
++				      NIC0_SERDES0_LANE0_REGISTER_0PB0_TX_NRZ_PRBS_GEN_EN_MASK);
++		/* Enable PAM4 PRBS Generator */
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PRBS_CLK_EN_MASK);
++	} else {
++		/* Disable PAM4 PRBS Generator */
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x0,
++				      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PRBS_CLK_EN_MASK);
++		/* Enable NRZ mode */
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0PB0_TX_NRZ_MODE_MASK);
++		/* Enable NRZ PRBS Generator */
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0PB0_TX_NRZ_PRBS_GEN_EN_MASK);
++	}
++}
++
++static void set_lane_mode_rx(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4)
++{
++	if (pam4)
++		/* Enable PAM4 mode */
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P41, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0P41_PAM4_EN_MASK);
++	else
++		/* Disable PAM4 mode */
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P41, 0x0,
++				      NIC0_SERDES0_LANE0_REGISTER_0P41_PAM4_EN_MASK);
++}
++
++static void prbs_mode_select_tx(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4,
++				char *mode)
++{
++	u32 val;
++
++	if (!mode || strncmp(mode, "PRBS", strlen("PRBS")))
++		return;
++
++	if (pam4) {
++		if (!strncmp(mode, "PRBS9", strlen("PRBS9")))
++			val = 0;
++		else if (!strncmp(mode, "PRBS13", strlen("PRBS13")))
++			val = 1;
++		else if (!strncmp(mode, "PRBS15", strlen("PRBS15")))
++			val = 2;
++		else /* PRBS31 */
++			val = 3;
++
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, val,
++				      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PRBS_MODE_MASK);
++	} else {
++		if (!strncmp(mode, "PRBS9", strlen("PRBS9")))
++			val = 0;
++		else if (!strncmp(mode, "PRBS15", strlen("PRBS15")))
++			val = 1;
++		else if (!strncmp(mode, "PRBS23", strlen("PRBS23")))
++			val = 2;
++		else /* PRBS31 */
++			val = 3;
++
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, val,
++				      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PRBS_MODE_MASK);
++	}
++
++	val = pam4 ? 0 : 1;
++
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, val,
++			      NIC0_SERDES0_LANE0_REGISTER_0PB0_TX_NRZ_PRBS_CLK_EN_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, val,
++			      NIC0_SERDES0_LANE0_REGISTER_0PB0_TX_NRZ_PRBS_GEN_EN_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, val,
++			      NIC0_SERDES0_LANE0_REGISTER_0PB0_TX_NRZ_MODE_MASK);
++
++	if (pam4)
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, 0x0,
++				      NIC0_SERDES0_LANE0_REGISTER_0PB0_TX_HALF_RATE_EN_MASK);
++
++	val = pam4 ? 1 : 0;
++
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x1,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_TEST_DATA_SRC_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, val,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PRBS_CLK_EN_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x1,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PAM4_TEST_EN_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, val,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PRBS_GEN_EN_MASK);
++}
++
++static void prbs_mode_select_rx(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4,
++				char *mode)
++{
++	u32 val;
++
++	if (!mode || strncmp(mode, "PRBS", strlen("PRBS")))
++		return;
++
++	if (pam4) {
++		if (!strncmp(mode, "PRBS9", strlen("PRBS9")))
++			val = 0;
++		else if (!strncmp(mode, "PRBS13", strlen("PRBS13")))
++			val = 1;
++		else if (!strncmp(mode, "PRBS15", strlen("PRBS15")))
++			val = 2;
++		else /* PRBS31 */
++			val = 3;
++
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, val,
++				      NIC0_SERDES0_LANE0_REGISTER_0P43_PRBS_MODE_SEL_MASK);
++	} else {
++		if (!strncmp(mode, "PRBS9", strlen("PRBS9")))
++			val = 0;
++		else if (!strncmp(mode, "PRBS15", strlen("PRBS15")))
++			val = 1;
++		else if (!strncmp(mode, "PRBS23", strlen("PRBS23")))
++			val = 2;
++		else /* PRBS31 */
++			val = 3;
++
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N61, val,
++				      NIC0_SERDES0_LANE0_REGISTER_0N61_NRZ_PRBS_MODE_SEL_MASK);
++	}
++
++	if (pam4) {
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0P43_PU_PRBS_CHKR_MASK);
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0P43_PU_PRBS_SYNC_CHKR_MASK);
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0P43_RX_PRBS_AUTO_SYNC_EN_MASK);
++	} else {
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N61, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0N61_PRBS_CHKR_EN_MASK);
++	}
++}
++
++static void set_default_polarity_values(struct hbl_cn_device *hdev)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	enum gaudi2_setup_type setup_type;
++	u64 pol_tx, pol_rx;
++
++	setup_type = gaudi2->setup_type;
++
++	if (hdev->skip_phy_pol_cfg)
++		return;
++
++	switch (setup_type) {
++	case GAUDI2_SETUP_TYPE_HLS2:
++		pol_tx = NIC_PHY_TX_POL_MASK_HL225 ^ NIC_PHY_TX_POL_MASK_HLS2;
++		pol_rx = NIC_PHY_RX_POL_MASK_HL225 ^ NIC_PHY_RX_POL_MASK_HLS2;
++		break;
++	default:
++		dev_err(hdev->dev, "Wrong setup type %d\n", setup_type);
++		return;
++	}
++
++	hdev->pol_tx_mask = pol_tx;
++	hdev->pol_rx_mask = pol_rx;
++}
++
++static void set_default_mac_lane_remap(struct hbl_cn_device *hdev)
++{
++	memcpy(hdev->mac_lane_remap, default_cn_mac_lane_remap,
++	       sizeof(default_cn_mac_lane_remap));
++}
++
++static s32 get_pam4_tap_pre2(struct hbl_cn_device *hdev, u32 card_location, u32 abs_lane_idx)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	enum gaudi2_setup_type setup_type;
++
++	setup_type = gaudi2->setup_type;
++
++	switch (setup_type) {
++	case GAUDI2_SETUP_TYPE_HLS2:
++		return tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].pam4_taps[0];
++	default:
++		dev_err(hdev->dev, "Wrong setup type %d\n", setup_type);
++	}
++
++	return 2;
++}
++
++static s32 get_pam4_tap_pre1(struct hbl_cn_device *hdev, u32 card_location, u32 abs_lane_idx)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	enum gaudi2_setup_type setup_type;
++
++	setup_type = gaudi2->setup_type;
++
++	switch (setup_type) {
++	case GAUDI2_SETUP_TYPE_HLS2:
++		return tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].pam4_taps[1];
++	default:
++		dev_err(hdev->dev, "Wrong setup type %d\n", setup_type);
++	}
++
++	return -12;
++}
++
++static s32 get_pam4_tap_main(struct hbl_cn_device *hdev, u32 card_location, u32 abs_lane_idx)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	enum gaudi2_setup_type setup_type;
++
++	setup_type = gaudi2->setup_type;
++
++	switch (setup_type) {
++	case GAUDI2_SETUP_TYPE_HLS2:
++		return tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].pam4_taps[2];
++	default:
++		dev_err(hdev->dev, "Wrong setup type %d\n", setup_type);
++	}
++
++	return 22;
++}
++
++static s32 get_pam4_tap_post1(struct hbl_cn_device *hdev, u32 card_location, u32 abs_lane_idx)
++{
++	return tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].pam4_taps[3];
++}
++
++static s32 get_pam4_tap_post2(struct hbl_cn_device *hdev, u32 card_location, u32 abs_lane_idx)
++{
++	return tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].pam4_taps[4];
++}
++
++static void set_default_tx_taps_values(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_properties *cn_props = &hdev->cn_props;
++	u32 card_location;
++	int abs_lane_idx;
++	s32 *taps;
++
++	card_location = hdev->card_location;
++
++	for (abs_lane_idx = 0; abs_lane_idx < cn_props->max_num_of_lanes; abs_lane_idx++) {
++		/* PAM4 */
++		taps = hdev->phy_tx_taps[abs_lane_idx].pam4_taps;
++		taps[0] = get_pam4_tap_pre2(hdev, card_location, abs_lane_idx);
++		taps[1] = get_pam4_tap_pre1(hdev, card_location, abs_lane_idx);
++		taps[2] = get_pam4_tap_main(hdev, card_location, abs_lane_idx);
++		taps[3] = get_pam4_tap_post1(hdev, card_location, abs_lane_idx);
++		taps[4] = get_pam4_tap_post2(hdev, card_location, abs_lane_idx);
++
++		/* NRZ */
++		taps = hdev->phy_tx_taps[abs_lane_idx].nrz_taps;
++		taps[0] = tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].nrz_taps[0];
++		taps[1] = tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].nrz_taps[1];
++		taps[2] = tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].nrz_taps[2];
++		taps[3] = tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].nrz_taps[3];
++		taps[4] = tx_taps_set_array[NIC_PHY_DEFAULT_TX_TAPS_DEFAULT].nrz_taps[4];
++	}
++}
++
++static void set_pol_tx(struct hbl_cn_device *hdev, u32 port, int lane, u32 tx_pol)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, tx_pol,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_ANA_OUT_FLIP_MASK);
++}
++
++static void set_pol_rx(struct hbl_cn_device *hdev, u32 port, int lane, u32 rx_pol)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, rx_pol,
++			      NIC0_SERDES0_LANE0_REGISTER_0P43_RX_DATA_FLIP_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N61, rx_pol,
++			      NIC0_SERDES0_LANE0_REGISTER_0N61_PRBS_CHECK_FLIP_MASK);
++}
++
++static void set_gc_tx(struct hbl_cn_device *hdev, u32 port, int lane, u32 tx_gc)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAF, tx_gc,
++			      NIC0_SERDES0_LANE0_REGISTER_0PAF_TX_GRAYCODE_EN_MASK);
++}
++
++static void set_gc_rx(struct hbl_cn_device *hdev, u32 port, int lane, u32 rx_gc)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P42, rx_gc,
++			      NIC0_SERDES0_LANE0_REGISTER_0P42_RX_GRAYCODE_EN_MASK);
++}
++
++static void set_pc_tx(struct hbl_cn_device *hdev, u32 port, int lane, u32 tx_pc)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAF, tx_pc,
++			      NIC0_SERDES0_LANE0_REGISTER_0PAF_TX_PRECODE_EN_MASK);
++}
++
++static void set_pc_rx(struct hbl_cn_device *hdev, u32 port, int lane, u32 rx_pc)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P42, rx_pc,
++			      NIC0_SERDES0_LANE0_REGISTER_0P42_RX_PRECODE_EN_MASK);
++}
++
++static void set_msblsb_tx(struct hbl_cn_device *hdev, u32 port, int lane, u32 tx_msblsb)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAF, tx_msblsb,
++			      NIC0_SERDES0_LANE0_REGISTER_0PAF_TX_SWAP_MSB_LSB_MASK);
++}
++
++static void set_msblsb_rx(struct hbl_cn_device *hdev, u32 port, int lane, u32 rx_msblsb)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, rx_msblsb,
++			      NIC0_SERDES0_LANE0_REGISTER_0P43_RX_SWAP_MSB_LSB_MASK);
++}
++
++static void init_lane_for_fw_tx(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4,
++				bool do_lt)
++{
++	u32 abs_lane_idx, tx_pol, tx_gc, tx_msblsb;
++
++	abs_lane_idx = (port << 1) + lane;
++	tx_pol = (hdev->pol_tx_mask >> abs_lane_idx) & 1;
++
++	tx_gc = (pam4 && !do_lt) ? 1 : 0;
++	tx_msblsb = do_lt ? 1 : 0;
++
++	set_lane_mode_tx(hdev, port, lane, pam4);
++	set_gc_tx(hdev, port, lane, tx_gc);
++	set_pc_tx(hdev, port, lane, 0);
++	set_msblsb_tx(hdev, port, lane, tx_msblsb);
++	set_pol_tx(hdev, port, lane, tx_pol);
++}
++
++static void init_lane_for_fw_rx(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4,
++				bool do_lt)
++{
++	u32 abs_lane_idx, rx_pol, rx_gc, rx_msblsb;
++
++	abs_lane_idx = (port << 1) + lane;
++	rx_pol = (hdev->pol_rx_mask >> abs_lane_idx) & 1;
++
++	rx_gc = (pam4 && !do_lt) ? 1 : 0;
++	rx_msblsb = do_lt ? 1 : 0;
++
++	set_lane_mode_rx(hdev, port, lane, pam4);
++	set_gc_rx(hdev, port, lane, rx_gc);
++	set_pc_rx(hdev, port, lane, 0);
++	set_msblsb_rx(hdev, port, lane, rx_msblsb);
++	set_pol_rx(hdev, port, lane, rx_pol);
++}
++
++static void set_functional_mode_lane(struct hbl_cn_device *hdev, u32 port, int lane, bool do_lt)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PRBS_CLK_EN_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PAM4_TEST_EN_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PRBS_GEN_EN_MASK);
++
++	if (do_lt)
++		NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AN10, 0x5);
++	else
++		NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AN10, 0);
++}
++
++static void set_functional_mode(struct hbl_cn_device *hdev, u32 port)
++{
++	struct hbl_cn_port *cn_port = &hdev->cn_ports[port];
++	int lane, tx_lane;
++	u32 tx_port;
++	bool do_lt;
++
++	do_lt = cn_port->auto_neg_enable;
++
++	for (lane = 0; lane < 2; lane++) {
++		get_tx_port_and_lane(hdev, port, lane, &tx_port, &tx_lane);
++		set_functional_mode_lane(hdev, tx_port, tx_lane, do_lt);
++	}
++
++	cn_port->phy_func_mode_en = true;
++}
++
++static u32 get_fw_reg(struct hbl_cn_device *hdev, u32 port, u32 fw_addr)
++{
++	u32 ignore;
++
++	fw_cmd(hdev, port, 0xE010, &fw_addr, 0xE, &ignore);
++
++	return NIC_PHY_RREG32(NIC0_SERDES0_REGISTER_9812);
++}
++
++static int set_fw_reg(struct hbl_cn_device *hdev, u32 port, u32 fw_addr, u32 val)
++{
++	u32 ignore;
++
++	NIC_PHY_WREG32(NIC0_SERDES0_REGISTER_9812, val);
++
++	return fw_cmd(hdev, port, 0xE020, &fw_addr, 0xE, &ignore);
++}
++
++static void enable_lane_swapping(struct hbl_cn_device *hdev, u32 port, int lane, bool do_an,
++				 bool do_lt)
++{
++	if (do_an || do_lt)
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AJ40, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_AJ40_ANLT_LANE_SWAPPING_EN_MASK);
++
++	if (do_an)
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AJ40, 0x0, 0x40);
++}
++
++static void disable_lane_swapping(struct hbl_cn_device *hdev, u32 port, int lane, bool do_an,
++				  bool do_lt)
++{
++	if (do_an)
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AJ40, 0x0,
++				      NIC0_SERDES0_LANE0_REGISTER_AJ40_ANLT_LANE_SWAPPING_EN_MASK);
++}
++
++static void lane_swapping_config(struct hbl_cn_device *hdev, u32 port, int lane, bool do_an,
++				 bool do_lt)
++{
++	u32 tx_port, lt_option;
++	int tx_lane;
++
++	get_tx_port_and_lane(hdev, port, lane, &tx_port, &tx_lane);
++
++	lt_option = get_fw_reg(hdev, port, 366);
++
++	if (is_lane_swapping(hdev, port, lane)) {
++		enable_lane_swapping(hdev, tx_port, tx_lane, do_an, do_lt);
++		enable_lane_swapping(hdev, port, lane, do_an, do_lt);
++
++		lt_option |= (1 << (3 + 8 * (1 - lane)));
++	} else {
++		disable_lane_swapping(hdev, tx_port, tx_lane, do_an, do_lt);
++		disable_lane_swapping(hdev, port, lane, do_an, do_lt);
++
++		lt_option &= ~(1 << (3 + 8 * (1 - lane)));
++	}
++
++	set_fw_reg(hdev, port, 366, lt_option);
++}
++
++static int fw_start(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4, bool do_lt)
++{
++	u32 cmd, speed, ignore;
++
++	cmd = pam4 ? (0x80D0 | lane) : (0x80C0 | lane);
++	speed = pam4 ? 0x9 : 0x3;
++
++	if (do_lt)
++		speed |= 0x100;
++
++	return fw_cmd(hdev, port, cmd, &speed, 0x8, &ignore);
++}
++
++static int fw_start_tx(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4, bool do_lt)
++{
++	u32 speed, cmd, ignore;
++	int rc;
++
++	speed = pam4 ? 0x9 : 0x3;
++
++	if (pam4)
++		cmd = do_lt ? (0x7030 | lane) : (0x7010 | lane);
++	else
++		cmd = do_lt ? (0x7020 | lane) : (0x7000 | lane);
++
++	rc = fw_cmd(hdev, port, cmd, &speed, 0x7, &ignore);
 +	if (rc)
 +		return rc;
 +
-+	*pci_addr = pci_resource_start(hdev->pdev, bar_id) + offset;
++	if (do_lt)
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_0PA0_RSVD_0PA0_04_MASK);
 +
 +	return 0;
 +}
 +
-+int hbl_cn_get_src_ip(struct hbl_cn_port *cn_port, u32 *src_ip)
++static int fw_config_vcocap(struct hbl_cn_device *hdev, u32 port, int lane, u32 mode,
++			    u32 counter_value)
 +{
-+	struct hbl_aux_dev *aux_dev = &cn_port->hdev->en_aux_dev;
-+	struct hbl_en_aux_ops *aux_ops = aux_dev->aux_ops;
-+	u32 port = cn_port->port;
++	u32 ignore;
 +
-+	if (cn_port->eth_enable && aux_ops->get_src_ip)
-+		return aux_ops->get_src_ip(aux_dev, port, src_ip);
-+
-+	*src_ip = 0;
-+
-+	return 0;
-+}
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.h b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.h
-new file mode 100644
-index 000000000000..27139e93d990
---- /dev/null
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn.h
-@@ -0,0 +1,1627 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright 2020-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
-+
-+#ifndef HABANALABS_CN_H_
-+#define HABANALABS_CN_H_
-+
-+#include <linux/habanalabs/cpucp_if.h>
-+#include <linux/net/intel/cni.h>
-+#include <linux/net/intel/cn.h>
-+
-+#include <linux/bitfield.h>
-+#include <linux/ctype.h>
-+#include <linux/kfifo.h>
-+#include <linux/netdevice.h>
-+#include <linux/types.h>
-+#include <linux/genalloc.h>
-+
-+/* Use upper bits of mmap offset to store habana CN driver specific information.
-+ * bits[63:60] - Encode mmap type
-+ * bits[45:0]  - mmap offset value
-+ *
-+ * NOTE: struct vm_area_struct.vm_pgoff uses offset in pages. Hence, these
-+ *  defines are w.r.t to PAGE_SIZE
-+ */
-+#define HBL_CN_MMAP_TYPE_SHIFT			(60 - PAGE_SHIFT)
-+#define HBL_CN_MMAP_TYPE_MASK			(0xfull << HBL_CN_MMAP_TYPE_SHIFT)
-+#define HBL_CN_MMAP_TYPE_CN_MEM			(0x2ull << HBL_CN_MMAP_TYPE_SHIFT)
-+#define HBL_CN_MMAP_TYPE_BLOCK			(0x1ull << HBL_CN_MMAP_TYPE_SHIFT)
-+
-+#define HBL_CN_MMAP_OFFSET_VALUE_MASK		(0x0FFFFFFFFFFFull >> PAGE_SHIFT)
-+#define HBL_CN_MMAP_OFFSET_VALUE_GET(off)	((off) & HBL_CN_MMAP_OFFSET_VALUE_MASK)
-+
-+#define RREG32(reg)			hbl_cn_rreg(hdev, (reg))
-+#define WREG32(reg, v)			hbl_cn_wreg(hdev, (reg), (v))
-+#define WREG32_P(reg, val, mask)				\
-+	do {							\
-+		u32 __reg = (reg);				\
-+		u32 tmp_ = RREG32(__reg);			\
-+		u32 __mask = (mask);				\
-+		tmp_ &= __mask;					\
-+		tmp_ |= ((val) & ~__mask);			\
-+		WREG32(__reg, tmp_);				\
-+	} while (0)
-+
-+#define RMWREG32_SHIFTED(reg, val, mask) WREG32_P(reg, val, ~(mask))
-+
-+#define RMWREG32(reg, val, mask)					\
-+	do {								\
-+		u32 _mask = (mask);					\
-+		RMWREG32_SHIFTED(reg, (val) << __ffs(_mask), _mask);	\
-+	} while (0)
-+
-+#define __snprintf(buf, bsize, fmt, ...)						\
-+	do {										\
-+		size_t _bsize = (bsize);						\
-+		char *_buf = (buf);							\
-+		size_t _blen;								\
-+											\
-+		_blen = strlen(_buf);							\
-+											\
-+		if (_blen < _bsize)							\
-+			snprintf(_buf + _blen, _bsize - _blen, fmt, ##__VA_ARGS__);	\
-+	} while (0)
-+
-+#define NIC_MAX_TNL_HDR_SIZE		32 /* Bytes */
-+
-+#define NIC_EQ_INFO_BUF_SIZE		256
-+#define NIC_NUM_CONCUR_ASIDS		4
-+#define RDMA_OFFSET			1
-+
-+#define NIC_QPC_INV_USEC		1000000 /* 1s */
-+#define NIC_SIM_QPC_INV_USEC		(NIC_QPC_INV_USEC * 5)
-+#define NIC_PLDM_QPC_INV_USEC		(NIC_QPC_INV_USEC * 10)
-+
-+#define NIC_SPMU_STATS_LEN_MAX		6
-+
-+#define NIC_TMR_TIMEOUT_DEFAULT_GRAN	13
-+#define NIC_TMR_TIMEOUT_MAX_GRAN	31
-+#define NIC_ADAPTIVE_TIMEOUT_RANGE	6
-+#define NIC_GRAN_TO_USEC(gran)		(1UL << ((gran) + 2))
-+#define NIC_TMR_RESET_FACTOR		3
-+
-+#define PARSE_FIELD(data, shift, size)		(((data) >> (shift)) & (BIT(size) - 1))
-+#define MERGE_FIELDS(data_hi, data_lo, shift)	((data_hi) << (shift) | (data_lo))
-+
-+#define NIC_MACRO_CFG_SIZE		hdev->cn_props.macro_cfg_size
-+#define NIC_MACRO_CFG_BASE(port)	(NIC_MACRO_CFG_SIZE * ((port) >> 1))
-+
-+#define NIC_MACRO_RREG32(reg)		RREG32(NIC_MACRO_CFG_BASE(port) + (reg))
-+#define NIC_MACRO_WREG32(reg, val)	WREG32(NIC_MACRO_CFG_BASE(port) + (reg), (val))
-+#define NIC_MACRO_RMWREG32(reg, val, mask) RMWREG32(NIC_MACRO_CFG_BASE(port) + (reg), val, mask)
-+
-+#define NIC_PORT_CHECK_ENABLE	BIT(0)
-+#define NIC_PORT_CHECK_OPEN	BIT(1)
-+#define NIC_PORT_PRINT_ON_ERR	BIT(2)
-+#define NIC_PORT_CHECK_ALL	GENMASK(2, 0)
-+
-+#define QPC_REQ_BURST_SIZE	16
-+#define QPC_REQ_SCHED_Q		3
-+#define QPC_RES_SCHED_Q		2
-+#define QPC_RAW_SCHED_Q		1
-+
-+#define REGMASK(V, F)		(((V) << F##_SHIFT) & F##_MASK)
-+#define REGMASK2(V, F)		(((V) << F##_S) & F##_M)
-+
-+#define NIC_DR_10		1031250
-+#define NIC_DR_25		2578125
-+#define NIC_DR_26		2656250
-+#define NIC_DR_50		5312500
-+#define NIC_DR_100		10625000
-+
-+#define NIC_MAC_LANE_0		0U
-+#define NIC_MAC_LANE_1		1U
-+#define NIC_MAC_LANE_2		2U
-+#define NIC_MAC_LANE_3		3U
-+#define NIC_MAC_LANES		4U
-+
-+#define CC_CQE_SIZE		16
-+#define USER_CCQ_MAX_ENTRIES	(BIT(21) / CC_CQE_SIZE) /* dma_alloc can only allocate 2M */
-+#define USER_CCQ_MIN_ENTRIES	16
-+
-+#define DMA_COHERENT_MAX_SIZE	SZ_4M
-+
-+#define PHY_TX_TAPS_NUM		5
-+
-+#define ACCUMULATE_FEC_STATS_DURATION_MS	100 /* ms */
-+#define ACCUMULATE_FEC_STATS_DURATION_MS_MAX	10000 /* ms */
-+
-+#define HBL_CN_BLOCK_SIZE	0x1000
-+
-+/* DMA alloc/free wrappers */
-+#define hbl_cn_dma_alloc_coherent(hdev, size, dma_handle, flags) \
-+	__hbl_cn_dma_alloc_coherent(hdev, size, dma_handle, flags, __func__)
-+#define hbl_cn_dma_free_coherent(hdev, size, cpu_addr, dma_addr) \
-+	__hbl_cn_dma_free_coherent(hdev, size, cpu_addr, dma_addr, __func__)
-+
-+#define hbl_cn_dma_pool_zalloc(hdev, size, mem_flags, dma_handle) \
-+	__hbl_cn_dma_pool_zalloc(hdev, size, mem_flags, dma_handle, __func__)
-+#define hbl_cn_dma_pool_free(hdev, vaddr, dma_addr) \
-+	__hbl_cn_dma_pool_free(hdev, vaddr, dma_addr, __func__)
-+
-+extern struct hbl_cn_stat hbl_cn_mac_fec_stats[];
-+extern struct hbl_cn_stat hbl_cn_mac_stats_rx[];
-+extern struct hbl_cn_stat hbl_cn_mac_stats_tx[];
-+extern size_t hbl_cn_mac_fec_stats_len;
-+extern size_t hbl_cn_mac_stats_rx_len;
-+extern size_t hbl_cn_mac_stats_tx_len;
-+
-+/**
-+ * enum mtu_type - Describes QP's MTU value source.
-+ * @MTU_INVALID: MTU is not configured yet.
-+ * @MTU_FROM_USER: MTU gotten from user call to set requester context.
-+ * @MTU_FROM_NETDEV: MTU gotten from netdev.
-+ * @MTU_DEFAULT: Use default MTU value.
-+ */
-+enum mtu_type {
-+	MTU_INVALID,
-+	MTU_FROM_USER,
-+	MTU_FROM_NETDEV,
-+	MTU_DEFAULT
-+};
-+
-+/**
-+ * enum hbl_cn_qp_state - The states the QPs can be.
-+ *                        Follows the spirit of "10.3.1 QUEUE PAIR AND EE CONTEXT STATES" section in
-+ *                        InfiniBand(TM) Architecture Release.
-+ * CN_QP_STATE_RESET: QP is in reset state
-+ * CN_QP_STATE_INIT: Initialized state where all QP resources are allocated. QP can post Recv WRs.
-+ * CN_QP_STATE_RTR: Ready to receive state. QP can post & process Rcv WRs & send ACKs,
-+ * CN_QP_STATE_RTS: Ready to send state. QP can post and process recv & send WRs
-+ * CN_QP_STATE_SQD: SQ is in drained state (a sub-state of the QP draining process).
-+ * CN_QP_STATE_QPD: QP is in drained state, both RQ and SQ are drained.
-+ * CN_QP_STATE_SQERR: Send queue error state. QP can Post & process Receive WRs, Send WRs are
-+ *                    completed in error.
-+ * CN_QP_STATE_ERR: Error state.
-+ * CN_QP_NUM_STATE: Number of states the QP can be in.
-+ */
-+enum hbl_cn_qp_state {
-+	CN_QP_STATE_RESET = 0,
-+	CN_QP_STATE_INIT,
-+	CN_QP_STATE_RTR,
-+	CN_QP_STATE_RTS,
-+	CN_QP_STATE_SQD,
-+	CN_QP_STATE_QPD,
-+	CN_QP_STATE_SQERR,
-+	CN_QP_STATE_ERR,
-+	CN_QP_NUM_STATE, /* must be last */
-+};
-+
-+/**
-+ * enum hbl_cn_qp_state_op - The Valid state transition operations on QP.
-+ * CN_QP_OP_INVAL: Invalid OP, indicates invalid state transition path, not to be used. Must be 0.
-+ * CN_QP_OP_RST_2INIT: Move the QP from the Reset state to the Init state.
-+ * CN_QP_OP_INIT_2RTR: Move the QP from the Init state to the Ready-to-receive state.
-+ * CN_QP_OP_RTR_2RTR: Reconfig Responder.
-+ * CN_QP_OP_RTR_2QPD: drain the Responder.
-+ * CN_QP_OP_RTR_2RTS: Move the QP from RTR state to the Ready-to-send state.
-+ * CN_QP_OP_RTR_2SQD: Move the QP from RTR state to the drained state.
-+ * CN_QP_OP_RTS_2RTS: Reconfigure the requester.
-+ * CN_QP_OP_RTS_2SQERR: move the QP from RTS to the SQER state due to HW errors.
-+ * CN_QP_OP_RTS_2SQD: Drain the SQ and move to the SQ-Drained state.
-+ * CN_QP_OP_RTS_2QPD: drain the QP (requester and responder).
-+ * CN_QP_OP_SQD_2SQD: Re-drain the SQ.
-+ * CN_QP_OP_SQD_2QPD: Drain the QP (Responder too).
-+ * CN_QP_OP_SQD_2RTS: Enable the requester after draining is done.
-+ * CN_QP_OP_SQD_2SQ_ERR: move the QP to SQ_Err due to HW error.
-+ * CN_QP_OP_QPD_2RTR: restart the Responder.
-+ * CN_QP_OP_QPD_2QPD: drain the QP (again).
-+ * CN_QP_OP_SQ_ERR_2SQD: recover from SQ err and return to work
-+ * CN_QP_OP_2ERR: Place the QP in error state (due to HW errors).
-+ *                An error can be forced from any state, except Reset.
-+ * CN_QP_OP_2RESET: Move to reset state.
-+ *                  it is possible to transition from any state to the Reset state.
-+ * CN_QP_OP_NOP: Do nothing.
-+ */
-+enum hbl_cn_qp_state_op {
-+	CN_QP_OP_INVAL = 0,
-+	CN_QP_OP_RST_2INIT,
-+	CN_QP_OP_INIT_2RTR,
-+	CN_QP_OP_RTR_2RTR,
-+	CN_QP_OP_RTR_2QPD,
-+	CN_QP_OP_RTR_2RTS,
-+	CN_QP_OP_RTR_2SQD,
-+	CN_QP_OP_RTS_2RTS,
-+	CN_QP_OP_RTS_2SQERR,
-+	CN_QP_OP_RTS_2SQD,
-+	CN_QP_OP_RTS_2QPD,
-+	CN_QP_OP_SQD_2SQD,
-+	CN_QP_OP_SQD_2QPD,
-+	CN_QP_OP_SQD_2RTS,
-+	CN_QP_OP_SQD_2SQ_ERR,
-+	CN_QP_OP_QPD_2RTR,
-+	CN_QP_OP_QPD_2QPD,
-+	CN_QP_OP_SQ_ERR_2SQD,
-+	CN_QP_OP_2ERR,
-+	CN_QP_OP_2RESET,
-+	CN_QP_OP_NOP,
-+};
-+
-+/**
-+ * enum db_fifo_state - Describes db fifo's current state. Starting it from 1 because by default
-+ *                      on reset when the state is 0, it shouldn't be confused as Allocated state.
-+ * @DB_FIFO_STATE_ALLOC: db fifo id has been allocated.
-+ * @DB_FIFO_STATE_SET: db fifo set is done for the corresponding id.
-+ */
-+enum db_fifo_state {
-+	DB_FIFO_STATE_ALLOC = 1,
-+	DB_FIFO_STATE_SET,
-+};
-+
-+/**
-+ * struct hbl_cn_qp_reset_mode - QP reset method.
-+ * @CN_QP_RESET_MODE_GRACEFUL: Graceful reset, reset the QP components in an orderly manner and wait
-+ *                             on each component to settle before moving to the next step.
-+ * @CN_QP_RESET_MODE_FAST: Fast reset, reset the QP components in an orderly manner, without waiting
-+ *                         for the components to settle .
-+ * @CN_QP_RESET_MODE_HARD: Clear the QP contexts immediately.
-+ */
-+enum hbl_cn_qp_reset_mode {
-+	CN_QP_RESET_MODE_GRACEFUL = 0,
-+	CN_QP_RESET_MODE_FAST = 1,
-+	CN_QP_RESET_MODE_HARD = 2,
-+};
-+
-+/**
-+ * enum hbl_cn_user_cq_state - User CQ states.
-+ * @USER_CQ_STATE_ALLOC: ID allocated.
-+ * @USER_CQ_STATE_SET: HW configured. Resources allocated.
-+ * @USER_CQ_STATE_ALLOC_TO_UNSET: CQ moved to unset state from alloc state directly.
-+ * @USER_CQ_STATE_SET_TO_UNSET: CQ moved to unset from set state. HW config cleared.
-+ *                              Resources ready to be reclaimed.
-+ */
-+enum hbl_cn_user_cq_state {
-+	USER_CQ_STATE_ALLOC = 1,
-+	USER_CQ_STATE_SET,
-+	USER_CQ_STATE_ALLOC_TO_UNSET,
-+	USER_CQ_STATE_SET_TO_UNSET,
-+};
-+
-+/**
-+ * enum hbl_cn_drv_mem_id - Memory allocation methods:
-+ * HBL_CN_DRV_MEM_INVALID: N/A option.
-+ * HBL_CN_DRV_MEM_HOST_DMA_COHERENT: Host DMA coherent memory.
-+ * HBL_CN_DRV_MEM_HOST_VIRTUAL: Host virtual memory.
-+ * HBL_CN_DRV_MEM_DEVICE: Device HBM memory.
-+ * HBL_CN_DRV_MEM_HOST_MAP_ONLY: Host mapping only.
-+ */
-+enum hbl_cn_drv_mem_id {
-+	HBL_CN_DRV_MEM_INVALID,
-+	HBL_CN_DRV_MEM_HOST_DMA_COHERENT,
-+	HBL_CN_DRV_MEM_HOST_VIRTUAL,
-+	HBL_CN_DRV_MEM_DEVICE,
-+	HBL_CN_DRV_MEM_HOST_MAP_ONLY,
-+};
-+
-+struct hbl_cn_port;
-+struct hbl_cn_device;
-+struct hbl_cn_macro;
-+
-+/**
-+ * struct hbl_cn_dq_qp_info - structure to hold qp info for dispatch queue.
-+ * @node: reference to a QP within the list
-+ * @dq: dq per asid event dispatcher queue
-+ * @qpn: QP id
-+ */
-+struct hbl_cn_dq_qp_info {
-+	struct hlist_node node;
-+	struct hbl_cn_ev_dq *dq;
-+	u32 qpn;
-+};
-+
-+/**
-+ * struct hbl_cn_eq_raw_buf - a buffer holding unparsed raw EQ events
-+ * @events: an array which stores the events
-+ * @head: the queue head
-+ * @tail: the queue tail
-+ * @events_count: number of available events in the queue
-+ */
-+struct hbl_cn_eq_raw_buf {
-+	struct hbl_cn_eqe events[NIC_EQ_INFO_BUF_SIZE];
-+	u32 head;
-+	u32 tail;
-+	u32 events_count;
-+};
-+
-+/**
-+ * struct hbl_cn_ev_dq - per-asid/app event dispatch queue
-+ * @buf: the dispatched events queue.
-+ * @asid: the asid registered on this dq
-+ * @overflow: buffer overflow counter
-+ * @associated: if this dq associate with a user/asid or not.
-+ */
-+struct hbl_cn_ev_dq {
-+	struct hbl_cn_eq_raw_buf buf;
-+	u32 asid;
-+	u32 overflow;
-+	u8 associated;
-+};
-+
-+/**
-+ * struct hbl_cn_ev_dqs - software managed events dispatch queues.
-+ *                        used for dispatching events to their applications.
-+ * @qps: a hash table to convert QP-numbers to their owner (ASID).
-+ * @cq_dq: array to associate/convert cq-numbers to the dispatch queues.
-+ * @ccq_dq: array to associate/convert ccq-numbers to the dispatch queues.
-+ * @db_dq: array to associate/convert doorbell-numbers to the dispatch queues.
-+ * @edq: the events dispatch queues (as many queues as the number of possible same-time ASIDs).
-+ * @default_edq: default events dispatch queue for unknown resources and events.
-+ * @lock: protects from simultaneous operations.
-+ */
-+struct hbl_cn_ev_dqs {
-+	DECLARE_HASHTABLE(qps, 11);
-+	struct hbl_cn_ev_dq *cq_dq[NIC_DRV_MAX_CQS_NUM];
-+	struct hbl_cn_ev_dq *ccq_dq[NIC_DRV_MAX_CCQS_NUM];
-+	struct hbl_cn_ev_dq *db_dq[NIC_DRV_NUM_DB_FIFOS];
-+	struct hbl_cn_ev_dq edq[NIC_NUM_CONCUR_ASIDS];
-+	struct hbl_cn_ev_dq default_edq;
-+	/* protects from simultaneous operations */
-+	struct mutex lock;
-+};
-+
-+/**
-+ * struct hbl_cn_qp_info - holds information of a QP to read via debugfs.
-+ * @port: the port the QP belongs to.
-+ * @qpn: QP number.
-+ * @req: true for requester QP, otherwise responder.
-+ * @full_print: print full QP information.
-+ * @force_read: force reading a QP in invalid/error state.
-+ */
-+struct hbl_cn_qp_info {
-+	u32 port;
-+	u32 qpn;
-+	u8 req;
-+	u8 full_print;
-+	u8 force_read;
-+};
-+
-+/**
-+ * struct hbl_cn_wqe_info - holds information of a WQE to read via debugfs.
-+ * @port: the port the WQE belongs to.
-+ * @qpn: QP number.
-+ * @wqe_idx: WQE index.
-+ * @tx: true for tx WQE, otherwise rx WQE.
-+ */
-+struct hbl_cn_wqe_info {
-+	u32 port;
-+	u32 qpn;
-+	u32 wqe_idx;
-+	u8 tx;
-+};
-+
-+/**
-+ * struct hbl_cn_db_fifo_xarray_pdata - Holds private data of userspace doorbell xarray
-+ * @asid: Associated user context.
-+ * @port: Associated port index.
-+ * @id: fifo index.
-+ * @ci_mmap_handle: Consumer index mmap handle.
-+ * @umr_mmap_handle: UMR block mmap handle.
-+ * @umr_db_offset: db fifo offset in UMR block.
-+ * @state: db fifo's state.
-+ * @db_pool_addr: offset of the allocated address in gen pool.
-+ * @fifo_offset: actual fifo offset allocated for that id.
-+ * @fifo_size: size of the fifo allocated.
-+ * @fifo_mode: mode of the fifo as received in the IOCTL.
-+ */
-+struct hbl_cn_db_fifo_xarray_pdata {
-+	u32 asid;
-+	u32 port;
-+	u32 id;
-+	u64 ci_mmap_handle;
-+	u64 umr_mmap_handle;
-+	u32 umr_db_offset;
-+	enum db_fifo_state state;
-+	u32 db_pool_addr;
-+	u32 fifo_offset;
-+	u32 fifo_size;
-+	u8 fifo_mode;
-+};
-+
-+/**
-+ * struct hbl_cn_encap_xarray_pdata - Holds private data of userspace encapsulation xarray
-+ * @port: Associated port index
-+ * @id: Encapsulation ID
-+ * @src_ip: Source port IPv4 address.
-+ * @encap_type: L3/L4 encapsulation
-+ * @encap_type_data: IPv4 protocol or UDP port
-+ * @encap_header: Encapsulation header
-+ * @encap_header_size: Encapsulation header size
-+ * @is_set: True if encap was set, false otherwise
-+ */
-+struct hbl_cn_encap_xarray_pdata {
-+	u32 port;
-+	u32 id;
-+	u32 src_ip;
-+	enum hbl_nic_encap_type encap_type;
-+	u32 encap_type_data;
-+	void *encap_header;
-+	u32 encap_header_size;
-+	u8 is_set;
-+};
-+
-+/**
-+ * struct hbl_cn_user_cq - user CQ data.
-+ * @cn_port: associated port.
-+ * @refcount: number of QPs that use this CQ.
-+ * @ctx: Associated user context.
-+ * @state: User CQ state.
-+ * @overrun_lock: protects the setting\unsetting of CQ overrun.
-+ * @mem_handle: mmap handle of buffer memory.
-+ * @pi_handle: mmap handle of PI memory.
-+ * @id: CQ ID.
-+ * @qp_set_overrun_cnt: number of QPs which expect CQ overrun to be enabled.
-+ * @is_mmu_bp: is MMU bypass enabled for the memory buffer.
-+ */
-+struct hbl_cn_user_cq {
-+	struct hbl_cn_port *cn_port;
-+	struct kref refcount;
-+	struct hbl_cn_ctx *ctx;
-+	enum hbl_cn_user_cq_state state;
-+	/* protects the setting\unsetting of CQ overrun */
-+	struct mutex overrun_lock;
-+	u64 mem_handle;
-+	u64 pi_handle;
-+	u32 id;
-+	u32 qp_set_overrun_cnt;
-+	u8 is_mmu_bp;
-+};
-+
-+/**
-+ * struct hbl_cn_wq_array_properties - WQ array properties.
-+ * @type_str: string of this WQ array type.
-+ * @handle: handle for this WQ array.
-+ * @dva_base: reserved device VA for this WQ array.
-+ * @dva_size: size in bytes of device VA block of this WQ array.
-+ * @wq_size: size in bytes of each WQ in this WQ array.
-+ * @idx: index of this WQ array.
-+ * @offset: offset inside the memory chunk.
-+ * @under_unset: true if this WQ array is waiting for unset (will be done when all QPs are
-+ *               destroyed), false otherwise.
-+ * @on_device_mem: true if this WQ array resides on HBM, false if on host.
-+ * @is_send: true if this WQ array should contain send WQEs, false if recv WQEs.
-+ * @wq_mmu_bypass: true if WQs has MMU-BP access, false otherwise.
-+ * @enabled: true if this WQ array is enabled, false otherwise.
-+ */
-+struct hbl_cn_wq_array_properties {
-+	char *type_str;
-+	u64 handle;
-+	u64 dva_base;
-+	u64 dva_size;
-+	u64 wq_size;
-+	u32 idx;
-+	u32 offset;
-+	u8 under_unset;
-+	u8 on_device_mem;
-+	u8 is_send;
-+	u8 wq_mmu_bypass;
-+	u8 enabled;
-+};
-+
-+/**
-+ * struct hbl_cn_reset_tracker - port reset tracking information.
-+ * @timeout_jiffies: end of the measurement window.
-+ * @num_seq_resets: how many sequential resets were triggered inside the measurement window.
-+ */
-+struct hbl_cn_reset_tracker {
-+	unsigned long timeout_jiffies;
-+	u8 num_seq_resets;
-+};
-+
-+/**
-+ * struct hbl_cn_mem_buf - describes a memory allocation.
-+ * @ctx: pointer to the context this memory belongs to.
-+ * @bus_address: Holds the memory's DMA address.
-+ * @kernel_address: Holds the memory's kernel virtual address.
-+ * @refcount: reference counter for buffer users.
-+ * @mmap: atomic boolean indicating whether or not the buffer is mapped right now.
-+ * @real_mapped_size: the actual size of buffer mapped, after part of it may be released, may
-+ *                    change at runtime.
-+ * @mappable_size: the original mappable size of the buffer, does not change after the allocation.
-+ * @device_addr: Holds the HBM address.
-+ * @device_va: Device virtual address. Valid only for MMU mapped allocations.
-+ * @handle: The buffer id that is stored in the mem xarray.
-+ * @mem_id: specify host/device memory allocation.
-+ * @is_destroyed: Indicates whether or not the memory was destroyed.
-+ */
-+struct hbl_cn_mem_buf {
-+	struct hbl_cn_ctx *ctx;
-+	dma_addr_t bus_address;
-+	void *kernel_address;
-+	struct kref refcount;
-+	atomic_t mmap;
-+	u64 real_mapped_size;
-+	u64 mappable_size;
-+	u64 device_addr;
-+	u64 device_va;
-+	u64 handle;
-+	u32 mem_id;
-+	atomic_t is_destroyed;
-+};
-+
-+/**
-+ * struct hbl_cn_qp - Describes a Queue Pair.
-+ * @cn_port: Pointer to the port this QP belongs to.
-+ * @async_work: async work performed on QP, when destroying the QP.
-+ * @adaptive_tmr_reset: reset work performed on QP, for adaptive timer.
-+ * @req_user_cq: CQ ID used by the requester context.
-+ * @res_user_cq: CQ ID used by the responder context.
-+ * @ctx: Associated user context.
-+ * @curr_state: The current state of the QP.
-+ * @mtu_type: Source of MTU value from user, from netdev or default.
-+ * @swq_handle: Send WQ mmap handle.
-+ * @rwq_handle: Receive WQ mmap handle.
-+ * @port: The port number this QP belongs to.
-+ * @qp_id: The QP number within its port.
-+ * @local_key: Key for local access.
-+ * @remote_key: Key for remote access.
-+ * @mtu: Current MTU value.
-+ * @swq_size: Send WQ mmap size.
-+ * @rwq_size: Receive WQ mmap size.
-+ * @is_req: is requester context was set for the QP.
-+ * @is_res: is responder context was set for the QP.
-+ * @force_cq_overrun: force CQ overrun, if needed, during destruction phase.
-+ * @timeout_granularity: User supplied granularity value.
-+ * @timeout_curr: Currently used granularity value.
-+ */
-+struct hbl_cn_qp {
-+	struct hbl_cn_port *cn_port;
-+	struct work_struct async_work;
-+	struct delayed_work adaptive_tmr_reset;
-+	struct hbl_cn_user_cq *req_user_cq;
-+	struct hbl_cn_user_cq *res_user_cq;
-+	struct hbl_cn_ctx *ctx;
-+	enum hbl_cn_qp_state curr_state;
-+	enum mtu_type mtu_type;
-+	u64 swq_handle;
-+	u64 rwq_handle;
-+	u32 port;
-+	u32 qp_id;
-+	u32 local_key;
-+	u32 remote_key;
-+	u32 mtu;
-+	u32 swq_size;
-+	u32 rwq_size;
-+	u8 is_req;
-+	u8 is_res;
-+	u8 force_cq_overrun;
-+	u8 timeout_granularity;
-+	u8 timeout_curr;
-+};
-+
-+/**
-+ * enum qp_conn_state - State of retransmission flow.
-+ * @QP_CONN_STATE_OPEN: connection is open.
-+ * @QP_CONN_STATE_CLOSED: connection is closed.
-+ * @QP_CONN_STATE_RESYNC: Connection is re-synchronizing.
-+ * @QP_CONN_STATE_ERROR: Connection is in error state.
-+ */
-+enum qp_conn_state {
-+	QP_CONN_STATE_OPEN = 0,
-+	QP_CONN_STATE_CLOSED = 1,
-+	QP_CONN_STATE_RESYNC = 2,
-+	QP_CONN_STATE_ERROR = 3,
-+};
-+
-+/**
-+ * struct hbl_cn_qpc_attr - QPC attributes as read from the HW.
-+ * @valid: QPC is valid.
-+ * @in_work: qp was scheduled to work.
-+ * @error: QPC is in error state (relevant in Req QPC only).
-+ * @conn_state - state of retransmission flow (relevant in Res QPC only).
-+ */
-+struct hbl_cn_qpc_attr {
-+	u8 valid;
-+	u8 in_work;
-+	u8 error;
-+	enum qp_conn_state conn_state;
-+};
-+
-+/**
-+ * struct hbl_cn_qpc_reset_attr - attributes used when setting QP state to reset.
-+ * @reset_mode: the type/mode of reset to be used.
-+ */
-+struct hbl_cn_qpc_reset_attr {
-+	enum hbl_cn_qp_reset_mode reset_mode;
-+};
-+
-+/**
-+ * struct hbl_cn_qpc_drain_attr - QPC attributes used for draining operation.
-+ * @wait_for_idle: wait for QPC to become idle.
-+ */
-+struct hbl_cn_qpc_drain_attr {
-+	bool wait_for_idle;
-+};
-+
-+/**
-+ * struct hbl_cn_mem_data - memory allocation metadata.
-+ * @in: mem_id specific allocation parameters.
-+ * @in.device_mem_data: mem_id HBL_CN_DRV_MEM_DEVICE specific allocation parameters.
-+ * @in.device_mem_data.port: Associated port index.
-+ * @in.device_mem_data.type: enum hbl_nic_mem_type to be allocated.
-+ * @in.host_map_data: mem_id HBL_CN_DRV_MEM_HOST_MAP_ONLY specific mapping parameters.
-+ * @in.host_map_data.bus_address: Memory DMA address.
-+ * @in.host_map_data.kernel_address: Memory kernel virtual address.
-+ * @mem_id: Allocation type, enum hbl_cn_mem_id.
-+ * @size: Allocation size.
-+ * @device_va: Device virtual address. Valid only for MMU mapped allocation.
-+ * @handle: Returned mmap handle.
-+ * @addr: Returned allocation address.
-+ */
-+struct hbl_cn_mem_data {
-+	union {
-+		/* HBL_CN_DRV_MEM_DEVICE */
-+		struct {
-+			u32 port;
-+			enum hbl_nic_mem_type type;
-+		} device_mem_data;
-+
-+		/* HBL_CN_DRV_MEM_HOST_MAP_ONLY */
-+		struct {
-+			dma_addr_t bus_address;
-+			void *kernel_address;
-+		} host_map_data;
-+	} in;
-+
-+	/* Common in params */
-+	enum hbl_cn_drv_mem_id mem_id;
-+	u64 size;
-+	u64 device_va;
-+
-+	/* Common out params */
-+	u64 handle;
-+	u64 addr;
-+};
-+
-+/**
-+ * struct hbl_cni_user_cq_set_in_params - user CQ configuration in params.
-+ * @port: port index.
-+ * @num_of_cqes: Number of CQ entries in the buffer.
-+ * @id: CQ ID.
-+ */
-+struct hbl_cni_user_cq_set_in_params {
-+	u32 port;
-+	u32 num_of_cqes;
-+	u32 id;
-+};
-+
-+/**
-+ * struct hbl_cni_user_cq_set_out_params - user CQ configuration out params.
-+ * @mem_handle: Handle of CQ memory buffer.
-+ * @pi_handle: Handle of CQ producer-inder memory buffer.
-+ * @regs_handle: Handle of CQ Registers base-address.
-+ * @regs_offset: CQ Registers sub-offset.
-+ */
-+struct hbl_cni_user_cq_set_out_params {
-+	u64 mem_handle;
-+	u64 pi_handle;
-+	u64 regs_handle;
-+	u32 regs_offset;
-+};
-+
-+/**
-+ * struct hbl_cni_user_cq_unset_in_params - user CQ unconfiguration in params.
-+ * @port: port index.
-+ * @id: CQ ID.
-+ */
-+struct hbl_cni_user_cq_unset_in_params {
-+	u32 port;
-+	u32 id;
-+};
-+
-+/**
-+ * struct hbl_cn_cpucp_status - describes the status of a port.
-+ * @port: port index.
-+ * @bad_format_cnt: e.g. CRC.
-+ * @responder_out_of_sequence_psn_cnt: e.g NAK.
-+ * @high_ber_reinit_cnt: link reinit due to high BER.
-+ * @correctable_err_cnt: e.g. bit-flip.
-+ * @uncorrectable_err_cnt: e.g. MAC errors.
-+ * @retraining_cnt: re-training counter.
-+ * @up: is port up.
-+ * @pcs_link: has PCS link.
-+ * @phy_ready: is PHY ready.
-+ * @auto_neg: is Autoneg enabled.
-+ * @timeout_retransmission_cnt: timeout retransmission events.
-+ * @high_ber_cnt: high ber events.
-+ * @pre_fec_ser: pre FEC SER value.
-+ * @post_fec_ser: post FEC SER value.
-+ * @bandwidth: measured bandwidth.
-+ * @lat: measured latency.
-+ * @port_toggle_cnt: counts how many times the link toggled since last port PHY init.
-+ */
-+struct hbl_cn_cpucp_status {
-+	u32 port;
-+	u32 bad_format_cnt;
-+	u32 responder_out_of_sequence_psn_cnt;
-+	u32 high_ber_reinit;
-+	u32 correctable_err_cnt;
-+	u32 uncorrectable_err_cnt;
-+	u32 retraining_cnt;
-+	u8 up;
-+	u8 pcs_link;
-+	u8 phy_ready;
-+	u8 auto_neg;
-+	u32 timeout_retransmission_cnt;
-+	u32 high_ber_cnt;
-+	struct hbl_cn_cpucp_ser_val pre_fec_ser;
-+	struct hbl_cn_cpucp_ser_val post_fec_ser;
-+	struct hbl_cn_cpucp_frac_val bandwidth;
-+	struct hbl_cn_cpucp_frac_val lat;
-+	u32 port_toggle_cnt;
-+};
-+
-+/**
-+ * struct hbl_cn_asic_port_funcs - ASIC specific functions that are can be called from common code
-+ *                                 for a specific port.
-+ * @port_hw_init: initialize the port HW.
-+ * @port_hw_fini: cleanup the port HW.
-+ * @phy_port_init: port PHY init.
-+ * @phy_port_start_stop: port PHY start/stop.
-+ * @phy_port_power_up: port PHY power-up.
-+ * @phy_port_reconfig: port PHY reconfigure.
-+ * @phy_port_fini: port PHY cleanup.
-+ * @phy_link_status_work: link status handler.
-+ * @update_mtu: updates MTU inside a requestor QP context.
-+ * @user_wq_arr_unset: unset user WQ array (check whether user_wq_lock should be taken).
-+ * @get_cq_id_range: get user CQ ID range.
-+ * @user_cq_set: set user CQ.
-+ * @user_cq_unset: unset user CQ.
-+ * @user_cq_destroy: destroy user CQ.
-+ * @get_cnts_num: get the number of available counters.
-+ * @get_cnts_names: get the names of the available counters.
-+ * @get_cnts_values: get the values of the available counters.
-+ * @port_sw_init: initialize per port software components.
-+ * @port_sw_fini: finalize per port software components.
-+ * @register_qp: register a new qp-id with the NIC.
-+ * @unregister_qp: unregister a qp.
-+ * @get_qp_id_range: Get unsecure QP ID range.
-+ * @eq_poll: poll the EQ for asid/app-specific events.
-+ * @get_db_fifo_id_range: Get the fifo ID range that is available to the user.
-+ * @get_db_fifo_hw_id_range: Get the actual HW fifo ID range.
-+ * @db_fifo_set: Config unsecure userspace doorbell fifo.
-+ * @db_fifo_unset: Destroy unsecure userspace doorbell fifo.
-+ * @get_db_fifo_umr: Get UMR block address and db fifo offset.
-+ * @get_db_fifo_modes_mask: Get the supported db fifo modes
-+ * @db_fifo_allocate: Allocate fifo for the specific mode
-+ * @db_fifo_free: Free the fifo for the specific id
-+ * @set_pfc: enable/disable PFC.
-+ * @get_encap_id_range: Get user encapsulation ID range
-+ * @encap_set: Start encapsulation
-+ * @encap_unset: Stop encapsulation
-+ * @set_ip_addr_encap: Setup IP address encapsulation.
-+ * @qpc_write: write a QP context to the HW.
-+ * @qpc_invalidate: invalidate a QP context.
-+ * @qpc_query: read a QP context.
-+ * @qpc_clear: clear a QP context.
-+ * @user_ccq_set: set user congestion completion queue.
-+ * @user_ccq_unset: unset user congestion completion queue.
-+ * @reset_mac_stats: reset MAC statistics.
-+ * @collect_fec_stats: collect FEC statistics.
-+ * @disable_wqe_index_checker: Disable WQE index checker for both Rx and Tx.
-+ * @get_status: get status information for F/W.
-+ * @cfg_lock: acquire the port configuration lock.
-+ * @cfg_unlock: release the port configuration lock.
-+ * @cfg_is_locked: check if the port configuration lock is locked.
-+ * @qp_pre_destroy: prepare for a QP destroy. Called under the cfg lock.
-+ * @qp_post_destroy: cleanup after a QP destroy. Called under the cfg lock.
-+ * @set_port_status: config port status before notifying user.
-+ * @send_cpucp_packet: Send cpucp packet to FW.
-+ * @adaptive_tmr_reset: Reset timer granularity for adaptive timeout feature.
-+ * @spmu_get_stats_info: get SPMU statistics information.
-+ * @spmu_config: config the SPMU.
-+ * @spmu_sample: read SPMU counters.
-+ * @post_send_status: handler for post sending status packet to FW.
-+ */
-+struct hbl_cn_asic_port_funcs {
-+	int (*port_hw_init)(struct hbl_cn_port *cn_port);
-+	void (*port_hw_fini)(struct hbl_cn_port *cn_port);
-+	int (*phy_port_init)(struct hbl_cn_port *cn_port);
-+	void (*phy_port_start_stop)(struct hbl_cn_port *cn_port, bool is_start);
-+	int (*phy_port_power_up)(struct hbl_cn_port *cn_port);
-+	void (*phy_port_reconfig)(struct hbl_cn_port *cn_port);
-+	void (*phy_port_fini)(struct hbl_cn_port *cn_port);
-+	void (*phy_link_status_work)(struct work_struct *work);
-+	int (*update_qp_mtu)(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp, u32 mtu);
-+	int (*user_wq_arr_unset)(struct hbl_cn_ctx *ctx, struct hbl_cn_port *cn_port, u32 type);
-+	void (*get_cq_id_range)(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id);
-+	int (*user_cq_set)(struct hbl_cn_user_cq *user_cq, struct hbl_cni_user_cq_set_in_params *in,
-+			   struct hbl_cni_user_cq_set_out_params *out);
-+	int (*user_cq_unset)(struct hbl_cn_user_cq *user_cq);
-+	void (*user_cq_destroy)(struct hbl_cn_user_cq *user_cq);
-+	int (*get_cnts_num)(struct hbl_cn_port *cn_port);
-+	void (*get_cnts_names)(struct hbl_cn_port *cn_port, u8 *data, bool ext);
-+	void (*get_cnts_values)(struct hbl_cn_port *cn_port, u64 *data);
-+	int (*port_sw_init)(struct hbl_cn_port *cn_port);
-+	void (*port_sw_fini)(struct hbl_cn_port *cn_port);
-+	int (*register_qp)(struct hbl_cn_port *cn_port, u32 qp_id, u32 asid);
-+	void (*unregister_qp)(struct hbl_cn_port *cn_port, u32 qp_id);
-+	void (*get_qp_id_range)(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id);
-+	int (*eq_poll)(struct hbl_cn_port *cn_port, u32 asid,
-+		       struct hbl_cni_eq_poll_out *event);
-+	struct hbl_cn_ev_dq * (*eq_dispatcher_select_dq)(struct hbl_cn_port *cn_port,
-+							 const struct hbl_cn_eqe *eqe);
-+	void (*get_db_fifo_id_range)(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id);
-+	void (*get_db_fifo_hw_id_range)(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id);
-+	int (*db_fifo_set)(struct hbl_cn_port *cn_port, struct hbl_cn_ctx *ctx, u32 id,
-+			   u64 ci_device_handle, struct hbl_cn_db_fifo_xarray_pdata *xa_pdata);
-+	void (*db_fifo_unset)(struct hbl_cn_port *cn_port, u32 id,
-+			      struct hbl_cn_db_fifo_xarray_pdata *xa_pdata);
-+	void (*get_db_fifo_umr)(struct hbl_cn_port *cn_port, u32 id,
-+				u64 *umr_block_addr, u32 *umr_db_offset);
-+	void (*get_db_fifo_modes_mask)(struct hbl_cn_port *cn_port, u32 *mode_mask);
-+	int (*db_fifo_allocate)(struct hbl_cn_port *cn_port,
-+				struct hbl_cn_db_fifo_xarray_pdata *xa_pdata);
-+	void (*db_fifo_free)(struct hbl_cn_port *cn_port, u32 db_pool_addr, u32 fifo_size);
-+	int (*set_pfc)(struct hbl_cn_port *cn_port);
-+	void (*get_encap_id_range)(struct hbl_cn_port *cn_port, u32 *min_id, u32 *max_id);
-+	int (*encap_set)(struct hbl_cn_port *cn_port, u32 encap_id,
-+			 struct hbl_cn_encap_xarray_pdata *xa_pdata);
-+	void (*encap_unset)(struct hbl_cn_port *cn_port, u32 encap_id,
-+			    struct hbl_cn_encap_xarray_pdata *xa_pdata);
-+	void (*set_ip_addr_encap)(struct hbl_cn_port *cn_port, u32 *encap_id, u32 src_ip);
-+	int (*qpc_write)(struct hbl_cn_port *cn_port, void *qpc, struct qpc_mask *qpc_mask,
-+			 u32 qpn, bool is_req);
-+	int (*qpc_invalidate)(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp, bool is_req);
-+	int (*qpc_query)(struct hbl_cn_port *cn_port, u32 qpn, bool is_req,
-+			 struct hbl_cn_qpc_attr *attr);
-+	int (*qpc_clear)(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp, bool is_req);
-+	void (*user_ccq_set)(struct hbl_cn_port *cn_port, u64 ccq_device_addr, u64 pi_device_addr,
-+			     u32 num_of_entries, u32 *ccqn);
-+	void (*user_ccq_unset)(struct hbl_cn_port *cn_port, u32 *ccqn);
-+	void (*reset_mac_stats)(struct hbl_cn_port *cn_port);
-+	void (*collect_fec_stats)(struct hbl_cn_port *cn_port, char *buf, size_t size);
-+	int (*disable_wqe_index_checker)(struct hbl_cn_port *cn_port);
-+	void (*get_status)(struct hbl_cn_port *cn_port, struct hbl_cn_cpucp_status *status);
-+	void (*cfg_lock)(struct hbl_cn_port *cn_port);
-+	void (*cfg_unlock)(struct hbl_cn_port *cn_port);
-+	bool (*cfg_is_locked)(struct hbl_cn_port *cn_port);
-+	void (*qp_pre_destroy)(struct hbl_cn_qp *qp);
-+	void (*qp_post_destroy)(struct hbl_cn_qp *qp);
-+	void (*set_port_status)(struct hbl_cn_port *cn_port, bool up);
-+	int (*send_cpucp_packet)(struct hbl_cn_port *cn_port, enum cpucp_packet_id packet_id,
-+				 int val);
-+	void (*adaptive_tmr_reset)(struct hbl_cn_qp *qp);
-+	void (*spmu_get_stats_info)(struct hbl_cn_port *cn_port, struct hbl_cn_stat **stats,
-+				    u32 *n_stats);
-+	int (*spmu_config)(struct hbl_cn_port *cn_port, u32 num_event_types, u32 event_types[],
-+			   bool enable);
-+	int (*spmu_sample)(struct hbl_cn_port *cn_port, u32 num_out_data, u64 out_data[]);
-+	void (*post_send_status)(struct hbl_cn_port *cn_port);
-+};
-+
-+/**
-+ * struct hbl_cn_asic_funcs - ASIC specific functions that are can be called from common code.
-+ * @core_init: core infrastructure init.
-+ * @core_fini: core infrastructure cleanup.
-+ * @get_default_port_speed: get the default port BW in MB/s.
-+ * @phy_reset_macro: macro PHY reset.
-+ * @phy_get_crc: get PHY CRC.
-+ * @set_req_qp_ctx: set up a requester QP context.
-+ * @set_res_qp_ctx: set up a responder QP context.
-+ * @user_wq_arr_set: set user WQ array (check whether user_wq_lock should be taken).
-+ * @user_set_app_params: update user params to be later retrieved by user_get_app_params.
-+ * @user_get_app_params: retrieve user params, previously configured or saved by
-+ *                       user_set_app_params.
-+ * @get_phy_fw_name: returns the PHY FW file name.
-+ * @pre_sw_init: initialize device SW fixed properties.
-+ * @sw_init: initialize device SW.
-+ * @sw_fini: cleanup device SW.
-+ * @macro_sw_init: initialize per macro software components.
-+ * @macro_sw_fini: finalize per macro software components.
-+ * @kernel_ctx_init: initialize kernel context.
-+ * @kernel_ctx_fini: de-initialize kernel context.
-+ * @ctx_init: initialize user context.
-+ * @ctx_fini: de-initialize user context.
-+ * @qp_read: read a QP content.
-+ * @wqe_read: read a WQE content.
-+ * @phy_fw_load_all: load PHY fw on all the ports.
-+ * @set_en_data: ASIC data to be used by the Ethernet driver.
-+ * @request_irqs: Add handlers to interrupt lines.
-+ * @free_irqs: Free interrupts allocated with request_irqs.
-+ * @synchronize_irqs: Wait for pending IRQ handlers (on other CPUs).
-+ * @phy_dump_serdes_params: dump the serdes parameters.
-+ * @get_max_msg_sz: get maximum message size.
-+ * @qp_syndrome_to_str: convert a QP error syndrome to an error string.
-+ * @app_params_clear: clear app params.
-+ * @inject_rx_err: Force RX packet drops.
-+ * @is_encap_supported: true if encapsulation is supported according to the given parameters.
-+ * @set_wqe_index_checker: set wqe index checker (enable/disable).
-+ * @get_wqe_index_checker: get wqe index checker (enabled/disabled).
-+ * @set_static_properties: Sets static CN properties.
-+ * @set_dram_properties: Sets DRAM CN properties.
-+ * @late_init: set post initialization properties, e.g., compute2cn ops.
-+ * @late_fini: clear post initialization properties, e.g., compute2cn ops.
-+ * @get_hw_block_handle: Map block and return its handle.
-+ * @get_hw_block_addr: Get address and size for a memory handle.
-+ * @create_mem_ctx: create a HW memory context.
-+ * @destroy_mem_ctx: destroy a HW memory context.
-+ * @phy_speed_rate_write: set PHY speed rate ID.
-+ * @phy_speed_rate_read: get PHY speed rate ID.
-+ * @phy_training_type_write: set PHY training type ID.
-+ * @phy_training_type_read: get PHY training type ID.
-+ * @dma_alloc_coherent: Allocate coherent DMA memory.
-+ * @dma_free_coherent: Free coherent DMA memory.
-+ * @dma_pool_zalloc: Allocate a memory block from a DMA memory pool.
-+ * @dma_pool_free: Free a DMA memory pool block.
-+ * @set_maintenance_work_interval: Set maintenance work interval.
-+ * @get_maintenance_work_interval: Get maintenance work interval.
-+ * @send_cpu_message: Send message to F/W. If the message is timedout, the driver will eventually
-+ *                    reset the device. The timeout is passed as an argument. If it is 0 the
-+ *                    timeout set is the default timeout for the specific ASIC.
-+ * @ports_cancel_status_work: Cancel status work of all ports.
-+ * @port_funcs: Functions called from common code for a specific port.
-+ */
-+struct hbl_cn_asic_funcs {
-+	int (*core_init)(struct hbl_cn_device *hdev);
-+	void (*core_fini)(struct hbl_cn_device *hdev);
-+	u32 (*get_default_port_speed)(struct hbl_cn_device *hdev);
-+	int (*phy_reset_macro)(struct hbl_cn_macro *cn_macro);
-+	u16 (*phy_get_crc)(struct hbl_cn_device *hdev);
-+	int (*set_req_qp_ctx)(struct hbl_cn_device *hdev, struct hbl_cni_req_conn_ctx_in *in,
-+			      struct hbl_cn_qp *qp);
-+	int (*set_res_qp_ctx)(struct hbl_cn_device *hdev, struct hbl_cni_res_conn_ctx_in *in,
-+			      struct hbl_cn_qp *qp);
-+	int (*user_wq_arr_set)(struct hbl_cn_device *hdev, struct hbl_cni_user_wq_arr_set_in *in,
-+			       struct hbl_cni_user_wq_arr_set_out *out, struct hbl_cn_ctx *ctx);
-+	int (*user_set_app_params)(struct hbl_cn_device *hdev,
-+				   struct hbl_cni_set_user_app_params_in *in,
-+				   bool *modify_wqe_checkers, struct hbl_cn_ctx *ctx);
-+	void (*user_get_app_params)(struct hbl_cn_device *hdev,
-+				    struct hbl_cni_get_user_app_params_in *in,
-+				    struct hbl_cni_get_user_app_params_out *out);
-+	const char* (*get_phy_fw_name)(void);
-+	void (*pre_sw_init)(struct hbl_cn_device *hdev);
-+	int (*sw_init)(struct hbl_cn_device *hdev);
-+	void (*sw_fini)(struct hbl_cn_device *hdev);
-+	int (*macro_sw_init)(struct hbl_cn_macro *cn_macro);
-+	void (*macro_sw_fini)(struct hbl_cn_macro *cn_macro);
-+	int (*kernel_ctx_init)(struct hbl_cn_device *hdev, u32 asid);
-+	void (*kernel_ctx_fini)(struct hbl_cn_device *hdev, u32 asid);
-+	int (*ctx_init)(struct hbl_cn_ctx *ctx);
-+	void (*ctx_fini)(struct hbl_cn_ctx *ctx);
-+	int (*qp_read)(struct hbl_cn_device *hdev, struct hbl_cn_qp_info *qp_info, char *buf,
-+		       size_t bsize);
-+	int (*wqe_read)(struct hbl_cn_device *hdev, char *buf, size_t bsize);
-+	int (*phy_fw_load_all)(struct hbl_cn_device *hdev);
-+	void (*set_en_data)(struct hbl_cn_device *hdev);
-+	int (*request_irqs)(struct hbl_cn_device *hdev);
-+	void (*free_irqs)(struct hbl_cn_device *hdev);
-+	void (*synchronize_irqs)(struct hbl_cn_device *hdev);
-+	void (*phy_dump_serdes_params)(struct hbl_cn_device *hdev, char *buf, size_t size);
-+	u32 (*get_max_msg_sz)(struct hbl_cn_device *hdev);
-+	char *(*qp_syndrome_to_str)(u32 syndrome);
-+	void (*app_params_clear)(struct hbl_cn_device *hdev);
-+	int (*inject_rx_err)(struct hbl_cn_device *hdev, u8 drop_percent);
-+	bool (*is_encap_supported)(struct hbl_cn_device *hdev,
-+				   struct hbl_cni_user_encap_set_in *in);
-+	int (*set_wqe_index_checker)(struct hbl_cn_device *hdev, u32 enable);
-+	int (*get_wqe_index_checker)(struct hbl_cn_device *hdev);
-+	int (*set_static_properties)(struct hbl_cn_device *hdev);
-+	int (*set_dram_properties)(struct hbl_cn_device *hdev);
-+	void (*late_init)(struct hbl_cn_device *hdev);
-+	void (*late_fini)(struct hbl_cn_device *hdev);
-+	int (*get_hw_block_handle)(struct hbl_cn_device *hdev, u64 address, u64 *handle);
-+	int (*get_hw_block_addr)(struct hbl_cn_device *hdev, u64 handle, u64 *addr, u64 *size);
-+	int (*create_mem_ctx)(struct hbl_cn_ctx *ctx, u32 pasid, u64 page_tbl_addr);
-+	void (*destroy_mem_ctx)(struct hbl_cn_ctx *ctx, u32 pasid, u64 page_tbl_addr);
-+	int (*phy_speed_rate_write)(struct hbl_cn_device *hdev, u32 speed_rate_id);
-+	u32 (*phy_speed_rate_read)(struct hbl_cn_device *hdev);
-+	int (*phy_training_type_write)(struct hbl_cn_device *hdev, u32 training_type_id);
-+	u32 (*phy_training_type_read)(struct hbl_cn_device *hdev);
-+	void *(*dma_alloc_coherent)(struct hbl_cn_device *hdev, size_t size, dma_addr_t *dma_handle,
-+				    gfp_t flag);
-+	void (*dma_free_coherent)(struct hbl_cn_device *hdev, size_t size, void *cpu_addr,
-+				  dma_addr_t dma_addr);
-+	void *(*dma_pool_zalloc)(struct hbl_cn_device *hdev, size_t size, gfp_t mem_flags,
-+				 dma_addr_t *dma_handle);
-+	void (*dma_pool_free)(struct hbl_cn_device *hdev, void *vaddr, dma_addr_t dma_addr);
-+	void (*set_maintenance_work_interval)(struct hbl_cn_device *hdev, u32 value);
-+	u32 (*get_maintenance_work_interval)(struct hbl_cn_device *hdev);
-+	int (*send_cpu_message)(struct hbl_cn_device *hdev, u32 *msg, u16 len, u32 timeout,
-+				u64 *result);
-+	void (*ports_cancel_status_work)(struct hbl_cn_device *hdev);
-+	struct hbl_cn_asic_port_funcs *port_funcs;
-+};
-+
-+/**
-+ * struct hbl_cn_tx_taps - holds the Tx taps values for a specific lane (tx_pre2, tx_pre1, tx_main,
-+ *                         tx_post1 and tx_post2).
-+ * @pam4_taps: taps for PAM4 mode.
-+ * @nrz_taps: taps for NRZ mode.
-+ */
-+struct hbl_cn_tx_taps {
-+	s32 pam4_taps[PHY_TX_TAPS_NUM];
-+	s32 nrz_taps[PHY_TX_TAPS_NUM];
-+};
-+
-+/**
-+ * struct hbl_cn_ber_info - holds the last calculated BER info for a specific lane.
-+ * the BER (bit error rate) value is represented by "integer.frac * e ^ -exp".
-+ * @integer: the integer part of the BER value.
-+ * @frac: the fracture part of the BER value.
-+ * @exp: the exponent part of the BER value.
-+ * @valid: is info valid.
-+ */
-+struct hbl_cn_ber_info {
-+	u64 integer;
-+	u64 frac;
-+	u8 exp;
-+	u8 valid;
-+};
-+
-+/**
-+ * struct hbl_cn_macro - manage specific macro that holds multiple engines.
-+ * @hdev: habanalabs device structure.
-+ * @rec_link_sts: link status bits as received from the MAC_REC_STS0 register.
-+ * @phy_macro_needs_reset: true if the PHY macro needs to be reset.
-+ * @idx: index of the macro.
-+ */
-+struct hbl_cn_macro {
-+	struct hbl_cn_device *hdev;
-+	u32 rec_link_sts;
-+	u8 phy_macro_needs_reset;
-+	u8 idx;
-+};
-+
-+/**
-+ * struct hbl_cn_port - manage specific port common structure.
-+ * @hdev: habanalabs device structure.
-+ * @cn_specific: pointer to an ASIC specific port structure.
-+ * @cn_macro: pointer to the manage structure of the containing macro.
-+ * @wq: general purpose WQ for low/medium priority jobs like link status detection or status fetch.
-+ * @qp_wq: QP work queue for handling the reset or destruction of QPs.
-+ * @wq_arr_props: array per type of WQ array properties.
-+ * @ev_dqs: per ASID/App events dispatch queues managed by the driver.
-+ * @num_of_allocated_qps: the currently number of allocated qps for this port.
-+ * @link_status_work: work for checking port link status.
-+ * @fw_status_work: work for sending port status to the FW.
-+ * @control_lock: protects from a race between port open/close and other stuff that might run in
-+ *                parallel (such as event handling).
-+ * @cnt_lock: protects the counters from concurrent reading. Needed for SPMU and XPCS91 counters.
-+ * @qp_ids: xarray to hold all QP IDs.
-+ * @db_fifo_ids: Allocated doorbell fifo IDs.
-+ * @cq_ids: xarray to hold all CQ IDs.
-+ * @encap_ids: Allocated encapsulation IDs.
-+ * @fw_tuning_limit_ts: time stamp of FW tuning time limit.
-+ * @correctable_errors_cnt: count the correctable FEC blocks.
-+ * @uncorrectable_errors_cnt: count the uncorrectable FEC blocks.
-+ * @port: port index.
-+ * @speed: the bandwidth of the port in Mb/s.
-+ * @pflags: private flags bit mask.
-+ * @retry_cnt: counts the number of retries during link establishment.
-+ * @pcs_local_fault_cnt: counter of PCS link local errors since last F/W configuration. These errors
-+ *                       can appear even when link is up.
-+ * @pcs_remote_fault_cnt: counter of PCS link remote errors since last F/W configuration. These
-+ *                        errors can appear even when link is up.
-+ * @pcs_remote_fault_seq_cnt: counter for number of PCS remote faults in a row, or in other words
-+ *                            the length of their sequence.
-+ * @pcs_remote_fault_reconfig_cnt: counter of PHY reconfigurations due to remote fault errors since
-+ *                                 last port open.
-+ * @pcs_link_restore_cnt: counter of PCS link momentary loss (glitch) since last F/W configuration.
-+ * @data_rate: data rate according to speed and number of lanes.
-+ * @num_of_wq_entries: number of entries configured in the port WQ.
-+ * @num_of_wqs: number of WQs configured for this port.
-+ * @qp_idx_offset: offset to the base QP index of this port for generic QPs.
-+ * @port_toggle_cnt: counts number of times port link status was toggled since PHY init.
-+ * @port_toggle_cnt_prev: holds the value of port_toggle_cnt in the last pcs link check.
-+ * @cong_q_err_cnt: error count of congestion queue error.
-+ * @port_open: true if the port H/W is initialized, false otherwise.
-+ * @mac_loopback: true if port in MAC loopback mode, false otherwise.
-+ * @pfc_enable: true if this port supports Priority Flow Control, false otherwise.
-+ * @sw_initialized: true if the basic SW initialization was completed successfully for this port,
-+ *                  false otherwise.
-+ * @phy_fw_tuned: true if F/W is tuned, false otherwise.
-+ * @phy_func_mode_en: true if PHY is set to functional mode, false otherwise.
-+ * @pcs_link: true if the port has PCS link, false otherwise.
-+ * @eq_pcs_link: true if the port got PCS link in the EQ, false otherwise..
-+ * @link_eqe: cache link status EQE. Dispatched to user for internal ports only.
-+ * @auto_neg_enable: true if this port supports Autonegotiation, false otherwise.
-+ * @auto_neg_resolved: true if Autonegotiation was completed for this port, false otherwise.
-+ * @auto_neg_skipped: true if Autonegotiation was skipped for this port, false otherwise.
-+ * @eth_enable: is Ethernet traffic enabled in addition to RDMA.
-+ * @ccq_enable: true if the CCQ was initialized successfully for this port, false otherwise.
-+ * @set_app_params: set_app_params operation was executed by the user. This is a mandatory step in
-+ *                  order to initialize the uAPI.
-+ * @disabled: true if this port is disabled, i.e. need to block its initialization, false otherwise.
-+ * @bp_enable: true if WQ back-pressure was enabled, false otherwise.
-+ * @eq_handler_enable: true if event queue events are handled, false otherwise.
-+ */
-+struct hbl_cn_port {
-+	struct hbl_cn_device *hdev;
-+	void *cn_specific;
-+	struct hbl_cn_macro *cn_macro;
-+	struct workqueue_struct *wq;
-+	struct workqueue_struct *qp_wq;
-+	struct hbl_cn_wq_array_properties wq_arr_props[HBL_CNI_USER_WQ_TYPE_MAX];
-+	struct hbl_cn_ev_dqs ev_dqs;
-+	struct hbl_cn_reset_tracker *reset_tracker;
-+	atomic_t num_of_allocated_qps;
-+	struct delayed_work link_status_work;
-+	struct delayed_work fw_status_work;
-+	/* protects from a race between port open/close and event handling */
-+	struct mutex control_lock;
-+	/* protects the counters from concurrent reading */
-+	struct mutex cnt_lock;
-+	struct xarray qp_ids;
-+	struct xarray db_fifo_ids;
-+	struct xarray cq_ids;
-+	struct xarray encap_ids;
-+	struct hbl_cn_eqe link_eqe;
-+	ktime_t fw_tuning_limit_ts;
-+	u64 ccq_handle;
-+	u64 ccq_pi_handle;
-+	u64 correctable_errors_cnt;
-+	u64 uncorrectable_errors_cnt;
-+	u32 port;
-+	u32 speed;
-+	u32 pflags;
-+	u32 retry_cnt;
-+	u32 pcs_local_fault_cnt;
-+	u32 pcs_remote_fault_seq_cnt;
-+	u32 pcs_remote_fault_reconfig_cnt;
-+	u32 pcs_remote_fault_cnt;
-+	u32 pcs_link_restore_cnt;
-+	u32 data_rate;
-+	u32 num_of_wq_entries;
-+	u32 num_of_wqs;
-+	u32 qp_idx_offset;
-+	u32 swqe_size;
-+	u32 port_toggle_cnt;
-+	u32 port_toggle_cnt_prev;
-+	u32 cong_q_err_cnt;
-+	u8 port_open;
-+	u8 mac_loopback;
-+	u8 pfc_enable;
-+	u8 sw_initialized;
-+	u8 phy_fw_tuned;
-+	u8 phy_func_mode_en;
-+	u8 pcs_link;
-+	u8 eq_pcs_link;
-+	u8 auto_neg_enable;
-+	u8 auto_neg_resolved;
-+	u8 auto_neg_skipped;
-+	u8 eth_enable;
-+	u8 ccq_enable;
-+	u8 set_app_params;
-+	u8 disabled;
-+	u8 bp_enable;
-+	u8 eq_handler_enable;
-+};
-+
-+/**
-+ * struct hbl_cn_comp_vm_info - Compute virtual memory info.
-+ * @vm_info: VM info.
-+ * @vm_handle: VM handle.
-+ */
-+struct hbl_cn_comp_vm_info {
-+	struct hbl_cn_vm_info vm_info;
-+	u64 vm_handle;
-+};
-+
-+/**
-+ * struct hbl_cn_ctx - user context common structure.
-+ * @hdev: device structure.
-+ * @user_vm_info: info of user compute VM.
-+ * @driver_vm_info: info of driver compute VM.
-+ * @lock: protects context from specific concurrent operations.
-+ * @comp_handle: compute handle.
-+ * @asid: ASID for accessing driver memory.
-+ * @user_asid: ASID for accessing user memory:
-+ */
-+struct hbl_cn_ctx {
-+	struct hbl_cn_device *hdev;
-+	struct hbl_cn_comp_vm_info user_vm_info;
-+	struct hbl_cn_comp_vm_info driver_vm_info;
-+	/* protects context from specific concurrent operations */
-+	struct mutex lock;
-+	u64 comp_handle;
-+	u32 asid;
-+	u32 user_asid;
-+};
-+
-+/**
-+ * struct hbl_cn_properties - ASIC specific properties.
-+ * @phy_base_addr: base address of the PHY.
-+ * @nic_drv_addr: the base address of the memory in the device
-+ * @nic_drv_size: the size of the memory in the device
-+ * @nic_drv_base_addr: the aligned base address of the memory in the device
-+ * @nic_drv_end_addr: the aligned end address of the memory in the device
-+ * @txs_base_addr: base address of the ports timer cfg
-+ * @txs_base_size: size of the ports timer cfg
-+ * @wq_base_addr: base address of send and receive work-q
-+ * @wq_base_size: base address of send and receive work-q
-+ * @tmr_base_addr: base address of the macros timer cfg
-+ * @tmr_base_size: size of the macros timer cfg
-+ * @req_qpc_base_addr: the base address of a requester (sender) QP context buffer
-+ * @req_qpc_base_size: the size of a requester (sender) QP context buffer
-+ * @res_qpc_base_addr: the base address of a responder (receiver) QP context buffer
-+ * @res_qpc_base_size: the size of a requester (receiver) QP context buffer
-+ * @max_hw_qps_num: maximum number of QPs supported by HW.
-+ * @max_qps_num: maximum number of QPs to allocate.
-+ * @max_hw_user_wqs_num: maximum number of WQ entries supported by HW.
-+ * @min_hw_user_wqs_num: minimum number of WQ entries supported by HW.
-+ * @macro_cfg_size: the size of the macro configuration space.
-+ * @rwqe_size: receive WQE size.
-+ * @user_cq_min_entries: minimum number of supported user CQ entries.
-+ * @user_cq_max_entries: max number of supported user CQ entries.
-+ * @max_frm_len: maximum allowed frame length.
-+ * @raw_elem_size: size of element in raw buffers.
-+ * @status_packet_size: size of the status packet we are going to send to F/W.
-+ * @cqe_size: Size of the Completion queue Entry.
-+ * @max_qp_error_syndromes: maximum number of QP error syndromes.
-+ * @max_raw_mtu: maximum MTU size for raw packets.
-+ * @min_raw_mtu: minimum MTU size for raw packets.
-+ * @clk: clock frequency in MHz.
-+ * @force_cq: all CQs should be enabled regardless of the ports link mask.
-+ * @max_num_of_lanes: maximum number of lanes supported by ASIC.
-+ * @max_num_of_ports: maximum number of ports supported by ASIC.
-+ * @num_of_macros: number of macros supported by ASIC.
-+ * @max_cqs: maximum number of completion queues.
-+ * @max_ccqs: maximum number of congestion control completion queues.
-+ * @max_db_fifos: maximum number of DB fifos.
-+ * @max_wq_arr_type: maximum WQ array type number.
-+ * @is_phy_fw_binary: True if phy FW is in binary format, false otherwise.
-+ */
-+struct hbl_cn_properties {
-+	u64 phy_base_addr;
-+	u64 nic_drv_addr;
-+	u64 nic_drv_size;
-+	u64 nic_drv_base_addr;
-+	u64 nic_drv_end_addr;
-+	u64 txs_base_addr;
-+	u64 txs_base_size;
-+	u64 wq_base_addr;
-+	u64 wq_base_size;
-+	u64 tmr_base_addr;
-+	u64 tmr_base_size;
-+	u64 req_qpc_base_addr;
-+	u64 req_qpc_base_size;
-+	u64 res_qpc_base_addr;
-+	u64 res_qpc_base_size;
-+	u32 max_hw_qps_num;
-+	u32 max_qps_num;
-+	u32 max_hw_user_wqs_num;
-+	u32 min_hw_user_wqs_num;
-+	u32 macro_cfg_size;
-+	u32 rwqe_size;
-+	u32 user_cq_min_entries;
-+	u32 user_cq_max_entries;
-+	u32 max_frm_len;
-+	u32 raw_elem_size;
-+	u32 status_packet_size;
-+	u32 cqe_size;
-+	u32 max_qp_error_syndromes;
-+	u16 max_raw_mtu;
-+	u16 min_raw_mtu;
-+	u16 clk;
-+	u8 force_cq;
-+	u8 max_num_of_lanes;
-+	u8 max_num_of_ports;
-+	u8 num_of_macros;
-+	u8 max_cqs;
-+	u8 max_ccqs;
-+	u8 max_db_fifos;
-+	u8 max_wq_arr_type;
-+	u8 is_phy_fw_binary;
-+};
-+
-+/**
-+ * struct hbl_cn_device - habanalabs CN device structure.
-+ * @pdev: pointer to PCI device.
-+ * @dev: related kernel basic device structure.
-+ * @cpucp_info: FW info.
-+ * @asic_funcs: ASIC specific functions that can be called from common code.
-+ * @phy_tx_taps: array that holds all PAM4 Tx taps of all lanes.
-+ * @phy_ber_info: array that holds last calculated BER info of all lanes.
-+ * @cn_ports: pointer to an array that holds all ports manage common structures.
-+ * @cn_macros: pointer to an array that holds all macros manage structures.
-+ * @wq_arrays_pool: memory pool for WQ arrays on HBM.
-+ * @cn_props: fixed NIC properties.
-+ * @asic_specific: ASIC specific information to use only from ASIC files.
-+ * @cn_aux_dev: pointer to CN auxiliary device.
-+ * @en_aux_dev: Ethernet auxiliary device.
-+ * @ib_aux_dev: InfiniBand auxiliary device.
-+ * @qp_info: details of a QP to read via debugfs.
-+ * @wqe_info: details of a WQE to read via debugfs.
-+ * @ctx: user context.
-+ * @hw_access_lock: protects from HW access during reset flows.
-+ * @asic_type: ASIC specific type.
-+ * @status_cmd: status packet command from FW.
-+ * @qp_reset_mode: Graceful/fast reset.
-+ * @fw_ver: FW version.
-+ * @mem_ids: an xarray holding all active memory handles.
-+ * @ctrl_op_mask: mask of supported control operations.
-+ * @ports_mask: mask of available ports.
-+ * @ext_ports_mask: mask of external ports (subset of ports_mask).
-+ * @phys_auto_neg_mask: mask of ports with Autonegotiation availability.
-+ * @auto_neg_mask: mask of port with Autonegotiation enabled.
-+ * @mac_loopback: enable MAC loopback on specific ports.
-+ * @dram_size: available DRAM size.
-+ * @mmap_type_flag: flag to indicate NIC MMAP type.
-+ * @pol_tx_mask: bitmap of tx polarity for all lanes.
-+ * @pol_rx_mask: bitmap of rx polarity for all lanes.
-+ * @device_timeout: device access timeout in usec.
-+ * @mac_lane_remap: MAC to PHY lane mapping.
-+ * @pending_reset_long_timeout: Long timeout for pending hard reset to finish in seconds.
-+ * @kernel_asid: kernel ASID.
-+ * @qp_drain_time: drain waiting time in seconds after QP invalidation.
-+ * @card_location: the OAM number in the HLS (relevant for PMC card type).
-+ * @phy_port_to_dump: the port which its serdes params will be dumped.
-+ * @fw_major_version: major version of current loaded preboot.
-+ * @fw_minor_version: minor version of current loaded preboot.
-+ * @qpc_cache_inv_timeout: timeout for QPC cache invalidation.
-+ * @fw_app_cpu_boot_dev_sts0: bitmap representation of application security status reported by FW,
-+ *                            bit description can be found in CPU_BOOT_DEV_STS0.
-+ * @fw_app_cpu_boot_dev_sts1: bitmap representation of application security status reported by FW,
-+ *                            bit description can be found in CPU_BOOT_DEV_STS1.
-+ * @accumulate_fec_duration: Time (ms) to accumulate FEC errors for.
-+ * @id: device ID.
-+ * @phy_calc_ber_wait_sec: time in seconds to wait before BER calculation.
-+ * @cache_line_size: device cache line size.
-+ * @operational: is device operational.
-+ * @in_reset: is device under reset.
-+ * @fw_reset: is device under reset which was initiated by FW.
-+ * @in_teardown: is device under teardown.
-+ * @is_initialized: is device initialized.
-+ * @pldm: is running on Palladium setup.
-+ * @skip_phy_init: avoid writing/reading PHY registers.
-+ * @load_phy_fw: true if the PHY F/W should be loaded, false otherwise.
-+ * @cpucp_fw: is CPUCP FW enabled.
-+ * @supports_coresight: is CoreSight supported.
-+ * @use_fw_serdes_info: true if FW serdes values should be used, false if hard coded values should
-+ *                      be used.
-+ * @phy_config_fw: true if the PHY F/W should be configured, false otherwise. The PHY F/W should be
-+ *                 configured on ASIC only, in contrary to Palladium.
-+ * @mmu_bypass: use MMU bypass for allocated data structures (false is used only for debug mode).
-+ * @wq_arrays_pool_enable: Use device memory pool for WQ arrays.
-+ * @poll_enable: enable polling mode rather than interrupt mode.
-+ * @has_eq: is event queue is supported.
-+ * @skip_mac_reset: skip MAC reset.
-+ * @skip_mac_cnts: Used to skip MAC counters if not supported.
-+ * @skip_odd_ports_cfg_lock: do not lock the odd ports when acquiring the cfg lock for all ports.
-+ * @ib_support: InfiniBand support.
-+ * @mmu_enable: is MMU enabled.
-+ * @eth_loopback: enable hack in hbl_en_handle_tx to test eth traffic.
-+ * @lanes_per_port: number of physical lanes per port.
-+ * @is_eth_aux_dev_initialized: true if the eth auxiliary device is initialized.
-+ * @is_ib_aux_dev_initialized: true if the IB auxiliary device is initialized.
-+ * @rx_drop_percent: RX packet drop percentage set via debugfs.
-+ * @rand_status: randomize the FW status counters (used for testing).
-+ * @status_period: periodic time in secs at which FW expects status packet.
-+ * @phy_regs_print: print all PHY registers reads/writes.
-+ * @phy_calc_ber: show PHY BER statistics during power-up.
-+ * @is_decap_disabled: true if need to skip decapsulation, false otherwise.
-+ * @phy_set_nrz: Set the PHY to NRZ mode (25Gbps speed).
-+ * @skip_phy_default_tx_taps_cfg: Used to skip re-configuration of the default tx_taps.
-+ * @cpucp_checkers_shift: CPUCP checkers flags shift.
-+ * @mixed_qp_wq_types: Using mixed QP WQ types is supported.
-+ * @hw_stop_during_teardown: Stopping the HW should take place during device teardown.
-+ * @qp_wait_for_idle: Wait for QP to be idle.
-+ * @hw_invalid_while_teardown: HW is unavailable during device teardown.
-+ * @umr_support: device supports UMR.
-+ * @ib_device_opened: Is true if IB deviced has been opened.
-+ * @multi_ctx_support: device supports multiple contexts.
-+ * @skip_phy_pol_cfg: Used to prevent overwriting polarity cfg after setting them via debugfs.
-+ * @cc_support: device supports congestion control.
-+ * @phy_force_first_tx_taps_cfg: start with first Tx taps config in PHY power-up.
-+ */
-+struct hbl_cn_device {
-+	struct pci_dev *pdev;
-+	struct device *dev;
-+	struct hbl_cn_cpucp_info *cpucp_info;
-+	struct hbl_cn_asic_funcs *asic_funcs;
-+	struct hbl_cn_tx_taps *phy_tx_taps;
-+	struct hbl_cn_ber_info *phy_ber_info;
-+	struct hbl_cn_port *cn_ports;
-+	struct hbl_cn_macro *cn_macros;
-+	struct gen_pool *wq_arrays_pool;
-+	struct hbl_cn_properties cn_props;
-+	void *asic_specific;
-+	char *fw_ver;
-+	struct hbl_aux_dev *cn_aux_dev;
-+	struct hbl_aux_dev en_aux_dev;
-+	struct hbl_aux_dev ib_aux_dev;
-+	struct hbl_cn_qp_info qp_info;
-+	struct hbl_cn_wqe_info wqe_info;
-+	struct hbl_cn_ctx *ctx;
-+	/* protects from HW access during reset flows */
-+	struct mutex hw_access_lock;
-+	enum hbl_cn_asic_type asic_type;
-+	enum hbl_cn_status_cmd status_cmd;
-+	enum hbl_cn_qp_reset_mode qp_reset_mode;
-+	struct xarray mem_ids;
-+	u64 ctrl_op_mask;
-+	u64 ports_mask;
-+	u64 ext_ports_mask;
-+	u64 phys_auto_neg_mask;
-+	u64 auto_neg_mask;
-+	u64 mac_loopback;
-+	u64 dram_size;
-+	u64 mmap_type_flag;
-+	u64 pol_tx_mask;
-+	u64 pol_rx_mask;
-+	u32 device_timeout;
-+	u32 *mac_lane_remap;
-+	u32 pending_reset_long_timeout;
-+	u32 kernel_asid;
-+	u32 qp_drain_time;
-+	u32 card_location;
-+	u32 phy_port_to_dump;
-+	u32 fw_major_version;
-+	u32 fw_minor_version;
-+	u32 qpc_cache_inv_timeout;
-+	u32 fw_app_cpu_boot_dev_sts0;
-+	u32 fw_app_cpu_boot_dev_sts1;
-+	u32 accumulate_fec_duration;
-+	u16 id;
-+	u16 phy_calc_ber_wait_sec;
-+	u16 cache_line_size;
-+	u8 operational;
-+	u8 in_reset;
-+	u8 fw_reset;
-+	u8 in_teardown;
-+	u8 is_initialized;
-+	u8 pldm;
-+	u8 skip_phy_init;
-+	u8 load_phy_fw;
-+	u8 cpucp_fw;
-+	u8 supports_coresight;
-+	u8 use_fw_serdes_info;
-+	u8 phy_config_fw;
-+	u8 mmu_bypass;
-+	u8 wq_arrays_pool_enable;
-+	u8 poll_enable;
-+	u8 has_eq;
-+	u8 skip_mac_reset;
-+	u8 skip_mac_cnts;
-+	u8 skip_odd_ports_cfg_lock;
-+	u8 ib_support;
-+	u8 mmu_enable;
-+	u8 eth_loopback;
-+	u8 lanes_per_port;
-+	u8 is_eth_aux_dev_initialized;
-+	u8 is_ib_aux_dev_initialized;
-+	u8 rx_drop_percent;
-+	u8 rand_status;
-+	u8 status_period;
-+	u8 phy_regs_print;
-+	u8 phy_calc_ber;
-+	u8 is_decap_disabled;
-+	u8 phy_set_nrz;
-+	u8 skip_phy_default_tx_taps_cfg;
-+	u8 cpucp_checkers_shift;
-+	u8 mixed_qp_wq_types;
-+	u8 hw_stop_during_teardown;
-+	u8 qp_wait_for_idle;
-+	u8 hw_invalid_while_teardown;
-+	u8 umr_support;
-+	u8 ib_device_opened;
-+	u8 multi_ctx_support;
-+	u8 skip_phy_pol_cfg;
-+	u8 cc_support;
-+	u8 phy_force_first_tx_taps_cfg;
-+};
-+
-+static inline void hbl_cn_strtolower(char *str)
-+{
-+	while (*str) {
-+		*str = tolower(*str);
-+		str++;
-+	}
++	return fw_cmd(hdev, port, 0x6000 | (mode << 4) | lane, &counter_value, 14, &ignore);
 +}
 +
-+int hbl_cn_dev_init(struct hbl_cn_device *hdev);
-+void hbl_cn_dev_fini(struct hbl_cn_device *hdev);
-+bool hbl_cn_comp_device_operational(struct hbl_cn_device *hdev);
-+void hbl_cn_spmu_get_stats_info(struct hbl_cn_port *cn_port, struct hbl_cn_stat **stats,
-+				u32 *n_stats);
-+int hbl_cn_reserve_dva_block(struct hbl_cn_ctx *ctx, u64 size, u64 *dva);
-+void hbl_cn_unreserve_dva_block(struct hbl_cn_ctx *ctx, u64 dva, u64 size);
-+int hbl_cn_get_hw_block_handle(struct hbl_cn_device *hdev, u64 address, u64 *handle);
-+int hbl_cn_send_cpucp_packet(struct hbl_cn_device *hdev, u32 port, enum cpucp_packet_id pkt_id,
-+			     int val);
-+int hbl_cn_internal_port_init_locked(struct hbl_cn_port *cn_port);
-+void hbl_cn_internal_port_fini_locked(struct hbl_cn_port *cn_port);
-+int hbl_cn_phy_init(struct hbl_cn_port *cn_port);
-+void hbl_cn_phy_fini(struct hbl_cn_port *cn_port);
-+void hbl_cn_phy_port_reconfig(struct hbl_cn_port *cn_port);
-+int hbl_cn_phy_has_binary_fw(struct hbl_cn_device *hdev);
-+void hbl_cn_phy_set_fw_polarity(struct hbl_cn_device *hdev);
-+void hbl_cn_phy_set_port_status(struct hbl_cn_port *cn_port, bool up);
-+int hbl_cn_read_spmu_counters(struct hbl_cn_port *cn_port, u64 out_data[], u32 *num_out_data);
-+int hbl_cn_qp_modify(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp,
-+		     enum hbl_cn_qp_state new_state, void *params);
-+u32 hbl_cn_get_max_qp_id(struct hbl_cn_port *cn_port);
-+bool hbl_cn_is_port_open(struct hbl_cn_port *cn_port);
-+u32 hbl_cn_get_pflags(struct hbl_cn_port *cn_port);
-+u8 hbl_cn_get_num_of_digits(u64 num);
-+void hbl_cn_reset_stats_counters(struct hbl_cn_device *hdev);
-+void hbl_cn_reset_ports_toggle_counters(struct hbl_cn_device *hdev);
-+void hbl_cn_get_self_hw_block_handle(struct hbl_cn_device *hdev, u64 address, u64 *handle);
-+u32 hbl_cn_hw_block_handle_to_addr32(struct hbl_cn_device *hdev, u64 handle);
-+
-+struct hbl_cn_ev_dq *hbl_cn_asid_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 asid);
-+struct hbl_cn_ev_dq *hbl_cn_dbn_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 dbn,
-+				      struct hbl_cn_device *hdev);
-+struct hbl_cn_ev_dq *hbl_cn_qpn_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 qpn);
-+struct hbl_cn_dq_qp_info *hbl_cn_get_qp_info(struct hbl_cn_ev_dqs *ev_dqs, u32 qpn);
-+struct hbl_cn_ev_dq *hbl_cn_cqn_to_dq(struct hbl_cn_ev_dqs *ev_dqs,
-+				      u32 cqn, struct hbl_cn_device *hdev);
-+struct hbl_cn_ev_dq *hbl_cn_ccqn_to_dq(struct hbl_cn_ev_dqs *ev_dqs, u32 ccqn,
-+				       struct hbl_cn_device *hdev);
-+
-+int hbl_cn_reserve_wq_dva(struct hbl_cn_ctx *ctx, struct hbl_cn_port *cn_port, u64 wq_arr_size,
-+			  u32 type, u64 *dva);
-+void hbl_cn_unreserve_wq_dva(struct hbl_cn_ctx *ctx, struct hbl_cn_port *cn_port, u32 type);
-+u32 hbl_cn_get_wq_array_type(bool is_send);
-+
-+void hbl_cn_track_port_reset(struct hbl_cn_port *cn_port, u32 syndrome);
-+int hbl_cn_get_reg_pcie_addr(struct hbl_cn_device *hdev, u8 bar_id, u32 reg, u64 *pci_addr);
-+void hbl_cn_ports_cancel_status_work(struct hbl_cn_device *hdev);
-+
-+/* Memory related functions */
-+int hbl_cn_mem_alloc(struct hbl_cn_ctx *ctx, struct hbl_cn_mem_data *mem_data);
-+int hbl_cn_mem_destroy(struct hbl_cn_device *hdev, u64 handle);
-+struct hbl_cn_mem_buf *hbl_cn_mem_buf_get(struct hbl_cn_device *hdev, u64 handle);
-+int hbl_cn_mem_buf_put(struct hbl_cn_mem_buf *buf);
-+int hbl_cn_mem_buf_put_handle(struct hbl_cn_device *hdev, u64 handle);
-+void hbl_cn_mem_init(struct hbl_cn_device *hdev);
-+void hbl_cn_mem_fini(struct hbl_cn_device *hdev);
-+
-+u32 hbl_cn_dram_readl(struct hbl_cn_device *hdev, u64 addr);
-+void hbl_cn_dram_writel(struct hbl_cn_device *hdev, u32 val, u64 addr);
-+u32 hbl_cn_rreg(struct hbl_cn_device *hdev, u32 reg);
-+void hbl_cn_wreg(struct hbl_cn_device *hdev, u32 reg, u32 val);
-+void hbl_cn_get_frac_info(u64 numerator, u64 denominator, u64 *integer, u64 *exp);
-+
-+bool hbl_cn_eq_dispatcher_is_empty(struct hbl_cn_ev_dq *dq);
-+bool hbl_cn_eq_dispatcher_is_full(struct hbl_cn_ev_dq *dq);
-+void hbl_cn_eq_dispatcher_init(struct hbl_cn_port *cn_port);
-+void hbl_cn_eq_dispatcher_fini(struct hbl_cn_port *cn_port);
-+void hbl_cn_eq_dispatcher_reset(struct hbl_cn_port *cn_port);
-+int hbl_cn_eq_dispatcher_associate_dq(struct hbl_cn_port *cn_port, u32 asid);
-+int hbl_cn_eq_dispatcher_dissociate_dq(struct hbl_cn_port *cn_port, u32 asid);
-+int hbl_cn_eq_dispatcher_register_qp(struct hbl_cn_port *cn_port, u32 asid, u32 qp_id);
-+int hbl_cn_eq_dispatcher_unregister_qp(struct hbl_cn_port *cn_port, u32 qp_id);
-+int hbl_cn_eq_dispatcher_register_cq(struct hbl_cn_port *cn_port, u32 asid, u32 cqn);
-+int hbl_cn_eq_dispatcher_unregister_cq(struct hbl_cn_port *cn_port, u32 cqn);
-+int hbl_cn_eq_dispatcher_register_db(struct hbl_cn_port *cn_port, u32 asid, u32 dbn);
-+int hbl_cn_eq_dispatcher_unregister_db(struct hbl_cn_port *cn_port, u32 dbn);
-+int hbl_cn_eq_dispatcher_dequeue(struct hbl_cn_port *cn_port, u32 asid,
-+				 struct hbl_cn_eqe *eqe, bool is_default);
-+int hbl_cn_eq_dispatcher_register_ccq(struct hbl_cn_port *cn_port, u32 asid, u32 ccqn);
-+int hbl_cn_eq_dispatcher_unregister_ccq(struct hbl_cn_port *cn_port, u32 asid, u32 ccqn);
-+int hbl_cn_eq_dispatcher_enqueue(struct hbl_cn_port *cn_port, const struct hbl_cn_eqe *eqe);
-+int hbl_cn_eq_dispatcher_enqueue_bcast(struct hbl_cn_port *cn_port, const struct hbl_cn_eqe *eqe);
-+void hbl_cn_eq_handler(struct hbl_cn_port *cn_port);
-+int hbl_cn_alloc_ring(struct hbl_cn_device *hdev, struct hbl_cn_ring *ring, int elem_size,
-+		      int count);
-+void hbl_cn_free_ring(struct hbl_cn_device *hdev, struct hbl_cn_ring *ring);
-+
-+struct hbl_cn_user_cq *hbl_cn_user_cq_get(struct hbl_cn_port *cn_port, u8 cq_id);
-+int hbl_cn_user_cq_put(struct hbl_cn_user_cq *user_cq);
-+bool hbl_cn_is_ibdev(struct hbl_cn_device *hdev);
-+void hbl_cn_hard_reset_prepare(struct hbl_aux_dev *cn_aux_dev, bool fw_reset, bool in_teardown);
-+int hbl_cn_send_port_cpucp_status(struct hbl_aux_dev *aux_dev, u32 port, u8 cmd, u8 period);
-+void hbl_cn_fw_status_work(struct work_struct *work);
-+int hbl_cn_get_src_ip(struct hbl_cn_port *cn_port, u32 *src_ip);
-+void hbl_cn_ctx_resources_destroy(struct hbl_cn_device *hdev, struct hbl_cn_ctx *ctx);
-+
-+int __hbl_cn_ports_reopen(struct hbl_cn_device *hdev);
-+void __hbl_cn_hard_reset_prepare(struct hbl_cn_device *hdev, bool fw_reset, bool in_teardown);
-+void __hbl_cn_stop(struct hbl_cn_device *hdev);
-+
-+/* DMA memory allocations */
-+void *__hbl_cn_dma_alloc_coherent(struct hbl_cn_device *hdev, size_t size, dma_addr_t *dma_handle,
-+				  gfp_t flag, const char *caller);
-+void __hbl_cn_dma_free_coherent(struct hbl_cn_device *hdev, size_t size, void *cpu_addr,
-+				dma_addr_t dma_addr, const char *caller);
-+void *__hbl_cn_dma_pool_zalloc(struct hbl_cn_device *hdev, size_t size, gfp_t mem_flags,
-+			       dma_addr_t *dma_handle, const char *caller);
-+void __hbl_cn_dma_pool_free(struct hbl_cn_device *hdev, void *vaddr, dma_addr_t dma_addr,
-+			    const char *caller);
-+
-+#endif /* HABANALABS_CN_H_ */
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_drv.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_drv.c
-new file mode 100644
-index 000000000000..47eedd27f36e
---- /dev/null
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_drv.c
-@@ -0,0 +1,220 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright 2020-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
-+
-+#define pr_fmt(fmt)		"habanalabs_cn: " fmt
-+
-+#include "hbl_cn.h"
-+
-+#include <linux/module.h>
-+#include <linux/auxiliary_bus.h>
-+#include <linux/sched/clock.h>
-+
-+#define HBL_DRIVER_AUTHOR	"HabanaLabs Kernel Driver Team"
-+
-+#define HBL_DRIVER_DESC		"HabanaLabs AI accelerators Core Network driver"
-+
-+MODULE_AUTHOR(HBL_DRIVER_AUTHOR);
-+MODULE_DESCRIPTION(HBL_DRIVER_DESC);
-+MODULE_LICENSE("GPL");
-+
-+/* QP drain time in seconds */
-+#define HBL_CN_QP_DRAIN_TIME		5
-+
-+static bool poll_enable;
-+static uint qp_drain_time = HBL_CN_QP_DRAIN_TIME;
-+
-+module_param(poll_enable, bool, 0444);
-+MODULE_PARM_DESC(poll_enable,
-+		 "Enable driver in polling mode rather than IRQ (0 = no, 1 = yes, default: no)");
-+
-+module_param(qp_drain_time, uint, 0444);
-+MODULE_PARM_DESC(qp_drain_time, "QP drain time in seconds after QP invalidation (default: 2)");
-+
-+static int hdev_init(struct hbl_aux_dev *aux_dev)
++static int set_pll_tx(struct hbl_cn_device *hdev, u32 port, int lane, u32 data_rate)
 +{
-+	struct hbl_cn_aux_data *aux_data = aux_dev->aux_data;
-+	struct hbl_cn_device *hdev;
++	u32 card_location, msbc, lsbc;
 +	int rc;
 +
-+	hdev = kzalloc(sizeof(*hdev), GFP_KERNEL);
-+	if (!hdev)
-+		return -ENOMEM;
++	card_location = hdev->card_location;
 +
-+	hdev->cpucp_info = kzalloc(sizeof(*hdev->cpucp_info), GFP_KERNEL);
-+	if (!hdev->cpucp_info) {
-+		rc = -ENOMEM;
-+		goto free_hdev;
++	if (lane == 0)
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x0,
++				 NIC0_SERDES0_REGISTER_9825_PLL_0_LOCK_32T_CLK_SEL_MASK);
++	else
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_982E, 0x0,
++				 NIC0_SERDES0_REGISTER_982E_PLL_1_LOCK_32T_CLK_SEL_MASK);
++
++	switch (data_rate) {
++	case NIC_DR_50:
++		/* toggle FRACN LSB for better phase noise */
++		NIC_PHY_RMWREG32_LANE(0x54587D4, 0x0, 0x1);
++		msbc = 0x5;
++		lsbc = 0x4FFA;
++		break;
++	case NIC_DR_26:
++		/* toggle FRACN LSB for better phase noise */
++		NIC_PHY_RMWREG32_LANE(0x54587D4, 0x0, 0x1);
++		NIC_PHY_RMWREG32_LANE(0x5458320, 0x0, 0x1);
++		msbc = 0x5;
++		lsbc = 0x4FFA;
++		break;
++	case NIC_DR_25:
++		msbc = 0x5;
++		lsbc = 0x27FA;
++		break;
++	case NIC_DR_10:
++		msbc = 0x2;
++		lsbc = 0xFFD;
++		break;
++	default:
++		dev_err(hdev->dev, "Card %u Port %u lane %d: unsupported data rate\n",
++			card_location, port, lane);
++		return -EFAULT;
 +	}
 +
-+	aux_dev->priv = hdev;
-+	hdev->cn_aux_dev = aux_dev;
-+	hdev->pdev = aux_data->pdev;
-+	hdev->dev = aux_data->dev;
-+	hdev->asic_type = aux_data->asic_type;
-+	hdev->pending_reset_long_timeout = aux_data->pending_reset_long_timeout;
-+	hdev->pldm = aux_data->pldm;
-+	hdev->skip_phy_init = aux_data->skip_phy_init;
-+	hdev->cpucp_fw = aux_data->cpucp_fw;
-+	hdev->load_phy_fw = aux_data->load_phy_fw;
-+	hdev->supports_coresight = aux_data->supports_coresight;
-+	hdev->use_fw_serdes_info = aux_data->use_fw_serdes_info;
-+	hdev->fw_ver = aux_data->fw_ver;
-+	hdev->id = aux_data->id;
-+	hdev->dram_size = aux_data->dram_size;
-+	hdev->ports_mask = aux_data->ports_mask;
-+	hdev->ext_ports_mask = aux_data->ext_ports_mask;
-+	hdev->phys_auto_neg_mask = aux_data->auto_neg_mask;
-+	hdev->cache_line_size = aux_data->cache_line_size;
-+	hdev->kernel_asid = aux_data->kernel_asid;
-+	hdev->qp_drain_time = qp_drain_time;
-+	hdev->card_location = aux_data->card_location;
-+	hdev->mmu_enable = aux_data->mmu_enable;
-+	hdev->lanes_per_port = aux_data->lanes_per_port;
-+	hdev->device_timeout = aux_data->device_timeout;
-+	hdev->fw_major_version = aux_data->fw_major_version;
-+	hdev->fw_minor_version = aux_data->fw_minor_version;
-+	hdev->fw_app_cpu_boot_dev_sts0 = aux_data->fw_app_cpu_boot_dev_sts0;
-+	hdev->fw_app_cpu_boot_dev_sts1 = aux_data->fw_app_cpu_boot_dev_sts1;
-+	hdev->cpucp_checkers_shift = aux_data->cpucp_checkers_shift;
-+	hdev->accumulate_fec_duration = ACCUMULATE_FEC_STATS_DURATION_MS;
-+	hdev->poll_enable = poll_enable;
++	rc = fw_config_vcocap(hdev, port, lane, 1, msbc);
++	if (rc)
++		return rc;
 +
-+	mutex_init(&hdev->hw_access_lock);
++	rc = fw_config_vcocap(hdev, port, lane, 2, lsbc);
++	if (rc)
++		return rc;
++
++	rc = fw_config_vcocap(hdev, port, lane, 3, 0x40);
++	if (rc)
++		return rc;
++
++	rc = fw_config_vcocap(hdev, port, lane, 4, 0x0);
++	if (rc)
++		return rc;
++
++	usleep_range(500, 1000);
++
++	if (lane == 0) {
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x1,
++				 NIC0_SERDES0_REGISTER_9825_PLL_LOCK_SRC_SEL_MASK);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x0,
++				 NIC0_SERDES0_REGISTER_9825_PLL_0_LOCK_EN_MASK);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x1,
++				 NIC0_SERDES0_REGISTER_9825_PLL_0_LOCK_EN_MASK);
++	} else {
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x2,
++				 NIC0_SERDES0_REGISTER_9825_PLL_LOCK_SRC_SEL_MASK);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_982E, 0x0,
++				 NIC0_SERDES0_REGISTER_982E_PLL_1_LOCK_EN_MASK);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_982E, 0x1,
++				 NIC0_SERDES0_REGISTER_982E_PLL_1_LOCK_EN_MASK);
++	}
++
++	usleep_range(500, 1000);
 +
 +	return 0;
-+
-+free_hdev:
-+	kfree(hdev);
-+	return rc;
 +}
 +
-+static void hdev_fini(struct hbl_aux_dev *aux_dev)
++static int set_pll_rx(struct hbl_cn_device *hdev, u32 port, int lane, u32 data_rate)
 +{
-+	struct hbl_cn_device *hdev = aux_dev->priv;
-+
-+	mutex_destroy(&hdev->hw_access_lock);
-+
-+	kfree(hdev->cpucp_info);
-+	kfree(hdev);
-+	aux_dev->priv = NULL;
-+}
-+
-+static const struct auxiliary_device_id hbl_cn_id_table[] = {
-+	{ .name = "habanalabs.cn", },
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(auxiliary, hbl_cn_id_table);
-+
-+static int hbl_cn_probe(struct auxiliary_device *adev, const struct auxiliary_device_id *id)
-+{
-+	struct hbl_aux_dev *aux_dev = container_of(adev, struct hbl_aux_dev, adev);
-+	struct hbl_cn_aux_ops *aux_ops = aux_dev->aux_ops;
-+	struct hbl_cn_device *hdev;
-+	ktime_t timeout;
++	u32 card_location, msbc, lsbc, third_val;
 +	int rc;
 +
-+	rc = hdev_init(aux_dev);
++	card_location = hdev->card_location;
++
++	if (lane == 0)
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x1,
++				 NIC0_SERDES0_REGISTER_9825_PLL_0_LOCK_32T_CLK_SEL_MASK);
++	else
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_982E, 0x1,
++				 NIC0_SERDES0_REGISTER_982E_PLL_1_LOCK_32T_CLK_SEL_MASK);
++
++	switch (data_rate) {
++	case NIC_DR_50:
++	case NIC_DR_26:
++		msbc = 0x5;
++		lsbc = 0x4FFA;
++		third_val = 0x30;
++		break;
++	case NIC_DR_25:
++		msbc = 0x5;
++		lsbc = 0x27FA;
++		third_val = 0x30;
++		break;
++	case NIC_DR_10:
++		msbc = 0x2;
++		lsbc = 0xFFD;
++		third_val = 0x40;
++		break;
++	default:
++		dev_err(hdev->dev, "Card %u Port %u lane %d: unsupported data rate\n",
++			card_location, port, lane);
++		return -EFAULT;
++	}
++
++	rc = fw_config_vcocap(hdev, port, lane, 1, msbc);
++	if (rc)
++		return rc;
++
++	rc = fw_config_vcocap(hdev, port, lane, 2, lsbc);
++	if (rc)
++		return rc;
++
++	rc = fw_config_vcocap(hdev, port, lane, 3, third_val);
++	if (rc)
++		return rc;
++
++	rc = fw_config_vcocap(hdev, port, lane, 4, 0x1);
++	if (rc)
++		return rc;
++
++	usleep_range(500, 1000);
++
++	if (lane == 0) {
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x1,
++				 NIC0_SERDES0_REGISTER_9825_PLL_LOCK_SRC_SEL_MASK);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x0,
++				 NIC0_SERDES0_REGISTER_9825_PLL_0_LOCK_EN_MASK);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x1,
++				 NIC0_SERDES0_REGISTER_9825_PLL_0_LOCK_EN_MASK);
++	} else {
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_9825, 0x2,
++				 NIC0_SERDES0_REGISTER_9825_PLL_LOCK_SRC_SEL_MASK);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_982E, 0x0,
++				 NIC0_SERDES0_REGISTER_982E_PLL_1_LOCK_EN_MASK);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_982E, 0x1,
++				 NIC0_SERDES0_REGISTER_982E_PLL_1_LOCK_EN_MASK);
++	}
++
++	usleep_range(500, 1000);
++
++	return 0;
++}
++
++static int set_pll(struct hbl_cn_device *hdev, u32 port, int lane, u32 data_rate)
++{
++	u32 card_location, tx_port;
++	int tx_lane, rc;
++
++	card_location = hdev->card_location;
++
++	get_tx_port_and_lane(hdev, port, lane, &tx_port, &tx_lane);
++
++	rc = set_pll_tx(hdev, tx_port, tx_lane, data_rate);
 +	if (rc) {
-+		dev_err(&aux_dev->adev.dev, "Failed to init hdev\n");
-+		return -EIO;
++		dev_err(hdev->dev, "Card %u Port %u lane %d: set Tx PLL failed, rc %d\n",
++			card_location, tx_port, tx_lane, rc);
++		return rc;
 +	}
 +
-+	hdev = aux_dev->priv;
-+
-+	/* don't allow module unloading while it is attached */
-+	if (!try_module_get(THIS_MODULE)) {
-+		dev_err(hdev->dev, "Failed to increment %s module refcount\n",
-+			module_name(THIS_MODULE));
-+		rc = -EIO;
-+		goto module_get_err;
++	rc = set_pll_rx(hdev, port, lane, data_rate);
++	if (rc) {
++		dev_err(hdev->dev, "Card %u Port %u lane %d: set Rx PLL failed, rc %d\n",
++			card_location, port, lane, rc);
++		return rc;
 +	}
 +
-+	timeout = ktime_add_ms(ktime_get(), hdev->pending_reset_long_timeout * MSEC_PER_SEC);
-+	while (1) {
-+		aux_ops->hw_access_lock(aux_dev);
++	return 0;
++}
 +
-+		/* if the device is operational, proceed to actual init while holding the lock in
-+		 * order to prevent concurrent hard reset
-+		 */
-+		if (aux_ops->device_operational(aux_dev))
-+			break;
++static void set_tx_taps_scale(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAF, 0x4, 0x3E);
++}
 +
-+		aux_ops->hw_access_unlock(aux_dev);
++static int fw_config_speed_pam4(struct hbl_cn_device *hdev, u32 port, int lane, bool do_lt)
++{
++	u32 tx_port, card_location, val;
++	u8 curr_tx_taps_cfg;
++	int tx_lane, rc;
 +
-+		if (ktime_compare(ktime_get(), timeout) > 0) {
-+			dev_err(hdev->dev, "Timeout while waiting for hard reset to finish\n");
-+			rc = -EBUSY;
-+			goto timeout_err;
++	card_location = hdev->card_location;
++
++	get_tx_port_and_lane(hdev, port, lane, &tx_port, &tx_lane);
++
++	init_pam4_tx(hdev, tx_port, tx_lane);
++	init_pam4_rx(hdev, port, lane);
++
++	/* Disable AN/LT lane swapping */
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AJ40, 0x0,
++			      NIC0_SERDES0_LANE0_REGISTER_AJ40_ANLT_LANE_SWAPPING_EN_MASK);
++
++	lane_swapping_config(hdev, port, lane, false, do_lt);
++
++	init_lane_for_fw_tx(hdev, tx_port, tx_lane, true, do_lt);
++	init_lane_for_fw_rx(hdev, port, lane, true, do_lt);
++
++	prbs_mode_select_tx(hdev, tx_port, tx_lane, true, "PRBS31");
++	prbs_mode_select_rx(hdev, port, lane, true, "PRBS31");
++
++	rc = fw_start(hdev, port, lane, true, do_lt);
++	if (rc) {
++		dev_err(hdev->dev,
++			"Card %u Port %u lane %d: F/W config speed PAM4 failed (LT %s), rc %d\n",
++			card_location, port, lane, do_lt ? "enabled" : "disable", rc);
++		return rc;
++	}
++
++	if (is_lane_swapping(hdev, port, lane)) {
++		rc = fw_start_tx(hdev, tx_port, tx_lane, true, do_lt);
++		if (rc) {
++			dev_err(hdev->dev,
++				"Card %u Port %u lane %d: F/W config speed PAM4 failed (LT %s), rc %d\n",
++				card_location, tx_port, tx_lane, do_lt ? "enabled" : "disable",
++				rc);
++			return rc;
 +		}
 +
-+		dev_notice_once(hdev->dev, "Waiting for hard reset to finish before probing CN\n");
-+
-+		msleep_interruptible(MSEC_PER_SEC);
++		if (do_lt)
++			NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x1,
++					      NIC0_SERDES0_LANE0_REGISTER_0PA0_RSVD_0PA0_04_MASK);
 +	}
 +
-+	rc = hbl_cn_dev_init(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to init CN device\n");
-+		goto dev_init_err;
-+	}
++	if (do_lt) {
++		if (!hdev->phy_calc_ber) {
++			/* tell the F/W to do LT with PCS data instead of PRBS */
++			val = get_fw_reg(hdev, port, 366);
++			val &= 0xFEFE;
++			set_fw_reg(hdev, port, 366, val);
++		}
 +
-+	aux_ops->hw_access_unlock(aux_dev);
++		set_tx_taps_scale(hdev, tx_port, tx_lane);
++		set_gc_tx(hdev, tx_port, tx_lane, 0);
++		set_pc_tx(hdev, tx_port, tx_lane, 0);
++		set_gc_rx(hdev, port, lane, 0);
++		set_pc_rx(hdev, port, lane, 0);
++	} else {
++		curr_tx_taps_cfg = get_curr_tx_taps_cfg(hdev, port);
++		set_tx_taps_cfg(hdev, tx_port, tx_lane, curr_tx_taps_cfg, true, false);
++	}
 +
 +	return 0;
++}
 +
-+dev_init_err:
-+	aux_ops->hw_access_unlock(aux_dev);
-+timeout_err:
-+	module_put(THIS_MODULE);
-+module_get_err:
-+	hdev_fini(aux_dev);
++static void init_nrz_tx(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA1, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA2, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA3, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA4, 0x0);
++	/* data quiet */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x6320);
++	/* auto symmetric, scale */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAF, 0xF8C9);
++	/* data, prbs */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PB0, 0x4820);
++	/* cursor -2 */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA5, 0x0);
++	/* cursor -1 */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA7, 0xFC00);
++	/* cursor -main */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA9, 0x1800);
++	/* cursor +1 */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAB, 0x0);
++	/* cursor +2 */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAD, 0x0);
++}
++
++static void init_nrz_rx(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PF8, 0xEC06);
++}
++
++static int fw_config_speed_nrz(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	u32 tx_port, card_location;
++	u8 curr_tx_taps_cfg;
++	int tx_lane, rc;
++
++	card_location = hdev->card_location;
++
++	get_tx_port_and_lane(hdev, port, lane, &tx_port, &tx_lane);
++
++	lane_swapping_config(hdev, port, lane, false, false);
++
++	init_nrz_tx(hdev, tx_port, tx_lane);
++	init_nrz_rx(hdev, port, lane);
++
++	init_lane_for_fw_tx(hdev, tx_port, tx_lane, false, false);
++	init_lane_for_fw_rx(hdev, port, lane, false, false);
++
++	prbs_mode_select_tx(hdev, tx_port, tx_lane, false, "PRBS31");
++	prbs_mode_select_rx(hdev, port, lane, false, "PRBS31");
++
++	rc = fw_start(hdev, port, lane, false, false);
++	if (rc) {
++		dev_err(hdev->dev,
++			"Card %u Port %u lane %d: F/W config speed NRZ failed, rc %d\n",
++			card_location, port, lane, rc);
++		return rc;
++	}
++
++	if (is_lane_swapping(hdev, port, lane)) {
++		rc = fw_start_tx(hdev, tx_port, tx_lane, false, false);
++		if (rc) {
++			dev_err(hdev->dev,
++				"Card %u Port %u lane %d: F/W config speed NRZ failed, rc %d\n",
++				card_location, tx_port, tx_lane, rc);
++			return rc;
++		}
++	}
++
++	curr_tx_taps_cfg = get_curr_tx_taps_cfg(hdev, port);
++	set_tx_taps_cfg(hdev, tx_port, tx_lane, curr_tx_taps_cfg, false, false);
++
++	return 0;
++}
++
++static void reset_mac_tx(struct hbl_cn_device *hdev, u32 port)
++{
++	struct gaudi2_cn_device *gaudi2 = hdev->asic_specific;
++	u32 tx_ch_mask;
++
++	/* For F/W version 37.1.0 and above, the reset will be done by the F/W */
++	if ((hdev->fw_major_version == 37 && hdev->fw_minor_version > 1) ||
++	    hdev->fw_major_version > 37) {
++		struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
++		struct hbl_cn_aux_ops *aux_ops;
++		struct hbl_aux_dev *aux_dev;
++		struct cpucp_packet pkt;
++		int rc;
++
++		aux_dev = hdev->cn_aux_dev;
++		aux_ops = aux_dev->aux_ops;
++		gaudi2_aux_ops = aux_ops->asic_ops;
++
++		memset(&pkt, 0, sizeof(pkt));
++		pkt.ctl = cpu_to_le32(CPUCP_PACKET_NIC_MAC_TX_RESET << CPUCP_PKT_CTL_OPCODE_SHIFT);
++		pkt.port_index = cpu_to_le32(port);
++
++		rc = gaudi2_aux_ops->send_cpu_message(aux_dev, (u32 *)&pkt, sizeof(pkt), 0, NULL);
++		if (rc)
++			dev_warn(hdev->dev, "Card %u Port %u: Failed to reset MAC Tx, rc %d\n",
++				 hdev->card_location, port, rc);
++
++		return;
++	}
++
++	if (gaudi2->fw_security_enabled) {
++		dev_warn(hdev->dev, "Card %u Port %u: Failed to reset MAC Tx, security is enabled.\n",
++			 hdev->card_location, port);
++		return;
++	}
++
++	tx_ch_mask = 1 << PRT0_MAC_CORE_MAC_RST_CFG_SD_TX_SW_RST_N_SHIFT;
++	tx_ch_mask <<= (port & 0x1) ? 2 : 0;
++
++	NIC_MACRO_RMWREG32(PRT0_MAC_CORE_MAC_RST_CFG, 0, tx_ch_mask);
++	msleep(100);
++	NIC_MACRO_RMWREG32(PRT0_MAC_CORE_MAC_RST_CFG, 1, tx_ch_mask);
++}
++
++static int fw_config(struct hbl_cn_device *hdev, u32 port, u32 data_rate, bool do_lt)
++{
++	u32 card_location;
++	int lane, rc;
++	bool pam4;
++
++	card_location = hdev->card_location;
++	pam4 = (data_rate == NIC_DR_50);
++
++	/* clear go bit */
++	if (pam4) {
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980F, 0x1, 0x800);
++		NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980F, 0x1, 0x100);
++	}
++
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980F, 0x0, 0x8000);
++
++	for (lane = 0; lane < 2; lane++) {
++		if (pam4) {
++			rc = fw_config_speed_pam4(hdev, port, lane, do_lt);
++			if (rc) {
++				dev_err(hdev->dev,
++					"Card %u Port %u lane %d: F/W PAM4 config failed, rc %d\n",
++					card_location, port, lane, rc);
++				return rc;
++			}
++
++			NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PEA, 0x60,
++					      NIC0_SERDES0_LANE0_REGISTER_0PEA_VDACCLKPHASE0_MASK);
++		} else {
++			rc = fw_config_speed_nrz(hdev, port, lane);
++			if (rc) {
++				dev_err(hdev->dev,
++					"Card %u Port %u lane %d: F/W NRZ config failed, rc %d\n",
++					card_location, port, lane, rc);
++				return rc;
++			}
++		}
++	}
++
++	for (lane = 0; lane < 2; lane++) {
++		rc = set_pll(hdev, port, lane, data_rate);
++		if (rc)
++			return rc;
++	}
++
++	msleep(100);
++
++	reset_mac_tx(hdev, port);
++
++	if (!hdev->phy_calc_ber)
++		set_functional_mode(hdev, port);
++
++	/* set go bit */
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980F, 0x1, 0x8000);
++
++	return 0;
++}
++
++static void phy_port_reset(struct hbl_cn_device *hdev, u32 port)
++{
++	int lane;
++
++	soft_reset(hdev, port);
++	usleep_range(500, 1000);
++
++	for (lane = 0; lane < 2; lane++)
++		clock_init(hdev, port, lane);
++
++	cpu_reset(hdev, port);
++	logic_reset(hdev, port);
++
++	usleep_range(500, 1000);
++}
++
++static void prbs_reset(struct hbl_cn_port *cn_port, int lane, bool pam4)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, 1,
++			      NIC0_SERDES0_LANE0_REGISTER_0P43_RX_PRBS_AUTO_SYNC_EN_MASK);
++
++	if (pam4) {
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, 1,
++				      NIC0_SERDES0_LANE0_REGISTER_0P43_PRBS_SYNC_CNTR_RESET_MASK);
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, 0,
++				      NIC0_SERDES0_LANE0_REGISTER_0P43_PRBS_SYNC_CNTR_RESET_MASK);
++	} else {
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N61, 1,
++				      NIC0_SERDES0_LANE0_REGISTER_0N61_PRBS_CNTR_RESET_MASK);
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N61, 0,
++				      NIC0_SERDES0_LANE0_REGISTER_0N61_PRBS_CNTR_RESET_MASK);
++	}
++
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43, 0,
++			      NIC0_SERDES0_LANE0_REGISTER_0P43_RX_PRBS_AUTO_SYNC_EN_MASK);
++}
++
++static u64 _get_prbs_cnt(struct hbl_cn_port *cn_port, int lane, bool pam4)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++	u64 cnt;
++
++	if (pam4)
++		cnt = (((u64)NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P50)) << 16) +
++		      NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P51);
++	else
++		cnt = (((u64)NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N66)) << 16) +
++		      NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N67);
++
++	return cnt;
++}
++
++static enum lane_state get_prbs_cnt(struct hbl_cn_port *cn_port, int lane, bool pam4,
++				    u64 prbs_prev_cnt, u64 *prbs_new_cnt)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port, phy_ready;
++	u64 cnt;
++
++	if (pam4) {
++		phy_ready = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P6A) &
++			     NIC0_SERDES0_LANE0_REGISTER_0P6A_RX_READ_PHY_READY_MASK) >>
++			    NIC0_SERDES0_LANE0_REGISTER_0P6A_RX_READ_PHY_READY_SHIFT;
++	} else {
++		phy_ready = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N2E) &
++			     NIC0_SERDES0_LANE0_REGISTER_0N2E_NRZ_READ_PHY_READY_MASK) >>
++			    NIC0_SERDES0_LANE0_REGISTER_0N2E_NRZ_READ_PHY_READY_SHIFT;
++	}
++
++	if (!phy_ready)
++		return NOT_READY;
++
++	cnt = _get_prbs_cnt(cn_port, lane, pam4);
++
++	/* check PRBS counter wrapped around */
++	if (cnt < prbs_prev_cnt) {
++		if ((prbs_prev_cnt - cnt) < 0x10000)
++			return FAILURE;
++
++		cnt = _get_prbs_cnt(cn_port, lane, pam4);
++	}
++
++	*prbs_new_cnt = cnt;
++
++	return READY;
++}
++
++static void _calc_ber_lane(struct hbl_cn_port *cn_port, int lane, u64 total_cnt, u64 error_cnt,
++			   struct hbl_cn_ber_info *ber_info)
++{
++	u64 total_high_digits, error_high_digits, integer, frac;
++	u8 total_num_digits, error_num_digits, exp;
++	int i;
++
++	total_num_digits = hbl_cn_get_num_of_digits(total_cnt);
++	error_num_digits = hbl_cn_get_num_of_digits(error_cnt);
++
++	if (total_num_digits > 2) {
++		total_high_digits = total_cnt;
++
++		for (i = 0; i < total_num_digits - 2; i++)
++			total_high_digits = total_high_digits / 10;
++	} else {
++		total_high_digits = total_cnt;
++	}
++
++	if (!total_high_digits)
++		return;
++
++	if (error_num_digits > 2) {
++		error_high_digits = error_cnt;
++
++		for (i = 0; i < error_num_digits - 2; i++)
++			error_high_digits = error_high_digits / 10;
++	} else {
++		error_high_digits = error_cnt;
++	}
++
++	exp = total_num_digits - error_num_digits;
++
++	if (error_high_digits < total_high_digits) {
++		error_high_digits *= 10;
++		exp++;
++	}
++
++	integer = div_u64(error_high_digits, total_high_digits);
++	frac = div_u64(((error_high_digits - (integer * total_high_digits)) * 10),
++		       total_high_digits);
++
++	ber_info->integer = integer;
++	ber_info->frac = frac;
++	ber_info->exp = exp;
++	ber_info->valid = true;
++}
++
++static void calc_ber_lane(struct hbl_cn_port *cn_port, int lane, bool pam4)
++{
++	u64 prbs_err_cnt_pre, prbs_prev_cnt, prbs_err_cnt_post, prbs_err_cnt,
++	    prbs_reset_time_jiffies, prbs_accum_time_jiffies, prbs_accum_time_ms,
++	    factor, error_cnt, total_cnt;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 card_location, port, abs_lane_idx;
++	struct hbl_cn_ber_info *ber_info;
++	enum lane_state state;
++
++	card_location = hdev->card_location;
++	port = cn_port->port;
++	abs_lane_idx = (port << 1) + lane;
++
++	ber_info = &hdev->phy_ber_info[abs_lane_idx];
++	memset(ber_info, 0, sizeof(*ber_info));
++
++	prbs_reset(cn_port, lane, pam4);
++	prbs_reset_time_jiffies = jiffies;
++	prbs_err_cnt_pre = _get_prbs_cnt(cn_port, lane, pam4);
++	prbs_err_cnt_post = 0;
++
++	prbs_prev_cnt = prbs_err_cnt_pre;
++
++	while (true) {
++		msleep(500);
++
++		state = get_prbs_cnt(cn_port, lane, pam4, prbs_prev_cnt, &prbs_err_cnt_post);
++		prbs_accum_time_jiffies = jiffies - prbs_reset_time_jiffies;
++		prbs_accum_time_ms = jiffies_to_msecs(prbs_accum_time_jiffies);
++		prbs_err_cnt = prbs_err_cnt_post - prbs_err_cnt_pre;
++
++		if (state != READY) {
++			dev_dbg(hdev->dev, "Card %u Port %u lane %d: No BER (state = %s)\n",
++				card_location, port, lane,
++				(state == NOT_READY) ? "NOT_READY" : "FAILURE");
++			return;
++		}
++
++		if (prbs_accum_time_ms >= 5000 || prbs_err_cnt >= 10000000)
++			break;
++
++		prbs_prev_cnt = prbs_err_cnt_post;
++	}
++
++	factor = pam4 ? NIC_PHY_PAM4_BER_FACTOR : NIC_PHY_NRZ_BER_FACTOR;
++
++	error_cnt = prbs_err_cnt;
++	total_cnt = prbs_accum_time_ms * factor;
++
++	_calc_ber_lane(cn_port, lane, total_cnt, error_cnt, ber_info);
++
++	dev_dbg(hdev->dev,
++		"Card %u Port %u lane %d: total_cnt %llu error_cnt %llu (%llu ms) - BER %llu.%llue-%u\n",
++		card_location, port, lane, total_cnt, error_cnt, prbs_accum_time_ms,
++		ber_info->integer, ber_info->frac, ber_info->exp);
++}
++
++static void calc_ber(struct hbl_cn_port *cn_port)
++{
++	int lane;
++
++	for (lane = 0; lane < 2; lane++)
++		calc_ber_lane(cn_port, lane, cn_port->data_rate == NIC_DR_50);
++}
++
++static void get_tx_port_lane(u32 port, int lane, u32 *_port, int *_lane)
++{
++	if (port != 0 && port != 1) {
++		*_port = port;
++		*_lane = lane;
++		return;
++	}
++
++	if (port == 0 && lane == 0) {
++		*_port = 1;
++		*_lane = 1;
++	} else if (port == 0 && lane == 1) {
++		*_port = 0;
++		*_lane = 1;
++	} else if (port == 1 && lane == 0) {
++		*_port = 0;
++		*_lane = 0;
++	} else if (port == 1 && lane == 1) {
++		*_port = 1;
++		*_lane = 0;
++	}
++}
++
++static void modify_tx_taps(struct hbl_cn_port *cn_port)
++{
++	struct gaudi2_cn_port *gaudi2_port = cn_port->cn_specific;
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u8 curr_cfg, next_cfg;
++	u32 port, _port;
++	int lane, _lane;
++	bool pam4;
++
++	port = cn_port->port;
++	curr_cfg = get_curr_tx_taps_cfg(hdev, port);
++	next_cfg = (curr_cfg + 1) % tx_taps_num_cfgs;
++	pam4 = cn_port->data_rate == NIC_DR_50;
++	_port = 0;
++	_lane = 0;
++
++	gaudi2_port->tx_taps_cfg = next_cfg;
++
++	/* If the next cfg equals the initial cfg, it means that we went through all the taps cfgs.
++	 * In that case, PHY reconfigure should be triggered.
++	 */
++	if (next_cfg == gaudi2_port->initial_tx_taps_cfg) {
++		dev_dbg(hdev->dev,
++			"Card %u Port %u: all tx taps cfgs were failed - reconfiguring PHY\n",
++			hdev->card_location, port);
++
++		return hbl_cn_phy_port_reconfig(cn_port);
++	}
++
++	dev_dbg(hdev->dev, "Card %u Port %u: modify %s tx taps (%u,%u)->(%u,%u)\n",
++		hdev->card_location, port, pam4 ? "PAM4" : "NRZ",
++		tx_taps_cfg_array[curr_cfg][0] + 1, tx_taps_cfg_array[curr_cfg][1] + 1,
++		tx_taps_cfg_array[next_cfg][0] + 1, tx_taps_cfg_array[next_cfg][1] + 1);
++
++	for (lane = 0; lane < 2; lane++) {
++		get_tx_port_lane(port, lane, &_port, &_lane);
++		set_tx_taps_cfg(hdev, _port, _lane, next_cfg, pam4, true);
++	}
++
++	gaudi2_port->tx_taps_modified = true;
++}
++
++static void print_final_tx_taps(struct hbl_cn_port *cn_port)
++{
++	char tx_taps_str0[25] = {0}, tx_taps_str1[25] = {0};
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port, abs_lane0_idx, abs_lane1_idx;
++	s32 *taps;
++	bool pam4;
++
++	pam4 = cn_port->data_rate == NIC_DR_50;
++	port = cn_port->port;
++	abs_lane0_idx = port << 1;
++	abs_lane1_idx = abs_lane0_idx + 1;
++
++	taps = pam4 ? hdev->phy_tx_taps[abs_lane0_idx].pam4_taps :
++			hdev->phy_tx_taps[abs_lane0_idx].nrz_taps;
++	sprintf(tx_taps_str0, "%d,%d,%d,%d,%d", taps[0], taps[1], taps[2], taps[3], taps[4]);
++
++	taps = pam4 ? hdev->phy_tx_taps[abs_lane1_idx].pam4_taps :
++			hdev->phy_tx_taps[abs_lane1_idx].nrz_taps;
++	sprintf(tx_taps_str1, "%d,%d,%d,%d,%d", taps[0], taps[1], taps[2], taps[3], taps[4]);
++
++	dev_dbg(hdev->dev, "Card %u Port %u: Final Tx taps - lane0: [%s], lane1: [%s]\n",
++		hdev->card_location, port, tx_taps_str0, tx_taps_str1);
++}
++
++static void change_pcs_link_state(struct gaudi2_cn_port *gaudi2_port,
++				  enum gaudi2_cn_pcs_link_state pcs_link_state)
++{
++	struct hbl_cn_port *cn_port = gaudi2_port->cn_port;
++
++	gaudi2_port->pcs_link_state = pcs_link_state;
++
++	/* The retry count is being incremented in a different frequency in every state.
++	 * Therefore, in order to have a logical value in each state, it needs to be reset when
++	 * moving to a new state.
++	 */
++	cn_port->retry_cnt = 0;
++}
++
++static void check_pcs_link(struct hbl_cn_port *cn_port)
++{
++	u32 card_location, port, mac_gnrl_sts, pcs_link_samples_per_sec, link_down_cnt_th,
++	    remote_fault_cnt_th, link_toggles;
++	enum gaudi2_cn_pcs_link_state pcs_link_state;
++	struct gaudi2_cn_port *gaudi2_port;
++	struct hbl_cn_device *hdev;
++
++	hdev = cn_port->hdev;
++	gaudi2_port = cn_port->cn_specific;
++	card_location = hdev->card_location;
++	port = cn_port->port;
++	pcs_link_state = gaudi2_port->pcs_link_state;
++
++	if (pcs_link_state == PCS_LINK_STATE_SETTLING) {
++		if (cn_port->eth_enable) {
++			change_pcs_link_state(gaudi2_port, PCS_LINK_STATE_STEADY);
++		} else {
++			change_pcs_link_state(gaudi2_port, PCS_LINK_STATE_STRESS);
++			gaudi2_port->pcs_link_stady_state_ts =
++				ktime_add_ms(ktime_get(), NIC_PHY_PCS_STRESS_WINDOW_MS);
++		}
++
++		return;
++	}
++
++	mac_gnrl_sts = (port & 0x1) ? NIC_MACRO_RREG32(PRT0_MAC_CORE_MAC_GNRL_STS_2) :
++			NIC_MACRO_RREG32(PRT0_MAC_CORE_MAC_GNRL_STS_0);
++
++	if (FIELD_GET(PRT0_MAC_CORE_MAC_GNRL_STS_LOC_FAULT_MASK, mac_gnrl_sts))
++		cn_port->pcs_local_fault_cnt++;
++
++	if (FIELD_GET(PRT0_MAC_CORE_MAC_GNRL_STS_REM_FAULT_MASK, mac_gnrl_sts)) {
++		cn_port->pcs_remote_fault_cnt++;
++		cn_port->pcs_remote_fault_seq_cnt++;
++	} else {
++		cn_port->pcs_remote_fault_seq_cnt = 0;
++	}
++
++	pcs_link_samples_per_sec = gaudi2_port->pcs_link_samples_per_sec;
++	remote_fault_cnt_th = NIC_PHY_MAC_REMOTE_FAULT_TH_S * pcs_link_samples_per_sec;
++
++	if (pcs_link_state == PCS_LINK_STATE_STRESS) {
++		if (ktime_after(ktime_get(), gaudi2_port->pcs_link_stady_state_ts)) {
++			change_pcs_link_state(gaudi2_port, PCS_LINK_STATE_STEADY);
++			goto check_link;
++		}
++
++		if (cn_port->pcs_remote_fault_seq_cnt) {
++			dev_dbg(hdev->dev, "Card %u Port %u: got MAC remote fault during stress window\n",
++				card_location, port);
++
++			modify_tx_taps(cn_port);
++			change_pcs_link_state(gaudi2_port, PCS_LINK_STATE_SETTLING);
++			cn_port->pcs_remote_fault_seq_cnt = 0;
++		}
++	} else { /* PCS_LINK_STATE_STEADY */
++		if (gaudi2_port->tx_taps_modified) {
++			print_final_tx_taps(cn_port);
++			gaudi2_port->tx_taps_modified = false;
++		}
++
++		if (cn_port->pcs_remote_fault_seq_cnt == remote_fault_cnt_th) {
++			dev_dbg(hdev->dev,
++				"Card %u Port %u: %u sequential seconds of MAC remote faults\n",
++				card_location, port, NIC_PHY_MAC_REMOTE_FAULT_TH_S);
++
++			/* Modify tx taps - external ports are excluded */
++			if (!cn_port->eth_enable) {
++				modify_tx_taps(cn_port);
++				change_pcs_link_state(gaudi2_port, PCS_LINK_STATE_SETTLING);
++			}
++
++			cn_port->pcs_remote_fault_seq_cnt = 0;
++		}
++	}
++
++check_link:
++	link_toggles = cn_port->port_toggle_cnt - cn_port->port_toggle_cnt_prev;
++	cn_port->port_toggle_cnt_prev = cn_port->port_toggle_cnt;
++
++	/* The condition to reset the retry_cnt is that the link is UP, and if in steady state,
++	 * only if the link toggling threshold is not exceeded.
++	 */
++	if (cn_port->pcs_link && !(pcs_link_state == PCS_LINK_STATE_STEADY &&
++				   link_toggles > NIC_PHY_PCS_MAX_LINK_TOGGLES)) {
++		cn_port->retry_cnt = 0;
++		return;
++	}
++
++	cn_port->retry_cnt++;
++	link_down_cnt_th = NIC_PHY_PCS_LINK_DOWN_TH_S * pcs_link_samples_per_sec;
++
++	if (cn_port->retry_cnt == link_down_cnt_th) {
++		dev_dbg(hdev->dev,
++			"Card %u Port %u: %u sequential seconds of PCS link down - reconfiguring PHY\n",
++			card_location, port, NIC_PHY_PCS_LINK_DOWN_TH_S);
++
++		hbl_cn_phy_port_reconfig(cn_port);
++	}
++}
++
++static u32 rv_debug(struct hbl_cn_device *hdev, u32 port, int lane, u32 mode, u32 index)
++{
++	u32 cmd, res;
++
++	cmd = 0xB000 + ((mode & 0xF) << 4) + lane;
++
++	fw_cmd(hdev, port, cmd, &index, 0xB, &res);
++
++	return NIC_PHY_RREG32(NIC0_SERDES0_REGISTER_9816);
++}
++
++static int fw_tuning(struct hbl_cn_device *hdev, u32 port, int lane, bool pam4)
++{
++	u32 state, mode;
++
++	mode = pam4 ? 2 : 1;
++	state = rv_debug(hdev, port, lane, mode, 0);
++
++	if (pam4) {
++		if (((u16)state) != 0x8F00 && ((u16)state) != 0x8F80)
++			return -EAGAIN;
++	} else {
++		if (((u16)state) != 0x9A00)
++			return -EAGAIN;
++	}
++
++	return 0;
++}
++
++static void do_fw_tuning(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 card_location, port;
++	int lane, rc;
++	bool pam4;
++
++	card_location = hdev->card_location;
++	port = cn_port->port;
++	pam4 = (cn_port->data_rate == NIC_DR_50);
++
++	for (lane = 0; lane < 2; lane++) {
++		rc = fw_tuning(hdev, port, lane, pam4);
++		if (rc) {
++			if (ktime_after(ktime_get(), cn_port->fw_tuning_limit_ts)) {
++				dev_dbg(hdev->dev,
++					"Card %u Port %u lane %d: F/W tuning limit - reconfiguring PHY\n",
++					card_location, port, lane);
++
++				hbl_cn_phy_port_reconfig(cn_port);
++				return;
++			}
++
++			break;
++		}
++	}
++
++	if (!rc) {
++		/* The control lock needs to be taken here in order to protect against a parallel
++		 * status set from the link event handler.
++		 * This lock also protects port close flow that destroys this thread synchronically,
++		 * so a potential deadlock could happen here.
++		 * In order to avoid this deadlock, we need to check if this lock was taken.
++		 * If it was taken and the port is marked as closed (i.e., we are now during port
++		 * close flow), we can return immediately.
++		 * Otherwise, we need to keep trying to take this lock before we enter the critial
++		 * section.
++		 */
++		while (!mutex_trylock(&cn_port->control_lock))
++			if (!hbl_cn_is_port_open(cn_port))
++				return;
++
++		cn_port->phy_fw_tuned = true;
++
++		/* If we got link up event, set it now when PHY is ready */
++		if (cn_port->eq_pcs_link) {
++			cn_port->pcs_link = true;
++			hbl_cn_phy_set_port_status(cn_port, true);
++		}
++
++		mutex_unlock(&cn_port->control_lock);
++
++		cn_port->retry_cnt = 0;
++	}
++}
++
++static int fw_tuning_an(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	u32 state = rv_debug(hdev, port, lane, 1, 0);
++
++	if (((u16)state) != 0xA01F && ((u16)state) != 0xA020 && ((u16)state) != 0xAF00) {
++		u32 error_status = rv_debug(hdev, port, lane, 0, 3);
++
++		dev_dbg_ratelimited(hdev->dev,
++				    "Card %u Port %u lane %d: auto neg fw is not ready, state 0x%x error 0x%x\n",
++				    hdev->card_location, port, lane, state, error_status);
++		return -EAGAIN;
++	}
++
++	return 0;
++}
++
++static void tx_quite(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA1, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA2, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA3, 0x0);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA4, 0x0);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x0,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_TEST_DATA_SRC_MASK);
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x0,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PAM4_TEST_EN_MASK);
++}
++
++static int do_anlt(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port, tx_port;
++	int tx_lane, rc;
++
++	/* fw_tuning_an needs to be done only on lane 0 */
++	rc = fw_tuning_an(hdev, port, 0);
++	if (rc)
++		return rc;
++
++	get_tx_port_and_lane(hdev, port, 0, &tx_port, &tx_lane);
++	tx_quite(hdev, tx_port, tx_lane);
++
++	rc = fw_config(hdev, port, NIC_DR_50, true);
++	if (rc) {
++		dev_dbg(hdev->dev,
++			"Card %u Port %u: PHY link training failed, rc %d - reconfiguring PHY\n",
++			hdev->card_location, port, rc);
++
++		hbl_cn_phy_port_reconfig(cn_port);
++
++		return rc;
++	}
++
++	cn_port->auto_neg_resolved = true;
++
++	return 0;
++}
++
++static void do_fw_tuning_auto_neg(struct hbl_cn_port *cn_port)
++{
++	u32 fw_tuning_timeout_ms;
++
++	if (cn_port->auto_neg_enable) {
++		if (do_anlt(cn_port))
++			return;
++	} else {
++		cn_port->auto_neg_skipped = true;
++	}
++
++	if (cn_port->eth_enable)
++		fw_tuning_timeout_ms = NIC_PHY_FW_TUNING_TIMEOUT_MS;
++	else
++		fw_tuning_timeout_ms = tx_taps_num_cfgs * NIC_PHY_PCS_SETTLING_WAIT_MS;
++
++	cn_port->fw_tuning_limit_ts = ktime_add_ms(ktime_get(), fw_tuning_timeout_ms);
++	do_fw_tuning(cn_port);
++}
++
++static u32 get_timeout_ms(struct hbl_cn_port *cn_port)
++{
++	u32 card_location, port, timeout_ms;
++	struct gaudi2_cn_port *gaudi2_port;
++	struct hbl_cn_device *hdev;
++
++	hdev = cn_port->hdev;
++	gaudi2_port = cn_port->cn_specific;
++	card_location = hdev->card_location;
++	port = cn_port->port;
++	timeout_ms = MSEC_PER_SEC;
++
++	if (!cn_port->phy_fw_tuned) {
++		timeout_ms = NIC_PHY_FW_TUNING_INTERVAL_MS;
++	} else if (!cn_port->phy_func_mode_en) {
++		u16 timeout_sec = hdev->phy_calc_ber_wait_sec;
++
++		dev_info(hdev->dev, "Card %u Port %u: Waiting %u seconds before calculating BER\n",
++			 card_location, port, timeout_sec);
++		timeout_ms = timeout_sec * MSEC_PER_SEC;
++	} else {
++		enum gaudi2_cn_pcs_link_state pcs_link_state = gaudi2_port->pcs_link_state;
++
++		switch (pcs_link_state) {
++		case PCS_LINK_STATE_SETTLING:
++			timeout_ms = NIC_PHY_PCS_SETTLING_WAIT_MS;
++			dev_dbg(hdev->dev, "Card %u Port %u: waiting %lu seconds for settling\n",
++				card_location, port, timeout_ms / MSEC_PER_SEC);
++			break;
++		case PCS_LINK_STATE_STRESS:
++			timeout_ms = NIC_PHY_PCS_STRESS_INT_MS;
++			gaudi2_port->pcs_link_samples_per_sec = MSEC_PER_SEC / timeout_ms;
++			break;
++		case PCS_LINK_STATE_STEADY:
++			timeout_ms = NIC_PHY_PCS_STEADY_STATE_INT_MS;
++			gaudi2_port->pcs_link_samples_per_sec = MSEC_PER_SEC / timeout_ms;
++			break;
++		default:
++			dev_err(hdev->dev, "Card %u Port %u: invalid pcs_link_state %u\n",
++				card_location, port, pcs_link_state);
++		}
++	}
++
++	return timeout_ms;
++}
++
++void gaudi2_cn_phy_link_status_work(struct work_struct *work)
++{
++	u32 card_location, port, timeout_ms;
++	struct gaudi2_cn_device *gaudi2;
++	struct hbl_cn_port *cn_port;
++	struct hbl_cn_device *hdev;
++
++	cn_port = container_of(work, struct hbl_cn_port, link_status_work.work);
++	hdev = cn_port->hdev;
++	gaudi2 = hdev->asic_specific;
++	card_location = hdev->card_location;
++	port = cn_port->port;
++
++	/* Reschedule this work if the device is under compute reset */
++	if (gaudi2->in_compute_reset) {
++		timeout_ms = MSEC_PER_SEC;
++		goto reschedule;
++	}
++
++	if (cn_port->phy_fw_tuned) {
++		if (!cn_port->phy_func_mode_en) {
++			calc_ber(cn_port);
++			dev_info(hdev->dev, "Card %u Port %u: BER calculation is done\n",
++				 card_location, port);
++			return;
++		}
++
++		check_pcs_link(cn_port);
++	} else {
++		if (cn_port->auto_neg_resolved || cn_port->auto_neg_skipped)
++			do_fw_tuning(cn_port);
++		else
++			do_fw_tuning_auto_neg(cn_port);
++	}
++
++	timeout_ms = get_timeout_ms(cn_port);
++
++reschedule:
++	queue_delayed_work(cn_port->wq, &cn_port->link_status_work, msecs_to_jiffies(timeout_ms));
++}
++
++static void set_tx(struct hbl_cn_device *hdev, u32 port, int lane, bool enable)
++{
++	u32 val = enable ? 0x1 : 0x0;
++
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0NF8, val,
++			      NIC0_SERDES0_LANE0_REGISTER_0NF8_PU_VDRV_MASK);
++}
++
++void gaudi2_cn_phy_port_start_stop(struct hbl_cn_port *cn_port, bool is_start)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port, tx_port;
++	int lane, tx_lane;
++
++	for (lane = 0; lane < 2; lane++) {
++		get_tx_port_and_lane(hdev, port, lane, &tx_port, &tx_lane);
++
++		if (is_start) {
++			/* Enable TX driver in SerDes */
++			set_tx(hdev, tx_port, tx_lane, true);
++			/* Enable F/W Rx tuning is done during power up flow */
++		} else {
++			/* Disable TX driver in SerDes */
++			set_tx(hdev, tx_port, tx_lane, false);
++			/* Silence F/W Rx tuning */
++			NIC_PHY_WREG32(NIC0_SERDES0_REGISTER_9815, 0x9000 | lane);
++		}
++	}
++}
++
++static int fw_start_an(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	u32 detail = 0, ignore;
++
++	return fw_cmd(hdev, port, 0x80A0 | lane, &detail, 0x8, &ignore);
++}
++
++static int fw_start_an_tx(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	u32 detail = 0, ignore;
++	int rc;
++
++	rc = fw_cmd(hdev, port, 0x7040 | lane, &detail, 0x7, &ignore);
++	if (rc)
++		return rc;
++
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0, 0x0,
++			      NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_PAM4_TEST_EN_MASK);
++
++	return 0;
++}
++
++static int fw_config_auto_neg(struct hbl_cn_device *hdev, u32 port, int lane)
++{
++	struct hbl_cn_port *cn_port = &hdev->cn_ports[port];
++	u64 basepage = 0x800000001ull;
++	u32 tx_port, pflags;
++	u32 card_location;
++	int tx_lane, rc;
++
++	card_location = hdev->card_location;
++	pflags = hbl_cn_get_pflags(cn_port);
++
++	get_tx_port_and_lane(hdev, port, lane, &tx_port, &tx_lane);
++
++	/* clear go bit */
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980F, 0x0, 0x8000);
++
++	init_nrz_tx(hdev, tx_port, tx_lane);
++	init_nrz_rx(hdev, port, lane);
++
++	init_lane_for_fw_tx(hdev, tx_port, tx_lane, false, true);
++	init_lane_for_fw_rx(hdev, port, lane, false, true);
++
++	prbs_mode_select_tx(hdev, tx_port, tx_lane, false, "PRBS31");
++	prbs_mode_select_rx(hdev, port, lane, false, "PRBS31");
++
++	lane_swapping_config(hdev, port, lane, true, true);
++
++	/* set FW to start AN */
++
++	rc = fw_start_an(hdev, port, lane);
++	if (rc) {
++		dev_err(hdev->dev, "Card %u Port %u lane %d: start auto neg failed, rc %d\n",
++			card_location, tx_port, tx_lane, rc);
++		return rc;
++	}
++
++	if (is_lane_swapping(hdev, port, lane)) {
++		rc = fw_start_an_tx(hdev, tx_port, tx_lane);
++		if (rc) {
++			dev_err(hdev->dev,
++				"Card %u Port %u lane %d: start auto neg failed, rc %d\n",
++				card_location, tx_port, tx_lane, rc);
++			return rc;
++		}
++	}
++
++	/* AN reset */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AK00, 0xE000);
++
++	/* AN mode */
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AI10, basepage & 0xFFFF);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AI11, (basepage >> 16) & 0xFFFF);
++	NIC_PHY_WREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AI12, (basepage >> 32) & 0xFFFF);
++
++	/* IEEE */
++	NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AK00, 0x1,
++			      NIC0_SERDES0_LANE0_REGISTER_AK00_ARG_ANEG_IEEE_MODE_S_MASK);
++
++	if (pflags & PFLAGS_PHY_AUTO_NEG_LPBK)
++		NIC_PHY_RMWREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_AK00, 0x1,
++				      NIC0_SERDES0_LANE0_REGISTER_AK00_ARG_DIS_NONCE_MATCH_S_MASK);
++
++	rc = set_pll(hdev, port, lane, NIC_DR_25);
++	if (rc)
++		return rc;
++
++	/* set go bit */
++	NIC_PHY_RMWREG32(NIC0_SERDES0_REGISTER_980F, 0x1, 0x8000);
++
++	return 0;
++}
++
++static int port_9_reinit(struct hbl_cn_device *hdev)
++{
++	struct hbl_cn_port *cn_port_9 = &hdev->cn_ports[9];
++
++	if (!hbl_cn_is_port_open(cn_port_9))
++		return 0;
++
++	dev_dbg(hdev->dev,
++		"Card %u Port 9: Performing port 9 PHY reinit following port 8 PHY init\n",
++		hdev->card_location);
++
++	hbl_cn_phy_fini(cn_port_9);
++
++	return hbl_cn_phy_init(cn_port_9);
++}
++
++int gaudi2_cn_phy_port_power_up(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	struct gaudi2_cn_port *gaudi2_port;
++	u32 data_rate = cn_port->data_rate;
++	u32 card_location, port;
++	int rc;
++
++	gaudi2_port = cn_port->cn_specific;
++	card_location = hdev->card_location;
++	port = cn_port->port;
++
++	phy_port_reset(hdev, port);
++
++	if (hdev->phy_force_first_tx_taps_cfg)
++		gaudi2_port->tx_taps_cfg = 0;
++
++	cn_port->phy_func_mode_en = false;
++	gaudi2_port->pcs_link_state = PCS_LINK_STATE_SETTLING;
++	gaudi2_port->initial_tx_taps_cfg = gaudi2_port->tx_taps_cfg;
++
++	if (cn_port->auto_neg_enable) {
++		/* AN config should be done only on lane 0 */
++		rc = fw_config_auto_neg(hdev, port, 0);
++		if (rc) {
++			dev_err(hdev->dev, "Card %u Port %u: F/W config auto_neg failed, rc %d\n",
++				card_location, port, rc);
++			return rc;
++		}
++	} else {
++		rc = fw_config(hdev, port, data_rate, false);
++		if (rc) {
++			dev_err(hdev->dev, "Card %u Port %u: F/W config failed, rc %d\n",
++				card_location, port, rc);
++			return rc;
++		}
++	}
++
++	/* Port 8 is an external port which will usually be brought UP after all the internal ports
++	 * are UP. Due to macro clock nest dependency, when PHY reset is called for port 8,
++	 * port 9 (which is internal) is being toggled and might lost stabilization.
++	 * A W/A to overcome this issue is to reinit port 9 right after.
++	 */
++	if (port == 8)
++		port_9_reinit(hdev);
++
++	return 0;
++}
++
++void gaudi2_cn_phy_port_reconfig(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 card_location, port;
++	int rc;
++
++	if (!hdev->phy_config_fw)
++		return;
++
++	card_location = hdev->card_location;
++	port = cn_port->port;
++
++	rc = gaudi2_cn_phy_port_power_up(cn_port);
++	if (rc)
++		dev_err(hdev->dev, "Card %u Port %u: PHY reconfig failed\n", card_location, port);
++}
++
++int gaudi2_cn_phy_port_init(struct hbl_cn_port *cn_port)
++{
++	struct hbl_cn_device *hdev = cn_port->hdev;
++	u32 port = cn_port->port;
++	int rc;
++
++	mac_lane_remap(hdev, port);
++
++	rc = hbl_cn_phy_init(cn_port);
++	if (rc)
++		dev_err(hdev->dev, "Port %u: failed to init PHY, rc %d\n", port, rc);
 +
 +	return rc;
 +}
 +
-+/* This function can be called only from the compute driver when deleting the aux bus, because we
-+ * incremented the module refcount on probing. Hence no need to protect here from hard reset.
-+ */
-+static void hbl_cn_remove(struct auxiliary_device *adev)
++void gaudi2_cn_phy_port_fini(struct hbl_cn_port *cn_port)
 +{
-+	struct hbl_aux_dev *aux_dev = container_of(adev, struct hbl_aux_dev, adev);
-+	struct hbl_cn_device *hdev = aux_dev->priv;
-+
-+	if (!hdev)
-+		return;
-+
-+	hbl_cn_dev_fini(hdev);
-+
-+	/* allow module unloading as now it is detached */
-+	module_put(THIS_MODULE);
-+
-+	hdev_fini(aux_dev);
++	hbl_cn_phy_fini(cn_port);
 +}
 +
-+static struct auxiliary_driver hbl_cn_driver = {
-+	.name = "cn",
-+	.probe = hbl_cn_probe,
-+	.remove = hbl_cn_remove,
-+	.id_table = hbl_cn_id_table,
-+};
-+
-+static int __init hbl_cn_init(void)
++int gaudi2_cn_phy_reset_macro(struct hbl_cn_macro *cn_macro)
 +{
-+	pr_info("loading driver\n");
++	struct hbl_cn_device *hdev = cn_macro->hdev;
++	u32 port;
 +
-+	return auxiliary_driver_register(&hbl_cn_driver);
++	/* Reset the two ports under the given cn_macro */
++	port = cn_macro->idx << 1;
++
++	/* Enable PHY refclk */
++	NIC_MACRO_WREG32(NIC0_PHY_PHY_IDDQ_0, 0);
++	NIC_MACRO_WREG32(NIC0_PHY_PHY_IDDQ_1, 0);
++
++	phy_port_reset(hdev, port);
++	phy_port_reset(hdev, port + 1);
++
++	return 0;
 +}
 +
-+static void __exit hbl_cn_exit(void)
++void gaudi2_cn_phy_flush_link_status_work(struct hbl_cn_device *hdev)
 +{
-+	auxiliary_driver_unregister(&hbl_cn_driver);
++	struct hbl_cn_port *cn_port;
++	int i;
 +
-+	pr_info("driver removed\n");
++	for (i = 0; i < hdev->cn_props.max_num_of_ports; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		cn_port = &hdev->cn_ports[i];
++
++		flush_delayed_work(&cn_port->link_status_work);
++	}
 +}
 +
-+module_init(hbl_cn_init);
-+module_exit(hbl_cn_exit);
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_memory.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_memory.c
++static int find_first_enabled_port(struct hbl_cn_device *hdev, u32 *port)
++{
++	int i;
++
++	for (i = 0; i < NIC_NUMBER_OF_PORTS; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		*port = i;
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static void fw_write_all(struct hbl_cn_device *hdev, u32 addr, u32 data)
++{
++	int port;
++
++	for (port = 0; port < NIC_NUMBER_OF_PORTS; port++) {
++		if (!(hdev->ports_mask & BIT(port)))
++			continue;
++
++		NIC_PHY_WREG32(addr, data);
++	}
++}
++
++static void fw_write_all_lanes(struct hbl_cn_device *hdev, u32 addr, u32 data)
++{
++	int port, lane;
++
++	for (port = 0; port < NIC_NUMBER_OF_PORTS; port++) {
++		if (!(hdev->ports_mask & BIT(port)))
++			continue;
++
++		for (lane = 0; lane < 2; lane++)
++			NIC_PHY_WREG32_LANE(addr, data);
++	}
++}
++
++static void fw_unload_all(struct hbl_cn_device *hdev)
++{
++	u32 port;
++
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_9814, 0xFFF0);
++
++	for (port = 0; port < NIC_NUMBER_OF_PORTS; port++) {
++		if (!(hdev->ports_mask & BIT(port)))
++			continue;
++
++		cpu_reset(hdev, port);
++	}
++
++	msleep(100);
++
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_9814, 0x0);
++
++	/* PAM4 */
++	fw_write_all_lanes(hdev, NIC0_SERDES0_LANE0_REGISTER_0P11, 0);
++	usleep_range(1000, 2000);
++	fw_write_all_lanes(hdev, NIC0_SERDES0_LANE0_REGISTER_0P11, 0x2000);
++
++	/* NRZ */
++	fw_write_all_lanes(hdev, NIC0_SERDES0_LANE0_REGISTER_0N0B, 0);
++	fw_write_all_lanes(hdev, NIC0_SERDES0_LANE0_REGISTER_0N0C, 0);
++	usleep_range(1000, 2000);
++	fw_write_all_lanes(hdev, NIC0_SERDES0_LANE0_REGISTER_0N0C, 0x8000);
++}
++
++static u32 fw_crc(struct hbl_cn_device *hdev, u32 port)
++{
++	u32 checksum_code, ignore;
++
++	fw_cmd(hdev, port, 0xF001, NULL, 0xF, &ignore);
++	checksum_code = NIC_PHY_RREG32(NIC0_SERDES0_REGISTER_9816);
++
++	return checksum_code;
++}
++
++static u32 fw_hash(struct hbl_cn_device *hdev, u32 port)
++{
++	u32 low_word, hash_code, res;
++
++	fw_cmd(hdev, port, 0xF000, NULL, 0xF, &res);
++	low_word = NIC_PHY_RREG32(NIC0_SERDES0_REGISTER_9816);
++	hash_code = ((res & 0xFF) << 16) | low_word;
++
++	return hash_code;
++}
++
++static int mcu_cal_enable_all(struct hbl_cn_device *hdev)
++{
++	u32 port;
++	int rc;
++
++	for (port = 0; port < NIC_NUMBER_OF_PORTS; port++) {
++		if (!(hdev->ports_mask & BIT(port)))
++			continue;
++
++		rc = set_fw_reg(hdev, port, 357, NIC_PHY_FW_TIME_CONSTANT_RATIO);
++		if (rc) {
++			dev_dbg(hdev->dev, "Port %u: MCU calibration failed\n", port);
++			return rc;
++		}
++	}
++
++	return 0;
++}
++
++int gaudi2_cn_phy_fw_load_all(struct hbl_cn_device *hdev)
++{
++	u32 entry_point, length, ram_addr, sections, status, checks, checksum;
++	int rc, i, j, data_ptr = 0;
++	const struct firmware *fw;
++	const void *fw_data;
++	const char *fw_name;
++	u16 mdio_data;
++	u32 port; /* For regs read */
++
++	rc = find_first_enabled_port(hdev, &port);
++	if (rc)
++		return rc;
++
++	fw_name = gaudi2_cn_phy_get_fw_name();
++
++	fw_unload_all(hdev);
++
++	rc = request_firmware(&fw, fw_name, hdev->dev);
++	if (rc) {
++		dev_err(hdev->dev, "Firmware file %s is not found\n", fw_name);
++		return rc;
++	}
++
++	fw_data = (const void *)fw->data;
++	fw_data += 0x1000;
++
++	/* skip hash, crc and date */
++	entry_point = get_unaligned_be32(fw_data + 8);
++	length = get_unaligned_be32(fw_data + 12);
++	ram_addr = get_unaligned_be32(fw_data + 16);
++
++	dev_dbg(hdev->dev, "entry_point: 0x%x\n", entry_point);
++	dev_dbg(hdev->dev, "length: 0x%x\n", length);
++
++	fw_data += 20;
++
++	sections = DIV_ROUND_UP(length, 24);
++
++	dev_dbg(hdev->dev, "sections: %d\n", sections);
++
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_9814, 0xFFF0); /* FW2 */
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_980D, 0x0AAA); /* FW1 */
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_980D, 0x0); /* FW1 */
++
++	checks = 0;
++
++	do {
++		usleep_range(10000, 20000);
++		status = NIC_PHY_RREG32(NIC0_SERDES0_REGISTER_9814); /* FW2 */
++		dev_dbg(hdev->dev, "port %d, status: 0x%x\n", port, status);
++		if (checks++ > NIC_PHY_READ_COUNTS_PER_MS) {
++			dev_err(hdev->dev, "failed to load F/W, fw2 timeout 0x%x\n", status);
++			rc = -ETIMEDOUT;
++			goto release_fw;
++		}
++	} while (status);
++
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_9814, 0x0);
++
++	for (i = 0; i <= sections; i++) {
++		checksum = 0x800C;
++
++		fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F0C, ram_addr >> 16); /* FW0 + 12 */
++		fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F0D, ram_addr & 0xFFFF); /* FW0 + 13 */
++		checksum += (ram_addr >> 16) + (ram_addr & 0xFFFF);
++
++		for (j = 0; j < 12; j++) {
++			if (data_ptr >= length)
++				mdio_data = 0;
++			else
++				mdio_data = get_unaligned_be16(fw_data + data_ptr);
++
++			fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F00 + 4 * j, mdio_data);
++
++			checksum += mdio_data;
++			data_ptr += 2;
++			ram_addr += 2;
++		}
++
++		/* FW0 + 14 */
++		fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F0E, (~checksum + 1) & 0xFFFF);
++		fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F0F, 0x800C); /* FW0 + 15 */
++
++		checks = 0;
++
++		do {
++			usleep_range(1000, 2000);
++			status = NIC_PHY_RREG32(NIC0_SERDES0_REGISTER_9F0F); /* FW0 + 15 */
++			if (checks++ > NIC_PHY_READ_COUNTS_PER_MS) {
++				dev_err(hdev->dev, "failed to load F/W, fw0 timeout 0x%x\n",
++					status);
++				rc = -ETIMEDOUT;
++				goto release_fw;
++			}
++		} while (status == 0x800C);
++	}
++
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F0C, entry_point >> 16); /* FW0 + 12 */
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F0D, entry_point & 0xFFFF); /* FW0 + 13 */
++	checksum = (entry_point >> 16) + (entry_point & 0xFFFF) + 0x4000;
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F0E, (~checksum + 1) & 0xFFFF); /* FW0 + 14 */
++	fw_write_all(hdev, NIC0_SERDES0_REGISTER_9F0F, 0x4000); /* FW0 + 15 */
++
++	msleep(500);
++
++	dev_dbg(hdev->dev, "F/W CRC = 0x%x\n", fw_crc(hdev, port));
++	dev_dbg(hdev->dev, "F/W hash = 0x%x\n", fw_hash(hdev, port));
++
++	rc = mcu_cal_enable_all(hdev);
++
++release_fw:
++	release_firmware(fw);
++	return rc;
++}
++
++u16 gaudi2_cn_phy_get_crc(struct hbl_cn_device *hdev)
++{
++	u32 port;
++	int rc;
++
++	rc = find_first_enabled_port(hdev, &port);
++	if (rc)
++		return rc;
++
++	return fw_crc(hdev, port);
++}
++
++static bool is_old_phy_fw_loaded(struct hbl_cn_device *hdev)
++{
++	return gaudi2_cn_phy_get_crc(hdev) == 0x1723;
++}
++
++static bool is_phy_fw_with_anlt_support(struct hbl_cn_device *hdev)
++{
++	return gaudi2_cn_phy_get_crc(hdev) == 0x185E;
++}
++
++int gaudi2_cn_phy_init(struct hbl_cn_device *hdev)
++{
++	if (!hdev->phy_config_fw)
++		return 0;
++
++	/* Fail the initialization in case of an old PHY F/W, as the current PHY init flow won't
++	 * work with it.
++	 */
++	if (is_old_phy_fw_loaded(hdev)) {
++		dev_err(hdev->dev, "PHY F/W is very old - failing the initialization\n");
++		return -EINVAL;
++	}
++
++	/* In case LKD override the existing PHY F/W with an unofficial one and this F/W has ANLT
++	 * support, ANLT will be enabled according to the mask.
++	 * Otherwise, ANLT will be disabled on all ports.
++	 */
++	if (hdev->load_phy_fw && is_phy_fw_with_anlt_support(hdev))
++		hdev->auto_neg_mask = hdev->phys_auto_neg_mask;
++	else
++		hdev->auto_neg_mask = 0;
++
++	/* In case we didn't get serdes info from FW, set to default values */
++	if (hdev->use_fw_serdes_info) {
++		set_fw_lane_mapping(hdev);
++		hbl_cn_phy_set_fw_polarity(hdev);
++	} else {
++		set_default_mac_lane_remap(hdev);
++		set_default_polarity_values(hdev);
++	}
++
++	/* Set the tx taps to their default values only once */
++	if (!hdev->skip_phy_default_tx_taps_cfg) {
++		set_default_tx_taps_values(hdev);
++		hdev->skip_phy_default_tx_taps_cfg = true;
++	}
++
++	return 0;
++}
++
++static int fw_read_s16(struct hbl_cn_device *hdev, u32 port, u32 offset)
++{
++	u32 t = NIC_PHY_RREG32(NIC0_SERDES0_REGISTER_9F00 + 4 * offset);
++
++	return (t & 0x8000) ? t - 0x10000 : t;
++}
++
++static void get_channel_estimation_params(struct hbl_cn_device *hdev, u32 port, int lane, u32 *of,
++					  u32 *hf)
++{
++	struct hbl_cn_port *cn_port = &hdev->cn_ports[port];
++
++	if (cn_port->auto_neg_enable) {
++		*of = rv_debug(hdev, port, lane, 5, 22);
++		*hf = rv_debug(hdev, port, lane, 5, 23);
++	} else {
++		*of = rv_debug(hdev, port, lane, 2, 4);
++		*hf = rv_debug(hdev, port, lane, 2, 5);
++	}
++}
++
++static void get_tx_taps(struct hbl_cn_device *hdev, u32 port, int lane, int *tx_taps)
++{
++	u32 tx_pre2, tx_pre1, tx_main, tx_post1, tx_post2;
++
++	tx_pre2 = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA5) &
++		   NIC0_SERDES0_LANE0_REGISTER_0PA5_TX_PRE_2_MASK) >>
++		  NIC0_SERDES0_LANE0_REGISTER_0PA5_TX_PRE_2_SHIFT;
++	tx_pre1 = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA7) &
++		   NIC0_SERDES0_LANE0_REGISTER_0PA7_TX_PRE_1_MASK) >>
++		  NIC0_SERDES0_LANE0_REGISTER_0PA7_TX_PRE_1_SHIFT;
++	tx_main = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA9) &
++		   NIC0_SERDES0_LANE0_REGISTER_0PA9_TX_MAIN_MASK) >>
++		  NIC0_SERDES0_LANE0_REGISTER_0PA9_TX_MAIN_SHIFT;
++	tx_post1 = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAB) &
++		    NIC0_SERDES0_LANE0_REGISTER_0PAB_TX_POST_1_MASK) >>
++		   NIC0_SERDES0_LANE0_REGISTER_0PAB_TX_POST_1_SHIFT;
++	tx_post2 = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PAD) &
++		    NIC0_SERDES0_LANE0_REGISTER_0PAD_TX_POST_2_MASK) >>
++		   NIC0_SERDES0_LANE0_REGISTER_0PAD_TX_POST_2_SHIFT;
++
++	tx_taps[0] = twos_to_int(tx_pre2, 8);
++	tx_taps[1] = twos_to_int(tx_pre1, 8);
++	tx_taps[2] = twos_to_int(tx_main, 8);
++	tx_taps[3] = twos_to_int(tx_post1, 8);
++	tx_taps[4] = twos_to_int(tx_post2, 8);
++}
++
++static void copy_info(char *buf, char *name, int *data, u8 count, ssize_t size)
++{
++	int i;
++
++	__snprintf(buf, size, "%s:", name);
++
++	for (i = 0; i < count; i++)
++		__snprintf(buf, size, " %d", data[i]);
++
++	__snprintf(buf, size, "\n");
++}
++
++static void dump_ber_info(struct hbl_cn_device *hdev, u32 port, int lane, char *buf, ssize_t size)
++{
++	struct hbl_cn_ber_info *ber_info;
++	u32 abs_lane_idx;
++
++	abs_lane_idx = (port << 1) + lane;
++	ber_info = &hdev->phy_ber_info[abs_lane_idx];
++
++	if (ber_info->valid)
++		__snprintf(buf, size, "BER: %llu.%llue-%u\n",
++			   ber_info->integer, ber_info->frac, ber_info->exp);
++	else
++		__snprintf(buf, size, "No BER information\n");
++}
++
++void gaudi2_cn_phy_dump_serdes_params(struct hbl_cn_device *hdev, char *buf, size_t size)
++{
++	u32 port, card_location, sd, phy_ready, ch_est_of, ch_est_hf, ppm_twos, adapt_state;
++	int lane, i, ppm, eye[3], isi[18], tx_taps[5];
++	u8 tx_pol, rx_pol;
++	bool pam4;
++
++	port = hdev->phy_port_to_dump;
++	card_location = hdev->card_location;
++	pam4 = hdev->cn_ports[port].data_rate == NIC_DR_50;
++
++	__snprintf(buf, size, "\nmode: %s\n\n", pam4 ? "PAM4" : "NRZ");
++
++	for (lane = 0; lane < 2; lane++) {
++		sd = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P6A) &
++		      NIC0_SERDES0_LANE0_REGISTER_0P6A_READ_SIG_DET_MASK) >>
++		     NIC0_SERDES0_LANE0_REGISTER_0P6A_READ_SIG_DET_SHIFT;
++
++		phy_ready = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P6A) &
++			     NIC0_SERDES0_LANE0_REGISTER_0P6A_RX_READ_PHY_READY_MASK) >>
++			    NIC0_SERDES0_LANE0_REGISTER_0P6A_RX_READ_PHY_READY_SHIFT;
++		ppm_twos = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P73) &
++			    NIC0_SERDES0_LANE0_REGISTER_0P73_READ_FREQ_ACC_MASK) >>
++			   NIC0_SERDES0_LANE0_REGISTER_0P73_READ_FREQ_ACC_SHIFT;
++		ppm = twos_to_int(ppm_twos, 11);
++		adapt_state = rv_debug(hdev, port, lane, 2, 0);
++
++		tx_pol = (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0PA0) &
++			  NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_ANA_OUT_FLIP_MASK) >>
++			  NIC0_SERDES0_LANE0_REGISTER_0PA0_TX_ANA_OUT_FLIP_SHIFT;
++
++		rx_pol = pam4 ? (NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0P43) &
++				 NIC0_SERDES0_LANE0_REGISTER_0P43_RX_DATA_FLIP_MASK) >>
++				 NIC0_SERDES0_LANE0_REGISTER_0P43_RX_DATA_FLIP_SHIFT :
++				(NIC_PHY_RREG32_LANE(NIC0_SERDES0_LANE0_REGISTER_0N61) &
++				 NIC0_SERDES0_LANE0_REGISTER_0N61_PRBS_CHECK_FLIP_MASK) >>
++				 NIC0_SERDES0_LANE0_REGISTER_0N61_PRBS_CHECK_FLIP_SHIFT;
++
++		get_channel_estimation_params(hdev, port, lane, &ch_est_of, &ch_est_hf);
++
++		rv_debug(hdev, port, lane, 0xA, 5);
++		for (i = 0; i < 3; i++)
++			eye[i] = fw_read_s16(hdev, port, i);
++
++		rv_debug(hdev, port, lane, 0xA, 0);
++		for (i = 0; i < 16; i++)
++			isi[i] = fw_read_s16(hdev, port, i);
++
++		rv_debug(hdev, port, lane, 0xA, 8);
++		for (i = 0; i < 2; i++)
++			isi[16 + i] = fw_read_s16(hdev, port, i);
++
++		get_tx_taps(hdev, port, lane, tx_taps);
++
++		__snprintf(buf, size, "Card %u Port %u lane %d:\n", card_location, port, lane);
++		__snprintf(buf, size,
++			   "sd: %u\nphy_ready: %u\nppm: %d\nch_est_of: %u\nch_est_hf: %u\n"
++			   "adaptation state: 0x%x\ntx_pol: %u\nrx_pol: %u\n", sd, phy_ready, ppm,
++			   ch_est_of, ch_est_hf, adapt_state, tx_pol, rx_pol);
++		copy_info(buf, "eyes", eye, 3, size);
++		copy_info(buf, "isi", isi, 18, size);
++		copy_info(buf, "tx_taps", tx_taps, 5, size);
++
++		dump_ber_info(hdev, port, lane, buf, size);
++
++		__snprintf(buf, size, "\n");
++	}
++}
+diff --git a/include/linux/net/intel/gaudi2.h b/include/linux/net/intel/gaudi2.h
 new file mode 100644
-index 000000000000..93c97fad6a20
+index 000000000000..49dd1b6b7c86
 --- /dev/null
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_memory.c
-@@ -0,0 +1,40 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright 2020-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
-+
-+#include "hbl_cn.h"
-+
-+int hbl_cn_mem_alloc(struct hbl_cn_ctx *ctx, struct hbl_cn_mem_data *mem_data)
-+{
-+	return 0;
-+}
-+
-+int hbl_cn_mem_destroy(struct hbl_cn_device *hdev, u64 handle)
-+{
-+	return 0;
-+}
-+
-+struct hbl_cn_mem_buf *hbl_cn_mem_buf_get(struct hbl_cn_device *hdev, u64 handle)
-+{
-+	return NULL;
-+}
-+
-+int hbl_cn_mem_buf_put(struct hbl_cn_mem_buf *buf)
-+{
-+	return 0;
-+}
-+
-+int hbl_cn_mem_buf_put_handle(struct hbl_cn_device *hdev, u64 handle)
-+{
-+	return 0;
-+}
-+
-+void hbl_cn_mem_init(struct hbl_cn_device *hdev)
-+{
-+}
-+
-+void hbl_cn_mem_fini(struct hbl_cn_device *hdev)
-+{
-+}
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_phy.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_phy.c
-new file mode 100644
-index 000000000000..0d07cd78221d
---- /dev/null
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_phy.c
-@@ -0,0 +1,33 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright 2020-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
-+
-+#include "hbl_cn.h"
-+
-+void hbl_cn_phy_set_port_status(struct hbl_cn_port *cn_port, bool up)
-+{
-+}
-+
-+int hbl_cn_phy_init(struct hbl_cn_port *cn_port)
-+{
-+	return 0;
-+}
-+
-+void hbl_cn_phy_fini(struct hbl_cn_port *cn_port)
-+{
-+}
-+
-+void hbl_cn_phy_port_reconfig(struct hbl_cn_port *cn_port)
-+{
-+}
-+
-+int hbl_cn_phy_has_binary_fw(struct hbl_cn_device *hdev)
-+{
-+	return 0;
-+}
-+
-+void hbl_cn_phy_set_fw_polarity(struct hbl_cn_device *hdev)
-+{
-+}
-diff --git a/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_qp.c b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_qp.c
-new file mode 100644
-index 000000000000..9ddc23bf8194
---- /dev/null
-+++ b/drivers/net/ethernet/intel/hbl_cn/common/hbl_cn_qp.c
-@@ -0,0 +1,13 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright 2020-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
-+
-+#include "hbl_cn.h"
-+
-+int hbl_cn_qp_modify(struct hbl_cn_port *cn_port, struct hbl_cn_qp *qp,
-+		     enum hbl_cn_qp_state new_state, void *params)
-+{
-+	return 0;
-+}
-diff --git a/include/linux/habanalabs/cpucp_if.h b/include/linux/habanalabs/cpucp_if.h
-index f316c8d0f3fc..7fe3f3e68b04 100644
---- a/include/linux/habanalabs/cpucp_if.h
-+++ b/include/linux/habanalabs/cpucp_if.h
-@@ -366,6 +366,27 @@ struct hl_eq_addr_dec_intr_data {
- 	__u8 pad[7];
- };
- 
-+#define MAX_PORTS_PER_NIC	4
-+
-+/* NIC interrupt type */
-+enum hl_nic_interrupt_type {
-+	NIC_INTR_NONE = 0,
-+	NIC_INTR_TMR = 1,
-+	NIC_INTR_RXB_CORE_SPI,
-+	NIC_INTR_RXB_CORE_SEI,
-+	NIC_INTR_QPC_RESP_ERR,
-+	NIC_INTR_RXE_SPI,
-+	NIC_INTR_RXE_SEI,
-+	NIC_INTR_TXS,
-+	NIC_INTR_TXE,
-+};
-+
-+struct hl_eq_nic_intr_cause {
-+	__le32 intr_type; /* enum hl_nic_interrupt_type */
-+	__le32 pad;
-+	struct hl_eq_intr_cause intr_cause[MAX_PORTS_PER_NIC];
-+};
-+
- struct hl_eq_entry {
- 	struct hl_eq_header hdr;
- 	union {
-@@ -382,6 +403,7 @@ struct hl_eq_entry {
- 		struct hl_eq_hbm_sei_data sei_data;	/* Gaudi2 HBM */
- 		struct hl_eq_engine_arc_intr_data arc_data;
- 		struct hl_eq_addr_dec_intr_data addr_dec;
-+		struct hl_eq_nic_intr_cause nic_intr_cause;
- 		__le64 data[7];
- 	};
- };
-@@ -665,6 +687,9 @@ enum pq_init_status {
-  *       by the host to prevent replay attacks. public key and certificate also
-  *       provided as part of the FW response.
-  *
-+ * CPUCP_PACKET_NIC_SET_CHECKERS -
-+ *       Packet to set a specific NIC checker bit.
-+ *
-  * CPUCP_PACKET_MONITOR_DUMP_GET -
-  *       Get monitors registers dump from the CpuCP kernel.
-  *       The CPU will put the registers dump in the a buffer allocated by the driver
-@@ -673,6 +698,14 @@ enum pq_init_status {
-  *       data corruption in case of mismatched driver/FW versions.
-  *       Obsolete.
-  *
-+ * CPUCP_PACKET_NIC_WQE_ASID_SET -
-+ *       Packet to set nic wqe asid as the registers needed are privilege and to be configured by FW
-+ *
-+ * CPUCP_PACKET_NIC_ECC_INTRS_UNMASK -
-+ *       Packet to unmask NIC memory registers which are masked at preboot stage. As per the Arch
-+ *       team recommendation, NIC memory ECC errors should be unmasked after NIC driver is up and
-+ *       running
-+ *
-  * CPUCP_PACKET_GENERIC_PASSTHROUGH -
-  *       Generic opcode for all firmware info that is only passed to host
-  *       through the LKD, without getting parsed there.
-@@ -681,12 +714,28 @@ enum pq_init_status {
-  *       LKD sends FW indication whether device is free or in use, this indication is reported
-  *       also to the BMC.
-  *
-+ * CPUCP_PACKET_NIC_MAC_TX_RESET -
-+ *       Packet to reset the NIC MAC Tx.
-+ *
-+ * CPUCP_PACKET_NIC_WQE_ASID_UNSET -
-+ *       Packet to unset nic wqe asid as the registers needed are privilege and to be configured
-+ *       by FW.
-+ *
-  * CPUCP_PACKET_SOFT_RESET -
-  *       Packet to perform soft-reset.
-  *
-  * CPUCP_PACKET_INTS_REGISTER -
-  *       Packet to inform FW that queues have been established and LKD is ready to receive
-  *       EQ events.
-+ *
-+ * CPUCP_PACKET_NIC_INIT_TXS_MEM -
-+ *      Init TXS related memory in HBM.
-+ *
-+ * CPUCP_PACKET_NIC_INIT_TMR_MEM -
-+ *      Init HW timer related memory in HBM.
-+ *
-+ * CPUCP_PACKET_NIC_CLR_MEM -
-+ *      Clear NIC related memory in HBM.
-  */
- 
- enum cpucp_packet_id {
-@@ -740,21 +789,24 @@ enum cpucp_packet_id {
- 	CPUCP_PACKET_RESERVED2,			/* not used */
- 	CPUCP_PACKET_SEC_ATTEST_GET,		/* internal */
- 	CPUCP_PACKET_INFO_SIGNED_GET,		/* internal */
--	CPUCP_PACKET_RESERVED4,			/* not used */
-+	CPUCP_PACKET_NIC_SET_CHECKERS,		/* internal */
- 	CPUCP_PACKET_MONITOR_DUMP_GET,		/* debugfs */
--	CPUCP_PACKET_RESERVED5,			/* not used */
--	CPUCP_PACKET_RESERVED6,			/* not used */
--	CPUCP_PACKET_RESERVED7,			/* not used */
-+	CPUCP_PACKET_RESERVED3,			/* not used */
-+	CPUCP_PACKET_NIC_WQE_ASID_SET,		/* internal */
-+	CPUCP_PACKET_NIC_ECC_INTRS_UNMASK,	/* internal */
- 	CPUCP_PACKET_GENERIC_PASSTHROUGH,	/* IOCTL */
--	CPUCP_PACKET_RESERVED8,			/* not used */
-+	CPUCP_PACKET_RESERVED4,			/* not used */
- 	CPUCP_PACKET_ACTIVE_STATUS_SET,		/* internal */
--	CPUCP_PACKET_RESERVED9,			/* not used */
--	CPUCP_PACKET_RESERVED10,		/* not used */
--	CPUCP_PACKET_RESERVED11,		/* not used */
--	CPUCP_PACKET_RESERVED12,		/* internal */
--	CPUCP_PACKET_RESERVED13,                /* internal */
-+	CPUCP_PACKET_NIC_MAC_TX_RESET,		/* internal */
-+	CPUCP_PACKET_RESERVED5,			/* not used */
-+	CPUCP_PACKET_NIC_WQE_ASID_UNSET,	/* internal */
-+	CPUCP_PACKET_RESERVED6,			/* internal */
-+	CPUCP_PACKET_RESERVED7,			/* internal */
- 	CPUCP_PACKET_SOFT_RESET,		/* internal */
- 	CPUCP_PACKET_INTS_REGISTER,		/* internal */
-+	CPUCP_PACKET_NIC_INIT_TXS_MEM,		/* internal */
-+	CPUCP_PACKET_NIC_INIT_TMR_MEM,		/* internal */
-+	CPUCP_PACKET_NIC_CLR_MEM,		/* internal */
- 	CPUCP_PACKET_ID_MAX			/* must be last */
- };
- 
-@@ -862,6 +914,9 @@ struct cpucp_packet {
- 		/* For NIC requests */
- 		__le32 port_index;
- 
-+		/* For NIC requests */
-+		__le32 macro_index;
-+
- 		/* For Generic packet sub index */
- 		__le32 pkt_subidx;
- 	};
-@@ -1058,6 +1113,21 @@ enum pvt_index {
- 	PVT_NE
- };
- 
-+#define NIC_CHECKERS_TYPE_SHIFT		0
-+#define NIC_CHECKERS_TYPE_MASK		0xFFFF
-+#define NIC_CHECKERS_CHECK_SHIFT	16
-+#define NIC_CHECKERS_CHECK_MASK		0x1
-+#define NIC_CHECKERS_DROP_SHIFT		17
-+#define NIC_CHECKERS_DROP_MASK		0x1
-+
-+enum nic_checkers_types {
-+	RX_PKT_BAD_FORMAT = 0,
-+	RX_INV_OPCODE,
-+	RX_INV_SYNDROME,
-+	RX_WQE_IDX_MISMATCH,
-+	TX_WQE_IDX_MISMATCH = 0x80
-+};
-+
- /* Event Queue Packets */
- 
- struct eq_generic_event {
-@@ -1273,6 +1343,7 @@ struct ser_val {
-  * @post_fec_ser: post FEC SER value.
-  * @throughput: measured throughput.
-  * @latency: measured latency.
-+ * @port_toggle_cnt: counts how many times the link toggled since last port PHY init.
-  */
- struct cpucp_nic_status {
- 	__le32 port;
-@@ -1292,6 +1363,8 @@ struct cpucp_nic_status {
- 	struct ser_val post_fec_ser;
- 	struct frac_val bandwidth;
- 	struct frac_val lat;
-+	__le32 port_toggle_cnt;
-+	__u8 reserved[4];
- };
- 
- enum cpucp_hbm_row_replace_cause {
-@@ -1420,4 +1493,36 @@ enum hl_passthrough_type {
- 	HL_PASSTHROUGH_VERSIONS,
- };
- 
-+/* structure cpucp_cn_init_hw_mem_packet - used for initializing the associated CN (Core Network)
-+ * hw(TIMER, TX-SCHEDQ) memory in HBM using the provided parameters.
-+ * @cpucp_pkt: basic cpucp packet, the rest of the parameters extend the packet.
-+ * @mem_base_addr: base address of the associated memory
-+ * @num_entries: number of entries.
-+ * @entry_size: size of entry.
-+ * @granularity: base value for first element.
-+ * @pad: padding
-+ */
-+struct cpucp_cn_init_hw_mem_packet {
-+	struct cpucp_packet cpucp_pkt;
-+	__le64 mem_base_addr;
-+	__le16 num_entries;
-+	__le16 entry_size;
-+	__le16 granularity;
-+	__u8 pad[2];
-+};
-+
-+/* structure cpucp_cn_clear_mem_packet - used for clearing the associated CN (Core Network)
-+ * memory in HBM using the provided parameters.
-+ * @cpucp_pkt: basic cpucp packet, the rest of the parameters extend the packet.
-+ * @mem_base_addr: base address of the associated memory
-+ * @size: size in bytes of the associated memory.
-+ * @pad: padding
-+ */
-+struct cpucp_cn_clear_mem_packet {
-+	struct cpucp_packet cpucp_pkt;
-+	__le64 mem_base_addr;
-+	__le32 size;
-+	__u8 pad[4];
-+};
-+
- #endif /* CPUCP_IF_H */
-diff --git a/include/linux/habanalabs/hl_boot_if.h b/include/linux/habanalabs/hl_boot_if.h
-index 93366d5621fd..a6d9e510a974 100644
---- a/include/linux/habanalabs/hl_boot_if.h
-+++ b/include/linux/habanalabs/hl_boot_if.h
-@@ -194,6 +194,7 @@ enum cpu_boot_dev_sts {
- 	CPU_BOOT_DEV_STS_FW_NIC_STAT_EXT_EN = 24,
- 	CPU_BOOT_DEV_STS_IS_IDLE_CHECK_EN = 25,
- 	CPU_BOOT_DEV_STS_MAP_HWMON_EN = 26,
-+	CPU_BOOT_DEV_STS_NIC_MEM_CLEAR_EN = 27,
- 	CPU_BOOT_DEV_STS_ENABLED = 31,
- 	CPU_BOOT_DEV_STS_SCND_EN = 63,
- 	CPU_BOOT_DEV_STS_LAST = 64 /* we have 2 registers of 32 bits */
-@@ -331,6 +332,11 @@ enum cpu_boot_dev_sts {
-  *					HWMON enum mapping to cpucp enums.
-  *					Initialized in: linux
-  *
-+ * CPU_BOOT_DEV_STS0_NIC_MEM_CLEAR_EN
-+ *					If set, means f/w supports nic hbm memory clear and
-+ *					tmr,txs hbm memory init.
-+ *					Initialized in: zephyr-mgmt
-+ *
-  * CPU_BOOT_DEV_STS0_ENABLED		Device status register enabled.
-  *					This is a main indication that the
-  *					running FW populates the device status
-@@ -367,6 +373,7 @@ enum cpu_boot_dev_sts {
- #define CPU_BOOT_DEV_STS0_FW_NIC_STAT_EXT_EN	(1 << CPU_BOOT_DEV_STS_FW_NIC_STAT_EXT_EN)
- #define CPU_BOOT_DEV_STS0_IS_IDLE_CHECK_EN	(1 << CPU_BOOT_DEV_STS_IS_IDLE_CHECK_EN)
- #define CPU_BOOT_DEV_STS0_MAP_HWMON_EN		(1 << CPU_BOOT_DEV_STS_MAP_HWMON_EN)
-+#define CPU_BOOT_DEV_STS0_NIC_MEM_CLEAR_EN	(1 << CPU_BOOT_DEV_STS_NIC_MEM_CLEAR_EN)
- #define CPU_BOOT_DEV_STS0_ENABLED		(1 << CPU_BOOT_DEV_STS_ENABLED)
- #define CPU_BOOT_DEV_STS1_ENABLED		(1 << CPU_BOOT_DEV_STS_ENABLED)
- 
-@@ -403,7 +410,7 @@ enum kmd_msg {
- 	KMD_MSG_GOTO_WFE,
- 	KMD_MSG_FIT_RDY,
- 	KMD_MSG_SKIP_BMC,
--	RESERVED,
-+	KMD_MSG_RESERVED,
- 	KMD_MSG_RST_DEV,
- 	KMD_MSG_LAST
- };
-diff --git a/include/linux/net/intel/cn.h b/include/linux/net/intel/cn.h
-new file mode 100644
-index 000000000000..d040b0bbd94c
---- /dev/null
-+++ b/include/linux/net/intel/cn.h
-@@ -0,0 +1,474 @@
++++ b/include/linux/net/intel/gaudi2.h
+@@ -0,0 +1,432 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/* Copyright 2020-2024 HabanaLabs, Ltd.
 + * Copyright (C) 2023-2024, Intel Corporation.
 + * All Rights Reserved.
 + */
 +
-+#ifndef HBL_CN_H_
-+#define HBL_CN_H_
++#ifndef HBL_GAUDI2_H_
++#define HBL_GAUDI2_H_
 +
-+#include <linux/types.h>
-+#include <linux/sizes.h>
-+#include <linux/net/intel/cn_aux.h>
++#include <linux/net/intel/cn.h>
++#include <linux/net/intel/gaudi2_aux.h>
 +
-+#define HBL_EN_PFC_PRIO_NUM	4
-+#define CQ_ARM_TIMEOUT_USEC	10
++#define NIC_PSN_NBITS		24
++#define NIC_PSN_MSB_MASK	(BIT(NIC_PSN_NBITS - 1))
++#define NIC_PSN_LOWER_MASK	((NIC_PSN_MSB_MASK) - 1)
 +
-+struct qpc_mask;
++#define NIC_IS_PSN_CYCLIC_BIG(psn_a, psn_b) \
++	({ \
++		u32 _psn_a = (psn_a); \
++		u32 _psn_b = (psn_b); \
++		((_psn_a & NIC_PSN_MSB_MASK) == (_psn_b & NIC_PSN_MSB_MASK) ? \
++		 (_psn_a & NIC_PSN_LOWER_MASK) > (_psn_b & NIC_PSN_LOWER_MASK) : \
++		 (_psn_a & NIC_PSN_LOWER_MASK) < (_psn_b & NIC_PSN_LOWER_MASK)); \
++	})
++
++enum gaudi2_wqe_opcode {
++	WQE_NOP = 0,
++	WQE_SEND = 1,
++	WQE_LINEAR = 2,
++	WQE_STRIDE = 3,
++	WQE_MULTI_STRIDE = 4,
++	WQE_RENDEZVOUS_WR = 5,
++	WQE_RENDEZVOUS_RD = 6,
++	WQE_QOS_UPDATE = 7
++};
++
++#define NIC_SKB_PAD_SIZE       187
 +
 +/**
-+ * enum hbl_cn_pflags - mutable capabilities of the port.
-+ * PFLAGS_PCS_LINK_CHECK: check for PCS link periodically.
-+ * PFLAGS_PHY_AUTO_NEG_LPBK: allow Autonegotiation in loopback.
++ * enum gaudi2_eqe_type - Event queue element types for the NIC.
++ * @EQE_COMP: Completion queue event. May occur upon Ethernet or RDMA Rx completion.
++ * @EQE_COMP_ERR: Completion queue error event. May occur upon CQ overrun or other errors. Overrun
++ *                may occur in case the S/W doesn't consume the CQ entries fast enough so there is
++ *                no room for new H/W's entries.
++ * @EQE_QP_ERR: QP moved to error state event. May occur by varies QP errors, e.g.: QP not valid,
++ *              QP state invalid etc.
++ * @EQE_LINK_STATUS: PCS link status changed event. May occur upon link up/down events.
++ * @EQE_RAW_TX_COMP: Ethernet Tx completion event. May occur once H/W complete to send Ethernet
++ *                   packet.
++ * @EQE_DB_FIFO_OVERRUN: DB FIFO overrun event. May occur upon FIFO overrun in case S/W overwrite
++ *                       un-consumed FIFO entry.
++ * @EQE_CONG: Congestion control completion queue event. May occur upon any packet completion in
++ *            case CC is enabled.
++ * @EQE_CONG_ERR: Congestion control completion queue error event. May occur upon CCQ overrun or
++ *                other errors. Overrun may occur in case the S/W doesn't consume the CCQ entries
++ *                fast enough so there is no room for new H/W's entries.
++ * @EQE_RESERVED: Reserved event value.
++ *
++ * ******************* SW events *******************
++ * @EQE_QP_ALIGN_COUNTERS: QPC sanity failed and QPC counters were reset to last valid values.
 + */
-+enum hbl_cn_pflags {
-+	PFLAGS_PCS_LINK_CHECK = BIT(0),
-+	PFLAGS_PHY_AUTO_NEG_LPBK = BIT(1),
++enum gaudi2_eqe_type {
++	EQE_COMP = 0x0,
++	EQE_COMP_ERR = 0x1,
++	EQE_QP_ERR = 0x2,
++	EQE_LINK_STATUS = 0x3,
++	EQE_RAW_TX_COMP = 0x4,
++	EQE_DB_FIFO_OVERRUN = 0x5,
++	EQE_CONG = 0x6,
++	EQE_CONG_ERR = 0x7,
++	EQE_RESERVED = 0x8,
++
++	/* events triggered by SW */
++	EQE_QP_ALIGN_COUNTERS = 0xa,
 +};
 +
-+enum hbl_ts_type {
-+	TS_RC = 0,
-+	TS_RAW = 1
-+};
++/* BIT() macro is overflowing on full 64 bit mask, use the safer BITMLL() instead */
++#define BITMLL(nr)	(U64_MAX >> (64 - (nr)))
 +
-+enum hbl_trust_level {
-+	UNSECURED = 0,
-+	SECURED = 1,
-+	PRIVILEGE = 2
-+};
-+
-+/**
-+ * enum qpc_req_wq_type - QP REQ WQ type.
-+ * @QPC_REQ_WQ_TYPE_WRITE: WRITE, "native" SEND, RECV-RDV or READ-RDV operations are allowed.
-+ * @QPC_REQ_WQ_TYPE_RDV_READ: No operation is allowed on this endpoint QP.
-+ * @QPC_REQ_WQ_TYPE_RDV_WRITE: SEND-RDV operation is allowed on this QP.
++/* Use multiple underscores to avoid hiding collisions. Using len and _len like in NIC_SET_BITS()
++ * causes len to be 0 here in NIC_SET().
 + */
-+enum qpc_req_wq_type {
-+	QPC_REQ_WQ_TYPE_WRITE = 1,
-+	QPC_REQ_WQ_TYPE_RDV_READ = 2,
-+	QPC_REQ_WQ_TYPE_RDV_WRITE = 3
++#define NIC_SET(desc, idx, shift, val, __len) \
++	({ \
++		u64 *_data = &(desc).data[(idx)]; \
++		u32 _shift = (shift); \
++		u32 ___len = (__len); \
++		*_data &= ~((u64)(BITMLL(___len)) << _shift); \
++		*_data |= (u64)((val) & BITMLL(___len)) << _shift; \
++	})
++
++#define NIC_SET_BITS(desc, lsb, val, len) \
++	do { \
++		u32 _lsb = (lsb); \
++		u32 _len = (len); \
++		BUILD_BUG_ON((_lsb / 64) != ((_lsb + _len - 1) / 64)); \
++		NIC_SET((desc), _lsb / 64, _lsb % 64, (val), _len); \
++	} while (0)
++
++#define NIC_GET(desc, idx, shift, len) \
++		((((desc).data[idx]) >> (shift)) & BITMLL(len))
++
++#define NIC_GET_BITS(desc, lsb, len) \
++	({ \
++		u32 _lsb = (lsb); \
++		u32 _len = (len); \
++		BUILD_BUG_ON((_lsb / 64) != ((_lsb + _len - 1) / 64)); \
++		NIC_GET(desc, _lsb / 64, _lsb % 64, _len); \
++	})
++
++struct gaudi2_qpc_requester {
++	u64 data[16];
 +};
 +
-+/**
-+ * enum hbl_ib_mem_type - Memory allocation types.
-+ * @HBL_IB_MEM_INVALID: N/A option.
-+ * @HBL_IB_MEM_HOST_DMA_COHERENT: Host DMA coherent memory.
-+ * @HBL_IB_MEM_HOST_VIRTUAL: Host virtual memory.
-+ * @HBL_IB_MEM_DEVICE: Device HBM memory.
-+ * @HBL_IB_MEM_HOST_MAP_ONLY: Host mapping only.
-+ * @HBL_IB_MEM_HW_BLOCK: Hw registers.
-+ */
-+enum hbl_ib_mem_type {
-+	HBL_IB_MEM_INVALID,
-+	HBL_IB_MEM_HOST_DMA_COHERENT,
-+	HBL_IB_MEM_HOST_VIRTUAL,
-+	HBL_IB_MEM_DEVICE,
-+	HBL_IB_MEM_HOST_MAP_ONLY,
-+	HBL_IB_MEM_HW_BLOCK,
++struct qpc_mask {
++	u64 data[sizeof(struct gaudi2_qpc_requester) >> 3];
 +};
 +
-+/**
-+ * struct hbl_cn_eqe - describes an event-queue entry
-+ * @data: the data each event-queue entry contains
-+ */
-+struct hbl_cn_eqe {
++#define REQ_QPC_SET_DST_QP(req, val)		NIC_SET_BITS(req, 0, val, 24)
++#define REQ_QPC_SET_RKEY(req, val)		NIC_SET_BITS(req, 128, val, 32)
++#define REQ_QPC_SET_DST_IP(req, val)		NIC_SET_BITS(req, 160, val, 32)
++#define REQ_QPC_SET_DST_MAC_LSB(req, val)	NIC_SET_BITS(req, 192, val, 32)
++#define REQ_QPC_SET_DST_MAC_MSB(req, val)	NIC_SET_BITS(req, 224, val, 16)
++#define REQ_QPC_SET_TIMEOUT_RETRY_COUNT(req, val)	\
++						NIC_SET_BITS(req, 248, val, 8)
++#define REQ_QPC_SET_NTS_PSN(req, val)		NIC_SET_BITS(req, 256, val, 24)
++#define REQ_QPC_SET_BCS_PSN(req, val)		NIC_SET_BITS(req, 288, val, 24)
++#define REQ_QPC_SET_SCHD_Q_NUM(req, val)	NIC_SET_BITS(req, 312, val, 8)
++#define REQ_QPC_SET_ONA_PSN(req, val)		NIC_SET_BITS(req, 320, val, 24)
++
++#define REQ_QPC_SET_TM_GRANULARITY(req, val)	NIC_SET_BITS(req, 376, val, 7)
++#define REQ_QPC_SET_WQ_BACK_PRESSURE(req, val)	NIC_SET_BITS(req, 383, val, 1)
++#define REQ_QPC_SET_REMOTE_WQ_LOG_SZ(req, val)	NIC_SET_BITS(req, 408, val, 5)
++#define REQ_QPC_SET_ENCAP_TYPE(req, val)	NIC_SET_BITS(req, 413, val, 3)
++#define REQ_QPC_SET_CQ_NUM(req, val)		NIC_SET_BITS(req, 440, val, 5)
++#define REQ_QPC_SET_RTT_STATE(req, val)		NIC_SET_BITS(req, 445, val, 2)
++#define REQ_QPC_SET_ENCAP_ENABLE(req, val)	NIC_SET_BITS(req, 447, val, 1)
++#define REQ_QPC_SET_CONGESTION_WIN(req, val)	NIC_SET_BITS(req, 448, val, 24)
++#define REQ_QPC_SET_BURST_SIZE(req, val)	NIC_SET_BITS(req, 544, val, 22)
++#define REQ_QPC_SET_ASID(req, val)		NIC_SET_BITS(req, 566, val, 8)
++
++#define REQ_QPC_SET_LAST_IDX(req, val)		NIC_SET_BITS(req, 576, val, 22)
++#define REQ_QPC_SET_EXECUTION_IDX(req, val)	NIC_SET_BITS(req, 608, val, 22)
++#define REQ_QPC_SET_CONSUMER_IDX(req, val)	NIC_SET_BITS(req, 640, val, 22)
++#define REQ_QPC_SET_LOCAL_PRODUCER_IDX(req, val)	NIC_SET_BITS(req, 672, val, 22)
++#define REQ_QPC_SET_REMOTE_PRODUCER_IDX(req, val)	NIC_SET_BITS(req, 704, val, 22)
++#define REQ_QPC_SET_REMOTE_CONSUMER_IDX(req, val)	NIC_SET_BITS(req, 736, val, 22)
++#define REQ_QPC_SET_OLDEST_UNACKED_REMOTE_PRODUCER_IDX(req, val)	NIC_SET_BITS(req, 768, \
++											val, 22)
++#define REQ_QPC_SET_PSN_SINCE_ACKREQ(req, val)	NIC_SET_BITS(req, 800, val, 8)
++#define REQ_QPC_SET_ACKREQ_FREQ(req, val)	NIC_SET_BITS(req, 808, val, 8)
++#define REQ_QPC_SET_PACING_TIME(req, val)	NIC_SET_BITS(req, 832, val, 16)
++
++#define REQ_QPC_SET_DATA_MMU_BYPASS(req, val)	NIC_SET_BITS(req, 1003, val, 1)
++#define REQ_QPC_SET_MOD_GAUDI1(req, val)	NIC_SET_BITS(req, 1004, val, 1)
++#define REQ_QPC_SET_PORT(req, val)		NIC_SET_BITS(req, 1005, val, 2)
++#define REQ_QPC_SET_WQ_TYPE(req, val)		NIC_SET_BITS(req, 1007, val, 2)
++
++#define REQ_QPC_SET_SWQ_GRANULARITY(req, val)	NIC_SET_BITS(req, 1009, val, 1)
++#define REQ_QPC_SET_TRANSPORT_SERVICE(req, val)	NIC_SET_BITS(req, 1010, val, 1)
++#define REQ_QPC_SET_PRIORITY(req, val)		NIC_SET_BITS(req, 1011, val, 2)
++#define REQ_QPC_SET_CONGESTION_MODE(req, val)	NIC_SET_BITS(req, 1013, val, 2)
++#define REQ_QPC_SET_MTU(req, val)		NIC_SET_BITS(req, 1015, val, 2)
++
++#define REQ_QPC_SET_WQ_BASE_ADDR(req, val)	NIC_SET_BITS(req, 1017, val, 2)
++#define REQ_QPC_SET_TRUST_LEVEL(req, val)	NIC_SET_BITS(req, 1019, val, 2)
++#define REQ_QPC_SET_ERR(req, val)		NIC_SET_BITS(req, 1022, val, 1)
++#define REQ_QPC_SET_VALID(req, val)		NIC_SET_BITS(req, 1023, val, 1)
++
++/* REQ QPC Get */
++#define REQ_QPC_GET_DST_QP(req)					NIC_GET_BITS(req, 0, 24)
++#define REQ_QPC_GET_MULTI_STRIDE_STATE_LSB(req)			NIC_GET_BITS(req, 32, 32)
++#define REQ_QPC_GET_MULTI_STRIDE_STATE_MSB(req)			NIC_GET_BITS(req, 64, 64)
++#define REQ_QPC_GET_RKEY(req)					NIC_GET_BITS(req, 128, 32)
++#define REQ_QPC_GET_DST_IP(req)					NIC_GET_BITS(req, 160, 32)
++#define REQ_QPC_GET_DST_MAC_LSB(req)				NIC_GET_BITS(req, 192, 32)
++#define REQ_QPC_GET_DST_MAC_MSB(req)				NIC_GET_BITS(req, 224, 16)
++#define REQ_QPC_GET_SEQUENCE_ERROR_RETRY_COUNT(req)		NIC_GET_BITS(req, 240, 8)
++#define REQ_QPC_GET_TIMEOUT_RETRY_COUNT(req)			NIC_GET_BITS(req, 248, 8)
++#define REQ_QPC_GET_NTS_PSN(req)				NIC_GET_BITS(req, 256, 24)
++#define REQ_QPC_GET_BCS_PSN(req)				NIC_GET_BITS(req, 288, 24)
++#define REQ_QPC_GET_SCHD_Q_NUM(req)				NIC_GET_BITS(req, 312, 8)
++#define REQ_QPC_GET_ONA_PSN(req)				NIC_GET_BITS(req, 320, 24)
++#define REQ_QPC_GET_BCC_PSN(req)				NIC_GET_BITS(req, 352, 24)
++#define REQ_QPC_GET_TM_GRANULARITY(req)				NIC_GET_BITS(req, 376, 7)
++#define REQ_QPC_GET_WQ_BACK_PRESSURE(req)			NIC_GET_BITS(req, 383, 1)
++#define REQ_QPC_GET_CONGESTION_MARKED_ACK(req)			NIC_GET_BITS(req, 384, 24)
++#define REQ_QPC_GET_REMOTE_WQ_LOG_SZ(req)			NIC_GET_BITS(req, 408, 5)
++#define REQ_QPC_GET_ENCAP_TYPE(req)				NIC_GET_BITS(req, 413, 3)
++#define REQ_QPC_GET_CONGESTION_NON_MARKED_ACK(req)		NIC_GET_BITS(req, 416, 24)
++#define REQ_QPC_GET_CQ_NUM(req)					NIC_GET_BITS(req, 440, 5)
++#define REQ_QPC_GET_RTT_STATE(req)				NIC_GET_BITS(req, 445, 2)
++#define REQ_QPC_GET_ENCAP_ENABLE(req)				NIC_GET_BITS(req, 447, 1)
++#define REQ_QPC_GET_CONGESTION_WIN(req)				NIC_GET_BITS(req, 448, 24)
++#define REQ_QPC_GET_RTT_TIMESTAMP(req)				NIC_GET_BITS(req, 480, 25)
++#define REQ_QPC_GET_RTT_MARKED_PSN(req)				NIC_GET_BITS(req, 512, 24)
++#define REQ_QPC_GET_BURST_SIZE(req)				NIC_GET_BITS(req, 544, 22)
++#define REQ_QPC_GET_ASID(req)					NIC_GET_BITS(req, 566, 10)
++#define REQ_QPC_GET_LAST_IDX(req)				NIC_GET_BITS(req, 576, 22)
++#define REQ_QPC_GET_EXECUTION_IDX(req)				NIC_GET_BITS(req, 608, 22)
++#define REQ_QPC_GET_CONSUMER_IDX(req)				NIC_GET_BITS(req, 640, 22)
++#define REQ_QPC_GET_LOCAL_PRODUCER_IDX(req)			NIC_GET_BITS(req, 672, 22)
++#define REQ_QPC_GET_REMOTE_PRODUCER_IDX(req)			NIC_GET_BITS(req, 704, 22)
++#define REQ_QPC_GET_REMOTE_CONSUMER_IDX(req)			NIC_GET_BITS(req, 736, 22)
++#define REQ_QPC_GET_OLDEST_UNACKED_REMOTE_PRODUCER_IDX(req)	NIC_GET_BITS(req, 768, 22)
++#define REQ_QPC_GET_PSN_SINCE_ACKREQ(req)			NIC_GET_BITS(req, 800, 8)
++#define REQ_QPC_GET_ACKREQ_FREQ(req)				NIC_GET_BITS(req, 808, 8)
++#define REQ_QPC_GET_PACING_TIME(req)				NIC_GET_BITS(req, 832, 16)
++#define REQ_QPC_GET_PSN_DELIVERED(req)				NIC_GET_BITS(req, 864, 24)
++#define REQ_QPC_GET_DATA_MMU_BYPASS(req)			NIC_GET_BITS(req, 1003, 1)
++#define REQ_QPC_GET_MOD_GAUDI1(req)				NIC_GET_BITS(req, 1004, 1)
++#define REQ_QPC_GET_PORT(req)					NIC_GET_BITS(req, 1005, 2)
++#define REQ_QPC_GET_WQ_TYPE(req)				NIC_GET_BITS(req, 1007, 2)
++#define REQ_QPC_GET_SWQ_GRANULARITY(req)			NIC_GET_BITS(req, 1009, 1)
++#define REQ_QPC_GET_TRANSPORT_SERVICE(req)			NIC_GET_BITS(req, 1010, 1)
++#define REQ_QPC_GET_PRIORITY(req)				NIC_GET_BITS(req, 1011, 2)
++#define REQ_QPC_GET_CONGESTION_MODE(req)			NIC_GET_BITS(req, 1013, 2)
++#define REQ_QPC_GET_MTU(req)					NIC_GET_BITS(req, 1015, 2)
++#define REQ_QPC_GET_WQ_BASE_ADDR(req)				NIC_GET_BITS(req, 1017, 2)
++#define REQ_QPC_GET_TRUST_LEVEL(req)				NIC_GET_BITS(req, 1019, 2)
++#define REQ_QPC_GET_IN_WORK(req)				NIC_GET_BITS(req, 1021, 1)
++#define REQ_QPC_GET_ERROR(req)					NIC_GET_BITS(req, 1022, 1)
++#define REQ_QPC_GET_VALID(req)					NIC_GET_BITS(req, 1023, 1)
++
++/* Resp QPC */
++struct gaudi2_qpc_responder {
++	u64 data[4];
++};
++
++#define RES_QPC_SET_DST_QP(res, val)		NIC_SET_BITS(res, 0, val, 24)
++#define RES_QPC_SET_PORT(res, val)		NIC_SET_BITS(res, 24, val, 2)
++#define RES_QPC_SET_PRIORITY(res, val)		NIC_SET_BITS(res, 26, val, 2)
++#define RES_QPC_SET_LKEY(res, val)		NIC_SET_BITS(res, 32, val, 32)
++
++#define RES_QPC_SET_DST_IP(res, val)		NIC_SET_BITS(res, 64, val, 32)
++#define RES_QPC_SET_DST_MAC_LSB(res, val)	NIC_SET_BITS(res, 96, val, 32)
++#define RES_QPC_SET_DST_MAC_MSB(res, val)	NIC_SET_BITS(res, 128, val, 16)
++#define RES_QPC_SET_TRANSPORT_SERVICE(res, val)	NIC_SET_BITS(res, 149, val, 1)
++
++#define RES_QPC_SET_ASID(res, val)		NIC_SET_BITS(res, 150, val, 10)
++#define RES_QPC_SET_PEER_QP(res, val)		NIC_SET_BITS(res, 160, val, 24)
++#define RES_QPC_SET_SCHD_Q_NUM(res, val)	NIC_SET_BITS(res, 184, val, 8)
++
++#define RES_QPC_SET_TRUST_LEVEL(res, val)	NIC_SET_BITS(res, 216, val, 2)
++#define RES_QPC_SET_MOD_GAUDI1(res, val)	NIC_SET_BITS(res, 218, val, 1)
++#define RES_QPC_SET_DATA_MMU_BYPASS(res, val)	NIC_SET_BITS(res, 219, val, 1)
++#define RES_QPC_SET_ENCAP_TYPE(res, val)	NIC_SET_BITS(res, 220, val, 3)
++#define RES_QPC_SET_ENCAP_ENABLE(res, val)	NIC_SET_BITS(res, 223, val, 1)
++#define RES_QPC_SET_CQ_NUM(res, val)		NIC_SET_BITS(res, 248, val, 5)
++
++#define RES_QPC_SET_PEER_WQ_GRAN(res, val)	NIC_SET_BITS(res, 253, val, 1)
++#define RES_QPC_SET_VALID(res, val)		NIC_SET_BITS(res, 255, val, 1)
++
++/* Resp QPC Get */
++#define RES_QPC_GET_DESTINATION_QP(res)		NIC_GET_BITS(res, 0, 24)
++#define RES_QPC_GET_PORT(res)			NIC_GET_BITS(res, 24, 2)
++#define RES_QPC_GET_PRIORITY(res)		NIC_GET_BITS(res, 26, 2)
++#define RES_QPC_GET_CONN_STATE(res)		NIC_GET_BITS(res, 28, 2)
++#define RES_QPC_GET_NACK_SYNDROME(res)		NIC_GET_BITS(res, 30, 2)
++#define RES_QPC_GET_LKEY(res)			NIC_GET_BITS(res, 32, 32)
++#define RES_QPC_GET_DST_IP(res)			NIC_GET_BITS(res, 64, 32)
++#define RES_QPC_GET_DST_MAC_LSB(res)		NIC_GET_BITS(res, 96, 32)
++#define RES_QPC_GET_DST_MAC_MSB(res)		NIC_GET_BITS(res, 128, 16)
++#define RES_QPC_GET_ECN_COUNT(res)		NIC_GET_BITS(res, 144, 5)
++#define RES_QPC_GET_TRANSPORT_SERVICE(res)	NIC_GET_BITS(res, 149, 1)
++#define RES_QPC_GET_ASID(res)			NIC_GET_BITS(res, 150, 10)
++#define RES_QPC_GET_PEER_QP(res)		NIC_GET_BITS(res, 160, 24)
++#define RES_QPC_GET_SCHD_Q_NUM(res)		NIC_GET_BITS(res, 184, 8)
++#define RES_QPC_GET_EXPECTED_PSN(res)		NIC_GET_BITS(res, 192, 24)
++#define RES_QPC_GET_TRUST_LEVEL(res)		NIC_GET_BITS(res, 216, 2)
++#define RES_QPC_GET_MOD_GAUDI1(res)		NIC_GET_BITS(res, 218, 1)
++#define RES_QPC_GET_DATA_MMU_BYPASS(res)	NIC_GET_BITS(res, 219, 1)
++#define RES_QPC_GET_ENCAP_TYPE(res)		NIC_GET_BITS(res, 220, 3)
++#define RES_QPC_GET_ENCAP_ENABLE(res)		NIC_GET_BITS(res, 223, 1)
++#define RES_QPC_GET_CYCLIC_IDX(res)		NIC_GET_BITS(res, 224, 24)
++#define RES_QPC_GET_CQ_NUM(res)			NIC_GET_BITS(res, 248, 5)
++#define RES_QPC_GET_PEER_WQ_GRAN(res)		NIC_GET_BITS(res, 253, 1)
++#define RES_QPC_GET_IN_WORK(res)		NIC_GET_BITS(res, 254, 1)
++#define RES_QPC_GET_VALID(res)			NIC_GET_BITS(res, 255, 1)
++
++struct gaudi2_sq_wqe {
++	u64 data[4];
++};
++
++/* TX WQE Get */
++#define TX_WQE_GET_OPCODE(wqe)			NIC_GET_BITS(wqe, 0, 5)
++#define TX_WQE_GET_TRACE_EVENT_DATA(wqe)	NIC_GET_BITS(wqe, 5, 1)
++#define TX_WQE_GET_TRACE_EVENT(wqe)		NIC_GET_BITS(wqe, 6, 1)
++#define TX_WQE_GET_WQE_INDEX(wqe)		NIC_GET_BITS(wqe, 8, 8)
++#define TX_WQE_GET_REDUCTION_OPCODE(wqe)	NIC_GET_BITS(wqe, 16, 13)
++#define TX_WQE_GET_SE(wqe)			NIC_GET_BITS(wqe, 29, 1)
++#define TX_WQE_GET_INLINE(wqe)			NIC_GET_BITS(wqe, 30, 1)
++#define TX_WQE_GET_ACKREQ(wqe)			NIC_GET_BITS(wqe, 31, 1)
++#define TX_WQE_GET_SIZE(wqe)			NIC_GET_BITS(wqe, 32, 32)
++#define TX_WQE_GET_LOCAL_ADDR_LSB(wqe)		NIC_GET_BITS(wqe, 64, 32)
++#define TX_WQE_GET_LOCAL_ADDR_MSB(wqe)		NIC_GET_BITS(wqe, 96, 32)
++#define TX_WQE_GET_REMOTE_ADDR_LSB(wqe)		NIC_GET_BITS(wqe, 128, 32)
++#define TX_WQE_GET_REMOTE_ADDR_MSB(wqe)		NIC_GET_BITS(wqe, 160, 32)
++#define TX_WQE_GET_TAG(wqe)			NIC_GET_BITS(wqe, 192, 32)
++#define TX_WQE_GET_REMOTE_SOB(wqe)		NIC_GET_BITS(wqe, 224, 27)
++#define TX_WQE_GET_REMOTE_SOB_DATA(wqe)		NIC_GET_BITS(wqe, 251, 2)
++#define TX_WQE_GET_SOB_CMD(wqe)			NIC_GET_BITS(wqe, 253, 1)
++#define TX_WQE_GET_COMPLETION_TYPE(wqe)		NIC_GET_BITS(wqe, 254, 2)
++
++/* TX WQE Set */
++#define CFG_SQ_WQE_RESET(swq) memset((swq)->data, 0, sizeof(u64) * 4)
++
++#define CFG_SQ_WQE_OPCODE(swq, val) \
++						((swq)->data[0] |= (val))
++#define CFG_SQ_WQE_INDEX(swq, val) \
++						((swq)->data[0] |= (val) << 8)
++#define CFG_SQ_WQE_SOL_EVENT(swq, val) \
++						((swq)->data[0] |= (val) << 29)
++#define CFG_SQ_WQE_INLINE(swq, val) \
++						((swq)->data[0] |= (val) << 30)
++#define CFG_SQ_WQE_SIZE(swq, val) \
++						((swq)->data[0] |= (val) << 32)
++#define CFG_SQ_WQE_LOCAL_ADDRESS(swq, val) \
++						((swq)->data[1] = (val))
++struct gaudi2_rq_wqe {
++	u64 data[2];
++};
++
++/* RX WQE Get */
++#define RX_WQE_GET_OPCODE(wqe)			NIC_GET_BITS(wqe, 0, 5)
++#define RX_WQE_GET_WQE_INDEX(wqe)		NIC_GET_BITS(wqe, 8, 8)
++#define RX_WQE_GET_SOB_CMD(wqe)			NIC_GET_BITS(wqe, 31, 1)
++#define RX_WQE_GET_LOCAL_SOB(wqe)		NIC_GET_BITS(wqe, 32, 27)
++#define RX_WQE_GET_LOCAL_SOB_DATA(wqe)		NIC_GET_BITS(wqe, 59, 3)
++#define RX_WQE_GET_COMPLETION_TYPE(wqe)		NIC_GET_BITS(wqe, 62, 2)
++#define RX_WQE_GET_SIZE(wqe)			NIC_GET_BITS(wqe, 64, 32)
++#define RX_WQE_GET_TAG(wqe)			NIC_GET_BITS(wqe, 96, 32)
++
++struct gaudi2_cqe {
 +	u32 data[4];
 +};
 +
++#define CQE_IS_VALID(cqe)		(((cqe)->data[0] >> 31) & 1)
++#define CQE_IS_REQ(cqe)			(((cqe)->data[0] >> 24) & 1)
++#define CQE_QPN(cqe)			((cqe)->data[0] & 0xFFFFFF)
++#define CQE_SET_INVALID(cqe)		((cqe)->data[0] &= ~(1ull << 31))
++#define CQE_WQE_IDX(cqe)		((cqe)->data[1])
++#define CQE_TAG(cqe)			((cqe)->data[2])
++#define CQE_RAW_PKT_SIZE(cqe)		((cqe)->data[3])
++
++#define EQE_HEADER(valid, type)		((!!(valid) << 31) | (type))
++#define EQE_TYPE(eqe)			((eqe)->data[0] & 0xf)
++#define EQE_IS_VALID(eqe)		(((eqe)->data[0] >> 31) & 0x1)
++#define EQE_SET_INVALID(eqe)		((eqe)->data[0] &= ~(1ull << 31))
++#define EQE_CQ_EVENT_CQ_NUM(eqe)	((eqe)->data[1] & 0xffff)
++#define EQE_CQ_EVENT_PI(eqe)		((eqe)->data[2])
++#define EQE_CQ_EVENT_CCQ_NUM(eqe)	((eqe)->data[1] & 0xffff)
++
++#define EQE_QP_EVENT_QPN(eqe)		((eqe)->data[1] & 0xffffff)
++#define EQE_QP_EVENT_RESET(eqe)		(((eqe)->data[1] >> 31) & 0x1)
++#define EQE_QP_EVENT_ERR_SYND(eqe)	((eqe)->data[2])
++
++#define EQE_RAW_TX_EVENT_QPN(eqe)	((eqe)->data[1] & 0xffffff)
++#define EQE_RAW_TX_EVENT_IDX(eqe)	((eqe)->data[2] & 0xffffffff)
++
++#define EQE_LINK_STATUS_TIME_STAMP(eqe)	((eqe)->data[1])
++#define EQE_LINK_STATUS(eqe)		((eqe)->data[2] & 0xf)
++
++#define EQE_DB_EVENT_DB_NUM(eqe)	((eqe)->data[1] & 0xffff)
++
++#define EQE_SW_EVENT_QPN(eqe)		((eqe)->data[1] & 0xffffff)
++
++#define EQ_IDX_MASK			GENMASK(23, 0)
++
 +/**
-+ * struct hbl_cn_mem_resources - memory resource used by a memory ring.
-+ * @addr: virtual address of the memory.
-+ * @dma_addr: physical address of the memory.
-+ * @size: memory size.
++ * struct gaudi2_en_tx_buf - indicates a tx buffer
++ * @skb: the transmitted skb
++ * @dma_addr: the skb's mapped dma address
++ * @len: buffer size
 + */
-+struct hbl_cn_mem_resource {
-+	void *addr;
++struct gaudi2_en_tx_buf {
++	struct sk_buff *skb;
 +	dma_addr_t dma_addr;
-+	u32 size;
++	int len;
 +};
 +
 +/**
-+ * struct hbl_cn_ring - represents a memory ring.
-+ * @buf: the ring buffer memory resource.
-+ * @pi: the memory-resident producer index of the ring, updated by HW
-+ * @pi_shadow: producer shadow index - used by SW
-+ * @ci_shadow: consumer shadow index - used by SW
-+ * @rep_idx: use to count until a threshold value, like HW update
-+ * @asid: the asid of the ring
-+ * @count: the number of elements the ring can hold
-+ * @elem_size: the rings's element size
++ * struct gaudi2_en_aux_data - Gaudi2 Ethernet driver data.
++ * @rx_rings: array of the Rx rings of all ports.
++ * @cq_rings: array of the CQ rings of all ports.
++ * @wq_rings: array of the WQ rings of all ports.
++ * @kernel_asid: kernel ASID.
++ * @raw_qpn: raw data (Ethernet) QP number.
++ * @tx_ring_len: number of elements in the Tx ring.
++ * @schedq_num: sched-Q number used for the Eth driver of the port.
++ * @pad_size: the pad size in bytes for the skb to transmit.
 + */
-+struct hbl_cn_ring {
-+	struct hbl_cn_mem_resource buf;
-+	struct hbl_cn_mem_resource pi;
-+	u32 pi_shadow;
-+	u32 ci_shadow;
-+	u32 rep_idx;
-+	u32 asid;
-+	u32 count;
-+	u32 elem_size;
-+};
-+
-+/* ring support */
-+#define RING_BUF_DMA_ADDRESS(ring)	((ring)->buf.dma_addr)
-+#define RING_BUF_ADDRESS(ring)		((ring)->buf.addr)
-+#define RING_BUF_SIZE(ring)		((ring)->buf.size)
-+#define RING_PI_DMA_ADDRESS(ring)	((ring)->pi.dma_addr)
-+#define RING_PI_ADDRESS(ring)		((ring)->pi.addr)
-+#define RING_PI_SIZE(ring)		((ring)->pi.size)
-+#define RING_CI_ADDRESS(ring)		RING_BUF_ADDRESS(ring)
-+
-+/* Ethernet */
-+
-+/**
-+ * struct hbl_en_aux_data - habanalabs data for the Ethernet driver.
-+ * @pdev: pointer to PCI device.
-+ * @dev: related kernel basic device structure.
-+ * @asic_specific: ASIC specific data.
-+ * @fw_ver: FW version.
-+ * @qsfp_eeprom: QSFPD EEPROM info.
-+ * @mac_addr: array of all MAC addresses.
-+ * @asic_type: ASIC specific type.
-+ * @ports_mask: mask of available ports.
-+ * @auto_neg_mask: mask of port with Autonegotiation enabled.
-+ * @pending_reset_long_timeout: long timeout for pending hard reset to finish in seconds.
-+ * @max_frm_len: maximum allowed frame length.
-+ * @raw_elem_size: size of element in raw buffers.
-+ * @max_raw_mtu: maximum MTU size for raw packets.
-+ * @min_raw_mtu: minimum MTU size for raw packets.
-+ * @id: device ID.
-+ * @max_num_of_ports: max number of available ports.
-+ * @has_eq: true if event queue is supported.
-+ */
-+struct hbl_en_aux_data {
-+	struct pci_dev *pdev;
-+	struct device *dev;
-+	void *asic_specific;
-+	char *fw_ver;
-+	char *qsfp_eeprom;
-+	char **mac_addr;
-+	enum hbl_cn_asic_type asic_type;
-+	u64 ports_mask;
-+	u64 auto_neg_mask;
-+	u32 pending_reset_long_timeout;
-+	u32 max_frm_len;
-+	u32 raw_elem_size;
-+	u16 max_raw_mtu;
-+	u16 min_raw_mtu;
-+	u16 id;
-+	u8 max_num_of_ports;
-+	u8 has_eq;
++struct gaudi2_en_aux_data {
++	struct hbl_cn_ring **rx_rings;
++	struct hbl_cn_ring **cq_rings;
++	struct hbl_cn_ring **wq_rings;
++	u32 kernel_asid;
++	u32 raw_qpn;
++	u32 tx_ring_len;
++	u32 schedq_num;
++	u16 pad_size;
 +};
 +
 +/**
-+ * struct hbl_en_aux_ops - pointer functions for cn <-> en drivers communication.
-+ * @device_operational: is device operational.
-+ * @hw_access_lock: prevent HW access.
-+ * @hw_access_unlock: allow HW access.
-+ * @is_eth_lpbk: is Ethernet loopback enabled.
-+ * @port_hw_init: port HW init.
-+ * @port_hw_fini: port HW cleanup.
-+ * @phy_init: port PHY init.
-+ * @phy_fini: port PHY cleanup.
-+ * @set_pfc: enable/disable PFC.
-+ * @get_cnts_num: get the number of available counters.
-+ * @get_cnts_names: get the names of the available counters.
-+ * @get_cnts_values: get the values of the available counters.
-+ * @eq_dispatcher_register_qp: register QP to its event dispatch queue.
-+ * @eq_dispatcher_unregister_qp: un-register QP from its event dispatch queue.
-+ * @get_speed: get the port speed in Mb/s.
-+ * @track_ext_port_reset: track the reset of the given port according to the given syndrome.
-+ * @port_toggle_count: count port toggles upon actions that teardown or create a port.
-+ * @ports_reopen: reopen the ports after hard reset.
-+ * @ports_stop_prepare: prepare the ports for a stop.
-+ * @ports_stop: stop traffic.
-+ * @set_port_status: set the link port status.
-+ * @get_mac_lpbk: get MAC loopback status.
-+ * @set_mac_lpbk: set MAC loopback status.
-+ * @update_mtu: update all QPs to use the new MTU value.
-+ * @qpc_write: write a QP context to the HW.
-+ * @ctrl_lock: control mutex lock.
-+ * @ctrl_unlock: control mutex unlock.
-+ * @is_port_open: is port open;
-+ * @get_src_ip: get the source IP of the given port.
-+ * @reset_stats: reset port statistics (called from debugfs only).
-+ * @get_mtu: get the port MTU value.
-+ * @get_pflags: get the port private flags.
-+ * @set_dev_lpbk: set loopback status on the net-device.
-+ * @handle_eqe: handle event queue entry from H/W.
-+ * @asic_ops: pointer for ASIC specific ops struct.
++ * struct gaudi2_en_aux_ops - ASIC specific functions for cn <-> en drivers communication.
++ * @configure_cq: configure a CQ.
++ * @arm_cq: arm a CQ to issue an interrupt after reaching certain index or timeout.
++ * @write_rx_ci: write the Rx CI to the HW.
++ * @get_pfc_cnts: retrieve PFC counters.
++ * @ring_tx_doorbell: ring the Tx door bell so the HW will send it.
++ * @qp_err_syndrome_to_str: Convert error syndrome id to string.
++ * @db_fifo_reset: Reset Ethernet doorbell fifo.
++ * @port_reset_locked: reset the port assuming we are under lock.
++ * @get_overrun_cnt: get db fifo overrun counter.
 + */
-+struct hbl_en_aux_ops {
++struct gaudi2_en_aux_ops {
 +	/* en2cn */
-+	bool (*device_operational)(struct hbl_aux_dev *aux_dev);
-+	void (*hw_access_lock)(struct hbl_aux_dev *aux_dev);
-+	void (*hw_access_unlock)(struct hbl_aux_dev *aux_dev);
-+	bool (*is_eth_lpbk)(struct hbl_aux_dev *aux_dev);
-+	int (*port_hw_init)(struct hbl_aux_dev *aux_dev, u32 port);
-+	void (*port_hw_fini)(struct hbl_aux_dev *aux_dev, u32 port);
-+	int (*phy_init)(struct hbl_aux_dev *aux_dev, u32 port);
-+	void (*phy_fini)(struct hbl_aux_dev *aux_dev, u32 port);
-+	int (*set_pfc)(struct hbl_aux_dev *aux_dev, u32 port, bool enable);
-+	int (*get_cnts_num)(struct hbl_aux_dev *aux_dev, u32 port);
-+	void (*get_cnts_names)(struct hbl_aux_dev *aux_dev, u32 port, u8 *data);
-+	void (*get_cnts_values)(struct hbl_aux_dev *aux_dev, u32 port, u64 *data);
-+	bool (*get_mac_lpbk)(struct hbl_aux_dev *aux_dev, u32 port);
-+	int (*set_mac_lpbk)(struct hbl_aux_dev *aux_dev, u32 port, bool enable);
-+	int (*update_mtu)(struct hbl_aux_dev *aux_dev, u32 port, u32 mtu);
-+	int (*qpc_write)(struct hbl_aux_dev *aux_dev, u32 port, void *qpc,
-+			 struct qpc_mask *qpc_mask, u32 qpn, bool is_req);
-+	void (*ctrl_lock)(struct hbl_aux_dev *aux_dev, u32 port);
-+	void (*ctrl_unlock)(struct hbl_aux_dev *aux_dev, u32 port);
-+	int (*eq_dispatcher_register_qp)(struct hbl_aux_dev *aux_dev, u32 port, u32 asid,
-+					 u32 qp_id);
-+	int (*eq_dispatcher_unregister_qp)(struct hbl_aux_dev *aux_dev, u32 port, u32 qp_id);
-+	u32 (*get_speed)(struct hbl_aux_dev *aux_dev, u32 port);
-+	void (*track_ext_port_reset)(struct hbl_aux_dev *aux_dev, u32 port, u32 syndrome);
-+	void (*port_toggle_count)(struct hbl_aux_dev *aux_dev, u32 port);
++	void (*configure_cq)(struct hbl_aux_dev *aux_dev, u32 port, u16 coalesce_usec, bool enable);
++	void (*arm_cq)(struct hbl_aux_dev *aux_dev, u32 port, u32 index);
++	void (*write_rx_ci)(struct hbl_aux_dev *aux_dev, u32 port, u32 ci);
++	void (*get_pfc_cnts)(struct hbl_aux_dev *aux_dev, u32 port, int pfc_prio,
++			     u64 *indications, u64 *requests);
++	int (*ring_tx_doorbell)(struct hbl_aux_dev *aux_dev, u32 port, u32 pi, bool *full_after_tx);
++	char* (*qp_err_syndrome_to_str)(u32 syndrome);
++	void (*db_fifo_reset)(struct hbl_aux_dev *aux_dev, u32 port);
 +
 +	/* cn2en */
-+	int (*ports_reopen)(struct hbl_aux_dev *aux_dev);
-+	void (*ports_stop_prepare)(struct hbl_aux_dev *aux_dev);
-+	void (*ports_stop)(struct hbl_aux_dev *aux_dev);
-+	void (*set_port_status)(struct hbl_aux_dev *aux_dev, u32 port_idx, bool up);
-+	bool (*is_port_open)(struct hbl_aux_dev *aux_dev, u32 port_idx);
-+	int (*get_src_ip)(struct hbl_aux_dev *aux_dev, u32 port_idx, u32 *src_ip);
-+	void (*reset_stats)(struct hbl_aux_dev *aux_dev, u32 port_idx);
-+	u32 (*get_mtu)(struct hbl_aux_dev *aux_dev, u32 port_idx);
-+	u32 (*get_pflags)(struct hbl_aux_dev *aux_dev, u32 port_idx);
-+	void (*set_dev_lpbk)(struct hbl_aux_dev *aux_dev, u32 port_idx, bool enable);
-+	void (*handle_eqe)(struct hbl_aux_dev *aux_dev, u32 port, struct hbl_cn_eqe *eqe);
-+	void *asic_ops;
++	int (*port_reset_locked)(struct hbl_aux_dev *aux_dev, u32 port);
++	u32 (*get_overrun_cnt)(struct hbl_aux_dev *aux_dev, u32 port_idx);
 +};
 +
-+/* InfiniBand */
-+
-+#define HBL_IB_CNT_NAME_LEN	(ETH_GSTRING_LEN * 2)
-+
-+/**
-+ * struct hbl_ib_device_attr - IB device attributes.
-+ * @fw_ver: firmware version.
-+ * @max_mr_size: max size of a memory region.
-+ * @page_size_cap: largest page size in MMU.
-+ * @vendor_id: device vendor ID.
-+ * @vendor_part_id: device vendor part ID.
-+ * @hw_ver: device chip version.
-+ * @cqe_size: Size of Completion Queue Entry.
-+ * @min_cq_entries: Minimum completion queue entries needed.
-+ * @max_qp: max QPs supported.
-+ * @max_qp_wr: max QPs per work-request supported.
-+ * @max_cqe: max completion-queue entries supported.
-+ */
-+struct hbl_ib_device_attr {
-+	u64 fw_ver;
-+	u64 max_mr_size;
-+	u64 page_size_cap;
-+	u32 vendor_id;
-+	u32 vendor_part_id;
-+	u32 hw_ver;
-+	u32 cqe_size;
-+	u32 min_cq_entries;
-+	s32 max_qp;
-+	s32 max_qp_wr;
-+	s32 max_cqe;
-+};
-+
-+/**
-+ * struct hbl_ib_port_attr - IB port attributes.
-+ * @speed: speed in Mb/s.
-+ * @max_msg_sz: max message size
-+ * @max_mtu: max mtu size
-+ * @open: is open and fully initialized.
-+ * @link_up: has PCS link.
-+ * @num_lanes: number of lanes per port.
-+ */
-+struct hbl_ib_port_attr {
-+	u32 speed;
-+	u32 max_msg_sz;
-+	u32 max_mtu;
-+	u8 open;
-+	u8 link_up;
-+	u8 num_lanes;
-+};
-+
-+/**
-+ * struct hbl_ib_port_cnts_data - IB port counters data.
-+ * @names: Names of the counters.
-+ * @num: Number of counters.
-+ */
-+struct hbl_ib_port_cnts_data {
-+	u8 *names;
-+	u32 num;
-+};
-+
-+/**
-+ * struct hbl_ib_dump_qp_attr - IB QP dump attributes.
-+ * @port: Port ID the QP belongs to.
-+ * @qpn: QP number.
-+ * @req: Requester QP, otherwise responder.
-+ * @full: Include full QP information.
-+ * @force: Force reading a QP in invalid/error state.
-+ */
-+struct hbl_ib_dump_qp_attr {
-+	u32 port;
-+	u32 qpn;
-+	u8 req;
-+	u8 full;
-+	u8 force;
-+};
-+
-+/**
-+ * struct hbl_ib_mem_info - Information for a memory region pertaining to a memory handle.
-+ * @cpu_addr: The kernel virtual address.
-+ * @bus_addr: The bus address.
-+ * @mtype: The memory type.
-+ * @mem_handle: The memory handle.
-+ * @size: The size of the memory region.
-+ * @vmalloc: The memory is virtually contiguous only.
-+ */
-+struct hbl_ib_mem_info {
-+	void *cpu_addr;
-+	dma_addr_t bus_addr;
-+	enum hbl_ib_mem_type mtype;
-+	u64 mem_handle;
-+	u64 size;
-+	u8 vmalloc;
-+};
-+
-+/**
-+ * struct hbl_ib_aux_data - habanalabs data for the IB driver.
-+ * @pdev: pointer to PCI device.
-+ * @dev: related kernel basic device structure.
-+ * @cnts_data: Ports counters data.
-+ * @ports_mask: mask of available ports.
-+ * @ext_ports_mask: mask of external ports (subset of ports_mask).
-+ * @dram_size: available DRAM size.
-+ * @max_num_of_wqes: maximum number of WQ entries.
-+ * @pending_reset_long_timeout: long timeout for pending hard reset to finish in seconds.
-+ * @id: device ID.
-+ * @max_num_of_ports: maximum number of ports supported by ASIC.
-+ * @mixed_qp_wq_types: Using mixed QP WQ types is supported.
-+ * @umr_support: device supports UMR.
-+ * @cc_support: device supports congestion control.
-+ */
-+struct hbl_ib_aux_data {
-+	struct pci_dev *pdev;
-+	struct device *dev;
-+	struct hbl_ib_port_cnts_data *cnts_data;
-+	u64 ports_mask;
-+	u64 ext_ports_mask;
-+	u64 dram_size;
-+	u32 max_num_of_wqes;
-+	u32 pending_reset_long_timeout;
-+	u16 id;
-+	u8 max_num_of_ports;
-+	u8 mixed_qp_wq_types;
-+	u8 umr_support;
-+	u8 cc_support;
-+};
-+
-+/**
-+ * struct hbl_ib_aux_ops - pointer functions for cn <-> ib drivers communication.
-+ * @device_operational: is device operational.
-+ * @hw_access_lock: prevent HW access.
-+ * @hw_access_unlock: allow HW access.
-+ * @alloc_ucontext: allocate user context.
-+ * @dealloc_ucontext: deallocate user context.
-+ * @query_port: get port attributes.
-+ * @cmd_ctrl: operate the device with proprietary opcodes.
-+ * @query_device: get device attributes.
-+ * @set_ip_addr_encap: setup IP address encapsulation.
-+ * @qp_syndrome_to_str: translates syndrome qp number to string.
-+ * @verify_qp_id: verify if the specified QP id is valid.
-+ * @get_cnts_values: get the values of the available counters.
-+ * @dump_qp: dump QP context to the given buffer.
-+ * @query_mem_handle: query information for a memory handle.
-+ * @eqe_work_schd: schedule a user eq poll work on hbl side.
-+ * @dispatch_fatal_event: raise a fatal event to user space.
-+ */
-+struct hbl_ib_aux_ops {
-+	/* ib2cn */
-+	bool (*device_operational)(struct hbl_aux_dev *aux_dev);
-+	void (*hw_access_lock)(struct hbl_aux_dev *aux_dev);
-+	void (*hw_access_unlock)(struct hbl_aux_dev *aux_dev);
-+	int (*alloc_ucontext)(struct hbl_aux_dev *aux_dev, int user_fd, void **cn_ib_ctx);
-+	void (*dealloc_ucontext)(struct hbl_aux_dev *aux_dev, void *cn_ib_ctx);
-+	void (*query_port)(struct hbl_aux_dev *aux_dev, u32 port,
-+			   struct hbl_ib_port_attr *port_attr);
-+	int (*cmd_ctrl)(struct hbl_aux_dev *aux_dev, void *cn_ib_ctx, u32 op, void *input,
-+			void *output);
-+	void (*query_device)(struct hbl_aux_dev *aux_dev, struct hbl_ib_device_attr *device_attr);
-+	void (*set_ip_addr_encap)(struct hbl_aux_dev *aux_dev, u32 ip_addr, u32 port);
-+	char *(*qp_syndrome_to_str)(struct hbl_aux_dev *aux_dev, u32 syndrome);
-+	int (*verify_qp_id)(struct hbl_aux_dev *aux_dev, u32 qp_id, u32 port);
-+	void (*get_cnts_values)(struct hbl_aux_dev *aux_dev, u32 port, u64 *data);
-+	int (*dump_qp)(struct hbl_aux_dev *aux_dev, struct hbl_ib_dump_qp_attr *attr, char *buf,
-+		       size_t size);
-+	int (*query_mem_handle)(struct hbl_aux_dev *aux_dev, u64 mem_handle,
-+				struct hbl_ib_mem_info *info);
-+
-+	/* cn2ib */
-+	void (*eqe_work_schd)(struct hbl_aux_dev *aux_dev, u32 port);
-+	void (*dispatch_fatal_event)(struct hbl_aux_dev *aux_dev, u32 asid);
-+};
-+
-+/* CN */
-+
-+/* interrupt type */
-+enum hbl_cn_cpucp_interrupt_type {
-+	HBL_CN_CPUCP_INTR_NONE = 0,
-+	HBL_CN_CPUCP_INTR_TMR = 1,
-+	HBL_CN_CPUCP_INTR_RXB_CORE_SPI,
-+	HBL_CN_CPUCP_INTR_RXB_CORE_SEI,
-+	HBL_CN_CPUCP_INTR_QPC_RESP_ERR,
-+	HBL_CN_CPUCP_INTR_RXE_SPI,
-+	HBL_CN_CPUCP_INTR_RXE_SEI,
-+	HBL_CN_CPUCP_INTR_TXS,
-+	HBL_CN_CPUCP_INTR_TXE,
-+};
-+
-+/*
-+ * struct hbl_cn_eq_port_intr_cause - port interrupt cause data.
-+ * @intr_cause_data: interrupt cause data.
-+ */
-+struct hbl_cn_eq_port_intr_cause {
-+	u64 intr_cause_data;
-+};
-+
-+/*
-+ * struct hbl_cn_eq_intr_cause - interrupt cause data.
-+ * @intr_type: interrupt type.
-+ * @intr_cause: array of ports interrupt cause data.
-+ */
-+struct hbl_cn_eq_intr_cause {
-+	u32 intr_type; /* enum hbl_cn_cpucp_interrupt_type */
-+	u32 pad;
-+	struct hbl_cn_eq_port_intr_cause intr_cause[MAX_PORTS_PER_NIC];
-+};
-+
-+/*
-+ * struct hbl_cn_cpucp_frac_val - fracture value represented by "integer.frac".
-+ * @integer: the integer part of the fracture value;
-+ * @frac: the fracture part of the fracture value.
-+ */
-+struct hbl_cn_cpucp_frac_val {
-+	union {
-+		struct {
-+			u16 integer;
-+			u16 frac;
-+		};
-+		u16 val;
-+	};
-+};
-+
-+/*
-+ * struct hbl_cn_cpucp_ser_val - Symbol Error Rate value represented by "integer * 10 ^ -exp".
-+ * @integer: the integer part of the SER value.
-+ * @exp: the exponent part of the SER value.
-+ */
-+struct hbl_cn_cpucp_ser_val {
-+	u16 integer;
-+	u16 exp;
-+};
-+
-+#endif /* HBL_CN_H_ */
-diff --git a/include/linux/net/intel/cn_aux.h b/include/linux/net/intel/cn_aux.h
++#endif /* HBL_GAUDI2_H_ */
+diff --git a/include/linux/net/intel/gaudi2_aux.h b/include/linux/net/intel/gaudi2_aux.h
 new file mode 100644
-index 000000000000..8a7f54e78afb
+index 000000000000..6b2025ff5713
 --- /dev/null
-+++ b/include/linux/net/intel/cn_aux.h
-@@ -0,0 +1,298 @@
++++ b/include/linux/net/intel/gaudi2_aux.h
+@@ -0,0 +1,94 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/* Copyright 2020-2024 HabanaLabs, Ltd.
 + * Copyright (C) 2023-2024, Intel Corporation.
 + * All Rights Reserved.
 + */
 +
-+#ifndef HBL_CN_AUX_H_
-+#define HBL_CN_AUX_H_
++#ifndef HBL_GAUDI2_AUX_H_
++#define HBL_GAUDI2_AUX_H_
 +
-+#include <linux/irqreturn.h>
-+#include <linux/habanalabs/cpucp_if.h>
-+#include <linux/auxiliary_bus.h>
-+#include <linux/if_vlan.h>
-+#include <uapi/linux/ethtool.h>
++#include <linux/types.h>
++#include <linux/net/intel/cn_aux.h>
 +
-+#define HBL_EN_MAX_HEADERS_SZ	(ETH_HLEN + 2 * VLAN_HLEN + ETH_FCS_LEN)
-+
-+/* driver specific value, should always be >= asic specific h/w resource */
-+#define NIC_DRV_MAX_CQS_NUM	32
-+#define NIC_DRV_MAX_CCQS_NUM	4
-+#define NIC_DRV_NUM_DB_FIFOS	32
-+
-+/**
-+ * enum hbl_cn_asic_type - supported ASIC types.
-+ * @ASIC_GAUDI2: Gaudi2 device.
-+ */
-+enum hbl_cn_asic_type {
-+	HBL_ASIC_GAUDI2,
++enum gaudi2_setup_type {
++	GAUDI2_SETUP_TYPE_HLS2,
 +};
 +
 +/**
-+ * enum hbl_cn_status_cmd - status cmd type.
-+ * @HBL_CN_STATUS_ONE_SHOT: one shot command.
-+ * @HBL_CN_STATUS_PERIODIC_START: start periodic status update.
-+ * @HBL_CN_STATUS_PERIODIC_STOP: stop periodic status update.
++ * struct gaudi2_cn_aux_data - Gaudi2 CN driver data.
++ * @setup_type: type of setup connectivity.
++ * @cfg_base: configuration space base address.
++ * @irq_num_port_base: base IRQ number for port EQ.
++ * @sob_id_base: first reserved SOB ID.
++ * @sob_inc_cfg_val: configuration value for incrementing SOB by one.
++ * @fw_security_enabled: FW security enabled.
++ * @msix_enabled: MSI-X enabled.
 + */
-+enum hbl_cn_status_cmd {
-+	HBL_CN_STATUS_ONE_SHOT,
-+	HBL_CN_STATUS_PERIODIC_START,
-+	HBL_CN_STATUS_PERIODIC_STOP,
++struct gaudi2_cn_aux_data {
++	enum gaudi2_setup_type setup_type;
++	u64 cfg_base;
++	u32 irq_num_port_base;
++	u32 sob_id_base;
++	u32 sob_inc_cfg_val;
++	u8 fw_security_enabled;
++	u8 msix_enabled;
 +};
 +
 +/**
-+ * enum hbl_aux_dev_type - auxiliary device type.
-+ * HBL_AUX_DEV_CN: Shared Network Interface.
-+ * HBL_AUX_DEV_ETH: Ethernet.
-+ * HBL_AUX_DEV_IB: InfiniBand.
-+ */
-+enum hbl_aux_dev_type {
-+	HBL_AUX_DEV_CN,
-+	HBL_AUX_DEV_ETH,
-+	HBL_AUX_DEV_IB,
-+};
-+
-+/**
-+ * struct hbl_aux_dev - habanalabs auxiliary device structure.
-+ * @adev: auxiliary device.
-+ * @aux_ops: pointer functions for drivers communication.
-+ * @aux_data: essential data for operating the auxiliary device.
-+ * @priv: auxiliary device private data.
-+ * @type: type of the auxiliary device.
-+ */
-+struct hbl_aux_dev {
-+	struct auxiliary_device adev;
-+	void *aux_ops;
-+	void *aux_data;
-+	void *priv;
-+	enum hbl_aux_dev_type type;
-+};
-+
-+/**
-+ * struct hbl_cn_stat - Holds ASIC specific statistics string and default register offset.
-+ * @str: String name of ethtool stat.
-+ * @lo_offset: Register offset of the stat.
-+ * @hi_offset: High register offset. May be unused for some stats.
-+ */
-+struct hbl_cn_stat {
-+	char str[ETH_GSTRING_LEN];
-+	int lo_offset;
-+	int hi_offset;
-+};
-+
-+/*
-+ * struct hbl_cn_cpucp_mac_addr - port MAC address received from FW.
-+ * @mac_addr: port MAC address.
-+ */
-+struct hbl_cn_cpucp_mac_addr {
-+	u8 mac_addr[ETH_ALEN];
-+};
-+
-+/*
-+ * struct hbl_cn_cpucp_info - info received from FW.
-+ * @mac_addrs: array of MAC address for all physical ports.
-+ * @link_mask: mask of available ports.
-+ * @pol_tx_mask: array of Tx polarity value for all ports.
-+ * @pol_rx_mask: array of Rx polarity value for all ports.
-+ * @link_ext_mask: mask of external ports.
-+ * @qsfp_eeprom: QSFP EEPROM info.
-+ * @auto_neg_mask: mask of ports which supports Autonegotiation.
-+ * @serdes_type: type of serdes.
-+ * @tx_swap_map: lane swapping map.
-+ */
-+struct hbl_cn_cpucp_info {
-+	struct hbl_cn_cpucp_mac_addr mac_addrs[CPUCP_MAX_NICS];
-+	u64 link_mask[CPUCP_NIC_MASK_ARR_LEN];
-+	u64 pol_tx_mask[CPUCP_NIC_POLARITY_ARR_LEN];
-+	u64 pol_rx_mask[CPUCP_NIC_POLARITY_ARR_LEN];
-+	u64 link_ext_mask[CPUCP_NIC_MASK_ARR_LEN];
-+	u8 qsfp_eeprom[CPUCP_NIC_QSFP_EEPROM_MAX_LEN];
-+	u64 auto_neg_mask[CPUCP_NIC_MASK_ARR_LEN];
-+	enum cpucp_serdes_type serdes_type;
-+	u16 tx_swap_map[CPUCP_MAX_NICS];
-+};
-+
-+/**
-+ * struct hbl_cn_aux_data - habanalabs data for the cn driver.
-+ * @pdev: pointer to PCI device.
-+ * @dev: related kernel basic device structure.
-+ * @asic_specific: ASIC specific data.
-+ * @fw_ver: FW version.
-+ * @asic_type: ASIC specific type.
-+ * @ports_mask: mask of available ports.
-+ * @ext_ports_mask: mask of external ports (subset of ports_mask).
-+ * @auto_neg_mask: mask of ports with Autonegotiation enabled.
-+ * @dram_size: available DRAM size.
-+ * @nic_drv_addr: base address for NIC driver on DRAM.
-+ * @nic_drv_size: driver size reserved for NIC driver on DRAM.
-+ * @macro_cfg_size: the size of the macro configuration space.
-+ * @max_num_of_ports: max number of available ports.
-+ * @pending_reset_long_timeout: long timeout for pending hard reset to finish in seconds.
-+ * @kernel_asid: kernel ASID.
-+ * @card_location: the OAM number in the HLS (relevant for PMC card type).
-+ * @device_timeout: device access timeout in usec.
-+ * @fw_major_version: major version of current loaded preboot.
-+ * @fw_minor_version: minor version of current loaded preboot.
-+ * @fw_app_cpu_boot_dev_sts0: bitmap representation of application security
-+ *                            status reported by FW, bit description can be
-+ *                            found in CPU_BOOT_DEV_STS0
-+ * @fw_app_cpu_boot_dev_sts1: bitmap representation of application security
-+ *                            status reported by FW, bit description can be
-+ *                            found in CPU_BOOT_DEV_STS1
-+ * @id: device ID.
-+ * @cache_line_size: device cache line size.
-+ * @clk: clock frequency in MHz.
-+ * @pldm: is running on Palladium setup.
-+ * @skip_phy_init: avoid writing/reading PHY registers.
-+ * @load_phy_fw: load PHY F/W.
-+ * @cpucp_fw: is CPUCP FW enabled.
-+ * @supports_coresight: is CoreSight supported.
-+ * @use_fw_serdes_info: true if FW serdes values should be used, false if hard coded values should
-+ *                      be used.
-+ * @mmu_enable: is MMU enabled.
-+ * @lanes_per_port: number of physical lanes per port.
-+ * @cpucp_checkers_shift: CPUCP checkers flags shift.
-+ */
-+struct hbl_cn_aux_data {
-+	struct pci_dev *pdev;
-+	struct device *dev;
-+	void *asic_specific;
-+	char *fw_ver;
-+	enum hbl_cn_asic_type asic_type;
-+	u64 ports_mask;
-+	u64 ext_ports_mask;
-+	u64 auto_neg_mask;
-+	u64 dram_size;
-+	u64 nic_drv_addr;
-+	u64 nic_drv_size;
-+	u32 macro_cfg_size;
-+	u32 pending_reset_long_timeout;
-+	u32 kernel_asid;
-+	u32 card_location;
-+	u32 device_timeout;
-+	u32 fw_major_version;
-+	u32 fw_minor_version;
-+	u32 fw_app_cpu_boot_dev_sts0;
-+	u32 fw_app_cpu_boot_dev_sts1;
-+	u16 id;
-+	u16 cache_line_size;
-+	u16 clk;
-+	u8 pldm;
-+	u8 skip_phy_init;
-+	u8 load_phy_fw;
-+	u8 cpucp_fw;
-+	u8 supports_coresight;
-+	u8 use_fw_serdes_info;
-+	u8 mmu_enable;
-+	u8 lanes_per_port;
-+	u8 cpucp_checkers_shift;
-+};
-+
-+/**
-+ * enum hbl_cn_mmu_mode - MMU modes the CN can work with.
-+ * @HBL_CN_MMU_MODE_EXTERNAL: using external MMU HW IP.
-+ * @HBL_CN_MMU_MODE_NETWORK_TLB: Using internal network TLB (but external page-table).
-+ */
-+enum hbl_cn_mmu_mode {
-+	HBL_CN_MMU_MODE_EXTERNAL,
-+	HBL_CN_MMU_MODE_NETWORK_TLB,
-+};
-+
-+/**
-+ * struct hbl_cn_vm_info - VM related info for the cn driver.
-+ * @mmu_mode: the type (or mode) of MMU currently configured.
-+ * @ext_mmu.work_id: the unique work-ID assigned to this VM when in external MMU mode.
-+ * @net_tlb.pasid: the PCI process space address ID assigned to the device.
-+ * @net_tlb.page_tbl_addr: the address of the MMU page table of this VM.
-+ */
-+struct hbl_cn_vm_info {
-+	enum hbl_cn_mmu_mode mmu_mode;
-+	union {
-+		struct {
-+			u32 work_id;
-+		} ext_mmu;
-+
-+		struct {
-+			u32 pasid;
-+			u64 page_tbl_addr;
-+		} net_tlb;
-+	};
-+};
-+
-+typedef bool (*hbl_cn_poll_cond_func)(u32 val, void *arg);
-+
-+enum hbl_cn_mem_type {
-+	HBL_CN_MEM_TYPE_HOST,
-+	HBL_CN_MEM_TYPE_DEVICE,
-+};
-+
-+/**
-+ * struct hbl_cn_aux_ops - pointer functions for cn <-> compute drivers communication.
-+ * @device_operational: is device operational.
-+ * @hw_access_lock: prevent HW access.
-+ * @hw_access_unlock: allow HW access.
-+ * @device_reset: Perform device reset.
-+ * @vm_dev_mmu_map: map cpu/kernel address or device memory range to device address range in order
-+ *                  to provide device-memory access.
-+ * @vm_dev_mmu_unmap: unmap a previously mapped address range.
-+ * @vm_reserve_dva_block: Reserve a device virtual block of a given size.
-+ * @vm_unreserve_dva_block: Release a given device virtual block.
-+ * @dram_readl: Read long from DRAM.
-+ * @dram_writel: Write long to DRAM.
-+ * @rreg: Read register.
-+ * @wreg: Write register.
-+ * @get_reg_pcie_addr: Retrieve pci address.
++ * struct gaudi2_cn_aux_ops - ASIC specific functions for cn <-> compute drivers communication.
++ * @get_event_name: Translate event type to name.
++ * @poll_mem: Poll on a memory address until a given condition is fulfilled or timeout.
++ * @dma_alloc_coherent: Allocate coherent DMA memory.
++ * @dma_free_coherent: Free coherent DMA memory.
++ * @dma_pool_zalloc: Allocate small size DMA memory from the pool.
++ * @dma_pool_free: Free small size DMA memory from the pool.
++ * @spmu_get_stats_info: get SPMU statistics information.
++ * @spmu_config: config the SPMU.
++ * @spmu_sample: read SPMU counters.
 + * @poll_reg: Poll on a register until a given condition is fulfilled or timeout.
-+ * @get_cpucp_info: fetch updated CPUCP info.
-+ * @register_cn_user_context: register a user context represented by user provided FD. If the
-+ *                            returned comp_handle and vm_handle are equal then this context doesn't
-+ *                            support data transfer.
-+ * @deregister_cn_user_context: de-register the user context represented by the vm_handle returned
-+ *                              from calling register_cn_user_context.
-+ * @vm_create: create a VM in registered context.
-+ * @vm_destroy: destroy a VM in registered context.
-+ * @get_vm_info: get information on a VM.
-+ * @ports_reopen: reopen the ports after hard reset.
++ * @send_cpu_message: send message to F/W. If the message is timedout, the driver will eventually
++ *                    reset the device. The timeout is passed as an argument. If it is 0 the
++ *                    timeout set is the default timeout for the specific ASIC.
++ * @post_send_status: handler for post sending status packet to FW.
++ * @reset_prepare: Prepare to reset.
++ * @reset_late_init: Notify that compute device finished reset.
++ * @sw_err_event_handler: Handle SW error event.
++ * @axi_error_response_event_handler: Handle AXI error.
 + * @ports_stop_prepare: prepare the ports for a stop.
-+ * @ports_stop: stop traffic.
-+ * @synchronize_irqs: Synchronize IRQs.
-+ * @asic_ops: pointer for ASIC specific ops struct.
++ * @send_port_cpucp_status: Send port status to FW.
 + */
-+struct hbl_cn_aux_ops {
++struct gaudi2_cn_aux_ops {
 +	/* cn2compute */
-+	bool (*device_operational)(struct hbl_aux_dev *aux_dev);
-+	void (*hw_access_lock)(struct hbl_aux_dev *aux_dev);
-+	void (*hw_access_unlock)(struct hbl_aux_dev *aux_dev);
-+	void (*device_reset)(struct hbl_aux_dev *aux_dev);
-+	int (*vm_dev_mmu_map)(struct hbl_aux_dev *aux_dev, u64 vm_handle,
-+			      enum hbl_cn_mem_type mem_type, u64 addr, u64 dva, size_t size);
-+	void (*vm_dev_mmu_unmap)(struct hbl_aux_dev *aux_dev, u64 vm_handle, u64 dva, size_t size);
-+	int (*vm_reserve_dva_block)(struct hbl_aux_dev *aux_dev, u64 vm_handle, u64 size, u64 *dva);
-+	void (*vm_unreserve_dva_block)(struct hbl_aux_dev *aux_dev, u64 vm_handle, u64 dva,
-+				       u64 size);
-+	u32 (*dram_readl)(struct hbl_aux_dev *aux_dev, u64 addr);
-+	void (*dram_writel)(struct hbl_aux_dev *aux_dev, u32 val, u64 addr);
-+	u32 (*rreg)(struct hbl_aux_dev *aux_dev, u32 reg);
-+	void (*wreg)(struct hbl_aux_dev *aux_dev, u32 reg, u32 val);
-+	int (*get_reg_pcie_addr)(struct hbl_aux_dev *aux_dev, u32 reg, u64 *pci_addr);
++	char *(*get_event_name)(struct hbl_aux_dev *aux_dev, u16 event_type);
++	int (*poll_mem)(struct hbl_aux_dev *aux_dev, u32 *addr, u32 *val,
++			hbl_cn_poll_cond_func func);
++	void *(*dma_alloc_coherent)(struct hbl_aux_dev *aux_dev, size_t size,
++				    dma_addr_t *dma_handle, gfp_t flag);
++	void (*dma_free_coherent)(struct hbl_aux_dev *aux_dev, size_t size, void *cpu_addr,
++				  dma_addr_t dma_handle);
++	void *(*dma_pool_zalloc)(struct hbl_aux_dev *aux_dev, size_t size, gfp_t mem_flags,
++				 dma_addr_t *dma_handle);
++	void (*dma_pool_free)(struct hbl_aux_dev *aux_dev, void *vaddr, dma_addr_t dma_addr);
++	void (*spmu_get_stats_info)(struct hbl_aux_dev *aux_dev, u32 port,
++				    struct hbl_cn_stat **stats, u32 *n_stats);
++	int (*spmu_config)(struct hbl_aux_dev *aux_dev, u32 port, u32 num_event_types,
++			   u32 event_types[], bool enable);
++	int (*spmu_sample)(struct hbl_aux_dev *aux_dev, u32 port, u32 num_out_data, u64 out_data[]);
 +	int (*poll_reg)(struct hbl_aux_dev *aux_dev, u32 reg, u64 timeout_us,
 +			hbl_cn_poll_cond_func func, void *arg);
-+	void (*get_cpucp_info)(struct hbl_aux_dev *aux_dev,
-+			       struct hbl_cn_cpucp_info *hbl_cn_cpucp_info);
-+	int (*register_cn_user_context)(struct hbl_aux_dev *aux_dev, int user_fd,
-+					const void *cn_ctx, u64 *comp_handle, u64 *vm_handle);
-+	void (*deregister_cn_user_context)(struct hbl_aux_dev *aux_dev, u64 vm_handle);
-+	int (*vm_create)(struct hbl_aux_dev *aux_dev, u64 comp_handle, u32 flags, u64 *vm_handle);
-+	void (*vm_destroy)(struct hbl_aux_dev *aux_dev, u64 vm_handle);
-+	int (*get_vm_info)(struct hbl_aux_dev *aux_dev, u64 vm_handle,
-+			   struct hbl_cn_vm_info *vm_info);
-+
++	int (*send_cpu_message)(struct hbl_aux_dev *aux_dev, u32 *msg, u16 len, u32 timeout,
++				u64 *result);
++	void (*post_send_status)(struct hbl_aux_dev *aux_dev, u32 port);
 +	/* compute2cn */
-+	int (*ports_reopen)(struct hbl_aux_dev *aux_dev);
++	void (*reset_prepare)(struct hbl_aux_dev *aux_dev);
++	void (*reset_late_init)(struct hbl_aux_dev *aux_dev);
++	int (*sw_err_event_handler)(struct hbl_aux_dev *aux_dev, u16 event_type, u8 macro_index,
++				    struct hl_eq_nic_intr_cause *intr_cause_cpucp);
++	int (*axi_error_response_event_handler)(struct hbl_aux_dev *aux_dev, u16 event_type,
++						u8 macro_index,
++						struct hl_eq_nic_intr_cause *intr_cause_cpucp);
 +	void (*ports_stop_prepare)(struct hbl_aux_dev *aux_dev, bool fw_reset, bool in_teardown);
-+	void (*ports_stop)(struct hbl_aux_dev *aux_dev);
-+	void (*synchronize_irqs)(struct hbl_aux_dev *aux_dev);
-+	void *asic_ops;
++	int (*send_port_cpucp_status)(struct hbl_aux_dev *aux_dev, u32 port, u8 cmd, u8 period);
 +};
 +
-+#endif /* HBL_CN_AUX_H_ */
-diff --git a/include/linux/net/intel/cni.h b/include/linux/net/intel/cni.h
-new file mode 100644
-index 000000000000..206b93ffd0e8
---- /dev/null
-+++ b/include/linux/net/intel/cni.h
-@@ -0,0 +1,636 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright 2020-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
-+
-+#ifndef HBL_CNI_H_
-+#define HBL_CNI_H_
-+
-+#include <linux/if_ether.h>
-+#include <linux/types.h>
-+
-+#define HBL_CNI_STAT_STR_LEN	32
-+
-+/* Requester */
-+#define HBL_CNI_CQE_TYPE_REQ	0
-+/* Responder */
-+#define HBL_CNI_CQE_TYPE_RES	1
-+
-+/* Number of backpressure offsets */
-+#define HBL_CNI_USER_BP_OFFS_MAX	16
-+
-+/* Number of FnA addresses for SRAM/DCCM completion */
-+#define HBL_CNI_FNA_CMPL_ADDR_NUM 2
-+
-+/**
-+ * struct hbl_cni_alloc_conn_in - NIC opcode HBL_CNI_OP_ALLOC_CONN in param.
-+ * @port: NIC port ID.
-+ * @hint: this may be used as the connection-number hint for the driver as a recommendation of user.
-+ */
-+struct hbl_cni_alloc_conn_in {
-+	u32 port;
-+	u32 hint;
-+};
-+
-+/**
-+ * struct hbl_cni_alloc_conn_out - NIC opcode HBL_CNI_OP_ALLOC_CONN out param.
-+ * @conn_id: Connection ID.
-+ */
-+struct hbl_cni_alloc_conn_out {
-+	u32 conn_id;
-+};
-+
-+/**
-+ * struct hbl_cni_req_conn_ctx_in - NIC opcode HBL_CNI_OP_SET_REQ_CONN_CTX in param.
-+ * @dst_ip_addr: Destination IP address in native endianness.
-+ * @dst_conn_id: Destination connection ID.
-+ * @port: NIC port ID.
-+ * @conn_id: Connection ID.
-+ * @dst_mac_addr: Destination MAC address.
-+ * @priority: Connection priority [0..3].
-+ * @timer_granularity: Timer granularity [0..127].
-+ * @swq_granularity: SWQ granularity [0 for 32B or 1 for 64B].
-+ * @wq_type: Work queue type [1..3].
-+ * @cq_number: Completion queue number.
-+ * @wq_remote_log_size: Remote Work queue log size [2^QPC] Rendezvous.
-+ * @congestion_en: Enable/disable Congestion-Control.
-+ * @congestion_wnd: Congestion-Window size.
-+ * @mtu: Max Transmit Unit.
-+ * @encap_en: used as boolean; indicates if this QP has encapsulation support.
-+ * @encap_id: Encapsulation-id; valid only if 'encap_en' is set.
-+ * @wq_size: Max number of elements in the work queue.
-+ * @loopback: used as boolean; indicates if this QP used for loopback mode.
-+ * @compression_en: Enable compression.
-+ * @remote_key: Remote-key to be used to generate on outgoing packets.
-+ */
-+struct hbl_cni_req_conn_ctx_in {
-+	u32 reserved0;
-+	u32 dst_ip_addr;
-+	u32 dst_conn_id;
-+	u32 deprecated0;
-+	u32 reserved1;
-+	u32 port;
-+	u32 conn_id;
-+	u8 dst_mac_addr[ETH_ALEN];
-+	u8 deprecated1;
-+	u8 priority;
-+	u8 deprecated2;
-+	u8 timer_granularity;
-+	u8 swq_granularity;
-+	u8 wq_type;
-+	u8 deprecated3;
-+	u8 cq_number;
-+	u8 wq_remote_log_size;
-+	u8 congestion_en;
-+	u32 congestion_wnd;
-+	u16 mtu;
-+	u8 encap_en;
-+	u8 encap_id;
-+	u32 wq_size;
-+	u8 loopback;
-+	u8 reserved2;
-+	u8 reserved3;
-+	u8 compression_en;
-+	u32 remote_key;
-+};
-+
-+/**
-+ * struct hbl_cni_req_conn_ctx_out - NIC opcode HBL_CNI_OP_SET_REQ_CONN_CTX out param.
-+ * @swq_mem_handle: Handle for send WQ memory.
-+ * @rwq_mem_handle: Handle for receive WQ memory.
-+ * @swq_mem_size: Size of the send WQ memory.
-+ * @rwq_mem_size: Size of the receive WQ memory.
-+ */
-+struct hbl_cni_req_conn_ctx_out {
-+	u64 swq_mem_handle;
-+	u64 rwq_mem_handle;
-+	u32 swq_mem_size;
-+	u32 rwq_mem_size;
-+};
-+
-+/**
-+ * struct hbl_cni_res_conn_ctx_in - NIC opcode HBL_CNI_OP_SET_RES_CONN_CTX in param.
-+ * @dst_ip_addr: Destination IP address in native endianness.
-+ * @dst_conn_id: Destination connection ID.
-+ * @port: NIC port ID.
-+ * @conn_id: Connection ID.
-+ * @dst_mac_addr: Destination MAC address.
-+ * @priority: Connection priority [0..3].
-+ * @wq_peer_granularity: Work queue granularity.
-+ * @cq_number: Completion queue number.
-+ * @conn_peer: Connection peer.
-+ * @rdv: used as boolean; indicates if this QP is RDV (WRITE or READ).
-+ * @loopback: used as boolean; indicates if this QP used for loopback mode.
-+ * @encap_en: used as boolean; indicates if this QP has encapsulation support.
-+ * @encap_id: Encapsulation-id; valid only if 'encap_en' is set.
-+ * @wq_peer_size: size of the peer Work queue.
-+ * @local_key: Local-key to be used to validate against incoming packets.
-+ */
-+struct hbl_cni_res_conn_ctx_in {
-+	u32 reserved;
-+	u32 dst_ip_addr;
-+	u32 dst_conn_id;
-+	u32 port;
-+	u32 conn_id;
-+	u8 dst_mac_addr[ETH_ALEN];
-+	u8 priority;
-+	u8 deprecated1;
-+	u8 deprecated2;
-+	u8 wq_peer_granularity;
-+	u8 cq_number;
-+	u8 deprecated3;
-+	u32 conn_peer;
-+	u8 rdv;
-+	u8 loopback;
-+	u8 encap_en;
-+	u8 encap_id;
-+	u32 wq_peer_size;
-+	u32 local_key;
-+};
-+
-+/**
-+ * struct hbl_cni_destroy_conn_in - NIC opcode HBL_CNI_OP_DESTROY_CONN in param.
-+ * @port: NIC port ID.
-+ * @conn_id: Connection ID.
-+ */
-+struct hbl_cni_destroy_conn_in {
-+	u32 port;
-+	u32 conn_id;
-+};
-+
-+/**
-+ * enum hbl_nic_mem_type - NIC WQ memory allocation type.
-+ * @HBL_CNI_USER_WQ_SEND: Allocate memory for the user send WQ array.
-+ * @HBL_CNI_USER_WQ_RECV: Allocate memory for the user receive WQ array.
-+ * @HBL_CNI_USER_WQ_TYPE_MAX: number of values in enum.
-+ */
-+enum hbl_nic_mem_type {
-+	HBL_CNI_USER_WQ_SEND,
-+	HBL_CNI_USER_WQ_RECV,
-+	HBL_CNI_USER_WQ_TYPE_MAX
-+};
-+
-+/**
-+ * enum hbl_nic_mem_id - memory allocation methods.
-+ * @HBL_CNI_MEM_HOST: memory allocated on the host memory.
-+ * @HBL_CNI_MEM_DEVICE: memory allocated on the device memory.
-+ */
-+enum hbl_nic_mem_id {
-+	HBL_CNI_MEM_HOST = 1,
-+	HBL_CNI_MEM_DEVICE
-+};
-+
-+/**
-+ * enum hbl_nic_swq_granularity - send WQE granularity.
-+ * @HBL_CNI_SWQE_GRAN_32B: 32 byte WQE for linear write.
-+ * @HBL_CNI_SWQE_GRAN_64B: 64 byte WQE for multi-stride write.
-+ */
-+enum hbl_nic_swq_granularity {
-+	HBL_CNI_SWQE_GRAN_32B,
-+	HBL_CNI_SWQE_GRAN_64B
-+};
-+
-+/**
-+ * struct hbl_cni_user_wq_arr_set_in - NIC opcode HBL_CNI_OP_USER_WQ_SET in param.
-+ * @port: NIC port ID.
-+ * @num_of_wqs: Number of user WQs.
-+ * @num_of_wq_entries: Number of entries per user WQ.
-+ * @type: Type of user WQ array.
-+ * @mem_id: Specify host/device memory allocation.
-+ * @swq_granularity: Specify the granularity of send WQ, 0: 32 bytes, 1: 64 bytes.
-+ */
-+struct hbl_cni_user_wq_arr_set_in {
-+	u64 reserved;
-+	u32 port;
-+	u32 num_of_wqs;
-+	u32 num_of_wq_entries;
-+	u32 type;
-+	u32 mem_id;
-+	u8 swq_granularity;
-+};
-+
-+/**
-+ * struct hbl_cni_user_wq_arr_set_out - NIC opcode HBL_CNI_OP_USER_WQ_SET out param.
-+ * @mem_handle: Handle of WQ array memory buffer.
-+ */
-+struct hbl_cni_user_wq_arr_set_out {
-+	u64 mem_handle;
-+};
-+
-+/**
-+ * struct hbl_cni_user_wq_arr_unset_in - NIC opcode HBL_CNI_OP_USER_WQ_UNSET in param.
-+ * @port: NIC port ID.
-+ * @type: Type of user WQ array.
-+ */
-+struct hbl_cni_user_wq_arr_unset_in {
-+	u32 port;
-+	u32 type;
-+};
-+
-+/**
-+ * struct hbl_cni_alloc_user_cq_id_in - NIC opcode HBL_CNI_OP_ALLOC_USER_CQ_ID in param.
-+ * @port: NIC port ID.
-+ */
-+struct hbl_cni_alloc_user_cq_id_in {
-+	u32 port;
-+};
-+
-+/**
-+ * struct hbl_cni_alloc_user_cq_id_out - NIC opcode HBL_CNI_OP_ALLOC_USER_CQ_ID out param.
-+ * @id: CQ ID.
-+ */
-+struct hbl_cni_alloc_user_cq_id_out {
-+	u32 id;
-+};
-+
-+/**
-+ * struct hbl_cni_user_cq_id_set_in - NIC opcode HBL_CNI_OP_USER_CQ_SET in param.
-+ * @port: NIC port ID.
-+ * @num_of_cqes: Number of CQ entries in the buffer.
-+ * @id: CQ ID.
-+ */
-+struct hbl_cni_user_cq_id_set_in {
-+	u32 port;
-+	u32 num_of_cqes;
-+	u32 id;
-+};
-+
-+/**
-+ * struct hbl_cni_user_cq_id_set_out - NIC opcode HBL_CNI_OP_USER_CQ_ID_SET out param.
-+ * @mem_handle: Handle of CQ memory buffer.
-+ * @pi_handle: Handle of CQ producer-inder memory buffer.
-+ * @regs_handle: Handle of CQ Registers base-address.
-+ * @regs_offset: CQ Registers sub-offset.
-+ */
-+struct hbl_cni_user_cq_id_set_out {
-+	u64 mem_handle;
-+	u64 pi_handle;
-+	u64 regs_handle;
-+	u32 regs_offset;
-+};
-+
-+/**
-+ * struct hbl_cni_user_cq_id_unset_in - NIC opcode HBL_CNI_OP_USER_CQ_ID_UNSET in param.
-+ * @port: NIC port ID.
-+ * @id: NIC CQ ID.
-+ */
-+struct hbl_cni_user_cq_id_unset_in {
-+	u32 port;
-+	u32 id;
-+};
-+
-+/**
-+ * struct hbl_cni_dump_qp_in - NIC opcode HBL_CNI_OP_DUMP_QP in param.
-+ * @user_buf_address: Pre-allocated user buffer address to hold the dump output.
-+ * @user_buf_size: Size of the user buffer.
-+ * @port: NIC port ID.
-+ * @qpn: NIC QP ID.
-+ * @req: is requester (otherwise responder).
-+ */
-+struct hbl_cni_dump_qp_in {
-+	u64 user_buf;
-+	u32 user_buf_size;
-+	u32 port;
-+	u32 qpn;
-+	u8 req;
-+};
-+
-+/* User App Params */
-+
-+/**
-+ * struct hbl_cni_set_user_app_params_in - NIC opcode HBL_CNI_OP_SET_USER_APP_PARAMS in param.
-+ *                                         allow the user application to set general parameters
-+ *                                         regarding the RDMA nic operation. These parameters stay
-+ *                                         in effect until the application releases the device
-+ * @port: NIC port ID.
-+ * @bp_offs: Offsets in NIC memory to signal a back pressure. Note that the advanced flag must be
-+ *           enabled in case it's being set.
-+ * @advanced: A boolean that indicates whether this WQ should support advanced operations, such as
-+ *            RDV, QMan, WTD, etc.
-+ * @adaptive_timeout_en: Enable adaptive timeout feature for this port.
-+ */
-+struct hbl_cni_set_user_app_params_in {
-+	u32 port;
-+	u32 bp_offs[HBL_CNI_USER_BP_OFFS_MAX];
-+	u8 advanced;
-+	u8 adaptive_timeout_en;
-+};
-+
-+/**
-+ * struct hbl_cni_get_user_app_params_in - NIC opcode HBL_CNI_OP_GET_USER_APP_PARAMS in param.
-+ * @port: NIC port ID.
-+ */
-+struct hbl_cni_get_user_app_params_in {
-+	u32 port;
-+};
-+
-+/**
-+ * struct hbl_cni_get_user_app_params_out - NIC opcode HBL_CNI_OP_GET_USER_APP_PARAMS out param.
-+ * @max_num_of_qps: Number of QPs that are supported by the driver. User must allocate enough room
-+ *                  for his work-queues according to this number.
-+ * @num_allocated_qps: Number of QPs that were already allocated (in use).
-+ * @max_allocated_qp_idx: The highest index of the allocated QPs (i.e. this is where the
-+ *                        driver may allocate its next QP).
-+ * @max_cq_size: Maximum size of a CQ buffer.
-+ * @advanced: true if advanced features are supported.
-+ * @max_num_of_cqs: Maximum number of CQs.
-+ * @max_num_of_db_fifos: Maximum number of DB-FIFOs.
-+ * @max_num_of_encaps: Maximum number of encapsulations.
-+ * @speed: port speed in Mbps.
-+ * @nic_macro_idx: macro index of this specific port.
-+ * @nic_phys_port_idx: physical port index (AKA lane) of this specific port.
-+ */
-+struct hbl_cni_get_user_app_params_out {
-+	u32 max_num_of_qps;
-+	u32 num_allocated_qps;
-+	u32 max_allocated_qp_idx;
-+	u32 max_cq_size;
-+	u8 advanced;
-+	u8 max_num_of_cqs;
-+	u8 max_num_of_db_fifos;
-+	u8 max_num_of_encaps;
-+	u32 speed;
-+	u8 nic_macro_idx;
-+	u8 nic_phys_port_idx;
-+};
-+
-+/**
-+ * struct hbl_cni_alloc_user_db_fifo_in - NIC opcode HBL_CNI_OP_ALLOC_USER_DB_FIFO in param
-+ * @port: NIC port ID
-+ * @id_hint: Hint to allocate a specific HW resource
-+ */
-+struct hbl_cni_alloc_user_db_fifo_in {
-+	u32 port;
-+	u32 id_hint;
-+};
-+
-+/**
-+ * struct hbl_cni_alloc_user_db_fifo_out - NIC opcode HBL_CNI_OP_ALLOC_USER_DB_FIFO out param
-+ * @id: DB-FIFO ID
-+ */
-+struct hbl_cni_alloc_user_db_fifo_out {
-+	u32 id;
-+};
-+
-+/**
-+ * enum hbl_nic_db_fifo_type - NIC users FIFO modes of operation.
-+ * @HBL_CNI_DB_FIFO_TYPE_DB: mode for direct user door-bell submit.
-+ * @HBL_CNI_DB_FIFO_TYPE_CC: mode for congestion control.
-+ */
-+enum hbl_nic_db_fifo_type {
-+	HBL_CNI_DB_FIFO_TYPE_DB = 0,
-+	HBL_CNI_DB_FIFO_TYPE_CC,
-+};
-+
-+/**
-+ * struct hbl_cni_user_db_fifo_set_in - NIC opcode HBL_CNI_OP_USER_DB_FIFO_SET in param.
-+ * @port: NIC port ID
-+ * @id: NIC DB-FIFO ID
-+ * @mode: represents desired mode of operation for provided FIFO, according to hbl_nic_db_fifo_type
-+ */
-+struct hbl_cni_user_db_fifo_set_in {
-+	u32 port;
-+	u32 id;
-+	u8 mode;
-+};
-+
-+/**
-+ * struct hbl_cni_user_db_fifo_set_out - NIC opcode HBL_CNI_OP_USER_DB_FIFO_SET out param.
-+ * @ci_handle: Handle of DB-FIFO consumer-inder memory buffer.
-+ * @regs_handle: Handle of DB-FIFO Registers base-address.
-+ * @regs_offset: Offset to the DB-FIFO Registers.
-+ * @fifo_size: fifo size that was allocated.
-+ * @fifo_bp_thresh: fifo threshold that was set by the driver.
-+ */
-+struct hbl_cni_user_db_fifo_set_out {
-+	u64 ci_handle;
-+	u64 regs_handle;
-+	u32 regs_offset;
-+	u32 fifo_size;
-+	u32 fifo_bp_thresh;
-+};
-+
-+/**
-+ * struct hbl_cni_user_db_fifo_unset_in - NIC opcode HBL_CNI_OP_USER_DB_FIFO_UNSET in param.
-+ * @port: NIC port ID.
-+ * @id: NIC DB-FIFO ID.
-+ */
-+struct hbl_cni_user_db_fifo_unset_in {
-+	u32 port;
-+	u32 id;
-+};
-+
-+/* The operation completed successfully and an event was read */
-+#define HBL_CNI_EQ_POLL_STATUS_SUCCESS			0
-+/* The operation completed successfully, no event was found */
-+#define HBL_CNI_EQ_POLL_STATUS_EQ_EMPTY			1
-+/* The operation failed since it is not supported by the device/driver */
-+#define HBL_CNI_EQ_POLL_STATUS_ERR_UNSUPPORTED_OP	2
-+/* The operation failed, port was not found */
-+#define HBL_CNI_EQ_POLL_STATUS_ERR_NO_SUCH_PORT		3
-+/* The operation failed, port is disabled */
-+#define HBL_CNI_EQ_POLL_STATUS_ERR_PORT_DISABLED	4
-+/* The operation failed, an event-queue associated with the app was not found */
-+#define HBL_CNI_EQ_POLL_STATUS_ERR_NO_SUCH_EQ		5
-+/* The operation failed with an undefined error */
-+#define HBL_CNI_EQ_POLL_STATUS_ERR_UNDEF		6
-+
-+/* completion-queue events */
-+#define HBL_CNI_EQ_EVENT_TYPE_CQ_ERR			0
-+/* Queue-pair events */
-+#define HBL_CNI_EQ_EVENT_TYPE_QP_ERR			1
-+/* Doorbell events */
-+#define HBL_CNI_EQ_EVENT_TYPE_DB_FIFO_ERR		2
-+/* congestion completion-queue events */
-+#define HBL_CNI_EQ_EVENT_TYPE_CCQ			3
-+/* Direct WQE security error. */
-+#define HBL_CNI_EQ_EVENT_TYPE_WTD_SECURITY_ERR		4
-+/* Numerical error */
-+#define HBL_CNI_EQ_EVENT_TYPE_NUMERICAL_ERR		5
-+/* Link status. */
-+#define HBL_CNI_EQ_EVENT_TYPE_LINK_STATUS		6
-+/* Queue-pair counters aligned */
-+#define HBL_CNI_EQ_EVENT_TYPE_QP_ALIGN_COUNTERS		7
-+
-+/**
-+ * struct hbl_cni_eq_poll_in - NIC opcode HBL_CNI_OP_EQ_POLL in param.
-+ * @port: NIC port ID.
-+ */
-+struct hbl_cni_eq_poll_in {
-+	u32 port;
-+};
-+
-+/**
-+ * struct hbl_cni_eq_poll_out - NIC opcode HBL_CNI_OP_EQ_POLL out param.
-+ * @status: HBL_CNI_EQ_POLL_STATUS_*.
-+ * @idx: Connection/CQ/DB-fifo index, depends on event type.
-+ * @ev_data: Event-specific data.
-+ * @ev_type: Event type.
-+ * @rest_occurred: Was the error due to reset.
-+ * @is_req: For QP events marks if corresponding QP is requestor.
-+ */
-+struct hbl_cni_eq_poll_out {
-+	u32 status;
-+	u32 idx;
-+	u32 ev_data;
-+	u8 ev_type;
-+	u8 rest_occurred;
-+	u8 is_req;
-+};
-+
-+/**
-+ * enum hbl_nic_encap_type - Supported encapsulation types
-+ * @HBL_CNI_ENCAP_NONE: No Tunneling.
-+ * @HBL_CNI_ENCAP_OVER_IPV4: Tunnel RDMA packets through L3 layer
-+ * @HBL_CNI_ENCAP_OVER_UDP: Tunnel RDMA packets through L4 layer
-+ */
-+enum hbl_nic_encap_type {
-+	HBL_CNI_ENCAP_NONE,
-+	HBL_CNI_ENCAP_OVER_IPV4,
-+	HBL_CNI_ENCAP_OVER_UDP,
-+};
-+
-+/**
-+ * struct hbl_cni_user_encap_alloc_in - NIC opcode HBL_CNI_OP_USER_ENCAP_ALLOC in param.
-+ * @port: NIC port ID.
-+ */
-+struct hbl_cni_user_encap_alloc_in {
-+	u32 port;
-+};
-+
-+/**
-+ * struct hbl_cni_user_encap_alloc_out - NIC opcode HBL_CNI_OP_USER_ENCAP_ALLOC out param.
-+ * @id: Encapsulation ID.
-+ */
-+struct hbl_cni_user_encap_alloc_out {
-+	u32 id;
-+};
-+
-+/**
-+ * struct hbl_cni_user_encap_set_in - NIC opcode HBL_CNI_OP_USER_ENCAP_SET in param.
-+ * @tnl_hdr_ptr: Pointer to the tunnel encapsulation header. i.e. specific tunnel header data to be
-+ *               used in the encapsulation by the HW.
-+ * @tnl_hdr_size: Tunnel encapsulation header size.
-+ * @port: NIC port ID.
-+ * @id: Encapsulation ID.
-+ * @ipv4_addr: Source IP address, set regardless of encapsulation type.
-+ * @udp_dst_port: The UDP destination-port. Valid for L4 tunnel.
-+ * @ip_proto: IP protocol to use. Valid for L3 tunnel.
-+ * @encap_type: Encapsulation type. May be either no-encapsulation or encapsulation over L3 or L4.
-+ */
-+struct hbl_cni_user_encap_set_in {
-+	u64 tnl_hdr_ptr;
-+	u32 tnl_hdr_size;
-+	u32 port;
-+	u32 id;
-+	u32 ipv4_addr;
-+	union {
-+		u16 udp_dst_port;
-+		u16 ip_proto;
-+	};
-+	u8 encap_type;
-+};
-+
-+/**
-+ * struct hbl_cni_user_encap_unset_in - NIC opcode HBL_CNI_OP_USER_ENCAP_UNSET in param.
-+ * @port: NIC port ID.
-+ * @id: Encapsulation ID.
-+ */
-+struct hbl_cni_user_encap_unset_in {
-+	u32 port;
-+	u32 id;
-+};
-+
-+/**
-+ * struct hbl_cni_user_ccq_set_in - NIC opcode HBL_CNI_OP_USER_CCQ_SET in param.
-+ * @port: NIC port ID.
-+ * @num_of_entries: Number of CCQ entries in the buffer.
-+ */
-+struct hbl_cni_user_ccq_set_in {
-+	u32 port;
-+	u32 num_of_entries;
-+};
-+
-+/**
-+ * struct hbl_cni_user_ccq_set_out - NIC opcode HBL_CNI_OP_USER_CCQ_SET out param.
-+ * @mem_handle: Handle of CCQ memory buffer.
-+ * @pi_handle: Handle of CCQ producer-index memory buffer.
-+ * @id: CQ ID.
-+ */
-+struct hbl_cni_user_ccq_set_out {
-+	u64 mem_handle;
-+	u64 pi_handle;
-+	u32 id;
-+};
-+
-+/**
-+ * struct hbl_cni_user_ccq_unset_in - NIC opcode HBL_CNI_OP_USER_CCQ_UNSET in param.
-+ * @port: NIC port ID.
-+ */
-+struct hbl_cni_user_ccq_unset_in {
-+	u32 port;
-+};
-+
-+/* Opcode to allocate connection ID */
-+#define HBL_CNI_OP_ALLOC_CONN			0
-+/* Opcode to set up a requester connection context */
-+#define HBL_CNI_OP_SET_REQ_CONN_CTX		1
-+/* Opcode to set up a responder connection context */
-+#define HBL_CNI_OP_SET_RES_CONN_CTX		2
-+/* Opcode to destroy a connection */
-+#define HBL_CNI_OP_DESTROY_CONN			3
-+/* Opcode reserved (deprecated) */
-+#define HBL_CNI_OP_RESERVED0			4
-+/* Opcode reserved (deprecated) */
-+#define HBL_CNI_OP_RESERVED1			5
-+/* Opcode reserved (deprecated) */
-+#define HBL_CNI_OP_RESERVED2			6
-+/* Opcode reserved (deprecated) */
-+#define HBL_CNI_OP_RESERVED3			7
-+/* Opcode reserved (deprecated) */
-+#define HBL_CNI_OP_RESERVED4			8
-+/* Opcode to set a user WQ array */
-+#define HBL_CNI_OP_USER_WQ_SET			9
-+/* Opcode to unset a user WQ array */
-+#define HBL_CNI_OP_USER_WQ_UNSET		10
-+/* Opcode reserved */
-+#define HBL_CNI_OP_RESERVED5			11
-+/* Opcode reserved */
-+#define HBL_CNI_OP_RESERVED6			12
-+/* Opcode reserved */
-+#define HBL_CNI_OP_RESERVED7			13
-+/* Opcode to allocate a CQ */
-+#define HBL_CNI_OP_ALLOC_USER_CQ_ID		14
-+/* Opcode to set specific user-application parameters */
-+#define HBL_CNI_OP_SET_USER_APP_PARAMS		15
-+/* Opcode to get specific user-application parameters */
-+#define HBL_CNI_OP_GET_USER_APP_PARAMS		16
-+/* Opcode to allocate a DB-FIFO */
-+#define HBL_CNI_OP_ALLOC_USER_DB_FIFO		17
-+/* Opcode to create a DB-FIFO */
-+#define HBL_CNI_OP_USER_DB_FIFO_SET		18
-+/* Opcode to destroy a DB-FIFO */
-+#define HBL_CNI_OP_USER_DB_FIFO_UNSET		19
-+/* Opcode to poll on EQ */
-+#define HBL_CNI_OP_EQ_POLL			20
-+/* Opcode to allocate encapsulation ID */
-+#define HBL_CNI_OP_USER_ENCAP_ALLOC		21
-+/* Opcode to create an encapsulation */
-+#define HBL_CNI_OP_USER_ENCAP_SET		22
-+/* Opcode to destroy an encapsulation */
-+#define HBL_CNI_OP_USER_ENCAP_UNSET		23
-+/* Opcode to create a CCQ */
-+#define HBL_CNI_OP_USER_CCQ_SET			24
-+/* Opcode to destroy a CCQ */
-+#define HBL_CNI_OP_USER_CCQ_UNSET		25
-+/* Opcode to set user CQ by ID */
-+#define HBL_CNI_OP_USER_CQ_ID_SET		26
-+/* Opcode to unset user CQ by ID */
-+#define HBL_CNI_OP_USER_CQ_ID_UNSET		27
-+/* Opcode reserved */
-+#define HBL_CNI_OP_RESERVED8			28
-+/* Opcode to dump the context of a QP */
-+#define HBL_CNI_OP_DUMP_QP			29
-+
-+#endif /* HBL_CNI_H_ */
++#endif /* HBL_GAUDI2_AUX_H_ */
 -- 
 2.34.1
 
