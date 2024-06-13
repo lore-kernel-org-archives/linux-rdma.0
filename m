@@ -1,41 +1,41 @@
 Received: from mail02.habana.ai (habanamailrelay02.habana.ai [62.90.112.121])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 648CB13D52F;
-	Thu, 13 Jun 2024 08:22:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01EC413D534;
+	Thu, 13 Jun 2024 08:22:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.90.112.121
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718266970; cv=none; b=MH3G23p7X4htezqpQMDWHLCDUejAOPilPsrP/HaDGzJN5nBdZoTIcBmfQA1COXsh7z6h2Kx/iT+k1k5V5tuXpl4Bdbe1XdeUIcg4ushP0+QSPyaOKnb1oWMbBq2OK4NMfznikqoDfDc2uAwwnVoVKw30HhBR70Fx+fN5ZF25EeQ=
+	t=1718266971; cv=none; b=O6EmAGN5tPyC1sGkF3eqeqhiLcu6+vCgLXLUYLHi7vBKEyy0YPAMstHGR0ysF/6JJluL2KO8ybg7cLIE57ucURy1p60LdFs9jicnm32wuVoHk+CqSGynfkVnBahAX889rxszmGPvxVLxClxelLA+ZYckeHYg1QIPIGCdMrCzYog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718266970; c=relaxed/simple;
-	bh=UZp2NpcAo6pnZ9xkZ7YEDZZj4voBRNnnWL8Qfu9bSIw=;
+	s=arc-20240116; t=1718266971; c=relaxed/simple;
+	bh=zKBySUX1wUZSPvUbcSWQPjk6jXAB9gF6VUjar+pZbok=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=eZnnViWuE5hN75H3SUiNxBzpyjDU/wofimpnFYw35IAaAXjDcEcJDG+QXD3VatX67ArkBKuyw/R4ApsO2/eJDb6rMWEt1HMO0i7K1DcGputHAhFRzvDq1S3jBGkjOJh99iY4goYG/eQ7K6b8rg8qBD0ICDQ+jTRd1ydcQHLSA5o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai; spf=pass smtp.mailfrom=habana.ai; dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b=Wfndyg7e; arc=none smtp.client-ip=62.90.112.121
+	 MIME-Version; b=aSIkusEA/SefNikAjMvl3UJcF33OgTYUOqmCehKEaYHMkIwbmowE6WNeG773c2y4ZM004Jw8X5BBL46tcrS9ATBIaB8ba0AswEn9BKPuOwJKpm+FnJLccsUbh17OcddJQcp3Ep8CpKkVN4F9I1vSsDDUESRvs6NMbofVBUWHZ6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai; spf=pass smtp.mailfrom=habana.ai; dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b=AeIr+S25; arc=none smtp.client-ip=62.90.112.121
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=habana.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=habana.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b="Wfndyg7e"
+	dkim=pass (2048-bit key) header.d=habana.ai header.i=@habana.ai header.b="AeIr+S25"
 Received: internal info suppressed
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=habana.ai; s=default;
-	t=1718266939; bh=UZp2NpcAo6pnZ9xkZ7YEDZZj4voBRNnnWL8Qfu9bSIw=;
+	t=1718266939; bh=zKBySUX1wUZSPvUbcSWQPjk6jXAB9gF6VUjar+pZbok=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Wfndyg7emoOGk83VcQAvjPsuBzsp5r6eXab7/jKf4qDtyoDMta6MKjER7YVK91syw
-	 CTCD/R5RmcVgYVQSm66lHmPaBu48d2ouLsMiKHv6bs+74adIO8878IE0W86xS/pdoW
-	 RR5EE+vTJRIrbgZ+5EdpEiF74lJQWzgydvEgclgqyMbx5rVE61vnx0Z4yx76nWmNTe
-	 PsmGGQWMxH1zAnms4LUuXizZa8IANUC7hIx8xT0pk2gbN1WXX4OyUPnbiZgdFK4/mL
-	 wle5cRrO9KPbDMYD79TyKMMVvDj5A+QDTGmp6ZVW0cvil536yMYG6/EGxoGOJqGQZ6
-	 6CaOu6A2/FEUg==
+	b=AeIr+S25aEtJfJfAQjgaUK6SfVQB8q6naJwcVF1L52Djb2iqSjVSO/MXKG8zy83MP
+	 cqyKO1TwjrqEKgqP7WvNIP0fqAvNcV2fai5dvMi3FCfDlQ48EjN1jqqDUuN2UAROtD
+	 2qzfMhLfwGt2mURUDhwRvU94krcKpu2EsOLPpRUwgMQmit+gbPeXCJLZYVtls+LWCN
+	 GjO5vif4OhyUM/vS0UNXYTNluA/qjKK+e3LuIRxh5OaXVlkCufrYt5s+M4wB6cm9wu
+	 qnX0ksVSFv+Sar7LfSpj2bwiDHbbY5zkwLqKqFM7srUWbNh7HKKq5Lvovt1i2Vug6J
+	 kwuumY1Bv8qjg==
 Received: from oshpigelman-vm-u22.habana-labs.com (localhost [127.0.0.1])
-	by oshpigelman-vm-u22.habana-labs.com (8.15.2/8.15.2/Debian-22ubuntu3) with ESMTP id 45D8M8hk1440009;
-	Thu, 13 Jun 2024 11:22:12 +0300
+	by oshpigelman-vm-u22.habana-labs.com (8.15.2/8.15.2/Debian-22ubuntu3) with ESMTP id 45D8M8he1440009;
+	Thu, 13 Jun 2024 11:22:11 +0300
 From: Omer Shpigelman <oshpigelman@habana.ai>
 To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
         netdev@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc: ogabbay@kernel.org, oshpigelman@habana.ai, zyehudai@habana.ai
-Subject: [PATCH 15/15] accel/habanalabs/gaudi2: network scaling support
-Date: Thu, 13 Jun 2024 11:22:08 +0300
-Message-Id: <20240613082208.1439968-16-oshpigelman@habana.ai>
+Subject: [PATCH 09/15] net: hbl_en: add habanalabs Ethernet driver
+Date: Thu, 13 Jun 2024 11:22:02 +0300
+Message-Id: <20240613082208.1439968-10-oshpigelman@habana.ai>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20240613082208.1439968-1-oshpigelman@habana.ai>
 References: <20240613082208.1439968-1-oshpigelman@habana.ai>
@@ -47,7 +47,9 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add GAUDI2 ASIC specific support for AI scaling over the network.
+This ethernet driver is initialized via auxiliary bus by the hbl_cn
+driver.
+It serves mainly for control operations that are needed for AI scaling.
 
 Signed-off-by: Omer Shpigelman <oshpigelman@habana.ai>
 Co-developed-by: Abhilash K V <kvabhilash@habana.ai>
@@ -63,1517 +65,2273 @@ Signed-off-by: Sagiv Ozeri <sozeri@habana.ai>
 Co-developed-by: Zvika Yehudai <zyehudai@habana.ai>
 Signed-off-by: Zvika Yehudai <zyehudai@habana.ai>
 ---
- drivers/accel/habanalabs/gaudi2/Makefile      |   2 +-
- drivers/accel/habanalabs/gaudi2/gaudi2.c      | 426 +++++++++++++++++-
- drivers/accel/habanalabs/gaudi2/gaudi2P.h     |  41 +-
- drivers/accel/habanalabs/gaudi2/gaudi2_cn.c   | 424 +++++++++++++++++
- drivers/accel/habanalabs/gaudi2/gaudi2_cn.h   |  42 ++
- .../habanalabs/gaudi2/gaudi2_coresight.c      | 145 +++++-
- 6 files changed, 1050 insertions(+), 30 deletions(-)
- create mode 100644 drivers/accel/habanalabs/gaudi2/gaudi2_cn.c
- create mode 100644 drivers/accel/habanalabs/gaudi2/gaudi2_cn.h
+ MAINTAINERS                                   |    9 +
+ drivers/net/ethernet/intel/Kconfig            |   18 +
+ drivers/net/ethernet/intel/Makefile           |    1 +
+ drivers/net/ethernet/intel/hbl_en/Makefile    |    9 +
+ .../net/ethernet/intel/hbl_en/common/Makefile |    3 +
+ .../net/ethernet/intel/hbl_en/common/hbl_en.c | 1168 +++++++++++++++++
+ .../net/ethernet/intel/hbl_en/common/hbl_en.h |  206 +++
+ .../intel/hbl_en/common/hbl_en_dcbnl.c        |  101 ++
+ .../ethernet/intel/hbl_en/common/hbl_en_drv.c |  211 +++
+ .../intel/hbl_en/common/hbl_en_ethtool.c      |  452 +++++++
+ 10 files changed, 2178 insertions(+)
+ create mode 100644 drivers/net/ethernet/intel/hbl_en/Makefile
+ create mode 100644 drivers/net/ethernet/intel/hbl_en/common/Makefile
+ create mode 100644 drivers/net/ethernet/intel/hbl_en/common/hbl_en.c
+ create mode 100644 drivers/net/ethernet/intel/hbl_en/common/hbl_en.h
+ create mode 100644 drivers/net/ethernet/intel/hbl_en/common/hbl_en_dcbnl.c
+ create mode 100644 drivers/net/ethernet/intel/hbl_en/common/hbl_en_drv.c
+ create mode 100644 drivers/net/ethernet/intel/hbl_en/common/hbl_en_ethtool.c
 
-diff --git a/drivers/accel/habanalabs/gaudi2/Makefile b/drivers/accel/habanalabs/gaudi2/Makefile
-index 1e047883ba74..289e69a355b1 100644
---- a/drivers/accel/habanalabs/gaudi2/Makefile
-+++ b/drivers/accel/habanalabs/gaudi2/Makefile
-@@ -1,4 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0-only
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 096439a62129..7301f38e9cfb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9617,6 +9617,15 @@ F:	include/linux/habanalabs/
+ F:	include/linux/net/intel/cn*
+ F:	include/linux/net/intel/gaudi2*
  
- HL_GAUDI2_FILES := gaudi2/gaudi2.o gaudi2/gaudi2_security.o \
--		gaudi2/gaudi2_coresight.o
-+		gaudi2/gaudi2_coresight.o gaudi2/gaudi2_cn.o
-diff --git a/drivers/accel/habanalabs/gaudi2/gaudi2.c b/drivers/accel/habanalabs/gaudi2/gaudi2.c
-index a22d2a93394e..6417c69d47af 100644
---- a/drivers/accel/habanalabs/gaudi2/gaudi2.c
-+++ b/drivers/accel/habanalabs/gaudi2/gaudi2.c
-@@ -1,12 +1,14 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- /*
-- * Copyright 2020-2022 HabanaLabs, Ltd.
-+ * Copyright 2020-2024 HabanaLabs, Ltd.
-  * All Rights Reserved.
-  */
- 
- #include "gaudi2P.h"
-+#include "gaudi2_cn.h"
- #include "gaudi2_masks.h"
-+#include "gaudi2_coresight_regs.h"
- #include "../include/gaudi2/gaudi2_special_blocks.h"
- #include "../include/hw_ip/mmu/mmu_general.h"
- #include "../include/hw_ip/mmu/mmu_v2_0.h"
-@@ -2216,6 +2218,9 @@ static bool gaudi2_get_edma_idle_status(struct hl_device *hdev, u64 *mask_arr, u
- 		struct engines_data *e);
- static u64 gaudi2_mmu_scramble_addr(struct hl_device *hdev, u64 raw_addr);
- static u64 gaudi2_mmu_descramble_addr(struct hl_device *hdev, u64 scrambled_addr);
-+static int gaudi2_send_cpu_message(struct hl_device *hdev, u32 *msg, u16 len, u32 timeout,
-+		u64 *result);
-+static void gaudi2_init_cn(struct hl_device *hdev);
- 
- static void gaudi2_init_scrambler_hbm(struct hl_device *hdev)
- {
-@@ -2382,15 +2387,17 @@ static int gaudi2_set_dram_properties(struct hl_device *hdev)
- 	hbm_drv_base_offset = roundup(CPU_FW_IMAGE_SIZE, prop->num_functional_hbms * SZ_8M);
- 
- 	/*
--	 * The NIC driver section size and the HMMU page tables section in the HBM needs
--	 * to be the remaining size in the first dram page after taking into
--	 * account the F/W image size
-+	 * The NIC driver section size and the HMMU page tables section in the HBM needs to be the
-+	 * remaining size in the first dram page after taking into account the F/W image size.
- 	 */
-+	prop->nic_drv_size = (prop->dram_page_size - hbm_drv_base_offset) -
-+				(HMMU_PAGE_TABLES_SIZE + EDMA_PQS_SIZE + EDMA_SCRATCHPAD_SIZE);
-+	prop->nic_drv_addr = DRAM_PHYS_BASE + hbm_drv_base_offset;
++HABANALABS ETHERNET DRIVER
++M:	Omer Shpigelman <oshpigelman@habana.ai>
++L:	netdev@vger.kernel.org
++S:	Supported
++W:	https://www.habana.ai
++F:	Documentation/networking/device_drivers/ethernet/intel/hbl.rst
++F:	drivers/net/ethernet/intel/hbl_en/
++F:	include/linux/net/intel/cn*
 +
-+	prop->clk = GAUDI2_NIC_CLK_FREQ / USEC_PER_SEC;
+ HACKRF MEDIA DRIVER
+ L:	linux-media@vger.kernel.org
+ S:	Orphan
+diff --git a/drivers/net/ethernet/intel/Kconfig b/drivers/net/ethernet/intel/Kconfig
+index 0d1b8a2bae99..5d07349348a0 100644
+--- a/drivers/net/ethernet/intel/Kconfig
++++ b/drivers/net/ethernet/intel/Kconfig
+@@ -417,4 +417,22 @@ config HABANA_CN
+ 	  To compile this driver as a module, choose M here. The module
+ 	  will be called habanalabs_cn.
  
- 	/* Reserve region in HBM for HMMU page tables */
--	prop->mmu_pgt_addr = DRAM_PHYS_BASE + hbm_drv_base_offset +
--				((prop->dram_page_size - hbm_drv_base_offset) -
--				(HMMU_PAGE_TABLES_SIZE + EDMA_PQS_SIZE + EDMA_SCRATCHPAD_SIZE));
-+	prop->mmu_pgt_addr = prop->nic_drv_addr + prop->nic_drv_size;
- 
- 	/* Set EDMA PQs HBM addresses */
- 	edma_pq_base_addr = prop->mmu_pgt_addr + HMMU_PAGE_TABLES_SIZE;
-@@ -2409,6 +2416,7 @@ static int gaudi2_set_dram_properties(struct hl_device *hdev)
- static int gaudi2_set_fixed_properties(struct hl_device *hdev)
- {
- 	struct asic_fixed_properties *prop = &hdev->asic_prop;
-+	struct hl_cn_properties *cn_prop = &prop->cn_props;
- 	struct hw_queue_properties *q_props;
- 	u32 num_sync_stream_queues = 0;
- 	int i, rc;
-@@ -2601,6 +2609,10 @@ static int gaudi2_set_fixed_properties(struct hl_device *hdev)
- 
- 	prop->hbw_flush_reg = mmPCIE_WRAP_SPECIAL_GLBL_SPARE_0;
- 
-+	prop->macro_cfg_size = NIC_OFFSET;
-+	cn_prop->status_packet_size = sizeof(struct cpucp_nic_status);
-+	cn_prop->max_num_of_ports = NIC_NUMBER_OF_PORTS;
++config HABANA_EN
++	tristate "HabanaLabs (an Intel Company) Ethernet driver"
++	depends on NETDEVICES && ETHERNET && INET
++	select HABANA_CN
++	help
++	  This driver enables Ethernet functionality for the network interfaces
++	  that are part of the GAUDI ASIC family of AI Accelerators.
++	  For more information on how to identify your adapter, go to the
++	  Adapter & Driver ID Guide that can be located at:
 +
- 	return 0;
- 
- free_qprops:
-@@ -2996,8 +3008,16 @@ static int gaudi2_cpucp_info_get(struct hl_device *hdev)
- 	u64 dram_size;
- 	int rc;
- 
--	if (!(gaudi2->hw_cap_initialized & HW_CAP_CPU_Q))
-+	if (!(gaudi2->hw_cap_initialized & HW_CAP_CPU_Q)) {
-+		/* Skip for hard or device release reset flow. No need to repopulate. */
-+		if (!hdev->reset_info.in_reset) {
-+			rc = gaudi2_cn_set_info(hdev, false);
-+			if (rc)
-+				return rc;
++	  <http://support.intel.com>
++
++	  More specific information on configuring the driver is in
++	  <file:Documentation/networking/device_drivers/ethernet/intel/hbl.rst>.
++
++	  To compile this driver as a module, choose M here. The module
++	  will be called habanalabs_en.
++
+ endif # NET_VENDOR_INTEL
+diff --git a/drivers/net/ethernet/intel/Makefile b/drivers/net/ethernet/intel/Makefile
+index 10049a28e336..ec62a0227897 100644
+--- a/drivers/net/ethernet/intel/Makefile
++++ b/drivers/net/ethernet/intel/Makefile
+@@ -20,3 +20,4 @@ obj-$(CONFIG_FM10K) += fm10k/
+ obj-$(CONFIG_ICE) += ice/
+ obj-$(CONFIG_IDPF) += idpf/
+ obj-$(CONFIG_HABANA_CN) += hbl_cn/
++obj-$(CONFIG_HABANA_EN) += hbl_en/
+diff --git a/drivers/net/ethernet/intel/hbl_en/Makefile b/drivers/net/ethernet/intel/hbl_en/Makefile
+new file mode 100644
+index 000000000000..695497ab93b6
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_en/Makefile
+@@ -0,0 +1,9 @@
++# SPDX-License-Identifier: GPL-2.0-only
++#
++# Makefile for HabanaLabs (an Intel Company) Ethernet network driver
++#
++
++obj-$(CONFIG_HABANA_EN) := habanalabs_en.o
++
++include $(src)/common/Makefile
++habanalabs_en-y += $(HBL_EN_COMMON_FILES)
+diff --git a/drivers/net/ethernet/intel/hbl_en/common/Makefile b/drivers/net/ethernet/intel/hbl_en/common/Makefile
+new file mode 100644
+index 000000000000..a3ccb5dbf4a6
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_en/common/Makefile
+@@ -0,0 +1,3 @@
++# SPDX-License-Identifier: GPL-2.0-only
++HBL_EN_COMMON_FILES := common/hbl_en_drv.o common/hbl_en.o \
++	common/hbl_en_ethtool.o common/hbl_en_dcbnl.o
+diff --git a/drivers/net/ethernet/intel/hbl_en/common/hbl_en.c b/drivers/net/ethernet/intel/hbl_en/common/hbl_en.c
+new file mode 100644
+index 000000000000..066be5ac2d84
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_en/common/hbl_en.c
+@@ -0,0 +1,1168 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#include "hbl_en.h"
++#include <linux/inetdevice.h>
++
++#define TX_TIMEOUT			(5 * HZ)
++#define PORT_RESET_TIMEOUT_MSEC		(60 * 1000ull) /* 60s */
++
++/**
++ * struct hbl_en_tx_pkt_work - used to schedule a work of a Tx packet.
++ * @tx_work: workqueue object to run when packet needs to be sent.
++ * @port: pointer to current port structure.
++ * @skb: copy of the packet to send.
++ */
++struct hbl_en_tx_pkt_work {
++	struct work_struct tx_work;
++	struct hbl_en_port *port;
++	struct sk_buff *skb;
++};
++
++static int hbl_en_napi_poll(struct napi_struct *napi, int budget);
++static int hbl_en_port_open(struct hbl_en_port *port);
++
++static int hbl_en_ports_reopen(struct hbl_aux_dev *aux_dev)
++{
++	struct hbl_en_device *hdev = aux_dev->priv;
++	struct hbl_en_port *port;
++	int rc = 0, i;
++
++	for (i = 0; i < hdev->max_num_of_ports; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		port = &hdev->ports[i];
++
++		/* It could be that the port was shutdown by 'ip link set down' and there is no need
++		 * in reopening it.
++		 * Since we mark the ports as in reset even if they are disabled, we clear the flag
++		 * here anyway.
++		 * See hbl_en_ports_stop_prepare() for more info.
++		 */
++		if (!netif_running(port->ndev)) {
++			atomic_set(&port->in_reset, 0);
++			continue;
 +		}
 +
- 		return 0;
++		rc = hbl_en_port_open(port);
++
++		atomic_set(&port->in_reset, 0);
++
++		if (rc)
++			break;
 +	}
- 
- 	/* No point of asking this information again when not doing hard reset, as the device
- 	 * CPU hasn't been reset
-@@ -3058,23 +3078,47 @@ static int gaudi2_cpucp_info_get(struct hl_device *hdev)
- 
- 	prop->max_power_default = (u64) max_power;
- 
--	return 0;
-+	/* Repopulate post hard reset since device CPU has been reset */
-+	return gaudi2_cn_set_info(hdev, true);
- }
- 
--static int gaudi2_fetch_psoc_frequency(struct hl_device *hdev)
-+static int gaudi2_fetch_frequency(struct hl_device *hdev, u32 pll_index, u16 *pll_freq_arr)
- {
- 	struct gaudi2_device *gaudi2 = hdev->asic_specific;
--	u16 pll_freq_arr[HL_PLL_NUM_OUTPUTS];
--	int rc;
- 
- 	if (!(gaudi2->hw_cap_initialized & HW_CAP_CPU_Q))
- 		return 0;
- 
--	rc = hl_fw_cpucp_pll_info_get(hdev, HL_GAUDI2_CPU_PLL, pll_freq_arr);
-+	return hl_fw_cpucp_pll_info_get(hdev, pll_index, pll_freq_arr);
++
++	hdev->in_reset = false;
++
++	return rc;
 +}
 +
-+static int gaudi2_fetch_psoc_frequency(struct hl_device *hdev)
++static void hbl_en_port_fini(struct hbl_en_port *port)
 +{
-+	u16 pll_freq_arr[HL_PLL_NUM_OUTPUTS] = {0};
++	if (port->rx_wq)
++		destroy_workqueue(port->rx_wq);
++}
++
++static int hbl_en_port_init(struct hbl_en_port *port)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	u32 port_idx = port->idx;
++	char wq_name[32];
 +	int rc;
 +
-+	rc = gaudi2_fetch_frequency(hdev, HL_GAUDI2_CPU_PLL, pll_freq_arr);
-+	if (rc)
-+		return rc;
++	if (hdev->poll_enable) {
++		memset(wq_name, 0, sizeof(wq_name));
++		snprintf(wq_name, sizeof(wq_name) - 1, "hbl%u-port%d-rx-wq", hdev->core_dev_id,
++			 port_idx);
++		port->rx_wq = alloc_ordered_workqueue(wq_name, 0);
++		if (!port->rx_wq) {
++			dev_err(hdev->dev, "Failed to allocate Rx WQ\n");
++			rc = -ENOMEM;
++			goto fail;
++		}
++	}
 +
-+	if (pll_freq_arr[3] != 0)
-+		hdev->asic_prop.psoc_timestamp_frequency = pll_freq_arr[3];
++	hbl_en_ethtool_init_coalesce(port);
++
++	return 0;
++
++fail:
++	hbl_en_port_fini(port);
++
++	return rc;
++}
++
++static void _hbl_en_set_port_status(struct hbl_en_port *port, bool up)
++{
++	struct net_device *ndev = port->ndev;
++	u32 port_idx = port->idx;
++
++	if (up) {
++		netif_carrier_on(ndev);
++		netif_wake_queue(ndev);
++	} else {
++		netif_carrier_off(ndev);
++		netif_stop_queue(ndev);
++	}
++
++	/* Unless link events are getting through the EQ, no need to print about link down events
++	 * during port reset
++	 */
++	if (port->hdev->has_eq || up || !atomic_read(&port->in_reset))
++		netdev_info(port->ndev, "link %s, port %d\n", up ? "up" : "down", port_idx);
++}
++
++static void hbl_en_set_port_status(struct hbl_aux_dev *aux_dev, u32 port_idx, bool up)
++{
++	struct hbl_en_port *port = HBL_EN_PORT(aux_dev, port_idx);
++
++	_hbl_en_set_port_status(port, up);
++}
++
++static bool hbl_en_is_port_open(struct hbl_aux_dev *aux_dev, u32 port_idx)
++{
++	struct hbl_en_port *port = HBL_EN_PORT(aux_dev, port_idx);
++
++	return port->is_initialized;
++}
++
++/* get the src IP as it is done in devinet_ioctl() */
++static int hbl_en_get_src_ip(struct hbl_aux_dev *aux_dev, u32 port_idx, u32 *src_ip)
++{
++	struct hbl_en_port *port = HBL_EN_PORT(aux_dev, port_idx);
++	struct net_device *ndev = port->ndev;
++	struct in_device *in_dev;
++	struct in_ifaddr *ifa;
++	int rc = 0;
++
++	/* for the case where no src IP is configured */
++	*src_ip = 0;
++
++	/* rtnl lock should be acquired in relevant flows before taking configuration lock */
++	if (!rtnl_is_locked()) {
++		netdev_err(port->ndev, "Rtnl lock is not acquired, can't proceed\n");
++		rc = -EFAULT;
++		goto out;
++	}
++
++	in_dev = __in_dev_get_rtnl(ndev);
++	if (!in_dev) {
++		netdev_err(port->ndev, "Failed to get IPv4 struct\n");
++		rc = -EFAULT;
++		goto out;
++	}
++
++	ifa = rtnl_dereference(in_dev->ifa_list);
++
++	while (ifa) {
++		if (!strcmp(ndev->name, ifa->ifa_label)) {
++			/* convert the BE to native and later on it will be
++			 * written to the HW as LE in QPC_SET
++			 */
++			*src_ip = be32_to_cpu(ifa->ifa_local);
++			break;
++		}
++		ifa = rtnl_dereference(ifa->ifa_next);
++	}
++out:
++	return rc;
++}
++
++static void hbl_en_reset_stats(struct hbl_aux_dev *aux_dev, u32 port_idx)
++{
++	struct hbl_en_port *port = HBL_EN_PORT(aux_dev, port_idx);
++
++	port->net_stats.rx_packets = 0;
++	port->net_stats.tx_packets = 0;
++	port->net_stats.rx_bytes = 0;
++	port->net_stats.tx_bytes = 0;
++	port->net_stats.tx_errors = 0;
++	atomic64_set(&port->net_stats.rx_dropped, 0);
++	atomic64_set(&port->net_stats.tx_dropped, 0);
++}
++
++static u32 hbl_en_get_mtu(struct hbl_aux_dev *aux_dev, u32 port_idx)
++{
++	struct hbl_en_port *port = HBL_EN_PORT(aux_dev, port_idx);
++	struct net_device *ndev = port->ndev;
++	u32 mtu;
++
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		netdev_err(ndev, "port is in reset, can't get MTU\n");
++		return 0;
++	}
++
++	mtu = ndev->mtu;
++
++	atomic_set(&port->in_reset, 0);
++
++	return mtu;
++}
++
++static u32 hbl_en_get_pflags(struct hbl_aux_dev *aux_dev, u32 port_idx)
++{
++	struct hbl_en_port *port = HBL_EN_PORT(aux_dev, port_idx);
++
++	return port->pflags;
++}
++
++static void hbl_en_set_dev_lpbk(struct hbl_aux_dev *aux_dev, u32 port_idx, bool enable)
++{
++	struct hbl_en_port *port = HBL_EN_PORT(aux_dev, port_idx);
++	struct net_device *ndev = port->ndev;
++
++	if (enable)
++		ndev->features |= NETIF_F_LOOPBACK;
++	else
++		ndev->features &= ~NETIF_F_LOOPBACK;
++}
++
++/* This function should be called after ctrl_lock was taken */
++static int hbl_en_port_open_locked(struct hbl_en_port *port)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	struct net_device *ndev = port->ndev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
++	int rc;
++
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	if (port->is_initialized)
++		return 0;
++
++	if (!hdev->poll_enable)
++		netif_napi_add(ndev, &port->napi, hbl_en_napi_poll);
++
++	rc = aux_ops->port_hw_init(aux_dev, port_idx);
++	if (rc) {
++		netdev_err(ndev, "Failed to configure the HW, rc %d\n", rc);
++		goto hw_init_fail;
++	}
++
++	if (!hdev->poll_enable)
++		napi_enable(&port->napi);
++
++	rc = hdev->asic_funcs.eth_port_open(port);
++	if (rc) {
++		netdev_err(ndev, "Failed to init H/W, rc %d\n", rc);
++		goto port_open_fail;
++	}
++
++	rc = aux_ops->update_mtu(aux_dev, port_idx, ndev->mtu);
++	if (rc) {
++		netdev_err(ndev, "MTU update failed, rc %d\n", rc);
++		goto update_mtu_fail;
++	}
++
++	rc = aux_ops->phy_init(aux_dev, port_idx);
++	if (rc) {
++		netdev_err(ndev, "PHY init failed, rc %d\n", rc);
++		goto phy_init_fail;
++	}
++
++	netif_start_queue(ndev);
++
++	port->is_initialized = true;
++
++	return 0;
++
++phy_init_fail:
++	/* no need to revert the MTU change, it will be updated on next port open */
++update_mtu_fail:
++	hdev->asic_funcs.eth_port_close(port);
++port_open_fail:
++	if (!hdev->poll_enable)
++		napi_disable(&port->napi);
++
++	aux_ops->port_hw_fini(aux_dev, port_idx);
++hw_init_fail:
++	if (!hdev->poll_enable)
++		netif_napi_del(&port->napi);
++
++	return rc;
++}
++
++static int hbl_en_port_open(struct hbl_en_port *port)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
++	int rc;
++
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	aux_ops->ctrl_lock(aux_dev, port_idx);
++	rc = hbl_en_port_open_locked(port);
++	aux_ops->ctrl_unlock(aux_dev, port_idx);
++
++	return rc;
++}
++
++static int hbl_en_open(struct net_device *netdev)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(netdev);
++	int rc;
++
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		netdev_err(netdev, "port is in reset, can't open it\n");
++		return -EBUSY;
++	}
++
++	rc = hbl_en_port_open(port);
++
++	atomic_set(&port->in_reset, 0);
++
++	return rc;
++}
++
++/* This function should be called after ctrl_lock was taken */
++static void hbl_en_port_close_locked(struct hbl_en_port *port)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
++
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	if (!port->is_initialized)
++		return;
++
++	port->is_initialized = false;
++
++	/* verify that the port is marked as closed before continuing */
++	mb();
++
++	/* Print if not in hard reset flow e.g. from ip cmd */
++	if (!hdev->in_reset && netif_carrier_ok(port->ndev))
++		netdev_info(port->ndev, "port was closed\n");
++
++	/* disable the PHY here so no link changes will occur from this point forward */
++	aux_ops->phy_fini(aux_dev, port_idx);
++
++	/* disable Tx SW flow */
++	netif_carrier_off(port->ndev);
++	netif_tx_disable(port->ndev);
++
++	/* stop Tx/Rx HW */
++	aux_ops->port_hw_fini(aux_dev, port_idx);
++
++	/* disable Tx/Rx QPs */
++	hdev->asic_funcs.eth_port_close(port);
++
++	/* stop Rx SW flow */
++	if (hdev->poll_enable) {
++		hbl_en_rx_poll_stop(port);
++	} else {
++		napi_disable(&port->napi);
++		netif_napi_del(&port->napi);
++	}
++
++	/* Explicitly count the port close operations as we don't get a link event for this.
++	 * Upon port open we receive a link event, hence no additional action required.
++	 */
++	aux_ops->port_toggle_count(aux_dev, port_idx);
++}
++
++static void hbl_en_port_close(struct hbl_en_port *port)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
++
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	aux_ops->ctrl_lock(aux_dev, port_idx);
++	hbl_en_port_close_locked(port);
++	aux_ops->ctrl_unlock(aux_dev, port_idx);
++}
++
++/* This function should be called after ctrl_lock was taken */
++static int __hbl_en_port_reset_locked(struct hbl_en_port *port)
++{
++	hbl_en_port_close_locked(port);
++
++	return hbl_en_port_open_locked(port);
++}
++
++/* This function should be called after ctrl_lock was taken */
++int hbl_en_port_reset_locked(struct hbl_aux_dev *aux_dev, u32 port_idx)
++{
++	struct hbl_en_port *port = HBL_EN_PORT(aux_dev, port_idx);
++
++	return __hbl_en_port_reset_locked(port);
++}
++
++int hbl_en_port_reset(struct hbl_en_port *port)
++{
++	hbl_en_port_close(port);
++
++	/* Sleep in order to let obsolete events to be dropped before re-opening the port */
++	msleep(20);
++
++	return hbl_en_port_open(port);
++}
++
++static int hbl_en_close(struct net_device *netdev)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(netdev);
++	struct hbl_en_device *hdev = port->hdev;
++	ktime_t timeout;
++
++	/* Looks like the return value of this function is not checked, so we can't just return
++	 * EBUSY if the port is under reset. We need to wait until the reset is finished and then
++	 * close the port. Otherwise the netdev will set the port as closed although port_close()
++	 * wasn't called. Only if we waited long enough and the reset hasn't finished, we can return
++	 * an error without actually closing the port as it is a fatal flow anyway.
++	 */
++	timeout = ktime_add_ms(ktime_get(), PORT_RESET_TIMEOUT_MSEC);
++	while (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		/* If this is called from unregister_netdev() then the port was already closed and
++		 * hence we can safely return.
++		 * We could have just check the port_open boolean, but that might hide some future
++		 * bugs. Hence it is better to use a dedicated flag for that.
++		 */
++		if (READ_ONCE(hdev->in_teardown))
++			return 0;
++
++		usleep_range(50, 200);
++		if (ktime_compare(ktime_get(), timeout) > 0) {
++			netdev_crit(netdev,
++				    "Timeout while waiting for port to finish reset, can't close it\n"
++				    );
++			return -EBUSY;
++		}
++	}
++
++	hbl_en_port_close(port);
++
++	atomic_set(&port->in_reset, 0);
 +
 +	return 0;
 +}
 +
-+static int gaudi2_fetch_nic_frequency(struct hl_device *hdev)
++/**
++ * hbl_en_ports_stop_prepare() - stop the Rx and Tx and synchronize with other reset flows.
++ * @aux_dev: habanalabs auxiliary device structure.
++ *
++ * This function makes sure that during the reset no packets will be processed and that
++ * ndo_open/ndo_close do not open/close the ports.
++ * A hard reset might occur right after the driver was loaded, which means before the ports
++ * initialization was finished. Therefore, even if the ports are not yet open, we mark it as in
++ * reset in order to avoid races. We clear the in reset flag later on when reopening the ports.
++ */
++static void hbl_en_ports_stop_prepare(struct hbl_aux_dev *aux_dev)
 +{
-+	u16 pll_freq_arr[HL_PLL_NUM_OUTPUTS] = {0};
++	struct hbl_en_device *hdev = aux_dev->priv;
++	struct hbl_en_port *port;
++	ktime_t timeout;
++	int i;
++
++	/* Check if the ports where initialized. If not, we shouldn't mark them as in reset because
++	 * they will fail to get opened.
++	 */
++	if (!hdev->is_initialized || hdev->in_reset)
++		return;
++
++	for (i = 0; i < hdev->max_num_of_ports; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		port = &hdev->ports[i];
++
++		/* This function is competing with reset from ethtool/ip, so try to take the
++		 * in_reset atomic and if we are already in a middle of reset, wait until reset
++		 * function is finished.
++		 * Reset function is designed to always finish (could take up to a few seconds in
++		 * worst case).
++		 * We mark also closed ports as in reset so they won't be able to get opened while
++		 * the device in under reset.
++		 */
++
++		timeout = ktime_add_ms(ktime_get(), PORT_RESET_TIMEOUT_MSEC);
++		while (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++			usleep_range(50, 200);
++			if (ktime_compare(ktime_get(), timeout) > 0) {
++				netdev_crit(port->ndev,
++					    "Timeout while waiting for port %d to finish reset\n",
++					    port->idx);
++				break;
++			}
++		}
++	}
++
++	hdev->in_reset = true;
++}
++
++static void hbl_en_ports_stop(struct hbl_aux_dev *aux_dev)
++{
++	struct hbl_en_device *hdev = aux_dev->priv;
++	struct hbl_en_port *port;
++	int i;
++
++	for (i = 0; i < hdev->max_num_of_ports; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		port = &hdev->ports[i];
++
++		if (netif_running(port->ndev))
++			hbl_en_port_close(port);
++	}
++}
++
++static int hbl_en_change_mtu(struct net_device *netdev, int new_mtu)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(netdev);
++	int rc = 0;
++
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		netdev_err(netdev, "port is in reset, can't change MTU\n");
++		return -EBUSY;
++	}
++
++	if (netif_running(port->ndev)) {
++		hbl_en_port_close(port);
++
++		/* Sleep in order to let obsolete events to be dropped before re-opening the port */
++		msleep(20);
++
++		netdev->mtu = new_mtu;
++
++		rc = hbl_en_port_open(port);
++		if (rc)
++			netdev_err(netdev, "Failed to reinit port for MTU change, rc %d\n", rc);
++	} else {
++		netdev->mtu = new_mtu;
++	}
++
++	atomic_set(&port->in_reset, 0);
++
++	return rc;
++}
++
++/* Swap source and destination MAC addresses */
++static inline void swap_l2(char *buf)
++{
++	u16 *eth_hdr, tmp;
++
++	eth_hdr = (u16 *)buf;
++	tmp = eth_hdr[0];
++	eth_hdr[0] = eth_hdr[3];
++	eth_hdr[3] = tmp;
++	tmp = eth_hdr[1];
++	eth_hdr[1] = eth_hdr[4];
++	eth_hdr[4] = tmp;
++	tmp = eth_hdr[2];
++	eth_hdr[2] = eth_hdr[5];
++	eth_hdr[5] = tmp;
++}
++
++/* Swap source and destination IP addresses
++ */
++static inline void swap_l3(char *buf)
++{
++	u32 tmp;
++
++	/* skip the Ethernet header and the IP header till source IP address */
++	buf += ETH_HLEN + 12;
++	tmp = ((u32 *)buf)[0];
++	((u32 *)buf)[0] = ((u32 *)buf)[1];
++	((u32 *)buf)[1] = tmp;
++}
++
++static void do_tx_swap(struct hbl_en_port *port, struct sk_buff *skb)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	u16 *tmp_buff = (u16 *)skb->data;
++	u32 port_idx = port->idx;
++
++	/* First, let's print the SKB we got */
++	dev_dbg_ratelimited(hdev->dev,
++			    "Send [P%d]: dst-mac:%04x%04x%04x, src-mac:%04x%04x%04x, eth-type:%04x, len:%u\n",
++			    port_idx, swab16(tmp_buff[0]), swab16(tmp_buff[1]), swab16(tmp_buff[2]),
++			    swab16(tmp_buff[3]), swab16(tmp_buff[4]), swab16(tmp_buff[5]),
++			    swab16(tmp_buff[6]), skb->len);
++
++	/* Before submit it to HW, in case this is ipv4 pkt, swap eth/ip addresses.
++	 * that way, we may send ECMP (ping) to ourselves in LB cases.
++	 */
++	swap_l2(skb->data);
++	if (swab16(tmp_buff[6]) == ETH_P_IP)
++		swap_l3(skb->data);
++}
++
++static bool is_pkt_swap_enabled(struct hbl_en_device *hdev)
++{
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	return aux_ops->is_eth_lpbk(aux_dev);
++}
++
++static bool is_tx_disabled(struct hbl_en_port *port)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
++
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	return aux_ops->get_mac_lpbk(aux_dev, port_idx) && !is_pkt_swap_enabled(hdev);
++}
++
++static netdev_tx_t hbl_en_handle_tx(struct hbl_en_port *port, struct sk_buff *skb)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	netdev_tx_t ret;
++
++	if (skb->len <= 0 || is_tx_disabled(port))
++		goto free_skb;
++
++	if (skb->len > hdev->max_frm_len) {
++		netdev_err(port->ndev, "Tx pkt size %uB exceeds maximum of %uB\n", skb->len,
++			   hdev->max_frm_len);
++		goto free_skb;
++	}
++
++	if (is_pkt_swap_enabled(hdev))
++		do_tx_swap(port, skb);
++
++	/* Pad the ethernet packets to the minimum frame size as the NIC hw doesn't do it.
++	 * eth_skb_pad() frees the packet on failure, so just increment the dropped counter and
++	 * return as success to avoid a retry.
++	 */
++	if (skb_put_padto(skb, hdev->pad_size)) {
++		dev_err_ratelimited(hdev->dev, "Padding failed, the skb is dropped\n");
++		atomic64_inc(&port->net_stats.tx_dropped);
++		return NETDEV_TX_OK;
++	}
++
++	ret = hdev->asic_funcs.write_pkt_to_hw(port, skb);
++	if (ret == NETDEV_TX_OK) {
++		port->net_stats.tx_packets++;
++		port->net_stats.tx_bytes += skb->len;
++	}
++
++	return ret;
++
++free_skb:
++	dev_kfree_skb_any(skb);
++	return NETDEV_TX_OK;
++}
++
++static netdev_tx_t hbl_en_start_xmit(struct sk_buff *skb, struct net_device *netdev)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(netdev);
++	struct hbl_en_device *hdev;
++
++	hdev = port->hdev;
++
++	return hbl_en_handle_tx(port, skb);
++}
++
++static int hbl_en_set_port_mac_loopback(struct hbl_en_port *port, bool enable)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	struct net_device *ndev = port->ndev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
 +	int rc;
 +
-+	rc = gaudi2_fetch_frequency(hdev, HL_GAUDI2_NIC_PLL, pll_freq_arr);
- 	if (rc)
- 		return rc;
- 
--	hdev->asic_prop.psoc_timestamp_frequency = pll_freq_arr[3];
-+	/* DIV1 - nic_clk */
-+	if (pll_freq_arr[1] != 0)
-+		hdev->asic_prop.clk = pll_freq_arr[1];
- 
- 	return 0;
- }
-@@ -3237,6 +3281,79 @@ static void gaudi2_init_arcs(struct hl_device *hdev)
- 		CFG_BASE + le32_to_cpu(dyn_regs->eng_arc_irq_ctrl);
- }
- 
-+static int gaudi2_cn_clear_mem(struct hl_device *hdev)
-+{
-+	u32 nic_drv_size, gran_per_packet, num_iter;
-+	struct asic_fixed_properties *asic_prop;
-+	struct cpucp_cn_clear_mem_packet pkt;
-+	bool use_cpucp;
-+	int i, rc = 0;
-+	u64 val = 0;
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
 +
-+	if (!hdev->cn.ports_mask)
++	rc = aux_ops->set_mac_lpbk(aux_dev, port_idx, enable);
++	if (rc)
 +		return rc;
 +
-+	asic_prop = &hdev->asic_prop;
++	netdev_info(ndev, "port %u: mac loopback is %s\n", port_idx,
++		    enable ? "enabled" : "disabled");
 +
-+	use_cpucp = !!(hdev->asic_prop.fw_app_cpu_boot_dev_sts0 &
-+			CPU_BOOT_DEV_STS0_NIC_MEM_CLEAR_EN);
-+	if (use_cpucp) {
-+		/* nic driver size is expected to be less than 4GB in gaudi2 */
-+		if (asic_prop->nic_drv_size > BIT(32)) {
-+			dev_err(hdev->dev,
-+				"Failed to clear NIC memory, nic size is 0x%llx is bigger than 4GB\n",
-+				asic_prop->nic_drv_size);
-+			return -EINVAL;
++	if (netif_running(ndev)) {
++		rc = hbl_en_port_reset(port);
++		if (rc) {
++			netdev_err(ndev, "Failed to reset port %u, rc %d\n", port_idx, rc);
++			return rc;
 +		}
++	}
 +
-+		/* subtract 1 to support size of 4GB as well */
-+		nic_drv_size = (asic_prop->nic_drv_size - 1) & 0xFFFFFFFF;
-+		/* max 250 MB per packet, in order to avoid CPUCP packet timeout */
-+		gran_per_packet = 250 * 1024 * 1024;
-+		num_iter = (nic_drv_size + gran_per_packet) / gran_per_packet;
++	return 0;
++}
 +
-+		for (i = 0; i < num_iter; i++) {
-+			memset(&pkt, 0, sizeof(pkt));
-+			pkt.cpucp_pkt.ctl = cpu_to_le32(CPUCP_PACKET_NIC_CLR_MEM <<
-+							CPUCP_PKT_CTL_OPCODE_SHIFT);
-+			pkt.mem_base_addr = cpu_to_le64(asic_prop->nic_drv_addr +
-+							i * gran_per_packet);
++static int hbl_en_set_features(struct net_device *netdev, netdev_features_t features)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(netdev);
++	netdev_features_t changed;
++	int rc = 0;
 +
-+			if (i < num_iter - 1)
-+				pkt.size = cpu_to_le32(gran_per_packet);
-+			else
-+				/* add 1 as it was subtracted in original size calculation */
-+				pkt.size = cpu_to_le32(nic_drv_size - gran_per_packet * i + 1);
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		netdev_err(netdev, "port %d is in reset, can't update settings", port->idx);
++		return -EBUSY;
++	}
 +
-+			rc = gaudi2_send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt), 0, NULL);
-+			if (rc) {
-+				dev_err(hdev->dev,
-+					"Failed to handle CPU-CP pkt %u, error %d\n",
-+					CPUCP_PACKET_NIC_CLR_MEM, rc);
-+				return rc;
-+			}
-+		}
-+	} else {
-+		for (i = 0; i < hdev->asic_prop.nic_drv_size; i += sizeof(val)) {
-+			rc = hdev->asic_funcs->access_dev_mem(hdev, PCI_REGION_DRAM,
-+								hdev->asic_prop.nic_drv_addr + i,
-+								&val, DEBUGFS_WRITE64);
++	changed = netdev->features ^ features;
 +
-+			if (rc) {
-+				dev_err(hdev->dev, "Failed to set nic memory. addr: 0x%llx",
-+						hdev->asic_prop.nic_drv_addr + i);
-+				return rc;
-+			}
++	if (changed & NETIF_F_LOOPBACK)
++		rc = hbl_en_set_port_mac_loopback(port, !!(features & NETIF_F_LOOPBACK));
 +
-+			/* sleep every 32MB to avoid high CPU utilization */
-+			if (i && !(i % SZ_32M))
-+				usleep_range(50, 100);
-+		}
++	atomic_set(&port->in_reset, 0);
++
++	return rc;
++}
++
++static void hbl_en_handle_tx_timeout(struct net_device *netdev, unsigned int txqueue)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(netdev);
++
++	port->net_stats.tx_errors++;
++	atomic64_inc(&port->net_stats.tx_dropped);
++}
++
++static void hbl_en_get_stats64(struct net_device *dev, struct rtnl_link_stats64 *stats)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(dev);
++
++	stats->rx_bytes = port->net_stats.rx_bytes;
++	stats->tx_bytes = port->net_stats.tx_bytes;
++	stats->rx_packets = port->net_stats.rx_packets;
++	stats->tx_packets = port->net_stats.tx_packets;
++	stats->tx_errors = port->net_stats.tx_errors;
++	stats->tx_dropped = (u64)atomic64_read(&port->net_stats.tx_dropped);
++	stats->rx_dropped = (u64)atomic64_read(&port->net_stats.rx_dropped);
++}
++
++static const struct net_device_ops hbl_en_netdev_ops = {
++	.ndo_open = hbl_en_open,
++	.ndo_stop = hbl_en_close,
++	.ndo_start_xmit = hbl_en_start_xmit,
++	.ndo_validate_addr = eth_validate_addr,
++	.ndo_change_mtu = hbl_en_change_mtu,
++	.ndo_set_features = hbl_en_set_features,
++	.ndo_get_stats64 = hbl_en_get_stats64,
++	.ndo_tx_timeout = hbl_en_handle_tx_timeout,
++};
++
++static void hbl_en_set_ops(struct net_device *ndev)
++{
++	ndev->netdev_ops = &hbl_en_netdev_ops;
++	ndev->ethtool_ops = hbl_en_ethtool_get_ops(ndev);
++#ifdef CONFIG_DCB
++	ndev->dcbnl_ops = &hbl_en_dcbnl_ops;
++#endif
++}
++
++static int hbl_en_port_register(struct hbl_en_port *port)
++{
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
++	struct hbl_en_port **ptr;
++	struct net_device *ndev;
++	int rc;
++
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	ndev = alloc_etherdev(sizeof(struct hbl_en_port *));
++	if (!ndev) {
++		dev_err(hdev->dev, "netdevice %d alloc failed\n", port_idx);
++		return -ENOMEM;
++	}
++
++	port->ndev = ndev;
++	SET_NETDEV_DEV(ndev, &hdev->pdev->dev);
++	ptr = netdev_priv(ndev);
++	*ptr = port;
++
++	/* necessary for creating multiple interfaces */
++	ndev->dev_port = port_idx;
++
++	hbl_en_set_ops(ndev);
++
++	ndev->watchdog_timeo = TX_TIMEOUT;
++	ndev->min_mtu = hdev->min_raw_mtu;
++	ndev->max_mtu = hdev->max_raw_mtu;
++
++	/* Add loopback capability to the device. */
++	ndev->hw_features |= NETIF_F_LOOPBACK;
++
++	/* If this port was set to loopback, set it also to the ndev features */
++	if (aux_ops->get_mac_lpbk(aux_dev, port_idx))
++		ndev->features |= NETIF_F_LOOPBACK;
++
++	eth_hw_addr_set(ndev, port->mac_addr);
++
++	/* It's more an intelligent poll wherein, we enable the Rx completion EQE event and then
++	 * start the poll from there.
++	 * Inside the polling thread, we read packets from hardware and then reschedule the poll
++	 * only if there are more packets to be processed. Else we re-enable the CQ Arm interrupt
++	 * and exit the poll.
++	 */
++	if (hdev->poll_enable)
++		hbl_en_rx_poll_trigger_init(port);
++
++	netif_carrier_off(ndev);
++
++	rc = register_netdev(ndev);
++	if (rc) {
++		dev_err(hdev->dev, "Could not register netdevice %d\n", port_idx);
++		goto err;
++	}
++
++	return 0;
++
++err:
++	if (ndev) {
++		free_netdev(ndev);
++		port->ndev = NULL;
 +	}
 +
 +	return rc;
 +}
 +
- static int gaudi2_scrub_arc_dccm(struct hl_device *hdev, u32 cpu_id)
- {
- 	u32 reg_base, reg_val;
-@@ -3303,6 +3420,15 @@ static int gaudi2_scrub_arcs_dccm(struct hl_device *hdev)
- 	return 0;
- }
- 
-+static int gaudi2_nic_unmask_ecc_interrupts(struct hl_device *hdev)
++static void dump_swap_pkt(struct hbl_en_port *port, struct sk_buff *skb)
 +{
-+	struct cpucp_packet pkt = {};
++	struct hbl_en_device *hdev = port->hdev;
++	u16 *tmp_buff = (u16 *)skb->data;
++	u32 port_idx = port->idx;
 +
-+	pkt.ctl = cpu_to_le32(CPUCP_PACKET_NIC_ECC_INTRS_UNMASK << CPUCP_PKT_CTL_OPCODE_SHIFT);
-+
-+	return gaudi2_send_cpu_message(hdev, (u32 *) &pkt, sizeof(pkt), 0, NULL);
++	/* The SKB is ready now (before stripping-out the L2), print its content */
++	dev_dbg_ratelimited(hdev->dev,
++			    "Recv [P%d]: dst-mac:%04x%04x%04x, src-mac:%04x%04x%04x, eth-type:%04x, len:%u\n",
++			    port_idx, swab16(tmp_buff[0]), swab16(tmp_buff[1]), swab16(tmp_buff[2]),
++			    swab16(tmp_buff[3]), swab16(tmp_buff[4]), swab16(tmp_buff[5]),
++			    swab16(tmp_buff[6]), skb->len);
 +}
 +
- static int gaudi2_late_init(struct hl_device *hdev)
- {
- 	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-@@ -3329,6 +3455,24 @@ static int gaudi2_late_init(struct hl_device *hdev)
- 		goto disable_pci_access;
- 	}
- 
-+	rc = gaudi2_fetch_nic_frequency(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to fetch NIC frequency\n");
-+		goto disable_pci_access;
-+	}
-+
-+	rc = gaudi2_cn_clear_mem(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to clear CN memory\n");
-+		goto disable_pci_access;
-+	}
-+
-+	rc = gaudi2_nic_unmask_ecc_interrupts(hdev);
-+	if (rc) {
-+		dev_err(hdev->dev, "Failed to unmask NIC ECC interrupts\n");
-+		goto disable_pci_access;
-+	}
-+
- 	gaudi2_init_arcs(hdev);
- 
- 	rc = gaudi2_scrub_arcs_dccm(hdev);
-@@ -4836,6 +4980,13 @@ static void gaudi2_halt_engines(struct hl_device *hdev, bool hard_reset, bool fw
- 	else
- 		wait_timeout_ms = GAUDI2_RESET_WAIT_MSEC;
- 
-+	/*
-+	 * Mark the NIC as in reset to avoid any new NIC accesses to the H/W. This must be done
-+	 * before we stop the CPU as the NIC might use it e.g. get/set EEPROM data.
-+	 */
-+	if (hard_reset)
-+		hl_cn_hard_reset_prepare(hdev, fw_reset);
-+
- 	if (fw_reset)
- 		goto skip_engines;
- 
-@@ -4872,11 +5023,14 @@ static void gaudi2_halt_engines(struct hl_device *hdev, bool hard_reset, bool fw
- 
- skip_engines:
- 	if (hard_reset) {
-+		hl_cn_stop(hdev);
- 		gaudi2_disable_msix(hdev);
- 		return;
- 	}
- 
-+	gaudi2_cn_compute_reset_prepare(hdev);
- 	gaudi2_sync_irqs(hdev);
-+	hl_cn_synchronize_irqs(hdev);
- }
- 
- static void gaudi2_init_firmware_preload_params(struct hl_device *hdev)
-@@ -5377,7 +5531,7 @@ static void gaudi2_arm_monitors_for_virt_msix_db(struct hl_device *hdev, u32 sob
- 
- static void gaudi2_prepare_sm_for_virt_msix_db(struct hl_device *hdev)
- {
--	u32 decoder_id, sob_id, first_mon_id, interrupt_id;
-+	u32 decoder_id, port, sob_id, first_mon_id, interrupt_id;
- 	struct asic_fixed_properties *prop = &hdev->asic_prop;
- 
- 	/* Decoder normal/abnormal interrupts */
-@@ -5395,6 +5549,14 @@ static void gaudi2_prepare_sm_for_virt_msix_db(struct hl_device *hdev)
- 		interrupt_id += 1;
- 		gaudi2_arm_monitors_for_virt_msix_db(hdev, sob_id, first_mon_id, interrupt_id);
- 	}
-+
-+	/* NIC EQ interrupts */
-+	for (port = 0 ; port < NIC_NUMBER_OF_PORTS ; ++port) {
-+		sob_id = GAUDI2_RESERVED_SOB_NIC_PORT_FIRST + port;
-+		first_mon_id = GAUDI2_RESERVED_MON_NIC_PORT_FIRST + 3 * port;
-+		interrupt_id = GAUDI2_IRQ_NUM_NIC_PORT_FIRST + port;
-+		gaudi2_arm_monitors_for_virt_msix_db(hdev, sob_id, first_mon_id, interrupt_id);
-+	}
- }
- 
- static void gaudi2_init_sm(struct hl_device *hdev)
-@@ -6161,6 +6323,8 @@ static int gaudi2_hw_init(struct hl_device *hdev)
- 		return rc;
- 	}
- 
-+	gaudi2_cn_quiescence(hdev);
-+
- 	gaudi2_init_scrambler_hbm(hdev);
- 	gaudi2_init_kdma(hdev);
- 
-@@ -6187,6 +6351,7 @@ static int gaudi2_hw_init(struct hl_device *hdev)
- 	gaudi2_init_mme(hdev);
- 	gaudi2_init_rotator(hdev);
- 	gaudi2_init_dec(hdev);
-+	gaudi2_init_cn(hdev);
- 	gaudi2_enable_timestamp(hdev);
- 
- 	rc = gaudi2_coresight_init(hdev);
-@@ -6469,6 +6634,12 @@ static int gaudi2_hw_fini(struct hl_device *hdev, bool hard_reset, bool fw_reset
- 			gaudi2_poll_btm_indication(hdev, poll_timeout_us);
- 	}
- 
-+	/* On PLDM the NIC PHY link is always up, and because the NIC interrupts are enabled by
-+	 * default - need to disable the interrupts ASAP.
-+	 */
-+	if (hard_reset && hdev->pldm)
-+		gaudi2_cn_disable_interrupts(hdev);
-+
- 	if (!gaudi2)
- 		return 0;
- 
-@@ -6488,7 +6659,7 @@ static int gaudi2_hw_fini(struct hl_device *hdev, bool hard_reset, bool fw_reset
- 			HW_CAP_PMMU | HW_CAP_CPU | HW_CAP_CPU_Q |
- 			HW_CAP_SRAM_SCRAMBLER | HW_CAP_DMMU_MASK |
- 			HW_CAP_PDMA_MASK | HW_CAP_EDMA_MASK | HW_CAP_KDMA |
--			HW_CAP_MME_MASK | HW_CAP_ROT_MASK);
-+			HW_CAP_MME_MASK | HW_CAP_ROT_MASK | HW_CAP_NIC_DRV);
- 
- 		memset(gaudi2->events_stat, 0, sizeof(gaudi2->events_stat));
- 	} else {
-@@ -7173,6 +7344,8 @@ static int gaudi2_compute_reset_late_init(struct hl_device *hdev)
- 
- 	gaudi2_init_security(hdev);
- 
-+	gaudi2_cn_compute_reset_late_init(hdev);
-+
- 	/* Unmask all IRQs since some could have been received during the soft reset */
- 	irq_arr_size = gaudi2->num_of_valid_hw_events * sizeof(gaudi2->hw_events[0]);
- 	return hl_fw_unmask_irq_arr(hdev, gaudi2->hw_events, irq_arr_size);
-@@ -7557,6 +7730,30 @@ static void gaudi2_hw_queues_unlock(struct hl_device *hdev)
- 	spin_unlock(&gaudi2->hw_queues_lock);
- }
- 
-+void gaudi2_init_cn(struct hl_device *hdev)
++int hbl_en_handle_rx(struct hbl_en_port *port, int budget)
 +{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	u32 i, reg_base, queue_id;
++	struct hbl_en_device *hdev = port->hdev;
++	enum hbl_en_eth_pkt_status pkt_status;
++	struct net_device *ndev = port->ndev;
++	int rc, pkt_count = 0;
++	struct sk_buff *skb;
++	void *pkt_addr;
++	u32 pkt_size;
 +
-+	if (!hdev->cn.ports_mask)
-+		return;
++	if (!netif_carrier_ok(ndev))
++		return 0;
 +
-+	if (gaudi2->nic_hw_cap_initialized & HW_CAP_NIC_MASK)
-+		return;
++	while (pkt_count < budget) {
++		pkt_status = hdev->asic_funcs.read_pkt_from_hw(port, &pkt_addr, &pkt_size);
 +
-+	queue_id = GAUDI2_QUEUE_ID_NIC_0_0;
++		if (pkt_status == ETH_PKT_NONE)
++			break;
 +
-+	for (i = 0; i < NIC_NUMBER_OF_ENGINES;
-+		i++, queue_id += NUM_OF_PQ_PER_QMAN) {
-+		if (!(hdev->cn.ports_mask & BIT(i)))
++		pkt_count++;
++
++		if (pkt_status == ETH_PKT_DROP) {
++			atomic64_inc(&port->net_stats.rx_dropped);
++			continue;
++		}
++
++		if (hdev->poll_enable)
++			skb = __netdev_alloc_skb_ip_align(ndev, pkt_size, GFP_KERNEL);
++		else
++			skb = napi_alloc_skb(&port->napi, pkt_size);
++
++		if (!skb) {
++			atomic64_inc(&port->net_stats.rx_dropped);
++			break;
++		}
++
++		skb_copy_to_linear_data(skb, pkt_addr, pkt_size);
++		skb_put(skb, pkt_size);
++
++		if (is_pkt_swap_enabled(hdev))
++			dump_swap_pkt(port, skb);
++
++		skb->protocol = eth_type_trans(skb, ndev);
++
++		/* Zero the packet buffer memory to avoid leak in case of wrong
++		 * size is used when next packet populates the same memory
++		 */
++		memset(pkt_addr, 0, pkt_size);
++
++		/* polling is done in thread context and hence BH should be disabled */
++		if (hdev->poll_enable)
++			local_bh_disable();
++
++		rc = netif_receive_skb(skb);
++
++		if (hdev->poll_enable)
++			local_bh_enable();
++
++		if (rc == NET_RX_SUCCESS) {
++			port->net_stats.rx_packets++;
++			port->net_stats.rx_bytes += pkt_size;
++		} else {
++			atomic64_inc(&port->net_stats.rx_dropped);
++		}
++	}
++
++	return pkt_count;
++}
++
++static bool __hbl_en_rx_poll_schedule(struct hbl_en_port *port, unsigned long delay)
++{
++	return queue_delayed_work(port->rx_wq, &port->rx_poll_work, delay);
++}
++
++static void hbl_en_rx_poll_work(struct work_struct *work)
++{
++	struct hbl_en_port *port = container_of(work, struct hbl_en_port, rx_poll_work.work);
++	struct hbl_en_device *hdev = port->hdev;
++	int pkt_count;
++
++	pkt_count = hbl_en_handle_rx(port, NAPI_POLL_WEIGHT);
++
++	/* Reschedule the poll if we have consumed budget which means we still have packets to
++	 * process. Else re-enable the Rx IRQs and exit the work.
++	 */
++	if (pkt_count < NAPI_POLL_WEIGHT)
++		hdev->asic_funcs.reenable_rx_irq(port);
++	else
++		__hbl_en_rx_poll_schedule(port, 0);
++}
++
++/* Rx poll init and trigger routines are used in event-driven setups where
++ * Rx polling is initialized once during init or open and started/triggered by the event handler.
++ */
++void hbl_en_rx_poll_trigger_init(struct hbl_en_port *port)
++{
++	INIT_DELAYED_WORK(&port->rx_poll_work, hbl_en_rx_poll_work);
++}
++
++bool hbl_en_rx_poll_start(struct hbl_en_port *port)
++{
++	return __hbl_en_rx_poll_schedule(port, msecs_to_jiffies(1));
++}
++
++void hbl_en_rx_poll_stop(struct hbl_en_port *port)
++{
++	cancel_delayed_work_sync(&port->rx_poll_work);
++}
++
++static int hbl_en_napi_poll(struct napi_struct *napi, int budget)
++{
++	struct hbl_en_port *port = container_of(napi, struct hbl_en_port, napi);
++	struct hbl_en_device *hdev = port->hdev;
++	int pkt_count;
++
++	/* exit if we are called by netpoll as we free the Tx ring via EQ (if enabled) */
++	if (!budget)
++		return 0;
++
++	pkt_count = hbl_en_handle_rx(port, budget);
++
++	/* If budget not fully consumed, exit the polling mode */
++	if (pkt_count < budget) {
++		napi_complete_done(napi, pkt_count);
++		hdev->asic_funcs.reenable_rx_irq(port);
++	}
++
++	return pkt_count;
++}
++
++static void hbl_en_port_unregister(struct hbl_en_port *port)
++{
++	struct net_device *ndev = port->ndev;
++
++	unregister_netdev(ndev);
++	free_netdev(ndev);
++	port->ndev = NULL;
++}
++
++static int hbl_en_set_asic_funcs(struct hbl_en_device *hdev)
++{
++	switch (hdev->asic_type) {
++	case HBL_ASIC_GAUDI2:
++	default:
++		dev_err(hdev->dev, "Unrecognized ASIC type %d\n", hdev->asic_type);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static void hbl_en_handle_eqe(struct hbl_aux_dev *aux_dev, u32 port, struct hbl_cn_eqe *eqe)
++{
++	struct hbl_en_device *hdev = aux_dev->priv;
++
++	hdev->asic_funcs.handle_eqe(aux_dev, port, eqe);
++}
++
++static void hbl_en_set_aux_ops(struct hbl_en_device *hdev, bool enable)
++{
++	struct hbl_en_aux_ops *aux_ops = hdev->aux_dev->aux_ops;
++
++	if (enable) {
++		aux_ops->ports_reopen = hbl_en_ports_reopen;
++		aux_ops->ports_stop_prepare = hbl_en_ports_stop_prepare;
++		aux_ops->ports_stop = hbl_en_ports_stop;
++		aux_ops->set_port_status = hbl_en_set_port_status;
++		aux_ops->is_port_open = hbl_en_is_port_open;
++		aux_ops->get_src_ip = hbl_en_get_src_ip;
++		aux_ops->reset_stats = hbl_en_reset_stats;
++		aux_ops->get_mtu = hbl_en_get_mtu;
++		aux_ops->get_pflags = hbl_en_get_pflags;
++		aux_ops->set_dev_lpbk = hbl_en_set_dev_lpbk;
++		aux_ops->handle_eqe = hbl_en_handle_eqe;
++	} else {
++		aux_ops->ports_reopen = NULL;
++		aux_ops->ports_stop_prepare = NULL;
++		aux_ops->ports_stop = NULL;
++		aux_ops->set_port_status = NULL;
++		aux_ops->is_port_open = NULL;
++		aux_ops->get_src_ip = NULL;
++		aux_ops->reset_stats = NULL;
++		aux_ops->get_mtu = NULL;
++		aux_ops->get_pflags = NULL;
++		aux_ops->set_dev_lpbk = NULL;
++		aux_ops->handle_eqe = NULL;
++	}
++}
++
++int hbl_en_dev_init(struct hbl_en_device *hdev)
++{
++	struct hbl_en_asic_funcs *asic_funcs = &hdev->asic_funcs;
++	struct hbl_en_port *port;
++	int rc, i, port_cnt = 0;
++
++	/* must be called before the call to dev_init() */
++	rc = hbl_en_set_asic_funcs(hdev);
++	if (rc) {
++		dev_err(hdev->dev, "failed to set aux ops\n");
++		return rc;
++	}
++
++	rc = asic_funcs->dev_init(hdev);
++	if (rc) {
++		dev_err(hdev->dev, "device init failed\n");
++		return rc;
++	}
++
++	/* init the function pointers here before calling hbl_en_port_register which sets up
++	 * net_device_ops, and its ops might start getting called.
++	 * If any failure is encountered, these will be made NULL and the core driver won't call
++	 * them.
++	 */
++	hbl_en_set_aux_ops(hdev, true);
++
++	/* Port register depends on the above initialization so it must be called here and not
++	 * before that.
++	 */
++	for (i = 0; i < hdev->max_num_of_ports; i++, port_cnt++) {
++		if (!(hdev->ports_mask & BIT(i)))
 +			continue;
 +
-+		reg_base = gaudi2_qm_blocks_bases[queue_id];
-+		gaudi2_init_qman(hdev, reg_base, queue_id);
-+		gaudi2->nic_hw_cap_initialized |= BIT_ULL(i);
-+	}
-+}
++		port = &hdev->ports[i];
 +
- static u32 gaudi2_get_pci_id(struct hl_device *hdev)
- {
- 	return hdev->pdev->device;
-@@ -7779,7 +7976,7 @@ static int gaudi2_mmu_shared_prepare(struct hl_device *hdev, u32 asid)
- {
- 	struct asic_fixed_properties *prop = &hdev->asic_prop;
- 	u32 rw_asid, offset;
--	int rc, i;
-+	int rc, i, q;
- 
- 	rw_asid = FIELD_PREP(ARC_FARM_KDMA_CTX_AXUSER_HB_ASID_RD_MASK, asid) |
- 			FIELD_PREP(ARC_FARM_KDMA_CTX_AXUSER_HB_ASID_WR_MASK, asid);
-@@ -7819,6 +8016,18 @@ static int gaudi2_mmu_shared_prepare(struct hl_device *hdev, u32 asid)
- 	if (rc)
- 		return rc;
- 
-+	/* NIC */
-+	for (i = 0 ; i < NIC_NUMBER_OF_MACROS ; i++)
-+		for (q = 0 ; q < NIC_NUMBER_OF_QM_PER_MACRO ; q++) {
-+			if (!(hdev->cn.ports_mask & BIT(i * NIC_NUMBER_OF_QM_PER_MACRO + q)))
-+				continue;
-+
-+			WREG32(mmNIC0_QM0_AXUSER_NONSECURED_HB_ASID +
-+				i * NIC_OFFSET + q * NIC_QM_OFFSET, rw_asid);
-+			WREG32(mmNIC0_QM0_AXUSER_NONSECURED_HB_MMU_BP +
-+				i * NIC_OFFSET + q * NIC_QM_OFFSET, 0);
++		rc = hbl_en_port_init(port);
++		if (rc) {
++			dev_err(hdev->dev, "port init failed\n");
++			goto unregister_ports;
 +		}
 +
- 	return 0;
- }
- 
-@@ -7936,6 +8145,47 @@ static bool gaudi2_handle_ecc_event(struct hl_device *hdev, u16 event_type,
- 	return !!ecc_data->is_critical;
- }
- 
-+static void gaudi2_handle_bmon_spmu_event(struct hl_device *hdev, u8 macro_index)
-+{
-+	/* For this point a profiler is not configuring the BMON and SPMU block and
-+	 * therefore we can't deduce which port and entity triggered the interrupt.
-+	 * So for now we only clear all interrupt registers to prevent interrupt flood
-+	 */
-+	u32 macro_offset = GAUDI2_SPMU_NIC1_DBG_0 - GAUDI2_SPMU_NIC0_DBG_0;
++		rc = hbl_en_port_register(port);
++		if (rc) {
++			dev_err(hdev->dev, "port register failed\n");
 +
-+	WREG32(debug_spmu_regs[GAUDI2_SPMU_NIC0_DBG_0 + macro_index * macro_offset]
-+			+ mmSPMU_PMINTENCLR_EL1_OFFSET, 0x1);
-+	WREG32(debug_spmu_regs[GAUDI2_SPMU_NIC0_DBG_1 + macro_index * macro_offset]
-+			+ mmSPMU_PMINTENCLR_EL1_OFFSET, 0x1);
++			hbl_en_port_fini(port);
++			goto unregister_ports;
++		}
++	}
 +
-+	macro_offset = GAUDI2_BMON_NIC1_DBG_0_0 - GAUDI2_BMON_NIC0_DBG_0_0;
-+	WREG32(debug_bmon_regs[GAUDI2_BMON_NIC0_DBG_0_0 + macro_index * macro_offset]
-+			+ mmBMON_INT_CLR_OFFSET, 0x1);
-+	WREG32(debug_bmon_regs[GAUDI2_BMON_NIC0_DBG_1_0 + macro_index * macro_offset]
-+			+ mmBMON_INT_CLR_OFFSET, 0x1);
-+	WREG32(debug_bmon_regs[GAUDI2_BMON_NIC0_DBG_2_0 + macro_index * macro_offset]
-+			+ mmBMON_INT_CLR_OFFSET, 0x1);
-+	WREG32(debug_bmon_regs[GAUDI2_BMON_NIC0_DBG_0_1 + macro_index * macro_offset]
-+			+ mmBMON_INT_CLR_OFFSET, 0x1);
-+	WREG32(debug_bmon_regs[GAUDI2_BMON_NIC0_DBG_1_1 + macro_index * macro_offset]
-+			+ mmBMON_INT_CLR_OFFSET, 0x1);
-+	WREG32(debug_bmon_regs[GAUDI2_BMON_NIC0_DBG_2_1 + macro_index * macro_offset]
-+			+ mmBMON_INT_CLR_OFFSET, 0x1);
++	hdev->is_initialized = true;
++
++	return 0;
++
++unregister_ports:
++	for (i = 0; i < port_cnt; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		port = &hdev->ports[i];
++
++		hbl_en_port_unregister(port);
++		hbl_en_port_fini(port);
++	}
++
++	hbl_en_set_aux_ops(hdev, false);
++
++	asic_funcs->dev_fini(hdev);
++
++	return rc;
 +}
 +
-+static int gaudi2_handle_nic_sw_error_event(struct hl_device *hdev, u16 event_type, u8 macro_index,
-+						struct hl_eq_nic_intr_cause *nic_intr_cause)
++void hbl_en_dev_fini(struct hbl_en_device *hdev)
 +{
-+	u32 error_count;
++	struct hbl_en_asic_funcs *asic_funcs = &hdev->asic_funcs;
++	struct hbl_en_port *port;
++	int i;
 +
-+	error_count = gaudi2_cn_handle_sw_error_event(hdev, event_type, macro_index,
-+							nic_intr_cause);
++	hdev->in_teardown = true;
 +
-+	hl_check_for_glbl_errors(hdev);
++	if (!hdev->is_initialized)
++		return;
 +
-+	return error_count;
-+}
++	hdev->is_initialized = false;
 +
- static void handle_lower_qman_data_on_err(struct hl_device *hdev, u64 qman_base, u32 engine_id)
- {
- 	struct undefined_opcode_info *undef_opcode = &hdev->captured_err_info.undef_opcode;
-@@ -8347,6 +8597,22 @@ static void gaudi2_check_if_razwi_happened(struct hl_device *hdev)
- 		gaudi2_ack_module_razwi_event_handler(hdev, RAZWI_ROT, mod_idx, 0, NULL);
- }
- 
-+static int gaudi2_handle_nic_axi_error_response_event(struct hl_device *hdev, u16 event_type,
-+				u8 macro_index, struct hl_eq_nic_intr_cause *nic_intr_cause,
-+				u64 *event_mask)
-+{
-+	u32 error_count = 0;
++	for (i = 0; i < hdev->max_num_of_ports; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
 +
-+	error_count = gaudi2_cn_handle_axi_error_response_event(hdev, event_type, macro_index,
-+								nic_intr_cause);
++		port = &hdev->ports[i];
 +
-+	/* check if RAZWI happened */
-+	gaudi2_ack_module_razwi_event_handler(hdev, RAZWI_NIC, macro_index, 0, event_mask);
-+	hl_check_for_glbl_errors(hdev);
-+
-+	return error_count;
-+}
-+
- static int gaudi2_psoc_razwi_get_engines(struct gaudi2_razwi_info *razwi_info, u32 array_size,
- 						u32 axuser_xy, u32 *base, u16 *eng_id,
- 						char *eng_name)
-@@ -8560,6 +8826,11 @@ static int gaudi2_handle_qm_sei_err(struct hl_device *hdev, u16 event_type,
- 		qman_base = mmROT0_QM_BASE + index * ROT_OFFSET;
- 		module = RAZWI_ROT;
- 		break;
-+	case GAUDI2_EVENT_NIC0_AXI_ERROR_RESPONSE ... GAUDI2_EVENT_NIC11_AXI_ERROR_RESPONSE:
-+		index = event_type - GAUDI2_EVENT_NIC0_AXI_ERROR_RESPONSE;
-+		qman_base = mmNIC0_QM0_BASE + index * NIC_OFFSET;
-+		module = RAZWI_NIC;
-+		break;
- 	default:
- 		return 0;
- 	}
-@@ -8684,6 +8955,13 @@ static int gaudi2_handle_qman_err(struct hl_device *hdev, u16 event_type, u64 *e
- 		qid_base = GAUDI2_QUEUE_ID_ROT_1_0;
- 		qman_base = mmROT1_QM_BASE;
- 		break;
-+	case GAUDI2_EVENT_NIC0_QM0 ... GAUDI2_EVENT_NIC11_QM1:
-+		index = event_type - GAUDI2_EVENT_NIC0_QM0;
-+		qid_base = GAUDI2_QUEUE_ID_NIC_0_0 + index * QMAN_STREAMS;
-+		qman_base = mmNIC0_QM0_BASE +
-+			(index / NIC_NUMBER_OF_QM_PER_MACRO) * NIC_OFFSET +
-+			(index % NIC_NUMBER_OF_QM_PER_MACRO) * NIC_QM_OFFSET;
-+		break;
- 	default:
- 		return 0;
- 	}
-@@ -10176,6 +10454,25 @@ static void gaudi2_handle_eqe(struct hl_device *hdev, struct hl_eq_entry *eq_ent
- 		event_mask |= HL_NOTIFIER_EVENT_USER_ENGINE_ERR;
- 		break;
- 
-+	case GAUDI2_EVENT_NIC0_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC1_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC2_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC3_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC4_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC5_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC6_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC7_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC8_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC9_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC10_BMON_SPMU:
-+	case GAUDI2_EVENT_NIC11_BMON_SPMU:
-+		index = (event_type - GAUDI2_EVENT_NIC0_BMON_SPMU) /
-+				(GAUDI2_EVENT_NIC1_BMON_SPMU - GAUDI2_EVENT_NIC0_BMON_SPMU);
-+		gaudi2_handle_bmon_spmu_event(hdev, index);
-+		error_count = GAUDI2_NA_EVENT_CAUSE;
-+		event_mask |= HL_NOTIFIER_EVENT_USER_ENGINE_ERR;
-+		break;
-+
- 	case GAUDI2_EVENT_CPU_FIX_POWER_ENV_S:
- 	case GAUDI2_EVENT_CPU_FIX_POWER_ENV_E:
- 	case GAUDI2_EVENT_CPU_FIX_THERMAL_ENV_S:
-@@ -10213,6 +10510,33 @@ static void gaudi2_handle_eqe(struct hl_device *hdev, struct hl_eq_entry *eq_ent
- 		event_mask |= HL_NOTIFIER_EVENT_GENERAL_HW_ERR;
- 		break;
- 
-+	case GAUDI2_EVENT_NIC0_AXI_ERROR_RESPONSE ... GAUDI2_EVENT_NIC11_AXI_ERROR_RESPONSE:
-+		index = (event_type - GAUDI2_EVENT_NIC0_AXI_ERROR_RESPONSE);
-+		error_count = gaudi2_handle_nic_axi_error_response_event(hdev, event_type, index,
-+							&eq_entry->nic_intr_cause, &event_mask);
-+		error_count += gaudi2_handle_qm_sei_err(hdev, event_type, false, &event_mask);
-+		event_mask |= HL_NOTIFIER_EVENT_USER_ENGINE_ERR;
-+		break;
-+
-+	case GAUDI2_EVENT_NIC0_SW_ERROR:
-+	case GAUDI2_EVENT_NIC1_SW_ERROR:
-+	case GAUDI2_EVENT_NIC2_SW_ERROR:
-+	case GAUDI2_EVENT_NIC3_SW_ERROR:
-+	case GAUDI2_EVENT_NIC4_SW_ERROR:
-+	case GAUDI2_EVENT_NIC5_SW_ERROR:
-+	case GAUDI2_EVENT_NIC6_SW_ERROR:
-+	case GAUDI2_EVENT_NIC7_SW_ERROR:
-+	case GAUDI2_EVENT_NIC8_SW_ERROR:
-+	case GAUDI2_EVENT_NIC9_SW_ERROR:
-+	case GAUDI2_EVENT_NIC10_SW_ERROR:
-+	case GAUDI2_EVENT_NIC11_SW_ERROR:
-+		index = (event_type - GAUDI2_EVENT_NIC0_SW_ERROR) /
-+				(GAUDI2_EVENT_NIC1_SW_ERROR - GAUDI2_EVENT_NIC0_SW_ERROR);
-+		error_count = gaudi2_handle_nic_sw_error_event(hdev, event_type, index,
-+							&eq_entry->nic_intr_cause);
-+		event_mask |= HL_NOTIFIER_EVENT_USER_ENGINE_ERR;
-+		break;
-+
- 	case GAUDI2_EVENT_CPU_CPLD_SHUTDOWN_CAUSE:
- 		dev_info(hdev->dev, "CPLD shutdown cause, reset reason: 0x%llx\n",
- 						le64_to_cpu(eq_entry->data[0]));
-@@ -10233,6 +10557,11 @@ static void gaudi2_handle_eqe(struct hl_device *hdev, struct hl_eq_entry *eq_ent
- 		event_mask |= HL_NOTIFIER_EVENT_GENERAL_HW_ERR;
- 		break;
- 
-+	case GAUDI2_EVENT_CPU0_STATUS_NIC0_ENG0 ... GAUDI2_EVENT_CPU11_STATUS_NIC11_ENG1:
-+		hl_cn_send_status(hdev, event_type - GAUDI2_EVENT_CPU0_STATUS_NIC0_ENG0, 0, 0);
-+		error_count = GAUDI2_NA_EVENT_CAUSE;
-+		break;
-+
- 	case GAUDI2_EVENT_ARC_DCCM_FULL:
- 		error_count = hl_arc_event_handle(hdev, event_type, &eq_entry->arc_data);
- 		event_mask |= HL_NOTIFIER_EVENT_USER_ENGINE_ERR;
-@@ -11510,6 +11839,54 @@ static u32 *gaudi2_get_stream_master_qid_arr(void)
- 	return NULL;
- }
- 
-+static void gaudi2_update_nic_qmans_state(struct hl_device *hdev)
-+{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	u32 nic_mask, queue_id;
-+	int nic_id;
-+
-+	queue_id = GAUDI2_QUEUE_ID_NIC_0_0;
-+
-+	for (nic_id = 0 ; nic_id < NIC_NUMBER_OF_ENGINES;
-+						nic_id++, queue_id += NUM_OF_PQ_PER_QMAN) {
-+
-+		nic_mask = BIT(HW_CAP_NIC_SHIFT + nic_id);
-+
-+		/* We need to stop and disable the QMAN in case we already
-+		 * initialized it AND the firmware reported that the matching
-+		 * NIC is disabled
++		/* It could be this cleanup flow is called after a failed init flow.
++		 * Hence we need to check that we indeed have a netdev to unregister.
 +		 */
-+		if ((gaudi2->nic_hw_cap_initialized & nic_mask) &&
-+				(!(hdev->cn.ports_mask & BIT(nic_id)))) {
++		if (!port->ndev)
++			continue;
 +
-+			gaudi2_stop_qman_common(hdev, gaudi2_qm_blocks_bases[queue_id]);
-+			gaudi2_disable_qman_common(hdev, gaudi2_qm_blocks_bases[queue_id]);
-+
-+			/* Remove that capability bit so no one would be able
-+			 * to submit to that NIC's QMAN
-+			 */
-+			gaudi2->nic_hw_cap_initialized &= ~nic_mask;
-+		}
++		hbl_en_port_unregister(port);
++		hbl_en_port_fini(port);
 +	}
++
++	hbl_en_set_aux_ops(hdev, false);
++
++	asic_funcs->dev_fini(hdev);
 +}
 +
-+static int gaudi2_cn_init(struct hl_device *hdev)
++dma_addr_t hbl_en_dma_map(struct hbl_en_device *hdev, void *addr, int len)
 +{
++	dma_addr_t dma_addr;
++
++	if (hdev->dma_map_support)
++		dma_addr = dma_map_single(&hdev->pdev->dev, addr, len, DMA_TO_DEVICE);
++	else
++		dma_addr = virt_to_phys(addr);
++
++	return dma_addr;
++}
++
++void hbl_en_dma_unmap(struct hbl_en_device *hdev, dma_addr_t dma_addr, int len)
++{
++	if (hdev->dma_map_support)
++		dma_unmap_single(&hdev->pdev->dev, dma_addr, len, DMA_TO_DEVICE);
++}
+diff --git a/drivers/net/ethernet/intel/hbl_en/common/hbl_en.h b/drivers/net/ethernet/intel/hbl_en/common/hbl_en.h
+new file mode 100644
+index 000000000000..15504c1f3cfb
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_en/common/hbl_en.h
+@@ -0,0 +1,206 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#ifndef HABANALABS_EN_H_
++#define HABANALABS_EN_H_
++
++#include <linux/net/intel/cn.h>
++
++#include <linux/netdevice.h>
++#include <linux/pci.h>
++
++#define HBL_EN_NAME			"habanalabs_en"
++
++#define HBL_EN_PORT(aux_dev, idx)	(&(((struct hbl_en_device *)(aux_dev)->priv)->ports[(idx)]))
++
++#define hbl_netdev_priv(ndev) \
++({ \
++	typecheck(struct net_device *, ndev); \
++	*(struct hbl_en_port **)netdev_priv(ndev); \
++})
++
++/**
++ * enum hbl_en_eth_pkt_status - status of Rx Ethernet packet.
++ * ETH_PKT_OK: packet was received successfully.
++ * ETH_PKT_DROP: packet should be dropped.
++ * ETH_PKT_NONE: no available packet.
++ */
++enum hbl_en_eth_pkt_status {
++	ETH_PKT_OK,
++	ETH_PKT_DROP,
++	ETH_PKT_NONE
++};
++
++/**
++ * struct hbl_en_net_stats - stats of Ethernet interface.
++ * rx_packets: number of packets received.
++ * tx_packets: number of packets sent.
++ * rx_bytes: total bytes of data received.
++ * tx_bytes: total bytes of data sent.
++ * tx_errors: number of errors in the TX.
++ * rx_dropped: number of packets dropped by the RX.
++ * tx_dropped: number of packets dropped by the TX.
++ */
++struct hbl_en_net_stats {
++	u64 rx_packets;
++	u64 tx_packets;
++	u64 rx_bytes;
++	u64 tx_bytes;
++	u64 tx_errors;
++	atomic64_t rx_dropped;
++	atomic64_t tx_dropped;
++};
++
++/**
++ * struct hbl_en_port - manage port common structure.
++ * @hdev: habanalabs Ethernet device structure.
++ * @ndev: network device.
++ * @rx_wq: WQ for Rx poll when we cannot schedule NAPI poll.
++ * @mac_addr: HW MAC addresses.
++ * @asic_specific: ASIC specific port structure.
++ * @napi: New API structure.
++ * @rx_poll_work: Rx work for polling mode.
++ * @net_stats: statistics of the ethernet interface.
++ * @in_reset: true if the NIC was marked as in reset, false otherwise. Used to avoid an additional
++ *            stopping of the NIC if a hard reset was re-initiated.
++ * @pflags: ethtool private flags bit mask.
++ * @idx: index of this specific port.
++ * @rx_max_coalesced_frames: Maximum number of packets to receive before an RX interrupt.
++ * @tx_max_coalesced_frames: Maximum number of packets to be sent before a TX interrupt.
++ * @rx_coalesce_usecs: How many usecs to delay an RX interrupt after a packet arrives.
++ * @is_initialized: true if the port H/W is initialized, false otherwise.
++ * @pfc_enable: true if this port supports Priority Flow Control, false otherwise.
++ * @auto_neg_enable: is autoneg enabled.
++ * @auto_neg_resolved: was autoneg phase finished successfully.
++ */
++struct hbl_en_port {
++	struct hbl_en_device *hdev;
++	struct net_device *ndev;
++	struct workqueue_struct *rx_wq;
++	char *mac_addr;
++	void *asic_specific;
++	struct napi_struct napi;
++	struct delayed_work rx_poll_work;
++	struct hbl_en_net_stats net_stats;
++	atomic_t in_reset;
++	u32 pflags;
++	u32 idx;
++	u32 rx_max_coalesced_frames;
++	u32 tx_max_coalesced_frames;
++	u16 rx_coalesce_usecs;
++	u8 is_initialized;
++	u8 pfc_enable;
++	u8 auto_neg_enable;
++	u8 auto_neg_resolved;
++};
++
++/**
++ * struct hbl_en_asic_funcs - ASIC specific Ethernet functions.
++ * @dev_init: device init.
++ * @dev_fini: device cleanup.
++ * @reenable_rx_irq: re-enable Rx interrupts.
++ * @eth_port_open: initialize and open the Ethernet port.
++ * @eth_port_close: close the Ethernet port.
++ * @write_pkt_to_hw: write skb to HW.
++ * @read_pkt_from_hw: read pkt from HW.
++ * @get_pfc_cnts: get PFC counters.
++ * @set_coalesce: set Tx/Rx coalesce config in HW.
++ * @get_rx_ring size: get max number of elements the Rx ring can contain.
++ * @handle_eqe: Handle a received event.
++ */
++struct hbl_en_asic_funcs {
++	int (*dev_init)(struct hbl_en_device *hdev);
++	void (*dev_fini)(struct hbl_en_device *hdev);
++	void (*reenable_rx_irq)(struct hbl_en_port *port);
++	int (*eth_port_open)(struct hbl_en_port *port);
++	void (*eth_port_close)(struct hbl_en_port *port);
++	netdev_tx_t (*write_pkt_to_hw)(struct hbl_en_port *port, struct sk_buff *skb);
++	int (*read_pkt_from_hw)(struct hbl_en_port *port, void **pkt_addr, u32 *pkt_size);
++	void (*get_pfc_cnts)(struct hbl_en_port *port, void *ptr);
++	int (*set_coalesce)(struct hbl_en_port *port);
++	int (*get_rx_ring_size)(struct hbl_en_port *port);
++	void (*handle_eqe)(struct hbl_aux_dev *aux_dev, u32 port_idx, struct hbl_cn_eqe *eqe);
++};
++
++/**
++ * struct hbl_en_device - habanalabs Ethernet device structure.
++ * @pdev: pointer to PCI device.
++ * @dev: related kernel basic device structure.
++ * @ports: array of all ports manage common structures.
++ * @aux_dev: pointer to auxiliary device.
++ * @asic_specific: ASIC specific device structure.
++ * @fw_ver: FW version.
++ * @qsfp_eeprom: QSFPD EEPROM info.
++ * @mac_addr: array of all MAC addresses.
++ * @asic_funcs: ASIC specific Ethernet functions.
++ * @asic_type: ASIC specific type.
++ * @ports_mask: mask of available ports.
++ * @auto_neg_mask: mask of port with Autonegotiation enabled.
++ * @port_reset_timeout: max time in seconds for a port reset flow to finish.
++ * @pending_reset_long_timeout: long timeout for pending hard reset to finish in seconds.
++ * @max_frm_len: maximum allowed frame length.
++ * @raw_elem_size: size of element in raw buffers.
++ * @max_raw_mtu: maximum MTU size for raw packets.
++ * @min_raw_mtu: minimum MTU size for raw packets.
++ * @pad_size: the pad size in bytes for the skb to transmit.
++ * @core_dev_id: core device ID.
++ * @max_num_of_ports: max number of available ports;
++ * @in_reset: is the entire NIC currently under reset.
++ * @poll_enable: Enable Rx polling rather than IRQ + NAPI.
++ * @in_teardown: true if the NIC is in teardown (during device remove).
++ * @is_initialized: was the device initialized successfully.
++ * @has_eq: true if event queue is supported.
++ * @dma_map_support: HW supports DMA mapping.
++ */
++struct hbl_en_device {
++	struct pci_dev *pdev;
++	struct device *dev;
++	struct hbl_en_port *ports;
++	struct hbl_aux_dev *aux_dev;
++	void *asic_specific;
++	char *fw_ver;
++	char *qsfp_eeprom;
++	char *mac_addr;
++	struct hbl_en_asic_funcs asic_funcs;
++	enum hbl_cn_asic_type asic_type;
++	u64 ports_mask;
++	u64 auto_neg_mask;
++	u32 port_reset_timeout;
++	u32 pending_reset_long_timeout;
++	u32 max_frm_len;
++	u32 raw_elem_size;
++	u16 max_raw_mtu;
++	u16 min_raw_mtu;
++	u16 pad_size;
++	u16 core_dev_id;
++	u8 max_num_of_ports;
++	u8 in_reset;
++	u8 poll_enable;
++	u8 in_teardown;
++	u8 is_initialized;
++	u8 has_eq;
++	u8 dma_map_support;
++};
++
++int hbl_en_dev_init(struct hbl_en_device *hdev);
++void hbl_en_dev_fini(struct hbl_en_device *hdev);
++
++const struct ethtool_ops *hbl_en_ethtool_get_ops(struct net_device *ndev);
++void hbl_en_ethtool_init_coalesce(struct hbl_en_port *port);
++
++extern const struct dcbnl_rtnl_ops hbl_en_dcbnl_ops;
++
++bool hbl_en_rx_poll_start(struct hbl_en_port *port);
++void hbl_en_rx_poll_stop(struct hbl_en_port *port);
++void hbl_en_rx_poll_trigger_init(struct hbl_en_port *port);
++int hbl_en_port_reset(struct hbl_en_port *port);
++int hbl_en_port_reset_locked(struct hbl_aux_dev *aux_dev, u32 port_idx);
++int hbl_en_handle_rx(struct hbl_en_port *port, int budget);
++dma_addr_t hbl_en_dma_map(struct hbl_en_device *hdev, void *addr, int len);
++void hbl_en_dma_unmap(struct hbl_en_device *hdev, dma_addr_t dma_addr, int len);
++
++#endif /* HABANALABS_EN_H_ */
+diff --git a/drivers/net/ethernet/intel/hbl_en/common/hbl_en_dcbnl.c b/drivers/net/ethernet/intel/hbl_en/common/hbl_en_dcbnl.c
+new file mode 100644
+index 000000000000..5d718579a2b6
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_en/common/hbl_en_dcbnl.c
+@@ -0,0 +1,101 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#include "hbl_en.h"
++
++#define PFC_PRIO_MASK_ALL	GENMASK(HBL_EN_PFC_PRIO_NUM - 1, 0)
++#define PFC_PRIO_MASK_NONE	0
++
++#ifdef CONFIG_DCB
++static int hbl_en_dcbnl_ieee_getpfc(struct net_device *netdev, struct ieee_pfc *pfc)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(netdev);
++	struct hbl_en_device *hdev;
++	u32 port_idx;
++
++	hdev = port->hdev;
++	port_idx = port->idx;
++
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		dev_dbg_ratelimited(hdev->dev, "port %d is in reset, can't get PFC", port_idx);
++		return -EBUSY;
++	}
++
++	pfc->pfc_en = port->pfc_enable ? PFC_PRIO_MASK_ALL : PFC_PRIO_MASK_NONE;
++	pfc->pfc_cap = HBL_EN_PFC_PRIO_NUM;
++
++	hdev->asic_funcs.get_pfc_cnts(port, pfc);
++
++	atomic_set(&port->in_reset, 0);
++
++	return 0;
++}
++
++static int hbl_en_dcbnl_ieee_setpfc(struct net_device *netdev, struct ieee_pfc *pfc)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(netdev);
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	struct hbl_en_device *hdev;
++	u8 curr_pfc_en;
++	u32 port_idx;
++	int rc = 0;
++
++	hdev = port->hdev;
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	port_idx = port->idx;
++
++	if (pfc->pfc_en & ~PFC_PRIO_MASK_ALL) {
++		dev_dbg_ratelimited(hdev->dev, "PFC supports %d priorities only, port %d\n",
++				    HBL_EN_PFC_PRIO_NUM, port_idx);
++		return -EINVAL;
++	}
++
++	if (pfc->pfc_en != PFC_PRIO_MASK_NONE && pfc->pfc_en != PFC_PRIO_MASK_ALL) {
++		dev_dbg_ratelimited(hdev->dev,
++				    "PFC should be enabled/disabled on all priorities, port %d\n",
++				    port_idx);
++		return -EINVAL;
++	}
++
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		dev_dbg_ratelimited(hdev->dev, "port %d is in reset, can't set PFC", port_idx);
++		return -EBUSY;
++	}
++
++	curr_pfc_en = port->pfc_enable ? PFC_PRIO_MASK_ALL : PFC_PRIO_MASK_NONE;
++
++	if (pfc->pfc_en == curr_pfc_en)
++		goto out;
++
++	port->pfc_enable = !port->pfc_enable;
++
++	rc = aux_ops->set_pfc(aux_dev, port_idx, port->pfc_enable);
++
++out:
++	atomic_set(&port->in_reset, 0);
++
++	return rc;
++}
++
++static u8 hbl_en_dcbnl_getdcbx(struct net_device *netdev)
++{
++	return DCB_CAP_DCBX_HOST | DCB_CAP_DCBX_VER_IEEE;
++}
++
++static u8 hbl_en_dcbnl_setdcbx(struct net_device *netdev, u8 mode)
++{
++	return !(mode == (DCB_CAP_DCBX_HOST | DCB_CAP_DCBX_VER_IEEE));
++}
++
++const struct dcbnl_rtnl_ops hbl_en_dcbnl_ops = {
++	.ieee_getpfc	= hbl_en_dcbnl_ieee_getpfc,
++	.ieee_setpfc	= hbl_en_dcbnl_ieee_setpfc,
++	.getdcbx	= hbl_en_dcbnl_getdcbx,
++	.setdcbx	= hbl_en_dcbnl_setdcbx
++};
++#endif
+diff --git a/drivers/net/ethernet/intel/hbl_en/common/hbl_en_drv.c b/drivers/net/ethernet/intel/hbl_en/common/hbl_en_drv.c
+new file mode 100644
+index 000000000000..23a87d36ded5
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_en/common/hbl_en_drv.c
+@@ -0,0 +1,211 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#define pr_fmt(fmt)		"habanalabs_en: " fmt
++
++#include "hbl_en.h"
++
++#include <linux/module.h>
++#include <linux/auxiliary_bus.h>
++
++#define HBL_DRIVER_AUTHOR	"HabanaLabs Kernel Driver Team"
++
++#define HBL_DRIVER_DESC		"HabanaLabs AI accelerators Ethernet driver"
++
++MODULE_AUTHOR(HBL_DRIVER_AUTHOR);
++MODULE_DESCRIPTION(HBL_DRIVER_DESC);
++MODULE_LICENSE("GPL");
++
++static bool poll_enable;
++
++module_param(poll_enable, bool, 0444);
++MODULE_PARM_DESC(poll_enable,
++		 "Enable Rx polling rather than IRQ + NAPI (0 = no, 1 = yes, default: no)");
++
++static int hdev_init(struct hbl_aux_dev *aux_dev)
++{
++	struct hbl_en_aux_data *aux_data = aux_dev->aux_data;
++	struct hbl_en_port *ports, *port;
++	struct hbl_en_device *hdev;
++	int rc, i;
++
++	hdev = kzalloc(sizeof(*hdev), GFP_KERNEL);
++	if (!hdev)
++		return -ENOMEM;
++
++	ports = kcalloc(aux_data->max_num_of_ports, sizeof(*ports), GFP_KERNEL);
++	if (!ports) {
++		rc = -ENOMEM;
++		goto ports_alloc_fail;
++	}
++
++	aux_dev->priv = hdev;
++	hdev->aux_dev = aux_dev;
++	hdev->ports = ports;
++	hdev->pdev = aux_data->pdev;
++	hdev->dev = aux_data->dev;
++	hdev->ports_mask = aux_data->ports_mask;
++	hdev->auto_neg_mask = aux_data->auto_neg_mask;
++	hdev->max_num_of_ports = aux_data->max_num_of_ports;
++	hdev->core_dev_id = aux_data->id;
++	hdev->fw_ver = aux_data->fw_ver;
++	hdev->qsfp_eeprom = aux_data->qsfp_eeprom;
++	hdev->asic_type = aux_data->asic_type;
++	hdev->pending_reset_long_timeout = aux_data->pending_reset_long_timeout;
++	hdev->max_frm_len = aux_data->max_frm_len;
++	hdev->raw_elem_size = aux_data->raw_elem_size;
++	hdev->max_raw_mtu = aux_data->max_raw_mtu;
++	hdev->min_raw_mtu = aux_data->min_raw_mtu;
++	hdev->pad_size = ETH_ZLEN;
++	hdev->has_eq = aux_data->has_eq;
++	hdev->dma_map_support = true;
++	hdev->poll_enable = poll_enable;
++
++	for (i = 0; i < hdev->max_num_of_ports; i++) {
++		if (!(hdev->ports_mask & BIT(i)))
++			continue;
++
++		port = &hdev->ports[i];
++		port->hdev = hdev;
++		port->idx = i;
++		port->pfc_enable = true;
++		port->pflags = PFLAGS_PCS_LINK_CHECK | PFLAGS_PHY_AUTO_NEG_LPBK;
++		port->mac_addr = aux_data->mac_addr[i];
++		port->auto_neg_enable = !!(aux_data->auto_neg_mask & BIT(i));
++	}
++
++	return 0;
++
++ports_alloc_fail:
++	kfree(hdev);
++
++	return rc;
++}
++
++static void hdev_fini(struct hbl_aux_dev *aux_dev)
++{
++	struct hbl_en_device *hdev = aux_dev->priv;
++
++	kfree(hdev->ports);
++	kfree(hdev);
++	aux_dev->priv = NULL;
++}
++
++static const struct auxiliary_device_id hbl_en_id_table[] = {
++	{ .name = "habanalabs_cn.en", },
++	{},
++};
++
++MODULE_DEVICE_TABLE(auxiliary, hbl_en_id_table);
++
++static int hbl_en_probe(struct auxiliary_device *adev, const struct auxiliary_device_id *id)
++{
++	struct hbl_aux_dev *aux_dev = container_of(adev, struct hbl_aux_dev, adev);
++	struct hbl_en_aux_ops *aux_ops = aux_dev->aux_ops;
++	struct hbl_en_device *hdev;
++	ktime_t timeout;
 +	int rc;
 +
-+	rc = hl_cn_init(hdev);
++	rc = hdev_init(aux_dev);
++	if (rc) {
++		dev_err(&aux_dev->adev.dev, "Failed to init hdev\n");
++		return -EIO;
++	}
++
++	hdev = aux_dev->priv;
++
++	/* don't allow module unloading while it is attached */
++	if (!try_module_get(THIS_MODULE)) {
++		dev_err(hdev->dev, "Failed to increment %s module refcount\n", HBL_EN_NAME);
++		rc = -EIO;
++		goto module_get_err;
++	}
++
++	timeout = ktime_add_ms(ktime_get(), hdev->pending_reset_long_timeout * MSEC_PER_SEC);
++	while (1) {
++		aux_ops->hw_access_lock(aux_dev);
++
++		/* if the device is operational, proceed to actual init while holding the lock in
++		 * order to prevent concurrent hard reset
++		 */
++		if (aux_ops->device_operational(aux_dev))
++			break;
++
++		aux_ops->hw_access_unlock(aux_dev);
++
++		if (ktime_compare(ktime_get(), timeout) > 0) {
++			dev_err(hdev->dev, "Timeout while waiting for hard reset to finish\n");
++			rc = -EBUSY;
++			goto timeout_err;
++		}
++
++		dev_notice_once(hdev->dev, "Waiting for hard reset to finish before probing en\n");
++
++		msleep_interruptible(MSEC_PER_SEC);
++	}
++
++	rc = hbl_en_dev_init(hdev);
++	if (rc) {
++		dev_err(hdev->dev, "Failed to init en device\n");
++		goto dev_init_err;
++	}
++
++	aux_ops->hw_access_unlock(aux_dev);
++
++	return 0;
++
++dev_init_err:
++	aux_ops->hw_access_unlock(aux_dev);
++timeout_err:
++	module_put(THIS_MODULE);
++module_get_err:
++	hdev_fini(aux_dev);
++
++	return rc;
++}
++
++/* This function can be called only from the CN driver when deleting the aux bus, because we
++ * incremented the module refcount on probing. Hence no need to protect here from hard reset.
++ */
++static void hbl_en_remove(struct auxiliary_device *adev)
++{
++	struct hbl_aux_dev *aux_dev = container_of(adev, struct hbl_aux_dev, adev);
++	struct hbl_en_device *hdev = aux_dev->priv;
++
++	if (!hdev)
++		return;
++
++	hbl_en_dev_fini(hdev);
++
++	/* allow module unloading as now it is detached */
++	module_put(THIS_MODULE);
++
++	hdev_fini(aux_dev);
++}
++
++static struct auxiliary_driver hbl_en_driver = {
++	.name = "eth",
++	.probe = hbl_en_probe,
++	.remove = hbl_en_remove,
++	.id_table = hbl_en_id_table,
++};
++
++static int __init hbl_en_init(void)
++{
++	pr_info("loading driver\n");
++
++	return auxiliary_driver_register(&hbl_en_driver);
++}
++
++static void __exit hbl_en_exit(void)
++{
++	auxiliary_driver_unregister(&hbl_en_driver);
++
++	pr_info("driver removed\n");
++}
++
++module_init(hbl_en_init);
++module_exit(hbl_en_exit);
+diff --git a/drivers/net/ethernet/intel/hbl_en/common/hbl_en_ethtool.c b/drivers/net/ethernet/intel/hbl_en/common/hbl_en_ethtool.c
+new file mode 100644
+index 000000000000..1d14d283409b
+--- /dev/null
++++ b/drivers/net/ethernet/intel/hbl_en/common/hbl_en_ethtool.c
+@@ -0,0 +1,452 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright 2020-2024 HabanaLabs, Ltd.
++ * Copyright (C) 2023-2024, Intel Corporation.
++ * All Rights Reserved.
++ */
++
++#include "hbl_en.h"
++#include <linux/ethtool.h>
++
++#define RX_COALESCED_FRAMES_MIN		1
++#define TX_COALESCED_FRAMES_MIN		1
++#define TX_COALESCED_FRAMES_MAX		10
++
++static const char pflags_str[][ETH_GSTRING_LEN] = {
++	"pcs-link-check",
++	"phy-auto-neg-lpbk",
++};
++
++#define NIC_STAT(m) {#m, offsetof(struct hbl_en_port, net_stats.m)}
++
++static struct hbl_cn_stat netdev_eth_stats[] = {
++	NIC_STAT(rx_packets),
++	NIC_STAT(tx_packets),
++	NIC_STAT(rx_bytes),
++	NIC_STAT(tx_bytes),
++	NIC_STAT(tx_errors),
++	NIC_STAT(rx_dropped),
++	NIC_STAT(tx_dropped)
++};
++
++static size_t pflags_str_len = ARRAY_SIZE(pflags_str);
++static size_t netdev_eth_stats_len = ARRAY_SIZE(netdev_eth_stats);
++
++static void hbl_en_ethtool_get_drvinfo(struct net_device *ndev, struct ethtool_drvinfo *drvinfo)
++{
++	struct hbl_en_device *hdev;
++	struct hbl_en_port *port;
++
++	port = hbl_netdev_priv(ndev);
++	hdev = port->hdev;
++
++	strscpy(drvinfo->driver, HBL_EN_NAME, sizeof(drvinfo->driver));
++	strscpy(drvinfo->fw_version, hdev->fw_ver, sizeof(drvinfo->fw_version));
++	strscpy(drvinfo->bus_info, pci_name(hdev->pdev), sizeof(drvinfo->bus_info));
++}
++
++static int hbl_en_ethtool_get_module_info(struct net_device *ndev, struct ethtool_modinfo *modinfo)
++{
++	modinfo->eeprom_len = ETH_MODULE_SFF_8636_LEN;
++	modinfo->type = ETH_MODULE_SFF_8636;
++
++	return 0;
++}
++
++static int hbl_en_ethtool_get_module_eeprom(struct net_device *ndev, struct ethtool_eeprom *ee,
++					    u8 *data)
++{
++	struct hbl_en_device *hdev;
++	struct hbl_en_port *port;
++	u32 first, last, len;
++	u8 *qsfp_eeprom;
++
++	port = hbl_netdev_priv(ndev);
++	hdev = port->hdev;
++	qsfp_eeprom = hdev->qsfp_eeprom;
++
++	if (ee->len == 0)
++		return -EINVAL;
++
++	first = ee->offset;
++	last = ee->offset + ee->len;
++
++	if (first < ETH_MODULE_SFF_8636_LEN) {
++		len = min_t(unsigned int, last, ETH_MODULE_SFF_8079_LEN);
++		len -= first;
++
++		memcpy(data, qsfp_eeprom + first, len);
++	}
++
++	return 0;
++}
++
++static u32 hbl_en_ethtool_get_priv_flags(struct net_device *ndev)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(ndev);
++
++	return port->pflags;
++}
++
++static int hbl_en_ethtool_set_priv_flags(struct net_device *ndev, u32 priv_flags)
++{
++	struct hbl_en_port *port = hbl_netdev_priv(ndev);
++
++	port->pflags = priv_flags;
++
++	return 0;
++}
++
++static int hbl_en_ethtool_get_link_ksettings(struct net_device *ndev,
++					     struct ethtool_link_ksettings *cmd)
++{
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	struct hbl_en_device *hdev;
++	struct hbl_en_port *port;
++	u32 port_idx, speed;
++
++	port = hbl_netdev_priv(ndev);
++	hdev = port->hdev;
++	port_idx = port->idx;
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	speed = aux_ops->get_speed(aux_dev, port_idx);
++
++	cmd->base.speed = speed;
++	cmd->base.duplex = DUPLEX_FULL;
++
++	ethtool_link_ksettings_zero_link_mode(cmd, supported);
++	ethtool_link_ksettings_zero_link_mode(cmd, advertising);
++
++	switch (speed) {
++	case SPEED_100000:
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 100000baseCR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 100000baseSR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 100000baseKR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 100000baseLR4_ER4_Full);
++
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 100000baseCR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 100000baseSR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 100000baseKR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 100000baseLR4_ER4_Full);
++
++		cmd->base.port = PORT_FIBRE;
++
++		ethtool_link_ksettings_add_link_mode(cmd, supported, FIBRE);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, FIBRE);
++
++		ethtool_link_ksettings_add_link_mode(cmd, supported, Backplane);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, Backplane);
++		break;
++	case SPEED_50000:
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 50000baseSR2_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 50000baseCR2_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 50000baseKR2_Full);
++
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 50000baseSR2_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 50000baseCR2_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 50000baseKR2_Full);
++		break;
++	case SPEED_25000:
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 25000baseCR_Full);
++
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 25000baseCR_Full);
++		break;
++	case SPEED_200000:
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 200000baseCR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 200000baseKR4_Full);
++
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 200000baseCR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 200000baseKR4_Full);
++		break;
++	case SPEED_400000:
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 400000baseCR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, supported, 400000baseKR4_Full);
++
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 400000baseCR4_Full);
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, 400000baseKR4_Full);
++		break;
++	default:
++		netdev_err(port->ndev, "unknown speed %d\n", speed);
++		return -EFAULT;
++	}
++
++	ethtool_link_ksettings_add_link_mode(cmd, supported, Autoneg);
++
++	if (port->auto_neg_enable) {
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, Autoneg);
++		cmd->base.autoneg = AUTONEG_ENABLE;
++		if (port->auto_neg_resolved)
++			ethtool_link_ksettings_add_link_mode(cmd, lp_advertising, Autoneg);
++	} else {
++		cmd->base.autoneg = AUTONEG_DISABLE;
++	}
++
++	ethtool_link_ksettings_add_link_mode(cmd, supported, Pause);
++
++	if (port->pfc_enable)
++		ethtool_link_ksettings_add_link_mode(cmd, advertising, Pause);
++
++	return 0;
++}
++
++/* only autoneg is mutable */
++static bool check_immutable_ksettings(const struct ethtool_link_ksettings *old_cmd,
++				      const struct ethtool_link_ksettings *new_cmd)
++{
++	return (old_cmd->base.speed == new_cmd->base.speed) &&
++	       (old_cmd->base.duplex == new_cmd->base.duplex) &&
++	       (old_cmd->base.port == new_cmd->base.port) &&
++	       (old_cmd->base.phy_address == new_cmd->base.phy_address) &&
++	       (old_cmd->base.eth_tp_mdix_ctrl == new_cmd->base.eth_tp_mdix_ctrl) &&
++	       bitmap_equal(old_cmd->link_modes.advertising, new_cmd->link_modes.advertising,
++			    __ETHTOOL_LINK_MODE_MASK_NBITS);
++}
++
++static int
++hbl_en_ethtool_set_link_ksettings(struct net_device *ndev, const struct ethtool_link_ksettings *cmd)
++{
++	struct ethtool_link_ksettings curr_cmd;
++	struct hbl_en_device *hdev;
++	struct hbl_en_port *port;
++	bool auto_neg;
++	u32 port_idx;
++	int rc;
++
++	port = hbl_netdev_priv(ndev);
++	hdev = port->hdev;
++	port_idx = port->idx;
++
++	memset(&curr_cmd, 0, sizeof(struct ethtool_link_ksettings));
++
++	rc = hbl_en_ethtool_get_link_ksettings(ndev, &curr_cmd);
 +	if (rc)
 +		return rc;
 +
-+	/* After ports initialization (for the first time), we need to check
-+	 * whether the f/w reported on ports that are disabled. For those
-+	 * ports, we need to disable their QMANs and update the HW_CAP bits
-+	 */
-+	gaudi2_update_nic_qmans_state(hdev);
++	if (!check_immutable_ksettings(&curr_cmd, cmd))
++		return -EOPNOTSUPP;
 +
-+	return 0;
-+}
++	auto_neg = cmd->base.autoneg == AUTONEG_ENABLE;
 +
- static void gaudi2_add_device_attr(struct hl_device *hdev, struct attribute_group *dev_clk_attr_grp,
- 				struct attribute_group *dev_vrm_attr_grp)
- {
-@@ -11590,6 +11967,17 @@ static void gaudi2_write_pte(struct hl_device *hdev, u64 addr, u64 val)
- 	writeq(val, hdev->pcie_bar[DRAM_BAR_ID] + (addr - gaudi2->dram_bar_cur_addr));
- }
- 
-+static int gaudi2_get_reg_pcie_addr(struct hl_device *hdev, u32 reg, u64 *pci_addr)
-+{
-+	u64 offset = CFG_BASE - STM_FLASH_BASE_ADDR + reg;
++	if (port->auto_neg_enable == auto_neg)
++		return 0;
 +
-+	if (pci_resource_len(hdev->pdev, SRAM_CFG_BAR_ID) < offset)
-+		return -EINVAL;
-+
-+	*pci_addr = offset;
-+	return 0;
-+}
-+
- static const struct hl_asic_funcs gaudi2_funcs = {
- 	.early_init = gaudi2_early_init,
- 	.early_fini = gaudi2_early_fini,
-@@ -11641,10 +12029,13 @@ static const struct hl_asic_funcs gaudi2_funcs = {
- 	.get_eeprom_data = gaudi2_get_eeprom_data,
- 	.get_monitor_dump = gaudi2_get_monitor_dump,
- 	.send_cpu_message = gaudi2_send_cpu_message,
-+	.cn_init = gaudi2_cn_init,
-+	.cn_fini = hl_cn_fini,
- 	.pci_bars_map = gaudi2_pci_bars_map,
- 	.init_iatu = gaudi2_init_iatu,
- 	.rreg = hl_rreg,
- 	.wreg = hl_wreg,
-+	.get_reg_pcie_addr = gaudi2_get_reg_pcie_addr,
- 	.halt_coresight = gaudi2_halt_coresight,
- 	.ctx_init = gaudi2_ctx_init,
- 	.ctx_fini = gaudi2_ctx_fini,
-@@ -11679,6 +12070,7 @@ static const struct hl_asic_funcs gaudi2_funcs = {
- 	.get_sob_addr = &gaudi2_get_sob_addr,
- 	.set_pci_memory_regions = gaudi2_set_pci_memory_regions,
- 	.get_stream_master_qid_arr = gaudi2_get_stream_master_qid_arr,
-+	.cn_funcs = &gaudi2_cn_funcs,
- 	.check_if_razwi_happened = gaudi2_check_if_razwi_happened,
- 	.mmu_get_real_page_size = gaudi2_mmu_get_real_page_size,
- 	.access_dev_mem = hl_access_dev_mem,
-diff --git a/drivers/accel/habanalabs/gaudi2/gaudi2P.h b/drivers/accel/habanalabs/gaudi2/gaudi2P.h
-index eee41387b269..429e89703e36 100644
---- a/drivers/accel/habanalabs/gaudi2/gaudi2P.h
-+++ b/drivers/accel/habanalabs/gaudi2/gaudi2P.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0
-  *
-- * Copyright 2020-2022 HabanaLabs, Ltd.
-+ * Copyright 2020-2024 HabanaLabs, Ltd.
-  * All Rights Reserved.
-  *
-  */
-@@ -8,12 +8,15 @@
- #ifndef GAUDI2P_H_
- #define GAUDI2P_H_
- 
-+#include <linux/net/intel/cn_aux.h>
-+#include <linux/net/intel/gaudi2_aux.h>
- #include <uapi/drm/habanalabs_accel.h>
- #include "../common/habanalabs.h"
- #include <linux/habanalabs/hl_boot_if.h>
- #include "../include/gaudi2/gaudi2.h"
- #include "../include/gaudi2/gaudi2_packets.h"
- #include "../include/gaudi2/gaudi2_fw_if.h"
-+#include "../include/gaudi2/gaudi2_coresight.h"
- #include "../include/gaudi2/gaudi2_async_events.h"
- 
- #define GAUDI2_LINUX_FW_FILE	"habanalabs/gaudi2/gaudi2-fit.itb"
-@@ -86,7 +89,7 @@
- 
- #define GAUDI2_BOOT_FIT_REQ_TIMEOUT_USEC	10000000	/* 10s */
- 
--#define GAUDI2_NIC_CLK_FREQ			450000000ull	/* 450 MHz */
-+#define GAUDI2_NIC_CLK_FREQ			488000000ull	/* 488 MHz */
- 
- #define DC_POWER_DEFAULT			60000		/* 60W */
- 
-@@ -198,6 +201,7 @@
- 						HW_CAP_HBM_SCRAMBLER_SW_RESET)
- #define HW_CAP_HBM_SCRAMBLER_SHIFT	41
- #define HW_CAP_RESERVED			BIT(43)
-+#define HW_CAP_NIC_DRV			BIT(44)
- #define HW_CAP_MMU_MASK			(HW_CAP_PMMU | HW_CAP_DMMU_MASK)
- 
- /* Range Registers */
-@@ -239,6 +243,8 @@
- 
- #define GAUDI2_NUM_TESTED_QS		(GAUDI2_QUEUE_ID_CPU_PQ - GAUDI2_QUEUE_ID_PDMA_0_0)
- 
-+extern u64 debug_bmon_regs[GAUDI2_BMON_LAST + 1];
-+extern u64 debug_spmu_regs[GAUDI2_SPMU_LAST + 1];
- 
- enum gaudi2_reserved_sob_id {
- 	GAUDI2_RESERVED_SOB_CS_COMPLETION_FIRST,
-@@ -251,6 +257,9 @@ enum gaudi2_reserved_sob_id {
- 	GAUDI2_RESERVED_SOB_DEC_ABNRM_FIRST,
- 	GAUDI2_RESERVED_SOB_DEC_ABNRM_LAST =
- 			GAUDI2_RESERVED_SOB_DEC_ABNRM_FIRST + NUMBER_OF_DEC - 1,
-+	GAUDI2_RESERVED_SOB_NIC_PORT_FIRST,
-+	GAUDI2_RESERVED_SOB_NIC_PORT_LAST =
-+			GAUDI2_RESERVED_SOB_NIC_PORT_FIRST + NIC_NUMBER_OF_PORTS - 1,
- 	GAUDI2_RESERVED_SOB_NUMBER
- };
- 
-@@ -265,6 +274,9 @@ enum gaudi2_reserved_mon_id {
- 	GAUDI2_RESERVED_MON_DEC_ABNRM_FIRST,
- 	GAUDI2_RESERVED_MON_DEC_ABNRM_LAST =
- 			GAUDI2_RESERVED_MON_DEC_ABNRM_FIRST + 3 * NUMBER_OF_DEC - 1,
-+	GAUDI2_RESERVED_MON_NIC_PORT_FIRST,
-+	GAUDI2_RESERVED_MON_NIC_PORT_LAST =
-+			GAUDI2_RESERVED_MON_NIC_PORT_FIRST + 3 * NIC_NUMBER_OF_PORTS - 1,
- 	GAUDI2_RESERVED_MON_NUMBER
- };
- 
-@@ -513,13 +525,8 @@ struct gaudi2_queues_test_info {
-  * @events_stat: array that holds histogram of all received events.
-  * @events_stat_aggregate: same as events_stat but doesn't get cleared on reset.
-  * @num_of_valid_hw_events: used to hold the number of valid H/W events.
-- * @nic_ports: array that holds all NIC ports manage structures.
-- * @nic_macros: array that holds all NIC macro manage structures.
-- * @core_info: core info to be used by the Ethernet driver.
-- * @aux_ops: functions for core <-> aux drivers communication.
-- * @flush_db_fifo: flag to force flush DB FIFO after a write.
-- * @hbm_cfg: HBM subsystem settings
-- * @hw_queues_lock_mutex: used by simulator instead of hw_queues_lock.
-+ * @cn_aux_ops: functions for core <-> accel drivers communication.
-+ * @cn_aux_data: data to be used by the core driver.
-  * @queues_test_info: information used by the driver when testing the HW queues.
-  */
- struct gaudi2_device {
-@@ -549,6 +556,10 @@ struct gaudi2_device {
- 	u32				events_stat_aggregate[GAUDI2_EVENT_SIZE];
- 	u32				num_of_valid_hw_events;
- 
-+	/* NIC fields */
-+	struct gaudi2_cn_aux_ops	cn_aux_ops;
-+	struct gaudi2_cn_aux_data	cn_aux_data;
-+
- 	/* Queue testing */
- 	struct gaudi2_queues_test_info	queues_test_info[GAUDI2_NUM_TESTED_QS];
- };
-@@ -588,6 +599,7 @@ enum gaudi2_block_types {
- 	GAUDI2_BLOCK_TYPE_MAX
- };
- 
-+extern struct hl_cn_funcs gaudi2_cn_funcs;
- extern const u32 gaudi2_dma_core_blocks_bases[DMA_CORE_ID_SIZE];
- extern const u32 gaudi2_qm_blocks_bases[GAUDI2_QUEUE_ID_SIZE];
- extern const u32 gaudi2_mme_acc_blocks_bases[MME_ID_SIZE];
-@@ -609,4 +621,15 @@ int gaudi2_init_security(struct hl_device *hdev);
- void gaudi2_ack_protection_bits_errors(struct hl_device *hdev);
- int gaudi2_send_device_activity(struct hl_device *hdev, bool open);
- 
-+/* Functions exported for NIC */
-+void gaudi2_cn_spmu_get_stats_info(struct hl_device *hdev, u32 port, struct hbl_cn_stat **stats,
-+					u32 *n_stats);
-+int gaudi2_cn_spmu_config(struct hl_device *hdev, u32 port, u32 num_event_types, u32 event_types[],
-+				bool enable);
-+int gaudi2_cn_spmu_sample(struct hl_device *hdev, u32 port, u32 num_out_data, u64 out_data[]);
-+void gaudi2_cn_disable_interrupts(struct hl_device *hdev);
-+void gaudi2_cn_quiescence(struct hl_device *hdev);
-+void gaudi2_cn_compute_reset_prepare(struct hl_device *hdev);
-+void gaudi2_cn_compute_reset_late_init(struct hl_device *hdev);
-+
- #endif /* GAUDI2P_H_ */
-diff --git a/drivers/accel/habanalabs/gaudi2/gaudi2_cn.c b/drivers/accel/habanalabs/gaudi2/gaudi2_cn.c
-new file mode 100644
-index 000000000000..9beb11b579e4
---- /dev/null
-+++ b/drivers/accel/habanalabs/gaudi2/gaudi2_cn.c
-@@ -0,0 +1,424 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+/*
-+ * Copyright 2020-2022 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ */
-+
-+#include "gaudi2_cn.h"
-+#include "../include/gaudi2/asic_reg/gaudi2_regs.h"
-+#include "../include/gaudi2/gaudi2_async_ids_map_extended.h"
-+#include "../include/hw_ip/nic/nic_general.h"
-+
-+static bool gaudi2_cn_get_hw_cap(struct hl_device *hdev);
-+
-+int gaudi2_cn_handle_sw_error_event(struct hl_device *hdev, u16 event_type, u8 macro_index,
-+					struct hl_eq_nic_intr_cause *nic_intr_cause)
-+{
-+	struct hbl_aux_dev *aux_dev = &hdev->cn.cn_aux_dev;
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	struct gaudi2_cn_aux_ops *aux_ops = &gaudi2->cn_aux_ops;
-+	u32 error_count = 0;
-+
-+	if (aux_ops->sw_err_event_handler)
-+		error_count = aux_ops->sw_err_event_handler(aux_dev, event_type, macro_index,
-+								nic_intr_cause);
-+
-+	return error_count;
-+}
-+
-+int gaudi2_cn_handle_axi_error_response_event(struct hl_device *hdev, u16 event_type,
-+						u8 macro_index,
-+						struct hl_eq_nic_intr_cause *nic_intr_cause)
-+{
-+	struct hbl_aux_dev *aux_dev = &hdev->cn.cn_aux_dev;
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	struct gaudi2_cn_aux_ops *aux_ops = &gaudi2->cn_aux_ops;
-+	u32 error_count = 0;
-+
-+	if (aux_ops->axi_error_response_event_handler)
-+		error_count = aux_ops->axi_error_response_event_handler(aux_dev, event_type,
-+									macro_index,
-+									nic_intr_cause);
-+
-+	return error_count;
-+}
-+
-+/**
-+ * gaudi2_cn_disable_interrupts() - Disable interrupts of all ports.
-+ * Gaudi2 CN interrupts are enabled by default, need to disable them ASAP
-+ * before ports init and after hard reset.
-+ *
-+ * @hdev: habanalabs device structure.
-+ */
-+void gaudi2_cn_disable_interrupts(struct hl_device *hdev)
-+{
-+	u32 port;
-+
-+	if (!hdev->cn.ports_mask)
-+		return;
-+
-+	/* we only need the port number for NIC_WREG32 */
-+	for (port = 0 ; port < NIC_NUMBER_OF_PORTS ; port++) {
-+		NIC_WREG32(mmNIC0_QPC0_EVENT_QUE_CFG, 0);
-+		NIC_WREG32(mmNIC0_QPC0_INTERRUPT_EN, 0);
-+		NIC_WREG32(mmNIC0_QPC0_INTERRUPT_MASK, 0xFFFFFFFF);
-+
-+		/* This registers needs to be configured only in case of PLDM */
-+		if (hdev->pldm) {
-+			NIC_WREG32(mmNIC0_QPC0_INTERRUPT_RESP_ERR_MASK, 0xFFFFFFFF);
-+			NIC_WREG32(mmNIC0_TXE0_INTERRUPT_MASK, 0xFFFFFFFF);
-+			NIC_WREG32(mmNIC0_RXE0_SPI_INTR_MASK, 0xFFFFFFFF);
-+			NIC_WREG32(mmNIC0_RXE0_SEI_INTR_MASK, 0xFFFFFFFF);
-+			NIC_WREG32(mmNIC0_TXS0_INTERRUPT_MASK, 0xFFFFFFFF);
-+		}
-+
-+		/* WA for H/W bug H6-3339 - mask the link UP interrupt */
-+		NIC_MACRO_WREG32(mmNIC0_PHY_PHY_LINK_STS_INTR, 0x1);
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		netdev_err(port->ndev, "port is in reset, can't update settings\n");
++		return -EBUSY;
 +	}
 +
-+	/* flush */
-+	port = 0;
-+	NIC_RREG32(mmNIC0_QPC0_EVENT_QUE_CFG);
-+}
-+
-+/**
-+ * gaudi2_cn_quiescence() - make sure that NIC does not generate events nor
-+ *                           receives traffic.
-+ * Gaudi2 default values at power-up and after hard-reset are interrupts enabled
-+ * and Rx enabled, we need to disable them until driver configuration is
-+ * complete.
-+ *
-+ * @hdev: habanalabs device structure.
-+ */
-+void gaudi2_cn_quiescence(struct hl_device *hdev)
-+{
-+	/*
-+	 * Do not quiescence the ports during device release
-+	 * reset aka soft reset flow.
-+	 */
-+	if (gaudi2_cn_get_hw_cap(hdev))
-+		return;
-+
-+	dev_dbg(hdev->dev, "Quiescence the NICs\n");
-+
-+	gaudi2_cn_disable_interrupts(hdev);
-+}
-+
-+static bool gaudi2_cn_get_hw_cap(struct hl_device *hdev)
-+{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+
-+	return (gaudi2->hw_cap_initialized & HW_CAP_NIC_DRV);
-+}
-+
-+static void gaudi2_cn_set_hw_cap(struct hl_device *hdev, bool enable)
-+{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+
-+	if (enable)
-+		gaudi2->hw_cap_initialized |= HW_CAP_NIC_DRV;
-+	else
-+		gaudi2->hw_cap_initialized &= ~HW_CAP_NIC_DRV;
-+}
-+
-+/**
-+ * gaudi2_cn_override_ports_ext_mask() - Set the external ports mask.
-+ * @hdev: Hl device whose external ports mask to return.
-+ * @ports_ext_mask: Out, the external ports mask.
-+ */
-+static void gaudi2_cn_override_ports_ext_mask(struct hl_device *hdev, uint64_t *ports_ext_mask)
-+{
-+	/* For asic type GAUDI2B, the external ports mask shouldn't be changed */
-+	if (hdev->asic_type == ASIC_GAUDI2B) {
-+		*ports_ext_mask = hdev->cn.ports_ext_mask;
-+		return;
++	if (auto_neg && !(hdev->auto_neg_mask & BIT(port_idx))) {
++		netdev_err(port->ndev, "port autoneg is disabled by BMC\n");
++		rc = -EFAULT;
++		goto out;
 +	}
 +
-+	/* If we are running on a PCI card, all the ports should be set as external */
-+	if (hdev->card_type == cpucp_card_type_pci) {
-+		*ports_ext_mask = hdev->cn.ports_mask;
-+		return;
-+	}
++	port->auto_neg_enable = auto_neg;
 +
-+	/* For HLS2 setup type, the external ports mask shouldn't be changed */
-+	*ports_ext_mask = hdev->cn.ports_ext_mask;
-+}
-+
-+static int gaudi2_cn_check_oui_prefix_validity(u8 *mac_addr)
-+{
-+	u8 mac[ETH_ALEN];
-+	int i;
-+
-+	for (i = 0 ; i < 3 ; i++)
-+		mac[i] = HABANALABS_MAC_OUI_1 >> (8 * (2 - i));
-+
-+	if (!strncmp(mac, mac_addr, 3))
-+		return 1;
-+
-+	for (i = 0 ; i < 3 ; i++)
-+		mac[i] = HABANALABS_MAC_OUI_2 >> (8 * (2 - i));
-+
-+	if (!strncmp(mac, mac_addr, 3))
-+		return 1;
-+
-+	return 0;
-+}
-+
-+int gaudi2_cn_set_info(struct hl_device *hdev, bool get_from_fw)
-+{
-+	struct hbl_cn_cpucp_info *cn_cpucp_info = &hdev->asic_prop.cn_props.cpucp_info;
-+	struct cpucp_info *cpucp_info = &hdev->asic_prop.cpucp_info;
-+	struct hbl_cn_cpucp_mac_addr *mac_arr = cn_cpucp_info->mac_addrs;
-+	struct hl_cn *cn = &hdev->cn;
-+	u32 serdes_type = MAX_NUM_SERDES_TYPE;
-+	u8 mac[ETH_ALEN], *mac_addr;
-+	int rc, i;
-+
-+	/* copy the MAC OUI in reverse */
-+	for (i = 0 ; i < 3 ; i++)
-+		mac[i] = HABANALABS_MAC_OUI_1 >> (8 * (2 - i));
-+
-+	if (get_from_fw) {
-+		rc = hl_cn_cpucp_info_get(hdev);
++	if (netif_running(port->ndev)) {
++		rc = hbl_en_port_reset(port);
 +		if (rc)
-+			return rc;
-+
-+		cn->ports_mask &= cn_cpucp_info->link_mask[0];
-+		cn->ports_ext_mask &= cn_cpucp_info->link_ext_mask[0];
-+		cn->auto_neg_mask &= cn_cpucp_info->auto_neg_mask[0];
-+
-+		serdes_type = cn_cpucp_info->serdes_type;
-+
-+		/* check for invalid MAC addresses from F/W (bad OUI) */
-+		for (i = 0 ; i < NIC_NUMBER_OF_PORTS ; i++) {
-+			if (!(cn->ports_mask & BIT(i)))
-+				continue;
-+
-+			mac_addr = mac_arr[i].mac_addr;
-+			if (!gaudi2_cn_check_oui_prefix_validity(mac_addr))
-+				dev_warn(hdev->dev, "unrecognized MAC OUI %pM, port %d\n",
-+					mac_addr, i);
-+		}
-+
-+		cn->card_location = le32_to_cpu(cpucp_info->card_location);
-+		cn->use_fw_serdes_info = true;
-+	} else {
-+		/* No F/W, hence need to set the MACs manually (randomize) */
-+		get_random_bytes(&mac[3], 2);
-+
-+		for (i = 0 ; i < NIC_NUMBER_OF_PORTS ; i++) {
-+			if (!(cn->ports_mask & BIT(i)))
-+				continue;
-+
-+			mac[ETH_ALEN - 1] = i;
-+			memcpy(mac_arr[i].mac_addr, mac, ETH_ALEN);
-+		}
-+
-+		dev_warn(hdev->dev, "can't read card location as FW security is enabled\n");
++			netdev_err(port->ndev, "Failed to reset port for settings update, rc %d\n",
++				   rc);
 +	}
 +
-+	switch (serdes_type) {
-+	case HLS2_SERDES_TYPE:
-+		hdev->asic_prop.server_type = HL_SERVER_GAUDI2_HLS2;
-+		break;
-+	case HLS2_TYPE_1_SERDES_TYPE:
-+		hdev->asic_prop.server_type = HL_SERVER_GAUDI2_TYPE1;
-+		break;
-+	default:
-+		hdev->asic_prop.server_type = HL_SERVER_TYPE_UNKNOWN;
++out:
++	atomic_set(&port->in_reset, 0);
 +
-+		if (get_from_fw) {
-+			dev_err(hdev->dev, "bad SerDes type %d\n", serdes_type);
-+			return -EFAULT;
-+		}
-+		break;
-+	}
-+
-+	/* If we are running on non HLS2 setup or a PCI card, all the ports should be set as
-+	 * external (the only exception is when the asic type is GADUI2B).
-+	 */
-+	if (hdev->card_type == cpucp_card_type_pci) {
-+		if (hdev->asic_type != ASIC_GAUDI2B)
-+			cn->ports_ext_mask = cn->ports_mask;
-+
-+		cn->auto_neg_mask &= ~cn->ports_ext_mask;
-+	}
-+
-+	gaudi2_cn_override_ports_ext_mask(hdev, &cn->ports_ext_mask);
-+
-+	if (hdev->card_type == cpucp_card_type_pci)
-+		cn->auto_neg_mask &= ~cn->ports_ext_mask;
-+
-+	/* Disable ANLT on NIC 0 ports (due to lane swapping) */
-+	cn->auto_neg_mask &= ~0x3;
-+
-+	cn->lanes_per_port = 2;
-+	cn->load_fw = false;
-+	cn->eth_on_internal = false;
-+
-+	return 0;
++	return rc;
 +}
 +
-+static int gaudi2_cn_pre_core_init(struct hl_device *hdev)
++static int hbl_en_ethtool_get_sset_count(struct net_device *ndev, int sset)
 +{
-+	return 0;
-+}
-+
-+static char *gaudi2_cn_get_event_name(struct hbl_aux_dev *aux_dev, u16 event_type)
-+{
-+	return gaudi2_irq_map_table[event_type].valid ? gaudi2_irq_map_table[event_type].name :
-+			"N/A Event";
-+}
-+
-+static int gaudi2_cn_poll_mem(struct hbl_aux_dev *aux_dev, u32 *addr, u32 *val,
-+				hbl_cn_poll_cond_func func)
-+{
-+	return hl_poll_timeout_memory(hdev, addr, *val, func(*val, NULL), 10,
-+					HL_DEVICE_TIMEOUT_USEC, true);
-+}
-+
-+static void *gaudi2_cn_dma_alloc_coherent(struct hbl_aux_dev *aux_dev, size_t size,
-+					  dma_addr_t *dma_handle, gfp_t flag)
-+{
-+	return hl_cn_dma_alloc_coherent(aux_dev, size, dma_handle, flag);
-+}
-+
-+static void gaudi2_cn_dma_free_coherent(struct hbl_aux_dev *aux_dev, size_t size, void *cpu_addr,
-+					dma_addr_t dma_handle)
-+{
-+	hl_cn_dma_free_coherent(aux_dev, size, cpu_addr, dma_handle);
-+}
-+
-+static void *gaudi2_cn_dma_pool_zalloc(struct hbl_aux_dev *aux_dev, size_t size, gfp_t mem_flags,
-+				       dma_addr_t *dma_handle)
-+{
-+	return hl_cn_dma_pool_zalloc(aux_dev, size, mem_flags, dma_handle);
-+}
-+
-+static void gaudi2_cn_dma_pool_free(struct hbl_aux_dev *aux_dev, void *vaddr, dma_addr_t dma_addr)
-+{
-+	hl_cn_dma_pool_free(aux_dev, vaddr, dma_addr);
-+}
-+
-+static void gaudi2_cn_set_cn_data(struct hl_device *hdev)
-+{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	struct gaudi2_cn_aux_data *gaudi2_aux_data;
-+	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
-+	struct hbl_cn_aux_data *aux_data;
-+	struct hbl_cn_aux_ops *aux_ops;
-+	struct hl_cn *cn = &hdev->cn;
++	struct hbl_en_port *port = hbl_netdev_priv(ndev);
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
 +	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
 +
-+	aux_dev = &cn->cn_aux_dev;
-+	aux_data = aux_dev->aux_data;
-+	gaudi2_aux_data = &gaudi2->cn_aux_data;
-+	aux_data->asic_specific = gaudi2_aux_data;
++	aux_dev = hdev->aux_dev;
 +	aux_ops = aux_dev->aux_ops;
-+	gaudi2_aux_ops = &gaudi2->cn_aux_ops;
-+	aux_ops->asic_ops = gaudi2_aux_ops;
 +
-+	gaudi2_aux_data->cfg_base = CFG_BASE;
-+	gaudi2_aux_data->fw_security_enabled = hdev->asic_prop.fw_security_enabled;
-+	gaudi2_aux_data->msix_enabled = !!(gaudi2->hw_cap_initialized & HW_CAP_MSIX);
-+	gaudi2_aux_data->irq_num_port_base = GAUDI2_IRQ_NUM_NIC_PORT_FIRST;
-+	gaudi2_aux_data->sob_id_base = GAUDI2_RESERVED_SOB_NIC_PORT_FIRST;
-+	gaudi2_aux_data->sob_inc_cfg_val = GAUDI2_SOB_INCREMENT_BY_ONE;
-+	gaudi2_aux_data->setup_type = GAUDI2_SETUP_TYPE_HLS2;
-+
-+	/* cn2accel */
-+	gaudi2_aux_ops->get_event_name = gaudi2_cn_get_event_name;
-+	gaudi2_aux_ops->poll_mem = gaudi2_cn_poll_mem;
-+	gaudi2_aux_ops->dma_alloc_coherent = gaudi2_cn_dma_alloc_coherent;
-+	gaudi2_aux_ops->dma_free_coherent = gaudi2_cn_dma_free_coherent;
-+	gaudi2_aux_ops->dma_pool_zalloc = gaudi2_cn_dma_pool_zalloc;
-+	gaudi2_aux_ops->dma_pool_free = gaudi2_cn_dma_pool_free;
-+	gaudi2_aux_ops->spmu_get_stats_info = hl_cn_spmu_get_stats_info;
-+	gaudi2_aux_ops->spmu_config = hl_cn_spmu_config;
-+	gaudi2_aux_ops->spmu_sample = hl_cn_spmu_sample;
-+	gaudi2_aux_ops->poll_reg = hl_cn_poll_reg;
-+	gaudi2_aux_ops->send_cpu_message = hl_cn_send_cpu_message;
-+	gaudi2_aux_ops->post_send_status = hl_cn_post_send_status;
++	switch (sset) {
++	case ETH_SS_STATS:
++		return netdev_eth_stats_len + aux_ops->get_cnts_num(aux_dev, port_idx);
++	case ETH_SS_PRIV_FLAGS:
++		return pflags_str_len;
++	default:
++		return -EOPNOTSUPP;
++	}
 +}
 +
-+void gaudi2_cn_compute_reset_prepare(struct hl_device *hdev)
++static void hbl_en_ethtool_get_strings(struct net_device *ndev, u32 stringset, u8 *data)
 +{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
-+	struct hl_cn *cn = &hdev->cn;
++	struct hbl_en_port *port = hbl_netdev_priv(ndev);
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
 +	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = &cn->cn_aux_dev;
-+	gaudi2_aux_ops = &gaudi2->cn_aux_ops;
-+
-+	if (gaudi2_aux_ops->reset_prepare)
-+		gaudi2_aux_ops->reset_prepare(aux_dev);
-+}
-+
-+void gaudi2_cn_compute_reset_late_init(struct hl_device *hdev)
-+{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
-+	struct hl_cn *cn = &hdev->cn;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = &cn->cn_aux_dev;
-+	gaudi2_aux_ops = &gaudi2->cn_aux_ops;
-+
-+	if (gaudi2_aux_ops->reset_late_init)
-+		gaudi2_aux_ops->reset_late_init(aux_dev);
-+}
-+
-+static void gaudi2_cn_post_send_status(struct hl_device *hdev, u32 port)
-+{
-+	hl_fw_unmask_irq(hdev, GAUDI2_EVENT_CPU0_STATUS_NIC0_ENG0 + port);
-+}
-+
-+static void gaudi2_cn_ports_stop_prepare(struct hl_device *hdev, bool fw_reset, bool in_teardown)
-+{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
-+	struct hl_cn *cn = &hdev->cn;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = &cn->cn_aux_dev;
-+	gaudi2_aux_ops = &gaudi2->cn_aux_ops;
-+
-+	if (gaudi2_aux_ops->ports_stop_prepare)
-+		gaudi2_aux_ops->ports_stop_prepare(aux_dev, fw_reset, in_teardown);
-+}
-+
-+static int gaudi2_cn_send_port_cpucp_status(struct hl_device *hdev, u32 port, u8 cmd, u8 period)
-+{
-+	struct gaudi2_device *gaudi2 = hdev->asic_specific;
-+	struct gaudi2_cn_aux_ops *gaudi2_aux_ops;
-+	struct hl_cn *cn = &hdev->cn;
-+	struct hbl_aux_dev *aux_dev;
-+
-+	aux_dev = &cn->cn_aux_dev;
-+	gaudi2_aux_ops = &gaudi2->cn_aux_ops;
-+
-+	if (gaudi2_aux_ops->send_port_cpucp_status)
-+		return gaudi2_aux_ops->send_port_cpucp_status(aux_dev, port, cmd, period);
-+
-+	return -ENODEV;
-+}
-+
-+static struct hl_cn_port_funcs gaudi2_cn_port_funcs = {
-+	.spmu_get_stats_info = gaudi2_cn_spmu_get_stats_info,
-+	.spmu_config = gaudi2_cn_spmu_config,
-+	.spmu_sample = gaudi2_cn_spmu_sample,
-+	.post_send_status = gaudi2_cn_post_send_status,
-+	.ports_stop_prepare = gaudi2_cn_ports_stop_prepare,
-+	.send_port_cpucp_status = gaudi2_cn_send_port_cpucp_status,
-+};
-+
-+struct hl_cn_funcs gaudi2_cn_funcs = {
-+	.get_hw_cap = gaudi2_cn_get_hw_cap,
-+	.set_hw_cap = gaudi2_cn_set_hw_cap,
-+	.pre_core_init = gaudi2_cn_pre_core_init,
-+	.set_cn_data = gaudi2_cn_set_cn_data,
-+	.port_funcs = &gaudi2_cn_port_funcs,
-+};
-diff --git a/drivers/accel/habanalabs/gaudi2/gaudi2_cn.h b/drivers/accel/habanalabs/gaudi2/gaudi2_cn.h
-new file mode 100644
-index 000000000000..dbc8ede23779
---- /dev/null
-+++ b/drivers/accel/habanalabs/gaudi2/gaudi2_cn.h
-@@ -0,0 +1,42 @@
-+/* SPDX-License-Identifier: GPL-2.0
-+ *
-+ * Copyright 2020-2024 HabanaLabs, Ltd.
-+ * Copyright (C) 2023-2024, Intel Corporation.
-+ * All Rights Reserved.
-+ *
-+ */
-+
-+#ifndef GAUDI2_CN_H_
-+#define GAUDI2_CN_H_
-+
-+#include "gaudi2P.h"
-+#include "../include/gaudi2/asic_reg/gaudi2_regs.h"
-+
-+#define NIC_MAX_RC_MTU		SZ_8K
-+/* This is the max frame length the H/W supports (Tx/Rx) */
-+#define NIC_MAX_RDMA_HDRS	128
-+#define NIC_MAX_FRM_LEN		(NIC_MAX_RC_MTU + NIC_MAX_RDMA_HDRS)
-+
-+#define NIC_CFG_LO_SIZE		(mmNIC0_QPC1_REQ_STATIC_CONFIG - \
-+					mmNIC0_QPC0_REQ_STATIC_CONFIG)
-+
-+#define NIC_CFG_HI_SIZE		(mmNIC0_RXE1_CONTROL - mmNIC0_RXE0_CONTROL)
-+
-+#define NIC_CFG_BASE(port, reg)					\
-+		((u64) (NIC_MACRO_CFG_BASE(port) +		\
-+		((reg < mmNIC0_RXE0_CONTROL) ?			\
-+		(NIC_CFG_LO_SIZE * (u64) ((port) & 1)) :	\
-+		(NIC_CFG_HI_SIZE * (u64) ((port) & 1)))))
-+
-+#define NIC_RREG32(reg) RREG32(NIC_CFG_BASE(port, (reg)) + (reg))
-+#define NIC_WREG32(reg, val) WREG32(NIC_CFG_BASE(port, (reg)) + (reg), (val))
-+#define NIC_RMWREG32(reg, val, mask)	\
-+		RMWREG32(NIC_CFG_BASE(port, reg) + (reg), (val), (mask))
-+
-+int gaudi2_cn_set_info(struct hl_device *hdev, bool get_from_fw);
-+int gaudi2_cn_handle_sw_error_event(struct hl_device *hdev, u16 event_type, u8 macro_index,
-+					struct hl_eq_nic_intr_cause *nic_intr_cause);
-+int gaudi2_cn_handle_axi_error_response_event(struct hl_device *hdev, u16 event_type,
-+				u8 macro_index, struct hl_eq_nic_intr_cause *nic_intr_cause);
-+
-+#endif /* GAUDI2_CN_H_ */
-diff --git a/drivers/accel/habanalabs/gaudi2/gaudi2_coresight.c b/drivers/accel/habanalabs/gaudi2/gaudi2_coresight.c
-index 2423620ff358..f7b3692f6bff 100644
---- a/drivers/accel/habanalabs/gaudi2/gaudi2_coresight.c
-+++ b/drivers/accel/habanalabs/gaudi2/gaudi2_coresight.c
-@@ -1,7 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
- 
- /*
-- * Copyright 2019-2022 HabanaLabs, Ltd.
-+ * Copyright 2019-2024 HabanaLabs, Ltd.
-  * All Rights Reserved.
-  */
- #include "gaudi2_coresight_regs.h"
-@@ -9,6 +9,8 @@
- 
- #define GAUDI2_PLDM_CORESIGHT_TIMEOUT_USEC	(CORESIGHT_TIMEOUT_USEC * 2000)
- #define SPMU_MAX_COUNTERS			6
-+/* SPMU should also include overflow_idx and cycle_cnt_idx */
-+#define SPMU_DATA_LEN				(SPMU_MAX_COUNTERS + 2)
- 
- #define COMPONENT_ID_INVALID ((u32)(-1))
- #define MAX_BMONS_PER_UNIT 8
-@@ -59,6 +61,23 @@ struct component_config_offsets {
- 	u32 bmon_ids[MAX_BMONS_PER_UNIT];
- };
- 
-+static struct hbl_cn_stat gaudi2_nic0_spmu_stats[] = {
-+	{"spmu_req_out_of_range_psn", 17},
-+	{"spmu_req_unset_psn", 18},
-+	{"spmu_res_duplicate_psn", 20},
-+	{"spmu_res_out_of_sequence_psn", 21}
-+};
-+
-+static struct hbl_cn_stat gaudi2_nic1_spmu_stats[] = {
-+	{"spmu_req_out_of_range_psn", 5},
-+	{"spmu_req_unset_psn", 6},
-+	{"spmu_res_duplicate_psn", 8},
-+	{"spmu_res_out_of_sequence_psn", 9}
-+};
-+
-+static size_t gaudi2_nic0_spmu_stats_len = ARRAY_SIZE(gaudi2_nic0_spmu_stats);
-+static size_t gaudi2_nic1_spmu_stats_len = ARRAY_SIZE(gaudi2_nic1_spmu_stats);
-+
- static u64 debug_stm_regs[GAUDI2_STM_LAST + 1] = {
- 	[GAUDI2_STM_DCORE0_TPC0_EML] = mmDCORE0_TPC0_EML_STM_BASE,
- 	[GAUDI2_STM_DCORE0_TPC1_EML] = mmDCORE0_TPC1_EML_STM_BASE,
-@@ -489,7 +508,7 @@ static u64 debug_funnel_regs[GAUDI2_FUNNEL_LAST + 1] = {
- 	[GAUDI2_FUNNEL_NIC11_DBG_NCH] = mmNIC11_DBG_FUNNEL_NCH_BASE
- };
- 
--static u64 debug_bmon_regs[GAUDI2_BMON_LAST + 1] = {
-+u64 debug_bmon_regs[GAUDI2_BMON_LAST + 1] = {
- 	[GAUDI2_BMON_DCORE0_TPC0_EML_0] = mmDCORE0_TPC0_EML_BUSMON_0_BASE,
- 	[GAUDI2_BMON_DCORE0_TPC0_EML_1] = mmDCORE0_TPC0_EML_BUSMON_1_BASE,
- 	[GAUDI2_BMON_DCORE0_TPC0_EML_2] = mmDCORE0_TPC0_EML_BUSMON_2_BASE,
-@@ -877,7 +896,7 @@ static u64 debug_bmon_regs[GAUDI2_BMON_LAST + 1] = {
- 	[GAUDI2_BMON_NIC11_DBG_2_1] = mmNIC11_DBG_BMON2_1_BASE
- };
- 
--static u64 debug_spmu_regs[GAUDI2_SPMU_LAST + 1] = {
-+u64 debug_spmu_regs[GAUDI2_SPMU_LAST + 1] = {
- 	[GAUDI2_SPMU_DCORE0_TPC0_EML] = mmDCORE0_TPC0_EML_SPMU_BASE,
- 	[GAUDI2_SPMU_DCORE0_TPC1_EML] = mmDCORE0_TPC1_EML_SPMU_BASE,
- 	[GAUDI2_SPMU_DCORE0_TPC2_EML] = mmDCORE0_TPC2_EML_SPMU_BASE,
-@@ -2432,6 +2451,11 @@ static int gaudi2_config_bmon(struct hl_device *hdev, struct hl_debug_params *pa
- 	return 0;
- }
- 
-+static bool gaudi2_reg_is_nic_spmu(enum gaudi2_debug_spmu_regs_index reg_idx)
-+{
-+	return reg_idx >= GAUDI2_SPMU_NIC0_DBG_0 && reg_idx <= GAUDI2_SPMU_NIC11_DBG_1;
-+}
-+
- static int gaudi2_config_spmu(struct hl_device *hdev, struct hl_debug_params *params)
- {
- 	struct hl_debug_params_spmu *input = params->input;
-@@ -2542,6 +2566,121 @@ static int gaudi2_config_spmu(struct hl_device *hdev, struct hl_debug_params *pa
- 	return 0;
- }
- 
-+static int gaudi2_sample_spmu(struct hl_device *hdev, struct hl_debug_params *params)
-+{
-+	u32 output_arr_len;
-+	u32 events_num;
-+	u64 base_reg;
-+	u64 *output;
++	u32 port_idx = port->idx;
 +	int i;
 +
-+	if (params->reg_idx >= ARRAY_SIZE(debug_spmu_regs)) {
-+		dev_err(hdev->dev, "Invalid register index in SPMU\n");
-+		return -EINVAL;
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++
++	switch (stringset) {
++	case ETH_SS_STATS:
++		for (i = 0; i < netdev_eth_stats_len; i++)
++			ethtool_puts(&data, netdev_eth_stats[i].str);
++
++		aux_ops->get_cnts_names(aux_dev, port_idx, data);
++		break;
++	case ETH_SS_PRIV_FLAGS:
++		for (i = 0; i < pflags_str_len; i++)
++			ethtool_puts(&data, pflags_str[i]);
++		break;
 +	}
-+
-+	base_reg = debug_spmu_regs[params->reg_idx];
-+
-+	 /* in case base reg is 0x0 we ignore this configuration */
-+	if (!base_reg)
-+		return 0;
-+
-+	output = params->output;
-+	output_arr_len = params->output_size / sizeof(u64);
-+	events_num = output_arr_len;
-+
-+	if (output_arr_len < 1) {
-+		dev_err(hdev->dev, "not enough values for SPMU sample\n");
-+		return -EINVAL;
-+	}
-+
-+	if (events_num > SPMU_MAX_COUNTERS) {
-+		dev_err(hdev->dev, "too many events values for SPMU sample\n");
-+		return -EINVAL;
-+	}
-+
-+	/* capture */
-+	WREG32(base_reg + mmSPMU_PMSCR_OFFSET, 1);
-+
-+	/* read the shadow registers */
-+	for (i = 0 ; i < events_num ; i++)
-+		output[i] = RREG32(base_reg + mmSPMU_PMEVCNTSR0_OFFSET + i * 4);
-+
-+	return 0;
 +}
 +
-+void gaudi2_cn_spmu_get_stats_info(struct hl_device *hdev, u32 port, struct hbl_cn_stat **stats,
-+					u32 *n_stats)
++static void hbl_en_ethtool_get_ethtool_stats(struct net_device *ndev,
++					     __always_unused struct ethtool_stats *stats, u64 *data)
 +{
-+	if (!hdev->supports_coresight) {
-+		*n_stats = 0;
++	struct hbl_en_port *port = hbl_netdev_priv(ndev);
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	struct hbl_en_device *hdev;
++	u32 port_idx;
++	char *p;
++	int i;
++
++	hdev = port->hdev;
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
++	port_idx = port->idx;
++
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		dev_info_ratelimited(hdev->dev, "port %d is in reset, can't get ethtool stats",
++				     port_idx);
 +		return;
 +	}
 +
-+	if (port & 1) {
-+		*n_stats = gaudi2_nic1_spmu_stats_len;
-+		*stats = gaudi2_nic1_spmu_stats;
-+	} else {
-+		*n_stats = gaudi2_nic0_spmu_stats_len;
-+		*stats = gaudi2_nic0_spmu_stats;
++	/* Even though the Ethernet Rx/Tx flow might update the stats in parallel, there is not an
++	 * absolute need for synchronisation. This is because, missing few counts of these stats is
++	 * much better than adding a lock to synchronize and increase the overhead of the Rx/Tx
++	 * flows. In worst case scenario, reader will get stale stats. He will receive updated
++	 * stats in next read.
++	 */
++	for (i = 0; i < netdev_eth_stats_len; i++) {
++		p = (char *)port + netdev_eth_stats[i].lo_offset;
++		data[i] = *(u32 *)p;
 +	}
++
++	data += i;
++
++	aux_ops->get_cnts_values(aux_dev, port_idx, data);
++
++	atomic_set(&port->in_reset, 0);
 +}
 +
-+int gaudi2_cn_spmu_config(struct hl_device *hdev, u32 port, u32 num_event_types, u32 event_types[],
-+				bool enable)
++static int hbl_en_ethtool_get_coalesce(struct net_device *ndev,
++				       struct ethtool_coalesce *coal,
++				       struct kernel_ethtool_coalesce *kernel_coal,
++				       struct netlink_ext_ack *extack)
 +{
-+	struct hl_debug_params_spmu spmu;
-+	struct hl_debug_params params;
-+	u64 event_counters[SPMU_DATA_LEN];
-+	int i;
++	struct hbl_en_port *port = hbl_netdev_priv(ndev);
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
 +
-+	if (!hdev->supports_coresight)
-+		return 0;
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
 +
-+	/* validate nic port */
-+	if  (!gaudi2_reg_is_nic_spmu(GAUDI2_SPMU_NIC0_DBG_0 + port)) {
-+		dev_err(hdev->dev, "Invalid nic port %u\n", port);
-+		return -EINVAL;
-+	}
++	aux_ops->ctrl_lock(aux_dev, port_idx);
 +
-+	memset(&params, 0, sizeof(struct hl_debug_params));
-+	params.op = HL_DEBUG_OP_SPMU;
-+	params.input = &spmu;
-+	params.enable = enable;
-+	params.output_size = sizeof(event_counters);
-+	params.output = event_counters;
-+	params.reg_idx = GAUDI2_SPMU_NIC0_DBG_0 + port;
++	coal->tx_max_coalesced_frames = port->tx_max_coalesced_frames;
++	coal->rx_coalesce_usecs = port->rx_coalesce_usecs;
++	coal->rx_max_coalesced_frames = port->rx_max_coalesced_frames;
 +
-+	memset(&spmu, 0, sizeof(struct hl_debug_params_spmu));
-+	spmu.event_types_num = num_event_types;
++	aux_ops->ctrl_unlock(aux_dev, port_idx);
 +
-+	for (i = 0 ; i < spmu.event_types_num ; i++)
-+		spmu.event_types[i] = event_types[i];
-+
-+	return gaudi2_config_spmu(hdev, &params);
++	return 0;
 +}
 +
-+int gaudi2_cn_spmu_sample(struct hl_device *hdev, u32 port, u32 num_out_data, u64 out_data[])
++static int hbl_en_ethtool_set_coalesce(struct net_device *ndev,
++				       struct ethtool_coalesce *coal,
++				       struct kernel_ethtool_coalesce *kernel_coal,
++				       struct netlink_ext_ack *extack)
 +{
-+	struct hl_debug_params params;
++	struct hbl_en_port *port = hbl_netdev_priv(ndev);
++	struct hbl_en_device *hdev = port->hdev;
++	struct hbl_en_aux_ops *aux_ops;
++	struct hbl_aux_dev *aux_dev;
++	u32 port_idx = port->idx;
++	int rc, rx_ring_size;
 +
-+	if (!hdev->supports_coresight)
-+		return 0;
++	aux_dev = hdev->aux_dev;
++	aux_ops = aux_dev->aux_ops;
 +
-+	/* validate nic port */
-+	if  (!gaudi2_reg_is_nic_spmu(GAUDI2_SPMU_NIC0_DBG_0 + port)) {
-+		dev_err(hdev->dev, "Invalid nic port %u\n", port);
-+		return -EINVAL;
++	if (atomic_cmpxchg(&port->in_reset, 0, 1)) {
++		netdev_err(port->ndev, "port is in reset, can't update settings\n");
++		return -EBUSY;
 +	}
 +
-+	memset(&params, 0, sizeof(struct hl_debug_params));
-+	params.output = out_data;
-+	params.output_size = num_out_data * sizeof(u64);
-+	params.reg_idx = GAUDI2_SPMU_NIC0_DBG_0 + port;
++	if (coal->tx_max_coalesced_frames < TX_COALESCED_FRAMES_MIN ||
++	    coal->tx_max_coalesced_frames > TX_COALESCED_FRAMES_MAX) {
++		netdev_err(ndev, "tx max_coalesced_frames should be between %d and %d\n",
++			   TX_COALESCED_FRAMES_MIN, TX_COALESCED_FRAMES_MAX);
++		rc = -EINVAL;
++		goto atomic_out;
++	}
 +
-+	return gaudi2_sample_spmu(hdev, &params);
++	rx_ring_size = hdev->asic_funcs.get_rx_ring_size(port);
++	if (coal->rx_max_coalesced_frames < RX_COALESCED_FRAMES_MIN ||
++	    coal->rx_max_coalesced_frames >= rx_ring_size) {
++		netdev_err(ndev, "rx max_coalesced_frames should be between %d and %d\n",
++			   RX_COALESCED_FRAMES_MIN, rx_ring_size);
++		rc = -EINVAL;
++		goto atomic_out;
++	}
++
++	aux_ops->ctrl_lock(aux_dev, port_idx);
++
++	port->tx_max_coalesced_frames = coal->tx_max_coalesced_frames;
++	port->rx_coalesce_usecs = coal->rx_coalesce_usecs;
++	port->rx_max_coalesced_frames = coal->rx_max_coalesced_frames;
++
++	rc = hdev->asic_funcs.set_coalesce(port);
++
++	aux_ops->ctrl_unlock(aux_dev, port_idx);
++
++atomic_out:
++	atomic_set(&port->in_reset, 0);
++	return rc;
 +}
 +
- int gaudi2_debug_coresight(struct hl_device *hdev, struct hl_ctx *ctx, void *data)
- {
- 	struct hl_debug_params *params = data;
++void hbl_en_ethtool_init_coalesce(struct hbl_en_port *port)
++{
++	port->rx_coalesce_usecs = CQ_ARM_TIMEOUT_USEC;
++	port->rx_max_coalesced_frames = 1;
++	port->tx_max_coalesced_frames = 1;
++}
++
++static const struct ethtool_ops hbl_en_ethtool_ops_coalesce = {
++	.supported_coalesce_params = ETHTOOL_COALESCE_RX_USECS | ETHTOOL_COALESCE_RX_MAX_FRAMES |
++				     ETHTOOL_COALESCE_TX_MAX_FRAMES,
++	.get_drvinfo = hbl_en_ethtool_get_drvinfo,
++	.get_link = ethtool_op_get_link,
++	.get_module_info = hbl_en_ethtool_get_module_info,
++	.get_module_eeprom = hbl_en_ethtool_get_module_eeprom,
++	.get_priv_flags = hbl_en_ethtool_get_priv_flags,
++	.set_priv_flags = hbl_en_ethtool_set_priv_flags,
++	.get_link_ksettings = hbl_en_ethtool_get_link_ksettings,
++	.set_link_ksettings = hbl_en_ethtool_set_link_ksettings,
++	.get_sset_count = hbl_en_ethtool_get_sset_count,
++	.get_strings = hbl_en_ethtool_get_strings,
++	.get_ethtool_stats = hbl_en_ethtool_get_ethtool_stats,
++	.get_coalesce = hbl_en_ethtool_get_coalesce,
++	.set_coalesce = hbl_en_ethtool_set_coalesce,
++};
++
++const struct ethtool_ops *hbl_en_ethtool_get_ops(struct net_device *ndev)
++{
++	return &hbl_en_ethtool_ops_coalesce;
++}
 -- 
 2.34.1
 
