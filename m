@@ -1,34 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F04171D54F;
-	Sun, 16 Jun 2024 16:09:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61B25182D8;
+	Sun, 16 Jun 2024 16:09:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718554144; cv=none; b=bu58Wwy8xopwD6U3Dfk0O3L4ud73QkT57fc0NtNeLBYV5u1Qg9Yp4Vxu8YTs+Pgz0hWchxgOEhQw/zxSX4F3pLGlQybhfFz+gYOgMq+sWpDsJXoRfw3hbwLeWjOmmHLiNLbwCzDpwuEuRD4hzu8KK3aOxBzntUN7XPH78h2otBE=
+	t=1718554148; cv=none; b=tiGCMvXFZcGtWMx2uUh9V1lO6YbemlLNdlzHJWbkEuFYjjATw3rW/HgJwZLud7X6pufNkP9a8tFEzT69fGUD3+A7Bv0fVPq13Jj3dBbrAg7fh7omnOi8eivgp/EKvDk/mVVQVO1lnLmuqeFLv3y6KEcwkfGiTceESysVBDOY1eM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718554144; c=relaxed/simple;
-	bh=fcoAk42ZmXSoDiFV9ibLWtLT2KUITpLHo2920iegKlg=;
+	s=arc-20240116; t=1718554148; c=relaxed/simple;
+	bh=jzYsC6IezD/Lf+2W38MT2qMOCZqExEGRYGpGFTt+1U8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lS/6z7WxIpYi7GfNJBqAzDLZtzsImEQz4DzkJjANMGOmoT2te9YpkeecAoVVXWeykUPdm/D/dbt/BXAK8+QyiW/6EjC2DkGy90bgZ1TFXMZIQr07T1GRGKn7NYjbdtWIi8sTqOt0BnQkZ1J11MPRJkJiO0cHgpX1DX6FM6f49n8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lWpeJx9W; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=uJArO6LV39zAcmtRxKbOg044vpsGaEhMluMH6n6UNkuf08/AoRC+3+mrsxqmdpLSX8QzNumkSKXt4nxRCj8p5zcskgSc6uut7m3u/CiO7a1YuptAC0U0MVwulJAC/Yg9xNzphHdYL1NRSFnIvEHrJaxN79Jig2LN3AvE6SLBVWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uDMomB8w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lWpeJx9W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E735DC2BBFC;
-	Sun, 16 Jun 2024 16:09:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uDMomB8w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EB26C2BBFC;
+	Sun, 16 Jun 2024 16:09:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718554143;
-	bh=fcoAk42ZmXSoDiFV9ibLWtLT2KUITpLHo2920iegKlg=;
+	s=k20201202; t=1718554147;
+	bh=jzYsC6IezD/Lf+2W38MT2qMOCZqExEGRYGpGFTt+1U8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=lWpeJx9WVwvNCsKGoAkabH47Vf33uu3rwZtfBOf5m2w1Wm9ViMufgDxTqkRY/SPX8
-	 yCpvbhPyYZE0aoQUMRKFaflNjekxYk0MYf+MaK8JsYciYfWFlLJSC2pSMU9bvlWX4/
-	 hr5zYo5xsRUV0nvvGPz2XFAiT7I4+zABWX0dpdQIioTg+aW3BXJ7hLp/hjOUHZ11Ls
-	 vQN6qESXTq4IfnhBlYc6PgGcKJG+qvY/vCwzsSwRSyfrs+hbg0apRFXfVmV06WRk1X
-	 QFFRcdAJZXpfjMZTDPOcrcQxBLEirJHa027PHDIV22Gxwt3flCopAEIrI0lKT8gktF
-	 Gzgwy9i9FZPuQ==
+	b=uDMomB8wkpMAu0jk9+ZqKOdLzXD6Ze7jM641SsaGPeQhZQWOwmQ0ZUzJ0NlnkCxjL
+	 jJ9t/S18Zbg1CEnsXZskU2/x42LMrMsvHnb6GnhJwsCHR0O7kFGKxeSfZRdx2llBia
+	 BAUNpimAVXwhNuMbhJ1tTV1YW0M2+fSqnIIT3HRjt0cqz1RTuuOUtDiIWDQpMJKcal
+	 yxS634UpxWNIm9fvkIVy3p+gsO+zumdY4kb2i+kUYCj0iVgwTOC+dLNcxCk4mLzdYt
+	 xgU3ojaQb6YWMJg9ZBAPhhSzBJRUGvo1Y/y52+xiym0ktoXIabJDiXR93cxZc0e5e3
+	 UL0VBPhj7uFzA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Mark Zhang <markzhang@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	linux-rdma@vger.kernel.org,
@@ -36,9 +37,9 @@ Cc: Mark Zhang <markzhang@nvidia.com>,
 	Paolo Abeni <pabeni@redhat.com>,
 	Saeed Mahameed <saeedm@nvidia.com>,
 	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH mlx5-next 03/12] RDMA/mlx5: Add support to multi-plane device and port
-Date: Sun, 16 Jun 2024 19:08:35 +0300
-Message-ID: <7e37c06c9cb243be9ac79930cd17053903785b95.1718553901.git.leon@kernel.org>
+Subject: [PATCH rdma-next 05/12] RDMA: Set type of rdma_ah to IB for a SMI sub device
+Date: Sun, 16 Jun 2024 19:08:37 +0300
+Message-ID: <195be77aae0cce93522269f22f1303d2ccbef605.1718553901.git.leon@kernel.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <cover.1718553901.git.leon@kernel.org>
 References: <cover.1718553901.git.leon@kernel.org>
@@ -52,172 +53,28 @@ Content-Transfer-Encoding: 8bit
 
 From: Mark Zhang <markzhang@nvidia.com>
 
-When multi-plane is supported, a logical port, which is aggregation of
-multiple physical plane ports, is exposed for data transmission.
-Compared with a normal mlx5 IB port, this logical port supports all
-functionalities except Subnet Management.
+An address handle created on a SMI port has type IB, as a SMI
+port it's used for SMI management through umad.
 
 Signed-off-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c             | 60 ++++++++++++++++---
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  2 +
- .../net/ethernet/mellanox/mlx5/core/vport.c   |  1 +
- include/linux/mlx5/driver.h                   |  1 +
- 4 files changed, 55 insertions(+), 9 deletions(-)
+ include/rdma/ib_verbs.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index a7003316d438..55eb60715b48 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1388,7 +1388,13 @@ static int mlx5_query_hca_port(struct ib_device *ibdev, u32 port,
- 	props->sm_sl		= rep->sm_sl;
- 	props->state		= rep->vport_state;
- 	props->phys_state	= rep->port_physical_state;
--	props->port_cap_flags	= rep->cap_mask1;
-+
-+	props->port_cap_flags = rep->cap_mask1;
-+	if (dev->num_plane) {
-+		props->port_cap_flags |= IB_PORT_SM_DISABLED;
-+		props->port_cap_flags &= ~IB_PORT_SM;
-+	}
-+
- 	props->gid_tbl_len	= mlx5_get_gid_table_len(MLX5_CAP_GEN(mdev, gid_table_size));
- 	props->max_msg_sz	= 1 << MLX5_CAP_GEN(mdev, log_max_msg);
- 	props->pkey_tbl_len	= mlx5_to_sw_pkey_sz(MLX5_CAP_GEN(mdev, pkey_table_size));
-@@ -2807,6 +2813,23 @@ static int mlx5_ib_event_slave_port(struct notifier_block *nb,
- 	return NOTIFY_OK;
- }
- 
-+static int mlx5_ib_get_plane_num(struct mlx5_core_dev *mdev, u8 *num_plane)
-+{
-+	struct mlx5_hca_vport_context vport_ctx;
-+	int err;
-+
-+	*num_plane = 0;
-+	if (!MLX5_CAP_GEN(mdev, ib_virt))
-+		return 0;
-+
-+	err = mlx5_query_hca_vport_context(mdev, 0, 1, 0, &vport_ctx);
-+	if (err)
-+		return err;
-+
-+	*num_plane = vport_ctx.num_plane;
-+	return 0;
-+}
-+
- static int set_has_smi_cap(struct mlx5_ib_dev *dev)
- {
- 	struct mlx5_hca_vport_context vport_ctx;
-@@ -2817,10 +2840,14 @@ static int set_has_smi_cap(struct mlx5_ib_dev *dev)
- 		return 0;
- 
- 	for (port = 1; port <= dev->num_ports; port++) {
--		if (!MLX5_CAP_GEN(dev->mdev, ib_virt)) {
-+		if (dev->num_plane) {
-+			dev->port_caps[port - 1].has_smi = false;
-+			continue;
-+		} else if (!MLX5_CAP_GEN(dev->mdev, ib_virt)) {
- 			dev->port_caps[port - 1].has_smi = true;
- 			continue;
- 		}
-+
- 		err = mlx5_query_hca_vport_context(dev->mdev, 0, port, 0,
- 						   &vport_ctx);
- 		if (err) {
-@@ -3026,6 +3053,11 @@ static u32 get_core_cap_flags(struct ib_device *ibdev,
- 	if (rep->grh_required)
- 		ret |= RDMA_CORE_CAP_IB_GRH_REQUIRED;
- 
-+	if (dev->num_plane)
-+		return ret | RDMA_CORE_CAP_PROT_IB | RDMA_CORE_CAP_IB_MAD |
-+			RDMA_CORE_CAP_IB_CM | RDMA_CORE_CAP_IB_SA |
-+			RDMA_CORE_CAP_AF_IB;
-+
- 	if (ll == IB_LINK_LAYER_INFINIBAND)
- 		return ret | RDMA_CORE_PORT_IBA_IB;
- 
-@@ -4507,11 +4539,18 @@ static int mlx5r_probe(struct auxiliary_device *adev,
- 	dev = ib_alloc_device(mlx5_ib_dev, ib_dev);
- 	if (!dev)
- 		return -ENOMEM;
-+
-+	if (ll == IB_LINK_LAYER_INFINIBAND) {
-+		ret = mlx5_ib_get_plane_num(mdev, &dev->num_plane);
-+		if (ret)
-+			goto fail;
-+	}
-+
- 	dev->port = kcalloc(num_ports, sizeof(*dev->port),
- 			     GFP_KERNEL);
- 	if (!dev->port) {
--		ib_dealloc_device(&dev->ib_dev);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto fail;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index bebc2d22f466..c20571618798 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4660,6 +4660,8 @@ static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
+ 			return RDMA_AH_ATTR_TYPE_OPA;
+ 		return RDMA_AH_ATTR_TYPE_IB;
  	}
++	if (dev->type == RDMA_DEVICE_TYPE_SMI)
++		return RDMA_AH_ATTR_TYPE_IB;
  
- 	dev->mdev = mdev;
-@@ -4523,14 +4562,17 @@ static int mlx5r_probe(struct auxiliary_device *adev,
- 		profile = &pf_profile;
- 
- 	ret = __mlx5_ib_add(dev, profile);
--	if (ret) {
--		kfree(dev->port);
--		ib_dealloc_device(&dev->ib_dev);
--		return ret;
--	}
-+	if (ret)
-+		goto fail_ib_add;
- 
- 	auxiliary_set_drvdata(adev, dev);
- 	return 0;
-+
-+fail_ib_add:
-+	kfree(dev->port);
-+fail:
-+	ib_dealloc_device(&dev->ib_dev);
-+	return ret;
+ 	return RDMA_AH_ATTR_TYPE_UNDEFINED;
  }
- 
- static void mlx5r_remove(struct auxiliary_device *adev)
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index a6f2b679a7e9..d97d6bc2dbaa 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1189,6 +1189,8 @@ struct mlx5_ib_dev {
- #ifdef CONFIG_MLX5_MACSEC
- 	struct mlx5_macsec macsec;
- #endif
-+
-+	u8 num_plane;
- };
- 
- static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index 1005bb6935b6..0d5f750faa45 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -737,6 +737,7 @@ int mlx5_query_hca_vport_context(struct mlx5_core_dev *dev,
- 	rep->grh_required = MLX5_GET_PR(hca_vport_context, ctx, grh_required);
- 	rep->sys_image_guid = MLX5_GET64_PR(hca_vport_context, ctx,
- 					    system_image_guid);
-+	rep->num_plane = MLX5_GET_PR(hca_vport_context, ctx, num_port_plane);
- 
- ex:
- 	kvfree(out);
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 145e2fb1b832..2889ece6c808 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -917,6 +917,7 @@ struct mlx5_hca_vport_context {
- 	u16			qkey_violation_counter;
- 	u16			pkey_violation_counter;
- 	bool			grh_required;
-+	u8			num_plane;
- };
- 
- #define STRUCT_FIELD(header, field) \
 -- 
 2.45.2
 
