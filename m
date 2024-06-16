@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E27311B806;
-	Sun, 16 Jun 2024 16:09:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07FD43B7A8;
+	Sun, 16 Jun 2024 16:09:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718554161; cv=none; b=V37HqJi3JFL7YIiQp7pfKrW36S+73cV9z01+Ux9uX08XWCIfWtj5Gn0alpvYrhwTe5NcfnUewl2bHD1HmPibfRgnrKlGoL0Qcsr1YQTtg8mYQv8Eyub/gQ7eUPny3OnJFT2mqtLT/VomuJvSBCw3X+4aOrZPzOX19gZ8aQl0frI=
+	t=1718554165; cv=none; b=g0l+2PAGSwXBcICdvg9wF4YZmmkhlbQ7r4gcVZnMkT7bK+EFvMsuECADZQd7/1yroh0zpKiAxPNJU8s6ijD8Nd2glCs7jK1dIV1l8akmf71jNRNc2b+lfuNMUp4Mm/fVYH7X+X0vHByA/Ymak/csMQKId2E5jWg/GVL6OaZu/Zw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718554161; c=relaxed/simple;
-	bh=wrtT1ShcvISRqi3aDhodopWwGFJiZQdVPaXZ8YMED+w=;
+	s=arc-20240116; t=1718554165; c=relaxed/simple;
+	bh=ZV+dK1amM89ckzUE+eZcuNzNr3bWvI65C6CRlsDcGfI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XAG2DLmroqcNBcMkKeJ8HyBN7SND+xVYKDQ1J0F8VMsF52Q/+vGSgh/phMZ+hdw6FpHxo4XpZAcRhgEMgGNy0MWquP+n2zZHQW0EsMJ2iQpuUAmnB4KxjTA0IMJeaeLENGSH7+NFq6t7A23aMVXr2UNB6Ca7tpoj7qK68oIu9es=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=euh5/jLH; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=u9MH/ntDbUTjREVRqnkWu3c1M9Tzeaw+BDI2LBiIjHBYnLdL5PYgISK5lUOAWZmmVUthhtelRfVMnStb9sM+s6nA9CyH493Y7N8OHEsHibiK9ITsJ8gT1tSVonVYKGW1hoYgns7KdOGggwF0f0q9Y+WUG1SP4VJ4ALPmoVrwJH4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gVn5E8H4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="euh5/jLH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA6BFC2BBFC;
-	Sun, 16 Jun 2024 16:09:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gVn5E8H4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05EDAC2BBFC;
+	Sun, 16 Jun 2024 16:09:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718554160;
-	bh=wrtT1ShcvISRqi3aDhodopWwGFJiZQdVPaXZ8YMED+w=;
+	s=k20201202; t=1718554164;
+	bh=ZV+dK1amM89ckzUE+eZcuNzNr3bWvI65C6CRlsDcGfI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=euh5/jLHGHitfnwbmVIIqBzQNwRYT9+UUAn3uogXavSklG75TBMdeUZSe/MHOYgo4
-	 fYg7gUqxh7xpNpaK2FD1Zx7Xe6hJIqZN9kU2jW32v46l0s6iSLMQ0f8uQr6cRrAw4w
-	 0bDUx6bfiHWkInTgHy1bWMC8S7pxJf+QDwcnuhbCkqDGIR9zf1AQw2pGlc8+tugztz
-	 lOm8nkrbmjmgi4THhPDH/xDfhAMEH6B7/ffCCR/KZmPGyUyecauaiJVnV5BoedDGGh
-	 TQoPjEyLY/s27BiGjEgfSMulI2WvA2vfaqYI0UlGmS46zIanZxOJzNnyqnVJrJHPIJ
-	 pC9uCj7K3NRHA==
+	b=gVn5E8H47ClW8Oq/RLGh+o9oBTp5VKtSh5EY6Y5hbHNFx0XJObUqlsOJPIyX0BTop
+	 7yIXKV784uAtGCBfaOL01TlKDD0qvFangnK1Q5CW9HUVMRRQWPUQhed+XCQLCBJR2T
+	 rjaw+F4f01kit1ftQvehCWJNaxuUJBIymwJLtSoqPKlArZ4TI287zKJvMuy1I298vW
+	 uIdofGfFsMhMNj0NcxGBUTRFkdYJrqfNPMxux6R44Amh1po7oxgmGCX2s+Rpb6+Lzl
+	 /n+uTTRGuw3xKQ5W6KZUR0pUSud5XozeYqpyllvT4CofEY3v7oXFSdLk6dqWdQIwCL
+	 +aACgxsUoZzJw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Mark Zhang <markzhang@nvidia.com>,
@@ -37,9 +37,9 @@ Cc: Mark Zhang <markzhang@nvidia.com>,
 	Paolo Abeni <pabeni@redhat.com>,
 	Saeed Mahameed <saeedm@nvidia.com>,
 	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH rdma-next 08/12] RDMA/nldev: Add support to add/delete a sub IB device through netlink
-Date: Sun, 16 Jun 2024 19:08:40 +0300
-Message-ID: <77cbf1b36359642be8a8d8c5c2f4e585b544282f.1718553901.git.leon@kernel.org>
+Subject: [PATCH rdma-next 04/12] RDMA/core: Support IB sub device with type "SMI"
+Date: Sun, 16 Jun 2024 19:08:36 +0300
+Message-ID: <44253f7508b21eb2caefea3980c2bc072869116c.1718553901.git.leon@kernel.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <cover.1718553901.git.leon@kernel.org>
 References: <cover.1718553901.git.leon@kernel.org>
@@ -53,128 +53,227 @@ Content-Transfer-Encoding: 8bit
 
 From: Mark Zhang <markzhang@nvidia.com>
 
-Add new netlink commands and attributes to support adding and deleting
-a sub IB device with admin privilege.
+This patch adds 2 APIs, as well as driver operations to support adding
+and deleting an IB sub device, which provides part of functionalities
+of it's parent.
 
-Examples:
-$ rdma dev add smi1 type SMI parent ibp8s0f1
-$ rdma dev del smi1
+A sub device has a type; for a sub device with type "SMI", it provides
+the smi capability through umad for its parent, meaning uverb is not
+supported.
+
+A sub device cannot live without a parent. So when a parent is
+released, all it's sub devices are released as well.
 
 Signed-off-by: Mark Zhang <markzhang@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/nldev.c  | 59 ++++++++++++++++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  6 ++++
- 2 files changed, 65 insertions(+)
+ drivers/infiniband/core/device.c      | 68 +++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c |  3 +-
+ include/rdma/ib_verbs.h               | 43 +++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h      |  5 ++
+ 4 files changed, 118 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index bc79ee630d8d..b5f87e7a1cfd 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -167,6 +167,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_STAT_HWCOUNTER_DYNAMIC] = { .type = NLA_U8 },
- 	[RDMA_NLDEV_SYS_ATTR_PRIVILEGED_QKEY_MODE] = { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_DRIVER_DETAILS]	= { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_DEV_TYPE]		= { .type = NLA_U8 },
- };
- 
- static int put_driver_name_print_type(struct sk_buff *msg, const char *name,
-@@ -2548,6 +2549,56 @@ static int nldev_stat_get_counter_status_doit(struct sk_buff *skb,
- 	return ret;
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 55aa7aa32d4a..8547cab50b23 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -641,6 +641,11 @@ struct ib_device *_ib_alloc_device(size_t size)
+ 		BIT_ULL(IB_USER_VERBS_CMD_REG_MR) |
+ 		BIT_ULL(IB_USER_VERBS_CMD_REREG_MR) |
+ 		BIT_ULL(IB_USER_VERBS_CMD_RESIZE_CQ);
++
++	mutex_init(&device->subdev_lock);
++	INIT_LIST_HEAD(&device->subdev_list_head);
++	INIT_LIST_HEAD(&device->subdev_list);
++
+ 	return device;
  }
+ EXPORT_SYMBOL(_ib_alloc_device);
+@@ -1461,6 +1466,18 @@ EXPORT_SYMBOL(ib_register_device);
+ /* Callers must hold a get on the device. */
+ static void __ib_unregister_device(struct ib_device *ib_dev)
+ {
++	struct ib_device *sub, *tmp;
++
++	mutex_lock(&ib_dev->subdev_lock);
++	list_for_each_entry_safe_reverse(sub, tmp,
++					 &ib_dev->subdev_list_head,
++					 subdev_list) {
++		list_del(&sub->subdev_list);
++		ib_dev->ops.del_sub_dev(sub);
++		ib_device_put(ib_dev);
++	}
++	mutex_unlock(&ib_dev->subdev_lock);
++
+ 	/*
+ 	 * We have a registration lock so that all the calls to unregister are
+ 	 * fully fenced, once any unregister returns the device is truely
+@@ -2597,6 +2614,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 		ops->uverbs_no_driver_id_binding;
  
-+static int nldev_newdev(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			struct netlink_ext_ack *extack)
+ 	SET_DEVICE_OP(dev_ops, add_gid);
++	SET_DEVICE_OP(dev_ops, add_sub_dev);
+ 	SET_DEVICE_OP(dev_ops, advise_mr);
+ 	SET_DEVICE_OP(dev_ops, alloc_dm);
+ 	SET_DEVICE_OP(dev_ops, alloc_hw_device_stats);
+@@ -2631,6 +2649,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ 	SET_DEVICE_OP(dev_ops, dealloc_ucontext);
+ 	SET_DEVICE_OP(dev_ops, dealloc_xrcd);
+ 	SET_DEVICE_OP(dev_ops, del_gid);
++	SET_DEVICE_OP(dev_ops, del_sub_dev);
+ 	SET_DEVICE_OP(dev_ops, dereg_mr);
+ 	SET_DEVICE_OP(dev_ops, destroy_ah);
+ 	SET_DEVICE_OP(dev_ops, destroy_counters);
+@@ -2727,6 +2746,55 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
+ }
+ EXPORT_SYMBOL(ib_set_device_ops);
+ 
++int ib_add_sub_device(struct ib_device *parent,
++		      enum rdma_nl_dev_type type,
++		      const char *name)
 +{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	enum rdma_nl_dev_type type;
-+	struct ib_device *parent;
-+	char name[IFNAMSIZ] = {};
-+	u32 parentid;
-+	int ret;
++	struct ib_device *sub;
++	int ret = 0;
 +
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
-+		!tb[RDMA_NLDEV_ATTR_DEV_NAME] || !tb[RDMA_NLDEV_ATTR_DEV_TYPE])
++	if (!parent->ops.add_sub_dev || !parent->ops.del_sub_dev)
++		return -EOPNOTSUPP;
++
++	if (!ib_device_try_get(parent))
 +		return -EINVAL;
 +
-+	nla_strscpy(name, tb[RDMA_NLDEV_ATTR_DEV_NAME], sizeof(name));
-+	type = nla_get_u8(tb[RDMA_NLDEV_ATTR_DEV_TYPE]);
-+	parentid = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	parent = ib_device_get_by_index(sock_net(skb->sk), parentid);
-+	if (!parent)
-+		return -EINVAL;
++	sub = parent->ops.add_sub_dev(parent, type, name);
++	if (IS_ERR(sub)) {
++		ib_device_put(parent);
++		return PTR_ERR(sub);
++	}
 +
-+	ret = ib_add_sub_device(parent, type, name);
-+	ib_device_put(parent);
++	sub->type = type;
++	sub->parent = parent;
++
++	mutex_lock(&parent->subdev_lock);
++	list_add_tail(&parent->subdev_list_head, &sub->subdev_list);
++	mutex_unlock(&parent->subdev_lock);
 +
 +	return ret;
 +}
++EXPORT_SYMBOL(ib_add_sub_device);
 +
-+static int nldev_deldev(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			struct netlink_ext_ack *extack)
++int ib_del_sub_device_and_put(struct ib_device *sub)
 +{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	struct ib_device *device;
-+	u32 devid;
-+	int ret;
++	struct ib_device *parent = sub->parent;
 +
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (ret || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
-+		return -EINVAL;
++	if (!parent)
++		return -EOPNOTSUPP;
 +
-+	devid = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = ib_device_get_by_index(sock_net(skb->sk), devid);
-+	if (!device)
-+		return -EINVAL;
++	mutex_lock(&parent->subdev_lock);
++	list_del(&sub->subdev_list);
++	mutex_unlock(&parent->subdev_lock);
 +
-+	return ib_del_sub_device_and_put(device);
++	ib_device_put(sub);
++	parent->ops.del_sub_dev(sub);
++	ib_device_put(parent);
++
++	return 0;
 +}
++EXPORT_SYMBOL(ib_del_sub_device_and_put);
 +
- static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
-@@ -2646,6 +2697,14 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_STAT_GET_STATUS] = {
- 		.doit = nldev_stat_get_counter_status_doit,
- 	},
-+	[RDMA_NLDEV_CMD_NEWDEV] = {
-+		.doit = nldev_newdev,
-+		.flags = RDMA_NL_ADMIN_PERM,
-+	},
-+	[RDMA_NLDEV_CMD_DELDEV] = {
-+		.doit = nldev_deldev,
-+		.flags = RDMA_NL_ADMIN_PERM,
-+	},
+ #ifdef CONFIG_INFINIBAND_VIRT_DMA
+ int ib_dma_virt_map_sg(struct ib_device *dev, struct scatterlist *sg, int nents)
+ {
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 495d5a5d0373..bc099287de9a 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -1114,7 +1114,8 @@ static int ib_uverbs_add_one(struct ib_device *device)
+ 	struct ib_uverbs_device *uverbs_dev;
+ 	int ret;
+ 
+-	if (!device->ops.alloc_ucontext)
++	if (!device->ops.alloc_ucontext ||
++	    device->type == RDMA_DEVICE_TYPE_SMI)
+ 		return -EOPNOTSUPP;
+ 
+ 	uverbs_dev = kzalloc(sizeof(*uverbs_dev), GFP_KERNEL);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 477bf9dd5e71..bebc2d22f466 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2661,6 +2661,18 @@ struct ib_device_ops {
+ 	 */
+ 	int (*get_numa_node)(struct ib_device *dev);
+ 
++	/**
++	 * add_sub_dev - Add a sub IB device
++	 */
++	struct ib_device *(*add_sub_dev)(struct ib_device *parent,
++					 enum rdma_nl_dev_type type,
++					 const char *name);
++
++	/**
++	 * del_sub_dev - Delete a sub IB device
++	 */
++	void (*del_sub_dev)(struct ib_device *sub_dev);
++
+ 	DECLARE_RDMA_OBJ_SIZE(ib_ah);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_counters);
+ 	DECLARE_RDMA_OBJ_SIZE(ib_cq);
+@@ -2771,6 +2783,15 @@ struct ib_device {
+ 	char iw_ifname[IFNAMSIZ];
+ 	u32 iw_driver_flags;
+ 	u32 lag_flags;
++
++	/* A parent device has a list of sub-devices */
++	struct mutex subdev_lock;
++	struct list_head subdev_list_head;
++
++	/* A sub device has a type and a parent */
++	enum rdma_nl_dev_type type;
++	struct ib_device *parent;
++	struct list_head subdev_list;
  };
  
- void __init nldev_init(void)
+ static inline void *rdma_zalloc_obj(struct ib_device *dev, size_t size,
+@@ -4820,4 +4841,26 @@ static inline u16 rdma_get_udp_sport(u32 fl, u32 lqpn, u32 rqpn)
+ 
+ const struct ib_port_immutable*
+ ib_port_immutable_read(struct ib_device *dev, unsigned int port);
++
++/** ib_add_sub_device - Add a sub IB device on an existing one
++ *
++ * @parent: The IB device that needs to add a sub device
++ * @type: The type of the new sub device
++ * @name: The name of the new sub device
++ *
++ *
++ * Return 0 on success, an error code otherwise
++ */
++int ib_add_sub_device(struct ib_device *parent,
++		      enum rdma_nl_dev_type type,
++		      const char *name);
++
++
++/** ib_del_sub_device_and_put - Delect an IB sub device while holding a 'get'
++ *
++ * @sub: The sub device that is going to be deleted
++ *
++ * Return 0 on success, an error code otherwise
++ */
++int ib_del_sub_device_and_put(struct ib_device *sub);
+ #endif /* IB_VERBS_H */
 diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index d15ee16be722..bd52fb325e22 100644
+index a214fc259f28..d15ee16be722 100644
 --- a/include/uapi/rdma/rdma_netlink.h
 +++ b/include/uapi/rdma/rdma_netlink.h
-@@ -301,6 +301,10 @@ enum rdma_nldev_command {
- 
- 	RDMA_NLDEV_CMD_RES_SRQ_GET_RAW,
- 
-+	RDMA_NLDEV_CMD_NEWDEV,
-+
-+	RDMA_NLDEV_CMD_DELDEV,
-+
- 	RDMA_NLDEV_NUM_OPS
+@@ -602,4 +602,9 @@ enum rdma_nl_counter_mask {
+ 	RDMA_COUNTER_MASK_QP_TYPE = 1,
+ 	RDMA_COUNTER_MASK_PID = 1 << 1,
  };
- 
-@@ -564,6 +568,8 @@ enum rdma_nldev_attr {
- 	 */
- 	RDMA_NLDEV_ATTR_RES_SUBTYPE,		/* string */
- 
-+	RDMA_NLDEV_ATTR_DEV_TYPE,		/* u8 */
 +
- 	/*
- 	 * Always the end
- 	 */
++/* Supported rdma device types. */
++enum rdma_nl_dev_type {
++	RDMA_DEVICE_TYPE_SMI = 1,
++};
+ #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 2.45.2
 
