@@ -1,48 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFBFF17BA0;
-	Sun, 16 Jun 2024 16:09:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03E35168DE;
+	Sun, 16 Jun 2024 16:10:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718554181; cv=none; b=SJYK3T2EZNitPxliR4G8damc6JWwpNGQzbt2SNJ7h7drrEp0X5vUr8xuH7WxzNlgyjzQFA51BhDVYhgC/Pk9c+v58zcf9titkHrUiwLnV4OWlw+3/ZS/Ss3UhjnETZWwAaYxskWkxOrlWTJjWE57YrYAxCQCt1VNhFU20qxTEtQ=
+	t=1718554244; cv=none; b=NSlZXQZdIJyaFTsbatEVk4bStsf/VeMbUAlkx8sSmLbbvJBw9OOWj3ZnpmOCIj1zKGCwWL0143AxpFR/XTd264rk/uNnszDHPijLFDrF/tJTdmNLZPprwMI4R9liUE/fFOkoxNmBlUtRv3zSeT2Wjecc2/2T1rk7a0a22RJQA48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718554181; c=relaxed/simple;
-	bh=/fHTYJCl29Iyoeg8bOOeyCFaEZ6Wtjk1QLCgGl0i6SQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rdc68Z/fKolPzdNHWG4dJbcavddPEeOfTwQmcuhWJEPVTzCmL73sO3myiyunz1fCyqSAlyeK6LnTtps3KTGYzGLwEQb13xijENSHQNwoNblc/10JR8MNxbB2ZxmbxJ1TdnfwXpOzED6gnnKA9QQlcJijjfxLRfLd+MEj996312c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WvipekBi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1718554244; c=relaxed/simple;
+	bh=uF/KwkLLn0UI0lc5iIR0pUXgGsR8G/tVms7fj1HaAYc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Pm+E832gOrCbdDZNKCD0rrQlbmTcR/4eJfu7J/Qbn0gSA1fJYCIsMJ2HgCVX1F7fIUhsQYxPGKp/mn9O51dq0erZUnHQqnfLW1T8lIBu3mMrU17TEEtOC89BNqoE/QjtAJvmg8AqfzWJvZJq8pSYE7fl3mITmH52BjKcgo9lsi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RqwgFmjL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WvipekBi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECC28C2BBFC;
-	Sun, 16 Jun 2024 16:09:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RqwgFmjL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A806C2BBFC;
+	Sun, 16 Jun 2024 16:10:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1718554181;
-	bh=/fHTYJCl29Iyoeg8bOOeyCFaEZ6Wtjk1QLCgGl0i6SQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=WvipekBiGIQ7miL2SptrxOSKnTP3bCmfHmIQJdUmeyCZdxnK6Jt64Nmu6eym8nn6z
-	 VfHhSCDhrSrcMJyZq+WI8VRtuVDlUpERvpZXgFzmpqPouRarl/xqMNFFDXQDL4S3Ek
-	 ktQ8bThnCKOgdWqYjJ3uiOLazM7aRH5ih6A4oe68CVtLxeFWAd9gdkLRLxeHwsvW+H
-	 i8lki6JgiPHUK5f7oysAImlINzefmxFEJFLa8OxnlsKnnN5UryYOiG4MJ8EnFlAlCo
-	 0+ek4EPDj9OUyHd4Xi8ViGB8gS7KbbKC2YqC9Ujjd0SmkAEbWSpQDx8Ta7ovAH8ABA
-	 07qQunAsi2fGQ==
+	s=k20201202; t=1718554243;
+	bh=uF/KwkLLn0UI0lc5iIR0pUXgGsR8G/tVms7fj1HaAYc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=RqwgFmjLAnf05Op8jPe9vOK2qNcdUnW5wUZdTxZ3YqGfzHCOPS4pv8IQtz9SaeoOV
+	 ioUkmL8VeRfMZAEXT9siAnEtXSCb1LDF1ciO1d+QEScB6PaZbdmmz2LVJCn1OwmyLK
+	 afCt/W8nbPoCRUKTKq2fQHT3gOyIDVfOMoSkbx6LkECRKfPJMNA2xxmaS4jAvYNT41
+	 X7tq1PK5rfPn7Eii7I79s7jbiBhydY9Lb8XfaZjI2aL+Ivh0sTG3bkh1NvgarohYOw
+	 kYlIPOWSIigtmw73NC2G9Axgh8hE6LSQg3X3Jm2hYRsB2QZ4MB2szOECO8DAoZsELI
+	 KfMXywX0eW1ZQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Mark Zhang <markzhang@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
+Cc: Or Har-Toov <ohartoov@nvidia.com>,
 	linux-rdma@vger.kernel.org,
+	Maher Sanalla <msanalla@nvidia.com>,
+	Maor Gottlieb <maorg@nvidia.com>,
 	netdev@vger.kernel.org,
-	Paolo Abeni <pabeni@redhat.com>,
 	Saeed Mahameed <saeedm@nvidia.com>,
 	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH rdma-next 09/12] RDMA/nldev: Add support to dump device type and parent device if exists
-Date: Sun, 16 Jun 2024 19:08:41 +0300
-Message-ID: <4c022e3e34b5de1254a3b367d502a362cdd0c53a.1718553901.git.leon@kernel.org>
+Subject: [PATCH mlx5-next] RDMA/mlx5: Use sq timestamp as QP timestamp when RoCE is disabled
+Date: Sun, 16 Jun 2024 19:10:36 +0300
+Message-ID: <32801966eb767c7fd62b8dea3b63991d5fbfe213.1718554199.git.leon@kernel.org>
 X-Mailer: git-send-email 2.45.2
-In-Reply-To: <cover.1718553901.git.leon@kernel.org>
-References: <cover.1718553901.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -51,62 +46,54 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Mark Zhang <markzhang@nvidia.com>
+From: Or Har-Toov <ohartoov@nvidia.com>
 
-If a device has a specific type or a parent device, dump them as well.
+When creating a QP, one of the attributes is TS format (timestamp).
+In some devices, we have a limitation that all QPs should have the same
+ts_format. The ts_format is chosen based on the device's capability.
+The qp_ts_format cap resides under the RoCE caps table, and the
+cap will be 0 when RoCE is disabled. So when RoCE is disabled, the
+value that should be queried is sq_ts_format under HCA caps.
 
-Example:
-$ rdma dev show smi1
-3: smi1: node_type ca fw 20.38.1002 node_guid 9803:9b03:009f:d5ef sys_image_guid 9803:9b03:009f:d5ee type smi parent ibp8s0f1
+Consider the case when the system supports REAL_TIME_TS format (0x2),
+some QPs are created with REAL_TIME_TS as ts_format, and afterwards
+RoCE gets disabled. When trying to construct a new QP, we can't use
+the qp_ts_format, that is queried from the RoCE caps table, Since it
+leads to passing 0x0 (FREE_RUNNING_TS) as the value of the qp_ts_format,
+which is different than the ts_format of the previously allocated
+QPs REAL_TIME_TS format (0x2).
 
-Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+Thus, to resolve this, read the sq_ts_format, which also reflect
+the supported ts format for the QP when RoCE is disabled.
+
+Fixes: 4806f1e2fee8 ("net/mlx5: Set QP timestamp mode to default")
+Signed-off-by: Maher Sanalla <msanalla@nvidia.com>
+Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/nldev.c  | 10 ++++++++++
- include/uapi/rdma/rdma_netlink.h |  2 ++
- 2 files changed, 12 insertions(+)
+ include/linux/mlx5/qp.h | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index b5f87e7a1cfd..025efce540a7 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -168,6 +168,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_SYS_ATTR_PRIVILEGED_QKEY_MODE] = { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_DRIVER_DETAILS]	= { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_DEV_TYPE]		= { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_PARENT_NAME]		= { .type = NLA_NUL_STRING },
- };
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index f0e55bf3ec8b..ad1ce650146c 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -576,9 +576,12 @@ static inline const char *mlx5_qp_state_str(int state)
  
- static int put_driver_name_print_type(struct sk_buff *msg, const char *name,
-@@ -302,6 +303,15 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
- 	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_DIM, device->use_cq_dim))
- 		return -EMSGSIZE;
- 
-+	if (device->type &&
-+	    nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_TYPE, device->type))
-+		return -EMSGSIZE;
+ static inline int mlx5_get_qp_default_ts(struct mlx5_core_dev *dev)
+ {
+-	return !MLX5_CAP_ROCE(dev, qp_ts_format) ?
+-		       MLX5_TIMESTAMP_FORMAT_FREE_RUNNING :
+-		       MLX5_TIMESTAMP_FORMAT_DEFAULT;
++	u8 supported_ts_cap = mlx5_get_roce_state(dev) ?
++			      MLX5_CAP_ROCE(dev, qp_ts_format) :
++			      MLX5_CAP_GEN(dev, sq_ts_format);
 +
-+	if (device->parent &&
-+	    nla_put_string(msg, RDMA_NLDEV_ATTR_PARENT_NAME,
-+			   dev_name(&device->parent->dev)))
-+		return -EMSGSIZE;
-+
- 	/*
- 	 * Link type is determined on first port and mlx4 device
- 	 * which can potentially have two different link type for the same
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index bd52fb325e22..4b69242d7848 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -570,6 +570,8 @@ enum rdma_nldev_attr {
++	return supported_ts_cap ? MLX5_TIMESTAMP_FORMAT_DEFAULT :
++	       MLX5_TIMESTAMP_FORMAT_FREE_RUNNING;
+ }
  
- 	RDMA_NLDEV_ATTR_DEV_TYPE,		/* u8 */
- 
-+	RDMA_NLDEV_ATTR_PARENT_NAME,		/* string */
-+
- 	/*
- 	 * Always the end
- 	 */
+ #endif /* MLX5_QP_H */
 -- 
 2.45.2
 
