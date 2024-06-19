@@ -1,45 +1,45 @@
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+Received: from mail-wr1-f42.google.com (mail-wr1-f42.google.com [209.85.221.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC00C57CAC
-	for <linux-rdma@vger.kernel.org>; Wed, 19 Jun 2024 09:16:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EECE881AC3
+	for <linux-rdma@vger.kernel.org>; Wed, 19 Jun 2024 09:18:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718788602; cv=none; b=rAJLv5al6Uq6mkl70OHsP2iU4QCwGgfOSdSiy1n0crO7uIerktU2SUxQSHaUe6o8qFkI3naSzT6oQPS17hERfYAjp123fiBvOVnhqn0P7LLoYOvhd3AdL4VHaskmk8fmaTdT3kqeYuFV33crIh0bblS3maXK1WO3n0zZ+23OWXI=
+	t=1718788723; cv=none; b=YlngnEXJZhO2bkpFqitFKNvEcUefX+4uP6a3mQl0iFoqOJ14W1BFzJgO98dpNfp9LTrs5b4qNBIAJS+svo+YeL+PJ4oDJt+yuT/TfEmM+CTpUhqIENl2RAgNGAh9lmmjJA4s+Wzbrm0NP1oCTgyYciFi+CzElxaWSaBKQvGhphM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718788602; c=relaxed/simple;
-	bh=NXMDx7HOF64tGEF5DDMgqAQsYHOdelVfoPIS4gGTooY=;
+	s=arc-20240116; t=1718788723; c=relaxed/simple;
+	bh=ZqBTKUIkDMWrrV9BblVdHJH4Bj8Ava4UrdiXMFjAAOA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mhotHW53znsBTr7rC9zkb6rsm5dOFGcOBovEsf3EStcDILH1WLJgHmNkKheRMYtdON+EeXblIum7wwTA1Aujgrxf8CUV3/wAHdssIwaRuxin+KoBpH0CoLKK9ZuC4kqdIZANS2wC8M8JY6MSGW9hxYV9GNVvPCO/qVVKLymRHI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=grimberg.me; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.221.46
+	 In-Reply-To:Content-Type; b=fgfxLRqXTEqkCRdLHpSx201gJBUju7uqRyoomhud1J8kuxeHcF44e2HFS3CrYVePqgMCf1O+aiPOLh6l+pF0WS17g11OA87fN+zHOPAmGgqPnFL7h+kRozLbXmWPWSwTpKtURM4SlwXMarRTIlY/4jkb5DgeUynH5+Jz0ozBrKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=grimberg.me; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.221.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=grimberg.me
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-35f23f3da48so541517f8f.3
-        for <linux-rdma@vger.kernel.org>; Wed, 19 Jun 2024 02:16:40 -0700 (PDT)
+Received: by mail-wr1-f42.google.com with SMTP id ffacd0b85a97d-3590b63f659so468335f8f.1
+        for <linux-rdma@vger.kernel.org>; Wed, 19 Jun 2024 02:18:30 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718788599; x=1719393399;
+        d=1e100.net; s=20230601; t=1718788709; x=1719393509;
         h=content-transfer-encoding:in-reply-to:from:content-language
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=0//pStmFFHWSOtCfn6ToCqy8bpe4PxQfeFWHsR89dJY=;
-        b=fudCnNJWIqEmjMX+heC0IGSsoYLs6fe0GxizcRJrsKLUkOu2V89BIXReSVU6Ngg/+7
-         mnHhVvV0vvfB4qSWvrxLyDGF/HnfDXADOd6NELjX3nEHFCJHLqP0jrTt9vngmH4QXpG6
-         Gle8yPTbYaaQTJeJvDPYDXJEAF3mVtDgUJDL0CB6nCkuq/dEwz9Vajd7/vUjFXZUNKjQ
-         8puZPcfC6S/A2f9teST0a050tPUBWU1z5pFXvGDwkwL2SY1Wj4Xwhe4+R8QZu2ju5ZJz
-         gI/n/3SO3MyE9JsSXWWPoENnwmkeR8WN3/liEbTqq/ceZNp+tTzNqwQVI8tKZbyw/ok1
-         0kTA==
-X-Forwarded-Encrypted: i=1; AJvYcCVAoJnGmFoi2TUj0PpmdjHkSUv6yhDngWeWeMsrifN4hvmGaZD7NFCaaS60wXNj3WvtSrOI4RpvQRlwHFt7P9jiTC5j82RoFctjIQ==
-X-Gm-Message-State: AOJu0YzijecFX/ac7W9bT0hwxuYIdBmJYtr+0f8r4TEDrAO9RaB/jig7
-	MU8k2t05mdwUY/DU3aJHmGdT6Jvrjrf18X9dTz6JmcK+WcE0Q/OD
-X-Google-Smtp-Source: AGHT+IEswHHQeRdbk/+Kn9td75vu7SYTc1eJTpQjs6DfmKMqwqQQbE3ZDyG7JU/dOZVdF0AQYBuMKw==
-X-Received: by 2002:a5d:47cc:0:b0:360:874b:af9a with SMTP id ffacd0b85a97d-363195b2c64mr1430622f8f.3.1718788598839;
-        Wed, 19 Jun 2024 02:16:38 -0700 (PDT)
+        bh=ZqBTKUIkDMWrrV9BblVdHJH4Bj8Ava4UrdiXMFjAAOA=;
+        b=bBb1EjZWfnSDHom6wRKmFp5z++9n/3qlce4n69yyXpGmoN2nAoMUpBV4VI4pWOqAG4
+         SMuFlp2Y/M/QbGf+hEZnVX02FHC7Jfo1xjxGmucEdHOGOg+f+ruRQgxFuS6CXgy++5yk
+         ooBwRXWdiWU4EjB3oTbuuZJojwx3gzEA+Ifiv7afoNtfPFx+zh4vXRQOnskq56Ep/c8Z
+         Is1HqZmtj1p9IVYAAavWG9802BGj7vr7SLw2z+bJ1MFqi3I2fg6TX6BvbuNrH3mNxobD
+         ra09Y8tcxbwIlctWKkGvZ2hOVgfE2aSByWiFZfgKfnELqdA1qWKmakBebc5hKreFeqgn
+         t0XQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVYXHZoEwomtdX8HBL6agH4HxdcfTpwmgoMoYI7/am7fZ303KxyX0VT66wBteRi4PR1fndHgjCohzGUTaMSgAodurGimWJ+Hvi5RA==
+X-Gm-Message-State: AOJu0YwPKJtPQzQ6pRO9WewQDEK9FCXhWhyiM1vFMdhU8RJ/ER4+lxEd
+	nQ9cFhTO5HWG4Py6ut7Phi7vwSpNFgWisMuULTAXy4kFMS/xkNn5
+X-Google-Smtp-Source: AGHT+IFNOithI+CHKmPz/Md7IW5UDaxr+VAVXKDzXdXLjDKwa8ZVwWk/9vIkYYoVgniFWW3pR4L3kw==
+X-Received: by 2002:a05:600c:1d1b:b0:421:7dc3:99ff with SMTP id 5b1f17b1804b1-4247529a5d1mr13303145e9.3.1718788709236;
+        Wed, 19 Jun 2024 02:18:29 -0700 (PDT)
 Received: from [10.50.4.180] (bzq-84-110-32-226.static-ip.bezeqint.net. [84.110.32.226])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-360750f2295sm16637925f8f.82.2024.06.19.02.16.37
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-360750ad082sm16387252f8f.59.2024.06.19.02.18.27
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 19 Jun 2024 02:16:38 -0700 (PDT)
-Message-ID: <f12e1a75-2fd1-46ef-aee9-520cced08f11@grimberg.me>
-Date: Wed, 19 Jun 2024 12:16:37 +0300
+        Wed, 19 Jun 2024 02:18:28 -0700 (PDT)
+Message-ID: <66d87932-eeb8-47eb-8c89-e1f10cee32d4@grimberg.me>
+Date: Wed, 19 Jun 2024 12:18:27 +0300
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,7 +47,7 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/6] IB/isert: remove the handling of last WQE reached
+Subject: Re: [PATCH 6/6] RDMA/IPoIB: remove the handling of last WQE reached
  event
 To: Max Gurtovoy <mgurtovoy@nvidia.com>, leonro@nvidia.com, jgg@nvidia.com,
  linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org,
@@ -56,10 +56,10 @@ Cc: oren@nvidia.com, israelr@nvidia.com, maorg@nvidia.com,
  yishaih@nvidia.com, hch@lst.de, bvanassche@acm.org, shiraz.saleem@intel.com,
  edumazet@google.com
 References: <20240618001034.22681-1-mgurtovoy@nvidia.com>
- <20240618001034.22681-3-mgurtovoy@nvidia.com>
+ <20240618001034.22681-7-mgurtovoy@nvidia.com>
 Content-Language: en-US
 From: Sagi Grimberg <sagi@grimberg.me>
-In-Reply-To: <20240618001034.22681-3-mgurtovoy@nvidia.com>
+In-Reply-To: <20240618001034.22681-7-mgurtovoy@nvidia.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -67,24 +67,6 @@ Content-Transfer-Encoding: 7bit
 
 On 18/06/2024 3:10, Max Gurtovoy wrote:
 > This event is handled by the RDMA core layer.
->
-> Signed-off-by: Max Gurtovoy <mgurtovoy@nvidia.com>
-> ---
->   drivers/infiniband/ulp/isert/ib_isert.c | 3 ---
->   1 file changed, 3 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> index 00a7303c8cc6..42977a5326ee 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -91,9 +91,6 @@ isert_qp_event_callback(struct ib_event *e, void *context)
->   	case IB_EVENT_COMM_EST:
->   		rdma_notify(isert_conn->cm_id, IB_EVENT_COMM_EST);
->   		break;
-> -	case IB_EVENT_QP_LAST_WQE_REACHED:
-> -		isert_warn("Reached TX IB_EVENT_QP_LAST_WQE_REACHED\n");
-> -		break;
 
-Don't think you need to touch the ulps, they want to log these events, 
-so be it.
-Although, a warn is not appropriate at all here.
+I'm assuming that this patch is well tested?
+Looks like a fairly involved change.
