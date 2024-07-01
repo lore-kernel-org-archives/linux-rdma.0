@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4D4CF1494C4;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4D43F12A14C;
 	Mon,  1 Jul 2024 13:00:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719838812; cv=none; b=js4HINOig4Z/fwPTi1Jnjq7Fzu+frnhHpqCPML3UeZUL70OOcOA4nJGqSdUKW7W4enCk4+ZedCyYZQWzSPGX7Z/IMQJiHCYBBeAiiQx134ydiVgTKgnpSjJrWfJw+I6S/jM3nt2gzwhUNXPsqbATuVBwC9kJZG5R6KW/HX7VLcs=
+	t=1719838812; cv=none; b=ZAzVDfpHqAaTGmlnKP/xIgqCEjhhuLJXPLUM4BxQCO4kjSOqWJvhoLeM4Abf6RAIHS5qU/XhVzlcAw7zqPLBhiXG07SQvf7wB/XBhOUdjY071SelDhvZKqdNXUUB95UFst+wuelOLXVIT1B/onN5oO9rC7N/6vZfmHY2fVPa+f0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1719838812; c=relaxed/simple;
-	bh=ITGX7Stlw8dzd9bmuhRa3MyV3QI/GXD46NJenfRsj6s=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=TOikn6BRX7YE4BNIxo8spcfyZO8p08IDg8J9mdFTNwQQsjcqCbN4dwWiP4IAwxHJzlmAHrC40I00Jnl56pm4pLP3wVvwCeX2Lq3GuKIB4ij8nlzf6Vvyvpmc2mn679fSs6xkuBqVWNTjflNdbApXPELV0RJ5kPYOBGeIdDL6oL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=hRVUXR67; arc=none smtp.client-ip=13.77.154.182
+	bh=fvg55UAyCbixNpWDhBwp70HzeuqTEa86y9ptiLaOTe0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=p8WYXBCDaJZMxT/rluHn7acePKHMEuBqz+7zAxdUjmcGcWr1xjp8wxeI1UNW214noSyvFl6GVT//wLUeP11KH/PK98fdhwf7B5P2I+KvdInsqYzaieafOK+ylxYqS2NJGaxZ3HhhorGBQrqw7yc2NAfAXLa5gAdSn2wizw9vjGI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=YtxkMS04; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="hRVUXR67"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="YtxkMS04"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 1EFCA20B7001;
+	by linux.microsoft.com (Postfix) with ESMTPSA id 5480620B7007;
 	Mon,  1 Jul 2024 06:00:05 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1EFCA20B7001
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 5480620B7007
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1719838805;
-	bh=FHqAa907jkzY7G6B8Oe34LyCXVloQKb7sP0mxWAiaJ4=;
-	h=From:To:Cc:Subject:Date:From;
-	b=hRVUXR67abHQ0+QLXCCCNtj6WuxQRr1HpAKrF8RjN8+YJg6i7ZZ6L1lKCzxIu9Jou
-	 sMAQpgvSqdXJooIJg6BGo9o1jrm9Cxv4jn8t1PsiipasiDN7gwa4aWy5HBK5Llj3gR
-	 69MNb7nqTDhhfoc6lUbt323Y8EuF+8/Jnvz5IOXs=
+	bh=L9t7pIPzPufTt4OieYYA15R2jzazJD091E+gG3PzcXs=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=YtxkMS04czy92mDOIpdew7JTqIuD27Bt9N1CmgaVm7c8AquCuQf2g3AE6SjhD4OTD
+	 deDiQ3jrjTzSrpOCWlaj4lCjwo20U4lWRWFAbE/3VLt3WgcwgU0ZL7B2d3BtWUrHz0
+	 SNyebq+itERDTDmYD69RRY+eF94deBCVdA3PhlRk=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	pabeni@redhat.com,
@@ -41,10 +41,12 @@ To: kotaranov@microsoft.com,
 Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org
-Subject: [PATCH net-next v2 0/2] Provide master netdev to mana_ib
-Date: Mon,  1 Jul 2024 05:58:54 -0700
-Message-Id: <1719838736-20338-1-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH net-next v2 2/2] RDMA/mana_ib: Set correct device into ib
+Date: Mon,  1 Jul 2024 05:58:56 -0700
+Message-Id: <1719838736-20338-3-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1719838736-20338-1-git-send-email-kotaranov@linux.microsoft.com>
+References: <1719838736-20338-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -53,28 +55,55 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-This patch series aims to allow mana_ib to get master netdev
-from mana. In the netvsc deployment, the VF netdev is enslaved
-by netvsc and the upper device should be considered for the network
-state. In the baremetal case, the VF netdev is a master device.
+Use the mana_get_master_netdev_rcu() helper to get
+a master netdevice for querying network states.
+The helper allows the mana_ib transparently
+support baremetal and netvsc deployment cases.
 
-I would appreciate if I could get Acks on it from:
-* netvsc maintainers (e.g., Haiyang)
-* net maintainers (e.g., Jakub, David, Eric, Paolo)
+Fixes: 8b184e4f1c32 ("RDMA/mana_ib: Enable RoCE on port 1")
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+---
+ drivers/infiniband/hw/mana/device.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-v1 -> v2:
-Leon Romanovsky asked to make a helper in the net/mana and get
-acks from net maintainers.
-
-Konstantin Taranov (2):
-  net: mana: introduce helper to get a master netdev
-  RDMA/mana_ib: Set correct device into ib
-
- drivers/infiniband/hw/mana/device.c           | 16 ++++++++--------
- drivers/net/ethernet/microsoft/mana/mana_en.c | 18 ++++++++++++++++++
- include/net/mana/mana.h                       |  2 ++
- 3 files changed, 28 insertions(+), 8 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index b07a8e2..ec849ac 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -56,7 +56,7 @@ static int mana_ib_probe(struct auxiliary_device *adev,
+ {
+ 	struct mana_adev *madev = container_of(adev, struct mana_adev, adev);
+ 	struct gdma_dev *mdev = madev->mdev;
+-	struct net_device *upper_ndev;
++	struct net_device *ndev;
+ 	struct mana_context *mc;
+ 	struct mana_ib_dev *dev;
+ 	u8 mac_addr[ETH_ALEN];
+@@ -84,17 +84,17 @@ static int mana_ib_probe(struct auxiliary_device *adev,
+ 	dev->ib_dev.num_comp_vectors = mdev->gdma_context->max_num_queues;
+ 	dev->ib_dev.dev.parent = mdev->gdma_context->dev;
+ 
+-	rcu_read_lock(); /* required to get upper dev */
+-	upper_ndev = netdev_master_upper_dev_get_rcu(mc->ports[0]);
+-	if (!upper_ndev) {
++	rcu_read_lock(); /* required to get master dev */
++	ndev = mana_get_master_netdev_rcu(mc, 0);
++	if (!ndev) {
+ 		rcu_read_unlock();
+ 		ret = -ENODEV;
+-		ibdev_err(&dev->ib_dev, "Failed to get master netdev");
++		ibdev_err(&dev->ib_dev, "Failed to get netdev for IB port 1");
+ 		goto free_ib_device;
+ 	}
+-	ether_addr_copy(mac_addr, upper_ndev->dev_addr);
+-	addrconf_addr_eui48((u8 *)&dev->ib_dev.node_guid, upper_ndev->dev_addr);
+-	ret = ib_device_set_netdev(&dev->ib_dev, upper_ndev, 1);
++	ether_addr_copy(mac_addr, ndev->dev_addr);
++	addrconf_addr_eui48((u8 *)&dev->ib_dev.node_guid, ndev->dev_addr);
++	ret = ib_device_set_netdev(&dev->ib_dev, ndev, 1);
+ 	rcu_read_unlock();
+ 	if (ret) {
+ 		ibdev_err(&dev->ib_dev, "Failed to set ib netdev, ret %d", ret);
 -- 
 2.43.0
 
