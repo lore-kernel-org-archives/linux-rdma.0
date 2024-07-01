@@ -1,108 +1,68 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4D48E146017;
-	Mon,  1 Jul 2024 13:00:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7DCD158D94;
+	Mon,  1 Jul 2024 13:07:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719838813; cv=none; b=EGgCaHJxS+YpuWwpM5UPt3bvJn8NnDOfXSGJi2wj3UG5Td53OMVOgupEUk0UI/JCISyTZWaPSj8a3w1EfMeJ+VuqETP/BRsIFkL72rvzG9uVjVChKp6kT49L2tObF/vy4Rwemlp+XoFZ4uhaDNqTxzzZg/3wJu1x1rz4NdBJ0Jo=
+	t=1719839237; cv=none; b=nYfoKTV+xPXD/2PC9UIylG14+Fxs5JfsnRZkz5OdIDrumVGt+iX+z0xA+ocDAXkkqqyzeGcp+UFzBd2fVZH/i9egBFjQJ2ZDmbHUGFVm0DXzwWcol/GzfaCVWktmpaxHMII91upphjezmTK5ZNKK88B/9/bhdeIokecVZRABTb4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719838813; c=relaxed/simple;
-	bh=G/xOlPYe3vF5oKjhIB7GW4ffAy3SSJ2aL4UQN6CovZw=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=bDn+4g1V5zs8cwY6+tm0tuBlUE/26OgM2QrwW7kUWgcliMwzi2ZzoYn75SYMp+2jLllYhzKJKb/0RfkdwUrRoNl+OuIk7rbpEFtaM2bdTX74kCa8hWnRL17jtZ9r43flpSZGD9BBSsezfufspIsYuXo/FsvNDyB8QZC5c+T1J7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=eRBolBwC; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1719839237; c=relaxed/simple;
+	bh=qErcNn1bAd+KgYMHdz8WFVSZwXXfkJKGETB1NMYn3+M=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ov/zeLcPAt3Zh7sz5aj8qNJpzsGjXB5SKKpRK7bWeYZPG+HvuxdMFHfPRgLNJ73yj233QFERn9LQYa/ciYq3sjGrQyHFb33R7KTo7Tof0F2a45eO9hgn0GuSiOyFuA53TjNZzqM5JF+9IESOwwa234GPP2Qs3ZgaZUlXr+splsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nkYiSUNf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="eRBolBwC"
-Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 3B4B820B7004;
-	Mon,  1 Jul 2024 06:00:05 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 3B4B820B7004
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1719838805;
-	bh=zzK5OuTFvzx/ju5sunPw2VL6Q836V9zKxrgDi0Ynufw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=eRBolBwCEfEP1Uao3huhzX7M3wgtQqVMefS3sT7f7Dy0uxkOz7zR63vNtGwI6DuCq
-	 Dj+OYf061lAyHMqXKTbDrYHd4xpJaf1hdw7zEdMXUIH9Tn0Eq3BxhP1ypbjbCXGw2+
-	 Zq6IFAtp4G/DMWw2cvCqyLGEdhwOoz9Hg95DQhvQ=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	pabeni@redhat.com,
-	haiyangz@microsoft.com,
-	kys@microsoft.com,
-	edumazet@google.com,
-	kuba@kernel.org,
-	davem@davemloft.net,
-	decui@microsoft.com,
-	wei.liu@kernel.org,
-	sharmaajay@microsoft.com,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nkYiSUNf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D4CAC116B1;
+	Mon,  1 Jul 2024 13:07:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1719839237;
+	bh=qErcNn1bAd+KgYMHdz8WFVSZwXXfkJKGETB1NMYn3+M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nkYiSUNfCWjHm+lyBjJWy4l8XdPpnMy3UW2zfdFrVqh92N6IfogZnKbfthsj0u9F5
+	 W+tC/y1v3lwj9M9CP4InJts2/OYcXeTSuq6btM6aDrVfJDh4XmQ+m6qFBmXT6B+XK6
+	 +2jKdbEcnzFIN646kiVBTot3mvvzuTtLJ1dmkpi8a/yaIzGg6ZMPPomvuWbHMo25us
+	 3fut+aW8yvKtL1JeUHIELmdeOUae4lNA75nSpEnPhvGMp0OZE4sdyZiAsFgVgfoxS+
+	 MbOce+3HqFhax2JPG963KB10iUstxrJnK0VtHPcXieYeOt7spcVw81PKjWuW24+hnk
+	 oUigdVSamyPBQ==
+Date: Mon, 1 Jul 2024 16:07:13 +0300
+From: Leon Romanovsky <leon@kernel.org>
+To: Konstantin Taranov <kotaranov@linux.microsoft.com>
+Cc: kotaranov@microsoft.com, pabeni@redhat.com, haiyangz@microsoft.com,
+	kys@microsoft.com, edumazet@google.com, kuba@kernel.org,
+	davem@davemloft.net, decui@microsoft.com, wei.liu@kernel.org,
+	sharmaajay@microsoft.com, longli@microsoft.com, jgg@ziepe.ca,
+	linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org
-Subject: [PATCH net-next v2 1/2] net: mana: introduce helper to get a master netdev
-Date: Mon,  1 Jul 2024 05:58:55 -0700
-Message-Id: <1719838736-20338-2-git-send-email-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1719838736-20338-1-git-send-email-kotaranov@linux.microsoft.com>
+Subject: Re: [PATCH net-next v2 2/2] RDMA/mana_ib: Set correct device into ib
+Message-ID: <20240701130713.GE13195@unreal>
 References: <1719838736-20338-1-git-send-email-kotaranov@linux.microsoft.com>
+ <1719838736-20338-3-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1719838736-20338-3-git-send-email-kotaranov@linux.microsoft.com>
 
-From: Konstantin Taranov <kotaranov@microsoft.com>
+On Mon, Jul 01, 2024 at 05:58:56AM -0700, Konstantin Taranov wrote:
+> From: Konstantin Taranov <kotaranov@microsoft.com>
+> 
+> Use the mana_get_master_netdev_rcu() helper to get
+> a master netdevice for querying network states.
+> The helper allows the mana_ib transparently
+> support baremetal and netvsc deployment cases.
+> 
+> Fixes: 8b184e4f1c32 ("RDMA/mana_ib: Enable RoCE on port 1")
+> Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+> ---
+>  drivers/infiniband/hw/mana/device.c | 16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+> 
 
-Add helper to get a master netdevice for a given port.
-When mana is used with netvsc, the VF netdev is controlled
-by an upper netvsc device. In a baremetal case, the VF
-netdev is the master device.
-
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
----
- drivers/net/ethernet/microsoft/mana/mana_en.c | 18 ++++++++++++++++++
- include/net/mana/mana.h                       |  2 ++
- 2 files changed, 20 insertions(+)
-
-diff --git a/drivers/net/ethernet/microsoft/mana/mana_en.c b/drivers/net/ethernet/microsoft/mana/mana_en.c
-index d087cf9..b893339 100644
---- a/drivers/net/ethernet/microsoft/mana/mana_en.c
-+++ b/drivers/net/ethernet/microsoft/mana/mana_en.c
-@@ -2948,3 +2948,21 @@ out:
- 	gd->gdma_context = NULL;
- 	kfree(ac);
- }
-+
-+/* the caller should hold rcu_read_lock */
-+struct net_device *mana_get_master_netdev_rcu(struct mana_context *ac, u32 port_index)
-+{
-+	struct net_device *ndev;
-+
-+	if (port_index >= ac->num_ports)
-+		return NULL;
-+
-+	/* When mana is used in netvsc, the upper netdevice should be returned. */
-+	if (ac->ports[port_index]->flags & IFF_SLAVE)
-+		ndev = netdev_master_upper_dev_get_rcu(ac->ports[port_index]);
-+	else
-+		ndev = ac->ports[port_index];
-+
-+	return ndev;
-+}
-+EXPORT_SYMBOL_NS(mana_get_master_netdev_rcu, NET_MANA);
-diff --git a/include/net/mana/mana.h b/include/net/mana/mana.h
-index 46f741e..2d3625c 100644
---- a/include/net/mana/mana.h
-+++ b/include/net/mana/mana.h
-@@ -797,4 +797,6 @@ void mana_destroy_wq_obj(struct mana_port_context *apc, u32 wq_type,
- int mana_cfg_vport(struct mana_port_context *apc, u32 protection_dom_id,
- 		   u32 doorbell_pg_id);
- void mana_uncfg_vport(struct mana_port_context *apc);
-+
-+struct net_device *mana_get_master_netdev_rcu(struct mana_context *ac, u32 port_index);
- #endif /* _MANA_H */
--- 
-2.43.0
-
+Thanks,
+Acked-by: Leon Romanovsky <leon@kernel.org>
