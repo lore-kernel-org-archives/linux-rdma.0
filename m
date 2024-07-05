@@ -1,36 +1,36 @@
 Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B549813665A;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE34145B25;
 	Fri,  5 Jul 2024 09:04:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720170298; cv=none; b=rV2GPJHkiS2HpRPhUzuGH9C8RQJGEE/jKHQej0lI+ZkftVl3B73B1aP/0pcPYc0utYz08ZGh5vvnIgkLKEB3XDhqMgLZnJZNTaaA/NyaT8bYPo8UR7eYjrX4WhLpNTvSJBtLdOaI7WfeTaRNxjI0DL4/PMPo7Qz5PxESXxCz+QM=
+	t=1720170299; cv=none; b=l6W2EU7E30aJnVj08R0RtVFBx+DWDCFQZ5yfNVegMfSEU7SiKGduFleeZJ+0bPP28dHRSQXMMhLvUdgzW9EdyAIra/zuO/W7Z5AiAIAU3QhzB5W1DK2CVrzzz4PtwXkFOTON5yWgld88SWs89otzLIhserdmumVcWKJaAiKw2No=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720170298; c=relaxed/simple;
-	bh=dAPZbACw6uK/VTIi6nUF7U//UDZ7wAoHYWWhu6NJtKc=;
+	s=arc-20240116; t=1720170299; c=relaxed/simple;
+	bh=FHvYkXrMq6p9Xw24fP5yXp9lMYf8oj9aUJ4r/FomiE0=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=quLcDwWZA3sqDMXo5D9qUEDL7GA0GmxQktl+qqd3JOwYq+jRs+P2jf6o48hgllLTLH5v3f9yJNAeeqNWzS9BYo+LWTVWYhWA0AkmKhn3kXt7UzujYK4F+LfSZ+gcWRi1Gv8nZKDyG2BxBX6rRZ4pvRW+sMruJTtysg2qEVD1Ah8=
+	 MIME-Version:Content-Type; b=hJm/d4M82SCDaykKJyIejTjhKAWwPZSQmkmZ4enEh9PI3OxMQdr8Xj16+xGt3BGBbxrMrOIkCAuYvPBn+tT7MUn9oGG0zla09LAdwbRPlYdFKrSVICNqFFOsTH5U5v4e34OXw78hYwugnZNXCQ2g0eSe8/sSLoi+MP6vv03MwqE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.112])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4WFnbD36Nhz1HF1t;
-	Fri,  5 Jul 2024 17:02:32 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4WFnY96Cjvz1j6Cl;
+	Fri,  5 Jul 2024 17:00:45 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id A228D140257;
-	Fri,  5 Jul 2024 17:04:52 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 9704F1A0188;
+	Fri,  5 Jul 2024 17:04:53 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 5 Jul 2024 17:04:52 +0800
+ 15.2.1544.11; Fri, 5 Jul 2024 17:04:53 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-rc 1/9] RDMA/hns: Check atomic wr length
-Date: Fri, 5 Jul 2024 16:59:29 +0800
-Message-ID: <20240705085937.1644229-2-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 4/9] RDMA/hns: Fix unmatch exception handling when init eq table fails
+Date: Fri, 5 Jul 2024 16:59:32 +0800
+Message-ID: <20240705085937.1644229-5-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20240705085937.1644229-1-huangjunxian6@hisilicon.com>
 References: <20240705085937.1644229-1-huangjunxian6@hisilicon.com>
@@ -45,79 +45,74 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-8 bytes is the only supported length of atomic. Return an error if
-it is not.
+The hw ctx should be destroyed when init eq table fails.
 
-Fixes: 384f88185112 ("RDMA/hns: Add atomic support")
+Fixes: a5073d6054f7 ("RDMA/hns: Add eq support of hip08")
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 19 +++++++++++++++----
- 2 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 25 +++++++++++-----------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index ff0b3f68ee3a..05005079258c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -91,6 +91,8 @@
- /* Configure to HW for PAGE_SIZE larger than 4KB */
- #define PG_SHIFT_OFFSET				(PAGE_SHIFT - 12)
- 
-+#define ATOMIC_WR_LEN				8
-+
- #define HNS_ROCE_IDX_QUE_ENTRY_SZ		4
- #define SRQ_DB_REG				0x230
- 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 4287818a737f..a5d746a5cc68 100644
+index f73de06a3ca5..6cdeafef800a 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -164,15 +164,23 @@ static void set_frmr_seg(struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
- 	hr_reg_clear(fseg, FRMR_BLK_MODE);
+@@ -6373,9 +6373,16 @@ static void hns_roce_v2_int_mask_enable(struct hns_roce_dev *hr_dev,
+ 	roce_write(hr_dev, ROCEE_VF_ABN_INT_CFG_REG, enable_flag);
  }
  
--static void set_atomic_seg(const struct ib_send_wr *wr,
--			   struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
--			   unsigned int valid_num_sge)
-+static int set_atomic_seg(struct hns_roce_dev *hr_dev,
-+			  const struct ib_send_wr *wr,
-+			  struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
-+			  unsigned int valid_num_sge, u32 msg_len)
+-static void hns_roce_v2_destroy_eqc(struct hns_roce_dev *hr_dev, u32 eqn)
++static void free_eq_buf(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
++{
++	hns_roce_mtr_destroy(hr_dev, &eq->mtr);
++}
++
++static void hns_roce_v2_destroy_eqc(struct hns_roce_dev *hr_dev,
++				    struct hns_roce_eq *eq)
  {
- 	struct hns_roce_v2_wqe_data_seg *dseg =
- 		(void *)rc_sq_wqe + sizeof(struct hns_roce_v2_rc_send_wqe);
- 	struct hns_roce_wqe_atomic_seg *aseg =
- 		(void *)dseg + sizeof(struct hns_roce_v2_wqe_data_seg);
+ 	struct device *dev = hr_dev->dev;
++	int eqn = eq->eqn;
+ 	int ret;
+ 	u8 cmd;
  
-+	if (msg_len != ATOMIC_WR_LEN) {
-+		ibdev_err_ratelimited(&hr_dev->ib_dev,
-+				      "invalid atomic wr len, len = %u.\n",
-+				      msg_len);
-+		return -EINVAL;
-+	}
-+
- 	set_data_seg_v2(dseg, wr->sg_list);
+@@ -6386,12 +6393,9 @@ static void hns_roce_v2_destroy_eqc(struct hns_roce_dev *hr_dev, u32 eqn)
  
- 	if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP) {
-@@ -185,6 +193,8 @@ static void set_atomic_seg(const struct ib_send_wr *wr,
- 	}
+ 	ret = hns_roce_destroy_hw_ctx(hr_dev, cmd, eqn & HNS_ROCE_V2_EQN_M);
+ 	if (ret)
+-		dev_err(dev, "[mailbox cmd] destroy eqc(%u) failed.\n", eqn);
+-}
++		dev_err(dev, "[mailbox cmd] destroy eqc(%d) failed.\n", eqn);
  
- 	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_SGE_NUM, valid_num_sge);
-+
-+	return 0;
+-static void free_eq_buf(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
+-{
+-	hns_roce_mtr_destroy(hr_dev, &eq->mtr);
++	free_eq_buf(hr_dev, eq);
  }
  
- static int fill_ext_sge_inl_data(struct hns_roce_qp *qp,
-@@ -592,7 +602,8 @@ static inline int set_rc_wqe(struct hns_roce_qp *qp,
+ static void init_eq_config(struct hns_roce_dev *hr_dev, struct hns_roce_eq *eq)
+@@ -6738,7 +6742,7 @@ static int hns_roce_v2_init_eq_table(struct hns_roce_dev *hr_dev)
  
- 	if (wr->opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
- 	    wr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
--		set_atomic_seg(wr, rc_sq_wqe, valid_num_sge);
-+		ret = set_atomic_seg(hr_dev, wr, rc_sq_wqe, valid_num_sge,
-+				     msg_len);
- 	else if (wr->opcode != IB_WR_REG_MR)
- 		ret = set_rwqe_data_seg(&qp->ibqp, wr, rc_sq_wqe,
- 					&curr_idx, valid_num_sge);
+ err_create_eq_fail:
+ 	for (i -= 1; i >= 0; i--)
+-		free_eq_buf(hr_dev, &eq_table->eq[i]);
++		hns_roce_v2_destroy_eqc(hr_dev, &eq_table->eq[i]);
+ 	kfree(eq_table->eq);
+ 
+ 	return ret;
+@@ -6758,11 +6762,8 @@ static void hns_roce_v2_cleanup_eq_table(struct hns_roce_dev *hr_dev)
+ 	__hns_roce_free_irq(hr_dev);
+ 	destroy_workqueue(hr_dev->irq_workq);
+ 
+-	for (i = 0; i < eq_num; i++) {
+-		hns_roce_v2_destroy_eqc(hr_dev, i);
+-
+-		free_eq_buf(hr_dev, &eq_table->eq[i]);
+-	}
++	for (i = 0; i < eq_num; i++)
++		hns_roce_v2_destroy_eqc(hr_dev, &eq_table->eq[i]);
+ 
+ 	kfree(eq_table->eq);
+ }
 -- 
 2.33.0
 
