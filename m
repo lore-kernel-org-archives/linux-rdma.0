@@ -1,39 +1,36 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4BE7146A89;
-	Fri,  5 Jul 2024 09:05:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F148D146D55;
+	Fri,  5 Jul 2024 09:05:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720170303; cv=none; b=D//VtLg5SI48rNcHufhZlh7l4CEZtCExtoPjv2irQjyaD9DbsVH+g2KDldHjjme6uGrbLb5jEQR/u7ryc0xKpir3DdCbiTwUVL8V03BQnMfP3+sHaku11FZTWZDCkxIMu1T5h4FD2gFYyOnkxKle3QUXTolvKhZX8t5Aq8K61R0=
+	t=1720170315; cv=none; b=mxjnxLtcZMvkETlq5r3pB7PCCagvExzXqqdyvd2v98ZxPe8fenKlF6J+zIdPpGRlQc1TeqPb+Z8OIN60IsuEYdGVmr9F9Fs8mStcbYsUK6hYVYPmM1z3qCL5/uc4ZLpNe/sOjenfmKfgMtisl3xblT0dGAlyLxo1BMfrIEMlHco=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720170303; c=relaxed/simple;
-	bh=MGvhsbz9a2ednMbaDqHrI5g2/aX6kMnXAbX1XIlHBW0=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UK67JZQhQsRpgQzSo4ymx+C7MfTgAEg30o/eD3Axs87W7yzVA4CX+qsXEght0HMSFrQazCn0orscBFLxJmL/08arcxl3ZGCcFo8iflwcBGtRtUab5pusjOGPS69nigr8MfQBIjfMH7Kb2pzevyzW+ffNSwxFA+FUvCfFgObkZKA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
+	s=arc-20240116; t=1720170315; c=relaxed/simple;
+	bh=CMRb6se6WXLyGUIXekn1XnTi7HSlQZnyhkQQc7GAtxE=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=We/JnbX770gvtpbFnhzKemGRjgND6Ovx//xt880PMptowzS89QOoR9bAOWeQv8mm7RraKrrzX2NZSveQvoEPeB/vK5f6j2yieVBz5frhhFLWIQc33W11iPeXE61I+ko08oUPapiwmQmrQjblKYQ0XSrRbiCWKE8GokKoDu39XhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.187
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4WFndY3S9kznZ3L;
-	Fri,  5 Jul 2024 17:04:33 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4WFnXk4t04zxV9h;
+	Fri,  5 Jul 2024 17:00:22 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 46FCA180087;
-	Fri,  5 Jul 2024 17:04:53 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 4D2C3180AA6;
+	Fri,  5 Jul 2024 17:04:52 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 5 Jul 2024 17:04:52 +0800
+ 15.2.1544.11; Fri, 5 Jul 2024 17:04:51 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-rc 3/9] RDMA/hns: Fix soft lockup under heavy CEQE load
-Date: Fri, 5 Jul 2024 16:59:31 +0800
-Message-ID: <20240705085937.1644229-4-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 0/9] RDMA/hns: Bugfixes
+Date: Fri, 5 Jul 2024 16:59:28 +0800
+Message-ID: <20240705085937.1644229-1-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20240705085937.1644229-1-huangjunxian6@hisilicon.com>
-References: <20240705085937.1644229-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,181 +42,31 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-CEQEs are handled in interrupt handler currently. This may cause the
-CPU core staying in interrupt context too long and lead to soft lockup
-under heavy load.
+Here are some bugfixes for hns driver.
 
-Handle CEQEs in tasklet and set an upper limit for the number of CEQE
-handled by a single call of tasklet.
+Chengchang Tang (5):
+  RDMA/hns: Fix missing pagesize and alignment check in FRMR
+  RDMA/hns: Fix shift-out-bounds when max_inline_data is 0
+  RDMA/hns: Fix undifined behavior caused by invalid max_sge
+  RDMA/hns: Fix insufficient extend DB for VFs.
+  RDMA/hns: Fix mbx timing out before CMD execution is completed
 
-Fixes: a5073d6054f7 ("RDMA/hns: Add eq support of hip08")
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 88 ++++++++++++---------
- 2 files changed, 53 insertions(+), 36 deletions(-)
+Junxian Huang (3):
+  RDMA/hns: Check atomic wr length
+  RDMA/hns: Fix soft lockup under heavy CEQE load
+  RDMA/hns: Fix unmatch exception handling when init eq table fails
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 05005079258c..5a2445f357ab 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -717,6 +717,7 @@ struct hns_roce_eq {
- 	int				shift;
- 	int				event_type;
- 	int				sub_type;
-+	struct tasklet_struct		tasklet;
- };
- 
- struct hns_roce_eq_table {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index ff135df1a761..f73de06a3ca5 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -6146,33 +6146,11 @@ static struct hns_roce_ceqe *next_ceqe_sw_v2(struct hns_roce_eq *eq)
- 		!!(eq->cons_index & eq->entries)) ? ceqe : NULL;
- }
- 
--static irqreturn_t hns_roce_v2_ceq_int(struct hns_roce_dev *hr_dev,
--				       struct hns_roce_eq *eq)
-+static irqreturn_t hns_roce_v2_ceq_int(struct hns_roce_eq *eq)
- {
--	struct hns_roce_ceqe *ceqe = next_ceqe_sw_v2(eq);
--	irqreturn_t ceqe_found = IRQ_NONE;
--	u32 cqn;
--
--	while (ceqe) {
--		/* Make sure we read CEQ entry after we have checked the
--		 * ownership bit
--		 */
--		dma_rmb();
--
--		cqn = hr_reg_read(ceqe, CEQE_CQN);
--
--		hns_roce_cq_completion(hr_dev, cqn);
--
--		++eq->cons_index;
--		ceqe_found = IRQ_HANDLED;
--		atomic64_inc(&hr_dev->dfx_cnt[HNS_ROCE_DFX_CEQE_CNT]);
--
--		ceqe = next_ceqe_sw_v2(eq);
--	}
-+	tasklet_schedule(&eq->tasklet);
- 
--	update_eq_db(eq);
--
--	return IRQ_RETVAL(ceqe_found);
-+	return IRQ_HANDLED;
- }
- 
- static irqreturn_t hns_roce_v2_msix_interrupt_eq(int irq, void *eq_ptr)
-@@ -6183,7 +6161,7 @@ static irqreturn_t hns_roce_v2_msix_interrupt_eq(int irq, void *eq_ptr)
- 
- 	if (eq->type_flag == HNS_ROCE_CEQ)
- 		/* Completion event interrupt */
--		int_work = hns_roce_v2_ceq_int(hr_dev, eq);
-+		int_work = hns_roce_v2_ceq_int(eq);
- 	else
- 		/* Asynchronous event interrupt */
- 		int_work = hns_roce_v2_aeq_int(hr_dev, eq);
-@@ -6551,6 +6529,34 @@ static int hns_roce_v2_create_eq(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
- 
-+static void hns_roce_ceq_task(struct tasklet_struct *task)
-+{
-+	struct hns_roce_eq *eq = from_tasklet(eq, task, tasklet);
-+	struct hns_roce_ceqe *ceqe = next_ceqe_sw_v2(eq);
-+	struct hns_roce_dev *hr_dev = eq->hr_dev;
-+	int ceqe_num = 0;
-+	u32 cqn;
-+
-+	while (ceqe && ceqe_num < hr_dev->caps.ceqe_depth) {
-+		/* Make sure we read CEQ entry after we have checked the
-+		 * ownership bit
-+		 */
-+		dma_rmb();
-+
-+		cqn = hr_reg_read(ceqe, CEQE_CQN);
-+
-+		hns_roce_cq_completion(hr_dev, cqn);
-+
-+		++eq->cons_index;
-+		++ceqe_num;
-+		atomic64_inc(&hr_dev->dfx_cnt[HNS_ROCE_DFX_CEQE_CNT]);
-+
-+		ceqe = next_ceqe_sw_v2(eq);
-+	}
-+
-+	update_eq_db(eq);
-+}
-+
- static int __hns_roce_request_irq(struct hns_roce_dev *hr_dev, int irq_num,
- 				  int comp_num, int aeq_num, int other_num)
- {
-@@ -6582,21 +6588,24 @@ static int __hns_roce_request_irq(struct hns_roce_dev *hr_dev, int irq_num,
- 			 j - other_num - aeq_num);
- 
- 	for (j = 0; j < irq_num; j++) {
--		if (j < other_num)
-+		if (j < other_num) {
- 			ret = request_irq(hr_dev->irq[j],
- 					  hns_roce_v2_msix_interrupt_abn,
- 					  0, hr_dev->irq_names[j], hr_dev);
--
--		else if (j < (other_num + comp_num))
-+		} else if (j < (other_num + comp_num)) {
-+			tasklet_setup(&eq_table->eq[j - other_num].tasklet,
-+				      hns_roce_ceq_task);
- 			ret = request_irq(eq_table->eq[j - other_num].irq,
- 					  hns_roce_v2_msix_interrupt_eq,
- 					  0, hr_dev->irq_names[j + aeq_num],
- 					  &eq_table->eq[j - other_num]);
--		else
-+		} else {
- 			ret = request_irq(eq_table->eq[j - other_num].irq,
- 					  hns_roce_v2_msix_interrupt_eq,
- 					  0, hr_dev->irq_names[j - comp_num],
- 					  &eq_table->eq[j - other_num]);
-+		}
-+
- 		if (ret) {
- 			dev_err(hr_dev->dev, "request irq error!\n");
- 			goto err_request_failed;
-@@ -6606,12 +6615,16 @@ static int __hns_roce_request_irq(struct hns_roce_dev *hr_dev, int irq_num,
- 	return 0;
- 
- err_request_failed:
--	for (j -= 1; j >= 0; j--)
--		if (j < other_num)
-+	for (j -= 1; j >= 0; j--) {
-+		if (j < other_num) {
- 			free_irq(hr_dev->irq[j], hr_dev);
--		else
--			free_irq(eq_table->eq[j - other_num].irq,
--				 &eq_table->eq[j - other_num]);
-+			continue;
-+		}
-+		free_irq(eq_table->eq[j - other_num].irq,
-+			 &eq_table->eq[j - other_num]);
-+		if (j < other_num + comp_num)
-+			tasklet_kill(&eq_table->eq[j - other_num].tasklet);
-+	}
- 
- err_kzalloc_failed:
- 	for (i -= 1; i >= 0; i--)
-@@ -6632,8 +6645,11 @@ static void __hns_roce_free_irq(struct hns_roce_dev *hr_dev)
- 	for (i = 0; i < hr_dev->caps.num_other_vectors; i++)
- 		free_irq(hr_dev->irq[i], hr_dev);
- 
--	for (i = 0; i < eq_num; i++)
-+	for (i = 0; i < eq_num; i++) {
- 		free_irq(hr_dev->eq_table.eq[i].irq, &hr_dev->eq_table.eq[i]);
-+		if (i < hr_dev->caps.num_comp_vectors)
-+			tasklet_kill(&hr_dev->eq_table.eq[i].tasklet);
-+	}
- 
- 	for (i = 0; i < irq_num; i++)
- 		kfree(hr_dev->irq_names[i]);
--- 
+wenglianfa (1):
+  RDMA/hns: Fix a long wait for cmdq event during reset
+
+ drivers/infiniband/hw/hns/hns_roce_device.h |   7 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 191 +++++++++++++-------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   6 +
+ drivers/infiniband/hw/hns/hns_roce_mr.c     |   5 +
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_srq.c    |   2 +-
+ 6 files changed, 152 insertions(+), 63 deletions(-)
+
+--
 2.33.0
 
