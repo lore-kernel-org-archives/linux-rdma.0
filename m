@@ -1,36 +1,36 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 033C51494B5;
-	Fri,  5 Jul 2024 09:05:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E10A4146D5A;
+	Fri,  5 Jul 2024 09:05:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720170318; cv=none; b=EVJOcG7NDV+14FwTnI1vwqBqzddfYnGhHzi9W7aikeplqUT1/5vH0lZmaz6cFzwQmomYtfU/Idt6Up/jfUyn8G/kS0RADa6Gaof5IKCDFtcSzokx5AoiEJwO8sKunkeq0fpjLEetWZmscfTKqMzHslXhDB/nc3bpS5OfqpBAEUM=
+	t=1720170327; cv=none; b=DXA60PdAvKyQFZuBPDBujgdBHE2GiTIOFJW3+0UJz53zc1+6PQFxL5Gs+a8FU7ecree9t4DEsQ1Q6HRm/6diujoSKV9URTm8RQAj3Ug1ZvUvqGMZIKGiMHXoOQ8xSesNtNVWmsdQWyrpYf8qVpwQsXwtQ1yJzMlYjIBTkcHx0KU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720170318; c=relaxed/simple;
-	bh=UHra78mRYvKc530KgkrKt0NYm3wIaoo10LqKcLzvJic=;
+	s=arc-20240116; t=1720170327; c=relaxed/simple;
+	bh=ET6fbH7khney2LVeXs2CeEJBGBxJBPar5us8nTGHBH4=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ZmiCMguZ9E6NDnHuKf7MA9m8NSB+fKfz9Szp5vyg+Q7VcV6cYXfHFzpRZpQ827aYg/M067dgj+d6tLCj8Tfp0t5rmDxxWvZdXjskHemvXbF/i+YT0akU0MZM1GNrY4YV3CKdsr/BCJc3tlbyCUTH2eYcnSMNAQG57Uvlf50iLvc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.187
+	 MIME-Version:Content-Type; b=RZe5XoanwjzMA+EvM+UVy6MNq4OkbAoRUIkcANd54CrUFk1V24kAHi31KeKzRmGSbmjbbjIJoZt19BtgkbKlPTl01+gihAWxZEhay7+v9Vb05rtom0PZjXCagriiNkzwG/NSrWT/dNuzVwY5vSU+ZM5+3rE935JI3CTcwOmASU8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.88.105])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4WFnY31xlfzxNfC;
-	Fri,  5 Jul 2024 17:00:39 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.48])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4WFnc45msXzdgRF;
+	Fri,  5 Jul 2024 17:03:16 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id DB80014011A;
-	Fri,  5 Jul 2024 17:05:08 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id D1AC8180087;
+	Fri,  5 Jul 2024 17:04:54 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 5 Jul 2024 17:04:53 +0800
+ 15.2.1544.11; Fri, 5 Jul 2024 17:04:54 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-rc 5/9] RDMA/hns: Fix missing pagesize and alignment check in FRMR
-Date: Fri, 5 Jul 2024 16:59:33 +0800
-Message-ID: <20240705085937.1644229-6-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 8/9] RDMA/hns: Fix insufficient extend DB for VFs.
+Date: Fri, 5 Jul 2024 16:59:36 +0800
+Message-ID: <20240705085937.1644229-9-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20240705085937.1644229-1-huangjunxian6@hisilicon.com>
 References: <20240705085937.1644229-1-huangjunxian6@hisilicon.com>
@@ -47,55 +47,41 @@ X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
 
 From: Chengchang Tang <tangchengchang@huawei.com>
 
-The offset requires 128B alignment and the page size ranges from
-4K to 128M.
+VFs and its PF will share the memory of the extend DB. Currently,
+the number of extend DB allocated by driver is only enough for PF.
+This leads to a probability of DB loss and some other problems in
+scenarios where both PF and VFs use a large number of QPs.
 
-Fixes: 68a997c5d28c ("RDMA/hns: Add FRMR support for hip08")
+Fixes: 6b63597d3540 ("RDMA/hns: Add TSQ link table support")
 Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h | 4 ++++
- drivers/infiniband/hw/hns/hns_roce_mr.c     | 5 +++++
- 2 files changed, 9 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 5a2445f357ab..15b3b978a601 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -83,6 +83,7 @@
- #define MR_TYPE_DMA				0x03
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 6cdeafef800a..1d72c8d47ae7 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -2468,14 +2468,16 @@ static int set_llm_cfg_to_hw(struct hns_roce_dev *hr_dev,
+ static struct hns_roce_link_table *
+ alloc_link_table_buf(struct hns_roce_dev *hr_dev)
+ {
++	u16 total_sl = hr_dev->caps.sl_num * hr_dev->func_num;
+ 	struct hns_roce_v2_priv *priv = hr_dev->priv;
+ 	struct hns_roce_link_table *link_tbl;
+ 	u32 pg_shift, size, min_size;
  
- #define HNS_ROCE_FRMR_MAX_PA			512
-+#define HNS_ROCE_FRMR_ALIGN_SIZE		128
+ 	link_tbl = &priv->ext_llm;
+ 	pg_shift = hr_dev->caps.llm_buf_pg_sz + PAGE_SHIFT;
+-	size = hr_dev->caps.num_qps * HNS_ROCE_V2_EXT_LLM_ENTRY_SZ;
+-	min_size = HNS_ROCE_EXT_LLM_MIN_PAGES(hr_dev->caps.sl_num) << pg_shift;
++	size = hr_dev->caps.num_qps * hr_dev->func_num *
++	       HNS_ROCE_V2_EXT_LLM_ENTRY_SZ;
++	min_size = HNS_ROCE_EXT_LLM_MIN_PAGES(total_sl) << pg_shift;
  
- #define PKEY_ID					0xffff
- #define NODE_DESC_SIZE				64
-@@ -189,6 +190,9 @@ enum {
- #define HNS_HW_PAGE_SHIFT			12
- #define HNS_HW_PAGE_SIZE			(1 << HNS_HW_PAGE_SHIFT)
- 
-+#define HNS_HW_MAX_PAGE_SHIFT			27
-+#define HNS_HW_MAX_PAGE_SIZE			(1 << HNS_HW_MAX_PAGE_SHIFT)
-+
- struct hns_roce_uar {
- 	u64		pfn;
- 	unsigned long	index;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 1a61dceb3319..846da8c78b8b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -443,6 +443,11 @@ int hns_roce_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
- 	struct hns_roce_mtr *mtr = &mr->pbl_mtr;
- 	int ret, sg_num = 0;
- 
-+	if (!IS_ALIGNED(*sg_offset, HNS_ROCE_FRMR_ALIGN_SIZE) ||
-+	    ibmr->page_size < HNS_HW_PAGE_SIZE ||
-+	    ibmr->page_size > HNS_HW_MAX_PAGE_SIZE)
-+		return sg_num;
-+
- 	mr->npages = 0;
- 	mr->page_list = kvcalloc(mr->pbl_mtr.hem_cfg.buf_pg_count,
- 				 sizeof(dma_addr_t), GFP_KERNEL);
+ 	/* Alloc data table */
+ 	size = max(size, min_size);
 -- 
 2.33.0
 
