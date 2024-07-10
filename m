@@ -1,87 +1,163 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAEE9194137;
-	Wed, 10 Jul 2024 13:42:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17D94192B8E
+	for <linux-rdma@vger.kernel.org>; Wed, 10 Jul 2024 13:46:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720618955; cv=none; b=a0a8KWcvFnusrjUYlNmPCT+EDMlFHTJCOOTpKcvmC5p9Kt41/Bg+X01aGy1cOoQx+VwvbGDsElftpD8L0VKEuyLeOUWzMCidheulhDxrcj4+Hl0kuKIPJbkVpmnTHJco4rNrcBCggdgnDOLrVRzT6R/WK/djPEXh4uKOt4RHKQk=
+	t=1720619202; cv=none; b=gOGjg6GsFTxjUUrHvPs0lArSTEu+zlK7vzTL5ygU9zODtp4Mp3kNz7yFxC9yroFQ0+byENvpYn4eXFimWgok1hVa0Zm5UmttjuuchXq5cwXtn0RFGgDI58QhRpWGk+giDTQLKZZjFswaJL8f/FdzIJFVOeDUCUAH6fWERgl6O7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720618955; c=relaxed/simple;
-	bh=mF3Y6W2YlXcMBpbUar7YsW8yKzS0IxQSydLUM8baSOc=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=CMi+5xPBNBelAkxq2NP5FXmiuYegQSl6eAzrRidXg1G7vEMAFrSiu/SxWMaldmSBNXdCjlErcWm0HypfN3H6tigPnRw153qe4erUi5a7TetT6O7qriwKkoHsUd24UANLLMjkGGl+dyVvUGU2EKv1febTqQJWwwbjGMz/xlzWo/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.174])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4WJzWw6SrLzdhCN;
-	Wed, 10 Jul 2024 21:40:44 +0800 (CST)
-Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 62017140257;
-	Wed, 10 Jul 2024 21:42:25 +0800 (CST)
-Received: from localhost.localdomain (10.90.30.45) by
- kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Wed, 10 Jul 2024 21:42:24 +0800
-From: Junxian Huang <huangjunxian6@hisilicon.com>
-To: <jgg@ziepe.ca>, <leon@kernel.org>
-CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH v2 for-rc 7/8] RDMA/hns: Fix insufficient extend DB for VFs.
-Date: Wed, 10 Jul 2024 21:37:04 +0800
-Message-ID: <20240710133705.896445-8-huangjunxian6@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20240710133705.896445-1-huangjunxian6@hisilicon.com>
-References: <20240710133705.896445-1-huangjunxian6@hisilicon.com>
+	s=arc-20240116; t=1720619202; c=relaxed/simple;
+	bh=feDBvWRIRzTgN6QbXVbs0peoFiWE7fusIOptgeHkXXA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=eW8TjpzemHe7sepGKLWpyfoAWiifSx7+klaW6Inah2I+kwOSCyRDpEUGM3z/FmS8JnFqN8qNi0MO+wgpHh4RLH7Gx0cXIh1q2TITWgWJCmX0XAyxUO5FTn9eVV57Uf3x3LOupPdsOtHGeNrVxGNVTsEAcMoCk9OiWChwPfZ9rAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WFc7gW68; arc=none smtp.client-ip=209.85.128.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WFc7gW68"
+Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-42726d6eca5so9362175e9.1
+        for <linux-rdma@vger.kernel.org>; Wed, 10 Jul 2024 06:46:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1720619199; x=1721223999; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=qmlJniPvKFxGn0zgmpG06wXTyn8rYz2lfmU/WFt8q84=;
+        b=WFc7gW68nSfvlvNGNEhayErXgU3wlKEpLCh5a8tYpa4bnTCql+pPWLvUUEgbMBM1YQ
+         7sEklQCrNIX+3C5cZFX0b+t0ePVeNMbxBEua4jf2q9zgVcL0MfIixAgAMG2ToAXEmemG
+         5fRHINaFR9UPSXgPhZOMSmB5C944I8nje/m7PiBemhJy5afe2TB0Bjiqpr5/v1GnmlcZ
+         u26GwXhozmei5hZzU0WDi4D9u/l06qvh9xbX442r0YiUeBvLQiWvnOfGceonkwqeC55C
+         WCjzz1+pNfzWtpIZsgNihT86UepzbJPEbJ6zDypzcRdJCOwFdS8OXgpu1MfeREvosThk
+         TusQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1720619199; x=1721223999;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qmlJniPvKFxGn0zgmpG06wXTyn8rYz2lfmU/WFt8q84=;
+        b=jt0bwqinJBFWkIoXxG/Lb29bXqVFyXJJqjIWAtfwLf4AjuYeRYwGI7FGfBSDdmTW9R
+         13l07EIt1mPKzmCAs+bs1pswNyH1pCJJJtW1wRF+s6blS8yVU+xgF5tBgu0Tef7C0R4a
+         V9VQWomEnR1LoUNl2r6Ep/g6m3XpZpZr/ndUNfjbX+g3nD3hq52UCxONOcjF/6VBN0Hm
+         Ohdn9dgbelXkaQ1EFK6OLldlYsVUnhSc7N0NksuLuc4E8PzJ3sWyRXT1V8BIu7PazQN7
+         NR/6uiPHS4bt2dfb1weF3frC6eR5AlYMLbVGxAVj8PX42rBv33CE4thtmrdk0E1sFTiy
+         GXhg==
+X-Forwarded-Encrypted: i=1; AJvYcCVbZei5emfNwT4cIYAgp5tmd9JlFR63Ywmo3x9lORvpJnlMZjZByG8+y1jNnmETurMIyG0y7K4MeWbp7JbYBqwW7Wp3DhSBxHgDwA==
+X-Gm-Message-State: AOJu0YwLf5PxztTbofAVwlkLKAQex7E4Mzh6AoVl5X+bB15jBf9DoXH6
+	YBjV5XeaJ+XO6IXkQIUgtDmnUrztuglxDb93mR/s6LcWSok1zg4bl12W8NkmG5Q9kDfb/RMSELT
+	3JrIddqVuaViqOM+gcB36wS/M3qA=
+X-Google-Smtp-Source: AGHT+IFMNTNdPjePnXuCygilavrG9iD38x63egLaJP0teZCdkCmShd5zZHKCHM/nrHLF4Pgfxh6dkE4V4RVBQlcyXEo=
+X-Received: by 2002:a5d:4b01:0:b0:35f:2067:2072 with SMTP id
+ ffacd0b85a97d-367cead1e55mr3657924f8f.52.1720619199153; Wed, 10 Jul 2024
+ 06:46:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
- kwepemf100018.china.huawei.com (7.202.181.17)
+References: <20240709105242.63299-1-flyingpeng@tencent.com>
+ <20240709122737.GD6668@unreal> <20240709212608.GA1649561@thelio-3990X> <20240710060221.GH6668@unreal>
+In-Reply-To: <20240710060221.GH6668@unreal>
+From: Hao Peng <flyingpenghao@gmail.com>
+Date: Wed, 10 Jul 2024 21:46:27 +0800
+Message-ID: <CAPm50aLj5OsED5WeAnnv19d+JntNKC=WO8=FH7wy56dSccDb1w@mail.gmail.com>
+Subject: Re: [PATCH] infiniband/hw/ocrdma: increase frame warning limit in
+ verifier when using KASAN or KCSAN
+To: Leon Romanovsky <leon@kernel.org>, Nathan Chancellor <nathan@kernel.org>
+Cc: jgg@ziepe.ca, linux-rdma@vger.kernel.org, 
+	Peng Hao <flyingpeng@tencent.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Chengchang Tang <tangchengchang@huawei.com>
-
-VFs and its PF will share the memory of the extend DB. Currently,
-the number of extend DB allocated by driver is only enough for PF.
-This leads to a probability of DB loss and some other problems in
-scenarios where both PF and VFs use a large number of QPs.
-
-Fixes: 6b63597d3540 ("RDMA/hns: Add TSQ link table support")
-Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index cbbc142afc1b..aecd137c1e60 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -2463,14 +2463,16 @@ static int set_llm_cfg_to_hw(struct hns_roce_dev *hr_dev,
- static struct hns_roce_link_table *
- alloc_link_table_buf(struct hns_roce_dev *hr_dev)
- {
-+	u16 total_sl = hr_dev->caps.sl_num * hr_dev->func_num;
- 	struct hns_roce_v2_priv *priv = hr_dev->priv;
- 	struct hns_roce_link_table *link_tbl;
- 	u32 pg_shift, size, min_size;
- 
- 	link_tbl = &priv->ext_llm;
- 	pg_shift = hr_dev->caps.llm_buf_pg_sz + PAGE_SHIFT;
--	size = hr_dev->caps.num_qps * HNS_ROCE_V2_EXT_LLM_ENTRY_SZ;
--	min_size = HNS_ROCE_EXT_LLM_MIN_PAGES(hr_dev->caps.sl_num) << pg_shift;
-+	size = hr_dev->caps.num_qps * hr_dev->func_num *
-+	       HNS_ROCE_V2_EXT_LLM_ENTRY_SZ;
-+	min_size = HNS_ROCE_EXT_LLM_MIN_PAGES(total_sl) << pg_shift;
- 
- 	/* Alloc data table */
- 	size = max(size, min_size);
--- 
-2.33.0
-
+On Wed, Jul 10, 2024 at 2:02=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
+rote:
+>
+> On Tue, Jul 09, 2024 at 02:26:08PM -0700, Nathan Chancellor wrote:
+> > On Tue, Jul 09, 2024 at 03:27:37PM +0300, Leon Romanovsky wrote:
+> > > On Tue, Jul 09, 2024 at 06:52:42PM +0800, flyingpenghao@gmail.com wro=
+te:
+> > > > From: Peng Hao <flyingpeng@tencent.com>
+> > > >
+> > > > When building kernel with clang, which will typically
+> > > > have sanitizers enabled, there is a warning about a large stack fra=
+me.
+> > > >
+> > > > drivers/infiniband/hw/ocrdma/ocrdma_stats.c:686:16: error: stack fr=
+ame size (20664) exceeds limit (8192) in 'ocrdma_dbgfs_ops_read' [-Werror,-=
+Wframe-larger-than]
+> > > > static ssize_t ocrdma_dbgfs_ops_read(struct file *filp, char __user=
+ *buffer,
+> > > >                ^
+> > >
+> > > Please fix it, not hide it.
+> >
+> > Agreed, this is far from an acceptable solution. No details were
+> > provided around compiler, architecture, or configuration, so I can only
+> > speculate what is happening here. From reading the code, I suspect that
+> > ocrdma_add_stat() is getting inlined into all of its callsites but the
+> > stack slot for buff[128] is not getting reused, which may be related to
+> > a missing lifetime marker like [1] or sanitizer instrumentation.  I am
+> > guessing that marking ocrdma_dbgfs_ops_read() as noinline_for_stack
+> > would resolve this.
+> >
+KASAN is generally enabled for testing environments;
+noinline_for_stack is used to solve the problem of needing to
+ track deeper call chains. I also tried to use noinline_for_stack and
+issued a new patch, but I think the v1 method is better.
+My environment is:
+x86_64, clang version 15.0.7
+CONFIG_FRAME_WARN=3D8192
+> > static noinline_for_stack int ocrdma_add_stat(char *start, char *pcur,
+>
+> This is a good solution, but first let's see if the author can provide
+> more details.
+>
+> >
+> > If this is not tolerable for all configurations, it could be made more
+> > pointed with something like
+> >
+> > static
+> > #if defined(CONFIG_CC_IS_CLANG) && (defined(CONFIG_KASAN) || defined(CO=
+NFIG_KCSAN))
+> > noinline_for_stack
+> > #endif
+> > int ocrdma_add_stat(char *start, char *pcur,
+> >
+> > but I am aware that is quite ugly.
+> >
+> > [1]: https://github.com/llvm/llvm-project/issues/38157#issuecomment-175=
+6321571
+> >
+> > Cheers,
+> > Nathan
+> >
+> > > > Increase the frame size by 20% to set.
+> > > >
+> > > > Signed-off-by: Peng Hao <flyingpeng@tencent.com>
+> > > > ---
+> > > >  drivers/infiniband/hw/ocrdma/Makefile | 6 ++++++
+> > > >  1 file changed, 6 insertions(+)
+> > > >
+> > > > diff --git a/drivers/infiniband/hw/ocrdma/Makefile b/drivers/infini=
+band/hw/ocrdma/Makefile
+> > > > index 14fba95021d8..a1e9fcc04751 100644
+> > > > --- a/drivers/infiniband/hw/ocrdma/Makefile
+> > > > +++ b/drivers/infiniband/hw/ocrdma/Makefile
+> > > > @@ -3,4 +3,10 @@ ccflags-y :=3D -I $(srctree)/drivers/net/ethernet/=
+emulex/benet
+> > > >
+> > > >  obj-$(CONFIG_INFINIBAND_OCRDMA)  +=3D ocrdma.o
+> > > >
+> > > > +ifneq ($(CONFIG_FRAME_WARN),0)
+> > > > +ifeq ($(filter y,$(CONFIG_KASAN)$(CONFIG_KCSAN)),y)
+> > > > +CFLAGS_ocrdma_stats.o =3D -Wframe-larger-than=3D22664
+> > > > +endif
+> > > > +endif
+> > > > +
+> > > >  ocrdma-y :=3D      ocrdma_main.o ocrdma_verbs.o ocrdma_hw.o ocrdma=
+_ah.o ocrdma_stats.o
+> > > > --
+> > > > 2.27.0
+> > > >
+> > > >
