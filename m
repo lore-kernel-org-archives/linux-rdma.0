@@ -1,57 +1,58 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2DF71442EA
-	for <linux-rdma@vger.kernel.org>; Wed, 24 Jul 2024 23:40:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D253143888
+	for <linux-rdma@vger.kernel.org>; Wed, 24 Jul 2024 23:40:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721864445; cv=none; b=QXygP+OSNM9LV5UZl//MS9XN8NfbirtK6yqshH+ywMge6iEc+3/VPTTGQj+/Ku6TXJ3D76WbAqWQRfFESt2Z12/jNnt5ZVKEo1naWc9SCLxhSxAu7HvGlTHyMR917s2MUudsOtWBeQ4H46st0+xMjemxIsJTCa7sHEviBd7jrtU=
+	t=1721864446; cv=none; b=R7XRLur/hBdJASgLgKciHIXeObPdEUaAMpiJWc5OHhe1OzKwZP2N09FJjPTsXhGRzTQUwGVBJsJkwL5fH9WAz2PQ00ErCLZlyTzc7X+9jrEs7+qHGtpjEYlAgSCOVQoU28iRxZaJeK6E3Ofrku7i37GrAFmgxAy5FZNhVkqOlw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721864445; c=relaxed/simple;
-	bh=fPW8xkBTw/MMB/j1/5UGqjp4EjwTg+3kU/e/bxbPnuU=;
+	s=arc-20240116; t=1721864446; c=relaxed/simple;
+	bh=iyi2+P3FSSeAZmxpMJxHMQs4jCGujOfYqtpPDRhm+3k=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=lttgAJIAegaZW3Xz0MO0+ocVTPp/C+EzPX14778Q/WximH9NefxQeLkeIkR9aSdFK4Zmbeejk8crk95XoEPuhk6qHs42XzqXBT9TqYuQytHyKfSkJV0Veva1HvCwHy2rI/5CsPXx0c16aH9rVkKs0HfMfjir3A80G27a2chiXFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=W6EE87qT; arc=none smtp.client-ip=192.198.163.7
+	 MIME-Version; b=Hzzb1yIADnJnffL2TfyWPFKTwKECiNI/m+3tzLhmjCXRh9+GIhG42CeMxknXDeUd26mdSLqtPJLJ4vvl4oF8uRtSIlQajEmuag7dDM8hfYiTH1mYhzx4N8QJ67S8RTMBbyLtD+MZcmhDT2UH7SoMBC8EBgyxBGmqiiDv8Zywlqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eLG4Z6at; arc=none smtp.client-ip=192.198.163.7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="W6EE87qT"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eLG4Z6at"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1721864443; x=1753400443;
+  t=1721864444; x=1753400444;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=fPW8xkBTw/MMB/j1/5UGqjp4EjwTg+3kU/e/bxbPnuU=;
-  b=W6EE87qTG0Hf2kTgBYiXDTMjwPneD5sI6O4DXBtX8cHO2VJubkIgKk8j
-   VS7jo+3W/Vui1PvdKqFOO0dSEEgb72IhMK8UEa6Uewhd7UNvF8kX7MaiK
-   sDxI04+MHXzpwY1B250ahFIrD375ShgFdAlBWziad1MQSMVXwQIxQ3pY/
-   LarSieljabNoP+BPQAFTou7F6NCwC7MVeaoeU8ruI8uBILvJs1HuPZSxH
-   KSCiVcBLxzbghwJQ3i6BpGGjYfcWdmH3cfs0YGG4wmj+i9qgQywz2cbwh
-   Kuts++eZcpB2A+KdLg+j7ql7sbvlmBuBER+ArITRY6QxRqkSZBPsB5NoY
-   Q==;
-X-CSE-ConnectionGUID: WQoPrVlrQXuRisDQfJL6oA==
-X-CSE-MsgGUID: 0K+TEuACQUqv4ja5Otv7dg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11143"; a="44999763"
+  bh=iyi2+P3FSSeAZmxpMJxHMQs4jCGujOfYqtpPDRhm+3k=;
+  b=eLG4Z6at6qUsUm2dqq2/DvpHNxTL+f59X+zKahBtxSFto+DQP+yHuzxV
+   ttQ0JzkdwwKsCG8nX8xqEY0UnVQG0j+21jWdCm9+67XSo8uPOgWA9McoV
+   ZzrqJIUK6D2/dZkJRu3kKzEESsCbKPZyJWCRctWKwpvREtRYRSKIi3hHJ
+   jVEhm+ScKsSnFSFzGQGsPBD8whGXmsx3h33frQvX1s4p3nfgraz/Oxqng
+   Ow+fHAqy6lfD3bTfJBTGMvuZ7No378dg9oPPjGMigyHhEFtBI1bf+uwtG
+   RswWzGWtch7eCKlnUHzdWQBcodCAIsBEVwpG1+Zot3UAe2uJjhjvqPY20
+   A==;
+X-CSE-ConnectionGUID: 43f8LOcXSW+TXtUDurYUEA==
+X-CSE-MsgGUID: hWmUnCxCSSerFTyBPZel2Q==
+X-IronPort-AV: E=McAfee;i="6700,10204,11143"; a="44999769"
 X-IronPort-AV: E=Sophos;i="6.09,234,1716274800"; 
-   d="scan'208";a="44999763"
+   d="scan'208";a="44999769"
 Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2024 16:40:40 -0700
-X-CSE-ConnectionGUID: 9B2UcSb7RlqDih/Tcamd5A==
-X-CSE-MsgGUID: DCzXv3THSNe059uehgTYVQ==
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2024 16:40:41 -0700
+X-CSE-ConnectionGUID: Ssoxhwx+T/Ct4oOzfDAY4A==
+X-CSE-MsgGUID: +Y5x/iK5R8CkB43ZMORK3g==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.09,234,1716274800"; 
-   d="scan'208";a="52426037"
+   d="scan'208";a="52426054"
 Received: from tenikolo-mobl1.amr.corp.intel.com ([10.124.96.138])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2024 16:40:39 -0700
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2024 16:40:40 -0700
 From: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 To: jgg@nvidia.com,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	mustafa.ismail@intel.com,
+	Christopher Bednarz <christopher.n.bednarz@intel.com>,
 	Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-Subject: [RFC PATCH 10/25] RDMA/irdma: Refactor GEN2 auxiliary driver
-Date: Wed, 24 Jul 2024 18:39:02 -0500
-Message-Id: <20240724233917.704-11-tatyana.e.nikolova@intel.com>
+Subject: [RFC PATCH 12/25] RDMA/irdma: Discover and set up GEN3 hardware register layout
+Date: Wed, 24 Jul 2024 18:39:04 -0500
+Message-Id: <20240724233917.704-13-tatyana.e.nikolova@intel.com>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20240724233917.704-1-tatyana.e.nikolova@intel.com>
 References: <20240724233917.704-1-tatyana.e.nikolova@intel.com>
@@ -63,747 +64,628 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+From: Christopher Bednarz <christopher.n.bednarz@intel.com>
 
-Refactor the irdma auxiliary driver and associated interfaces out of main.c
-and into a standalone GEN2-specific source file and rename as gen_2 driver.
+Discover the hardware register layout for GEN3 devices through an RDMA
+virtual channel operation with the Control Plane (CP). Set up the
+corresponding hardware attributes specific to GEN3 devices.
 
-This is in preparation for adding GEN3 auxiliary drivers. Each HW
-generation will have its own gen-specific interface file.
-
-Additionally, move the Address Handle hash table and associated locks
-under rf struct. This will allow GEN3 code to migrate to use it easily.
-
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: Christopher Bednarz <christopher.n.bednarz@intel.com>
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 ---
- drivers/infiniband/hw/irdma/Makefile    |   1 +
- drivers/infiniband/hw/irdma/i40iw_if.c  |   2 +
- drivers/infiniband/hw/irdma/icrdma_if.c | 265 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/main.c      | 272 +-------------------------------
- drivers/infiniband/hw/irdma/main.h      |   9 +-
- drivers/infiniband/hw/irdma/verbs.c     |  16 +-
- 6 files changed, 290 insertions(+), 275 deletions(-)
- create mode 100644 drivers/infiniband/hw/irdma/icrdma_if.c
+ drivers/infiniband/hw/irdma/Makefile     |   1 +
+ drivers/infiniband/hw/irdma/ctrl.c       |  31 ++++--
+ drivers/infiniband/hw/irdma/defs.h       |  12 ++-
+ drivers/infiniband/hw/irdma/i40iw_hw.c   |   2 +
+ drivers/infiniband/hw/irdma/i40iw_hw.h   |   2 +
+ drivers/infiniband/hw/irdma/icrdma_hw.c  |   3 +
+ drivers/infiniband/hw/irdma/icrdma_hw.h  |   5 +-
+ drivers/infiniband/hw/irdma/ig3rdma_hw.c |  65 +++++++++++
+ drivers/infiniband/hw/irdma/ig3rdma_hw.h |  18 ++++
+ drivers/infiniband/hw/irdma/irdma.h      |   5 +
+ drivers/infiniband/hw/irdma/virtchnl.c   | 178 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/irdma/virtchnl.h   |  44 ++++++++
+ 12 files changed, 351 insertions(+), 15 deletions(-)
+ create mode 100644 drivers/infiniband/hw/irdma/ig3rdma_hw.c
 
 diff --git a/drivers/infiniband/hw/irdma/Makefile b/drivers/infiniband/hw/irdma/Makefile
-index 48c3854..2522e4c 100644
+index 3aa63b9..03ceb9e 100644
 --- a/drivers/infiniband/hw/irdma/Makefile
 +++ b/drivers/infiniband/hw/irdma/Makefile
-@@ -13,6 +13,7 @@ irdma-objs := cm.o        \
-               hw.o        \
-               i40iw_hw.o  \
-               i40iw_if.o  \
-+	      icrdma_if.o \
+@@ -16,6 +16,7 @@ irdma-objs := cm.o        \
+ 	      ig3rdma_if.o\
+ 	      icrdma_if.o \
                icrdma_hw.o \
++	      ig3rdma_hw.o\
                main.o      \
                pble.o      \
-diff --git a/drivers/infiniband/hw/irdma/i40iw_if.c b/drivers/infiniband/hw/irdma/i40iw_if.c
-index cc50a70..6fa807e 100644
---- a/drivers/infiniband/hw/irdma/i40iw_if.c
-+++ b/drivers/infiniband/hw/irdma/i40iw_if.c
-@@ -75,6 +75,8 @@ static void i40iw_fill_device_info(struct irdma_device *iwdev, struct i40e_info
- 	struct irdma_pci_f *rf = iwdev->rf;
+               puda.o      \
+diff --git a/drivers/infiniband/hw/irdma/ctrl.c b/drivers/infiniband/hw/irdma/ctrl.c
+index 9d7b151..34875cb 100644
+--- a/drivers/infiniband/hw/irdma/ctrl.c
++++ b/drivers/infiniband/hw/irdma/ctrl.c
+@@ -5677,6 +5677,9 @@ static inline void irdma_sc_init_hw(struct irdma_sc_dev *dev)
+ 	case IRDMA_GEN_2:
+ 		icrdma_init_hw(dev);
+ 		break;
++	case IRDMA_GEN_3:
++		ig3rdma_init_hw(dev);
++		break;
+ 	}
+ }
  
- 	rf->rdma_ver = IRDMA_GEN_1;
-+	rf->sc_dev.hw = &rf->hw;
-+	rf->sc_dev.hw_attrs.uk_attrs.hw_rev = IRDMA_GEN_1;
- 	rf->gen_ops.request_reset = i40iw_request_reset;
- 	rf->pcidev = cdev_info->pcidev;
- 	rf->pf_id = cdev_info->fid;
-diff --git a/drivers/infiniband/hw/irdma/icrdma_if.c b/drivers/infiniband/hw/irdma/icrdma_if.c
-new file mode 100644
-index 0000000..5fcbf69
---- /dev/null
-+++ b/drivers/infiniband/hw/irdma/icrdma_if.c
-@@ -0,0 +1,265 @@
-+// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
-+// /* Copyright (c) 2015 - 2024 Intel Corporation */
-+#include "main.h"
-+
-+static void icrdma_prep_tc_change(struct irdma_device *iwdev)
-+{
-+	iwdev->vsi.tc_change_pending = true;
-+	irdma_sc_suspend_resume_qps(&iwdev->vsi, IRDMA_OP_SUSPEND);
-+
-+	/* Wait for all qp's to suspend */
-+	wait_event_timeout(iwdev->suspend_wq,
-+			   !atomic_read(&iwdev->vsi.qp_suspend_reqs),
-+			   msecs_to_jiffies(IRDMA_EVENT_TIMEOUT_MS));
-+	irdma_ws_reset(&iwdev->vsi);
-+}
-+
-+static void icrdma_idc_event_handler(struct idc_rdma_core_dev_info *cdev_info,
-+				     struct idc_rdma_event *event)
-+{
-+	struct irdma_device *iwdev = dev_get_drvdata(&cdev_info->adev->dev);
-+	struct irdma_l2params l2params = {};
-+
-+	if (*event->type & BIT(IDC_RDMA_EVENT_AFTER_MTU_CHANGE)) {
-+		ibdev_dbg(&iwdev->ibdev, "CLNT: new MTU = %d\n", iwdev->netdev->mtu);
-+		if (iwdev->vsi.mtu != iwdev->netdev->mtu) {
-+			l2params.mtu = iwdev->netdev->mtu;
-+			l2params.mtu_changed = true;
-+			irdma_log_invalid_mtu(l2params.mtu, &iwdev->rf->sc_dev);
-+			irdma_change_l2params(&iwdev->vsi, &l2params);
-+		}
-+	} else if (*event->type & BIT(IDC_RDMA_EVENT_BEFORE_TC_CHANGE)) {
-+		if (iwdev->vsi.tc_change_pending)
-+			return;
-+
-+		icrdma_prep_tc_change(iwdev);
-+	} else if (*event->type & BIT(IDC_RDMA_EVENT_AFTER_TC_CHANGE)) {
-+		struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
-+
-+		if (!iwdev->vsi.tc_change_pending)
-+			return;
-+
-+		l2params.tc_changed = true;
-+		ibdev_dbg(&iwdev->ibdev, "CLNT: TC Change\n");
-+
-+		irdma_fill_qos_info(&l2params, &idc_priv->qos_info);
-+		if (iwdev->rf->protocol_used != IRDMA_IWARP_PROTOCOL_ONLY)
-+			iwdev->dcb_vlan_mode =
-+				l2params.num_tc > 1 && !l2params.dscp_mode;
-+		irdma_change_l2params(&iwdev->vsi, &l2params);
-+	} else if (*event->type & BIT(IDC_RDMA_EVENT_CRIT_ERR)) {
-+		ibdev_warn(&iwdev->ibdev, "ICE OICR event notification: oicr = 0x%08x\n",
-+			   event->reg);
-+		if (event->reg & IRDMAPFINT_OICR_PE_CRITERR_M) {
-+			u32 pe_criterr;
-+
-+			pe_criterr = readl(iwdev->rf->sc_dev.hw_regs[IRDMA_GLPE_CRITERR]);
-+#define IRDMA_Q1_RESOURCE_ERR 0x0001024d
-+			if (pe_criterr != IRDMA_Q1_RESOURCE_ERR) {
-+				ibdev_err(&iwdev->ibdev, "critical PE Error, GLPE_CRITERR=0x%08x\n",
-+					  pe_criterr);
-+				iwdev->rf->reset = true;
-+			} else {
-+				ibdev_warn(&iwdev->ibdev, "Q1 Resource Check\n");
+@@ -5744,18 +5747,26 @@ int irdma_sc_dev_init(enum irdma_vers ver, struct irdma_sc_dev *dev,
+ 
+ 	irdma_sc_init_hw(dev);
+ 
+-	if (irdma_wait_pe_ready(dev))
+-		return -ETIMEDOUT;
++	if (dev->privileged) {
++		if (irdma_wait_pe_ready(dev))
++			return -ETIMEDOUT;
+ 
+-	val = readl(dev->hw_regs[IRDMA_GLPCI_LBARCTRL]);
+-	db_size = (u8)FIELD_GET(IRDMA_GLPCI_LBARCTRL_PE_DB_SIZE, val);
+-	if (db_size != IRDMA_PE_DB_SIZE_4M && db_size != IRDMA_PE_DB_SIZE_8M) {
+-		ibdev_dbg(to_ibdev(dev),
+-			  "DEV: RDMA PE doorbell is not enabled in CSR val 0x%x db_size=%d\n",
+-			  val, db_size);
+-		return -ENODEV;
++		val = readl(dev->hw_regs[IRDMA_GLPCI_LBARCTRL]);
++		db_size = (u8)FIELD_GET(IRDMA_GLPCI_LBARCTRL_PE_DB_SIZE, val);
++		if (db_size != IRDMA_PE_DB_SIZE_4M &&
++		    db_size != IRDMA_PE_DB_SIZE_8M) {
++			ibdev_dbg(to_ibdev(dev),
++				  "DEV: RDMA PE doorbell is not enabled in CSR val 0x%x db_size=%d\n",
++				  val, db_size);
++			return -ENODEV;
 +			}
-+		}
-+		if (event->reg & IRDMAPFINT_OICR_HMC_ERR_M) {
-+			ibdev_err(&iwdev->ibdev, "HMC Error\n");
-+			iwdev->rf->reset = true;
-+		}
-+		if (event->reg & IRDMAPFINT_OICR_PE_PUSH_M) {
-+			ibdev_err(&iwdev->ibdev, "PE Push Error\n");
-+			iwdev->rf->reset = true;
-+		}
-+		if (iwdev->rf->reset)
-+			iwdev->rf->gen_ops.request_reset(iwdev->rf);
-+	}
-+}
-+
-+/**
-+ * icrdma_lan_register_qset - Register qset with LAN driver
-+ * @vsi: vsi structure
-+ * @tc_node: Traffic class node
-+ */
-+static int icrdma_lan_register_qset(struct irdma_sc_vsi *vsi,
-+				    struct irdma_ws_node *tc_node)
-+{
-+	struct irdma_device *iwdev = vsi->back_vsi;
-+	struct idc_rdma_core_dev_info *cdev_info = iwdev->rf->cdev;
-+	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
-+	struct iidc_rdma_qset_params qset = {};
-+	int ret;
-+
-+	qset.qs_handle = tc_node->qs_handle;
-+	qset.tc = tc_node->traffic_class;
-+	qset.vport_id = vsi->vsi_idx;
-+	ret = idc_priv->priv_ops->alloc_res(cdev_info, &qset);
-+	if (ret) {
-+		ibdev_dbg(&iwdev->ibdev, "WS: LAN alloc_res for rdma qset failed.\n");
-+		return ret;
-+	}
-+
-+	tc_node->l2_sched_node_id = qset.teid;
-+	vsi->qos[tc_node->user_pri].l2_sched_node_id = qset.teid;
-+
-+	return 0;
-+}
-+
-+/**
-+ * icrdma_lan_unregister_qset - Unregister qset with LAN driver
-+ * @vsi: vsi structure
-+ * @tc_node: Traffic class node
-+ */
-+static void icrdma_lan_unregister_qset(struct irdma_sc_vsi *vsi,
-+				       struct irdma_ws_node *tc_node)
-+{
-+	struct irdma_device *iwdev = vsi->back_vsi;
-+	struct idc_rdma_core_dev_info *cdev_info = iwdev->rf->cdev;
-+	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
-+	struct iidc_rdma_qset_params qset = {};
-+
-+	qset.qs_handle = tc_node->qs_handle;
-+	qset.tc = tc_node->traffic_class;
-+	qset.vport_id = vsi->vsi_idx;
-+	qset.teid = tc_node->l2_sched_node_id;
-+
-+	if (idc_priv->priv_ops->free_res(cdev_info, &qset))
-+		ibdev_dbg(&iwdev->ibdev, "WS: LAN free_res for rdma qset failed.\n");
-+}
-+
-+static void icrdma_fill_device_info(struct irdma_device *iwdev,
-+				    struct idc_rdma_core_dev_info *cdev_info)
-+{
-+	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
-+	struct irdma_pci_f *rf = iwdev->rf;
-+
-+	rf->sc_dev.hw = &rf->hw;
-+	rf->iwdev = iwdev;
-+	rf->cdev = cdev_info;
-+	rf->hw.hw_addr = idc_priv->hw_addr;
-+	rf->pcidev = cdev_info->pdev;
-+	rf->hw.device = &rf->pcidev->dev;
-+	rf->msix_count = cdev_info->msix_count;
-+	rf->pf_id = idc_priv->pf_id;
-+	rf->msix_entries = cdev_info->msix_entries;
-+	rf->rdma_ver = IRDMA_GEN_2;
-+	rf->sc_dev.hw_attrs.uk_attrs.hw_rev = IRDMA_GEN_2;
-+
-+	rf->gen_ops.register_qset = icrdma_lan_register_qset;
-+	rf->gen_ops.unregister_qset = icrdma_lan_unregister_qset;
-+
-+	rf->default_vsi.vsi_idx = idc_priv->vport_id;
-+	rf->protocol_used =
-+		cdev_info->rdma_protocol == IDC_RDMA_PROTOCOL_ROCEV2 ?
-+			IRDMA_ROCE_PROTOCOL_ONLY : IRDMA_IWARP_PROTOCOL_ONLY;
-+	rf->rsrc_profile = IRDMA_HMC_PROFILE_DEFAULT;
-+	rf->rst_to = IRDMA_RST_TIMEOUT_HZ;
-+	rf->gen_ops.request_reset = irdma_request_reset;
-+	rf->limits_sel = 7;
-+	mutex_init(&rf->ah_tbl_lock);
-+
-+	iwdev->netdev = idc_priv->netdev;
-+	iwdev->vsi_num = idc_priv->vport_id;
-+	iwdev->init_state = INITIAL_STATE;
-+	iwdev->roce_cwnd = IRDMA_ROCE_CWND_DEFAULT;
-+	iwdev->roce_ackcreds = IRDMA_ROCE_ACKCREDS_DEFAULT;
-+	iwdev->rcv_wnd = IRDMA_CM_DEFAULT_RCV_WND_SCALED;
-+	iwdev->rcv_wscale = IRDMA_CM_DEFAULT_RCV_WND_SCALE;
-+	if (iwdev->rf->protocol_used != IRDMA_IWARP_PROTOCOL_ONLY)
-+		iwdev->roce_mode = true;
-+}
-+
-+static int icrdma_probe(struct auxiliary_device *aux_dev, const struct auxiliary_device_id *id)
-+{
-+	struct idc_rdma_core_auxiliary_dev *idc_adev =
-+		container_of(aux_dev, struct idc_rdma_core_auxiliary_dev, adev);
-+	struct idc_rdma_core_dev_info *cdev_info = idc_adev->cdev_info;
-+	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
-+	struct irdma_device *iwdev;
-+	struct irdma_pci_f *rf;
-+	struct irdma_l2params l2params = {};
-+	int err;
-+
-+	iwdev = ib_alloc_device(irdma_device, ibdev);
-+	if (!iwdev)
-+		return -ENOMEM;
-+	iwdev->rf = kzalloc(sizeof(*rf), GFP_KERNEL);
-+	if (!iwdev->rf) {
-+		ib_dealloc_device(&iwdev->ibdev);
-+		return -ENOMEM;
-+	}
-+
-+	icrdma_fill_device_info(iwdev, cdev_info);
-+	rf = iwdev->rf;
-+
-+	err = irdma_ctrl_init_hw(rf);
-+	if (err)
-+		goto err_ctrl_init;
-+
-+	l2params.mtu = iwdev->netdev->mtu;
-+	irdma_fill_qos_info(&l2params, &idc_priv->qos_info);
-+	if (iwdev->rf->protocol_used != IRDMA_IWARP_PROTOCOL_ONLY)
-+		iwdev->dcb_vlan_mode = l2params.num_tc > 1 && !l2params.dscp_mode;
-+
-+	err = irdma_rt_init_hw(iwdev, &l2params);
-+	if (err)
-+		goto err_rt_init;
-+
-+	err = irdma_ib_register_device(iwdev);
-+	if (err)
-+		goto err_ibreg;
-+
-+	idc_priv->priv_ops->update_vport_filter(cdev_info, iwdev->vsi_num,
-+						true);
-+
-+	ibdev_dbg(&iwdev->ibdev, "INIT: Gen[%d] PF[%d] device probe success\n",
-+		  rf->rdma_ver, PCI_FUNC(rf->pcidev->devfn));
-+
-+	auxiliary_set_drvdata(aux_dev, iwdev);
-+
-+	return 0;
-+
-+err_ibreg:
-+	irdma_rt_deinit_hw(iwdev);
-+err_rt_init:
-+	irdma_ctrl_deinit_hw(rf);
-+err_ctrl_init:
-+	kfree(iwdev->rf);
-+	ib_dealloc_device(&iwdev->ibdev);
-+
-+	return err;
-+}
-+
-+static void icrdma_remove(struct auxiliary_device *aux_dev)
-+{
-+	struct idc_rdma_core_auxiliary_dev *idc_adev =
-+		container_of(aux_dev, struct idc_rdma_core_auxiliary_dev, adev);
-+	struct idc_rdma_core_dev_info *cdev_info = idc_adev->cdev_info;
-+	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
-+	struct irdma_device *iwdev = auxiliary_get_drvdata(aux_dev);
-+	u8 rdma_ver = iwdev->rf->rdma_ver;
-+
-+	idc_priv->priv_ops->update_vport_filter(cdev_info,
-+						iwdev->vsi_num, false);
-+	irdma_ib_unregister_device(iwdev);
-+	pr_debug("INIT: Gen[%d] func[%d] device remove success\n",
-+		 rdma_ver, PCI_FUNC(cdev_info->pdev->devfn));
-+}
-+
-+static const struct auxiliary_device_id icrdma_auxiliary_id_table[] = {
-+	{.name = "ice.iwarp", },
-+	{.name = "ice.roce", },
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(auxiliary, icrdma_auxiliary_id_table);
-+
-+struct idc_rdma_core_auxiliary_drv icrdma_core_auxiliary_drv = {
-+	.adrv = {
-+	    .name = "gen_2",
-+	    .id_table = icrdma_auxiliary_id_table,
-+	    .probe = icrdma_probe,
-+	    .remove = icrdma_remove,
-+	},
-+	.event_handler = icrdma_idc_event_handler,
-+};
-diff --git a/drivers/infiniband/hw/irdma/main.c b/drivers/infiniband/hw/irdma/main.c
-index 9b6f1d8..ee59ca1 100644
---- a/drivers/infiniband/hw/irdma/main.c
-+++ b/drivers/infiniband/hw/irdma/main.c
-@@ -39,19 +39,7 @@ static void irdma_unregister_notifiers(void)
- 	unregister_netdevice_notifier(&irdma_netdevice_notifier);
- }
- 
--static void irdma_prep_tc_change(struct irdma_device *iwdev)
--{
--	iwdev->vsi.tc_change_pending = true;
--	irdma_sc_suspend_resume_qps(&iwdev->vsi, IRDMA_OP_SUSPEND);
--
--	/* Wait for all qp's to suspend */
--	wait_event_timeout(iwdev->suspend_wq,
--			   !atomic_read(&iwdev->vsi.qp_suspend_reqs),
--			   msecs_to_jiffies(IRDMA_EVENT_TIMEOUT_MS));
--	irdma_ws_reset(&iwdev->vsi);
--}
--
--static void irdma_log_invalid_mtu(u16 mtu, struct irdma_sc_dev *dev)
-+void irdma_log_invalid_mtu(u16 mtu, struct irdma_sc_dev *dev)
- {
- 	if (mtu < IRDMA_MIN_MTU_IPV4)
- 		ibdev_warn(to_ibdev(dev), "MTU setting [%d] too low for RDMA traffic. Minimum MTU is 576 for IPv4\n", mtu);
-@@ -59,8 +47,8 @@ static void irdma_log_invalid_mtu(u16 mtu, struct irdma_sc_dev *dev)
- 		ibdev_warn(to_ibdev(dev), "MTU setting [%d] too low for RDMA traffic. Minimum MTU is 1280 for IPv6\\n", mtu);
- }
- 
--static void irdma_fill_qos_info(struct irdma_l2params *l2params,
--				struct iidc_rdma_qos_params *qos_info)
-+void irdma_fill_qos_info(struct irdma_l2params *l2params,
-+			 struct iidc_rdma_qos_params *qos_info)
- {
- 	int i;
- 
-@@ -84,73 +72,11 @@ static void irdma_fill_qos_info(struct irdma_l2params *l2params,
++	} else {
++		ret_code = irdma_vchnl_req_get_reg_layout(dev);
++		if (ret_code)
++			ibdev_dbg(to_ibdev(dev),
++				  "DEV: Get Register layout failed ret = %d\n",
++				  ret_code);
  	}
+-	dev->db_addr = dev->hw->hw_addr + (uintptr_t)dev->hw_regs[IRDMA_DB_ADDR_OFFSET];
+ 
+ 	return ret_code;
  }
+diff --git a/drivers/infiniband/hw/irdma/defs.h b/drivers/infiniband/hw/irdma/defs.h
+index 7825896..fe75737 100644
+--- a/drivers/infiniband/hw/irdma/defs.h
++++ b/drivers/infiniband/hw/irdma/defs.h
+@@ -115,6 +115,7 @@ enum irdma_protocol_used {
+ #define IRDMA_FEATURE_BUF_SIZE		(8 * IRDMA_MAX_FEATURES)
  
--static void irdma_idc_event_handler(struct idc_rdma_core_dev_info *cdev_info,
--				    struct idc_rdma_event *event)
--{
--	struct irdma_device *iwdev = dev_get_drvdata(&cdev_info->adev->dev);
--	struct irdma_l2params l2params = {};
+ #define ENABLE_LOC_MEM			63
++#define IRDMA_ATOMICS_ALLOWED_BIT	1
+ #define MAX_PBLE_PER_SD			0x40000
+ #define MAX_PBLE_SD_PER_FCN		0x400
+ #define MAX_MR_PER_SD			0x8000
+@@ -127,7 +128,7 @@ enum irdma_protocol_used {
+ #define IRDMA_QP_SW_MAX_RQ_QUANTA	32768
+ #define IRDMA_MAX_QP_WRS(max_quanta_per_wr) \
+ 	((IRDMA_QP_SW_MAX_WQ_QUANTA - IRDMA_SQ_RSVD) / (max_quanta_per_wr))
 -
--	if (*event->type & BIT(IDC_RDMA_EVENT_AFTER_MTU_CHANGE)) {
--		ibdev_dbg(&iwdev->ibdev, "CLNT: new MTU = %d\n", iwdev->netdev->mtu);
--		if (iwdev->vsi.mtu != iwdev->netdev->mtu) {
--			l2params.mtu = iwdev->netdev->mtu;
--			l2params.mtu_changed = true;
--			irdma_log_invalid_mtu(l2params.mtu, &iwdev->rf->sc_dev);
--			irdma_change_l2params(&iwdev->vsi, &l2params);
--		}
--	} else if (*event->type & BIT(IDC_RDMA_EVENT_BEFORE_TC_CHANGE)) {
--		if (iwdev->vsi.tc_change_pending)
--			return;
--
--		irdma_prep_tc_change(iwdev);
--	} else if (*event->type & BIT(IDC_RDMA_EVENT_AFTER_TC_CHANGE)) {
--		struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
--
--		if (!iwdev->vsi.tc_change_pending)
--			return;
--
--		l2params.tc_changed = true;
--		ibdev_dbg(&iwdev->ibdev, "CLNT: TC Change\n");
--
--		irdma_fill_qos_info(&l2params, &idc_priv->qos_info);
--		if (iwdev->rf->protocol_used != IRDMA_IWARP_PROTOCOL_ONLY)
--			iwdev->dcb_vlan_mode =
--				l2params.num_tc > 1 && !l2params.dscp_mode;
--		irdma_change_l2params(&iwdev->vsi, &l2params);
--	} else if (*event->type & BIT(IDC_RDMA_EVENT_CRIT_ERR)) {
--		ibdev_warn(&iwdev->ibdev, "ICE OICR event notification: oicr = 0x%08x\n",
--			   event->reg);
--		if (event->reg & IRDMAPFINT_OICR_PE_CRITERR_M) {
--			u32 pe_criterr;
--
--			pe_criterr = readl(iwdev->rf->sc_dev.hw_regs[IRDMA_GLPE_CRITERR]);
--#define IRDMA_Q1_RESOURCE_ERR 0x0001024d
--			if (pe_criterr != IRDMA_Q1_RESOURCE_ERR) {
--				ibdev_err(&iwdev->ibdev, "critical PE Error, GLPE_CRITERR=0x%08x\n",
--					  pe_criterr);
--				iwdev->rf->reset = true;
--			} else {
--				ibdev_warn(&iwdev->ibdev, "Q1 Resource Check\n");
--			}
--		}
--		if (event->reg & IRDMAPFINT_OICR_HMC_ERR_M) {
--			ibdev_err(&iwdev->ibdev, "HMC Error\n");
--			iwdev->rf->reset = true;
--		}
--		if (event->reg & IRDMAPFINT_OICR_PE_PUSH_M) {
--			ibdev_err(&iwdev->ibdev, "PE Push Error\n");
--			iwdev->rf->reset = true;
--		}
--		if (iwdev->rf->reset)
--			iwdev->rf->gen_ops.request_reset(iwdev->rf);
--	}
--}
--
- /**
-  * irdma_request_reset - Request a reset
-  * @rf: RDMA PCI function
-  */
--static void irdma_request_reset(struct irdma_pci_f *rf)
-+void irdma_request_reset(struct irdma_pci_f *rf)
- {
- 	struct idc_rdma_core_dev_info *cdev_info = rf->cdev;
++#define IRDMA_SRQ_MAX_QUANTA 262144
+ #define IRDMAQP_TERM_SEND_TERM_AND_FIN		0
+ #define IRDMAQP_TERM_SEND_TERM_ONLY		1
+ #define IRDMAQP_TERM_SEND_FIN_ONLY		2
+@@ -153,8 +154,13 @@ enum irdma_protocol_used {
+ #define IRDMA_SQ_RSVD	258
+ #define IRDMA_RQ_RSVD	1
  
-@@ -158,190 +84,6 @@ static void irdma_request_reset(struct irdma_pci_f *rf)
- 	cdev_info->ops->request_reset(rf->cdev, IDC_FUNC_RESET);
- }
- 
--/**
-- * irdma_lan_register_qset - Register qset with LAN driver
-- * @vsi: vsi structure
-- * @tc_node: Traffic class node
-- */
--static int irdma_lan_register_qset(struct irdma_sc_vsi *vsi,
--				   struct irdma_ws_node *tc_node)
--{
--	struct irdma_device *iwdev = vsi->back_vsi;
--	struct idc_rdma_core_dev_info *cdev_info = iwdev->rf->cdev;
--	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
--	struct iidc_rdma_qset_params qset = {};
--	int ret;
--
--	qset.qs_handle = tc_node->qs_handle;
--	qset.tc = tc_node->traffic_class;
--	qset.vport_id = vsi->vsi_idx;
--	ret = idc_priv->priv_ops->alloc_res(cdev_info, &qset);
--	if (ret) {
--		ibdev_dbg(&iwdev->ibdev, "WS: LAN alloc_res for rdma qset failed.\n");
--		return ret;
--	}
--
--	tc_node->l2_sched_node_id = qset.teid;
--	vsi->qos[tc_node->user_pri].l2_sched_node_id = qset.teid;
--
--	return 0;
--}
--
--/**
-- * irdma_lan_unregister_qset - Unregister qset with LAN driver
-- * @vsi: vsi structure
-- * @tc_node: Traffic class node
-- */
--static void irdma_lan_unregister_qset(struct irdma_sc_vsi *vsi,
--				      struct irdma_ws_node *tc_node)
--{
--	struct irdma_device *iwdev = vsi->back_vsi;
--	struct idc_rdma_core_dev_info *cdev_info = iwdev->rf->cdev;
--	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
--	struct iidc_rdma_qset_params qset = {};
--
--	qset.qs_handle = tc_node->qs_handle;
--	qset.tc = tc_node->traffic_class;
--	qset.vport_id = vsi->vsi_idx;
--	qset.teid = tc_node->l2_sched_node_id;
--
--	if (idc_priv->priv_ops->free_res(cdev_info, &qset))
--		ibdev_dbg(&iwdev->ibdev, "WS: LAN free_res for rdma qset failed.\n");
--}
--
--static void irdma_remove(struct auxiliary_device *aux_dev)
--{
--	struct idc_rdma_core_auxiliary_dev *idc_adev =
--		container_of(aux_dev, struct idc_rdma_core_auxiliary_dev, adev);
--	struct idc_rdma_core_dev_info *cdev_info = idc_adev->cdev_info;
--	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
--	struct irdma_device *iwdev = auxiliary_get_drvdata(aux_dev);
--
--	idc_priv->priv_ops->update_vport_filter(cdev_info,
--						iwdev->vsi_num, false);
--	irdma_ib_unregister_device(iwdev);
--
--	pr_debug("INIT: Gen2 PF[%d] device remove success\n", PCI_FUNC(cdev_info->pdev->devfn));
--}
--
--static void irdma_fill_device_info(struct irdma_device *iwdev,
--				   struct idc_rdma_core_dev_info *cdev_info)
--{
--	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
--	struct irdma_pci_f *rf = iwdev->rf;
--
--	rf->sc_dev.hw = &rf->hw;
--	rf->iwdev = iwdev;
--	rf->cdev = cdev_info;
--	rf->hw.hw_addr = idc_priv->hw_addr;
--	rf->pcidev = cdev_info->pdev;
--	rf->hw.device = &rf->pcidev->dev;
--	rf->msix_count = cdev_info->msix_count;
--	rf->pf_id = idc_priv->pf_id;
--	rf->msix_entries = cdev_info->msix_entries;
--
--	rf->gen_ops.register_qset = irdma_lan_register_qset;
--	rf->gen_ops.unregister_qset = irdma_lan_unregister_qset;
--
--	rf->default_vsi.vsi_idx = idc_priv->vport_id;
--	rf->protocol_used =
--		cdev_info->rdma_protocol == IDC_RDMA_PROTOCOL_ROCEV2 ?
--			IRDMA_ROCE_PROTOCOL_ONLY : IRDMA_IWARP_PROTOCOL_ONLY;
--	rf->rdma_ver = IRDMA_GEN_2;
--	rf->rsrc_profile = IRDMA_HMC_PROFILE_DEFAULT;
--	rf->rst_to = IRDMA_RST_TIMEOUT_HZ;
--	rf->gen_ops.request_reset = irdma_request_reset;
--	rf->limits_sel = 7;
--	rf->iwdev = iwdev;
--	mutex_init(&iwdev->ah_tbl_lock);
--
--	iwdev->netdev = idc_priv->netdev;
--	iwdev->vsi_num = idc_priv->vport_id;
--	iwdev->init_state = INITIAL_STATE;
--	iwdev->roce_cwnd = IRDMA_ROCE_CWND_DEFAULT;
--	iwdev->roce_ackcreds = IRDMA_ROCE_ACKCREDS_DEFAULT;
--	iwdev->rcv_wnd = IRDMA_CM_DEFAULT_RCV_WND_SCALED;
--	iwdev->rcv_wscale = IRDMA_CM_DEFAULT_RCV_WND_SCALE;
--	if (rf->protocol_used == IRDMA_ROCE_PROTOCOL_ONLY)
--		iwdev->roce_mode = true;
--}
--
--static int irdma_probe(struct auxiliary_device *aux_dev, const struct auxiliary_device_id *id)
--{
--	struct idc_rdma_core_auxiliary_dev *idc_adev =
--		container_of(aux_dev, struct idc_rdma_core_auxiliary_dev, adev);
--	struct idc_rdma_core_dev_info *cdev_info = idc_adev->cdev_info;
--	struct iidc_rdma_priv_dev_info *idc_priv = cdev_info->idc_priv;
--	struct irdma_device *iwdev;
--	struct irdma_pci_f *rf;
--	struct irdma_l2params l2params = {};
--	int err;
--
--	iwdev = ib_alloc_device(irdma_device, ibdev);
--	if (!iwdev)
--		return -ENOMEM;
--	iwdev->rf = kzalloc(sizeof(*rf), GFP_KERNEL);
--	if (!iwdev->rf) {
--		ib_dealloc_device(&iwdev->ibdev);
--		return -ENOMEM;
--	}
--
--	irdma_fill_device_info(iwdev, cdev_info);
--	rf = iwdev->rf;
--
--	err = irdma_ctrl_init_hw(rf);
--	if (err)
--		goto err_ctrl_init;
--
--	l2params.mtu = iwdev->netdev->mtu;
--	irdma_fill_qos_info(&l2params, &idc_priv->qos_info);
--	if (iwdev->rf->protocol_used != IRDMA_IWARP_PROTOCOL_ONLY)
--		iwdev->dcb_vlan_mode = l2params.num_tc > 1 && !l2params.dscp_mode;
--
--	err = irdma_rt_init_hw(iwdev, &l2params);
--	if (err)
--		goto err_rt_init;
--
--	err = irdma_ib_register_device(iwdev);
--	if (err)
--		goto err_ibreg;
--
--	idc_priv->priv_ops->update_vport_filter(cdev_info, iwdev->vsi_num,
--						true);
--
--	ibdev_dbg(&iwdev->ibdev, "INIT: Gen2 PF[%d] device probe success\n", PCI_FUNC(rf->pcidev->devfn));
--	auxiliary_set_drvdata(aux_dev, iwdev);
--
--	return 0;
--
--err_ibreg:
--	irdma_rt_deinit_hw(iwdev);
--err_rt_init:
--	irdma_ctrl_deinit_hw(rf);
--err_ctrl_init:
--	kfree(iwdev->rf);
--	ib_dealloc_device(&iwdev->ibdev);
--
--	return err;
--}
--
--static const struct auxiliary_device_id irdma_auxiliary_id_table[] = {
--	{.name = "ice.iwarp", },
--	{.name = "ice.roce", },
--	{},
--};
--
--MODULE_DEVICE_TABLE(auxiliary, irdma_auxiliary_id_table);
--
--static struct idc_rdma_core_auxiliary_drv irdma_auxiliary_drv = {
--	.adrv = {
--	    .id_table = irdma_auxiliary_id_table,
--	    .probe = irdma_probe,
--	    .remove = irdma_remove,
--	},
--	.event_handler = irdma_idc_event_handler,
--};
--
- static int __init irdma_init_module(void)
- {
- 	int ret;
-@@ -353,10 +95,10 @@ static int __init irdma_init_module(void)
- 		return ret;
- 	}
- 
--	ret = auxiliary_driver_register(&irdma_auxiliary_drv.adrv);
-+	ret = auxiliary_driver_register(&icrdma_core_auxiliary_drv.adrv);
- 	if (ret) {
- 		auxiliary_driver_unregister(&i40iw_auxiliary_drv);
--		pr_err("Failed irdma auxiliary_driver_register() ret=%d\n",
-+		pr_err("Failed icrdma(gen_2) auxiliary_driver_register() ret=%d\n",
- 		       ret);
- 		return ret;
- 	}
-@@ -369,7 +111,7 @@ static int __init irdma_init_module(void)
- static void __exit irdma_exit_module(void)
- {
- 	irdma_unregister_notifiers();
--	auxiliary_driver_unregister(&irdma_auxiliary_drv.adrv);
-+	auxiliary_driver_unregister(&icrdma_core_auxiliary_drv.adrv);
- 	auxiliary_driver_unregister(&i40iw_auxiliary_drv);
- }
- 
-diff --git a/drivers/infiniband/hw/irdma/main.h b/drivers/infiniband/hw/irdma/main.h
-index e81f375..7360e17 100644
---- a/drivers/infiniband/hw/irdma/main.h
-+++ b/drivers/infiniband/hw/irdma/main.h
-@@ -55,6 +55,7 @@
- #include "puda.h"
- 
- extern struct auxiliary_driver i40iw_auxiliary_drv;
-+extern struct idc_rdma_core_auxiliary_drv icrdma_core_auxiliary_drv;
- 
- #define IRDMA_FW_VER_DEFAULT	2
- #define IRDMA_HW_VER	        2
-@@ -329,6 +330,8 @@ struct irdma_pci_f {
- 	void *back_fcn;
- 	struct irdma_gen_ops gen_ops;
- 	struct irdma_device *iwdev;
-+	DECLARE_HASHTABLE(ah_hash_tbl, 8);
-+	struct mutex ah_tbl_lock; /* protect AH hash table access */
+-#define IRDMA_FEATURE_RTS_AE			1ULL
+-#define IRDMA_FEATURE_CQ_RESIZE			2ULL
++#define IRDMA_FEATURE_RTS_AE			BIT_ULL(0)
++#define IRDMA_FEATURE_CQ_RESIZE			BIT_ULL(1)
++#define IRDMA_FEATURE_64_BYTE_CQE		BIT_ULL(5)
++#define IRDMA_FEATURE_ATOMIC_OPS		BIT_ULL(6)
++#define IRDMA_FEATURE_SRQ			BIT_ULL(7)
++#define IRDMA_FEATURE_CQE_TIMESTAMPING		BIT_ULL(8)
++
+ #define IRDMAQP_OP_RDMA_WRITE			0x00
+ #define IRDMAQP_OP_RDMA_READ			0x01
+ #define IRDMAQP_OP_RDMA_SEND			0x03
+diff --git a/drivers/infiniband/hw/irdma/i40iw_hw.c b/drivers/infiniband/hw/irdma/i40iw_hw.c
+index ce61a27..60c1f2b 100644
+--- a/drivers/infiniband/hw/irdma/i40iw_hw.c
++++ b/drivers/infiniband/hw/irdma/i40iw_hw.c
+@@ -85,6 +85,7 @@
+ 	I40E_CQPSQ_CQ_CEQID,
+ 	I40E_CQPSQ_CQ_CQID,
+ 	I40E_COMMIT_FPM_CQCNT,
++	I40E_CQPSQ_UPESD_HMCFNID,
  };
  
- struct irdma_device {
-@@ -338,8 +341,6 @@ struct irdma_device {
- 	struct workqueue_struct *cleanup_wq;
- 	struct irdma_sc_vsi vsi;
- 	struct irdma_cm_core cm_core;
--	DECLARE_HASHTABLE(ah_hash_tbl, 8);
--	struct mutex ah_tbl_lock; /* protect AH hash table access */
- 	u32 roce_cwnd;
- 	u32 roce_ackcreds;
- 	u32 vendor_id;
-@@ -555,4 +556,8 @@ int irdma_netdevice_event(struct notifier_block *notifier, unsigned long event,
- 			  void *ptr);
- void irdma_add_ip(struct irdma_device *iwdev);
- void cqp_compl_worker(struct work_struct *work);
-+void irdma_fill_qos_info(struct irdma_l2params *l2params,
-+			 struct iidc_rdma_qos_params *qos_info);
-+void irdma_request_reset(struct irdma_pci_f *rf);
-+void irdma_log_invalid_mtu(u16 mtu, struct irdma_sc_dev *dev);
- #endif /* IRDMA_MAIN_H */
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index 12704ef..89937d4 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -4529,7 +4529,7 @@ static bool irdma_ah_exists(struct irdma_device *iwdev,
- 		  new_ah->sc_ah.ah_info.dest_ip_addr[2] ^
- 		  new_ah->sc_ah.ah_info.dest_ip_addr[3];
+ static u64 i40iw_shifts[IRDMA_MAX_SHIFTS] = {
+@@ -94,6 +95,7 @@
+ 	I40E_CQPSQ_CQ_CEQID_S,
+ 	I40E_CQPSQ_CQ_CQID_S,
+ 	I40E_COMMIT_FPM_CQCNT_S,
++	I40E_CQPSQ_UPESD_HMCFNID_S,
+ };
  
--	hash_for_each_possible(iwdev->ah_hash_tbl, ah, list, key) {
-+	hash_for_each_possible(iwdev->rf->ah_hash_tbl, ah, list, key) {
- 		/* Set ah_valid and ah_id the same so memcmp can work */
- 		new_ah->sc_ah.ah_info.ah_idx = ah->sc_ah.ah_info.ah_idx;
- 		new_ah->sc_ah.ah_info.ah_valid = ah->sc_ah.ah_info.ah_valid;
-@@ -4555,14 +4555,14 @@ static int irdma_destroy_ah(struct ib_ah *ibah, u32 ah_flags)
- 	struct irdma_ah *ah = to_iwah(ibah);
+ /**
+diff --git a/drivers/infiniband/hw/irdma/i40iw_hw.h b/drivers/infiniband/hw/irdma/i40iw_hw.h
+index e1db84d..0095b32 100644
+--- a/drivers/infiniband/hw/irdma/i40iw_hw.h
++++ b/drivers/infiniband/hw/irdma/i40iw_hw.h
+@@ -123,6 +123,8 @@
+ #define I40E_CQPSQ_CQ_CQID GENMASK_ULL(15, 0)
+ #define I40E_COMMIT_FPM_CQCNT_S 0
+ #define I40E_COMMIT_FPM_CQCNT GENMASK_ULL(17, 0)
++#define I40E_CQPSQ_UPESD_HMCFNID_S 0
++#define I40E_CQPSQ_UPESD_HMCFNID GENMASK_ULL(5, 0)
  
- 	if ((ah_flags & RDMA_DESTROY_AH_SLEEPABLE) && ah->parent_ah) {
--		mutex_lock(&iwdev->ah_tbl_lock);
-+		mutex_lock(&iwdev->rf->ah_tbl_lock);
- 		if (!refcount_dec_and_test(&ah->parent_ah->refcnt)) {
--			mutex_unlock(&iwdev->ah_tbl_lock);
-+			mutex_unlock(&iwdev->rf->ah_tbl_lock);
- 			return 0;
- 		}
- 		hash_del(&ah->parent_ah->list);
- 		kfree(ah->parent_ah);
--		mutex_unlock(&iwdev->ah_tbl_lock);
-+		mutex_unlock(&iwdev->rf->ah_tbl_lock);
+ #define I40E_VSIQF_CTL(_VSI)             (0x0020D800 + ((_VSI) * 4))
+ 
+diff --git a/drivers/infiniband/hw/irdma/icrdma_hw.c b/drivers/infiniband/hw/irdma/icrdma_hw.c
+index 941d3ed..32f2628 100644
+--- a/drivers/infiniband/hw/irdma/icrdma_hw.c
++++ b/drivers/infiniband/hw/irdma/icrdma_hw.c
+@@ -38,6 +38,7 @@
+ 	ICRDMA_CQPSQ_CQ_CEQID,
+ 	ICRDMA_CQPSQ_CQ_CQID,
+ 	ICRDMA_COMMIT_FPM_CQCNT,
++	ICRDMA_CQPSQ_UPESD_HMCFNID,
+ };
+ 
+ static u64 icrdma_shifts[IRDMA_MAX_SHIFTS] = {
+@@ -47,6 +48,7 @@
+ 	ICRDMA_CQPSQ_CQ_CEQID_S,
+ 	ICRDMA_CQPSQ_CQ_CQID_S,
+ 	ICRDMA_COMMIT_FPM_CQCNT_S,
++	ICRDMA_CQPSQ_UPESD_HMCFNID_S,
+ };
+ 
+ /**
+@@ -194,6 +196,7 @@ void icrdma_init_hw(struct irdma_sc_dev *dev)
+ 	dev->hw_attrs.max_hw_ord = ICRDMA_MAX_ORD_SIZE;
+ 	dev->hw_attrs.max_stat_inst = ICRDMA_MAX_STATS_COUNT;
+ 	dev->hw_attrs.max_stat_idx = IRDMA_HW_STAT_INDEX_MAX_GEN_2;
++	dev->hw_attrs.max_hw_device_pages = ICRDMA_MAX_PUSH_PAGE_COUNT;
+ 
+ 	dev->hw_attrs.uk_attrs.min_hw_wq_size = ICRDMA_MIN_WQ_SIZE;
+ 	dev->hw_attrs.uk_attrs.max_hw_sq_chunk = IRDMA_MAX_QUANTA_PER_WR;
+diff --git a/drivers/infiniband/hw/irdma/icrdma_hw.h b/drivers/infiniband/hw/irdma/icrdma_hw.h
+index 697b957..d97944a 100644
+--- a/drivers/infiniband/hw/irdma/icrdma_hw.h
++++ b/drivers/infiniband/hw/irdma/icrdma_hw.h
+@@ -58,14 +58,15 @@
+ #define ICRDMA_CQPSQ_CQ_CQID GENMASK_ULL(18, 0)
+ #define ICRDMA_COMMIT_FPM_CQCNT_S 0
+ #define ICRDMA_COMMIT_FPM_CQCNT GENMASK_ULL(19, 0)
+-
++#define ICRDMA_CQPSQ_UPESD_HMCFNID_S 0
++#define ICRDMA_CQPSQ_UPESD_HMCFNID GENMASK_ULL(5, 0)
+ enum icrdma_device_caps_const {
+ 	ICRDMA_MAX_STATS_COUNT = 128,
+ 
+ 	ICRDMA_MAX_IRD_SIZE			= 127,
+ 	ICRDMA_MAX_ORD_SIZE			= 255,
+ 	ICRDMA_MIN_WQ_SIZE                      = 8 /* WQEs */,
+-
++	ICRDMA_MAX_PUSH_PAGE_COUNT		= 256,
+ };
+ 
+ void icrdma_init_hw(struct irdma_sc_dev *dev);
+diff --git a/drivers/infiniband/hw/irdma/ig3rdma_hw.c b/drivers/infiniband/hw/irdma/ig3rdma_hw.c
+new file mode 100644
+index 0000000..83ef6af
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/ig3rdma_hw.c
+@@ -0,0 +1,65 @@
++// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
++/* Copyright (c) 2018 - 2024 Intel Corporation */
++#include "osdep.h"
++#include "type.h"
++#include "protos.h"
++#include "ig3rdma_hw.h"
++
++void ig3rdma_init_hw(struct irdma_sc_dev *dev)
++{
++	dev->hw_attrs.uk_attrs.hw_rev = IRDMA_GEN_3;
++	dev->hw_attrs.uk_attrs.max_hw_wq_frags = IG3RDMA_MAX_WQ_FRAGMENT_COUNT;
++	dev->hw_attrs.uk_attrs.max_hw_read_sges = IG3RDMA_MAX_SGE_RD;
++	dev->hw_attrs.uk_attrs.max_hw_sq_chunk = IRDMA_MAX_QUANTA_PER_WR;
++	dev->hw_attrs.first_hw_vf_fpm_id = 0;
++	dev->hw_attrs.max_hw_vf_fpm_id = IG3_MAX_APFS + IG3_MAX_AVFS;
++	dev->hw_attrs.uk_attrs.feature_flags |= IRDMA_FEATURE_64_BYTE_CQE;
++	if (dev->feature_info[IRDMA_FTN_FLAGS] & IRDMA_ATOMICS_ALLOWED_BIT)
++		dev->hw_attrs.uk_attrs.feature_flags |=
++			IRDMA_FEATURE_ATOMIC_OPS;
++	dev->hw_attrs.uk_attrs.feature_flags |= IRDMA_FEATURE_CQE_TIMESTAMPING;
++
++	dev->hw_attrs.uk_attrs.feature_flags |= IRDMA_FEATURE_SRQ;
++	dev->hw_attrs.uk_attrs.feature_flags |= IRDMA_FEATURE_RTS_AE |
++						IRDMA_FEATURE_CQ_RESIZE;
++	dev->hw_attrs.page_size_cap = SZ_4K | SZ_2M | SZ_1G;
++	dev->hw_attrs.max_hw_ird = IG3RDMA_MAX_IRD_SIZE;
++	dev->hw_attrs.max_hw_ord = IG3RDMA_MAX_ORD_SIZE;
++	dev->hw_attrs.uk_attrs.min_hw_wq_size = IG3RDMA_MIN_WQ_SIZE;
++	dev->hw_attrs.uk_attrs.max_hw_srq_quanta = IRDMA_SRQ_MAX_QUANTA;
++	dev->hw_attrs.uk_attrs.max_hw_inline = IG3RDMA_MAX_INLINE_DATA_SIZE;
++	dev->hw_attrs.max_hw_device_pages =
++		dev->is_pf ? IG3RDMA_MAX_PF_PUSH_PAGE_COUNT : IG3RDMA_MAX_VF_PUSH_PAGE_COUNT;
++}
++
++static void __iomem *__ig3rdma_get_reg_addr(struct irdma_mmio_region *region, u64 reg_offset)
++{
++	if (reg_offset >= region->offset &&
++	    reg_offset < (region->offset + region->len)) {
++		reg_offset -= region->offset;
++
++		return region->addr + reg_offset;
++	}
++
++	return NULL;
++}
++
++void __iomem *ig3rdma_get_reg_addr(struct irdma_hw *hw, u64 reg_offset)
++{
++	u8 __iomem *reg_addr;
++	int i;
++
++	reg_addr = __ig3rdma_get_reg_addr(&hw->rdma_reg, reg_offset);
++	if (reg_addr)
++		return reg_addr;
++
++	for (i = 0; i < hw->num_io_regions; i++) {
++		reg_addr = __ig3rdma_get_reg_addr(&hw->io_regs[i], reg_offset);
++		if (reg_addr)
++			return reg_addr;
++	}
++
++	WARN_ON_ONCE(1);
++
++	return NULL;
++}
+diff --git a/drivers/infiniband/hw/irdma/ig3rdma_hw.h b/drivers/infiniband/hw/irdma/ig3rdma_hw.h
+index 4c3d186..d0793308 100644
+--- a/drivers/infiniband/hw/irdma/ig3rdma_hw.h
++++ b/drivers/infiniband/hw/irdma/ig3rdma_hw.h
+@@ -3,9 +3,27 @@
+ #ifndef IG3RDMA_HW_H
+ #define IG3RDMA_HW_H
+ 
++#define IG3_MAX_APFS 1
++#define IG3_MAX_AVFS 0
++
+ #define IG3_PF_RDMA_REGION_OFFSET 0xBC00000
+ #define IG3_PF_RDMA_REGION_LEN 0x401000
+ #define IG3_VF_RDMA_REGION_OFFSET 0x8C00
+ #define IG3_VF_RDMA_REGION_LEN 0x8400
+ 
++enum ig3rdma_device_caps_const {
++	IG3RDMA_MAX_WQ_FRAGMENT_COUNT		= 14,
++	IG3RDMA_MAX_SGE_RD			= 14,
++
++	IG3RDMA_MAX_STATS_COUNT			= 128,
++
++	IG3RDMA_MAX_IRD_SIZE			= 2048,
++	IG3RDMA_MAX_ORD_SIZE			= 2048,
++	IG3RDMA_MIN_WQ_SIZE			= 16 /* WQEs */,
++	IG3RDMA_MAX_INLINE_DATA_SIZE		= 216,
++	IG3RDMA_MAX_PF_PUSH_PAGE_COUNT		= 8192,
++	IG3RDMA_MAX_VF_PUSH_PAGE_COUNT		= 16,
++};
++
++void __iomem *ig3rdma_get_reg_addr(struct irdma_hw *hw, u64 reg_offset);
+ #endif /* IG3RDMA_HW_H*/
+diff --git a/drivers/infiniband/hw/irdma/irdma.h b/drivers/infiniband/hw/irdma/irdma.h
+index 7691704..4dc6bf5 100644
+--- a/drivers/infiniband/hw/irdma/irdma.h
++++ b/drivers/infiniband/hw/irdma/irdma.h
+@@ -67,6 +67,7 @@ enum irdma_shifts {
+ 	IRDMA_CQPSQ_CQ_CEQID_S,
+ 	IRDMA_CQPSQ_CQ_CQID_S,
+ 	IRDMA_COMMIT_FPM_CQCNT_S,
++	IRDMA_CQPSQ_UPESD_HMCFNID_S,
+ 	IRDMA_MAX_SHIFTS,
+ };
+ 
+@@ -77,6 +78,7 @@ enum irdma_masks {
+ 	IRDMA_CQPSQ_CQ_CEQID_M,
+ 	IRDMA_CQPSQ_CQ_CQID_M,
+ 	IRDMA_COMMIT_FPM_CQCNT_M,
++	IRDMA_CQPSQ_UPESD_HMCFNID_M,
+ 	IRDMA_MAX_MASKS, /* Must be last entry */
+ };
+ 
+@@ -121,6 +123,7 @@ struct irdma_uk_attrs {
+ 	u32 max_hw_wq_quanta;
+ 	u32 min_hw_cq_size;
+ 	u32 max_hw_cq_size;
++	u32 max_hw_srq_quanta;
+ 	u16 max_hw_sq_chunk;
+ 	u16 min_hw_wq_size;
+ 	u8 hw_rev;
+@@ -156,4 +159,6 @@ struct irdma_hw_attrs {
+ 
+ void i40iw_init_hw(struct irdma_sc_dev *dev);
+ void icrdma_init_hw(struct irdma_sc_dev *dev);
++void ig3rdma_init_hw(struct irdma_sc_dev *dev);
++void __iomem *ig3rdma_get_reg_addr(struct irdma_hw *hw, u64 reg_offset);
+ #endif /* IRDMA_H*/
+diff --git a/drivers/infiniband/hw/irdma/virtchnl.c b/drivers/infiniband/hw/irdma/virtchnl.c
+index 2abfc39..fcb8ef2 100644
+--- a/drivers/infiniband/hw/irdma/virtchnl.c
++++ b/drivers/infiniband/hw/irdma/virtchnl.c
+@@ -9,6 +9,51 @@
+ #include "ws.h"
+ #include "i40iw_hw.h"
+ 
++struct vchnl_reg_map_elem {
++	u16 reg_id;
++	u16 reg_idx;
++	bool pg_rel;
++};
++
++struct vchnl_regfld_map_elem {
++	u16 regfld_id;
++	u16 regfld_idx;
++};
++
++static struct vchnl_reg_map_elem vchnl_reg_map[] = {
++	{IRDMA_VCHNL_REG_ID_CQPTAIL, IRDMA_CQPTAIL, false},
++	{IRDMA_VCHNL_REG_ID_CQPDB, IRDMA_CQPDB, false},
++	{IRDMA_VCHNL_REG_ID_CCQPSTATUS, IRDMA_CCQPSTATUS, false},
++	{IRDMA_VCHNL_REG_ID_CCQPHIGH, IRDMA_CCQPHIGH, false},
++	{IRDMA_VCHNL_REG_ID_CCQPLOW, IRDMA_CCQPLOW, false},
++	{IRDMA_VCHNL_REG_ID_CQARM, IRDMA_CQARM, false},
++	{IRDMA_VCHNL_REG_ID_CQACK, IRDMA_CQACK, false},
++	{IRDMA_VCHNL_REG_ID_AEQALLOC, IRDMA_AEQALLOC, false},
++	{IRDMA_VCHNL_REG_ID_CQPERRCODES, IRDMA_CQPERRCODES, false},
++	{IRDMA_VCHNL_REG_ID_WQEALLOC, IRDMA_WQEALLOC, false},
++	{IRDMA_VCHNL_REG_ID_DB_ADDR_OFFSET, IRDMA_DB_ADDR_OFFSET, false },
++	{IRDMA_VCHNL_REG_ID_DYN_CTL, IRDMA_GLINT_DYN_CTL, false },
++	{IRDMA_VCHNL_REG_INV_ID, IRDMA_VCHNL_REG_INV_ID, false }
++};
++
++static struct vchnl_regfld_map_elem vchnl_regfld_map[] = {
++	{IRDMA_VCHNL_REGFLD_ID_CCQPSTATUS_CQP_OP_ERR, IRDMA_CCQPSTATUS_CCQP_ERR_M},
++	{IRDMA_VCHNL_REGFLD_ID_CCQPSTATUS_CCQP_DONE, IRDMA_CCQPSTATUS_CCQP_DONE_M},
++	{IRDMA_VCHNL_REGFLD_ID_CQPSQ_STAG_PDID, IRDMA_CQPSQ_STAG_PDID_M},
++	{IRDMA_VCHNL_REGFLD_ID_CQPSQ_CQ_CEQID, IRDMA_CQPSQ_CQ_CEQID_M},
++	{IRDMA_VCHNL_REGFLD_ID_CQPSQ_CQ_CQID, IRDMA_CQPSQ_CQ_CQID_M},
++	{IRDMA_VCHNL_REGFLD_ID_COMMIT_FPM_CQCNT, IRDMA_COMMIT_FPM_CQCNT_M},
++	{IRDMA_VCHNL_REGFLD_ID_UPESD_HMCN_ID, IRDMA_CQPSQ_UPESD_HMCFNID_M},
++	{IRDMA_VCHNL_REGFLD_INV_ID, IRDMA_VCHNL_REGFLD_INV_ID}
++};
++
++#define IRDMA_VCHNL_REG_COUNT ARRAY_SIZE(vchnl_reg_map)
++#define IRDMA_VCHNL_REGFLD_COUNT ARRAY_SIZE(vchnl_regfld_map)
++#define IRDMA_VCHNL_REGFLD_BUF_SIZE \
++	(IRDMA_VCHNL_REG_COUNT * sizeof(struct irdma_vchnl_reg_info) + \
++	 IRDMA_VCHNL_REGFLD_COUNT * sizeof(struct irdma_vchnl_reg_field_info))
++#define IRDMA_REGMAP_RESP_BUF_SIZE (IRDMA_VCHNL_RESP_MIN_SIZE + IRDMA_VCHNL_REGFLD_BUF_SIZE)
++
+ /**
+  * irdma_sc_vchnl_init - Initialize dev virtchannel and get hw_rev
+  * @dev: dev structure to update
+@@ -62,6 +107,8 @@ static int irdma_vchnl_req_verify_resp(struct irdma_vchnl_req *vchnl_req,
+ 		if (resp_len < IRDMA_VCHNL_OP_GET_RDMA_CAPS_MIN_SIZE)
+ 			return -EBADMSG;
+ 		break;
++	case IRDMA_VCHNL_OP_GET_REG_LAYOUT:
++		break;
+ 	default:
+ 		return -EOPNOTSUPP;
  	}
+@@ -136,6 +183,137 @@ static int irdma_vchnl_req_send_sync(struct irdma_sc_dev *dev,
+ }
  
- 	irdma_ah_cqp_op(iwdev->rf, &ah->sc_ah, IRDMA_OP_AH_DESTROY,
-@@ -4599,11 +4599,11 @@ static int irdma_create_user_ah(struct ib_ah *ibah,
- 	err = irdma_setup_ah(ibah, attr);
- 	if (err)
- 		return err;
--	mutex_lock(&iwdev->ah_tbl_lock);
-+	mutex_lock(&iwdev->rf->ah_tbl_lock);
- 	if (!irdma_ah_exists(iwdev, ah)) {
- 		err = irdma_create_hw_ah(iwdev, ah, true);
- 		if (err) {
--			mutex_unlock(&iwdev->ah_tbl_lock);
-+			mutex_unlock(&iwdev->rf->ah_tbl_lock);
- 			return err;
- 		}
- 		/* Add new AH to list */
-@@ -4615,11 +4615,11 @@ static int irdma_create_user_ah(struct ib_ah *ibah,
- 				  parent_ah->sc_ah.ah_info.dest_ip_addr[3];
+ /**
++ * irdma_vchnl_req_get_reg_layout - Get Register Layout
++ * @dev: RDMA device pointer
++ */
++int irdma_vchnl_req_get_reg_layout(struct irdma_sc_dev *dev)
++{
++	u16 reg_idx, reg_id, tmp_reg_id, regfld_idx, regfld_id, tmp_regfld_id;
++	struct irdma_vchnl_reg_field_info *regfld_array = NULL;
++	u8 resp_buffer[IRDMA_REGMAP_RESP_BUF_SIZE] = {};
++	struct vchnl_regfld_map_elem *regfld_map_array;
++	struct irdma_vchnl_req_init_info info = {};
++	struct vchnl_reg_map_elem *reg_map_array;
++	struct irdma_vchnl_reg_info *reg_array;
++	u8 num_bits, shift_cnt;
++	u16 buf_len = 0;
++	u64 bitmask;
++	u32 rindex;
++	int ret;
++
++	if (!dev->vchnl_up)
++		return -EBUSY;
++
++	info.op_code = IRDMA_VCHNL_OP_GET_REG_LAYOUT;
++	info.op_ver = IRDMA_VCHNL_OP_GET_REG_LAYOUT_V0;
++	info.resp_parm = resp_buffer;
++	info.resp_parm_len = sizeof(resp_buffer);
++
++	ret = irdma_vchnl_req_send_sync(dev, &info);
++
++	if (ret)
++		return ret;
++
++	/* parse the response buffer and update reg info*/
++	/* Parse registers till invalid */
++	/* Parse register fields till invalid */
++	reg_array = (struct irdma_vchnl_reg_info *)resp_buffer;
++	for (rindex = 0; rindex < IRDMA_VCHNL_REG_COUNT; rindex++) {
++		buf_len += sizeof(struct irdma_vchnl_reg_info);
++		if (buf_len >= sizeof(resp_buffer))
++			return -ENOMEM;
++
++		regfld_array =
++			(struct irdma_vchnl_reg_field_info *)&reg_array[rindex + 1];
++		reg_id = reg_array[rindex].reg_id;
++		if (reg_id == IRDMA_VCHNL_REG_INV_ID)
++			break;
++
++		reg_id &= ~IRDMA_VCHNL_REG_PAGE_REL;
++		if (reg_id >= IRDMA_VCHNL_REG_COUNT)
++			return -EINVAL;
++
++		/* search regmap for register index in hw_regs.*/
++		reg_map_array = vchnl_reg_map;
++		do {
++			tmp_reg_id = reg_map_array->reg_id;
++			if (tmp_reg_id == reg_id)
++				break;
++
++			reg_map_array++;
++		} while (tmp_reg_id != IRDMA_VCHNL_REG_INV_ID);
++		if (tmp_reg_id != reg_id)
++			continue;
++
++		reg_idx = reg_map_array->reg_idx;
++
++		/* Page relative, DB Offset do not need bar offset */
++		if (reg_idx == IRDMA_DB_ADDR_OFFSET ||
++		    (reg_array[rindex].reg_id & IRDMA_VCHNL_REG_PAGE_REL)) {
++			dev->hw_regs[reg_idx] =
++				(u32 __iomem *)(uintptr_t)reg_array[rindex].reg_offset;
++			continue;
++		}
++
++		/* Update the local HW struct */
++		dev->hw_regs[reg_idx] = ig3rdma_get_reg_addr(dev->hw,
++						reg_array[rindex].reg_offset);
++		if (!dev->hw_regs[reg_idx])
++			return -EINVAL;
++	}
++
++	if (!regfld_array)
++		return -ENOMEM;
++
++	/* set up doorbell variables using mapped DB page */
++	dev->wqe_alloc_db = dev->hw_regs[IRDMA_WQEALLOC];
++	dev->cq_arm_db = dev->hw_regs[IRDMA_CQARM];
++	dev->aeq_alloc_db = dev->hw_regs[IRDMA_AEQALLOC];
++	dev->cqp_db = dev->hw_regs[IRDMA_CQPDB];
++	dev->cq_ack_db = dev->hw_regs[IRDMA_CQACK];
++
++	for (rindex = 0; rindex < IRDMA_VCHNL_REGFLD_COUNT; rindex++) {
++		buf_len += sizeof(struct irdma_vchnl_reg_field_info);
++		if ((buf_len - 1) > sizeof(resp_buffer))
++			break;
++
++		if (regfld_array[rindex].fld_id == IRDMA_VCHNL_REGFLD_INV_ID)
++			break;
++
++		regfld_id = regfld_array[rindex].fld_id;
++		regfld_map_array = vchnl_regfld_map;
++		do {
++			tmp_regfld_id = regfld_map_array->regfld_id;
++			if (tmp_regfld_id == regfld_id)
++				break;
++
++			regfld_map_array++;
++		} while (tmp_regfld_id != IRDMA_VCHNL_REGFLD_INV_ID);
++
++		if (tmp_regfld_id != regfld_id)
++			continue;
++
++		regfld_idx = regfld_map_array->regfld_idx;
++
++		num_bits = regfld_array[rindex].fld_bits;
++		shift_cnt = regfld_array[rindex].fld_shift;
++		if ((num_bits + shift_cnt > 64) || !num_bits) {
++			ibdev_dbg(to_ibdev(dev),
++				  "ERR: Invalid field mask id %d bits %d shift %d",
++				  regfld_id, num_bits, shift_cnt);
++
++			continue;
++		}
++
++		bitmask = (1ULL << num_bits) - 1;
++		dev->hw_masks[regfld_idx] = bitmask << shift_cnt;
++		dev->hw_shifts[regfld_idx] = shift_cnt;
++	}
++
++	return 0;
++}
++
++/**
+  * irdma_vchnl_req_get_ver - Request Channel version
+  * @dev: RDMA device pointer
+  * @ver_req: Virtual channel version requested
+diff --git a/drivers/infiniband/hw/irdma/virtchnl.h b/drivers/infiniband/hw/irdma/virtchnl.h
+index fb28fa0..20526c0 100644
+--- a/drivers/infiniband/hw/irdma/virtchnl.h
++++ b/drivers/infiniband/hw/irdma/virtchnl.h
+@@ -14,13 +14,44 @@
+ #define IRDMA_VCHNL_OP_GET_HMC_FCN_V1 1
+ #define IRDMA_VCHNL_OP_GET_HMC_FCN_V2 2
+ #define IRDMA_VCHNL_OP_PUT_HMC_FCN_V0 0
++#define IRDMA_VCHNL_OP_GET_REG_LAYOUT_V0 0
+ #define IRDMA_VCHNL_OP_GET_RDMA_CAPS_V0 0
+ #define IRDMA_VCHNL_OP_GET_RDMA_CAPS_MIN_SIZE 1
  
- 			ah->parent_ah = parent_ah;
--			hash_add(iwdev->ah_hash_tbl, &parent_ah->list, key);
-+			hash_add(iwdev->rf->ah_hash_tbl, &parent_ah->list, key);
- 			refcount_set(&parent_ah->refcnt, 1);
- 		}
- 	}
--	mutex_unlock(&iwdev->ah_tbl_lock);
-+	mutex_unlock(&iwdev->rf->ah_tbl_lock);
++#define IRDMA_VCHNL_REG_ID_CQPTAIL 0
++#define IRDMA_VCHNL_REG_ID_CQPDB 1
++#define IRDMA_VCHNL_REG_ID_CCQPSTATUS 2
++#define IRDMA_VCHNL_REG_ID_CCQPHIGH 3
++#define IRDMA_VCHNL_REG_ID_CCQPLOW 4
++#define IRDMA_VCHNL_REG_ID_CQARM 5
++#define IRDMA_VCHNL_REG_ID_CQACK 6
++#define IRDMA_VCHNL_REG_ID_AEQALLOC 7
++#define IRDMA_VCHNL_REG_ID_CQPERRCODES 8
++#define IRDMA_VCHNL_REG_ID_WQEALLOC 9
++#define IRDMA_VCHNL_REG_ID_IPCONFIG0 10
++#define IRDMA_VCHNL_REG_ID_DB_ADDR_OFFSET 11
++#define IRDMA_VCHNL_REG_ID_DYN_CTL 12
++#define IRDMA_VCHNL_REG_ID_AEQITRMASK 13
++#define IRDMA_VCHNL_REG_ID_CEQITRMASK 14
++#define IRDMA_VCHNL_REG_INV_ID 0xFFFF
++#define IRDMA_VCHNL_REG_PAGE_REL 0x8000
++
++#define IRDMA_VCHNL_REGFLD_ID_CCQPSTATUS_CQP_OP_ERR 2
++#define IRDMA_VCHNL_REGFLD_ID_CCQPSTATUS_CCQP_DONE 5
++#define IRDMA_VCHNL_REGFLD_ID_CQPSQ_STAG_PDID 6
++#define IRDMA_VCHNL_REGFLD_ID_CQPSQ_CQ_CEQID 7
++#define IRDMA_VCHNL_REGFLD_ID_CQPSQ_CQ_CQID 8
++#define IRDMA_VCHNL_REGFLD_ID_COMMIT_FPM_CQCNT 9
++#define IRDMA_VCHNL_REGFLD_ID_UPESD_HMCN_ID 10
++#define IRDMA_VCHNL_REGFLD_INV_ID 0xFFFF
++
++#define IRDMA_VCHNL_RESP_MIN_SIZE (sizeof(struct irdma_vchnl_resp_buf))
++
+ enum irdma_vchnl_ops {
+ 	IRDMA_VCHNL_OP_GET_VER = 0,
+ 	IRDMA_VCHNL_OP_GET_HMC_FCN = 1,
+ 	IRDMA_VCHNL_OP_PUT_HMC_FCN = 2,
++	IRDMA_VCHNL_OP_GET_REG_LAYOUT = 11,
+ 	IRDMA_VCHNL_OP_GET_RDMA_CAPS = 13,
+ };
  
- 	uresp.ah_id = ah->sc_ah.ah_info.ah_idx;
- 	err = ib_copy_to_udata(udata, &uresp, min(sizeof(uresp), udata->outlen));
+@@ -65,6 +96,18 @@ struct irdma_vchnl_init_info {
+ 	bool is_pf;
+ };
+ 
++struct irdma_vchnl_reg_info {
++	u32 reg_offset;
++	u16 field_cnt;
++	u16 reg_id; /* High bit of reg_id: bar or page relative */
++};
++
++struct irdma_vchnl_reg_field_info {
++	u8 fld_shift;
++	u8 fld_bits;
++	u16 fld_id;
++};
++
+ struct irdma_vchnl_req {
+ 	struct irdma_vchnl_op_buf *vchnl_msg;
+ 	void *parm;
+@@ -93,4 +136,5 @@ int irdma_vchnl_req_get_ver(struct irdma_sc_dev *dev, u16 ver_req,
+ int irdma_vchnl_req_get_caps(struct irdma_sc_dev *dev);
+ int irdma_vchnl_req_get_resp(struct irdma_sc_dev *dev,
+ 			     struct irdma_vchnl_req *vc_req);
++int irdma_vchnl_req_get_reg_layout(struct irdma_sc_dev *dev);
+ #endif /* IRDMA_VIRTCHNL_H */
 -- 
 1.8.3.1
 
