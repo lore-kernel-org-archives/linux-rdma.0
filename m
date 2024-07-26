@@ -1,24 +1,24 @@
-Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+Received: from szxga07-in.huawei.com (szxga07-in.huawei.com [45.249.212.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB6924C99;
-	Fri, 26 Jul 2024 07:24:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2375D3C30;
+	Fri, 26 Jul 2024 07:42:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.35
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721978687; cv=none; b=NyZZLFBAxjO5daq4xY1OxIieLa0pTUDbq/3raP2YAptfPCgsOyx/imPszWG8kEH3x4mrTBg7QoaAnKdly+T+cKOeNxEwUE6uquXwxTi5iD1eHo9wydvf4GkPynKjfivbEUocQpTMOPiXOFQZaHTz4rc4F/YJS1bY1QT3umaqhgg=
+	t=1721979784; cv=none; b=ASIygHKRe41SRmjNIijQCdbMG3jSDjJ4/c7M8iujVb0ohff5oc2aKDgxjeKsD3qjQnzkIyGoG3iasKclpr70inbEUSzBddj2w/BqvchdqwXIJxO4DlSM+qPGKiPvwxcdGz+oJhkblYfBP33EEE7BFzZAG3OykG/MVXp4Lsa1Nmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721978687; c=relaxed/simple;
-	bh=PgRiU32PY0W2Dv+x0G52ngm/RaogqAHhWNJI+HQYb4s=;
+	s=arc-20240116; t=1721979784; c=relaxed/simple;
+	bh=JQmFk8P1wPUArmo8G9Bh19XTV93zp5zIYy4AuLYz+4M=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Cr/tpkYnKN4LFHz2Kg6SSX5lBJCHuw703oR2OLciQZjKx+3NWKJ9j+3eARnTRQf+jWVn25gO1bOjIGRHMqXL1K9eY3Asb0d9t3Pg/T4g6Jp0pUMsy2ZFljVXzmD6iON0DCZPkFCzxhLDi3F/Hzp6+R9Xtyip4JSUjpMajF5BV6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
+	 MIME-Version:Content-Type; b=fkJUXM5jYzLZjWpZzVhkVugztan1PZuTGTQuSXHdKPxIFqymbhsY90IENyXfQlfQmIEcmCHDF+CPHK5CCCMlVUVw5aksa91sqsK3DnxaMwFFzUWwtVM58bEDuyRSr/CYdLL3CCY4dbMAj/ueeD3uuE2UYx7IBBX6Cg31OScKa4o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.35
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.44])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4WVfMQ4jnmz1HFbQ;
-	Fri, 26 Jul 2024 15:21:54 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.234])
+	by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4WVfKP6rdLz1S6pN;
+	Fri, 26 Jul 2024 15:20:09 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id E18431402C6;
+	by mail.maildlp.com (Postfix) with ESMTPS id 9A3251400CB;
 	Fri, 26 Jul 2024 15:24:37 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
@@ -28,9 +28,9 @@ From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-next 3/3] RDMA/hns: Disassociate mmap pages for all uctx when HW is being reset
-Date: Fri, 26 Jul 2024 15:19:10 +0800
-Message-ID: <20240726071910.626802-4-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-next 2/3] RDMA/hns: Link all uctx to uctx_list on a device
+Date: Fri, 26 Jul 2024 15:19:09 +0800
+Message-ID: <20240726071910.626802-3-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20240726071910.626802-1-huangjunxian6@hisilicon.com>
 References: <20240726071910.626802-1-huangjunxian6@hisilicon.com>
@@ -47,52 +47,89 @@ X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
 
 From: Chengchang Tang <tangchengchang@huawei.com>
 
-When HW is being reset, userspace should not ring doorbell otherwise
-it may lead to abnormal consequence such as RAS.
+Link all uctx to uctx_list on a device.
 
-Disassociate mmap pages for all uctx to prevent userspace from ringing
-doorbell to HW.
-
-Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
 Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  4 ++++
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 13 +++++++++++++
+ 2 files changed, 17 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 621b057fb9da..8adf8430212d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -7012,6 +7012,18 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 0b1e21cb6d2d..93768660569d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -217,6 +217,7 @@ struct hns_roce_ucontext {
+ 	struct mutex		page_mutex;
+ 	struct hns_user_mmap_entry *db_mmap_entry;
+ 	u32			config;
++	struct list_head list; /* link all uctx to uctx_list on hr_dev */
+ };
  
- 	handle->rinfo.instance_state = HNS_ROCE_STATE_NON_INIT;
- }
+ struct hns_roce_pd {
+@@ -1030,6 +1031,9 @@ struct hns_roce_dev {
+ 	u64 dwqe_page;
+ 	struct hns_roce_dev_debugfs dbgfs;
+ 	atomic64_t *dfx_cnt;
 +
-+static void hns_roce_v2_reset_notify_user(struct hns_roce_dev *hr_dev)
-+{
-+	struct hns_roce_ucontext *uctx, *tmp;
-+
++	struct list_head	uctx_list; /* list of all uctx on this dev */
++	struct mutex		uctx_list_mutex; /* protect @uctx_list */
+ };
+ 
+ static inline struct hns_roce_dev *to_hr_dev(struct ib_device *ib_dev)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 4cb0af733587..e19871ebc315 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -426,6 +426,10 @@ static int hns_roce_alloc_ucontext(struct ib_ucontext *uctx,
+ 	if (ret)
+ 		goto error_fail_copy_to_udata;
+ 
 +	mutex_lock(&hr_dev->uctx_list_mutex);
-+	list_for_each_entry_safe(uctx, tmp, &hr_dev->uctx_list, list) {
-+		rdma_user_mmap_disassociate(&uctx->ibucontext);
-+	}
++	list_add(&context->list, &hr_dev->uctx_list);
 +	mutex_unlock(&hr_dev->uctx_list_mutex);
-+}
 +
- static int hns_roce_hw_v2_reset_notify_down(struct hnae3_handle *handle)
- {
- 	struct hns_roce_dev *hr_dev;
-@@ -7030,6 +7042,9 @@ static int hns_roce_hw_v2_reset_notify_down(struct hnae3_handle *handle)
- 
- 	hr_dev->active = false;
- 	hr_dev->dis_db = true;
-+
-+	hns_roce_v2_reset_notify_user(hr_dev);
-+
- 	hr_dev->state = HNS_ROCE_DEVICE_STATE_RST_DOWN;
- 
  	return 0;
+ 
+ error_fail_copy_to_udata:
+@@ -448,6 +452,10 @@ static void hns_roce_dealloc_ucontext(struct ib_ucontext *ibcontext)
+ 	struct hns_roce_ucontext *context = to_hr_ucontext(ibcontext);
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibcontext->device);
+ 
++	mutex_lock(&hr_dev->uctx_list_mutex);
++	list_del(&context->list);
++	mutex_unlock(&hr_dev->uctx_list_mutex);
++
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_CQ_RECORD_DB ||
+ 	    hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_RECORD_DB)
+ 		mutex_destroy(&context->page_mutex);
+@@ -943,6 +951,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ static void hns_roce_teardown_hca(struct hns_roce_dev *hr_dev)
+ {
+ 	hns_roce_cleanup_bitmap(hr_dev);
++	mutex_destroy(&hr_dev->uctx_list_mutex);
+ 
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_CQ_RECORD_DB ||
+ 	    hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_RECORD_DB)
+@@ -961,6 +970,9 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
+ 
+ 	spin_lock_init(&hr_dev->sm_lock);
+ 
++	INIT_LIST_HEAD(&hr_dev->uctx_list);
++	mutex_init(&hr_dev->uctx_list_mutex);
++
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_CQ_RECORD_DB ||
+ 	    hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_RECORD_DB) {
+ 		INIT_LIST_HEAD(&hr_dev->pgdir_list);
+@@ -1000,6 +1012,7 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
+ 	if (hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_CQ_RECORD_DB ||
+ 	    hr_dev->caps.flags & HNS_ROCE_CAP_FLAG_QP_RECORD_DB)
+ 		mutex_destroy(&hr_dev->pgdir_mutex);
++	mutex_destroy(&hr_dev->uctx_list_mutex);
+ 
+ 	return ret;
+ }
 -- 
 2.33.0
 
