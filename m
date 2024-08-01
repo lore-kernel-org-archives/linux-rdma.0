@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3060189B90;
-	Thu,  1 Aug 2024 12:05:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D63C0189B90;
+	Thu,  1 Aug 2024 12:06:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722513959; cv=none; b=CfBXt7EVCuX6ZYBMgKMY2XyyJ+4OKE6gvIo/fWk2HQsi/ZnrWUZf75b6nfw6gsGy2ol/jdmERF49bQUqOwOgO0x43fZS+4veC7vurRfA8JXTtUmkd4aM/XmcI+AiU/aA0x731Do7dU1z1iVBwuPgmchEnb+PXAvKeqACpwcTMUY=
+	t=1722513963; cv=none; b=TVf6tpjsnQ0fXtkRrKzkzBkxFmpmd4bYSbNhI5Vfgm2VqsezRxgldh6ZFq46kDCdAglAh8nfAAfMGR9ejYrdscFtZN0KKOWRLETqtQYm0OYJRcJcZT9iVlDriHnFHvvRSmplMg4uhuduLymiOLn1mUXMfpt1n/LrCAhfAUGonqA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722513959; c=relaxed/simple;
-	bh=Vz6K0CseR2CvsnyMziB3zHBkOhk2OUVB/Qm9uhyU7F4=;
+	s=arc-20240116; t=1722513963; c=relaxed/simple;
+	bh=HNVP9vMEpgCGw1ZvFBEVtXJyQ/wcj87OJIJ4nBHuuus=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eJTQjDrkoC6EQOB2LgXDpXTxrWiHCqWXmY0mWGm+0x60OGh6btcRrwOutKc6PGUdOW+opVWmQMDcJo2v/PT70S77Y5aeuJBUqnKvnMXvXcGRxLg6IFOUDBZfHjx7OWBYaB3seGsCoE2yGX2XLzkOkdWeB2lKrVBYWcYSKoewEYM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F8jiYAD+; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=ERfU2c1CQN68Sc+blHi5Hn6pPxVX9AdZiNlfaGW5Vy+Wvud2WHhtr5Zkawh9nkwgg+11eAHRYEF0nwuofzQAYlhkT1ciLUFz24hA+NlMBdzSigk6+yylJyI7g4O/JB82j9ifIr/zJkzMjY+06hVPqwEL/9wV0eSJAzXl/TctIhs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jV92yMrR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F8jiYAD+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B57CAC4AF0A;
-	Thu,  1 Aug 2024 12:05:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jV92yMrR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36A51C32786;
+	Thu,  1 Aug 2024 12:06:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1722513959;
-	bh=Vz6K0CseR2CvsnyMziB3zHBkOhk2OUVB/Qm9uhyU7F4=;
+	s=k20201202; t=1722513963;
+	bh=HNVP9vMEpgCGw1ZvFBEVtXJyQ/wcj87OJIJ4nBHuuus=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=F8jiYAD+/8dE1YMWeRzW41azT2Hb3buByI2zt4jSSEsUYzeYaKnzbzOdoMwLYX09i
-	 bV9wu6XZQIvCUyvVvpms63V5cBYtisC11FpT/G+LU2psIw724ofxKru6pj44P4A4Xi
-	 HWLwg3w3bCW6T7ScasgQxzL2f3A3bGihpysPMt4TioDA2gT9g7lSW4wEpopUEDp93m
-	 lsZIzOOw04cTwVr8WJ+qkF2SWcnHL0XnfQwXDjOptvnIT3uG140de3bFQT5ll3YjPP
-	 vwnB7qBqneAWK6h6KjWlvKHgURnZsh76LCF4KRvAhzRFbPKAHsi0+NCswmZE5ou/jU
-	 Xfpc08G1A0tag==
+	b=jV92yMrRJw6sPhUT18QCfVFYgI1RwBqV25HBO64e2xwh/paz0J66h47xW0JYgU9e3
+	 0P0Dwq8v0yP6qJBSjpW54O5TSH8lQRWNXJkC6vlJrJmmIFmg+3XYGUsjSZR9riLwhE
+	 v5flOgNn7Oe3Xej/rJRzQhBF2rPBxVDCGDGbG65VignzqISgMwFaJr17LvQDzoXyUH
+	 BdtqqVAbBe2CF2URGnAp0I+xstnDIstNEKiieHnrUpRnJMX6N5zoCWyr46dhsmpuaJ
+	 r1LBK4qvwA8X3Y+/B0ZMNUjtTahPtRi747SISrdDBdMh5W9uMVkgZ894EXRr8cXCU4
+	 c5qoeuLTrXpXQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Yishai Hadas <yishaih@nvidia.com>,
@@ -42,9 +42,9 @@ Cc: Yishai Hadas <yishaih@nvidia.com>,
 	Sumit Semwal <sumit.semwal@linaro.org>,
 	Tariq Toukan <tariqt@nvidia.com>,
 	Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-Subject: [PATCH rdma-next 8/8] RDMA/mlx5: Introduce GET_DATA_DIRECT_SYSFS_PATH ioctl
-Date: Thu,  1 Aug 2024 15:05:17 +0300
-Message-ID: <403745463e0ef52adbef681ff09aa6a29a756352.1722512548.git.leon@kernel.org>
+Subject: [PATCH rdma-next 6/8] RDMA: Pass uverbs_attr_bundle as part of '.reg_user_mr_dmabuf' API
+Date: Thu,  1 Aug 2024 15:05:15 +0300
+Message-ID: <9a25b2fc02443f7c36c2d93499ae25252b6afd40.1722512548.git.leon@kernel.org>
 X-Mailer: git-send-email 2.45.2
 In-Reply-To: <cover.1722512548.git.leon@kernel.org>
 References: <cover.1722512548.git.leon@kernel.org>
@@ -58,119 +58,154 @@ Content-Transfer-Encoding: 8bit
 
 From: Yishai Hadas <yishaih@nvidia.com>
 
-Introduce the 'GET_DATA_DIRECT_SYSFS_PATH' ioctl to return the sysfs
-path of the affiliated 'data direct' device for a given device.
+Pass uverbs_attr_bundle as part of '.reg_user_mr_dmabuf' API instead of
+udata.
+
+This enables passing some new ioctl attributes to the drivers, as will
+be introduced in the next patches for mlx5 driver.
+
+Change the involved drivers accordingly.
 
 Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/std_types.c   | 55 +++++++++++++++++++++++-
- include/uapi/rdma/mlx5_user_ioctl_cmds.h |  5 +++
- 2 files changed, 59 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_std_types_mr.c | 2 +-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c      | 3 ++-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h      | 2 +-
+ drivers/infiniband/hw/efa/efa.h               | 2 +-
+ drivers/infiniband/hw/efa/efa_verbs.c         | 4 ++--
+ drivers/infiniband/hw/irdma/verbs.c           | 2 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          | 2 +-
+ drivers/infiniband/hw/mlx5/mr.c               | 2 +-
+ include/rdma/ib_verbs.h                       | 2 +-
+ 9 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/std_types.c b/drivers/infiniband/hw/mlx5/std_types.c
-index bbfcce3bdc84..ffeb1e1a1538 100644
---- a/drivers/infiniband/hw/mlx5/std_types.c
-+++ b/drivers/infiniband/hw/mlx5/std_types.c
-@@ -10,6 +10,7 @@
- #include <linux/mlx5/eswitch.h>
- #include <linux/mlx5/vport.h>
- #include "mlx5_ib.h"
-+#include "data_direct.h"
+diff --git a/drivers/infiniband/core/uverbs_std_types_mr.c b/drivers/infiniband/core/uverbs_std_types_mr.c
+index 03e1db5d1e8c..7ebc7bd3caae 100644
+--- a/drivers/infiniband/core/uverbs_std_types_mr.c
++++ b/drivers/infiniband/core/uverbs_std_types_mr.c
+@@ -239,7 +239,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_DMABUF_MR)(
  
- #define UVERBS_MODULE_NAME mlx5_ib
- #include <rdma/uverbs_named_ioctl.h>
-@@ -183,6 +184,50 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_QUERY_PORT)(
- 					     sizeof(info));
- }
+ 	mr = pd->device->ops.reg_user_mr_dmabuf(pd, offset, length, iova, fd,
+ 						access_flags,
+-						&attrs->driver_udata);
++						attrs);
+ 	if (IS_ERR(mr))
+ 		return PTR_ERR(mr);
  
-+static int UVERBS_HANDLER(MLX5_IB_METHOD_GET_DATA_DIRECT_SYSFS_PATH)(
-+	struct uverbs_attr_bundle *attrs)
-+{
-+	struct mlx5_data_direct_dev *data_direct_dev;
-+	struct mlx5_ib_ucontext *c;
-+	struct mlx5_ib_dev *dev;
-+	int out_len = uverbs_attr_get_len(attrs,
-+			MLX5_IB_ATTR_GET_DATA_DIRECT_SYSFS_PATH);
-+	u32 dev_path_len;
-+	char *dev_path;
-+	int ret;
-+
-+	c = to_mucontext(ib_uverbs_get_ucontext(attrs));
-+	if (IS_ERR(c))
-+		return PTR_ERR(c);
-+	dev = to_mdev(c->ibucontext.device);
-+	mutex_lock(&dev->data_direct_lock);
-+	data_direct_dev = dev->data_direct_dev;
-+	if (!data_direct_dev) {
-+		ret = -ENODEV;
-+		goto end;
-+	}
-+
-+	dev_path = kobject_get_path(&data_direct_dev->device->kobj, GFP_KERNEL);
-+	if (!dev_path) {
-+		ret = -ENOMEM;
-+		goto end;
-+	}
-+
-+	dev_path_len = strlen(dev_path) + 1;
-+	if (dev_path_len > out_len) {
-+		ret = -ENOSPC;
-+		goto end;
-+	}
-+
-+	ret = uverbs_copy_to(attrs, MLX5_IB_ATTR_GET_DATA_DIRECT_SYSFS_PATH, dev_path,
-+			     dev_path_len);
-+	kfree(dev_path);
-+
-+end:
-+	mutex_unlock(&dev->data_direct_lock);
-+	return ret;
-+}
-+
- DECLARE_UVERBS_NAMED_METHOD(
- 	MLX5_IB_METHOD_QUERY_PORT,
- 	UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_QUERY_PORT_PORT_NUM,
-@@ -193,9 +238,17 @@ DECLARE_UVERBS_NAMED_METHOD(
- 				   reg_c0),
- 		UA_MANDATORY));
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 7c757351a016..43a68e7de02a 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -4122,7 +4122,8 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
  
-+DECLARE_UVERBS_NAMED_METHOD(
-+	MLX5_IB_METHOD_GET_DATA_DIRECT_SYSFS_PATH,
-+	UVERBS_ATTR_PTR_OUT(
-+		MLX5_IB_ATTR_GET_DATA_DIRECT_SYSFS_PATH,
-+		UVERBS_ATTR_MIN_SIZE(0),
-+		UA_MANDATORY));
-+
- ADD_UVERBS_METHODS(mlx5_ib_device,
- 		   UVERBS_OBJECT_DEVICE,
--		   &UVERBS_METHOD(MLX5_IB_METHOD_QUERY_PORT));
-+		   &UVERBS_METHOD(MLX5_IB_METHOD_QUERY_PORT),
-+		   &UVERBS_METHOD(MLX5_IB_METHOD_GET_DATA_DIRECT_SYSFS_PATH));
+ struct ib_mr *bnxt_re_reg_user_mr_dmabuf(struct ib_pd *ib_pd, u64 start,
+ 					 u64 length, u64 virt_addr, int fd,
+-					 int mr_access_flags, struct ib_udata *udata)
++					 int mr_access_flags,
++					 struct uverbs_attr_bundle *attrs)
+ {
+ 	struct bnxt_re_pd *pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
+ 	struct bnxt_re_dev *rdev = pd->rdev;
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+index e98cb1717338..3ddeda312376 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+@@ -242,7 +242,7 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ struct ib_mr *bnxt_re_reg_user_mr_dmabuf(struct ib_pd *ib_pd, u64 start,
+ 					 u64 length, u64 virt_addr,
+ 					 int fd, int mr_access_flags,
+-					 struct ib_udata *udata);
++					 struct uverbs_attr_bundle *attrs);
+ int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata);
+ void bnxt_re_dealloc_ucontext(struct ib_ucontext *context);
+ int bnxt_re_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
+diff --git a/drivers/infiniband/hw/efa/efa.h b/drivers/infiniband/hw/efa/efa.h
+index e580e087e9da..d7fc9d5eeefd 100644
+--- a/drivers/infiniband/hw/efa/efa.h
++++ b/drivers/infiniband/hw/efa/efa.h
+@@ -168,7 +168,7 @@ struct ib_mr *efa_reg_mr(struct ib_pd *ibpd, u64 start, u64 length,
+ struct ib_mr *efa_reg_user_mr_dmabuf(struct ib_pd *ibpd, u64 start,
+ 				     u64 length, u64 virt_addr,
+ 				     int fd, int access_flags,
+-				     struct ib_udata *udata);
++				     struct uverbs_attr_bundle *attrs);
+ int efa_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata);
+ int efa_get_port_immutable(struct ib_device *ibdev, u32 port_num,
+ 			   struct ib_port_immutable *immutable);
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index b1e0a1b7c59d..cc13415ff7e7 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -1684,14 +1684,14 @@ static int efa_register_mr(struct ib_pd *ibpd, struct efa_mr *mr, u64 start,
+ struct ib_mr *efa_reg_user_mr_dmabuf(struct ib_pd *ibpd, u64 start,
+ 				     u64 length, u64 virt_addr,
+ 				     int fd, int access_flags,
+-				     struct ib_udata *udata)
++				     struct uverbs_attr_bundle *attrs)
+ {
+ 	struct efa_dev *dev = to_edev(ibpd->device);
+ 	struct ib_umem_dmabuf *umem_dmabuf;
+ 	struct efa_mr *mr;
+ 	int err;
  
- DECLARE_UVERBS_NAMED_METHOD(
- 	MLX5_IB_METHOD_PD_QUERY,
-diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-index 106276a4cce7..fd2e4a3a56b3 100644
---- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-@@ -348,6 +348,7 @@ enum mlx5_ib_pd_methods {
- 
- enum mlx5_ib_device_methods {
- 	MLX5_IB_METHOD_QUERY_PORT = (1U << UVERBS_ID_NS_SHIFT),
-+	MLX5_IB_METHOD_GET_DATA_DIRECT_SYSFS_PATH,
- };
- 
- enum mlx5_ib_query_port_attrs {
-@@ -355,4 +356,8 @@ enum mlx5_ib_query_port_attrs {
- 	MLX5_IB_ATTR_QUERY_PORT,
- };
- 
-+enum mlx5_ib_get_data_direct_sysfs_path_attrs {
-+	MLX5_IB_ATTR_GET_DATA_DIRECT_SYSFS_PATH = (1U << UVERBS_ID_NS_SHIFT),
-+};
-+
- #endif
+-	mr = efa_alloc_mr(ibpd, access_flags, udata);
++	mr = efa_alloc_mr(ibpd, access_flags, &attrs->driver_udata);
+ 	if (IS_ERR(mr)) {
+ 		err = PTR_ERR(mr);
+ 		goto err_out;
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index fc0ce35da14e..6a107decb704 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -3085,7 +3085,7 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
+ static struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
+ 					      u64 len, u64 virt,
+ 					      int fd, int access,
+-					      struct ib_udata *udata)
++					      struct uverbs_attr_bundle *attrs)
+ {
+ 	struct irdma_device *iwdev = to_iwdev(pd->device);
+ 	struct ib_umem_dmabuf *umem_dmabuf;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index b2ebea173547..e915a62da49c 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1354,7 +1354,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ struct ib_mr *mlx5_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
+ 					 u64 length, u64 virt_addr,
+ 					 int fd, int access_flags,
+-					 struct ib_udata *udata);
++					 struct uverbs_attr_bundle *attrs);
+ int mlx5_ib_advise_mr(struct ib_pd *pd,
+ 		      enum ib_uverbs_advise_mr_advice advice,
+ 		      u32 flags,
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 98bd8eaa393e..1dfd9124bdd1 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1513,7 +1513,7 @@ static struct dma_buf_attach_ops mlx5_ib_dmabuf_attach_ops = {
+ struct ib_mr *mlx5_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 offset,
+ 					 u64 length, u64 virt_addr,
+ 					 int fd, int access_flags,
+-					 struct ib_udata *udata)
++					 struct uverbs_attr_bundle *attrs)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct mlx5_ib_mr *mr = NULL;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 6c5712ae559d..a1dcf812d787 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2476,7 +2476,7 @@ struct ib_device_ops {
+ 	struct ib_mr *(*reg_user_mr_dmabuf)(struct ib_pd *pd, u64 offset,
+ 					    u64 length, u64 virt_addr, int fd,
+ 					    int mr_access_flags,
+-					    struct ib_udata *udata);
++					    struct uverbs_attr_bundle *attrs);
+ 	struct ib_mr *(*rereg_user_mr)(struct ib_mr *mr, int flags, u64 start,
+ 				       u64 length, u64 virt_addr,
+ 				       int mr_access_flags, struct ib_pd *pd,
 -- 
 2.45.2
 
