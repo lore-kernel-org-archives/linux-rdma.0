@@ -1,53 +1,38 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D63C0189B90;
-	Thu,  1 Aug 2024 12:06:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4577415252D;
+	Thu,  1 Aug 2024 12:38:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722513963; cv=none; b=TVf6tpjsnQ0fXtkRrKzkzBkxFmpmd4bYSbNhI5Vfgm2VqsezRxgldh6ZFq46kDCdAglAh8nfAAfMGR9ejYrdscFtZN0KKOWRLETqtQYm0OYJRcJcZT9iVlDriHnFHvvRSmplMg4uhuduLymiOLn1mUXMfpt1n/LrCAhfAUGonqA=
+	t=1722515912; cv=none; b=FbRpoFvbfe1ceynvVpQ/f4hjosaH1K348VvYck8uGh7uA0Bo+Lkgp6gDR16b5CwHYfuNMW7rCYFALjm8XHGeRpcXk+Izsqdl6yJvXxI6jq4NNEv9/yrLZANB7Sm1wsd2pZHcBMQjrZgtNqEEZwstealBAyDStpsSEdZj8DLC7xE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722513963; c=relaxed/simple;
-	bh=HNVP9vMEpgCGw1ZvFBEVtXJyQ/wcj87OJIJ4nBHuuus=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ERfU2c1CQN68Sc+blHi5Hn6pPxVX9AdZiNlfaGW5Vy+Wvud2WHhtr5Zkawh9nkwgg+11eAHRYEF0nwuofzQAYlhkT1ciLUFz24hA+NlMBdzSigk6+yylJyI7g4O/JB82j9ifIr/zJkzMjY+06hVPqwEL/9wV0eSJAzXl/TctIhs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jV92yMrR; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jV92yMrR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36A51C32786;
-	Thu,  1 Aug 2024 12:06:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1722513963;
-	bh=HNVP9vMEpgCGw1ZvFBEVtXJyQ/wcj87OJIJ4nBHuuus=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jV92yMrRJw6sPhUT18QCfVFYgI1RwBqV25HBO64e2xwh/paz0J66h47xW0JYgU9e3
-	 0P0Dwq8v0yP6qJBSjpW54O5TSH8lQRWNXJkC6vlJrJmmIFmg+3XYGUsjSZR9riLwhE
-	 v5flOgNn7Oe3Xej/rJRzQhBF2rPBxVDCGDGbG65VignzqISgMwFaJr17LvQDzoXyUH
-	 BdtqqVAbBe2CF2URGnAp0I+xstnDIstNEKiieHnrUpRnJMX6N5zoCWyr46dhsmpuaJ
-	 r1LBK4qvwA8X3Y+/B0ZMNUjtTahPtRi747SISrdDBdMh5W9uMVkgZ894EXRr8cXCU4
-	 c5qoeuLTrXpXQ==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Yishai Hadas <yishaih@nvidia.com>,
-	=?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-	dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	Michael Margolin <mrgolin@amazon.com>,
-	Mustafa Ismail <mustafa.ismail@intel.com>,
-	netdev@vger.kernel.org,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Selvin Xavier <selvin.xavier@broadcom.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-Subject: [PATCH rdma-next 6/8] RDMA: Pass uverbs_attr_bundle as part of '.reg_user_mr_dmabuf' API
-Date: Thu,  1 Aug 2024 15:05:15 +0300
-Message-ID: <9a25b2fc02443f7c36c2d93499ae25252b6afd40.1722512548.git.leon@kernel.org>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <cover.1722512548.git.leon@kernel.org>
-References: <cover.1722512548.git.leon@kernel.org>
+	s=arc-20240116; t=1722515912; c=relaxed/simple;
+	bh=x02eljObgUrujzqWdEVMMHSIGgKeTAl+hcGM7tnLa48=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=tSVbfw+/S3GEdpzVWuwPVbeh4GfbqHe0o8PsoZskkhkAblkv633yuS6hvEBr5yy6fOgcae2KPmI59OgdD0VuLiPQCO9F5JLL7k/GV04g8P88hI6aoj36nAOndI1+DYyaPmEyxWMqbO24to751ZSpD9KUUll4z50J5lgxcgvO/9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.255
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.163.48])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4WZT5d5hNQz1L8rq;
+	Thu,  1 Aug 2024 20:38:13 +0800 (CST)
+Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
+	by mail.maildlp.com (Postfix) with ESMTPS id 80CDB18006C;
+	Thu,  1 Aug 2024 20:38:26 +0800 (CST)
+Received: from localhost.localdomain (10.90.30.45) by
+ kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Thu, 1 Aug 2024 20:38:25 +0800
+From: Junxian Huang <huangjunxian6@hisilicon.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>, <bvanassche@acm.org>,
+	<nab@risingtidesystems.com>
+CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>,
+	<target-devel@vger.kernel.org>
+Subject: [PATCH v2 for-rc] RDMA/srpt: Fix UAF when srpt_add_one() failed
+Date: Thu, 1 Aug 2024 20:32:53 +0800
+Message-ID: <20240801123253.2908831-1-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -55,157 +40,84 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ kwepemf100018.china.huawei.com (7.202.181.17)
 
-From: Yishai Hadas <yishaih@nvidia.com>
+Currently cancel_work_sync() is not called when srpt_refresh_port()
+failed in srpt_add_one(). There is a probability that sdev has been
+freed while the previously initiated sport->work is still running,
+leading to a UAF as the log below:
 
-Pass uverbs_attr_bundle as part of '.reg_user_mr_dmabuf' API instead of
-udata.
+[  T880] ib_srpt MAD registration failed for hns_1-1.
+[  T880] ib_srpt srpt_add_one(hns_1) failed.
+[  T376] Unable to handle kernel paging request at virtual address 0000000000010008
+...
+[  T376] Workqueue: events srpt_refresh_port_work [ib_srpt]
+...
+[  T376] Call trace:
+[  T376]  srpt_refresh_port+0x94/0x264 [ib_srpt]
+[  T376]  srpt_refresh_port_work+0x1c/0x2c [ib_srpt]
+[  T376]  process_one_work+0x1d8/0x4cc
+[  T376]  worker_thread+0x158/0x410
+[  T376]  kthread+0x108/0x13c
+[  T376]  ret_from_fork+0x10/0x18
 
-This enables passing some new ioctl attributes to the drivers, as will
-be introduced in the next patches for mlx5 driver.
+Add cancel_work_sync() to the exception branch to fix this UAF.
+Besides, exchange the order of INIT_WORK() and srpt_refresh_port()
+in srpt_add_one(), so that when srpt_refresh_port() failed, there
+is no need to cancel the work in this iteration.
 
-Change the involved drivers accordingly.
-
-Signed-off-by: Yishai Hadas <yishaih@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/core/uverbs_std_types_mr.c | 2 +-
- drivers/infiniband/hw/bnxt_re/ib_verbs.c      | 3 ++-
- drivers/infiniband/hw/bnxt_re/ib_verbs.h      | 2 +-
- drivers/infiniband/hw/efa/efa.h               | 2 +-
- drivers/infiniband/hw/efa/efa_verbs.c         | 4 ++--
- drivers/infiniband/hw/irdma/verbs.c           | 2 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          | 2 +-
- drivers/infiniband/hw/mlx5/mr.c               | 2 +-
- include/rdma/ib_verbs.h                       | 2 +-
- 9 files changed, 11 insertions(+), 10 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_mr.c b/drivers/infiniband/core/uverbs_std_types_mr.c
-index 03e1db5d1e8c..7ebc7bd3caae 100644
---- a/drivers/infiniband/core/uverbs_std_types_mr.c
-+++ b/drivers/infiniband/core/uverbs_std_types_mr.c
-@@ -239,7 +239,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_REG_DMABUF_MR)(
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 9632afbd727b..7def231da21a 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -648,6 +648,7 @@ static void srpt_unregister_mad_agent(struct srpt_device *sdev, int port_cnt)
+ 			ib_unregister_mad_agent(sport->mad_agent);
+ 			sport->mad_agent = NULL;
+ 		}
++		cancel_work_sync(&sport->work);
+ 	}
+ }
  
- 	mr = pd->device->ops.reg_user_mr_dmabuf(pd, offset, length, iova, fd,
- 						access_flags,
--						&attrs->driver_udata);
-+						attrs);
- 	if (IS_ERR(mr))
- 		return PTR_ERR(mr);
+@@ -3220,7 +3221,6 @@ static int srpt_add_one(struct ib_device *device)
+ 		sport->port_attrib.srp_max_rsp_size = DEFAULT_MAX_RSP_SIZE;
+ 		sport->port_attrib.srp_sq_size = DEF_SRPT_SQ_SIZE;
+ 		sport->port_attrib.use_srq = false;
+-		INIT_WORK(&sport->work, srpt_refresh_port_work);
  
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 7c757351a016..43a68e7de02a 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -4122,7 +4122,8 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 		ret = srpt_refresh_port(sport);
+ 		if (ret) {
+@@ -3229,6 +3229,8 @@ static int srpt_add_one(struct ib_device *device)
+ 			i--;
+ 			goto err_port;
+ 		}
++
++		INIT_WORK(&sport->work, srpt_refresh_port_work);
+ 	}
  
- struct ib_mr *bnxt_re_reg_user_mr_dmabuf(struct ib_pd *ib_pd, u64 start,
- 					 u64 length, u64 virt_addr, int fd,
--					 int mr_access_flags, struct ib_udata *udata)
-+					 int mr_access_flags,
-+					 struct uverbs_attr_bundle *attrs)
- {
- 	struct bnxt_re_pd *pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
- 	struct bnxt_re_dev *rdev = pd->rdev;
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-index e98cb1717338..3ddeda312376 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-@@ -242,7 +242,7 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- struct ib_mr *bnxt_re_reg_user_mr_dmabuf(struct ib_pd *ib_pd, u64 start,
- 					 u64 length, u64 virt_addr,
- 					 int fd, int mr_access_flags,
--					 struct ib_udata *udata);
-+					 struct uverbs_attr_bundle *attrs);
- int bnxt_re_alloc_ucontext(struct ib_ucontext *ctx, struct ib_udata *udata);
- void bnxt_re_dealloc_ucontext(struct ib_ucontext *context);
- int bnxt_re_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
-diff --git a/drivers/infiniband/hw/efa/efa.h b/drivers/infiniband/hw/efa/efa.h
-index e580e087e9da..d7fc9d5eeefd 100644
---- a/drivers/infiniband/hw/efa/efa.h
-+++ b/drivers/infiniband/hw/efa/efa.h
-@@ -168,7 +168,7 @@ struct ib_mr *efa_reg_mr(struct ib_pd *ibpd, u64 start, u64 length,
- struct ib_mr *efa_reg_user_mr_dmabuf(struct ib_pd *ibpd, u64 start,
- 				     u64 length, u64 virt_addr,
- 				     int fd, int access_flags,
--				     struct ib_udata *udata);
-+				     struct uverbs_attr_bundle *attrs);
- int efa_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata);
- int efa_get_port_immutable(struct ib_device *ibdev, u32 port_num,
- 			   struct ib_port_immutable *immutable);
-diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
-index b1e0a1b7c59d..cc13415ff7e7 100644
---- a/drivers/infiniband/hw/efa/efa_verbs.c
-+++ b/drivers/infiniband/hw/efa/efa_verbs.c
-@@ -1684,14 +1684,14 @@ static int efa_register_mr(struct ib_pd *ibpd, struct efa_mr *mr, u64 start,
- struct ib_mr *efa_reg_user_mr_dmabuf(struct ib_pd *ibpd, u64 start,
- 				     u64 length, u64 virt_addr,
- 				     int fd, int access_flags,
--				     struct ib_udata *udata)
-+				     struct uverbs_attr_bundle *attrs)
- {
- 	struct efa_dev *dev = to_edev(ibpd->device);
- 	struct ib_umem_dmabuf *umem_dmabuf;
- 	struct efa_mr *mr;
- 	int err;
+ 	ib_register_event_handler(&sdev->event_handler);
+@@ -3264,13 +3266,9 @@ static void srpt_remove_one(struct ib_device *device, void *client_data)
+ 	struct srpt_device *sdev = client_data;
+ 	int i;
  
--	mr = efa_alloc_mr(ibpd, access_flags, udata);
-+	mr = efa_alloc_mr(ibpd, access_flags, &attrs->driver_udata);
- 	if (IS_ERR(mr)) {
- 		err = PTR_ERR(mr);
- 		goto err_out;
-diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
-index fc0ce35da14e..6a107decb704 100644
---- a/drivers/infiniband/hw/irdma/verbs.c
-+++ b/drivers/infiniband/hw/irdma/verbs.c
-@@ -3085,7 +3085,7 @@ static struct ib_mr *irdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 len,
- static struct ib_mr *irdma_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
- 					      u64 len, u64 virt,
- 					      int fd, int access,
--					      struct ib_udata *udata)
-+					      struct uverbs_attr_bundle *attrs)
- {
- 	struct irdma_device *iwdev = to_iwdev(pd->device);
- 	struct ib_umem_dmabuf *umem_dmabuf;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index b2ebea173547..e915a62da49c 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1354,7 +1354,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- struct ib_mr *mlx5_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 start,
- 					 u64 length, u64 virt_addr,
- 					 int fd, int access_flags,
--					 struct ib_udata *udata);
-+					 struct uverbs_attr_bundle *attrs);
- int mlx5_ib_advise_mr(struct ib_pd *pd,
- 		      enum ib_uverbs_advise_mr_advice advice,
- 		      u32 flags,
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 98bd8eaa393e..1dfd9124bdd1 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1513,7 +1513,7 @@ static struct dma_buf_attach_ops mlx5_ib_dmabuf_attach_ops = {
- struct ib_mr *mlx5_ib_reg_user_mr_dmabuf(struct ib_pd *pd, u64 offset,
- 					 u64 length, u64 virt_addr,
- 					 int fd, int access_flags,
--					 struct ib_udata *udata)
-+					 struct uverbs_attr_bundle *attrs)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
- 	struct mlx5_ib_mr *mr = NULL;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6c5712ae559d..a1dcf812d787 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2476,7 +2476,7 @@ struct ib_device_ops {
- 	struct ib_mr *(*reg_user_mr_dmabuf)(struct ib_pd *pd, u64 offset,
- 					    u64 length, u64 virt_addr, int fd,
- 					    int mr_access_flags,
--					    struct ib_udata *udata);
-+					    struct uverbs_attr_bundle *attrs);
- 	struct ib_mr *(*rereg_user_mr)(struct ib_mr *mr, int flags, u64 start,
- 				       u64 length, u64 virt_addr,
- 				       int mr_access_flags, struct ib_pd *pd,
+-	srpt_unregister_mad_agent(sdev, sdev->device->phys_port_cnt);
+-
+ 	ib_unregister_event_handler(&sdev->event_handler);
+ 
+-	/* Cancel any work queued by the just unregistered IB event handler. */
+-	for (i = 0; i < sdev->device->phys_port_cnt; i++)
+-		cancel_work_sync(&sdev->port[i].work);
++	srpt_unregister_mad_agent(sdev, sdev->device->phys_port_cnt);
+ 
+ 	if (sdev->cm_id)
+ 		ib_destroy_cm_id(sdev->cm_id);
 -- 
-2.45.2
+2.33.0
 
