@@ -1,83 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50DB1335BA;
-	Mon, 19 Aug 2024 15:34:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 790F284A51;
+	Mon, 19 Aug 2024 15:41:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724081668; cv=none; b=hdG0rIMsYKVx/w+Nu42CUzU3IoYMaEjs+DWD1abkfY5+V3NSymemfdAx4CCcbvvrc3ZOvfDFVbfnne1dPq9Xx96TE+nLoleSUi/q10YjT/WuPteOgLTBLwHCrhh6/oEhyUF4nRS4S8mOkv0WTfZmKiiycWf5LLEN23yb2ff5TQc=
+	t=1724082086; cv=none; b=g3XC50mshoklOd1FQz16jQB+JlPS0VFSwMJ6m3lXst8fvnLOaU+g1bAi6GBOtipp8QiHM6F+nWFdRJ/251o8l2S0WrJ+rMRf+4QtnMBsr9jkEEeW5oayY9LYQfMiNNAEMAodsZK19n1RLtMc8eAM+uh2AMUNEVmeKtnL7SMfSCU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724081668; c=relaxed/simple;
-	bh=4VrjSRXNUm0qxK9qDXOgGH/nx+QchNmk1s/6OZfvNV4=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=buMjUp4eMJfQGA0M7vQD9YW/OfVkNVE91wi4wy6W0nJ+631ZWCVyRJK7N/DO889yJr/+bVoTmnUSEWgrkH9DU4r3TQniX4VlxTM5uVOB6wRqI5P1zcXMQwbaKXbWj6V3OJiLMubKcU6wJ5B3o0mnJtZzVITZYozNDorhJJv7e8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=PM5kY8Ah; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1724082086; c=relaxed/simple;
+	bh=XD2K26LZWwKLrIemj7ZsxfN1QcYSugiu7qjybcqgCNg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Q0C8FVGM/YEa0LGO9E3rBVzn6Tq0DPUmdvnBXoA+1NAHrC+GhBnaQ70jLFprhhkstnqFy4vXjb5uUrTHmdZi8gTWoBFGjy9ybSyewXOSvCKeyXLU6YL/nQaoetJhzY5rkk//k2Ht1TLN1/fWlx1GnMA9j1HGQzMuUT0QM12pQmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=b8MxMJD1; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="PM5kY8Ah"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64669C32782;
-	Mon, 19 Aug 2024 15:34:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724081667;
-	bh=4VrjSRXNUm0qxK9qDXOgGH/nx+QchNmk1s/6OZfvNV4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=PM5kY8Ahw+OIrEDWQ8tMat2J6tItd92GDnACtD3sm/S7CHbknbbM16IuAWOn9YBLX
-	 vcreb29/dauJM4d922rdfNCAXKhkzm1bXiLNyVoG6rPLpEaGZnyDxUWfOOd3ZXUeP+
-	 RbmIf1/jLqEiqHHzc2npfp22lzpQ1mdjNKOXrbhluzrzMvk18i9wn/qlNjUFrt7nnI
-	 etXB8AFg4FHrFTDY+BPzBWXG78/384cTQE0UPXdcYQ6bn5r0j4Lb1fYewHFA1MN4Zn
-	 17cQGl7VkNPnu4mIAIp/dgYfOVSDXxS7SpQ5EhN+TJHobxJ2EKNxgh6K5AOyDEf8Os
-	 fT11CnZM3JlmQ==
-Date: Mon, 19 Aug 2024 08:34:26 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Erwan Velu <erwanaliasr1@gmail.com>
-Cc: Yury Norov <yury.norov@gmail.com>, Tariq Toukan
- <ttoukan.linux@gmail.com>, Erwan Velu <e.velu@criteo.com>, Saeed Mahameed
- <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Tariq Toukan
- <tariqt@nvidia.com>, Yury Norov <ynorov@nvidia.com>, Rahul Anand
- <raanand@nvidia.com>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
- netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] net/mlx5: Use cpumask_local_spread() instead of custom
- code
-Message-ID: <20240819083426.1aebc18f@kernel.org>
-In-Reply-To: <CAL2JzuzEBAdkQfRPLXQHry2a2M7_EsScOV_kheo+oXUuKM9rWA@mail.gmail.com>
-References: <20240812082244.22810-1-e.velu@criteo.com>
-	<3dcbfb0d-6e54-4450-a266-bf4701e77e08@gmail.com>
-	<ZrzDAlMiEK4fnLmn@yury-ThinkPad>
-	<CAL2JzuzEBAdkQfRPLXQHry2a2M7_EsScOV_kheo+oXUuKM9rWA@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="b8MxMJD1"
+Received: by linux.microsoft.com (Postfix, from userid 1134)
+	id 19B1D20B7165; Mon, 19 Aug 2024 08:41:25 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 19B1D20B7165
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1724082085;
+	bh=SpSY08sT3dqfME7HAoWcv4Xyv5WInKZ5tv4jgeOIcRo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=b8MxMJD19GNqtDWDIZ9mi8cG3mqVFeE6jipZjQqDQXtV5n4+YLmoQY6OBt+mEq9xP
+	 3bmrNsCl9+mrehUGHcpbOFIQBsjQrxFGdBKB1zNRaOk4tbkBlKdKvVJkDqY59viSPi
+	 qiFx1f0eB7qOkQx/AzNBMWOwuIYNT0glT9vBBt7Q=
+Date: Mon, 19 Aug 2024 08:41:25 -0700
+From: Shradha Gupta <shradhagupta@linux.microsoft.com>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+	Long Li <longli@microsoft.com>,
+	Ajay Sharma <sharmaajay@microsoft.com>,
+	Simon Horman <horms@kernel.org>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>,
+	Erick Archer <erick.archer@outlook.com>,
+	Pavan Chebbi <pavan.chebbi@broadcom.com>,
+	Ahmed Zaki <ahmed.zaki@intel.com>,
+	Colin Ian King <colin.i.king@gmail.com>,
+	Shradha Gupta <shradhagupta@microsoft.com>
+Subject: Re: [PATCH net-next v3] net: mana: Implement
+ get_ringparam/set_ringparam for mana
+Message-ID: <20240819154125.GA22003@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <1723805303-11432-1-git-send-email-shradhagupta@linux.microsoft.com>
+ <20240816185805.60e16145@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240816185805.60e16145@kernel.org>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 
-On Mon, 19 Aug 2024 12:15:10 +0200 Erwan Velu wrote:
-> 2/ I was also wondering if we shouldn't have a kernel module option to
-> choose the allocation algorithm (I have a POC in that direction).
-> The benefit could be allowing the platform owner to select the
-> allocation algorithm that sys-admin needs.
-> On single-package AMD EPYC servers, the numa topology is pretty handy
-> for mapping the L3 affinity but it doesn't provide any particular hint
-> about the actual "distance" to the network device.
-> You can have up to 12 NUMA nodes on a single package but the actual
-> distance to the nic is almost identical as each core needs to use the
-> IOdie to reach the PCI devices.
-> We can see in the NUMA allocation logic assumptions like "1 NUMA per
-> package" logic that the actual distance between nodes should be
-> considered in the allocation logic.
-
-I think user space has more information on what the appropriate
-placement is than the kernel. We can have a reasonable default,
-and maybe try not to stupidly reset the settings when config
-changes (I don't think mlx5 does that but other drivers do);
-but having a way to select algorithm would only work if there
-was a well understood and finite set of algorithms.
-
-IMHO we should try to sell this task to systemd-networkd or some other 
-user space daemon. We now have netlink access to NAPI information,
-including IRQ<>NAPI<>queue mapping. It's possible to implement a
-completely driver-agnostic IRQ mapping support from user space
-(without the need to grep irq names like we used to)
+On Fri, Aug 16, 2024 at 06:58:05PM -0700, Jakub Kicinski wrote:
+> On Fri, 16 Aug 2024 03:48:23 -0700 Shradha Gupta wrote:
+> > +	old_tx = apc->tx_queue_size;
+> > +	old_rx = apc->rx_queue_size;
+> > +	new_tx = clamp_t(u32, ring->tx_pending, MIN_TX_BUFFERS_PER_QUEUE, MAX_TX_BUFFERS_PER_QUEUE);
+> > +	new_rx = clamp_t(u32, ring->rx_pending, MIN_RX_BUFFERS_PER_QUEUE, MAX_RX_BUFFERS_PER_QUEUE);
+> 
+> You can min(), the max side of clam is unnecessary. Core code won't let
+> user requests above max provided by "get" thru.
+>
+oh okay, got it. Will change this 
+> > +	if (!is_power_of_2(new_tx)) {
+> > +		netdev_err(ndev, "%s:Tx:%d not supported. Needs to be a power of 2\n",
+> > +			   __func__, new_tx);
+> > +		return -EINVAL;
+> > +	}
+> 
+> The power of 2 vs clamp is a bit odd.
+> On one hand you clamp the values to what's supported automatically.
+> On the other you hard reject values which are not power of 2.
+> Why not round them up?
+> 
+> IDK whether checking or auto-correction is better, but mixing the two
+> is odd.
+> 
+That seems right. I will round up the value to nearest power of two, in
+the range. Thanks
+> > +	if (!is_power_of_2(new_rx)) {
+> > +		netdev_err(ndev, "%s:Rx:%d not supported. Needs to be a power of 2\n",
+> > +			   __func__, new_rx);
+> 
+> Instead of printing please use the extack passed in as an argument.
+sure, working on it.
+> -- 
+> pw-bot: cr
