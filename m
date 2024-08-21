@@ -1,35 +1,36 @@
-Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2064.outbound.protection.outlook.com [40.107.102.64])
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam04on2068.outbound.protection.outlook.com [40.107.101.68])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A19AA1B3B1E;
-	Wed, 21 Aug 2024 18:11:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.102.64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 321C21B3B0C;
+	Wed, 21 Aug 2024 18:11:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.101.68
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724263877; cv=fail; b=c3VECPaXEUHbh4BlpSRvQEPiub8WiqvvbiOADFSf1oteAuRnRG24/ZJpGqVWZCzH1aWUleuRW9+3dbof1qP4Sw5kMxwsZIHnP7cS7Ev5EA5rvyaA5KcOqqwFJ7bZwhQokvQ1eCT7QRLtpNF/YkHCfqtjRPLMKaTz8w4Ig3NTS5k=
+	t=1724263878; cv=fail; b=UegJ9wlkAPvmy7dlGth1717ixH/NF8Minijq+IVw/d2SB89+htXOGZ2t2ksnhzdTnYN8Qlmy6RQWClr+3uxjh/2BLLeKVv2P1RwzYIeLIVeA0PUUgsT6PdWwewOf92UAdyMdvg8AIvFWKqC+teF4DmjQodsRr4KCLv32HuOCV+0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724263877; c=relaxed/simple;
-	bh=7s/and8BXraBp71fi3DNBKEfyJr0wkY/KfWCV83+/OA=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=JTqCV+D/aNkrkyR+oynBFgK01wAXNmF14Oj0NeTU9wh/TuCs8pOMdgu0jkrSl2SGe6b1Nckm9cEtImUWo1Itvo82phF2TFhsDXHCk6bBdZNg2FHPXff+fS662xv8bXswENIal/9/QmgPYxgIP+etuoMrDWaxyt4l0LDZLib2Rsg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=HANrX9Ba; arc=fail smtp.client-ip=40.107.102.64
+	s=arc-20240116; t=1724263878; c=relaxed/simple;
+	bh=kLUzLkH95R8u6jiAYTNwyFM/hZ+OrydQJGwGoWGbzIk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=S5YWdTuBfBtxFGlsRsjjmM7fmYvxWUfJIyC6q/ohyk6fyJInhq4su0XJKcNPHVg014CuQzFE7WVHCSIJxfwOUvuLNiytp5NxGR2JzfBM42xGB+dJ21i3Audb++ooKsFN4QOl/1pOwP1/MpBdpK8M3Cxs51VCLd2kS0G5X/lEj94=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=QfNNBl4q; arc=fail smtp.client-ip=40.107.101.68
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="HANrX9Ba"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="QfNNBl4q"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=hsr7rHOyw3PdjNYVhywYjYJDmp+1soo4pwcKa6R1SQGSh6f3T2vExIXKYLajdDwe88N++cLJfFmeS0MTzVlvmabJ+6Fth4yfqhwXMWTGTD9PZUWb5jymejoRl5U6tEJXTqRZ8gZQr2F8hr8E6OLXhwYptIRcNoEmEFbSThrvGSBXaH0Lt1YUlhp9R3wVUbqIrb8IkGRhicIAfl2e0ugMEtGzUk2hVEun946joDk9ZzLThP4LeLvqzl1yFSWZ0ckz8k0PB8aREib9MLv0Ceywq7lAuFj39nNvG22hrKZK8SP8uAf4HoKv52Iuw4kh2/M6NQGkDWocfRACtfW7kHa/3g==
+ b=k7pVkTdDnaAE0L+am8ZfhsDotJfzu7Wx7GwNKk+SP2b5VAHBZTR2c4KeFQ9Xu0LMSLlFT5GrBDus+jPYRzgiTtY8TjcuoEsL1m7VF8XP2V9NLrADYPIiQS8hf9whzyXvsybEqlX+FmeGAwjSeSSCryenxx2Aw4hnBQDXFnu0o6zdFmcp7Z8MzorMqqdvDBx10OK3fZxmwUYj2J92cM+OgPd9VmBvUCpAzQJ835Ga/H/XxU8jCdmbFvrhAeAqZhDpJtBPCinsVSqwSfIm1Qpfcm/VDfFGgfA5Hf+SQKZMP70Q+jd1J9yKqbViRrcaBjEMULm6Kea0nfCexJVSowfAAA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sEUWLiiQAHCuFRLv4wGXlP4tgdUWXnqU126nn5BDbz0=;
- b=KyY4HxDafusO8fqmdd4kfmvWQF7yc7JiMjkKex7b3JO+1QhtFAJ9RbmZU/3nvtFSAUne5iygn4mIaX/BofSXSf7UD0IX3XPWCwtuWKJGJjYWFKOlFJ/msPgnrtt1NbzDSZJrwlegxseVi49MpVKbDBhpOeN0DiKMmNfnZufPBB9am9kqJ0ICFlUQGNAPy2N8EfZZScs8a/2lPCa2LGkI+lde137TIojbvz5ACnaIJNCiWPWile0Gmpju7JiE4ozSumo34OVj0Sr3zjLS8iXkfP/SJ6Q22kG0qeYM5/nFx0piS9azvo+v/ox3mQU8HZi8q2i4tKy/hucs3lu/S6Jmcw==
+ bh=BlwvV7JPcZ5PzT+sCSlNqDOsGIiFuX4/kKdMrdQQYGY=;
+ b=R8LQhMr+sYIV7NCOPRZcg+O40hcWSb3CE73UrgSSyjaUXLT2z4fSGv5RKkedcXNXbGKcZocJRmxhW5znDjXOPyCfUHdsuCMjK8nI2/c/j9igLygL3ElATq8FRUQAQwIhyoUU9wxUrj2G+c4VorPQO3GP3edR7fES8of9/VpE9v2cJ5GL1WP4jeIbKOtYFXfZr0Wg+7XXfYglTErQhLcYqKNaMIu7PNKELGcaSwwbK+zQE3LSvYt5iveFaWr8il03vh8girbiZmWfqNgqk/211yXJPThytGrOyn/w5pqi66UMFs0kmir2Y53lJfqZGds4UrSMIYmTtCLcEP1PwcIGBA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sEUWLiiQAHCuFRLv4wGXlP4tgdUWXnqU126nn5BDbz0=;
- b=HANrX9BaHcoxCTc0t/11i4m2Am+is3vOXt8lDv3xGkUZDnEUbH6Uam/HKfGphwTzvMxHXYDTP2lE0K1FmhQs0S0jDIgvM/a0DZX6MFz0EsfdUoF3GM/HiOQWr4ln7mYQSt/B//Bgptr7ISvJRJsv13RD1sNyrDI50LFUGxN2GS+c5DRZeOD7v2j9nD4WSV7dcTXiAxWMKj0qlJjulvzjO/Kgh8ctZO4XQECKANtL2NkT+6cNIXJVEyrWMkyRDR40rI5nYD8W+GOjF6PGdOk3B0E9fkAUip/fePphfntBixSZzymdWGYUk0wxChaACDkbjK/XzLpAC8HCJ8cwmNiV6g==
+ bh=BlwvV7JPcZ5PzT+sCSlNqDOsGIiFuX4/kKdMrdQQYGY=;
+ b=QfNNBl4qJze96BF4G2phVkG69ZaqQjEYpUdiqZZw1+Ra+7Tk+W1N3i/ZaqGqYzGJHc597QrJfv76zauTXXKV+5jI1pJmEz6VnNE+eNEEWjsf5zsIzbKjhYxx4pnVETqx9lxsTxijmLUuTbLDBP00KiSOwZvuGk0VfabmLx64B6oNzgVWTH2GDoVseUeiIWz9Q2yK/ND5ZzsekpIvVtf2e0Bax9ApD+ZzGP/foJJp5e607LbrPhH1vLLZqHKWuAKw6oDx/ShwC8h2kN+3X+sRuQbkjR7BXtn7AsSaUw59GmQR+Qzsk3qeiITYIyVyEpYZ8ci+g436x/p3OqrrV1xrJQ==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CH3PR12MB7763.namprd12.prod.outlook.com (2603:10b6:610:145::10)
@@ -59,13 +60,15 @@ Cc: Andy Gospodarek <andrew.gospodarek@broadcom.com>,
 	linux-cxl@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	Saeed Mahameed <saeedm@nvidia.com>
-Subject: [PATCH v3 00/10] Introduce fwctl subystem
-Date: Wed, 21 Aug 2024 15:10:52 -0300
-Message-ID: <0-v3-960f17f90f17+516-fwctl_jgg@nvidia.com>
+Subject: [PATCH v3 07/10] fwctl/mlx5: Support for communicating with mlx5 fw
+Date: Wed, 21 Aug 2024 15:10:59 -0300
+Message-ID: <7-v3-960f17f90f17+516-fwctl_jgg@nvidia.com>
+In-Reply-To: <0-v3-960f17f90f17+516-fwctl_jgg@nvidia.com>
+References:
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: BN9PR03CA0674.namprd03.prod.outlook.com
- (2603:10b6:408:10e::19) To CH3PR12MB7763.namprd12.prod.outlook.com
+X-ClientProxiedBy: BN8PR04CA0058.namprd04.prod.outlook.com
+ (2603:10b6:408:d4::32) To CH3PR12MB7763.namprd12.prod.outlook.com
  (2603:10b6:610:145::10)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -75,245 +78,573 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: CH3PR12MB7763:EE_|SA1PR12MB7199:EE_
-X-MS-Office365-Filtering-Correlation-Id: f88886b6-890b-46f9-9309-08dcc20c9e56
+X-MS-Office365-Filtering-Correlation-Id: 3f921c07-f1fb-4cc4-c03d-08dcc20c9e54
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|7416014|376014|1800799024;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?FQxggQy+hNL3aEbGnS1PCzZoSJhct2Hilo7Z40fp2pUB+Vx53a8dWm0ZwbiO?=
- =?us-ascii?Q?1LoNQy5DQ11ISR3nPTAaEF1u93JdwBabeYPmTEj61mWyqQ0bi1lsEkOFdG7W?=
- =?us-ascii?Q?WLP2uubVenmQPr48prx+0PJhCzI0+gKBFJmzKvDOAdWgOmqtsxK1nYRecbgw?=
- =?us-ascii?Q?CPxn0fNiaxGhCxn/Z5swV2WtyEEIrpQ3fEP9uq4FL7PyNIHETnkw5o3gFOdE?=
- =?us-ascii?Q?W/QkD7mvtWOto08atlyht5JWtGYlyC7bhyPVYcjto3PuBQrSgK89WzUZe9LW?=
- =?us-ascii?Q?bk7PHAm+ui1HYflcW1UNWy2ro6ZSM3KDV6bRMCX0OCdS+q2ljFFKfutJv/7K?=
- =?us-ascii?Q?jTTo9to8yjAKYTLPQxavw/05n6u6Zdoma1byzhNb3AqqknywpJLbBkhf/FNQ?=
- =?us-ascii?Q?KJPArYSdD9rdXga5XlDh9lVnkliQurZ2ff2sGl4ZUXufBMIQlEWg+vnEJhsm?=
- =?us-ascii?Q?Z3CAHRLvEeSL6obj1CO4UaXXjE0qyA626nMqkwZ+AVu/xs15xsK3grQUPMXY?=
- =?us-ascii?Q?8l1rlt6MWmv+XZZZdCkWDXtNRq9AJopQTbXMA24GX3BbINQIn9ZB84xRbcT2?=
- =?us-ascii?Q?ZkKdeQ3wwQJEF/HabeSNex0xMYXm6voShmXQsGdn6hcpNzn8TaS8WSvtQxAe?=
- =?us-ascii?Q?gKX9gTjYsaf2yuifq93ikuc4S4Bbe1QQ/dlmWgwCdlEvVoZpiBO80o/OWi9P?=
- =?us-ascii?Q?Z3dGtMZFK6k7+KQL6W0NEcT3ElXXDmvUJHSy1RTwymsjsnVQSWvMnOzudmsO?=
- =?us-ascii?Q?cDIl3XxRLhHPLkRUCqzECn1Yqxs+QeVd0b08aA6Pyib7pAZDbGtHpGDgQ8z5?=
- =?us-ascii?Q?N2a0cLvY/gc46WJghVCH4PKhnSq/sJTQpOIM2VCPqzTMpOteo+SrgrSlixYN?=
- =?us-ascii?Q?XWhpZBf3LUbS6wRqJNyaljyOkB+HnDM1vGmTAbkrWnHfSlrm0zZmo3D5tmEg?=
- =?us-ascii?Q?U7yL1ET/85TtnG0cMLqwOR6KC3HMSCSNsRPUun8LTxhCzmbaOZwYLpAXfW5m?=
- =?us-ascii?Q?4aszy9Pbco7R2sck++Wv0w7F+3RZBiCerWX8DCBHkKNtL0yx5EN48O8jKibK?=
- =?us-ascii?Q?CAMnW/s0Sevl4lVVtEkUkOmoBCkC2IyQ2fMYBH/DL82UcNcyoC59NrdIxSzx?=
- =?us-ascii?Q?KhZDTO6E6Mj5IS7QhNhz4RUXYFrpoUL9SNw07EhcoDJnNm3vgDOPdJPyxeUr?=
- =?us-ascii?Q?QOM5A6qQc6Pyx5ksDHsd7/xAm+dEnqo6shsMZf9Xz08ksVfKOHxxgR2/FfbQ?=
- =?us-ascii?Q?O4xbQ0wpCXFw6tAgnjLp0YLW4cdKZZLpvMvzAJ0fHrp2WQG9v2yAhnsvWYy7?=
- =?us-ascii?Q?leFXwE2GriU+Yz+hQdHS2DzJ/JIHdMxpwAE9mLn3AMXzvX3GjHA5Vo8+yNDh?=
- =?us-ascii?Q?zRkk6Qg=3D?=
+	=?us-ascii?Q?KKiuPR215Ymf/PGSlzqCco1wyIV3peHrDHTMxK0ARR3obVMpcxXVn6hIGGUj?=
+ =?us-ascii?Q?j/fiZZzJO85nESIg8H1rkCBfjWMHltNy2TJIaXFEtiD1DjBsd1/s2Rx15BxK?=
+ =?us-ascii?Q?jIxlOtR/bLYG9WRsCyaT2l1DUlJjRinItiHaczJQnfVxI0TUuhNGoLjdCDI1?=
+ =?us-ascii?Q?QoPYMCv16pTWcekzHOjZyyw3Qt6h/lNr9sxYi2VisyIYWnaEPl87pfOPiObs?=
+ =?us-ascii?Q?FrXSYIDq5ny0x17zwTy/n2Wrd4BsQoBUnDcpyEkwa7XJ2kg3KyI7UKVfzhjA?=
+ =?us-ascii?Q?Od0mxkbxr+pNDU2w7rVTaauDc6+FFFu+d4pod81Ww3U8g0KewS73sKpUyx7H?=
+ =?us-ascii?Q?WYvUVUMU6D0moP1CvEjgxbWzfdBPbIWJfyIN1uvGxBJRT8s0m+3OFY0Ow/b+?=
+ =?us-ascii?Q?yPBEDMl7gciA/SW31WQrN31xZIgAjC6HJ4PaieVsDv8G8E5x3c+gD164p9nc?=
+ =?us-ascii?Q?YOotLZw/P4I7VTzRDx/SqcEiZH1+h6UQpQcxuirwF+YSb4pfw111aUDXYf0+?=
+ =?us-ascii?Q?6LrdSftLwP3ZEU5TlmUg5LVtTYWR1qgUfB2g8kpOd2q80FCmSn99IkMstQEZ?=
+ =?us-ascii?Q?uF4hl0r5WThW6DYCNsPD97rKNN00Q+ISDy8BEYJkDe+x97fqtcAlBLMa0AuS?=
+ =?us-ascii?Q?1HeVtQ3HeZU3W4VeDAbxm9VbX8HSDlUa1e6dHAEE0sXDTcF9JAdcWCHfLpqO?=
+ =?us-ascii?Q?dZraoxIvNC/4zHX0mGxM529o6DpxNVvYS/hlAsI+2ilBNVAk6B9o1KgAIQHJ?=
+ =?us-ascii?Q?r+PBmyyA4RM6Fh6zAzBjr+ocKxl8oKLTpfuE76bdLfZ7fotg0t7YmjUaj+zC?=
+ =?us-ascii?Q?nhY5VMMqkIMr/rTGD4FNdvUA1sPV+8vujB037biNQGajRR8JtMLeCleZOtYu?=
+ =?us-ascii?Q?uuC+4eO8fYD1giG9rQSex0b0Z2cxXFnJNh7VScF5apiDxxEGI4BemC19uJ8Q?=
+ =?us-ascii?Q?eaV72jMKqB3aCBqdOP4YiuSXcA8Mfzw9+eKgJJ51KpaEjvDyibUDcoL1tuBA?=
+ =?us-ascii?Q?ndmSMTNMWHNVlk0CQdfAwloL5dUrglpTBn4g8i/2qauC9Q7eUKZAzhwYaISW?=
+ =?us-ascii?Q?gDUVsiTyo1n2iAS4YE6PN7CQhHf6jAatR421Mngw2F8taqZSaikzON8WML6t?=
+ =?us-ascii?Q?MH2IU6Rm53v6nXjveFxCvoyXA2BM2IQjOaSnmMBEh5KRJ5udvtU9qfvxUx/T?=
+ =?us-ascii?Q?eaKyQFQwOCWLhbuJBZNCFSfWS7cXcLnn8sUdWRGnVoW9rW2e4Ds7HWrL0Lrk?=
+ =?us-ascii?Q?hjCUvkVxZl/0xSZichG0qfD0FL1YbIKNip2Abc9GLKbU+3jjiqvopIAHnGWX?=
+ =?us-ascii?Q?WgR7eZK85H5OGeIzf9vgiy66nwn+WSEN0xcLt3AwR8fOPdHimUXl9JRS4Rwf?=
+ =?us-ascii?Q?xurGkD8=3D?=
 X-Forefront-Antispam-Report:
 	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB7763.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(7416014)(376014)(1800799024);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?2BQ1A7wCp6cKC3ZhGv4SbQCTmrYf5qyBCMA21ETTTPVByUswl9eUptdbmTMW?=
- =?us-ascii?Q?8aSsvM+/BQMOmO7VFE31/K4/vBDWSrmdoTsqC2Os1k+x4kkBqkI6LZSkmhTs?=
- =?us-ascii?Q?5m81zHaGPZvDY+3UeDEbub4ljPgVi37God5tk08hZUyXHFkSJ+51bCBoqYC7?=
- =?us-ascii?Q?/I6H85QkB3Hcp11Xnv5zP7EDe+MCZphn1VZjF084obxwxGvAS/KMzr+R63UJ?=
- =?us-ascii?Q?WVSuLmXzY/ZgDoC+e7ydp9pr1BhEbGcs0b71bvZDK1hnlSH4TXBBqkwM5q7V?=
- =?us-ascii?Q?uOARSe/s2GxmyQmyn/mlkQWu9AyjLBlhMAxluL6nLAT5HHi1VEiGDP0f/uxu?=
- =?us-ascii?Q?uFFupyPDbMWeOykkmEdvBQuh25LNWtt1vF7+ZGNv+bEDilxn8Mh033lJ0jFO?=
- =?us-ascii?Q?zvzOiQKCc4uvxrp+h1Jk82wz7YqkrTyFjqrw6g8/vEeJJ1v+Qv2yLueoNNB3?=
- =?us-ascii?Q?qgGOv2By+Dqa6rSWS+hbQEbVKOqUxiVF7glZAGq1zrO9sHTVWvYXcv45wZsk?=
- =?us-ascii?Q?OOYxsMXukv6ssllVqZ4K3Osn7XPFrNHtpsY+bUuMl0FHwXqkdnpSTlDIJylK?=
- =?us-ascii?Q?g8V6eoe3kPd47VDuRRp6iNXyg9Lg+nM8bHFeIh/hzI8lPyhUDnmx0vq6l7uA?=
- =?us-ascii?Q?X2npQF+jL5jN+3NU+nHlQIB2W5ONxvA3DGQSCHCXNkOYVet5K5drBZ+4xlPj?=
- =?us-ascii?Q?5xDKMWjn0yeR/l3QFXsGJYrLkfR83FLxs7ovj6pCCqYqxYwzq4AKtOvnBqQu?=
- =?us-ascii?Q?VY0SS4kNqB4myLUp1YXvpvmuTXJw6NPxWrBjYAeNRG2fkWgtE32/7XETFJNO?=
- =?us-ascii?Q?C6dZRST9MuJa86/Yi5p2P1SP++plwXXy1zicptys+UvdEbOLEs54P6i/koOW?=
- =?us-ascii?Q?8rPcV8oD3Axfyp/CTiTrH5QWLuiy3paeiCRMi1gH6he/+a2MxUfJuCg89pHB?=
- =?us-ascii?Q?wDeTuo4WIzBlj/Dw0BoYFz4o7BUa1DENjAh+VjNmhMGbZGfCk8QinByb4P7i?=
- =?us-ascii?Q?nK9e2GM3Tc+JphfH+KjcqRsG2F75rJUHTv7jSXaagiLqDAdpSx605XGyDhYX?=
- =?us-ascii?Q?pAeQbO0uHHH/TS+b+ZoDhhlMZ8Lr0C2U0Sjhi2DSmJQ3LO82HFSMwc6yRZo8?=
- =?us-ascii?Q?qXoCTMiB3Znl4A7y2FlZnvjhL387sjCgFbnbzuuurcijRBOvoNItoW+B85Xw?=
- =?us-ascii?Q?uxZz9Hy2CL4ngaGM4MQ5VODSmalQlOvGYwXT5oMngXj5umn5eV6e1KUxXJ5F?=
- =?us-ascii?Q?097d60ILtKxLCAY08nLSk9iauhKvdHRUyaIs0OgGwydeGIGQ1mzYi/b2bFxi?=
- =?us-ascii?Q?yTMsY4uRgqZb/hZiXf0VU7ThFYd6/me7Vha9QIUHthDc4ughK9k55Sg8+5V4?=
- =?us-ascii?Q?x/9Q+JCyPkABSNFTMB2RnOUmlXE2urbBCzLZFxvluMLU9FCQmaDyWnDj8lpR?=
- =?us-ascii?Q?moiCgKrw+5eeKUydhE6vhOtTa+5idFzwruUkbw1ovR1bb/BRs1Kw8oSS+Xta?=
- =?us-ascii?Q?flCDlPLkzmiTtLatIroldNZZK5CWvN1jxsqTSQQ4+PiymmgkYBLruqbu5/Mt?=
- =?us-ascii?Q?016lOyUPtgWbklptB3bJBzjirLxL8t/SogOLotrO?=
+	=?us-ascii?Q?vTbdb6wvyWOy0yBrnaMuXmYJaNmiwA2hur8mHI6iUGzU+rX+/9X9bmjXcPIR?=
+ =?us-ascii?Q?25tBcc1c2R1+9BkzdxT5DSRcKqVnVvPnYXo7JTgmd+4mRj1JwkxcXvqgOcFo?=
+ =?us-ascii?Q?FrVSgJw+ejk5DuPd+UUpw8i+shTIVzAxJ+0VjynCguZ/k8l4t0lV86AsC296?=
+ =?us-ascii?Q?1jqF/kUMGNFNv1g3dJ7IsrnJMudW5jFQhEtD29K3Rtp4V2gMYdE7lqh8bBbE?=
+ =?us-ascii?Q?T/usJy3g2PINwKnle0tlx9p7+Mi0BPnGCnVkQS1UFNO2XDe4ycP/cgy3pmyv?=
+ =?us-ascii?Q?5FcY/SwmiI4nJtQD5AYEtHfX9WZLEF1K+TPB1edb72JAvZRvtKflOb8DdD0f?=
+ =?us-ascii?Q?rCJJ9l5159qqck6RqORFXTgsimHlf+zdt9eppVBFNWL5bN7WrQCLu2v1CVwO?=
+ =?us-ascii?Q?hVvCB0KkrMb4VbY0e7tmI5jR+8nhr3dVDPAo1wtV5rSLtHXRzHc80fI6qkKK?=
+ =?us-ascii?Q?P5/6M3N3EjbDPuoGQTV8FQtZC7L7HJbtQ5fMO4GFiP6qopY6f209QGaaAHmm?=
+ =?us-ascii?Q?+ZELx//77wGSl4sETh3kgwnJZbtLFeoZFjSbWrAxtseQfRrb1JEkuJIFgppM?=
+ =?us-ascii?Q?pof4QuThMguG+wAkhMEugMMLrh6nEQsXjnocNRAyqXcks/RFRP4O0gKBg8KE?=
+ =?us-ascii?Q?1gmRtJGBhT7MpES4rsQ0EOYdZ+fcqHUsKIWv3ifhy1T36srOEDKNZZfgp/O6?=
+ =?us-ascii?Q?vydTvBCZ+jPS9oTkxzB/NUR6YpRb3qC2PZHmC3SWJlY/Qa90CTNjiCwR+0ff?=
+ =?us-ascii?Q?TJHzUXf3/cLkWE7pD2PE7V7ZkfGEO0RrqQl+qWC4UDybBTbJVNj92BaC/uA2?=
+ =?us-ascii?Q?I5WHju2z4DAPwhF5Rhquv+it4XO9G4uzI8sDJMF6xwmMGuM4RW9NQ7aDEcPr?=
+ =?us-ascii?Q?6UDLoMR50/71Lu4Vvxn/tk/CKCXoJZzoV9hZ5q40RopWeobzbweIzF4BaFxU?=
+ =?us-ascii?Q?yXzxVaMQPWzHRRlDkJyk12CLTMh4GUcHf5Nxm54ozp5J5vtImhy89OsB8y8S?=
+ =?us-ascii?Q?wikvkMVr/XEjhqnIrLcFWsPYJe8Gd7MWp6aZc7dZVTpPIiwWwgJf+XkQ3spo?=
+ =?us-ascii?Q?I6eWvnKftI9fBSsXAgkI7YJk8P9n1jfd2n8tdtmoK2OMK0ux3EcpWYxQppYJ?=
+ =?us-ascii?Q?EOOTqPaqqaG/L3gf+Ekuv5uTHJ2HNYzNw/dsvCjnp30esovbjU4LH6m4hpwy?=
+ =?us-ascii?Q?UNRsrfdSv9up/yKJkN0V9x8AUI+kN3Me4mzzkZ0qQn/KlBuSWrgCpxs9eXRK?=
+ =?us-ascii?Q?3E8NyQEf5+zRO/BH1SN+aUybJI3wfXPVozml8nS5I2G/L2pp/g7LRpn5Fb/y?=
+ =?us-ascii?Q?Olpli3LJ5BRcEbmfefLucfzBXEywhmn7YgzirAKYSFQnGrzGtYJKBZn9v6bp?=
+ =?us-ascii?Q?yhoRxaxZPkp/1ZCmrXpx/wVByxPYUEKT4ZFR1kLDQqnzB9TMiEfa6xIyhXqz?=
+ =?us-ascii?Q?isO+8f7gVYQ8tb+IFss373XpqVOYv/hIRyZlWVhrJS9JRZ63C67w6/TcmvgP?=
+ =?us-ascii?Q?+J1DNMUS1cEO75PQQwz1HPx+EmGtufEegMYTD1Xo/Jg3FRcARDbQf4HvERDj?=
+ =?us-ascii?Q?p5H0HZVDEqrVDVtcLlhYOGBHmfjtuhOxVFL/iUGV?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f88886b6-890b-46f9-9309-08dcc20c9e56
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3f921c07-f1fb-4cc4-c03d-08dcc20c9e54
 X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB7763.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Aug 2024 18:11:03.3330
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Aug 2024 18:11:03.3405
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: OAhcxasGXLHW+qolaRpJpJibqc/3s2+s+FWRQxw6gRjtFkSsFp9Je5CVTiT5hHR9
+X-MS-Exchange-CrossTenant-UserPrincipalName: xQLq6joXTTQt61ANNtGzWAiSsfqBwCcI7WuC7cnLdmrjCrcZGLHCUxAWlt5Pt9Qm
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR12MB7199
 
-fwctl is a new subsystem intended to bring some common rules and order to
-the growing pattern of exposing a secure FW interface directly to
-userspace. Unlike existing places like RDMA/DRM/VFIO/uacce that are
-exposing a device for datapath operations fwctl is focused on debugging,
-configuration and provisioning of the device. It will not have the
-necessary features like interrupt delivery to support a datapath.
+From: Saeed Mahameed <saeedm@nvidia.com>
 
-This concept is similar to the long standing practice in the "HW" RAID
-space of having a device specific misc device to manager the RAID
-controller FW. fwctl generalizes this notion of a companion debug and
-management interface that goes along with a dataplane implemented in an
-appropriate subsystem.
+mlx5's fw has long provided a User Context concept. This has a long
+history in RDMA as part of the devx extended verbs programming
+interface. A User Context is a security envelope that contains objects and
+controls access. It contains the Protection Domain object from the
+InfiniBand Architecture and both togther provide the OS with the necessary
+tools to bind a security context like a process to the device.
 
-The need for this has reached a critical point as many users are moving to
-run lockdown enabled kernels. Several existing devices have had long
-standing tooling for management that relied on /sys/../resource0 or PCI
-config space access which is not permitted in lockdown. A major point of
-fwctl is to define and document the rules that a device must follow to
-expose a lockdown compatible RPC.
+The security context is restricted to not be able to touch the kernel or
+other processes. In the RDMA verbs case it is also restricted to not touch
+global device resources.
 
-Based on some discussion fwctl splits the RPCs into four categories
+The fwctl_mlx5 takes this approach and builds a User Context per fwctl
+file descriptor and uses a FW security capability on the User Context to
+enable access to global device resources. This makes the context useful
+for provisioning and debugging the global device state.
 
-	FWCTL_RPC_CONFIGURATION
-	FWCTL_RPC_DEBUG_READ_ONLY
-	FWCTL_RPC_DEBUG_WRITE
-	FWCTL_RPC_DEBUG_WRITE_FULL
+mlx5 already has a robust infrastructure for delivering RPC messages to
+fw. Trivially connect fwctl's RPC mechanism to mlx5_cmd_do(). Enforce the
+User Context ID in every RPC header so the FW knows the security context
+of the issuing ID.
 
-Where the latter two trigger a new TAINT_FWCTL, and the final one requires
-CAP_SYS_RAWIO - excluding it from lockdown. The device driver and its FW
-would be responsible to restrict RPCs to the requested security scope,
-while the core code handles the tainting and CAP checks.
-
-For details see the final patch which introduces the documentation.
-
-This series incorporates a version of the mlx5ctl interface previously
-proposed:
-  https://lore.kernel.org/r/20240207072435.14182-1-saeed@kernel.org/
-
-For this series the memory registration mechanism was removed, but I
-expect it will come back.
-
-It also includes the FWCL driver series from David:
-  https://lore.kernel.org/all/20240718213446.1750135-1-dave.jiang@intel.com/
-
-
-This is still waiting a 3rd fwctl driver and the CXL side to finish some
-of its development. The github has the necessary CXL precursor patches.
-
-There have been two LWN articles written discussing various aspects of
-this proposal:
-
- https://lwn.net/Articles/955001/
- https://lwn.net/Articles/969383/
-
-And a really giant ksummit thread:
-
- https://lore.kernel.org/ksummit/668c67a324609_ed99294c0@dwillia2-xfh.jf.intel.com.notmuch/
-
-Several have expressed general support for this concept:
-
- Broadcom Networking - https://lore.kernel.org/r/Zf2n02q0GevGdS-Z@C02YVCJELVCG
- Christoph Hellwig - https://lore.kernel.org/r/Zcx53N8lQjkpEu94@infradead.org/
- Daniel Vetter - https://lore.kernel.org/r/ZrHY2Bds7oF7KRGz@phenom.ffwll.local
- Enfabrica - https://lore.kernel.org/r/9cc7127f-8674-43bc-b4d7-b1c4c2d96fed@kernel.org/
- NVIDIA Networking
- Oded Gabbay/Habana - https://lore.kernel.org/r/ZrMl1bkPP-3G9B4N@T14sgabbay.
- Oracle Linux - https://lore.kernel.org/r/6lakj6lxlxhdgrewodvj3xh6sxn3d36t5dab6najzyti2navx3@wrge7cyfk6nq
- SuSE/Hannes - https://lore.kernel.org/r/2fd48f87-2521-4c34-8589-dbb7e91bb1c8@suse.com
-
-Work is ongoing for a robust multi-device open source userspace, currently
-the mlx5ctl_user that was posted by Saeed has been updated to use fwctl.
-
-  https://github.com/saeedtx/mlx5ctl.git
-  https://github.com/jgunthorpe/mlx5ctl.git
-
-This is on github: https://github.com/jgunthorpe/linux/commits/fwctl
-
-v3:
- - Rebase to v6.11-rc4
- - Add a squashed version of David's CXL series as the 2nd driver
- - Add missing includes
- - Improve comments based on feedback
- - Use the kdoc format that puts the member docs inside the struct
- - Rewrite fwctl_alloc_device() to be clearer
- - Incorporate all remarks for the documentation
-v2: https://lore.kernel.org/r/0-v2-940e479ceba9+3821-fwctl_jgg@nvidia.com
- - Rebase to v6.10-rc5
- - Minor style changes
- - Follow the style consensus for the guard stuff
- - Documentation grammer/spelling
- - Add missed length output for mlx5 get_info
- - Add two more missed MLX5 CMD's
- - Collect tags
-v1: https://lore.kernel.org/r/0-v1-9912f1a11620+2a-fwctl_jgg@nvidia.com
-
-Cc: Andy Gospodarek <andrew.gospodarek@broadcom.com>
-Cc: Aron Silverton <aron.silverton@oracle.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Ahern <dsahern@kernel.org>
-Cc: Itay Avraham <itayavr@nvidia.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Jiri Pirko <jiri@nvidia.com>
-Cc: Leon Romanovsky <leonro@nvidia.com>
-Cc: Leonid Bloch <lbloch@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
-
-Dave Jiang (1):
-  fwctl/cxl: Add driver for CXL mailbox for handling CXL features
-    commands (RFC)
-
-Jason Gunthorpe (7):
-  fwctl: Add basic structure for a class subsystem with a cdev
-  fwctl: Basic ioctl dispatch for the character device
-  fwctl: FWCTL_INFO to return basic information about the device
-  taint: Add TAINT_FWCTL
-  fwctl: FWCTL_RPC to execute a Remote Procedure Call to device firmware
-  fwctl: Add documentation
-  cxl: Create an auxiliary device for fwctl_cxl
-
-Saeed Mahameed (2):
-  fwctl/mlx5: Support for communicating with mlx5 fw
-  mlx5: Create an auxiliary device for fwctl_mlx5
-
- Documentation/admin-guide/tainted-kernels.rst |   5 +
- Documentation/userspace-api/fwctl.rst         | 285 ++++++++++++
- Documentation/userspace-api/index.rst         |   1 +
- .../userspace-api/ioctl/ioctl-number.rst      |   1 +
- MAINTAINERS                                   |  23 +
- drivers/Kconfig                               |   2 +
- drivers/Makefile                              |   1 +
- drivers/cxl/core/memdev.c                     |  19 +
- drivers/fwctl/Kconfig                         |  32 ++
- drivers/fwctl/Makefile                        |   6 +
- drivers/fwctl/cxl/Makefile                    |   4 +
- drivers/fwctl/cxl/cxl.c                       | 274 ++++++++++++
- drivers/fwctl/main.c                          | 414 ++++++++++++++++++
- drivers/fwctl/mlx5/Makefile                   |   4 +
- drivers/fwctl/mlx5/main.c                     | 337 ++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/dev.c |   8 +
- include/linux/cxl/mailbox.h                   | 104 +++++
- include/linux/fwctl.h                         | 135 ++++++
- include/linux/panic.h                         |   3 +-
- include/uapi/fwctl/cxl.h                      |  94 ++++
- include/uapi/fwctl/fwctl.h                    | 140 ++++++
- include/uapi/fwctl/mlx5.h                     |  36 ++
- kernel/panic.c                                |   1 +
- tools/debugging/kernel-chktaint               |   8 +
- 24 files changed, 1936 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/userspace-api/fwctl.rst
- create mode 100644 drivers/fwctl/Kconfig
- create mode 100644 drivers/fwctl/Makefile
- create mode 100644 drivers/fwctl/cxl/Makefile
- create mode 100644 drivers/fwctl/cxl/cxl.c
- create mode 100644 drivers/fwctl/main.c
+---
+ MAINTAINERS                 |   7 +
+ drivers/fwctl/Kconfig       |  14 ++
+ drivers/fwctl/Makefile      |   1 +
+ drivers/fwctl/mlx5/Makefile |   4 +
+ drivers/fwctl/mlx5/main.c   | 337 ++++++++++++++++++++++++++++++++++++
+ include/uapi/fwctl/fwctl.h  |   1 +
+ include/uapi/fwctl/mlx5.h   |  36 ++++
+ 7 files changed, 400 insertions(+)
  create mode 100644 drivers/fwctl/mlx5/Makefile
  create mode 100644 drivers/fwctl/mlx5/main.c
- create mode 100644 include/linux/fwctl.h
- create mode 100644 include/uapi/fwctl/cxl.h
- create mode 100644 include/uapi/fwctl/fwctl.h
  create mode 100644 include/uapi/fwctl/mlx5.h
 
-
-base-commit: cd0c76bee95e9c2092418523599439d2c8dbff7e
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 97945ca04b1108..d7d12adc521be1 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9250,6 +9250,13 @@ F:	drivers/fwctl/
+ F:	include/linux/fwctl.h
+ F:	include/uapi/fwctl/
+ 
++FWCTL MLX5 DRIVER
++M:	Saeed Mahameed <saeedm@nvidia.com>
++R:	Itay Avraham <itayavr@nvidia.com>
++L:	linux-kernel@vger.kernel.org
++S:	Maintained
++F:	drivers/fwctl/mlx5/
++
+ GALAXYCORE GC0308 CAMERA SENSOR DRIVER
+ M:	Sebastian Reichel <sre@kernel.org>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/fwctl/Kconfig b/drivers/fwctl/Kconfig
+index 37147a695add9a..e5ee2d46d43126 100644
+--- a/drivers/fwctl/Kconfig
++++ b/drivers/fwctl/Kconfig
+@@ -7,3 +7,17 @@ menuconfig FWCTL
+ 	  support a wide range of lockdown compatible device behaviors including
+ 	  manipulating device FLASH, debugging, and other activities that don't
+ 	  fit neatly into an existing subsystem.
++
++if FWCTL
++config FWCTL_MLX5
++	tristate "mlx5 ConnectX control fwctl driver"
++	depends on MLX5_CORE
++	help
++	  MLX5CTL provides interface for the user process to access the debug and
++	  configuration registers of the ConnectX hardware family
++	  (NICs, PCI switches and SmartNIC SoCs).
++	  This will allow configuration and debug tools to work out of the box on
++	  mainstream kernel.
++
++	  If you don't know what to do here, say N.
++endif
+diff --git a/drivers/fwctl/Makefile b/drivers/fwctl/Makefile
+index 1cad210f6ba580..1c535f694d7fe4 100644
+--- a/drivers/fwctl/Makefile
++++ b/drivers/fwctl/Makefile
+@@ -1,4 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+ obj-$(CONFIG_FWCTL) += fwctl.o
++obj-$(CONFIG_FWCTL_MLX5) += mlx5/
+ 
+ fwctl-y += main.o
+diff --git a/drivers/fwctl/mlx5/Makefile b/drivers/fwctl/mlx5/Makefile
+new file mode 100644
+index 00000000000000..139a23e3c7c517
+--- /dev/null
++++ b/drivers/fwctl/mlx5/Makefile
+@@ -0,0 +1,4 @@
++# SPDX-License-Identifier: GPL-2.0
++obj-$(CONFIG_FWCTL_MLX5) += mlx5_fwctl.o
++
++mlx5_fwctl-y += main.o
+diff --git a/drivers/fwctl/mlx5/main.c b/drivers/fwctl/mlx5/main.c
+new file mode 100644
+index 00000000000000..8839770fbe7ba5
+--- /dev/null
++++ b/drivers/fwctl/mlx5/main.c
+@@ -0,0 +1,337 @@
++// SPDX-License-Identifier: BSD-3-Clause OR GPL-2.0
++/*
++ * Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES
++ */
++#include <linux/fwctl.h>
++#include <linux/auxiliary_bus.h>
++#include <linux/mlx5/device.h>
++#include <linux/mlx5/driver.h>
++#include <uapi/fwctl/mlx5.h>
++
++#define mlx5ctl_err(mcdev, format, ...) \
++	dev_err(&mcdev->fwctl.dev, format, ##__VA_ARGS__)
++
++#define mlx5ctl_dbg(mcdev, format, ...)                             \
++	dev_dbg(&mcdev->fwctl.dev, "PID %u: " format, current->pid, \
++		##__VA_ARGS__)
++
++struct mlx5ctl_uctx {
++	struct fwctl_uctx uctx;
++	u32 uctx_caps;
++	u32 uctx_uid;
++};
++
++struct mlx5ctl_dev {
++	struct fwctl_device fwctl;
++	struct mlx5_core_dev *mdev;
++};
++DEFINE_FREE(mlx5ctl, struct mlx5ctl_dev *, if (_T) fwctl_put(&_T->fwctl));
++
++struct mlx5_ifc_mbox_in_hdr_bits {
++	u8 opcode[0x10];
++	u8 uid[0x10];
++
++	u8 reserved_at_20[0x10];
++	u8 op_mod[0x10];
++
++	u8 reserved_at_40[0x40];
++};
++
++struct mlx5_ifc_mbox_out_hdr_bits {
++	u8 status[0x8];
++	u8 reserved_at_8[0x18];
++
++	u8 syndrome[0x20];
++
++	u8 reserved_at_40[0x40];
++};
++
++enum {
++	MLX5_UCTX_OBJECT_CAP_TOOLS_RESOURCES = 0x4,
++};
++
++enum {
++	MLX5_CMD_OP_QUERY_DIAGNOSTIC_PARAMS = 0x819,
++	MLX5_CMD_OP_SET_DIAGNOSTIC_PARAMS = 0x820,
++	MLX5_CMD_OP_QUERY_DIAGNOSTIC_COUNTERS = 0x821,
++	MLX5_CMD_OP_POSTPONE_CONNECTED_QP_TIMEOUT = 0xb2e,
++};
++
++static int mlx5ctl_alloc_uid(struct mlx5ctl_dev *mcdev, u32 cap)
++{
++	u32 out[MLX5_ST_SZ_DW(create_uctx_out)] = {};
++	u32 in[MLX5_ST_SZ_DW(create_uctx_in)] = {};
++	void *uctx;
++	int ret;
++	u16 uid;
++
++	uctx = MLX5_ADDR_OF(create_uctx_in, in, uctx);
++
++	mlx5ctl_dbg(mcdev, "%s: caps 0x%x\n", __func__, cap);
++	MLX5_SET(create_uctx_in, in, opcode, MLX5_CMD_OP_CREATE_UCTX);
++	MLX5_SET(uctx, uctx, cap, cap);
++
++	ret = mlx5_cmd_exec(mcdev->mdev, in, sizeof(in), out, sizeof(out));
++	if (ret)
++		return ret;
++
++	uid = MLX5_GET(create_uctx_out, out, uid);
++	mlx5ctl_dbg(mcdev, "allocated uid %u with caps 0x%x\n", uid, cap);
++	return uid;
++}
++
++static void mlx5ctl_release_uid(struct mlx5ctl_dev *mcdev, u16 uid)
++{
++	u32 in[MLX5_ST_SZ_DW(destroy_uctx_in)] = {};
++	struct mlx5_core_dev *mdev = mcdev->mdev;
++	int ret;
++
++	MLX5_SET(destroy_uctx_in, in, opcode, MLX5_CMD_OP_DESTROY_UCTX);
++	MLX5_SET(destroy_uctx_in, in, uid, uid);
++
++	ret = mlx5_cmd_exec_in(mdev, destroy_uctx, in);
++	mlx5ctl_dbg(mcdev, "released uid %u %pe\n", uid, ERR_PTR(ret));
++}
++
++static int mlx5ctl_open_uctx(struct fwctl_uctx *uctx)
++{
++	struct mlx5ctl_uctx *mfd =
++		container_of(uctx, struct mlx5ctl_uctx, uctx);
++	struct mlx5ctl_dev *mcdev =
++		container_of(uctx->fwctl, struct mlx5ctl_dev, fwctl);
++	int uid;
++
++	/*
++	 * New FW supports the TOOLS_RESOURCES uid security label
++	 * which allows commands to manipulate the global device state.
++	 * Otherwise only basic existing RDMA devx privilege are allowed.
++	 */
++	if (MLX5_CAP_GEN(mcdev->mdev, uctx_cap) &
++	    MLX5_UCTX_OBJECT_CAP_TOOLS_RESOURCES)
++		mfd->uctx_caps |= MLX5_UCTX_OBJECT_CAP_TOOLS_RESOURCES;
++
++	uid = mlx5ctl_alloc_uid(mcdev, mfd->uctx_caps);
++	if (uid < 0)
++		return uid;
++
++	mfd->uctx_uid = uid;
++	return 0;
++}
++
++static void mlx5ctl_close_uctx(struct fwctl_uctx *uctx)
++{
++	struct mlx5ctl_dev *mcdev =
++		container_of(uctx->fwctl, struct mlx5ctl_dev, fwctl);
++	struct mlx5ctl_uctx *mfd =
++		container_of(uctx, struct mlx5ctl_uctx, uctx);
++
++	mlx5ctl_release_uid(mcdev, mfd->uctx_uid);
++}
++
++static void *mlx5ctl_info(struct fwctl_uctx *uctx, size_t *length)
++{
++	struct mlx5ctl_uctx *mfd =
++		container_of(uctx, struct mlx5ctl_uctx, uctx);
++	struct fwctl_info_mlx5 *info;
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info)
++		return ERR_PTR(-ENOMEM);
++
++	info->uid = mfd->uctx_uid;
++	info->uctx_caps = mfd->uctx_caps;
++	*length = sizeof(*info);
++	return info;
++}
++
++static bool mlx5ctl_validate_rpc(const void *in, enum fwctl_rpc_scope scope)
++{
++	u16 opcode = MLX5_GET(mbox_in_hdr, in, opcode);
++
++	/*
++	 * Currently the driver can't keep track of commands that allocate
++	 * objects in the FW, these commands are safe from a security
++	 * perspective but nothing will free the memory when the FD is closed.
++	 * For now permit only query commands. Also the caps for the scope have
++	 * not been defined yet, filter commands manually for now.
++	 */
++	switch (opcode) {
++	case MLX5_CMD_OP_POSTPONE_CONNECTED_QP_TIMEOUT:
++	case MLX5_CMD_OP_QUERY_ADAPTER:
++	case MLX5_CMD_OP_QUERY_ESW_FUNCTIONS:
++	case MLX5_CMD_OP_QUERY_HCA_CAP:
++	case MLX5_CMD_OP_QUERY_HCA_VPORT_CONTEXT:
++	case MLX5_CMD_OP_QUERY_ROCE_ADDRESS:
++		return scope <= FWCTL_RPC_CONFIGURATION;
++
++	case MLX5_CMD_OP_QUERY_CONG_PARAMS:
++	case MLX5_CMD_OP_QUERY_CONG_STATISTICS:
++	case MLX5_CMD_OP_QUERY_CONG_STATUS:
++	case MLX5_CMD_OP_QUERY_CQ:
++	case MLX5_CMD_OP_QUERY_DCT:
++	case MLX5_CMD_OP_QUERY_DIAGNOSTIC_COUNTERS:
++	case MLX5_CMD_OP_QUERY_DIAGNOSTIC_PARAMS:
++	case MLX5_CMD_OP_QUERY_EQ:
++	case MLX5_CMD_OP_QUERY_ESW_VPORT_CONTEXT:
++	case MLX5_CMD_OP_QUERY_FLOW_COUNTER:
++	case MLX5_CMD_OP_QUERY_FLOW_GROUP:
++	case MLX5_CMD_OP_QUERY_FLOW_TABLE_ENTRY:
++	case MLX5_CMD_OP_QUERY_FLOW_TABLE:
++	case MLX5_CMD_OP_QUERY_GENERAL_OBJECT:
++	case MLX5_CMD_OP_QUERY_ISSI:
++	case MLX5_CMD_OP_QUERY_L2_TABLE_ENTRY:
++	case MLX5_CMD_OP_QUERY_LAG:
++	case MLX5_CMD_OP_QUERY_MAD_DEMUX:
++	case MLX5_CMD_OP_QUERY_MKEY:
++	case MLX5_CMD_OP_QUERY_MODIFY_HEADER_CONTEXT:
++	case MLX5_CMD_OP_QUERY_PACKET_REFORMAT_CONTEXT:
++	case MLX5_CMD_OP_QUERY_PAGES:
++	case MLX5_CMD_OP_QUERY_Q_COUNTER:
++	case MLX5_CMD_OP_QUERY_QP:
++	case MLX5_CMD_OP_QUERY_RMP:
++	case MLX5_CMD_OP_QUERY_RQ:
++	case MLX5_CMD_OP_QUERY_RQT:
++	case MLX5_CMD_OP_QUERY_SCHEDULING_ELEMENT:
++	case MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS:
++	case MLX5_CMD_OP_QUERY_SQ:
++	case MLX5_CMD_OP_QUERY_SRQ:
++	case MLX5_CMD_OP_QUERY_TIR:
++	case MLX5_CMD_OP_QUERY_TIS:
++	case MLX5_CMD_OP_QUERY_VHCA_MIGRATION_STATE:
++	case MLX5_CMD_OP_QUERY_VNIC_ENV:
++	case MLX5_CMD_OP_QUERY_VPORT_COUNTER:
++	case MLX5_CMD_OP_QUERY_VPORT_STATE:
++	case MLX5_CMD_OP_QUERY_WOL_ROL:
++	case MLX5_CMD_OP_QUERY_XRC_SRQ:
++	case MLX5_CMD_OP_QUERY_XRQ_DC_PARAMS_ENTRY:
++	case MLX5_CMD_OP_QUERY_XRQ_ERROR_PARAMS:
++	case MLX5_CMD_OP_QUERY_XRQ:
++		return scope <= FWCTL_RPC_DEBUG_READ_ONLY;
++
++	case MLX5_CMD_OP_SET_DIAGNOSTIC_PARAMS:
++		return scope <= FWCTL_RPC_DEBUG_WRITE;
++
++	case MLX5_CMD_OP_ACCESS_REG:
++		return scope <= FWCTL_RPC_DEBUG_WRITE_FULL;
++	default:
++		return false;
++	}
++}
++
++static void *mlx5ctl_fw_rpc(struct fwctl_uctx *uctx, enum fwctl_rpc_scope scope,
++			    void *rpc_in, size_t in_len, size_t *out_len)
++{
++	struct mlx5ctl_dev *mcdev =
++		container_of(uctx->fwctl, struct mlx5ctl_dev, fwctl);
++	struct mlx5ctl_uctx *mfd =
++		container_of(uctx, struct mlx5ctl_uctx, uctx);
++	void *rpc_alloc __free(kvfree) = NULL;
++	void *rpc_out;
++	int ret;
++
++	if (in_len < MLX5_ST_SZ_BYTES(mbox_in_hdr) ||
++	    *out_len < MLX5_ST_SZ_BYTES(mbox_out_hdr))
++		return ERR_PTR(-EMSGSIZE);
++
++	/* FIXME: Requires device support for more scopes */
++	if (scope != FWCTL_RPC_CONFIGURATION &&
++	    scope != FWCTL_RPC_DEBUG_READ_ONLY)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	mlx5ctl_dbg(mcdev, "[UID %d] cmdif: opcode 0x%x inlen %zu outlen %zu\n",
++		    mfd->uctx_uid, MLX5_GET(mbox_in_hdr, rpc_in, opcode),
++		    in_len, *out_len);
++
++	if (!mlx5ctl_validate_rpc(rpc_in, scope))
++		return ERR_PTR(-EBADMSG);
++
++	/*
++	 * mlx5_cmd_do() copies the input message to its own buffer before
++	 * executing it, so we can reuse the allocation for the output.
++	 */
++	if (*out_len <= in_len) {
++		rpc_out = rpc_in;
++	} else {
++		rpc_out = rpc_alloc = kvzalloc(*out_len, GFP_KERNEL);
++		if (!rpc_alloc)
++			return ERR_PTR(-ENOMEM);
++	}
++
++	/* Enforce the user context for the command */
++	MLX5_SET(mbox_in_hdr, rpc_in, uid, mfd->uctx_uid);
++	ret = mlx5_cmd_do(mcdev->mdev, rpc_in, in_len, rpc_out, *out_len);
++
++	mlx5ctl_dbg(mcdev,
++		    "[UID %d] cmdif: opcode 0x%x status 0x%x retval %pe\n",
++		    mfd->uctx_uid, MLX5_GET(mbox_in_hdr, rpc_in, opcode),
++		    MLX5_GET(mbox_out_hdr, rpc_out, status), ERR_PTR(ret));
++
++	/*
++	 * -EREMOTEIO means execution succeeded and the out is valid,
++	 * but an error code was returned inside out. Everything else
++	 * means the RPC did not make it to the device.
++	 */
++	if (ret && ret != -EREMOTEIO)
++		return ERR_PTR(ret);
++	if (rpc_out == rpc_in)
++		return rpc_in;
++	return_ptr(rpc_alloc);
++}
++
++static const struct fwctl_ops mlx5ctl_ops = {
++	.device_type = FWCTL_DEVICE_TYPE_MLX5,
++	.uctx_size = sizeof(struct mlx5ctl_uctx),
++	.open_uctx = mlx5ctl_open_uctx,
++	.close_uctx = mlx5ctl_close_uctx,
++	.info = mlx5ctl_info,
++	.fw_rpc = mlx5ctl_fw_rpc,
++};
++
++static int mlx5ctl_probe(struct auxiliary_device *adev,
++			 const struct auxiliary_device_id *id)
++
++{
++	struct mlx5_adev *madev = container_of(adev, struct mlx5_adev, adev);
++	struct mlx5_core_dev *mdev = madev->mdev;
++	struct mlx5ctl_dev *mcdev __free(mlx5ctl) = fwctl_alloc_device(
++		&mdev->pdev->dev, &mlx5ctl_ops, struct mlx5ctl_dev, fwctl);
++	int ret;
++
++	if (!mcdev)
++		return -ENOMEM;
++
++	mcdev->mdev = mdev;
++
++	ret = fwctl_register(&mcdev->fwctl);
++	if (ret)
++		return ret;
++	auxiliary_set_drvdata(adev, no_free_ptr(mcdev));
++	return 0;
++}
++
++static void mlx5ctl_remove(struct auxiliary_device *adev)
++{
++	struct mlx5ctl_dev *mcdev __free(mlx5ctl) = auxiliary_get_drvdata(adev);
++
++	fwctl_unregister(&mcdev->fwctl);
++}
++
++static const struct auxiliary_device_id mlx5ctl_id_table[] = {
++	{.name = MLX5_ADEV_NAME ".fwctl",},
++	{}
++};
++MODULE_DEVICE_TABLE(auxiliary, mlx5ctl_id_table);
++
++static struct auxiliary_driver mlx5ctl_driver = {
++	.name = "mlx5_fwctl",
++	.probe = mlx5ctl_probe,
++	.remove = mlx5ctl_remove,
++	.id_table = mlx5ctl_id_table,
++};
++
++module_auxiliary_driver(mlx5ctl_driver);
++
++MODULE_IMPORT_NS(FWCTL);
++MODULE_DESCRIPTION("mlx5 ConnectX fwctl driver");
++MODULE_AUTHOR("Saeed Mahameed <saeedm@nvidia.com>");
++MODULE_LICENSE("Dual BSD/GPL");
+diff --git a/include/uapi/fwctl/fwctl.h b/include/uapi/fwctl/fwctl.h
+index 3af9f9eb9b1878..f9b27fb5c1618c 100644
+--- a/include/uapi/fwctl/fwctl.h
++++ b/include/uapi/fwctl/fwctl.h
+@@ -42,6 +42,7 @@ enum {
+ 
+ enum fwctl_device_type {
+ 	FWCTL_DEVICE_TYPE_ERROR = 0,
++	FWCTL_DEVICE_TYPE_MLX5 = 1,
+ };
+ 
+ /**
+diff --git a/include/uapi/fwctl/mlx5.h b/include/uapi/fwctl/mlx5.h
+new file mode 100644
+index 00000000000000..bcb4602ffdeee4
+--- /dev/null
++++ b/include/uapi/fwctl/mlx5.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/*
++ * Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES
++ *
++ * These are definitions for the command interface for mlx5 HW. mlx5 FW has a
++ * User Context mechanism which allows the FW to understand a security scope.
++ * FWCTL binds each FD to a FW user context and then places the User Context ID
++ * (UID) in each command header. The created User Context has a capability set
++ * that is appropriate for FWCTL's security model.
++ *
++ * Command formation should use a copy of the structs in mlx5_ifc.h following
++ * the Programmers Reference Manual. A open release is available here:
++ *
++ *  https://network.nvidia.com/files/doc-2020/ethernet-adapters-programming-manual.pdf
++ *
++ * The device_type for this file is FWCTL_DEVICE_TYPE_MLX5.
++ */
++#ifndef _UAPI_FWCTL_MLX5_H
++#define _UAPI_FWCTL_MLX5_H
++
++#include <linux/types.h>
++
++/**
++ * struct fwctl_info_mlx5 - ioctl(FWCTL_INFO) out_device_data
++ * @uid: The FW UID this FD is bound to. Each command header will force
++ *	this value.
++ * @uctx_caps: The FW capabilities that are enabled for the uid.
++ *
++ * Return basic information about the FW interface available.
++ */
++struct fwctl_info_mlx5 {
++	__u32 uid;
++	__u32 uctx_caps;
++};
++
++#endif
 -- 
 2.46.0
 
