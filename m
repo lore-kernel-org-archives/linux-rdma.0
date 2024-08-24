@@ -1,48 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8E0E54656;
-	Sat, 24 Aug 2024 03:20:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0820A626CB;
+	Sat, 24 Aug 2024 03:20:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724469652; cv=none; b=fHXrycbVcsecIfhyXSQG0gFmjUdEs+4n14tRChYVkfuN8ChfYSub9P9hFjWkwF866ueEUXjBIZVt8XMfeuOkLdlvDM+aits6wE02M1XWdlHFDz+AKRyLbeRM7v1UL8kPX8HiFO3GRbsKs9v57v1WdJo039p1rCfUlvN5NOkwHv8=
+	t=1724469652; cv=none; b=czo6qKmmTH4SHoxSM2FAhZOzQVAHRI0pD7UUQkSh8YHRHjL7nSWZGgWLTTc/KpW/wumUf0ejuuDDhtd52RmFovtYXAkJvliZ0Slg7k7GS38ycn6erQdFhIHzjdpeH8VCxCY1eMrZ4YS54Qj1/3WzbuAkAEN1l7dHi65duSJ+D+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1724469652; c=relaxed/simple;
-	bh=WFIRqGAQAl6IKBou3s6SLFumGaNC4AbqW5VSTBg+tjI=;
+	bh=VuK0HKMUf1REPDxLstnaNfetM5RNl+vR7MOn8AbboTY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=q66n57uC5QQQjQw3Akg+f2dwc2plWMqAHN7f9x7ujvId3MSIRsWAlW27wo4vY/VIz30Xso1zXpPVZlwHnCuRP50k4pcAzjpH/05XODS1RjsPfrwMsLEY0iuZorBxHftZOesykZA068ndf0vFYE+qNwKcFxiezGXzWG2Kq0223PA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YgL8IivS; arc=none smtp.client-ip=192.198.163.16
+	 MIME-Version; b=IcV30KZiBDsX2UvA1IHYwhwwa29TK8sl485IO12e49HplcOwoGfZcoZtD/UBVyjs++vkx1fvU1i+4UAKIf8y0F7nC1CMW2X4qlao5QH6Iect6stqfmONMCNFGQeNLM9iDsFIRhrWMwDXni141ladjm2JSRIKSWn/tmZRnQRP4P4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AdXbE9qr; arc=none smtp.client-ip=192.198.163.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YgL8IivS"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AdXbE9qr"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724469650; x=1756005650;
+  t=1724469651; x=1756005651;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=WFIRqGAQAl6IKBou3s6SLFumGaNC4AbqW5VSTBg+tjI=;
-  b=YgL8IivSClEzZxhuFLqiQiUS4MnNeBM2br0T+zVyOlzac9GbdSV83HMI
-   DNoiUVJq2HkDnkvkHzLro5hCMPYKW61G2hzct2zfULAq91mw+QtRL5Wlp
-   obFMJ9zjjp0icmYFfJA/VJfFkiiPQAdP1yxYuQE+/SaUuo9EaFhh/OJKU
-   XxLYB/X6Q8vd4F0Jkg8ZwvItA04OPRW2/qsxro/OGAq9IymfvVTWXsVbR
-   32kYnuBXDx10QDYFHnyP1554hmKiTvrfADlYt/7EORZy3XK48iFPF/26n
-   Z1N8E9iu73PfP8RyZmyTVOm9xHsDNxr7928TIetUSem9itaS78+LkrBRz
-   A==;
-X-CSE-ConnectionGUID: oo6m9K4pTyO1roHvmEaJcw==
-X-CSE-MsgGUID: ZWdvTmuWQBGnweuVDfqiwg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11173"; a="13187803"
+  bh=VuK0HKMUf1REPDxLstnaNfetM5RNl+vR7MOn8AbboTY=;
+  b=AdXbE9qrUDf5TUuls/Gfo337NVskPm3I++/QHn4yNyEw6yduMaSyJ5n9
+   1cQj3DsZWLZAjVcymjxPzyxPch3EhtPy3prFE1SW+hoHJ6zoIZYZP2Atc
+   6nfCpY9zBNqKeeCrRMeziTd5tcJYnDZKQL0zY79q5XcVa/CUkOOji2NUw
+   P9wDPPvcmIZOlCYXyNcf+sfjb2M6MuBOOp28lkWujuTYlPftGcYXZGWTC
+   970Nm2qhFMj1hiU9LrO8TE+Yj7lOwykbo4bZkxKMFKagSHF1prYeXwnRx
+   rDu2zHqoWKYIB0dh04OuqfcYvO9pOeGfo2f/K6aIuJUXf/lmGMqwK6PnH
+   w==;
+X-CSE-ConnectionGUID: EyPbBKFEQbyy9NHHeGWBBQ==
+X-CSE-MsgGUID: UOuMZS7ZQN+D0s9ktzyvMA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11173"; a="13187810"
 X-IronPort-AV: E=Sophos;i="6.10,172,1719903600"; 
-   d="scan'208";a="13187803"
+   d="scan'208";a="13187810"
 Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2024 20:20:45 -0700
-X-CSE-ConnectionGUID: FyPJ0gmUQayTjVnlIOZ0ow==
-X-CSE-MsgGUID: wJNzcmLcRIawxIjpmkzYKQ==
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2024 20:20:47 -0700
+X-CSE-ConnectionGUID: Gunp0TbHRXKPQbDInM4xMw==
+X-CSE-MsgGUID: kYEpDc4BROC+uACkorHX1w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,172,1719903600"; 
-   d="scan'208";a="99492110"
+   d="scan'208";a="99492118"
 Received: from tenikolo-mobl1.amr.corp.intel.com ([10.124.36.66])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2024 20:20:45 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2024 20:20:46 -0700
 From: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 To: jgg@nvidia.com,
 	leon@kernel.org
@@ -50,9 +50,9 @@ Cc: linux-rdma@vger.kernel.org,
 	netdev@vger.kernel.org,
 	Krzysztof Czurylo <krzysztof.czurylo@intel.com>,
 	Tatyana Nikolova <tatyana.e.nikolova@intel.com>
-Subject: [RFC v2 13/25] RDMA/irdma: Add GEN3 CQP support with deferred completions
-Date: Fri, 23 Aug 2024 22:19:12 -0500
-Message-Id: <20240824031924.421-14-tatyana.e.nikolova@intel.com>
+Subject: [RFC v2 15/25] RDMA/irdma: Add GEN3 HW statistics support
+Date: Fri, 23 Aug 2024 22:19:14 -0500
+Message-Id: <20240824031924.421-16-tatyana.e.nikolova@intel.com>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20240824031924.421-1-tatyana.e.nikolova@intel.com>
 References: <20240824031924.421-1-tatyana.e.nikolova@intel.com>
@@ -66,804 +66,371 @@ Content-Transfer-Encoding: 8bit
 
 From: Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
-GEN3 introduces asynchronous handling of Control QP (CQP) operations to
-minimize head-of-line blocking. Create the CQP using the updated GEN3-
-specific descriptor fields and implement the necessary support for this
-deferred completion mechanism.
+Plug into the unified HW statistics framework by adding a hardware
+statistics map array for GEN3, defining the HW-specific width and
+location for each counter in the statistics buffer.
 
 Signed-off-by: Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 ---
- drivers/infiniband/hw/irdma/ctrl.c   | 254 ++++++++++++++++++++++++++-
- drivers/infiniband/hw/irdma/defs.h   |  15 ++
- drivers/infiniband/hw/irdma/hw.c     |  89 ++++++++--
- drivers/infiniband/hw/irdma/main.h   |   2 +
- drivers/infiniband/hw/irdma/protos.h |   1 +
- drivers/infiniband/hw/irdma/type.h   |  43 ++++-
- drivers/infiniband/hw/irdma/utils.c  |  50 +++++-
- 7 files changed, 439 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/irdma/ctrl.c       |  33 +++++--
+ drivers/infiniband/hw/irdma/defs.h       |   2 +-
+ drivers/infiniband/hw/irdma/ig3rdma_hw.c |  63 +++++++++++++
+ drivers/infiniband/hw/irdma/type.h       |  19 +++-
+ drivers/infiniband/hw/irdma/verbs.c      | 110 +++++++++++++----------
+ 5 files changed, 166 insertions(+), 61 deletions(-)
 
 diff --git a/drivers/infiniband/hw/irdma/ctrl.c b/drivers/infiniband/hw/irdma/ctrl.c
-index 34875cb2ceff..e524b61e4759 100644
+index 5a5d47cf1854..88eb7a088ee7 100644
 --- a/drivers/infiniband/hw/irdma/ctrl.c
 +++ b/drivers/infiniband/hw/irdma/ctrl.c
-@@ -2737,6 +2737,90 @@ static inline void irdma_get_cqp_reg_info(struct irdma_sc_cqp *cqp, u32 *val,
- 	*error = FIELD_GET(IRDMA_CQPTAIL_CQP_OP_ERR, *val);
+@@ -1964,7 +1964,8 @@ int irdma_vsi_stats_init(struct irdma_sc_vsi *vsi,
+ 		(void *)((uintptr_t)stats_buff_mem->va +
+ 			 IRDMA_GATHER_STATS_BUF_SIZE);
+ 
+-	irdma_hw_stats_start_timer(vsi);
++	if (vsi->dev->hw_attrs.uk_attrs.hw_rev < IRDMA_GEN_3)
++		irdma_hw_stats_start_timer(vsi);
+ 
+ 	/* when stat allocation is not required default to fcn_id. */
+ 	vsi->stats_idx = info->fcn_id;
+@@ -2009,7 +2010,9 @@ void irdma_vsi_stats_free(struct irdma_sc_vsi *vsi)
+ 
+ 	if (!vsi->pestat)
+ 		return;
+-	irdma_hw_stats_stop_timer(vsi);
++
++	if (dev->hw_attrs.uk_attrs.hw_rev < IRDMA_GEN_3)
++		irdma_hw_stats_stop_timer(vsi);
+ 	dma_free_coherent(vsi->pestat->hw->device,
+ 			  vsi->pestat->gather_info.stats_buff_mem.size,
+ 			  vsi->pestat->gather_info.stats_buff_mem.va,
+@@ -5935,14 +5938,26 @@ void irdma_cfg_aeq(struct irdma_sc_dev *dev, u32 idx, bool enable)
+  */
+ void sc_vsi_update_stats(struct irdma_sc_vsi *vsi)
+ {
+-	struct irdma_gather_stats *gather_stats;
+-	struct irdma_gather_stats *last_gather_stats;
++	struct irdma_dev_hw_stats *hw_stats = &vsi->pestat->hw_stats;
++	struct irdma_gather_stats *gather_stats =
++		vsi->pestat->gather_info.gather_stats_va;
++	struct irdma_gather_stats *last_gather_stats =
++		vsi->pestat->gather_info.last_gather_stats_va;
++	const struct irdma_hw_stat_map *map = vsi->dev->hw_stats_map;
++	u16 max_stat_idx = vsi->dev->hw_attrs.max_stat_idx;
++	u16 i;
++
++	if (vsi->dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_3) {
++		for (i = 0; i < max_stat_idx; i++) {
++			u16 idx = map[i].byteoff / sizeof(u64);
++
++			hw_stats->stats_val[i] = gather_stats->val[idx];
++		}
++		return;
++	}
+ 
+-	gather_stats = vsi->pestat->gather_info.gather_stats_va;
+-	last_gather_stats = vsi->pestat->gather_info.last_gather_stats_va;
+-	irdma_update_stats(&vsi->pestat->hw_stats, gather_stats,
+-			   last_gather_stats, vsi->dev->hw_stats_map,
+-			   vsi->dev->hw_attrs.max_stat_idx);
++	irdma_update_stats(hw_stats, gather_stats, last_gather_stats,
++			   map, max_stat_idx);
  }
  
-+/**
-+ * irdma_sc_cqp_def_cmpl_ae_handler - remove completed requests from pending list
-+ * @dev: sc device struct
-+ * @info: AE entry info
-+ * @first: true if this is the first call to this handler for given AEQE
-+ * @scratch: (out) scratch entry pointer
-+ * @sw_def_info: (in/out) SW ticket value for this AE
-+ *
-+ * In case of AE_DEF_CMPL event, this function should be called in a loop
-+ * until it returns NULL-ptr via scratch.
-+ * For each call, it looks for a matching CQP request on pending list,
-+ * removes it from the list and returns the pointer to the associated scratch
-+ * entry.
-+ * If this is the first call to this function for given AEQE, sw_def_info
-+ * value is not used to find matching requests.  Instead, it is populated
-+ * with the value from the first matching cqp_request on the list.
-+ * For subsequent calls, ooo_op->sw_def_info need to match the value passed
-+ * by a caller.
-+ *
-+ * Return: scratch entry pointer for cqp_request to be released or NULL
-+ * if no matching request is found.
-+ */
-+void irdma_sc_cqp_def_cmpl_ae_handler(struct irdma_sc_dev *dev,
-+				      struct irdma_aeqe_info *info,
-+				      bool first, u64 *scratch,
-+				      u32 *sw_def_info)
-+{
-+	struct irdma_ooo_cqp_op *ooo_op;
-+	unsigned long flags;
-+
-+	*scratch = 0;
-+
-+	spin_lock_irqsave(&dev->cqp->ooo_list_lock, flags);
-+	list_for_each_entry(ooo_op, &dev->cqp->ooo_pnd, list_entry) {
-+		if (ooo_op->deferred &&
-+		    ((first && ooo_op->def_info == info->def_info) ||
-+		     (!first && ooo_op->sw_def_info == *sw_def_info))) {
-+			*sw_def_info = ooo_op->sw_def_info;
-+			*scratch = ooo_op->scratch;
-+
-+			list_del(&ooo_op->list_entry);
-+			list_add(&ooo_op->list_entry, &dev->cqp->ooo_avail);
-+			atomic64_inc(&dev->cqp->completed_ops);
-+
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&dev->cqp->ooo_list_lock, flags);
-+
-+	if (first && !*scratch)
-+		ibdev_dbg(to_ibdev(dev),
-+			  "AEQ: deferred completion with unknown ticket: def_info 0x%x\n",
-+			   info->def_info);
-+}
-+
-+/**
-+ * irdma_sc_cqp_cleanup_handler - remove requests from pending list
-+ * @dev: sc device struct
-+ *
-+ * This function should be called in a loop from irdma_cleanup_pending_cqp_op.
-+ * For each call, it returns first CQP request on pending list, removes it
-+ * from the list and returns the pointer to the associated scratch entry.
-+ *
-+ * Return: scratch entry pointer for cqp_request to be released or NULL
-+ * if pending list is empty.
-+ */
-+u64 irdma_sc_cqp_cleanup_handler(struct irdma_sc_dev *dev)
-+{
-+	struct irdma_ooo_cqp_op *ooo_op;
-+	u64 scratch = 0;
-+
-+	list_for_each_entry(ooo_op, &dev->cqp->ooo_pnd, list_entry) {
-+		scratch = ooo_op->scratch;
-+
-+		list_del(&ooo_op->list_entry);
-+		list_add(&ooo_op->list_entry, &dev->cqp->ooo_avail);
-+		atomic64_inc(&dev->cqp->completed_ops);
-+
-+		break;
-+	}
-+
-+	return scratch;
-+}
-+
  /**
-  * irdma_cqp_poll_registers - poll cqp registers
-  * @cqp: struct for cqp hw
-@@ -3121,6 +3205,8 @@ void irdma_sc_remove_cq_ctx(struct irdma_sc_ceq *ceq, struct irdma_sc_cq *cq)
- int irdma_sc_cqp_init(struct irdma_sc_cqp *cqp,
- 		      struct irdma_cqp_init_info *info)
- {
-+	struct irdma_ooo_cqp_op *ooo_op;
-+	u32 num_ooo_ops;
- 	u8 hw_sq_size;
- 
- 	if (info->sq_size > IRDMA_CQP_SW_SQSIZE_2048 ||
-@@ -3151,17 +3237,43 @@ int irdma_sc_cqp_init(struct irdma_sc_cqp *cqp,
- 	cqp->rocev2_rto_policy = info->rocev2_rto_policy;
- 	cqp->protocol_used = info->protocol_used;
- 	memcpy(&cqp->dcqcn_params, &info->dcqcn_params, sizeof(cqp->dcqcn_params));
-+	if (cqp->dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_3) {
-+		cqp->ooisc_blksize = info->ooisc_blksize;
-+		cqp->rrsp_blksize = info->rrsp_blksize;
-+		cqp->q1_blksize = info->q1_blksize;
-+		cqp->xmit_blksize = info->xmit_blksize;
-+		cqp->blksizes_valid = info->blksizes_valid;
-+		cqp->ts_shift = info->ts_shift;
-+		cqp->ts_override = info->ts_override;
-+		cqp->en_fine_grained_timers = info->en_fine_grained_timers;
-+		cqp->pe_en_vf_cnt = info->pe_en_vf_cnt;
-+		cqp->ooo_op_array = info->ooo_op_array;
-+		/* initialize the OOO lists */
-+		INIT_LIST_HEAD(&cqp->ooo_avail);
-+		INIT_LIST_HEAD(&cqp->ooo_pnd);
-+		if (cqp->ooo_op_array) {
-+			/* Populate avail list entries */
-+			for (num_ooo_ops = 0, ooo_op = info->ooo_op_array;
-+			     num_ooo_ops < cqp->sq_size;
-+			     num_ooo_ops++, ooo_op++)
-+				list_add(&ooo_op->list_entry, &cqp->ooo_avail);
-+		}
-+	}
- 	info->dev->cqp = cqp;
- 
- 	IRDMA_RING_INIT(cqp->sq_ring, cqp->sq_size);
-+	cqp->last_def_cmpl_ticket = 0;
-+	cqp->sw_def_cmpl_ticket = 0;
- 	cqp->requested_ops = 0;
- 	atomic64_set(&cqp->completed_ops, 0);
- 	/* for the cqp commands backlog. */
- 	INIT_LIST_HEAD(&cqp->dev->cqp_cmd_head);
- 
- 	writel(0, cqp->dev->hw_regs[IRDMA_CQPTAIL]);
--	writel(0, cqp->dev->hw_regs[IRDMA_CQPDB]);
--	writel(0, cqp->dev->hw_regs[IRDMA_CCQPSTATUS]);
-+	if (cqp->dev->hw_attrs.uk_attrs.hw_rev <= IRDMA_GEN_2) {
-+		writel(0, cqp->dev->hw_regs[IRDMA_CQPDB]);
-+		writel(0, cqp->dev->hw_regs[IRDMA_CCQPSTATUS]);
-+	}
- 
- 	ibdev_dbg(to_ibdev(cqp->dev),
- 		  "WQE: sq_size[%04d] hw_sq_size[%04d] sq_base[%p] sq_pa[%pK] cqp[%p] polarity[x%04x]\n",
-@@ -3193,6 +3305,7 @@ int irdma_sc_cqp_create(struct irdma_sc_cqp *cqp, u16 *maj_err, u16 *min_err)
- 		return -ENOMEM;
- 
- 	spin_lock_init(&cqp->dev->cqp_lock);
-+	spin_lock_init(&cqp->ooo_list_lock);
- 
- 	temp = FIELD_PREP(IRDMA_CQPHC_SQSIZE, cqp->hw_sq_size) |
- 	       FIELD_PREP(IRDMA_CQPHC_SVER, cqp->struct_ver) |
-@@ -3204,12 +3317,29 @@ int irdma_sc_cqp_create(struct irdma_sc_cqp *cqp, u16 *maj_err, u16 *min_err)
- 			FIELD_PREP(IRDMA_CQPHC_PROTOCOL_USED,
- 				   cqp->protocol_used);
- 	}
-+	if (hw_rev >= IRDMA_GEN_3)
-+		temp |= FIELD_PREP(IRDMA_CQPHC_EN_FINE_GRAINED_TIMERS,
-+				   cqp->en_fine_grained_timers);
- 
- 	set_64bit_val(cqp->host_ctx, 0, temp);
- 	set_64bit_val(cqp->host_ctx, 8, cqp->sq_pa);
- 
- 	temp = FIELD_PREP(IRDMA_CQPHC_ENABLED_VFS, cqp->ena_vf_count) |
- 	       FIELD_PREP(IRDMA_CQPHC_HMC_PROFILE, cqp->hmc_profile);
-+
-+	if (hw_rev >= IRDMA_GEN_3)
-+		temp |= FIELD_PREP(IRDMA_CQPHC_OOISC_BLKSIZE,
-+				   cqp->ooisc_blksize) |
-+			FIELD_PREP(IRDMA_CQPHC_RRSP_BLKSIZE,
-+				   cqp->rrsp_blksize) |
-+			FIELD_PREP(IRDMA_CQPHC_Q1_BLKSIZE, cqp->q1_blksize) |
-+			FIELD_PREP(IRDMA_CQPHC_XMIT_BLKSIZE,
-+				   cqp->xmit_blksize) |
-+			FIELD_PREP(IRDMA_CQPHC_BLKSIZES_VALID,
-+				   cqp->blksizes_valid) |
-+			FIELD_PREP(IRDMA_CQPHC_TIMESTAMP_OVERRIDE,
-+				   cqp->ts_override) |
-+			FIELD_PREP(IRDMA_CQPHC_TS_SHIFT, cqp->ts_shift);
- 	set_64bit_val(cqp->host_ctx, 16, temp);
- 	set_64bit_val(cqp->host_ctx, 24, (uintptr_t)cqp);
- 	temp = FIELD_PREP(IRDMA_CQPHC_HW_MAJVER, cqp->hw_maj_ver) |
-@@ -3370,6 +3500,87 @@ void irdma_sc_ccq_arm(struct irdma_sc_cq *ccq)
- 	writel(ccq->cq_uk.cq_id, ccq->dev->cq_arm_db);
- }
- 
-+/**
-+ * irdma_sc_process_def_cmpl - process deferred or pending completion
-+ * @cqp: CQP sc struct
-+ * @info: CQP CQE info
-+ * @wqe_idx: CQP WQE descriptor index
-+ * @def_info: deferred op ticket value or out-of-order completion id
-+ * @def_cmpl: true for deferred completion, false for pending (RCA)
-+ */
-+static void irdma_sc_process_def_cmpl(struct irdma_sc_cqp *cqp,
-+				      struct irdma_ccq_cqe_info *info,
-+				      u32 wqe_idx, u32 def_info, bool def_cmpl)
-+{
-+	struct irdma_ooo_cqp_op *ooo_op;
-+	unsigned long flags;
-+
-+	/* Deferred and out-of-order completions share the same list of pending
-+	 * completions.  Since the list can be also accessed from AE handler,
-+	 * it must be protected by a lock.
-+	 */
-+	spin_lock_irqsave(&cqp->ooo_list_lock, flags);
-+
-+	/* For deferred completions bump up SW completion ticket value. */
-+	if (def_cmpl) {
-+		cqp->last_def_cmpl_ticket = def_info;
-+		cqp->sw_def_cmpl_ticket++;
-+	}
-+	if (!list_empty(&cqp->ooo_avail)) {
-+		ooo_op = (struct irdma_ooo_cqp_op *)
-+			 list_entry(cqp->ooo_avail.next,
-+				    struct irdma_ooo_cqp_op, list_entry);
-+
-+		list_del(&ooo_op->list_entry);
-+		ooo_op->scratch = info->scratch;
-+		ooo_op->def_info = def_info;
-+		ooo_op->sw_def_info = cqp->sw_def_cmpl_ticket;
-+		ooo_op->deferred = def_cmpl;
-+		ooo_op->wqe_idx = wqe_idx;
-+		/* Pending completions must be chronologically ordered,
-+		 * so adding at the end of list.
-+		 */
-+		list_add_tail(&ooo_op->list_entry, &cqp->ooo_pnd);
-+	}
-+	spin_unlock_irqrestore(&cqp->ooo_list_lock, flags);
-+
-+	info->pending = true;
-+}
-+
-+/**
-+ * irdma_sc_process_ooo_cmpl - process out-of-order (final) completion
-+ * @cqp: CQP sc struct
-+ * @info: CQP CQE info
-+ * @def_info: out-of-order completion id
-+ */
-+static void irdma_sc_process_ooo_cmpl(struct irdma_sc_cqp *cqp,
-+				      struct irdma_ccq_cqe_info *info,
-+				      u32 def_info)
-+{
-+	struct irdma_ooo_cqp_op *ooo_op_tmp;
-+	struct irdma_ooo_cqp_op *ooo_op;
-+	unsigned long flags;
-+
-+	info->scratch = 0;
-+
-+	spin_lock_irqsave(&cqp->ooo_list_lock, flags);
-+	list_for_each_entry_safe(ooo_op, ooo_op_tmp, &cqp->ooo_pnd,
-+				 list_entry) {
-+		if (!ooo_op->deferred && ooo_op->def_info == def_info) {
-+			list_del(&ooo_op->list_entry);
-+			info->scratch = ooo_op->scratch;
-+			list_add(&ooo_op->list_entry, &cqp->ooo_avail);
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&cqp->ooo_list_lock, flags);
-+
-+	if (!info->scratch)
-+		ibdev_dbg(to_ibdev(cqp->dev),
-+			  "CQP: DEBUG_FW_OOO out-of-order completion with unknown def_info = 0x%x\n",
-+			  def_info);
-+}
-+
- /**
-  * irdma_sc_ccq_get_cqe_info - get ccq's cq entry
-  * @ccq: ccq sc struct
-@@ -3378,6 +3589,10 @@ void irdma_sc_ccq_arm(struct irdma_sc_cq *ccq)
- int irdma_sc_ccq_get_cqe_info(struct irdma_sc_cq *ccq,
- 			      struct irdma_ccq_cqe_info *info)
- {
-+	u32 def_info;
-+	bool def_cmpl = false;
-+	bool pend_cmpl = false;
-+	bool ooo_final_cmpl = false;
- 	u64 qp_ctx, temp, temp1;
- 	__le64 *cqe;
- 	struct irdma_sc_cqp *cqp;
-@@ -3385,6 +3600,7 @@ int irdma_sc_ccq_get_cqe_info(struct irdma_sc_cq *ccq,
- 	u32 error;
- 	u8 polarity;
- 	int ret_code = 0;
-+	unsigned long flags;
- 
- 	if (ccq->cq_uk.avoid_mem_cflct)
- 		cqe = IRDMA_GET_CURRENT_EXTENDED_CQ_ELEM(&ccq->cq_uk);
-@@ -3416,6 +3632,25 @@ int irdma_sc_ccq_get_cqe_info(struct irdma_sc_cq *ccq,
- 
- 	get_64bit_val(cqe, 16, &temp1);
- 	info->op_ret_val = (u32)FIELD_GET(IRDMA_CCQ_OPRETVAL, temp1);
-+	if (cqp->dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_3) {
-+		def_cmpl = info->maj_err_code == IRDMA_CQPSQ_MAJ_NO_ERROR &&
-+			   info->min_err_code == IRDMA_CQPSQ_MIN_DEF_CMPL;
-+		def_info = (u32)FIELD_GET(IRDMA_CCQ_DEFINFO, temp1);
-+
-+		pend_cmpl = info->maj_err_code == IRDMA_CQPSQ_MAJ_NO_ERROR &&
-+			    info->min_err_code == IRDMA_CQPSQ_MIN_OOO_CMPL;
-+
-+		ooo_final_cmpl = (bool)FIELD_GET(IRDMA_OOO_CMPL, temp);
-+
-+		if (def_cmpl || pend_cmpl || ooo_final_cmpl) {
-+			if (ooo_final_cmpl)
-+				irdma_sc_process_ooo_cmpl(cqp, info, def_info);
-+			else
-+				irdma_sc_process_def_cmpl(cqp, info, wqe_idx,
-+							  def_info, def_cmpl);
-+		}
-+	}
-+
- 	get_64bit_val(cqp->sq_base[wqe_idx].elem, 24, &temp1);
- 	info->op_code = (u8)FIELD_GET(IRDMA_CQPSQ_OPCODE, temp1);
- 	info->cqp = cqp;
-@@ -3432,7 +3667,16 @@ int irdma_sc_ccq_get_cqe_info(struct irdma_sc_cq *ccq,
- 
- 	dma_wmb(); /* make sure shadow area is updated before moving tail */
- 
--	IRDMA_RING_MOVE_TAIL(cqp->sq_ring);
-+	spin_lock_irqsave(&cqp->dev->cqp_lock, flags);
-+	if (!ooo_final_cmpl)
-+		IRDMA_RING_MOVE_TAIL(cqp->sq_ring);
-+	spin_unlock_irqrestore(&cqp->dev->cqp_lock, flags);
-+
-+	/* Do not increment completed_ops counter on pending or deferred
-+	 * completions.
-+	 */
-+	if (pend_cmpl || def_cmpl)
-+		return ret_code;
- 	atomic64_inc(&cqp->completed_ops);
- 
- 	return ret_code;
-@@ -4118,6 +4362,10 @@ int irdma_sc_get_next_aeqe(struct irdma_sc_aeq *aeq,
- 		info->compl_ctx = compl_ctx << 1;
- 		ae_src = IRDMA_AE_SOURCE_RSVD;
- 		break;
-+	case IRDMA_AE_CQP_DEFERRED_COMPLETE:
-+		info->def_info = info->wqe_idx;
-+		ae_src = IRDMA_AE_SOURCE_RSVD;
-+		break;
- 	case IRDMA_AE_ROCE_EMPTY_MCG:
- 	case IRDMA_AE_ROCE_BAD_MC_IP_ADDR:
- 	case IRDMA_AE_ROCE_BAD_MC_QPID:
 diff --git a/drivers/infiniband/hw/irdma/defs.h b/drivers/infiniband/hw/irdma/defs.h
-index fe75737554b2..5e4d62cb551e 100644
+index 5829c72cd328..492529ada042 100644
 --- a/drivers/infiniband/hw/irdma/defs.h
 +++ b/drivers/infiniband/hw/irdma/defs.h
-@@ -367,6 +367,7 @@ enum irdma_cqp_op_type {
- #define IRDMA_AE_LCE_FUNCTION_CATASTROPHIC				0x0701
- #define IRDMA_AE_LCE_CQ_CATASTROPHIC					0x0702
- #define IRDMA_AE_QP_SUSPEND_COMPLETE					0x0900
-+#define IRDMA_AE_CQP_DEFERRED_COMPLETE					0x0901
- 
- #define FLD_LS_64(dev, val, field)	\
- 	(((u64)(val) << (dev)->hw_shifts[field ## _S]) & (dev)->hw_masks[field ## _M])
-@@ -465,6 +466,16 @@ enum irdma_cqp_op_type {
- #define IRDMA_CQPHC_SVER GENMASK_ULL(31, 24)
- #define IRDMA_CQPHC_SQBASE GENMASK_ULL(63, 9)
- 
-+#define IRDMA_CQPHC_TIMESTAMP_OVERRIDE BIT_ULL(5)
-+#define IRDMA_CQPHC_TS_SHIFT GENMASK_ULL(12, 8)
-+#define IRDMA_CQPHC_EN_FINE_GRAINED_TIMERS BIT_ULL(0)
-+
-+#define IRDMA_CQPHC_OOISC_BLKSIZE GENMASK_ULL(63, 60)
-+#define IRDMA_CQPHC_RRSP_BLKSIZE GENMASK_ULL(59, 56)
-+#define IRDMA_CQPHC_Q1_BLKSIZE GENMASK_ULL(55, 52)
-+#define IRDMA_CQPHC_XMIT_BLKSIZE GENMASK_ULL(51, 48)
-+#define IRDMA_CQPHC_BLKSIZES_VALID BIT_ULL(4)
-+
- #define IRDMA_CQPHC_QPCTX GENMASK_ULL(63, 0)
- #define IRDMA_QP_DBSA_HW_SQ_TAIL GENMASK_ULL(14, 0)
- #define IRDMA_CQ_DBSA_CQEIDX GENMASK_ULL(19, 0)
-@@ -478,6 +489,8 @@ enum irdma_cqp_op_type {
- 
- #define IRDMA_CCQ_OPRETVAL GENMASK_ULL(31, 0)
- 
-+#define IRDMA_CCQ_DEFINFO GENMASK_ULL(63, 32)
-+
- #define IRDMA_CQ_MINERR GENMASK_ULL(15, 0)
- #define IRDMA_CQ_MAJERR GENMASK_ULL(31, 16)
- #define IRDMA_CQ_WQEIDX GENMASK_ULL(46, 32)
-@@ -715,6 +728,8 @@ enum irdma_cqp_op_type {
- 
- #define IRDMA_CQPSQ_MIN_STAG_INVALID 0x0001
- #define IRDMA_CQPSQ_MIN_SUSPEND_PND 0x0005
-+#define IRDMA_CQPSQ_MIN_DEF_CMPL 0x0006
-+#define IRDMA_CQPSQ_MIN_OOO_CMPL 0x0007
- 
- #define IRDMA_CQPSQ_MAJ_NO_ERROR 0x0000
- #define IRDMA_CQPSQ_MAJ_OBJCACHE_ERROR 0xF000
-diff --git a/drivers/infiniband/hw/irdma/hw.c b/drivers/infiniband/hw/irdma/hw.c
-index 288131466a19..55b10a8b6fd3 100644
---- a/drivers/infiniband/hw/irdma/hw.c
-+++ b/drivers/infiniband/hw/irdma/hw.c
-@@ -207,6 +207,51 @@ static void irdma_set_flush_fields(struct irdma_sc_qp *qp,
- 	}
- }
- 
-+/**
-+ * irdma_complete_cqp_request - perform post-completion cleanup
-+ * @cqp: device CQP
-+ * @cqp_request: CQP request
-+ *
-+ * Mark CQP request as done, wake up waiting thread or invoke
-+ * callback function and release/free CQP request.
-+ */
-+static void irdma_complete_cqp_request(struct irdma_cqp *cqp,
-+				       struct irdma_cqp_request *cqp_request)
-+{
-+	if (cqp_request->waiting) {
-+		WRITE_ONCE(cqp_request->request_done, true);
-+		wake_up(&cqp_request->waitq);
-+	} else if (cqp_request->callback_fcn) {
-+		cqp_request->callback_fcn(cqp_request);
-+	}
-+	irdma_put_cqp_request(cqp, cqp_request);
-+}
-+
-+/**
-+ * irdma_process_ae_def_cmpl - handle IRDMA_AE_CQP_DEFERRED_COMPLETE event
-+ * @rf: RDMA PCI function
-+ * @info: AEQ entry info
-+ */
-+static void irdma_process_ae_def_cmpl(struct irdma_pci_f *rf,
-+				      struct irdma_aeqe_info *info)
-+{
-+	u32 sw_def_info;
-+	u64 scratch;
-+
-+	irdma_cqp_ce_handler(rf, &rf->ccq.sc_cq);
-+
-+	irdma_sc_cqp_def_cmpl_ae_handler(&rf->sc_dev, info, true,
-+					 &scratch, &sw_def_info);
-+	while (scratch) {
-+		struct irdma_cqp_request *cqp_request =
-+			(struct irdma_cqp_request *)(uintptr_t)scratch;
-+
-+		irdma_complete_cqp_request(&rf->cqp, cqp_request);
-+		irdma_sc_cqp_def_cmpl_ae_handler(&rf->sc_dev, info, false,
-+						 &scratch, &sw_def_info);
-+	}
-+}
-+
- /**
-  * irdma_process_aeq - handle aeq events
-  * @rf: RDMA PCI function
-@@ -269,7 +314,8 @@ static void irdma_process_aeq(struct irdma_pci_f *rf)
- 			spin_unlock_irqrestore(&iwqp->lock, flags);
- 			ctx_info = &iwqp->ctx_info;
- 		} else {
--			if (info->ae_id != IRDMA_AE_CQ_OPERATION_ERROR)
-+			if (info->ae_id != IRDMA_AE_CQ_OPERATION_ERROR &&
-+			    info->ae_id != IRDMA_AE_CQP_DEFERRED_COMPLETE)
- 				continue;
- 		}
- 
-@@ -364,6 +410,12 @@ static void irdma_process_aeq(struct irdma_pci_f *rf)
- 			}
- 			irdma_cq_rem_ref(&iwcq->ibcq);
- 			break;
-+		case IRDMA_AE_CQP_DEFERRED_COMPLETE:
-+			/* Remove completed CQP requests from pending list
-+			 * and notify about those CQP ops completion.
-+			 */
-+			irdma_process_ae_def_cmpl(rf, info);
-+			break;
- 		case IRDMA_AE_RESET_NOT_SENT:
- 		case IRDMA_AE_LLP_DOUBT_REACHABILITY:
- 		case IRDMA_AE_RESOURCE_EXHAUSTION:
-@@ -602,6 +654,8 @@ static void irdma_destroy_cqp(struct irdma_pci_f *rf)
- 	dma_free_coherent(dev->hw->device, cqp->sq.size, cqp->sq.va,
- 			  cqp->sq.pa);
- 	cqp->sq.va = NULL;
-+	kfree(cqp->oop_op_array);
-+	cqp->oop_op_array = NULL;
- 	kfree(cqp->scratch_array);
- 	cqp->scratch_array = NULL;
- 	kfree(cqp->cqp_requests);
-@@ -945,6 +999,13 @@ static int irdma_create_cqp(struct irdma_pci_f *rf)
- 		goto err_scratch;
- 	}
- 
-+	cqp->oop_op_array = kcalloc(sqsize, sizeof(*cqp->oop_op_array),
-+				    GFP_KERNEL);
-+	if (!cqp->oop_op_array) {
-+		status = -ENOMEM;
-+		goto err_oop;
-+	}
-+	cqp_init_info.ooo_op_array = cqp->oop_op_array;
- 	dev->cqp = &cqp->sc_cqp;
- 	dev->cqp->dev = dev;
- 	cqp->sq.size = ALIGN(sizeof(struct irdma_cqp_sq_wqe) * sqsize,
-@@ -981,6 +1042,10 @@ static int irdma_create_cqp(struct irdma_pci_f *rf)
- 	case IRDMA_GEN_2:
- 		cqp_init_info.hw_maj_ver = IRDMA_CQPHC_HW_MAJVER_GEN_2;
- 		break;
-+	case IRDMA_GEN_3:
-+		cqp_init_info.hw_maj_ver = IRDMA_CQPHC_HW_MAJVER_GEN_3;
-+		cqp_init_info.ts_override = 1;
-+		break;
- 	}
- 	status = irdma_sc_cqp_init(dev->cqp, &cqp_init_info);
- 	if (status) {
-@@ -1015,6 +1080,9 @@ static int irdma_create_cqp(struct irdma_pci_f *rf)
- 			  cqp->sq.va, cqp->sq.pa);
- 	cqp->sq.va = NULL;
- err_sq:
-+	kfree(cqp->oop_op_array);
-+	cqp->oop_op_array = NULL;
-+err_oop:
- 	kfree(cqp->scratch_array);
- 	cqp->scratch_array = NULL;
- err_scratch:
-@@ -2106,15 +2174,16 @@ void irdma_cqp_ce_handler(struct irdma_pci_f *rf, struct irdma_sc_cq *cq)
- 			cqp_request->compl_info.op_ret_val = info.op_ret_val;
- 			cqp_request->compl_info.error = info.error;
- 
--			if (cqp_request->waiting) {
--				WRITE_ONCE(cqp_request->request_done, true);
--				wake_up(&cqp_request->waitq);
--				irdma_put_cqp_request(&rf->cqp, cqp_request);
--			} else {
--				if (cqp_request->callback_fcn)
--					cqp_request->callback_fcn(cqp_request);
--				irdma_put_cqp_request(&rf->cqp, cqp_request);
--			}
-+			/*
-+			 * If this is deferred or pending completion, then mark
-+			 * CQP request as pending to not block the CQ, but don't
-+			 * release CQP request, as it is still on the OOO list.
-+			 */
-+			if (info.pending)
-+				cqp_request->pending = true;
-+			else
-+				irdma_complete_cqp_request(&rf->cqp,
-+							   cqp_request);
- 		}
- 
- 		cqe_count++;
-diff --git a/drivers/infiniband/hw/irdma/main.h b/drivers/infiniband/hw/irdma/main.h
-index a7f3d197a390..5d1371891c4c 100644
---- a/drivers/infiniband/hw/irdma/main.h
-+++ b/drivers/infiniband/hw/irdma/main.h
-@@ -167,6 +167,7 @@ struct irdma_cqp_request {
- 	bool request_done; /* READ/WRITE_ONCE macros operate on it */
- 	bool waiting:1;
- 	bool dynamic:1;
-+	bool pending:1;
+@@ -415,7 +415,7 @@ enum irdma_cqp_op_type {
+ #define IRDMA_CQPSQ_STATS_USE_INST BIT_ULL(61)
+ #define IRDMA_CQPSQ_STATS_OP GENMASK_ULL(37, 32)
+ #define IRDMA_CQPSQ_STATS_INST_INDEX GENMASK_ULL(6, 0)
+-#define IRDMA_CQPSQ_STATS_HMC_FCN_INDEX GENMASK_ULL(5, 0)
++#define IRDMA_CQPSQ_STATS_HMC_FCN_INDEX GENMASK_ULL(15, 0)
+ #define IRDMA_CQPSQ_WS_WQEVALID BIT_ULL(63)
+ #define IRDMA_CQPSQ_WS_NODEOP GENMASK_ULL(53, 52)
+ #define IRDMA_SD_MAX GENMASK_ULL(15, 0)
+diff --git a/drivers/infiniband/hw/irdma/ig3rdma_hw.c b/drivers/infiniband/hw/irdma/ig3rdma_hw.c
+index 1d582c50e4d2..2a3d7144c771 100644
+--- a/drivers/infiniband/hw/irdma/ig3rdma_hw.c
++++ b/drivers/infiniband/hw/irdma/ig3rdma_hw.c
+@@ -48,9 +48,70 @@ static const struct irdma_irq_ops ig3rdma_irq_ops = {
+ 	.irdma_en_irq = ig3rdma_ena_irq,
  };
  
- struct irdma_cqp {
-@@ -179,6 +180,7 @@ struct irdma_cqp {
- 	struct irdma_dma_mem host_ctx;
- 	u64 *scratch_array;
- 	struct irdma_cqp_request *cqp_requests;
-+	struct irdma_ooo_cqp_op *oop_op_array;
- 	struct list_head cqp_avail_reqs;
- 	struct list_head cqp_pending_reqs;
- };
-diff --git a/drivers/infiniband/hw/irdma/protos.h b/drivers/infiniband/hw/irdma/protos.h
-index d7c8ea948bcd..fac823a1ac1e 100644
---- a/drivers/infiniband/hw/irdma/protos.h
-+++ b/drivers/infiniband/hw/irdma/protos.h
-@@ -10,6 +10,7 @@
- #define ALL_TC2PFC		0xff
- #define CQP_COMPL_WAIT_TIME_MS	10
- #define CQP_TIMEOUT_THRESHOLD	500
-+#define CQP_DEF_CMPL_TIMEOUT_THRESHOLD	2500
- 
- /* init operations */
- int irdma_sc_dev_init(enum irdma_vers ver, struct irdma_sc_dev *dev,
-diff --git a/drivers/infiniband/hw/irdma/type.h b/drivers/infiniband/hw/irdma/type.h
-index cfcb5d938d76..2b93a70432be 100644
---- a/drivers/infiniband/hw/irdma/type.h
-+++ b/drivers/infiniband/hw/irdma/type.h
-@@ -262,12 +262,22 @@ struct irdma_cqp_init_info {
- 	__le64 *host_ctx;
- 	u64 *scratch_array;
- 	u32 sq_size;
-+	struct irdma_ooo_cqp_op *ooo_op_array;
-+	u32 pe_en_vf_cnt;
- 	u16 hw_maj_ver;
- 	u16 hw_min_ver;
- 	u8 struct_ver;
- 	u8 hmc_profile;
- 	u8 ena_vf_count;
- 	u8 ceqs_per_vf;
-+	u8 ooisc_blksize;
-+	u8 rrsp_blksize;
-+	u8 q1_blksize;
-+	u8 xmit_blksize;
-+	u8 ts_override;
-+	u8 ts_shift;
-+	u8 en_fine_grained_timers;
-+	u8 blksizes_valid;
- 	bool en_datacenter_tcp:1;
- 	bool disable_packed:1;
- 	bool rocev2_rto_policy:1;
-@@ -392,7 +402,21 @@ struct irdma_cqp_quanta {
- 	__le64 elem[IRDMA_CQP_WQE_SIZE];
- };
- 
-+struct irdma_ooo_cqp_op {
-+	struct list_head list_entry;
-+	u64 scratch;
-+	u32 def_info;
-+	u32 sw_def_info;
-+	u32 wqe_idx;
-+	bool deferred:1;
++static const struct irdma_hw_stat_map ig3rdma_hw_stat_map[] = {
++	[IRDMA_HW_STAT_INDEX_RXVLANERR] =	{   0, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4RXOCTS] =	{   8, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4RXPKTS] =	{  16, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4RXDISCARD] =	{  24, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4RXTRUNC] =	{  32, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4RXFRAGS] =	{  40, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4RXMCOCTS] =	{  48, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4RXMCPKTS] =	{  56, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6RXOCTS] =	{  64, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6RXPKTS] =	{  72, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6RXDISCARD] =	{  80, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6RXTRUNC] =	{  88, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6RXFRAGS] =	{  96, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6RXMCOCTS] =	{ 104, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6RXMCPKTS] =	{ 112, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4TXOCTS] =	{ 120, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4TXPKTS] =	{ 128, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4TXFRAGS] =	{ 136, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4TXMCOCTS] =	{ 144, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4TXMCPKTS] =	{ 152, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6TXOCTS] =	{ 160, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6TXPKTS] =	{ 168, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6TXFRAGS] =	{ 176, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6TXMCOCTS] =	{ 184, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6TXMCPKTS] =	{ 192, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP4TXNOROUTE] =	{ 200, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_IP6TXNOROUTE] =	{ 208, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_TCPRTXSEG] =	{ 216, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_TCPRXOPTERR] =	{ 224, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_TCPRXPROTOERR] =	{ 232, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_TCPTXSEG] =	{ 240, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_TCPRXSEGS] =	{ 248, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_UDPRXPKTS] =	{ 256, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_UDPTXPKTS] =	{ 264, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMARXWRS] =	{ 272, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMARXRDS] =	{ 280, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMARXSNDS] =	{ 288, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMATXWRS] =	{ 296, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMATXRDS] =	{ 304, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMATXSNDS] =	{ 312, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMAVBND] =	{ 320, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMAVINV] =	{ 328, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RXNPECNMARKEDPKTS] = { 336, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RXRPCNPHANDLED] =	{ 344, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RXRPCNPIGNORED] =	{ 352, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_TXNPCNPSENT] =	{ 360, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RNR_SENT] =	{ 368, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RNR_RCVD] =	{ 376, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMAORDLMTCNT] =	{ 384, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMAIRDLMTCNT] =	{ 392, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMARXATS] =	{ 408, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RDMATXATS] =	{ 416, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_NAKSEQERR] =	{ 424, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_NAKSEQERR_IMPLIED] = { 432, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RTO] =		{ 440, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_RXOOOPKTS] =	{ 448, 0, 0 },
++	[IRDMA_HW_STAT_INDEX_ICRCERR] =		{ 456, 0, 0 },
 +};
 +
- struct irdma_sc_cqp {
-+	spinlock_t ooo_list_lock; /* protects list of pending completions */
-+	struct list_head ooo_avail;
-+	struct list_head ooo_pnd;
-+	u32 last_def_cmpl_ticket;
-+	u32 sw_def_cmpl_ticket;
- 	u32 size;
- 	u64 sq_pa;
- 	u64 host_ctx_pa;
-@@ -408,8 +432,10 @@ struct irdma_sc_cqp {
- 	u64 *scratch_array;
- 	u64 requested_ops;
- 	atomic64_t completed_ops;
-+	struct irdma_ooo_cqp_op *ooo_op_array;
- 	u32 cqp_id;
- 	u32 sq_size;
-+	u32 pe_en_vf_cnt;
- 	u32 hw_sq_size;
- 	u16 hw_maj_ver;
- 	u16 hw_min_ver;
-@@ -419,6 +445,14 @@ struct irdma_sc_cqp {
- 	u8 ena_vf_count;
- 	u8 timeout_count;
- 	u8 ceqs_per_vf;
-+	u8 ooisc_blksize;
-+	u8 rrsp_blksize;
-+	u8 q1_blksize;
-+	u8 xmit_blksize;
-+	u8 ts_override;
-+	u8 ts_shift;
-+	u8 en_fine_grained_timers;
-+	u8 blksizes_valid;
- 	bool en_datacenter_tcp:1;
- 	bool disable_packed:1;
- 	bool rocev2_rto_policy:1;
-@@ -723,7 +757,8 @@ struct irdma_ccq_cqe_info {
- 	u16 maj_err_code;
- 	u16 min_err_code;
- 	u8 op_code;
--	bool error;
-+	bool error:1;
-+	bool pending:1;
+ void ig3rdma_init_hw(struct irdma_sc_dev *dev)
+ {
+ 	dev->irq_ops = &ig3rdma_irq_ops;
++	dev->hw_stats_map = ig3rdma_hw_stat_map;
+ 
+ 	dev->hw_attrs.uk_attrs.hw_rev = IRDMA_GEN_3;
+ 	dev->hw_attrs.uk_attrs.max_hw_wq_frags = IG3RDMA_MAX_WQ_FRAGMENT_COUNT;
+@@ -70,6 +131,8 @@ void ig3rdma_init_hw(struct irdma_sc_dev *dev)
+ 	dev->hw_attrs.page_size_cap = SZ_4K | SZ_2M | SZ_1G;
+ 	dev->hw_attrs.max_hw_ird = IG3RDMA_MAX_IRD_SIZE;
+ 	dev->hw_attrs.max_hw_ord = IG3RDMA_MAX_ORD_SIZE;
++	dev->hw_attrs.max_stat_inst = IG3RDMA_MAX_STATS_COUNT;
++	dev->hw_attrs.max_stat_idx = IRDMA_HW_STAT_INDEX_MAX_GEN_3;
+ 	dev->hw_attrs.uk_attrs.min_hw_wq_size = IG3RDMA_MIN_WQ_SIZE;
+ 	dev->hw_attrs.uk_attrs.max_hw_srq_quanta = IRDMA_SRQ_MAX_QUANTA;
+ 	dev->hw_attrs.uk_attrs.max_hw_inline = IG3RDMA_MAX_INLINE_DATA_SIZE;
+diff --git a/drivers/infiniband/hw/irdma/type.h b/drivers/infiniband/hw/irdma/type.h
+index 0faf9cf80fa6..17fc72636bb7 100644
+--- a/drivers/infiniband/hw/irdma/type.h
++++ b/drivers/infiniband/hw/irdma/type.h
+@@ -156,6 +156,21 @@ enum irdma_hw_stats_index {
+ 	IRDMA_HW_STAT_INDEX_RXRPCNPIGNORED      = 44,
+ 	IRDMA_HW_STAT_INDEX_TXNPCNPSENT         = 45,
+ 	IRDMA_HW_STAT_INDEX_MAX_GEN_2		= 46,
++
++	/* gen3 */
++	IRDMA_HW_STAT_INDEX_RNR_SENT		= 46,
++	IRDMA_HW_STAT_INDEX_RNR_RCVD		= 47,
++	IRDMA_HW_STAT_INDEX_RDMAORDLMTCNT	= 48,
++	IRDMA_HW_STAT_INDEX_RDMAIRDLMTCNT	= 49,
++	IRDMA_HW_STAT_INDEX_RDMARXATS		= 50,
++	IRDMA_HW_STAT_INDEX_RDMATXATS		= 51,
++	IRDMA_HW_STAT_INDEX_NAKSEQERR		= 52,
++	IRDMA_HW_STAT_INDEX_NAKSEQERR_IMPLIED	= 53,
++	IRDMA_HW_STAT_INDEX_RTO			= 54,
++	IRDMA_HW_STAT_INDEX_RXOOOPKTS		= 55,
++	IRDMA_HW_STAT_INDEX_ICRCERR		= 56,
++
++	IRDMA_HW_STAT_INDEX_MAX_GEN_3		= 57,
  };
  
- struct irdma_dcb_app_info {
-@@ -998,6 +1033,7 @@ struct irdma_qp_host_ctx_info {
- struct irdma_aeqe_info {
- 	u64 compl_ctx;
- 	u32 qp_cq_id;
-+	u32 def_info;	/* only valid for DEF_CMPL */
- 	u16 ae_id;
- 	u16 wqe_idx;
- 	u8 tcp_state;
-@@ -1242,6 +1278,11 @@ void irdma_sc_pd_init(struct irdma_sc_dev *dev, struct irdma_sc_pd *pd, u32 pd_i
- void irdma_cfg_aeq(struct irdma_sc_dev *dev, u32 idx, bool enable);
- void irdma_check_cqp_progress(struct irdma_cqp_timeout *cqp_timeout,
- 			      struct irdma_sc_dev *dev);
-+void irdma_sc_cqp_def_cmpl_ae_handler(struct irdma_sc_dev *dev,
-+				      struct irdma_aeqe_info *info,
-+				      bool first, u64 *scratch,
-+				      u32 *sw_def_info);
-+u64 irdma_sc_cqp_cleanup_handler(struct irdma_sc_dev *dev);
- int irdma_sc_cqp_create(struct irdma_sc_cqp *cqp, u16 *maj_err, u16 *min_err);
- int irdma_sc_cqp_destroy(struct irdma_sc_cqp *cqp);
- int irdma_sc_cqp_init(struct irdma_sc_cqp *cqp,
-diff --git a/drivers/infiniband/hw/irdma/utils.c b/drivers/infiniband/hw/irdma/utils.c
-index 0422787592d8..e940d32c9dbb 100644
---- a/drivers/infiniband/hw/irdma/utils.c
-+++ b/drivers/infiniband/hw/irdma/utils.c
-@@ -484,6 +484,7 @@ void irdma_free_cqp_request(struct irdma_cqp *cqp,
- 		WRITE_ONCE(cqp_request->request_done, false);
- 		cqp_request->callback_fcn = NULL;
- 		cqp_request->waiting = false;
-+		cqp_request->pending = false;
+ enum irdma_feature_type {
+@@ -569,7 +584,7 @@ struct irdma_sc_qp {
+ struct irdma_stats_inst_info {
+ 	bool use_hmc_fcn_index;
+ 	u8 hmc_fn_id;
+-	u8 stats_idx;
++	u16 stats_idx;
+ };
  
- 		spin_lock_irqsave(&cqp->req_lock, flags);
- 		list_add_tail(&cqp_request->list, &cqp->cqp_avail_reqs);
-@@ -523,6 +524,22 @@ irdma_free_pending_cqp_request(struct irdma_cqp *cqp,
- 	irdma_put_cqp_request(cqp, cqp_request);
+ struct irdma_up_info {
+@@ -1027,7 +1042,7 @@ struct irdma_qp_host_ctx_info {
+ 	u32 send_cq_num;
+ 	u32 rcv_cq_num;
+ 	u32 rem_endpoint_idx;
+-	u8 stats_idx;
++	u16 stats_idx;
+ 	bool srq_valid:1;
+ 	bool tcp_info_valid:1;
+ 	bool iwarp_info_valid:1;
+diff --git a/drivers/infiniband/hw/irdma/verbs.c b/drivers/infiniband/hw/irdma/verbs.c
+index 65466c1c72c5..569eb5c5f78e 100644
+--- a/drivers/infiniband/hw/irdma/verbs.c
++++ b/drivers/infiniband/hw/irdma/verbs.c
+@@ -3914,40 +3914,7 @@ static int irdma_req_notify_cq(struct ib_cq *ibcq,
+ 	return ret;
  }
  
-+/**
-+ * irdma_cleanup_deferred_cqp_ops - clean-up cqp with no completions
-+ * @dev: sc_dev
-+ * @cqp: cqp
-+ */
-+static void irdma_cleanup_deferred_cqp_ops(struct irdma_sc_dev *dev,
-+					   struct irdma_cqp *cqp)
-+{
-+	u64 scratch;
-+
-+	/* process all CQP requests with deferred/pending completions */
-+	while ((scratch = irdma_sc_cqp_cleanup_handler(dev)))
-+		irdma_free_pending_cqp_request(cqp, (struct irdma_cqp_request *)
-+						    (uintptr_t)scratch);
-+}
-+
- /**
-  * irdma_cleanup_pending_cqp_op - clean-up cqp with no
-  * completions
-@@ -536,6 +553,8 @@ void irdma_cleanup_pending_cqp_op(struct irdma_pci_f *rf)
- 	struct cqp_cmds_info *pcmdinfo = NULL;
- 	u32 i, pending_work, wqe_idx;
+-static int irdma_roce_port_immutable(struct ib_device *ibdev, u32 port_num,
+-				     struct ib_port_immutable *immutable)
+-{
+-	struct ib_port_attr attr;
+-	int err;
+-
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
+-	err = ib_query_port(ibdev, port_num, &attr);
+-	if (err)
+-		return err;
+-
+-	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
+-	immutable->pkey_tbl_len = attr.pkey_tbl_len;
+-	immutable->gid_tbl_len = attr.gid_tbl_len;
+-
+-	return 0;
+-}
+-
+-static int irdma_iw_port_immutable(struct ib_device *ibdev, u32 port_num,
+-				   struct ib_port_immutable *immutable)
+-{
+-	struct ib_port_attr attr;
+-	int err;
+-
+-	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
+-	err = ib_query_port(ibdev, port_num, &attr);
+-	if (err)
+-		return err;
+-	immutable->gid_tbl_len = attr.gid_tbl_len;
+-
+-	return 0;
+-}
+-
+-static const struct rdma_stat_desc irdma_hw_stat_names[] = {
++static const struct rdma_stat_desc irdma_hw_stat_descs[] = {
+ 	/* gen1 - 32-bit */
+ 	[IRDMA_HW_STAT_INDEX_IP4RXDISCARD].name		= "ip4InDiscards",
+ 	[IRDMA_HW_STAT_INDEX_IP4RXTRUNC].name		= "ip4InTruncatedPkts",
+@@ -3955,9 +3922,6 @@ static const struct rdma_stat_desc irdma_hw_stat_names[] = {
+ 	[IRDMA_HW_STAT_INDEX_IP6RXDISCARD].name		= "ip6InDiscards",
+ 	[IRDMA_HW_STAT_INDEX_IP6RXTRUNC].name		= "ip6InTruncatedPkts",
+ 	[IRDMA_HW_STAT_INDEX_IP6TXNOROUTE].name		= "ip6OutNoRoutes",
+-	[IRDMA_HW_STAT_INDEX_TCPRTXSEG].name		= "tcpRetransSegs",
+-	[IRDMA_HW_STAT_INDEX_TCPRXOPTERR].name		= "tcpInOptErrors",
+-	[IRDMA_HW_STAT_INDEX_TCPRXPROTOERR].name	= "tcpInProtoErrors",
+ 	[IRDMA_HW_STAT_INDEX_RXVLANERR].name		= "rxVlanErrors",
+ 	/* gen1 - 64-bit */
+ 	[IRDMA_HW_STAT_INDEX_IP4RXOCTS].name		= "ip4InOctets",
+@@ -3976,16 +3940,14 @@ static const struct rdma_stat_desc irdma_hw_stat_names[] = {
+ 	[IRDMA_HW_STAT_INDEX_IP6TXPKTS].name		= "ip6OutPkts",
+ 	[IRDMA_HW_STAT_INDEX_IP6TXFRAGS].name		= "ip6OutSegRqd",
+ 	[IRDMA_HW_STAT_INDEX_IP6TXMCPKTS].name		= "ip6OutMcastPkts",
+-	[IRDMA_HW_STAT_INDEX_TCPRXSEGS].name		= "tcpInSegs",
+-	[IRDMA_HW_STAT_INDEX_TCPTXSEG].name		= "tcpOutSegs",
+-	[IRDMA_HW_STAT_INDEX_RDMARXRDS].name		= "iwInRdmaReads",
+-	[IRDMA_HW_STAT_INDEX_RDMARXSNDS].name		= "iwInRdmaSends",
+-	[IRDMA_HW_STAT_INDEX_RDMARXWRS].name		= "iwInRdmaWrites",
+-	[IRDMA_HW_STAT_INDEX_RDMATXRDS].name		= "iwOutRdmaReads",
+-	[IRDMA_HW_STAT_INDEX_RDMATXSNDS].name		= "iwOutRdmaSends",
+-	[IRDMA_HW_STAT_INDEX_RDMATXWRS].name		= "iwOutRdmaWrites",
+-	[IRDMA_HW_STAT_INDEX_RDMAVBND].name		= "iwRdmaBnd",
+-	[IRDMA_HW_STAT_INDEX_RDMAVINV].name		= "iwRdmaInv",
++	[IRDMA_HW_STAT_INDEX_RDMARXRDS].name		= "InRdmaReads",
++	[IRDMA_HW_STAT_INDEX_RDMARXSNDS].name		= "InRdmaSends",
++	[IRDMA_HW_STAT_INDEX_RDMARXWRS].name		= "InRdmaWrites",
++	[IRDMA_HW_STAT_INDEX_RDMATXRDS].name		= "OutRdmaReads",
++	[IRDMA_HW_STAT_INDEX_RDMATXSNDS].name		= "OutRdmaSends",
++	[IRDMA_HW_STAT_INDEX_RDMATXWRS].name		= "OutRdmaWrites",
++	[IRDMA_HW_STAT_INDEX_RDMAVBND].name		= "RdmaBnd",
++	[IRDMA_HW_STAT_INDEX_RDMAVINV].name		= "RdmaInv",
  
-+	if (dev->hw_attrs.uk_attrs.hw_rev >= IRDMA_GEN_3)
-+		irdma_cleanup_deferred_cqp_ops(dev, cqp);
- 	pending_work = IRDMA_RING_USED_QUANTA(cqp->sc_cqp.sq_ring);
- 	wqe_idx = IRDMA_RING_CURRENT_TAIL(cqp->sc_cqp.sq_ring);
- 	for (i = 0; i < pending_work; i++) {
-@@ -555,6 +574,26 @@ void irdma_cleanup_pending_cqp_op(struct irdma_pci_f *rf)
- 	}
- }
+ 	/* gen2 - 32-bit */
+ 	[IRDMA_HW_STAT_INDEX_RXRPCNPHANDLED].name	= "cnpHandled",
+@@ -3999,9 +3961,59 @@ static const struct rdma_stat_desc irdma_hw_stat_names[] = {
+ 	[IRDMA_HW_STAT_INDEX_UDPRXPKTS].name		= "RxUDP",
+ 	[IRDMA_HW_STAT_INDEX_UDPTXPKTS].name		= "TxUDP",
+ 	[IRDMA_HW_STAT_INDEX_RXNPECNMARKEDPKTS].name	= "RxECNMrkd",
+-
++	[IRDMA_HW_STAT_INDEX_TCPRTXSEG].name		= "RetransSegs",
++	[IRDMA_HW_STAT_INDEX_TCPRXOPTERR].name		= "InOptErrors",
++	[IRDMA_HW_STAT_INDEX_TCPRXPROTOERR].name	= "InProtoErrors",
++	[IRDMA_HW_STAT_INDEX_TCPRXSEGS].name		= "InSegs",
++	[IRDMA_HW_STAT_INDEX_TCPTXSEG].name		= "OutSegs",
++
++	/* gen3 */
++	[IRDMA_HW_STAT_INDEX_RNR_SENT].name		= "RNR sent",
++	[IRDMA_HW_STAT_INDEX_RNR_RCVD].name		= "RNR received",
++	[IRDMA_HW_STAT_INDEX_RDMAORDLMTCNT].name	= "ord limit count",
++	[IRDMA_HW_STAT_INDEX_RDMAIRDLMTCNT].name	= "ird limit count",
++	[IRDMA_HW_STAT_INDEX_RDMARXATS].name		= "Rx ATS",
++	[IRDMA_HW_STAT_INDEX_RDMATXATS].name		= "Tx ATS",
++	[IRDMA_HW_STAT_INDEX_NAKSEQERR].name		= "Nak Sequence Error",
++	[IRDMA_HW_STAT_INDEX_NAKSEQERR_IMPLIED].name	= "Nak Sequence Error Implied",
++	[IRDMA_HW_STAT_INDEX_RTO].name			= "RTO",
++	[IRDMA_HW_STAT_INDEX_RXOOOPKTS].name		= "Rcvd Out of order packets",
++	[IRDMA_HW_STAT_INDEX_ICRCERR].name		= "CRC errors",
+ };
  
-+static int irdma_get_timeout_threshold(struct irdma_sc_dev *dev)
++static int irdma_roce_port_immutable(struct ib_device *ibdev, u32 port_num,
++				     struct ib_port_immutable *immutable)
 +{
-+	u16 time_s = dev->vc_caps.cqp_timeout_s;
++	struct ib_port_attr attr;
++	int err;
 +
-+	if (!time_s)
-+		return CQP_TIMEOUT_THRESHOLD;
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
++	err = ib_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
 +
-+	return time_s * 1000 / dev->hw_attrs.max_cqp_compl_wait_time_ms;
++	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++
++	return 0;
 +}
 +
-+static int irdma_get_def_timeout_threshold(struct irdma_sc_dev *dev)
++static int irdma_iw_port_immutable(struct ib_device *ibdev, u32 port_num,
++				   struct ib_port_immutable *immutable)
 +{
-+	u16 time_s = dev->vc_caps.cqp_def_timeout_s;
++	struct ib_port_attr attr;
++	int err;
 +
-+	if (!time_s)
-+		return CQP_DEF_CMPL_TIMEOUT_THRESHOLD;
++	immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
++	err = ib_query_port(ibdev, port_num, &attr);
++	if (err)
++		return err;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
 +
-+	return time_s * 1000 / dev->hw_attrs.max_cqp_compl_wait_time_ms;
++	return 0;
 +}
 +
- /**
-  * irdma_wait_event - wait for completion
-  * @rf: RDMA PCI function
-@@ -564,6 +603,7 @@ static int irdma_wait_event(struct irdma_pci_f *rf,
- 			    struct irdma_cqp_request *cqp_request)
+ static void irdma_get_dev_fw_str(struct ib_device *dev, char *str)
  {
- 	struct irdma_cqp_timeout cqp_timeout = {};
-+	int timeout_threshold = irdma_get_timeout_threshold(&rf->sc_dev);
- 	bool cqp_error = false;
- 	int err_code = 0;
+ 	struct irdma_device *iwdev = to_iwdev(dev);
+@@ -4025,7 +4037,7 @@ static struct rdma_hw_stats *irdma_alloc_hw_port_stats(struct ib_device *ibdev,
+ 	int num_counters = dev->hw_attrs.max_stat_idx;
+ 	unsigned long lifespan = RDMA_HW_STATS_DEFAULT_LIFESPAN;
  
-@@ -575,9 +615,17 @@ static int irdma_wait_event(struct irdma_pci_f *rf,
- 				       msecs_to_jiffies(CQP_COMPL_WAIT_TIME_MS)))
- 			break;
+-	return rdma_alloc_hw_stats_struct(irdma_hw_stat_names, num_counters,
++	return rdma_alloc_hw_stats_struct(irdma_hw_stat_descs, num_counters,
+ 					  lifespan);
+ }
  
-+		if (cqp_request->pending)
-+			/* There was a deferred or pending completion
-+			 * received for this CQP request, so we need
-+			 * to wait longer than usual.
-+			 */
-+			timeout_threshold =
-+				irdma_get_def_timeout_threshold(&rf->sc_dev);
-+
- 		irdma_check_cqp_progress(&cqp_timeout, &rf->sc_dev);
- 
--		if (cqp_timeout.count < CQP_TIMEOUT_THRESHOLD)
-+		if (cqp_timeout.count < timeout_threshold)
- 			continue;
- 
- 		if (!rf->reset) {
 -- 
 2.42.0
 
