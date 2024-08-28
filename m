@@ -1,37 +1,37 @@
-Received: from out30-124.freemail.mail.aliyun.com (out30-124.freemail.mail.aliyun.com [115.124.30.124])
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21ECC14B945
-	for <linux-rdma@vger.kernel.org>; Wed, 28 Aug 2024 06:09:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECA07152517
+	for <linux-rdma@vger.kernel.org>; Wed, 28 Aug 2024 06:09:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.110
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724825392; cv=none; b=gb6aNMn/VePiw7jxmmrA9k4FNwNeN4wb1fUJkzKraBR9aB6gSrOMhmKSQ7DYwomoQ0okIJlkMq0RhEJkXL5a+n/GR9MOsL4UjHpQgFrCJX9Mww4L12wx/Jb3RcIzqpGGUp3EjsX68yxRoSy7GloVa3tQxHGHfXm9jvvndoIESis=
+	t=1724825393; cv=none; b=D1oXRXc7zDm+QfsfXG3B4UWF+QsIlwpb85I1bt/LslM/E6vTWZYBFHhspL4efXUAwYcLBtkd3WEHXXBp3iMuHHXLHZYzDrwdWwdY1JgzgFixYuGP1mZvF+2W3xe1YVNPXCNL7GrLtC0eP8oqLwtd1GUwnC4ICobU+2sH0j/OIak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724825392; c=relaxed/simple;
-	bh=kllXqj7/n7qr5ooiWLb4gkupRQZfpra1DehjCKInps0=;
+	s=arc-20240116; t=1724825393; c=relaxed/simple;
+	bh=ckTvPKiI5QEhksb4cEarFV1MS9B0zHPtT2TxBBKjiVg=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=kQgtObPxK/fUJhxpZWTeWgLd261JULsouTcVpY3taBSejj1M0QgKQCda09uh1BXRY0SkMOETx4AZ6esPPJyxNRQ5V7msIJvF6ovzVaLtevqq1wWwo2cyWNgpg1hnf/n/xijp2Z5G8v1EEfsjtReDWS68i0bT1c9KUhuP3LAMLDM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=GI5ykoAE; arc=none smtp.client-ip=115.124.30.124
+	 MIME-Version; b=KlmI36/+UbYsIVkrcpzqr+vJ1qWHumwGlUSkaZEoCEsZHhIR4ej+BPo5EhQ3E3zKNhmXjLq3PQjY+8xYq8mkISSk1XpnlTEqm3vjeHqW88jrymM7chKmm8j6IyKzxmVfE1IULWvr6fH9d1R2K9NsDGl5DpV/vex/rnS9iKkxIBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=t3I9QyP7; arc=none smtp.client-ip=115.124.30.110
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="GI5ykoAE"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="t3I9QyP7"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1724825386; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=3B0UdIQF1Wd35JDJ4rkg/HdwUySaqmCTJOmNmTkeSkU=;
-	b=GI5ykoAEnMgpgfqCujgrgoyGyBAnzskWvDWLS4OpOjp6KJK1nTHcCjD/BWNEDea5iE6DoHzj9tlyke/sEMNiopMQskhR1svijG2YmtLurbN3OUTCwdiQC6RSandaUNgyJzjEOmxORupoiUCvtd5vIlhVZWL0Ws+ctBcS3o/6skA=
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0WDok9M6_1724825385)
+	t=1724825388; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=ILEVsIxtwCVK9Ex+2VK/+fPKofqndLxjLXuNjQIFhMc=;
+	b=t3I9QyP7oSnXI6epQaylsaPh5dDpkJtNQLPnnKUCRqxgKScwIFCVPYlFF9EcwKM4VFd4D/ttnFxt0DsIrH8WeaXePdEp6PlwylM505HQhNDxh1Lhs4wxXAV7mdShQq4Y5HycdQBuDRPAbQdVGfWgeEYmQAWjkZsm0yFdbsFdOZM=
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0WDok9Ma_1724825387)
           by smtp.aliyun-inc.com;
-          Wed, 28 Aug 2024 14:09:46 +0800
+          Wed, 28 Aug 2024 14:09:48 +0800
 From: Cheng Xu <chengyou@linux.alibaba.com>
 To: jgg@ziepe.ca,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	KaiShen@linux.alibaba.com
-Subject: [PATCH for-next v2 1/4] RDMA/erdma: Make the device probe process more robust
-Date: Wed, 28 Aug 2024 14:09:41 +0800
-Message-Id: <20240828060944.77829-2-chengyou@linux.alibaba.com>
+Subject: [PATCH for-next v2 3/4] RDMA/erdma: Add disassociate ucontext support
+Date: Wed, 28 Aug 2024 14:09:43 +0800
+Message-Id: <20240828060944.77829-4-chengyou@linux.alibaba.com>
 X-Mailer: git-send-email 2.39.3 (Apple Git-146)
 In-Reply-To: <20240828060944.77829-1-chengyou@linux.alibaba.com>
 References: <20240828060944.77829-1-chengyou@linux.alibaba.com>
@@ -43,124 +43,55 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Driver may probe again while hardware is destroying the internal
-resources allocated for previous probing, which will fail the
-device probe. To make it more robust, we always issue a reset at the
-beginning of the device probe process.
+All IO pages mapped to user space are handled by rdma_user_mmap_io,
+so add empty stub for disassociate ucontext.
 
 Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- drivers/infiniband/hw/erdma/erdma.h      |  1 +
- drivers/infiniband/hw/erdma/erdma_main.c | 44 +++++++++++++++++++-----
- 2 files changed, 36 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/erdma/erdma_main.c  | 1 +
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 4 ++++
+ drivers/infiniband/hw/erdma/erdma_verbs.h | 1 +
+ 3 files changed, 6 insertions(+)
 
-diff --git a/drivers/infiniband/hw/erdma/erdma.h b/drivers/infiniband/hw/erdma/erdma.h
-index c8bd698e21b0..b5c258f77ca0 100644
---- a/drivers/infiniband/hw/erdma/erdma.h
-+++ b/drivers/infiniband/hw/erdma/erdma.h
-@@ -94,6 +94,7 @@ enum {
- 
- #define ERDMA_CMDQ_TIMEOUT_MS 15000
- #define ERDMA_REG_ACCESS_WAIT_MS 20
-+#define ERDMA_WAIT_DEV_REST_CNT 50
- #define ERDMA_WAIT_DEV_DONE_CNT 500
- 
- struct erdma_cmdq {
 diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
-index 7080f8a71ec4..9199058a0b29 100644
+index d1cb488e7ad4..1ccf1b65c02c 100644
 --- a/drivers/infiniband/hw/erdma/erdma_main.c
 +++ b/drivers/infiniband/hw/erdma/erdma_main.c
-@@ -209,11 +209,30 @@ static void erdma_device_uninit(struct erdma_dev *dev)
- 	dma_pool_destroy(dev->resp_pool);
+@@ -516,6 +516,7 @@ static const struct ib_device_ops erdma_device_ops = {
+ 	.dereg_mr = erdma_dereg_mr,
+ 	.destroy_cq = erdma_destroy_cq,
+ 	.destroy_qp = erdma_destroy_qp,
++	.disassociate_ucontext = erdma_disassociate_ucontext,
+ 	.get_dma_mr = erdma_get_dma_mr,
+ 	.get_hw_stats = erdma_get_hw_stats,
+ 	.get_port_immutable = erdma_get_port_immutable,
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
+index 40c9b6e46b82..48b08a15e6a8 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.c
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
+@@ -1700,6 +1700,10 @@ int erdma_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	return ret;
  }
  
--static void erdma_hw_reset(struct erdma_dev *dev)
-+static int erdma_hw_reset(struct erdma_dev *dev, bool wait)
- {
- 	u32 ctrl = FIELD_PREP(ERDMA_REG_DEV_CTRL_RESET_MASK, 1);
-+	int i;
- 
- 	erdma_reg_write32(dev, ERDMA_REGS_DEV_CTRL_REG, ctrl);
-+
-+	if (!wait)
-+		return 0;
-+
-+	for (i = 0; i < ERDMA_WAIT_DEV_REST_CNT; i++) {
-+		if (erdma_reg_read32_filed(dev, ERDMA_REGS_DEV_ST_REG,
-+					   ERDMA_REG_DEV_ST_RESET_DONE_MASK))
-+			break;
-+
-+		msleep(ERDMA_REG_ACCESS_WAIT_MS);
-+	}
-+
-+	if (i == ERDMA_WAIT_DEV_REST_CNT) {
-+		dev_err(&dev->pdev->dev, "wait reset done timeout.\n");
-+		return -ETIME;
-+	}
-+
-+	return 0;
- }
- 
- static int erdma_wait_hw_init_done(struct erdma_dev *dev)
-@@ -239,6 +258,17 @@ static int erdma_wait_hw_init_done(struct erdma_dev *dev)
- 	return 0;
- }
- 
-+static int erdma_preinit_check(struct erdma_dev *dev)
++void erdma_disassociate_ucontext(struct ib_ucontext *ibcontext)
 +{
-+	u32 version = erdma_reg_read32(dev, ERDMA_REGS_VERSION_REG);
-+
-+	/* we knows that it is a non-functional function. */
-+	if (version == 0)
-+		return -ENODEV;
-+
-+	return erdma_hw_reset(dev, true);
 +}
 +
- static const struct pci_device_id erdma_pci_tbl[] = {
- 	{ PCI_DEVICE(PCI_VENDOR_ID_ALIBABA, 0x107f) },
- 	{}
-@@ -248,7 +278,6 @@ static int erdma_probe_dev(struct pci_dev *pdev)
+ void erdma_set_mtu(struct erdma_dev *dev, u32 mtu)
  {
- 	struct erdma_dev *dev;
- 	int bars, err;
--	u32 version;
- 
- 	err = pci_enable_device(pdev);
- 	if (err) {
-@@ -287,12 +316,9 @@ static int erdma_probe_dev(struct pci_dev *pdev)
- 		goto err_release_bars;
- 	}
- 
--	version = erdma_reg_read32(dev, ERDMA_REGS_VERSION_REG);
--	if (version == 0) {
--		/* we knows that it is a non-functional function. */
--		err = -ENODEV;
-+	err = erdma_preinit_check(dev);
-+	if (err)
- 		goto err_iounmap_func_bar;
--	}
- 
- 	err = erdma_device_init(dev, pdev);
- 	if (err)
-@@ -327,7 +353,7 @@ static int erdma_probe_dev(struct pci_dev *pdev)
- 	return 0;
- 
- err_reset_hw:
--	erdma_hw_reset(dev);
-+	erdma_hw_reset(dev, false);
- 
- err_uninit_cmdq:
- 	erdma_cmdq_destroy(dev);
-@@ -364,7 +390,7 @@ static void erdma_remove_dev(struct pci_dev *pdev)
- 	struct erdma_dev *dev = pci_get_drvdata(pdev);
- 
- 	erdma_ceqs_uninit(dev);
--	erdma_hw_reset(dev);
-+	erdma_hw_reset(dev, false);
- 	erdma_cmdq_destroy(dev);
- 	erdma_aeq_destroy(dev);
- 	erdma_comm_irq_uninit(dev);
+ 	struct erdma_cmdq_config_mtu_req req;
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
+index 4f02ba06b210..b7478376eb80 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.h
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
+@@ -344,6 +344,7 @@ int erdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr, int mask,
+ 		    struct ib_udata *data);
+ int erdma_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata);
+ int erdma_destroy_cq(struct ib_cq *ibcq, struct ib_udata *udata);
++void erdma_disassociate_ucontext(struct ib_ucontext *ibcontext);
+ int erdma_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags);
+ struct ib_mr *erdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+ 				u64 virt, int access, struct ib_udata *udata);
 -- 
 2.31.1
 
