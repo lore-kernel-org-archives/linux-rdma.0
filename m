@@ -1,40 +1,36 @@
-Received: from out30-97.freemail.mail.aliyun.com (out30-97.freemail.mail.aliyun.com [115.124.30.97])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B62691552ED
-	for <linux-rdma@vger.kernel.org>; Wed, 28 Aug 2024 06:09:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.97
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CC6714A4F3;
+	Wed, 28 Aug 2024 06:51:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724825397; cv=none; b=qJadrqM06kz2CQ0fytWQzZysQzMPG1wrTQS4fBrFOAp15PCclSY6N+TlQriPTBo8VeHp+iFFP0okX82YkLUgeerGkXCudBWJahXSsZHbvgUb7vz1H/yLqjK1+qsc9Q8n3lURibCaGYwAdt8cJ3AW9mVlfHmt59nkfVO/+8tQWlo=
+	t=1724827916; cv=none; b=ALw3+RDbk8NSqLCVuZ4RBQS1kj4Xua77/eGS209ow6Sd87/yaCNesFFjLg80rNxF2toJWyK8uhKAJ2Sh/O/FaaX9URhLFA3GxdiWfBc1W6gUSu2A/fxDrCvxr5/OcmdDbnLLDlItyeWlxdJj3vfYXRdcLs4r3LzOTNtmfg4OmWw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724825397; c=relaxed/simple;
-	bh=6bMqRlo4FCpluhTpxFmj78/vmFLXamt5olGAR+6n67s=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Ix5+uvLJ6Y7tznEn39F9Sh+Nfg6aZwUI2Mdg6RXBXLiiObTRtkPPQPdU4gW82DumVN+/M6+IST/VWbHpEMEphAI2liCpthTq2QnO63hd+/a+klMhiAxSbYZE50/br6rRBfgLwHlP5zi7UUVbZ/iJXmSR6WwKPNX3OTCk5YvjgbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=kNjfQ3ri; arc=none smtp.client-ip=115.124.30.97
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="kNjfQ3ri"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1724825387; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=8NmTxMOks52GN+L0KbXgVvPlIkLFFlYcNgNhZu6UynY=;
-	b=kNjfQ3riudIz3VcB80gfq4w257vSVGRggpt0EEadLEygIpR9x6uAwXQ8hgheu+aCaMddrHIBx9fGpY+uzn7YJp/5L0tO7xjUIjNlfpSJC6mReq1jSiDkngUDEph7gjjnUOYtPMVccG0nzSfW1kJZSPQ0qZ6pb/BrS02haxXRiHg=
-Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0WDok9MO_1724825386)
-          by smtp.aliyun-inc.com;
-          Wed, 28 Aug 2024 14:09:47 +0800
-From: Cheng Xu <chengyou@linux.alibaba.com>
-To: jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	KaiShen@linux.alibaba.com
-Subject: [PATCH for-next v2 2/4] RDMA/erdma: Refactor the initialization and destruction of EQ
-Date: Wed, 28 Aug 2024 14:09:42 +0800
-Message-Id: <20240828060944.77829-3-chengyou@linux.alibaba.com>
-X-Mailer: git-send-email 2.39.3 (Apple Git-146)
-In-Reply-To: <20240828060944.77829-1-chengyou@linux.alibaba.com>
-References: <20240828060944.77829-1-chengyou@linux.alibaba.com>
+	s=arc-20240116; t=1724827916; c=relaxed/simple;
+	bh=ptZn+KeKnA0csnoUOAy3NJii1aO97et+171B7YIpl4Y=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=h0K2LD6HQe+aoWuel8o22zNgLN2jI+4maf3pEKP3cJCHLdoUoxqlaQD1DKnPh/Wh46KmScccood3Pq9Ck2virvYf2brNeoJETZJd7emGtf9jZFoISXq3eHdTFSoZGfoBLR2XNWTMmXzBa3hFj+jUGf/QRUDgmDqPm1K+z3Nu8cg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Wtw5X15YCzpTsR;
+	Wed, 28 Aug 2024 14:50:08 +0800 (CST)
+Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
+	by mail.maildlp.com (Postfix) with ESMTPS id E2E04180AE6;
+	Wed, 28 Aug 2024 14:51:49 +0800 (CST)
+Received: from localhost.localdomain (10.90.30.45) by
+ kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Wed, 28 Aug 2024 14:51:49 +0800
+From: Junxian Huang <huangjunxian6@hisilicon.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>
+CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
+Subject: [PATCH v3 for-next 0/2] RDMA: Provide an API for drivers to disassociate mmap pages
+Date: Wed, 28 Aug 2024 14:46:03 +0800
+Message-ID: <20240828064605.887519-1-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -42,251 +38,39 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ kwepemf100018.china.huawei.com (7.202.181.17)
 
-We extracted the common parts of the initialization/destruction
-process to make the code cleaner.
+Provide an API rdma_user_mmap_disassociate() for drivers to disassociate
+mmap pages. Use this API in hns to prevent userspace from ringing doorbell
+when HW is reset.
 
-Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
----
- drivers/infiniband/hw/erdma/erdma.h      |  3 +-
- drivers/infiniband/hw/erdma/erdma_cmdq.c | 26 ++-----
- drivers/infiniband/hw/erdma/erdma_eq.c   | 91 ++++++++++++------------
- drivers/infiniband/hw/erdma/erdma_main.c |  4 +-
- 4 files changed, 54 insertions(+), 70 deletions(-)
+v2 -> v3:
+* Walk all ufiles of a device in rdma_user_mmap_disassociate() as Jason
+  commented, so drivers don't need to maintain their own list of ucontexts.
+* Add a disassociation_lock in uverbs_user_mmap_disassociate() as Jason
+  commented to avoid racing between different threads.
+* Add a disassociated flag indicating whether mmaps have been disabled
+  to prevent new mmap after the disassociation.
 
-diff --git a/drivers/infiniband/hw/erdma/erdma.h b/drivers/infiniband/hw/erdma/erdma.h
-index b5c258f77ca0..f3b648dcf4b6 100644
---- a/drivers/infiniband/hw/erdma/erdma.h
-+++ b/drivers/infiniband/hw/erdma/erdma.h
-@@ -275,7 +275,8 @@ void notify_eq(struct erdma_eq *eq);
- void *get_next_valid_eqe(struct erdma_eq *eq);
- 
- int erdma_aeq_init(struct erdma_dev *dev);
--void erdma_aeq_destroy(struct erdma_dev *dev);
-+int erdma_eq_common_init(struct erdma_dev *dev, struct erdma_eq *eq, u32 depth);
-+void erdma_eq_destroy(struct erdma_dev *dev, struct erdma_eq *eq);
- 
- void erdma_aeq_event_handler(struct erdma_dev *dev);
- void erdma_ceq_completion_handler(struct erdma_eq_cb *ceq_cb);
-diff --git a/drivers/infiniband/hw/erdma/erdma_cmdq.c b/drivers/infiniband/hw/erdma/erdma_cmdq.c
-index 43ff40b5a09d..a3d8922d1ad1 100644
---- a/drivers/infiniband/hw/erdma/erdma_cmdq.c
-+++ b/drivers/infiniband/hw/erdma/erdma_cmdq.c
-@@ -158,20 +158,13 @@ static int erdma_cmdq_eq_init(struct erdma_dev *dev)
- {
- 	struct erdma_cmdq *cmdq = &dev->cmdq;
- 	struct erdma_eq *eq = &cmdq->eq;
-+	int ret;
- 
--	eq->depth = cmdq->max_outstandings;
--	eq->qbuf = dma_alloc_coherent(&dev->pdev->dev, eq->depth << EQE_SHIFT,
--				      &eq->qbuf_dma_addr, GFP_KERNEL);
--	if (!eq->qbuf)
--		return -ENOMEM;
--
--	spin_lock_init(&eq->lock);
--	atomic64_set(&eq->event_num, 0);
-+	ret = erdma_eq_common_init(dev, eq, cmdq->max_outstandings);
-+	if (ret)
-+		return ret;
- 
- 	eq->db = dev->func_bar + ERDMA_REGS_CEQ_DB_BASE_REG;
--	eq->dbrec = dma_pool_zalloc(dev->db_pool, GFP_KERNEL, &eq->dbrec_dma);
--	if (!eq->dbrec)
--		goto err_out;
- 
- 	erdma_reg_write32(dev, ERDMA_REGS_CMDQ_EQ_ADDR_H_REG,
- 			  upper_32_bits(eq->qbuf_dma_addr));
-@@ -181,12 +174,6 @@ static int erdma_cmdq_eq_init(struct erdma_dev *dev)
- 	erdma_reg_write64(dev, ERDMA_CMDQ_EQ_DB_HOST_ADDR_REG, eq->dbrec_dma);
- 
- 	return 0;
--
--err_out:
--	dma_free_coherent(&dev->pdev->dev, eq->depth << EQE_SHIFT, eq->qbuf,
--			  eq->qbuf_dma_addr);
--
--	return -ENOMEM;
- }
- 
- int erdma_cmdq_init(struct erdma_dev *dev)
-@@ -247,10 +234,7 @@ void erdma_cmdq_destroy(struct erdma_dev *dev)
- 
- 	clear_bit(ERDMA_CMDQ_STATE_OK_BIT, &cmdq->state);
- 
--	dma_free_coherent(&dev->pdev->dev, cmdq->eq.depth << EQE_SHIFT,
--			  cmdq->eq.qbuf, cmdq->eq.qbuf_dma_addr);
--
--	dma_pool_free(dev->db_pool, cmdq->eq.dbrec, cmdq->eq.dbrec_dma);
-+	erdma_eq_destroy(dev, &cmdq->eq);
- 
- 	dma_free_coherent(&dev->pdev->dev, cmdq->sq.depth << SQEBB_SHIFT,
- 			  cmdq->sq.qbuf, cmdq->sq.qbuf_dma_addr);
-diff --git a/drivers/infiniband/hw/erdma/erdma_eq.c b/drivers/infiniband/hw/erdma/erdma_eq.c
-index 84ccdd8144c9..c277c8f9233c 100644
---- a/drivers/infiniband/hw/erdma/erdma_eq.c
-+++ b/drivers/infiniband/hw/erdma/erdma_eq.c
-@@ -80,50 +80,62 @@ void erdma_aeq_event_handler(struct erdma_dev *dev)
- 	notify_eq(&dev->aeq);
- }
- 
--int erdma_aeq_init(struct erdma_dev *dev)
-+int erdma_eq_common_init(struct erdma_dev *dev, struct erdma_eq *eq, u32 depth)
- {
--	struct erdma_eq *eq = &dev->aeq;
-+	u32 buf_size = depth << EQE_SHIFT;
- 
--	eq->depth = ERDMA_DEFAULT_EQ_DEPTH;
--
--	eq->qbuf = dma_alloc_coherent(&dev->pdev->dev, eq->depth << EQE_SHIFT,
--				      &eq->qbuf_dma_addr, GFP_KERNEL);
-+	eq->qbuf = dma_alloc_coherent(&dev->pdev->dev, buf_size,
-+				      &eq->qbuf_dma_addr,
-+				      GFP_KERNEL | __GFP_ZERO);
- 	if (!eq->qbuf)
- 		return -ENOMEM;
- 
-+	eq->dbrec = dma_pool_alloc(dev->db_pool, GFP_KERNEL | __GFP_ZERO,
-+				   &eq->dbrec_dma);
-+	if (!eq->dbrec)
-+		goto err_free_qbuf;
-+
- 	spin_lock_init(&eq->lock);
- 	atomic64_set(&eq->event_num, 0);
- 	atomic64_set(&eq->notify_num, 0);
--
--	eq->db = dev->func_bar + ERDMA_REGS_AEQ_DB_REG;
--	eq->dbrec = dma_pool_zalloc(dev->db_pool, GFP_KERNEL, &eq->dbrec_dma);
--	if (!eq->dbrec)
--		goto err_out;
--
--	erdma_reg_write32(dev, ERDMA_REGS_AEQ_ADDR_H_REG,
--			  upper_32_bits(eq->qbuf_dma_addr));
--	erdma_reg_write32(dev, ERDMA_REGS_AEQ_ADDR_L_REG,
--			  lower_32_bits(eq->qbuf_dma_addr));
--	erdma_reg_write32(dev, ERDMA_REGS_AEQ_DEPTH_REG, eq->depth);
--	erdma_reg_write64(dev, ERDMA_AEQ_DB_HOST_ADDR_REG, eq->dbrec_dma);
-+	eq->ci = 0;
-+	eq->depth = depth;
- 
- 	return 0;
- 
--err_out:
--	dma_free_coherent(&dev->pdev->dev, eq->depth << EQE_SHIFT, eq->qbuf,
-+err_free_qbuf:
-+	dma_free_coherent(&dev->pdev->dev, buf_size, eq->qbuf,
- 			  eq->qbuf_dma_addr);
- 
- 	return -ENOMEM;
- }
- 
--void erdma_aeq_destroy(struct erdma_dev *dev)
-+void erdma_eq_destroy(struct erdma_dev *dev, struct erdma_eq *eq)
- {
--	struct erdma_eq *eq = &dev->aeq;
--
-+	dma_pool_free(dev->db_pool, eq->dbrec, eq->dbrec_dma);
- 	dma_free_coherent(&dev->pdev->dev, eq->depth << EQE_SHIFT, eq->qbuf,
- 			  eq->qbuf_dma_addr);
-+}
- 
--	dma_pool_free(dev->db_pool, eq->dbrec, eq->dbrec_dma);
-+int erdma_aeq_init(struct erdma_dev *dev)
-+{
-+	struct erdma_eq *eq = &dev->aeq;
-+	int ret;
-+
-+	ret = erdma_eq_common_init(dev, &dev->aeq, ERDMA_DEFAULT_EQ_DEPTH);
-+	if (ret)
-+		return ret;
-+
-+	eq->db = dev->func_bar + ERDMA_REGS_AEQ_DB_REG;
-+
-+	erdma_reg_write32(dev, ERDMA_REGS_AEQ_ADDR_H_REG,
-+			  upper_32_bits(eq->qbuf_dma_addr));
-+	erdma_reg_write32(dev, ERDMA_REGS_AEQ_ADDR_L_REG,
-+			  lower_32_bits(eq->qbuf_dma_addr));
-+	erdma_reg_write32(dev, ERDMA_REGS_AEQ_DEPTH_REG, eq->depth);
-+	erdma_reg_write64(dev, ERDMA_AEQ_DB_HOST_ADDR_REG, eq->dbrec_dma);
-+
-+	return 0;
- }
- 
- void erdma_ceq_completion_handler(struct erdma_eq_cb *ceq_cb)
-@@ -234,32 +246,21 @@ static int erdma_ceq_init_one(struct erdma_dev *dev, u16 ceqn)
- 	struct erdma_eq *eq = &dev->ceqs[ceqn].eq;
- 	int ret;
- 
--	eq->depth = ERDMA_DEFAULT_EQ_DEPTH;
--	eq->qbuf = dma_alloc_coherent(&dev->pdev->dev, eq->depth << EQE_SHIFT,
--				      &eq->qbuf_dma_addr, GFP_KERNEL);
--	if (!eq->qbuf)
--		return -ENOMEM;
--
--	spin_lock_init(&eq->lock);
--	atomic64_set(&eq->event_num, 0);
--	atomic64_set(&eq->notify_num, 0);
-+	ret = erdma_eq_common_init(dev, eq, ERDMA_DEFAULT_EQ_DEPTH);
-+	if (ret)
-+		return ret;
- 
- 	eq->db = dev->func_bar + ERDMA_REGS_CEQ_DB_BASE_REG +
- 		 (ceqn + 1) * ERDMA_DB_SIZE;
--
--	eq->dbrec = dma_pool_zalloc(dev->db_pool, GFP_KERNEL, &eq->dbrec_dma);
--	if (!eq->dbrec) {
--		dma_free_coherent(&dev->pdev->dev, eq->depth << EQE_SHIFT,
--				  eq->qbuf, eq->qbuf_dma_addr);
--		return -ENOMEM;
--	}
--
--	eq->ci = 0;
- 	dev->ceqs[ceqn].dev = dev;
-+	dev->ceqs[ceqn].ready = true;
- 
- 	/* CEQ indexed from 1, 0 rsvd for CMDQ-EQ. */
- 	ret = create_eq_cmd(dev, ceqn + 1, eq);
--	dev->ceqs[ceqn].ready = ret ? false : true;
-+	if (ret) {
-+		erdma_eq_destroy(dev, eq);
-+		dev->ceqs[ceqn].ready = false;
-+	}
- 
- 	return ret;
- }
-@@ -283,9 +284,7 @@ static void erdma_ceq_uninit_one(struct erdma_dev *dev, u16 ceqn)
- 	if (err)
- 		return;
- 
--	dma_free_coherent(&dev->pdev->dev, eq->depth << EQE_SHIFT, eq->qbuf,
--			  eq->qbuf_dma_addr);
--	dma_pool_free(dev->db_pool, eq->dbrec, eq->dbrec_dma);
-+	erdma_eq_destroy(dev, eq);
- }
- 
- int erdma_ceqs_init(struct erdma_dev *dev)
-diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
-index 9199058a0b29..d1cb488e7ad4 100644
---- a/drivers/infiniband/hw/erdma/erdma_main.c
-+++ b/drivers/infiniband/hw/erdma/erdma_main.c
-@@ -359,7 +359,7 @@ static int erdma_probe_dev(struct pci_dev *pdev)
- 	erdma_cmdq_destroy(dev);
- 
- err_uninit_aeq:
--	erdma_aeq_destroy(dev);
-+	erdma_eq_destroy(dev, &dev->aeq);
- 
- err_uninit_comm_irq:
- 	erdma_comm_irq_uninit(dev);
-@@ -392,7 +392,7 @@ static void erdma_remove_dev(struct pci_dev *pdev)
- 	erdma_ceqs_uninit(dev);
- 	erdma_hw_reset(dev, false);
- 	erdma_cmdq_destroy(dev);
--	erdma_aeq_destroy(dev);
-+	erdma_eq_destroy(dev, &dev->aeq);
- 	erdma_comm_irq_uninit(dev);
- 	pci_free_irq_vectors(dev->pdev);
- 	erdma_device_uninit(dev);
--- 
-2.31.1
+v1 -> v2:
+* Keep uverbs_user_mmap_disassociate() in uverbs_main.c. The new api
+  rdma_user_mmap_disassociate() is also moved to this file.
+* Add "#if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)" to hns's
+  rdma_user_mmap_disassociate() call.
+
+Chengchang Tang (2):
+  RDMA/core: Provide rdma_user_mmap_disassociate() to disassociate mmap
+    pages
+  RDMA/hns: Disassociate mmap pages for all uctx when HW is being reset
+
+ drivers/infiniband/core/uverbs.h           |  3 ++
+ drivers/infiniband/core/uverbs_main.c      | 45 +++++++++++++++++++++-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  9 +++++
+ include/rdma/ib_verbs.h                    |  8 ++++
+ 4 files changed, 63 insertions(+), 2 deletions(-)
+
+--
+2.33.0
 
