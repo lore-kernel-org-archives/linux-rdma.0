@@ -1,99 +1,91 @@
-Received: from mx08lb.world4you.com (mx08lb.world4you.com [81.19.149.118])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 350521662F1;
-	Thu, 29 Aug 2024 21:05:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=81.19.149.118
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C65A628685
+	for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 21:39:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724965552; cv=none; b=T5ysPaLL6qjcg+Y9U/RfVUKedcOHl+vhVvfNmXK9Tfalg4ylBwlQ/7HiV+IDe0nb4ky7jRfvkhjGs5LR5sN/9h1ZP1ErP+5ZkZMBMHTXqhd0p97i5aO0+jDxgUeBVjVARYskoC3a+nvgw+4adkYc5g8kDF1N8MYebb/5feEu/8U=
+	t=1724967571; cv=none; b=q5p8fcueq1A/2d2/pGmSaGqDTyU/CrC8arPsKXDNyfs92P+4aA2jh/9cY2xLDZUvyNyCn35ggMHxAg+bstwFVePmLWF7M0maNUvJLtRuB5JgY1LKm26DnewadOM4XLvPnkc8S06qV5dV2aLqOVlzqlyA45fKm4lmQWIIjrqWAlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724965552; c=relaxed/simple;
-	bh=696BIpkw6qSh37ys61ph+L8lAJ+SLZxIyuKa5FXpAKY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=lr/59mjO5+A9ZPgXQvGbntKhtrEsqi8ZRSBvA9mgmeW/n1nrVTo0tJe6pYXQ9firyouh7mtGVWyaTLfCWQu9YdqOgjscU2jzSzBvyzBAy5LqnB2mCjeN8aKt7zfwa2VImk0VHOEq3vyW6mDpJKUYHG8VQrHAwwTmmf35ZeyV7Dw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=engleder-embedded.com; spf=pass smtp.mailfrom=engleder-embedded.com; dkim=pass (1024-bit key) header.d=engleder-embedded.com header.i=@engleder-embedded.com header.b=nET9SDcH; arc=none smtp.client-ip=81.19.149.118
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=engleder-embedded.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=engleder-embedded.com
+	s=arc-20240116; t=1724967571; c=relaxed/simple;
+	bh=xWmQ1OxqFQz7lf6SRBxNuo8JLNOt90S3oTCefaPSYZM=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=oMI3c+vKkwqiaUuP1NgiRmRdBEvHblpakc3Jgcdly9bXIQ3X7riKpdLUcN7m7/2ISMjsKGtjLC5AlNwRuyASU60sb8Y2v3u+Cm9Gql46e7XSwWU3XFon9w/1p7fCu2OW8HNCy02f5o9zsqf2qGbK+7KgHHCNFMEcRn7WNXjlE04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=purestorage.com; spf=fail smtp.mailfrom=purestorage.com; dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b=PyZMUphq; arc=none smtp.client-ip=209.85.215.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=purestorage.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=purestorage.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=engleder-embedded.com header.i=@engleder-embedded.com header.b="nET9SDcH"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=engleder-embedded.com; s=dkim11; h=Content-Transfer-Encoding:Content-Type:
-	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=lyDPgUZOhSh56bBL5knVf1Gg5mPzltrEGUQa4C517M4=; b=nET9SDcHx8bVspaLr9Dm7IuY4I
-	erPimdqwAz47xqqD8ZJj7A/D7Qeb9dTvvdhuDbVE0cKmf85TEdgFf2JmMG7o5mzkIANzM8dtbiZHN
-	tZIf1N+r9PXMmB62XyU38Yq0j1N5tiOKTEiT0mJ4Mh/3eSMvhwyZoq8SL89DBN1PhKFE=;
-Received: from [88.117.52.244] (helo=[10.0.0.160])
-	by mx08lb.world4you.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96.2)
-	(envelope-from <gerhard@engleder-embedded.com>)
-	id 1sjlDu-0008SF-0A;
-	Thu, 29 Aug 2024 21:54:26 +0200
-Message-ID: <d73d45af-e76e-4e87-8df1-0ed71e823abc@engleder-embedded.com>
-Date: Thu, 29 Aug 2024 21:54:18 +0200
+	dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b="PyZMUphq"
+Received: by mail-pg1-f171.google.com with SMTP id 41be03b00d2f7-7c3ebba7fbbso788593a12.1
+        for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 14:39:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=purestorage.com; s=google2022; t=1724967568; x=1725572368; darn=vger.kernel.org;
+        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=/KcJF8QQgoMkUco4enV2ZPS1HMzsxznWZ0pCfKEnKH8=;
+        b=PyZMUphqwF9MO4qOJ4M912fcKTtBIzSrNImkl3Wap/tCM9M+WcnP0fH97HUoLackI9
+         iUYLCboWvuejF2ORDcstJUYQKkqje9UBut/6B5M0e0nvc11Dk3tUZp/3HxYy4EK6u6eF
+         dkFrbTjc9+Rcx6jyqeF8hIOJPmBTsmtxhCCjmdxg3Lg+wsfSVTgOmX8PT4C6M/Fmk9Bi
+         gX126hjAZ/Y97gTGQK7RZQpF4hkqfJsTYX0yEr1wBRn5OMJXsxa1GoJOAy8VB9vkJETK
+         QbwdoR7R1BqNNCG6TJmSr11dFtMaf1NqsGvoWBnj7kd9Fu6iFaAT4j8Zr5mHlutwUhGB
+         JI3g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724967568; x=1725572368;
+        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=/KcJF8QQgoMkUco4enV2ZPS1HMzsxznWZ0pCfKEnKH8=;
+        b=CbFl/skJnWkSpcwLAZjyC6ZHjdYYl5MGYqJnwvcp7M5EmMd+QE3hmXnyPH8ucQ7LKp
+         +MFOuMJ3WKj14kR7LvAd5rsw1b7cVC/afxVxZchQCmhO+o3cx7xMET6ViM+Tk0H0Ku/0
+         tcyBHtbqH4R7RjBgYYfT1WNgv7hutA1G1VtBwyCng/QLAuwfMs1PlxCICTsexAE+DI2A
+         k637FxEe6ad1sRAGLX/O6/8zT6Xuuj/+NLntnOhFW8JoGyJfz6rgY5bvVdtf+0V7sTtw
+         7sZSVRf4Znc9YHx8CVVU+ivTx/Ev9pOuA+azEDuE4pnkcT7MDHVUxEN0tDVixt2l4C5n
+         GcmA==
+X-Forwarded-Encrypted: i=1; AJvYcCXOksXSzO2ajXA2FY1EpUPxEwKcLFoEw12icePrbLsMr5z6/FCe8eU2zsLBWBvUaG7am7GwEdkQOwKO@vger.kernel.org
+X-Gm-Message-State: AOJu0YwXLe1VmgZdNNzg+9yfsW7R/yyd4mAvQGhCk68wGRHvRduOD1iA
+	uqf1WNzl88gUtimCPb4W3n6YwQn8YCaivi1976a+Iok8MhVyt+roebYWiJSLpd4W3Czu3EPsq1Q
+	Mz2U=
+X-Google-Smtp-Source: AGHT+IEcXzUs8FoS4L8k0/z6Ku0YobbN9cwTJiImNRR4sdcXZ0Np8BqHyO2j7RLzFbPZpoN7+TDUlg==
+X-Received: by 2002:a17:90a:fe8c:b0:2c2:f6a2:a5f7 with SMTP id 98e67ed59e1d1-2d8561a16afmr4896336a91.13.1724967567904;
+        Thu, 29 Aug 2024 14:39:27 -0700 (PDT)
+Received: from dev-mkhalfella2.dev.purestorage.com ([208.88.159.128])
+        by smtp.googlemail.com with ESMTPSA id 98e67ed59e1d1-2d84462aec5sm4705298a91.32.2024.08.29.14.39.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Aug 2024 14:39:27 -0700 (PDT)
+From: Mohamed Khalfella <mkhalfella@purestorage.com>
+To: Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: yzhong@purestorage.com,
+	Mohamed Khalfella <mkhalfella@purestorage.com>,
+	netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2 0/1] net/mlx5: Added cond_resched() to crdump collection
+Date: Thu, 29 Aug 2024 15:38:55 -0600
+Message-Id: <20240829213856.77619-1-mkhalfella@purestorage.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next] net: mana: Improve mana_set_channels() for low
- mem conditions
-Content-Language: en-US
-To: Shradha Gupta <shradhagupta@linux.microsoft.com>,
- linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>,
- Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
- Dexuan Cui <decui@microsoft.com>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Long Li <longli@microsoft.com>,
- Simon Horman <horms@kernel.org>, Konstantin Taranov
- <kotaranov@microsoft.com>,
- Souradeep Chakrabarti <schakrabarti@linux.microsoft.com>,
- Erick Archer <erick.archer@outlook.com>,
- Pavan Chebbi <pavan.chebbi@broadcom.com>, Ahmed Zaki <ahmed.zaki@intel.com>,
- Colin Ian King <colin.i.king@gmail.com>,
- Shradha Gupta <shradhagupta@microsoft.com>
-References: <1724941006-2500-1-git-send-email-shradhagupta@linux.microsoft.com>
-From: Gerhard Engleder <gerhard@engleder-embedded.com>
-In-Reply-To: <1724941006-2500-1-git-send-email-shradhagupta@linux.microsoft.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-AV-Do-Run: Yes
 
-On 29.08.24 16:16, Shradha Gupta wrote:
-> The mana_set_channels() function requires detaching the mana
-> driver and reattaching it with changed channel values.
-> During this operation if the system is low on memory, the reattach
-> might fail, causing the network device being down.
-> To avoid this we pre-allocate buffers at the beginning of set operation,
-> to prevent complete network loss
-> 
-> Signed-off-by: Shradha Gupta <shradhagupta@linux.microsoft.com>
-> ---
->   .../ethernet/microsoft/mana/mana_ethtool.c    | 28 +++++++++++--------
->   1 file changed, 16 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> index d6a35fbda447..5077493fdfde 100644
-> --- a/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> +++ b/drivers/net/ethernet/microsoft/mana/mana_ethtool.c
-> @@ -345,27 +345,31 @@ static int mana_set_channels(struct net_device *ndev,
->   	struct mana_port_context *apc = netdev_priv(ndev);
->   	unsigned int new_count = channels->combined_count;
->   	unsigned int old_count = apc->num_queues;
-> -	int err, err2;
-> +	int err;
-> +
-> +	apc->num_queues = new_count;
-> +	err = mana_pre_alloc_rxbufs(apc, ndev->mtu);
-> +	apc->num_queues = old_count;
+Changes in v2:
+- Removed cond_resched() in mlx5_vsc_wait_on_flag(). The idea is that
+  usleep_range() should be enough.
+- Updated cond_resched() in mlx5_vsc_gw_read_block_fast every 128
+  iterations.
 
-Are you sure that temporary changing num_queues has no side effects on
-other num_queues users like mana_chn_setxdp()?
+v1: https://lore.kernel.org/all/20240819214259.38259-1-mkhalfella@purestorage.com/
 
-Gerhard
+Mohamed Khalfella (1):
+  net/mlx5: Added cond_resched() to crdump collection
+
+ drivers/net/ethernet/mellanox/mlx5/core/lib/pci_vsc.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+-- 
+2.45.2
+
