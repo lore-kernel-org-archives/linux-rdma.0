@@ -1,113 +1,77 @@
-Received: from out-185.mta0.migadu.com (out-185.mta0.migadu.com [91.218.175.185])
+Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2288191F82
-	for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 12:05:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.185
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F751A76B7
+	for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 13:33:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724933107; cv=none; b=ZMeqYtHHw9YpSgWv2/1gmSxt9S8HRKD/B+WRHBsU06J9fg3pB6RLGAKBfd4/w77DbHqy7/BcKNluwweJWn3fIueP90/2wESF5pycxZs4woRVsdmPf35lBBzW7T+5FAazM8VJ1UzAuSeTeZx7/yk6Eil+u/mq06YmtDVb1OXA1uk=
+	t=1724938426; cv=none; b=Nv3o4vKrSXij1qMqvMQNX5/4iV2MqOvsjplAYMhWiM3daiRFK1wET7FU6YRgX3PFbozc/cqRJGVSMFA7ebqhrfD5gfXKX+Qy4KGKiMc0VQym60fIUucPOSAVb69p6Xnak2crjnYVVX2ioYI2vtYlVGa1tUtMfcSiU27U+zsocZI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724933107; c=relaxed/simple;
-	bh=sURMtzuV0ZrU8K7+aftkHR7/JR+cvtBsjFKF3I6Pios=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=QDQodvMypDZbWmy0GVehDPF0q9iRoghu8JquWEPzMTQYBvsUhuJ2uB+oYBKpieE/3BOf36apEhH9Ozseuq0u7mOXAKT5mCFfpjJnjCjRswaVDlLmQcSO3z9KOyKeT+HJX8xmTKewvU9P9PceLFCyZkMHc4N8lrBvS0fP0xDXNOU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=COJdahzx; arc=none smtp.client-ip=91.218.175.185
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1724938426; c=relaxed/simple;
+	bh=hDfRK+slGkOfai8AZ5Psove1Tc5lY+6jUxVj2aOQcj8=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=omZltezJXGTihQPOs92N2UEjZ49PVCw8o4vcUlR0XkUzeltEfYuGezSe1E5p2Jvk2Z7vvPgr2AE/9wznPFADGRWBQgdevF+b1yeJMxBEguPhrHNSNla2GZ/uiAyWQzoJR5nqXNw67wQtJjJceC/+JqLpSapiYUSsm+kvC+uFE0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=qAKw4xEr; arc=none smtp.client-ip=185.125.188.251
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="COJdahzx"
-Message-ID: <34234a57-9553-4193-a855-ee1ebbea3d6e@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1724933103;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=bH9C24zmmgRCb7/6azqdebeQn6ZBHHKKKffowbEd9Dk=;
-	b=COJdahzx6NfKxtXt/DRPcvmCqzVEemh/YsrD96kCx2XyPOPines01uWs6rfis9GYqkFnjt
-	3SGCn8pVXeUP43+H/9+j8e7YKWsuWzJ/MGzpqTA68Ty2BmYVK72EbVayOkv8t9QXNNiug/
-	rnqP0Er+dQiuP/MOyAqlRDtaOZ9L/GU=
-Date: Thu, 29 Aug 2024 20:04:55 +0800
+	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="qAKw4xEr"
+Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.215.202])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id C607740F04
+	for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 13:33:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
+	s=20210803; t=1724938422;
+	bh=hDfRK+slGkOfai8AZ5Psove1Tc5lY+6jUxVj2aOQcj8=;
+	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
+	 Reply-To;
+	b=qAKw4xErc8aulbUzgiyyrSbHVVEgkomNES3L+SxEKguKNkZ/klWQ34Sc7aYx1HkSS
+	 AUzTTDKPikcbAEsWbLOhtB2BaSxKvXwVpQIZ1e3cp/Qg6XQ71tY5FqucK8NuEH6E2K
+	 XThpfQabib6W43hqB05RN5emfYLVCc9V6p7Sg9JAX82hTweDTGbZESdBgYhK4U72Gl
+	 H8wZTi643QfQp19M/4rtRTwsdOH7ryB0EtIUy8PY/SphE7en9lgDLt8MVp1nF0hLyX
+	 YSeWnkY0aXtRhe5EZEVRIFpAKr+wAbLtciyeB80/1qaO8tfs8UfHvZHyB/tysGV7gr
+	 cDOmjs4VQYzwQ==
+Received: from buildd-manager.lp.internal (localhost [127.0.0.1])
+	by buildd-manager.lp.internal (Postfix) with ESMTP id B80747E24B
+	for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 13:33:42 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: =?UTF-8?Q?Re=3A_=5Bbug=5D_rdma-core/librdmacm/cma=2Ec_rdma=5Fcreate?=
- =?UTF-8?B?X3FwX2V4w6/CvGFkZCBpZC0+Y3EgcmVmZXIgdG8gcXBfYXR0ci0+Y3EsIHdoZW4g?=
- =?UTF-8?Q?qp=5Fattr-=3Ecq_is_not_NULL=2C_and_id-=3Ecq_is_NULL?=
-To: "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>, =?UTF-8?B?6Z2z5paH5a6+?=
- <jinwenbinxue@163.com>,
- "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-References: <f819f8c.52ce.191927ea67c.Coremail.jinwenbinxue@163.com>
- <63408cd4-c4a9-4268-84a7-2c7fab9b690e@fujitsu.com>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <63408cd4-c4a9-4268-84a7-2c7fab9b690e@fujitsu.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Transfer-Encoding: quoted-printable
+X-Launchpad-Message-Rationale: Requester @linux-rdma
+X-Launchpad-Message-For: linux-rdma
+X-Launchpad-Notification-Type: recipe-build-status
+X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
+X-Launchpad-Build-State: FAILEDTOBUILD
+To: Linux RDMA <linux-rdma@vger.kernel.org>
+From: noreply@launchpad.net
+Subject: [recipe build #3778658] of ~linux-rdma rdma-core-daily in bionic: Failed to build
+Message-Id: <172493842274.1779024.18286710503514828061.launchpad@buildd-manager.lp.internal>
+Date: Thu, 29 Aug 2024 13:33:42 -0000
+Reply-To: noreply@launchpad.net
+Sender: noreply@launchpad.net
+Errors-To: noreply@launchpad.net
+Precedence: bulk
+X-Generated-By: Launchpad (canonical.com); Revision="1b1ed1ad2dbfc71ee62b5c5491c975135a771bf0"; Instance="launchpad-buildd-manager"
+X-Launchpad-Hash: 5c5756e056a781b0a75c518ac7b9c0710addc59d
 
-在 2024/8/28 8:51, Zhijian Li (Fujitsu) 写道:
-> Not related to your modification,
-> 
-> In general,
-> - Please report a bug with more details, such as how to reproduce, your expectations and what's the impact, etc...
-> - Please follow the patch submit instruction[1] or a PR if you want to submit a patch to the communities.
-> 
-> [1] https://docs.kernel.org/process/submitting-patches.html
+ * State: Failed to build
+ * Recipe: linux-rdma/rdma-core-daily
+ * Archive: ~linux-rdma/ubuntu/rdma-core-daily
+ * Distroseries: bionic
+ * Duration: 3 minutes
+ * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
+aily/+recipebuild/3778658/+files/buildlog.txt.gz
+ * Upload Log:=20
+ * Builder: https://launchpad.net/builders/lcy02-amd64-033
 
-It seems a rdma-core problem. Not sure if it is reasonable to use the 
-above link.
-
-Zhu Yanjun
-
-> 
-> 
-> On 27/08/2024 14:20, 靳文宾 wrote:
->>
->>
->>
->>
->>
->> I think the following modification is more correct,
->> if there have something i dont know, pls tell me, thx
->>
->>
->>
->>
->>
->> diff --git a/librdmacm/cma.c b/librdmacm/cma.c
->> index 7b924bd0d..9e71ba858 100644
->> --- a/librdmacm/cma.c
->> +++ b/librdmacm/cma.c
->> @@ -1654,10 +1654,20 @@ int rdma_create_qp_ex(struct rdma_cm_id *id,
->>           if (ret)
->>                   return ret;
->>
->>
->> -       if (!attr->send_cq)
->> +       if (!attr->send_cq) {
->>                   attr->send_cq = id->send_cq;
->> -       if (!attr->recv_cq)
->> +       } else {
->> +               if (!id->recv_cq)
->> +                       id->recv_cq = attr->recv_cq;
->> +       }
->> +       if (!attr->recv_cq) {
->>                   attr->recv_cq = id->recv_cq;
->> +       } else {
->> +               if (!id->recv_cq)
->> +                       id->recv_cq = attr->recv_cq;
->> +       }
->> +
->> +
->>           if (id->srq && !attr->srq)
->>                   attr->srq = id->srq;
->>           qp = ibv_create_qp_ex(id->verbs, attr);
->>
->>
->>
->>
+--=20
+https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
+ild/3778658
+Your team Linux RDMA is the requester of the build.
 
