@@ -1,77 +1,96 @@
-Received: from smtp-relay-services-1.canonical.com (smtp-relay-services-1.canonical.com [185.125.188.251])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B27A16D33C
-	for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 13:40:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.188.251
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3392D19306A;
+	Thu, 29 Aug 2024 13:54:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724938829; cv=none; b=BG5ZmhNXLLGKeQ/vBaKLyiDRDDGXTdRnHNtZjaZAFlF+Rd7P7sTeMpT5kEnc3qNNaYG4j+JlG91HjikVe9O3VvpCioRD80raBgXdJvc3L6ayEjMwp42bOrBkfyRhVdPhZwnGYPe23Wg0caMHkEgEc3dLiS9jnvxEI4OHK4reNeg=
+	t=1724939644; cv=none; b=fIkFUUBQuZLoo0ZnjPDTn+aVgas7VxUBEG1BTkmyIsZUDxaaKqhSe6Gy3eRCoYwxh+gqvHy4KCeRR7T8jJ3jWmJCz7TqYwkTMK6+qVQqXCy1MPrUhpQqEuyoF/1XRzdFJp4qYHoKkSjkyhLpu+fB5onrmgPKEUL9s17E+qCpy14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724938829; c=relaxed/simple;
-	bh=A6s0/9kefY/d/MF2CPmN5Yt9QOhw+cylljXWxb4hz8A=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date; b=GpkLvBKT7tBDn5nkR8j3vfT0K7DNyM59HwrwgMwThjg/1c6+l/irM4cgelOoN3paEvaPbIMrVIlLHUozPcuGDxbd5FyradvD0oa6OICYqmuzIDdzVW9XKmV2wOkNtZUV7bADrBWhZWtrl+hncEY0Q6C0lGA4XDbGuL2Ink4dY5Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net; spf=pass smtp.mailfrom=launchpad.net; dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b=Xwh8pkiq; arc=none smtp.client-ip=185.125.188.251
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=launchpad.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=launchpad.net
+	s=arc-20240116; t=1724939644; c=relaxed/simple;
+	bh=BmMRbA2qEwzOz1sUZJsVWPr0HWKMM6RYtc1oRFXePTk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=daye4VqG6DLbRsq3PLFAKIMJBJmGaihD65pf351mnVFdgIzCwGF+Xy0aeNXdZOaS4TAcKG/FkrZg/D1mHINR1xs5hgyVVsBiN1PvnyipDnTPsPN11N/0noCd+cEBez9/jaBOSOFeEkPrYojN6KS4zbKhqlvutc4sGlqp6uCW3e8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jaVBywgb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=launchpad.net header.i=@launchpad.net header.b="Xwh8pkiq"
-Received: from buildd-manager.lp.internal (buildd-manager.lp.internal [10.131.215.202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-relay-services-1.canonical.com (Postfix) with ESMTPSA id 064043F47A
-	for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 13:33:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=launchpad.net;
-	s=20210803; t=1724938396;
-	bh=A6s0/9kefY/d/MF2CPmN5Yt9QOhw+cylljXWxb4hz8A=;
-	h=Content-Type:MIME-Version:To:From:Subject:Message-Id:Date:
-	 Reply-To;
-	b=Xwh8pkiquwokfUA43wmr2KVroXN8PBZ42LoHnA7VjcbfblyAVuRETb7AP86YFh4uW
-	 ifBbsiov2bICzPHFxiDkjBh7Ux8C8EJHE4mFxQW9Pcgh/LQvcWwM3VZA8pkqliKaHY
-	 Tew8Ty+JrxzYs8tWsrRgn2mrksaR9IvwVMUXFOf8xBTX7JQ6eGRJcORHjaiBd2s9AJ
-	 aE6PFXeLESbD587F76iVRxqGn3fzQqkU3UBIqLolnn9/txXao+rtKpTUDj2SHebam1
-	 3kDqQ9Uwl6UmJ1LxfdEYGcyFkfpOhsAPRxpxJP9EdUigobqWRl2M1p2uSeiQVWmoWS
-	 LLZp+0Xm/qekQ==
-Received: from buildd-manager.lp.internal (localhost [127.0.0.1])
-	by buildd-manager.lp.internal (Postfix) with ESMTP id F22207E24B
-	for <linux-rdma@vger.kernel.org>; Thu, 29 Aug 2024 13:33:15 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jaVBywgb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06A9AC4CEC3;
+	Thu, 29 Aug 2024 13:54:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1724939643;
+	bh=BmMRbA2qEwzOz1sUZJsVWPr0HWKMM6RYtc1oRFXePTk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=jaVBywgbBNmKGTFi8oYt1lGWqsq4cAZiAXT/EsqdGc5SXMsQQl9to7z+/aBvP/jSb
+	 UAafbTtcm0PhLMBmuHniDyL/dRQuk8cO5KrBQOHS3SUo905du5581wZHArgN0iWSTx
+	 AS0Wy5ulmT8yC8hN474vrlaY79ZNh2/A73toc6uXSFwCOv0zAoAOfVu3Tdy/OjjL32
+	 MmCcmzmjrPgoMyxJ3Qaxg74yxdEjgI56UFzYDwQbn2L7CCNmtNSprde6AsKvmRcK/3
+	 rSlPoxmuBgmq9dYnUbGqCnDiQxWVXRh1FM2yY61XQnGlBz2R4qZWs8ATLECn/yquP3
+	 4mQpYMLQKV0Tw==
+Date: Thu, 29 Aug 2024 14:53:58 +0100
+From: Simon Horman <horms@kernel.org>
+To: longli@linuxonhyperv.com
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+	Ajay Sharma <sharmaajay@microsoft.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Long Li <longli@microsoft.com>,
+	stable@vger.kernel.org
+Subject: Re: [PATCH net] RDMA/mana_ib: use the correct page size for mapping
+ user-mode doorbell page
+Message-ID: <20240829135358.GA2923441@kernel.org>
+References: <1724875569-12912-1-git-send-email-longli@linuxonhyperv.com>
+ <1724875569-12912-2-git-send-email-longli@linuxonhyperv.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-Launchpad-Message-Rationale: Requester @linux-rdma
-X-Launchpad-Message-For: linux-rdma
-X-Launchpad-Notification-Type: recipe-build-status
-X-Launchpad-Archive: ~linux-rdma/ubuntu/rdma-core-daily
-X-Launchpad-Build-State: FAILEDTOBUILD
-To: Linux RDMA <linux-rdma@vger.kernel.org>
-From: noreply@launchpad.net
-Subject: [recipe build #3778657] of ~linux-rdma rdma-core-daily in xenial: Failed to build
-Message-Id: <172493839598.1779024.9210505566018910381.launchpad@buildd-manager.lp.internal>
-Date: Thu, 29 Aug 2024 13:33:15 -0000
-Reply-To: noreply@launchpad.net
-Sender: noreply@launchpad.net
-Errors-To: noreply@launchpad.net
-Precedence: bulk
-X-Generated-By: Launchpad (canonical.com); Revision="1b1ed1ad2dbfc71ee62b5c5491c975135a771bf0"; Instance="launchpad-buildd-manager"
-X-Launchpad-Hash: 2d98910fb261d419a052f7405441227555321932
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1724875569-12912-2-git-send-email-longli@linuxonhyperv.com>
 
- * State: Failed to build
- * Recipe: linux-rdma/rdma-core-daily
- * Archive: ~linux-rdma/ubuntu/rdma-core-daily
- * Distroseries: xenial
- * Duration: 3 minutes
- * Build Log: https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-d=
-aily/+recipebuild/3778657/+files/buildlog.txt.gz
- * Upload Log:=20
- * Builder: https://launchpad.net/builders/lcy02-amd64-056
+On Wed, Aug 28, 2024 at 01:06:09PM -0700, longli@linuxonhyperv.com wrote:
+> From: Long Li <longli@microsoft.com>
+> 
+> When mapping doorbell page from user-mode, the driver should use the system
+> page size as the doorbell is allocated via mmap() from user-mode.
+> 
+> Cc: stable@vger.kernel.org
+> Fixes: 0266a177631d ("RDMA/mana_ib: Add a driver for Microsoft Azure Network Adapter")
+> Signed-off-by: Long Li <longli@microsoft.com>
+> ---
+>  drivers/infiniband/hw/mana/main.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+> index f68f54aea820..b26c4ebec2e0 100644
+> --- a/drivers/infiniband/hw/mana/main.c
+> +++ b/drivers/infiniband/hw/mana/main.c
+> @@ -511,13 +511,13 @@ int mana_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
+>  	      PAGE_SHIFT;
+>  	prot = pgprot_writecombine(vma->vm_page_prot);
+>  
+> -	ret = rdma_user_mmap_io(ibcontext, vma, pfn, gc->db_page_size, prot,
+> +	ret = rdma_user_mmap_io(ibcontext, vma, pfn, PAGE_SIZE, prot,
+>  				NULL);
+>  	if (ret)
+>  		ibdev_dbg(ibdev, "can't rdma_user_mmap_io ret %d\n", ret);
+>  	else
+>  		ibdev_dbg(ibdev, "mapped I/O pfn 0x%llx page_size %u, ret %d\n",
+> -			  pfn, gc->db_page_size, ret);
+> +			  pfn, PAGE_SIZE, ret);
 
---=20
-https://launchpad.net/~linux-rdma/+archive/ubuntu/rdma-core-daily/+recipebu=
-ild/3778657
-Your team Linux RDMA is the requester of the build.
+This is not a full review, but according to both clang-18 and gcc-14,
+this patch should also update the format specifier from %u to %lu.
 
+>  
+>  	return ret;
+>  }
+> -- 
+> 2.17.1
+> 
+> 
