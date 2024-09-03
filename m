@@ -1,42 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 932A8195
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Sep 2024 11:25:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 443321C985E;
+	Tue,  3 Sep 2024 11:37:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725362713; cv=none; b=txa3cFuadxmISP+snr/9ZbatcrX70IZUQS6xn1iz7+sKNyJaWqEx4M1ZnzTwyRKLlFfFtMz2lI+RZ3+Xm+DbxbOVtRWCy8aJ1crBKN7mddg4EduO1/f154CiwWaTt3EA42wcoctYPHGuopaeWxw6UZU+/m4yAYY8youKt8P7KRE=
+	t=1725363479; cv=none; b=cO+QVfQ4wJyRQcQNLcuZpzWDKwP8anM4dQEWjN32//qAheYlgJKWuFRC3go4fRj59NfFQB2EpH2MtBxoAkF6wSGdspUQ0AcxfU22AAJfYzxiCHSLEjIOJh/k5NsDSKpk5NcHQmGncLD74YWIazz7u053OxaD705FzVneazXxVAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725362713; c=relaxed/simple;
-	bh=W34hkfiTnRLL8AS6oJBPaXNqy3Gyeitd8fHDFZT7eqI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=btnHV9ZqPVlkfR+EN38K/4KWed1SD16fy2TmDms88m52VsSy0lz4ORXastwAdr82y5ckNnwfgvDUCMI09qMdT5QV64wYRYvR+Ahc0Od+W2ORkkliC6RGhXihaiVr7+0e0lfCgdJ5MeWSzj/rYoNUdmSDzqr54efyZjUlQgaYRcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EjNjZ4J1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1725363479; c=relaxed/simple;
+	bh=VU2AL8gzcAybPFd7XKWxlWyUsR2cBFvhtk6ksKQLrzE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YCac7GcLInRO8UuhsyRrjR105adZBDidUZoX2BtT/nyGzy8+IH9sKxSMEy2KSc95pwcC7lyluZ2FziB72uX4Lvw8wygad9vrRANG/wVLTIuYP+KY3ZFqcoY9IChz2sxUJbh7qTeo9QYrCYlAH23f46t451mx+FQS4q8+/nuW0b4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=vCiuNqMj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EjNjZ4J1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA325C4CEC4;
-	Tue,  3 Sep 2024 11:25:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="vCiuNqMj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31AF6C4CEC9;
+	Tue,  3 Sep 2024 11:37:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1725362713;
-	bh=W34hkfiTnRLL8AS6oJBPaXNqy3Gyeitd8fHDFZT7eqI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=EjNjZ4J1MzPqKz8L6ltA1PsxP5ImL7GsWWJjLejZSoVSLsxaT2ev65foFlPKKp3Qd
-	 rduzFqOjJ7nrCjJc/fejWAxpME31bKAvEiOYkAvH0tnplof7FzENCSAP3X8NJ8rf8k
-	 zSKqa63oOrsbYvt7bCUtATvrLDfFNO5HrUx3/vCJULNwg2ffXnachDlVsh9KieAaEZ
-	 Q80uBQCemcu7iUkdP6nrK+E9doI2XBCkw1LbFqjh3tt8mSf3TkSj6ukBxjdXJa2Jwr
-	 z7Jxdnnw0Ev2lBlO1r/koWEv/FoVSxx+nsT/LMPib8nwm9kXRpaugIYaeU08bugJC+
-	 LhwxOF3wskX0A==
+	s=k20201202; t=1725363478;
+	bh=VU2AL8gzcAybPFd7XKWxlWyUsR2cBFvhtk6ksKQLrzE=;
+	h=From:To:Cc:Subject:Date:From;
+	b=vCiuNqMj4S1DjlGb8QrFwRUFzUWtNk4ofN1z9mVkzPfpG1uhrCd0zV4Vb6nvB10Th
+	 UbOnbAAHZezXfVQrFm/nj+PuIV9Wtejw30sfeXpfKshJnYLQ3lbmxOxdF4GidyW+/Z
+	 Ny1WY2LZFdOHdMN1YHEefCWop9ZlMTchSz9lXkeTPDJftdU3YqfAkqb11as29gz2+O
+	 4CcBcbyENqYuSWEXSKwtitgDaol5A1996nnp4VCQri46h+3P6+4UpGAHRxl6vWNc0L
+	 TVldKSAp2Ln2ssm9uuLA1Z2AZuXUC/vLD/aeGs1SwdADMbUNH+SGO3uiYHGtGPmpTG
+	 ypqu0cMfh5a1Q==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Michael Guralnik <michaelgur@nvidia.com>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
+	Edward Srouji <edwards@nvidia.com>,
+	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	Shay Drory <shayd@nvidia.com>
-Subject: [PATCH rdma-next 2/4] RDMA/mlx5: Fix counter update on MR cache mkey creation
-Date: Tue,  3 Sep 2024 14:24:48 +0300
-Message-ID: <0f44f462ba22e45f72cb3d0ec6a748634086b8d0.1725362530.git.leon@kernel.org>
+	netdev@vger.kernel.org,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Yishai Hadas <yishaih@nvidia.com>
+Subject: [PATCH rdma-next 0/2] Introduce mlx5 data direct placement (DDP)
+Date: Tue,  3 Sep 2024 14:37:50 +0300
+Message-ID: <cover.1725362773.git.leon@kernel.org>
 X-Mailer: git-send-email 2.46.0
-In-Reply-To: <cover.1725362530.git.leon@kernel.org>
-References: <cover.1725362530.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,40 +47,37 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Michael Guralnik <michaelgur@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-After an mkey is created, update the counter for pending mkeys before
-reshceduling the work that is filling the cache.
+Hi,
 
-Rescheduling the work with a full MR cache entry and a wrong 'pending'
-counter will cause us to miss disabling the fill_to_high_water flag.
-Thus leaving the cache full but with an indication that it's still
-needs to be filled up to it's full size (2 * limit).
-Next time an mkey will be taken from the cache, we'll unnecessarily
-continue the process of filling the cache to it's full size.
+This series from Edward introduces mlx5 data direct placement (DDP)
+feature. 
 
-Fixes: 57e7071683ef ("RDMA/mlx5: Implement mkeys management via LIFO queue")
-Signed-off-by: Michael Guralnik <michaelgur@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mr.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This feature allows WRs on the receiver side of the QP to be consumed
+out of order, permitting the sender side to transmit messages without
+guaranteeing arrival order on the receiver side.
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 3945df08beec..80038e3998af 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -214,9 +214,9 @@ static void create_mkey_callback(int status, struct mlx5_async_work *context)
- 
- 	spin_lock_irqsave(&ent->mkeys_queue.lock, flags);
- 	push_mkey_locked(ent, mkey_out->mkey);
-+	ent->pending--;
- 	/* If we are doing fill_to_high_water then keep going. */
- 	queue_adjust_cache_locked(ent);
--	ent->pending--;
- 	spin_unlock_irqrestore(&ent->mkeys_queue.lock, flags);
- 	kfree(mkey_out);
- }
+When enabled, the completion ordering of WRs remains in-order,
+regardless of the Receive WRs consumption order.
+
+RDMA Read and RDMA Atomic operations on the responder side continue to
+be executed in-order, while the ordering of data placement for RDMA
+Write and Send operations is not guaranteed.
+
+Thanks
+
+Edward Srouji (2):
+  net/mlx5: Introduce data placement ordering bits
+  RDMA/mlx5: Support OOO RX WQE consumption
+
+ drivers/infiniband/hw/mlx5/main.c    |  8 +++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ drivers/infiniband/hw/mlx5/qp.c      | 51 +++++++++++++++++++++++++---
+ include/linux/mlx5/mlx5_ifc.h        | 24 +++++++++----
+ include/uapi/rdma/mlx5-abi.h         |  5 +++
+ 5 files changed, 78 insertions(+), 11 deletions(-)
+
 -- 
 2.46.0
 
