@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D14B1A42B3
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Sep 2024 11:25:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 816A51A42B3
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Sep 2024 11:25:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725362701; cv=none; b=Ui6IbvCim43uN0GVpzWoxBaEtU03bczMsUH8OxPE/CZZ4Nx2nGMbSXSovlC84R6s8vERVqiT70d6CzkDGL0UG9mxTkFoNcjLMC5SqXFhuXyskwXMETpQ7JeorF0CREgB2ZKZJOIL8HG5L6EjINQ03ovV02xlkeVPFFGuJrRsZj8=
+	t=1725362705; cv=none; b=pI75h3Rk4uGa6kTz/4sn8pnyP+365Dy8f24/TMcE6pgiD3R/K735ctzdFmpD9udouBJET3Bod13JId/CsYDkujTWeVM87zYpPB6heq49mRuo/KUYt6bW3o2qdE7XNdzRPT95NYyvotpM9ywaCkO9VudOZPlKr0bCd/azZ6TPEZg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725362701; c=relaxed/simple;
-	bh=fa3ycwiM0Bg3dtKd5t0gU3cuqlPSHGb5AplZmuP2KtI=;
+	s=arc-20240116; t=1725362705; c=relaxed/simple;
+	bh=ZG4EFnbDx7TddsG90VDGCNy+1YIKAFuIShpWeP91iU4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EGzipTKEcSE3NdTAnbw4445016FDl95K1lHVaTAv91rudRxCZokOFPDgeSKT74ZMPYd8T0uOsMMbybbA9FMPkRutyR/6rCQCyPLLaCYVmkHyGwVcTKvmgMxuR8yxy0TV/UEXohuOahNIebo1vv2ESd1iPAqDiOEskZQeQKg0yTs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qCGLevRT; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=U6xUOw4ByM0Haz3ZuV48JqHWWo5QLlrHcyaSYjvkTDJZ2JdtRXMbHU6uE06FpKZck8lc/87akTLLMQMUuh/Xz7HlWjjj3aa1Hl1HEAT4yxrq+1b8t0PA+kW+nP/iyUh8sJJW/QplPRKderOGenf3qCz0Vss6ZZutzOM54zRfoKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Gefml+WH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qCGLevRT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78B7BC4CEC4;
-	Tue,  3 Sep 2024 11:25:00 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Gefml+WH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FDFAC4CEC4;
+	Tue,  3 Sep 2024 11:25:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1725362701;
-	bh=fa3ycwiM0Bg3dtKd5t0gU3cuqlPSHGb5AplZmuP2KtI=;
+	s=k20201202; t=1725362705;
+	bh=ZG4EFnbDx7TddsG90VDGCNy+1YIKAFuIShpWeP91iU4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=qCGLevRTmbmQRRqUDqKVthcq3mzcjQjCK+GyAu5hORH7oY8ld0W8RRAjL7Hlpr0hK
-	 AtPDj+WS2H+7ceSP0yDhrwCd5kwJpfmtPLNyekhgIns3CHeqAtRscHntFTLzr4NEt4
-	 Oog43Sz0l8Uxj9lxqj29/QGVabL8HjKZAUzlHyGUcylv08TD+3IVw5NCGX7WZPMa6t
-	 fZnmkVm0IsaDCt0YHkq2HqhPY8rt44Bo1QRYgNYGOaBJbQG4NYS6AgLjqXXeGTNzCz
-	 wbgJdeIPUkxIx/WDRA0VXKDYQf92i+jGZjrR5h6vsYIWxgjES7dXgrjvyS6yb11JIl
-	 pG3Hsv5PApszA==
+	b=Gefml+WHFiZshbDXVwG/t1Mbu1VFkmve6FH3Z8lZ/aFxXVGst9/r7cA4RCTFOKFHp
+	 FyMprBRf5GTaXQbGt7RVPvTKHm+rTPO72OWFlGfJbPMsD1JgshVuI/QFNLrd1MShIu
+	 cfBu5GBrJLVRyiaGmyYfjPR58v4ZjAr9f7czSBASHxx2IGyfN5vCQnD46SEZpvw+vu
+	 +XmrUw7/S75nfTUlRQ5g/pyS3O264pYWztjjyGtujkeTw1oKjLDnqOVRD2d9VCwqUh
+	 epiMlNWB2rB4tTzT0VA1oH7x4mRlfAbNwBS84jA6EJ0R+wlVuFc9LJqFH3j/pcTqbu
+	 XRPr4AMyC39Kg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Michael Guralnik <michaelgur@nvidia.com>,
 	linux-rdma@vger.kernel.org,
 	Shay Drory <shayd@nvidia.com>
-Subject: [PATCH rdma-next 1/4] RDMA/mlx5: Drop redundant work canceling from clean_keys()
-Date: Tue,  3 Sep 2024 14:24:47 +0300
-Message-ID: <943d21f5a9dba7b98a3e1d531e3561ffe9745d71.1725362530.git.leon@kernel.org>
+Subject: [PATCH rdma-next 3/4] RDMA/mlx5: Limit usage of over-sized mkeys from the MR cache
+Date: Tue,  3 Sep 2024 14:24:49 +0300
+Message-ID: <8ba3a6e3748aace2026de8b83da03aba084f78f4.1725362530.git.leon@kernel.org>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <cover.1725362530.git.leon@kernel.org>
 References: <cover.1725362530.git.leon@kernel.org>
@@ -47,30 +47,89 @@ Content-Transfer-Encoding: 8bit
 
 From: Michael Guralnik <michaelgur@nvidia.com>
 
-The canceling of dealyed work in clean_keys() is a leftover from years
-back and was added to prevent races in the cleanup process of MR cache.
-The cleanup process was rewritten a few years ago and the canceling of
-delayed work and flushing of workqueue was added before the call to
-clean_keys().
+When searching the MR cache for suitable cache entries, don't use mkeys
+larger than twice the size required for the MR.
+This should ensure the usage of mkeys closer to the minimal required size
+and reduce memory waste.
 
+On driver init we create entries for mkeys with clear attributes and
+powers of 2 sizes from 4 to the max supported size.
+This solves the issue for anyone using mkeys that fit these
+requirements.
+
+In the use case where an MR is registered with different attributes,
+like an access flag we can't UMR, we'll create a new cache entry to store
+it upon dereg.
+Without this fix, any later registration with same attributes and smaller
+size will use the newly created cache entry and it's mkeys, disregarding
+the memory waste of using mkeys larger than required.
+
+For example, one worst-case scenario can be when registering and
+deregstering a 1GB mkey with ATS enabled which will cause the creation of
+a new cache entry to hold those type of mkeys. A user registering a 4k MR
+with ATS will end up using the new cache entry and an mkey that can
+support a 1GB MR, thus wasting x250k memory than actually needed in the HW.
+
+Additionally, allow all small registration to use the smallest size
+cache entry that is initialized on driver load even if size is larger
+than twice the required size.
+
+Fixes: 73d09b2fe833 ("RDMA/mlx5: Introduce mlx5r_cache_rb_key")
 Signed-off-by: Michael Guralnik <michaelgur@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/hw/mlx5/mr.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 6829e3688b60..3945df08beec 100644
+index 80038e3998af..c17a35014a2b 100644
 --- a/drivers/infiniband/hw/mlx5/mr.c
 +++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -772,7 +772,6 @@ static void clean_keys(struct mlx5_ib_dev *dev, struct mlx5_cache_ent *ent)
- {
- 	u32 mkey;
+@@ -49,6 +49,7 @@ enum {
+ 	MAX_PENDING_REG_MR = 8,
+ };
  
--	cancel_delayed_work(&ent->dwork);
- 	spin_lock_irq(&ent->mkeys_queue.lock);
- 	while (ent->mkeys_queue.ci) {
- 		mkey = pop_mkey_locked(ent);
++#define MLX5_MR_CACHE_PERSISTENT_ENTRY_MIN_DESCS 4
+ #define MLX5_UMR_ALIGN 2048
+ 
+ static void
+@@ -662,6 +663,7 @@ mkey_cache_ent_from_rb_key(struct mlx5_ib_dev *dev,
+ {
+ 	struct rb_node *node = dev->cache.rb_root.rb_node;
+ 	struct mlx5_cache_ent *cur, *smallest = NULL;
++	u64 ndescs_limit;
+ 	int cmp;
+ 
+ 	/*
+@@ -680,10 +682,18 @@ mkey_cache_ent_from_rb_key(struct mlx5_ib_dev *dev,
+ 			return cur;
+ 	}
+ 
++	/*
++	 * Limit the usage of mkeys larger than twice the required size while
++	 * also allowing the usage of smallest cache entry for small MRs.
++	 */
++	ndescs_limit = max_t(u64, rb_key.ndescs * 2,
++			     MLX5_MR_CACHE_PERSISTENT_ENTRY_MIN_DESCS);
++
+ 	return (smallest &&
+ 		smallest->rb_key.access_mode == rb_key.access_mode &&
+ 		smallest->rb_key.access_flags == rb_key.access_flags &&
+-		smallest->rb_key.ats == rb_key.ats) ?
++		smallest->rb_key.ats == rb_key.ats &&
++		smallest->rb_key.ndescs <= ndescs_limit) ?
+ 		       smallest :
+ 		       NULL;
+ }
+@@ -964,7 +974,7 @@ int mlx5_mkey_cache_init(struct mlx5_ib_dev *dev)
+ 	mlx5_mkey_cache_debugfs_init(dev);
+ 	mutex_lock(&cache->rb_lock);
+ 	for (i = 0; i <= mkey_cache_max_order(dev); i++) {
+-		rb_key.ndescs = 1 << (i + 2);
++		rb_key.ndescs = MLX5_MR_CACHE_PERSISTENT_ENTRY_MIN_DESCS << i;
+ 		ent = mlx5r_cache_create_ent_locked(dev, rb_key, true);
+ 		if (IS_ERR(ent)) {
+ 			ret = PTR_ERR(ent);
 -- 
 2.46.0
 
