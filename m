@@ -1,28 +1,27 @@
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com (mail-sn1nam02on2044.outbound.protection.outlook.com [40.107.96.44])
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2041.outbound.protection.outlook.com [40.107.94.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D01E1DEFCD
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Sep 2024 15:31:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.96.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD1981DEFCB
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Sep 2024 15:31:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.94.41
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725463870; cv=fail; b=pRMJdI3hmiiZw7YDLeKXn05mgst0+Tb964Z4uEjM+em/jNCbiJeM2vW+0c2a1Z9RFKRPjJmRUsW+2i9BTuvUEO5N3ew29QEopsqW1MjihVGBcXpa+nDmpnc9PGtAx5PqhtyOKUVpX/DKzHRYco4cjFaLxgvd4FZ4UTEPrYevjpM=
+	t=1725463872; cv=fail; b=YPRI9tiatljfs27iuU0F34b/6/Wcy9tBUzmTIYiwOHlDbkusQZ8oueqh9F4g/Ox0TWyMX8cAv2ugPj/MhBKe64LJtXTaDIeOfcDzvWlD/eX6IPCRQ+uuZt2n9ti5ozdeYnxnZ9FWW1AV56HC6+XBY/6SLXrLrLC/nksY/gm7hvc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725463870; c=relaxed/simple;
-	bh=udtOONpfnz7kqLOsQgZy4dXS2FqgNLoCyozCvWdqiPw=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=b6TSOp16PyLaKCYP3/1O9iEcHaYktIFMOPf7HvQhC2WfzWPr1XNkF3bCReEw4BsjyPkb2iRllRofHVALjOTZFbYhWXyPVJUqJ/nCLiaCJt69Be0xyckJzzEGS1Dk71rIzwSZFJMWT4i9vG+NG5HnMO8vAFBcu4kbh7iuPSVHVBI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=nQqGP49d; arc=fail smtp.client-ip=40.107.96.44
+	s=arc-20240116; t=1725463872; c=relaxed/simple;
+	bh=H4jKro83J5HW0TwnP4qj+bSdQGR+Q2uA07HVuTAfIt8=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=mUQlrxa5K5k8ksKhQazX51eKHiG+Tq5Y6s8Lk4AuQ2ytfqvcFZBYrDo0TqAhmKuEpr5M3Hnw3b5RgdYZ3cjreGgOMzoadOGKkuxFM9naRtZQn413q2VZOTGjKP9LsEPwuhkAC5Rpwt9M8yKMXOrXaUpgxCleLksRgiOKV+K3di4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=YH3YWQoN; arc=fail smtp.client-ip=40.107.94.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="nQqGP49d"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="YH3YWQoN"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ZR8hdPqsCYkX5JoMFL8HZZxNGyEj28ToFdKZZHYFAaZjo8HxPB70h8oqYgz+E74lK69aoiILGT/Ur+tWs21NHzDuYT4p77RfGLJnF65XJC9RDzv5f6ExtHdOR8VcvkDXfoyoU0CJr32RO/IXr07cZvKcmrl8OJvcD8OgTxPGG+jzhquJ0D5kYBEUEsc6JZ5SbIKVDDuPpdAZDd6L5gwII3ef7YsJKnHx2dhHMUC+nGOVkmfdpJI9pTmqSCW95jfBWD4YbQHIXXLexwGoseLdHaDKMPkF5mudJ9zfWw2RTBykn0SUBZ4KonPX58Vn+QFXc90O0L26MnBmDWhLMhyF6A==
+ b=qcJOkjXj0BiwXMpnX5OPVZIr4eSsOfrai84wyThh5oBhyUt5T5wu898lheS3ZIZ1/M/mRdTfNH8LwjXnjPeHDycua2sWEjDInlMDuB1si6zGZuK21tqf5wcNd5jYpg52Q2S8ztzOtyax4JIbSSzkIV1haoec7MrsHcXq2s77anxp3gfw7rwrHuaD/K/tKRjAv4+2CYOUYSRmOpV4v9TmPbbpEppconENKtdIasi7G0qhmPMkTM2vZged0tp2vzyJZxXgibnFu2gepn6PUpZ8pSCR0IeSkHGrCjsk0QJbkcd3RBBRZSdlxX24TChQJFzQ1Pp25rSpicf9QcU8NIAsBA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=2VVsmCBsTbmoNEDvOisP0DU0vksXfNKdqLnxNPQrtAo=;
- b=J7l7ISfpsMLPd4COR/w/7mmpVCbHScsng6YF/6yZypvxjtipuPLobHHUx8nLFhfsvsmuShCtffH9kkLJo1RVReEW5Rycq07mLobuaQp96UWbroP4DVKQlNI8opj5Yp6JCIYzxmWr3ExcpDDKEdlFCYfLKXfPUu6ip7yzNH3J4p3hG/xNAQwV5j1gXK7QHaheWFgPGM8ZrkPGKIroyBbqgIrEwJ2pdyb5/oOAvblQIAbvBEQA/f2zMYudNsrHRSaslCsk/fQi5DPf5ReUYHyC4e4NYk9R05t1VnnOsPjcoSCAuHMKx9rrF9qVTNZNXi6KSmjj/mh3CpbtUKsaWhtFWg==
+ bh=IWUjKSOpXRq8cDNhR5jj9QrnaPn97+HQhdaeOtxhmwo=;
+ b=SRF7Q5Mjp6j7FGPmeyznzQP69JVXoOpdR4YD5QvxWy1NKDbssawiZcTXxqUg0sfSi4DY6U3uqMxc2Gpo0xzFfKLRG6fx072X6xiFRDqyuu/Uwf6tQYsVDtHamfyykpdB3hDsjw5aRQV2YgJQrU3Rf00AreBP/X3CiJ9YkPmO3gdxERwXVbY5Pb/h7xAV+hb54DTS2ADmn25IRLXQNrOZDXPp5XkgqY+rJCMoJo0EIptIlsbvMnya+9gma/oSI1si9Ck+Wpr25tUp2J3QVr1m6xtmti8cNyeOX42M6k85guSfnJJxKt2bt8jVJWhsGoxrwLDKamO0RF7oCNBF6cXhZg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.118.232) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +29,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2VVsmCBsTbmoNEDvOisP0DU0vksXfNKdqLnxNPQrtAo=;
- b=nQqGP49dEWavXICi3IN0D9Cy1ZHdLyWPDUIOUzJTw1yaVUMoYeJYQ5E9eKolHMFNN5iTFuIyJdhnX/ucYv/7ZA9hRhpjDxsQCE/GZQ/HwZa06y6gPL6MulCtmTieAq91l98oM5i6dwdMa/queYm5TnoxVRQub/MU0CO/M43IaKKsut6obtFQCUq0lWLoDYLm3c3rhXaEUg+Zz/hLI2/LXIcjCF4D3gUsQ9rcxvCOnNnND2GtB81PlGBkg+8nf8l8t2EKMibVVmuPq/T89dwtzaIhVRiTu0OOpKXLjVGYI6EqkK09wZBiC3dFOoFGWLex1dhbdWgPE/+z5KznmlDX/A==
-Received: from BY1P220CA0012.NAMP220.PROD.OUTLOOK.COM (2603:10b6:a03:59d::8)
- by BL3PR12MB6451.namprd12.prod.outlook.com (2603:10b6:208:3ba::9) with
+ bh=IWUjKSOpXRq8cDNhR5jj9QrnaPn97+HQhdaeOtxhmwo=;
+ b=YH3YWQoN5O+fj6EZdoK1Q/GpAxmnpfmPYikRLFZpiv6D9q/ljq0qmBlBtQalW/HebZItLFngVRtp40bz0+qRsPuF1YtmxuOrNsRZO0/rwTCy7uko7QDUf+xGebN8wGPfjUsGVnsdZ7pKZj/uqly4mNZNzNgH1NHn6zkAB7waIo1EHWou6UG5BpuhRNh3v2xW/zLivBVNzT1ZdCh2YO2L5rtLGsbvGB/4AS8zEexc+gV8phVteNYazaler6k8rK8e6Cp7Sl6llUrfRFDYtUJyfpVJrIxbODUnp1U0I23q/M10qDyAwo8MuSNkhvZJBdO1ft8Li5IewBcl/md0dGhVeg==
+Received: from BY5PR13CA0008.namprd13.prod.outlook.com (2603:10b6:a03:180::21)
+ by DS0PR12MB6605.namprd12.prod.outlook.com (2603:10b6:8:d3::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7918.27; Wed, 4 Sep
- 2024 15:31:02 +0000
-Received: from SJ5PEPF000001EA.namprd05.prod.outlook.com
- (2603:10b6:a03:59d:cafe::e6) by BY1P220CA0012.outlook.office365.com
- (2603:10b6:a03:59d::8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7918.28; Wed, 4 Sep
+ 2024 15:30:54 +0000
+Received: from SJ5PEPF000001E9.namprd05.prod.outlook.com
+ (2603:10b6:a03:180:cafe::d5) by BY5PR13CA0008.outlook.office365.com
+ (2603:10b6:a03:180::21) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7939.14 via Frontend
- Transport; Wed, 4 Sep 2024 15:31:02 +0000
+ Transport; Wed, 4 Sep 2024 15:30:54 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -49,30 +48,28 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
  216.228.118.232 as permitted sender) receiver=protection.outlook.com;
  client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
 Received: from mail.nvidia.com (216.228.118.232) by
- SJ5PEPF000001EA.mail.protection.outlook.com (10.167.242.198) with Microsoft
+ SJ5PEPF000001E9.mail.protection.outlook.com (10.167.242.197) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.7918.13 via Frontend Transport; Wed, 4 Sep 2024 15:31:02 +0000
+ 15.20.7918.13 via Frontend Transport; Wed, 4 Sep 2024 15:30:54 +0000
 Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
  (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Wed, 4 Sep 2024
- 08:30:49 -0700
+ 08:30:43 -0700
 Received: from drhqmail203.nvidia.com (10.126.190.182) by
  drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.4; Wed, 4 Sep 2024 08:30:49 -0700
+ 15.2.1544.4; Wed, 4 Sep 2024 08:30:42 -0700
 Received: from vdi.nvidia.com (10.127.8.13) by mail.nvidia.com
  (10.126.190.182) with Microsoft SMTP Server id 15.2.1544.4 via Frontend
- Transport; Wed, 4 Sep 2024 08:30:47 -0700
+ Transport; Wed, 4 Sep 2024 08:30:41 -0700
 From: Michael Guralnik <michaelgur@nvidia.com>
 To: <leonro@nvidia.com>, <jgg@nvidia.com>
 CC: <linux-rdma@vger.kernel.org>, <saeedm@nvidia.com>, <tariqt@nvidia.com>,
 	Michael Guralnik <michaelgur@nvidia.com>
-Subject: [PATCH rdma-next 3/8] RDMA/mlx5: Add new ODP memory scheme eqe format
-Date: Wed, 4 Sep 2024 18:30:33 +0300
-Message-ID: <20240904153038.23054-4-michaelgur@nvidia.com>
+Subject: [PATCH rdma-next 0/8] Introduce mlx5 Memory Scheme ODP
+Date: Wed, 4 Sep 2024 18:30:30 +0300
+Message-ID: <20240904153038.23054-1-michaelgur@nvidia.com>
 X-Mailer: git-send-email 2.17.2
-In-Reply-To: <20240904153038.23054-1-michaelgur@nvidia.com>
-References: <20240904153038.23054-1-michaelgur@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -83,243 +80,92 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: ExternallySecured
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ5PEPF000001EA:EE_|BL3PR12MB6451:EE_
-X-MS-Office365-Filtering-Correlation-Id: e96aa37f-74e9-46a4-e652-08dcccf69579
+X-MS-TrafficTypeDiagnostic: SJ5PEPF000001E9:EE_|DS0PR12MB6605:EE_
+X-MS-Office365-Filtering-Correlation-Id: 06961f61-94c9-48eb-ad01-08dcccf690a2
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|376014|82310400026|36860700013;
+	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?FNkLHH1DP/IjFTAZnx/Nna1fztv4eyrGLqD8+YTSpovsr3391IqjZuov+ixy?=
- =?us-ascii?Q?y2ZmWDvgltMmbKbwP9DGZed2mMR4i1xheR8hwiTMhMI8NQN1KxoBCASPZxAX?=
- =?us-ascii?Q?FopF/LAmZ0bQf7SzFkRBA8L/5qGo6+xUn/OmE3XDHCC8OTHiIn8mtNrvc4mZ?=
- =?us-ascii?Q?Po4924qR0+52VnaMCG/BsYHzvw1YApstUydqoCmJDsY8tVHZt2FLNAYBLQsD?=
- =?us-ascii?Q?ydyAR1qWPe4uDTHZ3oSwYaO6BIJeeObDu+By4rU+lzER5inxy363XlntBZWN?=
- =?us-ascii?Q?L/BZuR3bS5moXZcv6YQj0UFlhCQaP+gwPzN7kxYZ46ZwX33oev0M3kzAs4Pb?=
- =?us-ascii?Q?PFY60GV475AtUNUyWJ1gcJbr2q6qe9cMSdyrotTqpISmrJCYRU4JJLIiqrSF?=
- =?us-ascii?Q?jyjN7qFuaInazNJRYGw56riQW+/M/z0anRc0+/yxcPU93UDjye+CIuEvdP+f?=
- =?us-ascii?Q?2co7Jwei3lMDkHWiLsoG17P2dIDqYEGNx1OxVkoMLv/XnfXPRqDJqMJjlpxv?=
- =?us-ascii?Q?dortJ93b1ZZjD1YLgKKVnz+CpbIE8a5p/LoNq8VJWI65dXR4/n2TD+/VJja2?=
- =?us-ascii?Q?6qbt9ERFvrgOX0msyoJFpEVKEfms74NMHZNkjyHxVueMiUK8EBf6GxIRfCuD?=
- =?us-ascii?Q?DIZwfB+v4J1DZnsLBuQurX1zTTa5IEAK0ouj2yNRl8XAC+/60SUvkcbxz7Gs?=
- =?us-ascii?Q?Cd/D6TPYkjye6gKheA8AC6zFhIPJP7YsdtaxY2cIRKUalh3crZH4/RQswmLv?=
- =?us-ascii?Q?pUKZ6FOx8PWL0vbLdl3NT6S0JaYtvCO4dK12I5MTxAtduCiLC60yK44DmmJ0?=
- =?us-ascii?Q?2TJ4TAK8+u9Zn0Ccvg70nZsJkfg3RpsYv33uVBZqhjIQCADYwYLOvl8kU5Nb?=
- =?us-ascii?Q?aqRXldx/eJzDuP6IKMCauhBd+jKrsa5sW7tzH6GBc5ZF+4NuMEyLMgoNfQOL?=
- =?us-ascii?Q?ut/8yAmyxAmwwYOyjuzDTnSTJkLrBXgrFx4v471/java6aQrwcj3nbEvwsRC?=
- =?us-ascii?Q?KXjZP0P3wRIvcyJTBGr4e+5MVme63fJrbnB32jgv4+9qZUa4aLtdImV3PHqT?=
- =?us-ascii?Q?ExQcySFB8bE+OL19e3h51I0vqcYod3vmXqcHmlKokjTWPK+884sNb7eWheON?=
- =?us-ascii?Q?U6AnsdNJcX4prXdScbXkQLrriwyJYHcPCiAS0gLKbL0gVkwrmgm99JSzYypy?=
- =?us-ascii?Q?hJWqYMcsd47o0nIfLuAPBiaZgRgoWcWZ0Z8p0KMWT+olCSE7Y1oEQbRmG669?=
- =?us-ascii?Q?6DCkzkhiy8WsG6zfrzONQy4zU4RIV5TjQk+1wwYQsQhY4RSBF2RYtvKZh2vG?=
- =?us-ascii?Q?lJN50vecw5udl7y/gUo7UcONYl/L/wXQkpJNPxZjDzLCsYUHClhKIcMQzJEA?=
- =?us-ascii?Q?+Ra/rc5PHLTRzF/F+o4Q8/wFdxPFbTeDq+ikB/I4sSn6+FYZOZvZMRAClED/?=
- =?us-ascii?Q?+wlQS7K1G2VSOnhwTtHUYBEiLiwEdjJS?=
+	=?us-ascii?Q?eumObO0xmhLKP9fSAX+7xnVdX3mszOY1OZxvpLg7p45ItWg+bCX/FrEP7/20?=
+ =?us-ascii?Q?6JkQO5gojLIlA7SJBjOsy6MRqsj8NjmYSZHUknwIUlqeEBkIWieNuiLNBIKS?=
+ =?us-ascii?Q?L/3fnxcee5DWpkz5GDA3p0QYgnsxVrbyKQe46lzQMv19f4UaOYN0d4igcxwF?=
+ =?us-ascii?Q?H7KiV2bL4csUAFk5xtlJtBIJzi5o6y0UcbNB16g/t2loYvMPYLbzSa4amqRf?=
+ =?us-ascii?Q?a6utn7HebsCs3BnUqzsopd1GGl1lqAt6XcOYMkHbblIRgbnNWjnTA2tMt2dA?=
+ =?us-ascii?Q?MTd0dZj+SZhB8YPSNvbhr0ZLqROy+ukQnd+HT2RF1XH39hPM2u5hZdudkPZD?=
+ =?us-ascii?Q?01HsBWqaYHsmTETRtlGu0laYABV+33BFR4mA1iUreRDSygt6OLGNVgrsSuig?=
+ =?us-ascii?Q?QcNM/C5C7h4aLZhQc9EJNl2TpjJ0pWqDkQFNA2CxhnlMp1qtIM5AocUnWulB?=
+ =?us-ascii?Q?onE4AGYF63mw+3G1qYb6R2rowZcT5vIGzcDYtQfH+QlW4goTDITTmc493ZEu?=
+ =?us-ascii?Q?kLMEMv5NXZOz8uGoxjGrU/BIvPWI4wkz2kqohzBdoVte3w23QTiZuLgu7y4q?=
+ =?us-ascii?Q?HywrD44qZOVivMaKw3hFapCeUC47MUmpWgKOva+7Y/Rfi+TgOTGLa6NYoOM6?=
+ =?us-ascii?Q?ooo4/9dOkotvVfNDMNIX9zmjZyVsJXJCDhJdS1hzZvi8ZNpZr8NBr4yofABK?=
+ =?us-ascii?Q?BLv3dpUvdsWPKyK/7EXrEQWt9pU+1kyCaUlS4OyQc7BjiGItZ/WRBvFL45b2?=
+ =?us-ascii?Q?DI6pdXnymDITut/ga4aVnqxLtldFb/DX3r+FVNLd8LOVRJsqaeZq7h4o5lWz?=
+ =?us-ascii?Q?3+vjkelt0I/SvG3Dsp1qULdzKN5O08FhLqOshrlYnxAH3sOv6WvvP3t29vdc?=
+ =?us-ascii?Q?LXW+bnyGWYtopUbf58jL09NW18scFUPvXPx9+ROSUZoOSG+p0cx8pO4/5KWg?=
+ =?us-ascii?Q?kPeFmxN6PITbIAx9jD/Fppld7Eb3D7MLl1JOlfl1WfnfUzp/L8sFigw+wMXv?=
+ =?us-ascii?Q?kBVfltSvnyv2JrStVNNkiEaIieQChUDEWrz+YxXt6r218EvxdumeeTiG2bI4?=
+ =?us-ascii?Q?jknVEblzRkcRx3o/WShHeX0aAfQ7Z3pTHJ4ytXar7cPLnHm7oDHnruGjkXUQ?=
+ =?us-ascii?Q?ai4mhOuB9QE9BALN18LQnrkVXBGmEf+yV5TuCFgCWAb9Me19k38ncBD845Jl?=
+ =?us-ascii?Q?HBw7srrCvQCLm6mRT3yG7PgkhU6W9atKCyF3gxKbGFbzKDf0YjEC1gFtFdfo?=
+ =?us-ascii?Q?5U0lMIq4Cl3R+mDB7TvNvTb2zK4EfY8ix4ePzqUh15YoXvBG+j17doc9xYDr?=
+ =?us-ascii?Q?w1fzq+vvzDdjF4w3zaLG5iPD2s8LuMLoCsEsmRmtL/sfd3mXvX6SZs1XiOHN?=
+ =?us-ascii?Q?VDx+G6jsy25HC3qxM9aopGv0Wm6Q0T256Vzo02yw3VBYzzlcJoPvJss/08dh?=
+ =?us-ascii?Q?f+3zqVxbBVRjPLTw1Xv6jvZDb8+eM3d+?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(376014)(82310400026)(36860700013);DIR:OUT;SFP:1101;
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Sep 2024 15:31:02.1426
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Sep 2024 15:30:54.0056
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: e96aa37f-74e9-46a4-e652-08dcccf69579
+X-MS-Exchange-CrossTenant-Network-Message-Id: 06961f61-94c9-48eb-ad01-08dcccf690a2
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SJ5PEPF000001EA.namprd05.prod.outlook.com
+	SJ5PEPF000001E9.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL3PR12MB6451
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB6605
 
-Add new fields to support the new memory scheme page fault and extend
-the token field to u64 as in the new scheme the token is 48 bit.
+This series introduces a new ODP scheme in mlx5 where the FW takes the
+responsibility of parsing and providing page fault data to the driver
+to handle the fault.
+As opposed to the current ODP transport scheme where the driver is
+responsible for reading and parsing work queues and querying mkeys to
+acquire needed info to handle the page fault.
 
-Signed-off-by: Michael Guralnik <michaelgur@nvidia.com>
-Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/odp.c | 48 +++++++++++++++++++-------------
- include/linux/mlx5/device.h      | 22 ++++++++++++++-
- 2 files changed, 50 insertions(+), 20 deletions(-)
+The new scheme allows driver to support ODP over Devx QPs where driver
+is not able to access the QP buffers, owned by the user application,
+to read the work queue requests.
+Furthermore, the new scheme allows support for ODP with new indirect
+MKEY types as the driver doesn't need to query or parse indirect mkeys
+in this scheme.
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 300504bf79d7..f01026d507a3 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -45,7 +45,7 @@
- /* Contains the details of a pagefault. */
- struct mlx5_pagefault {
- 	u32			bytes_committed;
--	u32			token;
-+	u64			token;
- 	u8			event_subtype;
- 	u8			type;
- 	union {
-@@ -74,6 +74,14 @@ struct mlx5_pagefault {
- 			u32	rdma_op_len;
- 			u64	rdma_va;
- 		} rdma;
-+		struct {
-+			u64	va;
-+			u32	mkey;
-+			u32	fault_byte_count;
-+			u32     prefetch_before_byte_count;
-+			u32     prefetch_after_byte_count;
-+			u8	flags;
-+		} memory;
- 	};
- 
- 	struct mlx5_ib_pf_eq	*eq;
-@@ -1273,7 +1281,7 @@ static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_dev *dev,
- 	if (ret)
- 		mlx5_ib_err(
- 			dev,
--			"Failed reading a WQE following page fault, error %d, wqe_index %x, qpn %x\n",
-+			"Failed reading a WQE following page fault, error %d, wqe_index %x, qpn %llx\n",
- 			ret, wqe_index, pfault->token);
- 
- resolve_page_fault:
-@@ -1332,13 +1340,13 @@ static void mlx5_ib_mr_rdma_pfault_handler(struct mlx5_ib_dev *dev,
- 	} else if (ret < 0 || pages_in_range(address, length) > ret) {
- 		mlx5_ib_page_fault_resume(dev, pfault, 1);
- 		if (ret != -ENOENT)
--			mlx5_ib_dbg(dev, "PAGE FAULT error %d. QP 0x%x, type: 0x%x\n",
-+			mlx5_ib_dbg(dev, "PAGE FAULT error %d. QP 0x%llx, type: 0x%x\n",
- 				    ret, pfault->token, pfault->type);
- 		return;
- 	}
- 
- 	mlx5_ib_page_fault_resume(dev, pfault, 0);
--	mlx5_ib_dbg(dev, "PAGE FAULT completed. QP 0x%x, type: 0x%x, prefetch_activated: %d\n",
-+	mlx5_ib_dbg(dev, "PAGE FAULT completed. QP 0x%llx, type: 0x%x, prefetch_activated: %d\n",
- 		    pfault->token, pfault->type,
- 		    prefetch_activated);
- 
-@@ -1354,7 +1362,7 @@ static void mlx5_ib_mr_rdma_pfault_handler(struct mlx5_ib_dev *dev,
- 						    prefetch_len,
- 						    &bytes_committed, NULL);
- 		if (ret < 0 && ret != -EAGAIN) {
--			mlx5_ib_dbg(dev, "Prefetch failed. ret: %d, QP 0x%x, address: 0x%.16llx, length = 0x%.16x\n",
-+			mlx5_ib_dbg(dev, "Prefetch failed. ret: %d, QP 0x%llx, address: 0x%.16llx, length = 0x%.16x\n",
- 				    ret, pfault->token, address, prefetch_len);
- 		}
- 	}
-@@ -1405,15 +1413,12 @@ static void mlx5_ib_eq_pf_process(struct mlx5_ib_pf_eq *eq)
- 
- 		pf_eqe = &eqe->data.page_fault;
- 		pfault->event_subtype = eqe->sub_type;
--		pfault->bytes_committed = be32_to_cpu(pf_eqe->bytes_committed);
--
--		mlx5_ib_dbg(eq->dev,
--			    "PAGE_FAULT: subtype: 0x%02x, bytes_committed: 0x%06x\n",
--			    eqe->sub_type, pfault->bytes_committed);
- 
- 		switch (eqe->sub_type) {
- 		case MLX5_PFAULT_SUBTYPE_RDMA:
- 			/* RDMA based event */
-+			pfault->bytes_committed =
-+				be32_to_cpu(pf_eqe->rdma.bytes_committed);
- 			pfault->type =
- 				be32_to_cpu(pf_eqe->rdma.pftype_token) >> 24;
- 			pfault->token =
-@@ -1427,10 +1432,12 @@ static void mlx5_ib_eq_pf_process(struct mlx5_ib_pf_eq *eq)
- 				be32_to_cpu(pf_eqe->rdma.rdma_op_len);
- 			pfault->rdma.rdma_va =
- 				be64_to_cpu(pf_eqe->rdma.rdma_va);
--			mlx5_ib_dbg(eq->dev,
--				    "PAGE_FAULT: type:0x%x, token: 0x%06x, r_key: 0x%08x\n",
--				    pfault->type, pfault->token,
--				    pfault->rdma.r_key);
-+			mlx5_ib_dbg(
-+				eq->dev,
-+				"PAGE_FAULT: subtype: 0x%02x, bytes_committed: 0x%06x, type:0x%x, token: 0x%06llx, r_key: 0x%08x\n",
-+				eqe->sub_type, pfault->bytes_committed,
-+				pfault->type, pfault->token,
-+				pfault->rdma.r_key);
- 			mlx5_ib_dbg(eq->dev,
- 				    "PAGE_FAULT: rdma_op_len: 0x%08x, rdma_va: 0x%016llx\n",
- 				    pfault->rdma.rdma_op_len,
-@@ -1439,6 +1446,8 @@ static void mlx5_ib_eq_pf_process(struct mlx5_ib_pf_eq *eq)
- 
- 		case MLX5_PFAULT_SUBTYPE_WQE:
- 			/* WQE based event */
-+			pfault->bytes_committed =
-+				be32_to_cpu(pf_eqe->wqe.bytes_committed);
- 			pfault->type =
- 				(be32_to_cpu(pf_eqe->wqe.pftype_wq) >> 24) & 0x7;
- 			pfault->token =
-@@ -1450,11 +1459,12 @@ static void mlx5_ib_eq_pf_process(struct mlx5_ib_pf_eq *eq)
- 				be16_to_cpu(pf_eqe->wqe.wqe_index);
- 			pfault->wqe.packet_size =
- 				be16_to_cpu(pf_eqe->wqe.packet_length);
--			mlx5_ib_dbg(eq->dev,
--				    "PAGE_FAULT: type:0x%x, token: 0x%06x, wq_num: 0x%06x, wqe_index: 0x%04x\n",
--				    pfault->type, pfault->token,
--				    pfault->wqe.wq_num,
--				    pfault->wqe.wqe_index);
-+			mlx5_ib_dbg(
-+				eq->dev,
-+				"PAGE_FAULT: subtype: 0x%02x, bytes_committed: 0x%06x, type:0x%x, token: 0x%06llx, wq_num: 0x%06x, wqe_index: 0x%04x\n",
-+				eqe->sub_type, pfault->bytes_committed,
-+				pfault->type, pfault->token, pfault->wqe.wq_num,
-+				pfault->wqe.wqe_index);
- 			break;
- 
- 		default:
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index bd081f276654..154095256d0d 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -211,6 +211,7 @@ enum {
- enum {
- 	MLX5_PFAULT_SUBTYPE_WQE = 0,
- 	MLX5_PFAULT_SUBTYPE_RDMA = 1,
-+	MLX5_PFAULT_SUBTYPE_MEMORY = 2,
- };
- 
- enum wqe_page_fault_type {
-@@ -646,10 +647,11 @@ struct mlx5_eqe_page_req {
- 	__be32		rsvd1[5];
- };
- 
-+#define MEMORY_SCHEME_PAGE_FAULT_GRANULARITY 4096
- struct mlx5_eqe_page_fault {
--	__be32 bytes_committed;
- 	union {
- 		struct {
-+			__be32  bytes_committed;
- 			u16     reserved1;
- 			__be16  wqe_index;
- 			u16	reserved2;
-@@ -659,6 +661,7 @@ struct mlx5_eqe_page_fault {
- 			__be32  pftype_wq;
- 		} __packed wqe;
- 		struct {
-+			__be32  bytes_committed;
- 			__be32  r_key;
- 			u16	reserved1;
- 			__be16  packet_length;
-@@ -666,6 +669,23 @@ struct mlx5_eqe_page_fault {
- 			__be64  rdma_va;
- 			__be32  pftype_token;
- 		} __packed rdma;
-+		struct {
-+			u8      flags;
-+			u8      reserved1;
-+			__be16  post_demand_fault_pages;
-+			__be16  pre_demand_fault_pages;
-+			__be16  token47_32;
-+			__be32  token31_0;
-+			/*
-+			 * FW changed from specifying the fault size in byte
-+			 * count to 4k pages granularity. The size specified
-+			 * in pages uses bits 31:12, to keep backward
-+			 * compatibility.
-+			 */
-+			__be32 demand_fault_pages;
-+			__be32  mkey;
-+			__be64  va;
-+		} __packed memory;
- 	} __packed;
- } __packed;
- 
+The driver will enable the new scheme on devices that have the relevant
+capabilities. Otherwise, transport scheme ODP will be the default.
+
+The move to memory scheme ODP is transparent to existing ODP
+applications and no change is needed.
+New application that want to take advantage of the new functionality
+should query which scheme is active and it's capabilities using Devx.
+
+Michael Guralnik (8):
+  net/mlx5: Expand mkey page size to support 6 bits
+  net/mlx5: Expose HW bits for Memory scheme ODP
+  RDMA/mlx5: Add new ODP memory scheme eqe format
+  RDMA/mlx5: Enforce umem boundaries for explicit ODP page faults
+  RDMA/mlx5: Split ODP mkey search logic
+  RDMA/mlx5: Add handling for memory scheme page fault events
+  RDMA/mlx5: Add implicit MR handling to ODP memory scheme
+  net/mlx5: Handle memory scheme ODP capabilities
+
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  17 +-
+ drivers/infiniband/hw/mlx5/mr.c               |  10 +-
+ drivers/infiniband/hw/mlx5/odp.c              | 400 ++++++++++++++----
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  54 ++-
+ include/linux/mlx5/device.h                   |  30 +-
+ include/linux/mlx5/mlx5_ifc.h                 |  64 ++-
+ 6 files changed, 449 insertions(+), 126 deletions(-)
+
 -- 
 2.17.2
 
