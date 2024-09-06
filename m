@@ -1,36 +1,36 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BB121C9DEA;
-	Fri,  6 Sep 2024 09:40:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A62D41CB15E;
+	Fri,  6 Sep 2024 09:40:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725615642; cv=none; b=lqXo9Z7J8y79aZlCb+kIoLzK/Jx4Z1+pLSao/N65vb9/hUYbbJTPUixUcUg5R2tLUTxUEZKRzfCYfkMlPHL2ltJVZG+A12lmvEosDyAoV+mv0z5zhakS7e0azijLksTt0exaBhsSZXoLciovRQxdXy3QxuSmzD/iekJJuqMk9iI=
+	t=1725615645; cv=none; b=Vm/fUwcXfuWhz+rdUop82UaVYS50MawPFSaPGG/9Gx2SN+O87dqrHGNrOlkq4prIaYvCmJ9fRqlJkKN1SIUAjhXGI2dsYAPaOZrWwP+d0Yw28wEhcpRYpoLOXM3XlZbX4Pm3fbijYRrjPpVPjsNzuDTXUNrgQ/64UmVRx5QNq7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725615642; c=relaxed/simple;
-	bh=zgRErwe+7/OlqN+OtPmfFNEht306dokkywL/aVZYv2g=;
+	s=arc-20240116; t=1725615645; c=relaxed/simple;
+	bh=zRAxwmvJsLzBMCWeapz+l+5wYaYjAktX3WDKz+fcvFY=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=sxVBUA2dv7+6e5BMhl8/r2xU6RHzWm8428tgT616dLYpq5FF7EqKXYC/5ew1NWDvu3DVN1kBd5ViwZL/+SIQ1MZvuSaQUqnKVl87GMsPfcrwtItkBlB6s6i0TPukfhKne4jiSd6h4p4l9KQSYkNiuBnY/d7rAL37atQRU2EZxY8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
+	 MIME-Version:Content-Type; b=QE3lU0n7ZJZ6yY3u9vBCDsw42DEJGX/CZNGtWDb7nsMBLqKkZ7hJbyGDNWAV01GeszBc5abhcrm3yvLGcM7R1UMhC4hdAPLe1by7TDYgEsBZRsy0tNJzGl2Z4eSCdxPMAtbh7gXdMKFmuIqFXijTdDHsYpwTEIow8sm0OoV0B3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.88.105])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4X0WPt3plXzpVKg;
-	Fri,  6 Sep 2024 17:38:42 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4X0WRd3rFFz2Dbmy;
+	Fri,  6 Sep 2024 17:40:13 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 2502214011A;
-	Fri,  6 Sep 2024 17:40:38 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 61BFF1A0188;
+	Fri,  6 Sep 2024 17:40:36 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 6 Sep 2024 17:40:37 +0800
+ 15.2.1544.11; Fri, 6 Sep 2024 17:40:35 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-next 9/9] RDMA/hns: Fix different dgids mapping to the same dip_idx
-Date: Fri, 6 Sep 2024 17:34:44 +0800
-Message-ID: <20240906093444.3571619-10-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-next 3/9] RDMA/hns: Fix cpu stuck caused by printings during reset
+Date: Fri, 6 Sep 2024 17:34:38 +0800
+Message-ID: <20240906093444.3571619-4-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20240906093444.3571619-1-huangjunxian6@hisilicon.com>
 References: <20240906093444.3571619-1-huangjunxian6@hisilicon.com>
@@ -45,205 +45,258 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-From: Feng Fang <fangfeng4@huawei.com>
+From: wenglianfa <wenglianfa@huawei.com>
 
-DIP algorithm requires a one-to-one mapping between dgid and dip_idx.
-Currently a queue 'spare_idx' is used to store QPN of QPs that use
-DIP algorithm. For a new dgid, use a QPN from spare_idx as dip_idx.
-This method lacks a mechanism for deduplicating QPN, which may result
-in different dgids sharing the same dip_idx and break the one-to-one
-mapping requirement.
+During reset, cmd to destroy resources such as qp, cq, and mr may
+fail, and error logs will be printed. When a large number of
+resources are destroyed, there will be lots of printings, and it
+may lead to a cpu stuck. Replace the printing functions in these
+paths with the ratelimited version.
 
-This patch replaces spare_idx with two new bitmaps: qpn_bitmap to record
-QPN that is not being used as dip_idx, and dip_idx_map to record QPN
-that is being used. Besides, introduce a reference count of a dip_idx
-to indicate the number of QPs that using this dip_idx. When creating
-a DIP QP, if it has a new dgid, set the corresponding bit in dip_idx_map,
-otherwise add 1 to the reference count of the reused dip_idx and set bit
-in qpn_bitmap. When destroying a DIP QP, decrement the reference count
-by 1. If it becomes 0, set bit in qpn_bitmap and clear bit in dip_idx_map.
-
-Fixes: eb653eda1e91 ("RDMA/hns: Bugfix for incorrect association between dip_idx and dgid")
-Fixes: f91696f2f053 ("RDMA/hns: Support congestion control type selection according to the FW")
-Signed-off-by: Feng Fang <fangfeng4@huawei.com>
+Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+Fixes: c7bcb13442e1 ("RDMA/hns: Add SRQ support for hip08 kernel mode")
+Fixes: 70f92521584f ("RDMA/hns: Use the reserved loopback QPs to free MR before destroying MPT")
+Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
+Signed-off-by: wenglianfa <wenglianfa@huawei.com>
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  6 +--
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 58 ++++++++++++++++++---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  1 +
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 16 ++++--
- 4 files changed, 67 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cq.c    |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_hem.c   |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 69 +++++++++++-----------
+ drivers/infiniband/hw/hns/hns_roce_mr.c    |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_srq.c   |  4 +-
+ 5 files changed, 44 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 0b1e21cb6d2d..adc65d383cf1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -490,9 +490,8 @@ struct hns_roce_bank {
- };
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 4ec66611a143..4106423a1b39 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -179,8 +179,8 @@ static void free_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_CQC,
+ 				      hr_cq->cqn);
+ 	if (ret)
+-		dev_err(dev, "DESTROY_CQ failed (%d) for CQN %06lx\n", ret,
+-			hr_cq->cqn);
++		dev_err_ratelimited(dev, "DESTROY_CQ failed (%d) for CQN %06lx\n",
++				    ret, hr_cq->cqn);
  
- struct hns_roce_idx_table {
--	u32 *spare_idx;
--	u32 head;
--	u32 tail;
-+	unsigned long *qpn_bitmap;
-+	unsigned long *dip_idx_bitmap;
- };
+ 	xa_erase_irq(&cq_table->array, hr_cq->cqn);
  
- struct hns_roce_qp_table {
-@@ -656,6 +655,7 @@ struct hns_roce_qp {
- 	enum hns_roce_cong_type	cong_type;
- 	u8			tc_mode;
- 	u8			priority;
-+	struct hns_roce_dip *dip;
- };
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 02baa853a76c..496584139240 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -672,8 +672,8 @@ void hns_roce_table_put(struct hns_roce_dev *hr_dev,
  
- struct hns_roce_ib_iboe {
+ 	ret = hr_dev->hw->clear_hem(hr_dev, table, obj, HEM_HOP_STEP_DIRECT);
+ 	if (ret)
+-		dev_warn(dev, "failed to clear HEM base address, ret = %d.\n",
+-			 ret);
++		dev_warn_ratelimited(dev, "failed to clear HEM base address, ret = %d.\n",
++				     ret);
+ 
+ 	hns_roce_free_hem(hr_dev, table->hem[i]);
+ 	table->hem[i] = NULL;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 085461713fa9..19a4bf80a080 100644
+index 2225c9cc6366..adcadd2495ab 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4706,21 +4706,24 @@ static int get_dip_ctx_idx(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- {
- 	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
--	u32 *spare_idx = hr_dev->qp_table.idx_table.spare_idx;
--	u32 *head =  &hr_dev->qp_table.idx_table.head;
--	u32 *tail =  &hr_dev->qp_table.idx_table.tail;
-+	unsigned long *dip_idx_bitmap = hr_dev->qp_table.idx_table.dip_idx_bitmap;
-+	unsigned long *qpn_bitmap = hr_dev->qp_table.idx_table.qpn_bitmap;
-+	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
- 	struct hns_roce_dip *hr_dip;
- 	unsigned long flags;
- 	int ret = 0;
-+	u32 idx;
+@@ -378,12 +378,12 @@ static int check_send_valid(struct hns_roce_dev *hr_dev,
+ 	if (unlikely(hr_qp->state == IB_QPS_RESET ||
+ 		     hr_qp->state == IB_QPS_INIT ||
+ 		     hr_qp->state == IB_QPS_RTR)) {
+-		ibdev_err(ibdev, "failed to post WQE, QP state %u!\n",
+-			  hr_qp->state);
++		ibdev_err_ratelimited(ibdev, "failed to post WQE, QP state %u!\n",
++				      hr_qp->state);
+ 		return -EINVAL;
+ 	} else if (unlikely(hr_dev->state >= HNS_ROCE_DEVICE_STATE_RST_DOWN)) {
+-		ibdev_err(ibdev, "failed to post WQE, dev state %d!\n",
+-			  hr_dev->state);
++		ibdev_err_ratelimited(ibdev, "failed to post WQE, dev state %d!\n",
++				      hr_dev->state);
+ 		return -EIO;
+ 	}
  
- 	spin_lock_irqsave(&hr_dev->dip_list_lock, flags);
+@@ -2775,8 +2775,8 @@ static int free_mr_modify_rsv_qp(struct hns_roce_dev *hr_dev,
+ 	ret = hr_dev->hw->modify_qp(&hr_qp->ibqp, attr, mask, IB_QPS_INIT,
+ 				    IB_QPS_INIT, NULL);
+ 	if (ret) {
+-		ibdev_err(ibdev, "failed to modify qp to init, ret = %d.\n",
+-			  ret);
++		ibdev_err_ratelimited(ibdev, "failed to modify qp to init, ret = %d.\n",
++				      ret);
+ 		return ret;
+ 	}
  
--	spare_idx[*tail] = ibqp->qp_num;
--	*tail = (*tail == hr_dev->caps.num_qps - 1) ? 0 : (*tail + 1);
-+	if (!test_bit(ibqp->qp_num, dip_idx_bitmap))
-+		set_bit(ibqp->qp_num, qpn_bitmap);
+@@ -3421,8 +3421,8 @@ static int free_mr_post_send_lp_wqe(struct hns_roce_qp *hr_qp)
  
- 	list_for_each_entry(hr_dip, &hr_dev->dip_list, node) {
- 		if (!memcmp(grh->dgid.raw, hr_dip->dgid, GID_LEN_V2)) {
- 			*dip_idx = hr_dip->dip_idx;
-+			hr_dip->qp_cnt++;
-+			hr_qp->dip = hr_dip;
+ 	ret = hns_roce_v2_post_send(&hr_qp->ibqp, send_wr, &bad_wr);
+ 	if (ret) {
+-		ibdev_err(ibdev, "failed to post wqe for free mr, ret = %d.\n",
+-			  ret);
++		ibdev_err_ratelimited(ibdev, "failed to post wqe for free mr, ret = %d.\n",
++				      ret);
+ 		return ret;
+ 	}
+ 
+@@ -3461,9 +3461,9 @@ static void free_mr_send_cmd_to_hw(struct hns_roce_dev *hr_dev)
+ 
+ 		ret = free_mr_post_send_lp_wqe(hr_qp);
+ 		if (ret) {
+-			ibdev_err(ibdev,
+-				  "failed to send wqe (qp:0x%lx) for free mr, ret = %d.\n",
+-				  hr_qp->qpn, ret);
++			ibdev_err_ratelimited(ibdev,
++					      "failed to send wqe (qp:0x%lx) for free mr, ret = %d.\n",
++					      hr_qp->qpn, ret);
+ 			break;
+ 		}
+ 
+@@ -3474,16 +3474,16 @@ static void free_mr_send_cmd_to_hw(struct hns_roce_dev *hr_dev)
+ 	while (cqe_cnt) {
+ 		npolled = hns_roce_v2_poll_cq(&free_mr->rsv_cq->ib_cq, cqe_cnt, wc);
+ 		if (npolled < 0) {
+-			ibdev_err(ibdev,
+-				  "failed to poll cqe for free mr, remain %d cqe.\n",
+-				  cqe_cnt);
++			ibdev_err_ratelimited(ibdev,
++					      "failed to poll cqe for free mr, remain %d cqe.\n",
++					      cqe_cnt);
  			goto out;
  		}
+ 
+ 		if (time_after(jiffies, end)) {
+-			ibdev_err(ibdev,
+-				  "failed to poll cqe for free mr and timeout, remain %d cqe.\n",
+-				  cqe_cnt);
++			ibdev_err_ratelimited(ibdev,
++					      "failed to poll cqe for free mr and timeout, remain %d cqe.\n",
++					      cqe_cnt);
+ 			goto out;
+ 		}
+ 		cqe_cnt -= npolled;
+@@ -5062,7 +5062,8 @@ static int hns_roce_v2_set_abs_fields(struct ib_qp *ibqp,
+ 	int ret = 0;
+ 
+ 	if (!check_qp_state(cur_state, new_state)) {
+-		ibdev_err(&hr_dev->ib_dev, "Illegal state for QP!\n");
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "Illegal state for QP!\n");
+ 		return -EINVAL;
  	}
-@@ -4734,9 +4737,21 @@ static int get_dip_ctx_idx(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 
+@@ -5325,7 +5326,7 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 	/* SW pass context to HW */
+ 	ret = hns_roce_v2_qp_modify(hr_dev, context, qpc_mask, hr_qp);
+ 	if (ret) {
+-		ibdev_err(ibdev, "failed to modify QP, ret = %d.\n", ret);
++		ibdev_err_ratelimited(ibdev, "failed to modify QP, ret = %d.\n", ret);
  		goto out;
  	}
  
-+	idx = find_first_bit(qpn_bitmap, hr_dev->caps.num_qps);
-+	if (idx < hr_dev->caps.num_qps) {
-+		*dip_idx = idx;
-+		clear_bit(idx, qpn_bitmap);
-+		set_bit(idx, dip_idx_bitmap);
-+	} else {
-+		ret = -ENOENT;
-+		kfree(hr_dip);
-+		goto out;
-+	}
-+
- 	memcpy(hr_dip->dgid, grh->dgid.raw, sizeof(grh->dgid.raw));
--	hr_dip->dip_idx = *dip_idx = spare_idx[*head];
--	*head = (*head == hr_dev->caps.num_qps - 1) ? 0 : (*head + 1);
-+	hr_dip->dip_idx = *dip_idx;
-+	hr_dip->qp_cnt++;
-+	hr_qp->dip = hr_dip;
- 	list_add_tail(&hr_dip->node, &hr_dev->dip_list);
+@@ -5463,7 +5464,9 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
  
- out:
-@@ -5597,12 +5612,41 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
+ 	ret = hns_roce_v2_query_qpc(hr_dev, hr_qp->qpn, &context);
+ 	if (ret) {
+-		ibdev_err(ibdev, "failed to query QPC, ret = %d.\n", ret);
++		ibdev_err_ratelimited(ibdev,
++				      "failed to query QPC, ret = %d.\n",
++				      ret);
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+@@ -5471,7 +5474,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	state = hr_reg_read(&context, QPC_QP_ST);
+ 	tmp_qp_state = to_ib_qp_st((enum hns_roce_v2_qp_state)state);
+ 	if (tmp_qp_state == -1) {
+-		ibdev_err(ibdev, "Illegal ib_qp_state\n");
++		ibdev_err_ratelimited(ibdev, "Illegal ib_qp_state\n");
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+@@ -5564,9 +5567,9 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 		ret = hns_roce_v2_modify_qp(&hr_qp->ibqp, NULL, 0,
+ 					    hr_qp->state, IB_QPS_RESET, udata);
+ 		if (ret)
+-			ibdev_err(ibdev,
+-				  "failed to modify QP to RST, ret = %d.\n",
+-				  ret);
++			ibdev_err_ratelimited(ibdev,
++					      "failed to modify QP to RST, ret = %d.\n",
++					      ret);
+ 	}
  
-+static void put_dip_ctx_idx(struct hns_roce_dev *hr_dev,
-+			    struct hns_roce_qp *hr_qp)
-+{
-+	unsigned long *dip_idx_bitmap = hr_dev->qp_table.idx_table.dip_idx_bitmap;
-+	unsigned long *qpn_bitmap = hr_dev->qp_table.idx_table.qpn_bitmap;
-+	struct hns_roce_dip *hr_dip = hr_qp->dip;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hr_dev->dip_list_lock, flags);
-+
-+	if (hr_dip) {
-+		hr_dip->qp_cnt--;
-+		if (!hr_dip->qp_cnt) {
-+			clear_bit(hr_dip->dip_idx, dip_idx_bitmap);
-+			set_bit(hr_dip->dip_idx, qpn_bitmap);
-+
-+			list_del(&hr_dip->node);
-+		} else {
-+			hr_dip = NULL;
-+		}
-+	}
-+
-+	spin_unlock_irqrestore(&hr_dev->dip_list_lock, flags);
-+	kfree(hr_dip);
-+}
-+
- int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
- 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
- 	int ret;
+ 	send_cq = hr_qp->ibqp.send_cq ? to_hr_cq(hr_qp->ibqp.send_cq) : NULL;
+@@ -5602,9 +5605,9 @@ int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
  
-+	if (hr_qp->cong_type == CONG_TYPE_DIP)
-+		put_dip_ctx_idx(hr_dev, hr_qp);
-+
  	ret = hns_roce_v2_destroy_qp_common(hr_dev, hr_qp, udata);
  	if (ret)
- 		ibdev_err_ratelimited(&hr_dev->ib_dev,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index c65f68a14a26..3804882bb5b4 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -1342,6 +1342,7 @@ struct hns_roce_v2_priv {
- struct hns_roce_dip {
- 	u8 dgid[GID_LEN_V2];
- 	u32 dip_idx;
-+	u32 qp_cnt;
- 	struct list_head node; /* all dips are on a list */
- };
+-		ibdev_err(&hr_dev->ib_dev,
+-			  "failed to destroy QP, QPN = 0x%06lx, ret = %d.\n",
+-			  hr_qp->qpn, ret);
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "failed to destroy QP, QPN = 0x%06lx, ret = %d.\n",
++				      hr_qp->qpn, ret);
  
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 6b03ba671ff8..bc278b735736 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -1546,11 +1546,18 @@ int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
- 	unsigned int reserved_from_bot;
- 	unsigned int i;
+ 	hns_roce_qp_destroy(hr_dev, hr_qp, udata);
  
--	qp_table->idx_table.spare_idx = kcalloc(hr_dev->caps.num_qps,
--					sizeof(u32), GFP_KERNEL);
--	if (!qp_table->idx_table.spare_idx)
-+	qp_table->idx_table.qpn_bitmap = bitmap_zalloc(hr_dev->caps.num_qps,
-+						       GFP_KERNEL);
-+	if (!qp_table->idx_table.qpn_bitmap)
- 		return -ENOMEM;
+@@ -5898,9 +5901,9 @@ static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+ 				HNS_ROCE_CMD_MODIFY_CQC, hr_cq->cqn);
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+ 	if (ret)
+-		ibdev_err(&hr_dev->ib_dev,
+-			  "failed to process cmd when modifying CQ, ret = %d.\n",
+-			  ret);
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "failed to process cmd when modifying CQ, ret = %d.\n",
++				      ret);
  
-+	qp_table->idx_table.dip_idx_bitmap = bitmap_zalloc(hr_dev->caps.num_qps,
-+							   GFP_KERNEL);
-+	if (!qp_table->idx_table.dip_idx_bitmap) {
-+		bitmap_free(qp_table->idx_table.qpn_bitmap);
-+		return -ENOMEM;
-+	}
-+
- 	mutex_init(&qp_table->scc_mutex);
- 	mutex_init(&qp_table->bank_mutex);
- 	xa_init(&hr_dev->qp_table_xa);
-@@ -1580,5 +1587,6 @@ void hns_roce_cleanup_qp_table(struct hns_roce_dev *hr_dev)
- 		ida_destroy(&hr_dev->qp_table.bank[i].ida);
- 	mutex_destroy(&hr_dev->qp_table.bank_mutex);
- 	mutex_destroy(&hr_dev->qp_table.scc_mutex);
--	kfree(hr_dev->qp_table.idx_table.spare_idx);
-+	bitmap_free(hr_dev->qp_table.idx_table.qpn_bitmap);
-+	bitmap_free(hr_dev->qp_table.idx_table.dip_idx_bitmap);
- }
+ err_out:
+ 	if (ret)
+@@ -5924,9 +5927,9 @@ static int hns_roce_v2_query_cqc(struct hns_roce_dev *hr_dev, u32 cqn,
+ 	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma,
+ 				HNS_ROCE_CMD_QUERY_CQC, cqn);
+ 	if (ret) {
+-		ibdev_err(&hr_dev->ib_dev,
+-			  "failed to process cmd when querying CQ, ret = %d.\n",
+-			  ret);
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "failed to process cmd when querying CQ, ret = %d.\n",
++				      ret);
+ 		goto err_mailbox;
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 846da8c78b8b..b3f4327d0e64 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -138,8 +138,8 @@ static void hns_roce_mr_free(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr
+ 					      key_to_hw_index(mr->key) &
+ 					      (hr_dev->caps.num_mtpts - 1));
+ 		if (ret)
+-			ibdev_warn(ibdev, "failed to destroy mpt, ret = %d.\n",
+-				   ret);
++			ibdev_warn_ratelimited(ibdev, "failed to destroy mpt, ret = %d.\n",
++					       ret);
+ 	}
+ 
+ 	free_mr_pbl(hr_dev, mr);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index c9b8233f4b05..70c06ef65603 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -151,8 +151,8 @@ static void free_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
+ 	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_SRQ,
+ 				      srq->srqn);
+ 	if (ret)
+-		dev_err(hr_dev->dev, "DESTROY_SRQ failed (%d) for SRQN %06lx\n",
+-			ret, srq->srqn);
++		dev_err_ratelimited(hr_dev->dev, "DESTROY_SRQ failed (%d) for SRQN %06lx\n",
++				    ret, srq->srqn);
+ 
+ 	xa_erase_irq(&srq_table->xa, srq->srqn);
+ 
 -- 
 2.33.0
 
