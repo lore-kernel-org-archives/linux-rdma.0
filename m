@@ -1,216 +1,177 @@
-Received: from smtpbguseast2.qq.com (smtpbguseast2.qq.com [54.204.34.130])
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2122.outbound.protection.outlook.com [40.107.243.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 866CA2628C;
-	Fri,  6 Sep 2024 05:40:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.204.34.130
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725601246; cv=none; b=aUgffcdqYMtDA946gIMPORXFiSU2Ze/H2TCScV/5jPHhes7/vmXq/kTHhDY32O5a6e4EkisHkUDo1DXvX2ynW2dq37tOYVEDEU16/vtKjm0NJtyOKmMXDDCcDCKwdEJ9heaA0KZS2X/qT1UwEBjPSCmW2sVbibUYg7GV07LMntw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725601246; c=relaxed/simple;
-	bh=Cniav45urdpVNzapqVqrBdTz6uLrtoPLIOl7/GG06PM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YdNQcELLMjAVD+HOf2FTOvGhOkyKgkngZYlPE9GFaLfolbB8nG5cNt0ZWn9ZM1fUEx/8GN6Q3w3PM2fE580h4MULDwEC4UZP8LANsB4Hd0F73R1xvv2ztcdW/L8LDmdGyM/P7rCv6UM/x8su/BU0yT9x8WqYe9zqknS2yCV41i0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=VlptsF3J; arc=none smtp.client-ip=54.204.34.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAC553B1A2;
+	Fri,  6 Sep 2024 06:12:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.122
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1725603129; cv=fail; b=kq5yebI4QjUAWr13aJjewjlE9LiX/yzcCn/geHxZAzjkzHWX+V50YdaLzAeOiwj1lpIj2WWTJdgrurOyaI4TuiQfm+UdA5hiv6/XDxd6w2jt9UgrLNu47IDMrbto+Kk9f9iAcyux/SPJjJ5vy58PNsvtxprtUPvxyrGCGcf1700=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1725603129; c=relaxed/simple;
+	bh=ZrR8gGTPNeGYbxcvLpWUb23AYu6bdkrBawddl9DF5pk=;
+	h=From:To:Cc:Subject:Date:Message-Id:Content-Type:MIME-Version; b=uU0tmZ3CF5PDU/f85PDSHLYEaUVZ2WTAhbEWpy7Zt9nPVvKR41hgQXiudHERsvcyELlcIyrrPY9nYgta7ngSeyLTzD+07XbfyI8hNLoVlEwcmeHfyxdywp2Im8mLShA/59VLcR73oJgmgZSRFVBl0kHakHDaYi4WgkH1f6AO2CY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com; spf=pass smtp.mailfrom=os.amperecomputing.com; dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b=Xz1hvI15; arc=fail smtp.client-ip=40.107.243.122
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=os.amperecomputing.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=os.amperecomputing.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="VlptsF3J"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1725601229;
-	bh=Um2fielNufiPq2gPF+cakRDGheYfuE60dnAlgqaba+4=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=VlptsF3JjbCh+zw7R23THL+asQr2yCm8+ot2y6+ZS41sf0P2y5MoAz8AjOwZzI33p
-	 Oes0w1cLqgls+dqB5AXMEEpxyQlxswec2/MrgknftN1iYKq04QdMcDUEgWGEq5G3TV
-	 5ev8/Um/EpQiThubn8bN15U11J6jygRMafgdv2k0=
-X-QQ-mid: bizesmtp89t1725601217t86fmi1u
-X-QQ-Originating-IP: pp2HEb8VFRV3OyePs+K/oTB0T0vJNpih3CUIsTHdOR4=
-Received: from localhost.localdomain ( [113.57.152.160])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Fri, 06 Sep 2024 13:40:11 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 3399184416924761505
-From: WangYuli <wangyuli@uniontech.com>
-To: aaro.koskinen@iki.fi,
-	andreas@kemnade.info,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	linux@armlinux.org.uk,
-	jgg@ziepe.ca,
+	dkim=pass (1024-bit key) header.d=os.amperecomputing.com header.i=@os.amperecomputing.com header.b="Xz1hvI15"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=UKrfin2+tZYm7WhX1ECtGsmNzembmZz1n6VyGmyOYdF4XZsz2tR+vGOWKNamhMKmaeQQ3/eU9H4FApJZOgZOOsKJuYmheBWVi4j287SFXryh8WPUbnlEiDnzBYQFRHNT9h3WqHCk5tnc9zYUvf6Si6i1ycs1qnEmT46emDb396ItfIFMpCnF6yNYJppDjE5kJmuDeNtZ2+qMyCHALNAQHATfUtodQ4OqHSzdbPl8Q5aIUzNH++nEQYKjnkOFfxOzl/YbwOeDmPemzLZKaBnbQN87smOWYn3KjmZsfmZdKLzpxU3CW4CjcjHA7di7PVeqFj2I4ax5jAuKh7U4BodeTw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=3t8gyHvq9gyLlczE/uXc8bSJoDLL314D8OnSoXfVKnE=;
+ b=bx27snXbQJc8FXU70m3MUjtlCVQk//mqir9vf2CenXjBIN+W6pPOr626+FjBAQ79OetE6oqtz2tWJiBTwVotR7y9aCBxnwWHULMldf6Z+SLGqZBEGdugU0+cRLwl3AAQmVLeBU90qN218clqD0eR43+3TvPLVzY0Ltx3ZnS+yru5Q18rYFzrLuvGl+PLKGcmA1bj5jSvLTVtz4gLRJ2zp7gBNxk4n28aP34zMSPRvgUXv4lkTtrvHy52dEGbCH/bedj6mRU5OrLWq6MDUofC5fVGevl2t0hZXGOy8pzPp0Tfl9u0PzZkYZpu6LkUjpUyxxpshGL6umTf1x6NfAW1xg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=os.amperecomputing.com; dmarc=pass action=none
+ header.from=os.amperecomputing.com; dkim=pass
+ header.d=os.amperecomputing.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=os.amperecomputing.com; s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=3t8gyHvq9gyLlczE/uXc8bSJoDLL314D8OnSoXfVKnE=;
+ b=Xz1hvI15Q14hHgzVJX9HXdLNBMVLscdq7lu7JwVTfWN3bniIVa+8/MpTUefN/qZIGGt/MJq0IzjdA+XOWwaZm8dVWRRpVItxv01wiJEGJJkB2kvf+mTrkeuVUKrz72N/4JwarwsZe0AMr2EayHPyaFurew/cmwhPTFfHgEqXoGA=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=os.amperecomputing.com;
+Received: from SJ0PR01MB6445.prod.exchangelabs.com (2603:10b6:a03:2a1::14) by
+ SJ2PR01MB8077.prod.exchangelabs.com (2603:10b6:a03:4f3::18) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.7918.28; Fri, 6 Sep 2024 06:12:04 +0000
+Received: from SJ0PR01MB6445.prod.exchangelabs.com
+ ([fe80::223:9849:bfff:b119]) by SJ0PR01MB6445.prod.exchangelabs.com
+ ([fe80::223:9849:bfff:b119%5]) with mapi id 15.20.7918.024; Fri, 6 Sep 2024
+ 06:12:04 +0000
+From: Adam Li <adamli@os.amperecomputing.com>
+To: saeedm@nvidia.com,
 	leon@kernel.org,
-	wangyuli@uniontech.com,
-	gustavoars@kernel.org,
-	mitr@volny.cz,
-	dmitry.torokhov@gmail.com,
-	miquel.raynal@bootlin.com,
-	richard@nod.at,
-	vigneshr@ti.com,
-	anil.gurumurthy@qlogic.com,
-	sudarsana.kalluru@qlogic.com,
-	James.Bottomley@HansenPartnership.com,
-	martin.petersen@oracle.com,
-	obdclark@gmail.com,
-	quic_abhinavk@quicinc.com,
-	dmitry.baryshkov@linaro.org,
-	sean@poorly.run,
-	marijn.suijten@somainline.org,
-	airlied@gmail.com,
-	daniel@ffwll.ch
-Cc: linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
+	tariqt@nvidia.com,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com
+Cc: netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	linux-input@vger.kernel.org,
-	linux-mtd@lists.infradead.org,
-	linux-scsi@vger.kernel.org,
-	linux-arm-msm@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	freedreno@lists.freedesktop.org,
-	abhinavk@codeaurora.org,
-	architt@codeaurora.org,
-	chandanu@codeaurora.org,
-	jsanka@codeaurora.org,
-	jcrouse@codeaurora.org,
-	ryadav@codeaurora.org,
-	skolluku@codeaurora.org,
-	seanpaul@chromium.org,
-	robdclark@gmail.com,
-	anil_ravindranath@pmc-sierra.com,
-	standby24x7@gmail.com,
-	jkosina@suse.cz,
-	don.hiatt@intel.com,
-	ira.weiny@intel.com,
-	dasaratharaman.chandramouli@intel.com,
-	dledford@redhat.com,
-	eric.piel@tremplin-utc.net,
-	akpm@linux-foundation.org,
-	dtor@mail.ru,
-	vijaykumar@bravegnu.org,
-	dwmw2@infradead.org,
-	kgudipat@brocade.com,
-	James.Bottomley@suse.de,
-	guanwentao@uniontech.com,
-	zhanjun@uniontech.com
-Subject: [PATCH] treewide: Correct the typo 'retun'
-Date: Fri,  6 Sep 2024 13:40:08 +0800
-Message-ID: <63D0F870EE8E87A0+20240906054008.390188-1-wangyuli@uniontech.com>
-X-Mailer: git-send-email 2.43.4
+	linux-kernel@vger.kernel.org,
+	patches@amperecomputing.com,
+	cl@os.amperecomputing.com,
+	shijie@os.amperecomputing.com,
+	Adam Li <adamli@os.amperecomputing.com>,
+	Christoph Lameter <cl@linux.com>
+Subject: [PATCH] net/mlx5: Node-aware allocation for mlx5_buf_list
+Date: Fri,  6 Sep 2024 06:11:15 +0000
+Message-Id: <20240906061115.522074-1-adamli@os.amperecomputing.com>
+X-Mailer: git-send-email 2.25.1
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: SI2P153CA0003.APCP153.PROD.OUTLOOK.COM
+ (2603:1096:4:140::20) To SJ0PR01MB6445.prod.exchangelabs.com
+ (2603:10b6:a03:2a1::14)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:uniontech.com:qybglogicsvrgz:qybglogicsvrgz8a-1
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ0PR01MB6445:EE_|SJ2PR01MB8077:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3381ad0b-c5f4-407d-c3fa-08dcce3ad3ac
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|1800799024|7416014|376014|52116014|366016|38350700014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?eIS/0SlyntQQpUuPiCACScuuwbuiO32WBiaF5s3ok8klPgsDJXzcfpIm6SdH?=
+ =?us-ascii?Q?vB4c74g1zfzDZtRutt3LSjsjHQDpZy/V/lWP23RXjVvF1m/gEfXCS3qXet7s?=
+ =?us-ascii?Q?hGglZzoAC8UHLsvt7chSIgR1EMfL8lUQs93DI9gHKZlQMV4yuVVwoPD4KVjD?=
+ =?us-ascii?Q?5DDP1GYtXQpZgQeM0BvRylSHLp6+9n+Mr67hL8LW/P1nbxvQBCBDdcp/p+xO?=
+ =?us-ascii?Q?oHXyIukpQrHcVbBKjV6wolQSL5p3srzkjiD8TjvnpAydlq8RzQQg4UyxzsL4?=
+ =?us-ascii?Q?1yvSfMTx0bGqLAUUkH74Mqg2FPxo77OABJPmXYDeb9YO5uO5amM5vPEk6cQ0?=
+ =?us-ascii?Q?qejlZFXAe+vIaYoxSMzWfnPu9Uh5AR0JEVyv2XHQtrYSB2CANDCHyKovUv6n?=
+ =?us-ascii?Q?4CkWQmtb78lqak/gyLu1vaDvZ0j3MzRTJ7fDTlbGbhiKkgueAYomyi7WGaLG?=
+ =?us-ascii?Q?lW3rcTQvw3V5RYWajmUyCm5bodow6g6xUmdZ/SpjKBBwPkrZLzRV7ukIatZi?=
+ =?us-ascii?Q?1nanoDYKb5WBwTRxiSrwzUBNiZ6KDHBPnXiBEoUDKSgYcLHgz+Dz1N2AmLiT?=
+ =?us-ascii?Q?7o/isFFEJ93SngpMVI1sOJu6i7fh2ZY3XorMvGyxT/dks+G2KxKPcJwmW9o4?=
+ =?us-ascii?Q?3aIh7Ix3A/TbQ1m0SssdRAMEAIHZRT7oIt7jZ9JkduPFx9gWJjdLwO6Eiafe?=
+ =?us-ascii?Q?uKq6n1BrYkfR4LCfGtr7c6a+NfVRFyKRRMHGJWCyEfF27h9uziucEQG3KFfN?=
+ =?us-ascii?Q?j6sNjTbSWQwU5/hXGwLPbmKnLGt/iDK1VPOtnfnVMM/Fy/XH0E+fuy9p9EFs?=
+ =?us-ascii?Q?Tu9zXgPuSMdrchdbfOcai9uaXMfs38wN0oWObfgT6RWRqVMCKE7t6o9ahVUb?=
+ =?us-ascii?Q?FlkPAtHlLzfz7dKkB9n+OH0uaWIaCG0I6bjbRnC43KVD8/bQbw2U7+SaXpxv?=
+ =?us-ascii?Q?ON99NtuR7lheR220P1j7D3Psu0UaCQ6UuARqEPCssqIwLVrkS//U4Ls2tjCd?=
+ =?us-ascii?Q?8+ku69nbhRLynavgsdAENuOyQ/Gz+P7BWSWY4mXAwblwM5BZh3gPe+IsCNzu?=
+ =?us-ascii?Q?HXGKzbap2946zBMBeUYKpzi/u3S3eywyckFx2aev9GMjqSQzuCDAfGwfC5UQ?=
+ =?us-ascii?Q?6L8mRwJQ3zlGZsOATbFejK8H31na4wgx/6Cy6lRUpilykAXgRYnsnJuQTFms?=
+ =?us-ascii?Q?PZWT0e6O0lpSSYwzGHvo3oFN8yZSymTWe671md28TXUtenVbrhT88fIo0pzm?=
+ =?us-ascii?Q?5OyLq+Sr854sVc1XujN7f+TOTmaYojOzoaGIIwcsVPuBOAAAVpS6zJmcjlzo?=
+ =?us-ascii?Q?JFNsK+/giMTxOwMeSP79QTSZ2LKz/642ZBCuIrBU5gQzZxuJpkstxXnm01z+?=
+ =?us-ascii?Q?L0s5WgDtVowFbfgsTuVuTSZ/yliEOPMVukirYX2BJptrZ9Uvrg=3D=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR01MB6445.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(52116014)(366016)(38350700014);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?SddihhJCuIDL/IcFivZlSrV6iJ1eFqa681kBw1UnaXUdyccS4a04kXQwhnCq?=
+ =?us-ascii?Q?30e+wqHbxyKDlZ9p+eLKmIsXFzZFKB5Iz6AYrSve7JOgT+K56n9Cnxdf8mPH?=
+ =?us-ascii?Q?fmp/Pv1/whOT/RO7d8O+IoNHhEEdMt2JkMy02t3ptmpy6MQuJNM8cmdma3Di?=
+ =?us-ascii?Q?en3HogzI/fv4PvstRWrYUP7dszwuZHybgdUbEvyFDUTOUD8wsW+SYFsTGpUK?=
+ =?us-ascii?Q?Y864dNSlM1TPCR6a3P+SWok8V7QpJptp6ixtCeCqM5VAgf53NELOQ+Ors2q1?=
+ =?us-ascii?Q?Wxj6c0YWTv/MyWhRJTEQrd0gqQvHphitUgGOTZ6kz+8nq8LywKKZF4K0ulzf?=
+ =?us-ascii?Q?lb4Pvt16lVVYdfHl/EaGYXap3uyMrHfDXBgS9tBbeeCdlqHkbt0lwDgBD71z?=
+ =?us-ascii?Q?NMwtgcYI7jxOysECnxRed/2Cbrw8VCjt5+f+idC7d1pyplXZhQzyxXX+GRND?=
+ =?us-ascii?Q?aj1qwM281vw4DuwHrZ0kuT+aLcmepzocF4+mvV75GKZXfp4ToZBC42reRdSl?=
+ =?us-ascii?Q?8Tgbc9xF3zDkpJGG+dEu55t06XeUDiLv7qJte3VFe9H3Gua0YT01/92srU21?=
+ =?us-ascii?Q?c+lyi75i3EJKkAuI5MwoW+G80SBrC5y7ouvdiTVTC/q2/0csjTjjAL+ZiQRc?=
+ =?us-ascii?Q?Wc4CSKeSnncnf+ep84xen9zRG0HODLwdaXgm3BKBCWfJwhwjGvVPnO/xImuu?=
+ =?us-ascii?Q?yT+9r1Z1OKsawEkE2PrtzQZGb90zKxhazh9Xn3u9VP7xjD1q3gARCau13Imh?=
+ =?us-ascii?Q?j3KDDIeq3NMGgmK4kjomJMN2NEc3oqbUmoLysDdyLY37gA4KG7x1WqJu3cbl?=
+ =?us-ascii?Q?t2BpksU3//y/Z/yZUMhKmhXYUtt0VQmC9Raux/zx+8fuCKdjsiv4AOlHX6Tm?=
+ =?us-ascii?Q?w/Zcm9VSQdfEN9RrHkLmKFj95pn0CDf3O92ZGl+HikN/vDVo/6ciWnAZ2MVe?=
+ =?us-ascii?Q?ih94yzzFhH+nVmTSBhTJlUjlOwxsQy9qaaygoK99NN1qpn2BseeADLpk7eB4?=
+ =?us-ascii?Q?Sc0jjh+oqRymhVIIDuAeFfovbHcY/7sup0WhflLb8YiGPEkUuYrvwsRich1q?=
+ =?us-ascii?Q?zRDr9DBn6yNQ1s66lFBHLp8JYkj/EVgcakwZo5QQ4JpqkBpZ+159gSJlFuc1?=
+ =?us-ascii?Q?qn1aSKuJr3Z8rmrlHLwdr6w4lpuknEOgN2leBFm8leKtU8ozIstX55kRWD2F?=
+ =?us-ascii?Q?1q11BWxHADTvQeDJBtOzwKLwbDnDvzLjImLxDJug+mtaQUfPELm7jiGsdLev?=
+ =?us-ascii?Q?JDCqRCyBgVdlF4nQiFfoRb8nHerS4QaxbtZVTZDt71dH2KHlMhEXQ1FnPpYq?=
+ =?us-ascii?Q?zNIJnLknae8vfchypy5gC9wqZ+Q/qBaSQ/2Rv6maJmZuc9UyFMUInySb7dEZ?=
+ =?us-ascii?Q?8VGAigysg6gVw3/N6gykGR7yQDHGpK9Xl5Euaoy99CJv2vQxrjpYJGDWCMtv?=
+ =?us-ascii?Q?AZqulZO4rzotPMCRpL8jaMy3klY9mt5PGWHJY84NxxDF8EaqrnYP0Tezb86q?=
+ =?us-ascii?Q?mK3xQL7fr0SM8YgVzbvaFiAwL4ba03eQ+/d74XGoEnRFH4KVpTI8/SRY3YPT?=
+ =?us-ascii?Q?C2MYMZ/C1VSa4f+Ihyat2+VkK5cUKCq6xyprl2QqHq6r1Lt1xi72RTugO7O4?=
+ =?us-ascii?Q?p3ZxgSbXUNmEHQ/4SG5G1Kk=3D?=
+X-OriginatorOrg: os.amperecomputing.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3381ad0b-c5f4-407d-c3fa-08dcce3ad3ac
+X-MS-Exchange-CrossTenant-AuthSource: SJ0PR01MB6445.prod.exchangelabs.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Sep 2024 06:12:03.9710
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3bc2b170-fd94-476d-b0ce-4229bdc904a7
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: +lY3Ec3KV1olBnYdXTipm6RnISeut6jEppq0XjxK2+U5EZytxDn7Z3tYmj8AKdAkrRkQzkHXDF3Rb7Dgk6SWLuZOibJ3fQl3gGNv/ol88RX5fZWLP9WQJfw8LCZlaFH0
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR01MB8077
 
-There are some spelling mistakes of 'retun' in comments which
-should be instead of 'return'.
+Allocation for mlx5_frag_buf.frags[i].buf is node-aware.
+Make mlx5_frag_buf.frags allocation node-aware too.
 
-Signed-off-by: WangYuli <wangyuli@uniontech.com>
+Signed-off-by: Adam Li <adamli@os.amperecomputing.com>
+Reviewed-by: Christoph Lameter (Ampere) <cl@linux.com>
 ---
- arch/arm/mach-omap2/omap-mpuss-lowpower.c | 2 +-
- drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h  | 2 +-
- drivers/infiniband/core/sa_query.c        | 2 +-
- drivers/input/misc/wistron_btns.c         | 2 +-
- drivers/mtd/nand/raw/nandsim.c            | 2 +-
- drivers/scsi/bfa/bfa_fcs.c                | 2 +-
- drivers/scsi/pmcraid.c                    | 2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/alloc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 7ad74db951f6..f18ef45e2fe1 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -333,7 +333,7 @@ int omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
- 	omap_pm_ops.scu_prepare(cpu, power_state);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+index 6aca004e88cd..fda17b41ff17 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+@@ -79,8 +79,8 @@ int mlx5_frag_buf_alloc_node(struct mlx5_core_dev *dev, int size,
+ 	buf->size = size;
+ 	buf->npages = DIV_ROUND_UP(size, PAGE_SIZE);
+ 	buf->page_shift = PAGE_SHIFT;
+-	buf->frags = kcalloc(buf->npages, sizeof(struct mlx5_buf_list),
+-			     GFP_KERNEL);
++	buf->frags = kcalloc_node(buf->npages, sizeof(struct mlx5_buf_list),
++				  GFP_KERNEL, node);
+ 	if (!buf->frags)
+ 		goto err_out;
  
- 	/*
--	 * CPU never retuns back if targeted power state is OFF mode.
-+	 * CPU never returns back if targeted power state is OFF mode.
- 	 * CPU ONLINE follows normal CPU ONLINE ptah via
- 	 * omap4_secondary_startup().
- 	 */
-diff --git a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h b/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h
-index b26d5fe40c72..febc3e764a63 100644
---- a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h
-+++ b/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.h
-@@ -231,7 +231,7 @@ struct dpu_crtc_state {
- 	container_of(x, struct dpu_crtc_state, base)
- 
- /**
-- * dpu_crtc_frame_pending - retun the number of pending frames
-+ * dpu_crtc_frame_pending - return the number of pending frames
-  * @crtc: Pointer to drm crtc object
-  */
- static inline int dpu_crtc_frame_pending(struct drm_crtc *crtc)
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 8175dde60b0a..53571e6b3162 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -1420,7 +1420,7 @@ enum opa_pr_supported {
- /*
-  * opa_pr_query_possible - Check if current PR query can be an OPA query.
-  *
-- * Retuns PR_NOT_SUPPORTED if a path record query is not
-+ * Returns PR_NOT_SUPPORTED if a path record query is not
-  * possible, PR_OPA_SUPPORTED if an OPA path record query
-  * is possible and PR_IB_SUPPORTED if an IB path record
-  * query is possible.
-diff --git a/drivers/input/misc/wistron_btns.c b/drivers/input/misc/wistron_btns.c
-index 5c4956678cd0..39d6f642cd19 100644
---- a/drivers/input/misc/wistron_btns.c
-+++ b/drivers/input/misc/wistron_btns.c
-@@ -1075,7 +1075,7 @@ static void wistron_led_init(struct device *parent)
- 	}
- 
- 	if (leds_present & FE_MAIL_LED) {
--		/* bios_get_default_setting(MAIL) always retuns 0, so just turn the led off */
-+		/* bios_get_default_setting(MAIL) always returns 0, so just turn the led off */
- 		wistron_mail_led.brightness = LED_OFF;
- 		if (led_classdev_register(parent, &wistron_mail_led))
- 			leds_present &= ~FE_MAIL_LED;
-diff --git a/drivers/mtd/nand/raw/nandsim.c b/drivers/mtd/nand/raw/nandsim.c
-index 179b28459b4b..df48b7d01d16 100644
---- a/drivers/mtd/nand/raw/nandsim.c
-+++ b/drivers/mtd/nand/raw/nandsim.c
-@@ -1381,7 +1381,7 @@ static inline union ns_mem *NS_GET_PAGE(struct nandsim *ns)
- }
- 
- /*
-- * Retuns a pointer to the current byte, within the current page.
-+ * Returns a pointer to the current byte, within the current page.
-  */
- static inline u_char *NS_PAGE_BYTE_OFF(struct nandsim *ns)
- {
-diff --git a/drivers/scsi/bfa/bfa_fcs.c b/drivers/scsi/bfa/bfa_fcs.c
-index 5023c0ab4277..e52ce9b01f49 100644
---- a/drivers/scsi/bfa/bfa_fcs.c
-+++ b/drivers/scsi/bfa/bfa_fcs.c
-@@ -1431,7 +1431,7 @@ bfa_cb_lps_flogo_comp(void *bfad, void *uarg)
-  *	param[in]	vf_id - VF_ID
-  *
-  *	return
-- *	If lookup succeeds, retuns fcs vf object, otherwise returns NULL
-+ *	If lookup succeeds, returns fcs vf object, otherwise returns NULL
-  */
- bfa_fcs_vf_t   *
- bfa_fcs_vf_lookup(struct bfa_fcs_s *fcs, u16 vf_id)
-diff --git a/drivers/scsi/pmcraid.c b/drivers/scsi/pmcraid.c
-index a2a084c8075e..72a4c6e3d0c8 100644
---- a/drivers/scsi/pmcraid.c
-+++ b/drivers/scsi/pmcraid.c
-@@ -4009,7 +4009,7 @@ static void pmcraid_tasklet_function(unsigned long instance)
-  * This routine un-registers registered interrupt handler and
-  * also frees irqs/vectors.
-  *
-- * Retun Value
-+ * Return Value
-  *	None
-  */
- static
 -- 
-2.43.4
+2.25.1
 
