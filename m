@@ -1,36 +1,36 @@
 Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 350621C9DD6;
-	Fri,  6 Sep 2024 09:40:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 371D91C9DDC;
+	Fri,  6 Sep 2024 09:40:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725615642; cv=none; b=t9CDu7cH5hGew9W3oPqpE39xXS/7SZSMe79cbfloYbKQV0JIssDTBTecrBarofR5PihunsemaeC1i84ZAncQzywuBTP0nOXLVoBTHz5XUYuzrRq/NHsZpkU4nqFFMzt8ZPTIra1eogRxw5AhKfjHegin29H+BF9f95BUNnj21fA=
+	t=1725615642; cv=none; b=Jv6alpi4AlY715QZyF3Ru1P30Nj8ERviqtMm99GH18V/9Fv+NgvW51hhF2RDf+UbqQX91gWohCkaWNJ2HN0WZyBAMLdyRgGJBaLW7qpPqw8XGi8uAetlKA93oRWz5VtOmPMBgbvsZftdCpSL27qisO1PVNB2lWN3fMOl0ahtOf0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1725615642; c=relaxed/simple;
-	bh=ZjPqaBwu7RvD+3YUl82Ow46SEq2hMngd6puah2z3ik0=;
+	bh=sCJ+C9UodBBf65ww2IVnzYyEi2i1NbxKlNuplt02y8k=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JyF+bX5H+PGFIAUiyxlsETRTggQeTZDro+1B1GdXhlo64W6AzdduNG/wsn96SvSA81GLTteXjn1xbOslGXKDwwQEThJs3TfUR49NAcFRaMDTKpsbZxrY8XHed3/CLcCD4V6FooyFRTPZfgFhLR0+3jGmYvAcJKZLN9lERAwjiDc=
+	 MIME-Version:Content-Type; b=O8vGBGunBeI6sqowzMrWRU95SRs/0Y0RMcjSPqGEaRjWUdKA+yO/J5PiumTmkb3uGsz4jmwPoV68JdTp/RVodm0IWaHNX3hWs7DbCSilIbKUVwMi+ZGYPkNA1clG4HJyPN0kTJWzzFpJ+QBoUTGBM0G/7Jwh5FL+ZuSGAeTNVro=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.187
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.88.105])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4X0WRK0dVJzyRZM;
-	Fri,  6 Sep 2024 17:39:57 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4X0WRH4qL6zyRWV;
+	Fri,  6 Sep 2024 17:39:55 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 4804E14011A;
-	Fri,  6 Sep 2024 17:40:37 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id D4D271800D1;
+	Fri,  6 Sep 2024 17:40:35 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 6 Sep 2024 17:40:36 +0800
+ 15.2.1544.11; Fri, 6 Sep 2024 17:40:35 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>
-Subject: [PATCH for-next 6/9] RDMA/hns: Fix VF triggering PF reset in abnormal interrupt handler
-Date: Fri, 6 Sep 2024 17:34:41 +0800
-Message-ID: <20240906093444.3571619-7-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-next 1/9] RDMA/hns: Don't modify rq next block addr in HIP09 QPC
+Date: Fri, 6 Sep 2024 17:34:36 +0800
+Message-ID: <20240906093444.3571619-2-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20240906093444.3571619-1-huangjunxian6@hisilicon.com>
 References: <20240906093444.3571619-1-huangjunxian6@hisilicon.com>
@@ -45,42 +45,40 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-In abnormal interrupt handler, a PF reset will be triggered even if
-the device is a VF. It should be a VF reset.
+The field 'rq next block addr' in QPC can be updated by driver only
+on HIP08. On HIP09 HW updates this field while driver is not allowed.
 
-Fixes: 2b9acb9a97fe ("RDMA/hns: Add the process of AEQ overflow for hip08")
+Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index adcadd2495ab..74bab07c10e5 100644
+index 621b057fb9da..a166b476977f 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -6201,6 +6201,7 @@ static irqreturn_t abnormal_interrupt_basic(struct hns_roce_dev *hr_dev,
- 	struct pci_dev *pdev = hr_dev->pci_dev;
- 	struct hnae3_ae_dev *ae_dev = pci_get_drvdata(pdev);
- 	const struct hnae3_ae_ops *ops = ae_dev->ops;
-+	enum hnae3_reset_type reset_type;
- 	irqreturn_t int_work = IRQ_NONE;
- 	u32 int_en;
+@@ -4423,12 +4423,14 @@ static int config_qp_rq_buf(struct hns_roce_dev *hr_dev,
+ 		     upper_32_bits(to_hr_hw_page_addr(mtts[0])));
+ 	hr_reg_clear(qpc_mask, QPC_RQ_CUR_BLK_ADDR_H);
  
-@@ -6212,10 +6213,12 @@ static irqreturn_t abnormal_interrupt_basic(struct hns_roce_dev *hr_dev,
- 		roce_write(hr_dev, ROCEE_VF_ABN_INT_ST_REG,
- 			   1 << HNS_ROCE_V2_VF_INT_ST_AEQ_OVERFLOW_S);
+-	context->rq_nxt_blk_addr = cpu_to_le32(to_hr_hw_page_addr(mtts[1]));
+-	qpc_mask->rq_nxt_blk_addr = 0;
+-
+-	hr_reg_write(context, QPC_RQ_NXT_BLK_ADDR_H,
+-		     upper_32_bits(to_hr_hw_page_addr(mtts[1])));
+-	hr_reg_clear(qpc_mask, QPC_RQ_NXT_BLK_ADDR_H);
++	if (hr_dev->pci_dev->revision == PCI_REVISION_ID_HIP08) {
++		context->rq_nxt_blk_addr =
++				cpu_to_le32(to_hr_hw_page_addr(mtts[1]));
++		qpc_mask->rq_nxt_blk_addr = 0;
++		hr_reg_write(context, QPC_RQ_NXT_BLK_ADDR_H,
++			     upper_32_bits(to_hr_hw_page_addr(mtts[1])));
++		hr_reg_clear(qpc_mask, QPC_RQ_NXT_BLK_ADDR_H);
++	}
  
-+		reset_type = hr_dev->is_vf ?
-+			     HNAE3_VF_FUNC_RESET : HNAE3_FUNC_RESET;
-+
- 		/* Set reset level for reset_event() */
- 		if (ops->set_default_reset_request)
--			ops->set_default_reset_request(ae_dev,
--						       HNAE3_FUNC_RESET);
-+			ops->set_default_reset_request(ae_dev, reset_type);
- 		if (ops->reset_event)
- 			ops->reset_event(pdev, NULL);
- 
+ 	return 0;
+ }
 -- 
 2.33.0
 
