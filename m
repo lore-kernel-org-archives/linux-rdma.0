@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA2361BF335;
-	Thu, 12 Sep 2024 11:17:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D0101BBBCB;
+	Thu, 12 Sep 2024 11:17:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726139846; cv=none; b=Myxsxv3MpNYmtflcuFPcSr61wxn0mfEuY8ZlfZ3x8URBuTGHwZeD2s5j6EewBf4rYVNo0JcBbGC8QkSsIQo6yrfO9C4yY4BfykyWycvzBMxzrQwa8+ftAY68AV8xsC4Wcd4RN44BJgu2PvVktqdnhmdXqZvcik3Vb5X15tbVMgE=
+	t=1726139850; cv=none; b=sHfOuN4fR0Oq+D3V6FWCudeKmNoS3KZ5lmwPp3nEVhBhBvducIBr/lD517gFsPv56y3Pz6xKWzpNHFIBFmA8ojK/RQpOOiFQxJAhyHsJ9nq0EGUtahCqUaXVy6U3hATeRwsVBTtf/YE/7TEwzfT/7jxJ1lY296mX4zs42s85CY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726139846; c=relaxed/simple;
-	bh=HzFyylaMePR5bS7VyKQApbkFy4MWvNmh8/Ifgo8KsU0=;
+	s=arc-20240116; t=1726139850; c=relaxed/simple;
+	bh=Ch307cuLMtu9IkxYPq9fEPmV/1GlNElaatF0p6+K/3o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=X3k83cql+lGRLfEG2mznFjbvqmxe2GBmSacn8UrcLCoAa81N0pdiByeY+QUZOZl8GOoBQa1ewTZFSbWl7UtD3OyVfnaClBhtJdQ7DwRx+MfCR5z2s5ODNeB0B4/I01s6n9RIPLDKTqlcr6e8kG0iZw+Vmui3SzpDEhPnFc/A5Ro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iMt/9VHS; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=fpym9wnWzy48ngUNVe2+2Mazkp9ae4Lh6KSykxQtPULo2+U5AZmWTPXkXMwbmez3p9ZH5pKWECs/VP89Bx9z4R0PAWfAVmSU2LeN3npFFFxFWc1eSBnP4esgrmy01GwZA3UYrtrx5M3kQ61VUPQ+2B+tvKDds7o9gykfrSW4/sA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rjQEVR0W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iMt/9VHS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFE14C4CEC5;
-	Thu, 12 Sep 2024 11:17:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rjQEVR0W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B911C4CECE;
+	Thu, 12 Sep 2024 11:17:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1726139845;
-	bh=HzFyylaMePR5bS7VyKQApbkFy4MWvNmh8/Ifgo8KsU0=;
+	s=k20201202; t=1726139849;
+	bh=Ch307cuLMtu9IkxYPq9fEPmV/1GlNElaatF0p6+K/3o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iMt/9VHSYIlDpVGdX26n1N0CdVrTRm10It8Sa8NMHcf+17B/DEKPd5jcRIQstDF5l
-	 y/zknkTz0QWWnnaDNoU/w5MrYILx1JHP+V4tz9u84Cewb0+/xN0X7Xobu9RYdt4sE3
-	 8QSp8DqCuKUgnnC5JLgioLFGolGO2jWjErhnFWAI64U90eRPEY/a80PM1URWvna2tv
-	 EjnP1bBa2i6W+ZV7YFLYJDEIpcKOoFD0i83H5rqEd6sFjATC3qHX2bD88Wi/OivMQx
-	 jvCqxXIec8J/zMqtF5Uhjik7uSRXJU4fi3neuttBSeo6DVEN/1c89HG77KYw9oQArh
-	 FWiOq1isCI2iQ==
+	b=rjQEVR0WNIDFIumqiRWFBZ/LeaRIQrWt7cRNRpwd5Qr3Ery2891OThDNpX5O70OkA
+	 3u+K7SybOwx4RJVpNWxWVcp9dPJOARjRDtQ5bfDWc6ZBdwjeLjroi/LGRBt7k8iEnk
+	 rrKGRP00PzsLM6BQjTbD0bOTaSYxwnYo6ipA4GhON7Q3sfr8WoiFk8o1QO2Fv+ILhF
+	 /xfjffj8UsYtxpX9Wuzy0IcN8Uxvpj7UQIuJSgTBOPVfFQgt+1eyO4AqZDO/l5tLYd
+	 5CdaCvA6GAmBErDw8MkhJzDPoXCGNeg9rN3Ks4+pahOUrr4xwY6R/1BbLfmuF5yF5c
+	 mxeUvTEss0paA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -55,9 +55,9 @@ Cc: Leon Romanovsky <leonro@nvidia.com>,
 	linux-pci@vger.kernel.org,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [RFC v2 21/21] nvme-pci: don't allow mapping of bvecs with offset
-Date: Thu, 12 Sep 2024 14:15:56 +0300
-Message-ID: <63cdbb87e1b08464705fa343b65e561eb3abd5f9.1726138681.git.leon@kernel.org>
+Subject: [RFC v2 19/21] nvme-pci: precalculate number of DMA entries for each command
+Date: Thu, 12 Sep 2024 14:15:54 +0300
+Message-ID: <8c5b0e5ab1716166fc93e76cb2d3e01ca9cf8769.1726138681.git.leon@kernel.org>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <cover.1726138681.git.leon@kernel.org>
 References: <cover.1726138681.git.leon@kernel.org>
@@ -71,27 +71,59 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-It is a hack, but direct DMA works now.
+Calculate the number of DMA entries for each command in the request in
+advance.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/nvme/host/pci.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/nvme/host/pci.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
 diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 881cbf2c0cac..1872fa91ac76 100644
+index a9a66f184138..2b236b1d209e 100644
 --- a/drivers/nvme/host/pci.c
 +++ b/drivers/nvme/host/pci.c
-@@ -791,6 +791,9 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
- 			return BLK_STS_RESOURCE;
+@@ -231,6 +231,7 @@ struct nvme_iod {
+ 	struct nvme_request req;
+ 	struct nvme_command cmd;
+ 	bool aborted;
++	u8 nr_dmas;
+ 	s8 nr_allocations;	/* PRP list pool allocations. 0 means small
+ 				   pool in use */
+ 	dma_addr_t first_dma;
+@@ -766,6 +767,23 @@ static blk_status_t nvme_map_metadata(struct nvme_dev *dev, struct request *req,
+ 	return BLK_STS_OK;
+ }
  
- 		rq_for_each_bvec(bv, req, iter) {
-+			if (bv.bv_offset != 0)
-+				goto out_free;
++static u8 nvme_calc_num_dmas(struct request *req)
++{
++	struct bio_vec bv;
++	u8 nr_dmas;
 +
- 			dma_addr = dma_map_bvec(dev->dev, &bv, rq_dma_dir(req), 0);
- 			if (dma_mapping_error(dev->dev, dma_addr))
- 				goto out_free;
++	if (blk_rq_nr_phys_segments(req) == 0)
++		return 0;
++
++	nr_dmas = DIV_ROUND_UP(blk_rq_payload_bytes(req), NVME_CTRL_PAGE_SIZE);
++	bv = req_bvec(req);
++	if (bv.bv_offset && (bv.bv_offset + bv.bv_len) >= NVME_CTRL_PAGE_SIZE)
++		/* Accommodate for unaligned first page */
++		nr_dmas++;
++
++	return nr_dmas;
++}
++
+ static blk_status_t nvme_prep_rq(struct nvme_dev *dev, struct request *req)
+ {
+ 	struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
+@@ -779,6 +797,8 @@ static blk_status_t nvme_prep_rq(struct nvme_dev *dev, struct request *req)
+ 	if (ret)
+ 		return ret;
+ 
++	iod->nr_dmas = nvme_calc_num_dmas(req);
++
+ 	if (blk_rq_nr_phys_segments(req)) {
+ 		ret = nvme_map_data(dev, req, &iod->cmd);
+ 		if (ret)
 -- 
 2.46.0
 
