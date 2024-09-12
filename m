@@ -1,30 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 226A6145B14;
-	Thu, 12 Sep 2024 11:16:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DCF5145B14;
+	Thu, 12 Sep 2024 11:16:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726139764; cv=none; b=SSm11tKSJeXoX5CBBNgRTZ+Zr35SawmL/OGCOXDdv5EyqdkRmLdkG0of/YW1cvZXPS0w6FvsfpXoWW9M+56IwczwQCRRFxt/u09Y9Kt9BTWYdK7vM5sDgbQdJUDEPuPQTb+w5KKI0/wstQAz5OCBkAu1T2iQpqsvYA97V1GE87o=
+	t=1726139768; cv=none; b=U0Z/jsajQA1WoLO9CAFhLumbUYkDCpCpTTvsHSi+Nbs0VinIx0jaFt/5n87BIagnhG/sK32tMmBUhy1Hm+6mqYVk+b9lRirBD6eUiKZgxOvXKDJmp/DESCax2KrzX5ie10WNaPCOvaLS4D1Yc2QNNTomDNfwiwkDbRM32i1YQvI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726139764; c=relaxed/simple;
-	bh=xHiv+64ufjlfaZB+1birEmDSAEqJIKZbsr4qpKOqPrE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ZSTTG7FeqLoE/F9bKBWu71KjO3PneOmmOp7IvGRgcz5u2OiU6Jg7OoDYQiIqvK+QlFMviVqfnyn18vzFAflommA7kOUB1/Lu6waiBB+7Rbwe4g6rUDOTGP8zeZ4TVyur8AYwGn3+1kZUnMHM/B+Fq9ZxrUlrvEGyz8hzPJxHE0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HnlDHW0a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726139768; c=relaxed/simple;
+	bh=VWjabdNWVPsGz8JpMutT65B9uF9Uo/BpJGgpfDUTVak=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=o2PdtgZBGun+51GiavOvSJh/0J6cTGXwgIawR4WgBESqlSYbuTbxlYfSvFLoHshDCHpQGKITnXNPM9GKhL6KMq0oSNi33Wevb4P50zyDaU45QmZTBWB975M8tci80UKOJ3yivdPfkOH0gTnJreu7COsp8M70FI8+x5UaFH7XMSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EmLlNz91; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HnlDHW0a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE95BC4CECC;
-	Thu, 12 Sep 2024 11:16:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EmLlNz91"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D77C3C4CEC3;
+	Thu, 12 Sep 2024 11:16:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1726139763;
-	bh=xHiv+64ufjlfaZB+1birEmDSAEqJIKZbsr4qpKOqPrE=;
-	h=From:To:Cc:Subject:Date:From;
-	b=HnlDHW0aJOlZ/mQyNxg12Vfl1QyQgA+4ialoezfo+MkiMtzpo37W3A7XFZzNSS2gV
-	 nCy6S4qzhyg3yiWGrpjkJ7XXOwsjJGLduW17gDQ2j01fra/JxTwTC8bIEzsO37Jy3O
-	 tWtJI3x5KEzkYDPDEvpo4btQfTc/iM6jDN4b9cWi2x7dl8qZl6FekY1wFay7lNo6Ii
-	 IJZ7rjlAzG15afy2OtWqIvnGmh3J6ojSrsIxH92HPrMct8haQWjgPUjLGLnJK+FdOA
-	 egzwYBUFcoq09uv/i0x7cvVS0WkLeIYtdOhFJpeYR+kGOqMRlQvQJEwypNBVn2bnZB
-	 jTk09N6hrZ0Fw==
+	s=k20201202; t=1726139767;
+	bh=VWjabdNWVPsGz8JpMutT65B9uF9Uo/BpJGgpfDUTVak=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=EmLlNz91vs6SxK07DPB0FeRsNdYraG/8/aqHCC+3yK4unyOBTigWl3dgYpL2FkZvP
+	 G00341+DXFortwi5A0DRM0oHHJqqoS7g8LSRwclecTKFOR6jCplrCR/SZdrKvwQrep
+	 5phR03LaxkxKfznDtpK311Npqk+LqTE1hfaGrQzheteDVBW+0npQPavVlKK53ZaCZV
+	 jUwtCJrepSK/qZzM0l46iOZh5zC7lj4U1Ro+C1FrUtN0yi1ZAX+AUZ4QhVVi/LHgnS
+	 9a/vmDOidRNoehzzXg/ZzBt24/4beQiO6/rnc2z0BUmysAh3pMoMNwdyfrAPJ0MonP
+	 a9CIwLBnLrSxw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -35,7 +36,8 @@ To: Jens Axboe <axboe@kernel.dk>,
 	Christoph Hellwig <hch@lst.de>,
 	"Zeng, Oak" <oak.zeng@intel.com>,
 	Chaitanya Kulkarni <kch@nvidia.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
+	Sagi Grimberg <sagi@grimberg.me>,
 	Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
 	Yishai Hadas <yishaih@nvidia.com>,
@@ -53,148 +55,170 @@ Cc: Sagi Grimberg <sagi@grimberg.me>,
 	linux-pci@vger.kernel.org,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [RFC v2 00/21] Provide a new two step DMA API mapping API
-Date: Thu, 12 Sep 2024 14:15:35 +0300
-Message-ID: <cover.1726138681.git.leon@kernel.org>
+Subject: [RFC v2 02/21] iommu/dma: Implement link/unlink ranges callbacks
+Date: Thu, 12 Sep 2024 14:15:37 +0300
+Message-ID: <e3a8350baeaad544010c65dc62db53cf92ff2be1.1726138681.git.leon@kernel.org>
 X-Mailer: git-send-email 2.46.0
+In-Reply-To: <cover.1726138681.git.leon@kernel.org>
+References: <cover.1726138681.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Instead of waiting and waiting when I finally fix NVMe patch which
-doesn't work correctly in DMA direct mode (it causes to failures in
-module reload), I decided to send the series as is to at least get
-a feedback about API and the overall direction.
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Thanks
+Add an implementation of link/unlink interface to perform in map/unmap
+pages in fast patch for pre-allocated IOVA.
 
--------------------------------------------------------------------------
-Changelog:
-v2:
- * Remove attr field from dma_iova_attrs
- * Added attr parameter to every new API call except alloc_iova
- * Embed use_iova boolean into struct dma_iova_state
- * Embed struct dma_memory_type into struct dma_iova_state
- * Changed function signatures and added new function to initialize state
- * Combined dma_set_memory_type() and dma_can_use_iova() to one function, they were used together anyway
- * Made dma_start_range/dma_end_range to be NOP for non-iommu case
- * Restructured the code to avoid inclusion of linux/pci.h in global header
- * Based on DMA static calls series
- * Changed iommu/dma functions to get parameters instead of dma_iova_state
- * Removed iommu domain pointer from dma_iova_state
- * dma_link_range now returns DMA address
- * Rewrote NVMe patch
-v1: https://lore.kernel.org/all/cover.1719909395.git.leon@kernel.org
- * Rewrote cover letter
- * Changed to API as proposed
-   https://lore.kernel.org/linux-rdma/20240322184330.GL66976@ziepe.ca/
- * Removed IB DMA wrappers and use DMA API directly
-v0: https://lore.kernel.org/all/cover.1709635535.git.leon@kernel.org
--------------------------------------------------------------------------
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/iommu/dma-iommu.c | 86 +++++++++++++++++++++++++++++++++++++++
+ include/linux/iommu-dma.h | 25 ++++++++++++
+ 2 files changed, 111 insertions(+)
 
-Currently the only efficient way to map a complex memory description through
-the DMA API is by using the scatterlist APIs. The SG APIs are unique in that
-they efficiently combine the two fundamental operations of sizing and allocating
-a large IOVA window from the IOMMU and processing all the per-address
-swiotlb/flushing/p2p/map details.
-
-This uniqueness has been a long standing pain point as the scatterlist API
-is mandatory, but expensive to use. It prevents any kind of optimization or
-feature improvement (such as avoiding struct page for P2P) due to the
-impossibility of improving the scatterlist.
-
-Several approaches have been explored to expand the DMA API with additional
-scatterlist-like structures (BIO[1], rlist[2]), instead split up the DMAAPI
-to allow callers to bring their own data structure.
-
-The API is split up into parts:
- - dma_alloc_iova() / dma_free_iova()
-   To do any pre-allocation required. This is done based on the caller
-   supplying some details about how much IOMMU address space it would need
-   in worst case.
- - dma_link_range() / dma_unlink_range()
-   Perform the actual mapping into the pre-allocated IOVA. This is very
-   similar to dma_map_page().
-
-A driver will extent its mapping size using its own data structure, such as
-BIO, to request the required IOVA. Then it will iterate directly over it's
-data structure to DMA map each range. The result can then be stored directly
-into the HW specific DMA list. No intermediate scatterlist is required.
-
-In this series, examples of three users are converted to the new API to show
-the benefits. Each user has a unique flow:
- 1. RDMA ODP is an example of "SVA mirroring" using HMM that needs to
-    dynamically map/unmap large numbers of single pages. This becomes
-    significantly faster in the IOMMU case as the map/unmap is now just
-    a page table walk, the IOVA allocation is pre-computed once. Significant
-    amounts of memory are saved as there is no longer a need to store the
-    dma_addr_t of each page.
- 2. VFIO PCI live migration code is building a very large "page list"
-    for the device. Instead of allocating a scatter list entry per allocated
-    page it can just allocate an array of 'struct page *', saving a large
-    amount of memory.
- 3. NVMe PCI demonstrates how a BIO can be converted to a HW scatter
-    list without having to allocate then populate an intermediate SG table.
-
-This step is first along a path to provide alternatives to scatterlist
-and solve some of the abuses and design mistakes, for instance in DMABUF's
-P2P support.
-
-The ODP and VFIO versions are complete and fully tested, they can be the
-users of the new API to merge it. The NVMe requires more work.
-
-[1] https://lore.kernel.org/all/169772852492.5232.17148564580779995849.stgit@klimt.1015granger.net/
-[2] https://lore.kernel.org/all/ZD2lMvprVxu23BXZ@ziepe.ca/
-
-Thanks
-
-Leon Romanovsky (21):
-  iommu/dma: Provide an interface to allow preallocate IOVA
-  iommu/dma: Implement link/unlink ranges callbacks
-  iommu/dma: Add check if IOVA can be used
-  dma-mapping: initialize IOVA state struct
-  dma-mapping: provide an interface to allocate IOVA
-  dma-mapping: set and query DMA IOVA state
-  dma-mapping: implement link range API
-  mm/hmm: let users to tag specific PFN with DMA mapped bit
-  dma-mapping: provide callbacks to link/unlink HMM PFNs to specific
-    IOVA
-  RDMA/umem: Preallocate and cache IOVA for UMEM ODP
-  RDMA/umem: Store ODP access mask information in PFN
-  RDMA/core: Separate DMA mapping to caching IOVA and page linkage
-  RDMA/umem: Prevent UMEM ODP creation with SWIOTLB
-  vfio/mlx5: Explicitly use number of pages instead of allocated length
-  vfio/mlx5: Rewrite create mkey flow to allow better code reuse
-  vfio/mlx5: Explicitly store page list
-  vfio/mlx5: Convert vfio to use DMA link API
-  nvme-pci: remove optimizations for single DMA entry
-  nvme-pci: precalculate number of DMA entries for each command
-  nvme-pci: use new dma API
-  nvme-pci: don't allow mapping of bvecs with offset
-
- drivers/infiniband/core/umem_odp.c   | 216 +++++---------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   1 +
- drivers/infiniband/hw/mlx5/odp.c     |  44 +--
- drivers/iommu/dma-iommu.c            | 165 ++++++++++-
- drivers/nvme/host/pci.c              | 428 ++++++++++++++-------------
- drivers/pci/p2pdma.c                 |   4 +-
- drivers/vfio/pci/mlx5/cmd.c          | 312 ++++++++++---------
- drivers/vfio/pci/mlx5/cmd.h          |  23 +-
- drivers/vfio/pci/mlx5/main.c         |  89 +++---
- include/linux/dma-map-ops.h          |   7 +
- include/linux/dma-mapping.h          |  85 ++++++
- include/linux/hmm.h                  |   4 +
- include/linux/iommu-dma.h            |  43 +++
- include/rdma/ib_umem_odp.h           |  23 +-
- kernel/dma/mapping.c                 | 232 +++++++++++++++
- mm/hmm.c                             |  34 ++-
- 16 files changed, 1096 insertions(+), 614 deletions(-)
-
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index 09deea2fc86b..72763f76b712 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -1743,6 +1743,92 @@ void iommu_dma_free_iova(struct dma_iova_state *state)
+ 			      &iotlb_gather);
+ }
+ 
++int iommu_dma_start_range(struct device *dev)
++{
++	struct iommu_domain *domain = iommu_get_dma_domain(dev);
++
++	if (static_branch_unlikely(&iommu_deferred_attach_enabled))
++		return iommu_deferred_attach(dev, domain);
++
++	return 0;
++}
++
++void iommu_dma_end_range(struct device *dev)
++{
++	/* TODO: Factor out ops->iotlb_sync_map(..) call from iommu_map()
++	 * and put it here to provide batched iotlb sync for the range.
++	 */
++}
++
++dma_addr_t iommu_dma_link_range(struct dma_iova_state *state, phys_addr_t phys,
++				size_t size, unsigned long attrs)
++{
++	struct iommu_domain *domain = iommu_get_dma_domain(state->dev);
++	struct iommu_dma_cookie *cookie = domain->iova_cookie;
++	struct iova_domain *iovad = &cookie->iovad;
++	size_t iova_off = iova_offset(iovad, phys);
++	bool coherent = dev_is_dma_coherent(state->dev);
++	int prot = dma_info_to_prot(state->dir, coherent, attrs);
++	dma_addr_t addr = state->addr + state->range_size;
++	int ret;
++
++	WARN_ON_ONCE(iova_off && state->range_size > 0);
++
++	if (!coherent && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
++		arch_sync_dma_for_device(phys, size, state->dir);
++
++	size = iova_align(iovad, size + iova_off);
++	ret = iommu_map(domain, addr, phys - iova_off, size, prot, GFP_ATOMIC);
++	if (ret)
++		return ret;
++
++	state->range_size += size;
++	return addr + iova_off;
++}
++
++static void iommu_sync_dma_for_cpu(struct iommu_domain *domain,
++				   dma_addr_t start, size_t size,
++				   enum dma_data_direction dir)
++{
++	size_t sync_size, unmapped = 0;
++	phys_addr_t phys;
++
++	do {
++		phys = iommu_iova_to_phys(domain, start + unmapped);
++		if (WARN_ON(!phys))
++			continue;
++
++		sync_size = (unmapped + PAGE_SIZE > size) ? size % PAGE_SIZE :
++							    PAGE_SIZE;
++		arch_sync_dma_for_cpu(phys, sync_size, dir);
++		unmapped += sync_size;
++	} while (unmapped < size);
++}
++
++void iommu_dma_unlink_range(struct device *dev, dma_addr_t start, size_t size,
++			    enum dma_data_direction dir, unsigned long attrs)
++{
++	struct iommu_domain *domain = iommu_get_dma_domain(dev);
++	struct iommu_dma_cookie *cookie = domain->iova_cookie;
++	struct iova_domain *iovad = &cookie->iovad;
++	struct iommu_iotlb_gather iotlb_gather;
++	bool coherent = dev_is_dma_coherent(dev);
++	size_t unmapped;
++
++	iommu_iotlb_gather_init(&iotlb_gather);
++	iotlb_gather.queued = READ_ONCE(cookie->fq_domain);
++
++	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC) && !coherent)
++		iommu_sync_dma_for_cpu(domain, start, size, dir);
++
++	size = iova_align(iovad, size);
++	unmapped = iommu_unmap_fast(domain, start, size, &iotlb_gather);
++	WARN_ON(unmapped != size);
++
++	if (!iotlb_gather.queued)
++		iommu_iotlb_sync(domain, &iotlb_gather);
++}
++
+ void iommu_setup_dma_ops(struct device *dev)
+ {
+ 	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+diff --git a/include/linux/iommu-dma.h b/include/linux/iommu-dma.h
+index 698df67b152a..21b0341f52b8 100644
+--- a/include/linux/iommu-dma.h
++++ b/include/linux/iommu-dma.h
+@@ -60,6 +60,12 @@ void iommu_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sgl,
+ int iommu_dma_alloc_iova(struct dma_iova_state *state, phys_addr_t phys,
+ 			 size_t size);
+ void iommu_dma_free_iova(struct dma_iova_state *state);
++int iommu_dma_start_range(struct device *dev);
++void iommu_dma_end_range(struct device *dev);
++dma_addr_t iommu_dma_link_range(struct dma_iova_state *state, phys_addr_t phys,
++				size_t size, unsigned long attrs);
++void iommu_dma_unlink_range(struct device *dev, dma_addr_t start, size_t size,
++			    enum dma_data_direction dir, unsigned long attrs);
+ #else
+ static inline bool use_dma_iommu(struct device *dev)
+ {
+@@ -184,5 +190,24 @@ static inline int iommu_dma_alloc_iova(struct dma_iova_state *state,
+ static inline void iommu_dma_free_iova(struct dma_iova_state *state)
+ {
+ }
++static inline int iommu_dma_start_range(struct device *dev)
++{
++	return -EOPNOTSUPP;
++}
++static inline void iommu_dma_end_range(struct device *dev)
++{
++}
++static inline dma_addr_t iommu_dma_link_range(struct dma_iova_state *state,
++					      phys_addr_t phys, size_t size,
++					      unsigned long attrs)
++{
++	return DMA_MAPPING_ERROR;
++}
++static inline void iommu_dma_unlink_range(struct device *dev, dma_addr_t start,
++					  size_t size,
++					  enum dma_data_direction dir,
++					  unsigned long attrs)
++{
++}
+ #endif /* CONFIG_IOMMU_DMA */
+ #endif /* _LINUX_IOMMU_DMA_H */
 -- 
 2.46.0
 
