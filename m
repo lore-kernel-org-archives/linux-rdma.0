@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDAC11A4E8F;
-	Thu, 12 Sep 2024 11:16:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8D061A2631;
+	Thu, 12 Sep 2024 11:16:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726139789; cv=none; b=Dxh1wt+UmeFWqiN8+Uh/n90DPlzlek6ecZi0ZZGqjGCjX2r1BuynUajDW22tZQNJXAFmg3dLXYThFYead4lg17ifv06GpoHoM69tLMMqxTd3c11P4CYdH6G46rP50IE1GPdFfcYwI1A9S9wGyAWrfwtgKM0hM/5OSICKGV4Z8zs=
+	t=1726139793; cv=none; b=nmtN2JvktCGUa86vLJO7rFwHMwWGK6SqvKqvpC5mdFGPFLaKknPW7iyXpqJYMR+UaBk+qYDIQ8ZLIY0yO57EAXOtDkAwcYBBsY45l3G9lOXsBpK4R9ibcPV3xa+iisle/FX8fhVP7vFLq1GuSeoBoBnYenNmH1ZG2vnYFXOX83Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726139789; c=relaxed/simple;
-	bh=YbYR1B9oX34Xv+Cehx9/tYc07da7ONVOmPeGXmHRn1c=;
+	s=arc-20240116; t=1726139793; c=relaxed/simple;
+	bh=UdWHtN/ksXEH4oEZ6oLMvfaCKk3WWuTK2xFlFpaVROQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Qta8zsy87l0hJ7KQq/SyFQDFKU8kXDUExesB78iCQ0LbDZ5JfezBGIOtSEZLV1iHDNUzeRGvgdaVcaDc/L0daHyjzrpEWDJGQRM+/e4hOwLn4P2/tTb3udxBURn5AyboEV2i10bReEahc63toADl0QsIvbkHeXPT5Rr5FuI2mbs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fMCA+j/u; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=EeL2nWOIykG5W1P0+7ZXRkr5hDnwS55lXMwem74B97XfezOyKn88jzZgfJ+c+qZ7tVv0HGfX+UE9gm4SOG9Tw1Pf6jaXmaCx/WwKzVqZtF6QwLwlQZcuq3Z7KtiG6+/R1s0j7KRFVc0fGnEupSFzOPN6HpliQspvL7oa6w6/OPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JaEIJPQl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fMCA+j/u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89AE0C4CECC;
-	Thu, 12 Sep 2024 11:16:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JaEIJPQl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8814DC4CECC;
+	Thu, 12 Sep 2024 11:16:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1726139789;
-	bh=YbYR1B9oX34Xv+Cehx9/tYc07da7ONVOmPeGXmHRn1c=;
+	s=k20201202; t=1726139793;
+	bh=UdWHtN/ksXEH4oEZ6oLMvfaCKk3WWuTK2xFlFpaVROQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fMCA+j/uOJoozgNYTkAQZ9i5owgnrutNMDDvBGalOj/zk/VYWCdYuZ4BwEUgbo+Ee
-	 8IK3/oKPT7MWMTtxPtDL2tX4K+v6ORqHmqpoXabXDx37Z0XKm5aVZRF6/WCoJ9ITzO
-	 y2gg2RxijzVwlXxmRZdMVaHnbiANFg06GCTCeNRhNlUjPZ4StdmFz7Mfcxa8G1XV1K
-	 slWv9Nbw6MJs1cRNGwbW5Pi2YtCX+5q7wtccX+oU6he+cAY4vrHTPY4NBWkdGZdWz5
-	 rmSAiwxnbgN6fVd3O1RZFGWZ5pQ/Skqfv2XfNFsGj0rdVOoX/QhfA/JxO+QYtRiKMd
-	 e8hcOh4m/hvyg==
+	b=JaEIJPQlXW2dDMP6p7hqTalr5/nZfzPDNjt31Ao+a/Z+6Qd6aR11344w2a+DiulS6
+	 iMiK8gTB/L8nSXItJGUYe9cwRmL2GgnozYUV8QmwIPwxlHyW9aemlOw4kUFJ274pAA
+	 PN0d31Risc4/iSKKWebUhSD66kfvH9LIyEwYMS4hOAKbYQxJRBmddM3wevSD+t9Lab
+	 3P9ksYF1WRRS9QQhDgWjrPfCaOyxagFMoWzGFxcyzomruL7xcQnhG0yOGfbzjF3fR/
+	 bCmDiQ+O2/NGR32Y9Ac9Uqzw207ZTfmgI/uaIsUSGZlxOlUgCp8lIc5BJSywScgOIC
+	 JJAYki7oZADlw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -55,9 +55,9 @@ Cc: Leon Romanovsky <leonro@nvidia.com>,
 	linux-pci@vger.kernel.org,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [RFC v2 07/21] dma-mapping: implement link range API
-Date: Thu, 12 Sep 2024 14:15:42 +0300
-Message-ID: <bf1ad045f27a8dfac9e9dafd09869ac9a6be0b51.1726138681.git.leon@kernel.org>
+Subject: [RFC v2 03/21] iommu/dma: Add check if IOVA can be used
+Date: Thu, 12 Sep 2024 14:15:38 +0300
+Message-ID: <cac154df7131984929a1cf73948bc5986af5ef85.1726138681.git.leon@kernel.org>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <cover.1726138681.git.leon@kernel.org>
 References: <cover.1726138681.git.leon@kernel.org>
@@ -71,159 +71,119 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Introduce new DMA APIs to perform DMA linkage of buffers
-in layers higher than DMA.
-
-In proposed API, the callers will perform the following steps:
-dma_alloc_iova()
-if (dma_can_use_iova(...))
-  dma_start_range(...)
-  for (page in range)
-     dma_link_range(...)
-  dma_end_range(...)
-else
-  /* Fallback to legacy map pages */
-  dma_map_page(...)
+This patch adds a check if IOVA can be used for the page and size.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- include/linux/dma-mapping.h | 26 ++++++++++++++++
- kernel/dma/mapping.c        | 60 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 86 insertions(+)
+ drivers/iommu/dma-iommu.c   | 21 +++++++++++++++++++++
+ drivers/pci/p2pdma.c        |  4 ++--
+ include/linux/dma-map-ops.h |  7 +++++++
+ include/linux/iommu-dma.h   |  7 +++++++
+ 4 files changed, 37 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 2c74e68b0567..bb541f8944e5 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index 72763f76b712..3e2e382bb502 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
 @@ -11,6 +11,7 @@
- #include <linux/scatterlist.h>
- #include <linux/bug.h>
- #include <linux/mem_encrypt.h>
-+#include <linux/iommu.h>
+ #include <linux/acpi_iort.h>
+ #include <linux/atomic.h>
+ #include <linux/crash_dump.h>
++#include <linux/cc_platform.h>
+ #include <linux/device.h>
+ #include <linux/dma-direct.h>
+ #include <linux/dma-map-ops.h>
+@@ -1829,6 +1830,26 @@ void iommu_dma_unlink_range(struct device *dev, dma_addr_t start, size_t size,
+ 		iommu_iotlb_sync(domain, &iotlb_gather);
+ }
  
- /**
-  * List of possible attributes associated with a DMA mapping. The semantics
-@@ -82,6 +83,7 @@ struct dma_iova_state {
- 	size_t size;
- 	enum dma_data_direction dir;
- 	u8 use_iova : 1;
-+	size_t range_size;
- };
- 
- static inline void dma_init_iova_state(struct dma_iova_state *state,
-@@ -173,6 +175,11 @@ int dma_mmap_noncontiguous(struct device *dev, struct vm_area_struct *vma,
- void dma_set_iova_state(struct dma_iova_state *state, struct page *page,
- 			size_t size);
- bool dma_can_use_iova(struct dma_iova_state *state);
-+int dma_start_range(struct dma_iova_state *state);
-+void dma_end_range(struct dma_iova_state *state);
-+dma_addr_t dma_link_range_attrs(struct dma_iova_state *state, phys_addr_t phys,
-+				size_t size, unsigned long attrs);
-+void dma_unlink_range_attrs(struct dma_iova_state *state, unsigned long attrs);
- #else /* CONFIG_HAS_DMA */
- static inline int dma_alloc_iova_unaligned(struct dma_iova_state *state,
- 					   phys_addr_t phys, size_t size)
-@@ -319,6 +326,23 @@ static inline bool dma_can_use_iova(struct dma_iova_state *state)
++bool iommu_can_use_iova(struct device *dev, struct page *page, size_t size,
++			enum dma_data_direction dir)
++{
++	enum pci_p2pdma_map_type map;
++
++	if (is_swiotlb_force_bounce(dev) || dev_use_swiotlb(dev, size, dir))
++		return false;
++
++	/* TODO: Rewrite this check to rely on specific struct page flags */
++	if (cc_platform_has(CC_ATTR_MEM_ENCRYPT))
++		return false;
++
++	if (page && is_pci_p2pdma_page(page)) {
++		map = pci_p2pdma_map_type(page->pgmap, dev);
++		return map == PCI_P2PDMA_MAP_THRU_HOST_BRIDGE;
++	}
++
++	return true;
++}
++
+ void iommu_setup_dma_ops(struct device *dev)
  {
- 	return false;
+ 	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index 4f47a13cb500..6ceea32bb041 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -964,8 +964,8 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
  }
-+static inline int dma_start_range(struct dma_iova_state *state)
-+{
-+	return -EOPNOTSUPP;
-+}
-+static inline void dma_end_range(struct dma_iova_state *state)
-+{
-+}
-+static inline dma_addr_t dma_link_range_attrs(struct dma_iova_state *state,
-+					      phys_addr_t phys, size_t size,
-+					      unsigned long attrs)
-+{
-+	return DMA_MAPPING_ERROR;
-+}
-+static inline void dma_unlink_range_attrs(struct dma_iova_state *state,
-+					  unsigned long attrs)
-+{
-+}
- #endif /* CONFIG_HAS_DMA */
+ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
  
- #if defined(CONFIG_HAS_DMA) && defined(CONFIG_DMA_NEED_SYNC)
-@@ -513,6 +537,8 @@ static inline void dma_sync_sgtable_for_device(struct device *dev,
- #define dma_unmap_page(d, a, s, r) dma_unmap_page_attrs(d, a, s, r, 0)
- #define dma_get_sgtable(d, t, v, h, s) dma_get_sgtable_attrs(d, t, v, h, s, 0)
- #define dma_mmap_coherent(d, v, c, h, s) dma_mmap_attrs(d, v, c, h, s, 0)
-+#define dma_link_range(d, p, o) dma_link_range_attrs(d, p, o, 0)
-+#define dma_unlink_range(d) dma_unlink_range_attrs(d, 0)
- 
- bool dma_coherent_ok(struct device *dev, phys_addr_t phys, size_t size);
- 
-diff --git a/kernel/dma/mapping.c b/kernel/dma/mapping.c
-index 16cb03d5d87d..39fac8c21643 100644
---- a/kernel/dma/mapping.c
-+++ b/kernel/dma/mapping.c
-@@ -1024,3 +1024,63 @@ bool dma_can_use_iova(struct dma_iova_state *state)
- 	return state->use_iova;
+-static enum pci_p2pdma_map_type pci_p2pdma_map_type(struct dev_pagemap *pgmap,
+-						    struct device *dev)
++enum pci_p2pdma_map_type pci_p2pdma_map_type(struct dev_pagemap *pgmap,
++					     struct device *dev)
+ {
+ 	enum pci_p2pdma_map_type type = PCI_P2PDMA_MAP_NOT_SUPPORTED;
+ 	struct pci_dev *provider = to_p2p_pgmap(pgmap)->provider;
+diff --git a/include/linux/dma-map-ops.h b/include/linux/dma-map-ops.h
+index 103d9c66c445..936e822e9f40 100644
+--- a/include/linux/dma-map-ops.h
++++ b/include/linux/dma-map-ops.h
+@@ -516,6 +516,8 @@ struct pci_p2pdma_map_state {
+ enum pci_p2pdma_map_type
+ pci_p2pdma_map_segment(struct pci_p2pdma_map_state *state, struct device *dev,
+ 		       struct scatterlist *sg);
++enum pci_p2pdma_map_type pci_p2pdma_map_type(struct dev_pagemap *pgmap,
++					     struct device *dev);
+ #else /* CONFIG_PCI_P2PDMA */
+ static inline enum pci_p2pdma_map_type
+ pci_p2pdma_map_segment(struct pci_p2pdma_map_state *state, struct device *dev,
+@@ -523,6 +525,11 @@ pci_p2pdma_map_segment(struct pci_p2pdma_map_state *state, struct device *dev,
+ {
+ 	return PCI_P2PDMA_MAP_NOT_SUPPORTED;
  }
- EXPORT_SYMBOL_GPL(dma_can_use_iova);
-+
-+/**
-+ * dma_start_range - Start a range of IOVA space
-+ * @state: IOVA state
-+ *
-+ * Start a range of IOVA space for the given IOVA state.
-+ */
-+int dma_start_range(struct dma_iova_state *state)
++static inline enum pci_p2pdma_map_type
++pci_p2pdma_map_type(struct dev_pagemap *pgmap, struct device *dev)
 +{
-+	if (!state->use_iova)
-+		return 0;
-+
-+	return iommu_dma_start_range(state->dev);
++	return PCI_P2PDMA_MAP_NOT_SUPPORTED;
 +}
-+EXPORT_SYMBOL_GPL(dma_start_range);
-+
-+/**
-+ * dma_end_range - End a range of IOVA space
-+ * @state: IOVA state
-+ *
-+ * End a range of IOVA space for the given IOVA state.
-+ */
-+void dma_end_range(struct dma_iova_state *state)
+ #endif /* CONFIG_PCI_P2PDMA */
+ 
+ #endif /* _LINUX_DMA_MAP_OPS_H */
+diff --git a/include/linux/iommu-dma.h b/include/linux/iommu-dma.h
+index 21b0341f52b8..561d81b12d9c 100644
+--- a/include/linux/iommu-dma.h
++++ b/include/linux/iommu-dma.h
+@@ -66,6 +66,8 @@ dma_addr_t iommu_dma_link_range(struct dma_iova_state *state, phys_addr_t phys,
+ 				size_t size, unsigned long attrs);
+ void iommu_dma_unlink_range(struct device *dev, dma_addr_t start, size_t size,
+ 			    enum dma_data_direction dir, unsigned long attrs);
++bool iommu_can_use_iova(struct device *dev, struct page *page, size_t size,
++			enum dma_data_direction dir);
+ #else
+ static inline bool use_dma_iommu(struct device *dev)
+ {
+@@ -209,5 +211,10 @@ static inline void iommu_dma_unlink_range(struct device *dev, dma_addr_t start,
+ 					  unsigned long attrs)
+ {
+ }
++static inline bool iommu_can_use_iova(struct device *dev, struct page *page,
++				      size_t size, enum dma_data_direction dir)
 +{
-+	if (!state->use_iova)
-+		return;
-+
-+	iommu_dma_end_range(state->dev);
++	return false;
 +}
-+EXPORT_SYMBOL_GPL(dma_end_range);
-+
-+/**
-+ * dma_link_range_attrs - Link a range of IOVA space
-+ * @state: IOVA state
-+ * @phys: physical address to link
-+ * @size: size of the buffer
-+ * @attrs: attributes of mapping properties
-+ *
-+ * Link a range of IOVA space for the given IOVA state.
-+ */
-+dma_addr_t dma_link_range_attrs(struct dma_iova_state *state, phys_addr_t phys,
-+				size_t size, unsigned long attrs)
-+{
-+	return iommu_dma_link_range(state, phys, size, attrs);
-+}
-+EXPORT_SYMBOL_GPL(dma_link_range_attrs);
-+
-+/**
-+ * dma_unlink_range_attrs - Unlink a range of IOVA space
-+ * @state: IOVA state
-+ * @attrs: attributes of mapping properties
-+ *
-+ * Unlink a range of IOVA space for the given IOVA state.
-+ */
-+void dma_unlink_range_attrs(struct dma_iova_state *state, unsigned long attrs)
-+{
-+	iommu_dma_unlink_range(state->dev, state->addr, state->range_size,
-+			       state->dir, attrs);
-+}
-+EXPORT_SYMBOL_GPL(dma_unlink_range_attrs);
+ #endif /* CONFIG_IOMMU_DMA */
+ #endif /* _LINUX_IOMMU_DMA_H */
 -- 
 2.46.0
 
