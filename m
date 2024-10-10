@@ -1,91 +1,87 @@
-Received: from va-1-17.ptr.blmpb.com (va-1-17.ptr.blmpb.com [209.127.230.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 296931BBBC3
-	for <linux-rdma@vger.kernel.org>; Thu, 10 Oct 2024 08:24:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.127.230.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F0351BC074
+	for <linux-rdma@vger.kernel.org>; Thu, 10 Oct 2024 08:50:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728548672; cv=none; b=T4Cmg/b3VHCZZllS1Ijs1lpPnHSuAmOiTVZwEbZkNNp0Z+aGhsXDQtRQpUPYswsa56NKRPUWf5ub+ngilnJcn9NAeLFesp9rlcneYFFVLYwQflncew0VW9uyq4vvagn2xYuE/yywiy9/jkyRe1Bwz/tesBpATtf5Bf75er/sSJE=
+	t=1728550229; cv=none; b=cm3dcJsZj5aVPhWktQdcrP6C5UtgqwOY80WY18s06hEdibSItqr/H08a7NAe/R5StW9VCoF2PoMjN/eCxRrYmGqy4i2Bd1+8Kap1TrS0c+WuNj+b5u9CtMDTPx2diTurXA4HeoM1ZcK1OegesRpYIutNO6yh7YV3Ofok9Ugmm3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728548672; c=relaxed/simple;
-	bh=6IW/15MoGA+Dy3EAKdlMmjCBs1Cqi/vn6T/QE9RjH7U=;
-	h=From:Mime-Version:To:Cc:Date:Message-Id:Content-Type:Subject; b=tnb05L3Cbmb/Y8f3THskNwKosHU87cL6+3TABy52EqXkZivmHLHvF4fy0Dc0wLZpIU95cVXPFtYrj+1FAW9VTH/XbfbAQXgSo/4RBY/rXdwds5lP6uTaVwMkPtY8EuW/2sf3nc7ym7R3SRx1n71iZx/L4AftSsc15NHLg1DkLvk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com; spf=pass smtp.mailfrom=yunsilicon.com; dkim=pass (2048-bit key) header.d=yunsilicon.com header.i=@yunsilicon.com header.b=BF6Aup8a; arc=none smtp.client-ip=209.127.230.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yunsilicon.com
+	s=arc-20240116; t=1728550229; c=relaxed/simple;
+	bh=GlU0IJ/igaMWyrKdw/I6XGO6NbL8NYl68+YzL1zMGnQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=czSZgxBJr2okk9JmxOD75nDjzlh1fH4p9HtbHhxh5bnnkjkbsSUn1/AZOMJ38IeKLt6Yx6tfrLRqBfj43zqT8hEpAGh8jeb7N+DSvqmX8O0DbdDPDSO7lBsRzJU5McJJihL+8Uytxuoe+zNIzAAbV7iwqiq0CUBkHp+UBelkfyk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a6qBB5ij; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yunsilicon.com header.i=@yunsilicon.com header.b="BF6Aup8a"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=feishu2403070942; d=yunsilicon.com; t=1728547852; h=from:subject:
- mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
- mime-version:in-reply-to:message-id;
- bh=pJqwshmbeqxYOYLX7p7vxMa2mvIqrwIpf/6/+Im4f14=;
- b=BF6Aup8aBXoyF9Oq/0tWJ4erispI6UgGD1HgBg3mhkOLvTMkMJxkxu7GCqNSDasn9T/0ZG
- je2Nkayrp2SqxUGKXCj3GSNi+a77JDJn8MyXOWXqOc8fs0jwXIfMYIYBBQZ+niHeo+hMke
- U0J/3yebujCR8yt3DoBB1RV1YEFbBOIlIZu+l1Lj5qxI1R+KBkwz0nPLcISn3M+WBLRuje
- 4aP0YJlEtk8VBm+bIhJ+aFoVhPoIfYwMn5XXJWGFcZbAAvmI8UuNjrGdFElzgZzluI4zW2
- Dvx4Z5Hf7rvW2NSj/7U00zK0SS+3HDpCbO5WIyjBHpn1kwmMqy4rkpJfFzh2ew==
-From: "Tian Xin" <tianx@yunsilicon.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a6qBB5ij"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5598AC4CEC6;
+	Thu, 10 Oct 2024 08:50:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728550228;
+	bh=GlU0IJ/igaMWyrKdw/I6XGO6NbL8NYl68+YzL1zMGnQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=a6qBB5ijKN/byEEHRPKV14eo4aI7UwpO2wN7usNDmnpFVfhwevQP6/KN7uDERdJlk
+	 cApL+4FBMFU0bLeRVfh6ynaWASTSlK3Bliw+5SpzWBUDkjxtanPJ6JF8YbB8MHRmTx
+	 p09+9IHh1rJjIoFgk/jeQDk0+kWIkSo55rGwqun+Qg6sj+6oMTe57X/OrwwWvOOmMV
+	 JJ0I+Yp51slWJ3w4spwj9PyIFNbpVt2mZU0HIJPRn6wptZzOti/CS8ya+tCPLMrUVI
+	 HpH/lIFtoNtZYVKQr6Q0KScoV1jxQpco0B4FgJkXNMAd47jrF5xa3kZ42ljGMjMgds
+	 A58wrNjBVMNSQ==
+From: Leon Romanovsky <leon@kernel.org>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Patrisious Haddad <phaddad@nvidia.com>,
+	linux-rdma@vger.kernel.org,
+	Maher Sanalla <msanalla@nvidia.com>,
+	Maor Gottlieb <maorg@mellanox.com>,
+	Mark Zhang <markz@mellanox.com>
+Subject: [PATCH rdma-rc] RDMA/mlx5: Round max_rd_atomic/max_dest_rd_atomic up instead of down
+Date: Thu, 10 Oct 2024 11:50:23 +0300
+Message-ID: <d85515d6ef21a2fa8ef4c8293dce9b58df8a6297.1728550179.git.leon@kernel.org>
+X-Mailer: git-send-email 2.46.2
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-Original-From: Tian Xin <tianx@yunsilicon.com>
-X-Mailer: git-send-email 2.25.1
-To: <leonro@nvidia.com>, <jgg@nvidia.com>
-Cc: <linux-rdma@vger.kernel.org>, "Tian Xin" <tianx@yunsilicon.com>
-Date: Thu, 10 Oct 2024 16:10:43 +0800
-Message-Id: <20241010081049.1448826-1-tianx@yunsilicon.com>
-X-Lms-Return-Path: <lba+267078c0b+68afd4+vger.kernel.org+tianx@yunsilicon.com>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset=UTF-8
-Subject: [PATCH 0/6] Add Yunsilicon User Space RoCE Driver
-Received: from ubuntu-liun.yunsilicon.com ([58.34.192.114]) by smtp.feishu.cn with ESMTPS; Thu, 10 Oct 2024 16:10:50 +0800
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-This series of patches adds the user-space RoCE driver for the Yunsilicon MS/MC series smart NICs.
-Please review and apply.
+From: Patrisious Haddad <phaddad@nvidia.com>
 
-Thanks,
-Tian Xin
+After the cited commit below max_dest_rd_atomic and max_rd_atomic values
+are being rounded down to the next power of 2. As opposed to the old
+behavior and mlx4 driver where they used to be rounded up instead.
 
-Tian Xin (6):
-  libxscale: Introduce xscale user space RDMA provider
-  libxscale: Add support for pd and mr
-  libxscale: Add support for cq related verbs
-  libxscale: Add support for qp management
-  libxscale: Add support for posting verbs
-  libxscale: Add xscale needed kernel headers
+In order to stay consistent with older code and other drivers, revert to
+using fls round function which rounds up to the next power of 2.
 
- CMakeLists.txt                            |    1 +
- MAINTAINERS                               |    9 +
- kernel-headers/CMakeLists.txt             |    2 +
- kernel-headers/rdma/ib_user_ioctl_verbs.h |    1 +
- kernel-headers/rdma/xsc-abi.h             |   74 ++
- libibverbs/verbs.h                        |    1 +
- providers/xscale/CMakeLists.txt           |    8 +
- providers/xscale/buf.c                    |   42 +
- providers/xscale/cq.c                     |  568 ++++++++++++
- providers/xscale/qp.c                     |  632 +++++++++++++
- providers/xscale/verbs.c                  | 1019 +++++++++++++++++++++
- providers/xscale/xsc-abi.h                |   31 +
- providers/xscale/xsc_hsi.c                |   96 ++
- providers/xscale/xsc_hsi.h                |  178 ++++
- providers/xscale/xscale.c                 |  303 ++++++
- providers/xscale/xscale.h                 |  365 ++++++++
- 16 files changed, 3330 insertions(+)
- create mode 100644 kernel-headers/rdma/xsc-abi.h
- create mode 100644 providers/xscale/CMakeLists.txt
- create mode 100644 providers/xscale/buf.c
- create mode 100644 providers/xscale/cq.c
- create mode 100644 providers/xscale/qp.c
- create mode 100644 providers/xscale/verbs.c
- create mode 100644 providers/xscale/xsc-abi.h
- create mode 100644 providers/xscale/xsc_hsi.c
- create mode 100644 providers/xscale/xsc_hsi.h
- create mode 100644 providers/xscale/xscale.c
- create mode 100644 providers/xscale/xscale.h
+Fixes: f18e26af6aba ("RDMA/mlx5: Convert modify QP to use MLX5_SET macros")
+Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
+Reviewed-by: Maher Sanalla <msanalla@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/hw/mlx5/qp.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 849a160f99bc..88b6d9797a33 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4297,14 +4297,14 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 		MLX5_SET(qpc, qpc, retry_count, attr->retry_cnt);
+ 
+ 	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC && attr->max_rd_atomic)
+-		MLX5_SET(qpc, qpc, log_sra_max, ilog2(attr->max_rd_atomic));
++		MLX5_SET(qpc, qpc, log_sra_max, fls(attr->max_rd_atomic - 1));
+ 
+ 	if (attr_mask & IB_QP_SQ_PSN)
+ 		MLX5_SET(qpc, qpc, next_send_psn, attr->sq_psn);
+ 
+ 	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC && attr->max_dest_rd_atomic)
+ 		MLX5_SET(qpc, qpc, log_rra_max,
+-			 ilog2(attr->max_dest_rd_atomic));
++			 fls(attr->max_dest_rd_atomic - 1));
+ 
+ 	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC)) {
+ 		err = set_qpc_atomic_flags(qp, attr, attr_mask, qpc);
 -- 
-2.25.1
+2.46.2
+
