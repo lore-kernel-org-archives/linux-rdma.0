@@ -1,39 +1,38 @@
 Received: from va-2-31.ptr.blmpb.com (va-2-31.ptr.blmpb.com [209.127.231.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D05271B86CF
-	for <linux-rdma@vger.kernel.org>; Thu, 10 Oct 2024 08:11:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB79C1B86CF
+	for <linux-rdma@vger.kernel.org>; Thu, 10 Oct 2024 08:11:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.127.231.31
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728547870; cv=none; b=SflxndKPz9nz3Zo2NTuU8t7hFWl1jInfkgJUt/KHUI/9L70YxF1WrPq2ZTZzdj+HzpbxCJNBJp5qLsPfXp97XsOMwtnYCKRQa09M5XD28GyZ98Wvhmv6V06CaMhEaCJRYh5GYWts5vvxuPLrLtl2MVkOubjFRIy0FVkwGgY6uIw=
+	t=1728547875; cv=none; b=RkOzBTCDXocxKQPczZN9LgGKWnh8GIoQd/99/bvnI6nJ7+RMdtUCiNw6J/oNm6OkRFjEl8y8+mzobQb7P95MH+V5YMbjMoTvxEYUxc2DWe91NRdOAUYc9APQDpILgfHlA0l7S+PBZvFsT7C0DeHjsy1PO+6SB7b8NsTaStYn2MA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728547870; c=relaxed/simple;
-	bh=bdGXiFf7EyREM9gvcbweFm8+IouBDSE7oymzWzT3tk8=;
-	h=Message-Id:Content-Type:Subject:Date:Cc:Mime-Version:To:From; b=aJx85KmRcC4aVNJ3pbaEIgR7LA6QoTVWzYMYlSFXmivuPj41pDNC66v2+5hquCAito6XszNM9ntQsE3CHd8A/fAf/yq/X1+ZAfYkgaeXOwhuVRBfMzRrzq9kbSOj5WJhXv8K+kHoMUgmMtDK1coWpO+AXVDSyt+5qABhYx7dQIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com; spf=pass smtp.mailfrom=yunsilicon.com; dkim=pass (2048-bit key) header.d=yunsilicon.com header.i=@yunsilicon.com header.b=I7DzKQ2D; arc=none smtp.client-ip=209.127.231.31
+	s=arc-20240116; t=1728547875; c=relaxed/simple;
+	bh=E7rfEHt7/RQDV9mX/zYDY0i/Hh10RNOHLYNJ7SeSv5Y=;
+	h=To:Content-Type:Date:Message-Id:Mime-Version:Cc:From:Subject; b=uQDX3FMUn3hfTNObdkUAkJkdUNZEuqtmUzclsbJHNEveocdMMGR03Gh9WsYzS9lvIAEvMwwxPHJBAqKXlADYbbQcoQXbDNhiJWaGA63X9g2SpXEnASCynrI0/s5nHqSQ9fxSpMAaH2EF8ikSRzeM2qBJq2NR1f6u/k22Zk8apXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com; spf=pass smtp.mailfrom=yunsilicon.com; dkim=pass (2048-bit key) header.d=yunsilicon.com header.i=@yunsilicon.com header.b=ThTF73BW; arc=none smtp.client-ip=209.127.231.31
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yunsilicon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yunsilicon.com header.i=@yunsilicon.com header.b="I7DzKQ2D"
+	dkim=pass (2048-bit key) header.d=yunsilicon.com header.i=@yunsilicon.com header.b="ThTF73BW"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=feishu2403070942; d=yunsilicon.com; t=1728547854; h=from:subject:
+ s=feishu2403070942; d=yunsilicon.com; t=1728547861; h=from:subject:
  mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
  mime-version:in-reply-to:message-id;
- bh=xKrCar+uyunZ0s04dIKvUFSI5U+jnfPjPJGOXGwXoT8=;
- b=I7DzKQ2D3P28NRSt/Yq3JhMUY1SfYrA7KCz3Bi4a/OpSnCLJTnxa8f/enXeo8wUD0tDLnn
- rmRYCCp1QTWSjS2VcLiPYe+JKzYGfqzYO81syRTKvoz0WeLZvRzlLnSuduBkJSF4O6lFCl
- TPyVAfPty+5NtY7GQREuLtRytQGmSz+fCDXnwqBPqKer6F0DjvF6RisFOAslYPagll2K/D
- R/b4n2NWWc+SbLB6Hhw5AVPqUFrSz1fqXKp8xXAC/HTL3AQYUNDHFYVCbzZCW9P133Vcmu
- O6xnJeSloS77UG0C/6Js4jst9v3qnnmsZtO/0/y5nKnGhQAI0jM4f9aUPcxWag==
-Content-Transfer-Encoding: 7bit
-Message-Id: <20241010081049.1448826-2-tianx@yunsilicon.com>
-Content-Type: text/plain; charset=UTF-8
-Subject: [PATCH 1/6] libxscale: Introduce xscale user space RDMA provider
-Date: Thu, 10 Oct 2024 16:10:44 +0800
+ bh=xciZMQ8Ml7dAz52J+dCsKjXzHMhDHqWv6pFvfn5P2ak=;
+ b=ThTF73BWeq3WY0SVRKSy6IN3wRUyc1vojjZuW8D2YhMz7X5PQCWrSwMdt61Z4M0t45bHkT
+ 5GPBW0QzYUpaFvlLFoGkAWVBorfVUGDRQzK/Dplr27kV7kirKhLMcAK0xRtGDEahGC+VgS
+ KYZMEqY/bmHi86d/8Dsc3FPyWuRur2dgj7Ow5F9qHME9CC6gV3xm5s/gLCQ1zGiVolWzLM
+ EGOSmoCbk6hVEj7mncK110DyRzCZPYj9wk8h6ID9j1iJPbQ2jX/oLLAU0LlS1ObNsDdbi4
+ LDhsN/98aignvz9bFsK0FyHQX3regidT5jr8GHG76BcANSugJU1SXOAaz9MvXA==
+Received: from ubuntu-liun.yunsilicon.com ([58.34.192.114]) by smtp.feishu.cn with ESMTPS; Thu, 10 Oct 2024 16:10:59 +0800
 X-Mailer: git-send-email 2.25.1
-X-Lms-Return-Path: <lba+267078c0d+7d24f2+vger.kernel.org+tianx@yunsilicon.com>
-Cc: <linux-rdma@vger.kernel.org>, "Tian Xin" <tianx@yunsilicon.com>
-Received: from ubuntu-liun.yunsilicon.com ([58.34.192.114]) by smtp.feishu.cn with ESMTPS; Thu, 10 Oct 2024 16:10:52 +0800
+To: <leonro@nvidia.com>, <jgg@nvidia.com>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+X-Lms-Return-Path: <lba+267078c14+4808e0+vger.kernel.org+tianx@yunsilicon.com>
+Date: Thu, 10 Oct 2024 16:10:48 +0800
+Message-Id: <20241010081049.1448826-6-tianx@yunsilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,16 +40,11 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 X-Original-From: Tian Xin <tianx@yunsilicon.com>
-To: <leonro@nvidia.com>, <jgg@nvidia.com>
+Cc: <linux-rdma@vger.kernel.org>, "Tian Xin" <tianx@yunsilicon.com>
 From: "Tian Xin" <tianx@yunsilicon.com>
+Subject: [PATCH 5/6] libxscale: Add support for posting verbs
 
-libxscale is a user-space driver that provides RDMA
-capabilities to user applications. The current patch
-includes the following components:
-1. basic compile framework
-2. register/unregister user-space driver via verbs
-3. query_port
-4. query_device_ex
+This patch adds support for post_send and post_recv routines.
 
 Signed-off-by: Tian Xin <tianx@yunsilicon.com>
 Signed-off-by: Wei Honggang <weihg@yunsilicon.com>
@@ -58,634 +52,589 @@ Signed-off-by: Zhao Qianwei <zhaoqw@yunsilicon.com>
 Signed-off-by: Li Qiang <liq@yunsilicon.com>
 Signed-off-by: Yan Lei <jacky@yunsilicon.com>
 ---
- CMakeLists.txt                  |   1 +
- MAINTAINERS                     |   9 +
- providers/xscale/CMakeLists.txt |   4 +
- providers/xscale/verbs.c        |  75 +++++++++
- providers/xscale/xsc-abi.h      |  31 ++++
- providers/xscale/xscale.c       | 282 ++++++++++++++++++++++++++++++++
- providers/xscale/xscale.h       | 164 +++++++++++++++++++
- 7 files changed, 566 insertions(+)
- create mode 100644 providers/xscale/CMakeLists.txt
- create mode 100644 providers/xscale/verbs.c
- create mode 100644 providers/xscale/xsc-abi.h
- create mode 100644 providers/xscale/xscale.c
- create mode 100644 providers/xscale/xscale.h
+ providers/xscale/cq.c     |   5 -
+ providers/xscale/qp.c     | 522 ++++++++++++++++++++++++++++++++++++++
+ providers/xscale/xscale.c |   3 +
+ providers/xscale/xscale.h |   4 +
+ 4 files changed, 529 insertions(+), 5 deletions(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b2bd4f41..83976180 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -729,6 +729,7 @@ add_subdirectory(providers/mthca)
- add_subdirectory(providers/ocrdma)
- add_subdirectory(providers/qedr)
- add_subdirectory(providers/vmw_pvrdma)
-+add_subdirectory(providers/xscale)
- endif()
+diff --git a/providers/xscale/cq.c b/providers/xscale/cq.c
+index 7c528425..db1598ad 100644
+--- a/providers/xscale/cq.c
++++ b/providers/xscale/cq.c
+@@ -115,11 +115,6 @@ static void *get_sw_cqe(struct xsc_cq *cq, int n)
+ 		return NULL;
+ }
  
- add_subdirectory(providers/hfi1verbs)
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4b241171..4f4aed69 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -189,3 +189,12 @@ PYVERBS
- M:	Edward Srouji <edwards@mellanox.com>
- S:	Supported
- F:	pyverbs/
-+
-+XSCALE USERSPACE PROVIDER (for xsc_ib.ko)
-+M:	Wei Honggang <weihg@yunsilicon.com>
-+M:	Zhao Qianwei <zhaoqw@yunsilicon.com>
-+M:	Li Qiang <liq@yunsilicon.com>
-+M:	Tian Xin <tianx@yunsilicon.com>
-+M:	Yan Lei <jacky@yunsilicon.com>
-+S:	Supported
-+F:	providers/xscale/
-diff --git a/providers/xscale/CMakeLists.txt b/providers/xscale/CMakeLists.txt
-new file mode 100644
-index 00000000..cfd05b49
---- /dev/null
-+++ b/providers/xscale/CMakeLists.txt
-@@ -0,0 +1,4 @@
-+rdma_provider(xscale
-+  xscale.c
-+  verbs.c
-+)
-diff --git a/providers/xscale/verbs.c b/providers/xscale/verbs.c
-new file mode 100644
-index 00000000..943665a8
---- /dev/null
-+++ b/providers/xscale/verbs.c
-@@ -0,0 +1,75 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (c) 2021 - 2022, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#include <config.h>
-+
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <stdatomic.h>
-+#include <string.h>
-+#include <pthread.h>
-+#include <errno.h>
-+#include <limits.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <fcntl.h>
-+#include <unistd.h>
-+#include <sys/mman.h>
-+#include <ccan/array_size.h>
-+
-+#include <util/compiler.h>
-+#include <util/mmio.h>
-+#include <rdma/ib_user_ioctl_cmds.h>
-+#include <infiniband/cmd_write.h>
-+
-+#include "xscale.h"
-+#include "xsc-abi.h"
-+
-+int xsc_query_port(struct ibv_context *context, u8 port,
-+		   struct ibv_port_attr *attr)
-+{
-+	struct ibv_query_port cmd;
-+
-+	return ibv_cmd_query_port(context, port, attr, &cmd, sizeof(cmd));
-+}
-+
-+static void xsc_set_fw_version(struct ibv_device_attr *attr,
-+			       union xsc_ib_fw_ver *fw_ver)
-+{
-+	u8 ver_major = fw_ver->s.ver_major;
-+	u8 ver_minor = fw_ver->s.ver_minor;
-+	u16 ver_patch = fw_ver->s.ver_patch;
-+	u32 ver_tweak = fw_ver->s.ver_tweak;
-+
-+	if (ver_tweak == 0) {
-+		snprintf(attr->fw_ver, sizeof(attr->fw_ver), "v%u.%u.%u",
-+			 ver_major, ver_minor, ver_patch);
-+	} else {
-+		snprintf(attr->fw_ver, sizeof(attr->fw_ver), "v%u.%u.%u+%u",
-+			 ver_major, ver_minor, ver_patch, ver_tweak);
-+	}
-+}
-+
-+int xsc_query_device_ex(struct ibv_context *context,
-+			const struct ibv_query_device_ex_input *input,
-+			struct ibv_device_attr_ex *attr, size_t attr_size)
-+{
-+	struct ib_uverbs_ex_query_device_resp resp;
-+	size_t resp_size = sizeof(resp);
-+	union xsc_ib_fw_ver raw_fw_ver;
-+	int err;
-+
-+	raw_fw_ver.data = 0;
-+	err = ibv_cmd_query_device_any(context, input, attr, attr_size,
-+				       &resp, &resp_size);
-+	if (err)
-+		return err;
-+
-+	raw_fw_ver.data = resp.base.fw_ver;
-+	xsc_set_fw_version(&attr->orig_attr, &raw_fw_ver);
-+
-+	return 0;
-+}
-diff --git a/providers/xscale/xsc-abi.h b/providers/xscale/xsc-abi.h
-new file mode 100644
-index 00000000..66d2bd1a
---- /dev/null
-+++ b/providers/xscale/xsc-abi.h
-@@ -0,0 +1,31 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Copyright (c) 2021 - 2022, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#ifndef XSC_ABI_H
-+#define XSC_ABI_H
-+
-+#include <infiniband/kern-abi.h>
-+#include <infiniband/verbs.h>
-+#include <rdma/xsc-abi.h>
-+#include <kernel-abi/xsc-abi.h>
-+
-+#define XSC_UVERBS_MIN_ABI_VERSION 1
-+#define XSC_UVERBS_MAX_ABI_VERSION 1
-+
-+DECLARE_DRV_CMD(xsc_alloc_ucontext, IB_USER_VERBS_CMD_GET_CONTEXT,
-+		empty, xsc_ib_alloc_ucontext_resp);
-+DECLARE_DRV_CMD(xsc_alloc_pd, IB_USER_VERBS_CMD_ALLOC_PD, empty,
-+		xsc_ib_alloc_pd_resp);
-+DECLARE_DRV_CMD(xsc_create_cq, IB_USER_VERBS_CMD_CREATE_CQ, xsc_ib_create_cq,
-+		xsc_ib_create_cq_resp);
-+DECLARE_DRV_CMD(xsc_create_cq_ex, IB_USER_VERBS_EX_CMD_CREATE_CQ,
-+		xsc_ib_create_cq, xsc_ib_create_cq_resp);
-+DECLARE_DRV_CMD(xsc_create_qp_ex, IB_USER_VERBS_EX_CMD_CREATE_QP,
-+		xsc_ib_create_qp, xsc_ib_create_qp_resp);
-+DECLARE_DRV_CMD(xsc_create_qp, IB_USER_VERBS_CMD_CREATE_QP, xsc_ib_create_qp,
-+		xsc_ib_create_qp_resp);
-+
-+#endif /* XSC_ABI_H */
-diff --git a/providers/xscale/xscale.c b/providers/xscale/xscale.c
-new file mode 100644
-index 00000000..c7be8127
---- /dev/null
-+++ b/providers/xscale/xscale.c
-@@ -0,0 +1,282 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (c) 2021 - 2022, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#define _GNU_SOURCE
-+#include <config.h>
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <sys/mman.h>
-+#include <pthread.h>
-+#include <string.h>
-+#include <sched.h>
-+#include <sys/param.h>
-+
-+#include <util/mmio.h>
-+#include <util/symver.h>
-+
-+#include "xscale.h"
-+#include "xsc-abi.h"
-+
-+static const struct verbs_match_ent hca_table[] = {
-+	VERBS_MODALIAS_MATCH("*xscale*", NULL),
-+	{}
+-void *xsc_get_send_wqe(struct xsc_qp *qp, int n)
+-{
+-	return qp->sq_start + (n << qp->sq.wqe_shift);
+-}
+-
+ static void update_cons_index(struct xsc_cq *cq)
+ {
+ 	struct xsc_context *ctx =
+diff --git a/providers/xscale/qp.c b/providers/xscale/qp.c
+index 7fa715c4..551cf4dc 100644
+--- a/providers/xscale/qp.c
++++ b/providers/xscale/qp.c
+@@ -16,6 +16,528 @@
+ #include "xscale.h"
+ #include "xsc_hsi.h"
+ 
++static const u32 xsc_ib_opcode[] = {
++	[IBV_WR_SEND] = XSC_MSG_OPCODE_SEND,
++	[IBV_WR_SEND_WITH_IMM] = XSC_MSG_OPCODE_SEND,
++	[IBV_WR_RDMA_WRITE] = XSC_MSG_OPCODE_RDMA_WRITE,
++	[IBV_WR_RDMA_WRITE_WITH_IMM] = XSC_MSG_OPCODE_RDMA_WRITE,
++	[IBV_WR_RDMA_READ] = XSC_MSG_OPCODE_RDMA_READ,
++	[IBV_WR_SEND_WITH_INV] = XSC_MSG_OPCODE_SEND,
 +};
 +
-+u32 xsc_debug_mask;
-+static void xsc_free_context(struct ibv_context *ibctx);
-+
-+static const struct verbs_context_ops xsc_ctx_common_ops = {
-+	.query_port = xsc_query_port,
-+	.query_device_ex = xsc_query_device_ex,
-+	.free_context = xsc_free_context,
-+};
-+
-+static void open_debug_file(struct xsc_context *ctx)
++static void *get_recv_wqe(struct xsc_qp *qp, int n)
 +{
-+	char *env;
++	return qp->rq_start + (n << qp->rq.wqe_shift);
++}
 +
-+	env = getenv("XSC_DEBUG_FILE");
-+	if (!env) {
-+		ctx->dbg_fp = stderr;
-+		return;
++static void *get_seg_wqe(void *first, int n)
++{
++	return first + (n << XSC_BASE_WQE_SHIFT);
++}
++
++void *xsc_get_send_wqe(struct xsc_qp *qp, int n)
++{
++	return qp->sq_start + (n << qp->sq.wqe_shift);
++}
++
++static int xsc_wq_overflow(struct xsc_wq *wq, int nreq, struct xsc_cq *cq)
++{
++	unsigned int cur;
++
++	cur = wq->head - wq->tail;
++	if (cur + nreq < wq->max_post)
++		return 0;
++
++	xsc_spin_lock(&cq->lock);
++	cur = wq->head - wq->tail;
++	xsc_spin_unlock(&cq->lock);
++
++	return cur + nreq >= wq->max_post;
++}
++
++static inline void set_remote_addr_seg(struct xsc_wqe_data_seg *remote_seg,
++				       u32 msg_len, u64 remote_addr,
++				       u32 rkey)
++{
++	u32 ds_data0 = 0;
++
++	ds_data0 |= FIELD_PREP(DATA_SEG_DATA0_SEG_LEN_MASK, msg_len);
++	remote_seg->data0 = htole32(ds_data0);
++	remote_seg->mkey = htole32(rkey);
++	remote_seg->va = htole64(remote_addr);
++}
++
++static void set_local_data_seg(struct xsc_wqe_data_seg *data_seg,
++			       const struct ibv_sge *sg)
++{
++	u32 ds_data0 = 0;
++
++	ds_data0 |= FIELD_PREP(DATA_SEG_DATA0_SEG_LEN_MASK, sg->length);
++	data_seg->data0 = htole32(ds_data0);
++	data_seg->mkey = htole32(sg->lkey);
++	data_seg->va = htole64(sg->addr);
++}
++
++static __be32 send_ieth(struct ibv_send_wr *wr)
++{
++	switch (wr->opcode) {
++	case IBV_WR_SEND_WITH_IMM:
++	case IBV_WR_RDMA_WRITE_WITH_IMM:
++		return wr->imm_data;
++	default:
++		return 0;
 +	}
-+
-+	ctx->dbg_fp = fopen(env, "aw+");
-+	if (!ctx->dbg_fp) {
-+		fprintf(stderr, "Failed opening debug file %s, using stderr\n",
-+			env);
-+		ctx->dbg_fp = stderr;
-+		return;
-+	}
 +}
 +
-+static void close_debug_file(struct xsc_context *ctx)
++static void *get_addr_from_wr(const void *list, int idx)
 +{
-+	if (ctx->dbg_fp && ctx->dbg_fp != stderr)
-+		fclose(ctx->dbg_fp);
++	const struct ibv_send_wr *wr = list;
++
++	return (void *)(uintptr_t)wr->sg_list[idx].addr;
 +}
 +
-+static void set_debug_mask(void)
++static int get_len_from_wr(const void *list, int idx)
 +{
-+	char *env;
++	const struct ibv_send_wr *wr = list;
 +
-+	env = getenv("XSC_DEBUG_MASK");
-+	if (env)
-+		xsc_debug_mask = strtol(env, NULL, 0);
++	return wr->sg_list[idx].length;
 +}
 +
-+static int xsc_cmd_get_context(struct xsc_context *context,
-+			       struct xsc_alloc_ucontext *req, size_t req_len,
-+			       struct xsc_alloc_ucontext_resp *resp,
-+			       size_t resp_len)
++static int _set_wqe_inline(void *data_seg, size_t num_buf, const void *list,
++			   void *(*get_addr)(const void *, int),
++			   int (*get_len)(const void *, int))
 +{
-+	struct verbs_context *verbs_ctx = &context->ibv_ctx;
-+
-+	return ibv_cmd_get_context(verbs_ctx, &req->ibv_cmd, req_len,
-+				   &resp->ibv_resp, resp_len);
-+}
-+
-+static int xsc_mmap(struct xsc_device *xdev, struct xsc_context *context,
-+		    int cmd_fd, int size)
-+{
-+	u64 page_mask;
-+
-+	page_mask = (~(xdev->page_size - 1));
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX, "page size:%d\n", size);
-+	context->sqm_reg_va =
-+		mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, cmd_fd,
-+		     context->qpm_tx_db & page_mask);
-+	if (context->sqm_reg_va == MAP_FAILED)
-+		return -1;
-+
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX, "qpm reg va:%p\n",
-+		context->sqm_reg_va);
-+
-+	context->rqm_reg_va =
-+		mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, cmd_fd,
-+		     context->qpm_rx_db & page_mask);
-+	if (context->rqm_reg_va == MAP_FAILED)
-+		goto free_sqm;
-+
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX, "qpm reg va:%p\n",
-+		context->rqm_reg_va);
-+
-+	context->cqm_reg_va =
-+		mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, cmd_fd,
-+		     context->cqm_next_cid_reg & page_mask);
-+	if (context->cqm_reg_va == MAP_FAILED)
-+		goto free_rqm;
-+
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX, "cqm ci va:%p\n",
-+		context->cqm_reg_va);
-+	context->db_mmap_size = size;
-+
-+	context->cqm_armdb_va =
-+		mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, cmd_fd,
-+		     context->cqm_armdb & page_mask);
-+	if (context->cqm_armdb_va == MAP_FAILED)
-+		goto free_cqm;
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX, "cqm armdb va:%p\n",
-+		context->cqm_armdb_va);
-+
-+	return 0;
-+
-+free_cqm:
-+	munmap(context->cqm_reg_va, size);
-+free_rqm:
-+	munmap(context->rqm_reg_va, size);
-+free_sqm:
-+	munmap(context->sqm_reg_va, size);
-+
-+	return -1;
-+}
-+
-+static void xsc_munmap(struct xsc_context *context)
-+{
-+	if (context->sqm_reg_va)
-+		munmap(context->sqm_reg_va, context->db_mmap_size);
-+
-+	if (context->rqm_reg_va)
-+		munmap(context->rqm_reg_va, context->db_mmap_size);
-+
-+	if (context->cqm_reg_va)
-+		munmap(context->cqm_reg_va, context->db_mmap_size);
-+
-+	if (context->cqm_armdb_va)
-+		munmap(context->cqm_armdb_va, context->db_mmap_size);
-+}
-+
-+static struct verbs_context *xsc_alloc_context(struct ibv_device *ibdev,
-+					       int cmd_fd, void *private_data)
-+{
-+	struct xsc_context *context;
-+	struct xsc_alloc_ucontext req;
-+	struct xsc_alloc_ucontext_resp resp;
 +	int i;
-+	int page_size;
-+	struct xsc_device *xdev = to_xdev(ibdev);
-+	struct verbs_context *v_ctx;
-+	struct ibv_device_attr_ex device_attr;
++	int ds_left_len = 0;
++	int len = 0;
++	void *addr;
++	void *data_seg_base = data_seg;
++	int seg_index = 0;
++	const int ds_len = sizeof(struct xsc_wqe_data_seg);
 +
-+	context = verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx,
-+					       RDMA_DRIVER_XSC);
-+	if (!context)
-+		return NULL;
++	for (i = 0; i < num_buf; i++) {
++		addr = get_addr(list, i);
++		len = get_len(list, i);
++		if (likely(len)) {
++			if (ds_left_len > 0) {
++				int copy_len = min_t(int, len, ds_left_len);
 +
-+	v_ctx = &context->ibv_ctx;
-+	page_size = xdev->page_size;
++				memcpy(data_seg, addr, copy_len);
++				addr += copy_len;
++				len -= copy_len;
++			}
 +
-+	open_debug_file(context);
-+	set_debug_mask();
-+	if (gethostname(context->hostname, sizeof(context->hostname)))
-+		strncpy(context->hostname, "host_unknown", NAME_BUFFER_SIZE - 1);
++			while (len >= ds_len) {
++				data_seg =
++					get_seg_wqe(data_seg_base, seg_index);
++				seg_index++;
++				memcpy(data_seg, addr, ds_len);
++				addr += ds_len;
++				len -= ds_len;
++			}
 +
-+	memset(&req, 0, sizeof(req));
-+	memset(&resp, 0, sizeof(resp));
++			if (len > 0) {
++				data_seg =
++					get_seg_wqe(data_seg_base, seg_index);
++				seg_index++;
++				memcpy(data_seg, addr, len);
++				data_seg += len;
++				ds_left_len = ds_len - len;
++			} else {
++				ds_left_len = 0;
++			}
++		}
++	}
++	return seg_index;
++}
 +
-+	if (xsc_cmd_get_context(context, &req, sizeof(req), &resp,
-+				sizeof(resp)))
-+		goto err_free;
++static int set_wqe_inline_from_wr(struct xsc_qp *qp, struct ibv_send_wr *wr,
++				  struct xsc_send_wqe_ctrl_seg *ctrl)
++{
++	void *data_seg;
++	unsigned int seg_index;
++	int msg_len = le32toh(ctrl->msg_len);
++	int filled_ds_num;
++	u32 tmp_ctrl_wqe_hdr = le32toh(ctrl->wqe_hdr);
 +
-+	context->max_num_qps = resp.qp_tab_size;
-+	context->max_sq_desc_sz = resp.max_sq_desc_sz;
-+	context->max_rq_desc_sz = resp.max_rq_desc_sz;
-+	context->max_send_wr = resp.max_send_wr;
-+	context->num_ports = resp.num_ports;
-+	context->max_recv_wr = resp.max_recv_wr;
-+	context->qpm_tx_db = resp.qpm_tx_db;
-+	context->qpm_rx_db = resp.qpm_rx_db;
-+	context->cqm_next_cid_reg = resp.cqm_next_cid_reg;
-+	context->cqm_armdb = resp.cqm_armdb;
-+	context->send_ds_num = resp.send_ds_num;
-+	context->send_ds_shift = xsc_ilog2(resp.send_ds_num);
-+	context->recv_ds_num = resp.recv_ds_num;
-+	context->recv_ds_shift = xsc_ilog2(resp.recv_ds_num);
++	if (wr->opcode == IBV_WR_SEND || wr->opcode == IBV_WR_SEND_WITH_IMM)
++		seg_index = 1;
++	else
++		seg_index = 2;
++	data_seg = get_seg_wqe(ctrl, seg_index);
 +
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX,
-+		"max_num_qps:%u, max_sq_desc_sz:%u max_rq_desc_sz:%u\n",
-+		context->max_num_qps, context->max_sq_desc_sz,
-+		context->max_rq_desc_sz);
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX,
-+		"max_send_wr:%u, num_ports:%u, max_recv_wr:%u\n",
-+		context->max_send_wr,
-+		context->num_ports, context->max_recv_wr);
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX,
-+		"send_ds_num:%u shift:%u recv_ds_num:%u shift:%u\n",
-+		context->send_ds_num, context->send_ds_shift,
-+		context->recv_ds_num, context->recv_ds_shift);
++	if (unlikely(msg_len > qp->max_inline_data))
++		return -ENOMEM;
 +
-+	pthread_mutex_init(&context->qp_table_mutex, NULL);
-+	for (i = 0; i < XSC_QP_TABLE_SIZE; ++i)
-+		context->qp_table[i].refcnt = 0;
++	filled_ds_num = _set_wqe_inline(data_seg, wr->num_sge, wr,
++					get_addr_from_wr, get_len_from_wr);
++	tmp_ctrl_wqe_hdr |= FIELD_PREP(CTRL_SEG_WQE_HDR_DS_NUM_MASK,
++				       seg_index - 1 + filled_ds_num);
++	ctrl->wqe_hdr = htole32(tmp_ctrl_wqe_hdr);
 +
-+	context->page_size = page_size;
-+	if (xsc_mmap(xdev, context, cmd_fd, page_size))
-+		goto err_free;
++	return 0;
++}
 +
-+	verbs_set_ops(v_ctx, &xsc_ctx_common_ops);
++static void _zero_send_ds(int idx, struct xsc_qp *qp, int keep_ctrl)
++{
++	u64 *p;
++	void *seg;
++	int i;
 +
-+	memset(&device_attr, 0, sizeof(device_attr));
-+	if (!xsc_query_device_ex(&v_ctx->context, NULL, &device_attr,
-+				 sizeof(struct ibv_device_attr_ex))) {
-+		context->max_cqe = device_attr.orig_attr.max_cqe;
++	seg = (void *)xsc_get_send_wqe(qp, idx);
++	for (i = keep_ctrl; i < qp->sq.seg_cnt; i++) {
++		p = get_seg_wqe(seg, i);
++		p[0] = 0;
++		p[1] = 0;
++	}
++}
++
++static void clear_send_wqe(int idx, struct xsc_qp *qp)
++{
++	_zero_send_ds(idx, qp, 0);
++}
++
++static void clear_send_wqe_except_ctrl(int idx, struct xsc_qp *qp)
++{
++	_zero_send_ds(idx, qp, 1);
++}
++
++static void clear_recv_wqe(int idx, struct xsc_qp *qp)
++{
++	u64 *p;
++	void *seg;
++	int i;
++
++	seg = (void *)get_recv_wqe(qp, idx);
++	for (i = 0; i < qp->rq.seg_cnt; i++) {
++		p = get_seg_wqe(seg, i);
++		p[0] = 0;
++		p[1] = 0;
++	}
++}
++
++static void dump_wqe(int type, int idx, struct xsc_qp *qp)
++{
++	u32 *p;
++	int i;
++	void *seg;
++
++	/* type0 for send, type1 for recv */
++	if (type == 0) {
++		seg = (void *)xsc_get_send_wqe(qp, idx);
++		xsc_dbg(to_xctx(qp->ibv_qp->context)->dbg_fp, XSC_DBG_QP,
++			"dump send wqe at %p\n", seg);
++		for (i = 0; i < qp->sq.seg_cnt; i++) {
++			p = get_seg_wqe(seg, i);
++			xsc_dbg(to_xctx(qp->ibv_qp->context)->dbg_fp,
++				XSC_DBG_QP, "0x%08x 0x%08x 0x%08x 0x%08x\n",
++				p[0], p[1], p[2], p[3]);
++		}
++	} else if (type == 1) {
++		seg = (void *)get_recv_wqe(qp, idx);
++		xsc_dbg(to_xctx(qp->ibv_qp->context)->dbg_fp, XSC_DBG_QP,
++			"dump recv wqe at %p\n", seg);
++		for (i = 0; i < qp->rq.seg_cnt; i++) {
++			p = get_seg_wqe(seg, i);
++			xsc_dbg(to_xctx(qp->ibv_qp->context)->dbg_fp,
++				XSC_DBG_QP, "0x%08x 0x%08x 0x%08x 0x%08x\n",
++				p[0], p[1], p[2], p[3]);
++		}
++	} else {
++		xsc_dbg(to_xctx(qp->ibv_qp->context)->dbg_fp, XSC_DBG_QP,
++			"unknown type %d\n", type);
++	}
++}
++
++static inline void xsc_post_send_db(struct xsc_qp *qp, int nreq)
++{
++	struct xsc_context *ctx = to_xctx(qp->ibv_qp->context);
++	u32 next_pid;
++
++	if (unlikely(!nreq))
++		return;
++
++	qp->sq.head += nreq;
++	next_pid = qp->sq.head << (qp->sq.wqe_shift - XSC_BASE_WQE_SHIFT);
++	xsc_dbg(to_xctx(qp->ibv_qp->context)->dbg_fp, XSC_DBG_QP_SEND,
++		"nreq:%d\n", nreq);
++	ctx->hw_ops->ring_tx_doorbell(qp->sq.db, qp->sqn, next_pid);
++}
++
++static inline int _xsc_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
++				 struct ibv_send_wr **bad_wr)
++{
++	struct xsc_qp *qp = to_xqp(ibqp);
++	void *seg;
++	struct xsc_send_wqe_ctrl_seg *ctrl;
++	struct xsc_wqe_data_seg *data_seg;
++
++	int nreq;
++	int err = 0;
++	int i;
++	unsigned int idx;
++	unsigned int seg_index = 1;
++	unsigned int msg_len = 0;
++
++	if (unlikely(ibqp->state < IBV_QPS_RTS)) {
++		xsc_dbg(to_xctx(ibqp->context)->dbg_fp, XSC_DBG_QP_SEND,
++			"qp state is %u, should not post send\n", ibqp->state);
++		err = EINVAL;
++		*bad_wr = wr;
++		return err;
 +	}
 +
-+	return v_ctx;
++	xsc_spin_lock(&qp->sq.lock);
 +
-+err_free:
-+	verbs_uninit_context(&context->ibv_ctx);
-+	close_debug_file(context);
-+	free(context);
-+	return NULL;
++	for (nreq = 0; wr; ++nreq, wr = wr->next) {
++		u8 ds_num;
++		u8 with_immdt;
++		u32 wqe_id;
++		u8 ce;
++		u32 wqe_hdr;
++		u32 ctrl_data0;
++
++		seg_index = 1;
++		msg_len = 0;
++		if (unlikely(wr->opcode < 0 ||
++			     wr->opcode >= sizeof(xsc_ib_opcode) /
++						   sizeof(xsc_ib_opcode[0]))) {
++			xsc_dbg(to_xctx(ibqp->context)->dbg_fp, XSC_DBG_QP_SEND,
++				"bad opcode %d\n", wr->opcode);
++			err = EINVAL;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(xsc_wq_overflow(&qp->sq, nreq,
++					     to_xcq(qp->ibv_qp->send_cq)))) {
++			xsc_dbg(to_xctx(ibqp->context)->dbg_fp, XSC_DBG_QP_SEND,
++				"send work queue overflow\n");
++			err = ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(wr->num_sge > qp->sq.max_gs)) {
++			xsc_dbg(to_xctx(ibqp->context)->dbg_fp, XSC_DBG_QP_SEND,
++				"max gs exceeded %d (max = %d)\n", wr->num_sge,
++				qp->sq.max_gs);
++			err = ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(wr->opcode == IBV_WR_RDMA_READ &&
++			     wr->num_sge > 1)) {
++			xsc_dbg(to_xctx(ibqp->context)->dbg_fp, XSC_DBG_QP_SEND,
++				"rdma read, max gs exceeded %d (max = 1)\n",
++				wr->num_sge);
++			err = ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		idx = qp->sq.cur_post & (qp->sq.wqe_cnt - 1);
++		clear_send_wqe(idx, qp);
++		seg = xsc_get_send_wqe(qp, idx);
++		ctrl = seg;
++		ds_num = 0;
++		wqe_id = qp->sq.cur_post << (qp->sq.wqe_shift - XSC_BASE_WQE_SHIFT);
++		ce = qp->sq_signal_bits ? 1 :
++		     (wr->send_flags & IBV_SEND_SIGNALED ? 1 : 0);
++		for (i = 0; i < wr->num_sge; ++i) {
++			if (likely(wr->sg_list[i].length))
++				msg_len += wr->sg_list[i].length;
++		}
++		with_immdt = 0;
++
++		if (unlikely(wr->opcode == IBV_WR_RDMA_READ && msg_len == 0)) {
++			xsc_dbg(to_xctx(ibqp->context)->dbg_fp, XSC_DBG_QP_SEND,
++				"rdma read, msg len should not be 0\n");
++			err = ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		switch (ibqp->qp_type) {
++		case IBV_QPT_RC:
++			switch (wr->opcode) {
++			case IBV_WR_SEND_WITH_INV:
++			case IBV_WR_SEND:
++				break;
++			case IBV_WR_SEND_WITH_IMM:
++				with_immdt = 1;
++				ctrl->opcode_data = htole32(be32toh(send_ieth(wr)));
++				break;
++			case IBV_WR_RDMA_WRITE_WITH_IMM:
++				with_immdt = 1;
++				ctrl->opcode_data = htole32(be32toh(send_ieth(wr)));
++				SWITCH_FALLTHROUGH;
++			case IBV_WR_RDMA_READ:
++			case IBV_WR_RDMA_WRITE:
++				if (ctrl->msg_len == 0)
++					break;
++				ds_num++;
++				data_seg = get_seg_wqe(ctrl, seg_index);
++				set_remote_addr_seg(data_seg, msg_len,
++						    wr->wr.rdma.remote_addr,
++						    wr->wr.rdma.rkey);
++				seg_index++;
++				break;
++			default:
++				printf("debug: opcode:%u NOT supported\n",
++				       wr->opcode);
++				err = EPERM;
++				*bad_wr = wr;
++				goto out;
++			}
++			break;
++		default:
++			xsc_dbg(to_xctx(ibqp->context)->dbg_fp, XSC_DBG_QP_SEND,
++				"qp type:%u NOT supported\n", ibqp->qp_type);
++			err = EPERM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (wr->send_flags & IBV_SEND_INLINE && wr->num_sge) {
++			err = set_wqe_inline_from_wr(qp, wr, ctrl);
++			if (unlikely(err)) {
++				*bad_wr = wr;
++				xsc_dbg(to_xctx(ibqp->context)->dbg_fp,
++					XSC_DBG_QP_SEND,
++					"inline layout failed, err %d\n", err);
++				goto out;
++			}
++		} else {
++			for (i = 0; i < wr->num_sge; ++i, ++seg_index) {
++				if (likely(wr->sg_list[i].length)) {
++					data_seg = get_seg_wqe(ctrl, seg_index);
++					set_local_data_seg(data_seg,
++							   &wr->sg_list[i]);
++					ds_num++;
++				}
++			}
++		}
++
++		wqe_hdr = FIELD_PREP(CTRL_SEG_WQE_HDR_MSG_OPCODE_MASK,
++				     xsc_ib_opcode[wr->opcode]) |
++			  FIELD_PREP(CTRL_SEG_WQE_HDR_WITH_IMMDT_MASK,
++				     with_immdt) |
++			  FIELD_PREP(CTRL_SEG_WQE_HDR_DS_NUM_MASK,
++				     ds_num) |
++			  FIELD_PREP(CTRL_SEG_WQE_HDR_WQE_ID_MASK,
++				     wqe_id);
++		ctrl_data0 = FIELD_PREP(CTRL_SEG_DATA0_SE_MASK,
++					wr->send_flags & IBV_SEND_SOLICITED ? 1 : 0) |
++			     FIELD_PREP(CTRL_SEG_DATA0_CE_MASK, ce) |
++			     FIELD_PREP(CTRL_SEG_DATA0_IN_LINE_MASK,
++					wr->send_flags & IBV_SEND_INLINE ? 1 : 0);
++		ctrl->wqe_hdr = htole32(wqe_hdr);
++		ctrl->msg_len = htole32(msg_len);
++		ctrl->data0 = htole32(ctrl_data0);
++
++		if (msg_len == 0) {
++			ds_num = 0;
++			clear_send_wqe_except_ctrl(idx, qp);
++		}
++		qp->sq.wrid[idx] = wr->wr_id;
++		qp->sq.wqe_head[idx] = qp->sq.head + nreq;
++		qp->sq.cur_post += 1;
++		if (ce) {
++			qp->sq.flush_wqe_cnt++;
++			qp->sq.need_flush[idx] = 1;
++		}
++		qp->sq.wr_opcode[idx] = wr->opcode;
++
++		if (xsc_debug_mask & XSC_DBG_QP_SEND)
++			dump_wqe(0, idx, qp);
++	}
++
++out:
++	xsc_post_send_db(qp, nreq);
++	xsc_spin_unlock(&qp->sq.lock);
++
++	return err;
 +}
 +
-+static void xsc_free_context(struct ibv_context *ibctx)
++int xsc_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
++		  struct ibv_send_wr **bad_wr)
 +{
-+	struct xsc_context *context = to_xctx(ibctx);
-+
-+	xsc_dbg(context->dbg_fp, XSC_DBG_CTX, "\n");
-+	xsc_munmap(context);
-+
-+	verbs_uninit_context(&context->ibv_ctx);
-+	close_debug_file(context);
-+	free(context);
++	return _xsc_post_send(ibqp, wr, bad_wr);
 +}
 +
-+static void xsc_uninit_device(struct verbs_device *verbs_device)
++int xsc_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
++		  struct ibv_recv_wr **bad_wr)
 +{
-+	struct xsc_device *xdev = to_xdev(&verbs_device->device);
++	struct xsc_qp *qp = to_xqp(ibqp);
++	struct xsc_wqe_data_seg *recv_head;
++	struct xsc_wqe_data_seg *data_seg;
++	int err = 0;
++	u32 next_pid = 0;
++	int nreq;
++	u16 idx;
++	int i;
 +
-+	free(xdev);
++	xsc_spin_lock(&qp->rq.lock);
++
++	idx = qp->rq.head & (qp->rq.wqe_cnt - 1);
++
++	clear_recv_wqe(idx, qp);
++	for (nreq = 0; wr; ++nreq, wr = wr->next) {
++		if (unlikely(xsc_wq_overflow(&qp->rq, nreq,
++					     to_xcq(qp->ibv_qp->recv_cq)))) {
++			printf("recv work queue overflow\n");
++			err = ENOMEM;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		if (unlikely(wr->num_sge > qp->rq.max_gs)) {
++			printf("max gs exceeded %d (max = %d)\n", wr->num_sge,
++			       qp->rq.max_gs);
++			err = EINVAL;
++			*bad_wr = wr;
++			goto out;
++		}
++
++		recv_head = get_recv_wqe(qp, idx);
++
++		for (i = 0; i < wr->num_sge; ++i) {
++			u32 ds_data0 = 0;
++
++			if (unlikely(!wr->sg_list[i].length))
++				continue;
++			data_seg = get_seg_wqe(recv_head, i);
++			ds_data0 = FIELD_PREP(DATA_SEG_DATA0_SEG_LEN_MASK,
++					      wr->sg_list[i].length);
++			data_seg->data0 = htole32(ds_data0);
++			data_seg->mkey = htole32(wr->sg_list[i].lkey);
++			data_seg->va = htole64(wr->sg_list[i].addr);
++		}
++
++		qp->rq.wrid[idx] = wr->wr_id;
++
++		dump_wqe(1, idx, qp);
++		idx = (idx + 1) & (qp->rq.wqe_cnt - 1);
++		qp->rq.flush_wqe_cnt++;
++	}
++
++out:
++	if (likely(nreq)) {
++		struct xsc_context *ctx = to_xctx(ibqp->context);
++
++		qp->rq.head += nreq;
++		next_pid = qp->rq.head
++			   << (qp->rq.wqe_shift - XSC_BASE_WQE_SHIFT);
++		ctx->hw_ops->ring_rx_doorbell(qp->rq.db, qp->rqn, next_pid);
++	}
++
++	xsc_spin_unlock(&qp->rq.lock);
++
++	return err;
 +}
 +
-+static struct verbs_device *xsc_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
-+{
-+	struct xsc_device *xdev;
+ struct xsc_qp *xsc_find_qp(struct xsc_context *ctx, uint32_t qpn)
+ {
+ 	int tind = qpn >> XSC_QP_TABLE_SHIFT;
+diff --git a/providers/xscale/xscale.c b/providers/xscale/xscale.c
+index 4d048629..a1c7779f 100644
+--- a/providers/xscale/xscale.c
++++ b/providers/xscale/xscale.c
+@@ -52,6 +52,9 @@ static const struct verbs_context_ops xsc_ctx_common_ops = {
+ 	.query_qp = xsc_query_qp,
+ 	.modify_qp = xsc_modify_qp,
+ 	.destroy_qp = xsc_destroy_qp,
 +
-+	xdev = calloc(1, sizeof(*xdev));
-+	if (!xdev)
-+		return NULL;
-+
-+	xdev->page_size = sysconf(_SC_PAGESIZE);
-+
-+	return &xdev->verbs_dev;
-+}
-+
-+static const struct verbs_device_ops xsc_dev_ops = {
-+	.name = "xscale",
-+	.match_min_abi_version = XSC_UVERBS_MIN_ABI_VERSION,
-+	.match_max_abi_version = XSC_UVERBS_MAX_ABI_VERSION,
-+	.match_table = hca_table,
-+	.alloc_device = xsc_device_alloc,
-+	.uninit_device = xsc_uninit_device,
-+	.alloc_context = xsc_alloc_context,
-+};
-+
-+PROVIDER_DRIVER(xscale, xsc_dev_ops);
++	.post_send = xsc_post_send,
++	.post_recv = xsc_post_recv,
+ };
+ 
+ static void open_debug_file(struct xsc_context *ctx)
 diff --git a/providers/xscale/xscale.h b/providers/xscale/xscale.h
-new file mode 100644
-index 00000000..85538d93
---- /dev/null
+index 7088e5f4..1d1184ca 100644
+--- a/providers/xscale/xscale.h
 +++ b/providers/xscale/xscale.h
-@@ -0,0 +1,164 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Copyright (c) 2021 - 2022, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#ifndef XSCALE_H
-+#define XSCALE_H
-+
-+#include <stddef.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <stdatomic.h>
-+#include <util/compiler.h>
-+
-+#include <infiniband/driver.h>
-+#include <util/udma_barrier.h>
-+#include <ccan/list.h>
-+#include <ccan/minmax.h>
-+#include <valgrind/memcheck.h>
-+
-+#include "xsc-abi.h"
-+
-+typedef uint8_t   u8;
-+typedef uint16_t  u16;
-+typedef uint32_t  u32;
-+typedef uint64_t  u64;
-+
-+enum {
-+	XSC_DBG_QP = 1 << 0,
-+	XSC_DBG_CQ = 1 << 1,
-+	XSC_DBG_QP_SEND = 1 << 2,
-+	XSC_DBG_QP_SEND_ERR = 1 << 3,
-+	XSC_DBG_CQ_CQE = 1 << 4,
-+	XSC_DBG_CONTIG = 1 << 5,
-+	XSC_DBG_DR = 1 << 6,
-+	XSC_DBG_CTX = 1 << 7,
-+	XSC_DBG_PD = 1 << 8,
-+	XSC_DBG_MR = 1 << 9,
-+};
-+
-+extern u32 xsc_debug_mask;
-+
-+#define xsc_dbg(fp, mask, fmt, args...)                                        \
-+	do {                                                                   \
-+		if (xsc_debug_mask & (mask)) {                                 \
-+			char host[256];                                        \
-+			char timestr[32];                                      \
-+			struct tm now_tm;                                      \
-+			time_t now_time;                                       \
-+			time(&now_time);                                       \
-+			localtime_r(&now_time, &now_tm);                       \
-+			strftime(timestr, sizeof(timestr), "%Y-%m-%d %X",      \
-+				 &now_tm);                                     \
-+			gethostname(host, 256);                                \
-+			fprintf(fp, "[%s %s %s %d] " fmt, timestr, host,       \
-+				__func__, __LINE__, ##args);                   \
-+		}                                                              \
-+	} while (0)
-+
-+#define xsc_err(fmt, args...)                                                  \
-+	do {                                                                   \
-+		char host[256];                                                \
-+		char timestr[32];                                              \
-+		struct tm now_tm;                                              \
-+		time_t now_time;                                               \
-+		time(&now_time);                                               \
-+		localtime_r(&now_time, &now_tm);                               \
-+		strftime(timestr, sizeof(timestr), "%Y-%m-%d %X", &now_tm);    \
-+		gethostname(host, 256);                                        \
-+		printf("[%s %s %s %d] " fmt, timestr, host, __func__,          \
-+		       __LINE__, ##args);                                      \
-+	} while (0)
-+
-+enum {
-+	XSC_QP_TABLE_SHIFT = 12,
-+	XSC_QP_TABLE_MASK = (1 << XSC_QP_TABLE_SHIFT) - 1,
-+	XSC_QP_TABLE_SIZE = 1 << (24 - XSC_QP_TABLE_SHIFT),
-+};
-+
-+struct xsc_device {
-+	struct verbs_device verbs_dev;
-+	int page_size;
-+};
-+
-+#define NAME_BUFFER_SIZE 64
-+
-+struct xsc_context {
-+	struct verbs_context ibv_ctx;
-+	int max_num_qps;
-+	struct {
-+		struct xsc_qp **table;
-+		int refcnt;
-+	} qp_table[XSC_QP_TABLE_SIZE];
-+	pthread_mutex_t qp_table_mutex;
-+
-+	int max_sq_desc_sz;
-+	int max_rq_desc_sz;
-+	int max_send_wr;
-+	int max_recv_wr;
-+	int num_ports;
-+	char hostname[NAME_BUFFER_SIZE];
-+	u32 max_cqe;
-+	void *sqm_reg_va;
-+	void *rqm_reg_va;
-+	void *cqm_reg_va;
-+	void *cqm_armdb_va;
-+	int db_mmap_size;
-+	u32 page_size;
-+	u64 qpm_tx_db;
-+	u64 qpm_rx_db;
-+	u64 cqm_next_cid_reg;
-+	u64 cqm_armdb;
-+	u32 send_ds_num;
-+	u32 recv_ds_num;
-+	u32 send_ds_shift;
-+	u32 recv_ds_shift;
-+	FILE *dbg_fp;
-+	struct xsc_hw_ops *hw_ops;
-+};
-+
-+union xsc_ib_fw_ver {
-+	u64 data;
-+	struct {
-+		u8 ver_major;
-+		u8 ver_minor;
-+		u16 ver_patch;
-+		u32 ver_tweak;
-+	} s;
-+};
-+
-+static inline int xsc_ilog2(int n)
-+{
-+	int t;
-+
-+	if (n <= 0)
-+		return -1;
-+
-+	t = 0;
-+	while ((1 << t) < n)
-+		++t;
-+
-+	return t;
-+}
-+
-+static inline struct xsc_device *to_xdev(struct ibv_device *ibdev)
-+{
-+	return container_of(ibdev, struct xsc_device, verbs_dev.device);
-+}
-+
-+static inline struct xsc_context *to_xctx(struct ibv_context *ibctx)
-+{
-+	return container_of(ibctx, struct xsc_context, ibv_ctx.context);
-+}
-+
-+int xsc_query_device(struct ibv_context *context, struct ibv_device_attr *attr);
-+int xsc_query_device_ex(struct ibv_context *context,
-+			const struct ibv_query_device_ex_input *input,
-+			struct ibv_device_attr_ex *attr, size_t attr_size);
-+int xsc_query_port(struct ibv_context *context, u8 port,
-+		   struct ibv_port_attr *attr);
-+
-+#endif /* XSC_H */
+@@ -330,6 +330,10 @@ int xsc_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr, int attr_mask,
+ int xsc_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr, int attr_mask);
+ int xsc_destroy_qp(struct ibv_qp *qp);
+ void xsc_init_qp_indices(struct xsc_qp *qp);
++int xsc_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
++		  struct ibv_send_wr **bad_wr);
++int xsc_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
++		  struct ibv_recv_wr **bad_wr);
+ struct xsc_qp *xsc_find_qp(struct xsc_context *ctx, u32 qpn);
+ int xsc_store_qp(struct xsc_context *ctx, u32 qpn, struct xsc_qp *qp);
+ void xsc_clear_qp(struct xsc_context *ctx, u32 qpn);
 -- 
 2.25.1
