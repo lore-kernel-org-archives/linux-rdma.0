@@ -1,188 +1,172 @@
-Received: from va-2-33.ptr.blmpb.com (va-2-33.ptr.blmpb.com [209.127.231.33])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AE101BBBC1
-	for <linux-rdma@vger.kernel.org>; Thu, 10 Oct 2024 08:56:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.127.231.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11C4E1A08C5;
+	Thu, 10 Oct 2024 09:18:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728550573; cv=none; b=gim5G7lto0azhwi4aiAaXNsEuojR7FQZD58+a49DU/Fixxd6mi2aI/loSMRNh9g2VPnARcsmYzZ/cAaq7+NoyVXMnHvasUGnfHYwHcgW1UFwmB92rY+Axt8j9uWDo6qOpihPeS8msWEnG0ZfLx3EW/jwq3YufawZUECKDxc0byg=
+	t=1728551904; cv=none; b=fFxnCcVAIo5z/u+n65Q/K4ZW/emcBxuYaAW/IgkLFkfmT6X2S1Kgypbj88ZLP1E5X4fCK6caEbT75ZatvS/WjF9iAPGupLeFBHC5AHVB+H2PGorTc2wPQYCm1Y0QG0pc/oYBnuSYiSpngE0h9I9yhSHJxjJCMAdo1HCPLPsYDiE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728550573; c=relaxed/simple;
-	bh=/0sjkybflWzgyr6FyRk7PXvHj4emX5DyqCjcpkicu3I=;
-	h=Cc:Subject:To:From:Content-Type:Date:Message-Id:Mime-Version; b=UgnzavlacZdJP8HhlPYEGZgm5F7psSXVWQc7D+qa5ubEpIo4z9LnyTtL5TpU72BXM7jjoB8+NU90u+v/OZ7SRfGt+JHV2UwJy3Mq7+o3MKviZ9o4u4xk07cPgu9W1HlYxqaSA5tzNijJQT2wPG/0xDGiFMVSmSd//PK7BxcJ74M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com; spf=pass smtp.mailfrom=yunsilicon.com; dkim=pass (2048-bit key) header.d=yunsilicon.com header.i=@yunsilicon.com header.b=KNOX376Q; arc=none smtp.client-ip=209.127.231.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=yunsilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=yunsilicon.com
+	s=arc-20240116; t=1728551904; c=relaxed/simple;
+	bh=o5MuIvxIUnivlFyLRicp072rOEjQXAWhefHm0FvmKBk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Ucyj3SzSLzQkSkkKllZTrPpj/c4x5nE9CW6O/knFHuvfiPFaH4wHRpBBy1S6SwgICtgPKNI1whVMht24KXw8qKjh/zkEw6PGrz4AbaHsAXsVaFO/bQJeFHIG1DCZVjprrFw86EFgbCJvosfGKUvnnUjscvJ5nmudHfkBbH/D7M8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=nevK7/F3; arc=none smtp.client-ip=91.218.175.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=yunsilicon.com header.i=@yunsilicon.com header.b="KNOX376Q"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
- s=feishu2403070942; d=yunsilicon.com; t=1728547862; h=from:subject:
- mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
- mime-version:in-reply-to:message-id;
- bh=r0DagfQsX8qsCeA2Nmyp4iUD1k/SjF2umfslZ1GYB0U=;
- b=KNOX376Q6v73mwcPbiLa9QYqgwXk6KDJlePwTZ0fFXxRgsY4L1yN0K0qc2wOEekgllVxaA
- mKBfLnGwBkr+WEOjNkrzNdicwjT34Beu5EHSA4TKjgJqBcvDo2ppfMN39BWySDhooA4uTT
- UiCEd8dc5wp1XzukimRCfkpEF53mAcKvC1MNzxUAyFstc4JRr/WMWwjZs/IF1tkZ0qJk1B
- hSRxzfTvsqAyYd5ontb0xkLEUSiuE6lLIrZsAH4WWHB3ox5kcGDbEBrPUBvkMdIT4xjdSp
- wKnwUFDmeLZY9mHib3pPBEFGnAyTyKSBCA3TmrzdTRtqa3JD1TZ0U7rcyUjqKg==
-Cc: <linux-rdma@vger.kernel.org>, "Tian Xin" <tianx@yunsilicon.com>
-X-Original-From: Tian Xin <tianx@yunsilicon.com>
-Subject: [PATCH 6/6] libxscale: Add xscale needed kernel headers
-X-Mailer: git-send-email 2.25.1
-To: <leonro@nvidia.com>, <jgg@nvidia.com>
-From: "Tian Xin" <tianx@yunsilicon.com>
-Received: from ubuntu-liun.yunsilicon.com ([58.34.192.114]) by smtp.feishu.cn with ESMTPS; Thu, 10 Oct 2024 16:11:01 +0800
-X-Lms-Return-Path: <lba+267078c16+c6eb4e+vger.kernel.org+tianx@yunsilicon.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 10 Oct 2024 16:10:49 +0800
-Message-Id: <20241010081049.1448826-7-tianx@yunsilicon.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="nevK7/F3"
+Message-ID: <753c0fcb-0c6f-45a1-b132-4411c87374d3@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1728551898;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=LUpSL0X47miIjsCwsRHHTU9qz1EFobrV9JdRqDcum6s=;
+	b=nevK7/F3GRka16cRzQTy8p/aqMPwjH4dC/S/Okz8D8TcL1FyvFWvumkjeQPmztUlfdFmuO
+	t6xAj/0KnzKMQKYY0zkGMTeGUuvDN/kk4SsGiHHKDfrVufiEh1W67E9X/n5PaAKv4DWQbU
+	3wptXHPAgDZcNBI6qgO5r+yWV+j5UXk=
+Date: Thu, 10 Oct 2024 17:18:10 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Re: [PATCH for-next v8 1/6] RDMA/rxe: Make MR functions accessible
+ from other rxe source code
+To: "Daisuke Matsuda (Fujitsu)" <matsuda-daisuke@fujitsu.com>,
+ 'Zhu Yanjun' <mounter625@163.com>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+ "leon@kernel.org" <leon@kernel.org>, "jgg@ziepe.ca" <jgg@ziepe.ca>,
+ "zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "rpearsonhpe@gmail.com" <rpearsonhpe@gmail.com>,
+ "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>
+References: <20241009015903.801987-1-matsuda-daisuke@fujitsu.com>
+ <20241009015903.801987-2-matsuda-daisuke@fujitsu.com>
+ <67b556bc-2d48-4e7b-a00a-6b38512c8e8f@163.com>
+ <OS3PR01MB986550BAFCFA30D409F5A089E5782@OS3PR01MB9865.jpnprd01.prod.outlook.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <OS3PR01MB986550BAFCFA30D409F5A089E5782@OS3PR01MB9865.jpnprd01.prod.outlook.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-This patch adds xscale needed kernel abi headers into
-the kernel-headers directory.
+在 2024/10/10 15:24, Daisuke Matsuda (Fujitsu) 写道:
+> On Wed, Oct 9, 2024 11:13 PM Zhu Yanjun wrote:
+>>
+>>
+>> 在 2024/10/9 9:58, Daisuke Matsuda 写道:
+>>> Some functions in rxe_mr.c are going to be used in rxe_odp.c, which is to
+>>> be created in the subsequent patch. List the declarations of the functions
+>>> in rxe_loc.h.
+>>>
+>>> Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
+>>> ---
+>>>    drivers/infiniband/sw/rxe/rxe_loc.h |  8 ++++++++
+>>>    drivers/infiniband/sw/rxe/rxe_mr.c  | 11 +++--------
+>>>    2 files changed, 11 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+>>> index ded46119151b..866c36533b53 100644
+>>> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
+>>> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+>>> @@ -58,6 +58,7 @@ int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
+>>>
+>>>    /* rxe_mr.c */
+>>>    u8 rxe_get_next_key(u32 last_key);
+>>> +void rxe_mr_init(int access, struct rxe_mr *mr);
+>>>    void rxe_mr_init_dma(int access, struct rxe_mr *mr);
+>>>    int rxe_mr_init_user(struct rxe_dev *rxe, u64 start, u64 length,
+>>>    		     int access, struct rxe_mr *mr);
+>>> @@ -69,6 +70,8 @@ int copy_data(struct rxe_pd *pd, int access, struct rxe_dma_info *dma,
+>>>    	      void *addr, int length, enum rxe_mr_copy_dir dir);
+>>>    int rxe_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
+>>>    		  int sg_nents, unsigned int *sg_offset);
+>>> +int rxe_mr_copy_xarray(struct rxe_mr *mr, u64 iova, void *addr,
+>>> +		       unsigned int length, enum rxe_mr_copy_dir dir);
+>>>    int rxe_mr_do_atomic_op(struct rxe_mr *mr, u64 iova, int opcode,
+>>>    			u64 compare, u64 swap_add, u64 *orig_val);
+>>>    int rxe_mr_do_atomic_write(struct rxe_mr *mr, u64 iova, u64 value);
+>>> @@ -80,6 +83,11 @@ int rxe_invalidate_mr(struct rxe_qp *qp, u32 key);
+>>>    int rxe_reg_fast_mr(struct rxe_qp *qp, struct rxe_send_wqe *wqe);
+>>>    void rxe_mr_cleanup(struct rxe_pool_elem *elem);
+>>>
+>>> +static inline unsigned long rxe_mr_iova_to_index(struct rxe_mr *mr, u64 iova)
+>>> +{
+>>> +	return (iova >> mr->page_shift) - (mr->ibmr.iova >> mr->page_shift);
+>>> +}
+>>
+>> The type of the function rxe_mr_iova_to_index is "unsigned long". In
+>> some 32 architecture, unsigned long is 32 bit.
+>>
+>> The type of iova is u64. So it had better use u64 instead of "unsigned
+>> long".
+>>
+>> Zhu Yanjun
+> 
+> Hi,
+> thanks for the comment.
+> 
+> I think the current type declaration doesn't matter in 32-bit OS.
+> The function returns an index of the page specified with 'iova'.
+> Assuming the page size is typical 4KiB, u32 index can accommodate
+> 16 TiB in total, which is larger than the theoretical limit imposed
+> on 32-bit systems (i.e. 4GiB or 2^32 Bytes).
 
-Signed-off-by: Tian Xin <tianx@yunsilicon.com>
-Signed-off-by: Wei Honggang <weihg@yunsilicon.com>
-Signed-off-by: Zhao Qianwei <zhaoqw@yunsilicon.com>
-Signed-off-by: Li Qiang <liq@yunsilicon.com>
-Signed-off-by: Yan Lei <jacky@yunsilicon.com>
----
- kernel-headers/CMakeLists.txt             |  2 +
- kernel-headers/rdma/ib_user_ioctl_verbs.h |  1 +
- kernel-headers/rdma/xsc-abi.h             | 74 +++++++++++++++++++++++
- libibverbs/verbs.h                        |  1 +
- 4 files changed, 78 insertions(+)
- create mode 100644 kernel-headers/rdma/xsc-abi.h
+But in 32 bit OS, this will likely pop out "type does not match" warning 
+because "unsigned long" is 32 bit in 32-bit OS while u64 is always 64 
+bit. So it is better to use u64 type. This will not pop out any warnings 
+whether in 32bit OS or in 64bit OS.
 
-diff --git a/kernel-headers/CMakeLists.txt b/kernel-headers/CMakeLists.txt
-index 82c191ca..56eb3984 100644
---- a/kernel-headers/CMakeLists.txt
-+++ b/kernel-headers/CMakeLists.txt
-@@ -26,6 +26,7 @@ publish_internal_headers(rdma
-   rdma/rvt-abi.h
-   rdma/siw-abi.h
-   rdma/vmw_pvrdma-abi.h
-+  rdma/xsc-abi.h
-   )
- 
- publish_internal_headers(rdma/hfi
-@@ -80,6 +81,7 @@ rdma_kernel_provider_abi(
-   rdma/rdma_user_rxe.h
-   rdma/siw-abi.h
-   rdma/vmw_pvrdma-abi.h
-+  rdma/xsc-abi.h
-   )
- 
- publish_headers(infiniband
-diff --git a/kernel-headers/rdma/ib_user_ioctl_verbs.h b/kernel-headers/rdma/ib_user_ioctl_verbs.h
-index fe15bc7e..9f36fcf1 100644
---- a/kernel-headers/rdma/ib_user_ioctl_verbs.h
-+++ b/kernel-headers/rdma/ib_user_ioctl_verbs.h
-@@ -255,6 +255,7 @@ enum rdma_driver_id {
- 	RDMA_DRIVER_SIW,
- 	RDMA_DRIVER_ERDMA,
- 	RDMA_DRIVER_MANA,
-+	RDMA_DRIVER_XSC,
- };
- 
- enum ib_uverbs_gid_type {
-diff --git a/kernel-headers/rdma/xsc-abi.h b/kernel-headers/rdma/xsc-abi.h
-new file mode 100644
-index 00000000..456d6c47
---- /dev/null
-+++ b/kernel-headers/rdma/xsc-abi.h
-@@ -0,0 +1,74 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * Copyright (c) 2021 - 2022, Shanghai Yunsilicon Technology Co., Ltd.
-+ * All rights reserved.
-+ */
-+
-+#ifndef XSC_ABI_USER_H
-+#define XSC_ABI_USER_H
-+
-+#include <linux/types.h>
-+#include <linux/if_ether.h>	/* For ETH_ALEN. */
-+#include <rdma/ib_user_ioctl_verbs.h>
-+
-+/* Make sure that all structs defined in this file remain laid out so
-+ * that they pack the same way on 32-bit and 64-bit architectures (to
-+ * avoid incompatibility between 32-bit userspace and 64-bit kernels).
-+ * In particular do not use pointer types -- pass pointers in __u64
-+ * instead.
-+ */
-+
-+struct xsc_ib_alloc_ucontext_resp {
-+	__u32	qp_tab_size;
-+	__u32	cache_line_size;
-+	__u16	max_sq_desc_sz;
-+	__u16	max_rq_desc_sz;
-+	__u32	max_send_wr;
-+	__u32	max_recv_wr;
-+	__u16	num_ports;
-+	__u16	device_id;
-+	__aligned_u64	qpm_tx_db;
-+	__aligned_u64	qpm_rx_db;
-+	__aligned_u64	cqm_next_cid_reg;
-+	__aligned_u64	cqm_armdb;
-+	__u32	send_ds_num;
-+	__u32	recv_ds_num;
-+	__u32	resv;
-+};
-+
-+struct xsc_ib_create_qp {
-+	__aligned_u64 buf_addr;
-+	__aligned_u64 db_addr;
-+	__u32	sq_wqe_count;
-+	__u32	rq_wqe_count;
-+	__u32	rq_wqe_shift;
-+	__u32	flags;
-+	__u32	resv;
-+};
-+
-+struct xsc_ib_create_qp_resp {
-+	__u32   bfreg_index;
-+	__u32   resv;
-+};
-+
-+struct xsc_ib_create_cq {
-+	__aligned_u64 buf_addr;
-+	__u32	cqe_size;
-+};
-+
-+struct xsc_ib_create_cq_resp {
-+	__u32	cqn;
-+	__u32	reserved;
-+};
-+
-+struct xsc_ib_create_ah_resp {
-+	__u32	response_length;
-+	__u8	dmac[ETH_ALEN];
-+	__u8	reserved[6];
-+};
-+
-+struct xsc_ib_alloc_pd_resp {
-+	__u32	pdn;
-+};
-+
-+#endif /* XSC_ABI_USER_H */
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index cec00551..7127899c 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -2277,6 +2277,7 @@ extern const struct verbs_device_ops verbs_provider_qedr;
- extern const struct verbs_device_ops verbs_provider_rxe;
- extern const struct verbs_device_ops verbs_provider_siw;
- extern const struct verbs_device_ops verbs_provider_vmw_pvrdma;
-+extern const struct verbs_device_ops verbs_provider_xscale;
- extern const struct verbs_device_ops verbs_provider_all;
- extern const struct verbs_device_ops verbs_provider_none;
- void ibv_static_providers(void *unused, ...);
--- 
-2.25.1
+Zhu Yanjun
+> 
+> Regards,
+> Daisuke Matsuda
+> 
+>>
+>>> +
+>>>    /* rxe_mw.c */
+>>>    int rxe_alloc_mw(struct ib_mw *ibmw, struct ib_udata *udata);
+>>>    int rxe_dealloc_mw(struct ib_mw *ibmw);
+>>> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+>>> index da3dee520876..1f7b8cf93adc 100644
+>>> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
+>>> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+>>> @@ -45,7 +45,7 @@ int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length)
+>>>    	}
+>>>    }
+>>>
+>>> -static void rxe_mr_init(int access, struct rxe_mr *mr)
+>>> +void rxe_mr_init(int access, struct rxe_mr *mr)
+>>>    {
+>>>    	u32 key = mr->elem.index << 8 | rxe_get_next_key(-1);
+>>>
+>>> @@ -72,11 +72,6 @@ void rxe_mr_init_dma(int access, struct rxe_mr *mr)
+>>>    	mr->ibmr.type = IB_MR_TYPE_DMA;
+>>>    }
+>>>
+>>> -static unsigned long rxe_mr_iova_to_index(struct rxe_mr *mr, u64 iova)
+>>> -{
+>>> -	return (iova >> mr->page_shift) - (mr->ibmr.iova >> mr->page_shift);
+>>> -}
+>>> -
+>>>    static unsigned long rxe_mr_iova_to_page_offset(struct rxe_mr *mr, u64 iova)
+>>>    {
+>>>    	return iova & (mr_page_size(mr) - 1);
+>>> @@ -242,8 +237,8 @@ int rxe_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sgl,
+>>>    	return ib_sg_to_pages(ibmr, s"gl, sg_nents, sg_offset, rxe_set_page);
+>>>    }
+>>>
+>>> -static int rxe_mr_copy_xarray(struct rxe_mr *mr, u64 iova, void *addr,
+>>> -			      unsigned int length, enum rxe_mr_copy_dir dir)
+>>> +int rxe_mr_copy_xarray(struct rxe_mr *mr, u64 iova, void *addr,
+>>> +		       unsigned int length, enum rxe_mr_copy_dir dir)
+>>>    {
+>>>    	unsigned int page_offset = rxe_mr_iova_to_page_offset(mr, iova);
+>>>    	unsigned long index = rxe_mr_iova_to_index(mr, iova);
+> 
+
