@@ -1,82 +1,64 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2077.outbound.protection.outlook.com [40.107.237.77])
+Received: from smtp-fw-6001.amazon.com (smtp-fw-6001.amazon.com [52.95.48.154])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06831DD0D9;
-	Tue, 15 Oct 2024 15:24:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.77
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729005882; cv=fail; b=DlIAcFCkF7nraenPr8b2FNbVu11WigAYCeGXXOvzJnK9gJdyAjUQwMmQ8dybSSR0Kk4eSCnuTY93PyCfsP3J8M8CklM8BAnzlJKVHjGm30QwK1swd5OZsIyFdENQnk5tovWNBZu9sEHpAKfHZEwwVbyFOAzHY7WxRKODHXqPmH0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729005882; c=relaxed/simple;
-	bh=YMDogKdyPe/Sk54OSkn0IWnlmUZ5jRadf6NKfJQtHv0=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEAD01F9EAC
+	for <linux-rdma@vger.kernel.org>; Tue, 15 Oct 2024 17:42:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.95.48.154
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1729014171; cv=none; b=tS+XfpW54+TE28l+u0frVfHGk6W0CtZRLoyVhZ2zGvpHXoCZBB6IG60dq6C6mgEByOdmjpw11y4lxa8KWekoT12ZovKSSxVjBlKcgrRBuFTyOrp3zsFwWS2yE5b7hOeoWuzgns5bETMNWASRBh0HaxFEgsNwKts/zJkZ4sfKMEs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1729014171; c=relaxed/simple;
+	bh=b1lHXEUMzcq5osG6B40pvJW6sR93zUTioT2Q8Wi6FXs=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=MWxtiL1agFlG/7RxZCAnBzFDClTCNfoDBD0tMqr56cXtHTYh7a+vIVw7IerrtRGXqZC6L8h++EYNaryDdHSMBwDRj6WsmnhBH+98OHd9G/vXqHMaAiiRJ/HN8BhmATMLlMNDCRov99ok4OOB3lGyeaDPYYXIpvijpALSPvfsBfk=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=Lh6jSU5c; arc=fail smtp.client-ip=40.107.237.77
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	 MIME-Version:Content-Type; b=nYcw35wxDj8IE0WSNRtNG8H+Lbdq8AQg8ARuk3hrUH77NG1Tegj+aR6yKsM/yGpPiU1UjIfJ3N+9iDhsLn83dSMAXBZGJLRVzit8JPYbO/IF/uOxupFGFWznxPh9t1nUjHWcgnS8h4cYM3K3/GgzYhwP7AW63R0Z/J4/enW96Cs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b=e9lO2atp; arc=none smtp.client-ip=52.95.48.154
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="Lh6jSU5c"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=N9YJsP9XsJbz7uAP2K0dp6xNI/hDiO6qGTeK5Uw1Q0rOgi+uNQvSh3vIIFfk0a6cmqCMirB3A+OmDiUorbUGTZXxQBkkQR9Jy/U+JA/ESqvu4DTUk0f6oDqldadlTT2pKUB6v9gpH6W/94pp4PNOrPZ/FtuRxIPNyt3TriwomJcO9vAIKI60ojWMCF072FwSdkZVW2hG09NslJSr4AOOEBKnKaOCExtv+MfCPYYGmemjO+8vz6fj2Xs0mYkV8he/3rtxuZ474TzLi9c//rpZAN+waW8Jxdw3oHEWC2vT4R8TvO3HmBGg6H9a+Xhlff9Ntmp3PODNl9OpF0WQYUn84Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=E/lrVl1VFYPdVp8Dnfq0tyenbmZBRBm95p50EAMlqC8=;
- b=H1+AM++YtgfGPwve3GXUHlwYEq71HTAIbZRXhwuoSmmhO01BhmDNcFzXcFg2jzi1Bq5AJlY8iVVatCDZ3e/cbZtXMWBv7ByijLKuJaJ1aI18cqz31C0staQxjr9wbScJ3YckPF14WWNqBfK1KnejStmq7VR2j33enI0ZUhNMxafVdIUshIAhM89E7BwZN2i/gwttJh1+iqTVzSnfcytCb+Yo6zkj8fFZWI4ldaZkxoY7R6okgNrDQF8hvBoFFHyS2f+5BoFm6oNMnrXa7q044t7JeF5d/Gijk3/2oIpqOKSRn/CP5p+XBexANTq9+Dc+JQEoRtve11HScZ2Ya/+s5g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.232) smtp.rcpttodomain=lists.freedesktop.org
- smtp.mailfrom=nvidia.com; dmarc=pass (p=reject sp=reject pct=100) action=none
- header.from=nvidia.com; dkim=none (message not signed); arc=none (0)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=E/lrVl1VFYPdVp8Dnfq0tyenbmZBRBm95p50EAMlqC8=;
- b=Lh6jSU5cq+AJm3eSwpR5vM3WKFGMiiI0ArrgHRcGy+G26xrIxj5Qm2jXmHwzrHFsLyUg+qfbp4/Ft9Nvp+xWOochIVPJW9EmpinCVjW+oW+d/uCloP9K0zYyFVl9TedC2EFBHJqwztMPmzpbWuWzjYnvtnXcGgbXvhDI0EwWH1Xro72YaVvhY0xuHNiiXilJxBfNnuncUzQ7swa0a4WgtwC2FRTRsmx69EdaBOwYejBhvTiPHKMbsR9hpWp0BQ7stxBAjRH4SlxmIycccI2fCxN1s959plO7279ZwxlXd2xlRVYmCnqrpkemIC+TgRjbuhoHB+kdXF1zXBk/LVmMGg==
-Received: from BN9PR03CA0263.namprd03.prod.outlook.com (2603:10b6:408:ff::28)
- by IA0PR12MB8864.namprd12.prod.outlook.com (2603:10b6:208:485::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8048.18; Tue, 15 Oct
- 2024 15:24:35 +0000
-Received: from BN3PEPF0000B36D.namprd21.prod.outlook.com
- (2603:10b6:408:ff:cafe::1c) by BN9PR03CA0263.outlook.office365.com
- (2603:10b6:408:ff::28) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8069.18 via Frontend
- Transport; Tue, 15 Oct 2024 15:24:35 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
- smtp.mailfrom=nvidia.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=nvidia.com;
-Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.232) by
- BN3PEPF0000B36D.mail.protection.outlook.com (10.167.243.164) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8093.1 via Frontend Transport; Tue, 15 Oct 2024 15:24:34 +0000
-Received: from drhqmail202.nvidia.com (10.126.190.181) by mail.nvidia.com
- (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Tue, 15 Oct
- 2024 08:24:21 -0700
-Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail202.nvidia.com (10.126.190.181) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.4; Tue, 15 Oct 2024 08:24:20 -0700
-Received: from vdi.nvidia.com (10.127.8.9) by mail.nvidia.com (10.126.190.181)
- with Microsoft SMTP Server id 15.2.1544.4 via Frontend Transport; Tue, 15 Oct
- 2024 08:24:17 -0700
-From: Yonatan Maman <ymaman@nvidia.com>
-To: <nouveau@lists.freedesktop.org>, <linux-kernel@vger.kernel.org>,
-	<linux-rdma@vger.kernel.org>, <linux-mm@kvack.org>, <herbst@redhat.com>,
-	<lyude@redhat.com>, <dakr@redhat.com>, <airlied@gmail.com>,
-	<simona@ffwll.ch>, <jgg@ziepe.ca>, <leon@kernel.org>, <jglisse@redhat.com>,
-	<akpm@linux-foundation.org>, <dri-devel@lists.freedesktop.org>,
-	<apopple@nvidia.com>, <bskeggs@nvidia.com>
-CC: Yonatan Maman <Ymaman@Nvidia.com>, Gal Shalom <GalShalom@Nvidia.com>
-Subject: [PATCH v1 4/4] RDMA/mlx5: Enabling ATS for ODP memory
-Date: Tue, 15 Oct 2024 18:23:48 +0300
-Message-ID: <20241015152348.3055360-5-ymaman@nvidia.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20241015152348.3055360-1-ymaman@nvidia.com>
-References: <20241015152348.3055360-1-ymaman@nvidia.com>
+	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="e9lO2atp"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1729014170; x=1760550170;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=XF/PcFKzlXgx3c+6OWMRHCwTRpyp2/Z0/LXyvYjCQaI=;
+  b=e9lO2atpCGVZpfOYm6l/2kcEeVYNh/kE1tXHEVjWQzCirDWsmVWEarnu
+   eL8IIwJSPTUDBZGIPxGlQ+1vxk0xXpbjwwP0Q0cZMsIzNSVzDyhpP2ieP
+   LdK0dLpABmxs67hfwpJJNrakPlPQdQtGeFEiDe7kffgnU66x2v+VMxXUX
+   4=;
+X-IronPort-AV: E=Sophos;i="6.11,205,1725321600"; 
+   d="scan'208";a="431671151"
+Received: from iad12-co-svc-p1-lb1-vlan2.amazon.com (HELO smtpout.prod.us-west-2.prod.farcaster.email.amazon.dev) ([10.43.8.2])
+  by smtp-border-fw-6001.iad6.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Oct 2024 17:42:47 +0000
+Received: from EX19MTAEUA002.ant.amazon.com [10.0.43.254:36884]
+ by smtpin.naws.eu-west-1.prod.farcaster.email.amazon.dev [10.0.34.166:2525] with esmtp (Farcaster)
+ id eef45957-2267-4962-a926-8eb59a717b21; Tue, 15 Oct 2024 17:42:45 +0000 (UTC)
+X-Farcaster-Flow-ID: eef45957-2267-4962-a926-8eb59a717b21
+Received: from EX19D022EUC002.ant.amazon.com (10.252.51.137) by
+ EX19MTAEUA002.ant.amazon.com (10.252.50.126) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.1258.34;
+ Tue, 15 Oct 2024 17:42:45 +0000
+Received: from EX19MTAUEC001.ant.amazon.com (10.252.135.222) by
+ EX19D022EUC002.ant.amazon.com (10.252.51.137) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.1258.34;
+ Tue, 15 Oct 2024 17:42:44 +0000
+Received: from email-imr-corp-prod-iad-1box-1a-6851662a.us-east-1.amazon.com
+ (10.43.8.6) by mail-relay.amazon.com (10.252.135.200) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id
+ 15.2.1258.34 via Frontend Transport; Tue, 15 Oct 2024 17:42:44 +0000
+Received: from dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com (dev-dsk-mrgolin-1c-b2091117.eu-west-1.amazon.com [10.253.103.172])
+	by email-imr-corp-prod-iad-1box-1a-6851662a.us-east-1.amazon.com (Postfix) with ESMTP id E91CF4060C;
+	Tue, 15 Oct 2024 17:42:43 +0000 (UTC)
+From: Michael Margolin <mrgolin@amazon.com>
+To: <jgg@nvidia.com>, <leon@kernel.org>, <linux-rdma@vger.kernel.org>
+CC: <sleybo@amazon.com>, <matua@amazon.com>, <gal.pressman@linux.dev>, "Daniel
+ Kranzdorf" <dkkranzd@amazon.com>, Yonatan Nachum <ynachum@amazon.com>
+Subject: [PATCH for-next 1/2] RDMA/efa: Update device interface
+Date: Tue, 15 Oct 2024 17:42:41 +0000
+Message-ID: <20241015174242.3490-2-mrgolin@amazon.com>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20241015174242.3490-1-mrgolin@amazon.com>
+References: <20241015174242.3490-1-mrgolin@amazon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -85,84 +67,401 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-NV-OnPremToCloud: ExternallySecured
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN3PEPF0000B36D:EE_|IA0PR12MB8864:EE_
-X-MS-Office365-Filtering-Correlation-Id: 831e4da0-c848-4740-6d30-08dced2d799a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|7416014|36860700013|82310400026|921020;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?4V6EdxkGyMmUbDNSLHuCOf4a7m//JN836m3OuI9qYscOVWt+U1KV+VogYCWs?=
- =?us-ascii?Q?5hF6D44MvDWdOQ0C7eYTaZCOy8NbHzvaIrv0AssPtniQBp/a2EmvngZRJVVk?=
- =?us-ascii?Q?ErCMv42+1DZfO9m9GbLVNurLr7XL3vNp7FbzDuegoZZA0dtZGMnLCIIlc8QH?=
- =?us-ascii?Q?FjvjcAjObQgwmGfD+kqpUlkAMXuM+Qbt0KUJQ2QDp6s4UUfQdRPb5YbtEOYb?=
- =?us-ascii?Q?+BTjBzL7mHrPnmLxclt2sAkn5CSW8HwV/VzOOcf7GQ77hqWBrFuGvBS1NCFQ?=
- =?us-ascii?Q?FtL4Ld9+Wtv9ieBydDY59W9biykBJABEWo2iz7D0Ot2Wc0NtE2BJpOYxkZf9?=
- =?us-ascii?Q?SVjH7KviVTnncewtNe0zatpdI9zTj5yq9Cs5QjymV7l/ev4AzLWjtsH6Uj3h?=
- =?us-ascii?Q?Nap8Fp7X0bPHseR+oqsS7b98JvRHZqaFk8zaSr4nqkGB12v5YzITQR1P8LhM?=
- =?us-ascii?Q?Qpax5+PIp3gKBbK5mTlbbL3JWl1S8rRaVHAgD4vAfO0fzEJS7EKZe5ZeGJpn?=
- =?us-ascii?Q?g8GOh6E2gS0Dl31nsQb5bVWOEFG7mJCUtlw0IOqbpffRECcanPk1zfVQ3x2C?=
- =?us-ascii?Q?4s0ORa6CMT4mQ1DODPzLUPa8tqiUCiqVAIigjj0e8mSuP9JOWA1ym02pJkel?=
- =?us-ascii?Q?DoCavGeYOtc3oOhjl/Z8fam6tAG+chcIxdRlfYSfsU4jTUax8anRN6QLr9qk?=
- =?us-ascii?Q?B5J8hVHki1SUVwhigcQylrGIGC60E3OAPGC3sdyKYrU2/iugyiy1rpbuhzd8?=
- =?us-ascii?Q?vMCvJoBh6x9Lzz0zxvxPLzBPFVhkujhPVTr/nfYRulw2jSchtWciOsDEVNwl?=
- =?us-ascii?Q?sH+jLSWWnFELrn3gapfNepkjcn2y3mimX5UK/HfKn+AT1V5MXx3BeYq5hrrb?=
- =?us-ascii?Q?MSbdFKmSDGNcgrT0HobxwO/avBZyed6hbPPin+LvVlaJK7rwSzk6lKkI2ON0?=
- =?us-ascii?Q?jaEwbByphS/wZzQjz7eEZne7KCjv+FEU71nxJpSPJ+mdHYfoG4xJDnEEOy57?=
- =?us-ascii?Q?HC9xYGblU8qKM1XVrDTMYdZL+HkZKuzkdKCVNz4whOhf8GaeH+RAeI6eEIYZ?=
- =?us-ascii?Q?m2Z/SiBAcn3BBxpfqslJLQsPTMLbZ1ZBTwliDBtBI0TA91CJ17TUCPx3yWec?=
- =?us-ascii?Q?idpw3bFKgrobR8qNDK7Laz0uYv91rZENBXNikOv9/Cx8quSo1cyuGDlfisgX?=
- =?us-ascii?Q?hs7X8Hoa6nkiPAQaHEc72YjH2X4ZM50ywA0t/NFBgke8porAC9bTCRY8YCZI?=
- =?us-ascii?Q?Rbs4JPttKHLk+RQnyQiUHlaxsCfK+bW2pJza7xAPOzv7Yg24cDFfjYUethjg?=
- =?us-ascii?Q?IEMPi+uMxm3O30NKAcshzQAkL1bQY3TGAFmoRXC4Ndgs8Fi4oxmb3g0QVvz1?=
- =?us-ascii?Q?FuHnOHHrD2G0M4UXMmNS255FALDz?=
-X-Forefront-Antispam-Report:
-	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(1800799024)(7416014)(36860700013)(82310400026)(921020);DIR:OUT;SFP:1101;
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Oct 2024 15:24:34.7211
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 831e4da0-c848-4740-6d30-08dced2d799a
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN3PEPF0000B36D.namprd21.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB8864
 
-From: Yonatan Maman <Ymaman@Nvidia.com>
+Update device interface header files.
 
-ATS (Address Translation Services) mainly utilized to optimize PCI
-Peer-to-Peer transfers and prevent bus failures. This change employed
-ATS usage for ODP memory, to optimize DMA P2P for ODP memory. (e.g DMA
-P2P for private device pages - ODP memory).
-
-Signed-off-by: Yonatan Maman <Ymaman@Nvidia.com>
-Reviewed-by: Gal Shalom <GalShalom@Nvidia.com>
+Reviewed-by: Daniel Kranzdorf <dkkranzd@amazon.com>
+Reviewed-by: Yonatan Nachum <ynachum@amazon.com>
+Signed-off-by: Michael Margolin <mrgolin@amazon.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ .../infiniband/hw/efa/efa_admin_cmds_defs.h   |  54 +++++++--
+ drivers/infiniband/hw/efa/efa_admin_defs.h    |   4 +-
+ drivers/infiniband/hw/efa/efa_com_cmd.c       |   4 +-
+ drivers/infiniband/hw/efa/efa_com_cmd.h       |   2 +-
+ drivers/infiniband/hw/efa/efa_io_defs.h       | 106 ++++++++++++++++--
+ drivers/infiniband/hw/efa/efa_verbs.c         |   2 +-
+ 6 files changed, 149 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 23fd72f7f63d..55ccbc7d9aa3 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1701,9 +1701,9 @@ static inline bool rt_supported(int ts_cap)
- static inline bool mlx5_umem_needs_ats(struct mlx5_ib_dev *dev,
- 				       struct ib_umem *umem, int access_flags)
- {
--	if (!MLX5_CAP_GEN(dev->mdev, ats) || !umem->is_dmabuf)
--		return false;
--	return access_flags & IB_ACCESS_RELAXED_ORDERING;
-+	if (MLX5_CAP_GEN(dev->mdev, ats) && (umem->is_dmabuf || umem->is_odp))
-+		return access_flags & IB_ACCESS_RELAXED_ORDERING;
-+	return false;
- }
+diff --git a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+index cd03a5429beb..88a9aee7e743 100644
+--- a/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
++++ b/drivers/infiniband/hw/efa/efa_admin_cmds_defs.h
+@@ -30,7 +30,8 @@ enum efa_admin_aq_opcode {
+ 	EFA_ADMIN_DEALLOC_UAR                       = 17,
+ 	EFA_ADMIN_CREATE_EQ                         = 18,
+ 	EFA_ADMIN_DESTROY_EQ                        = 19,
+-	EFA_ADMIN_MAX_OPCODE                        = 19,
++	EFA_ADMIN_ALLOC_MR                          = 20,
++	EFA_ADMIN_MAX_OPCODE                        = 20,
+ };
  
- int set_roce_addr(struct mlx5_ib_dev *dev, u32 port_num,
+ enum efa_admin_aq_feature_id {
+@@ -150,8 +151,11 @@ struct efa_admin_create_qp_cmd {
+ 	/* UAR number */
+ 	u16 uar;
+ 
++	/* Requested service level for the QP, 0 is the default SL */
++	u8 sl;
++
+ 	/* MBZ */
+-	u16 reserved;
++	u8 reserved;
+ 
+ 	/* MBZ */
+ 	u32 reserved2;
+@@ -459,6 +463,41 @@ struct efa_admin_dereg_mr_resp {
+ 	struct efa_admin_acq_common_desc acq_common_desc;
+ };
+ 
++/*
++ * Allocation of MemoryRegion, required for QP working with Virtual
++ * Addresses in kernel verbs semantics, ready for fast registration use.
++ */
++struct efa_admin_alloc_mr_cmd {
++	/* Common Admin Queue descriptor */
++	struct efa_admin_aq_common_desc aq_common_desc;
++
++	/* Protection Domain */
++	u16 pd;
++
++	/* MBZ */
++	u16 reserved1;
++
++	/* Maximum number of pages this MR supports. */
++	u32 max_pages;
++};
++
++struct efa_admin_alloc_mr_resp {
++	/* Common Admin Queue completion descriptor */
++	struct efa_admin_acq_common_desc acq_common_desc;
++
++	/*
++	 * L_Key, to be used in conjunction with local buffer references in
++	 * SQ and RQ WQE, or with virtual RQ/CQ rings
++	 */
++	u32 l_key;
++
++	/*
++	 * R_Key, to be used in RDMA messages to refer to remotely accessed
++	 * memory region
++	 */
++	u32 r_key;
++};
++
+ struct efa_admin_create_cq_cmd {
+ 	struct efa_admin_aq_common_desc aq_common_desc;
+ 
+@@ -483,8 +522,8 @@ struct efa_admin_create_cq_cmd {
+ 	 */
+ 	u8 cq_caps_2;
+ 
+-	/* completion queue depth in # of entries. must be power of 2 */
+-	u16 cq_depth;
++	/* Sub completion queue depth in # of entries. must be power of 2 */
++	u16 sub_cq_depth;
+ 
+ 	/* EQ number assigned to this cq */
+ 	u16 eqn;
+@@ -519,8 +558,8 @@ struct efa_admin_create_cq_resp {
+ 
+ 	u16 cq_idx;
+ 
+-	/* actual cq depth in number of entries */
+-	u16 cq_actual_depth;
++	/* actual sub cq depth in number of entries */
++	u16 sub_cq_actual_depth;
+ 
+ 	/* CQ doorbell address, as offset to PCIe DB BAR */
+ 	u32 db_offset;
+@@ -578,6 +617,8 @@ struct efa_admin_basic_stats {
+ 	u64 rx_pkts;
+ 
+ 	u64 rx_drops;
++
++	u64 qkey_viol;
+ };
+ 
+ struct efa_admin_messages_stats {
+@@ -1057,7 +1098,6 @@ struct efa_admin_host_info {
+ 
+ /* create_eq_cmd */
+ #define EFA_ADMIN_CREATE_EQ_CMD_ENTRY_SIZE_WORDS_MASK       GENMASK(4, 0)
+-#define EFA_ADMIN_CREATE_EQ_CMD_VIRT_MASK                   BIT(6)
+ #define EFA_ADMIN_CREATE_EQ_CMD_COMPLETION_EVENTS_MASK      BIT(0)
+ 
+ /* host_info */
+diff --git a/drivers/infiniband/hw/efa/efa_admin_defs.h b/drivers/infiniband/hw/efa/efa_admin_defs.h
+index 83f20c38a840..35700c93e639 100644
+--- a/drivers/infiniband/hw/efa/efa_admin_defs.h
++++ b/drivers/infiniband/hw/efa/efa_admin_defs.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
+ /*
+- * Copyright 2018-2021 Amazon.com, Inc. or its affiliates. All rights reserved.
++ * Copyright 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
+  */
+ 
+ #ifndef _EFA_ADMIN_H_
+@@ -96,7 +96,7 @@ struct efa_admin_acq_entry {
+ struct efa_admin_aenq_common_desc {
+ 	u16 group;
+ 
+-	u16 syndrom;
++	u16 syndrome;
+ 
+ 	/*
+ 	 * 0 : phase
+diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.c b/drivers/infiniband/hw/efa/efa_com_cmd.c
+index 5a774925cdea..206f377db27e 100644
+--- a/drivers/infiniband/hw/efa/efa_com_cmd.c
++++ b/drivers/infiniband/hw/efa/efa_com_cmd.c
+@@ -163,7 +163,7 @@ int efa_com_create_cq(struct efa_com_dev *edev,
+ 	EFA_SET(&create_cmd.cq_caps_2,
+ 		EFA_ADMIN_CREATE_CQ_CMD_CQ_ENTRY_SIZE_WORDS,
+ 		params->entry_size_in_bytes / 4);
+-	create_cmd.cq_depth = params->cq_depth;
++	create_cmd.sub_cq_depth = params->sub_cq_depth;
+ 	create_cmd.num_sub_cqs = params->num_sub_cqs;
+ 	create_cmd.uar = params->uarn;
+ 	if (params->interrupt_mode_enabled) {
+@@ -191,7 +191,7 @@ int efa_com_create_cq(struct efa_com_dev *edev,
+ 	}
+ 
+ 	result->cq_idx = cmd_completion.cq_idx;
+-	result->actual_depth = params->cq_depth;
++	result->actual_depth = params->sub_cq_depth;
+ 	result->db_off = cmd_completion.db_offset;
+ 	result->db_valid = EFA_GET(&cmd_completion.flags,
+ 				   EFA_ADMIN_CREATE_CQ_RESP_DB_VALID);
+diff --git a/drivers/infiniband/hw/efa/efa_com_cmd.h b/drivers/infiniband/hw/efa/efa_com_cmd.h
+index 668d033f7477..2599f8e58cc4 100644
+--- a/drivers/infiniband/hw/efa/efa_com_cmd.h
++++ b/drivers/infiniband/hw/efa/efa_com_cmd.h
+@@ -71,7 +71,7 @@ struct efa_com_create_cq_params {
+ 	/* cq physical base address in OS memory */
+ 	dma_addr_t dma_addr;
+ 	/* completion queue depth in # of entries */
+-	u16 cq_depth;
++	u16 sub_cq_depth;
+ 	u16 num_sub_cqs;
+ 	u16 uarn;
+ 	u16 eqn;
+diff --git a/drivers/infiniband/hw/efa/efa_io_defs.h b/drivers/infiniband/hw/efa/efa_io_defs.h
+index 2d8eb96eaa81..a4c9fd33da38 100644
+--- a/drivers/infiniband/hw/efa/efa_io_defs.h
++++ b/drivers/infiniband/hw/efa/efa_io_defs.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
+ /*
+- * Copyright 2018-2023 Amazon.com, Inc. or its affiliates. All rights reserved.
++ * Copyright 2018-2024 Amazon.com, Inc. or its affiliates. All rights reserved.
+  */
+ 
+ #ifndef _EFA_IO_H_
+@@ -10,6 +10,7 @@
+ #define EFA_IO_TX_DESC_NUM_RDMA_BUFS         1
+ #define EFA_IO_TX_DESC_INLINE_MAX_SIZE       32
+ #define EFA_IO_TX_DESC_IMM_DATA_SIZE         4
++#define EFA_IO_TX_DESC_INLINE_PBL_SIZE       1
+ 
+ enum efa_io_queue_type {
+ 	/* send queue (of a QP) */
+@@ -25,6 +26,10 @@ enum efa_io_send_op_type {
+ 	EFA_IO_RDMA_READ                            = 1,
+ 	/* RDMA write */
+ 	EFA_IO_RDMA_WRITE                           = 2,
++	/* Fast MR registration */
++	EFA_IO_FAST_REG                             = 3,
++	/* Fast MR invalidation */
++	EFA_IO_FAST_INV                             = 4,
+ };
+ 
+ enum efa_io_comp_status {
+@@ -34,15 +39,15 @@ enum efa_io_comp_status {
+ 	EFA_IO_COMP_STATUS_FLUSHED                  = 1,
+ 	/* Internal QP error */
+ 	EFA_IO_COMP_STATUS_LOCAL_ERROR_QP_INTERNAL_ERROR = 2,
+-	/* Bad operation type */
+-	EFA_IO_COMP_STATUS_LOCAL_ERROR_INVALID_OP_TYPE = 3,
++	/* Unsupported operation */
++	EFA_IO_COMP_STATUS_LOCAL_ERROR_UNSUPPORTED_OP = 3,
+ 	/* Bad AH */
+ 	EFA_IO_COMP_STATUS_LOCAL_ERROR_INVALID_AH   = 4,
+ 	/* LKEY not registered or does not match IOVA */
+ 	EFA_IO_COMP_STATUS_LOCAL_ERROR_INVALID_LKEY = 5,
+ 	/* Message too long */
+ 	EFA_IO_COMP_STATUS_LOCAL_ERROR_BAD_LENGTH   = 6,
+-	/* Destination ENI is down or does not run EFA */
++	/* RKEY not registered or does not match remote IOVA */
+ 	EFA_IO_COMP_STATUS_REMOTE_ERROR_BAD_ADDRESS = 7,
+ 	/* Connection was reset by remote side */
+ 	EFA_IO_COMP_STATUS_REMOTE_ERROR_ABORT       = 8,
+@@ -54,8 +59,17 @@ enum efa_io_comp_status {
+ 	EFA_IO_COMP_STATUS_REMOTE_ERROR_BAD_LENGTH  = 11,
+ 	/* Unexpected status returned by responder */
+ 	EFA_IO_COMP_STATUS_REMOTE_ERROR_BAD_STATUS  = 12,
+-	/* Unresponsive remote - detected locally */
++	/* Unresponsive remote - was previously responsive */
+ 	EFA_IO_COMP_STATUS_LOCAL_ERROR_UNRESP_REMOTE = 13,
++	/* No valid AH at remote side (required for RDMA operations) */
++	EFA_IO_COMP_STATUS_REMOTE_ERROR_UNKNOWN_PEER = 14,
++	/* Unreachable remote - never received a response */
++	EFA_IO_COMP_STATUS_LOCAL_ERROR_UNREACH_REMOTE = 15,
++};
++
++enum efa_io_frwr_pbl_mode {
++	EFA_IO_FRWR_INLINE_PBL                      = 0,
++	EFA_IO_FRWR_DIRECT_PBL                      = 1,
+ };
+ 
+ struct efa_io_tx_meta_desc {
+@@ -95,13 +109,13 @@ struct efa_io_tx_meta_desc {
+ 
+ 	/*
+ 	 * If inline_msg bit is set, length of inline message in bytes,
+-	 *    otherwise length of SGL (number of buffers).
++	 * otherwise length of SGL (number of buffers).
+ 	 */
+ 	u16 length;
+ 
+ 	/*
+-	 * immediate data: if has_imm is set, then this field is included
+-	 *    within Tx message and reported in remote Rx completion.
++	 * immediate data: if has_imm is set, then this field is included within
++	 * Tx message and reported in remote Rx completion.
+ 	 */
+ 	u32 immediate_data;
+ 
+@@ -158,6 +172,63 @@ struct efa_io_rdma_req {
+ 	struct efa_io_tx_buf_desc local_mem[1];
+ };
+ 
++struct efa_io_fast_mr_reg_req {
++	/* Updated local key of the MR after lkey/rkey increment */
++	u32 lkey;
++
++	/*
++	 * permissions
++	 * 0 : local_write_enable - Local write permissions:
++	 *    must be set for RQ buffers and buffers posted for
++	 *    RDMA Read requests
++	 * 1 : remote_write_enable - Remote write
++	 *    permissions: must be set to enable RDMA write to
++	 *    the region
++	 * 2 : remote_read_enable - Remote read permissions:
++	 *    must be set to enable RDMA read from the region
++	 * 7:3 : reserved2 - MBZ
++	 */
++	u8 permissions;
++
++	/*
++	 * control flags
++	 * 4:0 : phys_page_size_shift - page size is (1 <<
++	 *    phys_page_size_shift)
++	 * 6:5 : pbl_mode - enum efa_io_frwr_pbl_mode
++	 * 7 : reserved - MBZ
++	 */
++	u8 flags;
++
++	/* MBZ */
++	u8 reserved[2];
++
++	/* IO Virtual Address associated with this MR */
++	u64 iova;
++
++	/* Memory region length, in bytes */
++	u64 mr_length;
++
++	/* Physical Buffer List, each element is page-aligned. */
++	union {
++		/*
++		 * Inline array of physical page addresses (optimization
++		 * for short region activation).
++		 */
++		u64 inline_array[1];
++
++		/* points to PBL (Currently only direct) */
++		u64 dma_addr;
++	} pbl;
++};
++
++struct efa_io_fast_mr_inv_req {
++	/* Local key of the MR to invalidate */
++	u32 lkey;
++
++	/* MBZ */
++	u8 reserved[28];
++};
++
+ /*
+  * Tx WQE, composed of tx meta descriptors followed by either tx buffer
+  * descriptors or inline data
+@@ -174,6 +245,12 @@ struct efa_io_tx_wqe {
+ 
+ 		/* RDMA local and remote memory addresses */
+ 		struct efa_io_rdma_req rdma_req;
++
++		/* Fast registration */
++		struct efa_io_fast_mr_reg_req reg_mr_req;
++
++		/* Fast invalidation */
++		struct efa_io_fast_mr_inv_req inv_mr_req;
+ 	} data;
+ };
+ 
+@@ -208,7 +285,7 @@ struct efa_io_rx_desc {
+ struct efa_io_cdesc_common {
+ 	/*
+ 	 * verbs-generated request ID, as provided in the completed tx or rx
+-	 *    descriptor.
++	 * descriptor.
+ 	 */
+ 	u16 req_id;
+ 
+@@ -221,7 +298,8 @@ struct efa_io_cdesc_common {
+ 	 * 3 : has_imm - indicates that immediate data is
+ 	 *    present - for RX completions only
+ 	 * 6:4 : op_type - enum efa_io_send_op_type
+-	 * 7 : reserved31 - MBZ
++	 * 7 : unsolicited - indicates that there is no
++	 *    matching request - for RDMA with imm. RX only
+ 	 */
+ 	u8 flags;
+ 
+@@ -291,6 +369,13 @@ struct efa_io_rx_cdesc_ex {
+ /* tx_buf_desc */
+ #define EFA_IO_TX_BUF_DESC_LKEY_MASK                        GENMASK(23, 0)
+ 
++/* fast_mr_reg_req */
++#define EFA_IO_FAST_MR_REG_REQ_LOCAL_WRITE_ENABLE_MASK      BIT(0)
++#define EFA_IO_FAST_MR_REG_REQ_REMOTE_WRITE_ENABLE_MASK     BIT(1)
++#define EFA_IO_FAST_MR_REG_REQ_REMOTE_READ_ENABLE_MASK      BIT(2)
++#define EFA_IO_FAST_MR_REG_REQ_PHYS_PAGE_SIZE_SHIFT_MASK    GENMASK(4, 0)
++#define EFA_IO_FAST_MR_REG_REQ_PBL_MODE_MASK                GENMASK(6, 5)
++
+ /* rx_desc */
+ #define EFA_IO_RX_DESC_LKEY_MASK                            GENMASK(23, 0)
+ #define EFA_IO_RX_DESC_FIRST_MASK                           BIT(30)
+@@ -301,5 +386,6 @@ struct efa_io_rx_cdesc_ex {
+ #define EFA_IO_CDESC_COMMON_Q_TYPE_MASK                     GENMASK(2, 1)
+ #define EFA_IO_CDESC_COMMON_HAS_IMM_MASK                    BIT(3)
+ #define EFA_IO_CDESC_COMMON_OP_TYPE_MASK                    GENMASK(6, 4)
++#define EFA_IO_CDESC_COMMON_UNSOLICITED_MASK                BIT(7)
+ 
+ #endif /* _EFA_IO_H_ */
+diff --git a/drivers/infiniband/hw/efa/efa_verbs.c b/drivers/infiniband/hw/efa/efa_verbs.c
+index cc13415ff7e7..feb04cfdb8da 100644
+--- a/drivers/infiniband/hw/efa/efa_verbs.c
++++ b/drivers/infiniband/hw/efa/efa_verbs.c
+@@ -1167,7 +1167,7 @@ int efa_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	}
+ 
+ 	params.uarn = cq->ucontext->uarn;
+-	params.cq_depth = entries;
++	params.sub_cq_depth = entries;
+ 	params.dma_addr = cq->dma_addr;
+ 	params.entry_size_in_bytes = cmd.cq_entry_size;
+ 	params.num_sub_cqs = cmd.num_sub_cqs;
 -- 
-2.34.1
+2.40.1
 
