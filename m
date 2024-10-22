@@ -1,37 +1,37 @@
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A472199FAB;
-	Tue, 22 Oct 2024 11:16:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19FAF199FB5;
+	Tue, 22 Oct 2024 11:16:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729595797; cv=none; b=TrFoKxT+e7Y6jT3dOAbG+87kbZ/aKlKqfZfXzZ8YEwyP4hL5bs+zwZ4dIaQtuVKThOoBExbGaeAa8M5P4L4Wmz0k0qXxF1DEKQ3nHaC8bSETCKcgcIIR/LQoWUz81P/iWcMNtVFQxIOS2oI8hwZhGvhCT+cHwBXVaB8m/aA0vA4=
+	t=1729595798; cv=none; b=iBJFK5ejtUQg4/j3htYUYXASjXGdzEfrEeeEOofkBJsCGxMmRK9JQFl7re1oNqKtOktMtrx4L9hXVFyJ8x96DqvToed1mFAvG3YVYkis2nIha2N6ZDpmIfrEYNY1eVWJMQNRsTGN/h9JQuqWGJowFBW5/9D6GybNmCyDU9HhWoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729595797; c=relaxed/simple;
-	bh=fnJFw8/dw+J9LLrAwqDGjdaFaer2pfGYPU+XrXW9JRg=;
+	s=arc-20240116; t=1729595798; c=relaxed/simple;
+	bh=KCSF3pqS1j1j3qpR6oOvsDHmOE/iiaihE4/0TDGLTjE=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Lxxqw/ZfGL1pdb3/cVYMy+ujImRVQNSwubSH0lBThlcvB6WWyXW7lMMjhCMFNZ2UoyoJZUzmpg27FU/udLOkYHrQOrcyms/ygY++RLhnMbZ7sFt4A6sBMWjZB3xg78eDRQWB5Ij9wthO9D54ywYW1qMgSdTasLllR5GpIJlIYMA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.189
+	 MIME-Version:Content-Type; b=Xm+KmfaHR3bMIvZcAtjM6uMXhPODeX2S7wpGIM5aI6/0hSLFNg0bUPMvuMULviA0CIH+g4ds35TDvjlA1SfliyyMISpsj+TnKYoJHsek64DTakvSNs8FAos0EwhW6eZsWZc5u/h67r0FRA3BkZR+9tLcRZNjytAR8YUv3s1TWB0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.32
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.88.105])
-	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4XXqNX2ZYyzQrl0;
-	Tue, 22 Oct 2024 19:15:40 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4XXqPg50Jqz1ynKK;
+	Tue, 22 Oct 2024 19:16:39 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 3D3CC140390;
-	Tue, 22 Oct 2024 19:16:31 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 994821A0188;
+	Tue, 22 Oct 2024 19:16:32 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 22 Oct 2024 19:16:30 +0800
+ 15.2.1544.11; Tue, 22 Oct 2024 19:16:32 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>,
 	<tangchengchang@huawei.com>
-Subject: [PATCH for-rc 1/5] RDMA/hns: Fix an AEQE overflow error caused by untimely update of eq_db_ci
-Date: Tue, 22 Oct 2024 19:10:13 +0800
-Message-ID: <20241022111017.946170-2-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 5/5] RDMA/hns: Fix cpu stuck caused by printings during reset
+Date: Tue, 22 Oct 2024 19:10:17 +0800
+Message-ID: <20241022111017.946170-6-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20241022111017.946170-1-huangjunxian6@hisilicon.com>
 References: <20241022111017.946170-1-huangjunxian6@hisilicon.com>
@@ -48,282 +48,265 @@ X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
 
 From: wenglianfa <wenglianfa@huawei.com>
 
-eq_db_ci is updated only after all AEQEs are processed in the AEQ
-interrupt handler, which is not timely enough and may result in
-AEQ overflow. Two optimization methods are proposed:
-1. Set an upper limit for AEQE processing.
-2. Move time-consuming operations such as printings to the bottom
-half of the interrupt.
+During reset, cmd to destroy resources such as qp, cq, and mr may fail,
+and error logs will be printed. When a large number of resources are
+destroyed, there will be lots of printings, and it may lead to a cpu
+stuck.
 
-cmd events and flush_cqe events are still fully processed in the top half
-to ensure timely handling.
+Delete some unnecessary printings and replace other printing functions
+in these paths with the ratelimited version.
 
-Fixes: a5073d6054f7 ("RDMA/hns: Add eq support of hip08")
+Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+Fixes: c7bcb13442e1 ("RDMA/hns: Add SRQ support for hip08 kernel mode")
+Fixes: 70f92521584f ("RDMA/hns: Use the reserved loopback QPs to free MR before destroying MPT")
+Fixes: 926a01dc000d ("RDMA/hns: Add QP operations support for hip08 SoC")
 Signed-off-by: wenglianfa <wenglianfa@huawei.com>
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 75 ++++++++++++++-------
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  5 ++
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 54 +++++++++------
- 4 files changed, 91 insertions(+), 44 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_cq.c    |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_hem.c   |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 73 ++++++++++------------
+ drivers/infiniband/hw/hns/hns_roce_mr.c    |  4 +-
+ drivers/infiniband/hw/hns/hns_roce_srq.c   |  4 +-
+ 5 files changed, 41 insertions(+), 48 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 0b1e21cb6d2d..73c78005901e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -1289,6 +1289,7 @@ void hns_roce_cq_completion(struct hns_roce_dev *hr_dev, u32 cqn);
- void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type);
- void flush_cqe(struct hns_roce_dev *dev, struct hns_roce_qp *qp);
- void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type);
-+void hns_roce_flush_cqe(struct hns_roce_dev *hr_dev, u32 qpn);
- void hns_roce_srq_event(struct hns_roce_dev *hr_dev, u32 srqn, int event_type);
- void hns_roce_handle_device_err(struct hns_roce_dev *hr_dev);
- int hns_roce_init(struct hns_roce_dev *hr_dev);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
+index 4ec66611a143..4106423a1b39 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
+@@ -179,8 +179,8 @@ static void free_cqc(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_CQC,
+ 				      hr_cq->cqn);
+ 	if (ret)
+-		dev_err(dev, "DESTROY_CQ failed (%d) for CQN %06lx\n", ret,
+-			hr_cq->cqn);
++		dev_err_ratelimited(dev, "DESTROY_CQ failed (%d) for CQN %06lx\n",
++				    ret, hr_cq->cqn);
+ 
+ 	xa_erase_irq(&cq_table->array, hr_cq->cqn);
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index ee5d2c1bb5ca..f84521be3bea 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -672,8 +672,8 @@ void hns_roce_table_put(struct hns_roce_dev *hr_dev,
+ 
+ 	ret = hr_dev->hw->clear_hem(hr_dev, table, obj, HEM_HOP_STEP_DIRECT);
+ 	if (ret)
+-		dev_warn(dev, "failed to clear HEM base address, ret = %d.\n",
+-			 ret);
++		dev_warn_ratelimited(dev, "failed to clear HEM base address, ret = %d.\n",
++				     ret);
+ 
+ 	hns_roce_free_hem(hr_dev, table->hem[i]);
+ 	table->hem[i] = NULL;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 24e906b9d3ae..e85c450e1809 100644
+index aa42c5a9b254..b6a0498a7b03 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5967,11 +5967,10 @@ static int hns_roce_v2_query_mpt(struct hns_roce_dev *hr_dev, u32 key,
- 	return ret;
- }
- 
--static void hns_roce_irq_work_handle(struct work_struct *work)
-+static void dump_aeqe_log(struct hns_roce_work *irq_work)
+@@ -373,19 +373,12 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ static int check_send_valid(struct hns_roce_dev *hr_dev,
+ 			    struct hns_roce_qp *hr_qp)
  {
--	struct hns_roce_work *irq_work =
--				container_of(work, struct hns_roce_work, work);
--	struct ib_device *ibdev = &irq_work->hr_dev->ib_dev;
-+	struct hns_roce_dev *hr_dev = irq_work->hr_dev;
-+	struct ib_device *ibdev = &hr_dev->ib_dev;
+-	struct ib_device *ibdev = &hr_dev->ib_dev;
+-
+ 	if (unlikely(hr_qp->state == IB_QPS_RESET ||
+ 		     hr_qp->state == IB_QPS_INIT ||
+-		     hr_qp->state == IB_QPS_RTR)) {
+-		ibdev_err(ibdev, "failed to post WQE, QP state %u!\n",
+-			  hr_qp->state);
++		     hr_qp->state == IB_QPS_RTR))
+ 		return -EINVAL;
+-	} else if (unlikely(hr_dev->state >= HNS_ROCE_DEVICE_STATE_RST_DOWN)) {
+-		ibdev_err(ibdev, "failed to post WQE, dev state %d!\n",
+-			  hr_dev->state);
++	else if (unlikely(hr_dev->state >= HNS_ROCE_DEVICE_STATE_RST_DOWN))
+ 		return -EIO;
+-	}
  
- 	switch (irq_work->event_type) {
- 	case HNS_ROCE_EVENT_TYPE_PATH_MIG:
-@@ -6015,6 +6014,8 @@ static void hns_roce_irq_work_handle(struct work_struct *work)
- 	case HNS_ROCE_EVENT_TYPE_DB_OVERFLOW:
- 		ibdev_warn(ibdev, "DB overflow.\n");
- 		break;
-+	case HNS_ROCE_EVENT_TYPE_MB:
-+		break;
- 	case HNS_ROCE_EVENT_TYPE_FLR:
- 		ibdev_warn(ibdev, "function level reset.\n");
- 		break;
-@@ -6025,8 +6026,46 @@ static void hns_roce_irq_work_handle(struct work_struct *work)
- 		ibdev_err(ibdev, "invalid xrceth error.\n");
- 		break;
- 	default:
-+		ibdev_info(ibdev, "Undefined event %d.\n",
-+			   irq_work->event_type);
- 		break;
+ 	return 0;
+ }
+@@ -2775,8 +2768,8 @@ static int free_mr_modify_rsv_qp(struct hns_roce_dev *hr_dev,
+ 	ret = hr_dev->hw->modify_qp(&hr_qp->ibqp, attr, mask, IB_QPS_INIT,
+ 				    IB_QPS_INIT, NULL);
+ 	if (ret) {
+-		ibdev_err(ibdev, "failed to modify qp to init, ret = %d.\n",
+-			  ret);
++		ibdev_err_ratelimited(ibdev, "failed to modify qp to init, ret = %d.\n",
++				      ret);
+ 		return ret;
  	}
-+}
-+
-+static void hns_roce_irq_work_handle(struct work_struct *work)
-+{
-+	struct hns_roce_work *irq_work =
-+				container_of(work, struct hns_roce_work, work);
-+	struct hns_roce_dev *hr_dev = irq_work->hr_dev;
-+	int event_type = irq_work->event_type;
-+	u32 queue_num = irq_work->queue_num;
-+
-+	switch (event_type) {
-+	case HNS_ROCE_EVENT_TYPE_PATH_MIG:
-+	case HNS_ROCE_EVENT_TYPE_PATH_MIG_FAILED:
-+	case HNS_ROCE_EVENT_TYPE_COMM_EST:
-+	case HNS_ROCE_EVENT_TYPE_SQ_DRAINED:
-+	case HNS_ROCE_EVENT_TYPE_WQ_CATAS_ERROR:
-+	case HNS_ROCE_EVENT_TYPE_SRQ_LAST_WQE_REACH:
-+	case HNS_ROCE_EVENT_TYPE_INV_REQ_LOCAL_WQ_ERROR:
-+	case HNS_ROCE_EVENT_TYPE_LOCAL_WQ_ACCESS_ERROR:
-+	case HNS_ROCE_EVENT_TYPE_XRCD_VIOLATION:
-+	case HNS_ROCE_EVENT_TYPE_INVALID_XRCETH:
-+		hns_roce_qp_event(hr_dev, queue_num, event_type);
-+		break;
-+	case HNS_ROCE_EVENT_TYPE_SRQ_LIMIT_REACH:
-+	case HNS_ROCE_EVENT_TYPE_SRQ_CATAS_ERROR:
-+		hns_roce_srq_event(hr_dev, queue_num, event_type);
-+		break;
-+	case HNS_ROCE_EVENT_TYPE_CQ_ACCESS_ERROR:
-+	case HNS_ROCE_EVENT_TYPE_CQ_OVERFLOW:
-+		hns_roce_cq_event(hr_dev, queue_num, event_type);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	dump_aeqe_log(irq_work);
  
- 	kfree(irq_work);
- }
-@@ -6087,14 +6126,14 @@ static struct hns_roce_aeqe *next_aeqe_sw_v2(struct hns_roce_eq *eq)
- static irqreturn_t hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 				       struct hns_roce_eq *eq)
- {
--	struct device *dev = hr_dev->dev;
- 	struct hns_roce_aeqe *aeqe = next_aeqe_sw_v2(eq);
- 	irqreturn_t aeqe_found = IRQ_NONE;
-+	int num_aeqes = 0;
- 	int event_type;
- 	u32 queue_num;
- 	int sub_type;
+@@ -3421,8 +3414,8 @@ static int free_mr_post_send_lp_wqe(struct hns_roce_qp *hr_qp)
  
--	while (aeqe) {
-+	while (aeqe && num_aeqes < HNS_AEQ_POLLING_BUDGET) {
- 		/* Make sure we read AEQ entry after we have checked the
- 		 * ownership bit
- 		 */
-@@ -6105,25 +6144,12 @@ static irqreturn_t hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 		queue_num = hr_reg_read(aeqe, AEQE_EVENT_QUEUE_NUM);
+ 	ret = hns_roce_v2_post_send(&hr_qp->ibqp, send_wr, &bad_wr);
+ 	if (ret) {
+-		ibdev_err(ibdev, "failed to post wqe for free mr, ret = %d.\n",
+-			  ret);
++		ibdev_err_ratelimited(ibdev, "failed to post wqe for free mr, ret = %d.\n",
++				      ret);
+ 		return ret;
+ 	}
  
- 		switch (event_type) {
--		case HNS_ROCE_EVENT_TYPE_PATH_MIG:
--		case HNS_ROCE_EVENT_TYPE_PATH_MIG_FAILED:
--		case HNS_ROCE_EVENT_TYPE_COMM_EST:
--		case HNS_ROCE_EVENT_TYPE_SQ_DRAINED:
- 		case HNS_ROCE_EVENT_TYPE_WQ_CATAS_ERROR:
--		case HNS_ROCE_EVENT_TYPE_SRQ_LAST_WQE_REACH:
- 		case HNS_ROCE_EVENT_TYPE_INV_REQ_LOCAL_WQ_ERROR:
- 		case HNS_ROCE_EVENT_TYPE_LOCAL_WQ_ACCESS_ERROR:
- 		case HNS_ROCE_EVENT_TYPE_XRCD_VIOLATION:
- 		case HNS_ROCE_EVENT_TYPE_INVALID_XRCETH:
--			hns_roce_qp_event(hr_dev, queue_num, event_type);
--			break;
--		case HNS_ROCE_EVENT_TYPE_SRQ_LIMIT_REACH:
--		case HNS_ROCE_EVENT_TYPE_SRQ_CATAS_ERROR:
--			hns_roce_srq_event(hr_dev, queue_num, event_type);
--			break;
--		case HNS_ROCE_EVENT_TYPE_CQ_ACCESS_ERROR:
--		case HNS_ROCE_EVENT_TYPE_CQ_OVERFLOW:
--			hns_roce_cq_event(hr_dev, queue_num, event_type);
-+			hns_roce_flush_cqe(hr_dev, queue_num);
- 			break;
- 		case HNS_ROCE_EVENT_TYPE_MB:
- 			hns_roce_cmd_event(hr_dev,
-@@ -6131,12 +6157,7 @@ static irqreturn_t hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 					aeqe->event.cmd.status,
- 					le64_to_cpu(aeqe->event.cmd.out_param));
- 			break;
--		case HNS_ROCE_EVENT_TYPE_DB_OVERFLOW:
--		case HNS_ROCE_EVENT_TYPE_FLR:
--			break;
- 		default:
--			dev_err(dev, "unhandled event %d on EQ %d at idx %u.\n",
--				event_type, eq->eqn, eq->cons_index);
+@@ -3461,9 +3454,9 @@ static void free_mr_send_cmd_to_hw(struct hns_roce_dev *hr_dev)
+ 
+ 		ret = free_mr_post_send_lp_wqe(hr_qp);
+ 		if (ret) {
+-			ibdev_err(ibdev,
+-				  "failed to send wqe (qp:0x%lx) for free mr, ret = %d.\n",
+-				  hr_qp->qpn, ret);
++			ibdev_err_ratelimited(ibdev,
++					      "failed to send wqe (qp:0x%lx) for free mr, ret = %d.\n",
++					      hr_qp->qpn, ret);
  			break;
  		}
  
-@@ -6150,6 +6171,7 @@ static irqreturn_t hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 		hns_roce_v2_init_irq_work(hr_dev, eq, queue_num);
+@@ -3474,16 +3467,16 @@ static void free_mr_send_cmd_to_hw(struct hns_roce_dev *hr_dev)
+ 	while (cqe_cnt) {
+ 		npolled = hns_roce_v2_poll_cq(&free_mr->rsv_cq->ib_cq, cqe_cnt, wc);
+ 		if (npolled < 0) {
+-			ibdev_err(ibdev,
+-				  "failed to poll cqe for free mr, remain %d cqe.\n",
+-				  cqe_cnt);
++			ibdev_err_ratelimited(ibdev,
++					      "failed to poll cqe for free mr, remain %d cqe.\n",
++					      cqe_cnt);
+ 			goto out;
+ 		}
  
- 		aeqe = next_aeqe_sw_v2(eq);
-+		++num_aeqes;
+ 		if (time_after(jiffies, end)) {
+-			ibdev_err(ibdev,
+-				  "failed to poll cqe for free mr and timeout, remain %d cqe.\n",
+-				  cqe_cnt);
++			ibdev_err_ratelimited(ibdev,
++					      "failed to poll cqe for free mr and timeout, remain %d cqe.\n",
++					      cqe_cnt);
+ 			goto out;
+ 		}
+ 		cqe_cnt -= npolled;
+@@ -5061,10 +5054,8 @@ static int hns_roce_v2_set_abs_fields(struct ib_qp *ibqp,
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+ 	int ret = 0;
+ 
+-	if (!check_qp_state(cur_state, new_state)) {
+-		ibdev_err(&hr_dev->ib_dev, "Illegal state for QP!\n");
++	if (!check_qp_state(cur_state, new_state))
+ 		return -EINVAL;
+-	}
+ 
+ 	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
+ 		memset(qpc_mask, 0, hr_dev->caps.qpc_sz);
+@@ -5325,7 +5316,7 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
+ 	/* SW pass context to HW */
+ 	ret = hns_roce_v2_qp_modify(hr_dev, context, qpc_mask, hr_qp);
+ 	if (ret) {
+-		ibdev_err(ibdev, "failed to modify QP, ret = %d.\n", ret);
++		ibdev_err_ratelimited(ibdev, "failed to modify QP, ret = %d.\n", ret);
+ 		goto out;
  	}
  
- 	update_eq_db(eq);
-@@ -6699,6 +6721,9 @@ static int hns_roce_v2_init_eq_table(struct hns_roce_dev *hr_dev)
- 	int ret;
- 	int i;
+@@ -5463,7 +5454,9 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
  
-+	if (hr_dev->caps.aeqe_depth < HNS_AEQ_POLLING_BUDGET)
-+		return -EINVAL;
-+
- 	other_num = hr_dev->caps.num_other_vectors;
- 	comp_num = hr_dev->caps.num_comp_vectors;
- 	aeq_num = hr_dev->caps.num_aeq_vectors;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index c65f68a14a26..3b3c6259ace0 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -85,6 +85,11 @@
+ 	ret = hns_roce_v2_query_qpc(hr_dev, hr_qp->qpn, &context);
+ 	if (ret) {
+-		ibdev_err(ibdev, "failed to query QPC, ret = %d.\n", ret);
++		ibdev_err_ratelimited(ibdev,
++				      "failed to query QPC, ret = %d.\n",
++				      ret);
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+@@ -5471,7 +5464,7 @@ static int hns_roce_v2_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	state = hr_reg_read(&context, QPC_QP_ST);
+ 	tmp_qp_state = to_ib_qp_st((enum hns_roce_v2_qp_state)state);
+ 	if (tmp_qp_state == -1) {
+-		ibdev_err(ibdev, "Illegal ib_qp_state\n");
++		ibdev_err_ratelimited(ibdev, "Illegal ib_qp_state\n");
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+@@ -5564,9 +5557,9 @@ static int hns_roce_v2_destroy_qp_common(struct hns_roce_dev *hr_dev,
+ 		ret = hns_roce_v2_modify_qp(&hr_qp->ibqp, NULL, 0,
+ 					    hr_qp->state, IB_QPS_RESET, udata);
+ 		if (ret)
+-			ibdev_err(ibdev,
+-				  "failed to modify QP to RST, ret = %d.\n",
+-				  ret);
++			ibdev_err_ratelimited(ibdev,
++					      "failed to modify QP to RST, ret = %d.\n",
++					      ret);
+ 	}
  
- #define HNS_ROCE_V2_TABLE_CHUNK_SIZE		(1 << 18)
+ 	send_cq = hr_qp->ibqp.send_cq ? to_hr_cq(hr_qp->ibqp.send_cq) : NULL;
+@@ -5609,9 +5602,9 @@ int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
  
-+/* budget must be smaller than aeqe_depth to guarantee that we update
-+ * the ci before we polled all the entries in the EQ.
-+ */
-+#define HNS_AEQ_POLLING_BUDGET 64
-+
- enum {
- 	HNS_ROCE_CMD_FLAG_IN = BIT(0),
- 	HNS_ROCE_CMD_FLAG_OUT = BIT(1),
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index 6b03ba671ff8..dcaa370d4a26 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -39,6 +39,25 @@
- #include "hns_roce_device.h"
- #include "hns_roce_hem.h"
+ 	ret = hns_roce_v2_destroy_qp_common(hr_dev, hr_qp, udata);
+ 	if (ret)
+-		ibdev_err(&hr_dev->ib_dev,
+-			  "failed to destroy QP, QPN = 0x%06lx, ret = %d.\n",
+-			  hr_qp->qpn, ret);
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "failed to destroy QP, QPN = 0x%06lx, ret = %d.\n",
++				      hr_qp->qpn, ret);
  
-+static struct hns_roce_qp *hns_roce_qp_lookup(struct hns_roce_dev *hr_dev,
-+					      u32 qpn)
-+{
-+	struct device *dev = hr_dev->dev;
-+	struct hns_roce_qp *qp;
-+	unsigned long flags;
-+
-+	xa_lock_irqsave(&hr_dev->qp_table_xa, flags);
-+	qp = __hns_roce_qp_lookup(hr_dev, qpn);
-+	if (qp)
-+		refcount_inc(&qp->refcount);
-+	xa_unlock_irqrestore(&hr_dev->qp_table_xa, flags);
-+
-+	if (!qp)
-+		dev_warn(dev, "async event for bogus QP %08x\n", qpn);
-+
-+	return qp;
-+}
-+
- static void flush_work_handle(struct work_struct *work)
- {
- 	struct hns_roce_work *flush_work = container_of(work,
-@@ -95,31 +114,28 @@ void flush_cqe(struct hns_roce_dev *dev, struct hns_roce_qp *qp)
+ 	hns_roce_qp_destroy(hr_dev, hr_qp, udata);
  
- void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type)
- {
--	struct device *dev = hr_dev->dev;
- 	struct hns_roce_qp *qp;
+@@ -5905,9 +5898,9 @@ static int hns_roce_v2_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+ 				HNS_ROCE_CMD_MODIFY_CQC, hr_cq->cqn);
+ 	hns_roce_free_cmd_mailbox(hr_dev, mailbox);
+ 	if (ret)
+-		ibdev_err(&hr_dev->ib_dev,
+-			  "failed to process cmd when modifying CQ, ret = %d.\n",
+-			  ret);
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "failed to process cmd when modifying CQ, ret = %d.\n",
++				      ret);
  
--	xa_lock(&hr_dev->qp_table_xa);
--	qp = __hns_roce_qp_lookup(hr_dev, qpn);
--	if (qp)
--		refcount_inc(&qp->refcount);
--	xa_unlock(&hr_dev->qp_table_xa);
--
--	if (!qp) {
--		dev_warn(dev, "async event for bogus QP %08x\n", qpn);
-+	qp = hns_roce_qp_lookup(hr_dev, qpn);
-+	if (!qp)
- 		return;
--	}
+ err_out:
+ 	if (ret)
+@@ -5931,9 +5924,9 @@ static int hns_roce_v2_query_cqc(struct hns_roce_dev *hr_dev, u32 cqn,
+ 	ret = hns_roce_cmd_mbox(hr_dev, 0, mailbox->dma,
+ 				HNS_ROCE_CMD_QUERY_CQC, cqn);
+ 	if (ret) {
+-		ibdev_err(&hr_dev->ib_dev,
+-			  "failed to process cmd when querying CQ, ret = %d.\n",
+-			  ret);
++		ibdev_err_ratelimited(&hr_dev->ib_dev,
++				      "failed to process cmd when querying CQ, ret = %d.\n",
++				      ret);
+ 		goto err_mailbox;
+ 	}
  
--	if (event_type == HNS_ROCE_EVENT_TYPE_WQ_CATAS_ERROR ||
--	    event_type == HNS_ROCE_EVENT_TYPE_INV_REQ_LOCAL_WQ_ERROR ||
--	    event_type == HNS_ROCE_EVENT_TYPE_LOCAL_WQ_ACCESS_ERROR ||
--	    event_type == HNS_ROCE_EVENT_TYPE_XRCD_VIOLATION ||
--	    event_type == HNS_ROCE_EVENT_TYPE_INVALID_XRCETH) {
--		qp->state = IB_QPS_ERR;
-+	qp->event(qp, (enum hns_roce_event)event_type);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 846da8c78b8b..b3f4327d0e64 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -138,8 +138,8 @@ static void hns_roce_mr_free(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr
+ 					      key_to_hw_index(mr->key) &
+ 					      (hr_dev->caps.num_mtpts - 1));
+ 		if (ret)
+-			ibdev_warn(ibdev, "failed to destroy mpt, ret = %d.\n",
+-				   ret);
++			ibdev_warn_ratelimited(ibdev, "failed to destroy mpt, ret = %d.\n",
++					       ret);
+ 	}
  
--		flush_cqe(hr_dev, qp);
--	}
-+	if (refcount_dec_and_test(&qp->refcount))
-+		complete(&qp->free);
-+}
+ 	free_mr_pbl(hr_dev, mr);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_srq.c b/drivers/infiniband/hw/hns/hns_roce_srq.c
+index c9b8233f4b05..70c06ef65603 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_srq.c
++++ b/drivers/infiniband/hw/hns/hns_roce_srq.c
+@@ -151,8 +151,8 @@ static void free_srqc(struct hns_roce_dev *hr_dev, struct hns_roce_srq *srq)
+ 	ret = hns_roce_destroy_hw_ctx(hr_dev, HNS_ROCE_CMD_DESTROY_SRQ,
+ 				      srq->srqn);
+ 	if (ret)
+-		dev_err(hr_dev->dev, "DESTROY_SRQ failed (%d) for SRQN %06lx\n",
+-			ret, srq->srqn);
++		dev_err_ratelimited(hr_dev->dev, "DESTROY_SRQ failed (%d) for SRQN %06lx\n",
++				    ret, srq->srqn);
  
--	qp->event(qp, (enum hns_roce_event)event_type);
-+void hns_roce_flush_cqe(struct hns_roce_dev *hr_dev, u32 qpn)
-+{
-+	struct hns_roce_qp *qp;
-+
-+	qp = hns_roce_qp_lookup(hr_dev, qpn);
-+	if (!qp)
-+		return;
-+
-+	qp->state = IB_QPS_ERR;
-+	flush_cqe(hr_dev, qp);
+ 	xa_erase_irq(&srq_table->xa, srq->srqn);
  
- 	if (refcount_dec_and_test(&qp->refcount))
- 		complete(&qp->free);
 -- 
 2.33.0
 
