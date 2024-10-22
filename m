@@ -1,152 +1,98 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A00A919D06E;
-	Tue, 22 Oct 2024 11:16:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12C8419DF5F
+	for <linux-rdma@vger.kernel.org>; Tue, 22 Oct 2024 14:29:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729595801; cv=none; b=Hcu+tOjkpm3INEgSmLoUZGp3Nlhp2GPMQ8LtwnWUEDYaePLs597G6IWBkImOGRows68CqO9bnHCxcPBuVmCFNKsZ9RAs3qCWFFe51tvkUU4p0AoI/Ekd4+5mOZpEN2Lp1Y2naOGvJ1cleettOF3/NKB31e68Yim3m0in0xROBMU=
+	t=1729607345; cv=none; b=qmzdSSO3QIeJ4n/wLvLABxPyd8MeIfcuLRU4VdwOppxWIun3+RnpDFb+cJtuk54xWpTTMpFPcQcICXd91/o4HlxI2lbOq39KIUc8WxJLmw0duqcQESdJNIPUKGEWYQGQXKOXnH6elzASGGP8dBuA6uIiatuwVnJoLGMtqxfu4Kg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729595801; c=relaxed/simple;
-	bh=Pn7Y/iVUgpru4asH9jpIpWBrH8bp0qSMphbIyViKTCg=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Hf5h38Od92bPNGf3hDoVjwYa5t123lH0jMdxIQZj/De2hfXtsPr9yf3twTkDKcf0uJ0omd9np6gjW2UA6dyH1L5m2gorHwpnaJ/DgvhQJsXpDu8CHsxklR7lbLR862zworgvw9Jme9esqZ6n1MnUyJB5ZtTVRMzpimAD1O6qbKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.252])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4XXqMB6bdsz10N3d;
-	Tue, 22 Oct 2024 19:14:30 +0800 (CST)
-Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 901301800DB;
-	Tue, 22 Oct 2024 19:16:31 +0800 (CST)
-Received: from localhost.localdomain (10.90.30.45) by
- kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 22 Oct 2024 19:16:31 +0800
-From: Junxian Huang <huangjunxian6@hisilicon.com>
-To: <jgg@ziepe.ca>, <leon@kernel.org>
-CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
-	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>,
-	<tangchengchang@huawei.com>
-Subject: [PATCH for-rc 2/5] RDMA/hns: Fix flush cqe error when racing with destroy qp
-Date: Tue, 22 Oct 2024 19:10:14 +0800
-Message-ID: <20241022111017.946170-3-huangjunxian6@hisilicon.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20241022111017.946170-1-huangjunxian6@hisilicon.com>
-References: <20241022111017.946170-1-huangjunxian6@hisilicon.com>
+	s=arc-20240116; t=1729607345; c=relaxed/simple;
+	bh=FWIUzDJsMLIU8LmwxOdULgE14BEiPOqKtaJ7NvsJTKY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gdp8jekCof/ts5yjH3l2Q0T1K6umSQGS2QvFsZALHEiPYLUj7T/s7CsKCHtQaLhzoqNvNKYH8z3NPKxbnY/++6lL4ZpUSLrTYigSGMs88+eLVtagbmZwJaa0IajKhH07fZfnB5VGhUvvV80RkWwEg60VLE+ivACLG18yIVj44gw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Oxurvs7y; arc=none smtp.client-ip=209.85.222.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Oxurvs7y"
+Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-7b161fa1c7bso228981385a.0
+        for <linux-rdma@vger.kernel.org>; Tue, 22 Oct 2024 07:29:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1729607343; x=1730212143; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=QBQs0VktZnZLMvhoI85WO8zPMaVfIDxzSx1BsoDRynk=;
+        b=Oxurvs7yXvalAKMsBc/nP+/D+5la6Rkxlhdm9Ddkq8teH7t+oHpH7ZPJ+mVwHFfk5W
+         wxpWq5N/4aRo4KVxiOisV/uySj5b8oJ3ynZNKVOd3clM1EmoUaX7yHLk8CnFODVP13eb
+         N7fht01EuJdQr+AIuw6NEB71zGLc/POVDDPOZHy4hK2fMwM9nr4wlySNrWHEkgUi9jlN
+         feWU3ztMlmnHFVnIRphfcFybCCaMbczHzYOoWoeL8mg9ryltTKNVU1a7VqZqb735OtLo
+         axITeO/szettRnvohX4iLo+FINW4Bm7Db00hnc4vdqlOpcuwYfRYjpIs1QFXXye7dlsC
+         /Qqg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1729607343; x=1730212143;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=QBQs0VktZnZLMvhoI85WO8zPMaVfIDxzSx1BsoDRynk=;
+        b=bXCWNUaOGXwLWe46VDi4SuvftjZ7ekgfNzZRwdZrbb3uqNEEA+n+9rqSTtCuIuswOd
+         9y1u9fl6O7HeYzjfRHzuxUIQOdxP/zQ/igwpuCk8zhZdjsFmyCHhisYzQ0auEY15sw/A
+         UwpDHnXpvt4JvYTt1iZVV6i8TigYWexrxd0VE9BRiATGuXd6yk8jJDwWqXCxv7GzJ8EY
+         O+PR62OsDIYGKJNAdzdnvSheoGjolcIi92sMuoorPESFJRtS6asGXfC2W3CtKt3lJYuI
+         A1wRqbWEqLelknubE67QRq5wes5+r7U+8/lS89X/2Rzh1N7bZ3pQUIWbQ0NeQf2Wey9I
+         N6QQ==
+X-Forwarded-Encrypted: i=1; AJvYcCU+VkzLGvOak/0/2CgZjU1DIOFa9El7UjNqOaAkAXxeEBdNJ5KXM0tRXUVuCEklMIkCFiGh/3TpGPPS@vger.kernel.org
+X-Gm-Message-State: AOJu0YxG6CqW8d+K8CY86A2i6vWHrYQz57W17PSzsCXwUxvIuhUdoCl6
+	13vWZ7HVf5IJ+NFrUuctMRH5BCJqoJdZSEFrUK626JAG8kv8mLgLHv1NOQe3ztE=
+X-Google-Smtp-Source: AGHT+IH8N2eHg9nw+vHszANEXOFWLyJrLXfEthKl81Z7ZBHmwyuw+1iu3EyqKAdTOb/FJU0+FqZosQ==
+X-Received: by 2002:a05:620a:40c2:b0:7b1:47bb:5334 with SMTP id af79cd13be357-7b157be0c1fmr1774276585a.40.1729607342834;
+        Tue, 22 Oct 2024 07:29:02 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-68-128-5.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.128.5])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7b165a037fbsm285619185a.60.2024.10.22.07.29.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 22 Oct 2024 07:29:01 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.95)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1t3Fsb-003rIb-1c;
+	Tue, 22 Oct 2024 11:29:01 -0300
+Date: Tue, 22 Oct 2024 11:29:01 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: syzbot <syzbot+6dee15fdb0606ef7b6ba@syzkaller.appspotmail.com>
+Cc: leon@kernel.org, linux-kernel@vger.kernel.org,
+	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+	syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot] [rdma?] INFO: task hung in add_one_compat_dev (3)
+Message-ID: <20241022142901.GA13306@ziepe.ca>
+References: <671756af.050a0220.10f4f4.010f.GAE@google.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- kwepemf100018.china.huawei.com (7.202.181.17)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <671756af.050a0220.10f4f4.010f.GAE@google.com>
 
-From: wenglianfa <wenglianfa@huawei.com>
+On Tue, Oct 22, 2024 at 12:39:27AM -0700, syzbot wrote:
 
-QP needs to be modified to IB_QPS_ERROR to trigger HW flush cqe. But
-when this process races with destroy qp, the destroy-qp process may
-modify the QP to IB_QPS_RESET first. In this case flush cqe will fail
-since it is invalid to modify qp from IB_QPS_RESET to IB_QPS_ERROR.
+> 1 lock held by syz-executor/27959:
+>  #0: ffffffff8fcbffc8 (rtnl_mutex){+.+.}-{3:3}, at: rtnl_lock net/core/rtnetlink.c:79 [inline]
+>  #0: ffffffff8fcbffc8 (rtnl_mutex){+.+.}-{3:3}, at: __rtnl_newlink net/core/rtnetlink.c:3749 [inline]
+>  #0: ffffffff8fcbffc8 (rtnl_mutex){+.+.}-{3:3}, at: rtnl_newlink+0xab7/0x20a0 net/core/rtnetlink.c:3772
 
-Add lock and bit flag to make sure pending flush cqe work is completed
-first and no more new works will be added.
+There is really something wrong with the new sykzaller reporting, can
+someone fix it?
 
-Fixes: ffd541d45726 ("RDMA/hns: Add the workqueue framework for flush cqe handler")
-Signed-off-by: wenglianfa <wenglianfa@huawei.com>
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  7 +++++++
- drivers/infiniband/hw/hns/hns_roce_qp.c     | 14 ++++++++++++--
- 3 files changed, 21 insertions(+), 2 deletions(-)
+The kernel log that shows the programs:
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 73c78005901e..9b51d5a1533f 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -593,6 +593,7 @@ struct hns_roce_dev;
- 
- enum {
- 	HNS_ROCE_FLUSH_FLAG = 0,
-+	HNS_ROCE_STOP_FLUSH_FLAG = 1,
- };
- 
- struct hns_roce_work {
-@@ -656,6 +657,7 @@ struct hns_roce_qp {
- 	enum hns_roce_cong_type	cong_type;
- 	u8			tc_mode;
- 	u8			priority;
-+	spinlock_t flush_lock;
- };
- 
- struct hns_roce_ib_iboe {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index e85c450e1809..aa42c5a9b254 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5598,8 +5598,15 @@ int hns_roce_v2_destroy_qp(struct ib_qp *ibqp, struct ib_udata *udata)
- {
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
- 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
-+	unsigned long flags;
- 	int ret;
- 
-+	/* Make sure flush_cqe() is completed */
-+	spin_lock_irqsave(&hr_qp->flush_lock, flags);
-+	set_bit(HNS_ROCE_STOP_FLUSH_FLAG, &hr_qp->flush_flag);
-+	spin_unlock_irqrestore(&hr_qp->flush_lock, flags);
-+	flush_work(&hr_qp->flush_work.work);
-+
- 	ret = hns_roce_v2_destroy_qp_common(hr_dev, hr_qp, udata);
- 	if (ret)
- 		ibdev_err(&hr_dev->ib_dev,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index dcaa370d4a26..3439312b0138 100644
---- a/drivers/infiniband/hw/hns/hns_roce_qp.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -90,11 +90,18 @@ static void flush_work_handle(struct work_struct *work)
- void init_flush_work(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- {
- 	struct hns_roce_work *flush_work = &hr_qp->flush_work;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&hr_qp->flush_lock, flags);
-+	/* Exit directly after destroy_qp() */
-+	if (test_bit(HNS_ROCE_STOP_FLUSH_FLAG, &hr_qp->flush_flag)) {
-+		spin_unlock_irqrestore(&hr_qp->flush_lock, flags);
-+		return;
-+	}
- 
--	flush_work->hr_dev = hr_dev;
--	INIT_WORK(&flush_work->work, flush_work_handle);
- 	refcount_inc(&hr_qp->refcount);
- 	queue_work(hr_dev->irq_workq, &flush_work->work);
-+	spin_unlock_irqrestore(&hr_qp->flush_lock, flags);
- }
- 
- void flush_cqe(struct hns_roce_dev *dev, struct hns_roce_qp *qp)
-@@ -1140,6 +1147,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 				     struct ib_udata *udata,
- 				     struct hns_roce_qp *hr_qp)
- {
-+	struct hns_roce_work *flush_work = &hr_qp->flush_work;
- 	struct hns_roce_ib_create_qp_resp resp = {};
- 	struct ib_device *ibdev = &hr_dev->ib_dev;
- 	struct hns_roce_ib_create_qp ucmd = {};
-@@ -1151,6 +1159,8 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
- 
- 	hr_qp->state = IB_QPS_RESET;
- 	hr_qp->flush_flag = 0;
-+	flush_work->hr_dev = hr_dev;
-+	INIT_WORK(&flush_work->work, flush_work_handle);
- 
- 	if (init_attr->create_flags)
- 		return -EOPNOTSUPP;
--- 
-2.33.0
+https://syzkaller.appspot.com/x/log.txt?x=10d72727980000
 
+Doesn't have the word "newlink"/"new"/"link" etc, and yet there is an
+executor clearly sitting in a newlink netlink callback when we
+crashed.
+
+We need to see the syzkaller programs that are triggering these issues
+to get ideas, and for some reason they are missing now.
+
+Jason
