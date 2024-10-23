@@ -1,73 +1,103 @@
-Received: from mail-lj1-f178.google.com (mail-lj1-f178.google.com [209.85.208.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C4AB83CC1;
-	Wed, 23 Oct 2024 13:42:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5A241D07B5;
+	Wed, 23 Oct 2024 14:30:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729690979; cv=none; b=f3rZFZJqR0xKDWeCT1lMiBNIroHkDA6ETxYGcwABsJ7UO4ViOteGJi62UDalghIAmGdGTec2Je/rPEU6gBgPlt8/NjvK8RWxP1mDGJNgMIcre/BMuNRP/ijsdEO8plVYv5e+lUHTUNUGFGupoZzQo0BBYNZopxj+bI7h16NA6EA=
+	t=1729693848; cv=none; b=r4XJILgHO//0Z4eYbgJ8x32ULB+qgyjp1Nxm/fZeKv2cNDNS++uZRW+Y+hG+/RqubeIMb3AvLsBkUup9wffslGxbG0O9BKnFCiQokKCl8cmwiK2IbMLP1y/vLBO8hVtBsgN345IZI6egzV9Y3i7AidrAZ256jAvghlC+mq69mSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729690979; c=relaxed/simple;
-	bh=n7cLF7zHYqAx+76dI4PF8+q8HbNgcOHOBVGEngQH9KY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uFlRlONHAkstCEOpe7SnNEEZJzKzKQk8t7vIBObTnf2uiKFDLQGi02a5vfEn9OMIYPyiYCkpHqV18dCExSQnkNXJ6hfxFcDgVwbpxwnnjv0uvuYAZiO1Oog2gvnFXM2KdL2r07WtEfF5yXzzFazzPe3PiYSS/Ro+V4jDcGtH1Y8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.208.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-lj1-f178.google.com with SMTP id 38308e7fff4ca-2fb4ec17f5cso65079421fa.3;
-        Wed, 23 Oct 2024 06:42:57 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729690976; x=1730295776;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/lD78OmVjG6F7WkvlccJcCu6C0/3U8zr++1e/ZSoEU4=;
-        b=gleBoPeGWQXYPNtIUE/YQa03sXiGe4pvkGGsdwrG1AbmM69nmkeOZ4JMCDMmQ7aghB
-         hx2vD9MKJfQhM05FPzw7vQzrQ2sQuUk8kqW252w2Cros/VMRc0MmGpuNQA8Lq4DWSi+5
-         IK9oR+8tN6xhWSH6htqHwJ5zTySl5ZDCpXih4Eprjr/1vd9TfUHkvKqOnCQ4vW7GKXXw
-         tmaTix7wzqm/O6kwXoh6vehJBCnMR0zl6USXyEVxC4C3W18IndMueEvHmDjkT9YBgmBA
-         00c1URcTXrX2uirPI21/5uZXl3nzs+s8ZSBO4nfGPtvVM845uA6+1rfw4G7x0XYSyc+h
-         Nzww==
-X-Forwarded-Encrypted: i=1; AJvYcCXXfG95ZdHdeAPW+uB4dWQc4rewmrbBql+ZLmKmnX1Aajqz3rsyuKTI2iEUs3GXBgJUU2tHV99IIJKz4CE=@vger.kernel.org, AJvYcCXZea4bJIw/f9YRlJc/wT/OGBCxoHoMRTWxpO8rgZCsCJHpSHVTa4F5+p6NUt1ZPoxlR92neDZzDCbhAA==@vger.kernel.org
-X-Gm-Message-State: AOJu0YwuW0S0ht9jJQdDhzHtHbaQtQkDvslB5HFj/waR0vw/CYcotHgD
-	0R0X4uQwZC/57ZdgXUrqRiGu+j4R2Z0YnZ4q5E2Fh9PB+MBpkPTy
-X-Google-Smtp-Source: AGHT+IHetgLHGRAyVKfEUkgEUquxnQiZkddJnhW0Wp/4iTVgIfTlOT79mLKZ2PAe8Z++7e/4l23LPw==
-X-Received: by 2002:a2e:4c01:0:b0:2fc:9869:2e14 with SMTP id 38308e7fff4ca-2fc9d622b12mr10102061fa.45.1729690975613;
-        Wed, 23 Oct 2024 06:42:55 -0700 (PDT)
-Received: from gmail.com (fwdproxy-lla-005.fbsv.net. [2a03:2880:30ff:5::face:b00c])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5cb6696b561sm4407777a12.20.2024.10.23.06.42.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 23 Oct 2024 06:42:55 -0700 (PDT)
-Date: Wed, 23 Oct 2024 06:42:52 -0700
-From: Breno Leitao <leitao@debian.org>
-To: Sebastian Ott <sebott@redhat.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Parav Pandit <parav@nvidia.com>
-Subject: Re: [PATCH v2 RESEND] net/mlx5: unique names for per device caches
-Message-ID: <20241023-aquamarine-koala-of-freedom-ff5f77@leitao>
-References: <20240920181129.37156-1-sebott@redhat.com>
- <20241023134146.28448-1-sebott@redhat.com>
+	s=arc-20240116; t=1729693848; c=relaxed/simple;
+	bh=+AgzRitTrPavLHm2h/DGn6E26S0hzz8IHgAWQEz2QMU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=maNo0WID46BWBRnszBgIb9NXQhSlP2d2gGGBUctMI/RY21q851eQVeuFmCyW9EM4rOM4thWOrSTm6aapVW3vC2zzyfF7ae49J/mWVc2ZUm0bm0ibJrbjGmif5fANAyocX/ftPQYrALkzu4Qra5wwAxdUiR4aL+efi6SGsxcHuhk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nkd+Yead; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nkd+Yead"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85021C4CEE9;
+	Wed, 23 Oct 2024 14:30:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1729693848;
+	bh=+AgzRitTrPavLHm2h/DGn6E26S0hzz8IHgAWQEz2QMU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=nkd+YeadgHrT5fqE7GVix2L4D7atEfTzKlxJfQH4Fv1tT2TjLGdSa7l0uKAd0LiZT
+	 HYKtx8PuKcZi2Q6i7cnAgA65lfDkZC3FuyEUNIlAp4wb6y2lKltUZytVOgNNqWzsUc
+	 faivZQN+y8nWF9w7u+GfN+6Z2pLLQ/G0W7fUvfWkXDtt9mpODt48SwXpr3fNhNaJJ1
+	 dURSluaOIifv9LMT2VMEJEndyabC5UFm9PHaWomzkX34OXDPTvjameUBOotzuonSQg
+	 jtX5fXZyZCN3i5nScM4yJ1cNnD0JajXlsJfK8GfDhoxc5szXQi2I1TQ8woih2OTfVV
+	 rR4ArsswlMA5g==
+From: Sasha Levin <sashal@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Cc: Showrya M N <showrya@chelsio.com>,
+	Potnuri Bharat Teja <bharat@chelsio.com>,
+	Jason Gunthorpe <jgg@nvidia.com>,
+	Sasha Levin <sashal@kernel.org>,
+	bmt@zurich.ibm.com,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.11 21/30] RDMA/siw: Add sendpage_ok() check to disable MSG_SPLICE_PAGES
+Date: Wed, 23 Oct 2024 10:29:46 -0400
+Message-ID: <20241023143012.2980728-21-sashal@kernel.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20241023143012.2980728-1-sashal@kernel.org>
+References: <20241023143012.2980728-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241023134146.28448-1-sebott@redhat.com>
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.11.5
+Content-Transfer-Encoding: 8bit
 
-On Wed, Oct 23, 2024 at 03:41:46PM +0200, Sebastian Ott wrote:
-> Add the device name to the per device kmem_cache names to
-> ensure their uniqueness. This fixes warnings like this:
-> "kmem_cache of name 'mlx5_fs_fgs' already exists".
-> 
-> Reviwed-by: Breno Leitao <leitao@debian.org>
-in fact, it should be:
+From: Showrya M N <showrya@chelsio.com>
 
-Reviewed-by: Breno Leitao <leitao@debian.org>
+[ Upstream commit 4e1e3dd88a4cedd5ccc1a3fc3d71e03b70a7a791 ]
+
+While running ISER over SIW, the initiator machine encounters a warning
+from skb_splice_from_iter() indicating that a slab page is being used in
+send_page. To address this, it is better to add a sendpage_ok() check
+within the driver itself, and if it returns 0, then MSG_SPLICE_PAGES flag
+should be disabled before entering the network stack.
+
+A similar issue has been discussed for NVMe in this thread:
+https://lore.kernel.org/all/20240530142417.146696-1-ofir.gal@volumez.com/
+
+  WARNING: CPU: 0 PID: 5342 at net/core/skbuff.c:7140 skb_splice_from_iter+0x173/0x320
+  Call Trace:
+   tcp_sendmsg_locked+0x368/0xe40
+   siw_tx_hdt+0x695/0xa40 [siw]
+   siw_qp_sq_process+0x102/0xb00 [siw]
+   siw_sq_resume+0x39/0x110 [siw]
+   siw_run_sq+0x74/0x160 [siw]
+   kthread+0xd2/0x100
+   ret_from_fork+0x34/0x40
+   ret_from_fork_asm+0x1a/0x30
+
+Link: https://patch.msgid.link/r/20241007125835.89942-1-showrya@chelsio.com
+Signed-off-by: Showrya M N <showrya@chelsio.com>
+Signed-off-by: Potnuri Bharat Teja <bharat@chelsio.com>
+Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/sw/siw/siw_qp_tx.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/infiniband/sw/siw/siw_qp_tx.c b/drivers/infiniband/sw/siw/siw_qp_tx.c
+index 64ad9e0895bd0..a034264c56698 100644
+--- a/drivers/infiniband/sw/siw/siw_qp_tx.c
++++ b/drivers/infiniband/sw/siw/siw_qp_tx.c
+@@ -331,6 +331,8 @@ static int siw_tcp_sendpages(struct socket *s, struct page **page, int offset,
+ 			msg.msg_flags &= ~MSG_MORE;
+ 
+ 		tcp_rate_check_app_limited(sk);
++		if (!sendpage_ok(page[i]))
++			msg.msg_flags &= ~MSG_SPLICE_PAGES;
+ 		bvec_set_page(&bvec, page[i], bytes, offset);
+ 		iov_iter_bvec(&msg.msg_iter, ITER_SOURCE, &bvec, 1, size);
+ 
+-- 
+2.43.0
+
