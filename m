@@ -1,94 +1,88 @@
-Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
+Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD95D43ACB;
-	Thu, 24 Oct 2024 05:49:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE0F01B6CFD;
+	Thu, 24 Oct 2024 12:46:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729748985; cv=none; b=U31hYVUM2RWJOLPn8Lp1feBSRmXcQpA10zSQYz7i3H49TPg1+yQqM4h90X8ofI97VtQyUgqWsLh9XDAOP4He2WIZ/AbhwVkctIyhuTqAZE8n1MmY9feFElo2UxAq1w6LbXz09/4YWBAAFAppKKhxUxQ7Re8Mm7FIUrqWK2Dx5B4=
+	t=1729773984; cv=none; b=PuhKtlhLDW4Dc4lOuLycMTX8ihfJNdfW+xeul6Tkszpi+V7qbKICaMN71AMDoWShHLR+otl21L1bIotT/hN6CdnA8D6KDBRy64OEbLfyMYDhMicp9LLPTeReTkWJGuMedROqy8+xm1Sbjj2bTgtDwqJySmCvjSAsrCIzc2mlc1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729748985; c=relaxed/simple;
-	bh=PfaPHb6N84Ggiq/7uzRDzg1B90UbdHecRky5BAIKIzM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=UBAflJ+Dg3qDm1G6CKOB/mW64pdVgsX0IDdmf+TxJRyuMuGbmU49170AW8B2ecV/T5I0xwQfxXhjA8d9NGDxl8On6OUk8dlvtkaCBExGlw5PRWpLllI/JPNJr8ggYZO7sEgSlDedLc2+l3L7jaGyrvCiVV2muq2QxwXFcXzSp2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=tByxvxZS; arc=none smtp.client-ip=115.124.30.119
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="tByxvxZS"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1729748979; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=qI2X3JNmf4ad1kTgTPuG2xPBcGK0wWOZXmUAGVTv79M=;
-	b=tByxvxZS5xPS9E3UPZt7mgThLOj7FF6Z7Q4wGU/pc0UgGMn7ulJPUU7Q0SPzg0kcxDaiyjimAEIPQb10lvwUanOnNfbYgvNwU2jiViVVWx5VoVx4actwK+n/xUTSe0TrLlxnZk2U7VFNARmftkZU8UIH+UOLnuSihTGR6nzhn9s=
-Received: from 30.221.147.97(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WHo.a3s_1729748976 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Thu, 24 Oct 2024 13:49:37 +0800
-Message-ID: <a5843fac-c6d3-40f2-b2cb-7bbfde93365e@linux.alibaba.com>
-Date: Thu, 24 Oct 2024 13:49:35 +0800
+	s=arc-20240116; t=1729773984; c=relaxed/simple;
+	bh=lC/oF7TbHcuydV/GiaJHI3ne/ovWQsgOfqiMjKpctX8=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=OThYV8gcwhOpeHClXcXpre9dWwKbCX1DW/mY90cdezBonUKKXSQrJMEbLP9gUSoZpLIjYVt3y93H7NmcbE43jiGzAZ0W4Av+5E3S4gS86rSf0dAYq0R4d5VQ/dPaV1I1g8CwmcGG76jvYPDoMhUpa7BxDqSSmjWmRsPbrm5lvvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
+Received: from mail.maildlp.com (unknown [172.19.163.44])
+	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4XZ5JK4mLtz1yn3y;
+	Thu, 24 Oct 2024 20:46:25 +0800 (CST)
+Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
+	by mail.maildlp.com (Postfix) with ESMTPS id 2D3B51400CA;
+	Thu, 24 Oct 2024 20:46:18 +0800 (CST)
+Received: from localhost.localdomain (10.90.30.45) by
+ kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Thu, 24 Oct 2024 20:46:17 +0800
+From: Junxian Huang <huangjunxian6@hisilicon.com>
+To: <jgg@ziepe.ca>, <leon@kernel.org>
+CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
+	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>,
+	<tangchengchang@huawei.com>
+Subject: [PATCH v2 for-rc 3/5] RDMA/hns: Modify debugfs name
+Date: Thu, 24 Oct 2024 20:39:58 +0800
+Message-ID: <20241024124000.2931869-4-huangjunxian6@hisilicon.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20241024124000.2931869-1-huangjunxian6@hisilicon.com>
+References: <20241024124000.2931869-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH bpf-next 4/4] bpf/selftests: add simple selftest for
- bpf_smc_ops
-To: Tianchen Ding <dtcccc@linux.alibaba.com>
-Cc: kuba@kernel.org, davem@davemloft.net, netdev@vger.kernel.org,
- linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
- kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com,
- ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
- martin.lau@linux.dev, pabeni@redhat.com, song@kernel.org, sdf@google.com,
- haoluo@google.com, yhs@fb.com, edumazet@google.com,
- john.fastabend@gmail.com, kpsingh@kernel.org, jolsa@kernel.org,
- guwen@linux.alibaba.com
-References: <1729737768-124596-1-git-send-email-alibuda@linux.alibaba.com>
- <1729737768-124596-5-git-send-email-alibuda@linux.alibaba.com>
- <2006b84c-e83a-431b-ac35-bb357459fa96@linux.alibaba.com>
- <284e3cb9-9f27-413c-9c05-f017171fa40e@linux.alibaba.com>
-Content-Language: en-US
-From: "D. Wythe" <alibuda@linux.alibaba.com>
-In-Reply-To: <284e3cb9-9f27-413c-9c05-f017171fa40e@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ kwepemf100018.china.huawei.com (7.202.181.17)
 
+From: Yuyu Li <liyuyu6@huawei.com>
 
+The sub-directory of hns_roce debugfs is named after the device's
+kernel name currently, but it will be inconvenient to use when
+the device is renamed.
 
-On 10/24/24 12:49 PM, Tianchen Ding wrote:
-> On 2024/10/24 12:04, D. Wythe wrote:
->>
->>
->> On 10/24/24 10:42 AM, D. Wythe wrote:
->>> From: "D. Wythe" <alibuda@linux.alibaba.com>
->>>
->>> This PATCH adds a tiny selftest for bpf_smc_ops, to verify the ability
->>> to attach and write access.
->>>
->>> Follow the steps below to run this test.
->>>
->>> make -C tools/testing/selftests/bpf
->>> cd tools/testing/selftests/bpf
->>> sudo ./test_progs -t smc
->>>
->>> Results shows:
->>> Summary: 1/1 PASSED, 0 SKIPPED, 0 FAILED
->>
->>
->> Sorry for just found an issue with vary config. I will fix this issues
->> in the next version.
->>
->> D. Wythe
-> 
-> This doesn't build with !CONFIG_SMC.
-> 
-> Maybe you should create an individual dir. (like what sched_ext does)
+Modify the name to pci name as users can always easily find the
+correspondence between an RDMA device and its pci name.
 
-It's true, I do intend to create an individual dir, and send the patches for
-BPF and SMC separately. Thanks for your advises.
+Fixes: eb7854d63db5 ("RDMA/hns: Support SW stats with debugfs")
+Signed-off-by: Yuyu Li <liyuyu6@huawei.com>
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_debugfs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Best wishes,
-D. Wythe
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_debugfs.c b/drivers/infiniband/hw/hns/hns_roce_debugfs.c
+index e8febb40f645..b869cdc54118 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_debugfs.c
++++ b/drivers/infiniband/hw/hns/hns_roce_debugfs.c
+@@ -5,6 +5,7 @@
+ 
+ #include <linux/debugfs.h>
+ #include <linux/device.h>
++#include <linux/pci.h>
+ 
+ #include "hns_roce_device.h"
+ 
+@@ -86,7 +87,7 @@ void hns_roce_register_debugfs(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_dev_debugfs *dbgfs = &hr_dev->dbgfs;
+ 
+-	dbgfs->root = debugfs_create_dir(dev_name(&hr_dev->ib_dev.dev),
++	dbgfs->root = debugfs_create_dir(pci_name(hr_dev->pci_dev),
+ 					 hns_roce_dbgfs_root);
+ 
+ 	create_sw_stat_debugfs(hr_dev, dbgfs->root);
+-- 
+2.33.0
 
