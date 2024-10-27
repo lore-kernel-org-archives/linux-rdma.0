@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AAC51684AC;
-	Sun, 27 Oct 2024 14:22:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178631684AC;
+	Sun, 27 Oct 2024 14:22:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730038945; cv=none; b=UaWEdUnvR8RlJWzDjDsHJPBvfJmjhyRzmDkOYq2yDaqgnTdMSTiBL4MKXM7ZryrxvuXUGd4ZxKIJNctmwBoRQnwkCoKg+tu/GQCGBeZ/i/WUSRbYLOzG3jol8uIL2hoh6LxBkRhxTL/ajEdA7FsLgPmzaQSmUe6jXBgMYtZuDl0=
+	t=1730038949; cv=none; b=KIzE/8gZi8Jd15ThWJ+xItWnpjuKVTZM+ZWpefiTP7K0bpCdo41nnnb+BKJP2BURhyI0YsHLulSFV6fyp3+q6ahWqNvk13e0KQQZWcPObo+3GuXUaWr2ouGJmBpeeLzNkJYQxaKLA7M0ck+OgLBKsSaNrH9QeKNNfMHoejNbe+Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730038945; c=relaxed/simple;
-	bh=OlIySM8DodN7dp6laXmryqK8XnG8NlruPsXd0qhOBbs=;
+	s=arc-20240116; t=1730038949; c=relaxed/simple;
+	bh=LyGbooKE736rWckmyvuR6Y2aUxxUKiIhQ25bI43LeHo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qllPGg20oSLD9IdKIxnydQucvuqO4W9X+o7NJeKrCKnwd6WirZhiTryGl5XYQ75Nv+MboIXI5w03GHoBxKLlWwxepat3JHKqZdsqT97YlOOn3KYAnYplommonySNiJLiaCEWttlot9YxO3UuKkRBNYT6F7yVjrEVFCofsnIlZ8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sztJgRnj; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=pTnNwAdpMpFuyAf2SIG2nyz0PArQJK4GvrKwJljfOKXff4GiH2oURWzL+50kzzqbK3vDUbv8lHryE4NBd0Ng/h6tAI28qIPyw8SVHzJaFwtaEYfbARQY2doZ3hKU7WVXuBpxt3fx3yJg+cc1qivD62psabV3GQS5QAXsn4wRNls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iCkLbrpn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sztJgRnj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C608AC4CEC3;
-	Sun, 27 Oct 2024 14:22:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iCkLbrpn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBBC4C4CEC3;
+	Sun, 27 Oct 2024 14:22:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730038944;
-	bh=OlIySM8DodN7dp6laXmryqK8XnG8NlruPsXd0qhOBbs=;
+	s=k20201202; t=1730038948;
+	bh=LyGbooKE736rWckmyvuR6Y2aUxxUKiIhQ25bI43LeHo=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=sztJgRnjCjy3T5rMJco14XeEyz8AWK1qLXhlZcsbCww3IJvK3OYpWQrq2z9gEDbiF
-	 FTJoGWbzMr8kWgmSADG6xXLjvVF8HtYovxY6UxlpVj7y7e/Tv2J36mDsf1ni0KXR2Z
-	 /L04eQr+tpgpAe7RiZLdHdK8VRnuV0oh3cNQNiTRxdfhWyD1lngcUvZ2nRU85HQwjw
-	 YjZnNpO3e2lTdKB5KlXnQ1bl3+jFcahVq0pQVLzDcFk027ZEe+D9GNlD7erxmrEzjW
-	 vG3Vcv0r7iIYoRUZpnqyp15h0b7btdwJAWusMpLm4ThTR/ZxmftAjX2BhtFgj6WMm/
-	 xmjbH9ceNw+FQ==
+	b=iCkLbrpnlImhB9B2714xCMDVyAnzWG7MsfR2tObG6bSGDFDz4Bf4CI0mqKt+rhuYq
+	 oH9+qokY2xOMGvGOGy85p6vNn6z9dqDdwZ9MAzJ/Y7n8iQv0e0nn5FsdeSoMXGJcFj
+	 B+Zi8xW0UVh0uK/OidgiacDE2NCdMWAyryo2eQ61nfECpDk59aRsqWtCbWH4zdhzfH
+	 EE5mWIwZYs2U2XkGvGVAKEq7GkstM4Q+7cbJ824WG2VF+/8pl7vlytQS/XVuNbujES
+	 urNdKuuovQ1egFVlgv0jTDSmxVbzWG5blHyNDBWJJkFVst1jo9u8sMvdVfv9ThBNkJ
+	 kD4ta2u0CCROg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -55,9 +55,9 @@ Cc: Leon Romanovsky <leonro@nvidia.com>,
 	linux-pci@vger.kernel.org,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org
-Subject: [PATCH 14/18] RDMA/umem: Separate implicit ODP initialization from explicit ODP
-Date: Sun, 27 Oct 2024 16:21:14 +0200
-Message-ID: <90a17feec5781fb79f56c4ad56f8844878205fab.1730037276.git.leon@kernel.org>
+Subject: [PATCH 10/18] mm/hmm: let users to tag specific PFN with DMA mapped bit
+Date: Sun, 27 Oct 2024 16:21:10 +0200
+Message-ID: <6c79710ccc5d9fec36172fea13498e30132a0600.1730037276.git.leon@kernel.org>
 X-Mailer: git-send-email 2.46.2
 In-Reply-To: <cover.1730037276.git.leon@kernel.org>
 References: <cover.1730037276.git.leon@kernel.org>
@@ -71,154 +71,151 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-Create separate functions for the implicit ODP initialization
-which is different from the explicit ODP initialization.
+Introduce new sticky flag (HMM_PFN_DMA_MAPPED), which isn't overwritten
+by HMM range fault. Such flag allows users to tag specific PFNs with information
+if this specific PFN was already DMA mapped.
 
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/umem_odp.c | 91 +++++++++++++++---------------
- 1 file changed, 46 insertions(+), 45 deletions(-)
+ include/linux/hmm.h | 14 ++++++++++++++
+ mm/hmm.c            | 34 +++++++++++++++++++++-------------
+ 2 files changed, 35 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 30cd8f353476..51d518989914 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -48,41 +48,44 @@
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 126a36571667..5dd655f6766b 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -23,6 +23,8 @@ struct mmu_interval_notifier;
+  * HMM_PFN_WRITE - if the page memory can be written to (requires HMM_PFN_VALID)
+  * HMM_PFN_ERROR - accessing the pfn is impossible and the device should
+  *                 fail. ie poisoned memory, special pages, no vma, etc
++ * HMM_PFN_DMA_MAPPED - Flag preserved on input-to-output transformation
++ *                      to mark that page is already DMA mapped
+  *
+  * On input:
+  * 0                 - Return the current state of the page, do not fault it.
+@@ -36,6 +38,10 @@ enum hmm_pfn_flags {
+ 	HMM_PFN_VALID = 1UL << (BITS_PER_LONG - 1),
+ 	HMM_PFN_WRITE = 1UL << (BITS_PER_LONG - 2),
+ 	HMM_PFN_ERROR = 1UL << (BITS_PER_LONG - 3),
++
++	/* Sticky flag, carried from Input to Output */
++	HMM_PFN_DMA_MAPPED = 1UL << (BITS_PER_LONG - 7),
++
+ 	HMM_PFN_ORDER_SHIFT = (BITS_PER_LONG - 8),
  
- #include "uverbs.h"
+ 	/* Input flags */
+@@ -57,6 +63,14 @@ static inline struct page *hmm_pfn_to_page(unsigned long hmm_pfn)
+ 	return pfn_to_page(hmm_pfn & ~HMM_PFN_FLAGS);
+ }
  
--static inline int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
--				   const struct mmu_interval_notifier_ops *ops)
-+static void ib_init_umem_implicit_odp(struct ib_umem_odp *umem_odp)
++/*
++ * hmm_pfn_to_phys() - return physical address pointed to by a device entry
++ */
++static inline phys_addr_t hmm_pfn_to_phys(unsigned long hmm_pfn)
 +{
-+	umem_odp->is_implicit_odp = 1;
-+	umem_odp->umem.is_odp = 1;
-+	mutex_init(&umem_odp->umem_mutex);
++	return __pfn_to_phys(hmm_pfn & ~HMM_PFN_FLAGS);
 +}
 +
-+static int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
-+			    const struct mmu_interval_notifier_ops *ops)
+ /*
+  * hmm_pfn_to_map_order() - return the CPU mapping size order
+  *
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 7e0229ae4a5a..2a0c34d7cb2b 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -44,8 +44,10 @@ static int hmm_pfns_fill(unsigned long addr, unsigned long end,
  {
- 	struct ib_device *dev = umem_odp->umem.ibdev;
-+	size_t page_size = 1UL << umem_odp->page_shift;
-+	unsigned long start;
-+	unsigned long end;
- 	int ret;
+ 	unsigned long i = (addr - range->start) >> PAGE_SHIFT;
  
- 	umem_odp->umem.is_odp = 1;
- 	mutex_init(&umem_odp->umem_mutex);
+-	for (; addr < end; addr += PAGE_SIZE, i++)
+-		range->hmm_pfns[i] = cpu_flags;
++	for (; addr < end; addr += PAGE_SIZE, i++) {
++		range->hmm_pfns[i] &= HMM_PFN_DMA_MAPPED;
++		range->hmm_pfns[i] |= cpu_flags;
++	}
+ 	return 0;
+ }
  
--	if (!umem_odp->is_implicit_odp) {
--		size_t page_size = 1UL << umem_odp->page_shift;
--		unsigned long start;
--		unsigned long end;
--
--		start = ALIGN_DOWN(umem_odp->umem.address, page_size);
--		if (check_add_overflow(umem_odp->umem.address,
--				       (unsigned long)umem_odp->umem.length,
--				       &end))
--			return -EOVERFLOW;
--		end = ALIGN(end, page_size);
--		if (unlikely(end < page_size))
--			return -EOVERFLOW;
--
--		ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
--					(end - start) >> PAGE_SHIFT,
--					1 << umem_odp->page_shift);
--		if (ret)
--			return ret;
--
--		ret = mmu_interval_notifier_insert(&umem_odp->notifier,
--						   umem_odp->umem.owning_mm,
--						   start, end - start, ops);
--		if (ret)
--			goto out_free_map;
--	}
-+	start = ALIGN_DOWN(umem_odp->umem.address, page_size);
-+	if (check_add_overflow(umem_odp->umem.address,
-+			       (unsigned long)umem_odp->umem.length, &end))
-+		return -EOVERFLOW;
-+	end = ALIGN(end, page_size);
-+	if (unlikely(end < page_size))
-+		return -EOVERFLOW;
-+
-+	ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
-+				(end - start) >> PAGE_SHIFT,
-+				1 << umem_odp->page_shift);
-+	if (ret)
-+		return ret;
-+
-+	ret = mmu_interval_notifier_insert(&umem_odp->notifier,
-+					   umem_odp->umem.owning_mm, start,
-+					   end - start, ops);
-+	if (ret)
-+		goto out_free_map;
+@@ -202,8 +204,10 @@ static int hmm_vma_handle_pmd(struct mm_walk *walk, unsigned long addr,
+ 		return hmm_vma_fault(addr, end, required_fault, walk);
  
+ 	pfn = pmd_pfn(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	for (i = 0; addr < end; addr += PAGE_SIZE, i++, pfn++)
+-		hmm_pfns[i] = pfn | cpu_flags;
++	for (i = 0; addr < end; addr += PAGE_SIZE, i++, pfn++) {
++		hmm_pfns[i] &= HMM_PFN_DMA_MAPPED;
++		hmm_pfns[i] |= pfn | cpu_flags;
++	}
+ 	return 0;
+ }
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+@@ -236,7 +240,7 @@ static int hmm_vma_handle_pte(struct mm_walk *walk, unsigned long addr,
+ 			hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0);
+ 		if (required_fault)
+ 			goto fault;
+-		*hmm_pfn = 0;
++		*hmm_pfn = *hmm_pfn & HMM_PFN_DMA_MAPPED;
+ 		return 0;
+ 	}
+ 
+@@ -253,14 +257,14 @@ static int hmm_vma_handle_pte(struct mm_walk *walk, unsigned long addr,
+ 			cpu_flags = HMM_PFN_VALID;
+ 			if (is_writable_device_private_entry(entry))
+ 				cpu_flags |= HMM_PFN_WRITE;
+-			*hmm_pfn = swp_offset_pfn(entry) | cpu_flags;
++			*hmm_pfn = (*hmm_pfn & HMM_PFN_DMA_MAPPED) | swp_offset_pfn(entry) | cpu_flags;
+ 			return 0;
+ 		}
+ 
+ 		required_fault =
+ 			hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0);
+ 		if (!required_fault) {
+-			*hmm_pfn = 0;
++			*hmm_pfn = *hmm_pfn & HMM_PFN_DMA_MAPPED;
+ 			return 0;
+ 		}
+ 
+@@ -304,11 +308,11 @@ static int hmm_vma_handle_pte(struct mm_walk *walk, unsigned long addr,
+ 			pte_unmap(ptep);
+ 			return -EFAULT;
+ 		}
+-		*hmm_pfn = HMM_PFN_ERROR;
++		*hmm_pfn = (*hmm_pfn & HMM_PFN_DMA_MAPPED) | HMM_PFN_ERROR;
+ 		return 0;
+ 	}
+ 
+-	*hmm_pfn = pte_pfn(pte) | cpu_flags;
++	*hmm_pfn = (*hmm_pfn & HMM_PFN_DMA_MAPPED) | pte_pfn(pte) | cpu_flags;
  	return 0;
  
-@@ -106,7 +109,6 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
- {
- 	struct ib_umem *umem;
- 	struct ib_umem_odp *umem_odp;
--	int ret;
+ fault:
+@@ -448,8 +452,10 @@ static int hmm_vma_walk_pud(pud_t *pudp, unsigned long start, unsigned long end,
+ 		}
  
- 	if (access & IB_ACCESS_HUGETLB)
- 		return ERR_PTR(-EINVAL);
-@@ -118,16 +120,10 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
- 	umem->ibdev = device;
- 	umem->writable = ib_access_writable(access);
- 	umem->owning_mm = current->mm;
--	umem_odp->is_implicit_odp = 1;
- 	umem_odp->page_shift = PAGE_SHIFT;
+ 		pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-		for (i = 0; i < npages; ++i, ++pfn)
+-			hmm_pfns[i] = pfn | cpu_flags;
++		for (i = 0; i < npages; ++i, ++pfn) {
++			hmm_pfns[i] &= HMM_PFN_DMA_MAPPED;
++			hmm_pfns[i] |= pfn | cpu_flags;
++		}
+ 		goto out_unlock;
+ 	}
  
- 	umem_odp->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
--	ret = ib_init_umem_odp(umem_odp, NULL);
--	if (ret) {
--		put_pid(umem_odp->tgid);
--		kfree(umem_odp);
--		return ERR_PTR(ret);
--	}
-+	ib_init_umem_implicit_odp(umem_odp);
- 	return umem_odp;
- }
- EXPORT_SYMBOL(ib_umem_odp_alloc_implicit);
-@@ -248,7 +244,7 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_device *device,
- }
- EXPORT_SYMBOL(ib_umem_odp_get);
+@@ -507,8 +513,10 @@ static int hmm_vma_walk_hugetlb_entry(pte_t *pte, unsigned long hmask,
+ 	}
  
--void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
-+static void ib_umem_odp_free(struct ib_umem_odp *umem_odp)
- {
- 	struct ib_device *dev = umem_odp->umem.ibdev;
+ 	pfn = pte_pfn(entry) + ((start & ~hmask) >> PAGE_SHIFT);
+-	for (; addr < end; addr += PAGE_SIZE, i++, pfn++)
+-		range->hmm_pfns[i] = pfn | cpu_flags;
++	for (; addr < end; addr += PAGE_SIZE, i++, pfn++) {
++		range->hmm_pfns[i] &= HMM_PFN_DMA_MAPPED;
++		range->hmm_pfns[i] |= pfn | cpu_flags;
++	}
  
-@@ -258,14 +254,19 @@ void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
- 	 * It is the driver's responsibility to ensure, before calling us,
- 	 * that the hardware will not attempt to access the MR any more.
- 	 */
--	if (!umem_odp->is_implicit_odp) {
--		mutex_lock(&umem_odp->umem_mutex);
--		ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
--					    ib_umem_end(umem_odp));
--		mutex_unlock(&umem_odp->umem_mutex);
--		mmu_interval_notifier_remove(&umem_odp->notifier);
--		hmm_dma_map_free(dev->dma_device, &umem_odp->map);
--	}
-+	mutex_lock(&umem_odp->umem_mutex);
-+	ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
-+				    ib_umem_end(umem_odp));
-+	mutex_unlock(&umem_odp->umem_mutex);
-+	mmu_interval_notifier_remove(&umem_odp->notifier);
-+	hmm_dma_map_free(dev->dma_device, &umem_odp->map);
-+}
-+
-+void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
-+{
-+	if (!umem_odp->is_implicit_odp)
-+		ib_umem_odp_free(umem_odp);
-+
- 	put_pid(umem_odp->tgid);
- 	kfree(umem_odp);
- }
+ 	spin_unlock(ptl);
+ 	return 0;
 -- 
 2.46.2
 
