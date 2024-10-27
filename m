@@ -1,313 +1,211 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-183.mta1.migadu.com (out-183.mta1.migadu.com [95.215.58.183])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 309CB1DCB0D;
-	Sun, 27 Oct 2024 14:23:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DA851BF37
+	for <linux-rdma@vger.kernel.org>; Sun, 27 Oct 2024 19:28:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.183
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730038997; cv=none; b=vCVICtXpRCJn+HQ8Flg846RUiKtiB6BVBxGhsnFcxnltJTx2wzic+CXUNcM2bjfXuSf/lcHmthHSdT8wkBBfhGeyj25fDvbZIfTVJMwOdxVOxYePQ2xGN2OpHRaKxdKobuu6jEpZlMZoIO6azIXFnO1r1OXrZRn375UOC7HQTd8=
+	t=1730057325; cv=none; b=kzdS2noi2N3h4VkwykSj4zJ7VTyZWJc8BvEK4Geel33KWJfACZBy1/qkRDYHf8jK/uF80HNmhnG83KjLvxzJ8VIRsn2nMCw5ZRiJaQ1Z3Kwpt+0bNRqqEM2G/FhJY5X1mLM23gw7SMQFshcDgbQNNGyO9C2d5aURa6Ptb0LddaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730038997; c=relaxed/simple;
-	bh=ZAkEvCDpOQpT4FqrkcEPmIofeDg0rb/b5+lEupSm25s=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VC74ksCS/CoJ9Wx+FeY81aKcljslT/YyaDwtmUgG+4k2fCpHyI0+aCmLt7kQMEElPcFEfv3ofpF3b7fF02PFmw6E3N1W2t2ItC80aRSzI9BFQ1y2T+Dsgzpc5C6kCmJ0CMlNTbUZYO/gDy9kb6miICcLIsCBWDt9h70g7NNhHIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GU2WiE85; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730057325; c=relaxed/simple;
+	bh=na5RqGkEZnfKl/taVAsW55k5aIMm/HhhoP69JHNVo4w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lFyK9Oy5+EcJicURJMqkqyDVIJ8FalD+cSH2M3kxBbOuyVHFeXFqtU7V/fphlYQiVzpxK55+BHFKkbMFXrdfvk32zzsY0szZCYeKyQMq9NKdN0FWExtJhNpRRsisRxMzaAFBDUBVlC+X5wQa8cgdNHD4LtPrKkFT4BuhMoW63Oc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=H90EGbWT; arc=none smtp.client-ip=95.215.58.183
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GU2WiE85"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38793C4CEC3;
-	Sun, 27 Oct 2024 14:23:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730038997;
-	bh=ZAkEvCDpOQpT4FqrkcEPmIofeDg0rb/b5+lEupSm25s=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GU2WiE85QkyrGZabT77HMzH4RzcXBtUoK7DX8razab6E7GlTeZ2LQTeNI7ZRCEXcF
-	 +9yMHm9zDo08nuNcPNZNSsuaYkBUL9ipGLwLInfLmk0HejWEa8WPu1R8UqdKOsPV74
-	 Z5wpY7UYyju99OwvD8w7GPbHNbCOK/zLgPk0s2GMr97M3wN8lKofvcDQjgjNlAIopH
-	 eIYUU6O634Ehr1WlX/W3GKJbeoFI2GpQCheDt+O+VjGAz5sar3RgcEymVxHQmnOdc4
-	 uO+VYU+gZUk1F3VsP3juUi2vi+UCZ40ddUDVpK0TRukr1wrJIDD2IoyIOcFlFa0aTT
-	 I1l2OPb8MTV4g==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jens Axboe <axboe@kernel.dk>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Christoph Hellwig <hch@lst.de>,
-	Sagi Grimberg <sagi@grimberg.me>
-Cc: Keith Busch <kbusch@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
-	Kevin Tian <kevin.tian@intel.com>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	=?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev,
-	linux-nvme@lists.infradead.org,
-	linux-pci@vger.kernel.org,
-	kvm@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: [RFC PATCH 3/7] blk-mq: add a dma mapping iterator
-Date: Sun, 27 Oct 2024 16:21:56 +0200
-Message-ID: <9b7c6203fbbae90821f2220dba1bd600e3bd23ba.1730037261.git.leon@kernel.org>
-X-Mailer: git-send-email 2.46.2
-In-Reply-To: <cover.1730037261.git.leon@kernel.org>
-References: <cover.1730037261.git.leon@kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="H90EGbWT"
+Message-ID: <2a7dca47-4107-4bd9-b539-aacdf733f3d4@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1730057320;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=DdZnJKOedTRWsKA+yx0HzasB5LXG8yplTAt8DgncFdU=;
+	b=H90EGbWT8vyu3mmQdhIE9QE94gB2tyisxF8QP1UqGSfgy0MeZ6ipltvC8V1+RCDybZwpaq
+	ELSfA3gNVfzNx51ZEWBJI4c9btqWcSLNI1XRtt5wEpHC3Vg0mP7tAcfHtZsQ0Ufg/LdQtM
+	x+m+1T/xdu1cFRcXpDbSZ4IJfxIht20=
+Date: Sun, 27 Oct 2024 20:28:32 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Subject: Re: [PATCH net] net/smc: Fix lookup of netdev by using
+ ib_device_get_netdev()
+To: Wenjia Zhang <wenjia@linux.ibm.com>, Wen Gu <guwen@linux.alibaba.com>,
+ "D. Wythe" <alibuda@linux.alibaba.com>, Tony Lu <tonylu@linux.alibaba.com>,
+ David Miller <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
+ Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+ linux-s390@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>,
+ Jan Karcher <jaka@linux.ibm.com>, Gerd Bayer <gbayer@linux.ibm.com>,
+ Alexandra Winter <wintera@linux.ibm.com>, Halil Pasic <pasic@linux.ibm.com>,
+ Nils Hoppmann <niho@linux.ibm.com>, Niklas Schnell <schnelle@linux.ibm.com>,
+ Thorsten Winkler <twinkler@linux.ibm.com>,
+ Karsten Graul <kgraul@linux.ibm.com>, Stefan Raspl <raspl@linux.ibm.com>,
+ Aswin K <aswin@linux.ibm.com>
+References: <20241025072356.56093-1-wenjia@linux.ibm.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <20241025072356.56093-1-wenjia@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-From: Christoph Hellwig <hch@lst.de>
+在 2024/10/25 9:23, Wenjia Zhang 写道:
+> Commit c2261dd76b54 ("RDMA/device: Add ib_device_set_netdev() as an
+> alternative to get_netdev") introduced an API ib_device_get_netdev.
+> The SMC-R variant of the SMC protocol continued to use the old API
+> ib_device_ops.get_netdev() to lookup netdev. As this commit 8d159eb2117b
+> ("RDMA/mlx5: Use IB set_netdev and get_netdev functions") removed the
+> get_netdev callback from mlx5_ib_dev_common_roce_ops, calling
 
-blk_rq_map_sg is maze of nested loops.  Untangle it by creating an
-iterator that returns [paddr,len] tuples for DMA mapping, and then
-implement the DMA logic on top of this.  This not only removes code
-at the source level, but also generates nicer binary code:
+Thanks a lot.
 
-$ size block/blk-merge.o.*
-   text	   data	    bss	    dec	    hex	filename
-  10001	    432	      0	  10433	   28c1	block/blk-merge.o.new
-  10317	    468	      0	  10785	   2a21	block/blk-merge.o.old
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 
-Last but not least it will be used as a building block for a new
-DMA mapping helper that doesn't rely on struct scatterlist.
+Because the commit 8d159eb2117b ("RDMA/mlx5: Use IB set_netdev and 
+get_netdev functions") removes the get_netdev callback from 
+mlx5_ib_dev_common_roce_ops, in mlx4, get_netdev is still in 
+mlx4_ib_dev_ops. So the following commit will follow mlx5 to remove 
+get_netdev from mlx4 driver.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+ From a59f2e01428640a332a51b8d910ec166704aa441 Mon Sep 17 00:00:00 2001
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+Date: Sun, 27 Oct 2024 20:21:27 +0100
+Subject: [PATCH 1/1] RDMA/mlx4: Use IB get_netdev functions and remove
+  get_netdev callback
+
+In the commit 8d159eb2117b ("RDMA/mlx5: Use IB set_netdev and get_netdev
+functions") removed the get_netdev callback from
+mlx5_ib_dev_common_roce_ops, in mlx4, get_netdev callback should also
+be removed.
+
+Signed-off-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 ---
- block/blk-merge.c | 182 ++++++++++++++++++++--------------------------
- 1 file changed, 77 insertions(+), 105 deletions(-)
+compile successfully only
+---
+  drivers/infiniband/hw/mlx4/main.c | 35 -------------------------------
+  1 file changed, 35 deletions(-)
 
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index ad763ec313b6..b63fd754a5de 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -451,137 +451,109 @@ unsigned int blk_recalc_rq_segments(struct request *rq)
- 	return nr_phys_segs;
- }
- 
--static inline struct scatterlist *blk_next_sg(struct scatterlist **sg,
--		struct scatterlist *sglist)
-+struct phys_vec {
-+	phys_addr_t	paddr;
-+	u32		len;
-+};
-+
-+static bool blk_map_iter_next(struct request *req,
-+		struct req_iterator *iter, struct phys_vec *vec)
- {
--	if (!*sg)
--		return sglist;
-+	unsigned int max_size;
-+	struct bio_vec bv;
- 
- 	/*
--	 * If the driver previously mapped a shorter list, we could see a
--	 * termination bit prematurely unless it fully inits the sg table
--	 * on each mapping. We KNOW that there must be more entries here
--	 * or the driver would be buggy, so force clear the termination bit
--	 * to avoid doing a full sg_init_table() in drivers for each command.
-+	 * For special payload requests there only is a single segment.  Return
-+	 * it now and make sure blk_phys_iter_next stop iterating.
- 	 */
--	sg_unmark_end(*sg);
--	return sg_next(*sg);
--}
-+	if (req->rq_flags & RQF_SPECIAL_PAYLOAD) {
-+		if (!iter->bio)
-+			return false;
-+		vec->paddr = bvec_phys(&req->special_vec);
-+		vec->len = req->special_vec.bv_len;
-+		iter->bio = NULL;
-+		return true;
-+	}
- 
--static unsigned blk_bvec_map_sg(struct request_queue *q,
--		struct bio_vec *bvec, struct scatterlist *sglist,
--		struct scatterlist **sg)
+diff --git a/drivers/infiniband/hw/mlx4/main.c 
+b/drivers/infiniband/hw/mlx4/main.c
+index 529db874d67c..cf34d92de7b1 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -123,40 +123,6 @@ static int num_ib_ports(struct mlx4_dev *dev)
+         return ib_ports;
+  }
+
+-static struct net_device *mlx4_ib_get_netdev(struct ib_device *device,
+-                                            u32 port_num)
 -{
--	unsigned nbytes = bvec->bv_len;
--	unsigned nsegs = 0, total = 0;
-+	if (!iter->iter.bi_size)
-+		return false;
- 
--	while (nbytes > 0) {
--		unsigned offset = bvec->bv_offset + total;
--		unsigned len = get_max_segment_size(&q->limits,
--				bvec_phys(bvec) + total, nbytes);
--		struct page *page = bvec->bv_page;
-+	bv = mp_bvec_iter_bvec(iter->bio->bi_io_vec, iter->iter);
-+	vec->paddr = bvec_phys(&bv);
-+	max_size = get_max_segment_size(&req->q->limits, vec->paddr, UINT_MAX);
-+	bv.bv_len = min(bv.bv_len, max_size);
-+	bio_advance_iter_single(iter->bio, &iter->iter, bv.bv_len);
- 
--		/*
--		 * Unfortunately a fair number of drivers barf on scatterlists
--		 * that have an offset larger than PAGE_SIZE, despite other
--		 * subsystems dealing with that invariant just fine.  For now
--		 * stick to the legacy format where we never present those from
--		 * the block layer, but the code below should be removed once
--		 * these offenders (mostly MMC/SD drivers) are fixed.
--		 */
--		page += (offset >> PAGE_SHIFT);
--		offset &= ~PAGE_MASK;
-+	/*
-+	 * If we are entirely done with this bi_io_vec entry, check if the next
-+	 * one could be merged into it.  This typically happens when moving to
-+	 * the next bio, but some callers also don't pack bvecs tight.
-+	 */
-+	while (!iter->iter.bi_size || !iter->iter.bi_bvec_done) {
-+		struct bio_vec next;
-+
-+		if (!iter->iter.bi_size) {
-+			if (!iter->bio->bi_next)
-+				break;
-+			iter->bio = iter->bio->bi_next;
-+			iter->iter = iter->bio->bi_iter;
-+		}
- 
--		*sg = blk_next_sg(sg, sglist);
--		sg_set_page(*sg, page, len, offset);
-+		next = mp_bvec_iter_bvec(iter->bio->bi_io_vec, iter->iter);
-+		if (bv.bv_len + next.bv_len > max_size ||
-+		    !biovec_phys_mergeable(req->q, &bv, &next))
-+			break;
- 
--		total += len;
--		nbytes -= len;
--		nsegs++;
-+		bv.bv_len += next.bv_len;
-+		bio_advance_iter_single(iter->bio, &iter->iter, next.bv_len);
- 	}
- 
--	return nsegs;
-+	vec->len = bv.bv_len;
-+	return true;
- }
- 
--static inline int __blk_bvec_map_sg(struct bio_vec bv,
--		struct scatterlist *sglist, struct scatterlist **sg)
--{
--	*sg = blk_next_sg(sg, sglist);
--	sg_set_page(*sg, bv.bv_page, bv.bv_len, bv.bv_offset);
--	return 1;
--}
-+#define blk_phys_to_page(_paddr) \
-+	(pfn_to_page(__phys_to_pfn(_paddr)))
- 
--/* only try to merge bvecs into one sg if they are from two bios */
--static inline bool
--__blk_segment_map_sg_merge(struct request_queue *q, struct bio_vec *bvec,
--			   struct bio_vec *bvprv, struct scatterlist **sg)
-+static inline struct scatterlist *blk_next_sg(struct scatterlist **sg,
-+		struct scatterlist *sglist)
- {
+-       struct mlx4_ib_dev *ibdev = to_mdev(device);
+-       struct net_device *dev, *ret = NULL;
 -
--	int nbytes = bvec->bv_len;
+-       rcu_read_lock();
+-       for_each_netdev_rcu(&init_net, dev) {
+-               if (dev->dev.parent != ibdev->ib_dev.dev.parent ||
+-                   dev->dev_port + 1 != port_num)
+-                       continue;
 -
- 	if (!*sg)
--		return false;
+-               if (mlx4_is_bonded(ibdev->dev)) {
+-                       struct net_device *upper;
 -
--	if ((*sg)->length + nbytes > queue_max_segment_size(q))
--		return false;
+-                       upper = netdev_master_upper_dev_get_rcu(dev);
+-                       if (upper) {
+-                               struct net_device *active;
 -
--	if (!biovec_phys_mergeable(q, bvprv, bvec))
--		return false;
+-                               active = 
+bond_option_active_slave_get_rcu(netdev_priv(upper));
+-                               if (active)
+-                                       dev = active;
+-                       }
+-               }
 -
--	(*sg)->length += nbytes;
+-               dev_hold(dev);
+-               ret = dev;
+-               break;
+-       }
 -
--	return true;
+-       rcu_read_unlock();
+-       return ret;
 -}
 -
--static int __blk_bios_map_sg(struct request_queue *q, struct bio *bio,
--			     struct scatterlist *sglist,
--			     struct scatterlist **sg)
--{
--	struct bio_vec bvec, bvprv = { NULL };
--	struct bvec_iter iter;
--	int nsegs = 0;
--	bool new_bio = false;
--
--	for_each_bio(bio) {
--		bio_for_each_bvec(bvec, bio, iter) {
--			/*
--			 * Only try to merge bvecs from two bios given we
--			 * have done bio internal merge when adding pages
--			 * to bio
--			 */
--			if (new_bio &&
--			    __blk_segment_map_sg_merge(q, &bvec, &bvprv, sg))
--				goto next_bvec;
--
--			if (bvec.bv_offset + bvec.bv_len <= PAGE_SIZE)
--				nsegs += __blk_bvec_map_sg(bvec, sglist, sg);
--			else
--				nsegs += blk_bvec_map_sg(q, &bvec, sglist, sg);
-- next_bvec:
--			new_bio = false;
--		}
--		if (likely(bio->bi_iter.bi_size)) {
--			bvprv = bvec;
--			new_bio = true;
--		}
--	}
-+		return sglist;
- 
--	return nsegs;
-+	/*
-+	 * If the driver previously mapped a shorter list, we could see a
-+	 * termination bit prematurely unless it fully inits the sg table
-+	 * on each mapping. We KNOW that there must be more entries here
-+	 * or the driver would be buggy, so force clear the termination bit
-+	 * to avoid doing a full sg_init_table() in drivers for each command.
-+	 */
-+	sg_unmark_end(*sg);
-+	return sg_next(*sg);
- }
- 
- /*
-- * map a request to scatterlist, return number of sg entries setup. Caller
-- * must make sure sg can hold rq->nr_phys_segments entries
-+ * Map a request to scatterlist, return number of sg entries setup. Caller
-+ * must make sure sg can hold rq->nr_phys_segments entries.
-  */
- int __blk_rq_map_sg(struct request_queue *q, struct request *rq,
- 		struct scatterlist *sglist, struct scatterlist **last_sg)
- {
-+	struct req_iterator iter = {
-+		.bio	= rq->bio,
-+		.iter	= rq->bio->bi_iter,
-+	};
-+	struct phys_vec vec;
- 	int nsegs = 0;
- 
--	if (rq->rq_flags & RQF_SPECIAL_PAYLOAD)
--		nsegs = __blk_bvec_map_sg(rq->special_vec, sglist, last_sg);
--	else if (rq->bio)
--		nsegs = __blk_bios_map_sg(q, rq->bio, sglist, last_sg);
-+	while (blk_map_iter_next(rq, &iter, &vec)) {
-+		struct page *page = blk_phys_to_page(vec.paddr);
-+		unsigned int offset = offset_in_page(vec.paddr);
-+
-+		*last_sg = blk_next_sg(last_sg, sglist);
-+		sg_set_page(*last_sg, page, vec.len, offset);
-+		nsegs++;
-+	}
- 
- 	if (*last_sg)
- 		sg_mark_end(*last_sg);
--- 
-2.46.2
+  static int mlx4_ib_update_gids_v1(struct gid_entry *gids,
+                                   struct mlx4_ib_dev *ibdev,
+                                   u32 port_num)
+@@ -2544,7 +2510,6 @@ static const struct ib_device_ops mlx4_ib_dev_ops = {
+         .get_dev_fw_str = get_fw_ver_str,
+         .get_dma_mr = mlx4_ib_get_dma_mr,
+         .get_link_layer = mlx4_ib_port_link_layer,
+-       .get_netdev = mlx4_ib_get_netdev,
+         .get_port_immutable = mlx4_port_immutable,
+         .map_mr_sg = mlx4_ib_map_mr_sg,
+         .mmap = mlx4_ib_mmap,
+--
+2.34.1
+
+Zhu Yanjun
+
+> ib_device_ops.get_netdev didn't work any more at least by using a mlx5
+> device driver. Thus, using ib_device_set_netdev() now became mandatory.
+> 
+> Replace ib_device_ops.get_netdev() with ib_device_get_netdev().
+> 
+> Fixes: 54903572c23c ("net/smc: allow pnetid-less configuration")
+> Fixes: 8d159eb2117b ("RDMA/mlx5: Use IB set_netdev and get_netdev functions")
+> Reported-by: Aswin K <aswin@linux.ibm.com>
+> Reviewed-by: Gerd Bayer <gbayer@linux.ibm.com>
+> Signed-off-by: Wenjia Zhang <wenjia@linux.ibm.com>
+> ---
+>   net/smc/smc_ib.c   | 8 ++------
+>   net/smc/smc_pnet.c | 4 +---
+>   2 files changed, 3 insertions(+), 9 deletions(-)
+> 
+> diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+> index 9297dc20bfe2..9c563cdbea90 100644
+> --- a/net/smc/smc_ib.c
+> +++ b/net/smc/smc_ib.c
+> @@ -899,9 +899,7 @@ static void smc_copy_netdev_ifindex(struct smc_ib_device *smcibdev, int port)
+>   	struct ib_device *ibdev = smcibdev->ibdev;
+>   	struct net_device *ndev;
+>   
+> -	if (!ibdev->ops.get_netdev)
+> -		return;
+> -	ndev = ibdev->ops.get_netdev(ibdev, port + 1);
+> +	ndev = ib_device_get_netdev(ibdev, port + 1);
+>   	if (ndev) {
+>   		smcibdev->ndev_ifidx[port] = ndev->ifindex;
+>   		dev_put(ndev);
+> @@ -921,9 +919,7 @@ void smc_ib_ndev_change(struct net_device *ndev, unsigned long event)
+>   		port_cnt = smcibdev->ibdev->phys_port_cnt;
+>   		for (i = 0; i < min_t(size_t, port_cnt, SMC_MAX_PORTS); i++) {
+>   			libdev = smcibdev->ibdev;
+> -			if (!libdev->ops.get_netdev)
+> -				continue;
+> -			lndev = libdev->ops.get_netdev(libdev, i + 1);
+> +			lndev = ib_device_get_netdev(libdev, i + 1);
+>   			dev_put(lndev);
+>   			if (lndev != ndev)
+>   				continue;
+> diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
+> index 1dd362326c0a..8566937c8903 100644
+> --- a/net/smc/smc_pnet.c
+> +++ b/net/smc/smc_pnet.c
+> @@ -1054,9 +1054,7 @@ static void smc_pnet_find_rdma_dev(struct net_device *netdev,
+>   		for (i = 1; i <= SMC_MAX_PORTS; i++) {
+>   			if (!rdma_is_port_valid(ibdev->ibdev, i))
+>   				continue;
+> -			if (!ibdev->ibdev->ops.get_netdev)
+> -				continue;
+> -			ndev = ibdev->ibdev->ops.get_netdev(ibdev->ibdev, i);
+> +			ndev = ib_device_get_netdev(ibdev->ibdev, i);
+>   			if (!ndev)
+>   				continue;
+>   			dev_put(ndev);
 
