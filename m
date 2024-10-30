@@ -1,66 +1,84 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f100.google.com (mail-oa1-f100.google.com [209.85.160.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6781521A6F0;
-	Wed, 30 Oct 2024 15:14:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36D0A1E8850
+	for <linux-rdma@vger.kernel.org>; Wed, 30 Oct 2024 17:07:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730301263; cv=none; b=WteeseNyHBwPIJBB1FcBKbrQCCFugUfYVqXPiRDfuNfdgIkyD/v0Abt4JK8rc9ay91maGphdIDOdigc9CaZq0c8U1k7yRL6STFRG5ieFe5UZ6N0RC8Qzw7EfECUHDgM2riGut4urSYa4QOAQ+kzGGh36qyC49Bo2wiuNqw0eUL4=
+	t=1730308042; cv=none; b=m/A1jU4xsLKBOh+Qmf+paW7Ba2UxPf4MU8bN3XUOZqg3STpq7YXu286G8WOMsc5n7wcZ1H6kfWuE2gdcSBWrdFBv0H1cXLpq7IkE8r01XJqjW253KhbpSxE2tDidmBhnFgeQjlcdoqnp4KqEXM8PmsSMmSy3fnVta7ttqDho35I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730301263; c=relaxed/simple;
-	bh=OlIySM8DodN7dp6laXmryqK8XnG8NlruPsXd0qhOBbs=;
+	s=arc-20240116; t=1730308042; c=relaxed/simple;
+	bh=sscV9c36s+nmYEYc5d7ETnwRVHtNENWYWlf4AeFX+zg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RT7LK558LAPPfLewHsH1mMfSkPlfmvygpT6wvnYFo1aQNv6THR75D5ICNjQMeO5Jz2Jap3EcPEygaw7Qdf86oql/F4iZ4U1HhMSe1zjSQ/BqKTH0A7hV3zJzZBb3WRle1Oc55X+P0+NwpwgY6yUQETL2L5HzX36lbpIm5Zamny8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hnGwg4Jb; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=Fv1aTHTG1gOS96Ci/McHHtjHOa/7MHVR2ORZTVawrEt2+B9KAjYFSJ64JXBr1nUVM8ELt5wZsdcO0X5nd7C6sWsUcKK0jLMwOzv9S2JU38+YyfZ1gsMI2WVRiLlycyagxOLEasSbmoM1hJV6+y0IAf2DsAxaOtzFY6B9R/YPXBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=purestorage.com; spf=fail smtp.mailfrom=purestorage.com; dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b=JawHfHZc; arc=none smtp.client-ip=209.85.160.100
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=purestorage.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=purestorage.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hnGwg4Jb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6154CC4CED0;
-	Wed, 30 Oct 2024 15:14:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730301263;
-	bh=OlIySM8DodN7dp6laXmryqK8XnG8NlruPsXd0qhOBbs=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hnGwg4JbAdghWJybJUqla2ZegkylUzfKB5TcyGzLPzUbM/IHSIANk1/OjZfOMsIzE
-	 xqJbLAd9/auwfxV3a72k98W/n2OkiLBw+b4+AH4591LyeHiEd9zNYC0YcvAAcDzGWU
-	 MMfeU7lQ/4g02Dp3UlnJ8gcov4oVJueML9uJF2xMFn03x9KMvtYH7yg8crE8p4oVjp
-	 pSLm8g7ZJrlcHiAx4IL0pxQft6UasJBqcwplMv6IxDlVEGvZHcOeI29e4L9G0lUpSe
-	 mshIdIFqzfpeNCnjYDIv78wDqXwdSd35IiiouiRcox3+6KBKU3xNITLDmysnSqFBmq
-	 +2U4Rit5ap4vQ==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jens Axboe <axboe@kernel.dk>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Christoph Hellwig <hch@lst.de>,
-	Sagi Grimberg <sagi@grimberg.me>
-Cc: Leon Romanovsky <leonro@nvidia.com>,
-	Keith Busch <kbusch@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
-	Kevin Tian <kevin.tian@intel.com>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	=?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=purestorage.com header.i=@purestorage.com header.b="JawHfHZc"
+Received: by mail-oa1-f100.google.com with SMTP id 586e51a60fabf-2888bcc0f15so19920fac.0
+        for <linux-rdma@vger.kernel.org>; Wed, 30 Oct 2024 10:07:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=purestorage.com; s=google2022; t=1730308038; x=1730912838; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=RbWXoubdOFjc0J90dYCjMPhouSyIa4++HhnBIkRskoA=;
+        b=JawHfHZcTtKnyld/0z2+jIuBs8ajmXjoINzJSbI48EB1V2zKpWLSYKoG24eMwq1Pxh
+         pmo/efce7ublymZepZ5Yp+W5Bi86wC3luMNzEW0SQAnsbm50AkEPpW/9517u+YGB3QVH
+         lXk1+o2f99JwpHqeTNm+ltg+PU+MmXRKkyQp7dJ7cDt14mq40AJryBwhdPEIxad1LMBs
+         dg0HUNDshOFrpOMkqnsavyZ465zqWKGNlFYEMzc04+LWcq0Ll3E8KOaaSr6OU6rWoFuR
+         K/6OhHzdbD5Ne2psH/DSsG/RaiYtQvUdgb1pdzWS6ZLeQ79gvj0mXOD+gXD1FZJZiXbD
+         fNJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730308038; x=1730912838;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=RbWXoubdOFjc0J90dYCjMPhouSyIa4++HhnBIkRskoA=;
+        b=lQr/kMQmCaNOcdXdEN6dToVBRc0Ai8/wRfJcjbeZFZ4jk5lrmmDy2aKjpUfC6QqCJd
+         aQX82rdjMJIIeikf7rpaOcqq86JpElAxsE77YRH0G2K2QRdyjof/mDAyWmshqfAyNYjb
+         MWpNAQsq7RfvHCnQ9W9eoaP1ilfVAFaDGMGghHsGCk/vujoI+tVmKRa3eaqkql5KYmjf
+         0cwKQ4k3G5b5PekzLOdBTJq4S2G+K4LpqwiMn7L9CGqgDNYurpB4ImxGGFh1OTtBc0WD
+         y+d77yZWKNwaRjTJiBVx8kKraJcDQJaK2qK3ihprMQD3wOtRWxMOQ3TjkLqi89kXwvU4
+         nWng==
+X-Forwarded-Encrypted: i=1; AJvYcCVYyMQckRo3VyA7/sxsWtIzFhbQUys+9ge3DjREUKP5qVmtXcwEjvU5eewCIaATzGWAn/Tu8qz7I2pH@vger.kernel.org
+X-Gm-Message-State: AOJu0YxRq1fVhM5jCpTYKRQ1RdktFwgj/YhF23U80MPO276H8dE4YZgi
+	+kLr24K1+BeJQgLBk0i+l2zFxFUrG8wgjbzn38OPzFJba6MSLUrSGJjL2sx+7RgNsDE5l0ehPQ2
+	bvxVI8t5KVg+LZIFS3vvyTCSyMPII6HXKYsalABYKG1Rt6QD/
+X-Google-Smtp-Source: AGHT+IFZ1ja9hOm6xMDtpK+g/fuGzrKd8ri+RB3+ls3i5NMQT1baHJAWIH9aQoyhyCOGJDr0RPF9+sujZcx7
+X-Received: by 2002:a05:6870:b513:b0:27b:56b1:9ded with SMTP id 586e51a60fabf-29051b6d026mr4285823fac.5.1730308038088;
+        Wed, 30 Oct 2024 10:07:18 -0700 (PDT)
+Received: from c7-smtp-2023.dev.purestorage.com ([2620:125:9017:12:36:3:5:0])
+        by smtp-relay.gmail.com with ESMTPS id 586e51a60fabf-29035d10eccsm264258fac.2.2024.10.30.10.07.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 30 Oct 2024 10:07:18 -0700 (PDT)
+X-Relaying-Domain: purestorage.com
+Received: from dev-csander.dev.purestorage.com (dev-csander.dev.purestorage.com [10.7.70.37])
+	by c7-smtp-2023.dev.purestorage.com (Postfix) with ESMTP id DF5EC3406B0;
+	Wed, 30 Oct 2024 11:07:16 -0600 (MDT)
+Received: by dev-csander.dev.purestorage.com (Postfix, from userid 1557716354)
+	id D28C1E40BBB; Wed, 30 Oct 2024 11:06:46 -0600 (MDT)
+From: Caleb Sander Mateos <csander@purestorage.com>
+To: Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: Caleb Sander Mateos <csander@purestorage.com>,
+	Parav Pandit <parav@nvidia.com>,
+	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev,
-	linux-nvme@lists.infradead.org,
-	linux-pci@vger.kernel.org,
-	kvm@vger.kernel.org,
-	linux-mm@kvack.org
-Subject: [PATCH v1 14/17] RDMA/umem: Separate implicit ODP initialization from explicit ODP
-Date: Wed, 30 Oct 2024 17:13:00 +0200
-Message-ID: <23253254adaf3a1e6953de0c5852ac4598b456bd.1730298502.git.leon@kernel.org>
-X-Mailer: git-send-email 2.46.2
-In-Reply-To: <cover.1730298502.git.leon@kernel.org>
-References: <cover.1730298502.git.leon@kernel.org>
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2] mlx5: only schedule EQ comp tasklet if necessary
+Date: Wed, 30 Oct 2024 11:06:18 -0600
+Message-ID: <20241030170619.3126428-1-csander@purestorage.com>
+X-Mailer: git-send-email 2.45.2
+In-Reply-To: <CY8PR12MB7195672F740581A045ADBF8CDC542@CY8PR12MB7195.namprd12.prod.outlook.com>
+References: <CY8PR12MB7195672F740581A045ADBF8CDC542@CY8PR12MB7195.namprd12.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -69,156 +87,107 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+Currently, the mlx5_eq_comp_int() interrupt handler schedules a tasklet
+to call mlx5_cq_tasklet_cb() if it processes any completions. For CQs
+whose completions don't need to be processed in tasklet context, this
+adds unnecessary overhead. In a heavy TCP workload, we see 4% of CPU
+time spent on the tasklet_trylock() in tasklet_action_common(), with a
+smaller amount spent on the atomic operations in tasklet_schedule(),
+tasklet_clear_sched(), and locking the spinlock in mlx5_cq_tasklet_cb().
+TCP completions are handled by mlx5e_completion_event(), which schedules
+NAPI to poll the queue, so they don't need tasklet processing.
 
-Create separate functions for the implicit ODP initialization
-which is different from the explicit ODP initialization.
+Schedule the tasklet in mlx5_add_cq_to_tasklet() instead to avoid this
+overhead. mlx5_add_cq_to_tasklet() is responsible for enqueuing the CQs
+to be processed in tasklet context, so it can schedule the tasklet. CQs
+that need tasklet processing have their interrupt comp handler set to
+mlx5_add_cq_to_tasklet(), so they will schedule the tasklet. CQs that
+don't need tasklet processing won't schedule the tasklet. To avoid
+scheduling the tasklet multiple times during the same interrupt, only
+schedule the tasklet in mlx5_add_cq_to_tasklet() if the tasklet work
+queue was empty before the new CQ was pushed to it.
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+The additional branch in mlx5_add_cq_to_tasklet(), called for each EQE,
+may add a small cost for the userspace Infiniband CQs whose completions
+are processed in tasklet context. But this seems worth it to avoid the
+tasklet overhead for CQs that don't need it.
+
+Note that the mlx4 driver works the same way: it schedules the tasklet
+in mlx4_add_cq_to_tasklet() and only if the work queue was empty before.
+
+Signed-off-by: Caleb Sander Mateos <csander@purestorage.com>
+Reviewed-by: Parav Pandit <parav@nvidia.com>
 ---
- drivers/infiniband/core/umem_odp.c | 91 +++++++++++++++---------------
- 1 file changed, 46 insertions(+), 45 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c | 5 +++++
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c | 5 +----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 30cd8f353476..51d518989914 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -48,41 +48,44 @@
- 
- #include "uverbs.h"
- 
--static inline int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
--				   const struct mmu_interval_notifier_ops *ops)
-+static void ib_init_umem_implicit_odp(struct ib_umem_odp *umem_odp)
-+{
-+	umem_odp->is_implicit_odp = 1;
-+	umem_odp->umem.is_odp = 1;
-+	mutex_init(&umem_odp->umem_mutex);
-+}
-+
-+static int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
-+			    const struct mmu_interval_notifier_ops *ops)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
+index 4caa1b6f40ba..25f3b26db729 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
+@@ -69,22 +69,27 @@ void mlx5_cq_tasklet_cb(struct tasklet_struct *t)
+ static void mlx5_add_cq_to_tasklet(struct mlx5_core_cq *cq,
+ 				   struct mlx5_eqe *eqe)
  {
- 	struct ib_device *dev = umem_odp->umem.ibdev;
-+	size_t page_size = 1UL << umem_odp->page_shift;
-+	unsigned long start;
-+	unsigned long end;
- 	int ret;
+ 	unsigned long flags;
+ 	struct mlx5_eq_tasklet *tasklet_ctx = cq->tasklet_ctx.priv;
++	bool schedule_tasklet = false;
  
- 	umem_odp->umem.is_odp = 1;
- 	mutex_init(&umem_odp->umem_mutex);
- 
--	if (!umem_odp->is_implicit_odp) {
--		size_t page_size = 1UL << umem_odp->page_shift;
--		unsigned long start;
--		unsigned long end;
--
--		start = ALIGN_DOWN(umem_odp->umem.address, page_size);
--		if (check_add_overflow(umem_odp->umem.address,
--				       (unsigned long)umem_odp->umem.length,
--				       &end))
--			return -EOVERFLOW;
--		end = ALIGN(end, page_size);
--		if (unlikely(end < page_size))
--			return -EOVERFLOW;
--
--		ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
--					(end - start) >> PAGE_SHIFT,
--					1 << umem_odp->page_shift);
--		if (ret)
--			return ret;
--
--		ret = mmu_interval_notifier_insert(&umem_odp->notifier,
--						   umem_odp->umem.owning_mm,
--						   start, end - start, ops);
--		if (ret)
--			goto out_free_map;
--	}
-+	start = ALIGN_DOWN(umem_odp->umem.address, page_size);
-+	if (check_add_overflow(umem_odp->umem.address,
-+			       (unsigned long)umem_odp->umem.length, &end))
-+		return -EOVERFLOW;
-+	end = ALIGN(end, page_size);
-+	if (unlikely(end < page_size))
-+		return -EOVERFLOW;
-+
-+	ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
-+				(end - start) >> PAGE_SHIFT,
-+				1 << umem_odp->page_shift);
-+	if (ret)
-+		return ret;
-+
-+	ret = mmu_interval_notifier_insert(&umem_odp->notifier,
-+					   umem_odp->umem.owning_mm, start,
-+					   end - start, ops);
-+	if (ret)
-+		goto out_free_map;
- 
- 	return 0;
- 
-@@ -106,7 +109,6 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
- {
- 	struct ib_umem *umem;
- 	struct ib_umem_odp *umem_odp;
--	int ret;
- 
- 	if (access & IB_ACCESS_HUGETLB)
- 		return ERR_PTR(-EINVAL);
-@@ -118,16 +120,10 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
- 	umem->ibdev = device;
- 	umem->writable = ib_access_writable(access);
- 	umem->owning_mm = current->mm;
--	umem_odp->is_implicit_odp = 1;
- 	umem_odp->page_shift = PAGE_SHIFT;
- 
- 	umem_odp->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
--	ret = ib_init_umem_odp(umem_odp, NULL);
--	if (ret) {
--		put_pid(umem_odp->tgid);
--		kfree(umem_odp);
--		return ERR_PTR(ret);
--	}
-+	ib_init_umem_implicit_odp(umem_odp);
- 	return umem_odp;
- }
- EXPORT_SYMBOL(ib_umem_odp_alloc_implicit);
-@@ -248,7 +244,7 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_device *device,
- }
- EXPORT_SYMBOL(ib_umem_odp_get);
- 
--void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
-+static void ib_umem_odp_free(struct ib_umem_odp *umem_odp)
- {
- 	struct ib_device *dev = umem_odp->umem.ibdev;
- 
-@@ -258,14 +254,19 @@ void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
- 	 * It is the driver's responsibility to ensure, before calling us,
- 	 * that the hardware will not attempt to access the MR any more.
+ 	spin_lock_irqsave(&tasklet_ctx->lock, flags);
+ 	/* When migrating CQs between EQs will be implemented, please note
+ 	 * that you need to sync this point. It is possible that
+ 	 * while migrating a CQ, completions on the old EQs could
+ 	 * still arrive.
  	 */
--	if (!umem_odp->is_implicit_odp) {
--		mutex_lock(&umem_odp->umem_mutex);
--		ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
--					    ib_umem_end(umem_odp));
--		mutex_unlock(&umem_odp->umem_mutex);
--		mmu_interval_notifier_remove(&umem_odp->notifier);
--		hmm_dma_map_free(dev->dma_device, &umem_odp->map);
--	}
-+	mutex_lock(&umem_odp->umem_mutex);
-+	ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
-+				    ib_umem_end(umem_odp));
-+	mutex_unlock(&umem_odp->umem_mutex);
-+	mmu_interval_notifier_remove(&umem_odp->notifier);
-+	hmm_dma_map_free(dev->dma_device, &umem_odp->map);
-+}
+ 	if (list_empty_careful(&cq->tasklet_ctx.list)) {
+ 		mlx5_cq_hold(cq);
++		schedule_tasklet = list_empty(&tasklet_ctx->list);
+ 		list_add_tail(&cq->tasklet_ctx.list, &tasklet_ctx->list);
+ 	}
+ 	spin_unlock_irqrestore(&tasklet_ctx->lock, flags);
 +
-+void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
-+{
-+	if (!umem_odp->is_implicit_odp)
-+		ib_umem_odp_free(umem_odp);
-+
- 	put_pid(umem_odp->tgid);
- 	kfree(umem_odp);
++	if (schedule_tasklet)
++		tasklet_schedule(&tasklet_ctx->task);
  }
+ 
+ /* Callers must verify outbox status in case of err */
+ int mlx5_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+ 		   u32 *in, int inlen, u32 *out, int outlen)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index 859dcf09b770..3fd2091c11c8 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -112,14 +112,14 @@ static int mlx5_eq_comp_int(struct notifier_block *nb,
+ 	struct mlx5_eq_comp *eq_comp =
+ 		container_of(nb, struct mlx5_eq_comp, irq_nb);
+ 	struct mlx5_eq *eq = &eq_comp->core;
+ 	struct mlx5_eqe *eqe;
+ 	int num_eqes = 0;
+-	u32 cqn = -1;
+ 
+ 	while ((eqe = next_eqe_sw(eq))) {
+ 		struct mlx5_core_cq *cq;
++		u32 cqn;
+ 
+ 		/* Make sure we read EQ entry contents after we've
+ 		 * checked the ownership bit.
+ 		 */
+ 		dma_rmb();
+@@ -142,13 +142,10 @@ static int mlx5_eq_comp_int(struct notifier_block *nb,
+ 			break;
+ 	}
+ 
+ 	eq_update_ci(eq, 1);
+ 
+-	if (cqn != -1)
+-		tasklet_schedule(&eq_comp->tasklet_ctx.task);
+-
+ 	return 0;
+ }
+ 
+ /* Some architectures don't latch interrupts when they are disabled, so using
+  * mlx5_eq_poll_irq_disabled could end up losing interrupts while trying to
 -- 
-2.46.2
+2.45.2
 
