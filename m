@@ -1,249 +1,73 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70A6514901B
-	for <linux-rdma@vger.kernel.org>; Thu, 31 Oct 2024 08:59:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EBE5156967
+	for <linux-rdma@vger.kernel.org>; Thu, 31 Oct 2024 09:03:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730365150; cv=none; b=DYBBx8ie8TtKpdOh8kUO3MnE8efdydDD0vTq3TrbYzj7/NssUWQi+8x6BAYTBNc9GjfxsodFNgZCE9g0EI+B6tlFXfLlTWn205vzarCs4gwd5ILnpnsOHn1VEM4XFGRc7o0XS3VuwShwryz17BA+VL3+yqXfouwZ16r4uiX8LNk=
+	t=1730365396; cv=none; b=clSE8aSduuVAx/6bEVWA/fW5OEk609BvgM+b0mmjbgbe7A84dHDkcZIc5Flk2AhEGPCAbQ4QY75tVOqBKXI9kGhgPCWDCM48iG6woinIMYJ5+Xlz6qzKYzKSEXTr2Q8yjD9OKsnuOkpgZDDZEOsCXQxvqW6qyxAgBJqH6qH5pOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730365150; c=relaxed/simple;
-	bh=98FZ2rrySdofntpsNzcdZRkUMF/ZBV/kU6/OVjS463Y=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=q7TofBRsL5LdpYbzMf2bGrhWDr5gJILk4DS4jyo/cHQi8J1Oelkj+IR8ZF3EX5vrCn7ulUdEUfv0KXUoUEeZFzLL/+afjdHRQtRftQyFN5Fq/+AOhHtJ+zMmYLT+Z536zpK0QznB9XjBVGGb1ps4efz/3Eq9qN28JAZSq/hzHDU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Wgi8QkB6; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Wgi8QkB6"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730365147; x=1761901147;
-  h=date:from:to:cc:subject:message-id;
-  bh=98FZ2rrySdofntpsNzcdZRkUMF/ZBV/kU6/OVjS463Y=;
-  b=Wgi8QkB674DqFEoze15mSy4vJ2ohCSNXep7+lSSO4WrdSaEWvyFNLL1I
-   x9EqOj6wCDXzHPp99ltuHMw5LWnWqgyb4FHqDywURjalWeGWHUIeMpIMC
-   oDS6Aj6ahk+EZavtsRhyDqeK9GC7OpAHe5M3Wp7OCA/ZoEsjiFC62/Ti5
-   hUgEQPgnGLgjGbRgDlGp52E8DluMN/ws9Az+xNP6IDpHflHO4wD4BD+y8
-   0KZzESjEhRBNTYnp++U9Q1NVBbrrJEMvsK2JFk2PwZQTN2Hypo7LFJqXe
-   MrcZVdZI8NSrTaO/3xCq/jb35JGBALwBuudMZwPBn/Rm8bO1pbfNfu2wS
-   w==;
-X-CSE-ConnectionGUID: YmTwgJ1xQdKOb6j3+MHdrQ==
-X-CSE-MsgGUID: u7/4jEIzSRSIHCxfejAGjw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11241"; a="47569191"
-X-IronPort-AV: E=Sophos;i="6.11,247,1725346800"; 
-   d="scan'208";a="47569191"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Oct 2024 01:59:07 -0700
-X-CSE-ConnectionGUID: plHg0H2RRW+s5YhzRceA/g==
-X-CSE-MsgGUID: kYeWBTouRmiW5WzE85Shlg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,247,1725346800"; 
-   d="scan'208";a="87115845"
-Received: from lkp-server01.sh.intel.com (HELO a48cf1aa22e8) ([10.239.97.150])
-  by fmviesa005.fm.intel.com with ESMTP; 31 Oct 2024 01:59:05 -0700
-Received: from kbuild by a48cf1aa22e8 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1t6R1D-000ftG-0x;
-	Thu, 31 Oct 2024 08:59:03 +0000
-Date: Thu, 31 Oct 2024 16:58:03 +0800
-From: kernel test robot <lkp@intel.com>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>,
- Jason Gunthorpe <jgg+lists@ziepe.ca>, linux-rdma@vger.kernel.org
-Subject: [rdma:wip/leon-for-next] BUILD SUCCESS
- 1103579d6e32a97c71ef43e045ea559bd27d4c15
-Message-ID: <202410311647.21RLvxNu-lkp@intel.com>
-User-Agent: s-nail v14.9.24
+	s=arc-20240116; t=1730365396; c=relaxed/simple;
+	bh=nENkouSDTwDH9WfPzp0MWFd41UcSQklfyJYOChjKhVU=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=JwLRW9XfmWtq/t5q9noIUDLUhxXYCESlyj5w1+bl/l4u9RwCBw2L3U2OAtIp6JpU4N7QJTcYH8bihMPGTuYq9JVkvW3ucs/ryYpVFLZdD+8+qBqotEPn6j/Q78x8lcOtgpOlAHcItn3O7yWP55p9dSoFf3wjVlIKu3KkjqOljsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.191
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.44])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4XfHzj0X7Jz1jw1f;
+	Thu, 31 Oct 2024 17:01:37 +0800 (CST)
+Received: from kwepemg200003.china.huawei.com (unknown [7.202.181.30])
+	by mail.maildlp.com (Postfix) with ESMTPS id 31C11140156;
+	Thu, 31 Oct 2024 17:03:10 +0800 (CST)
+Received: from huawei.com (10.175.101.6) by kwepemg200003.china.huawei.com
+ (7.202.181.30) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 31 Oct
+ 2024 17:03:04 +0800
+From: Liu Jian <liujian56@huawei.com>
+To: <zyjzyj2000@gmail.com>, <yanjun.zhu@linux.dev>, <jgg@ziepe.ca>,
+	<leon@kernel.org>, <rpearsonhpe@gmail.com>, <kamalh@mellanox.com>,
+	<haggaie@mellanox.com>, <dledford@redhat.com>, <monis@mellanox.com>,
+	<amirv@mellanox.com>
+CC: <linux-rdma@vger.kernel.org>, <liujian56@huawei.com>
+Subject: [PATCH rdma v2] RDMA/rxe: Set queue pair cur_qp_state when being queried
+Date: Thu, 31 Oct 2024 17:20:19 +0800
+Message-ID: <20241031092019.2138467-1-liujian56@huawei.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ kwepemg200003.china.huawei.com (7.202.181.30)
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git wip/leon-for-next
-branch HEAD: 1103579d6e32a97c71ef43e045ea559bd27d4c15  RDMA/efa: Report link speed according to device attributes
+Same with commit e375b9c92985 ("RDMA/cxgb4: Set queue pair state when
+ being queried"). The API for ib_query_qp requires the driver to set
+cur_qp_state on return, add the missing set.
 
-elapsed time: 1089m
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Liu Jian <liujian56@huawei.com>
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
+---
+v1: https://patchwork.kernel.org/project/linux-rdma/patch/20240809083148.1989912-5-liujian56@huawei.com/
+ drivers/infiniband/sw/rxe/rxe_qp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-configs tested: 171
-configs skipped: 6
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index d2f7b5195c19..91d329e90308 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -775,6 +775,7 @@ int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask)
+ 	 * Yield the processor
+ 	 */
+ 	spin_lock_irqsave(&qp->state_lock, flags);
++	attr->cur_qp_state = qp_state(qp);
+ 	if (qp->attr.sq_draining) {
+ 		spin_unlock_irqrestore(&qp->state_lock, flags);
+ 		cond_resched();
+-- 
+2.34.1
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
-
-tested configs:
-alpha                             allnoconfig    gcc-14.1.0
-alpha                            allyesconfig    clang-20
-alpha                               defconfig    gcc-14.1.0
-arc                              allmodconfig    clang-20
-arc                               allnoconfig    gcc-14.1.0
-arc                              allyesconfig    clang-20
-arc                          axs103_defconfig    clang-20
-arc                                 defconfig    gcc-14.1.0
-arc                            hsdk_defconfig    clang-20
-arc                 nsimosci_hs_smp_defconfig    clang-20
-arm                              allmodconfig    clang-20
-arm                               allnoconfig    gcc-14.1.0
-arm                              allyesconfig    clang-20
-arm                         at91_dt_defconfig    clang-20
-arm                        clps711x_defconfig    clang-20
-arm                                 defconfig    gcc-14.1.0
-arm                       imx_v4_v5_defconfig    clang-20
-arm                        keystone_defconfig    clang-20
-arm                         lpc18xx_defconfig    clang-20
-arm                            mmp2_defconfig    gcc-14.1.0
-arm                         mv78xx0_defconfig    clang-20
-arm                        mvebu_v7_defconfig    gcc-14.1.0
-arm                        neponset_defconfig    gcc-14.1.0
-arm                       omap2plus_defconfig    clang-20
-arm                             pxa_defconfig    clang-20
-arm                            qcom_defconfig    clang-20
-arm                         s3c6400_defconfig    gcc-14.1.0
-arm                         socfpga_defconfig    gcc-14.1.0
-arm                           tegra_defconfig    clang-20
-arm64                            allmodconfig    clang-20
-arm64                             allnoconfig    gcc-14.1.0
-arm64                               defconfig    gcc-14.1.0
-csky                              allnoconfig    gcc-14.1.0
-csky                                defconfig    gcc-14.1.0
-hexagon                          alldefconfig    clang-20
-hexagon                          allmodconfig    clang-20
-hexagon                           allnoconfig    gcc-14.1.0
-hexagon                          allyesconfig    clang-20
-hexagon                             defconfig    gcc-14.1.0
-i386                             allmodconfig    clang-19
-i386                              allnoconfig    clang-19
-i386                             allyesconfig    clang-19
-i386        buildonly-randconfig-001-20241031    clang-19
-i386        buildonly-randconfig-002-20241031    clang-19
-i386        buildonly-randconfig-003-20241031    clang-19
-i386        buildonly-randconfig-004-20241031    clang-19
-i386        buildonly-randconfig-005-20241031    clang-19
-i386        buildonly-randconfig-006-20241031    clang-19
-i386                                defconfig    clang-19
-i386                  randconfig-001-20241031    clang-19
-i386                  randconfig-002-20241031    clang-19
-i386                  randconfig-003-20241031    clang-19
-i386                  randconfig-004-20241031    clang-19
-i386                  randconfig-005-20241031    clang-19
-i386                  randconfig-006-20241031    clang-19
-i386                  randconfig-011-20241031    clang-19
-i386                  randconfig-012-20241031    clang-19
-i386                  randconfig-013-20241031    clang-19
-i386                  randconfig-014-20241031    clang-19
-i386                  randconfig-015-20241031    clang-19
-i386                  randconfig-016-20241031    clang-19
-loongarch                        allmodconfig    gcc-14.1.0
-loongarch                         allnoconfig    gcc-14.1.0
-loongarch                           defconfig    gcc-14.1.0
-m68k                             allmodconfig    gcc-14.1.0
-m68k                              allnoconfig    gcc-14.1.0
-m68k                             allyesconfig    gcc-14.1.0
-m68k                          amiga_defconfig    gcc-14.1.0
-m68k                                defconfig    gcc-14.1.0
-m68k                        stmark2_defconfig    clang-20
-microblaze                       allmodconfig    gcc-14.1.0
-microblaze                        allnoconfig    gcc-14.1.0
-microblaze                       allyesconfig    gcc-14.1.0
-microblaze                          defconfig    gcc-14.1.0
-mips                              allnoconfig    gcc-14.1.0
-mips                      bmips_stb_defconfig    gcc-14.1.0
-mips                          eyeq5_defconfig    clang-20
-mips                            gpr_defconfig    clang-20
-mips                          rb532_defconfig    clang-20
-mips                         rt305x_defconfig    clang-20
-mips                         rt305x_defconfig    gcc-14.1.0
-nios2                             allnoconfig    gcc-14.1.0
-nios2                               defconfig    gcc-14.1.0
-openrisc                          allnoconfig    clang-20
-openrisc                         allyesconfig    gcc-14.1.0
-openrisc                            defconfig    gcc-12
-parisc                           allmodconfig    gcc-14.1.0
-parisc                            allnoconfig    clang-20
-parisc                           allyesconfig    gcc-14.1.0
-parisc                              defconfig    gcc-12
-parisc64                            defconfig    gcc-14.1.0
-powerpc                          allmodconfig    gcc-14.1.0
-powerpc                           allnoconfig    clang-20
-powerpc                          allyesconfig    gcc-14.1.0
-powerpc                     asp8347_defconfig    gcc-14.1.0
-powerpc                    gamecube_defconfig    clang-20
-powerpc                    gamecube_defconfig    gcc-14.1.0
-powerpc                    ge_imp3a_defconfig    clang-20
-powerpc                       holly_defconfig    clang-20
-powerpc                      mgcoge_defconfig    gcc-14.1.0
-powerpc                 mpc832x_rdb_defconfig    clang-20
-powerpc                 mpc837x_rdb_defconfig    clang-20
-powerpc                      pasemi_defconfig    gcc-14.1.0
-powerpc                         ps3_defconfig    gcc-14.1.0
-powerpc                     tqm8540_defconfig    clang-20
-powerpc                     tqm8560_defconfig    clang-20
-powerpc                 xes_mpc85xx_defconfig    clang-20
-riscv                            allmodconfig    gcc-14.1.0
-riscv                             allnoconfig    clang-20
-riscv                            allyesconfig    gcc-14.1.0
-riscv                               defconfig    gcc-12
-riscv                    nommu_k210_defconfig    gcc-14.1.0
-s390                             allmodconfig    clang-20
-s390                             allmodconfig    gcc-14.1.0
-s390                              allnoconfig    clang-20
-s390                             allyesconfig    gcc-14.1.0
-s390                                defconfig    gcc-12
-sh                               allmodconfig    gcc-14.1.0
-sh                                allnoconfig    gcc-14.1.0
-sh                               allyesconfig    gcc-14.1.0
-sh                        apsh4ad0a_defconfig    clang-20
-sh                                  defconfig    gcc-12
-sh                          rsk7203_defconfig    clang-20
-sh                      rts7751r2d1_defconfig    clang-20
-sh                           se7343_defconfig    clang-20
-sh                           se7721_defconfig    clang-20
-sh                   sh7724_generic_defconfig    gcc-14.1.0
-sparc                            allmodconfig    gcc-14.1.0
-sparc64                             defconfig    gcc-12
-um                               allmodconfig    clang-20
-um                                allnoconfig    clang-20
-um                               allyesconfig    clang-20
-um                                  defconfig    gcc-12
-um                             i386_defconfig    gcc-12
-um                           x86_64_defconfig    gcc-12
-x86_64                            allnoconfig    clang-19
-x86_64                           allyesconfig    clang-19
-x86_64      buildonly-randconfig-001-20241031    clang-19
-x86_64      buildonly-randconfig-002-20241031    clang-19
-x86_64      buildonly-randconfig-003-20241031    clang-19
-x86_64      buildonly-randconfig-004-20241031    clang-19
-x86_64      buildonly-randconfig-005-20241031    clang-19
-x86_64      buildonly-randconfig-006-20241031    clang-19
-x86_64                              defconfig    clang-19
-x86_64                                  kexec    clang-19
-x86_64                                  kexec    gcc-12
-x86_64                randconfig-001-20241031    clang-19
-x86_64                randconfig-002-20241031    clang-19
-x86_64                randconfig-003-20241031    clang-19
-x86_64                randconfig-004-20241031    clang-19
-x86_64                randconfig-005-20241031    clang-19
-x86_64                randconfig-006-20241031    clang-19
-x86_64                randconfig-011-20241031    clang-19
-x86_64                randconfig-012-20241031    clang-19
-x86_64                randconfig-013-20241031    clang-19
-x86_64                randconfig-014-20241031    clang-19
-x86_64                randconfig-015-20241031    clang-19
-x86_64                randconfig-016-20241031    clang-19
-x86_64                randconfig-071-20241031    clang-19
-x86_64                randconfig-072-20241031    clang-19
-x86_64                randconfig-073-20241031    clang-19
-x86_64                randconfig-074-20241031    clang-19
-x86_64                randconfig-075-20241031    clang-19
-x86_64                randconfig-076-20241031    clang-19
-x86_64                               rhel-8.3    gcc-12
-x86_64                           rhel-8.3-bpf    clang-19
-x86_64                         rhel-8.3-kunit    clang-19
-x86_64                           rhel-8.3-ltp    clang-19
-x86_64                          rhel-8.3-rust    clang-19
-xtensa                            allnoconfig    gcc-14.1.0
-xtensa                    xip_kc705_defconfig    gcc-14.1.0
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
