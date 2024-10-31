@@ -1,45 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76C7D195FF1;
-	Thu, 31 Oct 2024 13:36:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3A66195FF1
+	for <linux-rdma@vger.kernel.org>; Thu, 31 Oct 2024 13:37:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730381819; cv=none; b=JZ2eYnygCL3quPRY9RMM/WDP6poWpE7zXGQncGFwQ9prHPSFpO9L3RC1YZqyjzobxp9y+6a3F3OBVRJRpGCsJ0h1glG8FP1WpYsI70f9BGnm96P6HvqtTUegX+MTLby+sCZlowbrj4bjZsPXVSKPBqncbHBah8HVTRUgXjW6QQc=
+	t=1730381824; cv=none; b=V8CSklnlByKp0hJZexdOqiGZAMxwjV9YT8J3fkGhnVPtM8/ZRoj3xuxlpyRG40b60biu/ota/+GOax061+NRnZW715QZEOlCRuyEKrUnoGLEd+QJ6fGD26Olx+Hj0AsGtJmscMZ+4mLNlGp602RKP3vudA+r9RRzNDJe9KmwSEM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730381819; c=relaxed/simple;
-	bh=g5zIDqS1lgFwlAPosIhVl0Rw/a5LszVsuLo7t4HkTbc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MUI8GydFKmS38e8E07Dw2SAMrjvogehdtAf9xaTqss32fCY7/9NHi8f0lIREojLXzoZOKNG5swMPh2Rp6lokdIFxZmskIUu9daJMIb0MUvaqU6vNpnaLEa5VDJHwvxclFg3d8cv5n2yJEJDx6w/9GLwv5hV/pxDLpkZmeDSO/Ns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ep+llTuV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730381824; c=relaxed/simple;
+	bh=M20uYfjD5RpOG3/msJXy6kaC8H7QrZLAx4mhCiTehIQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=YLnmsB9vrJNh7EwIrv7dEIWl1k+yFy70XoQTPjwJ8fS96qXw1DSCq4jA5b/37dRcKZLQuUrt7utLKOCPVf6EvzpGTMb5MRtkqf6cyOmCGBJWofMDw+loaAos6dF8zd79JrY+rQsC5iMzo+L1m+ziqHaLi4rTm3JvUnUnvxq7JXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=t58CNjN+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ep+llTuV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91CC5C4E692;
-	Thu, 31 Oct 2024 13:36:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="t58CNjN+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D94C0C4E698;
+	Thu, 31 Oct 2024 13:37:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730381819;
-	bh=g5zIDqS1lgFwlAPosIhVl0Rw/a5LszVsuLo7t4HkTbc=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Ep+llTuViGIlfAGPKpvluPJ22wHAOqKb89xpX9ahi3zYhsKawF14vjcwWlQD7RFr1
-	 yxD7rwK4Bd7s46B0CBK/rOIzfFXwoza/Dwmf13ke2na85j0CZNY6Lf9TuUZ8W+sg+D
-	 VOKyy+5LXoU3t/gOInTiusL/pZM2BBODtKDVbxBW/gHoCmXi9sQ60yVgOkpTFdrqkP
-	 /dGSBmb8MOx67QaDnPO/Gdv7/Vxp4awlYui+Of84tt0XSJfsJjoL1RyYguzZElvcEv
-	 bFuXA5tmULg1OlJzI6tIQ/7LNPdseXmkJ2ZW3D96kZhUI5G5rKmKH9gSj+xPw+Cllb
-	 CzdMgzV0q1A4A==
+	s=k20201202; t=1730381823;
+	bh=M20uYfjD5RpOG3/msJXy6kaC8H7QrZLAx4mhCiTehIQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=t58CNjN+rXF7+de0MUk7eUZ1CxfMQOaRc10XXU28MWbDsdz6jUsi6XQuWX8rW9uDK
+	 +zywEvQVCtafRS1udIr2jf99fYAgmUnWNC51SfBRdRN9n4yrW0ffRkdg/bO/Y3Z/Ob
+	 s8ozzSlxKZCGfXkxYD62JzVZh9ChgK5ux+61HuloRanOzqK7aRZke9y0CAQx8EXEzk
+	 b8bpl/jJj9bYxEVKHOaorV/yEO9FlCc0FMxRkvYg6bJR51b1fv+PjPHTnWoBBuWNhm
+	 2A4tqsEbv0044uoVAxqkrCbvVT7E7ockFICGfK3BhHvLjzSz2UTDhQ/UyCBNHwV1FQ
+	 W/tgLgZhMeqrA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Chiara Meiohas <cmeiohas@nvidia.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	linux-rdma@vger.kernel.org,
-	Michael Guralnik <michaelgur@nvidia.com>,
-	netdev@vger.kernel.org,
-	Paolo Abeni <pabeni@redhat.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH rdma-next 0/3] Fixes to set_netdev/get_netdev flow
-Date: Thu, 31 Oct 2024 15:36:49 +0200
-Message-ID: <cover.1730381292.git.leon@kernel.org>
+	linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next 2/3] RDMA/core: Implement RoCE GID port rescan and export delete function
+Date: Thu, 31 Oct 2024 15:36:51 +0200
+Message-ID: <674d498da4637a1503ff1367e28bd09ff942fd5e.1730381292.git.leon@kernel.org>
 X-Mailer: git-send-email 2.46.2
+In-Reply-To: <cover.1730381292.git.leon@kernel.org>
+References: <cover.1730381292.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -48,21 +44,93 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This series fixes the set_netdev/get_netdev flow in mlx5 drive around LAG.
+From: Chiara Meiohas <cmeiohas@nvidia.com>
 
-Thanks
+rdma_roce_rescan_port() scans all network devices in
+the system and adds the gids if relevant to the RoCE device
+port. When not in bonding mode it adds the GIDs of the
+netdevice in this port. When in bonding mode it adds the
+GIDs of both the port's netdevice and the bond master
+netdevice.
 
-Chiara Meiohas (3):
-  RDMA/mlx5: Call dev_put() after the blocking notifier
-  RDMA/core: Implement RoCE GID port rescan and export delete function
-  RDMA/mlx5: Ensure active slave attachment to the bond IB device
+Export roce_del_all_netdev_gids(), which  removes all GIDs
+associated with a specific netdevice for a given port.
 
- drivers/infiniband/core/roce_gid_mgmt.c       | 30 ++++++++++++++++---
- drivers/infiniband/hw/mlx5/main.c             | 29 +++++++++++-------
- .../net/ethernet/mellanox/mlx5/core/lag/lag.c | 12 ++++++++
- include/rdma/ib_verbs.h                       |  3 ++
- 4 files changed, 59 insertions(+), 15 deletions(-)
+Signed-off-by: Chiara Meiohas <cmeiohas@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/roce_gid_mgmt.c | 30 +++++++++++++++++++++----
+ include/rdma/ib_verbs.h                 |  3 +++
+ 2 files changed, 29 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index d5131b3ba8ab..a9f2c6b1b29e 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -515,6 +515,27 @@ void rdma_roce_rescan_device(struct ib_device *ib_dev)
+ }
+ EXPORT_SYMBOL(rdma_roce_rescan_device);
+ 
++/**
++ * rdma_roce_rescan_port - Rescan all of the network devices in the system
++ * and add their gids if relevant to the port of the RoCE device.
++ *
++ * @ib_dev: IB device
++ * @port: Port number
++ */
++void rdma_roce_rescan_port(struct ib_device *ib_dev, u32 port)
++{
++	struct net_device *ndev = NULL;
++
++	if (rdma_protocol_roce(ib_dev, port)) {
++		ndev = ib_device_get_netdev(ib_dev, port);
++		if (!ndev)
++			return;
++		enum_all_gids_of_dev_cb(ib_dev, port, ndev, ndev);
++		dev_put(ndev);
++	}
++}
++EXPORT_SYMBOL(rdma_roce_rescan_port);
++
+ static void callback_for_addr_gid_device_scan(struct ib_device *device,
+ 					      u32 port,
+ 					      struct net_device *rdma_ndev,
+@@ -575,16 +596,17 @@ static void handle_netdev_upper(struct ib_device *ib_dev, u32 port,
+ 	}
+ }
+ 
+-static void _roce_del_all_netdev_gids(struct ib_device *ib_dev, u32 port,
+-				      struct net_device *event_ndev)
++void roce_del_all_netdev_gids(struct ib_device *ib_dev,
++			      u32 port, struct net_device *ndev)
+ {
+-	ib_cache_gid_del_all_netdev_gids(ib_dev, port, event_ndev);
++	ib_cache_gid_del_all_netdev_gids(ib_dev, port, ndev);
+ }
++EXPORT_SYMBOL(roce_del_all_netdev_gids);
+ 
+ static void del_netdev_upper_ips(struct ib_device *ib_dev, u32 port,
+ 				 struct net_device *rdma_ndev, void *cookie)
+ {
+-	handle_netdev_upper(ib_dev, port, cookie, _roce_del_all_netdev_gids);
++	handle_netdev_upper(ib_dev, port, cookie, roce_del_all_netdev_gids);
+ }
+ 
+ static void add_netdev_upper_ips(struct ib_device *ib_dev, u32 port,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 9cb8b5fe7eee..67551133b522 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4734,6 +4734,9 @@ ib_get_vector_affinity(struct ib_device *device, int comp_vector)
+  * @device:         the rdma device
+  */
+ void rdma_roce_rescan_device(struct ib_device *ibdev);
++void rdma_roce_rescan_port(struct ib_device *ib_dev, u32 port);
++void roce_del_all_netdev_gids(struct ib_device *ib_dev,
++			      u32 port, struct net_device *ndev);
+ 
+ struct ib_ucontext *ib_uverbs_get_ucontext_file(struct ib_uverbs_file *ufile);
+ 
 -- 
 2.46.2
 
