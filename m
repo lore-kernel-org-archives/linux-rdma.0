@@ -1,132 +1,63 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B82221B95B;
-	Thu, 31 Oct 2024 21:18:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E7855D8F0;
+	Fri,  1 Nov 2024 02:51:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730409530; cv=none; b=CXH2mRRwXU4wNodljRDIX3MetPYWidbibuU4fLqKwLL4jfFsleNDJ2pcdn6CmJATNUIiZ0F57kYH3xBSKdaOF11QvfihoHBnP5tq7T1Q3talz9KyPor6I1nGPlAhmbYVCwJ9T+U1iTCAnPfQ0k+K5Rzr/8A5848T7u8BppVIj/M=
+	t=1730429515; cv=none; b=NswEm1tvMU9sc+Y0tniCfup+58oLbEWQczyYAHQUGaniaHnr0qmLQP+ZRmMYal7KABdhQc2r6n8NetPDNdo6HRcLX955cNwQZWjuPYSK58/VrYQqF3Vr3z7HxP/rbfQmJnaQ3OI4TuM21FysrNzeBY2XeV9jk49Q20k5QZN5M4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730409530; c=relaxed/simple;
-	bh=cpF4AAIzOXZkhcxxrsLBIFg7A1MuiEGbI4VYVNmRk2I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=fXWydcTckPwAkrENjwo9kxOzW6qUXDA6oe73dDomPtcinqiaTcpbbconc0jeDRz/wewdwp0fneIXmrIlw+hPi2llObKDKN80ioNPt8PeZdq3aQOxXSSdjk7jJfQU05QxUe/Uktpo8UvWK1d3hA+q0/k1h1EGjLZB19CtjS5T3DY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C6EFD153B;
-	Thu, 31 Oct 2024 14:19:11 -0700 (PDT)
-Received: from [10.1.196.40] (e121345-lin.cambridge.arm.com [10.1.196.40])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 334AF3F73B;
-	Thu, 31 Oct 2024 14:18:30 -0700 (PDT)
-Message-ID: <7e362d8b-c02a-4327-9c5d-af1c4725ddc7@arm.com>
-Date: Thu, 31 Oct 2024 21:18:11 +0000
+	s=arc-20240116; t=1730429515; c=relaxed/simple;
+	bh=3GRgH3QUTsj8zrU6zG3ob2prYP2gWD2tX7rGxVv39+k=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=UuxXaarNLv2EVYTJZxUzJ6cR0RZ7GBMbW1RgSIJP3w+vnIeJgPu8SRiwA31SmcQYrWDwTWhObW8ykrkHKpdKq2fGH9ozWhklhM12R2gXws3dybzXKnegItz+PlFpu5ezVl+1OSQWyXnn1roXpt7nx1w6AC3sxCj3nsR3riwhdx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XUczLs4E; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XUczLs4E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 484D2C4CEC3;
+	Fri,  1 Nov 2024 02:51:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1730429515;
+	bh=3GRgH3QUTsj8zrU6zG3ob2prYP2gWD2tX7rGxVv39+k=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=XUczLs4EsRboNpcc/pPYiKZhVAAmCFvyl5Oxn3e1Ge7uATKHlKVPonBcvIOi8Ivhb
+	 t/iiFsDrR4WGfixVP2oPWU6dSBPBWDyK/9gdX00+rBUJvvtR6USiQWEY1dznBrzSeN
+	 aAOELgSNpoRwHP8diL711kX5IESL/wH8jhGjyo6kk71JHkaskArDsv1xt2LG1ou5Ps
+	 V3zTxdx+rxq5nC6Rw0XkgovuEdFjln4/3eWtQvxvgDYX8jsbZ0S+CRB++aIVfnGXTE
+	 jtReKSp9xg4vHAqW3QzNNDdU/ZBMaRx1fCeemaXoLFpK72Ax0Gj8Njl+BWlwpp6JSw
+	 Vx0mkYmdF0lTw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 71091380AC02;
+	Fri,  1 Nov 2024 02:52:04 +0000 (UTC)
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20241031163014.GA71683@nvidia.com>
+References: <20241031163014.GA71683@nvidia.com>
+X-PR-Tracked-List-Id: <linux-rdma.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20241031163014.GA71683@nvidia.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+X-PR-Tracked-Commit-Id: 76d3ddff7153cc0bcc14a63798d19f5d0693ea71
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 6c52d4da1c742cd01a797a4d0a2d3c5a60dc9bfe
+Message-Id: <173042952294.2161836.3400059072222707235.pr-tracker-bot@kernel.org>
+Date: Fri, 01 Nov 2024 02:52:02 +0000
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Leon Romanovsky <leonro@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1 08/17] dma-mapping: add a dma_need_unmap helper
-To: Leon Romanovsky <leon@kernel.org>, Jens Axboe <axboe@kernel.dk>,
- Jason Gunthorpe <jgg@ziepe.ca>, Joerg Roedel <joro@8bytes.org>,
- Will Deacon <will@kernel.org>, Christoph Hellwig <hch@lst.de>,
- Sagi Grimberg <sagi@grimberg.me>
-Cc: Keith Busch <kbusch@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>,
- Logan Gunthorpe <logang@deltatee.com>, Yishai Hadas <yishaih@nvidia.com>,
- Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
- Kevin Tian <kevin.tian@intel.com>,
- Alex Williamson <alex.williamson@redhat.com>,
- Marek Szyprowski <m.szyprowski@samsung.com>,
- =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>,
- Andrew Morton <akpm@linux-foundation.org>, Jonathan Corbet <corbet@lwn.net>,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
- iommu@lists.linux.dev, linux-nvme@lists.infradead.org,
- linux-pci@vger.kernel.org, kvm@vger.kernel.org, linux-mm@kvack.org
-References: <cover.1730298502.git.leon@kernel.org>
- <00385b3557fa074865d37b0ac613d2cb28bcb741.1730298502.git.leon@kernel.org>
-From: Robin Murphy <robin.murphy@arm.com>
-Content-Language: en-GB
-In-Reply-To: <00385b3557fa074865d37b0ac613d2cb28bcb741.1730298502.git.leon@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 
-On 30/10/2024 3:12 pm, Leon Romanovsky wrote:
-> From: Christoph Hellwig <hch@lst.de>
-> 
-> Add helper that allows a driver to skip calling dma_unmap_*
-> if the DMA layer can guarantee that they are no-nops.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> ---
->   include/linux/dma-mapping.h |  5 +++++
->   kernel/dma/mapping.c        | 20 ++++++++++++++++++++
->   2 files changed, 25 insertions(+)
-> 
-> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-> index 8074a3b5c807..6906edde505d 100644
-> --- a/include/linux/dma-mapping.h
-> +++ b/include/linux/dma-mapping.h
-> @@ -410,6 +410,7 @@ static inline bool dma_need_sync(struct device *dev, dma_addr_t dma_addr)
->   {
->   	return dma_dev_need_sync(dev) ? __dma_need_sync(dev, dma_addr) : false;
->   }
-> +bool dma_need_unmap(struct device *dev);
->   #else /* !CONFIG_HAS_DMA || !CONFIG_DMA_NEED_SYNC */
->   static inline bool dma_dev_need_sync(const struct device *dev)
->   {
-> @@ -435,6 +436,10 @@ static inline bool dma_need_sync(struct device *dev, dma_addr_t dma_addr)
->   {
->   	return false;
->   }
-> +static inline bool dma_need_unmap(struct device *dev)
-> +{
-> +	return false;
-> +}
->   #endif /* !CONFIG_HAS_DMA || !CONFIG_DMA_NEED_SYNC */
->   
->   struct page *dma_alloc_pages(struct device *dev, size_t size,
-> diff --git a/kernel/dma/mapping.c b/kernel/dma/mapping.c
-> index 864a1121bf08..daa97a650778 100644
-> --- a/kernel/dma/mapping.c
-> +++ b/kernel/dma/mapping.c
-> @@ -442,6 +442,26 @@ bool __dma_need_sync(struct device *dev, dma_addr_t dma_addr)
->   }
->   EXPORT_SYMBOL_GPL(__dma_need_sync);
->   
-> +/**
-> + * dma_need_unmap - does this device need dma_unmap_* operations
-> + * @dev: device to check
-> + *
-> + * If this function returns %false, drivers can skip calling dma_unmap_* after
-> + * finishing an I/O.  This function must be called after all mappings that might
-> + * need to be unmapped have been performed.
+The pull request you sent on Thu, 31 Oct 2024 13:30:14 -0300:
 
-In terms of the unmap call itself, why don't we just use dma_skip_sync 
-to short-cut dma_direct_unmap_*() and make sure it's as cheap as possible?
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
 
-In terms of not having to unmap implying not having to store addresses 
-at all, it doesn't seem super-useful when you still have to store them 
-for long enough to find out that you don't :/
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/6c52d4da1c742cd01a797a4d0a2d3c5a60dc9bfe
 
-Thanks,
-Robin.
+Thank you!
 
-> + */
-> +bool dma_need_unmap(struct device *dev)
-> +{
-> +	if (!dma_map_direct(dev, get_dma_ops(dev)))
-> +		return true;
-> +#ifdef CONFIG_DMA_NEED_SYNC
-> +	if (!dev->dma_skip_sync)
-> +		return true;
-> +#endif
-> +	return IS_ENABLED(CONFIG_DMA_API_DEBUG);
-> +}
-> +EXPORT_SYMBOL_GPL(dma_need_unmap);
-> +
->   static void dma_setup_need_sync(struct device *dev)
->   {
->   	const struct dma_map_ops *ops = get_dma_ops(dev);
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
