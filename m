@@ -1,32 +1,32 @@
 Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F3AFAD2D;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 811DF18BB93;
 	Sun,  3 Nov 2024 17:04:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730653485; cv=none; b=XavlXwDsczjXWjAhvzcJkhjXytFrdGWalD7K/LGDIwZ9zfkgefuz8B8nkT/x/sbPP1gNwqBcDhVvR4IqLD35OGt2YyicyKBxsz1v7qyuYfe7fxnt0N0J37Jbz3O7nlqTUUITlS5MXJPjtUCY+U+skyMBnEEgpXdRos+kvTIMe0s=
+	t=1730653485; cv=none; b=a1gXic6p21w7H1Ot2SJkuwl/IYbtzB/RA0/8CEad8UFeliP0JYPSeWmUOvb39r2wAiw6f73S1qn1uF2h68Z/KoJarrqkjLnYSZ6mpoPECqCdosF5swLRPkYGYjsaHS35kHbvSZS1mA0vjkcd4iDnlJlaN+2ZGKLqx5R+gfxMDWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1730653485; c=relaxed/simple;
-	bh=GMdVqpFwoDETa/zGkV60zA/YyucohMN7ciiORB0dDFM=;
+	bh=omnzY7OVUHnekZ/bUX8pXaM2rzeR5oe1Izmsxqjd69Q=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=kb89m/f+jlA2LCfxvbdAmLHIaorwCobkf8X+sbOHXbQWyJ9dJ+vZ4IFkQKkttBhhl9v9InIOH+aU1mCV2K1Tie0ZT5+6cd29+xHJrGZ6bAtWijoF36wOjiUWFr+g2mJ9P71PUe55P4vR0yMHgdkiMXMr/NED8XMFcN5xxp1tmQ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=YsKAl8re; arc=none smtp.client-ip=159.69.126.157
+	 In-Reply-To:To:Cc; b=XZ09XCeffZa9c9eUgzzT+FtOM4UFtEwci/UKo0rbFjKk2KdLFW0UwIi7TXtaJWzl8+W9mXacT7+h2M4AK2Bsdx0MpwTsSJ+ZcSuCH5zUoOKdAe24pWgiJwhh7UaXaUngkla7e4BWiBSmsmE0G9HBSZSMK6JiGtpdWOeX38N38w4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=ELP3bYub; arc=none smtp.client-ip=159.69.126.157
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="YsKAl8re"
+	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="ELP3bYub"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1730653480;
-	bh=GMdVqpFwoDETa/zGkV60zA/YyucohMN7ciiORB0dDFM=;
+	s=mail; t=1730653478;
+	bh=omnzY7OVUHnekZ/bUX8pXaM2rzeR5oe1Izmsxqjd69Q=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=YsKAl8reGy7MODy4xp/3ixKRAFkj0+xvK1kAYF9GFWBlnfgFPvEuG1Bqm8MGf/XGs
-	 2ChL4enIrXWS1uZdfU2ZeH2CET8CXiCx0SJDBJGsIU3+6TQOsP8p3k64cZTiOAxWRb
-	 /dnKOKZ07h9lNs3KGaFsM8ZONL5nRrjkmAvCVifE=
+	b=ELP3bYubSPoehjiKV9LwVGa0LECLFMv30PiKWRP+XEfsqygiG8XRoBrNn7C2nyC/C
+	 VupEgMPEw5QRr5cyBiVj2Zl8aR/LlWWMGQU+UvLgZt4h9SCxl/glKuJjStidVMK+Uv
+	 9gUi0GlcCALNBuvpPYJ2W06Z7+6FuuUB4jD+cpXY=
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Date: Sun, 03 Nov 2024 17:03:37 +0000
-Subject: [PATCH v2 08/10] sysfs: implement all BIN_ATTR_* macros in terms
- of __BIN_ATTR()
+Date: Sun, 03 Nov 2024 17:03:32 +0000
+Subject: [PATCH v2 03/10] PCI/sysfs: Calculate bin_attribute size through
+ bin_size()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -35,7 +35,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20241103-sysfs-const-bin_attr-v2-8-71110628844c@weissschuh.net>
+Message-Id: <20241103-sysfs-const-bin_attr-v2-3-71110628844c@weissschuh.net>
 References: <20241103-sysfs-const-bin_attr-v2-0-71110628844c@weissschuh.net>
 In-Reply-To: <20241103-sysfs-const-bin_attr-v2-0-71110628844c@weissschuh.net>
 To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
@@ -80,77 +80,86 @@ Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org,
  linuxppc-dev@lists.ozlabs.org, linux-hyperv@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1730653468; l=2547;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1730653468; l=2359;
  i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=GMdVqpFwoDETa/zGkV60zA/YyucohMN7ciiORB0dDFM=;
- b=G1PulaFbJ1PZH7AnZk220ddkyci6/SVWNb+Rtvwc4kmmjYqzz3Epr6UCHfWP8qbRyhd/TurKs
- If4brtJxns8CxxC6suNmBgy57hhP6OtLmxJDPf6RSsE1N5AsLzcns6R
+ bh=omnzY7OVUHnekZ/bUX8pXaM2rzeR5oe1Izmsxqjd69Q=;
+ b=QEHmCC4IyJCPeU5OBXq34EhCHkpPKQglOlOaOSow6b0xRNSB6n8UoneN+GL6/CGyBOY6ZhYUm
+ LOb4xWNOB8AC0VTvIPxtVY0ZKdQGGSIFQEaRXg1966rzLgUpCbB+31p
 X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
  pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-The preparations for the upcoming constification of struct bin_attribute
-requires some logic in the structure definition macros.
-To avoid duplication of that logic in multiple macros, reimplement all
-other macros in terms of __BIN_ATTR().
+Stop abusing the is_bin_visible() callback to calculate the attribute
+size. Instead use the new, dedicated bin_size() one.
 
 Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
 ---
- include/linux/sysfs.h | 27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ drivers/pci/pci-sysfs.c | 28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/sysfs.h b/include/linux/sysfs.h
-index cb2a5e277c2384f2e8add8fbf2907e8a819576ec..d17c473c1ef292875475bf3bdf62d07241c13882 100644
---- a/include/linux/sysfs.h
-+++ b/include/linux/sysfs.h
-@@ -333,17 +333,11 @@ struct bin_attribute {
- 	.size	= _size,						\
+diff --git a/drivers/pci/pci-sysfs.c b/drivers/pci/pci-sysfs.c
+index 5d0f4db1cab78674c5e5906f321bf7a57b742983..040f01b2b999175e8d98b05851edc078bbabbe0d 100644
+--- a/drivers/pci/pci-sysfs.c
++++ b/drivers/pci/pci-sysfs.c
+@@ -818,21 +818,20 @@ static struct bin_attribute *pci_dev_config_attrs[] = {
+ 	NULL,
+ };
+ 
+-static umode_t pci_dev_config_attr_is_visible(struct kobject *kobj,
+-					      struct bin_attribute *a, int n)
++static size_t pci_dev_config_attr_bin_size(struct kobject *kobj,
++					   const struct bin_attribute *a,
++					   int n)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
+ 
+-	a->size = PCI_CFG_SPACE_SIZE;
+ 	if (pdev->cfg_size > PCI_CFG_SPACE_SIZE)
+-		a->size = PCI_CFG_SPACE_EXP_SIZE;
+-
+-	return a->attr.mode;
++		return PCI_CFG_SPACE_EXP_SIZE;
++	return PCI_CFG_SPACE_SIZE;
  }
  
--#define __BIN_ATTR_RO(_name, _size) {					\
--	.attr	= { .name = __stringify(_name), .mode = 0444 },		\
--	.read	= _name##_read,						\
--	.size	= _size,						\
--}
-+#define __BIN_ATTR_RO(_name, _size)					\
-+	__BIN_ATTR(_name, 0444, _name##_read, NULL, _size)
+ static const struct attribute_group pci_dev_config_attr_group = {
+ 	.bin_attrs = pci_dev_config_attrs,
+-	.is_bin_visible = pci_dev_config_attr_is_visible,
++	.bin_size = pci_dev_config_attr_bin_size,
+ };
  
--#define __BIN_ATTR_WO(_name, _size) {					\
--	.attr	= { .name = __stringify(_name), .mode = 0200 },		\
--	.write	= _name##_write,					\
--	.size	= _size,						\
--}
-+#define __BIN_ATTR_WO(_name, _size)					\
-+	__BIN_ATTR(_name, 0200, NULL, _name##_write, _size)
+ /*
+@@ -1330,21 +1329,26 @@ static umode_t pci_dev_rom_attr_is_visible(struct kobject *kobj,
+ 					   struct bin_attribute *a, int n)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
+-	size_t rom_size;
  
- #define __BIN_ATTR_RW(_name, _size)					\
- 	__BIN_ATTR(_name, 0644, _name##_read, _name##_write, _size)
-@@ -364,11 +358,8 @@ struct bin_attribute bin_attr_##_name = __BIN_ATTR_WO(_name, _size)
- struct bin_attribute bin_attr_##_name = __BIN_ATTR_RW(_name, _size)
+ 	/* If the device has a ROM, try to expose it in sysfs. */
+-	rom_size = pci_resource_len(pdev, PCI_ROM_RESOURCE);
+-	if (!rom_size)
++	if (!pci_resource_end(pdev, PCI_ROM_RESOURCE))
+ 		return 0;
  
+-	a->size = rom_size;
+-
+ 	return a->attr.mode;
+ }
  
--#define __BIN_ATTR_ADMIN_RO(_name, _size) {					\
--	.attr	= { .name = __stringify(_name), .mode = 0400 },		\
--	.read	= _name##_read,						\
--	.size	= _size,						\
--}
-+#define __BIN_ATTR_ADMIN_RO(_name, _size)				\
-+	__BIN_ATTR(_name, 0400, _name##_read, NULL, _size)
++static size_t pci_dev_rom_attr_bin_size(struct kobject *kobj,
++					const struct bin_attribute *a, int n)
++{
++	struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
++
++	return pci_resource_len(pdev, PCI_ROM_RESOURCE);
++}
++
+ static const struct attribute_group pci_dev_rom_attr_group = {
+ 	.bin_attrs = pci_dev_rom_attrs,
+ 	.is_bin_visible = pci_dev_rom_attr_is_visible,
++	.bin_size = pci_dev_rom_attr_bin_size,
+ };
  
- #define __BIN_ATTR_ADMIN_RW(_name, _size)					\
- 	__BIN_ATTR(_name, 0600, _name##_read, _name##_write, _size)
-@@ -379,10 +370,8 @@ struct bin_attribute bin_attr_##_name = __BIN_ATTR_ADMIN_RO(_name, _size)
- #define BIN_ATTR_ADMIN_RW(_name, _size)					\
- struct bin_attribute bin_attr_##_name = __BIN_ATTR_ADMIN_RW(_name, _size)
- 
--#define __BIN_ATTR_SIMPLE_RO(_name, _mode) {				\
--	.attr	= { .name = __stringify(_name), .mode = _mode },	\
--	.read	= sysfs_bin_attr_simple_read,				\
--}
-+#define __BIN_ATTR_SIMPLE_RO(_name, _mode)				\
-+	__BIN_ATTR(_name, _mode, sysfs_bin_attr_simple_read, NULL, 0)
- 
- #define BIN_ATTR_SIMPLE_RO(_name)					\
- struct bin_attribute bin_attr_##_name = __BIN_ATTR_SIMPLE_RO(_name, 0444)
+ static ssize_t reset_store(struct device *dev, struct device_attribute *attr,
 
 -- 
 2.47.0
