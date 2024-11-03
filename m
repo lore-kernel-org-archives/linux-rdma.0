@@ -1,255 +1,143 @@
-Received: from todd.t-8ch.de (todd.t-8ch.de [159.69.126.157])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D88D019309A;
-	Sun,  3 Nov 2024 17:04:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.69.126.157
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10976132111;
+	Sun,  3 Nov 2024 20:02:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730653489; cv=none; b=c9fwD1hR8L8Wiin3nwpAF+TEAfdE99OoCA+f35LhtSkokC31d3phEcSQ6pw+rkijfgyyDWI/4zY8tBs1RZUmkmZQ1TkS67AbtlHrQaQCpHhIdJ7mKffMEhtjZlBgc7K/2Sp//vwYW0rHDdMSSZiN2cbuCN+q3thHYD/mXc10FGY=
+	t=1730664127; cv=none; b=m9XNN9uIeH3wFF2SiWDPB8FqaR6EiyGIqvFI0Pe3/Xls/q4JygNzAb7VZ8o3I9OUqL3cl8NdHLAs/iiRlGvlzhqNhHTsHu9lmxxYVrSDuHH79xt4QOU8POr6Su8Gd0ceC0iai7fZK+Aaa9pfbBFwdNrSYGZQ/qOhulVp/07M8U0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730653489; c=relaxed/simple;
-	bh=8oN+tVBMjVju8UGiuvmEhTX5MjVK0/eJhQB1Q2KrGWg=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Gz8rkwGsLofc//Llcn/5zU/XpiSjo8yqqPpN6UyaUZGGu5v7Vy8D+n6UacgUBCylaRBx9UkeqR67faWTJrsesA6cfwpca3fejB1CzK9jQSy8SZ8MpmjQ3ouUVqu7A8lDD+f4JsvkgttnFGG5XTtMFqUKsFBoG0zqBXAJpDCdRkc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net; spf=pass smtp.mailfrom=weissschuh.net; dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b=IeBmBHEd; arc=none smtp.client-ip=159.69.126.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=weissschuh.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=weissschuh.net header.i=@weissschuh.net header.b="IeBmBHEd"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=weissschuh.net;
-	s=mail; t=1730653482;
-	bh=8oN+tVBMjVju8UGiuvmEhTX5MjVK0/eJhQB1Q2KrGWg=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=IeBmBHEdm9gDMl7zlTLB5XQEePKh4jrhWZs1DoZUiTbnreFHenKfHHQqkl5zOTOoW
-	 dLEUXhMBlK1UTDU+roropuIWBnjU2j+yA5NCW+USh6WWBAQOFHp36Nt2b/NuN3dGyy
-	 iRWUTmheFIvO2zg+zPHcr0L/2wBIrmvGzfEoQoP0=
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-Date: Sun, 03 Nov 2024 17:03:35 +0000
-Subject: [PATCH v2 06/10] sysfs: treewide: constify attribute callback of
- bin_attribute::mmap()
+	s=arc-20240116; t=1730664127; c=relaxed/simple;
+	bh=YCxOz70oKZPnlhnu6GEg/6POCPYTvT8YTEVBtqasbrs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=o2Bg7vtIv3wNmrwlfZQn6AmE3naVeo3xfSKcSkw6JCbrVOubDiiPaYh8H7EedOOgWqXDa+NO4JH0/MdXcp84aQZIrhYCdFnrePida98lSHCjtrhYGIsy+U7H0cglZXAb1LzFtptjOja8ylnK5w9rWEubRxyP4665rR0NH3hOLIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.com; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.214.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-20c77459558so29336925ad.0;
+        Sun, 03 Nov 2024 12:02:05 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730664125; x=1731268925;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=VjfQvqCHHfDeXG4GMQuNHaE4bkPmkI1XqjnN8lstP2Q=;
+        b=uGNrOMQ4dm9xp8MXpGlSUQamVoEooXFN7G02PbfeGG2k4/JbwrSyAFG8llLYW/AI70
+         12VJtLI5rMsoG8nyJflvflK7fM7xUd+IhiNDCx1vWpQFHiOvVojtWjiTzhbVQIbr3AWb
+         /Lbr1OqE7xH7Ou9oXZWY2RoD8IjHaG2Y/te2CaQJMiHgWNfiRYLsKuodcH/vY/ylzOzb
+         V39lYxBIGpgdLKmgzpe8e/eV7Baojb9kHegdJ1dF+VRHtE6eCkPT/hqbOhKz424DLVyz
+         fhdrNqSuL9aQZF/Ii5+hZXAY5LQV9gfrp/BcaItT3htOiE7GVeSqgR6kMNaorc1Wm5ie
+         qpzA==
+X-Forwarded-Encrypted: i=1; AJvYcCULdh4JZgZuh5035UOKN9OZ1MsmCSRrkUJPlLZL+uwgJDOowoC0pX+5IgQICRt7nLdPKCQoZNnKh13y@vger.kernel.org, AJvYcCUswTde0e/egC+9qrxz96rx1ILEABTB9jPtZWALCmObFrpwrP5iN8RyGegAXVACyePm252JZ0C5+ox0@vger.kernel.org, AJvYcCV8Vqg8InVLhSJnbZYFrhQSQMNDOGBQlCvSxshUWrXwsXZ5CFvoJ3G7pSDOcUPHad0gQjiIAE63Del5eksI@vger.kernel.org, AJvYcCVKRu7AneUDlA57t+H71T3KBzAe0pIrAd4CnuyDskr4LPPBetSS10OfdCd84YNQzYUP5SgWO7ZAAs5G@vger.kernel.org, AJvYcCVSL46z1oNyvyLgmMkzkBKy9Jt5G2HWGTDFeddLZwFrhW1c6EQd35OxbS8zTcDhwVG12TgMBguAYT0Tjwp5@vger.kernel.org, AJvYcCVe3yYfQ8GevQ1ThBqjH2I55xKIJc6V5X1YvUV+gtza5yUnM5qghUFba0tEXNrM6ekSkC6JZe7eLnCS5w==@vger.kernel.org, AJvYcCVgMYcQkTUPKdZchDiTeIQEgQ8dM+g3I8v96shUb7ndXm3DrPQS8hvRSVbIGidWiI8WWPxgJW8AAZYzlw==@vger.kernel.org, AJvYcCWh9kT9Qzxpe/fk7wWsF2SGPZxK33nc6dhdXOGK8Odg/Tdp3untVhYPQPL2Xf8sz7H3Al0CS4vyT77asqwBCVzDCtVNOA==@vger.kernel.org, AJvYcCXE39eYUIQOgiUJVRiIjT1dywG5i46BCaHSck4Cn06pRT/XaGk2IJ9f2yp7lwY72/fGJlxbqxNXzcD/kg==@vger.kernel.org
+X-Gm-Message-State: AOJu0YxXURua6melP2zZ3r6eag/I7r5Lu6F9TuaiZjk5/zMRig8YJIeC
+	T9CiGGBfuQL8sJuAxC1rupDVdDFg8KNje1WbXWBwt14ZAMx8f0V1
+X-Google-Smtp-Source: AGHT+IHAS+v1ffLBb+GI+ZNM4/mlV92TQI2AYHoaDbWsFSd1zPZgooqCqKQWbVDQVnW3KjMuxbyzsA==
+X-Received: by 2002:a17:902:ce91:b0:20b:6624:70b2 with SMTP id d9443c01a7336-210f75154e9mr256357005ad.19.1730664125219;
+        Sun, 03 Nov 2024 12:02:05 -0800 (PST)
+Received: from localhost (fpd11144dd.ap.nuro.jp. [209.17.68.221])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21105707059sm49877745ad.81.2024.11.03.12.02.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 03 Nov 2024 12:02:04 -0800 (PST)
+Date: Mon, 4 Nov 2024 05:02:03 +0900
+From: Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>
+To: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <linux@weissschuh.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Alex Deucher <alexander.deucher@amd.com>,
+	Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>,
+	Xinhui Pan <Xinhui.Pan@amd.com>, David Airlie <airlied@gmail.com>,
+	Simona Vetter <simona@ffwll.ch>,
+	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
+	Tudor Ambarus <tudor.ambarus@linaro.org>,
+	Pratyush Yadav <pratyush@kernel.org>,
+	Michael Walle <mwalle@kernel.org>,
+	Miquel Raynal <miquel.raynal@bootlin.com>,
+	Richard Weinberger <richard@nod.at>,
+	Vignesh Raghavendra <vigneshr@ti.com>,
+	Naveen Krishna Chatradhi <naveenkrishna.chatradhi@amd.com>,
+	Carlos Bilbao <carlos.bilbao.osdev@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Ilpo =?utf-8?B?SsOkcnZpbmVu?= <ilpo.jarvinen@linux.intel.com>,
+	"David E. Box" <david.e.box@linux.intel.com>,
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	Richard Henderson <richard.henderson@linaro.org>,
+	Matt Turner <mattst88@gmail.com>,
+	Frederic Barrat <fbarrat@linux.ibm.com>,
+	Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org,
+	linux-cxl@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+	dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org,
+	linux-mtd@lists.infradead.org, platform-driver-x86@vger.kernel.org,
+	linux-scsi@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-hyperv@vger.kernel.org
+Subject: Re: [PATCH v2 00/10] sysfs: constify struct bin_attribute (Part 1)
+Message-ID: <20241103200203.GA183945@rocinante>
+References: <20241103-sysfs-const-bin_attr-v2-0-71110628844c@weissschuh.net>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Message-Id: <20241103-sysfs-const-bin_attr-v2-6-71110628844c@weissschuh.net>
-References: <20241103-sysfs-const-bin_attr-v2-0-71110628844c@weissschuh.net>
 In-Reply-To: <20241103-sysfs-const-bin_attr-v2-0-71110628844c@weissschuh.net>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
- "Rafael J. Wysocki" <rafael@kernel.org>, 
- Bjorn Helgaas <bhelgaas@google.com>, 
- Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, 
- Davidlohr Bueso <dave@stgolabs.net>, 
- Jonathan Cameron <jonathan.cameron@huawei.com>, 
- Dave Jiang <dave.jiang@intel.com>, 
- Alison Schofield <alison.schofield@intel.com>, 
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
- Alex Deucher <alexander.deucher@amd.com>, 
- =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, 
- Xinhui Pan <Xinhui.Pan@amd.com>, David Airlie <airlied@gmail.com>, 
- Simona Vetter <simona@ffwll.ch>, 
- Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>, 
- Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, 
- Tudor Ambarus <tudor.ambarus@linaro.org>, 
- Pratyush Yadav <pratyush@kernel.org>, Michael Walle <mwalle@kernel.org>, 
- Miquel Raynal <miquel.raynal@bootlin.com>, 
- Richard Weinberger <richard@nod.at>, Vignesh Raghavendra <vigneshr@ti.com>, 
- Naveen Krishna Chatradhi <naveenkrishna.chatradhi@amd.com>, 
- Carlos Bilbao <carlos.bilbao.osdev@gmail.com>, 
- Hans de Goede <hdegoede@redhat.com>, 
- =?utf-8?q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>, 
- "David E. Box" <david.e.box@linux.intel.com>, 
- "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, 
- "Martin K. Petersen" <martin.petersen@oracle.com>, 
- Richard Henderson <richard.henderson@linaro.org>, 
- Matt Turner <mattst88@gmail.com>, Frederic Barrat <fbarrat@linux.ibm.com>, 
- Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, 
- Logan Gunthorpe <logang@deltatee.com>, 
- "K. Y. Srinivasan" <kys@microsoft.com>, 
- Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
- Dexuan Cui <decui@microsoft.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, 
- linux-pci@vger.kernel.org, linux-cxl@vger.kernel.org, 
- amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, 
- linux-rdma@vger.kernel.org, linux-mtd@lists.infradead.org, 
- platform-driver-x86@vger.kernel.org, linux-scsi@vger.kernel.org, 
- linux-usb@vger.kernel.org, linux-alpha@vger.kernel.org, 
- linuxppc-dev@lists.ozlabs.org, linux-hyperv@vger.kernel.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <linux@weissschuh.net>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1730653468; l=7091;
- i=linux@weissschuh.net; s=20221212; h=from:subject:message-id;
- bh=8oN+tVBMjVju8UGiuvmEhTX5MjVK0/eJhQB1Q2KrGWg=;
- b=R3n6q+Dv0Ia776qfgM6mO9COiJ/hbKbbIydIDRQ3XaMKG9aRvi7HhpKHS1X+wwbHJsRL7kye+
- ekmDB9xxV8TBGzZeTtNVftVmS4rbHM4mxGMeptcYkAQpdQnmMEfZR2L
-X-Developer-Key: i=linux@weissschuh.net; a=ed25519;
- pk=KcycQgFPX2wGR5azS7RhpBqedglOZVgRPfdFSPB1LNw=
 
-The mmap() callbacks should not modify the struct
-bin_attribute passed as argument.
-Enforce this by marking the argument as const.
+Hello,
 
-As there are not many callback implementers perform this change
-throughout the tree at once.
+> struct bin_attribute contains a bunch of pointer members, which when
+> overwritten by accident or malice can lead to system instability and
+> security problems.
+> Moving the definitions of struct bin_attribute to read-only memory
+> makes these modifications impossible.
+> The same change has been performed for many other structures in the
+> past. (struct class, struct ctl_table...)
+> 
+> For the structure definitions throughout the core to be moved to
+> read-only memory the following steps are necessary.
+> 
+> 1) Change all callbacks invoked from the sysfs core to only pass const
+>    pointers
+> 2) Adapt the sysfs core to only work in terms of const pointers
+> 3) Adapt the sysfs core APIs to allow const pointers
+> 4) Change all structure definitions through the core to const
+> 
+> This series provides the foundation for step 1) above.
+> It converts some callbacks in a single step to const and provides a
+> foundation for those callbacks where a single step is not possible.
+> 
+> Patches 1-5 change the bin_attribute callbacks of 'struct
+> attribute_group'. The remaining ones touch 'struct bin_attribute' itself.
+> 
+> The techniques employed by this series can later be reused for the
+> same change for other sysfs attributes.
+> 
+> This series is intended to be merged through the driver core tree.
 
-Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
----
- arch/alpha/kernel/pci-sysfs.c          |  6 +++---
- drivers/misc/ocxl/sysfs.c              |  2 +-
- drivers/pci/p2pdma.c                   |  2 +-
- drivers/pci/pci-sysfs.c                | 10 +++++-----
- drivers/platform/x86/intel/pmt/class.c |  2 +-
- drivers/uio/uio_hv_generic.c           |  2 +-
- include/linux/sysfs.h                  |  2 +-
- 7 files changed, 13 insertions(+), 13 deletions(-)
+This is very nice.  Thank you!
 
-diff --git a/arch/alpha/kernel/pci-sysfs.c b/arch/alpha/kernel/pci-sysfs.c
-index 5808a66e2a81f7eba9a245fd6a343406a1ade87d..3048758304b57afa01ddeb6558c39bdb48c9a3f6 100644
---- a/arch/alpha/kernel/pci-sysfs.c
-+++ b/arch/alpha/kernel/pci-sysfs.c
-@@ -64,7 +64,7 @@ static int __pci_mmap_fits(struct pci_dev *pdev, int num,
-  * Return: %0 on success, negative error code otherwise
-  */
- static int pci_mmap_resource(struct kobject *kobj,
--			     struct bin_attribute *attr,
-+			     const struct bin_attribute *attr,
- 			     struct vm_area_struct *vma, int sparse)
- {
- 	struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
-@@ -93,14 +93,14 @@ static int pci_mmap_resource(struct kobject *kobj,
- }
- 
- static int pci_mmap_resource_sparse(struct file *filp, struct kobject *kobj,
--				    struct bin_attribute *attr,
-+				    const struct bin_attribute *attr,
- 				    struct vm_area_struct *vma)
- {
- 	return pci_mmap_resource(kobj, attr, vma, 1);
- }
- 
- static int pci_mmap_resource_dense(struct file *filp, struct kobject *kobj,
--				   struct bin_attribute *attr,
-+				   const struct bin_attribute *attr,
- 				   struct vm_area_struct *vma)
- {
- 	return pci_mmap_resource(kobj, attr, vma, 0);
-diff --git a/drivers/misc/ocxl/sysfs.c b/drivers/misc/ocxl/sysfs.c
-index 405180d47d9bff0aaa7a736bb3fecfbe318db961..07520d6e6dc55702696b8656440914c379e6e27a 100644
---- a/drivers/misc/ocxl/sysfs.c
-+++ b/drivers/misc/ocxl/sysfs.c
-@@ -125,7 +125,7 @@ static const struct vm_operations_struct global_mmio_vmops = {
- };
- 
- static int global_mmio_mmap(struct file *filp, struct kobject *kobj,
--			struct bin_attribute *bin_attr,
-+			const struct bin_attribute *bin_attr,
- 			struct vm_area_struct *vma)
- {
- 	struct ocxl_afu *afu = to_afu(kobj_to_dev(kobj));
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 4f47a13cb500ff5339cde426b6ccb020fcd74ae7..7abd4f546d3c071f31e622d881f5c5ac3e4de55e 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -90,7 +90,7 @@ static ssize_t published_show(struct device *dev, struct device_attribute *attr,
- static DEVICE_ATTR_RO(published);
- 
- static int p2pmem_alloc_mmap(struct file *filp, struct kobject *kobj,
--		struct bin_attribute *attr, struct vm_area_struct *vma)
-+		const struct bin_attribute *attr, struct vm_area_struct *vma)
- {
- 	struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
- 	size_t len = vma->vm_end - vma->vm_start;
-diff --git a/drivers/pci/pci-sysfs.c b/drivers/pci/pci-sysfs.c
-index 13912940ed2bb66c0086e5bea9a3cb6417ac14dd..0ad3427228b12aa95325c6fc00e9686740559238 100644
---- a/drivers/pci/pci-sysfs.c
-+++ b/drivers/pci/pci-sysfs.c
-@@ -910,7 +910,7 @@ static ssize_t pci_write_legacy_io(struct file *filp, struct kobject *kobj,
-  * memory space.
-  */
- static int pci_mmap_legacy_mem(struct file *filp, struct kobject *kobj,
--			       struct bin_attribute *attr,
-+			       const struct bin_attribute *attr,
- 			       struct vm_area_struct *vma)
- {
- 	struct pci_bus *bus = to_pci_bus(kobj_to_dev(kobj));
-@@ -930,7 +930,7 @@ static int pci_mmap_legacy_mem(struct file *filp, struct kobject *kobj,
-  * memory space. Returns -ENOSYS if the operation isn't supported
-  */
- static int pci_mmap_legacy_io(struct file *filp, struct kobject *kobj,
--			      struct bin_attribute *attr,
-+			      const struct bin_attribute *attr,
- 			      struct vm_area_struct *vma)
- {
- 	struct pci_bus *bus = to_pci_bus(kobj_to_dev(kobj));
-@@ -1034,7 +1034,7 @@ void pci_remove_legacy_files(struct pci_bus *b)
-  *
-  * Use the regular PCI mapping routines to map a PCI resource into userspace.
-  */
--static int pci_mmap_resource(struct kobject *kobj, struct bin_attribute *attr,
-+static int pci_mmap_resource(struct kobject *kobj, const struct bin_attribute *attr,
- 			     struct vm_area_struct *vma, int write_combine)
- {
- 	struct pci_dev *pdev = to_pci_dev(kobj_to_dev(kobj));
-@@ -1059,14 +1059,14 @@ static int pci_mmap_resource(struct kobject *kobj, struct bin_attribute *attr,
- }
- 
- static int pci_mmap_resource_uc(struct file *filp, struct kobject *kobj,
--				struct bin_attribute *attr,
-+				const struct bin_attribute *attr,
- 				struct vm_area_struct *vma)
- {
- 	return pci_mmap_resource(kobj, attr, vma, 0);
- }
- 
- static int pci_mmap_resource_wc(struct file *filp, struct kobject *kobj,
--				struct bin_attribute *attr,
-+				const struct bin_attribute *attr,
- 				struct vm_area_struct *vma)
- {
- 	return pci_mmap_resource(kobj, attr, vma, 1);
-diff --git a/drivers/platform/x86/intel/pmt/class.c b/drivers/platform/x86/intel/pmt/class.c
-index c04bb7f97a4db13268fc5697887951cf8f0f5a25..f9afa23e754b8b68bd59b72d6a72d26503a21f31 100644
---- a/drivers/platform/x86/intel/pmt/class.c
-+++ b/drivers/platform/x86/intel/pmt/class.c
-@@ -103,7 +103,7 @@ intel_pmt_read(struct file *filp, struct kobject *kobj,
- 
- static int
- intel_pmt_mmap(struct file *filp, struct kobject *kobj,
--		struct bin_attribute *attr, struct vm_area_struct *vma)
-+		const struct bin_attribute *attr, struct vm_area_struct *vma)
- {
- 	struct intel_pmt_entry *entry = container_of(attr,
- 						     struct intel_pmt_entry,
-diff --git a/drivers/uio/uio_hv_generic.c b/drivers/uio/uio_hv_generic.c
-index 8704095994118c2660f345c504b5ea466d053efb..3976360d0096d6681faf88815cc6277fb76a1d9f 100644
---- a/drivers/uio/uio_hv_generic.c
-+++ b/drivers/uio/uio_hv_generic.c
-@@ -135,7 +135,7 @@ static void hv_uio_rescind(struct vmbus_channel *channel)
-  * The ring buffer is allocated as contiguous memory by vmbus_open
-  */
- static int hv_uio_ring_mmap(struct file *filp, struct kobject *kobj,
--			    struct bin_attribute *attr,
-+			    const struct bin_attribute *attr,
- 			    struct vm_area_struct *vma)
- {
- 	struct vmbus_channel *channel
-diff --git a/include/linux/sysfs.h b/include/linux/sysfs.h
-index d1b22d56198b55ee39fe4c4fc994f5b753641992..9fcdc8cd3118f359742bfd8b708d5c3eff511042 100644
---- a/include/linux/sysfs.h
-+++ b/include/linux/sysfs.h
-@@ -309,7 +309,7 @@ struct bin_attribute {
- 			 char *, loff_t, size_t);
- 	loff_t (*llseek)(struct file *, struct kobject *, struct bin_attribute *,
- 			 loff_t, int);
--	int (*mmap)(struct file *, struct kobject *, struct bin_attribute *attr,
-+	int (*mmap)(struct file *, struct kobject *, const struct bin_attribute *attr,
- 		    struct vm_area_struct *vma);
- };
- 
+For PCI changes:
+  Acked-by: Krzysztof Wilczyński <kw@linux.com>
 
--- 
-2.47.0
+This reminded me of an old discussions with Greg and Bjorn about how to set
+size correctly for our ROM and BAR sysfs objects.  Nice to see a very nice
+approach here, indeed.
 
+	Krzysztof
