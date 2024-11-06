@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB881E377C;
-	Wed,  6 Nov 2024 11:50:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 415661EBA1B;
+	Wed,  6 Nov 2024 11:50:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730893823; cv=none; b=WpXDnOwUK2raHEn3L8TMjdphhTALtOPud96QUK0XeR3U4g2EVWXyj6QVTQfbQBNgRZOsMKolKmF995NMeUOTEIf0JbrgE6ZY2ar8K5VQnWkwsnA0po4OkDH/lTKqaZZPV88wXhBJxn8qLO3GUgNQZtWtTxrgbiVPZSViMEFkDu8=
+	t=1730893827; cv=none; b=iE69IBrhHPRB54dZ8SG8+DuSCiyRU3l8QXT3tOgriLnmQamdLyToGXh2WFmG8bJqxvaZ4LmCTwJYqHw8wUu6EvsU/gNlyxiW8lb5/Mg6/tRO3amVmQuBY/NivXJrcaatmMIHAPnr6e0U9TLE7G1RocZzbnbTgz2hG+onHKFE4cg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730893823; c=relaxed/simple;
-	bh=bZa/AznOguif5HsOvA16Z11mxfxUXbfMG8pYJ8SrELA=;
+	s=arc-20240116; t=1730893827; c=relaxed/simple;
+	bh=YpLncFZbCC4w0IIg6h/rxYvmMz7724GLt2jYf2BJ9P8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gBNR4ZX3UiXjnIv7B0+mhoVmJ7nFdCfiE9+XLmoy91gQejItaKlJzHoc4wfEUxNJfv182EOnKYTCNjn+319qVk6dvzKLAtDybLN58HvxCVR5pYajSq6Ai5JwV6VnVlglY4rpmO2jYTv7P6JKn//mPh4qoxLd2lvel3eJA8GIDzE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tUNFNNyn; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=cpwZJfeg/jwns0e079b5R/ttlqizBJTTgokux3gcFwVy2w78Bx7yUpzmc7gQUkvxa7Aaf2WzQBKU5esb2TcXDW9rnJnlNmupkxF1xIjI5yEx7xvF64ZrqJkPWXWquSvFKonXrqmi/l9Ub7iEiMuCUyWe4etaJTLDElkW0H2WXkg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CPKt0RmE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tUNFNNyn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7374C4CECD;
-	Wed,  6 Nov 2024 11:50:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CPKt0RmE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01EBBC4CED4;
+	Wed,  6 Nov 2024 11:50:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730893822;
-	bh=bZa/AznOguif5HsOvA16Z11mxfxUXbfMG8pYJ8SrELA=;
+	s=k20201202; t=1730893827;
+	bh=YpLncFZbCC4w0IIg6h/rxYvmMz7724GLt2jYf2BJ9P8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tUNFNNynaJP85RgckeeSFTYXsrvjgAjMHiapU85Ya4oxCE8FogShDgB6mkqqilq81
-	 SWTeS7iWEyyK+KSPKz6bi6zCB6oSQdJ+YDsZ4q5a6SxQh8ARCnqOxbKE3wx9t78ahO
-	 i5ZVkWKM3JKbLVWX1kIYA3GxHEYvR8zbKsaCUuEsyJQPpeVScLxGphkEb+gpQz1yLo
-	 j8MjzB/uiHB2SekvlRyrSirA/5XrgWx/oj89g433a/xrlavy99vhHW3PD0EMKtDXvZ
-	 uWuz5HQ64a2FaPtpWjOg9A9JZFnhxqz/Aj74jJ8jDwYmqU2BSv3wMu6liqqLIZU3BQ
-	 p1sL5LR9V6iWw==
+	b=CPKt0RmEs+twSwZrjBuZS3z1TumSSHlANGJfIYdJlCk9AI1+NsA0YsgTfhV78rvfq
+	 qJvaJwO7y/8com5A+snU0wmAG0NDd01+hgPmXEpxeUCa2DN0GM6XmgRAKoh6sePJiM
+	 YVZqJ68T4TnWXOaZFKu/AhI3pEYtdE3GQcZfPb6erHNqj9rI6izEhCW9u8j+c6nEko
+	 C1GvD+pT9DzE3XbckN/sgPYF3XA0ZF7iMV0H/WH8anFPHPFORwIpEYcO0LABx/DW10
+	 T/ylJ0INirZ2pg5F8EqiADFiNkkjrR87l4TRD8qCeDrN9tDGMB7bpxfJfhO3/o+3zX
+	 XGtRFLP+6hRAg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -55,9 +55,9 @@ Cc: Keith Busch <kbusch@kernel.org>,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org,
 	Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH v2 03/17] iommu: generalize the batched sync after map interface
-Date: Wed,  6 Nov 2024 15:49:31 +0200
-Message-ID: <589adb3a4b53121942e9a39051ae49a27f7a074c.1730892663.git.leon@kernel.org>
+Subject: [PATCH v2 09/17] docs: core-api: document the IOVA-based API
+Date: Wed,  6 Nov 2024 15:49:37 +0200
+Message-ID: <64e7a24f7d59b21a16ebd86d4164b8f23f871da0.1730892663.git.leon@kernel.org>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <cover.1730892663.git.leon@kernel.org>
 References: <cover.1730892663.git.leon@kernel.org>
@@ -71,164 +71,95 @@ Content-Transfer-Encoding: 8bit
 
 From: Christoph Hellwig <hch@lst.de>
 
-For the upcoming IOVA-based DMA API we want to use the interface batch the
-sync after mapping multiple entries from dma-iommu without having a
-scatterlist.
-
-For that move more sanity checks from the callers into __iommu_map and
-make that function available outside of iommu.c as iommu_map_nosync.
-
-Add a wrapper for the map_sync as iommu_sync_map so that callers don't
-need to poke into the methods directly.
+Add an explanation of the newly added IOVA-based mapping API.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/iommu/iommu.c | 65 +++++++++++++++++++------------------------
- include/linux/iommu.h |  4 +++
- 2 files changed, 33 insertions(+), 36 deletions(-)
+ Documentation/core-api/dma-api.rst | 70 ++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
 
-diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index 83c8e617a2c5..6b0943397e1e 100644
---- a/drivers/iommu/iommu.c
-+++ b/drivers/iommu/iommu.c
-@@ -2439,8 +2439,8 @@ static size_t iommu_pgsize(struct iommu_domain *domain, unsigned long iova,
- 	return pgsize;
- }
- 
--static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
--		       phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
-+int iommu_map_nosync(struct iommu_domain *domain, unsigned long iova,
-+		phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
- {
- 	const struct iommu_domain_ops *ops = domain->ops;
- 	unsigned long orig_iova = iova;
-@@ -2449,12 +2449,19 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
- 	phys_addr_t orig_paddr = paddr;
- 	int ret = 0;
- 
-+	might_sleep_if(gfpflags_allow_blocking(gfp));
-+
- 	if (unlikely(!(domain->type & __IOMMU_DOMAIN_PAGING)))
- 		return -EINVAL;
- 
- 	if (WARN_ON(!ops->map_pages || domain->pgsize_bitmap == 0UL))
- 		return -ENODEV;
- 
-+	/* Discourage passing strange GFP flags */
-+	if (WARN_ON_ONCE(gfp & (__GFP_COMP | __GFP_DMA | __GFP_DMA32 |
-+				__GFP_HIGHMEM)))
-+		return -EINVAL;
-+
- 	/* find out the minimum page size supported */
- 	min_pagesz = 1 << __ffs(domain->pgsize_bitmap);
- 
-@@ -2502,31 +2509,27 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
- 	return ret;
- }
- 
--int iommu_map(struct iommu_domain *domain, unsigned long iova,
--	      phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
-+int iommu_sync_map(struct iommu_domain *domain, unsigned long iova, size_t size)
- {
- 	const struct iommu_domain_ops *ops = domain->ops;
--	int ret;
--
--	might_sleep_if(gfpflags_allow_blocking(gfp));
- 
--	/* Discourage passing strange GFP flags */
--	if (WARN_ON_ONCE(gfp & (__GFP_COMP | __GFP_DMA | __GFP_DMA32 |
--				__GFP_HIGHMEM)))
--		return -EINVAL;
-+	if (!ops->iotlb_sync_map)
-+		return 0;
-+	return ops->iotlb_sync_map(domain, iova, size);
-+}
- 
--	ret = __iommu_map(domain, iova, paddr, size, prot, gfp);
--	if (ret == 0 && ops->iotlb_sync_map) {
--		ret = ops->iotlb_sync_map(domain, iova, size);
--		if (ret)
--			goto out_err;
--	}
-+int iommu_map(struct iommu_domain *domain, unsigned long iova,
-+	      phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
-+{
-+	int ret;
- 
--	return ret;
-+	ret = iommu_map_nosync(domain, iova, paddr, size, prot, gfp);
-+	if (ret)
-+		return ret;
- 
--out_err:
--	/* undo mappings already done */
--	iommu_unmap(domain, iova, size);
-+	ret = iommu_sync_map(domain, iova, size);
-+	if (ret)
-+		iommu_unmap(domain, iova, size);
- 
- 	return ret;
- }
-@@ -2612,26 +2615,17 @@ ssize_t iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
- 		     struct scatterlist *sg, unsigned int nents, int prot,
- 		     gfp_t gfp)
- {
--	const struct iommu_domain_ops *ops = domain->ops;
- 	size_t len = 0, mapped = 0;
- 	phys_addr_t start;
- 	unsigned int i = 0;
- 	int ret;
- 
--	might_sleep_if(gfpflags_allow_blocking(gfp));
--
--	/* Discourage passing strange GFP flags */
--	if (WARN_ON_ONCE(gfp & (__GFP_COMP | __GFP_DMA | __GFP_DMA32 |
--				__GFP_HIGHMEM)))
--		return -EINVAL;
--
- 	while (i <= nents) {
- 		phys_addr_t s_phys = sg_phys(sg);
- 
- 		if (len && s_phys != start + len) {
--			ret = __iommu_map(domain, iova + mapped, start,
-+			ret = iommu_map_nosync(domain, iova + mapped, start,
- 					len, prot, gfp);
--
- 			if (ret)
- 				goto out_err;
- 
-@@ -2654,11 +2648,10 @@ ssize_t iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
- 			sg = sg_next(sg);
+diff --git a/Documentation/core-api/dma-api.rst b/Documentation/core-api/dma-api.rst
+index 8e3cce3d0a23..61d6f4fe3d88 100644
+--- a/Documentation/core-api/dma-api.rst
++++ b/Documentation/core-api/dma-api.rst
+@@ -530,6 +530,76 @@ routines, e.g.:::
+ 		....
  	}
  
--	if (ops->iotlb_sync_map) {
--		ret = ops->iotlb_sync_map(domain, iova, mapped);
--		if (ret)
--			goto out_err;
--	}
-+	ret = iommu_sync_map(domain, iova, mapped);
-+	if (ret)
-+		goto out_err;
++Part Ie - IOVA-based DMA mappings
++---------------------------------
 +
- 	return mapped;
++These APIs allow a very efficient mapping when using an IOMMU.  They are an
++optional path that requires extra code and are only recommended for drivers
++where DMA mapping performance, or the space usage for storing the DMA addresses
++matter.  All the considerations from the previous section apply here as well.
++
++::
++
++    bool dma_iova_try_alloc(struct device *dev, struct dma_iova_state *state,
++		phys_addr_t phys, size_t size);
++
++Is used to try to allocate IOVA space for mapping operation.  If it returns
++false this API can't be used for the given device and the normal streaming
++DMA mapping API should be used.  The ``struct dma_iova_state`` is allocated
++by the driver and must be kept around until unmap time.
++
++::
++
++    static inline bool dma_use_iova(struct dma_iova_state *state)
++
++Can be used by the driver to check if the IOVA-based API is used after a
++call to dma_iova_try_alloc.  This can be useful in the unmap path.
++
++::
++
++    int dma_iova_link(struct device *dev, struct dma_iova_state *state,
++		phys_addr_t phys, size_t offset, size_t size,
++		enum dma_data_direction dir, unsigned long attrs);
++
++Is used to link ranges to the IOVA previously allocated.  The start of all
++but the first call to dma_iova_link for a given state must be aligned
++to the DMA merge boundary returned by ``dma_get_merge_boundary())``, and
++the size of all but the last range must be aligned to the DMA merge boundary
++as well.
++
++::
++
++    int dma_iova_sync(struct device *dev, struct dma_iova_state *state,
++		size_t offset, size_t size);
++
++Must be called to sync the IOMMU page tables for IOVA-range mapped by one or
++more calls to ``dma_iova_link()``.
++
++For drivers that use a one-shot mapping, all ranges can be unmapped and the
++IOVA freed by calling:
++
++::
++
++   void dma_iova_destroy(struct device *dev, struct dma_iova_state *state,
++		enum dma_data_direction dir, unsigned long attrs);
++
++Alternatively drivers can dynamically manage the IOVA space by unmapping
++and mapping individual regions.  In that case
++
++::
++
++    void dma_iova_unlink(struct device *dev, struct dma_iova_state *state,
++		size_t offset, size_t size, enum dma_data_direction dir,
++		unsigned long attrs);
++
++is used to unmap a range previously mapped, and
++
++::
++
++   void dma_iova_free(struct device *dev, struct dma_iova_state *state);
++
++is used to free the IOVA space.  All regions must have been unmapped using
++``dma_iova_unlink()`` before calling ``dma_iova_free()``.
  
- out_err:
-diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-index bd722f473635..8927e5f996c2 100644
---- a/include/linux/iommu.h
-+++ b/include/linux/iommu.h
-@@ -799,6 +799,10 @@ extern struct iommu_domain *iommu_get_domain_for_dev(struct device *dev);
- extern struct iommu_domain *iommu_get_dma_domain(struct device *dev);
- extern int iommu_map(struct iommu_domain *domain, unsigned long iova,
- 		     phys_addr_t paddr, size_t size, int prot, gfp_t gfp);
-+int iommu_map_nosync(struct iommu_domain *domain, unsigned long iova,
-+		phys_addr_t paddr, size_t size, int prot, gfp_t gfp);
-+int iommu_sync_map(struct iommu_domain *domain, unsigned long iova,
-+		size_t size);
- extern size_t iommu_unmap(struct iommu_domain *domain, unsigned long iova,
- 			  size_t size);
- extern size_t iommu_unmap_fast(struct iommu_domain *domain,
+ Part II - Non-coherent DMA allocations
+ --------------------------------------
 -- 
 2.47.0
 
