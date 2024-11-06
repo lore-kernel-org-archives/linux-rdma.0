@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 880731F4736;
-	Wed,  6 Nov 2024 11:50:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5DC71DED46;
+	Wed,  6 Nov 2024 11:50:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730893843; cv=none; b=XbbFF+MI5d6Ir8PrHPYK+TmPCKNN+kKUiabvMr3o9FOE3PAsduOQzF+QOrYgt5lc21Kh7l39j3WCJqECeWDyvog8y4WmwJYnGDizA2xXGN9sxfbS6yegRgxa1eli6H0ZI0vkcBDc9KcDN9ThA+3PNPsbuRTNwsIBPpBCk3o7/Sc=
+	t=1730893847; cv=none; b=AvJjpf+nnsZcU+OcHdwof5O82Q0TH3hL+h/WQoNMFQVfquGMGGckOVtn5KrgYNQk+bW3eEjKv9SN5E5ttmbibhrlEzU8SirJZhV1hbl8DpQP9dU/FG7ucRIq2pj9CFrj1gbl9270dEJgDpE1BXa1/XFqBwrMbOmdZP/MrGPSXTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730893843; c=relaxed/simple;
-	bh=LHJNxaQG7ChuUixJnwwD1gA8ae7lNW9rHKLNGhRoomU=;
+	s=arc-20240116; t=1730893847; c=relaxed/simple;
+	bh=faZKR+GLvGy07GeNnto8v510/6+S1UMSrHjOqNZtBkg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PzdhZRry3ERo105gmxs+pnuJuZsb4DJymT7+rAXRbS6ugBOZFF0LHvhZcSUGNRQanEPfmkQrM88IwXsgJvUniY2puKbD8gdQW91bTu6y98vCC9lzkKRRVE4lQLl+l+NiAdRa7lKRAIKPF4giuTPRpzfsJFA+Dkj0/1fCFGP8yNk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DTnn4MzH; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=s/QI8hFSv4euJxIQq4hdztnD2DAkcaeIBQM9I9q9gmt7uDabdBZOnlq9dQjgKc4C+CdzoJpYxnA2j+gpiF+0I9lC3ABnobhaSFYKoPYskYbrFtvSbmJsbVK9sHNnMWELOM9VqodE4EVNEIDJrl+tFH35UrLABTohkn+jCiyanDI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EOk5Tzsm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DTnn4MzH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EF33C4CECD;
-	Wed,  6 Nov 2024 11:50:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EOk5Tzsm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2D6EC4CECD;
+	Wed,  6 Nov 2024 11:50:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730893843;
-	bh=LHJNxaQG7ChuUixJnwwD1gA8ae7lNW9rHKLNGhRoomU=;
+	s=k20201202; t=1730893847;
+	bh=faZKR+GLvGy07GeNnto8v510/6+S1UMSrHjOqNZtBkg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=DTnn4MzH+oAPg7W92s2F2YgvnMYo/zEaX/iZq5VFwiEnkddFR41aanJcX78jDpULb
-	 L1L4UzLDppcWda0UpAebDB4f/BCMiJBspLY5x5bdsXxx0P2I0oBe6/Z9V9BTOgMuWz
-	 rQorpNRGdvWDJ5LtVIB7NP4CFp482nT3+E1YxaSJrMu1ndvm84UtuCjmYBlErzkOhk
-	 apHm42FJGn1WxkU4irqD5ZBXclq4KmRZLHcxiG7BijI6tvo6xfROXF9XhoRgfjp2hX
-	 gBpT2XPe9ACdpoBxQaT9M4hJrF2YwYQ0Ahn8t0ygOvEtQZro1bTC8ZDDh3DrlCQ2/s
-	 ph87PvkEyJAjQ==
+	b=EOk5TzsmzB3j83bvLGxj0ufqueYA0lsVRGTcymCHL1Yd7/MMCVyLZukaIlmwwKo4Z
+	 0BkOp4PJNmruUsKpQYJkBmuU54A0Bzd5OxvpU3SLCT+VQsEYRg+5VdThT6JS3/WRoD
+	 8LyryAOqBtUqrVX4OWL2ws1llPN/d7KiW9+UuTthAgpFsyNmMShr+KL+BRjmNv+bW3
+	 xV3mNfREvaubJLLHfj3W0BFCohdhYZXywDWYWQyI810gSi2JmbwZ0Nta/ks04r6lJW
+	 EZ7CI+dwbz4fAvZgt/reVu/R5U/ONIiVf2VbxOY9iUqgFRYHsoyh0i43vIpdOnmd9y
+	 adYrKH6YKrniQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -34,7 +34,8 @@ To: Jens Axboe <axboe@kernel.dk>,
 	Will Deacon <will@kernel.org>,
 	Christoph Hellwig <hch@lst.de>,
 	Sagi Grimberg <sagi@grimberg.me>
-Cc: Keith Busch <kbusch@kernel.org>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
+	Keith Busch <kbusch@kernel.org>,
 	Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
 	Yishai Hadas <yishaih@nvidia.com>,
@@ -55,9 +56,9 @@ Cc: Keith Busch <kbusch@kernel.org>,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org,
 	Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH v2 08/17] dma-mapping: add a dma_need_unmap helper
-Date: Wed,  6 Nov 2024 15:49:36 +0200
-Message-ID: <00385b3557fa074865d37b0ac613d2cb28bcb741.1730892663.git.leon@kernel.org>
+Subject: [PATCH v2 14/17] RDMA/umem: Separate implicit ODP initialization from explicit ODP
+Date: Wed,  6 Nov 2024 15:49:42 +0200
+Message-ID: <487c6208a36a3ccda6e0cea4716cbf50d5e4276d.1730892663.git.leon@kernel.org>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <cover.1730892663.git.leon@kernel.org>
 References: <cover.1730892663.git.leon@kernel.org>
@@ -69,72 +70,156 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Christoph Hellwig <hch@lst.de>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Add helper that allows a driver to skip calling dma_unmap_*
-if the DMA layer can guarantee that they are no-nops.
+Create separate functions for the implicit ODP initialization
+which is different from the explicit ODP initialization.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- include/linux/dma-mapping.h |  5 +++++
- kernel/dma/mapping.c        | 20 ++++++++++++++++++++
- 2 files changed, 25 insertions(+)
+ drivers/infiniband/core/umem_odp.c | 91 +++++++++++++++---------------
+ 1 file changed, 46 insertions(+), 45 deletions(-)
 
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 8074a3b5c807..6906edde505d 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -410,6 +410,7 @@ static inline bool dma_need_sync(struct device *dev, dma_addr_t dma_addr)
- {
- 	return dma_dev_need_sync(dev) ? __dma_need_sync(dev, dma_addr) : false;
- }
-+bool dma_need_unmap(struct device *dev);
- #else /* !CONFIG_HAS_DMA || !CONFIG_DMA_NEED_SYNC */
- static inline bool dma_dev_need_sync(const struct device *dev)
- {
-@@ -435,6 +436,10 @@ static inline bool dma_need_sync(struct device *dev, dma_addr_t dma_addr)
- {
- 	return false;
- }
-+static inline bool dma_need_unmap(struct device *dev)
-+{
-+	return false;
-+}
- #endif /* !CONFIG_HAS_DMA || !CONFIG_DMA_NEED_SYNC */
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 30cd8f353476..51d518989914 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -48,41 +48,44 @@
  
- struct page *dma_alloc_pages(struct device *dev, size_t size,
-diff --git a/kernel/dma/mapping.c b/kernel/dma/mapping.c
-index 864a1121bf08..daa97a650778 100644
---- a/kernel/dma/mapping.c
-+++ b/kernel/dma/mapping.c
-@@ -442,6 +442,26 @@ bool __dma_need_sync(struct device *dev, dma_addr_t dma_addr)
- }
- EXPORT_SYMBOL_GPL(__dma_need_sync);
+ #include "uverbs.h"
  
-+/**
-+ * dma_need_unmap - does this device need dma_unmap_* operations
-+ * @dev: device to check
-+ *
-+ * If this function returns %false, drivers can skip calling dma_unmap_* after
-+ * finishing an I/O.  This function must be called after all mappings that might
-+ * need to be unmapped have been performed.
-+ */
-+bool dma_need_unmap(struct device *dev)
+-static inline int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
+-				   const struct mmu_interval_notifier_ops *ops)
++static void ib_init_umem_implicit_odp(struct ib_umem_odp *umem_odp)
 +{
-+	if (!dma_map_direct(dev, get_dma_ops(dev)))
-+		return true;
-+#ifdef CONFIG_DMA_NEED_SYNC
-+	if (!dev->dma_skip_sync)
-+		return true;
-+#endif
-+	return IS_ENABLED(CONFIG_DMA_API_DEBUG);
++	umem_odp->is_implicit_odp = 1;
++	umem_odp->umem.is_odp = 1;
++	mutex_init(&umem_odp->umem_mutex);
 +}
-+EXPORT_SYMBOL_GPL(dma_need_unmap);
 +
- static void dma_setup_need_sync(struct device *dev)
++static int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
++			    const struct mmu_interval_notifier_ops *ops)
  {
- 	const struct dma_map_ops *ops = get_dma_ops(dev);
+ 	struct ib_device *dev = umem_odp->umem.ibdev;
++	size_t page_size = 1UL << umem_odp->page_shift;
++	unsigned long start;
++	unsigned long end;
+ 	int ret;
+ 
+ 	umem_odp->umem.is_odp = 1;
+ 	mutex_init(&umem_odp->umem_mutex);
+ 
+-	if (!umem_odp->is_implicit_odp) {
+-		size_t page_size = 1UL << umem_odp->page_shift;
+-		unsigned long start;
+-		unsigned long end;
+-
+-		start = ALIGN_DOWN(umem_odp->umem.address, page_size);
+-		if (check_add_overflow(umem_odp->umem.address,
+-				       (unsigned long)umem_odp->umem.length,
+-				       &end))
+-			return -EOVERFLOW;
+-		end = ALIGN(end, page_size);
+-		if (unlikely(end < page_size))
+-			return -EOVERFLOW;
+-
+-		ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
+-					(end - start) >> PAGE_SHIFT,
+-					1 << umem_odp->page_shift);
+-		if (ret)
+-			return ret;
+-
+-		ret = mmu_interval_notifier_insert(&umem_odp->notifier,
+-						   umem_odp->umem.owning_mm,
+-						   start, end - start, ops);
+-		if (ret)
+-			goto out_free_map;
+-	}
++	start = ALIGN_DOWN(umem_odp->umem.address, page_size);
++	if (check_add_overflow(umem_odp->umem.address,
++			       (unsigned long)umem_odp->umem.length, &end))
++		return -EOVERFLOW;
++	end = ALIGN(end, page_size);
++	if (unlikely(end < page_size))
++		return -EOVERFLOW;
++
++	ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
++				(end - start) >> PAGE_SHIFT,
++				1 << umem_odp->page_shift);
++	if (ret)
++		return ret;
++
++	ret = mmu_interval_notifier_insert(&umem_odp->notifier,
++					   umem_odp->umem.owning_mm, start,
++					   end - start, ops);
++	if (ret)
++		goto out_free_map;
+ 
+ 	return 0;
+ 
+@@ -106,7 +109,6 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
+ {
+ 	struct ib_umem *umem;
+ 	struct ib_umem_odp *umem_odp;
+-	int ret;
+ 
+ 	if (access & IB_ACCESS_HUGETLB)
+ 		return ERR_PTR(-EINVAL);
+@@ -118,16 +120,10 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
+ 	umem->ibdev = device;
+ 	umem->writable = ib_access_writable(access);
+ 	umem->owning_mm = current->mm;
+-	umem_odp->is_implicit_odp = 1;
+ 	umem_odp->page_shift = PAGE_SHIFT;
+ 
+ 	umem_odp->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
+-	ret = ib_init_umem_odp(umem_odp, NULL);
+-	if (ret) {
+-		put_pid(umem_odp->tgid);
+-		kfree(umem_odp);
+-		return ERR_PTR(ret);
+-	}
++	ib_init_umem_implicit_odp(umem_odp);
+ 	return umem_odp;
+ }
+ EXPORT_SYMBOL(ib_umem_odp_alloc_implicit);
+@@ -248,7 +244,7 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_device *device,
+ }
+ EXPORT_SYMBOL(ib_umem_odp_get);
+ 
+-void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
++static void ib_umem_odp_free(struct ib_umem_odp *umem_odp)
+ {
+ 	struct ib_device *dev = umem_odp->umem.ibdev;
+ 
+@@ -258,14 +254,19 @@ void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
+ 	 * It is the driver's responsibility to ensure, before calling us,
+ 	 * that the hardware will not attempt to access the MR any more.
+ 	 */
+-	if (!umem_odp->is_implicit_odp) {
+-		mutex_lock(&umem_odp->umem_mutex);
+-		ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
+-					    ib_umem_end(umem_odp));
+-		mutex_unlock(&umem_odp->umem_mutex);
+-		mmu_interval_notifier_remove(&umem_odp->notifier);
+-		hmm_dma_map_free(dev->dma_device, &umem_odp->map);
+-	}
++	mutex_lock(&umem_odp->umem_mutex);
++	ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
++				    ib_umem_end(umem_odp));
++	mutex_unlock(&umem_odp->umem_mutex);
++	mmu_interval_notifier_remove(&umem_odp->notifier);
++	hmm_dma_map_free(dev->dma_device, &umem_odp->map);
++}
++
++void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
++{
++	if (!umem_odp->is_implicit_odp)
++		ib_umem_odp_free(umem_odp);
++
+ 	put_pid(umem_odp->tgid);
+ 	kfree(umem_odp);
+ }
 -- 
 2.47.0
 
