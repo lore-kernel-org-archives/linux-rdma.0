@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D96C51E1A28;
-	Wed,  6 Nov 2024 11:50:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB881E377C;
+	Wed,  6 Nov 2024 11:50:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730893819; cv=none; b=ZHrIiBSWIJ68XWMAydHoh8d9p8sDpCNu+DxhpIcJduFOm7wNwsHx2KzILyX3JsrRVoxTT4NXPvk58DPPybyQD79f1DsbNAPV96c7i7JtwTZeuA1SVj7hukQ2UbYTv7ajSacNb/wrF3/9M1UyW/VFjc6v0gZ1jLg63xRlYQG/6Uo=
+	t=1730893823; cv=none; b=WpXDnOwUK2raHEn3L8TMjdphhTALtOPud96QUK0XeR3U4g2EVWXyj6QVTQfbQBNgRZOsMKolKmF995NMeUOTEIf0JbrgE6ZY2ar8K5VQnWkwsnA0po4OkDH/lTKqaZZPV88wXhBJxn8qLO3GUgNQZtWtTxrgbiVPZSViMEFkDu8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730893819; c=relaxed/simple;
-	bh=6bk4WY4n6+Z+yYl3isWCsOJQFnSfMGq0h01rMvpfa/0=;
+	s=arc-20240116; t=1730893823; c=relaxed/simple;
+	bh=bZa/AznOguif5HsOvA16Z11mxfxUXbfMG8pYJ8SrELA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eSFVgxgpf8kVKPmsoNB4BiKiRMalyputaYKz/Q+3oh05gGhCefNIFrWF8EfEwYbWhQXPlNcRVLhehevOKeWbvzG95fh+UR4eikOE9n1Ef603iCGmg8zM5TNPdEOEuYLNF01LNijQbFvXHgLgJ3+cX3NbL/RKyS18jLxLWJsVGmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=N9ZyBRYG; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=gBNR4ZX3UiXjnIv7B0+mhoVmJ7nFdCfiE9+XLmoy91gQejItaKlJzHoc4wfEUxNJfv182EOnKYTCNjn+319qVk6dvzKLAtDybLN58HvxCVR5pYajSq6Ai5JwV6VnVlglY4rpmO2jYTv7P6JKn//mPh4qoxLd2lvel3eJA8GIDzE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tUNFNNyn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="N9ZyBRYG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2D70C4CECD;
-	Wed,  6 Nov 2024 11:50:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tUNFNNyn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7374C4CECD;
+	Wed,  6 Nov 2024 11:50:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730893818;
-	bh=6bk4WY4n6+Z+yYl3isWCsOJQFnSfMGq0h01rMvpfa/0=;
+	s=k20201202; t=1730893822;
+	bh=bZa/AznOguif5HsOvA16Z11mxfxUXbfMG8pYJ8SrELA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=N9ZyBRYGBKRQCx48wgDGRq+lXDQbrdZs1zQzADKYBz7tU6caFEMRX5DkgQjZce5k1
-	 WH5HeYXTswRnISibi5HFBoiyEfB0jy4uy+ZleZ5Z38T0RtSxF80WF9xXonRyCmBMal
-	 vJ6SMXE2uA1hFa85fXuNJX7zuZ4EFv5wuaCbEsVW+YJPUSTzoKrwrT89tmTqgzc+Zk
-	 64Fhyi52hiIEv3cJ2FdfRJEyHTDgfOvseiTAMGYAq2OTLWLCUSjOR1uJWwp+oSlKWR
-	 l/hTIY4mS/bxpi+LMmDDMPxzzITxQEZElzZ0GXaIutByQMf6p8YnaZS6ouAbvc+125
-	 0RjzE1qk9ENOw==
+	b=tUNFNNynaJP85RgckeeSFTYXsrvjgAjMHiapU85Ya4oxCE8FogShDgB6mkqqilq81
+	 SWTeS7iWEyyK+KSPKz6bi6zCB6oSQdJ+YDsZ4q5a6SxQh8ARCnqOxbKE3wx9t78ahO
+	 i5ZVkWKM3JKbLVWX1kIYA3GxHEYvR8zbKsaCUuEsyJQPpeVScLxGphkEb+gpQz1yLo
+	 j8MjzB/uiHB2SekvlRyrSirA/5XrgWx/oj89g433a/xrlavy99vhHW3PD0EMKtDXvZ
+	 uWuz5HQ64a2FaPtpWjOg9A9JZFnhxqz/Aj74jJ8jDwYmqU2BSv3wMu6liqqLIZU3BQ
+	 p1sL5LR9V6iWw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -34,8 +34,7 @@ To: Jens Axboe <axboe@kernel.dk>,
 	Will Deacon <will@kernel.org>,
 	Christoph Hellwig <hch@lst.de>,
 	Sagi Grimberg <sagi@grimberg.me>
-Cc: Leon Romanovsky <leonro@nvidia.com>,
-	Keith Busch <kbusch@kernel.org>,
+Cc: Keith Busch <kbusch@kernel.org>,
 	Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
 	Yishai Hadas <yishaih@nvidia.com>,
@@ -56,9 +55,9 @@ Cc: Leon Romanovsky <leonro@nvidia.com>,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org,
 	Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH v2 07/17] dma-mapping: Implement link/unlink ranges API
-Date: Wed,  6 Nov 2024 15:49:35 +0200
-Message-ID: <f8c7f160c9ae97fef4ccd355f9979727552c7374.1730892663.git.leon@kernel.org>
+Subject: [PATCH v2 03/17] iommu: generalize the batched sync after map interface
+Date: Wed,  6 Nov 2024 15:49:31 +0200
+Message-ID: <589adb3a4b53121942e9a39051ae49a27f7a074c.1730892663.git.leon@kernel.org>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <cover.1730892663.git.leon@kernel.org>
 References: <cover.1730892663.git.leon@kernel.org>
@@ -70,356 +69,166 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Christoph Hellwig <hch@lst.de>
 
-Introduce new DMA APIs to perform DMA linkage of buffers
-in layers higher than DMA.
+For the upcoming IOVA-based DMA API we want to use the interface batch the
+sync after mapping multiple entries from dma-iommu without having a
+scatterlist.
 
-In proposed API, the callers will perform the following steps.
-In map path:
-	if (dma_can_use_iova(...))
-	    dma_iova_alloc()
-	    for (page in range)
-	       dma_iova_link_next(...)
-	    dma_iova_sync(...)
-	else
-	     /* Fallback to legacy map pages */
-             for (all pages)
-	       dma_map_page(...)
+For that move more sanity checks from the callers into __iommu_map and
+make that function available outside of iommu.c as iommu_map_nosync.
 
-In unmap path:
-	if (dma_can_use_iova(...))
-	     dma_iova_destroy()
-	else
-	     for (all pages)
-		dma_unmap_page(...)
+Add a wrapper for the map_sync as iommu_sync_map so that callers don't
+need to poke into the methods directly.
 
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/iommu/dma-iommu.c   | 259 ++++++++++++++++++++++++++++++++++++
- include/linux/dma-mapping.h |  32 +++++
- 2 files changed, 291 insertions(+)
+ drivers/iommu/iommu.c | 65 +++++++++++++++++++------------------------
+ include/linux/iommu.h |  4 +++
+ 2 files changed, 33 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index e1eaad500d27..4a504a879cc0 100644
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -1834,6 +1834,265 @@ void dma_iova_free(struct device *dev, struct dma_iova_state *state)
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index 83c8e617a2c5..6b0943397e1e 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -2439,8 +2439,8 @@ static size_t iommu_pgsize(struct iommu_domain *domain, unsigned long iova,
+ 	return pgsize;
  }
- EXPORT_SYMBOL_GPL(dma_iova_free);
  
-+static int __dma_iova_link(struct device *dev, dma_addr_t addr,
-+		phys_addr_t phys, size_t size, enum dma_data_direction dir,
-+		unsigned long attrs)
-+{
-+	bool coherent = dev_is_dma_coherent(dev);
-+
-+	if (!coherent && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		arch_sync_dma_for_device(phys, size, dir);
-+
-+	return iommu_map_nosync(iommu_get_dma_domain(dev), addr, phys, size,
-+			dma_info_to_prot(dir, coherent, attrs), GFP_ATOMIC);
-+}
-+
-+static int iommu_dma_iova_bounce_and_link(struct device *dev, dma_addr_t addr,
-+		phys_addr_t phys, size_t bounce_len,
-+		enum dma_data_direction dir, unsigned long attrs,
-+		size_t iova_start_pad)
-+{
-+	struct iommu_domain *domain = iommu_get_dma_domain(dev);
-+	struct iova_domain *iovad = &domain->iova_cookie->iovad;
-+	phys_addr_t bounce_phys;
-+	int error;
-+
-+	bounce_phys = iommu_dma_map_swiotlb(dev, phys, bounce_len, dir, attrs);
-+	if (bounce_phys == DMA_MAPPING_ERROR)
-+		return -ENOMEM;
-+
-+	error = __dma_iova_link(dev, addr - iova_start_pad,
-+			bounce_phys - iova_start_pad,
-+			iova_align(iovad, bounce_len), dir, attrs);
-+	if (error)
-+		swiotlb_tbl_unmap_single(dev, bounce_phys, bounce_len, dir,
-+				attrs);
-+	return error;
-+}
-+
-+static int iommu_dma_iova_link_swiotlb(struct device *dev,
-+		struct dma_iova_state *state, phys_addr_t phys, size_t offset,
-+		size_t size, enum dma_data_direction dir, unsigned long attrs)
-+{
-+	struct iommu_domain *domain = iommu_get_dma_domain(dev);
-+	struct iommu_dma_cookie *cookie = domain->iova_cookie;
-+	struct iova_domain *iovad = &cookie->iovad;
-+	size_t iova_start_pad = iova_offset(iovad, phys);
-+	size_t iova_end_pad = iova_offset(iovad, phys + size);
-+	dma_addr_t addr = state->addr + offset;
-+	size_t mapped = 0;
-+	int error;
-+
-+	if (iova_start_pad) {
-+		size_t bounce_len = min(size, iovad->granule - iova_start_pad);
-+
-+		error = iommu_dma_iova_bounce_and_link(dev, addr, phys,
-+				bounce_len, dir, attrs, iova_start_pad);
-+		if (error)
-+			return error;
-+		state->__size |= DMA_IOVA_USE_SWIOTLB;
-+
-+		mapped += bounce_len;
-+		size -= bounce_len;
-+		if (!size)
-+			return 0;
-+	}
-+
-+	size -= iova_end_pad;
-+	error = __dma_iova_link(dev, addr + mapped, phys + mapped, size, dir,
-+			attrs);
-+	if (error)
-+		goto out_unmap;
-+	mapped += size;
-+
-+	if (iova_end_pad) {
-+		error = iommu_dma_iova_bounce_and_link(dev, addr + mapped,
-+				phys + mapped, iova_end_pad, dir, attrs, 0);
-+		if (error)
-+			goto out_unmap;
-+		state->__size |= DMA_IOVA_USE_SWIOTLB;
-+	}
-+
-+	return 0;
-+
-+out_unmap:
-+	dma_iova_unlink(dev, state, 0, mapped, dir, attrs);
-+	return error;
-+}
-+
-+/**
-+ * dma_iova_link - Link a range of IOVA space
-+ * @dev: DMA device
-+ * @state: IOVA state
-+ * @phys: physical address to link
-+ * @offset: offset into the IOVA state to map into
-+ * @size: size of the buffer
-+ * @dir: DMA direction
-+ * @attrs: attributes of mapping properties
-+ *
-+ * Link a range of IOVA space for the given IOVA state without IOTLB sync.
-+ * This function is used to link multiple physical addresses in contigueous
-+ * IOVA space without performing costly IOTLB sync.
-+ *
-+ * The caller is responsible to call to dma_iova_sync() to sync IOTLB at
-+ * the end of linkage.
-+ */
-+int dma_iova_link(struct device *dev, struct dma_iova_state *state,
-+		phys_addr_t phys, size_t offset, size_t size,
-+		enum dma_data_direction dir, unsigned long attrs)
-+{
-+	struct iommu_domain *domain = iommu_get_dma_domain(dev);
-+	struct iommu_dma_cookie *cookie = domain->iova_cookie;
-+	struct iova_domain *iovad = &cookie->iovad;
-+	size_t iova_start_pad = iova_offset(iovad, phys);
-+
-+	if (WARN_ON_ONCE(iova_start_pad && offset > 0))
-+		return -EIO;
-+
-+	if (dev_use_swiotlb(dev, size, dir) && iova_offset(iovad, phys | size))
-+		return iommu_dma_iova_link_swiotlb(dev, state, phys, offset,
-+				size, dir, attrs);
-+
-+	return __dma_iova_link(dev, state->addr + offset - iova_start_pad,
-+			phys - iova_start_pad,
-+			iova_align(iovad, size + iova_start_pad), dir, attrs);
-+}
-+EXPORT_SYMBOL_GPL(dma_iova_link);
-+
-+/**
-+ * dma_iova_sync - Sync IOTLB
-+ * @dev: DMA device
-+ * @state: IOVA state
-+ * @offset: offset into the IOVA state to sync
-+ * @size: size of the buffer
-+ *
-+ * Sync IOTLB for the given IOVA state. This function should be called on
-+ * the IOVA-contigous range created by one ore more dma_iova_link() calls
-+ * to sync the IOTLB.
-+ */
-+int dma_iova_sync(struct device *dev, struct dma_iova_state *state,
-+		size_t offset, size_t size)
-+{
-+	struct iommu_domain *domain = iommu_get_dma_domain(dev);
-+	struct iommu_dma_cookie *cookie = domain->iova_cookie;
-+	struct iova_domain *iovad = &cookie->iovad;
-+	dma_addr_t addr = state->addr + offset;
-+	size_t iova_start_pad = iova_offset(iovad, addr);
-+
-+	return iommu_sync_map(domain, addr - iova_start_pad,
-+		      iova_align(iovad, size + iova_start_pad));
-+}
-+EXPORT_SYMBOL_GPL(dma_iova_sync);
-+
-+static void iommu_dma_iova_unlink_range_slow(struct device *dev,
-+		dma_addr_t addr, size_t size, enum dma_data_direction dir,
-+		unsigned long attrs)
-+{
-+	struct iommu_domain *domain = iommu_get_dma_domain(dev);
-+	struct iommu_dma_cookie *cookie = domain->iova_cookie;
-+	struct iova_domain *iovad = &cookie->iovad;
-+	size_t iova_start_pad = iova_offset(iovad, addr);
-+	dma_addr_t end = addr + size;
-+
-+	do {
-+		phys_addr_t phys;
-+		size_t len;
-+
-+		phys = iommu_iova_to_phys(domain, addr);
-+		if (WARN_ON(!phys))
-+			continue;
-+		len = min_t(size_t,
-+			end - addr, iovad->granule - iova_start_pad);
-+
-+		if (!dev_is_dma_coherent(dev) &&
-+		    !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+			arch_sync_dma_for_cpu(phys, len, dir);
-+
-+		swiotlb_tbl_unmap_single(dev, phys, len, dir, attrs);
-+
-+		addr += len;
-+		iova_start_pad = 0;
-+	} while (addr < end);
-+}
-+
-+static void __iommu_dma_iova_unlink(struct device *dev,
-+		struct dma_iova_state *state, size_t offset, size_t size,
-+		enum dma_data_direction dir, unsigned long attrs,
-+		bool free_iova)
-+{
-+	struct iommu_domain *domain = iommu_get_dma_domain(dev);
-+	struct iommu_dma_cookie *cookie = domain->iova_cookie;
-+	struct iova_domain *iovad = &cookie->iovad;
-+	dma_addr_t addr = state->addr + offset;
-+	size_t iova_start_pad = iova_offset(iovad, addr);
-+	struct iommu_iotlb_gather iotlb_gather;
-+	size_t unmapped;
-+
-+	if ((state->__size & DMA_IOVA_USE_SWIOTLB) ||
-+	    (!dev_is_dma_coherent(dev) && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)))
-+		iommu_dma_iova_unlink_range_slow(dev, addr, size, dir, attrs);
-+
-+	iommu_iotlb_gather_init(&iotlb_gather);
-+	iotlb_gather.queued = free_iova && READ_ONCE(cookie->fq_domain);
-+
-+	size = iova_align(iovad, size + iova_start_pad);
-+	addr -= iova_start_pad;
-+	unmapped = iommu_unmap_fast(domain, addr, size, &iotlb_gather);
-+	WARN_ON(unmapped != size);
-+
-+	if (!iotlb_gather.queued)
-+		iommu_iotlb_sync(domain, &iotlb_gather);
-+	if (free_iova)
-+		iommu_dma_free_iova(cookie, addr, size, &iotlb_gather);
-+}
-+
-+/**
-+ * dma_iova_unlink - Unlink a range of IOVA space
-+ * @dev: DMA device
-+ * @state: IOVA state
-+ * @offset: offset into the IOVA state to unlink
-+ * @size: size of the buffer
-+ * @dir: DMA direction
-+ * @attrs: attributes of mapping properties
-+ *
-+ * Unlink a range of IOVA space for the given IOVA state.
-+ */
-+void dma_iova_unlink(struct device *dev, struct dma_iova_state *state,
-+		size_t offset, size_t size, enum dma_data_direction dir,
-+		unsigned long attrs)
-+{
-+	 __iommu_dma_iova_unlink(dev, state, offset, size, dir, attrs, false);
-+}
-+EXPORT_SYMBOL_GPL(dma_iova_unlink);
-+
-+/**
-+ * dma_iova_destroy - Finish a DMA mapping transaction
-+ * @dev: DMA device
-+ * @state: IOVA state
-+ * @mapped_len: number of bytes to unmap
-+ * @dir: DMA direction
-+ * @attrs: attributes of mapping properties
-+ *
-+ * Unlink the IOVA range up to @mapped_len and free the entire IOVA space. The
-+ * range of IOVA from dma_addr to @mapped_len must all be linked, and be the
-+ * only linked IOVA in state.
-+ */
-+void dma_iova_destroy(struct device *dev, struct dma_iova_state *state,
-+		size_t mapped_len, enum dma_data_direction dir,
-+		unsigned long attrs)
-+{
-+	if (mapped_len)
-+		__iommu_dma_iova_unlink(dev, state, 0, mapped_len, dir, attrs,
-+				true);
-+	else
-+		/*
-+		 * We can be here if first call to dma_iova_link() failed and
-+		 * there is nothing to unlink, so let's be more clear.
-+		 */
-+		dma_iova_free(dev, state);
-+}
-+EXPORT_SYMBOL_GPL(dma_iova_destroy);
-+
- void iommu_setup_dma_ops(struct device *dev)
+-static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
+-		       phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
++int iommu_map_nosync(struct iommu_domain *domain, unsigned long iova,
++		phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
  {
- 	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 817f11bce7bc..8074a3b5c807 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -313,6 +313,17 @@ static inline bool dma_use_iova(struct dma_iova_state *state)
- bool dma_iova_try_alloc(struct device *dev, struct dma_iova_state *state,
- 		phys_addr_t phys, size_t size);
- void dma_iova_free(struct device *dev, struct dma_iova_state *state);
-+void dma_iova_destroy(struct device *dev, struct dma_iova_state *state,
-+		size_t mapped_len, enum dma_data_direction dir,
-+		unsigned long attrs);
-+int dma_iova_sync(struct device *dev, struct dma_iova_state *state,
-+		size_t offset, size_t size);
-+int dma_iova_link(struct device *dev, struct dma_iova_state *state,
-+		phys_addr_t phys, size_t offset, size_t size,
-+		enum dma_data_direction dir, unsigned long attrs);
-+void dma_iova_unlink(struct device *dev, struct dma_iova_state *state,
-+		size_t offset, size_t size, enum dma_data_direction dir,
-+		unsigned long attrs);
- #else /* CONFIG_IOMMU_DMA */
- static inline bool dma_use_iova(struct dma_iova_state *state)
- {
-@@ -327,6 +338,27 @@ static inline void dma_iova_free(struct device *dev,
- 		struct dma_iova_state *state)
- {
+ 	const struct iommu_domain_ops *ops = domain->ops;
+ 	unsigned long orig_iova = iova;
+@@ -2449,12 +2449,19 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
+ 	phys_addr_t orig_paddr = paddr;
+ 	int ret = 0;
+ 
++	might_sleep_if(gfpflags_allow_blocking(gfp));
++
+ 	if (unlikely(!(domain->type & __IOMMU_DOMAIN_PAGING)))
+ 		return -EINVAL;
+ 
+ 	if (WARN_ON(!ops->map_pages || domain->pgsize_bitmap == 0UL))
+ 		return -ENODEV;
+ 
++	/* Discourage passing strange GFP flags */
++	if (WARN_ON_ONCE(gfp & (__GFP_COMP | __GFP_DMA | __GFP_DMA32 |
++				__GFP_HIGHMEM)))
++		return -EINVAL;
++
+ 	/* find out the minimum page size supported */
+ 	min_pagesz = 1 << __ffs(domain->pgsize_bitmap);
+ 
+@@ -2502,31 +2509,27 @@ static int __iommu_map(struct iommu_domain *domain, unsigned long iova,
+ 	return ret;
  }
-+static inline void dma_iova_destroy(struct device *dev,
-+		struct dma_iova_state *state, size_t mapped_len,
-+		enum dma_data_direction dir, unsigned long attrs)
-+{
-+}
-+static inline int dma_iova_sync(struct device *dev, struct dma_iova_state *state,
-+		size_t offset, size_t size)
-+{
-+	return -EOPNOTSUPP;
-+}
-+static inline int dma_iova_link(struct device *dev,
-+		struct dma_iova_state *state, phys_addr_t phys, size_t offset,
-+		size_t size, enum dma_data_direction dir, unsigned long attrs)
-+{
-+	return -EOPNOTSUPP;
-+}
-+static inline void dma_iova_unlink(struct device *dev,
-+		struct dma_iova_state *state, size_t offset, size_t size,
-+		enum dma_data_direction dir, unsigned long attrs)
-+{
-+}
- #endif /* CONFIG_IOMMU_DMA */
  
- #if defined(CONFIG_HAS_DMA) && defined(CONFIG_DMA_NEED_SYNC)
+-int iommu_map(struct iommu_domain *domain, unsigned long iova,
+-	      phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
++int iommu_sync_map(struct iommu_domain *domain, unsigned long iova, size_t size)
+ {
+ 	const struct iommu_domain_ops *ops = domain->ops;
+-	int ret;
+-
+-	might_sleep_if(gfpflags_allow_blocking(gfp));
+ 
+-	/* Discourage passing strange GFP flags */
+-	if (WARN_ON_ONCE(gfp & (__GFP_COMP | __GFP_DMA | __GFP_DMA32 |
+-				__GFP_HIGHMEM)))
+-		return -EINVAL;
++	if (!ops->iotlb_sync_map)
++		return 0;
++	return ops->iotlb_sync_map(domain, iova, size);
++}
+ 
+-	ret = __iommu_map(domain, iova, paddr, size, prot, gfp);
+-	if (ret == 0 && ops->iotlb_sync_map) {
+-		ret = ops->iotlb_sync_map(domain, iova, size);
+-		if (ret)
+-			goto out_err;
+-	}
++int iommu_map(struct iommu_domain *domain, unsigned long iova,
++	      phys_addr_t paddr, size_t size, int prot, gfp_t gfp)
++{
++	int ret;
+ 
+-	return ret;
++	ret = iommu_map_nosync(domain, iova, paddr, size, prot, gfp);
++	if (ret)
++		return ret;
+ 
+-out_err:
+-	/* undo mappings already done */
+-	iommu_unmap(domain, iova, size);
++	ret = iommu_sync_map(domain, iova, size);
++	if (ret)
++		iommu_unmap(domain, iova, size);
+ 
+ 	return ret;
+ }
+@@ -2612,26 +2615,17 @@ ssize_t iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
+ 		     struct scatterlist *sg, unsigned int nents, int prot,
+ 		     gfp_t gfp)
+ {
+-	const struct iommu_domain_ops *ops = domain->ops;
+ 	size_t len = 0, mapped = 0;
+ 	phys_addr_t start;
+ 	unsigned int i = 0;
+ 	int ret;
+ 
+-	might_sleep_if(gfpflags_allow_blocking(gfp));
+-
+-	/* Discourage passing strange GFP flags */
+-	if (WARN_ON_ONCE(gfp & (__GFP_COMP | __GFP_DMA | __GFP_DMA32 |
+-				__GFP_HIGHMEM)))
+-		return -EINVAL;
+-
+ 	while (i <= nents) {
+ 		phys_addr_t s_phys = sg_phys(sg);
+ 
+ 		if (len && s_phys != start + len) {
+-			ret = __iommu_map(domain, iova + mapped, start,
++			ret = iommu_map_nosync(domain, iova + mapped, start,
+ 					len, prot, gfp);
+-
+ 			if (ret)
+ 				goto out_err;
+ 
+@@ -2654,11 +2648,10 @@ ssize_t iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
+ 			sg = sg_next(sg);
+ 	}
+ 
+-	if (ops->iotlb_sync_map) {
+-		ret = ops->iotlb_sync_map(domain, iova, mapped);
+-		if (ret)
+-			goto out_err;
+-	}
++	ret = iommu_sync_map(domain, iova, mapped);
++	if (ret)
++		goto out_err;
++
+ 	return mapped;
+ 
+ out_err:
+diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+index bd722f473635..8927e5f996c2 100644
+--- a/include/linux/iommu.h
++++ b/include/linux/iommu.h
+@@ -799,6 +799,10 @@ extern struct iommu_domain *iommu_get_domain_for_dev(struct device *dev);
+ extern struct iommu_domain *iommu_get_dma_domain(struct device *dev);
+ extern int iommu_map(struct iommu_domain *domain, unsigned long iova,
+ 		     phys_addr_t paddr, size_t size, int prot, gfp_t gfp);
++int iommu_map_nosync(struct iommu_domain *domain, unsigned long iova,
++		phys_addr_t paddr, size_t size, int prot, gfp_t gfp);
++int iommu_sync_map(struct iommu_domain *domain, unsigned long iova,
++		size_t size);
+ extern size_t iommu_unmap(struct iommu_domain *domain, unsigned long iova,
+ 			  size_t size);
+ extern size_t iommu_unmap_fast(struct iommu_domain *domain,
 -- 
 2.47.0
 
