@@ -1,84 +1,71 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0612C19DF62;
-	Tue, 12 Nov 2024 03:03:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD4C91A0AFE;
+	Tue, 12 Nov 2024 06:01:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731380639; cv=none; b=VYhly20WWf1NpBe4jqsKG4VU4tH521DgMMHHpbmlCVWVnZH9kU4Tt27/xIh26SoRk+t9A4MZccHRr1bLTyoiW/v4Vez38KbvZx1dk9OrHIQvTPcOe2RM3aDRjjfH0aIQaXP947nVJxjUhy7HkuoV6/5Bzr7y2kCnIPEkcseagC4=
+	t=1731391276; cv=none; b=XqsK4fWwmVeM1chKN/RwCNziarp049uqEdkAUN4Kcby2N3S1SuFY4Z3VqWZo68p9rYixMGzzRiai+UwTLgjFNtJut8J3EXOnBquJnPhPJlK3yJE56crNvHtBiNe30YBpRrqlaiQfHL795g1voPhoKrII7RS1u3mZfUL3WBF27Kg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731380639; c=relaxed/simple;
-	bh=zEuVEOYuXvXUfujcZ5GqwkoABFSLMXkGDWxAsMEEFyE=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KPQ4PKEAcpwzd/38+TCK7clpdu9L2MA3WOG5O6wH8rVAkDSQoG3L0KqNDymsBH8QA5AEHquIOCHv071jFh1PopvEXVmV+X0xoS9oi/YPDud7c0Sw2FztD8pG+Zv+HE0Z/YmyK5GHfiahmVYk6r6ZmJyTX+2Cmw16XTaT3dd16dA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Mv8wTLYb; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Mv8wTLYb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E022C4CECF;
-	Tue, 12 Nov 2024 03:03:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731380638;
-	bh=zEuVEOYuXvXUfujcZ5GqwkoABFSLMXkGDWxAsMEEFyE=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Mv8wTLYbB0/mepIUwLysLWZSQHKkWGgpvMXFU6/G85HdVDVTKuOTFLGFdZ8lHm1PN
-	 gjzljxT8jQfbK2oQi4AwJfeNeMe6gcl8LWLwDttcFpDTEysNKxnpOAGAWVp89XLm8R
-	 eVuH4Tpzdj1asuMS0pcb8r/DNNY59gjMasG1ZAHzYiJpjDjWdhHOpORXc+gqQEu2Vw
-	 3BMkcFunnkZfW232l3DHw+y90hFNBw8+tOiaRSbMHJhrFUcLnijjpLF7Ab+Ul3HN7U
-	 AnYMdTA1ZyLFxpPSlf5Ht5f686gvLoH1V0TnzUGdNtZ4cWa4Pp+jOkiMpo1mBq1cMn
-	 PDgDB910rl6Bg==
-Date: Mon, 11 Nov 2024 19:03:56 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Abhinav Saxena <xandfury@gmail.com>
-Cc: linux-kernel-mentees@lists.linuxfoundation.org,
- intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, Tony Nguyen
- <anthony.l.nguyen@intel.com>, Przemek Kitszel
- <przemyslaw.kitszel@intel.com>, "David S . Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Simon
- Horman <horms@kernel.org>, Jonathan Corbet <corbet@lwn.net>, Saeed Mahameed
- <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Tariq Toukan
- <tariqt@nvidia.com>, Allison Henderson <allison.henderson@oracle.com>,
- Russell King <linux@armlinux.org.uk>, Dragos Tatulea <dtatulea@nvidia.com>,
- Rahul Rameshbabu <rrameshbabu@nvidia.com>
-Subject: Re: [PATCH 1/2] docs: net: Fix text in eth/intel, mlx5 and
- switchdev docs
-Message-ID: <20241111190356.0aefe1b9@kernel.org>
-In-Reply-To: <20241108202548.140511-1-xandfury@gmail.com>
-References: <20241108202548.140511-1-xandfury@gmail.com>
+	s=arc-20240116; t=1731391276; c=relaxed/simple;
+	bh=0PVIDi3JGo0JcgiypZig4noJVOHBWMpTvGUyYzU70NI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hgj2O5pSu0EZjHUyEj95qgpqAXSvssBuVvK8nyj63y3Uy44jZQXh20cjjcRkFUeSBK/IZw9S/kZa2AwoM5RpUQETMfo3BrWns4SpeCbcf6FW+YYZZrxaJqGbeoup4Miaeso5H7+VBl2rZq/+NOuBrLY1vg1LvHuIDwVMAAhD7bU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id A286768D09; Tue, 12 Nov 2024 07:01:08 +0100 (CET)
+Date: Tue, 12 Nov 2024 07:01:08 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Christoph Hellwig <hch@lst.de>, Robin Murphy <robin.murphy@arm.com>,
+	Leon Romanovsky <leon@kernel.org>, Jens Axboe <axboe@kernel.dk>,
+	Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+	Sagi Grimberg <sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Yishai Hadas <yishaih@nvidia.com>,
+	Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
+	Kevin Tian <kevin.tian@intel.com>,
+	Alex Williamson <alex.williamson@redhat.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	=?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
+	linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
+	linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org,
+	kvm@vger.kernel.org, linux-mm@kvack.org, matthew.brost@intel.com,
+	Thomas.Hellstrom@linux.intel.com, brian.welty@intel.com,
+	himal.prasad.ghimiray@intel.com, krishnaiah.bommu@intel.com,
+	niranjana.vishwanathapura@intel.com
+Subject: Re: [PATCH v1 00/17] Provide a new two step DMA mapping API
+Message-ID: <20241112060108.GA10056@lst.de>
+References: <20241104095831.GA28751@lst.de> <20241105195357.GI35848@ziepe.ca> <20241107083256.GA9071@lst.de> <20241107132808.GK35848@ziepe.ca> <20241107135025.GA14996@lst.de> <20241108150226.GM35848@ziepe.ca> <20241108150500.GA10102@lst.de> <20241108152537.GN35848@ziepe.ca> <20241108152956.GA12130@lst.de> <20241108153846.GO35848@ziepe.ca>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241108153846.GO35848@ziepe.ca>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Fri,  8 Nov 2024 13:25:47 -0700 Abhinav Saxena wrote:
-> diff --git a/Documentation/networking/switchdev.rst b/Documentation/networking/switchdev.rst
-> index f355f0166f1b..df4b4c4a15d5 100644
-> --- a/Documentation/networking/switchdev.rst
-> +++ b/Documentation/networking/switchdev.rst
-> @@ -162,7 +162,7 @@ The switchdev driver can know a particular port's position in the topology by
->  monitoring NETDEV_CHANGEUPPER notifications.  For example, a port moved into a
->  bond will see its upper master change.  If that bond is moved into a bridge,
->  the bond's upper master will change.  And so on.  The driver will track such
-> -movements to know what position a port is in in the overall topology by
-> +movements to know what position a port is in the overall topology by
+On Fri, Nov 08, 2024 at 11:38:46AM -0400, Jason Gunthorpe wrote:
+> > > What I'm thinking about is replacing code like the above with something like:
+> > > 
+> > > 		if (p2p_provider)
+> > > 			return DMA_MAPPING_ERROR;
+> > > 
+> > > And the caller is the one that would have done is_pci_p2pdma_page()
+> > > and either passes p2p_provider=NULL or page->pgmap->p2p_provider.
+> > 
+> > And where do you get that one from?
+> 
+> Which one?
 
-Are you sure? The first 'in' is for position, the second for topology.
-Equivalent to:
+The p2p_provider thing (whatever that will actually be).
 
- movements to know in what position a port is in the overall topology by
-                   ^^                         ^^
-
-We can rephrase to avoid the double in:
-
-  The driver will track such movements to know the position of a port
-  within the overall topology by registering for netdevice events and
-  acting on NETDEV_CHANGEUPPER.
-
->  registering for netdevice events and acting on NETDEV_CHANGEUPPER.
--- 
-pw-bot: cr
