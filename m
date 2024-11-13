@@ -1,43 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AE671FF035
-	for <linux-rdma@vger.kernel.org>; Wed, 13 Nov 2024 11:13:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 281871FA256
+	for <linux-rdma@vger.kernel.org>; Wed, 13 Nov 2024 11:23:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731496397; cv=none; b=rArMe6ID7Q5UF/+XpEcmjWe6C2aLqxhJlDSX1kQfpbC6MWrLdOgFkVSxhsMW7yYIRf/LlROOY2g86sMXM5IA86sJjI/lOP/B0gOeZ9QxT9NmFYNtolel5tzBMS5T8lhVGtIJHQgcd6LEzLsCQa7xlADTAekoUMfEaZUb1pZzkVU=
+	t=1731497008; cv=none; b=fJUuWuLcH9bQP7tIAb8x2Vu6fFiB+S1EGrkz5kv7VUQArwSDjjXmcs7kuUFhoxCzzsrjeNDKHDg9njjD52EOGjVhHct9b1ian0N9o1ZlNwZF8Ob+mTObm5i279KYurhAp65S1AB+KqdOJ2j9t/4uxzSy1xICDjReydddzDZn6PI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731496397; c=relaxed/simple;
-	bh=K7HfbveILg8AYwKcQLvxEOoCqsJB7y0j13M/kjhOSpw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZRmh0+Z0Wbzvz+IGjaOD6v4KVFT6CkCqZcObF++H+1H9XPvSZEHuaBQkGm1pu7BGKpJ71T2Ke8IPT+hg/2TqBksXvU7FvpTGBQB6FZ27InjMj4AcuyDI3wfR4Mmb4GD03juSvJEhrA/h3Gi9zT4H3e9arVWvtiwMzcccvQ7UBQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kxBLKBRU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1731497008; c=relaxed/simple;
+	bh=Yo7Zzyc17/vDtTwdiLn27kyV5fmgdjjp8sis54ZZet4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=K79D5htGMNBunDQrA4N/WhzTaG0OTxyq9+FmxPQbdnnJusy6kJZS0+W9d27XZ4iMXnn2E4OdfHx9PG2yuzRsQmWRDxeag1Z55Ot9aCM2wi5zizXbc2OFXUQf7R3knIlLuY3uuhacToZfvAD6rNh5osde+ih9JLdKUJ+j95pEKGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lf0GiR/2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kxBLKBRU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D899C4CECD;
-	Wed, 13 Nov 2024 11:13:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lf0GiR/2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32861C4CECD;
+	Wed, 13 Nov 2024 11:23:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731496396;
-	bh=K7HfbveILg8AYwKcQLvxEOoCqsJB7y0j13M/kjhOSpw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kxBLKBRUmoFU65RKdIVBLSyzZQtcg2wzNM8Pu+vKd0WeV7WmHbAQ3eIJqMD9wy5nl
-	 BFeOrIuUdtnVtc7s+gg2vwM07TgnpdvHq+9n8d+M3tZTptaD2k8zxDZaaG8VyIK2HQ
-	 iy/BMrA22QoT4GLX1KA6hzTam5/41h99oY/OI5VMgNoTeSoE51HdaGZ/IB2+Bt9FTQ
-	 xcc/FZFB+hk6gJ7Q1V+xCLLkNaClW+0ogo55zjXqPLivSzhPIdN2p+algvx6+bTYL0
-	 5IMXclQkosxKdBJ0ATHqa/+S1OtXhZRgDab9pyl7smqdWEffbcnJjDEjxVPTxhIvsl
-	 C+H0D8Qzeuz/g==
+	s=k20201202; t=1731497005;
+	bh=Yo7Zzyc17/vDtTwdiLn27kyV5fmgdjjp8sis54ZZet4=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Lf0GiR/2hn4XNwrLZ9hkbTQwyQN9jHUpvp9gs94zalK4k7ZkQTeFwbKFa8HoKl0N/
+	 0SHfRqlUI3B/LNPUVnpWDAywZl7Bym0eWnyt/mo4c+/u35yYaHRRWt2qvbAepi+Q0R
+	 3cThIQzBNKcQRpGnBsXEg05YeITUVSYaSqu36kItuzgdcBMVTzzq9ZgCFMEph18y1o
+	 HuhjjaBUwQ77IV3ApqOWKiyGU/9YMVaDgHJBehTbzz3IV6yWlrrmbxZuoOuqWiKZsl
+	 3k0jViJ7WIF4CQ63bwsO/HBmLgQ7oU83gUB6/CJl57mRFwM1sFs1dQS5KGxFKlaJ7Q
+	 l7p+ggde72Wzw==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Sean Hefty <shefty@nvidia.com>,
+Cc: Patrisious Haddad <phaddad@nvidia.com>,
 	linux-rdma@vger.kernel.org,
-	Or Har-Toov <ohartoov@nvidia.com>,
-	Vlad Dumitrescu <vdumitrescu@nvidia.com>
-Subject: [PATCH rdma-next 2/3] IB/cm: Do not hold reference on cm_id unless needed
-Date: Wed, 13 Nov 2024 13:12:55 +0200
-Message-ID: <1f0f96acace72790ecf89087fc765dead960189e.1731495873.git.leon@kernel.org>
+	Michael Guralnik <michaelgur@nvidia.com>
+Subject: [PATCH rdma-next] RDMA/mlx5: Move events notifier registration to be after device registration
+Date: Wed, 13 Nov 2024 13:23:19 +0200
+Message-ID: <d271ceeff0c08431b3cbbbb3e2d416f09b6d1621.1731496944.git.leon@kernel.org>
 X-Mailer: git-send-email 2.47.0
-In-Reply-To: <cover.1731495873.git.leon@kernel.org>
-References: <cover.1731495873.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,294 +42,187 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Sean Hefty <shefty@nvidia.com>
+From: Patrisious Haddad <phaddad@nvidia.com>
 
-Typically, when the CM sends a MAD it bumps a reference count
-on the associated cm_id.  There are some exceptions, such
-as when the MAD is a direct response to a receive MAD.  For
-example, the CM may generate an MRA in response to a duplicate
-REQ.  But, in general, if a MAD may be sent as a result of
-the user invoking an API call (e.g. ib_send_cm_rep(),
-ib_send_cm_rtu(), etc.), a reference is taken on the cm_id.
+Move pkey change work initialization and cleanup from device resources
+stage to notifier stage, since this is the stage which handles this work
+events.
 
-This reference is necessary if the MAD requires a response.
-The reference allows routing a response MAD back to the
-cm_id, or, if no response is received, allows updating the
-cm_id state to reflect the failure.
+Fix a race between the device deregistration and pkey change work by moving
+MLX5_IB_STAGE_DEVICE_NOTIFIER to be after MLX5_IB_STAGE_IB_REG in order to
+ensure that the notifier is deregistered before the device during cleanup.
+Which ensures there are no works that are being executed after the
+device has already unregistered which can cause the panic below.
 
-For MADs which do not generate a response from the
-target, however, there's no need to hold a reference on the cm_id.
-Such MADs will not be retried by the MAD layer and their
-completions do not change the state of the cm_id.
+BUG: kernel NULL pointer dereference, address: 0000000000000000
+PGD 0 P4D 0
+Oops: 0000 [#1] PREEMPT SMP PTI
+CPU: 1 PID: 630071 Comm: kworker/1:2 Kdump: loaded Tainted: G W OE --------- --- 5.14.0-162.6.1.el9_1.x86_64 #1
+Hardware name: Microsoft Corporation Virtual Machine/Virtual Machine, BIOS 090008 02/27/2023
+Workqueue: events pkey_change_handler [mlx5_ib]
+RIP: 0010:setup_qp+0x38/0x1f0 [mlx5_ib]
+Code: ee 41 54 45 31 e4 55 89 f5 53 48 89 fb 48 83 ec 20 8b 77 08 65 48 8b 04 25 28 00 00 00 48 89 44 24 18 48 8b 07 48 8d 4c 24 16 <4c> 8b 38 49 8b 87 80 0b 00 00 4c 89 ff 48 8b 80 08 05 00 00 8b 40
+RSP: 0018:ffffbcc54068be20 EFLAGS: 00010282
+RAX: 0000000000000000 RBX: ffff954054494128 RCX: ffffbcc54068be36
+RDX: ffff954004934000 RSI: 0000000000000001 RDI: ffff954054494128
+RBP: 0000000000000023 R08: ffff954001be2c20 R09: 0000000000000001
+R10: ffff954001be2c20 R11: ffff9540260133c0 R12: 0000000000000000
+R13: 0000000000000023 R14: 0000000000000000 R15: ffff9540ffcb0905
+FS: 0000000000000000(0000) GS:ffff9540ffc80000(0000) knlGS:0000000000000000
+CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000010625c001 CR4: 00000000003706e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+mlx5_ib_gsi_pkey_change+0x20/0x40 [mlx5_ib]
+process_one_work+0x1e8/0x3c0
+worker_thread+0x50/0x3b0
+? rescuer_thread+0x380/0x380
+kthread+0x149/0x170
+? set_kthread_struct+0x50/0x50
+ret_from_fork+0x22/0x30
+Modules linked in: rdma_ucm(OE) rdma_cm(OE) iw_cm(OE) ib_ipoib(OE) ib_cm(OE) ib_umad(OE) mlx5_ib(OE) mlx5_fwctl(OE) fwctl(OE) ib_uverbs(OE) mlx5_core(OE) mlxdevm(OE) ib_core(OE) mlx_compat(OE) psample mlxfw(OE) tls knem(OE) netconsole nfsv3 nfs_acl nfs lockd grace fscache netfs qrtr rfkill sunrpc intel_rapl_msr intel_rapl_common rapl hv_balloon hv_utils i2c_piix4 pcspkr joydev fuse ext4 mbcache jbd2 sr_mod sd_mod cdrom t10_pi sg ata_generic pci_hyperv pci_hyperv_intf hyperv_drm drm_shmem_helper drm_kms_helper hv_storvsc syscopyarea hv_netvsc sysfillrect sysimgblt hid_hyperv fb_sys_fops scsi_transport_fc hyperv_keyboard drm ata_piix crct10dif_pclmul crc32_pclmul crc32c_intel libata ghash_clmulni_intel hv_vmbus serio_raw [last unloaded: ib_core]
+CR2: 0000000000000000
+---[ end trace f6f8be4eae12f7bc ]---
 
-There are 2 internal calls used to allocate MADs which take
-a reference on the cm_id: cm_alloc_msg() and cm_alloc_priv_msg().
-The latter calls the former.  It turns out that all other places
-where cm_alloc_msg() is called are for MADs that do not generate
-a response from the target: sending an RTU, DREP, REJ, MRA, or
-SIDR REP.  In all of these cases, there's no need to hold a
-reference on the cm_id.
-
-The benefit of dropping unneeded references is that it allows
-destruction of the cm_id to proceed immediately.  Currently,
-the cm_destroy_id() call blocks as long as there's a reference
-held on the cm_id.  Worse, is that cm_destroy_id() will send
-MADs, which it then needs to complete.  Sending the MADs is
-beneficial, as they notify the peer that a connection is
-being destroyed.  However, since the MADs hold a reference
-on the cm_id, they block destruction and cannot be retried.
-
-Move cm_id referencing from cm_alloc_msg() to cm_alloc_priv_msg().
-The latter should hold a reference on the cm_id in all cases but
-one, which will be handled in a separate patch.  cm_alloc_priv_msg()
-is used when sending a REQ, REP, DREQ, and SIDR REQ, all of which
-require a response.
-
-Also, merge common code into cm_alloc_priv_msg() and combine the
-freeing of all messages which do not need a response.
-
-Signed-off-by: Sean Hefty <shefty@nvidia.com>
-Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
-Signed-off-by: Vlad Dumitrescu <vdumitrescu@nvidia.com>
+Fixes: 7722f47e71e5 ("IB/mlx5: Create GSI transmission QPs when P_Key table is changed")
+Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
+Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/cm.c | 66 +++++++++++++-----------------------
- 1 file changed, 24 insertions(+), 42 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 40 +++++++++++++---------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
+ 2 files changed, 20 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 99246e49dd3a..2517bfebcfd5 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -309,12 +309,7 @@ static struct ib_mad_send_buf *cm_alloc_msg(struct cm_id_private *cm_id_priv)
- 		goto out;
- 	}
- 
--	/* Timeout set by caller if response is expected. */
- 	m->ah = ah;
--	m->retries = cm_id_priv->max_cm_retries;
--
--	refcount_inc(&cm_id_priv->refcount);
--	m->context[0] = cm_id_priv;
- 
- out:
- 	spin_unlock(&cm_id_priv->av.port->cm_dev->mad_agent_lock);
-@@ -323,16 +318,13 @@ static struct ib_mad_send_buf *cm_alloc_msg(struct cm_id_private *cm_id_priv)
- 
- static void cm_free_msg(struct ib_mad_send_buf *msg)
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 65da5df05d02..bc7930d0c564 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3005,7 +3005,6 @@ int mlx5_ib_dev_res_srq_init(struct mlx5_ib_dev *dev)
+ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
  {
--	struct cm_id_private *cm_id_priv = msg->context[0];
--
- 	if (msg->ah)
- 		rdma_destroy_ah(msg->ah, 0);
--	cm_deref_id(cm_id_priv);
- 	ib_free_send_mad(msg);
- }
- 
- static struct ib_mad_send_buf *
--cm_alloc_priv_msg(struct cm_id_private *cm_id_priv)
-+cm_alloc_priv_msg(struct cm_id_private *cm_id_priv, enum ib_cm_state state)
- {
- 	struct ib_mad_send_buf *msg;
- 
-@@ -341,7 +333,15 @@ cm_alloc_priv_msg(struct cm_id_private *cm_id_priv)
- 	msg = cm_alloc_msg(cm_id_priv);
- 	if (IS_ERR(msg))
- 		return msg;
-+
- 	cm_id_priv->msg = msg;
-+	refcount_inc(&cm_id_priv->refcount);
-+	msg->context[0] = cm_id_priv;
-+	msg->context[1] = (void *) (unsigned long) state;
-+
-+	msg->retries = cm_id_priv->max_cm_retries;
-+	msg->timeout_ms = cm_id_priv->timeout_ms;
-+
- 	return msg;
- }
- 
-@@ -413,13 +413,6 @@ static int cm_alloc_response_msg(struct cm_port *port,
- 	return 0;
- }
- 
--static void cm_free_response_msg(struct ib_mad_send_buf *msg)
--{
--	if (msg->ah)
--		rdma_destroy_ah(msg->ah, 0);
--	ib_free_send_mad(msg);
--}
--
- static void *cm_copy_private_data(const void *private_data, u8 private_data_len)
- {
- 	void *data;
-@@ -1567,7 +1560,7 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
- 	if (param->alternate_path)
- 		cm_move_av_from_path(&cm_id_priv->alt_av, &alt_av);
- 
--	msg = cm_alloc_priv_msg(cm_id_priv);
-+	msg = cm_alloc_priv_msg(cm_id_priv, IB_CM_REQ_SENT);
- 	if (IS_ERR(msg)) {
- 		ret = PTR_ERR(msg);
- 		goto out_unlock;
-@@ -1576,8 +1569,6 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
- 	req_msg = (struct cm_req_msg *)msg->mad;
- 	cm_format_req(req_msg, cm_id_priv, param);
- 	cm_id_priv->tid = req_msg->hdr.tid;
--	msg->timeout_ms = cm_id_priv->timeout_ms;
--	msg->context[1] = (void *)(unsigned long)IB_CM_REQ_SENT;
- 
- 	cm_id_priv->local_qpn = cpu_to_be32(IBA_GET(CM_REQ_LOCAL_QPN, req_msg));
- 	cm_id_priv->rq_psn = cpu_to_be32(IBA_GET(CM_REQ_STARTING_PSN, req_msg));
-@@ -1634,7 +1625,7 @@ static int cm_issue_rej(struct cm_port *port,
- 		IBA_GET(CM_REJ_REMOTE_COMM_ID, rcv_msg));
- 	ret = ib_post_send_mad(msg, NULL);
- 	if (ret)
--		cm_free_response_msg(msg);
-+		cm_free_msg(msg);
- 
- 	return ret;
- }
-@@ -1990,7 +1981,7 @@ static void cm_dup_req_handler(struct cm_work *work,
- 	return;
- 
- unlock:	spin_unlock_irq(&cm_id_priv->lock);
--free:	cm_free_response_msg(msg);
-+free:	cm_free_msg(msg);
- }
- 
- static struct cm_id_private *cm_match_req(struct cm_work *work,
-@@ -2304,7 +2295,7 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
- 		goto out;
- 	}
- 
--	msg = cm_alloc_priv_msg(cm_id_priv);
-+	msg = cm_alloc_priv_msg(cm_id_priv, IB_CM_REP_SENT);
- 	if (IS_ERR(msg)) {
- 		ret = PTR_ERR(msg);
- 		goto out;
-@@ -2312,8 +2303,6 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
- 
- 	rep_msg = (struct cm_rep_msg *) msg->mad;
- 	cm_format_rep(rep_msg, cm_id_priv, param);
--	msg->timeout_ms = cm_id_priv->timeout_ms;
--	msg->context[1] = (void *) (unsigned long) IB_CM_REP_SENT;
- 
- 	trace_icm_send_rep(cm_id);
- 	ret = ib_post_send_mad(msg, NULL);
-@@ -2479,7 +2468,7 @@ static void cm_dup_rep_handler(struct cm_work *work)
- 	goto deref;
- 
- unlock:	spin_unlock_irq(&cm_id_priv->lock);
--free:	cm_free_response_msg(msg);
-+free:	cm_free_msg(msg);
- deref:	cm_deref_id(cm_id_priv);
- }
- 
-@@ -2683,7 +2672,7 @@ static int cm_send_dreq_locked(struct cm_id_private *cm_id_priv,
- 	    cm_id_priv->id.lap_state == IB_CM_MRA_LAP_RCVD)
- 		ib_cancel_mad(cm_id_priv->msg);
- 
--	msg = cm_alloc_priv_msg(cm_id_priv);
-+	msg = cm_alloc_priv_msg(cm_id_priv, IB_CM_DREQ_SENT);
- 	if (IS_ERR(msg)) {
- 		cm_enter_timewait(cm_id_priv);
- 		return PTR_ERR(msg);
-@@ -2691,8 +2680,6 @@ static int cm_send_dreq_locked(struct cm_id_private *cm_id_priv,
- 
- 	cm_format_dreq((struct cm_dreq_msg *) msg->mad, cm_id_priv,
- 		       private_data, private_data_len);
--	msg->timeout_ms = cm_id_priv->timeout_ms;
--	msg->context[1] = (void *) (unsigned long) IB_CM_DREQ_SENT;
- 
- 	trace_icm_send_dreq(&cm_id_priv->id);
- 	ret = ib_post_send_mad(msg, NULL);
-@@ -2819,7 +2806,7 @@ static int cm_issue_drep(struct cm_port *port,
- 		IBA_GET(CM_DREQ_REMOTE_COMM_ID, dreq_msg));
- 	ret = ib_post_send_mad(msg, NULL);
- 	if (ret)
--		cm_free_response_msg(msg);
-+		cm_free_msg(msg);
- 
- 	return ret;
- }
-@@ -2878,7 +2865,7 @@ static int cm_dreq_handler(struct cm_work *work)
- 
- 		if (cm_create_response_msg_ah(work->port, work->mad_recv_wc, msg) ||
- 		    ib_post_send_mad(msg, NULL))
--			cm_free_response_msg(msg);
-+			cm_free_msg(msg);
- 		goto deref;
- 	case IB_CM_DREQ_RCVD:
- 		atomic_long_inc(&work->port->counters[CM_RECV_DUPLICATES]
-@@ -3386,7 +3373,7 @@ static int cm_lap_handler(struct cm_work *work)
- 
- 		if (cm_create_response_msg_ah(work->port, work->mad_recv_wc, msg) ||
- 		    ib_post_send_mad(msg, NULL))
--			cm_free_response_msg(msg);
-+			cm_free_msg(msg);
- 		goto deref;
- 	case IB_CM_LAP_RCVD:
- 		atomic_long_inc(&work->port->counters[CM_RECV_DUPLICATES]
-@@ -3525,7 +3512,7 @@ int ib_send_cm_sidr_req(struct ib_cm_id *cm_id,
- 		goto out_unlock;
- 	}
- 
--	msg = cm_alloc_priv_msg(cm_id_priv);
-+	msg = cm_alloc_priv_msg(cm_id_priv, IB_CM_SIDR_REQ_SENT);
- 	if (IS_ERR(msg)) {
- 		ret = PTR_ERR(msg);
- 		goto out_unlock;
-@@ -3533,8 +3520,6 @@ int ib_send_cm_sidr_req(struct ib_cm_id *cm_id,
- 
- 	cm_format_sidr_req((struct cm_sidr_req_msg *)msg->mad, cm_id_priv,
- 			   param);
--	msg->timeout_ms = cm_id_priv->timeout_ms;
--	msg->context[1] = (void *)(unsigned long)IB_CM_SIDR_REQ_SENT;
- 
- 	trace_icm_send_sidr_req(&cm_id_priv->id);
- 	ret = ib_post_send_mad(msg, NULL);
-@@ -3780,17 +3765,17 @@ static int cm_sidr_rep_handler(struct cm_work *work)
- 
- static void cm_process_send_error(struct cm_id_private *cm_id_priv,
- 				  struct ib_mad_send_buf *msg,
--				  enum ib_cm_state state,
- 				  enum ib_wc_status wc_status)
- {
-+	enum ib_cm_state state = (unsigned long) msg->context[1];
- 	struct ib_cm_event cm_event = {};
+ 	struct mlx5_ib_resources *devr = &dev->devr;
+-	int port;
  	int ret;
  
--	/* Discard old sends or ones without a response. */
-+	/* Discard old sends. */
- 	spin_lock_irq(&cm_id_priv->lock);
- 	if (msg != cm_id_priv->msg) {
- 		spin_unlock_irq(&cm_id_priv->lock);
--		cm_free_msg(msg);
-+		cm_free_priv_msg(msg);
- 		return;
+ 	if (!MLX5_CAP_GEN(dev->mdev, xrc))
+@@ -3021,10 +3020,6 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
+ 		return ret;
  	}
- 	cm_free_priv_msg(msg);
-@@ -3839,8 +3824,6 @@ static void cm_send_handler(struct ib_mad_agent *mad_agent,
+ 
+-	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
+-		INIT_WORK(&devr->ports[port].pkey_change_work,
+-			  pkey_change_handler);
+-
+ 	mutex_init(&devr->cq_lock);
+ 	mutex_init(&devr->srq_lock);
+ 
+@@ -3034,16 +3029,6 @@ static int mlx5_ib_dev_res_init(struct mlx5_ib_dev *dev)
+ static void mlx5_ib_dev_res_cleanup(struct mlx5_ib_dev *dev)
  {
- 	struct ib_mad_send_buf *msg = mad_send_wc->send_buf;
- 	struct cm_id_private *cm_id_priv;
--	enum ib_cm_state state =
--		(enum ib_cm_state)(unsigned long)msg->context[1];
- 	struct cm_port *port;
- 	u16 attr_index;
+ 	struct mlx5_ib_resources *devr = &dev->devr;
+-	int port;
+-
+-	/*
+-	 * Make sure no change P_Key work items are still executing.
+-	 *
+-	 * At this stage, the mlx5_ib_event should be unregistered
+-	 * and it ensures that no new works are added.
+-	 */
+-	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
+-		cancel_work_sync(&devr->ports[port].pkey_change_work);
  
-@@ -3861,10 +3844,9 @@ static void cm_send_handler(struct ib_mad_agent *mad_agent,
- 				&port->counters[CM_XMIT_RETRIES][attr_index]);
+ 	/* After s0/s1 init, they are not unset during the device lifetime. */
+ 	if (devr->s1) {
+@@ -4480,6 +4465,13 @@ static void mlx5_ib_stage_delay_drop_cleanup(struct mlx5_ib_dev *dev)
  
- 	if (cm_id_priv)
--		cm_process_send_error(cm_id_priv, msg, state,
--				      mad_send_wc->status);
-+		cm_process_send_error(cm_id_priv, msg, mad_send_wc->status);
- 	else
--		cm_free_response_msg(msg);
-+		cm_free_msg(msg);
+ static int mlx5_ib_stage_dev_notifier_init(struct mlx5_ib_dev *dev)
+ {
++	struct mlx5_ib_resources *devr = &dev->devr;
++	int port;
++
++	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
++		INIT_WORK(&devr->ports[port].pkey_change_work,
++			  pkey_change_handler);
++
+ 	dev->mdev_events.notifier_call = mlx5_ib_event;
+ 	mlx5_notifier_register(dev->mdev, &dev->mdev_events);
+ 
+@@ -4490,8 +4482,14 @@ static int mlx5_ib_stage_dev_notifier_init(struct mlx5_ib_dev *dev)
+ 
+ static void mlx5_ib_stage_dev_notifier_cleanup(struct mlx5_ib_dev *dev)
+ {
++	struct mlx5_ib_resources *devr = &dev->devr;
++	int port;
++
+ 	mlx5r_macsec_event_unregister(dev);
+ 	mlx5_notifier_unregister(dev->mdev, &dev->mdev_events);
++
++	for (port = 0; port < ARRAY_SIZE(devr->ports); ++port)
++		cancel_work_sync(&devr->ports[port].pkey_change_work);
  }
  
- static void cm_work_handler(struct work_struct *_work)
+ void mlx5_ib_data_direct_bind(struct mlx5_ib_dev *ibdev,
+@@ -4581,9 +4579,6 @@ static const struct mlx5_ib_profile pf_profile = {
+ 	STAGE_CREATE(MLX5_IB_STAGE_DEVICE_RESOURCES,
+ 		     mlx5_ib_dev_res_init,
+ 		     mlx5_ib_dev_res_cleanup),
+-	STAGE_CREATE(MLX5_IB_STAGE_DEVICE_NOTIFIER,
+-		     mlx5_ib_stage_dev_notifier_init,
+-		     mlx5_ib_stage_dev_notifier_cleanup),
+ 	STAGE_CREATE(MLX5_IB_STAGE_ODP,
+ 		     mlx5_ib_odp_init_one,
+ 		     mlx5_ib_odp_cleanup_one),
+@@ -4608,6 +4603,9 @@ static const struct mlx5_ib_profile pf_profile = {
+ 	STAGE_CREATE(MLX5_IB_STAGE_IB_REG,
+ 		     mlx5_ib_stage_ib_reg_init,
+ 		     mlx5_ib_stage_ib_reg_cleanup),
++	STAGE_CREATE(MLX5_IB_STAGE_DEVICE_NOTIFIER,
++		     mlx5_ib_stage_dev_notifier_init,
++		     mlx5_ib_stage_dev_notifier_cleanup),
+ 	STAGE_CREATE(MLX5_IB_STAGE_POST_IB_REG_UMR,
+ 		     mlx5_ib_stage_post_ib_reg_umr_init,
+ 		     NULL),
+@@ -4644,9 +4642,6 @@ const struct mlx5_ib_profile raw_eth_profile = {
+ 	STAGE_CREATE(MLX5_IB_STAGE_DEVICE_RESOURCES,
+ 		     mlx5_ib_dev_res_init,
+ 		     mlx5_ib_dev_res_cleanup),
+-	STAGE_CREATE(MLX5_IB_STAGE_DEVICE_NOTIFIER,
+-		     mlx5_ib_stage_dev_notifier_init,
+-		     mlx5_ib_stage_dev_notifier_cleanup),
+ 	STAGE_CREATE(MLX5_IB_STAGE_COUNTERS,
+ 		     mlx5_ib_counters_init,
+ 		     mlx5_ib_counters_cleanup),
+@@ -4668,6 +4663,9 @@ const struct mlx5_ib_profile raw_eth_profile = {
+ 	STAGE_CREATE(MLX5_IB_STAGE_IB_REG,
+ 		     mlx5_ib_stage_ib_reg_init,
+ 		     mlx5_ib_stage_ib_reg_cleanup),
++	STAGE_CREATE(MLX5_IB_STAGE_DEVICE_NOTIFIER,
++		     mlx5_ib_stage_dev_notifier_init,
++		     mlx5_ib_stage_dev_notifier_cleanup),
+ 	STAGE_CREATE(MLX5_IB_STAGE_POST_IB_REG_UMR,
+ 		     mlx5_ib_stage_post_ib_reg_umr_init,
+ 		     NULL),
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 98619daffdcc..d6b045276244 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -973,7 +973,6 @@ enum mlx5_ib_stages {
+ 	MLX5_IB_STAGE_QP,
+ 	MLX5_IB_STAGE_SRQ,
+ 	MLX5_IB_STAGE_DEVICE_RESOURCES,
+-	MLX5_IB_STAGE_DEVICE_NOTIFIER,
+ 	MLX5_IB_STAGE_ODP,
+ 	MLX5_IB_STAGE_COUNTERS,
+ 	MLX5_IB_STAGE_CONG_DEBUGFS,
+@@ -982,6 +981,7 @@ enum mlx5_ib_stages {
+ 	MLX5_IB_STAGE_PRE_IB_REG_UMR,
+ 	MLX5_IB_STAGE_WHITELIST_UID,
+ 	MLX5_IB_STAGE_IB_REG,
++	MLX5_IB_STAGE_DEVICE_NOTIFIER,
+ 	MLX5_IB_STAGE_POST_IB_REG_UMR,
+ 	MLX5_IB_STAGE_DELAY_DROP,
+ 	MLX5_IB_STAGE_RESTRACK,
 -- 
 2.47.0
 
