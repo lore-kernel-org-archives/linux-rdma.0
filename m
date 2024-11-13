@@ -1,28 +1,29 @@
 Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B06AD7081F;
-	Wed, 13 Nov 2024 07:14:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FA5E17D341;
+	Wed, 13 Nov 2024 07:14:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731482056; cv=none; b=IMZG622HLABVNY2ROq2A+gH3aT4KoVGzhOiPv7jOPXVK7ausGOBLEa26SNt15SbhN4MPBSV1+bx84oM4BSHm4MLsofIfKV4debYnC+0TDtzFT4YEwZeeUlASrd4P+9G/Z7FgNyVMOP07Ik3R3ItPcINBq9VdsTKNV6NhLX8nA/o=
+	t=1731482057; cv=none; b=aoyw2on9noPTjfNwYe59aSPs5AwrBbsT9bzq/AqvoOqQFwyNDLkZHnbsBTJK7cu6BUzDezen+YajCY26YJyf3K+K6Y+cgluD3jNiCZDf4uVZD64o1eFKLBrW8Dc026UNyOgI9GdmyQPBAh9KgTc6sMZzAnc4zp7GYf1KTHntbG0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731482056; c=relaxed/simple;
-	bh=HlNS6kgEQgKSm4xwYQ0CuuCTRKbC+aH/Oee/3hAw5JU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JLmx3GdUHouuKvBHsbOTvURZjorsSzVxndMLJGDny7qwby8sq9mF6zzgMDNaXioaBRZrvvqCkks3riFW+BMz2D3sX07zXNadaOpdxzaYPTskjhBXPAnyezHRjeSw5OyGFJdftTQb828Z7AUeqKxhKqmXZUoZSu6hPO2GDIbIPMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=KCUBut4l; arc=none smtp.client-ip=115.124.30.100
+	s=arc-20240116; t=1731482057; c=relaxed/simple;
+	bh=5dLao9gALixVdBKOeLmYUEytT9KF2WSrxonNCfISUmc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=YGFNhazmQDxWJ3eKIT3NAVYwmGu1o8gkDPP4gWLxt+8eYh6iSvfQE61Q6zADtf1RQB+yjMFDkp2hibshbKT3kOOBVI7zduOzlij9uQjwmkadMoqfuFfo/Hpy62KfM/9M2P0b6Ds4fnZ7aq6ckAzZSeQTB4lDzO7wUIsxavJjKKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=tQh46zbE; arc=none smtp.client-ip=115.124.30.100
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="KCUBut4l"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="tQh46zbE"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1731482050; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=pRbx0dmK2wB4sQXWiP+JZgwKGAmCunG59XKcyNdF6cg=;
-	b=KCUBut4l0Uk48b0mF3UuODFqfDqUQE5GQiUzOKL+uwg/JEC57nLcofmUEiANHosy/K6jWd585BYhXTh/SlE4Kdnbpb7gspE+aw9jaLuTGdXNBoU/b2S1NolKiZbE8GkexBwbUR/Nxq+oTXleRRdnciiNgBClWCQ2jhYmX/iqHfE=
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WJK51Wv_1731482045 cluster:ay36)
+	t=1731482051; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=uZ65EEAW3VwgGJhMH9S8hjOD7Qzduk2ssjxQR5jmTnU=;
+	b=tQh46zbEAl3aa3e6YBcBEC9FZ1R/0UK6BCWhceSAVC0NWm8rnbqvImqnHv5ykE2wrBmGX9vvK2/bbO32UCFCjnTxT1OMvDBsWMZPlLuXKgZZ2EoJzZKuZnfB25xSATB9zYO+TpJ4n1sdeFQQOzTcU/x/N+b0hpJtec+2+k6AZJk=
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WJK51YT_1731482050 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Wed, 13 Nov 2024 15:14:09 +0800
+          Wed, 13 Nov 2024 15:14:10 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 To: kgraul@linux.ibm.com,
 	wenjia@linux.ibm.com,
@@ -37,10 +38,12 @@ Cc: kuba@kernel.org,
 	tonylu@linux.alibaba.com,
 	pabeni@redhat.com,
 	edumazet@google.com
-Subject: [PATCH net-next 0/3] Reduce locks scope of-smc_xxx_lgr_pending
-Date: Wed, 13 Nov 2024 15:14:02 +0800
-Message-ID: <20241113071405.67421-1-alibuda@linux.alibaba.com>
+Subject: [PATCH net-next 2/3] net/smc: reduce locks scope of smc_xxx_lgr_pending
+Date: Wed, 13 Nov 2024 15:14:04 +0800
+Message-ID: <20241113071405.67421-3-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 2.45.0
+In-Reply-To: <20241113071405.67421-1-alibuda@linux.alibaba.com>
+References: <20241113071405.67421-1-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,36 +52,66 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This patch set attempts to optimize the parallelism of SMC-R connections by reducing
-locks scope of-smc_xxx_lgr_pending. This is a balance between large-scale refactoring
-and performance optimization, where this patch attempts to achieve performance optimization
-with as few changes as possible to minimize unexpected impacts.
+To reduce locks scope of smc_xxx_lgr_pending, who aim to serialize
+the creation of link group. However, once link group existed already,
+those locks are meaningless, worse still, they make incoming connections
+have to be queued one after the other.
 
-Although there are still many bottlenecks that affect the connection performance of SMC, 
-This also has a certain performance improvement after this patches.
+As an optimization, Once we found that we have reused an existing link group,
+we can immediately release the lock. This way, only the first contact connection
+needs to hold the global lock throughout its entire lifecycle, while the
+NON first contact only needing to hold it until the end of smc_conn_create.
+This greatly alleviates the bottleneck of establishing
+connections in SMC.
 
-Short-lived conenction wrk/nginx benchmark test:
-
-+--------------+--------+--------+--------+-------+-------+-------+-------+
-|conns/qps     |   c8   |  c16   |  c32   |  c64  | c512  | c1024 | c2048 |
-+--------------+--------+--------+--------+-------+-------+-------+-------+
-|SMC-R before  |10481.84|10761.04|10283.01|9006.88|9140.88|9255.41|7296.20|
-+--------------+--------+--------+--------+-------+-------+-------+-------+
-|SMC-R origin  |7328.86 |7256.99 |7288.53 |7239.55|5787.56|5371.17|3065.74|
-+--------------+--------+--------+--------+-------+-------+-------+-------+
-
-D. Wythe (3):
-  net/smc: refactoring lgr pending lock
-  net/smc: reduce locks scope of smc_xxx_lgr_pending
-  net/smc: Isolate the smc_xxx_lgr_pending with ib_device
-
- net/smc/af_smc.c   | 36 +++++++++++++++++++-----------------
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
+---
  net/smc/smc_core.c | 17 +++++++++++++++--
- net/smc/smc_core.h | 29 +++++++++++++++++++++++++++++
- net/smc/smc_ib.c   |  2 ++
- net/smc/smc_ib.h   |  2 ++
- 5 files changed, 67 insertions(+), 19 deletions(-)
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 500952c2e67b..5559a8218bd9 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1951,8 +1951,8 @@ static bool smcd_lgr_match(struct smc_link_group *lgr,
+ 	return true;
+ }
+ 
+-/* create a new SMC connection (and a new link group if necessary) */
+-int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
++static int __smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini,
++			     bool unlock_with_existed_lgr)
+ {
+ 	struct smc_connection *conn = &smc->conn;
+ 	struct net *net = sock_net(&smc->sk);
+@@ -2026,7 +2026,10 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
+ 			smc_lgr_cleanup_early(lgr);
+ 			goto out;
+ 		}
++	} else if (unlock_with_existed_lgr) {
++		smc_lgr_pending_unlock(ini);
+ 	}
++
+ 	smc_lgr_hold(conn->lgr); /* lgr_put in smc_conn_free() */
+ 	if (!conn->lgr->is_smcd)
+ 		smcr_link_hold(conn->lnk); /* link_put in smc_conn_free() */
+@@ -2050,6 +2053,16 @@ int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
+ 	return rc;
+ }
+ 
++/* create a new SMC connection (and a new link group if necessary) */
++int smc_conn_create(struct smc_sock *smc, struct smc_init_info *ini)
++{
++	/* Considering that the path for SMC-D is shorter than SMC-R
++	 * the impact of global locking is smaller. So, let's make no
++	 * change on SMC-D.
++	 */
++	return __smc_conn_create(smc, ini, !ini->is_smcd);
++}
++
+ #define SMCD_DMBE_SIZES		6 /* 0 -> 16KB, 1 -> 32KB, .. 6 -> 1MB */
+ #define SMCR_RMBE_SIZES		15 /* 0 -> 16KB, 1 -> 32KB, .. 15 -> 512MB */
+ 
 -- 
 2.45.0
 
