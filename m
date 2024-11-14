@@ -1,114 +1,98 @@
-Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com [209.85.219.171])
+Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AAB51E47A5
-	for <linux-rdma@vger.kernel.org>; Thu, 14 Nov 2024 10:07:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F9C11F818E
+	for <linux-rdma@vger.kernel.org>; Thu, 14 Nov 2024 10:09:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731578867; cv=none; b=N8jIVR92NhGK4h3qxQ6h2RCAW7fc+El/NBbBGvpPtXqoCLo83LlOolGoniwvW/fh8NYML7mT8CLqMND/TKuP6J/6xgKKytvWNnWtjKxAviftFnlweRO5flONOMyAqy8NARhx8qsVtn1vrkWEvF+y+pS1lSYSRETzYYGH25HfJQY=
+	t=1731578997; cv=none; b=d6OlPOPhRxCcgKYyhSU6CdzVNN+wG16gu0Y265DEZ5EiXeaWkFlKujcHeGEXOFcIf2Rg2Ide0E70TLZ5KihhvfFDNChhKstLdLo7VtWtyhMqqHlZwKHOkcBeqGN/cPZR5wiJms7BubiNjXZ4jzg4jCSgcfloeE1LEwPZK8X0y1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731578867; c=relaxed/simple;
-	bh=oi2qL9nIVdQ6M0f5LBYyu5NagYRbHd0aonkJ/ZSPcgE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=VFDRg8jvr0ucsas5dZWouxGElnEsevSlsQ7/BMSWULZcWK/BkIj646UAGTyJXaQgpTY+FCIaJXU0qiOrWV7XQ37AP5po0RZQ7cIba3IMpu+3D6XrLKnYFKq+jec0QVDWTjL5T5bENHtxwuakMCL+8NiJ6uWdCfCrUWDnlDt2zCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=J80HIunj; arc=none smtp.client-ip=209.85.219.171
+	s=arc-20240116; t=1731578997; c=relaxed/simple;
+	bh=4Jn+ER1D+T8uZt2XMEWjeoE83fXFsaOSZv41SWwcoxs=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=csOlFSr8Yb6Uee2Lwye3eofw5gFexf1pfx/RRjrmrRv+Wajm2SS0C5CurzlRu51ZV3ClDjNtPJ1V1przEqFKyPi1ISBc82yVoMJgtgZmnGFRyD+RlaDj+G4AkStXa/2MA8HAv0U6I+SJQnLeGrUm6gvh59AePk387I1szqJqdds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=hVLPQdKn; arc=none smtp.client-ip=209.85.214.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="J80HIunj"
-Received: by mail-yb1-f171.google.com with SMTP id 3f1490d57ef6-e2bd7d8aaf8so433680276.3
-        for <linux-rdma@vger.kernel.org>; Thu, 14 Nov 2024 02:07:45 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="hVLPQdKn"
+Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-20cdbe608b3so4037675ad.1
+        for <linux-rdma@vger.kernel.org>; Thu, 14 Nov 2024 02:09:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1731578864; x=1732183664; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
+        d=broadcom.com; s=google; t=1731578995; x=1732183795; darn=vger.kernel.org;
+        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=duibGTP/GNHD5nL4hJasNH83KTG17g4skasRQJ0B1Lc=;
-        b=J80HIunjUATdv6EbzxX9UVMFyOrI6KAn1TewV0eNujEp0ZdBhjoeVBIrz5w9egyPEw
-         wVfJkMNbR7hYxO/s26pOWQuRHcEl+2XFZLo+c8WNDtOTWtvB+7bx3pKjJz3NhzuHef7q
-         nEipkLRaH0jRW9V2W4mudCl53XQcHRePMN4LU=
+        bh=sqs22u22qw/vKp6E8qUqtpdl25QngpO3H4zZ9/4y9wc=;
+        b=hVLPQdKn79Oou+b0uR+0RZZu04SOCqJGzVPSaimZBy1Wd1qmZy3YDPyoHC/ZKZH7Kd
+         pezPPZ3BRsdvcztkGbTRA3TgiG1PM6mpLOXROelDgwSkmnxxKzFpzNLRsAOgeBRl6kxs
+         IOlINoq1kAD//MShbD0kLue9L8+aTXZ8znPqc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731578864; x=1732183664;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1731578995; x=1732183795;
+        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=duibGTP/GNHD5nL4hJasNH83KTG17g4skasRQJ0B1Lc=;
-        b=TyzL2aV3zGbIcLcXGR/hk5RDOmjjv9Su8DBKCH6YnfUfh71xU/W553UTGjaXNXIe7j
-         zlm0w8rRKHVZ6iutrKqBVci/FBzNxk3bVYlb02sb2GXupbsgdly/ib2oGZAGQNOH4uze
-         V0eMGLzNU55NL1dZSEl7TvjLqZgB3IzPI9s9WiqgwAEo/4sR0bsv+ettiFLxZW4CCc+P
-         eD5sgE6x9cywF6RBJtl9YSV99frX+687nSpAOLV96DdU08b1eMzevrLVN3YJat9216yA
-         dVs24xVwT/qr1xq9NCop86gTE+osynm0NtRGHQ45f6BUWG+CARFD81otXyb157183Qhy
-         ygIA==
-X-Forwarded-Encrypted: i=1; AJvYcCWpR6xOFVKv5hHAU2KNOIwvynitASyMpW7VC5n6fj+Nn+Jso/0vcAfLr2sonDlDcf6BrexrddQwQYvw@vger.kernel.org
-X-Gm-Message-State: AOJu0YwI/VMQlBxyX58+Ljx1Mkb9ykynAucohzW0yOPD3AjpqtFkJhPi
-	iYOx0al3Cd4GPjwgzDqQXF+79aDnBhe5KLfPaMMWC/f9k3ftXlv9AL3s5cVbOiT8oXoKDrJ5MWZ
-	XSDYCVqbzaM1GcO9zMnEJlRBIttFYaNoGmH+t
-X-Google-Smtp-Source: AGHT+IHQit+hMZJD10Lhqc04ZsYr/CCLiF4Iaz2xNzXglB9oODQV48N8NwYg+no6ZxuCpKzUqwAlDBzaLtJDffNPo8g=
-X-Received: by 2002:a05:6902:1001:b0:e33:1fa5:132c with SMTP id
- 3f1490d57ef6-e35ed23f831mr7126622276.25.1731578864452; Thu, 14 Nov 2024
- 02:07:44 -0800 (PST)
+        bh=sqs22u22qw/vKp6E8qUqtpdl25QngpO3H4zZ9/4y9wc=;
+        b=U7NGudZM4t8SlvVlHvEYUGPXw3jsTmq8+EVYmfkaIfdHfaXCLBk8PFSekj5MYgyyEg
+         60oRrWRqIuKOQKxslPFCHg4UUEDtyuMupnKsRKAfXqRDRc3a3KCT0LIOeYHkDXc1FFfN
+         JWfBxjXRqWMcpl4sUndAhn/JuWrPknKIFg1OJa0WXX7YuG1m6r8Msp/5xK6H23U86VJW
+         OfZXm/CG2PJjeWntwR6syZdBX6ONPaCYOI4MEqZ1QfwI4CcAId1pZoo45L4NyA1bEKpr
+         B49pKfgwYK6kQ/YJ01VOkBT9lV6LaKGpLA4M1ZK80Z5vbk+8nmPDKSuUfGlKnJ62ALRd
+         6vKA==
+X-Gm-Message-State: AOJu0Yz27WfOsepm3iIWTcVSvvVPpoYvX87FG+1V3UpXxun7iYJrLRaY
+	v6tZR5JTqb51jglzmqxt0y94gmfNwItCIPB9r3d4xAyDJcPw9hXhDHP2yFF48g==
+X-Google-Smtp-Source: AGHT+IH+NrBsicMTcWkcusIPHCjDp13XKMheIwddzw+o56O/uMgG7PnfhzHPhLasuhfvPa1NikjQ1Q==
+X-Received: by 2002:a17:903:22ce:b0:20f:ab4a:db2e with SMTP id d9443c01a7336-211ab980431mr110946185ad.29.1731578994655;
+        Thu, 14 Nov 2024 02:09:54 -0800 (PST)
+Received: from sxavier-dev.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-211c7d062absm7251135ad.206.2024.11.14.02.09.52
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 14 Nov 2024 02:09:53 -0800 (PST)
+From: Selvin Xavier <selvin.xavier@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: [PATCH rdma-next v2 0/4]RDMA/bnxt_re: Refactor Notification queue allocation
+Date: Thu, 14 Nov 2024 01:49:04 -0800
+Message-Id: <1731577748-1804-1-git-send-email-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.5.5
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20241112134956.1415343-1-mheib@redhat.com> <20241114100413.GA499069@unreal>
-In-Reply-To: <20241114100413.GA499069@unreal>
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Date: Thu, 14 Nov 2024 15:37:30 +0530
-Message-ID: <CA+sbYW1cp17tH-p8ffjtgBecyMP_fECmes9RN9Bj=bdNPD_W2g@mail.gmail.com>
-Subject: Re: [PATCH rdma] RDMA/bnxt_re: cmds completions handler avoid
- accessing invalid memeory
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Mohammad Heib <mheib@redhat.com>, linux-rdma@vger.kernel.org, 
-	kashyap.desai@broadcom.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 14, 2024 at 3:34=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
-rote:
->
-> On Tue, Nov 12, 2024 at 03:49:56PM +0200, Mohammad Heib wrote:
-> > If bnxt FW behaves unexpectedly because of FW bug or unexpected behavio=
-r it
-> > can send completions for old  cookies that have already been handled by=
- the
-> > bnxt driver. If that old cookie was associated with an old calling cont=
-ext
-> > the driver will try to access that caller memory again because the driv=
-er
-> > never clean the is_waiter_alive flag after the caller successfully comp=
-lete
-> > waiting, and this access will cause the following kernel panic:
-> >
-> > Call Trace:
-> >  <IRQ>
-> >  ? __die+0x20/0x70
-> >  ? page_fault_oops+0x75/0x170
-> >  ? exc_page_fault+0xaa/0x140
-> >  ? asm_exc_page_fault+0x22/0x30
-> >  ? bnxt_qplib_process_qp_event.isra.0+0x20c/0x3a0 [bnxt_re]
-> >  ? srso_return_thunk+0x5/0x5f
-> >  ? __wake_up_common+0x78/0xa0
-> >  ? srso_return_thunk+0x5/0x5f
-> >  bnxt_qplib_service_creq+0x18d/0x250 [bnxt_re]
-> >  tasklet_action_common+0xac/0x210
-> >  handle_softirqs+0xd3/0x2b0
-> >  __irq_exit_rcu+0x9b/0xc0
-> >  common_interrupt+0x7f/0xa0
-> >  </IRQ>
-> >  <TASK>
-> >
-> > To avoid the above unexpected behavior clear the is_waiter_alive flag
-> > every time the caller finishes waiting for a completion.
-> >
-> > Fixes: 691eb7c6110f ("RDMA/bnxt_re: handle command completions after dr=
-iver detect a timedout")
-> > Signed-off-by: Mohammad Heib <mheib@redhat.com>
-> > ---
-> >  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 16 ++++++++--------
-> >  1 file changed, 8 insertions(+), 8 deletions(-)
->
-> Selvin?
-Someone is confirming the fix. Will ack in a day. Thanks
+Includes some generic improvments and code refactoring for the
+Notification Queue handling in the driver. Remove the data
+structures that store the NQ information out of the device
+structure. Fix few issues in selecting the NQ during CQ
+create. Also, fail the driver load if NIC driver can not
+allocate at least two NQs for RoCE.
+
+Please review and apply.
+
+Thanks,
+Selvin Xavier
+
+v1 -> v2:
+ - Dropped patch 5
+ - Fixed error handling in patch 1 by adding bnxt_unregister_dev
+ - Removed redundant comment in patch 3
+
+Kalesh AP (4):
+  RDMA/bnxt_re: Fail probe early when not enough MSI-x vectors are
+    reserved
+  RDMA/bnxt_re: Refactor NQ allocation
+  RDMA/bnxt_re: Refurbish CQ to NQ hash calculation
+  RDMA/bnxt_re: Cache MSIx info to a local structure
+
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  18 +++--
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c |  41 +++++++----
+ drivers/infiniband/hw/bnxt_re/main.c     | 114 ++++++++++++++++++++-----------
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c |   1 +
+ drivers/infiniband/hw/bnxt_re/qplib_fp.h |   1 +
+ 5 files changed, 115 insertions(+), 60 deletions(-)
+
+-- 
+2.5.5
+
