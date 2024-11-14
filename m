@@ -1,40 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CD4B18C02F
-	for <linux-rdma@vger.kernel.org>; Thu, 14 Nov 2024 11:37:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23DF81F8F0B
+	for <linux-rdma@vger.kernel.org>; Thu, 14 Nov 2024 11:41:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731584257; cv=none; b=hNVMhpnU56HmrGAtd+609nwsd62+BUAC6IfY5cSSTZfPRoG50Z9I8pX1IplV0uoIhOMeG/4ZEPdWvMgsnM+D4iTENEF/JSHJ5jQTPJHnQFkg/m+MpWXr8tgqU54Dd7zeI8C/OzgOJdf8HvkAq43rf66AHkYaGMQ2sl4mT6mB6t8=
+	t=1731584508; cv=none; b=qskUtSxySWaS+8lvGBcqNlzXGjkkSWVRwx6kFUOVnZre4PbHHHA12W9wR2VsAMpFotcm1eP6wPGuuqxF/m2vQIGru0UHmao9UGPMAl6UGtxry2ASU1B4Z8ee9jAp+dorDq1plng70FlAX32mZKTThvGR8X1q7UTNrOWUh1x/BVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731584257; c=relaxed/simple;
-	bh=+OqNtV/MAJlWFyXPjtdIWo3Hfd0IwxVxXl2uVodtHLI=;
+	s=arc-20240116; t=1731584508; c=relaxed/simple;
+	bh=gLgSyFYZ3SCU8+lxwN27I+1S8Wg6qKlEwHT6pGuDXAc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=vF7fthWj/fnYGQm2fsYHgsO7W5JOp7bJ0UTGUupKNxzqb1zISmtp3NpmOkMPOc3AFmh0eoiWJvVJChCfWTJRjzJtZGXxLVvZUHSgVTiD8f/sC0C3UpMUJbB6IzQLFAKzlo2hXiqwyOc4HKKh0xvezf9DeqzPhMvpuI+o2BV7iXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ei6yVwAr; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=jdWo4eaXpKwI9OsXgNh61Ekn5G2MzdKaPjuMVaZJEY02eV6A3+h9wmD7d4gSkOBk5qFqzo5f9pwnMfKLUlTvW7obOvVjrSadlgQF5ExIBbje20E+pG+Hq6w0mfVC2rqej9EWj8fH6VMjceBioNHdRoBDo21yXWm+YHWPrywG8qw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H/UuOO+1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ei6yVwAr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79659C4CECD;
-	Thu, 14 Nov 2024 11:37:36 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H/UuOO+1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EB59C4CECD;
+	Thu, 14 Nov 2024 11:41:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731584256;
-	bh=+OqNtV/MAJlWFyXPjtdIWo3Hfd0IwxVxXl2uVodtHLI=;
+	s=k20201202; t=1731584507;
+	bh=gLgSyFYZ3SCU8+lxwN27I+1S8Wg6qKlEwHT6pGuDXAc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ei6yVwAr//ol+U97poGD1BdHWwb+HyU9ung4PPwPVlSJtrTo5tQgYI6OuP7kWQen5
-	 t9VmIBbQtuIyi9LxnLWpMoz7Oe/jXB6tgv9PXqbSAsIgcxjpVLkekAr61dxBMBs2nU
-	 23gTdEUxDlozaLb+qXTDWgoaHmtD15wZyROVN8VD5s6ArV0snTS6Zd/dTQQu91lZLh
-	 i1WqXQ0u9AnxRugSAy0UwrKXKRWOKvjZ4ssAoTI/aq6r+B6+nmKjdpLaYEZLDKEPm4
-	 KUZeZTFEXmZPW9xLb4DWSFkC4GO4TYxAQx5mtF2xHcFjg97gUnZ2sLrFKCeP5U2OXI
-	 7zaoyH1jIGzGw==
-Date: Thu, 14 Nov 2024 13:37:26 +0200
+	b=H/UuOO+1dHRbtiUQMAwHdUHJyMyGDRV4dkOpY36fx+0/c41RlLNuOT9n7EyKRAHjv
+	 1Svy29btIjERuHVKPAlsKFyixzc4brgcqssEBNtqP6e2OzXgCRWnkAp0Am3+Cv3bJS
+	 qv9tB2kEBsbbib/7SNXL8LHzXIXGAYwTZp40ZtbHtd5VM/e1uZrmny66c8qkLfx2OM
+	 SjHsx/njLH1oH/sZGaWoO54WdpiRcGsSWAP1OJ591H6BWslbfdEwaPhh4FFsbO/zBR
+	 yRUOluZaAE9qtHdyg4BKVMjAuKLvFQWJ4AVKogX25M8V+HuEe3M3RxB4HLoIx94gaP
+	 DpU6qv9pVnQaQ==
+Date: Thu, 14 Nov 2024 13:41:41 +0200
 From: Leon Romanovsky <leon@kernel.org>
-To: jiang.kun2@zte.com.cn
-Cc: dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org,
-	xu.xin16@zte.com.cn, tu.qiang35@zte.com.cn
-Subject: Re: [PATCH linux 5.10] RDMA/restrack: Release MR/QP restrack when
- delete
-Message-ID: <20241114113726.GD499069@unreal>
-References: <202411141125595650lBfwAV8PE5HVMxAr96yl@zte.com.cn>
+To: Junxian Huang <huangjunxian6@hisilicon.com>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>,
+	ynachum@amazon.com, Linuxarm <linuxarm@huawei.com>,
+	Chengchang Tang <tangchengchang@huawei.com>,
+	wenglianfa <wenglianfa@huawei.com>
+Subject: Re: Why is the DENABLE_LTTNG compiler option in rdma-core disabled
+ by default?
+Message-ID: <20241114114141.GE499069@unreal>
+References: <8fe49262-98cf-6b43-4f55-b09a8ae449ca@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -43,45 +45,28 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <202411141125595650lBfwAV8PE5HVMxAr96yl@zte.com.cn>
+In-Reply-To: <8fe49262-98cf-6b43-4f55-b09a8ae449ca@hisilicon.com>
 
-On Thu, Nov 14, 2024 at 11:25:59AM +0800, jiang.kun2@zte.com.cn wrote:
-> From: tuqiang <tu.qiang35@zte.com.cn>
+On Thu, Nov 14, 2024 at 02:57:21PM +0800, Junxian Huang wrote:
+> Hi all!
 > 
-> The MR/QP restrack also needs to be released when delete it, otherwise it
-> cause memory leak as the task struct won't be released.
+> We've been working on LTTng tracing for hns userspace provider
+> recently, and we wonder why the DENABLE_LTTNG compiler option
+> in rdma-core is disabled by default.
 > 
-> Refer to commit dac153f2802d ("RDMA/restrack: Release MR restrack when delete").
+> If it's due to the concern about performance degradation, we have
+> tested it on hns and found no significant performance difference
+> when the tracepoints are disabled.
 > 
-> Fixes: 13ef5539def7 ("RDMA/restrack: Count references to the verbs objects")
-> Signed-off-by: tuqiang <tu.qiang35@zte.com.cn>
-> Signed-off-by: Jiang Kun <jiang.kun2@zte.com.cn>
-> Cc: xu xin <xu.xin16@zte.com.cn>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: Leon Romanovsky <leon@kernel.org>
-> ---
->  drivers/infiniband/core/restrack.c | 2 --
->  1 file changed, 2 deletions(-)
+> Or is it because it introduces additional compilation dependency
+> on LTTng library?
 
-This is not proper way to submit patches to stable@.
-Please read and Documentation/process/stable-kernel-rules.rst
+Yes, this is the reason. Most rdma-core users who use release version
+will never need trace library in their life. They don't need an extra
+dependency.
 
 Thanks
 
 > 
-> diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-> index bbbbec5b1593..d5a69c4a1891 100644
-> --- a/drivers/infiniband/core/restrack.c
-> +++ b/drivers/infiniband/core/restrack.c
-> @@ -326,8 +326,6 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
->  	rt = &dev->res[res->type];
-> 
->  	old = xa_erase(&rt->xa, res->id);
-> -	if (res->type == RDMA_RESTRACK_MR || res->type == RDMA_RESTRACK_QP)
-> -		return;
->  	WARN_ON(old != res);
->  	res->valid = false;
-> 
-> -- 
-> 2.18.4
+> Thanks,
+> Junxian
