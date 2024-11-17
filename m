@@ -1,41 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16774DDA8;
-	Sun, 17 Nov 2024 09:52:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33E49DDA8
+	for <linux-rdma@vger.kernel.org>; Sun, 17 Nov 2024 09:57:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731837149; cv=none; b=MXgLiMj0VJwt4GzQjaxtkDEH7FJ2uI3HynZgaUdIcr5jlt2C5RHBMVmHB/fvnDxOTBpcYv39yGNbFdal4FfrcmiMa/FU0obiJfRnyns2XVZTGCgbGtcf/m1Mw4qwCGupGHwdlflGK/w35tulwmANQoB+RVrYDXYdib1FUC2/iYw=
+	t=1731837428; cv=none; b=WnsuopATS7ln8SQY8N+RRYbp28qda1iKma+2jq2fzKGDjO6B9zCcLJPOAkyBFkIgWffO7Yip5qUC9gIa1s59yKfgAk4axfooazwF+nUsofsfRcLqvyb4ga5rwKF6trML7MkaiMCfWtUAcBofdsrL1wT6S3Vuk4VQb2hS9N1wBYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731837149; c=relaxed/simple;
-	bh=XTLg0eWuydxY6lLMuzmi6jAlPTpd0Y1RIfkxybv4Gbk=;
+	s=arc-20240116; t=1731837428; c=relaxed/simple;
+	bh=2ZxkZYZJlEH1vUNLgDAZbilDjjWkK3kED5iRppBcRAI=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=qbzJ2TaESg9EcOc/fNd7PkQP53r+mWcpInhazujS8bHviKuMgp7mQiUk8t1isoapkX5lcBQ6OK8X1+28FUE+jiVsefaiUVNeibAkPWHzm3f2IpnM47GWSDh4Hha3g0oq2URVtId/yH50g4T7XBzBD6vAFuRmui3MoysbzBIbVz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Qpd+UhmY; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=lZJ/a0AE36t50Z7ufDrpJvIq3gJ4ZXKAHDve7WVmKPFOwsEV0XtfnP+nHGSuvRU5v7mTHBMbyS9exZN5pOIB8thEmt4go4gN4GpmrI737xs19Edk6cWOpSbLgJXjQHLh9c17XV7NRi/2EpNyen/PJcvRV1B/fSjT1olev8vRRWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sWxSEvCf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Qpd+UhmY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 760FBC4CECD;
-	Sun, 17 Nov 2024 09:52:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sWxSEvCf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E87CC4CECD;
+	Sun, 17 Nov 2024 09:57:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731837148;
-	bh=XTLg0eWuydxY6lLMuzmi6jAlPTpd0Y1RIfkxybv4Gbk=;
+	s=k20201202; t=1731837427;
+	bh=2ZxkZYZJlEH1vUNLgDAZbilDjjWkK3kED5iRppBcRAI=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=Qpd+UhmYjOgjIelWXTzVMHCy/l7Wr3BfUBKVOFRr6oLO4K/r+yq5GSITnXIPS1dSj
-	 SsN0jSOZrFIlv6a7k5lJ60accB2MWrdVTqfaAYNjEm0xiYTLpLmaH6cTfJnNlhEgv5
-	 3+vMnouWQ3KUWbx6Lavox4SlR27CsUkvJHT24mau8ddpudDVDJFMphbUNUtc9oJcIE
-	 Q9cJvDjEkh0RF5hHRySvHAMvg/7IJXKGgWKeZWGtdStVMyc0LH8Q8QUMgNdKQVGpwB
-	 K6yxfvEkw0vBFam0CATCJnu21v2DySlOMCE/afvP2HX/rN+5Ow4ybM0ZI1q175nmzp
-	 981YKxXOg9hTg==
+	b=sWxSEvCf1XNDbSV4V+LNLlRVqW+zyPhw29Wuk6tDVJW204I8R0MKO22PLlcepT6+z
+	 Q9/LfkxDmFhszMCfTjtVBGTF/GU+bBEARE+VIbVNe2mANQ9vS79h8eyPLDbHiBK6X6
+	 ZsvI3Cn7AFL2vD+ll9TLZ+6lv+8A2NJlVOBgdU39wtahQ5GQ7DOaIEIWfLxBpSCVjT
+	 isbGbua1GYsPTGD9ZryB3h5WLlfyifJ4jIcr7/xEznqhIUUuIvDvmYDysBKD25DGF9
+	 ehFTd6nVLmEmueXPjy8GNo5Ky7IrXpgLbdTxNq4hooDqeGVwLyNsj0Z9r+o3jFJENJ
+	 G/SESR+PQHdQg==
 From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
- Or Har-Toov <ohartoov@nvidia.com>, Sean Hefty <shefty@nvidia.com>, 
- Vlad Dumitrescu <vdumitrescu@nvidia.com>
-In-Reply-To: <cover.1731495873.git.leon@kernel.org>
-References: <cover.1731495873.git.leon@kernel.org>
-Subject: Re: [PATCH rdma-next 0/3] Batch of IBCM improvements
-Message-Id: <173183714552.223531.10917862917495682531.b4-ty@kernel.org>
-Date: Sun, 17 Nov 2024 04:52:25 -0500
+To: jgg@ziepe.ca, Selvin Xavier <selvin.xavier@broadcom.com>
+Cc: linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com, 
+ kalesh-anakkur.purayil@broadcom.com
+In-Reply-To: <1731660464-27838-1-git-send-email-selvin.xavier@broadcom.com>
+References: <1731660464-27838-1-git-send-email-selvin.xavier@broadcom.com>
+Subject: Re: [PATCH rdma-next 0/3] RDMA/bnxt_re: Driver update for 6.13
+Message-Id: <173183742446.243342.1421640206790639766.b4-ty@kernel.org>
+Date: Sun, 17 Nov 2024 04:57:04 -0500
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,26 +46,26 @@ Content-Transfer-Encoding: 7bit
 X-Mailer: b4 0.15-dev-37811
 
 
-On Wed, 13 Nov 2024 13:12:53 +0200, Leon Romanovsky wrote:
-> This patchset from Sean fixes old standing issues with IB/cm.
+On Fri, 15 Nov 2024 00:47:41 -0800, Selvin Xavier wrote:
+> Couple of minor updates and a bug fix for bnxt_re driver.
+> Please review and apply.
 > 
-> Thanks
+> Thanks,
+> Selvin Xavier
 > 
-> Sean Hefty (3):
->   IB/cm: Explicitly mark if a response MAD is a retransmission
->   IB/cm: Do not hold reference on cm_id unless needed
->   IB/cm: Rework sending DREQ when destroying a cm_id
+> Chandramohan Akula (1):
+>   RDMA/bnxt_re: Support different traffic class
 > 
 > [...]
 
 Applied, thanks!
 
-[1/3] IB/cm: Explicitly mark if a response MAD is a retransmission
-      https://git.kernel.org/rdma/rdma/c/0492458750c9fb
-[2/3] IB/cm: Do not hold reference on cm_id unless needed
-      https://git.kernel.org/rdma/rdma/c/1e5159219076dd
-[3/3] IB/cm: Rework sending DREQ when destroying a cm_id
-      https://git.kernel.org/rdma/rdma/c/fc0856c3a32576
+[1/3] RDMA/bnxt_re: Support different traffic class
+      https://git.kernel.org/rdma/rdma/c/c64b16a37b6d24
+[2/3] RDMA/bnxt_re: Use the default mode of congestion control
+      https://git.kernel.org/rdma/rdma/c/bfb27ae6d0f9a1
+[3/3] RDMA/bnxt_re: Correct the sequence of device suspend
+      https://git.kernel.org/rdma/rdma/c/68b3bca2df00f0
 
 Best regards,
 -- 
