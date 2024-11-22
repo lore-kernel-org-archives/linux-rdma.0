@@ -1,29 +1,29 @@
-Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+Received: from szxga07-in.huawei.com (szxga07-in.huawei.com [45.249.212.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF0E1DF253;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3502D1DF24A;
 	Fri, 22 Nov 2024 10:59:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.35
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732273192; cv=none; b=nGzeW5WEolxnw8ZO5rEzGzsbRmSeSx0zqkZ0sFYU6RK3L2xEJxEVj+ITNAHastO+mc+4RjlBKM99QDA2dgane+R9lo4Ln+C8Sse5Vz4z3JSq5mMx+nsEgaXtWKerNqXUFQDI3m+/zwbUzoMgTdz0Wg+tIM7dW2Zfy1g/ouqD3ps=
+	t=1732273192; cv=none; b=uLtfLCdFH9dJ8oqzzBINZbtV7rpscd4t8B3MPj5WL71O2VEDvc6BCTvdKQ4LeGaDGunPIBVTEAjuferPLYRmqaY8dPFY8DhDX5wyKhMIGgrpjFQtnrUz/qxvCehcEJHqxhTfjzglhCkcnQ2OrRARbl0TZDZmIhdpNTVPKAmEMz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1732273192; c=relaxed/simple;
-	bh=oawhWXk9A2tAltRb66TGoGGjKnyj7j08cqjDIY5P8Z8=;
+	bh=cCmZ8/aVS2IlbIho/MsWFDOAVcgVroEroABDBpsXfcI=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mP4ouUrF5waDtw0TUmEU9GzSKv3RUqjYZQsiXp8TTTTJHKjX3NRhtCvp7a8pd9dDu44gJMGs37wqq7JbIdx+qWFR0nFZT49I5K+dXL5ogpeX70A3ohNfK7ZVIncfzG7gs+bNDV6G3fuFzZBiblB1DUezIDOBiEqOlEHBcGJeCoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
+	 MIME-Version:Content-Type; b=s8nuYHa+iSjMOtJxkRHaxCWFeoLqPNstNVSVzYVSi4VBKPlp6A0F32z+Jy2EUOO9sBAe07nXWEqXDi5srcijFhmo+shCCMCVecoA4Jkz2BT55oxIkP44fk9Q+uJq0RpXyf7zcBTEDVfsq1gJG+66YvWjEQxO/Bbme7YJsr6pSqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.35
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.112])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4XvsWZ3n1Fz1k0JX;
-	Fri, 22 Nov 2024 18:57:46 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4XvsWX3Kb7z1T5G5;
+	Fri, 22 Nov 2024 18:57:44 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id DDC45140445;
-	Fri, 22 Nov 2024 18:59:47 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 95E8C1A0188;
+	Fri, 22 Nov 2024 18:59:46 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 22 Nov 2024 18:59:47 +0800
+ 15.2.1544.11; Fri, 22 Nov 2024 18:59:45 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>, <selvin.xavier@broadcom.com>,
 	<chengyou@linux.alibaba.com>, <kaishen@linux.alibaba.com>,
@@ -34,9 +34,9 @@ To: <jgg@ziepe.ca>, <leon@kernel.org>, <selvin.xavier@broadcom.com>,
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>,
 	<tangchengchang@huawei.com>, <liyuyu6@huawei.com>
-Subject: [PATCH RFC 11/12] RDMA/mlx5: Handle link status event only for LAG device
-Date: Fri, 22 Nov 2024 18:53:07 +0800
-Message-ID: <20241122105308.2150505-12-huangjunxian6@hisilicon.com>
+Subject: [PATCH RFC 09/12] RDMA/mlx4: Support report_port_event() ops
+Date: Fri, 22 Nov 2024 18:53:05 +0800
+Message-ID: <20241122105308.2150505-10-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20241122105308.2150505-1-huangjunxian6@hisilicon.com>
 References: <20241122105308.2150505-1-huangjunxian6@hisilicon.com>
@@ -53,29 +53,97 @@ X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
 
 From: Yuyu Li <liyuyu6@huawei.com>
 
-The link status events of non-LAG devices are now handled in ib_core,
-so only LAG device events need to be handled in driver.
+In addition to dispatching event, some private stuffs need to be
+done in this driver's link status event handler. Implement the new
+report_port_event() ops with the link status event codes.
 
 Signed-off-by: Yuyu Li <liyuyu6@huawei.com>
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/mlx4/main.c | 58 ++++++++++++++++---------------
+ 1 file changed, 30 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index bc7930d0c564..e4010f871865 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -242,6 +242,9 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 	case NETDEV_DOWN: {
- 		struct net_device *upper = NULL;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 529db874d67c..8bc390eaa921 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2341,39 +2341,40 @@ static void mlx4_ib_scan_netdev(struct mlx4_ib_dev *ibdev,
  
-+		if (!netif_is_lag_master(ndev) && !netif_is_lag_port(ndev))
-+			return NOTIFY_DONE;
+ 	iboe->netdevs[dev->dev_port] = event != NETDEV_UNREGISTER ? dev : NULL;
+ 
+-	if (event == NETDEV_UP || event == NETDEV_DOWN) {
+-		enum ib_port_state port_state;
+-		struct ib_event ibev = { };
+-
+-		if (ib_get_cached_port_state(&ibdev->ib_dev, dev->dev_port + 1,
+-					     &port_state))
+-			goto iboe_out;
+-
+-		if (event == NETDEV_UP &&
+-		    (port_state != IB_PORT_ACTIVE ||
+-		     iboe->last_port_state[dev->dev_port] != IB_PORT_DOWN))
+-			goto iboe_out;
+-		if (event == NETDEV_DOWN &&
+-		    (port_state != IB_PORT_DOWN ||
+-		     iboe->last_port_state[dev->dev_port] != IB_PORT_ACTIVE))
+-			goto iboe_out;
+-		iboe->last_port_state[dev->dev_port] = port_state;
+-
+-		ibev.device = &ibdev->ib_dev;
+-		ibev.element.port_num = dev->dev_port + 1;
+-		ibev.event = event == NETDEV_UP ? IB_EVENT_PORT_ACTIVE :
+-						  IB_EVENT_PORT_ERR;
+-		ib_dispatch_event(&ibev);
+-	}
+-
+-iboe_out:
+ 	spin_unlock_bh(&iboe->lock);
+ 
+-	if (event == NETDEV_CHANGEADDR || event == NETDEV_REGISTER ||
+-	    event == NETDEV_UP || event == NETDEV_CHANGE)
++	if (event == NETDEV_CHANGEADDR || event == NETDEV_REGISTER)
+ 		mlx4_ib_update_qps(ibdev, dev, dev->dev_port + 1);
+ }
+ 
++static void mlx4_ib_port_event(struct ib_device *ibdev, struct net_device *ndev,
++			       unsigned long event)
++{
++	struct mlx4_ib_dev *mlx4_ibdev =
++		container_of(ibdev, struct mlx4_ib_dev, ib_dev);
++	struct mlx4_ib_iboe *iboe = &mlx4_ibdev->iboe;
 +
- 		if (mlx5_lag_is_roce(mdev) || mlx5_lag_is_sriov(mdev)) {
- 			struct net_device *lag_ndev;
++	if (!net_eq(dev_net(ndev), &init_net))
++		return;
++
++	ASSERT_RTNL();
++
++	if (ndev->dev.parent != mlx4_ibdev->ib_dev.dev.parent)
++		return;
++
++	spin_lock_bh(&iboe->lock);
++
++	iboe->netdevs[ndev->dev_port] = event != NETDEV_UNREGISTER ? ndev : NULL;
++
++	if (event == NETDEV_UP || event == NETDEV_DOWN)
++		ib_dispatch_port_state_event(&mlx4_ibdev->ib_dev, ndev);
++
++	spin_unlock_bh(&iboe->lock);
++
++	if (event == NETDEV_UP || event == NETDEV_CHANGE)
++		mlx4_ib_update_qps(mlx4_ibdev, ndev, ndev->dev_port + 1);
++}
++
+ static int mlx4_ib_netdev_event(struct notifier_block *this,
+ 				unsigned long event, void *ptr)
+ {
+@@ -2569,6 +2570,7 @@ static const struct ib_device_ops mlx4_ib_dev_ops = {
+ 	.req_notify_cq = mlx4_ib_arm_cq,
+ 	.rereg_user_mr = mlx4_ib_rereg_user_mr,
+ 	.resize_cq = mlx4_ib_resize_cq,
++	.report_port_event = mlx4_ib_port_event,
  
+ 	INIT_RDMA_OBJ_SIZE(ib_ah, mlx4_ib_ah, ibah),
+ 	INIT_RDMA_OBJ_SIZE(ib_cq, mlx4_ib_cq, ibcq),
 -- 
 2.33.0
 
