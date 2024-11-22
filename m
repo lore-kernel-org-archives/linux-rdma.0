@@ -1,29 +1,29 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4101D1DED6D;
-	Fri, 22 Nov 2024 10:59:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF0E1DF253;
+	Fri, 22 Nov 2024 10:59:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732273191; cv=none; b=kCGJK9yYTFGIRVzPJCo5z4HI7X4DfhrF/VFtdNzZeG/M3jAW7KHmmsRspVd+DfaOiTb3RsuJ+mFeI/uM+936gTeGzihGKazqccfai5Pgj2+f4WqFWCPglqbMFXyziGyhFvVxHkDKITmpDD8/nwSOsrxlJwJPP3J/RBjoO8TqPNU=
+	t=1732273192; cv=none; b=nGzeW5WEolxnw8ZO5rEzGzsbRmSeSx0zqkZ0sFYU6RK3L2xEJxEVj+ITNAHastO+mc+4RjlBKM99QDA2dgane+R9lo4Ln+C8Sse5Vz4z3JSq5mMx+nsEgaXtWKerNqXUFQDI3m+/zwbUzoMgTdz0Wg+tIM7dW2Zfy1g/ouqD3ps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732273191; c=relaxed/simple;
-	bh=G8Eot4p3DQpSCqYcpocwVH08lCFhMK7sNDTgHt7LRO4=;
+	s=arc-20240116; t=1732273192; c=relaxed/simple;
+	bh=oawhWXk9A2tAltRb66TGoGGjKnyj7j08cqjDIY5P8Z8=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UcqrZP9quZDZ2kjDRTivEAx8zv3zYZeB/z+j1FprZ80Ot5hvnpmfC5cRvqSPPx14UAzOxcZbDEwdcxrq00fPVZ3j47ykepauyBvW6IWlvXbXeaVhqZU+1YKY5WHE8KAWfmOh3KuFSGKvHuO0ODy4Igwi6/ap50HZ6ZLSYNbbu/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
+	 MIME-Version:Content-Type; b=mP4ouUrF5waDtw0TUmEU9GzSKv3RUqjYZQsiXp8TTTTJHKjX3NRhtCvp7a8pd9dDu44gJMGs37wqq7JbIdx+qWFR0nFZT49I5K+dXL5ogpeX70A3ohNfK7ZVIncfzG7gs+bNDV6G3fuFzZBiblB1DUezIDOBiEqOlEHBcGJeCoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4XvsWf261WzqSXf;
-	Fri, 22 Nov 2024 18:57:50 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.162.112])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4XvsWZ3n1Fz1k0JX;
+	Fri, 22 Nov 2024 18:57:46 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 375D9180106;
-	Fri, 22 Nov 2024 18:59:41 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id DDC45140445;
+	Fri, 22 Nov 2024 18:59:47 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 22 Nov 2024 18:59:40 +0800
+ 15.2.1544.11; Fri, 22 Nov 2024 18:59:47 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>, <selvin.xavier@broadcom.com>,
 	<chengyou@linux.alibaba.com>, <kaishen@linux.alibaba.com>,
@@ -34,9 +34,9 @@ To: <jgg@ziepe.ca>, <leon@kernel.org>, <selvin.xavier@broadcom.com>,
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>,
 	<tangchengchang@huawei.com>, <liyuyu6@huawei.com>
-Subject: [PATCH RFC 01/12] RDMA/core: Add ib_query_netdev_port() to query netdev port by IB device.
-Date: Fri, 22 Nov 2024 18:52:57 +0800
-Message-ID: <20241122105308.2150505-2-huangjunxian6@hisilicon.com>
+Subject: [PATCH RFC 11/12] RDMA/mlx5: Handle link status event only for LAG device
+Date: Fri, 22 Nov 2024 18:53:07 +0800
+Message-ID: <20241122105308.2150505-12-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20241122105308.2150505-1-huangjunxian6@hisilicon.com>
 References: <20241122105308.2150505-1-huangjunxian6@hisilicon.com>
@@ -53,93 +53,29 @@ X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
 
 From: Yuyu Li <liyuyu6@huawei.com>
 
-Query the port number of a netdev associated with an ibdev.
+The link status events of non-LAG devices are now handled in ib_core,
+so only LAG device events need to be handled in driver.
 
 Signed-off-by: Yuyu Li <liyuyu6@huawei.com>
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/core/device.c | 39 ++++++++++++++++++++++++++------
- include/rdma/ib_verbs.h          |  2 ++
- 2 files changed, 34 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index ca9b956c034d..c60dd50d434f 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2295,6 +2295,33 @@ struct net_device *ib_device_get_netdev(struct ib_device *ib_dev,
- }
- EXPORT_SYMBOL(ib_device_get_netdev);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index bc7930d0c564..e4010f871865 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -242,6 +242,9 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 	case NETDEV_DOWN: {
+ 		struct net_device *upper = NULL;
  
-+/**
-+ * ib_query_netdev_port - Query the port number of a net_device
-+ * associated with an ibdev
-+ * @ibdev: IB device
-+ * @ndev: Network device
-+ * @port: IB port the net_device is connected to
-+ */
-+int ib_query_netdev_port(struct ib_device *ibdev, struct net_device *ndev,
-+			 u32 *port)
-+{
-+	struct net_device *ib_ndev;
-+	u32 port_num;
++		if (!netif_is_lag_master(ndev) && !netif_is_lag_port(ndev))
++			return NOTIFY_DONE;
 +
-+	rdma_for_each_port(ibdev, port_num) {
-+		ib_ndev = ib_device_get_netdev(ibdev, port_num);
-+		if (ndev == ib_ndev) {
-+			*port = port_num;
-+			dev_put(ib_ndev);
-+			return 0;
-+		}
-+		dev_put(ib_ndev);
-+	}
-+
-+	return -ENOENT;
-+}
-+EXPORT_SYMBOL(ib_query_netdev_port);
-+
- /**
-  * ib_device_get_by_netdev - Find an IB device associated with a netdev
-  * @ndev: netdev to locate
-@@ -2858,7 +2885,6 @@ static int ib_netdevice_event(struct notifier_block *this,
- 			      unsigned long event, void *ptr)
- {
- 	struct net_device *ndev = netdev_notifier_info_to_dev(ptr);
--	struct net_device *ib_ndev;
- 	struct ib_device *ibdev;
- 	u32 port;
+ 		if (mlx5_lag_is_roce(mdev) || mlx5_lag_is_sriov(mdev)) {
+ 			struct net_device *lag_ndev;
  
-@@ -2868,13 +2894,12 @@ static int ib_netdevice_event(struct notifier_block *this,
- 		if (!ibdev)
- 			return NOTIFY_DONE;
- 
--		rdma_for_each_port(ibdev, port) {
--			ib_ndev = ib_device_get_netdev(ibdev, port);
--			if (ndev == ib_ndev)
--				rdma_nl_notify_event(ibdev, port,
--						     RDMA_NETDEV_RENAME_EVENT);
--			dev_put(ib_ndev);
-+		if (ib_query_netdev_port(ibdev, ndev, &port)) {
-+			ib_device_put(ibdev);
-+			break;
- 		}
-+
-+		rdma_nl_notify_event(ibdev, port, RDMA_NETDEV_RENAME_EVENT);
- 		ib_device_put(ibdev);
- 		break;
- 	default:
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3417636da960..b5ee5e748a47 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -4469,6 +4469,8 @@ int ib_device_set_netdev(struct ib_device *ib_dev, struct net_device *ndev,
- 			 unsigned int port);
- struct net_device *ib_device_get_netdev(struct ib_device *ib_dev,
- 					u32 port);
-+int ib_query_netdev_port(struct ib_device *ibdev, struct net_device *ndev,
-+			 u32 *port);
- struct ib_wq *ib_create_wq(struct ib_pd *pd,
- 			   struct ib_wq_init_attr *init_attr);
- int ib_destroy_wq_user(struct ib_wq *wq, struct ib_udata *udata);
 -- 
 2.33.0
 
