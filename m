@@ -1,258 +1,340 @@
-Received: from mail-il1-f208.google.com (mail-il1-f208.google.com [209.85.166.208])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCBD81FBE9B
-	for <linux-rdma@vger.kernel.org>; Mon,  2 Dec 2024 10:36:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB67A95C;
+	Mon,  2 Dec 2024 12:52:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733135786; cv=none; b=CdkD6LecHCJzwE9427WZxxiRua/D+33WflxKegDHLGTGv+/zc3msaBC5Z8u6aTKZn+Sy1PgCglywPr4rRbK9ogud1SKJ0s4tA0moGGiCewFiJhT9BY4RhG4ecCGDVVvS1PcqP8wuqJRhYCKHt+gYgsqLbBJ0XZUkp3UomSnYIhA=
+	t=1733143949; cv=none; b=Xu/fsjGomnFoV1Krg4Mv67frUvJwjo7btZVNrZMtohhPIT0zNWhD+16cJB4akD4wz+0JEGV0PJFiKc7q8grZFhUceIIBDmkeMaqWQgXehleJULa6bqsefuovC1la1+3vXPeZ8XyVqUGNpjf0tyNeS6wv1dXayMdMekXkRrDTgTg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733135786; c=relaxed/simple;
-	bh=2paM0tDtmAKPZ9l1dumsYD0Yt0bbSUIuK7r18zmCx+I=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=KMM56N3mnoAD6f2OgSf1xG6CCOrVfAG2V7EK8UQXwtHT/UPXrIYskWUkf5DZM7JoMPZedSDNpHV3trgjf3si/rHs7TMQC8EzRS9grYYAxCFtyHTZvpYFbfvUFFYI1AIBooTqDxBb2CSins6goMfcc5Qz1RX29AAz/t92DDZHnjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f208.google.com with SMTP id e9e14a558f8ab-3a7cff77f99so44613065ab.3
-        for <linux-rdma@vger.kernel.org>; Mon, 02 Dec 2024 02:36:24 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1733135784; x=1733740584;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=1WZRLR5olCCSh9mM2de/1y39zhhUOoM6PWUa2qri7tU=;
-        b=eg5ehUMuiLRtt0RT0h/QVizkqG/TsAm/8HQbHxWKMJ7C/d0oxgIj9RwxAygYBbOkiv
-         07FFpuyEz/FC5LHIjcu3PuLVk9KoSTpz1Nj6tj9JiRGemBQHEu/+RDV0aqux2XfeTKRQ
-         hadAnd9DXpR0xglTQD2kwGWTNl3mz7deGu7c4dvgxgrM3ZPUg9bsqmszp/ErVxVjAOSV
-         mcUaEXVEji9LBFFctAyhChD1OQI1N3FoBNXpLM//D6t1fedARwvZm5/BcwnFLgsssbku
-         Zurg0nnzlRdoYOT2J2myFsR7BwIrTVv1Le3CBv6URAK0Mz+9tESAHDD3XXF3ju78PwFH
-         WhXQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVpuLHNIx9+qg2XLl3M3UOpbz/dQb+p9GR3YqNr2U7nIkOcX0uLufPTgOiNxQChNnZKbNj/haoRShlQ@vger.kernel.org
-X-Gm-Message-State: AOJu0YxNDzLLl46FhFJBy8jWLaKmehC/l4aXF8OMqYpX8MoDYf2qLlRo
-	CysSw1cV8eVk4xxXx11jv+G3V+xBTgvQaLbc7G/kW5OQx+dfjxJDR62tW8zEJi0SL7Xoz5bFZNF
-	m5ishnmQGiYoUBNUKO89MFWCr04PjFMT76Qd50PcWi7PHG/zJhwT9FL0=
-X-Google-Smtp-Source: AGHT+IGoHndnCq+ISeNyRfli6O9/DQSue0+QIP1w8SfCCfC8hbwagR3xGsHMv1uBu2vSAreKeiuuMl8ZHmEReLv7nwnobOANLT9B
+	s=arc-20240116; t=1733143949; c=relaxed/simple;
+	bh=5yfOKQEo5T3y6xK81o+UAx3eLEbjl8iAYsbPwg92jzM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=VyANP2d9ZQaRF2RClSq+gYrBBuz2Q06AaktzBNCZIR5yugpSp9e34eOT4bewZEq+pYW4IjrwB9tVwj3H/yZFcYMV6wRqE2kxIyjcAd+p1RCB6F43c5aq5RpnaiMkB2kHM1Zy7KZ4vVR4g72VlsxCwQx5Z2T0l9+5zecO4StR7Nw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=c4FezOj8; arc=none smtp.client-ip=115.124.30.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="c4FezOj8"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1733143936; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=i47arluX3FDMYUCONBfrM7TK9LSaGe34biX+jE8Ot1Q=;
+	b=c4FezOj87wYU2UZ8Pxl5TalJPc+I0OzreV8K44b/mx3eq2SqvH9A6zaEXwtHQ99yudopEdpOOd4tlJhXEZ4PCPZc7jNWncLPF2hot4abhOdtXDPufgNIXHPMml7avBDTWUug6TkZsgGMBBawvKKDhUdz80Qx5OwL5R3SbGVpxO4=
+Received: from localhost.localdomain(mailfrom:guangguan.wang@linux.alibaba.com fp:SMTPD_---0WKiDfpL_1733143935 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Mon, 02 Dec 2024 20:52:15 +0800
+From: Guangguan Wang <guangguan.wang@linux.alibaba.com>
+To: wenjia@linux.ibm.com,
+	jaka@linux.ibm.com,
+	alibuda@linux.alibaba.com,
+	tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next v2 1/2] net/smc: support SMC-R V2 for rdma devices with max_recv_sge equals to 1
+Date: Mon,  2 Dec 2024 20:52:02 +0800
+Message-Id: <20241202125203.48821-2-guangguan.wang@linux.alibaba.com>
+X-Mailer: git-send-email 2.24.3 (Apple Git-128)
+In-Reply-To: <20241202125203.48821-1-guangguan.wang@linux.alibaba.com>
+References: <20241202125203.48821-1-guangguan.wang@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1526:b0:3a7:4e3e:d03a with SMTP id
- e9e14a558f8ab-3a7c55f27d4mr170688775ab.22.1733135784065; Mon, 02 Dec 2024
- 02:36:24 -0800 (PST)
-Date: Mon, 02 Dec 2024 02:36:24 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <674d8da8.050a0220.ad585.004c.GAE@google.com>
-Subject: [syzbot] [rdma?] KASAN: slab-use-after-free Read in ib_device_uevent
-From: syzbot <syzbot+50fe89126df17c36e600@syzkaller.appspotmail.com>
-To: jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, 
-	linux-rdma@vger.kernel.org, netdev@vger.kernel.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
+For SMC-R V2, llc msg can be larger than SMC_WR_BUF_SIZE, thus every
+recv wr has 2 sges, the first sge with length SMC_WR_BUF_SIZE is for
+V1/V2 compatible llc/cdc msg, and the second sge with length
+SMC_WR_BUF_V2_SIZE-SMC_WR_TX_SIZE is for V2 specific llc msg, like
+SMC_LLC_DELETE_RKEY and SMC_LLC_ADD_LINK for SMC-R V2. The memory
+buffer in the second sge is shared by all recv wr in one link and
+all link in one lgr for saving memory usage purpose.
 
-syzbot found the following issue on:
+But not all RDMA devices with max_recv_sge greater than 1. Thus SMC-R
+V2 can not support on such RDMA devices and SMC_CLC_DECL_INTERR fallback
+happens because of the failure of create qp.
 
-HEAD commit:    f486c8aa16b8 Add linux-next specific files for 20241128
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=169579e8580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=e348a4873516af92
-dashboard link: https://syzkaller.appspot.com/bug?extid=50fe89126df17c36e600
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+This patch introduce the support for SMC-R V2 on RDMA devices with
+max_recv_sge equals to 1. Every recv wr has only one sge with individual
+buffer whose size is SMC_WR_BUF_V2_SIZE once the RDMA device's max_recv_sge
+equals to 1. It may use more memory, but it is better than
+SMC_CLC_DECL_INTERR fallback.
 
-Unfortunately, I don't have any reproducer for this issue yet.
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/beb58ebb63cf/disk-f486c8aa.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/b241b5609e64/vmlinux-f486c8aa.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/c9d817f665f2/bzImage-f486c8aa.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+50fe89126df17c36e600@syzkaller.appspotmail.com
-
-==================================================================
-BUG: KASAN: slab-use-after-free in string_nocheck lib/vsprintf.c:646 [inline]
-BUG: KASAN: slab-use-after-free in string+0x218/0x2b0 lib/vsprintf.c:728
-Read of size 1 at addr ffff888020ec1560 by task udevd/5204
-
-CPU: 1 UID: 0 PID: 5204 Comm: udevd Not tainted 6.12.0-next-20241128-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
- print_address_description mm/kasan/report.c:378 [inline]
- print_report+0x169/0x550 mm/kasan/report.c:489
- kasan_report+0x143/0x180 mm/kasan/report.c:602
- string_nocheck lib/vsprintf.c:646 [inline]
- string+0x218/0x2b0 lib/vsprintf.c:728
- vsnprintf+0x1101/0x1da0 lib/vsprintf.c:2848
- add_uevent_var+0x1c8/0x450 lib/kobject_uevent.c:679
- ib_device_uevent+0x79/0xa0 drivers/infiniband/core/device.c:519
- dev_uevent+0x4e4/0x900 drivers/base/core.c:2673
- uevent_show+0x1ba/0x340 drivers/base/core.c:2731
- dev_attr_show+0x55/0xc0 drivers/base/core.c:2423
- sysfs_kf_seq_show+0x331/0x4c0 fs/sysfs/file.c:59
- seq_read_iter+0x43f/0xd70 fs/seq_file.c:230
- new_sync_read fs/read_write.c:484 [inline]
- vfs_read+0x991/0xb70 fs/read_write.c:565
- ksys_read+0x18f/0x2b0 fs/read_write.c:708
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f7fda916b6a
-Code: 00 3d 00 00 41 00 75 0d 50 48 8d 3d 2d 08 0a 00 e8 ea 7d 01 00 31 c0 e9 07 ff ff ff 64 8b 04 25 18 00 00 00 85 c0 75 1b 0f 05 <48> 3d 00 f0 ff ff 76 6c 48 8b 15 8f a2 0d 00 f7 d8 64 89 02 48 83
-RSP: 002b:00007ffe81eda6d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
-RAX: ffffffffffffffda RBX: 000056079e2b19b0 RCX: 00007f7fda916b6a
-RDX: 0000000000001000 RSI: 000056079e2af9f0 RDI: 000000000000000c
-RBP: 000056079e2b19b0 R08: 000000000000000c R09: 0000000000000002
-R10: 000000000000010f R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000003fff R14: 00007ffe81edabb8 R15: 000000000000000a
- </TASK>
-
-Allocated by task 7741:
- kasan_save_stack mm/kasan/common.c:47 [inline]
- kasan_save_track+0x3f/0x80 mm/kasan/common.c:68
- poison_kmalloc_redzone mm/kasan/common.c:377 [inline]
- __kasan_kmalloc+0x98/0xb0 mm/kasan/common.c:394
- kasan_kmalloc include/linux/kasan.h:260 [inline]
- __do_kmalloc_node mm/slub.c:4283 [inline]
- __kmalloc_node_track_caller_noprof+0x28b/0x4c0 mm/slub.c:4302
- __kmemdup_nul mm/util.c:61 [inline]
- kstrdup+0x39/0xb0 mm/util.c:81
- kobject_set_name_vargs+0x61/0x120 lib/kobject.c:274
- dev_set_name+0xd5/0x120 drivers/base/core.c:3468
- assign_name drivers/infiniband/core/device.c:1219 [inline]
- ib_register_device+0x178/0x13e0 drivers/infiniband/core/device.c:1401
- siw_device_register drivers/infiniband/sw/siw/siw_main.c:72 [inline]
- siw_newlink+0x9d9/0xe50 drivers/infiniband/sw/siw/siw_main.c:452
- nldev_newlink+0x5c0/0x640 drivers/infiniband/core/nldev.c:1795
- rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
- rdma_nl_rcv+0x6dd/0x9e0 drivers/infiniband/core/netlink.c:259
- netlink_unicast_kernel net/netlink/af_netlink.c:1321 [inline]
- netlink_unicast+0x7f6/0x990 net/netlink/af_netlink.c:1347
- netlink_sendmsg+0x8e4/0xcb0 net/netlink/af_netlink.c:1891
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x221/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2583
- ___sys_sendmsg net/socket.c:2637 [inline]
- __sys_sendmsg+0x269/0x350 net/socket.c:2669
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Freed by task 7741:
- kasan_save_stack mm/kasan/common.c:47 [inline]
- kasan_save_track+0x3f/0x80 mm/kasan/common.c:68
- kasan_save_free_info+0x40/0x50 mm/kasan/generic.c:582
- poison_slab_object mm/kasan/common.c:247 [inline]
- __kasan_slab_free+0x59/0x70 mm/kasan/common.c:264
- kasan_slab_free include/linux/kasan.h:233 [inline]
- slab_free_hook mm/slub.c:2338 [inline]
- slab_free mm/slub.c:4598 [inline]
- kfree+0x196/0x430 mm/slub.c:4746
- kobject_rename+0x38f/0x410 lib/kobject.c:524
- device_rename+0x16a/0x200 drivers/base/core.c:4570
- ib_device_rename+0x270/0x680 drivers/infiniband/core/device.c:419
- nldev_set_doit+0x2f2/0x480 drivers/infiniband/core/nldev.c:1146
- rdma_nl_rcv_skb drivers/infiniband/core/netlink.c:239 [inline]
- rdma_nl_rcv+0x6dd/0x9e0 drivers/infiniband/core/netlink.c:259
- netlink_unicast_kernel net/netlink/af_netlink.c:1321 [inline]
- netlink_unicast+0x7f6/0x990 net/netlink/af_netlink.c:1347
- netlink_sendmsg+0x8e4/0xcb0 net/netlink/af_netlink.c:1891
- sock_sendmsg_nosec net/socket.c:711 [inline]
- __sock_sendmsg+0x221/0x270 net/socket.c:726
- ____sys_sendmsg+0x52a/0x7e0 net/socket.c:2583
- ___sys_sendmsg net/socket.c:2637 [inline]
- __sys_sendmsg+0x269/0x350 net/socket.c:2669
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-The buggy address belongs to the object at ffff888020ec1560
- which belongs to the cache kmalloc-8 of size 8
-The buggy address is located 0 bytes inside of
- freed 8-byte region [ffff888020ec1560, ffff888020ec1568)
-
-The buggy address belongs to the physical page:
-page: refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x20ec1
-flags: 0xfff00000000000(node=0|zone=1|lastcpupid=0x7ff)
-page_type: f5(slab)
-raw: 00fff00000000000 ffff88801ac41500 dead000000000100 dead000000000122
-raw: 0000000000000000 0000000000800080 00000001f5000000 0000000000000000
-page dumped because: kasan: bad access detected
-page_owner tracks the page as allocated
-page last allocated via order 0, migratetype Unmovable, gfp_mask 0x52cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP), pid 1, tgid 1 (swapper/0), ts 2779255619, free_ts 2778733938
- set_page_owner include/linux/page_owner.h:32 [inline]
- post_alloc_hook+0x1f3/0x230 mm/page_alloc.c:1556
- prep_new_page mm/page_alloc.c:1564 [inline]
- get_page_from_freelist+0x3738/0x3880 mm/page_alloc.c:3510
- __alloc_pages_noprof+0x292/0x710 mm/page_alloc.c:4787
- alloc_pages_mpol_noprof+0x3e8/0x680 mm/mempolicy.c:2265
- alloc_slab_page+0x6a/0x140 mm/slub.c:2408
- allocate_slab+0x5a/0x2f0 mm/slub.c:2574
- new_slab mm/slub.c:2627 [inline]
- ___slab_alloc+0xcd1/0x14b0 mm/slub.c:3815
- __slab_alloc+0x58/0xa0 mm/slub.c:3905
- __slab_alloc_node mm/slub.c:3980 [inline]
- slab_alloc_node mm/slub.c:4141 [inline]
- __do_kmalloc_node mm/slub.c:4282 [inline]
- __kmalloc_node_track_caller_noprof+0x2e9/0x4c0 mm/slub.c:4302
- __kmemdup_nul mm/util.c:61 [inline]
- kstrdup+0x39/0xb0 mm/util.c:81
- __kernfs_new_node+0x9d/0x870 fs/kernfs/dir.c:620
- kernfs_new_node+0x137/0x240 fs/kernfs/dir.c:700
- __kernfs_create_file+0x49/0x2e0 fs/kernfs/file.c:1034
- sysfs_add_bin_file_mode_ns+0x220/0x400 fs/sysfs/file.c:354
- sysfs_create_bin_file+0x1b4/0x2e0 fs/sysfs/file.c:595
- acpi_table_attr_init+0x4ee/0x700 drivers/acpi/sysfs.c:379
-page last free pid 1 tgid 1 stack trace:
- reset_page_owner include/linux/page_owner.h:25 [inline]
- free_pages_prepare mm/page_alloc.c:1127 [inline]
- free_unref_page+0xdef/0x1130 mm/page_alloc.c:2693
- __kmem_cache_do_shrink+0x344/0x3b0 mm/slub.c:5876
- acpi_os_purge_cache+0x15/0x20 drivers/acpi/osl.c:1585
- acpi_purge_cached_objects+0xb8/0xc0 drivers/acpi/acpica/utxface.c:240
- acpi_initialize_objects+0x2e/0xa0 drivers/acpi/acpica/utxfinit.c:250
- acpi_bus_init+0xda/0xbc0 drivers/acpi/bus.c:1367
- acpi_init+0xb4/0x240 drivers/acpi/bus.c:1454
- do_one_initcall+0x248/0x870 init/main.c:1266
- do_initcall_level+0x157/0x210 init/main.c:1328
- do_initcalls+0x3f/0x80 init/main.c:1344
- kernel_init_freeable+0x435/0x5d0 init/main.c:1577
- kernel_init+0x1d/0x2b0 init/main.c:1466
- ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
-
-Memory state around the buggy address:
- ffff888020ec1400: fa fc fc fc 06 fc fc fc 05 fc fc fc 05 fc fc fc
- ffff888020ec1480: 05 fc fc fc 00 fc fc fc 00 fc fc fc fa fc fc fc
->ffff888020ec1500: 05 fc fc fc fa fc fc fc fa fc fc fc fa fc fc fc
-                                                       ^
- ffff888020ec1580: fa fc fc fc 05 fc fc fc 06 fc fc fc 05 fc fc fc
- ffff888020ec1600: fa fc fc fc 05 fc fc fc 04 fc fc fc 04 fc fc fc
-==================================================================
-
-
+Co-developed-by: Wen Gu <guwen@linux.alibaba.com>
+Signed-off-by: Wen Gu <guwen@linux.alibaba.com>
+Signed-off-by: Guangguan Wang <guangguan.wang@linux.alibaba.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ net/smc/smc_core.c |  5 +++++
+ net/smc/smc_core.h | 11 ++++++++++-
+ net/smc/smc_ib.c   |  3 +--
+ net/smc/smc_llc.c  | 21 +++++++++++++++------
+ net/smc/smc_wr.c   | 42 +++++++++++++++++++++---------------------
+ 5 files changed, 52 insertions(+), 30 deletions(-)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 500952c2e67b..ede4d5f3111b 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -795,9 +795,14 @@ int smcr_link_init(struct smc_link_group *lgr, struct smc_link *lnk,
+ 	if (lgr->smc_version == SMC_V2) {
+ 		lnk->smcibdev = ini->smcrv2.ib_dev_v2;
+ 		lnk->ibport = ini->smcrv2.ib_port_v2;
++		lnk->wr_rx_sge_cnt = lnk->smcibdev->ibdev->attrs.max_recv_sge < 2 ? 1 : 2;
++		lnk->wr_rx_buflen = smc_link_shared_v2_rxbuf(lnk) ?
++			SMC_WR_BUF_SIZE : SMC_WR_BUF_V2_SIZE;
+ 	} else {
+ 		lnk->smcibdev = ini->ib_dev;
+ 		lnk->ibport = ini->ib_port;
++		lnk->wr_rx_sge_cnt = 1;
++		lnk->wr_rx_buflen = SMC_WR_BUF_SIZE;
+ 	}
+ 	get_device(&lnk->smcibdev->ibdev->dev);
+ 	atomic_inc(&lnk->smcibdev->lnk_cnt);
+diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
+index 69b54ecd6503..48a1b1dcb576 100644
+--- a/net/smc/smc_core.h
++++ b/net/smc/smc_core.h
+@@ -122,10 +122,14 @@ struct smc_link {
+ 	} ____cacheline_aligned_in_smp;
+ 	struct completion	tx_ref_comp;
+ 
+-	struct smc_wr_buf	*wr_rx_bufs;	/* WR recv payload buffers */
++	u8			*wr_rx_bufs;	/* WR recv payload buffers */
+ 	struct ib_recv_wr	*wr_rx_ibs;	/* WR recv meta data */
+ 	struct ib_sge		*wr_rx_sges;	/* WR recv scatter meta data */
+ 	/* above three vectors have wr_rx_cnt elements and use the same index */
++	int			wr_rx_sge_cnt; /* rx sge, V1 is 1, V2 is either 2 or 1 */
++	int			wr_rx_buflen;	/* buffer len for the first sge, len for the
++						 * second sge is lgr shared if rx sge is 2.
++						 */
+ 	dma_addr_t		wr_rx_dma_addr;	/* DMA address of wr_rx_bufs */
+ 	dma_addr_t		wr_rx_v2_dma_addr; /* DMA address of v2 rx buf*/
+ 	u64			wr_rx_id;	/* seq # of last recv WR */
+@@ -506,6 +510,11 @@ static inline bool smc_link_active(struct smc_link *lnk)
+ 	return lnk->state == SMC_LNK_ACTIVE;
+ }
+ 
++static inline bool smc_link_shared_v2_rxbuf(struct smc_link *lnk)
++{
++	return lnk->wr_rx_sge_cnt > 1;
++}
++
+ static inline void smc_gid_be16_convert(__u8 *buf, u8 *gid_raw)
+ {
+ 	sprintf(buf, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x",
+diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+index 9c563cdbea90..53828833a3f7 100644
+--- a/net/smc/smc_ib.c
++++ b/net/smc/smc_ib.c
+@@ -662,7 +662,6 @@ void smc_ib_destroy_queue_pair(struct smc_link *lnk)
+ /* create a queue pair within the protection domain for a link */
+ int smc_ib_create_queue_pair(struct smc_link *lnk)
+ {
+-	int sges_per_buf = (lnk->lgr->smc_version == SMC_V2) ? 2 : 1;
+ 	struct ib_qp_init_attr qp_attr = {
+ 		.event_handler = smc_ib_qp_event_handler,
+ 		.qp_context = lnk,
+@@ -676,7 +675,7 @@ int smc_ib_create_queue_pair(struct smc_link *lnk)
+ 			.max_send_wr = SMC_WR_BUF_CNT * 3,
+ 			.max_recv_wr = SMC_WR_BUF_CNT * 3,
+ 			.max_send_sge = SMC_IB_MAX_SEND_SGE,
+-			.max_recv_sge = sges_per_buf,
++			.max_recv_sge = lnk->wr_rx_sge_cnt,
+ 			.max_inline_data = 0,
+ 		},
+ 		.sq_sig_type = IB_SIGNAL_REQ_WR,
+diff --git a/net/smc/smc_llc.c b/net/smc/smc_llc.c
+index 018ce8133b02..f865c58c3aa7 100644
+--- a/net/smc/smc_llc.c
++++ b/net/smc/smc_llc.c
+@@ -997,13 +997,14 @@ static int smc_llc_cli_conf_link(struct smc_link *link,
+ }
+ 
+ static void smc_llc_save_add_link_rkeys(struct smc_link *link,
+-					struct smc_link *link_new)
++					struct smc_link *link_new,
++					u8 *llc_msg)
+ {
+ 	struct smc_llc_msg_add_link_v2_ext *ext;
+ 	struct smc_link_group *lgr = link->lgr;
+ 	int max, i;
+ 
+-	ext = (struct smc_llc_msg_add_link_v2_ext *)((u8 *)lgr->wr_rx_buf_v2 +
++	ext = (struct smc_llc_msg_add_link_v2_ext *)(llc_msg +
+ 						     SMC_WR_TX_SIZE);
+ 	max = min_t(u8, ext->num_rkeys, SMC_LLC_RKEYS_PER_MSG_V2);
+ 	down_write(&lgr->rmbs_lock);
+@@ -1098,7 +1099,9 @@ int smc_llc_cli_add_link(struct smc_link *link, struct smc_llc_qentry *qentry)
+ 	if (rc)
+ 		goto out_clear_lnk;
+ 	if (lgr->smc_version == SMC_V2) {
+-		smc_llc_save_add_link_rkeys(link, lnk_new);
++		u8 *llc_msg = smc_link_shared_v2_rxbuf(link) ?
++			(u8 *)lgr->wr_rx_buf_v2 : (u8 *)llc;
++		smc_llc_save_add_link_rkeys(link, lnk_new, llc_msg);
+ 	} else {
+ 		rc = smc_llc_cli_rkey_exchange(link, lnk_new);
+ 		if (rc) {
+@@ -1498,7 +1501,9 @@ int smc_llc_srv_add_link(struct smc_link *link,
+ 	if (rc)
+ 		goto out_err;
+ 	if (lgr->smc_version == SMC_V2) {
+-		smc_llc_save_add_link_rkeys(link, link_new);
++		u8 *llc_msg = smc_link_shared_v2_rxbuf(link) ?
++			(u8 *)lgr->wr_rx_buf_v2 : (u8 *)add_llc;
++		smc_llc_save_add_link_rkeys(link, link_new, llc_msg);
+ 	} else {
+ 		rc = smc_llc_srv_rkey_exchange(link, link_new);
+ 		if (rc)
+@@ -1807,8 +1812,12 @@ static void smc_llc_rmt_delete_rkey(struct smc_link_group *lgr)
+ 	if (lgr->smc_version == SMC_V2) {
+ 		struct smc_llc_msg_delete_rkey_v2 *llcv2;
+ 
+-		memcpy(lgr->wr_rx_buf_v2, llc, sizeof(*llc));
+-		llcv2 = (struct smc_llc_msg_delete_rkey_v2 *)lgr->wr_rx_buf_v2;
++		if (smc_link_shared_v2_rxbuf(link)) {
++			memcpy(lgr->wr_rx_buf_v2, llc, sizeof(*llc));
++			llcv2 = (struct smc_llc_msg_delete_rkey_v2 *)lgr->wr_rx_buf_v2;
++		} else {
++			llcv2 = (struct smc_llc_msg_delete_rkey_v2 *)llc;
++		}
+ 		llcv2->num_inval_rkeys = 0;
+ 
+ 		max = min_t(u8, llcv2->num_rkeys, SMC_LLC_RKEYS_PER_MSG_V2);
+diff --git a/net/smc/smc_wr.c b/net/smc/smc_wr.c
+index 994c0cd4fddb..b04a21b8c511 100644
+--- a/net/smc/smc_wr.c
++++ b/net/smc/smc_wr.c
+@@ -439,7 +439,7 @@ static inline void smc_wr_rx_demultiplex(struct ib_wc *wc)
+ 		return; /* short message */
+ 	temp_wr_id = wc->wr_id;
+ 	index = do_div(temp_wr_id, link->wr_rx_cnt);
+-	wr_rx = (struct smc_wr_rx_hdr *)&link->wr_rx_bufs[index];
++	wr_rx = (struct smc_wr_rx_hdr *)(link->wr_rx_bufs + index * link->wr_rx_buflen);
+ 	hash_for_each_possible(smc_wr_rx_hash, handler, list, wr_rx->type) {
+ 		if (handler->type == wr_rx->type)
+ 			handler->handler(wc, wr_rx);
+@@ -555,7 +555,6 @@ void smc_wr_remember_qp_attr(struct smc_link *lnk)
+ 
+ static void smc_wr_init_sge(struct smc_link *lnk)
+ {
+-	int sges_per_buf = (lnk->lgr->smc_version == SMC_V2) ? 2 : 1;
+ 	bool send_inline = (lnk->qp_attr.cap.max_inline_data > SMC_WR_TX_SIZE);
+ 	u32 i;
+ 
+@@ -608,13 +607,14 @@ static void smc_wr_init_sge(struct smc_link *lnk)
+ 	 * the larger spillover buffer, allowing easy data mapping.
+ 	 */
+ 	for (i = 0; i < lnk->wr_rx_cnt; i++) {
+-		int x = i * sges_per_buf;
++		int x = i * lnk->wr_rx_sge_cnt;
+ 
+ 		lnk->wr_rx_sges[x].addr =
+-			lnk->wr_rx_dma_addr + i * SMC_WR_BUF_SIZE;
+-		lnk->wr_rx_sges[x].length = SMC_WR_TX_SIZE;
++			lnk->wr_rx_dma_addr + i * lnk->wr_rx_buflen;
++		lnk->wr_rx_sges[x].length = smc_link_shared_v2_rxbuf(lnk) ?
++			SMC_WR_TX_SIZE : lnk->wr_rx_buflen;
+ 		lnk->wr_rx_sges[x].lkey = lnk->roce_pd->local_dma_lkey;
+-		if (lnk->lgr->smc_version == SMC_V2) {
++		if (lnk->lgr->smc_version == SMC_V2 && smc_link_shared_v2_rxbuf(lnk)) {
+ 			lnk->wr_rx_sges[x + 1].addr =
+ 					lnk->wr_rx_v2_dma_addr + SMC_WR_TX_SIZE;
+ 			lnk->wr_rx_sges[x + 1].length =
+@@ -624,7 +624,7 @@ static void smc_wr_init_sge(struct smc_link *lnk)
+ 		}
+ 		lnk->wr_rx_ibs[i].next = NULL;
+ 		lnk->wr_rx_ibs[i].sg_list = &lnk->wr_rx_sges[x];
+-		lnk->wr_rx_ibs[i].num_sge = sges_per_buf;
++		lnk->wr_rx_ibs[i].num_sge = lnk->wr_rx_sge_cnt;
+ 	}
+ 	lnk->wr_reg.wr.next = NULL;
+ 	lnk->wr_reg.wr.num_sge = 0;
+@@ -655,7 +655,7 @@ void smc_wr_free_link(struct smc_link *lnk)
+ 
+ 	if (lnk->wr_rx_dma_addr) {
+ 		ib_dma_unmap_single(ibdev, lnk->wr_rx_dma_addr,
+-				    SMC_WR_BUF_SIZE * lnk->wr_rx_cnt,
++				    lnk->wr_rx_buflen * lnk->wr_rx_cnt,
+ 				    DMA_FROM_DEVICE);
+ 		lnk->wr_rx_dma_addr = 0;
+ 	}
+@@ -740,13 +740,11 @@ int smc_wr_alloc_lgr_mem(struct smc_link_group *lgr)
+ 
+ int smc_wr_alloc_link_mem(struct smc_link *link)
+ {
+-	int sges_per_buf = link->lgr->smc_version == SMC_V2 ? 2 : 1;
+-
+ 	/* allocate link related memory */
+ 	link->wr_tx_bufs = kcalloc(SMC_WR_BUF_CNT, SMC_WR_BUF_SIZE, GFP_KERNEL);
+ 	if (!link->wr_tx_bufs)
+ 		goto no_mem;
+-	link->wr_rx_bufs = kcalloc(SMC_WR_BUF_CNT * 3, SMC_WR_BUF_SIZE,
++	link->wr_rx_bufs = kcalloc(SMC_WR_BUF_CNT * 3, link->wr_rx_buflen,
+ 				   GFP_KERNEL);
+ 	if (!link->wr_rx_bufs)
+ 		goto no_mem_wr_tx_bufs;
+@@ -774,7 +772,7 @@ int smc_wr_alloc_link_mem(struct smc_link *link)
+ 	if (!link->wr_tx_sges)
+ 		goto no_mem_wr_tx_rdma_sges;
+ 	link->wr_rx_sges = kcalloc(SMC_WR_BUF_CNT * 3,
+-				   sizeof(link->wr_rx_sges[0]) * sges_per_buf,
++				   sizeof(link->wr_rx_sges[0]) * link->wr_rx_sge_cnt,
+ 				   GFP_KERNEL);
+ 	if (!link->wr_rx_sges)
+ 		goto no_mem_wr_tx_sges;
+@@ -872,7 +870,7 @@ int smc_wr_create_link(struct smc_link *lnk)
+ 	smc_wr_tx_set_wr_id(&lnk->wr_tx_id, 0);
+ 	lnk->wr_rx_id = 0;
+ 	lnk->wr_rx_dma_addr = ib_dma_map_single(
+-		ibdev, lnk->wr_rx_bufs,	SMC_WR_BUF_SIZE * lnk->wr_rx_cnt,
++		ibdev, lnk->wr_rx_bufs,	lnk->wr_rx_buflen * lnk->wr_rx_cnt,
+ 		DMA_FROM_DEVICE);
+ 	if (ib_dma_mapping_error(ibdev, lnk->wr_rx_dma_addr)) {
+ 		lnk->wr_rx_dma_addr = 0;
+@@ -880,13 +878,15 @@ int smc_wr_create_link(struct smc_link *lnk)
+ 		goto out;
+ 	}
+ 	if (lnk->lgr->smc_version == SMC_V2) {
+-		lnk->wr_rx_v2_dma_addr = ib_dma_map_single(ibdev,
+-			lnk->lgr->wr_rx_buf_v2, SMC_WR_BUF_V2_SIZE,
+-			DMA_FROM_DEVICE);
+-		if (ib_dma_mapping_error(ibdev, lnk->wr_rx_v2_dma_addr)) {
+-			lnk->wr_rx_v2_dma_addr = 0;
+-			rc = -EIO;
+-			goto dma_unmap;
++		if (smc_link_shared_v2_rxbuf(lnk)) {
++			lnk->wr_rx_v2_dma_addr =
++				ib_dma_map_single(ibdev, lnk->lgr->wr_rx_buf_v2,
++						  SMC_WR_BUF_V2_SIZE, DMA_FROM_DEVICE);
++			if (ib_dma_mapping_error(ibdev, lnk->wr_rx_v2_dma_addr)) {
++				lnk->wr_rx_v2_dma_addr = 0;
++				rc = -EIO;
++				goto dma_unmap;
++			}
+ 		}
+ 		lnk->wr_tx_v2_dma_addr = ib_dma_map_single(ibdev,
+ 			lnk->lgr->wr_tx_buf_v2, SMC_WR_BUF_V2_SIZE,
+@@ -935,7 +935,7 @@ int smc_wr_create_link(struct smc_link *lnk)
+ 		lnk->wr_tx_v2_dma_addr = 0;
+ 	}
+ 	ib_dma_unmap_single(ibdev, lnk->wr_rx_dma_addr,
+-			    SMC_WR_BUF_SIZE * lnk->wr_rx_cnt,
++			    lnk->wr_rx_buflen * lnk->wr_rx_cnt,
+ 			    DMA_FROM_DEVICE);
+ 	lnk->wr_rx_dma_addr = 0;
+ out:
+-- 
+2.24.3 (Apple Git-128)
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
