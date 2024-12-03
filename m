@@ -1,43 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 518171EE019;
-	Tue,  3 Dec 2024 13:45:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 450B82AD02;
+	Tue,  3 Dec 2024 13:52:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733233544; cv=none; b=Rjyj5a63kmjfSeHb5GfPGXgjuU/s/1KKdmuv//qasrqItbDrLirh7RQUK5wOsEonks6TzyFp8H0y20h8IvHzSE+tSIY1C6U/kGq6r7kJy02QcVXS+glS38QCWeK58/h9VC2ekWo4g3MSLU5ptJF+fCvv74IxY24FFaIgpIEsPXE=
+	t=1733233952; cv=none; b=VpTyKF4RVO0+cxvnAzX9e/NpYZ/AsSJWmPiWR4/IRp3M2Ht3/j3cw89hngQ5hJpae7s///DOxm3B33O3ySV3g1YadFn/6dkBPojzasp4G8W/8do04Pm+cUBdBIXzpSfjHcga/rYWAhALg01uXE7GqVMlPzdmxwnzII0CWbzf9Co=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733233544; c=relaxed/simple;
-	bh=cErb3bV+SAPedDc/tB1CJu1WvUbR1ZitnEExBcebm5I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=inBNY98NOS4oorManOSwuGNnymYzBDpislhPOJVOSivcG4u2RrKA+nDPezSAfWDV5zFYmasf1Mia+limzXzKko/YmdY99QDHvlCNb0o/KSyf6XRvHEG59gxHIZPvDNw73XA/vJU7vT9ARS9BgeC6wJOmIT42BKR1u4GUXPl+Bfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=clZVwI/w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733233952; c=relaxed/simple;
+	bh=Py1FScrYE/Nxhj1tpTRCDTff5a2FxDu9XoSkMy68tsY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WFnVjZO/YKq2OPzmjqx/J55zQItnYRV2/n0aRK7XgAr/+xUPSu3JSnYU5W/zcVV1qHWU1DooL6DL3CLbMVQzz5eQS6A+56NPpq5+0KVesd3qMNaV64jCOfBefeYSbxsuX9ZYeGMlhc9kFUnW8o8UKrMzcUtFR+i6PC15Zj6m4XI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=quaHnSfv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="clZVwI/w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57DBDC4CED8;
-	Tue,  3 Dec 2024 13:45:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="quaHnSfv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B272C4CECF;
+	Tue,  3 Dec 2024 13:52:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733233543;
-	bh=cErb3bV+SAPedDc/tB1CJu1WvUbR1ZitnEExBcebm5I=;
+	s=k20201202; t=1733233951;
+	bh=Py1FScrYE/Nxhj1tpTRCDTff5a2FxDu9XoSkMy68tsY=;
 	h=From:To:Cc:Subject:Date:From;
-	b=clZVwI/w0M9tVPUL2Fh+MVrC/V1CJxMg6uDiUiCNchFKjBCOOvBiCuLkb/XYN8SQG
-	 aXRacd9A4GptIovAa0y7LePwyLo1BAzH/UtQd80Nt8n9s53GDosAEsWbL8Xz5iw1YA
-	 n9aqhyYhZ+1lYOsXJiYTfrQGnTx5lff0cFe2ws+o7Haj6ulRFd1RIX243OV3pjp5Qf
-	 KBK4tzroFlS0Ihzq7lHN9QP4erkrH3vVALzzRHNSbBOVhBIK6G5JdWcB/9bBIWnEl2
-	 wj6zIo/Gn9lKSGpHPFSdyVO1uUnTPo/YUwoE67TivDZoZRuU2RAXxhKktwlSi89a0c
-	 TCEbuVZr8cPmg==
+	b=quaHnSfvEKERvXPd9rRlhSG3Q3mrsgBDJKp16hQ/5ry14np9VmKgUExqgzqacxRrc
+	 8sXsn3Xx1ha7x/aLJ/JxZ0rRLgUGJ8lTwO6JidM7jvjI+qpH4pA4vGrI1+SyykICok
+	 /Wpr7PeLyR/BoiJOS0+PiUnZyN2PyT4myThCefw6z1K0O9yGva7G97rsa+ZjAZU/bm
+	 dVGy5MnLBY9b3xVkdO1P10H8nWoJGlQl50D6rtRE7HDJEcW9EUBKQ9N/0ANWGGkwE0
+	 MeuNsXAjj8KrP8RChN3Jx6mKNibNVo/gbt2kQwQft6zSjbwKYxriRDYvc8EmYA/h9y
+	 1k3xKq+WpfDsg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Patrisious Haddad <phaddad@nvidia.com>,
-	Daniel Jurgens <danielj@mellanox.com>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
+	linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
-	Mark Bloch <mbloch@nvidia.com>,
-	netdev@vger.kernel.org,
-	Parav Pandit <parav@mellanox.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH mlx5-next] RDMA/mlx5: Enforce same type port association for multiport RoCE
-Date: Tue,  3 Dec 2024 15:45:37 +0200
-Message-ID: <88699500f690dff1c1852c1ddb71f8a1cc8b956e.1733233480.git.leonro@nvidia.com>
+	Maher Sanalla <msanalla@nvidia.com>,
+	Or Har-Toov <ohartoov@nvidia.com>
+Subject: [PATCH rdma-next 0/3] Add Flow Control for Solicited MADs
+Date: Tue,  3 Dec 2024 15:52:20 +0200
+Message-ID: <cover.1733233636.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -47,62 +44,42 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Patrisious Haddad <phaddad@nvidia.com>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Different core device types such as PFs and VFs shouldn't be affiliated
-together since they have different capabilities, fix that by enforcing
-type check before doing the affiliation.
+From Or:
 
-Fixes: 32f69e4be269 ("{net, IB}/mlx5: Manage port association for multiport RoCE")
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/main.c | 6 ++++--
- include/linux/mlx5/driver.h       | 6 ++++++
- 2 files changed, 10 insertions(+), 2 deletions(-)
+This patch series introduces flow control for solicited MADs in
+the MAD layer, addressing the need avoid loss caused by insufficient
+resources at the receiver.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index bc7930d0c564..c2314797afc9 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3639,7 +3639,8 @@ static int mlx5_ib_init_multiport_master(struct mlx5_ib_dev *dev)
- 		list_for_each_entry(mpi, &mlx5_ib_unaffiliated_port_list,
- 				    list) {
- 			if (dev->sys_image_guid == mpi->sys_image_guid &&
--			    (mlx5_core_native_port_num(mpi->mdev) - 1) == i) {
-+			    (mlx5_core_native_port_num(mpi->mdev) - 1) == i &&
-+			    mlx5_core_same_coredev_type(dev->mdev, mpi->mdev)) {
- 				bound = mlx5_ib_bind_slave_port(dev, mpi);
- 			}
- 
-@@ -4785,7 +4786,8 @@ static int mlx5r_mp_probe(struct auxiliary_device *adev,
- 
- 	mutex_lock(&mlx5_ib_multiport_mutex);
- 	list_for_each_entry(dev, &mlx5_ib_dev_list, ib_dev_list) {
--		if (dev->sys_image_guid == mpi->sys_image_guid)
-+		if (dev->sys_image_guid == mpi->sys_image_guid &&
-+		    mlx5_core_same_coredev_type(dev->mdev, mpi->mdev))
- 			bound = mlx5_ib_bind_slave_port(dev, mpi);
- 
- 		if (bound) {
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index fc7e6153b73d..4f9e6f6dbaab 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1202,6 +1202,12 @@ static inline bool mlx5_core_is_vf(const struct mlx5_core_dev *dev)
- 	return dev->coredev_type == MLX5_COREDEV_VF;
- }
- 
-+static inline bool mlx5_core_same_coredev_type(const struct mlx5_core_dev *dev1,
-+					       const struct mlx5_core_dev *dev2)
-+{
-+	return dev1->coredev_type == dev2->coredev_type;
-+}
-+
- static inline bool mlx5_core_is_ecpf(const struct mlx5_core_dev *dev)
- {
- 	return dev->caps.embedded_cpu;
+Both the client and the server act as receivers - the latter receives
+requests, while the former receives responses. To facilitate this flow
+control, the series also refactors the MAD code, improving readability
+and enabling more straightforward implementation.
+
+Patch #1: Replace MAD's refcount with 'state' for readability
+Patch #2: Remove unnecessary done list by utilizing MAD states
+Patch #3: Add flow control for solicited MADs
+
+The primary goal of this series is to add a flow control mechanism
+to the MAD layer, reducing the number of timeouts.
+
+The accompanying refactoring simplifies state management, making
+the code more maintainable and supporting the new flow control
+logic effectively.
+
+Thanks
+
+Or Har-Toov (3):
+  IB/mad: Replace MAD's refcount with a state machine
+  IB/mad: Remove unnecessary done list by utilizing MAD states
+  IB/mad: Add flow control for solicited MADs
+
+ drivers/infiniband/core/mad.c      | 212 +++++++++++++++++++++++++----
+ drivers/infiniband/core/mad_priv.h |  19 ++-
+ drivers/infiniband/core/mad_rmpp.c |   7 +-
+ 3 files changed, 202 insertions(+), 36 deletions(-)
+
 -- 
 2.47.0
 
