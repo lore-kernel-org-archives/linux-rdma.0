@@ -1,38 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D99591EB9EB
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Dec 2024 13:44:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 518171EE019;
+	Tue,  3 Dec 2024 13:45:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733233471; cv=none; b=PwrOVhVuPGleRgLhQXCxbJoIZCatgEMH6kF9HSll9hPetBsLxplCE7M2sjEZRrmomF03l/52AYDiqeH4SCuPFc8+bbyRMj4QN/g5sIJafWM2IX2zVT4LdXBj+CReQJUF7Hg7HV8CHCbQbfRpYQhbOSW/1mz7aI1h/WCOYfuIpPE=
+	t=1733233544; cv=none; b=Rjyj5a63kmjfSeHb5GfPGXgjuU/s/1KKdmuv//qasrqItbDrLirh7RQUK5wOsEonks6TzyFp8H0y20h8IvHzSE+tSIY1C6U/kGq6r7kJy02QcVXS+glS38QCWeK58/h9VC2ekWo4g3MSLU5ptJF+fCvv74IxY24FFaIgpIEsPXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733233471; c=relaxed/simple;
-	bh=oCXka45g+q7Piw+p0YIR2ySYIn0clp1/oFpp74vgTEM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Gr0ejxm+8UZc4acWTmO6KA4oGALXfUXZsdMAMiK+LenxiVx4EAcZm3yRSsDg9pUsF2sivlalmHKzNjvy0XMG5L+UjncbbHQCPqfoJy/vjrUE2v+Fk3ur66Mr4ljb5Lp0pHycf+HMKtKOvYFYZWIR0M69YACP6eaa5DBDCTryNUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fVA8BANR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733233544; c=relaxed/simple;
+	bh=cErb3bV+SAPedDc/tB1CJu1WvUbR1ZitnEExBcebm5I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=inBNY98NOS4oorManOSwuGNnymYzBDpislhPOJVOSivcG4u2RrKA+nDPezSAfWDV5zFYmasf1Mia+limzXzKko/YmdY99QDHvlCNb0o/KSyf6XRvHEG59gxHIZPvDNw73XA/vJU7vT9ARS9BgeC6wJOmIT42BKR1u4GUXPl+Bfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=clZVwI/w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fVA8BANR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B42FC4CED6;
-	Tue,  3 Dec 2024 13:44:29 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="clZVwI/w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57DBDC4CED8;
+	Tue,  3 Dec 2024 13:45:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733233470;
-	bh=oCXka45g+q7Piw+p0YIR2ySYIn0clp1/oFpp74vgTEM=;
+	s=k20201202; t=1733233543;
+	bh=cErb3bV+SAPedDc/tB1CJu1WvUbR1ZitnEExBcebm5I=;
 	h=From:To:Cc:Subject:Date:From;
-	b=fVA8BANRePsW7MLjdLto2s+u0gjTE7ZOk/LvqCy32voJd1HiItCQg/58PT3MsitDD
-	 A5QwnwnjvdPA8nSfHPoQxMHuANi+Wo15JGLEIFX9/zCOw3LsVR1LULcfDAt71RJGx4
-	 TJE2cCId4/atsgu+sBYlti7VGZoMjKysxhxjK5dqtdjcGDeq5nuXFjr6zw4zbm4Q66
-	 4+zn/iIu1EPLYb/jYdSA8Cb4ek0ZYAs2MAAVgME02LQVeeB512x4NBB/aG7zBqA/UK
-	 OPIpsj8EzdMRU4nLVElUrHmzNgp/XrSkokF+BmDp+U6JTrnQ/u5//tuImK6GebvYPX
-	 alCfEpblFklNg==
+	b=clZVwI/w0M9tVPUL2Fh+MVrC/V1CJxMg6uDiUiCNchFKjBCOOvBiCuLkb/XYN8SQG
+	 aXRacd9A4GptIovAa0y7LePwyLo1BAzH/UtQd80Nt8n9s53GDosAEsWbL8Xz5iw1YA
+	 n9aqhyYhZ+1lYOsXJiYTfrQGnTx5lff0cFe2ws+o7Haj6ulRFd1RIX243OV3pjp5Qf
+	 KBK4tzroFlS0Ihzq7lHN9QP4erkrH3vVALzzRHNSbBOVhBIK6G5JdWcB/9bBIWnEl2
+	 wj6zIo/Gn9lKSGpHPFSdyVO1uUnTPo/YUwoE67TivDZoZRuU2RAXxhKktwlSi89a0c
+	 TCEbuVZr8cPmg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Leon Romanovsky <leonro@nvidia.com>,
+Cc: Patrisious Haddad <phaddad@nvidia.com>,
+	Daniel Jurgens <danielj@mellanox.com>,
 	linux-rdma@vger.kernel.org,
-	Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next] RDMA/mlx4: Avoid false error about access to uninitialized gids array
-Date: Tue,  3 Dec 2024 15:44:25 +0200
-Message-ID: <6a3a1577463da16962463fcf62883a87506e9b62.1733233426.git.leonro@nvidia.com>
+	Mark Bloch <mbloch@nvidia.com>,
+	netdev@vger.kernel.org,
+	Parav Pandit <parav@mellanox.com>,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Tariq Toukan <tariqt@nvidia.com>
+Subject: [PATCH mlx5-next] RDMA/mlx5: Enforce same type port association for multiport RoCE
+Date: Tue,  3 Dec 2024 15:45:37 +0200
+Message-ID: <88699500f690dff1c1852c1ddb71f8a1cc8b956e.1733233480.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -42,48 +47,62 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Patrisious Haddad <phaddad@nvidia.com>
 
-Smatch generates the following false error report:
-drivers/infiniband/hw/mlx4/main.c:393 mlx4_ib_del_gid() error: uninitialized symbol 'gids'.
+Different core device types such as PFs and VFs shouldn't be affiliated
+together since they have different capabilities, fix that by enforcing
+type check before doing the affiliation.
 
-Traditionally, we are not changing kernel code and asking people to fix
-the tools. However in this case, the fix can be done by simply rearranging
-the code to be more clear.
-
-Fixes: e26be1bfef81 ("IB/mlx4: Implement ib_device callbacks")
+Fixes: 32f69e4be269 ("{net, IB}/mlx5: Manage port association for multiport RoCE")
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx4/main.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 6 ++++--
+ include/linux/mlx5/driver.h       | 6 ++++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 529db874d67c..b1bbdcff631d 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -351,7 +351,7 @@ static int mlx4_ib_del_gid(const struct ib_gid_attr *attr, void **context)
- 	struct mlx4_port_gid_table   *port_gid_table;
- 	int ret = 0;
- 	int hw_update = 0;
--	struct gid_entry *gids;
-+	struct gid_entry *gids = NULL;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index bc7930d0c564..c2314797afc9 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3639,7 +3639,8 @@ static int mlx5_ib_init_multiport_master(struct mlx5_ib_dev *dev)
+ 		list_for_each_entry(mpi, &mlx5_ib_unaffiliated_port_list,
+ 				    list) {
+ 			if (dev->sys_image_guid == mpi->sys_image_guid &&
+-			    (mlx5_core_native_port_num(mpi->mdev) - 1) == i) {
++			    (mlx5_core_native_port_num(mpi->mdev) - 1) == i &&
++			    mlx5_core_same_coredev_type(dev->mdev, mpi->mdev)) {
+ 				bound = mlx5_ib_bind_slave_port(dev, mpi);
+ 			}
  
- 	if (!rdma_cap_roce_gid_table(attr->device, attr->port_num))
- 		return -EINVAL;
-@@ -389,10 +389,10 @@ static int mlx4_ib_del_gid(const struct ib_gid_attr *attr, void **context)
- 	}
- 	spin_unlock_bh(&iboe->lock);
+@@ -4785,7 +4786,8 @@ static int mlx5r_mp_probe(struct auxiliary_device *adev,
  
--	if (!ret && hw_update) {
-+	if (gids)
- 		ret = mlx4_ib_update_gids(gids, ibdev, attr->port_num);
--		kfree(gids);
--	}
-+
-+	kfree(gids);
- 	return ret;
+ 	mutex_lock(&mlx5_ib_multiport_mutex);
+ 	list_for_each_entry(dev, &mlx5_ib_dev_list, ib_dev_list) {
+-		if (dev->sys_image_guid == mpi->sys_image_guid)
++		if (dev->sys_image_guid == mpi->sys_image_guid &&
++		    mlx5_core_same_coredev_type(dev->mdev, mpi->mdev))
+ 			bound = mlx5_ib_bind_slave_port(dev, mpi);
+ 
+ 		if (bound) {
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index fc7e6153b73d..4f9e6f6dbaab 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1202,6 +1202,12 @@ static inline bool mlx5_core_is_vf(const struct mlx5_core_dev *dev)
+ 	return dev->coredev_type == MLX5_COREDEV_VF;
  }
  
++static inline bool mlx5_core_same_coredev_type(const struct mlx5_core_dev *dev1,
++					       const struct mlx5_core_dev *dev2)
++{
++	return dev1->coredev_type == dev2->coredev_type;
++}
++
+ static inline bool mlx5_core_is_ecpf(const struct mlx5_core_dev *dev)
+ {
+ 	return dev->caps.embedded_cpu;
 -- 
 2.47.0
 
