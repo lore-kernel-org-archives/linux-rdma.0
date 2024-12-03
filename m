@@ -1,42 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3324F1F130D
-	for <linux-rdma@vger.kernel.org>; Tue,  3 Dec 2024 13:52:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 175561F12FC
+	for <linux-rdma@vger.kernel.org>; Tue,  3 Dec 2024 13:57:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733233965; cv=none; b=K0JQC5kTIoJQjrX3T3NdD4hhUSJZSQQ4CLBNse5SRW7CPoqVgK7Bqr4wjExZazgPVKO18S11McGmrQko1slJjCaoMx7qINRmWuGUQ0Nn2uzPkkvugrClXZDVFkNkQ3u1GmEYYLcTcvoAMVWPG85hoHNiMsiFWXuV77ixCbPiJGw=
+	t=1733234238; cv=none; b=kHO5Nv00h1BlGaCul9dB/Xjd1ujndrF2FGpr9wz6sC1bhS+fYdzn7DKQerI/MYEjuG3J7dPQ0Bd72pdxkpoG3RW2Coge0aAPAHCN44zc35riptuYg0dw2TpObrT1tV8d2C5iIhcwnr5XsVWDfWifKA0xkmCPMuGImOCJnAK+Yi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733233965; c=relaxed/simple;
-	bh=vnc+rnhaHHzPgpDZnrmLNuG5NfWVJjfLpQ/Esp0FkHM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RqniJQDsghD6qvTW9cnSEfa3Dnl3ESS1xelDwmbZMmgXvmYq891Te5ZWpKNSeDwbPvxqEnEnl8ADT9UjKl/uhRc/NsNdtNH7StwTI2kX3MPmWrIhFadZJBVY2stCL+Lu5uqJfcePZhSPotn2GZwuj1isGDlJOoXGPTCEY0k5BfQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G4Pq/9FR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733234238; c=relaxed/simple;
+	bh=GZOx8AQUGLuF8wE1I1EJ2WOfMbXAdc0rEOqp/hysqDQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Zt2ZA/P610CmYAI5TxMQnRHi47Gdji8CZJbztf9sOJaUY7TxbkXLgHFRqeKrD111u9dFHogKcG4wG1d4WlruAgXE4MY5kI3Ex2qZygJS2E23D+qG8TXZ+ASQUpJE8r/VL8B56f4s3VjJ+/jV5nWNyGHyinS6cceHfKtcsYHyPS4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZMnxaMJq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G4Pq/9FR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E25AC4CED6;
-	Tue,  3 Dec 2024 13:52:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZMnxaMJq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53131C4CECF;
+	Tue,  3 Dec 2024 13:57:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733233964;
-	bh=vnc+rnhaHHzPgpDZnrmLNuG5NfWVJjfLpQ/Esp0FkHM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=G4Pq/9FRzL4l2eR8CtJBXei/jXyy8dbsTVMB/qq7OLZiZ77IEObXhc01u6kL63dkU
-	 CrxmXiCtI9AoTjREjXXX0zL/hr7GVEcgkHYgwHrh/DK2iwDGaql089lmomKYvz2kbo
-	 P7zG9EzKwNO4W2IBvKJAYjopXNxZEPLpGzP0XjdnMCN/TS9YnmdYhc0SB2oPIyZjou
-	 J8xi647csXnDjiYg6RR12b2342DGsZMZanOvujDj77mipz8SuAgZEnCQpyrzlv0Oei
-	 qS7++70COZJN87FT+unbdtEC7TbV2dEj3Do+DxIWId2mFMXfWFXGTSdkT1FDkBYSE3
-	 DzFonYk6DhzBQ==
+	s=k20201202; t=1733234237;
+	bh=GZOx8AQUGLuF8wE1I1EJ2WOfMbXAdc0rEOqp/hysqDQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=ZMnxaMJq/xCxoSr1nfESLNAbR1cOaIJSKcxhkyN+fsW4ji7eA+q0YX5CqVKUSRmcQ
+	 d4yiPPHTyra2ztsqOl2RLv3Z41kxw3qAOz/LPFAIAZ2BoSkMJZGVAWHbjr9RMKuhVG
+	 tdrp6QK7Vq3w2AWU8tZSx+r9BmhB2MKa+k/N8XYbuhDVfQsUvGPVOOgQwXax9MExzm
+	 3p8tun6HG/UYzaMwWmluXt8LJZR1koVkIMaR30C1ZQQkPnk7D18rL3g++659EXHNtH
+	 mI4vHnG/nonVzMrtHpLb6mnSgCP1glQvBnCOnhsO6n2VhqYpE9doSgpYJR9Q9gmyCy
+	 uqN0AM8CoWOyA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Or Har-Toov <ohartoov@nvidia.com>,
+Cc: Chiara Meiohas <cmeiohas@nvidia.com>,
 	linux-rdma@vger.kernel.org,
-	Maher Sanalla <msanalla@nvidia.com>
-Subject: [PATCH rdma-next 2/3] IB/mad: Remove unnecessary done list by utilizing MAD states
-Date: Tue,  3 Dec 2024 15:52:22 +0200
-Message-ID: <8f746ee2eac86138b1051908b95a21fdff24af6c.1733233636.git.leonro@nvidia.com>
+	Michael Guralnik <michaelgur@nvidia.com>
+Subject: [PATCH rdma-next] RDMA/mlx5: Extend ODP statistics with operation count
+Date: Tue,  3 Dec 2024 15:57:11 +0200
+Message-ID: <b18f29ed1392996ade66e9e6c45f018925253f6a.1733234165.git.leonro@nvidia.com>
 X-Mailer: git-send-email 2.47.0
-In-Reply-To: <cover.1733233636.git.leonro@nvidia.com>
-References: <cover.1733233636.git.leonro@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,80 +42,126 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Or Har-Toov <ohartoov@nvidia.com>
+From: Chiara Meiohas <cmeiohas@nvidia.com>
 
-Remove the done list, which has become unnecessary with the
-introduction of the `state` parameter.
+The current ODP counters represent the total number of pages
+handled, but it is not enough to understand the effectiveness
+of these operations.
 
-Previously, the done list was used to ensure that MADs removed from
-the wait list would still be in some list, preventing failures in
-the call to `list_del` in `ib_mad_complete_send_wr`. However, with the
-new state management, we can mark a MAD as done when it is completed
-and simply not delete those MADs.
+Extend the ODP counters to include the number of times page fault
+and invalidation events were handled.
 
-Removing the done list eliminates unnecessary memory usage and
-simplifies the code.
+Example for a single page fault handling 512 pages:
+- page_fault: incremented by 512 (total pages)
+- page_fault_handled: incremented by 1 (operation count)
 
-Signed-off-by: Or Har-Toov <ohartoov@nvidia.com>
-Reviewed-by: Maher Sanalla <msanalla@nvidia.com>
+The same example is applicable for page invalidation too.
+
+Previous output:
+$ rdma stat mr
+dev rocep8s0f0 mrn 8 page_faults 27 page_invalidations 0 page_prefetch 29
+
+New output:
+$ rdma stat mr
+dev rocep8s0f0 mrn 21 page_faults 512 page_faults_handled 1
+page_invalidations 0 page_invalidations_handled 0 page_prefetch 51200
+
+Signed-off-by: Chiara Meiohas <cmeiohas@nvidia.com>
+Reviewed-by: Michael Guralnik <michaelgur@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/mad.c      | 13 ++++++-------
- drivers/infiniband/core/mad_priv.h |  1 -
- 2 files changed, 6 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h  | 6 ++++++
+ drivers/infiniband/hw/mlx5/odp.c      | 6 +++---
+ drivers/infiniband/hw/mlx5/restrack.c | 9 +++++++++
+ include/rdma/ib_verbs.h               | 2 ++
+ 4 files changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 9b101f91ca3e..e16bc396f6bc 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -391,7 +391,6 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 	spin_lock_init(&mad_agent_priv->lock);
- 	INIT_LIST_HEAD(&mad_agent_priv->send_list);
- 	INIT_LIST_HEAD(&mad_agent_priv->wait_list);
--	INIT_LIST_HEAD(&mad_agent_priv->done_list);
- 	INIT_LIST_HEAD(&mad_agent_priv->rmpp_list);
- 	INIT_DELAYED_WORK(&mad_agent_priv->timed_work, timeout_sends);
- 	INIT_LIST_HEAD(&mad_agent_priv->local_list);
-@@ -1772,13 +1771,11 @@ ib_find_send_mad(const struct ib_mad_agent_private *mad_agent_priv,
- void ib_mark_mad_done(struct ib_mad_send_wr_private *mad_send_wr)
- {
- 	mad_send_wr->timeout = 0;
--	if (mad_send_wr->state == IB_MAD_STATE_WAIT_RESP) {
-+	list_del(&mad_send_wr->agent_list);
-+	if (mad_send_wr->state == IB_MAD_STATE_WAIT_RESP)
- 		mad_send_wr->state = IB_MAD_STATE_DONE;
--		list_move_tail(&mad_send_wr->agent_list,
--			      &mad_send_wr->mad_agent_priv->done_list);
--	} else {
-+	else
- 		mad_send_wr->state = IB_MAD_STATE_EARLY_RESP;
--	}
- }
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index d6b045276244..73577360b265 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -669,6 +669,12 @@ struct mlx5_ib_mkey {
+ #define mlx5_update_odp_stats(mr, counter_name, value)		\
+ 	atomic64_add(value, &((mr)->odp_stats.counter_name))
  
- static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
-@@ -2249,7 +2246,9 @@ void ib_mad_complete_send_wr(struct ib_mad_send_wr_private *mad_send_wr,
++#define mlx5_update_odp_stats_with_handled(mr, counter_name, value)         \
++	do {                                                                \
++		mlx5_update_odp_stats(mr, counter_name, value);             \
++		atomic64_add(1, &((mr)->odp_stats.counter_name##_handled)); \
++	} while (0)
++
+ struct mlx5_ib_mr {
+ 	struct ib_mr ibmr;
+ 	struct mlx5_ib_mkey mmkey;
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 4b37446758fd..4eb03fc0d302 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -313,7 +313,7 @@ static bool mlx5_ib_invalidate_range(struct mmu_interval_notifier *mni,
+ 				     MLX5_IB_UPD_XLT_ZAP |
+ 				     MLX5_IB_UPD_XLT_ATOMIC);
+ 
+-	mlx5_update_odp_stats(mr, invalidations, invalidations);
++	mlx5_update_odp_stats_with_handled(mr, invalidations, invalidations);
+ 
+ 	/*
+ 	 * We are now sure that the device will not access the
+@@ -997,7 +997,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 		if (ret < 0)
+ 			goto end;
+ 
+-		mlx5_update_odp_stats(mr, faults, ret);
++		mlx5_update_odp_stats_with_handled(mr, faults, ret);
+ 
+ 		npages += ret;
+ 		ret = 0;
+@@ -1529,7 +1529,7 @@ static void mlx5_ib_mr_memory_pfault_handler(struct mlx5_ib_dev *dev,
+ 			goto err;
  	}
  
- 	/* Remove send from MAD agent and notify client of completion */
--	list_del(&mad_send_wr->agent_list);
-+	if (mad_send_wr->state == IB_MAD_STATE_SEND_START)
-+		list_del(&mad_send_wr->agent_list);
-+
- 	adjust_timeout(mad_agent_priv);
- 	spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
+-	mlx5_update_odp_stats(mr, faults, ret);
++	mlx5_update_odp_stats_with_handled(mr, faults, ret);
+ 	mlx5r_deref_odp_mkey(mmkey);
  
-diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
-index cc2de81ea6f6..4af63c1664c2 100644
---- a/drivers/infiniband/core/mad_priv.h
-+++ b/drivers/infiniband/core/mad_priv.h
-@@ -96,7 +96,6 @@ struct ib_mad_agent_private {
- 	spinlock_t lock;
- 	struct list_head send_list;
- 	struct list_head wait_list;
--	struct list_head done_list;
- 	struct delayed_work timed_work;
- 	unsigned long timeout;
- 	struct list_head local_list;
+ 	if (pfault->memory.flags & MLX5_MEMORY_PAGE_FAULT_FLAGS_LAST)
+diff --git a/drivers/infiniband/hw/mlx5/restrack.c b/drivers/infiniband/hw/mlx5/restrack.c
+index affcf8fe943c..67841922c7b8 100644
+--- a/drivers/infiniband/hw/mlx5/restrack.c
++++ b/drivers/infiniband/hw/mlx5/restrack.c
+@@ -95,10 +95,19 @@ static int fill_stat_mr_entry(struct sk_buff *msg, struct ib_mr *ibmr)
+ 	if (rdma_nl_stat_hwcounter_entry(msg, "page_faults",
+ 					 atomic64_read(&mr->odp_stats.faults)))
+ 		goto err_table;
++	if (rdma_nl_stat_hwcounter_entry(
++		    msg, "page_faults_handled",
++		    atomic64_read(&mr->odp_stats.faults_handled)))
++		goto err_table;
+ 	if (rdma_nl_stat_hwcounter_entry(
+ 		    msg, "page_invalidations",
+ 		    atomic64_read(&mr->odp_stats.invalidations)))
+ 		goto err_table;
++	if (rdma_nl_stat_hwcounter_entry(
++		    msg, "page_invalidations_handled",
++		    atomic64_read(&mr->odp_stats.invalidations_handled)))
++		goto err_table;
++
+ 	if (rdma_nl_stat_hwcounter_entry(msg, "page_prefetch",
+ 					 atomic64_read(&mr->odp_stats.prefetch)))
+ 		goto err_table;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 3417636da960..6ddd5e3bb884 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2256,7 +2256,9 @@ struct rdma_netdev_alloc_params {
+ 
+ struct ib_odp_counters {
+ 	atomic64_t faults;
++	atomic64_t faults_handled;
+ 	atomic64_t invalidations;
++	atomic64_t invalidations_handled;
+ 	atomic64_t prefetch;
+ };
+ 
 -- 
 2.47.0
 
