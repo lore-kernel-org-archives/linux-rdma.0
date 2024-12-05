@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FB52218EA1
-	for <linux-rdma@vger.kernel.org>; Thu,  5 Dec 2024 13:50:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A375A218EA7
+	for <linux-rdma@vger.kernel.org>; Thu,  5 Dec 2024 13:51:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733406660; cv=none; b=I5ESN3bsSK8p6V60NGY2PnE4JWEmhJqrhf5Wat3T9EWGEppzEV0I74Be3bJo4mQ9vUy0UNJJzA9g9SBsN4jMZfPYdLHkZszR1jkbNRc5IPwSzX7iIGaZpCOIT8lj1+zTReRhLwTw3lnlMshnxw6e3Div3ZZ9t1ZitZ4SvY24YAg=
+	t=1733406663; cv=none; b=XODFMLeBeTNVdgvl6UFOprWFbmd8KKrQ4QkEx1nl6/AB253VipVjtUcF4vuFLV/4Lp7o67LAxAYEdXuzf2f7nADbWbfA+9P9nKQVZekEN1f7hslMFWR+CCAOnJbpfyNkbFjVANaEYLlQHVovfiYde0UE0NGQCQkKNHrE09Cjz2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733406660; c=relaxed/simple;
-	bh=dEL/2sq4ht9b5bEGXDI/G7/t5bb4jTSEvkntFOdpnHw=;
+	s=arc-20240116; t=1733406663; c=relaxed/simple;
+	bh=EC+PxLZ1X5+89h9EChX8Db/ikUqERJP9WIvrUJmi1Pw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jHj+HsDmtFIDegd4zr2bTQ/glTdKMgyOprl5BH8ckFANKpwrtqkBG9KXnfSOOyddyaHGd9jKZ0ieL13ZDnaCJZLBMbG3xD0KImPTPpdIka1mH5rzpJVLSxcC3r1ADNfZetxnFU4Fm/Wdcx1m3wWYaYwGifttITXEwOP6tVRPs9Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OWnc9Q2j; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=KTw7mLLlW8xJyH1BjJbge0jK0fYHCWvU2E8ZaFfkiSff6tJUCb1Q1HoMFeRBMaZBFY9lVXYhv5ENxxsU4rEuvJC34lLt9xJq+CauTHA9bbFgid7Jt15UJ2JnBdNqRt5vAuIbhca/FSltwAmEZKfB/UdamPP6SGZ89O9LQIVEZps=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aaZWzELo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OWnc9Q2j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5277CC4CED1;
-	Thu,  5 Dec 2024 13:50:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aaZWzELo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 178F4C4CED1;
+	Thu,  5 Dec 2024 13:51:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733406659;
-	bh=dEL/2sq4ht9b5bEGXDI/G7/t5bb4jTSEvkntFOdpnHw=;
+	s=k20201202; t=1733406663;
+	bh=EC+PxLZ1X5+89h9EChX8Db/ikUqERJP9WIvrUJmi1Pw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=OWnc9Q2j1p0/nW4yNHXuGCXhvNG+y7Euj91tivZxBm12MdRvxr7ajcB7hoQ9bTjuq
-	 G4dB8CniUdioJhGL7CELxa431Oz1nTHjixphp3+zqpZwOKgA29Qrs00o3EGM/Unqwa
-	 r97gjlsNdDHpiCSwR0RZ9d/7dvmyOrDOp+b8RZwhQKOSq3vJebEGS4ZSLJX4zKmkpG
-	 zs+BLhFYgAFZMLxAas7r0NaluEKOo5xu/JsNvIz+VvtVC3krmZ6yukDn7c6x7YTNul
-	 sKnyKOxBWargqnrYsWqjM41qdWP+8AylUiGdkRDM02qVj7Zw8Tt9a1YEzadlUQYPSv
-	 aug/Z7YjoKe5w==
+	b=aaZWzELorP1GnmQmPezjQ0yS7glxe5zxlqsYugKhp/ZPFFJUHCM+5df+XQ/spOQJY
+	 n42qow8vcCzhjgUkzl1CDvAcW0G/kq+rCz4Y5FI1uQKoiO8q3PR0OkpBXv3ik6HJVs
+	 tzDFwlCZLIohoJnlUf65okjJa4O9RMd1gEC6uz4iQvw82bRBQg9/yzpDbFbYxXfR0l
+	 GpwlAEFsJ/LQgCoE90kIEU7HYnw8cbCsO47AmC3HTpYpwIcfz1uYl0ZAsLuYs/nprF
+	 UIeRMVjWPxWygBi6oiXrs//n5IlaX2zqvP3rIPKZQrX5fgLWUFIITrmXd420ZOMtlA
+	 kCL+RgSVIfG6g==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Vlad Dumitrescu <vdumitrescu@nvidia.com>,
 	linux-rdma@vger.kernel.org,
 	Sean Hefty <shefty@nvidia.com>
-Subject: [PATCH rdma-next 7/9] IB/mad: Exponential backoff when retrying sends
-Date: Thu,  5 Dec 2024 15:49:37 +0200
-Message-ID: <af348c70c47485235d7d6811b56ccf23e105bdad.1733405453.git.leon@kernel.org>
+Subject: [PATCH rdma-next 4/9] RDMA/nldev: Add sa-min-timeout management attribute
+Date: Thu,  5 Dec 2024 15:49:34 +0200
+Message-ID: <69722b901037bf9727da09bc2cbea82e81f2f6e7.1733405453.git.leon@kernel.org>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <cover.1733405453.git.leon@kernel.org>
 References: <cover.1733405453.git.leon@kernel.org>
@@ -47,165 +47,287 @@ Content-Transfer-Encoding: 8bit
 
 From: Vlad Dumitrescu <vdumitrescu@nvidia.com>
 
-When a receiver is overloaded, MAD requests time out and get retried in
-a linear fashion.  This could worsen congestion and reduce goodput.  To
-help reduce the load over time, use exponential backoff after a preset
-number of retries.  Cap delays between retries at 60s, even when in
-exponential mode.
+Add new namespace for MAD (Management Datagram) protocols as we expect
+more attributes in this area.
 
-MRA message from recipient could request an even higher timeout, so
-continue to respect that for the next retry.  However, reset the backoff
-algorithm to the beginning when and MRA is received.
+Add first such attribute, to control the minimum initial timeout used by
+the SA client implementation.  The SA client relies on the MAD layer to
+issue retries, but has to configure an initial timeout value for the
+first retry.  While the SA client provides a default, the right value
+likely depends on network size, loss levels and capacity of the SA
+server.  This attribute enables system admins to tune the trade-off
+between speed of recovery under transient loss and load (on the network
+and/or the SA server) generated by unnecessary retries.
 
-Exclude RMPP and OPA from exponential backoff.
+Enforce a reasonable range of 50ms - 10s.
+
+Changes do not apply to existing SA queries, which were already posted
+to the MAD layer.
+
+Example usage:
+  # rdma management show ibp1s0f0/1
+  0: ibp1s0f0: 1 sa-min-timeout 500 ...
+  # rdma management show
+  0: ibp1s0f0: 1 sa-min-timeout 500 ...
+  1: ibp1s0f1: 1 sa-min-timeout 500 ...
+  # rdma management set ibp1s0f1/1 sa-min-timeout 1000 ...
+  # rdma management show
+  0: ibp1s0f0: 1 sa-min-timeout 500 ...
+  1: ibp1s0f1: 1 sa-min-timeout 1000 ...
 
 Signed-off-by: Vlad Dumitrescu <vdumitrescu@nvidia.com>
 Reviewed-by: Sean Hefty <shefty@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/core/mad.c      | 53 ++++++++++++++++++++++++++++--
- drivers/infiniband/core/mad_priv.h |  3 ++
- 2 files changed, 53 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/core_priv.h |   4 +
+ drivers/infiniband/core/nldev.c     | 114 ++++++++++++++++++++++++++++
+ drivers/infiniband/core/sa_query.c  |  47 ++++++++++++
+ include/uapi/rdma/rdma_netlink.h    |   5 ++
+ 4 files changed, 170 insertions(+)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 5c255ee3db38..a3a8cf4bbc20 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -54,7 +54,9 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/ib_mad.h>
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 05102769a918..7a7326588297 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -199,6 +199,10 @@ void ib_mad_cleanup(void);
+ int ib_sa_init(void);
+ void ib_sa_cleanup(void);
  
--#define IB_MAD_MAX_DEADLINE (jiffies + msecs_to_jiffies(5 * 60 * 1000))
-+#define IB_MAD_LINEAR_TIMEOUTS_DEFAULT	4
-+#define IB_MAD_MAX_TIMEOUT_MS		(60 * MSEC_PER_SEC)
-+#define IB_MAD_MAX_DEADLINE		(jiffies + msecs_to_jiffies(5 * 60 * 1000))
- 
- #ifdef CONFIG_TRACEPOINTS
- static void create_mad_addr_info(struct ib_mad_send_wr_private *mad_send_wr,
-@@ -1210,10 +1212,12 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
- 		}
- 
- 		mad_send_wr->tid = ((struct ib_mad_hdr *) send_buf->mad)->tid;
-+		mad_send_wr->var_timeout_ms = send_buf->timeout_ms;
- 		/* Timeout will be updated after send completes */
- 		mad_send_wr->timeout = msecs_to_jiffies(send_buf->timeout_ms);
- 		mad_send_wr->max_retries = send_buf->retries;
- 		mad_send_wr->retries_left = send_buf->retries;
-+		mad_send_wr->backoff_retries = 0;
- 		send_buf->retries = 0;
- 		mad_send_wr->status = IB_WC_SUCCESS;
- 
-@@ -2662,18 +2666,34 @@ int ib_modify_mad(struct ib_mad_send_buf *send_buf, u32 timeout_ms)
- 		return -EINVAL;
- 	}
- 
--	if (!timeout_ms)
-+	if (!timeout_ms) {
- 		mad_send_wr->status = IB_WC_WR_FLUSH_ERR;
-+		goto apply;
-+	}
++int ib_sa_min_timeout_set(struct ib_device *dev, u32 port_num, u32 val,
++			  struct netlink_ext_ack *extack);
++int ib_sa_min_timeout_get(struct ib_device *dev, u32 port_num, u32 *val);
 +
-+	/* CM MRA requesting a lower timeout than ours.  Could be a delayed MRA
-+	 * (variable backoff increased in the meantime) or remote using a const.
-+	 */
-+	if (timeout_ms < mad_send_wr->var_timeout_ms)
-+		goto ignore;
-+
-+	/* Assume remote will no longer be overloaded after MRA Service Timeout
-+	 * passes and restart variable backoff algorithm.
-+	 */
-+	mad_send_wr->var_timeout_ms = mad_send_wr->send_buf.timeout_ms;
-+	mad_send_wr->backoff_retries = 0;
+ void rdma_nl_init(void);
+ void rdma_nl_exit(void);
  
- 	if (mad_send_wr->deadline)
- 		mad_send_wr->deadline += msecs_to_jiffies(timeout_ms);
- 
-+apply:
- 	if (mad_send_wr->state == IB_MAD_STATE_SEND_START ||
- 	    (mad_send_wr->state == IB_MAD_STATE_QUEUED && timeout_ms))
- 		mad_send_wr->timeout = msecs_to_jiffies(timeout_ms);
- 	else
- 		ib_reset_mad_timeout(mad_send_wr, timeout_ms);
- 
-+ignore:
- 	spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
- 	return 0;
- }
-@@ -2767,6 +2787,30 @@ static void local_completions(struct work_struct *work)
- 	spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
- }
- 
-+/*
-+ * Applies a variable backoff to certain send MADs.
-+ *
-+ * Exists to scope down the initial variable backoff implementation.
-+ */
-+static void set_next_timeout(struct ib_mad_send_wr_private *mad_send_wr)
-+{
-+	const struct ib_mad_agent_private *agent = mad_send_wr->mad_agent_priv;
-+	const struct ib_mad_port_private *port = agent->qp_info->port_priv;
-+	const struct ib_mad_hdr *hdr = mad_send_wr->send_buf.mad;
-+
-+	if (ib_mad_kernel_rmpp_agent(&agent->agent))
-+		return;
-+
-+	if (hdr->base_version != IB_MGMT_BASE_VERSION)
-+		return;
-+
-+	if (++mad_send_wr->backoff_retries < READ_ONCE(port->linear_timeouts))
-+		return;
-+
-+	mad_send_wr->var_timeout_ms =
-+		min(mad_send_wr->var_timeout_ms << 1, IB_MAD_MAX_TIMEOUT_MS);
-+}
-+
- static int retry_send(struct ib_mad_send_wr_private *mad_send_wr)
- {
- 	int ret;
-@@ -2778,7 +2822,8 @@ static int retry_send(struct ib_mad_send_wr_private *mad_send_wr)
- 	mad_send_wr->retries_left--;
- 	mad_send_wr->send_buf.retries++;
- 
--	mad_send_wr->timeout = msecs_to_jiffies(mad_send_wr->send_buf.timeout_ms);
-+	set_next_timeout(mad_send_wr);
-+	mad_send_wr->timeout = msecs_to_jiffies(mad_send_wr->var_timeout_ms);
- 
- 	if (ib_mad_kernel_rmpp_agent(&mad_send_wr->mad_agent_priv->agent)) {
- 		ret = ib_retry_rmpp(mad_send_wr);
-@@ -3195,6 +3240,8 @@ static int ib_mad_port_open(struct ib_device *device,
- 		goto error8;
- 	}
- 
-+	port_priv->linear_timeouts = IB_MAD_LINEAR_TIMEOUTS_DEFAULT;
-+
- 	spin_lock_irqsave(&ib_mad_port_list_lock, flags);
- 	list_add_tail(&port_priv->port_list, &ib_mad_port_list);
- 	spin_unlock_irqrestore(&ib_mad_port_list_lock, flags);
-diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
-index 24580ad2d428..076ebcea27b4 100644
---- a/drivers/infiniband/core/mad_priv.h
-+++ b/drivers/infiniband/core/mad_priv.h
-@@ -139,10 +139,12 @@ struct ib_mad_send_wr_private {
- 	struct ib_ud_wr send_wr;
- 	struct ib_sge sg_list[IB_MAD_SEND_REQ_MAX_SG];
- 	__be64 tid;
-+	unsigned int var_timeout_ms;
- 	unsigned long timeout;
- 	unsigned long deadline;
- 	int max_retries;
- 	int retries_left;
-+	int backoff_retries;
- 	int retry;
- 	enum ib_wc_status status;
- 
-@@ -222,6 +224,7 @@ struct ib_mad_port_private {
- 	struct ib_mad_mgmt_version_table version[MAX_MGMT_VERSION];
- 	struct workqueue_struct *wq;
- 	struct ib_mad_qp_info qp_info[IB_MAD_QPS_CORE];
-+	u8 linear_timeouts;
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index ff121e59b9c0..363742567dd2 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -171,6 +171,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_PARENT_NAME]		= { .type = NLA_NUL_STRING },
+ 	[RDMA_NLDEV_ATTR_NAME_ASSIGN_TYPE]	= { .type = NLA_U8 },
+ 	[RDMA_NLDEV_ATTR_EVENT_TYPE]		= { .type = NLA_U8 },
++	[RDMA_NLDEV_MGMT_ATTR_SA_MIN_TIMEOUT]	= { .type = NLA_U32 },
  };
  
- int ib_send_mad(struct ib_mad_send_wr_private *mad_send_wr);
+ static int put_driver_name_print_type(struct sk_buff *msg, const char *name,
+@@ -2621,6 +2622,112 @@ static int nldev_deldev(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	return ib_del_sub_device_and_put(device);
+ }
+ 
++static int nldev_mgmt_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++			       struct netlink_ext_ack *extack)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct ib_device *device;
++	struct sk_buff *msg;
++	u32 index;
++	u32 port;
++	u32 sa_min_timeout;
++	int ret;
++
++	ret = __nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1, nldev_policy,
++			    NL_VALIDATE_LIBERAL, extack);
++	if (ret ||
++	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
++	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
++		return -EINVAL;
++
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(sock_net(skb->sk), index);
++	if (!device)
++		return -EINVAL;
++
++	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++	if (!rdma_is_port_valid(device, port)) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	if (rdma_cap_ib_sa(device, port)) {
++		ret = ib_sa_min_timeout_get(device, port, &sa_min_timeout);
++		if (ret)
++			goto err;
++	}
++
++	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (!msg) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	nlh = nlmsg_put(
++		msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
++		RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_MGMT_GET), 0, 0);
++	if (!nlh ||
++	    fill_nldev_handle(msg, device) ||
++	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port)) {
++		ret = -EMSGSIZE;
++		goto err_msg;
++	}
++
++	if (rdma_cap_ib_sa(device, port)) {
++		ret = nla_put_u32(msg, RDMA_NLDEV_MGMT_ATTR_SA_MIN_TIMEOUT,
++				  sa_min_timeout);
++		if (ret)
++			goto err_msg;
++	}
++
++	nlmsg_end(msg, nlh);
++	return rdma_nl_unicast(sock_net(skb->sk), msg, NETLINK_CB(skb).portid);
++
++err_msg:
++	nlmsg_free(msg);
++err:
++	ib_device_put(device);
++	return ret;
++}
++
++static int nldev_set_mgmt_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++				   struct netlink_ext_ack *extack)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct ib_device *device;
++	u32 index;
++	u32 port;
++	u32 sa_min_timeout;
++	int ret;
++
++	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1, nldev_policy,
++			  extack);
++	if (ret ||
++	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
++	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
++		return -EINVAL;
++
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(sock_net(skb->sk), index);
++	if (!device)
++		return -EINVAL;
++
++	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++	if (!rdma_is_port_valid(device, port))
++		goto err;
++
++	if (tb[RDMA_NLDEV_MGMT_ATTR_SA_MIN_TIMEOUT]) {
++		sa_min_timeout =
++			nla_get_u32(tb[RDMA_NLDEV_MGMT_ATTR_SA_MIN_TIMEOUT]);
++		return ib_sa_min_timeout_set(device, port, sa_min_timeout,
++					     extack);
++	}
++
++err:
++	ib_device_put(device);
++	return -EINVAL;
++}
++
+ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 	[RDMA_NLDEV_CMD_GET] = {
+ 		.doit = nldev_get_doit,
+@@ -2727,6 +2834,13 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 		.doit = nldev_deldev,
+ 		.flags = RDMA_NL_ADMIN_PERM,
+ 	},
++	[RDMA_NLDEV_CMD_MGMT_GET] = {
++		.doit = nldev_mgmt_get_doit,
++	},
++	[RDMA_NLDEV_CMD_MGMT_SET] = {
++		.doit = nldev_set_mgmt_set_doit,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ };
+ 
+ static int fill_mon_netdev_rename(struct sk_buff *msg,
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index ac0d53bf91c4..7f63cad3f212 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -60,7 +60,10 @@
+ #define IB_SA_LOCAL_SVC_TIMEOUT_MAX		200000
+ #define IB_SA_CPI_MAX_RETRY_CNT			3
+ #define IB_SA_CPI_RETRY_WAIT			1000 /*msecs */
++#define IB_SA_MIN_TIMEOUT_MS_MIN		50
+ #define IB_SA_MIN_TIMEOUT_MS_DEFAULT		500
++#define IB_SA_MIN_TIMEOUT_MS_MAX		10000
++
+ static int sa_local_svc_timeout_ms = IB_SA_LOCAL_SVC_TIMEOUT_DEFAULT;
+ 
+ struct ib_sa_sm_ah {
+@@ -1334,6 +1337,50 @@ static void init_mad(struct ib_sa_query *query, struct ib_mad_agent *agent)
+ 	spin_unlock_irqrestore(&tid_lock, flags);
+ }
+ 
++int ib_sa_min_timeout_set(struct ib_device *dev, u32 port_num, u32 val,
++			  struct netlink_ext_ack *extack)
++{
++	struct ib_sa_device *sa_dev = ib_get_client_data(dev, &sa_client);
++	struct ib_sa_port *port;
++
++	if (!rdma_cap_ib_sa(dev, port_num))
++		return -EOPNOTSUPP;
++
++	if (!sa_dev)
++		return -ENODEV;
++
++	port = &sa_dev->port[port_num - sa_dev->start_port];
++
++	if (val > IB_SA_MIN_TIMEOUT_MS_MAX || val < IB_SA_MIN_TIMEOUT_MS_MIN) {
++		NL_SET_ERR_MSG_FMT_MOD(extack, "Valid range [%u-%u]ms",
++				       IB_SA_MIN_TIMEOUT_MS_MIN,
++				       IB_SA_MIN_TIMEOUT_MS_MAX);
++		return -EINVAL;
++	}
++
++	WRITE_ONCE(port->min_timeout_ms, val);
++
++	return 0;
++}
++
++int ib_sa_min_timeout_get(struct ib_device *dev, u32 port_num, u32 *val)
++{
++	struct ib_sa_device *sa_dev = ib_get_client_data(dev, &sa_client);
++	struct ib_sa_port *port;
++
++	if (!rdma_cap_ib_sa(dev, port_num))
++		return -EOPNOTSUPP;
++
++	if (!sa_dev)
++		return -ENODEV;
++
++	port = &sa_dev->port[port_num - sa_dev->start_port];
++
++	*val = READ_ONCE(port->min_timeout_ms);
++
++	return 0;
++}
++
+ static int send_mad(struct ib_sa_query *query, unsigned long timeout_ms,
+ 		    gfp_t gfp_mask)
+ {
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index 9f9cf20c1cd8..2b1c4c55e51f 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -308,6 +308,9 @@ enum rdma_nldev_command {
+ 
+ 	RDMA_NLDEV_CMD_MONITOR,
+ 
++	RDMA_NLDEV_CMD_MGMT_GET,
++	RDMA_NLDEV_CMD_MGMT_SET,
++
+ 	RDMA_NLDEV_NUM_OPS
+ };
+ 
+@@ -580,6 +583,8 @@ enum rdma_nldev_attr {
+ 	RDMA_NLDEV_ATTR_EVENT_TYPE,		/* u8 */
+ 
+ 	RDMA_NLDEV_SYS_ATTR_MONITOR_MODE,	/* u8 */
++
++	RDMA_NLDEV_MGMT_ATTR_SA_MIN_TIMEOUT,	/* u32 */
+ 	/*
+ 	 * Always the end
+ 	 */
 -- 
 2.47.0
 
