@@ -1,29 +1,28 @@
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
+Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCB7F22619A;
-	Tue, 10 Dec 2024 04:04:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56B6C223C78;
+	Tue, 10 Dec 2024 04:09:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.132
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733803463; cv=none; b=AVlJZwaMmKcjpbEEH7tqOzZfaMdOmMck7KB+lpT+8k9PIxOz2WkDK7rgNwBRcVX2dmRAkty4eLTUjQBpoLDYKvSzJqFjRhXXf0fGChA+IZGaakIKpj/NQbYoooQnrC27kkenysAa17nqWp9HAwhyGds2b9vecWnBlW8sfPaKKfk=
+	t=1733803779; cv=none; b=OhL+D5tuKy8tIr0Q1btAefmTFxjkELjoo9MLfRqvCk5+OwiPTRk1IAaazXaeXX3v1Gg1iCF0xC7vkX8KiNsIlIEe+vyQOH2tVYVE9P987EfDZSWkMaXkTEKE5sK0OTq7P5sDI3RRSSj7GG0ZmdKvBWwHbYNrM5rfFg6hvQ+2Xd8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733803463; c=relaxed/simple;
-	bh=57OmKpCVaV9+6+Gxh8YTWvBSSvQ36c0/+xPMzPoYskQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=MyHhDeNVxSB14rDoLI8AKlJ1wThHjqqRTbUEgXwFSYAXRa33WQ3y4PqgBVzFMiIh6F58Y8ZWc272BP5LM18NJ3tTy7PjFWwMlcxYlalo9z3FK3kC4LfzEsRRame52O23UuA8ms2ZouvDNh+uqZ2bz4Z0PmXtgeaG9E6Lxaz8GKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=FfwWb/l7; arc=none smtp.client-ip=115.124.30.112
+	s=arc-20240116; t=1733803779; c=relaxed/simple;
+	bh=g9mkesjaUq+e5IZEottqPnsqKLrsHTRONfsXjeGbtac=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=q2QfeW/NeYsQG0+KX//70iEAWT3/hP5IA/KGA4asgYSFT21CwG8LeRX2qQjtK9yoyDfA3zxYlHO833nU3iL04A+JM3wjGKQTzNbeO5X1IBzsLfGXAkrc45q+wvVRKbsz6dBvYXbnfij5qs9f++NVelgSwKDCd2udx5S8Aem2iTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=tBEOA5V0; arc=none smtp.client-ip=115.124.30.132
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="FfwWb/l7"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="tBEOA5V0"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1733803453; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=bVfMYczw64bHkwD9YBUFT8bRGuZT+R6Ml3/2tolKU4c=;
-	b=FfwWb/l7kE9gv70B+A1BVVJPG0Q7AOfgHRZgC1KVn3dxhhgcd6f726kKvpNkSfmgEd8UmY4J4IqYcAcDZjJxKCM77+KSfXzJvtsB5t+eO3/NvGzkZCNnxRa71XREGfE+SY9kYCjItojcSdQb0oSSRiomv2UXLF8tpn8FGAEhmW4=
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WLDSEYJ_1733803451 cluster:ay36)
+	t=1733803774; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=6/Q1dEfws+7LpmLlumD7UVn5idRysTZwYHoRdWNn8ws=;
+	b=tBEOA5V0JHj0eLFO1v1YHxhdfu+7Gtl6E1cohD8BYL+RB5LyCH3GO9EL2byi5/+wmg1/kyMRG6CG4RAv2El8KHdVzrCjw78QGtuk7gei7Y6v8s+9bV1qIHI+kFT4PhT1OMBjGMcoDT8Vr9823d0+nbfCgqjy6FzGoa0EVC2xi+c=
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WLDSEVj_1733803444 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Tue, 10 Dec 2024 12:04:11 +0800
+          Tue, 10 Dec 2024 12:04:09 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 To: kgraul@linux.ibm.com,
 	wenjia@linux.ibm.com,
@@ -48,12 +47,10 @@ Cc: kuba@kernel.org,
 	linux-s390@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	bpf@vger.kernel.org
-Subject: [PATCH bpf-next v2 3/5] net/smc: bpf: register smc_ops info struct_ops
-Date: Tue, 10 Dec 2024 12:04:02 +0800
-Message-ID: <20241210040404.10606-4-alibuda@linux.alibaba.com>
+Subject: [PATCH bpf-next v2 0/5] net/smc: Introduce smc_ops
+Date: Tue, 10 Dec 2024 12:03:59 +0800
+Message-ID: <20241210040404.10606-1-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 2.45.0
-In-Reply-To: <20241210040404.10606-1-alibuda@linux.alibaba.com>
-References: <20241210040404.10606-1-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -62,179 +59,63 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-To implement injection capability for smc via struct_ops, so that
-user can make their own smc_ops to modify the behavior of smc stack.
+This patches attempt to introduce BPF injection capability for SMC,
+and add selftest to ensure code stability.
 
-Currently, user can write their own implememtion to choose whether to
-use SMC or not before TCP 3rd handshake to be comleted. In the future,
-users can implement more complex functions on smc by expanding it.
+Since the SMC protocol is not suitable for all scenarios,
+especially for short-lived. For most applications, they cannot
+guarantee that there are no such scenarios at all. Therefore, apps
+may need some specific strategies to decide shall we need to use SMC
+or not, for example, apps can limit the scope of the SMC to a specific
+IP address or port.
 
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- net/smc/af_smc.c  | 10 +++++
- net/smc/smc_ops.c | 99 +++++++++++++++++++++++++++++++++++++++++++++++
- net/smc/smc_ops.h |  2 +
- 3 files changed, 111 insertions(+)
+Based on the consideration of transparent replacement, we hope that apps
+can remain transparent even if they need to formulate some specific
+strategies for SMC using. That is, do not need to recompile their code.
 
-diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
-index 9d76e902fd77..6adedae2986d 100644
---- a/net/smc/af_smc.c
-+++ b/net/smc/af_smc.c
-@@ -55,6 +55,7 @@
- #include "smc_sysctl.h"
- #include "smc_loopback.h"
- #include "smc_inet.h"
-+#include "smc_ops.h"
- 
- static DEFINE_MUTEX(smc_server_lgr_pending);	/* serialize link group
- 						 * creation on server
-@@ -3576,8 +3577,17 @@ static int __init smc_init(void)
- 		pr_err("%s: smc_inet_init fails with %d\n", __func__, rc);
- 		goto out_ulp;
- 	}
-+
-+	rc = smc_bpf_struct_ops_init();
-+	if (rc) {
-+		pr_err("%s: smc_bpf_struct_ops_init fails with %d\n", __func__, rc);
-+		goto out_inet;
-+	}
-+
- 	static_branch_enable(&tcp_have_smc);
- 	return 0;
-+out_inet:
-+	smc_inet_exit();
- out_ulp:
- 	tcp_unregister_ulp(&smc_ulp_ops);
- out_lo:
-diff --git a/net/smc/smc_ops.c b/net/smc/smc_ops.c
-index 0fc19cadd760..0f07652f4837 100644
---- a/net/smc/smc_ops.c
-+++ b/net/smc/smc_ops.c
-@@ -10,6 +10,10 @@
-  *  Author: D. Wythe <alibuda@linux.alibaba.com>
-  */
- 
-+#include <linux/bpf_verifier.h>
-+#include <linux/bpf.h>
-+#include <linux/btf.h>
-+
- #include "smc_ops.h"
- 
- static DEFINE_SPINLOCK(smc_ops_list_lock);
-@@ -49,3 +53,98 @@ struct smc_ops *smc_ops_find_by_name(const char *name)
- 	}
- 	return NULL;
- }
-+
-+static int __bpf_smc_stub_set_tcp_option(struct tcp_sock *tp) { return 1; }
-+static int __bpf_smc_stub_set_tcp_option_cond(const struct tcp_sock *tp,
-+					      struct inet_request_sock *ireq)
-+{
-+	return 1;
-+}
-+
-+static struct smc_ops __bpf_smc_bpf_ops = {
-+	.set_option		= __bpf_smc_stub_set_tcp_option,
-+	.set_option_cond	= __bpf_smc_stub_set_tcp_option_cond,
-+};
-+
-+static int smc_bpf_ops_init(struct btf *btf) { return 0; }
-+
-+static int smc_bpf_ops_reg(void *kdata, struct bpf_link *link)
-+{
-+	return smc_ops_reg(kdata);
-+}
-+
-+static void smc_bpf_ops_unreg(void *kdata, struct bpf_link *link)
-+{
-+	smc_ops_unreg(kdata);
-+}
-+
-+static int smc_bpf_ops_init_member(const struct btf_type *t,
-+				   const struct btf_member *member,
-+				   void *kdata, const void *udata)
-+{
-+	const struct smc_ops *u_ops;
-+	struct smc_ops *k_ops;
-+	u32 moff;
-+
-+	u_ops = (const struct smc_ops *)udata;
-+	k_ops = (struct smc_ops *)kdata;
-+
-+	moff = __btf_member_bit_offset(t, member) / 8;
-+	switch (moff) {
-+	case offsetof(struct smc_ops, name):
-+		if (bpf_obj_name_cpy(k_ops->name, u_ops->name,
-+				     sizeof(u_ops->name)) <= 0)
-+			return -EINVAL;
-+		return 1;
-+	case offsetof(struct smc_ops, flags):
-+		if (u_ops->flags & ~SMC_OPS_ALL_FLAGS)
-+			return -EINVAL;
-+		k_ops->flags = u_ops->flags;
-+		return 1;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int smc_bpf_ops_check_member(const struct btf_type *t,
-+				    const struct btf_member *member,
-+				    const struct bpf_prog *prog)
-+{
-+	u32 moff = __btf_member_bit_offset(t, member) / 8;
-+
-+	switch (moff) {
-+	case offsetof(struct smc_ops, name):
-+	case offsetof(struct smc_ops, flags):
-+	case offsetof(struct smc_ops, set_option):
-+	case offsetof(struct smc_ops, set_option_cond):
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct bpf_verifier_ops smc_bpf_verifier_ops = {
-+	.get_func_proto		= bpf_base_func_proto,
-+	.is_valid_access	= bpf_tracing_btf_ctx_access,
-+};
-+
-+static struct bpf_struct_ops bpf_smc_bpf_ops = {
-+	.name		= "smc_ops",
-+	.init		= smc_bpf_ops_init,
-+	.reg		= smc_bpf_ops_reg,
-+	.unreg		= smc_bpf_ops_unreg,
-+	.cfi_stubs	= &__bpf_smc_bpf_ops,
-+	.verifier_ops	= &smc_bpf_verifier_ops,
-+	.init_member	= smc_bpf_ops_init_member,
-+	.check_member	= smc_bpf_ops_check_member,
-+	.owner		= THIS_MODULE,
-+};
-+
-+int smc_bpf_struct_ops_init(void)
-+{
-+	return register_bpf_struct_ops(&bpf_smc_bpf_ops, smc_ops);
-+}
-diff --git a/net/smc/smc_ops.h b/net/smc/smc_ops.h
-index 214f4c99efd4..f4e50eae13f6 100644
---- a/net/smc/smc_ops.h
-+++ b/net/smc/smc_ops.h
-@@ -22,8 +22,10 @@
-  * Note: Caller MUST ensure it's was invoked under rcu_read_lock.
-  */
- struct smc_ops *smc_ops_find_by_name(const char *name);
-+int smc_bpf_struct_ops_init(void);
- #else
- static inline struct smc_ops *smc_ops_find_by_name(const char *name) { return NULL; }
-+static inline int smc_bpf_struct_ops_init(void) { return 0; }
- #endif /* CONFIG_SMC_OPS*/
- 
- #endif /* __SMC_OPS */
+On the other hand, we need to ensure the scalability of strategies
+implementation. Although it is simple to use socket options or sysctl,
+it will bring more complexity to subsequent expansion.
+
+Fortunately, BPF can solve these concerns very well, users can write
+thire own strategies in eBPF to choose whether to use SMC or not.
+And it's quite easy for them to modify their strategies in the future.
+
+v2:
+  1. Rename smc_bpf_ops to smc_ops.
+  2. Change the scope of smc_ops from global to per netns.
+  3. Directly pass parameters to ops instead of smc_ops_ctx.
+  4. Remove struct smc_ops_ctx.
+  5. Remove exports that are no longer needed.
+
+D. Wythe (5):
+  bpf: export necessary sympols for modules with struct_ops
+  net/smc: Introduce generic hook smc_ops
+  net/smc: bpf: register smc_ops info struct_ops
+  libbpf: fix error when st-prefix_ops and ops from differ btf
+  bpf/selftests: add simple selftest for bpf_smc_ops
+
+ include/net/netns/smc.h                       |   3 +
+ include/net/smc.h                             |  51 ++++++
+ kernel/bpf/bpf_struct_ops.c                   |   2 +
+ kernel/bpf/syscall.c                          |   1 +
+ net/ipv4/tcp_output.c                         |  15 +-
+ net/smc/Kconfig                               |  12 ++
+ net/smc/Makefile                              |   1 +
+ net/smc/af_smc.c                              |  10 ++
+ net/smc/smc_ops.c                             | 150 ++++++++++++++++++
+ net/smc/smc_ops.h                             |  31 ++++
+ net/smc/smc_sysctl.c                          |  95 +++++++++++
+ tools/lib/bpf/libbpf.c                        |  34 +++-
+ tools/testing/selftests/bpf/config            |   3 +
+ .../selftests/bpf/prog_tests/test_bpf_smc.c   |  25 +++
+ tools/testing/selftests/bpf/progs/bpf_smc.c   |  27 ++++
+ 15 files changed, 453 insertions(+), 7 deletions(-)
+ create mode 100644 net/smc/smc_ops.c
+ create mode 100644 net/smc/smc_ops.h
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/bpf_smc.c
+
 -- 
 2.45.0
 
