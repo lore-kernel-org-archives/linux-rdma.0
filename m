@@ -1,28 +1,28 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2071.outbound.protection.outlook.com [40.107.92.71])
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2070.outbound.protection.outlook.com [40.107.243.70])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83F962336BD;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E3B2336BF;
 	Wed, 11 Dec 2024 13:44:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.92.71
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.70
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733924675; cv=fail; b=DRIVNbpCaZ5/ZYqRR7qfD4S8N3DL9xa3LizNH2ZR2twDX3o7IA6i7E+Q1a8WEUDwhB4202lnNlDL3SIWsqglZmCaZfj7q8aSx5/0nYn3v8DU8cluMhivjflAerAfFPoH+uKZZoQJ58FeDzBpdkjcE3lcOGIGhafFHUH40BlPaNg=
+	t=1733924675; cv=fail; b=q94p4rDZv6GcsE7o/MJxq7oUXzN9CHzdMnRLYxKvijYkFXHz7jYXyhJWd8mOWxrBZUVec303fMneQtGWMGP04rRZR3iKvp278pRapbAY5lgf43+m6coEooL8tEjclVQoQekNKvyNPPzY/eAxkwcP8h5qPLUK0ZqTTNmwJnQ3Z2c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1733924675; c=relaxed/simple;
-	bh=ps4aCLxSgG5gNBdJnaJL7F+ga9XiU0M6OIa9skgp9NA=;
+	bh=xkKsrXD8bvE4C/GNfQPhlReM74Y6qqvAlZVJkwTQ7Nw=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=NL9972OMIa+A710QAwdJmCGDLeez1kZQkt0Vh4HWgpJF7ZWUXTWfTOpTxCXj/Egn6TpT/Gai/gdyv4gE1IqfTVSThX599pd/0xI28O1WaHCiFTYsM8WY4+KymsEMMftzDiKVUrXQ+ZmyrSbk0696kd/JmG5yQW6iTIlmCSQxBPg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=gYSS/Bfo; arc=fail smtp.client-ip=40.107.92.71
+	 MIME-Version:Content-Type; b=X9KFlnhY6HskfB2wRD2tRB7w0TkC0F/sddplu4URKc6Qyc8FyQaDivZBQ73iKJFiJ2DJDgMbSWoV1RAo4ji/w7V2lYKz+9aOR4TxB5ln22/HHx2tBBowWE9hQyNCIBDIZ9tAt/vcUGRWbPgC+QLHxZf8d2gfGzmDR5sqEy85RoI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tmalwPMz; arc=fail smtp.client-ip=40.107.243.70
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="gYSS/Bfo"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tmalwPMz"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=oD1Rv6AINRLMeyt6WdtvYDOj0+nLkMyJiEXPB8EV/+r7ELBQlANLrahBbM2BwigituYSHKId+5WSmuc2g120cHYvR7djwrWeixgo3jlO49GqT0SQogkyjiSDFdEB7KTKwPXie5062lIsAI82dTuc43nbSrataQMiHAABHP4/R/l/LvX6hn8xr6NfbRYABhgWdR5ZlVx7TsSOr777syBMzLP8d4wC5W2zlZpWzu83J9dlflI+k0ZtH9q9/2VdEq/FoJUjsVnWxr/DFXnoOGPUC7Bcivb8tHye/fd3iYQSq8BR+ZDC1W8BqX9nf4r9Qix0ZoGT3GOLbGcvkZ99SQqcpQ==
+ b=boTs3X6vFa4OklgZJQNYoS1oRlJHpu8zfpzOCsW9/uquwnMXoglhUI366VZf0hD9EthwbCDTV8lxZ/FsaK4FMQfyUfrvQLHgXyGKwjbPSTx4pzHR7eW2TG07t+jWCExS5O7poNVz0/HVqVXd9Pfi/NsodDiby3m8wNxn2SEI+5pi20TQHlSVdrC3yk/xxMOsw/cJ/KZ82FwXrLlZxn3jq//QxwydgigtyHnVB0BdbXubvvJsiyJosm10V0JxDoWRnuLSsI4xZ9DV7vhY5Ea8RmypN+ZVsAAojeUSrAwULrB7Zh/qtw3xRE2aguhsCi79NwdlaJIN5oMLgzy8L37dyA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sL6q/HkGem98gpiHQNeoIIMrYQlj61TLN/sCBIkgQek=;
- b=fnkTWHcJcBIqMAZAgAmpH3aYvVK0AScvZm2YS/MVKFrsrh7mShlZMzQn0PZKEkAz3K1y3Y6+lEODKfJCMgqU6RpL9H+xuk29oP7yKAJD8UMb9gtdowgpY6HwX+gCxs3YOJi68x3TK2aSucuOa61iSxllWaxvTUXhWLNZ9+i2beOCjtr0WGEd4zG4cPWh13HIxaGT/87b9O5s+V38Xnbp7b4UQ0Y+23JCICd/1vVmZFu6aA8joB4htZCewSfBToN2rkOQNkCLp6OcNyOeGu0JGBbSPhQoei816UTCUXFIybUT6E1tEa1TlbIC/B8/dhR4zlTzZ76hwx9xOi1nUqv29w==
+ bh=GteAKDq1devcYRn6CfRYHbq3kFmp7W68uLOAbaIGev8=;
+ b=iX9cjtJlHcz9NCD2brN67hkAzHUk5lli3m7MMHA9zcPEjGo1mhzRRW6zS2XIq+NkQ5j5wf36wZ07PUwtaa3MUnwQ/BFShNMGLIh4HZzsjAiRH0Al8Tt7E5rcNRYoFUWd0YCS/LSjBgwD2UnyEl5yHA67SdOUXDcQ3aubIjmNjGukpW75aW0/b26WPXc2hY+pW0jGQ+DXuYCvPPCLdTQIyfe+PhdmLcmt54eW0LOcJF4uqi6bjmXi0snh3T5G5iiRCOsDKoUhPFy0Mi9HoRALzovqHEWDn+tl7g+74zF6j/y1dILjRLs1QDWw0uV+SpxSY191obO80QCDOHV1r2ZHlQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sL6q/HkGem98gpiHQNeoIIMrYQlj61TLN/sCBIkgQek=;
- b=gYSS/Bfolwrwkak3ZxH1vRX2hKdmrcVb8YsNW21dSDxXk08FO0caRQuJUCROTxWD/zCm1pVUhGzMnAknuCZbdEncS9viID6PgsE8hw2OGDyAc+2q3AwfhDbeR8LcLxJYKjApgGhRysweMIZhTy3aoyawlfrwqfLfz81d5Ce8KBDLt7oCrx9WEmYvs23PSYOXs0treFcSlQHIBG4wJJNCClbdvb2Fvm+p2Y3F9u3hqNuN0Vw1da/hrGrt4Tcs9SscytFNtUW4WfNWEdVRcXevLAbl7a5KVHz/g7W7o0fdXIYgVmyL2x8eZ2WO8fCM1ElovrAGTMI6hBllK1tbIlLoig==
-Received: from DS7P220CA0070.NAMP220.PROD.OUTLOOK.COM (2603:10b6:8:224::33) by
- CH3PR12MB9023.namprd12.prod.outlook.com (2603:10b6:610:17b::12) with
+ bh=GteAKDq1devcYRn6CfRYHbq3kFmp7W68uLOAbaIGev8=;
+ b=tmalwPMzRkqHPcv17juPO5DALNO6ZhSr/roiQ11Spci6AWWsvs3tyVyhYz7hI0Pb+FPogGtT3+6Bw+5meGAf2bnzPc8k7leDL31yAhLhHlFctv/i8hW/zum755Q4qIzr0T/I/gAL6EDKgRDwpbMw/xfdDFw5wL+HuTTi40c57uMx+f3GKJv/1qdTz8yPM/DWuqJfXRFbNDajDJzGY3oB8QXdkk0QqgnSvjD1WAHCQf8x5p2I8EzmDu4g+9P+xdpoIF8cHwWvuLSiDUY4D4FvKhHUUokhVf5mIx7tNecUWyax5JvGrGc73rzT1HVum8Q469W3RFT1gwUPobFqpEAD3Q==
+Received: from DS7P220CA0055.NAMP220.PROD.OUTLOOK.COM (2603:10b6:8:224::7) by
+ CH3PR12MB8403.namprd12.prod.outlook.com (2603:10b6:610:133::14) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8230.22; Wed, 11 Dec
- 2024 13:44:24 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8230.19; Wed, 11 Dec
+ 2024 13:44:30 +0000
 Received: from DS2PEPF00003442.namprd04.prod.outlook.com
- (2603:10b6:8:224:cafe::65) by DS7P220CA0070.outlook.office365.com
- (2603:10b6:8:224::33) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8230.15 via Frontend Transport; Wed,
- 11 Dec 2024 13:44:24 +0000
+ (2603:10b6:8:224:cafe::e8) by DS7P220CA0055.outlook.office365.com
+ (2603:10b6:8:224::7) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8230.14 via Frontend Transport; Wed,
+ 11 Dec 2024 13:44:29 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -51,29 +51,29 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
 Received: from mail.nvidia.com (216.228.117.160) by
  DS2PEPF00003442.mail.protection.outlook.com (10.167.17.69) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8251.15 via Frontend Transport; Wed, 11 Dec 2024 13:44:23 +0000
+ 15.20.8251.15 via Frontend Transport; Wed, 11 Dec 2024 13:44:29 +0000
 Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Wed, 11 Dec
- 2024 05:44:07 -0800
+ 2024 05:44:14 -0800
 Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail202.nvidia.com
  (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Wed, 11 Dec
- 2024 05:44:06 -0800
+ 2024 05:44:14 -0800
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.9)
  with Microsoft SMTP Server id 15.2.1544.4 via Frontend Transport; Wed, 11 Dec
- 2024 05:44:03 -0800
+ 2024 05:44:11 -0800
 From: Tariq Toukan <tariqt@nvidia.com>
 To: "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>, "Andrew
  Lunn" <andrew+netdev@lunn.ch>, Leon Romanovsky <leonro@nvidia.com>
 CC: <netdev@vger.kernel.org>, Saeed Mahameed <saeedm@nvidia.com>, Gal Pressman
-	<gal@nvidia.com>, <linux-rdma@vger.kernel.org>, Yevgeny Kliteynik
-	<kliteyn@nvidia.com>, Itamar Gozlan <igozlan@nvidia.com>, Mark Bloch
-	<mbloch@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH net-next 08/12] net/mlx5: HWS, do not initialize native API queues
-Date: Wed, 11 Dec 2024 15:42:19 +0200
-Message-ID: <20241211134223.389616-9-tariqt@nvidia.com>
+	<gal@nvidia.com>, <linux-rdma@vger.kernel.org>, Itamar Gozlan
+	<igozlan@nvidia.com>, Yevgeny Kliteynik <kliteyn@nvidia.com>, Tariq Toukan
+	<tariqt@nvidia.com>
+Subject: [PATCH net-next 10/12] net/mlx5: DR, add support for ConnectX-8 steering
+Date: Wed, 11 Dec 2024 15:42:21 +0200
+Message-ID: <20241211134223.389616-11-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20241211134223.389616-1-tariqt@nvidia.com>
 References: <20241211134223.389616-1-tariqt@nvidia.com>
@@ -88,224 +88,411 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: AnonymousSubmission
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS2PEPF00003442:EE_|CH3PR12MB9023:EE_
-X-MS-Office365-Filtering-Correlation-Id: eeb5a238-7b12-4078-fa95-08dd19e9ec1a
+X-MS-TrafficTypeDiagnostic: DS2PEPF00003442:EE_|CH3PR12MB8403:EE_
+X-MS-Office365-Filtering-Correlation-Id: 559b6319-1697-499a-19de-08dd19e9efea
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|376014|1800799024|82310400026|36860700013;
+	BCL:0;ARA:13230040|376014|36860700013|1800799024|82310400026;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?ttN0xuuFT7/gNhCmwXhHPStzG2u1vDybgjb/Y3moN8TAaUQsP7k0dzncyXTu?=
- =?us-ascii?Q?CpNegqbywdrAjLdBazDGG0nKQXKGCoqbB+36jkqVOrOS/3dGQ8R1Pgy97Cgl?=
- =?us-ascii?Q?tuDXMf+aO1UBm3rHdZh3irHSQg4c2DOuwUDpUVIojip9/JVqTeLcScKrguPe?=
- =?us-ascii?Q?jDrveYZBB5p0pKbTqKZpTTAXudfRCljpVRqhkhriAv8ene6QKUUjy0fBEkGI?=
- =?us-ascii?Q?yH1n43b8q+yLpCZqIAGGLhAhfteu5uQ7F9uavVlbZCKiXfNAMxP8hLFcswx4?=
- =?us-ascii?Q?eyspGbLIGFE/JSP5ngOlATdi+erw7P10B8nnAm2pJHu3SXvMa/b7UElTK4Dl?=
- =?us-ascii?Q?jIvqP0HYBN+5b6FXUKlthTD1GwmlUElXlJUCAxtDUiKpWtDL/+po4fpOw0Gx?=
- =?us-ascii?Q?pIPeRLtxFX6aklpexKDPjbzRux1bP2HRkizhksx7vA4MldEzA/kS6FOVziqi?=
- =?us-ascii?Q?ZREN1L5cAcC+uCW5WE6P8qJVJnwPe4KxuyRMUwQevnTThLL12XazLXvRklEW?=
- =?us-ascii?Q?VkZlxwh6pKcNuhiQ7D+bQmncV5VZO11Ubv12f578KsPxt6DPkoAksR+S71nS?=
- =?us-ascii?Q?ypQo43Bp+YQRFjUEmrsnbuM5Ybjq0jUHdHY4KDCdu/nJMwVaSMlSPMpdYq4S?=
- =?us-ascii?Q?91IBF2TB9v+lmltUqlfy9m/r9sUA33NCCe5TL7aJiwSajCW4vWTXe9XnDOfu?=
- =?us-ascii?Q?huHUzYFL1GB78nPu/9R4Vf/hinmlvM5Elv70VizU+A137scXWqh3iNonYwrs?=
- =?us-ascii?Q?62cAdPO7QjrLQUh26r2kKkWBAEmyW8d+i7qMJFh5Vkd0bX+J12FqBMsumrOw?=
- =?us-ascii?Q?bXNw+clDV8JiBq5NPpmP70ZrbYq1IrjMjOUho60zJiIVY24Cp97hRF5JfjLL?=
- =?us-ascii?Q?TJLfT5BytcfA6i9pxrcCM3RINBOoHDGBzGLDriGF8RUnqikZJtM2OgHfJfKu?=
- =?us-ascii?Q?k+zxIL/DSNUDNpAjWjv0W9o2BdEqgwZ8QMiMNGeU1cdUMbMxUfavDTXFgKXU?=
- =?us-ascii?Q?/OR33O1CXGJC9aN7Ekrubiy5ijAYkYv1HTeJkc/HZbsKON1AKEAJm2PUME02?=
- =?us-ascii?Q?Kb5TcCHGAcyHd9kNI1mvwUbIVG6EAyVSiwPFZ1TT5jo7NlDGbi7ysYK954Nn?=
- =?us-ascii?Q?0i5TOJT0rPmCA7jjIlmzHakyoS0t+WQc43Vs2agO7NQmb7Cpiyt4lDnaMVwl?=
- =?us-ascii?Q?2xPfCJg5rQ+r2IjbSU30K/XWGxh8cw78PnnRXtGXtIPJWLCyxlGWypFtMtOW?=
- =?us-ascii?Q?GZeidB5EYifmdkTui+4OLV5dZtsYnc1oy/8N0rjiYF7OqjycEDVk8jXDI47v?=
- =?us-ascii?Q?mWi4+tsNVb6TLGoJ8/UYeK84uRvzKumMMLspHhWffjw+d3v62Cj9jUoUWFaj?=
- =?us-ascii?Q?fmRIupdSGyxp5FNUX0waz7bXeNa0T2H2DXBeAIuvX7IpI+zzssmiNhu9w6/E?=
- =?us-ascii?Q?+o9Bsv7hFWqHYFrrgb9tO8P3tHUVwVZN?=
+	=?us-ascii?Q?YnvVIUkwXJ3Zcm7iaFJ3JN1IJMReftOAPL9oyqWKt/3eYzwZJX5ACj1jfm1B?=
+ =?us-ascii?Q?47O2ICwVi8u5uqQzoUkHxL72MJbsbxc1k8SSMXHWGnZLBWMm+dlT2SIy65mk?=
+ =?us-ascii?Q?GXoo/xmYYZ8MJdw+Lg8NRs19cd1PFelD0kq/db0O5VK2+ciQGBW8C7GWnOid?=
+ =?us-ascii?Q?zGKlVBUwkFpi2dyiMqnKPp2WKliPjEF+vTieo2kIT6eD3UynQCXw0GEAAIwu?=
+ =?us-ascii?Q?wpUNqKAglgerUl93HB5o7PYYbp6dmPfXdnuBbHPxyDSisdRvge9jIiLtsXOZ?=
+ =?us-ascii?Q?g5VXOo+Aadi7M5pRN3n3txmfpUxJEIpk+e3jFv3hj5z7Gi8RiOyyHeQFLIb7?=
+ =?us-ascii?Q?sVn1ojYkn2A0T/xctyG45/+yEjCM4FwX5j4P957KSqSb+f58h5RR2+j0CjOP?=
+ =?us-ascii?Q?iCoJjTVy9149KIif9T/HiOypF/Uf8wrWGPSFYZCGUkpOMH14SOMTi0wUGWqN?=
+ =?us-ascii?Q?VX3IC5AeSroQfWxCHTyND9UN1RWRD3g5jII+AvEk176ILSOuDyYKbejtne4A?=
+ =?us-ascii?Q?TeVgpzQ4gZ2YglyF7yAmAE+0Dwvy5XYle8OEfLANkmHxeh/cEqtEB1pSVWGj?=
+ =?us-ascii?Q?Ui34MJr5f8pV2ezA6eYCxGcveD+SOkMkkFzKW72grrnl5a+cp0S9zcOlrfqp?=
+ =?us-ascii?Q?UtqGeftEXwwh9pLKtYy4jK1OUM86ZIMv6pVrpmlYHwLE+Kk1yk6jiQw9XWon?=
+ =?us-ascii?Q?rYkaKuAsfWBkd73hAc3sjQKL4+Bn8Cn4toLY5fhsFZfY+SjiMkMa1U/vPl7w?=
+ =?us-ascii?Q?j8LbItt6e5K4mBnXhMytLB21cPaVvfNuHJrKGZLIgNyRTnejDhgZ4XYOxpFB?=
+ =?us-ascii?Q?eOw7WL21ssFQFiExPU8etLlRmIHMXN0a9Eh2A4RW6OB83gR6ZFbKg9blJ8Qz?=
+ =?us-ascii?Q?qCr0B0ouw51rOx7JvHGnqAv+ygobRC4vDghGKK/pK2nDlabaj8z7+ixfsknR?=
+ =?us-ascii?Q?rCRDv3hi8t5mNT9ge7qVJZbwhRFMA9S1YtRI61b5L6YMjpN4NlSwWPNqr6k2?=
+ =?us-ascii?Q?641xKsvRhhZKL5/nVdfSwIAhWK00YkLFplf60MGhhRnETRXE2Lx0syGbYVwt?=
+ =?us-ascii?Q?ogza0DBz6CXZ316ayd5BM9NdUjhMQIHv29o7hQld8nTgEt0Lz5EyphByi/bw?=
+ =?us-ascii?Q?N/BMo7BTLlndsL/ExBzPUEij49tk9yEXVhn7oSPwDXKR44FY92HJHRzCbtuf?=
+ =?us-ascii?Q?H1Hq5iccPACgt/aEBg4YoRojhx9vOtbFNw++HOCCkmkAtID2R8zMML+Y/QsE?=
+ =?us-ascii?Q?DfWbdXIqXpW4bFjXaFIMoo4iU44uTsz2fNbsW2U0vOWBxIJk/MQP3UTMhc9d?=
+ =?us-ascii?Q?+x4W7a9Wf+jwdknaPVDZeoo+OKAegJfJVAi96lp1ZohsO5KcZbs3dXLv0ChG?=
+ =?us-ascii?Q?lO8bUnLxHmZa1hKSSKKsjSEPCg2cKrPur1dXhNyQkeZAagecYPt17wtv7dbD?=
+ =?us-ascii?Q?oLRxMDrn7XDFjEH1XDc8hA6bSxsjzil/?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(1800799024)(82310400026)(36860700013);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(36860700013)(1800799024)(82310400026);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Dec 2024 13:44:23.4337
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Dec 2024 13:44:29.8087
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: eeb5a238-7b12-4078-fa95-08dd19e9ec1a
+X-MS-Exchange-CrossTenant-Network-Message-Id: 559b6319-1697-499a-19de-08dd19e9efea
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	DS2PEPF00003442.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB9023
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8403
 
-From: Yevgeny Kliteynik <kliteyn@nvidia.com>
+From: Itamar Gozlan <igozlan@nvidia.com>
 
-HWS has two types of APIs:
- - Native: fastest and slimmest, async API.
-   The user of this API is required to manage rule handles memory,
-   and to poll for completion for each rule.
- - BWC: backward compatible API, similar semantics to SWS API.
-   This layer is implemented above native API and it does all
-   the work for the user, so that it is easy to switch between
-   SWS and HWS.
+Add support for a new steering format version that is implemented by
+ConnectX-8.
+Except for several differences, the STEv3 is identical to STEv2, so
+for most callbacks STEv3 context struct will call STEv2 functions.
 
-Right now the existing users of HWS require only BWC API.
-Therefore, in order to not waste resources, this patch disables
-send queues allocation for native API.
-
-If in the future support for faster HWS rule insertion will be required
-(such as for Connection Tracking), native queues can be enabled.
-
+Signed-off-by: Itamar Gozlan <igozlan@nvidia.com>
 Signed-off-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
-Reviewed-by: Itamar Gozlan <igozlan@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../mellanox/mlx5/core/steering/hws/bwc.h     |  6 ++-
- .../mellanox/mlx5/core/steering/hws/context.c |  6 ++-
- .../mellanox/mlx5/core/steering/hws/context.h |  6 +++
- .../mellanox/mlx5/core/steering/hws/mlx5hws.h |  1 -
- .../mellanox/mlx5/core/steering/hws/send.c    | 38 ++++++++++++++-----
- 5 files changed, 43 insertions(+), 14 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/Makefile  |   1 +
+ .../mlx5/core/steering/sws/dr_domain.c        |   2 +-
+ .../mellanox/mlx5/core/steering/sws/dr_ste.c  |   2 +
+ .../mellanox/mlx5/core/steering/sws/dr_ste.h  |   1 +
+ .../mlx5/core/steering/sws/dr_ste_v3.c        | 221 ++++++++++++++++++
+ .../mlx5/core/steering/sws/mlx5_ifc_dr.h      |  40 ++++
+ .../mellanox/mlx5/core/steering/sws/mlx5dr.h  |   2 +-
+ 7 files changed, 267 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste_v3.c
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/bwc.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/bwc.h
-index 0b745968e21e..3d4965213b01 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/bwc.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/bwc.h
-@@ -60,9 +60,11 @@ void mlx5hws_bwc_rule_fill_attr(struct mlx5hws_bwc_matcher *bwc_matcher,
- static inline u16 mlx5hws_bwc_queues(struct mlx5hws_context *ctx)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+index 79fe09de0a9f..10a763e668ed 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
++++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+@@ -123,6 +123,7 @@ mlx5_core-$(CONFIG_MLX5_SW_STEERING) += steering/sws/dr_domain.o \
+ 					steering/sws/dr_ste_v0.o \
+ 					steering/sws/dr_ste_v1.o \
+ 					steering/sws/dr_ste_v2.o \
++					steering/sws/dr_ste_v3.o \
+ 					steering/sws/dr_cmd.o \
+ 					steering/sws/dr_fw.o \
+ 					steering/sws/dr_action.o \
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c
+index 3d74109f8230..bd361ba6658c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_domain.c
+@@ -8,7 +8,7 @@
+ #define DR_DOMAIN_SW_STEERING_SUPPORTED(dmn, dmn_type)	\
+ 	((dmn)->info.caps.dmn_type##_sw_owner ||	\
+ 	 ((dmn)->info.caps.dmn_type##_sw_owner_v2 &&	\
+-	  (dmn)->info.caps.sw_format_ver <= MLX5_STEERING_FORMAT_CONNECTX_7))
++	  (dmn)->info.caps.sw_format_ver <= MLX5_STEERING_FORMAT_CONNECTX_8))
+ 
+ bool mlx5dr_domain_is_support_ptrn_arg(struct mlx5dr_domain *dmn)
  {
- 	/* Besides the control queue, half of the queues are
--	 * reguler HWS queues, and the other half are BWC queues.
-+	 * regular HWS queues, and the other half are BWC queues.
- 	 */
--	return (ctx->queues - 1) / 2;
-+	if (mlx5hws_context_bwc_supported(ctx))
-+		return (ctx->queues - 1) / 2;
-+	return 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste.c
+index 01ba8eae2983..c8b8ff80c7c7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste.c
+@@ -1458,6 +1458,8 @@ struct mlx5dr_ste_ctx *mlx5dr_ste_get_ctx(u8 version)
+ 		return mlx5dr_ste_get_ctx_v1();
+ 	else if (version == MLX5_STEERING_FORMAT_CONNECTX_7)
+ 		return mlx5dr_ste_get_ctx_v2();
++	else if (version == MLX5_STEERING_FORMAT_CONNECTX_8)
++		return mlx5dr_ste_get_ctx_v3();
+ 
+ 	return NULL;
  }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste.h
+index b6ec8d30d990..5f409dc30aca 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste.h
+@@ -217,5 +217,6 @@ struct mlx5dr_ste_ctx {
+ struct mlx5dr_ste_ctx *mlx5dr_ste_get_ctx_v0(void);
+ struct mlx5dr_ste_ctx *mlx5dr_ste_get_ctx_v1(void);
+ struct mlx5dr_ste_ctx *mlx5dr_ste_get_ctx_v2(void);
++struct mlx5dr_ste_ctx *mlx5dr_ste_get_ctx_v3(void);
  
- static inline u16 mlx5hws_bwc_get_queue_id(struct mlx5hws_context *ctx, u16 idx)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.c
-index fd48b05e91e0..4a8928f33bb9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.c
-@@ -161,8 +161,10 @@ static int hws_context_init_hws(struct mlx5hws_context *ctx,
- 	if (ret)
- 		goto uninit_pd;
- 
--	if (attr->bwc)
--		ctx->flags |= MLX5HWS_CONTEXT_FLAG_BWC_SUPPORT;
-+	/* Context has support for backward compatible API,
-+	 * and does not have support for native HWS API.
-+	 */
-+	ctx->flags |= MLX5HWS_CONTEXT_FLAG_BWC_SUPPORT;
- 
- 	ret = mlx5hws_send_queues_open(ctx, attr->queues, attr->queue_size);
- 	if (ret)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.h
-index 47f5cc8de73f..1c9cc4fba083 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.h
-@@ -8,6 +8,7 @@ enum mlx5hws_context_flags {
- 	MLX5HWS_CONTEXT_FLAG_HWS_SUPPORT = 1 << 0,
- 	MLX5HWS_CONTEXT_FLAG_PRIVATE_PD = 1 << 1,
- 	MLX5HWS_CONTEXT_FLAG_BWC_SUPPORT = 1 << 2,
-+	MLX5HWS_CONTEXT_FLAG_NATIVE_SUPPORT = 1 << 3,
- };
- 
- enum mlx5hws_context_shared_stc_type {
-@@ -58,6 +59,11 @@ static inline bool mlx5hws_context_bwc_supported(struct mlx5hws_context *ctx)
- 	return ctx->flags & MLX5HWS_CONTEXT_FLAG_BWC_SUPPORT;
- }
- 
-+static inline bool mlx5hws_context_native_supported(struct mlx5hws_context *ctx)
+ #endif  /* _DR_STE_ */
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste_v3.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste_v3.c
+new file mode 100644
+index 000000000000..cc60ce1d274e
+--- /dev/null
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/dr_ste_v3.c
+@@ -0,0 +1,221 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/* Copyright (c) 2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved. */
++
++#include "dr_ste_v1.h"
++#include "dr_ste_v2.h"
++
++static void dr_ste_v3_set_encap(u8 *hw_ste_p, u8 *d_action,
++				u32 reformat_id, int size)
 +{
-+	return ctx->flags & MLX5HWS_CONTEXT_FLAG_NATIVE_SUPPORT;
++	MLX5_SET(ste_double_action_insert_with_ptr_v3, d_action, action_id,
++		 DR_STE_V1_ACTION_ID_INSERT_POINTER);
++	/* The hardware expects here size in words (2 byte) */
++	MLX5_SET(ste_double_action_insert_with_ptr_v3, d_action, size, size / 2);
++	MLX5_SET(ste_double_action_insert_with_ptr_v3, d_action, pointer, reformat_id);
++	MLX5_SET(ste_double_action_insert_with_ptr_v3, d_action, attributes,
++		 DR_STE_V1_ACTION_INSERT_PTR_ATTR_ENCAP);
++	dr_ste_v1_set_reparse(hw_ste_p);
 +}
 +
- bool mlx5hws_context_cap_dynamic_reparse(struct mlx5hws_context *ctx);
- 
- u8 mlx5hws_context_get_reparse_mode(struct mlx5hws_context *ctx);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/mlx5hws.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/mlx5hws.h
-index f39d636ff39a..5121951f2778 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/mlx5hws.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/mlx5hws.h
-@@ -70,7 +70,6 @@ enum mlx5hws_send_queue_actions {
- struct mlx5hws_context_attr {
- 	u16 queues;
- 	u16 queue_size;
--	bool bwc; /* add support for backward compatible API*/
- };
- 
- struct mlx5hws_table_attr {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c
-index a93da4f71646..e3d621f013f6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/send.c
-@@ -898,6 +898,9 @@ static int mlx5hws_send_ring_open(struct mlx5hws_context *ctx,
- 
- static void hws_send_queue_close(struct mlx5hws_send_engine *queue)
- {
-+	if (!queue->num_entries)
-+		return; /* this queue wasn't initialized */
-+
- 	hws_send_ring_close(queue);
- 	kfree(queue->completed.entries);
- }
-@@ -1000,12 +1003,33 @@ static int hws_bwc_send_queues_init(struct mlx5hws_context *ctx)
- 	return -ENOMEM;
- }
- 
-+static int hws_send_queues_open(struct mlx5hws_context *ctx, u16 queue_size)
++static void dr_ste_v3_set_push_vlan(u8 *ste, u8 *d_action,
++				    u32 vlan_hdr)
 +{
-+	int err = 0;
-+	u32 i = 0;
++	MLX5_SET(ste_double_action_insert_with_inline_v3, d_action, action_id,
++		 DR_STE_V1_ACTION_ID_INSERT_INLINE);
++	/* The hardware expects here offset to vlan header in words (2 byte) */
++	MLX5_SET(ste_double_action_insert_with_inline_v3, d_action, start_offset,
++		 HDR_LEN_L2_MACS >> 1);
++	MLX5_SET(ste_double_action_insert_with_inline_v3, d_action, inline_data, vlan_hdr);
++	dr_ste_v1_set_reparse(ste);
++}
 +
-+	/* If native API isn't supported, skip the unused native queues:
-+	 * initialize BWC queues and control queue only.
++static void dr_ste_v3_set_pop_vlan(u8 *hw_ste_p, u8 *s_action,
++				   u8 vlans_num)
++{
++	MLX5_SET(ste_single_action_remove_header_size_v3, s_action,
++		 action_id, DR_STE_V1_ACTION_ID_REMOVE_BY_SIZE);
++	MLX5_SET(ste_single_action_remove_header_size_v3, s_action,
++		 start_anchor, DR_STE_HEADER_ANCHOR_1ST_VLAN);
++	/* The hardware expects here size in words (2 byte) */
++	MLX5_SET(ste_single_action_remove_header_size_v3, s_action,
++		 remove_size, (HDR_LEN_L2_VLAN >> 1) * vlans_num);
++
++	dr_ste_v1_set_reparse(hw_ste_p);
++}
++
++static void dr_ste_v3_set_encap_l3(u8 *hw_ste_p,
++				   u8 *frst_s_action,
++				   u8 *scnd_d_action,
++				   u32 reformat_id,
++				   int size)
++{
++	/* Remove L2 headers */
++	MLX5_SET(ste_single_action_remove_header_v3, frst_s_action, action_id,
++		 DR_STE_V1_ACTION_ID_REMOVE_HEADER_TO_HEADER);
++	MLX5_SET(ste_single_action_remove_header_v3, frst_s_action, end_anchor,
++		 DR_STE_HEADER_ANCHOR_IPV6_IPV4);
++
++	/* Encapsulate with given reformat ID */
++	MLX5_SET(ste_double_action_insert_with_ptr_v3, scnd_d_action, action_id,
++		 DR_STE_V1_ACTION_ID_INSERT_POINTER);
++	/* The hardware expects here size in words (2 byte) */
++	MLX5_SET(ste_double_action_insert_with_ptr_v3, scnd_d_action, size, size / 2);
++	MLX5_SET(ste_double_action_insert_with_ptr_v3, scnd_d_action, pointer, reformat_id);
++	MLX5_SET(ste_double_action_insert_with_ptr_v3, scnd_d_action, attributes,
++		 DR_STE_V1_ACTION_INSERT_PTR_ATTR_ENCAP);
++
++	dr_ste_v1_set_reparse(hw_ste_p);
++}
++
++static void dr_ste_v3_set_rx_decap(u8 *hw_ste_p, u8 *s_action)
++{
++	MLX5_SET(ste_single_action_remove_header_v3, s_action, action_id,
++		 DR_STE_V1_ACTION_ID_REMOVE_HEADER_TO_HEADER);
++	MLX5_SET(ste_single_action_remove_header_v3, s_action, decap, 1);
++	MLX5_SET(ste_single_action_remove_header_v3, s_action, vni_to_cqe, 1);
++	MLX5_SET(ste_single_action_remove_header_v3, s_action, end_anchor,
++		 DR_STE_HEADER_ANCHOR_INNER_MAC);
++
++	dr_ste_v1_set_reparse(hw_ste_p);
++}
++
++static int
++dr_ste_v3_set_action_decap_l3_list(void *data, u32 data_sz,
++				   u8 *hw_action, u32 hw_action_sz,
++				   uint16_t *used_hw_action_num)
++{
++	u8 padded_data[DR_STE_L2_HDR_MAX_SZ] = {};
++	void *data_ptr = padded_data;
++	u16 used_actions = 0;
++	u32 inline_data_sz;
++	u32 i;
++
++	if (hw_action_sz / DR_STE_ACTION_DOUBLE_SZ < DR_STE_DECAP_L3_ACTION_NUM)
++		return -EINVAL;
++
++	inline_data_sz =
++		MLX5_FLD_SZ_BYTES(ste_double_action_insert_with_inline_v3, inline_data);
++
++	/* Add an alignment padding  */
++	memcpy(padded_data + data_sz % inline_data_sz, data, data_sz);
++
++	/* Remove L2L3 outer headers */
++	MLX5_SET(ste_single_action_remove_header_v3, hw_action, action_id,
++		 DR_STE_V1_ACTION_ID_REMOVE_HEADER_TO_HEADER);
++	MLX5_SET(ste_single_action_remove_header_v3, hw_action, decap, 1);
++	MLX5_SET(ste_single_action_remove_header_v3, hw_action, vni_to_cqe, 1);
++	MLX5_SET(ste_single_action_remove_header_v3, hw_action, end_anchor,
++		 DR_STE_HEADER_ANCHOR_INNER_IPV6_IPV4);
++	hw_action += DR_STE_ACTION_DOUBLE_SZ;
++	used_actions++; /* Remove and NOP are a single double action */
++
++	/* Point to the last dword of the header */
++	data_ptr += (data_sz / inline_data_sz) * inline_data_sz;
++
++	/* Add the new header using inline action 4Byte at a time, the header
++	 * is added in reversed order to the beginning of the packet to avoid
++	 * incorrect parsing by the HW. Since header is 14B or 18B an extra
++	 * two bytes are padded and later removed.
 +	 */
-+	if (!mlx5hws_context_native_supported(ctx))
-+		i = mlx5hws_bwc_get_queue_id(ctx, 0);
++	for (i = 0; i < data_sz / inline_data_sz + 1; i++) {
++		void *addr_inline;
 +
-+	for (; i < ctx->queues; i++) {
-+		err = hws_send_queue_open(ctx, &ctx->send_queue[i], queue_size);
-+		if (err) {
-+			__hws_send_queues_close(ctx, i);
-+			return err;
-+		}
++		MLX5_SET(ste_double_action_insert_with_inline_v3, hw_action, action_id,
++			 DR_STE_V1_ACTION_ID_INSERT_INLINE);
++		/* The hardware expects here offset to words (2 bytes) */
++		MLX5_SET(ste_double_action_insert_with_inline_v3, hw_action, start_offset, 0);
++
++		/* Copy bytes one by one to avoid endianness problem */
++		addr_inline = MLX5_ADDR_OF(ste_double_action_insert_with_inline_v3,
++					   hw_action, inline_data);
++		memcpy(addr_inline, data_ptr - i * inline_data_sz, inline_data_sz);
++		hw_action += DR_STE_ACTION_DOUBLE_SZ;
++		used_actions++;
 +	}
 +
++	/* Remove first 2 extra bytes */
++	MLX5_SET(ste_single_action_remove_header_size_v3, hw_action, action_id,
++		 DR_STE_V1_ACTION_ID_REMOVE_BY_SIZE);
++	MLX5_SET(ste_single_action_remove_header_size_v3, hw_action, start_offset, 0);
++	/* The hardware expects here size in words (2 bytes) */
++	MLX5_SET(ste_single_action_remove_header_size_v3, hw_action, remove_size, 1);
++	used_actions++;
++
++	*used_hw_action_num = used_actions;
++
 +	return 0;
 +}
 +
- int mlx5hws_send_queues_open(struct mlx5hws_context *ctx,
- 			     u16 queues,
- 			     u16 queue_size)
- {
- 	int err = 0;
--	u32 i;
++static struct mlx5dr_ste_ctx ste_ctx_v3 = {
++	/* Builders */
++	.build_eth_l2_src_dst_init	= &dr_ste_v1_build_eth_l2_src_dst_init,
++	.build_eth_l3_ipv6_src_init	= &dr_ste_v1_build_eth_l3_ipv6_src_init,
++	.build_eth_l3_ipv6_dst_init	= &dr_ste_v1_build_eth_l3_ipv6_dst_init,
++	.build_eth_l3_ipv4_5_tuple_init	= &dr_ste_v1_build_eth_l3_ipv4_5_tuple_init,
++	.build_eth_l2_src_init		= &dr_ste_v1_build_eth_l2_src_init,
++	.build_eth_l2_dst_init		= &dr_ste_v1_build_eth_l2_dst_init,
++	.build_eth_l2_tnl_init		= &dr_ste_v1_build_eth_l2_tnl_init,
++	.build_eth_l3_ipv4_misc_init	= &dr_ste_v1_build_eth_l3_ipv4_misc_init,
++	.build_eth_ipv6_l3_l4_init	= &dr_ste_v1_build_eth_ipv6_l3_l4_init,
++	.build_mpls_init		= &dr_ste_v1_build_mpls_init,
++	.build_tnl_gre_init		= &dr_ste_v1_build_tnl_gre_init,
++	.build_tnl_mpls_init		= &dr_ste_v1_build_tnl_mpls_init,
++	.build_tnl_mpls_over_udp_init	= &dr_ste_v1_build_tnl_mpls_over_udp_init,
++	.build_tnl_mpls_over_gre_init	= &dr_ste_v1_build_tnl_mpls_over_gre_init,
++	.build_icmp_init		= &dr_ste_v1_build_icmp_init,
++	.build_general_purpose_init	= &dr_ste_v1_build_general_purpose_init,
++	.build_eth_l4_misc_init		= &dr_ste_v1_build_eth_l4_misc_init,
++	.build_tnl_vxlan_gpe_init	= &dr_ste_v1_build_flex_parser_tnl_vxlan_gpe_init,
++	.build_tnl_geneve_init		= &dr_ste_v1_build_flex_parser_tnl_geneve_init,
++	.build_tnl_geneve_tlv_opt_init	= &dr_ste_v1_build_flex_parser_tnl_geneve_tlv_opt_init,
++	.build_tnl_geneve_tlv_opt_exist_init =
++				  &dr_ste_v1_build_flex_parser_tnl_geneve_tlv_opt_exist_init,
++	.build_register_0_init		= &dr_ste_v1_build_register_0_init,
++	.build_register_1_init		= &dr_ste_v1_build_register_1_init,
++	.build_src_gvmi_qpn_init	= &dr_ste_v1_build_src_gvmi_qpn_init,
++	.build_flex_parser_0_init	= &dr_ste_v1_build_flex_parser_0_init,
++	.build_flex_parser_1_init	= &dr_ste_v1_build_flex_parser_1_init,
++	.build_tnl_gtpu_init		= &dr_ste_v1_build_flex_parser_tnl_gtpu_init,
++	.build_tnl_header_0_1_init	= &dr_ste_v1_build_tnl_header_0_1_init,
++	.build_tnl_gtpu_flex_parser_0_init = &dr_ste_v1_build_tnl_gtpu_flex_parser_0_init,
++	.build_tnl_gtpu_flex_parser_1_init = &dr_ste_v1_build_tnl_gtpu_flex_parser_1_init,
++
++	/* Getters and Setters */
++	.ste_init			= &dr_ste_v1_init,
++	.set_next_lu_type		= &dr_ste_v1_set_next_lu_type,
++	.get_next_lu_type		= &dr_ste_v1_get_next_lu_type,
++	.is_miss_addr_set		= &dr_ste_v1_is_miss_addr_set,
++	.set_miss_addr			= &dr_ste_v1_set_miss_addr,
++	.get_miss_addr			= &dr_ste_v1_get_miss_addr,
++	.set_hit_addr			= &dr_ste_v1_set_hit_addr,
++	.set_byte_mask			= &dr_ste_v1_set_byte_mask,
++	.get_byte_mask			= &dr_ste_v1_get_byte_mask,
++
++	/* Actions */
++	.actions_caps			= DR_STE_CTX_ACTION_CAP_TX_POP |
++					  DR_STE_CTX_ACTION_CAP_RX_PUSH |
++					  DR_STE_CTX_ACTION_CAP_RX_ENCAP,
++	.set_actions_rx			= &dr_ste_v1_set_actions_rx,
++	.set_actions_tx			= &dr_ste_v1_set_actions_tx,
++	.modify_field_arr_sz		= ARRAY_SIZE(dr_ste_v2_action_modify_field_arr),
++	.modify_field_arr		= dr_ste_v2_action_modify_field_arr,
++	.set_action_set			= &dr_ste_v1_set_action_set,
++	.set_action_add			= &dr_ste_v1_set_action_add,
++	.set_action_copy		= &dr_ste_v1_set_action_copy,
++	.set_action_decap_l3_list	= &dr_ste_v3_set_action_decap_l3_list,
++	.alloc_modify_hdr_chunk		= &dr_ste_v1_alloc_modify_hdr_ptrn_arg,
++	.dealloc_modify_hdr_chunk	= &dr_ste_v1_free_modify_hdr_ptrn_arg,
++	/* Actions bit set */
++	.set_encap			= &dr_ste_v3_set_encap,
++	.set_push_vlan			= &dr_ste_v3_set_push_vlan,
++	.set_pop_vlan			= &dr_ste_v3_set_pop_vlan,
++	.set_rx_decap			= &dr_ste_v3_set_rx_decap,
++	.set_encap_l3			= &dr_ste_v3_set_encap_l3,
++	/* Send */
++	.prepare_for_postsend		= &dr_ste_v1_prepare_for_postsend,
++};
++
++struct mlx5dr_ste_ctx *mlx5dr_ste_get_ctx_v3(void)
++{
++	return &ste_ctx_v3;
++}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/mlx5_ifc_dr.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/mlx5_ifc_dr.h
+index fb078fa0f0cc..898c3618ff26 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/mlx5_ifc_dr.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/mlx5_ifc_dr.h
+@@ -600,4 +600,44 @@ struct mlx5_ifc_ste_double_action_aso_v1_bits {
+ 	};
+ };
  
- 	/* Open one extra queue for control path */
- 	ctx->queues = queues + 1;
-@@ -1021,17 +1045,13 @@ int mlx5hws_send_queues_open(struct mlx5hws_context *ctx,
- 		goto free_bwc_locks;
- 	}
++struct mlx5_ifc_ste_single_action_remove_header_v3_bits {
++	u8         action_id[0x8];
++	u8         start_anchor[0x7];
++	u8         end_anchor[0x7];
++	u8         reserved_at_16[0x1];
++	u8         outer_l4_remove[0x1];
++	u8         reserved_at_18[0x4];
++	u8         decap[0x1];
++	u8         vni_to_cqe[0x1];
++	u8         qos_profile[0x2];
++};
++
++struct mlx5_ifc_ste_single_action_remove_header_size_v3_bits {
++	u8         action_id[0x8];
++	u8         start_anchor[0x7];
++	u8         start_offset[0x8];
++	u8         outer_l4_remove[0x1];
++	u8         reserved_at_18[0x2];
++	u8         remove_size[0x6];
++};
++
++struct mlx5_ifc_ste_double_action_insert_with_inline_v3_bits {
++	u8         action_id[0x8];
++	u8         start_anchor[0x7];
++	u8         start_offset[0x8];
++	u8         reserved_at_17[0x9];
++
++	u8         inline_data[0x20];
++};
++
++struct mlx5_ifc_ste_double_action_insert_with_ptr_v3_bits {
++	u8         action_id[0x8];
++	u8         start_anchor[0x7];
++	u8         start_offset[0x8];
++	u8         size[0x6];
++	u8         attributes[0x3];
++
++	u8         pointer[0x20];
++};
++
+ #endif /* MLX5_IFC_DR_H */
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/mlx5dr.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/mlx5dr.h
+index 3ac7dc67509f..0bb3724c10c2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/mlx5dr.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/sws/mlx5dr.h
+@@ -160,7 +160,7 @@ mlx5dr_is_supported(struct mlx5_core_dev *dev)
+ 	       (MLX5_CAP_ESW_FLOWTABLE_FDB(dev, sw_owner) ||
+ 		(MLX5_CAP_ESW_FLOWTABLE_FDB(dev, sw_owner_v2) &&
+ 		 (MLX5_CAP_GEN(dev, steering_format_version) <=
+-		  MLX5_STEERING_FORMAT_CONNECTX_7)));
++		  MLX5_STEERING_FORMAT_CONNECTX_8)));
+ }
  
--	for (i = 0; i < ctx->queues; i++) {
--		err = hws_send_queue_open(ctx, &ctx->send_queue[i], queue_size);
--		if (err)
--			goto close_send_queues;
--	}
-+	err = hws_send_queues_open(ctx, queue_size);
-+	if (err)
-+		goto free_queues;
- 
- 	return 0;
- 
--close_send_queues:
--	 __hws_send_queues_close(ctx, i);
--
-+free_queues:
- 	kfree(ctx->send_queue);
- 
- free_bwc_locks:
+ /* buddy functions & structure */
 -- 
 2.44.0
 
