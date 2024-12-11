@@ -1,38 +1,38 @@
-Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
+Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 719F31FAC5D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2591A1FBCA7
 	for <linux-rdma@vger.kernel.org>; Wed, 11 Dec 2024 02:09:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.99
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733882983; cv=none; b=Xi684l2wGUS4hk+izZjwjPLqckcQGg7QMiJB8zFKZ7Z+z2Zk56rO5yabJzqbOMHUmujwGksCC0NxNjcSuFBYmTWGq2UnMWNqu9AWDqr0AQfEAj5OnDg2pemDv5rWGVC4Bdl6LqOnsHczdgoLR8tYSJD9XlVGVGUJG+TOLT2ED0o=
+	t=1733882984; cv=none; b=G4AOP3HMHv3LQhP6JAW+Isr9JJqwrYn/hWNqJpJrIebg0lXrVQELM1UNsfHybZFJDZxaRa3Nb1LBkAj/ZoKTvlOTbS59s1E/4pMNQprzus7yZpKhCc79tyY+JoVHZg4UN0wYjBl+nc4HHuaq/qZ+mKJDqDLDkCHrmEWcTwDfCb0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733882983; c=relaxed/simple;
-	bh=Wou3Rb7FNBBrGG0/aVPDfE6DmRKCIrOnAjgjbwt3wc0=;
+	s=arc-20240116; t=1733882984; c=relaxed/simple;
+	bh=g3J/ccupsuJHOP4vgoT2zMnnIwoSdw7C8xxTn5sB4oE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ebn5jwB9siwD0u4n+gK4nkUw3mrlkuQIOrcBtcoN1MlXsESMlljqSCufR3qU+jclXBWqO9HUAxfXbo7sXN26nsLybZZFtKhphvSYKB9PCMNR/WxWb6ReU6cT+aUldZCUXeS5jhaWsIgwH/IIpSRIqXBNS0QpMjF7szMF+4a1ZZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=gr88Z1ex; arc=none smtp.client-ip=115.124.30.99
+	 MIME-Version; b=qpRdijcngykMXeozy5PYtZatbCAGdVkIu+G+ELfX4ONDnNyCTx9cnRbDCRr4DPK6tjqC7yfGnhJv6o9W1/63X1dELTHzmnzjB6Vay2NeT/mlvvBiI9ZaAmAELyPcEzrahxwo20hbzGL7o4C423Aaqwau4jLcbQ1b+SYfg9Qrct0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=lhFrMFSe; arc=none smtp.client-ip=115.124.30.111
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="gr88Z1ex"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="lhFrMFSe"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1733882979; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=p+TEDhvp7etbr2vhVKRRF1R0B1jBE2sB+9nHA22TqEw=;
-	b=gr88Z1ex063IC/DbtnLt9rBwD/14fLZFs/6+Axp0IfpGYsyL4KDLYzCK2qJo3OPr6+lHIfv3RiE+KjVCa+H6wUEdRbZ3MaQ1/vtl6JzEn/Be7oBge2EjiVfPdpKKfOquda1KUhyss4e6uhsN4u6DxAR88Nq4kSYQ9fBXsECxaRQ=
-Received: from localhost(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0WLGPQHd_1733882978 cluster:ay36)
+	t=1733882974; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=pggvjnqjcEYQjTpdgMUoK32HepvaRsI1aHtgFNyWBTY=;
+	b=lhFrMFSe7hFK/U/RpMRD65L+ntyKe5d6MI3YKeOcJj2Q+0qpZLOZv2c1fYfWoUo2HcWPNhC06n8jLJNMhaqOsIB5ib6slYVJvwkiVYm3e7zxdL7SxORtW1qcT90iX8zd/waH19C67T1vmMbdrTkdFrKY34zwuEBXdVtilzb+W+Q=
+Received: from localhost(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0WLGS1IX_1733882972 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Wed, 11 Dec 2024 10:09:38 +0800
+          Wed, 11 Dec 2024 10:09:33 +0800
 From: Boshi Yu <boshiyu@linux.alibaba.com>
 To: jgg@ziepe.ca,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	kaishen@linux.alibaba.com,
 	chengyou@linux.alibaba.com
-Subject: [PATCH for-next v2 7/8] RDMA/erdma: Add the query_qp command to the cmdq
-Date: Wed, 11 Dec 2024 10:09:07 +0800
-Message-ID: <20241211020930.68833-8-boshiyu@linux.alibaba.com>
+Subject: [PATCH for-next v2 1/8] RDMA/erdma: Probe the erdma RoCEv2 device
+Date: Wed, 11 Dec 2024 10:09:01 +0800
+Message-ID: <20241211020930.68833-2-boshiyu@linux.alibaba.com>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <20241211020930.68833-1-boshiyu@linux.alibaba.com>
 References: <20241211020930.68833-1-boshiyu@linux.alibaba.com>
@@ -44,140 +44,204 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Certian QP attributes, such as sq_draining, can only be obtained
-by querying the hardware on the erdma RoCEv2 device. To address this,
-we add the query_qp command to the cmdq and parse the response to
-retrieve corresponding QP attributes.
+Currently, the erdma driver supports both the iWARP and RoCEv2 protocols.
+The erdma driver reads the ERDMA_REGS_DEV_PROTO_REG register to identify
+the protocol used by the erdma device. Since each protocol requires
+different ib_device_ops, we introduce the erdma_device_ops_iwarp and
+erdma_device_ops_rocev2 for iWARP and RoCEv2 protocols, respectively.
 
 Signed-off-by: Boshi Yu <boshiyu@linux.alibaba.com>
 Reviewed-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- drivers/infiniband/hw/erdma/erdma_hw.h    | 12 +++++
- drivers/infiniband/hw/erdma/erdma_verbs.c | 58 +++++++++++++++++++----
- 2 files changed, 60 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/erdma/Kconfig       |  2 +-
+ drivers/infiniband/hw/erdma/erdma.h       |  3 +-
+ drivers/infiniband/hw/erdma/erdma_hw.h    |  7 +++++
+ drivers/infiniband/hw/erdma/erdma_main.c  | 34 +++++++++++++++++------
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 16 ++++++++++-
+ drivers/infiniband/hw/erdma/erdma_verbs.h | 12 ++++++++
+ 6 files changed, 62 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/infiniband/hw/erdma/Kconfig b/drivers/infiniband/hw/erdma/Kconfig
+index 169038e3ceb1..267fc1f3c42a 100644
+--- a/drivers/infiniband/hw/erdma/Kconfig
++++ b/drivers/infiniband/hw/erdma/Kconfig
+@@ -5,7 +5,7 @@ config INFINIBAND_ERDMA
+ 	depends on INFINIBAND_ADDR_TRANS
+ 	depends on INFINIBAND_USER_ACCESS
+ 	help
+-	  This is a RDMA/iWarp driver for Alibaba Elastic RDMA Adapter(ERDMA),
++	  This is a RDMA driver for Alibaba Elastic RDMA Adapter(ERDMA),
+ 	  which supports RDMA features in Alibaba cloud environment.
+ 
+ 	  To compile this driver as module, choose M here. The module will be
+diff --git a/drivers/infiniband/hw/erdma/erdma.h b/drivers/infiniband/hw/erdma/erdma.h
+index 3c166359448d..ad4dc1a4bdc7 100644
+--- a/drivers/infiniband/hw/erdma/erdma.h
++++ b/drivers/infiniband/hw/erdma/erdma.h
+@@ -16,7 +16,7 @@
+ #include "erdma_hw.h"
+ 
+ #define DRV_MODULE_NAME "erdma"
+-#define ERDMA_NODE_DESC "Elastic RDMA(iWARP) stack"
++#define ERDMA_NODE_DESC "Elastic RDMA Adapter stack"
+ 
+ struct erdma_eq {
+ 	void *qbuf;
+@@ -215,6 +215,7 @@ struct erdma_dev {
+ 
+ 	struct dma_pool *db_pool;
+ 	struct dma_pool *resp_pool;
++	enum erdma_proto_type proto;
+ };
+ 
+ static inline void *get_queue_entry(void *qbuf, u32 idx, u32 depth, u32 shift)
 diff --git a/drivers/infiniband/hw/erdma/erdma_hw.h b/drivers/infiniband/hw/erdma/erdma_hw.h
-index 3b0f7fc4ff31..809e77dde271 100644
+index 05978f3b1475..970b392d4fb4 100644
 --- a/drivers/infiniband/hw/erdma/erdma_hw.h
 +++ b/drivers/infiniband/hw/erdma/erdma_hw.h
-@@ -154,6 +154,7 @@ enum CMDQ_RDMA_OPCODE {
- 	CMDQ_OPCODE_SET_GID = 14,
- 	CMDQ_OPCODE_CREATE_AH = 15,
- 	CMDQ_OPCODE_DESTROY_AH = 16,
-+	CMDQ_OPCODE_QUERY_QP = 17,
- };
+@@ -21,8 +21,15 @@
+ #define ERDMA_NUM_MSIX_VEC 32U
+ #define ERDMA_MSIX_VECTOR_CMDQ 0
  
- enum CMDQ_COMMON_OPCODE {
-@@ -362,6 +363,17 @@ struct erdma_cmdq_mod_qp_req_rocev2 {
- 	struct erdma_av_cfg av_cfg;
- };
- 
-+/* query qp response mask */
-+#define ERDMA_CMD_QUERY_QP_RESP_SQ_PSN_MASK GENMASK_ULL(23, 0)
-+#define ERDMA_CMD_QUERY_QP_RESP_RQ_PSN_MASK GENMASK_ULL(47, 24)
-+#define ERDMA_CMD_QUERY_QP_RESP_QP_STATE_MASK GENMASK_ULL(55, 48)
-+#define ERDMA_CMD_QUERY_QP_RESP_SQ_DRAINING_MASK GENMASK_ULL(56, 56)
-+
-+struct erdma_cmdq_query_qp_req_rocev2 {
-+	u64 hdr;
-+	u32 qpn;
++/* erdma device protocol type */
++enum erdma_proto_type {
++	ERDMA_PROTO_IWARP = 0,
++	ERDMA_PROTO_ROCEV2 = 1,
 +};
 +
- /* create qp cfg0 */
- #define ERDMA_CMD_CREATE_QP_SQ_DEPTH_MASK GENMASK(31, 20)
- #define ERDMA_CMD_CREATE_QP_QPN_MASK GENMASK(19, 0)
+ /* PCIe Bar0 Registers. */
+ #define ERDMA_REGS_VERSION_REG 0x0
++#define ERDMA_REGS_DEV_PROTO_REG 0xC
+ #define ERDMA_REGS_DEV_CTRL_REG 0x10
+ #define ERDMA_REGS_DEV_ST_REG 0x14
+ #define ERDMA_REGS_NETDEV_MAC_L_REG 0x18
+diff --git a/drivers/infiniband/hw/erdma/erdma_main.c b/drivers/infiniband/hw/erdma/erdma_main.c
+index 62f497a71004..cf97bb79e595 100644
+--- a/drivers/infiniband/hw/erdma/erdma_main.c
++++ b/drivers/infiniband/hw/erdma/erdma_main.c
+@@ -172,6 +172,8 @@ static int erdma_device_init(struct erdma_dev *dev, struct pci_dev *pdev)
+ {
+ 	int ret;
+ 
++	dev->proto = erdma_reg_read32(dev, ERDMA_REGS_DEV_PROTO_REG);
++
+ 	dev->resp_pool = dma_pool_create("erdma_resp_pool", &pdev->dev,
+ 					 ERDMA_HW_RESP_SIZE, ERDMA_HW_RESP_SIZE,
+ 					 0);
+@@ -474,6 +476,21 @@ static void erdma_res_cb_free(struct erdma_dev *dev)
+ 		bitmap_free(dev->res_cb[i].bitmap);
+ }
+ 
++static const struct ib_device_ops erdma_device_ops_rocev2 = {
++	.get_link_layer = erdma_get_link_layer,
++};
++
++static const struct ib_device_ops erdma_device_ops_iwarp = {
++	.iw_accept = erdma_accept,
++	.iw_add_ref = erdma_qp_get_ref,
++	.iw_connect = erdma_connect,
++	.iw_create_listen = erdma_create_listen,
++	.iw_destroy_listen = erdma_destroy_listen,
++	.iw_get_qp = erdma_get_ibqp,
++	.iw_reject = erdma_reject,
++	.iw_rem_ref = erdma_qp_put_ref,
++};
++
+ static const struct ib_device_ops erdma_device_ops = {
+ 	.owner = THIS_MODULE,
+ 	.driver_id = RDMA_DRIVER_ERDMA,
+@@ -494,14 +511,6 @@ static const struct ib_device_ops erdma_device_ops = {
+ 	.get_dma_mr = erdma_get_dma_mr,
+ 	.get_hw_stats = erdma_get_hw_stats,
+ 	.get_port_immutable = erdma_get_port_immutable,
+-	.iw_accept = erdma_accept,
+-	.iw_add_ref = erdma_qp_get_ref,
+-	.iw_connect = erdma_connect,
+-	.iw_create_listen = erdma_create_listen,
+-	.iw_destroy_listen = erdma_destroy_listen,
+-	.iw_get_qp = erdma_get_ibqp,
+-	.iw_reject = erdma_reject,
+-	.iw_rem_ref = erdma_qp_put_ref,
+ 	.map_mr_sg = erdma_map_mr_sg,
+ 	.mmap = erdma_mmap,
+ 	.mmap_free = erdma_mmap_free,
+@@ -537,7 +546,14 @@ static int erdma_ib_device_add(struct pci_dev *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ibdev->node_type = RDMA_NODE_RNIC;
++	if (erdma_device_iwarp(dev)) {
++		ibdev->node_type = RDMA_NODE_RNIC;
++		ib_set_device_ops(ibdev, &erdma_device_ops_iwarp);
++	} else {
++		ibdev->node_type = RDMA_NODE_IB_CA;
++		ib_set_device_ops(ibdev, &erdma_device_ops_rocev2);
++	}
++
+ 	memcpy(ibdev->node_desc, ERDMA_NODE_DESC, sizeof(ERDMA_NODE_DESC));
+ 
+ 	/*
 diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
-index 0543ff972247..e7fd3b948688 100644
+index 51d619edb6c5..3b7e55515cfd 100644
 --- a/drivers/infiniband/hw/erdma/erdma_verbs.c
 +++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
-@@ -1563,6 +1563,19 @@ static void erdma_attr_to_av(const struct rdma_ah_attr *ah_attr,
- 		av->ntype = ERDMA_NETWORK_TYPE_IPV6;
- }
+@@ -395,8 +395,17 @@ int erdma_query_port(struct ib_device *ibdev, u32 port,
+ int erdma_get_port_immutable(struct ib_device *ibdev, u32 port,
+ 			     struct ib_port_immutable *port_immutable)
+ {
++	struct erdma_dev *dev = to_edev(ibdev);
++
++	if (erdma_device_iwarp(dev)) {
++		port_immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
++	} else {
++		port_immutable->core_cap_flags =
++			RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
++		port_immutable->max_mad_size = IB_MGMT_MAD_SIZE;
++	}
++
+ 	port_immutable->gid_tbl_len = 1;
+-	port_immutable->core_cap_flags = RDMA_CORE_PORT_IWARP;
  
-+static void erdma_av_to_attr(struct erdma_av *av, struct rdma_ah_attr *ah_attr)
+ 	return 0;
+ }
+@@ -1839,3 +1848,8 @@ int erdma_get_hw_stats(struct ib_device *ibdev, struct rdma_hw_stats *stats,
+ 
+ 	return stats->num_counters;
+ }
++
++enum rdma_link_layer erdma_get_link_layer(struct ib_device *ibdev, u32 port_num)
 +{
-+	ah_attr->type = RDMA_AH_ATTR_TYPE_ROCE;
-+
-+	rdma_ah_set_sl(ah_attr, av->sl);
-+	rdma_ah_set_port_num(ah_attr, av->port);
-+	rdma_ah_set_ah_flags(ah_attr, IB_AH_GRH);
-+
-+	rdma_ah_set_grh(ah_attr, NULL, av->flow_label, av->sgid_index,
-+			av->hop_limit, av->traffic_class);
-+	rdma_ah_set_dgid_raw(ah_attr, av->dgid);
++	return IB_LINK_LAYER_ETHERNET;
++}
+diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.h b/drivers/infiniband/hw/erdma/erdma_verbs.h
+index c998acd39a78..90e2b35a0973 100644
+--- a/drivers/infiniband/hw/erdma/erdma_verbs.h
++++ b/drivers/infiniband/hw/erdma/erdma_verbs.h
+@@ -291,6 +291,16 @@ int erdma_modify_qp_internal(struct erdma_qp *qp, struct erdma_qp_attrs *attrs,
+ void erdma_qp_llp_close(struct erdma_qp *qp);
+ void erdma_qp_cm_drop(struct erdma_qp *qp);
+ 
++static inline bool erdma_device_iwarp(struct erdma_dev *dev)
++{
++	return dev->proto == ERDMA_PROTO_IWARP;
 +}
 +
- static int ib_qps_to_erdma_qps[ERDMA_PROTO_COUNT][IB_QPS_ERR + 1] = {
- 	[ERDMA_PROTO_IWARP] = {
- 		[IB_QPS_RESET] = ERDMA_QPS_IWARP_IDLE,
-@@ -1764,8 +1777,11 @@ static enum ib_qp_state query_qp_state(struct erdma_qp *qp)
- int erdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 		   int qp_attr_mask, struct ib_qp_init_attr *qp_init_attr)
++static inline bool erdma_device_rocev2(struct erdma_dev *dev)
++{
++	return dev->proto == ERDMA_PROTO_ROCEV2;
++}
++
+ static inline struct erdma_ucontext *to_ectx(struct ib_ucontext *ibctx)
  {
-+	struct erdma_cmdq_query_qp_req_rocev2 req;
- 	struct erdma_dev *dev;
- 	struct erdma_qp *qp;
-+	u64 resp;
-+	int ret;
+ 	return container_of(ibctx, struct erdma_ucontext, ibucontext);
+@@ -370,5 +380,7 @@ struct rdma_hw_stats *erdma_alloc_hw_port_stats(struct ib_device *device,
+ 						u32 port_num);
+ int erdma_get_hw_stats(struct ib_device *ibdev, struct rdma_hw_stats *stats,
+ 		       u32 port, int index);
++enum rdma_link_layer erdma_get_link_layer(struct ib_device *ibdev,
++					  u32 port_num);
  
- 	if (ibqp && qp_attr && qp_init_attr) {
- 		qp = to_eqp(ibqp);
-@@ -1792,8 +1808,37 @@ int erdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 
- 	qp_init_attr->cap = qp_attr->cap;
- 
--	qp_attr->qp_state = query_qp_state(qp);
--	qp_attr->cur_qp_state = query_qp_state(qp);
-+	if (erdma_device_rocev2(dev)) {
-+		/* Query hardware to get some attributes */
-+		erdma_cmdq_build_reqhdr(&req.hdr, CMDQ_SUBMOD_RDMA,
-+					CMDQ_OPCODE_QUERY_QP);
-+		req.qpn = QP_ID(qp);
-+
-+		ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), &resp,
-+					  NULL);
-+		if (ret)
-+			return ret;
-+
-+		qp_attr->sq_psn =
-+			FIELD_GET(ERDMA_CMD_QUERY_QP_RESP_SQ_PSN_MASK, resp);
-+		qp_attr->rq_psn =
-+			FIELD_GET(ERDMA_CMD_QUERY_QP_RESP_RQ_PSN_MASK, resp);
-+		qp_attr->qp_state = rocev2_to_ib_qps(
-+			FIELD_GET(ERDMA_CMD_QUERY_QP_RESP_QP_STATE_MASK, resp));
-+		qp_attr->cur_qp_state = qp_attr->qp_state;
-+		qp_attr->sq_draining = FIELD_GET(
-+			ERDMA_CMD_QUERY_QP_RESP_SQ_DRAINING_MASK, resp);
-+
-+		qp_attr->pkey_index = 0;
-+		qp_attr->dest_qp_num = qp->attrs.rocev2.dst_qpn;
-+
-+		if (qp->ibqp.qp_type == IB_QPT_RC)
-+			erdma_av_to_attr(&qp->attrs.rocev2.av,
-+					 &qp_attr->ah_attr);
-+	} else {
-+		qp_attr->qp_state = query_qp_state(qp);
-+		qp_attr->cur_qp_state = qp_attr->qp_state;
-+	}
- 
- 	return 0;
- }
-@@ -2185,14 +2230,7 @@ int erdma_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr)
- 	struct erdma_ah *ah = to_eah(ibah);
- 
- 	memset(ah_attr, 0, sizeof(*ah_attr));
--
--	ah_attr->type = RDMA_AH_ATTR_TYPE_ROCE;
--	rdma_ah_set_sl(ah_attr, ah->av.sl);
--	rdma_ah_set_port_num(ah_attr, ah->av.port);
--	rdma_ah_set_ah_flags(ah_attr, IB_AH_GRH);
--	rdma_ah_set_grh(ah_attr, NULL, ah->av.flow_label, ah->av.sgid_index,
--			ah->av.hop_limit, ah->av.traffic_class);
--	rdma_ah_set_dgid_raw(ah_attr, ah->av.dgid);
-+	erdma_av_to_attr(&ah->av, ah_attr);
- 
- 	return 0;
- }
+ #endif
 -- 
 2.43.5
 
