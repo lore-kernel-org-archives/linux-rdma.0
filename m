@@ -1,67 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE10A2336A4;
-	Wed, 11 Dec 2024 09:19:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFED4233680;
+	Wed, 11 Dec 2024 09:21:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733908763; cv=none; b=LYLXqYoeAttqrL5pdJb2eMhBJ/Tty+qGtFb02VX8kSnZdLK19KRHTSraEjn1kohXSoTkUxiipJOhgcZ47IVui91zi2O60utT8GCcxU8uq6G08nbRbQ+qtHO2/uqNFnV7Ep5b8sEphOJF7sEA4/IVjrwcuWGyHS30ZGZyIDanR/g=
+	t=1733908898; cv=none; b=AiPPqXzI0h0DRQZhi8vVLismFtmu3XC/oxEeXnwnOVgQdEODMJk2lBp2kZbePXZ7mu43OcO2HL8kr5kTfqfjlmiXhjHUJFFLKqacUpKdvLV+bHGrUAKcXs7Mp+OYDwvZ3+R7OjgsSHqYVQoiea58kqI7Z0F7IhpkzCNg/MfMtO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733908763; c=relaxed/simple;
-	bh=5Zj9F6Cp4uvMjjvZ3FuxT+1lsAKj5je8ROGKo0mRbJI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SqasIWTMzx2J3A/lpTfdLjxdHaMI4r3Pxvis2cDUYOlhlJ16eddQFSm0xZdAoVBkVOtoyF0O6qjyZBpKB7nCoj18TuRw0bPdkQmDHQq2qgVIouzhudgnlEDmU7pt7T1xjJjKLgecCWPGqgB0LzykzxiJLJ80mdghsR1d7TjMglg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=mpKm2Rk3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1733908898; c=relaxed/simple;
+	bh=a2nBastnrCJ+Q8H/sRyw6AmS0iybgPTtu8YvzJdxEl0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=RMAyud8LaICXJUK3+jj4IoUNVqB3svDwG6W/ijBOhbkUeax+ke9lvYVRuzpu6lnNiQVJl1vGlAl80gwPtB0Tiu8Px2D1NHDdEGap6JviDxznXcGKwQqEdxnHmFnd/lZg1j9fsBc+6gx8DmwBZO65IOCs6vW8V0jZflRNxg357Is=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=veK6Eqjz; arc=none smtp.client-ip=115.124.30.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="mpKm2Rk3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05104C4CED2;
-	Wed, 11 Dec 2024 09:19:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1733908762;
-	bh=5Zj9F6Cp4uvMjjvZ3FuxT+1lsAKj5je8ROGKo0mRbJI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=mpKm2Rk3FddeI8Ei4uiZbNP7W1JvxK1fjaXlSowmJSskMVf1tZL2SPV1FX+gKZ43s
-	 Td3tN+RR+0gxseyXWQYRmOzGJw91VjqZe2az5MyFaENi5MVyPbsCF7lqUeqMCSVDCx
-	 hr5qo4trOKn6qjN7jfEsS6DWi7iC2RGNmyX37hos=
-Date: Wed, 11 Dec 2024 10:18:46 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: jianqi.ren.cn@windriver.com
-Cc: cratiu@nvidia.com, dtatulea@nvidia.com, tariqt@nvidia.com,
-	pabeni@redhat.com, patches@lists.linux.dev, stable@vger.kernel.org,
-	saeedm@nvidia.com, leon@kernel.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, roid@nvidia.com,
-	netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="veK6Eqjz"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1733908892; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=BTRNYGHrd82xYJL1vADKA/NPF30Dt6eN5hXvBItCJ9o=;
+	b=veK6EqjzviyojYQW71NhM1GVkKg5CBWy7AS/hUR3SQ6mjOz/VR6HhRqw7aLhZaZj+jIp1Mx5/JQH0s1TOj3Gmym/bps6dIrN5NHBoXnUsQ9w6J145Q6aYwwo8ledNhTc34UT1B/xOEwTAkJWV8TzsM34OAx7KkGKxycaFHXiG0E=
+Received: from localhost.localdomain(mailfrom:guangguan.wang@linux.alibaba.com fp:SMTPD_---0WLHtOnE_1733908891 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 11 Dec 2024 17:21:31 +0800
+From: Guangguan Wang <guangguan.wang@linux.alibaba.com>
+To: wenjia@linux.ibm.com,
+	jaka@linux.ibm.com,
+	alibuda@linux.alibaba.com,
+	tonylu@linux.alibaba.com,
+	guwen@linux.alibaba.com,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 6.1.y] net/mlx5e: Don't call cleanup on profile rollback
- failure
-Message-ID: <2024121114-subsidize-tattered-dd8c@gregkh>
-References: <20241211100953.2069964-1-jianqi.ren.cn@windriver.com>
+Subject: [PATCH net v2 1/6] net/smc: protect link down work from execute after lgr freed
+Date: Wed, 11 Dec 2024 17:21:16 +0800
+Message-Id: <20241211092121.19412-2-guangguan.wang@linux.alibaba.com>
+X-Mailer: git-send-email 2.24.3 (Apple Git-128)
+In-Reply-To: <20241211092121.19412-1-guangguan.wang@linux.alibaba.com>
+References: <20241211092121.19412-1-guangguan.wang@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241211100953.2069964-1-jianqi.ren.cn@windriver.com>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Dec 11, 2024 at 06:09:53PM +0800, jianqi.ren.cn@windriver.com wrote:
-> From: Cosmin Ratiu <cratiu@nvidia.com>
-> 
-> [ Upstream commit 4dbc1d1a9f39c3711ad2a40addca04d07d9ab5d0 ]
+link down work may be scheduled before lgr freed but execute
+after lgr freed, which may result in crash. So it is need to
+hold a reference before shedule link down work, and put the
+reference after work executed or canceled.
 
-Please note that we can not apply a commit to an older stable tree that
-is NOT in newer ones as you would obviously have a regression when
-moving to a newer kernel.
+The relevant crash call stack as follows:
+ list_del corruption. prev->next should be ffffb638c9c0fe20,
+    but was 0000000000000000
+ ------------[ cut here ]------------
+ kernel BUG at lib/list_debug.c:51!
+ invalid opcode: 0000 [#1] SMP NOPTI
+ CPU: 6 PID: 978112 Comm: kworker/6:119 Kdump: loaded Tainted: G #1
+ Hardware name: Alibaba Cloud Alibaba Cloud ECS, BIOS 2221b89 04/01/2014
+ Workqueue: events smc_link_down_work [smc]
+ RIP: 0010:__list_del_entry_valid.cold+0x31/0x47
+ RSP: 0018:ffffb638c9c0fdd8 EFLAGS: 00010086
+ RAX: 0000000000000054 RBX: ffff942fb75e5128 RCX: 0000000000000000
+ RDX: ffff943520930aa0 RSI: ffff94352091fc80 RDI: ffff94352091fc80
+ RBP: 0000000000000000 R08: 0000000000000000 R09: ffffb638c9c0fc38
+ R10: ffffb638c9c0fc30 R11: ffffffffa015eb28 R12: 0000000000000002
+ R13: ffffb638c9c0fe20 R14: 0000000000000001 R15: ffff942f9cd051c0
+ FS:  0000000000000000(0000) GS:ffff943520900000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: 00007f4f25214000 CR3: 000000025fbae004 CR4: 00000000007706e0
+ DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+ DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+ PKRU: 55555554
+ Call Trace:
+  rwsem_down_write_slowpath+0x17e/0x470
+  smc_link_down_work+0x3c/0x60 [smc]
+  process_one_work+0x1ac/0x350
+  worker_thread+0x49/0x2f0
+  ? rescuer_thread+0x360/0x360
+  kthread+0x118/0x140
+  ? __kthread_bind_mask+0x60/0x60
+  ret_from_fork+0x1f/0x30
 
-I am guessing that you are being tasked with backporting CVE fixes to
-older stable kernels, which is great, but please work "down the release
-list" by starting with the newest one, and then moving to the older
-ones.  Otherwise we just can't take these and you are causing a lot of
-extra review/checking time on our side here to verify you are doing it
-all correctly :(
+Fixes: 541afa10c126 ("net/smc: add smcr_port_err() and smcr_link_down() processing")
+Signed-off-by: Guangguan Wang <guangguan.wang@linux.alibaba.com>
+Reviewed-by: Tony Lu <tonylu@linux.alibaba.com>
+---
+ net/smc/smc_core.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-thanks,
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 500952c2e67b..3b125d348b4a 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -1818,7 +1818,9 @@ void smcr_link_down_cond_sched(struct smc_link *lnk)
+ {
+ 	if (smc_link_downing(&lnk->state)) {
+ 		trace_smcr_link_down(lnk, __builtin_return_address(0));
+-		schedule_work(&lnk->link_down_wrk);
++		smcr_link_hold(lnk); /* smcr_link_put in link_down_wrk */
++		if (!schedule_work(&lnk->link_down_wrk))
++			smcr_link_put(lnk);
+ 	}
+ }
+ 
+@@ -1850,11 +1852,14 @@ static void smc_link_down_work(struct work_struct *work)
+ 	struct smc_link_group *lgr = link->lgr;
+ 
+ 	if (list_empty(&lgr->list))
+-		return;
++		goto out;
+ 	wake_up_all(&lgr->llc_msg_waiter);
+ 	down_write(&lgr->llc_conf_mutex);
+ 	smcr_link_down(link);
+ 	up_write(&lgr->llc_conf_mutex);
++
++out:
++	smcr_link_put(link); /* smcr_link_hold by schedulers of link_down_work */
+ }
+ 
+ static int smc_vlan_by_tcpsk_walk(struct net_device *lower_dev,
+-- 
+2.24.3 (Apple Git-128)
 
-greg k-h
