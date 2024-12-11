@@ -1,29 +1,28 @@
-Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
+Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E5ED233690;
-	Wed, 11 Dec 2024 09:21:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 011801EC4F7;
+	Wed, 11 Dec 2024 09:21:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733908901; cv=none; b=heOK+9YlUvtf6tRewMry7Ch6slX19tsWH0oOkQxo94Ky7CyIy+r6HiP76Y6y+GZ4XKNcNaw/LsfI9CEnTG3oCWJHKCGtLLx7P+JOcc7ZxbkwhRtm7Or9kwA8TVv9HlxeRm7Ij58Cc6vMjiKkIp4OgGtgIydVzYoQ+5rgPh+r0uI=
+	t=1733908902; cv=none; b=hki+r2vtdp5/UrH+CKrNRvm/w3Gmzr/Q+EqSryKXR+QWJDlwTHxY1NYT+Xs2g1jPa9xHWCLrzYBI9e+AK1/6VZk+gIZJeq4WABp0Q8uccbxi6VAZg6Jp6P7xD5q32vQSZH54tZsasuNKXRq+hAjQsq//e+sg8BxeM0PoF8SFTmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733908901; c=relaxed/simple;
-	bh=6ZImDWzluYteV9HOhP6VykJDvpaBaAic9nqullcoOVA=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=bfRewQkt8KxwwpScE0aNA56WfNuHBTMFcTSIKGoZhHoltJyvn3Plv6SbpiLAfhA6h9MC+sNge9JgppFM3SqxsySlu2tEJ/UeG4bienGZyC3gI8wuaj32Uc0uPeb996u6hzn0XjRlYucO36UjWD8WnU2uaBLuA0tFvlUTLxY8kLk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=yMWogaph; arc=none smtp.client-ip=115.124.30.111
+	s=arc-20240116; t=1733908902; c=relaxed/simple;
+	bh=7cNR9sPKjlv74hVDIAta6WaRBItnKamKOO+1+0PELeo=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=JDcv7zzHbs4rnVbTzwjVmmwElBBUmx2rFLRM7e3lI4TUooyN+WSnEQY5PFQLfTIS7uOAzCAO+f8vhPiGbzIgh3dTNlp0lr0bfUBZtkLa4YXC1pXI1sjFG1O9CvUcpt1LUqCkzmJIjfMpD+//IYW6fRhwKV9nsgkTyi4zs4n9czM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=uZIPBO73; arc=none smtp.client-ip=115.124.30.101
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="yMWogaph"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="uZIPBO73"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1733908895; h=From:To:Subject:Date:Message-Id:MIME-Version;
-	bh=VMcxHdfXm940/aFlZ2Z5NABcxYXIJPXBAIVqkgct7sA=;
-	b=yMWogaph12Gq8nBerXoZ6jIuXeb4KSCi3CrWwES1osSyLSyCnjFyutazT1ctC4FmOiRSLniXh+kPYnhMAXZp6QdFU1uyKd+OVB/JC33XppuYo3+6Wp5xEnqF2nMZLRxmXK9mU/vrzSqp6LVqr8q3iYYMw1Jy3TxzqGj1faUqMEM=
-Received: from localhost.localdomain(mailfrom:guangguan.wang@linux.alibaba.com fp:SMTPD_---0WLHtOpa_1733908894 cluster:ay36)
+	t=1733908891; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=wmGAcTq5MjmsZbKOqge4Pnbx9JraZR20R/WgEzVghQY=;
+	b=uZIPBO73IE35V2AYQl41n1tnckUf98/rO2wtanbi4bFszlKD1YpRJjvjZnDZaPcEVIfDCB+1PiB2WfMQwYpTgxjB/mzpMK4drusTd0zJyx84gOtxcX4C9FIeXWJZ2xZauorKkyF86oeuXYYM7sOfnLHAQ4IfpgzEo0w+efkHLn0=
+Received: from localhost.localdomain(mailfrom:guangguan.wang@linux.alibaba.com fp:SMTPD_---0WLHtOmX_1733908889 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Wed, 11 Dec 2024 17:21:35 +0800
+          Wed, 11 Dec 2024 17:21:31 +0800
 From: Guangguan Wang <guangguan.wang@linux.alibaba.com>
 To: wenjia@linux.ibm.com,
 	jaka@linux.ibm.com,
@@ -39,12 +38,10 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-s390@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net v2 6/6] net/smc: check return value of sock_recvmsg when draining clc data
-Date: Wed, 11 Dec 2024 17:21:21 +0800
-Message-Id: <20241211092121.19412-7-guangguan.wang@linux.alibaba.com>
+Subject: [PATCH net v2 0/6] several fixes for smc
+Date: Wed, 11 Dec 2024 17:21:15 +0800
+Message-Id: <20241211092121.19412-1-guangguan.wang@linux.alibaba.com>
 X-Mailer: git-send-email 2.24.3 (Apple Git-128)
-In-Reply-To: <20241211092121.19412-1-guangguan.wang@linux.alibaba.com>
-References: <20241211092121.19412-1-guangguan.wang@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -53,39 +50,26 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When receiving clc msg, the field length in smc_clc_msg_hdr indicates the
-length of msg should be received from network and the value should not be
-fully trusted as it is from the network. Once the value of length exceeds
-the value of buflen in function smc_clc_wait_msg it may run into deadloop
-when trying to drain the remaining data exceeding buflen.
+v1 -> v2:
+rewrite patch #2 suggested by Paolo.
 
-This patch checks the return value of sock_recvmsg when draining data in
-case of deadloop in draining.
+Guangguan Wang (6):
+  net/smc: protect link down work from execute after lgr freed
+  net/smc: check sndbuf_space again after NOSPACE flag is set in
+    smc_poll
+  net/smc: check iparea_offset and ipv6_prefixes_cnt when receiving
+    proposal msg
+  net/smc: check v2_ext_offset/eid_cnt/ism_gid_cnt when receiving
+    proposal msg
+  net/smc: check smcd_v2_ext_offset when receiving proposal msg
+  net/smc: check return value of sock_recvmsg when draining clc data
 
-Fixes: fb4f79264c0f ("net/smc: tolerate future SMCD versions")
-Signed-off-by: Guangguan Wang <guangguan.wang@linux.alibaba.com>
-Reviewed-by: Wen Gu <guwen@linux.alibaba.com>
-Reviewed-by: D. Wythe <alibuda@linux.alibaba.com>
----
- net/smc/smc_clc.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ net/smc/af_smc.c   | 18 ++++++++++++++++--
+ net/smc/smc_clc.c  | 17 ++++++++++++++++-
+ net/smc/smc_clc.h  | 22 +++++++++++++++++++---
+ net/smc/smc_core.c |  9 +++++++--
+ 4 files changed, 58 insertions(+), 8 deletions(-)
 
-diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
-index f721d03efcbd..521f5df80e10 100644
---- a/net/smc/smc_clc.c
-+++ b/net/smc/smc_clc.c
-@@ -774,6 +774,11 @@ int smc_clc_wait_msg(struct smc_sock *smc, void *buf, int buflen,
- 						SMC_CLC_RECV_BUF_LEN : datlen;
- 		iov_iter_kvec(&msg.msg_iter, ITER_DEST, &vec, 1, recvlen);
- 		len = sock_recvmsg(smc->clcsock, &msg, krflags);
-+		if (len < recvlen) {
-+			smc->sk.sk_err = EPROTO;
-+			reason_code = -EPROTO;
-+			goto out;
-+		}
- 		datlen -= len;
- 	}
- 	if (clcm->type == SMC_CLC_DECLINE) {
 -- 
 2.24.3 (Apple Git-128)
 
