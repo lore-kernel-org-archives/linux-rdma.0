@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B952B1F4274;
-	Tue, 17 Dec 2024 13:01:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15A631F3D2B;
+	Tue, 17 Dec 2024 13:01:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734440472; cv=none; b=N219abJ6h3GZcfl/tqzMF/G+fEwuqGZJT+TJelDde+aXgJCfkeCQ78J1Pzn718dzHRnSQ0B2i/ejMxS4pSKHRgx4wGN973qZ7gKJcdXH1DoIpsZviDeZtyKLbSMeGdRHT67MFfZ3vN5RV1hN/wQ4I2+2nf6sYwPPpdAxooyT9gA=
+	t=1734440478; cv=none; b=YDKGanvoUl58yum4lPWw7Mzlf4tA64HeYGfdjiCH+kqMsO0ACx/NqBc4DW74Istxsc59OQNvBEdABmCQQcroOQucxYvB+ahanzkuECu12OLigxTJUeES1pjV90MJ9L63nvkRX4ZM0oUXY3PH6EA6Bu7yTeXmQm6tBv+/VXNYBJU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734440472; c=relaxed/simple;
-	bh=WdqInaVpIkGcAkpr9gOUQBQLK7DsA+zuuZK7hblnYT8=;
+	s=arc-20240116; t=1734440478; c=relaxed/simple;
+	bh=Tuu9lLMPsbpojYflIa+4EI354ts2rpP2NDVkgczvrjY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PjhWa50phhmRtzrcI0gsDtXr/Ce3zD8PDhdCFlG1n2cVqNLGLZQjuaEpiKPrRlZRkgV6bfIAlm10aGaaDsUjW0Crd4r7aiJ9SNDEhMh2YMaBGeKXUUoTLQHN37DyB1rgNzIHlJh2YW1L3dx3M0meoVTaCeHT20brb+LIeW9gYv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=O3InTm2u; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=PdwNLqJO4WBK7IcSFF+CPlPBdHm/Mq3n7Z/KIbciaZsQxMEC2U4aub+n2ZWgNavL3my6rDoELKamfX5IrmyIVq65goLk4bvidbD8Fg3FYZ34VyYI9LCXJLxmJ4meRWcVHzTi/8Sd4/3poOZQ8QD6r3Bj+g2ffV5xSiIvMVpV3F8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SFOnbcEP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="O3InTm2u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5051C4CED4;
-	Tue, 17 Dec 2024 13:01:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SFOnbcEP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEFE8C4CEDE;
+	Tue, 17 Dec 2024 13:01:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1734440472;
-	bh=WdqInaVpIkGcAkpr9gOUQBQLK7DsA+zuuZK7hblnYT8=;
+	s=k20201202; t=1734440476;
+	bh=Tuu9lLMPsbpojYflIa+4EI354ts2rpP2NDVkgczvrjY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=O3InTm2uVHzMNgZCeqg4DYzu/Iyw1FZ9oSsh9RdWFB9YGSJ+qsD3Wmkov7SqgubcL
-	 fxzbeS4FBXMalRCaTR6y2VDWV6fgps21ZKJaT6mCSYt2Ro18L/T+DCTfNuN2Ulieb0
-	 YQAHF+G8fYzzqWPayaqdcssrEmvM9NfZeTvGOTak/0ojSZ5OLrlRD8/+gixv6iwAAw
-	 HHYrK12cKaXOirQS23DEGsZxg5si+E9io0EEo45s4sofx60YAFsSr6SkSvvrY9VDkx
-	 hjyADNAzzYyyrzdFhA0E2UXECIZG0JdHcFUtN6ElC2hWBZLG3CKBtpCpBt2OUdvdHA
-	 7jByhjUYXQf8g==
+	b=SFOnbcEPmkX0bqeNVKeTuJ9cBxPcplTvHF/ZP/RmumhXklJ/tTjc0c0VXdSYZVvMH
+	 XgMdlsyuwihuJS6JHkax0GmbjSuHcvcl0QebwyYZXN9k7cGCrGBH3zlAcqnBkoHabA
+	 pEteBleG6IoonvfvtExGXNHiFvu87m3C1yRjLs3JFYY4OsT+lHfvkPzoLj52pdJhM/
+	 89OSsvuxH83fr4T/XMBrFl1i+KOU1ditkP3Rb9net0w56GPUPJDStLeEvPfbJhRQ76
+	 hQYKywSEIjcrDtwM3NSN77/BjJ7vzYHGMfaOWSRfu5Np/0DSJCQBJMIl2w7Zb/naze
+	 c7TPx7J8ilqqg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jens Axboe <axboe@kernel.dk>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
@@ -34,7 +34,8 @@ To: Jens Axboe <axboe@kernel.dk>,
 	Will Deacon <will@kernel.org>,
 	Christoph Hellwig <hch@lst.de>,
 	Sagi Grimberg <sagi@grimberg.me>
-Cc: Keith Busch <kbusch@kernel.org>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
+	Keith Busch <kbusch@kernel.org>,
 	Bjorn Helgaas <bhelgaas@google.com>,
 	Logan Gunthorpe <logang@deltatee.com>,
 	Yishai Hadas <yishaih@nvidia.com>,
@@ -55,9 +56,9 @@ Cc: Keith Busch <kbusch@kernel.org>,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org,
 	Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH v5 02/17] dma-mapping: move the PCI P2PDMA mapping helpers to pci-p2pdma.h
-Date: Tue, 17 Dec 2024 15:00:20 +0200
-Message-ID: <15e9becd1a061b538b44cbe02a47beeed0f53771.1734436840.git.leon@kernel.org>
+Subject: [PATCH v5 05/17] dma-mapping: Provide an interface to allow allocate IOVA
+Date: Tue, 17 Dec 2024 15:00:23 +0200
+Message-ID: <fac6bc6fdcf8e13bd5668386d36289ee38a8a95b.1734436840.git.leon@kernel.org>
 X-Mailer: git-send-email 2.47.0
 In-Reply-To: <cover.1734436840.git.leon@kernel.org>
 References: <cover.1734436840.git.leon@kernel.org>
@@ -69,239 +70,198 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Christoph Hellwig <hch@lst.de>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-To support the upcoming non-scatterlist mapping helpers, we need to go
-back to have them called outside of the DMA API.  Thus move them out of
-dma-map-ops.h, which is only for DMA API implementations to pci-p2pdma.h,
-which is for driver use.
+The existing .map_page() callback provides both allocating of IOVA
+and linking DMA pages. That combination works great for most of the
+callers who use it in control paths, but is less effective in fast
+paths where there may be multiple calls to map_page().
 
-Note that the core helper is still not exported as the mapping is
-expected to be done only by very highlevel subsystem code at least for
-now.
+These advanced callers already manage their data in some sort of
+database and can perform IOVA allocation in advance, leaving range
+linkage operation to be in fast path.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Provide an interface to allocate/deallocate IOVA and next patch
+link/unlink DMA ranges to that specific IOVA.
+
+In the new API a DMA mapping transaction is identified by a
+struct dma_iova_state, which holds some recomputed information
+for the transaction which does not change for each page being
+mapped, so add a check if IOVA can be used for the specific
+transaction.
+
+The API is exported from dma-iommu as it is the only implementation
+supported, the namespace is clearly different from iommu_* functions
+which are not allowed to be used. This code layout allows us to save
+function call per API call used in datapath as well as a lot of boilerplate
+code.
+
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/iommu/dma-iommu.c   |  1 +
- include/linux/dma-map-ops.h | 85 -------------------------------------
- include/linux/pci-p2pdma.h  | 84 ++++++++++++++++++++++++++++++++++++
- kernel/dma/direct.c         |  1 +
- 4 files changed, 86 insertions(+), 85 deletions(-)
+ drivers/iommu/dma-iommu.c   | 74 +++++++++++++++++++++++++++++++++++++
+ include/linux/dma-mapping.h | 49 ++++++++++++++++++++++++
+ 2 files changed, 123 insertions(+)
 
 diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 5746ffaf0061..853247c42f7d 100644
+index 853247c42f7d..5906b47a300c 100644
 --- a/drivers/iommu/dma-iommu.c
 +++ b/drivers/iommu/dma-iommu.c
-@@ -26,6 +26,7 @@
- #include <linux/mutex.h>
- #include <linux/of_iommu.h>
- #include <linux/pci.h>
-+#include <linux/pci-p2pdma.h>
- #include <linux/scatterlist.h>
- #include <linux/spinlock.h>
- #include <linux/swiotlb.h>
-diff --git a/include/linux/dma-map-ops.h b/include/linux/dma-map-ops.h
-index 63dd480e209b..f48e5fb88bd5 100644
---- a/include/linux/dma-map-ops.h
-+++ b/include/linux/dma-map-ops.h
-@@ -434,89 +434,4 @@ static inline void debug_dma_dump_mappings(struct device *dev)
- #endif /* CONFIG_DMA_API_DEBUG */
- 
- extern const struct dma_map_ops dma_dummy_ops;
--
--enum pci_p2pdma_map_type {
--	/*
--	 * PCI_P2PDMA_MAP_UNKNOWN: Used internally for indicating the mapping
--	 * type hasn't been calculated yet. Functions that return this enum
--	 * never return this value.
--	 */
--	PCI_P2PDMA_MAP_UNKNOWN = 0,
--
--	/*
--	 * Not a PCI P2PDMA transfer.
--	 */
--	PCI_P2PDMA_MAP_NONE,
--
--	/*
--	 * PCI_P2PDMA_MAP_NOT_SUPPORTED: Indicates the transaction will
--	 * traverse the host bridge and the host bridge is not in the
--	 * allowlist. DMA Mapping routines should return an error when
--	 * this is returned.
--	 */
--	PCI_P2PDMA_MAP_NOT_SUPPORTED,
--
--	/*
--	 * PCI_P2PDMA_BUS_ADDR: Indicates that two devices can talk to
--	 * each other directly through a PCI switch and the transaction will
--	 * not traverse the host bridge. Such a mapping should program
--	 * the DMA engine with PCI bus addresses.
--	 */
--	PCI_P2PDMA_MAP_BUS_ADDR,
--
--	/*
--	 * PCI_P2PDMA_MAP_THRU_HOST_BRIDGE: Indicates two devices can talk
--	 * to each other, but the transaction traverses a host bridge on the
--	 * allowlist. In this case, a normal mapping either with CPU physical
--	 * addresses (in the case of dma-direct) or IOVA addresses (in the
--	 * case of IOMMUs) should be used to program the DMA engine.
--	 */
--	PCI_P2PDMA_MAP_THRU_HOST_BRIDGE,
--};
--
--struct pci_p2pdma_map_state {
--	struct dev_pagemap *pgmap;
--	enum pci_p2pdma_map_type map;
--	u64 bus_off;
--};
--
--/* helper for pci_p2pdma_state(), do not use directly */
--void __pci_p2pdma_update_state(struct pci_p2pdma_map_state *state,
--		struct device *dev, struct page *page);
--
--/**
-- * pci_p2pdma_state - check the P2P transfer state of a page
-- * @state:	P2P state structure
-- * @dev:	device to transfer to/from
-- * @page:	page to map
-- *
-- * Check if @page is a PCI P2PDMA page, and if yes of what kind.  Returns the
-- * map type, and updates @state with all information needed for a P2P transfer.
-- */
--static inline enum pci_p2pdma_map_type
--pci_p2pdma_state(struct pci_p2pdma_map_state *state, struct device *dev,
--		struct page *page)
--{
--	if (IS_ENABLED(CONFIG_PCI_P2PDMA) && is_pci_p2pdma_page(page)) {
--		if (state->pgmap != page->pgmap)
--			__pci_p2pdma_update_state(state, dev, page);
--		return state->map;
--	}
--	return PCI_P2PDMA_MAP_NONE;
--}
--
--/**
-- * pci_p2pdma_bus_addr_map - map a PCI_P2PDMA_MAP_BUS_ADDR P2P transfer
-- * @state:	P2P state structure
-- * @paddr:	physical address to map
-- *
-- * Map a physically contigous PCI_P2PDMA_MAP_BUS_ADDR transfer.
-- */
--static inline dma_addr_t
--pci_p2pdma_bus_addr_map(struct pci_p2pdma_map_state *state, phys_addr_t paddr)
--{
--	WARN_ON_ONCE(state->map != PCI_P2PDMA_MAP_BUS_ADDR);
--	return paddr + state->bus_off;
--}
--
- #endif /* _LINUX_DMA_MAP_OPS_H */
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 2c07aa6b7665..e839f52b512b 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -104,4 +104,88 @@ static inline struct pci_dev *pci_p2pmem_find(struct device *client)
- 	return pci_p2pmem_find_many(&client, 1);
+@@ -1746,6 +1746,80 @@ size_t iommu_dma_max_mapping_size(struct device *dev)
+ 	return SIZE_MAX;
  }
  
-+enum pci_p2pdma_map_type {
-+	/*
-+	 * PCI_P2PDMA_MAP_UNKNOWN: Used internally for indicating the mapping
-+	 * type hasn't been calculated yet. Functions that return this enum
-+	 * never return this value.
-+	 */
-+	PCI_P2PDMA_MAP_UNKNOWN = 0,
++/**
++ * dma_iova_try_alloc - Try to allocate an IOVA space
++ * @dev: Device to allocate the IOVA space for
++ * @state: IOVA state
++ * @phys: physical address
++ * @size: IOVA size
++ *
++ * Check if @dev supports the IOVA-based DMA API, and if yes allocate IOVA space
++ * for the given base address and size.
++ *
++ * Note: @phys is only used to calculate the IOVA alignment. Callers that always
++ * do PAGE_SIZE aligned transfers can safely pass 0 here.
++ *
++ * Returns %true if the IOVA-based DMA API can be used and IOVA space has been
++ * allocated, or %false if the regular DMA API should be used.
++ */
++bool dma_iova_try_alloc(struct device *dev, struct dma_iova_state *state,
++		phys_addr_t phys, size_t size)
++{
++	struct iommu_domain *domain = iommu_get_dma_domain(dev);
++	struct iommu_dma_cookie *cookie = domain->iova_cookie;
++	struct iova_domain *iovad = &cookie->iovad;
++	size_t iova_off = iova_offset(iovad, phys);
++	dma_addr_t addr;
 +
-+	/*
-+	 * Not a PCI P2PDMA transfer.
-+	 */
-+	PCI_P2PDMA_MAP_NONE,
++	memset(state, 0, sizeof(*state));
++	if (!use_dma_iommu(dev))
++		return false;
++	if (static_branch_unlikely(&iommu_deferred_attach_enabled) &&
++	    iommu_deferred_attach(dev, iommu_get_domain_for_dev(dev)))
++		return false;
 +
-+	/*
-+	 * PCI_P2PDMA_MAP_NOT_SUPPORTED: Indicates the transaction will
-+	 * traverse the host bridge and the host bridge is not in the
-+	 * allowlist. DMA Mapping routines should return an error when
-+	 * this is returned.
-+	 */
-+	PCI_P2PDMA_MAP_NOT_SUPPORTED,
++	if (WARN_ON_ONCE(!size))
++		return false;
++	if (WARN_ON_ONCE(size & DMA_IOVA_USE_SWIOTLB))
++		return false;
 +
-+	/*
-+	 * PCI_P2PDMA_BUS_ADDR: Indicates that two devices can talk to
-+	 * each other directly through a PCI switch and the transaction will
-+	 * not traverse the host bridge. Such a mapping should program
-+	 * the DMA engine with PCI bus addresses.
-+	 */
-+	PCI_P2PDMA_MAP_BUS_ADDR,
++	addr = iommu_dma_alloc_iova(domain,
++			iova_align(iovad, size + iova_off),
++			dma_get_mask(dev), dev);
++	if (!addr)
++		return false;
 +
-+	/*
-+	 * PCI_P2PDMA_MAP_THRU_HOST_BRIDGE: Indicates two devices can talk
-+	 * to each other, but the transaction traverses a host bridge on the
-+	 * allowlist. In this case, a normal mapping either with CPU physical
-+	 * addresses (in the case of dma-direct) or IOVA addresses (in the
-+	 * case of IOMMUs) should be used to program the DMA engine.
-+	 */
-+	PCI_P2PDMA_MAP_THRU_HOST_BRIDGE,
-+};
-+
-+struct pci_p2pdma_map_state {
-+	struct dev_pagemap *pgmap;
-+	enum pci_p2pdma_map_type map;
-+	u64 bus_off;
-+};
-+
-+/* helper for pci_p2pdma_state(), do not use directly */
-+void __pci_p2pdma_update_state(struct pci_p2pdma_map_state *state,
-+		struct device *dev, struct page *page);
++	state->addr = addr + iova_off;
++	state->__size = size;
++	return true;
++}
++EXPORT_SYMBOL_GPL(dma_iova_try_alloc);
 +
 +/**
-+ * pci_p2pdma_state - check the P2P transfer state of a page
-+ * @state:	P2P state structure
-+ * @dev:	device to transfer to/from
-+ * @page:	page to map
++ * dma_iova_free - Free an IOVA space
++ * @dev: Device to free the IOVA space for
++ * @state: IOVA state
 + *
-+ * Check if @page is a PCI P2PDMA page, and if yes of what kind.  Returns the
-+ * map type, and updates @state with all information needed for a P2P transfer.
-+ */
-+static inline enum pci_p2pdma_map_type
-+pci_p2pdma_state(struct pci_p2pdma_map_state *state, struct device *dev,
-+		struct page *page)
-+{
-+	if (IS_ENABLED(CONFIG_PCI_P2PDMA) && is_pci_p2pdma_page(page)) {
-+		if (state->pgmap != page->pgmap)
-+			__pci_p2pdma_update_state(state, dev, page);
-+		return state->map;
-+	}
-+	return PCI_P2PDMA_MAP_NONE;
-+}
-+
-+/**
-+ * pci_p2pdma_bus_addr_map - map a PCI_P2PDMA_MAP_BUS_ADDR P2P transfer
-+ * @state:	P2P state structure
-+ * @paddr:	physical address to map
++ * Undoes a successful dma_try_iova_alloc().
 + *
-+ * Map a physically contigous PCI_P2PDMA_MAP_BUS_ADDR transfer.
++ * Note that all dma_iova_link() calls need to be undone first.  For callers
++ * that never call dma_iova_unlink(), dma_iova_destroy() can be used instead
++ * which unlinks all ranges and frees the IOVA space in a single efficient
++ * operation.
 + */
-+static inline dma_addr_t
-+pci_p2pdma_bus_addr_map(struct pci_p2pdma_map_state *state, phys_addr_t paddr)
++void dma_iova_free(struct device *dev, struct dma_iova_state *state)
 +{
-+	WARN_ON_ONCE(state->map != PCI_P2PDMA_MAP_BUS_ADDR);
-+	return paddr + state->bus_off;
-+}
++	struct iommu_domain *domain = iommu_get_dma_domain(dev);
++	struct iommu_dma_cookie *cookie = domain->iova_cookie;
++	struct iova_domain *iovad = &cookie->iovad;
++	size_t iova_start_pad = iova_offset(iovad, state->addr);
++	size_t size = dma_iova_size(state);
 +
- #endif /* _LINUX_PCI_P2P_H */
-diff --git a/kernel/dma/direct.c b/kernel/dma/direct.c
-index e289ad27d1b5..c9b3893257d4 100644
---- a/kernel/dma/direct.c
-+++ b/kernel/dma/direct.c
-@@ -13,6 +13,7 @@
- #include <linux/vmalloc.h>
- #include <linux/set_memory.h>
- #include <linux/slab.h>
-+#include <linux/pci-p2pdma.h>
- #include "direct.h"
++	iommu_dma_free_iova(cookie, state->addr - iova_start_pad,
++			iova_align(iovad, size + iova_start_pad), NULL);
++}
++EXPORT_SYMBOL_GPL(dma_iova_free);
++
+ void iommu_setup_dma_ops(struct device *dev)
+ {
+ 	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index b79925b1c433..55899d65668b 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -7,6 +7,8 @@
+ #include <linux/dma-direction.h>
+ #include <linux/scatterlist.h>
+ #include <linux/bug.h>
++#include <linux/mem_encrypt.h>
++#include <linux/iommu.h>
  
- /*
+ /**
+  * List of possible attributes associated with a DMA mapping. The semantics
+@@ -72,6 +74,21 @@
+ 
+ #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
+ 
++struct dma_iova_state {
++	dma_addr_t addr;
++	size_t __size;
++};
++
++/*
++ * Use the high bit to mark if we used swiotlb for one or more ranges.
++ */
++#define DMA_IOVA_USE_SWIOTLB		(1ULL << 63)
++
++static inline size_t dma_iova_size(struct dma_iova_state *state)
++{
++	return state->__size & ~DMA_IOVA_USE_SWIOTLB;
++}
++
+ #ifdef CONFIG_DMA_API_DEBUG
+ void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
+ void debug_dma_map_single(struct device *dev, const void *addr,
+@@ -277,6 +294,38 @@ static inline int dma_mmap_noncontiguous(struct device *dev,
+ }
+ #endif /* CONFIG_HAS_DMA */
+ 
++#ifdef CONFIG_IOMMU_DMA
++/**
++ * dma_use_iova - check if the IOVA API is used for this state
++ * @state: IOVA state
++ *
++ * Return %true if the DMA transfers uses the dma_iova_*() calls or %false if
++ * they can't be used.
++ */
++static inline bool dma_use_iova(struct dma_iova_state *state)
++{
++	return state->__size != 0;
++}
++
++bool dma_iova_try_alloc(struct device *dev, struct dma_iova_state *state,
++		phys_addr_t phys, size_t size);
++void dma_iova_free(struct device *dev, struct dma_iova_state *state);
++#else /* CONFIG_IOMMU_DMA */
++static inline bool dma_use_iova(struct dma_iova_state *state)
++{
++	return false;
++}
++static inline bool dma_iova_try_alloc(struct device *dev,
++		struct dma_iova_state *state, phys_addr_t phys, size_t size)
++{
++	return false;
++}
++static inline void dma_iova_free(struct device *dev,
++		struct dma_iova_state *state)
++{
++}
++#endif /* CONFIG_IOMMU_DMA */
++
+ #if defined(CONFIG_HAS_DMA) && defined(CONFIG_DMA_NEED_SYNC)
+ void __dma_sync_single_for_cpu(struct device *dev, dma_addr_t addr, size_t size,
+ 		enum dma_data_direction dir);
 -- 
 2.47.0
 
