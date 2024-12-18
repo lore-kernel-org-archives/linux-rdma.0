@@ -1,39 +1,59 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.4])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id ACC2E27726;
-	Wed, 18 Dec 2024 02:37:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.4
+Received: from out30-98.freemail.mail.aliyun.com (out30-98.freemail.mail.aliyun.com [115.124.30.98])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75D8513C81B;
+	Wed, 18 Dec 2024 02:44:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.98
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734489427; cv=none; b=lMPVu0KTocswZ4fQ7J4GevwgPqPPxDk6skX+19desDfdPAp1jkyVBW7D0QWC7bjVz3V8yh0NL8wO5mz5JsPl3IZWMKK1dFBpEKTYXsIdixTOyTo5dP+w5HjGOmzcVLdzKlBOT3lqfnfk456MFI53GCHm00xv9Pf/sy4jvy1Cox0=
+	t=1734489875; cv=none; b=SttUDIBX50rV5aZwe6CCWv9oVr5Qc6zEw1YBaVwCAymarcfAe2Xf8wMOsZn7vrnOL5ereTqSNKJxMtHiZS4e6LFOTITWCFOZTHN2ai1oBKopUSv1DnWOJRl31f5qa17QkDDiA0+PIHepZLSKEIQbibSs+Jh3mTiLjSi6VNBj9NU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734489427; c=relaxed/simple;
-	bh=jaqbbLQoknIFQwmg10bJ1tjvgzlprTal8JU1aoAgPjc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=TwFssNAHCH3PeGpDXpcjngS5kxsJ/UeHrDGyJetC0svXWekmy7Ytr1OLahANkcVL/aZbU7GN7lo5TEik7Z9Xm106jvGqme++C037sW65SkI+EPYH/mEjp6ZA0VHx5I/wSBwI38vbZGy6X4a+G0zWKmnHb1cILNRdV9eAgEujqvg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=X3nicI1v; arc=none smtp.client-ip=220.197.31.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1734489875; c=relaxed/simple;
+	bh=8Me0+ORdUwnQJJZusQP7gsBibbKOgKoUBm5L+YNIMj0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=q5DcSQMydlEwUdCCo0moSzteLtRCzIVkESBqoB5vqjpbpNsPnx8RYH+puD/q2GebnelaZwv5bRKI/c+e8isfStE1s9r11ChhwBHPzqfUVSVUIu8aeR0uYQ15X9d+l/PlVD0a0En6QE0uyx5tQd+CQfnQDdHuXibnD4xjp9SBsZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=QgkUQ4wR; arc=none smtp.client-ip=115.124.30.98
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="X3nicI1v"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=hj2/9
-	QDLoQo5a1w3izcY0WRs2JQA5rA7zdcu4wKx9SE=; b=X3nicI1vpb365lq22pvRQ
-	AzUn3Q861mQflu+Gfc89s2gjJtLGVJzyobzS170k+LViaqVl26lM1Y+6CCMFTvIJ
-	U8YEsqXFFwocnzwXguzlufnGuSk2Ds/DunelD1Oek0arVsgQrJABSNwIZIhnPCdZ
-	4hCzHk0LS7r/PKfdnADT9Y=
-Received: from icess-ProLiant-DL380-Gen10.. (unknown [])
-	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wDHj_wmNWJn4OtKBQ--.30105S4;
-	Wed, 18 Dec 2024 10:36:25 +0800 (CST)
-From: Ma Ke <make_ruc2021@163.com>
-To: bvanassche@acm.org,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Ma Ke <make_ruc2021@163.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v3] RDMA/srp: Fix error handling in srp_add_port
-Date: Wed, 18 Dec 2024 10:36:14 +0800
-Message-Id: <20241218023614.2968024-1-make_ruc2021@163.com>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="QgkUQ4wR"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1734489870; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=GAH1Lz6yySHh0akD6UjVzqvmSG58TUkUU80VrEvWcyY=;
+	b=QgkUQ4wR4yaxnjMldItkIUu/YQf1UST2NbfDV29GgC255tQygnkLpL1rXXuCCVIEpYZvYIRZ5LpGTfngFzW/bS9GyuC3m3CZ95XI2YC90CGO4ZMiKO/Kbs7wnwnZzIJOv5Pz5kipM/BFVcA6AquWnPKPGujMGvms6RaV61yDejY=
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WLko6dn_1734489867 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Wed, 18 Dec 2024 10:44:28 +0800
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+To: kgraul@linux.ibm.com,
+	wenjia@linux.ibm.com,
+	jaka@linux.ibm.com,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	andrii@kernel.org,
+	martin.lau@linux.dev,
+	pabeni@redhat.com,
+	song@kernel.org,
+	sdf@google.com,
+	haoluo@google.com,
+	yhs@fb.com,
+	edumazet@google.com,
+	john.fastabend@gmail.com,
+	kpsingh@kernel.org,
+	jolsa@kernel.org,
+	guwen@linux.alibaba.com
+Cc: kuba@kernel.org,
+	davem@davemloft.net,
+	netdev@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	bpf@vger.kernel.org
+Subject: [PATCH bpf-next v3 1/5] bpf: export necessary sympols for modules with struct_ops
+Date: Wed, 18 Dec 2024 10:44:17 +0800
+Message-ID: <20241218024422.23423-2-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 2.45.0
+In-Reply-To: <20241218024422.23423-1-alibuda@linux.alibaba.com>
+References: <20241218024422.23423-1-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,47 +61,55 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wDHj_wmNWJn4OtKBQ--.30105S4
-X-Coremail-Antispam: 1Uf129KBjvJXoWrZr1rGryUWryUtrWDXrWDurg_yoW8JrW5p3
-	ykGa4Ykry5GF1DK3WvvF1IvFy5G3Wjywn8Wr1Fv34YkanYqryIyF9Fk348X3WkAFZrAayU
-	ZFy7ZrW8Gr48uw7anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0p_miiUUUUUU=
-X-CM-SenderInfo: 5pdnvshuxfjiisr6il2tof0z/xtbBFR25C2diLHiOdgABsS
 
-If device_add() fails, call only put_device() to decrement reference
-count for cleanup. Do not call device_del() before put_device().
+Exports three necessary symbols for implementing struct_ops with
+tristate subsystem.
 
-As comment of device_add() says, 'if device_add() succeeds, you should
-call device_del() when you want to get rid of it. If device_add() has
-not succeeded, use only put_device() to drop the reference count'.
+To hold or release refcnt of struct_ops refcnt by inline funcs
+bpf_try_module_get and bpf_module_put which use bpf_struct_ops_get(put)
+conditionally.
 
-Found by code review.
+And to copy obj name from one to the other with effective checks by
+bpf_obj_name_cpy.
 
-Cc: stable@vger.kernel.org
-Fixes: c8e4c2397655 ("RDMA/srp: Rework the srp_add_port() error path")
-Signed-off-by: Ma Ke <make_ruc2021@163.com>
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
-Changes in v3:
-- modified the bug description as suggestions;
-- added a blank line to separate the description and the tags.
-Changes in v2:
-- modified the bug description as suggestions.
----
- drivers/infiniband/ulp/srp/ib_srp.c | 1 -
- 1 file changed, 1 deletion(-)
+ kernel/bpf/bpf_struct_ops.c | 2 ++
+ kernel/bpf/syscall.c        | 1 +
+ 2 files changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 2916e77f589b..7289ae0b83ac 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3978,7 +3978,6 @@ static struct srp_host *srp_add_port(struct srp_device *device, u32 port)
- 	return host;
- 
- put_host:
--	device_del(&host->dev);
- 	put_device(&host->dev);
- 	return NULL;
+diff --git a/kernel/bpf/bpf_struct_ops.c b/kernel/bpf/bpf_struct_ops.c
+index 606efe32485a..00c212e0ad39 100644
+--- a/kernel/bpf/bpf_struct_ops.c
++++ b/kernel/bpf/bpf_struct_ops.c
+@@ -1119,6 +1119,7 @@ bool bpf_struct_ops_get(const void *kdata)
+ 	map = __bpf_map_inc_not_zero(&st_map->map, false);
+ 	return !IS_ERR(map);
  }
++EXPORT_SYMBOL_GPL(bpf_struct_ops_get);
+ 
+ void bpf_struct_ops_put(const void *kdata)
+ {
+@@ -1130,6 +1131,7 @@ void bpf_struct_ops_put(const void *kdata)
+ 
+ 	bpf_map_put(&st_map->map);
+ }
++EXPORT_SYMBOL_GPL(bpf_struct_ops_put);
+ 
+ int bpf_struct_ops_supported(const struct bpf_struct_ops *st_ops, u32 moff)
+ {
+diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+index 5684e8ce132d..62238ec989dc 100644
+--- a/kernel/bpf/syscall.c
++++ b/kernel/bpf/syscall.c
+@@ -1167,6 +1167,7 @@ int bpf_obj_name_cpy(char *dst, const char *src, unsigned int size)
+ 
+ 	return src - orig_src;
+ }
++EXPORT_SYMBOL_GPL(bpf_obj_name_cpy);
+ 
+ int map_check_no_btf(const struct bpf_map *map,
+ 		     const struct btf *btf,
 -- 
-2.25.1
+2.45.0
 
