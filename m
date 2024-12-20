@@ -1,40 +1,37 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8E74155327;
-	Fri, 20 Dec 2024 05:59:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 150C519C578;
+	Fri, 20 Dec 2024 06:19:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734674385; cv=none; b=nmHBwnhRc1ypyvIaH4QvbEiJB7mo3co+cXgeDcySxYEE2B6ZlljJLRwkJw9XQZY2rdfaS6D0nU9L8QP5vfGOT1MTOR94kuniA7Aw6BPeXLuk5RBnl38a2N67daBSVqKPDZ3Hc99V7JXvsmDNP30nxWInnutO9wwVT8LOV/jPtss=
+	t=1734675569; cv=none; b=l0VylKU8XdbWmanFE4/1NNT6CMj2Yu9M3A/snM5XL+Ncq5zxJpuDpijbHQQIUQYvSuu93sDUdR1+rfjH2o83YKcBj7C8yo2JMzBWMPeejaBq3LiLash76nRkaQuO2rZv5nXNRuqTetP+PF3N363vSWmre8fQ1+oC3MEa3PPFLYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734674385; c=relaxed/simple;
-	bh=K4XdY5Y8eGT0dr9Z4l3fGou1CPBGjwhLnyuHHh/+VkM=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Ry+auHYByaUDh8evF0rU15/nzpMbf8axyGZ7+DvO5Pv6SrYfEsT6PhB98svXBz+dWGJgKeC+22mhZZETc2+esKcdI3MBWPEoVKA7SztijG5deF0oeYfHW7Z3zAzHRbajSzLqMwDLkinMUJAa1rtzZENG1EmLvNrEm09bwabYQ+8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.187
+	s=arc-20240116; t=1734675569; c=relaxed/simple;
+	bh=TdeGCyixQEtdmOHI8u9MafcRtTwQVVmwxsoMwSLtM5I=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=OQpKHSfuVyQ3luiioSTULEindJ+QF/nF2wMnt4gs49jbRG9E/sFoocRJXVtct1C8t3hr+h2Rj6p2dXJJcWEFvDi3zjEKd0+OhkZaxk0Oon3TgwyTBIg2XL3D2kcVZBs6YuDlbukAUhfYw5FkJbp2JNXgUc9psjo3FlAKXSvAgK0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4YDxVt20Ccz11N3Q;
-	Fri, 20 Dec 2024 13:56:22 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.162.112])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4YDxXR5pfXz21nqT;
+	Fri, 20 Dec 2024 13:57:43 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 8D8C2180101;
-	Fri, 20 Dec 2024 13:59:39 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 2C3A4140202;
+	Fri, 20 Dec 2024 13:59:38 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Fri, 20 Dec 2024 13:59:39 +0800
+ 15.2.1544.11; Fri, 20 Dec 2024 13:59:37 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<linux-kernel@vger.kernel.org>, <huangjunxian6@hisilicon.com>,
 	<tangchengchang@huawei.com>
-Subject: [PATCH for-rc 4/4] RDMA/hns: Fix missing flush CQE for DWQE
-Date: Fri, 20 Dec 2024 13:52:49 +0800
-Message-ID: <20241220055249.146943-5-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 0/4] RDMA/hns: Bugfixes
+Date: Fri, 20 Dec 2024 13:52:45 +0800
+Message-ID: <20241220055249.146943-1-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20241220055249.146943-1-huangjunxian6@hisilicon.com>
-References: <20241220055249.146943-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,51 +43,21 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-From: Chengchang Tang <tangchengchang@huawei.com>
+Here are some recent bugfixes for hns.
 
-Flush CQE handler has not been called if QP state gets into errored
-mode in DWQE path. So, the new added outstanding WQEs will never be
-flushed.
+Chengchang Tang (3):
+  RDMA/hns: Fix accessing invalid dip_ctx during destroying QP
+  RDMA/hns: Fix warning storm caused by invalid input in IO path
+  RDMA/hns: Fix missing flush CQE for DWQE
 
-It leads to a hung task timeout when using NFS over RDMA:
-    __switch_to+0x7c/0xd0
-    __schedule+0x350/0x750
-    schedule+0x50/0xf0
-    schedule_timeout+0x2c8/0x340
-    wait_for_common+0xf4/0x2b0
-    wait_for_completion+0x20/0x40
-    __ib_drain_sq+0x140/0x1d0 [ib_core]
-    ib_drain_sq+0x98/0xb0 [ib_core]
-    rpcrdma_xprt_disconnect+0x68/0x270 [rpcrdma]
-    xprt_rdma_close+0x20/0x60 [rpcrdma]
-    xprt_autoclose+0x64/0x1cc [sunrpc]
-    process_one_work+0x1d8/0x4e0
-    worker_thread+0x154/0x420
-    kthread+0x108/0x150
-    ret_from_fork+0x10/0x18
+wenglianfa (1):
+  RDMA/hns: Fix mapping error of zero-hop WQE buffer
 
-Fixes: 01584a5edcc4 ("RDMA/hns: Add support of direct wqe")
-Signed-off-by: Chengchang Tang <tangchengchang@huawei.com>
-Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_hem.c   | 43 +++++++++++++++-------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 11 +++++-
+ drivers/infiniband/hw/hns/hns_roce_mr.c    |  5 ---
+ 3 files changed, 38 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index d0469d27c63c..0144e7210d05 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -670,6 +670,10 @@ static void write_dwqe(struct hns_roce_dev *hr_dev, struct hns_roce_qp *qp,
- #define HNS_ROCE_SL_SHIFT 2
- 	struct hns_roce_v2_rc_send_wqe *rc_sq_wqe = wqe;
- 
-+	if (unlikely(qp->state == IB_QPS_ERR)) {
-+		flush_cqe(hr_dev, qp);
-+		return;
-+	}
- 	/* All kinds of DirectWQE have the same header field layout */
- 	hr_reg_enable(rc_sq_wqe, RC_SEND_WQE_FLAG);
- 	hr_reg_write(rc_sq_wqe, RC_SEND_WQE_DB_SL_L, qp->sl);
--- 
+--
 2.33.0
 
