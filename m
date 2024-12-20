@@ -1,305 +1,182 @@
-Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27D9010F1;
-	Fri, 20 Dec 2024 05:04:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.112
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9129925949A
+	for <linux-rdma@vger.kernel.org>; Fri, 20 Dec 2024 05:54:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734671057; cv=none; b=SqbfmXYQYRGXs50cLk8nw4rMfPUCjlTO+guMMVGCGs8/wiwGOkmpYdbR9Oi2dHFp2k22wEA+2hojCaAS5pBOENmksYIeGDL143gTzW7jXPrvcTHiXqgbCcEZE3FiMXnXEuoUjaEKxf6RFiEKvmCrtaOowJqE9CiKv8Y4pMrdqlU=
+	t=1734674043; cv=none; b=barXUfrG3qNVRiR4J0mpGTuBl7RSXf4xYoN6PzxgZ2FK0hdmN6gSZop/+vw6096LpHGTmmdrMGohyzQdFbZxC99rPDB1sMro32/rPzhMGGRqmcrsbwCRT4WOY8nCyWfFHc90vwqocBUqw0UYFBL5fa8VYAttPbGc04rh9DQcHNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734671057; c=relaxed/simple;
-	bh=s+S7ns2RPkG8QpLLMnY9GqT8IJt2rSN14Z53IpO0+Nc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BWLRXlGAGxlBWlgYJXHvlnMejKAMSDfIo0i9xTjt4A+HJ3Qb25n3wKU0PrUsvUIaHCkNx4tL+yrstgIHlTQmGGBOagr24UXmwzyegG7wpozD6Cx7gjf2bcUzBHXAD4AbEODLnqQODgIFDteBTREJdjCv2SSPf5UJm3gf3oPzo3w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=qvL8nduV; arc=none smtp.client-ip=115.124.30.112
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
+	s=arc-20240116; t=1734674043; c=relaxed/simple;
+	bh=u/lhPAsQBXYKDn0TG3vY+t1SwZDJ6WXk0u6z9+2US/E=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=V42cCPSJwevsWiNNmvfE8uz6kdA4Wb4W5+jmhWWXsgbIFSqK7pn+QyTZTFNoFYdK5R6H9WsNd+V+epyHd5V3yfuH/tryF2aKvWxWLVAAZ4LUXpbCvIz2VNyBS+QwdfRPp4LTs8sRaJyXStuWifeGyojxbkA5xv14nFXP6w8ZAm8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=PA5CpWDh; arc=none smtp.client-ip=209.85.208.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="qvL8nduV"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1734671050; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
-	bh=ta2UnE0H9gJx+Oy6F9rbkHavzEAR55xBIvVkDAvqZc0=;
-	b=qvL8nduVK5u27ZZVrqS1yS8qc08cukE/lpa/z7IcwSH6JaJj6oYpTAtGwtmrIz9UEznE0SO0e9ViNUMqBe95SnKYGghNTw+JF3a79NMzGBjvlBNP1P87WpRJMFQgUqX9S1GMXIQOZoW+64GXudKhAIGnFaPolwF98lWUjhB9YP0=
-Received: from 30.221.101.41(mailfrom:guangguan.wang@linux.alibaba.com fp:SMTPD_---0WLsYLoO_1734671047 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Fri, 20 Dec 2024 13:04:10 +0800
-Message-ID: <0c2710b6-1d5f-465d-99bf-1a0e3c974a32@linux.alibaba.com>
-Date: Fri, 20 Dec 2024 13:04:06 +0800
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="PA5CpWDh"
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-5d3f65844deso2321945a12.0
+        for <linux-rdma@vger.kernel.org>; Thu, 19 Dec 2024 21:54:01 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=broadcom.com; s=google; t=1734674040; x=1735278840; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=u/lhPAsQBXYKDn0TG3vY+t1SwZDJ6WXk0u6z9+2US/E=;
+        b=PA5CpWDhr6MIderxGndQ11Ho+DnoNmWvBe34y4ARy0DhnbNntucAdl5FSGROHbstmj
+         1PhNEtAFbOSEgJi2upEgaiK+ZWe4f5UIoJK2tn90sJLLDimhIi975w3QVKPAXYkWEdAz
+         eUI/+W7Kl/jlNAEdfN6PfY02Yf648WmANsUIY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1734674040; x=1735278840;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=u/lhPAsQBXYKDn0TG3vY+t1SwZDJ6WXk0u6z9+2US/E=;
+        b=Z18j9yiq+ItClWO6DRvO2uqqlT1NdgxQ/ik2BMcllMNvM5oUAtoSJjAdLYa0x/hdwe
+         3E06GEkCERsCsOdEKnLqGHPeQVHTL/y0cvtPqRhdUTFkDIB7zze+yvuHxYxypURz45gj
+         oe3cphzHJG1TfuT//h4iRQwGsRl+SiXGbQcaAP9N+/nFwkLLGikuPM5JZ89+AhW8K180
+         8XrzSBepH/wLJurqp3LNwDffuXRhBCLMZ+h872OETqbhmGhrngbp9RV9dqFUhl1u29Lr
+         R9OlKmFhnaiLOOaFacdXK9/hTeFVhTxMY8S+8S2jxFKwoQ/w4ityCZ9bNtpQ5NV9G+RV
+         FkaA==
+X-Forwarded-Encrypted: i=1; AJvYcCVwP4Gg2bB5f3cT+TQu3aRZJojcCC40Gu+0QAsDDPaEl4z62pXZRT0cWDTfWOPoRW8U+nUtXzET4gao@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxay9MagpZqfRccUxMa2ZhlGG8c6R3Gtzk0ZK+0IdWCDC3RcXND
+	cAdTa30kzJTU6puUNT7QREfjbGThrLOAHNYl/I0skzVIsh5oJlOIq5kTU5pNJw9hUJgqKNokq3N
+	DFezcQahiEsYE8sFdqPFot8+pSRypq8UWzkoY
+X-Gm-Gg: ASbGncuQ4A5pVU0cx+Wvi5uj14zlfbQzOaS296DRJGZ4DUu/w6Lg12/ZFSZtqWSJGSY
+	pXWMLjupRYf8++mLMb4KmSqP2MnaYtvNytu8bgQM=
+X-Google-Smtp-Source: AGHT+IGkbiUHfeMV86E8zvw/XXCg7XFgBx+eXFg8ccoGUK8CwZq5NKt9q7WYuiu36/KJBB2i0pHcgEqaxTW1OiZ+mAM=
+X-Received: by 2002:a05:6402:388a:b0:5d0:e3fa:17e2 with SMTP id
+ 4fb4d7f45d1cf-5d81dda9517mr1369953a12.11.1734674039904; Thu, 19 Dec 2024
+ 21:53:59 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] net/smc: fix data error when recvmsg with MSG_PEEK
- flag
-To: "D. Wythe" <alibuda@linux.alibaba.com>
-Cc: wenjia@linux.ibm.com, jaka@linux.ibm.com, PASIC@de.ibm.com,
- tonylu@linux.alibaba.com, guwen@linux.alibaba.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
- linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20241220031451.52343-1-guangguan.wang@linux.alibaba.com>
- <20241220033922.GA33005@j66a10360.sqa.eu95>
-Content-Language: en-US
-From: Guangguan Wang <guangguan.wang@linux.alibaba.com>
-In-Reply-To: <20241220033922.GA33005@j66a10360.sqa.eu95>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20241204075416.478431-5-kalesh-anakkur.purayil@broadcom.com>
+ <20241205090716.GU1245331@unreal> <CAH-L+nN0C=0ZoJmAgBTbjCUcwoQO00WoUc3d3BKn_tGPdk5UbA@mail.gmail.com>
+ <20241205113841.GY1245331@unreal> <CA+sbYW21nc0JPs-N0rmR-DgUvX0pydCY_bZXUC57aA0rXUst1A@mail.gmail.com>
+ <20241210114841.GE1245331@unreal> <CA+sbYW0n5CPupxByysd7Dc9=QLQm33ivC1YH5T2UbvG6MBVymg@mail.gmail.com>
+ <20241211155610.GL1888283@ziepe.ca> <CA+sbYW2kuQjbUKtKrWkcSTTM3NZL9miBjf=OCRP+LCxFEZsH4Q@mail.gmail.com>
+ <CAH-L+nPCCyCiDQLMoBmvMrjRqMFvkBYeWCObqAFfVFOBi9-rjg@mail.gmail.com> <20241219114621.GC82731@unreal>
+In-Reply-To: <20241219114621.GC82731@unreal>
+From: Kalesh Anakkur Purayil <kalesh-anakkur.purayil@broadcom.com>
+Date: Fri, 20 Dec 2024 11:23:46 +0530
+Message-ID: <CAH-L+nPiEbzd+fDf1uz-dN6jvbuX_dAd_2a4+OKTYrBpgXNq_Q@mail.gmail.com>
+Subject: Re: [PATCH for-rc 4/5] RDMA/bnxt_re: Fix error recovery sequence
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, 
+	andrew.gospodarek@broadcom.com, Kashyap Desai <kashyap.desai@broadcom.com>
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256;
+	boundary="000000000000f7e14e0629ad45ee"
+
+--000000000000f7e14e0629ad45ee
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Dec 19, 2024 at 5:16=E2=80=AFPM Leon Romanovsky <leon@kernel.org> w=
+rote:
+>
+> On Tue, Dec 17, 2024 at 10:53:08AM +0530, Kalesh Anakkur Purayil wrote:
+> > Hi Leon/Jason,
+> >
+> > Are we good here? Or, do you still have any more concerns on this
+> > patch? Please let me know whether I need to push a V2.
+>
+> Yes, if you make sure that your newly added check is not racy.
+>
+> Thanks
+Thank you Leon.
+Yes, there is no race with this newly added check.
+Let me post the same patch as V2 since the other patches in the series
+have been accepted already.
 
 
 
-On 2024/12/20 11:39, D. Wythe wrote:
-> On Fri, Dec 20, 2024 at 11:14:51AM +0800, Guangguan Wang wrote:
->> When recvmsg with MSG_PEEK flag, the data will be copied to
->> user's buffer without advancing consume cursor and without
->> reducing the length of rx available data. Once the expected
->> peek length is larger than the value of bytes_to_rcv, in the
->> loop of do while in smc_rx_recvmsg, the first loop will copy
->> bytes_to_rcv bytes of data from the position local_tx_ctrl.cons,
->> the second loop will copy the min(bytes_to_rcv, read_remaining)
->> bytes from the position local_tx_ctrl.cons again because of the
->> lacking of process with advancing consume cursor and reducing
->> the length of available data. So do the subsequent loops. The
->> data copied in the second loop and the subsequent loops will
->> result in data error, as it should not be copied if no more data
->> arrives and it should be copied from the position advancing
->> bytes_to_rcv bytes from the local_tx_ctrl.cons if more data arrives.
->>
-> 
-> 
-> What would happen if I did this:
-> 
-> recv(conn->rmb_desc->len + 1 , MSG_PEEK | MSG_WAITALL)
-> 
-> endless waiting?
-> 
+--=20
+Regards,
+Kalesh AP
 
-Yes, it will endless waiting. But I think the behaviour is expected currently as
-the expected bytes to peek is not reached.
+--000000000000f7e14e0629ad45ee
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-I do not know the behaviour of TCP if the expected bytes to peek exceeds the max length
-of recv buffer. It maybe be an another issue or optimization if the behaviour is different
-between TCP and SMC.
-
-Thanks,
-Guangguan Wang
-
-> 
->> This issue can be reproduce by the following python script:
->> server.py:
->> import socket
->> import time
->> server_ip = '0.0.0.0'
->> server_port = 12346
->> server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
->> server_socket.bind((server_ip, server_port))
->> server_socket.listen(1)
->> print('Server is running and listening for connections...')
->> conn, addr = server_socket.accept()
->> print('Connected by', addr)
->> while True:
->>     data = conn.recv(1024)
->>     if not data:
->>         break
->>     print('Received request:', data.decode())
->>     conn.sendall(b'Hello, client!\n')
->>     time.sleep(5)
->>     conn.sendall(b'Hello, again!\n')
->> conn.close()
->>
->> client.py:
->> import socket
->> server_ip = '<server ip>'
->> server_port = 12346
->> resp=b'Hello, client!\nHello, again!\n'
->> client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
->> client_socket.connect((server_ip, server_port))
->> request = 'Hello, server!'
->> client_socket.sendall(request.encode())
->> peek_data = client_socket.recv(len(resp),
->>     socket.MSG_PEEK | socket.MSG_WAITALL)
->> print('Peeked data:', peek_data.decode())
->> client_socket.close()
->>
->> Signed-off-by: Guangguan Wang <guangguan.wang@linux.alibaba.com>
->> ---
->>  net/smc/af_smc.c |  2 +-
->>  net/smc/smc_rx.c | 37 +++++++++++++++++++++----------------
->>  net/smc/smc_rx.h |  8 ++++----
->>  3 files changed, 26 insertions(+), 21 deletions(-)
->>
->> diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
->> index 6cc7b846cff1..ebc41a7b13db 100644
->> --- a/net/smc/af_smc.c
->> +++ b/net/smc/af_smc.c
->> @@ -2738,7 +2738,7 @@ int smc_accept(struct socket *sock, struct socket *new_sock,
->>  			release_sock(clcsk);
->>  		} else if (!atomic_read(&smc_sk(nsk)->conn.bytes_to_rcv)) {
->>  			lock_sock(nsk);
->> -			smc_rx_wait(smc_sk(nsk), &timeo, smc_rx_data_available);
->> +			smc_rx_wait(smc_sk(nsk), &timeo, 0, smc_rx_data_available);
->>  			release_sock(nsk);
->>  		}
->>  	}
->> diff --git a/net/smc/smc_rx.c b/net/smc/smc_rx.c
->> index f0cbe77a80b4..79047721df51 100644
->> --- a/net/smc/smc_rx.c
->> +++ b/net/smc/smc_rx.c
->> @@ -238,22 +238,23 @@ static int smc_rx_splice(struct pipe_inode_info *pipe, char *src, size_t len,
->>  	return -ENOMEM;
->>  }
->>  
->> -static int smc_rx_data_available_and_no_splice_pend(struct smc_connection *conn)
->> +static int smc_rx_data_available_and_no_splice_pend(struct smc_connection *conn, size_t peeked)
->>  {
->> -	return atomic_read(&conn->bytes_to_rcv) &&
->> +	return smc_rx_data_available(conn, peeked) &&
->>  	       !atomic_read(&conn->splice_pending);
->>  }
->>  
->>  /* blocks rcvbuf consumer until >=len bytes available or timeout or interrupted
->>   *   @smc    smc socket
->>   *   @timeo  pointer to max seconds to wait, pointer to value 0 for no timeout
->> + *   @peeked  number of bytes already peeked
->>   *   @fcrit  add'l criterion to evaluate as function pointer
->>   * Returns:
->>   * 1 if at least 1 byte available in rcvbuf or if socket error/shutdown.
->>   * 0 otherwise (nothing in rcvbuf nor timeout, e.g. interrupted).
->>   */
->> -int smc_rx_wait(struct smc_sock *smc, long *timeo,
->> -		int (*fcrit)(struct smc_connection *conn))
->> +int smc_rx_wait(struct smc_sock *smc, long *timeo, size_t peeked,
->> +		int (*fcrit)(struct smc_connection *conn, size_t baseline))
->>  {
->>  	DEFINE_WAIT_FUNC(wait, woken_wake_function);
->>  	struct smc_connection *conn = &smc->conn;
->> @@ -262,7 +263,7 @@ int smc_rx_wait(struct smc_sock *smc, long *timeo,
->>  	struct sock *sk = &smc->sk;
->>  	int rc;
->>  
->> -	if (fcrit(conn))
->> +	if (fcrit(conn, peeked))
->>  		return 1;
->>  	sk_set_bit(SOCKWQ_ASYNC_WAITDATA, sk);
->>  	add_wait_queue(sk_sleep(sk), &wait);
->> @@ -271,7 +272,7 @@ int smc_rx_wait(struct smc_sock *smc, long *timeo,
->>  			   cflags->peer_conn_abort ||
->>  			   READ_ONCE(sk->sk_shutdown) & RCV_SHUTDOWN ||
->>  			   conn->killed ||
->> -			   fcrit(conn),
->> +			   fcrit(conn, peeked),
->>  			   &wait);
->>  	remove_wait_queue(sk_sleep(sk), &wait);
->>  	sk_clear_bit(SOCKWQ_ASYNC_WAITDATA, sk);
->> @@ -322,11 +323,11 @@ static int smc_rx_recv_urg(struct smc_sock *smc, struct msghdr *msg, int len,
->>  	return -EAGAIN;
->>  }
->>  
->> -static bool smc_rx_recvmsg_data_available(struct smc_sock *smc)
->> +static bool smc_rx_recvmsg_data_available(struct smc_sock *smc, size_t peeked)
->>  {
->>  	struct smc_connection *conn = &smc->conn;
->>  
->> -	if (smc_rx_data_available(conn))
->> +	if (smc_rx_data_available(conn, peeked))
->>  		return true;
->>  	else if (conn->urg_state == SMC_URG_VALID)
->>  		/* we received a single urgent Byte - skip */
->> @@ -344,10 +345,10 @@ static bool smc_rx_recvmsg_data_available(struct smc_sock *smc)
->>  int smc_rx_recvmsg(struct smc_sock *smc, struct msghdr *msg,
->>  		   struct pipe_inode_info *pipe, size_t len, int flags)
->>  {
->> -	size_t copylen, read_done = 0, read_remaining = len;
->> +	size_t copylen, read_done = 0, read_remaining = len, peeked_bytes = 0;
->>  	size_t chunk_len, chunk_off, chunk_len_sum;
->>  	struct smc_connection *conn = &smc->conn;
->> -	int (*func)(struct smc_connection *conn);
->> +	int (*func)(struct smc_connection *conn, size_t baseline);
->>  	union smc_host_cursor cons;
->>  	int readable, chunk;
->>  	char *rcvbuf_base;
->> @@ -384,14 +385,14 @@ int smc_rx_recvmsg(struct smc_sock *smc, struct msghdr *msg,
->>  		if (conn->killed)
->>  			break;
->>  
->> -		if (smc_rx_recvmsg_data_available(smc))
->> +		if (smc_rx_recvmsg_data_available(smc, peeked_bytes))
->>  			goto copy;
->>  
->>  		if (sk->sk_shutdown & RCV_SHUTDOWN) {
->>  			/* smc_cdc_msg_recv_action() could have run after
->>  			 * above smc_rx_recvmsg_data_available()
->>  			 */
->> -			if (smc_rx_recvmsg_data_available(smc))
->> +			if (smc_rx_recvmsg_data_available(smc, peeked_bytes))
->>  				goto copy;
->>  			break;
->>  		}
->> @@ -425,26 +426,28 @@ int smc_rx_recvmsg(struct smc_sock *smc, struct msghdr *msg,
->>  			}
->>  		}
->>  
->> -		if (!smc_rx_data_available(conn)) {
->> -			smc_rx_wait(smc, &timeo, smc_rx_data_available);
->> +		if (!smc_rx_data_available(conn, peeked_bytes)) {
->> +			smc_rx_wait(smc, &timeo, peeked_bytes, smc_rx_data_available);
->>  			continue;
->>  		}
->>  
->>  copy:
->>  		/* initialize variables for 1st iteration of subsequent loop */
->>  		/* could be just 1 byte, even after waiting on data above */
->> -		readable = atomic_read(&conn->bytes_to_rcv);
->> +		readable = smc_rx_data_available(conn, peeked_bytes);
->>  		splbytes = atomic_read(&conn->splice_pending);
->>  		if (!readable || (msg && splbytes)) {
->>  			if (splbytes)
->>  				func = smc_rx_data_available_and_no_splice_pend;
->>  			else
->>  				func = smc_rx_data_available;
->> -			smc_rx_wait(smc, &timeo, func);
->> +			smc_rx_wait(smc, &timeo, peeked_bytes, func);
->>  			continue;
->>  		}
->>  
->>  		smc_curs_copy(&cons, &conn->local_tx_ctrl.cons, conn);
->> +		if ((flags & MSG_PEEK) && peeked_bytes)
->> +			smc_curs_add(conn->rmb_desc->len, &cons, peeked_bytes);
->>  		/* subsequent splice() calls pick up where previous left */
->>  		if (splbytes)
->>  			smc_curs_add(conn->rmb_desc->len, &cons, splbytes);
->> @@ -480,6 +483,8 @@ int smc_rx_recvmsg(struct smc_sock *smc, struct msghdr *msg,
->>  			}
->>  			read_remaining -= chunk_len;
->>  			read_done += chunk_len;
->> +			if (flags & MSG_PEEK)
->> +				peeked_bytes += chunk_len;
->>  
->>  			if (chunk_len_sum == copylen)
->>  				break; /* either on 1st or 2nd iteration */
->> diff --git a/net/smc/smc_rx.h b/net/smc/smc_rx.h
->> index db823c97d824..994f5e42d1ba 100644
->> --- a/net/smc/smc_rx.h
->> +++ b/net/smc/smc_rx.h
->> @@ -21,11 +21,11 @@ void smc_rx_init(struct smc_sock *smc);
->>  
->>  int smc_rx_recvmsg(struct smc_sock *smc, struct msghdr *msg,
->>  		   struct pipe_inode_info *pipe, size_t len, int flags);
->> -int smc_rx_wait(struct smc_sock *smc, long *timeo,
->> -		int (*fcrit)(struct smc_connection *conn));
->> -static inline int smc_rx_data_available(struct smc_connection *conn)
->> +int smc_rx_wait(struct smc_sock *smc, long *timeo, size_t peeked,
->> +		int (*fcrit)(struct smc_connection *conn, size_t baseline));
->> +static inline int smc_rx_data_available(struct smc_connection *conn, size_t peeked)
->>  {
->> -	return atomic_read(&conn->bytes_to_rcv);
->> +	return atomic_read(&conn->bytes_to_rcv) - peeked;
->>  }
->>  
->>  #endif /* SMC_RX_H */
->> -- 
->> 2.24.3 (Apple Git-128)
->>
+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
+riBJ/K1AFUjRAjFhGV64l++td7dkmnq/X8ET75ti+w1s4FRpFqkD2m7pg5NxdsZphYIXAgMBAAGj
+QjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBSP8Et/qC5FJK5N
+UPpjmove4t0bvDANBgkqhkiG9w0BAQsFAAOCAQEAS0DbwFCq/sgM7/eWVEVJu5YACUGssxOGhigH
+M8pr5nS5ugAtrqQK0/Xx8Q+Kv3NnSoPHRHt44K9ubG8DKY4zOUXDjuS5V2yq/BKW7FPGLeQkbLmU
+Y/vcU2hnVj6DuM81IcPJaP7O2sJTqsyQiunwXUaMld16WCgaLx3ezQA3QY/tRG3XUyiXfvNnBB4V
+14qWtNPeTCekTBtzc3b0F5nCH3oO4y0IrQocLP88q1UOD5F+NuvDV0m+4S4tfGCLw0FREyOdzvcy
+a5QBqJnnLDMfOjsl0oZAzjsshnjJYS8Uuu7bVW/fhO4FCU29KNhyztNiUGUe65KXgzHZs7XKR1g/
+XzCCBWowggRSoAMCAQICDDfBRQmwNSI92mit0zANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJC
+RTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTExMC8GA1UEAxMoR2xvYmFsU2lnbiBHQ0MgUjMg
+UGVyc29uYWxTaWduIDIgQ0EgMjAyMDAeFw0yMjA5MTAwODI5NTZaFw0yNTA5MTAwODI5NTZaMIGi
+MQswCQYDVQQGEwJJTjESMBAGA1UECBMJS2FybmF0YWthMRIwEAYDVQQHEwlCYW5nYWxvcmUxFjAU
+BgNVBAoTDUJyb2FkY29tIEluYy4xHzAdBgNVBAMTFkthbGVzaCBBbmFra3VyIFB1cmF5aWwxMjAw
+BgkqhkiG9w0BCQEWI2thbGVzaC1hbmFra3VyLnB1cmF5aWxAYnJvYWRjb20uY29tMIIBIjANBgkq
+hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxnv1Reaeezfr6NEmg3xZlh4cz9m7QCN13+j4z1scrX+b
+JfnV8xITT5yvwdQv3R3p7nzD/t29lTRWK3wjodUd2nImo6vBaH3JbDwleIjIWhDXLNZ4u7WIXYwx
+aQ8lYCdKXRsHXgGPY0+zSx9ddpqHZJlHwcvas3oKnQN9WgzZtsM7A8SJefWkNvkcOtef6bL8Ew+3
+FBfXmtsPL9I2vita8gkYzunj9Nu2IM+MnsP7V/+Coy/yZDtFJHp30hDnYGzuOhJchDF9/eASvE8T
+T1xqJODKM9xn5xXB1qezadfdgUs8k8QAYyP/oVBafF9uqDudL6otcBnziyDBQdFCuAQN7wIDAQAB
+o4IB5DCCAeAwDgYDVR0PAQH/BAQDAgWgMIGjBggrBgEFBQcBAQSBljCBkzBOBggrBgEFBQcwAoZC
+aHR0cDovL3NlY3VyZS5nbG9iYWxzaWduLmNvbS9jYWNlcnQvZ3NnY2NyM3BlcnNvbmFsc2lnbjJj
+YTIwMjAuY3J0MEEGCCsGAQUFBzABhjVodHRwOi8vb2NzcC5nbG9iYWxzaWduLmNvbS9nc2djY3Iz
+cGVyc29uYWxzaWduMmNhMjAyMDBNBgNVHSAERjBEMEIGCisGAQQBoDIBKAowNDAyBggrBgEFBQcC
+ARYmaHR0cHM6Ly93d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wCQYDVR0TBAIwADBJBgNV
+HR8EQjBAMD6gPKA6hjhodHRwOi8vY3JsLmdsb2JhbHNpZ24uY29tL2dzZ2NjcjNwZXJzb25hbHNp
+Z24yY2EyMDIwLmNybDAuBgNVHREEJzAlgSNrYWxlc2gtYW5ha2t1ci5wdXJheWlsQGJyb2FkY29t
+LmNvbTATBgNVHSUEDDAKBggrBgEFBQcDBDAfBgNVHSMEGDAWgBSWM9HmWBdbNHWKgVZk1b5I3qGP
+zzAdBgNVHQ4EFgQUI3+tdStI+ABRGSqksMsiCmO9uDAwDQYJKoZIhvcNAQELBQADggEBAGfe1o9b
+4wUud0FMjb/FNdc433meL15npjdYWUeioHdlCGB5UvEaMGu71QysfoDOfUNeyO9YKp0h0fm7clvo
+cBqeWe4CPv9TQbmLEtXKdEpj5kFZBGmav69mGTlu1A9KDQW3y0CDzCPG2Fdm4s73PnkwvemRk9E2
+u9/kcZ8KWVeS+xq+XZ78kGTKQ6Wii3dMK/EHQhnDfidadoN/n+x2ySC8yyDNvy81BocnblQzvbuB
+a30CvRuhokNO6Jzh7ZFtjKVMzYas3oo6HXgA+slRszMu4pc+fRPO41FHjeDM76e6P5OnthhnD+NY
+x6xokUN65DN1bn2MkeNs0nQpizDqd0QxggJtMIICaQIBATBrMFsxCzAJBgNVBAYTAkJFMRkwFwYD
+VQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIEdDQyBSMyBQZXJzb25h
+bFNpZ24gMiBDQSAyMDIwAgw3wUUJsDUiPdpordMwDQYJYIZIAWUDBAIBBQCggdQwLwYJKoZIhvcN
+AQkEMSIEIAj7/e52NuzTsAIwV2hxL5iEYk+RW/S20OYNcjfLBR9yMBgGCSqGSIb3DQEJAzELBgkq
+hkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTI0MTIyMDA1NTQwMFowaQYJKoZIhvcNAQkPMVwwWjAL
+BglghkgBZQMEASowCwYJYIZIAWUDBAEWMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzALBgkqhkiG
+9w0BAQowCwYJKoZIhvcNAQEHMAsGCWCGSAFlAwQCATANBgkqhkiG9w0BAQEFAASCAQAE6H43njEp
+KslQDZnJcw910alP0dM5KmEfmasRg58vnicWkRDdVTQTXwaaA2Sa4HpxHq6nDHoUyfzI8aG6fJR1
+mic9zIJEgGxJAKDc7V1+k7Vy+VRyt3Kp1Mb+WwBmSMpPgwViQM5Oa9yGBxLPJmTFLa/ZfjxVZJnl
+pP5dvBu4HnfKAePmfXDATI7kRKjiz020AX9kS9tCvBqCvMzM5ycTPkFIzF3+4OvbR7D4Y4n66/yQ
+SZNkNhEfTXCKZ/Oi4ORCOp8tzMrb4ZKhwU0ZEsTwH+d/+ruo0ijkTnA6GpRG/ENMpqGkS6zpHg6n
+Q6YmYxoMxtkQWYQCKojA6Irl8Pr9
+--000000000000f7e14e0629ad45ee--
