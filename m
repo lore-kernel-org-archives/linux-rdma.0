@@ -1,43 +1,43 @@
 Received: from mx.treblig.org (mx.treblig.org [46.235.229.95])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12E412AF16;
-	Sat, 21 Dec 2024 01:40:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EEEE1E89C;
+	Sat, 21 Dec 2024 01:40:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.235.229.95
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734745233; cv=none; b=YRqzuEaKeIbO5E8/zvO1ZrzHntID3s+NE3UrOXTHIFqZD7WqeuOQL9BgflD345Sw1ovUM8F9mlErEYQ0nB8uKYMTQQLL94w67j3KaZ+WnQ2Wtc1dyxgypMgkixaIWPJWSBH9GYxjm5gf9XJDzR+862oUBMw1OcNapoVllHGGTZM=
+	t=1734745234; cv=none; b=PHCosQwzYXjrD5uYp+fLTVc24y8ErH8S71XBBZWoulo3O8IIrlba51nT9E7AKZY62n89ruljn11oorHNJDCR/eCebfeLH7fye7W/iDtxRlUMuC1QHA2J4QNccOjWCPpRUhdjmM0vdWNcTrpKkx74FMpD54d2Z6R02tS5+BQnJ6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734745233; c=relaxed/simple;
-	bh=bbUHuIIiJDY1be55IxLZHg2oplHHF6t2SmPC6Qqqgho=;
+	s=arc-20240116; t=1734745234; c=relaxed/simple;
+	bh=AmNVM5IWh2Kce00IvhmYlzFrv98WbbkAXRoqyqh5SSc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hX2cRXzgj4mQTcNpP9YVX1vZ+TaYKnLKVLtHRaSv/TRSKQGf7nkuBskIPblQ5Hw4Ti8eodf6UsGgDVribXOcmSUIhd0134CyWqTjQsUPLX/dCc8vCqc/l/OfObUegvGSH0AW4p3iWozGjiDJ0HXgOVx7SoFfC1gMjNRJddsnpF4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=treblig.org; spf=pass smtp.mailfrom=treblig.org; dkim=pass (2048-bit key) header.d=treblig.org header.i=@treblig.org header.b=j6GFY9aN; arc=none smtp.client-ip=46.235.229.95
+	 MIME-Version; b=IxoXYqPHT6nt2WHW/F+NRUToSHLh3h5Ax6hoIEHgM7AWCljnMYq8cgx1x+SS3SWRq7kIB1kRKvq5CAg2mQQA8gtF5h6xlXQk7i7QNtq6IZCiH3sk3oh45OCHa9X8rUBxhOVlJ6kZO/R4OtQcBOXEap07bAfJNGx2MMn2y2boqRA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=treblig.org; spf=pass smtp.mailfrom=treblig.org; dkim=pass (2048-bit key) header.d=treblig.org header.i=@treblig.org header.b=TQuegl27; arc=none smtp.client-ip=46.235.229.95
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=treblig.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=treblig.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=treblig.org header.i=@treblig.org header.b="j6GFY9aN"
+	dkim=pass (2048-bit key) header.d=treblig.org header.i=@treblig.org header.b="TQuegl27"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=treblig.org
 	; s=bytemarkmx; h=MIME-Version:Message-ID:Date:Subject:From:Content-Type:From
-	:Subject; bh=7mvzulzb+HhH+BBqrE2pES0KkxiCmlF0e03o5S4f2/0=; b=j6GFY9aN33KHHLCj
-	ldsORg1cTXD220tC4JsmO3riCIqyvDvPBuatGIWkXJ2EvbQ6a0IGoU59yZXHkO97Gwfr/cpRnurhU
-	3JDWt59ykUHZrKXiZiJYaCOQXWYwPfHhzKuJVGrl241ovmdKKeVS007zrsYA36BJmAXNW5NW6rtFY
-	lQQdTnuurSSopgqZZsaZzGn0YoO5b0zHsxDTJHPWNx9Jo66Trv98ScedMsZQf0hU1aUM4rJUjxCE7
-	QIeES5E7bhsVkirMp7PrF9DqouuKYrQtdwdBVTPFoo3NxY1ikCoGwj7lovdpdIFO/DkT7Pm5jJsir
-	LJOXpxnMnk8SD1KDiA==;
+	:Subject; bh=T//G2rCd97TI1u3JSZ4/q5jOgTeoWPeGWz1x8NI4gFw=; b=TQuegl27a7dLmBaf
+	300grBg46IKqLMDdN7Zol2TJNfAADLSgTcp9xqrIyh8RYC20mUwC+sDGsI4mDGSmnLMkIbcuHfu4n
+	ZiAQmkZbHFIGKFw+mqtPKc4l5T1ajiLLDgQZymgdzgGfAadaE0RttZcc0YjQhzNbaKQtxSSmTC7aH
+	zc7vCgCuiX9WGq3WXGGgzaozVXJNTjplYIEpJT5N+cD6Rlz5Z3754YIqz0Z6sY6elPhMbp0XEOyDI
+	BvE4gbF2ZdFa1Xgl+E9z0l5udGkoW0s9C3QS59aw36CaYb/gl5d2NiMdhReKtqmUtytycS8GHPahO
+	suPbf4/4BpCRFdRZsg==;
 Received: from localhost ([127.0.0.1] helo=dalek.home.treblig.org)
 	by mx.treblig.org with esmtp (Exim 4.96)
 	(envelope-from <linux@treblig.org>)
-	id 1tOoTl-006dmT-0Y;
-	Sat, 21 Dec 2024 01:40:29 +0000
+	id 1tOoTj-006dmT-16;
+	Sat, 21 Dec 2024 01:40:27 +0000
 From: linux@treblig.org
 To: jgg@ziepe.ca,
 	leon@kernel.org,
 	linux-rdma@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org,
 	"Dr. David Alan Gilbert" <linux@treblig.org>
-Subject: [PATCH 4/4] RDMA/core: Remove unused ib_copy_path_rec_from_user
-Date: Sat, 21 Dec 2024 01:40:21 +0000
-Message-ID: <20241221014021.343979-5-linux@treblig.org>
+Subject: [PATCH 1/4] RDMA/core: Remove unused ib_ud_header_unpack
+Date: Sat, 21 Dec 2024 01:40:18 +0000
+Message-ID: <20241221014021.343979-2-linux@treblig.org>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20241221014021.343979-1-linux@treblig.org>
 References: <20241221014021.343979-1-linux@treblig.org>
@@ -51,79 +51,122 @@ Content-Transfer-Encoding: 8bit
 
 From: "Dr. David Alan Gilbert" <linux@treblig.org>
 
-ib_copy_path_rec_from_user() has been unused since 2019's
-commit a1a8e4a85cf7 ("rdma: Delete the ib_ucm module")
+ib_ud_header_unpack() is unused, and I can't see any sign of it
+ever having been used in git.  The only reference I can find
+is from December 2004 BKrev: 41d30034XNbBUl0XnyC6ig9V61Nf-A when
+it looks like it was added.
 
 Remove it.
 
 Signed-off-by: Dr. David Alan Gilbert <linux@treblig.org>
 ---
- drivers/infiniband/core/uverbs_marshall.c | 42 -----------------------
- include/rdma/ib_marshall.h                |  3 --
- 2 files changed, 45 deletions(-)
+ drivers/infiniband/core/ud_header.c | 83 -----------------------------
+ include/rdma/ib_pack.h              |  3 --
+ 2 files changed, 86 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
-index 11a080646916..e803f609ec87 100644
---- a/drivers/infiniband/core/uverbs_marshall.c
-+++ b/drivers/infiniband/core/uverbs_marshall.c
-@@ -171,45 +171,3 @@ void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
- 	__ib_copy_path_rec_to_user(dst, src);
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 64d9c492de64..8d3dfef9ebaa 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -462,86 +462,3 @@ int ib_ud_header_pack(struct ib_ud_header *header,
+ 	return len;
  }
- EXPORT_SYMBOL(ib_copy_path_rec_to_user);
+ EXPORT_SYMBOL(ib_ud_header_pack);
 -
--void ib_copy_path_rec_from_user(struct sa_path_rec *dst,
--				struct ib_user_path_rec *src)
+-/**
+- * ib_ud_header_unpack - Unpack UD header struct from wire format
+- * @header:UD header struct
+- * @buf:Buffer to pack into
+- *
+- * ib_ud_header_pack() unpacks the UD header structure @header from wire
+- * format in the buffer @buf.
+- */
+-int ib_ud_header_unpack(void                *buf,
+-			struct ib_ud_header *header)
 -{
--	u32 slid, dlid;
+-	ib_unpack(lrh_table, ARRAY_SIZE(lrh_table),
+-		  buf, &header->lrh);
+-	buf += IB_LRH_BYTES;
 -
--	memset(dst, 0, sizeof(*dst));
--	if ((ib_is_opa_gid((union ib_gid *)src->sgid)) ||
--	    (ib_is_opa_gid((union ib_gid *)src->dgid))) {
--		dst->rec_type = SA_PATH_REC_TYPE_OPA;
--		slid = opa_get_lid_from_gid((union ib_gid *)src->sgid);
--		dlid = opa_get_lid_from_gid((union ib_gid *)src->dgid);
--	} else {
--		dst->rec_type = SA_PATH_REC_TYPE_IB;
--		slid = ntohs(src->slid);
--		dlid = ntohs(src->dlid);
+-	if (header->lrh.link_version != 0) {
+-		pr_warn("Invalid LRH.link_version %u\n",
+-			header->lrh.link_version);
+-		return -EINVAL;
 -	}
--	memcpy(dst->dgid.raw, src->dgid, sizeof dst->dgid);
--	memcpy(dst->sgid.raw, src->sgid, sizeof dst->sgid);
 -
--	sa_path_set_dlid(dst, dlid);
--	sa_path_set_slid(dst, slid);
--	sa_path_set_raw_traffic(dst, src->raw_traffic);
--	dst->flow_label		= src->flow_label;
--	dst->hop_limit		= src->hop_limit;
--	dst->traffic_class	= src->traffic_class;
--	dst->reversible		= src->reversible;
--	dst->numb_path		= src->numb_path;
--	dst->pkey		= src->pkey;
--	dst->sl			= src->sl;
--	dst->mtu_selector	= src->mtu_selector;
--	dst->mtu		= src->mtu;
--	dst->rate_selector	= src->rate_selector;
--	dst->rate		= src->rate;
--	dst->packet_life_time	= src->packet_life_time;
--	dst->preference		= src->preference;
--	dst->packet_life_time_selector = src->packet_life_time_selector;
+-	switch (header->lrh.link_next_header) {
+-	case IB_LNH_IBA_LOCAL:
+-		header->grh_present = 0;
+-		break;
 -
--	/* TODO: No need to set this */
--	sa_path_set_dmac_zero(dst);
+-	case IB_LNH_IBA_GLOBAL:
+-		header->grh_present = 1;
+-		ib_unpack(grh_table, ARRAY_SIZE(grh_table),
+-			  buf, &header->grh);
+-		buf += IB_GRH_BYTES;
+-
+-		if (header->grh.ip_version != 6) {
+-			pr_warn("Invalid GRH.ip_version %u\n",
+-				header->grh.ip_version);
+-			return -EINVAL;
+-		}
+-		if (header->grh.next_header != 0x1b) {
+-			pr_warn("Invalid GRH.next_header 0x%02x\n",
+-				header->grh.next_header);
+-			return -EINVAL;
+-		}
+-		break;
+-
+-	default:
+-		pr_warn("Invalid LRH.link_next_header %u\n",
+-			header->lrh.link_next_header);
+-		return -EINVAL;
+-	}
+-
+-	ib_unpack(bth_table, ARRAY_SIZE(bth_table),
+-		  buf, &header->bth);
+-	buf += IB_BTH_BYTES;
+-
+-	switch (header->bth.opcode) {
+-	case IB_OPCODE_UD_SEND_ONLY:
+-		header->immediate_present = 0;
+-		break;
+-	case IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE:
+-		header->immediate_present = 1;
+-		break;
+-	default:
+-		pr_warn("Invalid BTH.opcode 0x%02x\n", header->bth.opcode);
+-		return -EINVAL;
+-	}
+-
+-	if (header->bth.transport_header_version != 0) {
+-		pr_warn("Invalid BTH.transport_header_version %u\n",
+-			header->bth.transport_header_version);
+-		return -EINVAL;
+-	}
+-
+-	ib_unpack(deth_table, ARRAY_SIZE(deth_table),
+-		  buf, &header->deth);
+-	buf += IB_DETH_BYTES;
+-
+-	if (header->immediate_present)
+-		memcpy(&header->immediate_data, buf, sizeof header->immediate_data);
+-
+-	return 0;
 -}
--EXPORT_SYMBOL(ib_copy_path_rec_from_user);
-diff --git a/include/rdma/ib_marshall.h b/include/rdma/ib_marshall.h
-index 1838869aad28..b179e464e3d1 100644
---- a/include/rdma/ib_marshall.h
-+++ b/include/rdma/ib_marshall.h
-@@ -22,7 +22,4 @@ void ib_copy_ah_attr_to_user(struct ib_device *device,
- void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
- 			      struct sa_path_rec *src);
+-EXPORT_SYMBOL(ib_ud_header_unpack);
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index b8c56d7dc35d..8266fab826a7 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -283,7 +283,4 @@ int ib_ud_header_init(int		    payload_bytes,
+ int ib_ud_header_pack(struct ib_ud_header *header,
+ 		      void                *buf);
  
--void ib_copy_path_rec_from_user(struct sa_path_rec *dst,
--				struct ib_user_path_rec *src);
+-int ib_ud_header_unpack(void                *buf,
+-			struct ib_ud_header *header);
 -
- #endif /* IB_USER_MARSHALL_H */
+ #endif /* IB_PACK_H */
 -- 
 2.47.1
 
