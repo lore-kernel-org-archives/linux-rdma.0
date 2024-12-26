@@ -1,38 +1,38 @@
-Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
+Received: from out30-101.freemail.mail.aliyun.com (out30-101.freemail.mail.aliyun.com [115.124.30.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DB29170A1A
-	for <linux-rdma@vger.kernel.org>; Thu, 26 Dec 2024 08:41:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA9E161328
+	for <linux-rdma@vger.kernel.org>; Thu, 26 Dec 2024 08:41:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.101
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735202515; cv=none; b=Wd1WI/MYP/KQyEdGeRyi0l4MYRCFCJ+09pUULaqn8VGJeVUWWvPIv4t+tHp4evGE39jmt9ifbtRJaeD+p/t1PARYJvbfkR7J4tRXdnCqSNKAOSardanOAp8LlDrSgxvoJ7Nc+7sHXIvtNkg9HguFCL2pRSNbSE2Bo81SPZEKCuk=
+	t=1735202517; cv=none; b=nk3zqulWjZ3GpExpdllYVNvBvqxtlZbRYpMJd+cWrDwMFZLvy+EJwXsPMvgu9TJBR0Nom3Q3TZWJMqpeoX6sY8n7fdzDvyudeOirhCx2sTu5p08dcsXQZxmwjwko5Wrke3oa+FXZHQMdQQCoXfj9ln8gIvcyqNb6dXOjZDPBZgw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735202515; c=relaxed/simple;
-	bh=dpI/Oe4NzgikgGHXxvT0YTdZ8vW3uTVLUV5uPZRktLM=;
+	s=arc-20240116; t=1735202517; c=relaxed/simple;
+	bh=Ezubpt231Btr+fecc9VWRwRHR2/CrIrjqWPqAwrXcwQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JhwFH8uaXcPdlz06G7v5xJSyqmqneYMN3065uTTPtiSdemWHxJGoCzXvJL/4lOxlk8IO6KoUHT8XCFvz5ABLdTavCtdaQoMS0MZO8OUY+83ucYiQH7fEPvbS2957tpBZvi5F+DMaxu3VI6dhbNRK6g44OScd0ayTufP5WmdvKzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=eZ1VhX+9; arc=none smtp.client-ip=115.124.30.118
+	 MIME-Version; b=GJSNFrJ97NXzqbdgGOlCubURSEGaR7qDX8OSgDcrOPmf5f1vpb9VRxfviJ5slwHVNOuWPzSY38NqIs7GsqIG7asjPYouHTUIJs7Ien63ijccFzwZxpT0/QNlic+Fyf/n4065iGAkW1It9PRVR/oEr8YwmsLUs/gxWbIDlxDX8jM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=FbESPMC1; arc=none smtp.client-ip=115.124.30.101
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="eZ1VhX+9"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="FbESPMC1"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1735202505; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=ZH2tWDpZsgct1ovsI23CJOr5jWl2TbMKA/kqK9o+xao=;
-	b=eZ1VhX+9APN5ZbPiezp/Z+5NlsdiYaD3gfm4bUr9roXyBhUoyQEbppwFcGXwhaa4Fb59czP9p1gEg1taI9Oa7OycnmxJXes4iYrjlHJ1TYOqj/dqCxhOi3Ow6GsIFrJHAAi7rPAwH42qtRZPyyJeCcMSRXGWi4uWSpz8n2XcgLQ=
-Received: from localhost(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0WMHVs9Q_1735202504 cluster:ay36)
+	t=1735202507; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=KuG8dEuhZu9n5tOs74H0f6agC0wxmCSkVPCgY/rj5gA=;
+	b=FbESPMC1lB9ph8S0KUngxme537IoES9TFbX0dLi01kXO9hU7uy8tUJWlFrdwGomZgT4a4cd939/HHsjs2nYPPBjQVOfZ44QhGKmEpuiBr3duqqsY0JcCjQ74HOwSEKrOgraHAOFkn5DyriF8l1mSPPfAwc9aQY+78TYgu9ag7U0=
+Received: from localhost(mailfrom:boshiyu@linux.alibaba.com fp:SMTPD_---0WMHh289_1735202506 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Thu, 26 Dec 2024 16:41:44 +0800
+          Thu, 26 Dec 2024 16:41:46 +0800
 From: Boshi Yu <boshiyu@linux.alibaba.com>
 To: jgg@ziepe.ca,
 	leon@kernel.org
 Cc: linux-rdma@vger.kernel.org,
 	kaishen@linux.alibaba.com,
 	chengyou@linux.alibaba.com
-Subject: [PATCH for-next 2/4] RDMA/erdma: Fix incorrect response returned from query_qp
-Date: Thu, 26 Dec 2024 16:41:09 +0800
-Message-ID: <20241226084141.74823-3-boshiyu@linux.alibaba.com>
+Subject: [PATCH for-next 4/4] RDMA/erdma: Support create_ah/destroy_ah in non-sleepable contexts
+Date: Thu, 26 Dec 2024 16:41:11 +0800
+Message-ID: <20241226084141.74823-5-boshiyu@linux.alibaba.com>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <20241226084141.74823-1-boshiyu@linux.alibaba.com>
 References: <20241226084141.74823-1-boshiyu@linux.alibaba.com>
@@ -44,56 +44,41 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The erdma_post_cmd_wait() function returns the cmdq response
-only when both resp0 and resp1 are not NULL.
+The RDMA CM module might invoke erdma_create_ah() or erdma_destroy_ah()
+in a non-sleepable context. Both of these functions will call the
+erdma_post_cmd_wait(), which can potentially sleep and occasionally lead
+to a hard lockup. Therefore, post the create_ah and destroy_ah commands in
+polling mode if the RDMA_CREATE_AH_SLEEPABLE and RDMA_DESTROY_AH_SLEEPABLE
+flags are not set, respectively.
 
 Reviewed-by: Cheng Xu <chengyou@linux.alibaba.com>
 Signed-off-by: Boshi Yu <boshiyu@linux.alibaba.com>
 ---
- drivers/infiniband/hw/erdma/erdma_verbs.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/erdma/erdma_verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/erdma/erdma_verbs.c b/drivers/infiniband/hw/erdma/erdma_verbs.c
-index e7967193ac82..27e03474e348 100644
+index 73ec59dcf43e..3511189a4248 100644
 --- a/drivers/infiniband/hw/erdma/erdma_verbs.c
 +++ b/drivers/infiniband/hw/erdma/erdma_verbs.c
-@@ -1799,7 +1799,7 @@ int erdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 	struct erdma_cmdq_query_qp_req_rocev2 req;
- 	struct erdma_dev *dev;
- 	struct erdma_qp *qp;
--	u64 resp;
-+	u64 resp0, resp1;
- 	int ret;
+@@ -2223,7 +2223,7 @@ int erdma_create_ah(struct ib_ah *ibah, struct rdma_ah_init_attr *init_attr,
+ 	erdma_set_av_cfg(&req.av_cfg, &ah->av);
  
- 	if (ibqp && qp_attr && qp_init_attr) {
-@@ -1833,20 +1833,20 @@ int erdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
- 					CMDQ_OPCODE_QUERY_QP);
- 		req.qpn = QP_ID(qp);
+ 	ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
+-				  true);
++				  init_attr->flags & RDMA_CREATE_AH_SLEEPABLE);
+ 	if (ret) {
+ 		erdma_free_idx(&dev->res_cb[ERDMA_RES_TYPE_AH], ah->ahn);
+ 		return ret;
+@@ -2247,7 +2247,7 @@ int erdma_destroy_ah(struct ib_ah *ibah, u32 flags)
+ 	req.ahn = ah->ahn;
  
--		ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), &resp,
--					  NULL);
-+		ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), &resp0,
-+					  &resp1);
- 		if (ret)
- 			return ret;
+ 	ret = erdma_post_cmd_wait(&dev->cmdq, &req, sizeof(req), NULL, NULL,
+-				  true);
++				  flags & RDMA_DESTROY_AH_SLEEPABLE);
+ 	if (ret)
+ 		return ret;
  
- 		qp_attr->sq_psn =
--			FIELD_GET(ERDMA_CMD_QUERY_QP_RESP_SQ_PSN_MASK, resp);
-+			FIELD_GET(ERDMA_CMD_QUERY_QP_RESP_SQ_PSN_MASK, resp0);
- 		qp_attr->rq_psn =
--			FIELD_GET(ERDMA_CMD_QUERY_QP_RESP_RQ_PSN_MASK, resp);
--		qp_attr->qp_state = rocev2_to_ib_qps(
--			FIELD_GET(ERDMA_CMD_QUERY_QP_RESP_QP_STATE_MASK, resp));
-+			FIELD_GET(ERDMA_CMD_QUERY_QP_RESP_RQ_PSN_MASK, resp0);
-+		qp_attr->qp_state = rocev2_to_ib_qps(FIELD_GET(
-+			ERDMA_CMD_QUERY_QP_RESP_QP_STATE_MASK, resp0));
- 		qp_attr->cur_qp_state = qp_attr->qp_state;
- 		qp_attr->sq_draining = FIELD_GET(
--			ERDMA_CMD_QUERY_QP_RESP_SQ_DRAINING_MASK, resp);
-+			ERDMA_CMD_QUERY_QP_RESP_SQ_DRAINING_MASK, resp0);
- 
- 		qp_attr->pkey_index = 0;
- 		qp_attr->dest_qp_num = qp->attrs.rocev2.dst_qpn;
 -- 
 2.46.0
 
