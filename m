@@ -1,466 +1,196 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2073.outbound.protection.outlook.com [40.107.237.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EFA5A95E;
-	Thu,  2 Jan 2025 11:36:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735817789; cv=none; b=Q1PjxMTW09V832OfFQGW9SDjG7HtNu4q+dc3ByU76k2r2pNrsERHe7LGgSJsLW+eolV5vGiCCHwUrSZpXfB/1K0GRW7hbbROfysK/s3H3x+xZPLPssAqzOTB9Y2QZjL1oL00rMw0aL0SZy+tA8gvZ1wTXsWKEZ0cu2Os0SW9EpE=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735817789; c=relaxed/simple;
-	bh=ppGDMEb+m27awcR8mcuKL5QE0e253ExWJlInEelY84Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tEptSjJmQpjb63QujiQCprt0yEqA48nJmhSd563yc8zJMmjG1vMNwjQIy6EPuMts6qNMaa+bcIniILQUkuXZ1g+Suk08oNfOAFP2j0KM1O3OImGZgxGwfV7Gi7ah7EVdhWPq2QGfM1GRZ44HcuFTHps++JkP3XNx60IashGzBsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jqshaQOb; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0BC6FB0;
+	Thu,  2 Jan 2025 13:40:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.73
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1735825205; cv=fail; b=SoKYb+N1o/zMHuJ3DsSgQeg5NC0/a53N+FQjkr0G19W+1lUQh3gIFKcIxsphmRcXRXFmUwd+SwD2stCF6lCRcnrDbl8hm7Qk5gOctIWfPtfAoPpLBjfz5IeqnlaPRLIck8eGY7R/eljtnVpp2q10BFeM0XUXGERo0VgujcXzfeo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1735825205; c=relaxed/simple;
+	bh=G7m2OxDcm1vNVviBgiZwjO1zYhYA7Xn/DOObP/fKBxM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=VrDjeDxNInal4h/wT0fIs0bjrZ6IImllnMJuxzBPxy/woZnxYU23NnHpo8fu6iYWfsqAKSaioitn4ek85ZV48sTlrO6lDPOSvA6r/WKE/ZlnG2m1RY1u/nNb6tSuKcmgNaaxROXVOyvr016PtU1aKsTqhfBzFdzu6p49D2pej3E=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ICjmcQqA; arc=fail smtp.client-ip=40.107.237.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jqshaQOb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 087A9C4CED0;
-	Thu,  2 Jan 2025 11:36:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1735817789;
-	bh=ppGDMEb+m27awcR8mcuKL5QE0e253ExWJlInEelY84Q=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jqshaQObjGwRYxwXEIo1uGKBdNFiRpm/Mks0poY5YINiK8/HO+oPpCtu8Y6vJiC/K
-	 2Qhqm2OKfz4yR6NOPhmHsCZOkb0MaAHorLuUGNmuCZlpWtWWRqsb8JixN5mcp8TaHe
-	 OBVq7iAwO3gE16I0YSZGBaML/pxk5iy0G7D9P0IeBuQwL/rSJSKjIsG2lar+WoruAY
-	 7owRlxq5h12+Htpk5gTJJVqLWIosq7R9OF5Tnfa7IY/LsQGJ94kj3GVdsMKWzqSLG6
-	 rFsGlZW7XaJ3/IKbaJyyNUdBlaFgNsaxS4qHmaX/hoDG7PeosT4k2O2TM9ftEnBcfV
-	 YGQEPFRI7qCaA==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Patrisious Haddad <phaddad@nvidia.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	linux-rdma@vger.kernel.org,
-	Mark Bloch <mbloch@nvidia.com>,
-	netdev@vger.kernel.org,
-	Paolo Abeni <pabeni@redhat.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH mlx5-next 2/3] net/mlx5: fs, add RDMA TRANSPORT steering domain support
-Date: Thu,  2 Jan 2025 13:36:06 +0200
-Message-ID: <27799a1503e49643e07fc74ce45d047e950922e8.1735817449.git.leon@kernel.org>
-X-Mailer: git-send-email 2.47.1
-In-Reply-To: <cover.1735817449.git.leon@kernel.org>
-References: <cover.1735817449.git.leon@kernel.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ICjmcQqA"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=e7xVuhVoFdMKDkiX9IXhih57agcMMNRH+T6TogjpmASHxECYxVodcxhuuG1yzKKnFOljAYBuZoNZUQKXyfiLdckrlWM+/VS9FauQpCrbHV3U5KVa+j4D5UGEtm5Uvz6Fn7sZkA8//aAqtQIkcN8kokY/VKtGGAsZp8TqJEi9A4yl0hhVMI55i6bosnBeLIHJQY/5XUTo6jACvR+rzC9hUvxiIiAzif9UeJnMF1z8QVOW2JHY0/TMXcJX3OvkXmwXvkM8wXnPwouoEWgzovO0CpPGMjcLyevaWl51J7EfnXjgHvnsUQmQ+o4bzoqs4aNm8Q6RiyY/SKFzQ+n7+S4E8g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Wb/ra7Vjkw46FGNVvSucpUeuYunfZTt8HPTFrpGSinA=;
+ b=nLhll/fQvfMblxTd0Fdr4Xjqw26DceDZgy7GyCVY+UTgXVEeiTeS+TLvYzMSrOjd9sswNSpeFmsM0+mWQfDVXiyPHQmdBuKCDHyyTrOsJxBY1CtGJ8HLtzrh/ph6H7WkmCH+V6FnKt0DCTbnNRXZ4+6hSxWVMfurjeBxy8EpuWH3auHziDyXMIx2P+hR5YqK28OzE+P94YqMJlToP0GuPpqPk6UJny1EteqM141E+iWwjprEO8gxbhDiCgecTtiMKYSt/ML1ZX1aKT3QHwDclZwHBAIVWEksL08OfmhO/xJV6I0e3O7GHk0BiqFVfL5PLqsXb0wW88VJz9uUH6wFDQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Wb/ra7Vjkw46FGNVvSucpUeuYunfZTt8HPTFrpGSinA=;
+ b=ICjmcQqA7qf7o2+vYzokkR897Bk/zmbwqGoRcaex/pr1CBKvwrxP9zCKHvsHmO31yhwtK35mYyCd2SZGo96zQZcSV7qET22vE/LxE53ueHO/rFSRl2aup7rHskfTvNGBGWOoUJQDsFxk2buMidNZwc3BDuvGLkq/1eRZWFk2uhpDnkIp4JSSn47CaE047e6nuKFEIzmAn+CCSbGoTWd6Kaj4Ab40aJ4Z8N6lqxuWOoClLpp35CikpwatJycNBM/PnBXP/9lHpanDApEYamO8C/fxlFCIstNPCEdmEqB7iw8OhcXRww9DXLrdPgS3A9RysBYUZoMbVAcxaPGqJaeHSg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB8659.namprd12.prod.outlook.com (2603:10b6:610:17c::13)
+ by MW4PR12MB5643.namprd12.prod.outlook.com (2603:10b6:303:188::16) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8314.12; Thu, 2 Jan
+ 2025 13:39:53 +0000
+Received: from CH3PR12MB8659.namprd12.prod.outlook.com
+ ([fe80::6eb6:7d37:7b4b:1732]) by CH3PR12MB8659.namprd12.prod.outlook.com
+ ([fe80::6eb6:7d37:7b4b:1732%4]) with mapi id 15.20.8314.012; Thu, 2 Jan 2025
+ 13:39:52 +0000
+Date: Thu, 2 Jan 2025 09:39:51 -0400
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
+Cc: "Kasireddy, Vivek" <vivek.kasireddy@intel.com>,
+	Wei Lin Guay <wguay@meta.com>, Keith Busch <kbusch@kernel.org>,
+	"alex.williamson@redhat.com" <alex.williamson@redhat.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"kvm@vger.kernel.org" <kvm@vger.kernel.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	Dag Moxnes <dagmoxnes@meta.com>,
+	Nicolaas Viljoen <nviljoen@meta.com>,
+	Oded Gabbay <ogabbay@kernel.org>,
+	Simona Vetter <simona.vetter@ffwll.ch>,
+	Leon Romanovsky <leon@kernel.org>, Maor Gottlieb <maorg@nvidia.com>
+Subject: Re: [PATCH 0/4] cover-letter: Allow MMIO regions to be exported
+ through dmabuf
+Message-ID: <20250102133951.GB5556@nvidia.com>
+References: <20241216095429.210792-1-wguay@fb.com>
+ <89d9071b-0d3e-4fcd-963b-7aa234031a38@amd.com>
+ <Z2BbPKvbxm7jvJL9@kbusch-mbp.dhcp.thefacebook.com>
+ <0f207bf8-572a-4d32-bd24-602a0bf02d90@amd.com>
+ <C369F330-5BAD-4AC6-A13C-EEABD29F2F08@meta.com>
+ <e8759159-b141-410b-be08-aad54eaed41f@amd.com>
+ <IA0PR11MB7185D0E4EE2DA36A87AE6EACF8052@IA0PR11MB7185.namprd11.prod.outlook.com>
+ <0c7ab6c9-9523-41de-91e9-602cbcaa1c68@amd.com>
+ <IA0PR11MB71855CFE176047053A4E6D07F8062@IA0PR11MB7185.namprd11.prod.outlook.com>
+ <0843cda7-6f33-4484-a38a-1f77cbc9d250@amd.com>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <0843cda7-6f33-4484-a38a-1f77cbc9d250@amd.com>
+X-ClientProxiedBy: BN9PR03CA0387.namprd03.prod.outlook.com
+ (2603:10b6:408:f7::32) To CH3PR12MB8659.namprd12.prod.outlook.com
+ (2603:10b6:610:17c::13)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PR12MB8659:EE_|MW4PR12MB5643:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6114e894-f632-473a-37f8-08dd2b32ef90
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|7416014|366016;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?SGtSbEw5RDlMVHIveXNyWVdpRnR1c29yVUg5SUN1Q2xLTnJPMEN1MmZzK2JG?=
+ =?utf-8?B?QVlsVkM5UWNiUGxIdW91ak5LcGEvQ3ZiZ0ZKMUlxNHJxaUM0YWgvaVZReG43?=
+ =?utf-8?B?THhOVUp1aSsvNnFPWUhhUWpTQTV4Wk1LWnl4VWhNaFdnUXJQMzUza09LN2VB?=
+ =?utf-8?B?WHFnbnJ0c0p4R0ZJTGdxbVlIL1NmaldLcVRHdHo0OHRIL1pTZWcvWXUyZ1VJ?=
+ =?utf-8?B?SlAvOXBRU2JzeXFKbkdPWlFseGlCdTEwK1RNdXBHbjdVOE9zQXJGUnhNcGpr?=
+ =?utf-8?B?UjVMQnpBWU5iQ2xKemxVbHJHbGJTcHFwOFlPeXhsVkhjZDByVitKNGR6ZFlU?=
+ =?utf-8?B?UURMZ3pGNCsyYU54MnlPRFA4VW9LU3V3ZFdndkd2Yk5ZZ2dwOUVldHlNRXFy?=
+ =?utf-8?B?bFp1OHFWYVFsdnZJckdwc1RJdWJEMDVxN1o4aTdmc1A0VHlIcm5CTVJCUHRj?=
+ =?utf-8?B?dERnMS9PdXlvaWQ0Z2tuY3hkdkozaHBQNTdNTkJGNTMwUGFvcExJazJSQUFF?=
+ =?utf-8?B?S1J0U3JwRG9udkQ0OW10am1zSFE5NU5ZMjNVWTZWcDlRc0VZUytubk0wRU1U?=
+ =?utf-8?B?angvREZuK1NTdkNXcDNEdTkwODhRcmMwMXhWQkg1ZDVDNEh2WmhrRm9KRS9M?=
+ =?utf-8?B?ckxwSFZSREh0VFIxN2lGTDk2UmhjdTBEYjJROFBHVjE5Ymd5VTRINUNwY1lx?=
+ =?utf-8?B?LzZlK3AxREVkWUlCU1FKcXlKOWR2VldaenkxUTF5TWpHSzFqREdSeHQxbjV4?=
+ =?utf-8?B?bml0dlk1Tzd2cGFvNHc0ejJtMnZTMWxHVE5uK2xScWw1SS9TaTg5OXI2TGFk?=
+ =?utf-8?B?RzdRZHNVTGYvWTR3M2lqZk4rYUVKNXVLQ0VpSlkyeDRrVVRWemZnTWFFL0dt?=
+ =?utf-8?B?Z2xscE5qdS8yK0ZtcncxNHdSWTJGRWVHSHM3b1dIbVZmMXd5NTRueEJZaGFR?=
+ =?utf-8?B?WEtkdlN2eTFpcm5DOWV3QmFMUWxpeExHTU5NelBXbDBnVlFNaVRXMlVuaFpi?=
+ =?utf-8?B?SDJrRWZTZlNvZUJ5UENTeUdzNUY1QWFpeno3MnNES3hlSHJSL3F2bGVuMHcz?=
+ =?utf-8?B?T3hHUllNb2wxRHhYY2J3cFNzalBrY3RWM2pUUEMxZTRFMGFvUjQxZXF0M0U2?=
+ =?utf-8?B?WSttWFlaWnRxU0s4TW8wODFEQW0xRWlnZEp3LzlncXhUQis1d1pUcTVIcU0y?=
+ =?utf-8?B?Vkp3UDhrYVFEY3JBMmlYYy9abWg2YTJNcitCRWlkZDcyL2psODNnNEJoeVZx?=
+ =?utf-8?B?MzRIeG9EYkM3Slpvd1FYT1o5UXJXS05MVGhFTWVrV0wwY0xGUUVTTjl3ek5J?=
+ =?utf-8?B?MDlzWTZHTXFjeTBCQVdDeHZlNlFmajU3QUFkWEJ5dmVRNnRxWGpIeHFYMHN3?=
+ =?utf-8?B?bEdUN2NLOHoxUFUrcTlBNFc4RkE4NGpqVENYZ1lWZjdCMHhjY2pneitWbG5H?=
+ =?utf-8?B?UHVIZ3RMYkdXS0ZNK1VEbW1QU05WQjJ3M2s3emFuQURHS1YvUWRvYzVrK1U5?=
+ =?utf-8?B?czk1eVp0ajVwRFZPSkp4aFdSREtlRFlvT0owVlFPcmNIRUlDVzlCN21CRStq?=
+ =?utf-8?B?NXdYZmhTd2hURzhVQ3IxeTU5REpNWEFJM2lCYVd5UTdPdkVuQ0M2VnJwRXJx?=
+ =?utf-8?B?NWpnNm9rZjQrR2ZVOWdyWU9CU2J5aHFvQVREdTNMcUdXK1V6YXFra3VOcWFT?=
+ =?utf-8?B?ckJRdmo1Tm5TdXErSXI5MWZzbTdpTmZCbFFUalExbU1nSHRXV0JyMDdyeVl2?=
+ =?utf-8?B?WVlmclZRbE15TUd6VXdpSnUxUWtWK2hYVGpranZwRm9VdkQ2L1hHalZLOWFm?=
+ =?utf-8?B?YkFJbldKZlFFWFQ1K2ZjTmhERGpBc3VJVjZqcU1aQVJYNks1bEx4RXVVNVlx?=
+ =?utf-8?Q?YNPYMrNIOJi9P?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8659.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(7416014)(366016);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?eVpsM2VkU1ErMnZ4WGFpeEdqbTBLbnNHWGpxcXd3SFduNTBpek1IcXFsa1lC?=
+ =?utf-8?B?bzM2aTQxdkdMRkVMbk9RSlYxVUI5c1NYaWMvVUorb2tEak9JWVF0Z2RaQTVJ?=
+ =?utf-8?B?UVF2MFc0RHFqb2kzMFlqZmZEcHRHSy9yQnRPTWk4TXhGQVM0R1NFRHFRVTBG?=
+ =?utf-8?B?aWQ2cFp5RGhoUkxIYXFLZ1lUWWcxUnI5MVNqcnRqdzJucjhFSkZUNmdaZG5G?=
+ =?utf-8?B?RHZHQUdTZW1ZMExvMlFJWTFPOU5XdFZvODFqdTRQUHF5cG5OdFJmS2VlcGxI?=
+ =?utf-8?B?MkhreDlhcHNzR2taUXJGTytITWl5UmlQTUxiL2h3NUNkL3M3TGlaV2ljYmZv?=
+ =?utf-8?B?bEZibnBzWjR4Nm5EdnJrSTVCR3dFTngyZitKL2oyU3RoTEF6TG53YlREaWVJ?=
+ =?utf-8?B?bnlVWDcyWExZTUpQNCthQmpwNCtScnhmWTNvbERqNmpxSDhMY2U4OE9jK2R6?=
+ =?utf-8?B?WHRjc2hDYk9LTGQvaWlHV3lqanBNc3UvQ2Zmc2VFSFVWb2ZkY09mbFEvRzc2?=
+ =?utf-8?B?K0RESGpYVlJrd3FBZEdTeXhGbDJaYlVXY3o0TEIwc2k0ZGs1Ykd4ODdwRklP?=
+ =?utf-8?B?R2lLZ25kWkY4cVQvaTdySHMyREUxVExoNWtOSjhJeGVvY2pvMGNaQk00UW9s?=
+ =?utf-8?B?M2Q3QjIzemxYZm1PbTZwYjRSKzVmNTBGbEZyaUFHMzBXVE91bDhQaEVzVEpY?=
+ =?utf-8?B?YjRsbHRBcU0yb3VjRmVSSDNrT0JQcU13cG5nNEVmWmlKV3M5VjlQcUVPZ0hw?=
+ =?utf-8?B?WXFLQ21mYXBUYlpmckNEVXBCTFdTVURieXBmLzY3S3FUdFJpb200OWpwcWJn?=
+ =?utf-8?B?VksxMWppZUpCbXlVUTFycW1PR1NWRVNOMFV1TDNLai9qNm9PMlBseXFNZUJQ?=
+ =?utf-8?B?Z3FBYkdRVHNkQzhPQ0JxNFIweFozSThFWG8zNS9UVUpqbkhVa0IvaUYvcVQx?=
+ =?utf-8?B?eGFZR2FGeDJ0NmhCVno5TVJDVjg1TnlWUzJyWTk5Wll0TnVyWVNjeE1Bekxy?=
+ =?utf-8?B?OU44MVUyQjcweFF5UWU1VlNvTmlsWm5sS0ZSbjFXWVFlbWlmY3FleTNOcXJS?=
+ =?utf-8?B?ZzlmSUNROUx1MXRrUGozcTBPWXQvUVdOSXVSL3FWZXE0T2cvekxOSGFBem5Y?=
+ =?utf-8?B?cnVkUDNFK1VKbVpTSEpxY0JycGxQdUlzWnFnRnAxMHJ6bnhjQXZ0VkNnV09M?=
+ =?utf-8?B?U2hoOWJMQzF3NGJGRGRRaFZocFduQU5ucWEwZmdjQUh5T0liWWJiSlhHVGN4?=
+ =?utf-8?B?cG5tNUE0Uk1FRU51UUhxdzUzK2dVMUgwbmduUWFRMmVzanQ3cW9HbFFnZjFo?=
+ =?utf-8?B?N3Q4K25tMDdLZ3ovT0dNUDdoZVZBaUlRQ00wZUxuL3pOWnFrTGkySmVsUUVT?=
+ =?utf-8?B?cVpwbHY2NkcwVjkrcFpnTVo4OG1FVGJBdStMYTE2TnBTQUIxTDhlb1hZYUx0?=
+ =?utf-8?B?YWxpZGZoekJNZEtoZGcvSk0rQnZUTWFrNGRsMjRjMlVBR2huWnJheU9pNU81?=
+ =?utf-8?B?SWZmM0REZlVvd1JCTXIvVEpLV3NHckhOelBCeEV3RklPRjNLUFc1eHhiTW9L?=
+ =?utf-8?B?UWJuQnEwdkJlbkZSc3d2ZVR3VGx3L3ZuV2xyMnhEUk50alpPdWFzQ25MR2pu?=
+ =?utf-8?B?SDZTRVVLUXdmSFo0Z3BYVW1DNktOTkdudW0rZ0doY1lUWlFER3RZMGVoZDY0?=
+ =?utf-8?B?dkpxaWFwdTExR0FsV2JCMk1GQmozRGIvaHJMcGhSMlpuaFp3VlU0SEUrcFJs?=
+ =?utf-8?B?TjVFSUM2TGNBSWRVUGtLaGNJdGY4R3FSTkZ0WmNaRkxBeFVWQzBCbmJGVkNK?=
+ =?utf-8?B?Mm5jeVFWUHF3bE8xUmdNblc4ZG9vZE9MQjRIbGxwckxtUWdHY2JkUHltNndu?=
+ =?utf-8?B?ZkZzOHR1bE1WM3hDOUhEVjQ4VU1TdFRPNUtFU1hhZUhWTStybkQ2clRROXJ1?=
+ =?utf-8?B?UzVKZnNvZHF1ZjBIOW9OdHYyRDMvQWRaVy9tNDA0Zk5vcTF3R1RZcWVjcUN0?=
+ =?utf-8?B?T0E3VmtVL1h5eFNoSUNOZ3VKT3M1UW53c29SWjBYMDNHc0lLVnpNb3ZwdFRj?=
+ =?utf-8?B?eUJQUDIvUmpXNGNSVHNVMTBCV2NlNjIrSGhuNDg3UU41YlQ1WDJwKzJjSDkw?=
+ =?utf-8?Q?/Y7g=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6114e894-f632-473a-37f8-08dd2b32ef90
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8659.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Jan 2025 13:39:52.5481
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: nsIStHaMhMVO8Jt5j0suY0fxk3lZSgXfewCbeJk65U3EbXruzHCKtoJBV2JtPfVF
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB5643
 
-From: Patrisious Haddad <phaddad@nvidia.com>
+On Thu, Dec 19, 2024 at 11:04:54AM +0100, Christian König wrote:
 
-Add RX and TX RDMA_TRANSPORT flow table namespace, and the ability
-to create flow tables in those namespaces.
+> > Based on all the above, I think we can conclude that since dma_buf_put()
+> > does not directly (or synchronously) call the f_op->release() handler, a
+> > deadlock is unlikely to occur in the scenario you described.
 
-The RDMA_TRANSPORT RX and TX are per vport.
+Right, there is no deadlock here, and there is nothing inhernetly
+wrong with using try_get like this. The locking here is ugly ugly
+ugly, I forget why, but this was the best I came up with to untangle
+it without deadlocks or races.
 
-Packets will traverse through RDMA_TRANSPORT_RX after RDMA_RX and through
-RDMA_TRANSPORT_TX before RDMA_TX, ensuring proper control and management.
+> Yeah, I agree.
+> 
+> Interesting to know, I wasn't aware that the task_work functionality exists
+> for that use case.
 
-RDMA_TRANSPORT domains are managed by the vport group manager.
+IIRC it was changed a while back because call chains were getting kind of
+crazy long with the file release functions and stack overflow was a
+problem in some cases.
 
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- .../mellanox/mlx5/core/esw/acl/helper.c       |   2 +-
- .../mellanox/mlx5/core/eswitch_offloads.c     |   6 +-
- .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |   2 +
- .../net/ethernet/mellanox/mlx5/core/fs_core.c | 178 ++++++++++++++++--
- .../net/ethernet/mellanox/mlx5/core/fs_core.h |  12 +-
- include/linux/mlx5/device.h                   |   6 +
- include/linux/mlx5/fs.h                       |  11 +-
- 7 files changed, 196 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/helper.c b/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/helper.c
-index d599e50af346b..3ce455c2535c4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/helper.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/esw/acl/helper.c
-@@ -27,7 +27,7 @@ esw_acl_table_create(struct mlx5_eswitch *esw, struct mlx5_vport *vport, int ns,
- 	esw_debug(dev, "Create vport[%d] %s ACL table\n", vport_num,
- 		  ns == MLX5_FLOW_NAMESPACE_ESW_INGRESS ? "ingress" : "egress");
- 
--	root_ns = mlx5_get_flow_vport_acl_namespace(dev, ns, vport->index);
-+	root_ns = mlx5_get_flow_vport_namespace(dev, ns, vport->index);
- 	if (!root_ns) {
- 		esw_warn(dev, "Failed to get E-Switch root namespace for vport (%d)\n",
- 			 vport_num);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index d5b42b3a19fdf..fdbb79a83c900 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -2831,9 +2831,9 @@ static int esw_set_master_egress_rule(struct mlx5_core_dev *master,
- 	if (IS_ERR(vport))
- 		return PTR_ERR(vport);
- 
--	egress_ns = mlx5_get_flow_vport_acl_namespace(master,
--						      MLX5_FLOW_NAMESPACE_ESW_EGRESS,
--						      vport->index);
-+	egress_ns = mlx5_get_flow_vport_namespace(master,
-+						  MLX5_FLOW_NAMESPACE_ESW_EGRESS,
-+						  vport->index);
- 	if (!egress_ns)
- 		return -EINVAL;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 676005854dad4..86f9c0fbed928 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -1141,6 +1141,8 @@ const struct mlx5_flow_cmds *mlx5_fs_cmd_get_default(enum fs_flow_table_type typ
- 	case FS_FT_RDMA_RX:
- 	case FS_FT_RDMA_TX:
- 	case FS_FT_PORT_SEL:
-+	case FS_FT_RDMA_TRANSPORT_RX:
-+	case FS_FT_RDMA_TRANSPORT_TX:
- 		return mlx5_fs_cmd_get_fw_cmds();
- 	default:
- 		return mlx5_fs_cmd_get_stub_cmds();
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 2eabfcc247c6a..879c36a88a26c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1449,7 +1449,7 @@ mlx5_create_auto_grouped_flow_table(struct mlx5_flow_namespace *ns,
- 	struct mlx5_flow_table *ft;
- 	int autogroups_max_fte;
- 
--	ft = mlx5_create_flow_table(ns, ft_attr);
-+	ft = mlx5_create_vport_flow_table(ns, ft_attr, ft_attr->vport);
- 	if (IS_ERR(ft))
- 		return ft;
- 
-@@ -2756,9 +2756,9 @@ struct mlx5_flow_namespace *mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
- }
- EXPORT_SYMBOL(mlx5_get_flow_namespace);
- 
--struct mlx5_flow_namespace *mlx5_get_flow_vport_acl_namespace(struct mlx5_core_dev *dev,
--							      enum mlx5_flow_namespace_type type,
--							      int vport)
-+struct mlx5_flow_namespace *
-+mlx5_get_flow_vport_namespace(struct mlx5_core_dev *dev,
-+			      enum mlx5_flow_namespace_type type, int vport_idx)
- {
- 	struct mlx5_flow_steering *steering = dev->priv.steering;
- 
-@@ -2767,25 +2767,43 @@ struct mlx5_flow_namespace *mlx5_get_flow_vport_acl_namespace(struct mlx5_core_d
- 
- 	switch (type) {
- 	case MLX5_FLOW_NAMESPACE_ESW_EGRESS:
--		if (vport >= steering->esw_egress_acl_vports)
-+		if (vport_idx >= steering->esw_egress_acl_vports)
- 			return NULL;
- 		if (steering->esw_egress_root_ns &&
--		    steering->esw_egress_root_ns[vport])
--			return &steering->esw_egress_root_ns[vport]->ns;
-+		    steering->esw_egress_root_ns[vport_idx])
-+			return &steering->esw_egress_root_ns[vport_idx]->ns;
- 		else
- 			return NULL;
- 	case MLX5_FLOW_NAMESPACE_ESW_INGRESS:
--		if (vport >= steering->esw_ingress_acl_vports)
-+		if (vport_idx >= steering->esw_ingress_acl_vports)
- 			return NULL;
- 		if (steering->esw_ingress_root_ns &&
--		    steering->esw_ingress_root_ns[vport])
--			return &steering->esw_ingress_root_ns[vport]->ns;
-+		    steering->esw_ingress_root_ns[vport_idx])
-+			return &steering->esw_ingress_root_ns[vport_idx]->ns;
-+		else
-+			return NULL;
-+	case MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX:
-+		if (vport_idx >= steering->rdma_transport_rx_vports)
-+			return NULL;
-+		if (steering->rdma_transport_rx_root_ns &&
-+		    steering->rdma_transport_rx_root_ns[vport_idx])
-+			return &steering->rdma_transport_rx_root_ns[vport_idx]->ns;
-+		else
-+			return NULL;
-+	case MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX:
-+		if (vport_idx >= steering->rdma_transport_tx_vports)
-+			return NULL;
-+
-+		if (steering->rdma_transport_tx_root_ns &&
-+		    steering->rdma_transport_tx_root_ns[vport_idx])
-+			return &steering->rdma_transport_tx_root_ns[vport_idx]->ns;
- 		else
- 			return NULL;
- 	default:
- 		return NULL;
- 	}
- }
-+EXPORT_SYMBOL(mlx5_get_flow_vport_namespace);
- 
- static struct fs_prio *_fs_create_prio(struct mlx5_flow_namespace *ns,
- 				       unsigned int prio,
-@@ -3191,6 +3209,127 @@ static int init_rdma_tx_root_ns(struct mlx5_flow_steering *steering)
- 	return err;
- }
- 
-+static int
-+init_rdma_transport_rx_root_ns_one(struct mlx5_flow_steering *steering,
-+				   int vport_idx)
-+{
-+	struct fs_prio *prio;
-+
-+	steering->rdma_transport_rx_root_ns[vport_idx] =
-+		create_root_ns(steering, FS_FT_RDMA_TRANSPORT_RX);
-+	if (!steering->rdma_transport_rx_root_ns[vport_idx])
-+		return -ENOMEM;
-+
-+	/* create 1 prio*/
-+	prio = fs_create_prio(&steering->rdma_transport_rx_root_ns[vport_idx]->ns,
-+			      MLX5_RDMA_TRANSPORT_BYPASS_PRIO, 1);
-+	return PTR_ERR_OR_ZERO(prio);
-+}
-+
-+static int
-+init_rdma_transport_tx_root_ns_one(struct mlx5_flow_steering *steering,
-+				   int vport_idx)
-+{
-+	struct fs_prio *prio;
-+
-+	steering->rdma_transport_tx_root_ns[vport_idx] =
-+		create_root_ns(steering, FS_FT_RDMA_TRANSPORT_TX);
-+	if (!steering->rdma_transport_tx_root_ns[vport_idx])
-+		return -ENOMEM;
-+
-+	/* create 1 prio*/
-+	prio = fs_create_prio(&steering->rdma_transport_tx_root_ns[vport_idx]->ns,
-+			      MLX5_RDMA_TRANSPORT_BYPASS_PRIO, 1);
-+	return PTR_ERR_OR_ZERO(prio);
-+}
-+
-+static int init_rdma_transport_rx_root_ns(struct mlx5_flow_steering *steering)
-+{
-+	struct mlx5_core_dev *dev = steering->dev;
-+	int total_vports;
-+	int err;
-+	int i;
-+
-+	/* In case eswitch not supported and working in legacy mode */
-+	total_vports = mlx5_eswitch_get_total_vports(dev) ?: 1;
-+
-+	steering->rdma_transport_rx_root_ns =
-+			kcalloc(total_vports,
-+				sizeof(*steering->rdma_transport_rx_root_ns),
-+				GFP_KERNEL);
-+	if (!steering->rdma_transport_rx_root_ns)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < total_vports; i++) {
-+		err = init_rdma_transport_rx_root_ns_one(steering, i);
-+		if (err)
-+			goto cleanup_root_ns;
-+	}
-+	steering->rdma_transport_rx_vports = total_vports;
-+	return 0;
-+
-+cleanup_root_ns:
-+	while (i--)
-+		cleanup_root_ns(steering->rdma_transport_rx_root_ns[i]);
-+	kfree(steering->rdma_transport_rx_root_ns);
-+	steering->rdma_transport_rx_root_ns = NULL;
-+	return err;
-+}
-+
-+static int init_rdma_transport_tx_root_ns(struct mlx5_flow_steering *steering)
-+{
-+	struct mlx5_core_dev *dev = steering->dev;
-+	int total_vports;
-+	int err;
-+	int i;
-+
-+	/* In case eswitch not supported and working in legacy mode */
-+	total_vports = mlx5_eswitch_get_total_vports(dev) ?: 1;
-+
-+	steering->rdma_transport_tx_root_ns =
-+			kcalloc(total_vports,
-+				sizeof(*steering->rdma_transport_tx_root_ns),
-+				GFP_KERNEL);
-+	if (!steering->rdma_transport_tx_root_ns)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < total_vports; i++) {
-+		err = init_rdma_transport_tx_root_ns_one(steering, i);
-+		if (err)
-+			goto cleanup_root_ns;
-+	}
-+	steering->rdma_transport_tx_vports = total_vports;
-+	return 0;
-+
-+cleanup_root_ns:
-+	while (i--)
-+		cleanup_root_ns(steering->rdma_transport_tx_root_ns[i]);
-+	kfree(steering->rdma_transport_tx_root_ns);
-+	steering->rdma_transport_tx_root_ns = NULL;
-+	return err;
-+}
-+
-+static void cleanup_rdma_transport_roots_ns(struct mlx5_flow_steering *steering)
-+{
-+	int i;
-+
-+	if (steering->rdma_transport_rx_root_ns) {
-+		for (i = 0; i < steering->rdma_transport_rx_vports; i++)
-+			cleanup_root_ns(steering->rdma_transport_rx_root_ns[i]);
-+
-+		kfree(steering->rdma_transport_rx_root_ns);
-+		steering->rdma_transport_rx_root_ns = NULL;
-+	}
-+
-+	if (steering->rdma_transport_tx_root_ns) {
-+		for (i = 0; i < steering->rdma_transport_tx_vports; i++)
-+			cleanup_root_ns(steering->rdma_transport_tx_root_ns[i]);
-+
-+		kfree(steering->rdma_transport_tx_root_ns);
-+		steering->rdma_transport_tx_root_ns = NULL;
-+	}
-+}
-+
- /* FT and tc chains are stored in the same array so we can re-use the
-  * mlx5_get_fdb_sub_ns() and tc api for FT chains.
-  * When creating a new ns for each chain store it in the first available slot.
-@@ -3607,6 +3746,7 @@ void mlx5_fs_core_cleanup(struct mlx5_core_dev *dev)
- 	cleanup_root_ns(steering->rdma_rx_root_ns);
- 	cleanup_root_ns(steering->rdma_tx_root_ns);
- 	cleanup_root_ns(steering->egress_root_ns);
-+	cleanup_rdma_transport_roots_ns(steering);
- 
- 	devl_params_unregister(priv_to_devlink(dev), mlx5_fs_params,
- 			       ARRAY_SIZE(mlx5_fs_params));
-@@ -3677,6 +3817,18 @@ int mlx5_fs_core_init(struct mlx5_core_dev *dev)
- 			goto err;
- 	}
- 
-+	if (MLX5_CAP_FLOWTABLE_RDMA_TRANSPORT_RX(dev, ft_support)) {
-+		err = init_rdma_transport_rx_root_ns(steering);
-+		if (err)
-+			goto err;
-+	}
-+
-+	if (MLX5_CAP_FLOWTABLE_RDMA_TRANSPORT_TX(dev, ft_support)) {
-+		err = init_rdma_transport_tx_root_ns(steering);
-+		if (err)
-+			goto err;
-+	}
-+
- 	return 0;
- 
- err:
-@@ -3827,8 +3979,10 @@ mlx5_get_root_namespace(struct mlx5_core_dev *dev, enum mlx5_flow_namespace_type
- 	struct mlx5_flow_namespace *ns;
- 
- 	if (ns_type == MLX5_FLOW_NAMESPACE_ESW_EGRESS ||
--	    ns_type == MLX5_FLOW_NAMESPACE_ESW_INGRESS)
--		ns = mlx5_get_flow_vport_acl_namespace(dev, ns_type, 0);
-+	    ns_type == MLX5_FLOW_NAMESPACE_ESW_INGRESS ||
-+	    ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX ||
-+	    ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX)
-+		ns = mlx5_get_flow_vport_namespace(dev, ns_type, 0);
- 	else
- 		ns = mlx5_get_flow_namespace(dev, ns_type);
- 	if (!ns)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-index bad2df0715ecc..6da60e679dcb4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-@@ -112,7 +112,9 @@ enum fs_flow_table_type {
- 	FS_FT_PORT_SEL		= 0X9,
- 	FS_FT_FDB_RX		= 0xa,
- 	FS_FT_FDB_TX		= 0xb,
--	FS_FT_MAX_TYPE = FS_FT_FDB_TX,
-+	FS_FT_RDMA_TRANSPORT_RX	= 0xd,
-+	FS_FT_RDMA_TRANSPORT_TX	= 0xe,
-+	FS_FT_MAX_TYPE = FS_FT_RDMA_TRANSPORT_TX,
- };
- 
- enum fs_flow_table_op_mod {
-@@ -154,6 +156,10 @@ struct mlx5_flow_steering {
- 	struct mlx5_flow_root_namespace	*port_sel_root_ns;
- 	int esw_egress_acl_vports;
- 	int esw_ingress_acl_vports;
-+	struct mlx5_flow_root_namespace **rdma_transport_rx_root_ns;
-+	struct mlx5_flow_root_namespace **rdma_transport_tx_root_ns;
-+	int rdma_transport_rx_vports;
-+	int rdma_transport_tx_vports;
- };
- 
- struct fs_node {
-@@ -382,7 +388,9 @@ struct mlx5_flow_root_namespace *find_root(struct fs_node *node);
- 	(type == FS_FT_PORT_SEL) ? MLX5_CAP_FLOWTABLE_PORT_SELECTION(mdev, cap) :      \
- 	(type == FS_FT_FDB_RX) ? MLX5_CAP_ESW_FLOWTABLE_FDB(mdev, cap) :      \
- 	(type == FS_FT_FDB_TX) ? MLX5_CAP_ESW_FLOWTABLE_FDB(mdev, cap) :      \
--	(BUILD_BUG_ON_ZERO(FS_FT_FDB_TX != FS_FT_MAX_TYPE))\
-+	(type == FS_FT_RDMA_TRANSPORT_RX) ? MLX5_CAP_FLOWTABLE_RDMA_TRANSPORT_RX(mdev, cap) :      \
-+	(type == FS_FT_RDMA_TRANSPORT_TX) ? MLX5_CAP_FLOWTABLE_RDMA_TRANSPORT_TX(mdev, cap) :      \
-+	(BUILD_BUG_ON_ZERO(FS_FT_RDMA_TRANSPORT_TX != FS_FT_MAX_TYPE))\
- 	)
- 
- #endif
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index da5bcde853da3..e33ea22463424 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -1344,6 +1344,12 @@ enum mlx5_qcam_feature_groups {
- #define MLX5_CAP_FLOWTABLE_RDMA_TX(mdev, cap) \
- 	MLX5_CAP_FLOWTABLE(mdev, flow_table_properties_nic_transmit_rdma.cap)
- 
-+#define MLX5_CAP_FLOWTABLE_RDMA_TRANSPORT_RX(mdev, cap) \
-+	MLX5_CAP_ADV_RDMA(mdev, rdma_transport_rx_flow_table_properties.cap)
-+
-+#define MLX5_CAP_FLOWTABLE_RDMA_TRANSPORT_TX(mdev, cap) \
-+	MLX5_CAP_ADV_RDMA(mdev, rdma_transport_tx_flow_table_properties.cap)
-+
- #define MLX5_CAP_ESW_FLOWTABLE(mdev, cap) \
- 	MLX5_GET(flow_table_eswitch_cap, \
- 		 mdev->caps.hca[MLX5_CAP_ESWITCH_FLOW_TABLE]->cur, cap)
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 438db888bde0d..45c60a9ae8de3 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -40,6 +40,8 @@
- 
- #define MLX5_SET_CFG(p, f, v) MLX5_SET(create_flow_group_in, p, f, v)
- 
-+#define MLX5_RDMA_TRANSPORT_BYPASS_PRIO 0
-+
- enum mlx5_flow_destination_type {
- 	MLX5_FLOW_DESTINATION_TYPE_NONE,
- 	MLX5_FLOW_DESTINATION_TYPE_VPORT,
-@@ -108,6 +110,8 @@ enum mlx5_flow_namespace_type {
- 	MLX5_FLOW_NAMESPACE_RDMA_TX_IPSEC,
- 	MLX5_FLOW_NAMESPACE_RDMA_RX_MACSEC,
- 	MLX5_FLOW_NAMESPACE_RDMA_TX_MACSEC,
-+	MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX,
-+	MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX,
- };
- 
- enum {
-@@ -192,9 +196,9 @@ struct mlx5_flow_namespace *
- mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
- 			enum mlx5_flow_namespace_type type);
- struct mlx5_flow_namespace *
--mlx5_get_flow_vport_acl_namespace(struct mlx5_core_dev *dev,
--				  enum mlx5_flow_namespace_type type,
--				  int vport);
-+mlx5_get_flow_vport_namespace(struct mlx5_core_dev *dev,
-+			      enum mlx5_flow_namespace_type type,
-+			      int vport_idx);
- 
- struct mlx5_flow_table_attr {
- 	int prio;
-@@ -202,6 +206,7 @@ struct mlx5_flow_table_attr {
- 	u32 level;
- 	u32 flags;
- 	u16 uid;
-+	u16 vport;
- 	struct mlx5_flow_table *next_ft;
- 
- 	struct {
--- 
-2.47.1
-
+Jason
