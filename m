@@ -1,46 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0E8713FEE;
-	Thu,  2 Jan 2025 11:36:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A776194C77
+	for <linux-rdma@vger.kernel.org>; Thu,  2 Jan 2025 11:36:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1735817781; cv=none; b=ijVkC9SlSXoK1IfXzur+geFTv40caHQ421/3gWSREIRWcHPt8lRI/Qwh2st1ShSqdV9QMMQKKvyWphhePa9ukDQKexY78SLLPYSamR76qdMAi6c7qW9Ja3YU5IkD1vkcvZRRv9TvDkf8crWGviaRIT4rwW9+v/D94Txas/8dep4=
+	t=1735817785; cv=none; b=TnCvWwP12Z+C91ED7dyQFOvH7246QGUNe8Vx3+aB0XqDtKtLiUO2Op+0gtzeTb371Lti3xvMjhlxkBGy8cysF+6Q0nXl5NNKvC439DWsdcYDHNGJZjM6v/hGWjG9VrL6+zzKFCLDTlkKypQSICC8SKsR78WSLYCE9bBv/MdmWGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1735817781; c=relaxed/simple;
-	bh=SddfXs2BQE7kgQ37C6XXDHIem5wBTlImH6tCog5LMFg=;
+	s=arc-20240116; t=1735817785; c=relaxed/simple;
+	bh=5ijsCcAwh3aYLzoAz04wDS6Cr4z1FuZP5CgKyYH0Nzk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=cEk0Er8FABTx74jqkszwslBO5wkI3s6KzsQIVuPo5PdCHgS8GmgLUwQ1hP+jErfTwZMIR+TspnDlhv6QqQT2pYrYFDIrKVDRFmBQZm0rDrvIigk6SPlDGMZ5vfxO07RXw6wdcOXBUIyzhPq0i0xWEFLXs35LpK1uWJJIaeYnRwA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bQ4tDF7c; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=cDUFDvReM2PtIzTN3TFfXFML7H6/A5ttyLbYgoB+iztz1gO/+xI1TQPy5Er0Nf9nj74M/sW0qXMW1gD22HjxhX7o9Ms8MhA9TKxntnU+AS+t8Qwg+OaeLch/x2Er2SOAydS3muXd2BYJWbwssL/b8ljaFrxT4iFuVx6Y4rlXlqw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Io/HUP2R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bQ4tDF7c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98879C4CED0;
-	Thu,  2 Jan 2025 11:36:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Io/HUP2R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66E8EC4CED0;
+	Thu,  2 Jan 2025 11:36:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1735817781;
-	bh=SddfXs2BQE7kgQ37C6XXDHIem5wBTlImH6tCog5LMFg=;
+	s=k20201202; t=1735817785;
+	bh=5ijsCcAwh3aYLzoAz04wDS6Cr4z1FuZP5CgKyYH0Nzk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bQ4tDF7cXzdSIldwAn6X/3pEpafq37rpDJYdPxLETAuAj6J/Mg9K+jfnKAzGgNm4P
-	 W+fqsbYPNQssf0OcC4ioTqlqPPbL7SDRp6lFt8kMtwwkDR0ZXgRzRxkxmOz/pC1JXo
-	 T82dy4rNjsOq1+UyHHgyN+9h3rh5k3b9aLPnfceq30BJT6e3vh+M9JaIbYGvI9P47b
-	 K3xeXTblkkoFmzqYrd32wZNukwuv5CBkgxZk21CA8b/EtF5i77SoY0PwMtXmcArVzH
-	 dc1wOUGWbR20+lvFBJOGZ+qPTOsfQVfbrphpvGLg8M1Uh231yGyyCCMjIEAeg+7XYP
-	 xTkPQZeJZPM/Q==
+	b=Io/HUP2RV52LJxYrGfQuzwi9LygDyaIKdkh0+4Gx5qnH++hLOjDO1eHXauzTSmXB7
+	 tdrE1MtiDI5TaGiDKZxDWZ4VGqi04UxwTjpcNbeZ8hH3W/zMzHBfzBL1G3OzuBfuPj
+	 UwL4J2+enWilghf4Sn7m6hi9WLV+JEfM93h4CmQgNw/xjltXgg9m5vdw4MOnymIvkj
+	 UxOaKp8DKb0k1ImYuGXUGiJ6CZ7KTwSrYwn6aD3J2Jy0Bu5LRHRA6TNOQ5AVl553/F
+	 oiNttL+SLddLSqIT0Ebgra+iU0+SL6xWzCF0DXafeVlg59EdEfevTosrl9AF7mVDrK
+	 bTJ84WKcNK3KA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Patrisious Haddad <phaddad@nvidia.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
 	linux-rdma@vger.kernel.org,
-	Mark Bloch <mbloch@nvidia.com>,
-	netdev@vger.kernel.org,
-	Paolo Abeni <pabeni@redhat.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
-	Tariq Toukan <tariqt@nvidia.com>
-Subject: [PATCH mlx5-next 1/3] net/mlx5: Query ADV_RDMA capabilities
-Date: Thu,  2 Jan 2025 13:36:05 +0200
-Message-ID: <4d3971222035da8b0b17a8c315467a6927106944.1735817449.git.leon@kernel.org>
+	Mark Bloch <mbloch@nvidia.com>
+Subject: [PATCH rdma-next 3/3] RDMA/mlx5: Expose RDMA TRANSPORT flow table types to userspace
+Date: Thu,  2 Jan 2025 13:36:07 +0200
+Message-ID: <2746a9a8b04d8d6b4fd46b7629daf481aebb2619.1735817449.git.leon@kernel.org>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <cover.1735817449.git.leon@kernel.org>
 References: <cover.1735817449.git.leon@kernel.org>
@@ -54,132 +47,366 @@ Content-Transfer-Encoding: 8bit
 
 From: Patrisious Haddad <phaddad@nvidia.com>
 
-Query ADV_RDMA capabilities which provide information for
-advanced RDMA related features.
+This patch adds RDMA_TRANSPORT_RX and RDMA_TRANSPORT_TX as a new flow
+table type for matcher creation.
 
 Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
 Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fw.c  |  7 ++++
- .../net/ethernet/mellanox/mlx5/core/main.c    |  1 +
- include/linux/mlx5/device.h                   |  5 +++
- include/linux/mlx5/mlx5_ifc.h                 | 42 ++++++++++++++++++-
- 4 files changed, 54 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/fs.c           | 140 ++++++++++++++++++++--
+ drivers/infiniband/hw/mlx5/fs.h           |   2 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h      |   3 +
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h  |   1 +
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h |   2 +
+ 5 files changed, 135 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index 76ad46bf477d6..bc3306dec7b53 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -281,6 +281,13 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
- 			return err;
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/fs.c b/drivers/infiniband/hw/mlx5/fs.c
+index 520034acf73aa..2d1430673238e 100644
+--- a/drivers/infiniband/hw/mlx5/fs.c
++++ b/drivers/infiniband/hw/mlx5/fs.c
+@@ -690,7 +690,7 @@ static struct mlx5_ib_flow_prio *_get_prio(struct mlx5_ib_dev *dev,
+ 					   struct mlx5_ib_flow_prio *prio,
+ 					   int priority,
+ 					   int num_entries, int num_groups,
+-					   u32 flags)
++					   u32 flags, u16 vport)
+ {
+ 	struct mlx5_flow_table_attr ft_attr = {};
+ 	struct mlx5_flow_table *ft;
+@@ -698,6 +698,7 @@ static struct mlx5_ib_flow_prio *_get_prio(struct mlx5_ib_dev *dev,
+ 	ft_attr.prio = priority;
+ 	ft_attr.max_fte = num_entries;
+ 	ft_attr.flags = flags;
++	ft_attr.vport = vport;
+ 	ft_attr.autogroup.max_num_groups = num_groups;
+ 	ft = mlx5_create_auto_grouped_flow_table(ns, &ft_attr);
+ 	if (IS_ERR(ft))
+@@ -792,7 +793,7 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
+ 	ft = prio->flow_table;
+ 	if (!ft)
+ 		return _get_prio(dev, ns, prio, priority, max_table_size,
+-				 num_groups, flags);
++				 num_groups, flags, 0);
  
-+	if (MLX5_CAP_GEN(dev, adv_rdma)) {
-+		err = mlx5_core_get_caps_mode(dev, MLX5_CAP_ADV_RDMA,
-+					      HCA_CAP_OPMOD_GET_CUR);
-+		if (err)
-+			return err;
-+	}
-+
- 	return 0;
+ 	return prio;
+ }
+@@ -935,7 +936,7 @@ int mlx5_ib_fs_add_op_fc(struct mlx5_ib_dev *dev, u32 port_num,
+ 	prio = &dev->flow_db->opfcs[type];
+ 	if (!prio->flow_table) {
+ 		prio = _get_prio(dev, ns, prio, priority,
+-				 dev->num_ports * MAX_OPFC_RULES, 1, 0);
++				 dev->num_ports * MAX_OPFC_RULES, 1, 0, 0);
+ 		if (IS_ERR(prio)) {
+ 			err = PTR_ERR(prio);
+ 			goto free;
+@@ -1413,17 +1414,51 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
+ 	return ERR_PTR(err);
  }
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 220a9ac75c8ba..9faae519ebdd0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1788,6 +1788,7 @@ static const int types[] = {
- 	MLX5_CAP_MACSEC,
- 	MLX5_CAP_ADV_VIRTUALIZATION,
- 	MLX5_CAP_CRYPTO,
-+	MLX5_CAP_ADV_RDMA,
++static int mlx5_ib_fill_transport_ns_info(struct mlx5_ib_dev *dev,
++					  enum mlx5_flow_namespace_type type,
++					  u32 *flags, u16 *vport_idx,
++					  u16 *vport,
++					  struct mlx5_core_dev **ft_mdev,
++					  u32 ib_port)
++{
++	struct mlx5_core_dev *esw_mdev;
++
++	if (!is_mdev_switchdev_mode(dev->mdev))
++		return 0;
++
++	if (!MLX5_CAP_ADV_RDMA(dev->mdev, rdma_transport_manager))
++		return -EOPNOTSUPP;
++
++	if (!dev->port[ib_port - 1].rep)
++		return -EINVAL;
++
++	esw_mdev = mlx5_eswitch_get_core_dev(dev->port[ib_port - 1].rep->esw);
++	if (esw_mdev != dev->mdev)
++		return -EOPNOTSUPP;
++
++	*flags |= MLX5_FLOW_TABLE_OTHER_VPORT;
++	*ft_mdev = esw_mdev;
++	*vport = dev->port[ib_port - 1].rep->vport;
++	*vport_idx = dev->port[ib_port - 1].rep->vport_index;
++
++	return 0;
++}
++
+ static struct mlx5_ib_flow_prio *
+ _get_flow_table(struct mlx5_ib_dev *dev, u16 user_priority,
+ 		enum mlx5_flow_namespace_type ns_type,
+-		bool mcast)
++		bool mcast, u32 ib_port)
+ {
++	struct mlx5_core_dev *ft_mdev = dev->mdev;
+ 	struct mlx5_flow_namespace *ns = NULL;
+ 	struct mlx5_ib_flow_prio *prio = NULL;
+ 	int max_table_size = 0;
++	u16 vport_idx = 0;
+ 	bool esw_encap;
+ 	u32 flags = 0;
++	u16 vport = 0;
+ 	int priority;
++	int ret;
+ 
+ 	if (mcast)
+ 		priority = MLX5_IB_FLOW_MCAST_PRIO;
+@@ -1471,13 +1506,38 @@ _get_flow_table(struct mlx5_ib_dev *dev, u16 user_priority,
+ 			MLX5_CAP_FLOWTABLE_RDMA_TX(dev->mdev, log_max_ft_size));
+ 		priority = user_priority;
+ 		break;
++	case MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX:
++	case MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX:
++		if (ib_port == 0 || user_priority > MLX5_RDMA_TRANSPORT_BYPASS_PRIO)
++			return ERR_PTR(-EINVAL);
++		ret = mlx5_ib_fill_transport_ns_info(dev, ns_type, &flags,
++						     &vport_idx, &vport,
++						     &ft_mdev, ib_port);
++		if (ret)
++			return ERR_PTR(ret);
++
++		if (ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX)
++			max_table_size =
++				BIT(MLX5_CAP_FLOWTABLE_RDMA_TRANSPORT_RX(
++					ft_mdev, log_max_ft_size));
++		else
++			max_table_size =
++				BIT(MLX5_CAP_FLOWTABLE_RDMA_TRANSPORT_TX(
++					ft_mdev, log_max_ft_size));
++		priority = user_priority;
++		break;
+ 	default:
+ 		break;
+ 	}
+ 
+ 	max_table_size = min_t(int, max_table_size, MLX5_FS_MAX_ENTRIES);
+ 
+-	ns = mlx5_get_flow_namespace(dev->mdev, ns_type);
++	if (ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX ||
++	    ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX)
++		ns = mlx5_get_flow_vport_namespace(ft_mdev, ns_type, vport_idx);
++	else
++		ns = mlx5_get_flow_namespace(ft_mdev, ns_type);
++
+ 	if (!ns)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+@@ -1497,6 +1557,12 @@ _get_flow_table(struct mlx5_ib_dev *dev, u16 user_priority,
+ 	case MLX5_FLOW_NAMESPACE_RDMA_TX:
+ 		prio = &dev->flow_db->rdma_tx[priority];
+ 		break;
++	case MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX:
++		prio = &dev->flow_db->rdma_transport_rx[ib_port - 1];
++		break;
++	case MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX:
++		prio = &dev->flow_db->rdma_transport_tx[ib_port - 1];
++		break;
+ 	default: return ERR_PTR(-EINVAL);
+ 	}
+ 
+@@ -1507,7 +1573,7 @@ _get_flow_table(struct mlx5_ib_dev *dev, u16 user_priority,
+ 		return prio;
+ 
+ 	return _get_prio(dev, ns, prio, priority, max_table_size,
+-			 MLX5_FS_MAX_TYPES, flags);
++			 MLX5_FS_MAX_TYPES, flags, vport);
+ }
+ 
+ static struct mlx5_ib_flow_handler *
+@@ -1626,7 +1692,8 @@ static struct mlx5_ib_flow_handler *raw_fs_rule_add(
+ 	mutex_lock(&dev->flow_db->lock);
+ 
+ 	ft_prio = _get_flow_table(dev, fs_matcher->priority,
+-				  fs_matcher->ns_type, mcast);
++				  fs_matcher->ns_type, mcast,
++				  fs_matcher->ib_port);
+ 	if (IS_ERR(ft_prio)) {
+ 		err = PTR_ERR(ft_prio);
+ 		goto unlock;
+@@ -1738,6 +1805,12 @@ mlx5_ib_ft_type_to_namespace(enum mlx5_ib_uapi_flow_table_type table_type,
+ 	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_TX:
+ 		*namespace = MLX5_FLOW_NAMESPACE_RDMA_TX;
+ 		break;
++	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_TRANSPORT_RX:
++		*namespace = MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX;
++		break;
++	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_TRANSPORT_TX:
++		*namespace = MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1827,7 +1900,8 @@ static int get_dests(struct uverbs_attr_bundle *attrs,
+ 		return -EINVAL;
+ 
+ 	/* Allow only DEVX object or QP as dest when inserting to RDMA_RX */
+-	if ((fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX) &&
++	if ((fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX ||
++	     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX) &&
+ 	    ((!dest_devx && !dest_qp) || (dest_devx && dest_qp)))
+ 		return -EINVAL;
+ 
+@@ -1844,7 +1918,8 @@ static int get_dests(struct uverbs_attr_bundle *attrs,
+ 			return -EINVAL;
+ 		/* Allow only flow table as dest when inserting to FDB or RDMA_RX */
+ 		if ((fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_FDB_BYPASS ||
+-		     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX) &&
++		     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_RX ||
++		     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX) &&
+ 		    *dest_type != MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE)
+ 			return -EINVAL;
+ 	} else if (dest_qp) {
+@@ -1865,14 +1940,16 @@ static int get_dests(struct uverbs_attr_bundle *attrs,
+ 			*dest_id = mqp->raw_packet_qp.rq.tirn;
+ 		*dest_type = MLX5_FLOW_DESTINATION_TYPE_TIR;
+ 	} else if ((fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_EGRESS ||
+-		    fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_TX) &&
++		    fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_TX ||
++		    fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX) &&
+ 		   !(*flags & MLX5_IB_ATTR_CREATE_FLOW_FLAGS_DROP)) {
+ 		*dest_type = MLX5_FLOW_DESTINATION_TYPE_PORT;
+ 	}
+ 
+ 	if (*dest_type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
+ 	    (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_EGRESS ||
+-	     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_TX))
++	     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_TX ||
++	     fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX))
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -2386,6 +2463,22 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(
+ 		goto end;
+ 	}
+ 
++	if (uverbs_attr_is_valid(attrs, MLX5_IB_ATTR_FLOW_MATCHER_IB_PORT)) {
++		err = uverbs_copy_from(&obj->ib_port, attrs,
++				       MLX5_IB_ATTR_FLOW_MATCHER_IB_PORT);
++		if (err)
++			goto end;
++		if (!rdma_is_port_valid(&dev->ib_dev, obj->ib_port)) {
++			err = -EINVAL;
++			goto end;
++		}
++		if (obj->ns_type != MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_RX &&
++		    obj->ns_type != MLX5_FLOW_NAMESPACE_RDMA_TRANSPORT_TX) {
++			err = -EINVAL;
++			goto end;
++		}
++	}
++
+ 	uobj->object = obj;
+ 	obj->mdev = dev->mdev;
+ 	atomic_set(&obj->usecnt, 0);
+@@ -2433,7 +2526,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_STEERING_ANCHOR_CREATE)(
+ 
+ 	mutex_lock(&dev->flow_db->lock);
+ 
+-	ft_prio = _get_flow_table(dev, priority, ns_type, 0);
++	ft_prio = _get_flow_table(dev, priority, ns_type, 0, 0);
+ 	if (IS_ERR(ft_prio)) {
+ 		err = PTR_ERR(ft_prio);
+ 		goto free_obj;
+@@ -2819,7 +2912,10 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 			     UA_OPTIONAL),
+ 	UVERBS_ATTR_CONST_IN(MLX5_IB_ATTR_FLOW_MATCHER_FT_TYPE,
+ 			     enum mlx5_ib_uapi_flow_table_type,
+-			     UA_OPTIONAL));
++			     UA_OPTIONAL),
++	UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_FLOW_MATCHER_IB_PORT,
++			   UVERBS_ATTR_TYPE(u32),
++			   UA_OPTIONAL));
+ 
+ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
+ 	MLX5_IB_METHOD_FLOW_MATCHER_DESTROY,
+@@ -2889,8 +2985,26 @@ int mlx5_ib_fs_init(struct mlx5_ib_dev *dev)
+ 	if (!dev->flow_db)
+ 		return -ENOMEM;
+ 
++	dev->flow_db->rdma_transport_rx = kcalloc(dev->num_ports,
++					sizeof(struct mlx5_ib_flow_prio),
++					GFP_KERNEL);
++	if (!dev->flow_db->rdma_transport_rx)
++		goto free_flow_db;
++
++	dev->flow_db->rdma_transport_tx = kcalloc(dev->num_ports,
++					sizeof(struct mlx5_ib_flow_prio),
++					GFP_KERNEL);
++	if (!dev->flow_db->rdma_transport_tx)
++		goto free_rdma_transport_rx;
++
+ 	mutex_init(&dev->flow_db->lock);
+ 
+ 	ib_set_device_ops(&dev->ib_dev, &flow_ops);
+ 	return 0;
++
++free_rdma_transport_rx:
++	kfree(dev->flow_db->rdma_transport_rx);
++free_flow_db:
++	kfree(dev->flow_db);
++	return -ENOMEM;
+ }
+diff --git a/drivers/infiniband/hw/mlx5/fs.h b/drivers/infiniband/hw/mlx5/fs.h
+index b9734904f5f01..0516555eb1c17 100644
+--- a/drivers/infiniband/hw/mlx5/fs.h
++++ b/drivers/infiniband/hw/mlx5/fs.h
+@@ -40,6 +40,8 @@ static inline void mlx5_ib_fs_cleanup(struct mlx5_ib_dev *dev)
+ 	 * is a safe assumption that all references are gone.
+ 	 */
+ 	mlx5_ib_fs_cleanup_anchor(dev);
++	kfree(dev->flow_db->rdma_transport_tx);
++	kfree(dev->flow_db->rdma_transport_rx);
+ 	kfree(dev->flow_db);
+ }
+ #endif /* _MLX5_IB_FS_H */
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 6b6e8ca2f9070..a0138bdfa3894 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -276,6 +276,7 @@ struct mlx5_ib_flow_matcher {
+ 	struct mlx5_core_dev	*mdev;
+ 	atomic_t		usecnt;
+ 	u8			match_criteria_enable;
++	u32			ib_port;
  };
  
- static void mlx5_hca_caps_free(struct mlx5_core_dev *dev)
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index cc647992f3d1e..da5bcde853da3 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -1249,6 +1249,7 @@ enum mlx5_cap_type {
- 	MLX5_CAP_GENERAL_2 = 0x20,
- 	MLX5_CAP_PORT_SELECTION = 0x25,
- 	MLX5_CAP_ADV_VIRTUALIZATION = 0x26,
-+	MLX5_CAP_ADV_RDMA = 0x28,
- 	/* NUM OF CAP Types */
- 	MLX5_CAP_NUM
- };
-@@ -1382,6 +1383,10 @@ enum mlx5_qcam_feature_groups {
- 	MLX5_GET(adv_virtualization_cap, \
- 		 mdev->caps.hca[MLX5_CAP_ADV_VIRTUALIZATION]->cur, cap)
- 
-+#define MLX5_CAP_ADV_RDMA(mdev, cap) \
-+	MLX5_GET(adv_rdma_cap, \
-+		 mdev->caps.hca[MLX5_CAP_ADV_RDMA]->cur, cap)
-+
- #define MLX5_CAP_FLOWTABLE_PORT_SELECTION(mdev, cap) \
- 	MLX5_CAP_PORT_SELECTION(mdev, flow_table_properties_port_selection.cap)
- 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 48d47181c7cd1..a01abf16e495e 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1986,7 +1986,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         max_geneve_tlv_options[0x8];
- 	u8         reserved_at_568[0x3];
- 	u8         max_geneve_tlv_option_data_len[0x5];
--	u8         reserved_at_570[0x9];
-+	u8         reserved_at_570[0x1];
-+	u8         adv_rdma[0x1];
-+	u8         reserved_at_572[0x7];
- 	u8         adv_virtualization[0x1];
- 	u8         reserved_at_57a[0x6];
- 
-@@ -12992,6 +12994,44 @@ struct mlx5_ifc_load_vhca_state_out_bits {
- 	u8         reserved_at_40[0x40];
+ struct mlx5_ib_steering_anchor {
+@@ -307,6 +308,8 @@ struct mlx5_ib_flow_db {
+ 	struct mlx5_ib_flow_prio	rdma_tx[MLX5_IB_NUM_FLOW_FT];
+ 	struct mlx5_ib_flow_prio	opfcs[MLX5_IB_OPCOUNTER_MAX];
+ 	struct mlx5_flow_table		*lag_demux_ft;
++	struct mlx5_ib_flow_prio        *rdma_transport_rx;
++	struct mlx5_ib_flow_prio        *rdma_transport_tx;
+ 	/* Protect flow steering bypass flow tables
+ 	 * when add/del flow rules.
+ 	 * only single add/removal of flow steering rule could be done
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+index fd2e4a3a56b36..18f9fe0702132 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+@@ -239,6 +239,7 @@ enum mlx5_ib_flow_matcher_create_attrs {
+ 	MLX5_IB_ATTR_FLOW_MATCHER_MATCH_CRITERIA,
+ 	MLX5_IB_ATTR_FLOW_MATCHER_FLOW_FLAGS,
+ 	MLX5_IB_ATTR_FLOW_MATCHER_FT_TYPE,
++	MLX5_IB_ATTR_FLOW_MATCHER_IB_PORT,
  };
  
-+struct mlx5_ifc_adv_rdma_cap_bits {
-+	u8         rdma_transport_manager[0x1];
-+	u8         rdma_transport_manager_other_eswitch[0x1];
-+	u8         reserved_at_2[0x1e];
-+
-+	u8         rcx_type[0x8];
-+	u8         reserved_at_28[0x2];
-+	u8         ps_entry_log_max_value[0x6];
-+	u8         reserved_at_30[0x6];
-+	u8         qp_max_ps_num_entry[0xa];
-+
-+	u8         mp_max_num_queues[0x8];
-+	u8         ps_user_context_max_log_size[0x8];
-+	u8         message_based_qp_and_striding_wq[0x8];
-+	u8         reserved_at_58[0x8];
-+
-+	u8         max_receive_send_message_size_stride[0x10];
-+	u8         reserved_at_70[0x10];
-+
-+	u8         max_receive_send_message_size_byte[0x20];
-+
-+	u8         reserved_at_a0[0x160];
-+
-+	struct mlx5_ifc_flow_table_prop_layout_bits rdma_transport_rx_flow_table_properties;
-+
-+	struct mlx5_ifc_flow_table_prop_layout_bits rdma_transport_tx_flow_table_properties;
-+
-+	struct mlx5_ifc_flow_table_fields_supported_2_bits rdma_transport_rx_ft_field_support_2;
-+
-+	struct mlx5_ifc_flow_table_fields_supported_2_bits rdma_transport_tx_ft_field_support_2;
-+
-+	struct mlx5_ifc_flow_table_fields_supported_2_bits rdma_transport_rx_ft_field_bitmask_support_2;
-+
-+	struct mlx5_ifc_flow_table_fields_supported_2_bits rdma_transport_tx_ft_field_bitmask_support_2;
-+
-+	u8         reserved_at_800[0x3800];
-+};
-+
- struct mlx5_ifc_adv_virtualization_cap_bits {
- 	u8         reserved_at_0[0x3];
- 	u8         pg_track_log_max_num[0x5];
+ enum mlx5_ib_flow_matcher_destroy_attrs {
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_verbs.h b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+index 7c233df475e71..8f86e79d78a5f 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_verbs.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+@@ -45,6 +45,8 @@ enum mlx5_ib_uapi_flow_table_type {
+ 	MLX5_IB_UAPI_FLOW_TABLE_TYPE_FDB	= 0x2,
+ 	MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_RX	= 0x3,
+ 	MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_TX	= 0x4,
++	MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_TRANSPORT_RX	= 0x5,
++	MLX5_IB_UAPI_FLOW_TABLE_TYPE_RDMA_TRANSPORT_TX	= 0x6,
+ };
+ 
+ enum mlx5_ib_uapi_flow_action_packet_reformat_type {
 -- 
 2.47.1
 
