@@ -1,29 +1,28 @@
-Received: from out30-124.freemail.mail.aliyun.com (out30-124.freemail.mail.aliyun.com [115.124.30.124])
+Received: from out30-119.freemail.mail.aliyun.com (out30-119.freemail.mail.aliyun.com [115.124.30.119])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C2DB3224;
-	Mon,  6 Jan 2025 02:22:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29FD013AF2;
+	Mon,  6 Jan 2025 02:22:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.119
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736130162; cv=none; b=IN4zpgXW8kvplUY4xMWxsBIRR/MshgKmhkmX5RxxGuuHi2cpH3oBbkZ/rMwEf602wSuB9+D8u2Hqm278ZdH4Fist0vvpVOpNvGD+U3yjJCXIYp2mB1XoYjPf8YZNS2Kx5dXt4PjN2owF+N087gVEq9YyyG6vPHyt+qq3k+H0fuE=
+	t=1736130163; cv=none; b=E6VBPrWZzWVY5qR5ZAups12mcfMM+y74Ced/ZDNFzrh81KZurFRcUd4W/QBf/yq9L6lLzG4lF+0m9JmrTYMGe4JioqeqiJLXUJwX3mJOUJhU+N62RN3qVn8aJZjBUqAMRAO+jf/GChga92EYjvtl9/mWWDKR21SvPKqwQuo7NEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736130162; c=relaxed/simple;
-	bh=mJZToL78iwJ+MCIKU4dt4auK5Nd4QsNRcDUFMLBHKB0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VYukQgB+oCgMxmrIldYSNhjYkA1c7H/sRhP7HRA2C02KYvEVhy/FYhTxCJCmVTLgHlmCjutiqejQMRlPg4EmhPPJzETOW/cpsptyWdEh5hj5fAJReEIIqmOWbC2RftW8v7aQ4OzHV8X3rU0DNGO58CS8ni4Bsamd28WA4/34BD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=EpC6Jat1; arc=none smtp.client-ip=115.124.30.124
+	s=arc-20240116; t=1736130163; c=relaxed/simple;
+	bh=/UAKx7+AH+uKFvvq+tKZtYpMunACvUkqXk9VOc13SZI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=M94iz1DUt03Hgslz7fnFc3p62DjmlobzCZM0al8z7cXCNytaMTPzs9PoErLLmg0P0UHu11QsdGrLo/aeIEn6eVfskdc92xC0C8Gz/WxnKMdsrNhqbO/VPVng+UHaXDOQCTt2JIgaqC4QSk0tQHy24iBNbTGPLnistKFUsfRzOpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=PplxVzKy; arc=none smtp.client-ip=115.124.30.119
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="EpC6Jat1"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="PplxVzKy"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1736130156; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=y1jg5AwJB+GR83pd0hp8N7m53aNa6Qo3Q03Y+OmDbzc=;
-	b=EpC6Jat1OS/35I9MH39+RNI9UzmA7eJgcfjsFYgG2f0pSGx6bLMVf+jpzy294aUSkN8vV3h2HsV2v1Ni+nfYdAgKpS3pfRfGG6blVokRmraj+S/mNykQe5ddD2hfZpETfq8KouefxkIi/RdE5ZcL8U4fK5laDjbLqiJu8PTZ2qQ=
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WMzlXYw_1736130153 cluster:ay36)
+	t=1736130152; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=VumQ49wdkkurC+YY2fqX2Z+oQ35Z2HVWdlfuuZ3OLz4=;
+	b=PplxVzKy3Swj1HsaCa/PgmjUYjhqu6aVkIMDzago1naSuJq7dL+ujdA3FjxOKOma8vCu3CF8KoiUH/VPvlsDwdx/fy9+2EHO2g3Am/oX0pSTN6gWSqMDV4bJyFdJKH13+XXsJsvsGAyAZ/WQpYtkc+UXzk0mN7hYHC48Vy0eIuM=
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WMzlXTX_1736130142 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Mon, 06 Jan 2025 10:22:33 +0800
+          Mon, 06 Jan 2025 10:22:30 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 To: kgraul@linux.ibm.com,
 	wenjia@linux.ibm.com,
@@ -48,12 +47,10 @@ Cc: kuba@kernel.org,
 	linux-s390@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	bpf@vger.kernel.org
-Subject: [PATCH bpf-next v4 4/5] libbpf: fix error when st-prefix_ops and ops from differ btf
-Date: Mon,  6 Jan 2025 10:22:21 +0800
-Message-ID: <20250106022222.80203-5-alibuda@linux.alibaba.com>
+Subject: [PATCH bpf-next v4 0/5] net/smc: Introduce smc_ops
+Date: Mon,  6 Jan 2025 10:22:17 +0800
+Message-ID: <20250106022222.80203-1-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 2.45.0
-In-Reply-To: <20250106022222.80203-1-alibuda@linux.alibaba.com>
-References: <20250106022222.80203-1-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -62,100 +59,80 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When a struct_ops named xxx_ops was registered by a module, and
-it will be used in both built-in modules and the module itself,
-so that the btf_type of xxx_ops will be present in btf_vmlinux
-instead of in btf_mod, which means that the btf_type of
-bpf_struct_ops_xxx_ops and xxx_ops will not be in the same btf.
+This patches attempt to introduce BPF injection capability for SMC,
+and add selftest to ensure code stability.
 
-Here are four possible case:
+Since the SMC protocol is not suitable for all scenarios,
+especially for short-lived. For most applications, they cannot
+guarantee that there are no such scenarios at all. Therefore, apps
+may need some specific strategies to decide shall we need to use SMC
+or not, for example, apps can limit the scope of the SMC to a specific
+IP address or port.
 
-+--------+-------------+-------------+---------------------------------+
-|        | st_opx_xxx  | xxx         |                                 |
-+--------+-------------+-------------+---------------------------------+
-| case 0 | btf_vmlinux | bft_vmlinux | be used and reg only in vmlinux |
-+--------+-------------+-------------+---------------------------------+
-| case 1 | btf_vmlinux | bpf_mod     | INVALID                         |
-+--------+-------------+-------------+---------------------------------+
-| case 2 | btf_mod     | btf_vmlinux | reg in mod but be used both in  |
-|        |             |             | vmlinux and mod.                |
-+--------+-------------+-------------+---------------------------------+
-| case 3 | btf_mod     | btf_mod     | be used and reg only in mod     |
-+--------+-------------+-------------+---------------------------------+
+Based on the consideration of transparent replacement, we hope that apps
+can remain transparent even if they need to formulate some specific
+strategies for SMC using. That is, do not need to recompile their code.
 
-At present, cases 0, 1, and 3 can be correctly identified, because
-st_ops_xxx is searched from the same btf with xxx. In order to
-handle case 2 correctly without affecting other cases, we cannot simply
-change the search method for st_ops_xxx from find_btf_by_prefix_kind()
-to find_ksym_btf_id(), because in this way, case 1 will not be
-recognized anymore.
+On the other hand, we need to ensure the scalability of strategies
+implementation. Although it is simple to use socket options or sysctl,
+it will bring more complexity to subsequent expansion.
 
-To address this issue, if st_ops_xxx cannot be found in the btf with xxx
-and mod_btf does not exist, do find_ksym_btf_id() again to
-avoid such issue.
+Fortunately, BPF can solve these concerns very well, users can write
+thire own strategies in eBPF to choose whether to use SMC or not.
+And it's quite easy for them to modify their strategies in the future.
 
-Fixes: 590a00888250 ("bpf: libbpf: Add STRUCT_OPS support")
-Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
----
- tools/lib/bpf/libbpf.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+v2:
+  1. Rename smc_bpf_ops to smc_ops.
+  2. Change the scope of smc_ops from global to per netns.
+  3. Directly pass parameters to ops instead of smc_ops_ctx.
+  4. Remove struct smc_ops_ctx.
+  5. Remove exports that are no longer needed.
 
-diff --git a/tools/lib/bpf/libbpf.c b/tools/lib/bpf/libbpf.c
-index 66173ddb5a2d..56bf74894110 100644
---- a/tools/lib/bpf/libbpf.c
-+++ b/tools/lib/bpf/libbpf.c
-@@ -1005,7 +1005,8 @@ find_struct_ops_kern_types(struct bpf_object *obj, const char *tname_raw,
- 	const struct btf_member *kern_data_member;
- 	struct btf *btf = NULL;
- 	__s32 kern_vtype_id, kern_type_id;
--	char tname[256];
-+	char tname[256], stname[256];
-+	int ret;
- 	__u32 i;
- 
- 	snprintf(tname, sizeof(tname), "%.*s",
-@@ -1020,17 +1021,25 @@ find_struct_ops_kern_types(struct bpf_object *obj, const char *tname_raw,
- 	}
- 	kern_type = btf__type_by_id(btf, kern_type_id);
- 
-+	ret = snprintf(stname, sizeof(stname), "%s%s", STRUCT_OPS_VALUE_PREFIX, tname);
-+	if (ret < 0 || ret >= sizeof(stname))
-+		return -ENAMETOOLONG;
-+
- 	/* Find the corresponding "map_value" type that will be used
- 	 * in map_update(BPF_MAP_TYPE_STRUCT_OPS).  For example,
- 	 * find "struct bpf_struct_ops_tcp_congestion_ops" from the
- 	 * btf_vmlinux.
- 	 */
--	kern_vtype_id = find_btf_by_prefix_kind(btf, STRUCT_OPS_VALUE_PREFIX,
--						tname, BTF_KIND_STRUCT);
-+	kern_vtype_id = btf__find_by_name_kind(btf, stname, BTF_KIND_STRUCT);
- 	if (kern_vtype_id < 0) {
--		pr_warn("struct_ops init_kern: struct %s%s is not found in kernel BTF\n",
--			STRUCT_OPS_VALUE_PREFIX, tname);
--		return kern_vtype_id;
-+		if (kern_vtype_id == -ENOENT && !*mod_btf)
-+			kern_vtype_id = find_ksym_btf_id(obj, stname, BTF_KIND_STRUCT,
-+							 &btf, mod_btf);
-+		if (kern_vtype_id < 0) {
-+			pr_warn("struct_ops init_kern: struct %s is not found in kernel BTF\n",
-+				stname);
-+			return kern_vtype_id;
-+		}
- 	}
- 	kern_vtype = btf__type_by_id(btf, kern_vtype_id);
- 
-@@ -1046,8 +1055,8 @@ find_struct_ops_kern_types(struct bpf_object *obj, const char *tname_raw,
- 			break;
- 	}
- 	if (i == btf_vlen(kern_vtype)) {
--		pr_warn("struct_ops init_kern: struct %s data is not found in struct %s%s\n",
--			tname, STRUCT_OPS_VALUE_PREFIX, tname);
-+		pr_warn("struct_ops init_kern: struct %s data is not found in struct %s\n",
-+			tname, stname);
- 		return -EINVAL;
- 	}
- 
+v3:
+  1. Remove find_ksym_btf_id_by_prefix_kind.
+  2. Enhance selftest, introduce a complete ops for filtering smc
+     connections based on ip pairs and a realistic topology test
+     to verify it.
+
+v4:
+  1. Remove unless func: smc_bpf_ops_check_member()
+  2. Remove unless inline func: smc_ops_find_by_name()
+  3. Chnage CONFIG_SMC=y to complete CI testing
+  4. Change smc_sock to smc_sock___local in test to avoid
+     compiling failed with CONFIG_SMC=y
+  5. Improve test cases, remove unnecessary timeouts and multi-thread
+     test, using network_helpers to start testing between server and
+     client.
+  6. Fix issues when the return value of the ops function is neither 0 nor 1.
+
+D. Wythe (5):
+  bpf: export necessary sympols for modules with struct_ops
+  net/smc: Introduce generic hook smc_ops
+  net/smc: bpf: register smc_ops info struct_ops
+  libbpf: fix error when st-prefix_ops and ops from differ btf
+  bpf/selftests: add selftest for bpf_smc_ops
+
+ include/net/netns/smc.h                       |   3 +
+ include/net/smc.h                             |  51 +++
+ kernel/bpf/bpf_struct_ops.c                   |   2 +
+ kernel/bpf/syscall.c                          |   1 +
+ net/ipv4/tcp_output.c                         |  15 +-
+ net/smc/Kconfig                               |  12 +
+ net/smc/Makefile                              |   1 +
+ net/smc/af_smc.c                              |  10 +
+ net/smc/smc_ops.c                             | 130 ++++++
+ net/smc/smc_ops.h                             |  30 ++
+ net/smc/smc_sysctl.c                          |  95 +++++
+ tools/lib/bpf/libbpf.c                        |  25 +-
+ tools/testing/selftests/bpf/config            |   4 +
+ .../selftests/bpf/prog_tests/test_bpf_smc.c   | 390 ++++++++++++++++++
+ tools/testing/selftests/bpf/progs/bpf_smc.c   | 116 ++++++
+ 15 files changed, 873 insertions(+), 12 deletions(-)
+ create mode 100644 net/smc/smc_ops.c
+ create mode 100644 net/smc/smc_ops.h
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/bpf_smc.c
+
 -- 
 2.45.0
 
