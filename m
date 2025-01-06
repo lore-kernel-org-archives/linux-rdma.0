@@ -1,29 +1,29 @@
-Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
+Received: from out30-100.freemail.mail.aliyun.com (out30-100.freemail.mail.aliyun.com [115.124.30.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B23B8633C;
-	Mon,  6 Jan 2025 02:22:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2B3A8635E;
+	Mon,  6 Jan 2025 02:22:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736130165; cv=none; b=lY1wvKgEUtUFd2wmKJDGsIVIhbnbl9uCVZkwSXuyIy+9dHkkcwCKc/yz19X3qmvzqrjT/hd0B+Nlf78OUpR+w0mDvcKpySo7UVe4+1RX5jg3N4SXpv+S6OH/UWaWLQpIEXBSpYzyubSoGZNbxiUD8xz2OMuKl0gggMkQfC1poL4=
+	t=1736130166; cv=none; b=XCD944eB/18VPH03ci1UL/5frV53ajw6qLxi42N4J37ll9RwkwxeZ03+ZsWGpIzTUl9wZtra2WwgdmOoN4SuPW6DDTUW5lYkfA08AAoQs/rwgA5yx5OxhVOjetLF2XiIEhzJtmfktYp4bhE32bZll0OTehF2gqEPa2hh/I98LPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736130165; c=relaxed/simple;
-	bh=h5VB28uqX3oaueyGT86IkUrIsR3s9Ph3Nvn7gKs6ds4=;
+	s=arc-20240116; t=1736130166; c=relaxed/simple;
+	bh=dZVOpEst/qspKVunrqu6CpIBSf8oznN+U6QQp8YJh00=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gqE95LZ1RQw0yudk1NIggsaeLkPmlLMgmeErFeWKVL3jnwrPfJAtggVvdf+pS3SNNJhhDBwcEE92gkq319UgpnqqcoBN8b19QI1K/nNYjzHVUu+U+zl6UHciXwwVm6+PMMbSJGv3g8Pd8hfW7k8Da5kJy1C21m8YQiOlpV8YbkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=F2/p75QP; arc=none smtp.client-ip=115.124.30.111
+	 MIME-Version; b=P13gAsLD+Nx+PIWx/HmhtkOyK/DasDb9yoWPkYgT+2VofN289aSQHpjJVZGn5NyumX02AG6qDPKm+Vr5Vc3PoCqmq2HYQ8OJi9SWuEn+YJ8stRL6ephhqgPlyGGGCpX9zNHcDLtAf3uQCOZWLs+/g7CXI42I8+0QToiOROOqJes=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=El8uUMlG; arc=none smtp.client-ip=115.124.30.100
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="F2/p75QP"
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="El8uUMlG"
 DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux.alibaba.com; s=default;
-	t=1736130154; h=From:To:Subject:Date:Message-ID:MIME-Version;
-	bh=UpZS4F++tgrWgnHHgaPnZg3/yoMEyK8C9kuGf6TWBF4=;
-	b=F2/p75QP3V/seu3cmR1ynACYMC59eAi0aqB/Xxbx43D7HxLBefvWbb/T+6nrxaPv1eB15eeWoYygdiNl2pgnRy+SFLAs07Hg9GnR5nuPI8BdJGZ1ty/JDj5b3tVi5s6pNleEC4nhCxVOKh/U/bWSyX5O+33K7q1hlNUa1SjqyEs=
-Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WMzlXY6_1736130151 cluster:ay36)
+	t=1736130155; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=yocnAk5mmlwMtlys+e25C5zWX+pUv49psFpo3P+QH0c=;
+	b=El8uUMlGOSRxdps/tkgFHQpKxPS87i4CHqMr/kX2IyvK3D0qWoc8eO/9n+sJij8xZu9rdjTk65/wSMYFujN3DyIvYt3y2bhKLEzuJQl6ghmn7S5N08/CyMy1w6Evyq3efhFgSxtUfM5vU0xRz6a5D64j0s5AQRhlm+pvPWk1nUc=
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WMzlXZF_1736130153 cluster:ay36)
           by smtp.aliyun-inc.com;
-          Mon, 06 Jan 2025 10:22:31 +0800
+          Mon, 06 Jan 2025 10:22:34 +0800
 From: "D. Wythe" <alibuda@linux.alibaba.com>
 To: kgraul@linux.ibm.com,
 	wenjia@linux.ibm.com,
@@ -48,9 +48,9 @@ Cc: kuba@kernel.org,
 	linux-s390@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	bpf@vger.kernel.org
-Subject: [PATCH bpf-next v4 2/5] net/smc: Introduce generic hook smc_ops
-Date: Mon,  6 Jan 2025 10:22:19 +0800
-Message-ID: <20250106022222.80203-3-alibuda@linux.alibaba.com>
+Subject: [PATCH bpf-next v4 5/5] bpf/selftests: add selftest for bpf_smc_ops
+Date: Mon,  6 Jan 2025 10:22:22 +0800
+Message-ID: <20250106022222.80203-6-alibuda@linux.alibaba.com>
 X-Mailer: git-send-email 2.45.0
 In-Reply-To: <20250106022222.80203-1-alibuda@linux.alibaba.com>
 References: <20250106022222.80203-1-alibuda@linux.alibaba.com>
@@ -62,423 +62,561 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The introduction of IPPROTO_SMC enables eBPF programs to determine
-whether to use SMC based on the context of socket creation, such as
-network namespaces, PID and comm name, etc.
+This tests introduces a tiny smc_ops for filtering SMC connections based on
+IP pairs, and also adds a realistic topology model to verify this ops.
 
-As a subsequent enhancement, to introduce a new generic hook that
-allows decisions on whether to use SMC or not at runtime, including
-but not limited to local/remote IP address or ports.
+Also, we can only use SMC loopback under CI test, so an
+additional configuration needs to be enabled.
 
-Moreover, in the future, we can achieve more complex extensions to the
-protocol stack by extending this ops.
+Follow the steps below to run this test.
+
+make -C tools/testing/selftests/bpf
+cd tools/testing/selftests/bpf
+sudo ./test_progs -t smc
+
+Results shows:
+Summary: 1/1 PASSED, 0 SKIPPED, 0 FAILED
 
 Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
- include/net/netns/smc.h |  3 ++
- include/net/smc.h       | 51 ++++++++++++++++++++++
- net/ipv4/tcp_output.c   | 15 +++++--
- net/smc/Kconfig         | 12 ++++++
- net/smc/Makefile        |  1 +
- net/smc/smc_ops.c       | 51 ++++++++++++++++++++++
- net/smc/smc_ops.h       | 25 +++++++++++
- net/smc/smc_sysctl.c    | 95 +++++++++++++++++++++++++++++++++++++++++
- 8 files changed, 249 insertions(+), 4 deletions(-)
- create mode 100644 net/smc/smc_ops.c
- create mode 100644 net/smc/smc_ops.h
+ tools/testing/selftests/bpf/config            |   4 +
+ .../selftests/bpf/prog_tests/test_bpf_smc.c   | 390 ++++++++++++++++++
+ tools/testing/selftests/bpf/progs/bpf_smc.c   | 116 ++++++
+ 3 files changed, 510 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/bpf_smc.c
 
-diff --git a/include/net/netns/smc.h b/include/net/netns/smc.h
-index fc752a50f91b..59d069f56b2d 100644
---- a/include/net/netns/smc.h
-+++ b/include/net/netns/smc.h
-@@ -17,6 +17,9 @@ struct netns_smc {
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header		*smc_hdr;
- #endif
-+#if IS_ENABLED(CONFIG_SMC_OPS)
-+	struct smc_ops __rcu *ops;
-+#endif /* CONFIG_SMC_OPS */
- 	unsigned int			sysctl_autocorking_size;
- 	unsigned int			sysctl_smcr_buf_type;
- 	int				sysctl_smcr_testlink_time;
-diff --git a/include/net/smc.h b/include/net/smc.h
-index db84e4e35080..326a217001d4 100644
---- a/include/net/smc.h
-+++ b/include/net/smc.h
-@@ -18,6 +18,8 @@
- #include "linux/ism.h"
- 
- struct sock;
-+struct tcp_sock;
-+struct inet_request_sock;
- 
- #define SMC_MAX_PNETID_LEN	16	/* Max. length of PNET id */
- 
-@@ -97,4 +99,53 @@ struct smcd_dev {
- 	u8 going_away : 1;
- };
- 
-+#define  SMC_OPS_NAME_MAX 16
+diff --git a/tools/testing/selftests/bpf/config b/tools/testing/selftests/bpf/config
+index c378d5d07e02..e1479d28136d 100644
+--- a/tools/testing/selftests/bpf/config
++++ b/tools/testing/selftests/bpf/config
+@@ -113,3 +113,7 @@ CONFIG_XDP_SOCKETS=y
+ CONFIG_XFRM_INTERFACE=y
+ CONFIG_TCP_CONG_DCTCP=y
+ CONFIG_TCP_CONG_BBR=y
++CONFIG_INFINIBAND=y
++CONFIG_SMC=Y
++CONFIG_SMC_OPS=y
++CONFIG_SMC_LO=y
+\ No newline at end of file
+diff --git a/tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c b/tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c
+new file mode 100644
+index 000000000000..689ac13fb6ec
+--- /dev/null
++++ b/tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c
+@@ -0,0 +1,390 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <test_progs.h>
++#include <linux/genetlink.h>
++#include "network_helpers.h"
++#include "bpf_smc.skel.h"
++
++#ifndef IPPROTO_SMC
++#define IPPROTO_SMC 256
++#endif
++
++#define CLIENT_IP			"127.0.0.1"
++#define SERVER_IP			"127.0.1.0"
++#define SERVER_IP_VIA_RISK_PATH	"127.0.2.0"
++
++#define SERVICE_1	11234
++#define SERVICE_2	22345
++#define SERVICE_3	33456
++
++#define TEST_NS	"bpf_smc_netns"
 +
 +enum {
-+	/* ops can be inherit from init_net */
-+	SMC_OPS_FLAG_INHERITABLE = 0x1,
-+
-+	SMC_OPS_ALL_FLAGS = SMC_OPS_FLAG_INHERITABLE,
++	SMC_NETLINK_ADD_UEID = 10,
++	SMC_NETLINK_REMOVE_UEID
 +};
 +
-+struct smc_ops {
-+	/* priavte */
-+
-+	struct list_head list;
-+	struct module *owner;
-+
-+	/* public */
-+
-+	/* unique name */
-+	char name[SMC_OPS_NAME_MAX];
-+	int flags;
-+
-+	/* Invoked before computing SMC option for SYN packets.
-+	 * We can control whether to set SMC options by returning varios value.
-+	 * Return 0 to disable SMC, or return any other value to enable it.
-+	 */
-+	int (*set_option)(struct tcp_sock *tp);
-+
-+	/* Invoked before Set up SMC options for SYN-ACK packets
-+	 * We can control whether to respond SMC options by returning varios value.
-+	 * Return 0 to disable SMC, or return any other value to enable it.
-+	 */
-+	int (*set_option_cond)(const struct tcp_sock *tp, struct inet_request_sock *ireq);
++enum {
++	SMC_NLA_EID_TABLE_UNSPEC,
++	SMC_NLA_EID_TABLE_ENTRY,    /* string */
 +};
 +
-+#if IS_ENABLED(CONFIG_SMC_OPS)
-+#define smc_call_retops(init_val, sk, func, ...) ({	\
-+	typeof(init_val) __ret = (init_val);		\
-+	struct smc_ops *ops;				\
-+	rcu_read_lock();				\
-+	ops = READ_ONCE(sock_net(sk)->smc.ops);		\
-+	if (ops && ops->func)				\
-+		__ret = ops->func(__VA_ARGS__);		\
-+	rcu_read_unlock();				\
-+	!!__ret;					\
-+})
-+#else
-+#define smc_call_retops(init_val, ...) (init_val)
-+#endif /* CONFIG_SMC_OPS */
++struct smc_strat_ip_key {
++	__u32  sip;
++	__u32  dip;
++};
 +
- #endif	/* _SMC_H */
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index 5485a70b5fe5..7b402167fb4d 100644
---- a/net/ipv4/tcp_output.c
-+++ b/net/ipv4/tcp_output.c
-@@ -48,6 +48,7 @@
- #include <linux/skbuff_ref.h>
- 
- #include <trace/events/tcp.h>
-+#include <net/smc.h>
- 
- /* Refresh clocks of a TCP socket,
-  * ensuring monotically increasing values.
-@@ -759,14 +760,17 @@ static void tcp_options_write(struct tcphdr *th, struct tcp_sock *tp,
- 	mptcp_options_write(th, ptr, tp, opts);
- }
- 
--static void smc_set_option(const struct tcp_sock *tp,
-+static void smc_set_option(struct tcp_sock *tp,
- 			   struct tcp_out_options *opts,
- 			   unsigned int *remaining)
- {
- #if IS_ENABLED(CONFIG_SMC)
- 	if (static_branch_unlikely(&tcp_have_smc)) {
- 		if (tp->syn_smc) {
--			if (*remaining >= TCPOLEN_EXP_SMC_BASE_ALIGNED) {
-+			tp->syn_smc = smc_call_retops(1, &tp->inet_conn.icsk_inet.sk,
-+						      set_option, tp);
-+			/* re-check syn_smc */
-+			if (tp->syn_smc && *remaining >= TCPOLEN_EXP_SMC_BASE_ALIGNED) {
- 				opts->options |= OPTION_SMC;
- 				*remaining -= TCPOLEN_EXP_SMC_BASE_ALIGNED;
- 			}
-@@ -776,14 +780,17 @@ static void smc_set_option(const struct tcp_sock *tp,
- }
- 
- static void smc_set_option_cond(const struct tcp_sock *tp,
--				const struct inet_request_sock *ireq,
-+				struct inet_request_sock *ireq,
- 				struct tcp_out_options *opts,
- 				unsigned int *remaining)
- {
- #if IS_ENABLED(CONFIG_SMC)
- 	if (static_branch_unlikely(&tcp_have_smc)) {
- 		if (tp->syn_smc && ireq->smc_ok) {
--			if (*remaining >= TCPOLEN_EXP_SMC_BASE_ALIGNED) {
-+			ireq->smc_ok = smc_call_retops(1, &tp->inet_conn.icsk_inet.sk,
-+						       set_option_cond, tp, ireq);
-+			/* re-check smc_ok */
-+			if (ireq->smc_ok && *remaining >= TCPOLEN_EXP_SMC_BASE_ALIGNED) {
- 				opts->options |= OPTION_SMC;
- 				*remaining -= TCPOLEN_EXP_SMC_BASE_ALIGNED;
- 			}
-diff --git a/net/smc/Kconfig b/net/smc/Kconfig
-index ba5e6a2dd2fd..0ee16ec8dceb 100644
---- a/net/smc/Kconfig
-+++ b/net/smc/Kconfig
-@@ -33,3 +33,15 @@ config SMC_LO
- 	  of architecture or hardware.
- 
- 	  if unsure, say N.
++struct smc_strat_ip_value {
++	__u8	mode;
++};
 +
-+config SMC_OPS
-+	bool "Generic hook for SMC subsystem"
-+	depends on SMC && BPF_SYSCALL
-+	default n
-+	help
-+	  SMC_OPS enables support to register genericfor hook via eBPF programs
-+	  for SMC subsystem. eBPF programs offer much greater flexibility
-+	  in modifying the behavior of the SMC protocol stack compared
-+	  to a complete kernel-based approach.
++struct msgtemplate {
++	struct nlmsghdr n;
++	struct genlmsghdr g;
++	char buf[1024];
++};
 +
-+	  if unsure, say N.
-diff --git a/net/smc/Makefile b/net/smc/Makefile
-index 60f1c87d5212..5dd706b2927a 100644
---- a/net/smc/Makefile
-+++ b/net/smc/Makefile
-@@ -7,3 +7,4 @@ smc-y += smc_cdc.o smc_tx.o smc_rx.o smc_close.o smc_ism.o smc_netlink.o smc_sta
- smc-y += smc_tracepoint.o smc_inet.o
- smc-$(CONFIG_SYSCTL) += smc_sysctl.o
- smc-$(CONFIG_SMC_LO) += smc_loopback.o
-+smc-$(CONFIG_SMC_OPS) += smc_ops.o
-\ No newline at end of file
-diff --git a/net/smc/smc_ops.c b/net/smc/smc_ops.c
-new file mode 100644
-index 000000000000..0fc19cadd760
---- /dev/null
-+++ b/net/smc/smc_ops.c
-@@ -0,0 +1,51 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ *  Shared Memory Communications over RDMA (SMC-R) and RoCE
-+ *
-+ *  Generic hook for SMC subsystem.
-+ *
-+ *  Copyright IBM Corp. 2016
-+ *  Copyright (c) 2024, Alibaba Inc.
-+ *
-+ *  Author: D. Wythe <alibuda@linux.alibaba.com>
-+ */
++#define GENLMSG_DATA(glh)	((void *)(NLMSG_DATA(glh) + GENL_HDRLEN))
++#define GENLMSG_PAYLOAD(glh)	(NLMSG_PAYLOAD(glh, 0) - GENL_HDRLEN)
++#define NLA_DATA(na)		((void *)((char *)(na) + NLA_HDRLEN))
++#define NLA_PAYLOAD(len)	((len) - NLA_HDRLEN)
 +
-+#include "smc_ops.h"
++#define MAX_MSG_SIZE		1024
 +
-+static DEFINE_SPINLOCK(smc_ops_list_lock);
-+static LIST_HEAD(smc_ops_list);
++#define SMC_GENL_FAMILY_NAME	"SMC_GEN_NETLINK"
++#define SMC_BPFTEST_UEID	"SMC-BPFTEST-UEID"
 +
-+static int smc_ops_reg(struct smc_ops *ops)
++static uint16_t smc_nl_family_id = -1;
++static struct nstoken *nstoken;
++
++static int send_cmd(int fd, __u16 nlmsg_type, __u32 nlmsg_pid, __u16 nlmsg_flags,
++			__u8 genl_cmd, __u16 nla_type,
++			void *nla_data, int nla_len)
 +{
-+	int ret = 0;
++	struct nlattr *na;
++	struct sockaddr_nl nladdr;
++	int r, buflen;
++	char *buf;
 +
-+	spin_lock(&smc_ops_list_lock);
-+	/* already exist or duplicate name */
-+	if (smc_ops_find_by_name(ops->name))
-+		ret = -EEXIST;
-+	else
-+		list_add_tail_rcu(&ops->list, &smc_ops_list);
-+	spin_unlock(&smc_ops_list_lock);
-+	return ret;
-+}
++	struct msgtemplate msg = {0};
 +
-+static void smc_ops_unreg(struct smc_ops *ops)
-+{
-+	spin_lock(&smc_ops_list_lock);
-+	list_del_rcu(&ops->list);
-+	spin_unlock(&smc_ops_list_lock);
++	msg.n.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
++	msg.n.nlmsg_type = nlmsg_type;
++	msg.n.nlmsg_flags = nlmsg_flags;
++	msg.n.nlmsg_seq = 0;
++	msg.n.nlmsg_pid = nlmsg_pid;
++	msg.g.cmd = genl_cmd;
++	msg.g.version = 1;
++	na = (struct nlattr *) GENLMSG_DATA(&msg);
++	na->nla_type = nla_type;
++	na->nla_len = nla_len + 1 + NLA_HDRLEN;
++	memcpy(NLA_DATA(na), nla_data, nla_len);
++	msg.n.nlmsg_len += NLMSG_ALIGN(na->nla_len);
 +
-+	/* Ensure that all readers to complete */
-+	synchronize_rcu();
-+}
++	buf = (char *) &msg;
++	buflen = msg.n.nlmsg_len;
++	memset(&nladdr, 0, sizeof(nladdr));
++	nladdr.nl_family = AF_NETLINK;
 +
-+struct smc_ops *smc_ops_find_by_name(const char *name)
-+{
-+	struct smc_ops *ops;
-+
-+	list_for_each_entry_rcu(ops, &smc_ops_list, list) {
-+		if (strcmp(ops->name, name) == 0)
-+			return ops;
-+	}
-+	return NULL;
-+}
-diff --git a/net/smc/smc_ops.h b/net/smc/smc_ops.h
-new file mode 100644
-index 000000000000..4b33dc2d65b9
---- /dev/null
-+++ b/net/smc/smc_ops.h
-@@ -0,0 +1,25 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ *  Shared Memory Communications over RDMA (SMC-R) and RoCE
-+ *
-+ *  Generic hook for SMC subsystem.
-+ *
-+ *  Copyright IBM Corp. 2016
-+ *  Copyright (c) 2024, Alibaba Inc.
-+ *
-+ *  Author: D. Wythe <alibuda@linux.alibaba.com>
-+ */
-+
-+#ifndef __SMC_OPS
-+#define __SMC_OPS
-+
-+#include <net/smc.h>
-+
-+/* Find ops by the target name, which required to be a c-string.
-+ * Return NULL if no such ops was found,otherwise, return a valid ops.
-+ *
-+ * Note: Caller MUST ensure it's was invoked under rcu_read_lock.
-+ */
-+struct smc_ops *smc_ops_find_by_name(const char *name);
-+
-+#endif /* __SMC_OPS */
-diff --git a/net/smc/smc_sysctl.c b/net/smc/smc_sysctl.c
-index 2fab6456f765..2aa3f19025f4 100644
---- a/net/smc/smc_sysctl.c
-+++ b/net/smc/smc_sysctl.c
-@@ -18,6 +18,7 @@
- #include "smc_core.h"
- #include "smc_llc.h"
- #include "smc_sysctl.h"
-+#include "smc_ops.h"
- 
- static int min_sndbuf = SMC_BUF_MIN_SIZE;
- static int min_rcvbuf = SMC_BUF_MIN_SIZE;
-@@ -30,6 +31,70 @@ static int links_per_lgr_max = SMC_LINKS_ADD_LNK_MAX;
- static int conns_per_lgr_min = SMC_CONN_PER_LGR_MIN;
- static int conns_per_lgr_max = SMC_CONN_PER_LGR_MAX;
- 
-+#if IS_ENABLED(CONFIG_SMC_OPS)
-+static int smc_net_replace_smc_ops(struct net *net, const char *name)
-+{
-+	struct smc_ops *ops = NULL;
-+
-+	rcu_read_lock();
-+	/* null or empty name ask to clear current ops */
-+	if (name && name[0]) {
-+		ops = smc_ops_find_by_name(name);
-+		if (!ops) {
-+			rcu_read_unlock();
-+			return -EINVAL;
++	while ((r = sendto(fd, buf, buflen, 0, (struct sockaddr *) &nladdr,
++			   sizeof(nladdr))) < buflen) {
++		if (r > 0) {
++			buf += r;
++			buflen -= r;
++		} else if (errno != EAGAIN)
++			return -1;
 +		}
-+		/* no change, just return */
-+		if (ops == rcu_dereference(net->smc.ops)) {
-+			rcu_read_unlock();
-+			return 0;
-+		}
-+	}
-+	if (!ops || bpf_try_module_get(ops, ops->owner)) {
-+		/* xhcg */
-+		ops = rcu_replace_pointer(net->smc.ops, ops, true);
-+		/* release old ops */
-+		if (ops)
-+			bpf_module_put(ops, ops->owner);
-+	} else if (ops) {
-+		rcu_read_unlock();
-+		return -EBUSY;
-+	}
-+	rcu_read_unlock();
 +	return 0;
 +}
 +
-+static int proc_smc_ops(const struct ctl_table *ctl, int write,
-+			void *buffer, size_t *lenp, loff_t *ppos)
++static bool get_smc_nl_family_id(void)
 +{
-+	struct net *net = container_of(ctl->data, struct net,
-+				       smc.ops);
-+	char val[SMC_OPS_NAME_MAX];
-+	struct ctl_table tbl = {
-+		.data = val,
-+		.maxlen = SMC_OPS_NAME_MAX,
-+	};
-+	struct smc_ops *ops;
-+	int ret;
++	struct sockaddr_nl nl_src;
++	struct msgtemplate msg;
++	struct nlattr *nl;
++	int fd, ret;
++	pid_t pid;
 +
-+	rcu_read_lock();
-+	ops = rcu_dereference(net->smc.ops);
-+	if (ops)
-+		memcpy(val, ops->name, sizeof(ops->name));
-+	else
-+		val[0] = '\0';
-+	rcu_read_unlock();
++	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
++	if (!ASSERT_GT(fd, 0, "nl_family socket"))
++		return false;
 +
-+	ret = proc_dostring(&tbl, write, buffer, lenp, ppos);
-+	if (ret)
-+		return ret;
++	pid = getpid();
 +
-+	if (write)
-+		ret = smc_net_replace_smc_ops(net, val);
-+	return ret;
++	memset(&nl_src, 0, sizeof(nl_src));
++	nl_src.nl_family = AF_NETLINK;
++	nl_src.nl_pid = pid;
++
++	ret = bind(fd, (struct sockaddr *) &nl_src, sizeof(nl_src));
++	if (!ASSERT_GE(ret, 0, "nl_family bind"))
++		goto fail;
++
++	ret = send_cmd(fd, GENL_ID_CTRL, pid,
++		       NLM_F_REQUEST, CTRL_CMD_GETFAMILY,
++		       CTRL_ATTR_FAMILY_NAME, (void *)SMC_GENL_FAMILY_NAME,
++		       strlen(SMC_GENL_FAMILY_NAME));
++	if (!ASSERT_EQ(ret, 0, "nl_family query"))
++		goto fail;
++
++	ret = recv(fd, &msg, sizeof(msg), 0);
++	if (!ASSERT_FALSE(msg.n.nlmsg_type == NLMSG_ERROR || (ret < 0) ||
++			  !NLMSG_OK((&msg.n), ret), "nl_family response"))
++		goto fail;
++
++	nl = (struct nlattr *) GENLMSG_DATA(&msg);
++	nl = (struct nlattr *) ((char *) nl + NLA_ALIGN(nl->nla_len));
++	if (!ASSERT_EQ(nl->nla_type, CTRL_ATTR_FAMILY_ID, "nl_family nla type"))
++		goto fail;
++
++	smc_nl_family_id = *(uint16_t *) NLA_DATA(nl);
++	close(fd);
++	return true;
++fail:
++	close(fd);
++	return false;
 +}
-+#endif /* CONFIG_SMC_OPS */
 +
- static struct ctl_table smc_table[] = {
- 	{
- 		.procname       = "autocorking_size",
-@@ -99,6 +164,15 @@ static struct ctl_table smc_table[] = {
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_ONE,
- 	},
-+#if IS_ENABLED(CONFIG_SMC_OPS)
-+	{
-+		.procname	= "ops",
-+		.data		= &init_net.smc.ops,
-+		.mode		= 0644,
-+		.maxlen		= SMC_OPS_NAME_MAX,
-+		.proc_handler	= proc_smc_ops,
-+	},
-+#endif /* CONFIG_SMC_OPS */
- };
- 
- int __net_init smc_sysctl_net_init(struct net *net)
-@@ -109,6 +183,20 @@ int __net_init smc_sysctl_net_init(struct net *net)
- 	table = smc_table;
- 	if (!net_eq(net, &init_net)) {
- 		int i;
-+#if IS_ENABLED(CONFIG_SMC_OPS)
-+		struct smc_ops *ops;
++static bool smc_ueid(int op)
++{
++	struct sockaddr_nl nl_src;
++	struct msgtemplate msg;
++	struct nlmsgerr *err;
++	char test_ueid[32];
++	int fd, ret;
++	pid_t pid;
 +
-+		rcu_read_lock();
-+		ops = rcu_dereference(init_net.smc.ops);
-+		if (ops && ops->flags & SMC_OPS_FLAG_INHERITABLE) {
-+			if (!bpf_try_module_get(ops, ops->owner)) {
-+				rcu_read_unlock();
-+				return -EBUSY;
-+			}
-+			rcu_assign_pointer(net->smc.ops, ops);
++	/* UEID required */
++	memset(test_ueid, '\x20', sizeof(test_ueid));
++	memcpy(test_ueid, SMC_BPFTEST_UEID, strlen(SMC_BPFTEST_UEID));
++	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
++	if (!ASSERT_GT(fd, 0, "ueid socket"))
++		return false;
++
++	pid = getpid();
++	memset(&nl_src, 0, sizeof(nl_src));
++	nl_src.nl_family = AF_NETLINK;
++	nl_src.nl_pid = pid;
++
++	ret = bind(fd, (struct sockaddr *) &nl_src, sizeof(nl_src));
++	if (!ASSERT_GE(ret, 0, "ueid bind"))
++		goto fail;
++
++	ret = send_cmd(fd, smc_nl_family_id, pid,
++		       NLM_F_REQUEST | NLM_F_ACK, op, SMC_NLA_EID_TABLE_ENTRY,
++	(void *)test_ueid, sizeof(test_ueid));
++	if (!ASSERT_EQ(ret, 0, "ueid cmd"))
++		goto fail;
++
++	ret = recv(fd, &msg, sizeof(msg), 0);
++	if (!ASSERT_FALSE((ret < 0) || !NLMSG_OK((&msg.n), ret), "ueid response"))
++		goto fail;
++
++	if (msg.n.nlmsg_type == NLMSG_ERROR) {
++		err = NLMSG_DATA(&msg);
++		switch (op) {
++		case SMC_NETLINK_REMOVE_UEID:
++			if (!ASSERT_FALSE((err->error && err->error != -ENOENT), "ueid remove"))
++				goto fail;
++			break;
++		case SMC_NETLINK_ADD_UEID:
++			if (!ASSERT_EQ(err->error, 0, "ueid add"))
++				goto fail;
++			break;
++		default:
++			break;
 +		}
-+		rcu_read_unlock();
-+#endif /* CONFIG_SMC_OPS */
- 
- 		table = kmemdup(table, sizeof(smc_table), GFP_KERNEL);
- 		if (!table)
-@@ -139,6 +227,9 @@ int __net_init smc_sysctl_net_init(struct net *net)
- 	if (!net_eq(net, &init_net))
- 		kfree(table);
- err_alloc:
-+#if IS_ENABLED(CONFIG_SMC_OPS)
-+	smc_net_replace_smc_ops(net, NULL);
-+#endif /* CONFIG_SMC_OPS */
- 	return -ENOMEM;
- }
- 
-@@ -148,6 +239,10 @@ void __net_exit smc_sysctl_net_exit(struct net *net)
- 
- 	table = net->smc.smc_hdr->ctl_table_arg;
- 	unregister_net_sysctl_table(net->smc.smc_hdr);
-+#if IS_ENABLED(CONFIG_SMC_OPS)
-+	smc_net_replace_smc_ops(net, NULL);
-+#endif /* CONFIG_SMC_OPS */
++	}
++	close(fd);
++	return true;
++fail:
++	close(fd);
++	return false;
++}
 +
- 	if (!net_eq(net, &init_net))
- 		kfree(table);
- }
++static bool setup_netns(void)
++{
++	if (!ASSERT_OK(make_netns(TEST_NS), "create net namespace"))
++		return false;
++
++	nstoken = open_netns(TEST_NS);
++	if (!ASSERT_OK_PTR(nstoken, "open net namespace"))
++		goto fail_open_netns;
++
++	if (!ASSERT_OK(system("ip addr add 127.0.1.0/8 dev lo"), "add server node"))
++		goto fail_ip;
++
++	if (!ASSERT_OK(system("ip addr add 127.0.2.0/8 dev lo"), "server via risk path"))
++		goto fail_ip;
++
++	return true;
++fail_open_netns:
++	remove_netns(TEST_NS);
++fail_ip:
++	close_netns(nstoken);
++	return false;
++}
++
++static void cleanup_netns(void)
++{
++	close_netns(nstoken);
++	remove_netns(TEST_NS);
++}
++
++static bool setup_ueid(void)
++{
++	/* get smc nl id */
++	if (!get_smc_nl_family_id())
++		return false;
++	/* clear old ueid for bpftest */
++	smc_ueid(SMC_NETLINK_REMOVE_UEID);
++	/* smc-loopback required ueid */
++	return smc_ueid(SMC_NETLINK_ADD_UEID);
++}
++
++static void cleanup_ueid(void)
++{
++	smc_ueid(SMC_NETLINK_REMOVE_UEID);
++}
++
++static bool setup_smc(void)
++{
++	if (!setup_ueid())
++		return false;
++
++	if (!setup_netns())
++		goto fail_netns;
++
++	return true;
++fail_netns:
++	cleanup_ueid();
++	return false;
++}
++
++static int set_client_addr_cb(int fd, void *opts)
++{
++	const char *src = (const char *)opts;
++	struct sockaddr_in localaddr;
++
++	localaddr.sin_family = AF_INET;
++	localaddr.sin_port = htons(0);
++	localaddr.sin_addr.s_addr = inet_addr(src);
++	return !ASSERT_EQ(bind(fd, &localaddr, sizeof(localaddr)), 0, "client bind");
++}
++
++static void run_link(const char *src, const char *dst, int port)
++{
++	struct network_helper_opts opts = {0};
++	int server, client;
++
++	server = start_server_str(AF_INET, SOCK_STREAM, dst, port, NULL);
++	if (!ASSERT_OK_FD(server, "start service_1"))
++		return;
++
++	opts.proto = IPPROTO_TCP;
++	opts.post_socket_cb = set_client_addr_cb;
++	opts.cb_opts = (void *)src;
++
++	client = connect_to_fd_opts(server, &opts);
++	if (!ASSERT_OK_FD(client, "start connect"))
++		goto fail_client;
++
++	close(client);
++fail_client:
++	close(server);
++}
++
++static void block_link(int map_fd, const char *src, const char *dst)
++{
++	struct smc_strat_ip_value val = { .mode = /* block */ 0 };
++	struct smc_strat_ip_key key = {
++		.sip = inet_addr(src),
++		.dip = inet_addr(dst),
++	};
++
++	bpf_map_update_elem(map_fd, &key, &val, BPF_ANY);
++}
++
++/*
++ * This test describes a real-life service topology as follows:
++ *
++ *                             +-------------> service_1
++ *            link1            |                     |
++ *   +--------------------> server                   |  link 2
++ *   |                         |                     V
++ *   |                         +-------------> service_2
++ *   |        link 3
++ *  client -------------------> server_via_unsafe_path -> service_3
++ *
++ * Among them,
++ * 1. link-1 is very suitable for using SMC.
++ * 2. link-2 is not suitable for using SMC, because the mode of this link is kind of
++ *     short-link services.
++ * 3. link-3 is also not suitable for using SMC, because the RDMA link is unavailable and
++ *     needs to go through a long timeout before it can fallback to TCP.
++ *
++ * To achieve this goal, we use a customized SMC ip strategy via smc_ops.
++ */
++static void test_topo(void)
++{
++	struct bpf_smc *skel;
++	int rc, map_fd;
++
++	skel = bpf_smc__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "bpf_smc__open_and_load"))
++		return;
++
++	rc = bpf_smc__attach(skel);
++	if (!ASSERT_EQ(rc, 0, "bpf_smc__attach"))
++		goto fail;
++
++	map_fd = bpf_map__fd(skel->maps.smc_strats_ip);
++	if (!ASSERT_GT(map_fd, 0, "bpf_map__fd"))
++		goto fail;
++
++	/* Mock the process of transparent replacement, since we will modify protocol
++	 * to ipproto_smc accropding to it via fmod_ret/update_socket_protocol.
++	 */
++	system("sysctl -w net.smc.ops=linkcheck");
++
++	/* Configure ip strat */
++	block_link(map_fd, CLIENT_IP, SERVER_IP_VIA_RISK_PATH);
++	block_link(map_fd, SERVER_IP, SERVER_IP);
++	close(map_fd);
++
++	/* should go with smc */
++	run_link(CLIENT_IP, SERVER_IP, SERVICE_1);
++	/* should go with smc fallback */
++	run_link(SERVER_IP, SERVER_IP, SERVICE_2);
++
++	ASSERT_EQ(skel->bss->smc_cnt, 2, "smc count");
++	ASSERT_EQ(skel->bss->fallback_cnt, 1, "fallback count");
++
++	/* should go with smc */
++	run_link(CLIENT_IP, SERVER_IP, SERVICE_2);
++
++	ASSERT_EQ(skel->bss->smc_cnt, 3, "smc count");
++	ASSERT_EQ(skel->bss->fallback_cnt, 1, "fallback count");
++
++	/* should go with smc fallback */
++	run_link(CLIENT_IP, SERVER_IP_VIA_RISK_PATH, SERVICE_3);
++
++	ASSERT_EQ(skel->bss->smc_cnt, 4, "smc count");
++	ASSERT_EQ(skel->bss->fallback_cnt, 2, "fallback count");
++
++fail:
++	bpf_smc__destroy(skel);
++}
++
++void test_bpf_smc(void)
++{
++	if (!setup_smc()) {
++		printf("setup for smc test failed, test SKIP:\n");
++		test__skip();
++		return;
++	}
++
++	if (test__start_subtest("topo"))
++		test_topo();
++
++	cleanup_ueid();
++	cleanup_netns();
++}
+diff --git a/tools/testing/selftests/bpf/progs/bpf_smc.c b/tools/testing/selftests/bpf/progs/bpf_smc.c
+new file mode 100644
+index 000000000000..a8c62a9882c7
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/bpf_smc.c
+@@ -0,0 +1,116 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include "vmlinux.h"
++
++#include <bpf/bpf_helpers.h>
++#include <bpf/bpf_tracing.h>
++#include "bpf_tracing_net.h"
++
++char _license[] SEC("license") = "GPL";
++
++enum {
++	BPF_SMC_LISTEN	= 10,
++};
++
++struct smc_sock___local {
++	struct sock sk;
++	struct smc_sock *listen_smc;
++	bool use_fallback;
++} __attribute__((preserve_access_index));
++
++int smc_cnt = 0;
++int fallback_cnt = 0;
++
++SEC("fentry/smc_release")
++int BPF_PROG(bpf_smc_release, struct socket *sock)
++{
++	/* only count from one side (client) */
++	if (sock->sk->__sk_common.skc_state == BPF_SMC_LISTEN)
++		return 0;
++	smc_cnt++;
++	return 0;
++}
++
++SEC("fentry/smc_switch_to_fallback")
++int BPF_PROG(bpf_smc_switch_to_fallback, struct smc_sock___local *smc)
++{
++	/* only count from one side (client) */
++	if (smc && !BPF_CORE_READ(smc, listen_smc))
++		fallback_cnt++;
++	return 0;
++}
++
++/* go with default value if no strat was found */
++bool default_ip_strat_value = true;
++
++struct smc_strat_ip_key {
++	__u32	sip;
++	__u32	dip;
++};
++
++struct smc_strat_ip_value {
++	__u8	mode;
++};
++
++struct {
++	__uint(type, BPF_MAP_TYPE_HASH);
++	__uint(key_size, sizeof(struct smc_strat_ip_key));
++	__uint(value_size, sizeof(struct smc_strat_ip_value));
++	__uint(max_entries, 128);
++	__uint(map_flags, BPF_F_NO_PREALLOC);
++} smc_strats_ip SEC(".maps");
++
++static bool smc_check_ip(__u32 src, __u32 dst)
++{
++	struct smc_strat_ip_value *value;
++	struct smc_strat_ip_key key = {
++		.sip = src,
++		.dip = dst,
++	};
++
++	value = bpf_map_lookup_elem(&smc_strats_ip, &key);
++	return value ? value->mode : default_ip_strat_value;
++}
++
++SEC("fmod_ret/update_socket_protocol")
++int BPF_PROG(smc_run, int family, int type, int protocol)
++{
++	struct task_struct *task;
++
++	if (family != AF_INET && family != AF_INET6)
++		return protocol;
++
++	if ((type & 0xf) != SOCK_STREAM)
++		return protocol;
++
++	if (protocol != 0 && protocol != IPPROTO_TCP)
++		return protocol;
++
++	task = bpf_get_current_task_btf();
++	/* Prevent from affecting other tests */
++	if (!task || !task->nsproxy->net_ns->smc.ops)
++		return protocol;
++
++	return IPPROTO_SMC;
++}
++
++SEC("struct_ops/bpf_smc_set_tcp_option_cond")
++int BPF_PROG(bpf_smc_set_tcp_option_cond, const struct tcp_sock *tp, struct inet_request_sock *ireq)
++{
++	return smc_check_ip(ireq->req.__req_common.skc_daddr,
++			    ireq->req.__req_common.skc_rcv_saddr);
++}
++
++SEC("struct_ops/bpf_smc_set_tcp_option")
++int BPF_PROG(bpf_smc_set_tcp_option, struct tcp_sock *tp)
++{
++	return smc_check_ip(tp->inet_conn.icsk_inet.sk.__sk_common.skc_rcv_saddr,
++			    tp->inet_conn.icsk_inet.sk.__sk_common.skc_daddr);
++}
++
++SEC(".struct_ops.link")
++struct smc_ops  linkcheck = {
++	.name			= "linkcheck",
++	.set_option		= (void *) bpf_smc_set_tcp_option,
++	.set_option_cond	= (void *) bpf_smc_set_tcp_option_cond,
++};
 -- 
 2.45.0
 
