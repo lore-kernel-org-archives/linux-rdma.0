@@ -1,64 +1,59 @@
-Received: from esa11.hc1455-7.c3s2.iphmx.com (esa11.hc1455-7.c3s2.iphmx.com [207.54.90.137])
+Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A35CC38DC8;
-	Mon,  6 Jan 2025 00:45:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.54.90.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F6E1F19A;
+	Mon,  6 Jan 2025 02:22:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.132
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736124335; cv=none; b=iVG3OUU3Lm75vfMOuU8/hZgY7Jv78CYHh6UiVxHa3LzyguZxKv4zQN6H/Fj5xARA7sPN/T3w3MYeRHe7XUNcsxMIAnKV4CIvvBnl0GYGHTNADqxx8GmH14TGE37DoRX0qTqFqz218TBb4qPatYYKnqPuNDpM1sMKu8TrtiKJjHk=
+	t=1736130161; cv=none; b=P/KTSGLlACYWMauFs3tQbXs8p3UAbzSfQlQZW1Fm30Nhn5iGVvNED0j/ahfcsNnuvPnDMqIUttpirbav6SXw3wWaQ/CRRtUrraOVN/llG0ewDWnR1fvxEPPyR8wTZytMLZ/ftk0dDuy+dcoASgD9h/DVM/h3dYOSY1yKTGfccYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736124335; c=relaxed/simple;
-	bh=dozYCh/1LLPEgGHTX0cNzDx7PJPGnJa7OHe4e8f8wek=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=XTkZJhejwFm0PoFOes3hYZft4+YDszC/QHl8r+FMo7StvfDb1T9EjvWJLIQHsw1PV6VWAUXehGLu9nPV5jlvtLss1RdGeEyY1gPT/ybAsWRZPO4Py6ptYso7U+tIZ4rBT6fZ0hd1jilE0yVg5T2lAgKqmw1FCf7deP8pSTSmd8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=Ovmm+/B5; arc=none smtp.client-ip=207.54.90.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+	s=arc-20240116; t=1736130161; c=relaxed/simple;
+	bh=BndSGjZeeV8yhLuRMYNsncQZ7TF/PC+gXFAxaM11Isw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ksiSEK3KLMi4m8OsHRXoSl3xTraxZBNJqZ1taIRaXO42kwmSUQjgqRmVCsVp5cf7Z/7Xy5LBSgQEY+crGN6jHJNFhyLM+e+J5ekWaCDJ7RyUcXdqegDa48fwRjK4eFd79dFpb4u+CINorFTLdkeB3xCe/iKR9qDyc8crGMaQnFM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=kaTx6/US; arc=none smtp.client-ip=115.124.30.132
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="Ovmm+/B5"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1736124333; x=1767660333;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=dozYCh/1LLPEgGHTX0cNzDx7PJPGnJa7OHe4e8f8wek=;
-  b=Ovmm+/B5ViJwiLAZXKvsCu0PGFLII9h4wYs7kTWBWszY0lENFYyZ2aWv
-   YpuTcOnMWBRsYUWDwIV8zukbpXLHGMAjOAMQ5cvhje2laaIt63fblwMFv
-   DJMaz9mFGu7nNvtgoZ+DkqhMAqu0L+lAINiqAfdF/GOTEYM8W6VyaSR7T
-   2UaCyQRr9RRbMiNos5MMnPZyf+tq6UdLOrSaUV3S6L16LOlUuCg4I+fts
-   tOyE/CqkXA2ZkyEBYcu+bOXiFxdvu5uUFHTlWZcyJwzqtBzV5f9DeaRlW
-   3F92bMTnJkRskSG+U87rBHJIwNEzt5wRUlEtm6pnv2XI9vm8jHBIygGx6
-   A==;
-X-CSE-ConnectionGUID: OqOoWF/GQM2FMPXRED6wQQ==
-X-CSE-MsgGUID: KKu7r2N+SlKL2AwgAydSDQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11306"; a="165085273"
-X-IronPort-AV: E=Sophos;i="6.12,291,1728918000"; 
-   d="scan'208";a="165085273"
-Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa11.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jan 2025 09:45:24 +0900
-Received: from oym-m3.gw.nic.fujitsu.com (oym-nat-oym-m3.gw.nic.fujitsu.com [192.168.87.60])
-	by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 8B712C2262;
-	Mon,  6 Jan 2025 09:45:21 +0900 (JST)
-Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by oym-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 60F8BD7726;
-	Mon,  6 Jan 2025 09:45:21 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id CFEFEE3682;
-	Mon,  6 Jan 2025 09:45:20 +0900 (JST)
-Received: from iaas-rpma.. (unknown [10.167.135.44])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id E4E9A1A0071;
-	Mon,  6 Jan 2025 08:45:19 +0800 (CST)
-From: Li Zhijian <lizhijian@fujitsu.com>
-To: linux-rdma@vger.kernel.org
-Cc: haris.iqbal@ionos.com,
-	Jack Wang <jinpu.wang@ionos.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	linux-kernel@vger.kernel.org,
-	Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH v3] RDMA/rtrs: Add missing deinit() call
-Date: Mon,  6 Jan 2025 08:45:16 +0800
-Message-Id: <20250106004516.16611-1-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="kaTx6/US"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1736130154; h=From:To:Subject:Date:Message-ID:MIME-Version;
+	bh=8XcwzEH1Li0PZHViDS8i234tbohuRUg6Knq6W29/4RE=;
+	b=kaTx6/USLpFVSlbkuUvrKUOw3DOsFtuOVD1GQyhMtcN7cw5brovciVAv8oNtJ15XVijxREfqquOB65NWJ++mWbyq797gZoSPRDYQiyqiQsCTdBAFbwQuRVHJvcwYFau+zpjHL2P6/dzWVXwvS6hqS/86AvSLaAWsZlZ28l3QQ6s=
+Received: from j66a10360.sqa.eu95.tbsite.net(mailfrom:alibuda@linux.alibaba.com fp:SMTPD_---0WMzlXYf_1736130152 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Mon, 06 Jan 2025 10:22:32 +0800
+From: "D. Wythe" <alibuda@linux.alibaba.com>
+To: kgraul@linux.ibm.com,
+	wenjia@linux.ibm.com,
+	jaka@linux.ibm.com,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	andrii@kernel.org,
+	martin.lau@linux.dev,
+	pabeni@redhat.com,
+	song@kernel.org,
+	sdf@google.com,
+	haoluo@google.com,
+	yhs@fb.com,
+	edumazet@google.com,
+	john.fastabend@gmail.com,
+	kpsingh@kernel.org,
+	jolsa@kernel.org,
+	guwen@linux.alibaba.com
+Cc: kuba@kernel.org,
+	davem@davemloft.net,
+	netdev@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	bpf@vger.kernel.org
+Subject: [PATCH bpf-next v4 3/5] net/smc: bpf: register smc_ops info struct_ops
+Date: Mon,  6 Jan 2025 10:22:20 +0800
+Message-ID: <20250106022222.80203-4-alibuda@linux.alibaba.com>
+X-Mailer: git-send-email 2.45.0
+In-Reply-To: <20250106022222.80203-1-alibuda@linux.alibaba.com>
+References: <20250106022222.80203-1-alibuda@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -66,73 +61,160 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28904.003
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28904.003
-X-TMASE-Result: 10--9.606900-10.000000
-X-TMASE-MatchedRID: NGDYxnKYxb2Po+6vQMop+jYTypjB3iDVYjDXdM/x2VNx1I8cSFvoV5Ky
-	Pf1j7t431DGesiNkyfju5J7i9V7QtWMAzi+7d0ch/sUSFaCjTLylLADMASK8x6fDpVD78xj9B82
-	GyGpZHXt/AvQEPGhyUmNqS7Qg+z0PK6km+od/UDyC+Y2uxPjochmyTBaqiJvcMoh6scCF9jG/BR
-	68O365bn9eOltIlLtrgiRLZTsVNVvp8tqiL6KWRJ4CIKY/Hg3AaZGo0EeYG96fFcoYkBpBrUkpb
-	iYOUmwxIAcCikR3vq/Y/rURGXevJh0ets+KbtqZC0PHGGDroHd4b6nPxxecQJcJI0VVsJHe
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-A warning is triggered when repeatedly connecting and disconnecting the
-rnbd:
- list_add corruption. prev->next should be next (ffff88800b13e480), but was ffff88801ecd1338. (prev=ffff88801ecd1340).
- WARNING: CPU: 1 PID: 36562 at lib/list_debug.c:32 __list_add_valid_or_report+0x7f/0xa0
- Workqueue: ib_cm cm_work_handler [ib_cm]
- RIP: 0010:__list_add_valid_or_report+0x7f/0xa0
-  ? __list_add_valid_or_report+0x7f/0xa0
-  ib_register_event_handler+0x65/0x93 [ib_core]
-  rtrs_srv_ib_dev_init+0x29/0x30 [rtrs_server]
-  rtrs_ib_dev_find_or_add+0x124/0x1d0 [rtrs_core]
-  __alloc_path+0x46c/0x680 [rtrs_server]
-  ? rtrs_rdma_connect+0xa6/0x2d0 [rtrs_server]
-  ? rcu_is_watching+0xd/0x40
-  ? __mutex_lock+0x312/0xcf0
-  ? get_or_create_srv+0xad/0x310 [rtrs_server]
-  ? rtrs_rdma_connect+0xa6/0x2d0 [rtrs_server]
-  rtrs_rdma_connect+0x23c/0x2d0 [rtrs_server]
-  ? __lock_release+0x1b1/0x2d0
-  cma_cm_event_handler+0x4a/0x1a0 [rdma_cm]
-  cma_ib_req_handler+0x3a0/0x7e0 [rdma_cm]
-  cm_process_work+0x28/0x1a0 [ib_cm]
-  ? _raw_spin_unlock_irq+0x2f/0x50
-  cm_req_handler+0x618/0xa60 [ib_cm]
-  cm_work_handler+0x71/0x520 [ib_cm]
+To implement injection capability for smc via struct_ops, so that
+user can make their own smc_ops to modify the behavior of smc stack.
 
-Commit 667db86bcbe8 ("RDMA/rtrs: Register ib event handler") introduced a
-new element .deinit but never used it at all. Fix it by invoking the
-`deinit()` to appropriately unregister the IB event handler.
+Currently, user can write their own implememtion to choose whether to
+use SMC or not before TCP 3rd handshake to be comleted. In the future,
+users can implement more complex functions on smc by expanding it.
 
-Cc: Jinpu Wang <jinpu.wang@ionos.com>
-Fixes: 667db86bcbe8 ("RDMA/rtrs: Register ib event handler")
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
 ---
-V3: Move deinit behind list_del # Jinpu Wang <jinpu.wang@ionos.com>
+ net/smc/af_smc.c  | 10 ++++++
+ net/smc/smc_ops.c | 79 +++++++++++++++++++++++++++++++++++++++++++++++
+ net/smc/smc_ops.h |  5 +++
+ 3 files changed, 94 insertions(+)
 
-V2: update the subject 'RDMA/ulp' -> 'RDMA/rtrs'
-    update commit log
----
- drivers/infiniband/ulp/rtrs/rtrs.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/infiniband/ulp/rtrs/rtrs.c b/drivers/infiniband/ulp/rtrs/rtrs.c
-index 4e17d546d4cc..bf38ac6f87c4 100644
---- a/drivers/infiniband/ulp/rtrs/rtrs.c
-+++ b/drivers/infiniband/ulp/rtrs/rtrs.c
-@@ -584,6 +584,9 @@ static void dev_free(struct kref *ref)
- 	list_del(&dev->entry);
- 	mutex_unlock(&pool->mutex);
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index 9d76e902fd77..6adedae2986d 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -55,6 +55,7 @@
+ #include "smc_sysctl.h"
+ #include "smc_loopback.h"
+ #include "smc_inet.h"
++#include "smc_ops.h"
  
-+	if (pool->ops && pool->ops->deinit)
-+		pool->ops->deinit(dev);
+ static DEFINE_MUTEX(smc_server_lgr_pending);	/* serialize link group
+ 						 * creation on server
+@@ -3576,8 +3577,17 @@ static int __init smc_init(void)
+ 		pr_err("%s: smc_inet_init fails with %d\n", __func__, rc);
+ 		goto out_ulp;
+ 	}
 +
- 	ib_dealloc_pd(dev->ib_pd);
- 	kfree(dev);
++	rc = smc_bpf_struct_ops_init();
++	if (rc) {
++		pr_err("%s: smc_bpf_struct_ops_init fails with %d\n", __func__, rc);
++		goto out_inet;
++	}
++
+ 	static_branch_enable(&tcp_have_smc);
+ 	return 0;
++out_inet:
++	smc_inet_exit();
+ out_ulp:
+ 	tcp_unregister_ulp(&smc_ulp_ops);
+ out_lo:
+diff --git a/net/smc/smc_ops.c b/net/smc/smc_ops.c
+index 0fc19cadd760..67b6b2b92771 100644
+--- a/net/smc/smc_ops.c
++++ b/net/smc/smc_ops.c
+@@ -10,6 +10,10 @@
+  *  Author: D. Wythe <alibuda@linux.alibaba.com>
+  */
+ 
++#include <linux/bpf_verifier.h>
++#include <linux/bpf.h>
++#include <linux/btf.h>
++
+ #include "smc_ops.h"
+ 
+ static DEFINE_SPINLOCK(smc_ops_list_lock);
+@@ -49,3 +53,78 @@ struct smc_ops *smc_ops_find_by_name(const char *name)
+ 	}
+ 	return NULL;
  }
++
++static int __bpf_smc_stub_set_tcp_option(struct tcp_sock *tp) { return 1; }
++static int __bpf_smc_stub_set_tcp_option_cond(const struct tcp_sock *tp,
++					      struct inet_request_sock *ireq)
++{
++	return 1;
++}
++
++static struct smc_ops __bpf_smc_bpf_ops = {
++	.set_option		= __bpf_smc_stub_set_tcp_option,
++	.set_option_cond	= __bpf_smc_stub_set_tcp_option_cond,
++};
++
++static int smc_bpf_ops_init(struct btf *btf) { return 0; }
++
++static int smc_bpf_ops_reg(void *kdata, struct bpf_link *link)
++{
++	return smc_ops_reg(kdata);
++}
++
++static void smc_bpf_ops_unreg(void *kdata, struct bpf_link *link)
++{
++	smc_ops_unreg(kdata);
++}
++
++static int smc_bpf_ops_init_member(const struct btf_type *t,
++				   const struct btf_member *member,
++				   void *kdata, const void *udata)
++{
++	const struct smc_ops *u_ops;
++	struct smc_ops *k_ops;
++	u32 moff;
++
++	u_ops = (const struct smc_ops *)udata;
++	k_ops = (struct smc_ops *)kdata;
++
++	moff = __btf_member_bit_offset(t, member) / 8;
++	switch (moff) {
++	case offsetof(struct smc_ops, name):
++		if (bpf_obj_name_cpy(k_ops->name, u_ops->name,
++				     sizeof(u_ops->name)) <= 0)
++			return -EINVAL;
++		return 1;
++	case offsetof(struct smc_ops, flags):
++		if (u_ops->flags & ~SMC_OPS_ALL_FLAGS)
++			return -EINVAL;
++		k_ops->flags = u_ops->flags;
++		return 1;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static const struct bpf_verifier_ops smc_bpf_verifier_ops = {
++	.get_func_proto		= bpf_base_func_proto,
++	.is_valid_access	= bpf_tracing_btf_ctx_access,
++};
++
++static struct bpf_struct_ops bpf_smc_bpf_ops = {
++	.name		= "smc_ops",
++	.init		= smc_bpf_ops_init,
++	.reg		= smc_bpf_ops_reg,
++	.unreg		= smc_bpf_ops_unreg,
++	.cfi_stubs	= &__bpf_smc_bpf_ops,
++	.verifier_ops	= &smc_bpf_verifier_ops,
++	.init_member	= smc_bpf_ops_init_member,
++	.owner		= THIS_MODULE,
++};
++
++int smc_bpf_struct_ops_init(void)
++{
++	return register_bpf_struct_ops(&bpf_smc_bpf_ops, smc_ops);
++}
+diff --git a/net/smc/smc_ops.h b/net/smc/smc_ops.h
+index 4b33dc2d65b9..06dc30363a83 100644
+--- a/net/smc/smc_ops.h
++++ b/net/smc/smc_ops.h
+@@ -21,5 +21,10 @@
+  * Note: Caller MUST ensure it's was invoked under rcu_read_lock.
+  */
+ struct smc_ops *smc_ops_find_by_name(const char *name);
++#if IS_ENABLED(CONFIG_SMC_OPS)
++int smc_bpf_struct_ops_init(void);
++#else
++static inline int smc_bpf_struct_ops_init(void) { return 0; }
++#endif
+ 
+ #endif /* __SMC_OPS */
 -- 
-2.47.0
+2.45.0
 
