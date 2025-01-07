@@ -1,206 +1,229 @@
-Received: from esa10.hc1455-7.c3s2.iphmx.com (esa10.hc1455-7.c3s2.iphmx.com [139.138.36.225])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C6AA1DE4CC;
-	Tue,  7 Jan 2025 06:20:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.138.36.225
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02BC4154BE2
+	for <linux-rdma@vger.kernel.org>; Tue,  7 Jan 2025 07:37:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736230843; cv=none; b=W8HsQeReyHJl2+kj5DLPKEbs7RfzqqMscZxB2OyghrN3CfjMZgzsADEhWDp5chbt7LaeLzh+mrHl2+at6UghU1zIMpIc6RxzJfvxNOwGq+8rg0Nd49okCn6xVxuMCth2HQQfiSXeAq3nukXjm+g2qvtwqkl+KFVeuWGn7uHzQ/M=
+	t=1736235466; cv=none; b=c+06Q0UG8QHQJ0LMAclXt90Li8tYIFfrZZh8hxCetOGmEb79LsNx+qYHmjZA1lVRnzYFr0CsuTo5w/eOrDfQcWSeYMeJ9UKP3n+Re6GsybJ1BeZA4NgHSylsa4PKo43eHNs6vFJ1w3kCmhwvTDunge8dUPVMDwLxaRE2+2FeMC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736230843; c=relaxed/simple;
-	bh=ZgUPLUm6NtAJ7G1MkU1q5K8vw4t1y80egxcgYXDWINc=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=hnshkTyZHefZ8IVN+Z5P3T7phzzPRYAIrZUpnk3g9oFssEbJuJokAbYNiTyVxYmu78TW6D6mLLMKcRpT+H5OdRCfZZuwRi3R0h2ogy/s6Y/JrQm2mJxfMjlKqadtkdkuLN7gYIacosqOlTsJl6+sKkNYxSM9NtSWZcqXpbTSJTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=l74CRL8z; arc=none smtp.client-ip=139.138.36.225
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+	s=arc-20240116; t=1736235466; c=relaxed/simple;
+	bh=G0SNaoKmbujuoRbYi3RItEIAYIfkojoXo0Uyf/uEh+A=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=JABPGlM8NFczCW70O5AveRW78w7I40nJQ9SfBVfDAd45XhZtwx6iudiM1wk+iysURPsa0LG1C/i6VTrqrUehv+HyARto14C1kjUO/TG44n8q8U05FkPkzG2v+muPpEHnDr9CqNA+s1wXwgI2k8ijknbd/yHJKHIIN+43xCwmNyg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ionos.com; spf=pass smtp.mailfrom=ionos.com; dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b=cIIse52q; arc=none smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ionos.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ionos.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="l74CRL8z"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1736230840; x=1767766840;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=ZgUPLUm6NtAJ7G1MkU1q5K8vw4t1y80egxcgYXDWINc=;
-  b=l74CRL8zsP45gbNamjJSmBVR0diqocBHfPj+jykPt0cspK3oAdf5mRkK
-   2atfwoirklzY389g5AfJFMw2kemKR/vkUPN7cwnynIQ+f5Hat5pS/8NKD
-   N4Ny9bIQCrxqCHif5jAAWgIgVCqaMUfkt2AVUK88qLUAiNU6unVQFX7/A
-   EEN9P3ES6XSPr0494E/G2hQ1WcpTF8PJWXVMDyMQfYFKlXhgzSx+923kI
-   PBzjPkyV5XEExN7VRTOH+srSLlQ0xZd8sVF0vOnLEL9Xb/rOZ0PnKhqge
-   GFqOprWPj6USjNGM41CiKZQOsozPbgVclywZsb+La1kCJpUvH9GVQbOLi
-   Q==;
-X-CSE-ConnectionGUID: hIj0CKxETrmNgqDW/Gsd3g==
-X-CSE-MsgGUID: +CMN7YNJQHmlBeXMyDaz9g==
-X-IronPort-AV: E=McAfee;i="6700,10204,11307"; a="173126637"
-X-IronPort-AV: E=Sophos;i="6.12,294,1728918000"; 
-   d="scan'208";a="173126637"
-Received: from unknown (HELO oym-r2.gw.nic.fujitsu.com) ([210.162.30.90])
-  by esa10.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2025 15:19:24 +0900
-Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
-	by oym-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 67602D4C39;
-	Tue,  7 Jan 2025 15:19:22 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 40C09BF4AB;
-	Tue,  7 Jan 2025 15:19:22 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id D24F1200930D0;
-	Tue,  7 Jan 2025 15:19:21 +0900 (JST)
-Received: from iaas-rpma.. (unknown [10.167.135.44])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 6427B1A0071;
-	Tue,  7 Jan 2025 14:19:21 +0800 (CST)
-From: Li Zhijian <lizhijian@fujitsu.com>
-To: linux-block@vger.kernel.org
-Cc: shinichiro.kawasaki@wdc.com,
-	linux-rdma@vger.kernel.org,
-	Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH blktests 3/4] common, new, tests: Get rid of _have_scsi_debug
-Date: Tue,  7 Jan 2025 14:19:04 +0800
-Message-Id: <20250107061905.91316-4-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20250107061905.91316-1-lizhijian@fujitsu.com>
-References: <20250107061905.91316-1-lizhijian@fujitsu.com>
+	dkim=pass (2048-bit key) header.d=ionos.com header.i=@ionos.com header.b="cIIse52q"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-5d3d69e5b63so2505601a12.1
+        for <linux-rdma@vger.kernel.org>; Mon, 06 Jan 2025 23:37:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google; t=1736235461; x=1736840261; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=bx+19x0B2gmDNiPmEgOxy9mSgxj2NhTgxhyx+fJPwMI=;
+        b=cIIse52qF9qKKdbDe8MRc5La1gHFmZM84uUFajFRqyyoVbkCGxUOkZKV/q6bF1JMbL
+         WmVMsJHiZ29qEzdyxgLhE4xEHEDwxYj6zHDr+gK9MSnJGo+6qrdA3O4b9R8E+5ZkOQTY
+         FdZN3hVylVvjfLYSiyoTOknt5vHzTZ3N6yI7G/QtGZurNKy/ow4X3gQDzD9+PJachTpe
+         HQpWWtzr/hH7kLrUcwx0rf599oyDVvhL/HRbuDDywTMqHddMlaOr4Pnb7Srpo6IKBHPG
+         jsCACtjoxru99YL89iNd3d1CG2rtR7WIikqtj0joljKi8JtStzv6Mk8acpz1tHaQAvY9
+         aOaA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1736235461; x=1736840261;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=bx+19x0B2gmDNiPmEgOxy9mSgxj2NhTgxhyx+fJPwMI=;
+        b=E0BYGH7qrePxrUuBcQhkl45/zxKhLrzzO1Whbym6IIfvSH4MtijYQj4n7S4whybgaB
+         u21zSmenIb3E7cn0PqX7WqddQeAG1+l8LWLgBxrqMlLDduj2evNJ3TkIsyIgrJCNhtGa
+         ocbUxu7W5V9AIn6EDFHQ9Dl11t4Tqc72mQVyPugnTcClUPqe75fpcx8SuP0I62y8y0t8
+         unAEC8lTD90xfw+3eZ3AxmguXK/AYyyV9LYci8whysv9O5HaUWm2dSO/qID4Oo1Pgu1V
+         dEUWqqx+Xw3ctJhydYWcknl2AhRA+NtG3jm5HggKJ+N6Zfu1Umi3YB+HxX7yh/VqzFJ2
+         7bNg==
+X-Forwarded-Encrypted: i=1; AJvYcCUByUfCf2tbfIjivVjJn5xjN83r1ql2Pu2HmWdUDJOCQqFlFj4DH+X7vgSJ+zwy+x2t1KqPFCFyBo/v@vger.kernel.org
+X-Gm-Message-State: AOJu0YxuFFaFOdrVoHMm3Agd+PzDIZv/oHIVsB6HKCRyLBsHSglsdmsr
+	ypUMWl0eTB/FWxgjBgPzwIkResY3f/4nU8mDXd9Gt83fGN5A0IWnZsGarE4jGTNUs3WVnEPyubf
+	S8hv12BzXB2z1Rxcf4Pe9t39W5q+1z6xBAsIhYA==
+X-Gm-Gg: ASbGncsqP4O6JCBK/1CuigElo4YJz6Z0kcfCuF5ouIbcJjtMfFfgFf3rPqnK8LnbEzn
+	H0/PF5he4BIahwgzKZIej0DDw1MvgHLWtKE+Qy9wfyO/qXQLjzdQeCOhBYV0h0rNIdqWUz7E=
+X-Google-Smtp-Source: AGHT+IFHiWN7HRV0tjVYeqqyJzr7VZvRlCA285ZkJj39Az5Q+NOXa/GqcYy3kqLT8UjvlN/1cFajXcSI9RNarU2euj8=
+X-Received: by 2002:a05:6402:2790:b0:5d0:e852:dca0 with SMTP id
+ 4fb4d7f45d1cf-5d81de1c377mr21426236a12.11.1736235461329; Mon, 06 Jan 2025
+ 23:37:41 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28908.002
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28908.002
-X-TMASE-Result: 10--10.855800-10.000000
-X-TMASE-MatchedRID: i9okT3N59sRyeiFPOFIChAKDWtq/hHcNZR+OFNkbtdotferJ/d7Ab4dY
-	wzPgNbi6WRXM1BNPHVMl9+c89RK6DT4xnGicftABPKN38CLPK0EJlr1xKkE5ucC5DTEMxpeQfiq
-	1gj2xET9lzP9S78W1g/LrCuvw7b1ajFPmi+lHwssM6z3iDvziB1G+BHSGRsbgrSvLRRRfRG3ynQ
-	xWKo+F0WLmeWLY1Nl9VIzQ5SmwuhfNR0Df05Sd2azGfgakLdjaWfgivgcUPZO4GyTmeN+AbBy7M
-	kaYvOFgIqkJ48VX5FCnyJ66hArF5gzyMxeMEX6wFEUknJ/kEl7dB/CxWTRRu25FeHtsUoHukA8s
-	tzMxEw20lv6gyFgQgophNKO2oMBJCLN8McZaXwJLDBwYotNgRw==
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+References: <20250107060810.91111-1-lizhijian@fujitsu.com>
+In-Reply-To: <20250107060810.91111-1-lizhijian@fujitsu.com>
+From: Jinpu Wang <jinpu.wang@ionos.com>
+Date: Tue, 7 Jan 2025 08:37:30 +0100
+Message-ID: <CAMGffEmi5odRsHvjbqXiLNvuy8AFMJBOw1vv7HHGE9kep=HGgA@mail.gmail.com>
+Subject: Re: [PATCH blktests v4 1/2] tests/rnbd: Add a basic RNBD test
+To: Li Zhijian <lizhijian@fujitsu.com>
+Cc: linux-block@vger.kernel.org, shinichiro.kawasaki@wdc.com, 
+	linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, "Md. Haris Iqbal" <haris.iqbal@ionos.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-- _have_scsi_debug is same with _have_driver scsi_debug, it seems there
-is no a strong opinion to keep it.
-- In addition, '_have_module_param scsi_debug' will test _have_driver first,
-that means it's safe to remove its former _have_driver in requires()
-
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
- common/scsi_debug | 4 ----
- new               | 2 +-
- tests/block/001   | 2 +-
- tests/block/002   | 2 +-
- tests/block/027   | 2 +-
- tests/block/037   | 2 +-
- tests/scsi/004    | 2 +-
- tests/scsi/005    | 1 -
- 8 files changed, 6 insertions(+), 11 deletions(-)
-
-diff --git a/common/scsi_debug b/common/scsi_debug
-index 594883c95713..9997afa0154c 100644
---- a/common/scsi_debug
-+++ b/common/scsi_debug
-@@ -4,10 +4,6 @@
- #
- # scsi_debug helper functions.
- 
--_have_scsi_debug() {
--	_have_driver scsi_debug
--}
--
- SD_PARAM_PATH=/sys/module/scsi_debug/parameters
- SD_PSEUDO_PATH=/sys/bus/pseudo/drivers/scsi_debug
- 
-diff --git a/new b/new
-index d84f01d62e30..fe2cb6a12242 100755
---- a/new
-+++ b/new
-@@ -261,7 +261,7 @@ test() {
- #   E.g., TEST_NAME and GROUPS. Variables local to the test are lowercase
- #   with underscores.
- # - Functions defined by the testing framework or group scripts, including
--#   helpers, have a leading underscore. E.g., _have_scsi_debug. Functions local
-+#   helpers, have a leading underscore. E.g., _have_driver. Functions local
- #   to the test should not have a leading underscore.
- # - Both [[ ]] form and [ ] form are fine for tests. [[ ]] is preferred.
- # - Always quote variable expansions unless the variable is a number or inside of
-diff --git a/tests/block/001 b/tests/block/001
-index 32dd22f8481a..3f576fa0e1b5 100755
---- a/tests/block/001
-+++ b/tests/block/001
-@@ -13,7 +13,7 @@ DESCRIPTION="stress device hotplugging"
- TIMED=1
- 
- requires() {
--	_have_scsi_debug
-+	_have_driver scsi_debug
- 	_have_kernel_option BLK_DEV_SD
- 	_have_driver sr_mod
- }
-diff --git a/tests/block/002 b/tests/block/002
-index 65b0fbdd9800..c57e27dee30d 100755
---- a/tests/block/002
-+++ b/tests/block/002
-@@ -13,7 +13,7 @@ QUICK=1
- 
- requires() {
- 	_have_blktrace
--	_have_scsi_debug
-+	_have_driver scsi_debug
- }
- 
- test() {
-diff --git a/tests/block/027 b/tests/block/027
-index f59dad2f231c..317c06db0fa9 100755
---- a/tests/block/027
-+++ b/tests/block/027
-@@ -20,7 +20,7 @@ CAN_BE_ZONED=1
- 
- requires() {
- 	_have_cgroup2_controller io
--	_have_scsi_debug
-+	_have_driver scsi_debug
- 	_have_fio
- }
- 
-diff --git a/tests/block/037 b/tests/block/037
-index 6ecbe3731194..bdffcae13a9a 100755
---- a/tests/block/037
-+++ b/tests/block/037
-@@ -19,7 +19,7 @@ QUICK=1
- 
- requires() {
- 	_have_cgroup2_controller io
--	_have_scsi_debug
-+	_have_driver scsi_debug
- }
- 
- scsi_debug_rebind() {
-diff --git a/tests/scsi/004 b/tests/scsi/004
-index 7d0af54415de..4fe48182425a 100755
---- a/tests/scsi/004
-+++ b/tests/scsi/004
-@@ -18,7 +18,7 @@ DESCRIPTION="ensure repeated TASK SET FULL results in EIO on timing out command"
- CAN_BE_ZONED=1
- 
- requires() {
--	_have_scsi_debug
-+	_have_driver scsi_debug
- }
- 
- test() {
-diff --git a/tests/scsi/005 b/tests/scsi/005
-index bfa1014d4ea3..f8d9b30c6894 100755
---- a/tests/scsi/005
-+++ b/tests/scsi/005
-@@ -11,7 +11,6 @@ DESCRIPTION="test SCSI device blacklisting"
- QUICK=1
- 
- requires() {
--	_have_scsi_debug
- 	_have_module_param scsi_debug inq_vendor
- }
- 
--- 
-2.47.0
-
+On Tue, Jan 7, 2025 at 7:08=E2=80=AFAM Li Zhijian <lizhijian@fujitsu.com> w=
+rote:
+>
+> It attempts to connect and disconnect the rnbd service on localhost.
+> Actually, It also reveals a real kernel issue[0].
+>
+> rnbd/001 (Start Stop RNBD)                                   [passed]
+>     runtime  1.425s  ...  1.157s
+>
+> Please note that currently, only RTRS over RXE is supported.
+>
+> [0] https://lore.kernel.org/linux-rdma/20241231013416.1290920-1-lizhijian=
+@fujitsu.com/
+>
+> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+Thx for the patch, LGTM
+Reviewed-by: Jack Wang <jinpu.wang@ionos.com>
+> ---
+> V4:
+>   test start_soft_rdma # Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com=
+>
+> V3:
+>   new patch, add a seperate basic rnbd test and simplify the _start_rnbd_=
+client
+>
+> Copy to the RDMA/rtrs guys:
+>
+> Cc: Jack Wang <jinpu.wang@ionos.com>
+> Cc: Jason Gunthorpe <jgg@ziepe.ca>
+> Cc: Leon Romanovsky <leon@kernel.org>
+> Cc: "Md. Haris Iqbal" <haris.iqbal@ionos.com>
+> ---
+>  tests/rnbd/001     | 39 ++++++++++++++++++++++++++++++++++
+>  tests/rnbd/001.out |  2 ++
+>  tests/rnbd/rc      | 52 ++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 93 insertions(+)
+>  create mode 100755 tests/rnbd/001
+>  create mode 100644 tests/rnbd/001.out
+>  create mode 100644 tests/rnbd/rc
+>
+> diff --git a/tests/rnbd/001 b/tests/rnbd/001
+> new file mode 100755
+> index 000000000000..ace2f8ea8a2b
+> --- /dev/null
+> +++ b/tests/rnbd/001
+> @@ -0,0 +1,39 @@
+> +#!/bin/bash
+> +# SPDX-License-Identifier: GPL-3.0+
+> +# Copyright (c) 2024 FUJITSU LIMITED. All Rights Reserved.
+> +#
+> +# Basic RNBD test
+> +#
+> +. tests/rnbd/rc
+> +
+> +DESCRIPTION=3D"Start Stop RNBD"
+> +CHECK_DMESG=3D1
+> +QUICK=3D1
+> +
+> +requires() {
+> +       _have_rnbd
+> +       _have_loop
+> +}
+> +
+> +test_start_stop()
+> +{
+> +       _setup_rnbd || return
+> +
+> +       local loop_dev
+> +       loop_dev=3D"$(losetup -f)"
+> +
+> +       if _start_rnbd_client "${loop_dev}"; then
+> +               sleep 0.5
+> +               _stop_rnbd_client || echo "Failed to disconnect rnbd"
+> +       else
+> +               echo "Failed to connect rnbd"
+> +       fi
+> +
+> +       _cleanup_rnbd
+> +}
+> +
+> +test() {
+> +       echo "Running ${TEST_NAME}"
+> +       test_start_stop
+> +       echo "Test complete"
+> +}
+> diff --git a/tests/rnbd/001.out b/tests/rnbd/001.out
+> new file mode 100644
+> index 000000000000..c1f9980d0f7b
+> --- /dev/null
+> +++ b/tests/rnbd/001.out
+> @@ -0,0 +1,2 @@
+> +Running rnbd/001
+> +Test complete
+> diff --git a/tests/rnbd/rc b/tests/rnbd/rc
+> new file mode 100644
+> index 000000000000..a5edc2e5ad9c
+> --- /dev/null
+> +++ b/tests/rnbd/rc
+> @@ -0,0 +1,52 @@
+> +#!/bin/bash
+> +# SPDX-License-Identifier: GPL-3.0+
+> +# Copyright (c) 2024 FUJITSU LIMITED. All Rights Reserved.
+> +#
+> +# RNBD tests.
+> +
+> +. common/rc
+> +. common/multipath-over-rdma
+> +
+> +_have_rnbd() {
+> +       if [[ "$USE_RXE" !=3D 1 ]]; then
+> +               SKIP_REASONS+=3D("Only USE_RXE=3D1 is supported")
+> +       fi
+> +       _have_driver rdma_rxe
+> +       _have_driver rnbd_server
+> +       _have_driver rnbd_client
+> +}
+> +
+> +_setup_rnbd() {
+> +       start_soft_rdma || return $?
+> +
+> +       for i in $(rdma_network_interfaces)
+> +       do
+> +               ipv4_addr=3D$(get_ipv4_addr "$i")
+> +               if [[ -n "${ipv4_addr}" ]]; then
+> +                       def_traddr=3D${ipv4_addr}
+> +               fi
+> +       done
+> +}
+> +
+> +_cleanup_rnbd()
+> +{
+> +       stop_soft_rdma
+> +}
+> +
+> +_stop_rnbd_client() {
+> +       local s sessions
+> +
+> +       sessions=3D$(ls -d /sys/block/rnbd* 2>/dev/null)
+> +       for s in $sessions
+> +       do
+> +               grep -qx blktest "$s"/rnbd/session && echo "normal" > "$s=
+"/rnbd/unmap_device
+> +       done
+> +}
+> +
+> +_start_rnbd_client() {
+> +       local blkdev=3D$1
+> +
+> +       # Stop potential remaining blktest sessions first
+> +       _stop_rnbd_client
+> +       echo "sessname=3Dblktest path=3Dip:$def_traddr device_path=3D$blk=
+dev" > /sys/devices/virtual/rnbd-client/ctl/map_device
+> +}
+> --
+> 2.47.0
+>
