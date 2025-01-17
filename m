@@ -1,37 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A33191FFC5F;
-	Fri, 17 Jan 2025 10:04:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 260B1200B98;
+	Fri, 17 Jan 2025 10:04:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737108265; cv=none; b=C2cOHpl4a8uoUa2GPYedU9v9ocYyUzemQokHhDgLm1lSXDCLVXJRY9OaGilmvHqVHkJ7ewf4qGZjQKSt6ffB43a7Cspm+mSiYkcaQob8tgIP9r9/VHpAXh9U7osdUws4JrnumsmIs9hncCoJEk5SWdcNz5JcTIEyhxpaJnlgpCY=
+	t=1737108269; cv=none; b=uAYcWeTMmdoTCZFGDtJBgLUv6llmqTGrasORNLmO3q4+mgUrfb+wVrlfY8LiZKRe84KEoY07I33VZWvAI1QQnr7WbDpDE7hDOcriF23gc37mg1cy9Scq0H/lTtnSsXuEYAV28cSOYHTdr7bb9m8kwJfxf1VWnuFrSu07emNBXRk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737108265; c=relaxed/simple;
-	bh=4GN46EdgtKs52uYrnZ/WFZUZIcSUfGlvUbPZSutsKwg=;
+	s=arc-20240116; t=1737108269; c=relaxed/simple;
+	bh=KG1gfl9h8v/ucKbjkssx+J8kG9zIxS1cy+tMx8hgV6s=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KuUoLkOE9nHWOTaiyLHJ6V37gqZ98LwcmVIQH3TBoSU7nu6Ajso/es7V9fVDWADi8de4HAgm8qhrs4uw7c12VqZZLUn45il/jH8enZpT7uhRi8AjEq4PAcOueKBuCDpm5CBNzTFBQe8s70lBmJmfKEaftSVWBdUdPbGsQ1wMwGM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RDU0zUWR; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=NsgYMw7keezcgyAj3tO0hkx4pr1oLrZYLlIrlmIxLDtgGNIhWbLZrxCpvlmoHRYSPoAhG1+3j1hRM7Ue2ODnNq4u9qaikErRfYbg1PwvhydqUf1lqgGKOJZeUEPGr9bNhTTVpif46yvqaXpNr9TOu3KJnAZOS250a+haKWfhjKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CoIahJnD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RDU0zUWR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81D5CC4CEDD;
-	Fri, 17 Jan 2025 10:04:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CoIahJnD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05194C4CEE4;
+	Fri, 17 Jan 2025 10:04:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1737108265;
-	bh=4GN46EdgtKs52uYrnZ/WFZUZIcSUfGlvUbPZSutsKwg=;
+	s=k20201202; t=1737108268;
+	bh=KG1gfl9h8v/ucKbjkssx+J8kG9zIxS1cy+tMx8hgV6s=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RDU0zUWRkFl3MkDWfMyzao/HvM6rpd/zmpenEP+vzh193nOx5NyI+FbBE4Ilqc7Vx
-	 G56EM1A1GOB7T02ywxgf3BKwOF1J635h16KKe7KqA2PzL5oeahSPCJhPuEZ46xxtRA
-	 2AKJMESFi6p5gofQY4cOg/apWaQuLFhUCGGN3cC27VT6j40aeEom8fqwLRciGdJfr+
-	 /fO9TxhIVvVJd91dkCpjU78M4DXlKEz8EhjWaU1Y7NQW/BIaY738aTUQ7tQA8gS/Rx
-	 XE+UYcek/V+wQhyAJWvxqMlIeufsuetd3Ph19B+w89RuephT5UhLPuIW2jMIfyLLG+
-	 /FpqIxESR4hlA==
+	b=CoIahJnDuJR3UhGA/T5o/6xqvX4Vo+/WCukiV+L09L3RCeb5wcfMsl/yTuAlcuWrd
+	 rFGWjTxBkDE+yqJR+lGWaNqRhNMVEBUFrpTAQ075ZaMvGBlLWZsq1TyUUNl/U0yzBU
+	 K/p3HKd/TStOciDIXSdIVFHLdmOaVjpk/fdziHQvjd7L/b9mh9HM/ki+j30W6QgzED
+	 BNDpSlsn4D9uTMU0kjQoFzlhd7cSyM1loeB1VLrZxyQ6M3Oy7Ron9GpQf9PVeF8Sl7
+	 2+yIIsHZrbUNyLj3CF5/ey28U5yMlN7Y7G0RRsl/JZr45nYIwf6MrMg7zng625jlVe
+	 QNb7oGQy7sNPA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Christoph Hellwig <hch@lst.de>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
 	Robin Murphy <robin.murphy@arm.com>
-Cc: Leon Romanovsky <leonro@nvidia.com>,
-	Jens Axboe <axboe@kernel.dk>,
+Cc: Jens Axboe <axboe@kernel.dk>,
 	Joerg Roedel <joro@8bytes.org>,
 	Will Deacon <will@kernel.org>,
 	Sagi Grimberg <sagi@grimberg.me>,
@@ -56,9 +55,9 @@ Cc: Leon Romanovsky <leonro@nvidia.com>,
 	kvm@vger.kernel.org,
 	linux-mm@kvack.org,
 	"Randy Dunlap" <rdunlap@infradead.org>
-Subject: [PATCH v6 05/17] dma-mapping: Provide an interface to allow allocate IOVA
-Date: Fri, 17 Jan 2025 12:03:36 +0200
-Message-ID: <b369de9ce7917beda15744e307a4366159740df4.1737106761.git.leon@kernel.org>
+Subject: [PATCH v6 09/17] docs: core-api: document the IOVA-based API
+Date: Fri, 17 Jan 2025 12:03:40 +0200
+Message-ID: <6060892b1f02ec6a640928e4866cd6752b56b8d8.1737106761.git.leon@kernel.org>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <cover.1737106761.git.leon@kernel.org>
 References: <cover.1737106761.git.leon@kernel.org>
@@ -70,202 +69,97 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Leon Romanovsky <leonro@nvidia.com>
+From: Christoph Hellwig <hch@lst.de>
 
-The existing .map_page() callback provides both allocating of IOVA
-and linking DMA pages. That combination works great for most of the
-callers who use it in control paths, but is less effective in fast
-paths where there may be multiple calls to map_page().
+Add an explanation of the newly added IOVA-based mapping API.
 
-These advanced callers already manage their data in some sort of
-database and can perform IOVA allocation in advance, leaving range
-linkage operation to be in fast path.
-
-Provide an interface to allocate/deallocate IOVA and next patch
-link/unlink DMA ranges to that specific IOVA.
-
-In the new API a DMA mapping transaction is identified by a
-struct dma_iova_state, which holds some recomputed information
-for the transaction which does not change for each page being
-mapped, so add a check if IOVA can be used for the specific
-transaction.
-
-The API is exported from dma-iommu as it is the only implementation
-supported, the namespace is clearly different from iommu_* functions
-which are not allowed to be used. This code layout allows us to save
-function call per API call used in datapath as well as a lot of boilerplate
-code.
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/iommu/dma-iommu.c   | 86 +++++++++++++++++++++++++++++++++++++
- include/linux/dma-mapping.h | 48 +++++++++++++++++++++
- 2 files changed, 134 insertions(+)
+ Documentation/core-api/dma-api.rst | 70 ++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
 
-diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 853247c42f7d..309d278b1d86 100644
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -1746,6 +1746,92 @@ size_t iommu_dma_max_mapping_size(struct device *dev)
- 	return SIZE_MAX;
- }
+diff --git a/Documentation/core-api/dma-api.rst b/Documentation/core-api/dma-api.rst
+index 8e3cce3d0a23..61d6f4fe3d88 100644
+--- a/Documentation/core-api/dma-api.rst
++++ b/Documentation/core-api/dma-api.rst
+@@ -530,6 +530,76 @@ routines, e.g.:::
+ 		....
+ 	}
  
-+/**
-+ * dma_iova_try_alloc - Try to allocate an IOVA space
-+ * @dev: Device to allocate the IOVA space for
-+ * @state: IOVA state
-+ * @phys: physical address
-+ * @size: IOVA size
-+ *
-+ * Check if @dev supports the IOVA-based DMA API, and if yes allocate IOVA space
-+ * for the given base address and size.
-+ *
-+ * Note: @phys is only used to calculate the IOVA alignment. Callers that always
-+ * do PAGE_SIZE aligned transfers can safely pass 0 here.
-+ *
-+ * Returns %true if the IOVA-based DMA API can be used and IOVA space has been
-+ * allocated, or %false if the regular DMA API should be used.
-+ */
-+bool dma_iova_try_alloc(struct device *dev, struct dma_iova_state *state,
-+		phys_addr_t phys, size_t size)
-+{
-+	struct iommu_dma_cookie *cookie;
-+	struct iommu_domain *domain;
-+	struct iova_domain *iovad;
-+	size_t iova_off;
-+	dma_addr_t addr;
++Part Ie - IOVA-based DMA mappings
++---------------------------------
 +
-+	memset(state, 0, sizeof(*state));
-+	if (!use_dma_iommu(dev))
-+		return false;
++These APIs allow a very efficient mapping when using an IOMMU.  They are an
++optional path that requires extra code and are only recommended for drivers
++where DMA mapping performance, or the space usage for storing the DMA addresses
++matter.  All the considerations from the previous section apply here as well.
 +
-+	domain = iommu_get_dma_domain(dev);
-+	cookie = domain->iova_cookie;
-+	iovad = &cookie->iovad;
-+	iova_off = iova_offset(iovad, phys);
++::
 +
-+	if (static_branch_unlikely(&iommu_deferred_attach_enabled) &&
-+	    iommu_deferred_attach(dev, iommu_get_domain_for_dev(dev)))
-+		return false;
-+
-+	if (WARN_ON_ONCE(!size))
-+		return false;
-+
-+	/*
-+	 * DMA_IOVA_USE_SWIOTLB is flag which is set by dma-iommu
-+	 * internals, make sure that caller didn't set it and/or
-+	 * didn't use this interface to map SIZE_MAX.
-+	 */
-+	if (WARN_ON_ONCE((u64)size & DMA_IOVA_USE_SWIOTLB))
-+		return false;
-+
-+	addr = iommu_dma_alloc_iova(domain,
-+			iova_align(iovad, size + iova_off),
-+			dma_get_mask(dev), dev);
-+	if (!addr)
-+		return false;
-+
-+	state->addr = addr + iova_off;
-+	state->__size = size;
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(dma_iova_try_alloc);
-+
-+/**
-+ * dma_iova_free - Free an IOVA space
-+ * @dev: Device to free the IOVA space for
-+ * @state: IOVA state
-+ *
-+ * Undoes a successful dma_try_iova_alloc().
-+ *
-+ * Note that all dma_iova_link() calls need to be undone first.  For callers
-+ * that never call dma_iova_unlink(), dma_iova_destroy() can be used instead
-+ * which unlinks all ranges and frees the IOVA space in a single efficient
-+ * operation.
-+ */
-+void dma_iova_free(struct device *dev, struct dma_iova_state *state)
-+{
-+	struct iommu_domain *domain = iommu_get_dma_domain(dev);
-+	struct iommu_dma_cookie *cookie = domain->iova_cookie;
-+	struct iova_domain *iovad = &cookie->iovad;
-+	size_t iova_start_pad = iova_offset(iovad, state->addr);
-+	size_t size = dma_iova_size(state);
-+
-+	iommu_dma_free_iova(cookie, state->addr - iova_start_pad,
-+			iova_align(iovad, size + iova_start_pad), NULL);
-+}
-+EXPORT_SYMBOL_GPL(dma_iova_free);
-+
- void iommu_setup_dma_ops(struct device *dev)
- {
- 	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index b79925b1c433..de7f73810d54 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -72,6 +72,22 @@
- 
- #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
- 
-+struct dma_iova_state {
-+	dma_addr_t addr;
-+	u64 __size;
-+};
-+
-+/*
-+ * Use the high bit to mark if we used swiotlb for one or more ranges.
-+ */
-+#define DMA_IOVA_USE_SWIOTLB		(1ULL << 63)
-+
-+static inline size_t dma_iova_size(struct dma_iova_state *state)
-+{
-+	/* Casting is needed for 32-bits systems */
-+	return (size_t)(state->__size & ~DMA_IOVA_USE_SWIOTLB);
-+}
-+
- #ifdef CONFIG_DMA_API_DEBUG
- void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
- void debug_dma_map_single(struct device *dev, const void *addr,
-@@ -277,6 +293,38 @@ static inline int dma_mmap_noncontiguous(struct device *dev,
- }
- #endif /* CONFIG_HAS_DMA */
- 
-+#ifdef CONFIG_IOMMU_DMA
-+/**
-+ * dma_use_iova - check if the IOVA API is used for this state
-+ * @state: IOVA state
-+ *
-+ * Return %true if the DMA transfers uses the dma_iova_*() calls or %false if
-+ * they can't be used.
-+ */
-+static inline bool dma_use_iova(struct dma_iova_state *state)
-+{
-+	return state->__size != 0;
-+}
-+
-+bool dma_iova_try_alloc(struct device *dev, struct dma_iova_state *state,
++    bool dma_iova_try_alloc(struct device *dev, struct dma_iova_state *state,
 +		phys_addr_t phys, size_t size);
-+void dma_iova_free(struct device *dev, struct dma_iova_state *state);
-+#else /* CONFIG_IOMMU_DMA */
-+static inline bool dma_use_iova(struct dma_iova_state *state)
-+{
-+	return false;
-+}
-+static inline bool dma_iova_try_alloc(struct device *dev,
-+		struct dma_iova_state *state, phys_addr_t phys, size_t size)
-+{
-+	return false;
-+}
-+static inline void dma_iova_free(struct device *dev,
-+		struct dma_iova_state *state)
-+{
-+}
-+#endif /* CONFIG_IOMMU_DMA */
 +
- #if defined(CONFIG_HAS_DMA) && defined(CONFIG_DMA_NEED_SYNC)
- void __dma_sync_single_for_cpu(struct device *dev, dma_addr_t addr, size_t size,
- 		enum dma_data_direction dir);
++Is used to try to allocate IOVA space for mapping operation.  If it returns
++false this API can't be used for the given device and the normal streaming
++DMA mapping API should be used.  The ``struct dma_iova_state`` is allocated
++by the driver and must be kept around until unmap time.
++
++::
++
++    static inline bool dma_use_iova(struct dma_iova_state *state)
++
++Can be used by the driver to check if the IOVA-based API is used after a
++call to dma_iova_try_alloc.  This can be useful in the unmap path.
++
++::
++
++    int dma_iova_link(struct device *dev, struct dma_iova_state *state,
++		phys_addr_t phys, size_t offset, size_t size,
++		enum dma_data_direction dir, unsigned long attrs);
++
++Is used to link ranges to the IOVA previously allocated.  The start of all
++but the first call to dma_iova_link for a given state must be aligned
++to the DMA merge boundary returned by ``dma_get_merge_boundary())``, and
++the size of all but the last range must be aligned to the DMA merge boundary
++as well.
++
++::
++
++    int dma_iova_sync(struct device *dev, struct dma_iova_state *state,
++		size_t offset, size_t size);
++
++Must be called to sync the IOMMU page tables for IOVA-range mapped by one or
++more calls to ``dma_iova_link()``.
++
++For drivers that use a one-shot mapping, all ranges can be unmapped and the
++IOVA freed by calling:
++
++::
++
++   void dma_iova_destroy(struct device *dev, struct dma_iova_state *state,
++		enum dma_data_direction dir, unsigned long attrs);
++
++Alternatively drivers can dynamically manage the IOVA space by unmapping
++and mapping individual regions.  In that case
++
++::
++
++    void dma_iova_unlink(struct device *dev, struct dma_iova_state *state,
++		size_t offset, size_t size, enum dma_data_direction dir,
++		unsigned long attrs);
++
++is used to unmap a range previously mapped, and
++
++::
++
++   void dma_iova_free(struct device *dev, struct dma_iova_state *state);
++
++is used to free the IOVA space.  All regions must have been unmapped using
++``dma_iova_unlink()`` before calling ``dma_iova_free()``.
+ 
+ Part II - Non-coherent DMA allocations
+ --------------------------------------
 -- 
 2.47.1
 
