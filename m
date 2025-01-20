@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 031F01EF085;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 037611EF088;
 	Mon, 20 Jan 2025 17:27:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737394055; cv=none; b=hqVf/ZGDGuy+ELcVoofSK2AtJmMtARHABKtDFRUw0HPxaqwV42ff+MvcY0umnvfhKcli0D101V3mFCR5Jru1Tf/sAPhXJ+w6+QTybDabVOAw3BVA4zZbqw+ohhG8EWzoebyb50jIZU4XE5ANg0zACXtDn1RMJ1ey+fTsfu+R2TA=
+	t=1737394056; cv=none; b=cSQAxH/By+nqhjfQulPURIiFBA5agpH7d6hwsb9yPZO6VyQJoFv3eZWku0bRQ2BfdhEo828L/MHo8iCvxr8FqcP+8K95VPmSVrGwFj4EZD53BrsbCP8l8rLS0ST/ObzwuCWwQNTqe3MPrlmD8uoSfbtqbrba2MMW/47D2jvNuck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737394055; c=relaxed/simple;
-	bh=jIzfPIAqIjaxRMRxqyJH4fTGhbSvWwyaslK19lldbGM=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=jRUPEjiW3kM2XM628lAgi+wQ3Ph8aq0VkPVnHiOwsM0S1hSUyEQueTPf1RiGEszoRi1X4t1eUPz+Vcx/oZcZqgjxTxkdHN2XSDMhCLfQ0kWz5Ch3wUJ3JMuP+qAvJNGRnhrfOCF5faku+/Nc3kCce/gvfyt7UxCsS7RaKjAWWO4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=l0Re9OoC; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1737394056; c=relaxed/simple;
+	bh=WkiMm3lFH1pTe01iiv7pQM4f6V/4Z7SqdYkzxQH42v0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=UxDXfNny5hbW/KZk+294R92wWQBeWanjxdA40gsEzNUk6uE74FCJGovPlv3KIkbC0l9RySgaEYW8EGSfK3ztZbkMPC7aJODyGAGyTKru54biDRxPsfZ9cXHLwRqIXmBvlWbNDXZoz9z4eQRsps3f/1TG9Bw1G1EpGgmtxKnW3Cs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=ZEw2w4s7; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="l0Re9OoC"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="ZEw2w4s7"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id E3797205A9D4;
+	by linux.microsoft.com (Postfix) with ESMTPSA id AF136205A9D1;
 	Mon, 20 Jan 2025 09:27:26 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E3797205A9D4
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com AF136205A9D1
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1737394046;
-	bh=ZCD3w92Zk0owMWjZiJnQbmXGQnkMPOm62irZP7iqqIw=;
+	bh=okH7zLBhlX21Cgxu6Zluh9+f+V33w5PzpfJYQsoa+A0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=l0Re9OoCN/64jjOS67VhPaGTkuKW9zM7tJ44VpsdKnObV4wc56DLlSlOhxrnENlEd
-	 xyUTKUQefaZL3lPpAHBCiaa9Vom+IcZVs1ZLmN7ovFHvsbGKgxCOH1FVGba/+cIsZM
-	 yW+SdEgr+jKzJNGq7LqIbXi/SYh/VOHfmi5uz6xI=
+	b=ZEw2w4s70h8xfXrRPQpK58iPRoXYttmks9wXMOw/VrGeozXwOd40mLFZ3Ay8DuY4h
+	 Pid8XRqU6G/qNZHQ1FfyrAUbq/KB90scLWHv/LsouPmKSRg3IEFVtfV8lnLmNPZ+5X
+	 am0txtCS1zcnNmmK9vQCWot4X+jUPXEZXVxcVQVY=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	shirazsaleem@microsoft.com,
@@ -43,9 +43,9 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 13/13] RDMA/mana_ib: indicate CM support
-Date: Mon, 20 Jan 2025 09:27:19 -0800
-Message-Id: <1737394039-28772-14-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next 11/13] RDMA/mana_ib: extend mana QP table
+Date: Mon, 20 Jan 2025 09:27:17 -0800
+Message-Id: <1737394039-28772-12-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
 References: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
@@ -57,44 +57,175 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Set max_mad_size and IB_PORT_CM_SUP capability
-to enable connection manager.
+Enable mana QP table to store UD/GSI QPs.
+For send queues, set the most significant bit to one,
+as send and receive WQs can have the same ID in mana.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 Reviewed-by: Shiraz Saleem <shirazsaleem@microsoft.com>
 ---
- drivers/infiniband/hw/mana/main.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mana/main.c    |  2 +-
+ drivers/infiniband/hw/mana/mana_ib.h |  8 ++-
+ drivers/infiniband/hw/mana/qp.c      | 78 ++++++++++++++++++++++++++--
+ 3 files changed, 83 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index 114e391..ae1fb69 100644
+index b0c55cb..114e391 100644
 --- a/drivers/infiniband/hw/mana/main.c
 +++ b/drivers/infiniband/hw/mana/main.c
-@@ -561,8 +561,10 @@ int mana_ib_get_port_immutable(struct ib_device *ibdev, u32 port_num,
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
- 	immutable->core_cap_flags = RDMA_CORE_PORT_RAW_PACKET;
--	if (port_num == 1)
-+	if (port_num == 1) {
- 		immutable->core_cap_flags |= RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
-+		immutable->max_mad_size = IB_MGMT_MAD_SIZE;
-+	}
+@@ -704,7 +704,7 @@ mana_ib_event_handler(void *ctx, struct gdma_queue *q, struct gdma_event *event)
+ 	switch (event->type) {
+ 	case GDMA_EQE_RNIC_QP_FATAL:
+ 		qpn = event->details[0];
+-		qp = mana_get_qp_ref(mdev, qpn);
++		qp = mana_get_qp_ref(mdev, qpn, false);
+ 		if (!qp)
+ 			break;
+ 		if (qp->ibqp.event_handler) {
+diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
+index bd34ad6..5e4ca55 100644
+--- a/drivers/infiniband/hw/mana/mana_ib.h
++++ b/drivers/infiniband/hw/mana/mana_ib.h
+@@ -23,6 +23,9 @@
+ /* MANA doesn't have any limit for MR size */
+ #define MANA_IB_MAX_MR_SIZE	U64_MAX
  
- 	return 0;
++/* Send queue ID mask */
++#define MANA_SENDQ_MASK	BIT(31)
++
+ /*
+  * The hardware limit of number of MRs is greater than maximum number of MRs
+  * that can possibly represent in 24 bits
+@@ -438,11 +441,14 @@ static inline struct gdma_context *mdev_to_gc(struct mana_ib_dev *mdev)
  }
-@@ -621,8 +623,11 @@ int mana_ib_query_port(struct ib_device *ibdev, u32 port,
- 	props->active_width = IB_WIDTH_4X;
- 	props->active_speed = IB_SPEED_EDR;
- 	props->pkey_tbl_len = 1;
--	if (port == 1)
-+	if (port == 1) {
- 		props->gid_tbl_len = 16;
-+		props->port_cap_flags = IB_PORT_CM_SUP;
-+		props->ip_gids = true;
-+	}
  
- 	return 0;
+ static inline struct mana_ib_qp *mana_get_qp_ref(struct mana_ib_dev *mdev,
+-						 uint32_t qid)
++						 u32 qid, bool is_sq)
+ {
+ 	struct mana_ib_qp *qp;
+ 	unsigned long flag;
+ 
++	if (is_sq)
++		qid |= MANA_SENDQ_MASK;
++
+ 	xa_lock_irqsave(&mdev->qp_table_wq, flag);
+ 	qp = xa_load(&mdev->qp_table_wq, qid);
+ 	if (qp)
+diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
+index 051ea03..2528046 100644
+--- a/drivers/infiniband/hw/mana/qp.c
++++ b/drivers/infiniband/hw/mana/qp.c
+@@ -444,18 +444,82 @@ static enum gdma_queue_type mana_ib_queue_type(struct ib_qp_init_attr *attr, u32
+ 	return type;
  }
+ 
++static int mana_table_store_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
++{
++	return xa_insert_irq(&mdev->qp_table_wq, qp->ibqp.qp_num, qp,
++			     GFP_KERNEL);
++}
++
++static void mana_table_remove_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
++{
++	xa_erase_irq(&mdev->qp_table_wq, qp->ibqp.qp_num);
++}
++
++static int mana_table_store_ud_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
++{
++	u32 qids = qp->ud_qp.queues[MANA_UD_SEND_QUEUE].id | MANA_SENDQ_MASK;
++	u32 qidr = qp->ud_qp.queues[MANA_UD_RECV_QUEUE].id;
++	int err;
++
++	err = xa_insert_irq(&mdev->qp_table_wq, qids, qp, GFP_KERNEL);
++	if (err)
++		return err;
++
++	err = xa_insert_irq(&mdev->qp_table_wq, qidr, qp, GFP_KERNEL);
++	if (err)
++		goto remove_sq;
++
++	return 0;
++
++remove_sq:
++	xa_erase_irq(&mdev->qp_table_wq, qids);
++	return err;
++}
++
++static void mana_table_remove_ud_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
++{
++	u32 qids = qp->ud_qp.queues[MANA_UD_SEND_QUEUE].id | MANA_SENDQ_MASK;
++	u32 qidr = qp->ud_qp.queues[MANA_UD_RECV_QUEUE].id;
++
++	xa_erase_irq(&mdev->qp_table_wq, qids);
++	xa_erase_irq(&mdev->qp_table_wq, qidr);
++}
++
+ static int mana_table_store_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
+ {
+ 	refcount_set(&qp->refcount, 1);
+ 	init_completion(&qp->free);
+-	return xa_insert_irq(&mdev->qp_table_wq, qp->ibqp.qp_num, qp,
+-			     GFP_KERNEL);
++
++	switch (qp->ibqp.qp_type) {
++	case IB_QPT_RC:
++		return mana_table_store_rc_qp(mdev, qp);
++	case IB_QPT_UD:
++	case IB_QPT_GSI:
++		return mana_table_store_ud_qp(mdev, qp);
++	default:
++		ibdev_dbg(&mdev->ib_dev, "Unknown QP type for storing in mana table, %d\n",
++			  qp->ibqp.qp_type);
++	}
++
++	return -EINVAL;
+ }
+ 
+ static void mana_table_remove_qp(struct mana_ib_dev *mdev,
+ 				 struct mana_ib_qp *qp)
+ {
+-	xa_erase_irq(&mdev->qp_table_wq, qp->ibqp.qp_num);
++	switch (qp->ibqp.qp_type) {
++	case IB_QPT_RC:
++		mana_table_remove_rc_qp(mdev, qp);
++		break;
++	case IB_QPT_UD:
++	case IB_QPT_GSI:
++		mana_table_remove_ud_qp(mdev, qp);
++		break;
++	default:
++		ibdev_dbg(&mdev->ib_dev, "Unknown QP type for removing from mana table, %d\n",
++			  qp->ibqp.qp_type);
++		return;
++	}
+ 	mana_put_qp_ref(qp);
+ 	wait_for_completion(&qp->free);
+ }
+@@ -586,8 +650,14 @@ static int mana_ib_create_ud_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
+ 	for (i = 0; i < MANA_UD_QUEUE_TYPE_MAX; ++i)
+ 		qp->ud_qp.queues[i].kmem->id = qp->ud_qp.queues[i].id;
+ 
++	err = mana_table_store_qp(mdev, qp);
++	if (err)
++		goto destroy_qp;
++
+ 	return 0;
+ 
++destroy_qp:
++	mana_ib_gd_destroy_ud_qp(mdev, qp);
+ destroy_shadow_queues:
+ 	destroy_shadow_queue(&qp->shadow_rq);
+ 	destroy_shadow_queue(&qp->shadow_sq);
+@@ -770,6 +840,8 @@ static int mana_ib_destroy_ud_qp(struct mana_ib_qp *qp, struct ib_udata *udata)
+ 		container_of(qp->ibqp.device, struct mana_ib_dev, ib_dev);
+ 	int i;
+ 
++	mana_table_remove_qp(mdev, qp);
++
+ 	destroy_shadow_queue(&qp->shadow_rq);
+ 	destroy_shadow_queue(&qp->shadow_sq);
+ 
 -- 
 2.43.0
 
