@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 292F41E9B29;
-	Mon, 20 Jan 2025 17:27:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 634A11E5705;
+	Mon, 20 Jan 2025 17:27:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737394053; cv=none; b=ZFzGjdwEC2p/dfoEhkdfPQ9eA3zSKudCV30iBRvFDa+FU2P8n67K5rBO0lwb6vVAeI+fR+dM3J4WKytlYlQwmnrvXEd2dRjDispDlj9RAnZp5WjrxNWYMsLmyUdQBKZuiFy9S69qdfEo+6GEM5wBUHNsFnx1RGgkDKHt3ldruec=
+	t=1737394053; cv=none; b=qnFeKClwmI562naeepDa/ksPg8vfoOr58/llJ4qRwN2hinJ7HP7lU4d+VihYGVfYLXoMqcgU1fIwh9DtuCQtK/S08UHGNEzlVCqDeCR7I6/Jg+yhhctyFwNVdW2rmzgnpPL1bbtjE1n7ivAOkN0ryBOz+08V8umx2zVuobQH6ds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1737394053; c=relaxed/simple;
-	bh=QXz5/Y6hz2MMtJtqke/JlcpxcZwq0xYNx0qtQmUdmXg=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=DMr2CD9NzsRpXGlQCpM55tP1sXKjQEHF7kMsxc24zb70HqLnJl7f0ieI25bWVmPeXR+n6XsrjxIEk1UcBQYGmr62VaMwnCMDRArQXLbvPiWEWQOW5/XXsxjaCjNxD8dlOMCQQwwHUUlwWtdtAjjEXSMawlAJSS1oppw3BQ8XRR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=LSNcLu+f; arc=none smtp.client-ip=13.77.154.182
+	bh=7JDU9O/pzmZ+qBDbHU6ezsdHQGUa0zhaY4tzHHbDops=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=IvUbJ/UspYdtP4xc/1a0GlQD0MiuHPLqghftgO8vQlIBaQ1hzTc/gTZk1gvNbIPLKRz2iPCher7VLOoMPgUwzKwGvqS4RIf61FJQPTgwgM9xyFGf7Nbs1AJE0BzMBVs9iteSbK1Bx3DIxPE3OfPQhGiAzc49yQz0E0AzfvaTwVc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Cwb1n6QV; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="LSNcLu+f"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Cwb1n6QV"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id EE6CC205A9CA;
+	by linux.microsoft.com (Postfix) with ESMTPSA id A1EB5205A9C7;
 	Mon, 20 Jan 2025 09:27:25 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com EE6CC205A9CA
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com A1EB5205A9C7
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1737394046;
-	bh=P9wezFJ3hB/T/3jqSgNKGvJNhir6BKvPXhoSRpMtuVs=;
+	s=default; t=1737394045;
+	bh=i4AagACb65a3Kh0fpdVsJdbH99BwOjqEk+khMkSZ2mw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=LSNcLu+f29+aojhq+5gyUQodGrLxH966VD+0QAYl9qRlyBpYkQtVr8Fb5dWR0+Rgr
-	 iIRu3ZyUPi93S2Ep5vRaolu8ZzIXM43iVjEFCIMV0DafPIlIU1BexE4lBGps0+8aDi
-	 p6IwCo6yoyL6WjH0sd0RdaehR5xnMhGMUvGSwdsA=
+	b=Cwb1n6QVyPdVRk8GFHo65GKq4Eet5BRcLJFxlvc0lAviPXydIb1rFY8Co+DsoYO0W
+	 8AJBCfmCstESnFkSfsbLFNsIXNzOkqP8ZS4YAieos7cKiuq5yXU2NndD4V/ccagH/3
+	 8szE7ZKoOUNd/meCtFY1gdlpEniyuxvbc9o5db4Q=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	shirazsaleem@microsoft.com,
@@ -43,9 +43,9 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 04/13] RDMA/mana_ib: create kernel-level CQs
-Date: Mon, 20 Jan 2025 09:27:10 -0800
-Message-Id: <1737394039-28772-5-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next 01/13] RDMA/mana_ib: Allow registration of DMA-mapped memory in PDs
+Date: Mon, 20 Jan 2025 09:27:07 -0800
+Message-Id: <1737394039-28772-2-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
 References: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
@@ -57,140 +57,41 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Implement creation of CQs for the kernel.
+Allow the HW to register DMA-mapped memory for kernel-level PDs.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 Reviewed-by: Shiraz Saleem <shirazsaleem@microsoft.com>
 ---
- drivers/infiniband/hw/mana/cq.c | 80 +++++++++++++++++++++------------
- 1 file changed, 52 insertions(+), 28 deletions(-)
+ drivers/infiniband/hw/mana/main.c | 3 +++
+ include/net/mana/gdma.h           | 1 +
+ 2 files changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index f04a679..d26d82d 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -15,42 +15,57 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	struct ib_device *ibdev = ibcq->device;
- 	struct mana_ib_create_cq ucmd = {};
- 	struct mana_ib_dev *mdev;
-+	struct gdma_context *gc;
- 	bool is_rnic_cq;
- 	u32 doorbell;
-+	u32 buf_size;
- 	int err;
+diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
+index 67c2d43..45b251b 100644
+--- a/drivers/infiniband/hw/mana/main.c
++++ b/drivers/infiniband/hw/mana/main.c
+@@ -82,6 +82,9 @@ int mana_ib_alloc_pd(struct ib_pd *ibpd, struct ib_udata *udata)
+ 	mana_gd_init_req_hdr(&req.hdr, GDMA_CREATE_PD, sizeof(req),
+ 			     sizeof(resp));
  
- 	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
-+	gc = mdev_to_gc(mdev);
- 
- 	cq->comp_vector = attr->comp_vector % ibdev->num_comp_vectors;
- 	cq->cq_handle = INVALID_MANA_HANDLE;
- 
--	if (udata->inlen < offsetof(struct mana_ib_create_cq, flags))
--		return -EINVAL;
-+	if (udata) {
-+		if (udata->inlen < offsetof(struct mana_ib_create_cq, flags))
-+			return -EINVAL;
- 
--	err = ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen));
--	if (err) {
--		ibdev_dbg(ibdev,
--			  "Failed to copy from udata for create cq, %d\n", err);
--		return err;
--	}
-+		err = ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen));
-+		if (err) {
-+			ibdev_dbg(ibdev, "Failed to copy from udata for create cq, %d\n", err);
-+			return err;
-+		}
- 
--	is_rnic_cq = !!(ucmd.flags & MANA_IB_CREATE_RNIC_CQ);
-+		is_rnic_cq = !!(ucmd.flags & MANA_IB_CREATE_RNIC_CQ);
- 
--	if (!is_rnic_cq && attr->cqe > mdev->adapter_caps.max_qp_wr) {
--		ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
--		return -EINVAL;
--	}
-+		if (!is_rnic_cq && attr->cqe > mdev->adapter_caps.max_qp_wr) {
-+			ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
-+			return -EINVAL;
-+		}
- 
--	cq->cqe = attr->cqe;
--	err = mana_ib_create_queue(mdev, ucmd.buf_addr, cq->cqe * COMP_ENTRY_SIZE, &cq->queue);
--	if (err) {
--		ibdev_dbg(ibdev, "Failed to create queue for create cq, %d\n", err);
--		return err;
--	}
-+		cq->cqe = attr->cqe;
-+		err = mana_ib_create_queue(mdev, ucmd.buf_addr, cq->cqe * COMP_ENTRY_SIZE,
-+					   &cq->queue);
-+		if (err) {
-+			ibdev_dbg(ibdev, "Failed to create queue for create cq, %d\n", err);
-+			return err;
-+		}
- 
--	mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
--						  ibucontext);
--	doorbell = mana_ucontext->doorbell;
-+		mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
-+							  ibucontext);
-+		doorbell = mana_ucontext->doorbell;
-+	} else {
-+		is_rnic_cq = true;
-+		buf_size = MANA_PAGE_ALIGN(roundup_pow_of_two(attr->cqe * COMP_ENTRY_SIZE));
-+		cq->cqe = buf_size / COMP_ENTRY_SIZE;
-+		err = mana_ib_create_kernel_queue(mdev, buf_size, GDMA_CQ, &cq->queue);
-+		if (err) {
-+			ibdev_dbg(ibdev, "Failed to create kernel queue for create cq, %d\n", err);
-+			return err;
-+		}
-+		doorbell = gc->mana_ib.doorbell;
-+	}
- 
- 	if (is_rnic_cq) {
- 		err = mana_ib_gd_create_cq(mdev, cq, doorbell);
-@@ -66,11 +81,13 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 		}
- 	}
- 
--	resp.cqid = cq->queue.id;
--	err = ib_copy_to_udata(udata, &resp, min(sizeof(resp), udata->outlen));
--	if (err) {
--		ibdev_dbg(&mdev->ib_dev, "Failed to copy to udata, %d\n", err);
--		goto err_remove_cq_cb;
-+	if (udata) {
-+		resp.cqid = cq->queue.id;
-+		err = ib_copy_to_udata(udata, &resp, min(sizeof(resp), udata->outlen));
-+		if (err) {
-+			ibdev_dbg(&mdev->ib_dev, "Failed to copy to udata, %d\n", err);
-+			goto err_remove_cq_cb;
-+		}
- 	}
- 
- 	return 0;
-@@ -122,7 +139,10 @@ int mana_ib_install_cq_cb(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
- 		return -EINVAL;
- 	/* Create CQ table entry */
- 	WARN_ON(gc->cq_table[cq->queue.id]);
--	gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
-+	if (cq->queue.kmem)
-+		gdma_cq = cq->queue.kmem;
-+	else
-+		gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
- 	if (!gdma_cq)
- 		return -ENOMEM;
- 
-@@ -141,6 +161,10 @@ void mana_ib_remove_cq_cb(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
- 	if (cq->queue.id >= gc->max_num_cqs || cq->queue.id == INVALID_QUEUE_ID)
- 		return;
- 
-+	if (cq->queue.kmem)
-+	/* Then it will be cleaned and removed by the mana */
-+		return;
++	if (!udata)
++		flags |= GDMA_PD_FLAG_ALLOW_GPA_MR;
 +
- 	kfree(gc->cq_table[cq->queue.id]);
- 	gc->cq_table[cq->queue.id] = NULL;
- }
+ 	req.flags = flags;
+ 	err = mana_gd_send_request(gc, sizeof(req), &req,
+ 				   sizeof(resp), &resp);
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 90f5665..03e1b25 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -775,6 +775,7 @@ struct gdma_destroy_dma_region_req {
+ 
+ enum gdma_pd_flags {
+ 	GDMA_PD_FLAG_INVALID = 0,
++	GDMA_PD_FLAG_ALLOW_GPA_MR = 1,
+ };
+ 
+ struct gdma_create_pd_req {
 -- 
 2.43.0
 
