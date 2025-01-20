@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 65C661E9B00;
-	Mon, 20 Jan 2025 17:27:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 292F41E9B29;
+	Mon, 20 Jan 2025 17:27:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737394052; cv=none; b=dcUy+11rMMKIdEl3gQtdc/x/nithMZBcdJKUFGa5MJZXO89lHmvvOKlxF4NUlVlJrbQIWhve8xgHEHuTj2y60ZlO2zhbTQr2gaqWtTgCLEyVlMqK6G6h686P8T1uLrnHCEIpCY4HatDIJwwBItj1OrSxtXQjTPAxtX6Kz20yE3A=
+	t=1737394053; cv=none; b=ZFzGjdwEC2p/dfoEhkdfPQ9eA3zSKudCV30iBRvFDa+FU2P8n67K5rBO0lwb6vVAeI+fR+dM3J4WKytlYlQwmnrvXEd2dRjDispDlj9RAnZp5WjrxNWYMsLmyUdQBKZuiFy9S69qdfEo+6GEM5wBUHNsFnx1RGgkDKHt3ldruec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737394052; c=relaxed/simple;
-	bh=F36zJOzrYXnnxRvRSL0eK6xhoBQhmHCL0F3Q1ZOntGo=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=IGIDxCmQKzHxKSoPIO0AV+P5nF5/WBCbt3RtjCmbXzLgoaTROpm+3c+1ucG3AH+CNwZHaw99r719p8VEDrqKW2L68CelpuirutYjLC8ATH+zgUNlPvDtvSNkibIC+9w8pexAnoWQUEwiG/WnE/dPfCNshVjIAy99ED1E7iBb9GI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Yc/Lg8fH; arc=none smtp.client-ip=13.77.154.182
+	s=arc-20240116; t=1737394053; c=relaxed/simple;
+	bh=QXz5/Y6hz2MMtJtqke/JlcpxcZwq0xYNx0qtQmUdmXg=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=DMr2CD9NzsRpXGlQCpM55tP1sXKjQEHF7kMsxc24zb70HqLnJl7f0ieI25bWVmPeXR+n6XsrjxIEk1UcBQYGmr62VaMwnCMDRArQXLbvPiWEWQOW5/XXsxjaCjNxD8dlOMCQQwwHUUlwWtdtAjjEXSMawlAJSS1oppw3BQ8XRR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=LSNcLu+f; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Yc/Lg8fH"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="LSNcLu+f"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id BB94E205A9C8;
+	by linux.microsoft.com (Postfix) with ESMTPSA id EE6CC205A9CA;
 	Mon, 20 Jan 2025 09:27:25 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BB94E205A9C8
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com EE6CC205A9CA
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1737394045;
-	bh=6Q7KhQEHK6x5EZ2rC99hM7Tlbuzw4R7mcVgBDZzZSzU=;
+	s=default; t=1737394046;
+	bh=P9wezFJ3hB/T/3jqSgNKGvJNhir6BKvPXhoSRpMtuVs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Yc/Lg8fHg2sOI/jMVWsuqmFJ0nza2ZjGOmdFKISBvGFSZBNrsE1YZZI2D0NR/NmiW
-	 Vwj0B+NlFS+R+6q8EBrCJMlNodN4zFR0TweMMHTuEYsllGDswNC8XptH7fRqRk2oRf
-	 FZIjJv/zfiIW7dRk+/02yPD7QOMUcv0pGOnSQ06M=
+	b=LSNcLu+f29+aojhq+5gyUQodGrLxH966VD+0QAYl9qRlyBpYkQtVr8Fb5dWR0+Rgr
+	 iIRu3ZyUPi93S2Ep5vRaolu8ZzIXM43iVjEFCIMV0DafPIlIU1BexE4lBGps0+8aDi
+	 p6IwCo6yoyL6WjH0sd0RdaehR5xnMhGMUvGSwdsA=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	shirazsaleem@microsoft.com,
@@ -43,9 +43,9 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 02/13] RDMA/mana_ib: implement get_dma_mr
-Date: Mon, 20 Jan 2025 09:27:08 -0800
-Message-Id: <1737394039-28772-3-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next 04/13] RDMA/mana_ib: create kernel-level CQs
+Date: Mon, 20 Jan 2025 09:27:10 -0800
+Message-Id: <1737394039-28772-5-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
 In-Reply-To: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
 References: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
@@ -57,105 +57,140 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-Implement allocation of DMA-mapped memory regions.
+Implement creation of CQs for the kernel.
 
 Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
 Reviewed-by: Shiraz Saleem <shirazsaleem@microsoft.com>
 ---
- drivers/infiniband/hw/mana/device.c |  1 +
- drivers/infiniband/hw/mana/mr.c     | 36 +++++++++++++++++++++++++++++
- include/net/mana/gdma.h             |  5 ++++
- 3 files changed, 42 insertions(+)
+ drivers/infiniband/hw/mana/cq.c | 80 +++++++++++++++++++++------------
+ 1 file changed, 52 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
-index 7ac0191..215dbce 100644
---- a/drivers/infiniband/hw/mana/device.c
-+++ b/drivers/infiniband/hw/mana/device.c
-@@ -32,6 +32,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
- 	.destroy_rwq_ind_table = mana_ib_destroy_rwq_ind_table,
- 	.destroy_wq = mana_ib_destroy_wq,
- 	.disassociate_ucontext = mana_ib_disassociate_ucontext,
-+	.get_dma_mr = mana_ib_get_dma_mr,
- 	.get_link_layer = mana_ib_get_link_layer,
- 	.get_port_immutable = mana_ib_get_port_immutable,
- 	.mmap = mana_ib_mmap,
-diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
-index 887b09d..3a047f8 100644
---- a/drivers/infiniband/hw/mana/mr.c
-+++ b/drivers/infiniband/hw/mana/mr.c
-@@ -8,6 +8,8 @@
- #define VALID_MR_FLAGS                                                         \
- 	(IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ)
+diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
+index f04a679..d26d82d 100644
+--- a/drivers/infiniband/hw/mana/cq.c
++++ b/drivers/infiniband/hw/mana/cq.c
+@@ -15,42 +15,57 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 	struct ib_device *ibdev = ibcq->device;
+ 	struct mana_ib_create_cq ucmd = {};
+ 	struct mana_ib_dev *mdev;
++	struct gdma_context *gc;
+ 	bool is_rnic_cq;
+ 	u32 doorbell;
++	u32 buf_size;
+ 	int err;
  
-+#define VALID_DMA_MR_FLAGS (IB_ACCESS_LOCAL_WRITE)
+ 	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
++	gc = mdev_to_gc(mdev);
+ 
+ 	cq->comp_vector = attr->comp_vector % ibdev->num_comp_vectors;
+ 	cq->cq_handle = INVALID_MANA_HANDLE;
+ 
+-	if (udata->inlen < offsetof(struct mana_ib_create_cq, flags))
+-		return -EINVAL;
++	if (udata) {
++		if (udata->inlen < offsetof(struct mana_ib_create_cq, flags))
++			return -EINVAL;
+ 
+-	err = ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen));
+-	if (err) {
+-		ibdev_dbg(ibdev,
+-			  "Failed to copy from udata for create cq, %d\n", err);
+-		return err;
+-	}
++		err = ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen));
++		if (err) {
++			ibdev_dbg(ibdev, "Failed to copy from udata for create cq, %d\n", err);
++			return err;
++		}
+ 
+-	is_rnic_cq = !!(ucmd.flags & MANA_IB_CREATE_RNIC_CQ);
++		is_rnic_cq = !!(ucmd.flags & MANA_IB_CREATE_RNIC_CQ);
+ 
+-	if (!is_rnic_cq && attr->cqe > mdev->adapter_caps.max_qp_wr) {
+-		ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
+-		return -EINVAL;
+-	}
++		if (!is_rnic_cq && attr->cqe > mdev->adapter_caps.max_qp_wr) {
++			ibdev_dbg(ibdev, "CQE %d exceeding limit\n", attr->cqe);
++			return -EINVAL;
++		}
+ 
+-	cq->cqe = attr->cqe;
+-	err = mana_ib_create_queue(mdev, ucmd.buf_addr, cq->cqe * COMP_ENTRY_SIZE, &cq->queue);
+-	if (err) {
+-		ibdev_dbg(ibdev, "Failed to create queue for create cq, %d\n", err);
+-		return err;
+-	}
++		cq->cqe = attr->cqe;
++		err = mana_ib_create_queue(mdev, ucmd.buf_addr, cq->cqe * COMP_ENTRY_SIZE,
++					   &cq->queue);
++		if (err) {
++			ibdev_dbg(ibdev, "Failed to create queue for create cq, %d\n", err);
++			return err;
++		}
+ 
+-	mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
+-						  ibucontext);
+-	doorbell = mana_ucontext->doorbell;
++		mana_ucontext = rdma_udata_to_drv_context(udata, struct mana_ib_ucontext,
++							  ibucontext);
++		doorbell = mana_ucontext->doorbell;
++	} else {
++		is_rnic_cq = true;
++		buf_size = MANA_PAGE_ALIGN(roundup_pow_of_two(attr->cqe * COMP_ENTRY_SIZE));
++		cq->cqe = buf_size / COMP_ENTRY_SIZE;
++		err = mana_ib_create_kernel_queue(mdev, buf_size, GDMA_CQ, &cq->queue);
++		if (err) {
++			ibdev_dbg(ibdev, "Failed to create kernel queue for create cq, %d\n", err);
++			return err;
++		}
++		doorbell = gc->mana_ib.doorbell;
++	}
+ 
+ 	if (is_rnic_cq) {
+ 		err = mana_ib_gd_create_cq(mdev, cq, doorbell);
+@@ -66,11 +81,13 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
+ 		}
+ 	}
+ 
+-	resp.cqid = cq->queue.id;
+-	err = ib_copy_to_udata(udata, &resp, min(sizeof(resp), udata->outlen));
+-	if (err) {
+-		ibdev_dbg(&mdev->ib_dev, "Failed to copy to udata, %d\n", err);
+-		goto err_remove_cq_cb;
++	if (udata) {
++		resp.cqid = cq->queue.id;
++		err = ib_copy_to_udata(udata, &resp, min(sizeof(resp), udata->outlen));
++		if (err) {
++			ibdev_dbg(&mdev->ib_dev, "Failed to copy to udata, %d\n", err);
++			goto err_remove_cq_cb;
++		}
+ 	}
+ 
+ 	return 0;
+@@ -122,7 +139,10 @@ int mana_ib_install_cq_cb(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
+ 		return -EINVAL;
+ 	/* Create CQ table entry */
+ 	WARN_ON(gc->cq_table[cq->queue.id]);
+-	gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
++	if (cq->queue.kmem)
++		gdma_cq = cq->queue.kmem;
++	else
++		gdma_cq = kzalloc(sizeof(*gdma_cq), GFP_KERNEL);
+ 	if (!gdma_cq)
+ 		return -ENOMEM;
+ 
+@@ -141,6 +161,10 @@ void mana_ib_remove_cq_cb(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
+ 	if (cq->queue.id >= gc->max_num_cqs || cq->queue.id == INVALID_QUEUE_ID)
+ 		return;
+ 
++	if (cq->queue.kmem)
++	/* Then it will be cleaned and removed by the mana */
++		return;
 +
- static enum gdma_mr_access_flags
- mana_ib_verbs_to_gdma_access_flags(int access_flags)
- {
-@@ -39,6 +41,8 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *dev, struct mana_ib_mr *mr,
- 	req.mr_type = mr_params->mr_type;
- 
- 	switch (mr_params->mr_type) {
-+	case GDMA_MR_TYPE_GPA:
-+		break;
- 	case GDMA_MR_TYPE_GVA:
- 		req.gva.dma_region_handle = mr_params->gva.dma_region_handle;
- 		req.gva.virtual_address = mr_params->gva.virtual_address;
-@@ -169,6 +173,38 @@ err_free:
- 	return ERR_PTR(err);
+ 	kfree(gc->cq_table[cq->queue.id]);
+ 	gc->cq_table[cq->queue.id] = NULL;
  }
- 
-+struct ib_mr *mana_ib_get_dma_mr(struct ib_pd *ibpd, int access_flags)
-+{
-+	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
-+	struct gdma_create_mr_params mr_params = {};
-+	struct ib_device *ibdev = ibpd->device;
-+	struct mana_ib_dev *dev;
-+	struct mana_ib_mr *mr;
-+	int err;
-+
-+	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
-+
-+	if (access_flags & ~VALID_DMA_MR_FLAGS)
-+		return ERR_PTR(-EINVAL);
-+
-+	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
-+	if (!mr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	mr_params.pd_handle = pd->pd_handle;
-+	mr_params.mr_type = GDMA_MR_TYPE_GPA;
-+
-+	err = mana_ib_gd_create_mr(dev, mr, &mr_params);
-+	if (err)
-+		goto err_free;
-+
-+	return &mr->ibmr;
-+
-+err_free:
-+	kfree(mr);
-+	return ERR_PTR(err);
-+}
-+
- int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
- {
- 	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
-diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-index 03e1b25..a94b04e 100644
---- a/include/net/mana/gdma.h
-+++ b/include/net/mana/gdma.h
-@@ -801,6 +801,11 @@ struct gdma_destory_pd_resp {
- };/* HW DATA */
- 
- enum gdma_mr_type {
-+	/*
-+	 * Guest Physical Address - MRs of this type allow access
-+	 * to any DMA-mapped memory using bus-logical address
-+	 */
-+	GDMA_MR_TYPE_GPA = 1,
- 	/* Guest Virtual Address - MRs of this type allow access
- 	 * to memory mapped by PTEs associated with this MR using a virtual
- 	 * address that is set up in the MST
 -- 
 2.43.0
 
