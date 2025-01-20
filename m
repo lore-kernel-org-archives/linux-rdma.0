@@ -1,29 +1,29 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 673FF1E9B20;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 65C661E9B00;
 	Mon, 20 Jan 2025 17:27:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737394052; cv=none; b=evmdtpg0fZME35AH5MAiCDSqPlPSdFkPanBvs0mOUhacYDIVnqFHxALmzH+baoI4N8HdM6qMmTAFzpsLc0MCw8APRHx8ysbsOGQrtFOaxu1Q61mKhYhV7x1mKxxwG3RChSFXaPXX8xnY7Coumdknjk28a2xPMqUTPtsGA3aJ7vE=
+	t=1737394052; cv=none; b=dcUy+11rMMKIdEl3gQtdc/x/nithMZBcdJKUFGa5MJZXO89lHmvvOKlxF4NUlVlJrbQIWhve8xgHEHuTj2y60ZlO2zhbTQr2gaqWtTgCLEyVlMqK6G6h686P8T1uLrnHCEIpCY4HatDIJwwBItj1OrSxtXQjTPAxtX6Kz20yE3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1737394052; c=relaxed/simple;
-	bh=wuX56+DQOvYjaNsw98n3j2eXCwZhI+JlSc+nPLNqiz0=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=EmeS5PP+mdhQIhM180MbKwpRaNnwVH2RVH7NPFAY2A23bFMRhjTlLxHLJICXFI7D6BSxeJ2C+qH1CQ4LpnHX31r6EZcWdNNgDtx/T2kovHqaxIIASGS9S/A+p5PR4DtD/Jca/gPZCku2LCeKRinI9swUe9CzspojchAHArPYleo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=nBhej7vJ; arc=none smtp.client-ip=13.77.154.182
+	bh=F36zJOzrYXnnxRvRSL0eK6xhoBQhmHCL0F3Q1ZOntGo=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=IGIDxCmQKzHxKSoPIO0AV+P5nF5/WBCbt3RtjCmbXzLgoaTROpm+3c+1ucG3AH+CNwZHaw99r719p8VEDrqKW2L68CelpuirutYjLC8ATH+zgUNlPvDtvSNkibIC+9w8pexAnoWQUEwiG/WnE/dPfCNshVjIAy99ED1E7iBb9GI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Yc/Lg8fH; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="nBhej7vJ"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Yc/Lg8fH"
 Received: from linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net (linux.microsoft.com [13.77.154.182])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 87405205A9C5;
+	by linux.microsoft.com (Postfix) with ESMTPSA id BB94E205A9C8;
 	Mon, 20 Jan 2025 09:27:25 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 87405205A9C5
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com BB94E205A9C8
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1737394045;
-	bh=VKZbVZap0F5x0srxgVW1qFq2cio6NdADwwKwhGFyOp0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=nBhej7vJrFCxrIHHh+5Kvjs5Rj8dAut6DE+na8TTwcohvb8R8tD4gBNpfuS1GfW8i
-	 GRPx7PfyOiJ/douBcPbuEKv3zj/LSgfQZurFoVYx5Uk6o6Q2GO3819FJutlU56j/KD
-	 TIoT6ktEEvUkF+LdBuEhEttn3LYtjHOoXTXwRqoo=
+	bh=6Q7KhQEHK6x5EZ2rC99hM7Tlbuzw4R7mcVgBDZzZSzU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Yc/Lg8fHg2sOI/jMVWsuqmFJ0nza2ZjGOmdFKISBvGFSZBNrsE1YZZI2D0NR/NmiW
+	 Vwj0B+NlFS+R+6q8EBrCJMlNodN4zFR0TweMMHTuEYsllGDswNC8XptH7fRqRk2oRf
+	 FZIjJv/zfiIW7dRk+/02yPD7QOMUcv0pGOnSQ06M=
 From: Konstantin Taranov <kotaranov@linux.microsoft.com>
 To: kotaranov@microsoft.com,
 	shirazsaleem@microsoft.com,
@@ -43,10 +43,12 @@ Cc: linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	netdev@vger.kernel.org,
 	linux-hyperv@vger.kernel.org
-Subject: [PATCH rdma-next 00/13] RDMA/mana_ib: Enable CM for mana_ib
-Date: Mon, 20 Jan 2025 09:27:06 -0800
-Message-Id: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
+Subject: [PATCH rdma-next 02/13] RDMA/mana_ib: implement get_dma_mr
+Date: Mon, 20 Jan 2025 09:27:08 -0800
+Message-Id: <1737394039-28772-3-git-send-email-kotaranov@linux.microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
+References: <1737394039-28772-1-git-send-email-kotaranov@linux.microsoft.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -55,40 +57,105 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
 From: Konstantin Taranov <kotaranov@microsoft.com>
 
-This patch series enables GSI QPs and CM on mana_ib. 
+Implement allocation of DMA-mapped memory regions.
 
-Konstantin Taranov (13):
-  RDMA/mana_ib: Allow registration of DMA-mapped memory in PDs
-  RDMA/mana_ib: implement get_dma_mr
-  RDMA/mana_ib: helpers to allocate kernel queues
-  RDMA/mana_ib: create kernel-level CQs
-  RDMA/mana_ib: Create and destroy UD/GSI QP
-  RDMA/mana_ib: UD/GSI QP creation for kernel
-  RDMA/mana_ib: create/destroy AH
-  net/mana: fix warning in the writer of client oob
-  RDMA/mana_ib: UD/GSI work requests
-  RDMA/mana_ib: implement req_notify_cq
-  RDMA/mana_ib: extend mana QP table
-  RDMA/mana_ib: polling of CQs for GSI/UD
-  RDMA/mana_ib: indicate CM support
+Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+Reviewed-by: Shiraz Saleem <shirazsaleem@microsoft.com>
+---
+ drivers/infiniband/hw/mana/device.c |  1 +
+ drivers/infiniband/hw/mana/mr.c     | 36 +++++++++++++++++++++++++++++
+ include/net/mana/gdma.h             |  5 ++++
+ 3 files changed, 42 insertions(+)
 
- drivers/infiniband/hw/mana/Makefile           |   2 +-
- drivers/infiniband/hw/mana/ah.c               |  58 +++++
- drivers/infiniband/hw/mana/cq.c               | 227 ++++++++++++++--
- drivers/infiniband/hw/mana/device.c           |  18 +-
- drivers/infiniband/hw/mana/main.c             |  95 ++++++-
- drivers/infiniband/hw/mana/mana_ib.h          | 157 ++++++++++-
- drivers/infiniband/hw/mana/mr.c               |  36 +++
- drivers/infiniband/hw/mana/qp.c               | 245 +++++++++++++++++-
- drivers/infiniband/hw/mana/shadow_queue.h     | 115 ++++++++
- drivers/infiniband/hw/mana/wr.c               | 168 ++++++++++++
- .../net/ethernet/microsoft/mana/gdma_main.c   |   7 +-
- include/net/mana/gdma.h                       |   6 +
- 12 files changed, 1096 insertions(+), 38 deletions(-)
- create mode 100644 drivers/infiniband/hw/mana/ah.c
- create mode 100644 drivers/infiniband/hw/mana/shadow_queue.h
- create mode 100644 drivers/infiniband/hw/mana/wr.c
-
+diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
+index 7ac0191..215dbce 100644
+--- a/drivers/infiniband/hw/mana/device.c
++++ b/drivers/infiniband/hw/mana/device.c
+@@ -32,6 +32,7 @@ static const struct ib_device_ops mana_ib_dev_ops = {
+ 	.destroy_rwq_ind_table = mana_ib_destroy_rwq_ind_table,
+ 	.destroy_wq = mana_ib_destroy_wq,
+ 	.disassociate_ucontext = mana_ib_disassociate_ucontext,
++	.get_dma_mr = mana_ib_get_dma_mr,
+ 	.get_link_layer = mana_ib_get_link_layer,
+ 	.get_port_immutable = mana_ib_get_port_immutable,
+ 	.mmap = mana_ib_mmap,
+diff --git a/drivers/infiniband/hw/mana/mr.c b/drivers/infiniband/hw/mana/mr.c
+index 887b09d..3a047f8 100644
+--- a/drivers/infiniband/hw/mana/mr.c
++++ b/drivers/infiniband/hw/mana/mr.c
+@@ -8,6 +8,8 @@
+ #define VALID_MR_FLAGS                                                         \
+ 	(IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ)
+ 
++#define VALID_DMA_MR_FLAGS (IB_ACCESS_LOCAL_WRITE)
++
+ static enum gdma_mr_access_flags
+ mana_ib_verbs_to_gdma_access_flags(int access_flags)
+ {
+@@ -39,6 +41,8 @@ static int mana_ib_gd_create_mr(struct mana_ib_dev *dev, struct mana_ib_mr *mr,
+ 	req.mr_type = mr_params->mr_type;
+ 
+ 	switch (mr_params->mr_type) {
++	case GDMA_MR_TYPE_GPA:
++		break;
+ 	case GDMA_MR_TYPE_GVA:
+ 		req.gva.dma_region_handle = mr_params->gva.dma_region_handle;
+ 		req.gva.virtual_address = mr_params->gva.virtual_address;
+@@ -169,6 +173,38 @@ err_free:
+ 	return ERR_PTR(err);
+ }
+ 
++struct ib_mr *mana_ib_get_dma_mr(struct ib_pd *ibpd, int access_flags)
++{
++	struct mana_ib_pd *pd = container_of(ibpd, struct mana_ib_pd, ibpd);
++	struct gdma_create_mr_params mr_params = {};
++	struct ib_device *ibdev = ibpd->device;
++	struct mana_ib_dev *dev;
++	struct mana_ib_mr *mr;
++	int err;
++
++	dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
++
++	if (access_flags & ~VALID_DMA_MR_FLAGS)
++		return ERR_PTR(-EINVAL);
++
++	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	mr_params.pd_handle = pd->pd_handle;
++	mr_params.mr_type = GDMA_MR_TYPE_GPA;
++
++	err = mana_ib_gd_create_mr(dev, mr, &mr_params);
++	if (err)
++		goto err_free;
++
++	return &mr->ibmr;
++
++err_free:
++	kfree(mr);
++	return ERR_PTR(err);
++}
++
+ int mana_ib_dereg_mr(struct ib_mr *ibmr, struct ib_udata *udata)
+ {
+ 	struct mana_ib_mr *mr = container_of(ibmr, struct mana_ib_mr, ibmr);
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 03e1b25..a94b04e 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -801,6 +801,11 @@ struct gdma_destory_pd_resp {
+ };/* HW DATA */
+ 
+ enum gdma_mr_type {
++	/*
++	 * Guest Physical Address - MRs of this type allow access
++	 * to any DMA-mapped memory using bus-logical address
++	 */
++	GDMA_MR_TYPE_GPA = 1,
+ 	/* Guest Virtual Address - MRs of this type allow access
+ 	 * to memory mapped by PTEs associated with this MR using a virtual
+ 	 * address that is set up in the MST
 -- 
 2.43.0
 
