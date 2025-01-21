@@ -1,33 +1,33 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B11061B372C;
-	Tue, 21 Jan 2025 06:57:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA69D1B78F3;
+	Tue, 21 Jan 2025 06:57:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737442652; cv=none; b=M796uJZ4sc74pD7/pJr442D3VzeAzAFE0GmwtuDFYlVQDT1PzWrK8n/kraESDYvnNlSNA1m4M3EVrFQciqZF+k5zWWwowwM11rrF1ZyFa7+OhFZdkxwQimcHn7NW0Jv9WzO9pK5AV5ooazvGHuY1sQKoyQfQ9stPUOaiX2k1nrc=
+	t=1737442657; cv=none; b=sEf6gLrSODCJaFQqBmPijR3pX6Ilo14PJObPxAlk4YyWEVssPBMI68bjnEozvrSgbxI09OKWQv8sONrBptOTiqfBdRobaEZO+72KgsjIafEuq/h39my5Xyj/n66+nfF7O+Rp9eynfNIAfxxsBmHKAfIX/I+UuS7KRTdr4wNv/sw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737442652; c=relaxed/simple;
-	bh=PKFWxvHFx9wxQ8urCnfMAZp5c1gBL8z/TIwH0zZIVCs=;
+	s=arc-20240116; t=1737442657; c=relaxed/simple;
+	bh=xKblWWGxTE5azXr82EvnLeeQK5P/EFTNCVtLQSBacDk=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pnbnqHdY+oV71j+cAaRxR4dRG4ooW5KMHFYSU7+Fjev5PXjzc9cXmHFX2hYPVO/83r3hLw3BnC1r4DhtIgPtuRljUl5YTDtGRiBKM62gs3RS0XjVsOcxSPwozH+pPtttpmvrnDaC2NgmIkLO/qJ2BE3tCG713HNHijHdTt1ps8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
+	 MIME-Version:Content-Type; b=lMVJh8C/T8zCQdUdRaCwhpBI4Yh2Qe1UTtGprFGtnjqM4E8OzYc1Gyfzx2G2cA27a1gnTthhUOLHf1YkjUc9cwrY+5KIuPrOkDEuCQ8SjT3+aBuqOXxT5SHXxTulM/oQZvW+zgVLH1TR8QCf0Y1mi7vs+zpyUSwAzqxrXe6xaK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4YcdGt0X8Czbp8L;
-	Tue, 21 Jan 2025 14:54:14 +0800 (CST)
-Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
-	by mail.maildlp.com (Postfix) with ESMTPS id B7C3D180105;
-	Tue, 21 Jan 2025 14:57:22 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.234])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4YcdGv4Kbnz2FcWN;
+	Tue, 21 Jan 2025 14:54:15 +0800 (CST)
+Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id 5432C140361;
+	Tue, 21 Jan 2025 14:57:33 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
+ dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:22 +0800
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:33 +0800
 Received: from localhost.localdomain (10.28.79.22) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:20 +0800
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:26 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <linux-hwmon@vger.kernel.org>
 CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
@@ -46,9 +46,9 @@ CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
 	<ilpo.jarvinen@linux.intel.com>, <alexandre.belloni@bootlin.com>,
 	<krzk@kernel.org>, <jonathan.cameron@huawei.com>, <zhanjie9@hisilicon.com>,
 	<zhenglifeng1@huawei.com>, <liuyonglong@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH v1 02/21] media: video-i2c: Use HWMON_CHANNEL_INFO macro to simplify code
-Date: Tue, 21 Jan 2025 14:45:00 +0800
-Message-ID: <20250121064519.18974-3-lihuisong@huawei.com>
+Subject: [PATCH v1 06/21] net: phy: marvell10g: Use HWMON_CHANNEL_INFO macro to simplify code
+Date: Tue, 21 Jan 2025 14:45:04 +0800
+Message-ID: <20250121064519.18974-7-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20250121064519.18974-1-lihuisong@huawei.com>
 References: <20250121064519.18974-1-lihuisong@huawei.com>
@@ -67,31 +67,43 @@ Use HWMON_CHANNEL_INFO macro to simplify code.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/media/i2c/video-i2c.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/net/phy/marvell10g.c | 24 ++----------------------
+ 1 file changed, 2 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/i2c/video-i2c.c b/drivers/media/i2c/video-i2c.c
-index 036a6375627a..0dd991d70d53 100644
---- a/drivers/media/i2c/video-i2c.c
-+++ b/drivers/media/i2c/video-i2c.c
-@@ -264,18 +264,8 @@ static int amg88xx_set_power(struct video_i2c_data *data, bool on)
+diff --git a/drivers/net/phy/marvell10g.c b/drivers/net/phy/marvell10g.c
+index 623bdb8466b8..5354c8895163 100644
+--- a/drivers/net/phy/marvell10g.c
++++ b/drivers/net/phy/marvell10g.c
+@@ -230,29 +230,9 @@ static const struct hwmon_ops mv3310_hwmon_ops = {
+ 	.read = mv3310_hwmon_read,
+ };
  
- #if IS_REACHABLE(CONFIG_HWMON)
- 
--static const u32 amg88xx_temp_config[] = {
+-static u32 mv3310_hwmon_chip_config[] = {
+-	HWMON_C_REGISTER_TZ | HWMON_C_UPDATE_INTERVAL,
+-	0,
+-};
+-
+-static const struct hwmon_channel_info mv3310_hwmon_chip = {
+-	.type = hwmon_chip,
+-	.config = mv3310_hwmon_chip_config,
+-};
+-
+-static u32 mv3310_hwmon_temp_config[] = {
 -	HWMON_T_INPUT,
--	0
+-	0,
 -};
 -
--static const struct hwmon_channel_info amg88xx_temp = {
+-static const struct hwmon_channel_info mv3310_hwmon_temp = {
 -	.type = hwmon_temp,
--	.config = amg88xx_temp_config,
+-	.config = mv3310_hwmon_temp_config,
 -};
 -
- static const struct hwmon_channel_info * const amg88xx_info[] = {
--	&amg88xx_temp,
+ static const struct hwmon_channel_info * const mv3310_hwmon_info[] = {
+-	&mv3310_hwmon_chip,
+-	&mv3310_hwmon_temp,
++	HWMON_CHANNEL_INFO(chip, HWMON_C_REGISTER_TZ | HWMON_C_UPDATE_INTERVAL),
 +	HWMON_CHANNEL_INFO(temp, HWMON_T_INPUT),
- 	NULL
+ 	NULL,
  };
  
 -- 
