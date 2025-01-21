@@ -1,678 +1,492 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from szxga06-in.huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37D0C1A4F21;
-	Tue, 21 Jan 2025 06:42:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 748361A83F4;
+	Tue, 21 Jan 2025 06:57:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737441770; cv=none; b=YCVEwH8ni2/qAuRE0k6kbHYmj42Hq7LPIobvYw8SrfFTtJCCLUiu6aAYjr/2lDqUHiyXZgdG1aLDnws+erGJ0sZQvwiIO9EejUVPSsT7i7wQKq+zR1wUZpY2qlADoFlJePMNFQFTu4lnxQ9gpn0gRJfSZONb2z7Epi27amjbK3E=
+	t=1737442648; cv=none; b=fReSXRNXqfFy3WxNpU2GahB/wtt4xK9XQhLZOECxsNOx7g6MLq6YQQsnzHCsy+7nNSTqIjsir/4EVLEHz/6aWUHVXOZ/niPS4pGC6R+5arUvI4qYjRYBvlJJ2jMIEKFFmZ2BKBOUcZGAsIsrt+MdA626RVre3KCm8vR+aLfDqNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737441770; c=relaxed/simple;
-	bh=B+eFPAB1Q9vk+TAUJzVIPCkfgVIxRhJ/ShkihW8KOpw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=O+5XnVe1gStZwH/LCXUvxIGX7hjZF36910DxN882k/NmslowsY96ad34Vd4itTbUvuENBq3u/XwDLvADADG2KhfTpsK/puq1pKPx6nX0GQwYwpMK9Z9irJSCPSM1H04qOlAAX1fP+CzuzIwz3KODTqTl+ehvISITJamB4TXlBhM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=Dj7N6k7A; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="Dj7N6k7A"
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 50KICA6t010233;
-	Tue, 21 Jan 2025 06:42:28 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
-	:content-type:date:from:in-reply-to:message-id:mime-version
-	:references:subject:to; s=pp1; bh=rSon0a0h6cBrUQ/G6sRuOlTWAj25E0
-	PEec9A3AUo42U=; b=Dj7N6k7AAjQ7IJH4tb4gEQmeIKvocnPmI/PBfAfrRimU1m
-	gho45P0flMQLJmhIXvUo9yquxlqqf5Xdg62J3O/4bW7QEJHROfNHvF8+DmrRauRu
-	I3udyEd1E37IsTF+MCrS/g0zKMKcd2q2+4u3XSjlOosM6cN8sveSAqt0m/ixvJuo
-	QsHjS+43QvfI0l1S+FMPorj2MyzU1yE6Mk+TymAxnCozHzGUGjWqikyxzUiYS7ay
-	0x6V7sm8u0D42KbFOQHvFpX6Zo/sbTXcRf7g7XBaRg2BZztf9rjxSnwGN4yM87uE
-	joi+R2/vAEuONvHuwXTW5Im8blX+mV51s3hS+xSA==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 449j6ncy12-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 21 Jan 2025 06:42:28 +0000 (GMT)
-Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 50L6cAZI023879;
-	Tue, 21 Jan 2025 06:42:27 GMT
-Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 449j6ncy10-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 21 Jan 2025 06:42:27 +0000 (GMT)
-Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 50L5g5p0029587;
-	Tue, 21 Jan 2025 06:42:26 GMT
-Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 448qmn9tgb-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 21 Jan 2025 06:42:26 +0000
-Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
-	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 50L6gMs535783150
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 21 Jan 2025 06:42:22 GMT
-Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B6C4620040;
-	Tue, 21 Jan 2025 06:42:22 +0000 (GMT)
-Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3FC4E2004B;
-	Tue, 21 Jan 2025 06:42:17 +0000 (GMT)
-Received: from linux.ibm.com (unknown [9.43.94.143])
-	by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Tue, 21 Jan 2025 06:42:17 +0000 (GMT)
-Date: Tue, 21 Jan 2025 12:12:07 +0530
-From: Saket Kumar Bhaskar <skb99@linux.ibm.com>
-To: "D. Wythe" <alibuda@linux.alibaba.com>
-Cc: kgraul@linux.ibm.com, wenjia@linux.ibm.com, jaka@linux.ibm.com,
-        ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org,
-        martin.lau@linux.dev, pabeni@redhat.com, song@kernel.org,
-        sdf@google.com, haoluo@google.com, yhs@fb.com, edumazet@google.com,
-        john.fastabend@gmail.com, kpsingh@kernel.org, jolsa@kernel.org,
-        guwen@linux.alibaba.com, kuba@kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org, bpf@vger.kernel.org
-Subject: Re: [PATCH bpf-next v6 5/5] bpf/selftests: add selftest for
- bpf_smc_ops
-Message-ID: <Z49Bv8ySi2EJ/jfl@linux.ibm.com>
-References: <20250116074442.79304-1-alibuda@linux.alibaba.com>
- <20250116074442.79304-6-alibuda@linux.alibaba.com>
+	s=arc-20240116; t=1737442648; c=relaxed/simple;
+	bh=ersZ7svCfdCBBWOQ2aD9ovIVd7sskiWFwOEOCNa85Es=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ucmYHSBFVIIaVXS0IiipCSOhiSmcfjzB050fsnkgF1PP7S8FoMpKkfPDXeBQ/fxtrX5pTs/Bek86aMmMb3PrC4OjG9yQ308Sf6yXIhdyLYCZuXmKryFMvxqtVHVJK5hmeOydziHOQ3KQ9oVi0bc4ktwilEsSVIK5uuOalee44aM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.17])
+	by szxga06-in.huawei.com (SkyGuard) with ESMTP id 4YcdLy3R0Pz20pDJ;
+	Tue, 21 Jan 2025 14:57:46 +0800 (CST)
+Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id 4B2511A0188;
+	Tue, 21 Jan 2025 14:57:21 +0800 (CST)
+Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
+ dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:21 +0800
+Received: from localhost.localdomain (10.28.79.22) by
+ kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:19 +0800
+From: Huisong Li <lihuisong@huawei.com>
+To: <linux-hwmon@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <arm-scmi@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <linux-rtc@vger.kernel.org>,
+	<oss-drivers@corigine.com>, <linux-rdma@vger.kernel.org>,
+	<platform-driver-x86@vger.kernel.org>, <linuxarm@huawei.com>,
+	<linux@roeck-us.net>, <jdelvare@suse.com>, <kernel@maidavale.org>,
+	<pauk.denis@gmail.com>, <james@equiv.tech>, <sudeep.holla@arm.com>,
+	<cristian.marussi@arm.com>, <matt@ranostay.sg>, <mchehab@kernel.org>,
+	<irusskikh@marvell.com>, <andrew+netdev@lunn.ch>, <davem@davemloft.net>,
+	<edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
+	<saeedm@nvidia.com>, <leon@kernel.org>, <tariqt@nvidia.com>,
+	<louis.peens@corigine.com>, <hkallweit1@gmail.com>, <linux@armlinux.org.uk>,
+	<kabel@kernel.org>, <W_Armin@gmx.de>, <hdegoede@redhat.com>,
+	<ilpo.jarvinen@linux.intel.com>, <alexandre.belloni@bootlin.com>,
+	<krzk@kernel.org>, <jonathan.cameron@huawei.com>, <zhanjie9@hisilicon.com>,
+	<zhenglifeng1@huawei.com>, <liuyonglong@huawei.com>, <lihuisong@huawei.com>
+Subject: [PATCH v1 01/21] hwmon: Fix the type of 'config' in struct hwmon_channel_info to u64
+Date: Tue, 21 Jan 2025 14:44:59 +0800
+Message-ID: <20250121064519.18974-2-lihuisong@huawei.com>
+X-Mailer: git-send-email 2.22.0
+In-Reply-To: <20250121064519.18974-1-lihuisong@huawei.com>
+References: <20250121064519.18974-1-lihuisong@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250116074442.79304-6-alibuda@linux.alibaba.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 95mRNtd_jKQUs1pMHrVASpIet8RR8zgC
-X-Proofpoint-ORIG-GUID: UwAuzPA-jWWosodXaSOvvukvU8TnnM8r
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
- definitions=2025-01-21_03,2025-01-21_01,2024-11-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- mlxlogscore=999 adultscore=0 phishscore=0 priorityscore=1501 mlxscore=0
- malwarescore=0 lowpriorityscore=0 bulkscore=0 clxscore=1011 suspectscore=0
- spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.19.0-2411120000 definitions=main-2501210052
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+ kwepemn100009.china.huawei.com (7.202.194.112)
 
-On Thu, Jan 16, 2025 at 03:44:42PM +0800, D. Wythe wrote:
-> This tests introduces a tiny smc_ops for filtering SMC connections based on
-> IP pairs, and also adds a realistic topology model to verify this ops.
-> 
-> Also, we can only use SMC loopback under CI test, so an
-> additional configuration needs to be enabled.
-> 
-> Follow the steps below to run this test.
-> 
-> make -C tools/testing/selftests/bpf
-> cd tools/testing/selftests/bpf
-> sudo ./test_progs -t smc
-> 
-> Results shows:
-> Summary: 1/1 PASSED, 0 SKIPPED, 0 FAILED
-> 
-> Signed-off-by: D. Wythe <alibuda@linux.alibaba.com>
-> ---
->  tools/testing/selftests/bpf/config            |   4 +
->  .../selftests/bpf/prog_tests/test_bpf_smc.c   | 397 ++++++++++++++++++
->  tools/testing/selftests/bpf/progs/bpf_smc.c   | 117 ++++++
->  3 files changed, 518 insertions(+)
->  create mode 100644 tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c
->  create mode 100644 tools/testing/selftests/bpf/progs/bpf_smc.c
-> 
-> diff --git a/tools/testing/selftests/bpf/config b/tools/testing/selftests/bpf/config
-> index c378d5d07e02..fac2f2a9d02f 100644
-> --- a/tools/testing/selftests/bpf/config
-> +++ b/tools/testing/selftests/bpf/config
-> @@ -113,3 +113,7 @@ CONFIG_XDP_SOCKETS=y
->  CONFIG_XFRM_INTERFACE=y
->  CONFIG_TCP_CONG_DCTCP=y
->  CONFIG_TCP_CONG_BBR=y
-> +CONFIG_INFINIBAND=y
-> +CONFIG_SMC=y
-> +CONFIG_SMC_OPS=y
-> +CONFIG_SMC_LO=y
-> \ No newline at end of file
-> diff --git a/tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c b/tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c
-> new file mode 100644
-> index 000000000000..1e06325bfbaf
-> --- /dev/null
-> +++ b/tools/testing/selftests/bpf/prog_tests/test_bpf_smc.c
-> @@ -0,0 +1,397 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +#include <test_progs.h>
-> +#include <linux/genetlink.h>
-> +#include "network_helpers.h"
-> +#include "bpf_smc.skel.h"
-> +
-> +#ifndef IPPROTO_SMC
-> +#define IPPROTO_SMC 256
-> +#endif
-> +
-> +#define CLIENT_IP			"127.0.0.1"
-> +#define SERVER_IP			"127.0.1.0"
-> +#define SERVER_IP_VIA_RISK_PATH	"127.0.2.0"
-> +
-> +#define SERVICE_1	11234
-> +#define SERVICE_2	22345
-> +#define SERVICE_3	33456
-> +
-> +#define TEST_NS	"bpf_smc_netns"
-> +
-> +static struct netns_obj *test_netns;
-> +
-> +struct smc_strat_ip_key {
-> +	__u32  sip;
-> +	__u32  dip;
-> +};
-> +
-> +struct smc_strat_ip_value {
-> +	__u8	mode;
-> +};
-> +
-> +#if defined(__s390x__)
-> +/* s390x has default seid  */
-> +static bool setup_ueid(void) { return true; }
-> +static void cleanup_ueid(void) {}
-> +#else
-> +enum {
-> +	SMC_NETLINK_ADD_UEID = 10,
-> +	SMC_NETLINK_REMOVE_UEID
-> +};
-> +
-> +enum {
-> +	SMC_NLA_EID_TABLE_UNSPEC,
-> +	SMC_NLA_EID_TABLE_ENTRY,    /* string */
-> +};
-> +
-> +struct msgtemplate {
-> +	struct nlmsghdr n;
-> +	struct genlmsghdr g;
-> +	char buf[1024];
-> +};
-> +
-> +#define GENLMSG_DATA(glh)	((void *)(NLMSG_DATA(glh) + GENL_HDRLEN))
-> +#define GENLMSG_PAYLOAD(glh)	(NLMSG_PAYLOAD(glh, 0) - GENL_HDRLEN)
-> +#define NLA_DATA(na)		((void *)((char *)(na) + NLA_HDRLEN))
-> +#define NLA_PAYLOAD(len)	((len) - NLA_HDRLEN)
-> +
-> +#define SMC_GENL_FAMILY_NAME	"SMC_GEN_NETLINK"
-> +#define SMC_BPFTEST_UEID	"SMC-BPFTEST-UEID"
-> +
-> +static uint16_t smc_nl_family_id = -1;
-> +
-> +static int send_cmd(int fd, __u16 nlmsg_type, __u32 nlmsg_pid,
-> +		    __u16 nlmsg_flags, __u8 genl_cmd, __u16 nla_type,
-> +		    void *nla_data, int nla_len)
-> +{
-> +	struct nlattr *na;
-> +	struct sockaddr_nl nladdr;
-> +	int r, buflen;
-> +	char *buf;
-> +
-> +	struct msgtemplate msg = {0};
-> +
-> +	msg.n.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
-> +	msg.n.nlmsg_type = nlmsg_type;
-> +	msg.n.nlmsg_flags = nlmsg_flags;
-> +	msg.n.nlmsg_seq = 0;
-> +	msg.n.nlmsg_pid = nlmsg_pid;
-> +	msg.g.cmd = genl_cmd;
-> +	msg.g.version = 1;
-> +	na = (struct nlattr *) GENLMSG_DATA(&msg);
-> +	na->nla_type = nla_type;
-> +	na->nla_len = nla_len + 1 + NLA_HDRLEN;
-> +	memcpy(NLA_DATA(na), nla_data, nla_len);
-> +	msg.n.nlmsg_len += NLMSG_ALIGN(na->nla_len);
-> +
-> +	buf = (char *) &msg;
-> +	buflen = msg.n.nlmsg_len;
-> +	memset(&nladdr, 0, sizeof(nladdr));
-> +	nladdr.nl_family = AF_NETLINK;
-> +
-> +	while ((r = sendto(fd, buf, buflen, 0, (struct sockaddr *) &nladdr,
-> +			   sizeof(nladdr))) < buflen) {
-> +		if (r > 0) {
-> +			buf += r;
-> +			buflen -= r;
-> +		} else if (errno != EAGAIN) {
-> +			return -1;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +static bool get_smc_nl_family_id(void)
-> +{
-> +	struct sockaddr_nl nl_src;
-> +	struct msgtemplate msg;
-> +	struct nlattr *nl;
-> +	int fd, ret;
-> +	pid_t pid;
-> +
-> +	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
-> +	if (!ASSERT_GT(fd, 0, "nl_family socket"))
-> +		return false;
-> +
-> +	pid = getpid();
-> +
-> +	memset(&nl_src, 0, sizeof(nl_src));
-> +	nl_src.nl_family = AF_NETLINK;
-> +	nl_src.nl_pid = pid;
-> +
-> +	ret = bind(fd, (struct sockaddr *) &nl_src, sizeof(nl_src));
-> +	if (!ASSERT_GE(ret, 0, "nl_family bind"))
-> +		goto fail;
-> +
-> +	ret = send_cmd(fd, GENL_ID_CTRL, pid,
-> +		       NLM_F_REQUEST, CTRL_CMD_GETFAMILY,
-> +		       CTRL_ATTR_FAMILY_NAME, (void *)SMC_GENL_FAMILY_NAME,
-> +		       strlen(SMC_GENL_FAMILY_NAME));
-> +	if (!ASSERT_EQ(ret, 0, "nl_family query"))
-> +		goto fail;
-> +
-> +	ret = recv(fd, &msg, sizeof(msg), 0);
-> +	if (!ASSERT_FALSE(msg.n.nlmsg_type == NLMSG_ERROR || (ret < 0) ||
-> +			  !NLMSG_OK((&msg.n), ret), "nl_family response"))
-> +		goto fail;
-> +
-> +	nl = (struct nlattr *) GENLMSG_DATA(&msg);
-> +	nl = (struct nlattr *) ((char *) nl + NLA_ALIGN(nl->nla_len));
-> +	if (!ASSERT_EQ(nl->nla_type, CTRL_ATTR_FAMILY_ID, "nl_family nla type"))
-> +		goto fail;
-> +
-> +	smc_nl_family_id = *(uint16_t *) NLA_DATA(nl);
-> +	close(fd);
-> +	return true;
-> +fail:
-> +	close(fd);
-> +	return false;
-> +}
-> +
-> +static bool smc_ueid(int op)
-> +{
-> +	struct sockaddr_nl nl_src;
-> +	struct msgtemplate msg;
-> +	struct nlmsgerr *err;
-> +	char test_ueid[32];
-> +	int fd, ret;
-> +	pid_t pid;
-> +
-> +	/* UEID required */
-> +	memset(test_ueid, '\x20', sizeof(test_ueid));
-> +	memcpy(test_ueid, SMC_BPFTEST_UEID, strlen(SMC_BPFTEST_UEID));
-> +	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
-> +	if (!ASSERT_GT(fd, 0, "ueid socket"))
-> +		return false;
-> +
-> +	pid = getpid();
-> +	memset(&nl_src, 0, sizeof(nl_src));
-> +	nl_src.nl_family = AF_NETLINK;
-> +	nl_src.nl_pid = pid;
-> +
-> +	ret = bind(fd, (struct sockaddr *) &nl_src, sizeof(nl_src));
-> +	if (!ASSERT_GE(ret, 0, "ueid bind"))
-> +		goto fail;
-> +
-> +	ret = send_cmd(fd, smc_nl_family_id, pid,
-> +		       NLM_F_REQUEST | NLM_F_ACK, op, SMC_NLA_EID_TABLE_ENTRY,
-> +		       (void *)test_ueid, sizeof(test_ueid));
-> +	if (!ASSERT_EQ(ret, 0, "ueid cmd"))
-> +		goto fail;
-> +
-> +	ret = recv(fd, &msg, sizeof(msg), 0);
-> +	if (!ASSERT_FALSE((ret < 0) ||
-> +	    !NLMSG_OK((&msg.n), ret), "ueid response"))
-> +		goto fail;
-> +
-> +	if (msg.n.nlmsg_type == NLMSG_ERROR) {
-> +		err = NLMSG_DATA(&msg);
-> +		switch (op) {
-> +		case SMC_NETLINK_REMOVE_UEID:
-> +			if (!ASSERT_FALSE((err->error && err->error != -ENOENT),
-> +					  "ueid remove"))
-> +				goto fail;
-> +			break;
-> +		case SMC_NETLINK_ADD_UEID:
-> +			if (!ASSERT_EQ(err->error, 0, "ueid add"))
-> +				goto fail;
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +	close(fd);
-> +	return true;
-> +fail:
-> +	close(fd);
-> +	return false;
-> +}
-> +
-> +static bool setup_ueid(void)
-> +{
-> +	/* get smc nl id */
-> +	if (!get_smc_nl_family_id())
-> +		return false;
-> +	/* clear old ueid for bpftest */
-> +	smc_ueid(SMC_NETLINK_REMOVE_UEID);
-> +	/* smc-loopback required ueid */
-> +	return smc_ueid(SMC_NETLINK_ADD_UEID);
-> +}
-> +
-> +static void cleanup_ueid(void)
-> +{
-> +	smc_ueid(SMC_NETLINK_REMOVE_UEID);
-> +}
-> +#endif /* __s390x__ */
-> +
-> +static bool setup_netns(void)
-> +{
-> +	test_netns = netns_new(TEST_NS, true);
-> +	if (!ASSERT_OK_PTR(test_netns, "open net namespace"))
-> +		goto fail_netns;
-> +
-> +	if (!ASSERT_OK(system("ip addr add 127.0.1.0/8 dev lo"),
-> +		       "add server node"))
-> +		goto fail_ip;
-> +
-> +	if (!ASSERT_OK(system("ip addr add 127.0.2.0/8 dev lo"),
-> +		       "server via risk path"))
-> +		goto fail_ip;
-> +
-> +	return true;
-> +fail_ip:
-> +	netns_free(test_netns);
-> +fail_netns:
-> +	return false;
-> +}
-> +
-> +static void cleanup_netns(void)
-> +{
-> +	netns_free(test_netns);
-> +	remove_netns(TEST_NS);
-> +}
-> +
-> +static bool setup_smc(void)
-> +{
-> +	if (!setup_ueid())
-> +		return false;
-> +
-> +	if (!setup_netns())
-> +		goto fail_netns;
-> +
-> +	return true;
-> +fail_netns:
-> +	cleanup_ueid();
-> +	return false;
-> +}
-> +
-> +static int set_client_addr_cb(int fd, void *opts)
-> +{
-> +	const char *src = (const char *)opts;
-> +	struct sockaddr_in localaddr;
-> +
-> +	localaddr.sin_family = AF_INET;
-> +	localaddr.sin_port = htons(0);
-> +	localaddr.sin_addr.s_addr = inet_addr(src);
-> +	return !ASSERT_EQ(bind(fd, &localaddr, sizeof(localaddr)), 0,
-> +			  "client bind");
-> +}
-> +
-> +static void run_link(const char *src, const char *dst, int port)
-> +{
-> +	struct network_helper_opts opts = {0};
-> +	int server, client;
-> +
-> +	server = start_server_str(AF_INET, SOCK_STREAM, dst, port, NULL);
-> +	if (!ASSERT_OK_FD(server, "start service_1"))
-> +		return;
-> +
-> +	opts.proto = IPPROTO_TCP;
-> +	opts.post_socket_cb = set_client_addr_cb;
-> +	opts.cb_opts = (void *)src;
-> +
-> +	client = connect_to_fd_opts(server, &opts);
-> +	if (!ASSERT_OK_FD(client, "start connect"))
-> +		goto fail_client;
-> +
-> +	close(client);
-> +fail_client:
-> +	close(server);
-> +}
-> +
-> +static void block_link(int map_fd, const char *src, const char *dst)
-> +{
-> +	struct smc_strat_ip_value val = { .mode = /* block */ 0 };
-> +	struct smc_strat_ip_key key = {
-> +		.sip = inet_addr(src),
-> +		.dip = inet_addr(dst),
-> +	};
-> +
-> +	bpf_map_update_elem(map_fd, &key, &val, BPF_ANY);
-> +}
-> +
-> +/*
-> + * This test describes a real-life service topology as follows:
-> + *
-> + *                             +-------------> service_1
-> + *            link1            |                     |
-> + *   +--------------------> server                   |  link 2
-> + *   |                         |                     V
-> + *   |                         +-------------> service_2
-> + *   |        link 3
-> + *  client -------------------> server_via_unsafe_path -> service_3
-> + *
-> + * Among them,
-> + * 1. link-1 is very suitable for using SMC.
-> + * 2. link-2 is not suitable for using SMC, because the mode of this link is
-> + *    kind of short-link services.
-> + * 3. link-3 is also not suitable for using SMC, because the RDMA link is
-> + *    unavailable and needs to go through a long timeout before it can fallback
-> + *    to TCP.
-> + * To achieve this goal, we use a customized SMC ip strategy via smc_ops.
-> + */
-> +static void test_topo(void)
-> +{
-> +	struct bpf_smc *skel;
-> +	int rc, map_fd;
-> +
-> +	skel = bpf_smc__open_and_load();
-> +	if (!ASSERT_OK_PTR(skel, "bpf_smc__open_and_load"))
-> +		return;
-> +
-> +	rc = bpf_smc__attach(skel);
-> +	if (!ASSERT_EQ(rc, 0, "bpf_smc__attach"))
-> +		goto fail;
-> +
-> +	map_fd = bpf_map__fd(skel->maps.smc_strats_ip);
-> +	if (!ASSERT_GT(map_fd, 0, "bpf_map__fd"))
-> +		goto fail;
-> +
-> +	/* Mock the process of transparent replacement, since we will modify
-> +	 * protocol to ipproto_smc accropding to it via
-> +	 * fmod_ret/update_socket_protocol.
-> +	 */
-> +	system("sysctl -w net.smc.ops=linkcheck");
-> +
-> +	/* Configure ip strat */
-> +	block_link(map_fd, CLIENT_IP, SERVER_IP_VIA_RISK_PATH);
-> +	block_link(map_fd, SERVER_IP, SERVER_IP);
-> +
-> +	/* should go with smc */
-> +	run_link(CLIENT_IP, SERVER_IP, SERVICE_1);
-> +	/* should go with smc fallback */
-> +	run_link(SERVER_IP, SERVER_IP, SERVICE_2);
-> +
-> +	ASSERT_EQ(skel->bss->smc_cnt, 2, "smc count");
-> +	ASSERT_EQ(skel->bss->fallback_cnt, 1, "fallback count");
-> +
-> +	/* should go with smc */
-> +	run_link(CLIENT_IP, SERVER_IP, SERVICE_2);
-> +
-> +	ASSERT_EQ(skel->bss->smc_cnt, 3, "smc count");
-> +	ASSERT_EQ(skel->bss->fallback_cnt, 1, "fallback count");
-> +
-> +	/* should go with smc fallback */
-> +	run_link(CLIENT_IP, SERVER_IP_VIA_RISK_PATH, SERVICE_3);
-> +
-> +	ASSERT_EQ(skel->bss->smc_cnt, 4, "smc count");
-> +	ASSERT_EQ(skel->bss->fallback_cnt, 2, "fallback count");
-> +
-> +fail:
-> +	bpf_smc__destroy(skel);
-> +}
-> +
-> +void test_bpf_smc(void)
-> +{
-> +	if (!setup_smc()) {
-> +		printf("setup for smc test failed, test SKIP:\n");
-> +		test__skip();
-> +		return;
-> +	}
-> +
-> +	if (test__start_subtest("topo"))
-> +		test_topo();
-> +
-> +	cleanup_ueid();
-> +	cleanup_netns();
-> +}
-> diff --git a/tools/testing/selftests/bpf/progs/bpf_smc.c b/tools/testing/selftests/bpf/progs/bpf_smc.c
-> new file mode 100644
-> index 000000000000..38b0490bd875
-> --- /dev/null
-> +++ b/tools/testing/selftests/bpf/progs/bpf_smc.c
-> @@ -0,0 +1,117 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +#include "vmlinux.h"
-> +
-> +#include <bpf/bpf_helpers.h>
-> +#include <bpf/bpf_tracing.h>
-> +#include "bpf_tracing_net.h"
-> +
-> +char _license[] SEC("license") = "GPL";
-> +
-> +enum {
-> +	BPF_SMC_LISTEN	= 10,
-> +};
-> +
-> +struct smc_sock___local {
-> +	struct sock sk;
-> +	struct smc_sock *listen_smc;
-> +	bool use_fallback;
-> +} __attribute__((preserve_access_index));
-> +
-> +int smc_cnt = 0;
-> +int fallback_cnt = 0;
-> +
-> +SEC("fentry/smc_release")
-> +int BPF_PROG(bpf_smc_release, struct socket *sock)
-> +{
-> +	/* only count from one side (client) */
-> +	if (sock->sk->__sk_common.skc_state == BPF_SMC_LISTEN)
-> +		return 0;
-> +	smc_cnt++;
-> +	return 0;
-> +}
-> +
-> +SEC("fentry/smc_switch_to_fallback")
-> +int BPF_PROG(bpf_smc_switch_to_fallback, struct smc_sock___local *smc)
-> +{
-> +	/* only count from one side (client) */
-> +	if (smc && !BPF_CORE_READ(smc, listen_smc))
-> +		fallback_cnt++;
-> +	return 0;
-> +}
-> +
-> +/* go with default value if no strat was found */
-> +bool default_ip_strat_value = true;
-> +
-> +struct smc_strat_ip_key {
-> +	__u32	sip;
-> +	__u32	dip;
-> +};
-> +
-> +struct smc_strat_ip_value {
-> +	__u8	mode;
-> +};
-> +
-> +struct {
-> +	__uint(type, BPF_MAP_TYPE_HASH);
-> +	__uint(key_size, sizeof(struct smc_strat_ip_key));
-> +	__uint(value_size, sizeof(struct smc_strat_ip_value));
-> +	__uint(max_entries, 128);
-> +	__uint(map_flags, BPF_F_NO_PREALLOC);
-> +} smc_strats_ip SEC(".maps");
-> +
-> +static bool smc_check(__u32 src, __u32 dst)
-> +{
-> +	struct smc_strat_ip_value *value;
-> +	struct smc_strat_ip_key key = {
-> +		.sip = src,
-> +		.dip = dst,
-> +	};
-> +
-> +	value = bpf_map_lookup_elem(&smc_strats_ip, &key);
-> +	return value ? value->mode : default_ip_strat_value;
-> +}
-> +
-> +SEC("fmod_ret/update_socket_protocol")
-> +int BPF_PROG(smc_run, int family, int type, int protocol)
-> +{
-> +	struct task_struct *task;
-> +
-> +	if (family != AF_INET && family != AF_INET6)
-> +		return protocol;
-> +
-> +	if ((type & 0xf) != SOCK_STREAM)
-> +		return protocol;
-> +
-> +	if (protocol != 0 && protocol != IPPROTO_TCP)
-> +		return protocol;
-> +
-> +	task = bpf_get_current_task_btf();
-> +	/* Prevent from affecting other tests */
-> +	if (!task || !task->nsproxy->net_ns->smc.ops)
-> +		return protocol;
-> +
-> +	return IPPROTO_SMC;
-> +}
-> +
-> +SEC("struct_ops/bpf_smc_set_tcp_option_cond")
-> +int BPF_PROG(bpf_smc_set_tcp_option_cond, const struct tcp_sock *tp,
-> +	     struct inet_request_sock *ireq)
-> +{
-> +	return smc_check(ireq->req.__req_common.skc_daddr,
-> +			 ireq->req.__req_common.skc_rcv_saddr);
-> +}
-> +
-> +SEC("struct_ops/bpf_smc_set_tcp_option")
-> +int BPF_PROG(bpf_smc_set_tcp_option, struct tcp_sock *tp)
-> +{
-> +	return smc_check(tp->inet_conn.icsk_inet.sk.__sk_common.skc_rcv_saddr,
-> +			 tp->inet_conn.icsk_inet.sk.__sk_common.skc_daddr);
-> +}
-> +
-> +SEC(".struct_ops.link")
-> +struct smc_ops  linkcheck = {
-> +	.name			= "linkcheck",
-> +	.set_option		= (void *) bpf_smc_set_tcp_option,
-> +	.set_option_cond	= (void *) bpf_smc_set_tcp_option_cond,
-> +};
-Tested this selftest with patches applied on powerpc.
+Currently, the maximum number of hwmon channel attributes is 32 which is
+limited by current hwmon core codes. And the power attributes are up to 31.
+It's already encountered the issue of not adding attribute name to power
+channel attribute.
 
-#./test_progs -t bpf_smc
+So fix the type of 'config' in struct hwmon_channel_info to u64 so as to
+support more attributes. For this goal, the following points are needed to
+be done:
+(1) Fix the type of 'config' in hwmon_channel_info structure to u64.
+(2) Modify hwmon_num_channel_attrs() with hweight64.
+(3) Type of BIT(xxx) in linux/hwmon.h is 'UL', need to modify to BIT_ULL.
 
-net.smc.ops = linkcheck
-#27/1    bpf_smc/topo:OK
-#27      bpf_smc:OK
-Summary: 1/1 PASSED, 0 SKIPPED, 0 FAILED
+Signed-off-by: Huisong Li <lihuisong@huawei.com>
+---
+ drivers/hwmon/hwmon.c |   4 +-
+ include/linux/hwmon.h | 300 +++++++++++++++++++++---------------------
+ 2 files changed, 152 insertions(+), 152 deletions(-)
 
-Tested-by: Saket Kumar Bhaskar <skb99@linux.ibm.com>
+diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
+index 9703d60e9bbf..1fe8fa12cc60 100644
+--- a/drivers/hwmon/hwmon.c
++++ b/drivers/hwmon/hwmon.c
+@@ -790,7 +790,7 @@ static int hwmon_num_channel_attrs(const struct hwmon_channel_info *info)
+ 	int i, n;
+ 
+ 	for (i = n = 0; info->config[i]; i++)
+-		n += hweight32(info->config[i]);
++		n += hweight64(info->config[i]);
+ 
+ 	return n;
+ }
+@@ -811,7 +811,7 @@ static int hwmon_genattrs(const void *drvdata,
+ 	template_size = __templates_size[info->type];
+ 
+ 	for (i = 0; info->config[i]; i++) {
+-		u32 attr_mask = info->config[i];
++		u64 attr_mask = info->config[i];
+ 		u32 attr;
+ 
+ 		while (attr_mask) {
+diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
+index 3a63dff62d03..544266a58d07 100644
+--- a/include/linux/hwmon.h
++++ b/include/linux/hwmon.h
+@@ -48,20 +48,20 @@ enum hwmon_chip_attributes {
+ 	hwmon_chip_pec,
+ };
+ 
+-#define HWMON_C_TEMP_RESET_HISTORY	BIT(hwmon_chip_temp_reset_history)
+-#define HWMON_C_IN_RESET_HISTORY	BIT(hwmon_chip_in_reset_history)
+-#define HWMON_C_CURR_RESET_HISTORY	BIT(hwmon_chip_curr_reset_history)
+-#define HWMON_C_POWER_RESET_HISTORY	BIT(hwmon_chip_power_reset_history)
+-#define HWMON_C_REGISTER_TZ		BIT(hwmon_chip_register_tz)
+-#define HWMON_C_UPDATE_INTERVAL		BIT(hwmon_chip_update_interval)
+-#define HWMON_C_ALARMS			BIT(hwmon_chip_alarms)
+-#define HWMON_C_SAMPLES			BIT(hwmon_chip_samples)
+-#define HWMON_C_CURR_SAMPLES		BIT(hwmon_chip_curr_samples)
+-#define HWMON_C_IN_SAMPLES		BIT(hwmon_chip_in_samples)
+-#define HWMON_C_POWER_SAMPLES		BIT(hwmon_chip_power_samples)
+-#define HWMON_C_TEMP_SAMPLES		BIT(hwmon_chip_temp_samples)
+-#define HWMON_C_BEEP_ENABLE		BIT(hwmon_chip_beep_enable)
+-#define HWMON_C_PEC			BIT(hwmon_chip_pec)
++#define HWMON_C_TEMP_RESET_HISTORY	BIT_ULL(hwmon_chip_temp_reset_history)
++#define HWMON_C_IN_RESET_HISTORY	BIT_ULL(hwmon_chip_in_reset_history)
++#define HWMON_C_CURR_RESET_HISTORY	BIT_ULL(hwmon_chip_curr_reset_history)
++#define HWMON_C_POWER_RESET_HISTORY	BIT_ULL(hwmon_chip_power_reset_history)
++#define HWMON_C_REGISTER_TZ		BIT_ULL(hwmon_chip_register_tz)
++#define HWMON_C_UPDATE_INTERVAL		BIT_ULL(hwmon_chip_update_interval)
++#define HWMON_C_ALARMS			BIT_ULL(hwmon_chip_alarms)
++#define HWMON_C_SAMPLES			BIT_ULL(hwmon_chip_samples)
++#define HWMON_C_CURR_SAMPLES		BIT_ULL(hwmon_chip_curr_samples)
++#define HWMON_C_IN_SAMPLES		BIT_ULL(hwmon_chip_in_samples)
++#define HWMON_C_POWER_SAMPLES		BIT_ULL(hwmon_chip_power_samples)
++#define HWMON_C_TEMP_SAMPLES		BIT_ULL(hwmon_chip_temp_samples)
++#define HWMON_C_BEEP_ENABLE		BIT_ULL(hwmon_chip_beep_enable)
++#define HWMON_C_PEC			BIT_ULL(hwmon_chip_pec)
+ 
+ enum hwmon_temp_attributes {
+ 	hwmon_temp_enable,
+@@ -94,34 +94,34 @@ enum hwmon_temp_attributes {
+ 	hwmon_temp_beep,
+ };
+ 
+-#define HWMON_T_ENABLE		BIT(hwmon_temp_enable)
+-#define HWMON_T_INPUT		BIT(hwmon_temp_input)
+-#define HWMON_T_TYPE		BIT(hwmon_temp_type)
+-#define HWMON_T_LCRIT		BIT(hwmon_temp_lcrit)
+-#define HWMON_T_LCRIT_HYST	BIT(hwmon_temp_lcrit_hyst)
+-#define HWMON_T_MIN		BIT(hwmon_temp_min)
+-#define HWMON_T_MIN_HYST	BIT(hwmon_temp_min_hyst)
+-#define HWMON_T_MAX		BIT(hwmon_temp_max)
+-#define HWMON_T_MAX_HYST	BIT(hwmon_temp_max_hyst)
+-#define HWMON_T_CRIT		BIT(hwmon_temp_crit)
+-#define HWMON_T_CRIT_HYST	BIT(hwmon_temp_crit_hyst)
+-#define HWMON_T_EMERGENCY	BIT(hwmon_temp_emergency)
+-#define HWMON_T_EMERGENCY_HYST	BIT(hwmon_temp_emergency_hyst)
+-#define HWMON_T_ALARM		BIT(hwmon_temp_alarm)
+-#define HWMON_T_MIN_ALARM	BIT(hwmon_temp_min_alarm)
+-#define HWMON_T_MAX_ALARM	BIT(hwmon_temp_max_alarm)
+-#define HWMON_T_CRIT_ALARM	BIT(hwmon_temp_crit_alarm)
+-#define HWMON_T_LCRIT_ALARM	BIT(hwmon_temp_lcrit_alarm)
+-#define HWMON_T_EMERGENCY_ALARM	BIT(hwmon_temp_emergency_alarm)
+-#define HWMON_T_FAULT		BIT(hwmon_temp_fault)
+-#define HWMON_T_OFFSET		BIT(hwmon_temp_offset)
+-#define HWMON_T_LABEL		BIT(hwmon_temp_label)
+-#define HWMON_T_LOWEST		BIT(hwmon_temp_lowest)
+-#define HWMON_T_HIGHEST		BIT(hwmon_temp_highest)
+-#define HWMON_T_RESET_HISTORY	BIT(hwmon_temp_reset_history)
+-#define HWMON_T_RATED_MIN	BIT(hwmon_temp_rated_min)
+-#define HWMON_T_RATED_MAX	BIT(hwmon_temp_rated_max)
+-#define HWMON_T_BEEP		BIT(hwmon_temp_beep)
++#define HWMON_T_ENABLE		BIT_ULL(hwmon_temp_enable)
++#define HWMON_T_INPUT		BIT_ULL(hwmon_temp_input)
++#define HWMON_T_TYPE		BIT_ULL(hwmon_temp_type)
++#define HWMON_T_LCRIT		BIT_ULL(hwmon_temp_lcrit)
++#define HWMON_T_LCRIT_HYST	BIT_ULL(hwmon_temp_lcrit_hyst)
++#define HWMON_T_MIN		BIT_ULL(hwmon_temp_min)
++#define HWMON_T_MIN_HYST	BIT_ULL(hwmon_temp_min_hyst)
++#define HWMON_T_MAX		BIT_ULL(hwmon_temp_max)
++#define HWMON_T_MAX_HYST	BIT_ULL(hwmon_temp_max_hyst)
++#define HWMON_T_CRIT		BIT_ULL(hwmon_temp_crit)
++#define HWMON_T_CRIT_HYST	BIT_ULL(hwmon_temp_crit_hyst)
++#define HWMON_T_EMERGENCY	BIT_ULL(hwmon_temp_emergency)
++#define HWMON_T_EMERGENCY_HYST	BIT_ULL(hwmon_temp_emergency_hyst)
++#define HWMON_T_ALARM		BIT_ULL(hwmon_temp_alarm)
++#define HWMON_T_MIN_ALARM	BIT_ULL(hwmon_temp_min_alarm)
++#define HWMON_T_MAX_ALARM	BIT_ULL(hwmon_temp_max_alarm)
++#define HWMON_T_CRIT_ALARM	BIT_ULL(hwmon_temp_crit_alarm)
++#define HWMON_T_LCRIT_ALARM	BIT_ULL(hwmon_temp_lcrit_alarm)
++#define HWMON_T_EMERGENCY_ALARM	BIT_ULL(hwmon_temp_emergency_alarm)
++#define HWMON_T_FAULT		BIT_ULL(hwmon_temp_fault)
++#define HWMON_T_OFFSET		BIT_ULL(hwmon_temp_offset)
++#define HWMON_T_LABEL		BIT_ULL(hwmon_temp_label)
++#define HWMON_T_LOWEST		BIT_ULL(hwmon_temp_lowest)
++#define HWMON_T_HIGHEST		BIT_ULL(hwmon_temp_highest)
++#define HWMON_T_RESET_HISTORY	BIT_ULL(hwmon_temp_reset_history)
++#define HWMON_T_RATED_MIN	BIT_ULL(hwmon_temp_rated_min)
++#define HWMON_T_RATED_MAX	BIT_ULL(hwmon_temp_rated_max)
++#define HWMON_T_BEEP		BIT_ULL(hwmon_temp_beep)
+ 
+ enum hwmon_in_attributes {
+ 	hwmon_in_enable,
+@@ -146,26 +146,26 @@ enum hwmon_in_attributes {
+ 	hwmon_in_fault,
+ };
+ 
+-#define HWMON_I_ENABLE		BIT(hwmon_in_enable)
+-#define HWMON_I_INPUT		BIT(hwmon_in_input)
+-#define HWMON_I_MIN		BIT(hwmon_in_min)
+-#define HWMON_I_MAX		BIT(hwmon_in_max)
+-#define HWMON_I_LCRIT		BIT(hwmon_in_lcrit)
+-#define HWMON_I_CRIT		BIT(hwmon_in_crit)
+-#define HWMON_I_AVERAGE		BIT(hwmon_in_average)
+-#define HWMON_I_LOWEST		BIT(hwmon_in_lowest)
+-#define HWMON_I_HIGHEST		BIT(hwmon_in_highest)
+-#define HWMON_I_RESET_HISTORY	BIT(hwmon_in_reset_history)
+-#define HWMON_I_LABEL		BIT(hwmon_in_label)
+-#define HWMON_I_ALARM		BIT(hwmon_in_alarm)
+-#define HWMON_I_MIN_ALARM	BIT(hwmon_in_min_alarm)
+-#define HWMON_I_MAX_ALARM	BIT(hwmon_in_max_alarm)
+-#define HWMON_I_LCRIT_ALARM	BIT(hwmon_in_lcrit_alarm)
+-#define HWMON_I_CRIT_ALARM	BIT(hwmon_in_crit_alarm)
+-#define HWMON_I_RATED_MIN	BIT(hwmon_in_rated_min)
+-#define HWMON_I_RATED_MAX	BIT(hwmon_in_rated_max)
+-#define HWMON_I_BEEP		BIT(hwmon_in_beep)
+-#define HWMON_I_FAULT		BIT(hwmon_in_fault)
++#define HWMON_I_ENABLE		BIT_ULL(hwmon_in_enable)
++#define HWMON_I_INPUT		BIT_ULL(hwmon_in_input)
++#define HWMON_I_MIN		BIT_ULL(hwmon_in_min)
++#define HWMON_I_MAX		BIT_ULL(hwmon_in_max)
++#define HWMON_I_LCRIT		BIT_ULL(hwmon_in_lcrit)
++#define HWMON_I_CRIT		BIT_ULL(hwmon_in_crit)
++#define HWMON_I_AVERAGE		BIT_ULL(hwmon_in_average)
++#define HWMON_I_LOWEST		BIT_ULL(hwmon_in_lowest)
++#define HWMON_I_HIGHEST		BIT_ULL(hwmon_in_highest)
++#define HWMON_I_RESET_HISTORY	BIT_ULL(hwmon_in_reset_history)
++#define HWMON_I_LABEL		BIT_ULL(hwmon_in_label)
++#define HWMON_I_ALARM		BIT_ULL(hwmon_in_alarm)
++#define HWMON_I_MIN_ALARM	BIT_ULL(hwmon_in_min_alarm)
++#define HWMON_I_MAX_ALARM	BIT_ULL(hwmon_in_max_alarm)
++#define HWMON_I_LCRIT_ALARM	BIT_ULL(hwmon_in_lcrit_alarm)
++#define HWMON_I_CRIT_ALARM	BIT_ULL(hwmon_in_crit_alarm)
++#define HWMON_I_RATED_MIN	BIT_ULL(hwmon_in_rated_min)
++#define HWMON_I_RATED_MAX	BIT_ULL(hwmon_in_rated_max)
++#define HWMON_I_BEEP		BIT_ULL(hwmon_in_beep)
++#define HWMON_I_FAULT		BIT_ULL(hwmon_in_fault)
+ 
+ enum hwmon_curr_attributes {
+ 	hwmon_curr_enable,
+@@ -189,25 +189,25 @@ enum hwmon_curr_attributes {
+ 	hwmon_curr_beep,
+ };
+ 
+-#define HWMON_C_ENABLE		BIT(hwmon_curr_enable)
+-#define HWMON_C_INPUT		BIT(hwmon_curr_input)
+-#define HWMON_C_MIN		BIT(hwmon_curr_min)
+-#define HWMON_C_MAX		BIT(hwmon_curr_max)
+-#define HWMON_C_LCRIT		BIT(hwmon_curr_lcrit)
+-#define HWMON_C_CRIT		BIT(hwmon_curr_crit)
+-#define HWMON_C_AVERAGE		BIT(hwmon_curr_average)
+-#define HWMON_C_LOWEST		BIT(hwmon_curr_lowest)
+-#define HWMON_C_HIGHEST		BIT(hwmon_curr_highest)
+-#define HWMON_C_RESET_HISTORY	BIT(hwmon_curr_reset_history)
+-#define HWMON_C_LABEL		BIT(hwmon_curr_label)
+-#define HWMON_C_ALARM		BIT(hwmon_curr_alarm)
+-#define HWMON_C_MIN_ALARM	BIT(hwmon_curr_min_alarm)
+-#define HWMON_C_MAX_ALARM	BIT(hwmon_curr_max_alarm)
+-#define HWMON_C_LCRIT_ALARM	BIT(hwmon_curr_lcrit_alarm)
+-#define HWMON_C_CRIT_ALARM	BIT(hwmon_curr_crit_alarm)
+-#define HWMON_C_RATED_MIN	BIT(hwmon_curr_rated_min)
+-#define HWMON_C_RATED_MAX	BIT(hwmon_curr_rated_max)
+-#define HWMON_C_BEEP		BIT(hwmon_curr_beep)
++#define HWMON_C_ENABLE		BIT_ULL(hwmon_curr_enable)
++#define HWMON_C_INPUT		BIT_ULL(hwmon_curr_input)
++#define HWMON_C_MIN		BIT_ULL(hwmon_curr_min)
++#define HWMON_C_MAX		BIT_ULL(hwmon_curr_max)
++#define HWMON_C_LCRIT		BIT_ULL(hwmon_curr_lcrit)
++#define HWMON_C_CRIT		BIT_ULL(hwmon_curr_crit)
++#define HWMON_C_AVERAGE		BIT_ULL(hwmon_curr_average)
++#define HWMON_C_LOWEST		BIT_ULL(hwmon_curr_lowest)
++#define HWMON_C_HIGHEST		BIT_ULL(hwmon_curr_highest)
++#define HWMON_C_RESET_HISTORY	BIT_ULL(hwmon_curr_reset_history)
++#define HWMON_C_LABEL		BIT_ULL(hwmon_curr_label)
++#define HWMON_C_ALARM		BIT_ULL(hwmon_curr_alarm)
++#define HWMON_C_MIN_ALARM	BIT_ULL(hwmon_curr_min_alarm)
++#define HWMON_C_MAX_ALARM	BIT_ULL(hwmon_curr_max_alarm)
++#define HWMON_C_LCRIT_ALARM	BIT_ULL(hwmon_curr_lcrit_alarm)
++#define HWMON_C_CRIT_ALARM	BIT_ULL(hwmon_curr_crit_alarm)
++#define HWMON_C_RATED_MIN	BIT_ULL(hwmon_curr_rated_min)
++#define HWMON_C_RATED_MAX	BIT_ULL(hwmon_curr_rated_max)
++#define HWMON_C_BEEP		BIT_ULL(hwmon_curr_beep)
+ 
+ enum hwmon_power_attributes {
+ 	hwmon_power_enable,
+@@ -243,37 +243,37 @@ enum hwmon_power_attributes {
+ 	hwmon_power_rated_max,
+ };
+ 
+-#define HWMON_P_ENABLE			BIT(hwmon_power_enable)
+-#define HWMON_P_AVERAGE			BIT(hwmon_power_average)
+-#define HWMON_P_AVERAGE_INTERVAL	BIT(hwmon_power_average_interval)
+-#define HWMON_P_AVERAGE_INTERVAL_MAX	BIT(hwmon_power_average_interval_max)
+-#define HWMON_P_AVERAGE_INTERVAL_MIN	BIT(hwmon_power_average_interval_min)
+-#define HWMON_P_AVERAGE_HIGHEST		BIT(hwmon_power_average_highest)
+-#define HWMON_P_AVERAGE_LOWEST		BIT(hwmon_power_average_lowest)
+-#define HWMON_P_AVERAGE_MAX		BIT(hwmon_power_average_max)
+-#define HWMON_P_AVERAGE_MIN		BIT(hwmon_power_average_min)
+-#define HWMON_P_INPUT			BIT(hwmon_power_input)
+-#define HWMON_P_INPUT_HIGHEST		BIT(hwmon_power_input_highest)
+-#define HWMON_P_INPUT_LOWEST		BIT(hwmon_power_input_lowest)
+-#define HWMON_P_RESET_HISTORY		BIT(hwmon_power_reset_history)
+-#define HWMON_P_ACCURACY		BIT(hwmon_power_accuracy)
+-#define HWMON_P_CAP			BIT(hwmon_power_cap)
+-#define HWMON_P_CAP_HYST		BIT(hwmon_power_cap_hyst)
+-#define HWMON_P_CAP_MAX			BIT(hwmon_power_cap_max)
+-#define HWMON_P_CAP_MIN			BIT(hwmon_power_cap_min)
+-#define HWMON_P_MIN			BIT(hwmon_power_min)
+-#define HWMON_P_MAX			BIT(hwmon_power_max)
+-#define HWMON_P_LCRIT			BIT(hwmon_power_lcrit)
+-#define HWMON_P_CRIT			BIT(hwmon_power_crit)
+-#define HWMON_P_LABEL			BIT(hwmon_power_label)
+-#define HWMON_P_ALARM			BIT(hwmon_power_alarm)
+-#define HWMON_P_CAP_ALARM		BIT(hwmon_power_cap_alarm)
+-#define HWMON_P_MIN_ALARM		BIT(hwmon_power_min_alarm)
+-#define HWMON_P_MAX_ALARM		BIT(hwmon_power_max_alarm)
+-#define HWMON_P_LCRIT_ALARM		BIT(hwmon_power_lcrit_alarm)
+-#define HWMON_P_CRIT_ALARM		BIT(hwmon_power_crit_alarm)
+-#define HWMON_P_RATED_MIN		BIT(hwmon_power_rated_min)
+-#define HWMON_P_RATED_MAX		BIT(hwmon_power_rated_max)
++#define HWMON_P_ENABLE			BIT_ULL(hwmon_power_enable)
++#define HWMON_P_AVERAGE			BIT_ULL(hwmon_power_average)
++#define HWMON_P_AVERAGE_INTERVAL	BIT_ULL(hwmon_power_average_interval)
++#define HWMON_P_AVERAGE_INTERVAL_MAX	BIT_ULL(hwmon_power_average_interval_max)
++#define HWMON_P_AVERAGE_INTERVAL_MIN	BIT_ULL(hwmon_power_average_interval_min)
++#define HWMON_P_AVERAGE_HIGHEST		BIT_ULL(hwmon_power_average_highest)
++#define HWMON_P_AVERAGE_LOWEST		BIT_ULL(hwmon_power_average_lowest)
++#define HWMON_P_AVERAGE_MAX		BIT_ULL(hwmon_power_average_max)
++#define HWMON_P_AVERAGE_MIN		BIT_ULL(hwmon_power_average_min)
++#define HWMON_P_INPUT			BIT_ULL(hwmon_power_input)
++#define HWMON_P_INPUT_HIGHEST		BIT_ULL(hwmon_power_input_highest)
++#define HWMON_P_INPUT_LOWEST		BIT_ULL(hwmon_power_input_lowest)
++#define HWMON_P_RESET_HISTORY		BIT_ULL(hwmon_power_reset_history)
++#define HWMON_P_ACCURACY		BIT_ULL(hwmon_power_accuracy)
++#define HWMON_P_CAP			BIT_ULL(hwmon_power_cap)
++#define HWMON_P_CAP_HYST		BIT_ULL(hwmon_power_cap_hyst)
++#define HWMON_P_CAP_MAX			BIT_ULL(hwmon_power_cap_max)
++#define HWMON_P_CAP_MIN			BIT_ULL(hwmon_power_cap_min)
++#define HWMON_P_MIN			BIT_ULL(hwmon_power_min)
++#define HWMON_P_MAX			BIT_ULL(hwmon_power_max)
++#define HWMON_P_LCRIT			BIT_ULL(hwmon_power_lcrit)
++#define HWMON_P_CRIT			BIT_ULL(hwmon_power_crit)
++#define HWMON_P_LABEL			BIT_ULL(hwmon_power_label)
++#define HWMON_P_ALARM			BIT_ULL(hwmon_power_alarm)
++#define HWMON_P_CAP_ALARM		BIT_ULL(hwmon_power_cap_alarm)
++#define HWMON_P_MIN_ALARM		BIT_ULL(hwmon_power_min_alarm)
++#define HWMON_P_MAX_ALARM		BIT_ULL(hwmon_power_max_alarm)
++#define HWMON_P_LCRIT_ALARM		BIT_ULL(hwmon_power_lcrit_alarm)
++#define HWMON_P_CRIT_ALARM		BIT_ULL(hwmon_power_crit_alarm)
++#define HWMON_P_RATED_MIN		BIT_ULL(hwmon_power_rated_min)
++#define HWMON_P_RATED_MAX		BIT_ULL(hwmon_power_rated_max)
+ 
+ enum hwmon_energy_attributes {
+ 	hwmon_energy_enable,
+@@ -281,9 +281,9 @@ enum hwmon_energy_attributes {
+ 	hwmon_energy_label,
+ };
+ 
+-#define HWMON_E_ENABLE			BIT(hwmon_energy_enable)
+-#define HWMON_E_INPUT			BIT(hwmon_energy_input)
+-#define HWMON_E_LABEL			BIT(hwmon_energy_label)
++#define HWMON_E_ENABLE			BIT_ULL(hwmon_energy_enable)
++#define HWMON_E_INPUT			BIT_ULL(hwmon_energy_input)
++#define HWMON_E_LABEL			BIT_ULL(hwmon_energy_label)
+ 
+ enum hwmon_humidity_attributes {
+ 	hwmon_humidity_enable,
+@@ -301,19 +301,19 @@ enum hwmon_humidity_attributes {
+ 	hwmon_humidity_max_alarm,
+ };
+ 
+-#define HWMON_H_ENABLE			BIT(hwmon_humidity_enable)
+-#define HWMON_H_INPUT			BIT(hwmon_humidity_input)
+-#define HWMON_H_LABEL			BIT(hwmon_humidity_label)
+-#define HWMON_H_MIN			BIT(hwmon_humidity_min)
+-#define HWMON_H_MIN_HYST		BIT(hwmon_humidity_min_hyst)
+-#define HWMON_H_MAX			BIT(hwmon_humidity_max)
+-#define HWMON_H_MAX_HYST		BIT(hwmon_humidity_max_hyst)
+-#define HWMON_H_ALARM			BIT(hwmon_humidity_alarm)
+-#define HWMON_H_FAULT			BIT(hwmon_humidity_fault)
+-#define HWMON_H_RATED_MIN		BIT(hwmon_humidity_rated_min)
+-#define HWMON_H_RATED_MAX		BIT(hwmon_humidity_rated_max)
+-#define HWMON_H_MIN_ALARM		BIT(hwmon_humidity_min_alarm)
+-#define HWMON_H_MAX_ALARM		BIT(hwmon_humidity_max_alarm)
++#define HWMON_H_ENABLE			BIT_ULL(hwmon_humidity_enable)
++#define HWMON_H_INPUT			BIT_ULL(hwmon_humidity_input)
++#define HWMON_H_LABEL			BIT_ULL(hwmon_humidity_label)
++#define HWMON_H_MIN			BIT_ULL(hwmon_humidity_min)
++#define HWMON_H_MIN_HYST		BIT_ULL(hwmon_humidity_min_hyst)
++#define HWMON_H_MAX			BIT_ULL(hwmon_humidity_max)
++#define HWMON_H_MAX_HYST		BIT_ULL(hwmon_humidity_max_hyst)
++#define HWMON_H_ALARM			BIT_ULL(hwmon_humidity_alarm)
++#define HWMON_H_FAULT			BIT_ULL(hwmon_humidity_fault)
++#define HWMON_H_RATED_MIN		BIT_ULL(hwmon_humidity_rated_min)
++#define HWMON_H_RATED_MAX		BIT_ULL(hwmon_humidity_rated_max)
++#define HWMON_H_MIN_ALARM		BIT_ULL(hwmon_humidity_min_alarm)
++#define HWMON_H_MAX_ALARM		BIT_ULL(hwmon_humidity_max_alarm)
+ 
+ enum hwmon_fan_attributes {
+ 	hwmon_fan_enable,
+@@ -331,19 +331,19 @@ enum hwmon_fan_attributes {
+ 	hwmon_fan_beep,
+ };
+ 
+-#define HWMON_F_ENABLE			BIT(hwmon_fan_enable)
+-#define HWMON_F_INPUT			BIT(hwmon_fan_input)
+-#define HWMON_F_LABEL			BIT(hwmon_fan_label)
+-#define HWMON_F_MIN			BIT(hwmon_fan_min)
+-#define HWMON_F_MAX			BIT(hwmon_fan_max)
+-#define HWMON_F_DIV			BIT(hwmon_fan_div)
+-#define HWMON_F_PULSES			BIT(hwmon_fan_pulses)
+-#define HWMON_F_TARGET			BIT(hwmon_fan_target)
+-#define HWMON_F_ALARM			BIT(hwmon_fan_alarm)
+-#define HWMON_F_MIN_ALARM		BIT(hwmon_fan_min_alarm)
+-#define HWMON_F_MAX_ALARM		BIT(hwmon_fan_max_alarm)
+-#define HWMON_F_FAULT			BIT(hwmon_fan_fault)
+-#define HWMON_F_BEEP			BIT(hwmon_fan_beep)
++#define HWMON_F_ENABLE			BIT_ULL(hwmon_fan_enable)
++#define HWMON_F_INPUT			BIT_ULL(hwmon_fan_input)
++#define HWMON_F_LABEL			BIT_ULL(hwmon_fan_label)
++#define HWMON_F_MIN			BIT_ULL(hwmon_fan_min)
++#define HWMON_F_MAX			BIT_ULL(hwmon_fan_max)
++#define HWMON_F_DIV			BIT_ULL(hwmon_fan_div)
++#define HWMON_F_PULSES			BIT_ULL(hwmon_fan_pulses)
++#define HWMON_F_TARGET			BIT_ULL(hwmon_fan_target)
++#define HWMON_F_ALARM			BIT_ULL(hwmon_fan_alarm)
++#define HWMON_F_MIN_ALARM		BIT_ULL(hwmon_fan_min_alarm)
++#define HWMON_F_MAX_ALARM		BIT_ULL(hwmon_fan_max_alarm)
++#define HWMON_F_FAULT			BIT_ULL(hwmon_fan_fault)
++#define HWMON_F_BEEP			BIT_ULL(hwmon_fan_beep)
+ 
+ enum hwmon_pwm_attributes {
+ 	hwmon_pwm_input,
+@@ -353,18 +353,18 @@ enum hwmon_pwm_attributes {
+ 	hwmon_pwm_auto_channels_temp,
+ };
+ 
+-#define HWMON_PWM_INPUT			BIT(hwmon_pwm_input)
+-#define HWMON_PWM_ENABLE		BIT(hwmon_pwm_enable)
+-#define HWMON_PWM_MODE			BIT(hwmon_pwm_mode)
+-#define HWMON_PWM_FREQ			BIT(hwmon_pwm_freq)
+-#define HWMON_PWM_AUTO_CHANNELS_TEMP	BIT(hwmon_pwm_auto_channels_temp)
++#define HWMON_PWM_INPUT			BIT_ULL(hwmon_pwm_input)
++#define HWMON_PWM_ENABLE		BIT_ULL(hwmon_pwm_enable)
++#define HWMON_PWM_MODE			BIT_ULL(hwmon_pwm_mode)
++#define HWMON_PWM_FREQ			BIT_ULL(hwmon_pwm_freq)
++#define HWMON_PWM_AUTO_CHANNELS_TEMP	BIT_ULL(hwmon_pwm_auto_channels_temp)
+ 
+ enum hwmon_intrusion_attributes {
+ 	hwmon_intrusion_alarm,
+ 	hwmon_intrusion_beep,
+ };
+-#define HWMON_INTRUSION_ALARM		BIT(hwmon_intrusion_alarm)
+-#define HWMON_INTRUSION_BEEP		BIT(hwmon_intrusion_beep)
++#define HWMON_INTRUSION_ALARM		BIT_ULL(hwmon_intrusion_alarm)
++#define HWMON_INTRUSION_BEEP		BIT_ULL(hwmon_intrusion_beep)
+ 
+ /**
+  * struct hwmon_ops - hwmon device operations
+@@ -433,13 +433,13 @@ struct hwmon_ops {
+  */
+ struct hwmon_channel_info {
+ 	enum hwmon_sensor_types type;
+-	const u32 *config;
++	const u64 *config;
+ };
+ 
+ #define HWMON_CHANNEL_INFO(stype, ...)		\
+ 	(&(const struct hwmon_channel_info) {	\
+ 		.type = hwmon_##stype,		\
+-		.config = (const u32 []) {	\
++		.config = (const u64 []) {	\
+ 			__VA_ARGS__, 0		\
+ 		}				\
+ 	})
+-- 
+2.22.0
 
-Thanks,
-Saket
-> -- 
-> 2.45.0
-> 
