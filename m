@@ -1,33 +1,33 @@
 Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA69D1B78F3;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE9411B0424;
 	Tue, 21 Jan 2025 06:57:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737442657; cv=none; b=sEf6gLrSODCJaFQqBmPijR3pX6Ilo14PJObPxAlk4YyWEVssPBMI68bjnEozvrSgbxI09OKWQv8sONrBptOTiqfBdRobaEZO+72KgsjIafEuq/h39my5Xyj/n66+nfF7O+Rp9eynfNIAfxxsBmHKAfIX/I+UuS7KRTdr4wNv/sw=
+	t=1737442657; cv=none; b=KuikS32Bhk2Uu+VKcZOOi7KG+0C3Ucsd0FA7dIux0oMd3psW9IUV8jvEULVJrZ80Dg1Lmna1yqU1VqMvkfzbqjJUyQT1HuOMcgzHL9EZwZAen12xZ0N3jUdmVKq9PtylaO6MDPpKqDZ9eiBdptqpJ0fFmCoFL5IzOb7u2krsjNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1737442657; c=relaxed/simple;
-	bh=xKblWWGxTE5azXr82EvnLeeQK5P/EFTNCVtLQSBacDk=;
+	bh=mWX/fp1URit59PoIjt60VZfGFkJQZLYn2jvxHT7rK+c=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lMVJh8C/T8zCQdUdRaCwhpBI4Yh2Qe1UTtGprFGtnjqM4E8OzYc1Gyfzx2G2cA27a1gnTthhUOLHf1YkjUc9cwrY+5KIuPrOkDEuCQ8SjT3+aBuqOXxT5SHXxTulM/oQZvW+zgVLH1TR8QCf0Y1mi7vs+zpyUSwAzqxrXe6xaK4=
+	 MIME-Version:Content-Type; b=sJBY60LbnmI8EP3P9VRlxvk9MPmK/ZVIhFbqjDspeFhxAR581OhJmoNeVd7QQfZSlUi4a077XZbyFIjb3CtyaPPgX/hhwjhyZkk2Pqb7ZTHyei6dEI/4KU6CH9XWUX6a9SpDAZsayhcktfkCX3GkKaxcuTpXseJdQ17SGmGpGrE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.88.234])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4YcdGv4Kbnz2FcWN;
+Received: from mail.maildlp.com (unknown [172.19.163.44])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4YcdGv0jWZz2FcW9;
 	Tue, 21 Jan 2025 14:54:15 +0800 (CST)
 Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5432C140361;
-	Tue, 21 Jan 2025 14:57:33 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id CD2F41402C3;
+	Tue, 21 Jan 2025 14:57:32 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
  dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:33 +0800
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:32 +0800
 Received: from localhost.localdomain (10.28.79.22) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:26 +0800
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:23 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <linux-hwmon@vger.kernel.org>
 CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
@@ -46,9 +46,9 @@ CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
 	<ilpo.jarvinen@linux.intel.com>, <alexandre.belloni@bootlin.com>,
 	<krzk@kernel.org>, <jonathan.cameron@huawei.com>, <zhanjie9@hisilicon.com>,
 	<zhenglifeng1@huawei.com>, <liuyonglong@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH v1 06/21] net: phy: marvell10g: Use HWMON_CHANNEL_INFO macro to simplify code
-Date: Tue, 21 Jan 2025 14:45:04 +0800
-Message-ID: <20250121064519.18974-7-lihuisong@huawei.com>
+Subject: [PATCH v1 04/21] net: nfp: Use HWMON_CHANNEL_INFO macro to simplify code
+Date: Tue, 21 Jan 2025 14:45:02 +0800
+Message-ID: <20250121064519.18974-5-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20250121064519.18974-1-lihuisong@huawei.com>
 References: <20250121064519.18974-1-lihuisong@huawei.com>
@@ -67,43 +67,59 @@ Use HWMON_CHANNEL_INFO macro to simplify code.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/net/phy/marvell10g.c | 24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
+ .../net/ethernet/netronome/nfp/nfp_hwmon.c    | 40 +++----------------
+ 1 file changed, 5 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/net/phy/marvell10g.c b/drivers/net/phy/marvell10g.c
-index 623bdb8466b8..5354c8895163 100644
---- a/drivers/net/phy/marvell10g.c
-+++ b/drivers/net/phy/marvell10g.c
-@@ -230,29 +230,9 @@ static const struct hwmon_ops mv3310_hwmon_ops = {
- 	.read = mv3310_hwmon_read,
- };
+diff --git a/drivers/net/ethernet/netronome/nfp/nfp_hwmon.c b/drivers/net/ethernet/netronome/nfp/nfp_hwmon.c
+index 0d6c59d6d4ae..ea6a288c0d5e 100644
+--- a/drivers/net/ethernet/netronome/nfp/nfp_hwmon.c
++++ b/drivers/net/ethernet/netronome/nfp/nfp_hwmon.c
+@@ -83,42 +83,12 @@ nfp_hwmon_is_visible(const void *data, enum hwmon_sensor_types type, u32 attr,
+ 	return 0;
+ }
  
--static u32 mv3310_hwmon_chip_config[] = {
--	HWMON_C_REGISTER_TZ | HWMON_C_UPDATE_INTERVAL,
--	0,
+-static u32 nfp_chip_config[] = {
+-	HWMON_C_REGISTER_TZ,
+-	0
 -};
 -
--static const struct hwmon_channel_info mv3310_hwmon_chip = {
+-static const struct hwmon_channel_info nfp_chip = {
 -	.type = hwmon_chip,
--	.config = mv3310_hwmon_chip_config,
+-	.config = nfp_chip_config,
 -};
 -
--static u32 mv3310_hwmon_temp_config[] = {
--	HWMON_T_INPUT,
--	0,
+-static u32 nfp_temp_config[] = {
+-	HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT,
+-	0
 -};
 -
--static const struct hwmon_channel_info mv3310_hwmon_temp = {
+-static const struct hwmon_channel_info nfp_temp = {
 -	.type = hwmon_temp,
--	.config = mv3310_hwmon_temp_config,
+-	.config = nfp_temp_config,
 -};
 -
- static const struct hwmon_channel_info * const mv3310_hwmon_info[] = {
--	&mv3310_hwmon_chip,
--	&mv3310_hwmon_temp,
-+	HWMON_CHANNEL_INFO(chip, HWMON_C_REGISTER_TZ | HWMON_C_UPDATE_INTERVAL),
-+	HWMON_CHANNEL_INFO(temp, HWMON_T_INPUT),
- 	NULL,
+-static u32 nfp_power_config[] = {
+-	HWMON_P_INPUT | HWMON_P_MAX,
+-	HWMON_P_INPUT,
+-	HWMON_P_INPUT,
+-	0
+-};
+-
+-static const struct hwmon_channel_info nfp_power = {
+-	.type = hwmon_power,
+-	.config = nfp_power_config,
+-};
+-
+ static const struct hwmon_channel_info * const nfp_hwmon_info[] = {
+-	&nfp_chip,
+-	&nfp_temp,
+-	&nfp_power,
++	HWMON_CHANNEL_INFO(chip, HWMON_C_REGISTER_TZ),
++	HWMON_CHANNEL_INFO(temp, HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_CRIT),
++	HWMON_CHANNEL_INFO(power, HWMON_P_INPUT | HWMON_P_MAX,
++			   HWMON_P_INPUT,
++			   HWMON_P_INPUT),
+ 	NULL
  };
  
 -- 
