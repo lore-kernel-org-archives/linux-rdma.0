@@ -1,33 +1,33 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D4431E9B3A;
-	Tue, 21 Jan 2025 06:57:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 960BA1F37D4;
+	Tue, 21 Jan 2025 06:57:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737442664; cv=none; b=dQbcHovC5bxFLDqAtNhCGIrmNcWXPpdR4QFxl21EPPDthkT7TDn+lfa+DId9437quBsG0MO4kmV+PExYBEGYv1G0vCV+lnTLRfww/Afhf5fn2KYcFdEtGgQAuAYQ1W6N2QZa2dQkcsWjqxsPndaH9F2Odn5AHEHSdZ5VMZPQHP4=
+	t=1737442668; cv=none; b=VgCsCDiW0w6/Iz+EOQipv0/eIXOhBjMZEkagS67E60FB+ielWinRbq+fb1BOy+hZ4I9F1kwG3AULV+w57wvkc760ghgUttKsei0ppv4JVSS8G4REhcHezJyVoRNYOQKLZcBodPQjJxZiaMJsZGtPB2nuX7Wi2UfaYUmfV1ealdM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737442664; c=relaxed/simple;
-	bh=rcnh1ObECijeP1gO6p6MULduz0XxyvXO9hQO++xYpFc=;
+	s=arc-20240116; t=1737442668; c=relaxed/simple;
+	bh=nZ4/J8KMNP6TkpAGFQdOyK4w82kRclTB6tDx4Bt52FM=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=LC7J/XfpLrA0QTEQ9frGaU6o3jnnkQpyi8Q5k9G6lh2Wsq1FpNLyg1wlBntgs9VJvUE0EtAllAdgXaltpsOiBFtfGcTg/7O0KlVt1q5xO3WpewRTawwFx8qEkpofZ/OZw6Lel98gtr6d6MLe/uN/n5RUmArK+Os1BbBLRnTkO4o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
+	 MIME-Version:Content-Type; b=kv3O7pT/d7L+TscprQDbj8dNPs7zkYjFLdTomv0sb/fb2dcfR1x9bDGpKMWmN8bmQ2UeQNEtv0kVKvfPiZvA/kNc4/l78P6iOD+FdVy2vWHTmAKMF2cB+5fH2105dYPo63imSpT3pvWe4msvV3DRdpWciRULSuFBZUfotSBpBtQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.189
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.88.163])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4YcdH335Wxz2FcWT;
-	Tue, 21 Jan 2025 14:54:23 +0800 (CST)
-Received: from dggemv706-chm.china.huawei.com (unknown [10.3.19.33])
-	by mail.maildlp.com (Postfix) with ESMTPS id 2FB21180042;
-	Tue, 21 Jan 2025 14:57:41 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.105])
+	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4YcdJ270mszRlkD;
+	Tue, 21 Jan 2025 14:55:14 +0800 (CST)
+Received: from dggemv711-chm.china.huawei.com (unknown [10.1.198.66])
+	by mail.maildlp.com (Postfix) with ESMTPS id 1762D140155;
+	Tue, 21 Jan 2025 14:57:44 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv706-chm.china.huawei.com (10.3.19.33) with Microsoft SMTP Server
+ dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:41 +0800
+ 15.1.2507.39; Tue, 21 Jan 2025 14:57:43 +0800
 Received: from localhost.localdomain (10.28.79.22) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:39 +0800
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:42 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <linux-hwmon@vger.kernel.org>
 CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
@@ -46,9 +46,9 @@ CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
 	<ilpo.jarvinen@linux.intel.com>, <alexandre.belloni@bootlin.com>,
 	<krzk@kernel.org>, <jonathan.cameron@huawei.com>, <zhanjie9@hisilicon.com>,
 	<zhenglifeng1@huawei.com>, <liuyonglong@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH v1 15/21] hwmon: (scmi-hwmon) Fix the type of 'config' in struct hwmon_channel_info to u64
-Date: Tue, 21 Jan 2025 14:45:13 +0800
-Message-ID: <20250121064519.18974-16-lihuisong@huawei.com>
+Subject: [PATCH v1 17/21] hwmon: (tmp421) Fix the type of 'config' in struct hwmon_channel_info to u64
+Date: Tue, 21 Jan 2025 14:45:15 +0800
+Message-ID: <20250121064519.18974-18-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20250121064519.18974-1-lihuisong@huawei.com>
 References: <20250121064519.18974-1-lihuisong@huawei.com>
@@ -68,35 +68,22 @@ Modify the related code in driver to avoid compiling failure.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/hwmon/scmi-hwmon.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/tmp421.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/hwmon/scmi-hwmon.c b/drivers/hwmon/scmi-hwmon.c
-index 364199b332c0..b4b43e200d2a 100644
---- a/drivers/hwmon/scmi-hwmon.c
-+++ b/drivers/hwmon/scmi-hwmon.c
-@@ -157,10 +157,10 @@ static const struct thermal_zone_device_ops scmi_hwmon_thermal_ops = {
- 
- static int scmi_hwmon_add_chan_info(struct hwmon_channel_info *scmi_hwmon_chan,
- 				    struct device *dev, int num,
--				    enum hwmon_sensor_types type, u32 config)
-+				    enum hwmon_sensor_types type, u64 config)
- {
- 	int i;
--	u32 *cfg = devm_kcalloc(dev, num + 1, sizeof(*cfg), GFP_KERNEL);
-+	u64 *cfg = devm_kcalloc(dev, num + 1, sizeof(*cfg), GFP_KERNEL);
- 
- 	if (!cfg)
- 		return -ENOMEM;
-@@ -181,7 +181,7 @@ static enum hwmon_sensor_types scmi_types[] = {
- 	[ENERGY] = hwmon_energy,
- };
- 
--static u32 hwmon_attributes[hwmon_max] = {
-+static u64 hwmon_attributes[hwmon_max] = {
- 	[hwmon_temp] = HWMON_T_INPUT | HWMON_T_LABEL,
- 	[hwmon_in] = HWMON_I_INPUT | HWMON_I_LABEL,
- 	[hwmon_curr] = HWMON_C_INPUT | HWMON_C_LABEL,
+diff --git a/drivers/hwmon/tmp421.c b/drivers/hwmon/tmp421.c
+index 9537727aad9a..45bd04ec03b8 100644
+--- a/drivers/hwmon/tmp421.c
++++ b/drivers/hwmon/tmp421.c
+@@ -100,7 +100,7 @@ struct tmp421_channel {
+ struct tmp421_data {
+ 	struct i2c_client *client;
+ 	struct mutex update_lock;
+-	u32 temp_config[MAX_CHANNELS + 1];
++	u64 temp_config[MAX_CHANNELS + 1];
+ 	struct hwmon_channel_info temp_info;
+ 	const struct hwmon_channel_info *info[2];
+ 	struct hwmon_chip_info chip;
 -- 
 2.22.0
 
