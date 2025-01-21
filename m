@@ -1,33 +1,33 @@
 Received: from szxga07-in.huawei.com (szxga07-in.huawei.com [45.249.212.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA7221F4E56;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3A921F4721;
 	Tue, 21 Jan 2025 06:57:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.35
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737442672; cv=none; b=da98ELM831hLl1rh/tqlbarXRpNdjPhOz/ieeQyLHKuNw0Ag2ly0I8vdje6FBoVECoe84Ja7/3ZTBhOHxOUMvYgZKSNZzQUTSJvia2elIXMuw3MwHbW0YVGFGGSN/LRByQrQvUqiRqYn8+jV8bJr8kNwVmwjnzNOhdeXhrUfJZ4=
+	t=1737442673; cv=none; b=jgM5+U2Jv0O6JIWFWJvKBsIKUOI6du+F2acZauPRJXPwNhgmbnZ2FONsMwny8O10NVyJdNi+Je6YgQOHXQ/BfcVpAjvBJTbqFVy+rG4xLZa+vSlSxcx1bCgykyCuzsWSf5rsK2phHtLhI+s++S/vWICbqk3PzsKymJ4v7oVo2C4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737442672; c=relaxed/simple;
-	bh=03LFVz8QdFx6HhO55R6VxI5OCUcw5G4QFT9N+bO7Qbo=;
+	s=arc-20240116; t=1737442673; c=relaxed/simple;
+	bh=0ao+MPNNhgn9hCP05EgHBrPet8ca4uc5weVhLKMjyXw=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hMZtgZhbT+R5sg/JIhqZbf/TxHfyO7/3gytxxUelqelFVwDAXlkadbQTuSXy/t5Vbwnhb5xDiNJZpa3qy5KhoCnAzqOT+vx6lI3Jq2VQCLfGjhU6LUia+EdqByvKJ76PPEHeHs9G4XcDVEvfBbICutaO9HAos0597zkZshr125U=
+	 MIME-Version:Content-Type; b=Ipd8UPabcMjYidJ1XZMo8Jfpf1c8HSmwMp6Cyl2IgloIFcLtPmRh/nMnvIKU5+oUDuH3g0vQzSekF7tBlnDfRnQQb7DRJ7B9++oDJNCqjvf6Pb9KzyWAl2QkSpQRrmh2+MCNfgbZEf72RuRaXC2ZhT0OsxDDUCYzP+r7AETARK0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.35
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.88.234])
-	by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4YcdH42gSBz1V5Kv;
-	Tue, 21 Jan 2025 14:54:24 +0800 (CST)
-Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id A71D41400D5;
-	Tue, 21 Jan 2025 14:57:42 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.162.112])
+	by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4YcdHB002Gz1V5Kp;
+	Tue, 21 Jan 2025 14:54:29 +0800 (CST)
+Received: from dggemv705-chm.china.huawei.com (unknown [10.3.19.32])
+	by mail.maildlp.com (Postfix) with ESMTPS id 52BCB1402C3;
+	Tue, 21 Jan 2025 14:57:48 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
+ dggemv705-chm.china.huawei.com (10.3.19.32) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:42 +0800
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:48 +0800
 Received: from localhost.localdomain (10.28.79.22) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:40 +0800
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:46 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <linux-hwmon@vger.kernel.org>
 CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
@@ -46,9 +46,9 @@ CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
 	<ilpo.jarvinen@linux.intel.com>, <alexandre.belloni@bootlin.com>,
 	<krzk@kernel.org>, <jonathan.cameron@huawei.com>, <zhanjie9@hisilicon.com>,
 	<zhenglifeng1@huawei.com>, <liuyonglong@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH v1 16/21] hwmon: (tmp401) Fix the type of 'config' in struct hwmon_channel_info to u64
-Date: Tue, 21 Jan 2025 14:45:14 +0800
-Message-ID: <20250121064519.18974-17-lihuisong@huawei.com>
+Subject: [PATCH v1 20/21] hwmon: (asus-ec-sensors) Fix the type of 'config' in struct hwmon_channel_info to u64
+Date: Tue, 21 Jan 2025 14:45:18 +0800
+Message-ID: <20250121064519.18974-21-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20250121064519.18974-1-lihuisong@huawei.com>
 References: <20250121064519.18974-1-lihuisong@huawei.com>
@@ -68,25 +68,35 @@ Modify the related code in driver to avoid compiling failure.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/hwmon/tmp401.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hwmon/asus-ec-sensors.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
-index 02c5a3bb1071..e62df28a6e50 100644
---- a/drivers/hwmon/tmp401.c
-+++ b/drivers/hwmon/tmp401.c
-@@ -113,9 +113,9 @@ struct tmp401_data {
- 	bool extended_range;
+diff --git a/drivers/hwmon/asus-ec-sensors.c b/drivers/hwmon/asus-ec-sensors.c
+index 43e54dc513da..a4e0a2975a3a 100644
+--- a/drivers/hwmon/asus-ec-sensors.c
++++ b/drivers/hwmon/asus-ec-sensors.c
+@@ -77,7 +77,7 @@ typedef union {
+ 		.value = (size << 16) + (bank << 8) + index                    \
+ 	}
  
- 	/* hwmon API configuration data */
--	u32 chip_channel_config[4];
-+	u64 chip_channel_config[4];
- 	struct hwmon_channel_info chip_info;
--	u32 temp_channel_config[4];
-+	u64 temp_channel_config[4];
- 	struct hwmon_channel_info temp_info;
- 	const struct hwmon_channel_info *info[3];
- 	struct hwmon_chip_info chip;
+-static u32 hwmon_attributes[hwmon_max] = {
++static u64 hwmon_attributes[hwmon_max] = {
+ 	[hwmon_chip] = HWMON_C_REGISTER_TZ,
+ 	[hwmon_temp] = HWMON_T_INPUT | HWMON_T_LABEL,
+ 	[hwmon_in] = HWMON_I_INPUT | HWMON_I_LABEL,
+@@ -940,10 +940,10 @@ static umode_t asus_ec_hwmon_is_visible(const void *drvdata,
+ static int
+ asus_ec_hwmon_add_chan_info(struct hwmon_channel_info *asus_ec_hwmon_chan,
+ 			     struct device *dev, int num,
+-			     enum hwmon_sensor_types type, u32 config)
++			     enum hwmon_sensor_types type, u64 config)
+ {
+ 	int i;
+-	u32 *cfg = devm_kcalloc(dev, num + 1, sizeof(*cfg), GFP_KERNEL);
++	u64 *cfg = devm_kcalloc(dev, num + 1, sizeof(*cfg), GFP_KERNEL);
+ 
+ 	if (!cfg)
+ 		return -ENOMEM;
 -- 
 2.22.0
 
