@@ -1,33 +1,33 @@
 Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BE3A1B043E;
-	Tue, 21 Jan 2025 06:57:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC2841BC065;
+	Tue, 21 Jan 2025 06:57:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737442658; cv=none; b=ahLnSIdypQJ44WpvhX5QZqUuhS92xAoolzUDBZqzw5utx1Ov899ImPXTH+8bgbZyJpV4YjesEHDlKEHZikGvImd6Ed91SilEY674Umo1QnbzRosZ1kXNulm7+WI67bcxlbOTLgYULM8qbte4AYZis0nXnD2Mg7VHJpus7uT5JeE=
+	t=1737442660; cv=none; b=nrKw3fJ/Y/WURVA3dlJrFqXlWdKSgNw1yuyWBWYWQEwt8GaiWPTnAEHk0olbG1/CY3V/Zij22ql6879yWp5VvfklVpDP/8YQeg4mSofAUGVVEO6MlnVQU42GRpZOMO+VjY4JAuboQqwhf9nn4uZEZHmAXJMRA2/vA4+OdOxyBEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737442658; c=relaxed/simple;
-	bh=ab/y7cXj9QgjxXLU8g2+XSI1lA7YeSRH875MKtzI1Vs=;
+	s=arc-20240116; t=1737442660; c=relaxed/simple;
+	bh=GHaNzCy9ObieR/bSrLhA7NlrWGfCEwNrqE6XUPHHQKU=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=LCF4Io9reNsVlKevh2/KhCpleW29DqpI+5cj7Wz7JXXlw74Manryx7/4jHbgYGxGpypfcwcQcAGM814pTvL7JMRYUlensPOQ/mtKpNer5KlYJEj63U1sDQ6HJuUfUEp2ydoMnvQeUvfp411Y2cTnJbm4jJNMMa/s+wkyOO2HuTA=
+	 MIME-Version:Content-Type; b=QdjeGyj4BXvayu8/1U6cKiy/YsQk2EEdAQuLk1wb40Fjk3tOmcnP9mNOqb3RkvVQjMWazVoV2SJ2f7ZVTaLarIjYeAO/HYdewFAWtNWDZEZTnvhk8YU05btcv4Kf+KP+/u9CkEzbWDROj8dVLOwpFMEPoQtM4KDXthSwbgUnQFc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4YcdJp4hPHzrRgP;
-	Tue, 21 Jan 2025 14:55:54 +0800 (CST)
-Received: from dggemv712-chm.china.huawei.com (unknown [10.1.198.32])
-	by mail.maildlp.com (Postfix) with ESMTPS id B3C491802D0;
-	Tue, 21 Jan 2025 14:57:33 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4YcdJr3NG6zrRgr;
+	Tue, 21 Jan 2025 14:55:56 +0800 (CST)
+Received: from dggemv711-chm.china.huawei.com (unknown [10.1.198.66])
+	by mail.maildlp.com (Postfix) with ESMTPS id 8C292140203;
+	Tue, 21 Jan 2025 14:57:35 +0800 (CST)
 Received: from kwepemn100009.china.huawei.com (7.202.194.112) by
- dggemv712-chm.china.huawei.com (10.1.198.32) with Microsoft SMTP Server
+ dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:33 +0800
+ 15.1.2507.39; Tue, 21 Jan 2025 14:57:35 +0800
 Received: from localhost.localdomain (10.28.79.22) by
  kwepemn100009.china.huawei.com (7.202.194.112) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Tue, 21 Jan 2025 14:57:29 +0800
+ 15.2.1544.11; Tue, 21 Jan 2025 14:57:33 +0800
 From: Huisong Li <lihuisong@huawei.com>
 To: <linux-hwmon@vger.kernel.org>
 CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
@@ -46,9 +46,9 @@ CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
 	<ilpo.jarvinen@linux.intel.com>, <alexandre.belloni@bootlin.com>,
 	<krzk@kernel.org>, <jonathan.cameron@huawei.com>, <zhanjie9@hisilicon.com>,
 	<zhenglifeng1@huawei.com>, <liuyonglong@huawei.com>, <lihuisong@huawei.com>
-Subject: [PATCH v1 08/21] rtc: ds3232: Use HWMON_CHANNEL_INFO macro to simplify code
-Date: Tue, 21 Jan 2025 14:45:06 +0800
-Message-ID: <20250121064519.18974-9-lihuisong@huawei.com>
+Subject: [PATCH v1 11/21] hwmon: (asus_wmi_sensors) Fix type of 'config' in struct hwmon_channel_info to u64
+Date: Tue, 21 Jan 2025 14:45:09 +0800
+Message-ID: <20250121064519.18974-12-lihuisong@huawei.com>
 X-Mailer: git-send-email 2.22.0
 In-Reply-To: <20250121064519.18974-1-lihuisong@huawei.com>
 References: <20250121064519.18974-1-lihuisong@huawei.com>
@@ -63,49 +63,48 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
  kwepemn100009.china.huawei.com (7.202.194.112)
 
-Use HWMON_CHANNEL_INFO macro to simplify code.
+The type of 'config' in struct hwmon_channel_info has been fixed to u64.
+Modify the related code in driver to avoid compiling failure.
 
 Signed-off-by: Huisong Li <lihuisong@huawei.com>
 ---
- drivers/rtc/rtc-ds3232.c | 24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
+ drivers/hwmon/asus_wmi_sensors.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/rtc/rtc-ds3232.c b/drivers/rtc/rtc-ds3232.c
-index 19c09c418746..18f35823b4b5 100644
---- a/drivers/rtc/rtc-ds3232.c
-+++ b/drivers/rtc/rtc-ds3232.c
-@@ -339,29 +339,9 @@ static int ds3232_hwmon_read(struct device *dev,
- 	return err;
- }
- 
--static u32 ds3232_hwmon_chip_config[] = {
--	HWMON_C_REGISTER_TZ,
--	0
--};
--
--static const struct hwmon_channel_info ds3232_hwmon_chip = {
--	.type = hwmon_chip,
--	.config = ds3232_hwmon_chip_config,
--};
--
--static u32 ds3232_hwmon_temp_config[] = {
--	HWMON_T_INPUT,
--	0
--};
--
--static const struct hwmon_channel_info ds3232_hwmon_temp = {
--	.type = hwmon_temp,
--	.config = ds3232_hwmon_temp_config,
--};
--
- static const struct hwmon_channel_info * const ds3232_hwmon_info[] = {
--	&ds3232_hwmon_chip,
--	&ds3232_hwmon_temp,
-+	HWMON_CHANNEL_INFO(chip, HWMON_C_REGISTER_TZ),
-+	HWMON_CHANNEL_INFO(temp, HWMON_T_INPUT),
- 	NULL
+diff --git a/drivers/hwmon/asus_wmi_sensors.c b/drivers/hwmon/asus_wmi_sensors.c
+index c2dd7ff882f2..9593674fc5df 100644
+--- a/drivers/hwmon/asus_wmi_sensors.c
++++ b/drivers/hwmon/asus_wmi_sensors.c
+@@ -126,7 +126,7 @@ static enum hwmon_sensor_types asus_data_types[] = {
+ 	[WATER_FLOW]	= hwmon_fan,
  };
  
+-static u32 hwmon_attributes[hwmon_max] = {
++static u64 hwmon_attributes[hwmon_max] = {
+ 	[hwmon_chip]	= HWMON_C_REGISTER_TZ,
+ 	[hwmon_temp]	= HWMON_T_INPUT | HWMON_T_LABEL,
+ 	[hwmon_in]	= HWMON_I_INPUT | HWMON_I_LABEL,
+@@ -248,9 +248,9 @@ static int asus_wmi_get_item_count(u32 *count)
+ 
+ static int asus_wmi_hwmon_add_chan_info(struct hwmon_channel_info *asus_wmi_hwmon_chan,
+ 					struct device *dev, int num,
+-					enum hwmon_sensor_types type, u32 config)
++					enum hwmon_sensor_types type, u64 config)
+ {
+-	u32 *cfg;
++	u64 *cfg;
+ 
+ 	cfg = devm_kcalloc(dev, num + 1, sizeof(*cfg), GFP_KERNEL);
+ 	if (!cfg)
+@@ -258,7 +258,7 @@ static int asus_wmi_hwmon_add_chan_info(struct hwmon_channel_info *asus_wmi_hwmo
+ 
+ 	asus_wmi_hwmon_chan->type = type;
+ 	asus_wmi_hwmon_chan->config = cfg;
+-	memset32(cfg, config, num);
++	memset64(cfg, config, num);
+ 
+ 	return 0;
+ }
 -- 
 2.22.0
 
