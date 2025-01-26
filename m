@@ -1,30 +1,30 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 798E119993B;
-	Sun, 26 Jan 2025 16:46:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3D2B19E96A;
+	Sun, 26 Jan 2025 16:46:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737909972; cv=none; b=mWngmtBuXYWc0oTBjG08QEvOBTYad0EZqmPFqU8K/3oH7unF2HXngCXJg8c2gpvx11houbW3cRq56uaxPkrkIs5cyfF3PsPrNivi7gnU5o/s2KNhGuk0g2k9veoPfRURnoJ2wD5d32aQb11N2BRjmtt49heQHJziVWbPL1vZEmY=
+	t=1737909980; cv=none; b=XekMdLspuZWi6740T5ZuCSqiRvrAg/Y7IQ5G2EscYhmBStLqngahmeIDtxcVRmSJUGqfvBSIUxW+tb7M0vagHZbiYD7cg8SghdvYbLPGipSou9IKahhByU1CeiPlDxu51jO5LhYQuSkh7TClyk1oTk4JeeHxhUoEgbABocZfS0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737909972; c=relaxed/simple;
+	s=arc-20240116; t=1737909980; c=relaxed/simple;
 	bh=c/z8Fqyndj1hHrx1Q0bB/JSDepO/52l2S2hAJuhZz64=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=cnFnJ+AGEbk2/3KqdQAOYLzmMZkGBnwFP6fcbG64Do1x0OhS9fUoACOULlwsfyj8ENchCUshMTV7YHHAzkbVAqHr86q5tm0M+GD+afr8fTbrVgi2fk8lIgC6Ycd6eDBQ9+CAaCdIcLAL6/FNOXzVNSHe7j8kWE2P/AZbwUDmvm0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Cz/jJXkj; arc=none smtp.client-ip=10.30.226.201
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=SS+8ySCwz+xETSsCVPsNnTm4+cMPbVsiyKYYRTYem232upA3Q50BvyAcJE1/O3/JWbYbKWYo9XDtIVGtLxyc8RgptHQzxLU5H/RamxNpk/1N/U606RItePpVbVbaZZjwoYAW3XCVQeOC5BoCacNywqb1iqBSTW188XrjlVUuqxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=K3folyR2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Cz/jJXkj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D08AC4CEE9;
-	Sun, 26 Jan 2025 16:46:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="K3folyR2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FA3EC4CED3;
+	Sun, 26 Jan 2025 16:46:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1737909972;
+	s=k20201202; t=1737909980;
 	bh=c/z8Fqyndj1hHrx1Q0bB/JSDepO/52l2S2hAJuhZz64=;
 	h=From:To:Cc:Subject:Date:From;
-	b=Cz/jJXkjP2X/VLB7D6MSNXg95iBAy9g+Hy6Zm8uu7IS88xH2YH06zPJGIwe0Zm2ws
-	 1o1Uqa9z0XnZ/EBpRUP11lrx4WrQA7fM1rbyCaNiPMEaYbmzZaLkPcF468/9pdAAv3
-	 OLFraMA+GM9ihIKrqPJgzcyq6ccIQlVqnu06FB4znyvhfZy9/EluToQwa4rxszchyY
-	 EgAOOG9/rthAX0hFGOn8/jmkg/Nm/DvfHb3JWcOhlKJtLHj/3fXRrHWtvYAz3Qs5Pp
-	 vA4ONS3mPsyY/KLmLC9QhJzJ9mSVrXJuQokJBZ7mIy7jTjtstWbiaFsfqDGEjuxqXs
-	 zuq96+OEqNnqg==
+	b=K3folyR2iKV35fJCJAQ43M3CxiLA2q0HxtF9+zKNCziUEoLSPPRcyeZzKlVZQSZjt
+	 ylqqJfje28G8RmDbFEsI8dEBqiIpTFPhMyssM4M8ob5cgqEn2BTCqpdmHcnu59G5gD
+	 KEoEtdNmpqfOZZWsXduBR5n3d9vnVEkSi2WJF3aWyQ7VFHyCYvD9ZinExzu8lCHAF8
+	 DHJZO9g/MIxvmG0Wkj7TNtGZbiMBrvAcb3sOr/Xs9r6NTFL5tkteXkUb86YKuHr/pG
+	 KUDCOM/NV4ZCgGiLXLf3MtjrvK0S6vxDk4uir+ZGba8c77rEVnyden0ucW//NkKQyA
+	 Yk30AvD/KTzqA==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -35,9 +35,9 @@ Cc: Michael Margolin <mrgolin@amazon.com>,
 	Leon Romanovsky <leon@kernel.org>,
 	Sasha Levin <sashal@kernel.org>,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.6 1/3] RDMA/efa: Reset device on probe failure
-Date: Sun, 26 Jan 2025 11:46:07 -0500
-Message-Id: <20250126164609.964170-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 1/2] RDMA/efa: Reset device on probe failure
+Date: Sun, 26 Jan 2025 11:46:17 -0500
+Message-Id: <20250126164618.964225-1-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -47,7 +47,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.6.74
+X-stable-base: Linux 6.1.127
 Content-Transfer-Encoding: 8bit
 
 From: Michael Margolin <mrgolin@amazon.com>
