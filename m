@@ -1,30 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB8911D9A50;
-	Mon, 27 Jan 2025 22:38:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76EC41DC99A;
+	Mon, 27 Jan 2025 22:38:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738017538; cv=none; b=VQMfZUnXpn5mnZzk3gu0CwqchCJJymTDvpB3EbqLWDXoD03Khes95REzuqzERxrYPrVML5ajHqJdJZDF4ygJsvX2Z59Fj+9lm1M7gwdFXmdKizv7txaWbIuR0OsEA/HZPWsJij1/5V/7JnqrvI51h6XEE+48dcEDyL1hv6FR6VA=
+	t=1738017539; cv=none; b=LA3z9e+gNSdrg99QWOIiL26PSAxh8Ek02wtivSxl9prtnLYm7eOJhQn8nGECGnYpYAK92RI01FpibpdIpQK1++PZrahjmjWnovUet9ryM17G/fluSFv3w78oUYTFnh/TEtQuxp8acHjIwHvSKE3RXQc8J+jC6BDOwF+Suclujec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738017538; c=relaxed/simple;
-	bh=o4niIlLTPWIhz/KZH60NrGSI/SQAzdT1aRV1xa3huOs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PyR2jupz3c3tBRdh+lelX+8PIN0XKcAidSP5Pe8CduhbOknd+/r/8ib1bnghrezoFNIQl+V7GSso+u0PKBRWK57iGozFZ1mtGTYzM2S+/pJ9LpjdqwASGI4NarH+oIEGUJ+AinLNOFTr0QQq7PRcGTeZnMt0tew7NlaXS03BEYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lJ/ZTF8s; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738017539; c=relaxed/simple;
+	bh=RcffRuLM1HcK81UB5AITUqZeaIYml6UqCkQoXQ0R/Lw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=KRRinbfgiBHHVc+4fvQFpnQJd5CRDbUxjdPCAOPJbZ/YGkQXtAIh+mACratFL5xd6iiCvvcdr+WilwbOdGXkLNaQ3PJDiUWUNfJJTnLehsWxwQt1dklo8RW4uJ5CwmdHaXY2jfJPQOTL79HcgiOjAT5Ft5gP5iZtK0jgFLVo48w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aM12lIaF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lJ/ZTF8s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7AB3C4CED2;
-	Mon, 27 Jan 2025 22:38:57 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aM12lIaF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A519AC4CEE2;
+	Mon, 27 Jan 2025 22:38:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1738017538;
-	bh=o4niIlLTPWIhz/KZH60NrGSI/SQAzdT1aRV1xa3huOs=;
-	h=From:To:Cc:Subject:Date:From;
-	b=lJ/ZTF8sbtVjqg1hkyhbvMWE+yC/EGMRDtuKjy0A+iw+aakXp08eDXK+ThumqRoTE
-	 5bB5ERHePrJTpyXIoyA0VLmO0aqD9vaFgN3CTQQh71or3IAU1lz8j72VYs6Shs429C
-	 4Z/Ppt28fBUFgW8Ej56O6vQa6SnNmUPt16aXhvV4v0c8D+jCmDJXgRXsG5VQ0a8hRN
-	 FHjMYrJeom477X9AWylH1Wf+HLjFmA+fcwXgqUsTuYuu0v2krVNkslRYh3fM2jmsUQ
-	 As5bVYrq7xTtahzGa5OwsYMwst2wqidRvR1UFO4mwE1+UoFNzfzYRmYU+1E94xePML
-	 i2HUlXFxlmA7Q==
+	bh=RcffRuLM1HcK81UB5AITUqZeaIYml6UqCkQoXQ0R/Lw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=aM12lIaF7g51vEvycs/hO5JriSdeKel+inG/QqQYM/lxBGeIegY3iff2e8ahI3TA0
+	 X9NbDFYayxRL7Dmp9eIxqxBiWSeW1yKsBATj9ixhY+5XTUwNyPZ/St5sczLBiRpYGg
+	 7IgOqh4yj+H1IxSCv+wvHMATRWB40gsTcGn0Lgx1n7QoDlEyvAv0W30W5Xfp2uUeQ0
+	 B6E9+VXcpM6nAje+ejOaNsDc/3NoMzqKy/at4NfZsfBdc0n2gMqUZ0hJUiF4pBrA7h
+	 hn6a+8Y0GbK7X4mYwytyAn3e3pQEKTkVnikK/ZDdTYTevZxWJirQy7iz0PZ/JC+8q5
+	 xjQrFtWLRAK+A==
 From: Eric Biggers <ebiggers@kernel.org>
 To: linux-rdma@vger.kernel.org,
 	Mustafa Ismail <mustafa.ismail@intel.com>,
@@ -34,10 +35,12 @@ To: linux-rdma@vger.kernel.org,
 	Zhu Yanjun <zyjzyj2000@gmail.com>,
 	Bernard Metzler <bmt@zurich.ibm.com>
 Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH 0/6] RDMA: switch to using CRC32 library functions
-Date: Mon, 27 Jan 2025 14:38:34 -0800
-Message-ID: <20250127223840.67280-1-ebiggers@kernel.org>
+Subject: [PATCH 2/6] RDMA/rxe: consolidate code for calculating ICRC of packets
+Date: Mon, 27 Jan 2025 14:38:36 -0800
+Message-ID: <20250127223840.67280-3-ebiggers@kernel.org>
 X-Mailer: git-send-email 2.48.1
+In-Reply-To: <20250127223840.67280-1-ebiggers@kernel.org>
+References: <20250127223840.67280-1-ebiggers@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -46,50 +49,115 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Starting in 6.14, the crc32() and crc32c() library functions are
-directly optimized for each architecture (see
-https://git.kernel.org/linus/37b33c68b00089a5), and there is no longer
-any need to go through the crypto API.  Therefore uses of the "crc32"
-and "crc32c" crypto_shash or crypto_ahash algorithms are being replaced
-with straightforward calls to crc32() and crc32c() kernel-wide.  This
-patchset does this conversion in drivers/infiniband/.
+From: Eric Biggers <ebiggers@google.com>
 
-Compile-tested only.
+Since rxe_icrc_hdr() is always immediately followed by updating the CRC
+with the packet's payload, just rename it to rxe_icrc() and make it
+include the payload in the CRC, so it now handles the entire packet.
 
-Eric Biggers (6):
-  RDMA/rxe: handle ICRC correctly on big endian systems
-  RDMA/rxe: consolidate code for calculating ICRC of packets
-  RDMA/rxe: switch to using the crc32 library
-  RDMA/irdma: switch to using the crc32c library
-  RDMA/siw: fix type of CRC field
-  RDMA/siw: switch to using the crc32c library
+This is a refactor with no change in behavior.
 
- drivers/infiniband/hw/irdma/Kconfig   |   1 +
- drivers/infiniband/hw/irdma/main.h    |   1 -
- drivers/infiniband/hw/irdma/osdep.h   |   6 +-
- drivers/infiniband/hw/irdma/puda.c    |  19 ++---
- drivers/infiniband/hw/irdma/puda.h    |   5 +-
- drivers/infiniband/hw/irdma/utils.c   |  47 +----------
- drivers/infiniband/sw/rxe/Kconfig     |   3 +-
- drivers/infiniband/sw/rxe/rxe.c       |   3 -
- drivers/infiniband/sw/rxe/rxe.h       |   1 -
- drivers/infiniband/sw/rxe/rxe_icrc.c  | 114 +++++++-------------------
- drivers/infiniband/sw/rxe/rxe_loc.h   |   1 -
- drivers/infiniband/sw/rxe/rxe_req.c   |   1 -
- drivers/infiniband/sw/rxe/rxe_verbs.c |   4 -
- drivers/infiniband/sw/rxe/rxe_verbs.h |   1 -
- drivers/infiniband/sw/siw/Kconfig     |   4 +-
- drivers/infiniband/sw/siw/iwarp.h     |   2 +-
- drivers/infiniband/sw/siw/siw.h       |  46 ++++++++---
- drivers/infiniband/sw/siw/siw_main.c  |  22 +----
- drivers/infiniband/sw/siw/siw_qp.c    |  56 +++----------
- drivers/infiniband/sw/siw/siw_qp_rx.c |  42 +++++-----
- drivers/infiniband/sw/siw/siw_qp_tx.c |  47 +++++------
- drivers/infiniband/sw/siw/siw_verbs.c |   3 -
- 22 files changed, 134 insertions(+), 295 deletions(-)
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+---
+ drivers/infiniband/sw/rxe/rxe_icrc.c | 36 ++++++++++++----------------
+ 1 file changed, 15 insertions(+), 21 deletions(-)
 
-
-base-commit: 805ba04cb7ccfc7d72e834ebd796e043142156ba
+diff --git a/drivers/infiniband/sw/rxe/rxe_icrc.c b/drivers/infiniband/sw/rxe/rxe_icrc.c
+index ee417a0bbbdca..c7b0b4673b959 100644
+--- a/drivers/infiniband/sw/rxe/rxe_icrc.c
++++ b/drivers/infiniband/sw/rxe/rxe_icrc.c
+@@ -60,26 +60,24 @@ static u32 rxe_crc32(struct rxe_dev *rxe, u32 crc, void *next, size_t len)
+ 
+ 	return icrc;
+ }
+ 
+ /**
+- * rxe_icrc_hdr() - Compute the partial ICRC for the network and transport
+- *		  headers of a packet.
++ * rxe_icrc() - Compute the ICRC of a packet
+  * @skb: packet buffer
+  * @pkt: packet information
+  *
+- * Return: the partial ICRC
++ * Return: the ICRC
+  */
+-static u32 rxe_icrc_hdr(struct sk_buff *skb, struct rxe_pkt_info *pkt)
++static u32 rxe_icrc(struct sk_buff *skb, struct rxe_pkt_info *pkt)
+ {
+ 	unsigned int bth_offset = 0;
+ 	struct iphdr *ip4h = NULL;
+ 	struct ipv6hdr *ip6h = NULL;
+ 	struct udphdr *udph;
+ 	struct rxe_bth *bth;
+ 	u32 crc;
+-	int length;
+ 	int hdr_size = sizeof(struct udphdr) +
+ 		(skb->protocol == htons(ETH_P_IP) ?
+ 		sizeof(struct iphdr) : sizeof(struct ipv6hdr));
+ 	/* pseudo header buffer size is calculate using ipv6 header size since
+ 	 * it is bigger than ipv4
+@@ -118,17 +116,23 @@ static u32 rxe_icrc_hdr(struct sk_buff *skb, struct rxe_pkt_info *pkt)
+ 	bth = (struct rxe_bth *)&pshdr[bth_offset];
+ 
+ 	/* exclude bth.resv8a */
+ 	bth->qpn |= cpu_to_be32(~BTH_QPN_MASK);
+ 
+-	length = hdr_size + RXE_BTH_BYTES;
+-	crc = rxe_crc32(pkt->rxe, crc, pshdr, length);
++	/* Update the CRC with the first part of the headers. */
++	crc = rxe_crc32(pkt->rxe, crc, pshdr, hdr_size + RXE_BTH_BYTES);
+ 
+-	/* And finish to compute the CRC on the remainder of the headers. */
++	/* Update the CRC with the remainder of the headers. */
+ 	crc = rxe_crc32(pkt->rxe, crc, pkt->hdr + RXE_BTH_BYTES,
+ 			rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
+-	return crc;
++
++	/* Update the CRC with the payload. */
++	crc = rxe_crc32(pkt->rxe, crc, payload_addr(pkt),
++			payload_size(pkt) + bth_pad(pkt));
++
++	/* Invert the CRC and return it. */
++	return ~crc;
+ }
+ 
+ /**
+  * rxe_icrc_check() - Compute ICRC for a packet and compare to the ICRC
+  *		      delivered in the packet.
+@@ -146,18 +150,12 @@ int rxe_icrc_check(struct sk_buff *skb, struct rxe_pkt_info *pkt)
+ 	 * descending order from the x^31 coefficient to the x^0 one.  When the
+ 	 * result is interpreted as a 32-bit integer using the required reverse
+ 	 * mapping between bits and polynomial coefficients, it's a __le32.
+ 	 */
+ 	__le32 *icrcp = (__le32 *)(pkt->hdr + pkt->paylen - RXE_ICRC_SIZE);
+-	u32 icrc;
+ 
+-	icrc = rxe_icrc_hdr(skb, pkt);
+-	icrc = rxe_crc32(pkt->rxe, icrc, (u8 *)payload_addr(pkt),
+-				payload_size(pkt) + bth_pad(pkt));
+-	icrc = ~icrc;
+-
+-	if (unlikely(icrc != le32_to_cpu(*icrcp)))
++	if (unlikely(rxe_icrc(skb, pkt) != le32_to_cpu(*icrcp)))
+ 		return -EINVAL;
+ 
+ 	return 0;
+ }
+ 
+@@ -167,12 +165,8 @@ int rxe_icrc_check(struct sk_buff *skb, struct rxe_pkt_info *pkt)
+  * @pkt: packet information
+  */
+ void rxe_icrc_generate(struct sk_buff *skb, struct rxe_pkt_info *pkt)
+ {
+ 	__le32 *icrcp = (__le32 *)(pkt->hdr + pkt->paylen - RXE_ICRC_SIZE);
+-	u32 icrc;
+ 
+-	icrc = rxe_icrc_hdr(skb, pkt);
+-	icrc = rxe_crc32(pkt->rxe, icrc, (u8 *)payload_addr(pkt),
+-				payload_size(pkt) + bth_pad(pkt));
+-	*icrcp = cpu_to_le32(~icrc);
++	*icrcp = cpu_to_le32(rxe_icrc(skb, pkt));
+ }
 -- 
 2.48.1
 
