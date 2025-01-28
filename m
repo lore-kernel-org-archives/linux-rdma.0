@@ -1,33 +1,34 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C4CE71DEFE3;
-	Tue, 28 Jan 2025 18:21:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D93A71F3FEC;
+	Tue, 28 Jan 2025 18:22:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738088522; cv=none; b=s2TWS+uOeiL2SZpzW/GicEfcAAV2w3yvcMhUWsL1ci2iU8MkQKNwkpJVvOSqFeWFlABRoiix8qbTpWs5o/3ahn6wAzbvHVNp7WDh4WOVw0207hL4+/C6Nijzn0YSqjwXGyYjgxv92/XRLoEJfQcukto5C5s6qJz0fHS794gfaro=
+	t=1738088524; cv=none; b=KapF/PqITv5g4lx6nqO7+lw7vDuNmjgc4ADf+wTv+sx21R1VoPCIB7/A+TYzh673BAglBw5ypFiguyaUe6ddFzA8kyVc79/+e32xwu5kpVT9zNkiVHdia6C8ZweWR40NnCNhttL4kIlzzY8IfFCI4+jrZiQ3wrplH0fZQOOEf4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738088522; c=relaxed/simple;
-	bh=UsUwkjA8cNb2PcchDqY2QvKjXirKtHPuHHZCi+z/zFw=;
+	s=arc-20240116; t=1738088524; c=relaxed/simple;
+	bh=OsYTfsOCztno0rw4bH8H93fzXxdgLqs3edOsOwLU26w=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=czXQ+lIKwIgcZ4cGFTQqIqrNc+SHhpJN20+bFqvR+0Dq9TtWDufSFmJ3fcT59o+MpaDBplriZo4sV02KhCbx8YvDgifV45OQ7eqWAFK5nUfi8yWtVS6C60YXrdKiCfXNIEAhpt+S1J/L8UM51Do2JU1obA+gxjcXWIaTCAxmFUc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=LxxdIayM; arc=none smtp.client-ip=13.77.154.182
+	 In-Reply-To:To:Cc; b=cyFKetNO0CIluwYw5acIyHKC0ScraxvZAc2ybNV28g3hPqCi2ow0bCWCDr0G6t68Km3kYk8J+ErmcdooqAT8PbwJp+mIUOBe5FgAuptee5rucP4r8VIuWQQNqkH9ne1t5k/CXHB7Ge3Zqd2Vtx5rzNkipNl+gRIp6qIcfkSBQG0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=nOvIreoP; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="LxxdIayM"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="nOvIreoP"
 Received: from eahariha-devbox.internal.cloudapp.net (unknown [40.91.112.99])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 1D482203717B;
+	by linux.microsoft.com (Postfix) with ESMTPSA id DB2792037180;
 	Tue, 28 Jan 2025 10:21:58 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1D482203717B
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com DB2792037180
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1738088518;
-	bh=CFb4XrnDSERyLmvQoVXwUxR+JwVzCZvuuqJLbnh8AHY=;
+	bh=++CcFDhMGmgcKwzaiNwx3lMiN5jr5twzkm9Lzfmspqc=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=LxxdIayMSyUMAUeZUUnUyY3SQxVmwYY5Yyy03OWU22J18lbSyq7bmmWrhs+09j8qK
-	 AdDxUAv3Opt8Wt6axGPYWRpk6/ENme+ZBSlX8IppgdX/yiYG+JdoRJjp8kHw8DUyuj
-	 x3rFLX3PefulMBej9H+RgFZR+bApgqLL7hw3/Tgc=
+	b=nOvIreoPo3EtPXnqT78hdGSPjS+BJfm76bfob6LjYY8fpAzAx+SSWBMemjjxO+8RL
+	 gtA/N4PvBwCgX5MwsErpmvFLEJEFEicnjVAtYs/DImfDKgiY3inNNwt6TIW4w8Mj2E
+	 eLHR2MK1+CS1Dd52E6DvRE+gXgt4inmHotPghBSw=
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Date: Tue, 28 Jan 2025 18:21:50 +0000
-Subject: [PATCH 05/16] btrfs: convert timeouts to secs_to_jiffies()
+Date: Tue, 28 Jan 2025 18:21:55 +0000
+Subject: [PATCH 10/16] power: supply: da9030: convert timeouts to
+ secs_to_jiffies()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -36,7 +37,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250128-converge-secs-to-jiffies-part-two-v1-5-9a6ecf0b2308@linux.microsoft.com>
+Message-Id: <20250128-converge-secs-to-jiffies-part-two-v1-10-9a6ecf0b2308@linux.microsoft.com>
 References: <20250128-converge-secs-to-jiffies-part-two-v1-0-9a6ecf0b2308@linux.microsoft.com>
 In-Reply-To: <20250128-converge-secs-to-jiffies-part-two-v1-0-9a6ecf0b2308@linux.microsoft.com>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -97,34 +98,23 @@ expression E;
 
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 ---
- fs/btrfs/disk-io.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/power/supply/da9030_battery.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/fs/btrfs/disk-io.c b/fs/btrfs/disk-io.c
-index f09db62e61a1b0e2b8b319f9605883fe0c86cf9d..ed2772d2791997b1e1d15e71d01d818b325f5173 100644
---- a/fs/btrfs/disk-io.c
-+++ b/fs/btrfs/disk-io.c
-@@ -1568,7 +1568,7 @@ static int transaction_kthread(void *arg)
+diff --git a/drivers/power/supply/da9030_battery.c b/drivers/power/supply/da9030_battery.c
+index ac2e319e95179039279dacaed1744136f679fbac..d25279c260308b6c82acb2aabf44f3749f71b703 100644
+--- a/drivers/power/supply/da9030_battery.c
++++ b/drivers/power/supply/da9030_battery.c
+@@ -502,8 +502,7 @@ static int da9030_battery_probe(struct platform_device *pdev)
  
- 	do {
- 		cannot_commit = false;
--		delay = msecs_to_jiffies(fs_info->commit_interval * 1000);
-+		delay = secs_to_jiffies(fs_info->commit_interval);
- 		mutex_lock(&fs_info->transaction_kthread_mutex);
+ 	/* 10 seconds between monitor runs unless platform defines other
+ 	   interval */
+-	charger->interval = msecs_to_jiffies(
+-		(pdata->batmon_interval ? : 10) * 1000);
++	charger->interval = secs_to_jiffies(pdata->batmon_interval ? : 10);
  
- 		spin_lock(&fs_info->trans_lock);
-@@ -1583,9 +1583,9 @@ static int transaction_kthread(void *arg)
- 		    cur->state < TRANS_STATE_COMMIT_PREP &&
- 		    delta < fs_info->commit_interval) {
- 			spin_unlock(&fs_info->trans_lock);
--			delay -= msecs_to_jiffies((delta - 1) * 1000);
-+			delay -= secs_to_jiffies(delta - 1);
- 			delay = min(delay,
--				    msecs_to_jiffies(fs_info->commit_interval * 1000));
-+				    secs_to_jiffies(fs_info->commit_interval));
- 			goto sleep;
- 		}
- 		transid = cur->transid;
+ 	charger->charge_milliamp = pdata->charge_milliamp;
+ 	charger->charge_millivolt = pdata->charge_millivolt;
 
 -- 
 2.43.0
