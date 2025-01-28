@@ -1,33 +1,33 @@
 Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A37E31E1A20;
-	Tue, 28 Jan 2025 18:22:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7A84E1F1520;
+	Tue, 28 Jan 2025 18:22:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738088523; cv=none; b=EqhM6IlY3OJjwFbcgigOBUthHYxPt23HQJWdRR2A9Meus1UoOuoBgqF3G3QBQ3t9HnOWHCuv2Dsc/6IANZKyFyZQF2wWBDjNG9uXdV9X9jEbGWsaRU+70gymcBRa3c7J50TSdnta5BOTnLiRr2B3wrPDQWPyvhA2R6ifM0s9CoE=
+	t=1738088523; cv=none; b=NL5fd4Uqe+htyN5+ZZ35wMrSDFj6lVwvdCz5MRSKcndCkYhQF8sYmyb5o9cdbv2mLm9qcxGxBVlhc2RUnzu9iRa6pbbFVQLFy9GI1QWDN1io+vvU1jrx4BBNImkE17mRDpvXsZtJqiAnogXLmCL6JBzxgxTTejOZyJVzgiXaQXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1738088523; c=relaxed/simple;
-	bh=hxzBuqSwk2zzOwQjj5kj7Zs58bHYnySoYbzTohNwNyI=;
+	bh=OLA3A56uD0O5H9QiRTUKVuZZklZoijvOUfZpIkvjlIU=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=k+y9hzPceXjvH3+8OOajv+oCtYX+LExJulRqDkRBHepWxK9yvGx95ph7RECSjLMxPhUVho5Xjp0nZlxJVV5lammi032CFfg1cctbeCNVWUwVP2s+dbqCpDZj8WnaQtvL7jdOKu4bf52t03WGj7jreLJwzd/f5sjI2AapX7TgjSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=hgE89/ZE; arc=none smtp.client-ip=13.77.154.182
+	 In-Reply-To:To:Cc; b=BIXkyK24lyRrqkysp7RxuOk26knqdhxRvcWC/8FmVHMIwBZJQ/c5EoW6NhuJATaU8D46J+XqESMs0GbcakJL6c27upXs8t5ryRvQYXsVME7C0994ui2t6l/hCKocZMXr319pPxUawwp3/ldfGQ3SjNz3jJC/cDpuZPCkSx87Wxg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=bCWdmC5s; arc=none smtp.client-ip=13.77.154.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="hgE89/ZE"
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="bCWdmC5s"
 Received: from eahariha-devbox.internal.cloudapp.net (unknown [40.91.112.99])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 677F3203717D;
+	by linux.microsoft.com (Postfix) with ESMTPSA id B64E5203717F;
 	Tue, 28 Jan 2025 10:21:58 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 677F3203717D
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com B64E5203717F
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
 	s=default; t=1738088518;
-	bh=HdLPh2PfgYXpuYBC8DOdOZE21MhHNYKQn7qY/vRruJc=;
+	bh=u7OiaBq0jFk7FcA2dC+mPjTQmMAI3oiqK6Ljbdu99Zo=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=hgE89/ZEGzhCC06fBSy0OuT0sQNDNNusckBiNMFdx8HObLyTLW3siMG94Pr0ZLlsb
-	 fQK9++emxz2f1q1VTPxH2f2GJNOABzUmDv5dw+7qWye+06L0MBnTU4YhBM46fW71JN
-	 PSr2aK+Cp92CEJ/69KbyMUuvjSAK/8CWtJpCo8l8=
+	b=bCWdmC5sK+KGAbHIQs99+gR3I9KkUGPk8kFlcCfGOtNz5+PxpeUtS30nO0JF6Kkrh
+	 4YdwJAnsnMu3a7zDoviG7hWlukFPfHmJucfdR4tFHFcqEK2OJWxup5PGk5ZafTVcpE
+	 UzK+XoLAiEFwEnVWfbUT/XAsd53WZnxAQJy+FV1o=
 From: Easwar Hariharan <eahariha@linux.microsoft.com>
-Date: Tue, 28 Jan 2025 18:21:52 +0000
-Subject: [PATCH 07/16] libceph: convert timeouts to secs_to_jiffies()
+Date: Tue, 28 Jan 2025 18:21:54 +0000
+Subject: [PATCH 09/16] xfs: convert timeouts to secs_to_jiffies()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -36,7 +36,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250128-converge-secs-to-jiffies-part-two-v1-7-9a6ecf0b2308@linux.microsoft.com>
+Message-Id: <20250128-converge-secs-to-jiffies-part-two-v1-9-9a6ecf0b2308@linux.microsoft.com>
 References: <20250128-converge-secs-to-jiffies-part-two-v1-0-9a6ecf0b2308@linux.microsoft.com>
 In-Reply-To: <20250128-converge-secs-to-jiffies-part-two-v1-0-9a6ecf0b2308@linux.microsoft.com>
 To: Andrew Morton <akpm@linux-foundation.org>, 
@@ -97,59 +97,47 @@ expression E;
 
 Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 ---
- net/ceph/ceph_common.c | 10 ++++------
- net/ceph/osd_client.c  |  3 +--
- 2 files changed, 5 insertions(+), 8 deletions(-)
+ fs/xfs/xfs_icache.c | 2 +-
+ fs/xfs/xfs_sysfs.c  | 7 +++----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/net/ceph/ceph_common.c b/net/ceph/ceph_common.c
-index 4c6441536d55b6323f4b9d93b5d4837cd4ec880c..0d1e303c0212cc9f70f7c54ca422b0b3ea01bf32 100644
---- a/net/ceph/ceph_common.c
-+++ b/net/ceph/ceph_common.c
-@@ -529,27 +529,25 @@ int ceph_parse_param(struct fs_parameter *param, struct ceph_options *opt,
- 		/* 0 isn't well defined right now, reject it */
- 		if (result.uint_32 < 1 || result.uint_32 > INT_MAX / 1000)
- 			goto out_of_range;
--		opt->osd_keepalive_timeout =
--		    msecs_to_jiffies(result.uint_32 * 1000);
-+		opt->osd_keepalive_timeout = secs_to_jiffies(result.uint_32);
- 		break;
- 	case Opt_osd_idle_ttl:
- 		/* 0 isn't well defined right now, reject it */
- 		if (result.uint_32 < 1 || result.uint_32 > INT_MAX / 1000)
- 			goto out_of_range;
--		opt->osd_idle_ttl = msecs_to_jiffies(result.uint_32 * 1000);
-+		opt->osd_idle_ttl = secs_to_jiffies(result.uint_32);
- 		break;
- 	case Opt_mount_timeout:
- 		/* 0 is "wait forever" (i.e. infinite timeout) */
- 		if (result.uint_32 > INT_MAX / 1000)
- 			goto out_of_range;
--		opt->mount_timeout = msecs_to_jiffies(result.uint_32 * 1000);
-+		opt->mount_timeout = secs_to_jiffies(result.uint_32);
- 		break;
- 	case Opt_osd_request_timeout:
- 		/* 0 is "wait forever" (i.e. infinite timeout) */
- 		if (result.uint_32 > INT_MAX / 1000)
- 			goto out_of_range;
--		opt->osd_request_timeout =
--		    msecs_to_jiffies(result.uint_32 * 1000);
-+		opt->osd_request_timeout = secs_to_jiffies(result.uint_32);
- 		break;
+diff --git a/fs/xfs/xfs_icache.c b/fs/xfs/xfs_icache.c
+index 7b6c026d01a1fc020a41a678964cdbf7a8113323..7a1feb8dc21f6f71d04f88de866e5a95925e0c54 100644
+--- a/fs/xfs/xfs_icache.c
++++ b/fs/xfs/xfs_icache.c
+@@ -230,7 +230,7 @@ xfs_blockgc_queue(
+ 	rcu_read_lock();
+ 	if (radix_tree_tagged(&pag->pag_ici_root, XFS_ICI_BLOCKGC_TAG))
+ 		queue_delayed_work(mp->m_blockgc_wq, &pag->pag_blockgc_work,
+-				   msecs_to_jiffies(xfs_blockgc_secs * 1000));
++				   secs_to_jiffies(xfs_blockgc_secs));
+ 	rcu_read_unlock();
+ }
  
- 	case Opt_share:
-diff --git a/net/ceph/osd_client.c b/net/ceph/osd_client.c
-index b24afec241382b60d775dd12a6561fa23a7eca45..ba61a48b4388c2eceb5b7a299906e7f90191dd5d 100644
---- a/net/ceph/osd_client.c
-+++ b/net/ceph/osd_client.c
-@@ -4989,8 +4989,7 @@ int ceph_osdc_notify(struct ceph_osd_client *osdc,
- 	linger_submit(lreq);
- 	ret = linger_reg_commit_wait(lreq);
- 	if (!ret)
--		ret = linger_notify_finish_wait(lreq,
--				 msecs_to_jiffies(2 * timeout * MSEC_PER_SEC));
-+		ret = linger_notify_finish_wait(lreq, secs_to_jiffies(2 * timeout));
- 	else
- 		dout("lreq %p failed to initiate notify %d\n", lreq, ret);
+diff --git a/fs/xfs/xfs_sysfs.c b/fs/xfs/xfs_sysfs.c
+index 60cb5318fdae3cc246236fd988b4749df57f8bfc..eed0f28afe97ead762a9539e45f292db7d0d0c4a 100644
+--- a/fs/xfs/xfs_sysfs.c
++++ b/fs/xfs/xfs_sysfs.c
+@@ -568,8 +568,8 @@ retry_timeout_seconds_store(
+ 	if (val == -1)
+ 		cfg->retry_timeout = XFS_ERR_RETRY_FOREVER;
+ 	else {
+-		cfg->retry_timeout = msecs_to_jiffies(val * MSEC_PER_SEC);
+-		ASSERT(msecs_to_jiffies(val * MSEC_PER_SEC) < LONG_MAX);
++		cfg->retry_timeout = secs_to_jiffies(val);
++		ASSERT(secs_to_jiffies(val) < LONG_MAX);
+ 	}
+ 	return count;
+ }
+@@ -686,8 +686,7 @@ xfs_error_sysfs_init_class(
+ 		if (init[i].retry_timeout == XFS_ERR_RETRY_FOREVER)
+ 			cfg->retry_timeout = XFS_ERR_RETRY_FOREVER;
+ 		else
+-			cfg->retry_timeout = msecs_to_jiffies(
+-					init[i].retry_timeout * MSEC_PER_SEC);
++			cfg->retry_timeout = secs_to_jiffies(init[i].retry_timeout);
+ 	}
+ 	return 0;
  
 
 -- 
