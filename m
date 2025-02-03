@@ -1,40 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 657F0204C3D;
-	Mon,  3 Feb 2025 12:48:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D95207DED
+	for <linux-rdma@vger.kernel.org>; Mon,  3 Feb 2025 12:48:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738586919; cv=none; b=ZBLKYALaCkPQYyMW3VqfX43xxH5olwbx1FLLpVHBaEbzC3j+zjmUg4GZxkghOax3BbzL3+O3eZyAvcuqlB8V+9M05fairCsyrmoRoyx9LHBzYbO9eATQE8koBmfyDggnUtma/2Ntj97bZ0GgL6dqeknCVrtO53uZxdFNleM5w3U=
+	t=1738586925; cv=none; b=QTAf2pUuZgf24ltaQocA4Fw2pBkeLd8h80iGnYcRGuvn8zWK58Sc50A8dUeNzoJvu4f+WyXvqU1fS2F8C6yxNl0vu63BICgv5G6V7cyqgGvJ8xmyCGfp8hEaWtZexcXc/Z8KDDjygXwZDaeoXGG3Kiv0PJpY3SXQ/j+Sv68BEBs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738586919; c=relaxed/simple;
-	bh=ErTHNCwJHHxLprWei3Un96riaRASdT57IFS1D11Vm44=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=k89vF8/J2jJ8e9WsXZ+Tw2owoQ8kbde/61nyNraA0vAflM4YcuphCZ3ZelyEIeepS1nzXQQwbxKm8LyqIcteTBerCGFbBrwEnaSJJeZovaI0H7Pt9zVYYT2ujl6BkkBk2bRnaL6c7CJShlPA7V6LhvjheJcxozNyYAnrU5aB0DM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GhmnltgV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738586925; c=relaxed/simple;
+	bh=I/6kTPuGF9r80a0srh6VE4oZIujlyJ5NQyUrGsQKM7I=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Rmk8Y7tE3VayvvOGRjpvWrQ3kJ8jF1hgT1HA0qKl+F4oDAd9SZFCzXiICMkl8gzleYNC5SEAJacP4jrqQjhnmgIv5Qdi7pNIfnhv3wsiy0FtGShA4nqHDZ0PAxI34wb9QeP1dqUn4veDxIdq82uX/EYgH6vsiduSWNxn6ccpKRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=C0t+tC2+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GhmnltgV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48253C4CEE0;
-	Mon,  3 Feb 2025 12:48:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="C0t+tC2+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 337DFC4CED2;
+	Mon,  3 Feb 2025 12:48:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1738586918;
-	bh=ErTHNCwJHHxLprWei3Un96riaRASdT57IFS1D11Vm44=;
-	h=From:To:Cc:Subject:Date:From;
-	b=GhmnltgVMen4ZBnYyijEBejBTh/AOO2bYx+8iMopHfKXmHj0S09jJ8vU3Ca0U3TYv
-	 rWAdX1+6Vtaxxrk4QAGkh+VE8fK2rWq2nXAw3MbYIerO7lvNKmnrFpW8Gxw5UKHIrK
-	 EZYby3o3ibZ8PU6c+DtqiNewmo13E4plwSi+6kL+MYyKeq0JtcGb299yBq6eNsWgHT
-	 EvZT0S8PizO/IHo3Fu9wk4vQN0hjEAfNBNHJi6kOuKKtQxCH8kal1nFawbq0o/ZsPf
-	 ZYRs8MHmihXx/FLvHOImWp9LC3JMWAZNIpamYVwAJaU1UrKyUQOfAFGV7Oqzn26yz5
-	 Cw+Nt9FNwih0Q==
+	s=k20201202; t=1738586922;
+	bh=I/6kTPuGF9r80a0srh6VE4oZIujlyJ5NQyUrGsQKM7I=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=C0t+tC2+Qxx7/9U7i+avc8LuyvdLwLzRhqN6yWu8EtsErOimwDygJSWGy4YwV8pai
+	 NA4S73j/vTE8PoAZEj5SG+KjbOn6Lb6NGL7XHpFs7oAsuqZyXIF7GynfVg+I/SIWt/
+	 LooezlltqJKbGxscNKKanTlMfOv0nsqEn2FOU8XIdvjeTcauYFb3bW74q3+QtmFzqN
+	 DIm0JRpnGC+J27lZRttizxMgUbaR3Wpln9jGne5BjWTpxiBfLV0WzaGYwcRhlAq0rF
+	 kkGgURgzE1CGanFbITQhpcMAMu3fELhsD8ya5dqhQeR4gBipq8agrqvXggoXNOSshf
+	 i8bPWdvlWfm9w==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-	linux-kernel@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	Maher Sanalla <msanalla@nvidia.com>
-Subject: [PATCH rdma-next v1 0/3] Print link status when it is changed
-Date: Mon,  3 Feb 2025 14:48:03 +0200
-Message-ID: <cover.1738586601.git.leon@kernel.org>
+Cc: Maher Sanalla <msanalla@nvidia.com>,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH rdma-next v1 2/3] RDMA/core: Use ib_port_state_to_str() for IB state sysfs
+Date: Mon,  3 Feb 2025 14:48:05 +0200
+Message-ID: <06affabbbf144f990e64b447918af39483c78c3e.1738586601.git.leon@kernel.org>
 X-Mailer: git-send-email 2.48.1
+In-Reply-To: <cover.1738586601.git.leon@kernel.org>
+References: <cover.1738586601.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -43,35 +44,48 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Changelog:
-v1:
- * Changed print to include port number
- * Don't print anything on change state from NOP
-v0: https://lore.kernel.org/all/cover.1737290406.git.leon@kernel.org
------------------------------------------------------------------------
+From: Maher Sanalla <msanalla@nvidia.com>
 
-In similar to netdev and hfi1 behavior, add general implementation to
-IB/core to print IB port state changes.
+Refactor the IB state sysfs implementation to replace the local array
+used for converting IB state to string with the ib_port_state_to_str()
+function.
 
-"mlx5_core 0000:08:00.0 mlx5_0: Port: 1 Link DOWN"
-"mlx5_core 0000:08:00.0 rdmap8s0f0: Port: 2 Link ACTIVE"
+Signed-off-by: Maher Sanalla <msanalla@nvidia.com>
+Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
+---
+ drivers/infiniband/core/sysfs.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-Thanks
-
-Maher Sanalla (3):
-  IB/cache: Add log messages for IB device state changes
-  RDMA/core: Use ib_port_state_to_str() for IB state sysfs
-  IB/hfi1: Remove state transition log message and opa_lstate_name()
-
- drivers/infiniband/core/cache.c     |  6 ++++++
- drivers/infiniband/core/sysfs.c     | 14 +-------------
- drivers/infiniband/hw/hfi1/chip.c   | 18 ------------------
- drivers/infiniband/hw/hfi1/chip.h   |  1 -
- drivers/infiniband/hw/hfi1/driver.c |  2 +-
- drivers/infiniband/hw/hfi1/mad.c    |  4 ++--
- include/rdma/ib_verbs.h             | 17 +++++++++++++++++
- 7 files changed, 27 insertions(+), 35 deletions(-)
-
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 9f97bef02149..7491328ca5e6 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -216,24 +216,12 @@ static ssize_t state_show(struct ib_device *ibdev, u32 port_num,
+ 	struct ib_port_attr attr;
+ 	ssize_t ret;
+ 
+-	static const char *state_name[] = {
+-		[IB_PORT_NOP]		= "NOP",
+-		[IB_PORT_DOWN]		= "DOWN",
+-		[IB_PORT_INIT]		= "INIT",
+-		[IB_PORT_ARMED]		= "ARMED",
+-		[IB_PORT_ACTIVE]	= "ACTIVE",
+-		[IB_PORT_ACTIVE_DEFER]	= "ACTIVE_DEFER"
+-	};
+-
+ 	ret = ib_query_port(ibdev, port_num, &attr);
+ 	if (ret)
+ 		return ret;
+ 
+ 	return sysfs_emit(buf, "%d: %s\n", attr.state,
+-			  attr.state >= 0 &&
+-					  attr.state < ARRAY_SIZE(state_name) ?
+-				  state_name[attr.state] :
+-				  "UNKNOWN");
++			  ib_port_state_to_str(attr.state));
+ }
+ 
+ static ssize_t lid_show(struct ib_device *ibdev, u32 port_num,
 -- 
 2.48.1
 
