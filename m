@@ -1,225 +1,102 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f44.google.com (mail-qv1-f44.google.com [209.85.219.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6BF1222565;
-	Wed,  5 Feb 2025 14:42:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C1321FCCF6
+	for <linux-rdma@vger.kernel.org>; Wed,  5 Feb 2025 14:47:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738766525; cv=none; b=RjLHpdaQkNdYCmcigxnAtDwzYXj96JBeXROeHQePj9VPZsjHR/enMEHOUriZLgOLHmd1ZeV8XvPx7GTs2hEwTGIbigfDepqJvauKMIZokxkA6qYV2CuPHqdPIMyFYYaHpQRhSIsRWVe0YbFxp3Lzw3RzhvL+cN5AUQ9Dqjz9goY=
+	t=1738766848; cv=none; b=RQByDXm7+qzcOKOiw8LzhJ21ywf9lqJJuq9dvGHCUjHZ1QwyOW58LcUmCoGf8RlW5NPMlPR9W6iNE+fRass/s4IUiF8PLq2VQ7eov19RuVJTFz1NOrpTabhBvApgeyQvIc8FFfr+Rn0yIwSvwj57O7hRq7/XQ89iTmEo4eBujSk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738766525; c=relaxed/simple;
-	bh=7aNBsgnJ1xpYJupIDdeW59JsJ73w9EGqwdcut5LVDS4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ihRZQVYEdOmbRfz7cByQIfpAT4n6Mp8wL4VZL38J3z9dIk4WV64a09ASPb4zwAQUZK+/5HlIg/Q4Ir0+i3XEk0YVj5QGeyCj+jTeDWLgjFzgHcAFgvWgWxXljGJGhiQSS5JrTp5r9VXngTTDFv211IbtRRGxzOmKsVPUcqbgOzE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W2YNA18v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738766848; c=relaxed/simple;
+	bh=yKAf2LEjO48MRgmuO81k35k9WNF6aP4nhc6tXq4dIpM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=H0YIUhBq8Hb6aKb78SFE6YavX1NBp9zM019C8ZrLILKYvVVS0LHwCPyLL+j2FW1GUecsyFfd2La5g2WrFtRkXDJvhRh4qqaN8+rFZHaQ0IECfsdor4t4YCf+EufzILAGqH+qpG2fOAvcd9QPmOPDLrzh8kgTbKNWqjwud2e5tZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=DjXZ0oXK; arc=none smtp.client-ip=209.85.219.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W2YNA18v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BEBAC4CED1;
-	Wed,  5 Feb 2025 14:42:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1738766525;
-	bh=7aNBsgnJ1xpYJupIDdeW59JsJ73w9EGqwdcut5LVDS4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=W2YNA18v52GskOrMKLkrTwzfQn8Km0PjGIUu87kMojGGjoog/10G95TBZ6vnkCJOA
-	 YBN2VL9nccEhcQB+VjXd8HFCxCAmenqSYB1f1SLAze41y9IxYfGcUyvzovhFkucE4f
-	 p08Hgr2aFu7TPrkMKUHPLcHRhBWfTuIFNxLXuqn9BzHXEN+JSM2GV9t331JEbLcVO1
-	 GSPh9+fHX0PFZ54Xj0VKJbbudJl6ZriCoRRfT0mEAv2qtfV12c5C2YyCHBJpXp/Avp
-	 6rDEaptuPvVVvZW3SFE4g/gPs6SQsVGFwUV+bcIiAAsYiTd1k+zUacXb4F76FSGdZJ
-	 rbwrAoMwir3bw==
-From: Leon Romanovsky <leon@kernel.org>
-To: Christoph Hellwig <hch@lst.de>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Robin Murphy <robin.murphy@arm.com>
-Cc: Leon Romanovsky <leonro@nvidia.com>,
-	Jens Axboe <axboe@kernel.dk>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Sagi Grimberg <sagi@grimberg.me>,
-	Keith Busch <kbusch@kernel.org>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
-	Kevin Tian <kevin.tian@intel.com>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	=?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev,
-	linux-nvme@lists.infradead.org,
-	linux-pci@vger.kernel.org,
-	kvm@vger.kernel.org,
-	linux-mm@kvack.org,
-	Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH v7 14/17] RDMA/umem: Separate implicit ODP initialization from explicit ODP
-Date: Wed,  5 Feb 2025 16:40:34 +0200
-Message-ID: <f6ae7422e8df156e18c5b5a98a334f09d95f3519.1738765879.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <cover.1738765879.git.leonro@nvidia.com>
-References: <cover.1738765879.git.leonro@nvidia.com>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="DjXZ0oXK"
+Received: by mail-qv1-f44.google.com with SMTP id 6a1803df08f44-6dcdf23b4edso58996186d6.0
+        for <linux-rdma@vger.kernel.org>; Wed, 05 Feb 2025 06:47:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1738766845; x=1739371645; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=tUEUr8gecDVFP7Sm4YrA14YQlWYB5B+qXE1hs8LMJ3s=;
+        b=DjXZ0oXKt66WpT6qkt730tZEV6jmWG9wO4bOz/i3A365RFzQyQ7Cwbi/Vxsid0SO/k
+         geWAV64XJBw+UfO6+FNhw3zuy6TbcTe85AAHR5fzOUHO2aF/7bzo9RGRylXpAipFhbvm
+         LFN3Wy0nABqn8cx3yobi3/WeyZGb71qiIDuVUdHI2xCsSzFqA2nfmHJJ5es5PZepPUFH
+         NW9Op1T5n/Q4AhvzaMGgZmcTXttEkZvx8xOZ6vXuHWN26vhOnD6uJrWoAe8OAVD3yQKk
+         8ItgWCTTk3pXYshwMOnZFp0KjIEb6NKsVtzlwYva7UxVqHOsM+vdasmnHSmtD7uj/Rv+
+         LAcg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1738766845; x=1739371645;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tUEUr8gecDVFP7Sm4YrA14YQlWYB5B+qXE1hs8LMJ3s=;
+        b=acqrZbMWXWMyHprjMvrFFygpWV5pj3Bm0HcCbrIRqP2RosEffZLG22xkDxhoQ1vUiJ
+         AUwzvKMawyna6P0AqXElgpP/AGkFmK79h0HPDdXYO0J6/Jfs8X4KjYPVQIep54ComNSh
+         BWrw8ABzv9T56qy4MiXShmhnZk8V6jgPEaPmPuPtUOuaZvw77zR4J6IrTUl2u8+HEZbY
+         xsZhERX2ghS8v4paDLkBcN5KH+zK6EwLRnsLXUpWohMa2l8xzugtSiuRkqPkgHfEQEOP
+         s0GTmLVijCH3UCpORLJgyFPsuS77JgBRtCoj1Y/kdkj5vK6663VORnNM8pUubtgpQcF2
+         AXzg==
+X-Forwarded-Encrypted: i=1; AJvYcCWQOUBevnKK2rn5Rz9hEszrgKQdNP9amqIFDweMylwheooI9p7gqecoIS78lZ2Dlg9OJbdEP0KIJ2Nh@vger.kernel.org
+X-Gm-Message-State: AOJu0YzxYK8Mqr2CwDYcIigOEc3M2FgFx2VuG+mrRCVtS3ctELBEMlx/
+	snxj5YIOcwzbrUq+2ZvMJgdG3xsqDO//NownDXFzulY+4xbYb7VLVUPbkLuOSec=
+X-Gm-Gg: ASbGncsOGZpfYcUR0jFAord3acjPpAwNyEHxlCQmLtPpZe5ZzZ6/QqpSLh51DRoKzMI
+	1cM86OPXWVPGNmGXzT+jyrNVYbtDLXpIIbyAf90lkxfKzv43x+IPWwVVDptBbW+9L+6Y/1OfX7i
+	9G1gNHnIFAgt946JPUmI50kiE/8veE91BkIiMqonvJyi9HV5wXDjjcI5zqbRzWLp2YVqFvn72xm
+	gPEn5Ixp2nk8nTmNyPtiSqlkMuGYEPwuCHQGrIEJutcutdsZQ0ucsFcpiUNv0cpfOCp9F+8kWqR
+	jGTqfTjbzHB38UJgIibkTk5uYvk6I+VcO6CU4c9wNweupoLKR4jOf1+G3+dGEzwV
+X-Google-Smtp-Source: AGHT+IH9adJKZb8VI7yS+pGEFb3mRwZBNgzJHnypljFdK1vgjAQ7F2M/rJmJBWrSr4CKLVHwVvh6CQ==
+X-Received: by 2002:a05:6214:1d26:b0:6e1:afcf:8710 with SMTP id 6a1803df08f44-6e42fb2325cmr49157886d6.8.1738766845324;
+        Wed, 05 Feb 2025 06:47:25 -0800 (PST)
+Received: from ziepe.ca (hlfxns017vw-142-68-128-5.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.68.128.5])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6e2547f0e5asm74516406d6.7.2025.02.05.06.47.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 Feb 2025 06:47:24 -0800 (PST)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1tfggW-0000000ClYe-1787;
+	Wed, 05 Feb 2025 10:47:24 -0400
+Date: Wed, 5 Feb 2025 10:47:24 -0400
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Kalesh Anakkur Purayil <kalesh-anakkur.purayil@broadcom.com>
+Cc: Leon Romanovsky <leon@kernel.org>,
+	Selvin Xavier <selvin.xavier@broadcom.com>,
+	linux-rdma@vger.kernel.org, andrew.gospodarek@broadcom.com
+Subject: Re: [PATCH rdma-rc 2/4] RDMA/bnxt_re: Add sanity checks on rdev
+ validity
+Message-ID: <20250205144724.GN2296753@ziepe.ca>
+References: <1738657285-23968-1-git-send-email-selvin.xavier@broadcom.com>
+ <1738657285-23968-3-git-send-email-selvin.xavier@broadcom.com>
+ <20250204114400.GK74886@unreal>
+ <CAH-L+nPzuSdKN=WQccTP2crfMp8hSLqq-uTXqw_Ck=sHtWbyEQ@mail.gmail.com>
+ <20250205071747.GM74886@unreal>
+ <CAH-L+nM6+-v6dvgzA6UDhgbhjysr55BJ859N5aWWXNEm4k+EDw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAH-L+nM6+-v6dvgzA6UDhgbhjysr55BJ859N5aWWXNEm4k+EDw@mail.gmail.com>
 
-From: Leon Romanovsky <leonro@nvidia.com>
+On Wed, Feb 05, 2025 at 01:54:14PM +0530, Kalesh Anakkur Purayil wrote:
+> > Shouldn't devlink reload completely release all auxiliary drivers?
+> > Why are you keeping BNXT RDMA driver during reload?
+> 
+> That is the current design. BNXT core Ethernet driver will not destroy
+> the auxiliary device for RDMA, but just calls the suspend callback. As
+> a result, RDMA driver will remains loaded and remains registered with
+> the Ethernet driver instance.
 
-Create separate functions for the implicit ODP initialization
-which is different from the explicit ODP initialization.
+What is the difference between your suspend and reloading the driver??
 
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/umem_odp.c | 91 +++++++++++++++---------------
- 1 file changed, 46 insertions(+), 45 deletions(-)
+Do you keep the ib device registered during suspend and all uverbs
+contexts open? How does that work???
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 30cd8f353476..51d518989914 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -48,41 +48,44 @@
- 
- #include "uverbs.h"
- 
--static inline int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
--				   const struct mmu_interval_notifier_ops *ops)
-+static void ib_init_umem_implicit_odp(struct ib_umem_odp *umem_odp)
-+{
-+	umem_odp->is_implicit_odp = 1;
-+	umem_odp->umem.is_odp = 1;
-+	mutex_init(&umem_odp->umem_mutex);
-+}
-+
-+static int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
-+			    const struct mmu_interval_notifier_ops *ops)
- {
- 	struct ib_device *dev = umem_odp->umem.ibdev;
-+	size_t page_size = 1UL << umem_odp->page_shift;
-+	unsigned long start;
-+	unsigned long end;
- 	int ret;
- 
- 	umem_odp->umem.is_odp = 1;
- 	mutex_init(&umem_odp->umem_mutex);
- 
--	if (!umem_odp->is_implicit_odp) {
--		size_t page_size = 1UL << umem_odp->page_shift;
--		unsigned long start;
--		unsigned long end;
--
--		start = ALIGN_DOWN(umem_odp->umem.address, page_size);
--		if (check_add_overflow(umem_odp->umem.address,
--				       (unsigned long)umem_odp->umem.length,
--				       &end))
--			return -EOVERFLOW;
--		end = ALIGN(end, page_size);
--		if (unlikely(end < page_size))
--			return -EOVERFLOW;
--
--		ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
--					(end - start) >> PAGE_SHIFT,
--					1 << umem_odp->page_shift);
--		if (ret)
--			return ret;
--
--		ret = mmu_interval_notifier_insert(&umem_odp->notifier,
--						   umem_odp->umem.owning_mm,
--						   start, end - start, ops);
--		if (ret)
--			goto out_free_map;
--	}
-+	start = ALIGN_DOWN(umem_odp->umem.address, page_size);
-+	if (check_add_overflow(umem_odp->umem.address,
-+			       (unsigned long)umem_odp->umem.length, &end))
-+		return -EOVERFLOW;
-+	end = ALIGN(end, page_size);
-+	if (unlikely(end < page_size))
-+		return -EOVERFLOW;
-+
-+	ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
-+				(end - start) >> PAGE_SHIFT,
-+				1 << umem_odp->page_shift);
-+	if (ret)
-+		return ret;
-+
-+	ret = mmu_interval_notifier_insert(&umem_odp->notifier,
-+					   umem_odp->umem.owning_mm, start,
-+					   end - start, ops);
-+	if (ret)
-+		goto out_free_map;
- 
- 	return 0;
- 
-@@ -106,7 +109,6 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
- {
- 	struct ib_umem *umem;
- 	struct ib_umem_odp *umem_odp;
--	int ret;
- 
- 	if (access & IB_ACCESS_HUGETLB)
- 		return ERR_PTR(-EINVAL);
-@@ -118,16 +120,10 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
- 	umem->ibdev = device;
- 	umem->writable = ib_access_writable(access);
- 	umem->owning_mm = current->mm;
--	umem_odp->is_implicit_odp = 1;
- 	umem_odp->page_shift = PAGE_SHIFT;
- 
- 	umem_odp->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
--	ret = ib_init_umem_odp(umem_odp, NULL);
--	if (ret) {
--		put_pid(umem_odp->tgid);
--		kfree(umem_odp);
--		return ERR_PTR(ret);
--	}
-+	ib_init_umem_implicit_odp(umem_odp);
- 	return umem_odp;
- }
- EXPORT_SYMBOL(ib_umem_odp_alloc_implicit);
-@@ -248,7 +244,7 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_device *device,
- }
- EXPORT_SYMBOL(ib_umem_odp_get);
- 
--void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
-+static void ib_umem_odp_free(struct ib_umem_odp *umem_odp)
- {
- 	struct ib_device *dev = umem_odp->umem.ibdev;
- 
-@@ -258,14 +254,19 @@ void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
- 	 * It is the driver's responsibility to ensure, before calling us,
- 	 * that the hardware will not attempt to access the MR any more.
- 	 */
--	if (!umem_odp->is_implicit_odp) {
--		mutex_lock(&umem_odp->umem_mutex);
--		ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
--					    ib_umem_end(umem_odp));
--		mutex_unlock(&umem_odp->umem_mutex);
--		mmu_interval_notifier_remove(&umem_odp->notifier);
--		hmm_dma_map_free(dev->dma_device, &umem_odp->map);
--	}
-+	mutex_lock(&umem_odp->umem_mutex);
-+	ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
-+				    ib_umem_end(umem_odp));
-+	mutex_unlock(&umem_odp->umem_mutex);
-+	mmu_interval_notifier_remove(&umem_odp->notifier);
-+	hmm_dma_map_free(dev->dma_device, &umem_odp->map);
-+}
-+
-+void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
-+{
-+	if (!umem_odp->is_implicit_odp)
-+		ib_umem_odp_free(umem_odp);
-+
- 	put_pid(umem_odp->tgid);
- 	kfree(umem_odp);
- }
--- 
-2.48.1
-
+Jason
