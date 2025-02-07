@@ -1,47 +1,47 @@
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2045.outbound.protection.outlook.com [40.107.244.45])
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2079.outbound.protection.outlook.com [40.107.237.79])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 630F981E;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C626179A3;
 	Fri,  7 Feb 2025 00:13:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.244.45
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.79
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738887230; cv=fail; b=fi2vHNC6OEFczO3zmdqPME8L/kaVVEXcT/Y0DDYb6WnIgUWBu3500FerPIcEc9/G0KGhUb+xVX3UF7GtRw4LtVmergBgiomSTkak0g+QMXd9Cx8zgRRkZ4qm8E1KYhlGWNvOA3VYyJI0c4zrApFYwDgvgO+tB2Vy1PQf7xWt+EQ=
+	t=1738887230; cv=fail; b=pzNXXIrr+eUyKLYi6Mdxj65TeywKa3SbiUbZau1nTnLWCDRr/rLlDZa/ZTcdTrlAY/8o7BzmeXR6PhXXd5VI6jgMcFHAnrLwa4yelHrPkoYDtNpUiqSyKxil6gPvL8a/I79Hn9d43siSSGLEuHKhbPPPIFSvaozn/fhdpJc+2S4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1738887230; c=relaxed/simple;
-	bh=McUWt/GgDfZGnllgv1yiOpWZQCd6tsX6rGc115aVd0k=;
+	bh=DaxHf2nCiCNDIqZjebadvmsS0LVcJRCGdMU09aiWCmU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=M0Qj2HqJmumVKnWv6eAz1sn8bYuwgA0HJHulmZKeD0aXX9r3WtCuXuOCGAmfPnaddQQOQ4udD/lUoMlYMokz4jpMbn1bADRl9UYTkPZr2TVGGywXXbR+erhrPYpLn5gb/LYWi/Cw/2VF8/jJercAapwZA+Nr62SJtQfaSfFZjig=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=uVDMm3re; arc=fail smtp.client-ip=40.107.244.45
+	 Content-Type:MIME-Version; b=sP+g3/3+An6NubZosZYdAAgak6XxygMT43wddL2p9IMb2Xub82im3Qch06MpJ3T4PFcYkGPN7gYP1kdcgoj8/yzBytrwRZ1yviUxgIiZX5LzjbsodI48wL9RG7boCuJo/T2ByCeRknwtFIXowurQD+6p9pRIHjSk9cjO6oSIUps=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=hwSQUXHN; arc=fail smtp.client-ip=40.107.237.79
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="uVDMm3re"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="hwSQUXHN"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=uNO1+oY+YfJsk76R4QgE1s78BCBDNW70G8PPALVEWHm6EtktXhXyCnpH+6tqQN1WJVtpIqjlbl5qyCji5vgrdxPNQP0r/uuTxKPSMi2CcDbl1AisnDGn7m9GYXyA34kNsfbgeXecPTmJ/f9BMnUy1T82vGbNSf57jWM9URaK74qauTsqLYWSpz70ukTAtK2+fyN2K+PT31verQ9o2g0maUer1ySd24a12UIJYUqqCBGZvKavg9UG8diuFFQGgtQIUx35t21dj1XJ9vkO6j0mBh1bZozEjguOtxlrzuptIf+lMEt5i7bHW3PdKDPUGeyuUUxGxgINAljA5JT0X2F66A==
+ b=St8uovWRXAyxRPyaL+MTaWhUFvfbRtjWI+4G2Vx/vNn/rfNAT5zURV5gx5EOeyLxmTS87UpXhldeKyJSG/jhjlqj99DnbEPLCtog3IBvtZq5D9xcugX55mjZw6NcXZX6qAffh4lgnAUMO2ci6k6CZVsjiukMJt6aoiiShRTf0J1diRGl71cU3kq1KNDq70yTg45DmR1FLesJay2AwscjZ3Tki6TIDcW58d95nZyy/ahM/oW9cRxwbWj56AybsTqa7R22QBKsb1kQ9yiDExX1TFdr5+IQHbsONGREd24sUAcfxlfbluP8pnLL3QDjJYfGGGt6iS053wF9rg5l6dDylA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=mDJfe+5IYpBBw0evCEcyO5+PggQl2LDL8zWDe8ALqQk=;
- b=cQRxbLWdylzDj/oidFiCIlNITgNOl5Rx4Ty+cmyHTjLjaU40ydiyIbXJ7bh3HkUOOMq3AEnXEFjJA9eW3HLqp66opX9PC1nfn0N1j0Jp0vQHqygJTPo6b8aaSLML8iAkZuT+Ue3nHtBC8iXazMcPxXoPLJwmIYU7OTAjjoylL9B1rLtMYOV5lbRf+OQtQ2EoRP4t5iKpZh7pecFyw/6zvRSUGYk09xltlx7yAIe6Odwj0R7SpWN/Y9sdtUmiDKbZZStctoGQyYoG0cR/FX6DWZUBm0nG9SHuQrs133gOeAW4M/u6p4i4+CK8n9IB549LXloxl22EA+JkWs0lZ68Vtg==
+ bh=wWC/NsWtM4wqA0n86q+1Y31aWCQ0WZnylXlyEg6FnX0=;
+ b=H+4Pahe7lb89kKzkMnUudhQjrx1+pfQWJozWfLlFWcyVbSlXJDivLTvf+xmhKWUjPke0wdY3tFYwDFBy2neFrCusiDKXBcgVisCtuDVT0rtN7LN9w7oeS86ZYwmGmkXlmNtLw8s4uh3hMXIfJhNCpl3d5pCQKhwocn3hN9tMHT/UVw4hEVkd6KJ9uPy4tC6EzWgpmGctT8jdPpyqkfsZA2XhaVuU/vzE7ci1xbl+Lp/S32wn6sHDWfNzgRC2GrBrBL0C11/XWNt9xyX05nb56tmnZmz9IRFTFUXdPIozot3g1AM3dBehcLCRZwQLEH/cLIZid4+F/wUPTYRqTDYNNA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=mDJfe+5IYpBBw0evCEcyO5+PggQl2LDL8zWDe8ALqQk=;
- b=uVDMm3reQ1OSngsA12eGZnGEQWutPLi9yIgeIbb8AHpm99rItmiLwhooCxfR9JoZninbJ7myNd8gLex3J09sZ5Ir3vtu1I9YsEVI+GF8/EviKsz5EPOWrarH/OEtho4MyBVR1EZpHzgO6AzsyxxJW2m15swMfqSzZs+p9MIE4VtVm2hkdoWxjMTc+31yyIcF3Vx556AjqS1ShyTCmuhcQAjZR6QgZdthVETTU+7vUDjVLXTWyA1tRFqdC2pbxF84U1hKE/B5RoT6x98JqLmPbrLeGN+0JUM+sEFLw8XWwk1SuQ80XUAgVNaElRCBbQ6XOhgoxPOEkXuxqEeai+50rw==
+ bh=wWC/NsWtM4wqA0n86q+1Y31aWCQ0WZnylXlyEg6FnX0=;
+ b=hwSQUXHN87rMJ4yCF3Tal4MFzWFQhg/bxdfKJ1bHh7hITeUNoxu/l110bxhDvQpOiT+7NNQ1qpTLqW40TMrn5JOjmwlu5IZzuWhGr31glzTlS4NOgqSSLgh6ihVvNI9MTBrliZHScYn/0n69t8NtnhREKPjENStJvg24REZO26tYHOwaqPemiBnJBAl31km8Fj/lBr9C0eybGdDoSHiyYYQnG1FsGmVjgwvxfreJiva1DjbyPqA91k882Pf3087RLM4AIpgovnT2aLhdYAS50lixLf6Rnj7NiJzffTmbfHxac7KW2q6nYfP1WTHrzEzlflEbSj5y5S1z05x4XuxqqQ==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CH3PR12MB8659.namprd12.prod.outlook.com (2603:10b6:610:17c::13)
  by SN7PR12MB6885.namprd12.prod.outlook.com (2603:10b6:806:263::8) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8398.24; Fri, 7 Feb
- 2025 00:13:36 +0000
+ 2025 00:13:37 +0000
 Received: from CH3PR12MB8659.namprd12.prod.outlook.com
  ([fe80::6eb6:7d37:7b4b:1732]) by CH3PR12MB8659.namprd12.prod.outlook.com
  ([fe80::6eb6:7d37:7b4b:1732%6]) with mapi id 15.20.8398.025; Fri, 7 Feb 2025
- 00:13:36 +0000
+ 00:13:37 +0000
 From: Jason Gunthorpe <jgg@nvidia.com>
 To:
 Cc: Andy Gospodarek <andrew.gospodarek@broadcom.com>,
@@ -63,15 +63,15 @@ Cc: Andy Gospodarek <andrew.gospodarek@broadcom.com>,
 	netdev@vger.kernel.org,
 	Saeed Mahameed <saeedm@nvidia.com>,
 	"Nelson, Shannon" <shannon.nelson@amd.com>
-Subject: [PATCH v4 03/10] fwctl: FWCTL_INFO to return basic information about the device
-Date: Thu,  6 Feb 2025 20:13:25 -0400
-Message-ID: <3-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
+Subject: [PATCH v4 05/10] fwctl: FWCTL_RPC to execute a Remote Procedure Call to device firmware
+Date: Thu,  6 Feb 2025 20:13:27 -0400
+Message-ID: <5-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
 In-Reply-To: <0-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
 References:
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: BL1PR13CA0323.namprd13.prod.outlook.com
- (2603:10b6:208:2c1::28) To CH3PR12MB8659.namprd12.prod.outlook.com
+X-ClientProxiedBy: BL1PR13CA0305.namprd13.prod.outlook.com
+ (2603:10b6:208:2c1::10) To CH3PR12MB8659.namprd12.prod.outlook.com
  (2603:10b6:610:17c::13)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -81,251 +81,288 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: CH3PR12MB8659:EE_|SN7PR12MB6885:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4e1a6e75-9ec3-4971-e6fe-08dd470c430e
+X-MS-Office365-Filtering-Correlation-Id: ab6bfce8-4179-447a-51e4-08dd470c4312
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024|7416014;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?0RBNppb7dh1ECcOYTdlWf1Ed0r72PU6VO1deXMkOFqn3ff2JyhFk1eO07PGR?=
- =?us-ascii?Q?PiY4BkKjnaJ3SWj/TVa1MXRFLM0gCE3sjOdrTPiMAColS0c9WFWBGH2Su8Yn?=
- =?us-ascii?Q?KchRtvwntdJ1L7kp4imJbPVffkJvwqVf4XNCV0Xpco0uVL7UcAWm2wfQmoMB?=
- =?us-ascii?Q?jneyKg3SbRr37pkgmPuQT9dwjzJvVa2Wd7eh7V0LmADCP9g2LzDif/Z8WlfF?=
- =?us-ascii?Q?Fv8PVFYKr3l3ENI1QN3nkLtvgX407v8saNntqV0++5MCQhfMajfhU9QceBel?=
- =?us-ascii?Q?KKx1+S0WKSdEH1L2ULFpLV60jPudFssqj7YroqLRbwEM4mPch47ndRsAi2Um?=
- =?us-ascii?Q?x0d9AI6GMnR+1phERcUAKptNr7V0l6D/C21QLdtt+soRhqblgTUgXFkSH5Qg?=
- =?us-ascii?Q?KBbaJcfhc5gAmBZ+hKmFH9KyNx3gfzz6twmM/LyQFDJGxbQAY1avI+ZUZAeV?=
- =?us-ascii?Q?1Gdh5jXrqQAvP0iyda9gxdF7mw5yb6q9aXwCOJkM5NkCIA0nt61nmJIY+JvC?=
- =?us-ascii?Q?/QZYZaLXOkBYSoFsBZIm+u6qiHNyQlvkUJmWAkXNVTUmyepPAa38Ltsi/z6K?=
- =?us-ascii?Q?NfkxT9BcJJHttIeSLxSzoQbzmPBTuhjxnmKk7ZA/KFjy2dz2FbEl3uSqMMYH?=
- =?us-ascii?Q?rGKSoFzXtfyNeM22LJ1RQW1gUNj+oTMi/tPPMxXsH4bFX1x9OxP1yWjTvElx?=
- =?us-ascii?Q?QiO0pCYZTlwcDknyBsk/lE3WQ1Bj5ECBsgd7XMG+Z19Sy5DzPaAyuK5bfHJ3?=
- =?us-ascii?Q?N2ezRIYsclWxcmj7MTep8EHNeiTk8CZvOg7Tc2xX8pLcyrk4JEL+LSTCzwTR?=
- =?us-ascii?Q?hBjiNvDH7rtvcIMC7+UlETXiHtSaU6XSjWJ47icderj0/HA4TTF04oyy+R5w?=
- =?us-ascii?Q?xtNy/BqKxMaNqLzuWDmYTHrrN6w9JqMRFT3H0nH8GC9IdmHwsN3Ij395TRdD?=
- =?us-ascii?Q?jU0N35g2btTVkC8N8ky8POYBH4qsx2K6hFZZPsvVaxXt7NMuzxFjpv/qiXqO?=
- =?us-ascii?Q?11FraeMSr8wMClFDFBB7hqHiqlf6yiHWI65gQ0jxfthCZac4NY44EE7Hmnb+?=
- =?us-ascii?Q?/D/Rpw2H+LDD1PnRgFsz71/ERo8TT07VVS4TLXa+p7e/WRaoZ8vSvBJXjDcB?=
- =?us-ascii?Q?BucXwQPy4QAY1fuBCO4blp52132KjwdEFdYWBEe6KbGn3w7NENhQ5B3tXQun?=
- =?us-ascii?Q?zM67lM2TUnieuy8Fs7Yk+wu1xLc+553viYHOxD9KGUFDvphvGcWcaCWqxtKk?=
- =?us-ascii?Q?joSwGVqitv42YSMK6hMNdM6SXtxU2ZDvqwEHBNUzAff0AmhiYil1rS/8ALGN?=
- =?us-ascii?Q?p7voUiFgMorQsaQw+imJxh+l3J6C92XEPiAUsy6MrQHRFRXa60q6JFUpSx9U?=
- =?us-ascii?Q?/N73R1WHsmg843iWUdVqHNaRF4Di?=
+	=?us-ascii?Q?XDD0pvJ54sADdrUgTMdsf0IhYO28uYc6dSS5bvf/y/rhzy2Gr+03OgL5pKhi?=
+ =?us-ascii?Q?Dt3vKpiX0XIAPqpB9xV19H8mldj1I2cHCHOZaa8bBpF/2fQEVcSMSSZ8Stjj?=
+ =?us-ascii?Q?zltAC8IFl0khrjMMPRqudPaju5txFfXh9SevSL/4PUiAjB++bB8jucUmpvOj?=
+ =?us-ascii?Q?xCLisT98wzZEDaeRtwAPe8GrElfGuGnTedVtMv/1A9imW6lkzIDIhTl3sd/Q?=
+ =?us-ascii?Q?lppX44o0H29scJJg8HtTz5q5C4ZX1pdrM5i/RKZS8kutcTYLTKugKzORJRGh?=
+ =?us-ascii?Q?8rvBEkSw/JuZwn5hS+gx8GPR7L7K6VsmYyf6IaWEj/PsVSIO5owg/GDPesNm?=
+ =?us-ascii?Q?JEQR2E0Rj6pGRmiGd0PHDvQFdhgfUGHSkON8AJo9bHux5Zj5me8ITyt098qq?=
+ =?us-ascii?Q?wgJqhdMMDDV+i9acthPuPadJ8S8Hwafz2+si7M3V4uTrM8nhfmaG8VZf1EQ8?=
+ =?us-ascii?Q?EeLINsTgGG/0XXRjNPP4jbp1DCiGcQezAv3vV7Fu3AzclFY1W/nhtKuQdaUj?=
+ =?us-ascii?Q?DBxaHh03b1Jg4YDUYaYXWmOSzHuxL7pnGJwJmwim2cfmM+IuwksgX91bYYHF?=
+ =?us-ascii?Q?XoNxStOGUA1fHFuBRzRY6V41z1acVw3aMsFTmZbf8k0tvd99r3QrxUjmPoUV?=
+ =?us-ascii?Q?UtlfhyNCgu8GFE7BUwfj/7MHAHHl6zCV0M2aT0Kr7UJuu9MRIShEuj1H/cfL?=
+ =?us-ascii?Q?o7lZwtGSlmNWQ334lOzBg7kveJOf+hyvk5biER6tUkA01g4siIl/upevFxY8?=
+ =?us-ascii?Q?1v0cuJ/qP6eGc9KxrAZnMCRJ0KNRLH4X8UwfVd4/hDNiXTBHH9o7r8L4EWzj?=
+ =?us-ascii?Q?wL1rPdD1QXC82fstTRb0j52KW27I6+cELoTwpeLEsgiVrCwp2QDgLWJmW4Xw?=
+ =?us-ascii?Q?kbLfmP0XwYm2P1MgIyDhdHXdXa/YwfzUUdWniTTJiPAAaemnnYTCFXZfqLB3?=
+ =?us-ascii?Q?orG7aTCQKkUiIvNPCP/FSaBHy0T51nhLiVSyA5S9rrSB1TUgL6GJgu+kU9U7?=
+ =?us-ascii?Q?vY/0l5+wQBWCjWYRhE7hUNNtHz3uy7oMiaQGmbWqjaQbveYcBpgsVdbhRsdO?=
+ =?us-ascii?Q?nAOuizGJbF47OOzpDVov/aRmJRE5JjfzmuL1As45KtYqENOPO8dBDlzCtbOu?=
+ =?us-ascii?Q?bgZotWdT10t0XmOq1I5dKMtmwSJ3SERDokz1KwnGlcwVMz6EgaZDJGUGZxQD?=
+ =?us-ascii?Q?K3iC9CIe5WSxR3W2n+QVXexaRdIOWVjMnTkjiqIVZp6N7WiwnpFZzuh/avO6?=
+ =?us-ascii?Q?gWQapQNPuusCfBWWzFG/GAGDIZAQbtysMB1yNWPlQNzoiyuTV4VjSXO7UzdC?=
+ =?us-ascii?Q?dmZMO9Iw5XffieVpD3KRp87hAD2L4Q0unRBHZojWaieF3KfA1gCc3qHQcGTp?=
+ =?us-ascii?Q?9UxZMDBA2+Kj1UbgutX+13pxzyQY?=
 X-Forefront-Antispam-Report:
 	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8659.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(7416014);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?5CP1wOE8QoNG2TGwBYzfnQSTJQqfwgkp8Q0xWmplY/FFZWOk463M5DT7SXZL?=
- =?us-ascii?Q?svDScFHit514WL2k9zlajQCNVuDf/0uX2QqlDfZwTL7dnbe8ESV0ZfiQVXfx?=
- =?us-ascii?Q?sqwMJY7pVTuz7pv+IUXxLI7BzCQ6hBMjN6yPL1Jlpz/G7g5BwF+bn+TngrJP?=
- =?us-ascii?Q?ZglxjIn5Cx5mb3WWFyTPa6x4TF0+sytOyMFKPY/wW2HTRcZY9HZaRkqDShFU?=
- =?us-ascii?Q?SOUjVYRlUZvFVnvXt0vB44SC9stci0jbXVc4wKwV3m6ZPMoPn729jBiN6T13?=
- =?us-ascii?Q?jZT7nuvJbfEqzvOzYvnUGwTMFSWCFE6a4FlAGdn2zBEqEEOnrBeQCDtY1ver?=
- =?us-ascii?Q?3dZsleuXTgYEEQB4h+1KF0HoucHUoUedbVrOYJlsCUsBeX2705y0T2PvXDWl?=
- =?us-ascii?Q?f1uIR2VeuHPnvQ8CU7H1w0vNGSxF/pt4JzOooP3tEDwRTcE3OTROXkQk17Fv?=
- =?us-ascii?Q?Tey4aMs4Uk0P5s4PQyVEpNaOn4fUtLejgnJVl4cdhWmLbTdI2zXjCiIQfrtR?=
- =?us-ascii?Q?dj6ALxdsoy9bWp3HdZtgPiZVXYekV+mWLIgvNicf1wDEndacCycT3uvIQKEh?=
- =?us-ascii?Q?O6azcCb/PgihPaOUSLLTXwX6XWiBOFwJafxbmRVIZudoK71haC0FAswRDs1j?=
- =?us-ascii?Q?Os+FWJG/VGNq3t8oLFlbNOIAitloXgCRI7DReKGyF+iSOwnlAC2QsQy3ZpQY?=
- =?us-ascii?Q?5RqBC8SrB2kx4UI4ilatSrg6Y1ZaExHoVKj+FbnGGUUQRppvsiNi/ysVOmsr?=
- =?us-ascii?Q?C19FGR8FSdQ7i7GDw6FymkMCOcoThfWbPr+FhHq4m8kEGfqw5cj7lp3ZPRnc?=
- =?us-ascii?Q?9qZLeS3If1pH4lcclQlBwfg++5JXDDw92Sf91apy5KI/bvt9uRjbfXovhK0I?=
- =?us-ascii?Q?RDCzXndgUOd8p+dU4RvcZEKK8pLwvLoIc92OvOsK2wR8PrNuk78sRAxRky2E?=
- =?us-ascii?Q?Qwl5nVOww3YYKeKUL40YfLvucFY9MURKCfeKMXtDCZyFkKFhaX08FJmeyDd7?=
- =?us-ascii?Q?4YSarBJPOZMt3a6SPeY4fNOgkVWl/OGgiGtAnGf9DdGk7/pumBCTRa/TG42v?=
- =?us-ascii?Q?51qPcJI5lKOBWM6/Wu4UGSKLPuBdQ55IL5lGUr49dWzJMencnbiwMFsRm9w/?=
- =?us-ascii?Q?J+WtSZhajNRqB7QFVv/xVEHblbTdUrLPjyL1WJ1AdD49cAJfQpbM6ejODRqC?=
- =?us-ascii?Q?Atfile6F7MhVCZwSS7Rzx29GfQ9prNBvK1IZ/tGnAa10j4P9vUUZmiIGNgmG?=
- =?us-ascii?Q?FJN0INi/22acHreJPjIFzXhqJQ95U99s+X0r6SjkS+qyhQ666jQEuXWmEXxy?=
- =?us-ascii?Q?QB5ThxGOmgNx1XRPCc/hP52bCKkhsAqesx8idACpEfx69vAcP5FgrGTuhp3G?=
- =?us-ascii?Q?wwU4EVMxvyn/IoIwKbDEizMqWCDzJmg+tdADCh93q5KmzLqNyvwksuLHZuoY?=
- =?us-ascii?Q?Ha8evjtneuNYNoEWhHgi0nrsas2I5PqtWaiZQSY4Nfz2yZHOD3Q4Ghvotr+7?=
- =?us-ascii?Q?kXZ6s+L/+HF03gjMZ7nhhPVfnR91QOMF47cLql0oKv3mJSK5aXiaSRWifrSl?=
- =?us-ascii?Q?JRJE9FF2PGlk5rgL1N2IU/1muT0hOtCru2BObW3r?=
+	=?us-ascii?Q?TJCgkkFvKxj571i0h1wv7dQhPxq+20sUF95+2UGULPeojHS/xy/QJQca5ks5?=
+ =?us-ascii?Q?7KQD5AwsdaFvIiaBJnQa6vnkOR3TGn8u/P4puSaIt8N6dgNGC1BN6nWujSAs?=
+ =?us-ascii?Q?/qRz5tEDxlBZ/2mS/UXXD4Nx4Zs7mAM41skVPavnrdOu1LFWM1YeySe0hUGK?=
+ =?us-ascii?Q?7kyXLeC8SENekgtxcavIVpUomKZAo1czo1DT5xXxt1PtOU/HRIe6jlrgl3KB?=
+ =?us-ascii?Q?I5fiXFRAwmddsm/Edhm8AJsQhKc92iuBIJqiexV6XALeDz+2Cxq5Erj0N4ed?=
+ =?us-ascii?Q?E1rx2AZbk4pGdTXQgpJWPl9wVM/FA6gKq7VnNhJ/n4F8kMZsf2M4wg0CdDCh?=
+ =?us-ascii?Q?YSwGD+y21hruRpYfSm4cXAIHMAgBZoH1nUQYVqZBDcnYPumF8E3wJldIyAl6?=
+ =?us-ascii?Q?B7+xwKeEj/PUsicEs4P4EgbDaFk791Svy0oMxDiP4uwt/kYyZL2xDkMrya26?=
+ =?us-ascii?Q?AjBXW+WBtFZ/XKZ4ZyS+qAilcGalAzGG6ks6vC27sNj5qSTP8RCMB/5qrYFx?=
+ =?us-ascii?Q?ZXxjTdRULQGbkTdS+wbJpVUbeYvphpLVHX9tzRJrA1r/777RDjEG7qLJGBrK?=
+ =?us-ascii?Q?Og+SxoGs+JuTnu2gBrsb1RxnqOoNcy2EImW1NKi1BKfsRNH+qyU98DsD9SQ+?=
+ =?us-ascii?Q?nYwgjQRln4tE+v49Lil+xMdEJsYvs6kEYOr2ywrCoa3iDSxQwRJYzEgjwi25?=
+ =?us-ascii?Q?gkbVV3IgCQKeGAKZ3iquc1E3LyNyseOr0eraUxs40YarGnqCqi6ZghzLGGwX?=
+ =?us-ascii?Q?9K0TlDBWpWGkK2rAwEbq5rmjRrX1yRWEIspeVT5KaGmun9P3ov2/QovwlbNC?=
+ =?us-ascii?Q?PF30nPlbASbr/fI1Al9F56nh12vjAxvbvq1UVrZQFvkWZ7KFdQtSPAX5kseh?=
+ =?us-ascii?Q?l79Y/e0MjbPIsV/hRRrkJ59XT7nEno2kJWQ4CuSAbDb73UtYNUSRH4A1Bxro?=
+ =?us-ascii?Q?3SO6ASw36MQ/Z9f3saTDhc4m8Y+8lt0Oaj52ZxRe4Osfbu1e9p9k118fkwsd?=
+ =?us-ascii?Q?NcKrZ2wFXutKu5+6ur253zX5doquGI2/x2nmiWFMY40uc6HaPeuDdUijrxZs?=
+ =?us-ascii?Q?4phhpMwDwIafPNf05kNrWEIw7p9OAnnH/gXwbSeckFjF0dQ5Lv3MW+K9L8Up?=
+ =?us-ascii?Q?32sxpW3EeK7ojCZhMNrG57cBQLROJ2RObc93opawAEj+wjZa479cHw6GBVab?=
+ =?us-ascii?Q?HIHyJ1/68OiasOwfbjkyUo6OIGmbJmGewt1SpaFrny64Wyg8P1bGAu9LfKzu?=
+ =?us-ascii?Q?Ek5mSu6tr2Q+NBfHmmmNw3nWRoP1o9AHBQ3mss8TqVrIGXhwB4xmvvVAGu68?=
+ =?us-ascii?Q?82jpQdy4KJVm3FlSJAUMahcF1IPqkPsjQK1XhQV+CAYXYMzzGNoVbXvNASuk?=
+ =?us-ascii?Q?nOi60ol1onn143VzPG8FkTH8sMMzPkG7MTjaF2F40UXZuIqEF6E6uM2Al+hE?=
+ =?us-ascii?Q?Gkoax4KtHaiGxc711ZW+py35QOwLKta9xgz/736Zqt9kann1yctN1T3BxsA4?=
+ =?us-ascii?Q?RnawzddQMyXDWyvTbclhK/5adU+xWZm5Bxiv5EZv9UFytMFWiXwUEkWoUQKV?=
+ =?us-ascii?Q?LhiUtjLZ1p7QNhF5ml/jVI0ikzAfk27f2vqQI+gu?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4e1a6e75-9ec3-4971-e6fe-08dd470c430e
+X-MS-Exchange-CrossTenant-Network-Message-Id: ab6bfce8-4179-447a-51e4-08dd470c4312
 X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8659.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Feb 2025 00:13:34.8173
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Feb 2025 00:13:34.8809
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: O9isWcAjN5GGLtdg8DuM/fww7wVdJwkhI8+Q1q1+oSf2rGoT5EAXIJKVWmwtTCub
+X-MS-Exchange-CrossTenant-UserPrincipalName: c1Icv+eDJ9+rBLPv6A97stplIYWrTutnHYTt+4Eu1xjo3L58PS7sFp11nutr1c/x
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6885
 
-Userspace will need to know some details about the fwctl interface being
-used to locate the correct userspace code to communicate with the
-kernel. Provide a simple device_type enum indicating what the kernel
-driver is.
+Add the FWCTL_RPC ioctl which allows a request/response RPC call to device
+firmware. Drivers implementing this call must follow the security
+guidelines under Documentation/userspace-api/fwctl.rst
 
-Allow the device to provide a device specific info struct that contains
-any additional information that the driver may need to provide to
-userspace.
+The core code provides some memory management helpers to get the messages
+copied from and back to userspace. The driver is responsible for
+allocating the output message memory and delivering the message to the
+device.
 
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/fwctl/main.c       | 51 ++++++++++++++++++++++++++++++++++++++
- include/linux/fwctl.h      | 12 +++++++++
- include/uapi/fwctl/fwctl.h | 32 ++++++++++++++++++++++++
- 3 files changed, 95 insertions(+)
+ drivers/fwctl/main.c       | 60 +++++++++++++++++++++++++++++++++
+ include/linux/fwctl.h      |  8 +++++
+ include/uapi/fwctl/fwctl.h | 68 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 136 insertions(+)
 
 diff --git a/drivers/fwctl/main.c b/drivers/fwctl/main.c
-index d561deaf2b86d8..4b6792f2031e86 100644
+index 4b6792f2031e86..a5e26944b830b5 100644
 --- a/drivers/fwctl/main.c
 +++ b/drivers/fwctl/main.c
-@@ -27,8 +27,58 @@ struct fwctl_ucmd {
- 	u32 user_size;
- };
+@@ -8,17 +8,20 @@
+ #include <linux/container_of.h>
+ #include <linux/fs.h>
+ #include <linux/module.h>
++#include <linux/sizes.h>
+ #include <linux/slab.h>
  
-+static int ucmd_respond(struct fwctl_ucmd *ucmd, size_t cmd_len)
-+{
-+	if (copy_to_user(ucmd->ubuffer, ucmd->cmd,
-+			 min_t(size_t, ucmd->user_size, cmd_len)))
-+		return -EFAULT;
-+	return 0;
-+}
-+
-+static int copy_to_user_zero_pad(void __user *to, const void *from,
-+				 size_t from_len, size_t user_len)
-+{
-+	size_t copy_len;
-+
-+	copy_len = min(from_len, user_len);
-+	if (copy_to_user(to, from, copy_len))
-+		return -EFAULT;
-+	if (copy_len < user_len) {
-+		if (clear_user(to + copy_len, user_len - copy_len))
-+			return -EFAULT;
-+	}
-+	return 0;
-+}
-+
-+static int fwctl_cmd_info(struct fwctl_ucmd *ucmd)
+ #include <uapi/fwctl/fwctl.h>
+ 
+ enum {
+ 	FWCTL_MAX_DEVICES = 4096,
++	MAX_RPC_LEN = SZ_2M,
+ };
+ static_assert(FWCTL_MAX_DEVICES < (1U << MINORBITS));
+ 
+ static dev_t fwctl_dev;
+ static DEFINE_IDA(fwctl_ida);
++static unsigned long fwctl_tainted;
+ 
+ struct fwctl_ucmd {
+ 	struct fwctl_uctx *uctx;
+@@ -76,9 +79,65 @@ static int fwctl_cmd_info(struct fwctl_ucmd *ucmd)
+ 	return ucmd_respond(ucmd, sizeof(*cmd));
+ }
+ 
++static int fwctl_cmd_rpc(struct fwctl_ucmd *ucmd)
 +{
 +	struct fwctl_device *fwctl = ucmd->uctx->fwctl;
-+	struct fwctl_info *cmd = ucmd->cmd;
-+	size_t driver_info_len = 0;
++	struct fwctl_rpc *cmd = ucmd->cmd;
++	size_t out_len;
 +
-+	if (cmd->flags)
++	if (cmd->in_len > MAX_RPC_LEN || cmd->out_len > MAX_RPC_LEN)
++		return -EMSGSIZE;
++
++	switch (cmd->scope) {
++	case FWCTL_RPC_CONFIGURATION:
++	case FWCTL_RPC_DEBUG_READ_ONLY:
++		break;
++
++	case FWCTL_RPC_DEBUG_WRITE_FULL:
++		if (!capable(CAP_SYS_RAWIO))
++			return -EPERM;
++		fallthrough;
++	case FWCTL_RPC_DEBUG_WRITE:
++		if (!test_and_set_bit(0, &fwctl_tainted)) {
++			dev_warn(
++				&fwctl->dev,
++				"%s(%d): has requested full access to the physical device device",
++				current->comm, task_pid_nr(current));
++			add_taint(TAINT_FWCTL, LOCKDEP_STILL_OK);
++		}
++		break;
++	default:
 +		return -EOPNOTSUPP;
-+
-+	if (cmd->device_data_len) {
-+		void *driver_info __free(kfree) =
-+			fwctl->ops->info(ucmd->uctx, &driver_info_len);
-+		if (IS_ERR(driver_info))
-+			return PTR_ERR(driver_info);
-+
-+		if (copy_to_user_zero_pad(u64_to_user_ptr(cmd->out_device_data),
-+					  driver_info, driver_info_len,
-+					  cmd->device_data_len))
-+			return -EFAULT;
 +	}
 +
-+	cmd->out_device_type = fwctl->ops->device_type;
-+	cmd->device_data_len = driver_info_len;
++	void *inbuf __free(kvfree) = kvzalloc(cmd->in_len, GFP_KERNEL_ACCOUNT);
++	if (!inbuf)
++		return -ENOMEM;
++	if (copy_from_user(inbuf, u64_to_user_ptr(cmd->in), cmd->in_len))
++		return -EFAULT;
++
++	out_len = cmd->out_len;
++	void *outbuf __free(kvfree) = fwctl->ops->fw_rpc(
++		ucmd->uctx, cmd->scope, inbuf, cmd->in_len, &out_len);
++	if (IS_ERR(outbuf))
++		return PTR_ERR(outbuf);
++	if (outbuf == inbuf) {
++		/* The driver can re-use inbuf as outbuf */
++		inbuf = NULL;
++	}
++
++	if (copy_to_user(u64_to_user_ptr(cmd->out), outbuf,
++			 min(cmd->out_len, out_len)))
++		return -EFAULT;
++
++	cmd->out_len = out_len;
 +	return ucmd_respond(ucmd, sizeof(*cmd));
 +}
 +
  /* On stack memory for the ioctl structs */
  union ucmd_buffer {
-+	struct fwctl_info info;
+ 	struct fwctl_info info;
++	struct fwctl_rpc rpc;
  };
  
  struct fwctl_ioctl_op {
-@@ -48,6 +98,7 @@ struct fwctl_ioctl_op {
- 		.execute = _fn,                                       \
+@@ -99,6 +158,7 @@ struct fwctl_ioctl_op {
  	}
  static const struct fwctl_ioctl_op fwctl_ioctl_ops[] = {
-+	IOCTL_OP(FWCTL_INFO, fwctl_cmd_info, struct fwctl_info, out_device_data),
+ 	IOCTL_OP(FWCTL_INFO, fwctl_cmd_info, struct fwctl_info, out_device_data),
++	IOCTL_OP(FWCTL_RPC, fwctl_cmd_rpc, struct fwctl_rpc, out),
  };
  
  static long fwctl_fops_ioctl(struct file *filp, unsigned int cmd,
 diff --git a/include/linux/fwctl.h b/include/linux/fwctl.h
-index 93b470efb9dbc3..9b6cc8ae1aa0ca 100644
+index 9b6cc8ae1aa0ca..c2fcaa17a2bcd5 100644
 --- a/include/linux/fwctl.h
 +++ b/include/linux/fwctl.h
-@@ -7,6 +7,7 @@
- #include <linux/device.h>
- #include <linux/cdev.h>
- #include <linux/cleanup.h>
-+#include <uapi/fwctl/fwctl.h>
- 
- struct fwctl_device;
- struct fwctl_uctx;
-@@ -19,6 +20,10 @@ struct fwctl_uctx;
-  * it will block device hot unplug and module unloading.
-  */
- struct fwctl_ops {
-+	/**
-+	 * @device_type: The drivers assigned device_type number. This is uABI.
-+	 */
-+	enum fwctl_device_type device_type;
- 	/**
- 	 * @uctx_size: The size of the fwctl_uctx struct to allocate. The first
- 	 * bytes of this memory will be a fwctl_uctx. The driver can use the
-@@ -35,6 +40,13 @@ struct fwctl_ops {
- 	 * is closed.
+@@ -47,6 +47,14 @@ struct fwctl_ops {
+ 	 * ignore length on input, the core code will handle everything.
  	 */
- 	void (*close_uctx)(struct fwctl_uctx *uctx);
+ 	void *(*info)(struct fwctl_uctx *uctx, size_t *length);
 +	/**
-+	 * @info: Implement FWCTL_INFO. Return a kmalloc() memory that is copied
-+	 * to out_device_data. On input length indicates the size of the user
-+	 * buffer on output it indicates the size of the memory. The driver can
-+	 * ignore length on input, the core code will handle everything.
++	 * @fw_rpc: Implement FWCTL_RPC. Deliver rpc_in/in_len to the FW and
++	 * return the response and set out_len. rpc_in can be returned as the
++	 * response pointer. Otherwise the returned pointer is freed with
++	 * kvfree().
 +	 */
-+	void *(*info)(struct fwctl_uctx *uctx, size_t *length);
++	void *(*fw_rpc)(struct fwctl_uctx *uctx, enum fwctl_rpc_scope scope,
++			void *rpc_in, size_t in_len, size_t *out_len);
  };
  
  /**
 diff --git a/include/uapi/fwctl/fwctl.h b/include/uapi/fwctl/fwctl.h
-index f4718a6240f281..ac66853200a5a8 100644
+index ac66853200a5a8..7a21f2f011917a 100644
 --- a/include/uapi/fwctl/fwctl.h
 +++ b/include/uapi/fwctl/fwctl.h
-@@ -4,6 +4,9 @@
- #ifndef _UAPI_FWCTL_H
- #define _UAPI_FWCTL_H
- 
-+#include <linux/types.h>
-+#include <linux/ioctl.h>
-+
- #define FWCTL_TYPE 0x9A
- 
- /**
-@@ -33,6 +36,35 @@
-  */
- enum {
- 	FWCTL_CMD_BASE = 0,
-+	FWCTL_CMD_INFO = 0,
-+	FWCTL_CMD_RPC = 1,
+@@ -67,4 +67,72 @@ struct fwctl_info {
  };
+ #define FWCTL_INFO _IO(FWCTL_TYPE, FWCTL_CMD_INFO)
  
-+enum fwctl_device_type {
-+	FWCTL_DEVICE_TYPE_ERROR = 0,
++/**
++ * enum fwctl_rpc_scope - Scope of access for the RPC
++ *
++ * Refer to fwctl.rst for a more detailed discussion of these scopes.
++ */
++enum fwctl_rpc_scope {
++	/**
++	 * @FWCTL_RPC_CONFIGURATION: Device configuration access scope
++	 *
++	 * Read/write access to device configuration. When configuration
++	 * is written to the device it remains in a fully supported state.
++	 */
++	FWCTL_RPC_CONFIGURATION = 0,
++	/**
++	 * @FWCTL_RPC_DEBUG_READ_ONLY: Read only access to debug information
++	 *
++	 * Readable debug information. Debug information is compatible with
++	 * kernel lockdown, and does not disclose any sensitive information. For
++	 * instance exposing any encryption secrets from this information is
++	 * forbidden.
++	 */
++	FWCTL_RPC_DEBUG_READ_ONLY = 1,
++	/**
++	 * @FWCTL_RPC_DEBUG_WRITE: Writable access to lockdown compatible debug information
++	 *
++	 * Allows write access to data in the device which may leave a fully
++	 * supported state. This is intended to permit intensive and possibly
++	 * invasive debugging. This scope will taint the kernel.
++	 */
++	FWCTL_RPC_DEBUG_WRITE = 2,
++	/**
++	 * @FWCTL_RPC_DEBUG_WRITE_FULL: Write access to all debug information
++	 *
++	 * Allows read/write access to everything. Requires CAP_SYS_RAW_IO, so
++	 * it is not required to follow lockdown principals. If in doubt
++	 * debugging should be placed in this scope. This scope will taint the
++	 * kernel.
++	 */
++	FWCTL_RPC_DEBUG_WRITE_FULL = 3,
 +};
 +
 +/**
-+ * struct fwctl_info - ioctl(FWCTL_INFO)
-+ * @size: sizeof(struct fwctl_info)
-+ * @flags: Must be 0
-+ * @out_device_type: Returns the type of the device from enum fwctl_device_type
-+ * @device_data_len: On input the length of the out_device_data memory. On
-+ *	output the size of the kernel's device_data which may be larger or
-+ *	smaller than the input. Maybe 0 on input.
-+ * @out_device_data: Pointer to a memory of device_data_len bytes. Kernel will
-+ *	fill the entire memory, zeroing as required.
++ * struct fwctl_rpc - ioctl(FWCTL_RPC)
++ * @size: sizeof(struct fwctl_rpc)
++ * @scope: One of enum fwctl_rpc_scope, required scope for the RPC
++ * @in_len: Length of the in memory
++ * @out_len: Length of the out memory
++ * @in: Request message in device specific format
++ * @out: Response message in device specific format
 + *
-+ * Returns basic information about this fwctl instance, particularly what driver
-+ * is being used to define the device_data format.
++ * Deliver a Remote Procedure Call to the device FW and return the response. The
++ * call's parameters and return are marshaled into linear buffers of memory. Any
++ * errno indicates that delivery of the RPC to the device failed. Return status
++ * originating in the device during a successful delivery must be encoded into
++ * out.
++ *
++ * The format of the buffers matches the out_device_type from FWCTL_INFO.
 + */
-+struct fwctl_info {
++struct fwctl_rpc {
 +	__u32 size;
-+	__u32 flags;
-+	__u32 out_device_type;
-+	__u32 device_data_len;
-+	__aligned_u64 out_device_data;
++	__u32 scope;
++	__u32 in_len;
++	__u32 out_len;
++	__aligned_u64 in;
++	__aligned_u64 out;
 +};
-+#define FWCTL_INFO _IO(FWCTL_TYPE, FWCTL_CMD_INFO)
++#define FWCTL_RPC _IO(FWCTL_TYPE, FWCTL_CMD_RPC)
 +
  #endif
 -- 
