@@ -1,36 +1,36 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2079.outbound.protection.outlook.com [40.107.237.79])
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2045.outbound.protection.outlook.com [40.107.244.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C626179A3;
-	Fri,  7 Feb 2025 00:13:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.79
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3311E946C;
+	Fri,  7 Feb 2025 00:13:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.244.45
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738887230; cv=fail; b=pzNXXIrr+eUyKLYi6Mdxj65TeywKa3SbiUbZau1nTnLWCDRr/rLlDZa/ZTcdTrlAY/8o7BzmeXR6PhXXd5VI6jgMcFHAnrLwa4yelHrPkoYDtNpUiqSyKxil6gPvL8a/I79Hn9d43siSSGLEuHKhbPPPIFSvaozn/fhdpJc+2S4=
+	t=1738887231; cv=fail; b=q5apvWWYJ6aMbmc2tPpL0bJmRBUIfv03I+Xm7pLebXAQKLope1oMc4Xm+IGERW69jwvvYH8LIjg20Q0kALi9pwKwCCGIbAQmLoBMF6wNbFLxRxsJ1Vm65s1kuqIb7cHt/TlZNjO3G4B+LvXDjdWgFA9yWCDvvW0wA0rXhjz3RhI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738887230; c=relaxed/simple;
-	bh=DaxHf2nCiCNDIqZjebadvmsS0LVcJRCGdMU09aiWCmU=;
+	s=arc-20240116; t=1738887231; c=relaxed/simple;
+	bh=Z5Aw4wBTMv8MGkvVDyjiRF0SmAR5gxRFS/6bfShGojM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=sP+g3/3+An6NubZosZYdAAgak6XxygMT43wddL2p9IMb2Xub82im3Qch06MpJ3T4PFcYkGPN7gYP1kdcgoj8/yzBytrwRZ1yviUxgIiZX5LzjbsodI48wL9RG7boCuJo/T2ByCeRknwtFIXowurQD+6p9pRIHjSk9cjO6oSIUps=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=hwSQUXHN; arc=fail smtp.client-ip=40.107.237.79
+	 Content-Type:MIME-Version; b=f7DFqKQdQ6fD+npDZ+up0mOEm/NYW5Q9sK0Ric0kCXLFXoR0ZX4WdkwVxcsoZPEyWMtTYN1T5ggRiMgT6aT5NUzLeNCEbtnWPOwV5SDGwTNBoU5s5Bs2xHx9rPPnOnbSXvYTAMmgWm1d+70Msqt4QrozryYHAHz8LN4kAeiweNM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=HCopeUKv; arc=fail smtp.client-ip=40.107.244.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="hwSQUXHN"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="HCopeUKv"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=St8uovWRXAyxRPyaL+MTaWhUFvfbRtjWI+4G2Vx/vNn/rfNAT5zURV5gx5EOeyLxmTS87UpXhldeKyJSG/jhjlqj99DnbEPLCtog3IBvtZq5D9xcugX55mjZw6NcXZX6qAffh4lgnAUMO2ci6k6CZVsjiukMJt6aoiiShRTf0J1diRGl71cU3kq1KNDq70yTg45DmR1FLesJay2AwscjZ3Tki6TIDcW58d95nZyy/ahM/oW9cRxwbWj56AybsTqa7R22QBKsb1kQ9yiDExX1TFdr5+IQHbsONGREd24sUAcfxlfbluP8pnLL3QDjJYfGGGt6iS053wF9rg5l6dDylA==
+ b=tyhwsQ1ecq5aH9HeUIX77RP7lWtUVFVtZXNCTCy4VkqnNWNtWboTvQUo2w4Q61iYv7hZgrOhgaoVBIuTpBeHY8u50VCXJc/d16Ipx8EFynAY/QkdQSn1L9mQ7WOlNDcy1L1NFOFMNatAP16lBGGP4PQZI4aDJML05zpOn2j5tEHQ8h/a3HSFQ0oz2j3OBoZT+YQ+4C0NfckPuNDok2EDxapQg8HIqXRPtlpPbvrzMWKlx8isvxMEjlUn+WNQif5OFb2yyA8lnZp23XngbeQ4zf6BplcAyj9cCt0jHn7Z7Zd2uFc6DfGcdrBjAYqv9vKblytVqJhVKMS/y57NgoQyDA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wWC/NsWtM4wqA0n86q+1Y31aWCQ0WZnylXlyEg6FnX0=;
- b=H+4Pahe7lb89kKzkMnUudhQjrx1+pfQWJozWfLlFWcyVbSlXJDivLTvf+xmhKWUjPke0wdY3tFYwDFBy2neFrCusiDKXBcgVisCtuDVT0rtN7LN9w7oeS86ZYwmGmkXlmNtLw8s4uh3hMXIfJhNCpl3d5pCQKhwocn3hN9tMHT/UVw4hEVkd6KJ9uPy4tC6EzWgpmGctT8jdPpyqkfsZA2XhaVuU/vzE7ci1xbl+Lp/S32wn6sHDWfNzgRC2GrBrBL0C11/XWNt9xyX05nb56tmnZmz9IRFTFUXdPIozot3g1AM3dBehcLCRZwQLEH/cLIZid4+F/wUPTYRqTDYNNA==
+ bh=f9wbkuGvqVbCw5Tr4oH5HrhEEdWED0ffMbEFlt8mTIo=;
+ b=dEYPvo/0lbQxgRh3wOBcIWcZ/ARLACvayti2YCAPdBEmJZ0Aiaxs56GaDBii2YTCREgR22p95kBLwQry+RaIgjhjyw8OViDXl5wFd3XO2csGFKd+TsRz/Zb92K7vAEmS975Mg1WiTrh8iwlwloM4Ukbm0a7uro4obmmlbcqMpo4sVOE3wSL8/TCcQ8AYNYrx6qjXhEi0R6KsPjXAsBSAkyDD3jt0jR8vvDwCpy6pAMHqL0L4FHagRxkbRV1xSQjj6p9YYUYueiU1LKLg/veBk+COnGJZg51vmheTCNjPG+VtEtMuTKWczTGP8W2KMigCWm7w68XdVDw/mHJCpXdO7A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wWC/NsWtM4wqA0n86q+1Y31aWCQ0WZnylXlyEg6FnX0=;
- b=hwSQUXHN87rMJ4yCF3Tal4MFzWFQhg/bxdfKJ1bHh7hITeUNoxu/l110bxhDvQpOiT+7NNQ1qpTLqW40TMrn5JOjmwlu5IZzuWhGr31glzTlS4NOgqSSLgh6ihVvNI9MTBrliZHScYn/0n69t8NtnhREKPjENStJvg24REZO26tYHOwaqPemiBnJBAl31km8Fj/lBr9C0eybGdDoSHiyYYQnG1FsGmVjgwvxfreJiva1DjbyPqA91k882Pf3087RLM4AIpgovnT2aLhdYAS50lixLf6Rnj7NiJzffTmbfHxac7KW2q6nYfP1WTHrzEzlflEbSj5y5S1z05x4XuxqqQ==
+ bh=f9wbkuGvqVbCw5Tr4oH5HrhEEdWED0ffMbEFlt8mTIo=;
+ b=HCopeUKv42Nw1fdtsJFQx636zsJYd2GWJyRnrvrKbN+AXM1gZp5m80afP6G7RPisNUlzokk9DEUwbtTwRDSso/1kIK61tpsF4PB5OllEcM9P4CyRAor0IBuHUR5L/0u2UktO7an1i8X01QWfWxz6mhWIS6DR34wRTsa5jAEk6vxkMcFIFykCl8pnFr/5PEJdKcOaZBuSZMYe2KCV/gAZVbgDfFd1u+wmoxXP5NQAWFK8GjUHXdxxMydCc5TajSYlavkSCXDo57xNbum5JMoHbtsk3EHRKXSF7SvKSlcK1lEQ3gCaK3VyglupJrETtX2Yvq0lTDehFx8a21nzpDyirw==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CH3PR12MB8659.namprd12.prod.outlook.com (2603:10b6:610:17c::13)
@@ -63,9 +63,9 @@ Cc: Andy Gospodarek <andrew.gospodarek@broadcom.com>,
 	netdev@vger.kernel.org,
 	Saeed Mahameed <saeedm@nvidia.com>,
 	"Nelson, Shannon" <shannon.nelson@amd.com>
-Subject: [PATCH v4 05/10] fwctl: FWCTL_RPC to execute a Remote Procedure Call to device firmware
-Date: Thu,  6 Feb 2025 20:13:27 -0400
-Message-ID: <5-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
+Subject: [PATCH v4 08/10] mlx5: Create an auxiliary device for fwctl_mlx5
+Date: Thu,  6 Feb 2025 20:13:30 -0400
+Message-ID: <8-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
 In-Reply-To: <0-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
 References:
 Content-Transfer-Encoding: 8bit
@@ -81,290 +81,123 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: CH3PR12MB8659:EE_|SN7PR12MB6885:EE_
-X-MS-Office365-Filtering-Correlation-Id: ab6bfce8-4179-447a-51e4-08dd470c4312
+X-MS-Office365-Filtering-Correlation-Id: 53b8df41-669a-4f1d-817e-08dd470c4327
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024|7416014;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?XDD0pvJ54sADdrUgTMdsf0IhYO28uYc6dSS5bvf/y/rhzy2Gr+03OgL5pKhi?=
- =?us-ascii?Q?Dt3vKpiX0XIAPqpB9xV19H8mldj1I2cHCHOZaa8bBpF/2fQEVcSMSSZ8Stjj?=
- =?us-ascii?Q?zltAC8IFl0khrjMMPRqudPaju5txFfXh9SevSL/4PUiAjB++bB8jucUmpvOj?=
- =?us-ascii?Q?xCLisT98wzZEDaeRtwAPe8GrElfGuGnTedVtMv/1A9imW6lkzIDIhTl3sd/Q?=
- =?us-ascii?Q?lppX44o0H29scJJg8HtTz5q5C4ZX1pdrM5i/RKZS8kutcTYLTKugKzORJRGh?=
- =?us-ascii?Q?8rvBEkSw/JuZwn5hS+gx8GPR7L7K6VsmYyf6IaWEj/PsVSIO5owg/GDPesNm?=
- =?us-ascii?Q?JEQR2E0Rj6pGRmiGd0PHDvQFdhgfUGHSkON8AJo9bHux5Zj5me8ITyt098qq?=
- =?us-ascii?Q?wgJqhdMMDDV+i9acthPuPadJ8S8Hwafz2+si7M3V4uTrM8nhfmaG8VZf1EQ8?=
- =?us-ascii?Q?EeLINsTgGG/0XXRjNPP4jbp1DCiGcQezAv3vV7Fu3AzclFY1W/nhtKuQdaUj?=
- =?us-ascii?Q?DBxaHh03b1Jg4YDUYaYXWmOSzHuxL7pnGJwJmwim2cfmM+IuwksgX91bYYHF?=
- =?us-ascii?Q?XoNxStOGUA1fHFuBRzRY6V41z1acVw3aMsFTmZbf8k0tvd99r3QrxUjmPoUV?=
- =?us-ascii?Q?UtlfhyNCgu8GFE7BUwfj/7MHAHHl6zCV0M2aT0Kr7UJuu9MRIShEuj1H/cfL?=
- =?us-ascii?Q?o7lZwtGSlmNWQ334lOzBg7kveJOf+hyvk5biER6tUkA01g4siIl/upevFxY8?=
- =?us-ascii?Q?1v0cuJ/qP6eGc9KxrAZnMCRJ0KNRLH4X8UwfVd4/hDNiXTBHH9o7r8L4EWzj?=
- =?us-ascii?Q?wL1rPdD1QXC82fstTRb0j52KW27I6+cELoTwpeLEsgiVrCwp2QDgLWJmW4Xw?=
- =?us-ascii?Q?kbLfmP0XwYm2P1MgIyDhdHXdXa/YwfzUUdWniTTJiPAAaemnnYTCFXZfqLB3?=
- =?us-ascii?Q?orG7aTCQKkUiIvNPCP/FSaBHy0T51nhLiVSyA5S9rrSB1TUgL6GJgu+kU9U7?=
- =?us-ascii?Q?vY/0l5+wQBWCjWYRhE7hUNNtHz3uy7oMiaQGmbWqjaQbveYcBpgsVdbhRsdO?=
- =?us-ascii?Q?nAOuizGJbF47OOzpDVov/aRmJRE5JjfzmuL1As45KtYqENOPO8dBDlzCtbOu?=
- =?us-ascii?Q?bgZotWdT10t0XmOq1I5dKMtmwSJ3SERDokz1KwnGlcwVMz6EgaZDJGUGZxQD?=
- =?us-ascii?Q?K3iC9CIe5WSxR3W2n+QVXexaRdIOWVjMnTkjiqIVZp6N7WiwnpFZzuh/avO6?=
- =?us-ascii?Q?gWQapQNPuusCfBWWzFG/GAGDIZAQbtysMB1yNWPlQNzoiyuTV4VjSXO7UzdC?=
- =?us-ascii?Q?dmZMO9Iw5XffieVpD3KRp87hAD2L4Q0unRBHZojWaieF3KfA1gCc3qHQcGTp?=
- =?us-ascii?Q?9UxZMDBA2+Kj1UbgutX+13pxzyQY?=
+	=?us-ascii?Q?72djyVL+ijOGChZH2N6FlFfOWkCl2KFFaQYgytRz3cpS5nZ3pA/wGsLhW5xR?=
+ =?us-ascii?Q?aaUEG4TjkVf27AugSUQi0dluPbAo41FipYHwsK3OLBk0lYJCmkgRk9F9UjKx?=
+ =?us-ascii?Q?NPcLUONw3EaeTkKHvR1h0hSWZvNWnkhvDDMucxgwTXLds6rduu6WcoRSFt22?=
+ =?us-ascii?Q?q9ukI6kzHihVkvf78tx01uqCeJanq2ScrYXgFma9y7uw68vBjSR2eX4c92Od?=
+ =?us-ascii?Q?83jWVKMCryEzW66icfrcRSxrNevbpvqGc5APAjHozRvX+8Ngrj3lVZwB8XD1?=
+ =?us-ascii?Q?n4QXKVyePgK+u4+9zhYfxMOFYOAkdqKlW3NSVevicryjlOdzw7jXblsY6ioy?=
+ =?us-ascii?Q?RjspyMYwvQY/gfj9nD1r1UnphK0hezCKg3nj1x6xgJMmpGhqVBbeINqch3JR?=
+ =?us-ascii?Q?0dW1vO7KBqKqZwnMOEKMxReWDX2CY9zRdL+V1DWRMdXBD5PjZmIVjQIv6hQ1?=
+ =?us-ascii?Q?RmNJ4G3aYQDps1+5MwuGUrvt/k68HFdwk+XKvCVwEfm+I14sr8E+a6fqO3vJ?=
+ =?us-ascii?Q?QnrFoZljviC+kpXfBqbBw2Ap+7j6uDqGFAGrsVQ4T8Sjs+Pgs8N/sSeVY9qW?=
+ =?us-ascii?Q?jrOdRfYhmdr+EcbkBLRs8S91RsfUi0o/3SkOjMHS4XWaOHqAPb9Qwdk4ix3q?=
+ =?us-ascii?Q?T6PCnPDl3QzEibnp9tmGfGVP3SOwJb2EYTtpVRtbg2nOFLwXL8U3sGYfClgk?=
+ =?us-ascii?Q?+nGa47iIT9iHXBQdY66lwXXTFNkFz9/QTMvCWh7jDx9jr9pQ2I7DMrH/aE5l?=
+ =?us-ascii?Q?Dhj12/6FadOA0TBBhpuQVmKZwf0W4ljrneXM4XtLjQYNBXOaebpgemDniUi/?=
+ =?us-ascii?Q?l4qYdswMtR4uUtFuXxV7wkNhGpdILwmy02nle1q0F9VBvElVsOhCXOqDSum7?=
+ =?us-ascii?Q?bLrTtL0jd/3E8BiIW+/WQCjieoDW+9AZxX0hAyXe9HTiD02duvvjMUKZ7ABi?=
+ =?us-ascii?Q?k1Xolgjs/kPAKs96EYaFLMo0auXziiAtjHwi3LHzsqcWW9vorbgvfBXCYbjq?=
+ =?us-ascii?Q?r0c66PfSXSZNKmckjVj/V14BQlMxvAUGoNzanwqbbkNYPp1XNmV2/MYXB+2t?=
+ =?us-ascii?Q?teH1qUXczanT+7f2eiynxpTLotU1lWLuCJaeP5ejWyCgdC1pNUwoyMzVJNv9?=
+ =?us-ascii?Q?Pjgh8nyEpXNfCHNcreg4ZBV2T0uZ3091P2to0u23vyLpKcqg0jhxiRvb4lam?=
+ =?us-ascii?Q?GaNoVMj/ZaYp4dlJuXh/yAPeZ2rm8bjwVp34/3d04aamvGhGMETi7HM/88xl?=
+ =?us-ascii?Q?47dYNouhUZD4BkYQ/B6N2D/nv5wfowurVW0VXdX/UIcK31+wvXL2I+Nltz1U?=
+ =?us-ascii?Q?xJiOMIVXQevvESjJkf12YnXTHoGAxyApXRWke5ZMU0XMhDlvtxeImr+HlJso?=
+ =?us-ascii?Q?k3H+n4zFY72LGg4csgsFCKIJajQC?=
 X-Forefront-Antispam-Report:
 	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8659.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(7416014);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?TJCgkkFvKxj571i0h1wv7dQhPxq+20sUF95+2UGULPeojHS/xy/QJQca5ks5?=
- =?us-ascii?Q?7KQD5AwsdaFvIiaBJnQa6vnkOR3TGn8u/P4puSaIt8N6dgNGC1BN6nWujSAs?=
- =?us-ascii?Q?/qRz5tEDxlBZ/2mS/UXXD4Nx4Zs7mAM41skVPavnrdOu1LFWM1YeySe0hUGK?=
- =?us-ascii?Q?7kyXLeC8SENekgtxcavIVpUomKZAo1czo1DT5xXxt1PtOU/HRIe6jlrgl3KB?=
- =?us-ascii?Q?I5fiXFRAwmddsm/Edhm8AJsQhKc92iuBIJqiexV6XALeDz+2Cxq5Erj0N4ed?=
- =?us-ascii?Q?E1rx2AZbk4pGdTXQgpJWPl9wVM/FA6gKq7VnNhJ/n4F8kMZsf2M4wg0CdDCh?=
- =?us-ascii?Q?YSwGD+y21hruRpYfSm4cXAIHMAgBZoH1nUQYVqZBDcnYPumF8E3wJldIyAl6?=
- =?us-ascii?Q?B7+xwKeEj/PUsicEs4P4EgbDaFk791Svy0oMxDiP4uwt/kYyZL2xDkMrya26?=
- =?us-ascii?Q?AjBXW+WBtFZ/XKZ4ZyS+qAilcGalAzGG6ks6vC27sNj5qSTP8RCMB/5qrYFx?=
- =?us-ascii?Q?ZXxjTdRULQGbkTdS+wbJpVUbeYvphpLVHX9tzRJrA1r/777RDjEG7qLJGBrK?=
- =?us-ascii?Q?Og+SxoGs+JuTnu2gBrsb1RxnqOoNcy2EImW1NKi1BKfsRNH+qyU98DsD9SQ+?=
- =?us-ascii?Q?nYwgjQRln4tE+v49Lil+xMdEJsYvs6kEYOr2ywrCoa3iDSxQwRJYzEgjwi25?=
- =?us-ascii?Q?gkbVV3IgCQKeGAKZ3iquc1E3LyNyseOr0eraUxs40YarGnqCqi6ZghzLGGwX?=
- =?us-ascii?Q?9K0TlDBWpWGkK2rAwEbq5rmjRrX1yRWEIspeVT5KaGmun9P3ov2/QovwlbNC?=
- =?us-ascii?Q?PF30nPlbASbr/fI1Al9F56nh12vjAxvbvq1UVrZQFvkWZ7KFdQtSPAX5kseh?=
- =?us-ascii?Q?l79Y/e0MjbPIsV/hRRrkJ59XT7nEno2kJWQ4CuSAbDb73UtYNUSRH4A1Bxro?=
- =?us-ascii?Q?3SO6ASw36MQ/Z9f3saTDhc4m8Y+8lt0Oaj52ZxRe4Osfbu1e9p9k118fkwsd?=
- =?us-ascii?Q?NcKrZ2wFXutKu5+6ur253zX5doquGI2/x2nmiWFMY40uc6HaPeuDdUijrxZs?=
- =?us-ascii?Q?4phhpMwDwIafPNf05kNrWEIw7p9OAnnH/gXwbSeckFjF0dQ5Lv3MW+K9L8Up?=
- =?us-ascii?Q?32sxpW3EeK7ojCZhMNrG57cBQLROJ2RObc93opawAEj+wjZa479cHw6GBVab?=
- =?us-ascii?Q?HIHyJ1/68OiasOwfbjkyUo6OIGmbJmGewt1SpaFrny64Wyg8P1bGAu9LfKzu?=
- =?us-ascii?Q?Ek5mSu6tr2Q+NBfHmmmNw3nWRoP1o9AHBQ3mss8TqVrIGXhwB4xmvvVAGu68?=
- =?us-ascii?Q?82jpQdy4KJVm3FlSJAUMahcF1IPqkPsjQK1XhQV+CAYXYMzzGNoVbXvNASuk?=
- =?us-ascii?Q?nOi60ol1onn143VzPG8FkTH8sMMzPkG7MTjaF2F40UXZuIqEF6E6uM2Al+hE?=
- =?us-ascii?Q?Gkoax4KtHaiGxc711ZW+py35QOwLKta9xgz/736Zqt9kann1yctN1T3BxsA4?=
- =?us-ascii?Q?RnawzddQMyXDWyvTbclhK/5adU+xWZm5Bxiv5EZv9UFytMFWiXwUEkWoUQKV?=
- =?us-ascii?Q?LhiUtjLZ1p7QNhF5ml/jVI0ikzAfk27f2vqQI+gu?=
+	=?us-ascii?Q?tID0pAlb5e5A6lEinoDFbDX8bre9QfE9hiqjxZ4qzo4xQyG2OuWfw9SuO/8l?=
+ =?us-ascii?Q?iBxvhvIxDbOpEL/OQXfIEfp98R4jyViy0Slg+0tu72pdxP+8OnXY5sbHwKYe?=
+ =?us-ascii?Q?75vXgfrwfPtRpphx5Hw0oJEK+4embA8OfB2vlnSyyG9CFnXSpNXDDQbstq9Z?=
+ =?us-ascii?Q?er6c04+JlwjBZmlgQWcHHM6GBj53n0UPJXZQUimeGtghPmT4sfhZHCfSxgX4?=
+ =?us-ascii?Q?BeEuexXAGbFWgVZV2Bcg+4e1nLN2ObxqzmZ/mJ+hYtVCUq4b8OnYghOuobbC?=
+ =?us-ascii?Q?vQS09Ron+O7/dQ56WZm3cQk08HxHYPLIjaZB6SnX3QTcimbOo30ugeDtVdgR?=
+ =?us-ascii?Q?6ii1lSKdQbCtbvKihRS+FLWzcd7+vCC5OXGWBZ9A+dJ64jHtm1UiGmx7SwRE?=
+ =?us-ascii?Q?dYrhVt2eryhi8Z4kMAFmnR2ai+JJPAuNP3ZkhIDWDI3uXIPu+aG0/xvOWdPo?=
+ =?us-ascii?Q?k0bA5omk0C+7JtOLBhh7OU30ofCqHRmxUYdfQEH+a5EQLF7+xMDHwv0vkE1S?=
+ =?us-ascii?Q?aFboS60lTv/npq9p63GkrCa4xUsxao/ROgycHa0m8vk/dPe6m7s3wruJfDk0?=
+ =?us-ascii?Q?PNYalyLlSM/kPG3QY6PufvK8MivDtb34T+Z/NMJqyo0UzXSPpgDojcapIGCr?=
+ =?us-ascii?Q?WppzQPdZ8DLH5GQqxTZX+yFPKWryATRfke8L6QM/cTHM/g7yWAQWH6LnKSOi?=
+ =?us-ascii?Q?U4tbml4TFmf7T3OYX2kuHSxzZSxe6kBxdF9S/zYwRDIWKIfU07qgLOFa7bl6?=
+ =?us-ascii?Q?vn1hOjiRFgvZdEHDnqUGkcTtqoW3kC1vj3ilTRuxop+IhvYWwYDuK8eGfHPw?=
+ =?us-ascii?Q?SejkwQgQuPqgJ9h+oCzK2VCTQXXzQACVmT8qlX6kgHdVe604ILqUQDvWppiJ?=
+ =?us-ascii?Q?wDgQELtwqkJJBAJfGGq0B80lwPPIQL7bdXeea0f3WburSRe2HDeeaU9zW2zm?=
+ =?us-ascii?Q?wm+pZ7te3mzH9L0n+WeZSXcwKnB+/lZR6f1o/qdKMde/aR7DbePkQAWZYohr?=
+ =?us-ascii?Q?Iokf8LtjFhzQ50+lsmNe4O2vZdvEvDNllByeBIEfJkAaphVe0HymFp3wqDka?=
+ =?us-ascii?Q?AV2G2MsHmTpCyH/h5AX61MjKuQv1oOO+sczoMs4gduKi1JPZyak7jJLlwMD0?=
+ =?us-ascii?Q?RR8MnpNLczkK4OzxQUWQuadat6j5K2yESp3LMi3pQvvXPmwKcM4kuJtZuP/C?=
+ =?us-ascii?Q?JxfkjEaFWd+e8V2JToGjGqPKRp1Yu/9rgW3TX8OO8G7D0gV/SUDBjn6R5RRf?=
+ =?us-ascii?Q?iuTuFsmYIPCtN6sUjr+6evmHvwP5SYEe7f2HDXnJHWP+lZ2DHRyf+r5VaIkl?=
+ =?us-ascii?Q?31Q+PD5cDiXa4EEMpVvKSNEz2GFzf565jS76N+iHVmmVVo4qsAuFa1/5LLGe?=
+ =?us-ascii?Q?zLWjN4kLWIhMTIeQ+39lnvMiCG+zemSfL95EiHo5RjYRrXOaEPY6zWj47AEe?=
+ =?us-ascii?Q?CdIEbqxTEFHr+/BqNdUANKAW7n3TQ7juP/xWx0VqAlP3MBalZ9XxJ2YGW+j2?=
+ =?us-ascii?Q?6IbqXBny18Z3KKRbBIiE7WgTHbyO4KU9kXRFe1boEypjv9Rj2hTrRhWUtlxR?=
+ =?us-ascii?Q?Hlq7WL2xFBx1z7oeqas=3D?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ab6bfce8-4179-447a-51e4-08dd470c4312
+X-MS-Exchange-CrossTenant-Network-Message-Id: 53b8df41-669a-4f1d-817e-08dd470c4327
 X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8659.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Feb 2025 00:13:34.8809
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Feb 2025 00:13:35.0106
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: c1Icv+eDJ9+rBLPv6A97stplIYWrTutnHYTt+4Eu1xjo3L58PS7sFp11nutr1c/x
+X-MS-Exchange-CrossTenant-UserPrincipalName: bhllSIMGzYFIJhBsZy1Jda9b/PaYdMPdY7FyKn1N5/1eiDS82i5XxuuA6ItpTF9/
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6885
 
-Add the FWCTL_RPC ioctl which allows a request/response RPC call to device
-firmware. Drivers implementing this call must follow the security
-guidelines under Documentation/userspace-api/fwctl.rst
+From: Saeed Mahameed <saeedm@nvidia.com>
 
-The core code provides some memory management helpers to get the messages
-copied from and back to userspace. The driver is responsible for
-allocating the output message memory and delivering the message to the
-device.
+If the device supports User Context then it can support fwctl. Create an
+auxiliary device to allow fwctl to bind to it.
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Create a sysfs like:
+
+$ ls /sys/devices/pci0000:00/0000:00:0a.0/mlx5_core.fwctl.0/driver -l
+lrwxrwxrwx 1 root root 0 Apr 25 19:46 /sys/devices/pci0000:00/0000:00:0a.0/mlx5_core.fwctl.0/driver -> ../../../../bus/auxiliary/drivers/mlx5_fwctl.mlx5_fwctl
+
+Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
 Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/fwctl/main.c       | 60 +++++++++++++++++++++++++++++++++
- include/linux/fwctl.h      |  8 +++++
- include/uapi/fwctl/fwctl.h | 68 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 136 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/fwctl/main.c b/drivers/fwctl/main.c
-index 4b6792f2031e86..a5e26944b830b5 100644
---- a/drivers/fwctl/main.c
-+++ b/drivers/fwctl/main.c
-@@ -8,17 +8,20 @@
- #include <linux/container_of.h>
- #include <linux/fs.h>
- #include <linux/module.h>
-+#include <linux/sizes.h>
- #include <linux/slab.h>
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/dev.c b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
+index 9a79674d27f15a..891bbbbfbbf1a4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/dev.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
+@@ -228,8 +228,15 @@ enum {
+ 	MLX5_INTERFACE_PROTOCOL_VNET,
  
- #include <uapi/fwctl/fwctl.h>
- 
- enum {
- 	FWCTL_MAX_DEVICES = 4096,
-+	MAX_RPC_LEN = SZ_2M,
+ 	MLX5_INTERFACE_PROTOCOL_DPLL,
++	MLX5_INTERFACE_PROTOCOL_FWCTL,
  };
- static_assert(FWCTL_MAX_DEVICES < (1U << MINORBITS));
  
- static dev_t fwctl_dev;
- static DEFINE_IDA(fwctl_ida);
-+static unsigned long fwctl_tainted;
- 
- struct fwctl_ucmd {
- 	struct fwctl_uctx *uctx;
-@@ -76,9 +79,65 @@ static int fwctl_cmd_info(struct fwctl_ucmd *ucmd)
- 	return ucmd_respond(ucmd, sizeof(*cmd));
- }
- 
-+static int fwctl_cmd_rpc(struct fwctl_ucmd *ucmd)
++static bool is_fwctl_supported(struct mlx5_core_dev *dev)
 +{
-+	struct fwctl_device *fwctl = ucmd->uctx->fwctl;
-+	struct fwctl_rpc *cmd = ucmd->cmd;
-+	size_t out_len;
-+
-+	if (cmd->in_len > MAX_RPC_LEN || cmd->out_len > MAX_RPC_LEN)
-+		return -EMSGSIZE;
-+
-+	switch (cmd->scope) {
-+	case FWCTL_RPC_CONFIGURATION:
-+	case FWCTL_RPC_DEBUG_READ_ONLY:
-+		break;
-+
-+	case FWCTL_RPC_DEBUG_WRITE_FULL:
-+		if (!capable(CAP_SYS_RAWIO))
-+			return -EPERM;
-+		fallthrough;
-+	case FWCTL_RPC_DEBUG_WRITE:
-+		if (!test_and_set_bit(0, &fwctl_tainted)) {
-+			dev_warn(
-+				&fwctl->dev,
-+				"%s(%d): has requested full access to the physical device device",
-+				current->comm, task_pid_nr(current));
-+			add_taint(TAINT_FWCTL, LOCKDEP_STILL_OK);
-+		}
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	void *inbuf __free(kvfree) = kvzalloc(cmd->in_len, GFP_KERNEL_ACCOUNT);
-+	if (!inbuf)
-+		return -ENOMEM;
-+	if (copy_from_user(inbuf, u64_to_user_ptr(cmd->in), cmd->in_len))
-+		return -EFAULT;
-+
-+	out_len = cmd->out_len;
-+	void *outbuf __free(kvfree) = fwctl->ops->fw_rpc(
-+		ucmd->uctx, cmd->scope, inbuf, cmd->in_len, &out_len);
-+	if (IS_ERR(outbuf))
-+		return PTR_ERR(outbuf);
-+	if (outbuf == inbuf) {
-+		/* The driver can re-use inbuf as outbuf */
-+		inbuf = NULL;
-+	}
-+
-+	if (copy_to_user(u64_to_user_ptr(cmd->out), outbuf,
-+			 min(cmd->out_len, out_len)))
-+		return -EFAULT;
-+
-+	cmd->out_len = out_len;
-+	return ucmd_respond(ucmd, sizeof(*cmd));
++	/* fwctl is most useful on PFs, prevent fwctl on SFs for now */
++	return MLX5_CAP_GEN(dev, uctx_cap) && !mlx5_core_is_sf(dev);
 +}
 +
- /* On stack memory for the ioctl structs */
- union ucmd_buffer {
- 	struct fwctl_info info;
-+	struct fwctl_rpc rpc;
+ static const struct mlx5_adev_device {
+ 	const char *suffix;
+ 	bool (*is_supported)(struct mlx5_core_dev *dev);
+@@ -252,6 +259,8 @@ static const struct mlx5_adev_device {
+ 					   .is_supported = &is_mp_supported },
+ 	[MLX5_INTERFACE_PROTOCOL_DPLL] = { .suffix = "dpll",
+ 					   .is_supported = &is_dpll_supported },
++	[MLX5_INTERFACE_PROTOCOL_FWCTL] = { .suffix = "fwctl",
++					    .is_supported = &is_fwctl_supported },
  };
  
- struct fwctl_ioctl_op {
-@@ -99,6 +158,7 @@ struct fwctl_ioctl_op {
- 	}
- static const struct fwctl_ioctl_op fwctl_ioctl_ops[] = {
- 	IOCTL_OP(FWCTL_INFO, fwctl_cmd_info, struct fwctl_info, out_device_data),
-+	IOCTL_OP(FWCTL_RPC, fwctl_cmd_rpc, struct fwctl_rpc, out),
- };
- 
- static long fwctl_fops_ioctl(struct file *filp, unsigned int cmd,
-diff --git a/include/linux/fwctl.h b/include/linux/fwctl.h
-index 9b6cc8ae1aa0ca..c2fcaa17a2bcd5 100644
---- a/include/linux/fwctl.h
-+++ b/include/linux/fwctl.h
-@@ -47,6 +47,14 @@ struct fwctl_ops {
- 	 * ignore length on input, the core code will handle everything.
- 	 */
- 	void *(*info)(struct fwctl_uctx *uctx, size_t *length);
-+	/**
-+	 * @fw_rpc: Implement FWCTL_RPC. Deliver rpc_in/in_len to the FW and
-+	 * return the response and set out_len. rpc_in can be returned as the
-+	 * response pointer. Otherwise the returned pointer is freed with
-+	 * kvfree().
-+	 */
-+	void *(*fw_rpc)(struct fwctl_uctx *uctx, enum fwctl_rpc_scope scope,
-+			void *rpc_in, size_t in_len, size_t *out_len);
- };
- 
- /**
-diff --git a/include/uapi/fwctl/fwctl.h b/include/uapi/fwctl/fwctl.h
-index ac66853200a5a8..7a21f2f011917a 100644
---- a/include/uapi/fwctl/fwctl.h
-+++ b/include/uapi/fwctl/fwctl.h
-@@ -67,4 +67,72 @@ struct fwctl_info {
- };
- #define FWCTL_INFO _IO(FWCTL_TYPE, FWCTL_CMD_INFO)
- 
-+/**
-+ * enum fwctl_rpc_scope - Scope of access for the RPC
-+ *
-+ * Refer to fwctl.rst for a more detailed discussion of these scopes.
-+ */
-+enum fwctl_rpc_scope {
-+	/**
-+	 * @FWCTL_RPC_CONFIGURATION: Device configuration access scope
-+	 *
-+	 * Read/write access to device configuration. When configuration
-+	 * is written to the device it remains in a fully supported state.
-+	 */
-+	FWCTL_RPC_CONFIGURATION = 0,
-+	/**
-+	 * @FWCTL_RPC_DEBUG_READ_ONLY: Read only access to debug information
-+	 *
-+	 * Readable debug information. Debug information is compatible with
-+	 * kernel lockdown, and does not disclose any sensitive information. For
-+	 * instance exposing any encryption secrets from this information is
-+	 * forbidden.
-+	 */
-+	FWCTL_RPC_DEBUG_READ_ONLY = 1,
-+	/**
-+	 * @FWCTL_RPC_DEBUG_WRITE: Writable access to lockdown compatible debug information
-+	 *
-+	 * Allows write access to data in the device which may leave a fully
-+	 * supported state. This is intended to permit intensive and possibly
-+	 * invasive debugging. This scope will taint the kernel.
-+	 */
-+	FWCTL_RPC_DEBUG_WRITE = 2,
-+	/**
-+	 * @FWCTL_RPC_DEBUG_WRITE_FULL: Write access to all debug information
-+	 *
-+	 * Allows read/write access to everything. Requires CAP_SYS_RAW_IO, so
-+	 * it is not required to follow lockdown principals. If in doubt
-+	 * debugging should be placed in this scope. This scope will taint the
-+	 * kernel.
-+	 */
-+	FWCTL_RPC_DEBUG_WRITE_FULL = 3,
-+};
-+
-+/**
-+ * struct fwctl_rpc - ioctl(FWCTL_RPC)
-+ * @size: sizeof(struct fwctl_rpc)
-+ * @scope: One of enum fwctl_rpc_scope, required scope for the RPC
-+ * @in_len: Length of the in memory
-+ * @out_len: Length of the out memory
-+ * @in: Request message in device specific format
-+ * @out: Response message in device specific format
-+ *
-+ * Deliver a Remote Procedure Call to the device FW and return the response. The
-+ * call's parameters and return are marshaled into linear buffers of memory. Any
-+ * errno indicates that delivery of the RPC to the device failed. Return status
-+ * originating in the device during a successful delivery must be encoded into
-+ * out.
-+ *
-+ * The format of the buffers matches the out_device_type from FWCTL_INFO.
-+ */
-+struct fwctl_rpc {
-+	__u32 size;
-+	__u32 scope;
-+	__u32 in_len;
-+	__u32 out_len;
-+	__aligned_u64 in;
-+	__aligned_u64 out;
-+};
-+#define FWCTL_RPC _IO(FWCTL_TYPE, FWCTL_CMD_RPC)
-+
- #endif
+ int mlx5_adev_idx_alloc(void)
 -- 
 2.43.0
 
