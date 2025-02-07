@@ -1,43 +1,42 @@
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2045.outbound.protection.outlook.com [40.107.244.45])
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2079.outbound.protection.outlook.com [40.107.237.79])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3311E946C;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F1D22940B;
 	Fri,  7 Feb 2025 00:13:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.244.45
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.79
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738887231; cv=fail; b=q5apvWWYJ6aMbmc2tPpL0bJmRBUIfv03I+Xm7pLebXAQKLope1oMc4Xm+IGERW69jwvvYH8LIjg20Q0kALi9pwKwCCGIbAQmLoBMF6wNbFLxRxsJ1Vm65s1kuqIb7cHt/TlZNjO3G4B+LvXDjdWgFA9yWCDvvW0wA0rXhjz3RhI=
+	t=1738887232; cv=fail; b=M4kAkSizcwh2mBcbnSdFy0S+9VWJ4zU4hB44LnJKJ/5tuHRNvp+8g9o4WiZYsIFOK0q+Cl2LFGF9lUFHkSC8mRoq1J8NGRIZ0pIqSfyYVGQbrcwRT9WP2r2RZkC73OmFOUjtgYevHCtVjFAW2mgoTdkUC8EDmxEq6CigZ36Cf+0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738887231; c=relaxed/simple;
-	bh=Z5Aw4wBTMv8MGkvVDyjiRF0SmAR5gxRFS/6bfShGojM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=f7DFqKQdQ6fD+npDZ+up0mOEm/NYW5Q9sK0Ric0kCXLFXoR0ZX4WdkwVxcsoZPEyWMtTYN1T5ggRiMgT6aT5NUzLeNCEbtnWPOwV5SDGwTNBoU5s5Bs2xHx9rPPnOnbSXvYTAMmgWm1d+70Msqt4QrozryYHAHz8LN4kAeiweNM=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=HCopeUKv; arc=fail smtp.client-ip=40.107.244.45
+	s=arc-20240116; t=1738887232; c=relaxed/simple;
+	bh=JCtrr3QV60lugRVbas9zvDL3eMCUbMqWiRTTZC3fncU=;
+	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=ZS6YlJjyd9y/TbcD3cbdvHSN6uUcCue+XGD6WXSKfmEhFN2kY6yUYS5mG2ht8V3I8GiTQdr2qKNQRTllZJ6NwFfKu46/U8JcvbE/ajfFupwXmlrE5LROA2cY/Ttqd+RvahI+ZdiTtI7enO0zgQ/VHrZgxUCnoS/PLKHgU7Zanbg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=F2n5CQxc; arc=fail smtp.client-ip=40.107.237.79
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="HCopeUKv"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="F2n5CQxc"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=tyhwsQ1ecq5aH9HeUIX77RP7lWtUVFVtZXNCTCy4VkqnNWNtWboTvQUo2w4Q61iYv7hZgrOhgaoVBIuTpBeHY8u50VCXJc/d16Ipx8EFynAY/QkdQSn1L9mQ7WOlNDcy1L1NFOFMNatAP16lBGGP4PQZI4aDJML05zpOn2j5tEHQ8h/a3HSFQ0oz2j3OBoZT+YQ+4C0NfckPuNDok2EDxapQg8HIqXRPtlpPbvrzMWKlx8isvxMEjlUn+WNQif5OFb2yyA8lnZp23XngbeQ4zf6BplcAyj9cCt0jHn7Z7Zd2uFc6DfGcdrBjAYqv9vKblytVqJhVKMS/y57NgoQyDA==
+ b=F1rXxmlVYGNE5/cWwkNUvzEXCSVctT9gvaN3m5GT58xDUspmBhL3kZA6kEmc3Ac9cLnKsAVROlLvxxDZPpb4A8cYnVypTWBHSOtDtVqpU3Hx5LsEu62xs3/PFMvhfcOA00X8YnFpbyRb9BEVAEcZv1VIUXQuu+FYnUHiWVKCduRIru/Wb2Q4cagNrJuExG72sXdNhCuGb8d9Z/uaBeYl4jOET+SyApqvhsvyrIEyF1cMCldWQR37NllfDfkh49T/gLOQSzolk3bNtkBk09FWEWBfwbkMWHUXzCi46nF7DtADy6W04eLgG4OSWYlsojV608rdTQopOVCZzXJGdXtysQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=f9wbkuGvqVbCw5Tr4oH5HrhEEdWED0ffMbEFlt8mTIo=;
- b=dEYPvo/0lbQxgRh3wOBcIWcZ/ARLACvayti2YCAPdBEmJZ0Aiaxs56GaDBii2YTCREgR22p95kBLwQry+RaIgjhjyw8OViDXl5wFd3XO2csGFKd+TsRz/Zb92K7vAEmS975Mg1WiTrh8iwlwloM4Ukbm0a7uro4obmmlbcqMpo4sVOE3wSL8/TCcQ8AYNYrx6qjXhEi0R6KsPjXAsBSAkyDD3jt0jR8vvDwCpy6pAMHqL0L4FHagRxkbRV1xSQjj6p9YYUYueiU1LKLg/veBk+COnGJZg51vmheTCNjPG+VtEtMuTKWczTGP8W2KMigCWm7w68XdVDw/mHJCpXdO7A==
+ bh=BhAUyoxc+nvwo6BDt8pwkxuGo/r2ZFQ7+uRwuBSVcpk=;
+ b=h2p6OroJJSki8u/mXmBkXLAI5sTVvewGDqU20WDm7UpNvynjEPHD68MXjmrqMmCJa+5usmxjfIgCTKAGP4AxpDje4e6pjjjHua+M6uulk3X1ibk9YJgSbNFJkR/rPiDT/IX8N3iEWRVI/dItIkzCpYhvp2+9xy6GZqLsg46TR/gZqZATvb4qhcUNe3wdWw4b4zfHJha7pShflai5ZmtvP1XKnOeI5cojRFtqMGhku7LvDZPsOt3MhXDNwtheYgQR75eUEt2vbKdQZ0GrwGdFhoglAlRWCJWFSi/iSN2vvNxAvAzI2NT7XlM8IRt60b7bMZp1N/ZJfCnsFrGAckEtjA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=f9wbkuGvqVbCw5Tr4oH5HrhEEdWED0ffMbEFlt8mTIo=;
- b=HCopeUKv42Nw1fdtsJFQx636zsJYd2GWJyRnrvrKbN+AXM1gZp5m80afP6G7RPisNUlzokk9DEUwbtTwRDSso/1kIK61tpsF4PB5OllEcM9P4CyRAor0IBuHUR5L/0u2UktO7an1i8X01QWfWxz6mhWIS6DR34wRTsa5jAEk6vxkMcFIFykCl8pnFr/5PEJdKcOaZBuSZMYe2KCV/gAZVbgDfFd1u+wmoxXP5NQAWFK8GjUHXdxxMydCc5TajSYlavkSCXDo57xNbum5JMoHbtsk3EHRKXSF7SvKSlcK1lEQ3gCaK3VyglupJrETtX2Yvq0lTDehFx8a21nzpDyirw==
+ bh=BhAUyoxc+nvwo6BDt8pwkxuGo/r2ZFQ7+uRwuBSVcpk=;
+ b=F2n5CQxc8xsS9GZb+VUBMKBRcJV6PPha4twnggT2f61mVYiyXMhBCX0Znjnqe4r9FbG9L5FIz2iVv/OwavZrR3WVPzJYleRNCrTn/0Uuwzsu0lfUW74vweME3n+B9/f+9PDmpQ7nKNFgHASGqao1l7kHpgdj4XlgeLcdA7QhLM6Js7hfTpLeGpK/gTg04PKyAF7XA5VyiYk4BhlmHJ+jeg2P8b56J51efpPPd4IFOAdOCYGIz/ODJtjXuoSILipXZVniMcgY0tkJ8YYJ76Fwj0NC4v+CEPmNjPc39erFBpv3NHN/fIv61mYMLrNWK7v9Pjf3nXZdcqWQFHc4KqN+Yw==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from CH3PR12MB8659.namprd12.prod.outlook.com (2603:10b6:610:17c::13)
  by SN7PR12MB6885.namprd12.prod.outlook.com (2603:10b6:806:263::8) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8398.24; Fri, 7 Feb
- 2025 00:13:37 +0000
+ 2025 00:13:38 +0000
 Received: from CH3PR12MB8659.namprd12.prod.outlook.com
  ([fe80::6eb6:7d37:7b4b:1732]) by CH3PR12MB8659.namprd12.prod.outlook.com
  ([fe80::6eb6:7d37:7b4b:1732%6]) with mapi id 15.20.8398.025; Fri, 7 Feb 2025
@@ -63,15 +62,13 @@ Cc: Andy Gospodarek <andrew.gospodarek@broadcom.com>,
 	netdev@vger.kernel.org,
 	Saeed Mahameed <saeedm@nvidia.com>,
 	"Nelson, Shannon" <shannon.nelson@amd.com>
-Subject: [PATCH v4 08/10] mlx5: Create an auxiliary device for fwctl_mlx5
-Date: Thu,  6 Feb 2025 20:13:30 -0400
-Message-ID: <8-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
-In-Reply-To: <0-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
-References:
+Subject: [PATCH v4 00/10] Introduce fwctl subystem
+Date: Thu,  6 Feb 2025 20:13:22 -0400
+Message-ID: <0-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: BL1PR13CA0305.namprd13.prod.outlook.com
- (2603:10b6:208:2c1::10) To CH3PR12MB8659.namprd12.prod.outlook.com
+X-ClientProxiedBy: BN9PR03CA0674.namprd03.prod.outlook.com
+ (2603:10b6:408:10e::19) To CH3PR12MB8659.namprd12.prod.outlook.com
  (2603:10b6:610:17c::13)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -81,123 +78,251 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: CH3PR12MB8659:EE_|SN7PR12MB6885:EE_
-X-MS-Office365-Filtering-Correlation-Id: 53b8df41-669a-4f1d-817e-08dd470c4327
+X-MS-Office365-Filtering-Correlation-Id: 224ae87a-e2f7-48dd-c381-08dd470c4349
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|1800799024|7416014;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?72djyVL+ijOGChZH2N6FlFfOWkCl2KFFaQYgytRz3cpS5nZ3pA/wGsLhW5xR?=
- =?us-ascii?Q?aaUEG4TjkVf27AugSUQi0dluPbAo41FipYHwsK3OLBk0lYJCmkgRk9F9UjKx?=
- =?us-ascii?Q?NPcLUONw3EaeTkKHvR1h0hSWZvNWnkhvDDMucxgwTXLds6rduu6WcoRSFt22?=
- =?us-ascii?Q?q9ukI6kzHihVkvf78tx01uqCeJanq2ScrYXgFma9y7uw68vBjSR2eX4c92Od?=
- =?us-ascii?Q?83jWVKMCryEzW66icfrcRSxrNevbpvqGc5APAjHozRvX+8Ngrj3lVZwB8XD1?=
- =?us-ascii?Q?n4QXKVyePgK+u4+9zhYfxMOFYOAkdqKlW3NSVevicryjlOdzw7jXblsY6ioy?=
- =?us-ascii?Q?RjspyMYwvQY/gfj9nD1r1UnphK0hezCKg3nj1x6xgJMmpGhqVBbeINqch3JR?=
- =?us-ascii?Q?0dW1vO7KBqKqZwnMOEKMxReWDX2CY9zRdL+V1DWRMdXBD5PjZmIVjQIv6hQ1?=
- =?us-ascii?Q?RmNJ4G3aYQDps1+5MwuGUrvt/k68HFdwk+XKvCVwEfm+I14sr8E+a6fqO3vJ?=
- =?us-ascii?Q?QnrFoZljviC+kpXfBqbBw2Ap+7j6uDqGFAGrsVQ4T8Sjs+Pgs8N/sSeVY9qW?=
- =?us-ascii?Q?jrOdRfYhmdr+EcbkBLRs8S91RsfUi0o/3SkOjMHS4XWaOHqAPb9Qwdk4ix3q?=
- =?us-ascii?Q?T6PCnPDl3QzEibnp9tmGfGVP3SOwJb2EYTtpVRtbg2nOFLwXL8U3sGYfClgk?=
- =?us-ascii?Q?+nGa47iIT9iHXBQdY66lwXXTFNkFz9/QTMvCWh7jDx9jr9pQ2I7DMrH/aE5l?=
- =?us-ascii?Q?Dhj12/6FadOA0TBBhpuQVmKZwf0W4ljrneXM4XtLjQYNBXOaebpgemDniUi/?=
- =?us-ascii?Q?l4qYdswMtR4uUtFuXxV7wkNhGpdILwmy02nle1q0F9VBvElVsOhCXOqDSum7?=
- =?us-ascii?Q?bLrTtL0jd/3E8BiIW+/WQCjieoDW+9AZxX0hAyXe9HTiD02duvvjMUKZ7ABi?=
- =?us-ascii?Q?k1Xolgjs/kPAKs96EYaFLMo0auXziiAtjHwi3LHzsqcWW9vorbgvfBXCYbjq?=
- =?us-ascii?Q?r0c66PfSXSZNKmckjVj/V14BQlMxvAUGoNzanwqbbkNYPp1XNmV2/MYXB+2t?=
- =?us-ascii?Q?teH1qUXczanT+7f2eiynxpTLotU1lWLuCJaeP5ejWyCgdC1pNUwoyMzVJNv9?=
- =?us-ascii?Q?Pjgh8nyEpXNfCHNcreg4ZBV2T0uZ3091P2to0u23vyLpKcqg0jhxiRvb4lam?=
- =?us-ascii?Q?GaNoVMj/ZaYp4dlJuXh/yAPeZ2rm8bjwVp34/3d04aamvGhGMETi7HM/88xl?=
- =?us-ascii?Q?47dYNouhUZD4BkYQ/B6N2D/nv5wfowurVW0VXdX/UIcK31+wvXL2I+Nltz1U?=
- =?us-ascii?Q?xJiOMIVXQevvESjJkf12YnXTHoGAxyApXRWke5ZMU0XMhDlvtxeImr+HlJso?=
- =?us-ascii?Q?k3H+n4zFY72LGg4csgsFCKIJajQC?=
+	=?us-ascii?Q?EzZBBWN/kGlAQjRpIBjwoA/E41iMepr+7AczrCjgI2fZDIEd5bI2s25HQjuK?=
+ =?us-ascii?Q?kMi8OJqOgWd6wKezbUh5vjD9FZoZUlxM4v25bO4QFzjLZargTLh7gHfGpgow?=
+ =?us-ascii?Q?t71NNOQdyAz3lvp6z6Osh8fhuljFpxn9drZkpZKVlyQe/dA/NtghNhjRpsV+?=
+ =?us-ascii?Q?D6cK+VgyrvIO7uej+lSmUEbcTYdLdARGuqOc/ex/lGXxXoPec7f5yTxvonbl?=
+ =?us-ascii?Q?qOSwqhIz+4w/jKgJ+DzpKHUf5hKJz43XFR6VOh3kvh3Oxooiwb0Sf5IpvNeK?=
+ =?us-ascii?Q?hegCurkVTH6wVnoE3eYNimB+MvsQeMoDu1TVqaAh77XbV72CoUIP4OFGPMUt?=
+ =?us-ascii?Q?7JPeZWYlDMZZIfen5/d2cazQFii6ry1aYjtduKnlaEO/FYwPmZ4XnJa6kY8W?=
+ =?us-ascii?Q?WDUai1b8+zUXRWNYFGfB8P7TTHgF4WfuZDV338uxfa0lzDne1vWPtatjNP8j?=
+ =?us-ascii?Q?qNmpSmfnUZkmEVG2aP387WbiaS4mWxhHoK+5xZAVb2ZQdP8yJyzDSPU2DUIs?=
+ =?us-ascii?Q?Mq7uXKw/ylSR27EiPcUnYkNfZELpjx6WpuqZIePKFnWvz1/I/MthiBIewZgE?=
+ =?us-ascii?Q?GPDLJZ+jyxeNOEB4Mz89DAzp3gl9+a3IRr5QkKjxlGGKtra4bq4T3XYdhBz/?=
+ =?us-ascii?Q?bC+TKm3hM/QT6kps5CUAVuZoOdi120k5SDlSQ5ONUFrdQpbg0MpTW2LsUBvF?=
+ =?us-ascii?Q?roZJefN/8exGxV1AsFYT2NIc0rDJN9uLCGqzKuECY/BIur1ArCd+AQYwZ+4v?=
+ =?us-ascii?Q?u9+Zi5u/X+UO0e4ViUH2Y7XRkJk7l1IYUhU/qECTU2MZYS6IaIbjcaH3G8L2?=
+ =?us-ascii?Q?Ye9qEArlvk3qI1hRBLlHourLUy0U+LFypKo6q8KrUg7OHE6zSrrbaq4yiaCU?=
+ =?us-ascii?Q?MS7pUFWnfrRNT75TvV/kmIETbCbP0PIKLeyXMZmU6YP1xpK2wjVDTi3KBEWR?=
+ =?us-ascii?Q?xRFffYSonuYgKcocsMXXSX7m+DgC4IbFO4SxpUDQPAtwvLez2BMaQMh6r6tU?=
+ =?us-ascii?Q?Dak8muhPtzGVlNB8WQAWqExIBPgqEYHphKBE+Ya+WqpX6wFZF5mz+GMVysQV?=
+ =?us-ascii?Q?whRRiwkyx54V/vkcKLtQOQAwZ3PG9Exf6LiU2XHcARVc2WL5oZbB3Qmnwfde?=
+ =?us-ascii?Q?AF8MQS5PlMwTXOzcYGtcYRm/9r4Onb8eMggkCN9f+GVMpxWwGKEvMlEXvb9l?=
+ =?us-ascii?Q?ib9A9L+Y+MjmrWtpPsDO60nT2AwnoY+vGU+UlFuj8H7iPJJiDK4DRiZ51kei?=
+ =?us-ascii?Q?MqtROFNpgDf2iP/FBp/3X1f3Uhvwt9knDbx/CXUyJ0v2jbW/QgPFYOQ9yFJQ?=
+ =?us-ascii?Q?442bGvDfdVMFllOjOiEfMxDDDAzYp70mOMHOKyhvqg5NBhgvihvibpn3v8TR?=
+ =?us-ascii?Q?zli6Ftk+xWpsE7VNtVgwUNSoRU2O?=
 X-Forefront-Antispam-Report:
 	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8659.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(1800799024)(7416014);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?tID0pAlb5e5A6lEinoDFbDX8bre9QfE9hiqjxZ4qzo4xQyG2OuWfw9SuO/8l?=
- =?us-ascii?Q?iBxvhvIxDbOpEL/OQXfIEfp98R4jyViy0Slg+0tu72pdxP+8OnXY5sbHwKYe?=
- =?us-ascii?Q?75vXgfrwfPtRpphx5Hw0oJEK+4embA8OfB2vlnSyyG9CFnXSpNXDDQbstq9Z?=
- =?us-ascii?Q?er6c04+JlwjBZmlgQWcHHM6GBj53n0UPJXZQUimeGtghPmT4sfhZHCfSxgX4?=
- =?us-ascii?Q?BeEuexXAGbFWgVZV2Bcg+4e1nLN2ObxqzmZ/mJ+hYtVCUq4b8OnYghOuobbC?=
- =?us-ascii?Q?vQS09Ron+O7/dQ56WZm3cQk08HxHYPLIjaZB6SnX3QTcimbOo30ugeDtVdgR?=
- =?us-ascii?Q?6ii1lSKdQbCtbvKihRS+FLWzcd7+vCC5OXGWBZ9A+dJ64jHtm1UiGmx7SwRE?=
- =?us-ascii?Q?dYrhVt2eryhi8Z4kMAFmnR2ai+JJPAuNP3ZkhIDWDI3uXIPu+aG0/xvOWdPo?=
- =?us-ascii?Q?k0bA5omk0C+7JtOLBhh7OU30ofCqHRmxUYdfQEH+a5EQLF7+xMDHwv0vkE1S?=
- =?us-ascii?Q?aFboS60lTv/npq9p63GkrCa4xUsxao/ROgycHa0m8vk/dPe6m7s3wruJfDk0?=
- =?us-ascii?Q?PNYalyLlSM/kPG3QY6PufvK8MivDtb34T+Z/NMJqyo0UzXSPpgDojcapIGCr?=
- =?us-ascii?Q?WppzQPdZ8DLH5GQqxTZX+yFPKWryATRfke8L6QM/cTHM/g7yWAQWH6LnKSOi?=
- =?us-ascii?Q?U4tbml4TFmf7T3OYX2kuHSxzZSxe6kBxdF9S/zYwRDIWKIfU07qgLOFa7bl6?=
- =?us-ascii?Q?vn1hOjiRFgvZdEHDnqUGkcTtqoW3kC1vj3ilTRuxop+IhvYWwYDuK8eGfHPw?=
- =?us-ascii?Q?SejkwQgQuPqgJ9h+oCzK2VCTQXXzQACVmT8qlX6kgHdVe604ILqUQDvWppiJ?=
- =?us-ascii?Q?wDgQELtwqkJJBAJfGGq0B80lwPPIQL7bdXeea0f3WburSRe2HDeeaU9zW2zm?=
- =?us-ascii?Q?wm+pZ7te3mzH9L0n+WeZSXcwKnB+/lZR6f1o/qdKMde/aR7DbePkQAWZYohr?=
- =?us-ascii?Q?Iokf8LtjFhzQ50+lsmNe4O2vZdvEvDNllByeBIEfJkAaphVe0HymFp3wqDka?=
- =?us-ascii?Q?AV2G2MsHmTpCyH/h5AX61MjKuQv1oOO+sczoMs4gduKi1JPZyak7jJLlwMD0?=
- =?us-ascii?Q?RR8MnpNLczkK4OzxQUWQuadat6j5K2yESp3LMi3pQvvXPmwKcM4kuJtZuP/C?=
- =?us-ascii?Q?JxfkjEaFWd+e8V2JToGjGqPKRp1Yu/9rgW3TX8OO8G7D0gV/SUDBjn6R5RRf?=
- =?us-ascii?Q?iuTuFsmYIPCtN6sUjr+6evmHvwP5SYEe7f2HDXnJHWP+lZ2DHRyf+r5VaIkl?=
- =?us-ascii?Q?31Q+PD5cDiXa4EEMpVvKSNEz2GFzf565jS76N+iHVmmVVo4qsAuFa1/5LLGe?=
- =?us-ascii?Q?zLWjN4kLWIhMTIeQ+39lnvMiCG+zemSfL95EiHo5RjYRrXOaEPY6zWj47AEe?=
- =?us-ascii?Q?CdIEbqxTEFHr+/BqNdUANKAW7n3TQ7juP/xWx0VqAlP3MBalZ9XxJ2YGW+j2?=
- =?us-ascii?Q?6IbqXBny18Z3KKRbBIiE7WgTHbyO4KU9kXRFe1boEypjv9Rj2hTrRhWUtlxR?=
- =?us-ascii?Q?Hlq7WL2xFBx1z7oeqas=3D?=
+	=?us-ascii?Q?HgC3UavjxykxNaMCCkhkcOn52lu8DqlrWn6L6TTYWBvXlq7qGYyCjFe+/0Z9?=
+ =?us-ascii?Q?c6fW0AArVqnVTOYcCeZ7W2UwbEZGqgyBcKIgymcoMO+LnAxZ0C3eteK/C+hd?=
+ =?us-ascii?Q?jO0pjJcHmt2dCGLa76TbTaKGpqSvtBK6AX/2fixusXK4NIARwWKAoDWWxqS8?=
+ =?us-ascii?Q?y/Y8PlhToaFk5jLaU2Epo7focIxVtjwjB0XyTJRQmrbMFSMFxDGySPaETXqA?=
+ =?us-ascii?Q?Lsj7jz47yEblErVOIB0KcvuQubXEYIbftO5yzUouI+nFZDfmHwqdWO+OHzR+?=
+ =?us-ascii?Q?cVU3jTFaxshF5tLSrIqs6oEllcm0Nvzoap6Ou2PyPAOhpERkrcmdiOBHkHUQ?=
+ =?us-ascii?Q?ipnOc3MF3cB/SFZBif/5F8HxDX9OGMWMNwPAUG/42Ia2ZBh2Zb999vGyKs1W?=
+ =?us-ascii?Q?uCIgLjRhViCiQ5CqCTyQrcQySxWrxrHR+2ZU78nuxNpD41QrXIcoyoS56Cgo?=
+ =?us-ascii?Q?uixSI/ZF/6tkaokKNexXrkda8WRS3Fye3mzNJZBP1ODpkMLFchgxgLHXCDfl?=
+ =?us-ascii?Q?Hh18xKpzpIe/yXO/cq1Mh16c+6G/TsDFLV5gYHTYPZX04vqtvFb9wVz1hfAb?=
+ =?us-ascii?Q?yaw926ETJ6/544BGWLweRwBCeuNAb/aTVkEjJZmUxj9/1vWDB6dfLsbswWJT?=
+ =?us-ascii?Q?ZXbwEYCtDWnsyP6uN+OM1YbPf9MNGccAhEjCz7p+fFCMnsx8I9Tm8LLOqPDb?=
+ =?us-ascii?Q?RU3F6q0819ZDJgi+0l8BCPor6EfVGFgT20nHQXLw+Bs6rkm1Xdb3DEFei7cU?=
+ =?us-ascii?Q?nsTAmFvPbbFzaz09Si+n6Dy8nIkcFUtQNDsUQkOjCzjvqwr7aAuDOOsbhCLm?=
+ =?us-ascii?Q?8vkPBKwFt06OUlJkp07PRuQGdZLobk82PUjpsP62QfpGRRnrI4Gq4KpAkkSz?=
+ =?us-ascii?Q?7NwOGTcuP3BvFNe1lZvpK3YzhEZW5IQkjqKUHvrvBzdwHMYHc1oRxybtdL7Q?=
+ =?us-ascii?Q?ROw8EoMWlamKt08Gf/3XQJf//Haj1NdGHvOxLzkpCZFpnPdTeyxfjgQWPAu+?=
+ =?us-ascii?Q?4eEgmTrBCvJz5IVm2GnymcXpS7OTzxrMi9Ypqh0jkJicqy3anKm4QYg2NKmg?=
+ =?us-ascii?Q?uBO/gbEwp6pKfT+NoWmNasZAtpxfPZNIbfBkntYkESDZtD1+c82XJKDrBihs?=
+ =?us-ascii?Q?G+JP2Vzi1iKwAYBqofV+sh+GE70FodMUHIG+JezpfQDebgQkSOygQD+AEL5h?=
+ =?us-ascii?Q?SFY25LN7WmsXgbf7phvuabyN9Vzak3+15JmyqbxhgMOARvtd8sTFypReLhb9?=
+ =?us-ascii?Q?HNwhr9Mu5HzImOUERDZqODuZrZVB7YIv7HInmNudjw/G4r1A4wymbvjg+h1u?=
+ =?us-ascii?Q?JEV9vRq71dMl/Yfy96ZFDJNci1eeoxPsirf9J5xzwjY8eG1G74VdH3E8Mo86?=
+ =?us-ascii?Q?JIXGe1cGp7EOMxrnNKt1yWsslQUMZZ43RyBMGK7SHnfe1HvgD5yFFVQu601t?=
+ =?us-ascii?Q?l7AyW1KbPA2ry7PI6dH2LoAqe6AzVeVuoU4V9no63Cp8Wbsj/zu/YuHfV8Au?=
+ =?us-ascii?Q?89KV4BmNjN7eORLJAPy0556arcu3TuQd5JNOwW0JT78l56zSFE+kg16cEkSK?=
+ =?us-ascii?Q?txoypOphMPhgvUwYRcE=3D?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 53b8df41-669a-4f1d-817e-08dd470c4327
+X-MS-Exchange-CrossTenant-Network-Message-Id: 224ae87a-e2f7-48dd-c381-08dd470c4349
 X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8659.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Feb 2025 00:13:35.0106
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Feb 2025 00:13:35.2342
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: bhllSIMGzYFIJhBsZy1Jda9b/PaYdMPdY7FyKn1N5/1eiDS82i5XxuuA6ItpTF9/
+X-MS-Exchange-CrossTenant-UserPrincipalName: BgrluBBX0/TsOBozq/lDKAnXC3ivU7TzuxEay2kusgdqbt7oVHlw9uZL48ddW0gC
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6885
 
-From: Saeed Mahameed <saeedm@nvidia.com>
+[
+Many people were away around the holiday period, but work is back in full
+swing now with Dave already at v3 on his CXL work over the past couple
+weeks. We are looking at a good chance of reaching this merge window. I
+will work out some shared branches with CXL and get it into linux-next
+once all three drivers can be assembled and reviews seem to be concluding.
 
-If the device supports User Context then it can support fwctl. Create an
-auxiliary device to allow fwctl to bind to it.
+There are couple open notes
+ - Greg was interested in a new name, but nobody offered any bikesheds
+ - I would like a co-maintainer
+]
 
-Create a sysfs like:
+fwctl is a new subsystem intended to bring some common rules and order to
+the growing pattern of exposing a secure FW interface directly to
+userspace. Unlike existing places like RDMA/DRM/VFIO/uacce that are
+exposing a device for datapath operations fwctl is focused on debugging,
+configuration and provisioning of the device. It will not have the
+necessary features like interrupt delivery to support a datapath.
 
-$ ls /sys/devices/pci0000:00/0000:00:0a.0/mlx5_core.fwctl.0/driver -l
-lrwxrwxrwx 1 root root 0 Apr 25 19:46 /sys/devices/pci0000:00/0000:00:0a.0/mlx5_core.fwctl.0/driver -> ../../../../bus/auxiliary/drivers/mlx5_fwctl.mlx5_fwctl
+This concept is similar to the long standing practice in the "HW" RAID
+space of having a device specific misc device to manage the RAID
+controller FW. fwctl generalizes this notion of a companion debug and
+management interface that goes along with a dataplane implemented in an
+appropriate subsystem.
 
-Signed-off-by: Saeed Mahameed <saeedm@nvidia.com>
-Signed-off-by: Jason Gunthorpe <jgg@nvidia.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/dev.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+The need for this has reached a critical point as many users are moving to
+run lockdown enabled kernels. Several existing devices have had long
+standing tooling for management that relied on /sys/../resource0 or PCI
+config space access which is not permitted in lockdown. A major point of
+fwctl is to define and document the rules that a device must follow to
+expose a lockdown compatible RPC.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/dev.c b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
-index 9a79674d27f15a..891bbbbfbbf1a4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/dev.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
-@@ -228,8 +228,15 @@ enum {
- 	MLX5_INTERFACE_PROTOCOL_VNET,
- 
- 	MLX5_INTERFACE_PROTOCOL_DPLL,
-+	MLX5_INTERFACE_PROTOCOL_FWCTL,
- };
- 
-+static bool is_fwctl_supported(struct mlx5_core_dev *dev)
-+{
-+	/* fwctl is most useful on PFs, prevent fwctl on SFs for now */
-+	return MLX5_CAP_GEN(dev, uctx_cap) && !mlx5_core_is_sf(dev);
-+}
-+
- static const struct mlx5_adev_device {
- 	const char *suffix;
- 	bool (*is_supported)(struct mlx5_core_dev *dev);
-@@ -252,6 +259,8 @@ static const struct mlx5_adev_device {
- 					   .is_supported = &is_mp_supported },
- 	[MLX5_INTERFACE_PROTOCOL_DPLL] = { .suffix = "dpll",
- 					   .is_supported = &is_dpll_supported },
-+	[MLX5_INTERFACE_PROTOCOL_FWCTL] = { .suffix = "fwctl",
-+					    .is_supported = &is_fwctl_supported },
- };
- 
- int mlx5_adev_idx_alloc(void)
+Based on some discussion fwctl splits the RPCs into four categories
+
+	FWCTL_RPC_CONFIGURATION
+	FWCTL_RPC_DEBUG_READ_ONLY
+	FWCTL_RPC_DEBUG_WRITE
+	FWCTL_RPC_DEBUG_WRITE_FULL
+
+Where the latter two trigger a new TAINT_FWCTL, and the final one requires
+CAP_SYS_RAWIO - excluding it from lockdown. The device driver and its FW
+would be responsible to restrict RPCs to the requested security scope,
+while the core code handles the tainting and CAP checks.
+
+For details see the final patch which introduces the documentation.
+
+The CXL FWCTL driver is now in it own series on v3:
+ https://lore.kernel.org/r/20250204220430.4146187-1-dave.jiang@intel.com
+
+I'm expecting a 3rd driver (from Shannon @ Pensando) to be posted right
+away, the github version I saw looked good. I've got soft commitments for
+about 6 drivers in total now.
+
+There have been three LWN articles written discussing various aspects of
+this proposal:
+
+ https://lwn.net/Articles/955001/
+ https://lwn.net/Articles/969383/
+ https://lwn.net/Articles/990802/
+
+A really giant ksummit thread preceding a discussion at the Maintainer
+Summit:
+
+ https://lore.kernel.org/ksummit/668c67a324609_ed99294c0@dwillia2-xfh.jf.intel.com.notmuch/
+
+Several have expressed general support for this concept:
+
+ AMD/Pensando - https://lore.kernel.org/linux-rdma/20241205222818.44439-1-shannon.nelson@amd.com
+ Broadcom Networking - https://lore.kernel.org/r/Zf2n02q0GevGdS-Z@C02YVCJELVCG
+ Christoph Hellwig - https://lore.kernel.org/r/Zcx53N8lQjkpEu94@infradead.org
+ Daniel Vetter - https://lore.kernel.org/r/ZrHY2Bds7oF7KRGz@phenom.ffwll.local
+ Enfabrica - https://lore.kernel.org/r/9cc7127f-8674-43bc-b4d7-b1c4c2d96fed@kernel.org
+ NVIDIA Networking
+ Oded Gabbay/Habana - https://lore.kernel.org/r/ZrMl1bkPP-3G9B4N@T14sgabbay.
+ Oracle Linux - https://lore.kernel.org/r/6lakj6lxlxhdgrewodvj3xh6sxn3d36t5dab6najzyti2navx3@wrge7cyfk6nq
+ SuSE/Hannes - https://lore.kernel.org/r/2fd48f87-2521-4c34-8589-dbb7e91bb1c8@suse.com
+
+Work is ongoing for userspace, currently the mellanox tool suite has been
+ported over:
+  https://github.com/Mellanox/mstflint
+
+And a more simplified example how to use it:
+  https://github.com/jgunthorpe/mlx5ctl.git
+
+This is on github: https://github.com/jgunthorpe/linux/commits/fwctl
+
+v4:
+ - Rebase to v6.14-rc1
+ - Fine tune comments and rst documentatin
+ - Adjust cleanup.h usage - remove places that add more ofuscation than
+   value
+ - CXL is back to its own independent series
+ - Increase FWCTL_MAX_DEVICES to 4096, someone hit the limit
+ - Fix mlx5ctl_validate_rpc() logic around scope checking
+ - Disable mlx5ctl on SFs
+v3: https://patch.msgid.link/r/0-v3-960f17f90f17+516-fwctl_jgg@nvidia.com
+ - Rebase to v6.11-rc4
+ - Add a squashed version of David's CXL series as the 2nd driver
+ - Add missing includes
+ - Improve comments based on feedback
+ - Use the kdoc format that puts the member docs inside the struct
+ - Rewrite fwctl_alloc_device() to be clearer
+ - Incorporate all remarks for the documentation
+v2: https://lore.kernel.org/r/0-v2-940e479ceba9+3821-fwctl_jgg@nvidia.com
+ - Rebase to v6.10-rc5
+ - Minor style changes
+ - Follow the style consensus for the guard stuff
+ - Documentation grammer/spelling
+ - Add missed length output for mlx5 get_info
+ - Add two more missed MLX5 CMD's
+ - Collect tags
+v1: https://lore.kernel.org/r/0-v1-9912f1a11620+2a-fwctl_jgg@nvidia.com
+
+Andy Gospodarek (2):
+  fwctl/bnxt: Support communicating with bnxt fw
+  bnxt: Create an auxiliary device for fwctl_bnxt
+
+Jason Gunthorpe (6):
+  fwctl: Add basic structure for a class subsystem with a cdev
+  fwctl: Basic ioctl dispatch for the character device
+  fwctl: FWCTL_INFO to return basic information about the device
+  taint: Add TAINT_FWCTL
+  fwctl: FWCTL_RPC to execute a Remote Procedure Call to device firmware
+  fwctl: Add documentation
+
+Saeed Mahameed (2):
+  fwctl/mlx5: Support for communicating with mlx5 fw
+  mlx5: Create an auxiliary device for fwctl_mlx5
+
+ Documentation/admin-guide/tainted-kernels.rst |   5 +
+ Documentation/userspace-api/fwctl/fwctl.rst   | 285 ++++++++++++
+ Documentation/userspace-api/fwctl/index.rst   |  12 +
+ Documentation/userspace-api/index.rst         |   1 +
+ .../userspace-api/ioctl/ioctl-number.rst      |   1 +
+ MAINTAINERS                                   |  16 +
+ drivers/Kconfig                               |   2 +
+ drivers/Makefile                              |   1 +
+ drivers/fwctl/Kconfig                         |  32 ++
+ drivers/fwctl/Makefile                        |   6 +
+ drivers/fwctl/bnxt/Makefile                   |   4 +
+ drivers/fwctl/bnxt/bnxt.c                     | 167 +++++++
+ drivers/fwctl/main.c                          | 416 ++++++++++++++++++
+ drivers/fwctl/mlx5/Makefile                   |   4 +
+ drivers/fwctl/mlx5/main.c                     | 340 ++++++++++++++
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c     |   3 +
+ drivers/net/ethernet/broadcom/bnxt/bnxt.h     |   3 +
+ drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.c | 126 +++++-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_ulp.h |   4 +
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c |   9 +
+ include/linux/fwctl.h                         | 135 ++++++
+ include/linux/panic.h                         |   3 +-
+ include/uapi/fwctl/bnxt.h                     |  27 ++
+ include/uapi/fwctl/fwctl.h                    | 140 ++++++
+ include/uapi/fwctl/mlx5.h                     |  36 ++
+ kernel/panic.c                                |   1 +
+ tools/debugging/kernel-chktaint               |   8 +
+ 27 files changed, 1782 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/userspace-api/fwctl/fwctl.rst
+ create mode 100644 Documentation/userspace-api/fwctl/index.rst
+ create mode 100644 drivers/fwctl/Kconfig
+ create mode 100644 drivers/fwctl/Makefile
+ create mode 100644 drivers/fwctl/bnxt/Makefile
+ create mode 100644 drivers/fwctl/bnxt/bnxt.c
+ create mode 100644 drivers/fwctl/main.c
+ create mode 100644 drivers/fwctl/mlx5/Makefile
+ create mode 100644 drivers/fwctl/mlx5/main.c
+ create mode 100644 include/linux/fwctl.h
+ create mode 100644 include/uapi/fwctl/bnxt.h
+ create mode 100644 include/uapi/fwctl/fwctl.h
+ create mode 100644 include/uapi/fwctl/mlx5.h
+
+
+base-commit: 2014c95afecee3e76ca4a56956a936e23283f05b
 -- 
 2.43.0
 
