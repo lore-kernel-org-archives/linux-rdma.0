@@ -1,45 +1,46 @@
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2085.outbound.protection.outlook.com [40.107.236.85])
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2040.outbound.protection.outlook.com [40.107.94.40])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D14E26B96B;
-	Tue, 11 Feb 2025 23:49:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.85
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49FC426B971;
+	Tue, 11 Feb 2025 23:49:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.94.40
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739317765; cv=fail; b=oyUvBJsFF8wMqdud87KgesTf53qfDoq9ozz4LqA6jpqqo00xJ94fjEQZpxDbtxwaWL/qgLkyZFKCu3rMnk+hu6qTa0vqJZtRa0D3zOOyq1+EFXTXxdeGsNvsMkvAfrnQB0OowJSYmGsD6UMATkrZ7q6I1SjMb6CD4ImGapBRtCo=
+	t=1739317766; cv=fail; b=NPrI32m65oDdvBbCHdOfOOrG8v7MIDmsWU0NgdftUlLU0sspIHbN0RKn/GOxKn9ec+YoGk/8S3DUYt1opMdkCkiHQbhtmZ+/n/GZtK3IEx1s9RqKxbqEQeEbKOLUmy8/TSfPqUe7Dv+AiefQJMqB54B834sHuup9LDCzC7plDP4=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739317765; c=relaxed/simple;
-	bh=l6J0CrgQ/AyZqNVt/SefLdkaWvD+ClaBm0154bzFsts=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=ed7iUrmXlILihHquZbtTVWDuKYXAi1Jcvvlxqnk5rdO+lqMLAdm/2VHFt31wssJpP27eY7FT8Bdm8EvgoLy72icDitVtY8PNXnMsBw5Dtrj5r3ZsWfrXDnvzoMiVbBldWDy6T1YHxHbvS+DkNgKGXnej85sbk0vOHSROxhTcWn4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=Isgx2YBC; arc=fail smtp.client-ip=40.107.236.85
+	s=arc-20240116; t=1739317766; c=relaxed/simple;
+	bh=3rXogz/wORLMze9KByC7imBV1rtKLLeTdH/jHdx3ubw=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=me0Ig4GgpVAA/e0pwZZtpC36YqmIJpr4Ljf84Ja+11roz2pXQiPB2hhJlz+smqsflNQakZv3Gn5UqgShnEerN5fBqGHGnOva0+9IGOA1meXKW3fTNoq67pqXJPLHr8eu+iGfZoOHalgP7vvjG4eoEjxjJ+vDb2uaIQyl+dh+pRg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=uDLV2c3f; arc=fail smtp.client-ip=40.107.94.40
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="Isgx2YBC"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="uDLV2c3f"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=cmuf133PJwqG5u076HC/Q7XOaV8gfQadJeSkJqWqklg4gva7wB25Pb0BU96ntoatb5l6R501JciwiBsvrSeWxmaumTgilvBXSvZi60tp5oG1bLmRl4v/y2FwEHWp9Y3JmHk5i4b/HB87iBKQ58UUKDzgT83q5o93Ze1jh+c+9XOnRFDPjreEAFO8JGg3CK4lZMypip8g7FlX8T94cueyIQKQsZm5kRzjEy15H14OaP5rLiBMuCiqlfpMf2KI6sFNIFFvkLXW36q4K8yvM293rBob6kMUxQjtnND5cuP2hQKV49QAQ9JKLVCWUdtQzwRLpX60TJfmLW2CgkD2lR4PXg==
+ b=vxu/6rYXOhjLgk10JjTt0QYAOqNpP+LzwAvbx0ujnIt8ahpno1Fkh90zGamDcLKjOEeZ2h80dzYpzr8xVLS3CPazwxrjHwAiHXaU2JSRqMNHMjW+S/ZtlPXQ6X94y0suHqcVe4M0EfEUd0nomnO17TvGmsWrYSXT6WprXzfDOatz9crMitYIcY4fDBnMXwNyIonTj1DgeZszLiTGSX5otLSJOpS0mI5uMRj05xK2fACpWCyqaO6MSQCD9jV/et0OPajz0nicVc4HydL/LYtLWWm+kzqvmscJ6MhBpATKT3ljZ9UiKp8bgMt+QxacSvoIVvoudhtp6RsREieWVUmUFg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=qw7qFxCV3mE2Hx5t3tQhcgdznqsutn6eFnz4LHZiaUI=;
- b=kUfm4XYH3J8zP/Q+Eu6yX4+JG2OiJvImCiHbOb4TXgzJ6FVlsKpIuNiKBmj/TfYCAfkjE2UQq6/sjBlxR4YP5GHqynmuxFZ5PtDDwy+cJv0HX21LUUnHk7emgT0LBE4LbcYaT7qafFldcfvXG/kzcA2P4NlZ28OuecHUJ8ktq7Z1QJv05eQ+Y0msm/vLDJ9NA7nLFpu2kwokmLcAFpqv3x0rFTmwDkplCJ2Q8ZSfIfxaYrMJmhAvoCSSXn/BHDRgVwTSNB4to3m2aMxM4ze9l8DKZrwr3Lu02RLWokKrjXDcRumagLLKuZXbMTeBAzR0aMjLQj657GYmh5qcZdT9lw==
+ bh=V3A612y5dAH2TQJRxuNdGtK7VQVtDIH8XnD+dV1qBc4=;
+ b=TQSEfUTQOIZ+vlEQukUAaeshrOCsuIIJozaxlWZtSZbeXD6gM9abB9wa2VEB65iuxX/d0kYCxNV5T7hqCTScCdGPPGPRG4rWKdtOvrD7XrUxyruJ5EDSbKSdz7/j8TOf+OBpDiup724zetldlteegvwZQ95LtQvXu9kHMiauho0iRHIIS3WvLF/ApuS9wNdKHraLtGIGh86zCU9z5W9g80dW4Wc0H7nLLgHKU/vVYcxDgQI2Kn5/42JYeCRjwz5+Twwl9AVjhE+7+ZomdlpVG2WqCs225GP/zBamMYWgDOuE7TUOEfssksbbPbb3z1qB2HsZbyXHQdVraCriCBPSnQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=nvidia.com smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qw7qFxCV3mE2Hx5t3tQhcgdznqsutn6eFnz4LHZiaUI=;
- b=Isgx2YBCxQ4DkKumgwfn2MFO8Zw+E94rIzmNuFWPTlbMxq1gfXwokq8qJkaHocWMZvoJSImX0tk57q/h3KDdRMw/9eBVUN6AbMXq4RBW3ulIpiriK6wjx67biF8qfIMsMvGhWVMZlQeBU3L1yM9f5deZTQH+qOXsfJ05gj40L2Q=
-Received: from MW4P222CA0005.NAMP222.PROD.OUTLOOK.COM (2603:10b6:303:114::10)
- by PH0PR12MB7485.namprd12.prod.outlook.com (2603:10b6:510:1e9::19) with
+ bh=V3A612y5dAH2TQJRxuNdGtK7VQVtDIH8XnD+dV1qBc4=;
+ b=uDLV2c3fb1/h2VjiBKXotmuR33f0BorNj6t4uteZaEkyfEzEaL9ENQHnG71WogWuGnKAiIHoXpQbGItHbxkyUrRgyPDKJqUXaMSVVcRpJ/sbn53NAxHJVDQTYwhpb2clRrYA6SYj7T5hMugZ27PAfT93xjqXg2ylye6mWBEtRqM=
+Received: from MW4PR04CA0155.namprd04.prod.outlook.com (2603:10b6:303:85::10)
+ by IA1PR12MB9522.namprd12.prod.outlook.com (2603:10b6:208:594::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8422.19; Tue, 11 Feb
- 2025 23:49:13 +0000
-Received: from MWH0EPF000971E4.namprd02.prod.outlook.com
- (2603:10b6:303:114:cafe::9f) by MW4P222CA0005.outlook.office365.com
- (2603:10b6:303:114::10) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8422.18; Tue, 11 Feb
+ 2025 23:49:20 +0000
+Received: from MWH0EPF000971E6.namprd02.prod.outlook.com
+ (2603:10b6:303:85:cafe::d4) by MW4PR04CA0155.outlook.office365.com
+ (2603:10b6:303:85::10) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.8398.31 via Frontend Transport; Tue,
- 11 Feb 2025 23:49:13 +0000
+ 11 Feb 2025 23:49:20 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -47,13 +48,13 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
- MWH0EPF000971E4.mail.protection.outlook.com (10.167.243.72) with Microsoft
+ MWH0EPF000971E6.mail.protection.outlook.com (10.167.243.74) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8445.10 via Frontend Transport; Tue, 11 Feb 2025 23:49:12 +0000
+ 15.20.8445.10 via Frontend Transport; Tue, 11 Feb 2025 23:49:19 +0000
 Received: from driver-dev1.pensando.io (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Tue, 11 Feb
- 2025 17:49:09 -0600
+ 2025 17:49:17 -0600
 From: Shannon Nelson <shannon.nelson@amd.com>
 To: <jgg@nvidia.com>, <andrew.gospodarek@broadcom.com>,
 	<aron.silverton@oracle.com>, <dan.j.williams@intel.com>,
@@ -64,10 +65,12 @@ To: <jgg@nvidia.com>, <andrew.gospodarek@broadcom.com>,
 	<linux-cxl@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
 	<netdev@vger.kernel.org>
 CC: <brett.creeley@amd.com>, Shannon Nelson <shannon.nelson@amd.com>
-Subject: [RFC PATCH fwctl 0/5] pds_fwctl: fwctl for AMD/Pensando core devices
-Date: Tue, 11 Feb 2025 15:48:49 -0800
-Message-ID: <20250211234854.52277-1-shannon.nelson@amd.com>
+Subject: [RFC PATCH fwctl 5/5] pds_fwctl: add Documentation entries
+Date: Tue, 11 Feb 2025 15:48:54 -0800
+Message-ID: <20250211234854.52277-6-shannon.nelson@amd.com>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20250211234854.52277-1-shannon.nelson@amd.com>
+References: <20250211234854.52277-1-shannon.nelson@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -79,113 +82,131 @@ X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000971E4:EE_|PH0PR12MB7485:EE_
-X-MS-Office365-Filtering-Correlation-Id: 467f9783-b40e-4196-e56f-08dd4af6afd8
+X-MS-TrafficTypeDiagnostic: MWH0EPF000971E6:EE_|IA1PR12MB9522:EE_
+X-MS-Office365-Filtering-Correlation-Id: ed5e5ec9-f73c-43e6-53f9-08dd4af6b3ef
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|1800799024|376014|82310400026|36860700013|921020|7053199007|13003099007;
+	BCL:0;ARA:13230040|1800799024|7416014|376014|82310400026|36860700013|921020;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?amB3ZPO6pwfQIknjSrDu8hRcbuhTeLDsYmO3GL+wQIwrD8gE5kLQBMbS8syS?=
- =?us-ascii?Q?+mWQAMND1/FLJoWCUeACvM+T2Ibh2f4Rjmmpe7NmziKIRfOM85IPg4Q3ZZXy?=
- =?us-ascii?Q?9j5Mw7QRSMyIRfHJRvUqBy7zQVzf0b8EZCubMklPjnE6DShBg4usJn14jcJp?=
- =?us-ascii?Q?K00iLk9er4tfXeIcp33oJt+u/98sfHbgzTQFPSWvv3px3k83Nf8ePQuQMoTB?=
- =?us-ascii?Q?zRfsZDuf48valkqpldk9F2BdhKQQ94YeDYLqOuc3QfHW38X4jNEZbnQjsVXt?=
- =?us-ascii?Q?/xuZMIFmDcgk4GufmrwslaJW9iSjj8Os21nq8uqzHZ8UDCnp8hxT6ZP/bgpH?=
- =?us-ascii?Q?gYPCRVNMTWVWwoxx95QiasE0nhB+nTtYByqF8+8teBXz2xpXFSN5gsxJPt66?=
- =?us-ascii?Q?3f2xbwPpuio03zeDDT0c2Bz30TqGbQdCksrc1j54dYopw5A/DVkzkDCzfwLC?=
- =?us-ascii?Q?UQF4JrLcxtfhqXqtY7Gp/Ia3y7vOcEKrFrf5OyBHwgzA44gwW789dvWVtlQs?=
- =?us-ascii?Q?WFu+02gEXL6FDT9UeMQ/h11ye/5urzOe/LwPDD0fLRNoqs2UZeGBo4rgbpvL?=
- =?us-ascii?Q?Egj5M0D4zKxCp+lbNjwOR+YVd6R3PBEok9H6F1zE5SpNtOBOTyM5LKxc/5JU?=
- =?us-ascii?Q?SA1ImYthAWYbOQre0HpkwFQEDLU43uXGOfbZXpBUd3ok/S5jJf9XJQ6ItCBf?=
- =?us-ascii?Q?9tuPC0P983Fwzh82lUmUHCLJMJGXMgob4dOANIWGkz8COZhjuI7hnMdERxyR?=
- =?us-ascii?Q?NooorQhOkGqtOOcByXQZHelitKn6I4UpjDie1wWZ5/n1wReOLMVVGLjfe744?=
- =?us-ascii?Q?Bkwb0LOil+Svyu91UBCJIN0SShfsev0o3map3KSjGWp8yOmFFHBhPoKyrKbj?=
- =?us-ascii?Q?l1PhDJOOOWucYfU0YwECIq4FCbS7kpmMU2W2gfR/9pUWXZj7foEmCS7jYFof?=
- =?us-ascii?Q?jQqWXaqzlmmkzSRYyXTuEsn1lkZuoCIPFiaz0jYGTEvRpIol5fcmNQUEcrdu?=
- =?us-ascii?Q?sPzH1WAT6tYB/f20hMKKDQ+9RtRhisyCVnaUwRf71kWlilRm7ZODqnA7vBtu?=
- =?us-ascii?Q?SJaFcIvWL4jYffUym6jWss4my2tyafeg5yJagKVJTjKpVkjk7HejGxHdyshV?=
- =?us-ascii?Q?lxVchcJWzPyGpXtukRQgqD/tR2BtrLUwxIl455+xCi8pjXdGf5uVJMkTl0vh?=
- =?us-ascii?Q?hQph/KCRQIBlDZJgjtUNs3vecdSEm4LgLIV2jjop5/OIZOHWNCPl2kcvch6V?=
- =?us-ascii?Q?kxg8X8DFUdVJ7D43C12nLxvtwQGK3e+Cxu0IFw/NvmEN5W3uPYJxi2exhoSA?=
- =?us-ascii?Q?qiwzrhVWgptxvYP7UKm3gs5vv+1HHEecNAhrk3y85/9KtUr3ZPtcl89zxCZK?=
- =?us-ascii?Q?/kJcBmGVw9804unmPDONjWjosZKOBG/AKaTtNyW7RZ4VTedbV9OyhiAhWuTN?=
- =?us-ascii?Q?UCTXUrA8+ebJpsnn5GrWkroWm4B+XTC9RHA3RPDY/JS+iaxIW+Qe7YU/RrKs?=
- =?us-ascii?Q?vlst/sqmsy+ccTZxHWZB46ehf43X05ek2fFJ?=
+	=?us-ascii?Q?Y1iAiTMKheJlvXT8I21WaR4IGo4Idjl/OgXhroWj+kqYvs/S03h7R75iE2Mm?=
+ =?us-ascii?Q?WJCL+bDEXX+CBTYphoSWY1cPYZIWVAfyIpB2Qm402TI+CZ/VZ54W/8uAB+RY?=
+ =?us-ascii?Q?j6Wl7ylBnfg6H/DkNQtNblp+76tWa9WN/UVzqpG2iI4dH/4rAL/j9EwOqVzg?=
+ =?us-ascii?Q?bxr10w3ezBVXQt3VVkj6aCoAy0pWRUcZrE3Q3QYSCZKLcSFBK+bz6PB0Bd4C?=
+ =?us-ascii?Q?5l3xt5F1QGfM1zSrHVUU+4PDXlO1sUE+5eDwbozXztc+Q4PYjylflCYCRHkD?=
+ =?us-ascii?Q?Q1/8+kqkuL34PdFOBjjTtksp53G7nbyUVkPGjnaEtH8QTwEAd7nP7iPHO3J6?=
+ =?us-ascii?Q?iolKwFa5jw+7FcVFJO+1j8FVbKPH+1im5gnZAsGhuS4j86/oywXgtlfHvV2v?=
+ =?us-ascii?Q?2eDXCOApc54C67PPgKUQqJ8oCKsNpjZNcrPzkFa6DbH63lWSci8OxNvOqrO6?=
+ =?us-ascii?Q?D1T6ROwtA4o3EpYLh9iYwLiWGWvuJJhGyuorbLcla6LIOD5Q1DIDMnzvJg8Z?=
+ =?us-ascii?Q?sHVkWESnbOnrG58zoVTO3a2D/Bhk8nRgpoQ4n8NmWVOeyry+3m6MpfoXbn2+?=
+ =?us-ascii?Q?o6CQzfbxHUecG2H4Zr/tKrsWf36g7bPKK+4BVL2NVzq7m7WXdYNSMxmpONoe?=
+ =?us-ascii?Q?bnjDieeQiQc7NiFDKUoWXdTiGduFdJOH6NOTKu1STbOvvdrIhs/NNBnvtREN?=
+ =?us-ascii?Q?/wEOJH+ZimNDQuSfrZPtvpXbpAYsdnLtnBq4n7kw1PJqKxLiJx6dZfgngn/d?=
+ =?us-ascii?Q?+X9eqbTqv2/NuALLi1ZGeYMr+to9krTSqnH6yVCqh5gNBkaJhzEfb6wHzEGe?=
+ =?us-ascii?Q?BpDLSFOZsptBkSeiDOzYXgYhozGs+udkSLjUSkfXZfViowT+DUA7qDDPlS6D?=
+ =?us-ascii?Q?FINq4pSR0o+L4urnoQn5TXgglbrONGgzpxho2MzseVSBaPKR1k37JyhB6FcC?=
+ =?us-ascii?Q?pusVXSXz6lNXHSjvb2Gh8tdVTjmxPwKbZJX18ixHFyg4wBYF9n38YFRUF0kl?=
+ =?us-ascii?Q?MgjlEEMoT21GOFiaQ5XqoSjLv5fUPDGwdQ1ZspriXP/bvLIRy9J8SsbaCh8n?=
+ =?us-ascii?Q?gfobocx2eADlvu3wR0VPZEzg2SfOr6Cfav/Gat790YEYe/V8v7AFt/yv444g?=
+ =?us-ascii?Q?bFGYM07/ljbJ1qLccniABBciZpEwD8vfkeRQMy8cZr5/BdyVxjIxa62Fxfi4?=
+ =?us-ascii?Q?eP/22BFgchwigC/V2QW0X1REP/Raxr+Scrv6a+boJKYfjPL52jwWnWEIqDFn?=
+ =?us-ascii?Q?lipf92VrfrMdwoOG7Y7MCey1FveZMA4k/MsFRt0nzdOQeNaj962iXVMWiyfB?=
+ =?us-ascii?Q?/F0W/qp1zM89wv8BCies/scK08+enFJts+UScU6RTVQVC0Id6iAYxB0phIWq?=
+ =?us-ascii?Q?stp7AHM/PVI0UiJbLT33qvrF7QfUsXLe4p0asypt0vXryg8y9KSn8akB/CXS?=
+ =?us-ascii?Q?zRq89tTxP1znwtkfZ/Rl4bF0rsGqIuzmglMSsLxqxXtAe+ykgzPiZxEXse3w?=
+ =?us-ascii?Q?FNLH+6NdU7pCaO/gaRoBsBC7f+Orh1Ne5tNH?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(7416014)(1800799024)(376014)(82310400026)(36860700013)(921020)(7053199007)(13003099007);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(82310400026)(36860700013)(921020);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Feb 2025 23:49:12.7397
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Feb 2025 23:49:19.6132
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 467f9783-b40e-4196-e56f-08dd4af6afd8
+X-MS-Exchange-CrossTenant-Network-Message-Id: ed5e5ec9-f73c-43e6-53f9-08dd4af6b3ef
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000971E4.namprd02.prod.outlook.com
+	MWH0EPF000971E6.namprd02.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR12MB7485
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB9522
 
-Following along from Jason's work [1] we have our initial RFC patchset
-for pds_fwctl - an auxiliary_bus driver for supporting fwctl through the
-pds_core driver and its PDS core device.
+Add pds_fwctl to the driver and fwctl documentation pages.
 
-The PDS core is PCI device that is separate and distinct from the
-ionic Eth device and from the other PCI devices that can be supported
-by the AMD/Pensando DSC.  It is used by pds_vdpa and pds_vfio_pci to
-coordinate/communicate with the FW for setting up their services.
-
-Until now the DSC's basic configurations for defining what devices to
-support and for getting low-level device debug information have been
-through internal commands not available from the host side, requiring
-access into the DSC's own OS.  Adding the fwctl service allows us to start
-bringing these capabilities up into the host, but they don't replace the
-existing function-specific tools.  For example, these are things that make
-the Eth PCI device appear on the PCI bus, while the tuning of the specific
-Eth features still go through the standard ethtool/devlink/ip/etc tools.
-
-The first two patches add a new pds_core.fwctl auxiliary_device to the
-pds_core driver.  This is only supported by the pds_core PF and not on
-any VFs.
-
-The remaining patches add the pds_fwctl driver framework and then fill
-in the details for the fwctl services.
-
-[1] https://lore.kernel.org/netdev/0-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com/
-    [PATCH v4 00/10] Introduce fwctl subystem
-
-Brett Creeley (1):
-  pds_fwctl: add rpc and query support
-
-Shannon Nelson (4):
-  pds_core: specify auxiliary_device to be created
-  pds_core: add new fwctl auxilary_device
-  pds_fwctl: initial driver framework
-  pds_fwctl: add Documentation entries
-
- Documentation/userspace-api/fwctl/fwctl.rst   |   1 +
- Documentation/userspace-api/fwctl/index.rst   |   1 +
- .../userspace-api/fwctl/pds_fwctl.rst         |  41 ++
- MAINTAINERS                                   |   7 +
- drivers/fwctl/Kconfig                         |  10 +
- drivers/fwctl/Makefile                        |   1 +
- drivers/fwctl/pds/Makefile                    |   4 +
- drivers/fwctl/pds/main.c                      | 558 ++++++++++++++++++
- drivers/net/ethernet/amd/pds_core/auxbus.c    |  44 +-
- drivers/net/ethernet/amd/pds_core/core.c      |   7 +
- drivers/net/ethernet/amd/pds_core/core.h      |   8 +-
- drivers/net/ethernet/amd/pds_core/devlink.c   |   6 +-
- drivers/net/ethernet/amd/pds_core/main.c      |  21 +-
- include/linux/pds/pds_adminq.h                | 264 +++++++++
- include/linux/pds/pds_common.h                |   2 +
- include/uapi/fwctl/fwctl.h                    |   1 +
- include/uapi/fwctl/pds.h                      |  43 ++
- 17 files changed, 988 insertions(+), 31 deletions(-)
+Signed-off-by: Shannon Nelson <shannon.nelson@amd.com>
+---
+ Documentation/userspace-api/fwctl/fwctl.rst   |  1 +
+ Documentation/userspace-api/fwctl/index.rst   |  1 +
+ .../userspace-api/fwctl/pds_fwctl.rst         | 41 +++++++++++++++++++
+ 3 files changed, 43 insertions(+)
  create mode 100644 Documentation/userspace-api/fwctl/pds_fwctl.rst
- create mode 100644 drivers/fwctl/pds/Makefile
- create mode 100644 drivers/fwctl/pds/main.c
- create mode 100644 include/uapi/fwctl/pds.h
 
+diff --git a/Documentation/userspace-api/fwctl/fwctl.rst b/Documentation/userspace-api/fwctl/fwctl.rst
+index 428f6f5bb9b4..72853b0d3dc8 100644
+--- a/Documentation/userspace-api/fwctl/fwctl.rst
++++ b/Documentation/userspace-api/fwctl/fwctl.rst
+@@ -150,6 +150,7 @@ fwctl User API
+ 
+ .. kernel-doc:: include/uapi/fwctl/fwctl.h
+ .. kernel-doc:: include/uapi/fwctl/mlx5.h
++.. kernel-doc:: include/uapi/fwctl/pds.h
+ 
+ sysfs Class
+ -----------
+diff --git a/Documentation/userspace-api/fwctl/index.rst b/Documentation/userspace-api/fwctl/index.rst
+index 06959fbf1547..12a559fcf1b2 100644
+--- a/Documentation/userspace-api/fwctl/index.rst
++++ b/Documentation/userspace-api/fwctl/index.rst
+@@ -10,3 +10,4 @@ to securely construct and execute RPCs inside device firmware.
+    :maxdepth: 1
+ 
+    fwctl
++   pds_fwctl
+diff --git a/Documentation/userspace-api/fwctl/pds_fwctl.rst b/Documentation/userspace-api/fwctl/pds_fwctl.rst
+new file mode 100644
+index 000000000000..9fb1b4ac0a5e
+--- /dev/null
++++ b/Documentation/userspace-api/fwctl/pds_fwctl.rst
+@@ -0,0 +1,41 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++================
++fwctl pds driver
++================
++
++:Author: Shannon Nelson
++
++Overview
++========
++
++The PDS Core device makes an fwctl service available through an
++auxiliary_device named pds_core.fwctl.N.  The pds_fwctl driver binds
++to this device and registers itself with the fwctl bus.  The resulting
++userspace interface is used by an application that is a part of the
++AMD/Pensando software package for the Distributed Service Card (DSC).
++
++The pds_fwctl driver has little knowledge of the firmware's internals,
++only knows how to send adminq commands for fwctl requests.  The set of
++operations available through this interface depends on the firmware in
++the DSC, and the userspace application version must match the firmware
++so that they can talk to each other.
++
++This set of available operations is not known to the pds_fwctl driver.
++When a connection is created the pds_fwctl driver requests from the
++firmware list of endpoints and a list of operations for each endpoint.
++This list of operations includes a minumum scope level that the pds_fwctl
++driver can use for filtering privilege levels.
++
++pds_fwctl User API
++==================
++
++.. kernel-doc:: include/uapi/fwctl/pds.h
++
++Each RPC request includes the target endpoint and the operation id, and in
++and out buffer lengths and pointers.  The driver verifies the existence
++of the requested endpoint and operations, then checks the current scope
++against the required scope of the operation.  The adminq request is then
++put together with the request data and sent to the firmware, and the
++results are returned to the caller.
++
 -- 
 2.17.1
 
