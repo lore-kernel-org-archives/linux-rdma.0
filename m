@@ -1,215 +1,319 @@
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2088.outbound.protection.outlook.com [40.107.93.88])
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2071.outbound.protection.outlook.com [40.107.237.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B52203BB54;
-	Tue, 11 Feb 2025 18:36:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.88
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8A0326B95A;
+	Tue, 11 Feb 2025 23:49:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.71
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739299005; cv=fail; b=rhTPkQMi3Z62og/j4Q5LumYMaWm+CBTPrytT8Qels2Swu4r1FrM7hmfAUnH6yFXyoQVh60TVNpViq5WM4Ob4bnGcEjzzQ7/kaoXtYKuk99vMIl3QE72qL8FBAoVXVrCfUUV6468FQ/JSI2XjD0F9decevgY47Z6ZB6uYK+NvxmM=
+	t=1739317760; cv=fail; b=FW6JqDASrBGlINYfvFa76Rw0zwUqvsWzEN9SEcAWoZWwiO6vM7LGJ0y1K/HM11mjJ7AogQh0xl8N8N5XqUlPYonmCM8L9oN/jKGylR5+ljNJGMrTJ0gAMASyBzjQNohdLZrOIru8VfF1MT+mmlL+znITio+IJ6KLQqY5a9+riAw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739299005; c=relaxed/simple;
-	bh=WcwfMrP3/+FIr5ys2G+JpzadWKA71N2qOuzU18i7Vww=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=u+GwXLOdmWs0kQ94ZwgnXyYVX5w9K7JU2obupA5AtxlsUbU58YisRfQsbMyFNAK4WZbg5Q7ZhVxtMOv2okSj+GUfC9oqxC0XG0e6CkfOAwm2+8oClfvVRAVVTa7vM0sGXAAVNExMSWvJe3Mm9naMJxtEsL1xnMNTVegHhrrrUBc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=XjFcI5jC; arc=fail smtp.client-ip=40.107.93.88
+	s=arc-20240116; t=1739317760; c=relaxed/simple;
+	bh=S8exCzioc7cpuO5g71UwG4sHifhiRTTCcvPAnhwZLFM=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=kOYQZeCIz51QzLGMwpeNbXdm2vETWIqX4anje5fFmn9KrSzr+VCM1+wBpqXyQbIhZdJi/p+BSa/mqL7npWnRheCOM2Ozkw2omwnvEZ6PYa+7csYvrazJR/BNuc++Lt7HSgnCrewMoBiPoJo7X4EG0x0ZVqHxzTXzD9QffCq0Vp4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=sArK4E0h; arc=fail smtp.client-ip=40.107.237.71
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="XjFcI5jC"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="sArK4E0h"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ohwG7LVgvvXm6hyIEYZWBAGAdDv5Y2shB/zfnjQGv21XYyS1F/pG3unBGH1JAK/vnuE7cEOMhW/ZIjYXt2yZHJZULII+j5TLkpBeysWQoL02rzs23XB17PfAYfH5KKTPUvMfDGHeO0Q2pUKnZcWsAKBbu9qCc2PdIDVwwFWmh5v7OUN/mbot/K8j/wbTtHODvrGBIKGc1EPK/SWqq4xbukbJJDqhBiFENj1JZEjf0xxbY1QhnNy+voG4//hQCYsk2tj+RkhgOU64aHtvJl95RMFJ/Pw4dR3KVzeUSx4DSWFKkSWXCeIxbXPdl+a6ZUWH0c0oLdxp57V5Tig0fXIbSA==
+ b=tCguYg1HCbsFwjRUcP8Q1edS48Aroepa+XL96fGXFYUHk1pqS1ubi3db2CA19OC5u2czQckn0pS9WYf/y4jQyxkVlhxxtyVrQlWlcjCyq+2I5Ve70/z3HB4yRbePJIE7VIH5n1RCLsTJMqKrRk2nUdzYA0wQM6Ei9S90OQ07ighQTz49agZthRZKKwV5OsMXFL7ndG3IPgXiefQhRqqmuwjNR2P3eHtiVUApgw3wTFNd686hYkb1Ic6OQwzWN0WRGvLS3vbkQs2JeejCmasyBtQ86GaagbBWqInZM+j+iwLqR0rBLnPFK+aHXSRMEvlfF3WUW8W8ibmJSTc48xSbtQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9S1V2QSiOsSSJOAAbm4cBA41rCRMuWsQsng6lUs1b68=;
- b=Zoem67qkP8FfiDq14w92TZ5SgbFVWalpG7dgf8PP+YyxQ8lzHJ9ngN7Ipc7/gBcWdyowBxpMQFqOvVxA3hq0IZQaUhdNjHSBmSP1G/8RqRuwOBZMamxE34PtTOCTqxUzjEp/PQrbmjMDNGzZvYWmUz1jedd571YW7tcNQuRYPBy9doyHacqSz7/ZEfB+W9nefVHkkgWlnA3eMaFmOrKUK3HlWeskCFG+voqc+egGiAWOw+0RC0RvNFnfxhMyGu5jNJffBhW8gWXQao2+chap2XzCfvGZHfwGm+tbFbRI47T+wqONohk2DLQ5iFtV8TGjtPPDIyLR7qO7G6F3tyBt0w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
+ bh=o2km61AXBXj/yWn0ImNA7+bAyPS3CEynSOmvh57uc68=;
+ b=at95s5s4kuEbjSDNLaN3mjWR36e9coI+2sAD6vzGvCZKYLCvY8W2lU6+JR7yD4NRLmoSEpfBI1NHbjqzkugJ6mXBPTXVPij0E953fI9oGKvkoI/MnZXoU9EqzScn7mDe4gPYd8c3T26gPDZkJx+akVjeFcUkLAkUMWZq+oNak7htn4KlZFgosOM2Urx7FrviqBOIpugMtVUp7w1bU5TGqNu52Zo7v0rxuOGHEW+pV2aPmwpYBraXBLv/NcuznIAPHautcAGVh3fDTwxUTk1pSmuCV58m85aUWbTHZ1yYh+Vy/P8wq3s4ItvBDOAUNQ4w7Mvm+oBQqXGEMmr/vHkDGg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=nvidia.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9S1V2QSiOsSSJOAAbm4cBA41rCRMuWsQsng6lUs1b68=;
- b=XjFcI5jCxdkgkH27iF/hBCokIPoatin+UT22W7jQJCzhVyXo2CkenBaeKfSIlS7DlWkpSWej0aV0G0KWpdwef+D9izpI7qStgtipa6SglKhJF8bhqRbgZ3zKFRqlD5pfTdISyM4s/T0Kx5IWxbKYJFy8nDHWcq55yWXiFuztFdM=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from DS0PR12MB6583.namprd12.prod.outlook.com (2603:10b6:8:d1::12) by
- DM4PR12MB6590.namprd12.prod.outlook.com (2603:10b6:8:8f::11) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8422.16; Tue, 11 Feb 2025 18:36:40 +0000
-Received: from DS0PR12MB6583.namprd12.prod.outlook.com
- ([fe80::c8a9:4b0d:e1c7:aecb]) by DS0PR12MB6583.namprd12.prod.outlook.com
- ([fe80::c8a9:4b0d:e1c7:aecb%5]) with mapi id 15.20.8445.008; Tue, 11 Feb 2025
- 18:36:40 +0000
-Message-ID: <b0395452-dc56-414d-950c-9d0c68cf0f4a@amd.com>
-Date: Tue, 11 Feb 2025 10:36:37 -0800
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 10/10] bnxt: Create an auxiliary device for fwctl_bnxt
-To: Leon Romanovsky <leon@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
- Jason Gunthorpe <jgg@nvidia.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>,
- Andy Gospodarek <andrew.gospodarek@broadcom.com>,
- Aron Silverton <aron.silverton@oracle.com>,
- Dan Williams <dan.j.williams@intel.com>,
- Daniel Vetter <daniel.vetter@ffwll.ch>, Dave Jiang <dave.jiang@intel.com>,
- David Ahern <dsahern@kernel.org>, Andy Gospodarek <gospo@broadcom.com>,
- Christoph Hellwig <hch@infradead.org>, Itay Avraham <itayavr@nvidia.com>,
- Jiri Pirko <jiri@nvidia.com>, Jonathan Cameron
- <Jonathan.Cameron@huawei.com>, Leonid Bloch <lbloch@nvidia.com>,
- linux-cxl@vger.kernel.org, linux-rdma@vger.kernel.org,
- netdev@vger.kernel.org, Michael Chan <michael.chan@broadcom.com>
-References: <0-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
- <10-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com>
- <20250206164449.52b2dfef@kernel.org>
- <CACDg6nU_Dkte_GASNRpkvSSCihpg52FBqNr0KR3ud1YRvrRs3w@mail.gmail.com>
- <20250207073648.1f0bad47@kernel.org> <Z6ZsOMLq7tt3ijX_@x130>
- <20250207135111.6e4e10b9@kernel.org> <20250208011647.GH3660748@nvidia.com>
- <20250210170423.62a2f746@kernel.org> <20250211075553.GF17863@unreal>
-Content-Language: en-US
-From: "Nelson, Shannon" <shannon.nelson@amd.com>
-In-Reply-To: <20250211075553.GF17863@unreal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SJ0PR03CA0285.namprd03.prod.outlook.com
- (2603:10b6:a03:39e::20) To DS0PR12MB6583.namprd12.prod.outlook.com
- (2603:10b6:8:d1::12)
+ bh=o2km61AXBXj/yWn0ImNA7+bAyPS3CEynSOmvh57uc68=;
+ b=sArK4E0hnjxhu3LJXjlr3wfT4gnRgGwCzu1m2s/yfqEIyEw9mYY7ByEXYkFGGNddgO5i8iuDy4OBaVayYUTNeNvmrOGMAs4FrQlmlx38wtJ66X9UPGc74x+THg8K5Zs+H1hnqJ0Ylfu+9Pbf846ujyzH/VrCanRpgsoy3KryEYs=
+Received: from MW4P222CA0012.NAMP222.PROD.OUTLOOK.COM (2603:10b6:303:114::17)
+ by IA0PR12MB8423.namprd12.prod.outlook.com (2603:10b6:208:3dc::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8422.18; Tue, 11 Feb
+ 2025 23:49:14 +0000
+Received: from MWH0EPF000971E4.namprd02.prod.outlook.com
+ (2603:10b6:303:114:cafe::2b) by MW4P222CA0012.outlook.office365.com
+ (2603:10b6:303:114::17) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8398.31 via Frontend Transport; Tue,
+ 11 Feb 2025 23:49:13 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ MWH0EPF000971E4.mail.protection.outlook.com (10.167.243.72) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.8445.10 via Frontend Transport; Tue, 11 Feb 2025 23:49:13 +0000
+Received: from driver-dev1.pensando.io (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Tue, 11 Feb
+ 2025 17:49:11 -0600
+From: Shannon Nelson <shannon.nelson@amd.com>
+To: <jgg@nvidia.com>, <andrew.gospodarek@broadcom.com>,
+	<aron.silverton@oracle.com>, <dan.j.williams@intel.com>,
+	<daniel.vetter@ffwll.ch>, <dave.jiang@intel.com>, <dsahern@kernel.org>,
+	<gospo@broadcom.com>, <hch@infradead.org>, <itayavr@nvidia.com>,
+	<jiri@nvidia.com>, <Jonathan.Cameron@huawei.com>, <kuba@kernel.org>,
+	<lbloch@nvidia.com>, <leonro@nvidia.com>, <saeedm@nvidia.com>,
+	<linux-cxl@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+	<netdev@vger.kernel.org>
+CC: <brett.creeley@amd.com>, Shannon Nelson <shannon.nelson@amd.com>
+Subject: [RFC PATCH fwctl 1/5] pds_core: specify auxiliary_device to be created
+Date: Tue, 11 Feb 2025 15:48:50 -0800
+Message-ID: <20250211234854.52277-2-shannon.nelson@amd.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20250211234854.52277-1-shannon.nelson@amd.com>
+References: <20250211234854.52277-1-shannon.nelson@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB6583:EE_|DM4PR12MB6590:EE_
-X-MS-Office365-Filtering-Correlation-Id: c5485e2c-2205-462e-82c4-08dd4acb0683
+X-MS-TrafficTypeDiagnostic: MWH0EPF000971E4:EE_|IA0PR12MB8423:EE_
+X-MS-Office365-Filtering-Correlation-Id: ba941b81-a796-4233-0560-08dd4af6b07b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|7416014|376014;
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|376014|36860700013|82310400026|1800799024|921020;
 X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?U1FNVHkrS1dZdmx6aHliVEI1azdOZ0NHQlBPb3pUanBGZ2I5M3F0bk1WZEpC?=
- =?utf-8?B?T3ZpYVhnMmVjN0Vland3bDFCOGcyZVJQMlh3MEROczQ5NWFrSGxpQ0w1aVBj?=
- =?utf-8?B?eG42NHpraVpJbDVpb0x2Nncyb0lhN29NMzRiWU9zejdXK3hQbXk5ZCsxWHZC?=
- =?utf-8?B?UVUxWGVCNXF3ay9ZVmNHdDR6L3k4OStZdldrdDFyTHRLZWo0L0VFd0VRZUp4?=
- =?utf-8?B?cWdPaVRwcXErK0ZVYXJwODhXUTZXdGR1Y0VWbTMxTFQ3Yk9Zakg3NTBLMGJZ?=
- =?utf-8?B?VkNXdzdtakcwc2RGMHdjeE5hU2tPa0NzYWtqY3NMekN0OTU4NldqU3lFb3BG?=
- =?utf-8?B?NzV3STBtbVVEOUcyOTZVVWQycmxWbjloVEVEbUpZTGt4UkxSSGVCaEcvNXN6?=
- =?utf-8?B?akl5MlJpUk5BNlVkWnlOSHhaZ05VbUJ5RVVCa3NpMTRCditwQi94Y0J1RTNQ?=
- =?utf-8?B?WXF0TktuQ25GQytEdnR3OGdBT0x1V2s5dlEvVTdxUk1KRHZMWDc0VG8yaDJr?=
- =?utf-8?B?c1hSNkxFTS9mYTlJZVZrMy9yZXhCOTl5NjhnRlBsaWVxbDY4ODkwamhNOUY3?=
- =?utf-8?B?U0FBMGdOSTU3YW9DNnc5YTlzSUxrbHNzcFRmNWticmRVMFIxZlcrMVM5NG03?=
- =?utf-8?B?Z3lHR0dsaG9aZGJ6T2hpbDBKZVdjQ3hLaU1aZHd5ZkNwQnNIRmVqSzJleUY3?=
- =?utf-8?B?Z3BxY3dWb01Cc01GYkhMc2tBSDN3dnh3aWhqbXY3NXZwTFQxOG5iVG8yODVJ?=
- =?utf-8?B?MUNjcHVvNjB2SUNQNTVZZDgrMTJubGhBQzBjUUFsdFhQMmwvUEJoVm9sdXhB?=
- =?utf-8?B?Tk9ncDA1RkdibVRyOFR1UTJlYTNoangybmMyS1pBYmR1SnBEU2dVWWowM3FV?=
- =?utf-8?B?bFBCelBFQ2ZPQWFBUUpCNGVFVDdjRm9SWStJUzJ0WWF3ZjM0bEZ1ZXFpVTJs?=
- =?utf-8?B?OHVUOVR4eWxBS1hnZzc5eWdLUjgvaGF0TStoQjcvZE9yc0MyV2EyeEJ2MzYz?=
- =?utf-8?B?MS9TSk1vcWJ5U3hIK2JjMlVZY3gwYXFaQlpKanlPZXdQSnRRbjFubGxXdU44?=
- =?utf-8?B?bEFNdks5RjZtU1luMVlQUFMzdHFpK3FjRkw1ZWErZmNoNnhkOHNhMUpxTUFN?=
- =?utf-8?B?WkNxOG0xa3NRcytOYSs3SmxpVVhYak5KcElkRS9TQm5tVWcvcGkydGYwNEY5?=
- =?utf-8?B?UWNKeTNsVjB6RFdQMHdIb2w0ODlmY3FzTTR1bDlGc3hySGc1RWlwczY2K3Fv?=
- =?utf-8?B?OUJqYWZDeHl4Z1g2dVJZVkEvOHNFVWxRa2JnQmp0RkZ3S3VBMmhwbDh6WnNH?=
- =?utf-8?B?ZnZ6cU1OMVNWRkhra2RqM1FQQWlEdU50VFYvUFNXT0lhTE1pVWQ5TWdYVmpN?=
- =?utf-8?B?SHhkYytYcmQrMURWV3lJNHM0cmh2WnVVRG83aWFrUlNaL3JZUVpaUXYxM1FQ?=
- =?utf-8?B?bnhnN3Zrd3RzOW5ERVJLWTE3Mk1rNjh0WGRLSlBpQjROUWdQaVNLSkJkQThn?=
- =?utf-8?B?TlpPMVBnRWhqRStKam9kd0QzQkZHV2lzbk8rTGg0ei92RU9ZMDM1L0h1VGZt?=
- =?utf-8?B?bFIwUUtydWxoYXlWSERFQUl1cW96cDFSZ3B2WitQVXJTbmZZRjNsK1VqcDh3?=
- =?utf-8?B?dzRRTVZzS0ZvMmJHMUZYSGNFYnNOQTFZUm0vTkZSV1JvcERTL1lIR29MUkRs?=
- =?utf-8?B?Y25tVDFKdVEwN0dCVWFqUmxGMFUwcStodm9MRjhpalZZMVU0d0tramJVS1Bi?=
- =?utf-8?B?c0NhMFRkcmk1SG5zZ2dTcUYvakdXV0NNT2JjQmQ4djZtMWE2cjJvMGxvRFp0?=
- =?utf-8?B?OG5DSS9rS1FUWnJMaHlxZkw0SE91c1hMK1p3VzlrVGxTRXFxU3A0TC9QeWRy?=
- =?utf-8?Q?UJdRDm4ApH0w2?=
+	=?us-ascii?Q?sr8xKW6oUpIV6rson+NkCfT/Mvm8tOJnvG9WAPlQ1c6FiyUDmw1bp9/ERBxv?=
+ =?us-ascii?Q?ApDkTS/XqnG6YNudEDnBORhvnDrDlubpcqcb0IqsRmxJrYyK8+TjxsQtZiso?=
+ =?us-ascii?Q?c+rw/Kw2J6FtQkBBq6rwRvDulcNX5Wx6Ft/eZWrwktgNWfOUmor6yFzq8/fQ?=
+ =?us-ascii?Q?FJuoJsjk9JcS02ATnz1tP+fWuFyTI6qiyJL5mUwMXicFLlQlbnZXW9qmmaN2?=
+ =?us-ascii?Q?vCLvZjn7XVYcIatLl8sRgZopWKH8sLeDX0KrELXuBEQY4cw4gaxCrBRZ7tZX?=
+ =?us-ascii?Q?1G9JK+kesjGzqmHFp1L1cw/3Q6gWVKj9gC8GUsgg197iQMS0o0RxfxWu2CrW?=
+ =?us-ascii?Q?t2HLroROgwdPKd2W97MfYa8lD0wMR/2hWnxUpIM0utZaUG3gs107Ewk+qpP1?=
+ =?us-ascii?Q?Wu2nYWQKyy2Le2vMG4B4m2WplTiO0dXVRVaPDW+lDolaelVJkP4d3kSlb5SB?=
+ =?us-ascii?Q?d0kzqTxUkwU19xUp+RKEsXI5J5bZ2yGgFQX/o2w+ANLCtLxCAyCKRClwuToH?=
+ =?us-ascii?Q?v3KR8mWQLt2C/ZJq5tF+joi6Ck2uR0dI6QgrPVsX0t1JdfIAPXuv7bsujtMV?=
+ =?us-ascii?Q?+NHLmkEaL3Cc+Ehv6k1BqU9TRdASylLPLCSZ2tA0li6ZPzkJGXSToZ43qQyY?=
+ =?us-ascii?Q?DIb9s+IfftrdSaAscVT+f6T85OjFkdBtWxSF+UMfTc1Ugbh4rTgr7w1KhvFJ?=
+ =?us-ascii?Q?pqoRjBtK16CWCpwIhjN4+DkpcLuM85rNaCLIbOuBiupb/2K2i/R1wPto4ZjS?=
+ =?us-ascii?Q?ENgCmBMJTgdR0TXLRn1Dms7lUdELK1o2Wv9Tq7SOBm7SYoglqi5gtSKH569j?=
+ =?us-ascii?Q?UIF60b166lOVFgBMeREWml8tcANRGkz4+42PoEBVUIiXUDCvElvrxuErHm08?=
+ =?us-ascii?Q?TyFl/UxWTOEDea1jjl5fnr2/2/5pIVbK6y8GV2B0FoFb0UYtpVm9gJR/JQrW?=
+ =?us-ascii?Q?bOV/SHi0n46OI4cv275/2mohh/o1aGfQpMcb3TCLY9cetHcYnzj2+/9qYBKn?=
+ =?us-ascii?Q?GjHqlW9haCT7irUYZAG2YU/y5q4fzeI5apZAHeUvuhHeR+XeGtBlvtq/bEeo?=
+ =?us-ascii?Q?DGgma5rIu8ykBEtbcj/FKXuhxSxgpg/JJi2dNLNxK7lbnMJ6wTMkGYxcICrH?=
+ =?us-ascii?Q?X0pKDr3XgV7tXWvaqGP6q7tttTUl5WvNYvwilJ1kvyA5dQkfpCtfzlqpn0og?=
+ =?us-ascii?Q?QLPqwFM7azLEgBxTr0quXYbM9ZrRt1pe1vipB+PUAxGTeNylbI4/ABMV8f/j?=
+ =?us-ascii?Q?NBDs3sxmRiCusderW1mJ4SvJrBdv/nWWJFjtVtLkkTx6Pio7Qmw6tzyURbcu?=
+ =?us-ascii?Q?oSQvgrcUhIyKl+XP5ZYnRxIeKw/cYwCkBXZuAFaWwQIRudBJsRufvLlj3mK6?=
+ =?us-ascii?Q?FopsJgOlpSHvQOUrJJ020kxMYLPGIQgoaO8Huk1pliKFJKk216rbwk08HYjb?=
+ =?us-ascii?Q?/VzGk8yniuG8tuNQ+8b6+QzHR0VZiUfj5zFgqkVs9FQyV0NXp4ohSshSQfcW?=
+ =?us-ascii?Q?W1OJ1koWqZFAMHI=3D?=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB6583.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?eUl6TGxGY01XenpjVEllWTVMTUIxN0VqcnlXMGl6cTExZnN5VWVDWEJhd2N5?=
- =?utf-8?B?OW1DRkROeS96TXZPRjFhdHBNdTdIaS9LdjBCM25kSTdZL05PSUMwUFRNYktM?=
- =?utf-8?B?R2RldnFWdVhSdGtEaVhUVVh6elB5eURMaVZuSHk3RHR5ZWhFRi9vNXhPeVBL?=
- =?utf-8?B?U2t5elV5bTdVMjREcXQ3MjRpSlJvNG5yeHlSNURMVFZ5LzgrV0wvNmJGMmFo?=
- =?utf-8?B?QSs1TWdTTkZKUTJ1MkxqcExaWko0SG9EakhuYS8wUjl6b2V0OCsrNmcxUUgy?=
- =?utf-8?B?YkxaQnNsbUc4dGRmR2E2NHJheU1zcTU3enJ4aS9WZFFLc0UvSVZhYndkOHhj?=
- =?utf-8?B?azExa3d2RkFGdk5uMTN4YmszSkx2Vm01dGRCUERET2lkRWVWaTRzaWVJeGFP?=
- =?utf-8?B?b3E2MTBYaHFPeEFGMkdxK3piZ2xWSmVOcXc4TlJBeCt6MFhsWFhjL3JqRHo4?=
- =?utf-8?B?aFRkUjAyZHBqazM1QkMvOS9xYkpJWUZDWW1qa0RlT0hxSzd2YnNVNDMyNElQ?=
- =?utf-8?B?NFRRVlpMMTlDZ2FYRXBuVFdvRWo4MEhDdTYzWUpXNzB6WVpvTytsN1BZVjlR?=
- =?utf-8?B?b3B4YkRqM05hTmU1TUVGUjRMc3NRVTFLOE1McSswVmNycElXcEpFdG80eTh5?=
- =?utf-8?B?U25La0pOWWFUWGEwZ3R1M0ppSGRCcjZXa0RzVTZFaTNBZVJsODlLeGJOUUJo?=
- =?utf-8?B?djY0WkFlZTRESk5Nb29JY3I5d3Vyb3hNdkQzM3JuWDBzcmFheGkxczNTMksz?=
- =?utf-8?B?Vy9Bak4ycjJ4NHFKeTlmOFFvYTBsSWVQWU9RNFJ2ZTNHQWt4U081OGRjWlBC?=
- =?utf-8?B?SUFmQ05mbVF1RkVKMEJ0YytZNjhrc2l4UXBnTXpHSkl2TnZFT2JWK0VOaUtC?=
- =?utf-8?B?cVFEbm52ME94OXArTXlsTCsrSUxUTEZmMXZSd2J3MFdxTnRuZjV3WkQ1aEpl?=
- =?utf-8?B?UVJMYzcvMmVzckRZNy9lL1lSSEY0Y3pZVHNxL2VWS25KYVRhSjRsQ1ZnV01h?=
- =?utf-8?B?Ry8xekhOYVhCY0NlV0xxRGtyc25sY01yYjhjb012NTdIL2drTlRwN2s5cFg5?=
- =?utf-8?B?cG9FZmdMSjllblBFcWFyMWt6dzEzTnA3bHp6d2pIeFRoeGg3K3JlZTVOd2x6?=
- =?utf-8?B?VVpHV2ljazMrV1paMjZ0ZlNkbk5tK0ladGhNeS94K3dNRkdJRGhVRU85QXN6?=
- =?utf-8?B?ZkZhMGNnSzAzeFRTTHg1SmhOTEg4SWdPdkp1NGN5T256Qnh5MDFmUFd3Y2x5?=
- =?utf-8?B?ZVZNUFM5QzNxaFZKYWhiWm9ISkJJQktjbjc4dWRIdlNOc0ExU2JOOUY4N1kw?=
- =?utf-8?B?aVNkZEtBbEdQeXFqcDlVWi81eFFDSDdYNW1JSVd2SzJ0TEhFM1B5S2Zicmdx?=
- =?utf-8?B?cFVCVnpYSmJoWW1HSWpNN3U5Q1U3c2pxOWh1TEh2cGJ4a0ZUdXVVNmdXdW1o?=
- =?utf-8?B?dUM2b3FyMWE4ZVMvUVlkWmVOeklpb1pIb1BYcVpJYk9YQW1CRVhsK1hhNmhO?=
- =?utf-8?B?ZDVFRWNpRE5jaHRhcFZlT0V1bUF3UEJRekJzeGVoc3U5MVFXRnBNaHJRcFEw?=
- =?utf-8?B?Mk1yUk5ma0xYN21LL1QrU1M3dzZzRXk5cmw5NVhJYlpOZCtRbTY4ZzFsRno5?=
- =?utf-8?B?c01UMTUwTW4ydXE3MVRKdGdCeDBRSzVZazFkRGJFbGE2WTFoTU5XeUlWeTFi?=
- =?utf-8?B?Sk4rUG5vdmxZTllZdWphNElGcXY0SDFQZG5Kd0tRUHlCTy9GRmtmcFArWE1k?=
- =?utf-8?B?ZGJPeGlIRmNzNkRyLy9VdG5mWGx2NXp0UTY3WVJ6SFkvQ1RIKzFPRldDaUhm?=
- =?utf-8?B?aVJzdDNYbkR2eEpVaFo4ZFdHRHZHMENDQmxnbkwrVXd3Y1NUa21wWGh4eHhq?=
- =?utf-8?B?cTFnemRaUjdrT2pGeUNXOW1obWdIUFpabmQ3WHY0eS9Qb1BCMXJOZzRYT21L?=
- =?utf-8?B?ZmlWVlJiVlFzWmxLZVp6U1BKKzdoTC9sb05iN2ZRaE5Yb084a3hzQ1pldWEy?=
- =?utf-8?B?bnl2L3V5RSt0VXJIaEVlWGUzYi9VdUZ4Tzkwc20zQnNaTW01YzBxQ3hvNnB3?=
- =?utf-8?B?TFV0S0tYVGtqU2RNTHZ4Y09SZkpvMjBpMFo2cUJJS2FNa2hidnMvMDRlOUhR?=
- =?utf-8?Q?W5FtY4M3uZ7W5xdX2vr9W9s06?=
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(7416014)(376014)(36860700013)(82310400026)(1800799024)(921020);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c5485e2c-2205-462e-82c4-08dd4acb0683
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB6583.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Feb 2025 18:36:40.6127
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Feb 2025 23:49:13.8022
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Network-Message-Id: ba941b81-a796-4233-0560-08dd4af6b07b
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ta2lFLw4vdaSKEh2gFFBiQvXaOVcvYd31skf6JYTo5odM2JnIfQYoofpSFa3zIddkEmRWOpvVnRu8+G2pekXHg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB6590
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	MWH0EPF000971E4.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB8423
 
-On 2/10/2025 11:55 PM, Leon Romanovsky wrote:
-> 
-> On Mon, Feb 10, 2025 at 05:04:23PM -0800, Jakub Kicinski wrote:
->> On Fri, 7 Feb 2025 21:16:47 -0400 Jason Gunthorpe wrote:
->>> On Fri, Feb 07, 2025 at 01:51:11PM -0800, Jakub Kicinski wrote:
->>>
->>>> But if you agree the netdev doesn't need it seems like a fairly
->>>> straightforward way to unblock your progress.
->>>
->>> I'm trying to understand what you are suggesting here.
->>>
->>> We have many scenarios where mlx5_core spawns all kinds of different
->>> devices, including recovery cases where there is no networking at all
->>> and only fwctl. So we can't just discard the aux dev or mlx5_core
->>> triggered setup without breaking scenarios.
->>>
->>> However, you seem to be suggesting that netdev-only configurations (ie
->>> netdev loaded but no rdma loaded) should disable fwctl. Is that the
->>> case? All else would remain the same. It is very ugly but I could see
->>> a technical path to do it, and would consider it if that brings peace.
->>
->> Yes, when RDMA driver is not loaded there should be no access to fwctl.
-> 
-> There are users mentioned in cover letter, which need FWCTL without RDMA.
-> https://lore.kernel.org/all/0-v4-0cf4ec3b8143+4995-fwctl_jgg@nvidia.com/
-> 
-> I want to suggest something different. What about to move all XXX_core
-> logic (mlx5_core, bnxt_core, e.t.c.) from netdev to some other dedicated
-> place?
-> 
-> There is no technical need to have PCI/FW logic inside networking stack.
-> 
-> Thanks
+In preparation for adding a new auxiliary_device for the
+PF, make the vif type an argument to pdsc_auxbus_dev_add().
+We also now pass in the address to where we'll keep the new
+padev pointer so that the caller can specify where to save it
+but we can still change it under the mutex and keep the mutex
+usage within the function.
 
-Our pds_core device fits this description as well: it is not an ethernet 
-PCI device, but helps manage the FW/HW for Eth and other things that are 
-separate PCI functions.  We ended up in the netdev arena because we 
-first went in as a support for vDPA VFs.
+Signed-off-by: Shannon Nelson <shannon.nelson@amd.com>
+---
+ drivers/net/ethernet/amd/pds_core/auxbus.c  | 41 ++++++++++-----------
+ drivers/net/ethernet/amd/pds_core/core.h    |  7 +++-
+ drivers/net/ethernet/amd/pds_core/devlink.c |  6 ++-
+ drivers/net/ethernet/amd/pds_core/main.c    | 11 ++++--
+ 4 files changed, 36 insertions(+), 29 deletions(-)
 
-Should these 'core' devices live in linux-pci land?  Is it possible that 
-some 'core' things might be platform devices rather than PCI?
-
-sln
+diff --git a/drivers/net/ethernet/amd/pds_core/auxbus.c b/drivers/net/ethernet/amd/pds_core/auxbus.c
+index 2babea110991..0a3035adda52 100644
+--- a/drivers/net/ethernet/amd/pds_core/auxbus.c
++++ b/drivers/net/ethernet/amd/pds_core/auxbus.c
+@@ -175,34 +175,37 @@ static struct pds_auxiliary_dev *pdsc_auxbus_dev_register(struct pdsc *cf,
+ 	return padev;
+ }
+ 
+-int pdsc_auxbus_dev_del(struct pdsc *cf, struct pdsc *pf)
++int pdsc_auxbus_dev_del(struct pdsc *cf, struct pdsc *pf,
++			struct pds_auxiliary_dev **pd_ptr)
+ {
+ 	struct pds_auxiliary_dev *padev;
+-	int err = 0;
+ 
+ 	if (!cf)
+ 		return -ENODEV;
+ 
++	if (!*pd_ptr)
++		return 0;
++
+ 	mutex_lock(&pf->config_lock);
+ 
+-	padev = pf->vfs[cf->vf_id].padev;
+-	if (padev) {
+-		pds_client_unregister(pf, padev->client_id);
+-		auxiliary_device_delete(&padev->aux_dev);
+-		auxiliary_device_uninit(&padev->aux_dev);
+-		padev->client_id = 0;
+-	}
+-	pf->vfs[cf->vf_id].padev = NULL;
++	padev = *pd_ptr;
++	pds_client_unregister(pf, padev->client_id);
++	auxiliary_device_delete(&padev->aux_dev);
++	auxiliary_device_uninit(&padev->aux_dev);
++	padev->client_id = 0;
++	*pd_ptr = NULL;
+ 
+ 	mutex_unlock(&pf->config_lock);
+-	return err;
++
++	return 0;
+ }
+ 
+-int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf)
++int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf,
++			enum pds_core_vif_types vt,
++			struct pds_auxiliary_dev **pd_ptr)
+ {
+ 	struct pds_auxiliary_dev *padev;
+ 	char devname[PDS_DEVNAME_LEN];
+-	enum pds_core_vif_types vt;
+ 	unsigned long mask;
+ 	u16 vt_support;
+ 	int client_id;
+@@ -211,6 +214,9 @@ int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf)
+ 	if (!cf)
+ 		return -ENODEV;
+ 
++	if (vt >= PDS_DEV_TYPE_MAX)
++		return -EINVAL;
++
+ 	mutex_lock(&pf->config_lock);
+ 
+ 	mask = BIT_ULL(PDSC_S_FW_DEAD) |
+@@ -222,17 +228,10 @@ int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf)
+ 		goto out_unlock;
+ 	}
+ 
+-	/* We only support vDPA so far, so it is the only one to
+-	 * be verified that it is available in the Core device and
+-	 * enabled in the devlink param.  In the future this might
+-	 * become a loop for several VIF types.
+-	 */
+-
+ 	/* Verify that the type is supported and enabled.  It is not
+ 	 * an error if there is no auxbus device support for this
+ 	 * VF, it just means something else needs to happen with it.
+ 	 */
+-	vt = PDS_DEV_TYPE_VDPA;
+ 	vt_support = !!le16_to_cpu(pf->dev_ident.vif_types[vt]);
+ 	if (!(vt_support &&
+ 	      pf->viftype_status[vt].supported &&
+@@ -258,7 +257,7 @@ int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf)
+ 		err = PTR_ERR(padev);
+ 		goto out_unlock;
+ 	}
+-	pf->vfs[cf->vf_id].padev = padev;
++	*pd_ptr = padev;
+ 
+ out_unlock:
+ 	mutex_unlock(&pf->config_lock);
+diff --git a/drivers/net/ethernet/amd/pds_core/core.h b/drivers/net/ethernet/amd/pds_core/core.h
+index 14522d6d5f86..065031dd5af6 100644
+--- a/drivers/net/ethernet/amd/pds_core/core.h
++++ b/drivers/net/ethernet/amd/pds_core/core.h
+@@ -303,8 +303,11 @@ void pdsc_health_thread(struct work_struct *work);
+ int pdsc_register_notify(struct notifier_block *nb);
+ void pdsc_unregister_notify(struct notifier_block *nb);
+ void pdsc_notify(unsigned long event, void *data);
+-int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf);
+-int pdsc_auxbus_dev_del(struct pdsc *cf, struct pdsc *pf);
++int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf,
++			enum pds_core_vif_types vt,
++			struct pds_auxiliary_dev **pd_ptr);
++int pdsc_auxbus_dev_del(struct pdsc *cf, struct pdsc *pf,
++			struct pds_auxiliary_dev **pd_ptr);
+ 
+ void pdsc_process_adminq(struct pdsc_qcq *qcq);
+ void pdsc_work_thread(struct work_struct *work);
+diff --git a/drivers/net/ethernet/amd/pds_core/devlink.c b/drivers/net/ethernet/amd/pds_core/devlink.c
+index 44971e71991f..c2f380f18f21 100644
+--- a/drivers/net/ethernet/amd/pds_core/devlink.c
++++ b/drivers/net/ethernet/amd/pds_core/devlink.c
+@@ -56,8 +56,10 @@ int pdsc_dl_enable_set(struct devlink *dl, u32 id,
+ 	for (vf_id = 0; vf_id < pdsc->num_vfs; vf_id++) {
+ 		struct pdsc *vf = pdsc->vfs[vf_id].vf;
+ 
+-		err = ctx->val.vbool ? pdsc_auxbus_dev_add(vf, pdsc) :
+-				       pdsc_auxbus_dev_del(vf, pdsc);
++		err = ctx->val.vbool ? pdsc_auxbus_dev_add(vf, pdsc, vt_entry->vif_id,
++							   &pdsc->vfs[vf_id].padev) :
++				       pdsc_auxbus_dev_del(vf, pdsc,
++						           &pdsc->vfs[vf_id].padev);
+ 	}
+ 
+ 	return err;
+diff --git a/drivers/net/ethernet/amd/pds_core/main.c b/drivers/net/ethernet/amd/pds_core/main.c
+index 660268ff9562..a3a68889137b 100644
+--- a/drivers/net/ethernet/amd/pds_core/main.c
++++ b/drivers/net/ethernet/amd/pds_core/main.c
+@@ -190,7 +190,8 @@ static int pdsc_init_vf(struct pdsc *vf)
+ 	devl_unlock(dl);
+ 
+ 	pf->vfs[vf->vf_id].vf = vf;
+-	err = pdsc_auxbus_dev_add(vf, pf);
++	err = pdsc_auxbus_dev_add(vf, pf, PDS_DEV_TYPE_VDPA,
++				  &pf->vfs[vf->vf_id].padev);
+ 	if (err) {
+ 		devl_lock(dl);
+ 		devl_unregister(dl);
+@@ -417,7 +418,7 @@ static void pdsc_remove(struct pci_dev *pdev)
+ 
+ 		pf = pdsc_get_pf_struct(pdsc->pdev);
+ 		if (!IS_ERR(pf)) {
+-			pdsc_auxbus_dev_del(pdsc, pf);
++			pdsc_auxbus_dev_del(pdsc, pf, &pf->vfs[pdsc->vf_id].padev);
+ 			pf->vfs[pdsc->vf_id].vf = NULL;
+ 		}
+ 	} else {
+@@ -482,7 +483,8 @@ static void pdsc_reset_prepare(struct pci_dev *pdev)
+ 
+ 		pf = pdsc_get_pf_struct(pdsc->pdev);
+ 		if (!IS_ERR(pf))
+-			pdsc_auxbus_dev_del(pdsc, pf);
++			pdsc_auxbus_dev_del(pdsc, pf,
++					    &pf->vfs[pdsc->vf_id].padev);
+ 	}
+ 
+ 	pdsc_unmap_bars(pdsc);
+@@ -527,7 +529,8 @@ static void pdsc_reset_done(struct pci_dev *pdev)
+ 
+ 		pf = pdsc_get_pf_struct(pdsc->pdev);
+ 		if (!IS_ERR(pf))
+-			pdsc_auxbus_dev_add(pdsc, pf);
++			pdsc_auxbus_dev_add(pdsc, pf, PDS_DEV_TYPE_VDPA,
++					    &pf->vfs[pdsc->vf_id].padev);
+ 	}
+ }
+ 
+-- 
+2.17.1
 
