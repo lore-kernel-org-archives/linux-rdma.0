@@ -1,68 +1,86 @@
-Received: from out-182.mta1.migadu.com (out-182.mta1.migadu.com [95.215.58.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19EBF24E4D9
-	for <linux-rdma@vger.kernel.org>; Wed, 19 Feb 2025 20:53:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.182
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7E6282580DC;
+	Wed, 19 Feb 2025 21:36:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739998395; cv=none; b=D/EauotzTtSCWIaREOfcAIH0Lv5VZeyKBSGXFWHlIywGkO1tFJeTz2QlJJx6znsV7djM/r98DPUabmFEU25qQ++/VjjOzTg+2Khi02L4e8uvonoCq15KZF2lJs8ZQF7eM8Bq6ccXbTzl1UxZnuLAO24LCA08hbhqXcFuB4S+ALQ=
+	t=1740001006; cv=none; b=s9PtbOI1giCCE0Nmvk6SsSGzMjhPVF1v/GpXqVt2vo1sBwOjMPm8JzA0zcr+L1NWdjB0fgm+tAXnDNMM/f02BlhqYZ5qnLACE7IKyM+lfxUSJyqsAbF6DrVqHvTFFwPKJWZcYu+bEiq4cs6NLzxiPIA5VTHg/IEIqL+IbWP8Qhc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739998395; c=relaxed/simple;
-	bh=M83TtgbrER6UNWgXcPNxTgIFEIobEBu4z+QkHohiso8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Pnqq4/ttMLZUB7MIvc+c00LbmdZTyE170MXnbVTBNVeGXmojT7x0IpdhLyCKM6MVK9GnxQBOlcZFRMGVKwQUvlsTJxD172VhPTYw8NrYdaoJfmFXg2l8Od2iXbXr2BqdwRbNnPdqclfK8dBhSaudDQn4y4w7D74aBIfA5QFlFyU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=uTBxcHeu; arc=none smtp.client-ip=95.215.58.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1740001006; c=relaxed/simple;
+	bh=DIcU1uig5I4dPitBVIdvL40b2CK1pCK/SuKGFIo/NHU=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=cZZFRPaThHoynMnJRsGsww/FdHQiiQqSu3BKO+KjdvUx+hxLlszEJkyMri13tvjm0cm9F2EhUPpE6NOxQF53Q+FAkDbTtotIp0O7+Tl9zAzAtubRSNyTREP9k0sk1pKGQo/qc4f17q8QMULncEOf4v9e62uXROoi7/mupEpiNqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=sKzajk2P; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="uTBxcHeu"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1739998381;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=62TWYWfurD75dgItUwaw8GfL5rYSw4VdoP88WF6wNFM=;
-	b=uTBxcHeuhkYZRT5PoH5+j3vBtLhfGq+9oPay8WwmzGWjvb6VNos6fgyvVmy4ooyXneBXQj
-	SIIfAXzI0RWeLvh/FAONkNWvu7n1G4IoYoWlTzBUU0klJ4MAw053iSbM5jzNdQH51fp/I5
-	fs4T5Kpm+qtEDYgHFl6kEGkx3eO1n0s=
-From: Thorsten Blum <thorsten.blum@linux.dev>
-To: Leon Romanovsky <leon@kernel.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] RDMA/mlx5: Use secs_to_jiffies() instead of msecs_to_jiffies()
-Date: Wed, 19 Feb 2025 21:52:35 +0100
-Message-ID: <20250219205235.28361-2-thorsten.blum@linux.dev>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="sKzajk2P"
+Received: from eahariha-devbox.internal.cloudapp.net (unknown [40.91.112.99])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 1E62D2043DEC;
+	Wed, 19 Feb 2025 13:36:45 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 1E62D2043DEC
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1740001005;
+	bh=Q75Z4qe0KB1DGcu4mQDnDhnSTzwOml5U+Zz4/sYRLuc=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=sKzajk2PsVNTIubnGc6W9a5mBNhQBgJc/6XhKcHKZFGds606jBJaICbaHAluVa7NY
+	 PgE/o5gB+Vmvo2ZpHKtruV+Q58LCadPbPTeLhDiLA5BLXTVg5GQWgbxeqT/Rx3zURj
+	 3ViTYuJUGsyAb40nssY7NEQfGkiT7zzNxFHaCSVk=
+From: Easwar Hariharan <eahariha@linux.microsoft.com>
+Date: Wed, 19 Feb 2025 21:36:39 +0000
+Subject: [PATCH 1/2] RDMA/mlx4: convert timeouts to secs_to_jiffies()
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20250219-rdma-secs-to-jiffies-v1-1-b506746561a9@linux.microsoft.com>
+References: <20250219-rdma-secs-to-jiffies-v1-0-b506746561a9@linux.microsoft.com>
+In-Reply-To: <20250219-rdma-secs-to-jiffies-v1-0-b506746561a9@linux.microsoft.com>
+To: Yishai Hadas <yishaih@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>, 
+ Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Easwar Hariharan <eahariha@linux.microsoft.com>
+X-Mailer: b4 0.14.2
 
-Use secs_to_jiffies() and simplify the code.
+Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
+secs_to_jiffies().  As the value here is a multiple of 1000, use
+secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
 
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
+the following Coccinelle rules:
+
+@depends on patch@
+expression E;
+@@
+
+-msecs_to_jiffies(E * 1000)
++secs_to_jiffies(E)
+
+-msecs_to_jiffies(E * MSEC_PER_SEC)
++secs_to_jiffies(E)
+
+Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 2 +-
+ drivers/infiniband/hw/mlx4/alias_GUID.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index bb02b6adbf2c..b526e322c7b0 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -2033,7 +2033,7 @@ static int mlx5_revoke_mr(struct mlx5_ib_mr *mr)
- 		spin_lock_irq(&ent->mkeys_queue.lock);
- 		if (ent->is_tmp && !ent->tmp_cleanup_scheduled) {
- 			mod_delayed_work(ent->dev->cache.wq, &ent->dwork,
--					 msecs_to_jiffies(30 * 1000));
-+					 secs_to_jiffies(30));
- 			ent->tmp_cleanup_scheduled = true;
- 		}
- 		spin_unlock_irq(&ent->mkeys_queue.lock);
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index d7327735b8d0d4dd57d44ab1c71554ebf11ce6ce..527f52e41577af3dee60e695f25741f824762fd3 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -437,7 +437,7 @@ static void aliasguid_query_handler(int status,
+ 		queue_delayed_work(dev->sriov.alias_guid.ports_guid[port_index].wq,
+ 				   &dev->sriov.alias_guid.ports_guid[port_index].
+ 				   alias_guid_work,
+-				   msecs_to_jiffies(resched_delay_sec * 1000));
++				   secs_to_jiffies(resched_delay_sec));
+ 	}
+ 	if (cb_ctx->sa_query) {
+ 		list_del(&cb_ctx->list);
+
 -- 
-2.48.1
+2.43.0
 
