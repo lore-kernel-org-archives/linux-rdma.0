@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E74321CFF0;
-	Wed, 26 Feb 2025 03:05:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 419F124BC1D;
+	Wed, 26 Feb 2025 03:17:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740539160; cv=none; b=QZJhiUyjIMUfV9uDdWi0EmEgOPTN8Si9Qmfg6Rc+jQk8/f0cdx44ImoeOvOXlYemAPtkOFH95XMxSJoN1I9WNplsshx+/9uMxS7tps5VxpqpcgTIVxvAMMpaeB0vqCse3czmFNUpwkw/F3UaYNh0HE1+EpDnWgKi0VwIlK8KQm8=
+	t=1740539857; cv=none; b=qqa8w8+tC+MifjlXVR7vhh7N3VkXBE2RFc5vnnpF8dnkyd96fEx15ZwHJfopeyMJfCAcITrsMV7z6KIyawiGytF2atv15HbxY52lHHJF8CkkILAcIeKhSEtMojO1pifagGFbE+iw2bxXhWINpZuyTERAbO1N0o8Huc0B7V17Us4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740539160; c=relaxed/simple;
-	bh=sAnrnDiqmmu+twpkvTp+YjYokbJnVI5dUkatxEoUo9M=;
+	s=arc-20240116; t=1740539857; c=relaxed/simple;
+	bh=qyiHTIerQE6+KLmsNrdKGg/Q9Vrha8TBI40tETZkDD8=;
 	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=hU+bnihDzYDmhP9kVzHvQv+VAbbV+pg7/0qOF+Cu6eoD+0VNCfRAg5I1H1iqScUahGwrDZZnkT3gYbaEhCkRNbgq6KYZu+tUb1RVmzeezEv8q77gNpUiik8byh7aKm1CF+P99R+z/lq0SzIrbagYfc6p1ikXIRZTv3geP2Qirl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XMWAAffn; arc=none smtp.client-ip=10.30.226.201
+	 Content-Disposition; b=QzFdJH6QBtV03rcvDI9hKEq3BSnuI3hj9Y2cJoHu9iDNmpkshpYUBNUPcMjscYyinQsb20sIjjYJ/z407qtN1tSh5mhpU8Qa+TsVzunWvQgW76Nm7jhL+W0n2vKV9Ze6i7HnhhEYB2fDliAk9+jiXHqWwEPDPUqXeFsYSwfSd/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XtmX0zix; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XMWAAffn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E367C4CEDD;
-	Wed, 26 Feb 2025 03:05:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XtmX0zix"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05E81C4CED6;
+	Wed, 26 Feb 2025 03:17:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1740539159;
-	bh=sAnrnDiqmmu+twpkvTp+YjYokbJnVI5dUkatxEoUo9M=;
+	s=k20201202; t=1740539856;
+	bh=qyiHTIerQE6+KLmsNrdKGg/Q9Vrha8TBI40tETZkDD8=;
 	h=Date:From:To:Cc:Subject:From;
-	b=XMWAAffn44d+2aX37Gv1Mu6kkrLyK40ELF84IaSsXnprQ46w1YXInkYDQ90Mnh7kC
-	 pbuRGMHyV1OvqymVByHl/Hu2WkxdbNYjx8t08I0LYjg6BlI+2Ki+nXer/XSEe4R4KQ
-	 amUK5CJREoXEURGUDUbJf9ch/u1KU9oztPaioavpaH+Y/URzAP0DRHDRNxKEk6Pa7n
-	 9w9tUGN745RCOPHkfIz0i96kAyZ7IVnfsWMmOoGdqcJoRFgcYlxditBdpe8jZCpSWU
-	 QizghxL7zUWoVbNz4UGDUcF5MDUUFvk80epiqyihAh4MrEFq7O4UGCWvfspN5SWHf+
-	 YqgMzuDiVgwBQ==
-Date: Wed, 26 Feb 2025 13:35:55 +1030
+	b=XtmX0zixNNB409O9h3CYoAx0YgwMJRWkOzYsGiExsRcrtQdHU5Vnmbh97dJxKildL
+	 M2J91+Mldyml3FffT7wgq2FCjG0pVJ8XVNT6Oifv4LLCeH7DsduaSXKWR0kdWVbsXd
+	 B9T3YFJWTKYzUCFYTISp7aVYhZnP4n4NSXg4oQO9j4p16EQKfqETPccqRGsOW9IryT
+	 trDkMyLJ6zEt0ASjws+I5zBu+yvyoS3Dxd98uxtL371ANOzD2dbeKj2tusUh18U7ZW
+	 fj0YToiLo0K4NfTAVti/sk5/QIIqdqpXMdFAIVRWKEQkXzsdLyeOZtMbTdDc1yI27d
+	 c6JBCdLBddbmw==
+Date: Wed, 26 Feb 2025 13:47:32 +1030
 From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
 To: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
 	Tariq Toukan <tariqt@nvidia.com>,
@@ -38,9 +38,9 @@ Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
 	linux-hardening@vger.kernel.org
-Subject: [PATCH v2][next] net/mlx5e: Avoid a hundred
+Subject: [PATCH v3][next] net/mlx5e: Avoid a hundred
  -Wflex-array-member-not-at-end warnings
-Message-ID: <Z76FE8oZO2Ssuj9T@kspp>
+Message-ID: <Z76HzPW1dFTLOSSy@kspp>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -81,11 +81,8 @@ drivers/net/ethernet/mellanox/mlx5/core/en.h:664:48: warning: structure containi
 
 Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 ---
-Changes in v2:
- - Split the header members of `struct mlx5e_umr_wqe` into a
-   separate `struct mlx5e_umr_wqe_hdr`, and refactor the code
-   accordingly. (Jakub)
- - Update the changelog text.
+Changes in v3:
+ - Update error message in the assertion.
  - Also, this part is intentionally left as-is (to keep the assertion
    as close as possible to the flex struct):
 
@@ -93,6 +90,13 @@ Changes in v2:
 | #63: FILE: drivers/net/ethernet/mellanox/mlx5/core/en.h:249:
 | };
 | +static_assert(offsetof(struct mlx5e_umr_wqe, inline_mtts) == sizeof(struct mlx5e_umr_wqe_hdr),
+
+Changes in v2:
+ - Split the header members of `struct mlx5e_umr_wqe` into a
+   separate `struct mlx5e_umr_wqe_hdr`, and refactor the code
+   accordingly. (Jakub)
+ - Update the changelog text.
+ - Link: https://lore.kernel.org/linux-hardening/Z76FE8oZO2Ssuj9T@kspp/
 
 v1:
  - Link: https://lore.kernel.org/linux-hardening/Z6GCJY8G9EzASrwQ@kspp/
@@ -104,7 +108,7 @@ v1:
  4 files changed, 27 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 979fc56205e1..0e8f4ace8b87 100644
+index 979fc56205e1..90de40521029 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
 @@ -232,16 +232,22 @@ struct mlx5e_rx_wqe_cyc {
@@ -127,7 +131,7 @@ index 979fc56205e1..0e8f4ace8b87 100644
  	};
  };
 +static_assert(offsetof(struct mlx5e_umr_wqe, inline_mtts) == sizeof(struct mlx5e_umr_wqe_hdr),
-+	      "struct member likely outside of struct_group_tagged()");
++	      "struct members should be included in struct mlx5e_umr_wqe_hdr, not in struct mlx5e_umr_wqe");
  
  enum mlx5e_priv_flag {
  	MLX5E_PFLAG_RX_CQE_BASED_MODER,
