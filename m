@@ -1,67 +1,49 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE92A1FCFCC;
-	Tue,  4 Mar 2025 09:56:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E10A1EF0BC;
+	Tue,  4 Mar 2025 10:33:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741082163; cv=none; b=iklqVengusQBaCe3m+vOcLg9YkfCoUT2E80OrYnJ2aP3Lg8qFn2BVslNOIa+bnwrgPViETlMnawTcX4bFmvZLCbYpyYbVBNZvZ6jheQTQ7IqD5g4U/Y03bK0ihHga4+eSZnADfAom7vruRlVvFa0EfrywA35vES25EBd3gd3xXE=
+	t=1741084422; cv=none; b=HnxA3rZfZlr8sSHzZs30W12YgXskBqmeX434D3aHdBfQWMseZL2s4zIXEPTCCcVF7JzyLj9DXou0RSeYhv2K1HA7lFCLYSPCgtqj1vMMl/Y2mjy7Xx1Liv8oPW63B7UazL5zzdfDHB96mt1v4ujdJ7NeN1UouTrDxbjOUwhXIXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741082163; c=relaxed/simple;
-	bh=o51jYiIjJ7Hl+a6ZtvtnyQKJHKFVcGivr4VSA+BfR1A=;
+	s=arc-20240116; t=1741084422; c=relaxed/simple;
+	bh=YgbZcILngMRztLMEacwU5Lqg2SqhQWsX2wJDj6udQ2k=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X9zhnNNVz+ndTDef9LeVdLu42W2s+1YiszfFc/BzbQvFIo2yaJrcYUY/Cyf5vjNm24PNE1EsMGlaJ66zXwDQ5SETZ5hmX0GTLZtmCgts67coIHT8p6CQ6Jhn2qj/R5grOC2nS5xLqEwJ5/jYzQnkh3XIDajkJAw6hK+10ZvAkJM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Ps19xneF; arc=none smtp.client-ip=198.175.65.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=Jl1F02MysZRMGpBeH+6ApEczFfw8DeQ9lPbc5YR5s1Jm1rhOITk7eqzHhzuVph/5TWO2rNZjW1bdiJ6VzD5sFJbcf8Flpo73LIURGUkert+Nno8DLUBqGJwjaVdGMMC3aC6S6JznfaXgTaZCKQErqLP2zi56PIelfXsBZUx2ZZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qeJd982T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Ps19xneF"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1741082162; x=1772618162;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=o51jYiIjJ7Hl+a6ZtvtnyQKJHKFVcGivr4VSA+BfR1A=;
-  b=Ps19xneF4D3M6cdUHBwSS+SYYl53IciSEvEWKQXVYu3aCDUh3RLnS8QY
-   0pe0O5CRMl3UV8eHpPzEUhUu+tfJeALFgFxJIGaoTeuWQtmLBmAE4dhnD
-   DYqvCPd0wuXC71RAsfZ9RWeRos8j2IyewvAZSweg/kUCI7UzQeFzIJzio
-   qPfHnqhypzE3B5BAFB4A6igpEiOAWw3+eeH+M3toUZLrJAA9dpPsAKE2y
-   QyqH+RB4PuBa1LCF90TyZdk9ThVDvY+W3LiEZaWmBDtyM0yylMxsKTsJf
-   APiifh0mzdbtmMuVdy92jM8v3vq9Ymy07dHgRmD6J8I36w9YbjsNlBEvh
-   A==;
-X-CSE-ConnectionGUID: 7pgFDQdxTzmqFAFM+f8FkA==
-X-CSE-MsgGUID: FlAd9TfXS0m4fU0rJSW1lQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11362"; a="45767245"
-X-IronPort-AV: E=Sophos;i="6.13,331,1732608000"; 
-   d="scan'208";a="45767245"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2025 01:56:02 -0800
-X-CSE-ConnectionGUID: 9/id7rMqQ4+3Zhh40VmpKg==
-X-CSE-MsgGUID: ljCGWTOARy6fccCifDPeXg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.12,224,1728975600"; 
-   d="scan'208";a="118840957"
-Received: from mev-dev.igk.intel.com ([10.237.112.144])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2025 01:55:58 -0800
-Date: Tue, 4 Mar 2025 10:51:57 +0100
-From: Michal Swiatkowski <michal.swiatkowski@linux.intel.com>
-To: Leon Romanovsky <leonro@nvidia.com>
-Cc: Michal Swiatkowski <michal.swiatkowski@linux.intel.com>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	Saeed Mahameed <saeedm@nvidia.com>, Gal Pressman <gal@nvidia.com>,
-	netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next 6/6] net/mlx5e: Properly match IPsec subnet
- addresses
-Message-ID: <Z8bNPRtzOBZ7LdGJ@mev-dev.igk.intel.com>
-References: <20250226114752.104838-1-tariqt@nvidia.com>
- <20250226114752.104838-7-tariqt@nvidia.com>
- <Z8aw1gn5iFNiSxd3@mev-dev.igk.intel.com>
- <20250304080543.GD1955273@unreal>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qeJd982T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07348C4CEE5;
+	Tue,  4 Mar 2025 10:33:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1741084421;
+	bh=YgbZcILngMRztLMEacwU5Lqg2SqhQWsX2wJDj6udQ2k=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=qeJd982TqUnyqdTyfF5KwNTpeurNXtL6jiGOcgfBRWhHkVgx6NfqKGojIgLEm5Ptf
+	 5d3d3YiLD6KxHkbnzrHgkpBBt7dXqj7mTmwVA8jzWXl2nV1o2dKxGUVkrgUXwSwops
+	 sZOecOD8Kgq/GBSCPOjOoPdcmFWtFpG+vS9755QPTmsKi7iCY3eGEBv+wz4bGVodpL
+	 GuuqLGf7fLA7nuEHHyzeqjg2fF2TiycnJcUQ37h1p78NC5F/Q57tvqiU4h3BR7Xxf4
+	 +nwzJyXmBzBbwGw9KU9BBTDSAw+7nWxXHSB6oMvzBOF8bFXoUiFGEgtTuCAkYmtXD0
+	 IEWy7g9stPmLg==
+Date: Mon, 3 Mar 2025 14:52:06 +0100
+From: Joel Granados <joel.granados@kernel.org>
+To: nicolas.bouchinet@clip-os.org
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, 
+	linux-scsi@vger.kernel.org, codalist@coda.cs.cmu.edu, linux-nfs@vger.kernel.org, 
+	Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>, Joel Granados <j.granados@samsung.com>, 
+	Clemens Ladisch <clemens@ladisch.de>, Arnd Bergmann <arnd@arndb.de>, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jason Gunthorpe <jgg@ziepe.ca>, 
+	Leon Romanovsky <leon@kernel.org>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	"Martin K. Petersen" <martin.petersen@oracle.com>, Jan Harkes <jaharkes@cs.cmu.edu>, 
+	Chuck Lever <chuck.lever@oracle.com>, Jeff Layton <jlayton@kernel.org>, Neil Brown <neilb@suse.de>, 
+	Olga Kornievskaia <okorniev@redhat.com>, Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>, 
+	Trond Myklebust <trondmy@kernel.org>, Anna Schumaker <anna@kernel.org>, 
+	Bart Van Assche <bvanassche@acm.org>, Zhu Yanjun <yanjun.zhu@linux.dev>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>
+Subject: Re: [PATCH v2 0/6] Fixes multiple sysctl bound checks
+Message-ID: <fdmspbwoxc7zgabdg4fnbd5tkupx3lasne2ydldvkztwh3iz2y@mnqbpm2w4ibl>
+References: <20250224095826.16458-1-nicolas.bouchinet@clip-os.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -70,59 +52,84 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250304080543.GD1955273@unreal>
+In-Reply-To: <20250224095826.16458-1-nicolas.bouchinet@clip-os.org>
 
-On Tue, Mar 04, 2025 at 10:05:43AM +0200, Leon Romanovsky wrote:
-> On Tue, Mar 04, 2025 at 08:50:46AM +0100, Michal Swiatkowski wrote:
-> > On Wed, Feb 26, 2025 at 01:47:52PM +0200, Tariq Toukan wrote:
-> > > From: Leon Romanovsky <leonro@nvidia.com>
-> > > 
-> > > Existing match criteria didn't allow to match whole subnet and
-> > > only by specific addresses only. This caused to tunnel mode do not
-> > > forward such traffic through relevant SA.
-> > > 
-> > > In tunnel mode, policies look like this:
-> > > src 192.169.0.0/16 dst 192.169.0.0/16
-> > >         dir out priority 383615 ptype main
-> > >         tmpl src 192.169.101.2 dst 192.169.101.1
-> > >                 proto esp spi 0xc5141c18 reqid 1 mode tunnel
-> > >         crypto offload parameters: dev eth2 mode packet
-> > > 
-> > > In this case, the XFRM core code handled all subnet calculations and
-> > > forwarded network address to the drivers e.g. 192.169.0.0.
-> > > 
-> > > For mlx5 devices, there is a need to set relevant prefix e.g. 0xFFFF00
-> > > to perform flow steering match operation.
-> > > 
-> > > Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
-> > > Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-> > > ---
-> > >  .../mellanox/mlx5/core/en_accel/ipsec.c       | 49 +++++++++++++++++++
-> > >  .../mellanox/mlx5/core/en_accel/ipsec.h       |  9 +++-
-> > >  .../mellanox/mlx5/core/en_accel/ipsec_fs.c    | 20 +++++---
-> > >  3 files changed, 69 insertions(+), 9 deletions(-)
-> > > 
-> > 
-> > [...]
-> > 
-> > >  
-> > > +static __be32 word_to_mask(int prefix)
-> > > +{
-> > > +	if (prefix < 0)
-> > > +		return 0;
-> > > +
-> > > +	if (!prefix || prefix > 31)
-> > > +		return cpu_to_be32(0xFFFFFFFF);
-> > > +
-> > > +	return cpu_to_be32(((1U << prefix) - 1) << (32 - prefix));
-> > 
-> > Isn't it GENMASK(31, 32 - prefix)? I don't know if it is preferable to
-> > use this macro in such place.
+On Mon, Feb 24, 2025 at 10:58:15AM +0100, nicolas.bouchinet@clip-os.org wrote:
+> From: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
 > 
-> GENMASK(a, b) expects "b" to be const type, see
-> #define GENMASK_INPUT_CHECK(h, l) BUILD_BUG_ON_ZERO(const_true((l) > (h)))
+> Hi,
+> 
+> This patchset adds some bound checks to sysctls to avoid negative
+> value writes.
+> 
+> The patched sysctls were storing the result of the proc_dointvec
+> proc_handler into an unsigned int data. proc_dointvec being able to
+> parse negative value, and it return value being a signed int, this could
+> lead to undefined behaviors.
+> This has led to kernel crash in the past as described in commit
+> 3b3376f222e3 ("sysctl.c: fix underflow value setting risk in vm_table")
+This patch is slightly different then what you are trying to do here.
+Notice that the issue in 3b3376f222e3 ("sysctl.c: fix underflow value
+setting risk in vm_table") was that the extra1 value was getting ignored
+because it was calling proc_dointvec; replacing it with
+proc_dointvec_minmax properly forwards the extra1 value.
+What your series is trying to do is to avoid a assignment of a negative
+value to a unsigned int.
+> 
+> They are now bounded between SYSCTL_ZERO and SYSCTL_INT_MAX.
+> The proc_handlers have thus been updated to proc_dointvec_minmax.
+> 
+> This patchset has been written over sysctl-testing branch [1].
+> See [2] for similar sysctl fixes currently in review.
+> 
+> [1]: https://git.kernel.org/pub/scm/linux/kernel/git/sysctl/sysctl.git/log/?h=sysctl-testing
+> [2]: https://lore.kernel.org/all/20250115132211.25400-1-nicolas.bouchinet@clip-os.org/
+> 
+> Best regards,
+> 
+> Nicolas
+
+In general, I would like for these patches to go into mainline through
+their individual subsystem as they would know more about what type fits
+best for the ctl_table->data variable. With that said, I'll push the
+leftovers through sysctl if there are no takers.
+
+Thx for the series
+> 
+> ---
+> 
+> Changes since v1:
+> https://lore.kernel.org/all/20250127142014.37834-1-nicolas.bouchinet@clip-os.org/
+> 
+> * Detached patches 1/9, 2/9 [3] and 3/9 [4]
+> * Adapted the cover-letter message to match the reduced patchset
+> 
+> [3]: https://lore.kernel.org/all/20250129170633.88574-1-nicolas.bouchinet@clip-os.org/
+> [4]: https://lore.kernel.org/all/20250128103821.29745-1-nicolas.bouchinet@clip-os.org/
+> 
+> ---
+> 
+> Nicolas Bouchinet (6):
+>   sysctl: Fixes idmap_cache_timeout bounds
+>   sysctl: Fixes nsm_local_state bounds
+>   sysctl/coda: Fixes timeout bounds
+>   sysctl: Fixes scsi_logging_level bounds
+>   sysctl/infiniband: Fixes infiniband sysctl bounds
+>   sysctl: Fixes max-user-freq bounds
+> 
+>  drivers/char/hpet.c            | 4 +++-
+>  drivers/infiniband/core/iwcm.c | 4 +++-
+>  drivers/infiniband/core/ucma.c | 4 +++-
+>  drivers/scsi/scsi_sysctl.c     | 4 +++-
+>  fs/coda/sysctl.c               | 4 +++-
+>  fs/lockd/svc.c                 | 4 +++-
+>  fs/nfs/nfs4sysctl.c            | 4 +++-
+>  7 files changed, 21 insertions(+), 7 deletions(-)
+> 
+> -- 
+> 2.48.1
 > 
 
-Sorry, I didn't know that, thanks.
+-- 
 
-> Thanks
+Joel Granados
