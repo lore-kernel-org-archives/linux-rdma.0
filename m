@@ -1,68 +1,68 @@
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com (mail-sn1nam02on2061.outbound.protection.outlook.com [40.107.96.61])
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (mail-dm3nam02on2056.outbound.protection.outlook.com [40.107.95.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 300EB29B21B;
-	Tue,  4 Mar 2025 16:07:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.96.61
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF54E2BE7A7;
+	Tue,  4 Mar 2025 16:07:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.95.56
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741104442; cv=fail; b=uuayW6Mp+DnFWmRllpxozWVKvccZ521XpQhvmLGnlmu6OpoGtvT6hsWHhOXO3nWpLKhF5m+651Ym5U7KKlkShXIvudDXNmVoRBiDru2FQSVWsfWLwlNHA0rx4UtuUijn7ECu3sFB5Elb/yVWqywp9PBenNm87eoKG7TokqPqncg=
+	t=1741104442; cv=fail; b=kuIrZb+CMTKSGrruuGsoZPIhXkOOoUtW+RPXa3CfVJX2k8D606fEU91CKSsGpsKfnMTraKwxZj/TH2oRASMvvkBcWwu0qKVrZeAD2gUR5fO0jGdbGZLBuIiI09EhAe5eL12R90GCWbnKAkTJ++YJ3VXV/MI8Mfar5+wBR4uPwF0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741104442; c=relaxed/simple;
-	bh=iPHSmpl30CuhZWAFlxT9eLazlx/E+CmfgIBtwL8EnRA=;
+	bh=+XudvtuxzUdeogYleIuKC7DDmnWM+v1m+TVG1pAapns=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=gNh9pjkwEYM3uQhoi/6kpMiDrweV19Igw1eYhJKETSaN2vUnqsdWLEFRL7ERpfrCR7huQsed+KJA3qXOz+AtVvlxDWy0iaSFSZJojRsLdlrgUX5mAYfsURsaY4w2pFJd6MDcG5ZJtuMPAr1ogEAfxzFhbCfN1wvhhNij3DqMgI0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=oP+nDhv1; arc=fail smtp.client-ip=40.107.96.61
+	 MIME-Version:Content-Type; b=CRkF9tgLUl+wPg2l3x/n4ueHiesl4xq8xydu67A7G28NtYD5eA9/zqQk33yvC1bAob5xJeixwuxVeVD8f80LKFEnsuI5lmC5SRAWghwZ/iUSO6saC7JwrSjHtiVrERxEq0aAFyQy4zrtoM/m/H14xb9jCEuXLY+PpmX7glwq8Nw=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=huZiYZIg; arc=fail smtp.client-ip=40.107.95.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="oP+nDhv1"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="huZiYZIg"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=lw0Gf4PLCA86DBnE0+vqTvJd/8sQnzclJs5OOxbeKmbNChhF/W+G42hcLpdtBMNEp7F74LBYAxiU9L2qp7CddKEBhp5aenRNXdVk0dheIWN3sTXk+vaLseh96CeCi+nsbk183YYvQr5nM0ygJCAFYXYpGQ6wsFTiBEwsAb4YByQLw2xn6pLQ5O/wE7JeeYd5VlqXymiHeXrl4WP+rHnE5I/Xzd+BAL9NYLR80XIYcS8pHfA2h/GgvsiJLYNIYd592ghVx/K7Gfqjk2gZiusMm95lxFinYkFuD6QMe7XrOIJ/YZ7k/QBYllTiLVtzRxqpEnZO0RBeKtcIVOuooJA99A==
+ b=TuTNn+wq18ksW1pRJXw0NZV8xkT3OVHpAgQOKOluogMNJ8lYEBFTaBAn2J9eNofdDfgE8hkEz1SzLFdn+mvd7e8GnVwQ8f0MIa8xH+onboyHSfgJll+Wjlwcm4Nd07RJwRyue/bx+k7rVcs0MZ9Wa9NO58C9j29jgW31lB43TzGEa4AAhtXu9peLMjgOCE9sXiHnKR3XBtUg/RbMtZnkt3oeuXKn3z/QiN2oBFHhh0okih5Sz2PekVgILrdXcbFlJ2DaW7/GfFnMOoRhiGIqtO0hSTtwS3U6BcgVxRpavAW0oM4HCUydbbtZdyX55/PGvi+GoC42CHcB9gOEgkHrYQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=HjhBm9+gI6+sW7K+I0V4BLfqzqOTS5bI+PW2nMnzQe4=;
- b=dui5/rO+R2bR5gNd7as19Q8+Femwv7k7WeycXWe6tKRLOKTEU/MSe/6FKjRioM3nhe75BfwmiXyZHAsQnJ+XUNbeSbLgtgWhvaneLLpE6a4ZnbLcbQFKGUpXfIWVAoNx2h0j/Pd15CscVmtagOD3p5WMM1Hd6f89FcDqx8fcbrItA3boEMPald3GAyceGeyNjnD8qgVVaL3RTYeEOoImpajzebt9a2gFKwhBVldArwAg0+kruAWh0pIVwVahnMkO5EhEXPC72pt3+QDtoH8aBuhvjps3rKOlnery8n7fdxVaNjN+8RRt1kDvbcEnmmSbw2q3H6BiXXd8cr1ALbvfUA==
+ bh=A1Hjc1OiZDHth5ka0W/kv9M1PqZ9d1IlHPKaxIhl2Ls=;
+ b=BUky41+POs7Nra/Jg3KWcUaqliJkahKOy1BwdDXQFHuDrOqnlq7OiyTmJipMyG+SGzKu5ZAT77RbT76eB5b2Leo4H2yrno78Gxb6GLnodbZUvqSjdlLE7HvH46Q+yUIig3MNWJ9FApEqlUVFp/hr0C6/mvdCveeWV37NimYdPVZJMBY6ca7gkvYo7pPciAC4/Uv5bUo+GTS10ef9ZDrh4gInJJYrc0AeFu+y8tG4a/D+4oJpg9OQlwAjT3a/i3lBPJY1eRt9NckwFOkX1v60xWnq0Lf6rwahlipC0pbDUCM6ZIfZmqWpi68Kqqls4eZ3AWXZI0Yy7Y2gc6lzGlndYQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.117.160) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
+ 216.228.117.161) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=HjhBm9+gI6+sW7K+I0V4BLfqzqOTS5bI+PW2nMnzQe4=;
- b=oP+nDhv1HysEzYeWJygdhs1ZNdL7TJjbmQcnWYt1e8bLgL+KqoOxNzuMZCkFlVP5FfraF14JtmZuiCHU7e4uQhp2TlDan371EdtMwfCzL+UKBwN+U+6wbUq4QebhLJLyX0DokAi2KkfT2WVxgHiEpHu5GdNOZu0FGea8a6UhmtW6+MQnhuCTl/hL8rua/ozOme9UkCROVc8TiW8K1akBCeDcOiF1XK2uS/Z6f6faw4zQbjtLGVjIdG7zfnfrJOJ08J1JdYrVYQ01Q0w5SxGL7qb0NFlZaRbLf0B+N1iI2vbWnwvTFz6cuWs1x4IzLH5aErYwHNOKTj69MUxTV5TlXQ==
-Received: from PH0PR07CA0106.namprd07.prod.outlook.com (2603:10b6:510:4::21)
- by DS7PR12MB6167.namprd12.prod.outlook.com (2603:10b6:8:98::20) with
+ bh=A1Hjc1OiZDHth5ka0W/kv9M1PqZ9d1IlHPKaxIhl2Ls=;
+ b=huZiYZIgh4Jo84HdPrGeFoK0Cl4JJ6KNJy0A+oMWEXpEOuGuTUE8TNdqf37JLwqmwQthMA58hUumT+3oZCZ2IfNfgbJ3HpryqljN7DWZw1etBEz9a1ckbr8B1SvKgrTMYBWT6Je5W+jtVigyk19U8+dBVNqm/fB6xzQ8EImWcQXoQzWhg78ZVGYm7JOELxD3EGX5X9k5rMbrkWtt9Cjmg8ohqLlcXKpJIAZndyy2YhJjWVkvfDl/wj2ujtnbxhjKTZ7NbhxGau1EMolPJkMCW/6yWk4+5OAmdwALUl2TtVa5g878qCDVVsyIgDA4HzKweV/utHd++LmPwDzFfgbcUA==
+Received: from CY5PR22CA0022.namprd22.prod.outlook.com (2603:10b6:930:16::35)
+ by CH3PR12MB7713.namprd12.prod.outlook.com (2603:10b6:610:14d::19) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8489.29; Tue, 4 Mar
- 2025 16:07:13 +0000
-Received: from SN1PEPF000252A3.namprd05.prod.outlook.com
- (2603:10b6:510:4:cafe::9a) by PH0PR07CA0106.outlook.office365.com
- (2603:10b6:510:4::21) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8489.28 via Frontend Transport; Tue,
- 4 Mar 2025 16:07:12 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8511.16; Tue, 4 Mar
+ 2025 16:07:09 +0000
+Received: from CY4PEPF0000E9D8.namprd05.prod.outlook.com
+ (2603:10b6:930:16:cafe::7e) by CY5PR22CA0022.outlook.office365.com
+ (2603:10b6:930:16::35) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8511.16 via Frontend Transport; Tue,
+ 4 Mar 2025 16:07:09 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.161)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.117.160 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.117.160; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.117.160) by
- SN1PEPF000252A3.mail.protection.outlook.com (10.167.242.10) with Microsoft
+ 216.228.117.161 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.117.161; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.117.161) by
+ CY4PEPF0000E9D8.mail.protection.outlook.com (10.167.241.71) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8511.15 via Frontend Transport; Tue, 4 Mar 2025 16:07:12 +0000
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
- (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
+ 15.20.8511.15 via Frontend Transport; Tue, 4 Mar 2025 16:07:08 +0000
+Received: from rnnvmail201.nvidia.com (10.129.68.8) by mail.nvidia.com
+ (10.129.200.67) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Tue, 4 Mar 2025
- 08:06:53 -0800
-Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail202.nvidia.com
- (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
+ 08:06:45 -0800
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by rnnvmail201.nvidia.com
+ (10.129.68.8) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.14; Tue, 4 Mar
- 2025 08:06:53 -0800
+ 2025 08:06:45 -0800
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.7)
  with Microsoft SMTP Server id 15.2.1544.14 via Frontend Transport; Tue, 4 Mar
- 2025 08:06:49 -0800
+ 2025 08:06:41 -0800
 From: Tariq Toukan <tariqt@nvidia.com>
 To: "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>, "Andrew
@@ -73,9 +73,9 @@ CC: Saeed Mahameed <saeedm@nvidia.com>, Gal Pressman <gal@nvidia.com>, "Leon
 	Tariq Toukan <tariqt@nvidia.com>, <netdev@vger.kernel.org>,
 	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Shahar Shitrit
 	<shshitrit@nvidia.com>, Carolina Jubran <cjubran@nvidia.com>
-Subject: [PATCH net-next V2 3/6] net/mlx5e: Enable lanes configuration when auto-negotiation is off
-Date: Tue, 4 Mar 2025 18:06:17 +0200
-Message-ID: <20250304160620.417580-4-tariqt@nvidia.com>
+Subject: [PATCH net-next V2 1/6] net/mlx5: Relocate function declarations from port.h to mlx5_core.h
+Date: Tue, 4 Mar 2025 18:06:15 +0200
+Message-ID: <20250304160620.417580-2-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.45.0
 In-Reply-To: <20250304160620.417580-1-tariqt@nvidia.com>
 References: <20250304160620.417580-1-tariqt@nvidia.com>
@@ -90,290 +90,458 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: AnonymousSubmission
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SN1PEPF000252A3:EE_|DS7PR12MB6167:EE_
-X-MS-Office365-Filtering-Correlation-Id: 69c8a589-fd42-4b4c-29a2-08dd5b369fd5
+X-MS-TrafficTypeDiagnostic: CY4PEPF0000E9D8:EE_|CH3PR12MB7713:EE_
+X-MS-Office365-Filtering-Correlation-Id: afaa6869-5bb0-4618-2a06-08dd5b369d8b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|36860700013|7416014|376014|82310400026;
+	BCL:0;ARA:13230040|376014|7416014|82310400026|36860700013|1800799024;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?f72wg3r6bPqu9/ESlJY4YIZKuUMlDC1BxKz/XYkq8fEnEkORXe+mXoNd+dql?=
- =?us-ascii?Q?9QEQUVYxrIppOLcYE86/wEXUhG+j+eLwzYsgDiDTCxKFGjJqlUS5ZjyLpi66?=
- =?us-ascii?Q?d6DSA1VAF04kkN8K791pWcSkdUtI+8cuvSpYg5i/DbY+/XN7gz208UaNo/NZ?=
- =?us-ascii?Q?hg1Jgh58n70lq5PzZEIb4+/lc23m0f9UHsiC4Me/D3KHT07g5co5f7k2q0J5?=
- =?us-ascii?Q?q2ig91Hb8+jMP77jBYF0vPsf5HMRqRQ6GF+CUy+iSssi8tZhHa1mlCasPgbP?=
- =?us-ascii?Q?1awHWZpbYKpbdNF1uOnVIDJi5sM4eDy+ilBIBrYN4D013mXk3wh2YgQEWIni?=
- =?us-ascii?Q?M0d2gVws+r35uC8qoS+aJtKnSWx6Mjq0FKxvlz9nJITAarxKLyS09QHL0sAS?=
- =?us-ascii?Q?fpmgYTGKdIUHWtUVonp8ZTO4doaRzccunlejWWhrcmJp60PTRc/wDI/GTCAq?=
- =?us-ascii?Q?3PmRzrFJM8q+OvtASm77DFHLIol6HpBQXc+ewMySP+QBoN+p97rSse+xPodH?=
- =?us-ascii?Q?DAd4x+5yKaaMfjWUHKQxHEQ0qdEaOISUXZLxJ1Lu/Lc9YJQ/wsZ/k9suR2JN?=
- =?us-ascii?Q?VRzPn5++VyLYiO8t7RgEdYxBAHkKzrLZmuuh8PR+knNgWJD8y091PBiwUIqr?=
- =?us-ascii?Q?d279ch6yKxdhH2cdTfKPQz1ws1Goi0wjDYLW4Rjo7xHI2g5I9VPScwYV/f0i?=
- =?us-ascii?Q?9ikucxedlU2RnnNjH69mBxegIBTT05x3XdGUEvc4vyWQqbybfIA7dNsyiUsH?=
- =?us-ascii?Q?IwDWEXDV9q9kytKk6XW/UU5VC9HrwY8roDHgkTYwHc1pNM/grVgWOO65kog9?=
- =?us-ascii?Q?0NQweCKRcr4IRfgWJLa74yPRaTWqFLAm9Pd8aqMi7yel8RJ8aB5x3MVfWisM?=
- =?us-ascii?Q?mwS/zYr+I6oERib2m3CTVZ2bYtMvaDCQiIVexhy/t0DiFNUmtZx+DM146RJH?=
- =?us-ascii?Q?YtaY6NgtnlnQoShSZzAoAe0vYmiv4KnrJuYWIXdj4yEKEa67jT0TsL8KU7fG?=
- =?us-ascii?Q?wKrbIry5kfd5TfFFbRkdNDOT/62QRPiPUlVtljemhD/TQVJRWZp2tm11K87K?=
- =?us-ascii?Q?WlpGq2qGsqMbiNq2t9EHYbodoXq/EMzfNWbZHRcEQCvcTIupWIp3vmvSxSBC?=
- =?us-ascii?Q?eUyv0AuzfidD8PqFAuPyI/OfWjz5Va8rt+kLkIsP+tX15tsVpZhVuIfoXy/2?=
- =?us-ascii?Q?DHtLgVdixWd9sPFkH/48eUgatx6Jto/ix8asoRrLN9R8IYmzqcZ8pcjbG3wX?=
- =?us-ascii?Q?QgT+s0ZyGgxX6F8ahRg1QLucU8Pl4vvN+dJ6fWQ1Xq1P6iwU7lO1+3gp2tLt?=
- =?us-ascii?Q?zPSZ9hktEdIeDDOPaSjAyTQPA/ybzn5KB0hc5PHRhKjCPAOJnMeXYq/xzb3+?=
- =?us-ascii?Q?nIp1asf6+9gqD/IbkxPPi/qKw63j8Cc9MvffjuzBQfjGoULGUygXcB/JmPAa?=
- =?us-ascii?Q?Ys3ne+HO1JwgEWmIb+PPZTPVJHgx45kSaB4dvmqSVT9Nawei82By/5oiTN34?=
- =?us-ascii?Q?ztM0IoDSZT15NeU=3D?=
+	=?us-ascii?Q?/giiSI0UDm8DFkkIGSGcJPUWzdmFBgo9kHMq4Cc2A36wiowMGx8Dd9pifsbn?=
+ =?us-ascii?Q?hgd7WvZHqFzH8oVlewYbWlxkr8IxD5VbUvLSYUeXH4K3g22WMwbQROhjdZaY?=
+ =?us-ascii?Q?XuQ2i1VebT/jlviR8Vj7GWotOM7sfcD7YNSSBvVP/lE2SoJDjlkeMWbyJq3u?=
+ =?us-ascii?Q?eBb9R6VcsImgfySgRKDdv+wGgZOYe6OgaKjkiOFJg2wWYdkVLpT6FTcvD+Qw?=
+ =?us-ascii?Q?y8HCbt0NZg8/8SPWUHXm2JoOPldeulVvk5ZC9MJg3P1HJ0oOfb4ydjJsI+em?=
+ =?us-ascii?Q?Oz3bRHCi/nYBU/4oH6JV0uzGXnFTbhPwSKVW46FYTVlbmCwDfY5+LQLDjc4U?=
+ =?us-ascii?Q?VmdBDjqAUYwK4TaIuho/oP4Iti6p7QSDJmbisuabaHXEOMhR7+dMh6ZjVzq9?=
+ =?us-ascii?Q?CIW45esY9QPmnwvXn8dUbjVLUw7TVXy+hjyVLIbdNMLDyMnxG0f7IFyksnrI?=
+ =?us-ascii?Q?XGso8CIQP51VfDtX3AdqB3i4kpuYV7rBLlJSZ20XR45iyi8MIUYuBXWn8J0n?=
+ =?us-ascii?Q?a3CMIofbn3G2h3YILLv/cF+NJkFENksbNyb+7dwyVVsw+xKxAL2AhjeEPx5T?=
+ =?us-ascii?Q?htf7q81IcxEkOtdBic1DW8+/2V4HLwPwflGMY3Rlgn2Wi1gWHbHzP1DwSZLY?=
+ =?us-ascii?Q?KTdqNbmpAO5/3FkaaAarCBEs8ricXP60CBkQyCh1RSTID0tA4OPVGzrDBK76?=
+ =?us-ascii?Q?fMpktnFONCHipqIUGZOdNGlRq/rQmUtAilaJqR4vzgY4J1HmlvNsjMksDYyH?=
+ =?us-ascii?Q?roZE/PuuYwzwCKGw1Ijy28FyjWs1X+PMPZ9OdEipv+vezhbSOh7vWLpGQI/U?=
+ =?us-ascii?Q?329A6Cep2AEnjza6XlVPYRJ5CnthsHDVscAFmW6y1i+onJITBdZURJZTQT9t?=
+ =?us-ascii?Q?zqd8B5Um2h8SV2xWw8blf4rHaovNgraFRlQK/04NN+/NwMdOpdjZMmoMPWAk?=
+ =?us-ascii?Q?JcSWDe2G9OPgvy4uSeek/7hXiGBBTZ9Beoa0iYHJmSG8mJKUyfyaPDpH9rI2?=
+ =?us-ascii?Q?oh8jdxBjvxpqzpUWJDD3A2nuh4rZr5hCnU7qnhserg3YY3qzmH9d5kwGMe46?=
+ =?us-ascii?Q?xgWazTANaUSEnHOFHECdP8dL/HJ4tzxEe3GIEUlDWa2TuCvjrV0aaIGSD4o7?=
+ =?us-ascii?Q?Z9R7IE8nSDoe1R7Qsfs+rP5ROKMQhPWTemgOMHZEDNK5NOxNvTirF9DJye8S?=
+ =?us-ascii?Q?qZsc+reK9r3sl716W+SUPfLjLazYMwLQRUySHJJW4uQSXfxjTeYrUYSbymsa?=
+ =?us-ascii?Q?FURiMq45VfI3tJXawmNU6ILuDRNbA3NZHxgo9DCS2/KdpQgTrv+IwMK+lu7D?=
+ =?us-ascii?Q?7wYRIohFlv5TQo6/oOnTYq6qQvU75iaoHGZuzWiw1OcIt07ukQ3yWGf6BF3v?=
+ =?us-ascii?Q?kfCIEodrEM6bwt7XQIh2ac2oOwSAyU8aHUQgDN4VJVsiPZlt6FA+d08m5Mtd?=
+ =?us-ascii?Q?6U5VqwEVzrt2gUUvKtPPj5eCsdWgjwgZELibC+1B0IS3OvOSpDCyVcFcl6GR?=
+ =?us-ascii?Q?aEAJ+8a8hWlgTow=3D?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(36860700013)(7416014)(376014)(82310400026);DIR:OUT;SFP:1101;
+	CIP:216.228.117.161;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(7416014)(82310400026)(36860700013)(1800799024);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Mar 2025 16:07:12.2981
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Mar 2025 16:07:08.3639
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 69c8a589-fd42-4b4c-29a2-08dd5b369fd5
+X-MS-Exchange-CrossTenant-Network-Message-Id: afaa6869-5bb0-4618-2a06-08dd5b369d8b
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.161];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SN1PEPF000252A3.namprd05.prod.outlook.com
+	CY4PEPF0000E9D8.namprd05.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB6167
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB7713
 
 From: Shahar Shitrit <shshitrit@nvidia.com>
 
-Currently, when auto-negotiation is disabled, the driver retrieves
-the speed and converts it into all link modes that correspond to
-that speed. With this patch, we add the ability to set the number
-of lanes, so that the combination of speed and lanes corresponds to
-exactly one specific link mode for the extended bit map.
+The port header is a general file under include, yet it
+contains declarations for functions that are either not
+exported or exported but not used outside the mlx5_core
+driver.
 
-For the legacy bit map the driver sets all link modes correspond to
-speed and lanes.
+To enhance code organization, we move these declarations
+to mlx5_core.h, where they are more appropriately scoped.
 
-This change provides users with the option to set a specific link
-mode, rather than enabling all link modes associated with a given
-speed when auto-negotiation is off.
+This refactor removes unnecessary exported symbols and
+prevents unexported functions from being inadvertently
+referenced outside of the mlx5_core driver.
 
 Signed-off-by: Shahar Shitrit <shshitrit@nvidia.com>
 Reviewed-by: Carolina Jubran <cjubran@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../ethernet/mellanox/mlx5/core/en_ethtool.c  | 23 +++--
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  1 +
- .../net/ethernet/mellanox/mlx5/core/port.c    | 98 ++++++++++---------
- 3 files changed, 67 insertions(+), 55 deletions(-)
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   | 85 +++++++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/port.c    | 20 -----
+ include/linux/mlx5/port.h                     | 85 +------------------
+ 3 files changed, 86 insertions(+), 104 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-index fdb3e118c244..fdf9e9bb99ac 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-@@ -42,6 +42,9 @@
- #include "lib/clock.h"
- #include "en/fs_ethtool.h"
- 
-+#define LANES_UNKNOWN		 0
-+#define MAX_LANES		 8
-+
- void mlx5e_ethtool_get_drvinfo(struct mlx5e_priv *priv,
- 			       struct ethtool_drvinfo *drvinfo)
- {
-@@ -1076,15 +1079,16 @@ static void ptys2ethtool_supported_advertised_port(struct mlx5_core_dev *mdev,
- 	}
- }
- 
--static void get_speed_duplex(struct net_device *netdev,
--			     u32 eth_proto_oper, bool force_legacy,
--			     u16 data_rate_oper,
--			     struct ethtool_link_ksettings *link_ksettings)
-+static void get_link_properties(struct net_device *netdev,
-+				u32 eth_proto_oper, bool force_legacy,
-+				u16 data_rate_oper,
-+				struct ethtool_link_ksettings *link_ksettings)
- {
- 	struct mlx5e_priv *priv = netdev_priv(netdev);
- 	const struct mlx5_link_info *info;
- 	u8 duplex = DUPLEX_UNKNOWN;
- 	u32 speed = SPEED_UNKNOWN;
-+	u32 lanes = LANES_UNKNOWN;
- 
- 	if (!netif_carrier_ok(netdev))
- 		goto out;
-@@ -1092,14 +1096,17 @@ static void get_speed_duplex(struct net_device *netdev,
- 	info = mlx5_port_ptys2info(priv->mdev, eth_proto_oper, force_legacy);
- 	if (info) {
- 		speed = info->speed;
-+		lanes = info->lanes;
- 		duplex = DUPLEX_FULL;
- 	} else if (data_rate_oper) {
- 		speed = 100 * data_rate_oper;
-+		lanes = MAX_LANES;
- 	}
- 
- out:
--	link_ksettings->base.speed = speed;
- 	link_ksettings->base.duplex = duplex;
-+	link_ksettings->base.speed = speed;
-+	link_ksettings->lanes = lanes;
- }
- 
- static void get_supported(struct mlx5_core_dev *mdev, u32 eth_proto_cap,
-@@ -1236,8 +1243,8 @@ static int mlx5e_ethtool_get_link_ksettings(struct mlx5e_priv *priv,
- 	get_supported(mdev, eth_proto_cap, link_ksettings);
- 	get_advertising(eth_proto_admin, tx_pause, rx_pause, link_ksettings,
- 			admin_ext);
--	get_speed_duplex(priv->netdev, eth_proto_oper, !admin_ext,
--			 data_rate_oper, link_ksettings);
-+	get_link_properties(priv->netdev, eth_proto_oper, !admin_ext,
-+			    data_rate_oper, link_ksettings);
- 
- 	eth_proto_oper = eth_proto_oper ? eth_proto_oper : eth_proto_cap;
- 	connector_type = connector_type < MLX5E_CONNECTOR_TYPE_NUMBER ?
-@@ -1366,6 +1373,7 @@ static int mlx5e_ethtool_set_link_ksettings(struct mlx5e_priv *priv,
- 	adver = link_ksettings->link_modes.advertising;
- 	autoneg = link_ksettings->base.autoneg;
- 	info.speed = link_ksettings->base.speed;
-+	info.lanes = link_ksettings->lanes;
- 
- 	ext_supported = mlx5_ptys_ext_supported(mdev);
- 	ext_requested = ext_link_mode_requested(adver);
-@@ -2613,6 +2621,7 @@ static void mlx5e_get_ts_stats(struct net_device *netdev,
- }
- 
- const struct ethtool_ops mlx5e_ethtool_ops = {
-+	.cap_link_lanes_supported = true,
- 	.cap_rss_ctx_supported	= true,
- 	.rxfh_per_ctx_key	= true,
- 	.supported_coalesce_params = ETHTOOL_COALESCE_USECS |
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index 9639e44f71ed..2e02bdea8361 100644
+index 6fef1005c469..6278b02105da 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -131,6 +131,7 @@ struct mlx5_module_eeprom_query_params {
- 
- struct mlx5_link_info {
- 	u32 speed;
-+	u32 lanes;
+@@ -114,6 +114,21 @@ struct mlx5_cmd_alias_obj_create_attr {
+ 	u8 access_key[ACCESS_KEY_LEN];
  };
  
++struct mlx5_port_eth_proto {
++	u32 cap;
++	u32 admin;
++	u32 oper;
++};
++
++struct mlx5_module_eeprom_query_params {
++	u16 size;
++	u16 offset;
++	u16 i2c_address;
++	u32 page;
++	u32 bank;
++	u32 module_number;
++};
++
  static inline void mlx5_printk(struct mlx5_core_dev *dev, int level, const char *format, ...)
+ {
+ 	struct device *device = dev->device;
+@@ -280,6 +295,76 @@ int mlx5_set_mtppse(struct mlx5_core_dev *mdev, u8 pin, u8 arm, u8 mode);
+ struct mlx5_dm *mlx5_dm_create(struct mlx5_core_dev *dev);
+ void mlx5_dm_cleanup(struct mlx5_core_dev *dev);
+ 
++void mlx5_toggle_port_link(struct mlx5_core_dev *dev);
++int mlx5_set_port_admin_status(struct mlx5_core_dev *dev,
++			       enum mlx5_port_status status);
++int mlx5_query_port_admin_status(struct mlx5_core_dev *dev,
++				 enum mlx5_port_status *status);
++int mlx5_set_port_beacon(struct mlx5_core_dev *dev, u16 beacon_duration);
++
++int mlx5_set_port_mtu(struct mlx5_core_dev *dev, u16 mtu, u8 port);
++int mlx5_set_port_pause(struct mlx5_core_dev *dev, u32 rx_pause, u32 tx_pause);
++int mlx5_query_port_pause(struct mlx5_core_dev *dev,
++			  u32 *rx_pause, u32 *tx_pause);
++
++int mlx5_set_port_pfc(struct mlx5_core_dev *dev, u8 pfc_en_tx, u8 pfc_en_rx);
++int mlx5_query_port_pfc(struct mlx5_core_dev *dev, u8 *pfc_en_tx,
++			u8 *pfc_en_rx);
++
++int mlx5_set_port_stall_watermark(struct mlx5_core_dev *dev,
++				  u16 stall_critical_watermark,
++				  u16 stall_minor_watermark);
++int mlx5_query_port_stall_watermark(struct mlx5_core_dev *dev,
++				    u16 *stall_critical_watermark,
++				    u16 *stall_minor_watermark);
++
++int mlx5_max_tc(struct mlx5_core_dev *mdev);
++int mlx5_set_port_prio_tc(struct mlx5_core_dev *mdev, u8 *prio_tc);
++int mlx5_query_port_prio_tc(struct mlx5_core_dev *mdev,
++			    u8 prio, u8 *tc);
++int mlx5_set_port_tc_group(struct mlx5_core_dev *mdev, u8 *tc_group);
++int mlx5_query_port_tc_group(struct mlx5_core_dev *mdev,
++			     u8 tc, u8 *tc_group);
++int mlx5_set_port_tc_bw_alloc(struct mlx5_core_dev *mdev, u8 *tc_bw);
++int mlx5_query_port_tc_bw_alloc(struct mlx5_core_dev *mdev,
++				u8 tc, u8 *bw_pct);
++int mlx5_modify_port_ets_rate_limit(struct mlx5_core_dev *mdev,
++				    u8 *max_bw_value,
++				    u8 *max_bw_unit);
++int mlx5_query_port_ets_rate_limit(struct mlx5_core_dev *mdev,
++				   u8 *max_bw_value,
++				   u8 *max_bw_unit);
++int mlx5_set_port_wol(struct mlx5_core_dev *mdev, u8 wol_mode);
++int mlx5_query_port_wol(struct mlx5_core_dev *mdev, u8 *wol_mode);
++
++int mlx5_query_ports_check(struct mlx5_core_dev *mdev, u32 *out, int outlen);
++int mlx5_set_ports_check(struct mlx5_core_dev *mdev, u32 *in, int inlen);
++int mlx5_set_port_fcs(struct mlx5_core_dev *mdev, u8 enable);
++void mlx5_query_port_fcs(struct mlx5_core_dev *mdev, bool *supported,
++			 bool *enabled);
++int mlx5_query_module_eeprom(struct mlx5_core_dev *dev,
++			     u16 offset, u16 size, u8 *data);
++int
++mlx5_query_module_eeprom_by_page(struct mlx5_core_dev *dev,
++				 struct mlx5_module_eeprom_query_params *params,
++				 u8 *data);
++
++int mlx5_query_port_dcbx_param(struct mlx5_core_dev *mdev, u32 *out);
++int mlx5_set_port_dcbx_param(struct mlx5_core_dev *mdev, u32 *in);
++int mlx5_set_trust_state(struct mlx5_core_dev *mdev, u8 trust_state);
++int mlx5_query_trust_state(struct mlx5_core_dev *mdev, u8 *trust_state);
++int mlx5_set_dscp2prio(struct mlx5_core_dev *mdev, u8 dscp, u8 prio);
++int mlx5_query_dscp2prio(struct mlx5_core_dev *mdev, u8 *dscp2prio);
++
++int mlx5_port_query_eth_proto(struct mlx5_core_dev *dev, u8 port, bool ext,
++			      struct mlx5_port_eth_proto *eproto);
++bool mlx5_ptys_ext_supported(struct mlx5_core_dev *mdev);
++u32 mlx5_port_ptys2speed(struct mlx5_core_dev *mdev, u32 eth_proto_oper,
++			 bool force_legacy);
++u32 mlx5_port_speed2linkmodes(struct mlx5_core_dev *mdev, u32 speed,
++			      bool force_legacy);
++int mlx5_port_max_linkspeed(struct mlx5_core_dev *mdev, u32 *speed);
++
+ #define MLX5_PPS_CAP(mdev) (MLX5_CAP_GEN((mdev), pps) &&		\
+ 			    MLX5_CAP_GEN((mdev), pps_modify) &&		\
+ 			    MLX5_CAP_MCAM_FEATURE((mdev), mtpps_fs) &&	\
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/port.c b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-index e1b69416f391..549f1066d2a5 100644
+index 3995df064101..c7d749e8e133 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/port.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-@@ -1039,56 +1039,56 @@ int mlx5_query_dscp2prio(struct mlx5_core_dev *mdev, u8 *dscp2prio)
- 
- /* speed in units of 1Mb */
- static const struct mlx5_link_info mlx5e_link_info[MLX5E_LINK_MODES_NUMBER] = {
--	[MLX5E_1000BASE_CX_SGMII] = {.speed = 1000},
--	[MLX5E_1000BASE_KX]       = {.speed = 1000},
--	[MLX5E_10GBASE_CX4]       = {.speed = 10000},
--	[MLX5E_10GBASE_KX4]       = {.speed = 10000},
--	[MLX5E_10GBASE_KR]        = {.speed = 10000},
--	[MLX5E_20GBASE_KR2]       = {.speed = 20000},
--	[MLX5E_40GBASE_CR4]       = {.speed = 40000},
--	[MLX5E_40GBASE_KR4]       = {.speed = 40000},
--	[MLX5E_56GBASE_R4]        = {.speed = 56000},
--	[MLX5E_10GBASE_CR]        = {.speed = 10000},
--	[MLX5E_10GBASE_SR]        = {.speed = 10000},
--	[MLX5E_10GBASE_ER]        = {.speed = 10000},
--	[MLX5E_40GBASE_SR4]       = {.speed = 40000},
--	[MLX5E_40GBASE_LR4]       = {.speed = 40000},
--	[MLX5E_50GBASE_SR2]       = {.speed = 50000},
--	[MLX5E_100GBASE_CR4]      = {.speed = 100000},
--	[MLX5E_100GBASE_SR4]      = {.speed = 100000},
--	[MLX5E_100GBASE_KR4]      = {.speed = 100000},
--	[MLX5E_100GBASE_LR4]      = {.speed = 100000},
--	[MLX5E_100BASE_TX]        = {.speed = 100},
--	[MLX5E_1000BASE_T]        = {.speed = 1000},
--	[MLX5E_10GBASE_T]         = {.speed = 10000},
--	[MLX5E_25GBASE_CR]        = {.speed = 25000},
--	[MLX5E_25GBASE_KR]        = {.speed = 25000},
--	[MLX5E_25GBASE_SR]        = {.speed = 25000},
--	[MLX5E_50GBASE_CR2]       = {.speed = 50000},
--	[MLX5E_50GBASE_KR2]       = {.speed = 50000},
-+	[MLX5E_1000BASE_CX_SGMII]	= {.speed = 1000, .lanes = 1},
-+	[MLX5E_1000BASE_KX]		= {.speed = 1000, .lanes = 1},
-+	[MLX5E_10GBASE_CX4]		= {.speed = 10000, .lanes = 4},
-+	[MLX5E_10GBASE_KX4]		= {.speed = 10000, .lanes = 4},
-+	[MLX5E_10GBASE_KR]		= {.speed = 10000, .lanes = 1},
-+	[MLX5E_20GBASE_KR2]		= {.speed = 20000, .lanes = 2},
-+	[MLX5E_40GBASE_CR4]		= {.speed = 40000, .lanes = 4},
-+	[MLX5E_40GBASE_KR4]		= {.speed = 40000, .lanes = 4},
-+	[MLX5E_56GBASE_R4]		= {.speed = 56000, .lanes = 4},
-+	[MLX5E_10GBASE_CR]		= {.speed = 10000, .lanes = 1},
-+	[MLX5E_10GBASE_SR]		= {.speed = 10000, .lanes = 1},
-+	[MLX5E_10GBASE_ER]		= {.speed = 10000, .lanes = 1},
-+	[MLX5E_40GBASE_SR4]		= {.speed = 40000, .lanes = 4},
-+	[MLX5E_40GBASE_LR4]		= {.speed = 40000, .lanes = 4},
-+	[MLX5E_50GBASE_SR2]		= {.speed = 50000, .lanes = 2},
-+	[MLX5E_100GBASE_CR4]		= {.speed = 100000, .lanes = 4},
-+	[MLX5E_100GBASE_SR4]		= {.speed = 100000, .lanes = 4},
-+	[MLX5E_100GBASE_KR4]		= {.speed = 100000, .lanes = 4},
-+	[MLX5E_100GBASE_LR4]		= {.speed = 100000, .lanes = 4},
-+	[MLX5E_100BASE_TX]		= {.speed = 100, .lanes = 1},
-+	[MLX5E_1000BASE_T]		= {.speed = 1000, .lanes = 1},
-+	[MLX5E_10GBASE_T]		= {.speed = 10000, .lanes = 1},
-+	[MLX5E_25GBASE_CR]		= {.speed = 25000, .lanes = 1},
-+	[MLX5E_25GBASE_KR]		= {.speed = 25000, .lanes = 1},
-+	[MLX5E_25GBASE_SR]		= {.speed = 25000, .lanes = 1},
-+	[MLX5E_50GBASE_CR2]		= {.speed = 50000, .lanes = 2},
-+	[MLX5E_50GBASE_KR2]		= {.speed = 50000, .lanes = 2},
- };
- 
- static const struct mlx5_link_info
- mlx5e_ext_link_info[MLX5E_EXT_LINK_MODES_NUMBER] = {
--	[MLX5E_SGMII_100M]			= {.speed = 100},
--	[MLX5E_1000BASE_X_SGMII]		= {.speed = 1000},
--	[MLX5E_5GBASE_R]			= {.speed = 5000},
--	[MLX5E_10GBASE_XFI_XAUI_1]		= {.speed = 10000},
--	[MLX5E_40GBASE_XLAUI_4_XLPPI_4]		= {.speed = 40000},
--	[MLX5E_25GAUI_1_25GBASE_CR_KR]		= {.speed = 25000},
--	[MLX5E_50GAUI_2_LAUI_2_50GBASE_CR2_KR2] = {.speed = 50000},
--	[MLX5E_50GAUI_1_LAUI_1_50GBASE_CR_KR]	= {.speed = 50000},
--	[MLX5E_CAUI_4_100GBASE_CR4_KR4]		= {.speed = 100000},
--	[MLX5E_100GAUI_2_100GBASE_CR2_KR2]	= {.speed = 100000},
--	[MLX5E_200GAUI_4_200GBASE_CR4_KR4]	= {.speed = 200000},
--	[MLX5E_400GAUI_8_400GBASE_CR8]		= {.speed = 400000},
--	[MLX5E_100GAUI_1_100GBASE_CR_KR]	= {.speed = 100000},
--	[MLX5E_200GAUI_2_200GBASE_CR2_KR2]	= {.speed = 200000},
--	[MLX5E_400GAUI_4_400GBASE_CR4_KR4]	= {.speed = 400000},
--	[MLX5E_800GAUI_8_800GBASE_CR8_KR8]	= {.speed = 800000},
--	[MLX5E_200GAUI_1_200GBASE_CR1_KR1]	= {.speed = 200000},
--	[MLX5E_400GAUI_2_400GBASE_CR2_KR2]	= {.speed = 400000},
--	[MLX5E_800GAUI_4_800GBASE_CR4_KR4]	= {.speed = 800000},
-+	[MLX5E_SGMII_100M]			= {.speed = 100, .lanes = 1},
-+	[MLX5E_1000BASE_X_SGMII]		= {.speed = 1000, .lanes = 1},
-+	[MLX5E_5GBASE_R]			= {.speed = 5000, .lanes = 1},
-+	[MLX5E_10GBASE_XFI_XAUI_1]		= {.speed = 10000, .lanes = 1},
-+	[MLX5E_40GBASE_XLAUI_4_XLPPI_4]		= {.speed = 40000, .lanes = 4},
-+	[MLX5E_25GAUI_1_25GBASE_CR_KR]		= {.speed = 25000, .lanes = 1},
-+	[MLX5E_50GAUI_2_LAUI_2_50GBASE_CR2_KR2]	= {.speed = 50000, .lanes = 2},
-+	[MLX5E_50GAUI_1_LAUI_1_50GBASE_CR_KR]	= {.speed = 50000, .lanes = 1},
-+	[MLX5E_CAUI_4_100GBASE_CR4_KR4]		= {.speed = 100000, .lanes = 4},
-+	[MLX5E_100GAUI_2_100GBASE_CR2_KR2]	= {.speed = 100000, .lanes = 2},
-+	[MLX5E_200GAUI_4_200GBASE_CR4_KR4]	= {.speed = 200000, .lanes = 4},
-+	[MLX5E_400GAUI_8_400GBASE_CR8]		= {.speed = 400000, .lanes = 8},
-+	[MLX5E_100GAUI_1_100GBASE_CR_KR]	= {.speed = 100000, .lanes = 1},
-+	[MLX5E_200GAUI_2_200GBASE_CR2_KR2]	= {.speed = 200000, .lanes = 2},
-+	[MLX5E_400GAUI_4_400GBASE_CR4_KR4]	= {.speed = 400000, .lanes = 4},
-+	[MLX5E_800GAUI_8_800GBASE_CR8_KR8]	= {.speed = 800000, .lanes = 8},
-+	[MLX5E_200GAUI_1_200GBASE_CR1_KR1]	= {.speed = 200000, .lanes = 1},
-+	[MLX5E_400GAUI_2_400GBASE_CR2_KR2]	= {.speed = 400000, .lanes = 2},
-+	[MLX5E_800GAUI_4_800GBASE_CR4_KR4]	= {.speed = 800000, .lanes = 4},
- };
- 
- int mlx5_port_query_eth_proto(struct mlx5_core_dev *dev, u8 port, bool ext,
-@@ -1168,8 +1168,10 @@ u32 mlx5_port_info2linkmodes(struct mlx5_core_dev *mdev,
- 	mlx5e_port_get_link_mode_info_arr(mdev, &table, &max_size,
- 					  force_legacy);
- 	for (i = 0; i < max_size; ++i) {
--		if (table[i].speed == info->speed)
--			link_modes |= MLX5E_PROT_MASK(i);
-+		if (table[i].speed == info->speed) {
-+			if (!info->lanes || table[i].lanes == info->lanes)
-+				link_modes |= MLX5E_PROT_MASK(i);
-+		}
- 	}
- 	return link_modes;
+@@ -196,7 +196,6 @@ void mlx5_toggle_port_link(struct mlx5_core_dev *dev)
+ 	if (ps == MLX5_PORT_UP)
+ 		mlx5_set_port_admin_status(dev, MLX5_PORT_UP);
  }
+-EXPORT_SYMBOL_GPL(mlx5_toggle_port_link);
+ 
+ int mlx5_set_port_admin_status(struct mlx5_core_dev *dev,
+ 			       enum mlx5_port_status status)
+@@ -210,7 +209,6 @@ int mlx5_set_port_admin_status(struct mlx5_core_dev *dev,
+ 	return mlx5_core_access_reg(dev, in, sizeof(in), out,
+ 				    sizeof(out), MLX5_REG_PAOS, 0, 1);
+ }
+-EXPORT_SYMBOL_GPL(mlx5_set_port_admin_status);
+ 
+ int mlx5_query_port_admin_status(struct mlx5_core_dev *dev,
+ 				 enum mlx5_port_status *status)
+@@ -227,7 +225,6 @@ int mlx5_query_port_admin_status(struct mlx5_core_dev *dev,
+ 	*status = MLX5_GET(paos_reg, out, admin_status);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_port_admin_status);
+ 
+ static void mlx5_query_port_mtu(struct mlx5_core_dev *dev, u16 *admin_mtu,
+ 				u16 *max_mtu, u16 *oper_mtu, u8 port)
+@@ -257,7 +254,6 @@ int mlx5_set_port_mtu(struct mlx5_core_dev *dev, u16 mtu, u8 port)
+ 	return mlx5_core_access_reg(dev, in, sizeof(in), out,
+ 				   sizeof(out), MLX5_REG_PMTU, 0, 1);
+ }
+-EXPORT_SYMBOL_GPL(mlx5_set_port_mtu);
+ 
+ void mlx5_query_port_max_mtu(struct mlx5_core_dev *dev, u16 *max_mtu,
+ 			     u8 port)
+@@ -447,7 +443,6 @@ int mlx5_query_module_eeprom(struct mlx5_core_dev *dev,
+ 
+ 	return mlx5_query_mcia(dev, &query, data);
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_module_eeprom);
+ 
+ int mlx5_query_module_eeprom_by_page(struct mlx5_core_dev *dev,
+ 				     struct mlx5_module_eeprom_query_params *params,
+@@ -467,7 +462,6 @@ int mlx5_query_module_eeprom_by_page(struct mlx5_core_dev *dev,
+ 
+ 	return mlx5_query_mcia(dev, params, data);
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_module_eeprom_by_page);
+ 
+ static int mlx5_query_port_pvlc(struct mlx5_core_dev *dev, u32 *pvlc,
+ 				int pvlc_size,  u8 local_port)
+@@ -518,7 +512,6 @@ int mlx5_set_port_pause(struct mlx5_core_dev *dev, u32 rx_pause, u32 tx_pause)
+ 	return mlx5_core_access_reg(dev, in, sizeof(in), out,
+ 				    sizeof(out), MLX5_REG_PFCC, 0, 1);
+ }
+-EXPORT_SYMBOL_GPL(mlx5_set_port_pause);
+ 
+ int mlx5_query_port_pause(struct mlx5_core_dev *dev,
+ 			  u32 *rx_pause, u32 *tx_pause)
+@@ -538,7 +531,6 @@ int mlx5_query_port_pause(struct mlx5_core_dev *dev,
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_port_pause);
+ 
+ int mlx5_set_port_stall_watermark(struct mlx5_core_dev *dev,
+ 				  u16 stall_critical_watermark,
+@@ -597,7 +589,6 @@ int mlx5_set_port_pfc(struct mlx5_core_dev *dev, u8 pfc_en_tx, u8 pfc_en_rx)
+ 	return mlx5_core_access_reg(dev, in, sizeof(in), out,
+ 				    sizeof(out), MLX5_REG_PFCC, 0, 1);
+ }
+-EXPORT_SYMBOL_GPL(mlx5_set_port_pfc);
+ 
+ int mlx5_query_port_pfc(struct mlx5_core_dev *dev, u8 *pfc_en_tx, u8 *pfc_en_rx)
+ {
+@@ -616,7 +607,6 @@ int mlx5_query_port_pfc(struct mlx5_core_dev *dev, u8 *pfc_en_tx, u8 *pfc_en_rx)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_port_pfc);
+ 
+ int mlx5_max_tc(struct mlx5_core_dev *mdev)
+ {
+@@ -667,7 +657,6 @@ int mlx5_set_port_prio_tc(struct mlx5_core_dev *mdev, u8 *prio_tc)
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_set_port_prio_tc);
+ 
+ int mlx5_query_port_prio_tc(struct mlx5_core_dev *mdev,
+ 			    u8 prio, u8 *tc)
+@@ -689,7 +678,6 @@ int mlx5_query_port_prio_tc(struct mlx5_core_dev *mdev,
+ 
+ 	return err;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_port_prio_tc);
+ 
+ static int mlx5_set_port_qetcr_reg(struct mlx5_core_dev *mdev, u32 *in,
+ 				   int inlen)
+@@ -728,7 +716,6 @@ int mlx5_set_port_tc_group(struct mlx5_core_dev *mdev, u8 *tc_group)
+ 
+ 	return mlx5_set_port_qetcr_reg(mdev, in, sizeof(in));
+ }
+-EXPORT_SYMBOL_GPL(mlx5_set_port_tc_group);
+ 
+ int mlx5_query_port_tc_group(struct mlx5_core_dev *mdev,
+ 			     u8 tc, u8 *tc_group)
+@@ -749,7 +736,6 @@ int mlx5_query_port_tc_group(struct mlx5_core_dev *mdev,
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_port_tc_group);
+ 
+ int mlx5_set_port_tc_bw_alloc(struct mlx5_core_dev *mdev, u8 *tc_bw)
+ {
+@@ -763,7 +749,6 @@ int mlx5_set_port_tc_bw_alloc(struct mlx5_core_dev *mdev, u8 *tc_bw)
+ 
+ 	return mlx5_set_port_qetcr_reg(mdev, in, sizeof(in));
+ }
+-EXPORT_SYMBOL_GPL(mlx5_set_port_tc_bw_alloc);
+ 
+ int mlx5_query_port_tc_bw_alloc(struct mlx5_core_dev *mdev,
+ 				u8 tc, u8 *bw_pct)
+@@ -784,7 +769,6 @@ int mlx5_query_port_tc_bw_alloc(struct mlx5_core_dev *mdev,
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_port_tc_bw_alloc);
+ 
+ int mlx5_modify_port_ets_rate_limit(struct mlx5_core_dev *mdev,
+ 				    u8 *max_bw_value,
+@@ -808,7 +792,6 @@ int mlx5_modify_port_ets_rate_limit(struct mlx5_core_dev *mdev,
+ 
+ 	return mlx5_set_port_qetcr_reg(mdev, in, sizeof(in));
+ }
+-EXPORT_SYMBOL_GPL(mlx5_modify_port_ets_rate_limit);
+ 
+ int mlx5_query_port_ets_rate_limit(struct mlx5_core_dev *mdev,
+ 				   u8 *max_bw_value,
+@@ -834,7 +817,6 @@ int mlx5_query_port_ets_rate_limit(struct mlx5_core_dev *mdev,
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_port_ets_rate_limit);
+ 
+ int mlx5_set_port_wol(struct mlx5_core_dev *mdev, u8 wol_mode)
+ {
+@@ -845,7 +827,6 @@ int mlx5_set_port_wol(struct mlx5_core_dev *mdev, u8 wol_mode)
+ 	MLX5_SET(set_wol_rol_in, in, wol_mode, wol_mode);
+ 	return mlx5_cmd_exec_in(mdev, set_wol_rol, in);
+ }
+-EXPORT_SYMBOL_GPL(mlx5_set_port_wol);
+ 
+ int mlx5_query_port_wol(struct mlx5_core_dev *mdev, u8 *wol_mode)
+ {
+@@ -860,7 +841,6 @@ int mlx5_query_port_wol(struct mlx5_core_dev *mdev, u8 *wol_mode)
+ 
+ 	return err;
+ }
+-EXPORT_SYMBOL_GPL(mlx5_query_port_wol);
+ 
+ int mlx5_query_ports_check(struct mlx5_core_dev *mdev, u32 *out, int outlen)
+ {
+diff --git a/include/linux/mlx5/port.h b/include/linux/mlx5/port.h
+index fd625e0dd869..58770b86f793 100644
+--- a/include/linux/mlx5/port.h
++++ b/include/linux/mlx5/port.h
+@@ -61,15 +61,6 @@ enum mlx5_an_status {
+ #define MLX5_EEPROM_PAGE_LENGTH		256
+ #define MLX5_EEPROM_HIGH_PAGE_LENGTH	128
+ 
+-struct mlx5_module_eeprom_query_params {
+-	u16 size;
+-	u16 offset;
+-	u16 i2c_address;
+-	u32 page;
+-	u32 bank;
+-	u32 module_number;
+-};
+-
+ enum mlx5e_link_mode {
+ 	MLX5E_1000BASE_CX_SGMII	 = 0,
+ 	MLX5E_1000BASE_KX	 = 1,
+@@ -145,12 +136,6 @@ enum mlx5_ptys_width {
+ 	MLX5_PTYS_WIDTH_12X	= 1 << 4,
+ };
+ 
+-struct mlx5_port_eth_proto {
+-	u32 cap;
+-	u32 admin;
+-	u32 oper;
+-};
+-
+ #define MLX5E_PROT_MASK(link_mode) (1U << link_mode)
+ #define MLX5_GET_ETH_PROTO(reg, out, ext, field)	\
+ 	(ext ? MLX5_GET(reg, out, ext_##field) :	\
+@@ -163,14 +148,7 @@ int mlx5_query_port_ptys(struct mlx5_core_dev *dev, u32 *ptys,
+ 
+ int mlx5_query_ib_port_oper(struct mlx5_core_dev *dev, u16 *link_width_oper,
+ 			    u16 *proto_oper, u8 local_port, u8 plane_index);
+-void mlx5_toggle_port_link(struct mlx5_core_dev *dev);
+-int mlx5_set_port_admin_status(struct mlx5_core_dev *dev,
+-			       enum mlx5_port_status status);
+-int mlx5_query_port_admin_status(struct mlx5_core_dev *dev,
+-				 enum mlx5_port_status *status);
+-int mlx5_set_port_beacon(struct mlx5_core_dev *dev, u16 beacon_duration);
+-
+-int mlx5_set_port_mtu(struct mlx5_core_dev *dev, u16 mtu, u8 port);
++
+ void mlx5_query_port_max_mtu(struct mlx5_core_dev *dev, u16 *max_mtu, u8 port);
+ void mlx5_query_port_oper_mtu(struct mlx5_core_dev *dev, u16 *oper_mtu,
+ 			      u8 port);
+@@ -178,65 +156,4 @@ void mlx5_query_port_oper_mtu(struct mlx5_core_dev *dev, u16 *oper_mtu,
+ int mlx5_query_port_vl_hw_cap(struct mlx5_core_dev *dev,
+ 			      u8 *vl_hw_cap, u8 local_port);
+ 
+-int mlx5_set_port_pause(struct mlx5_core_dev *dev, u32 rx_pause, u32 tx_pause);
+-int mlx5_query_port_pause(struct mlx5_core_dev *dev,
+-			  u32 *rx_pause, u32 *tx_pause);
+-
+-int mlx5_set_port_pfc(struct mlx5_core_dev *dev, u8 pfc_en_tx, u8 pfc_en_rx);
+-int mlx5_query_port_pfc(struct mlx5_core_dev *dev, u8 *pfc_en_tx,
+-			u8 *pfc_en_rx);
+-
+-int mlx5_set_port_stall_watermark(struct mlx5_core_dev *dev,
+-				  u16 stall_critical_watermark,
+-				  u16 stall_minor_watermark);
+-int mlx5_query_port_stall_watermark(struct mlx5_core_dev *dev,
+-				    u16 *stall_critical_watermark, u16 *stall_minor_watermark);
+-
+-int mlx5_max_tc(struct mlx5_core_dev *mdev);
+-
+-int mlx5_set_port_prio_tc(struct mlx5_core_dev *mdev, u8 *prio_tc);
+-int mlx5_query_port_prio_tc(struct mlx5_core_dev *mdev,
+-			    u8 prio, u8 *tc);
+-int mlx5_set_port_tc_group(struct mlx5_core_dev *mdev, u8 *tc_group);
+-int mlx5_query_port_tc_group(struct mlx5_core_dev *mdev,
+-			     u8 tc, u8 *tc_group);
+-int mlx5_set_port_tc_bw_alloc(struct mlx5_core_dev *mdev, u8 *tc_bw);
+-int mlx5_query_port_tc_bw_alloc(struct mlx5_core_dev *mdev,
+-				u8 tc, u8 *bw_pct);
+-int mlx5_modify_port_ets_rate_limit(struct mlx5_core_dev *mdev,
+-				    u8 *max_bw_value,
+-				    u8 *max_bw_unit);
+-int mlx5_query_port_ets_rate_limit(struct mlx5_core_dev *mdev,
+-				   u8 *max_bw_value,
+-				   u8 *max_bw_unit);
+-int mlx5_set_port_wol(struct mlx5_core_dev *mdev, u8 wol_mode);
+-int mlx5_query_port_wol(struct mlx5_core_dev *mdev, u8 *wol_mode);
+-
+-int mlx5_query_ports_check(struct mlx5_core_dev *mdev, u32 *out, int outlen);
+-int mlx5_set_ports_check(struct mlx5_core_dev *mdev, u32 *in, int inlen);
+-int mlx5_set_port_fcs(struct mlx5_core_dev *mdev, u8 enable);
+-void mlx5_query_port_fcs(struct mlx5_core_dev *mdev, bool *supported,
+-			 bool *enabled);
+-int mlx5_query_module_eeprom(struct mlx5_core_dev *dev,
+-			     u16 offset, u16 size, u8 *data);
+-int mlx5_query_module_eeprom_by_page(struct mlx5_core_dev *dev,
+-				     struct mlx5_module_eeprom_query_params *params, u8 *data);
+-
+-int mlx5_query_port_dcbx_param(struct mlx5_core_dev *mdev, u32 *out);
+-int mlx5_set_port_dcbx_param(struct mlx5_core_dev *mdev, u32 *in);
+-
+-int mlx5_set_trust_state(struct mlx5_core_dev *mdev, u8 trust_state);
+-int mlx5_query_trust_state(struct mlx5_core_dev *mdev, u8 *trust_state);
+-int mlx5_set_dscp2prio(struct mlx5_core_dev *mdev, u8 dscp, u8 prio);
+-int mlx5_query_dscp2prio(struct mlx5_core_dev *mdev, u8 *dscp2prio);
+-
+-int mlx5_port_query_eth_proto(struct mlx5_core_dev *dev, u8 port, bool ext,
+-			      struct mlx5_port_eth_proto *eproto);
+-bool mlx5_ptys_ext_supported(struct mlx5_core_dev *mdev);
+-u32 mlx5_port_ptys2speed(struct mlx5_core_dev *mdev, u32 eth_proto_oper,
+-			 bool force_legacy);
+-u32 mlx5_port_speed2linkmodes(struct mlx5_core_dev *mdev, u32 speed,
+-			      bool force_legacy);
+-int mlx5_port_max_linkspeed(struct mlx5_core_dev *mdev, u32 *speed);
+-
+ #endif /* __MLX5_PORT_H__ */
 -- 
 2.45.0
 
