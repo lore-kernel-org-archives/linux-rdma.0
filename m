@@ -1,194 +1,201 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2047.outbound.protection.outlook.com [40.107.243.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C26F205506
-	for <linux-rdma@vger.kernel.org>; Tue,  4 Mar 2025 14:16:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741097771; cv=none; b=d5LTix1A51bEkCs6INr+cZqbZk/HW1sT7xLPPSk/Hs3mTJrgfs1+yKxYCSdnyecO9KOJ58FYsuZpD+ac4muiskpSqId8bg3hWsPbTbMFDYsT/Hh57fuLKQzaOB/3MzWMu8ZzGqXawrgvEsOr6x9NjiZ8kVGLUJ+r0Kpse+R9wwI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741097771; c=relaxed/simple;
-	bh=cEqY5QZCGJX+e8Y5y6oXiuTLANfh+qvdHtqhk4WSvww=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bDcZLWCPoyVbdThrNGCmXNAh2Wz+iI85sYcgcqAJWlZBE9kP6bfKX/81Ujw+JMlHJp3ktXE5T71V3/zhs+3Lgff+PKt2T68lKC8YGkKcmppSyk4tpsC7m8SGVrDr3iKPXin4kW5z7zZDFMQMb34UL7cgjugpdd2xFwoYKWjGve8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=M3F231+7; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E61C2512E9;
+	Tue,  4 Mar 2025 14:29:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.47
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1741098595; cv=fail; b=HdIl6+BGgpb8lD7Ia2HO99B7ytLnJO8OnNKce+8bI/oarbrejqZ3ZG9MguCMPS0flnvUYVq85ec4murACvPjEkWd0gYf9laqz/9c1qBfptZqgvfG9vE0aRb6/xq0LV6mEkzJ4sjxUvzIpu9rdqF70KbLLShjSkAG+w5CjmJ3ndU=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1741098595; c=relaxed/simple;
+	bh=AWmXeP637apDnYFTNHjK1EtRSH7kFMGVBmjjpC8N2tM=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=fhQlJDZ1ajNRzJl70+/jTk6wqXhVLpuG6gLZ1Vkv5V/8gH5KVHUW7y7VeEttrYcE/+3D3zHWwCl/VyejOgnfiK5XLLGmV7Aa5pwz/VyORNFa+Fl/KyKv8xU65vZbq8pJO+D2954CyeUPv/OaYgzynbdzFqyWYHHnToi5+jdIg1Q=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=eZ4eBIQ4; arc=fail smtp.client-ip=40.107.243.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="M3F231+7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEEA8C4CEE5;
-	Tue,  4 Mar 2025 14:16:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741097770;
-	bh=cEqY5QZCGJX+e8Y5y6oXiuTLANfh+qvdHtqhk4WSvww=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=M3F231+7lXOzyT8bt51Otql7arRC9ers3/DQyyUEEi+cZ0j8VBd72BZTR4jOotSoT
-	 yTYQjKu/gMSgAVyNXYDBuwssPxPv7gQNk2LiZV1FtBE/moUVxMflLOcxRDhhb8J9QO
-	 VntNtGyIUQKn5+Upg19IG5yI5UCePnPWwkr7C7hVZWnQcQGw9aGJUDmSMEfnc1gleG
-	 SL8lfcETLg2Abe4toeVd7IzGYOojF+FcvLog8+fsaIqCCaxaZ7Y0pbPIsImV7ZnNNE
-	 RQsj9epQml6Mz6fbpH4xjmgq7f/J3Sfax+2cY0OOW/xZiAZNgodzQY37zbRiCFa59O
-	 /nFAe0rlON08g==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Patrisious Haddad <phaddad@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	Mark Bloch <mbloch@nvidia.com>
-Subject: [PATCH rdma-next 2/5] RDMA/core: Create and destroy rdma_counter using rdma_zalloc_drv_obj()
-Date: Tue,  4 Mar 2025 16:15:26 +0200
-Message-ID: <2d1583cdf8a21e816996597a4d382008f08309b2.1741097408.git.leonro@nvidia.com>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <cover.1741097408.git.leonro@nvidia.com>
-References: <cover.1741097408.git.leonro@nvidia.com>
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="eZ4eBIQ4"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=AnzVKE3hlb81L+ii68KRyyep8+5bJuE1r7qKEBUruOTZbnBy0ZBxgFK7ahP8WYSLx/behv6TKSN8J0eTScoisUPwsGnA49tHDcYqeAsLwdcUb/SHM/MxFfEJ5aGbRI5iANtdw/bgBVkB7L8BzAgeFJtoIkTQ3oJRiXodEeWOS6N/b3t8wzb3lLFAjxyXuajO4SnpKJ6J59CUZXLz/s+8INe33jVmXLkXSxV9koHRalD33A2iv2XVR+Qlz39juDmGQ0nFs/u0Tmst7sz4tuZzgqjdYLI45RrtyWZCe565I6/CN2fFjL9pYbsheu31Bqu1xZ0q+SXR/MQDjliR9nNQBg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=AWmXeP637apDnYFTNHjK1EtRSH7kFMGVBmjjpC8N2tM=;
+ b=YqvUxcfStzCoLDRRTpL9lPfIsm78TiOFaYJ2ltMcPIDTpCrjJxkN1LJZ6pycDPVEwMoe2ZzkqlNMMghU4z3sVj/Nk/lrJHknsJrm8Odx8oWhoN5ZgATwJ3DFqG9CTj7zxrHAAJkFABX+F7T9aQElnwjPzyUynZCFC8e7oGikOG5oP2QlPS4h4ugkkoaoS69nUvnMMvfr/oKLerNqx5TR2tJlOGJvs72dtgya8KliNLGzTCwWedJ9rp41/NKZrXQmEsMdvtUynVpx9d0p/Yo1unDCz95oo/96S2TW/bbec7+k4Ms/lkh/3PsRC4BNfkXBmDyfsjKmJy3qXAp94oIvgw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=AWmXeP637apDnYFTNHjK1EtRSH7kFMGVBmjjpC8N2tM=;
+ b=eZ4eBIQ4IeAT4QpUGtyQiYAFMgxdQOV9Kg8fn73RjkniV4MNr+wMGBCBcI9oYk/ntHHqccIj3kVelZIcApgyjtoh9ydzClgH3AEOTF8GZW8rR2BKgM0NVYhae/xXW9VBat4tlReOraZ6/9xw5FlRjJl9uBdfiJ+bT6+mBHhvJus=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=amd.com;
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com (2603:10b6:510:13c::22)
+ by MW4PR12MB6731.namprd12.prod.outlook.com (2603:10b6:303:1eb::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8489.25; Tue, 4 Mar
+ 2025 14:29:49 +0000
+Received: from PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::46fb:96f2:7667:7ca5]) by PH7PR12MB5685.namprd12.prod.outlook.com
+ ([fe80::46fb:96f2:7667:7ca5%5]) with mapi id 15.20.8489.025; Tue, 4 Mar 2025
+ 14:29:49 +0000
+Message-ID: <0d471fca-b64c-4392-88ee-d26dbfe3cf2d@amd.com>
+Date: Tue, 4 Mar 2025 15:29:42 +0100
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/4] cover-letter: Allow MMIO regions to be exported
+ through dmabuf
+To: Jason Gunthorpe <jgg@nvidia.com>,
+ "Kasireddy, Vivek" <vivek.kasireddy@intel.com>
+Cc: Wei Lin Guay <wguay@meta.com>,
+ "alex.williamson@redhat.com" <alex.williamson@redhat.com>,
+ "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+ "kvm@vger.kernel.org" <kvm@vger.kernel.org>,
+ "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+ Dag Moxnes <dagmoxnes@meta.com>, "kbusch@kernel.org" <kbusch@kernel.org>,
+ Nicolaas Viljoen <nviljoen@meta.com>, Oded Gabbay <ogabbay@kernel.org>,
+ Simona Vetter <simona.vetter@ffwll.ch>, Leon Romanovsky <leon@kernel.org>,
+ Maor Gottlieb <maorg@nvidia.com>
+References: <20241216095920.237117-1-wguay@fb.com>
+ <IA0PR11MB7185FDD56CFDD0A2B8D21468F83B2@IA0PR11MB7185.namprd11.prod.outlook.com>
+ <924671F4-E8B5-4007-BE5D-29ED58B95F46@meta.com>
+ <IA0PR11MB71858B2E59D3A9F58CEE83DCF8052@IA0PR11MB7185.namprd11.prod.outlook.com>
+ <61DF4F0E-D947-436B-9160-A40079DB9085@meta.com>
+ <IA0PR11MB7185E7DBB9E959A2F40D4170F8C22@IA0PR11MB7185.namprd11.prod.outlook.com>
+ <20250226133822.GA28425@nvidia.com>
+Content-Language: en-US
+From: =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+In-Reply-To: <20250226133822.GA28425@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: FR0P281CA0187.DEUP281.PROD.OUTLOOK.COM
+ (2603:10a6:d10:ab::17) To PH7PR12MB5685.namprd12.prod.outlook.com
+ (2603:10b6:510:13c::22)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR12MB5685:EE_|MW4PR12MB6731:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2ff19752-da2c-42df-ae7c-08dd5b29051d
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|7416014|376014;
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?VU1VQktJcUhvMU9HYms5WU5XTDc3NFFuQXp0VUwxS2hNNTJNaFRiejV4S1I0?=
+ =?utf-8?B?QmtPT05hdS9BZW9hOFhqU3YwQ1FTd2NwR01qZ0xUc0tWSkd4SkZXMm03d1ho?=
+ =?utf-8?B?K2RaK29OMmFCMy9ZdWhHeVhqVjc3TUlWcWhNWFo4eXNTZWZubi80SHlxOFdl?=
+ =?utf-8?B?KzFzbTVkTFI3ZWVjTng3UmIyK2RSV1ZUMjI5TFBoeWlLcG84K1Q1WW1tVE9w?=
+ =?utf-8?B?N1Nob1Vvc3B2VDFUUlZCRzU0ZGZCRFFVaDhjS2lseHdvZVU0TnU5OFdJK1kr?=
+ =?utf-8?B?WTRVUEtkU3ZRRkJIYzcvUkJqQlA3TENFSmpOdVhuRCtINDBYQW5xMnNFMkI5?=
+ =?utf-8?B?dWNpV21RWVBnTTVaaUoxczVicDF2SHRMNkJIZnV6bDBCb3FLUHA2ajhBa0ov?=
+ =?utf-8?B?YndLM0ppSWRacnY3NGJSa2JuQjJtcTlHdnNFTU5CaVBRakgvbFdvMVhlWFFH?=
+ =?utf-8?B?MWhHU3BaOEhXeDkxN0VFTDVtZWU3aVE3bytCTzhMR1BRaTBsaFVHSldTQ2ly?=
+ =?utf-8?B?emJUMko4dk10eDhGeFhkZ3FmM3hyWlFqbkw2Vkt1VWhVYWZBZFIvbnl0K0lD?=
+ =?utf-8?B?T3RIM3FLWmtnQU5IcmZqRENCeXByYUk1YnU0bGJtallQdTZVNE9VdHdwR2JC?=
+ =?utf-8?B?R01GQ0FRVGtlYzEwaUFsRjEreTRuSlROWk44amNVQU90NzUyR2J1WnFBekpG?=
+ =?utf-8?B?QVlXdkplcHgyQURrN2s2ZVliOUZxZnFqbUlIRXhkUlh0bmw4NnQ3MGpyRUp5?=
+ =?utf-8?B?b1ZxZFUxQ2ZUeVNuaVBpZGpoUjZrK0l6TWVGbnZyeTJUR0k0bVo2WllJa3By?=
+ =?utf-8?B?NjczV2J2dFFUL0VoQkVXc1NOaWVGWEVkc3J3UFljdEUyc1lXYmRBbEFocEFC?=
+ =?utf-8?B?MVY1anUxaU16MUJPQzJ5UVI2KzZJUU9tSUxobjVRUTlrM1RPdGh6ak9iZ3ho?=
+ =?utf-8?B?WVNsZEdrTXpIcGtyK29ValpwUkdFNUpla3g0Ni9jWTVoR0VUVFErZGEzNVBx?=
+ =?utf-8?B?VHZxMmlVbE1lbFpMUTIrVFhkOWYzaWpkTU1hRTNVSE54Wm5SYUh3Ny9xdllP?=
+ =?utf-8?B?dEFIQXYzWFhLQXN6N3pEMTdWRnVQV2RTUGVXQVp4dGo4Uk9DUFFuQ2YwVFBT?=
+ =?utf-8?B?MFhmSy9ZUHphdDRUTE5iZlpiNWF1VXVQREFkVnlCMGRwQ0YraWdIMXROckV1?=
+ =?utf-8?B?QU43cGN1clRINnZIelZONFVYTElBb0FOV21oYTRBZHl5ODE3T2Myd0wwMHlM?=
+ =?utf-8?B?U0dIdU1JM29yaUR5TXU3KzE5eFRMRWFDOUl1blJ3S2lmdTU2TVpVbVhpeEpZ?=
+ =?utf-8?B?TUpzRkcrRnVseno3S0J0ekFGRm84SFRCQW9ycmRRdXJlY1JQNUZaN2ZIU3Nq?=
+ =?utf-8?B?TWJkeXFpWC92M01zc1JoT05JanZhRVRtTDFUMkY4ZzZnN2g3R2hjZ0V0NUxh?=
+ =?utf-8?B?UXBHU1djZTFzYkt5em1ETGVwYmxxUzk5NnN1TG9hakdydEN3RkZoa0h0ZCtZ?=
+ =?utf-8?B?QjFjR0Y4OTkydmkzODREYlNQTE9KYkVNRGxvY0FFd01MdWo1eElneGI2cHZZ?=
+ =?utf-8?B?TDRvdnlGSEVHaFJScHdwM3JyaTJHcVhKbU9zOUFlQ2QwWktWMHBKYVRtL2ZV?=
+ =?utf-8?B?TlpoQWxvTEJrcFprUm1FS0x2UGVXT0V6dWR6a1VOZXMyUjZJRm1yU0ViOE5S?=
+ =?utf-8?B?YUZRYzFLVW9KZjN4WFhmbElFamVhR3IzWE5oU2lhckY2NFUwNldNdXFNSjNT?=
+ =?utf-8?B?cTZ1NHRocS9lTjNzUmlzUkYxc1gzdHE5YnN0YlluWmt2TU81R0Zzd2xKUzhI?=
+ =?utf-8?B?VW9ScWE3enpkd0hPSXZ3ZGwyS3g1anJ5a0l4bmpETHh4MlgraVdMaWhTVzdE?=
+ =?utf-8?Q?qJOgt2rhdDazJ?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR12MB5685.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(7416014)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?VUFBUmNqZTdZMjcyMW5NSmtUc3RZdktseHNydkdqQURvL3ZyRGgrMm9hd3FT?=
+ =?utf-8?B?WklTR1dNYkQxdjh2alpra2RXeExEeE5jT3RSQ0hQOE9MSGp6NkY4WE1HUDlT?=
+ =?utf-8?B?M3dvODNIek5kWVA5dG1naTYwMWtQazhjaVltR3AxaHFEdUQvWlRDRm8vR1U0?=
+ =?utf-8?B?NEthZGwwVEZlTjRyY3N0K1pqdzhFRTV4ZkFOOWFGTTdFWE5QeHNvYzFicnJD?=
+ =?utf-8?B?RjJTMERRYm8wbFRiYW1UN2RsMFk5NlJJNVdRVVVpUUFnWGhmdEZYc1N4ZUt6?=
+ =?utf-8?B?bkRRd2I4QkxycUgrR08vWGJCdTVmS3cxVDJUMUZ4Q1NET2Nua3BTZit1SDg4?=
+ =?utf-8?B?a0xyY3R5SHNIUUNBR2tBcDRRZXhFMC9adTN6VnYxcmdyY1NyRWdzOXVUNXlT?=
+ =?utf-8?B?N3BzSTZBUXBvRnZ3UnBDMUE5dStlVDRjVk95T0VGbnZVdDUzblFGRkJPNG1L?=
+ =?utf-8?B?c3FyTnE4dTBWQ2RxVjRNTHR6a2ZpUDVYZy9FcTBpVUpGR1NScGNsMkp1ekh2?=
+ =?utf-8?B?Y2FRc2tVL2hxWkhMYTBKMEs5U1BMNGZNUkYvTmV3NjJpYVY1MUFMb3dtU1F3?=
+ =?utf-8?B?djlpZ3N3SGtwdFAwdGdIRUpGT2M3WjNNVzJFaUhsbUxSblBmdFY3Nzl2WWts?=
+ =?utf-8?B?K05JOW1UUjJUem9qb21zM09KcEFMZlkxNm5nemMrUzhIY0tueEhHak5YOFEv?=
+ =?utf-8?B?YnlVYlJaZ2xaY0tISVVBdnpDWTk4a2ZBSGZKemxnUHIzWG5jYk5QcmNvWFZt?=
+ =?utf-8?B?bHdXREc3ekNQRDR4dkRiVVlFN21sTWVnekFITXFFUm1iaHl1Q0lsU1NKTDdz?=
+ =?utf-8?B?V2Q2SU5SZnJ2U2Vrb0tvRU5jSGt6MW92blFvRGgwSHFuT0tGNW1XVmRWbGtv?=
+ =?utf-8?B?RzhPck51SlVId2FUWkp1RDJnNmIrYjVDWE0ybTViRExJM2JxVDRwK0pCKytk?=
+ =?utf-8?B?VW5vZ0dZYmhWL2ZzY3AydEhNNkQ3OVNFNk1XODZUcGJ1NTdTVWdDL01KK3No?=
+ =?utf-8?B?UjJrWmsxNlZJZVNqaWY5QXU4ZGMrV3ZoM1l6WVJLUWxLaGp6TUJ5QnZTQU5X?=
+ =?utf-8?B?NUM5blpLaTlvOUFSZG51MzFWRWFmSml1cU9DSVQrSXFXZnVvcndpNHhoSlpi?=
+ =?utf-8?B?RU5qeXVVRjM4OSs0dGhwNEE0VVVHVnNJQlJoQmdpNGpaM093SVBRSGF2M1M4?=
+ =?utf-8?B?NU90a0Z1cTYzLzQrZW8yaG0zaDBJN0s5ekRNZm9WOVh5TnA1dXBMdnpiTnpa?=
+ =?utf-8?B?bnh4NFVueDlIQW5VZG15eVNERmRHbTdUa2ZKVnE4b29uZTBNR01uRzlWQVFP?=
+ =?utf-8?B?OVpXM29TR01CcHpKWmlKOFhmVHVXekg5U2sxQU9wSmpBeDBRZk1IbXdkMHMx?=
+ =?utf-8?B?bThRdktHSDlETks5Zzd3NnNJdm1NRmU0VmhwWFFWaC9hZDM4d2g4VUlBaEND?=
+ =?utf-8?B?OElWdXYxSEhVallCdFJ5a1p6S21meDZKWUF5Y3BpQSs5WFhxRzlDM0tLc3dV?=
+ =?utf-8?B?ZHdpYm1vd2NVWDY0OTNkV2c5eFdMc082T0pTZ0x5OFZTUmZlSkZMeE9memc1?=
+ =?utf-8?B?SzhTRWczT0lpTHpoM1VHQjlUUzA0ajBub0djbWFwblJERXhtQjczNWRUWHc5?=
+ =?utf-8?B?RGsyZG0vYTRuWXArTGdTVGQrTTh5T2Mwb0FOcVVpOXNiZ05KaWJFODArQlhk?=
+ =?utf-8?B?ZFpseTErYXBqeTNGeDdYRWhuZjZWQmlGTStNbXhPQ3lock92ejEvczhNeDJV?=
+ =?utf-8?B?dEZrZkZMRHBmT25xUUZOdWcwem1IbzhPNXF4M2t1L0x0VEdsYXFRM2ZGRGFS?=
+ =?utf-8?B?bVdFT3J4RGVZcWFpNTVaSHdRcGVtU2I1SHBhdVNsNTIrNlNDY1JlQkltVTQz?=
+ =?utf-8?B?ZXArSThFUGRZS2hscTZlenAwQnNwVndxZ2VGemJKa01yVzRBbGFzblVxZ0RR?=
+ =?utf-8?B?UUgzZFhFZFJWUWFzRHJRSU5zYVRsbzhSOGpqUEIvYWpPaUIvTDVsUlVPQXR3?=
+ =?utf-8?B?aTJCakphTDhHUGpTNG9zNEpDd2Z3SDByRGpMTkk4ZGpPT0M1STRyeE5mRVk0?=
+ =?utf-8?B?QXQwdS93V3M1Q29tUlZ2Mi9xSU1qZjREV0EzMmJzQkhqNHhMSjF1dE5JM201?=
+ =?utf-8?Q?UrBupBy6lrgRgrwbtoe5eUQkT?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2ff19752-da2c-42df-ae7c-08dd5b29051d
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR12MB5685.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Mar 2025 14:29:49.5426
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: WcEHna2B0GPLqp/zZYck3ipWdM1kqzz3nG+MEi1+lZNGqp/upadorRxC7oC2PvPw
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6731
 
-From: Patrisious Haddad <phaddad@nvidia.com>
+Am 26.02.25 um 14:38 schrieb Jason Gunthorpe:
+> On Wed, Feb 26, 2025 at 07:55:07AM +0000, Kasireddy, Vivek wrote:
+>
+>>> Is there any update or ETA for the v3? Are there any ways we can help?
+>> I believe Leon's series is very close to getting merged. Once it
+>> lands, this series can be revived.
+> The recent drama has made what happens next unclear.
+>
+> I would like it if interested parties could contribute reviews to
+> Leon's v7 series to help it along.
 
-Change rdma_counter allocation to use rdma_zalloc_drv_obj() instead of,
-explicitly allocating at core, in order to be contained inside driver
-specific structures.
+I think demonstrating how any new interface would work with the existing importers/exporters would help.
 
-Adjust all drivers that use it to have their containing structure, and
-add driver specific initialization operation.
+> We may want to start considering pushing ahead with this patch series
+> and using the usual hack of abusing the scatterlist in the mean time.
 
-This change is needed to allow upcoming patches to implement
-optional-counters binding whereas inside each driver specific counter
-struct his bound optional-counters will be maintained.
+That works for me as well.
 
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
-Reviewed-by: Mark Bloch <mbloch@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/core/counters.c    |  4 +++-
- drivers/infiniband/core/device.c      |  2 ++
- drivers/infiniband/hw/mlx5/counters.c |  8 ++++++++
- drivers/infiniband/hw/mlx5/counters.h | 11 +++++++++++
- include/rdma/ib_verbs.h               |  6 ++++++
- 5 files changed, 30 insertions(+), 1 deletion(-)
+I think when we should get away from scatterlist then that should be a separate set of patches or maybe call it a separate project to get done for all DMA-buf parties.
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index af59486fe418..981d5a28614a 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -149,13 +149,15 @@ static struct rdma_counter *alloc_and_bind(struct ib_device *dev, u32 port,
- 	if (!dev->ops.counter_dealloc || !dev->ops.counter_alloc_stats)
- 		return NULL;
- 
--	counter = kzalloc(sizeof(*counter), GFP_KERNEL);
-+	counter = rdma_zalloc_drv_obj(dev, rdma_counter);
- 	if (!counter)
- 		return NULL;
- 
- 	counter->device    = dev;
- 	counter->port      = port;
- 
-+	dev->ops.counter_init(counter);
-+
- 	rdma_restrack_new(&counter->res, RDMA_RESTRACK_COUNTER);
- 	counter->stats = dev->ops.counter_alloc_stats(counter);
- 	if (!counter->stats)
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 8feb22089cbb..bfb10c9a553f 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -2678,6 +2678,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_DEVICE_OP(dev_ops, counter_alloc_stats);
- 	SET_DEVICE_OP(dev_ops, counter_bind_qp);
- 	SET_DEVICE_OP(dev_ops, counter_dealloc);
-+	SET_DEVICE_OP(dev_ops, counter_init);
- 	SET_DEVICE_OP(dev_ops, counter_unbind_qp);
- 	SET_DEVICE_OP(dev_ops, counter_update_stats);
- 	SET_DEVICE_OP(dev_ops, create_ah);
-@@ -2792,6 +2793,7 @@ void ib_set_device_ops(struct ib_device *dev, const struct ib_device_ops *ops)
- 	SET_OBJ_SIZE(dev_ops, ib_srq);
- 	SET_OBJ_SIZE(dev_ops, ib_ucontext);
- 	SET_OBJ_SIZE(dev_ops, ib_xrcd);
-+	SET_OBJ_SIZE(dev_ops, rdma_counter);
- }
- EXPORT_SYMBOL(ib_set_device_ops);
- 
-diff --git a/drivers/infiniband/hw/mlx5/counters.c b/drivers/infiniband/hw/mlx5/counters.c
-index e2a54c1dbc7a..018bb96bdbf4 100644
---- a/drivers/infiniband/hw/mlx5/counters.c
-+++ b/drivers/infiniband/hw/mlx5/counters.c
-@@ -1105,6 +1105,8 @@ static int mlx5_ib_modify_stat(struct ib_device *device, u32 port,
- 	return 0;
- }
- 
-+static void mlx5_ib_counter_init(struct rdma_counter *counter) {}
-+
- static const struct ib_device_ops hw_stats_ops = {
- 	.alloc_hw_port_stats = mlx5_ib_alloc_hw_port_stats,
- 	.get_hw_stats = mlx5_ib_get_hw_stats,
-@@ -1115,6 +1117,9 @@ static const struct ib_device_ops hw_stats_ops = {
- 	.counter_update_stats = mlx5_ib_counter_update_stats,
- 	.modify_hw_stat = IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS) ?
- 			  mlx5_ib_modify_stat : NULL,
-+	.counter_init = mlx5_ib_counter_init,
-+
-+	INIT_RDMA_OBJ_SIZE(rdma_counter, mlx5_rdma_counter, rdma_counter),
- };
- 
- static const struct ib_device_ops hw_switchdev_vport_op = {
-@@ -1129,6 +1134,9 @@ static const struct ib_device_ops hw_switchdev_stats_ops = {
- 	.counter_dealloc = mlx5_ib_counter_dealloc,
- 	.counter_alloc_stats = mlx5_ib_counter_alloc_stats,
- 	.counter_update_stats = mlx5_ib_counter_update_stats,
-+	.counter_init = mlx5_ib_counter_init,
-+
-+	INIT_RDMA_OBJ_SIZE(rdma_counter, mlx5_rdma_counter, rdma_counter),
- };
- 
- static const struct ib_device_ops counters_ops = {
-diff --git a/drivers/infiniband/hw/mlx5/counters.h b/drivers/infiniband/hw/mlx5/counters.h
-index 6bcaaa52e2b2..f153901a43be 100644
---- a/drivers/infiniband/hw/mlx5/counters.h
-+++ b/drivers/infiniband/hw/mlx5/counters.h
-@@ -8,6 +8,17 @@
- 
- #include "mlx5_ib.h"
- 
-+
-+struct mlx5_rdma_counter {
-+	struct rdma_counter rdma_counter;
-+};
-+
-+static inline struct mlx5_rdma_counter *
-+to_mcounter(struct rdma_counter *counter)
-+{
-+	return container_of(counter, struct mlx5_rdma_counter, rdma_counter);
-+}
-+
- int mlx5_ib_counters_init(struct mlx5_ib_dev *dev);
- void mlx5_ib_counters_cleanup(struct mlx5_ib_dev *dev);
- void mlx5_ib_counters_clear_description(struct ib_counters *counters);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 9941f4185c79..90e93297d59e 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2665,6 +2665,11 @@ struct ib_device_ops {
- 	 */
- 	int (*counter_update_stats)(struct rdma_counter *counter);
- 
-+	/**
-+	 * counter_init - Initialize the driver specific rdma counter struct.
-+	 */
-+	void (*counter_init)(struct rdma_counter *counter);
-+
- 	/**
- 	 * Allows rdma drivers to add their own restrack attributes
- 	 * dumped via 'rdma stat' iproute2 command.
-@@ -2716,6 +2721,7 @@ struct ib_device_ops {
- 	DECLARE_RDMA_OBJ_SIZE(ib_srq);
- 	DECLARE_RDMA_OBJ_SIZE(ib_ucontext);
- 	DECLARE_RDMA_OBJ_SIZE(ib_xrcd);
-+	DECLARE_RDMA_OBJ_SIZE(rdma_counter);
- };
- 
- struct ib_core_device {
--- 
-2.48.1
+E.g. propose something like an iterator based interface and demonstrate that V4L and a DRM driver can live with that and that this approach works like expected.
+
+Regards,
+Christian.
+
+
+>
+> Thanks,
+> Jason
 
