@@ -1,42 +1,37 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out30-118.freemail.mail.aliyun.com (out30-118.freemail.mail.aliyun.com [115.124.30.118])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C652720AF7D
-	for <linux-rdma@vger.kernel.org>; Thu,  6 Mar 2025 11:52:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDBAC204089
+	for <linux-rdma@vger.kernel.org>; Thu,  6 Mar 2025 12:04:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.118
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741261959; cv=none; b=dh6zEk/7wWOrSMTojlH9eGrPEZIsfr7QkXr9ObntUm2UR6y1NHf6GcnBsMaRwQBDuP7Sr9Rdo6H6lOnMjGDIWozxSI1cIsoQhbpUPYa0PFEw9djnrelR3Dhp5pyWR2nHPYPQcMJ0EKnzi2aKX/Yj1bpXNzua2U/xwzx4cnrtRN0=
+	t=1741262688; cv=none; b=usshvpvQUBSsAGBA/FmYHaYQVOpOI8ab3m5OV2fji2iZByBeP6BS+XQiV+Gk9+04l2PEjYmB+t4K19F0LPqVUqF5fuMaat9Z0VRQvGydZLIciT61RVbQ1tj34FnF6w0EPltnZ1gUINA9+6fv7ctDGz//blQHI6gevYQCiQLucW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741261959; c=relaxed/simple;
-	bh=FVhnjMExwMrpFaHFuREiJ/T+XdJSrxiV9jaFai0DEVU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oVM3eejlasRbDfU+7kFBeBTdiWivFP8da+sA2IxwEKr4VhMdiC6BKM6n42MfytU6H6nJE/FJ3mHaECWt/4PieS69F3oUAmFF6zo+qyJA0k1McsZ752oLWoKLOSCx0KzdIPNApsk/1uPGT4emSiND009PUNj3BMi7eCOTWXXxRO0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gaH3XMFz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741262688; c=relaxed/simple;
+	bh=GIyNYhZPNM87sGjq6IPdhM1+NQDWgdSGGK2i+Hr3fLo=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=O0c4q3rGJo1SVh/qfDTyTS3hBmVYMHZUcaRVba+TINmFcAX5hTwU+X4r3jBJx1MM6qYvPt1kmlDphJ9p9GzVIWCAFAnVlHnGh/jTpZa7olxbFeAebBZ9UeKVysVYrd0JUru+Lq1hP9oJwfOfPVQ5w427W/RKdfNWMc5ePWB/faY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=GpTbgkM6; arc=none smtp.client-ip=115.124.30.118
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gaH3XMFz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18F2AC4CEE4;
-	Thu,  6 Mar 2025 11:52:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741261959;
-	bh=FVhnjMExwMrpFaHFuREiJ/T+XdJSrxiV9jaFai0DEVU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gaH3XMFzPOu+TsqMK8NWNk9xis0U4pWvo+fWqN/NWEouqlUF0cN6yctx+FSF91C6p
-	 LQszzI/e3zWC3QDz0BeQU2PCQSZ8rlaGZmBhdSxhgPOgLSdLTeZ6ICL8SWGo7bmRCh
-	 MxuzL4u5aMsZLF8452JwJksH7a/BZmUqyaWwcfe0nD1BnQp6dxQCaMTQA0LzCWjz1s
-	 MJ6b8lwjkw/63u96S8bBq6tAt0Mn+VEch6T/1EG1en7hH4iqy34rfeRJ5o7etg47rw
-	 RC+TOS9HRq/PS/c3M0qIRI0JAi1LN3bSkOMUiyNoEI5+2WNBymA7AMkN+sipTFLANp
-	 bUknpd+IRc+qA==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Chiara Meiohas <cmeiohas@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next v1 3/6] RDMA/uverbs: Add support for UCAPs in context creation
-Date: Thu,  6 Mar 2025 13:51:28 +0200
-Message-ID: <ebfb30bc947e2259b193c96a319c80e82599045b.1741261611.git.leon@kernel.org>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <cover.1741261611.git.leon@kernel.org>
-References: <cover.1741261611.git.leon@kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="GpTbgkM6"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1741262681; h=From:To:Subject:Date:Message-Id:MIME-Version;
+	bh=L0o5zeStXqs2IkhFsNkbGSoWqi+sIzS6RQGqnp33ORA=;
+	b=GpTbgkM6Cbw+xWq97QmqQ0gDv5SuXZUokpPwy2Mss2pC9ru299l0Bp8Nd+FVss/2KQqp+2+4wtBbIH3QZxBIB12k93sM8dZjOYfp/N8aIXzQz5a1s/UZlchA6ZCVTj7mHZoYD19lhbr+/VO2iucGjKY0pIvVf8qHEb88aEdAGzc=
+Received: from localhost(mailfrom:chengyou@linux.alibaba.com fp:SMTPD_---0WQomN5Q_1741262680 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Thu, 06 Mar 2025 20:04:40 +0800
+From: Cheng Xu <chengyou@linux.alibaba.com>
+To: jgg@ziepe.ca,
+	leon@kernel.org
+Cc: linux-rdma@vger.kernel.org,
+	KaiShen@linux.alibaba.com
+Subject: [PATCH for-next] RDMA/erdma: Prevent use-after-free in erdma_accept_newconn()
+Date: Thu,  6 Mar 2025 20:04:40 +0800
+Message-Id: <20250306120440.72792-1-chengyou@linux.alibaba.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -45,107 +40,28 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Chiara Meiohas <cmeiohas@nvidia.com>
+After the erdma_cep_put(new_cep) being called, new_cep will be freed,
+and the following dereference will cause a UAF problem. Fix this issue.
 
-Add support for file descriptor array attribute for GET_CONTEXT
-commands.
-
-Check that the file descriptor (fd) array represents fds for valid UCAPs.
-Store the enabled UCAPs from the fd array as a bitmask in ib_ucontext.
-
-Signed-off-by: Chiara Meiohas <cmeiohas@nvidia.com>
-Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Fixes: 920d93eac8b9 ("RDMA/erdma: Add connection management (CM) support")
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Cheng Xu <chengyou@linux.alibaba.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c          | 19 +++++++++++++++++++
- .../infiniband/core/uverbs_std_types_device.c |  4 ++++
- include/rdma/ib_verbs.h                       |  1 +
- include/uapi/rdma/ib_user_ioctl_cmds.h        |  1 +
- 4 files changed, 25 insertions(+)
+ drivers/infiniband/hw/erdma/erdma_cm.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 5ad14c39d48c..96d639e1ffa0 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -42,6 +42,7 @@
+diff --git a/drivers/infiniband/hw/erdma/erdma_cm.c b/drivers/infiniband/hw/erdma/erdma_cm.c
+index 1b23c698ec25..e0acc185e719 100644
+--- a/drivers/infiniband/hw/erdma/erdma_cm.c
++++ b/drivers/infiniband/hw/erdma/erdma_cm.c
+@@ -709,7 +709,6 @@ static void erdma_accept_newconn(struct erdma_cep *cep)
+ 		erdma_cancel_mpatimer(new_cep);
  
- #include <rdma/uverbs_types.h>
- #include <rdma/uverbs_std_types.h>
-+#include <rdma/ib_ucaps.h>
- #include "rdma_core.h"
+ 		erdma_cep_put(new_cep);
+-		new_cep->sock = NULL;
+ 	}
  
- #include "uverbs.h"
-@@ -232,6 +233,8 @@ int ib_init_ucontext(struct uverbs_attr_bundle *attrs)
- {
- 	struct ib_ucontext *ucontext = attrs->context;
- 	struct ib_uverbs_file *file = attrs->ufile;
-+	int *fd_array;
-+	int fd_count;
- 	int ret;
- 
- 	if (!down_read_trylock(&file->hw_destroy_rwsem))
-@@ -247,6 +250,22 @@ int ib_init_ucontext(struct uverbs_attr_bundle *attrs)
- 	if (ret)
- 		goto err;
- 
-+	if (uverbs_attr_is_valid(attrs, UVERBS_ATTR_GET_CONTEXT_FD_ARR)) {
-+		fd_count = uverbs_attr_ptr_get_array_size(attrs,
-+							  UVERBS_ATTR_GET_CONTEXT_FD_ARR,
-+							  sizeof(int));
-+		if (fd_count < 0) {
-+			ret = fd_count;
-+			goto err_uncharge;
-+		}
-+
-+		fd_array = uverbs_attr_get_alloced_ptr(attrs,
-+						       UVERBS_ATTR_GET_CONTEXT_FD_ARR);
-+		ret = ib_get_ucaps(fd_array, fd_count, &ucontext->enabled_caps);
-+		if (ret)
-+			goto err_uncharge;
-+	}
-+
- 	ret = ucontext->device->ops.alloc_ucontext(ucontext,
- 						   &attrs->driver_udata);
- 	if (ret)
-diff --git a/drivers/infiniband/core/uverbs_std_types_device.c b/drivers/infiniband/core/uverbs_std_types_device.c
-index fb0555647336..c0fd283d9d6c 100644
---- a/drivers/infiniband/core/uverbs_std_types_device.c
-+++ b/drivers/infiniband/core/uverbs_std_types_device.c
-@@ -437,6 +437,10 @@ DECLARE_UVERBS_NAMED_METHOD(
- 			    UVERBS_ATTR_TYPE(u32), UA_OPTIONAL),
- 	UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_GET_CONTEXT_CORE_SUPPORT,
- 			    UVERBS_ATTR_TYPE(u64), UA_OPTIONAL),
-+	UVERBS_ATTR_PTR_IN(UVERBS_ATTR_GET_CONTEXT_FD_ARR,
-+			   UVERBS_ATTR_MIN_SIZE(sizeof(int)),
-+			   UA_OPTIONAL,
-+			   UA_ALLOC_AND_COPY),
- 	UVERBS_ATTR_UHW());
- 
- DECLARE_UVERBS_NAMED_METHOD(
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a5761038935d..9941f4185c79 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1530,6 +1530,7 @@ struct ib_ucontext {
- 	struct ib_uverbs_file  *ufile;
- 
- 	struct ib_rdmacg_object	cg_obj;
-+	u64 enabled_caps;
- 	/*
- 	 * Implementation details of the RDMA core, don't use in drivers:
- 	 */
-diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index ec719053aab9..ac7b162611ed 100644
---- a/include/uapi/rdma/ib_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -88,6 +88,7 @@ enum uverbs_attrs_query_port_cmd_attr_ids {
- enum uverbs_attrs_get_context_attr_ids {
- 	UVERBS_ATTR_GET_CONTEXT_NUM_COMP_VECTORS,
- 	UVERBS_ATTR_GET_CONTEXT_CORE_SUPPORT,
-+	UVERBS_ATTR_GET_CONTEXT_FD_ARR,
- };
- 
- enum uverbs_attrs_query_context_attr_ids {
+ 	if (new_s) {
 -- 
-2.48.1
+2.31.1
 
