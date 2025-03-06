@@ -1,39 +1,39 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62371156225
-	for <linux-rdma@vger.kernel.org>; Thu,  6 Mar 2025 11:52:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11360156225
+	for <linux-rdma@vger.kernel.org>; Thu,  6 Mar 2025 11:52:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741261943; cv=none; b=rj8JiT6GfAmPQ1/Q1ZhInh1aRYachCq88gTxY6XZpaHn3AhkSNG+3eDipcXhWd4IvYS1or9qXV9QLIFkEQJ61K15S2KfVQc2jcWUW17IPwPTfaevjAkgiTETnIdstMjqxQwChR9jWQEM1DYi3ULhHu1ajybpypRN1dZGP5YWo9Q=
+	t=1741261948; cv=none; b=ARJBJQhu3NHCt8KP/R0Ng8RYihEcNmlIQxf7eqQY3mRbgwfh5JEae5t/TLZKBmT/8nwWAgHzU0uGQJIMxm4VPoc+0Ad2uVwsLndIS0721Ryp/4t2CIQ+hwJilKAdnWU4pEPO+4PuWfZWtRuPPC1+Gull3tZ9dREPak0xYwwQynE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741261943; c=relaxed/simple;
-	bh=bBEFpyggw32dBnkxrfC6sVvI81ku4g6fOvDpHBGdxZc=;
+	s=arc-20240116; t=1741261948; c=relaxed/simple;
+	bh=bTciPm5xpivDDQ68z1qsRozR+LSvcKNYFP1QeDj14ig=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mj8MpAztKJzFa2tBpb7ixHtT02RXab2Y2u0VU4yNbe425VmCh87HpZZTsJny/n8wH44KoR3lf2qf4xXCbFRkHfEGFZTAG7hPifoiKGU2mH/C+YmmftOAp91MN/4djOpHgWYz3jQw3kz38HKZtY70fX9iNZFgDgrPgbYppobVGuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jOo/QIdQ; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=AiPuD//NudNGdPgsUs59MndSVqakJYas9QBEhzH+/9QpkLs96EPHzmCjrB0Gx6s/Ve6XYZO859at0N/HAMI2RhHODx0gGhIYeQ3EJW0RMsxnjXPd/mhmBV0WKkk7HDrqiTFU+VrLDbhFiSBx8HE86gm6vo6yDFk4tU5MD8mTTq8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=T4GK9LpL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jOo/QIdQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CAAEC4CEE0;
-	Thu,  6 Mar 2025 11:52:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="T4GK9LpL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1690FC4CEE0;
+	Thu,  6 Mar 2025 11:52:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741261942;
-	bh=bBEFpyggw32dBnkxrfC6sVvI81ku4g6fOvDpHBGdxZc=;
+	s=k20201202; t=1741261947;
+	bh=bTciPm5xpivDDQ68z1qsRozR+LSvcKNYFP1QeDj14ig=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jOo/QIdQq/9KS3yAIMeaYjjxRGVxmAYjk1Nd4kfY5w9TdxFP/2odcp6LkdOIcPL/9
-	 QU0AmZVQFmrTHE8odIbKEowSgt1p0+0pTJX8Tsbd4WU47ZsVuz0OCKUnxfle55mzOL
-	 7DjvzABQ+67eCQeuA0WdJbhijsFuMRxT4ELjCcMrGfoKCWJ0dwCncbpRgxp5Bhxu2Z
-	 ujFr6cZ019Pcs+bFXz9LhOCkU1LsuIwJ2SaTTMqLwNCJt854TSui2Dn0sJapof6z4T
-	 sIt98kGWdkTiicQYan49MApysxvEpV3McX2ElEhT2qfZ80Sj5eRXh/Y/eIDyaMwlgZ
-	 4SiflHGqA1OTA==
+	b=T4GK9LpLYW7vBdObT4U5/N1TBgpfWp/VLBydmQs/ErO4QGRRqiFvNkwfKxnMspaP4
+	 L8OajwH87HB5RjkPhldyB7Ab0WEuCubxVHbRxhizgzM+6jNOr2HqqJK2bUTut9lQlY
+	 Y3XpIZDfcAUvW6BRkBnwb9oKP7tzLAj+pKgWz2gFJmC7j6nhHG4yedPMnsRebk70jv
+	 Iy1wi2qkQKNCLKqS0e23ADFRu4E9UA0uOOrlp5mRi96swTg1pR1QQNSQdcb4HwdGW1
+	 F2KQhJ1oh4XhjohRW0ztKClIjSJauguHix5wUJYqdDGgaBXEL7E3JkQ5rn0NP9rSip
+	 go1x2JyxIe6+Q==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Chiara Meiohas <cmeiohas@nvidia.com>,
 	linux-rdma@vger.kernel.org,
 	Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next v1 1/6] RDMA/uverbs: Introduce UCAP (User CAPabilities) API
-Date: Thu,  6 Mar 2025 13:51:26 +0200
-Message-ID: <5a1379187cd21178e8554afc81a3c941f21af22f.1741261611.git.leon@kernel.org>
+Subject: [PATCH rdma-next v1 4/6] RDMA/mlx5: Check enabled UCAPs when creating ucontext
+Date: Thu,  6 Mar 2025 13:51:29 +0200
+Message-ID: <8b180583a207cb30deb7a2967934079749cdcc44.1741261611.git.leon@kernel.org>
 X-Mailer: git-send-email 2.48.1
 In-Reply-To: <cover.1741261611.git.leon@kernel.org>
 References: <cover.1741261611.git.leon@kernel.org>
@@ -47,369 +47,187 @@ Content-Transfer-Encoding: 8bit
 
 From: Chiara Meiohas <cmeiohas@nvidia.com>
 
-Implement a new User CAPabilities (UCAP) API to provide fine-grained
-control over specific firmware features.
+Verify that the enabled UCAPs are supported by the device before
+creating the ucontext.
+If supported, create the ucontext with the associated capabilities.
 
-This approach offers more granular capabilities than the existing Linux
-capabilities, which may be too generic for certain FW features.
-
-This mechanism represents each capability as a character device with
-root read-write access. Root processes can grant users special
-privileges by allowing access to these character devices (e.g., using
-chown).
-
-UCAP character devices are located in /dev/infiniband and the class path
-is /sys/class/infiniband_ucaps.
+Store the privileged ucontext UID on creation and remove it when
+destroying the privileged ucontext. This allows the command interface
+to recognize privileged commands through its UID.
 
 Signed-off-by: Chiara Meiohas <cmeiohas@nvidia.com>
 Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
 Signed-off-by: Leon Romanovsky <leon@kernel.org>
 ---
- drivers/infiniband/core/Makefile      |   3 +-
- drivers/infiniband/core/ucaps.c       | 267 ++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c |   2 +
- include/rdma/ib_ucaps.h               |  25 +++
- 4 files changed, 296 insertions(+), 1 deletion(-)
- create mode 100644 drivers/infiniband/core/ucaps.c
- create mode 100644 include/rdma/ib_ucaps.h
+ drivers/infiniband/hw/mlx5/devx.c | 31 +++++++++++++++++++++++++++++--
+ drivers/infiniband/hw/mlx5/devx.h |  5 +++--
+ drivers/infiniband/hw/mlx5/main.c | 30 ++++++++++++++++++++++++++----
+ 3 files changed, 58 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index 8ab4eea5a0a5..d49ded7e95f0 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -39,6 +39,7 @@ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
- 				uverbs_std_types_async_fd.o \
- 				uverbs_std_types_srq.o \
- 				uverbs_std_types_wq.o \
--				uverbs_std_types_qp.o
-+				uverbs_std_types_qp.o \
-+				ucaps.o
- ib_uverbs-$(CONFIG_INFINIBAND_USER_MEM) += umem.o umem_dmabuf.o
- ib_uverbs-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o
-diff --git a/drivers/infiniband/core/ucaps.c b/drivers/infiniband/core/ucaps.c
-new file mode 100644
-index 000000000000..6853c6d078f9
---- /dev/null
-+++ b/drivers/infiniband/core/ucaps.c
-@@ -0,0 +1,267 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved
-+ */
-+
-+#include <linux/kref.h>
-+#include <linux/cdev.h>
-+#include <linux/mutex.h>
-+#include <linux/file.h>
-+#include <linux/fs.h>
-+#include <rdma/ib_ucaps.h>
-+
-+#define RDMA_UCAP_FIRST RDMA_UCAP_MLX5_CTRL_LOCAL
-+
-+static DEFINE_MUTEX(ucaps_mutex);
-+static struct ib_ucap *ucaps_list[RDMA_UCAP_MAX];
-+static bool ucaps_class_is_registered;
-+static dev_t ucaps_base_dev;
-+
-+struct ib_ucap {
-+	struct cdev cdev;
-+	struct device dev;
-+	struct kref ref;
-+};
-+
-+static const char *ucap_names[RDMA_UCAP_MAX] = {
-+	[RDMA_UCAP_MLX5_CTRL_LOCAL] = "mlx5_perm_ctrl_local",
-+	[RDMA_UCAP_MLX5_CTRL_OTHER_VHCA] = "mlx5_perm_ctrl_other_vhca"
-+};
-+
-+static char *ucaps_devnode(const struct device *dev, umode_t *mode)
-+{
-+	if (mode)
-+		*mode = 0600;
-+
-+	return kasprintf(GFP_KERNEL, "infiniband/%s", dev_name(dev));
-+}
-+
-+static const struct class ucaps_class = {
-+	.name = "infiniband_ucaps",
-+	.devnode = ucaps_devnode,
-+};
-+
-+static const struct file_operations ucaps_cdev_fops = {
-+	.owner = THIS_MODULE,
-+	.open = simple_open,
-+};
-+
-+/**
-+ * ib_cleanup_ucaps - cleanup all API resources and class.
-+ *
-+ * This is called once, when removing the ib_uverbs module.
-+ */
-+void ib_cleanup_ucaps(void)
-+{
-+	mutex_lock(&ucaps_mutex);
-+	if (!ucaps_class_is_registered) {
-+		mutex_unlock(&ucaps_mutex);
-+		return;
-+	}
-+
-+	for (int i = RDMA_UCAP_FIRST; i < RDMA_UCAP_MAX; i++)
-+		WARN_ON(ucaps_list[i]);
-+
-+	class_unregister(&ucaps_class);
-+	ucaps_class_is_registered = false;
-+	unregister_chrdev_region(ucaps_base_dev, RDMA_UCAP_MAX);
-+	mutex_unlock(&ucaps_mutex);
-+}
-+
-+static int get_ucap_from_devt(dev_t devt, u64 *idx_mask)
-+{
-+	for (int type = RDMA_UCAP_FIRST; type < RDMA_UCAP_MAX; type++) {
-+		if (ucaps_list[type] && ucaps_list[type]->dev.devt == devt) {
-+			*idx_mask |= 1 << type;
-+			return 0;
-+		}
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int get_devt_from_fd(unsigned int fd, dev_t *ret_dev)
-+{
-+	struct file *file;
-+
-+	file = fget(fd);
-+	if (!file)
-+		return -EBADF;
-+
-+	*ret_dev = file_inode(file)->i_rdev;
-+	fput(file);
-+	return 0;
-+}
-+
-+/**
-+ * ib_ucaps_init - Initialization required before ucap creation.
-+ *
-+ * Return: 0 on success, or a negative errno value on failure
-+ */
-+static int ib_ucaps_init(void)
-+{
-+	int ret = 0;
-+
-+	if (ucaps_class_is_registered)
-+		return ret;
-+
-+	ret = class_register(&ucaps_class);
-+	if (ret)
-+		return ret;
-+
-+	ret = alloc_chrdev_region(&ucaps_base_dev, 0, RDMA_UCAP_MAX,
-+				  ucaps_class.name);
-+	if (ret < 0) {
-+		class_unregister(&ucaps_class);
-+		return ret;
-+	}
-+
-+	ucaps_class_is_registered = true;
-+
-+	return 0;
-+}
-+
-+static void ucap_dev_release(struct device *device)
-+{
-+	struct ib_ucap *ucap = container_of(device, struct ib_ucap, dev);
-+
-+	kfree(ucap);
-+}
-+
-+/**
-+ * ib_create_ucap - Add a ucap character device
-+ * @type: UCAP type
-+ *
-+ * Creates a ucap character device in the /dev/infiniband directory. By default,
-+ * the device has root-only read-write access.
-+ *
-+ * A driver may call this multiple times with the same UCAP type. A reference
-+ * count tracks creations and deletions.
-+ *
-+ * Return: 0 on success, or a negative errno value on failure
-+ */
-+int ib_create_ucap(enum rdma_user_cap type)
-+{
-+	struct ib_ucap *ucap;
-+	int ret;
-+
-+	if (type >= RDMA_UCAP_MAX)
-+		return -EINVAL;
-+
-+	mutex_lock(&ucaps_mutex);
-+	ret = ib_ucaps_init();
-+	if (ret)
-+		goto unlock;
-+
-+	ucap = ucaps_list[type];
-+	if (ucap) {
-+		kref_get(&ucap->ref);
-+		mutex_unlock(&ucaps_mutex);
-+		return 0;
-+	}
-+
-+	ucap = kzalloc(sizeof(*ucap), GFP_KERNEL);
-+	if (!ucap) {
-+		ret = -ENOMEM;
-+		goto unlock;
-+	}
-+
-+	device_initialize(&ucap->dev);
-+	ucap->dev.class = &ucaps_class;
-+	ucap->dev.devt = MKDEV(MAJOR(ucaps_base_dev), type);
-+	ucap->dev.release = ucap_dev_release;
-+	ret = dev_set_name(&ucap->dev, ucap_names[type]);
-+	if (ret)
-+		goto err_device;
-+
-+	cdev_init(&ucap->cdev, &ucaps_cdev_fops);
-+	ucap->cdev.owner = THIS_MODULE;
-+
-+	ret = cdev_device_add(&ucap->cdev, &ucap->dev);
-+	if (ret)
-+		goto err_device;
-+
-+	kref_init(&ucap->ref);
-+	ucaps_list[type] = ucap;
-+	mutex_unlock(&ucaps_mutex);
-+
-+	return 0;
-+
-+err_device:
-+	put_device(&ucap->dev);
-+unlock:
-+	mutex_unlock(&ucaps_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL(ib_create_ucap);
-+
-+static void ib_release_ucap(struct kref *ref)
-+{
-+	struct ib_ucap *ucap = container_of(ref, struct ib_ucap, ref);
-+	enum rdma_user_cap type;
-+
-+	for (type = RDMA_UCAP_FIRST; type < RDMA_UCAP_MAX; type++) {
-+		if (ucaps_list[type] == ucap)
-+			break;
-+	}
-+	WARN_ON(type == RDMA_UCAP_MAX);
-+
-+	ucaps_list[type] = NULL;
-+	cdev_device_del(&ucap->cdev, &ucap->dev);
-+	put_device(&ucap->dev);
-+}
-+
-+/**
-+ * ib_remove_ucap - Remove a ucap character device
-+ * @type: User cap type
-+ *
-+ * Removes the ucap character device according to type. The device is completely
-+ * removed from the filesystem when its reference count reaches 0.
-+ */
-+void ib_remove_ucap(enum rdma_user_cap type)
-+{
-+	struct ib_ucap *ucap;
-+
-+	mutex_lock(&ucaps_mutex);
-+	ucap = ucaps_list[type];
-+	if (WARN_ON(!ucap))
-+		goto end;
-+
-+	kref_put(&ucap->ref, ib_release_ucap);
-+end:
-+	mutex_unlock(&ucaps_mutex);
-+}
-+EXPORT_SYMBOL(ib_remove_ucap);
-+
-+/**
-+ * ib_get_ucaps - Get bitmask of ucap types from file descriptors
-+ * @fds: Array of file descriptors
-+ * @fd_count: Number of file descriptors in the array
-+ * @idx_mask: Bitmask to be updated based on the ucaps in the fd list
-+ *
-+ * Given an array of file descriptors, this function returns a bitmask of
-+ * the ucaps where a bit is set if an FD for that ucap type was in the array.
-+ *
-+ * Return: 0 on success, or a negative errno value on failure
-+ */
-+int ib_get_ucaps(int *fds, int fd_count, uint64_t *idx_mask)
-+{
-+	int ret = 0;
-+	dev_t dev;
-+
-+	*idx_mask = 0;
-+	mutex_lock(&ucaps_mutex);
-+	for (int i = 0; i < fd_count; i++) {
-+		ret = get_devt_from_fd(fds[i], &dev);
-+		if (ret)
-+			goto end;
-+
-+		ret = get_ucap_from_devt(dev, idx_mask);
-+		if (ret)
-+			goto end;
-+	}
-+
-+end:
-+	mutex_unlock(&ucaps_mutex);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 85cfc790a7bb..973fe2c7ef53 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -52,6 +52,7 @@
- #include <rdma/ib.h>
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 39304cae5b10..2479da8620ca 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -13,6 +13,7 @@
  #include <rdma/uverbs_std_types.h>
- #include <rdma/rdma_netlink.h>
+ #include <linux/mlx5/driver.h>
+ #include <linux/mlx5/fs.h>
 +#include <rdma/ib_ucaps.h>
- 
- #include "uverbs.h"
- #include "core_priv.h"
-@@ -1345,6 +1346,7 @@ static void __exit ib_uverbs_cleanup(void)
- 				 IB_UVERBS_NUM_FIXED_MINOR);
- 	unregister_chrdev_region(dynamic_uverbs_dev,
- 				 IB_UVERBS_NUM_DYNAMIC_MINOR);
-+	ib_cleanup_ucaps();
- 	mmu_notifier_synchronize();
+ #include "mlx5_ib.h"
+ #include "devx.h"
+ #include "qp.h"
+@@ -122,7 +123,27 @@ devx_ufile2uctx(const struct uverbs_attr_bundle *attrs)
+ 	return to_mucontext(ib_uverbs_get_ucontext(attrs));
  }
  
-diff --git a/include/rdma/ib_ucaps.h b/include/rdma/ib_ucaps.h
-new file mode 100644
-index 000000000000..8f0552a2b2b0
---- /dev/null
-+++ b/include/rdma/ib_ucaps.h
-@@ -0,0 +1,25 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
-+/*
-+ * Copyright (c) 2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved
-+ */
+-int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user)
++static int set_uctx_ucaps(struct mlx5_ib_dev *dev, u64 req_ucaps, u32 *cap)
++{
++	if (UCAP_ENABLED(req_ucaps, RDMA_UCAP_MLX5_CTRL_LOCAL)) {
++		if (MLX5_CAP_GEN(dev->mdev, uctx_cap) & MLX5_UCTX_CAP_RDMA_CTRL)
++			*cap |= MLX5_UCTX_CAP_RDMA_CTRL;
++		else
++			return -EOPNOTSUPP;
++	}
 +
-+#ifndef _IB_UCAPS_H_
-+#define _IB_UCAPS_H_
++	if (UCAP_ENABLED(req_ucaps, RDMA_UCAP_MLX5_CTRL_OTHER_VHCA)) {
++		if (MLX5_CAP_GEN(dev->mdev, uctx_cap) &
++		    MLX5_UCTX_CAP_RDMA_CTRL_OTHER_VHCA)
++			*cap |= MLX5_UCTX_CAP_RDMA_CTRL_OTHER_VHCA;
++		else
++			return -EOPNOTSUPP;
++	}
 +
-+#define UCAP_ENABLED(ucaps, type) (!!((ucaps) & (1U << (type))))
++	return 0;
++}
 +
-+enum rdma_user_cap {
-+	RDMA_UCAP_MLX5_CTRL_LOCAL,
-+	RDMA_UCAP_MLX5_CTRL_OTHER_VHCA,
-+	RDMA_UCAP_MAX
-+};
++int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user, u64 req_ucaps)
+ {
+ 	u32 in[MLX5_ST_SZ_DW(create_uctx_in)] = {};
+ 	u32 out[MLX5_ST_SZ_DW(create_uctx_out)] = {};
+@@ -146,6 +167,12 @@ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user)
+ 	    capable(CAP_SYS_RAWIO))
+ 		cap |= MLX5_UCTX_CAP_INTERNAL_DEV_RES;
+ 
++	if (req_ucaps) {
++		err = set_uctx_ucaps(dev, req_ucaps, &cap);
++		if (err)
++			return err;
++	}
 +
-+void ib_cleanup_ucaps(void);
+ 	MLX5_SET(create_uctx_in, in, opcode, MLX5_CMD_OP_CREATE_UCTX);
+ 	MLX5_SET(uctx, uctx, cap, cap);
+ 
+@@ -2575,7 +2602,7 @@ int mlx5_ib_devx_init(struct mlx5_ib_dev *dev)
+ 	struct mlx5_devx_event_table *table = &dev->devx_event_table;
+ 	int uid;
+ 
+-	uid = mlx5_ib_devx_create(dev, false);
++	uid = mlx5_ib_devx_create(dev, false, 0);
+ 	if (uid > 0) {
+ 		dev->devx_whitelist_uid = uid;
+ 		xa_init(&table->event_xa);
+diff --git a/drivers/infiniband/hw/mlx5/devx.h b/drivers/infiniband/hw/mlx5/devx.h
+index 1344bf4c9d21..ee9e7d3af93f 100644
+--- a/drivers/infiniband/hw/mlx5/devx.h
++++ b/drivers/infiniband/hw/mlx5/devx.h
+@@ -24,13 +24,14 @@ struct devx_obj {
+ 	struct list_head event_sub; /* holds devx_event_subscription entries */
+ };
+ #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
+-int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user);
++int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user, u64 req_ucaps);
+ void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid);
+ int mlx5_ib_devx_init(struct mlx5_ib_dev *dev);
+ void mlx5_ib_devx_cleanup(struct mlx5_ib_dev *dev);
+ void mlx5_ib_ufile_hw_cleanup(struct ib_uverbs_file *ufile);
+ #else
+-static inline int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user)
++static inline int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, bool is_user,
++				      u64 req_ucaps)
+ {
+ 	return -EOPNOTSUPP;
+ }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 04b489a6a449..d07cacaa0abd 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1935,6 +1935,12 @@ static int set_ucontext_resp(struct ib_ucontext *uctx,
+ 	return 0;
+ }
+ 
++static bool uctx_rdma_ctrl_is_enabled(u64 enabled_caps)
++{
++	return UCAP_ENABLED(enabled_caps, RDMA_UCAP_MLX5_CTRL_LOCAL) ||
++	       UCAP_ENABLED(enabled_caps, RDMA_UCAP_MLX5_CTRL_OTHER_VHCA);
++}
 +
-+int ib_create_ucap(enum rdma_user_cap type);
+ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ 				  struct ib_udata *udata)
+ {
+@@ -1977,10 +1983,17 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ 		return -EINVAL;
+ 
+ 	if (req.flags & MLX5_IB_ALLOC_UCTX_DEVX) {
+-		err = mlx5_ib_devx_create(dev, true);
++		err = mlx5_ib_devx_create(dev, true, uctx->enabled_caps);
+ 		if (err < 0)
+ 			goto out_ctx;
+ 		context->devx_uid = err;
 +
-+void ib_remove_ucap(enum rdma_user_cap type);
++		if (uctx_rdma_ctrl_is_enabled(uctx->enabled_caps)) {
++			err = mlx5_cmd_add_privileged_uid(dev->mdev,
++							  context->devx_uid);
++			if (err)
++				goto out_devx;
++		}
+ 	}
+ 
+ 	lib_uar_4k = req.lib_caps & MLX5_LIB_CAP_4K_UAR;
+@@ -1995,7 +2008,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ 	/* updates req->total_num_bfregs */
+ 	err = calc_total_bfregs(dev, lib_uar_4k, &req, bfregi);
+ 	if (err)
+-		goto out_devx;
++		goto out_ucap;
+ 
+ 	mutex_init(&bfregi->lock);
+ 	bfregi->lib_uar_4k = lib_uar_4k;
+@@ -2003,7 +2016,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ 				GFP_KERNEL);
+ 	if (!bfregi->count) {
+ 		err = -ENOMEM;
+-		goto out_devx;
++		goto out_ucap;
+ 	}
+ 
+ 	bfregi->sys_pages = kcalloc(bfregi->num_sys_pages,
+@@ -2067,6 +2080,11 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+ out_count:
+ 	kfree(bfregi->count);
+ 
++out_ucap:
++	if (req.flags & MLX5_IB_ALLOC_UCTX_DEVX &&
++	    uctx_rdma_ctrl_is_enabled(uctx->enabled_caps))
++		mlx5_cmd_remove_privileged_uid(dev->mdev, context->devx_uid);
 +
-+int ib_get_ucaps(int *fds, int fd_count, uint64_t *idx_mask);
-+
-+#endif /* _IB_UCAPS_H_ */
+ out_devx:
+ 	if (req.flags & MLX5_IB_ALLOC_UCTX_DEVX)
+ 		mlx5_ib_devx_destroy(dev, context->devx_uid);
+@@ -2111,8 +2129,12 @@ static void mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
+ 	kfree(bfregi->sys_pages);
+ 	kfree(bfregi->count);
+ 
+-	if (context->devx_uid)
++	if (context->devx_uid) {
++		if (uctx_rdma_ctrl_is_enabled(ibcontext->enabled_caps))
++			mlx5_cmd_remove_privileged_uid(dev->mdev,
++						       context->devx_uid);
+ 		mlx5_ib_devx_destroy(dev, context->devx_uid);
++	}
+ }
+ 
+ static phys_addr_t uar_index2pfn(struct mlx5_ib_dev *dev,
 -- 
 2.48.1
 
