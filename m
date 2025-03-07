@@ -1,157 +1,122 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id A590C20E70B;
-	Fri,  7 Mar 2025 10:29:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44DD221859F;
+	Fri,  7 Mar 2025 11:57:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741343373; cv=none; b=sxWyV3lULyCTUr851kTTENWXNC4kQ92D1HXozK6yAa49yyTn6GWNPbQCg/pHFMwGdQfwDQK3n0EBQlJbmPIYd/NKkIfETOP89IyBhgskmncbzKiX+jEXeqJaGMlDhjv84pXxeqfDwsrilhFrXHEIYxYH3CXhIzC4mP1WvTG+k3k=
+	t=1741348651; cv=none; b=YWAAWvn2GKDo/IXocRL1qEkLkQvIDJ+FhQvgivEHHmLncVfMvSB12pZEwzsDjcuXeHkTmJvzxJFDRewcR+zJUL0xqUAw8jFP1bLMmL0Wh824OSNKwK4CYeVSv2NpaaUPJQASUT7JKI/OkUZcOR/EtqDtAEHzkB3fPx0L2efkkPU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741343373; c=relaxed/simple;
-	bh=tYxJZJX1pI5K8wuGH/dKzuf43ukR/Ftn3/DZih3kce0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FWUGVECo5P3aBFMN0R5PaqMKby22nEOZ085g37IjvvV8lCjh0mQIdFzF4yGZvsyp5eLf6eKsWKMRJYN+Ue2OGqGjsVjIjAJifKomYicxLgQiYheDm2Z/kkIhUdfdRePakVHNhxcA4mp2dUw9ntJGW7RjMl7I61o+QwlGLKlxX/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=B9wZSuE2; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1741348651; c=relaxed/simple;
+	bh=W6VQ+V1nmHstDdIlqfgtyjfcPs3sY566gSTVH5r0RV4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=NLVmH7V8mpCDQZJM/dSAycd5p7mZta98tR9wLXEhjS0ca/WynWWCdYU6h9n4ytUl/y1he8Kc3MwYVKSIiFUP4gIMtY0A4LguANYf3pGhCU/K71cLsd9/ryJ0sdEXnJSWUlOjqBLK80efJJ1trJS0DpkS/tEXXeKOtx6ZCOUOisU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=waGdBjMN; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=N/zfUSI9; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="B9wZSuE2"
-Received: by linux.microsoft.com (Postfix, from userid 1134)
-	id F38862038F2B; Fri,  7 Mar 2025 02:29:29 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com F38862038F2B
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1741343370;
-	bh=ZLRe45/BtNn0ARC6EnETrMfwdNw8kA9gyMB/wm3koXM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=B9wZSuE2kzmUxireaWKyvy5UKChwThSlRZubsF9gBfpmi53lZEe37WpfRI+SoXT65
-	 WPQ9BJpyQg4GNw46xfuqWdUVYdiElM4jiSt0b8UmTRcH8Z3Owpsi83CKdnFtWn9c8H
-	 cHefJlMZgampk2OjFnv61yfu4AI9gh8CJitpl4KM=
-Date: Fri, 7 Mar 2025 02:29:29 -0800
-From: Shradha Gupta <shradhagupta@linux.microsoft.com>
-To: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
-	decui@microsoft.com, stephen@networkplumber.org, kys@microsoft.com,
-	paulros@microsoft.com, olaf@aepfle.de, vkuznets@redhat.com,
-	davem@davemloft.net, wei.liu@kernel.org, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, leon@kernel.org,
-	longli@microsoft.com, ssengar@linux.microsoft.com,
-	linux-rdma@vger.kernel.org, daniel@iogearbox.net,
-	john.fastabend@gmail.com, bpf@vger.kernel.org, ast@kernel.org,
-	hawk@kernel.org, tglx@linutronix.de, linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH net] net: mana: Support holes in device list reply msg
-Message-ID: <20250307102929.GA21981@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-References: <1741211181-6990-1-git-send-email-haiyangz@microsoft.com>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="waGdBjMN";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="N/zfUSI9"
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1741348648;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NOG038PWXRpibdztyql3sjzUMzeQfzjYIj73kOiBeMY=;
+	b=waGdBjMN3L0P7GIYmRWc/w0ckswrLeqSCbCh5UAqWqQgmg1dU6NMQPu1rhDjH174kS6yZY
+	MeK/kQMdg6sT9MjB3oRrU2PaoZU08tEXZdZAcWbA9kg6FLkvSpLsOSyP3rpbx9Ncs5XTcx
+	OIC+1ngOros5sbngC3Iah9AaVSnf3JNHI4HZ+wbVhObSn1vwXON9m8wS6Tc7eCti4dtTEo
+	QiH83R5vwg4AlCbcNvnHpFrLO3MWpXedZ4RwRAnXKlSKZNHfqbqxQ8mpqCPJUxdQE3iDSY
+	8gZvWGSBCiuQKyNXawYFNfFdKW7ZgyFOEZG+33IjZw3fsaM9nRKghrY+S9hKAg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1741348648;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=NOG038PWXRpibdztyql3sjzUMzeQfzjYIj73kOiBeMY=;
+	b=N/zfUSI9sT6hiVTKZKg/gpOvl6mCFm6wxR8DWzaQgONOFEMqMPUavBHQJ3CgSK2m0qY9oT
+	FQ8+ZnMucrdjQoCw==
+To: linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Eric Dumazet <edumazet@google.com>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	Joe Damato <jdamato@fastly.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Simon Horman <horms@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Yunsheng Lin <linyunsheng@huawei.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH net-next v2 1/5] page_pool: Provide an empty page_pool_stats for disabled stats.
+Date: Fri,  7 Mar 2025 12:57:18 +0100
+Message-ID: <20250307115722.705311-2-bigeasy@linutronix.de>
+In-Reply-To: <20250307115722.705311-1-bigeasy@linutronix.de>
+References: <20250307115722.705311-1-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1741211181-6990-1-git-send-email-haiyangz@microsoft.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 05, 2025 at 01:46:21PM -0800, Haiyang Zhang wrote:
-> According to GDMA protocol, holes (zeros) are allowed at the beginning
-> or middle of the gdma_list_devices_resp message. The existing code
-> cannot properly handle this, and may miss some devices in the list.
-> 
-> To fix, scan the entire list until the num_of_devs are found, or until
-> the end of the list.
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: ca9c54d2d6a5 ("net: mana: Add a driver for Microsoft Azure Network Adapter (MANA)")
-> Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
-> 
-> ---
->  drivers/net/ethernet/microsoft/mana/gdma_main.c | 16 ++++++++++++----
->  include/net/mana/gdma.h                         | 11 +++++++----
->  2 files changed, 19 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> index c15a5ef4674e..df3ab31974b1 100644
-> --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> @@ -134,9 +134,10 @@ static int mana_gd_detect_devices(struct pci_dev *pdev)
->  	struct gdma_list_devices_resp resp = {};
->  	struct gdma_general_req req = {};
->  	struct gdma_dev_id dev;
-> -	u32 i, max_num_devs;
-> +	int found_dev = 0;
->  	u16 dev_type;
->  	int err;
-> +	u32 i;
->  
->  	mana_gd_init_req_hdr(&req.hdr, GDMA_LIST_DEVICES, sizeof(req),
->  			     sizeof(resp));
-> @@ -148,12 +149,19 @@ static int mana_gd_detect_devices(struct pci_dev *pdev)
->  		return err ? err : -EPROTO;
->  	}
->  
-> -	max_num_devs = min_t(u32, MAX_NUM_GDMA_DEVICES, resp.num_of_devs);
-> -
-> -	for (i = 0; i < max_num_devs; i++) {
-> +	for (i = 0; i < GDMA_DEV_LIST_SIZE &&
-> +		found_dev < resp.num_of_devs; i++) {
->  		dev = resp.devs[i];
->  		dev_type = dev.type;
->  
-> +		/* Skip empty devices */
-> +		if (dev.as_uint32 == 0)
-> +			continue;
-> +
-> +		found_dev++;
-> +		dev_info(gc->dev, "Got devidx:%u, type:%u, instance:%u\n", i,
-> +			 dev.type, dev.instance);
-> +
->  		/* HWC is already detected in mana_hwc_create_channel(). */
->  		if (dev_type == GDMA_DEVICE_HWC)
->  			continue;
-> diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-> index 90f56656b572..62e9d7673862 100644
-> --- a/include/net/mana/gdma.h
-> +++ b/include/net/mana/gdma.h
-> @@ -408,8 +408,6 @@ struct gdma_context {
->  	struct gdma_dev		mana_ib;
->  };
->  
-> -#define MAX_NUM_GDMA_DEVICES	4
-> -
->  static inline bool mana_gd_is_mana(struct gdma_dev *gd)
->  {
->  	return gd->dev_id.type == GDMA_DEVICE_MANA;
-> @@ -556,11 +554,15 @@ enum {
->  #define GDMA_DRV_CAP_FLAG_1_HWC_TIMEOUT_RECONFIG BIT(3)
->  #define GDMA_DRV_CAP_FLAG_1_VARIABLE_INDIRECTION_TABLE_SUPPORT BIT(5)
->  
-> +/* Driver can handle holes (zeros) in the device list */
-> +#define GDMA_DRV_CAP_FLAG_1_DEV_LIST_HOLES_SUP BIT(11)
-> +
->  #define GDMA_DRV_CAP_FLAGS1 \
->  	(GDMA_DRV_CAP_FLAG_1_EQ_SHARING_MULTI_VPORT | \
->  	 GDMA_DRV_CAP_FLAG_1_NAPI_WKDONE_FIX | \
->  	 GDMA_DRV_CAP_FLAG_1_HWC_TIMEOUT_RECONFIG | \
-> -	 GDMA_DRV_CAP_FLAG_1_VARIABLE_INDIRECTION_TABLE_SUPPORT)
-> +	 GDMA_DRV_CAP_FLAG_1_VARIABLE_INDIRECTION_TABLE_SUPPORT | \
-> +	 GDMA_DRV_CAP_FLAG_1_DEV_LIST_HOLES_SUP)
->  
->  #define GDMA_DRV_CAP_FLAGS2 0
->  
-> @@ -621,11 +623,12 @@ struct gdma_query_max_resources_resp {
->  }; /* HW DATA */
->  
->  /* GDMA_LIST_DEVICES */
-> +#define GDMA_DEV_LIST_SIZE 64
->  struct gdma_list_devices_resp {
->  	struct gdma_resp_hdr hdr;
->  	u32 num_of_devs;
->  	u32 reserved;
-> -	struct gdma_dev_id devs[64];
-> +	struct gdma_dev_id devs[GDMA_DEV_LIST_SIZE];
->  }; /* HW DATA */
->  
->  /* GDMA_REGISTER_DEVICE */
+An empty struct page_pool_stats allows to always add it to structs and
+pass it to functions like page_pool_ethtool_stats_get() without the need
+for an ifdef.
 
-Reviewed-by: Shradha Gupta <shradhagupta@microsoft.com>
-> -- 
-> 2.34.1
+Provide an empty struct page_pool_stats and page_pool_get_stats() for
+!CONFIG_PAGE_POOL_STATS builds.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ include/net/page_pool/helpers.h | 6 ++++++
+ include/net/page_pool/types.h   | 4 ++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/include/net/page_pool/helpers.h b/include/net/page_pool/helper=
+s.h
+index 582a3d00cbe23..4622db90f88f2 100644
+--- a/include/net/page_pool/helpers.h
++++ b/include/net/page_pool/helpers.h
+@@ -81,6 +81,12 @@ static inline u64 *page_pool_ethtool_stats_get(u64 *data=
+, const void *stats)
+ {
+ 	return data;
+ }
++
++static inline bool page_pool_get_stats(const struct page_pool *pool,
++				       struct page_pool_stats *stats)
++{
++	return false;
++}
+ #endif
+=20
+ /**
+diff --git a/include/net/page_pool/types.h b/include/net/page_pool/types.h
+index 7f405672b089d..6d55e6cf5d0db 100644
+--- a/include/net/page_pool/types.h
++++ b/include/net/page_pool/types.h
+@@ -140,6 +140,10 @@ struct page_pool_stats {
+ 	struct page_pool_alloc_stats alloc_stats;
+ 	struct page_pool_recycle_stats recycle_stats;
+ };
++
++#else /* !CONFIG_PAGE_POOL_STATS */
++
++struct page_pool_stats { };
+ #endif
+=20
+ /* The whole frag API block must stay within one cacheline. On 32-bit syst=
+ems,
+--=20
+2.47.2
+
