@@ -1,25 +1,25 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 401D822ACDC
-	for <linux-rdma@vger.kernel.org>; Tue, 11 Mar 2025 08:56:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 915D322B8B2
+	for <linux-rdma@vger.kernel.org>; Tue, 11 Mar 2025 08:56:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741683398; cv=none; b=evZ7SvyYrzIFbMWHj3O4eiYfDd4fYPiaVCkqCwSa0aYKLnhA7XXlkWJ0fmTZRMdoh1Pa1892yL+j4tn5nz1Ho9/o6yJA9cbBXIOhZNpjN6lOsBZSSKTrcDwOc8iSVm54X4SGZzcKwGGs/xXkrc40h66zjEIEtQu4ZonKCJKeZXk=
+	t=1741683398; cv=none; b=oWlcswrLMPBDq9amTWXl/S2Z+yv3R0a1VYOnvF3aZr8rLJ60CWJcesEVp8CGTprjfoZKzP9iQw5F+o8obN7dtKfHWobyz2mBntXU6MeKhZkIVCQ5mYnE5+edJw5A3oh7Fr0Bc/TuZWNQMOg826EgApDPgMZ8bc6iylKyHkwC31M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1741683398; c=relaxed/simple;
-	bh=TO1Q8vT8+yhGMcwMDgOP7WVVe6y6Gzr9tzJOfl24xeg=;
+	bh=CVc/anywap1JTmTUJ2Ssh/0i75Te5nBBpkuVY1/dj9o=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=EX81X9JHhVr59RIbjyk3+fQwmD4BiRE7qeoqKIXWRbPl+PAU24fUvXWNEmNoL96+M6ICds8VxpenpNj9Ya9Sf6/x3Jmnk0mYhmifjtavvzMKektKL/DHTK3rOxhNQLqojZImgqFSLIDbNY11TZQLb6dHjSZHAfZOt6nyxnGmqvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.190
+	 MIME-Version:Content-Type; b=T7xr1Riye1SVWGWYJZKN1HstzpKzxHvA8m1DA3qfoPTk8p6jF6fVzCkbj1f934PuA8sG8FFmC/mbtoqzllsWDAmrGK86Qm+rAo3lCShu7CbNUTxlIs0ntbXsXdEWc3P4ZJtDWobxq7+Lgc0gAj7gq8cAgtR6L1JLaN7Us0vLNNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
 Received: from mail.maildlp.com (unknown [172.19.162.112])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4ZBnbk28Wyz2CcGj;
-	Tue, 11 Mar 2025 16:53:22 +0800 (CST)
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4ZBndS4nWyz1R6MR;
+	Tue, 11 Mar 2025 16:54:52 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 9E96D140109;
-	Tue, 11 Mar 2025 16:56:32 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 58840140109;
+	Tue, 11 Mar 2025 16:56:33 +0800 (CST)
 Received: from localhost.localdomain (10.90.30.45) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
@@ -28,9 +28,9 @@ From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH for-rc 2/7] RDMA/hns: Fix soft lockup during bt pages loop
-Date: Tue, 11 Mar 2025 16:48:52 +0800
-Message-ID: <20250311084857.3803665-3-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-rc 4/7] RDMA/hns: Fix invalid sq params not being blocked
+Date: Tue, 11 Mar 2025 16:48:54 +0800
+Message-ID: <20250311084857.3803665-5-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20250311084857.3803665-1-huangjunxian6@hisilicon.com>
 References: <20250311084857.3803665-1-huangjunxian6@hisilicon.com>
@@ -45,91 +45,55 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-Driver runs a for-loop when allocating bt pages and mapping them with
-buffer pages. When a large buffer (e.g. MR over 100GB) is being allocated,
-it may require a considerable loop count. This will lead to soft lockup:
+SQ params from userspace are checked in by set_user_sq_size(). But
+when the check fails, the function doesn't return but instead keep
+running and overwrite 'ret'. As a result, the invalid params will
+not get blocked actually.
 
-        watchdog: BUG: soft lockup - CPU#27 stuck for 22s!
-        ...
-        Call trace:
-         hem_list_alloc_mid_bt+0x124/0x394 [hns_roce_hw_v2]
-         hns_roce_hem_list_request+0xf8/0x160 [hns_roce_hw_v2]
-         hns_roce_mtr_create+0x2e4/0x360 [hns_roce_hw_v2]
-         alloc_mr_pbl+0xd4/0x17c [hns_roce_hw_v2]
-         hns_roce_reg_user_mr+0xf8/0x190 [hns_roce_hw_v2]
-         ib_uverbs_reg_mr+0x118/0x290
+Add a return right after the failed check. Besides, although the
+check result of kernel sq params will not be overwritten, to keep
+coding style unified, move default_congest_type() before
+set_kernel_sq_size().
 
-        watchdog: BUG: soft lockup - CPU#35 stuck for 23s!
-        ...
-        Call trace:
-         hns_roce_hem_list_find_mtt+0x7c/0xb0 [hns_roce_hw_v2]
-         mtr_map_bufs+0xc4/0x204 [hns_roce_hw_v2]
-         hns_roce_mtr_create+0x31c/0x3c4 [hns_roce_hw_v2]
-         alloc_mr_pbl+0xb0/0x160 [hns_roce_hw_v2]
-         hns_roce_reg_user_mr+0x108/0x1c0 [hns_roce_hw_v2]
-         ib_uverbs_reg_mr+0x120/0x2bc
-
-Add a cond_resched() to fix soft lockup during these loops. In order not
-to affect the allocation performance of normal-size buffer, set the loop
-count of a 100GB MR as the threshold to call cond_resched().
-
-Fixes: 38389eaa4db1 ("RDMA/hns: Add mtr support for mixed multihop addressing")
+Fixes: 6ec429d5887a ("RDMA/hns: Support userspace configuring congestion control algorithm with QP granularity")
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_qp.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 605562122ecc..ca0798224e56 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -1361,6 +1361,11 @@ static int hem_list_alloc_root_bt(struct hns_roce_dev *hr_dev,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index 70a38bf2bd86..18bf3761a64e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -1121,24 +1121,23 @@ static int set_qp_param(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp,
+ 						 ibucontext);
+ 		hr_qp->config = uctx->config;
+ 		ret = set_user_sq_size(hr_dev, &init_attr->cap, hr_qp, ucmd);
+-		if (ret)
++		if (ret) {
+ 			ibdev_err(ibdev,
+ 				  "failed to set user SQ size, ret = %d.\n",
+ 				  ret);
++			return ret;
++		}
+ 
+ 		ret = set_congest_param(hr_dev, hr_qp, ucmd);
+-		if (ret)
+-			return ret;
+ 	} else {
+ 		if (hr_dev->pci_dev->revision >= PCI_REVISION_ID_HIP09)
+ 			hr_qp->config = HNS_ROCE_EXSGE_FLAGS;
++		default_congest_type(hr_dev, hr_qp);
+ 		ret = set_kernel_sq_size(hr_dev, &init_attr->cap, hr_qp);
+ 		if (ret)
+ 			ibdev_err(ibdev,
+ 				  "failed to set kernel SQ size, ret = %d.\n",
+ 				  ret);
+-
+-		default_congest_type(hr_dev, hr_qp);
+ 	}
+ 
  	return ret;
- }
- 
-+/* This is the bottom bt pages number of a 100G MR on 4K OS, assuming
-+ * the bt page size is not expanded by cal_best_bt_pg_sz()
-+ */
-+#define RESCHED_LOOP_CNT_THRESHOLD_ON_4K 12800
-+
- /* construct the base address table and link them by address hop config */
- int hns_roce_hem_list_request(struct hns_roce_dev *hr_dev,
- 			      struct hns_roce_hem_list *hem_list,
-@@ -1369,6 +1374,7 @@ int hns_roce_hem_list_request(struct hns_roce_dev *hr_dev,
- {
- 	const struct hns_roce_buf_region *r;
- 	int ofs, end;
-+	int loop;
- 	int unit;
- 	int ret;
- 	int i;
-@@ -1386,7 +1392,10 @@ int hns_roce_hem_list_request(struct hns_roce_dev *hr_dev,
- 			continue;
- 
- 		end = r->offset + r->count;
--		for (ofs = r->offset; ofs < end; ofs += unit) {
-+		for (ofs = r->offset, loop = 1; ofs < end; ofs += unit, loop++) {
-+			if (!(loop % RESCHED_LOOP_CNT_THRESHOLD_ON_4K))
-+				cond_resched();
-+
- 			ret = hem_list_alloc_mid_bt(hr_dev, r, unit, ofs,
- 						    hem_list->mid_bt[i],
- 						    &hem_list->btm_bt);
-@@ -1443,9 +1452,14 @@ void *hns_roce_hem_list_find_mtt(struct hns_roce_dev *hr_dev,
- 	struct list_head *head = &hem_list->btm_bt;
- 	struct hns_roce_hem_item *hem, *temp_hem;
- 	void *cpu_base = NULL;
-+	int loop = 1;
- 	int nr = 0;
- 
- 	list_for_each_entry_safe(hem, temp_hem, head, sibling) {
-+		if (!(loop % RESCHED_LOOP_CNT_THRESHOLD_ON_4K))
-+			cond_resched();
-+		loop++;
-+
- 		if (hem_list_page_is_in_range(hem, offset)) {
- 			nr = offset - hem->start;
- 			cpu_base = hem->addr + nr * BA_BYTE_LEN;
 -- 
 2.33.0
 
