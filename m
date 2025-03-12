@@ -1,175 +1,297 @@
-Received: from mail-qv1-f45.google.com (mail-qv1-f45.google.com [209.85.219.45])
+Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 523D7230D3A
-	for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 09:20:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B997E23A563
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 09:21:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741771233; cv=none; b=qVmSgDD+UNFdqFWEp59Gw0/UpTd09XJQXy79hOaR4vWZ2U/tPwSeSaBWlWdtX6v2o4k6kj81yDrcQjy3uoE6yQFzqevzHEv7fjg+iQR2zLmA3VOMifWIyPSiTaz0OzdrV8u7JhOQ9WhoxK9d1buH9lCQwIZWIxdZWnVemz4jPSA=
+	t=1741771319; cv=none; b=UO+FPpQWNxNbXVYb6YgR2NLdBIY7raW0Q68TyWxFihDMQFfMFiYElQWbh6h7d/7SKe/0/bFqzmnL+w3fc90HTYtNeOu9Cc4b7IhhJDF786xAiqM5pDgEz6l1NijrCw9Irb2s2RHCj1Hr0JP8TTR63bC7+Ja/ySvUz55YyZuNIgI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741771233; c=relaxed/simple;
-	bh=UNQEpZ5sfTtfwFATwN/PYbpDuFHkRLdvDD98hKB2V+A=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=cFo/awZuNzPSO2n8U1EnMCzIJA+6JbhRMWYc7HjcNg26i4CTq2izgRYW2pOZqgOYWI7OanL1vuPeiUsK30wmU6UiWHibhvPyCnMOWNIYJuiUjLrDJRLqdwczpMQo+CfDkcdSnh6nthO5VJyyQfFsC1W/ywCkDWJY6naCPVhjKNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=enfabrica.net; spf=pass smtp.mailfrom=enfabrica.net; dkim=pass (2048-bit key) header.d=enfabrica.net header.i=@enfabrica.net header.b=VLTqhP22; arc=none smtp.client-ip=209.85.219.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=enfabrica.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=enfabrica.net
+	s=arc-20240116; t=1741771319; c=relaxed/simple;
+	bh=KXYxj//9xrkHJzq1XQaPvOxCZzSJvtTIgxzNC5tbBMg=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=d+ORhDhAqxHi37p6b8Hur8y0eAUjhPAGr4Uo3h4qSJa2Dwsa4RIuYKId7OX/I20BLZhVLl0Z5NNKy0LpaTvYbMhq8mtXjNsw/r1+wJxGr6ToYU4utpBSY3i+HDUt+jj2amQKYkHVk6etQEEhgX+eQOmEo7hmCncKvZ/ipKNW7lw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=VimMr50I; arc=none smtp.client-ip=209.85.216.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=enfabrica.net header.i=@enfabrica.net header.b="VLTqhP22"
-Received: by mail-qv1-f45.google.com with SMTP id 6a1803df08f44-6dd049b5428so64519996d6.2
-        for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 02:20:31 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="VimMr50I"
+Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-2ff694d2d4dso9476094a91.0
+        for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 02:21:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=enfabrica.net; s=google; t=1741771230; x=1742376030; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=7VpzqpioYCZTPrjL9rfNW08yUfn+3oM/qaVfIP1D1uQ=;
-        b=VLTqhP22gjl9u5N40vMpPE/Y+JT4fIOpCwhazjZQH9I3VAc0RhIYRrqYW3gDf3NsnX
-         uDunBtg7Rk6H8lGi35/GVE5lqD0YnZVzGBMHCz9GkBSVfsUzivzfE+awGf/mJiugkqxh
-         NMGdPyYqVVvkfXOjZH0zARExocPyNTuLxYjTS0PDsBD3aB+DSoUf2/Uw+eu67IlOaRR3
-         dc3AG6MjA+iDSAHdKPr8BEW9P0muqknJzyWxfpjUxyi534u3YWnVOvW4bcH89biLtO5g
-         KSoGsAb4KWPOtnuw87DlT9mS2XnZ1FORDFSFrT9D4y6ISAoWPDMgEW8JUcE+hJn02cdO
-         aVvQ==
+        d=broadcom.com; s=google; t=1741771317; x=1742376117; darn=vger.kernel.org;
+        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AfllUhZSzFdFMshN9fDiJ578DioLRMWZIT2s9rjasGE=;
+        b=VimMr50IfQ96bcdcKECitTJL59KGAQFrRHah9hxowixUb2b71QaiKvrahO12njrnsl
+         3s8T0H3epd6m0LCAAcdQX4xWjijMo0FvnL9jehg8D48b0xLOEMA+N0DBwiO3OePhMGq+
+         DeuxQ4QOqpsP0ZojVYtwsjxjxVxM0KoeciIkQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741771230; x=1742376030;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=7VpzqpioYCZTPrjL9rfNW08yUfn+3oM/qaVfIP1D1uQ=;
-        b=OjIwsJu50tnoHm+9LsWjNMUO93IizezBKLDAOQwnRHE9ljBit0W111RV0LiKFsZb0Z
-         A64zMJc8Uui8wQY6iS2uxSjkyEWo/mElSfEHqIsLMNHVt5VXzyeCybM4aUXSUUaMaKpC
-         pKp2u5kbhFyGKkfqpFtmOTG9S3G+6UDvAL6dIOKKllkCKxR80QbVgVSmWaJ/URVptsbY
-         qF96bwW4vfKC82jn3JrxjZr9vzG/QrSguyOU9+BTrPlk9DUs2DylMGMjYQcV6K1qQKV3
-         OWbkLssLO/GGG5aQ8Wh4SrKt2Qnthl8XDpPU9B6X3DzFwPngqpwg36fn2IYyeCaGm1Qq
-         ycKA==
-X-Forwarded-Encrypted: i=1; AJvYcCWOKHklqw0pX0DRA260zaP7CDa7+JkJDFp/cgMmXGzjosdy+0KRyTRC3ndEZ9DHdL7PeV69Lg1JJvMj@vger.kernel.org
-X-Gm-Message-State: AOJu0YzGlaW/DqCTo0xZ0p6Tn+cxsNZeAy+GLfmY46R59C4ppM+d02zH
-	vLdchjcLeFjCPFCubP6l3LK0x/8Zv6KjxIg8D8fsAt0kHVmadVhSSER/VXJZstI=
-X-Gm-Gg: ASbGncsyhvJwG3kKDU/zO5rmL5CVCkZaguOwuLVsGCDOMkMXA/9x7Q41YQ8S5OPJEvP
-	Jlu9v0pdZwooxyOP8tZRjL/189fFvC6rzdGRSO1M7X3P5vlrWD7EcWbfX54a+VFKZue7oODRMqG
-	eBxdKCkPkiFxYCiN+4UW8jBDH7DHBKChMjwyPqFVP7FTGbNGSjdYsb8inTolM80ohjRuyQEB5OI
-	EfOgylI2rY12fXxVuARbVCLBtwVElIBPAr15+hDTR5Yyxan1Wn1cHAxFx9HVZsx91FS8sJRt6Ul
-	pbdyrOvS6QK2BdP+wThlsM/v96xaYOZMSiJL6hfoE5aUUODzg9Z1
-X-Google-Smtp-Source: AGHT+IGvPzzDF+G+t4jAqh608nve568kH0JOAxRS+fBQPXr981QPc9PI2lfxrg7M/7BJCTmB5bW2cg==
-X-Received: by 2002:a05:6214:d6d:b0:6e8:9dd7:dfd0 with SMTP id 6a1803df08f44-6e90069c697mr313043876d6.44.1741771230136;
-        Wed, 12 Mar 2025 02:20:30 -0700 (PDT)
-Received: from [172.19.251.166] ([195.29.54.243])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5e5c7212ad9sm9516969a12.0.2025.03.12.02.20.28
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 12 Mar 2025 02:20:29 -0700 (PDT)
-Message-ID: <3840993e-5e20-4657-8d5e-e0e44c613a40@enfabrica.net>
-Date: Wed, 12 Mar 2025 11:20:27 +0200
+        d=1e100.net; s=20230601; t=1741771317; x=1742376117;
+        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=AfllUhZSzFdFMshN9fDiJ578DioLRMWZIT2s9rjasGE=;
+        b=aY2qXWbkIMtvA4CZXu9rdwjjOEScmjaz7uUpM083mrfqnH9QfQ6mAOYhKrPF4woHTq
+         7EWwxl2jAczBYBURVFNsvWfXAYj8Ccj3DfdW1djxFqEL5c4xpnS8sAIbIElPdnUX0Nb8
+         JKXlkFkLxq7/Fk61uLB/xiSrHhCngqmmWH46YzkERmWZaLdnlteHvMV5nK2j34SmGCAz
+         m1OcP5GQAOYDPmPLQswX0yKDEByfVaBL25E83cQSSeF7oAzDbUuFR2Vg6BHzhNhYygyd
+         +Lq05APCytuvnPRCTeavrdKttGa07ngmzzoSY/gZ9vcrTFmJJy5yZx6S5zi3pVK0NnK5
+         Bq+g==
+X-Gm-Message-State: AOJu0YykVol9/3To1v7035X1TWAjhAO4LaWhW8p534xYXE5P+vhY0M/c
+	WpCChc/pB+g/JYkSXmymUgKfkwPYmBKfZo1+ZSVGuxfaTREisDIyHxeLyjJ8Q+5H21UvFL+3ZCw
+	=
+X-Gm-Gg: ASbGncuH9zrQqkQ5DEeeryqqJl9yBz4BNSbLd4IW7CKa7rbd42yRE79AlxJQmdwzcIK
+	PhNLWFlT1gP+KfBMj+zsmngof8CIuPf91ZTDNxWgyE0gTvpwRykUbcM5qWugyKuxqckd1DHin6u
+	V8wIUdh3AUhYXP2UbOX8UERxZNlGay0884jkMckDfmEd1Yv+o1fCnOw1vRa1eE7Sc8okM7vT3Og
+	B+HyUu0n+Qa/eChpC9HFls6XQZegbThCqdmBE2lAsz8b4c7UYvSMd2iqUi31BJtG8fcez8JTNp8
+	VW5GgIgKEcJZtBJKdpRBjny9blWjigISWoUicC9h+DdacEp0hMVl67lmZjmBguvkR5c9VIOuosu
+	b5uy3jmUucfjrZyZEQ6ORMZp/
+X-Google-Smtp-Source: AGHT+IGaI7vci69FukExTmveMxI71tecNHPewDNuq4EPJBte2eUGomAXqHd9z4/P0bOVzaw4yftIVw==
+X-Received: by 2002:a05:6a20:db0c:b0:1f5:7007:9eb8 with SMTP id adf61e73a8af0-1f5700828d0mr19002516637.16.1741771316908;
+        Wed, 12 Mar 2025 02:21:56 -0700 (PDT)
+Received: from sxavier-dev.dhcp.broadcom.net ([192.19.234.250])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-af2855c63besm10679163a12.12.2025.03.12.02.21.54
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 12 Mar 2025 02:21:56 -0700 (PDT)
+From: Selvin Xavier <selvin.xavier@broadcom.com>
+To: leon@kernel.org,
+	jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org,
+	andrew.gospodarek@broadcom.com,
+	kalesh-anakkur.purayil@broadcom.com,
+	Preethi G <preethi.gurusiddalingeswaraswamy@broadcom.com>,
+	Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: [PATCH rdma-next v2] RDMA/bnxt_re: Support Perf management counters
+Date: Wed, 12 Mar 2025 02:01:09 -0700
+Message-Id: <1741770069-1455-1-git-send-email-selvin.xavier@broadcom.com>
+X-Mailer: git-send-email 2.5.5
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 00/13] Ultra Ethernet driver introduction
-To: Sean Hefty <shefty@nvidia.com>, Bernard Metzler <BMT@zurich.ibm.com>,
- Parav Pandit <parav@nvidia.com>, Leon Romanovsky <leon@kernel.org>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
- "shrijeet@enfabrica.net" <shrijeet@enfabrica.net>,
- "alex.badea@keysight.com" <alex.badea@keysight.com>,
- "eric.davis@broadcom.com" <eric.davis@broadcom.com>,
- "rip.sohan@amd.com" <rip.sohan@amd.com>,
- "dsahern@kernel.org" <dsahern@kernel.org>,
- "roland@enfabrica.net" <roland@enfabrica.net>,
- "winston.liu@keysight.com" <winston.liu@keysight.com>,
- "dan.mihailescu@keysight.com" <dan.mihailescu@keysight.com>,
- Kamal Heib <kheib@redhat.com>,
- "parth.v.parikh@keysight.com" <parth.v.parikh@keysight.com>,
- Dave Miller <davem@redhat.com>, "ian.ziemba@hpe.com" <ian.ziemba@hpe.com>,
- "andrew.tauferner@cornelisnetworks.com"
- <andrew.tauferner@cornelisnetworks.com>, "welch@hpe.com" <welch@hpe.com>,
- "rakhahari.bhunia@keysight.com" <rakhahari.bhunia@keysight.com>,
- "kingshuk.mandal@keysight.com" <kingshuk.mandal@keysight.com>,
- "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
- "kuba@kernel.org" <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Jason Gunthorpe <jgg@nvidia.com>
-References: <20250306230203.1550314-1-nikolay@enfabrica.net>
- <20250308184650.GV1955273@unreal>
- <CY8PR12MB7195F4D67BE6D9A970044572DCD72@CY8PR12MB7195.namprd12.prod.outlook.com>
- <BN8PR15MB25136EC9F3DE1FBEF9B2429199D12@BN8PR15MB2513.namprd15.prod.outlook.com>
- <DM6PR12MB43133BD3605D9C95498A9604BDD12@DM6PR12MB4313.namprd12.prod.outlook.com>
-Content-Language: en-US
-From: Nikolay Aleksandrov <nikolay@enfabrica.net>
-In-Reply-To: <DM6PR12MB43133BD3605D9C95498A9604BDD12@DM6PR12MB4313.namprd12.prod.outlook.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 3/11/25 7:11 PM, Sean Hefty wrote:
->> I am not sure if a new subsystem is what this RFC calls for, but rather a
->> discussion about the proper integration of a new RDMA transport into the
->> Linux kernel.
->>
->> Ultra Ethernet Transport is probably not just another transport up for easy
->> integration into the current RDMA subsystem.
->> First of all, its design does not follow the well-known RDMA verbs model
->> inherited from InfiniBand, which has largely shaped the current structure of
->> the RDMA subsystem. While having send, receive and completion queues (and
->> completion counters) to steer message exchange, there is no concept of a
->> queue pair. Endpoints can span multiple queues, can have multiple peer
->> addresses.
->> Communication resources sharing is controlled in a different way than within
->> protection domains. Connections are ephemeral, created and released by the
->> provider as needed. There are more differences. In a nutshell, the UET
->> communication model is trimmed for extreme scalability. Its API semantics
->> follow libfabrics, not RDMA verbs.
->>
->> I think Nik gave us a first still incomplete look at the UET protocol engine to
->> help us understand some of the specifics.
->> It's just the lower part (packet delivery). The implementation of the upper part
->> (resource management, communication semantics, job management) may
->> largely depend on the environment we all choose.
->>
->> IMO, integrating UET with the current RDMA subsystem would ask for its
->> extension to allow exposing all of UETs intended functionality, probably
->> starting with a more generic RDMA device model than current ib_device.
->>
->> The different API semantics of UET may further call for either extending verbs
->> to cover it as well, or exposing a new non-verbs API (libfabrics), or both.
-> 
-> Reading through the submissions, what I found lacking is a description of some higher-level plan.  I don't easily see how to relate this series to NICs that may implement UET in HW.
-> 
-> Should the PDS be viewed as a partial implementation of a SW UET 'device', similar to soft RoCE or iWarp?  If so, having a description of a proposed device model seems like a necessary first step.
-> 
+From: Preethi G <preethi.gurusiddalingeswaraswamy@broadcom.com>
 
-Hi Sean,
-To quote the cover letter:
-"...As there
-isn't any UET hardware available yet, we introduce a software
-device model which implements the lowest sublayer of the spec - PDS..."
+Add support for process_mad hook to retrieve the perf management counters.
+Supports IB_PMA_PORT_COUNTERS and IB_PMA_PORT_COUNTERS_EXT counters.
+Query the data from HW contexts and FW commands.
 
-and
+Signed-off-by: Preethi G <preethi.gurusiddalingeswaraswamy@broadcom.com>
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
+---
+v1->v2:
+	Fix the warning reported by kernel test robot by returning rc
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h     |  4 ++
+ drivers/infiniband/hw/bnxt_re/hw_counters.c | 88 +++++++++++++++++++++++++++++
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c    | 36 ++++++++++++
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h    |  6 ++
+ drivers/infiniband/hw/bnxt_re/main.c        |  1 +
+ 5 files changed, 135 insertions(+)
 
-"The plan is to have that split into core Ultra Ethernet module
-(ultraeth.ko) which is responsible for managing the UET contexts, jobs
-and all other common/generic UET configuration, and the software UET
-device model (uecon.ko) which implements the UET protocols for
-communication in software (e.g. the PDS will be a part of uecon) and is
-represented by a UDP tunnel network device."
-
-So as I said, it is in very early stage, but we plan to split this into
-core UET code and uecon software device model that implements the UEC
-specs.
-
-> If, instead, the PDS should be viewed more along the lines of a partial RDS-like path, then that changes the uapi.
-> 
-> Or, am I not viewing this series as intended at all?
-> 
-> It is almost guaranteed that there will be NICs which will support both RoCE and UET, and it's not farfetched to think that an app may use both simultaneously.   IMO, a common device model is ideal, assuming exposing a device model is the intent.
-> 
-
-That is the goal and we're working on UET kernel device API as I've
-noted in the cover letter.
-
-> I agree that different transport models should not be forced together unnaturally, but I think that's solvable.  In the end, the application developer is exposed to libfabric naming anyway.  Besides, even a repurposed RDMA name is still better than the naming used within OpenMPI.  :)
-> 
-> - Sean
-
-Cheers,
- Nik
-
+diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+index b33b04e..8bc0237 100644
+--- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
++++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+@@ -246,6 +246,10 @@ struct bnxt_re_dev {
+ #define BNXT_RE_CHECK_RC(x) ((x) && ((x) != -ETIMEDOUT))
+ void bnxt_re_pacing_alert(struct bnxt_re_dev *rdev);
+ 
++int bnxt_re_assign_pma_port_counters(struct bnxt_re_dev *rdev, struct ib_mad *out_mad);
++int bnxt_re_assign_pma_port_ext_counters(struct bnxt_re_dev *rdev,
++					 struct ib_mad *out_mad);
++
+ static inline struct device *rdev_to_dev(struct bnxt_re_dev *rdev)
+ {
+ 	if (rdev)
+diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.c b/drivers/infiniband/hw/bnxt_re/hw_counters.c
+index 3ac47f4..d90f2cb 100644
+--- a/drivers/infiniband/hw/bnxt_re/hw_counters.c
++++ b/drivers/infiniband/hw/bnxt_re/hw_counters.c
+@@ -39,6 +39,8 @@
+ 
+ #include <linux/types.h>
+ #include <linux/pci.h>
++#include <rdma/ib_mad.h>
++#include <rdma/ib_pma.h>
+ 
+ #include "roce_hsi.h"
+ #include "qplib_res.h"
+@@ -285,6 +287,92 @@ static void bnxt_re_copy_db_pacing_stats(struct bnxt_re_dev *rdev,
+ 		readl(rdev->en_dev->bar0 + rdev->pacing.dbr_db_fifo_reg_off);
+ }
+ 
++int bnxt_re_assign_pma_port_ext_counters(struct bnxt_re_dev *rdev, struct ib_mad *out_mad)
++{
++	struct ib_pma_portcounters_ext *pma_cnt_ext;
++	struct bnxt_qplib_ext_stat *estat = &rdev->stats.rstat.ext_stat;
++	struct ctx_hw_stats *hw_stats = NULL;
++	int rc = 0;
++
++	hw_stats = rdev->qplib_ctx.stats.dma;
++
++	pma_cnt_ext = (void *)(out_mad->data + 40);
++	if (_is_ext_stats_supported(rdev->dev_attr->dev_cap_flags)) {
++		u32 fid = PCI_FUNC(rdev->en_dev->pdev->devfn);
++
++		rc = bnxt_qplib_qext_stat(&rdev->rcfw, fid, estat);
++	}
++
++	pma_cnt_ext = (void *)(out_mad->data + 40);
++	if ((bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx) && rdev->is_virtfn) ||
++	    !bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx)) {
++		pma_cnt_ext->port_xmit_data =
++			cpu_to_be64(le64_to_cpu(hw_stats->tx_ucast_bytes) / 4);
++		pma_cnt_ext->port_rcv_data =
++			cpu_to_be64(le64_to_cpu(hw_stats->rx_ucast_bytes) / 4);
++		pma_cnt_ext->port_xmit_packets =
++			cpu_to_be64(le64_to_cpu(hw_stats->tx_ucast_pkts));
++		pma_cnt_ext->port_rcv_packets =
++			cpu_to_be64(le64_to_cpu(hw_stats->rx_ucast_pkts));
++		pma_cnt_ext->port_unicast_rcv_packets =
++			cpu_to_be64(le64_to_cpu(hw_stats->rx_ucast_pkts));
++		pma_cnt_ext->port_unicast_xmit_packets =
++			cpu_to_be64(le64_to_cpu(hw_stats->tx_ucast_pkts));
++
++	} else {
++		pma_cnt_ext->port_rcv_packets = cpu_to_be64(estat->rx_roce_good_pkts);
++		pma_cnt_ext->port_rcv_data = cpu_to_be64(estat->rx_roce_good_bytes / 4);
++		pma_cnt_ext->port_xmit_packets = cpu_to_be64(estat->tx_roce_pkts);
++		pma_cnt_ext->port_xmit_data = cpu_to_be64(estat->tx_roce_bytes / 4);
++		pma_cnt_ext->port_unicast_rcv_packets = cpu_to_be64(estat->rx_roce_good_pkts);
++		pma_cnt_ext->port_unicast_xmit_packets = cpu_to_be64(estat->tx_roce_pkts);
++	}
++	return rc;
++}
++
++int bnxt_re_assign_pma_port_counters(struct bnxt_re_dev *rdev, struct ib_mad *out_mad)
++{
++	struct bnxt_qplib_ext_stat *estat = &rdev->stats.rstat.ext_stat;
++	struct ib_pma_portcounters *pma_cnt;
++	struct ctx_hw_stats *hw_stats = NULL;
++	int rc = 0;
++
++	hw_stats = rdev->qplib_ctx.stats.dma;
++
++	pma_cnt = (void *)(out_mad->data + 40);
++	if (_is_ext_stats_supported(rdev->dev_attr->dev_cap_flags)) {
++		u32 fid = PCI_FUNC(rdev->en_dev->pdev->devfn);
++
++		rc = bnxt_qplib_qext_stat(&rdev->rcfw, fid, estat);
++	}
++	if ((bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx) && rdev->is_virtfn) ||
++	    !bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx)) {
++		pma_cnt->port_rcv_packets =
++			cpu_to_be32((u32)(le64_to_cpu(hw_stats->rx_ucast_pkts)) & 0xFFFFFFFF);
++		pma_cnt->port_rcv_data =
++			cpu_to_be32((u32)((le64_to_cpu(hw_stats->rx_ucast_bytes) &
++					   0xFFFFFFFF) / 4));
++		pma_cnt->port_xmit_packets =
++			cpu_to_be32((u32)(le64_to_cpu(hw_stats->tx_ucast_pkts)) & 0xFFFFFFFF);
++		pma_cnt->port_xmit_data =
++			cpu_to_be32((u32)((le64_to_cpu(hw_stats->tx_ucast_bytes)
++					   & 0xFFFFFFFF) / 4));
++	} else {
++		pma_cnt->port_rcv_packets = cpu_to_be32(estat->rx_roce_good_pkts);
++		pma_cnt->port_rcv_data = cpu_to_be32((estat->rx_roce_good_bytes / 4));
++		pma_cnt->port_xmit_packets = cpu_to_be32(estat->tx_roce_pkts);
++		pma_cnt->port_xmit_data = cpu_to_be32((estat->tx_roce_bytes / 4));
++	}
++	pma_cnt->port_rcv_constraint_errors = (u8)(le64_to_cpu(hw_stats->rx_discard_pkts) & 0xFF);
++	pma_cnt->port_rcv_errors = cpu_to_be16((u16)(le64_to_cpu(hw_stats->rx_error_pkts)
++						     & 0xFFFF));
++	pma_cnt->port_xmit_constraint_errors = (u8)(le64_to_cpu(hw_stats->tx_error_pkts) & 0xFF);
++	pma_cnt->port_xmit_discards = cpu_to_be16((u16)(le64_to_cpu(hw_stats->tx_discard_pkts)
++							& 0xFFFF));
++
++	return rc;
++}
++
+ int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
+ 			    struct rdma_hw_stats *stats,
+ 			    u32 port, int index)
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 2de101d..dc31973 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -49,6 +49,7 @@
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_cache.h>
++#include <rdma/ib_pma.h>
+ #include <rdma/uverbs_ioctl.h>
+ #include <linux/hashtable.h>
+ 
+@@ -4489,6 +4490,41 @@ void bnxt_re_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
+ 	kfree(bnxt_entry);
+ }
+ 
++int bnxt_re_process_mad(struct ib_device *ibdev, int mad_flags,
++			u32 port_num, const struct ib_wc *in_wc,
++			const struct ib_grh *in_grh,
++			const struct ib_mad *in_mad, struct ib_mad *out_mad,
++			size_t *out_mad_size, u16 *out_mad_pkey_index)
++{
++	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
++	struct ib_class_port_info cpi = {};
++	int ret = IB_MAD_RESULT_SUCCESS;
++	int rc = 0;
++
++	if (in_mad->mad_hdr.mgmt_class  != IB_MGMT_CLASS_PERF_MGMT)
++		return ret;
++
++	switch (in_mad->mad_hdr.attr_id) {
++	case IB_PMA_CLASS_PORT_INFO:
++		cpi.capability_mask = IB_PMA_CLASS_CAP_EXT_WIDTH;
++		memcpy((out_mad->data + 40), &cpi, sizeof(cpi));
++		break;
++	case IB_PMA_PORT_COUNTERS_EXT:
++		rc = bnxt_re_assign_pma_port_ext_counters(rdev, out_mad);
++		break;
++	case IB_PMA_PORT_COUNTERS:
++		rc = bnxt_re_assign_pma_port_counters(rdev, out_mad);
++		break;
++	default:
++		rc = -EINVAL;
++		break;
++	}
++	if (rc)
++		return IB_MAD_RESULT_FAILURE;
++	ret |= IB_MAD_RESULT_REPLY;
++	return ret;
++}
++
+ static int UVERBS_HANDLER(BNXT_RE_METHOD_NOTIFY_DRV)(struct uverbs_attr_bundle *attrs)
+ {
+ 	struct bnxt_re_ucontext *uctx;
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+index fbb16a4..22c9eb8 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+@@ -268,6 +268,12 @@ void bnxt_re_dealloc_ucontext(struct ib_ucontext *context);
+ int bnxt_re_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
+ void bnxt_re_mmap_free(struct rdma_user_mmap_entry *rdma_entry);
+ 
++int bnxt_re_process_mad(struct ib_device *device, int process_mad_flags,
++			u32 port_num, const struct ib_wc *in_wc,
++			const struct ib_grh *in_grh,
++			const struct ib_mad *in_mad, struct ib_mad *out_mad,
++			size_t *out_mad_size, u16 *out_mad_pkey_index);
++
+ static inline u32 __to_ib_port_num(u16 port_id)
+ {
+ 	return (u32)port_id + 1;
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index e9e4da4..59ddb36 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -1276,6 +1276,7 @@ static const struct ib_device_ops bnxt_re_dev_ops = {
+ 	.post_recv = bnxt_re_post_recv,
+ 	.post_send = bnxt_re_post_send,
+ 	.post_srq_recv = bnxt_re_post_srq_recv,
++	.process_mad = bnxt_re_process_mad,
+ 	.query_ah = bnxt_re_query_ah,
+ 	.query_device = bnxt_re_query_device,
+ 	.modify_device = bnxt_re_modify_device,
+-- 
+2.5.5
 
