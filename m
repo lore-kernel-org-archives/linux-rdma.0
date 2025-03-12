@@ -1,297 +1,255 @@
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailout1.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B997E23A563
-	for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 09:21:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB5D236A62
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 09:28:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741771319; cv=none; b=UO+FPpQWNxNbXVYb6YgR2NLdBIY7raW0Q68TyWxFihDMQFfMFiYElQWbh6h7d/7SKe/0/bFqzmnL+w3fc90HTYtNeOu9Cc4b7IhhJDF786xAiqM5pDgEz6l1NijrCw9Irb2s2RHCj1Hr0JP8TTR63bC7+Ja/ySvUz55YyZuNIgI=
+	t=1741771722; cv=none; b=j7KpK+Sxj7XpnlZgjRtneCQel/PMvHFcf2nqlpvLCqGMldxnHE7xHCcXLjuYFrkA1nz/IPtGj84y+GxTesN7VLDBHmsv37Q5dkivGtvB3BmoIOSaNtwEb1qjtJaw7dGKWu5SVJoORvu59rwm7Jcb8XtVhKP2fWT9YtAEDhnglJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741771319; c=relaxed/simple;
-	bh=KXYxj//9xrkHJzq1XQaPvOxCZzSJvtTIgxzNC5tbBMg=;
-	h=From:To:Cc:Subject:Date:Message-Id; b=d+ORhDhAqxHi37p6b8Hur8y0eAUjhPAGr4Uo3h4qSJa2Dwsa4RIuYKId7OX/I20BLZhVLl0Z5NNKy0LpaTvYbMhq8mtXjNsw/r1+wJxGr6ToYU4utpBSY3i+HDUt+jj2amQKYkHVk6etQEEhgX+eQOmEo7hmCncKvZ/ipKNW7lw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com; spf=fail smtp.mailfrom=broadcom.com; dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b=VimMr50I; arc=none smtp.client-ip=209.85.216.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=broadcom.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
+	s=arc-20240116; t=1741771722; c=relaxed/simple;
+	bh=6KAeTydDNQmh9ejxV3lHGEocGPHDZC5ErvVvG5/OBoo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
+	 Content-Type:References; b=pqI3yII++CVOGoZM/Ap91JfHiGxFFZQxtX0Xls2+gyzFMlAzWf9fRD8WfaBK7/vywtBe8Hqx5YQMXh7KpJiRwreFhd5LaIxDoVpP+escVM3rbec2iF0aiUKDFH+TK7AyZXij/yrRhvCUBrV9XVWS1DY23pCiRPIuo/F+E4KnX8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=Ze2jFdmu; arc=none smtp.client-ip=210.118.77.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.b="VimMr50I"
-Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-2ff694d2d4dso9476094a91.0
-        for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 02:21:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1741771317; x=1742376117; darn=vger.kernel.org;
-        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=AfllUhZSzFdFMshN9fDiJ578DioLRMWZIT2s9rjasGE=;
-        b=VimMr50IfQ96bcdcKECitTJL59KGAQFrRHah9hxowixUb2b71QaiKvrahO12njrnsl
-         3s8T0H3epd6m0LCAAcdQX4xWjijMo0FvnL9jehg8D48b0xLOEMA+N0DBwiO3OePhMGq+
-         DeuxQ4QOqpsP0ZojVYtwsjxjxVxM0KoeciIkQ=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741771317; x=1742376117;
-        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=AfllUhZSzFdFMshN9fDiJ578DioLRMWZIT2s9rjasGE=;
-        b=aY2qXWbkIMtvA4CZXu9rdwjjOEScmjaz7uUpM083mrfqnH9QfQ6mAOYhKrPF4woHTq
-         7EWwxl2jAczBYBURVFNsvWfXAYj8Ccj3DfdW1djxFqEL5c4xpnS8sAIbIElPdnUX0Nb8
-         JKXlkFkLxq7/Fk61uLB/xiSrHhCngqmmWH46YzkERmWZaLdnlteHvMV5nK2j34SmGCAz
-         m1OcP5GQAOYDPmPLQswX0yKDEByfVaBL25E83cQSSeF7oAzDbUuFR2Vg6BHzhNhYygyd
-         +Lq05APCytuvnPRCTeavrdKttGa07ngmzzoSY/gZ9vcrTFmJJy5yZx6S5zi3pVK0NnK5
-         Bq+g==
-X-Gm-Message-State: AOJu0YykVol9/3To1v7035X1TWAjhAO4LaWhW8p534xYXE5P+vhY0M/c
-	WpCChc/pB+g/JYkSXmymUgKfkwPYmBKfZo1+ZSVGuxfaTREisDIyHxeLyjJ8Q+5H21UvFL+3ZCw
-	=
-X-Gm-Gg: ASbGncuH9zrQqkQ5DEeeryqqJl9yBz4BNSbLd4IW7CKa7rbd42yRE79AlxJQmdwzcIK
-	PhNLWFlT1gP+KfBMj+zsmngof8CIuPf91ZTDNxWgyE0gTvpwRykUbcM5qWugyKuxqckd1DHin6u
-	V8wIUdh3AUhYXP2UbOX8UERxZNlGay0884jkMckDfmEd1Yv+o1fCnOw1vRa1eE7Sc8okM7vT3Og
-	B+HyUu0n+Qa/eChpC9HFls6XQZegbThCqdmBE2lAsz8b4c7UYvSMd2iqUi31BJtG8fcez8JTNp8
-	VW5GgIgKEcJZtBJKdpRBjny9blWjigISWoUicC9h+DdacEp0hMVl67lmZjmBguvkR5c9VIOuosu
-	b5uy3jmUucfjrZyZEQ6ORMZp/
-X-Google-Smtp-Source: AGHT+IGaI7vci69FukExTmveMxI71tecNHPewDNuq4EPJBte2eUGomAXqHd9z4/P0bOVzaw4yftIVw==
-X-Received: by 2002:a05:6a20:db0c:b0:1f5:7007:9eb8 with SMTP id adf61e73a8af0-1f5700828d0mr19002516637.16.1741771316908;
-        Wed, 12 Mar 2025 02:21:56 -0700 (PDT)
-Received: from sxavier-dev.dhcp.broadcom.net ([192.19.234.250])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-af2855c63besm10679163a12.12.2025.03.12.02.21.54
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 12 Mar 2025 02:21:56 -0700 (PDT)
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-To: leon@kernel.org,
-	jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org,
-	andrew.gospodarek@broadcom.com,
-	kalesh-anakkur.purayil@broadcom.com,
-	Preethi G <preethi.gurusiddalingeswaraswamy@broadcom.com>,
-	Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: [PATCH rdma-next v2] RDMA/bnxt_re: Support Perf management counters
-Date: Wed, 12 Mar 2025 02:01:09 -0700
-Message-Id: <1741770069-1455-1-git-send-email-selvin.xavier@broadcom.com>
-X-Mailer: git-send-email 2.5.5
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="Ze2jFdmu"
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+	by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20250312092838euoutp011bea38c0888b82d9cc901f9f08e59f53~sBCY758Zo2652326523euoutp01h
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 09:28:38 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20250312092838euoutp011bea38c0888b82d9cc901f9f08e59f53~sBCY758Zo2652326523euoutp01h
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1741771718;
+	bh=jM2XikXEr0ikBo0oLtomrsxm7QlhoeG8uKeeSTS19yM=;
+	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
+	b=Ze2jFdmuO0cLLYqLIJd51/wQzBFKAzxgIHozoFZZoNuFZcFG485swGkdKMqUW/Zvp
+	 cl2zr4/04Ndda/wzPd5iBES/LxTo9/80XTM5/yJ6P9bBGWVcJ9B29HLYT+lSWshREK
+	 7AGTFVkE3KSlN6ONOEzzV8Pi8Yif9QuOagwPNUks=
+Received: from eusmges2new.samsung.com (unknown [203.254.199.244]) by
+	eucas1p2.samsung.com (KnoxPortal) with ESMTP id
+	20250312092837eucas1p25b1b9a0eaeeeb28386900bd5799beff7~sBCYkpiud1062910629eucas1p2o;
+	Wed, 12 Mar 2025 09:28:37 +0000 (GMT)
+Received: from eucas1p2.samsung.com ( [182.198.249.207]) by
+	eusmges2new.samsung.com (EUCPMTA) with SMTP id 6E.F9.20409.5C351D76; Wed, 12
+	Mar 2025 09:28:37 +0000 (GMT)
+Received: from eusmtrp1.samsung.com (unknown [182.198.249.138]) by
+	eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
+	20250312092837eucas1p141720d6a0df85c410f2b2209e4cb4ae1~sBCYE1szl1182811828eucas1p1t;
+	Wed, 12 Mar 2025 09:28:37 +0000 (GMT)
+Received: from eusmgms2.samsung.com (unknown [182.198.249.180]) by
+	eusmtrp1.samsung.com (KnoxPortal) with ESMTP id
+	20250312092837eusmtrp1bf90383d9f98004fe39bcc48be1d1fe1~sBCYCvohl2987729877eusmtrp1N;
+	Wed, 12 Mar 2025 09:28:37 +0000 (GMT)
+X-AuditID: cbfec7f4-c39fa70000004fb9-67-67d153c532b4
+Received: from eusmtip2.samsung.com ( [203.254.199.222]) by
+	eusmgms2.samsung.com (EUCPMTA) with SMTP id 8C.F0.19654.5C351D76; Wed, 12
+	Mar 2025 09:28:37 +0000 (GMT)
+Received: from [106.210.134.192] (unknown [106.210.134.192]) by
+	eusmtip2.samsung.com (KnoxPortal) with ESMTPA id
+	20250312092833eusmtip25e36488a2aac248bc9b654fb690ddc66~sBCVArikT0743107431eusmtip2e;
+	Wed, 12 Mar 2025 09:28:33 +0000 (GMT)
+Message-ID: <d408b1c7-eabf-4a1e-861c-b2ddf8bf9f0e@samsung.com>
+Date: Wed, 12 Mar 2025 10:28:32 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 00/17] Provide a new two step DMA mapping API
+To: Robin Murphy <robin.murphy@arm.com>, Leon Romanovsky <leon@kernel.org>,
+	Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jens Axboe <axboe@kernel.dk>, Joerg Roedel <joro@8bytes.org>, Will
+	Deacon <will@kernel.org>, Sagi Grimberg <sagi@grimberg.me>, Keith Busch
+	<kbusch@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Logan Gunthorpe
+	<logang@deltatee.com>, Yishai Hadas <yishaih@nvidia.com>, Shameer Kolothum
+	<shameerali.kolothum.thodi@huawei.com>, Kevin Tian <kevin.tian@intel.com>,
+	Alex Williamson <alex.williamson@redhat.com>,
+	=?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Andrew Morton
+	<akpm@linux-foundation.org>, Jonathan Corbet <corbet@lwn.net>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+	iommu@lists.linux.dev, linux-nvme@lists.infradead.org,
+	linux-pci@vger.kernel.org, kvm@vger.kernel.org, linux-mm@kvack.org, Randy
+	Dunlap <rdunlap@infradead.org>
+Content-Language: en-US
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+In-Reply-To: <1166a5f5-23cc-4cce-ba40-5e10ad2606de@arm.com>
+Content-Transfer-Encoding: 8bit
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0xTZxjH97anp6VQdiwobxRH2l2o6KigZO+CdgyNOfpBXbbswz64NeNY
+	CBehpWzMLDYMtHRctEiAgoDaCqNFsIxuVlHbgS0QBsiYchGDKZVLymgHTmGbkx628e33f97/
+	c83LYfLb8c2clIxsSp4hTRPiXMxy93n/210fDsp23l+IRDUtJhw9fVGEI+PDUhzp85KR684Z
+	gL4zdjHQ8iJCVZVOgKorphmosLqVjbT2XwEyeNrZqKY8C51fNjBRx+h2dPG0HkND1hocTZhe
+	sFDdlSk26qt14MhtL8aQvuAlecYrMGRbcLHQ1bnfMPTDcB4L5Y/HoSvl3IRw0mWrZZCmWhMg
+	3cNuQNablWT/xDWMzO/0sMi2xijy8s0ZBjnUpyTNTYU4afZp2aSzcgUj2/SnyOm2KkDeGFHh
+	5OWSMtbR0E+4e5KotJQcSi6WfMZNHnFuybwt/rLQ7mCoQEOkBnA4kNgNB31JGsDl8IlGAN13
+	F1i0WARw5vwyoMXvAHYUexkaEODPaLSq11wNAN6ssmO08ALou9eMrbp4hATeLzH5MzDiTVg8
+	1bEW3wC7q1x+3khEwEejlexVDiH2wzuWc8zVQqFEEYC2oT/9JibRg8PnTw7QHAZHXXX+ojgR
+	AzUeDb7KAUQ8nC/4hU17IuA37dX+QpCwceEDSyWLnns/tBuMaxwCZx3fs2kOh71lRRidcAbA
+	+pVHDFqcBVD1ZBTQrng4/vMyvnozJrENtljFdPh9OLA0yaZPGQwfeDbQQwRDraWCSYd5UH2a
+	T7vfgjrH1f/a2gbuMc8CoW7dXXTr1tStW0f3f996gDWBMEqpSJdRitgM6otohTRdocyQRX9+
+	It0MXv7s3r8diz+ChllvtB0wOMAOIIcpDOUZ9w7I+Lwkae5XlPzEp3JlGqWwgy0cTBjGu3S7
+	QMYnZNJsKpWiMin5v68MTsBmFePjg7uDJLceL73TCqhcgSZ3LKG6YW5raimP79tbJ7IOPhN9
+	HSw0fNsaNBU73xqi8mZH5R3ftz0oueX68eFbG6mTzUWmngZkbntNqy4XRbD7+1KOxM2ee336
+	5A1nwS4ROcuO73Ad3PNXafjAoLUvzM2aCzarX+lWR838NB75kbDp6OTY4WMRIx/scqDCkmvR
+	mRZfzAF9iWfb4USxTLyvbjgywfB4x3sGZ41AkihauhCYmHr9VEp1z8oxmVv4blpvVhzPc8im
+	FVyaP2T7Y6458NmwoF/wVCu52J3onUh/WLcjMKdr2rh10TDQOPZqIRmeuSmrPj9TH7up842y
+	nCM7JztJIaZIlsZEMeUK6T9oYz5PSAQAAA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrJKsWRmVeSWpSXmKPExsVy+t/xe7pHgy+mGxybwmoxZ/0aNotv/3vY
+	LFbf7WezWNKUYfHkQDujxcrVR5ksfn2xsJg54wSjxezpL5gsOmdvYLeYdOgao8XSt1vZLeZM
+	LbSY8msps8XeW9oWC9uWsFhc3jWHzeLemv+sFvOXPWW3ODvvOJvFs0O9LBZLWoGst3ems1gc
+	/PCE1WLd6/csFtuvNrFatNwxtVg2lctBxuPJwXlMHmvmrWH0eHb1GaPHgk2lHufvbWTxaDny
+	ltVj8wotj8V7XjJ5XD5b6rFpVSebx6ZPk9g9Tsz4zeKxeUm9x4vNMxk9dt9sYPNY3DeZNUAk
+	Ss+mKL+0JFUhI7+4xFYp2tDCSM/Q0kLPyMRSz9DYPNbKyFRJ384mJTUnsyy1SN8uQS/j5gnp
+	gv36FZ2HjjM1MC5X72Lk5JAQMJFYsauDtYuRi0NIYCmjxIS/p5ghEjISJ6c1sELYwhJ/rnWx
+	QRS9Z5RY++UkO0iCV8BO4nrfGiYQm0VAVaL36V4WiLigxMmZT8BsUQF5ifu3ZoDVCwu4SBzY
+	NpEZZJCIQA+jxLdTrxlBHGaBM2wSl08dZodYcZtR4u6OZ2DtzALiEreezAdbwSZgKNH1FuQO
+	Tg5OAWuJd61X2CFqzCS6tnYxQtjyEs1bZzNPYBSaheSSWUhGzULSMgtJywJGllWMIqmlxbnp
+	ucVGesWJucWleel6yfm5mxiBaWrbsZ9bdjCufPVR7xAjEwfjIUYJDmYlEd7VthfShXhTEiur
+	Uovy44tKc1KLDzGaAoNjIrOUaHI+MFHmlcQbmhmYGpqYWRqYWpoZK4nzsl05nyYkkJ5Ykpqd
+	mlqQWgTTx8TBKdXA5MXweTLfSoUt60qSqyf199psCJmzLOjbt8Dp+7jLF2+ZuEluf1nFmbOd
+	l+qXd9/ft6TgwH4DreD/wnf1z2qZXhOetSktKnbvNVmG5GOnBBm31dzN+6q+VYDH/nXctaXM
+	DRaGhnPUPZ5uLq/ju9p/c8Lyk3EfPjhwBL4XLv7acvXf23j5OaW87x66Vu0X7fJa8Thh2ccZ
+	gsVbGVZfm5p4ViVl+65LbPukf8vc5kivmOKxdG+f8RpZ3sqDYcteLtZunVmxxVM+7JHComdz
+	/OTe5AR/tP1X1fZmt+BTkYmPJr/2fLbOLX6/YIXdFHGLCU2v7nSZ83W9mB+3dPf3mvIjtrN5
+	81IPXWh+2M93O+XnxA4lluKMREMt5qLiRABwmQ+33AMAAA==
+X-CMS-MailID: 20250312092837eucas1p141720d6a0df85c410f2b2209e4cb4ae1
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-RootMTR: 20250228195423eucas1p221736d964e9aeb1b055d3ee93a4d2648
+X-EPHeader: CA
+CMS-TYPE: 201P
+X-CMS-RootMailID: 20250228195423eucas1p221736d964e9aeb1b055d3ee93a4d2648
+References: <cover.1738765879.git.leonro@nvidia.com>
+	<20250220124827.GR53094@unreal>
+	<CGME20250228195423eucas1p221736d964e9aeb1b055d3ee93a4d2648@eucas1p2.samsung.com>
+	<1166a5f5-23cc-4cce-ba40-5e10ad2606de@arm.com>
 
-From: Preethi G <preethi.gurusiddalingeswaraswamy@broadcom.com>
+Hi Robin
 
-Add support for process_mad hook to retrieve the perf management counters.
-Supports IB_PMA_PORT_COUNTERS and IB_PMA_PORT_COUNTERS_EXT counters.
-Query the data from HW contexts and FW commands.
+On 28.02.2025 20:54, Robin Murphy wrote:
+> On 20/02/2025 12:48 pm, Leon Romanovsky wrote:
+>> On Wed, Feb 05, 2025 at 04:40:20PM +0200, Leon Romanovsky wrote:
+>>> From: Leon Romanovsky <leonro@nvidia.com>
+>>>
+>>> Changelog:
+>>> v7:
+>>>   * Rebased to v6.14-rc1
+>>
+>> <...>
+>>
+>>> Christoph Hellwig (6):
+>>>    PCI/P2PDMA: Refactor the p2pdma mapping helpers
+>>>    dma-mapping: move the PCI P2PDMA mapping helpers to pci-p2pdma.h
+>>>    iommu: generalize the batched sync after map interface
+>>>    iommu/dma: Factor out a iommu_dma_map_swiotlb helper
+>>>    dma-mapping: add a dma_need_unmap helper
+>>>    docs: core-api: document the IOVA-based API
+>>>
+>>> Leon Romanovsky (11):
+>>>    iommu: add kernel-doc for iommu_unmap and iommu_unmap_fast
+>>>    dma-mapping: Provide an interface to allow allocate IOVA
+>>>    dma-mapping: Implement link/unlink ranges API
+>>>    mm/hmm: let users to tag specific PFN with DMA mapped bit
+>>>    mm/hmm: provide generic DMA managing logic
+>>>    RDMA/umem: Store ODP access mask information in PFN
+>>>    RDMA/core: Convert UMEM ODP DMA mapping to caching IOVA and page
+>>>      linkage
+>>>    RDMA/umem: Separate implicit ODP initialization from explicit ODP
+>>>    vfio/mlx5: Explicitly use number of pages instead of allocated 
+>>> length
+>>>    vfio/mlx5: Rewrite create mkey flow to allow better code reuse
+>>>    vfio/mlx5: Enable the DMA link API
+>>>
+>>>   Documentation/core-api/dma-api.rst   |  70 ++++
+>>   drivers/infiniband/core/umem_odp.c   | 250 +++++---------
+>>>   drivers/infiniband/hw/mlx5/mlx5_ib.h |  12 +-
+>>>   drivers/infiniband/hw/mlx5/odp.c     |  65 ++--
+>>>   drivers/infiniband/hw/mlx5/umr.c     |  12 +-
+>>>   drivers/iommu/dma-iommu.c            | 468 
+>>> +++++++++++++++++++++++----
+>>>   drivers/iommu/iommu.c                |  84 ++---
+>>>   drivers/pci/p2pdma.c                 |  38 +--
+>>>   drivers/vfio/pci/mlx5/cmd.c          | 375 +++++++++++----------
+>>>   drivers/vfio/pci/mlx5/cmd.h          |  35 +-
+>>>   drivers/vfio/pci/mlx5/main.c         |  87 +++--
+>>>   include/linux/dma-map-ops.h          |  54 ----
+>>>   include/linux/dma-mapping.h          |  85 +++++
+>>>   include/linux/hmm-dma.h              |  33 ++
+>>>   include/linux/hmm.h                  |  21 ++
+>>>   include/linux/iommu.h                |   4 +
+>>>   include/linux/pci-p2pdma.h           |  84 +++++
+>>>   include/rdma/ib_umem_odp.h           |  25 +-
+>>>   kernel/dma/direct.c                  |  44 +--
+>>>   kernel/dma/mapping.c                 |  18 ++
+>>>   mm/hmm.c                             | 264 +++++++++++++--
+>>>   21 files changed, 1435 insertions(+), 693 deletions(-)
+>>>   create mode 100644 include/linux/hmm-dma.h
+>>
+>> Kind reminder.
+>
+> ...that you've simply reposted the same thing again? Without doing 
+> anything to address the bugs, inconsistencies, fundamental design 
+> flaws in claiming to be something it cannot possibly be, the egregious 
+> abuse of DMA_ATTR_SKIP_CPU_SYNC proudly highlighting how 
+> unfit-for-purpose the most basic part of the whole idea is, nor 
+> *still* the complete lack of any demonstrable justification of how 
+> callers who supposedly can't use the IOMMU API actually benefit from 
+> adding all the complexity of using the IOMMU API in a hat but also 
+> still the streaming DMA API as well?
+>
+> Yeah, consider me reminded.
+>
+>
+>
+> In case I need to make it any more explicit, NAK to this not-generic 
+> not-DMA-mapping API, until you can come up with either something which 
+> *can* actually work in any kind of vaguely generic manner as claimed, 
+> or instead settle on a reasonable special-case solution for 
+> justifiable special cases. Bikeshedding and rebasing through half a 
+> dozen versions, while ignoring fundamental issues I've been pointing 
+> out from the very beginning, has not somehow magically made this 
+> series mature and acceptable to merge.
+>
+> Honestly, given certain other scenarios we may also end up having to 
+> deal with, if by the time everything broken is taken away, it were to 
+> end up stripped all the way back to something well-reasoned like:
+>
+> "Some drivers want more control of their DMA buffer layout than the 
+> general-purpose IOVA allocator is able to provide though the DMA 
+> mapping APIs, but also would rather not have to deal with managing an 
+> entire IOMMU domain and address space, making MSIs work, etc. Expose 
+> iommu_dma_alloc_iova() and some trivial IOMMU API wrappers to allow 
+> drivers of coherent devices to claim regions of the default domain 
+> wherein they can manage their own mappings directly."
+>
+> ...I wouldn't necessarily disagree.
 
-Signed-off-by: Preethi G <preethi.gurusiddalingeswaraswamy@broadcom.com>
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
----
-v1->v2:
-	Fix the warning reported by kernel test robot by returning rc
- drivers/infiniband/hw/bnxt_re/bnxt_re.h     |  4 ++
- drivers/infiniband/hw/bnxt_re/hw_counters.c | 88 +++++++++++++++++++++++++++++
- drivers/infiniband/hw/bnxt_re/ib_verbs.c    | 36 ++++++++++++
- drivers/infiniband/hw/bnxt_re/ib_verbs.h    |  6 ++
- drivers/infiniband/hw/bnxt_re/main.c        |  1 +
- 5 files changed, 135 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index b33b04e..8bc0237 100644
---- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-+++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -246,6 +246,10 @@ struct bnxt_re_dev {
- #define BNXT_RE_CHECK_RC(x) ((x) && ((x) != -ETIMEDOUT))
- void bnxt_re_pacing_alert(struct bnxt_re_dev *rdev);
- 
-+int bnxt_re_assign_pma_port_counters(struct bnxt_re_dev *rdev, struct ib_mad *out_mad);
-+int bnxt_re_assign_pma_port_ext_counters(struct bnxt_re_dev *rdev,
-+					 struct ib_mad *out_mad);
-+
- static inline struct device *rdev_to_dev(struct bnxt_re_dev *rdev)
- {
- 	if (rdev)
-diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.c b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-index 3ac47f4..d90f2cb 100644
---- a/drivers/infiniband/hw/bnxt_re/hw_counters.c
-+++ b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-@@ -39,6 +39,8 @@
- 
- #include <linux/types.h>
- #include <linux/pci.h>
-+#include <rdma/ib_mad.h>
-+#include <rdma/ib_pma.h>
- 
- #include "roce_hsi.h"
- #include "qplib_res.h"
-@@ -285,6 +287,92 @@ static void bnxt_re_copy_db_pacing_stats(struct bnxt_re_dev *rdev,
- 		readl(rdev->en_dev->bar0 + rdev->pacing.dbr_db_fifo_reg_off);
- }
- 
-+int bnxt_re_assign_pma_port_ext_counters(struct bnxt_re_dev *rdev, struct ib_mad *out_mad)
-+{
-+	struct ib_pma_portcounters_ext *pma_cnt_ext;
-+	struct bnxt_qplib_ext_stat *estat = &rdev->stats.rstat.ext_stat;
-+	struct ctx_hw_stats *hw_stats = NULL;
-+	int rc = 0;
-+
-+	hw_stats = rdev->qplib_ctx.stats.dma;
-+
-+	pma_cnt_ext = (void *)(out_mad->data + 40);
-+	if (_is_ext_stats_supported(rdev->dev_attr->dev_cap_flags)) {
-+		u32 fid = PCI_FUNC(rdev->en_dev->pdev->devfn);
-+
-+		rc = bnxt_qplib_qext_stat(&rdev->rcfw, fid, estat);
-+	}
-+
-+	pma_cnt_ext = (void *)(out_mad->data + 40);
-+	if ((bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx) && rdev->is_virtfn) ||
-+	    !bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx)) {
-+		pma_cnt_ext->port_xmit_data =
-+			cpu_to_be64(le64_to_cpu(hw_stats->tx_ucast_bytes) / 4);
-+		pma_cnt_ext->port_rcv_data =
-+			cpu_to_be64(le64_to_cpu(hw_stats->rx_ucast_bytes) / 4);
-+		pma_cnt_ext->port_xmit_packets =
-+			cpu_to_be64(le64_to_cpu(hw_stats->tx_ucast_pkts));
-+		pma_cnt_ext->port_rcv_packets =
-+			cpu_to_be64(le64_to_cpu(hw_stats->rx_ucast_pkts));
-+		pma_cnt_ext->port_unicast_rcv_packets =
-+			cpu_to_be64(le64_to_cpu(hw_stats->rx_ucast_pkts));
-+		pma_cnt_ext->port_unicast_xmit_packets =
-+			cpu_to_be64(le64_to_cpu(hw_stats->tx_ucast_pkts));
-+
-+	} else {
-+		pma_cnt_ext->port_rcv_packets = cpu_to_be64(estat->rx_roce_good_pkts);
-+		pma_cnt_ext->port_rcv_data = cpu_to_be64(estat->rx_roce_good_bytes / 4);
-+		pma_cnt_ext->port_xmit_packets = cpu_to_be64(estat->tx_roce_pkts);
-+		pma_cnt_ext->port_xmit_data = cpu_to_be64(estat->tx_roce_bytes / 4);
-+		pma_cnt_ext->port_unicast_rcv_packets = cpu_to_be64(estat->rx_roce_good_pkts);
-+		pma_cnt_ext->port_unicast_xmit_packets = cpu_to_be64(estat->tx_roce_pkts);
-+	}
-+	return rc;
-+}
-+
-+int bnxt_re_assign_pma_port_counters(struct bnxt_re_dev *rdev, struct ib_mad *out_mad)
-+{
-+	struct bnxt_qplib_ext_stat *estat = &rdev->stats.rstat.ext_stat;
-+	struct ib_pma_portcounters *pma_cnt;
-+	struct ctx_hw_stats *hw_stats = NULL;
-+	int rc = 0;
-+
-+	hw_stats = rdev->qplib_ctx.stats.dma;
-+
-+	pma_cnt = (void *)(out_mad->data + 40);
-+	if (_is_ext_stats_supported(rdev->dev_attr->dev_cap_flags)) {
-+		u32 fid = PCI_FUNC(rdev->en_dev->pdev->devfn);
-+
-+		rc = bnxt_qplib_qext_stat(&rdev->rcfw, fid, estat);
-+	}
-+	if ((bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx) && rdev->is_virtfn) ||
-+	    !bnxt_qplib_is_chip_gen_p5(rdev->chip_ctx)) {
-+		pma_cnt->port_rcv_packets =
-+			cpu_to_be32((u32)(le64_to_cpu(hw_stats->rx_ucast_pkts)) & 0xFFFFFFFF);
-+		pma_cnt->port_rcv_data =
-+			cpu_to_be32((u32)((le64_to_cpu(hw_stats->rx_ucast_bytes) &
-+					   0xFFFFFFFF) / 4));
-+		pma_cnt->port_xmit_packets =
-+			cpu_to_be32((u32)(le64_to_cpu(hw_stats->tx_ucast_pkts)) & 0xFFFFFFFF);
-+		pma_cnt->port_xmit_data =
-+			cpu_to_be32((u32)((le64_to_cpu(hw_stats->tx_ucast_bytes)
-+					   & 0xFFFFFFFF) / 4));
-+	} else {
-+		pma_cnt->port_rcv_packets = cpu_to_be32(estat->rx_roce_good_pkts);
-+		pma_cnt->port_rcv_data = cpu_to_be32((estat->rx_roce_good_bytes / 4));
-+		pma_cnt->port_xmit_packets = cpu_to_be32(estat->tx_roce_pkts);
-+		pma_cnt->port_xmit_data = cpu_to_be32((estat->tx_roce_bytes / 4));
-+	}
-+	pma_cnt->port_rcv_constraint_errors = (u8)(le64_to_cpu(hw_stats->rx_discard_pkts) & 0xFF);
-+	pma_cnt->port_rcv_errors = cpu_to_be16((u16)(le64_to_cpu(hw_stats->rx_error_pkts)
-+						     & 0xFFFF));
-+	pma_cnt->port_xmit_constraint_errors = (u8)(le64_to_cpu(hw_stats->tx_error_pkts) & 0xFF);
-+	pma_cnt->port_xmit_discards = cpu_to_be16((u16)(le64_to_cpu(hw_stats->tx_discard_pkts)
-+							& 0xFFFF));
-+
-+	return rc;
-+}
-+
- int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
- 			    struct rdma_hw_stats *stats,
- 			    u32 port, int index)
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 2de101d..dc31973 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -49,6 +49,7 @@
- #include <rdma/ib_addr.h>
- #include <rdma/ib_mad.h>
- #include <rdma/ib_cache.h>
-+#include <rdma/ib_pma.h>
- #include <rdma/uverbs_ioctl.h>
- #include <linux/hashtable.h>
- 
-@@ -4489,6 +4490,41 @@ void bnxt_re_mmap_free(struct rdma_user_mmap_entry *rdma_entry)
- 	kfree(bnxt_entry);
- }
- 
-+int bnxt_re_process_mad(struct ib_device *ibdev, int mad_flags,
-+			u32 port_num, const struct ib_wc *in_wc,
-+			const struct ib_grh *in_grh,
-+			const struct ib_mad *in_mad, struct ib_mad *out_mad,
-+			size_t *out_mad_size, u16 *out_mad_pkey_index)
-+{
-+	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
-+	struct ib_class_port_info cpi = {};
-+	int ret = IB_MAD_RESULT_SUCCESS;
-+	int rc = 0;
-+
-+	if (in_mad->mad_hdr.mgmt_class  != IB_MGMT_CLASS_PERF_MGMT)
-+		return ret;
-+
-+	switch (in_mad->mad_hdr.attr_id) {
-+	case IB_PMA_CLASS_PORT_INFO:
-+		cpi.capability_mask = IB_PMA_CLASS_CAP_EXT_WIDTH;
-+		memcpy((out_mad->data + 40), &cpi, sizeof(cpi));
-+		break;
-+	case IB_PMA_PORT_COUNTERS_EXT:
-+		rc = bnxt_re_assign_pma_port_ext_counters(rdev, out_mad);
-+		break;
-+	case IB_PMA_PORT_COUNTERS:
-+		rc = bnxt_re_assign_pma_port_counters(rdev, out_mad);
-+		break;
-+	default:
-+		rc = -EINVAL;
-+		break;
-+	}
-+	if (rc)
-+		return IB_MAD_RESULT_FAILURE;
-+	ret |= IB_MAD_RESULT_REPLY;
-+	return ret;
-+}
-+
- static int UVERBS_HANDLER(BNXT_RE_METHOD_NOTIFY_DRV)(struct uverbs_attr_bundle *attrs)
- {
- 	struct bnxt_re_ucontext *uctx;
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-index fbb16a4..22c9eb8 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-@@ -268,6 +268,12 @@ void bnxt_re_dealloc_ucontext(struct ib_ucontext *context);
- int bnxt_re_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
- void bnxt_re_mmap_free(struct rdma_user_mmap_entry *rdma_entry);
- 
-+int bnxt_re_process_mad(struct ib_device *device, int process_mad_flags,
-+			u32 port_num, const struct ib_wc *in_wc,
-+			const struct ib_grh *in_grh,
-+			const struct ib_mad *in_mad, struct ib_mad *out_mad,
-+			size_t *out_mad_size, u16 *out_mad_pkey_index);
-+
- static inline u32 __to_ib_port_num(u16 port_id)
- {
- 	return (u32)port_id + 1;
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index e9e4da4..59ddb36 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -1276,6 +1276,7 @@ static const struct ib_device_ops bnxt_re_dev_ops = {
- 	.post_recv = bnxt_re_post_recv,
- 	.post_send = bnxt_re_post_send,
- 	.post_srq_recv = bnxt_re_post_srq_recv,
-+	.process_mad = bnxt_re_process_mad,
- 	.query_ah = bnxt_re_query_ah,
- 	.query_device = bnxt_re_query_device,
- 	.modify_device = bnxt_re_modify_device,
+Well, this is definitely not a review I've expected. I admit that I 
+wasn't involved in this proposal nor the discussion about it and I 
+wasn't able to devote enough time for keeping myself up to date. Now 
+I've tried to read all the required backlog and I must admit that this 
+was quite demanding.
+
+If You didn't like this design from the beginning, then please state 
+that early instead of pointing random minor issues in the code. There 
+have been plenty of time to discuss the overall approach if You think it 
+was wrong. What do to now?
+
+Removing the need for scatterlists was advertised as the main goal of 
+this new API, but it looks that similar effects can be achieved with 
+just iterating over the pages and calling page-based DMA API directly. 
+Maybe I missed something. I still see some advantages in this DMA API 
+extension, but I would also like to see the clear benefits from 
+introducing it, like perf logs or other benchmark summary.
+
+
+Best regards
 -- 
-2.5.5
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
