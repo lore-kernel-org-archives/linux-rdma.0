@@ -1,38 +1,69 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FAF12309BD
-	for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 08:07:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42C9C238179
+	for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 09:16:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741766842; cv=none; b=HbjgNOi+wk56whhhOCXk5EbDFlmvoGLR+9Ykw0z4Q7Pr3DmLsJBQJmhIt3zTR5aSLGxV525MaVv3HxYyhgUAsWTl1xvPM0OC59/SO9XokvRyQ+MgJqAjJRtRYlNOsrcMxdIjjhKIIO5zMaa3YZbCFiL1lP4IgDCp6H0EjkcXLog=
+	t=1741770970; cv=none; b=YiW+LjJL1g+qsYSMKBVrRfOmyDCaeyU8a/IHBkleZiHGpu/vcEIAfyR6BQHBST/4wyrrTDoqh21X1hAYCSxbxhlOmmPc1OtUKgTD7j791Xe5NrFJZ4lQ4Va1kuvqu1EfwkwVCUsaWxOqpGIS+S8c4gAwmW6AXgEAucJp/jWticM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741766842; c=relaxed/simple;
-	bh=s+puKnnXsyFcdGKqo8HAPjaOCPt90fQJ+Pdssx4/YZU=;
+	s=arc-20240116; t=1741770970; c=relaxed/simple;
+	bh=sIDMvwzuoLYsU8MulLues+AREztPfKS7a5K7A6AM84s=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LwhYYrNKy7E5qzlHv1UyoCiAlhrakOIACEZwFRmC5hdVIbosrx34o46HczNGgOKGq8vVGcsKQAcim55D7M76wqCUG654SEj7h4amIkxbaxj+i/4ncQHDFFIyirfwRGRJnJA/xHaCL5/rhrfaa0WFnBPLP1H036LwsyPIaxAgygA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=noGXJoUi; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=A8AGBoNJiifHA5klkPlVMfg638n6gARSH0BYePoHpJPjqpPsfVwMypMSo0TbZkl2ASPi4iURG9NyIUbRs5grAYkRGnk96qOfMfJvFHqEzxuccYPLodHkf8boJPTxC48HkaE8vYKJCK3P4+RGZ3xaDt7Qg/SmkDktlJ+K1AXFCHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=th1PN2Vw; arc=none smtp.client-ip=209.85.221.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="noGXJoUi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57AD7C4CEE3;
-	Wed, 12 Mar 2025 08:07:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741766842;
-	bh=s+puKnnXsyFcdGKqo8HAPjaOCPt90fQJ+Pdssx4/YZU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=noGXJoUi9ftKZ0DxStOhMyxyuRnDwrmFLzdgdkgMlzSnp3UFYXU8eQwn8M85pT6Cf
-	 YJ8BOJoo3yY0RYfs5tyA7bz62pCy6rM0LRm8E7M81DuPYldGhz0oJTgCiDrCyDSbkX
-	 HhQ/E1d5+pxyCsM6SzEm/Ve1i//wNcvCkjjz4kEjGedXauNrKWi9nOdi2yAJq33IQM
-	 JozM11j7AIwtIiA2UFL5fsRwRAFv7B/JTrGJ2C3jjSqiANUAIq5EFdWLDj0o5EkIsE
-	 SRwrVrrVYZba4EYc4o6dQ0mfpluj37m6UVCy4fdPqpisbEY0liLTZ7Xnej7Pj2svLt
-	 xyZAYG7EdTcCw==
-Date: Wed, 12 Mar 2025 10:07:17 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Dan Carpenter <dan.carpenter@linaro.org>
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="th1PN2Vw"
+Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-39133f709f5so2592565f8f.0
+        for <linux-rdma@vger.kernel.org>; Wed, 12 Mar 2025 02:16:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1741770965; x=1742375765; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=HvJ2Xzj0eyzn8CYIMkRwS7Z/Lt3ehRH3BLoMLX8lXYk=;
+        b=th1PN2VwUTMWs99CnSfHTXU4bozLM5DZ/qT0NfntRnPlYCNABpH84/ZDE/wcZqyh+M
+         y3jad0CGgPxkY3vfdtPYtFip/9tDpMa1WNR2g3SqCbgRFX6FR4CcVXDiLRgZLkZIJmKx
+         74Zsv9XF56bgpQSKFI4kLisO6l9uMolK6KE7Wznee27NiPN4llqksbFo+dQQ+5/coFUT
+         B67fs5GJN67EE71dY++tbEGqfQrWtENYgsal7MudXyRDOwVjQ1DxIz0yFtionM4aqP7L
+         QGScrczjXYlDAyzgpz1GpIC7rtOxYc/lXFZ9a/wYo3jKIz9qGCrlif9FFmgzilIQIC4V
+         ob3A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741770965; x=1742375765;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=HvJ2Xzj0eyzn8CYIMkRwS7Z/Lt3ehRH3BLoMLX8lXYk=;
+        b=OPRYdgOHH0vseWxxLL1r6pN8sDKNaSB6F8SL7XY7KBWCKkO7iLZ5JjgC14IPJwen+g
+         tfH47tg9iP01f3GZYqa9L7p7UIogsXKiGceiT7LxPd2WpzympTuqqS5CaY1sg7T+QYs2
+         HP9jIivLYcSF8sx/rO++S5MfwE8M9K0mvLP/gp7NIPstf6f/J1g2Ne7Dt/AIt0dJFzHY
+         AeD2I3dLmoKcqH5NQr6F5x46n1e5eByjJvdDvIA+M6364IYfm2B+5uEqFSN5HUNXJPeg
+         xMbHgBIFD6ER2X9nFfbDSIFZVgQEc2mEbXr2JgQcJw1qX0dl1QL+WrWs4+Q/IWKfN76H
+         OHWA==
+X-Forwarded-Encrypted: i=1; AJvYcCVgi6qJ2eZzSW5sHZt1yoU8t8OkRsIJQ3DNZ7QbQEGHUCkaUotVPtwumU5Mzw8EB96PpwAP3fQgClTD@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw7Kk2THYP0bhQXTIxUE/C7HLYnHaMbkn92mtjLGge/RFxPhJRo
+	RUGAfQM4aV/bsgIBi/L0H0e4sRHm4AQqqsmI+G90TkpTI8lq4VO0zg3A7lGaZ20=
+X-Gm-Gg: ASbGncvKkH7Ei4+GvF+Bd6/6KxLkA0PRbCTu/cN6CTQIf8zjoqQWKS9Dh8KmUY9a57g
+	4lBkzKEfXZbh7b7vHvv4MerEyNwrTfG+ESgjmzLCtSYlTttm6v/vMs67lwKgjD2Ssd5th5ubPtM
+	OyTy++Oc+BQ5QeJe8d10VroXfAI7MXJRuwBmLilF8xvvN2a8jt3wqO+9zcgn1On30seDiiOCYFX
+	HgmyrFiSbBdBVWxWMVmuqsJ+kfmHEfRRB5NuAF/hjZm/g5UD9R4/88kagXiPKFSSX8nrEHJaAUo
+	Td7oYTEP0vCqH2Eo0BlW2jgxwSgm5Rq9wxqnbPWlO+4FFmrDxg==
+X-Google-Smtp-Source: AGHT+IH8KA7dBbMYUtNaewqvmBU8TZSP/ovXaOjXLdjqAfQbTR66dZxa3HH+YoPjAXJSTo/R22qA3w==
+X-Received: by 2002:a5d:59a8:0:b0:390:f55b:ba94 with SMTP id ffacd0b85a97d-39132d31f55mr16028038f8f.13.1741770965540;
+        Wed, 12 Mar 2025 02:16:05 -0700 (PDT)
+Received: from localhost ([196.207.164.177])
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-3947a24449bsm1183144f8f.45.2025.03.12.02.16.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 12 Mar 2025 02:16:05 -0700 (PDT)
+Date: Wed, 12 Mar 2025 12:16:01 +0300
+From: Dan Carpenter <dan.carpenter@linaro.org>
+To: Leon Romanovsky <leon@kernel.org>
 Cc: Chiara Meiohas <cmeiohas@nvidia.com>, linux-rdma@vger.kernel.org
 Subject: Re: [bug report] RDMA/uverbs: Introduce UCAP (User CAPabilities) API
-Message-ID: <20250312080717.GH7027@unreal>
+Message-ID: <e3037a31-9685-472b-8ef5-23a241ff20ac@stanley.mountain>
 References: <9f676f55-f5d7-4be5-88a5-4f1f5c5c997a@stanley.mountain>
+ <20250312080717.GH7027@unreal>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -41,55 +72,28 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <9f676f55-f5d7-4be5-88a5-4f1f5c5c997a@stanley.mountain>
+In-Reply-To: <20250312080717.GH7027@unreal>
 
-On Wed, Mar 12, 2025 at 09:53:17AM +0300, Dan Carpenter wrote:
-> Hello Chiara Meiohas,
->=20
-> Commit 61e51682816d ("RDMA/uverbs: Introduce UCAP (User CAPabilities)
-> API") from Mar 6, 2025 (linux-next), leads to the following Smatch
-> static checker warning:
->=20
-> 	drivers/infiniband/core/ucaps.c:209 ib_release_ucap()
-> 	error: buffer overflow 'ucaps_list' 2 <=3D 2 (assuming for loop doesn't =
-break)
+On Wed, Mar 12, 2025 at 10:07:17AM +0200, Leon Romanovsky wrote:
+> On Wed, Mar 12, 2025 at 09:53:17AM +0300, Dan Carpenter wrote:
+> > Hello Chiara Meiohas,
+> > 
+> > Commit 61e51682816d ("RDMA/uverbs: Introduce UCAP (User CAPabilities)
+> > API") from Mar 6, 2025 (linux-next), leads to the following Smatch
+> > static checker warning:
+> > 
+> > 	drivers/infiniband/core/ucaps.c:209 ib_release_ucap()
+> > 	error: buffer overflow 'ucaps_list' 2 <= 2 (assuming for loop doesn't break)
+> 
+> The thing is that we must have "break", so writing if(WARN_ON(type ==
+> "RDMA_UCAP_MAX)) return;" instead of existing WARN_ON is very
+> misleading.
+> 
 
-The thing is that we must have "break", so writing if(WARN_ON(type =3D=3D
-"RDMA_UCAP_MAX)) return;" instead of existing WARN_ON is very
-misleading.
+Ah, never mind.  I got confused between kref_put() and kobject_put().
+It's the kobject_release() function that can optionally do the release in
+another thread.  Sorry for the noise.
 
-Thanks
+regards,
+dan carpenter
 
->=20
-> drivers/infiniband/core/ucaps.c
->     198 static void ib_release_ucap(struct kref *ref)
->     199 {
->     200         struct ib_ucap *ucap =3D container_of(ref, struct ib_ucap=
-, ref);
->     201         enum rdma_user_cap type;
->     202=20
->     203         for (type =3D RDMA_UCAP_FIRST; type < RDMA_UCAP_MAX; type=
-++) {
->     204                 if (ucaps_list[type] =3D=3D ucap)
->     205                         break;
->     206         }
->     207         WARN_ON(type =3D=3D RDMA_UCAP_MAX);
->=20
-> This prints a warning if we're out of bounds, but it doesn't handle the
-> error.  This is called from kref_put() and with kref_put() this could
-> actually be done in a different thread with a delay from when
-> ib_remove_ucap() is called.  I wouldn't advise that for production systems
-> but it's supposed to work.
->=20
-> So this code makes me quite nervous.
->=20
->     208=20
-> --> 209         ucaps_list[type] =3D NULL;
->     210         cdev_device_del(&ucap->cdev, &ucap->dev);
->     211         put_device(&ucap->dev);
->     212 }
->=20
-> regards,
-> dan carpenter
->=20
