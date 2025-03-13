@@ -1,105 +1,99 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78E3A26A091
-	for <linux-rdma@vger.kernel.org>; Thu, 13 Mar 2025 14:30:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 849C0268685
+	for <linux-rdma@vger.kernel.org>; Thu, 13 Mar 2025 14:40:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741876237; cv=none; b=RBAcOM5rZP0Zn0bArFXi+wCpYlh9xlnnDB9WJ4If0yDq6ub4IDfMDcOAy5wAcsihzcpTyx5oIP7fBd4u48kl504X3Egbsm8SnlDKGpCQMFO9MMrpUB27zQuLNGZe/e99zNVdYiGCYwpkPSCzEMyV7ynXduHdn+D9DBZh5Y9LFmg=
+	t=1741876852; cv=none; b=FJLwHX/oqriHMj81UArBrM9CxgESHPBktbl1jeoql+b2w88vLJ/GElmrqjrC2txlMjt1HfL35lP6KbH1RPCkH6BIJE0XcsPghkOk+e4PP178OWNaX299NeWGywyZiHGxHBYZftSEqdBg38sFlpy79Q/SezcUz0Pyyz04vqU/Tq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741876237; c=relaxed/simple;
-	bh=IgViAL1463cLW4mZQ6jW+ZmXpEuXhtBUQZexRSXrM3w=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WugOmPDKR83uHE7xmA+VT+LDf9HU4VRfuPF7vq6AKlfNxIYHK8n/r2UX7pIaWN3ptOncK1O2Y1NqclPWh3SJ+SxmZknG5h6fbugm2jjcaTFWqIgi1uQfx1B4TJOIC5O5nQw7GA3LJiUagmRnoHmeKplhkpkB0kBYK3M3eq091RQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WGljmnIM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741876852; c=relaxed/simple;
+	bh=pAoE5946s5Gk2fA2kebJUB9HXCq9xcYQxsMTNtXL9/I=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=PqHl2ICok7EakaKyuWoZvUtanTzjS//hT2vWIfjR3l1wj8Xu9CgmRBSQ6Hj9aQhV6PKaJkV3/K6QKFf+MkYpZtrsZdpvxz86NtsbdhLu4FDgiCws+XXvjiPecjDkxssY/fJ5aWdYZCEvY0e0FutfwPWDTiE2QMnzdPShmQGGscM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=BYT+mDT2; arc=none smtp.client-ip=209.85.128.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WGljmnIM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 170C6C4CEE5;
-	Thu, 13 Mar 2025 14:30:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741876236;
-	bh=IgViAL1463cLW4mZQ6jW+ZmXpEuXhtBUQZexRSXrM3w=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=WGljmnIMuQvdOL4o0s50vIYVFSwaq/jo9+GFbRER3Yo1V7B+3UdEjY6l6CXA2uSuY
-	 wnQRpvYRM5e7QqKdTvtXbnR3swtOp2d0pSue/8+FaF9I/LSthXVassxsI8vfgyE5au
-	 b2fahbBoBZ4Da3mSMM+b2x+L6oP7byvDIyqg59xYtwMKJ+wmY/bXh6crRWPXmiSO2t
-	 jqq99e44w2VX8tqHyHbzkTnfvKJlYJ7lwNGgeHa5mURhs/Vv6AAACq4l7faba+o7hL
-	 RJ41J/SKcxl122pp3BVvSbAtmPItebUZQU85Mbu3YZYoYDJA12JFaRkWXWMOBpm0G6
-	 CZGEsco2XObeg==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Michael Guralnik <michaelgur@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	Yishai Hadas <yishaih@nvidia.com>
-Subject: [PATCH rdma-next 5/7] RDMA/mlx5: Align cap check of mkc page size to device specification
-Date: Thu, 13 Mar 2025 16:29:52 +0200
-Message-ID: <0fd33ea9d5f22c9c026285ed3e7cf7a19466738c.1741875692.git.leon@kernel.org>
-X-Mailer: git-send-email 2.48.1
-In-Reply-To: <cover.1741875692.git.leon@kernel.org>
-References: <cover.1741875692.git.leon@kernel.org>
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="BYT+mDT2"
+Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-6f77b9e0a34so9478117b3.2
+        for <linux-rdma@vger.kernel.org>; Thu, 13 Mar 2025 07:40:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1741876848; x=1742481648; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=L2Bl2Su+/gwfetUP/jaKlf54gtF49C473VvvFpM5g6I=;
+        b=BYT+mDT2kM0vrNE2fkq6+ShFAVwkdJoGdGUgXCBZzhqKvj3E02EDqW6qezZa2uWxzn
+         4xO02ckXDWRQWYLtxMbsvhBvycWhphRwu1AxsdNljMpeGyYtcz7viSANGbTG+klVcMk4
+         9m/aIhrlzfbALvNMYOw21IcbxlaNTl2NAeRRoZc+bYzMyGENxynCpBw9qoXFjARwE0nd
+         6aalNDqqWHLROvuuX5AHKWVWVstUYZSZt5eUJ8R8H+skyqijNPmkklOZTV53y75Takvr
+         lh056z9kUQLWD3AHRYIkBbwacLm62F20ZozW62r6P8SzzMZSoGirLkxeM/nELo2MkAiy
+         ln3Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741876848; x=1742481648;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=L2Bl2Su+/gwfetUP/jaKlf54gtF49C473VvvFpM5g6I=;
+        b=QHzVzh/HmHWy6gwwcPwSk3NPe4frO0QlB09qP04oO6VkzprjPo/uJoMUtyfIt/DcHe
+         /whQ5TmwQgLVZxXNXPlTnO+/vLSG12obgnUnaCJnbe7Me5veYauD0qRpvQmf7w01eGjX
+         nzQeFwNxyUr2cPZfI4dSJg643sBgV/qSxZx6z7Pb9oEDiMqZNov/eiu1LHRK2PWabRF5
+         J/bltmeq+eO5dwOCNfgmCVprYlAPbEGOxSPc/Hxt02kVrA3+bwDHWdxEr4WdIwPjVgki
+         bxFzQopIXFbQguijuRDI/uccCLLCR95Q1ucKGpaSm2wEMeh5k1lKz4Jo824LrOxvz6Xd
+         SX0Q==
+X-Gm-Message-State: AOJu0YxWgil6ZNgtnY1MjuGkVewskuV+VHcFj18YEuBT/16+hm5Z3zrc
+	GBE2U0Y1SxOSizftnWS0wGKJXSpMiEGdyNfyCl5GpUy+SSafyFZiYQ22pOlY4gVlrzzTjf/W+ZA
+	z9Jcbd+/wxyRRUMbKpsXGlpCSqD3ztNT817yZ+A==
+X-Gm-Gg: ASbGncvunaEg0bl2OHK3sWCacZMPZKw7T0VpqP+M7wSxKg3pUpO77Wc9sWNzxVHKw5b
+	vc5l2ra26P13wfIfm6+EwlWvjYG+lTAfU3uL+lFrKAg4nsodr50FLnWuum7tKxwd8Xq88KIaZhr
+	GLfpRlC+gIDkIfhrWYO92YtCrk6GLFQO/SsnkxqA==
+X-Google-Smtp-Source: AGHT+IHlqbCdi6b5AuWlv4WACVSDWJUjfnZagh7rV54UbyilpuB2Jl+yS7qcFAXsJdEa4V8w8Yh8A2r8jqbwYn6VwMQ=
+X-Received: by 2002:a05:6902:2789:b0:e63:3e41:6579 with SMTP id
+ 3f1490d57ef6-e635c20370dmr33596240276.47.1741876848515; Thu, 13 Mar 2025
+ 07:40:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20250307115722.705311-1-bigeasy@linutronix.de> <20250307115722.705311-2-bigeasy@linutronix.de>
+In-Reply-To: <20250307115722.705311-2-bigeasy@linutronix.de>
+From: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Date: Thu, 13 Mar 2025 16:40:12 +0200
+X-Gm-Features: AQ5f1JomfK90BpA2TiJM9KAdy8VzKdj-rmW-tkbD-mIZWe61aNgjc9raPakx7eg
+Message-ID: <CAC_iWjJYGdZNWhYfLwBiDjo4R+gGcujDKpEbOdgaA0mTa9Vj3w@mail.gmail.com>
+Subject: Re: [PATCH net-next v2 1/5] page_pool: Provide an empty
+ page_pool_stats for disabled stats.
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, 
+	"David S. Miller" <davem@davemloft.net>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+	Jesper Dangaard Brouer <hawk@kernel.org>, Joe Damato <jdamato@fastly.com>, Leon Romanovsky <leon@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Saeed Mahameed <saeedm@nvidia.com>, Simon Horman <horms@kernel.org>, 
+	Tariq Toukan <tariqt@nvidia.com>, Thomas Gleixner <tglx@linutronix.de>, 
+	Yunsheng Lin <linyunsheng@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
 
-From: Michael Guralnik <michaelgur@nvidia.com>
+Hi Sebastian
 
-Align the caps checked when using the log_page_size 6th bit in the mkey
-context to the PRM definition. The upper and lower bounds are set by
-max/min caps and modifying of the 6th bit by UMR is allowed only when a
-specific UMR cap is set.
-Current implementation falsely assumes all page sizes up-to 2^63 are
-supported when the UMR cap is set. In case the upper bound cap is lower
-than 63, this might result a FW syndrome on mkey creation.
+[...]
 
-Previous cap enforcement is still correct for all current HW, FW and
-driver combinations. However, this patch aligns the code to be spec
-compliant in the general case.
+> @@ -81,6 +81,12 @@ static inline u64 *page_pool_ethtool_stats_get(u64 *data, const void *stats)
+>  {
+>         return data;
+>  }
+> +
+> +static inline bool page_pool_get_stats(const struct page_pool *pool,
+> +                                      struct page_pool_stats *stats)
+> +{
+> +       return false;
+> +}
 
-Signed-off-by: Michael Guralnik <michaelgur@nvidia.com>
-Reviewed-by: Yishai Hadas <yishaih@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+[...]
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index ace2df3e1d9f..a6ef052c4344 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1753,10 +1753,25 @@ static __always_inline unsigned long
- mlx5_umem_mkc_find_best_pgsz(struct mlx5_ib_dev *dev, struct ib_umem *umem,
- 			     u64 iova)
- {
--	int page_size_bits =
--		MLX5_CAP_GEN_2(dev->mdev, umr_log_entity_size_5) ? 6 : 5;
--	unsigned long bitmap =
--		__mlx5_log_page_size_to_bitmap(page_size_bits, 0);
-+	unsigned int max_log_size, max_log_size_cap, min_log_size;
-+	unsigned long bitmap;
-+
-+	max_log_size_cap =
-+		MLX5_CAP_GEN_2(dev->mdev, max_mkey_log_entity_size_mtt) ?
-+			MLX5_CAP_GEN_2(dev->mdev,
-+				       max_mkey_log_entity_size_mtt) :
-+			31;
-+
-+	max_log_size = MLX5_CAP_GEN_2(dev->mdev, umr_log_entity_size_5) ?
-+			       max_log_size_cap :
-+			       min(max_log_size_cap, 31);
-+
-+	min_log_size =
-+		MLX5_CAP_GEN_2(dev->mdev, log_min_mkey_entity_size) ?
-+			MLX5_CAP_GEN_2(dev->mdev, log_min_mkey_entity_size) :
-+			MLX5_ADAPTER_PAGE_SHIFT;
-+
-+	bitmap = GENMASK_ULL(max_log_size, min_log_size);
- 
- 	return ib_umem_find_best_pgsz(umem, bitmap, iova);
- }
--- 
-2.48.1
+That looks reasonable. Unfortunately, we have some drivers that don't
+check the result of this function, but I guess that is a driver-only
+problem...
 
+Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
