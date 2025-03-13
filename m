@@ -1,168 +1,165 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F7C267B86
-	for <linux-rdma@vger.kernel.org>; Thu, 13 Mar 2025 14:19:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C93613BC3F
+	for <linux-rdma@vger.kernel.org>; Thu, 13 Mar 2025 14:20:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741875562; cv=none; b=oAKkoyuGuAsJCMnEAd9edn8QXSjE0sDBCy5iDCI/8Rp/WRSViJ4r2APnAlSS2t9A9ZUIiaIn9i14QOx+D+Drkta8NbwpGE0Te7NqPk91N2NGEzICj0dSnR3zA3KKwPaEnqg6pbt8AdjH7N8lgvAFvq46AVENa/PrcGQlrYOdcdk=
+	t=1741875622; cv=none; b=BrRmelSpOx1+hV0PxEQemgY+4rVyfxT7XwUWSZVH45G/1wZOfjdu+t8F9yDVmcfUmIrwj2yx0Tj2oq09GaX7uiykzCNPHuKxRjx99fpcmo9mUPHrVtbuZ9QwtrrCNDqUfS/3uWkxxkzmY3QWLhEucKQE5yy5wpl0gNnXHzc3eLc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741875562; c=relaxed/simple;
-	bh=5rX874PAJj0q/YZ4X8UkekYUkCpd5KipjFb5/csv5bA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IWOGSaYKxVu0AUna4MtkLHK468AQM2YnUQUzs77VG7pnCEDTnzsXY0ieYJBr1uxyKcjx/OOmW2sjl7siWGq/FTuoaj+r+S+Hcnn1vJIpyvRKM4N9QpuYKSg75xZ8ZN2Q3SgifTF0H/6Af3gsKDmb3nWdKqXyPaHKzirz/0DU7iw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kSZG61E3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741875622; c=relaxed/simple;
+	bh=MtCJB5Y3rgMVUXJPyuTvoJV7QtGWk47luedfVkC6WQ4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=abC1lWaSxOm4K2RlnIFWmHXW8KLcWtJVVsWxh5IsrdjzGZbt7LbiUh/MjeUqF9IzhrQfnbKIjid9aHe6HQme6LyL5AOqw/d/a2T0docdUvHTcfufFk1NmU8hQit0eD1kzn58KhDkl3UNRHrsu8K5ocSfy8g/zSOhhsL4ub/pkz0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IKhzhcxv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kSZG61E3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71C2AC4CEE5;
-	Thu, 13 Mar 2025 14:19:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IKhzhcxv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5C1CC4CEE5;
+	Thu, 13 Mar 2025 14:20:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741875561;
-	bh=5rX874PAJj0q/YZ4X8UkekYUkCpd5KipjFb5/csv5bA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kSZG61E3A5ITaJustqdBjbNwmnkjNkKUXBtOBxdttw1OjwVFJk0fjCT34XE1/ED04
-	 mPVp/8P6dYGOICNSdtAH8KM+xRC6blDSO05KzQr+DNIcSEGwjaYxNP6w0sAaXMkLbU
-	 2rGksuDXRSmlAecf/vpB/t5K6ziQOOAAbLCxd0KDqUGkEkZZc6d42/UTH7fgHEZIHo
-	 gmmqLObPsK7DlpAuIT1bkLgAQsaxQNF17WfnN1SYjRMbGbACCoGX5WjM8enU42u31c
-	 CV/OiV7U6qzMeUjqo9f1rhSFTDTpi4sz4TAefTgLXA6pPjF0dzVD6pORWRQCbAv5rH
-	 JTfIYG6hgKNgQ==
+	s=k20201202; t=1741875622;
+	bh=MtCJB5Y3rgMVUXJPyuTvoJV7QtGWk47luedfVkC6WQ4=;
+	h=From:To:Cc:Subject:Date:From;
+	b=IKhzhcxv9jTDklwRaEnLXWx7YB67dBEQcalQDiDIiPXPOf7teV7+2VM09+jrn8VZz
+	 jNnpcq7K4Q5T8vjCBpmwFFi3DJUSvqGL5ERXZJ8r6atiqG6ti1f0SG2jnr7YQhB+U8
+	 5po4bhxNZeE6RD0dATpGlLskuaryirSPg5DiMepXWNSQET9FvQgbafTvlTaKsbQuPA
+	 U0dp2XgZK2HjIS3K/4l2g6cPiKEy8Kxrs+CPolBI1vRfNzXdDY/zz2kX8V7LspsC/C
+	 hwdkv7uRzEknUakBSnxaGKX5Gn64L8aoEU5IDVhwtv8KG+TnbKd4Z+TSl8gkbpw2KG
+	 BtpSNOtY7ST8Q==
 From: Leon Romanovsky <leon@kernel.org>
 To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Patrisious Haddad <phaddad@nvidia.com>,
+Cc: Maher Sanalla <msanalla@nvidia.com>,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH rdma-next v1 5/6] RDMA/mlx5: Compile fs.c regardless of INFINIBAND_USER_ACCESS config
-Date: Thu, 13 Mar 2025 16:18:45 +0200
-Message-ID: <b8dd220456a91538b22c3aff150ab021d7b9e1bf.1741875070.git.leon@kernel.org>
+Subject: [PATCH rdma-next] IB/mad: Check available slots before posting receive WRs
+Date: Thu, 13 Mar 2025 16:20:17 +0200
+Message-ID: <c4984ba3c3a98a5711a558bccefcad789587ecf1.1741875592.git.leon@kernel.org>
 X-Mailer: git-send-email 2.48.1
-In-Reply-To: <cover.1741875070.git.leon@kernel.org>
-References: <cover.1741875070.git.leon@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Patrisious Haddad <phaddad@nvidia.com>
+From: Maher Sanalla <msanalla@nvidia.com>
 
-Change mlx5 Makefile, fs.c and fs.h to support fs compilation regardless
-of INFINIBAND_USER_ACCESS config.
+The ib_post_receive_mads() function handles posting receive work
+requests (WRs) to MAD QPs and is called in two cases:
+1) When a MAD port is opened.
+2) When a receive WQE is consumed upon receiving a new MAD.
 
-In addition allow optional counters support regardless of the config.
+Whereas, if MADs arrive during the port open phase, a race condition
+might cause an extra WR to be posted, exceeding the QP’s capacity.
+This leads to failures such as:
+infiniband mlx5_0: ib_post_recv failed: -12
+infiniband mlx5_0: Couldn't post receive WRs
+infiniband mlx5_0: Couldn't start port
+infiniband mlx5_0: Couldn't open port 1
 
-Signed-off-by: Patrisious Haddad <phaddad@nvidia.com>
+Fix this by checking the current receive count before posting a new WR.
+If the QP’s receive queue is full, do not post additional WRs.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Maher Sanalla <msanalla@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/Makefile   |  2 +-
- drivers/infiniband/hw/mlx5/counters.c |  8 +++-----
- drivers/infiniband/hw/mlx5/fs.c       |  4 +++-
- drivers/infiniband/hw/mlx5/fs.h       | 15 ---------------
- 4 files changed, 7 insertions(+), 22 deletions(-)
+ drivers/infiniband/core/mad.c | 38 ++++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
-index b38961f5058e..11878ddf7cc7 100644
---- a/drivers/infiniband/hw/mlx5/Makefile
-+++ b/drivers/infiniband/hw/mlx5/Makefile
-@@ -9,6 +9,7 @@ mlx5_ib-y := ah.o \
- 	     data_direct.o \
- 	     dm.o \
- 	     doorbell.o \
-+	     fs.o \
- 	     gsi.o \
- 	     ib_virt.o \
- 	     mad.o \
-@@ -26,7 +27,6 @@ mlx5_ib-y := ah.o \
- mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
- mlx5_ib-$(CONFIG_MLX5_ESWITCH) += ib_rep.o
- mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += devx.o \
--					    fs.o \
- 					    qos.o \
- 					    std_types.o
- mlx5_ib-$(CONFIG_MLX5_MACSEC) += macsec.o
-diff --git a/drivers/infiniband/hw/mlx5/counters.c b/drivers/infiniband/hw/mlx5/counters.c
-index d826f03b6ec5..542f591d73e0 100644
---- a/drivers/infiniband/hw/mlx5/counters.c
-+++ b/drivers/infiniband/hw/mlx5/counters.c
-@@ -849,9 +849,8 @@ static void mlx5_ib_dealloc_counters(struct mlx5_ib_dev *dev)
- 				    dev->port[i].cnts.opfcs, j, &in_use_opfc))
- 				goto skip;
- 
--			if (IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS))
--				mlx5_ib_fs_remove_op_fc(dev,
--					&dev->port[i].cnts.opfcs[j], j);
-+			mlx5_ib_fs_remove_op_fc(dev,
-+						&dev->port[i].cnts.opfcs[j], j);
- 			mlx5_fc_destroy(dev->mdev,
- 					dev->port[i].cnts.opfcs[j].fc);
- skip:
-@@ -1115,8 +1114,7 @@ static const struct ib_device_ops hw_stats_ops = {
- 	.counter_dealloc = mlx5_ib_counter_dealloc,
- 	.counter_alloc_stats = mlx5_ib_counter_alloc_stats,
- 	.counter_update_stats = mlx5_ib_counter_update_stats,
--	.modify_hw_stat = IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS) ?
--			  mlx5_ib_modify_stat : NULL,
-+	.modify_hw_stat = mlx5_ib_modify_stat,
- 	.counter_init = mlx5_ib_counter_init,
- 
- 	INIT_RDMA_OBJ_SIZE(rdma_counter, mlx5_rdma_counter, rdma_counter),
-diff --git a/drivers/infiniband/hw/mlx5/fs.c b/drivers/infiniband/hw/mlx5/fs.c
-index 93b229e9aab3..71a47821a564 100644
---- a/drivers/infiniband/hw/mlx5/fs.c
-+++ b/drivers/infiniband/hw/mlx5/fs.c
-@@ -679,7 +679,7 @@ enum flow_table_type {
- #define MLX5_FS_MAX_TYPES	 6
- #define MLX5_FS_MAX_ENTRIES	 BIT(16)
- 
--static bool mlx5_ib_shared_ft_allowed(struct ib_device *device)
-+static bool __maybe_unused mlx5_ib_shared_ft_allowed(struct ib_device *device)
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 3dc31640f53a..c089c99ed419 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -2906,11 +2906,11 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 				    struct ib_mad_private *mad)
  {
- 	struct mlx5_ib_dev *dev = to_mdev(device);
+ 	unsigned long flags;
+-	int post, ret;
+ 	struct ib_mad_private *mad_priv;
+ 	struct ib_sge sg_list;
+ 	struct ib_recv_wr recv_wr;
+ 	struct ib_mad_queue *recv_queue = &qp_info->recv_queue;
++	int ret = 0;
  
-@@ -3030,6 +3030,7 @@ DECLARE_UVERBS_NAMED_OBJECT(
- 	&UVERBS_METHOD(MLX5_IB_METHOD_STEERING_ANCHOR_DESTROY));
+ 	/* Initialize common scatter list fields */
+ 	sg_list.lkey = qp_info->port_priv->pd->local_dma_lkey;
+@@ -2920,7 +2920,7 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 	recv_wr.sg_list = &sg_list;
+ 	recv_wr.num_sge = 1;
  
- const struct uapi_definition mlx5_ib_flow_defs[] = {
-+#if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(
- 		MLX5_IB_OBJECT_FLOW_MATCHER),
- 	UAPI_DEF_CHAIN_OBJ_TREE(
-@@ -3040,6 +3041,7 @@ const struct uapi_definition mlx5_ib_flow_defs[] = {
- 	UAPI_DEF_CHAIN_OBJ_TREE_NAMED(
- 		MLX5_IB_OBJECT_STEERING_ANCHOR,
- 		UAPI_DEF_IS_OBJ_SUPPORTED(mlx5_ib_shared_ft_allowed)),
-+#endif
- 	{},
- };
- 
-diff --git a/drivers/infiniband/hw/mlx5/fs.h b/drivers/infiniband/hw/mlx5/fs.h
-index 0516555eb1c1..2ebe86e5be10 100644
---- a/drivers/infiniband/hw/mlx5/fs.h
-+++ b/drivers/infiniband/hw/mlx5/fs.h
-@@ -8,23 +8,8 @@
- 
- #include "mlx5_ib.h"
- 
--#if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
- int mlx5_ib_fs_init(struct mlx5_ib_dev *dev);
- void mlx5_ib_fs_cleanup_anchor(struct mlx5_ib_dev *dev);
--#else
--static inline int mlx5_ib_fs_init(struct mlx5_ib_dev *dev)
--{
--	dev->flow_db = kzalloc(sizeof(*dev->flow_db), GFP_KERNEL);
+-	do {
++	while (true) {
+ 		/* Allocate and map receive buffer */
+ 		if (mad) {
+ 			mad_priv = mad;
+@@ -2928,10 +2928,8 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 		} else {
+ 			mad_priv = alloc_mad_private(port_mad_size(qp_info->port_priv),
+ 						     GFP_ATOMIC);
+-			if (!mad_priv) {
+-				ret = -ENOMEM;
+-				break;
+-			}
++			if (!mad_priv)
++				return -ENOMEM;
+ 		}
+ 		sg_list.length = mad_priv_dma_size(mad_priv);
+ 		sg_list.addr = ib_dma_map_single(qp_info->port_priv->device,
+@@ -2940,37 +2938,41 @@ static int ib_mad_post_receive_mads(struct ib_mad_qp_info *qp_info,
+ 						 DMA_FROM_DEVICE);
+ 		if (unlikely(ib_dma_mapping_error(qp_info->port_priv->device,
+ 						  sg_list.addr))) {
+-			kfree(mad_priv);
+ 			ret = -ENOMEM;
+-			break;
++			goto free_mad_priv;
+ 		}
+ 		mad_priv->header.mapping = sg_list.addr;
+ 		mad_priv->header.mad_list.mad_queue = recv_queue;
+ 		mad_priv->header.mad_list.cqe.done = ib_mad_recv_done;
+ 		recv_wr.wr_cqe = &mad_priv->header.mad_list.cqe;
 -
--	if (!dev->flow_db)
--		return -ENOMEM;
--
--	mutex_init(&dev->flow_db->lock);
--	return 0;
--}
--
--inline void mlx5_ib_fs_cleanup_anchor(struct mlx5_ib_dev *dev) {}
--#endif
+-		/* Post receive WR */
+ 		spin_lock_irqsave(&recv_queue->lock, flags);
+-		post = (++recv_queue->count < recv_queue->max_active);
+-		list_add_tail(&mad_priv->header.mad_list.list, &recv_queue->list);
++		if (recv_queue->count >= recv_queue->max_active) {
++			/* Fully populated the receive queue */
++			spin_unlock_irqrestore(&recv_queue->lock, flags);
++			break;
++		}
++		recv_queue->count++;
++		list_add_tail(&mad_priv->header.mad_list.list,
++			      &recv_queue->list);
+ 		spin_unlock_irqrestore(&recv_queue->lock, flags);
++
+ 		ret = ib_post_recv(qp_info->qp, &recv_wr, NULL);
+ 		if (ret) {
+ 			spin_lock_irqsave(&recv_queue->lock, flags);
+ 			list_del(&mad_priv->header.mad_list.list);
+ 			recv_queue->count--;
+ 			spin_unlock_irqrestore(&recv_queue->lock, flags);
+-			ib_dma_unmap_single(qp_info->port_priv->device,
+-					    mad_priv->header.mapping,
+-					    mad_priv_dma_size(mad_priv),
+-					    DMA_FROM_DEVICE);
+-			kfree(mad_priv);
+ 			dev_err(&qp_info->port_priv->device->dev,
+ 				"ib_post_recv failed: %d\n", ret);
+ 			break;
+ 		}
+-	} while (post);
++	}
  
- static inline void mlx5_ib_fs_cleanup(struct mlx5_ib_dev *dev)
- {
++	ib_dma_unmap_single(qp_info->port_priv->device,
++			    mad_priv->header.mapping,
++			    mad_priv_dma_size(mad_priv), DMA_FROM_DEVICE);
++free_mad_priv:
++	kfree(mad_priv);
+ 	return ret;
+ }
+ 
 -- 
 2.48.1
 
