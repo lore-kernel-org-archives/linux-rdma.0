@@ -1,132 +1,241 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mailout1.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B90121F3BBF
-	for <linux-rdma@vger.kernel.org>; Fri, 14 Mar 2025 10:12:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 777E31FCFC0
+	for <linux-rdma@vger.kernel.org>; Fri, 14 Mar 2025 10:53:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.118.77.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741947145; cv=none; b=gKajI9e1KmE3R3NuI5kOnkm5uW4aEHMV6j8VKkNJrFwdfwOe+Ge3f+IwfpWbFLXkFrxtVAZM3ntmbeICK7JN67NEp5pUei4S7DQvzblAa/t7YgELfAZnqPqVwYb3NXhvDNcWgmgeFcWEqi0chZ0i2isnuafBpILuzyu/lQWq04s=
+	t=1741949593; cv=none; b=QbBkXSvYpD7cANmcbNX7wRdDncx2MU2dY+jp4XXUXe35sKYIvQThVNrdxzYifzoMAm+uLtL31VoDOxYA68XqeqpMZGai0bA1w7giWlqEoVgGsjvhj/jj++g9XeKxXTOFsKh+CSs9WBt74j65GZSYU9SVwCvfGcum2ZyTatOCHF8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741947145; c=relaxed/simple;
-	bh=ZwQLt7Z4tHTJcWoA9ARFUEED+hl5/cCffTRlgZa7WQU=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=XwXLavqv4luhnC3d1pDjjzeUWVIuBcdV6aJn9M82rYWviR5CndlFOw1E7qSj860jwDRs67iNFSw19TBOenIS6KbSh4ajc0TGIc2ExR+cSFmkf2/VikgBpvjCs1X5oQa37VB4NY5zXFC4yZpNX9cpu/370ttzQOw1/16m11vNEKE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=VpVCqqfF; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1741949593; c=relaxed/simple;
+	bh=/diLEnQGyox4m43R89ccR1VQLGWi1rjL6IMj1qEyYJk=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:From:In-Reply-To:
+	 Content-Type:References; b=JB0+birr8rSVgfuk56hsrjzuj9Th+0iVgY5TFrMmIjaM5mI2vB5p6QZqqtGZtdWVkaTnJPGosOgKY+q0U17k0a2/fM7/9s7vFC/5MJd4tkJ2hL8WJgyCeuRF9Vk7AT5QYJOqOwW8xV1hzYROjQ14ahYqUH1q8nrQj08lCEA5KxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=MdOLMJHU; arc=none smtp.client-ip=210.118.77.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VpVCqqfF"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1741947141;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=9gm2z62YPqNWN8yJwphL0g3OWPmFyfl9EtTC0QPQVIU=;
-	b=VpVCqqfF73ZZSaIQJV5kFGtTMqdIhI+6uYvUmcMR+ergrLx4spkUJq2U12toySmInyr3pa
-	/79e8MlIbpNVLy6t2ZXhEvEUfEPx3oRGDmXZWdQb9Xd3DY4e6MjFlg3P05kAqlKc2uwvlB
-	3ifkaJ6g2l7jiM2iV0ejN+Yu1bpr6WA=
-Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
- [209.85.167.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-423-5pxcgVd6O92MqA4kMTjQ4Q-1; Fri, 14 Mar 2025 06:12:19 -0400
-X-MC-Unique: 5pxcgVd6O92MqA4kMTjQ4Q-1
-X-Mimecast-MFC-AGG-ID: 5pxcgVd6O92MqA4kMTjQ4Q_1741947138
-Received: by mail-lf1-f72.google.com with SMTP id 2adb3069b0e04-54989998f1bso1007894e87.0
-        for <linux-rdma@vger.kernel.org>; Fri, 14 Mar 2025 03:12:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741947138; x=1742551938;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=9gm2z62YPqNWN8yJwphL0g3OWPmFyfl9EtTC0QPQVIU=;
-        b=U9kUX1mIe6TTpR8SMN7yr1PbyO417XJ2Db8IdAxO+wmck6M0ElxnGJss7Emtx80CTi
-         lH/8Sd+lMfaLnfu7yLYoPQo8SQ5MnmC+16wLjh00DhUxZHTyzOTcSZCFXIuqR5aZdjPe
-         a4dCSy643/B6Wpl5kZkLr/sqqnb+sGXgy2syv82cGoI6Nw4sqQ47fmiXHE9EUEolzicp
-         tUcp4S1O++As4S8lscoUblPKjM3yZUv5AGh7vd/3yCqRRs1vdvv3Id0eZyQjFbN68oIQ
-         5MrVm6KX8YDyq3LKuroe9ZZQ12bh7YtM+GY4VtNu+LBZEpxPQ36og8TvGLdTHT+ZoSrA
-         8Hlw==
-X-Forwarded-Encrypted: i=1; AJvYcCW0W4kgSGFns9d4HtbHcnXqetW5RP0kaLTzEmmcYq1+dRApVTBc1LXGb95ozQS/WCcKk67Xvjdlpq44@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy30UKd77foKaxQrDdQOnBjArDFf1JTr0pxn0h5lKY0oLXNn4Mg
-	EXVsjp+w3qdm2tKJt1pX+Z5WJVN40k59c5TdkYUGS2Ew9n+WrVQYxvKVepPWUnQyhQ5+39dQsRl
-	Jy+kSMftfEpch7Hs46JKblEhSe1c260tMDcxfvQ+YJU7d4Qei/+SCqcXyvI0=
-X-Gm-Gg: ASbGncvFji38vetXLexApq7yM2G9Tx+7E9bglhMeE+j5Fa8POvRhwEEQbrjK40Ugmvz
-	s0Tc5yO6u7Up4UhERCMSBmcWycLlnp+HQqHzlxXQreYVVtXXC7uAJA3rQnKiW6YjL306+z71R6O
-	eAj6o9UhqBJ8G1KF9Mb/bk5xSkRQGuKas/LH+IfT64w8qKp2RxGrrPRAo49B9v5JrRIQFyePZVZ
-	Z65PO72riJY55jwWEb0eWEgtrwUZaz++MvxMNEduNpL4PEjEx8WjGhLne2AjFG2XMfv2o5BCJhf
-	axJDlODPbTMO
-X-Received: by 2002:a05:6512:3ba4:b0:544:ca1:da41 with SMTP id 2adb3069b0e04-549c39897ddmr668067e87.44.1741947138260;
-        Fri, 14 Mar 2025 03:12:18 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFQUWKDrZlzJOt8qlYePG63LB20pTY5b0FHQCM+E2JqpqZhwzuf+fAjF8sgxJkwHe+V2bVHLw==
-X-Received: by 2002:a05:6512:3ba4:b0:544:ca1:da41 with SMTP id 2adb3069b0e04-549c39897ddmr668037e87.44.1741947137761;
-        Fri, 14 Mar 2025 03:12:17 -0700 (PDT)
-Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-549ba7c11f7sm477629e87.84.2025.03.14.03.12.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 14 Mar 2025 03:12:15 -0700 (PDT)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-	id 0737418FA92C; Fri, 14 Mar 2025 11:12:12 +0100 (CET)
-From: =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Subject: [PATCH net-next 0/3] Fix late DMA unmap crash for page pool
-Date: Fri, 14 Mar 2025 11:10:18 +0100
-Message-Id: <20250314-page-pool-track-dma-v1-0-c212e57a74c2@redhat.com>
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="MdOLMJHU"
+Received: from eucas1p1.samsung.com (unknown [182.198.249.206])
+	by mailout1.w1.samsung.com (KnoxPortal) with ESMTP id 20250314105304euoutp01b6462599614ee7df7e07f5d2d19cb543~sper-wcm31607416074euoutp01Q
+	for <linux-rdma@vger.kernel.org>; Fri, 14 Mar 2025 10:53:04 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w1.samsung.com 20250314105304euoutp01b6462599614ee7df7e07f5d2d19cb543~sper-wcm31607416074euoutp01Q
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1741949584;
+	bh=GDf7n0z9BWmBAuRh2vgU2+KaAQVjN1nhK84TViW1sYU=;
+	h=Date:Subject:To:Cc:From:In-Reply-To:References:From;
+	b=MdOLMJHUTJrYMmIgbHdkLHQa0BaipyVj9vZkqE3i711JoVrfW4o9DXKjSjzsr8dAb
+	 3765vI0Ql8f3XeARsmAjNzYbAYy9o3oHk0ICfZvky3SOIvGEz5GgpsT+He9dahJlqz
+	 5sQLqKJzcCXDJa8VgL+Ji4svN9PQK9fP+6peB5Kw=
+Received: from eusmges3new.samsung.com (unknown [203.254.199.245]) by
+	eucas1p2.samsung.com (KnoxPortal) with ESMTP id
+	20250314105304eucas1p2f89c0fb6d3ceaa92ae0f0da9fa170bc2~sperhfC6B0385003850eucas1p26;
+	Fri, 14 Mar 2025 10:53:04 +0000 (GMT)
+Received: from eucas1p2.samsung.com ( [182.198.249.207]) by
+	eusmges3new.samsung.com (EUCPMTA) with SMTP id A0.7B.20397.F8A04D76; Fri, 14
+	Mar 2025 10:53:03 +0000 (GMT)
+Received: from eusmtrp1.samsung.com (unknown [182.198.249.138]) by
+	eucas1p1.samsung.com (KnoxPortal) with ESMTPA id
+	20250314105303eucas1p1dcc67c3bc4c94d4a44b5aef03e5de21c~speqyQqt50374503745eucas1p1l;
+	Fri, 14 Mar 2025 10:53:03 +0000 (GMT)
+Received: from eusmgms2.samsung.com (unknown [182.198.249.180]) by
+	eusmtrp1.samsung.com (KnoxPortal) with ESMTP id
+	20250314105303eusmtrp1590b805c70e1352e73549438ffaf406e~speqxS-3P2086620866eusmtrp1b;
+	Fri, 14 Mar 2025 10:53:03 +0000 (GMT)
+X-AuditID: cbfec7f5-e59c770000004fad-13-67d40a8f112c
+Received: from eusmtip1.samsung.com ( [203.254.199.221]) by
+	eusmgms2.samsung.com (EUCPMTA) with SMTP id 54.1B.19654.F8A04D76; Fri, 14
+	Mar 2025 10:53:03 +0000 (GMT)
+Received: from [106.210.134.192] (unknown [106.210.134.192]) by
+	eusmtip1.samsung.com (KnoxPortal) with ESMTPA id
+	20250314105259eusmtip1ca4b7caf6e6d3445b47482f62192d308~spenscCDP0752407524eusmtip1b;
+	Fri, 14 Mar 2025 10:52:59 +0000 (GMT)
+Message-ID: <adb63b87-d8f2-4ae6-90c4-125bde41dc29@samsung.com>
+Date: Fri, 14 Mar 2025 11:52:58 +0100
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v7 00/17] Provide a new two step DMA mapping API
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Robin Murphy <robin.murphy@arm.com>, Christoph Hellwig <hch@lst.de>,
+	Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>, Joerg Roedel
+	<joro@8bytes.org>, Will Deacon <will@kernel.org>, Sagi Grimberg
+	<sagi@grimberg.me>, Keith Busch <kbusch@kernel.org>, Bjorn Helgaas
+	<bhelgaas@google.com>, Logan Gunthorpe <logang@deltatee.com>, Yishai Hadas
+	<yishaih@nvidia.com>, Shameer Kolothum
+	<shameerali.kolothum.thodi@huawei.com>, Kevin Tian <kevin.tian@intel.com>,
+	Alex Williamson <alex.williamson@redhat.com>,
+	=?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Andrew Morton
+	<akpm@linux-foundation.org>, Jonathan Corbet <corbet@lwn.net>,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-block@vger.kernel.org, linux-rdma@vger.kernel.org,
+	iommu@lists.linux.dev, linux-nvme@lists.infradead.org,
+	linux-pci@vger.kernel.org, kvm@vger.kernel.org, linux-mm@kvack.org, Randy
+	Dunlap <rdunlap@infradead.org>
+Content-Language: en-US
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+In-Reply-To: <20250312193249.GI1322339@unreal>
 Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAIoA1GcC/x2MQQqDMBAAvyJ77sKa1R78ivSw6KpL2yQkQQLi3
- xt6nIGZC7Im0wxTd0HS07IF36B/dLAc4ndFWxuDIzcS94RRmoshfLAkWd64fgWJ2fHAMjxJoZU
- x6Wb1f53Ba0GvtcDrvn+tpLJRbwAAAA==
-X-Change-ID: 20250310-page-pool-track-dma-0332343a460e
-To: "David S. Miller" <davem@davemloft.net>, 
- Jakub Kicinski <kuba@kernel.org>, Jesper Dangaard Brouer <hawk@kernel.org>, 
- Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
- Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
- Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
- Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
- Simon Horman <horms@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
- Mina Almasry <almasrymina@google.com>, 
- Yonglong Liu <liuyonglong@huawei.com>, 
- Yunsheng Lin <linyunsheng@huawei.com>, 
- Pavel Begunkov <asml.silence@gmail.com>, 
- Matthew Wilcox <willy@infradead.org>
-Cc: netdev@vger.kernel.org, bpf@vger.kernel.org, linux-rdma@vger.kernel.org, 
- linux-mm@kvack.org, 
- =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>, 
- Qiuling Ren <qren@redhat.com>, Yuying Ma <yuma@redhat.com>
-X-Mailer: b4 0.14.2
+X-Brightmail-Tracker: H4sIAAAAAAAAA02Se0xTVxzHc+69vbfUlF1KHUemc2tkA5SHUfCYiVHHH3fLtriZbZlLps28
+	K2S81vLQZYsVoUh5CaKFUqAbpQJWcFSYoIa2jlcYA60SQB4yeSjKFKUk0M2OcnHjv8/5fX/f
+	fL/n5PBxUQPpy4+OS2TlcdIYCSkgGtsWeoLyBLdloY904UhXZyLRvCubRBeG80hkSI1C45YM
+	gKovtGJocQ6h4qIOgEo0DzCUWXKJQgW2PoAqZxoopDv7HSpcrMTR9cHN6CeVgUD2Zh2JRkwu
+	Hio3TlCou6ydRJO2HAIZ0pdoZkhDIOvTcR6qffSEQL/eSeWhtKEwZDwr2LOeGbeWYYypzASY
+	yTuTgNHXJzE9I78QTNpvMzzGXBXIVFx7iDH27iSmviaTZOqfFVBMR5GTYMyG48wDczFgrg4o
+	SaYi9wxvv/igYNcRNiY6mZWH7D4siGq+P8VLyN5ydPDJIqkEWX5q4MGH9HY4WtuPqYGAL6Kr
+	ACzPaSXdgoieA1DVQXPCcwA7W3PBS4fDYcE54TyAt+wuwDlmARwe47lZSO+GtfdGlpmg/WB/
+	XQXBzb1gZ/H4Mq+lN8LRwSLKzd50JLQ05uNuFi/tV+uHee4AnDZTUHc7czkAp33g4Hg55maS
+	3grVM+rlqh50MKxuzVjZ2QhPNpQst4N0kwAOOF0rtSOh01KLcewNp9svUxyvh11nsgnOkAGg
+	3jmKcYfTACqnBlfc78ChPxaX4vhLEQGwrjmEG++FvY4xyj2GtCfsn/HiSnjCgkYNzo2F8JRK
+	xG2/BbXttf/FWntv4aeBRLvqXbSrrqlddR3t/7l6QNQAHzZJEStjFdvi2JRghTRWkRQnC/46
+	PrYeLP3srhftjiugano22AYwPrAByMclYiGy22Ui4RHpse9ZefwheVIMq7CB1/iExEf4c0u6
+	TETLpInstyybwMpfqhjfw1eJleLNYe89rrnZpDbOhmft32RY6NmSvylqaOBc2q5Ca8nend2q
+	yy2/88QGAd/17g9avcrb9FmoZV3XqzdfTBaiV7Z3lFxpO08TIUZLm9f0mgTf0AxqPmBs36GL
+	Hzw9t02Tk+yv1w5f80/94kTi87o1/6QcrGyJVPqdKs0//MYxCjQduPfwU1AVkFwdMVvkrYn9
+	pHfDnrvRYX/XYKXfUAeue32ZIvkrdeF4mMMYlJNz40al+k+DPSTiK0XQs4asfT9uFn+4oMt7
+	c2TnyLr7J8u7LjnZibvp8Sfers+ae73z4gZ84uoOocxzrXOgMLzsox0p5sd9uUenAmP837fO
+	K0zDffKICvzzjyWEIkq6NRCXK6T/Av6VCMRIBAAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrJKsWRmVeSWpSXmKPExsVy+t/xu7r9XFfSDa6/4LGYs34Nm8W3/z1s
+	Fqvv9rNZLGnKsHhyoJ3RYuXqo0wWv75YWMyccYLRYvb0F0wWnbM3sFtMOnSN0WLp263sFnOm
+	FlpM+bWU2WLvLW2LhW1LWCwu75rDZnFvzX9Wi/nLnrJbnJ13nM3i2aFeFoslrUDW2zvTWSwO
+	fnjCarHu9XsWi+1Xm1gtWu6YWiybyuUg4/Hk4DwmjzXz1jB6PLv6jNFjwaZSj/P3NrJ4tBx5
+	y+qxeYWWx+I9L5k8Lp8t9di0qpPNY9OnSeweJ2b8ZvHYvKTe48XmmYweu282sHks7pvMGiAS
+	pWdTlF9akqqQkV9cYqsUbWhhpGdoaaFnZGKpZ2hsHmtlZKqkb2eTkpqTWZZapG+XoJex6/Fz
+	1oIenYpb73+xNTB2q3YxcnJICJhIfP16gLmLkYtDSGApo8Tdvs3MEAkZiZPTGlghbGGJP9e6
+	2CCK3jNKPGt5zwiS4BWwk1j34B5YEYuAqsSN9YtZIOKCEidnPgGzRQXkJe7fmsEOYgsLuEgc
+	2DYRbIEIUP3KBXdZQYYyC2xllzhyrA/qjC1MEmfvzgbrYBYQl7j1ZD4TiM0mYCjR9RbkDE4O
+	TgE9iZVH2xkhaswkurZ2QdnyEs1bZzNPYBSaheSQWUhGzULSMgtJywJGllWMIqmlxbnpucVG
+	esWJucWleel6yfm5mxiBaWrbsZ9bdjCufPVR7xAjEwfjIUYJDmYlEV6Ly5fThXhTEiurUovy
+	44tKc1KLDzGaAkNjIrOUaHI+MFHmlcQbmhmYGpqYWRqYWpoZK4nzsl05nyYkkJ5YkpqdmlqQ
+	WgTTx8TBKdXAVJLWldx/8Or3ySXH/GzqJkb4cYQ2HnjvIXdj4gqpT1Hx78Prui0/nDA3nNd4
+	7OSm7y2nM+LkrRakvLRwrp/srKTYFn/moHTXj8LKH1r162Rn3C9b9U3dnClQ72Fs3U/FXzFv
+	Tz4p+LxGPKOb2Ttl0XqHm+aX9eannXs6Z80W731BZbGh9x5oiR+8x3Ajid+xtq4qLd6hauET
+	ge1dn17cVJdr3T5DUWfb3okfd3Kls5/T2WrQK79DQ/lCysLuCRX9sw8WOmvOVzx7+fkZK1v+
+	gMVebh+K/nsbcR1xOsIv58j/Iccv1MjyUb28q+ajhetOqDCEpFzJbGVectHqzpyTr74rbzo0
+	w3fGAn1Bhzl7lFiKMxINtZiLihMBoquq1twDAAA=
+X-CMS-MailID: 20250314105303eucas1p1dcc67c3bc4c94d4a44b5aef03e5de21c
+X-Msg-Generator: CA
+Content-Type: text/plain; charset="utf-8"
+X-RootMTR: 20250228195423eucas1p221736d964e9aeb1b055d3ee93a4d2648
+X-EPHeader: CA
+CMS-TYPE: 201P
+X-CMS-RootMailID: 20250228195423eucas1p221736d964e9aeb1b055d3ee93a4d2648
+References: <cover.1738765879.git.leonro@nvidia.com>
+	<20250220124827.GR53094@unreal>
+	<CGME20250228195423eucas1p221736d964e9aeb1b055d3ee93a4d2648@eucas1p2.samsung.com>
+	<1166a5f5-23cc-4cce-ba40-5e10ad2606de@arm.com>
+	<d408b1c7-eabf-4a1e-861c-b2ddf8bf9f0e@samsung.com>
+	<20250312193249.GI1322339@unreal>
 
-This series fixes the late dma_unmap crash for page pool first reported
-by Yonglong Liu in [0]. It is an alternative approach to the one
-submitted by Yunsheng Lin, most recently in [1]. The first two commits
-are small refactors of the page pool code, in preparation of the main
-change in patch 3. See the commit message of patch 3 for the details.
+On 12.03.2025 20:32, Leon Romanovsky wrote:
+> On Wed, Mar 12, 2025 at 10:28:32AM +0100, Marek Szyprowski wrote:
+>> Hi Robin
+>>
+>> On 28.02.2025 20:54, Robin Murphy wrote:
+>>> On 20/02/2025 12:48 pm, Leon Romanovsky wrote:
+>>>> On Wed, Feb 05, 2025 at 04:40:20PM +0200, Leon Romanovsky wrote:
+>>>>> From: Leon Romanovsky <leonro@nvidia.com>
+>>>>>
+>>>>> Changelog:
+>>>>> v7:
+>>>>>    * Rebased to v6.14-rc1
+>>>> <...>
+>>>>
+>>>>> Christoph Hellwig (6):
+>>>>>     PCI/P2PDMA: Refactor the p2pdma mapping helpers
+>>>>>     dma-mapping: move the PCI P2PDMA mapping helpers to pci-p2pdma.h
+>>>>>     iommu: generalize the batched sync after map interface
+>>>>>     iommu/dma: Factor out a iommu_dma_map_swiotlb helper
+>>>>>     dma-mapping: add a dma_need_unmap helper
+>>>>>     docs: core-api: document the IOVA-based API
+>>>>>
+>>>>> Leon Romanovsky (11):
+>>>>>     iommu: add kernel-doc for iommu_unmap and iommu_unmap_fast
+>>>>>     dma-mapping: Provide an interface to allow allocate IOVA
+>>>>>     dma-mapping: Implement link/unlink ranges API
+>>>>>     mm/hmm: let users to tag specific PFN with DMA mapped bit
+>>>>>     mm/hmm: provide generic DMA managing logic
+>>>>>     RDMA/umem: Store ODP access mask information in PFN
+>>>>>     RDMA/core: Convert UMEM ODP DMA mapping to caching IOVA and page
+>>>>>       linkage
+>>>>>     RDMA/umem: Separate implicit ODP initialization from explicit ODP
+>>>>>     vfio/mlx5: Explicitly use number of pages instead of allocated
+>>>>> length
+>>>>>     vfio/mlx5: Rewrite create mkey flow to allow better code reuse
+>>>>>     vfio/mlx5: Enable the DMA link API
+>>>>>
+>>>>>    Documentation/core-api/dma-api.rst   |  70 ++++
+>>>>    drivers/infiniband/core/umem_odp.c   | 250 +++++---------
+>>>>>    drivers/infiniband/hw/mlx5/mlx5_ib.h |  12 +-
+>>>>>    drivers/infiniband/hw/mlx5/odp.c     |  65 ++--
+>>>>>    drivers/infiniband/hw/mlx5/umr.c     |  12 +-
+>>>>>    drivers/iommu/dma-iommu.c            | 468
+>>>>> +++++++++++++++++++++++----
+>>>>>    drivers/iommu/iommu.c                |  84 ++---
+>>>>>    drivers/pci/p2pdma.c                 |  38 +--
+>>>>>    drivers/vfio/pci/mlx5/cmd.c          | 375 +++++++++++----------
+>>>>>    drivers/vfio/pci/mlx5/cmd.h          |  35 +-
+>>>>>    drivers/vfio/pci/mlx5/main.c         |  87 +++--
+>>>>>    include/linux/dma-map-ops.h          |  54 ----
+>>>>>    include/linux/dma-mapping.h          |  85 +++++
+>>>>>    include/linux/hmm-dma.h              |  33 ++
+>>>>>    include/linux/hmm.h                  |  21 ++
+>>>>>    include/linux/iommu.h                |   4 +
+>>>>>    include/linux/pci-p2pdma.h           |  84 +++++
+>>>>>    include/rdma/ib_umem_odp.h           |  25 +-
+>>>>>    kernel/dma/direct.c                  |  44 +--
+>>>>>    kernel/dma/mapping.c                 |  18 ++
+>>>>>    mm/hmm.c                             | 264 +++++++++++++--
+>>>>>    21 files changed, 1435 insertions(+), 693 deletions(-)
+>>>>>    create mode 100644 include/linux/hmm-dma.h
+>>>> Kind reminder.
+> <...>
+>
+>> Removing the need for scatterlists was advertised as the main goal of
+>> this new API, but it looks that similar effects can be achieved with
+>> just iterating over the pages and calling page-based DMA API directly.
+> Such iteration can't be enough because P2P pages don't have struct pages,
+> so you can't use reliably and efficiently dma_map_page_attrs() call.
+>
+> The only way to do so is to use dma_map_sg_attrs(), which relies on SG
+> (the one that we want to remove) to map P2P pages.
 
--Toke
+That's something I don't get yet. How P2P pages can be used with 
+dma_map_sg_attrs(), but not with dma_map_page_attrs()? Both operate 
+internally on struct page pointer.
 
-[0] https://lore.kernel.org/lkml/8067f204-1380-4d37-8ffd-007fc6f26738@kernel.org/T/
-[1] https://lore.kernel.org/r/20250307092356.638242-1-linyunsheng@huawei.com
+>> Maybe I missed something. I still see some advantages in this DMA API
+>> extension, but I would also like to see the clear benefits from
+>> introducing it, like perf logs or other benchmark summary.
+> We didn't focus yet on performance, however Christoph mentioned in his
+> block RFC [1] that even simple conversion should improve performance as
+> we are performing one P2P lookup per-bio and not per-SG entry as was
+> before [2]. In addition it decreases memory [3] too.
+>
+> [1] https://lore.kernel.org/all/cover.1730037261.git.leon@kernel.org/
+> [2] https://lore.kernel.org/all/34d44537a65aba6ede215a8ad882aeee028b423a.1730037261.git.leon@kernel.org/
+> [3] https://lore.kernel.org/all/383557d0fa1aa393dbab4e1daec94b6cced384ab.1730037261.git.leon@kernel.org/
+>
+> So clear benefits are:
+> 1. Ability to use native for subsystem structure, e.g. bio for block,
+> umem for RDMA, dmabuf for DRM, e.t.c. It removes current wasteful
+> conversions from and to SG in order to work with DMA API.
+> 2. Batched request and iotlb sync optimizations (perform only once).
+> 3. Avoid very expensive call to pgmap pointer.
+> 4. Expose MMIO over VFIO without hacks (PCI BAR doesn't have struct pages).
+> See this series for such a hack
+> https://lore.kernel.org/all/20250307052248.405803-1-vivek.kasireddy@intel.com/
 
-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
----
-Toke Høiland-Jørgensen (3):
-      page_pool: Move pp_magic check into helper functions
-      page_pool: Turn dma_sync and dma_sync_cpu fields into a bitmap
-      page_pool: Track DMA-mapped pages and unmap them when destroying the pool
+I see those benefits and I admit that for typical DMA-with-IOMMU case it 
+would improve some things. I think that main concern from Robin was how 
+to handle it for the cases without an IOMMU.
 
- drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |  4 +-
- include/net/page_pool/helpers.h                  |  6 +-
- include/net/page_pool/types.h                    | 54 +++++++++++++++-
- mm/page_alloc.c                                  |  9 +--
- net/core/devmem.c                                |  3 +-
- net/core/netmem_priv.h                           | 33 +++++++++-
- net/core/page_pool.c                             | 81 ++++++++++++++++++++----
- net/core/skbuff.c                                | 16 +----
- net/core/xdp.c                                   |  4 +-
- 9 files changed, 164 insertions(+), 46 deletions(-)
----
-base-commit: 8ef890df4031121a94407c84659125cbccd3fdbe
-change-id: 20250310-page-pool-track-dma-0332343a460e
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
