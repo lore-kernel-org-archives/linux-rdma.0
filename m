@@ -1,45 +1,46 @@
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2088.outbound.protection.outlook.com [40.107.223.88])
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2050.outbound.protection.outlook.com [40.107.93.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97CBC1E2852;
-	Thu, 20 Mar 2025 19:44:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.223.88
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A86F2288EA;
+	Thu, 20 Mar 2025 19:44:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.93.50
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742499879; cv=fail; b=fvbG0GTlY4eGdJqQ0uFsPkILzihFFzuTtVonqftUS14w7Sh++QeTdZVEjO752rxdWmqmLHyvxqv0nBPnJoYI7WI5tAA3YYQGVEpGTXFjW3SehX6aCHhVU63pJjH8mMC4evmCBk0iMjlKWmDqWHndvFskADEB06+OIc+GRgWettw=
+	t=1742499880; cv=fail; b=bY4tzqHfcXCl0HXWWQSCb5tga+SWlimZy/17lQAsHbCmMuwJo3cIpwz5o1MpPBT1e0W/b058smDjOD04FYrZ+YF5LNAS8gFOXAoucup9irpNod9wZVlzmUiBb5uB9VaEAZLz7xK3+TMoLBXffdfIrDYFZe7qjeC2TIkfUALLsto=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742499879; c=relaxed/simple;
-	bh=CvmGlbovPXjfzUzbJD2d0Y3QWi9g4FYNtLPyYLjgXS4=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=gxExkCRJRUeePp1NUz9YIjdOqN0Rtm6Qvox7nFfiBznsZbu3wHJ1KJ6fDk8qDpTNonxPahMRbUytqZQJAwNT8APnWABDKZ70h+xJoi1YkLOEwTINGJMWAVGC+FGNCpOm+D4fNhNUL/fR7Ss2klqRFO4qvn055Cqxu7Nw0HqUF1w=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=ZXSuKUxo; arc=fail smtp.client-ip=40.107.223.88
+	s=arc-20240116; t=1742499880; c=relaxed/simple;
+	bh=XrinpZ7brHowkz2zlp4plByre6rAXB0huImZjJHlpP8=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=pMUdKnwr4CZCViYzC7yMZTo6ONIdnjwP53BXndQUjOchZAh/AaX9TTD0SFXL6QxxX0vYBqEneG9Je6EwcdCHXQMCSKZiZUB2zH4U50W1T66H6mjwp/3HHueLAVo1bjg8tEiqZ692thuhYP0uTyGgWRwHrVCMh4R003cNlJ03+EI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com; spf=fail smtp.mailfrom=amd.com; dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b=Ietxn+sX; arc=fail smtp.client-ip=40.107.93.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amd.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=amd.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="ZXSuKUxo"
+	dkim=pass (1024-bit key) header.d=amd.com header.i=@amd.com header.b="Ietxn+sX"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=D753ShzsltyOjXd+sYR5qXL+uBhfMiXJjE/ZgFVq4uP5VdoleTUaOS60sEVafw6cnpaXq5DkOx3fkBxx3a/I6WJaEErm2xraUhkNbdzjr5fJECQYaTEZ3kjlqYl5Ev2NBsITdcZP3epR+RvjraGWJgLkFuDmI/UHNZe0fq+Uaif8Aj+Ws0Hk+VcjMpVkjNIWC1ev9sybNAdHSEOaJEQ3I7mzN9lp7ey/VpBVkwxhUbY0Zc1sxgrlndj68cnwvv4+mmek+jOeym3O7JFzdbRxJv8Llk12itIboCLI0VoglJnRCY1rd2rJtsGfMvHtsd/M67SpI/05HXetjh/Lz7nbVQ==
+ b=TmOG+POmSpwmKyMRDLVC4V3IH3a95fsnflXKgP96Vtba7JkT/wwSaZlz8XnFVtpwzJVYYG9MrDvthSjmGZnAimlW0XXPkeYQ131PQcdTIo1hYrH0tnq7LM2uSatoxSubwUwBo59I6c+SQpK1sTlGv6RSmNqiFd8tsEP/wkfPermO5SqFtKyCNQCODSeOGUeBXDP2STAH0mLUO+n4gsIy/hAI94tyoNuQu8GJPd4pTJZzYkYbpVqR0CWUagkFMC0hX5cdOz/xkfm0MZg0bA0cpWV82Vmn25Kr5IbiWBUNXWBlVMkJrAvJg5uNi1PCXX8KSXIfCTUBvSqt5paaL4XVLw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=v09+BTI5R2fKkXduo0dZ07/pB3tcLjgXr3NO44vpp/M=;
- b=sB1P2WeQI0EZg8mag4tkDRR8Te0bl1ZBgdxQrirGgq4h0TmDM5EhMSOLEsS6qpi5/0KjgDOfL/L5fq1U/IcIA740jwBF8PKRCEzJl1OF/YwN85Q/8cIm3pCcudGhUQ3FFiAKn78ZIyMmEnhLJNSPNyvysjU2OmRqnUq4TjdXbA59H+F8BOSAvRfBJFDgG1CPCoeFJqoPuV3GAgHpINyqC5MqXeM8s3x3Wg3zBljNz/VlrcWkXkIgIzI9GSDgX6TqzpNpawCnlXXOhRPKYwt/rjZKwvXOQjAUckTXTRXQtBMqQlH1rbW0JT1snpl2EgQOf+oUD51LYE+hBdCG/G2zew==
+ bh=XnRRu19yhsWwwteAaz18hb2Kxe9GT2EwCoHgOwAKBuM=;
+ b=LfXy3zvtB81Qfb5y+T3atAK64c6mieAq08Q+wDMDIYYepp4tDMf3QVi/elACHw4rzHUvucu97wkIa94l6gtSBRZ+Atfpg1ayDFB/Ak0VxxRq0zjvE8/BU2oZUAcW3t3XPW0JCJbiWIe5OCg/A2NQyDHk9UjzubtK0KyFWigPpbo8mnGH/pAJm5Y2hVxqBMoHNZt6VCbkIQKpu5LsX8HZLWgVC0UMCOWJC0Yj6+RvOHw21JI2zxNvjN+LrKyK4hXX4MbLg54X1wrGP6pZnQR8RUELXPq1m4iXrZfn9xUMpJ3gHCNhvr+RxtQOzXDeM7dV26fN5q4dlyRWZ0uBK8mPEA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  165.204.84.17) smtp.rcpttodomain=nvidia.com smtp.mailfrom=amd.com; dmarc=pass
  (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=v09+BTI5R2fKkXduo0dZ07/pB3tcLjgXr3NO44vpp/M=;
- b=ZXSuKUxoOnoZWH/PsS03fZgirBkE+mw7bHS0/zL1T88sikMQrWiet2Rq9pLlfLDpF+8NDwO1fKP+uvWNB0nrQ/J4H/tAsyk0ikRevidE0Q+VAow8b8EyYvusZIoc/bH77PiVJhjpACKPgDFIt0jfMCcbvpFDXRfCVBx20CxYIkU=
-Received: from BN9PR03CA0088.namprd03.prod.outlook.com (2603:10b6:408:fc::33)
- by CH3PR12MB8753.namprd12.prod.outlook.com (2603:10b6:610:178::18) with
+ bh=XnRRu19yhsWwwteAaz18hb2Kxe9GT2EwCoHgOwAKBuM=;
+ b=Ietxn+sXnF+wnx9cE2zXwfKfKIajj0SvAf8VhlI0L/KyVksFl/bpCqjrQfh9IWgsDeKeM5Otle7zoHhj5T+NAYno7Yaua2l/fBQ1An/ckWXFD/KMHEpNPLVfYnQ56eLqBpa+V7YoxQ4DiVfjnjMJ3z+jRTI1IHmWf3Cw8RK+4l0=
+Received: from BN0PR03CA0022.namprd03.prod.outlook.com (2603:10b6:408:e6::27)
+ by CY8PR12MB7610.namprd12.prod.outlook.com (2603:10b6:930:9a::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.36; Thu, 20 Mar
- 2025 19:44:30 +0000
-Received: from BL02EPF0001A0FB.namprd03.prod.outlook.com
- (2603:10b6:408:fc:cafe::d0) by BN9PR03CA0088.outlook.office365.com
- (2603:10b6:408:fc::33) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8534.33 via Frontend Transport; Thu,
- 20 Mar 2025 19:44:30 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.33; Thu, 20 Mar
+ 2025 19:44:33 +0000
+Received: from BL02EPF0001A0FD.namprd03.prod.outlook.com
+ (2603:10b6:408:e6:cafe::18) by BN0PR03CA0022.outlook.office365.com
+ (2603:10b6:408:e6::27) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8534.34 via Frontend Transport; Thu,
+ 20 Mar 2025 19:44:33 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
  smtp.mailfrom=amd.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=amd.com;
@@ -47,13 +48,13 @@ Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
  165.204.84.17 as permitted sender) receiver=protection.outlook.com;
  client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
 Received: from SATLEXMB04.amd.com (165.204.84.17) by
- BL02EPF0001A0FB.mail.protection.outlook.com (10.167.242.102) with Microsoft
+ BL02EPF0001A0FD.mail.protection.outlook.com (10.167.242.104) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.8534.20 via Frontend Transport; Thu, 20 Mar 2025 19:44:30 +0000
+ 15.20.8534.20 via Frontend Transport; Thu, 20 Mar 2025 19:44:33 +0000
 Received: from driver-dev1.pensando.io (10.180.168.240) by SATLEXMB04.amd.com
  (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.39; Thu, 20 Mar
- 2025 14:44:28 -0500
+ 2025 14:44:31 -0500
 From: Shannon Nelson <shannon.nelson@amd.com>
 To: <jgg@nvidia.com>, <andrew.gospodarek@broadcom.com>,
 	<aron.silverton@oracle.com>, <dan.j.williams@intel.com>,
@@ -63,10 +64,12 @@ To: <jgg@nvidia.com>, <andrew.gospodarek@broadcom.com>,
 	<lbloch@nvidia.com>, <leonro@nvidia.com>, <linux-cxl@vger.kernel.org>,
 	<linux-rdma@vger.kernel.org>, <netdev@vger.kernel.org>, <saeedm@nvidia.com>
 CC: <brett.creeley@amd.com>, Shannon Nelson <shannon.nelson@amd.com>
-Subject: [PATCH v5 0/6] pds_fwctl: fwctl for AMD/Pensando core devices
-Date: Thu, 20 Mar 2025 12:44:06 -0700
-Message-ID: <20250320194412.67983-1-shannon.nelson@amd.com>
+Subject: [PATCH v5 2/6] pds_core: specify auxiliary_device to be created
+Date: Thu, 20 Mar 2025 12:44:08 -0700
+Message-ID: <20250320194412.67983-3-shannon.nelson@amd.com>
 X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20250320194412.67983-1-shannon.nelson@amd.com>
+References: <20250320194412.67983-1-shannon.nelson@amd.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -78,164 +81,232 @@ X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
  (10.181.40.145)
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BL02EPF0001A0FB:EE_|CH3PR12MB8753:EE_
-X-MS-Office365-Filtering-Correlation-Id: ef34bc09-bd75-48ce-bce5-08dd67e7a1cf
+X-MS-TrafficTypeDiagnostic: BL02EPF0001A0FD:EE_|CY8PR12MB7610:EE_
+X-MS-Office365-Filtering-Correlation-Id: 797fc27d-40b5-45ba-5584-08dd67e7a39b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|82310400026|1800799024|36860700013|7416014|376014|13003099007|7053199007|921020;
+	BCL:0;ARA:13230040|82310400026|1800799024|7416014|36860700013|376014|921020;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?xzjD7WgMafTTqQ5rYGqr9kTd4WDTOD/I2W83/16BzZJIWTj0fN4k8R5h/+fP?=
- =?us-ascii?Q?U1Cg5buyk8HdT6BZKroMDo9aae3gxUODxN2ePOLGkV2nyZfwYaeU4ZrFAtcl?=
- =?us-ascii?Q?QvFJha1wwEQhJzJIXeIiFMv3vcUR1HCcyqVbUm6csBTCpQG2yfgJu8xfUJ45?=
- =?us-ascii?Q?KW4WYF7jcNgptkJfVbVK2SW/TsoWYHWw7SLVbl8Anksbekk0Id2oHSxu5Or1?=
- =?us-ascii?Q?ZjEnC/FSKZ2N93wdsX1Ar12zMDpNAR5i1vQEaSku1aexfTSB9T1r76TlOILV?=
- =?us-ascii?Q?CmR48y5FJQjZRDYZV7PFaxGe4DWoDbv4ixHRKvs5HJ+U6BXjLeBxEjzMb9W5?=
- =?us-ascii?Q?pbRl95CKnPdZ+HpGMJ8ghHoHx/kdFYaobq3AshQY/M4XjHU7YZud9eH7uBJG?=
- =?us-ascii?Q?+lg4SAIZgCtqc1lfDwRqwv9XnyD2WrCxHzCxDeGTDXFIA9g2sYdSjRQ85uuu?=
- =?us-ascii?Q?KNin1H9+FShwgeGyNTErwv8SjqFQO01oaMG1YIN/d9frcspmuiXX1VFFyWyF?=
- =?us-ascii?Q?4RVxigt68HJAXpifwqbVNaAVYp4CZEv8X31m8fWGtiwF7Tp+iuCpQgh8INGd?=
- =?us-ascii?Q?DDvTE7RQf9cpSXF/aflg/bICgI3KievRSWwT2VP95PSdKGQ1i5N+ppW0Lgwr?=
- =?us-ascii?Q?Z9aEY6ylnDz3wcqlYSd2EBzNhtlZx87TwCRd4Ms/eS9cR9nI33qVgpzVH3bZ?=
- =?us-ascii?Q?iirjRumgYm1sCUAea8P285ndSSHzecAEUm7w5EAijc2NexxV+vIL6oSTjFZa?=
- =?us-ascii?Q?Qe8QC12uHfRYGz5TCkEtKapGjlKa1vHQhS6GjfCULR8VcnKjwcVjxoJkJ+cN?=
- =?us-ascii?Q?sXkTXpzTYMTd2g06PfI61mmdsegVC/wN2tulGCv/J+ZG8VPGPrCKMm/lNvv1?=
- =?us-ascii?Q?e+coNP94w8dhANQxRKoUdMprWsenQBKpn2WiHMjO7Hw7Ol3KXFV+LhEsqU9Y?=
- =?us-ascii?Q?6zAQcFu4yN2U7TuI8uqBMXWFY4KfiCdVCppOMwYaXSErYbTRV/R1NIZE9oKu?=
- =?us-ascii?Q?DCtL/hnFiFtoDMuW+bXB/Uv2B33Ht7jmaJQ1XUhIVTFzvZS6WdWkPZjknr9s?=
- =?us-ascii?Q?UOF47RzxZYec8pJfF2E3fEiREwbUp7/1YjzIewYgkJ/RvVUHayKBLGR5yIDm?=
- =?us-ascii?Q?s8En9K4zVP2OQBunjJKZdkSfEJuNF4tRQstyuQ+YwvHKonsheyTZ+sOElGyT?=
- =?us-ascii?Q?R+VcyOExAWY6D45kdac41yjeUNODzzmWMyGts3fPqImRUabWWKJLr8rwVLXR?=
- =?us-ascii?Q?lDCNjpFF2YEg6d2hiWTY4/i77CRnz24AiVnRzb8Goj2yiBM2xMi/8hEDpddh?=
- =?us-ascii?Q?+3pEqQfOOgKujYSqYM2RMRU0ziSHXq5Nbu2lF+ScZkoocv9J73GI11BgFXQ+?=
- =?us-ascii?Q?+6RD01Y4XhD3nbcInHFuPi5T08ogyLm/6X9uxgoelJCW+T6nvMAxGZZ5oPkx?=
- =?us-ascii?Q?ECuP43TAq2Js+IAAs6Yk6oe5uxU3nOIU2E+hnNz9f+koOfdkitHkr01Gs0Fx?=
- =?us-ascii?Q?LigTkR3Zrkz+2U1zoXO52XePIlTzQm40Uc0t?=
+	=?us-ascii?Q?fWT2po1ssLWXpddOG/i6dVr4mXqH7fo3qH0Cnxnoi0mC/aG/Jqf/tvdIbwgE?=
+ =?us-ascii?Q?lolbAkS8BcdFl+W0PA/QI4NZ7XWusvRidGv9FDK/e7k84HnZcbkk6mJ9sG+y?=
+ =?us-ascii?Q?e5je8E0Mh1baKk/MLEK5hhH006UACzGlTXpf/IiFCKDcPXhBOnj07HaeHQLC?=
+ =?us-ascii?Q?sknBe6TpQMGtTj/AN9CeHyJN2tAl6gWyT8mr7KD669kluehemtpeyDx+KLvB?=
+ =?us-ascii?Q?77rflHoSk1R4bWzQgTcH90rCRcVqJXltL5nOxbdRVjvRvV6/6KDn+mAbfZ4o?=
+ =?us-ascii?Q?RkkM1BpB52fnlotuTQTOqhXRQhD6yZTn+RVdXUaSFZnM/8bL8hqHiLVSopFE?=
+ =?us-ascii?Q?ci5YV/kkEPkYm/NTaTThZzmZX6cDCllO2JVP9UX807hVoV8Vz3QX6QecRafp?=
+ =?us-ascii?Q?s38R+7B4kEDSFzHwFul0Mzkhr9fREUdekIoxxTa1okVsgB7thylv4cfyJJ3M?=
+ =?us-ascii?Q?tlkUgDxt3aby5jIlhWjuD3ul41Cf3rGfVPJTFfnhXWdY9cOa6oYsrq4iyL4/?=
+ =?us-ascii?Q?39aJC5tgqIrs7r1hTmGegAGZmFv+gQLO4wkXjSBta7puceIflBTIswXgEXVO?=
+ =?us-ascii?Q?5agjNk4Ro7AOEakXO+iFTH1V7eRKEVuiWWNWJwGJFUo5GZatcX0GFJ0HA8/t?=
+ =?us-ascii?Q?esVvuhcZnRyyHaoRPQ4UES4Q0vM7htv+JN4WAj3UsKDixQLx/vbIifNAQKvv?=
+ =?us-ascii?Q?+f1UT8zy4rz1ldWRsYtzPC6iVbePDm5ahTULNVXP1YvaUK+dqIS5/UGVXZmB?=
+ =?us-ascii?Q?hwHCrV2QHdvYDR1HwWINbBbsLvSINI19vufhULsQ9l86E9cih5kxlddloz7u?=
+ =?us-ascii?Q?b4m8AiLTtzC+DP3UwfDfDGLtazv7uoaZ8VW5c6bW1cO2btLz87oKTTqrD2b3?=
+ =?us-ascii?Q?qsQLFeR5uwMa54OV3Pr+YqD6yYZPxVngxnOiACgIroyKDDoFkoVhzTbaWKq2?=
+ =?us-ascii?Q?SvGo+qkYEs8Hyxz+Deue8PM1ZOm8IKeY9kUVM8TEOHNPoUV6dDGQnHNJUc82?=
+ =?us-ascii?Q?yXbwm/zRO6StzLVqrhqJxk6xHjgK2LTEGF8DdUV8GSpJTlzNBQkcs0vUCW0L?=
+ =?us-ascii?Q?FC5+tidmIm2pfMESNNCWEdrTPrWpuhPNnh/oaJ9Tr4Snubb7RRMs5xbaLCrb?=
+ =?us-ascii?Q?GDUO9FdmUoYQhH1TcxBJg18Eib+IcsFSgI/EOQK4Nm6nkCTyioX8tTFpqbLk?=
+ =?us-ascii?Q?v8CULKbVRyAWvyO8/V7vKUXHyR+LCpYds2GjG8IkeMmZZjyuLbcpLYJ4//6b?=
+ =?us-ascii?Q?6RwdS33yRmfWxluxDQgHZ/49iV+VeCZ4//4BmQ34xTt4BbbZQCHV6FPc6XfL?=
+ =?us-ascii?Q?2+kq8WWM0hC+GbcpQJAS8S5Wo55UA5f+oT0NNZAc6r6MnlinQSI2QJaHz7E3?=
+ =?us-ascii?Q?K5skn/XBRe8a9gnpHWpIZgPBNxnI02v4ogp3Qh3KTMcRvJe31hVD9srVLMJh?=
+ =?us-ascii?Q?879iQFe+eYqKtgsceo5c6Ip/g6v36W24WHOGw2fJs74hOui/a45kvluXy88J?=
+ =?us-ascii?Q?Czu9IfJCD5PyQ70=3D?=
 X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(36860700013)(7416014)(376014)(13003099007)(7053199007)(921020);DIR:OUT;SFP:1101;
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(82310400026)(1800799024)(7416014)(36860700013)(376014)(921020);DIR:OUT;SFP:1101;
 X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Mar 2025 19:44:30.5862
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Mar 2025 19:44:33.5982
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ef34bc09-bd75-48ce-bce5-08dd67e7a1cf
+X-MS-Exchange-CrossTenant-Network-Message-Id: 797fc27d-40b5-45ba-5584-08dd67e7a39b
 X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	BL02EPF0001A0FB.namprd03.prod.outlook.com
+	BL02EPF0001A0FD.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8753
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7610
 
-Following along from Jason's work [1] we have our initial patchset
-for pds_fwctl - an auxiliary_bus driver for supporting fwctl through the
-pds_core driver and its PDS core device.
+In preparation for adding a new auxiliary_device for the PF,
+make the vif type an argument to pdsc_auxbus_dev_add().  Pass in
+the address of the padev pointer so that the caller can specify
+where to save it and keep the mutex usage within the function.
 
-The PDS core is PCI device that is separate and distinct from the
-ionic Eth device and from the other PCI devices that can be supported
-by the AMD/Pensando DSC.  It is used by pds_vdpa and pds_vfio_pci to
-coordinate/communicate with the FW for setting up their services.
+Reviewed-by: Leon Romanovsky <leonro@nvidia.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@amd.com>
+---
+ drivers/net/ethernet/amd/pds_core/auxbus.c  | 37 ++++++++++-----------
+ drivers/net/ethernet/amd/pds_core/core.h    |  7 ++--
+ drivers/net/ethernet/amd/pds_core/devlink.c |  5 +--
+ drivers/net/ethernet/amd/pds_core/main.c    | 11 +++---
+ 4 files changed, 33 insertions(+), 27 deletions(-)
 
-Until now the DSC's basic configurations for defining what devices to
-support and for getting low-level device debug information have been
-through internal commands not available from the host side, requiring
-access into the DSC's own OS.  Adding the fwctl service allows us to start
-bringing these capabilities up into the host, but they don't replace the
-existing function-specific tools.  For example, these are things that make
-the Eth PCI device appear on the PCI bus, while the tuning of the specific
-Eth features still go through the standard ethtool/devlink/ip/etc tools.
-
-The first two patches are a bit of clean up for pds_core's add and delete
-of auxiliary_devices.  Those are followed by a patch to add the new
-pds_core.fwctl auxiliary_device.  This is only supported by the pds_core
-PF and not on any VFs.
-
-The remaining patches add the pds_fwctl driver framework and then fill
-in the details for the fwctl services.
-
-[1] https://lore.kernel.org/netdev/0-v5-642aa0c94070+4447f-fwctl_jgg@nvidia.com/
-
-v5:
-  - fix missing variable declaration
-  - fix kernel-doc complaint
-
-v4: https://lore.kernel.org/netdev/20250319213237.63463-1-shannon.nelson@amd.com/
-  - fix commit description for better imperative (David)
-  - fix comment wording (David)
-  - add kdoc comment on struct fwctl_info_pds (David)
-  - #include <linux/bitfield.h>  (Jason)
-  - fix for error pointer check in pdsfc_validate_rpc() (Brett and Dan)
-  - initialize pdsfc->caps
-  - add translation of FW opcode scope to fwctl scope
-  - several doc edits (David)
-  - added received Reviewd-by tags
-
-v3: https://lore.kernel.org/netdev/20250307185329.35034-1-shannon.nelson@amd.com/
-  - rebase on Jason's tree
-  - better comment on "an error if there is no auxbus device support" (Jonathan)
-  - don't call pdsc_auxbus_dev_del() if pdsc_auxbus_dev_add() failed (Jonathan)
-  - struct pdsc *pdsc; is unnecessary in struct pdsfc_dev (Jonathan)
-  - remove unused UID field in pdsfc_info (Jonathan, Jason)
-  - change "Word boundary padding" to "Reserved" (Jonathan)
-  - remove the remaining use of cleanup pattern
-  - don't lose err from pds_client_adminq_cmd() in pdsfc_identify() (Jason)
-  - comment on pds_fwctl_ident.features (Jonathan)
-  - change noisy dev_errs to dev_dbg and remove a couple unnecessary ones (Jonathan, Jason)
-  - no cast needed on struct fwctl_rpc_pds *rpc = (struct fwctl_rpc_pds *)in (Jonathan)
-  - more labels and reverse order for cleanup in pdsfc_fw_rpc  (Jonathan)
-  - __counted_by_le() on struct pds_fwctl_query_data (Jonathan)
-  - other comment comments on new structs (Jonathan)
-  - use FIELD_GET (Jason)
-  - Use __aligned_u64 in the uapi headers (Jason)
-  - call fwctl a subsystem in Docs (Jonathan)
-  - clean up text around endpoints in Docs (Jonathan)
-
-v2: https://lore.kernel.org/netdev/20250301013554.49511-1-shannon.nelson@amd.com/
-  - removed the RFC tag
-  - add a patch to make pdsc_auxbus_dev_del() a void type (Jonathan)
-  - fix up error handling if pdsc_auxbus_dev_add() fails in probe (Jonathan)
-  - fix auxiliary spelling in commit subject header (Jonathan)
-  - clean up of code around use of __free() gizmo (Jonathan, David)
-  - removed extra whitespace and dev_xxx() calls (Leon)
-  - copy ident info from DMA and release DMA memory in probe (Jonathan)
-  - use dev_err_probe() (Jonathan)
-  - add counted_by_le(num_entries) (Jonathan, David)
-  - convert num_entries from __le32 to host in get_endpoints() (Jonathan)
-  - remove unnecessary variable inits (Jonathan, Leon)
-
-v1: https://lore.kernel.org/netdev/20250211234854.52277-1-shannon.nelson@amd.com/
-
-Brett Creeley (1):
-  pds_fwctl: add rpc and query support
-
-Shannon Nelson (5):
-  pds_core: make pdsc_auxbus_dev_del() void
-  pds_core: specify auxiliary_device to be created
-  pds_core: add new fwctl auxiliary_device
-  pds_fwctl: initial driver framework
-  pds_fwctl: add Documentation entries
-
- Documentation/userspace-api/fwctl/fwctl.rst   |   1 +
- Documentation/userspace-api/fwctl/index.rst   |   1 +
- .../userspace-api/fwctl/pds_fwctl.rst         |  46 ++
- MAINTAINERS                                   |   7 +
- drivers/fwctl/Kconfig                         |  10 +
- drivers/fwctl/Makefile                        |   1 +
- drivers/fwctl/pds/Makefile                    |   4 +
- drivers/fwctl/pds/main.c                      | 539 ++++++++++++++++++
- drivers/net/ethernet/amd/pds_core/auxbus.c    |  44 +-
- drivers/net/ethernet/amd/pds_core/core.c      |   7 +
- drivers/net/ethernet/amd/pds_core/core.h      |   8 +-
- drivers/net/ethernet/amd/pds_core/devlink.c   |   7 +-
- drivers/net/ethernet/amd/pds_core/main.c      |  25 +-
- include/linux/pds/pds_adminq.h                | 277 +++++++++
- include/linux/pds/pds_common.h                |   2 +
- include/uapi/fwctl/fwctl.h                    |   1 +
- include/uapi/fwctl/pds.h                      |  62 ++
- 17 files changed, 1008 insertions(+), 34 deletions(-)
- create mode 100644 Documentation/userspace-api/fwctl/pds_fwctl.rst
- create mode 100644 drivers/fwctl/pds/Makefile
- create mode 100644 drivers/fwctl/pds/main.c
- create mode 100644 include/uapi/fwctl/pds.h
-
+diff --git a/drivers/net/ethernet/amd/pds_core/auxbus.c b/drivers/net/ethernet/amd/pds_core/auxbus.c
+index 78fba368e797..563de9e7ce0a 100644
+--- a/drivers/net/ethernet/amd/pds_core/auxbus.c
++++ b/drivers/net/ethernet/amd/pds_core/auxbus.c
+@@ -175,29 +175,32 @@ static struct pds_auxiliary_dev *pdsc_auxbus_dev_register(struct pdsc *cf,
+ 	return padev;
+ }
+ 
+-void pdsc_auxbus_dev_del(struct pdsc *cf, struct pdsc *pf)
++void pdsc_auxbus_dev_del(struct pdsc *cf, struct pdsc *pf,
++			 struct pds_auxiliary_dev **pd_ptr)
+ {
+ 	struct pds_auxiliary_dev *padev;
+ 
++	if (!*pd_ptr)
++		return;
++
+ 	mutex_lock(&pf->config_lock);
+ 
+-	padev = pf->vfs[cf->vf_id].padev;
+-	if (padev) {
+-		pds_client_unregister(pf, padev->client_id);
+-		auxiliary_device_delete(&padev->aux_dev);
+-		auxiliary_device_uninit(&padev->aux_dev);
+-		padev->client_id = 0;
+-	}
+-	pf->vfs[cf->vf_id].padev = NULL;
++	padev = *pd_ptr;
++	pds_client_unregister(pf, padev->client_id);
++	auxiliary_device_delete(&padev->aux_dev);
++	auxiliary_device_uninit(&padev->aux_dev);
++	padev->client_id = 0;
++	*pd_ptr = NULL;
+ 
+ 	mutex_unlock(&pf->config_lock);
+ }
+ 
+-int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf)
++int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf,
++			enum pds_core_vif_types vt,
++			struct pds_auxiliary_dev **pd_ptr)
+ {
+ 	struct pds_auxiliary_dev *padev;
+ 	char devname[PDS_DEVNAME_LEN];
+-	enum pds_core_vif_types vt;
+ 	unsigned long mask;
+ 	u16 vt_support;
+ 	int client_id;
+@@ -206,6 +209,9 @@ int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf)
+ 	if (!cf)
+ 		return -ENODEV;
+ 
++	if (vt >= PDS_DEV_TYPE_MAX)
++		return -EINVAL;
++
+ 	mutex_lock(&pf->config_lock);
+ 
+ 	mask = BIT_ULL(PDSC_S_FW_DEAD) |
+@@ -217,17 +223,10 @@ int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf)
+ 		goto out_unlock;
+ 	}
+ 
+-	/* We only support vDPA so far, so it is the only one to
+-	 * be verified that it is available in the Core device and
+-	 * enabled in the devlink param.  In the future this might
+-	 * become a loop for several VIF types.
+-	 */
+-
+ 	/* Verify that the type is supported and enabled.  It is not
+ 	 * an error if there is no auxbus device support for this
+ 	 * VF, it just means something else needs to happen with it.
+ 	 */
+-	vt = PDS_DEV_TYPE_VDPA;
+ 	vt_support = !!le16_to_cpu(pf->dev_ident.vif_types[vt]);
+ 	if (!(vt_support &&
+ 	      pf->viftype_status[vt].supported &&
+@@ -253,7 +252,7 @@ int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf)
+ 		err = PTR_ERR(padev);
+ 		goto out_unlock;
+ 	}
+-	pf->vfs[cf->vf_id].padev = padev;
++	*pd_ptr = padev;
+ 
+ out_unlock:
+ 	mutex_unlock(&pf->config_lock);
+diff --git a/drivers/net/ethernet/amd/pds_core/core.h b/drivers/net/ethernet/amd/pds_core/core.h
+index 631a59cfdd7e..f075e68c64db 100644
+--- a/drivers/net/ethernet/amd/pds_core/core.h
++++ b/drivers/net/ethernet/amd/pds_core/core.h
+@@ -303,8 +303,11 @@ void pdsc_health_thread(struct work_struct *work);
+ int pdsc_register_notify(struct notifier_block *nb);
+ void pdsc_unregister_notify(struct notifier_block *nb);
+ void pdsc_notify(unsigned long event, void *data);
+-int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf);
+-void pdsc_auxbus_dev_del(struct pdsc *cf, struct pdsc *pf);
++int pdsc_auxbus_dev_add(struct pdsc *cf, struct pdsc *pf,
++			enum pds_core_vif_types vt,
++			struct pds_auxiliary_dev **pd_ptr);
++void pdsc_auxbus_dev_del(struct pdsc *cf, struct pdsc *pf,
++			 struct pds_auxiliary_dev **pd_ptr);
+ 
+ void pdsc_process_adminq(struct pdsc_qcq *qcq);
+ void pdsc_work_thread(struct work_struct *work);
+diff --git a/drivers/net/ethernet/amd/pds_core/devlink.c b/drivers/net/ethernet/amd/pds_core/devlink.c
+index 4e2b92ddef6f..c5c787df61a4 100644
+--- a/drivers/net/ethernet/amd/pds_core/devlink.c
++++ b/drivers/net/ethernet/amd/pds_core/devlink.c
+@@ -57,9 +57,10 @@ int pdsc_dl_enable_set(struct devlink *dl, u32 id,
+ 		struct pdsc *vf = pdsc->vfs[vf_id].vf;
+ 
+ 		if (ctx->val.vbool)
+-			err = pdsc_auxbus_dev_add(vf, pdsc);
++			err = pdsc_auxbus_dev_add(vf, pdsc, vt_entry->vif_id,
++						  &pdsc->vfs[vf_id].padev);
+ 		else
+-			pdsc_auxbus_dev_del(vf, pdsc);
++			pdsc_auxbus_dev_del(vf, pdsc, &pdsc->vfs[vf_id].padev);
+ 	}
+ 
+ 	return err;
+diff --git a/drivers/net/ethernet/amd/pds_core/main.c b/drivers/net/ethernet/amd/pds_core/main.c
+index 660268ff9562..a3a68889137b 100644
+--- a/drivers/net/ethernet/amd/pds_core/main.c
++++ b/drivers/net/ethernet/amd/pds_core/main.c
+@@ -190,7 +190,8 @@ static int pdsc_init_vf(struct pdsc *vf)
+ 	devl_unlock(dl);
+ 
+ 	pf->vfs[vf->vf_id].vf = vf;
+-	err = pdsc_auxbus_dev_add(vf, pf);
++	err = pdsc_auxbus_dev_add(vf, pf, PDS_DEV_TYPE_VDPA,
++				  &pf->vfs[vf->vf_id].padev);
+ 	if (err) {
+ 		devl_lock(dl);
+ 		devl_unregister(dl);
+@@ -417,7 +418,7 @@ static void pdsc_remove(struct pci_dev *pdev)
+ 
+ 		pf = pdsc_get_pf_struct(pdsc->pdev);
+ 		if (!IS_ERR(pf)) {
+-			pdsc_auxbus_dev_del(pdsc, pf);
++			pdsc_auxbus_dev_del(pdsc, pf, &pf->vfs[pdsc->vf_id].padev);
+ 			pf->vfs[pdsc->vf_id].vf = NULL;
+ 		}
+ 	} else {
+@@ -482,7 +483,8 @@ static void pdsc_reset_prepare(struct pci_dev *pdev)
+ 
+ 		pf = pdsc_get_pf_struct(pdsc->pdev);
+ 		if (!IS_ERR(pf))
+-			pdsc_auxbus_dev_del(pdsc, pf);
++			pdsc_auxbus_dev_del(pdsc, pf,
++					    &pf->vfs[pdsc->vf_id].padev);
+ 	}
+ 
+ 	pdsc_unmap_bars(pdsc);
+@@ -527,7 +529,8 @@ static void pdsc_reset_done(struct pci_dev *pdev)
+ 
+ 		pf = pdsc_get_pf_struct(pdsc->pdev);
+ 		if (!IS_ERR(pf))
+-			pdsc_auxbus_dev_add(pdsc, pf);
++			pdsc_auxbus_dev_add(pdsc, pf, PDS_DEV_TYPE_VDPA,
++					    &pf->vfs[pdsc->vf_id].padev);
+ 	}
+ }
+ 
 -- 
 2.17.1
 
