@@ -1,229 +1,172 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from fhigh-a5-smtp.messagingengine.com (fhigh-a5-smtp.messagingengine.com [103.168.172.156])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A63F41F4180
-	for <linux-rdma@vger.kernel.org>; Tue, 25 Mar 2025 15:46:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1362E3382;
+	Tue, 25 Mar 2025 15:49:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.156
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742917607; cv=none; b=UR6AH2WXfd0jZZZAcLo8ulTTs9vIuQrooBFHjpwoPjKrndY2X+k6ex+eq7YBgosZyeL3MEYAIZ2Tv+pW6pj4IU+EGWXTzqXKaATdGSYz4lgK7zKQ/8Hj4G3he2o5bMLkzDhKO21/hqtXN7DPypBTYHLghmyo9t50ljSjsRKuE7U=
+	t=1742917755; cv=none; b=Uf5SUGZyo/B2nY8z8Lexy9TL0+p5MTems3CXRkKnOX4v6xeazBHFJJlUZTVm5X+0K5cRvDOGp8KFwtRtjctmIOj2mhu1Co1OSVRS9sQ82zNgxsFRNNntICA1h0mS0toXQb/6oqr+mC/1PPgc6opqVkoCmRjuTCQf1d5SSLu0yxQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742917607; c=relaxed/simple;
-	bh=+wrwZMqC093Z7gZ1xPNJ6NEXrS+qn3tLIr9ngcSDPyU=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=LzAPX38jBY4ZdN/4SYXa+9jxjcGl2QK1OwnZdhR8SqVMc3hEPPkbhBW62KLIqlt2jyk+wKkzEzBiDi0HpGJSFgkN/YSgPkskJHQQL6ivPeWgR9tJ1aVDci+RYR55RdfYO5JreKi5QWeNRxlfHcCc+YssTwo0QNm37Dq1timxjDU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=NLv8Sgem; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1742917755; c=relaxed/simple;
+	bh=yPqfrHntLIRVCEG+VhyCTJVAV38OoTiAqXSlcQ85F1A=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=F9kxDecqyKxky1PuR4vd7In+80Q4tC3ZsNcYe4+8HBQOzhtxFHKNIXGNmvia6QZVL/VJLhsioHnVzw1ELusUIHV/H4Gx9eaLW7DuA1BGPirNsoWsZD6CE5MqYwRlGAqz0Q1DQ5MFPEqF06nHCQWe2D53H1jpnoNf7lpFmpJq1+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=queasysnail.net; spf=pass smtp.mailfrom=queasysnail.net; dkim=pass (2048-bit key) header.d=queasysnail.net header.i=@queasysnail.net header.b=B1EUe96C; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=OeGvcpRN; arc=none smtp.client-ip=103.168.172.156
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=queasysnail.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=queasysnail.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NLv8Sgem"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1742917602;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7qelpf0cr1Bxyx5yCbHo7HXz9cxxZ6ghzCl2hi3M+JE=;
-	b=NLv8SgemydbL68Ny5kA7eedDA1dUg4VWgV/VdjJ1MV86d+KA1Ta9UUVSqaKWKgHSWLr2H5
-	qlwXCcQX7SqfkxvHRGfjX6S7pS14NGSm+ACcLhT4Q6jYgsJ2AInXoImf540vQvQwPqLoq6
-	JwRZDn0p5lCwYLldRw//cIi1fH6q5sE=
-Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
- [209.85.218.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-671-OKPMA6OUNByCimBPKfjF1A-1; Tue, 25 Mar 2025 11:46:41 -0400
-X-MC-Unique: OKPMA6OUNByCimBPKfjF1A-1
-X-Mimecast-MFC-AGG-ID: OKPMA6OUNByCimBPKfjF1A_1742917600
-Received: by mail-ej1-f71.google.com with SMTP id a640c23a62f3a-ac287f284f8so392152766b.0
-        for <linux-rdma@vger.kernel.org>; Tue, 25 Mar 2025 08:46:41 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742917600; x=1743522400;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=7qelpf0cr1Bxyx5yCbHo7HXz9cxxZ6ghzCl2hi3M+JE=;
-        b=DKMAMxKFZyXRXVZwGAxIh8EvehAW25HfNGrTjdYPl+/MZ/WuyqMrXKEFFGCbHAuXyl
-         iCccAlxGR3rxpNamTx6DPC/KWzR6aoTtHVIviLgLzZeCGirhrbjEuJnCrM6Z0kOsIYHb
-         yq18YN4bw/MNWGHOTRjJS5WrZrYF99Dk1/5DCpin3MmzZh9Vi8S4+7ebZwI/I6j/JIiB
-         /8/Xru+rjChVkKhk8l6kD57rruv28a+5rN8wKVmrOwZ8nvzObP/P7IIOlJ4JzzhkNNjO
-         ZC+iAjnq/zHkr9XXL2JByac54u46coSYW4Jh/ozStj1l3PTkaqKjiCltr0xCRIvUmvJd
-         R54w==
-X-Forwarded-Encrypted: i=1; AJvYcCU6JziFFn5Mq6v93n9GFrAosHw+W84Xm6gIEyhQXQkHhoTVPuBdKG12Lm3mvPvPgpX53e5Z6e2WxvsS@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzqps9/JfxVtMeHA03+kWxhzY/U2h2IBAXpyNTo9cnBBxXXodzP
-	EyIfgMj6NAGSzUUSpQ0P/ly6xRn8o1/OVxsctceAYNE7ACzyJYc9UuRjC0tGINT+VBQPSg9NJUA
-	+/0tOm6XF//nTKClcdnLCCZz1kx13iKMg5WjuZGHnn6/2KKaqq2DI3eq7Qls=
-X-Gm-Gg: ASbGncu7DZZKy6rP70zf1OpI4FvaIhaKBzGdqfoUgwIgf8+Jw3pc67/VkBS0KIT1D55
-	0w6nL0LNWsDw5u3Q4PZQ/jhEzPWC8nZ4k1/SPu9La6B3uvWx8HRiikvOgaDNWqVhp6AScKCQgMg
-	t4DogSaoZTPqashMWn+0/t+op4cxwXNGE9IXWJkg9KzcdFnJB2CEVbKy8+xYsIC9eeap+8JL0/m
-	FYBECEFWIrBUo13b7gngKrgPVQ7NlKbIs+Fdqg2js6tRTxtqktJLR/kW4yAWxLCRuL0krnfLEJk
-	P66Al+/8qEDoFyb185FqF9x3yES1zddEFck/EOnq
-X-Received: by 2002:a17:906:c109:b0:ac6:cea2:6c7 with SMTP id a640c23a62f3a-ac6cea2122dmr209868766b.42.1742917600048;
-        Tue, 25 Mar 2025 08:46:40 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGOdJXWY+OX6Pisfk0vOr5e4GyVLnFPg79bwnTUB2L/Or27l1la/vuNBO9tmBFaSgYvASXEiA==
-X-Received: by 2002:a17:906:c109:b0:ac6:cea2:6c7 with SMTP id a640c23a62f3a-ac6cea2122dmr209865166b.42.1742917599597;
-        Tue, 25 Mar 2025 08:46:39 -0700 (PDT)
-Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac3ef8675a9sm876497966b.28.2025.03.25.08.46.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Mar 2025 08:46:38 -0700 (PDT)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-	id C8DC518FC8BA; Tue, 25 Mar 2025 16:46:36 +0100 (CET)
-From: =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Date: Tue, 25 Mar 2025 16:45:43 +0100
-Subject: [PATCH net-next v2 2/3] page_pool: Turn dma_sync and dma_sync_cpu
- fields into a bitmap
+	dkim=pass (2048-bit key) header.d=queasysnail.net header.i=@queasysnail.net header.b="B1EUe96C";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="OeGvcpRN"
+Received: from phl-compute-10.internal (phl-compute-10.phl.internal [10.202.2.50])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id 8C54911401D2;
+	Tue, 25 Mar 2025 11:49:10 -0400 (EDT)
+Received: from phl-mailfrontend-02 ([10.202.2.163])
+  by phl-compute-10.internal (MEProxy); Tue, 25 Mar 2025 11:49:10 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=queasysnail.net;
+	 h=cc:cc:content-type:content-type:date:date:from:from
+	:in-reply-to:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to; s=fm3; t=1742917750; x=
+	1743004150; bh=7oaEgXzXWy2DXPB9JL+lbhfLUTu+dVMvk+b8u+aYYjk=; b=B
+	1EUe96CKPou7f5/64B1qeU3hsGVqI9k3tAvh8qgZbIK/Xm7q6GZFg12kVF4i4UrT
+	1nJ0Knl75LqMoDmDq4b+vOkqR1xsl36rF0MsHxUDnl4dQiFnv0TDNcqvXZ4Ogoh/
+	M/0VZbo2aHERWZyCWzUQ4w97Z6jiEe/5glKfAJHWlpyhH7l6c3YlLJk4lSzDVKhN
+	OZphZaFNYz7ynL7fPpmEVcMA32boQvqbx3ZcYgJ1UF2fDh5vmFJ2XeauGRVbk884
+	4B/ZbHuR4791FnC2EBWqGlcTJtc7vy9gmTYPPauOBe9x+h+d1wPlpXsvvlZpryPR
+	9s3b7ZpPVNGkX4V8n0O2g==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
+	1742917750; x=1743004150; bh=7oaEgXzXWy2DXPB9JL+lbhfLUTu+dVMvk+b
+	8u+aYYjk=; b=OeGvcpRNaGXX+6jp/wnQySe6yrgKnNh1NqRm68xDhdKmBGgnhSH
+	ybYKDaLHuBgiO67poyqzsL0f9Fsvxuq4HUEG+vbiDpCD2wuL0KzOE3nnD7LCsf+W
+	syV8z+46gRdYNIR5YgPBhgXn2An3dyQXGZTBmJ6C+4pt4z5AsVAEHVs2AoqD2ylU
+	H3ADXjwg6wzKOFZytg6gOoQaevVQqJ7wCkHV/ND+g796ZR48UVVS7CwXlO2jdg+R
+	bMhI5rorahVpQdxFErzd4Y0VJwNs2MWVu7jyhtrmODG88OMvlpftg913+ehb2z9l
+	9m3LBTedoLFv9vuKzjRaX4jlfja67OeQmxg==
+X-ME-Sender: <xms:dtDiZ_EcQ3Rst-euNabjWbnb9qMPf8y4-gg5oGCZ-5S8FCiSqa4rCA>
+    <xme:dtDiZ8X0tcAFdbcbl2qXAuemgaFsMqv09VoKI3ujGFrC4Ai3UNuxkTDejO6q7pJFV
+    sLimbYQ4I4tL_4Ma9s>
+X-ME-Received: <xmr:dtDiZxKOXvoUqU1r8zfMolMozQi_q-zs14E5pa1lbMfpNyhSCzYDoAu1s9i4>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefvddrtddtgdduieeftdehucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggv
+    pdfurfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpih
+    gvnhhtshculddquddttddmnecujfgurhepfffhvfevuffkfhggtggujgesthdtredttddt
+    jeenucfhrhhomhepufgrsghrihhnrgcuffhusghrohgtrgcuoehsugesqhhuvggrshihsh
+    hnrghilhdrnhgvtheqnecuggftrfgrthhtvghrnheptddtgedufedvtefftddtleehteef
+    ieffgeetueeliefhfeegleffvddtvdefiedvnecuffhomhgrihhnpehqvghmuhdrohhrgh
+    enucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehsuges
+    qhhuvggrshihshhnrghilhdrnhgvthdpnhgspghrtghpthhtohepudefpdhmohguvgepsh
+    hmthhpohhuthdprhgtphhtthhopehmsghlohgthhesnhhvihguihgrrdgtohhmpdhrtghp
+    thhtohepuggrvhgvmhesuggrvhgvmhhlohhfthdrnhgvthdprhgtphhtthhopegvughumh
+    griigvthesghhoohhglhgvrdgtohhmpdhrtghpthhtohepkhhusggrsehkvghrnhgvlhdr
+    ohhrghdprhgtphhtthhopehprggsvghnihesrhgvughhrghtrdgtohhmpdhrtghpthhtoh
+    ephhhorhhmsheskhgvrhhnvghlrdhorhhgpdhrtghpthhtohepkhhunhhihihusegrmhgr
+    iihonhdrtghomhdprhgtphhtthhopehlvghonheskhgvrhhnvghlrdhorhhgpdhrtghpth
+    htohepughsrghhvghrnheskhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:dtDiZ9EVYmf48OnfthAIx8Rnw-9_fd9J9QKJUSHsTzqljnInug6NtQ>
+    <xmx:dtDiZ1XUTLt2PngyKQ-EY_GAhm1ITZ7FpwfGqrGVchLBKXD4VOr16w>
+    <xmx:dtDiZ4NivbvA8B-rwp8x4TO2lSaRF9QoU_kD86p-Nx8_AIk1J3vQDg>
+    <xmx:dtDiZ001hvPiuliaEKn2Wpe1XDRzNDeMHstHvZM2y9-QYtG4yOE3cA>
+    <xmx:dtDiZ6V7aQGi0k3Qc1VGZTcahtdNs3Tz_GoBm98THeQr-ywrwLVvE18y>
+Feedback-ID: i934648bf:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
+ 25 Mar 2025 11:49:09 -0400 (EDT)
+Date: Tue, 25 Mar 2025 16:49:07 +0100
+From: Sabrina Dubroca <sd@queasysnail.net>
+To: Mark Bloch <mbloch@nvidia.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Kuniyuki Iwashima <kuniyu@amazon.com>,
+	Leon Romanovsky <leon@kernel.org>, David Ahern <dsahern@kernel.org>,
+	netdev@vger.kernel.org, linux-rdma@vger.kernel.org,
+	Mark Zhang <markzhang@nvidia.com>,
+	Maher Sanalla <msanalla@nvidia.com>
+Subject: Re: [PATCH v2 net] rtnetlink: Allocate vfinfo size for VF GUIDs when
+ supported
+Message-ID: <Z-LQcyC8DU7Wny-d@krikkit>
+References: <20250325090226.749730-1-mbloch@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20250325-page-pool-track-dma-v2-2-113ebc1946f3@redhat.com>
-References: <20250325-page-pool-track-dma-v2-0-113ebc1946f3@redhat.com>
-In-Reply-To: <20250325-page-pool-track-dma-v2-0-113ebc1946f3@redhat.com>
-To: "David S. Miller" <davem@davemloft.net>, 
- Jakub Kicinski <kuba@kernel.org>, Jesper Dangaard Brouer <hawk@kernel.org>, 
- Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
- Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
- Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
- Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
- Simon Horman <horms@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
- Mina Almasry <almasrymina@google.com>, 
- Yonglong Liu <liuyonglong@huawei.com>, 
- Yunsheng Lin <linyunsheng@huawei.com>, 
- Pavel Begunkov <asml.silence@gmail.com>, 
- Matthew Wilcox <willy@infradead.org>
-Cc: netdev@vger.kernel.org, bpf@vger.kernel.org, linux-rdma@vger.kernel.org, 
- linux-mm@kvack.org, 
- =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-X-Mailer: b4 0.14.2
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250325090226.749730-1-mbloch@nvidia.com>
 
-Change the single-bit booleans for dma_sync into an unsigned long with
-BIT() definitions so that a subsequent patch can write them both with a
-singe WRITE_ONCE() on teardown. Also move the check for the sync_cpu
-side into __page_pool_dma_sync_for_cpu() so it can be disabled for
-non-netmem providers as well.
+2025-03-25, 11:02:26 +0200, Mark Bloch wrote:
+> From: Mark Zhang <markzhang@nvidia.com>
+> 
+> Commit 30aad41721e0 ("net/core: Add support for getting VF GUIDs")
+> added support for getting VF port and node GUIDs in netlink ifinfo
+> messages, but their size was not taken into consideration in the
+> function that allocates the netlink message, causing the following
+> warning when a netlink message is filled with many VF port and node
+> GUIDs:
+>  # echo 64 > /sys/bus/pci/devices/0000\:08\:00.0/sriov_numvfs
+>  # ip link show dev ib0
+>  RTNETLINK answers: Message too long
+>  Cannot send link get request: Message too long
+> 
+> Kernel warning:
+> 
+>  ------------[ cut here ]------------
+>  WARNING: CPU: 2 PID: 1930 at net/core/rtnetlink.c:4151 rtnl_getlink+0x586/0x5a0
+>  Modules linked in: xt_conntrack xt_MASQUERADE nfnetlink xt_addrtype iptable_nat nf_nat br_netfilter overlay mlx5_ib macsec mlx5_core tls rpcrdma rdma_ucm ib_uverbs ib_iser libiscsi scsi_transport_iscsi ib_umad rdma_cm iw_cm ib_ipoib fuse ib_cm ib_core
+>  CPU: 2 UID: 0 PID: 1930 Comm: ip Not tainted 6.14.0-rc2+ #1
+>  Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
+>  RIP: 0010:rtnl_getlink+0x586/0x5a0
+>  Code: cb 82 e8 3d af 0a 00 4d 85 ff 0f 84 08 ff ff ff 4c 89 ff 41 be ea ff ff ff e8 66 63 5b ff 49 c7 07 80 4f cb 82 e9 36 fc ff ff <0f> 0b e9 16 fe ff ff e8 de a0 56 00 66 66 2e 0f 1f 84 00 00 00 00
+>  RSP: 0018:ffff888113557348 EFLAGS: 00010246
+>  RAX: 00000000ffffffa6 RBX: ffff88817e87aa34 RCX: dffffc0000000000
+>  RDX: 0000000000000003 RSI: 0000000000000000 RDI: ffff88817e87afb8
+>  RBP: 0000000000000009 R08: ffffffff821f44aa R09: 0000000000000000
+>  R10: ffff8881260f79a8 R11: ffff88817e87af00 R12: ffff88817e87aa00
+>  R13: ffffffff8563d300 R14: 00000000ffffffa6 R15: 00000000ffffffff
+>  FS:  00007f63a5dbf280(0000) GS:ffff88881ee00000(0000) knlGS:0000000000000000
+>  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>  CR2: 00007f63a5ba4493 CR3: 00000001700fe002 CR4: 0000000000772eb0
+>  DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+>  DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+>  PKRU: 55555554
+>  Call Trace:
+>   <TASK>
+>   ? __warn+0xa5/0x230
+>   ? rtnl_getlink+0x586/0x5a0
+>   ? report_bug+0x22d/0x240
+>   ? handle_bug+0x53/0xa0
+>   ? exc_invalid_op+0x14/0x50
+>   ? asm_exc_invalid_op+0x16/0x20
+>   ? skb_trim+0x6a/0x80
+>   ? rtnl_getlink+0x586/0x5a0
+>   ? __pfx_rtnl_getlink+0x10/0x10
+>   ? rtnetlink_rcv_msg+0x1e5/0x860
+>   ? __pfx___mutex_lock+0x10/0x10
+>   ? rcu_is_watching+0x34/0x60
+>   ? __pfx_lock_acquire+0x10/0x10
+>   ? stack_trace_save+0x90/0xd0
+>   ? filter_irq_stacks+0x1d/0x70
+>   ? kasan_save_stack+0x30/0x40
+>   ? kasan_save_stack+0x20/0x40
+>   ? kasan_save_track+0x10/0x30
+>   rtnetlink_rcv_msg+0x21c/0x860
+[...]
+>  ---[ end trace 0000000000000000 ]---
+> 
+> Thus, when calculating ifinfo message size, take VF GUIDs sizes into
+> account when supported.
+> 
+> Fixes: 30aad41721e0 ("net/core: Add support for getting VF GUIDs")
+> Signed-off-by: Mark Zhang <markzhang@nvidia.com>
+> Reviewed-by: Maher Sanalla <msanalla@nvidia.com>
+> Signed-off-by: Mark Bloch <mbloch@nvidia.com>
 
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Tested-by: Yonglong Liu <liuyonglong@huawei.com>
-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
----
- include/net/page_pool/helpers.h | 6 +++---
- include/net/page_pool/types.h   | 8 ++++++--
- net/core/devmem.c               | 3 +--
- net/core/page_pool.c            | 9 +++++----
- 4 files changed, 15 insertions(+), 11 deletions(-)
-
-diff --git a/include/net/page_pool/helpers.h b/include/net/page_pool/helpers.h
-index 582a3d00cbe2315edeb92850b6a42ab21e509e45..7ed32bde4b8944deb7fb22e291e95b8487be681a 100644
---- a/include/net/page_pool/helpers.h
-+++ b/include/net/page_pool/helpers.h
-@@ -443,6 +443,9 @@ static inline void __page_pool_dma_sync_for_cpu(const struct page_pool *pool,
- 						const dma_addr_t dma_addr,
- 						u32 offset, u32 dma_sync_size)
- {
-+	if (!(READ_ONCE(pool->dma_sync) & PP_DMA_SYNC_CPU))
-+		return;
-+
- 	dma_sync_single_range_for_cpu(pool->p.dev, dma_addr,
- 				      offset + pool->p.offset, dma_sync_size,
- 				      page_pool_get_dma_dir(pool));
-@@ -473,9 +476,6 @@ page_pool_dma_sync_netmem_for_cpu(const struct page_pool *pool,
- 				  const netmem_ref netmem, u32 offset,
- 				  u32 dma_sync_size)
- {
--	if (!pool->dma_sync_for_cpu)
--		return;
--
- 	__page_pool_dma_sync_for_cpu(pool,
- 				     page_pool_get_dma_addr_netmem(netmem),
- 				     offset, dma_sync_size);
-diff --git a/include/net/page_pool/types.h b/include/net/page_pool/types.h
-index df0d3c1608929605224feb26173135ff37951ef8..fbe34024b20061e8bcd1d4474f6ebfc70992f1eb 100644
---- a/include/net/page_pool/types.h
-+++ b/include/net/page_pool/types.h
-@@ -33,6 +33,10 @@
- #define PP_FLAG_ALL		(PP_FLAG_DMA_MAP | PP_FLAG_DMA_SYNC_DEV | \
- 				 PP_FLAG_SYSTEM_POOL | PP_FLAG_ALLOW_UNREADABLE_NETMEM)
- 
-+/* bit values used in pp->dma_sync */
-+#define PP_DMA_SYNC_DEV	BIT(0)
-+#define PP_DMA_SYNC_CPU	BIT(1)
-+
- /*
-  * Fast allocation side cache array/stack
-  *
-@@ -175,12 +179,12 @@ struct page_pool {
- 
- 	bool has_init_callback:1;	/* slow::init_callback is set */
- 	bool dma_map:1;			/* Perform DMA mapping */
--	bool dma_sync:1;		/* Perform DMA sync for device */
--	bool dma_sync_for_cpu:1;	/* Perform DMA sync for cpu */
- #ifdef CONFIG_PAGE_POOL_STATS
- 	bool system:1;			/* This is a global percpu pool */
- #endif
- 
-+	unsigned long dma_sync;
-+
- 	__cacheline_group_begin_aligned(frag, PAGE_POOL_FRAG_GROUP_ALIGN);
- 	long frag_users;
- 	netmem_ref frag_page;
-diff --git a/net/core/devmem.c b/net/core/devmem.c
-index 6802e82a4d03b6030f6df50ae3661f81e40bc101..955d392d707b12fe784747aa2040ce1a882a64db 100644
---- a/net/core/devmem.c
-+++ b/net/core/devmem.c
-@@ -340,8 +340,7 @@ int mp_dmabuf_devmem_init(struct page_pool *pool)
- 	/* dma-buf dma addresses do not need and should not be used with
- 	 * dma_sync_for_cpu/device. Force disable dma_sync.
- 	 */
--	pool->dma_sync = false;
--	pool->dma_sync_for_cpu = false;
-+	pool->dma_sync = 0;
- 
- 	if (pool->p.order != 0)
- 		return -E2BIG;
-diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-index acef1fcd8ddcfd1853a6f2055c1f1820ab248e8d..d51ca4389dd62d8bc266a9a2b792838257173535 100644
---- a/net/core/page_pool.c
-+++ b/net/core/page_pool.c
-@@ -203,7 +203,7 @@ static int page_pool_init(struct page_pool *pool,
- 	memcpy(&pool->slow, &params->slow, sizeof(pool->slow));
- 
- 	pool->cpuid = cpuid;
--	pool->dma_sync_for_cpu = true;
-+	pool->dma_sync = PP_DMA_SYNC_CPU;
- 
- 	/* Validate only known flags were used */
- 	if (pool->slow.flags & ~PP_FLAG_ALL)
-@@ -238,7 +238,7 @@ static int page_pool_init(struct page_pool *pool,
- 		if (!pool->p.max_len)
- 			return -EINVAL;
- 
--		pool->dma_sync = true;
-+		pool->dma_sync |= PP_DMA_SYNC_DEV;
- 
- 		/* pool->p.offset has to be set according to the address
- 		 * offset used by the DMA engine to start copying rx data
-@@ -291,7 +291,7 @@ static int page_pool_init(struct page_pool *pool,
- 	}
- 
- 	if (pool->mp_ops) {
--		if (!pool->dma_map || !pool->dma_sync)
-+		if (!pool->dma_map || !(pool->dma_sync & PP_DMA_SYNC_DEV))
- 			return -EOPNOTSUPP;
- 
- 		if (WARN_ON(!is_kernel_rodata((unsigned long)pool->mp_ops))) {
-@@ -466,7 +466,8 @@ page_pool_dma_sync_for_device(const struct page_pool *pool,
- 			      netmem_ref netmem,
- 			      u32 dma_sync_size)
- {
--	if (pool->dma_sync && dma_dev_need_sync(pool->p.dev))
-+	if ((READ_ONCE(pool->dma_sync) & PP_DMA_SYNC_DEV) &&
-+	    dma_dev_need_sync(pool->p.dev))
- 		__page_pool_dma_sync_for_device(pool, netmem, dma_sync_size);
- }
- 
+Reviewed-by: Sabrina Dubroca <sd@queasysnail.net>
 
 -- 
-2.48.1
-
+Sabrina
