@@ -1,75 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D9D21A2564
-	for <linux-rdma@vger.kernel.org>; Wed, 26 Mar 2025 08:19:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8F541A3031
+	for <linux-rdma@vger.kernel.org>; Wed, 26 Mar 2025 08:19:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742977146; cv=none; b=kyYz3FvjmXGWla+2krvtUH2RKLolHRwE2oGIZCZrANkJX0VaRzM7sU+/ANue8Z6p0XsBKQIJihbkIukNAOpoa03G39MlOVXaMXOJhon3xWsZP6jnx6kd3LZxfBZ8U+a57HmKiE6fYbQU9DPxx/mMlWL/TsjK8S8jt8rsOgcl2dw=
+	t=1742977147; cv=none; b=logO9ZnzoRp96EVjFmXwvA4vK863Vnibd/MnOeSJvR8Jxv5N61yl/itXQQ153E3+TSxJVefxVsLyrwkNLh67uHFtUfU3uy6wcMXLplYTN2KNlwtl7pO5omGMM3+e5ALPRBP7/5mg2zHEZWb80tJkx+e1oJRBxxm1yBfbT5kgqpA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742977146; c=relaxed/simple;
-	bh=vSoD9pwpfcSbP4dGBoxGCSAK3A6a6LNtloWC3DjyTGY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=E9PPEf8j2ZHwtwtmb9b1l1BQMRUOLKt6+Utxf/Lknh0wQlZKV7LqxZTdJdfFzzydpWmNSNVTD+E/A//ZBrW+sKbzZssBmF8zpOHg+WoVJXNM4TyqD3qWIhNcuKs+DZvrhp74bvYq1Wgh6eJGRAJ+zZaJiGVVN7j+Xw2OEAjie7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=WQw6CBJk; arc=none smtp.client-ip=170.10.133.124
+	s=arc-20240116; t=1742977147; c=relaxed/simple;
+	bh=iofBJfRVG4BOlspccJuOxKZ8GN7yJUVTePwGTFtKji8=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=uX0q+hX7IXZ3W//fThxkoYiAEaZIn9zjvRQ0a9nOXAzbdr4D82RV7l6WkVd5XO83D1NqnVlceUsTh2j+lKo5qWhHng5qhmKZ5x4ulb4N4Ep54bUaEz22cAg6BN/I7Iy4/Rt+us8A6ZjjJzQlL//hIyD1r3yO75xm3ab5wL5bhCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Y9C5snut; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WQw6CBJk"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Y9C5snut"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	s=mimecast20190719; t=1742977144;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=pOTdxZD/uqiBEKSTfpgx9RU52PQylymJns53moyygZc=;
-	b=WQw6CBJkS2LVy9n9cDDgU3EeLNx2zOfTEMHAZ/TV76K4d18aPKuQNd99aKiCGAuzb8ZEZ/
-	SD4iO1oGe3+0RPdZ1zm0ULqAw/79BqVsZKCIgpWmRdzBcZEgW3Tzbqx0af7AWZGkgZn0Pa
-	tk3Ot/z9LiofSW8Lq8zsijauOor5O5E=
-Received: from mail-ed1-f69.google.com (mail-ed1-f69.google.com
- [209.85.208.69]) by relay.mimecast.com with ESMTP with STARTTLS
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=BJrq4mLJiJXWNMpizUXhY6u/aCQe+JkhHXm5jj4+P0s=;
+	b=Y9C5snutQhoUAekwyTmHEXJnRaN62a/FqNj6ywvbU0VMIbnfLJln+jvcfLmhNCa14y1IGk
+	5o80z0o3jtyI+sn8CeNizOHGLt8Xbf2NMc0VTiI0Cojj+3j1EPQAhkbl/quarGacU1kvLX
+	sL0mOvc6PI78W0aE1u+nr8utaJOskP4=
+Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
+ [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-478-5GVPGp6gPEO2bxBW2b5RHQ-1; Wed, 26 Mar 2025 04:19:02 -0400
-X-MC-Unique: 5GVPGp6gPEO2bxBW2b5RHQ-1
-X-Mimecast-MFC-AGG-ID: 5GVPGp6gPEO2bxBW2b5RHQ_1742977141
-Received: by mail-ed1-f69.google.com with SMTP id 4fb4d7f45d1cf-5e6c14c0a95so4858984a12.0
-        for <linux-rdma@vger.kernel.org>; Wed, 26 Mar 2025 01:19:01 -0700 (PDT)
+ us-mta-674-Xm5iyt92NwixoDCoXVnqvg-1; Wed, 26 Mar 2025 04:19:03 -0400
+X-MC-Unique: Xm5iyt92NwixoDCoXVnqvg-1
+X-Mimecast-MFC-AGG-ID: Xm5iyt92NwixoDCoXVnqvg_1742977142
+Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-ab39f65dc10so38791466b.1
+        for <linux-rdma@vger.kernel.org>; Wed, 26 Mar 2025 01:19:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742977141; x=1743581941;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=pOTdxZD/uqiBEKSTfpgx9RU52PQylymJns53moyygZc=;
-        b=uAxFu9SC6zv3+XTExo92ypCou85tvonVxC1Qkmc7xvmQNUI4Av3qc6mW1e9sZI7yFM
-         H+2SstrNFzs1WOgi/p2iPJeyUK/HaelgmORXSabPL0Sah50mScX+gvztUa7oqPLzD53U
-         x/CZN5VRUY8rhuUv06cqvZx9Xv6kth5y/QBCkWf7izwRo5kIUsQxE51ZXC2+QfFU6fpu
-         h4CE0wEzoTbqb2LjtwZsKCfDExIGfIPrlwA412zbXDBvInZXCVjdZ2fbI1lK6223Hy9h
-         TJukIhJKbPWFBJKRN24oYuxyxcY7rl8QqElqyRyhpEmik1eLw4h1alZ0ef68UYMhgXJ/
-         aAMw==
-X-Forwarded-Encrypted: i=1; AJvYcCUtIXc/13JZjJn8l2pU500orLZDrZgY1FYxNZJb/ByeHqf7DxelCewEBIIfIrL+BI1SvEKhnhc6rfUb@vger.kernel.org
-X-Gm-Message-State: AOJu0YxYGN25JuupEKL7i3oMNehJ7sSTNkHLZwBeRsPAQ626bXLipXBo
-	3mQpeA2l5ABZs9U6ZZC2K4AYcY2b7Hbd0vQCneTn3//Xjw0HKgf/Hcqmxi4n1HTUNIxfSy/8KPV
-	wiA/Dk+cCJp1c1sk9R3DmpYsjp9Xc8Il5VCBVACb5lkg8RO/9sPh8NI9Y3Lo=
-X-Gm-Gg: ASbGncsx5mGJviUmQfXFaxHrdGV+YZyeBbSIhxiJ0G9VksGlt9clGNvErMJnT+NWDmN
-	OjOgapHvzmqjRFdMxTlW2IurNAMHTl20T4kWdVxna1dAAL/1ozUCGgGZBw1cluHgEAb1ENMCExi
-	ws5ym6o8MPZkjmckbINebU5igpZ0Oqqabuxv9MA3ClWnuSESoQXNcFzZYVjFMWIdVFaVWN0hxwB
-	X0/Gt4H51EhI0QOQGJerA7tDtkLmTF16LGl5ZsQ9SSMpR67iE9gnII5xKIMlNh6CqNIvaYKyLse
-	SAAm1Kpjb4XJAp2H7i7lQ9617bDeUwuMYaP1KCcB
-X-Received: by 2002:a05:6402:2345:b0:5ed:1909:d422 with SMTP id 4fb4d7f45d1cf-5ed1909d5d6mr4532758a12.2.1742977140849;
-        Wed, 26 Mar 2025 01:19:00 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHbdeo79z8qV2b7AKSc5yQktiHryMqsZHBcfBd1BlUWJgmAJ39Ce+nU2q92PUFekHQpyPfq7Q==
-X-Received: by 2002:a05:6402:2345:b0:5ed:1909:d422 with SMTP id 4fb4d7f45d1cf-5ed1909d5d6mr4532610a12.2.1742977137314;
-        Wed, 26 Mar 2025 01:18:57 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1742977142; x=1743581942;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=BJrq4mLJiJXWNMpizUXhY6u/aCQe+JkhHXm5jj4+P0s=;
+        b=h6vmw2HNPfOrdxWpTNWVN2SXD4/TuP7K6JGNux1tBdTslGYbHDHtI5q6DooDlhXWck
+         /e6O5UI25XiJyB1oLZVcZywkkCbE5bhclOW1cGMiAQSO860JHXR2ivKCS19OipHqcNf3
+         M+d8obmUjILJrV4xL90GE4sihT98X3ttk4Gw10x0mzfRtSWqdfW++ZthL/3j1CH7t4ua
+         4FpH+aJzI2ahgx1WXN5/7cDv+eyRz6ob3jo6scvEBcoLyYroiUMtdsIYIIgcyTzPUw4z
+         0pz8n4hS5e5wD99MgAz4ZUvsCkIyUqDOUvlR6qQhgatGU6OXpK7eLW/dwYf4VV6bjS83
+         KpcA==
+X-Forwarded-Encrypted: i=1; AJvYcCUyXA7DSrB1oGYunSRPrXL3Qe6Aplw7DOrjseIO1lDqWlloXE+Wm+cO97buKuH3dSi/P/JPV7Eb+TWg@vger.kernel.org
+X-Gm-Message-State: AOJu0YyPcdPHv18y+Q77UxXZGad5PkWtfE+kdKwp5Zj8X3O6enn8rEg0
+	dkbbA2gfXxSIRktZonKFmkT7AXfeH41awWA8nRBetyC/mUblEr7uue5uaDtoVK8CtUTrsaS33Cx
+	HwJrryaYJ0nwMYnai/MfdDnLAWprwBQkOmRBz46EhIANTpk6OHzwwcbsshB4=
+X-Gm-Gg: ASbGncutLXBPOC4PEenXTl6fU+EN5NX9W/sYwFi19tqtyhEdJJPn9/pW6hkLeM0OLcy
+	JiNk6XogXtRway6XVxOPaZuXdcs35PWFyl7+ggllOSlsdNOLqrDmU2b2CMAmWkpw88h66hT2jA+
+	bzwVUtzyVD7uGZFQCzWgdgROWVjCA+TNHfbOXQtWQxeZwKSbFXQn8FC0BPA8xN/gL0nAUEHbGXK
+	nQVSeXWsaDNSDKPDuCmmUV3s76s8QWnoTMpKpvVLCh2melqOw4ZYqAitK3A0l6V2BD+QIIc5d1p
+	15EFbUTX5FAup7mD413expU8qZiOkDKYdoW4NRJ2
+X-Received: by 2002:a17:907:96a5:b0:ac3:5c8e:d3f5 with SMTP id a640c23a62f3a-ac3f2238ac9mr1964307666b.27.1742977141996;
+        Wed, 26 Mar 2025 01:19:01 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHAVihNCBcqrY7fTmWzpMKedPdAfC8xKs8i1WcBmyCG1SOQFnIZkqUTCro3SjnL+rAel5iZ/A==
+X-Received: by 2002:a17:907:96a5:b0:ac3:5c8e:d3f5 with SMTP id a640c23a62f3a-ac3f2238ac9mr1964303566b.27.1742977141528;
+        Wed, 26 Mar 2025 01:19:01 -0700 (PDT)
 Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5ebccfae189sm8870097a12.37.2025.03.26.01.18.55
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac3efbe0356sm1006017366b.144.2025.03.26.01.19.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Mar 2025 01:18:56 -0700 (PDT)
+        Wed, 26 Mar 2025 01:19:00 -0700 (PDT)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-	id 5291A18FC9CE; Wed, 26 Mar 2025 09:18:54 +0100 (CET)
+	id 4E36118FC9CA; Wed, 26 Mar 2025 09:18:54 +0100 (CET)
 From: =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Date: Wed, 26 Mar 2025 09:18:39 +0100
-Subject: [PATCH net-next v3 2/3] page_pool: Turn dma_sync into a full-width
- bool field
+Subject: [PATCH net-next v3 0/3] Fix late DMA unmap crash for page pool
+Date: Wed, 26 Mar 2025 09:18:37 +0100
+Message-Id: <20250326-page-pool-track-dma-v3-0-8e464016e0ac@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -78,9 +76,11 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20250326-page-pool-track-dma-v3-2-8e464016e0ac@redhat.com>
-References: <20250326-page-pool-track-dma-v3-0-8e464016e0ac@redhat.com>
-In-Reply-To: <20250326-page-pool-track-dma-v3-0-8e464016e0ac@redhat.com>
+X-B4-Tracking: v=1; b=H4sIAF2442cC/23NQQrCMBAF0KuUWRtJJmmLrryHuIjp1AZtU5IQK
+ qV3NwQXCl3++fw3KwTylgKcqxU8JRusm3KQhwrMoKcHMdvlDMix5lJwNut8m517sei1ebJu1Ix
+ LiVJJrRpOkJezp94uRb3CRJFNtES45WawITr/Lu+SKP1XVrtyEowzgwKpbnWrDF48dYOOR+PGA
+ ib8QbDeRzAjQki6G3FSTS//kG3bPoiHBwcGAQAA
+X-Change-ID: 20250310-page-pool-track-dma-0332343a460e
 To: "David S. Miller" <davem@davemloft.net>, 
  Jakub Kicinski <kuba@kernel.org>, Jesper Dangaard Brouer <hawk@kernel.org>, 
  Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
@@ -95,53 +95,60 @@ To: "David S. Miller" <davem@davemloft.net>,
  Matthew Wilcox <willy@infradead.org>
 Cc: netdev@vger.kernel.org, bpf@vger.kernel.org, linux-rdma@vger.kernel.org, 
  linux-mm@kvack.org, 
- =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+ =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>, 
+ Qiuling Ren <qren@redhat.com>, Yuying Ma <yuma@redhat.com>
 X-Mailer: b4 0.14.2
 
-Change the single-bit boolean for dma_sync into a full-width bool, so we
-can read it as volatile with READ_ONCE(). A subsequent patch will add
-writing with WRITE_ONCE() on teardown.
+This series fixes the late dma_unmap crash for page pool first reported
+by Yonglong Liu in [0]. It is an alternative approach to the one
+submitted by Yunsheng Lin, most recently in [1]. The first two commits
+are small refactors of the page pool code, in preparation of the main
+change in patch 3. See the commit message of patch 3 for the details.
 
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Tested-by: Yonglong Liu <liuyonglong@huawei.com>
+-Toke
+
+[0] https://lore.kernel.org/lkml/8067f204-1380-4d37-8ffd-007fc6f26738@kernel.org/T/
+[1] https://lore.kernel.org/r/20250307092356.638242-1-linyunsheng@huawei.com
+
 Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
 ---
- include/net/page_pool/types.h | 6 +++---
- net/core/page_pool.c          | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Changes in v3:
+- Use a full-width bool for pp->dma_sync instead of a full unsigned
+  long (in patch 2), and leave pp->dma_sync_cpu alone.
 
-diff --git a/include/net/page_pool/types.h b/include/net/page_pool/types.h
-index df0d3c1608929605224feb26173135ff37951ef8..d6c93150384fbc4579bb0d0afb357ebb26c564a3 100644
---- a/include/net/page_pool/types.h
-+++ b/include/net/page_pool/types.h
-@@ -173,10 +173,10 @@ struct page_pool {
- 	int cpuid;
- 	u32 pages_state_hold_cnt;
- 
--	bool has_init_callback:1;	/* slow::init_callback is set */
-+	bool dma_sync;				/* Perform DMA sync for device */
-+	bool dma_sync_for_cpu:1;		/* Perform DMA sync for cpu */
- 	bool dma_map:1;			/* Perform DMA mapping */
--	bool dma_sync:1;		/* Perform DMA sync for device */
--	bool dma_sync_for_cpu:1;	/* Perform DMA sync for cpu */
-+	bool has_init_callback:1;	/* slow::init_callback is set */
- #ifdef CONFIG_PAGE_POOL_STATS
- 	bool system:1;			/* This is a global percpu pool */
- #endif
-diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-index acef1fcd8ddcfd1853a6f2055c1f1820ab248e8d..fb32768a97765aacc7f1103bfee38000c988b0de 100644
---- a/net/core/page_pool.c
-+++ b/net/core/page_pool.c
-@@ -466,7 +466,7 @@ page_pool_dma_sync_for_device(const struct page_pool *pool,
- 			      netmem_ref netmem,
- 			      u32 dma_sync_size)
- {
--	if (pool->dma_sync && dma_dev_need_sync(pool->p.dev))
-+	if (READ_ONCE(pool->dma_sync) && dma_dev_need_sync(pool->p.dev))
- 		__page_pool_dma_sync_for_device(pool, netmem, dma_sync_size);
- }
- 
+- Link to v2: https://lore.kernel.org/r/20250325-page-pool-track-dma-v2-0-113ebc1946f3@redhat.com
 
--- 
-2.48.1
+Changes in v2:
+- Always leave two bits at the top of pp_magic as zero, instead of one
+
+- Add an rcu_read_lock() around __page_pool_dma_sync_for_device()
+
+- Add a comment in poison.h with a reference to the bitmask definition
+
+- Add a longer description of the logic of the bitmask definitions to
+  the comment in types.h, and a summary of the security implications of
+  using the pp_magic field to the commit message of patch 3
+
+- Collect Mina's Reviewed-by and Yonglong's Tested-by tags
+
+- Link to v1: https://lore.kernel.org/r/20250314-page-pool-track-dma-v1-0-c212e57a74c2@redhat.com
+
+---
+Toke Høiland-Jørgensen (3):
+      page_pool: Move pp_magic check into helper functions
+      page_pool: Turn dma_sync into a full-width bool field
+      page_pool: Track DMA-mapped pages and unmap them when destroying the pool
+
+ drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |  4 +-
+ include/linux/poison.h                           |  4 ++
+ include/net/page_pool/types.h                    | 65 ++++++++++++++++++-
+ mm/page_alloc.c                                  |  9 +--
+ net/core/netmem_priv.h                           | 33 +++++++++-
+ net/core/page_pool.c                             | 81 ++++++++++++++++++++----
+ net/core/skbuff.c                                | 16 +----
+ net/core/xdp.c                                   |  4 +-
+ 8 files changed, 176 insertions(+), 40 deletions(-)
+---
+base-commit: 45e36a8e3c17c4d50ecbc863893f253fb46ac070
+change-id: 20250310-page-pool-track-dma-0332343a460e
 
