@@ -1,287 +1,122 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48F9421ADC7
-	for <linux-rdma@vger.kernel.org>; Fri, 28 Mar 2025 12:19:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 429F91DF257;
+	Fri, 28 Mar 2025 12:20:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743164367; cv=none; b=QA4M3Hq+WX/boJIuf1LctDgdytujbN3wKlQjFD8WcUq86c5wzrbf2WWgy/C56OkqC/0nzdgB47dCIIgCx2tcSngLRtJLYw8LZXLLgsYMmzaVil649StWLsfuuCkMgsVeCdRBouTFdJR6Qh/vxl7rmFQhhyflH5L6P2JzV9jf/wQ=
+	t=1743164424; cv=none; b=dvfzANbZU+AkZPw5aE50WYf71BgJuAj945c0JLKkLPK6l6nxTSRdvaDdbqkvuNxHiXmVfzxyMTXI4QWzgWk5L1bb8LqJ37/ayIEvAPfHSxvQKVNnvn/rLSflgvkM+j4efmHLL1ZajZIOzPnC1GQ9BkCEoNmYtynsxP7zSfmStGc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743164367; c=relaxed/simple;
-	bh=tBaUVOmuwlUC0F0gAM0GQcCY9DRAAjxRSbfYpkziV60=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=BNQRBkVTQzGotXf5dxU0A9XBOWsMFw7RsfP/CnrgJOOKUypn4shr9GexI+mSNzv9T6YBWkNuVVwRZHzc7EF2TeZV7cLTcaTkG/Hj4tKh3YkQjJ/ogOy4I+xHwF05EnDAA77do7jbk0aKgORewdKSE/DLFJ1fcCuuW6R8cw13YzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=iN3RsIT5; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="iN3RsIT5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1743164363;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=DD6/BKzSTAkniyKROx0SYrtrdsrFKedUxdUETO2d2g0=;
-	b=iN3RsIT5c0YHwGDxj1+1WXAFfTbkeW7nNyr+IfGG+LljXiDugcpuKcK37y0NY46YNT3Ae5
-	jId1MJtUQLaTduoY3oetqY/4aRpbiq9n0Xz9rAKvP3pRZLaH3cHOnGmv8ZWLeq1wKQNddW
-	o7HA607vKu4TbhyJUNa2F+O285DiHiU=
-Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
- [209.85.218.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-121-rniN4LxmO6OmdMBUXMp5jw-1; Fri, 28 Mar 2025 08:19:22 -0400
-X-MC-Unique: rniN4LxmO6OmdMBUXMp5jw-1
-X-Mimecast-MFC-AGG-ID: rniN4LxmO6OmdMBUXMp5jw_1743164361
-Received: by mail-ej1-f69.google.com with SMTP id a640c23a62f3a-ac25852291cso191305866b.2
-        for <linux-rdma@vger.kernel.org>; Fri, 28 Mar 2025 05:19:21 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743164361; x=1743769161;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=DD6/BKzSTAkniyKROx0SYrtrdsrFKedUxdUETO2d2g0=;
-        b=AWqlY4pRJfnctzl9pRSvAEpsj9uRPkdI4muRcxNg6bxmTrd7BuKqFZZkwd0Y3thO1p
-         PUv0a4YaCKaB0mCEXghk4qZQkF7bh3w04adj/rj2H/cCGq7WmdRBazgr2Z/YEQXAVb9x
-         1lwLEM4NxthfT/RHxKeY84I9R5W6nRHrrd6TUVKu3XoAY4UgnzS/SzRYzxeJSKdagYN8
-         uRKv64Z0Qx6s80Rn0mB2xlkA3ZggJeagoMY9+EAjki18RlTH3VDhvhSuWqWzh7wdDIx+
-         A5CucQUdGKH6nnMa6K1DTYbm7Mz+TADib/h2/AlZsiWq9TbNTC/b6bW9aRqZLmZxIbeo
-         JudA==
-X-Forwarded-Encrypted: i=1; AJvYcCUvv3SLx6BuvClIQT7n3BcARl0c38wvBfC8ceBCcK9+RuxRTl4Ant9xBIrYrvcZwMj/zeWAnci5TB1d@vger.kernel.org
-X-Gm-Message-State: AOJu0YyrGaoW/DvFwLKg8yKfI1nZRgCZBUh+zHjWp7UpuzyPBV+OEJEO
-	/Xj54sVozp6EnvYVeHMlXyKmUQbsBsTbTMzfzsgCcnJJpJJ+I4zytppabZmIk+oY8Dh+WCH5Nsq
-	TrJfM1gY5GpFRxEeVl1EEDR/zgOcjJ14jrFNgMISq96irx7FL61iaS8OqWYs=
-X-Gm-Gg: ASbGncsoCcZkoeX5t3IE5LaXmgPUmcA9yvxo/IftMIgWRxYzjo7AvXUoe1FlY4e/psf
-	GovzHgJ8tBIpQzJ62YWCHZhQ3GRx4kAqyhSODdc0h6OriBXqGPv7YuNEWhvJtzPOTlPf1lDbYN7
-	5XtiYrOOuCO897f33zbJldNUTw0uWSF+MK/9Y4gmM6qw4inuHMn+8FgFhBDnr0Zzl6q+0AxfZNK
-	WPKUtWcM6Unuhy820N4EaixkiCLGOYn5SsdIeGPw6fB9u+9rhvMa4KfhAS9hw8GN4DjPvJbzBJD
-	bRjPPJAQoM85
-X-Received: by 2002:a17:907:f213:b0:ac7:150e:8013 with SMTP id a640c23a62f3a-ac7150e8725mr465945866b.15.1743164360603;
-        Fri, 28 Mar 2025 05:19:20 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IH2sH2HU5ArIiKzX+0LiYkdqwF13nh1l17P2mIqzHoh6BBNKHd8I1cIquZFx0QCVq5kjgQpAg==
-X-Received: by 2002:a17:907:f213:b0:ac7:150e:8013 with SMTP id a640c23a62f3a-ac7150e8725mr465941466b.15.1743164360121;
-        Fri, 28 Mar 2025 05:19:20 -0700 (PDT)
-Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac71922bb65sm152046166b.34.2025.03.28.05.19.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 28 Mar 2025 05:19:18 -0700 (PDT)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-	id 8A09B18FCDC5; Fri, 28 Mar 2025 13:19:17 +0100 (CET)
-From: =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Date: Fri, 28 Mar 2025 13:19:08 +0100
-Subject: [PATCH net-next v5 1/2] page_pool: Move pp_magic check into helper
- functions
+	s=arc-20240116; t=1743164424; c=relaxed/simple;
+	bh=eYglRSuD/Fsc9qEIlDkNFzfNCVQuppwe9NYNRuPRp54=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=il6O0D5P1P4EME0L+WVxK1ozS+wKoTNorEQp6stGpKkvYI3lRkNIs4puk7xa2zoaos7Bn6WkI0wYuryCyg5Vkw6qfi9gm9VVFKniOJco7oX/pATftxYSzMA4otBvqDkTeblEZzjEe2lT3rF8UivC4t6aog+1LHKaXmkldecsst4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.191
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.88.234])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4ZPKLR5svzz1R7bK;
+	Fri, 28 Mar 2025 20:18:23 +0800 (CST)
+Received: from dggpemf200006.china.huawei.com (unknown [7.185.36.61])
+	by mail.maildlp.com (Postfix) with ESMTPS id 153B81400D2;
+	Fri, 28 Mar 2025 20:20:12 +0800 (CST)
+Received: from [10.67.120.129] (10.67.120.129) by
+ dggpemf200006.china.huawei.com (7.185.36.61) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Fri, 28 Mar 2025 20:20:11 +0800
+Message-ID: <a7f22729-d76d-4e90-8457-6844f18929eb@huawei.com>
+Date: Fri, 28 Mar 2025 20:20:11 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20250328-page-pool-track-dma-v5-1-55002af683ad@redhat.com>
-References: <20250328-page-pool-track-dma-v5-0-55002af683ad@redhat.com>
-In-Reply-To: <20250328-page-pool-track-dma-v5-0-55002af683ad@redhat.com>
-To: "David S. Miller" <davem@davemloft.net>, 
- Jakub Kicinski <kuba@kernel.org>, Jesper Dangaard Brouer <hawk@kernel.org>, 
- Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
- Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
- Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
- Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
- Simon Horman <horms@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
- Mina Almasry <almasrymina@google.com>, 
- Yonglong Liu <liuyonglong@huawei.com>, 
- Yunsheng Lin <linyunsheng@huawei.com>, 
- Pavel Begunkov <asml.silence@gmail.com>, 
- Matthew Wilcox <willy@infradead.org>
-Cc: netdev@vger.kernel.org, bpf@vger.kernel.org, linux-rdma@vger.kernel.org, 
- linux-mm@kvack.org, 
- =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-X-Mailer: b4 0.14.2
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 00/13] Ultra Ethernet driver introduction
+To: Jason Gunthorpe <jgg@nvidia.com>, Sean Hefty <shefty@nvidia.com>
+CC: Bernard Metzler <BMT@zurich.ibm.com>, Roland Dreier
+	<roland@enfabrica.net>, Nikolay Aleksandrov <nikolay@enfabrica.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>, "shrijeet@enfabrica.net"
+	<shrijeet@enfabrica.net>, "alex.badea@keysight.com"
+	<alex.badea@keysight.com>, "eric.davis@broadcom.com"
+	<eric.davis@broadcom.com>, "rip.sohan@amd.com" <rip.sohan@amd.com>,
+	"dsahern@kernel.org" <dsahern@kernel.org>, "winston.liu@keysight.com"
+	<winston.liu@keysight.com>, "dan.mihailescu@keysight.com"
+	<dan.mihailescu@keysight.com>, Kamal Heib <kheib@redhat.com>,
+	"parth.v.parikh@keysight.com" <parth.v.parikh@keysight.com>, Dave Miller
+	<davem@redhat.com>, "ian.ziemba@hpe.com" <ian.ziemba@hpe.com>,
+	"andrew.tauferner@cornelisnetworks.com"
+	<andrew.tauferner@cornelisnetworks.com>, "welch@hpe.com" <welch@hpe.com>,
+	"rakhahari.bhunia@keysight.com" <rakhahari.bhunia@keysight.com>,
+	"kingshuk.mandal@keysight.com" <kingshuk.mandal@keysight.com>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kuba@kernel.org"
+	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+References: <20250306230203.1550314-1-nikolay@enfabrica.net>
+ <20250319164802.GA116657@nvidia.com>
+ <CALgUMKhB7nZkU0RtJJRtcHFm2YVmahUPCQv2XpTwZw=PaaiNHg@mail.gmail.com>
+ <DM6PR12MB4313D576318921D47B3C61B5BDA42@DM6PR12MB4313.namprd12.prod.outlook.com>
+ <BN8PR15MB25131FB51A63577B5795614399A72@BN8PR15MB2513.namprd15.prod.outlook.com>
+ <DM6PR12MB431329322A0C0CCB7D5F85E6BDA72@DM6PR12MB4313.namprd12.prod.outlook.com>
+ <Z+QTD7ihtQSYI0bl@nvidia.com>
+ <DM6PR12MB43137AE666F19784D2832030BDA62@DM6PR12MB4313.namprd12.prod.outlook.com>
+ <Z+Qi+XxYizfhr06P@nvidia.com>
+ <DM6PR12MB431345D07D958CF0B784AE0EBDA62@DM6PR12MB4313.namprd12.prod.outlook.com>
+ <Z+VSFRFG1gIbGsLQ@nvidia.com>
+Content-Language: en-US
+From: Yunsheng Lin <linyunsheng@huawei.com>
+In-Reply-To: <Z+VSFRFG1gIbGsLQ@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ dggpemf200006.china.huawei.com (7.185.36.61)
 
-Since we are about to stash some more information into the pp_magic
-field, let's move the magic signature checks into a pair of helper
-functions so it can be changed in one place.
+On 2025/3/27 21:26, Jason Gunthorpe wrote:
 
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Tested-by: Yonglong Liu <liuyonglong@huawei.com>
-Acked-by: Jesper Dangaard Brouer <hawk@kernel.org>
-Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |  4 ++--
- include/net/page_pool/types.h                    | 18 ++++++++++++++++++
- mm/page_alloc.c                                  |  9 +++------
- net/core/netmem_priv.h                           |  5 +++++
- net/core/skbuff.c                                | 16 ++--------------
- net/core/xdp.c                                   |  4 ++--
- 6 files changed, 32 insertions(+), 24 deletions(-)
+...
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-index f803e1c93590068d3a7829b0683be4af019266d1..5ce1b463b7a8dd7969e391618658d66f6e836cc1 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-@@ -707,8 +707,8 @@ static void mlx5e_free_xdpsq_desc(struct mlx5e_xdpsq *sq,
- 				xdpi = mlx5e_xdpi_fifo_pop(xdpi_fifo);
- 				page = xdpi.page.page;
- 
--				/* No need to check ((page->pp_magic & ~0x3UL) == PP_SIGNATURE)
--				 * as we know this is a page_pool page.
-+				/* No need to check page_pool_page_is_pp() as we
-+				 * know this is a page_pool page.
- 				 */
- 				page_pool_recycle_direct(page->pp, page);
- 			} while (++n < num);
-diff --git a/include/net/page_pool/types.h b/include/net/page_pool/types.h
-index 36eb57d73abc6cfc601e700ca08be20fb8281055..df0d3c1608929605224feb26173135ff37951ef8 100644
---- a/include/net/page_pool/types.h
-+++ b/include/net/page_pool/types.h
-@@ -54,6 +54,14 @@ struct pp_alloc_cache {
- 	netmem_ref cache[PP_ALLOC_CACHE_SIZE];
- };
- 
-+/* Mask used for checking in page_pool_page_is_pp() below. page->pp_magic is
-+ * OR'ed with PP_SIGNATURE after the allocation in order to preserve bit 0 for
-+ * the head page of compound page and bit 1 for pfmemalloc page.
-+ * page_is_pfmemalloc() is checked in __page_pool_put_page() to avoid recycling
-+ * the pfmemalloc page.
-+ */
-+#define PP_MAGIC_MASK ~0x3UL
-+
- /**
-  * struct page_pool_params - page pool parameters
-  * @fast:	params accessed frequently on hotpath
-@@ -264,6 +272,11 @@ void page_pool_destroy(struct page_pool *pool);
- void page_pool_use_xdp_mem(struct page_pool *pool, void (*disconnect)(void *),
- 			   const struct xdp_mem_info *mem);
- void page_pool_put_netmem_bulk(netmem_ref *data, u32 count);
-+
-+static inline bool page_pool_page_is_pp(struct page *page)
-+{
-+	return (page->pp_magic & PP_MAGIC_MASK) == PP_SIGNATURE;
-+}
- #else
- static inline void page_pool_destroy(struct page_pool *pool)
- {
-@@ -278,6 +291,11 @@ static inline void page_pool_use_xdp_mem(struct page_pool *pool,
- static inline void page_pool_put_netmem_bulk(netmem_ref *data, u32 count)
- {
- }
-+
-+static inline bool page_pool_page_is_pp(struct page *page)
-+{
-+	return false;
-+}
- #endif
- 
- void page_pool_put_unrefed_netmem(struct page_pool *pool, netmem_ref netmem,
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 542d25f77be80304b731411ffd29b276ee13be0c..3535ee76afe946cbb042ecbce603bdbedc9233b9 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -55,6 +55,7 @@
- #include <linux/delayacct.h>
- #include <linux/cacheinfo.h>
- #include <linux/pgalloc_tag.h>
-+#include <net/page_pool/types.h>
- #include <asm/div64.h>
- #include "internal.h"
- #include "shuffle.h"
-@@ -872,9 +873,7 @@ static inline bool page_expected_state(struct page *page,
- #ifdef CONFIG_MEMCG
- 			page->memcg_data |
- #endif
--#ifdef CONFIG_PAGE_POOL
--			((page->pp_magic & ~0x3UL) == PP_SIGNATURE) |
--#endif
-+			page_pool_page_is_pp(page) |
- 			(page->flags & check_flags)))
- 		return false;
- 
-@@ -901,10 +900,8 @@ static const char *page_bad_reason(struct page *page, unsigned long flags)
- 	if (unlikely(page->memcg_data))
- 		bad_reason = "page still charged to cgroup";
- #endif
--#ifdef CONFIG_PAGE_POOL
--	if (unlikely((page->pp_magic & ~0x3UL) == PP_SIGNATURE))
-+	if (unlikely(page_pool_page_is_pp(page)))
- 		bad_reason = "page_pool leak";
--#endif
- 	return bad_reason;
- }
- 
-diff --git a/net/core/netmem_priv.h b/net/core/netmem_priv.h
-index 7eadb8393e002fd1cc2cef8a313d2ea7df76f301..f33162fd281c23e109273ba09950c5d0a2829bc9 100644
---- a/net/core/netmem_priv.h
-+++ b/net/core/netmem_priv.h
-@@ -18,6 +18,11 @@ static inline void netmem_clear_pp_magic(netmem_ref netmem)
- 	__netmem_clear_lsb(netmem)->pp_magic = 0;
- }
- 
-+static inline bool netmem_is_pp(netmem_ref netmem)
-+{
-+	return (netmem_get_pp_magic(netmem) & PP_MAGIC_MASK) == PP_SIGNATURE;
-+}
-+
- static inline void netmem_set_pp(netmem_ref netmem, struct page_pool *pool)
- {
- 	__netmem_clear_lsb(netmem)->pp = pool;
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 6cbf77bc61fce74c934628fd74b3a2cb7809e464..74a2d886a35b518d55b6d3cafcb8442212f9beee 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -893,11 +893,6 @@ static void skb_clone_fraglist(struct sk_buff *skb)
- 		skb_get(list);
- }
- 
--static bool is_pp_netmem(netmem_ref netmem)
--{
--	return (netmem_get_pp_magic(netmem) & ~0x3UL) == PP_SIGNATURE;
--}
--
- int skb_pp_cow_data(struct page_pool *pool, struct sk_buff **pskb,
- 		    unsigned int headroom)
- {
-@@ -995,14 +990,7 @@ bool napi_pp_put_page(netmem_ref netmem)
- {
- 	netmem = netmem_compound_head(netmem);
- 
--	/* page->pp_magic is OR'ed with PP_SIGNATURE after the allocation
--	 * in order to preserve any existing bits, such as bit 0 for the
--	 * head page of compound page and bit 1 for pfmemalloc page, so
--	 * mask those bits for freeing side when doing below checking,
--	 * and page_is_pfmemalloc() is checked in __page_pool_put_page()
--	 * to avoid recycling the pfmemalloc page.
--	 */
--	if (unlikely(!is_pp_netmem(netmem)))
-+	if (unlikely(!netmem_is_pp(netmem)))
- 		return false;
- 
- 	page_pool_put_full_netmem(netmem_get_pp(netmem), netmem, false);
-@@ -1042,7 +1030,7 @@ static int skb_pp_frag_ref(struct sk_buff *skb)
- 
- 	for (i = 0; i < shinfo->nr_frags; i++) {
- 		head_netmem = netmem_compound_head(shinfo->frags[i].netmem);
--		if (likely(is_pp_netmem(head_netmem)))
-+		if (likely(netmem_is_pp(head_netmem)))
- 			page_pool_ref_netmem(head_netmem);
- 		else
- 			page_ref_inc(netmem_to_page(head_netmem));
-diff --git a/net/core/xdp.c b/net/core/xdp.c
-index f86eedad586a77eb63a96a85aa6d068d3e94f077..0ba73943c6eed873b3d1c681b3b9a802b590f2d9 100644
---- a/net/core/xdp.c
-+++ b/net/core/xdp.c
-@@ -437,8 +437,8 @@ void __xdp_return(netmem_ref netmem, enum xdp_mem_type mem_type,
- 		netmem = netmem_compound_head(netmem);
- 		if (napi_direct && xdp_return_frame_no_direct())
- 			napi_direct = false;
--		/* No need to check ((page->pp_magic & ~0x3UL) == PP_SIGNATURE)
--		 * as mem->type knows this a page_pool page
-+		/* No need to check netmem_is_pp() as mem->type knows this a
-+		 * page_pool page
- 		 */
- 		page_pool_put_full_netmem(netmem_get_pp(netmem), netmem,
- 					  napi_direct);
+> 
+>> which I think will work for NICs that
+>> need a PD and ones that don't.  It can support MR -> PD -> Job, but
+>> I considered the PD -> job relationship as 1 to many. 
+> 
+> Yes, and the 1:1 is degenerate.
+> 
+>> Sure, It's challenging in that a UET endpoint (QP) may communicate
+>> with multiple jobs, and a MR may be accessible by a single job, all
+>> jobs, or only a few.
+> 
+> I would suggest that the PD is a superset of all jobs and the objects
+> (endpoint, mr, etc) get to choose a subset of the PD's jobs during
+> allocation?
+> 
+> Or you keep job/pd as 1:1 and allow specifying multiple PDs during
+> object allocation.
+> 
+> But to be clear, this is largely verbs modeling stuff - however there
+> is a certain practicality to trying to fit this multi-job ability into
+> a PD because it allow reusing alot of existing uAPI kernel code.
+> 
+> Especially if people are going to take existing RDMA HW and tweak it
+> to some level of UET (ie support only single job) and still require a
+> HW level PD under the covers.
 
--- 
-2.48.1
+Through reading this patchset, it seems the semantics of 'job' for UEC
+is about how to identify a PDC(Packet Delivery Context) instance, which
+is specified by src fep_address/pdc_id and dst fep_address/pdc_id as
+there seems to be more than one PDC instance between two nodes, so the
+'job' is really about grouping processes from the same 'job' to use the
+same PDC instance and preventing processes from different 'job' from
+using the same PDC instance?
 
+And the interesting part about the PDC seems to be:
+1. It is created dynamically when a request packet is sent on the target
+   side or received on the initiator side, and destroyed dynamically through
+   timeout mechanism.
+2. It seems a PDC instance can be shared between different processes from the
+   same 'job'.
+
+And SRD seems to be using AH(address handle) to specify a SRD connection between
+two nodes, and there is only one SRD context instance between two nodes, so different
+process may have their own AH pointing to the same SRD context instance between the
+same two nodes?
