@@ -1,129 +1,95 @@
-Received: from bmailout1.hostsharing.net (bmailout1.hostsharing.net [83.223.95.100])
+Received: from out-180.mta0.migadu.com (out-180.mta0.migadu.com [91.218.175.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 749142AE8E;
-	Sat, 29 Mar 2025 18:33:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.223.95.100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98367175D50
+	for <linux-rdma@vger.kernel.org>; Sun, 30 Mar 2025 09:53:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743273224; cv=none; b=CmAX8sbMqVwseTi8IKxFNCDP8Wv4BobGVQIP5iMKRQCBseOxDrJLGWaJL337bfB0L3SvBKwbiRbVAkSQxFTVK41+cgj24JVIzmJSMO67QTGXhFAWLbnEdIfelqCVGMpnd6ZoOxFWuC1g6cSNzua3zSYN/ZbNJnMbCn1N+oHRyw0=
+	t=1743328438; cv=none; b=PATiC9EDcgSuHz0S+i5XbnOZINRnpQK62ZApTHj1e2/OJvFcBoZMC49R9O/zwQK+3LsnH9O2V1J66Obmpaeni8tKdUbxhQBhHPuzUFAyfPavXAdOIC8yIXpmLZzSAEbtanC6lm8jx5ZYJhj/F/hTaXk3HOzwyN9uGdiLNp5bYmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743273224; c=relaxed/simple;
-	bh=N0Bu789B+gdjMhkE5nvBLyPmkVSv0quQvGRlrjO9+28=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XsozICA+AN9R9g+aOQhuxULd79HS3n25N+HofRx6FaIHT42gglKyFOLSphIOZ+bCizWibC3FotAD/gO/EUWJQ3ivpSFi4Vy3+StMQRTF6Fb3EM2CCeDpO/PxbPGBcWdJzusiyoAsE26z1I+YuoDjcR6Ae0I8KkGdI487vZFs8d8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de; spf=none smtp.mailfrom=h08.hostsharing.net; arc=none smtp.client-ip=83.223.95.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=wunner.de
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=h08.hostsharing.net
-Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256
-	 client-signature RSA-PSS (4096 bits) client-digest SHA256)
-	(Client CN "*.hostsharing.net", Issuer "RapidSSL TLS RSA CA G1" (verified OK))
-	by bmailout1.hostsharing.net (Postfix) with ESMTPS id AB1B9300034D8;
-	Sat, 29 Mar 2025 19:23:35 +0100 (CET)
-Received: by h08.hostsharing.net (Postfix, from userid 100393)
-	id 9633C11B31C; Sat, 29 Mar 2025 19:23:35 +0100 (CET)
-Date: Sat, 29 Mar 2025 19:23:35 +0100
-From: Lukas Wunner <lukas@wunner.de>
-To: Moshe Shemesh <moshe@mellanox.com>, Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
-	linux-rdma@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Jiri Pirko <jiri@nvidia.com>,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pci@vger.kernel.org
-Subject: Re: [PATCH net-next v2 09/16] net/mlx5: Handle sync reset now event
-Message-ID: <Z-g6pzpZu_TU0-nA@wunner.de>
-References: <1602050457-21700-1-git-send-email-moshe@mellanox.com>
- <1602050457-21700-10-git-send-email-moshe@mellanox.com>
+	s=arc-20240116; t=1743328438; c=relaxed/simple;
+	bh=Y77qOZJg1ztePs3u1ibfM+37emwBml1d4mvWvji+LaM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CWwMbQMo+7SwvkKnWpEf+BtomsxaeZaYVqh0BjR/77n0jA6OG+p6iec29nCtXglJNO1K0BQGFtwosi4AYHt0zois68iQ/UNXwiwqxUroXUMG7NyBRQ8uRXwypGDrVw0+dIPJpHZayeS0KY0nyrUhOHgLvy1kBmW4zdsfaG9CNw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=css6jhxY; arc=none smtp.client-ip=91.218.175.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="css6jhxY"
+Message-ID: <cdc1fbbb-4299-4283-9bac-f1d7fb6962b6@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1743328424;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=28ZmjUKSGx9bHyjrPWK8SrKiBbCt6lY+A/8H7faqvwU=;
+	b=css6jhxYQSoSJQO+hyUEb6FQkLXz6A011PSJP6LoueaA50IGcM4GFHbzDMaNL4clnzEIFk
+	sE7mxlof2wEOKpVizkRCidqSOrRhD3dS5PSCyVWNVfYr7U+7iDTczD1dJQBd405ulhqf1z
+	BUeNENUAV9Ac/WGg12TCfqvilw3btDs=
+Date: Sun, 30 Mar 2025 11:53:33 +0200
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1602050457-21700-10-git-send-email-moshe@mellanox.com>
+Subject: Re: [PATCH][next] IB/hfi1: Avoid -Wflex-array-member-not-at-end
+ warning
+To: "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+ Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+ Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-hardening@vger.kernel.org
+References: <Z-WgwsCYIXaBxnvs@kspp>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Zhu Yanjun <yanjun.zhu@linux.dev>
+In-Reply-To: <Z-WgwsCYIXaBxnvs@kspp>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-The following was applied as commit eabe8e5e88f5 ("net/mlx5: Handle
-sync reset now event").
+在 2025/3/27 20:02, Gustavo A. R. Silva 写道:
+> -Wflex-array-member-not-at-end was introduced in GCC-14, and we are
+> getting ready to enable it, globally.
+> 
+> Move the conflicting declaration to the end of the structure. Notice
+> that `struct opa_mad_notice_attr` is a flexible structure --a structure
+> that contains a flexible-array member.
+> 
+> Fix the following warning:
+> 
+> drivers/infiniband/hw/hfi1/mad.c:23:36: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
 
-It does some questionable things (from a PCI perspective), so allow
-me to ask for details:
-
-On Wed, Oct 07, 2020 at 09:00:50AM +0300, Moshe Shemesh wrote:
-> On sync_reset_now event the driver does reload and PCI link toggle to
-> activate firmware upgrade reset. When the firmware sends this event it
-> syncs the event on all PFs, so all PFs will do PCI link toggle at once.
-> To do PCI link toggle, the driver ensures that no other device ID under
-> the same bridge by checking that all the PF functions under the same PCI
-> bridge have same device ID. If no other device it uses PCI bridge link
-> control to turn link down and up.
-[...]
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fw_reset.c
-> @@ -156,6 +157,120 @@ static void mlx5_sync_reset_request_event(struct work_struct *work)
->  		mlx5_core_warn(dev, "PCI Sync FW Update Reset Ack. Device reset is expected.\n");
->  }
->  
-> +#define MLX5_PCI_LINK_UP_TIMEOUT 2000
-> +
-> +static int mlx5_pci_link_toggle(struct mlx5_core_dev *dev)
-> +{
-> +	struct pci_bus *bridge_bus = dev->pdev->bus;
-> +	struct pci_dev *bridge = bridge_bus->self;
-> +	u16 reg16, dev_id, sdev_id;
-> +	unsigned long timeout;
-> +	struct pci_dev *sdev;
-> +	int cap, err;
-> +	u32 reg32;
-> +
-> +	/* Check that all functions under the pci bridge are PFs of
-> +	 * this device otherwise fail this function.
-> +	 */
-> +	err = pci_read_config_word(dev->pdev, PCI_DEVICE_ID, &dev_id);
-> +	if (err)
-> +		return err;
-> +	list_for_each_entry(sdev, &bridge_bus->devices, bus_list) {
-> +		err = pci_read_config_word(sdev, PCI_DEVICE_ID, &sdev_id);
-> +		if (err)
-> +			return err;
-> +		if (sdev_id != dev_id)
-> +			return -EPERM;
-> +	}
-> +
-> +	cap = pci_find_capability(bridge, PCI_CAP_ID_EXP);
-> +	if (!cap)
-> +		return -EOPNOTSUPP;
-> +
-> +	list_for_each_entry(sdev, &bridge_bus->devices, bus_list) {
-> +		pci_save_state(sdev);
-> +		pci_cfg_access_lock(sdev);
-> +	}
-> +	/* PCI link toggle */
-> +	err = pci_read_config_word(bridge, cap + PCI_EXP_LNKCTL, &reg16);
-> +	if (err)
-> +		return err;
-> +	reg16 |= PCI_EXP_LNKCTL_LD;
-> +	err = pci_write_config_word(bridge, cap + PCI_EXP_LNKCTL, reg16);
-> +	if (err)
-> +		return err;
-> +	msleep(500);
-> +	reg16 &= ~PCI_EXP_LNKCTL_LD;
-> +	err = pci_write_config_word(bridge, cap + PCI_EXP_LNKCTL, reg16);
-> +	if (err)
-> +		return err;
-
-The commit message doesn't state the reason why you're toggling
-the Link Disable bit.
-
-It propagates a Hot Reset down the hierarchy, so perhaps that's
-the reason you're doing this?
-
-If it is, why didn't you just use one of the existing library calls
-such as pci_reset_bus(bridge)?
+Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
 
 Thanks,
+Zhu Yanjun
 
-Lukas
+> ---
+>   drivers/infiniband/hw/hfi1/mad.c | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+> index b39f63ce6dfc..3f11a90819d1 100644
+> --- a/drivers/infiniband/hw/hfi1/mad.c
+> +++ b/drivers/infiniband/hw/hfi1/mad.c
+> @@ -20,12 +20,14 @@
+>   
+>   struct trap_node {
+>   	struct list_head list;
+> -	struct opa_mad_notice_attr data;
+>   	__be64 tid;
+>   	int len;
+>   	u32 retry;
+>   	u8 in_use;
+>   	u8 repress;
+> +
+> +	/* Must be last --ends in a flexible-array member. */
+> +	struct opa_mad_notice_attr data;
+>   };
+>   
+>   static int smp_length_check(u32 data_size, u32 request_len)
+
