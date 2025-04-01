@@ -1,71 +1,31 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B9491EB5D5
-	for <linux-rdma@vger.kernel.org>; Tue,  1 Apr 2025 08:56:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 038A01EDA09;
+	Tue,  1 Apr 2025 09:20:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743497767; cv=none; b=VIHjbT53hLBZ86fab0fVoChv2GH5s1jGmsX5LF9U4Mzkaj4Qe3Soqe466VNLQ7Ni4L7SXLvffn0KpTPezRyh/u/JSYFK57pbMXkiCIgF5L7ebpdRTXa2TvMNbgObWMMLIt2YloWh98BYlLdgm4cDLDF3f43rFL3KDBpw4+3zduY=
+	t=1743499218; cv=none; b=A29sm4+cu/hyUsdlZyBh8iMhcBhcyzFB3AtSVo7h3fN1o7JWJwIhYcUlrOb4kBkDQBesUSrUVODpxKh8L+oV7ARlt3e30duPWvBFStFLDd8L7crasixcjaTtroOgTnDlu9icmDjBi55iTXbo22WYZ38DewPqWA/AjfW8dEZ7/hA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743497767; c=relaxed/simple;
-	bh=tV7GHmfr5Si8SRiqwT6boi3Gj3jsFs4R9lIa/PbtSKw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=iwX7ltSns4H7ZYmo/Q/mXXcZkvunCK9REfyYSm51K3MKs87VjD4EraSswCPmmK58/pmVPaUfCMU3l/b9NthBiMYT0KtZ8VSSzMOF8cSdFIMfZ7qddWkw/52SCx9fZL8utURqdDw72zIp0pLVUr5VmIRlWNjGAGG6LUaXc1rTLj4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Xa1b5g3B; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Xa1b5g3B"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1743497765;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/EOGpZgMMwI61gNswk7Hqy4zEoEqDiKfuBQe+kGOmzE=;
-	b=Xa1b5g3BriYlUA5VNSoObwldecuYJmbPxvW+fI6QgxRaN3T2RbHY22klk0qX064bGWF6Rn
-	SEHx6iEeBhwbvu+24L36vR2OJ2Rz42he3E3LxY3Qyo1NtNZQoNYwUmEj5bBiUuyVQYVhOv
-	WTn9YJCswgrpSms3VJ3wrX4PMLGvfbE=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-630-bIAsyvHkNWuUy_vQjQf6OA-1; Tue, 01 Apr 2025 04:56:03 -0400
-X-MC-Unique: bIAsyvHkNWuUy_vQjQf6OA-1
-X-Mimecast-MFC-AGG-ID: bIAsyvHkNWuUy_vQjQf6OA_1743497763
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3913aaf1e32so3047090f8f.0
-        for <linux-rdma@vger.kernel.org>; Tue, 01 Apr 2025 01:56:03 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743497763; x=1744102563;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=/EOGpZgMMwI61gNswk7Hqy4zEoEqDiKfuBQe+kGOmzE=;
-        b=fPWcNgYL0corWAIUdz01QmveZJBXAHsoW3E97lZ1nABArC12yqCZgALvjMgT4Mdvk4
-         +PYnPCmsBT6afneSDRT1dannPlYau8+nlggG1wzcENrY1cIrnQi6wMZrH4v3GDuP61by
-         y1HjBCc3csw5o1DTXLjS/RjcOdwNTyaJPkoqTsnkjYRBv929hdhyOL6c4sdwoBx3tcNf
-         nRIQjgFjq6ZMm/jl8sslge0T+kxzl+/y+AOIRTICIz+4H5EkbJit55J1lBzTnYN6vPJx
-         eM98l42Xa/4QdAUSZUz7zKmVtCHMnNsjNVlUQ5ioz4QDxfqbRxBSSGWPvdrdU6aKnubj
-         kkcw==
-X-Forwarded-Encrypted: i=1; AJvYcCWjlGEWAve0N/iSDDQOIJlJWwbVtIh3ErhfEJTn0i7kXOnZmC8fCCSxxBzjFkku+s2kkF2VlcY3pBuc@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzf6EobrFVe0L1Dasn7ch/xVZYloPsPmPiLOyMQWPr73hgtgOwv
-	lr+f1a+MkNHiPuThLDahFwJv7fP9QNHqPC2mC+6sjO36AIT6Bny0yS8My/u3SYcmHEyvlFxN5d9
-	S2dJwYxMQRQfGJkFJE5pAqWwscR8M1SJYxbSJcI4tnSoSj2gtQuGxcsWJYoA=
-X-Gm-Gg: ASbGnctqueAWQbTpTKT6mBkr8X9ahhAcYcbcuCNVI06/JC2pAG3IwqTt9GPMU5oyaOX
-	UaYQQ8SFK3xEWsLCvsfPdb4XPulQR8ANqv1Pbjx11nPX9DccWaohcG6tZFCVSsJXh1qj1O93X8a
-	M/tMp3GxG2/e4Tb9n62SEx7AL2GThbEFTTn2kJUBPS4E+ntTJPFBckn34zESOuDA4D3qS5FhOpK
-	y3jTLjAYqtNEcdOJ3AKhVHMB7t20kPrm1Y2OcxkqFiMV+bx+scorx8riwox2PEv/JOs9gzHIeHZ
-	ONhO+eeMeI0bbjuLrITRmWkDdRcKjqh60+6Spsl64KKD3g==
-X-Received: by 2002:a05:6000:2913:b0:391:122c:8b2 with SMTP id ffacd0b85a97d-39c120e1566mr10357901f8f.31.1743497762667;
-        Tue, 01 Apr 2025 01:56:02 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHPPFEHn5QvMX8T7Toc4UY1OJQWioAVuAJM2JZ1z1ZDDcbJGmm1kVkDwd+dzHOwCnzyaJepwA==
-X-Received: by 2002:a05:6000:2913:b0:391:122c:8b2 with SMTP id ffacd0b85a97d-39c120e1566mr10357860f8f.31.1743497762256;
-        Tue, 01 Apr 2025 01:56:02 -0700 (PDT)
-Received: from [192.168.88.253] (146-241-68-231.dyn.eolo.it. [146.241.68.231])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-39c0b79e141sm13581555f8f.77.2025.04.01.01.56.00
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 01 Apr 2025 01:56:01 -0700 (PDT)
-Message-ID: <7488e6cf-e68b-4404-aaa9-f4892b2ff94b@redhat.com>
-Date: Tue, 1 Apr 2025 10:56:00 +0200
+	s=arc-20240116; t=1743499218; c=relaxed/simple;
+	bh=3JEv0jTr5FAuLNgIjAX2LYO/gsXptGNYLpoxF+E09mY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=NZQSCxM8ogeJL3FgOzW/cSJs3UmTLJJABDJdt2shsVCrGGfs42U+FOmv5so10pIHhiO04tgyOb4pQaghqpoGvyiHwvb+x3ickc09X3CW+/m6iR2E5+PJAPnZ+QkLf7+a98CTrilYo5l6t7YQWybGvpyhDZNox1JFPi79OBXvnJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.252])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4ZRj9F4H20ztRVW;
+	Tue,  1 Apr 2025 17:18:41 +0800 (CST)
+Received: from dggpemf200006.china.huawei.com (unknown [7.185.36.61])
+	by mail.maildlp.com (Postfix) with ESMTPS id F16AD1800E5;
+	Tue,  1 Apr 2025 17:20:06 +0800 (CST)
+Received: from [10.67.120.129] (10.67.120.129) by
+ dggpemf200006.china.huawei.com (7.185.36.61) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 1 Apr 2025 17:20:04 +0800
+Message-ID: <962c1dff-b944-499d-8883-2fe760219352@huawei.com>
+Date: Tue, 1 Apr 2025 17:19:44 +0800
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -73,62 +33,60 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next v5 2/2] page_pool: Track DMA-mapped pages and
- unmap them when destroying the pool
-To: Alexander Lobakin <aleksander.lobakin@intel.com>,
- =?UTF-8?Q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Jakub Kicinski
- <kuba@kernel.org>, Jesper Dangaard Brouer <hawk@kernel.org>,
- Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
- Eric Dumazet <edumazet@google.com>,
- Ilias Apalodimas <ilias.apalodimas@linaro.org>,
- Simon Horman <horms@kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
- Mina Almasry <almasrymina@google.com>, Yonglong Liu
- <liuyonglong@huawei.com>, Yunsheng Lin <linyunsheng@huawei.com>,
- Pavel Begunkov <asml.silence@gmail.com>, Matthew Wilcox
- <willy@infradead.org>, netdev@vger.kernel.org, bpf@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-mm@kvack.org, Qiuling Ren
- <qren@redhat.com>, Yuying Ma <yuma@redhat.com>
-References: <20250328-page-pool-track-dma-v5-0-55002af683ad@redhat.com>
- <20250328-page-pool-track-dma-v5-2-55002af683ad@redhat.com>
- <aaf31c50-9b57-40b7-bbd7-e19171370563@intel.com>
+Subject: Re: [RFC PATCH 00/13] Ultra Ethernet driver introduction
+To: Sean Hefty <shefty@nvidia.com>, Jason Gunthorpe <jgg@nvidia.com>
+CC: Bernard Metzler <BMT@zurich.ibm.com>, Roland Dreier
+	<roland@enfabrica.net>, Nikolay Aleksandrov <nikolay@enfabrica.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>, "shrijeet@enfabrica.net"
+	<shrijeet@enfabrica.net>, "alex.badea@keysight.com"
+	<alex.badea@keysight.com>, "eric.davis@broadcom.com"
+	<eric.davis@broadcom.com>, "rip.sohan@amd.com" <rip.sohan@amd.com>,
+	"dsahern@kernel.org" <dsahern@kernel.org>, "winston.liu@keysight.com"
+	<winston.liu@keysight.com>, "dan.mihailescu@keysight.com"
+	<dan.mihailescu@keysight.com>, Kamal Heib <kheib@redhat.com>,
+	"parth.v.parikh@keysight.com" <parth.v.parikh@keysight.com>, Dave Miller
+	<davem@redhat.com>, "ian.ziemba@hpe.com" <ian.ziemba@hpe.com>,
+	"andrew.tauferner@cornelisnetworks.com"
+	<andrew.tauferner@cornelisnetworks.com>, "welch@hpe.com" <welch@hpe.com>,
+	"rakhahari.bhunia@keysight.com" <rakhahari.bhunia@keysight.com>,
+	"kingshuk.mandal@keysight.com" <kingshuk.mandal@keysight.com>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kuba@kernel.org"
+	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>
+References: <20250306230203.1550314-1-nikolay@enfabrica.net>
+ <20250319164802.GA116657@nvidia.com>
+ <CALgUMKhB7nZkU0RtJJRtcHFm2YVmahUPCQv2XpTwZw=PaaiNHg@mail.gmail.com>
+ <DM6PR12MB4313D576318921D47B3C61B5BDA42@DM6PR12MB4313.namprd12.prod.outlook.com>
+ <BN8PR15MB25131FB51A63577B5795614399A72@BN8PR15MB2513.namprd15.prod.outlook.com>
+ <DM6PR12MB431329322A0C0CCB7D5F85E6BDA72@DM6PR12MB4313.namprd12.prod.outlook.com>
+ <Z+QTD7ihtQSYI0bl@nvidia.com>
+ <DM6PR12MB43137AE666F19784D2832030BDA62@DM6PR12MB4313.namprd12.prod.outlook.com>
+ <Z+Qi+XxYizfhr06P@nvidia.com>
+ <DM6PR12MB431345D07D958CF0B784AE0EBDA62@DM6PR12MB4313.namprd12.prod.outlook.com>
+ <Z+VSFRFG1gIbGsLQ@nvidia.com>
+ <a7f22729-d76d-4e90-8457-6844f18929eb@huawei.com>
+ <DM6PR12MB43137DCF20A1428F7E67F82BBDAD2@DM6PR12MB4313.namprd12.prod.outlook.com>
 Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <aaf31c50-9b57-40b7-bbd7-e19171370563@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Yunsheng Lin <linyunsheng@huawei.com>
+In-Reply-To: <DM6PR12MB43137DCF20A1428F7E67F82BBDAD2@DM6PR12MB4313.namprd12.prod.outlook.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ dggpemf200006.china.huawei.com (7.185.36.61)
 
-On 3/31/25 6:35 PM, Alexander Lobakin wrote:
-> From: Toke Høiland-Jørgensen <toke@redhat.com>
-> Date: Fri, 28 Mar 2025 13:19:09 +0100
+On 2025/4/1 3:49, Sean Hefty wrote:
+>> Through reading this patchset, it seems the semantics of 'job' for UEC is about
+>> how to identify a PDC(Packet Delivery Context) instance, which is specified by
+>> src fep_address/pdc_id and dst fep_address/pdc_id as there seems to be more
+>> than one PDC instance between two nodes, so the 'job' is really about
+>> grouping processes from the same 'job' to use the same PDC instance and
+>> preventing processes from different 'job' from using the same PDC instance?
 > 
->> When enabling DMA mapping in page_pool, pages are kept DMA mapped until
->> they are released from the pool, to avoid the overhead of re-mapping the
->> pages every time they are used. This causes resource leaks and/or
->> crashes when there are pages still outstanding while the device is torn
->> down, because page_pool will attempt an unmap through a non-existent DMA
->> device on the subsequent page return.
+> UEC targets HPC and AI workloads, so the concept of a job in this discussion represents a parallel application.  I.e. a group of processes across multiple nodes communicating.
+
+Ok, I guess this patchset only implement a portion of semantics for the 'job'
+in UEC, the page mapping, local access, and remote access functions grouping
+and separating you mentioned in other thread does not seem to be implemented
+yet.
+
 > 
-> [...]
-> 
->> @@ -173,10 +212,10 @@ struct page_pool {
->>  	int cpuid;
->>  	u32 pages_state_hold_cnt;
->>  
->> -	bool has_init_callback:1;	/* slow::init_callback is set */
->> +	bool dma_sync;			/* Perform DMA sync for device */
-> 
-> Have you seen my comment under v3 (sorry but I missed that there was v4
-> already)? Can't we just test the bit atomically?
-
-My understanding is that to make such operation really atomic, we will
-need to access all the other bits within the same bitfield with atomic
-bit ops, leading to a significant code churn (and possibly some overhead).
-
-I think that using a full bool field is a better option.
-
-Thanks,
-
-Paolo
-
+> - Sean
