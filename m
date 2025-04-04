@@ -1,177 +1,165 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2063.outbound.protection.outlook.com [40.107.94.63])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85AB619EED2
-	for <linux-rdma@vger.kernel.org>; Fri,  4 Apr 2025 10:18:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743761934; cv=none; b=Ij+BzoRvGLPAQ3/H5aA+QPFJFTJ8/DNaLgemP2wqUwVuaVZJYNXb0+C3/RQ0dSIBoNb4kuJdkdcTKoZP62ZIOkJDaiPqmu980z4uvP3rVfPgvuQ1cSEK6gfYC3oz2jT0bvnW2TiI03/0OCZzE8sYqKIpUaaZPsl703/kOoHSajw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743761934; c=relaxed/simple;
-	bh=LXZ9/vk+POSfcKSx9sqdr7qvqqBdI7C6a+Nl5sTnVg4=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=O9tyclysnPvCNggF4BWaSDlcy+1EKelUyKTmrBCivWzIH6cIPBnWf+tj1zwUIuiB1AH8QdIM3R5BbHwbs94XBQo6mDH/f/duCK/dOrzrgKmrHqZSZE02LSAnf6aFcHhYTSly5lUzNiVzhWofCXz0QGxePI3WkG17fFfMis3ElyE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=X2RXwUQn; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7A061F4633
+	for <linux-rdma@vger.kernel.org>; Fri,  4 Apr 2025 13:28:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.94.63
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1743773284; cv=fail; b=YFXdyltTZhqEiUbHPTo/Ueb919GC/hZzVUbOSIjuXpFUjwsSrzBCpMCwnIwhQnaO9u1RdjoBa4nDOVkL1TXHQttJfAPc1Pc/BAn8b++ZUiO46l5bW0EZ8SeTzHzczJT6vwT4CNd9/4HpInfo8Kp/OfgXZMmSQpLPKpJHemYlCSo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1743773284; c=relaxed/simple;
+	bh=B005lsqbGTyNRHIL/+Dqy8Uyx2MFZPBVRO0cqwpybWE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=KUC8GPTpGBrl/Zf/TWCUGc1NsuC2qKlIXX7gkF9repkdPlBIduRvP0q9axqzUj/9gbOPmiQ+FdyA1zI8nphdrvfkrB5tmq3PhCEOaEd2JCmOPLV6IbKKGBvuLRsap+Nwoud+KzlI1beNa/sYOUP+54Mhy9OEF7GkaoVApSEx/jo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=ZGSxLs+k; arc=fail smtp.client-ip=40.107.94.63
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="X2RXwUQn"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1743761930;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=5M+rOyW1P59pNZ57TipRkSHKMefjk2AQHbLsm27xPvw=;
-	b=X2RXwUQnnrVC9WZwumj+Pb8/Vu8CReIrVdPmVGRBI6gjAZdPmYCXqEfSsbcZKz42h137vP
-	sbP9vBGO9r94IMPpzy7cT8yusEBJLUv9iSo87OWwl02H1kogrDydGobmjuUP3353KOQpvB
-	ZZ0+rYMFekxXbLZDjyCp1SLOwMpJeIQ=
-Received: from mail-lj1-f200.google.com (mail-lj1-f200.google.com
- [209.85.208.200]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-695-H62Ce_eLM9qZ9yzSZ_Bk4Q-1; Fri, 04 Apr 2025 06:18:49 -0400
-X-MC-Unique: H62Ce_eLM9qZ9yzSZ_Bk4Q-1
-X-Mimecast-MFC-AGG-ID: H62Ce_eLM9qZ9yzSZ_Bk4Q_1743761928
-Received: by mail-lj1-f200.google.com with SMTP id 38308e7fff4ca-30bf647866aso8741441fa.1
-        for <linux-rdma@vger.kernel.org>; Fri, 04 Apr 2025 03:18:48 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743761928; x=1744366728;
-        h=cc:to:content-transfer-encoding:mime-version:message-id:date
-         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=5M+rOyW1P59pNZ57TipRkSHKMefjk2AQHbLsm27xPvw=;
-        b=l65XwhxaFE/jyTBUnFsi1X1ga1AppxokVSkgyutzuXw2heOfwhIcmboSMnh+sKyGgF
-         J8WgJr3vpIZhmL9gSxd1mFxITffO1svZQosDtjg8q4jGiCcSNnTTXc2siVbTN3BjB7lw
-         8k4SGMdP7ZhfiK23zdruAOlqdnIeufRz1H/uEuVxLz7VtnHV0luJzuXZj5UYl4qjKNxN
-         U4l1ClFHfrsRufisF05D9DCl0UCYI/jczRugcrGn6ILnYS9E7CeNFQPPsYF3UiiYn+S0
-         qZwC5wDjtsSBt4kS2N7zVeBkxYu5TyguGbyBSLtqbPzsPF4o8shPUHOneeDjGqZek8sv
-         ndNQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVgNWGgK/P/jhZz9E0UeKgOHSkRfERTulG6nkuYYxYwM+C9eBGdql7ACqPHsYfj6f3go+tUP8+YoSUJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YzImHni8dN5hMcjO1ACS+XDe/+K/iU1hdV07vVRh8BafX05VFUh
-	83KBZxxtAK+02CgwakJWKdG285Ty0+lQdC8IZlqRiGwd2/ZIkPVZHuXYUhiCE2MMv4+wrYL4oi+
-	9RdAdcZnFnYCcbXpvvBy8eUhvywb0rLhasVgcq+loOvhYfhwTi1o3klU8L00=
-X-Gm-Gg: ASbGncsJpktTECJqvP1TTXvriKgix3HBU+Xf3JLWRPLdXR01FNwc0sST3BUO8Uv34Oa
-	uMntDUdZvzItQtq0O8gYJlngneiBe6n4fFm8WiSo1axhDN7F/tsm003KWYaWMAGEQ/KAlGzlF6x
-	btO3QLRNpL+BKBec72cPBconGF6Th6buhTP8uFR3+uGA+N7svOL6AN9snGx2iDggIzG+5y6EdoE
-	6ZxxjhrQB7QnUDKbCxvxHfRp9fC9EQoGeZg/sXrv3wWhfURS4nM85h4HKGO8dIDOrJA6kaqwBq/
-	p+em7RFComp3PrgEm0KofB03UavXwRoFvmNFLm2c
-X-Received: by 2002:a2e:a5c9:0:b0:30b:fdc0:5e5d with SMTP id 38308e7fff4ca-30f0a0ee84emr8785121fa.4.1743761927634;
-        Fri, 04 Apr 2025 03:18:47 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFUiX5YdBxTzl44jWDQITU1CT7/li+YPbg+WN6Bv/W9Q984Oh34yiDzKProh3dcMOWAJ4tAlQ==
-X-Received: by 2002:a2e:a5c9:0:b0:30b:fdc0:5e5d with SMTP id 38308e7fff4ca-30f0a0ee84emr8784931fa.4.1743761927260;
-        Fri, 04 Apr 2025 03:18:47 -0700 (PDT)
-Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
-        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-30f031ce997sm4982351fa.92.2025.04.04.03.18.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Apr 2025 03:18:46 -0700 (PDT)
-Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-	id 8A14B18FD725; Fri, 04 Apr 2025 12:18:44 +0200 (CEST)
-From: =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
-Subject: [PATCH net-next v7 0/2] Fix late DMA unmap crash for page pool
-Date: Fri, 04 Apr 2025 12:18:34 +0200
-Message-Id: <20250404-page-pool-track-dma-v7-0-ad34f069bc18@redhat.com>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="ZGSxLs+k"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=buK/lkeGDqOEYWWgJBxBR2JJztqDvmT2v7xumc0/IalbJRHX8/QSkPt0DkucbBjigJhvBixt6Vr+9Q5z7X9VFFYI71gVFvn0V1i7YieM0YnT9x3l1EhScMyWr61/iJBSFy3Cmv9dXL1R4GtAtOUUej8MNnaOsRLTcpOhSeonFOoe2B1BNiejI6pxZThQRUsMtuCWq5rfD4BKYiPPcL64lvKwezS7+bb+xzIBBIDtl8dx1vZTphsYng/LDkigS7TF+2nUBCNTINCGo9R3L7qChETSvaIa1S3NdOeG9H3DMVfHR3zV4Ggu+IAC3Vj3v28wjzkGulNp9RfXmE5olpeGUA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=LHTfC0UKNBWGcPN+Ku6RmWGVs9btG5Dg/YH5RUybvRU=;
+ b=iRiXRN3fKgmHgu//R/4cSL+b6E6FuTGMeNxCtQnoESnqMK9HL5GIel08IKmWthljxoixHUi2zewXVtLLsnPHgdYjglFCo+q9H8lMQOvaLV2cb6kyPPUOS7cOOQwZmlqBLtYNOWjkQu0IPa6ftMiJW5Gcs2XF4PovGVSjDC32H50CiRcdMQU91H5B6t4K9GP1hgsSTeR6Dxx+fMMJyIwHIkpTA14uGoKj2oKNaYNnRVeAlDzuKyF2TP6PQXeZAY2X4fGynoAP4HNNOe6TlWRqSt0pAgPGyanbvkIp5pN41yVxJ7IlEhK42fHU874WTYEUkQ5xrPLZHL3u7Ny7R+LL6g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=LHTfC0UKNBWGcPN+Ku6RmWGVs9btG5Dg/YH5RUybvRU=;
+ b=ZGSxLs+k72vOKLHUYMs4SVG/PM1m+6r5mco5upIpzX6hipzQvQmAEWOim3tsOlTHmDVRhIq//1zsTEI0pqixtYXgmo1n0B5URlwsje0lgDUxWv0jcmKfqv5pcRbFTQd0KOBbwpkRjmlBKfJV0c5daBzuSQRaPhbmzhAaGffsVOpknen3u1UsjVl5jeSQHTntZ+W3OetUChRfH1gJQ1nb7EtLyn7/QyYMHQK/ZYi8sSQ+sOeI97Kgwvs2Nld/dLYSYGNuOPdweBNXSWli4cIdb4dJmlYLgQ+VbCNK2e39XPfHTH+g+4SPWFC3JAMp/IXs42B5rJLwyOu/hf6f4vjgNg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB8659.namprd12.prod.outlook.com (2603:10b6:610:17c::13)
+ by PH7PR12MB6417.namprd12.prod.outlook.com (2603:10b6:510:1ff::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.44; Fri, 4 Apr
+ 2025 13:27:59 +0000
+Received: from CH3PR12MB8659.namprd12.prod.outlook.com
+ ([fe80::6eb6:7d37:7b4b:1732]) by CH3PR12MB8659.namprd12.prod.outlook.com
+ ([fe80::6eb6:7d37:7b4b:1732%4]) with mapi id 15.20.8534.043; Fri, 4 Apr 2025
+ 13:27:58 +0000
+Date: Fri, 4 Apr 2025 10:27:57 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Junxian Huang <huangjunxian6@hisilicon.com>
+Cc: leon@kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com,
+	tangchengchang@huawei.com
+Subject: Re: [PATCH for-next 2/2] RDMA/hns: Fix wrong maximum DMA segment size
+Message-ID: <20250404132757.GA1336818@nvidia.com>
+References: <20250327114724.3454268-1-huangjunxian6@hisilicon.com>
+ <20250327114724.3454268-3-huangjunxian6@hisilicon.com>
+ <20250401163926.GA325474@nvidia.com>
+ <bd0c0fa5-7579-8767-8c18-73fd5459de10@hisilicon.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bd0c0fa5-7579-8767-8c18-73fd5459de10@hisilicon.com>
+X-ClientProxiedBy: MN2PR15CA0049.namprd15.prod.outlook.com
+ (2603:10b6:208:237::18) To CH3PR12MB8659.namprd12.prod.outlook.com
+ (2603:10b6:610:17c::13)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAPqx72cC/23P0U6FMAwG4Fc52bUz3dpt6JXvYbwYW5FFD5BBy
- DEnvLuTmIhhl+2ffm3vYuaceBbPl7vIvKY5jUMp3MNFhN4P7yxTLLXQoA2gAjn50pvG8VMu2Yc
- PGa9eAqJGQk8WWJTJKXOXbrv6KgZe5MC3RbyVpE/zMuavfd2q9vxXpqq8KgkyaKXZOO8o6JfMs
- ffLYxivO7jqA6JNHdEFUQq5DeqJbIcnBI+IrSNYkIbJEijL4MMJoSPi6ggVpMUGYrAObIQTYo5
- IU0dMQYwB0L6zDfp4QuwfUq6tI/bnnbZBctQ4iPQP2bbtGyKAyvkaAgAA
-X-Change-ID: 20250310-page-pool-track-dma-0332343a460e
-To: "David S. Miller" <davem@davemloft.net>, 
- Jakub Kicinski <kuba@kernel.org>, Jesper Dangaard Brouer <hawk@kernel.org>, 
- Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
- Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
- Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
- Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
- Simon Horman <horms@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
- Mina Almasry <almasrymina@google.com>, 
- Yonglong Liu <liuyonglong@huawei.com>, 
- Yunsheng Lin <linyunsheng@huawei.com>, 
- Pavel Begunkov <asml.silence@gmail.com>, 
- Matthew Wilcox <willy@infradead.org>
-Cc: netdev@vger.kernel.org, bpf@vger.kernel.org, linux-rdma@vger.kernel.org, 
- linux-mm@kvack.org, 
- =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>, 
- Qiuling Ren <qren@redhat.com>, Yuying Ma <yuma@redhat.com>
-X-Mailer: b4 0.14.2
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PR12MB8659:EE_|PH7PR12MB6417:EE_
+X-MS-Office365-Filtering-Correlation-Id: e447b122-0db6-436a-fd78-08dd737c83f9
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?9kBUnzRWh87OdyqAfipmhyswzpLwITonqctutcCN9Yx2V5grwOVZjAdWYVgf?=
+ =?us-ascii?Q?rKGRkIAvl3DNPQmGeAvbvbocrd3aJu6YzMGba64ZBl6ck83PSqfR0qrb+6RN?=
+ =?us-ascii?Q?eTRceilWRdWs0C31SALtTewkclnXfmDOxR6sfnqiUGtfMpoNjS+gBV2XaFeM?=
+ =?us-ascii?Q?MgOGnYuf4k8Uh/Tc+tyEOdKdvvM/ld5Gj7yBeAID2VfE9kAs//9ukqs5bspG?=
+ =?us-ascii?Q?njjroZifL68sGevBoqInGovP+KmX4xfnvkX704uLBJLJDTfHLRd9y52XtAqx?=
+ =?us-ascii?Q?+5OO0DtKEx+WRu8UTk7iKL/TGN1PArhuxOIDtpbj7qXe+DRP3lzpFwEdpoVv?=
+ =?us-ascii?Q?Y7c93jF1L8rcxyp8MYIl6aR9bHLJTWXasidID3o1V9t7JtxylXzVgHeiQlK9?=
+ =?us-ascii?Q?sdiY3D4pbIHSFdh5j+SrWnm9KQmbzK18i9cMK9O1zQ+O+0QGVr331NzEFoWI?=
+ =?us-ascii?Q?9Q3jG2yKcLShwhEAJIRTXgInv7ItcgREAA44p0QxXsKDXywSwOJIEnc5N71o?=
+ =?us-ascii?Q?KfkcWNFHtMFXqfRerJuXNCBcSYxzcgQ9jBVXWtkcQxJA2heYkvSTTdiBX7YG?=
+ =?us-ascii?Q?RrhrOqEhIhudZbgvDy9QeWN3dRdIbjqs1TI8a00jcz5SaPbatU9NlyFCjTlf?=
+ =?us-ascii?Q?r5xQwm8f28Zu1ebXqvmIqS9B/QPm5RDSArAZA2+zobWQdgiGso/ezy/h+oeh?=
+ =?us-ascii?Q?6nhb1EWCyb7swAL/a+IiV27YOXVRnhCwESkvfjZ8JEj93NtB6CvRdt6H6cQM?=
+ =?us-ascii?Q?1ZJRcMMwhZzYFqhmBgRg0lqLazVXsU8Jdbelr1Mk9w4yo1CtJMfN8M2vnm3f?=
+ =?us-ascii?Q?kkDn19+NuE0KmClhNZKnJco4E50izz8eDz25B3Q13d+ou7vzCxkJwCNmtQ8A?=
+ =?us-ascii?Q?nw5hB0w2qicUXfbvMpafNRFw2JCk7RvSmYmsbvQU/twTKPiCYCWa6uNPq4Rp?=
+ =?us-ascii?Q?8MGqe1l6SOkHD5Moi79LEVLfqcMfa7pOcjb2Hfg+EHck07VKH+nhiT9C/WYZ?=
+ =?us-ascii?Q?L1U5dm8QFpN/WN2eVDSlgGZkDyyufS11zKr1h6VS9foeYldjBPIgGDZ59cGK?=
+ =?us-ascii?Q?u4CuVnYOjinEK7im420WKHAMd/pDGPAnd27yyeObmT5GsZpCCgmz6ye5yidd?=
+ =?us-ascii?Q?JwYgRMGf0oHz+DGdEpOgzTOpBDeKRQQt3ZaE0sWdnxxMJlfq2BEive307ADS?=
+ =?us-ascii?Q?0jRf8+Z6F2PjbP7zb/VqePP+bgA00w2OEbLdKcVw3GGckH+tWmbDc8fVzJVA?=
+ =?us-ascii?Q?Lfruxt5Ij1uWyc46kXbW6rQS6IWcxxVDAPMJqe1rEkKD/TF3zuxJLqt5Xbn7?=
+ =?us-ascii?Q?oTcq5GBuq9YVSuOYhRQI1ndpqKP7hBZL61G21gta3xqJX1gheSwizgDInXCC?=
+ =?us-ascii?Q?KYF4uRqqXlm7XftAoCndVG54aUvQ?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8659.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?FnRj9X0OdvEmEzTnIoFNegwbuxLCrAS90WZ4Sx/cE+fy99fAqvFw4ZI+tVu4?=
+ =?us-ascii?Q?2bH9slGqFs7QzHN8wD0BJGd2oh0A9mAKE46qb8z1RYUoBRsUAqwtBwUgeoCg?=
+ =?us-ascii?Q?IHYlMZVNtiW3O7uUILBWq6KWHjomr8AqN8XXbCbMRlzekrXW6gUavRliYWs2?=
+ =?us-ascii?Q?pz/ivHan8TeoMRS0PE9seA+6ARQ+cruhIgkiwDJULUIZth+wio0SwVsRYIsH?=
+ =?us-ascii?Q?CJF1uAd7IXiF+PBpkYa/sgSlKbb9rqfu+99xLXJE38QcAt0Yt63D463OAWga?=
+ =?us-ascii?Q?qvnAk76fTHQ43GxypstlNXKf9AXoe28Sa/tc8WtZvQK6+xtjoal3fnfHAXVb?=
+ =?us-ascii?Q?kOOo1oR1yAT+pcjLXx+NaDdoJ9lBi05HJP4wsoi/TBsTIYP8KwBdWgNMB2KO?=
+ =?us-ascii?Q?rgZQlST0BeDoyAOcEA3xY7/lEnzsknT6NlDbS83n4LuLnLmpZ49GB3OcaL40?=
+ =?us-ascii?Q?+QR3EQ2WwdMnDTLpXhGa5OJ+fEJZguK+5bhUASfeg6dqm6kUVcMkiELWsDZT?=
+ =?us-ascii?Q?IEj9OMuFPZ102pLHNYDzLx3RlZ1bkR76H5OHXbgGXBNuidakjx5FR6Z6SpCU?=
+ =?us-ascii?Q?6LWEPT3PIQR9bTkMwoTO0mWVnHt36RL5cao61DOHUU69M5EZ9OeKOwhRvyzG?=
+ =?us-ascii?Q?2E32P/lhZYrF+qIAw5e98lAztbhTFq4MK3jglD/zSLJgtU/GNkY5rZ6nEcpg?=
+ =?us-ascii?Q?3bg9YFb1CkqCIBfZs1EOrOqm6DOKf+kpYMX1OCf5WtSrb2p8Is90ot+1fRmx?=
+ =?us-ascii?Q?gQR0ymxmzXjofHtAwU4t1gUzCYXWzaMt+FJSNEwGPRbH9G4gIs96m9h0R87z?=
+ =?us-ascii?Q?85Ihq1+68+sn6bMC16M+mXWlIPj6yzlzpi32gPmxQ+gVC+eMaD2AVA7iJ3UZ?=
+ =?us-ascii?Q?d+lVp+/3Wg3DYdoVAUtjfZe2c64HbT3R02N4WqafGq1z6RetfiwKjyvU5vNI?=
+ =?us-ascii?Q?f9HBiZfDfx+AyjSPx1Z4PuUEhHd/s3INORcgPlO2nEdcuYK7NQNm5BlV45Z5?=
+ =?us-ascii?Q?09aEYa5ZRiVjRXADDqWIo5JTU/8nIHxTj8GoiUQCRPTQhXI9sDpBru29dmqe?=
+ =?us-ascii?Q?IYMc9zqMBj80Z3jXLEqRuaNOHgAaKBW2KgV1eCMzAKKLffqeR7DUpDX8j4pn?=
+ =?us-ascii?Q?ZNosi7bbtWKZU6qzrQIkTQVgnAQlKBLAZhcfxF9/JPDhv0oWEcUcDtXbhlps?=
+ =?us-ascii?Q?JlrSZhHJTEIrK5uuy9i+GzL9bEZ/YKQ3V3bf38kKnHlF8LUtir6K5N8VGApZ?=
+ =?us-ascii?Q?JgQBm9YBZNLacMk/2phi1vQHNfHAHpYJ7Sbnwlw/QK/lUgzxuOD7r4g6X4aC?=
+ =?us-ascii?Q?8v8b52ZowneekVvPEGlQoEs9nVzbPq0L0WOHQXY4IBqTveycPkOi7ACwCxmi?=
+ =?us-ascii?Q?y8LZ/ISfCHLIDP9IHUQgVTDIQOsRrHQlJ4BCtn5kERdorze/a5uaI1/wlq/0?=
+ =?us-ascii?Q?Jddrjcp3HY69/qEBeL3ULlOnUtd0JY+tUVbkYhERa+N4LB92bPDH3YnhlpmJ?=
+ =?us-ascii?Q?9wMLJwDMwS42QQsy2rr1+4A72Qf3R8IATSpaPRdoOw2OJEcIw5LZItfphBDE?=
+ =?us-ascii?Q?U+o2tY+Z0VORR89nzAWqkBaJUK/9VtVYEJjPU+tw?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e447b122-0db6-436a-fd78-08dd737c83f9
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8659.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Apr 2025 13:27:58.5573
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: whwrYd5Rwo5EbmIavWNVUKueoeeiNuHsJBqAQlqKscKNRCQ1UszviLOTGa39aDWV
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB6417
 
-This series fixes the late dma_unmap crash for page pool first reported
-by Yonglong Liu in [0]. It is an alternative approach to the one
-submitted by Yunsheng Lin, most recently in [1]. The first commit just
-wraps some tests in a helper function, in preparation of the main change
-in patch 2. See the commit message of patch 2 for the details.
+On Wed, Apr 02, 2025 at 12:05:36PM +0800, Junxian Huang wrote:
+> 
+> 
+> On 2025/4/2 0:39, Jason Gunthorpe wrote:
+> > On Thu, Mar 27, 2025 at 07:47:24PM +0800, Junxian Huang wrote:
+> >> @@ -763,7 +763,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+> >>  		if (ret)
+> >>  			return ret;
+> >>  	}
+> >> -	dma_set_max_seg_size(dev, UINT_MAX);
+> >> +	dma_set_max_seg_size(dev, SZ_2G);
+> > 
+> > Are you sure? What do you think this does in the RDMA stack?
+> > 
+> 
+> This is the maximum DMA segment size when mapping ULP's scatter/gather
+> list to DMA address, right?
 
--Toke
+Yes, but only for ib_sge
 
-[0] https://lore.kernel.org/lkml/8067f204-1380-4d37-8ffd-007fc6f26738@kernel.org/T/
-[1] https://lore.kernel.org/r/20250307092356.638242-1-linyunsheng@huawei.com
+But I think there are other possible problems if your HW cannot
+implement the full ib_sge :\
 
-Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
----
-Changes in v7:
-- Change WARN_ON logic if xarray alloc fails
-- Don't leak xarray ID if page_pool_set_dma_addr_netmem() fails
-- Unconditionally init xarray in page_pool_init()
-- Rebase on current net-next
-- Link to v6: https://lore.kernel.org/r/20250401-page-pool-track-dma-v6-0-8b83474870d4@redhat.com
-
-Changes in v6:
-- Add READ_ONCE() around both reads of pp->dma_sync
-- Link to v5: https://lore.kernel.org/r/20250328-page-pool-track-dma-v5-0-55002af683ad@redhat.com
-
-Changes in v5:
-- Dereferencing pp->p.dev if pp->pma_sync is unset could lead to a
-  crash, so make sure we don't do that.
-- With the change above, patch 2 was just changing a single field, so
-  squash it into patch 3
-- Link to v4: https://lore.kernel.org/r/20250327-page-pool-track-dma-v4-0-b380dc6706d0@redhat.com
-
-Changes in v4:
-- Rebase on net-next
-- Collect tags
-- Link to v3: https://lore.kernel.org/r/20250326-page-pool-track-dma-v3-0-8e464016e0ac@redhat.com
-
-Changes in v3:
-- Use a full-width bool for pp->dma_sync instead of a full unsigned
-  long (in patch 2), and leave pp->dma_sync_cpu alone.
-
-- Link to v2: https://lore.kernel.org/r/20250325-page-pool-track-dma-v2-0-113ebc1946f3@redhat.com
-
-Changes in v2:
-- Always leave two bits at the top of pp_magic as zero, instead of one
-
-- Add an rcu_read_lock() around __page_pool_dma_sync_for_device()
-
-- Add a comment in poison.h with a reference to the bitmask definition
-
-- Add a longer description of the logic of the bitmask definitions to
-  the comment in types.h, and a summary of the security implications of
-  using the pp_magic field to the commit message of patch 3
-
-- Collect Mina's Reviewed-by and Yonglong's Tested-by tags
-
-- Link to v1: https://lore.kernel.org/r/20250314-page-pool-track-dma-v1-0-c212e57a74c2@redhat.com
-
----
-Toke Høiland-Jørgensen (2):
-      page_pool: Move pp_magic check into helper functions
-      page_pool: Track DMA-mapped pages and unmap them when destroying the pool
-
- drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |  4 +-
- include/linux/poison.h                           |  4 ++
- include/net/page_pool/types.h                    | 63 +++++++++++++++++-
- mm/page_alloc.c                                  |  9 +--
- net/core/netmem_priv.h                           | 33 +++++++++-
- net/core/page_pool.c                             | 81 ++++++++++++++++++++----
- net/core/skbuff.c                                | 16 +----
- net/core/xdp.c                                   |  4 +-
- 8 files changed, 175 insertions(+), 39 deletions(-)
----
-base-commit: acc4d5ff0b61eb1715c498b6536c38c1feb7f3c1
-change-id: 20250310-page-pool-track-dma-0332343a460e
-
+Jason
