@@ -1,411 +1,287 @@
-Received: from smtpgw-1-2.nogo.comp.nus.edu.sg (84-20.comp.nus.edu.sg [137.132.84.20])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3592D158858
-	for <linux-rdma@vger.kernel.org>; Fri,  4 Apr 2025 10:07:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=137.132.84.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E390718E750
+	for <linux-rdma@vger.kernel.org>; Fri,  4 Apr 2025 10:18:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743761246; cv=none; b=eYDynCvJ9jyVdXdw64hOIHYUNaF/cq+LlciTHjozAvpdznoDKkwo2vT0dLy4XxTZUb50SxPoQwdUpOiI6M8OEOFXjxk4nLwHctsbpCdtu+U9uVbk/0FqCdJBtPyg4156QpW9/Zv09++kbtWGvhmtH5QwqpXuFI8FaxHoQQHeCSw=
+	t=1743761932; cv=none; b=nGVlVbTFTnhgRmM49DT9g1nHve/wZMwQm0ZIoSVAz5qf0nWEGFnbws8NTSDqUpeQGJihv5KRw6CJTSZ8vMhBr+XMsv/hG1n0w8ylD0pfQhJZ85LGtd3NdP3caXLdzjvL3ziVDzdYTNHyBtOnfb/Fhpe6QrQmj4h9JYEuCqVexow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743761246; c=relaxed/simple;
-	bh=3897f+7hwiKaoRxyUmq7GI7ztVqgyFGJt5e3hNj/ndw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=qGood/5Jf8i9uA6yuWRKwdsb5f6h9v5ivvf9VHs4eYhrtfKf0qE/RAuiNEzdSByonS9pBBmjcHgahZRxpqYYk6pK4jfjEPadj8HfvDV2fPunTI0Ftl5f7Tb/GCWKozTRvqfI9jOBStstnXyuw+3UYPU0sPD5zGb0V7Gkw1JVUnw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=comp.nus.edu.sg; spf=pass smtp.mailfrom=comp.nus.edu.sg; arc=none smtp.client-ip=137.132.84.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=comp.nus.edu.sg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=comp.nus.edu.sg
-Received: from localhost (localhost [127.0.0.1])
-	by smtpgw-1-2.nogo.comp.nus.edu.sg (Postfix) with ESMTP id A2E8B161213
-	for <linux-rdma@vger.kernel.org>; Fri,  4 Apr 2025 18:07:15 +0800 (+08)
-X-Virus-Scanned: Debian amavisd-new at smtpgw-1-2.comp.nus.edu.sg
-Received: from smtpgw-1-2.nogo.comp.nus.edu.sg ([127.0.0.1])
-	by localhost (smtpgw-1-2.comp.nus.edu.sg [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id UbXgBzFtNjm8 for <linux-rdma@vger.kernel.org>;
-	Fri,  4 Apr 2025 18:07:13 +0800 (+08)
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com [209.85.221.72])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtpgw-1-2.nogo.comp.nus.edu.sg (Postfix) with ESMTPS
-	for <linux-rdma@vger.kernel.org>; Fri,  4 Apr 2025 18:07:13 +0800 (+08)
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-3913aaf1e32so1130339f8f.0
-        for <linux-rdma@vger.kernel.org>; Fri, 04 Apr 2025 03:07:13 -0700 (PDT)
+	s=arc-20240116; t=1743761932; c=relaxed/simple;
+	bh=jspAozAj/vLMyyrCfFfRZENjLAVy9g9t8428u5MiFyY=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=f7oA/O2/Oiywm6Ey2i/Yd2nknX6Fxa9Mbcq3EZEWIhsPndC/IRnG57nEEmv9d0VHfzwcCxk8Dx1jowYfro6I7yamkOBjKKxnLgyYw3yafcRioXn/Wmy8IIgLY18Gbsoe5SE1kfD5p7axqeGAzVCS83kVqsY9wh5L/kwq+ERdwc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Via5tDQN; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Via5tDQN"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1743761929;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=B4+5hsM5ZBTs5xBrEabWDCLK+Od0ba/LsqZmsY1szhM=;
+	b=Via5tDQNrNmAazmIFu9qShvs4smbsa8sQhyaXgQULv+kLZrO61Gq8bHFl5RfMyrerBhtLG
+	8tR0El7tvgLBw1daGpNQmliCHh+H+4H7XUoRIZ2WK+W5LHIJJacmpIkraDrXp4e/OMJSEC
+	4vH5M80LT+kzDdgDEsemyc9Qh+lbMzY=
+Received: from mail-lj1-f200.google.com (mail-lj1-f200.google.com
+ [209.85.208.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-436-AOhhduT5Mp6OSD3QqOF6wg-1; Fri, 04 Apr 2025 06:18:48 -0400
+X-MC-Unique: AOhhduT5Mp6OSD3QqOF6wg-1
+X-Mimecast-MFC-AGG-ID: AOhhduT5Mp6OSD3QqOF6wg_1743761927
+Received: by mail-lj1-f200.google.com with SMTP id 38308e7fff4ca-30bfee3663dso10685011fa.0
+        for <linux-rdma@vger.kernel.org>; Fri, 04 Apr 2025 03:18:48 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743761231; x=1744366031;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1743761927; x=1744366727;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=3ZpNezVgO9x7n4qO105SQS96YwFjL8olWX+bTsb/hm8=;
-        b=LT8b7w44peZbY2RBw84BksPGIdOkWVucMJJnySji5vHPYHkM7CET98Lb0tspSkyIJr
-         j9TKXQjTlrbg8la/I1nCAq/YEk0NZPNpHuHYqbXYI5IiDaoV+9ZUmaRVtqmWpqVUxBQj
-         wLELFbcyFR6HBdQcuyXuhj+qFPaVh9G6YWQ+gXvBHjdMjFayw61FrVgjSc83KVyaUbp1
-         dTEBn/it3YJsswzXJUqg+P7fx3Gfh4RPHjPsjjXnilWK8OzEDITgQqvuYIK4eSozwO5V
-         QCwkkm3cvdhppxcPs8LVg80x1b3VasWYzb/MpgZEWnW6C6Rj6pBkqL1+AR8upBuGvYnH
-         mgYw==
-X-Forwarded-Encrypted: i=1; AJvYcCUBpAEjoKe64ODWB0FByLvAdqO88YnbkPXhZgt1IJqzgWsYhFJ8JzllcZfrO9jmbxbP3cq81yoiCUzU@vger.kernel.org
-X-Gm-Message-State: AOJu0YxroL7YMOKotVeuAy+RIeC6SSs7+S7kksKLZ1xpKgMicZXiu1Bn
-	3FHGkpWtfwYKq7wb+69thH4h7iuHXCXi3n0Pftj8ztDcPYMDuh7BKi7xcOWfSf3el3fiHlFe+iX
-	bzIupwEJVzGX15EMq2m8jqro5ucv/HThzQVWxt0C5eWhD8pwqprsrdjS8FVrZ7YzEFnHxYxsuX8
-	ALXKI+rchCAP5TVhV9jzN9cE+kAM/ipiG7/Iie
-X-Gm-Gg: ASbGncs8S59Nq9gvWeCpthU+DpvUaFGNRdUV8myycIDW1q7RQC9rf7OcD030pw3Ypoe
-	byPSBaKro3njGq0YEwOALZafbNv0DVRah104VEs/sQVpLGErIpsZTARtl8AeWA1t4Jhcws3aE
-X-Received: by 2002:a05:6000:250a:b0:391:12a5:3cb3 with SMTP id ffacd0b85a97d-39d0873fd19mr1961970f8f.3.1743761231027;
-        Fri, 04 Apr 2025 03:07:11 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFnV9UwamRIyUKW4GOeVIE6okjNq3Qre3D7SkA3sH+0E9q8u3+uxXUpzfrOeOLdg3VB/t7Fg1OQd0ITTfIEdyI=
-X-Received: by 2002:a05:6000:250a:b0:391:12a5:3cb3 with SMTP id
- ffacd0b85a97d-39d0873fd19mr1961925f8f.3.1743761230468; Fri, 04 Apr 2025
- 03:07:10 -0700 (PDT)
+        bh=B4+5hsM5ZBTs5xBrEabWDCLK+Od0ba/LsqZmsY1szhM=;
+        b=juYpk2pdh+lWgVBfyPA5FunDCOKGAwn+j5vV042E7Y2pAS7z4kIChOZ3b9lqB9JAYJ
+         xyOQnE6QsfMkTcf2U9qawB9R4vjTNkHHsbRhTa/SvlDDXiY7EjdKl+E7o/NhT1Gm0fSW
+         U50uTKsAjtlhagH1ECNihZWoMWwpNx6ykfBiJDfZVdOu+gLs6sYpWiPWIsxE4p9z6SXK
+         z1p/q+nEa+h8J7b14SF80e6ULqQ1ydqdLspAajZLo0dhKDPsJiXrcjk0pvv+MdLxYLCh
+         HVZgnZb7IN2LYInZsF1VJ33jnwEJ45TD/5XNE3lsG8BNyeDWYyJbB4WFdNXgLA7YcTSC
+         IvyA==
+X-Forwarded-Encrypted: i=1; AJvYcCVmF0Gs+TdkdmgEflVsevMp3eo9LoWYOVOTRK7UEFBio1hMTsmwLlbhJMb3ZgZN9Ef0DaF2Kc8x9L0/@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzo2+Sgm+jv8SznxC+1c38Xbfdk93/2+3wg/UWk5JRhKfthhaCC
+	aY0nbJ9IKmY8iP4M9m8j1/yZi/kTcPq3c3MJL4BqTbWbuEKKpHss2vPbsf/LedDdL/xQDw7FVPn
+	QVa2H9ci/A5CUz/8ZwNsItcb3rYa70VnayiwkLnRPKrus3LU64hsnhdLUKQc=
+X-Gm-Gg: ASbGnctp82KgdpFTaaWB/u5ghnmVvWtwOEiMHAoaG5j7V4PmMkDxjsG7oz+McOIwvgI
+	ZW05T/mizLJdTAX1xNazEE8IN5aCQuz6AIY6SPI++3NDDb8zS8UzvzjxMJetUWxx+1UkjS534Kk
+	ygKYVOAQPPCyrl3aa+PGqKC/B4eptkOe79wZtkNiUQSzxDcsLtfye7uvngvjKzSAWkqB+dgE9DV
+	DxWLmKjbaEd3NWcM/0Od2PY9jQPjfyD0JtckZeOoT9hhBkv5jMgCGJ6+FiG/TXgvKlSAIDhHXz3
+	2BMrujXXKUNALBUusZmdIH9fXLBgLP5Kl2svHDee
+X-Received: by 2002:a2e:bd02:0:b0:30b:f0da:3ae7 with SMTP id 38308e7fff4ca-30f0a70e09dmr8548981fa.14.1743761927076;
+        Fri, 04 Apr 2025 03:18:47 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEi8FvjFb2phTAUuS/o5yj005VkalTxf39MNnqr7MnG0ADfb0rXyNWNd9MypI2JLw6h1MTyaw==
+X-Received: by 2002:a2e:bd02:0:b0:30b:f0da:3ae7 with SMTP id 38308e7fff4ca-30f0a70e09dmr8548781fa.14.1743761926662;
+        Fri, 04 Apr 2025 03:18:46 -0700 (PDT)
+Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-30f0314b908sm5149931fa.55.2025.04.04.03.18.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 04 Apr 2025 03:18:45 -0700 (PDT)
+Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
+	id 902D618FD727; Fri, 04 Apr 2025 12:18:44 +0200 (CEST)
+From: =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+Date: Fri, 04 Apr 2025 12:18:35 +0200
+Subject: [PATCH net-next v7 1/2] page_pool: Move pp_magic check into helper
+ functions
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAJeEPuJHMKo9T3GcAQH2+X3Rke3b4YH3_S6FmnBp4tQqLciYxA@mail.gmail.com>
- <d9a7af40-84f9-446e-a708-d989b322a675@redhat.com>
-In-Reply-To: <d9a7af40-84f9-446e-a708-d989b322a675@redhat.com>
-From: Dylan Wolff <wolffd@comp.nus.edu.sg>
-Date: Fri, 4 Apr 2025 11:06:54 +0100
-X-Gm-Features: ATxdqUGjSovVAVF6K8PXa6s9vuuhQUTiYOJzVc35JHTkd4RbECGCtmQYxgPvbLQ
-Message-ID: <CAJeEPuLOz45eOt0_Uab-XtOxYwEOpw4Mq3SZDw21T=wUBVL2TQ@mail.gmail.com>
-Subject: Re: Concurrent slab-use-after-free in netdev_next_lower_dev
-To: Paolo Abeni <pabeni@redhat.com>
-Cc: Wenjia Zhang <wenjia@linux.ibm.com>, Jan Karcher <jaka@linux.ibm.com>, 
-	"D. Wythe" <alibuda@linux.alibaba.com>, Tony Lu <tonylu@linux.alibaba.com>, 
-	Wen Gu <guwen@linux.alibaba.com>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Simon Horman <horms@kernel.org>, 
-	linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Jiacheng Xu <3170103308@zju.edu.cn>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20250404-page-pool-track-dma-v7-1-ad34f069bc18@redhat.com>
+References: <20250404-page-pool-track-dma-v7-0-ad34f069bc18@redhat.com>
+In-Reply-To: <20250404-page-pool-track-dma-v7-0-ad34f069bc18@redhat.com>
+To: "David S. Miller" <davem@davemloft.net>, 
+ Jakub Kicinski <kuba@kernel.org>, Jesper Dangaard Brouer <hawk@kernel.org>, 
+ Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+ Tariq Toukan <tariqt@nvidia.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+ Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, 
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
+ Simon Horman <horms@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, 
+ Mina Almasry <almasrymina@google.com>, 
+ Yonglong Liu <liuyonglong@huawei.com>, 
+ Yunsheng Lin <linyunsheng@huawei.com>, 
+ Pavel Begunkov <asml.silence@gmail.com>, 
+ Matthew Wilcox <willy@infradead.org>
+Cc: netdev@vger.kernel.org, bpf@vger.kernel.org, linux-rdma@vger.kernel.org, 
+ linux-mm@kvack.org, 
+ =?utf-8?q?Toke_H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
+X-Mailer: b4 0.14.2
 
-> Please share the decoded syzkaller/kasan splat in plaintext instead of
-describing it in natural language, and please avoid attachments unless
-explicitly asked for.
+Since we are about to stash some more information into the pp_magic
+field, let's move the magic signature checks into a pair of helper
+functions so it can be changed in one place.
 
-Got it! Here is the report:
+Reviewed-by: Mina Almasry <almasrymina@google.com>
+Tested-by: Yonglong Liu <liuyonglong@huawei.com>
+Acked-by: Jesper Dangaard Brouer <hawk@kernel.org>
+Reviewed-by: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Signed-off-by: Toke Høiland-Jørgensen <toke@redhat.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |  4 ++--
+ include/net/page_pool/types.h                    | 18 ++++++++++++++++++
+ mm/page_alloc.c                                  |  9 +++------
+ net/core/netmem_priv.h                           |  5 +++++
+ net/core/skbuff.c                                | 16 ++--------------
+ net/core/xdp.c                                   |  4 ++--
+ 6 files changed, 32 insertions(+), 24 deletions(-)
 
-```
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-BUG: KASAN: slab-use-after-free in netdev_next_lower_dev
-net/core/dev.c:7522 [inline]
-BUG: KASAN: slab-use-after-free in
-netdev_walk_all_lower_dev+0x1e6/0x4f0 net/core/dev.c:7570
-Read of size 8 at addr ffff888058cdc1b8 by task syz-executor.3/14127
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+index f803e1c93590068d3a7829b0683be4af019266d1..5ce1b463b7a8dd7969e391618658d66f6e836cc1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+@@ -707,8 +707,8 @@ static void mlx5e_free_xdpsq_desc(struct mlx5e_xdpsq *sq,
+ 				xdpi = mlx5e_xdpi_fifo_pop(xdpi_fifo);
+ 				page = xdpi.page.page;
+ 
+-				/* No need to check ((page->pp_magic & ~0x3UL) == PP_SIGNATURE)
+-				 * as we know this is a page_pool page.
++				/* No need to check page_pool_page_is_pp() as we
++				 * know this is a page_pool page.
+ 				 */
+ 				page_pool_recycle_direct(page->pp, page);
+ 			} while (++n < num);
+diff --git a/include/net/page_pool/types.h b/include/net/page_pool/types.h
+index 36eb57d73abc6cfc601e700ca08be20fb8281055..df0d3c1608929605224feb26173135ff37951ef8 100644
+--- a/include/net/page_pool/types.h
++++ b/include/net/page_pool/types.h
+@@ -54,6 +54,14 @@ struct pp_alloc_cache {
+ 	netmem_ref cache[PP_ALLOC_CACHE_SIZE];
+ };
+ 
++/* Mask used for checking in page_pool_page_is_pp() below. page->pp_magic is
++ * OR'ed with PP_SIGNATURE after the allocation in order to preserve bit 0 for
++ * the head page of compound page and bit 1 for pfmemalloc page.
++ * page_is_pfmemalloc() is checked in __page_pool_put_page() to avoid recycling
++ * the pfmemalloc page.
++ */
++#define PP_MAGIC_MASK ~0x3UL
++
+ /**
+  * struct page_pool_params - page pool parameters
+  * @fast:	params accessed frequently on hotpath
+@@ -264,6 +272,11 @@ void page_pool_destroy(struct page_pool *pool);
+ void page_pool_use_xdp_mem(struct page_pool *pool, void (*disconnect)(void *),
+ 			   const struct xdp_mem_info *mem);
+ void page_pool_put_netmem_bulk(netmem_ref *data, u32 count);
++
++static inline bool page_pool_page_is_pp(struct page *page)
++{
++	return (page->pp_magic & PP_MAGIC_MASK) == PP_SIGNATURE;
++}
+ #else
+ static inline void page_pool_destroy(struct page_pool *pool)
+ {
+@@ -278,6 +291,11 @@ static inline void page_pool_use_xdp_mem(struct page_pool *pool,
+ static inline void page_pool_put_netmem_bulk(netmem_ref *data, u32 count)
+ {
+ }
++
++static inline bool page_pool_page_is_pp(struct page *page)
++{
++	return false;
++}
+ #endif
+ 
+ void page_pool_put_unrefed_netmem(struct page_pool *pool, netmem_ref netmem,
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index f51aa6051a99867d2d7d8c70aa7c30e523629951..347a3cc2c188f4a9ced85e0d198947be7c503526 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -55,6 +55,7 @@
+ #include <linux/delayacct.h>
+ #include <linux/cacheinfo.h>
+ #include <linux/pgalloc_tag.h>
++#include <net/page_pool/types.h>
+ #include <asm/div64.h>
+ #include "internal.h"
+ #include "shuffle.h"
+@@ -897,9 +898,7 @@ static inline bool page_expected_state(struct page *page,
+ #ifdef CONFIG_MEMCG
+ 			page->memcg_data |
+ #endif
+-#ifdef CONFIG_PAGE_POOL
+-			((page->pp_magic & ~0x3UL) == PP_SIGNATURE) |
+-#endif
++			page_pool_page_is_pp(page) |
+ 			(page->flags & check_flags)))
+ 		return false;
+ 
+@@ -926,10 +925,8 @@ static const char *page_bad_reason(struct page *page, unsigned long flags)
+ 	if (unlikely(page->memcg_data))
+ 		bad_reason = "page still charged to cgroup";
+ #endif
+-#ifdef CONFIG_PAGE_POOL
+-	if (unlikely((page->pp_magic & ~0x3UL) == PP_SIGNATURE))
++	if (unlikely(page_pool_page_is_pp(page)))
+ 		bad_reason = "page_pool leak";
+-#endif
+ 	return bad_reason;
+ }
+ 
+diff --git a/net/core/netmem_priv.h b/net/core/netmem_priv.h
+index 7eadb8393e002fd1cc2cef8a313d2ea7df76f301..f33162fd281c23e109273ba09950c5d0a2829bc9 100644
+--- a/net/core/netmem_priv.h
++++ b/net/core/netmem_priv.h
+@@ -18,6 +18,11 @@ static inline void netmem_clear_pp_magic(netmem_ref netmem)
+ 	__netmem_clear_lsb(netmem)->pp_magic = 0;
+ }
+ 
++static inline bool netmem_is_pp(netmem_ref netmem)
++{
++	return (netmem_get_pp_magic(netmem) & PP_MAGIC_MASK) == PP_SIGNATURE;
++}
++
+ static inline void netmem_set_pp(netmem_ref netmem, struct page_pool *pool)
+ {
+ 	__netmem_clear_lsb(netmem)->pp = pool;
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 6cbf77bc61fce74c934628fd74b3a2cb7809e464..74a2d886a35b518d55b6d3cafcb8442212f9beee 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -893,11 +893,6 @@ static void skb_clone_fraglist(struct sk_buff *skb)
+ 		skb_get(list);
+ }
+ 
+-static bool is_pp_netmem(netmem_ref netmem)
+-{
+-	return (netmem_get_pp_magic(netmem) & ~0x3UL) == PP_SIGNATURE;
+-}
+-
+ int skb_pp_cow_data(struct page_pool *pool, struct sk_buff **pskb,
+ 		    unsigned int headroom)
+ {
+@@ -995,14 +990,7 @@ bool napi_pp_put_page(netmem_ref netmem)
+ {
+ 	netmem = netmem_compound_head(netmem);
+ 
+-	/* page->pp_magic is OR'ed with PP_SIGNATURE after the allocation
+-	 * in order to preserve any existing bits, such as bit 0 for the
+-	 * head page of compound page and bit 1 for pfmemalloc page, so
+-	 * mask those bits for freeing side when doing below checking,
+-	 * and page_is_pfmemalloc() is checked in __page_pool_put_page()
+-	 * to avoid recycling the pfmemalloc page.
+-	 */
+-	if (unlikely(!is_pp_netmem(netmem)))
++	if (unlikely(!netmem_is_pp(netmem)))
+ 		return false;
+ 
+ 	page_pool_put_full_netmem(netmem_get_pp(netmem), netmem, false);
+@@ -1042,7 +1030,7 @@ static int skb_pp_frag_ref(struct sk_buff *skb)
+ 
+ 	for (i = 0; i < shinfo->nr_frags; i++) {
+ 		head_netmem = netmem_compound_head(shinfo->frags[i].netmem);
+-		if (likely(is_pp_netmem(head_netmem)))
++		if (likely(netmem_is_pp(head_netmem)))
+ 			page_pool_ref_netmem(head_netmem);
+ 		else
+ 			page_ref_inc(netmem_to_page(head_netmem));
+diff --git a/net/core/xdp.c b/net/core/xdp.c
+index f86eedad586a77eb63a96a85aa6d068d3e94f077..0ba73943c6eed873b3d1c681b3b9a802b590f2d9 100644
+--- a/net/core/xdp.c
++++ b/net/core/xdp.c
+@@ -437,8 +437,8 @@ void __xdp_return(netmem_ref netmem, enum xdp_mem_type mem_type,
+ 		netmem = netmem_compound_head(netmem);
+ 		if (napi_direct && xdp_return_frame_no_direct())
+ 			napi_direct = false;
+-		/* No need to check ((page->pp_magic & ~0x3UL) == PP_SIGNATURE)
+-		 * as mem->type knows this a page_pool page
++		/* No need to check netmem_is_pp() as mem->type knows this a
++		 * page_pool page
+ 		 */
+ 		page_pool_put_full_netmem(netmem_get_pp(netmem), netmem,
+ 					  napi_direct);
 
-CPU: 1 UID: 0 PID: 14127 Comm: syz-executor.3 Not tainted 6.13.0-rc4 #2
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/=
-2014
-Sched_ext: serialise (enabled+all), task: runnable_at=3D-10ms
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x229/0x350 lib/dump_stack.c:120
- print_address_description mm/kasan/report.c:378 [inline]
- print_report+0x164/0x530 mm/kasan/report.c:489
- kasan_report+0x147/0x180 mm/kasan/report.c:602
- netdev_next_lower_dev net/core/dev.c:7522 [inline]
- netdev_walk_all_lower_dev+0x1e6/0x4f0 net/core/dev.c:7570
- smc_vlan_by_tcpsk+0x45a/0x5b0 net/smc/smc_core.c:1904
- __smc_connect+0x391/0x1af0 net/smc/af_smc.c:1517
- smc_connect+0x610/0x8e0 net/smc/af_smc.c:1693
- __sys_connect+0x181/0x220 net/socket.c:2074
- __do_sys_connect net/socket.c:2080 [inline]
- __se_sys_connect net/socket.c:2077 [inline]
- __x64_sys_connect+0x9e/0xb0 net/socket.c:2077
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf6/0x210 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f168ca903ad
-Code: c3 e8 a7 2b 00 00 0f 1f 80 00 00 00 00 f3 0f 1e fa 48 89 f8 48
-89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d
-01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f168d843fc8 EFLAGS: 00000246 ORIG_RAX: 000000000000002a
-RAX: ffffffffffffffda RBX: 00007f168cbcc050 RCX: 00007f168ca903ad
-RDX: 000000000000001c RSI: 0000000020000080 RDI: 000000000000000a
-RBP: 00007f168cbcc050 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007f168cbcc050 R14: 00007f168ca4fc90 R15: 00007f168d824000
- </TASK>
+-- 
+2.48.1
 
-Allocated by task 11284:
- kasan_save_stack mm/kasan/common.c:47 [inline]
- kasan_save_track+0x3f/0x80 mm/kasan/common.c:68
- poison_kmalloc_redzone mm/kasan/common.c:377 [inline]
- __kasan_kmalloc+0x89/0xa0 mm/kasan/common.c:394
- kasan_kmalloc include/linux/kasan.h:260 [inline]
- __do_kmalloc_node mm/slub.c:4298 [inline]
- __kmalloc_node_noprof+0x28c/0x530 mm/slub.c:4304
- __kvmalloc_node_noprof+0x70/0x180 mm/util.c:650
- alloc_netdev_mqs+0xa7/0x1870 net/core/dev.c:11209
- rtnl_create_link+0x371/0xeb0 net/core/rtnetlink.c:3595
- rtnl_newlink_create+0x257/0x690 net/core/rtnetlink.c:3771
- __rtnl_newlink net/core/rtnetlink.c:3897 [inline]
- rtnl_newlink+0x13a9/0x1ac0 net/core/rtnetlink.c:4012
- rtnetlink_rcv_msg+0x8e1/0xf50 net/core/rtnetlink.c:6922
- netlink_rcv_skb+0x248/0x4e0 net/netlink/af_netlink.c:2542
- netlink_unicast_kernel net/netlink/af_netlink.c:1321 [inline]
- netlink_unicast+0x7b8/0x8e0 net/netlink/af_netlink.c:1347
- netlink_sendmsg+0xb42/0xe90 net/netlink/af_netlink.c:1891
- sock_sendmsg_nosec+0x1f5/0x250 net/socket.c:711
- __sock_sendmsg net/socket.c:726 [inline]
- __sys_sendto+0x45d/0x5d0 net/socket.c:2197
- __do_sys_sendto net/socket.c:2204 [inline]
- __se_sys_sendto net/socket.c:2200 [inline]
- __x64_sys_sendto+0x128/0x140 net/socket.c:2200
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf6/0x210 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Freed by task 14126:
- kasan_save_stack mm/kasan/common.c:47 [inline]
- kasan_save_track+0x3f/0x80 mm/kasan/common.c:68
- kasan_save_free_info+0x40/0x50 mm/kasan/generic.c:582
- poison_slab_object mm/kasan/common.c:247 [inline]
- __kasan_slab_free+0x5a/0x70 mm/kasan/common.c:264
- kasan_slab_free include/linux/kasan.h:233 [inline]
- slab_free_hook mm/slub.c:2353 [inline]
- slab_free mm/slub.c:4613 [inline]
- kfree+0x196/0x450 mm/slub.c:4761
- device_release+0xbd/0x220
- kobject_cleanup lib/kobject.c:689 [inline]
- kobject_release lib/kobject.c:720 [inline]
- kref_put include/linux/kref.h:65 [inline]
- kobject_put+0x248/0x490 lib/kobject.c:737
- netdev_run_todo+0x10e0/0x1280 net/core/dev.c:10924
- rtnl_unlock net/core/rtnetlink.c:152 [inline]
- rtnl_net_unlock include/linux/rtnetlink.h:133 [inline]
- rtnl_dellink+0x850/0x9c0 net/core/rtnetlink.c:3526
- rtnetlink_rcv_msg+0x8e1/0xf50 net/core/rtnetlink.c:6922
- netlink_rcv_skb+0x248/0x4e0 net/netlink/af_netlink.c:2542
- netlink_unicast_kernel net/netlink/af_netlink.c:1321 [inline]
- netlink_unicast+0x7b8/0x8e0 net/netlink/af_netlink.c:1347
- netlink_sendmsg+0xb42/0xe90 net/netlink/af_netlink.c:1891
- sock_sendmsg_nosec+0x1f5/0x250 net/socket.c:711
- __sock_sendmsg net/socket.c:726 [inline]
- sock_write_iter+0x3a5/0x4f0 net/socket.c:1147
- new_sync_write fs/read_write.c:586 [inline]
- vfs_write+0x7dd/0x950 fs/read_write.c:679
- ksys_write+0x24d/0x400 fs/read_write.c:731
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf6/0x210 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Last potentially related work creation:
- kasan_save_stack+0x3e/0x60 mm/kasan/common.c:47
- __kasan_record_aux_stack+0xaa/0xc0 mm/kasan/generic.c:544
- insert_work+0x3d/0x330 kernel/workqueue.c:2183
- __queue_work+0xc87/0xf50 kernel/workqueue.c:2339
- queue_work_on+0x1c8/0x390 kernel/workqueue.c:2390
- queue_work include/linux/workqueue.h:662 [inline]
- schedule_work include/linux/workqueue.h:723 [inline]
- __rhashtable_remove_fast_one include/linux/rhashtable.h:1069 [inline]
- __rhashtable_remove_fast include/linux/rhashtable.h:1093 [inline]
- rhashtable_remove_fast+0xbd7/0xc60 include/linux/rhashtable.h:1122
- br_multicast_del_mdb_entry+0x7d/0x300 net/bridge/br_multicast.c:642
- br_multicast_dev_del+0x11e/0x2d0 net/bridge/br_multicast.c:4366
- br_dev_uninit+0x1c/0x40 net/bridge/br_device.c:155
- unregister_netdevice_many_notify+0x1a4f/0x2110 net/core/dev.c:11548
- rtnl_delete_link net/core/rtnetlink.c:3476 [inline]
- rtnl_dellink+0x6de/0x9c0 net/core/rtnetlink.c:3518
- rtnetlink_rcv_msg+0x8e1/0xf50 net/core/rtnetlink.c:6922
- netlink_rcv_skb+0x248/0x4e0 net/netlink/af_netlink.c:2542
- netlink_unicast_kernel net/netlink/af_netlink.c:1321 [inline]
- netlink_unicast+0x7b8/0x8e0 net/netlink/af_netlink.c:1347
- netlink_sendmsg+0xb42/0xe90 net/netlink/af_netlink.c:1891
- sock_sendmsg_nosec+0x1f5/0x250 net/socket.c:711
- __sock_sendmsg net/socket.c:726 [inline]
- sock_write_iter+0x3a5/0x4f0 net/socket.c:1147
- new_sync_write fs/read_write.c:586 [inline]
- vfs_write+0x7dd/0x950 fs/read_write.c:679
- ksys_write+0x24d/0x400 fs/read_write.c:731
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf6/0x210 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-Second to last potentially related work creation:
- kasan_save_stack+0x3e/0x60 mm/kasan/common.c:47
- __kasan_record_aux_stack+0xaa/0xc0 mm/kasan/generic.c:544
- insert_work+0x3d/0x330 kernel/workqueue.c:2183
- __queue_work+0xc87/0xf50 kernel/workqueue.c:2339
- queue_work_on+0x1c8/0x390 kernel/workqueue.c:2390
- br_multicast_dev_del+0x11e/0x2d0 net/bridge/br_multicast.c:4366
- br_dev_uninit+0x1c/0x40 net/bridge/br_device.c:155
- unregister_netdevice_many_notify+0x1a4f/0x2110 net/core/dev.c:11548
- rtnl_delete_link net/core/rtnetlink.c:3476 [inline]
- rtnl_dellink+0x6de/0x9c0 net/core/rtnetlink.c:3518
- rtnetlink_rcv_msg+0x8e1/0xf50 net/core/rtnetlink.c:6922
- netlink_rcv_skb+0x248/0x4e0 net/netlink/af_netlink.c:2542
- netlink_unicast_kernel net/netlink/af_netlink.c:1321 [inline]
- netlink_unicast+0x7b8/0x8e0 net/netlink/af_netlink.c:1347
- netlink_sendmsg+0xb42/0xe90 net/netlink/af_netlink.c:1891
- sock_sendmsg_nosec+0x1f5/0x250 net/socket.c:711
- __sock_sendmsg net/socket.c:726 [inline]
- sock_write_iter+0x3a5/0x4f0 net/socket.c:1147
- new_sync_write fs/read_write.c:586 [inline]
- vfs_write+0x7dd/0x950 fs/read_write.c:679
- ksys_write+0x24d/0x400 fs/read_write.c:731
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf6/0x210 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-The buggy address belongs to the object at ffff888058cdc000
- which belongs to the cache kmalloc-cg-8k of size 8192
-The buggy address is located 440 bytes inside of
- freed 8192-byte region [ffff888058cdc000, ffff888058cde000)
-
-The buggy address belongs to the physical page:
-page: refcount:1 mapcount:0 mapping:0000000000000000
-index:0xffff888058cdc000 pfn:0x58cd8
-head: order:3 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
-memcg:ffff888056dd42c1
-flags: 0x4fff00000000040(head|node=3D1|zone=3D1|lastcpupid=3D0x7ff)
-page_type: f5(slab)
-raw: 04fff00000000040 ffff88801d44f640 ffffea000050d800 dead000000000004
-raw: ffff888058cdc000 0000000000020001 00000001f5000000 ffff888056dd42c1
-head: 04fff00000000040 ffff88801d44f640 ffffea000050d800 dead000000000004
-head: ffff888058cdc000 0000000000020001 00000001f5000000 ffff888056dd42c1
-head: 04fff00000000003 ffffea0001633601 ffffffffffffffff 0000000000000000
-head: 0000000000000008 0000000000000000 00000000ffffffff 0000000000000000
-page dumped because: kasan: bad access detected
-page_owner tracks the page as allocated
-page last allocated via order 3, migratetype Unmovable, gfp_mask
-0xd60c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_RETRY_MAYFAIL|__GFP_NORETRY|__=
-GFP_COMP|__GFP_NOMEMALLOC),
-pid 9657, tgid 9657 (syz-executor.2), ts 72098481985, free_ts
-71817430134
- set_page_owner include/linux/page_owner.h:32 [inline]
- post_alloc_hook+0x1f6/0x240 mm/page_alloc.c:1558
- prep_new_page mm/page_alloc.c:1566 [inline]
- get_page_from_freelist+0x3586/0x36d0 mm/page_alloc.c:3476
- __alloc_pages_noprof+0x260/0x680 mm/page_alloc.c:4753
- alloc_pages_mpol_noprof+0x3c8/0x650 mm/mempolicy.c:2269
- alloc_slab_page+0x6a/0x110 mm/slub.c:2423
- allocate_slab+0x5f/0x2b0 mm/slub.c:2589
- new_slab mm/slub.c:2642 [inline]
- ___slab_alloc+0xbdf/0x1490 mm/slub.c:3830
- __slab_alloc mm/slub.c:3920 [inline]
- __slab_alloc_node mm/slub.c:3995 [inline]
- slab_alloc_node mm/slub.c:4156 [inline]
- __do_kmalloc_node mm/slub.c:4297 [inline]
- __kmalloc_node_noprof+0x314/0x530 mm/slub.c:4304
- __kvmalloc_node_noprof+0x70/0x180 mm/util.c:650
- alloc_netdev_mqs+0xa7/0x1870 net/core/dev.c:11209
- rtnl_create_link+0x371/0xeb0 net/core/rtnetlink.c:3595
- rtnl_newlink_create+0x257/0x690 net/core/rtnetlink.c:3771
- __rtnl_newlink net/core/rtnetlink.c:3897 [inline]
- rtnl_newlink+0x13a9/0x1ac0 net/core/rtnetlink.c:4012
- rtnetlink_rcv_msg+0x8e1/0xf50 net/core/rtnetlink.c:6922
- netlink_rcv_skb+0x248/0x4e0 net/netlink/af_netlink.c:2542
- netlink_unicast_kernel net/netlink/af_netlink.c:1321 [inline]
- netlink_unicast+0x7b8/0x8e0 net/netlink/af_netlink.c:1347
-page last free pid 98 tgid 98 stack trace:
- reset_page_owner include/linux/page_owner.h:25 [inline]
- free_pages_prepare mm/page_alloc.c:1127 [inline]
- free_unref_folios+0xe03/0x1860 mm/page_alloc.c:2706
- shrink_folio_list+0x5304/0x5c80 mm/vmscan.c:1551
- evict_folios+0x3b12/0x5610 mm/vmscan.c:4593
- try_to_shrink_lruvec+0x941/0xc10 mm/vmscan.c:4789
- shrink_one+0x20e/0x870 mm/vmscan.c:4834
- shrink_many mm/vmscan.c:4897 [inline]
- lru_gen_shrink_node mm/vmscan.c:4975 [inline]
- shrink_node+0x3862/0x3f20 mm/vmscan.c:5956
- kswapd_shrink_node mm/vmscan.c:6785 [inline]
- balance_pgdat mm/vmscan.c:6977 [inline]
- kswapd+0x1c9f/0x36f0 mm/vmscan.c:7246
- kthread+0x2c3/0x360 kernel/kthread.c:389
- ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
-
-Memory state around the buggy address:
- ffff888058cdc080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff888058cdc100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->ffff888058cdc180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                                        ^
- ffff888058cdc200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff888058cdc280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-```
-
-> Also, can you reproduce the issue on top of the current net tree?
-
-No, but we are having trouble reproducing it even on 6.13.0-rc4. Since
-I don't fully understand the root cause, it's hard to say if it is
-fixed in the current tree or just hard to reproduce.
-
-> netdev_walk_all_lower_dev() should not need additional refcounting, as
-it is traversing the list under rtnl lock, and device should be removed
-from the adjacency list before the actual device free under such lock, too.
-
-I see. Then I confess I'm really not sure what is happening with this
-crash. If you have any pointers for where to look or why it is so
-difficult to reproduce, let me know. Otherwise I will keep working on
-trying to find a reproducible setup.
-
-Thanks for your help!
-Dylan
-On Tue, Apr 1, 2025 at 8:45=E2=80=AFAM Paolo Abeni <pabeni@redhat.com> wrot=
-e:
->
-> On 3/31/25 3:00 PM, Dylan Wolff wrote:
-> > From the report, it looks like the net_device is freed at the end of an
-> > rtnl critical section in netdev_run_todo. At the time of the crash, the
-> > *use* thread has acquired rtnl_lock() in smc_vlan_by_tcpsk. The crash
-> > occurred at the line preceded by `>>>` below in 6.13 rc4 while iteratin=
-g
-> > over devices with netdev_walk_all_lower_dev:
-> >
-> > ```
-> > static struct net_device *netdev_next_lower_dev(struct net_device *dev,
-> > struct list_head **iter)
-> > {
-> > struct netdev_adjacent *lower;
-> >
-> >>>> lower =3D list_entry((*iter)->next, struct netdev_adjacent, list);
-> >
-> > if (&lower->list =3D=3D &dev->adj_list.lower)
-> > return NULL;
-> >
-> > *iter =3D &lower->list;
-> >
-> > return lower->dev;
-> > }
-> > ```
->
-> Please share the decoded syzkaller/kasan splat in plaintext instead of
-> describing it in natural language, and please avoid attachments unless
-> explicitly asked for.
->
-> Also, can you reproduce the issue on top of the current net tree?
->
-> > This looks to me like it is an issue with reference counting; I see tha=
-t
-> > netdev_refcnt_read is checked in netdev_run_todo before the device is
-> > freed, but I don't see anything in netdev_walk_all_lower_dev /
-> > netdev_next_lower_dev that is incrementing netdev_refcnt_read when it i=
-s
-> > iterating over the devices. I'm guessing the fix is to either add refer=
-ence
-> > counting to netdev_walk_all_lower_dev or to use a different,
-> > concurrency-safe iterator over the devices in the caller (smc_vlan_by_t=
-cpsk
-> > ).
-> >
-> > Could someone confirm if I am on the right track here? If so I am happy=
- to
-> > try to come up with the patch.
->
-> netdev_walk_all_lower_dev() should not need additional refcounting, as
-> it is traversing the list under rtnl lock, and device should be removed
-> from the adjacency list  before the actual device free under such lock, t=
-oo.
->
-> Thanks,
->
-> Paolo
->
