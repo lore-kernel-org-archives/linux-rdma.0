@@ -1,28 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A96E8207E14;
-	Tue,  8 Apr 2025 11:22:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB008267F57;
+	Tue,  8 Apr 2025 11:45:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744111328; cv=none; b=stcleN9boyYPCt+M6wXx3yJuNg1rcaNmwf/wcVm3hvxEXwMwAQ3QttU7raUBin8SGV+B48+v8O9qsB/6jo7JQrxj7P3UbXjPCFwytYmMaIJBQRh3FJCPxfwuvrdiAeX5gbEc9bDBb5OngXNrQqcZC6erEvmb/bg3DKwQ6uea90w=
+	t=1744112735; cv=none; b=XTUvxka45kamdKhdfIDm04lCRNd6ZSkb/hhyldgqxgVRIhMEEWr6C47WfYw5i1f22TRQ8m0i09DL5EuifAK0Me9PmwJ0oYm+bdcRgE3syqt/MqdYnTPGWC42a4HnGqjkSQ6y92u41u2tZhAjKKbCo5cT0vni6E0gPIB7XtONufk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744111328; c=relaxed/simple;
-	bh=9rixISlH0h3gLJrlq8Oxi2XQJTBimT3/MGOf2hGDi4A=;
+	s=arc-20240116; t=1744112735; c=relaxed/simple;
+	bh=boIwNzAemyOsPgk8LQh6CNl9rgNqmlDp1qRbFRb8oHQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kjGlT8EseW9xutQbs8XMf+bldFSwtaKJpzkP6jVtLP62e/eWL4AtG81azoxhG+D+Pf1i3JY507CAadOQLoozLjQafnL/OeoYu2EWlsyZQuiW+FLEJ6LxZ3bLy4T8iAzz+Oq0iRmPXA4rWX8ZbVPaolqw+cVF3njm2s33CoDaNU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=PZIW4Eff; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=f/NJbtymph3ZcpVLwqXErgi9AvdMzCKiVCdXUBioUrVyChNqiPFzl9TvvSTc692x+lCfyYPpQYlwQPBc5q0y/9CLresKh3rj1r8L8wUdG16TaOxDfl7gdfkSl1QVrN9W8KJyvvEsJDyAupL2uBERIWaatc0GPkbfezgk/EO7GRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=VIX+8SpH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="PZIW4Eff"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37AA0C4CEE5;
-	Tue,  8 Apr 2025 11:22:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="VIX+8SpH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FF8DC4CEE5;
+	Tue,  8 Apr 2025 11:45:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1744111328;
-	bh=9rixISlH0h3gLJrlq8Oxi2XQJTBimT3/MGOf2hGDi4A=;
+	s=korg; t=1744112734;
+	bh=boIwNzAemyOsPgk8LQh6CNl9rgNqmlDp1qRbFRb8oHQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PZIW4EffBrz3O1V7dFu+frqWqgAGa7/HVjlDakrI/hRGikIlfJmB8ZP99kr/4yhiS
-	 bWQnNnnKRLbgCVcnfupBaU68SO+tIi4wBE0V7KqHGBjUtom+9Z/i20RMJ4uUcjeBfh
-	 bGAM1dYp9mTbzh6AbQYcs6l/k/V6tgldlSQpy0mI=
+	b=VIX+8SpHaI/DzCPiNte61sYEhgABb46pz5BhVSeC2o+2R6Lgtu00qcWV7j1ZXBm7q
+	 eSAvDP8HdjyftWa3L1j1AlNdPCM4u8R8eHoXR3+hq9LcVEXABPZ45S0TkeUWd0MeWH
+	 gpgf5jiQuwtyglTZ02H5S3kNQsowrtKmNq6ROphA=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
@@ -35,12 +35,12 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	linux-kernel@vger.kernel.org,
 	Parav Pandit <parav@nvidia.com>,
 	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.14 393/731] RDMA/core: Dont expose hw_counters outside of init net namespace
-Date: Tue,  8 Apr 2025 12:44:50 +0200
-Message-ID: <20250408104923.416610570@linuxfoundation.org>
+Subject: [PATCH 5.15 179/279] RDMA/core: Dont expose hw_counters outside of init net namespace
+Date: Tue,  8 Apr 2025 12:49:22 +0200
+Message-ID: <20250408104831.161960989@linuxfoundation.org>
 X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250408104914.247897328@linuxfoundation.org>
-References: <20250408104914.247897328@linuxfoundation.org>
+In-Reply-To: <20250408104826.319283234@linuxfoundation.org>
+References: <20250408104826.319283234@linuxfoundation.org>
 User-Agent: quilt/0.68
 X-stable: review
 X-Patchwork-Hint: ignore
@@ -52,7 +52,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-6.14-stable review patch.  If anyone has any objections, please let me know.
+5.15-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -148,10 +148,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  3 files changed, 11 insertions(+)
 
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 0ded91f056f39..8feb22089cbbd 100644
+index 5d1ce55fda71e..241245e25f004 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -528,6 +528,8 @@ static struct class ib_class = {
+@@ -542,6 +542,8 @@ static struct class ib_class = {
  static void rdma_init_coredev(struct ib_core_device *coredev,
  			      struct ib_device *dev, struct net *net)
  {
@@ -160,7 +160,7 @@ index 0ded91f056f39..8feb22089cbbd 100644
  	/* This BUILD_BUG_ON is intended to catch layout change
  	 * of union of ib_core_device and device.
  	 * dev must be the first element as ib_core and providers
-@@ -539,6 +541,13 @@ static void rdma_init_coredev(struct ib_core_device *coredev,
+@@ -553,6 +555,13 @@ static void rdma_init_coredev(struct ib_core_device *coredev,
  
  	coredev->dev.class = &ib_class;
  	coredev->dev.groups = dev->groups;
@@ -175,10 +175,10 @@ index 0ded91f056f39..8feb22089cbbd 100644
  	coredev->owner = dev;
  	INIT_LIST_HEAD(&coredev->port_list);
 diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 9f97bef021497..210092b9bf17d 100644
+index afc59048c40c8..f68673c370d2e 100644
 --- a/drivers/infiniband/core/sysfs.c
 +++ b/drivers/infiniband/core/sysfs.c
-@@ -988,6 +988,7 @@ int ib_setup_device_attrs(struct ib_device *ibdev)
+@@ -976,6 +976,7 @@ int ib_setup_device_attrs(struct ib_device *ibdev)
  	for (i = 0; i != ARRAY_SIZE(ibdev->groups); i++)
  		if (!ibdev->groups[i]) {
  			ibdev->groups[i] = &data->group;
@@ -187,10 +187,10 @@ index 9f97bef021497..210092b9bf17d 100644
  		}
  	WARN(true, "struct ib_device->groups is too small");
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0ad104dae2539..43954bb0475a7 100644
+index fa13bf15feb3e..f4257c2e96b6d 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2750,6 +2750,7 @@ struct ib_device {
+@@ -2707,6 +2707,7 @@ struct ib_device {
  	 * It is a NULL terminated array.
  	 */
  	const struct attribute_group	*groups[4];
