@@ -1,205 +1,175 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2056.outbound.protection.outlook.com [40.107.237.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 043E527605A;
-	Tue,  8 Apr 2025 12:34:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744115689; cv=none; b=Xv9tKmF1vbL+vAxf4I4YX80/v7z06vWebVyorCYiVU2kbc/ti/9TfJGpR6fOhsmvhDPBkLOjOP4Ga5yRc9dZY20bxsSK55PYQDqVBnBNijggSAY5KpaUzusPIMGokt6be4Qj+P4rnEL4C0sb/aiM7PzKntpcrgPpKjCKLAAHDdw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744115689; c=relaxed/simple;
-	bh=wTnywnGnSOrqZ4UmxLnyRbrC//wUYau51NyO1y5+KN0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=l0DinfbpldJzVSbgIhyKHENvc60dcpUrcrcYuPi62w+2IrpdUQIUGriJeUtTxSnFegch7Lvn8G4QwTRAmP+cBDYjv7BNAVqBdPO2Rx0NgNdabp6aDazB53E4ARIANuX3cyOAAHc9vpLjCbUhxl64SCruZj31QMmpStM212xPMtY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=WOObvOgO; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EE2A26A1A7;
+	Tue,  8 Apr 2025 12:38:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.56
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1744115901; cv=fail; b=ZllUxWIzYzw8HDNIgVsaJxZnU71GIsUb/ZbjdkvCFGEdKUyETsxAnrv8OYppM/0PJplLWzTl4e8gsZcXyEew4QaTJp1s9PAG0++e9rIZJbBtp1Qs0U08fFN5P0YVaNf0FEovO7HgKxFES2i+xR+d0pXmtVERp9sLQGyuLYb/Dv8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1744115901; c=relaxed/simple;
+	bh=MbHDHHAHAOHN6BcWcr9y1Hb3sE0KNFyEbF/GK6wtkD4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=nxCuq6nK1r/MqFiZ8/tWZOSXpa9wWAa6nlFsop8u+3S0LQpAZV5RGgAvQStQfa+7AM5zzJbEn6qkBXGSLpMIO+y66zIWQIcanVYg/rwXx68cuxxfxLd094gPJ9ueCrBii97f3nvE3dfuyhC9uEbW/vRUxiEXrAaHTG/nunttxt8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=tiUNfcgK; arc=fail smtp.client-ip=40.107.237.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="WOObvOgO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EDE6C4CEE5;
-	Tue,  8 Apr 2025 12:34:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1744115688;
-	bh=wTnywnGnSOrqZ4UmxLnyRbrC//wUYau51NyO1y5+KN0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=WOObvOgOTfcw0snhlelzgMWsYjEZA3nitm+Czv2NqRco6ZaHNPGWy/jw6CPjW9p7g
-	 1fY+MChpvKmXVofCQysj4sYoetibQ9Oj/IKai6qlTMypcSr8CSJ4w/d4mwb46LCND4
-	 4k9rP3Wpn3vGHDYoXASAJyYDn0YfGQyDkOACkubk=
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: stable@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	patches@lists.linux.dev,
-	Roman Gushchin <roman.gushchin@linux.dev>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Maher Sanalla <msanalla@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Parav Pandit <parav@nvidia.com>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.1 066/204] RDMA/core: Dont expose hw_counters outside of init net namespace
-Date: Tue,  8 Apr 2025 12:49:56 +0200
-Message-ID: <20250408104822.297944560@linuxfoundation.org>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250408104820.266892317@linuxfoundation.org>
-References: <20250408104820.266892317@linuxfoundation.org>
-User-Agent: quilt/0.68
-X-stable: review
-X-Patchwork-Hint: ignore
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="tiUNfcgK"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=ZOwmV2hCmoNpW5i555kHDBi/1fclRiqNnpDI85fSMA4wP1rhAr7FIHqW/pLrOb0A7TFKZpud//yU2EaSJeGbIqMyiyNIC0VkR4tAHaRLvesDlNQGjk+5VKuqlLiPyCqQ6fjYGU0LMuCHx16PDEzhTYiVwxsSW2AIAzPTDgrO+Y9Km3BwYTu3ztwNgp4/RP8Ky+OAuWkofH/DJN7AM4tNcJKYXJ5pV4bzHXux6cIs2NKhuoQA5kfibMSmmnz0YJ7JS6E7R1kHQejma0SxohN2K/pcMC9OYoHZ7x3IK3VfkcOHKFlsBD6iHMClo+ysv869xsbmGWHb0JirJWnnYYd2dg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=HbsQjeZYm61MJvs4h5Ly+vgn2VvI9rfPzTJYESaFcJI=;
+ b=VXikjXMqoeQl/PtdPI2B/YQhe1WjF1YCM6jHqQiNqeH4DTWlYieKqs0gtKuDfcpDghpBDhG2pM8fSGWliW0Owdwst3ez5B6TU+jBvolbKOvH2sJ++X/4r8lmjUGUAdsJVwFxBfYMFOO+tyRiUyXRTvRqjx/wyJqlPLTH51KrofV4IOR9ofzG6hz3vcVUd51abm3qP9UvKA5cDvSINn8kPFlbtfypDNCJ8/l3SkuetuGv/0VnWyPGEA9haTDlKVzcwBxaL0fq3LxhJUbwtIiSbjHZiMEYobeOWGmZ5YP6723uInsSIe+Lm0M+hucSj3UaNjjpRpdUIZDt22VCzw39xg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=HbsQjeZYm61MJvs4h5Ly+vgn2VvI9rfPzTJYESaFcJI=;
+ b=tiUNfcgKnZQEfm571GsTPFykEosQdcQ0F1UCHL8Qo7x4jWwBiEblQQvZrcHOSPaEBS+q7oy7qCgAOlmV5sBjYb0xoiYWm5lswUa/x99uvEkKZgUsGDWAdY2glPQNcpygGOZ9p1UCZV1LVE57GDMOH3pvFYpsDkptL2IoQB2YZfYvaY+I5rttDfPm/Vc9pQ1kC6ss5nGRigoAAVwoPDiQ9b3C0C6IWZVU7X4XJEmw1KghgLPYrAA5X9cuNR4IP2qaSu/tZts0NfjeAs57Uq1kS2GzAqXJt/ByZxqDY9ioULLj17hQbHRdTiG83AQcJSLsD1rAg+U33nSQxhbSKfU5vw==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB8659.namprd12.prod.outlook.com (2603:10b6:610:17c::13)
+ by IA1PR12MB7565.namprd12.prod.outlook.com (2603:10b6:208:42f::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8534.44; Tue, 8 Apr
+ 2025 12:38:16 +0000
+Received: from CH3PR12MB8659.namprd12.prod.outlook.com
+ ([fe80::6eb6:7d37:7b4b:1732]) by CH3PR12MB8659.namprd12.prod.outlook.com
+ ([fe80::6eb6:7d37:7b4b:1732%4]) with mapi id 15.20.8606.028; Tue, 8 Apr 2025
+ 12:38:15 +0000
+Date: Tue, 8 Apr 2025 09:38:14 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Allison Henderson <allison.henderson@oracle.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+	rds-devel@oss.oracle.com
+Subject: Re: [PATCH net-next] rds: rely on IB/core to determine if device is
+ ODP capable
+Message-ID: <20250408123814.GC1778492@nvidia.com>
+References: <bfc8ffb7ea207ed90c777a4f61a8afe1badef212.1744109826.git.leonro@nvidia.com>
+ <20250408122338.GA1778492@nvidia.com>
+ <20250408123413.GA199604@unreal>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250408123413.GA199604@unreal>
+X-ClientProxiedBy: MN0PR03CA0023.namprd03.prod.outlook.com
+ (2603:10b6:208:52f::22) To CH3PR12MB8659.namprd12.prod.outlook.com
+ (2603:10b6:610:17c::13)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PR12MB8659:EE_|IA1PR12MB7565:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6917ab00-cb04-4d10-a680-08dd769a3bcf
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?VF/NZLucAbfGr4BJg+/0FFkU4WmC0UZ6E5S/B3aQ5v0SM2bqmZ7eLEeY8Sy+?=
+ =?us-ascii?Q?rooEu24LeoxDhGaZZjahSqKj47Yi1Ak9svRVjwTqRGpzG8kKCwXRDQxxM37M?=
+ =?us-ascii?Q?j523ui5kLRCKcbChlrClfWplcTIH5tlUg2uP78GAJJRC9Eua28BaDaj9KvoC?=
+ =?us-ascii?Q?zxneIfyf2uZBzcsKmb2IP0CiFRM2GzB4hNQik7gHQ/DwQUKyQDl+hM8nbspS?=
+ =?us-ascii?Q?A9iqiAFWmZj7Afteq86aJtQwsfjVC5h6rQtlwETpb1L2P/LN3A/yImfwTKaa?=
+ =?us-ascii?Q?mRjGF2Ei2UUZdq4afCVNdalHOSjuyo26afieF2iXjV9amhw2NqJnq3OgBnhj?=
+ =?us-ascii?Q?08y7eQMTSuyIZolqE/pIt0zzS/joMw6n6ZOVw6Qs8x0rtkqMU6iXknFKxdRV?=
+ =?us-ascii?Q?opTIXkLDsMCaQhbhMABnwaL8zyfYVjbyf3wtkoN7i45qMVMPO5JJUK9HtNnS?=
+ =?us-ascii?Q?sJM+pP4fhK7vVXLuAa8+TexaMpWmWU66Jytom+651z9XqFkDKl8Rcm1n77vi?=
+ =?us-ascii?Q?BIqlH2LvFOD0t76ASekHopPzviPi4t3Q6LFhO0U9yKWao2bybFHZRKzarWqL?=
+ =?us-ascii?Q?wAMh/U5RA4ilaCvuyte4SpRdetzgrJo90G9IPuC/CsB+Pz6+PENUDghnJDvU?=
+ =?us-ascii?Q?+TezdtzS3h1jVUUoxnYrRAHAkZN3eseRBRYWv6JqHeGiiLejfg7g9O8apP9i?=
+ =?us-ascii?Q?XX4tNUIrHNWlF8FfikQYqvxbByOvycDxXAkXzYt533IdfyaWbIkPDbAP05mc?=
+ =?us-ascii?Q?vs4yjlMVz+LJfUxZ8IgdHhrucAewT+XtfI3x0tMSRkmr6LbZQeHelfN7YjBp?=
+ =?us-ascii?Q?rzgK9v1H4wsrYWf1R0YEBsOF74F/OJvguvEoDq7ZXxyoOGkCQKhFL5NkkEC2?=
+ =?us-ascii?Q?L8UPEYWpKAbNe5iT/cLGdBOv7EbRHgIA9ACOl7lQdXjpBtaaEMO84c/Uykzp?=
+ =?us-ascii?Q?GrUvpcI2isxb3juYpUtmGcj2AvH/0iAxE0i3KqoEK5EbScSnQarTCQyoFQ4n?=
+ =?us-ascii?Q?WxX00gv+TZcUOVUfE+31K3RMRJSQXx56rInPbq9MMw1LaNECvI4G/UB9wBn5?=
+ =?us-ascii?Q?Ej4ls0o/sdBcEN724bVuY8hlXUlE25QSyGk0zmnHH4f8S0aRyBDAJtYcgNzR?=
+ =?us-ascii?Q?1dvk2u2ZKND8++JbD9iksn9kEXkfow+R7joKQ+jCj4sBc1Witb6icUKr9v4I?=
+ =?us-ascii?Q?9ChFeX4OzfQsweWGq4gE73Q204ZWV47DTV4AGsPS4bMmPjzayDRpjTIzkOw1?=
+ =?us-ascii?Q?HZX7kbl0PGP080SM/4XSJpZ0zsFJ8/uiL3AIAX/lPGM6tQJM0k3GpLiJAaSx?=
+ =?us-ascii?Q?oxYKbNczCH3rpALNrMVxbw/JNGOP0j5Mx3LbVtxzQikWRIn5PjMj2O2w/h8K?=
+ =?us-ascii?Q?nlC4tl2VIIMvSz7OE6DyAV2Ou94nUiFwJYRscb6OTlJvUfCBPn2DUwS0G9Y2?=
+ =?us-ascii?Q?mDUpkhNBmJI=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8659.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?wAlyaFRI+gg08ehVixUz5RNQfTBNqkrN0zIY26ufe2ofp59X2gfVDjiM1gx2?=
+ =?us-ascii?Q?e7vffMZjFwgOau1TgkVc5R3wT2PWZ6Oa4T4jD5f7SIZtXJxrkNhEJTn0q7Oz?=
+ =?us-ascii?Q?AKXfqFd8HcOJDBX4cq3I2drRRAWKLXfGlgxX7tDQjm+2t+Dnx6Sf3TKks995?=
+ =?us-ascii?Q?VLR9T+RwryDicdeyx0X4CNQJ0e/KwF/HLLYHd9PsC7X0LKwMt8ZpBc+Stq9j?=
+ =?us-ascii?Q?V6AoDGbpXExaY5441wLQTFWxAzbhds11YzPxdbQ4q4CpCq6pMA0MMJ8mh2wq?=
+ =?us-ascii?Q?nsR+tVwwWsw5V7vMa7G/ps4Z261s2AhVNuuYnz+IRIYyIdsswosR7FeoDYZu?=
+ =?us-ascii?Q?nlmwiUhvceBNUyGt+pq2qA00GORxssV+tqIK2LrEllaFxI66sXMyh3bqOnUj?=
+ =?us-ascii?Q?sryV1ZTKAxZ1KASwEEb0RSQAANI43L/ss2ea8KfHLJwBAjv+zr2yC3F0b6dk?=
+ =?us-ascii?Q?0PYDIfQpint5Zy9Up6/v1df9Z+q6CMh2fQZNdQMBkeWueYOX/tmsBsnjaaqy?=
+ =?us-ascii?Q?HQHPf/4UAMxFGLHIG/z7fXX6gXKgtNY7btwk89jAvwzmXA7dBORnAFK5sNcl?=
+ =?us-ascii?Q?3KH35tQ1w9+MMW+OpGVQsmPmM45lHCozuiu2s39DMbr/NOSv9NP6lFHIz4lD?=
+ =?us-ascii?Q?rOAtJ8utyEWOqr4wi0QYyZVDBq5al1IZBtpPu0yeQ/wvW708lHAdO0AcPmsk?=
+ =?us-ascii?Q?3ax4lXgh5V04WPtNP9PWfgYFeJ72LnL4p18B4vZBfLB+O+anVDMh7HYzyeEt?=
+ =?us-ascii?Q?I7mFzybwnmQFMglSr31p6TlDXc0o/zIWV8inI9pSUhL+HEzAFFcu9HKC8b5P?=
+ =?us-ascii?Q?uQc1MvuZO2LuDvJ64Il4q7fl+egMzpYllbvztwo2QqWFeOcVTVgNUuH9qj9d?=
+ =?us-ascii?Q?eQkU/w+wVUu+JKMS/9QhOFmOk/v6KeSUCJMu01SYgIHK1dGJi9LYF0EaYipR?=
+ =?us-ascii?Q?WvJbo+u8CkbAMFoevvHCRat40gCh4L9SIm9Z5zW+LwG0eHX84/ooTwJrfMI0?=
+ =?us-ascii?Q?kX6LW87TzNeNXvxE0D0/8e3CQmEDLa22Q5E3vCmdNPPY4b5/ziTUUkJAXKCm?=
+ =?us-ascii?Q?znCpt36u+HCYZD76EIc2gdqX0RBX3jKeKrvUp2EDKDWwaGRYu+4M93R0sHuX?=
+ =?us-ascii?Q?R2FIw4RPRzqxyfmQFf8nz0d881fl+S8wm7oy1fWh4NMv7LC0qTusHnbBp/d5?=
+ =?us-ascii?Q?q8xeGAZQZnnp1lAI6F85Jk9b3yQgbPXR7XYw+zqR5FMqocIqFLMTuB2LOgLX?=
+ =?us-ascii?Q?yLBq1JypacccU1xJUmrRcrh5pGS+l6ckBaZ6FWhQp6Wxe3xOJdiDv50V7BR2?=
+ =?us-ascii?Q?fwjr5hoXUjo95PP5GmQJFBsp+lVqRlrqH3YxnmBXV3PxdkQh6MwRKfLxByvG?=
+ =?us-ascii?Q?VscH2h+Lb6JhwyVcYTA4u8p9HDluQco0nn32tzlp49bwOhbeJlFXdhOGH9PZ?=
+ =?us-ascii?Q?/tHHtJoAnjhbPRh+sQNUB//zgzScd6ynsnMg02+TzscLaBoYJ9M+1g5+rGvZ?=
+ =?us-ascii?Q?fDgo5nP0eX1vvBJaKKwUdUQMR7iendU89bKdJmXtIYXhzHRmZVaAgReGgvnA?=
+ =?us-ascii?Q?jiS8CP1czl3L6evD+2t2yp4sSEWSWeeK0C4M4CNm?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6917ab00-cb04-4d10-a680-08dd769a3bcf
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8659.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Apr 2025 12:38:15.8307
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: rSbbAuC1Kqj/sw2XqXyOu3wszA4ga2AqD+XJzUbLDx6fEDz58Uq7U3k9vY76e4AS
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB7565
 
-6.1-stable review patch.  If anyone has any objections, please let me know.
+On Tue, Apr 08, 2025 at 03:34:13PM +0300, Leon Romanovsky wrote:
+> On Tue, Apr 08, 2025 at 09:23:38AM -0300, Jason Gunthorpe wrote:
+> > On Tue, Apr 08, 2025 at 02:04:55PM +0300, Leon Romanovsky wrote:
+> > > diff --git a/net/rds/ib.c b/net/rds/ib.c
+> > > index 9826fe7f9d00..c62aa2ff4963 100644
+> > > --- a/net/rds/ib.c
+> > > +++ b/net/rds/ib.c
+> > > @@ -153,14 +153,6 @@ static int rds_ib_add_one(struct ib_device *device)
+> > >  	rds_ibdev->max_wrs = device->attrs.max_qp_wr;
+> > >  	rds_ibdev->max_sge = min(device->attrs.max_send_sge, RDS_IB_MAX_SGE);
+> > >  
+> > > -	rds_ibdev->odp_capable =
+> > > -		!!(device->attrs.kernel_cap_flags &
+> > > -		   IBK_ON_DEMAND_PAGING) &&
+> > > -		!!(device->attrs.odp_caps.per_transport_caps.rc_odp_caps &
+> > > -		   IB_ODP_SUPPORT_WRITE) &&
+> > > -		!!(device->attrs.odp_caps.per_transport_caps.rc_odp_caps &
+> > > -		   IB_ODP_SUPPORT_READ);
+> > 
+> > This patch seems to drop the check for WRITE and READ support on the
+> > ODP.
+> 
+> Right, and they are part of IBK_ON_DEMAND_PAGING support. All ODP
+> providers support both IB_ODP_SUPPORT_WRITE and IB_ODP_SUPPORT_READ.
 
-------------------
+Where? mlx5 reads this from FW and I don't see anything blocking
+IBK_ON_DEMAND_PAGING if the FW is weird.
 
-From: Roman Gushchin <roman.gushchin@linux.dev>
-
-[ Upstream commit a1ecb30f90856b0be4168ad51b8875148e285c1f ]
-
-Commit 467f432a521a ("RDMA/core: Split port and device counter sysfs
-attributes") accidentally almost exposed hw counters to non-init net
-namespaces. It didn't expose them fully, as an attempt to read any of
-those counters leads to a crash like this one:
-
-[42021.807566] BUG: kernel NULL pointer dereference, address: 0000000000000028
-[42021.814463] #PF: supervisor read access in kernel mode
-[42021.819549] #PF: error_code(0x0000) - not-present page
-[42021.824636] PGD 0 P4D 0
-[42021.827145] Oops: 0000 [#1] SMP PTI
-[42021.830598] CPU: 82 PID: 2843922 Comm: switchto-defaul Kdump: loaded Tainted: G S      W I        XXX
-[42021.841697] Hardware name: XXX
-[42021.849619] RIP: 0010:hw_stat_device_show+0x1e/0x40 [ib_core]
-[42021.855362] Code: 90 90 90 90 90 90 90 90 90 90 90 90 f3 0f 1e fa 0f 1f 44 00 00 49 89 d0 4c 8b 5e 20 48 8b 8f b8 04 00 00 48 81 c7 f0 fa ff ff <48> 8b 41 28 48 29 ce 48 83 c6 d0 48 c1 ee 04 69 d6 ab aa aa aa 48
-[42021.873931] RSP: 0018:ffff97fe90f03da0 EFLAGS: 00010287
-[42021.879108] RAX: ffff9406988a8c60 RBX: ffff940e1072d438 RCX: 0000000000000000
-[42021.886169] RDX: ffff94085f1aa000 RSI: ffff93c6cbbdbcb0 RDI: ffff940c7517aef0
-[42021.893230] RBP: ffff97fe90f03e70 R08: ffff94085f1aa000 R09: 0000000000000000
-[42021.900294] R10: ffff94085f1aa000 R11: ffffffffc0775680 R12: ffffffff87ca2530
-[42021.907355] R13: ffff940651602840 R14: ffff93c6cbbdbcb0 R15: ffff94085f1aa000
-[42021.914418] FS:  00007fda1a3b9700(0000) GS:ffff94453fb80000(0000) knlGS:0000000000000000
-[42021.922423] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[42021.928130] CR2: 0000000000000028 CR3: 00000042dcfb8003 CR4: 00000000003726f0
-[42021.935194] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[42021.942257] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[42021.949324] Call Trace:
-[42021.951756]  <TASK>
-[42021.953842]  [<ffffffff86c58674>] ? show_regs+0x64/0x70
-[42021.959030]  [<ffffffff86c58468>] ? __die+0x78/0xc0
-[42021.963874]  [<ffffffff86c9ef75>] ? page_fault_oops+0x2b5/0x3b0
-[42021.969749]  [<ffffffff87674b92>] ? exc_page_fault+0x1a2/0x3c0
-[42021.975549]  [<ffffffff87801326>] ? asm_exc_page_fault+0x26/0x30
-[42021.981517]  [<ffffffffc0775680>] ? __pfx_show_hw_stats+0x10/0x10 [ib_core]
-[42021.988482]  [<ffffffffc077564e>] ? hw_stat_device_show+0x1e/0x40 [ib_core]
-[42021.995438]  [<ffffffff86ac7f8e>] dev_attr_show+0x1e/0x50
-[42022.000803]  [<ffffffff86a3eeb1>] sysfs_kf_seq_show+0x81/0xe0
-[42022.006508]  [<ffffffff86a11134>] seq_read_iter+0xf4/0x410
-[42022.011954]  [<ffffffff869f4b2e>] vfs_read+0x16e/0x2f0
-[42022.017058]  [<ffffffff869f50ee>] ksys_read+0x6e/0xe0
-[42022.022073]  [<ffffffff8766f1ca>] do_syscall_64+0x6a/0xa0
-[42022.027441]  [<ffffffff8780013b>] entry_SYSCALL_64_after_hwframe+0x78/0xe2
-
-The problem can be reproduced using the following steps:
-  ip netns add foo
-  ip netns exec foo bash
-  cat /sys/class/infiniband/mlx4_0/hw_counters/*
-
-The panic occurs because of casting the device pointer into an
-ib_device pointer using container_of() in hw_stat_device_show() is
-wrong and leads to a memory corruption.
-
-However the real problem is that hw counters should never been exposed
-outside of the non-init net namespace.
-
-Fix this by saving the index of the corresponding attribute group
-(it might be 1 or 2 depending on the presence of driver-specific
-attributes) and zeroing the pointer to hw_counters group for compat
-devices during the initialization.
-
-With this fix applied hw_counters are not available in a non-init
-net namespace:
-  find /sys/class/infiniband/mlx4_0/ -name hw_counters
-    /sys/class/infiniband/mlx4_0/ports/1/hw_counters
-    /sys/class/infiniband/mlx4_0/ports/2/hw_counters
-    /sys/class/infiniband/mlx4_0/hw_counters
-
-  ip netns add foo
-  ip netns exec foo bash
-  find /sys/class/infiniband/mlx4_0/ -name hw_counters
-
-Fixes: 467f432a521a ("RDMA/core: Split port and device counter sysfs attributes")
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Maher Sanalla <msanalla@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Link: https://patch.msgid.link/20250227165420.3430301-1-roman.gushchin@linux.dev
-Reviewed-by: Parav Pandit <parav@nvidia.com>
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/core/device.c | 9 +++++++++
- drivers/infiniband/core/sysfs.c  | 1 +
- include/rdma/ib_verbs.h          | 1 +
- 3 files changed, 11 insertions(+)
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 291ded20934c8..a5ba2cb3031f2 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -543,6 +543,8 @@ static struct class ib_class = {
- static void rdma_init_coredev(struct ib_core_device *coredev,
- 			      struct ib_device *dev, struct net *net)
- {
-+	bool is_full_dev = &dev->coredev == coredev;
-+
- 	/* This BUILD_BUG_ON is intended to catch layout change
- 	 * of union of ib_core_device and device.
- 	 * dev must be the first element as ib_core and providers
-@@ -554,6 +556,13 @@ static void rdma_init_coredev(struct ib_core_device *coredev,
- 
- 	coredev->dev.class = &ib_class;
- 	coredev->dev.groups = dev->groups;
-+
-+	/*
-+	 * Don't expose hw counters outside of the init namespace.
-+	 */
-+	if (!is_full_dev && dev->hw_stats_attr_index)
-+		coredev->dev.groups[dev->hw_stats_attr_index] = NULL;
-+
- 	device_initialize(&coredev->dev);
- 	coredev->owner = dev;
- 	INIT_LIST_HEAD(&coredev->port_list);
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index ec5efdc166601..a9c33a6220ea8 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -984,6 +984,7 @@ int ib_setup_device_attrs(struct ib_device *ibdev)
- 	for (i = 0; i != ARRAY_SIZE(ibdev->groups); i++)
- 		if (!ibdev->groups[i]) {
- 			ibdev->groups[i] = &data->group;
-+			ibdev->hw_stats_attr_index = i;
- 			return 0;
- 		}
- 	WARN(true, "struct ib_device->groups is too small");
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5582509003264..41eb2a7c9695d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2725,6 +2725,7 @@ struct ib_device {
- 	 * It is a NULL terminated array.
- 	 */
- 	const struct attribute_group	*groups[4];
-+	u8				hw_stats_attr_index;
- 
- 	u64			     uverbs_cmd_mask;
- 
--- 
-2.39.5
-
-
-
+Jason
