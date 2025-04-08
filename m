@@ -1,123 +1,218 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D47A2673A8
-	for <linux-rdma@vger.kernel.org>; Tue,  8 Apr 2025 09:53:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D92722698AE;
+	Tue,  8 Apr 2025 10:59:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744105992; cv=none; b=mTG1ShkN0+sK4xQm5UKd191DL84OKrPmi4jRf4Veln5VtpRWZmy6BKFDn1URa0KoHUxF1JMmbvYvzW1g8546moLaP4HzEq41sw9VfKBF/uLktew0MgjKJ1knu7+hflheUfkr1eGamkS2Ct5dy5zTGeBfxe3Gjeinx6G6apuYLbk=
+	t=1744109971; cv=none; b=oRCPMyDjLUt/98Hp1dOmnCskiKVDawGZdD6rQ/O14fzNzz3Y2M8eLf9RuOenBGIXr//dV0EnLMHNWQ2TUbXN7J2x3Lxac0WNiKeNQuZeoUQaFJgfaeyvwBp/D8EAKwPjSSwkQ7G9ZeDHp4LwHGnOeNOw4TeNMqLT7uiBqKJBAAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744105992; c=relaxed/simple;
-	bh=tl6hsjBQeQonMXTDnYhi6nODGliYWIBHUyjuBUfrnAQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Gc6+mbi/DUBtE9/NiPt/7+jDgNTajlBxh+mIWY5L8XJrBqbF2vYPfgGdOBF4bQna+tQBIBLSHJfpFe0/69ghg6TmYV6FgnrW6gPJwuiLupWn97NKSaGB1ywcbvYwuIgwtJFU/JKRd/XbAYTCkMeLudkCskszGFJHJQVEsrmsAVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=RjYw56hX; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1744109971; c=relaxed/simple;
+	bh=4Ns97n4/Og/UfCCY2xsD/j38PqWaop2U54G3WqfRy9c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=rR5vJn8PdNfHIkKJe/BgsvcDVE5TPTXWUDfCT0Nnp5rYWIaHuI3XyRCGMxB3gCIarEbHPwHiZ89x/cCSQ2ALNc1aaJssuY+g6k+pPhi7T7by/tD4gjz3Dg0W83DqI15hMDaS/K1vB7PsJXFXgRuSaUlTq1oZCV/O++NRj1oejRE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=QazoIF+j; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=TCESX32k; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RjYw56hX"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1744105989;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="QazoIF+j";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="TCESX32k"
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1744109967;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=K6IdQJKIex2zj6kh6YbEc4NA1VSydUJu++cpr9b6NXU=;
-	b=RjYw56hXm8UlbtZrD8a9u0+I7ILT6f+qkmCdt4eehgg5lic8YgaVnqjrHZGcoYzBMY6Mc5
-	fO4LdF+SpgepNiJKfnasElnKHD27qH1lFICC6VBYbdqBiOz7cF5khvuh/UejLwwc4tKdpI
-	gbgvXyhYhj0vqy0hU2WQNAeSTIgpJ/w=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-207-ovAaV6JNOfOYbdp3wSoEuw-1; Tue, 08 Apr 2025 05:53:08 -0400
-X-MC-Unique: ovAaV6JNOfOYbdp3wSoEuw-1
-X-Mimecast-MFC-AGG-ID: ovAaV6JNOfOYbdp3wSoEuw_1744105987
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-43ea256f039so44921925e9.0
-        for <linux-rdma@vger.kernel.org>; Tue, 08 Apr 2025 02:53:07 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744105987; x=1744710787;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=K6IdQJKIex2zj6kh6YbEc4NA1VSydUJu++cpr9b6NXU=;
-        b=DJGQqlijPV1DVa9NQj361mHGou1Ka4LGgqRmUDWw5eqlhN1Ajea9BBEnPKOhvSK4iw
-         GIEqBliBlBhAq9DiJrkOHetnwWWEw0rNOzh/smglT9NrM18e61aOpWdQFYIlgXL9Ybh0
-         Z2WuX7+NXQjBu67HZxaYjULHF2eDEpSP33SHg/HQMt7GkLolPnnAQMPGDUNiHe1gABMO
-         DenoIWLc90ACoeEn3F9zIhLJ6cMudZiwDgqhnE4QK02Alq+jgdERm8av+Iuke75j/R30
-         llJaP9SDDnoZlyDuNQ/txY0b9nvcmShIlMq2h8nwPqdt+o3krj7dzxFVGDoj/2OadrER
-         dB/g==
-X-Forwarded-Encrypted: i=1; AJvYcCX+J0ncCLpgaKvc9Zqh8bGvNFR76bRLXOhGp2KKFc2skdWB3WkhLg8DsEPP9zG2UjhISMFwWgJmtZ6k@vger.kernel.org
-X-Gm-Message-State: AOJu0YzOvcoWIebpTW5YZwStxX8JvuCfYONTEqd3IelUvXAojD0g+/AT
-	CatlgZhU2gAHFD+Gry5zAo6dxaG+PKg6huNsFrmS1iRccwNJN+ajIe4t/hmMhYWg/XsKHYXUvXF
-	DZkxIJsuE5OUW705Fds1N73xYDHWoOMoWeY0ESWhQyg3/bFJ/xXeeexieDl4=
-X-Gm-Gg: ASbGncvqDzt3cXQ5TWh1/5CxXNxDC0lULfjeT8h6wL+zdL8d3kSKzIjTn/XSbUGhOga
-	3PkJDxhrIS+vubxtF0TLbte5rbG7SK3Qc/KE+EDXsVDXctxAk83+oVQHzWO/dpX6QyvrHbRm2FC
-	Wqcb2vA0JEENjOgkqT1E8kzi8nvf/mZ15XUDLgmUNjQ3qEFvp/br1wKkl3y8x1ecvauhjjk7tcW
-	HYLBWgz2y6gX3Nvo0KaqMF5YFM+q+Y5ynQIS0w5N2yFiWLIEaKIkdrCtoRK20N9cTkkD2axPNw2
-	Y/3LoFUF6Z/9BmYj0yzZLLpn0gz5gTyp1gPBFjWU81Q=
-X-Received: by 2002:a05:600c:b90:b0:43c:ee3f:2c3 with SMTP id 5b1f17b1804b1-43ed0b76672mr148729605e9.7.1744105987000;
-        Tue, 08 Apr 2025 02:53:07 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFz3d6cwTBLogdZzM/3j+G1okZTutG7wol9mbiqFI4dzijKYne4pxJdmwBs1y1v8CdO4H7dcg==
-X-Received: by 2002:a05:600c:b90:b0:43c:ee3f:2c3 with SMTP id 5b1f17b1804b1-43ed0b76672mr148729385e9.7.1744105986641;
-        Tue, 08 Apr 2025 02:53:06 -0700 (PDT)
-Received: from [192.168.88.253] (146-241-84-24.dyn.eolo.it. [146.241.84.24])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43f0e5e8dfasm21476925e9.27.2025.04.08.02.53.05
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 08 Apr 2025 02:53:06 -0700 (PDT)
-Message-ID: <81d6c67d-4324-41ad-8d8d-dee239e1b24c@redhat.com>
-Date: Tue, 8 Apr 2025 11:53:05 +0200
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=MV5k1y4SxJoy4GiG8mDNdP9Rw2UQvageHkpkKA+Py+U=;
+	b=QazoIF+jzQUnYVLtXUQUt22WdS9nyhhABxfIikis3kKbGjVVoMRqRbM8i4f7QM/KWH1TPU
+	7yds3Dt6qEc65BIzG5ZCTc8D7/LZ1vMvMwxEKE8YjNBJhLTEjhAgWH/pwEyWSIWn7S7FZ+
+	QJ44Ny4ZPHgdSRgfcz3CGNhovnWb6xcVq69PVDcjt/sxll4KLQm4k/NueOCsqX2g85JyUr
+	3RKa6wU/VMMqw7P3yMfIsNUAXuJ/5Bh15v/P+ZKww0/cERL9V8Uy82+hlaL4b0wEkvb6fU
+	DReVMNAtAtiHMKY2eqmn0RAQT4Zm1d0g/lyad7JcXIcmnDB9VmCo+239EPWRFA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1744109967;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=MV5k1y4SxJoy4GiG8mDNdP9Rw2UQvageHkpkKA+Py+U=;
+	b=TCESX32kV8IktyRtXGRVzhrc882+x7tMAPmvdZaIRGmtD1KZwOJBvJ7I062KdvUbs/1XWN
+	JeKoJ2Fi7c1b7aCA==
+To: linux-rdma@vger.kernel.org,
+	linux-rt-devel@lists.linux.dev,
+	netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	Eric Dumazet <edumazet@google.com>,
+	Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Jesper Dangaard Brouer <hawk@kernel.org>,
+	Joe Damato <jdamato@fastly.com>,
+	Leon Romanovsky <leon@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Simon Horman <horms@kernel.org>,
+	Tariq Toukan <tariqt@nvidia.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Yunsheng Lin <linyunsheng@huawei.com>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH net-next v3 0/4] page_pool: Convert stats to u64_stats_t.
+Date: Tue,  8 Apr 2025 12:59:17 +0200
+Message-ID: <20250408105922.1135150-1-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v1] net/mlx5: Fix null-ptr-deref in
- mlx5_create_inner_ttc_table()
-To: Henry Martin <bsdhenrymartin@gmail.com>, saeedm@nvidia.com,
- leon@kernel.org, tariqt@nvidia.com
-Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, amirtz@nvidia.com, ayal@nvidia.com, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20250405100017.77498-1-bsdhenrymartin@gmail.com>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <20250405100017.77498-1-bsdhenrymartin@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On 4/5/25 12:00 PM, Henry Martin wrote:
-> Add NULL check for mlx5_get_flow_namespace() returns in
-> mlx5_create_inner_ttc_table() to prevent NULL pointer dereference.
-> 
-> Fixes: 137f3d50ad2a ("net/mlx5: Support matching on l4_type for ttc_table")
-> Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/lib/fs_ttc.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/fs_ttc.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/fs_ttc.c
-> index eb3bd9c7f66e..4e964ca5367e 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/fs_ttc.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/fs_ttc.c
-> @@ -655,6 +655,8 @@ struct mlx5_ttc_table *mlx5_create_inner_ttc_table(struct mlx5_core_dev *dev,
->  	}
->  
->  	ns = mlx5_get_flow_namespace(dev, params->ns_type);
-> +	if (!ns)
-> +		return ERR_PTR(-EOPNOTSUPP);
+This is a follow-up on
+        https://lore.kernel.org/all/20250213093925.x_ggH1aj@linutronix.de/
 
-I suspect the ns_type the caller always sets a valid 'ns_type', so the
-NULL ptr is not really possible here.
+to convert the page_pool statistics to u64_stats_t to avoid u64 related
+problems on 32bit architectures.
+While looking over it, the comment for recycle_stat_inc() says that it
+is safe to use in preemptible context. The 32bit update is split into
+two 32bit writes. This is "okay" if the value observed from the current
+CPU but cross CPU reads may observe inconsistencies if the lower part
+overflows and the upper part is not yet written.
+I explained this and added x86-32 assembly in
+	https://lore.kernel.org/all/20250226102703.3F7Aa2oK@linutronix.de/
 
-At very least an empty line after the return statement will make the
-code more readable and the commit message should be rewritten to better
-describe the issue.
+I don't know if it is ensured that only *one* update can happen because
+the stats are per-CPU and per NAPI device. But there will be now a
+warning on 32bit if this is really attempted in preemptible context.
 
-Similar considerations apply to the other mlx5 fixes.
+The placement of the counters is not affected by this change except on
+32bit where an additional sync member is added. For 64bit pahole output
+changes from
+| struct page_pool_recycle_stats {
+|         u64                        cached;               /*     0     8 */
+|         u64                        cache_full;           /*     8     8 */
+|         u64                        ring;                 /*    16     8 */
+|         u64                        ring_full;            /*    24     8 */
+|         u64                        released_refcnt;      /*    32     8 */
+|
+|         /* size: 40, cachelines: 1, members: 5 */
+|         /* last cacheline: 40 bytes */
+| };
 
-Thanks,
+to
+| struct page_pool_recycle_stats {
+|         struct u64_stats_sync      syncp;                /*     0     0 */
+|         u64_stats_t                cached;               /*     0     8 */
+|         u64_stats_t                cache_full;           /*     8     8 */
+|         u64_stats_t                ring;                 /*    16     8 */
+|         u64_stats_t                ring_full;            /*    24     8 */
+|         u64_stats_t                released_refcnt;      /*    32     8 */
+|
+|         /* size: 40, cachelines: 1, members: 6 */
+|         /* last cacheline: 40 bytes */
+| };
 
-Paolo
+On 32bit struct u64_stats_sync grows by 4 bytes (plus addiional 20 with
+lockdep).
+
+For bench_page_pool_simple.ko loops=3D600000000 I ended up with, before:
+
+| time_bench: Type:for_loop Per elem: 1 cycles(tsc) 0.501 ns (step:0)
+| time_bench: Type:atomic_inc Per elem: 6 cycles(tsc) 3.303 ns (step:0)
+| time_bench: Type:lock Per elem: 28 cycles(tsc) 14.038 ns (step:0)
+| time_bench: Type:u64_stats_inc Per elem: 1 cycles(tsc) 0.565 ns (step:0)
+| time_bench: Type:this_cpu_inc Per elem: 1 cycles(tsc) 0.503 ns (step:0)
+|=20
+| bench_page_pool_simple: time_bench_page_pool01_fast_path(): Cannot use pa=
+ge_pool fast-path
+| time_bench: Type:no-softirq-page_pool01 Per elem: 19 cycles(tsc) 9.526 ns=
+ (step:0)
+| bench_page_pool_simple: time_bench_page_pool02_ptr_ring(): Cannot use pag=
+e_pool fast-path
+| time_bench: Type:no-softirq-page_pool02 Per elem: 46 cycles(tsc) 23.501 n=
+s (step:0)
+| bench_page_pool_simple: time_bench_page_pool03_slow(): Cannot use page_po=
+ol fast-path
+| time_bench: Type:no-softirq-page_pool03 Per elem: 121 cycles(tsc) 60.697 =
+ns (step:0)
+| bench_page_pool_simple: pp_tasklet_handler(): in_serving_softirq fast-path
+| bench_page_pool_simple: time_bench_page_pool01_fast_path(): in_serving_so=
+ftirq fast-path
+| time_bench: Type:tasklet_page_pool01_fast_path Per elem: 19 cycles(tsc) 9=
+.531 ns (step:0)
+| bench_page_pool_simple: time_bench_page_pool02_ptr_ring(): in_serving_sof=
+tirq fast-path
+| time_bench: Type:tasklet_page_pool02_ptr_ring Per elem: 45 cycles(tsc) 22=
+.594 ns (step:0)
+| bench_page_pool_simple: time_bench_page_pool03_slow(): in_serving_softirq=
+ fast-path
+| time_bench: Type:tasklet_page_pool03_slow Per elem: 123 cycles(tsc) 61.96=
+9 ns (step:0)
+
+after:
+| time_bench: Type:for_loop Per elem: 1 cycles(tsc) 0.501 ns (step:0)
+| time_bench: Type:atomic_inc Per elem: 6 cycles(tsc) 3.324 ns (step:0)
+| time_bench: Type:lock Per elem: 28 cycles(tsc) 14.038 ns (step:0)
+| time_bench: Type:u64_stats_inc Per elem: 1 cycles(tsc) 0.565 ns (step:0)
+| time_bench: Type:this_cpu_inc Per elem: 1 cycles(tsc) 0.506 ns (step:0)
+|=20
+| bench_page_pool_simple: time_bench_page_pool01_fast_path(): Cannot use pa=
+ge_pool fast-path
+| time_bench: Type:no-softirq-page_pool01 Per elem: 18 cycles(tsc) 9.028 ns=
+ (step:0)
+| bench_page_pool_simple: time_bench_page_pool02_ptr_ring(): Cannot use pag=
+e_pool fast-path
+| time_bench: Type:no-softirq-page_pool02 Per elem: 45 cycles(tsc) 22.714 n=
+s (step:0)
+| bench_page_pool_simple: time_bench_page_pool03_slow(): Cannot use page_po=
+ol fast-path
+| time_bench: Type:no-softirq-page_pool03 Per elem: 120 cycles(tsc) 60.428 =
+ns (step:0)
+| bench_page_pool_simple: pp_tasklet_handler(): in_serving_softirq fast-path
+| bench_page_pool_simple: time_bench_page_pool01_fast_path(): in_serving_so=
+ftirq fast-path
+| time_bench: Type:tasklet_page_pool01_fast_path Per elem: 18 cycles(tsc) 9=
+.024 ns (step:0)
+| bench_page_pool_simple: time_bench_page_pool02_ptr_ring(): in_serving_sof=
+tirq fast-path
+| time_bench: Type:tasklet_page_pool02_ptr_ring Per elem: 43 cycles(tsc) 22=
+.028 ns (step:0)
+| bench_page_pool_simple: time_bench_page_pool03_slow(): in_serving_softirq=
+ fast-path
+| time_bench: Type:tasklet_page_pool03_slow Per elem: 121 cycles(tsc) 60.73=
+6 ns (step:0)
+
+v2=E2=80=A6v3: https://lore.kernel.org/all/20250307115722.705311-1-bigeasy@=
+linutronix.de
+  - Moved the page_pool_ethtool_stats_get_strings_mq() to the mlx5
+    driver and named it mlx_page_pool_stats_get_strings_mq(). As per
+    review it will remain a Mellanox only thing.
+
+v1=E2=80=A6v2: https://lore.kernel.org/all/20250221115221.291006-1-bigeasy@=
+linutronix.de
+  - Clarified the cover mail, added stat for pahole and from bench_page_poo=
+l_simple.ko
+  - Corrected page_pool_alloc_stats vs page_pool_recycle_stats type in
+    the last patch.
+  - Copy the counter values outside of the do {} while loop and add them
+    later.
+  - Redid the mlnx5 patch to make it use generic infrastructure which is
+    now extended as part of this series.
+
+Sebastian Andrzej Siewior (4):
+  mlnx5: Use generic code for page_pool statistics.
+  page_pool: Provide an empty page_pool_stats for disabled stats.
+  page_pool: Convert page_pool_recycle_stats to u64_stats_t.
+  page_pool: Convert page_pool_alloc_stats to u64_stats_t.
+
+ Documentation/networking/page_pool.rst        |  6 +-
+ .../ethernet/mellanox/mlx5/core/en_stats.c    | 97 ++++++++----------
+ .../ethernet/mellanox/mlx5/core/en_stats.h    | 26 +----
+ include/linux/u64_stats_sync.h                |  5 +
+ include/net/page_pool/helpers.h               |  6 ++
+ include/net/page_pool/types.h                 | 31 +++---
+ net/core/page_pool.c                          | 99 +++++++++++++------
+ net/core/page_pool_user.c                     | 22 ++---
+ 8 files changed, 159 insertions(+), 133 deletions(-)
+
+--=20
+2.49.0
 
