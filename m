@@ -1,205 +1,164 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2040.outbound.protection.outlook.com [40.107.92.40])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95D5226B2CC;
-	Tue,  8 Apr 2025 12:16:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744114591; cv=none; b=KliXLnf/f0sadeCqOy6FyHoqnbSbaXOBMXKB+wLv03DrD3w9DgbEq9xGwV6cHclntWSV4WcDMAk1+cRpSCcxa+dHqVe5kZytQL8yNYtJBjZ0PJ49f1BCf9VvFyI2kUWCPY/jKTQwbB14Y+FBkCCZogwGksQcYUGnBhW5XipAM3M=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744114591; c=relaxed/simple;
-	bh=hMVnT69LMfYi0D6gVTl7Y28N5dL2PhddlkJGA4S5q9I=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=SfXZ5wH2utskFTGJeozpR2CwoRai2RM+6V0W8ygIi7sclin4yjLGN/SKFlefTfytlpdgh6ECS2XRbO+eqyY9FhlcqMzm9716x6am+puSHKYhIjCfKkk8shD0ERa4IHGpFa+xfbGHGdN4qey8gWyocFxB+3Ig3g25Fxbnmo2vafw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=RqUDKLb3; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F4A22698B9;
+	Tue,  8 Apr 2025 12:23:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.92.40
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1744115025; cv=fail; b=dc+u5nrYtNZiqkApsF2VfAmXVq8MwYegOo3VlDyEFml3f4zLmVM1LFBh5WSxmHDcDTeRVGYfPD+vB1QAAllvtNipfZew6ttlSEiPT3FF4J/0RBf5CyetIJzKUnXOdP9U3Ehfufhx2MUNs+G2Efx+y8lCPJSQlIlK7H9bO3CIsqg=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1744115025; c=relaxed/simple;
+	bh=JAMmygxUBUn+QQNivfH4i480GQFeEbWGJrOp3pTRudY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=jQsA3pwiYB/evGdXH4xCQlYKZZASJZYqYlWxxJjhcECVEx9rHjselfGdgIUPVuXn/8vE1mx8hevTJEN4Aj4FMN27t5BbNQO27gKYDdfbYcbfGpRp44ysShp+2rowq9sCH8grp/UZd3tFkyAnftz5ipE5ucxhS+AyMQQA48KSjYY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=DalaKPXo; arc=fail smtp.client-ip=40.107.92.40
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="RqUDKLb3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F51CC4CEE7;
-	Tue,  8 Apr 2025 12:16:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1744114591;
-	bh=hMVnT69LMfYi0D6gVTl7Y28N5dL2PhddlkJGA4S5q9I=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RqUDKLb3rU6gVbj+/PP0R0A/HaoSOxpl6vXc0+pP0n4a+lOR1y/MpkSdfvERiM1x+
-	 N9mE6QxJqH5VtRCHmZlH8SkSwL8yYyQ8SLzhu4t2vgtmt87tcW+J6AVIRY+AvpIl4c
-	 3SwMetCuTDTt1iX8EDVJsdDEY0ahtl2JXxe/Teno=
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: stable@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	patches@lists.linux.dev,
-	Roman Gushchin <roman.gushchin@linux.dev>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Maher Sanalla <msanalla@nvidia.com>,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Parav Pandit <parav@nvidia.com>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.13 162/499] RDMA/core: Dont expose hw_counters outside of init net namespace
-Date: Tue,  8 Apr 2025 12:46:14 +0200
-Message-ID: <20250408104855.221228068@linuxfoundation.org>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250408104851.256868745@linuxfoundation.org>
-References: <20250408104851.256868745@linuxfoundation.org>
-User-Agent: quilt/0.68
-X-stable: review
-X-Patchwork-Hint: ignore
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="DalaKPXo"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=cSZuMibD+wtWTiJkFlrpb0MoEVleY++rUc0qjcPWdLZaEFGaMlzmRK4X4Ugdi77qHDuKlAWu8C5qjGrqQ3uL+/V+SYrIcUV+S8BYz1nHFXTD2AzuGwwigRDdu75QU0QUAZuqhu6lkug0jGg5YFLA2uIAaMiAdBBF8w6hIyehjN3DT7ZzI+gbPGwaamYrmh1/kOfngQqn9L5+edV3LdznZ7+af1nh/atK6dZzksqb83mbwIAjh5mPDINhTQWWldgPvIbJEdy8sPet8I1EQKkOPhMuAvwf2YOemrAiGMFdSAgd8xI6bqHouFxkruTLE3xDkdYdnbfZ0ihWH1ZrpK1DRQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=8FHTbXTv2KvzDkPPErz28HmzwRNNUxaPmpqJJVcJYLE=;
+ b=AS23Wr9Sfk3irNOSqJLBtqVcz+pHvZ8sLoUS0kkItk99Z7EPU6Tc86KixQ+wfng6635HtjIEhx8Tiq0N+pBZMNxtQKWW8el+Raayd2y8fgv55yn6yZtvo0ZPWyOn49KtYl1v7zS8t8KBFLZYojW3tTUpZj8/sVq9baui2jAnv/QnnwuBU+z3XG4RNiMj4mmgD9vwPQ5lSWxGTl6argn8YjqgcIQ8qTS/lE562bbgjrTejgh02Djby9XQC4Ck926kB4GPM9rr3tul2kmnJn/bLr9cwL9Y5C5ICOe/qnQEj+/ElPYH5vDqYGo1aeBs6wcIdTio0jFt3u9QzBe2q9Clhw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=8FHTbXTv2KvzDkPPErz28HmzwRNNUxaPmpqJJVcJYLE=;
+ b=DalaKPXoKJZDW77bbE2Jie2g8NheG6e5MWg3+Mva1UGwn3rHFfJh1p7dDl0gHuu0P4tjegl9Tq85LlHREqne3OBYh8JYiJyjswGxE5LnL5456lVMeAuBXYryrTqN1jpjtvzVwHrMLug0n5L4gkQ7NFecjmpvIXxnDml7B50FCtJoSce25/n6giavnlFXK0cE9guzlWGqbF+bBfYn9mRJV716eQTycoeIxNB3eh/qcoKa2bEJuu74aMzqmFdNJ6cfTvc2d591XUo3KUq1u5W8TOIT4v6l9Lw3ap/uXswi9xYYANJpM2LFl6dWNDOdWrt6EfAryCvVuu72X/0S/kXI6A==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from CH3PR12MB8659.namprd12.prod.outlook.com (2603:10b6:610:17c::13)
+ by DS0PR12MB8220.namprd12.prod.outlook.com (2603:10b6:8:f5::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8606.34; Tue, 8 Apr
+ 2025 12:23:40 +0000
+Received: from CH3PR12MB8659.namprd12.prod.outlook.com
+ ([fe80::6eb6:7d37:7b4b:1732]) by CH3PR12MB8659.namprd12.prod.outlook.com
+ ([fe80::6eb6:7d37:7b4b:1732%4]) with mapi id 15.20.8606.028; Tue, 8 Apr 2025
+ 12:23:40 +0000
+Date: Tue, 8 Apr 2025 09:23:38 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Allison Henderson <allison.henderson@oracle.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Leon Romanovsky <leonro@nvidia.com>, linux-rdma@vger.kernel.org,
+	netdev@vger.kernel.org, rds-devel@oss.oracle.com
+Subject: Re: [PATCH net-next] rds: rely on IB/core to determine if device is
+ ODP capable
+Message-ID: <20250408122338.GA1778492@nvidia.com>
+References: <bfc8ffb7ea207ed90c777a4f61a8afe1badef212.1744109826.git.leonro@nvidia.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bfc8ffb7ea207ed90c777a4f61a8afe1badef212.1744109826.git.leonro@nvidia.com>
+X-ClientProxiedBy: MN2PR03CA0014.namprd03.prod.outlook.com
+ (2603:10b6:208:23a::19) To CH3PR12MB8659.namprd12.prod.outlook.com
+ (2603:10b6:610:17c::13)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: CH3PR12MB8659:EE_|DS0PR12MB8220:EE_
+X-MS-Office365-Filtering-Correlation-Id: af573b4d-dbf6-4d01-6ab5-08dd769831cb
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|1800799024;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?6T6Byi23b98JrY2p8f+iC5vr7Jx5/litHFn1O0qhu/J/skjUxsYSU+a94JKs?=
+ =?us-ascii?Q?IM3iKSY3/hTJk6MWBOo2q6za3d+RzvObQRJJfXCn/Xdl3zqc36ycHa5AgW05?=
+ =?us-ascii?Q?zIt//Fyn1lQClkB5Z14UR0rwMDPLLPnqNvzxXAHYXWQjozvnMfdVivG04ch1?=
+ =?us-ascii?Q?tagRVof2StIUhnyJ2YMjA9LtNJ5p0EuOBJu/Jl4EXj8tuH/DNwP8pYEbpghz?=
+ =?us-ascii?Q?zA21KxNqIONzSw/7OefM8sjyoM3fYy/GGgpEaXm9JP25u3ouF6ATVEdS+6Kc?=
+ =?us-ascii?Q?qse7hIq+uWzvF0+duNt7tSJFcU7dtiv+j4EiMhYanWDJhX+/Tm7GUHZmfXV4?=
+ =?us-ascii?Q?yxHYTx/3sVdVuwoUQzqscc7J2wIwpEMoOpSbsqJrkvFuEjIXOWovunYuVmTR?=
+ =?us-ascii?Q?l9KU89QluNN1pFn2yrWG0HYUMreatPUFzisgM6CKCFGjUOdN4QhoW0Ocvwq1?=
+ =?us-ascii?Q?rruQ2GOPvvb/5MQOy4ehsZhPkEk0ZW3fnjIQcoeUnmfvPis8z9F+cYecjR3O?=
+ =?us-ascii?Q?QOX6Ud4vaV/jTWAidSH9hQoHDqOonlYv2fnh6M2AfZ1n+uu52OqmkjTa8Tcr?=
+ =?us-ascii?Q?HoAdm1rttCGmI7QnP17uSmGwy9cBDJFSHJ0sahJ0RBGQGuMypj4IvRznFG/r?=
+ =?us-ascii?Q?l6nrrhq30vPbFAOCF7wlTWwAQw6Pzjbrb1M6VjYy/U6cS4r4OkCFgxb7IDwd?=
+ =?us-ascii?Q?iHnh7AwH2zYKoSZqtt6ST8QhiCx0NkcF9C0Gl5BRroP9B6+Av6Zc4UdT9xEC?=
+ =?us-ascii?Q?1TEqzX+BqATaSak2EJbCvD4dMfd3r4P1kJcWTNrvvBUFQY3R1SssrUTo8kvh?=
+ =?us-ascii?Q?vG7U9sDQysU0kXu9ptLATpdgalApROQCiZ2WrJru+DB3Acr9biUJiwW7fz/h?=
+ =?us-ascii?Q?tPP5CarK5Rhv6fQWp1pJNyUPKxyjIRluvJLy0izaDHIJnrySMq54DboRJEW5?=
+ =?us-ascii?Q?ACPxznmf0+i9cCGShbMPOEe/eolKmWFtiTpRFQq5gFR3uL1bvh5FJaEGQRAE?=
+ =?us-ascii?Q?oWOfqMXcGmX8OYoIwP0c0ZyhhVRj5JqPlTHZhlwfOGBsAVDALW5CZTXyAUMa?=
+ =?us-ascii?Q?jtS07kUQhk3jVkDY2Cwa/gvXZ5VLnrfAzfI82dkc+ieYBy04ggUyZKnUaCX6?=
+ =?us-ascii?Q?CsRlzYh4FwXh3UTGlh6+Ao6y0SRQDxN0AzIyGJ2EwRPdjvTNhvNVIlQOjh8i?=
+ =?us-ascii?Q?28kl9YjXsOCY8UBSdU9R+Vfd33l+QD5+k6/tCa/T3c5zSZQWuBbPmw5wGNwf?=
+ =?us-ascii?Q?nII72Goef9uLsfzqEM9HXYnJvYfnq5+GOplAQMUiwYztOEScQBtCOFgIB+Aw?=
+ =?us-ascii?Q?dvxb1TFjha52bbImhAbzdZH4GywKwHx9eUpF6p7s7nkcnPr6cJN8DpyON9EU?=
+ =?us-ascii?Q?Vf8eXju0+t1/t0Dc/Yg9Vuy2G5lE?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CH3PR12MB8659.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(1800799024);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?bhXbINjdPJl6PjPssz5pnDVi2FJnLT94YiUygqF/vwLf7JOcH4bAPtEA01D0?=
+ =?us-ascii?Q?utss9BXIMdyL/HjzgQDQLdF87uajKMEx9KIptRzEStEiXnCkWM9t6FYcvLgn?=
+ =?us-ascii?Q?MIBtgmNsv3L7GuuamfaX2BA41bwgr0XtKvokMOFdCvrnQ85SIZLl5raoWLJD?=
+ =?us-ascii?Q?PkfzDC6cG0/k9IkevB3GEFJ2ukmu2sDIMHQudiUhSSoU9LZa6vqKxK3EZSx8?=
+ =?us-ascii?Q?MYTgiLUJDE/z56Y2zhwhpOOe3vmgCprgQQReF5mCVF91MpyzvjXf6+tQvgk4?=
+ =?us-ascii?Q?jCPkDs6BeApEuWTSYcxfl5absfPe0XgMLX3DRTIRDixsj33ht2mGY5niixxh?=
+ =?us-ascii?Q?AaTezQeYaORvB87K+JnRxgs3Wws+u9AH9O/gRSoeDuxcuzIQ7fNolvDHe76p?=
+ =?us-ascii?Q?PBQnZ/QZkcghJ9lcwVnsvnsb9ID6XAOJjF5qhvNuI6mNeXKG+pwHPfcORa8z?=
+ =?us-ascii?Q?19EAAUycwLAE9DU494pOsMJYoSclo7kyjHy4BxnPpX6erkudNfqnVTFzp5dz?=
+ =?us-ascii?Q?FQM89YMYCWBZ66omZ6vTWM2z/KJPspBx7Kwi0ywPTR77HhHvxjUjwQPBJS5x?=
+ =?us-ascii?Q?1t4i+CQ98ebBswsFF8ohYd42Rs74/GwumkPGKFFI4SKhRxGgCyn7fpv6IEBw?=
+ =?us-ascii?Q?1oKyTo0nuFeKm0Ge3fc7j0MO4mYwNnc54FKCQlq+xJ03y2ZsUtwwCAWIj7Xp?=
+ =?us-ascii?Q?h/N7BloWE0lUYfhlGZWPPlhc1L3dT1x+suMIjZW0xvkfyUrbZ6Cb4gaJeEqK?=
+ =?us-ascii?Q?zZtU7+5AY7R+PxuKE6ufEQ0ZOR8GJP/L1yoZe7c/mc4BR4VvFlNsRUqcBAex?=
+ =?us-ascii?Q?DZQE+72W7K+qrLdJ1ddZoajA6nVVJfl0wq6eIqVv7S6RoLusHxwULJ3gVbpl?=
+ =?us-ascii?Q?g0UwiP5cISGl6vnYKKxOCM2gph2JKbCcYDNsXr4G3VaVkNW5oaPy3sZDOJtz?=
+ =?us-ascii?Q?FkX6h7Z2NukAxVamoufDSQaZRTXLSNXL5EGmEuhC+lj3E4l9eoc0cdm9HzJz?=
+ =?us-ascii?Q?mjpy+YD29AFdyVo8UKv5GN+BYsuf2LQG4AsProkX3oRhXykHcLxfsuHFLRsx?=
+ =?us-ascii?Q?c7RwdQVXXFdwdrdWrXrHh7/eP7iLAT6UNgTDsZeDGhrK7f8TVA3qAuIpTcJu?=
+ =?us-ascii?Q?P9IDupIeOZEevDzI8ulbR2PiSAeZaBy3WI2Z6tA0xztzZjkFc7rQu8W3KvLZ?=
+ =?us-ascii?Q?rwbFaB6YFcNrEYuWg92hZ+Ib8AsXzOXpNkVGoeanyTbA1Rl2oDN3kaod260u?=
+ =?us-ascii?Q?cBnq+kCoYPV6ZsdNt5wTXoJssvEu4qPbUq1aeWCvxiKr/6qxPncjLEWzOXnf?=
+ =?us-ascii?Q?8uZdsQooFzYuVrIsoAKN6JZBTfVbbBYRvDSp9AtffIF4Xik4bIFxbVfjy2ms?=
+ =?us-ascii?Q?AXKJmuaHGKk4GowtXBNxBc6x+x7xh6gn0r2rPfn59Oz8VwwiuALnFRJ8d27A?=
+ =?us-ascii?Q?LZsrVQXJUorwaUc7/+exT+6LXe38hPAJBzfK1O1wrDERWnTYtyYCH8UD/LRC?=
+ =?us-ascii?Q?9tPAI0NLRzKL6aJcCGT6hdBIJelRAjovFRMoKR7hklToHb3S0RfPbE41v/tw?=
+ =?us-ascii?Q?5/+n2lsFTorXPpzZ7ohuHZN8I+xk1rHU4XcukWtP?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: af573b4d-dbf6-4d01-6ab5-08dd769831cb
+X-MS-Exchange-CrossTenant-AuthSource: CH3PR12MB8659.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Apr 2025 12:23:40.1331
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: VYgKEJ/Lmi3RAKlh3c4Qp+NNgZEG7LM61zwsyKvMH8pu8T/amWVlyT2E8DU0MhT/
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR12MB8220
 
-6.13-stable review patch.  If anyone has any objections, please let me know.
+On Tue, Apr 08, 2025 at 02:04:55PM +0300, Leon Romanovsky wrote:
+> diff --git a/net/rds/ib.c b/net/rds/ib.c
+> index 9826fe7f9d00..c62aa2ff4963 100644
+> --- a/net/rds/ib.c
+> +++ b/net/rds/ib.c
+> @@ -153,14 +153,6 @@ static int rds_ib_add_one(struct ib_device *device)
+>  	rds_ibdev->max_wrs = device->attrs.max_qp_wr;
+>  	rds_ibdev->max_sge = min(device->attrs.max_send_sge, RDS_IB_MAX_SGE);
+>  
+> -	rds_ibdev->odp_capable =
+> -		!!(device->attrs.kernel_cap_flags &
+> -		   IBK_ON_DEMAND_PAGING) &&
+> -		!!(device->attrs.odp_caps.per_transport_caps.rc_odp_caps &
+> -		   IB_ODP_SUPPORT_WRITE) &&
+> -		!!(device->attrs.odp_caps.per_transport_caps.rc_odp_caps &
+> -		   IB_ODP_SUPPORT_READ);
 
-------------------
+This patch seems to drop the check for WRITE and READ support on the
+ODP.
 
-From: Roman Gushchin <roman.gushchin@linux.dev>
-
-[ Upstream commit a1ecb30f90856b0be4168ad51b8875148e285c1f ]
-
-Commit 467f432a521a ("RDMA/core: Split port and device counter sysfs
-attributes") accidentally almost exposed hw counters to non-init net
-namespaces. It didn't expose them fully, as an attempt to read any of
-those counters leads to a crash like this one:
-
-[42021.807566] BUG: kernel NULL pointer dereference, address: 0000000000000028
-[42021.814463] #PF: supervisor read access in kernel mode
-[42021.819549] #PF: error_code(0x0000) - not-present page
-[42021.824636] PGD 0 P4D 0
-[42021.827145] Oops: 0000 [#1] SMP PTI
-[42021.830598] CPU: 82 PID: 2843922 Comm: switchto-defaul Kdump: loaded Tainted: G S      W I        XXX
-[42021.841697] Hardware name: XXX
-[42021.849619] RIP: 0010:hw_stat_device_show+0x1e/0x40 [ib_core]
-[42021.855362] Code: 90 90 90 90 90 90 90 90 90 90 90 90 f3 0f 1e fa 0f 1f 44 00 00 49 89 d0 4c 8b 5e 20 48 8b 8f b8 04 00 00 48 81 c7 f0 fa ff ff <48> 8b 41 28 48 29 ce 48 83 c6 d0 48 c1 ee 04 69 d6 ab aa aa aa 48
-[42021.873931] RSP: 0018:ffff97fe90f03da0 EFLAGS: 00010287
-[42021.879108] RAX: ffff9406988a8c60 RBX: ffff940e1072d438 RCX: 0000000000000000
-[42021.886169] RDX: ffff94085f1aa000 RSI: ffff93c6cbbdbcb0 RDI: ffff940c7517aef0
-[42021.893230] RBP: ffff97fe90f03e70 R08: ffff94085f1aa000 R09: 0000000000000000
-[42021.900294] R10: ffff94085f1aa000 R11: ffffffffc0775680 R12: ffffffff87ca2530
-[42021.907355] R13: ffff940651602840 R14: ffff93c6cbbdbcb0 R15: ffff94085f1aa000
-[42021.914418] FS:  00007fda1a3b9700(0000) GS:ffff94453fb80000(0000) knlGS:0000000000000000
-[42021.922423] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[42021.928130] CR2: 0000000000000028 CR3: 00000042dcfb8003 CR4: 00000000003726f0
-[42021.935194] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[42021.942257] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[42021.949324] Call Trace:
-[42021.951756]  <TASK>
-[42021.953842]  [<ffffffff86c58674>] ? show_regs+0x64/0x70
-[42021.959030]  [<ffffffff86c58468>] ? __die+0x78/0xc0
-[42021.963874]  [<ffffffff86c9ef75>] ? page_fault_oops+0x2b5/0x3b0
-[42021.969749]  [<ffffffff87674b92>] ? exc_page_fault+0x1a2/0x3c0
-[42021.975549]  [<ffffffff87801326>] ? asm_exc_page_fault+0x26/0x30
-[42021.981517]  [<ffffffffc0775680>] ? __pfx_show_hw_stats+0x10/0x10 [ib_core]
-[42021.988482]  [<ffffffffc077564e>] ? hw_stat_device_show+0x1e/0x40 [ib_core]
-[42021.995438]  [<ffffffff86ac7f8e>] dev_attr_show+0x1e/0x50
-[42022.000803]  [<ffffffff86a3eeb1>] sysfs_kf_seq_show+0x81/0xe0
-[42022.006508]  [<ffffffff86a11134>] seq_read_iter+0xf4/0x410
-[42022.011954]  [<ffffffff869f4b2e>] vfs_read+0x16e/0x2f0
-[42022.017058]  [<ffffffff869f50ee>] ksys_read+0x6e/0xe0
-[42022.022073]  [<ffffffff8766f1ca>] do_syscall_64+0x6a/0xa0
-[42022.027441]  [<ffffffff8780013b>] entry_SYSCALL_64_after_hwframe+0x78/0xe2
-
-The problem can be reproduced using the following steps:
-  ip netns add foo
-  ip netns exec foo bash
-  cat /sys/class/infiniband/mlx4_0/hw_counters/*
-
-The panic occurs because of casting the device pointer into an
-ib_device pointer using container_of() in hw_stat_device_show() is
-wrong and leads to a memory corruption.
-
-However the real problem is that hw counters should never been exposed
-outside of the non-init net namespace.
-
-Fix this by saving the index of the corresponding attribute group
-(it might be 1 or 2 depending on the presence of driver-specific
-attributes) and zeroing the pointer to hw_counters group for compat
-devices during the initialization.
-
-With this fix applied hw_counters are not available in a non-init
-net namespace:
-  find /sys/class/infiniband/mlx4_0/ -name hw_counters
-    /sys/class/infiniband/mlx4_0/ports/1/hw_counters
-    /sys/class/infiniband/mlx4_0/ports/2/hw_counters
-    /sys/class/infiniband/mlx4_0/hw_counters
-
-  ip netns add foo
-  ip netns exec foo bash
-  find /sys/class/infiniband/mlx4_0/ -name hw_counters
-
-Fixes: 467f432a521a ("RDMA/core: Split port and device counter sysfs attributes")
-Signed-off-by: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Maher Sanalla <msanalla@nvidia.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Link: https://patch.msgid.link/20250227165420.3430301-1-roman.gushchin@linux.dev
-Reviewed-by: Parav Pandit <parav@nvidia.com>
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/core/device.c | 9 +++++++++
- drivers/infiniband/core/sysfs.c  | 1 +
- include/rdma/ib_verbs.h          | 1 +
- 3 files changed, 11 insertions(+)
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index ca9b956c034d3..a5e145bfa6b30 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -545,6 +545,8 @@ static struct class ib_class = {
- static void rdma_init_coredev(struct ib_core_device *coredev,
- 			      struct ib_device *dev, struct net *net)
- {
-+	bool is_full_dev = &dev->coredev == coredev;
-+
- 	/* This BUILD_BUG_ON is intended to catch layout change
- 	 * of union of ib_core_device and device.
- 	 * dev must be the first element as ib_core and providers
-@@ -556,6 +558,13 @@ static void rdma_init_coredev(struct ib_core_device *coredev,
- 
- 	coredev->dev.class = &ib_class;
- 	coredev->dev.groups = dev->groups;
-+
-+	/*
-+	 * Don't expose hw counters outside of the init namespace.
-+	 */
-+	if (!is_full_dev && dev->hw_stats_attr_index)
-+		coredev->dev.groups[dev->hw_stats_attr_index] = NULL;
-+
- 	device_initialize(&coredev->dev);
- 	coredev->owner = dev;
- 	INIT_LIST_HEAD(&coredev->port_list);
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 9f97bef021497..210092b9bf17d 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -988,6 +988,7 @@ int ib_setup_device_attrs(struct ib_device *ibdev)
- 	for (i = 0; i != ARRAY_SIZE(ibdev->groups); i++)
- 		if (!ibdev->groups[i]) {
- 			ibdev->groups[i] = &data->group;
-+			ibdev->hw_stats_attr_index = i;
- 			return 0;
- 		}
- 	WARN(true, "struct ib_device->groups is too small");
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3417636da9602..2d2f1aec38eb1 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2743,6 +2743,7 @@ struct ib_device {
- 	 * It is a NULL terminated array.
- 	 */
- 	const struct attribute_group	*groups[4];
-+	u8				hw_stats_attr_index;
- 
- 	u64			     uverbs_cmd_mask;
- 
--- 
-2.39.5
-
-
-
+Jason
