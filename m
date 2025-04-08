@@ -1,28 +1,28 @@
-Received: from NAM04-MW2-obe.outbound.protection.outlook.com (mail-mw2nam04on2084.outbound.protection.outlook.com [40.107.101.84])
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2070.outbound.protection.outlook.com [40.107.236.70])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 542C722686B;
-	Tue,  8 Apr 2025 14:03:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.101.84
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FF4B1DDC2B;
+	Tue,  8 Apr 2025 14:03:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.70
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744120994; cv=fail; b=MmFMnoyxVnPWTXeAGBo3igdsvsEOK85qra+lTeiIeLdSqYFUe+KRUgqHzgwlf3MoVUQzyRBUUMmAwX+zPvJwtuJwfs4KEDGMyM0BmzIZuiyZbmvj6Ngc+v4Zz5r4yO7xCul3qrRrp172dmi2zB00k/I+fBizKFLRmqOZd5KAfF8=
+	t=1744121004; cv=fail; b=oD41RZ8NMXmXsmxkGCzcyxwwQmvKVkeBQlUoAQHMPiOCDF1wn0NCcWX5H612/rW+1JNZu7/0DbHHFwxd1Qcqcf3/1Rnd/X56wC2vBcEEwlyGciJq8+JDYrykhn6qcKdPPTy8N3yZrAh2WeMvh9TeUT02Wg/Iu8zFqPZFiGSR34M=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744120994; c=relaxed/simple;
-	bh=2yRrZTwKDI838RRAhOeEU9QVOsJTqD7VqgvjtNCDZeE=;
+	s=arc-20240116; t=1744121004; c=relaxed/simple;
+	bh=RHM3qN3y9v8cDEfYdS0TVdQkP37l8V5AxQwTigvuBI8=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=hAduDSY3cLZFgdV9bSgKo1r0upkfgAiCs7nUz0XZ938oV95gPHVNQvL32Di6+KghxRTuKbGI43YQ9rVUb+Xw6cP+XSIJbz5OFdikI9XBgEqQJW547tzbAIZeOEG+e2WUUKzUV5VGlcgp60+YXo9ygL42nj0ZNQWe2XQ5Fs4bkWc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=pUn8VPeT; arc=fail smtp.client-ip=40.107.101.84
+	 MIME-Version:Content-Type; b=k6fvArqfzkBK+W8pM+U7J81CbdCVLcyXTzrcAJRtJhLDVSrMg+w0Q32NsOGd2fD8nO0UDSKioexCDo+o3aPwZm++HSZrQNuVFHbHHuIt/x+Z4BAR63v1Qom+jq9injGMfgzJizb/1tKMionoVehDzrof71Soxc+p3W2zqrpev4I=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=DSfcNeW9; arc=fail smtp.client-ip=40.107.236.70
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="pUn8VPeT"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="DSfcNeW9"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=X+jFFUI7OvymLKe+mQQC3zZLbUf06QConS/gkBNVCHA0NPTy2rDvFpto66w4TxwPq0vL/usUDTxmQrgw2Egr5TET4smtG2Qrm/aR5GM6YA9met7oXaUuiApSz9W0TjteTNYG+55IoY/yCc8wDoLIhgSGz7DZYOfb4nTlC33os6Ix3Ci2Dv+e8uaD2M8///owJL3nT0b9s9mHNjgf6eIX5QmiPQRmh5F4za11gJQNpc3/VbF0ryfBlkicOYq91OLoPIm8wV1xTfRQPOJMSssjZkkAQcYT4Uhm8xFuNjOvfbhHRKk544AnAnmICmSjppRZkbSuMR5e//PupUH8jTxBjw==
+ b=LdStnpF85wMrJV6Uc3AIw+ang/gJRFJB5TM0HERKot+3i6RCesjKTp2C1rbpK9J6GMfuybjVEwrQfXFA2Hk6U7WJSFG5sKW126S4vQn4H+SgiQDyQXI8vPtLhNaXN7LazefCs4x4oMwBHEzZB5MJwZp+hEoF6GOMGxTRV+tT4shbqOw1t9ctxF3yz4Hp7RJnwmXVJMNlRmp1e3J9QEaFC7kmD6CmJOHrmdlHPWKPZHt0Q3Sse6mYYxovR60aJ3HQ8xFHCaOxAoJoRnnEgofZi9jk1rcaAJGmLy/Zx2tNODEVayd/VyR1WB4xdfVOVYMWJKKVyhRUevg0a8VXPDRraw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=o7rOyOL53YXIVAvcV3T1bcOVP+wi42Rzd2lGp0HroAs=;
- b=x3smSeI8xykBdZ+193yXRp9zPkD3qvZwGhA9LZFQZbdE567c9G/6wfvtuNa8vnNzs2YHourwhoeTj1Ic+lDvlll6IyqyiWaT9CN7LfRrMHZ89wA9EjnWsj4wjvonA/1V5W0uPVQHSKkY4F0YwtQ03IR7fY3zioxaCrQikDy0juslVrhJ2XRr7xZYNBxNiBF6/brSMxbQ/6UQygL/qjEUjpABi4dDFQ+m6UEGNkp9pJwfP6cLcpNz+EdUSrvfJxdGs2pKPNij+Y2h4aJU13asA2QeXbZRTCnhgRlz431O9Is6ExASyCoyDx7zkW/AOom0pr4FQcDC1kZFQAJzc0Xhsw==
+ bh=xY1mypgYW4O8UpWTlvAjcKm2EtvlHBVEI2KsWAdF9hc=;
+ b=mXSfYntAfwfCzlc+NeOidH8JnwsK5ppiQVppnxOOrEU6F3mFmDe+9bKtcFBlk53DvIS4nm1yQXfVy7TemCR+eWwcsRovDmXVJepfZejqxI2yvvDv+/VAWuItc6zjkwNDqp4Ivld+DMCag3UjqhTywt/Pqx5uIcF+4nUssElGEHYi5wBCU5eRlROibLJj9SiaZPXDSBE7dYUmKypCsFz4JDSzYssQ3jwYFsVxCLIOgXpN3pXqgcphTSTL3Fjcmwq8c5bqEI5957c4fHuvtXlQXpM7wnvMeq34LWkGEv3116hKilt+yODbqfsBW9dghCg2YuWW3LsEiINqLRV0sjK4/w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  216.228.117.160) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
@@ -30,18 +30,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=o7rOyOL53YXIVAvcV3T1bcOVP+wi42Rzd2lGp0HroAs=;
- b=pUn8VPeTUQy0L+a3xNSKMhJdtHX+IxTvEt+YXhdN1q/NPJnndZHQLUvPc7pqqR9zHLSn9ezIRIC+waCQEr23tgrAkT77bDjUfZchzJx45E2yNwaDO0XNJTvMZPUDn/6TxTNNYZ0HRPZu3us1h3ciXi4V0UU+v+2QDWMNSCARcCza7POffMGSN+u859YrKiqp1zwJnyuulyDusSg3Hn8g8Edgxu3qHy0B0ZAtSH/xjojgdb0nAxLDReuCDRgf/NDNTE3jUe685ZsuMRpw3abSLLj8CzQ6EIJmEWb9yJbSKDO/WY13dKlr9wRoVPdm0nwiUQOJ/G9pAMTAFlhfuEcSeg==
+ bh=xY1mypgYW4O8UpWTlvAjcKm2EtvlHBVEI2KsWAdF9hc=;
+ b=DSfcNeW9tkANcUOobIieoGeV3bvjcoAJazb0y/Tjyot7C5ffvlHS+vqRqw9TBgIpE/FusoKx7oLwmwJZifaw0Hw7fDqlJ87DdSF0w2RuBsNq/Z3aTT1MqzSARJaIBt+9zLOJslD+e7wHfl4vkhqq6P8MEQqm7bHmeVMT4/RGOsorb6WVXDCO4jfPco+NHLT7jPac0C8+99AAP3ylpDEpW4HmHDVrRWeQmke2yytW6YcyhKUhiIVmxNU2ALeaKU1rGsgeQw+jfK5bx43LPL9mzJLLJTRhnlJ6tJmQ7dkDMLmlXT8UUQAgki4DH/pWi8fVVfjrpmlPRffH7nPlk8DHsw==
 Received: from SA0PR11CA0053.namprd11.prod.outlook.com (2603:10b6:806:d0::28)
- by CH3PR12MB8935.namprd12.prod.outlook.com (2603:10b6:610:169::17) with
+ by IA0PR12MB8373.namprd12.prod.outlook.com (2603:10b6:208:40d::11) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8606.27; Tue, 8 Apr
- 2025 14:03:08 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8606.36; Tue, 8 Apr
+ 2025 14:03:18 +0000
 Received: from SA2PEPF00003F64.namprd04.prod.outlook.com
- (2603:10b6:806:d0:cafe::27) by SA0PR11CA0053.outlook.office365.com
+ (2603:10b6:806:d0:cafe::e1) by SA0PR11CA0053.outlook.office365.com
  (2603:10b6:806:d0::28) with Microsoft SMTP Server (version=TLS1_3,
  cipher=TLS_AES_256_GCM_SHA384) id 15.20.8606.27 via Frontend Transport; Tue,
- 8 Apr 2025 14:03:06 +0000
+ 8 Apr 2025 14:03:17 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.117.160)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
@@ -51,18 +51,18 @@ Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
 Received: from mail.nvidia.com (216.228.117.160) by
  SA2PEPF00003F64.mail.protection.outlook.com (10.167.248.39) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8606.22 via Frontend Transport; Tue, 8 Apr 2025 14:03:06 +0000
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by mail.nvidia.com
+ 15.20.8606.22 via Frontend Transport; Tue, 8 Apr 2025 14:03:17 +0000
+Received: from rnnvmail202.nvidia.com (10.129.68.7) by mail.nvidia.com
  (10.129.200.66) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Tue, 8 Apr 2025
- 07:02:44 -0700
-Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail203.nvidia.com
- (10.129.68.9) with Microsoft SMTP Server (version=TLS1_2,
+ 07:02:54 -0700
+Received: from rnnvmail203.nvidia.com (10.129.68.9) by rnnvmail202.nvidia.com
+ (10.129.68.7) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.14; Tue, 8 Apr
- 2025 07:02:43 -0700
+ 2025 07:02:53 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com (10.129.68.9)
  with Microsoft SMTP Server id 15.2.1544.14 via Frontend Transport; Tue, 8 Apr
- 2025 07:02:39 -0700
+ 2025 07:02:49 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>, "Andrew
@@ -73,9 +73,9 @@ CC: Gal Pressman <gal@nvidia.com>, Leon Romanovsky <leonro@nvidia.com>, "Saeed
 	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Moshe Shemesh
 	<moshe@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Vlad Dogaru
 	<vdogaru@nvidia.com>, Yevgeny Kliteynik <kliteyn@nvidia.com>
-Subject: [PATCH net-next 09/12] net/mlx5: HWS, Use the new action STE pool
-Date: Tue, 8 Apr 2025 17:00:53 +0300
-Message-ID: <1744120856-341328-10-git-send-email-tariqt@nvidia.com>
+Subject: [PATCH net-next 11/12] net/mlx5: HWS, Free unused action STE tables
+Date: Tue, 8 Apr 2025 17:00:55 +0300
+Message-ID: <1744120856-341328-12-git-send-email-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.8.0
 In-Reply-To: <1744120856-341328-1-git-send-email-tariqt@nvidia.com>
 References: <1744120856-341328-1-git-send-email-tariqt@nvidia.com>
@@ -89,228 +89,293 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: AnonymousSubmission
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA2PEPF00003F64:EE_|CH3PR12MB8935:EE_
-X-MS-Office365-Filtering-Correlation-Id: 46067b73-c151-4d6f-7ab3-08dd76a61651
+X-MS-TrafficTypeDiagnostic: SA2PEPF00003F64:EE_|IA0PR12MB8373:EE_
+X-MS-Office365-Filtering-Correlation-Id: 682c3d18-5be4-4ef9-e5a2-08dd76a61cad
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|36860700013|1800799024|82310400026|376014;
+	BCL:0;ARA:13230040|36860700013|82310400026|376014|1800799024;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?Inp1OrVQW9pT9EfcpC8x6KEo6VQWF0vAoGguu2QaQUO7iHtSCZDQOquEav8l?=
- =?us-ascii?Q?0t3wP9ZVb6yPxv4eFNrJFV0Y7SXzIjf2Q09Hk+SFR8/4ViswfHljSIVjWNoQ?=
- =?us-ascii?Q?HO5r3v28yV0Fj/pCvxFMFBbxf/dLG8iPL2I4LULb5S2ktcQiV2iekgYf9Tor?=
- =?us-ascii?Q?YgRPBc3q2zoiLzLzfgvMs0SadHaM4Ank0o6LYH7gr64AXBqr53evNlYSfoAc?=
- =?us-ascii?Q?vvqpHlxelntz23fp+uONPLu4D+vu1a47xAELzOpn5fme6uut7kVPWciWbxuN?=
- =?us-ascii?Q?CntJi+1pCkkbsHOlbzWp19dua2UAbEsgBXuM41zFtn4IvUqa7HmWX4Wy0cIm?=
- =?us-ascii?Q?EI4HWG2iQcmsRJeWzDCmBC4cDb4mEgz7GmP2JLqJ0P3ozFwem1U+GqUKWhX0?=
- =?us-ascii?Q?E+AbmbiufJhLKtyyyQfeeObVuga4A87EiYPBlRFCzf3rfY30vn1WSsfA0gZR?=
- =?us-ascii?Q?Bpa7KrHNlORhffei1pxJ0etTSFYiNq7n1i8smaUY/nCwTDnEeRG6Tx4Os2BH?=
- =?us-ascii?Q?WfXHYhxnBcOtM0RUvQbSzNdtUuY08U+G3/vqdEyANLPszJDGvPr+vcnPMDy2?=
- =?us-ascii?Q?evWTsQiZGGZsv/bNOgcxuiy6FGh7DgTedNYVfGPYszNKNetLF7fUInWA18c2?=
- =?us-ascii?Q?0wEhBTHJ94jdUSlOaXNFMbhPZZt4VYOxeDj9eTEMfzBASYtaQ8LIf+wYnVJk?=
- =?us-ascii?Q?JPkk0upj0i3NQkPAK/2xtxBE+z3/WwmhIPrT0yk6yhcutQY9rMQ2eYtqA1hf?=
- =?us-ascii?Q?gj9fxfrr5ijGr4DyUS/bT95sCf0g0MkxWhiVtpHA5PI86T7368a/pUbjIHUR?=
- =?us-ascii?Q?zg3sRSqeDBryiDkJxSK+c5I/84bLePivKb5OcGLAAcV5eKTtleNQP9eTmgod?=
- =?us-ascii?Q?d39OidImazZA4dGZUOVit6ECGA0caiDfF3nebSqGQ7w6WWhhPFn92M+ZCP91?=
- =?us-ascii?Q?mVbK0uaiDKD4DczOhRKjT8YlELrpi9WBbvbxMjeUuoJ6h/Imkh/XEcFT8YQo?=
- =?us-ascii?Q?v6ttPs4nP/7OzuRitJD1+xRMFXwSKlbf/lvcMu8h2m4G+w6ShYXc4VpyQRJv?=
- =?us-ascii?Q?Vc9b5q6QqK8s7HgY8d2rrlh8C7F/b7knoAZhlJ2qqYEz3zKSiW8GYBamzjFV?=
- =?us-ascii?Q?juV1fBe80cg4oqs2663YaCvQMb5kVV126zZXJ0v8Hnx0/BlNiH+ZvvoiOBe4?=
- =?us-ascii?Q?Wn/vbNeS8KcipTP37B6FbbdJloGw2Ao84M4L2RbomWzkzx3xqD8nWQePaI4F?=
- =?us-ascii?Q?V+8NOv9EbY88OmiWrIrk7c2+jhOdLRt4N83Cug30I3lefGUpHxgEX343GtR9?=
- =?us-ascii?Q?pBpXenGlkV2neaINIX5LCR5hi4wnzdJtSKyr/Bg9em9uqNUyUJuHf3F1yYCe?=
- =?us-ascii?Q?c314JPyu0ZoHB2+BTNsRSl0FnIjB2gmF/OTSy8oD9cx4CH2Ue4haaceLURuO?=
- =?us-ascii?Q?naGAKLFzgDKmcC2lmJQJIPeLlkei6l3CTS0t8HxSEFH3mTbwfwRCIJlu6AlN?=
- =?us-ascii?Q?/CVyhMr0UYU/S4k=3D?=
+	=?us-ascii?Q?qyrRHQnM0C+BTPCVgszIAwa8UEX2Y+c2rhedsbdY40cnjYbNgOU/dIvS/wtJ?=
+ =?us-ascii?Q?sJj9+VocBTKp7F87VZk2rsxicvBGPsmFO28CRZmgEUN6+QRG4t5f+xdbxnoY?=
+ =?us-ascii?Q?apQzMDf9FOyLmPWXtFQavRetfhUoxKN3huHGe80PpEwxpXlx2jQrCWjUmfJ5?=
+ =?us-ascii?Q?Fo7ajVZZef1TsZ1ikVbYE3hZFORzt5UNlMp9kqV+jXZODFR277hQQwxG0j4/?=
+ =?us-ascii?Q?FJxYpjrQAE4PPikMWlvn5yQGvrXleaIW37s/27jF/et6O6QOkphVn1+UFgMY?=
+ =?us-ascii?Q?XoeNtE0630ra0oSxZsOLqs0PpCWeLjXKCb31W/WO2W0XxMrqTtAALwWIraMk?=
+ =?us-ascii?Q?yZk5sNneGyfcUvJ6OW/tC/inJiQOWK06pJrnAij99inUlmk1pHYahaiLdF3i?=
+ =?us-ascii?Q?qciaBQ1V8D5tZGX1KVRC206YaOAIQIh4u2t1/Dga9Omu8TJlDKvbTOKBGRXW?=
+ =?us-ascii?Q?/S4wskZPY6i+BmzNDr+n53Kci1KL6UUw/FhRIN3d+VF05UdRUmGCc8Ki5XQT?=
+ =?us-ascii?Q?qVkWKXVSm1at/c4Z+WEo7D4NXGInLGdDhTuUMHs5jHBWdimT4z9GWAUZ54Qp?=
+ =?us-ascii?Q?Qtg1ucl2Q6oSRFYYA30LT1WksVdHrSZ+iE7QggFwp+Bddn8oYm+umYrQJD5I?=
+ =?us-ascii?Q?G72MxZ9uvD1PE+CVM1h6pGk3phty7JJF5DqfTwx7XnbnMgvGzfHLh60fEnYl?=
+ =?us-ascii?Q?WjEZYURq/ju920pGlBaAad0gRwSYTzGRdwsouiK9DA1/Y4ck0nmAdQmQD2vM?=
+ =?us-ascii?Q?s/3wkIjWYytozJjpNdC6mr5/OElRy/YSxHedjaWVQHd8gpiXDpfo9jTRWU48?=
+ =?us-ascii?Q?gLXzxt3BwjIPgGCrlBfoJ3FR+e4USXYbSjRp8ZiDJ5BtjA3t4RX9d7ierpM4?=
+ =?us-ascii?Q?Zyomeg9tIQFx0uFBNo8m/cbQsyl+Hco77IxQa0OWivqaaLTCV/FcClMcBbHk?=
+ =?us-ascii?Q?FvnIr4NtOfvyjDUrowX9Mpbv1JNkkWLxAZvoREHNjv7o2E8Xs4DSMivnFbQf?=
+ =?us-ascii?Q?95Nvgwq6sBKTrTJ5Zh4CFYXxbx2iFsq1UJ7Tx+xpyLPG1WX0Jn+PcmOePjDJ?=
+ =?us-ascii?Q?d/BBOke4hufeQH3BxVyJIx7ibWvcHbz+OySFR21TVOmxWsNlx0jder8JuroJ?=
+ =?us-ascii?Q?SbC6dMgDg1pmWxkNM6FwV0IgLD/ayXUrOdRrt4tNYgJM9njF//GWUgn0doXN?=
+ =?us-ascii?Q?cwLRJB0knE5X0jaTwmNLboxnr1zp/8muvnbbkb/6FCOqtWbnoi1Bvj19uUBa?=
+ =?us-ascii?Q?L3oCrLNGoOkOv7uwRpRUZBFa0Hxylw2ved232PW5Pa/VypI7sjHpzgnTOSxi?=
+ =?us-ascii?Q?jErwVlufxy0Py7ybCLDiC3EndbuuyIUrw4qHQWiNAkm9u/hfxtyaN30EvynF?=
+ =?us-ascii?Q?hWoMP4k9xVTcAIcs1QosMl3ITEwPkkf/gxxHn0uoaweyJt9UhRWm32Ht74WS?=
+ =?us-ascii?Q?hHZyM9+hjnmLftPWkuASiKorvNx42RRXg2j4drnlnPYuelRbAtmqWdP+mjT5?=
+ =?us-ascii?Q?wrd0rGr1K5QNmgk=3D?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(1800799024)(82310400026)(376014);DIR:OUT;SFP:1101;
+	CIP:216.228.117.160;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc6edge1.nvidia.com;CAT:NONE;SFS:(13230040)(36860700013)(82310400026)(376014)(1800799024);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Apr 2025 14:03:06.6003
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Apr 2025 14:03:17.3037
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 46067b73-c151-4d6f-7ab3-08dd76a61651
+X-MS-Exchange-CrossTenant-Network-Message-Id: 682c3d18-5be4-4ef9-e5a2-08dd76a61cad
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.117.160];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
 	SA2PEPF00003F64.namprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR12MB8935
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB8373
 
 From: Vlad Dogaru <vdogaru@nvidia.com>
 
-Use the central action STE pool when creating / updating rules.
+Periodically check for unused action STE tables and free their
+associated resources. In order to do this safely, add a per-queue lock
+to synchronize the garbage collect work with regular operations on
+steering rules.
 
 Signed-off-by: Vlad Dogaru <vdogaru@nvidia.com>
 Reviewed-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
 Reviewed-by: Mark Bloch <mbloch@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
 ---
- .../mellanox/mlx5/core/steering/hws/rule.c    | 69 ++++++++-----------
- .../mellanox/mlx5/core/steering/hws/rule.h    | 12 +---
- 2 files changed, 30 insertions(+), 51 deletions(-)
+ .../mlx5/core/steering/hws/action_ste_pool.c  | 88 ++++++++++++++++++-
+ .../mlx5/core/steering/hws/action_ste_pool.h  | 11 +++
+ .../mellanox/mlx5/core/steering/hws/context.h |  1 +
+ 3 files changed, 96 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
-index a27a2d5ffc7b..5b758467ed03 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.c
-@@ -195,44 +195,30 @@ hws_rule_load_delete_info(struct mlx5hws_rule *rule,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.c
+index e5c453ec65b3..509e19ec101b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.c
+@@ -160,6 +160,7 @@ hws_action_ste_table_alloc(struct mlx5hws_action_ste_pool_element *parent_elem)
+ 
+ 	action_tbl->parent_elem = parent_elem;
+ 	INIT_LIST_HEAD(&action_tbl->list_node);
++	action_tbl->last_used = jiffies;
+ 	list_add(&action_tbl->list_node, &parent_elem->available);
+ 	parent_elem->log_sz = log_sz;
+ 
+@@ -237,6 +238,8 @@ static int hws_action_ste_pool_init(struct mlx5hws_context *ctx,
+ 	enum mlx5hws_pool_optimize opt;
+ 	int err;
+ 
++	mutex_init(&pool->lock);
++
+ 	/* Rules which are added for both RX and TX must use the same action STE
+ 	 * indices for both. If we were to use a single table, then RX-only and
+ 	 * TX-only rules would waste the unused entries. Thus, we use separate
+@@ -248,6 +251,7 @@ static int hws_action_ste_pool_init(struct mlx5hws_context *ctx,
+ 						       opt);
+ 		if (err)
+ 			goto destroy_elems;
++		pool->elems[opt].parent_pool = pool;
  	}
+ 
+ 	return 0;
+@@ -268,6 +272,58 @@ static void hws_action_ste_pool_destroy(struct mlx5hws_action_ste_pool *pool)
+ 		hws_action_ste_pool_element_destroy(&pool->elems[opt]);
  }
  
--static int hws_rule_alloc_action_ste(struct mlx5hws_rule *rule)
-+static int mlx5hws_rule_alloc_action_ste(struct mlx5hws_rule *rule,
-+					 u16 queue_id, bool skip_rx,
-+					 bool skip_tx)
++static void hws_action_ste_pool_element_collect_stale(
++	struct mlx5hws_action_ste_pool_element *elem, struct list_head *cleanup)
++{
++	struct mlx5hws_action_ste_table *action_tbl, *p;
++	unsigned long expire_time, now;
++
++	expire_time = secs_to_jiffies(MLX5HWS_ACTION_STE_POOL_EXPIRE_SECONDS);
++	now = jiffies;
++
++	list_for_each_entry_safe(action_tbl, p, &elem->available, list_node) {
++		if (mlx5hws_pool_full(action_tbl->pool) &&
++		    time_before(action_tbl->last_used + expire_time, now))
++			list_move(&action_tbl->list_node, cleanup);
++	}
++}
++
++static void hws_action_ste_table_cleanup_list(struct list_head *cleanup)
++{
++	struct mlx5hws_action_ste_table *action_tbl, *p;
++
++	list_for_each_entry_safe(action_tbl, p, cleanup, list_node)
++		hws_action_ste_table_destroy(action_tbl);
++}
++
++static void hws_action_ste_pool_cleanup(struct work_struct *work)
++{
++	enum mlx5hws_pool_optimize opt;
++	struct mlx5hws_context *ctx;
++	LIST_HEAD(cleanup);
++	int i;
++
++	ctx = container_of(work, struct mlx5hws_context,
++			   action_ste_cleanup.work);
++
++	for (i = 0; i < ctx->queues; i++) {
++		struct mlx5hws_action_ste_pool *p = &ctx->action_ste_pool[i];
++
++		mutex_lock(&p->lock);
++		for (opt = MLX5HWS_POOL_OPTIMIZE_NONE;
++		     opt < MLX5HWS_POOL_OPTIMIZE_MAX; opt++)
++			hws_action_ste_pool_element_collect_stale(
++				&p->elems[opt], &cleanup);
++		mutex_unlock(&p->lock);
++	}
++
++	hws_action_ste_table_cleanup_list(&cleanup);
++
++	schedule_delayed_work(&ctx->action_ste_cleanup,
++			      secs_to_jiffies(
++				  MLX5HWS_ACTION_STE_POOL_CLEANUP_SECONDS));
++}
++
+ int mlx5hws_action_ste_pool_init(struct mlx5hws_context *ctx)
  {
- 	struct mlx5hws_matcher *matcher = rule->matcher;
--	struct mlx5hws_matcher_action_ste *action_ste;
--	struct mlx5hws_pool_chunk ste = {0};
--	int ret;
--
--	action_ste = &matcher->action_ste;
--	ste.order = ilog2(roundup_pow_of_two(action_ste->max_stes));
--	ret = mlx5hws_pool_chunk_alloc(action_ste->pool, &ste);
--	if (unlikely(ret)) {
--		mlx5hws_err(matcher->tbl->ctx,
--			    "Failed to allocate STE for rule actions");
--		return ret;
--	}
--
--	rule->action_ste.pool = matcher->action_ste.pool;
--	rule->action_ste.num_stes = matcher->action_ste.max_stes;
--	rule->action_ste.index = ste.offset;
-+	struct mlx5hws_context *ctx = matcher->tbl->ctx;
+ 	struct mlx5hws_action_ste_pool *pool;
+@@ -286,6 +342,12 @@ int mlx5hws_action_ste_pool_init(struct mlx5hws_context *ctx)
+ 
+ 	ctx->action_ste_pool = pool;
+ 
++	INIT_DELAYED_WORK(&ctx->action_ste_cleanup,
++			  hws_action_ste_pool_cleanup);
++	schedule_delayed_work(
++		&ctx->action_ste_cleanup,
++		secs_to_jiffies(MLX5HWS_ACTION_STE_POOL_CLEANUP_SECONDS));
++
+ 	return 0;
+ 
+ free_pool:
+@@ -301,6 +363,8 @@ void mlx5hws_action_ste_pool_uninit(struct mlx5hws_context *ctx)
+ 	size_t queues = ctx->queues;
+ 	int i;
+ 
++	cancel_delayed_work_sync(&ctx->action_ste_cleanup);
++
+ 	for (i = 0; i < queues; i++)
+ 		hws_action_ste_pool_destroy(&ctx->action_ste_pool[i]);
+ 
+@@ -331,6 +395,7 @@ hws_action_ste_table_chunk_alloc(struct mlx5hws_action_ste_table *action_tbl,
+ 		return err;
+ 
+ 	chunk->action_tbl = action_tbl;
++	action_tbl->last_used = jiffies;
+ 
+ 	return 0;
+ }
+@@ -347,6 +412,8 @@ int mlx5hws_action_ste_chunk_alloc(struct mlx5hws_action_ste_pool *pool,
+ 	if (skip_rx && skip_tx)
+ 		return -EINVAL;
+ 
++	mutex_lock(&pool->lock);
++
+ 	elem = hws_action_ste_choose_elem(pool, skip_rx, skip_tx);
+ 
+ 	mlx5hws_dbg(elem->ctx,
+@@ -363,26 +430,39 @@ int mlx5hws_action_ste_chunk_alloc(struct mlx5hws_action_ste_pool *pool,
+ 
+ 	if (!found) {
+ 		action_tbl = hws_action_ste_table_alloc(elem);
+-		if (IS_ERR(action_tbl))
+-			return PTR_ERR(action_tbl);
++		if (IS_ERR(action_tbl)) {
++			err = PTR_ERR(action_tbl);
++			goto out;
++		}
+ 
+ 		err = hws_action_ste_table_chunk_alloc(action_tbl, chunk);
+ 		if (err)
+-			return err;
++			goto out;
+ 	}
+ 
+ 	if (mlx5hws_pool_empty(action_tbl->pool))
+ 		list_move(&action_tbl->list_node, &elem->full);
  
 -	return 0;
-+	rule->action_ste.ste.order =
-+		ilog2(roundup_pow_of_two(matcher->action_ste.max_stes));
-+	return mlx5hws_action_ste_chunk_alloc(&ctx->action_ste_pool[queue_id],
-+					      skip_rx, skip_tx,
-+					      &rule->action_ste);
++	err = 0;
++
++out:
++	mutex_unlock(&pool->lock);
++
++	return err;
  }
  
--void mlx5hws_rule_free_action_ste(struct mlx5hws_rule_action_ste_info *action_ste)
-+void mlx5hws_rule_free_action_ste(struct mlx5hws_action_ste_chunk *action_ste)
+ void mlx5hws_action_ste_chunk_free(struct mlx5hws_action_ste_chunk *chunk)
  {
--	struct mlx5hws_pool_chunk ste = {0};
--
--	if (!action_ste->num_stes)
-+	if (!action_ste->action_tbl)
- 		return;
- 
--	ste.order = ilog2(roundup_pow_of_two(action_ste->num_stes));
--	ste.offset = action_ste->index;
--
- 	/* This release is safe only when the rule match STE was deleted
- 	 * (when the rule is being deleted) or replaced with the new STE that
- 	 * isn't pointing to old action STEs (when the rule is being updated).
- 	 */
--	mlx5hws_pool_chunk_free(action_ste->pool, &ste);
-+	mlx5hws_action_ste_chunk_free(action_ste);
++	struct mutex *lock = &chunk->action_tbl->parent_elem->parent_pool->lock;
++
+ 	mlx5hws_dbg(chunk->action_tbl->pool->ctx,
+ 		    "Freeing action STEs offset %d order %d\n",
+ 		    chunk->ste.offset, chunk->ste.order);
++
++	mutex_lock(lock);
+ 	mlx5hws_pool_chunk_free(chunk->action_tbl->pool, &chunk->ste);
++	chunk->action_tbl->last_used = jiffies;
+ 	list_move(&chunk->action_tbl->list_node,
+ 		  &chunk->action_tbl->parent_elem->available);
++	mutex_unlock(lock);
  }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.h
+index 2de660a63223..a8ba97359e31 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.h
+@@ -8,6 +8,9 @@
+ #define MLX5HWS_ACTION_STE_TABLE_STEP_LOG_SZ 1
+ #define MLX5HWS_ACTION_STE_TABLE_MAX_LOG_SZ 20
  
- static void hws_rule_create_init(struct mlx5hws_rule *rule,
-@@ -250,22 +236,15 @@ static void hws_rule_create_init(struct mlx5hws_rule *rule,
- 		rule->rtc_0 = 0;
- 		rule->rtc_1 = 0;
++#define MLX5HWS_ACTION_STE_POOL_CLEANUP_SECONDS 300
++#define MLX5HWS_ACTION_STE_POOL_EXPIRE_SECONDS 300
++
+ struct mlx5hws_action_ste_pool_element;
  
--		rule->action_ste.pool = NULL;
--		rule->action_ste.num_stes = 0;
--		rule->action_ste.index = -1;
--
- 		rule->status = MLX5HWS_RULE_STATUS_CREATING;
- 	} else {
- 		rule->status = MLX5HWS_RULE_STATUS_UPDATING;
-+		/* Save the old action STE info so we can free it after writing
-+		 * new action STEs and a corresponding match STE.
-+		 */
-+		rule->old_action_ste = rule->action_ste;
- 	}
- 
--	/* Initialize the old action STE info - shallow-copy action_ste.
--	 * In create flow this will set old_action_ste fields to initial values.
--	 * In update flow this will save the existing action STE info,
--	 * so that we will later use it to free old STEs.
--	 */
--	rule->old_action_ste = rule->action_ste;
--
- 	rule->pending_wqes = 0;
- 
- 	/* Init default send STE attributes */
-@@ -277,7 +256,6 @@ static void hws_rule_create_init(struct mlx5hws_rule *rule,
- 	/* Init default action apply */
- 	apply->tbl_type = tbl->type;
- 	apply->common_res = &ctx->common_res;
--	apply->jump_to_action_stc = matcher->action_ste.stc.offset;
- 	apply->require_dep = 0;
- }
- 
-@@ -353,17 +331,24 @@ static int hws_rule_create_hws(struct mlx5hws_rule *rule,
- 
- 	if (action_stes) {
- 		/* Allocate action STEs for rules that need more than match STE */
--		ret = hws_rule_alloc_action_ste(rule);
-+		ret = mlx5hws_rule_alloc_action_ste(rule, attr->queue_id,
-+						    !!ste_attr.rtc_0,
-+						    !!ste_attr.rtc_1);
- 		if (ret) {
- 			mlx5hws_err(ctx, "Failed to allocate action memory %d", ret);
- 			mlx5hws_send_abort_new_dep_wqe(queue);
- 			return ret;
- 		}
-+		apply.jump_to_action_stc =
-+			rule->action_ste.action_tbl->stc.offset;
- 		/* Skip RX/TX based on the dep_wqe init */
--		ste_attr.rtc_0 = dep_wqe->rtc_0 ? matcher->action_ste.rtc_0_id : 0;
--		ste_attr.rtc_1 = dep_wqe->rtc_1 ? matcher->action_ste.rtc_1_id : 0;
-+		ste_attr.rtc_0 = dep_wqe->rtc_0 ?
-+				 rule->action_ste.action_tbl->rtc_0_id : 0;
-+		ste_attr.rtc_1 = dep_wqe->rtc_1 ?
-+				 rule->action_ste.action_tbl->rtc_1_id : 0;
- 		/* Action STEs are written to a specific index last to first */
--		ste_attr.direct_index = rule->action_ste.index + action_stes;
-+		ste_attr.direct_index =
-+			rule->action_ste.ste.offset + action_stes;
- 		apply.next_direct_idx = ste_attr.direct_index;
- 	} else {
- 		apply.next_direct_idx = 0;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.h
-index b5ee94ac449b..1c47a9c11572 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/rule.h
-@@ -43,12 +43,6 @@ struct mlx5hws_rule_match_tag {
- 	};
+ struct mlx5hws_action_ste_table {
+@@ -19,10 +22,12 @@ struct mlx5hws_action_ste_table {
+ 	u32 rtc_0_id;
+ 	u32 rtc_1_id;
+ 	struct list_head list_node;
++	unsigned long last_used;
  };
  
--struct mlx5hws_rule_action_ste_info {
--	struct mlx5hws_pool *pool;
--	int index; /* STE array index */
--	u8 num_stes;
--};
--
- struct mlx5hws_rule_resize_info {
- 	u32 rtc_0;
- 	u32 rtc_1;
-@@ -64,8 +58,8 @@ struct mlx5hws_rule {
- 		struct mlx5hws_rule_match_tag tag;
- 		struct mlx5hws_rule_resize_info *resize_info;
- 	};
--	struct mlx5hws_rule_action_ste_info action_ste;
--	struct mlx5hws_rule_action_ste_info old_action_ste;
-+	struct mlx5hws_action_ste_chunk action_ste;
-+	struct mlx5hws_action_ste_chunk old_action_ste;
- 	u32 rtc_0; /* The RTC into which the STE was inserted */
- 	u32 rtc_1; /* The RTC into which the STE was inserted */
- 	u8 status; /* enum mlx5hws_rule_status */
-@@ -75,7 +69,7 @@ struct mlx5hws_rule {
- 			   */
+ struct mlx5hws_action_ste_pool_element {
+ 	struct mlx5hws_context *ctx;
++	struct mlx5hws_action_ste_pool *parent_pool;
+ 	size_t log_sz;  /* Size of the largest table so far. */
+ 	enum mlx5hws_pool_optimize opt;
+ 	struct list_head available;
+@@ -33,6 +38,12 @@ struct mlx5hws_action_ste_pool_element {
+  * per queue.
+  */
+ struct mlx5hws_action_ste_pool {
++	/* Protects the entire pool. We have one pool per queue and only one
++	 * operation can be active per rule at a given time. Thus this lock
++	 * protects solely against concurrent garbage collection and we expect
++	 * very little contention.
++	 */
++	struct mutex lock;
+ 	struct mlx5hws_action_ste_pool_element elems[MLX5HWS_POOL_OPTIMIZE_MAX];
  };
  
--void mlx5hws_rule_free_action_ste(struct mlx5hws_rule_action_ste_info *action_ste);
-+void mlx5hws_rule_free_action_ste(struct mlx5hws_action_ste_chunk *action_ste);
- 
- int mlx5hws_rule_move_hws_remove(struct mlx5hws_rule *rule,
- 				 void *queue, void *user_data);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.h
+index e987e93bbc6e..3f8938c73dc0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/context.h
+@@ -40,6 +40,7 @@ struct mlx5hws_context {
+ 	u32 pd_num;
+ 	struct mlx5hws_pool *stc_pool;
+ 	struct mlx5hws_action_ste_pool *action_ste_pool; /* One per queue */
++	struct delayed_work action_ste_cleanup;
+ 	struct mlx5hws_context_common_res common_res;
+ 	struct mlx5hws_pattern_cache *pattern_cache;
+ 	struct mlx5hws_definer_cache *definer_cache;
 -- 
 2.31.1
 
