@@ -1,67 +1,68 @@
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2080.outbound.protection.outlook.com [40.107.243.80])
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2089.outbound.protection.outlook.com [40.107.102.89])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DAB66EB79;
-	Thu, 10 Apr 2025 19:18:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.80
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11CA128FFC7;
+	Thu, 10 Apr 2025 19:18:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.102.89
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744312716; cv=fail; b=SPo5OW4qqODL+Zu6uf5b50MymLW2gAD3Pic+bzXzhi5iFx5sjSeaIK3QaYYi038i0oYul1vAeMYb69GLH+Y3Pq8QALSHtKW29TcXN33e158tQcE7ppMUTrB0xPB4iPLCzK8o02kPw5WkrBGFGJnr9BDGaLmsYmOXGz5GStxGtbc=
+	t=1744312719; cv=fail; b=HmVkLq2HAJV8IbyngrosY64mH1p7mcIZvnrgw04q8Lz6FTZXnNbUY9ZujHFpDBaqo4mTU8PsxF8952lI2u59rr/DRQBNEBDPKXo+MIP83crkSYlW37ttMiFrRf/D52XveoarZkoE4M1DANbKiU+gE5wBfCk9XsJIXM8OOai7H5c=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744312716; c=relaxed/simple;
-	bh=LAmnmsIA1hai4M05VLbUDxWybVmp9+iNV5U4Y+OTqqE=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=XhtKRCYVMYyCKBBs851aW3h/f9KOU6QKKQPO8nPK4GTsNNaF5eUo74WzUQf1L47pjyCb6oIs0nzsQ6SmdWqEQCLCb8QNH4X3s/OW/C7TOwF1Mgn8KsK++WuVhwvGyV9/cGEcfZQQ4AjvyKHtYyE9Tm3ynUGcAAdQTPHubeTlawI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=OnR5TBU+; arc=fail smtp.client-ip=40.107.243.80
+	s=arc-20240116; t=1744312719; c=relaxed/simple;
+	bh=N3ZBhb4FcIkUOjzxMYSxz/IPKpRlXniN0FAQa0I2wCY=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=IeywNgCvxviyCBbqY0NnEyV9MDi5wiq4DOqxzWyPz8DUu77i1DCfpqKNhKSmkfDt/hRwnOXBMHSJV5aRsjK/dufiTXjfksCzgvFB93iHi+gyomoG56My/hVWGic6sqavvyZXccbz3Rxu7BSVj9r/eu3zbYPpGyJPl35NL7gvoY0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=fu0PszMf; arc=fail smtp.client-ip=40.107.102.89
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="OnR5TBU+"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="fu0PszMf"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=rksLe83Yx8f3nG6z/LEKuM7FWixm6NxaoAurgv+iMloW9aZ6B7RMqz8h24sOkCKUiUG0HJiKt54RzvNh8yR0uxNkxYUA1qHgqBZCRabZ6yXVVtpQRj9gPx3qGIj7KOtd08g9dVeMhrwwTd38ySEa8nijbRsoniHZkgFO0u25SixTGNi+OLWmtaqL6TziWLa0ZQQLmZLXWpSikcwdEuGMk8pNE3iD+5TYzFLg3BpDbUFYaenvbkIjG8sJXUXZTSaL6WGb2b4oGvBhwPhQEAbgGcQ9p+Ww+XdQoGiJHGp2cWpLEw12Y1belPtEY3HzC6ZvT5nPKhfZitqYc2iyjBlmrg==
+ b=a1HaFa12S263z5MgefrQkWnDwahtaqVcfoZf8PDIDNJyl11ycGjB+H0rRRuo62IaHOSvibrDxQm0YDQz2qRhXBJ+6jan0RWxlWtTHEcRwvhoSWMOmqi8/oYHedr6VK5FfEB4eUIGWfuFMKypwDwqFETdt1niio/jovrHLnlA+WzQ5LP6RwFWLYZnewiB7uTjXKKCy4QuI9Z1QF2nQdVUMKT/X6AJbUGW1pdeM2EIDl7rfMiUAZLxm+91L+tEE0voPg/XghplRWkRMscfqd8vRq0UUVP6n5vc9W9yhfTOkOs9cSENp91nOjPkkOdpHURgJHkdgCT8k9JHIMP2GqRvQQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=1q6rJeeRcrOWLB6NFDlRtkm6UKNRagRe2WgDO4odvPg=;
- b=KxVT9VmyWwCrCWYOYaATHbSJCaxrxhc+8GDSUUznzgEG9sfjJXDQ0iwyYL1hn9sh8mAZCGXKNDkC/NjMOfUxYiHDPTxC6TkpyrkztmCB0HaERoAsTLL52Y2C8U/M5hL+QxgmDFXuwWoZ1SFIZgURlzbc0/BbgQPKnU0986V3/Hc79rUb+vuw4L4d09Wim9XbH55VLvuPh3NclW3KBqezThyVuU7pr7Hx04O5Zib5Rfpk2AAIHJBdxy0foWIu5r2UpC5+XxFecSxPHKsFYZwVetDd9qSS9miW+ggqhTlIPdmarTKaAW4pgJ833dUa/Ty/8CmXXpJXF27dLr6/sL7W0A==
+ bh=IGK49uSaNATQw6Zn1UHX44d6SycIv0icibxgmaljrqI=;
+ b=EVAwO7yIFEufypU94e29itDuGRQ3Yi+xbG80fLg1XAtm3LjyCql7eHnq9s6DOaeKy0rAt+mEJW6WRAcMcp3ja4/sWqVJ9WbifLQBkiSH+ikfy9gmsX4rXsHSyYy4oxKwstQ/q7lET4iESKlPSNlWhYsw3esjMnayQKQqXeXbWpfaXbkbAU0rwCEqQ0gnpRAE3CuvlyHNGcKGlwXgLldkdgbLEk5V3Ll9UUiAGkkJAIYKZzRdUrsUEBFGL7k7tAz960tnPVL5wFMDRuqTYPeqsJ9TqPIFWwH757nPnQEVla6YeA7wZhvfrKW6o/oNNRv/XJcEzU2f+WqoBGXdxbypvg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 216.228.118.233) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
+ 216.228.118.232) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
  dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
  dkim=none (message not signed); arc=none (0)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=1q6rJeeRcrOWLB6NFDlRtkm6UKNRagRe2WgDO4odvPg=;
- b=OnR5TBU+ZhulBx88ju8s6Q7c/48lq0zf2fkVpu0xaHAt9c/rV3TDe7l/jW3yYKsUZVFH5F4to8HCA8LDK5ASZZTsy9ITvy7fG9BdJJolbYLXPfZOycCK0/JaKARuAz8yDhV9ymGqSiaXgkt55q3ea+6o9qkEeYPTAQy7AC2lwPGXv6J5kl1Q4yaAGvYEn5SOO7mKzJfcc0VbTHKHUA0dxNZc+5t7T5RjKrru7QFmLhq9BM2XDqfxkZzXWGOb91HebS1xLAQDxhfq2IVrNWvY55+nAtI9L1sitJUcrHOv9tchw9BczomcGAs42gNbJv5QYMwd/W+Qgltz746lMFtKIA==
-Received: from SJ0PR03CA0273.namprd03.prod.outlook.com (2603:10b6:a03:39e::8)
- by MW6PR12MB9019.namprd12.prod.outlook.com (2603:10b6:303:23f::12) with
+ bh=IGK49uSaNATQw6Zn1UHX44d6SycIv0icibxgmaljrqI=;
+ b=fu0PszMfaeg3m6ouk22wnMxvG7/D73xEEhwd/C7WyQUihczYG/VlHsl2jfcdJDQaw95D1xjveuyO9iXFR3XQ/lL3ac/IdDLNn1333VgeHvxj2LocoG8u3aydLX9WVYKrkCntOyfENWeaqFlvXG0ApLvFW3K3v1jDYiZwxS+EIEdFAKJR5aKwIEzjzUCqDBkgmcijTxJM+qRKLpT25ZGvrHyVGVBclVtd6IKc0SdWIqo42W9LQdhAbinkHKuSpptUKYZPSFOAdFStSVShx1Ig5n92dx2k69kpv8Ja4GmaoQRIDwNzQTdaoYCSBmHn21unn20T4NzEg1ZCZbHaDymokQ==
+Received: from BL0PR02CA0052.namprd02.prod.outlook.com (2603:10b6:207:3d::29)
+ by PH7PR12MB7211.namprd12.prod.outlook.com (2603:10b6:510:206::21) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8606.34; Thu, 10 Apr
- 2025 19:18:26 +0000
-Received: from SN1PEPF0002BA4D.namprd03.prod.outlook.com
- (2603:10b6:a03:39e:cafe::cd) by SJ0PR03CA0273.outlook.office365.com
- (2603:10b6:a03:39e::8) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.20.8632.25 via Frontend Transport; Thu,
- 10 Apr 2025 19:18:25 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8632.22; Thu, 10 Apr
+ 2025 19:18:33 +0000
+Received: from BN1PEPF0000467F.namprd03.prod.outlook.com
+ (2603:10b6:207:3d:cafe::c7) by BL0PR02CA0052.outlook.office365.com
+ (2603:10b6:207:3d::29) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8606.37 via Frontend Transport; Thu,
+ 10 Apr 2025 19:18:33 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.232)
  smtp.mailfrom=nvidia.com; dkim=none (message not signed)
  header.d=none;dmarc=pass action=none header.from=nvidia.com;
 Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
- 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
- client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
-Received: from mail.nvidia.com (216.228.118.233) by
- SN1PEPF0002BA4D.mail.protection.outlook.com (10.167.242.70) with Microsoft
+ 216.228.118.232 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.232; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.232) by
+ BN1PEPF0000467F.mail.protection.outlook.com (10.167.243.84) with Microsoft
  SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.8632.13 via Frontend Transport; Thu, 10 Apr 2025 19:18:24 +0000
-Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
- (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ 15.20.8632.13 via Frontend Transport; Thu, 10 Apr 2025 19:18:32 +0000
+Received: from drhqmail203.nvidia.com (10.126.190.182) by mail.nvidia.com
+ (10.127.129.5) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Thu, 10 Apr
- 2025 12:18:12 -0700
+ 2025 12:18:20 -0700
 Received: from drhqmail202.nvidia.com (10.126.190.181) by
- drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ drhqmail203.nvidia.com (10.126.190.182) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.14; Thu, 10 Apr 2025 12:18:11 -0700
+ 15.2.1544.14; Thu, 10 Apr 2025 12:18:20 -0700
 Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
  (10.126.190.181) with Microsoft SMTP Server id 15.2.1544.14 via Frontend
- Transport; Thu, 10 Apr 2025 12:18:07 -0700
+ Transport; Thu, 10 Apr 2025 12:18:16 -0700
 From: Tariq Toukan <tariqt@nvidia.com>
 To: "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
 	Paolo Abeni <pabeni@redhat.com>, Eric Dumazet <edumazet@google.com>, "Andrew
@@ -73,10 +74,12 @@ CC: Gal Pressman <gal@nvidia.com>, Leon Romanovsky <leonro@nvidia.com>, "Saeed
 	<moshe@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Vlad Dogaru
 	<vdogaru@nvidia.com>, Yevgeny Kliteynik <kliteyn@nvidia.com>, Michal Kubiak
 	<michal.kubiak@intel.com>
-Subject: [PATCH net-next V2 00/12] net/mlx5: HWS, Refactor action STE handling
-Date: Thu, 10 Apr 2025 22:17:30 +0300
-Message-ID: <1744312662-356571-1-git-send-email-tariqt@nvidia.com>
+Subject: [PATCH net-next V2 02/12] net/mlx5: HWS, Remove unused element array
+Date: Thu, 10 Apr 2025 22:17:32 +0300
+Message-ID: <1744312662-356571-3-git-send-email-tariqt@nvidia.com>
 X-Mailer: git-send-email 2.8.0
+In-Reply-To: <1744312662-356571-1-git-send-email-tariqt@nvidia.com>
+References: <1744312662-356571-1-git-send-email-tariqt@nvidia.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -87,238 +90,217 @@ Content-Type: text/plain
 X-NV-OnPremToCloud: AnonymousSubmission
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SN1PEPF0002BA4D:EE_|MW6PR12MB9019:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0f4a184f-324d-4a14-8b61-08dd78647739
+X-MS-TrafficTypeDiagnostic: BN1PEPF0000467F:EE_|PH7PR12MB7211:EE_
+X-MS-Office365-Filtering-Correlation-Id: 63a2be19-4f99-4c9e-94f1-08dd78647bce
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|1800799024|36860700013|376014|7416014|82310400026;
+	BCL:0;ARA:13230040|7416014|376014|1800799024|82310400026|36860700013;
 X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?O3HuH2Fd9fD2crs8cx8Tn/PoO+V8J391tP1Vnb2WAc1dsjggiVQVHlVbw/Xe?=
- =?us-ascii?Q?PSvDs6bk3XYVGVgc6GiFqZDuBknlS4/dQDDui+Z3jh/owIFPalPvGk7H/u5z?=
- =?us-ascii?Q?2gHGRm0RV6NL7m5BrZDlj9oYywzBzjTtt8e/uwVGFisnzaQUqRJE4/8HUiha?=
- =?us-ascii?Q?kY69yufMbMJwXVStB2Aq4l8kxHu6ZuFizVD1Tl8/dYNILkstPU6sY5dLFFU6?=
- =?us-ascii?Q?mMdr83VibcY5lk10OfGvpQJ2lXe0FSDkp8icHSYfx5RXixhQWTEYLNZzHlnw?=
- =?us-ascii?Q?cAHx4tH3k6vcaqp6x2HPVcUkxIRsVc6QdyZillSC/hNEsXPzdrjmwMCShOXH?=
- =?us-ascii?Q?CdDkUxoYgmYMmxvR+8qE2YkN3Bpztx9wHSCeUnH4lkRk9vbirJwORpU/PltZ?=
- =?us-ascii?Q?kBd4/1nBjtFzWWXk/0XPO6R9bW/YBJBOVn+VrqkLtEr6tzKAek4JS1RbEAoX?=
- =?us-ascii?Q?i96ScTENsg/i+BZUbpepYumwYbNktmVaTxlP9w/sypOv1uP0T6OG8QZtTyHl?=
- =?us-ascii?Q?65bhhBjSeLRHzvgI+408QoCyGQxa71aEbBq3dxrsh3Bos6WLKc9j6Mjq2Hz2?=
- =?us-ascii?Q?H/It+9mhFQOiFsoUT3+EuOyBaehl09xRljoH7KJ3J3EL4Yr6zkigjYRYD/uD?=
- =?us-ascii?Q?K2WFGWLs18miP/t3fKmvgFH4A43rRrqhx34ckW7AH+C9T2bqTIi2V5bmPDc6?=
- =?us-ascii?Q?qSKeUbIB5HfbNrC1SEtN8/W+bGjUqfWpLa0xuRQAhZKLfUE5Xse46+Tvphe6?=
- =?us-ascii?Q?unr5I8wLJeeHfBJVH7aSnkjyyam1ruvGmTnzCXDvn/x4DfLg8n4pOVl/tZIN?=
- =?us-ascii?Q?exyU/o2H3JaN4gfE1T/VCHc++92DO2NFO3oZ/IeWZp63K8dcwdJd8cd12dT2?=
- =?us-ascii?Q?6tbq4Y73kMaqrgMlwaQLuHPVQuKO46UTAJ8+/FfELjDoF+6pRrJPyyIuRmXV?=
- =?us-ascii?Q?V+6dMTKZ4XF57F2OeOkwp81k6gnQiGm4a553C1QqxRCBGXhwOWXvECoid3lY?=
- =?us-ascii?Q?8M3zEzuAZi6diH2Q5QbiosiTkq1wkaOXBAWU3Od9lIkgzxCIQ5ry/kUZlWBz?=
- =?us-ascii?Q?vusS9CcDGUbhrbBTHiWrhpeVl2ueZrSLCjzOD+475WJcoEs0Suwhq+Vyw0ch?=
- =?us-ascii?Q?G34zwNEMpnhvvAS4MPpsbj93dCEuHOpjGsrqW7Cc4Ud8d7f35LTJVP7cOSyR?=
- =?us-ascii?Q?D+zp2KXWBUz3VmZZfcpdy3iuzMm1JuabDwX7RNCX0q6T63aeVoPbGJV0tPUP?=
- =?us-ascii?Q?Vob3K44Qiu1jNgrWZFYjzTNqhiUCqg+Liv2+Ax+kFsNTU6eoXXE/xOB6CvSL?=
- =?us-ascii?Q?qaax4NABPJzDc7xtOicGqm+K5QhxDc7GlPCQ6OrRFw6su/LokDCpu9EDeh7a?=
- =?us-ascii?Q?9ZTnbXU4TlvisB6p056Y2KBfNIcrwezMDowAzDpA2etcuL9aD9ui4eF1VBvM?=
- =?us-ascii?Q?/zuIkutxvpOyuVCFErrmmXIsU2xnFBQlrM3HdDvl4sDV7BtrfO+6L8BlrP/X?=
- =?us-ascii?Q?fL7dirLsImq+f3w=3D?=
+	=?us-ascii?Q?4dndLXInVZ8RhjEi/PSpvuNFgAvI/1b5iQPRK27Me4ar6ZsoQosSQnIY+Y8r?=
+ =?us-ascii?Q?l6tk7mZE4ax28atLYEkOK29FsOKm+l31lB/cUyiELybYOfy+tVV23sXWn2Fc?=
+ =?us-ascii?Q?2hKQNeCPPE05GEGvFYoo0nn1xF5ZoTYY0qbuUuONQgetySqttr5luBOWrxFC?=
+ =?us-ascii?Q?jMiSDE8Cmpe6+FJj1CJaoN37DIKX0XdMhhiGTSp0VrMt5Jj7hzUd/ML/hxk6?=
+ =?us-ascii?Q?2s9wwTdIMVt4IH2CNBCCq6c5S23y4pbcYdR7Q21EvjEIL1Aziw/3xq+vVu5k?=
+ =?us-ascii?Q?qLYc4BLbYxhfjulMDZrGDDaDEAGDX8NyHUL2QitL37Ge/s6blVfV93vu5oQw?=
+ =?us-ascii?Q?+H8pfnQItv5HZ2akviT0xuVy3js8YCSuQ2pNNwjSu6n2tvMhZHrgj9H8VaV5?=
+ =?us-ascii?Q?TBAkiKm16zZAIVlwatzQiTQKPJijHvpuC37ReLXTnCn6SJdIOysBXtQCFYLP?=
+ =?us-ascii?Q?HO28l6pbuAenj0C7AP7jSSPf6b4L0OOaSLKKjXWTqPZxVYHT6qH7hH//6EN+?=
+ =?us-ascii?Q?B9Bt3ruU2pPQsYl/BaOaweB3KnlaUczu0BnYx/kNf/LxR7qkRsReYYvXkwO5?=
+ =?us-ascii?Q?XL+RuYOLy3m3R5JkZyQM3fklOESWowjt75XD+mhicoJi12OIKv/cHzFc9Ruw?=
+ =?us-ascii?Q?H1647wMbpQLFP8x6xHlkOnLWtV6jeZwbPoC0vRuMiZ1tCmILTHZc3UiZLGn1?=
+ =?us-ascii?Q?xF6OdD75sXz8bACmOgI9b1YZrbRnhYQZq1a95tS59IVpzMVU6FYQhISeasyq?=
+ =?us-ascii?Q?MgFSxQoDUZ4rcJ1yR+Okc8Qz2xhBwA8XcWLd5vcsbf/PoRx+9CAC5VNUEkP8?=
+ =?us-ascii?Q?8ZEIA5Xq4wtZbc0K1GfNhcg7GfD2mwsrZWnnpF9pwt3uwrc4aH61uQkVD1L/?=
+ =?us-ascii?Q?jsFQho6VmcREM1g3aBas/Ru5hFA/me9YM2YFurSgLTtkagTQSxqKYUYmb1SW?=
+ =?us-ascii?Q?xYb+sg3M84AyxnpbWxA+67s0BeWSrM2wBh2rTx6KCYb+mq1/ffroeUCaNPH5?=
+ =?us-ascii?Q?0EcHRzbePRGJdpli42tnlxxsVur9TI8g739XCBsE3ZIfL8IKXMea0A7Bj9cO?=
+ =?us-ascii?Q?hnWm8dDE4bIWJP8/0PsfZ13yQGsour5E1Yn5lINJaOuPv2uKoJRX9nzBd+4G?=
+ =?us-ascii?Q?L+mu+dQx1Y79F1bSxgT4AVlKNJbFtnRVq52v+C1T5kJxi8JCqa0I1S18p6N6?=
+ =?us-ascii?Q?E7bz74hcsui0+HUyviX8cwZQpkOn9fMjYEClzfD/aXbNQXny7SzGni3YhhrL?=
+ =?us-ascii?Q?uFoffrZ2DbMvCAdP/ljV4Xri4zFGFrrbrOCcSNJFXBT26d6YCTbJPSRN6Cu+?=
+ =?us-ascii?Q?oEeoCiqoSJJ7J882vZkP9oFaaynmFtsOINWrDW3KAgy+9o6UPejU/ChJ2m9Y?=
+ =?us-ascii?Q?GtSOJkid148oFO6grGmgGwgRfR34TdVn0DmuZYuvtjPgpqz4BbBbMaJU6wQb?=
+ =?us-ascii?Q?icYcpK2moQdTeGz0mDKW9k0nM1Scq5Xtijr9KiO17KJInIQ7mg2SlURUA2Gk?=
+ =?us-ascii?Q?boNEw7o+bUn+Fqald9XYfOgiNXkGiAPzATU+?=
 X-Forefront-Antispam-Report:
-	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(1800799024)(36860700013)(376014)(7416014)(82310400026);DIR:OUT;SFP:1101;
+	CIP:216.228.118.232;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge1.nvidia.com;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(82310400026)(36860700013);DIR:OUT;SFP:1101;
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Apr 2025 19:18:24.7551
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Apr 2025 19:18:32.4427
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0f4a184f-324d-4a14-8b61-08dd78647739
+X-MS-Exchange-CrossTenant-Network-Message-Id: 63a2be19-4f99-4c9e-94f1-08dd78647bce
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.232];Helo=[mail.nvidia.com]
 X-MS-Exchange-CrossTenant-AuthSource:
-	SN1PEPF0002BA4D.namprd03.prod.outlook.com
+	BN1PEPF0000467F.namprd03.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW6PR12MB9019
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB7211
 
-This patch series by Vlad refactors how action STEs are handled for
-hardware steering.
+From: Vlad Dogaru <vdogaru@nvidia.com>
 
-See detailed description by Vlad below.
+Remove the array of elements wrapped in a struct because in reality only
+the first element was ever used.
 
-Regards,
-Tariq
+Signed-off-by: Vlad Dogaru <vdogaru@nvidia.com>
+Reviewed-by: Yevgeny Kliteynik <kliteyn@nvidia.com>
+Reviewed-by: Mark Bloch <mbloch@nvidia.com>
+Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
+Reviewed-by: Michal Kubiak <michal.kubiak@intel.com>
+---
+ .../mellanox/mlx5/core/steering/hws/pool.c    | 55 ++++++++-----------
+ .../mellanox/mlx5/core/steering/hws/pool.h    |  6 +-
+ 2 files changed, 23 insertions(+), 38 deletions(-)
 
-V2:
-- Remove always-zero ste_offset field (Michal Kubiak).
-- Add review tags of Michal Kubiak.
-
-Definitions
-----------
-
-* STE (Steering Table Entry): a building block for steering rules.
-  Simple rules consist of a single STE that specifies both the match
-  value and what actions to do. For more complex rules we have one or
-  more match STEs that point to one or more action STEs. It is these
-  action STEs which this patch series is primarily concerned with.
-
-* RTC (Rule Table Context): a table that contains STEs. A matcher
-  currently consists of a match RTC and, if necessary, an action RTC.
-  This patch series decouples action RTCs from matchers and moves action
-  RTCs to a central pool.
-
-* Matcher: a logical container for steering rules. While the items above
-  describe hardware concepts, a matcher is purely a software construct.
-
-Current situation
------------------
-
-As mentioned above, a matcher currently consists of a match RTC (or
-more, in case of complex matchers) and zero or one action STCs. An
-action STC is only allocated if the matcher contains sufficiently
-complicated action templates, or many actions.
-
-When adding a rule, we decide based on its action template whether it
-requires action STEs. If yes, we allocate the required number of action
-STEs from the matcher's action STE.
-
-When updating a rule, we need to prevent the rule ever being in an
-invalid state. So we need to allocate and write new action STEs first,
-then update the match STE to point to them, and finally release the old
-action STEs. So there is a state when a rule needs double the action
-STEs it normally uses.
-
-Thus, for a given matcher of log_sz=N, log_action_ste_sz=A, the action
-STC log_size is (N + A + 1). We need enough space to hold all the rules'
-action STEs, and effectively double that space to account for the not
-very common case of rules being updated. We could manage with much fewer
-extra action STEs, but RTCs are allocated in powers of two. This results
-in effective utilization of action RTCs of 50%, outside rule update
-cases.
-
-This is further complicated when resizing matchers. To avoid updating
-all the rules to point to new match STEs, we keep existing action RTCs
-around as resize_data, and only free them when the matcher is freed.
-
-Action STE pool
----------------
-
-This patch series decouples action RTCs from matchers by creating a
-per-queue pool. When a rule needs to allocate action STEs it does so
-from the pool, creating a new RTC if needed. During update two sets of
-action STEs are in use, possibly from different RTCs.
-
-The pool is sharded per-queue to avoid lock contention. Each per-queue
-pool consists of 3 elements, corresponding to rx-only, tx-only and
-rx-and-tx use cases. The series takes this approach because rules that
-are bidirectional require that their action STEs have the same index in
-the rx- and tx-RTCs, and using a single RTC would result in
-unidirectional rules wasting the STEs for the unused direction.
-
-Pool elements, in turn, consist of a list of RTCs. The driver
-progressively allocates larger RTCs as they are needed to amortize the
-cost of allocation.
-
-Allocation of elements (STEs) inside RTCs is modelled by an existing
-mechanism, somewhat confusingly also known as a pool. The first few
-patches in the series refactor this abstraction to simplify it and adapt
-it to the new schema.
-
-Finally, this series implements periodic cleanup of unused action RTCs
-as a new feature. Previously, once a matcher allocated an action RTC, it
-would only be freed when the matcher is freed. This resulted in a lot of
-wasted memory for matchers that had previously grown, but were now
-mostly unused.
-
-Conversely, action STE pools have a timestamp of when they were last
-used. A cleanup routine periodically checks all pools. If a pool's last
-usage was too far in the past, it is destroyed.
-
-Benchmarks
-----------
-
-The test module creates a batch of (1 << 18) rules per queue and then
-deletes them, in a loop. The rules are complex enough to require two
-action STEs per rule.
-
-Each queue is manipulated from a separate kernel workqueue, so there is
-a 1:1 correspondence between threads and queues.
-
-There are sleep statements between insert and delete batches so that
-memory usage can be evaluated using `free -m`. The numbers below are the
-diff between base memory usage (without the mlx5 module inserted) and
-peak usage while running a test. The values are rounded to the nearest
-hundred megabytes. The `queues` column lists how many queues the test
-used.
-
-queues          mem_before      mem_after
-1               1300M            800M
-4               4000M           2300M
-8               7300M           3300M
-
-Across all of the tests, insertion and deletion rates are the same
-before and after these patches.
-
-Summary of the patches
-----------------------
-
-* Patch 1: Fix matcher action template attach to avoid overrunning the
-  buffer and correctly report errors.
-* Patches 2-7: Cleanup the existing pool abstraction. Clarify semantics,
-  and use cases, simplify API and callers.
-* Patch 8: Implement the new action STE pool structure.
-* Patch 9: Use the action STE pool when manipulating rules.
-* Patch 10: Remove action RTC from matcher.
-* Patch 11: Add logic to periodically check and free unused action RTCs.
-* Patch 12: Export action STE tables in debugfs for our dump tool.
-
-[PATCH 00/12] HWS: Refactor action STE handling
-[PATCH 01/12] net/mlx5: HWS, Fix matcher action template attach
-[PATCH 02/12] net/mlx5: HWS, Remove unused element array
-[PATCH 03/12] net/mlx5: HWS, Make pool single resource
-[PATCH 04/12] net/mlx5: HWS, Refactor pool implementation
-[PATCH 05/12] net/mlx5: HWS, Cleanup after pool refactoring
-[PATCH 06/12] net/mlx5: HWS, Add fullness tracking to pool
-[PATCH 07/12] net/mlx5: HWS, Fix pool size optimization
-[PATCH 08/12] net/mlx5: HWS, Implement action STE pool
-[PATCH 09/12] net/mlx5: HWS, Use the new action STE pool
-[PATCH 10/12] net/mlx5: HWS, Cleanup matcher action STE table
-[PATCH 11/12] net/mlx5: HWS, Free unused action STE tables
-[PATCH 12/12] net/mlx5: HWS, Export action STE tables to debugfs
-
-Vlad Dogaru (12):
-  net/mlx5: HWS, Fix matcher action template attach
-  net/mlx5: HWS, Remove unused element array
-  net/mlx5: HWS, Make pool single resource
-  net/mlx5: HWS, Refactor pool implementation
-  net/mlx5: HWS, Cleanup after pool refactoring
-  net/mlx5: HWS, Add fullness tracking to pool
-  net/mlx5: HWS, Fix pool size optimization
-  net/mlx5: HWS, Implement action STE pool
-  net/mlx5: HWS, Use the new action STE pool
-  net/mlx5: HWS, Cleanup matcher action STE table
-  net/mlx5: HWS, Free unused action STE tables
-  net/mlx5: HWS, Export action STE tables to debugfs
-
- .../net/ethernet/mellanox/mlx5/core/Makefile  |   3 +-
- .../mellanox/mlx5/core/steering/hws/action.c  |  56 +-
- .../mellanox/mlx5/core/steering/hws/action.h  |   8 +-
- .../mlx5/core/steering/hws/action_ste_pool.c  | 467 ++++++++++++++++
- .../mlx5/core/steering/hws/action_ste_pool.h  |  69 +++
- .../mellanox/mlx5/core/steering/hws/bwc.c     |  98 ++--
- .../mellanox/mlx5/core/steering/hws/bwc.h     |   9 +-
- .../mellanox/mlx5/core/steering/hws/cmd.c     |   1 -
- .../mellanox/mlx5/core/steering/hws/cmd.h     |   1 -
- .../mellanox/mlx5/core/steering/hws/context.c |   8 +-
- .../mellanox/mlx5/core/steering/hws/context.h |   2 +
- .../mellanox/mlx5/core/steering/hws/debug.c   |  71 ++-
- .../mellanox/mlx5/core/steering/hws/debug.h   |   2 +
- .../mlx5/core/steering/hws/internal.h         |   1 +
- .../mellanox/mlx5/core/steering/hws/matcher.c | 420 ++++----------
- .../mellanox/mlx5/core/steering/hws/matcher.h |  26 +-
- .../mellanox/mlx5/core/steering/hws/pool.c    | 515 +++++-------------
- .../mellanox/mlx5/core/steering/hws/pool.h    | 103 ++--
- .../mellanox/mlx5/core/steering/hws/rule.c    |  69 +--
- .../mellanox/mlx5/core/steering/hws/rule.h    |  12 +-
- 20 files changed, 972 insertions(+), 969 deletions(-)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.c
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/steering/hws/action_ste_pool.h
-
-
-base-commit: 61f96e684edd28ca40555ec49ea1555df31ba619
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/pool.c b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/pool.c
+index 50a81d360bb2..35ed9bee06a6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/pool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/pool.c
+@@ -293,7 +293,7 @@ static int hws_pool_create_resource_on_index(struct mlx5hws_pool *pool,
+ }
+ 
+ static struct mlx5hws_pool_elements *
+-hws_pool_element_create_new_elem(struct mlx5hws_pool *pool, u32 order, int idx)
++hws_pool_element_create_new_elem(struct mlx5hws_pool *pool, u32 order)
+ {
+ 	struct mlx5hws_pool_elements *elem;
+ 	u32 alloc_size;
+@@ -311,21 +311,21 @@ hws_pool_element_create_new_elem(struct mlx5hws_pool *pool, u32 order, int idx)
+ 		elem->bitmap = hws_pool_create_and_init_bitmap(alloc_size - order);
+ 		if (!elem->bitmap) {
+ 			mlx5hws_err(pool->ctx,
+-				    "Failed to create bitmap type: %d: size %d index: %d\n",
+-				    pool->type, alloc_size, idx);
++				    "Failed to create bitmap type: %d: size %d\n",
++				    pool->type, alloc_size);
+ 			goto free_elem;
+ 		}
+ 
+ 		elem->log_size = alloc_size - order;
+ 	}
+ 
+-	if (hws_pool_create_resource_on_index(pool, alloc_size, idx)) {
+-		mlx5hws_err(pool->ctx, "Failed to create resource type: %d: size %d index: %d\n",
+-			    pool->type, alloc_size, idx);
++	if (hws_pool_create_resource_on_index(pool, alloc_size, 0)) {
++		mlx5hws_err(pool->ctx, "Failed to create resource type: %d: size %d\n",
++			    pool->type, alloc_size);
+ 		goto free_db;
+ 	}
+ 
+-	pool->db.element_manager->elements[idx] = elem;
++	pool->db.element = elem;
+ 
+ 	return elem;
+ 
+@@ -359,9 +359,9 @@ hws_pool_onesize_element_get_mem_chunk(struct mlx5hws_pool *pool, u32 order,
+ {
+ 	struct mlx5hws_pool_elements *elem;
+ 
+-	elem = pool->db.element_manager->elements[0];
++	elem = pool->db.element;
+ 	if (!elem)
+-		elem = hws_pool_element_create_new_elem(pool, order, 0);
++		elem = hws_pool_element_create_new_elem(pool, order);
+ 	if (!elem)
+ 		goto err_no_elem;
+ 
+@@ -451,16 +451,14 @@ static int hws_pool_general_element_db_init(struct mlx5hws_pool *pool)
+ 	return 0;
+ }
+ 
+-static void hws_onesize_element_db_destroy_element(struct mlx5hws_pool *pool,
+-						   struct mlx5hws_pool_elements *elem,
+-						   struct mlx5hws_pool_chunk *chunk)
++static void
++hws_onesize_element_db_destroy_element(struct mlx5hws_pool *pool,
++				       struct mlx5hws_pool_elements *elem)
+ {
+-	if (unlikely(!pool->resource[chunk->resource_idx]))
+-		pr_warn("HWS: invalid resource with index %d\n", chunk->resource_idx);
+-
+-	hws_pool_resource_free(pool, chunk->resource_idx);
++	hws_pool_resource_free(pool, 0);
++	bitmap_free(elem->bitmap);
+ 	kfree(elem);
+-	pool->db.element_manager->elements[chunk->resource_idx] = NULL;
++	pool->db.element = NULL;
+ }
+ 
+ static void hws_onesize_element_db_put_chunk(struct mlx5hws_pool *pool,
+@@ -471,7 +469,7 @@ static void hws_onesize_element_db_put_chunk(struct mlx5hws_pool *pool,
+ 	if (unlikely(chunk->resource_idx))
+ 		pr_warn("HWS: invalid resource with index %d\n", chunk->resource_idx);
+ 
+-	elem = pool->db.element_manager->elements[chunk->resource_idx];
++	elem = pool->db.element;
+ 	if (!elem) {
+ 		mlx5hws_err(pool->ctx, "No such element (%d)\n", chunk->resource_idx);
+ 		return;
+@@ -483,7 +481,7 @@ static void hws_onesize_element_db_put_chunk(struct mlx5hws_pool *pool,
+ 
+ 	if (pool->flags & MLX5HWS_POOL_FLAGS_RELEASE_FREE_RESOURCE &&
+ 	    !elem->num_of_elements)
+-		hws_onesize_element_db_destroy_element(pool, elem, chunk);
++		hws_onesize_element_db_destroy_element(pool, elem);
+ }
+ 
+ static int hws_onesize_element_db_get_chunk(struct mlx5hws_pool *pool,
+@@ -504,18 +502,13 @@ static int hws_onesize_element_db_get_chunk(struct mlx5hws_pool *pool,
+ 
+ static void hws_onesize_element_db_uninit(struct mlx5hws_pool *pool)
+ {
+-	struct mlx5hws_pool_elements *elem;
+-	int i;
++	struct mlx5hws_pool_elements *elem = pool->db.element;
+ 
+-	for (i = 0; i < MLX5HWS_POOL_RESOURCE_ARR_SZ; i++) {
+-		elem = pool->db.element_manager->elements[i];
+-		if (elem) {
+-			bitmap_free(elem->bitmap);
+-			kfree(elem);
+-			pool->db.element_manager->elements[i] = NULL;
+-		}
++	if (elem) {
++		bitmap_free(elem->bitmap);
++		kfree(elem);
++		pool->db.element = NULL;
+ 	}
+-	kfree(pool->db.element_manager);
+ }
+ 
+ /* This memory management works as the following:
+@@ -526,10 +519,6 @@ static void hws_onesize_element_db_uninit(struct mlx5hws_pool *pool)
+  */
+ static int hws_pool_onesize_element_db_init(struct mlx5hws_pool *pool)
+ {
+-	pool->db.element_manager = kzalloc(sizeof(*pool->db.element_manager), GFP_KERNEL);
+-	if (!pool->db.element_manager)
+-		return -ENOMEM;
+-
+ 	pool->p_db_uninit = &hws_onesize_element_db_uninit;
+ 	pool->p_get_chunk = &hws_onesize_element_db_get_chunk;
+ 	pool->p_put_chunk = &hws_onesize_element_db_put_chunk;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/pool.h b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/pool.h
+index 621298b352b2..f4258f83fdbf 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/pool.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/steering/hws/pool.h
+@@ -87,14 +87,10 @@ struct mlx5hws_pool_elements {
+ 	bool is_full;
+ };
+ 
+-struct mlx5hws_element_manager {
+-	struct mlx5hws_pool_elements *elements[MLX5HWS_POOL_RESOURCE_ARR_SZ];
+-};
+-
+ struct mlx5hws_pool_db {
+ 	enum mlx5hws_db_type type;
+ 	union {
+-		struct mlx5hws_element_manager *element_manager;
++		struct mlx5hws_pool_elements *element;
+ 		struct mlx5hws_buddy_manager *buddy_manager;
+ 	};
+ };
 -- 
 2.31.1
 
