@@ -1,46 +1,46 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3560F25DCFA;
-	Mon, 14 Apr 2025 08:26:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A68C25E45C;
+	Mon, 14 Apr 2025 08:26:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744619180; cv=none; b=D9vlQ+OEVHRRv8m67/SPpop0y65Jx56W6xxl2nq5LYnTBiv0EXH9tzSefbzIhg9IObG1d5VrL+wn7s0sghhVjEVBSc4xag39ifX/77KFJ6xIYkbJ1NYr0MqoaqcjRn9FBL+TSL7+29M9qKEhe7gnEVCU2PTyWHK9NuKQTEYkzMU=
+	t=1744619181; cv=none; b=ns4l/oqArD2oXvmAsoG81/HW55LioW5CZxlQgpDgesRV5n4pI7J67D9Sps6bN3cAH1oFfYO16Q0qOgmDGKLnQHc7Lc25L+UsAveWAI3Iajo2VVOuLhTabsVCUgmbwSX7c/bIo1JhTgsPcDrc82+tUhrk8UQJQJ6qo0YNzh+fWXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744619180; c=relaxed/simple;
-	bh=61F6yS3SeLiDBJeFobz+nPKysOXCT5pH1Ry4x0mEWwk=;
+	s=arc-20240116; t=1744619181; c=relaxed/simple;
+	bh=WzJ/HmoEyIxMvJeEOlZ2czFzOQnDOjD3iHfVNkyBNQ4=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=lItHX4C3rpv2nqrnxzJUsoO5DogyTlXXaY5p0o/jjdOlCH/emkasPN8xjJo9OGRRkprocTFyHBhPKu4XJWWnA1+PqiltSTi/jnvPLvQUBQll7rNuuCiNS9jx8tAieUDwZDTIEnI4gtGsIR3GBomg9eXxVfems0SRDz2/sG8uHrc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=oXHvZS2X; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=BW7eyc5n; arc=none smtp.client-ip=193.142.43.55
+	 In-Reply-To:To:Cc; b=L0FHdT1sWeqkJgP105HkpBro/KduSth2eFueiYYQt2ReieJ+DuRXjmCJpBJ6hwz+RgzV9B8w0a9OtWogMyi4WjYgd8NNN6LucjObwRwk9fWbLW4Mb6pOuXKGiSGW9NwQCrqIDTTJSVZ+dqaVI+Yba8gsucTMrolz7CIe1jo9qpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=TIrUb6Ka; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=b81luPP9; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="oXHvZS2X";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="BW7eyc5n"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="TIrUb6Ka";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="b81luPP9"
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1744619175;
+	s=2020; t=1744619177;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Q/VnYhVD1SCgZYyfaXiiv1axKyoVwiXgocwEv4oE1Ko=;
-	b=oXHvZS2XoGF1OUDHETEpesHyXLq7OFuBkAoXwt+6oCKMZrrFFF7uAwyKIDqzJqoXyqoqMx
-	YfMGx/Wq/+MNteZfIoJ/sv1izi7t6HJy44wVg2hqGx0ck5MT8UTT10/XExG98CKxAN//+G
-	OusqYZlGizraLiAQZfjQ1cDm7BhQ2SwbOYT7Ir2X/9itY/sZWkuig3cgmYDSu9N5UAd2we
-	4DXfe2USWh11pvXMgy16WHeMjzegIHTAOIk2/I6NBfxU/jAKvND/ARkjDKzYATCwovn5na
-	lAdIxHxyggXJgXvs29oqrL2p0PIPjlmvFObHVwm+/ndrprruazh3PRaU8SKhHA==
+	bh=+OyON1Yf1rr+8CzcSa4hkkYGRtID+dWFkGoiAoSKTwA=;
+	b=TIrUb6KaLTcpHArLnyDrZ1/XzY6utlfmyG99ojUWp1bMSzIHF1Vgi08/TVQvWG4iM+opbL
+	cWWo8YuQ2dBWBoxAayYDMVZlaw6Ioc86xZFPw3MD/rmV/AU9pxMCsjA3+1uR81ohZq6+Qa
+	kPP1Z+VG90nbHrkaymmkH78gr4q3g3rRDaoSHgaX1aD1/LbBlPUf1ZuHGcTQI0vfjfPb6j
+	ospQd6F5IkYTdO/VqmDmF2+V6Lnjo4B2Ga4yfmBs3b/EfvEMEgoz8I1fzPr6b5FZ1Lt53v
+	XI3GSuhhqbNqKW3qpT3asL9boRf5663GPlGNpqyxXpj1DUZRhDg1b+shCLaklQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1744619175;
+	s=2020e; t=1744619177;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Q/VnYhVD1SCgZYyfaXiiv1axKyoVwiXgocwEv4oE1Ko=;
-	b=BW7eyc5nmNTm4BrUjTKiQcxtNBwCiX+GSkj3s651FAkykMV6ELiCFt5lY/bvAC3YEtdm8y
-	c90pAWGVmstytfDg==
-Date: Mon, 14 Apr 2025 10:26:05 +0200
-Subject: [PATCH net-next 4/7] wifi: wcn36xx: Don't use %pK through printk
+	bh=+OyON1Yf1rr+8CzcSa4hkkYGRtID+dWFkGoiAoSKTwA=;
+	b=b81luPP9nxBvVUYPxsolvoc8ilyKeEV88+u2tvl6LB2jk2uYlffGU4Xys4Y38dexezpnwV
+	22324LRkDL8QYaBg==
+Date: Mon, 14 Apr 2025 10:26:08 +0200
+Subject: [PATCH net-next 7/7] net/mlx5: Don't use %pK through tracepoints
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,7 +49,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20250414-restricted-pointers-net-v1-4-12af0ce46cdd@linutronix.de>
+Message-Id: <20250414-restricted-pointers-net-v1-7-12af0ce46cdd@linutronix.de>
 References: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
 In-Reply-To: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
 To: Jeff Johnson <jjohnson@kernel.org>, 
@@ -69,11 +69,11 @@ Cc: ath10k@lists.infradead.org, linux-kernel@vger.kernel.org,
  intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, 
  linux-rdma@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1744619172; l=1466;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1744619172; l=1640;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=61F6yS3SeLiDBJeFobz+nPKysOXCT5pH1Ry4x0mEWwk=;
- b=x/NwFZLAfuFMn6Tuwkaaozs8DHU3CODeWCFL2e9Z5eSwidQOwOcFXmSdTvN9+ChrWvdguO2cn
- UysC7tAl9ggC5QE/fMdSdsC5X2A9PqW1zeBD1+dBhqDiAkkT9kN1N/c
+ bh=WzJ/HmoEyIxMvJeEOlZ2czFzOQnDOjD3iHfVNkyBNQ4=;
+ b=Zuho2QqTEJS0pVHFp2MmyTiIbCDfOTyQV+4ybcxy4I85pU30LrHxUGib19TU2f1V/3c3/DFBC
+ e7ly/4/qAorA4GYLUQdHhuDpswxVWNrCo2fL5St4/wIo6zWsIBOTgfx
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
@@ -82,7 +82,7 @@ values into the kernel log.
 Since commit ad67b74d2469 ("printk: hash addresses printed with %p")
 the regular %p has been improved to avoid this issue.
 Furthermore, restricted pointers ("%pK") were never meant to be used
-through printk(). They can still unintentionally leak raw pointers or
+through tracepoints. They can still unintentionally leak raw pointers or
 acquire sleeping looks in atomic contexts.
 
 Switch to the regular pointer formatting which is safer and
@@ -92,22 +92,22 @@ for which its usage is safe.
 
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
- drivers/net/wireless/ath/wcn36xx/testmode.c | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/sf/dev/diag/dev_tracepoint.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/wcn36xx/testmode.c b/drivers/net/wireless/ath/wcn36xx/testmode.c
-index e5142c052985ddf629b93d7b9687e6ba63a48e8b..d7a2a483cbc486308032709a99bba9a52ed0ff59 100644
---- a/drivers/net/wireless/ath/wcn36xx/testmode.c
-+++ b/drivers/net/wireless/ath/wcn36xx/testmode.c
-@@ -56,7 +56,7 @@ static int wcn36xx_tm_cmd_ptt(struct wcn36xx *wcn, struct ieee80211_vif *vif,
- 	msg = buf;
- 
- 	wcn36xx_dbg(WCN36XX_DBG_TESTMODE,
--		    "testmode cmd wmi msg_id 0x%04X msg_len %d buf %pK buf_len %d\n",
-+		    "testmode cmd wmi msg_id 0x%04X msg_len %d buf %p buf_len %d\n",
- 		   msg->msg_id, msg->msg_body_length,
- 		   buf, buf_len);
- 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/diag/dev_tracepoint.h b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/diag/dev_tracepoint.h
+index 0537de86f9817dc80bd897688c539135b1ad37ac..9b0f44253f332aa602a84a1f6d7532a500dd4f55 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/diag/dev_tracepoint.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/sf/dev/diag/dev_tracepoint.h
+@@ -28,7 +28,7 @@ DECLARE_EVENT_CLASS(mlx5_sf_dev_template,
+ 				   __entry->hw_fn_id = sfdev->fn_id;
+ 				   __entry->sfnum = sfdev->sfnum;
+ 		    ),
+-		    TP_printk("(%s) sfdev=%pK aux_id=%d hw_id=0x%x sfnum=%u\n",
++		    TP_printk("(%s) sfdev=%p aux_id=%d hw_id=0x%x sfnum=%u\n",
+ 			      __get_str(devname), __entry->sfdev,
+ 			      __entry->aux_id, __entry->hw_fn_id,
+ 			      __entry->sfnum)
 
 -- 
 2.49.0
