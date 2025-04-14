@@ -1,263 +1,108 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1F6A228BABF;
-	Mon, 14 Apr 2025 18:28:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mail-pg1-f175.google.com (mail-pg1-f175.google.com [209.85.215.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFD3228BA9B
+	for <linux-rdma@vger.kernel.org>; Mon, 14 Apr 2025 18:44:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744655332; cv=none; b=vEegigpzcWSNk3+5aK81Wt8zIRq7HnpppuFB5oN6et9ctOfS+uPHpPADBt5++I736nuX3+c9mjT2S5/qlLNFEJAVoIZTGGd6OaZ755FYrb6vjAy3p6lH1sZq718/QedIp0g8XLTPRXt8DAKnGSs79ytVQD+pCEofw7vhcFtnv7U=
+	t=1744656271; cv=none; b=FDZgZBoLbAqlZh9W/cvOww4ZwyQCL8a5rUQxOox0FHm/ngWIOJ4guPHTg/FmGu6xM2cOOKzjr9oZZSAbJ1cC3Ig5wW9eJMWHwigc74FXecnI1JKX3AmPjhSQ7gDRYK8988mVLghmvfsOPwxrCVPqBMDsF2yq40SXxvKX8FEPWEM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744655332; c=relaxed/simple;
-	bh=vdywQtUI0NTlRBdA8wejaH5TuzVIPohsDKIIzgaougg=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=q/l18TdF0a7oTyLqNAo9SsDXKMqKgOOYPeRtRz/7LR0T5RSWZ3BLWxvtn7/MyEdm7Qm2sS/cndGgFGZhIN5VJ3r/RQdqDOuK6mcpc5iJ+5vRjsj/Dz0OelpelVON2cSSd/nL6AKQsOnhd3opN0r7VxlWWHvVQw+onRUeHbOBlZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=skldsk11; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	s=arc-20240116; t=1744656271; c=relaxed/simple;
+	bh=YpSfHpLk4g82/Efaxxr4vcOeA7lwSVP0ZoulsVdeGLY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Raed8jaeW6dLObWDGGQEuhWq8AGRTa/fJuFlSToScBnNW7V67HnjrEg0ahvlG+zE9ClXHPlRHGSqr8EjLJNSAhY9Wa4sAnwuvLiO78IHtGuXUcPwOz5Hpe9AGbrf+YQNjs/4iT9DgRLh35KKGpSInkWFEOBrTvvH/qaRnbszwOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=E12PzeVZ; arc=none smtp.client-ip=209.85.215.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="skldsk11"
-Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id C18972052510; Mon, 14 Apr 2025 11:28:49 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com C18972052510
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1744655329;
-	bh=BqzGqTyz4cd1XDrpGFG8FMLlvLuq/f9Rt5jVkarMP0U=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=skldsk11Md0yD9FOBtjsEzs4ps481WFSBmf7PU3xKanyg38iK8tCf3Gz7CdzT083C
-	 hVtKShGZBPmRpIzw/s3tVivpbIJjXKkgfXm0Smpt57LgsKmM4KVmxfI8y4UR7Tibo2
-	 rkQboEddTvBUO86bbg1P7DjEFBZzdy49nJWjKOXs=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	pabeni@redhat.com,
-	haiyangz@microsoft.com,
-	kys@microsoft.com,
-	edumazet@google.com,
-	kuba@kernel.org,
-	davem@davemloft.net,
-	decui@microsoft.com,
-	wei.liu@kernel.org,
-	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: [PATCH rdma-next 3/4] RDMA/mana_ib: unify mana_ib functions to support any gdma device
-Date: Mon, 14 Apr 2025 11:28:48 -0700
-Message-Id: <1744655329-13601-4-git-send-email-kotaranov@linux.microsoft.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1744655329-13601-1-git-send-email-kotaranov@linux.microsoft.com>
-References: <1744655329-13601-1-git-send-email-kotaranov@linux.microsoft.com>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="E12PzeVZ"
+Received: by mail-pg1-f175.google.com with SMTP id 41be03b00d2f7-b07d607dc83so1349964a12.1
+        for <linux-rdma@vger.kernel.org>; Mon, 14 Apr 2025 11:44:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1744656269; x=1745261069; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=YpSfHpLk4g82/Efaxxr4vcOeA7lwSVP0ZoulsVdeGLY=;
+        b=E12PzeVZu5Exwy8LyxFk9HWgo0LQ+XxMijoqt+C1B+Mp3AYP3HgimWmrf9iOztUsrf
+         4UHJRw1rgGT5K2jugGhaZYNqMS6qBc4LSCCwbOjuZ1TPhvHD/SZzcqq2/oTv/wxv6qsY
+         hKoy7XFhw7AZeIAB4v0NuPvLvGIFSngF5FTv0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1744656269; x=1745261069;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=YpSfHpLk4g82/Efaxxr4vcOeA7lwSVP0ZoulsVdeGLY=;
+        b=ajTIKih7j8Kwa8Ici4kkPMzuDz31VwyTqAurhxNwgU5WZORcTWvW1WPqbgcv24URS3
+         cll650LNba6+S0hK9QLP1e0oY5aRWNCHHv+h/IQIBP7p091syzltHeQYUETXMkVTqaaQ
+         kzA1DQaTqr67SMVXrUVWYCjFq7JNC5otHj6k3I9gWxYFaFefSnBwrTR/Y1mhoHnOQBwL
+         ZSEkzIZDg/7ff2pOX7ZtOK7UMt0fcgrkUczf1lxVq7PiNSjQEZunpSUQ+aVk/HxdDWAQ
+         SMv568v5vsloU7u0j4ej3XDE5cqbvCy2ub+R0y7ryaxxqHzJYmC7salQdGiFoZXHaARI
+         bZ8g==
+X-Forwarded-Encrypted: i=1; AJvYcCUXwgEkbya18+CIrLWHgL2WC3ZoXKJ82zCYb5zFjtyYqDoKBfYxeUcL6ZafQWzUtUQsyY1J4pFGz0td@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy/gPqAaYiZauUgNONVaVCIQFt44B0FxOovaLQkJ6SI5wWqGcQK
+	YxK/wfTCzxXF1cgC7q01uwJk1B61jyoK1v3xUzSJLAMXNQzeo52/shRFWyfJvw==
+X-Gm-Gg: ASbGncviQm3cFVQe8Ncgr1nXytnvnb1pg/DtaxittzBGTmvC2YdbAMXKnvfPEFVXgsP
+	8Hs6ZAoV3nPHZpwHMn3NGPrFFVDXXA6bfdE5ysiERrbf0fza8LXZphcP4qqTWe1RJK5ynqd4Imv
+	OqxDJF51lYBBdSibXGjsf2P1bPEI6b0SH7SbrLpfR8xj+FeRpvQQGxinzCCTaYBgyrC80pFeaHR
+	65T3RtUMVas4qrD3eWwkj3dfoT/aVNRXwDwTabgUzd+kzy49a00KGGNY6Y9d/K+J8TM4XB4dk1J
+	ay9QKUrpQEejcTcKSOPcOLQ426iAypnuVsJevFcqyLyq88ibTMQ6fHPUXDSKcsiyurhA3k++iib
+	5mA==
+X-Google-Smtp-Source: AGHT+IHRnGevNVFCEzzLtuARDY+GV3b1ySMboNdXjtt9nCxP859MMeYdEqvd7RpkkuyGR22MEOT6ZQ==
+X-Received: by 2002:a17:90b:2752:b0:301:1bce:c255 with SMTP id 98e67ed59e1d1-308237ba788mr18304386a91.27.1744656268888;
+        Mon, 14 Apr 2025 11:44:28 -0700 (PDT)
+Received: from localhost ([2a00:79e0:2e14:7:cfd0:cb73:1c0:728a])
+        by smtp.gmail.com with UTF8SMTPSA id 98e67ed59e1d1-306df082327sm11386410a91.15.2025.04.14.11.44.26
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 14 Apr 2025 11:44:27 -0700 (PDT)
+Date: Mon, 14 Apr 2025 11:44:24 -0700
+From: Brian Norris <briannorris@chromium.org>
+To: Thomas =?iso-8859-1?Q?Wei=DFschuh?= <thomas.weissschuh@linutronix.de>
+Cc: Jeff Johnson <jjohnson@kernel.org>,
+	Loic Poulain <loic.poulain@linaro.org>,
+	Francesco Dolcini <francesco@dolcini.it>,
+	Tony Nguyen <anthony.l.nguyen@intel.com>,
+	Przemek Kitszel <przemyslaw.kitszel@intel.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Saeed Mahameed <saeedm@nvidia.com>,
+	Leon Romanovsky <leon@kernel.org>, Tariq Toukan <tariqt@nvidia.com>,
+	ath10k@lists.infradead.org, linux-kernel@vger.kernel.org,
+	ath11k@lists.infradead.org, ath12k@lists.infradead.org,
+	wcn36xx@lists.infradead.org, linux-wireless@vger.kernel.org,
+	intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org
+Subject: Re: [PATCH net-next 0/7] net: Don't use %pK through printk
+Message-ID: <Z_1XiNY2ujreEo69@google.com>
+References: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
 
-From: Konstantin Taranov <kotaranov@microsoft.com>
+On Mon, Apr 14, 2025 at 10:26:01AM +0200, Thomas Weißschuh wrote:
+> Furthermore, restricted pointers ("%pK") were never meant to be used
+> through printk().
 
-Use the installed gdma_device instead of hard-coded device
-in requests to the HW.
+Is this really true? Documentation/admin-guide/sysctl/kernel.rst still
+has a section on kptr_restrict which talks about dmesg, CAP_SYSLOG, and
+%pK, which sounds like it's intended. But I'm not highly familiar with
+this space, so maybe I'm misreading something.
 
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
----
- drivers/infiniband/hw/mana/cq.c   |  4 +---
- drivers/infiniband/hw/mana/main.c | 28 ++++++++++++++--------------
- drivers/infiniband/hw/mana/qp.c   |  5 ++---
- 3 files changed, 17 insertions(+), 20 deletions(-)
+(I do see that commit a48849e2358e ("printk: clarify the documentation
+for plain pointer printing") updated
+Documentation/core-api/printk-formats.rst.)
 
-diff --git a/drivers/infiniband/hw/mana/cq.c b/drivers/infiniband/hw/mana/cq.c
-index 0fc4e26..28e154b 100644
---- a/drivers/infiniband/hw/mana/cq.c
-+++ b/drivers/infiniband/hw/mana/cq.c
-@@ -15,14 +15,12 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 	struct ib_device *ibdev = ibcq->device;
- 	struct mana_ib_create_cq ucmd = {};
- 	struct mana_ib_dev *mdev;
--	struct gdma_context *gc;
- 	bool is_rnic_cq;
- 	u32 doorbell;
- 	u32 buf_size;
- 	int err;
- 
- 	mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
--	gc = mdev_to_gc(mdev);
- 
- 	cq->comp_vector = attr->comp_vector % ibdev->num_comp_vectors;
- 	cq->cq_handle = INVALID_MANA_HANDLE;
-@@ -65,7 +63,7 @@ int mana_ib_create_cq(struct ib_cq *ibcq, const struct ib_cq_init_attr *attr,
- 			ibdev_dbg(ibdev, "Failed to create kernel queue for create cq, %d\n", err);
- 			return err;
- 		}
--		doorbell = gc->mana_ib.doorbell;
-+		doorbell = mdev->gdma_dev->doorbell;
- 	}
- 
- 	if (is_rnic_cq) {
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index 64526b8..95ade5b 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -243,7 +243,6 @@ void mana_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
- int mana_ib_create_kernel_queue(struct mana_ib_dev *mdev, u32 size, enum gdma_queue_type type,
- 				struct mana_ib_queue *queue)
- {
--	struct gdma_context *gc = mdev_to_gc(mdev);
- 	struct gdma_queue_spec spec = {};
- 	int err;
- 
-@@ -252,7 +251,7 @@ int mana_ib_create_kernel_queue(struct mana_ib_dev *mdev, u32 size, enum gdma_qu
- 	spec.type = type;
- 	spec.monitor_avl_buf = false;
- 	spec.queue_size = size;
--	err = mana_gd_create_mana_wq_cq(&gc->mana_ib, &spec, &queue->kmem);
-+	err = mana_gd_create_mana_wq_cq(mdev->gdma_dev, &spec, &queue->kmem);
- 	if (err)
- 		return err;
- 	/* take ownership into mana_ib from mana */
-@@ -737,6 +736,7 @@ int mana_eth_query_adapter_caps(struct mana_ib_dev *dev)
- 				0x100000 / GDMA_MAX_RQE_SIZE);
- 	caps->max_send_sge_count = 30;
- 	caps->max_recv_sge_count = 15;
-+	caps->page_size_cap = PAGE_SZ_BM;
- 
- 	return 0;
- }
-@@ -782,7 +782,7 @@ int mana_ib_create_eqs(struct mana_ib_dev *mdev)
- 	spec.eq.log2_throttle_limit = LOG2_EQ_THROTTLE;
- 	spec.eq.msix_index = 0;
- 
--	err = mana_gd_create_mana_eq(&gc->mana_ib, &spec, &mdev->fatal_err_eq);
-+	err = mana_gd_create_mana_eq(mdev->gdma_dev, &spec, &mdev->fatal_err_eq);
- 	if (err)
- 		return err;
- 
-@@ -833,7 +833,7 @@ int mana_ib_gd_create_rnic_adapter(struct mana_ib_dev *mdev)
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_ADAPTER, sizeof(req), sizeof(resp));
- 	req.hdr.req.msg_version = GDMA_MESSAGE_V2;
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.notify_eq_id = mdev->fatal_err_eq->id;
- 
- 	if (mdev->adapter_caps.feature_flags & MANA_IB_FEATURE_CLIENT_ERROR_CQE_SUPPORT)
-@@ -858,7 +858,7 @@ int mana_ib_gd_destroy_rnic_adapter(struct mana_ib_dev *mdev)
- 
- 	gc = mdev_to_gc(mdev);
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_DESTROY_ADAPTER, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 
- 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-@@ -885,7 +885,7 @@ int mana_ib_gd_add_gid(const struct ib_gid_attr *attr, void **context)
- 	}
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CONFIG_IP_ADDR, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.op = ADDR_OP_ADD;
- 	req.sgid_type = (ntype == RDMA_NETWORK_IPV6) ? SGID_TYPE_IPV6 : SGID_TYPE_IPV4;
-@@ -915,7 +915,7 @@ int mana_ib_gd_del_gid(const struct ib_gid_attr *attr, void **context)
- 	}
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CONFIG_IP_ADDR, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.op = ADDR_OP_REMOVE;
- 	req.sgid_type = (ntype == RDMA_NETWORK_IPV6) ? SGID_TYPE_IPV6 : SGID_TYPE_IPV4;
-@@ -938,7 +938,7 @@ int mana_ib_gd_config_mac(struct mana_ib_dev *mdev, enum mana_ib_addr_op op, u8
- 	int err;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CONFIG_MAC_ADDR, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.op = op;
- 	copy_in_reverse(req.mac_addr, mac, ETH_ALEN);
-@@ -963,7 +963,7 @@ int mana_ib_gd_create_cq(struct mana_ib_dev *mdev, struct mana_ib_cq *cq, u32 do
- 		return -EINVAL;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_CQ, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.gdma_region = cq->queue.gdma_region;
- 	req.eq_id = mdev->eqs[cq->comp_vector]->id;
-@@ -995,7 +995,7 @@ int mana_ib_gd_destroy_cq(struct mana_ib_dev *mdev, struct mana_ib_cq *cq)
- 		return 0;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_DESTROY_CQ, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.cq_handle = cq->cq_handle;
- 
-@@ -1021,7 +1021,7 @@ int mana_ib_gd_create_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
- 	int err, i;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_RC_QP, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.pd_handle = pd->pd_handle;
- 	req.send_cq_handle = send_cq->cq_handle;
-@@ -1057,7 +1057,7 @@ int mana_ib_gd_destroy_rc_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
- 	int err;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_DESTROY_RC_QP, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.rc_qp_handle = qp->qp_handle;
- 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-@@ -1080,7 +1080,7 @@ int mana_ib_gd_create_ud_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp,
- 	int err, i;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_UD_QP, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.pd_handle = pd->pd_handle;
- 	req.send_cq_handle = send_cq->cq_handle;
-@@ -1115,7 +1115,7 @@ int mana_ib_gd_destroy_ud_qp(struct mana_ib_dev *mdev, struct mana_ib_qp *qp)
- 	int err;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_DESTROY_UD_QP, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.qp_handle = qp->qp_handle;
- 	err = mana_gd_send_request(gc, sizeof(req), &req, sizeof(resp), &resp);
-diff --git a/drivers/infiniband/hw/mana/qp.c b/drivers/infiniband/hw/mana/qp.c
-index c928af5..14fd7d6 100644
---- a/drivers/infiniband/hw/mana/qp.c
-+++ b/drivers/infiniband/hw/mana/qp.c
-@@ -635,7 +635,6 @@ static int mana_ib_create_ud_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- {
- 	struct mana_ib_dev *mdev = container_of(ibpd->device, struct mana_ib_dev, ib_dev);
- 	struct mana_ib_qp *qp = container_of(ibqp, struct mana_ib_qp, ibqp);
--	struct gdma_context *gc = mdev_to_gc(mdev);
- 	u32 doorbell, queue_size;
- 	int i, err;
- 
-@@ -654,7 +653,7 @@ static int mana_ib_create_ud_qp(struct ib_qp *ibqp, struct ib_pd *ibpd,
- 			goto destroy_queues;
- 		}
- 	}
--	doorbell = gc->mana_ib.doorbell;
-+	doorbell = mdev->gdma_dev->doorbell;
- 
- 	err = create_shadow_queue(&qp->shadow_rq, attr->cap.max_recv_wr,
- 				  sizeof(struct ud_rq_shadow_wqe));
-@@ -736,7 +735,7 @@ static int mana_ib_gd_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	int err;
- 
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_SET_QP_STATE, sizeof(req), sizeof(resp));
--	req.hdr.dev_id = gc->mana_ib.dev_id;
-+	req.hdr.dev_id = mdev->gdma_dev->dev_id;
- 	req.adapter = mdev->adapter_handle;
- 	req.qp_handle = qp->qp_handle;
- 	req.qp_state = attr->qp_state;
--- 
-2.43.0
+In any case, even if the advice has changed, it seems (again, to an
+outsider) a bit much to say it was "never" meant to be used through
+printk().
 
+Brian
