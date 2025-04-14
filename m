@@ -1,44 +1,46 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E41FB259483;
-	Mon, 14 Apr 2025 08:26:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D590259CA7;
+	Mon, 14 Apr 2025 08:26:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744619177; cv=none; b=DAy793dZJnzqh6z49GAapcOfLHhsKONeF24MT6yhr/wFIWXLDJjsY5DzFMJE9cZrOQB8PP1USbkeatOaz4uiZP1QJcMuw09QRjHMOLyPoGQthMgxHIvcG8N4TwfZAgAncMN2s2eKEekfCVTC06bJo0pF75vtW+bIBDYx6MPEZFs=
+	t=1744619177; cv=none; b=kQ2S7BP0n5uh1d/KUfiRkkUk6txz1G9FM6DOgnb3vvIQU12XynWjR9Ay4OikrhOfnvHtzg+x6wrvCSBqFisW0IfY+Xo6kyQ1Pnnh3ZKU0kUKvaFW6KhvroM2GB54o98BXZVpNvY/qZjhJJSYRjTrvRkqdM3/995CyP5DInTlcUM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1744619177; c=relaxed/simple;
-	bh=BORzOQMujEQoEZ1/2bV+p8+YHtYSGgUIbSUnDvITbw0=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=WidLv1cwML2VrCvPBWEqMHoDmJ5lFbfjxba0M0JC3aE/9XjwRIWmZ3qE6poxVioKaU7A//9hbjPqcZX5zV1f9dc6eaBYv8zzwVsZzNy2IN/2cHsEkneqAZAQyEH7CU/xY6rZXhP3zq9PXafrICmp6pNDI04l2U4WEVVNDh0vop8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=yk3WhpFd; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=ZUTVDh8T; arc=none smtp.client-ip=193.142.43.55
+	bh=wCL19/j4oZD9OXQEwiK4h5ZQlR+8JRFqjWaTwz3M1O0=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=BeBvZyLNeuSJkOO9JxlugAu/DGGUtRfwNyH7+EfwUgDVbBfkPCPTUolQtvOyA8M81GmDKWOjPX+eBaCoiewlVGYwJ2v6EiplbFf48a1HsCJv25SXsuTtI/YdDIs2La6WLfpL5RmhNo6rG5PhfoWEARu2KbjJFhtQaAthT5MurV0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=o1zujVLG; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=2f0ZORhw; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="yk3WhpFd";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="ZUTVDh8T"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="o1zujVLG";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="2f0ZORhw"
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1744619173;
+	s=2020; t=1744619174;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=jrc9Yy1PzgCFjX+NHqHe/gPvbxLEMwfRYZpvhZ/FS0A=;
-	b=yk3WhpFdZmssQZ72lhB1qTZyyfyRxUMGb509WQ1XvYBshseihS05xwBznxHhRaTSuvl2/r
-	EV94ezp88ycSGWp7iOyTpqrj5t+3wGtxAiaM9vEX47RmKk5P48wS0XMSxxBOdg/4jJqAHD
-	iHBl8abWHKqitQ+lC99k0cGXVhaRkjhGljSMANJ78YhV8KbI3RqgpbXkvKd92G5a9GW2nS
-	tIBmRwss1Fuv6LjD9Y7xqZj8VGTlEtB6qHwYn6Tlye1uu66CfvxVl6aULoNDAziN+j01pg
-	XkPcQInqq/spXCdJv9D13D3LtBdTdeebkK0YlMI2cFrQF3INyTTmpgSTQMASeg==
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=sJzaMCUEmfS88/pHV7S6utRVF0OcgJooEZ6khtDSVo8=;
+	b=o1zujVLG2sQaTvMO6OACsI/499VzUxoEJUGqHj+qgv3E4KUgw4ysdGF3KRplnLfOHRVvHh
+	C8sMrwd65T7vZGfCJrREE+bUEk9LL2vMgS0X0+RuJbIQeppjCp8fGV/UwnIp45VWxKazpm
+	pPUUZ850J9Mwl2W2mFfVm4DBXwfC/tD/dqp1qpRBLw0A35yogM53wwW0qStrpoRhr/vxLu
+	kWaPzO4nQZn6I8DkAoQHZ4cRPwtJiEENp07/CeSdtns4W9KJPsrCtCUM3iEx6YXuDwiAir
+	0PyhOOCI6wQTQJQxGFU6nSJUCkG9l5cY6q/N9EpiaJdVTZ1mnhZtHJj1EeXsvQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1744619173;
+	s=2020e; t=1744619174;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=jrc9Yy1PzgCFjX+NHqHe/gPvbxLEMwfRYZpvhZ/FS0A=;
-	b=ZUTVDh8TwrC2G20/dfmdoIzBLROL3SA9B70xNJai5NOfSK/ZlnlfAJyXQYz/eR/yLSEC1D
-	jaRVzn4m4tTolrBQ==
-Subject: [PATCH net-next 0/7] net: Don't use %pK through printk
-Date: Mon, 14 Apr 2025 10:26:01 +0200
-Message-Id: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=sJzaMCUEmfS88/pHV7S6utRVF0OcgJooEZ6khtDSVo8=;
+	b=2f0ZORhwJPNdlz9bEPHxT6ecUDp77xU2Mn7EJRnJRcfM4eIVe9A8P3Zm0rUrsQn+we0g90
+	o6gNm/VzeLWiueAA==
+Date: Mon, 14 Apr 2025 10:26:03 +0200
+Subject: [PATCH net-next 2/7] wifi: ath11k: Don't use %pK through printk
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -47,10 +49,9 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-X-B4-Tracking: v=1; b=H4sIAJnG/GcC/x2MQQqDUAwFryJZN/C1CqVXKV3Iz2ubTZQkFEG8u
- 79dDszMTgFXBN27nRxfDV2sQX/pqH5me4NVGtNQhqmMZWRHpGtNCK+LWsKDDcnzrYpIuWKSnlq
- 9Ol66/c8P+gmGLel5HCeLK549cwAAAA==
-X-Change-ID: 20250404-restricted-pointers-net-a8cddd03e5d1
+Message-Id: <20250414-restricted-pointers-net-v1-2-12af0ce46cdd@linutronix.de>
+References: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
+In-Reply-To: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
 To: Jeff Johnson <jjohnson@kernel.org>, 
  Loic Poulain <loic.poulain@linaro.org>, 
  Brian Norris <briannorris@chromium.org>, 
@@ -68,11 +69,11 @@ Cc: ath10k@lists.infradead.org, linux-kernel@vger.kernel.org,
  intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, 
  linux-rdma@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1744619172; l=2519;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1744619172; l=1527;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=BORzOQMujEQoEZ1/2bV+p8+YHtYSGgUIbSUnDvITbw0=;
- b=nygQqQzI+POOkmd4HUPMbkxcLkdDeVe3FLi1mMvmt2xMpHokr9kq0+dmMGqAVzLbgbGctLw7P
- 7VQYQJVB0MyCdd69OEvNE7wWyCtsM12NiJoSol6jf5d2f/1FWxdOYwI
+ bh=wCL19/j4oZD9OXQEwiK4h5ZQlR+8JRFqjWaTwz3M1O0=;
+ b=Mll02AJLlxEAfIM3sBZFqErnG63AQHi+l+lIgSrBUXhRrD8igpMkDkzAgCyX/kNgfweVtnVzf
+ eq1XA46Yw0ZD7+inGUGlFx1MAdV8znRd+XlcYbJtcFA4dVo7Ec8CwHn
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
@@ -91,40 +92,23 @@ for which its usage is safe.
 
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
-Thomas Weißschuh (7):
-      wifi: ath10k: Don't use %pK through printk
-      wifi: ath11k: Don't use %pK through printk
-      wifi: ath12k: Don't use %pK through printk
-      wifi: wcn36xx: Don't use %pK through printk
-      wifi: mwifiex: Don't use %pK through printk
-      ice: Don't use %pK through printk or tracepoints
-      net/mlx5: Don't use %pK through tracepoints
+ drivers/net/wireless/ath/ath11k/testmode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/net/ethernet/intel/ice/ice_main.c          |  2 +-
- drivers/net/ethernet/intel/ice/ice_trace.h         | 10 +++++-----
- .../mlx5/core/sf/dev/diag/dev_tracepoint.h         |  2 +-
- drivers/net/wireless/ath/ath10k/ahb.c              |  2 +-
- drivers/net/wireless/ath/ath10k/bmi.c              |  6 +++---
- drivers/net/wireless/ath/ath10k/ce.c               |  4 ++--
- drivers/net/wireless/ath/ath10k/core.c             |  4 ++--
- drivers/net/wireless/ath/ath10k/htc.c              |  6 +++---
- drivers/net/wireless/ath/ath10k/htt_rx.c           |  2 +-
- drivers/net/wireless/ath/ath10k/mac.c              | 22 +++++++++++-----------
- drivers/net/wireless/ath/ath10k/pci.c              |  2 +-
- drivers/net/wireless/ath/ath10k/testmode.c         |  4 ++--
- drivers/net/wireless/ath/ath10k/txrx.c             |  2 +-
- drivers/net/wireless/ath/ath10k/usb.c              |  4 ++--
- drivers/net/wireless/ath/ath10k/wmi.c              |  4 ++--
- drivers/net/wireless/ath/ath11k/testmode.c         |  2 +-
- drivers/net/wireless/ath/ath12k/testmode.c         |  4 ++--
- drivers/net/wireless/ath/wcn36xx/testmode.c        |  2 +-
- drivers/net/wireless/marvell/mwifiex/pcie.c        |  2 +-
- 19 files changed, 43 insertions(+), 43 deletions(-)
----
-base-commit: 8ffd015db85fea3e15a77027fda6c02ced4d2444
-change-id: 20250404-restricted-pointers-net-a8cddd03e5d1
+diff --git a/drivers/net/wireless/ath/ath11k/testmode.c b/drivers/net/wireless/ath/ath11k/testmode.c
+index 9be1cd742339c95ffa74c09bee924f4eff15134a..a9751ea2a0b73009bfb600d51c3978200ce99114 100644
+--- a/drivers/net/wireless/ath/ath11k/testmode.c
++++ b/drivers/net/wireless/ath/ath11k/testmode.c
+@@ -107,7 +107,7 @@ static int ath11k_tm_process_event(struct ath11k_base *ab, u32 cmd_id,
+ 	u32 pdev_id;
+ 
+ 	ath11k_dbg(ab, ATH11K_DBG_TESTMODE,
+-		   "event wmi cmd_id %d ftm event msg %pK datalen %d\n",
++		   "event wmi cmd_id %d ftm event msg %p datalen %d\n",
+ 		   cmd_id, ftm_msg, length);
+ 	ath11k_dbg_dump(ab, ATH11K_DBG_TESTMODE, NULL, "", ftm_msg, length);
+ 	pdev_id = DP_HW2SW_MACID(ftm_msg->seg_hdr.pdev_id);
 
-Best regards,
 -- 
-Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+2.49.0
 
