@@ -1,46 +1,46 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A05259CA9;
-	Mon, 14 Apr 2025 08:26:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDCE925D548;
+	Mon, 14 Apr 2025 08:26:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744619178; cv=none; b=pG0kH5D3IAbVKtvWG9fC+7GZ0ocmRq4LuRcKeQQBPKXuULRU7WnBW7fChBuV8mc3TF0iwa2fJp8Xmgxdd0x7DjWbqhZaiClSkPticRjXyptDphO+usvKfCuoLU7egfOHd/Qah5p01YDTeDTu7xM0l3be92gNY6wdzx3OdE1WsYc=
+	t=1744619180; cv=none; b=AquHuR+Ch+TbuesYm0tJJOb7sFOBImUGFwALpQdjNlfb6K035sYIGp3bbMLYnxBfrTZhae/0cKzehuHQVv5wLQQFv8Pqgos9BeCTcWH46NDx1prDxNBGcRhsg/3S3VnkimbIbT/bQaoGx09SPQh/6e5ywx0olG2nuaW7kUFLuVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744619178; c=relaxed/simple;
-	bh=Mog1fUxDWxYnW9KpoZ7DzBFzkRO6Ky21p9XzMNb3Vf8=;
+	s=arc-20240116; t=1744619180; c=relaxed/simple;
+	bh=DUG1+lN4hYWTRXUIHu9/uXnn+NTpymOB/TnWz/zGsdo=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=A5e8Z3oVG5/tG+SSl9AqcvGjJ9/d3xA6BvtexiXAhxPVPSci0t7QyvEEyTFW/no9OrpONB01jSlU7UFCBXEMceepCnPSGl5ytb7YQWlJqoCWiRcjRmdSnzKq16Y1c8L2BQDRPZV9LsuLqtyMhojxCiLE9Y0AEcUOqjjjDOqCg0Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=ofLbcum+; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=R8G1LC3n; arc=none smtp.client-ip=193.142.43.55
+	 In-Reply-To:To:Cc; b=kJm99oAoqCvvo7Z1fovHh09kBihNxWccAUYvi1py6RnfMHvowcuMNdzFsJnczot46KRCG9HdGqXhNMnD5miLj80LiYtYQIM3KUCLrFH3mWZWK64dHYe6FEfsjXQlyGtCpspPIBPA5dnf9A5IF86ghwgr6uyrA9zo+WEjMG6GFmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=CwLQ96es; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=stqjzGM4; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="ofLbcum+";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="R8G1LC3n"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="CwLQ96es";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="stqjzGM4"
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1744619175;
+	s=2020; t=1744619176;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=g+p3ZZ8m+P6MBwg+X0cWHrVyngWhZc3MgIiUJosTjVM=;
-	b=ofLbcum+e5ES97JZNHgUn4eizYkDbWnLe7xsM+Zdmxa5+24Dx7P2aGHM7z3O141w/4Rr+k
-	WRveEv8SYrJCfpnOWdRe0Lrhgax34JsFWwZTghEZ5yEiNmWu6LJq8IoexKOIoS9JwGMj1U
-	S4w3rdfc484lB0AX/t1LFVhunaQKaxEszKarS5CJczq3PXzEjlrWASNsfBbYVIl4/NbegK
-	ySYcWod+zpWWxlHAn/FkiejzfE4POH5aygMEbC5tcYMs8Peb/Qj9iPW0Q1uyrh/mjAD2S0
-	9q0+XyXre1y2vy0I+hqySM0tWoAVSXGqdyLIy8qXEkZlH8mWo+xn53pyczg7DQ==
+	bh=C/ObABjOV6tmamGjv9L2Q13+VEF7f80WjKn+a2KmsZU=;
+	b=CwLQ96esYh4P4KVCJatZ8Hs44GlzB55o2RFDlB2NnoKBpBTwtnnttXtq6VROizK0QMlx2I
+	fdJ7j4gqaLBCoqlkfZ1RXGFlNyiBmJWKENL3vw8Uczt17RPRBi5rxA4Gava5iUDAFYvikp
+	QE5M9Z54sDWEXNx5tdtopJ9DVVmmtcwowrh/m0D/S2+B66LoJJ3a6+WPDaej08VijYy+gj
+	pOup6JcF7y5Pcc3mwYSDOXBypIIu4AFPIaunhtcjzU8or4EWnQYp44LtnOrIkU7bntJpWC
+	NctE2AcFsSHEFFVm1SrRM5+S1R3TygES0fgt3lu+ss6ppElalDk8lhMyfXz0Ag==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1744619175;
+	s=2020e; t=1744619176;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=g+p3ZZ8m+P6MBwg+X0cWHrVyngWhZc3MgIiUJosTjVM=;
-	b=R8G1LC3nTq9auZ80K7wKWRdWZ5AzwlgcChsPmwJreInP145Kb0TjPt+6wFT5D5ZCsiLixI
-	icD4Mn52YWhoOcBw==
-Date: Mon, 14 Apr 2025 10:26:04 +0200
-Subject: [PATCH net-next 3/7] wifi: ath12k: Don't use %pK through printk
+	bh=C/ObABjOV6tmamGjv9L2Q13+VEF7f80WjKn+a2KmsZU=;
+	b=stqjzGM4ft7DElxC/qKesdImygtnGtJLw7FA4P6YSG5XAK7GUU0TpDDd0NwKpK+oBLbwLL
+	p8/cYaEmZo1280CA==
+Date: Mon, 14 Apr 2025 10:26:06 +0200
+Subject: [PATCH net-next 5/7] wifi: mwifiex: Don't use %pK through printk
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -49,7 +49,7 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20250414-restricted-pointers-net-v1-3-12af0ce46cdd@linutronix.de>
+Message-Id: <20250414-restricted-pointers-net-v1-5-12af0ce46cdd@linutronix.de>
 References: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
 In-Reply-To: <20250414-restricted-pointers-net-v1-0-12af0ce46cdd@linutronix.de>
 To: Jeff Johnson <jjohnson@kernel.org>, 
@@ -69,11 +69,11 @@ Cc: ath10k@lists.infradead.org, linux-kernel@vger.kernel.org,
  intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, 
  linux-rdma@vger.kernel.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1744619172; l=2012;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1744619172; l=1442;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=Mog1fUxDWxYnW9KpoZ7DzBFzkRO6Ky21p9XzMNb3Vf8=;
- b=b/us2xNbwh8znqfnzh9E4Av2oMff6qZufNEzIm5QnYwVPSQtCv4hVANkyEXwMgwxfZZXMClBq
- TRKDFzK5g7kCqMlmFJDdqt8wzmcZOLvplpYQXCfNLJTM+XlGTzlWrnQ
+ bh=DUG1+lN4hYWTRXUIHu9/uXnn+NTpymOB/TnWz/zGsdo=;
+ b=4Oqz6NIxNX2Dv35WuWlxsIW56xiHSeN4apRT/2S8GealXzW3EYzYF9P9h2Mhnx6cG1SWclSLx
+ d+XUSmGw7EEAI1exWfEp1WbMYoqGspvBdqwaN+gAowvrX+qdbEJLvEv
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
@@ -92,31 +92,22 @@ for which its usage is safe.
 
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
- drivers/net/wireless/ath/ath12k/testmode.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/wireless/marvell/mwifiex/pcie.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/ath12k/testmode.c b/drivers/net/wireless/ath/ath12k/testmode.c
-index 18d56a976dc74c4f6eab87e358c14d4faea648e2..fb6af7ccf71f44ae4bd01cde53fba3527eed0d2d 100644
---- a/drivers/net/wireless/ath/ath12k/testmode.c
-+++ b/drivers/net/wireless/ath/ath12k/testmode.c
-@@ -97,7 +97,7 @@ void ath12k_tm_process_event(struct ath12k_base *ab, u32 cmd_id,
- 	u8 const *buf_pos;
+diff --git a/drivers/net/wireless/marvell/mwifiex/pcie.c b/drivers/net/wireless/marvell/mwifiex/pcie.c
+index dd2a42e732f2398892915e1a3ac88b7d3fb4ed3f..a760de191fce7340040b1bc74efb35cf52ce8368 100644
+--- a/drivers/net/wireless/marvell/mwifiex/pcie.c
++++ b/drivers/net/wireless/marvell/mwifiex/pcie.c
+@@ -2971,7 +2971,7 @@ static int mwifiex_init_pcie(struct mwifiex_adapter *adapter)
+ 		goto err_iomap2;
+ 	}
  
- 	ath12k_dbg(ab, ATH12K_DBG_TESTMODE,
--		   "testmode event wmi cmd_id %d ftm event msg %pK datalen %d\n",
-+		   "testmode event wmi cmd_id %d ftm event msg %p datalen %d\n",
- 		   cmd_id, ftm_msg, length);
- 	ath12k_dbg_dump(ab, ATH12K_DBG_TESTMODE, NULL, "", ftm_msg, length);
- 	pdev_id = DP_HW2SW_MACID(le32_to_cpu(ftm_msg->seg_hdr.pdev_id));
-@@ -227,7 +227,7 @@ static int ath12k_tm_cmd_process_ftm(struct ath12k *ar, struct nlattr *tb[])
- 	buf_len = nla_len(tb[ATH_TM_ATTR_DATA]);
- 	cmd_id = WMI_PDEV_UTF_CMDID;
- 	ath12k_dbg(ar->ab, ATH12K_DBG_TESTMODE,
--		   "testmode cmd wmi cmd_id %d buf %pK buf_len %d\n",
-+		   "testmode cmd wmi cmd_id %d buf %p buf_len %d\n",
- 		   cmd_id, buf, buf_len);
- 	ath12k_dbg_dump(ar->ab, ATH12K_DBG_TESTMODE, NULL, "", buf, buf_len);
- 	bufpos = buf;
+-	pr_notice("PCI memory map Virt0: %pK PCI memory map Virt2: %pK\n",
++	pr_notice("PCI memory map Virt0: %p PCI memory map Virt2: %p\n",
+ 		  card->pci_mmap, card->pci_mmap1);
+ 
+ 	ret = mwifiex_pcie_alloc_buffers(adapter);
 
 -- 
 2.49.0
