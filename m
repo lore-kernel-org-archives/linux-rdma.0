@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C38F72973B9;
-	Fri, 18 Apr 2025 06:49:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98C0429E045;
+	Fri, 18 Apr 2025 06:49:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744958953; cv=none; b=sMnQOEpPxIhU2Vnx5NN2s6J8JJBu1fuTfzMrPN8vhDr9yjg0di564/Amf8nVW5vq0d4LaFBNedHMZdbg9mPtrm9GvvqvrtpzfU31floP1KiT4s4Q/KIYWl8Csu8mWe+j8i6r0pqJlOGPsbgaJHcbNhrqyhd6YThxn7/JWfo/EhI=
+	t=1744958957; cv=none; b=AZdNKj29Dvf3yltUh84/mxXvw4A3ZzEEoIpUqBdG3nFeLxybaB0F/p83WYqqQrva7XPhzfaUT2+3SvEb0qhR9/3mHh0kikpfRHilNihgqGhswP6obGI54uRpUuV/yAnyn2oatrhm6TT4YE5h8dnCFG2O3lSnfRMRQN9lHCDIWzA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744958953; c=relaxed/simple;
-	bh=qQletnJaF7pOl/YxdJHeuXwYFAE585SGa2cjLoQ5DoY=;
+	s=arc-20240116; t=1744958957; c=relaxed/simple;
+	bh=HJgtnQV3Z7DFJkA8N1J2fCnjnYx/yOhVpqXPhKdps7k=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uOtiQj3hOvVYTlKGQLQMtD4hv9UIXYufd9s7+WIvnt08sqvm30k9Cg05LmH1goU8bXfy638Jy0GKSfacrgTn0nrCzd3Bzb0O2aEwLdzIIaUl07mPxywn4QvgC0VLA1/cJSPseBOpjckwEEttUVWKGy8JF58u/ZczvB2YKZg9gqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CiU7Tcm3; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=tW8giSMKdkfmDkjUCX7lBzmOejp7CuOvgn0NqCSQ1i8Cqnj28WolbZ2PSB821TjLrnVD3wGP8uNiVKzSflz9T/QOTtqCv1BobOfDh5JHrCbLi69nnNKQeMNWGtl7SuJGjYZsDa79Yr/eCWV53nzJIt6Mik2J0nwddpbX1xyfQwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bE6L/Qd6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CiU7Tcm3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE769C4CEE7;
-	Fri, 18 Apr 2025 06:49:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bE6L/Qd6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51403C4CEEF;
+	Fri, 18 Apr 2025 06:49:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1744958953;
-	bh=qQletnJaF7pOl/YxdJHeuXwYFAE585SGa2cjLoQ5DoY=;
+	s=k20201202; t=1744958957;
+	bh=HJgtnQV3Z7DFJkA8N1J2fCnjnYx/yOhVpqXPhKdps7k=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CiU7Tcm3jKrEs240UdNE77eco05A0WVjYMouQypuHqSYDF6mNllQK3EhPkv2RRHsb
-	 MIiVIn/EO1BtA8JtG1wwfJG+RyP/Fohc8HL3fQ4S12aX5hCv35FRlkgWB+oBbq8wBE
-	 75qPKkFn8LYSjuWBfPQt/Whwti1Fz5kzwuyduguNQqqLyMM9IpVzJHhtTx6rt/djww
-	 mpK4307TSb83XlAtTVT6b/y1R9wURoRCFa87RLd9pJnycp8XVcv3YQV4/BQE97VT80
-	 Z8wGjvkNKLAIEGvPz/9SDhYlhctMBhJhnD3TfRHVU/YDjPQWDpekmNivwr+wq4lP46
-	 LElxc3u292oiQ==
+	b=bE6L/Qd68wK1XzGQQ6QTBRVtW3f72knMy+clvpiH+Z3unEPxwNd0vDdGLK1x5m7R+
+	 gbQk/OEa/pcuc85ygSuXnO1FfURrA1RJ4xrzMh2I9N0nW+mrCUxRWBgYv6IzWZwvGL
+	 SyZgCJv1KGggfAPZuhYEw0vRY6f+J5eenL96WJmBywGR7HmM+78MQeEFMSPScqteL8
+	 O7mXTBa48Pf1MgAB9JB6P/rp+HoLZpkKYCPoJhkfjIJsDxUyqA9bi1kRGETwC9ZgSy
+	 PAgfxQsegr0NJXuarGXT3uXQS2P6pFgKBIgcAnScOax+ga9v+a7Qv2lDyJKOVQs9EZ
+	 +po8hY5jFLecg==
 From: Leon Romanovsky <leon@kernel.org>
 To: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Jens Axboe <axboe@kernel.dk>,
 	Christoph Hellwig <hch@lst.de>,
 	Keith Busch <kbusch@kernel.org>
-Cc: Jake Edge <jake@lwn.net>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
+	Jake Edge <jake@lwn.net>,
 	Jonathan Corbet <corbet@lwn.net>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
 	Zhu Yanjun <zyjzyj2000@gmail.com>,
@@ -62,11 +63,10 @@ Cc: Jake Edge <jake@lwn.net>,
 	Matthew Wilcox <willy@infradead.org>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Kanchan Joshi <joshi.k@samsung.com>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH v8 20/24] blk-mq: add scatterlist-less DMA mapping helpers
-Date: Fri, 18 Apr 2025 09:47:50 +0300
-Message-ID: <87b151a3791d71e58ec6f1b42bcf5fe06304cf80.1744825142.git.leon@kernel.org>
+	Chaitanya Kulkarni <kch@nvidia.com>
+Subject: [PATCH v8 16/24] vfio/mlx5: Rewrite create mkey flow to allow better code reuse
+Date: Fri, 18 Apr 2025 09:47:46 +0300
+Message-ID: <ec8fd8ad7c072b8091df9628cc3850e86242cffb.1744825142.git.leon@kernel.org>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <cover.1744825142.git.leon@kernel.org>
 References: <cover.1744825142.git.leon@kernel.org>
@@ -78,285 +78,305 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Christoph Hellwig <hch@lst.de>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-Add a new blk_rq_dma_map / blk_rq_dma_unmap pair that does away with
-the wasteful scatterlist structure.  Instead it uses the mapping iterator
-to either add segments to the IOVA for IOMMU operations, or just maps
-them one by one for the direct mapping.  For the IOMMU case instead of
-a scatterlist with an entry for each segment, only a single [dma_addr,len]
-pair needs to be stored for processing a request, and for the direct
-mapping the per-segment allocation shrinks from
-[page,offset,len,dma_addr,dma_len] to just [dma_addr,len].
+Change the creation of mkey to be performed in multiple steps:
+data allocation, DMA setup and actual call to HW to create that mkey.
 
-The major downside of this API is that the IOVA collapsing only works
-when the driver sets a virt_boundary that matches the IOMMU granule.
+In this new flow, the whole input to MKEY command is saved to eliminate
+the need to keep array of pointers for DMA addresses for receive list
+and in the future patches for send list too.
 
-Note that struct blk_dma_vec, struct blk_dma_mapping and blk_rq_dma_unmap
-aren't really block specific, but for they are kept with the only mapping
-routine to keep things simple.
+In addition to memory size reduce and elimination of unnecessary data
+movements to set MKEY input, the code is prepared for future reuse.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Chaitanya Kulkarni <kch@nvidia.com>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- block/blk-merge.c          | 166 +++++++++++++++++++++++++++++++++++++
- include/linux/blk-mq-dma.h |  62 ++++++++++++++
- 2 files changed, 228 insertions(+)
- create mode 100644 include/linux/blk-mq-dma.h
+ drivers/vfio/pci/mlx5/cmd.c | 157 ++++++++++++++++++++----------------
+ drivers/vfio/pci/mlx5/cmd.h |   4 +-
+ 2 files changed, 91 insertions(+), 70 deletions(-)
 
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index d9691e900cc6..7024846360c9 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -7,6 +7,8 @@
- #include <linux/bio.h>
- #include <linux/blkdev.h>
- #include <linux/blk-integrity.h>
-+#include <linux/blk-mq-dma.h>
-+#include <linux/dma-mapping.h>
- #include <linux/scatterlist.h>
- #include <linux/part_stat.h>
- #include <linux/blk-cgroup.h>
-@@ -535,6 +537,170 @@ static bool blk_map_iter_next(struct request *req,
- 	return true;
+diff --git a/drivers/vfio/pci/mlx5/cmd.c b/drivers/vfio/pci/mlx5/cmd.c
+index 377dee7765fb..84dc3bc128c6 100644
+--- a/drivers/vfio/pci/mlx5/cmd.c
++++ b/drivers/vfio/pci/mlx5/cmd.c
+@@ -313,39 +313,21 @@ static int mlx5vf_cmd_get_vhca_id(struct mlx5_core_dev *mdev, u16 function_id,
+ 	return ret;
  }
  
-+#define blk_phys_to_page(_paddr) \
-+ 	(pfn_to_page(__phys_to_pfn(_paddr)))
-+ 
-+/*
-+ * The IOVA-based DMA API wants to be able to coalesce at the minimal IOMMU page
-+ * size granularity (which is guaranteed to be <= PAGE_SIZE and usually 4k), so
-+ * we need to ensure our segments are aligned to this as well.
-+ *
-+ * Note that there is no point in using the slightly more complicated IOVA based
-+ * path for single segment mappings.
-+ */
-+static inline bool blk_can_dma_map_iova(struct request *req,
-+		struct device *dma_dev)
-+{
-+	return !((queue_virt_boundary(req->q) + 1) &
-+		dma_get_merge_boundary(dma_dev));
-+}
-+
-+static bool blk_dma_map_bus(struct request *req, struct device *dma_dev,
-+		struct blk_dma_iter *iter, struct phys_vec *vec)
-+{
-+	iter->addr = pci_p2pdma_bus_addr_map(&iter->p2pdma, vec->paddr);
-+	iter->len = vec->len;
-+	return true;
-+}
-+
-+static bool blk_dma_map_direct(struct request *req, struct device *dma_dev,
-+		struct blk_dma_iter *iter, struct phys_vec *vec)
-+{
-+	iter->addr = dma_map_page(dma_dev, blk_phys_to_page(vec->paddr),
-+			offset_in_page(vec->paddr), vec->len, rq_dma_dir(req));
-+	if (dma_mapping_error(dma_dev, iter->addr)) {
-+		iter->status = BLK_STS_RESOURCE;
-+		return false;
-+	}
-+	iter->len = vec->len;
-+	return true;
-+}
-+
-+static bool blk_rq_dma_map_iova(struct request *req, struct device *dma_dev,
-+		struct dma_iova_state *state, struct blk_dma_iter *iter,
-+		struct phys_vec *vec)
-+{
-+	enum dma_data_direction dir = rq_dma_dir(req);
-+	unsigned int mapped = 0;
-+	int error = 0;
-+
-+	iter->addr = state->addr;
-+	iter->len = dma_iova_size(state);
-+
-+	do {
-+		error = dma_iova_link(dma_dev, state, vec->paddr, mapped,
-+				vec->len, dir, 0);
-+		if (error)
-+			break;
-+		mapped += vec->len;
-+	} while (blk_map_iter_next(req, &iter->iter, vec));
-+
-+	error = dma_iova_sync(dma_dev, state, 0, mapped);
-+	if (error) {
-+		iter->status = errno_to_blk_status(error);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+/**
-+ * blk_rq_dma_map_iter_start - map the first DMA segment for a request
-+ * @req:	request to map
-+ * @dma_dev:	device to map to
-+ * @state:	DMA IOVA state
-+ * @iter:	block layer DMA iterator
-+ *
-+ * Start DMA mapping @req to @dma_dev.  @state and @iter are provided by the
-+ * caller and don't need to be initialized.  @state needs to be stored for use
-+ * at unmap time, @iter is only needed at map time.
-+ *
-+ * Returns %false if there is no segment to map, including due to an error, or
-+ * %true it it did map a segment.
-+ *
-+ * If a segment was mapped, the DMA address for it is returned in @iter.addr and
-+ * the length in @iter.len.  If no segment was mapped the status code is
-+ * returned in @iter.status.
-+ *
-+ * The caller can call blk_rq_dma_map_coalesce() to check if further segments
-+ * need to be mapped after this, or go straight to blk_rq_dma_map_iter_next()
-+ * to try to map the following segments.
-+ */
-+bool blk_rq_dma_map_iter_start(struct request *req, struct device *dma_dev,
-+		struct dma_iova_state *state, struct blk_dma_iter *iter)
-+{
-+	unsigned int total_len = blk_rq_payload_bytes(req);
-+	struct phys_vec vec;
-+
-+	iter->iter.bio = req->bio;
-+	iter->iter.iter = req->bio->bi_iter;
-+	memset(&iter->p2pdma, 0, sizeof(iter->p2pdma));
-+	iter->status = BLK_STS_OK;
-+
-+	/*
-+	 * Grab the first segment ASAP because we'll need it to check for P2P
-+	 * transfers.
-+	 */
-+	if (!blk_map_iter_next(req, &iter->iter, &vec))
-+		return false;
-+
-+	if (IS_ENABLED(CONFIG_PCI_P2PDMA) && (req->cmd_flags & REQ_P2PDMA)) {
-+		switch (pci_p2pdma_state(&iter->p2pdma, dma_dev,
-+				blk_phys_to_page(vec.paddr))) {
-+		case PCI_P2PDMA_MAP_BUS_ADDR:
-+			return blk_dma_map_bus(req, dma_dev, iter, &vec);
-+		case PCI_P2PDMA_MAP_THRU_HOST_BRIDGE:
-+			/*
-+			 * P2P transfers through the host bridge are treated the
-+			 * same as non-P2P transfers below and during unmap.
-+			 */
-+			req->cmd_flags &= ~REQ_P2PDMA;
-+			break;
-+		default:
-+			iter->status = BLK_STS_INVAL;
-+			return false;
-+		}
-+	}
-+
-+	if (blk_can_dma_map_iova(req, dma_dev) &&
-+	    dma_iova_try_alloc(dma_dev, state, vec.paddr, total_len))
-+		return blk_rq_dma_map_iova(req, dma_dev, state, iter, &vec);
-+	return blk_dma_map_direct(req, dma_dev, iter, &vec);
-+}
-+EXPORT_SYMBOL_GPL(blk_rq_dma_map_iter_start);
-+
-+/**
-+ * blk_rq_dma_map_iter_next - map the next DMA segment for a request
-+ * @req:	request to map
-+ * @dma_dev:	device to map to
-+ * @state:	DMA IOVA state
-+ * @iter:	block layer DMA iterator
-+ *
-+ * Iterate to the next mapping after a previous call to
-+ * blk_rq_dma_map_iter_start().  See there for a detailed description of the
-+ * arguments.
-+ *
-+ * Returns %false if there is no segment to map, including due to an error, or
-+ * %true it it did map a segment.
-+ *
-+ * If a segment was mapped, the DMA address for it is returned in @iter.addr and
-+ * the length in @iter.len.  If no segment was mapped the status code is
-+ * returned in @iter.status.
-+ */
-+bool blk_rq_dma_map_iter_next(struct request *req, struct device *dma_dev,
-+		struct dma_iova_state *state, struct blk_dma_iter *iter)
-+{
-+	struct phys_vec vec;
-+
-+	if (!blk_map_iter_next(req, &iter->iter, &vec))
-+		return false;
-+
-+	if (iter->p2pdma.map == PCI_P2PDMA_MAP_BUS_ADDR)
-+		return blk_dma_map_bus(req, dma_dev, iter, &vec);
-+	return blk_dma_map_direct(req, dma_dev, iter, &vec);
-+}
-+EXPORT_SYMBOL_GPL(blk_rq_dma_map_iter_next);
-+
- static inline struct scatterlist *blk_next_sg(struct scatterlist **sg,
- 		struct scatterlist *sglist)
+-static int _create_mkey(struct mlx5_core_dev *mdev, u32 pdn,
+-			struct mlx5_vhca_data_buffer *buf,
+-			struct mlx5_vhca_recv_buf *recv_buf,
+-			u32 *mkey)
++static u32 *alloc_mkey_in(u32 npages, u32 pdn)
  {
-diff --git a/include/linux/blk-mq-dma.h b/include/linux/blk-mq-dma.h
-new file mode 100644
-index 000000000000..588dc3c1ad1f
---- /dev/null
-+++ b/include/linux/blk-mq-dma.h
-@@ -0,0 +1,62 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef BLK_MQ_DMA_H
-+#define BLK_MQ_DMA_H
+-	size_t npages = buf ? buf->npages : recv_buf->npages;
+-	int err = 0, inlen;
+-	__be64 *mtt;
++	int inlen;
+ 	void *mkc;
+ 	u32 *in;
+ 
+ 	inlen = MLX5_ST_SZ_BYTES(create_mkey_in) +
+-		sizeof(*mtt) * round_up(npages, 2);
++		sizeof(__be64) * round_up(npages, 2);
+ 
+-	in = kvzalloc(inlen, GFP_KERNEL);
++	in = kvzalloc(inlen, GFP_KERNEL_ACCOUNT);
+ 	if (!in)
+-		return -ENOMEM;
++		return NULL;
+ 
+ 	MLX5_SET(create_mkey_in, in, translations_octword_actual_size,
+ 		 DIV_ROUND_UP(npages, 2));
+-	mtt = (__be64 *)MLX5_ADDR_OF(create_mkey_in, in, klm_pas_mtt);
+-
+-	if (buf) {
+-		struct sg_dma_page_iter dma_iter;
+-
+-		for_each_sgtable_dma_page(&buf->table.sgt, &dma_iter, 0)
+-			*mtt++ = cpu_to_be64(sg_page_iter_dma_address(&dma_iter));
+-	} else {
+-		int i;
+-
+-		for (i = 0; i < npages; i++)
+-			*mtt++ = cpu_to_be64(recv_buf->dma_addrs[i]);
+-	}
+ 
+ 	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
+ 	MLX5_SET(mkc, mkc, access_mode_1_0, MLX5_MKC_ACCESS_MODE_MTT);
+@@ -359,9 +341,30 @@ static int _create_mkey(struct mlx5_core_dev *mdev, u32 pdn,
+ 	MLX5_SET(mkc, mkc, log_page_size, PAGE_SHIFT);
+ 	MLX5_SET(mkc, mkc, translations_octword_size, DIV_ROUND_UP(npages, 2));
+ 	MLX5_SET64(mkc, mkc, len, npages * PAGE_SIZE);
+-	err = mlx5_core_create_mkey(mdev, mkey, in, inlen);
+-	kvfree(in);
+-	return err;
 +
-+#include <linux/blk-mq.h>
-+#include <linux/pci-p2pdma.h>
-+
-+struct blk_dma_iter {
-+	/* Output address range for this iteration */
-+	dma_addr_t			addr;
-+	u32				len;
-+
-+	/* Status code. Only valid when blk_rq_dma_map_iter_* returned false */
-+	blk_status_t			status;
-+
-+	/* Internal to blk_rq_dma_map_iter_* */
-+	struct req_iterator		iter;
-+	struct pci_p2pdma_map_state	p2pdma;
-+};
-+
-+bool blk_rq_dma_map_iter_start(struct request *req, struct device *dma_dev,
-+		struct dma_iova_state *state, struct blk_dma_iter *iter);
-+bool blk_rq_dma_map_iter_next(struct request *req, struct device *dma_dev,
-+		struct dma_iova_state *state, struct blk_dma_iter *iter);
-+
-+/**
-+ * blk_rq_dma_map_coalesce - were all segments coalesced?
-+ * @state: DMA state to check
-+ *
-+ * Returns true if blk_rq_dma_map_iter_start coalesced all segments into a
-+ * single DMA range.
-+ */
-+static inline bool blk_rq_dma_map_coalesce(struct dma_iova_state *state)
-+{
-+	return dma_use_iova(state);
++	return in;
 +}
 +
-+/**
-+ * blk_rq_dma_map_coalesce - try to DMA unmap a request
-+ * @req:	request to unmap
-+ * @dma_dev:	device to unmap from
-+ * @state:	DMA IOVA state
-+ * @mapped_len: number of bytes to unmap
-+ *
-+ * Returns %false if the callers needs to manually unmap every DMA segment
-+ * mapped using @iter or %true if no work is left to be done.
-+ */
-+static inline bool blk_rq_dma_unmap(struct request *req, struct device *dma_dev,
-+		struct dma_iova_state *state, size_t mapped_len)
++static int create_mkey(struct mlx5_core_dev *mdev, u32 npages,
++		       struct mlx5_vhca_data_buffer *buf, u32 *mkey_in,
++		       u32 *mkey)
 +{
-+	if (req->cmd_flags & REQ_P2PDMA)
-+		return true;
++	__be64 *mtt;
++	int inlen;
 +
-+	if (dma_use_iova(state)) {
-+		dma_iova_destroy(dma_dev, state, mapped_len, rq_dma_dir(req), 0);
-+		return true;
++	mtt = (__be64 *)MLX5_ADDR_OF(create_mkey_in, mkey_in, klm_pas_mtt);
++	if (buf) {
++		struct sg_dma_page_iter dma_iter;
++
++		for_each_sgtable_dma_page(&buf->table.sgt, &dma_iter, 0)
++			*mtt++ = cpu_to_be64(
++				sg_page_iter_dma_address(&dma_iter));
 +	}
 +
-+	return !dma_need_unmap(dma_dev);
-+}
++	inlen = MLX5_ST_SZ_BYTES(create_mkey_in) +
++		sizeof(__be64) * round_up(npages, 2);
 +
-+#endif /* BLK_MQ_DMA_H */
++	return mlx5_core_create_mkey(mdev, mkey, mkey_in, inlen);
+ }
+ 
+ static int mlx5vf_dma_data_buffer(struct mlx5_vhca_data_buffer *buf)
+@@ -374,20 +377,28 @@ static int mlx5vf_dma_data_buffer(struct mlx5_vhca_data_buffer *buf)
+ 	if (mvdev->mdev_detach)
+ 		return -ENOTCONN;
+ 
+-	if (buf->dmaed || !buf->npages)
++	if (buf->mkey_in || !buf->npages)
+ 		return -EINVAL;
+ 
+ 	ret = dma_map_sgtable(mdev->device, &buf->table.sgt, buf->dma_dir, 0);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = _create_mkey(mdev, buf->migf->pdn, buf, NULL, &buf->mkey);
+-	if (ret)
++	buf->mkey_in = alloc_mkey_in(buf->npages, buf->migf->pdn);
++	if (!buf->mkey_in) {
++		ret = -ENOMEM;
+ 		goto err;
++	}
+ 
+-	buf->dmaed = true;
++	ret = create_mkey(mdev, buf->npages, buf, buf->mkey_in, &buf->mkey);
++	if (ret)
++		goto err_create_mkey;
+ 
+ 	return 0;
++
++err_create_mkey:
++	kvfree(buf->mkey_in);
++	buf->mkey_in = NULL;
+ err:
+ 	dma_unmap_sgtable(mdev->device, &buf->table.sgt, buf->dma_dir, 0);
+ 	return ret;
+@@ -401,8 +412,9 @@ void mlx5vf_free_data_buffer(struct mlx5_vhca_data_buffer *buf)
+ 	lockdep_assert_held(&migf->mvdev->state_mutex);
+ 	WARN_ON(migf->mvdev->mdev_detach);
+ 
+-	if (buf->dmaed) {
++	if (buf->mkey_in) {
+ 		mlx5_core_destroy_mkey(migf->mvdev->mdev, buf->mkey);
++		kvfree(buf->mkey_in);
+ 		dma_unmap_sgtable(migf->mvdev->mdev->device, &buf->table.sgt,
+ 				  buf->dma_dir, 0);
+ 	}
+@@ -783,7 +795,7 @@ int mlx5vf_cmd_load_vhca_state(struct mlx5vf_pci_core_device *mvdev,
+ 	if (mvdev->mdev_detach)
+ 		return -ENOTCONN;
+ 
+-	if (!buf->dmaed) {
++	if (!buf->mkey_in) {
+ 		err = mlx5vf_dma_data_buffer(buf);
+ 		if (err)
+ 			return err;
+@@ -1384,56 +1396,54 @@ static int alloc_recv_pages(struct mlx5_vhca_recv_buf *recv_buf,
+ 	kvfree(recv_buf->page_list);
+ 	return -ENOMEM;
+ }
++static void unregister_dma_pages(struct mlx5_core_dev *mdev, u32 npages,
++				 u32 *mkey_in)
++{
++	dma_addr_t addr;
++	__be64 *mtt;
++	int i;
++
++	mtt = (__be64 *)MLX5_ADDR_OF(create_mkey_in, mkey_in, klm_pas_mtt);
++	for (i = npages - 1; i >= 0; i--) {
++		addr = be64_to_cpu(mtt[i]);
++		dma_unmap_single(mdev->device, addr, PAGE_SIZE,
++				DMA_FROM_DEVICE);
++	}
++}
+ 
+-static int register_dma_recv_pages(struct mlx5_core_dev *mdev,
+-				   struct mlx5_vhca_recv_buf *recv_buf)
++static int register_dma_pages(struct mlx5_core_dev *mdev, u32 npages,
++			      struct page **page_list, u32 *mkey_in)
+ {
+-	int i, j;
++	dma_addr_t addr;
++	__be64 *mtt;
++	int i;
+ 
+-	recv_buf->dma_addrs = kvcalloc(recv_buf->npages,
+-				       sizeof(*recv_buf->dma_addrs),
+-				       GFP_KERNEL_ACCOUNT);
+-	if (!recv_buf->dma_addrs)
+-		return -ENOMEM;
++	mtt = (__be64 *)MLX5_ADDR_OF(create_mkey_in, mkey_in, klm_pas_mtt);
+ 
+-	for (i = 0; i < recv_buf->npages; i++) {
+-		recv_buf->dma_addrs[i] = dma_map_page(mdev->device,
+-						      recv_buf->page_list[i],
+-						      0, PAGE_SIZE,
+-						      DMA_FROM_DEVICE);
+-		if (dma_mapping_error(mdev->device, recv_buf->dma_addrs[i]))
++	for (i = 0; i < npages; i++) {
++		addr = dma_map_page(mdev->device, page_list[i], 0, PAGE_SIZE,
++				    DMA_FROM_DEVICE);
++		if (dma_mapping_error(mdev->device, addr))
+ 			goto error;
++
++		*mtt++ = cpu_to_be64(addr);
+ 	}
++
+ 	return 0;
+ 
+ error:
+-	for (j = 0; j < i; j++)
+-		dma_unmap_single(mdev->device, recv_buf->dma_addrs[j],
+-				 PAGE_SIZE, DMA_FROM_DEVICE);
+-
+-	kvfree(recv_buf->dma_addrs);
++	unregister_dma_pages(mdev, i, mkey_in);
+ 	return -ENOMEM;
+ }
+ 
+-static void unregister_dma_recv_pages(struct mlx5_core_dev *mdev,
+-				      struct mlx5_vhca_recv_buf *recv_buf)
+-{
+-	int i;
+-
+-	for (i = 0; i < recv_buf->npages; i++)
+-		dma_unmap_single(mdev->device, recv_buf->dma_addrs[i],
+-				 PAGE_SIZE, DMA_FROM_DEVICE);
+-
+-	kvfree(recv_buf->dma_addrs);
+-}
+-
+ static void mlx5vf_free_qp_recv_resources(struct mlx5_core_dev *mdev,
+ 					  struct mlx5_vhca_qp *qp)
+ {
+ 	struct mlx5_vhca_recv_buf *recv_buf = &qp->recv_buf;
+ 
+ 	mlx5_core_destroy_mkey(mdev, recv_buf->mkey);
+-	unregister_dma_recv_pages(mdev, recv_buf);
++	unregister_dma_pages(mdev, recv_buf->npages, recv_buf->mkey_in);
++	kvfree(recv_buf->mkey_in);
+ 	free_recv_pages(&qp->recv_buf);
+ }
+ 
+@@ -1449,18 +1459,29 @@ static int mlx5vf_alloc_qp_recv_resources(struct mlx5_core_dev *mdev,
+ 	if (err < 0)
+ 		return err;
+ 
+-	err = register_dma_recv_pages(mdev, recv_buf);
+-	if (err)
++	recv_buf->mkey_in = alloc_mkey_in(npages, pdn);
++	if (!recv_buf->mkey_in) {
++		err = -ENOMEM;
+ 		goto end;
++	}
++
++	err = register_dma_pages(mdev, npages, recv_buf->page_list,
++				 recv_buf->mkey_in);
++	if (err)
++		goto err_register_dma;
+ 
+-	err = _create_mkey(mdev, pdn, NULL, recv_buf, &recv_buf->mkey);
++	err = create_mkey(mdev, npages, NULL, recv_buf->mkey_in,
++			  &recv_buf->mkey);
+ 	if (err)
+ 		goto err_create_mkey;
+ 
+ 	return 0;
+ 
+ err_create_mkey:
+-	unregister_dma_recv_pages(mdev, recv_buf);
++	unregister_dma_pages(mdev, npages, recv_buf->mkey_in);
++err_register_dma:
++	kvfree(recv_buf->mkey_in);
++	recv_buf->mkey_in = NULL;
+ end:
+ 	free_recv_pages(recv_buf);
+ 	return err;
+diff --git a/drivers/vfio/pci/mlx5/cmd.h b/drivers/vfio/pci/mlx5/cmd.h
+index 7d4a833b6900..25dd6ff54591 100644
+--- a/drivers/vfio/pci/mlx5/cmd.h
++++ b/drivers/vfio/pci/mlx5/cmd.h
+@@ -58,8 +58,8 @@ struct mlx5_vhca_data_buffer {
+ 	u64 length;
+ 	u32 npages;
+ 	u32 mkey;
++	u32 *mkey_in;
+ 	enum dma_data_direction dma_dir;
+-	u8 dmaed:1;
+ 	u8 stop_copy_chunk_num;
+ 	struct list_head buf_elm;
+ 	struct mlx5_vf_migration_file *migf;
+@@ -133,8 +133,8 @@ struct mlx5_vhca_cq {
+ struct mlx5_vhca_recv_buf {
+ 	u32 npages;
+ 	struct page **page_list;
+-	dma_addr_t *dma_addrs;
+ 	u32 next_rq_offset;
++	u32 *mkey_in;
+ 	u32 mkey;
+ };
+ 
 -- 
 2.49.0
 
