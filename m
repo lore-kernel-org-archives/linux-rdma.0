@@ -1,24 +1,24 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7FF126FA42
-	for <linux-rdma@vger.kernel.org>; Fri, 18 Apr 2025 08:56:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1624126FA42
+	for <linux-rdma@vger.kernel.org>; Fri, 18 Apr 2025 08:56:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744966616; cv=none; b=f4MOvNjyWmBhcdh2GaG1MozT1Pn1rsS9ZAMSFu9WE+C1yGSvuk1XXjbgmpk9HMlSRz6xlZLi8sY+Wde7B7WNeSy8aEpAi7npeYoo5WTKZWPVlP0wxw4CSPb700hDb3ad/8oSB9NfOrP7lLuXPJh5I49df8z10B4IQJ6y9flXbrU=
+	t=1744966621; cv=none; b=AW9pBXaVAUlCz6uEmVNn5AYanp7U4voDA2UTXi82weFZ0r6Aocf9a3kbJIURHwV4/0uoQO7sD1GpYvPHQtb8RZgtWkJNGMqsqgDc3DN9Q1ZZ0x1Gkg7l3pa6NQ5cO2Edp7mGoa//fP6GNYqkkt8BtJYnJa4D17KjCjdobl3SlaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744966616; c=relaxed/simple;
-	bh=Pucp2291KbU0bVfQOllrLMwriXWi6Ruy4xwCQzDob1Y=;
+	s=arc-20240116; t=1744966621; c=relaxed/simple;
+	bh=VG73jVBkpEj9L2W7Wtg/jHnQmxfnSMVMcCsfum6TeMo=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=C3gegWrN915fZ6QMomAQi8wbkkFcArBrJWyqXHrRv8Hrxzva4VGD4rHJ2SD2O90ZivZ0UF1BFQ411BJ5bcvleDXCR97yinkU1n/tVG7lWd7NWmkGVKxIibha8KKysFoJm9qZ/8EkocYJPrJt2Vq57InQ+EcXHaOfFfjcP4wV1+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.190
+	 MIME-Version:Content-Type; b=dywqsx6VoNQGeAdYdmhk2fgFnVbbSmYlhO+sKY9dv8DZleybvrqQXm9wqVHHGqdr5xSzYpF8ZZWU9vOfEkNSPkMWgNyQ41djFiQ4s2ttE+8KWsDcNxVzMJT7HJlYsdGBIk0B5eHqtOyV44Hw+EWbgowz2sTldiOE+g4FGFv1faE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.187
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.88.234])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Zf7t05pdTz2TRxy;
-	Fri, 18 Apr 2025 16:56:40 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Zf7nR4cHhzvWp8;
+	Fri, 18 Apr 2025 16:52:43 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id DB5F4140296;
+	by mail.maildlp.com (Postfix) with ESMTPS id 87B7C1402E2;
 	Fri, 18 Apr 2025 16:56:50 +0800 (CST)
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
@@ -28,9 +28,9 @@ From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH for-next 6/6] RDMA/hns: Add trace for CMDQ dumping
-Date: Fri, 18 Apr 2025 16:56:47 +0800
-Message-ID: <20250418085647.4067840-7-huangjunxian6@hisilicon.com>
+Subject: [PATCH for-next 5/6] RDMA/hns: Include hnae3.h in hns_roce_hw_v2.h
+Date: Fri, 18 Apr 2025 16:56:46 +0800
+Message-ID: <20250418085647.4067840-6-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20250418085647.4067840-1-huangjunxian6@hisilicon.com>
 References: <20250418085647.4067840-1-huangjunxian6@hisilicon.com>
@@ -45,107 +45,84 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-Add trace for CMDQ dumping.
+hns_roce_hw_v2.h has a direct dependency on hnae3.h due to the
+inline function hns_roce_write64(), but it doesn't include this
+header currently. This leads to that files including
+hns_roce_hw_v2.h must also include hnae3.h to avoid compilation
+errors, even if they themselves don't really rely on hnae3.h.
+This doesn't make sense, hns_roce_hw_v2.h should include hnae3.h
+directly.
 
-Output example:
-$ cat /sys/kernel/debug/tracing/trace
-  tracer: nop
-
-  entries-in-buffer/entries-written: 2/2   #P:128
-
-                                 _-----=> irqs-off/BH-disabled
-                               / _----=> need-resched
-                               | / _---=> hardirq/softirq
-                               || / _--=> preempt-depth
-                               ||| / _-=> migrate-disable
-                               |||| /     delay
-            TASK-PID     CPU#  |||||  TIMESTAMP  FUNCTION
-               | |         |   |||||     |         |
-  kworker/u512:1-14003   [089] b..1. 50737.238304: cmdq_req: 0000:bd:00.0 cmdq opcode:0x8500, flag:0x1, retval:0x0, data:{0x2,0x0,0x0,0xffff0000,0x32323232,0x0}
-
-  kworker/u512:1-14003   [089] b..1. 50737.238316: cmdq_resp: 0000:bd:00.0 cmdq opcode:0x8500, flag:0x2, retval:0x0, data:{0x2,0x0,0x0,0xffff0000,0x32323232,0x0}
-
+Fixes: d3743fa94ccd ("RDMA/hns: Fix the chip hanging caused by sending doorbell during reset")
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  4 +++
- drivers/infiniband/hw/hns/hns_roce_trace.h | 35 ++++++++++++++++++++++
- 2 files changed, 39 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_ah.c       | 1 -
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c    | 1 -
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h    | 1 +
+ drivers/infiniband/hw/hns/hns_roce_main.c     | 1 -
+ drivers/infiniband/hw/hns/hns_roce_restrack.c | 1 -
+ 5 files changed, 1 insertion(+), 4 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
+index 4fc5b9d5fea8..307c35888b30 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_ah.c
++++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
+@@ -33,7 +33,6 @@
+ #include <linux/pci.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib_cache.h>
+-#include "hnae3.h"
+ #include "hns_roce_device.h"
+ #include "hns_roce_hw_v2.h"
+ 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 78d39afb2aa0..db33b4d329d1 100644
+index ae8c790d4211..78d39afb2aa0 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1321,6 +1321,8 @@ static int __hns_roce_cmq_send_one(struct hns_roce_dev *hr_dev,
- 	tail = csq->head;
+@@ -43,7 +43,6 @@
+ #include <rdma/ib_umem.h>
+ #include <rdma/uverbs_ioctl.h>
  
- 	for (i = 0; i < num; i++) {
-+		trace_cmdq_req(hr_dev, &desc[i]);
-+
- 		csq->desc[csq->head++] = desc[i];
- 		if (csq->head == csq->desc_num)
- 			csq->head = 0;
-@@ -1335,6 +1337,8 @@ static int __hns_roce_cmq_send_one(struct hns_roce_dev *hr_dev,
- 	if (hns_roce_cmq_csq_done(hr_dev)) {
- 		ret = 0;
- 		for (i = 0; i < num; i++) {
-+			trace_cmdq_resp(hr_dev, &csq->desc[tail]);
-+
- 			/* check the result of hardware write back */
- 			desc_ret = le16_to_cpu(csq->desc[tail++].retval);
- 			if (tail == csq->desc_num)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_trace.h b/drivers/infiniband/hw/hns/hns_roce_trace.h
-index 2e60ab5943af..adc3d66ce06c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_trace.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_trace.h
-@@ -12,6 +12,7 @@
- #include <linux/tracepoint.h>
- #include <linux/string_choices.h>
+-#include "hnae3.h"
+ #include "hns_roce_common.h"
  #include "hns_roce_device.h"
-+#include "hns_roce_hw_v2.h"
+ #include "hns_roce_cmd.h"
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 91a5665465ff..bc7466830eaf 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -34,6 +34,7 @@
+ #define _HNS_ROCE_HW_V2_H
  
- DECLARE_EVENT_CLASS(flush_head_template,
- 		    TP_PROTO(unsigned long qpn, u32 pi,
-@@ -169,6 +170,40 @@ TRACE_EVENT(buf_attr,
- 		      __entry->region2_size, __entry->region2_hopnum)
- );
+ #include <linux/bitops.h>
++#include "hnae3.h"
  
-+DECLARE_EVENT_CLASS(cmdq,
-+		    TP_PROTO(struct hns_roce_dev *hr_dev,
-+			     struct hns_roce_cmq_desc *desc),
-+		    TP_ARGS(hr_dev, desc),
-+
-+		    TP_STRUCT__entry(__string(dev_name, dev_name(hr_dev->dev))
-+				     __field(u16, opcode)
-+				     __field(u16, flag)
-+				     __field(u16, retval)
-+				     __array(__le32, data, 6)
-+		    ),
-+
-+		    TP_fast_assign(__assign_str(dev_name);
-+				   __entry->opcode = le16_to_cpu(desc->opcode);
-+				   __entry->flag = le16_to_cpu(desc->flag);
-+				   __entry->retval = le16_to_cpu(desc->retval);
-+				   memcpy(__entry->data, desc->data, 6 * sizeof(__le32));
-+		    ),
-+
-+		    TP_printk("%s cmdq opcode:0x%x, flag:0x%x, retval:0x%x, data:%s\n",
-+			      __get_str(dev_name), __entry->opcode,
-+			      __entry->flag, __entry->retval,
-+			      __print_array(__entry->data, 6, sizeof(__le32)))
-+);
-+
-+DEFINE_EVENT(cmdq, cmdq_req,
-+	     TP_PROTO(struct hns_roce_dev *hr_dev,
-+		      struct hns_roce_cmq_desc *desc),
-+	     TP_ARGS(hr_dev, desc));
-+DEFINE_EVENT(cmdq, cmdq_resp,
-+	     TP_PROTO(struct hns_roce_dev *hr_dev,
-+		      struct hns_roce_cmq_desc *desc),
-+	     TP_ARGS(hr_dev, desc));
-+
- #endif /* __HNS_ROCE_TRACE_H */
- 
- #undef TRACE_INCLUDE_FILE
+ #define HNS_ROCE_V2_MAX_RC_INL_INN_SZ		32
+ #define HNS_ROCE_V2_MTT_ENTRY_SZ		64
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index cf89a8db4f64..02f7acb30c5d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -37,7 +37,6 @@
+ #include <rdma/ib_smi.h>
+ #include <rdma/ib_user_verbs.h>
+ #include <rdma/ib_cache.h>
+-#include "hnae3.h"
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+ #include "hns_roce_hem.h"
+diff --git a/drivers/infiniband/hw/hns/hns_roce_restrack.c b/drivers/infiniband/hw/hns/hns_roce_restrack.c
+index 356d98816949..f637b73b946e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_restrack.c
++++ b/drivers/infiniband/hw/hns/hns_roce_restrack.c
+@@ -4,7 +4,6 @@
+ #include <rdma/rdma_cm.h>
+ #include <rdma/restrack.h>
+ #include <uapi/rdma/rdma_netlink.h>
+-#include "hnae3.h"
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+ #include "hns_roce_hw_v2.h"
 -- 
 2.33.0
 
