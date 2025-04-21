@@ -1,36 +1,39 @@
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3963FB640
-	for <linux-rdma@vger.kernel.org>; Mon, 21 Apr 2025 13:27:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC3F264A9E
+	for <linux-rdma@vger.kernel.org>; Mon, 21 Apr 2025 13:27:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745242077; cv=none; b=CnxtLcDdCQLzkZUQk7OSc1CNfPZG7AqklqYXCqjVr5ZvfIAKYnV31CRL9QDvD58I4mNKo/7j+KGrGIfBtogEwLrBBf+dFj3oxpv6DbXvH3WksBqh7Padt8W5ZZH1+SxW/tEtisEeZt9XH1qkCozJJBPa7Bs4BIIdVveBir7ccF0=
+	t=1745242077; cv=none; b=c2qOmk9m8FGDKAwSNvNbccAoY6+J1R3b4VOgAkBNy7iZh7CeWKj+DhOgkb03OEHhZROH7u5mnWsIcD90+25aMkRsaesPaktCAoI07vFR93hRuOItMYQhGlqnDMUwx2n2H6sAPSqG1G/AZ7houRlPQDVHzTsB3/zP/35yBIp+tFM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1745242077; c=relaxed/simple;
-	bh=oNW7zfV3ebTCaHniD32GGJeHOut7azIDhz9gfc0LL/M=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=RvPsTwc/ltml4EZNJfJLBch2FZgzNRSccpJtedlnyQL5jMmmdOFffqSbCKDLWUZobCkGZ86NujlwYP2Pun0Ch/O3tVC0757/bXIDdbZKvLzsA+IFKcOeVZTUDfZaCgAZBBu9bYQKjo5QDDRZxy6D6Nf7u0hi/BDMQ1w+uPSxzkc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.255
+	bh=Lev738Mhp0MhohhTDS+2vMSamOTedSlWMRxJWpn43V8=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=q5XuUQdmiBm7kQUw/UDKC3SpbInWdL4ue5f95xnwQVI0KWwkLid/T2iLx04UJlsBm0FRZLlktqWU81kWwg2ywYcAGTrZebacrHd/QHr2DGxwSR4/mJmlm6rvZB/YPzX/u3SrF9/RFXz5VgZZ4pxWuhCG7gpyIH71u19ARMjaE8w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Zh5kR27Xvz1d0rp;
-	Mon, 21 Apr 2025 21:26:55 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.163])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Zh5lH2MLgz1j5tb;
+	Mon, 21 Apr 2025 21:27:39 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id BA77B180080;
-	Mon, 21 Apr 2025 21:27:51 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 0A6D218001B;
+	Mon, 21 Apr 2025 21:27:53 +0800 (CST)
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 21 Apr 2025 21:27:51 +0800
+ 15.2.1544.11; Mon, 21 Apr 2025 21:27:52 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH v2 for-next 0/6] RDMA/hns: Add trace support
-Date: Mon, 21 Apr 2025 21:27:44 +0800
-Message-ID: <20250421132750.1363348-1-huangjunxian6@hisilicon.com>
+Subject: [PATCH v2 for-next 4/6] RDMA/hns: Add trace for MR/MTR attribute dumping
+Date: Mon, 21 Apr 2025 21:27:48 +0800
+Message-ID: <20250421132750.1363348-5-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20250421132750.1363348-1-huangjunxian6@hisilicon.com>
+References: <20250421132750.1363348-1-huangjunxian6@hisilicon.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -42,35 +45,147 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-Add trace support for hns. Set tracepoints for flushe CQE, WQE,
-AEQE, MT/MTR and CMDQ.
+Add trace for MR/MTR attribute dumping.
 
-Patch #5 fixes the dependency issue of hns_roce_hw_v2.h on hnae3.h,
-otherwise there will be a compilation error when hns_roce_hw_v2.h
-is included in hns_roce_trace.h in patch #6.
+Output example:
+$ cat /sys/kernel/debug/tracing/trace
+  tracer: nop
 
-v1 -> v2:
-* Add 'hns' prefix to the name of trace events
+  entries-in-buffer/entries-written: 2/2   #P:128
 
-Junxian Huang (6):
-  RDMA/hns: Add trace for flush CQE
-  RDMA/hns: Add trace for WQE dumping
-  RDMA/hns: Add trace for AEQE dumping
-  RDMA/hns: Add trace for MR/MTR attribute dumping
-  RDMA/hns: Include hnae3.h in hns_roce_hw_v2.h
-  RDMA/hns: Add trace for CMDQ dumping
+                                 _-----=> irqs-off/BH-disabled
+                               / _----=> need-resched
+                               | / _---=> hardirq/softirq
+                               || / _--=> preempt-depth
+                               ||| / _-=> migrate-disable
+                               |||| /     delay
+            TASK-PID     CPU#  |||||  TIMESTAMP  FUNCTION
+               | |         |   |||||     |         |
+      ib_send_bw-14751   [111] .....  8763.823038: hns_buf_attr: rg cnt:1,
+pg_sft:0xc, mtt_only:no, rg 0 (sz:131072, hop:2), rg 1 (sz:0, hop:0),
+rg 2 (sz:0, hop:0)
 
- drivers/infiniband/hw/hns/hns_roce_ah.c       |   1 -
- drivers/infiniband/hw/hns/hns_roce_device.h   |  20 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c    |  19 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h    |   1 +
- drivers/infiniband/hw/hns/hns_roce_main.c     |   1 -
- drivers/infiniband/hw/hns/hns_roce_mr.c       |   3 +
- drivers/infiniband/hw/hns/hns_roce_restrack.c |   1 -
- drivers/infiniband/hw/hns/hns_roce_trace.h    | 213 ++++++++++++++++++
- 8 files changed, 255 insertions(+), 4 deletions(-)
- create mode 100644 drivers/infiniband/hw/hns/hns_roce_trace.h
+      ib_send_bw-14751   [111] .....  8763.823118: hns_mr:
+iova:0xffffb2968000, size:131072, key:512, pd:1, pbl_hop:1, npages:4,
+type:0, status:0
 
---
+Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_mr.c    |  3 +
+ drivers/infiniband/hw/hns/hns_roce_trace.h | 65 ++++++++++++++++++++++
+ 2 files changed, 68 insertions(+)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index 09da3496843b..93a48b41955b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -38,6 +38,7 @@
+ #include "hns_roce_device.h"
+ #include "hns_roce_cmd.h"
+ #include "hns_roce_hem.h"
++#include "hns_roce_trace.h"
+ 
+ static u32 hw_index_to_key(int ind)
+ {
+@@ -159,6 +160,7 @@ static int hns_roce_mr_enable(struct hns_roce_dev *hr_dev,
+ 	if (IS_ERR(mailbox))
+ 		return PTR_ERR(mailbox);
+ 
++	trace_hns_mr(mr);
+ 	if (mr->type != MR_TYPE_FRMR)
+ 		ret = hr_dev->hw->write_mtpt(hr_dev, mailbox->buf, mr);
+ 	else
+@@ -1146,6 +1148,7 @@ int hns_roce_mtr_create(struct hns_roce_dev *hr_dev, struct hns_roce_mtr *mtr,
+ 	struct ib_device *ibdev = &hr_dev->ib_dev;
+ 	int ret;
+ 
++	trace_hns_buf_attr(buf_attr);
+ 	/* The caller has its own buffer list and invokes the hns_roce_mtr_map()
+ 	 * to finish the MTT configuration.
+ 	 */
+diff --git a/drivers/infiniband/hw/hns/hns_roce_trace.h b/drivers/infiniband/hw/hns/hns_roce_trace.h
+index 75c89aff68c3..b0bc22b9cc28 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_trace.h
++++ b/drivers/infiniband/hw/hns/hns_roce_trace.h
+@@ -10,6 +10,7 @@
+ #define __HNS_ROCE_TRACE_H
+ 
+ #include <linux/tracepoint.h>
++#include <linux/string_choices.h>
+ #include "hns_roce_device.h"
+ 
+ DECLARE_EVENT_CLASS(flush_head_template,
+@@ -104,6 +105,70 @@ TRACE_EVENT(hns_ae_info,
+ 		      __print_array(__entry->aeqe, __entry->len, sizeof(__le32)))
+ );
+ 
++TRACE_EVENT(hns_mr,
++	    TP_PROTO(struct hns_roce_mr *mr),
++	    TP_ARGS(mr),
++
++	    TP_STRUCT__entry(__field(u64, iova)
++			     __field(u64, size)
++			     __field(u32, key)
++			     __field(u32, pd)
++			     __field(u32, pbl_hop_num)
++			     __field(u32, npages)
++			     __field(int, type)
++			     __field(int, enabled)
++	    ),
++
++	    TP_fast_assign(__entry->iova = mr->iova;
++			   __entry->size = mr->size;
++			   __entry->key = mr->key;
++			   __entry->pd = mr->pd;
++			   __entry->pbl_hop_num = mr->pbl_hop_num;
++			   __entry->npages = mr->npages;
++			   __entry->type = mr->type;
++			   __entry->enabled = mr->enabled;
++	    ),
++
++	    TP_printk("iova:0x%llx, size:%llu, key:%u, pd:%u, pbl_hop:%u, npages:%u, type:%d, status:%d",
++		      __entry->iova, __entry->size, __entry->key,
++		      __entry->pd, __entry->pbl_hop_num, __entry->npages,
++		      __entry->type, __entry->enabled)
++);
++
++TRACE_EVENT(hns_buf_attr,
++	    TP_PROTO(struct hns_roce_buf_attr *attr),
++	    TP_ARGS(attr),
++
++	    TP_STRUCT__entry(__field(unsigned int, region_count)
++			     __field(unsigned int, region0_size)
++			     __field(int, region0_hopnum)
++			     __field(unsigned int, region1_size)
++			     __field(int, region1_hopnum)
++			     __field(unsigned int, region2_size)
++			     __field(int, region2_hopnum)
++			     __field(unsigned int, page_shift)
++			     __field(bool, mtt_only)
++	    ),
++
++	    TP_fast_assign(__entry->region_count = attr->region_count;
++			   __entry->region0_size = attr->region[0].size;
++			   __entry->region0_hopnum = attr->region[0].hopnum;
++			   __entry->region1_size = attr->region[1].size;
++			   __entry->region1_hopnum = attr->region[1].hopnum;
++			   __entry->region2_size = attr->region[2].size;
++			   __entry->region2_hopnum = attr->region[2].hopnum;
++			   __entry->page_shift = attr->page_shift;
++			   __entry->mtt_only = attr->mtt_only;
++	    ),
++
++	    TP_printk("rg cnt:%u, pg_sft:0x%x, mtt_only:%s, rg 0 (sz:%u, hop:%u), rg 1 (sz:%u, hop:%u), rg 2 (sz:%u, hop:%u)\n",
++		      __entry->region_count, __entry->page_shift,
++		      str_yes_no(__entry->mtt_only),
++		      __entry->region0_size, __entry->region0_hopnum,
++		      __entry->region1_size, __entry->region1_hopnum,
++		      __entry->region2_size, __entry->region2_hopnum)
++);
++
+ #endif /* __HNS_ROCE_TRACE_H */
+ 
+ #undef TRACE_INCLUDE_FILE
+-- 
 2.33.0
 
