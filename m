@@ -1,36 +1,36 @@
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD45B265CCD
-	for <linux-rdma@vger.kernel.org>; Mon, 21 Apr 2025 13:27:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA077B640
+	for <linux-rdma@vger.kernel.org>; Mon, 21 Apr 2025 13:28:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745242079; cv=none; b=WTTZC6k6Fvr/iI/B/7huoVCgf9n89Koq3qzsgYqcXidq0pA1udUjYhBzneCGHNrbEY9mbJiJoHpidGsDK4wuAU0NZe+IlJCNqqdO1eJZkWfU24S688vSiWwsfK8kaV9nGuhTpWOpC++l64zBpclSYP2QzJwFiF9qzxcUEaVXeGg=
+	t=1745242092; cv=none; b=T2ymAddy/DqZsWflS6s9P316Z7K3jQRhmXzGO1jh8MG+HKfh2oqumoT1B4Sw1Mj/v+wOWXlu3fAUNgY8zvOCNCL21qG4gcCCw7kTBD4vlhHmy3nqhJaTzzVct58dIyQ0R6efc9g9/AZ63GoTDucHInrAcFU8VBnZSyUioVMSiIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745242079; c=relaxed/simple;
-	bh=gS1FlZBbcGxZnkGkyWAqZicBZZqCHjj26tZwYza7ZZo=;
+	s=arc-20240116; t=1745242092; c=relaxed/simple;
+	bh=QlrvfQaITZkAub9RAdmczIcwCED2FKdAxxV8rQnIxMM=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=qwQZOMaYWe/jfSA3OGxHJY9bMK3XJS0ZlcltOHwqOwYUuZ6ounRCSvoO3uABAob+LjfYRVknmGhR6p1Dyi3r30Z33krVe/S+CFLMh/l9dnQpQJyD0HQ+bLGvKkFJD3+qKHdRBMepEq5XL2ehVL9Uu2jDx6xVOWg1laCLdDcrVyQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.187
+	 MIME-Version:Content-Type; b=kdYFCD1TNjpX0kamCrXrGGGjZfQaA0PtayohbwGtwHeH/FTxY6WsZbdm/BYzRZaGGRFs67kz3AosVD6M5n8PqsodfcLKuWhCz1lwA+giob+oRFN4DZGTC9qRkfU8AeQi+mWKc8Geh1iiS2aC4wmcuDfRY6YgO6z7iJ1Ci3n4hFE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.190
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.162.254])
-	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4Zh5fn05KWzvWqS;
-	Mon, 21 Apr 2025 21:23:45 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.162.112])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Zh5gW66qWz2CdPb;
+	Mon, 21 Apr 2025 21:24:23 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5846218046A;
-	Mon, 21 Apr 2025 21:27:53 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 67D0414011F;
+	Mon, 21 Apr 2025 21:27:52 +0800 (CST)
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 21 Apr 2025 21:27:52 +0800
+ 15.2.1544.11; Mon, 21 Apr 2025 21:27:51 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH v2 for-next 5/6] RDMA/hns: Include hnae3.h in hns_roce_hw_v2.h
-Date: Mon, 21 Apr 2025 21:27:49 +0800
-Message-ID: <20250421132750.1363348-6-huangjunxian6@hisilicon.com>
+Subject: [PATCH v2 for-next 2/6] RDMA/hns: Add trace for WQE dumping
+Date: Mon, 21 Apr 2025 21:27:46 +0800
+Message-ID: <20250421132750.1363348-3-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20250421132750.1363348-1-huangjunxian6@hisilicon.com>
 References: <20250421132750.1363348-1-huangjunxian6@hisilicon.com>
@@ -45,84 +45,142 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-hns_roce_hw_v2.h has a direct dependency on hnae3.h due to the
-inline function hns_roce_write64(), but it doesn't include this
-header currently. This leads to that files including
-hns_roce_hw_v2.h must also include hnae3.h to avoid compilation
-errors, even if they themselves don't really rely on hnae3.h.
-This doesn't make sense, hns_roce_hw_v2.h should include hnae3.h
-directly.
+Add trace for WQE dumping, including SQ, RQ and SRQ.
 
-Fixes: d3743fa94ccd ("RDMA/hns: Fix the chip hanging caused by sending doorbell during reset")
+Output example:
+$ cat /sys/kernel/debug/tracing/trace
+  tracer: nop
+
+  entries-in-buffer/entries-written: 2/2   #P:128
+
+                                 _-----=> irqs-off/BH-disabled
+                               / _----=> need-resched
+                               | / _---=> hardirq/softirq
+			       || / _--=> preempt-depth
+                               ||| / _-=> migrate-disable
+                               |||| /     delay
+            TASK-PID     CPU#  |||||  TIMESTAMP  FUNCTION
+               | |         |   |||||     |         |
+  roce_test_main-22730   [074] d..1. 16133.898282: hns_sq_wqe: SQ 0xc wqe
+(0x0/0xffff0820a6076060): {0x180,0x639c,0x0,0x1000000,0x0,0x0,0x0,0x0,
+0x639c,0x300,0xf7e38000,0x0,0x0,0x0,0x0,0x0}
+
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_ah.c       | 1 -
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c    | 1 -
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h    | 1 +
- drivers/infiniband/hw/hns/hns_roce_main.c     | 1 -
- drivers/infiniband/hw/hns/hns_roce_restrack.c | 1 -
- 5 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  3 ++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  8 ++++
+ drivers/infiniband/hw/hns/hns_roce_trace.h  | 44 +++++++++++++++++++++
+ 3 files changed, 55 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
-index 4fc5b9d5fea8..307c35888b30 100644
---- a/drivers/infiniband/hw/hns/hns_roce_ah.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
-@@ -33,7 +33,6 @@
- #include <linux/pci.h>
- #include <rdma/ib_addr.h>
- #include <rdma/ib_cache.h>
--#include "hnae3.h"
- #include "hns_roce_device.h"
- #include "hns_roce_hw_v2.h"
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 080bd049b0f8..1dcc9cbb4678 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -1030,6 +1030,7 @@ struct hns_roce_dev {
+ enum hns_roce_trace_type {
+ 	TRACE_SQ,
+ 	TRACE_RQ,
++	TRACE_SRQ,
+ };
  
+ static inline const char *trace_type_to_str(enum hns_roce_trace_type type)
+@@ -1039,6 +1040,8 @@ static inline const char *trace_type_to_str(enum hns_roce_trace_type type)
+ 		return "SQ";
+ 	case TRACE_RQ:
+ 		return "RQ";
++	case TRACE_SRQ:
++		return "SRQ";
+ 	default:
+ 		return "UNKNOWN";
+ 	}
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 5d3bf84c1aae..9cb9fe6a0a98 100644
+index e1c27c9556fd..ecc1e0b1df4e 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -43,7 +43,6 @@
- #include <rdma/ib_umem.h>
- #include <rdma/uverbs_ioctl.h>
+@@ -741,6 +741,8 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp,
+ 		else
+ 			ret = set_ud_wqe(qp, wr, wqe, &sge_idx, owner_bit);
  
--#include "hnae3.h"
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
- #include "hns_roce_cmd.h"
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 91a5665465ff..bc7466830eaf 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -34,6 +34,7 @@
- #define _HNS_ROCE_HW_V2_H
++		trace_hns_sq_wqe(qp->qpn, wqe_idx, wqe, 1 << qp->sq.wqe_shift,
++				 wr->wr_id, TRACE_SQ);
+ 		if (unlikely(ret)) {
+ 			*bad_wr = wr;
+ 			goto out;
+@@ -810,6 +812,9 @@ static void fill_rq_wqe(struct hns_roce_qp *hr_qp, const struct ib_recv_wr *wr,
  
- #include <linux/bitops.h>
-+#include "hnae3.h"
+ 	wqe = hns_roce_get_recv_wqe(hr_qp, wqe_idx);
+ 	fill_recv_sge_to_wqe(wr, wqe, max_sge, hr_qp->rq.rsv_sge);
++
++	trace_hns_rq_wqe(hr_qp->qpn, wqe_idx, wqe, 1 << hr_qp->rq.wqe_shift,
++			 wr->wr_id, TRACE_RQ);
+ }
  
- #define HNS_ROCE_V2_MAX_RC_INL_INN_SZ		32
- #define HNS_ROCE_V2_MTT_ENTRY_SZ		64
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index cf89a8db4f64..02f7acb30c5d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -37,7 +37,6 @@
- #include <rdma/ib_smi.h>
- #include <rdma/ib_user_verbs.h>
- #include <rdma/ib_cache.h>
--#include "hnae3.h"
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
- #include "hns_roce_hem.h"
-diff --git a/drivers/infiniband/hw/hns/hns_roce_restrack.c b/drivers/infiniband/hw/hns/hns_roce_restrack.c
-index 356d98816949..f637b73b946e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_restrack.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_restrack.c
-@@ -4,7 +4,6 @@
- #include <rdma/rdma_cm.h>
- #include <rdma/restrack.h>
- #include <uapi/rdma/rdma_netlink.h>
--#include "hnae3.h"
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
- #include "hns_roce_hw_v2.h"
+ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
+@@ -987,6 +992,9 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
+ 		fill_recv_sge_to_wqe(wr, wqe, max_sge, srq->rsv_sge);
+ 		fill_wqe_idx(srq, wqe_idx);
+ 		srq->wrid[wqe_idx] = wr->wr_id;
++
++		trace_hns_srq_wqe(srq->srqn, wqe_idx, wqe, 1 << srq->wqe_shift,
++				  wr->wr_id, TRACE_SRQ);
+ 	}
+ 
+ 	if (likely(nreq)) {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_trace.h b/drivers/infiniband/hw/hns/hns_roce_trace.h
+index 3deace357fb7..56e152387db4 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_trace.h
++++ b/drivers/infiniband/hw/hns/hns_roce_trace.h
+@@ -41,6 +41,50 @@ DEFINE_EVENT(flush_head_template, hns_rq_flush_cqe,
+ 		      enum hns_roce_trace_type type),
+ 	     TP_ARGS(qpn, pi, type));
+ 
++#define MAX_SGE_PER_WQE 64
++#define MAX_WQE_SIZE (MAX_SGE_PER_WQE * HNS_ROCE_SGE_SIZE)
++DECLARE_EVENT_CLASS(wqe_template,
++		    TP_PROTO(unsigned long qpn, u32 idx, void *wqe, u32 len,
++			     u64 id, enum hns_roce_trace_type type),
++		    TP_ARGS(qpn, idx, wqe, len, id, type),
++
++		    TP_STRUCT__entry(__field(unsigned long, qpn)
++				     __field(u32, idx)
++				     __array(__le32, wqe,
++					     MAX_WQE_SIZE / sizeof(__le32))
++				     __field(u32, len)
++				     __field(u64, id)
++				     __field(enum hns_roce_trace_type, type)
++				     ),
++
++		    TP_fast_assign(__entry->qpn = qpn;
++				   __entry->idx = idx;
++				   __entry->id = id;
++				   memcpy(__entry->wqe, wqe, len);
++				   __entry->len = len / sizeof(__le32);
++				   __entry->type = type;
++				   ),
++
++		    TP_printk("%s 0x%lx wqe(0x%x/0x%llx): %s",
++			      trace_type_to_str(__entry->type),
++			      __entry->qpn, __entry->idx, __entry->id,
++			      __print_array(__entry->wqe, __entry->len,
++					    sizeof(__le32)))
++);
++
++DEFINE_EVENT(wqe_template, hns_sq_wqe,
++	     TP_PROTO(unsigned long qpn, u32 idx, void *wqe, u32 len, u64 id,
++		      enum hns_roce_trace_type type),
++	     TP_ARGS(qpn, idx, wqe, len, id, type));
++DEFINE_EVENT(wqe_template, hns_rq_wqe,
++	     TP_PROTO(unsigned long qpn, u32 idx, void *wqe, u32 len, u64 id,
++		      enum hns_roce_trace_type type),
++	     TP_ARGS(qpn, idx, wqe, len, id, type));
++DEFINE_EVENT(wqe_template, hns_srq_wqe,
++	     TP_PROTO(unsigned long qpn, u32 idx, void *wqe, u32 len, u64 id,
++		      enum hns_roce_trace_type type),
++	     TP_ARGS(qpn, idx, wqe, len, id, type));
++
+ #endif /* __HNS_ROCE_TRACE_H */
+ 
+ #undef TRACE_INCLUDE_FILE
 -- 
 2.33.0
 
