@@ -1,36 +1,36 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 461621E487
-	for <linux-rdma@vger.kernel.org>; Mon, 21 Apr 2025 13:27:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DBD1264621
+	for <linux-rdma@vger.kernel.org>; Mon, 21 Apr 2025 13:27:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.191
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745242078; cv=none; b=krjlAf30/66EU9VffmUJEk6rNuUUZQOUceATKp5G2MBypEBeCXWpvln/YbWP+P+F8o5gydAJ+nH8iyF4kezlw4mio8Kk5mwWYlcFX20ioB9HnUc75vCVin8+t0DToZQqxrCiOc4RwPv8Y7HEG/04VLBMQK61j0CQVrljCnSCY1o=
+	t=1745242079; cv=none; b=fPL6MOmVEGKANkqz0Mgv/9fr2oNmGvZHs2rPWiNi8e2kvwlARhmr+FBT5iPloJVYty2MZ7orlblDOuE9W9Yz6JKUjtPX07QjeesB4d+wIs1dHEmzFMCJy9nTh58vYDxAmM933AArTXcviMAyriF9xzAeNu6D5Hk/kgVPFPtGIUY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745242078; c=relaxed/simple;
-	bh=a0jTVaQri0nJ2hnBICNcHwDsbrp1VQOhUuaYeivOTKI=;
+	s=arc-20240116; t=1745242079; c=relaxed/simple;
+	bh=7UatLquSeRSI2rhE//PSSKJLH7EPquV7yIvVx3JAN+k=;
 	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KqaDpC+Wf0nn38RUe3WDPN7GzEcJUGUmF4BZVPFWn9MaKd9pwpnV7zbJv6hLJmITjkaYP5kiTN6581yW5vcC+HquWZuQGJmZLdsKb8mI5GMFBTAhFpprQcv9gaTma+xNaRW0R519yBnjhXnHsWyHgMHiE2vBo5rjpMf2BKFyA6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.188
+	 MIME-Version:Content-Type; b=WID1SoZhkK9ZiMxX2lkDddhMdQ5EDszcDcrY2x5TQrymypLc79QSkcvCg4ml+qE5v/Y2+U28717ls+7faWg/kXS1CFYGTOUmEamwKg0cuOgk8hiQbbVjQxr/ROOZMyY5Cxd4jgxi/isfKyhRJN4WDO1IOoBFnSRMrVn5BSppRBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com; spf=pass smtp.mailfrom=hisilicon.com; arc=none smtp.client-ip=45.249.212.191
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=hisilicon.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=hisilicon.com
-Received: from mail.maildlp.com (unknown [172.19.163.48])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4Zh5g61MqDz69ZY;
-	Mon, 21 Apr 2025 21:24:02 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.163])
+	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4Zh5lG2k20z1j5vv;
+	Mon, 21 Apr 2025 21:27:38 +0800 (CST)
 Received: from kwepemf100018.china.huawei.com (unknown [7.202.181.17])
-	by mail.maildlp.com (Postfix) with ESMTPS id AE8F1180080;
+	by mail.maildlp.com (Postfix) with ESMTPS id 169CB18001B;
 	Mon, 21 Apr 2025 21:27:52 +0800 (CST)
 Received: from localhost.localdomain (10.50.165.33) by
  kwepemf100018.china.huawei.com (7.202.181.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 21 Apr 2025 21:27:52 +0800
+ 15.2.1544.11; Mon, 21 Apr 2025 21:27:51 +0800
 From: Junxian Huang <huangjunxian6@hisilicon.com>
 To: <jgg@ziepe.ca>, <leon@kernel.org>
 CC: <linux-rdma@vger.kernel.org>, <linuxarm@huawei.com>,
 	<huangjunxian6@hisilicon.com>, <tangchengchang@huawei.com>
-Subject: [PATCH v2 for-next 3/6] RDMA/hns: Add trace for AEQE dumping
-Date: Mon, 21 Apr 2025 21:27:47 +0800
-Message-ID: <20250421132750.1363348-4-huangjunxian6@hisilicon.com>
+Subject: [PATCH v2 for-next 1/6] RDMA/hns: Add trace for flush CQE
+Date: Mon, 21 Apr 2025 21:27:45 +0800
+Message-ID: <20250421132750.1363348-2-huangjunxian6@hisilicon.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20250421132750.1363348-1-huangjunxian6@hisilicon.com>
 References: <20250421132750.1363348-1-huangjunxian6@hisilicon.com>
@@ -45,7 +45,7 @@ Content-Type: text/plain
 X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
  kwepemf100018.china.huawei.com (7.202.181.17)
 
-Add trace for AEQE dumping.
+Add trace to print the producer index of QP when triggering flush CQE.
 
 Output example:
 $ cat /sys/kernel/debug/tracing/trace
@@ -54,64 +54,138 @@ $ cat /sys/kernel/debug/tracing/trace
   entries-in-buffer/entries-written: 2/2   #P:128
 
                                  _-----=> irqs-off/BH-disabled
-                               / _----=> need-resched
+                                / _----=> need-resched
                                | / _---=> hardirq/softirq
                                || / _--=> preempt-depth
                                ||| / _-=> migrate-disable
                                |||| /     delay
             TASK-PID     CPU#  |||||  TIMESTAMP  FUNCTION
                | |         |   |||||     |         |
-	  <idle>-0       [120] d.h1.  7995.835587: hns_ae_info: event 19 aeqe:
-{0x80006013,0x0,0x0,0x10d2c,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0}
+      ib_send_bw-11474   [075] d..1.  2393.434738: hns_sq_flush_cqe: SQ 0x2 flush head 0xb5c7.
+      ib_send_bw-11474   [075] d..1.  2393.434739: hns_rq_flush_cqe: RQ 0x2 flush head 0.
 
 Signed-off-by: Junxian Huang <huangjunxian6@hisilicon.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  1 +
- drivers/infiniband/hw/hns/hns_roce_trace.h | 19 +++++++++++++++++++
- 2 files changed, 20 insertions(+)
+ drivers/infiniband/hw/hns/hns_roce_device.h | 17 +++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |  5 +++
+ drivers/infiniband/hw/hns/hns_roce_trace.h  | 50 +++++++++++++++++++++
+ 3 files changed, 72 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_trace.h
 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index 560a1d9de408..080bd049b0f8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -1027,6 +1027,23 @@ struct hns_roce_dev {
+ 	atomic64_t *dfx_cnt;
+ };
+ 
++enum hns_roce_trace_type {
++	TRACE_SQ,
++	TRACE_RQ,
++};
++
++static inline const char *trace_type_to_str(enum hns_roce_trace_type type)
++{
++	switch (type) {
++	case TRACE_SQ:
++		return "SQ";
++	case TRACE_RQ:
++		return "RQ";
++	default:
++		return "UNKNOWN";
++	}
++}
++
+ static inline struct hns_roce_dev *to_hr_dev(struct ib_device *ib_dev)
+ {
+ 	return container_of(ib_dev, struct hns_roce_dev, ib_dev);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index ecc1e0b1df4e..5d3bf84c1aae 100644
+index c6399490e3a5..e1c27c9556fd 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -6260,6 +6260,7 @@ static irqreturn_t hns_roce_v2_aeq_int(struct hns_roce_dev *hr_dev,
- 		eq->sub_type = sub_type;
- 		++eq->cons_index;
- 		aeqe_found = IRQ_HANDLED;
-+		trace_hns_ae_info(event_type, aeqe, eq->eqe_size);
+@@ -50,6 +50,9 @@
+ #include "hns_roce_hem.h"
+ #include "hns_roce_hw_v2.h"
  
- 		atomic64_inc(&hr_dev->dfx_cnt[HNS_ROCE_DFX_AEQE_CNT]);
++#define CREATE_TRACE_POINTS
++#include "hns_roce_trace.h"
++
+ enum {
+ 	CMD_RST_PRC_OTHERS,
+ 	CMD_RST_PRC_SUCCESS,
+@@ -5312,6 +5315,7 @@ static void v2_set_flushed_fields(struct ib_qp *ibqp,
+ 		return;
  
+ 	spin_lock_irqsave(&hr_qp->sq.lock, sq_flag);
++	trace_hns_sq_flush_cqe(hr_qp->qpn, hr_qp->sq.head, TRACE_SQ);
+ 	hr_reg_write(context, QPC_SQ_PRODUCER_IDX, hr_qp->sq.head);
+ 	hr_reg_clear(qpc_mask, QPC_SQ_PRODUCER_IDX);
+ 	hr_qp->state = IB_QPS_ERR;
+@@ -5321,6 +5325,7 @@ static void v2_set_flushed_fields(struct ib_qp *ibqp,
+ 		return;
+ 
+ 	spin_lock_irqsave(&hr_qp->rq.lock, rq_flag);
++	trace_hns_rq_flush_cqe(hr_qp->qpn, hr_qp->rq.head, TRACE_RQ);
+ 	hr_reg_write(context, QPC_RQ_PRODUCER_IDX, hr_qp->rq.head);
+ 	hr_reg_clear(qpc_mask, QPC_RQ_PRODUCER_IDX);
+ 	spin_unlock_irqrestore(&hr_qp->rq.lock, rq_flag);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_trace.h b/drivers/infiniband/hw/hns/hns_roce_trace.h
-index 56e152387db4..75c89aff68c3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_trace.h
+new file mode 100644
+index 000000000000..3deace357fb7
+--- /dev/null
 +++ b/drivers/infiniband/hw/hns/hns_roce_trace.h
-@@ -85,6 +85,25 @@ DEFINE_EVENT(wqe_template, hns_srq_wqe,
- 		      enum hns_roce_trace_type type),
- 	     TP_ARGS(qpn, idx, wqe, len, id, type));
- 
-+TRACE_EVENT(hns_ae_info,
-+	    TP_PROTO(int event_type, void *aeqe, unsigned int len),
-+	    TP_ARGS(event_type, aeqe, len),
+@@ -0,0 +1,50 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++/*
++ * Copyright (c) 2025 Hisilicon Limited.
++ */
 +
-+	    TP_STRUCT__entry(__field(int, event_type)
-+			     __array(__le32, aeqe,
-+				     HNS_ROCE_V3_EQE_SIZE / sizeof(__le32))
-+			     __field(u32, len)
-+	    ),
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM hns_roce
 +
-+	    TP_fast_assign(__entry->event_type = event_type;
-+			   __entry->len = len / sizeof(__le32);
-+			   memcpy(__entry->aeqe, aeqe, len);
-+	    ),
++#if !defined(__HNS_ROCE_TRACE_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __HNS_ROCE_TRACE_H
 +
-+	    TP_printk("event %2d aeqe: %s", __entry->event_type,
-+		      __print_array(__entry->aeqe, __entry->len, sizeof(__le32)))
++#include <linux/tracepoint.h>
++#include "hns_roce_device.h"
++
++DECLARE_EVENT_CLASS(flush_head_template,
++		    TP_PROTO(unsigned long qpn, u32 pi,
++			     enum hns_roce_trace_type type),
++		    TP_ARGS(qpn, pi, type),
++
++		    TP_STRUCT__entry(__field(unsigned long, qpn)
++				     __field(u32, pi)
++				     __field(enum hns_roce_trace_type, type)
++		    ),
++
++		    TP_fast_assign(__entry->qpn = qpn;
++				   __entry->pi = pi;
++				   __entry->type = type;
++		    ),
++
++		    TP_printk("%s 0x%lx flush head 0x%x.",
++			      trace_type_to_str(__entry->type),
++			      __entry->qpn, __entry->pi)
 +);
 +
- #endif /* __HNS_ROCE_TRACE_H */
- 
- #undef TRACE_INCLUDE_FILE
++DEFINE_EVENT(flush_head_template, hns_sq_flush_cqe,
++	     TP_PROTO(unsigned long qpn, u32 pi,
++		      enum hns_roce_trace_type type),
++	     TP_ARGS(qpn, pi, type));
++DEFINE_EVENT(flush_head_template, hns_rq_flush_cqe,
++	     TP_PROTO(unsigned long qpn, u32 pi,
++		      enum hns_roce_trace_type type),
++	     TP_ARGS(qpn, pi, type));
++
++#endif /* __HNS_ROCE_TRACE_H */
++
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_FILE hns_roce_trace
++#undef TRACE_INCLUDE_PATH
++#define TRACE_INCLUDE_PATH .
++#include <trace/define_trace.h>
 -- 
 2.33.0
 
