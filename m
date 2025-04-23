@@ -1,161 +1,121 @@
-Received: from out02.mta.xmission.com (out02.mta.xmission.com [166.70.13.232])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FC0C19DFA7;
-	Wed, 23 Apr 2025 16:12:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.70.13.232
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2988D1A5B82;
+	Wed, 23 Apr 2025 16:14:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745424764; cv=none; b=IluwngIvmAxgzLZEwHadPTSw7HMk6YY6zHExrdeY12d0NqSTbwQRlao6o1HGMFGuDgQkbgxCGSytOxd7uQzF4EJFt9dK/V/j8bEFoXQRpi6krxC56TupFfAOGbBzgIbS8hTPJ0siU5RpsazQ8UzZ0KgAnM62436YS4NEV2lanCc=
+	t=1745424870; cv=none; b=kd591qgEN5PzYPBKOXWJfzLjLq2kGu6wk5eFF7ES8MDEJHTWPq00mAH9YFk7wBiVnIKoq/6zC5c2arUx5naQTJbuTTDCrdNSOoefR86NLDYINQTEk1yNC0gJemlxrwHENL9F+Am/i5drexPmrs5grV0Z4eGdhPtRDF0PsNffN1g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745424764; c=relaxed/simple;
-	bh=F/xISTNgLIzdCW9nv6KBRXu0Ac8JDl58yRjsuFhxIiw=;
-	h=From:To:Cc:References:Date:In-Reply-To:Message-ID:MIME-Version:
-	 Content-Type:Subject; b=LjqrS1r/lryx90PwwsAie5qJNvMX6ioAI5CjvRvrpbXk+eaH0X6itzpRb+RI6yIbnqJVKQ3OFUnjX25PDOvfDZQppx8u7hQONTqbLD1EowXzMgJawlWKYxhVhSbxwGzfn5/hyTaGXXPwv6TpAr4EHB7UgtFG1GmHLb1Y0W0ZW58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=xmission.com; spf=pass smtp.mailfrom=xmission.com; arc=none smtp.client-ip=166.70.13.232
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=xmission.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=xmission.com
-Received: from in01.mta.xmission.com ([166.70.13.51]:45126)
-	by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.93)
-	(envelope-from <ebiederm@xmission.com>)
-	id 1u7cNy-001mxW-7y; Wed, 23 Apr 2025 09:51:42 -0600
-Received: from ip72-198-198-28.om.om.cox.net ([72.198.198.28]:37826 helo=email.froward.int.ebiederm.org.xmission.com)
-	by in01.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.93)
-	(envelope-from <ebiederm@xmission.com>)
-	id 1u7cNx-00F7XC-5J; Wed, 23 Apr 2025 09:51:41 -0600
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Parav Pandit <parav@nvidia.com>,  "Serge E. Hallyn" <serge@hallyn.com>,
-  "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-  "linux-security-module@vger.kernel.org"
- <linux-security-module@vger.kernel.org>,  Leon Romanovsky
- <leonro@nvidia.com>
-References: <20250421031320.GA579226@mail.hallyn.com>
-	<CY8PR12MB7195E4A0C6E019F10222B543DCB82@CY8PR12MB7195.namprd12.prod.outlook.com>
-	<20250421130024.GA582222@mail.hallyn.com>
-	<CY8PR12MB71955204622F18B2C3437BCBDCB82@CY8PR12MB7195.namprd12.prod.outlook.com>
-	<20250421172236.GA583385@mail.hallyn.com>
-	<20250422124640.GI823903@nvidia.com>
-	<20250422131433.GA588503@mail.hallyn.com>
-	<20250422161127.GO823903@nvidia.com>
-	<20250422162943.GA589534@mail.hallyn.com>
-	<CY8PR12MB71955B492640B228145DB9CFDCBA2@CY8PR12MB7195.namprd12.prod.outlook.com>
-	<20250423144649.GA1743270@nvidia.com>
-Date: Wed, 23 Apr 2025 10:43:40 -0500
-In-Reply-To: <20250423144649.GA1743270@nvidia.com> (Jason Gunthorpe's message
-	of "Wed, 23 Apr 2025 11:46:49 -0300")
-Message-ID: <87msc6khn7.fsf@email.froward.int.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
+	s=arc-20240116; t=1745424870; c=relaxed/simple;
+	bh=Z/4DmM8gueZBF5pkQ33eV/TOGnbp2ifSLowAhDlqItU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fMhc9H+ESsqLMNJoAO35Zu9rNPiQ5J3VBREBM72fH67TxFOcHKhi6/ncLJqj4YqOMFRVh+Yit20ZHw6XXDd1x418JBEzLBdekndzOREW/TQPwpyx9geKu1ORXc3Ohd60oBLJq2cc5CobmcYkNnVExNFEF9Z8unMKuCw2y6gnF/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rzl9HJgs; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rzl9HJgs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B3FDC4CEE2;
+	Wed, 23 Apr 2025 16:14:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1745424869;
+	bh=Z/4DmM8gueZBF5pkQ33eV/TOGnbp2ifSLowAhDlqItU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=rzl9HJgsjiv6OYRiFt5O2M0ta6p8Ba77FyXKYN2G+cx5d/s5boXYxcdHFaeuOgmyt
+	 6I19ywl2bpMIKMIuH6g/GCL3Q4vlp4avUahDcq8p04KXmOYsa9LWESKzUxgswLn5eQ
+	 iwM9/QtSrE3MjM2UYlUzaau1gdcQ+2pkFhsBxN4mKvKofdnyr+MWLtkT1g7sIuQeGJ
+	 UiTSV6ZIoJ2lG9f0bGah41y6kr+oQxcbfVPLFWaw34SMT9KuHpSCDUW7raJZo0k1Ab
+	 xaMc4diV6LsDmovTDwWNifJRz7+kWEHsA4thtGUp/yf3zXdVl9AexBTHSVVfLDFZDH
+	 Q9HaurUSXyKwA==
+Date: Wed, 23 Apr 2025 17:14:25 +0100
+From: Simon Horman <horms@kernel.org>
+To: "Ertman, David M" <david.m.ertman@intel.com>
+Cc: "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>,
+	"jgg@nvidia.com" <jgg@nvidia.com>,
+	"leon@kernel.org" <leon@kernel.org>,
+	"intel-wired-lan@lists.osuosl.org" <intel-wired-lan@lists.osuosl.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Subject: Re: [Intel-wired-lan] [iwl-next v5 5/5] iidc/ice/irdma: Update IDC
+ to support multiple consumers
+Message-ID: <20250423161425.GA2843373@horms.kernel.org>
+References: <20250416021549.606-1-tatyana.e.nikolova@intel.com>
+ <20250416021549.606-6-tatyana.e.nikolova@intel.com>
+ <20250417112143.GE2430521@horms.kernel.org>
+ <IA1PR11MB6194FD66BA60E12D6430DF22DDBF2@IA1PR11MB6194.namprd11.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-XM-SPF: eid=1u7cNx-00F7XC-5J;;;mid=<87msc6khn7.fsf@email.froward.int.ebiederm.org>;;;hst=in01.mta.xmission.com;;;ip=72.198.198.28;;;frm=ebiederm@xmission.com;;;spf=pass
-X-XM-AID: U2FsdGVkX1/DMyTdoa6WlVeBX+WPMsUVB+KePa8zYhE=
-X-Spam-Level: *
-X-Spam-Report: 
-	* -1.0 ALL_TRUSTED Passed through trusted hosts only via SMTP
-	*  0.8 BAYES_50 BODY: Bayes spam probability is 40 to 60%
-	*      [score: 0.4998]
-	*  0.7 XMSubLong Long Subject
-	*  0.0 T_TM2_M_HEADER_IN_MSG BODY: No description available.
-	* -0.0 DCC_CHECK_NEGATIVE Not listed in DCC
-	*      [sa08 1397; Body=1 Fuz1=1 Fuz2=1]
-	*  0.2 XM_B_SpammyWords One or more commonly used spammy words
-	*  1.0 XMGenDplmaNmb Diploma spam phrases+possible phone number
-X-Spam-DCC: XMission; sa08 1397; Body=1 Fuz1=1 Fuz2=1 
-X-Spam-Combo: *;Jason Gunthorpe <jgg@nvidia.com>
-X-Spam-Relay-Country: 
-X-Spam-Timing: total 569 ms - load_scoreonly_sql: 0.09 (0.0%),
-	signal_user_changed: 15 (2.6%), b_tie_ro: 12 (2.2%), parse: 1.41
-	(0.2%), extract_message_metadata: 18 (3.2%), get_uri_detail_list: 2.6
-	(0.5%), tests_pri_-2000: 19 (3.4%), tests_pri_-1000: 2.4 (0.4%),
-	tests_pri_-950: 1.45 (0.3%), tests_pri_-900: 1.17 (0.2%),
-	tests_pri_-90: 107 (18.9%), check_bayes: 101 (17.7%), b_tokenize: 7
-	(1.2%), b_tok_get_all: 38 (6.8%), b_comp_prob: 3.0 (0.5%),
-	b_tok_touch_all: 46 (8.1%), b_finish: 1.62 (0.3%), tests_pri_0: 383
-	(67.3%), check_dkim_signature: 0.58 (0.1%), check_dkim_adsp: 3.9
-	(0.7%), poll_dns_idle: 0.57 (0.1%), tests_pri_10: 4.3 (0.8%),
-	tests_pri_500: 11 (2.0%), rewrite_mail: 0.00 (0.0%)
-Subject: Re: [PATCH] RDMA/uverbs: Consider capability of the process that
- opens the file
-X-SA-Exim-Connect-IP: 166.70.13.51
-X-SA-Exim-Rcpt-To: leonro@nvidia.com, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, serge@hallyn.com, parav@nvidia.com, jgg@nvidia.com
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-X-SA-Exim-Scanned: No (on out02.mta.xmission.com); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <IA1PR11MB6194FD66BA60E12D6430DF22DDBF2@IA1PR11MB6194.namprd11.prod.outlook.com>
 
-Jason Gunthorpe <jgg@nvidia.com> writes:
+On Fri, Apr 18, 2025 at 05:14:24PM +0000, Ertman, David M wrote:
+> > -----Original Message-----
+> > From: Intel-wired-lan <intel-wired-lan-bounces@osuosl.org> On Behalf Of
+> > Simon Horman
+> > Sent: Thursday, April 17, 2025 4:22 AM
+> > To: Nikolova, Tatyana E <tatyana.e.nikolova@intel.com>
+> > Cc: jgg@nvidia.com; leon@kernel.org; intel-wired-lan@lists.osuosl.org; linux-
+> > rdma@vger.kernel.org; netdev@vger.kernel.org
+> > Subject: Re: [Intel-wired-lan] [iwl-next v5 5/5] iidc/ice/irdma: Update IDC to
+> > support multiple consumers
+> > 
+> > On Tue, Apr 15, 2025 at 09:15:49PM -0500, Tatyana Nikolova wrote:
+> > > From: Dave Ertman <david.m.ertman@intel.com>
+> > >
+> > > In preparation of supporting more than a single core PCI driver
+> > > for RDMA, move ice specific structs like qset_params, qos_info
+> > > and qos_params from iidc_rdma.h to iidc_rdma_ice.h.
+> > >
+> > > Previously, the ice driver was just exporting its entire PF struct
+> > > to the auxiliary driver, but since each core driver will have its own
+> > > different PF struct, implement a universal struct that all core drivers
+> > > can provide to the auxiliary driver through the probe call.
+> > >
+> > > Reviewed-by: Przemek Kitszel <przemyslaw.kitszel@intel.com>
+> > > Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+> > > Co-developed-by: Mustafa Ismail <mustafa.ismail@intel.com>
+> > > Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+> > > Co-developed-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> > > Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> > > Co-developed-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+> > > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+> > 
+> > ...
+> > 
+> > > diff --git a/drivers/net/ethernet/intel/ice/devlink/devlink.c
+> > b/drivers/net/ethernet/intel/ice/devlink/devlink.c
+> > > index fcb199efbea5..4af60e2f37df 100644
+> > > --- a/drivers/net/ethernet/intel/ice/devlink/devlink.c
+> > > +++ b/drivers/net/ethernet/intel/ice/devlink/devlink.c
+> > > @@ -1339,8 +1339,13 @@ ice_devlink_enable_roce_get(struct devlink
+> > *devlink, u32 id,
+> > >  			    struct devlink_param_gset_ctx *ctx)
+> > >  {
+> > >  	struct ice_pf *pf = devlink_priv(devlink);
+> > > +	struct iidc_rdma_core_dev_info *cdev;
+> > >
+> > > -	ctx->val.vbool = pf->rdma_mode & IIDC_RDMA_PROTOCOL_ROCEV2
+> > ? true : false;
+> > > +	cdev = pf->cdev_info;
+> > > +	if (!cdev)
+> > > +		return -ENODEV;
+> > 
+> > Is it possible for cdev to be NULL here?
+> > 
+> > Likewise for other checks for NULL arguments passed to functions
+> > elsewhere in this patch.
+> 
+> Hi Simon,
+> 
+> In the resume path from Sx states it is possible to have a NULL pointer for
+> the cdev_info pointer.  This is due to us not wanting to fail on resuming unless
+> absolutely necessary.  I went through the rest of the patch looking for NULL checks
+> and all of them are valid from my inspection (possible to be NULL).
+> 
+> Thanks for the review!
 
-> On Wed, Apr 23, 2025 at 12:41:26PM +0000, Parav Pandit wrote:
->> 
->> > From: Serge E. Hallyn <serge@hallyn.com>
->> > Sent: Tuesday, April 22, 2025 10:00 PM
->> > 
->> > On Tue, Apr 22, 2025 at 01:11:27PM -0300, Jason Gunthorpe wrote:
->> > > On Tue, Apr 22, 2025 at 08:14:33AM -0500, Serge E. Hallyn wrote:
->> > > > Hi Jason,
->> > > >
->> > > > On Tue, Apr 22, 2025 at 09:46:40AM -0300, Jason Gunthorpe wrote:
->> > > > > On Mon, Apr 21, 2025 at 12:22:36PM -0500, Serge E. Hallyn wrote:
->> > > > > > > > 1. the create should check
->> > > > > > > > ns_capable(current->nsproxy->net->user_ns,
->> > > > > > > > CAP_NET_RAW)
->> > > > > > > I believe this is sufficient as this create call happens through the
->> > ioctl().
->> > > > > > > But more question on #3.
->> > > > >
->> > > > > I think this is the right one to use everywhere.
->> > > >
->> > > > It's the right one to use when creating resources, but when later
->> > > > using them, since below you say that the resource should in fact be
->> > > > tied to the creator's network namespace, that means that checking
->> > > > current->nsproxy->net->user_ns would have nothing to do with the
->> > > > resource being used, right?
->> > >
->> > > Yes, in that case you'd check something stored in the uobject.
->> > 
->> > Perfect, that's exactly the kind of thing I was looking for.  Thanks.
->> >
->> It means uboject create path will refcount and store user_ns, 
->> 
->> uobject->user_ns = get_user_ns(current->nsproxy->net->user_ns);
->> 
->> And uobject destroy will do,
->> 	put_user_ns(uobject->user_ns).
->> 
->> This will ensure that in below flow we won't have use_after_free.
->> 1. process_A created object in user_ns_A
->> 2. process_A shared fd with process_B in user_ns_B
->> 3. process_A is killed and
->> 4. user_ns_A is free is attempted (free is skipped, until uobject is destroyed by process_B).
->
-> We only need to do that if something is legimitately doing capable
-> from a uobject outside of creation? Did you find that?
-
-I believe the proposed change that started this discussion,
-was to make rdma usable inside of a user namespace.
-
-Which led to the question: Are the current capable calls safe and
-correct, as they aren't preserving the context that can with opening a
-file descriptor?  If I have skimmed this thread correctly the answer
-not preserving the opener's context is a seriously atypical but
-deliberate choice.
-
-> And I wonder if using the uobjects affiliated netdev's namespace is
-> OK?
-
-That is actually preferable.  It is what I updated the rest of the
-network stack to do.  I don't know if you would use dev_net or
-something else.
-
-Going back to the original proposal I don't know how ready the code is
-to handle callers that are not root.  This is both a question of
-semantics (is it safe in theory) and a question of implementation (are
-there unfixed bugs that no one cares about because only root has been
-using the code).
-
-Eric
+Likewise, thanks for checking.
