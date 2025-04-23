@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 619FE28137B;
-	Wed, 23 Apr 2025 08:14:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5566B28137B;
+	Wed, 23 Apr 2025 08:14:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745396088; cv=none; b=oxR5Qbyj6Kf4qTPA67DfHOo0UiBoiyMLR20r+2+yrp+CL/PNZc706b/kBRlxTrkIrTPY084+VvlmzzfvKauAk+iG6CU8SorVgZ4nZWBqN5//D/z5MZubLCzn4uOZFLAvevYn6LxL3+Tu4QozIsnPPLGbYcBmrHrTAmAYvQOp5CA=
+	t=1745396093; cv=none; b=qv/rDhwOkmXUPCjKEbGguqDbeCbpBltq1++OR5F0fuVFsHL3CeP2OCgEm7FGEU0ulIdbZHubV+5RVpAn2HUHpoZvBlHUwVikTn3ggZ9nXEX/6zI4oBuYiKqtGxhQ1ggzCf0RqgiN5+f7GkO/vrz9x+uVLB3lWL4Njap0c2NppKc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745396088; c=relaxed/simple;
-	bh=j4KzyiiyZODesV03LVJXzVBe5z505XWdFMHi6zBkELo=;
+	s=arc-20240116; t=1745396093; c=relaxed/simple;
+	bh=Z+8b4NYee1RUbpzKZ39zN1WZWDjcticSFOudJv0T43g=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EOLais6AV9wBsRRLQ4OalMqZrNTi8hYI+y4IOvXRxqNYq1GW8vAQFbrcip6piUR426FtreEECHjImmLrYYcfgvlShjZWtYi6YBsV8K4nRy8z9QGvNEAU1jymR50rPfIm92lVxbZvC5hdVO1p4HQfgWpizw9t7IcY/5iwFwZToKI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YHVp0x5P; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=bZfr+MLZo7CICYD1TzkT+PhqZFa/44CT23r1YInwbeqNa15cZYeS73zv0T1e+XNurxhlmjohvomOTANJ3e1QA7wz1RPee5Urd2B9UoeQp/jYjRwBRIhNJ+BfYnYe0hpST8kErrxobKN+cyf4gAeRnJUh3+Fj47PTPf8DXwws9yA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qE+s9EHz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YHVp0x5P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6795FC4CEE2;
-	Wed, 23 Apr 2025 08:14:47 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qE+s9EHz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11E5CC4CEE2;
+	Wed, 23 Apr 2025 08:14:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1745396088;
-	bh=j4KzyiiyZODesV03LVJXzVBe5z505XWdFMHi6zBkELo=;
+	s=k20201202; t=1745396092;
+	bh=Z+8b4NYee1RUbpzKZ39zN1WZWDjcticSFOudJv0T43g=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=YHVp0x5P610ROP7ncTqe91xRDzlhMHWtCmStBfBBdRNqhucX/NkK707LZO5D2Q0gk
-	 c+pmqOMUItWTHvMTmD1HWrIn82ehYyPhknqLcxsh7JPKhb8/u24442cUs0gjC4zcCu
-	 37AyqS1Tgfv7FSfk3iJRrdU/3aTqG1Xq36j1Ta4EzGIDU64ESjfn6693/5bkBk/jMs
-	 QhcY7yOw0IB+bDLQmye2lYpn7ZmwbXinSS9KZ10J1yLGl5ZlW5GmDqrkmHM64+l4rP
-	 KytUCY3NCea+NzAF8FCOqKBOt/7BVYhACQzUu/uRSp1SqKonj1ho8sz6H6hdw2brL2
-	 mcrAJ7AXcz4hQ==
+	b=qE+s9EHzPEDuLSGuHtZ28CtFY2uP1N7/71Y4qUuPA1VYvkHQi1X+QIdGvBh1kufix
+	 fyFBxbj8RS7eYnjPsDL0TULXuy3CIGPdwZinB3JLbx7zwzwCdkWGBEdJb4rhp/mmlF
+	 ZuZQZWT0dUpbmDgvKrxUcQyTBH0c17V53Mc/U4iAdtOHRaot1vxpB8jMvVzxUs7QfG
+	 UNkbegqVsrxw8/dJf9Z9OhMKsfazIMs85/DY+x5vhf90LKB8C8VfJHyBOQRu8OfoAk
+	 RpgqK8RnCT7JmT1h6krz1xV5dJzRsOL4/Www3v4q0jwuz9VZy6JbpltYmdVtDzX+T5
+	 1cx0j+QaWq69A==
 From: Leon Romanovsky <leon@kernel.org>
 To: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Jens Axboe <axboe@kernel.dk>,
@@ -64,9 +64,9 @@ Cc: Leon Romanovsky <leonro@nvidia.com>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Kanchan Joshi <joshi.k@samsung.com>,
 	Chaitanya Kulkarni <kch@nvidia.com>
-Subject: [PATCH v9 11/24] mm/hmm: provide generic DMA managing logic
-Date: Wed, 23 Apr 2025 11:13:02 +0300
-Message-ID: <3abc42885831f841dd5dfe78d7c4e56c620670ea.1745394536.git.leon@kernel.org>
+Subject: [PATCH v9 14/24] RDMA/umem: Separate implicit ODP initialization from explicit ODP
+Date: Wed, 23 Apr 2025 11:13:05 +0300
+Message-ID: <c79721bb70988f60fa23fdfb6785e13f6ef806c5.1745394536.git.leon@kernel.org>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <cover.1745394536.git.leon@kernel.org>
 References: <cover.1745394536.git.leon@kernel.org>
@@ -80,330 +80,155 @@ Content-Transfer-Encoding: 8bit
 
 From: Leon Romanovsky <leonro@nvidia.com>
 
-HMM callers use PFN list to populate range while calling
-to hmm_range_fault(), the conversion from PFN to DMA address
-is done by the callers with help of another DMA list. However,
-it is wasteful on any modern platform and by doing the right
-logic, that DMA list can be avoided.
-
-Provide generic logic to manage these lists and gave an interface
-to map/unmap PFNs to DMA addresses, without requiring from the callers
-to be an experts in DMA core API.
+Create separate functions for the implicit ODP initialization
+which is different from the explicit ODP initialization.
 
 Tested-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- include/linux/hmm-dma.h |  33 ++++++
- include/linux/hmm.h     |   4 +
- mm/hmm.c                | 215 +++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 251 insertions(+), 1 deletion(-)
- create mode 100644 include/linux/hmm-dma.h
+ drivers/infiniband/core/umem_odp.c | 91 +++++++++++++++---------------
+ 1 file changed, 46 insertions(+), 45 deletions(-)
 
-diff --git a/include/linux/hmm-dma.h b/include/linux/hmm-dma.h
-new file mode 100644
-index 000000000000..f58b9fc71999
---- /dev/null
-+++ b/include/linux/hmm-dma.h
-@@ -0,0 +1,33 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/* Copyright (c) 2024 NVIDIA Corporation & Affiliates */
-+#ifndef LINUX_HMM_DMA_H
-+#define LINUX_HMM_DMA_H
-+
-+#include <linux/dma-mapping.h>
-+
-+struct dma_iova_state;
-+struct pci_p2pdma_map_state;
-+
-+/*
-+ * struct hmm_dma_map - array of PFNs and DMA addresses
-+ *
-+ * @state: DMA IOVA state
-+ * @pfns: array of PFNs
-+ * @dma_list: array of DMA addresses
-+ * @dma_entry_size: size of each DMA entry in the array
-+ */
-+struct hmm_dma_map {
-+	struct dma_iova_state state;
-+	unsigned long *pfn_list;
-+	dma_addr_t *dma_list;
-+	size_t dma_entry_size;
-+};
-+
-+int hmm_dma_map_alloc(struct device *dev, struct hmm_dma_map *map,
-+		      size_t nr_entries, size_t dma_entry_size);
-+void hmm_dma_map_free(struct device *dev, struct hmm_dma_map *map);
-+dma_addr_t hmm_dma_map_pfn(struct device *dev, struct hmm_dma_map *map,
-+			   size_t idx,
-+			   struct pci_p2pdma_map_state *p2pdma_state);
-+bool hmm_dma_unmap_pfn(struct device *dev, struct hmm_dma_map *map, size_t idx);
-+#endif /* LINUX_HMM_DMA_H */
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index a1ddbedc19c0..1bc33e4c20ea 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -23,6 +23,8 @@ struct mmu_interval_notifier;
-  * HMM_PFN_WRITE - if the page memory can be written to (requires HMM_PFN_VALID)
-  * HMM_PFN_ERROR - accessing the pfn is impossible and the device should
-  *                 fail. ie poisoned memory, special pages, no vma, etc
-+ * HMM_PFN_P2PDMA - P2P page
-+ * HMM_PFN_P2PDMA_BUS - Bus mapped P2P transfer
-  * HMM_PFN_DMA_MAPPED - Flag preserved on input-to-output transformation
-  *                      to mark that page is already DMA mapped
-  *
-@@ -43,6 +45,8 @@ enum hmm_pfn_flags {
- 	 * Sticky flags, carried from input to output,
- 	 * don't forget to update HMM_PFN_INOUT_FLAGS
- 	 */
-+	HMM_PFN_P2PDMA     = 1UL << (BITS_PER_LONG - 5),
-+	HMM_PFN_P2PDMA_BUS = 1UL << (BITS_PER_LONG - 6),
- 	HMM_PFN_DMA_MAPPED = 1UL << (BITS_PER_LONG - 7),
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 30cd8f353476..51d518989914 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -48,41 +48,44 @@
  
- 	HMM_PFN_ORDER_SHIFT = (BITS_PER_LONG - 8),
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 51fe8b011cc7..c0bee5aa00fc 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -10,6 +10,7 @@
-  */
- #include <linux/pagewalk.h>
- #include <linux/hmm.h>
-+#include <linux/hmm-dma.h>
- #include <linux/init.h>
- #include <linux/rmap.h>
- #include <linux/swap.h>
-@@ -23,6 +24,7 @@
- #include <linux/sched/mm.h>
- #include <linux/jump_label.h>
- #include <linux/dma-mapping.h>
-+#include <linux/pci-p2pdma.h>
- #include <linux/mmu_notifier.h>
- #include <linux/memory_hotplug.h>
+ #include "uverbs.h"
  
-@@ -41,7 +43,8 @@ enum {
+-static inline int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
+-				   const struct mmu_interval_notifier_ops *ops)
++static void ib_init_umem_implicit_odp(struct ib_umem_odp *umem_odp)
++{
++	umem_odp->is_implicit_odp = 1;
++	umem_odp->umem.is_odp = 1;
++	mutex_init(&umem_odp->umem_mutex);
++}
++
++static int ib_init_umem_odp(struct ib_umem_odp *umem_odp,
++			    const struct mmu_interval_notifier_ops *ops)
+ {
+ 	struct ib_device *dev = umem_odp->umem.ibdev;
++	size_t page_size = 1UL << umem_odp->page_shift;
++	unsigned long start;
++	unsigned long end;
+ 	int ret;
  
- enum {
- 	/* These flags are carried from input-to-output */
--	HMM_PFN_INOUT_FLAGS = HMM_PFN_DMA_MAPPED,
-+	HMM_PFN_INOUT_FLAGS = HMM_PFN_DMA_MAPPED | HMM_PFN_P2PDMA |
-+			      HMM_PFN_P2PDMA_BUS,
- };
+ 	umem_odp->umem.is_odp = 1;
+ 	mutex_init(&umem_odp->umem_mutex);
  
- static int hmm_pfns_fill(unsigned long addr, unsigned long end,
-@@ -620,3 +623,213 @@ int hmm_range_fault(struct hmm_range *range)
- 	return ret;
+-	if (!umem_odp->is_implicit_odp) {
+-		size_t page_size = 1UL << umem_odp->page_shift;
+-		unsigned long start;
+-		unsigned long end;
+-
+-		start = ALIGN_DOWN(umem_odp->umem.address, page_size);
+-		if (check_add_overflow(umem_odp->umem.address,
+-				       (unsigned long)umem_odp->umem.length,
+-				       &end))
+-			return -EOVERFLOW;
+-		end = ALIGN(end, page_size);
+-		if (unlikely(end < page_size))
+-			return -EOVERFLOW;
+-
+-		ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
+-					(end - start) >> PAGE_SHIFT,
+-					1 << umem_odp->page_shift);
+-		if (ret)
+-			return ret;
+-
+-		ret = mmu_interval_notifier_insert(&umem_odp->notifier,
+-						   umem_odp->umem.owning_mm,
+-						   start, end - start, ops);
+-		if (ret)
+-			goto out_free_map;
+-	}
++	start = ALIGN_DOWN(umem_odp->umem.address, page_size);
++	if (check_add_overflow(umem_odp->umem.address,
++			       (unsigned long)umem_odp->umem.length, &end))
++		return -EOVERFLOW;
++	end = ALIGN(end, page_size);
++	if (unlikely(end < page_size))
++		return -EOVERFLOW;
++
++	ret = hmm_dma_map_alloc(dev->dma_device, &umem_odp->map,
++				(end - start) >> PAGE_SHIFT,
++				1 << umem_odp->page_shift);
++	if (ret)
++		return ret;
++
++	ret = mmu_interval_notifier_insert(&umem_odp->notifier,
++					   umem_odp->umem.owning_mm, start,
++					   end - start, ops);
++	if (ret)
++		goto out_free_map;
+ 
+ 	return 0;
+ 
+@@ -106,7 +109,6 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
+ {
+ 	struct ib_umem *umem;
+ 	struct ib_umem_odp *umem_odp;
+-	int ret;
+ 
+ 	if (access & IB_ACCESS_HUGETLB)
+ 		return ERR_PTR(-EINVAL);
+@@ -118,16 +120,10 @@ struct ib_umem_odp *ib_umem_odp_alloc_implicit(struct ib_device *device,
+ 	umem->ibdev = device;
+ 	umem->writable = ib_access_writable(access);
+ 	umem->owning_mm = current->mm;
+-	umem_odp->is_implicit_odp = 1;
+ 	umem_odp->page_shift = PAGE_SHIFT;
+ 
+ 	umem_odp->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
+-	ret = ib_init_umem_odp(umem_odp, NULL);
+-	if (ret) {
+-		put_pid(umem_odp->tgid);
+-		kfree(umem_odp);
+-		return ERR_PTR(ret);
+-	}
++	ib_init_umem_implicit_odp(umem_odp);
+ 	return umem_odp;
  }
- EXPORT_SYMBOL(hmm_range_fault);
-+
-+/**
-+ * hmm_dma_map_alloc - Allocate HMM map structure
-+ * @dev: device to allocate structure for
-+ * @map: HMM map to allocate
-+ * @nr_entries: number of entries in the map
-+ * @dma_entry_size: size of the DMA entry in the map
-+ *
-+ * Allocate the HMM map structure and all the lists it contains.
-+ * Return 0 on success, -ENOMEM on failure.
-+ */
-+int hmm_dma_map_alloc(struct device *dev, struct hmm_dma_map *map,
-+		      size_t nr_entries, size_t dma_entry_size)
-+{
-+	bool dma_need_sync = false;
-+	bool use_iova;
-+
-+	if (!(nr_entries * PAGE_SIZE / dma_entry_size))
-+		return -EINVAL;
-+
-+	/*
-+	 * The HMM API violates our normal DMA buffer ownership rules and can't
-+	 * transfer buffer ownership.  The dma_addressing_limited() check is a
-+	 * best approximation to ensure no swiotlb buffering happens.
-+	 */
-+#ifdef CONFIG_DMA_NEED_SYNC
-+	dma_need_sync = !dev->dma_skip_sync;
-+#endif /* CONFIG_DMA_NEED_SYNC */
-+	if (dma_need_sync || dma_addressing_limited(dev))
-+		return -EOPNOTSUPP;
-+
-+	map->dma_entry_size = dma_entry_size;
-+	map->pfn_list = kvcalloc(nr_entries, sizeof(*map->pfn_list),
-+				 GFP_KERNEL | __GFP_NOWARN);
-+	if (!map->pfn_list)
-+		return -ENOMEM;
-+
-+	use_iova = dma_iova_try_alloc(dev, &map->state, 0,
-+			nr_entries * PAGE_SIZE);
-+	if (!use_iova && dma_need_unmap(dev)) {
-+		map->dma_list = kvcalloc(nr_entries, sizeof(*map->dma_list),
-+					 GFP_KERNEL | __GFP_NOWARN);
-+		if (!map->dma_list)
-+			goto err_dma;
-+	}
-+	return 0;
-+
-+err_dma:
-+	kvfree(map->pfn_list);
-+	return -ENOMEM;
+ EXPORT_SYMBOL(ib_umem_odp_alloc_implicit);
+@@ -248,7 +244,7 @@ struct ib_umem_odp *ib_umem_odp_get(struct ib_device *device,
+ }
+ EXPORT_SYMBOL(ib_umem_odp_get);
+ 
+-void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
++static void ib_umem_odp_free(struct ib_umem_odp *umem_odp)
+ {
+ 	struct ib_device *dev = umem_odp->umem.ibdev;
+ 
+@@ -258,14 +254,19 @@ void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
+ 	 * It is the driver's responsibility to ensure, before calling us,
+ 	 * that the hardware will not attempt to access the MR any more.
+ 	 */
+-	if (!umem_odp->is_implicit_odp) {
+-		mutex_lock(&umem_odp->umem_mutex);
+-		ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
+-					    ib_umem_end(umem_odp));
+-		mutex_unlock(&umem_odp->umem_mutex);
+-		mmu_interval_notifier_remove(&umem_odp->notifier);
+-		hmm_dma_map_free(dev->dma_device, &umem_odp->map);
+-	}
++	mutex_lock(&umem_odp->umem_mutex);
++	ib_umem_odp_unmap_dma_pages(umem_odp, ib_umem_start(umem_odp),
++				    ib_umem_end(umem_odp));
++	mutex_unlock(&umem_odp->umem_mutex);
++	mmu_interval_notifier_remove(&umem_odp->notifier);
++	hmm_dma_map_free(dev->dma_device, &umem_odp->map);
 +}
-+EXPORT_SYMBOL_GPL(hmm_dma_map_alloc);
 +
-+/**
-+ * hmm_dma_map_free - iFree HMM map structure
-+ * @dev: device to free structure from
-+ * @map: HMM map containing the various lists and state
-+ *
-+ * Free the HMM map structure and all the lists it contains.
-+ */
-+void hmm_dma_map_free(struct device *dev, struct hmm_dma_map *map)
++void ib_umem_odp_release(struct ib_umem_odp *umem_odp)
 +{
-+	if (dma_use_iova(&map->state))
-+		dma_iova_free(dev, &map->state);
-+	kvfree(map->pfn_list);
-+	kvfree(map->dma_list);
-+}
-+EXPORT_SYMBOL_GPL(hmm_dma_map_free);
++	if (!umem_odp->is_implicit_odp)
++		ib_umem_odp_free(umem_odp);
 +
-+/**
-+ * hmm_dma_map_pfn - Map a physical HMM page to DMA address
-+ * @dev: Device to map the page for
-+ * @map: HMM map
-+ * @idx: Index into the PFN and dma address arrays
-+ * @p2pdma_state: PCI P2P state.
-+ *
-+ * dma_alloc_iova() allocates IOVA based on the size specified by their use in
-+ * iova->size. Call this function after IOVA allocation to link whole @page
-+ * to get the DMA address. Note that very first call to this function
-+ * will have @offset set to 0 in the IOVA space allocated from
-+ * dma_alloc_iova(). For subsequent calls to this function on same @iova,
-+ * @offset needs to be advanced by the caller with the size of previous
-+ * page that was linked + DMA address returned for the previous page that was
-+ * linked by this function.
-+ */
-+dma_addr_t hmm_dma_map_pfn(struct device *dev, struct hmm_dma_map *map,
-+			   size_t idx,
-+			   struct pci_p2pdma_map_state *p2pdma_state)
-+{
-+	struct dma_iova_state *state = &map->state;
-+	dma_addr_t *dma_addrs = map->dma_list;
-+	unsigned long *pfns = map->pfn_list;
-+	struct page *page = hmm_pfn_to_page(pfns[idx]);
-+	phys_addr_t paddr = hmm_pfn_to_phys(pfns[idx]);
-+	size_t offset = idx * map->dma_entry_size;
-+	unsigned long attrs = 0;
-+	dma_addr_t dma_addr;
-+	int ret;
-+
-+	if ((pfns[idx] & HMM_PFN_DMA_MAPPED) &&
-+	    !(pfns[idx] & HMM_PFN_P2PDMA_BUS)) {
-+		/*
-+		 * We are in this flow when there is a need to resync flags,
-+		 * for example when page was already linked in prefetch call
-+		 * with READ flag and now we need to add WRITE flag
-+		 *
-+		 * This page was already programmed to HW and we don't want/need
-+		 * to unlink and link it again just to resync flags.
-+		 */
-+		if (dma_use_iova(state))
-+			return state->addr + offset;
-+
-+		/*
-+		 * Without dma_need_unmap, the dma_addrs array is NULL, thus we
-+		 * need to regenerate the address below even if there already
-+		 * was a mapping. But !dma_need_unmap implies that the
-+		 * mapping stateless, so this is fine.
-+		 */
-+		if (dma_need_unmap(dev))
-+			return dma_addrs[idx];
-+
-+		/* Continue to remapping */
-+	}
-+
-+	switch (pci_p2pdma_state(p2pdma_state, dev, page)) {
-+	case PCI_P2PDMA_MAP_NONE:
-+		break;
-+	case PCI_P2PDMA_MAP_THRU_HOST_BRIDGE:
-+		attrs |= DMA_ATTR_SKIP_CPU_SYNC;
-+		pfns[idx] |= HMM_PFN_P2PDMA;
-+		break;
-+	case PCI_P2PDMA_MAP_BUS_ADDR:
-+		pfns[idx] |= HMM_PFN_P2PDMA_BUS | HMM_PFN_DMA_MAPPED;
-+		return pci_p2pdma_bus_addr_map(p2pdma_state, paddr);
-+	default:
-+		return DMA_MAPPING_ERROR;
-+	}
-+
-+	if (dma_use_iova(state)) {
-+		ret = dma_iova_link(dev, state, paddr, offset,
-+				    map->dma_entry_size, DMA_BIDIRECTIONAL,
-+				    attrs);
-+		if (ret)
-+			goto error;
-+
-+		ret = dma_iova_sync(dev, state, offset, map->dma_entry_size);
-+		if (ret) {
-+			dma_iova_unlink(dev, state, offset, map->dma_entry_size,
-+					DMA_BIDIRECTIONAL, attrs);
-+			goto error;
-+		}
-+
-+		dma_addr = state->addr + offset;
-+	} else {
-+		if (WARN_ON_ONCE(dma_need_unmap(dev) && !dma_addrs))
-+			goto error;
-+
-+		dma_addr = dma_map_page(dev, page, 0, map->dma_entry_size,
-+					DMA_BIDIRECTIONAL);
-+		if (dma_mapping_error(dev, dma_addr))
-+			goto error;
-+
-+		if (dma_need_unmap(dev))
-+			dma_addrs[idx] = dma_addr;
-+	}
-+	pfns[idx] |= HMM_PFN_DMA_MAPPED;
-+	return dma_addr;
-+error:
-+	pfns[idx] &= ~HMM_PFN_P2PDMA;
-+	return DMA_MAPPING_ERROR;
-+
-+}
-+EXPORT_SYMBOL_GPL(hmm_dma_map_pfn);
-+
-+/**
-+ * hmm_dma_unmap_pfn - Unmap a physical HMM page from DMA address
-+ * @dev: Device to unmap the page from
-+ * @map: HMM map
-+ * @idx: Index of the PFN to unmap
-+ *
-+ * Returns true if the PFN was mapped and has been unmapped, false otherwise.
-+ */
-+bool hmm_dma_unmap_pfn(struct device *dev, struct hmm_dma_map *map, size_t idx)
-+{
-+	struct dma_iova_state *state = &map->state;
-+	dma_addr_t *dma_addrs = map->dma_list;
-+	unsigned long *pfns = map->pfn_list;
-+	unsigned long attrs = 0;
-+
-+#define HMM_PFN_VALID_DMA (HMM_PFN_VALID | HMM_PFN_DMA_MAPPED)
-+	if ((pfns[idx] & HMM_PFN_VALID_DMA) != HMM_PFN_VALID_DMA)
-+		return false;
-+#undef HMM_PFN_VALID_DMA
-+
-+	if (pfns[idx] & HMM_PFN_P2PDMA_BUS)
-+		; /* no need to unmap bus address P2P mappings */
-+	else if (dma_use_iova(state)) {
-+		if (pfns[idx] & HMM_PFN_P2PDMA)
-+			attrs |= DMA_ATTR_SKIP_CPU_SYNC;
-+		dma_iova_unlink(dev, state, idx * map->dma_entry_size,
-+				map->dma_entry_size, DMA_BIDIRECTIONAL, attrs);
-+	} else if (dma_need_unmap(dev))
-+		dma_unmap_page(dev, dma_addrs[idx], map->dma_entry_size,
-+			       DMA_BIDIRECTIONAL);
-+
-+	pfns[idx] &=
-+		~(HMM_PFN_DMA_MAPPED | HMM_PFN_P2PDMA | HMM_PFN_P2PDMA_BUS);
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(hmm_dma_unmap_pfn);
+ 	put_pid(umem_odp->tgid);
+ 	kfree(umem_odp);
+ }
 -- 
 2.49.0
 
