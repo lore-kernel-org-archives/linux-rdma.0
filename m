@@ -1,75 +1,79 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2048.outbound.protection.outlook.com [40.107.243.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 678EC2749EC;
-	Wed, 23 Apr 2025 08:15:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745396136; cv=none; b=GYXJPOw2eiVz5F1f5DVMcpwVAJ63C5Ab/G3CgkQ8SmfH/YB9iXiu/XCK9bRsYlEodG47hxNnUhD6n8wN/fgGoRFRHHKAq3ZenZsGL7RjODHsgFQ/JNsGmcK2yG2F+5VQ/aBn4tzQIiNB1Oo1W2kQmhMchIAUGHhsC8l7Pw8eSOI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745396136; c=relaxed/simple;
-	bh=ZE/m4wI1ph0h7rG40pku32JCR3EN9MIKEzOdQT6q1LI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LhsMfGn+ALGdDwkWgdV49QW70w07F4w6vIaCYuC8pk6FyN+XpOiWw5BJHxCEFp5n8oAtmlGkhKmHJ8rKIHhkKPNEdatg/Mr8r7VDrsyLFgBgK7ZmVypQ8BXAA+1HTkLEcP55KYu0ArsPNZOpjAb1kg5dk3g2GGuChonEFe+6l94=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=L5gnr8EL; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD91726FA5A;
+	Wed, 23 Apr 2025 08:36:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.243.48
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1745397398; cv=fail; b=msEJSI2jp0GxCxYw0fnd3IrWWU5fxLwQYJAoDPI48NmHhnXAdO7QbZ7RXcIBMvzyuAx81sN0gCUMzDrHEomR63TruSgOifffzBePgNLKOfLW8nYdj8ZOQ14mU/Dhb3neCwkMmmBIhOjFU2ecmRS7mXv2WbRKsf+8EEP6JNZcF4I=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1745397398; c=relaxed/simple;
+	bh=7Qp1Nyen5C//+DDvbm+FO1Mz2ZoQ1EN1BWcSEF24NSw=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=cXpOLguUVaibgKkAHhAmB4ECkuiuuxYAsxE2mG959ZytZGueNE0wgqxK530PNZR63JaY8+sNK3QludvJmDpwxiqpluuKFIOfhLvRAaG1LwM8FHGuHAGfB7NZUBNEyo6Ep3HOZz5roOQ+8P0LeZQpbkaC1emhUsTRmmtTMguFC+M=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=OCLnoCsc; arc=fail smtp.client-ip=40.107.243.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="L5gnr8EL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34D3CC4CEE2;
-	Wed, 23 Apr 2025 08:15:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1745396136;
-	bh=ZE/m4wI1ph0h7rG40pku32JCR3EN9MIKEzOdQT6q1LI=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=L5gnr8ELzuRM0jLcY/k1+4/4J4woQsbBEVR8YeNu7Jv/Hoa0yPtwdBQr/pH/SBVFH
-	 9OQ6obw1D7NZco5Sk6xNnQ998+8LG7U2rVEMfZC9rnmgOA08PUWIYN4nBN5Owx9VO4
-	 xhXvFYMmALmTArNT8NQMftlISubSM/SEdZabrouhUDEE+GzsX+x28U77UvmHvSuc7T
-	 1JJ0HsZ2TWujQHNRYvfeKd6d+GjCkg05ILaF+N0aSgDSNIey7yM/Ifaf1YHCCYfDux
-	 lVwYj/idlOQadwNvXBrwYAiuaVNkxuDQTv8MT5CfozqnvElf3nj/PC1xu7BNVbcQm0
-	 4IghMky2KwcCQ==
-From: Leon Romanovsky <leon@kernel.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jens Axboe <axboe@kernel.dk>,
-	Christoph Hellwig <hch@lst.de>,
-	Keith Busch <kbusch@kernel.org>
-Cc: Jake Edge <jake@lwn.net>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Jason Gunthorpe <jgg@ziepe.ca>,
-	Zhu Yanjun <zyjzyj2000@gmail.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will@kernel.org>,
-	Sagi Grimberg <sagi@grimberg.me>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>,
-	Kevin Tian <kevin.tian@intel.com>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	=?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	iommu@lists.linux.dev,
-	linux-nvme@lists.infradead.org,
-	linux-pci@vger.kernel.org,
-	kvm@vger.kernel.org,
-	linux-mm@kvack.org,
-	Niklas Schnelle <schnelle@linux.ibm.com>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Matthew Wilcox <willy@infradead.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Kanchan Joshi <joshi.k@samsung.com>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH v9 22/24] nvme-pci: use a better encoding for small prp pool allocations
-Date: Wed, 23 Apr 2025 11:13:13 +0300
-Message-ID: <973ed41249e12766383b3cedac799692f9bda3b8.1745394536.git.leon@kernel.org>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <cover.1745394536.git.leon@kernel.org>
-References: <cover.1745394536.git.leon@kernel.org>
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="OCLnoCsc"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=meTsIM1hnlCemtM6y62NAj3BZDLKrNZjtndDDXTajx3yJ22Sum3Z/h7nAuSO4dGk3Db7jWF58rl+roakJoVcETaHHhGiDGR+ztl6yBc3HYfyYCz+XW/s2GceLIrwKfJgPq6j8hi3WjARhWSbXtvisCKVb4usFLtRzpSbGw6HRLIErFqa7SLJSNt+jgfN0nyYiU2RoJYF41Isl9bc2rdk/YHq0P5dkeAOENhNYTeYbXTYbZTfvlI94efDNNLxS5Kq7nWF6pt6ItrlQ6cU8LFCr4s3tKRTpUCWC7K+TqWdx0YW5gK0MkDBmlWtPw5lfku08slT5yoYTg1dXyq++aHBqQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=nRb/wacdKd8K/XtM6XhL7YIlHVErT+7ZdtMiSFD0ku0=;
+ b=ez+OfALr3WEDUc69q/RzJljhqOThaxGOGjuyEZc52uBoY7f2exgiZw6EzKOi0DVTKPrmyvSnnb6dqHXLiAj1rinL0Ned15XS//9fUKfmYweZyAW2QNpLq7yzw0gwsb7nfoRXh17BpDlrGRPxLnnkDkku3TtMjU5Xz7YuNSd/Zl2sffp8YQ1ZBruINGZ2863a5GGm9LuZxqViJeQzQpiLKb1RQORZxH/aevmCmoN8kxw9OV7RCly+fA8jj+c7CDoXMY5J7Q1qpLjCxcQcewpVd5wwYBWGx8IKnqfZYlrxM0VQdZJ4ekoHK2V1/NAk7dI579U9etPOvaku3QT4LEr3+A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 216.228.118.233) smtp.rcpttodomain=davemloft.net smtp.mailfrom=nvidia.com;
+ dmarc=pass (p=reject sp=reject pct=100) action=none header.from=nvidia.com;
+ dkim=none (message not signed); arc=none (0)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=nRb/wacdKd8K/XtM6XhL7YIlHVErT+7ZdtMiSFD0ku0=;
+ b=OCLnoCscHLnt0GtkyxWkjw+Dv04LXL7LVamWvKAea29G91dECB+0cixdM9QGhTxGG+G+Ag+l0dY32Mp/dUuDpIaK1SRWZlV4h4sOFOD4js2M20GUPIm8dP0oUkG9z6oVVdxbFWJiqVwwD9KvR1ShzHpKJ0yJxHhk7R6lyTC5viav1STYlcNyFXuE5zH8LrNGCgkVyx41zFTy60tCmNpgx77iFsLdVcV7preT8u0jn4SkIdf+b3nIxONDbWIY6v/AidkKAzxqN2rGJ9hHYPA2O5vAFmMKhicA8zlPd8+zn0GvhiaalQm/822V+/QQ9U+37xJobCABD1e4WJGBlyEP/w==
+Received: from BN9PR03CA0056.namprd03.prod.outlook.com (2603:10b6:408:fb::31)
+ by DS2PR12MB9565.namprd12.prod.outlook.com (2603:10b6:8:279::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8655.35; Wed, 23 Apr
+ 2025 08:36:33 +0000
+Received: from BN1PEPF00006001.namprd05.prod.outlook.com
+ (2603:10b6:408:fb:cafe::91) by BN9PR03CA0056.outlook.office365.com
+ (2603:10b6:408:fb::31) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.8655.37 via Frontend Transport; Wed,
+ 23 Apr 2025 08:36:32 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 216.228.118.233)
+ smtp.mailfrom=nvidia.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=nvidia.com;
+Received-SPF: Pass (protection.outlook.com: domain of nvidia.com designates
+ 216.228.118.233 as permitted sender) receiver=protection.outlook.com;
+ client-ip=216.228.118.233; helo=mail.nvidia.com; pr=C
+Received: from mail.nvidia.com (216.228.118.233) by
+ BN1PEPF00006001.mail.protection.outlook.com (10.167.243.233) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.8655.12 via Frontend Transport; Wed, 23 Apr 2025 08:36:32 +0000
+Received: from drhqmail201.nvidia.com (10.126.190.180) by mail.nvidia.com
+ (10.127.129.6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.4; Wed, 23 Apr
+ 2025 01:36:17 -0700
+Received: from drhqmail201.nvidia.com (10.126.190.180) by
+ drhqmail201.nvidia.com (10.126.190.180) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.14; Wed, 23 Apr 2025 01:36:17 -0700
+Received: from vdi.nvidia.com (10.127.8.10) by mail.nvidia.com
+ (10.126.190.180) with Microsoft SMTP Server id 15.2.1544.14 via Frontend
+ Transport; Wed, 23 Apr 2025 01:36:14 -0700
+From: Mark Bloch <mbloch@nvidia.com>
+To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski
+	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Eric Dumazet
+	<edumazet@google.com>, Andrew Lunn <andrew+netdev@lunn.ch>
+CC: Saeed Mahameed <saeedm@nvidia.com>, Tariq Toukan <tariqt@nvidia.com>,
+	"Leon Romanovsky" <leon@kernel.org>, <netdev@vger.kernel.org>,
+	<linux-rdma@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Mark Bloch
+	<mbloch@nvidia.com>
+Subject: [PATCH net 0/5] mlx5 misc fixes 2025-04-23
+Date: Wed, 23 Apr 2025 11:36:06 +0300
+Message-ID: <20250423083611.324567-1-mbloch@nvidia.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -77,237 +81,89 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-NV-OnPremToCloud: AnonymousSubmission
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN1PEPF00006001:EE_|DS2PR12MB9565:EE_
+X-MS-Office365-Filtering-Correlation-Id: 20327b23-210e-473a-5ba1-08dd8241f356
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|376014|82310400026|1800799024|36860700013;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?DBkDLau73r3c9iP3lSw1ZWrwVuZD3BBGSVhvxmEIfhWEKVzMU/+C67e/SNwQ?=
+ =?us-ascii?Q?VhE8hyHkSP2bixVfd7cNt27BKAa8HpHxypY2rRj9cPio64AZX9G6ldD93djV?=
+ =?us-ascii?Q?u5CMpwf4qpICd31sAcbyNw61fLDVtXvWsBaIbV6oTpFryqGgKzbb8Apa5+Jv?=
+ =?us-ascii?Q?0ufMLjcQghEHR2hT6DUclOpDzArj061KqDPr2X5AjowBBsP+j4b1OvFfrxGc?=
+ =?us-ascii?Q?kAjBPJvHRxMX0QLIxRL6NzXUtCBO31+99UIIlk7mFKR/E5wfUeeb3IhsWXl8?=
+ =?us-ascii?Q?zCoOzcRf6CgfsscNy4DNIzynCebMo/8mXAkyB3Dzh/zdMMlRF2L46kHRZef9?=
+ =?us-ascii?Q?Sva6n5Dj7IFKqqUe3blvMTWXqnx4VSBvpFFMvHyHZY5t4jYHxXg7MMQE1LKV?=
+ =?us-ascii?Q?d9YGuJFfWCG5x/WqpKWLjLXf3lD80L5kiPXOVfyXA66zpT+imfi+op3valsD?=
+ =?us-ascii?Q?Ye1rovWJ34JWu0NoK+qbxCUWcy6lob4A0cAhEfnYFXDYWY8cE/rqY1kK5gCH?=
+ =?us-ascii?Q?bg5PGZRyl7O2KbrAZSFYYleRdniUIG8fOq+6qqHWBqexJGvYkBaMa5FcsHVf?=
+ =?us-ascii?Q?0EP4B9KNayjV7SIqSsOZ829LuGA/vegz6q+y8NaSYlule1qadclK2Pgfaf81?=
+ =?us-ascii?Q?D9rLvvM9Z4tRcCV3VNwy9v3ZlpmN+ehP/+DxiHcE/BSaPC8SyK8+/gZ/+BGG?=
+ =?us-ascii?Q?qApbaMn5w7cGUgnhEar2N7E9eUNAPcuilfUwfBRctX/A7EGF2+JePBmDELf1?=
+ =?us-ascii?Q?5FtSd1l8cbw6joaM6Kl6Te6d4OPBW0qWVTDKgp/CE+qcBqBoXCGoKb72rB2P?=
+ =?us-ascii?Q?2ky9Cwbx4BxqB+vJ+MheOQCi4Pffa1DW97GnQcdSZez+vutLQCaqGfO0Fr8s?=
+ =?us-ascii?Q?XS1ZpvxCft3mv8M0ugE7KziI2nGHJWVZuP5diVKjv72D3k9yOjKhuV4F61GV?=
+ =?us-ascii?Q?jeQ4J47Ut/Lak2YGNdJmoR2F2S5sNEWuwqkTRne1GYeympGcSLZBRNNOygnu?=
+ =?us-ascii?Q?fFm/k2+0AMmOD+ufM6t5Bo944RMtSUyQweKdeNUBF56K1ATH25qfy3jLmEPW?=
+ =?us-ascii?Q?o0JStimnmIgczD1FNLGpSyxHb/6BDDFN1X5ngbQHTowoQ/ps/XbacOLkMZOs?=
+ =?us-ascii?Q?AXtj7GMB/50FaKt2cW2UqYBCfl/B/w4FIoTCrbB7EpNMr6/cIRiA0ce6X75u?=
+ =?us-ascii?Q?+WJTZ/usTZLF0RUJONwMi6u0gJOzHL6TczLBQw2BxSYtrCtknWnr7hjQH3w8?=
+ =?us-ascii?Q?B6TtAAy91IbZ5WJZsagNCdc4YAB4EgVkCvl2UVIf3blUYRjoPW3j/0zrv1AU?=
+ =?us-ascii?Q?4igJ15D16sDLnycALlGueccNiccMjEPh7HWtVdpEdwa53TzV5AZwzlXGBdpL?=
+ =?us-ascii?Q?c0Assu+6pEF5CciVaP2gQI6xVOXJCXNhk5JvGtnSQyPgCSRuUHttYnJtkkvp?=
+ =?us-ascii?Q?mJAS58aaA4POuu5FOaycmkffotKI/Hei50GTz1GJ3gnYiGjy06kH3Po8mONH?=
+ =?us-ascii?Q?9G/LCxIyQTQMtNAvN2T1WQ/VGwVnBHI5F94x?=
+X-Forefront-Antispam-Report:
+	CIP:216.228.118.233;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nvidia.com;PTR:dc7edge2.nvidia.com;CAT:NONE;SFS:(13230040)(376014)(82310400026)(1800799024)(36860700013);DIR:OUT;SFP:1101;
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Apr 2025 08:36:32.1611
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 20327b23-210e-473a-5ba1-08dd8241f356
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=43083d15-7273-40c1-b7db-39efd9ccc17a;Ip=[216.228.118.233];Helo=[mail.nvidia.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN1PEPF00006001.namprd05.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS2PR12MB9565
 
-From: Christoph Hellwig <hch@lst.de>
+This patchset includes misc fixes from the team for the mlx5 core
+and Ethernet drivers.
 
-There is plenty of unused space in the iod next to nr_descriptors.
-Add a separate flag to encode that the transfer is using the full
-page sized pool, and use a normal 0..n count for the number of
-descriptors.
+Thanks,
+Mark
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Jens Axboe <axboe@kernel.dk>
-[ Leon: changed original bool variable to be flag as was proposed by Kanchan ]
-Signed-off-by: Kanchan Joshi <joshi.k@samsung.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/nvme/host/pci.c | 93 ++++++++++++++++++++---------------------
- 1 file changed, 46 insertions(+), 47 deletions(-)
+Chris Mi (1):
+  net/mlx5: E-switch, Fix error handling for enabling roce
 
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index 638e759b29ad..7e93536d01cb 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -44,6 +44,7 @@
- #define NVME_MAX_SEGS	128
- #define NVME_MAX_META_SEGS 15
- #define NVME_MAX_NR_DESCRIPTORS	5
-+#define NVME_SMALL_DESCRIPTOR_SIZE 256
- 
- static int use_threaded_interrupts;
- module_param(use_threaded_interrupts, int, 0444);
-@@ -219,6 +220,10 @@ struct nvme_queue {
- 	struct completion delete_done;
- };
- 
-+enum {
-+	IOD_LARGE_DESCRIPTORS = 1, /* uses the full page sized descriptor pool */
-+};
-+
- /*
-  * The nvme_iod describes the data in an I/O.
-  */
-@@ -226,8 +231,8 @@ struct nvme_iod {
- 	struct nvme_request req;
- 	struct nvme_command cmd;
- 	bool aborted;
--	/* # of PRP/SGL descriptors: (0 for small pool) */
--	s8 nr_descriptors;
-+	u8 nr_descriptors;	/* # of PRP/SGL descriptors */
-+	unsigned int flags;
- 	unsigned int dma_len;	/* length of single DMA segment mapping */
- 	dma_addr_t first_dma;
- 	dma_addr_t meta_dma;
-@@ -529,13 +534,27 @@ static inline bool nvme_pci_use_sgls(struct nvme_dev *dev, struct request *req,
- 	return true;
- }
- 
--static void nvme_free_prps(struct nvme_dev *dev, struct request *req)
-+static inline struct dma_pool *nvme_dma_pool(struct nvme_dev *dev,
-+		struct nvme_iod *iod)
-+{
-+	if (iod->flags & IOD_LARGE_DESCRIPTORS)
-+		return dev->prp_page_pool;
-+	return dev->prp_small_pool;
-+}
-+
-+static void nvme_free_descriptors(struct nvme_dev *dev, struct request *req)
- {
- 	const int last_prp = NVME_CTRL_PAGE_SIZE / sizeof(__le64) - 1;
- 	struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
- 	dma_addr_t dma_addr = iod->first_dma;
- 	int i;
- 
-+	if (iod->nr_descriptors == 1) {
-+		dma_pool_free(nvme_dma_pool(dev, iod), iod->descriptors[0],
-+				dma_addr);
-+		return;
-+	}
-+
- 	for (i = 0; i < iod->nr_descriptors; i++) {
- 		__le64 *prp_list = iod->descriptors[i];
- 		dma_addr_t next_dma_addr = le64_to_cpu(prp_list[last_prp]);
-@@ -558,15 +577,7 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 	WARN_ON_ONCE(!iod->sgt.nents);
- 
- 	dma_unmap_sgtable(dev->dev, &iod->sgt, rq_dma_dir(req), 0);
--
--	if (iod->nr_descriptors == 0)
--		dma_pool_free(dev->prp_small_pool, iod->descriptors[0],
--			      iod->first_dma);
--	else if (iod->nr_descriptors == 1)
--		dma_pool_free(dev->prp_page_pool, iod->descriptors[0],
--			      iod->first_dma);
--	else
--		nvme_free_prps(dev, req);
-+	nvme_free_descriptors(dev, req);
- 	mempool_free(iod->sgt.sgl, dev->iod_mempool);
- }
- 
-@@ -588,7 +599,6 @@ static blk_status_t nvme_pci_setup_prps(struct nvme_dev *dev,
- 		struct request *req, struct nvme_rw_command *cmnd)
- {
- 	struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
--	struct dma_pool *pool;
- 	int length = blk_rq_payload_bytes(req);
- 	struct scatterlist *sg = iod->sgt.sgl;
- 	int dma_len = sg_dma_len(sg);
-@@ -596,7 +606,7 @@ static blk_status_t nvme_pci_setup_prps(struct nvme_dev *dev,
- 	int offset = dma_addr & (NVME_CTRL_PAGE_SIZE - 1);
- 	__le64 *prp_list;
- 	dma_addr_t prp_dma;
--	int nprps, i;
-+	int i;
- 
- 	length -= (NVME_CTRL_PAGE_SIZE - offset);
- 	if (length <= 0) {
-@@ -618,27 +628,23 @@ static blk_status_t nvme_pci_setup_prps(struct nvme_dev *dev,
- 		goto done;
- 	}
- 
--	nprps = DIV_ROUND_UP(length, NVME_CTRL_PAGE_SIZE);
--	if (nprps <= (256 / 8)) {
--		pool = dev->prp_small_pool;
--		iod->nr_descriptors = 0;
--	} else {
--		pool = dev->prp_page_pool;
--		iod->nr_descriptors = 1;
--	}
-+	if (DIV_ROUND_UP(length, NVME_CTRL_PAGE_SIZE) >
-+	    NVME_SMALL_DESCRIPTOR_SIZE / sizeof(__le64))
-+		iod->flags |= IOD_LARGE_DESCRIPTORS;
- 
--	prp_list = dma_pool_alloc(pool, GFP_ATOMIC, &prp_dma);
--	if (!prp_list) {
--		iod->nr_descriptors = -1;
-+	prp_list = dma_pool_alloc(nvme_dma_pool(dev, iod), GFP_ATOMIC,
-+			&prp_dma);
-+	if (!prp_list)
- 		return BLK_STS_RESOURCE;
--	}
--	iod->descriptors[0] = prp_list;
-+	iod->descriptors[iod->nr_descriptors++] = prp_list;
- 	iod->first_dma = prp_dma;
- 	i = 0;
- 	for (;;) {
- 		if (i == NVME_CTRL_PAGE_SIZE >> 3) {
- 			__le64 *old_prp_list = prp_list;
--			prp_list = dma_pool_alloc(pool, GFP_ATOMIC, &prp_dma);
-+
-+			prp_list = dma_pool_alloc(dev->prp_page_pool,
-+					GFP_ATOMIC, &prp_dma);
- 			if (!prp_list)
- 				goto free_prps;
- 			iod->descriptors[iod->nr_descriptors++] = prp_list;
-@@ -665,7 +671,7 @@ static blk_status_t nvme_pci_setup_prps(struct nvme_dev *dev,
- 	cmnd->dptr.prp2 = cpu_to_le64(iod->first_dma);
- 	return BLK_STS_OK;
- free_prps:
--	nvme_free_prps(dev, req);
-+	nvme_free_descriptors(dev, req);
- 	return BLK_STS_RESOURCE;
- bad_sgl:
- 	WARN(DO_ONCE(nvme_print_sgl, iod->sgt.sgl, iod->sgt.nents),
-@@ -694,7 +700,6 @@ static blk_status_t nvme_pci_setup_sgls(struct nvme_dev *dev,
- 		struct request *req, struct nvme_rw_command *cmd)
- {
- 	struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
--	struct dma_pool *pool;
- 	struct nvme_sgl_desc *sg_list;
- 	struct scatterlist *sg = iod->sgt.sgl;
- 	unsigned int entries = iod->sgt.nents;
-@@ -709,21 +714,13 @@ static blk_status_t nvme_pci_setup_sgls(struct nvme_dev *dev,
- 		return BLK_STS_OK;
- 	}
- 
--	if (entries <= (256 / sizeof(struct nvme_sgl_desc))) {
--		pool = dev->prp_small_pool;
--		iod->nr_descriptors = 0;
--	} else {
--		pool = dev->prp_page_pool;
--		iod->nr_descriptors = 1;
--	}
-+	if (entries > NVME_SMALL_DESCRIPTOR_SIZE / sizeof(*sg_list))
-+		iod->flags |= IOD_LARGE_DESCRIPTORS;
- 
--	sg_list = dma_pool_alloc(pool, GFP_ATOMIC, &sgl_dma);
--	if (!sg_list) {
--		iod->nr_descriptors = -1;
-+	sg_list = dma_pool_alloc(nvme_dma_pool(dev, iod), GFP_ATOMIC, &sgl_dma);
-+	if (!sg_list)
- 		return BLK_STS_RESOURCE;
--	}
--
--	iod->descriptors[0] = sg_list;
-+	iod->descriptors[iod->nr_descriptors++] = sg_list;
- 	iod->first_dma = sgl_dma;
- 
- 	nvme_pci_sgl_set_seg(&cmd->dptr.sgl, sgl_dma, entries);
-@@ -915,7 +912,8 @@ static blk_status_t nvme_prep_rq(struct nvme_dev *dev, struct request *req)
- 	blk_status_t ret;
- 
- 	iod->aborted = false;
--	iod->nr_descriptors = -1;
-+	iod->nr_descriptors = 0;
-+	iod->flags = 0;
- 	iod->sgt.nents = 0;
- 	iod->meta_sgt.nents = 0;
- 
-@@ -2833,7 +2831,7 @@ static int nvme_disable_prepare_reset(struct nvme_dev *dev, bool shutdown)
- 
- static int nvme_setup_prp_pools(struct nvme_dev *dev)
- {
--	size_t small_align = 256;
-+	size_t small_align = NVME_SMALL_DESCRIPTOR_SIZE;
- 
- 	dev->prp_page_pool = dma_pool_create("prp list page", dev->dev,
- 						NVME_CTRL_PAGE_SIZE,
-@@ -2841,12 +2839,13 @@ static int nvme_setup_prp_pools(struct nvme_dev *dev)
- 	if (!dev->prp_page_pool)
- 		return -ENOMEM;
- 
-+	BUILD_BUG_ON(NVME_SMALL_DESCRIPTOR_SIZE != 256);
- 	if (dev->ctrl.quirks & NVME_QUIRK_DMAPOOL_ALIGN_512)
--		small_align = 512;
-+		small_align *= 2;
- 
- 	/* Optimisation for I/Os between 4k and 128k */
- 	dev->prp_small_pool = dma_pool_create("prp list 256", dev->dev,
--						256, small_align, 0);
-+						NVME_SMALL_DESCRIPTOR_SIZE, small_align, 0);
- 	if (!dev->prp_small_pool) {
- 		dma_pool_destroy(dev->prp_page_pool);
- 		return -ENOMEM;
+Cosmin Ratiu (1):
+  net/mlx5e: Fix lock order in mlx5e_tx_reporter_ptpsq_unhealthy_recover
+
+Jianbo Liu (1):
+  net/mlx5e: TC, Continue the attr process even if encap entry is
+    invalid
+
+Maor Gottlieb (1):
+  net/mlx5: E-Switch, Initialize MAC Address for Default GID
+
+Vlad Dogaru (1):
+  net/mlx5e: Use custom tunnel header for vxlan gbp
+
+ .../mellanox/mlx5/core/en/reporter_tx.c       |  6 ++--
+ .../mellanox/mlx5/core/en/tc_tun_vxlan.c      | 32 +++++++++++++++++--
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c   |  5 +--
+ .../mellanox/mlx5/core/eswitch_offloads.c     |  5 ++-
+ .../net/ethernet/mellanox/mlx5/core/rdma.c    | 11 ++++---
+ .../net/ethernet/mellanox/mlx5/core/rdma.h    |  4 +--
+ 6 files changed, 44 insertions(+), 19 deletions(-)
+
+
+base-commit: 491ef1117c56476f199b481f8c68820fe4c3a7c2
 -- 
-2.49.0
+2.34.1
 
