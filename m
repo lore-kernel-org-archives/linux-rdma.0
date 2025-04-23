@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1444528BAB7;
-	Wed, 23 Apr 2025 08:15:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D03A228D833;
+	Wed, 23 Apr 2025 08:15:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745396120; cv=none; b=TUxrAATmVpAFr8rkjKgreGLtZvqd8TGyjTLY3u0YXpsJ7pEcIuwySQLFrUWYFTyL9FEBd8E6MrNp5vg5tIafXeBoYkxYBv/8mezPpM9OO5LDJmzBH1MUcEeU9iSUXbGbpprXaPkkfzSSQXSrt40cskvdh7IzTHo8+gGSuDNw9ao=
+	t=1745396123; cv=none; b=ILThK8izSiTkcn1R498RVShlhCRI9KN32YnwWBj5UDL2HXc7LBJbW723/ocTUhKFmExHaorlspazvlG4UWqedKNIUR/ogszPF4ZaUIVfT5ng0kdLUIVsXyTOHw/2QE2efUoNG+TwTtM53xW0bgwoIL2zo2+hnBf77mpPQw7iJPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745396120; c=relaxed/simple;
-	bh=UaKpIS/gS7437zv6/V/pxWOCRAoH+oFaLCUvPin30s0=;
+	s=arc-20240116; t=1745396123; c=relaxed/simple;
+	bh=cn4ZAo5vXix5AGqKt4IWuh2vUXjY6lms9OP/AMjOBBE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Zm24F48QUFjyzeDanraItWeR0jAgZkJoPXf0YT2MhIPanL+dj1FCNXXU7or0r6UUaBhkIxamyrT3bkNK4UMvfIrAgmjeKbxMLFat0ZKFu7QiPlnX7YUskBAGhBi4RU2tBfJa9CwfcFfuml+ExOyQTQTZFaxM32NRAbTOcj8Tf68=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NofN87+7; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=X71FUXCx7FBxmMNMgd8cJU+fWVJ5KEBrWRF20D8fGEfRQXKjtEvPiqOKWyMKD4qwKvcfKk88fXfUtuEcSB+zUlvPmtWgnbSoR9Hjl73npgooQiM1lxmjfL+VliUROBlluW/SZ5if0eMMrE7zQ2m2PJ8UDOE9og3holnQXra+lKg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZwAGDANF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NofN87+7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD660C4CEE2;
-	Wed, 23 Apr 2025 08:15:17 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZwAGDANF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D29EC4CEE2;
+	Wed, 23 Apr 2025 08:15:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1745396118;
-	bh=UaKpIS/gS7437zv6/V/pxWOCRAoH+oFaLCUvPin30s0=;
+	s=k20201202; t=1745396122;
+	bh=cn4ZAo5vXix5AGqKt4IWuh2vUXjY6lms9OP/AMjOBBE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=NofN87+72BCRSSQQNcJM7BnAk2/zp6n26RRmmzRKzNNDIDzDxf7x9j5or/AYNU3NK
-	 pxZ+GCa1hGpfisAiugTwi+s30cVTowRRzF/1wid4zBtcgQRZnnHxxgx2hoWugHNZoz
-	 xCnUujBt9y1ZYOOPmdxdDFKy7kWi6AWlMqXNpcdoL0nyM+ov6CJ9SL/tCEv79Sw3zI
-	 sTBN8T8ntAmWGbX/zDrhzgr3Ob/v12rI/qu53cABhfFLWgNW8I5lypNYJaUQZHWOse
-	 5qAQ1z3cOS5zxFU6G6fBapgBmaFFGZIiAY1PiCSn29wsfzSdo6gXMqBwveI5EyFmNg
-	 EX76tiDXfWXCg==
+	b=ZwAGDANFggif/hHltTNo8DS7CSr4dJ00Q3R5ZRUxc8p6YRcxW2Lj6kWmBx7/8c9H5
+	 wmgLi7E2a+XY5LiJhP/LXoYgUKAVzP/ZwN9ZbtltMq0H2j+AaS9vTpeLltvOHxxZd9
+	 LAYummtSsqYqrS/KPLAK9W81c7AHdR5yPznv1Dj/FWGoRDi5PXKtpEGeP32BPmjmr+
+	 0DUEf0vS1i4dlH62ffr2h5zPpj4Wk3O87mudPGw+9SKBWNHKijyJW/JJP49Ottbcx8
+	 negOOECUXtCMloS2LE0IiNlcf09HlES8p5G+10r0swXnI90B/uaeAfr8qqFaRD+LQD
+	 Hxx5CHvagu3pQ==
 From: Leon Romanovsky <leon@kernel.org>
 To: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Jens Axboe <axboe@kernel.dk>,
@@ -64,9 +64,9 @@ Cc: Jake Edge <jake@lwn.net>,
 	Kanchan Joshi <joshi.k@samsung.com>,
 	Chaitanya Kulkarni <kch@nvidia.com>,
 	Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH v9 21/24] nvme-pci: remove struct nvme_descriptor
-Date: Wed, 23 Apr 2025 11:13:12 +0300
-Message-ID: <25eefb156cc6f660a5df28b685545e6b7ec60426.1745394536.git.leon@kernel.org>
+Subject: [PATCH v9 19/24] block: don't merge different kinds of P2P transfers in a single bio
+Date: Wed, 23 Apr 2025 11:13:10 +0300
+Message-ID: <cef56f0527beaf7022c1a743f332d46035ca612c.1745394536.git.leon@kernel.org>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <cover.1745394536.git.leon@kernel.org>
 References: <cover.1745394536.git.leon@kernel.org>
@@ -80,188 +80,108 @@ Content-Transfer-Encoding: 8bit
 
 From: Christoph Hellwig <hch@lst.de>
 
-There is no real point in having a union of two pointer types here, just
-use a void pointer as we mix and match types between the arms of the
-union between the allocation and freeing side already.
+To get out of the dma mapping helpers having to check every segment for
+it's P2P status, ensure that bios either contain P2P transfers or non-P2P
+transfers, and that a P2P bio only contains ranges from a single device.
 
-Also rename the nr_allocations field to nr_descriptors to better describe
-what it does.
+This means we do the page zone access in the bio add path where it should
+be still page hot, and will only have do the fairly expensive P2P topology
+lookup once per bio down in the dma mapping path, and only for already
+marked bios.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 Tested-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- drivers/nvme/host/pci.c | 57 +++++++++++++++++------------------------
- 1 file changed, 24 insertions(+), 33 deletions(-)
+ block/bio.c               | 17 ++++++++++-------
+ block/blk-merge.c         | 17 +++++++++++------
+ include/linux/blk_types.h |  2 ++
+ 3 files changed, 23 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index b178d52eac1b..638e759b29ad 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -43,7 +43,7 @@
- #define NVME_MAX_KB_SZ	8192
- #define NVME_MAX_SEGS	128
- #define NVME_MAX_META_SEGS 15
--#define NVME_MAX_NR_ALLOCATIONS	5
-+#define NVME_MAX_NR_DESCRIPTORS	5
+diff --git a/block/bio.c b/block/bio.c
+index 3047fa3f4b32..279eac2396bf 100644
+--- a/block/bio.c
++++ b/block/bio.c
+@@ -928,8 +928,6 @@ static bool bvec_try_merge_page(struct bio_vec *bv, struct page *page,
+ 		return false;
+ 	if (xen_domain() && !xen_biovec_phys_mergeable(bv, page))
+ 		return false;
+-	if (!zone_device_pages_have_same_pgmap(bv->bv_page, page))
+-		return false;
  
- static int use_threaded_interrupts;
- module_param(use_threaded_interrupts, int, 0444);
-@@ -219,30 +219,22 @@ struct nvme_queue {
- 	struct completion delete_done;
- };
+ 	*same_page = ((vec_end_addr & PAGE_MASK) == ((page_addr + off) &
+ 		     PAGE_MASK));
+@@ -998,11 +996,16 @@ static int bio_add_page_int(struct bio *bio, struct page *page,
+ 	if (bio->bi_iter.bi_size > UINT_MAX - len)
+ 		return 0;
  
--union nvme_descriptor {
--	struct nvme_sgl_desc	*sg_list;
--	__le64			*prp_list;
--};
--
- /*
-  * The nvme_iod describes the data in an I/O.
-- *
-- * The sg pointer contains the list of PRP/SGL chunk allocations in addition
-- * to the actual struct scatterlist.
-  */
- struct nvme_iod {
- 	struct nvme_request req;
- 	struct nvme_command cmd;
- 	bool aborted;
--	s8 nr_allocations;	/* PRP list pool allocations. 0 means small
--				   pool in use */
-+	/* # of PRP/SGL descriptors: (0 for small pool) */
-+	s8 nr_descriptors;
- 	unsigned int dma_len;	/* length of single DMA segment mapping */
- 	dma_addr_t first_dma;
- 	dma_addr_t meta_dma;
- 	struct sg_table sgt;
- 	struct sg_table meta_sgt;
--	union nvme_descriptor meta_list;
--	union nvme_descriptor list[NVME_MAX_NR_ALLOCATIONS];
-+	void *meta_list;
-+	void *descriptors[NVME_MAX_NR_DESCRIPTORS];
- };
- 
- static inline unsigned int nvme_dbbuf_size(struct nvme_dev *dev)
-@@ -544,8 +536,8 @@ static void nvme_free_prps(struct nvme_dev *dev, struct request *req)
- 	dma_addr_t dma_addr = iod->first_dma;
- 	int i;
- 
--	for (i = 0; i < iod->nr_allocations; i++) {
--		__le64 *prp_list = iod->list[i].prp_list;
-+	for (i = 0; i < iod->nr_descriptors; i++) {
-+		__le64 *prp_list = iod->descriptors[i];
- 		dma_addr_t next_dma_addr = le64_to_cpu(prp_list[last_prp]);
- 
- 		dma_pool_free(dev->prp_page_pool, prp_list, dma_addr);
-@@ -567,11 +559,11 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 
- 	dma_unmap_sgtable(dev->dev, &iod->sgt, rq_dma_dir(req), 0);
- 
--	if (iod->nr_allocations == 0)
--		dma_pool_free(dev->prp_small_pool, iod->list[0].sg_list,
-+	if (iod->nr_descriptors == 0)
-+		dma_pool_free(dev->prp_small_pool, iod->descriptors[0],
- 			      iod->first_dma);
--	else if (iod->nr_allocations == 1)
--		dma_pool_free(dev->prp_page_pool, iod->list[0].sg_list,
-+	else if (iod->nr_descriptors == 1)
-+		dma_pool_free(dev->prp_page_pool, iod->descriptors[0],
- 			      iod->first_dma);
- 	else
- 		nvme_free_prps(dev, req);
-@@ -629,18 +621,18 @@ static blk_status_t nvme_pci_setup_prps(struct nvme_dev *dev,
- 	nprps = DIV_ROUND_UP(length, NVME_CTRL_PAGE_SIZE);
- 	if (nprps <= (256 / 8)) {
- 		pool = dev->prp_small_pool;
--		iod->nr_allocations = 0;
-+		iod->nr_descriptors = 0;
- 	} else {
- 		pool = dev->prp_page_pool;
--		iod->nr_allocations = 1;
-+		iod->nr_descriptors = 1;
+-	if (bio->bi_vcnt > 0 &&
+-	    bvec_try_merge_page(&bio->bi_io_vec[bio->bi_vcnt - 1],
+-				page, len, offset, same_page)) {
+-		bio->bi_iter.bi_size += len;
+-		return len;
++	if (bio->bi_vcnt > 0) {
++		struct bio_vec *bv = &bio->bi_io_vec[bio->bi_vcnt - 1];
++
++		if (bvec_try_merge_page(bv, page, len, offset, same_page)) {
++			bio->bi_iter.bi_size += len;
++			return len;
++		}
++	} else {
++		if (is_pci_p2pdma_page(page))
++			bio->bi_opf |= REQ_P2PDMA | REQ_NOMERGE;
  	}
  
- 	prp_list = dma_pool_alloc(pool, GFP_ATOMIC, &prp_dma);
- 	if (!prp_list) {
--		iod->nr_allocations = -1;
-+		iod->nr_descriptors = -1;
- 		return BLK_STS_RESOURCE;
- 	}
--	iod->list[0].prp_list = prp_list;
-+	iod->descriptors[0] = prp_list;
- 	iod->first_dma = prp_dma;
- 	i = 0;
- 	for (;;) {
-@@ -649,7 +641,7 @@ static blk_status_t nvme_pci_setup_prps(struct nvme_dev *dev,
- 			prp_list = dma_pool_alloc(pool, GFP_ATOMIC, &prp_dma);
- 			if (!prp_list)
- 				goto free_prps;
--			iod->list[iod->nr_allocations++].prp_list = prp_list;
-+			iod->descriptors[iod->nr_descriptors++] = prp_list;
- 			prp_list[0] = old_prp_list[i - 1];
- 			old_prp_list[i - 1] = cpu_to_le64(prp_dma);
- 			i = 1;
-@@ -719,19 +711,19 @@ static blk_status_t nvme_pci_setup_sgls(struct nvme_dev *dev,
+ 	if (bio->bi_vcnt >= bio->bi_max_vecs)
+diff --git a/block/blk-merge.c b/block/blk-merge.c
+index fdd4efb54c6c..d9691e900cc6 100644
+--- a/block/blk-merge.c
++++ b/block/blk-merge.c
+@@ -320,12 +320,17 @@ int bio_split_rw_at(struct bio *bio, const struct queue_limits *lim,
+ 	unsigned nsegs = 0, bytes = 0;
  
- 	if (entries <= (256 / sizeof(struct nvme_sgl_desc))) {
- 		pool = dev->prp_small_pool;
--		iod->nr_allocations = 0;
-+		iod->nr_descriptors = 0;
- 	} else {
- 		pool = dev->prp_page_pool;
--		iod->nr_allocations = 1;
-+		iod->nr_descriptors = 1;
- 	}
+ 	bio_for_each_bvec(bv, bio, iter) {
+-		/*
+-		 * If the queue doesn't support SG gaps and adding this
+-		 * offset would create a gap, disallow it.
+-		 */
+-		if (bvprvp && bvec_gap_to_prev(lim, bvprvp, bv.bv_offset))
+-			goto split;
++		if (bvprvp) {
++			/*
++			 * If the queue doesn't support SG gaps and adding this
++			 * offset would create a gap, disallow it.
++			 */
++			if (bvec_gap_to_prev(lim, bvprvp, bv.bv_offset))
++				goto split;
++		} else {
++			if (is_pci_p2pdma_page(bv.bv_page))
++				bio->bi_opf |= REQ_P2PDMA | REQ_NOMERGE;
++		}
  
- 	sg_list = dma_pool_alloc(pool, GFP_ATOMIC, &sgl_dma);
- 	if (!sg_list) {
--		iod->nr_allocations = -1;
-+		iod->nr_descriptors = -1;
- 		return BLK_STS_RESOURCE;
- 	}
+ 		if (nsegs < lim->max_segments &&
+ 		    bytes + bv.bv_len <= max_bytes &&
+diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
+index dce7615c35e7..94cf146e8ce6 100644
+--- a/include/linux/blk_types.h
++++ b/include/linux/blk_types.h
+@@ -378,6 +378,7 @@ enum req_flag_bits {
+ 	__REQ_DRV,		/* for driver use */
+ 	__REQ_FS_PRIVATE,	/* for file system (submitter) use */
+ 	__REQ_ATOMIC,		/* for atomic write operations */
++	__REQ_P2PDMA,		/* contains P2P DMA pages */
+ 	/*
+ 	 * Command specific flags, keep last:
+ 	 */
+@@ -410,6 +411,7 @@ enum req_flag_bits {
+ #define REQ_DRV		(__force blk_opf_t)(1ULL << __REQ_DRV)
+ #define REQ_FS_PRIVATE	(__force blk_opf_t)(1ULL << __REQ_FS_PRIVATE)
+ #define REQ_ATOMIC	(__force blk_opf_t)(1ULL << __REQ_ATOMIC)
++#define REQ_P2PDMA	(__force blk_opf_t)(1ULL << __REQ_P2PDMA)
  
--	iod->list[0].sg_list = sg_list;
-+	iod->descriptors[0] = sg_list;
- 	iod->first_dma = sgl_dma;
+ #define REQ_NOUNMAP	(__force blk_opf_t)(1ULL << __REQ_NOUNMAP)
  
- 	nvme_pci_sgl_set_seg(&cmd->dptr.sgl, sgl_dma, entries);
-@@ -870,7 +862,7 @@ static blk_status_t nvme_pci_setup_meta_sgls(struct nvme_dev *dev,
- 		goto out_unmap_sg;
- 
- 	entries = iod->meta_sgt.nents;
--	iod->meta_list.sg_list = sg_list;
-+	iod->meta_list = sg_list;
- 	iod->meta_dma = sgl_dma;
- 
- 	cmnd->flags = NVME_CMD_SGL_METASEG;
-@@ -923,7 +915,7 @@ static blk_status_t nvme_prep_rq(struct nvme_dev *dev, struct request *req)
- 	blk_status_t ret;
- 
- 	iod->aborted = false;
--	iod->nr_allocations = -1;
-+	iod->nr_descriptors = -1;
- 	iod->sgt.nents = 0;
- 	iod->meta_sgt.nents = 0;
- 
-@@ -1048,8 +1040,7 @@ static __always_inline void nvme_unmap_metadata(struct nvme_dev *dev,
- 		return;
- 	}
- 
--	dma_pool_free(dev->prp_small_pool, iod->meta_list.sg_list,
--		      iod->meta_dma);
-+	dma_pool_free(dev->prp_small_pool, iod->meta_list, iod->meta_dma);
- 	dma_unmap_sgtable(dev->dev, &iod->meta_sgt, rq_dma_dir(req), 0);
- 	mempool_free(iod->meta_sgt.sgl, dev->iod_meta_mempool);
- }
-@@ -3801,7 +3792,7 @@ static int __init nvme_init(void)
- 	BUILD_BUG_ON(IRQ_AFFINITY_MAX_SETS < 2);
- 	BUILD_BUG_ON(NVME_MAX_SEGS > SGES_PER_PAGE);
- 	BUILD_BUG_ON(sizeof(struct scatterlist) * NVME_MAX_SEGS > PAGE_SIZE);
--	BUILD_BUG_ON(nvme_pci_npages_prp() > NVME_MAX_NR_ALLOCATIONS);
-+	BUILD_BUG_ON(nvme_pci_npages_prp() > NVME_MAX_NR_DESCRIPTORS);
- 
- 	return pci_register_driver(&nvme_driver);
- }
 -- 
 2.49.0
 
