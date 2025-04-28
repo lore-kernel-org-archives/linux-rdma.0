@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7D0A27A120;
-	Mon, 28 Apr 2025 09:24:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E460263F5B;
+	Mon, 28 Apr 2025 09:24:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745832257; cv=none; b=KMlV31tGEdvf0ZHQx7Lso7f/f+dnGS4SSdG/lgBmm/fMv9xWcGxVHj7bYzjypZ90kBgAD8pIpXCQc3NsKWoUyHAsSy58QpupO/gBShxDId5JtvO8w3aG9VOxtia7rGkML4POzNfkJ/k+HSSDs1VthScH+RKbOXmGdWkBi9jhUeA=
+	t=1745832261; cv=none; b=SbuMfK4cuBLLMFvJXVUEdxf/SS3ZR3KTIVaKlyIiWwSkxavAomECMr0nhKQZN1LrymyX1wsfhjq4OFyj3Z/dV4l5VvQH7OrxH/uAogznHZdI2kv3KTLPZEj1PWgmNdbm+6CoKYDPwWkJSytj1yFrHsuYjG/L7LGIB7IAW3nRb7E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745832257; c=relaxed/simple;
-	bh=4dOjVeYpWJkKZa5Ph2IEMg0CPmd+dfHE5vq3NRZWLwQ=;
+	s=arc-20240116; t=1745832261; c=relaxed/simple;
+	bh=JltzEs94lpehyHx6nl6wHRaPQKIRgU/HyWicrIFjUro=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Z1Y1bRJ8PryYDNNNDLUAsp7PNxtsIO7R1xacvHBc5s//aqd3y/b43qJ+cUhKYoet97Zz3CWUxkPc8yOrIoTDDjizMZ2EKepwLIjUFrJcRdVGbBWxYOh3rJ90om1CCoxe7XkVN212L/LsQww7tdik6SaQVKdudfBfH4sHFBmnn7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ce3VPJ07; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=i8mbF1sFmXl/wShn023sj+q8DSPUPUqTZFh2MVY76MzhYChzQFbhXXuHHbW9mOI4krua6MxY2p5sHGOxjRm+c1RIloccEAHExXMxgEz/i9D3zJVuBq0bgRkzXoECHhj99A5NrFlH1nWiRtX5OJjhmh6gwdls6GqekVyivY6I2KI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DyqXQ6VB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ce3VPJ07"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D8BCC4CEE9;
-	Mon, 28 Apr 2025 09:24:16 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DyqXQ6VB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C09AC4CEE4;
+	Mon, 28 Apr 2025 09:24:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1745832256;
-	bh=4dOjVeYpWJkKZa5Ph2IEMg0CPmd+dfHE5vq3NRZWLwQ=;
+	s=k20201202; t=1745832260;
+	bh=JltzEs94lpehyHx6nl6wHRaPQKIRgU/HyWicrIFjUro=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ce3VPJ07DNrV5898GsmpRBIpv34v0Mn1piZte3fq+yUqHqi9q48o9CqXmaMiUVEcR
-	 znVULf9fBZG9hXk68O8UxP+wJzq7puvp9eL4agI5Vq7Hv78ajnkd6mpnzVDlI84znw
-	 VL1g+tFvIYAR54D2d2n4CL9TATFkhlFsNfVWgPjkNKj3g2yg2TMFMO9c1tTLc+SExB
-	 evAOhYpcMSEA8VIAeeAWLqYuRnn2BoO7hk6S+6O3gzb/PPsBE929l1xEtys5zX6LnO
-	 UgsP8OUpmVCFAKLp6eVl0pRPDVfXASUaLqX0isM3kIv1f6HDrI1eYBv0zEMsGD5ypt
-	 vHx1ExNlBVXSg==
+	b=DyqXQ6VBPGUV60WqF+uTbZzXAsUAIJ9C1BCb2KV9m8F42ozYCzXInlnKQFxIS2b36
+	 s+SctZer4F7Q5NkzQQld7WJZo9qsmkj9svarVHnHcf2ojzaBTAeBo4/HXSAAYmAED9
+	 0xAI51RXFcaNAViqGFTvgw71I5NRyjdQoBDcESxnGQBEZOfbe7wMnLan2Z1+J+qRj+
+	 8OEN5Dl/+rgO5hpebjkaj1SMCY1/3eRJ/TzmFUnFCx9NWXXoE71dQT6bHrYlzaqCDj
+	 cQfDk5LtjtwfeRrBMl5iLWmlcl+SqiMKCEXYnYeUEY8YsO01MnQzVcNjFdveNAbkls
+	 vBmDT0QLSZCQA==
 From: Leon Romanovsky <leon@kernel.org>
 To: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Jens Axboe <axboe@kernel.dk>,
 	Christoph Hellwig <hch@lst.de>,
 	Keith Busch <kbusch@kernel.org>
-Cc: Jake Edge <jake@lwn.net>,
+Cc: Leon Romanovsky <leonro@nvidia.com>,
+	Jake Edge <jake@lwn.net>,
 	Jonathan Corbet <corbet@lwn.net>,
 	Jason Gunthorpe <jgg@ziepe.ca>,
 	Zhu Yanjun <zyjzyj2000@gmail.com>,
@@ -62,11 +63,10 @@ Cc: Jake Edge <jake@lwn.net>,
 	Matthew Wilcox <willy@infradead.org>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Kanchan Joshi <joshi.k@samsung.com>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Leon Romanovsky <leonro@nvidia.com>
-Subject: [PATCH v10 18/24] block: share more code for bio addition helper
-Date: Mon, 28 Apr 2025 12:22:24 +0300
-Message-ID: <0b77dcad1eb6ccb9f5923a2999a89ef779394fb4.1745831017.git.leon@kernel.org>
+	Chaitanya Kulkarni <kch@nvidia.com>
+Subject: [PATCH v10 24/24] nvme-pci: store aborted state in flags variable
+Date: Mon, 28 Apr 2025 12:22:30 +0300
+Message-ID: <ef01afea04a2aca3217ce1b52ec99bcd80e99f00.1745831017.git.leon@kernel.org>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <cover.1745831017.git.leon@kernel.org>
 References: <cover.1745831017.git.leon@kernel.org>
@@ -78,138 +78,62 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Christoph Hellwig <hch@lst.de>
+From: Leon Romanovsky <leonro@nvidia.com>
 
-__bio_iov_iter_get_pages currently open codes adding pages to the bio,
-which duplicates a lot of code from bio_add_page. Add bio_add_page_int
-helper that pass down the same_page output argument so that
-__bio_iov_iter_get_pages can reuse the main add bio to page helpers.
+Instead of keeping dedicated "bool aborted" variable, let's reuse
+newly introduced flags variable and save space.
 
-Note that I'd normally call these helper __bio_add_page, but the former
-is already taken for an exported API.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
 ---
- block/bio.c | 68 +++++++++++++++++++++++++----------------------------
- 1 file changed, 32 insertions(+), 36 deletions(-)
+ drivers/nvme/host/pci.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/block/bio.c b/block/bio.c
-index 4e6c85a33d74..3047fa3f4b32 100644
---- a/block/bio.c
-+++ b/block/bio.c
-@@ -989,20 +989,9 @@ void __bio_add_page(struct bio *bio, struct page *page,
- }
- EXPORT_SYMBOL_GPL(__bio_add_page);
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index eb835425b496..9f3e2d8cbd04 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -219,6 +219,7 @@ struct nvme_queue {
+ enum {
+ 	IOD_LARGE_DESCRIPTORS = 1 << 0, /* uses the full page sized descriptor pool */
+ 	IOD_SINGLE_SEGMENT = 1 << 1, /* single segment dma mapping */
++	IOD_ABORTED = 1 << 2, /* abort timed out commands */
+ };
  
--/**
-- *	bio_add_page	-	attempt to add page(s) to bio
-- *	@bio: destination bio
-- *	@page: start page to add
-- *	@len: vec entry length, may cross pages
-- *	@offset: vec entry offset relative to @page, may cross pages
-- *
-- *	Attempt to add page(s) to the bio_vec maplist. This will only fail
-- *	if either bio->bi_vcnt == bio->bi_max_vecs or it's a cloned bio.
-- */
--int bio_add_page(struct bio *bio, struct page *page,
--		 unsigned int len, unsigned int offset)
-+static int bio_add_page_int(struct bio *bio, struct page *page,
-+		 unsigned int len, unsigned int offset, bool *same_page)
- {
--	bool same_page = false;
+ /*
+@@ -227,7 +228,6 @@ enum {
+ struct nvme_iod {
+ 	struct nvme_request req;
+ 	struct nvme_command cmd;
+-	bool aborted;
+ 	u8 nr_descriptors;	/* # of PRP/SGL descriptors */
+ 	u8 flags;
+ 	unsigned int total_len; /* length of the entire transfer */
+@@ -1027,7 +1027,6 @@ static blk_status_t nvme_prep_rq(struct nvme_dev *dev, struct request *req)
+ 	struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
+ 	blk_status_t ret;
  
- 	if (WARN_ON_ONCE(bio_flagged(bio, BIO_CLONED)))
- 		return 0;
-@@ -1011,7 +1000,7 @@ int bio_add_page(struct bio *bio, struct page *page,
- 
- 	if (bio->bi_vcnt > 0 &&
- 	    bvec_try_merge_page(&bio->bi_io_vec[bio->bi_vcnt - 1],
--				page, len, offset, &same_page)) {
-+				page, len, offset, same_page)) {
- 		bio->bi_iter.bi_size += len;
- 		return len;
+-	iod->aborted = false;
+ 	iod->nr_descriptors = 0;
+ 	iod->flags = 0;
+ 	iod->total_len = 0;
+@@ -1576,7 +1575,7 @@ static enum blk_eh_timer_return nvme_timeout(struct request *req)
+ 	 * returned to the driver, or if this is the admin queue.
+ 	 */
+ 	opcode = nvme_req(req)->cmd->common.opcode;
+-	if (!nvmeq->qid || iod->aborted) {
++	if (!nvmeq->qid || (iod->flags & IOD_ABORTED)) {
+ 		dev_warn(dev->ctrl.device,
+ 			 "I/O tag %d (%04x) opcode %#x (%s) QID %d timeout, reset controller\n",
+ 			 req->tag, nvme_cid(req), opcode,
+@@ -1589,7 +1588,7 @@ static enum blk_eh_timer_return nvme_timeout(struct request *req)
+ 		atomic_inc(&dev->ctrl.abort_limit);
+ 		return BLK_EH_RESET_TIMER;
  	}
-@@ -1021,6 +1010,24 @@ int bio_add_page(struct bio *bio, struct page *page,
- 	__bio_add_page(bio, page, len, offset);
- 	return len;
- }
-+
-+/**
-+ * bio_add_page	- attempt to add page(s) to bio
-+ * @bio: destination bio
-+ * @page: start page to add
-+ * @len: vec entry length, may cross pages
-+ * @offset: vec entry offset relative to @page, may cross pages
-+ *
-+ * Attempt to add page(s) to the bio_vec maplist.  Will only fail if the
-+ * bio is full, or it is incorrectly used on a cloned bio.
-+ */
-+int bio_add_page(struct bio *bio, struct page *page,
-+		 unsigned int len, unsigned int offset)
-+{
-+	bool same_page = false;
-+
-+	return bio_add_page_int(bio, page, len, offset, &same_page);
-+}
- EXPORT_SYMBOL(bio_add_page);
+-	iod->aborted = true;
++	iod->flags |= IOD_ABORTED;
  
- void bio_add_folio_nofail(struct bio *bio, struct folio *folio, size_t len,
-@@ -1088,27 +1095,6 @@ void bio_iov_bvec_set(struct bio *bio, const struct iov_iter *iter)
- 	bio_set_flag(bio, BIO_CLONED);
- }
- 
--static int bio_iov_add_folio(struct bio *bio, struct folio *folio, size_t len,
--			     size_t offset)
--{
--	bool same_page = false;
--
--	if (WARN_ON_ONCE(bio->bi_iter.bi_size > UINT_MAX - len))
--		return -EIO;
--
--	if (bio->bi_vcnt > 0 &&
--	    bvec_try_merge_page(&bio->bi_io_vec[bio->bi_vcnt - 1],
--				folio_page(folio, 0), len, offset,
--				&same_page)) {
--		bio->bi_iter.bi_size += len;
--		if (same_page && bio_flagged(bio, BIO_PAGE_PINNED))
--			unpin_user_folio(folio, 1);
--		return 0;
--	}
--	bio_add_folio_nofail(bio, folio, len, offset);
--	return 0;
--}
--
- static unsigned int get_contig_folio_len(unsigned int *num_pages,
- 					 struct page **pages, unsigned int i,
- 					 struct folio *folio, size_t left,
-@@ -1203,6 +1189,8 @@ static int __bio_iov_iter_get_pages(struct bio *bio, struct iov_iter *iter)
- 	for (left = size, i = 0; left > 0; left -= len, i += num_pages) {
- 		struct page *page = pages[i];
- 		struct folio *folio = page_folio(page);
-+		struct page *first_page = folio_page(folio, 0);
-+		bool same_page = false;
- 
- 		folio_offset = ((size_t)folio_page_idx(folio, page) <<
- 			       PAGE_SHIFT) + offset;
-@@ -1215,7 +1203,15 @@ static int __bio_iov_iter_get_pages(struct bio *bio, struct iov_iter *iter)
- 			len = get_contig_folio_len(&num_pages, pages, i,
- 						   folio, left, offset);
- 
--		bio_iov_add_folio(bio, folio, len, folio_offset);
-+		if (bio_add_page_int(bio, first_page, len, folio_offset,
-+				     &same_page) != len) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		if (same_page && bio_flagged(bio, BIO_PAGE_PINNED))
-+			unpin_user_folio(folio, 1);
-+
- 		offset = 0;
- 	}
- 
+ 	cmd.abort.opcode = nvme_admin_abort_cmd;
+ 	cmd.abort.cid = nvme_cid(req);
 -- 
 2.49.0
 
