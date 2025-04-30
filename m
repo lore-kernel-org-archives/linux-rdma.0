@@ -1,109 +1,122 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C885D8F77;
-	Wed, 30 Apr 2025 12:45:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2EED25B1E2;
+	Wed, 30 Apr 2025 12:48:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746017151; cv=none; b=OcaqPew+M9ids5XjekvmvmVWky/0uE4GWWJovtHnvdGOeiWmI0bEvVaC50azuAlpMYsDZdXuJdH/SFpZ499VHrR94SElZFEtjVgONgxiywAwrvLSGXku2WSEYOowiND3TZGVXLrFKvWkLJBU/T7SF8g0RranXhZDmFra6Wy/WSQ=
+	t=1746017300; cv=none; b=K9nJmslhZB4N1PacBg2abNBwNBjdFo+Ydrp/cyYlv3dmDE+SdkVO//n4KnM2VN5gl63+DO0mcWJYHQUAEdwzGLIM0nUx/WllGBjDicEa/X5hYfXlgPVhfn0WhJyomrM6w9ThiBHLvr1ILPuF3C6eoH4m6/WX+u5h0EXvwi4pF9c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746017151; c=relaxed/simple;
-	bh=hxWmDRJ6zacHxGYu1D9aleHyYR4RsOR4ShqLTbLmDC0=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=M9/JcE0mekKl9jeDYj/bUuSplJAPgOfPxa/nNPsQzwqQAf+wAbXUNs+8doYkS+eSorl+QBI/vouM2RchNk/DwysK9N/cvZ0T5SZqX4J1Tg41cFRD1Qgp95FiR4sBRVGbT7CEctJCoPbmkqCK78vPZ8pq+5YGXv9UqFVeIZllJ/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aw+2KF/S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1746017300; c=relaxed/simple;
+	bh=i0VNjcCRvdovrY3iCi7sMqjj1HF76Yz/3D8yI+89hSM=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ZWFsli2CdJ2njo2YpOX1liidgDUwpcYk7yXFeyvt3EtR6jQaZkS5hahayjH3KUzj8fe3RWZcUa0Os5nEUxel6M8SGuhx295je4AIZy7MApViM4EEl+DZVRqmHEWWf+CdYPjfNvoe5eAGqBNETheuWbITUW//azGNuEizAXcTh4o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=xXD+e1ZO; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=/jAWWDvf; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aw+2KF/S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90899C4CEE9;
-	Wed, 30 Apr 2025 12:45:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746017151;
-	bh=hxWmDRJ6zacHxGYu1D9aleHyYR4RsOR4ShqLTbLmDC0=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=aw+2KF/S/ikKGuM8tkndcZ8S1dd4qiAO5alkpbtTgjINRn50ixNqLJrtvpWMhrn4J
-	 vDGm5vgWSJhDM0+oUaot+6QIo0+KN6x8oW4OJbh7fI6eDg2TtHPLBR0b0B5JMXXDWn
-	 7GGQwFPCDyuBi8EK2oknqN5+Kd//nK2q1SW77tCybq2Dfm94I8Y3IOURAI1TsVYAG1
-	 wzGPJo/JjqRgLBVNiGmYShARHqJH2wxf+Pme9NHErA7/oHycHFvLHFpKkD2ad2MJuX
-	 RfY/STAbbqUve4H/1cKtNzuIX0AJCJyWcZXW3ST2befZMSlVvB3FInQm3Rr7nwELTL
-	 Pdtp80HT3ndOA==
-Message-ID: <d523b381-1343-472b-b913-80b942aa9d7f@kernel.org>
-Date: Wed, 30 Apr 2025 08:45:49 -0400
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="xXD+e1ZO";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="/jAWWDvf"
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1746017296;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=nmddc0pDztofvgEdvZvBBZR6kgIdxTlNYioqcelkIOA=;
+	b=xXD+e1ZOC2ZljqUk6n4xMV3n9nyFj9MqXQdzH0biIwUUY0W9mj1QQ8sH1gDdXMNZgkxwes
+	XSeJ/PBruU656gH0FjrYiRmWquvIXbxpWOsY/3yIAoVD1VZ01zXGGMiVPPpWG3W8uBfIHF
+	3i5Rc3QgK6YAW4CcJWOdiMmy2rWwm2NBXaVCRRqK93EZzy4ZaH7EirwHaERWxl3sP3kblW
+	SN+GHAVSPevopiXQj3NgBeAE4d38T1vhTcGDSmo7u2G8fHFrQeKePw/R0/Vq+94Db2OX1K
+	BF9wAmYENDPESYO2ut7vSv7dNnsvZa+a9Fq2xbRA0Ktz8rb57DhlcChnlg21ZA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1746017296;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=nmddc0pDztofvgEdvZvBBZR6kgIdxTlNYioqcelkIOA=;
+	b=/jAWWDvfKQJ/loCK45ofJNBVgnj3HpNbCMuSu6hioeeTkFMk0ZXlud94yhYXnyOzkO5abj
+	9fnD85W6+iiz1ECQ==
+To: netdev@vger.kernel.org,
+	linux-rt-devel@lists.linux.dev
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	Allison Henderson <allison.henderson@oracle.com>,
+	linux-rdma@vger.kernel.org
+Subject: [PATCH net-next v3 17/18] rds: Acquire per-CPU pointer within BH disabled section
+Date: Wed, 30 Apr 2025 14:47:57 +0200
+Message-ID: <20250430124758.1159480-18-bigeasy@linutronix.de>
+In-Reply-To: <20250430124758.1159480-1-bigeasy@linutronix.de>
+References: <20250430124758.1159480-1-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 00/14] Allocate payload arrays dynamically
-To: NeilBrown <neil@brown.name>
-Cc: Jeff Layton <jlayton@kernel.org>, Olga Kornievskaia
- <okorniev@redhat.com>, Dai Ngo <dai.ngo@oracle.com>,
- Tom Talpey <tom@talpey.com>, Anna Schumaker <anna@kernel.org>,
- linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org,
- Chuck Lever <chuck.lever@oracle.com>
-References: <20250428193702.5186-1-cel@kernel.org>
- <174598987938.500591.3903811314689386843@noble.neil.brown.name>
-Content-Language: en-US
-From: Chuck Lever <cel@kernel.org>
-Organization: kernel.org
-In-Reply-To: <174598987938.500591.3903811314689386843@noble.neil.brown.name>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 
-On 4/30/25 1:11 AM, NeilBrown wrote:
-> On Tue, 29 Apr 2025, cel@kernel.org wrote:
->> From: Chuck Lever <chuck.lever@oracle.com>
->>
->> In order to make RPCSVC_MAXPAYLOAD larger (or variable in size), we
->> need to do something clever with the payload arrays embedded in
->> struct svc_rqst and elsewhere.
->>
->> My preference is to keep these arrays allocated all the time because
->> allocating them on demand increases the risk of a memory allocation
->> failure during a large I/O. This is a quick-and-dirty approach that
->> might be replaced once NFSD is converted to use large folios.
->>
->> The downside of this design choice is that it pins a few pages per
->> NFSD thread (and that's the current situation already). But note
->> that because RPCSVC_MAXPAGES is 259, each array is just over a page
->> in size, making the allocation waste quite a bit of memory beyond
->> the end of the array due to power-of-2 allocator round up. This gets
->> worse as the MAXPAGES value is doubled or quadrupled.
-> 
-> I wonder if we should special-case those 3 extra.
-> We don't need any for rq_vec and only need 2 (I think) for rq_bvec.
+rds_page_remainder_alloc() obtains the current CPU with get_cpu() while
+disabling preemption. Then the CPU number is used to access the per-CPU
+data structure via per_cpu().
 
-For rq_vec, I believe we need one extra entry in case part of the
-payload is in the xdr_buf's head iovec.
+This can be optimized by relying on local_bh_disable() to provide a
+stable CPU number/ avoid migration and then using this_cpu_ptr() to
+retrieve the data structure.
 
-For rq_bvec, we need one for the transport header, and one each for
-the xdr_buf's head and tail iovecs.
+Cc: Allison Henderson <allison.henderson@oracle.com>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ net/rds/page.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-But, I agree, the rationales for the size of each of these arrays are
-slightly different.
+diff --git a/net/rds/page.c b/net/rds/page.c
+index e0dd4f62ea47a..58a8548a915a9 100644
+--- a/net/rds/page.c
++++ b/net/rds/page.c
+@@ -86,8 +86,8 @@ int rds_page_remainder_alloc(struct scatterlist *scat, un=
+signed long bytes,
+ 		goto out;
+ 	}
+=20
+-	rem =3D &per_cpu(rds_page_remainders, get_cpu());
+ 	local_bh_disable();
++	rem =3D this_cpu_ptr(&rds_page_remainders);
+=20
+ 	while (1) {
+ 		/* avoid a tiny region getting stuck by tossing it */
+@@ -116,12 +116,11 @@ int rds_page_remainder_alloc(struct scatterlist *scat=
+, unsigned long bytes,
+=20
+ 		/* alloc if there is nothing for us to use */
+ 		local_bh_enable();
+-		put_cpu();
+=20
+ 		page =3D alloc_page(gfp);
+=20
+-		rem =3D &per_cpu(rds_page_remainders, get_cpu());
+ 		local_bh_disable();
++		rem =3D this_cpu_ptr(&rds_page_remainders);
+=20
+ 		if (!page) {
+ 			ret =3D -ENOMEM;
+@@ -140,7 +139,6 @@ int rds_page_remainder_alloc(struct scatterlist *scat, =
+unsigned long bytes,
+ 	}
+=20
+ 	local_bh_enable();
+-	put_cpu();
+ out:
+ 	rdsdebug("bytes %lu ret %d %p %u %u\n", bytes, ret,
+ 		 ret ? NULL : sg_page(scat), ret ? 0 : scat->offset,
+--=20
+2.49.0
 
-
-> We could use the arrays only for payload and have dedicated
-> page/vec/bvec for request, reply, read-padding.
-
-I might not fully understand what you are suggesting, but it has
-occurred to me that for NFSv4, both Call and Reply can be large for
-one RPC transaction (though that is going to be quite infrequent). A
-separate rq_pages[] array each for receive and send is possibly in
-NFSD's future.
-
-
-> Or maybe we could not allow read requests that result in the extra page
-> due to alignment needs.  Would that be much cost?
-> 
-> Apart from the one issue I noted separately, I think the series looks
-> good.
-> 
-> Reviewed-by: NeilBrown <neil@brown.name>
-
-Thanks for having a look.
-
-
--- 
-Chuck Lever
