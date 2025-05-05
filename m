@@ -1,52 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E4FC28A700;
-	Mon,  5 May 2025 23:16:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 363B83B2F5E;
+	Mon,  5 May 2025 23:20:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746487019; cv=none; b=kVK2CdPF+R4uJGcTgm+4XBvKNcyXcgyu80wjogQeXDtTW+SyOk6y2UlPhCq/hvqRR7eNdCxP9OUtQppwg05XPKkN9MPm/jQ8ciXCevt5geGykt795zkXjikeBtALQnNQLDM1grHRfPjdoonlY0N+45WJqcNChiH7u6g+NsuQvOM=
+	t=1746487251; cv=none; b=XC+uO5WDY4memGxLBwQLrJ4iWo0OHATypjWFILCgI2JLAXyoaji94oBt5YgHpB6WFy+lcwvfUdAlClynArvutAG3gPonEYoK7s1+zuf4aspNmyOZ+wRN9V1T5lvcc6QY2MWBq0MwkbISDj+mewDmamXuDm0SLHIkv0aanx7BD9I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746487019; c=relaxed/simple;
-	bh=JxjItHrrQgLMHSz/Gv5gajhZoDln5AohXYwfHcgnOyw=;
+	s=arc-20240116; t=1746487251; c=relaxed/simple;
+	bh=zpoTVQiX85g5nhJT5n21FN5LeRInX/Str/Fj3W4LElc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=dd+gOyqabtAe3Fm7+RZu4aLrDuPw9QmP6ck1Hz2LeD1xq8w9oZct15RCssL9pfhwzyxR9mg+xbg9SZPSNmNDi+arhvOirzdjGNj9nzMKWcbwo0zTaivgzd1I/Mz10pStnwlW06UcAlv5PsLlucKp2BIEMct84DQSo0S5POxuDuA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rkH16t5E; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=AAdMS6S3sNtJXfGxKN0BnTOj3YCyCLmXRq647dEzhQtp+FOobQ47mAY7B76x98RfjgDfnKNR31Y0D5nDxuQXiLU81FLIScsKNStuq1YrfQrwH6Z1XBhgXXuvfP5AWAzXM+OPqgoBl1Kfz4p13dL8Po59Y6eWOFxbhlPLww5VVbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a68iXobL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rkH16t5E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53A5FC4CEED;
-	Mon,  5 May 2025 23:16:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a68iXobL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF799C4CEEF;
+	Mon,  5 May 2025 23:20:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746487017;
-	bh=JxjItHrrQgLMHSz/Gv5gajhZoDln5AohXYwfHcgnOyw=;
+	s=k20201202; t=1746487249;
+	bh=zpoTVQiX85g5nhJT5n21FN5LeRInX/Str/Fj3W4LElc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=rkH16t5EibkbO9BEXyCS7JoIyOsIxBMmm8d/7VeeXIbqiuRf6fVrVqOvp8geLosh5
-	 d5XtcJl5HRM7q0ZNYLqTwFa9s+7UzoiBEajuIRNpM4Ku9ECWRSusIfa8cJ+qbl5j3s
-	 PqZamyMkhyQNyW6slXuIZBZtEJ9rb5o3BhlsSsCqCLMqH50sHJKctHZkYjb5iqu2qb
-	 obed4Uf6jL+cS29phXlQspHJQCaJ7LYTTsrqGMWNAcu7HMTeZI1pyELbCSs7LiUWY0
-	 fSutSsg+dzha66zyXPOxmpONreHq5o420Sw9hhRu2KRWotVvLVLZ+A/T/MednEVehJ
-	 gCPVxtV/qRuYQ==
+	b=a68iXobLM5bIgaZz0I7p6hQl5hXgFci6B7yf0cYvHD2Q5nDZvaaD7PoI/EnmIpcmR
+	 mP0tcYFHF/Nz7N53aGgRQ9Iqr+pMiwt1lWyowToMrvxndnJeRXANBQm05FTLdAd0kT
+	 usAXgX9WjlpLXVIo0SNZGkynutb/nJBnhRW0V2xSMl7rpmhyobYqmxdPASpkPdNpH6
+	 lRHRWypltdQATzVTtbt3I5jbZj7I3yVFbzTlCK0GqBmz74wyWrz8mNSgGJut98mW3B
+	 iyVekVBEL5wzjP+kpEni85QWPWYGs2Vi307dfBM5ERO/JIVowBcOA8AsPZwKQNpfZU
+	 HOFMSLrQqXyuA==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Cc: Shahar Shitrit <shshitrit@nvidia.com>,
+Cc: Jakub Kicinski <kuba@kernel.org>,
 	Tariq Toukan <tariqt@nvidia.com>,
-	Mateusz Polchlopek <mateusz.polchlopek@intel.com>,
-	Jakub Kicinski <kuba@kernel.org>,
 	Sasha Levin <sashal@kernel.org>,
-	saeedm@nvidia.com,
 	andrew+netdev@lunn.ch,
 	davem@davemloft.net,
 	edumazet@google.com,
 	pabeni@redhat.com,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	hawk@kernel.org,
+	john.fastabend@gmail.com,
 	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 110/153] net/mlx5: Modify LSB bitmask in temperature event to include only the first bit
-Date: Mon,  5 May 2025 19:12:37 -0400
-Message-Id: <20250505231320.2695319-110-sashal@kernel.org>
+	linux-rdma@vger.kernel.org,
+	bpf@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.10 079/114] eth: mlx4: don't try to complete XDP frames in netpoll
+Date: Mon,  5 May 2025 19:17:42 -0400
+Message-Id: <20250505231817.2697367-79-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250505231320.2695319-1-sashal@kernel.org>
-References: <20250505231320.2695319-1-sashal@kernel.org>
+In-Reply-To: <20250505231817.2697367-1-sashal@kernel.org>
+References: <20250505231817.2697367-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -55,46 +57,40 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.15.181
+X-stable-base: Linux 5.10.237
 Content-Transfer-Encoding: 8bit
 
-From: Shahar Shitrit <shshitrit@nvidia.com>
+From: Jakub Kicinski <kuba@kernel.org>
 
-[ Upstream commit 633f16d7e07c129a36b882c05379e01ce5bdb542 ]
+[ Upstream commit 8fdeafd66edaf420ea0063a1f13442fe3470fe70 ]
 
-In the sensor_count field of the MTEWE register, bits 1-62 are
-supported only for unmanaged switches, not for NICs, and bit 63
-is reserved for internal use.
+mlx4 doesn't support ndo_xdp_xmit / XDP_REDIRECT and wasn't
+using page pool until now, so it could run XDP completions
+in netpoll (NAPI budget == 0) just fine. Page pool has calling
+context requirements, make sure we don't try to call it from
+what is potentially HW IRQ context.
 
-To prevent confusing output that may include set bits that are
-not relevant to NIC sensors, we update the bitmask to retain only
-the first bit, which corresponds to the sensor ASIC.
-
-Signed-off-by: Shahar Shitrit <shshitrit@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-Reviewed-by: Mateusz Polchlopek <mateusz.polchlopek@intel.com>
-Link: https://patch.msgid.link/20250213094641.226501-4-tariqt@nvidia.com
+Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+Link: https://patch.msgid.link/20250213010635.1354034-3-kuba@kernel.org
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/events.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index a1ac3a654962e..080aee3e3f9bb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -160,6 +160,10 @@ static int temp_warn(struct notifier_block *nb, unsigned long type, void *data)
- 	u64 value_msb;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_tx.c b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+index 59b097cda3278..6c52ddef88a62 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+@@ -445,6 +445,8 @@ int mlx4_en_process_tx_cq(struct net_device *dev,
  
- 	value_lsb = be64_to_cpu(eqe->data.temp_warning.sensor_warning_lsb);
-+	/* bit 1-63 are not supported for NICs,
-+	 * hence read only bit 0 (asic) from lsb.
-+	 */
-+	value_lsb &= 0x1;
- 	value_msb = be64_to_cpu(eqe->data.temp_warning.sensor_warning_msb);
+ 	if (unlikely(!priv->port_up))
+ 		return 0;
++	if (unlikely(!napi_budget) && cq->type == TX_XDP)
++		return 0;
  
- 	mlx5_core_warn(events->dev,
+ 	netdev_txq_bql_complete_prefetchw(ring->tx_queue);
+ 
 -- 
 2.39.5
 
