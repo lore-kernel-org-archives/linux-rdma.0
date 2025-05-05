@@ -1,49 +1,50 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 135752E688B;
-	Mon,  5 May 2025 23:17:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDD092DFA23;
+	Mon,  5 May 2025 23:17:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746487044; cv=none; b=R0tWpSo1RCZbpWQN8f5voUy0wZSfleSQhSv461OgmBuL6SJO6Bpf2YcVrPpXJFY3yys+N9S6VhuoN7/X1rQY54XUgxC0M7rHUNcxeXZw+0tder/HMFs6xq7cZyDx7a6xkK9NvC7E7hUrcj/z5OyyK+1kdjx26Obk1co0M7MmHR4=
+	t=1746487047; cv=none; b=ebOd/BAEPtFk5hAeBvx7YFm0hoNWvC2e6A3VPl7nRSItNyM5zbtPvknHUQu+xro6FLmJ98xvyk8iHm5xXCZlRRRQeHPW/jQm5AcvvDogwNHcLF4tVYZf63rLhfb8qzVcrOTkrBl3bAhwHTOOM6btkugTgyhc5DfW6KYRsjNPZCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746487044; c=relaxed/simple;
-	bh=EDmeW1Odctp79+4oJ8K+oDAGd4UCmE1KWx5Rr2il8sM=;
+	s=arc-20240116; t=1746487047; c=relaxed/simple;
+	bh=UXdsgPW4q/gYnzy2QjsqjqUASLdk6p45bA7QgTcgMmI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Pxl4y9MNApIW39j2gzPYd6CiBXHYXV6oBibKKSuifEBNafrJGtIzuyGukdvoD7TTExhqqVYl6gQQiASirQ+vUMBeLTRQ5b4y9KTVr5Oz/c/uamLLhbtfKXjAl+aSrDrJLAnGtR0TbZdp8OiGIr4HPUHxSUi8/s4TBPotFUB3YXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i9MYIkFK; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=jYuSrUF06+Zy0rgFDsTdqSYsvNhoZcMWAn9UjinRqUjJZIIgCc2CBnU5jwyoPIggdlvJXLUVBVnPGE6o0xzyOwEx5J6JaA51JStRRf6UxpimM1gSYkWLbJ11yCoigYL7hP67zSr5YeMBpGL1H4XDHBi7IQyPzB7c8c1hzEelUlU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=W21STe2U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i9MYIkFK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79F2EC4CEF1;
-	Mon,  5 May 2025 23:17:21 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="W21STe2U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 419C7C4CEE4;
+	Mon,  5 May 2025 23:17:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746487042;
-	bh=EDmeW1Odctp79+4oJ8K+oDAGd4UCmE1KWx5Rr2il8sM=;
+	s=k20201202; t=1746487046;
+	bh=UXdsgPW4q/gYnzy2QjsqjqUASLdk6p45bA7QgTcgMmI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=i9MYIkFKPFxiQAOtLyIZsBfwfpS1FOizp6+eBsuxJwBzcDMCbGKXWVkspueNn0SuI
-	 qU8g6qrTHHmE6br0/PcuD09gxABxKvUDmm4+HcYA3vpB8KWDaZUh9rK4HP+2ALOJ+K
-	 +0EfRRx+q3NW67xdiRetr81iS9fZRBNqSnSzrGY6GTO4y/5PEHbNsGvYx1EvMrYc8o
-	 40M5R+gi6T7513lj9t+oo8x2H8rwvVSdTIVTBm5MrCbDXNyyGpJzN2RZV39L0h/Di9
-	 U8YjzgQCvY1l5xPQcqk8hkXnhcKKWqpmBhPn2Ob1lBxKlY0v+CD/CyGowFFfJu9wd7
-	 YXoBBptGRgikw==
+	b=W21STe2UXIWAjNGuGZ+MC5Ubhw4e34QibuqWuLbJ3zygoIncVkXd4zyPSQysvB5wl
+	 ncOJSUBbonis7cxcFRFpTWAnmZ7hLaFndioxkxBrswipD05OsY80eU8ftOIE8gwXbf
+	 21l+Qpago1mn5bB/S9ukpYueWoXmZPqi7L73c7G/GRGLeMORjMDBfEitqclKZRyyxj
+	 12wGZiiQl63fCN3sHd7EzKK5eCyte2MAzmJaDTBDkCZLu51x9YLvswSN0PYfj98YNL
+	 awC0VUKitNRt93TkgqEHyTm1ztDqev03iU92e50fkun4kcntNLUNUnhkafd4cp59qh
+	 9H3br/yGA9Teg==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Cc: Alexei Lazar <alazar@nvidia.com>,
-	Dragos Tatulea <dtatulea@nvidia.com>,
+Cc: William Tu <witu@nvidia.com>,
+	Bodong Wang <bodong@nvidia.com>,
+	Saeed Mahameed <saeedm@nvidia.com>,
 	Tariq Toukan <tariqt@nvidia.com>,
+	Michal Swiatkowski <michal.swiatkowski@linux.intel.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Sasha Levin <sashal@kernel.org>,
-	saeedm@nvidia.com,
 	andrew+netdev@lunn.ch,
 	davem@davemloft.net,
 	edumazet@google.com,
 	pabeni@redhat.com,
 	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 123/153] net/mlx5: Extend Ethtool loopback selftest to support non-linear SKB
-Date: Mon,  5 May 2025 19:12:50 -0400
-Message-Id: <20250505231320.2695319-123-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 125/153] net/mlx5e: reduce rep rxq depth to 256 for ECPF
+Date: Mon,  5 May 2025 19:12:52 -0400
+Message-Id: <20250505231320.2695319-125-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20250505231320.2695319-1-sashal@kernel.org>
 References: <20250505231320.2695319-1-sashal@kernel.org>
@@ -58,39 +59,73 @@ X-Patchwork-Hint: Ignore
 X-stable-base: Linux 5.15.181
 Content-Transfer-Encoding: 8bit
 
-From: Alexei Lazar <alazar@nvidia.com>
+From: William Tu <witu@nvidia.com>
 
-[ Upstream commit 95b9606b15bb3ce1198d28d2393dd0e1f0a5f3e9 ]
+[ Upstream commit b9cc8f9d700867aaa77aedddfea85e53d5e5d584 ]
 
-Current loopback test validation ignores non-linear SKB case in
-the SKB access, which can lead to failures in scenarios such as
-when HW GRO is enabled.
-Linearize the SKB so both cases will be handled.
+By experiments, a single queue representor netdev consumes kernel
+memory around 2.8MB, and 1.8MB out of the 2.8MB is due to page
+pool for the RXQ. Scaling to a thousand representors consumes 2.8GB,
+which becomes a memory pressure issue for embedded devices such as
+BlueField-2 16GB / BlueField-3 32GB memory.
 
-Signed-off-by: Alexei Lazar <alazar@nvidia.com>
-Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
+Since representor netdevs mostly handles miss traffic, and ideally,
+most of the traffic will be offloaded, reduce the default non-uplink
+rep netdev's RXQ default depth from 1024 to 256 if mdev is ecpf eswitch
+manager. This saves around 1MB of memory per regular RQ,
+(1024 - 256) * 2KB, allocated from page pool.
+
+With rxq depth of 256, the netlink page pool tool reports
+$./tools/net/ynl/cli.py --spec Documentation/netlink/specs/netdev.yaml \
+	 --dump page-pool-get
+ {'id': 277,
+  'ifindex': 9,
+  'inflight': 128,
+  'inflight-mem': 786432,
+  'napi-id': 775}]
+
+This is due to mtu 1500 + headroom consumes half pages, so 256 rxq
+entries consumes around 128 pages (thus create a page pool with
+size 128), shown above at inflight.
+
+Note that each netdev has multiple types of RQs, including
+Regular RQ, XSK, PTP, Drop, Trap RQ. Since non-uplink representor
+only supports regular rq, this patch only changes the regular RQ's
+default depth.
+
+Signed-off-by: William Tu <witu@nvidia.com>
+Reviewed-by: Bodong Wang <bodong@nvidia.com>
+Reviewed-by: Saeed Mahameed <saeedm@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-Link: https://patch.msgid.link/20250209101716.112774-15-tariqt@nvidia.com
+Reviewed-by: Michal Swiatkowski <michal.swiatkowski@linux.intel.com>
+Link: https://patch.msgid.link/20250209101716.112774-8-tariqt@nvidia.com
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c | 3 +++
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c b/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
-index ce8ab1f018769..c380340b81665 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
-@@ -188,6 +188,9 @@ mlx5e_test_loopback_validate(struct sk_buff *skb,
- 	struct udphdr *udph;
- 	struct iphdr *iph;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index 3c8bfedeafffd..8e44fa0d3f371 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -58,6 +58,7 @@
+ #define MLX5E_REP_PARAMS_DEF_LOG_SQ_SIZE \
+ 	max(0x7, MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE)
+ #define MLX5E_REP_PARAMS_DEF_NUM_CHANNELS 1
++#define MLX5E_REP_PARAMS_DEF_LOG_RQ_SIZE 0x8
  
-+	if (skb_linearize(skb))
-+		goto out;
-+
- 	/* We are only going to peek, no need to clone the SKB */
- 	if (MLX5E_TEST_PKT_SIZE - ETH_HLEN > skb_headlen(skb))
- 		goto out;
+ static const char mlx5e_rep_driver_name[] = "mlx5e_rep";
+ 
+@@ -615,6 +616,8 @@ static void mlx5e_build_rep_params(struct net_device *netdev)
+ 
+ 	/* RQ */
+ 	mlx5e_build_rq_params(mdev, params);
++	if (!mlx5e_is_uplink_rep(priv) && mlx5_core_is_ecpf(mdev))
++		params->log_rq_mtu_frames = MLX5E_REP_PARAMS_DEF_LOG_RQ_SIZE;
+ 
+ 	/* CQ moderation params */
+ 	params->rx_dim_enabled = MLX5_CAP_GEN(mdev, cq_moderation);
 -- 
 2.39.5
 
