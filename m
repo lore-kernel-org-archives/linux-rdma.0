@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A459B39261B;
-	Mon,  5 May 2025 23:03:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B31439527F;
+	Mon,  5 May 2025 23:04:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746486193; cv=none; b=LDuvHYrVdBLeiuMTkI0nEp1qhOyoZihudHz4dxgHPZzgPjKSg3IRJdSpdEV/0qnTwXzsS+4AqwDh9E+c0bM4LtbROnpbiDyPjkrHuw8YZbgk/L1gHocUC5G/10Qe91yB11kiFv5lrse30w4qF8PcEAVEmrOELx1szoG5YZhQY3Q=
+	t=1746486271; cv=none; b=jDKFBOHcxXP5bDfHujTT+Momm1i9VwPML32/5V8mgKMISbSAqTlV7Nkyx6Ip2U3VPnPwa+DXq21aoRSOYsM4iy6HvnKAYD15XrekLR80UJy9TlbHfkOM1yMeYswFlc4bWWOeHInv3/vdHkdxAOj15Fs91+TAyW3yS+0hqXuhDfw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746486193; c=relaxed/simple;
-	bh=1vJ/RkwK9XOtkNV4BeP4I/h8Dllsc5LhJWJpWyi82YI=;
+	s=arc-20240116; t=1746486271; c=relaxed/simple;
+	bh=rNRQtODZcnpVBIPGRz8IF6cUXjg8GEwei8Nmbe8MrKE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=TebCMbiMJpYo7Is9v/UwnZCbQZZVBi1u4HErlgvlFlyaVKp0xkHPfnHpYXFp9Qfsj4fqjiAnh+MIPxXEgu3Dd2vmOZh/nYG4T1BFn2QGOMDCID3aQBrzht0haiXbxGuE/b7gbkuZs6rjC1MbAlWOx7knQv0qo25yyll6eCIbCfQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=goV/6BaL; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=GYd5m9wctK5U+tbc/phSdZtKe5l5nHmlSzjui6XvxqNMt8mWM1A8gP9ays3eUDgfHJPcURrVLHF99Lrbq+bpep/p8sefoJvJ0CVpD+KoQVIJVr72bJ7OVJ00pwUmN7SmOtnY4BvUMNrk5xfqAKJuAK1oN91LWwJQe313QjUDA0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Vbkc9Ve2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="goV/6BaL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B4BFC4CEEF;
-	Mon,  5 May 2025 23:03:10 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Vbkc9Ve2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29549C4CEE4;
+	Mon,  5 May 2025 23:04:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746486192;
-	bh=1vJ/RkwK9XOtkNV4BeP4I/h8Dllsc5LhJWJpWyi82YI=;
+	s=k20201202; t=1746486270;
+	bh=rNRQtODZcnpVBIPGRz8IF6cUXjg8GEwei8Nmbe8MrKE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=goV/6BaLajjIwwZhnABotXULvAYLmm06oMfBfjwhk4aFn704lS3RvgzjIz5NzST+S
-	 1kGITeKH9zhkwduS/7M/9VDekF6UpWcs5lCkjrvHNcWF7ijQq3C7c54bIF7upWYHDS
-	 GTzNFsJh6sTDjdiRb60RS5FXUsQ5pepjhVEK8xN3c20BqavRcXSL1UAOwJz1V0rmHG
-	 gX0uOG7hYv0v0/qwSQBWHxofvoln1ku0hNr2hEk9u5vwYSZU1Nv2C2tQv+AI2bUBsA
-	 aLmwAtmy4yKM4vj0hu7XVKMUuvH60WsEX+XRWNIcU62ZcCWDtiZr9iv8rE4Qf+8rpc
-	 4dALfASFcppbQ==
+	b=Vbkc9Ve2WFxcfg5sdFgkMjbOX5xyraOabkI6K/VGB6DGy7H3oSyZ5D+r8JnZyPjvl
+	 vt4hPyPdUPSH/+NgzAdbZHg+jbtBPl0fnjcdsg6+kM9QDUd3p4HlOSyYoMELXfAhJV
+	 C3Q6OGZqNlL0Eyc+RfmkplOqolmFsIqehLGG3zjQ/ryBs1F3IO/9tvMOGmxK2aW+o9
+	 sAM/6w5aDA+2mjs3jcLyR1a4G1AJFPv3mx3jhg9n7s6TF3M3/FM6Bk0WD2RPJNf8/O
+	 zkSj2mCkkFa/8B+eXMPCDXHWhqqzzrt1dt7+pM3Cc37q7g2UgEUQcri4HbqRxzy1A7
+	 0VhLX1lDwOhyw==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Cc: Shahar Shitrit <shshitrit@nvidia.com>,
+Cc: Alexei Lazar <alazar@nvidia.com>,
+	Dragos Tatulea <dtatulea@nvidia.com>,
 	Tariq Toukan <tariqt@nvidia.com>,
-	Mateusz Polchlopek <mateusz.polchlopek@intel.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	Sasha Levin <sashal@kernel.org>,
 	saeedm@nvidia.com,
@@ -41,9 +41,9 @@ Cc: Shahar Shitrit <shshitrit@nvidia.com>,
 	pabeni@redhat.com,
 	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.6 196/294] net/mlx5: Modify LSB bitmask in temperature event to include only the first bit
-Date: Mon,  5 May 2025 18:54:56 -0400
-Message-Id: <20250505225634.2688578-196-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.6 232/294] net/mlx5: Extend Ethtool loopback selftest to support non-linear SKB
+Date: Mon,  5 May 2025 18:55:32 -0400
+Message-Id: <20250505225634.2688578-232-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20250505225634.2688578-1-sashal@kernel.org>
 References: <20250505225634.2688578-1-sashal@kernel.org>
@@ -58,43 +58,39 @@ X-Patchwork-Hint: Ignore
 X-stable-base: Linux 6.6.89
 Content-Transfer-Encoding: 8bit
 
-From: Shahar Shitrit <shshitrit@nvidia.com>
+From: Alexei Lazar <alazar@nvidia.com>
 
-[ Upstream commit 633f16d7e07c129a36b882c05379e01ce5bdb542 ]
+[ Upstream commit 95b9606b15bb3ce1198d28d2393dd0e1f0a5f3e9 ]
 
-In the sensor_count field of the MTEWE register, bits 1-62 are
-supported only for unmanaged switches, not for NICs, and bit 63
-is reserved for internal use.
+Current loopback test validation ignores non-linear SKB case in
+the SKB access, which can lead to failures in scenarios such as
+when HW GRO is enabled.
+Linearize the SKB so both cases will be handled.
 
-To prevent confusing output that may include set bits that are
-not relevant to NIC sensors, we update the bitmask to retain only
-the first bit, which corresponds to the sensor ASIC.
-
-Signed-off-by: Shahar Shitrit <shshitrit@nvidia.com>
+Signed-off-by: Alexei Lazar <alazar@nvidia.com>
+Reviewed-by: Dragos Tatulea <dtatulea@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-Reviewed-by: Mateusz Polchlopek <mateusz.polchlopek@intel.com>
-Link: https://patch.msgid.link/20250213094641.226501-4-tariqt@nvidia.com
+Link: https://patch.msgid.link/20250209101716.112774-15-tariqt@nvidia.com
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/events.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index 3ec892d51f57d..0f4763dab5d25 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -163,6 +163,10 @@ static int temp_warn(struct notifier_block *nb, unsigned long type, void *data)
- 	u64 value_msb;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c b/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
+index 08a75654f5f18..c170503b3aace 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_selftest.c
+@@ -165,6 +165,9 @@ mlx5e_test_loopback_validate(struct sk_buff *skb,
+ 	struct udphdr *udph;
+ 	struct iphdr *iph;
  
- 	value_lsb = be64_to_cpu(eqe->data.temp_warning.sensor_warning_lsb);
-+	/* bit 1-63 are not supported for NICs,
-+	 * hence read only bit 0 (asic) from lsb.
-+	 */
-+	value_lsb &= 0x1;
- 	value_msb = be64_to_cpu(eqe->data.temp_warning.sensor_warning_msb);
- 
- 	mlx5_core_warn(events->dev,
++	if (skb_linearize(skb))
++		goto out;
++
+ 	/* We are only going to peek, no need to clone the SKB */
+ 	if (MLX5E_TEST_PKT_SIZE - ETH_HLEN > skb_headlen(skb))
+ 		goto out;
 -- 
 2.39.5
 
