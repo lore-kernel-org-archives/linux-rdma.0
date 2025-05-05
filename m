@@ -1,49 +1,51 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8079E281359;
-	Mon,  5 May 2025 23:03:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AF67286423;
+	Mon,  5 May 2025 23:03:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746486195; cv=none; b=CD2ACHdsGpbX87qeXFo8eykXsXeJ9254nFKCyoaEZzy263fNDjJ2oJNIzAivpRASxP03/v2GwwJa+FVkQeB1low0yGkjjfEGj/tLiGiChJqYLxMRbnBSJGyAjZJj6Izon07JVQH7nGn6SO8SXHGB3VZEAjL3K7+rLFrdu63v1A4=
+	t=1746486184; cv=none; b=lLOr620+iK7pDc6l9aWpFEZLG7E7j3/jUIxWVuY7h+v6ezdnuKa1BjhRarPcpcnKNesSilzbXv7ucA1UZlUTd2xRijaOexsx55rvkM8C+vsgIeXyXAvUx/gmgH07bcMLHFcTw1SvTHOVNv7P9NEHKWNyQi9egvjb3XlvUp11wpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746486195; c=relaxed/simple;
-	bh=cG9+6Z7Bog13sT6niqG2mYbzsvFckweOUilz1ChfGsY=;
+	s=arc-20240116; t=1746486184; c=relaxed/simple;
+	bh=epos424aK9x9LhxqU7GJMC9sbp5GjGE5n+DQWUwkP5E=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=t4U1+5dQ1Yj87a6V1ounBhh9MYU3EG3XtMQh1O0eLhYqtSSFEyP/+MrikGJse+6NjnHY1i1AMhwbVZqX5n32wA9Gnb97hm1uwF9DbJoNjWXavKAuo0UFituualsLhot8QGr5KVTKTOi33bx0tin5Gu3mTch6lK0dtGUAmMjGJfA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Eku9V9da; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=Mjpdo0ivQ4jYOJM/eEr8YrnDZiuASY8vYMRgS4YNamX+9vDlTaE5Ylv1EXeLnf0D+31zCvkLQkrQoDf5/e4hmOdNM8FgP1tKX/HB5sKdkqa3YSogCK2P8S8FLKbIsyEzo76PMIYers1Sr0uUrtrDWBctCASCCplQu8UzG9mT70E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Wunqb2To; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Eku9V9da"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3F1AC4CEED;
-	Mon,  5 May 2025 23:03:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Wunqb2To"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4124AC4CEED;
+	Mon,  5 May 2025 23:03:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746486194;
-	bh=cG9+6Z7Bog13sT6niqG2mYbzsvFckweOUilz1ChfGsY=;
+	s=k20201202; t=1746486183;
+	bh=epos424aK9x9LhxqU7GJMC9sbp5GjGE5n+DQWUwkP5E=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Eku9V9dao6NMG5zyzaZGM7qBaIBi4MiGSQV2KzrJwbq6SF17AtLdZbuf+ksPXLDve
-	 zj2a3xu+kFFLNWVIhN6lia40qHM/Odxrg2EhwrWyitjlCcNeSadBasMToTUkXS3/Kn
-	 PVvOVQRrdMdHXfWoKrTrV5EW8cZ3urhDG5GqUZrkmUcsOvIszYTkA7sXaXrjLXeZpq
-	 d+/IAM1eWaVjMIKTGSpX09i/U0zUJXlZTQ8meMLLDmJWnO74hYNkO2VBV8CjTOixWl
-	 qcVtAIOp2rvAaqw5EfwIV/ssDyJ6C59ae+iImsCIA1rBm4tx8xxjurB53ZRjSkofBZ
-	 RLBmrL8JRr28w==
+	b=Wunqb2ToS9CikcwhmdpmmcoRGNIuYz/t5KzFPqTRnOXM80DbYzMqWXTs1X2/nJ+0W
+	 IyXe2k6n7PvJ0L2GY6gf8f9wsIIUgkCSnSRmOecH757ardCUN2RvJ2IkOx072U6IkP
+	 8JY+34gWAFLOnCKotMamZDtftFpbi1tqfmrduNqC/OXyT7Q/7M/OYHr8v7r+8ckUhM
+	 f3y7RKInHtpdNmYaHb/hyp07MrzYe1aqhC491CQ0slgf4RffD5gzSUAAShxmQLJV78
+	 O9CcYUVH2LSsNM+9O8jeOPbtDWsdE6YOnzdazLkTlp6t4CrmdIfoxovRbIdMkXviJu
+	 WKOcOCqvaNbJg==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Cc: Shahar Shitrit <shshitrit@nvidia.com>,
+Cc: Jakub Kicinski <kuba@kernel.org>,
 	Tariq Toukan <tariqt@nvidia.com>,
-	Mateusz Polchlopek <mateusz.polchlopek@intel.com>,
-	Jakub Kicinski <kuba@kernel.org>,
 	Sasha Levin <sashal@kernel.org>,
-	saeedm@nvidia.com,
 	andrew+netdev@lunn.ch,
 	davem@davemloft.net,
 	edumazet@google.com,
 	pabeni@redhat.com,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	hawk@kernel.org,
+	john.fastabend@gmail.com,
 	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.6 197/294] net/mlx5: Apply rate-limiting to high temperature warning
-Date: Mon,  5 May 2025 18:54:57 -0400
-Message-Id: <20250505225634.2688578-197-sashal@kernel.org>
+	linux-rdma@vger.kernel.org,
+	bpf@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.6 191/294] eth: mlx4: don't try to complete XDP frames in netpoll
+Date: Mon,  5 May 2025 18:54:51 -0400
+Message-Id: <20250505225634.2688578-191-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20250505225634.2688578-1-sashal@kernel.org>
 References: <20250505225634.2688578-1-sashal@kernel.org>
@@ -58,43 +60,37 @@ X-Patchwork-Hint: Ignore
 X-stable-base: Linux 6.6.89
 Content-Transfer-Encoding: 8bit
 
-From: Shahar Shitrit <shshitrit@nvidia.com>
+From: Jakub Kicinski <kuba@kernel.org>
 
-[ Upstream commit 9dd3d5d258aceb37bdf09c8b91fa448f58ea81f0 ]
+[ Upstream commit 8fdeafd66edaf420ea0063a1f13442fe3470fe70 ]
 
-Wrap the high temperature warning in a temperature event with
-a call to net_ratelimit() to prevent flooding the kernel log
-with repeated warning messages when temperature exceeds the
-threshold multiple times within a short duration.
+mlx4 doesn't support ndo_xdp_xmit / XDP_REDIRECT and wasn't
+using page pool until now, so it could run XDP completions
+in netpoll (NAPI budget == 0) just fine. Page pool has calling
+context requirements, make sure we don't try to call it from
+what is potentially HW IRQ context.
 
-Signed-off-by: Shahar Shitrit <shshitrit@nvidia.com>
-Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-Reviewed-by: Mateusz Polchlopek <mateusz.polchlopek@intel.com>
-Link: https://patch.msgid.link/20250213094641.226501-2-tariqt@nvidia.com
+Reviewed-by: Tariq Toukan <tariqt@nvidia.com>
+Link: https://patch.msgid.link/20250213010635.1354034-3-kuba@kernel.org
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/events.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index 0f4763dab5d25..e7143d32b2211 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -169,9 +169,10 @@ static int temp_warn(struct notifier_block *nb, unsigned long type, void *data)
- 	value_lsb &= 0x1;
- 	value_msb = be64_to_cpu(eqe->data.temp_warning.sensor_warning_msb);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_tx.c b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+index 65cb63f6c4658..61a0fd8424a2c 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+@@ -450,6 +450,8 @@ int mlx4_en_process_tx_cq(struct net_device *dev,
  
--	mlx5_core_warn(events->dev,
--		       "High temperature on sensors with bit set %llx %llx",
--		       value_msb, value_lsb);
-+	if (net_ratelimit())
-+		mlx5_core_warn(events->dev,
-+			       "High temperature on sensors with bit set %llx %llx",
-+			       value_msb, value_lsb);
+ 	if (unlikely(!priv->port_up))
+ 		return 0;
++	if (unlikely(!napi_budget) && cq->type == TX_XDP)
++		return 0;
  
- 	return NOTIFY_OK;
- }
+ 	netdev_txq_bql_complete_prefetchw(ring->tx_queue);
+ 
 -- 
 2.39.5
 
