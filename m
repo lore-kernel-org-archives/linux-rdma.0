@@ -1,50 +1,51 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FDAA2D3F8E;
-	Mon,  5 May 2025 22:53:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 049AB2D5D0F;
+	Mon,  5 May 2025 22:54:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746485604; cv=none; b=d1uHZO/aFYd1eVHK3WpTfuAYaL3SHppWkEwxPBLP80OsaPa9er9eVpdz/lDyy4x8HSauVF6g0aHo2yBQqSb48OOplw6UF1mslz22qKQizlEa5i5qy/SRuQ88my5TO+KJbxLr5c5+TdNj98pMfup3CsI9fxvRw6MNpPeZgalEyHI=
+	t=1746485679; cv=none; b=EJnZEN1Yzn7XE0OoA+Y02S1M0TL/DSV4iRjNjFqJCKfDf9cEeeriChbbBTx2jvE2bn6qpK8Jl5EmcEOV5Cva6Fuu/LsTsjIeponQusW60PEovDvZRGDM9Ki33dfCvQPP61kinRyCjlAuBwVzRj2vNvK4OXlZS4bgN4FgamSY2bI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746485604; c=relaxed/simple;
-	bh=CetfJIbeQxqv4yBRvTwQlTG7mgijiurlfSPO2AauUUU=;
+	s=arc-20240116; t=1746485679; c=relaxed/simple;
+	bh=l7jAxZOds+YpMtYaq2uWqkMKqPeBNVC/HpOgeEy1IPc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=eGjWeHMFtTSl8B/M5mCUNA9iREx6kwzboxZVPM0u0whVROZ1D+z1b/VKMAyDY59w2OyMEE+aLEY0RDe1aLqRxQl1W/kPF4ztqxYFYeCIhVlQEfWpi/5JM/E38WpOcTO+37mNEIl/lew3LYe6+3ddshuhz/lso9pvpgATfmIztZM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nYquS4II; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=HEDsK4u7tkj4lLw4UlbaLfzzfrHYm3jGc4TokFp4DImXbKlFsK6zOVHV8Fv6Knzipx9I16ZyC0G9aVcQhEb26MHBQfvM6+kfrqOvhRyOXr8ko99J8eWQGT//oqS9u3MSMBeN3NF9Wep2IhbDf5MKQF+uwN5ISudHKRZo7JDNgeQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Nde6B3e6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nYquS4II"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE09BC4CEED;
-	Mon,  5 May 2025 22:53:22 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Nde6B3e6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E0FFC4CEED;
+	Mon,  5 May 2025 22:54:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746485604;
-	bh=CetfJIbeQxqv4yBRvTwQlTG7mgijiurlfSPO2AauUUU=;
+	s=k20201202; t=1746485678;
+	bh=l7jAxZOds+YpMtYaq2uWqkMKqPeBNVC/HpOgeEy1IPc=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=nYquS4II2NKrArPztuH9a63qsVEyt0XbAYKIZgIef3eoff/7JvnyFdNgyJuroeCDV
-	 wKf68MEWdCkpXwo/qpRtJTqecboiZzAyxC4ubvnzZ6QXL2Cc7amesPdw+86eDk/zG3
-	 x2uMjtgV3ovuzg6JWZxZIVACNYkgRZpo9OJE4dJSbmFylbZBjmRD0zRNYBPicZXEmH
-	 cQE5FFvGbkcdnC52lQckle/lNE3MgbxLLCHYcqnh6PD70EkezSHMDs+SqSjU0pgl0Z
-	 Yq7aGHigytdYiyg+lTan4CDaopOdUpKrA/cc0KdtdZet7sW8dp8XbdTtKvtQ+xSLcM
-	 dC6XPsQd5zuPA==
+	b=Nde6B3e6jruh96jvrtCtNyWi4oJ2qbf5/7INFNVqs/83jI4OqZdbNzykiCLYtRBhE
+	 yyhHe9/EF1OGLspWYbbgYETwWzjRxrLxQZlGBdyAs0sZ+pQ0SB0BTcnV40KjxYFnFi
+	 9xUyQdOobscA4QzOiH7WO/7n6hJb6S/0DkN+ULMZqx5jgmwqcGowdpiy4ytD58FyWo
+	 gydkosQzkmm7hI0aYWZjGi1/N8UjSaYk+5MheiklzoFPMJK9Pevoxm+oIT4339LU7o
+	 bNc3A55xz7wMsJczdb1m5+WQBx2nxpsdwPbMiDUKDb9ABEQ6i5xbs04PB4r6+MK0iB
+	 q3IQ/vocE7fNg==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Cc: William Tu <witu@nvidia.com>,
-	Bodong Wang <bodong@nvidia.com>,
-	Saeed Mahameed <saeedm@nvidia.com>,
+Cc: Carolina Jubran <cjubran@nvidia.com>,
+	Yael Chemla <ychemla@nvidia.com>,
+	Cosmin Ratiu <cratiu@nvidia.com>,
 	Tariq Toukan <tariqt@nvidia.com>,
-	Michal Swiatkowski <michal.swiatkowski@linux.intel.com>,
-	Jakub Kicinski <kuba@kernel.org>,
+	Kalesh AP <kalesh-anakkur.purayil@broadcom.com>,
+	Paolo Abeni <pabeni@redhat.com>,
 	Sasha Levin <sashal@kernel.org>,
+	saeedm@nvidia.com,
 	andrew+netdev@lunn.ch,
 	davem@davemloft.net,
 	edumazet@google.com,
-	pabeni@redhat.com,
+	kuba@kernel.org,
 	netdev@vger.kernel.org,
 	linux-rdma@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.12 382/486] net/mlx5e: reduce rep rxq depth to 256 for ECPF
-Date: Mon,  5 May 2025 18:37:38 -0400
-Message-Id: <20250505223922.2682012-382-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.12 422/486] net/mlx5e: Avoid WARN_ON when configuring MQPRIO with HTB offload enabled
+Date: Mon,  5 May 2025 18:38:18 -0400
+Message-Id: <20250505223922.2682012-422-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20250505223922.2682012-1-sashal@kernel.org>
 References: <20250505223922.2682012-1-sashal@kernel.org>
@@ -59,73 +60,46 @@ X-Patchwork-Hint: Ignore
 X-stable-base: Linux 6.12.26
 Content-Transfer-Encoding: 8bit
 
-From: William Tu <witu@nvidia.com>
+From: Carolina Jubran <cjubran@nvidia.com>
 
-[ Upstream commit b9cc8f9d700867aaa77aedddfea85e53d5e5d584 ]
+[ Upstream commit 689805dcc474c2accb5cffbbcea1c06ee4a54570 ]
 
-By experiments, a single queue representor netdev consumes kernel
-memory around 2.8MB, and 1.8MB out of the 2.8MB is due to page
-pool for the RXQ. Scaling to a thousand representors consumes 2.8GB,
-which becomes a memory pressure issue for embedded devices such as
-BlueField-2 16GB / BlueField-3 32GB memory.
+When attempting to enable MQPRIO while HTB offload is already
+configured, the driver currently returns `-EINVAL` and triggers a
+`WARN_ON`, leading to an unnecessary call trace.
 
-Since representor netdevs mostly handles miss traffic, and ideally,
-most of the traffic will be offloaded, reduce the default non-uplink
-rep netdev's RXQ default depth from 1024 to 256 if mdev is ecpf eswitch
-manager. This saves around 1MB of memory per regular RQ,
-(1024 - 256) * 2KB, allocated from page pool.
+Update the code to handle this case more gracefully by returning
+`-EOPNOTSUPP` instead, while also providing a helpful user message.
 
-With rxq depth of 256, the netlink page pool tool reports
-$./tools/net/ynl/cli.py --spec Documentation/netlink/specs/netdev.yaml \
-	 --dump page-pool-get
- {'id': 277,
-  'ifindex': 9,
-  'inflight': 128,
-  'inflight-mem': 786432,
-  'napi-id': 775}]
-
-This is due to mtu 1500 + headroom consumes half pages, so 256 rxq
-entries consumes around 128 pages (thus create a page pool with
-size 128), shown above at inflight.
-
-Note that each netdev has multiple types of RQs, including
-Regular RQ, XSK, PTP, Drop, Trap RQ. Since non-uplink representor
-only supports regular rq, this patch only changes the regular RQ's
-default depth.
-
-Signed-off-by: William Tu <witu@nvidia.com>
-Reviewed-by: Bodong Wang <bodong@nvidia.com>
-Reviewed-by: Saeed Mahameed <saeedm@nvidia.com>
+Signed-off-by: Carolina Jubran <cjubran@nvidia.com>
+Reviewed-by: Yael Chemla <ychemla@nvidia.com>
+Reviewed-by: Cosmin Ratiu <cratiu@nvidia.com>
 Signed-off-by: Tariq Toukan <tariqt@nvidia.com>
-Reviewed-by: Michal Swiatkowski <michal.swiatkowski@linux.intel.com>
-Link: https://patch.msgid.link/20250209101716.112774-8-tariqt@nvidia.com
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Reviewed-by: Kalesh AP <kalesh-anakkur.purayil@broadcom.com>
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index fd1f460b7be65..18ec392d17404 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -65,6 +65,7 @@
- #define MLX5E_REP_PARAMS_DEF_LOG_SQ_SIZE \
- 	max(0x7, MLX5E_PARAMS_MINIMUM_LOG_SQ_SIZE)
- #define MLX5E_REP_PARAMS_DEF_NUM_CHANNELS 1
-+#define MLX5E_REP_PARAMS_DEF_LOG_RQ_SIZE 0x8
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 15ec9750d4be0..36a2c935267b0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -3759,8 +3759,11 @@ static int mlx5e_setup_tc_mqprio(struct mlx5e_priv *priv,
+ 	/* MQPRIO is another toplevel qdisc that can't be attached
+ 	 * simultaneously with the offloaded HTB.
+ 	 */
+-	if (WARN_ON(mlx5e_selq_is_htb_enabled(&priv->selq)))
+-		return -EINVAL;
++	if (mlx5e_selq_is_htb_enabled(&priv->selq)) {
++		NL_SET_ERR_MSG_MOD(mqprio->extack,
++				   "MQPRIO cannot be configured when HTB offload is enabled.");
++		return -EOPNOTSUPP;
++	}
  
- static const char mlx5e_rep_driver_name[] = "mlx5e_rep";
- 
-@@ -854,6 +855,8 @@ static void mlx5e_build_rep_params(struct net_device *netdev)
- 
- 	/* RQ */
- 	mlx5e_build_rq_params(mdev, params);
-+	if (!mlx5e_is_uplink_rep(priv) && mlx5_core_is_ecpf(mdev))
-+		params->log_rq_mtu_frames = MLX5E_REP_PARAMS_DEF_LOG_RQ_SIZE;
- 
- 	/* If netdev is already registered (e.g. move from nic profile to uplink,
- 	 * RTNL lock must be held before triggering netdev notifiers.
+ 	switch (mqprio->mode) {
+ 	case TC_MQPRIO_MODE_DCB:
 -- 
 2.39.5
 
