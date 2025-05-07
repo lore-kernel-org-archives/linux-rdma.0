@@ -1,452 +1,284 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9838E28B7E2;
-	Wed,  7 May 2025 15:59:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746633548; cv=none; b=FKn3zZICn3UOn2MgSOv76NfTPSmkzWROoDuGl5udj0M2PQwtUtZYI6Ya4S+TO+vZw0Wyv8tu0MhGmH+DCU7BRmRPdLVvYAVRkTcrE2TZWqAW2fJGsfvE+p2D7Aji8yi+9cIphSBq+FK084sqL2t4b+ZCQdrW3OTDgRgUZSesxLU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746633548; c=relaxed/simple;
-	bh=5Htt0XtrGB1HIsbJmKus2qqkNIm8S0mutRTig4SsQms=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=Ylu1Ga0944FWl/ki15uLSxtv6VgDitPeNRnyO8unwRKoRn9pIaTaCcSk6ZjbznzPgDBJ89d4N6ZFjHj+L91ZT2F6EA3QRBVK6xnuE5mjyenjL1MQfJNdFEMv6rb4RzHh7TpOEkPmES1xdZST8AcCqo1IXxbnYAz3Ivb3EmRU7Js=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=Wcy/Mvz5; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Received: from DM1PR04CU001.outbound.protection.outlook.com (mail-centralusazon11020125.outbound.protection.outlook.com [52.101.61.125])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3704E28B7EA;
+	Wed,  7 May 2025 15:59:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.61.125
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1746633571; cv=fail; b=LvFiFL6uxCuKp1RmsAd3/j3SVLnLEhifCEJj2+2v97QNPEbaZSGtN6DdROL2nVke0YG6vwlEJ8DW742iUSElspVTmkTJ9inyJjrL08zaH935zsR4ZWGDllPN/4FiuFuWVkkaWOQLx1DoqEtI4fFbdRha8BOWTtXsFE76f3BTb5c=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1746633571; c=relaxed/simple;
+	bh=cek2ZGdDAZZ/CZKdCPaaN6KMtRjGM1zyoAskoXtTKOo=;
+	h=From:To:Cc:Subject:Date:Message-Id:Content-Type:MIME-Version; b=ACWO2Ww4VucPJxZoAj2tQCZiFC1//oQgNuAzLSNCs79fRKf5AuwVeU7evfw2DfaA7y/MJztNV9iq03y4ZD8VJnbpTl4WMRCNoiLpKTpJltGOo+DXZbG5t1lwYCtXP3WCdYwAkUNorDaYjYiiFRZTwuHg/9j1TnJjgxRieGtKJdE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com; spf=pass smtp.mailfrom=microsoft.com; dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b=LHumsCHQ; arc=fail smtp.client-ip=52.101.61.125
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="Wcy/Mvz5"
-Received: by linux.microsoft.com (Postfix, from userid 1186)
-	id 485B021199CC; Wed,  7 May 2025 08:59:05 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 485B021199CC
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1746633545;
-	bh=VGxGE0RP7EsaST1HSCQAWnMLR4KrGknrkI/BU2X2CRE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Wcy/Mvz5xQ1uG+ZaapHE7TzsOmtGRKYGj9IfbdoIfa5N46x/KE/rhg3ekZ2yAgNjq
-	 /sa1j2v3QZ0ABDCWdBj9S21CnQOUIIAo3+BQ3gtnleK9uYu7jxLf0aDTkm6MAjvJxy
-	 PhRcvIn2mNFnfCNcM8j3SzVbiMpisXCurXVxFi4k=
-From: Konstantin Taranov <kotaranov@linux.microsoft.com>
-To: kotaranov@microsoft.com,
-	pabeni@redhat.com,
-	haiyangz@microsoft.com,
+	dkim=pass (1024-bit key) header.d=microsoft.com header.i=@microsoft.com header.b="LHumsCHQ"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=GnYjrDg6BRomRrrVkH+kRpaEk1o9/C7r1haH5xVbwZsvv8zYHWXWUtDHU95lGZkLjEU0KulseR7E14Fy3TeIAU60arygUtv3PARIqFFJJXRPx5nUv6ZlW4p7Dko8tL6co7Lrwg1Q7rFgIJu5QPZwawA+t8GF+K3tsm5x3HnKgUw4RQN12fS4l8OrjBppCiUgdwLMwfF16Jfda4e6oPQUxeRLY0Evmhwq1iZDEIcVeVTUJNWYHxy7RDm0QEj+9pU8F1eC8bo9rEcyiU2idaQHWGvzU038K9HtQW0FPU0oSvA9c+mW52PIRu2YEWZxZWMgpY/OAgCdFWscJ35IjP2ukA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ScwWN27k1a8cYXP3CAKrgled8pU81Yy7slLf5PSJc5s=;
+ b=UrOWL1pLw/SIxQLVPj8Nq8D+cdHOyfGjXo6AVQDF91XKcR84+yHXG59LxEiYePnXSZ5kqh2iSuJHzK5TFvYsBhLnk7PH2ivSjkp5TPDwMdWHmB86Vfbp7gxOS1CoTWm/NDpWo8TDfKyPWECMUtcPW18R7HCaWHaz5XAICZaZaQ8v7r8Q9mkm1TZ4XcvHLkpiqDoEeoMmrdWu2X9SIgEc6RAIFaW5oKqv7lQlkKng5UxEdJfXGGZEGqKYh+e6DSYn49UAkAOOHFcssT3194EvcjWaov9uZ6fwVixV0memHxyxSIEetyJlv/uzryzI2sqvC/U09omhW+xLRAHKOKO5WA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=microsoft.com; dmarc=pass action=none
+ header.from=microsoft.com; dkim=pass header.d=microsoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ScwWN27k1a8cYXP3CAKrgled8pU81Yy7slLf5PSJc5s=;
+ b=LHumsCHQZ+ISjTQRtaYHNhuYXVFr4Cq1dcQySQE5CdB/3X7xmRTqF9NUrwVSFsALCA6LP6eknj/jtrKnU7HAg1yv23c87jQatYNdZqbPHAhvYAxrtK81QCZb8+yk7m1hvOWpGrcAC837+7nrZJ1Cr9kY+3N7q0A59RkRnr0014c=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=microsoft.com;
+Received: from BY5PR21MB1443.namprd21.prod.outlook.com (2603:10b6:a03:21f::18)
+ by BY1PR21MB4489.namprd21.prod.outlook.com (2603:10b6:a03:5be::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.17; Wed, 7 May
+ 2025 15:59:24 +0000
+Received: from BY5PR21MB1443.namprd21.prod.outlook.com
+ ([fe80::2c5a:1a34:2c8d:48ef]) by BY5PR21MB1443.namprd21.prod.outlook.com
+ ([fe80::2c5a:1a34:2c8d:48ef%7]) with mapi id 15.20.8722.018; Wed, 7 May 2025
+ 15:59:24 +0000
+From: Haiyang Zhang <haiyangz@microsoft.com>
+To: linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org
+Cc: haiyangz@microsoft.com,
+	decui@microsoft.com,
+	stephen@networkplumber.org,
 	kys@microsoft.com,
+	paulros@microsoft.com,
+	olaf@aepfle.de,
+	vkuznets@redhat.com,
+	davem@davemloft.net,
+	wei.liu@kernel.org,
 	edumazet@google.com,
 	kuba@kernel.org,
-	davem@davemloft.net,
-	decui@microsoft.com,
-	wei.liu@kernel.org,
+	pabeni@redhat.com,
+	leon@kernel.org,
 	longli@microsoft.com,
-	jgg@ziepe.ca,
-	leon@kernel.org
-Cc: linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: [PATCH rdma-next v4 2/4] RDMA/mana_ib: Add support of mana_ib for RNIC and ETH nic
-Date: Wed,  7 May 2025 08:59:03 -0700
-Message-Id: <1746633545-17653-3-git-send-email-kotaranov@linux.microsoft.com>
+	ssengar@linux.microsoft.com,
+	linux-rdma@vger.kernel.org,
+	daniel@iogearbox.net,
+	john.fastabend@gmail.com,
+	bpf@vger.kernel.org,
+	ast@kernel.org,
+	hawk@kernel.org,
+	tglx@linutronix.de,
+	shradhagupta@linux.microsoft.com,
+	andrew+netdev@lunn.ch,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next] net: mana: Add handler for hardware servicing events
+Date: Wed,  7 May 2025 08:58:39 -0700
+Message-Id: <1746633519-17549-1-git-send-email-haiyangz@microsoft.com>
 X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1746633545-17653-1-git-send-email-kotaranov@linux.microsoft.com>
-References: <1746633545-17653-1-git-send-email-kotaranov@linux.microsoft.com>
+Content-Type: text/plain
+X-ClientProxiedBy: MW2PR16CA0020.namprd16.prod.outlook.com (2603:10b6:907::33)
+ To BY5PR21MB1443.namprd21.prod.outlook.com (2603:10b6:a03:21f::18)
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Sender: LKML haiyangz <lkmlhyz@microsoft.com>
+X-MS-Exchange-MessageSentRepresentingType: 2
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BY5PR21MB1443:EE_|BY1PR21MB4489:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6428d717-0b39-4dce-4447-08dd8d8022cf
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|7416014|52116014|1800799024|366016|376014|38350700014;
+X-Microsoft-Antispam-Message-Info:
+	=?us-ascii?Q?TXDzT3U8sG79nF5hnWkR+G8A5AgH5Dhxdz+QeEmCUzYVIcYEBDag9Fxt+EoR?=
+ =?us-ascii?Q?nw2vrjDdJ8ikJI6LMYJ/0Oc6s46zeihrapArpGTIEMYZtZFeM8nQ+p9POipz?=
+ =?us-ascii?Q?F5SU5TTz5/ufkeXDkPegDn5aY283YTOesOU96c2LUn1qmfcUZrARUSH9HmHO?=
+ =?us-ascii?Q?uqB0cNgdeAlHodi7HhQcYEu9trYC480g8efCyiVNEXLUyyiDNbTXNrtIuluW?=
+ =?us-ascii?Q?IimQAoMAP6D++VgHLSZGx3Wq2iv/fxS88pYjTNwvbr4ckHAx0VKkAweA2uQW?=
+ =?us-ascii?Q?WwyVamWQHFh1Uc3p4cNwdDgqDELoV/uYlbpkUSsGKgTDqMcdF1lBQGvPt8FF?=
+ =?us-ascii?Q?WShjrpd80eZ6Bf3TXXvSEvKIfEw2557oFBvnMSCg6g6NfvgO5h0ZpCPJ/cne?=
+ =?us-ascii?Q?Vw47HHC+w72jzsm/z1+2Wm2v0zIsPLvuxke43G2ATjOzysUGL7LRcwyNiUha?=
+ =?us-ascii?Q?4bsC7bQBSwVfFIdjxTsf2xKGYQWeyrJLmebZpSEw3l7UQkP6zhlfq7GqQKoT?=
+ =?us-ascii?Q?RADnBYTUthADwyJOIbaN4uWKo7piCY0ZSVHi3pmpupaNQphaWjXEewPh5fL2?=
+ =?us-ascii?Q?UVOslg+E8j1qAkuE8blSFui7T3m/RWox6BuD4IDNzZQk3S+gtx47JrtNo99W?=
+ =?us-ascii?Q?30a4WB2AsWuI5wdWLV6Ia81s/S1VYpvSajVrqJAunnqeCT0ZLLVvdWNV4A8F?=
+ =?us-ascii?Q?vkzLSLhThaAPtyker2y7MLf3jQ0+rNg9SlcdwbcJvdJiBYXEYnWzEUVy+Dyo?=
+ =?us-ascii?Q?XVyYiMcEP9eeI1ihEAI28LT2uliYgljRN3arajCNC/5cId6D6zwj7mB6U6lX?=
+ =?us-ascii?Q?4+9jrS+VkiAZSw+RQilf2jZgEoF29WpOZVugUeujPnPOnQ7rW6hO0ggzlpNs?=
+ =?us-ascii?Q?5aobeUf3AzTQ0pp1D0wssC8vs/zCymM5E56VXbMpHqFdEg6mavhkx634mwV0?=
+ =?us-ascii?Q?4XWNa8CRxeRSRcSydwNf/xeyCrnnxLMybc3hNIAYZMD/eBQMtZstO4uY9PhT?=
+ =?us-ascii?Q?oEpS1kdHumrmLZA2sVZtaADUwUr2WUxgvEfjrVhh5z+9hzajUq+F55x1s3W9?=
+ =?us-ascii?Q?+8QK1GNUtzQS/ut/y/vaFy1dSC9qgyCYayp12ohvH/L4DD6lNVrLtfim7nuL?=
+ =?us-ascii?Q?dMFaTpj8/I1ORYBWgdg9WkuIA+hKcT87FHuXP7yA4urwZvwrk3kQ9p2AaAZj?=
+ =?us-ascii?Q?gPW5pEmAhhHt3zxrN2FE+cX9Ep6RxxYB9W0lI30MuXAgc/EFE9U87uP3Y1uG?=
+ =?us-ascii?Q?tT9PM/q7ChG5NqYLRvXOLggb1i8mTL+VtNzTK7zTnL3PjTs4iWrZvmLMwLP0?=
+ =?us-ascii?Q?Tc/zvEJjUSE/lP/XalZwVTrsnUnI4Zy+kAeaDcLT5EnDA/BDZb8QvaEdvO7J?=
+ =?us-ascii?Q?dfQYHbyz/luantqQp6v5PSB9Ct6+AlnzsaFJLhsRyXqZHsFGXupwf9kyBbwk?=
+ =?us-ascii?Q?2zaxDeqngp3SA53fcCkCEzUuIC1Uen2/8gnO42f3VPbbvuVESJMyFQ=3D=3D?=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR21MB1443.namprd21.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(52116014)(1800799024)(366016)(376014)(38350700014);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?Xg5GBEshmfd+X0/Ge+WDkJ1JUD3A+BffSvSn2tg0mk1iuaDLS7rQqnGqhfpN?=
+ =?us-ascii?Q?J+kGu66FFMjaicdar5OAR60H/pZCye2+vYAUsxAAD9c49lOe8nGzbgBbyijT?=
+ =?us-ascii?Q?LMKY8xjg2HWSf0jdt0nAtyBuxoa3EurTo6UMZIkmobe6V7qspL7bsdIPzAzI?=
+ =?us-ascii?Q?AQHwqD/YsC0mfFGudwj0Tasj5jEcE7bifnBMNf99mUPa8ksrc1V89JHaXCTY?=
+ =?us-ascii?Q?L6XFGUQFo/bQsG3TEkoZlJApk00fhOkidBjX7GL85jK84svzAjFEnFrKlXFB?=
+ =?us-ascii?Q?GwVSxuvWOyolPFd1ZiSDQCqJ6mFYfcycaUBcOrtSNhjk1jJdQqsARYMVuRqC?=
+ =?us-ascii?Q?bVY6hmvJM3ruayoCpHrSft4Czf4QMdLodSifP1Ct4XJyYsbnuohHJ/xObIPZ?=
+ =?us-ascii?Q?/GrhJxGIvPg3V4387JhJhz6ElzB+4jaeOZ8/SfxHuO3/3GLDMj1nqIYNOOj3?=
+ =?us-ascii?Q?EOmlK6jZzuVyeIGF2tQ9P8GJeJFG6ITpmaARMSJkOTpliIAyC7w2BCAnVzK5?=
+ =?us-ascii?Q?sPVqHUnRWrEYQnD4xRhQydK6jnSxKcEWDGDnhLVUi6XgM8Px7MhoCZFXNfb9?=
+ =?us-ascii?Q?iw7e8GwqSxR+hnogdbRrx7WYrM3yyuxgGU89RhV+8Y5I64tt/nyYZmxPRbul?=
+ =?us-ascii?Q?YNi5PIcD2CQbGbwIjAFZIhYO8xlV96XQwM7fNTKYsGLqneEvyG3phpy23npF?=
+ =?us-ascii?Q?pk7nJySIi84Mvddkov1XBvur26Qcl3kgcTlfGvRlXz6hjQMQXxiHBOvY4zXp?=
+ =?us-ascii?Q?5s9i1Q14eP2two6BvuXceqvJkrhT1yO6pOaUnSgrIOSGNWZYAna8JjznBfOw?=
+ =?us-ascii?Q?OQjs4pLPJFYOvzrNfXC8/fX2/cQ+zIlRu76efu6l6K/xkqJqr5uRteqhdWx2?=
+ =?us-ascii?Q?QKHMONNZGJmyc1m7+c338NkUCEmmjH/SszcggYMD36y2ZBEOsy8eJITippYV?=
+ =?us-ascii?Q?MqxGhenzyxa1vbg5MbYGJ5VUo7KxGbRvD0k/8ylDY57oD+UoITAUXjxDlPGb?=
+ =?us-ascii?Q?Bc+XR+0nCYjho2bxOw1SxpjT6HD0J6qo19W9SDr6HdCce2/QW/yhtM/PJV78?=
+ =?us-ascii?Q?qhGykB9wTARbGhhgPv2cXUMdaV8u6QDRVUiB/0qBCPtl9DX0ETYLrV+yLRsN?=
+ =?us-ascii?Q?MB2acaJKZ6UE/iq/RUvGvGlIOQH4af3kQkrSgxo+AEEEha/9gfsrRZaIeJ1g?=
+ =?us-ascii?Q?YtT+7cAIucJUKANROpp0ezCAk/ZIBo++tyEMk8wsBZxvhJaTg9Iff/6cqADB?=
+ =?us-ascii?Q?Foq67WUGMh0k8fyCy5qvZSqv5dJPvV5nQ0jkevPzgJb7MZ2dUggvzGh1Jg3o?=
+ =?us-ascii?Q?WJD/TKi7mi1sW7IY+mAxVNX98KGmvam7nw6hPmADQ3wa6dAc7/t75U0CZXJj?=
+ =?us-ascii?Q?/niYUU679ULc66ABSVe9I6sMMzNWRiW1HCctrfjfzfVgCkl7kbKfDBCDaPrW?=
+ =?us-ascii?Q?2xCDEfmI4/CtaIoX+NThLNEcYO5mg5qz+ca5F7VcuqGsy1yz/5feGCJfA+li?=
+ =?us-ascii?Q?qiAiVVD0ZAjHqeCq/ZYjgtQGDrd64dJRrk8uhYPkvrHZrQSd5BwcB/ownG6m?=
+ =?us-ascii?Q?JzHyrIAZ21/Y40nZRgFiCeNxDViGCY6fsvZJanMo?=
+X-OriginatorOrg: microsoft.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6428d717-0b39-4dce-4447-08dd8d8022cf
+X-MS-Exchange-CrossTenant-AuthSource: BY5PR21MB1443.namprd21.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 May 2025 15:59:24.2426
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 72f988bf-86f1-41af-91ab-2d7cd011db47
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ot2517ozBJlAbE17Zl3Su/OOnMkpX46JCyqVleNrRJ9oFsM0dHkVRVlTg75Ujwqkn4dLvf8EAtOOgCVZSZ13uQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY1PR21MB4489
 
-From: Konstantin Taranov <kotaranov@microsoft.com>
+To collaborate with hardware servicing events, upon receiving the special
+EQE notification from the HW channel, remove the devices on this bus.
+Then, after a waiting period based on the device specs, rescan the parent
+bus to recover the devices.
 
-Allow mana_ib to be created over ethernet gdma device and
-over rnic gdma device. The HW has two devices with different
-capabilities and different use-cases. Initialize required
-resources depending on the used gdma device.
-
-Signed-off-by: Konstantin Taranov <kotaranov@microsoft.com>
+Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
 ---
- drivers/infiniband/hw/mana/device.c  | 174 +++++++++++++--------------
- drivers/infiniband/hw/mana/main.c    |  55 ++++++++-
- drivers/infiniband/hw/mana/mana_ib.h |   6 +
- 3 files changed, 138 insertions(+), 97 deletions(-)
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 61 +++++++++++++++++++
+ include/net/mana/gdma.h                       |  5 +-
+ 2 files changed, 65 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mana/device.c b/drivers/infiniband/hw/mana/device.c
-index b310893..165c0a1 100644
---- a/drivers/infiniband/hw/mana/device.c
-+++ b/drivers/infiniband/hw/mana/device.c
-@@ -101,103 +101,95 @@ static int mana_ib_probe(struct auxiliary_device *adev,
- 			 const struct auxiliary_device_id *id)
- {
- 	struct mana_adev *madev = container_of(adev, struct mana_adev, adev);
-+	struct gdma_context *gc = madev->mdev->gdma_context;
-+	struct mana_context *mc = gc->mana.driver_data;
- 	struct gdma_dev *mdev = madev->mdev;
- 	struct net_device *ndev;
--	struct mana_context *mc;
- 	struct mana_ib_dev *dev;
- 	u8 mac_addr[ETH_ALEN];
- 	int ret;
- 
--	mc = mdev->driver_data;
--
- 	dev = ib_alloc_device(mana_ib_dev, ib_dev);
- 	if (!dev)
- 		return -ENOMEM;
- 
- 	ib_set_device_ops(&dev->ib_dev, &mana_ib_dev_ops);
--
--	dev->ib_dev.phys_port_cnt = mc->num_ports;
--
--	ibdev_dbg(&dev->ib_dev, "mdev=%p id=%d num_ports=%d\n", mdev,
--		  mdev->dev_id.as_uint32, dev->ib_dev.phys_port_cnt);
--
- 	dev->ib_dev.node_type = RDMA_NODE_IB_CA;
--
--	/*
--	 * num_comp_vectors needs to set to the max MSIX index
--	 * when interrupts and event queues are implemented
--	 */
--	dev->ib_dev.num_comp_vectors = mdev->gdma_context->max_num_queues;
--	dev->ib_dev.dev.parent = mdev->gdma_context->dev;
--
--	ndev = mana_get_primary_netdev(mc, 0, &dev->dev_tracker);
--	if (!ndev) {
--		ret = -ENODEV;
--		ibdev_err(&dev->ib_dev, "Failed to get netdev for IB port 1");
--		goto free_ib_device;
--	}
--	ether_addr_copy(mac_addr, ndev->dev_addr);
--	addrconf_addr_eui48((u8 *)&dev->ib_dev.node_guid, ndev->dev_addr);
--	ret = ib_device_set_netdev(&dev->ib_dev, ndev, 1);
--	/* mana_get_primary_netdev() returns ndev with refcount held */
--	netdev_put(ndev, &dev->dev_tracker);
--	if (ret) {
--		ibdev_err(&dev->ib_dev, "Failed to set ib netdev, ret %d", ret);
--		goto free_ib_device;
--	}
--
--	ret = mana_gd_register_device(&mdev->gdma_context->mana_ib);
--	if (ret) {
--		ibdev_err(&dev->ib_dev, "Failed to register device, ret %d",
--			  ret);
--		goto free_ib_device;
--	}
--	dev->gdma_dev = &mdev->gdma_context->mana_ib;
--
--	dev->nb.notifier_call = mana_ib_netdev_event;
--	ret = register_netdevice_notifier(&dev->nb);
--	if (ret) {
--		ibdev_err(&dev->ib_dev, "Failed to register net notifier, %d",
--			  ret);
--		goto deregister_device;
--	}
--
--	ret = mana_ib_gd_query_adapter_caps(dev);
--	if (ret) {
--		ibdev_err(&dev->ib_dev, "Failed to query device caps, ret %d",
--			  ret);
--		goto deregister_net_notifier;
--	}
--
--	ib_set_device_ops(&dev->ib_dev, &mana_ib_stats_ops);
--
--	ret = mana_ib_create_eqs(dev);
--	if (ret) {
--		ibdev_err(&dev->ib_dev, "Failed to create EQs, ret %d", ret);
--		goto deregister_net_notifier;
--	}
--
--	ret = mana_ib_gd_create_rnic_adapter(dev);
--	if (ret)
--		goto destroy_eqs;
--
-+	dev->ib_dev.num_comp_vectors = gc->max_num_queues;
-+	dev->ib_dev.dev.parent = gc->dev;
-+	dev->gdma_dev = mdev;
- 	xa_init_flags(&dev->qp_table_wq, XA_FLAGS_LOCK_IRQ);
--	ret = mana_ib_gd_config_mac(dev, ADDR_OP_ADD, mac_addr);
--	if (ret) {
--		ibdev_err(&dev->ib_dev, "Failed to add Mac address, ret %d",
--			  ret);
--		goto destroy_rnic;
-+
-+	if (mana_ib_is_rnic(dev)) {
-+		dev->ib_dev.phys_port_cnt = 1;
-+		ndev = mana_get_primary_netdev(mc, 0, &dev->dev_tracker);
-+		if (!ndev) {
-+			ret = -ENODEV;
-+			ibdev_err(&dev->ib_dev, "Failed to get netdev for IB port 1");
-+			goto free_ib_device;
-+		}
-+		ether_addr_copy(mac_addr, ndev->dev_addr);
-+		addrconf_addr_eui48((u8 *)&dev->ib_dev.node_guid, ndev->dev_addr);
-+		ret = ib_device_set_netdev(&dev->ib_dev, ndev, 1);
-+		/* mana_get_primary_netdev() returns ndev with refcount held */
-+		netdev_put(ndev, &dev->dev_tracker);
-+		if (ret) {
-+			ibdev_err(&dev->ib_dev, "Failed to set ib netdev, ret %d", ret);
-+			goto free_ib_device;
-+		}
-+
-+		dev->nb.notifier_call = mana_ib_netdev_event;
-+		ret = register_netdevice_notifier(&dev->nb);
-+		if (ret) {
-+			ibdev_err(&dev->ib_dev, "Failed to register net notifier, %d",
-+				  ret);
-+			goto free_ib_device;
-+		}
-+
-+		ret = mana_ib_gd_query_adapter_caps(dev);
-+		if (ret) {
-+			ibdev_err(&dev->ib_dev, "Failed to query device caps, ret %d", ret);
-+			goto deregister_net_notifier;
-+		}
-+
-+		ib_set_device_ops(&dev->ib_dev, &mana_ib_stats_ops);
-+
-+		ret = mana_ib_create_eqs(dev);
-+		if (ret) {
-+			ibdev_err(&dev->ib_dev, "Failed to create EQs, ret %d", ret);
-+			goto deregister_net_notifier;
-+		}
-+
-+		ret = mana_ib_gd_create_rnic_adapter(dev);
-+		if (ret)
-+			goto destroy_eqs;
-+
-+		ret = mana_ib_gd_config_mac(dev, ADDR_OP_ADD, mac_addr);
-+		if (ret) {
-+			ibdev_err(&dev->ib_dev, "Failed to add Mac address, ret %d", ret);
-+			goto destroy_rnic;
-+		}
-+	} else {
-+		dev->ib_dev.phys_port_cnt = mc->num_ports;
-+		ret = mana_eth_query_adapter_caps(dev);
-+		if (ret) {
-+			ibdev_err(&dev->ib_dev, "Failed to query ETH device caps, ret %d", ret);
-+			goto free_ib_device;
-+		}
- 	}
- 
--	dev->av_pool = dma_pool_create("mana_ib_av", mdev->gdma_context->dev,
--				       MANA_AV_BUFFER_SIZE, MANA_AV_BUFFER_SIZE, 0);
-+	dev->av_pool = dma_pool_create("mana_ib_av", gc->dev, MANA_AV_BUFFER_SIZE,
-+				       MANA_AV_BUFFER_SIZE, 0);
- 	if (!dev->av_pool) {
- 		ret = -ENOMEM;
- 		goto destroy_rnic;
- 	}
- 
--	ret = ib_register_device(&dev->ib_dev, "mana_%d",
--				 mdev->gdma_context->dev);
-+	ibdev_dbg(&dev->ib_dev, "mdev=%p id=%d num_ports=%d\n", mdev,
-+		  mdev->dev_id.as_uint32, dev->ib_dev.phys_port_cnt);
-+
-+	ret = ib_register_device(&dev->ib_dev, mana_ib_is_rnic(dev) ? "mana_%d" : "manae_%d",
-+				 gc->dev);
- 	if (ret)
- 		goto deallocate_pool;
- 
-@@ -208,15 +200,16 @@ static int mana_ib_probe(struct auxiliary_device *adev,
- deallocate_pool:
- 	dma_pool_destroy(dev->av_pool);
- destroy_rnic:
--	xa_destroy(&dev->qp_table_wq);
--	mana_ib_gd_destroy_rnic_adapter(dev);
-+	if (mana_ib_is_rnic(dev))
-+		mana_ib_gd_destroy_rnic_adapter(dev);
- destroy_eqs:
--	mana_ib_destroy_eqs(dev);
-+	if (mana_ib_is_rnic(dev))
-+		mana_ib_destroy_eqs(dev);
- deregister_net_notifier:
--	unregister_netdevice_notifier(&dev->nb);
--deregister_device:
--	mana_gd_deregister_device(dev->gdma_dev);
-+	if (mana_ib_is_rnic(dev))
-+		unregister_netdevice_notifier(&dev->nb);
- free_ib_device:
-+	xa_destroy(&dev->qp_table_wq);
- 	ib_dealloc_device(&dev->ib_dev);
- 	return ret;
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 4ffaf7588885..aa2ccf4d0ec6 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -352,11 +352,52 @@ void mana_gd_ring_cq(struct gdma_queue *cq, u8 arm_bit)
  }
-@@ -227,25 +220,24 @@ static void mana_ib_remove(struct auxiliary_device *adev)
+ EXPORT_SYMBOL_NS(mana_gd_ring_cq, "NET_MANA");
  
- 	ib_unregister_device(&dev->ib_dev);
- 	dma_pool_destroy(dev->av_pool);
-+	if (mana_ib_is_rnic(dev)) {
-+		mana_ib_gd_destroy_rnic_adapter(dev);
-+		mana_ib_destroy_eqs(dev);
-+		unregister_netdevice_notifier(&dev->nb);
++#define MANA_SERVICE_PERIOD 10
++
++struct mana_serv_work {
++	struct work_struct serv_work;
++	struct pci_dev *pdev;
++};
++
++static void mana_serv_func(struct work_struct *w)
++{
++	struct mana_serv_work *mns_wk = container_of(w, struct mana_serv_work, serv_work);
++	struct pci_dev *pdev = mns_wk->pdev;
++	struct pci_bus *bus, *parent;
++
++	if (!pdev)
++		goto out;
++
++	bus = pdev->bus;
++	if (!bus) {
++		dev_err(&pdev->dev, "MANA service: no bus\n");
++		goto out;
 +	}
- 	xa_destroy(&dev->qp_table_wq);
--	mana_ib_gd_destroy_rnic_adapter(dev);
--	mana_ib_destroy_eqs(dev);
--	unregister_netdevice_notifier(&dev->nb);
--	mana_gd_deregister_device(dev->gdma_dev);
- 	ib_dealloc_device(&dev->ib_dev);
- }
++
++	parent = bus->parent;
++	if (!parent) {
++		dev_err(&pdev->dev, "MANA service: no parent bus\n");
++		goto out;
++	}
++
++	pci_stop_and_remove_bus_device_locked(bus->self);
++
++	msleep(MANA_SERVICE_PERIOD * 1000);
++
++	pci_lock_rescan_remove();
++	pci_rescan_bus(parent);
++	pci_unlock_rescan_remove();
++
++out:
++	kfree(mns_wk);
++}
++
+ static void mana_gd_process_eqe(struct gdma_queue *eq)
+ {
+ 	u32 head = eq->head % (eq->queue_size / GDMA_EQE_SIZE);
+ 	struct gdma_context *gc = eq->gdma_dev->gdma_context;
+ 	struct gdma_eqe *eq_eqe_ptr = eq->queue_mem_ptr;
++	struct mana_serv_work *mns_wk;
+ 	union gdma_eqe_info eqe_info;
+ 	enum gdma_eqe_type type;
+ 	struct gdma_event event;
+@@ -400,6 +441,26 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
+ 		eq->eq.callback(eq->eq.context, eq, &event);
+ 		break;
  
- static const struct auxiliary_device_id mana_id_table[] = {
--	{
--		.name = "mana.rdma",
--	},
-+	{ .name = "mana.rdma", },
-+	{ .name = "mana.eth", },
- 	{},
++	case GDMA_EQE_HWC_FPGA_RECONFIG:
++	case GDMA_EQE_HWC_SOCMANA_CRASH:
++		if (gc->in_service) {
++			dev_info(gc->dev, "Already in service\n");
++			break;
++		}
++
++		mns_wk = kzalloc(sizeof(*mns_wk), GFP_ATOMIC);
++		if (!mns_wk) {
++			dev_err(gc->dev, "Fail to alloc mana_serv_work\n");
++			break;
++		}
++
++		dev_info(gc->dev, "Start MANA service\n");
++		gc->in_service = true;
++		mns_wk->pdev = to_pci_dev(gc->dev);
++		INIT_WORK(&mns_wk->serv_work, mana_serv_func);
++		schedule_work(&mns_wk->serv_work);
++		break;
++
+ 	default:
+ 		break;
+ 	}
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 228603bf03f2..13cfbcf67815 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -58,8 +58,9 @@ enum gdma_eqe_type {
+ 	GDMA_EQE_HWC_INIT_EQ_ID_DB	= 129,
+ 	GDMA_EQE_HWC_INIT_DATA		= 130,
+ 	GDMA_EQE_HWC_INIT_DONE		= 131,
+-	GDMA_EQE_HWC_SOC_RECONFIG	= 132,
++	GDMA_EQE_HWC_FPGA_RECONFIG	= 132,
+ 	GDMA_EQE_HWC_SOC_RECONFIG_DATA	= 133,
++	GDMA_EQE_HWC_SOCMANA_CRASH	= 135,
+ 	GDMA_EQE_RNIC_QP_FATAL		= 176,
  };
  
- MODULE_DEVICE_TABLE(auxiliary, mana_id_table);
+@@ -388,6 +389,8 @@ struct gdma_context {
+ 	u32			test_event_eq_id;
  
- static struct auxiliary_driver mana_driver = {
--	.name = "rdma",
- 	.probe = mana_ib_probe,
- 	.remove = mana_ib_remove,
- 	.id_table = mana_id_table,
-diff --git a/drivers/infiniband/hw/mana/main.c b/drivers/infiniband/hw/mana/main.c
-index bb0f685..3837e30 100644
---- a/drivers/infiniband/hw/mana/main.c
-+++ b/drivers/infiniband/hw/mana/main.c
-@@ -4,6 +4,7 @@
-  */
- 
- #include "mana_ib.h"
-+#include "linux/pci.h"
- 
- void mana_ib_uncfg_vport(struct mana_ib_dev *dev, struct mana_ib_pd *pd,
- 			 u32 port)
-@@ -551,6 +552,7 @@ int mana_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
- int mana_ib_get_port_immutable(struct ib_device *ibdev, u32 port_num,
- 			       struct ib_port_immutable *immutable)
- {
-+	struct mana_ib_dev *dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
- 	struct ib_port_attr attr;
- 	int err;
- 
-@@ -560,10 +562,12 @@ int mana_ib_get_port_immutable(struct ib_device *ibdev, u32 port_num,
- 
- 	immutable->pkey_tbl_len = attr.pkey_tbl_len;
- 	immutable->gid_tbl_len = attr.gid_tbl_len;
--	immutable->core_cap_flags = RDMA_CORE_PORT_RAW_PACKET;
--	if (port_num == 1) {
--		immutable->core_cap_flags |= RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
+ 	bool			is_pf;
++	bool			in_service;
 +
-+	if (mana_ib_is_rnic(dev)) {
-+		immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
- 		immutable->max_mad_size = IB_MGMT_MAD_SIZE;
-+	} else {
-+		immutable->core_cap_flags = RDMA_CORE_PORT_RAW_PACKET;
- 	}
- 
- 	return 0;
-@@ -572,10 +576,12 @@ int mana_ib_get_port_immutable(struct ib_device *ibdev, u32 port_num,
- int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
- 			 struct ib_udata *uhw)
- {
--	struct mana_ib_dev *dev = container_of(ibdev,
--			struct mana_ib_dev, ib_dev);
-+	struct mana_ib_dev *dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
-+	struct pci_dev *pdev = to_pci_dev(mdev_to_gc(dev)->dev);
- 
- 	memset(props, 0, sizeof(*props));
-+	props->vendor_id = pdev->vendor;
-+	props->vendor_part_id = dev->gdma_dev->dev_id.type;
- 	props->max_mr_size = MANA_IB_MAX_MR_SIZE;
- 	props->page_size_cap = dev->adapter_caps.page_size_cap;
- 	props->max_qp = dev->adapter_caps.max_qp_count;
-@@ -596,6 +602,8 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
- 	props->max_ah = INT_MAX;
- 	props->max_pkeys = 1;
- 	props->local_ca_ack_delay = MANA_CA_ACK_DELAY;
-+	if (!mana_ib_is_rnic(dev))
-+		props->raw_packet_caps = IB_RAW_PACKET_CAP_IP_CSUM;
- 
- 	return 0;
- }
-@@ -603,6 +611,7 @@ int mana_ib_query_device(struct ib_device *ibdev, struct ib_device_attr *props,
- int mana_ib_query_port(struct ib_device *ibdev, u32 port,
- 		       struct ib_port_attr *props)
- {
-+	struct mana_ib_dev *dev = container_of(ibdev, struct mana_ib_dev, ib_dev);
- 	struct net_device *ndev = mana_ib_get_netdev(ibdev, port);
- 
- 	if (!ndev)
-@@ -623,7 +632,7 @@ int mana_ib_query_port(struct ib_device *ibdev, u32 port,
- 	props->active_width = IB_WIDTH_4X;
- 	props->active_speed = IB_SPEED_EDR;
- 	props->pkey_tbl_len = 1;
--	if (port == 1) {
-+	if (mana_ib_is_rnic(dev)) {
- 		props->gid_tbl_len = 16;
- 		props->port_cap_flags = IB_PORT_CM_SUP;
- 		props->ip_gids = true;
-@@ -703,6 +712,37 @@ int mana_ib_gd_query_adapter_caps(struct mana_ib_dev *dev)
- 	return 0;
- }
- 
-+int mana_eth_query_adapter_caps(struct mana_ib_dev *dev)
-+{
-+	struct mana_ib_adapter_caps *caps = &dev->adapter_caps;
-+	struct gdma_query_max_resources_resp resp = {};
-+	struct gdma_general_req req = {};
-+	int err;
-+
-+	mana_gd_init_req_hdr(&req.hdr, GDMA_QUERY_MAX_RESOURCES,
-+			     sizeof(req), sizeof(resp));
-+
-+	err = mana_gd_send_request(mdev_to_gc(dev), sizeof(req), &req, sizeof(resp), &resp);
-+	if (err) {
-+		ibdev_err(&dev->ib_dev,
-+			  "Failed to query adapter caps err %d", err);
-+		return err;
-+	}
-+
-+	caps->max_qp_count = min_t(u32, resp.max_sq, resp.max_rq);
-+	caps->max_cq_count = resp.max_cq;
-+	caps->max_mr_count = resp.max_mst;
-+	caps->max_pd_count = 0x6000;
-+	caps->max_qp_wr = min_t(u32,
-+				0x100000 / GDMA_MAX_SQE_SIZE,
-+				0x100000 / GDMA_MAX_RQE_SIZE);
-+	caps->max_send_sge_count = 30;
-+	caps->max_recv_sge_count = 15;
-+	caps->page_size_cap = PAGE_SZ_BM;
-+
-+	return 0;
-+}
-+
- static void
- mana_ib_event_handler(void *ctx, struct gdma_queue *q, struct gdma_event *event)
- {
-@@ -921,6 +961,9 @@ int mana_ib_gd_create_cq(struct mana_ib_dev *mdev, struct mana_ib_cq *cq, u32 do
- 	struct mana_rnic_create_cq_req req = {};
- 	int err;
- 
-+	if (!mdev->eqs)
-+		return -EINVAL;
-+
- 	mana_gd_init_req_hdr(&req.hdr, MANA_IB_CREATE_CQ, sizeof(req), sizeof(resp));
- 	req.hdr.dev_id = gc->mana_ib.dev_id;
- 	req.adapter = mdev->adapter_handle;
-diff --git a/drivers/infiniband/hw/mana/mana_ib.h b/drivers/infiniband/hw/mana/mana_ib.h
-index f0dbd90..42bebd6 100644
---- a/drivers/infiniband/hw/mana/mana_ib.h
-+++ b/drivers/infiniband/hw/mana/mana_ib.h
-@@ -544,6 +544,11 @@ static inline void mana_put_qp_ref(struct mana_ib_qp *qp)
- 		complete(&qp->free);
- }
- 
-+static inline bool mana_ib_is_rnic(struct mana_ib_dev *mdev)
-+{
-+	return mdev->gdma_dev->dev_id.type == GDMA_DEVICE_MANA_IB;
-+}
-+
- static inline struct net_device *mana_ib_get_netdev(struct ib_device *ibdev, u32 port)
- {
- 	struct mana_ib_dev *mdev = container_of(ibdev, struct mana_ib_dev, ib_dev);
-@@ -643,6 +648,7 @@ int mana_ib_query_gid(struct ib_device *ibdev, u32 port, int index,
- void mana_ib_disassociate_ucontext(struct ib_ucontext *ibcontext);
- 
- int mana_ib_gd_query_adapter_caps(struct mana_ib_dev *mdev);
-+int mana_eth_query_adapter_caps(struct mana_ib_dev *mdev);
- 
- int mana_ib_create_eqs(struct mana_ib_dev *mdev);
- 
+ 	phys_addr_t		bar0_pa;
+ 	void __iomem		*bar0_va;
+ 	void __iomem		*shm_base;
 -- 
-2.43.0
+2.34.1
 
