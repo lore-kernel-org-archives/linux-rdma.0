@@ -1,100 +1,160 @@
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9E86225A47
-	for <linux-rdma@vger.kernel.org>; Thu,  8 May 2025 12:25:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CEC714A4C7;
+	Thu,  8 May 2025 12:27:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746707143; cv=none; b=KmHTKXUNciKV2ORON5oaj3Rio30dLKU+0ngGkiVavL/XnOOQkY/l6Fq01/dQi93q1rseTPrMiF5/dgzyVty9G0/zAq/I8xpfLlAR2uIdcbyrfmiFbNfU3U3myLpdcCPgPWPxFbRdNYc9SFlgMFTXE8AWvZAEHkvueLHgiePbfM8=
+	t=1746707246; cv=none; b=msWbITtU2s73NARQ+5/CfivSEs1uZDNO7ysBCR6SfqRoBjF+xBr50F52lxxRYL9fQhbzsfb83ebXn6yrceEw5oaaR5HKv46Nh4yOtLJDtxbtsac+/Wr0sDoaigCKRP6PAlBicBovISy5dzo/xIL6leZE0R8yb2iRE076lMSvKYw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746707143; c=relaxed/simple;
-	bh=MPM2nuyUYlMB2FrqlYHGhR3ey1tqTnhLzD2lp+HJm2c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dlNeYmviP5QamffCezEnO6cMESCIDEYF+91JbCH3uhVR2NvXks3nJENUSyd0sx1FwJJ6dO82Kk/eaPFswWREbNbLU7UdgIp1peNiBFc2ThLLYNhfQNy6TifmmwSbylzRNo3AHFtBMPiLvwzIrwLgrz61ezlqgg3R572MxZoxfo4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Q8e2ZNQ5; arc=none smtp.client-ip=209.85.160.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
+	s=arc-20240116; t=1746707246; c=relaxed/simple;
+	bh=6GjyiTfn5SI4PebBO0uNWjR6eASjOV4bUgJNv0Jed3A=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=RYeJFwj7kk4ZzISeUakvDU1LiWzWoYbHPqZv/M2akaQsd+Eg3oxVE4hnsV8ng2IuqFHmFcBbKehuusVgwfmelVbRh+24svGQD3wD4+cAV2gt672rM892f5N3kKngceRTlI/msl1C49E5lWfsa3yPFy6Iow8iL55gklz3cPPsY84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VTMBHg7M; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Q8e2ZNQ5"
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-4769bbc21b0so10557261cf.2
-        for <linux-rdma@vger.kernel.org>; Thu, 08 May 2025 05:25:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google; t=1746707140; x=1747311940; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=MPM2nuyUYlMB2FrqlYHGhR3ey1tqTnhLzD2lp+HJm2c=;
-        b=Q8e2ZNQ5wGrzw03gpS9N86sbZtaFdq74sMp2YzmMLtp2bCxmPNTKFbz5FXx7jggjUo
-         8Sz/QqG/05dKNb8M1n1PsYOofwaW3R2PtSuynxo5Mc1rTTozEi/PaxJyA47htBYt1xKU
-         37n3sOL6jOaX3FFwGDnrtPy0rwXuoPt4I6xcNCPtTchc84PfVU0sfJgpjfKXaiYfyMJO
-         ikawg1zbHlIM5NrfwncAPvyf5xjmmXa6Z1S4f0PwRtiUrBLKYJ/j80eVc2CwMVE4570N
-         o/jdKJcJrDB2rgtSerL1EszvuN2N9XpLj2i7nZ4viV7rNoWdB2HFK+abuB2awuNO2mNq
-         l12g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746707140; x=1747311940;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=MPM2nuyUYlMB2FrqlYHGhR3ey1tqTnhLzD2lp+HJm2c=;
-        b=oxDSzxhkmWSHPJPHRlpFo7a0YdLNJaHqhQIdN5+hr1wrgEY1Z3DUwhi0D561pVPy3c
-         xYyUIm5NXMiGYexY/eJoK36ayZYZxigCuwcK3C/1iWvGJ/ZLZhfDmZjRoyji40fAUdOT
-         7B8SBLt4ShKxyf4g0s4/CsEI4LuN5INyjCLSCxIYBatHvEfUadD+aq/ugi8U+6YYsX8R
-         20zfe8+K7dhc8ykMlD74kCAQeneOV9ucbNqcnelYEzEs2ayXBJ+560KDCcQM854GOXqQ
-         yj11vYcbUZjmP59y5jl5AhxoVnI0gda9FgY+rGVSBAeD8D7CUha2ZdWEhlsxrmAk3Xt6
-         PpGQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWO6mZKvfF1uz5vnHZ4btD3kqz6JYj/DvOqw84DZj1HKnAV0xoKyBP3tdrs4RUbdYLo2FpGa2ewqHw7@vger.kernel.org
-X-Gm-Message-State: AOJu0YzvcyuIDsUUGrH4B9d+d42ey6MpY94Xs/szN79Dxk7+BQoU6alp
-	szOspQOAU0aVyKTW6hG7sHsRWCO12w68XL9v4kmZ0omcDNnxC/r22zNXrGTFVjCQHetmQ27cOIw
-	R
-X-Gm-Gg: ASbGnctVwIcI1xssH++UKGDbtfpmGqKAIotzXnh50xNc4R3JmB2D3iPFK+oim0HoKbA
-	jB2n4q47vjZzkpp0iO9SQGiaBXgFbAsQ80W3dkYhAB1q8fa1vfR+BE72iG6sfbyjXwVIt/K9LiX
-	uNXOGFLi/lrSy5pzQgGll8T6YYzpBGPGdZZaQsWrtoqdof2FjAgJzLSSIm7fjBRpyCrvgumJZ+p
-	cKNDq+YkNoc7jgrS+Idmit3GVVcJWmsdyzrshPuLWy8DJuFTZwrMEzbJcql3EoOMkGkCoocRfyc
-	53gcXQ/2xxUjaOJiLP94x7UACc5RU1mR+bhVWzAeL7TfbLWXnML8rjqv/RRpYt7k/+k9V114IRM
-	zFGjTehGv7OkoDizV
-X-Google-Smtp-Source: AGHT+IGjPkkheV8apeeXL7LUq2iF5xAtFaXB1jDnzmyHtoO9fJMw0oyoMGJs/ppBBX9R4BQ+OduBOg==
-X-Received: by 2002:ac8:5955:0:b0:48d:7cb6:4010 with SMTP id d75a77b69052e-492264f43d0mr96133521cf.23.1746707140464;
-        Thu, 08 May 2025 05:25:40 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-167-56-70.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.167.56.70])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4922126b6a3sm34885331cf.21.2025.05.08.05.25.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 May 2025 05:25:39 -0700 (PDT)
-Received: from jgg by wakko with local (Exim 4.97)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1uD0Jn-000000001gm-10DS;
-	Thu, 08 May 2025 09:25:39 -0300
-Date: Thu, 8 May 2025 09:25:39 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
-Cc: Bernard Metzler <BMT@zurich.ibm.com>,
-	"linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	Daniel Wagner <wagi@kernel.org>
-Subject: Re: [bug report] blktests nvme/061 hang with rdma transport and siw
- driver
-Message-ID: <20250508122539.GA6371@ziepe.ca>
-References: <r5676e754sv35aq7cdsqrlnvyhiq5zktteaurl7vmfih35efko@z6lay7uypy3c>
- <BN8PR15MB251354A3F4F39E0360B9B41399B22@BN8PR15MB2513.namprd15.prod.outlook.com>
- <lembalemdaoaqocvyd6n3rtdocv45734d22kmaleliwjoqpnpi@hrkfn3bl6hsv>
- <d4xfwos54mccrwgw76t6q5nhwe2n3bxbt46cmyuhjcpcsub2hy@7d3zsewjkycv>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VTMBHg7M"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1746707245; x=1778243245;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=6GjyiTfn5SI4PebBO0uNWjR6eASjOV4bUgJNv0Jed3A=;
+  b=VTMBHg7M6pffPze0+emr06uAUjZG8/KntYsoEEF6FSlNyWoC4hywLHMR
+   lWyO+pw1NxlETUeYzuqj+1OCZZa5QmJlXgsIXsJWlVq1dZVf9IEhK2oXO
+   zNGLi5kSl+bf4R5RgH7To9WHHgtMzsk2CqWQdOezQIY3WapMpyVSYjaLF
+   6jfK0y9b4B8NZgvI1gtpz3lYAJlb3GgyGBxOl2OmA/+81a54c2ALND6gP
+   EXFr8tyT6o4Y1OcuxR2GKOUL+QoWyoxXsDVaz6VRzC56BjscHdPKVOyLT
+   57SOrw/oH92JM8xJMetDGKVFG7YyMdaIYwppgWvT7wC4hpEtpe3LB6UUn
+   w==;
+X-CSE-ConnectionGUID: Nw0o8fcMQUePT2Gr5uknRg==
+X-CSE-MsgGUID: q2nApTZASEWdUgoPlVOVUA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11426"; a="36115102"
+X-IronPort-AV: E=Sophos;i="6.15,272,1739865600"; 
+   d="scan'208";a="36115102"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 May 2025 05:27:25 -0700
+X-CSE-ConnectionGUID: 65W7j38jRyO6Pv3w4+EBiA==
+X-CSE-MsgGUID: fsyGWW4PQO+5/tmgOs6e+w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,272,1739865600"; 
+   d="scan'208";a="136772854"
+Received: from amlin-018-114.igk.intel.com ([10.102.18.114])
+  by fmviesa010.fm.intel.com with ESMTP; 08 May 2025 05:27:19 -0700
+From: Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
+To: donald.hunter@gmail.com,
+	kuba@kernel.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	vadim.fedorenko@linux.dev,
+	jiri@resnulli.us,
+	anthony.l.nguyen@intel.com,
+	przemyslaw.kitszel@intel.com,
+	andrew+netdev@lunn.ch,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	tariqt@nvidia.com,
+	jonathan.lemon@gmail.com,
+	richardcochran@gmail.com,
+	aleksandr.loktionov@intel.com,
+	milena.olech@intel.com
+Cc: netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	intel-wired-lan@lists.osuosl.org,
+	linux-rdma@vger.kernel.org,
+	Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
+Subject: [PATCH net-next v3 0/3]  dpll: add all inputs phase offset monitor
+Date: Thu,  8 May 2025 14:21:25 +0200
+Message-Id: <20250508122128.1216231-1-arkadiusz.kubalewski@intel.com>
+X-Mailer: git-send-email 2.38.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d4xfwos54mccrwgw76t6q5nhwe2n3bxbt46cmyuhjcpcsub2hy@7d3zsewjkycv>
+Content-Transfer-Encoding: 8bit
 
-On Thu, May 08, 2025 at 07:03:03AM +0000, Shinichiro Kawasaki wrote:
-> One left question is why the failure was not observed with rxe driver, but with
-> siw driver. My mere guess is that is because siw driver calls id->add_ref() and
-> cm_id->rem_ref().
+Add dpll device level feature: phase offset monitor.
 
-Only siw uses the code in iwcm.c, rxe does not.
+Phase offset measurement is typically performed against the current active
+source. However, some DPLL (Digital Phase-Locked Loop) devices may offer
+the capability to monitor phase offsets across all available inputs.
+The attribute and current feature state shall be included in the response
+message of the ``DPLL_CMD_DEVICE_GET`` command for supported DPLL devices.
+In such cases, users can also control the feature using the
+``DPLL_CMD_DEVICE_SET`` command by setting the ``enum dpll_feature_state``
+values for the attribute.
 
-Bernard? What do you think about this analysis? I've never really
-looked inside iwcm.c..
+Implement feature support in ice driver for dpll-enabled devices.
 
-Thanks,
-Jason
+Verify capability:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --dump device-get
+[{'clock-id': 4658613174691613800,
+  'id': 0,
+  'lock-status': 'locked-ho-acq',
+  'mode': 'automatic',
+  'mode-supported': ['automatic'],
+  'module-name': 'ice',
+  'type': 'eec'},
+ {'clock-id': 4658613174691613800,
+  'id': 1,
+  'lock-status': 'locked-ho-acq',
+  'mode': 'automatic',
+  'mode-supported': ['automatic'],
+  'module-name': 'ice',
+  'phase-offset-monitor': 'disable',
+  'type': 'pps'}]
+
+Enable the feature:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do device-set --json '{"id":1, "phase-offset-monitor":"enable"}'
+
+Verify feature is enabled:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --dump device-get
+[
+ [...]
+ {'capabilities': {'all-inputs-phase-offset-monitor'},
+  'clock-id': 4658613174691613800,
+  'id': 1,
+ [...]
+  'phase-offset-monitor': 'enable',
+ [...]]
+
+v3:
+- removed patch 1/4:
+  "dpll: use struct dpll_device_info for dpll registration"
+
+
+Arkadiusz Kubalewski (3):
+  dpll: add phase-offset-monitor feature to netlink spec
+  dpll: add phase_offset_monitor_get/set callbacks
+  ice: add phase offset monitor for all PPS dpll inputs
+
+ Documentation/driver-api/dpll.rst             |  16 ++
+ Documentation/netlink/specs/dpll.yaml         |  24 +++
+ drivers/dpll/dpll_netlink.c                   |  76 ++++++-
+ drivers/dpll/dpll_nl.c                        |   5 +-
+ .../net/ethernet/intel/ice/ice_adminq_cmd.h   |  20 ++
+ drivers/net/ethernet/intel/ice/ice_common.c   |  26 +++
+ drivers/net/ethernet/intel/ice/ice_common.h   |   3 +
+ drivers/net/ethernet/intel/ice/ice_dpll.c     | 191 +++++++++++++++++-
+ drivers/net/ethernet/intel/ice/ice_dpll.h     |   6 +
+ drivers/net/ethernet/intel/ice/ice_main.c     |   4 +
+ include/linux/dpll.h                          |   8 +
+ include/uapi/linux/dpll.h                     |  12 ++
+ 12 files changed, 386 insertions(+), 5 deletions(-)
+
+
+base-commit: 46431fd5224f7f3bab2823992ae1cf6f2700f1ce
+-- 
+2.38.1
+
