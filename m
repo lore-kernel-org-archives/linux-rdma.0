@@ -1,47 +1,81 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id ABA6F263F4E;
-	Thu,  8 May 2025 09:43:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9E86225A47
+	for <linux-rdma@vger.kernel.org>; Thu,  8 May 2025 12:25:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746697433; cv=none; b=dNxEqiAT+tMEZbpzl7N4QeqrDUGqGCWeRSeRd2hnfXfaofdTZ8BU4tEkXZfadwQG3k9rfLLguM4mJ6mKFzp3+E+uMQN4ht83D6ELagKsPuttAb5kMpCb99MXvG7cHlxbXkKpvG+vB/FaVwf+/BOglhQxNzG80qAUKzhhrVYbdcw=
+	t=1746707143; cv=none; b=KmHTKXUNciKV2ORON5oaj3Rio30dLKU+0ngGkiVavL/XnOOQkY/l6Fq01/dQi93q1rseTPrMiF5/dgzyVty9G0/zAq/I8xpfLlAR2uIdcbyrfmiFbNfU3U3myLpdcCPgPWPxFbRdNYc9SFlgMFTXE8AWvZAEHkvueLHgiePbfM8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746697433; c=relaxed/simple;
-	bh=H/WhQNKlzogJE4QdmSUmR0gkiVXIC0GbzPbzBw7pZ5k=;
+	s=arc-20240116; t=1746707143; c=relaxed/simple;
+	bh=MPM2nuyUYlMB2FrqlYHGhR3ey1tqTnhLzD2lp+HJm2c=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SG4OsLfotsQplrwGWo2evWiQrAxULMo7X0qGDoTLnuxu1EGCbP+gRE0FfkEeR2875QvsZKSopQIoruMXJ2Ai/twRzLgddxuwvitlUCwtBUR/rQSCxl0wXwljCWRGRZLLDjSXZeZMDcMIc0r2J2hahdirBvjX5JiQqw4/BJvRDl4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=J+KqvhBk; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=dlNeYmviP5QamffCezEnO6cMESCIDEYF+91JbCH3uhVR2NvXks3nJENUSyd0sx1FwJJ6dO82Kk/eaPFswWREbNbLU7UdgIp1peNiBFc2ThLLYNhfQNy6TifmmwSbylzRNo3AHFtBMPiLvwzIrwLgrz61ezlqgg3R572MxZoxfo4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca; spf=pass smtp.mailfrom=ziepe.ca; dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b=Q8e2ZNQ5; arc=none smtp.client-ip=209.85.160.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ziepe.ca
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ziepe.ca
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="J+KqvhBk"
-Received: by linux.microsoft.com (Postfix, from userid 1134)
-	id 382CD21199E0; Thu,  8 May 2025 02:43:51 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 382CD21199E0
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1746697431;
-	bh=T55MVOVWe61rHi3lJfC1UHDy1Z+yOeyzZCnQiMX1Uo4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=J+KqvhBkERu+CQQma0RImBsW5LhVreeG9YYNffcEWSycBij+lh93WmlyNcF60pvxY
-	 5jBHglrAgT/MZ2QfE7n74bZ+Il6OEFOcm+jODe3kV8EbPDgU4U1/ggwjXDqA8w2hvf
-	 yulekqL+wc8ni0Xqki+vOAWIXEeX4rD6Ax8zRHSQ=
-Date: Thu, 8 May 2025 02:43:51 -0700
-From: Shradha Gupta <shradhagupta@linux.microsoft.com>
-To: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: linux-hyperv@vger.kernel.org, netdev@vger.kernel.org,
-	decui@microsoft.com, stephen@networkplumber.org, kys@microsoft.com,
-	paulros@microsoft.com, olaf@aepfle.de, vkuznets@redhat.com,
-	davem@davemloft.net, wei.liu@kernel.org, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, leon@kernel.org,
-	longli@microsoft.com, ssengar@linux.microsoft.com,
-	linux-rdma@vger.kernel.org, daniel@iogearbox.net,
-	john.fastabend@gmail.com, bpf@vger.kernel.org, ast@kernel.org,
-	hawk@kernel.org, tglx@linutronix.de, andrew+netdev@lunn.ch,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next] net: mana: Add handler for hardware servicing
- events
-Message-ID: <20250508094351.GA8528@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-References: <1746633519-17549-1-git-send-email-haiyangz@microsoft.com>
- <20250508092924.GA2081@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+	dkim=pass (2048-bit key) header.d=ziepe.ca header.i=@ziepe.ca header.b="Q8e2ZNQ5"
+Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-4769bbc21b0so10557261cf.2
+        for <linux-rdma@vger.kernel.org>; Thu, 08 May 2025 05:25:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google; t=1746707140; x=1747311940; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=MPM2nuyUYlMB2FrqlYHGhR3ey1tqTnhLzD2lp+HJm2c=;
+        b=Q8e2ZNQ5wGrzw03gpS9N86sbZtaFdq74sMp2YzmMLtp2bCxmPNTKFbz5FXx7jggjUo
+         8Sz/QqG/05dKNb8M1n1PsYOofwaW3R2PtSuynxo5Mc1rTTozEi/PaxJyA47htBYt1xKU
+         37n3sOL6jOaX3FFwGDnrtPy0rwXuoPt4I6xcNCPtTchc84PfVU0sfJgpjfKXaiYfyMJO
+         ikawg1zbHlIM5NrfwncAPvyf5xjmmXa6Z1S4f0PwRtiUrBLKYJ/j80eVc2CwMVE4570N
+         o/jdKJcJrDB2rgtSerL1EszvuN2N9XpLj2i7nZ4viV7rNoWdB2HFK+abuB2awuNO2mNq
+         l12g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1746707140; x=1747311940;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=MPM2nuyUYlMB2FrqlYHGhR3ey1tqTnhLzD2lp+HJm2c=;
+        b=oxDSzxhkmWSHPJPHRlpFo7a0YdLNJaHqhQIdN5+hr1wrgEY1Z3DUwhi0D561pVPy3c
+         xYyUIm5NXMiGYexY/eJoK36ayZYZxigCuwcK3C/1iWvGJ/ZLZhfDmZjRoyji40fAUdOT
+         7B8SBLt4ShKxyf4g0s4/CsEI4LuN5INyjCLSCxIYBatHvEfUadD+aq/ugi8U+6YYsX8R
+         20zfe8+K7dhc8ykMlD74kCAQeneOV9ucbNqcnelYEzEs2ayXBJ+560KDCcQM854GOXqQ
+         yj11vYcbUZjmP59y5jl5AhxoVnI0gda9FgY+rGVSBAeD8D7CUha2ZdWEhlsxrmAk3Xt6
+         PpGQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWO6mZKvfF1uz5vnHZ4btD3kqz6JYj/DvOqw84DZj1HKnAV0xoKyBP3tdrs4RUbdYLo2FpGa2ewqHw7@vger.kernel.org
+X-Gm-Message-State: AOJu0YzvcyuIDsUUGrH4B9d+d42ey6MpY94Xs/szN79Dxk7+BQoU6alp
+	szOspQOAU0aVyKTW6hG7sHsRWCO12w68XL9v4kmZ0omcDNnxC/r22zNXrGTFVjCQHetmQ27cOIw
+	R
+X-Gm-Gg: ASbGnctVwIcI1xssH++UKGDbtfpmGqKAIotzXnh50xNc4R3JmB2D3iPFK+oim0HoKbA
+	jB2n4q47vjZzkpp0iO9SQGiaBXgFbAsQ80W3dkYhAB1q8fa1vfR+BE72iG6sfbyjXwVIt/K9LiX
+	uNXOGFLi/lrSy5pzQgGll8T6YYzpBGPGdZZaQsWrtoqdof2FjAgJzLSSIm7fjBRpyCrvgumJZ+p
+	cKNDq+YkNoc7jgrS+Idmit3GVVcJWmsdyzrshPuLWy8DJuFTZwrMEzbJcql3EoOMkGkCoocRfyc
+	53gcXQ/2xxUjaOJiLP94x7UACc5RU1mR+bhVWzAeL7TfbLWXnML8rjqv/RRpYt7k/+k9V114IRM
+	zFGjTehGv7OkoDizV
+X-Google-Smtp-Source: AGHT+IGjPkkheV8apeeXL7LUq2iF5xAtFaXB1jDnzmyHtoO9fJMw0oyoMGJs/ppBBX9R4BQ+OduBOg==
+X-Received: by 2002:ac8:5955:0:b0:48d:7cb6:4010 with SMTP id d75a77b69052e-492264f43d0mr96133521cf.23.1746707140464;
+        Thu, 08 May 2025 05:25:40 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-167-56-70.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.167.56.70])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4922126b6a3sm34885331cf.21.2025.05.08.05.25.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 08 May 2025 05:25:39 -0700 (PDT)
+Received: from jgg by wakko with local (Exim 4.97)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1uD0Jn-000000001gm-10DS;
+	Thu, 08 May 2025 09:25:39 -0300
+Date: Thu, 8 May 2025 09:25:39 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+Cc: Bernard Metzler <BMT@zurich.ibm.com>,
+	"linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	Daniel Wagner <wagi@kernel.org>
+Subject: Re: [bug report] blktests nvme/061 hang with rdma transport and siw
+ driver
+Message-ID: <20250508122539.GA6371@ziepe.ca>
+References: <r5676e754sv35aq7cdsqrlnvyhiq5zktteaurl7vmfih35efko@z6lay7uypy3c>
+ <BN8PR15MB251354A3F4F39E0360B9B41399B22@BN8PR15MB2513.namprd15.prod.outlook.com>
+ <lembalemdaoaqocvyd6n3rtdocv45734d22kmaleliwjoqpnpi@hrkfn3bl6hsv>
+ <d4xfwos54mccrwgw76t6q5nhwe2n3bxbt46cmyuhjcpcsub2hy@7d3zsewjkycv>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -50,138 +84,17 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250508092924.GA2081@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+In-Reply-To: <d4xfwos54mccrwgw76t6q5nhwe2n3bxbt46cmyuhjcpcsub2hy@7d3zsewjkycv>
 
-On Thu, May 08, 2025 at 02:29:24AM -0700, Shradha Gupta wrote:
-> On Wed, May 07, 2025 at 08:58:39AM -0700, Haiyang Zhang wrote:
-> > To collaborate with hardware servicing events, upon receiving the special
-> > EQE notification from the HW channel, remove the devices on this bus.
-> > Then, after a waiting period based on the device specs, rescan the parent
-> > bus to recover the devices.
-> > 
-> > Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
-> > ---
-> >  .../net/ethernet/microsoft/mana/gdma_main.c   | 61 +++++++++++++++++++
-> >  include/net/mana/gdma.h                       |  5 +-
-> >  2 files changed, 65 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> > index 4ffaf7588885..aa2ccf4d0ec6 100644
-> > --- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> > +++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
-> > @@ -352,11 +352,52 @@ void mana_gd_ring_cq(struct gdma_queue *cq, u8 arm_bit)
-> >  }
-> >  EXPORT_SYMBOL_NS(mana_gd_ring_cq, "NET_MANA");
-> >  
-> > +#define MANA_SERVICE_PERIOD 10
-> > +
-> > +struct mana_serv_work {
-> > +	struct work_struct serv_work;
-> > +	struct pci_dev *pdev;
-> > +};
-> > +
-> > +static void mana_serv_func(struct work_struct *w)
-> > +{
-> > +	struct mana_serv_work *mns_wk = container_of(w, struct mana_serv_work, serv_work);
-> > +	struct pci_dev *pdev = mns_wk->pdev;
-> > +	struct pci_bus *bus, *parent;
-> > +
-> > +	if (!pdev)
-> > +		goto out;
-> > +
-> > +	bus = pdev->bus;
-> > +	if (!bus) {
-> > +		dev_err(&pdev->dev, "MANA service: no bus\n");
-> > +		goto out;
-> > +	}
-> > +
-> > +	parent = bus->parent;
-> > +	if (!parent) {
-> > +		dev_err(&pdev->dev, "MANA service: no parent bus\n");
-> > +		goto out;
-> > +	}
-> > +
-> > +	pci_stop_and_remove_bus_device_locked(bus->self);
-> > +
-> > +	msleep(MANA_SERVICE_PERIOD * 1000);
-> > +
-> > +	pci_lock_rescan_remove();
-> > +	pci_rescan_bus(parent);
-> > +	pci_unlock_rescan_remove();
-> > +
-> > +out:
-> > +	kfree(mns_wk);
-> 
-> Shouldn't gc->in_service be set to false again?
+On Thu, May 08, 2025 at 07:03:03AM +0000, Shinichiro Kawasaki wrote:
+> One left question is why the failure was not observed with rxe driver, but with
+> siw driver. My mere guess is that is because siw driver calls id->add_ref() and
+> cm_id->rem_ref().
 
-ah, nevermind. That won't be needed. Thanks
-> 
-> > +}
-> > +
-> >  static void mana_gd_process_eqe(struct gdma_queue *eq)
-> >  {
-> >  	u32 head = eq->head % (eq->queue_size / GDMA_EQE_SIZE);
-> >  	struct gdma_context *gc = eq->gdma_dev->gdma_context;
-> >  	struct gdma_eqe *eq_eqe_ptr = eq->queue_mem_ptr;
-> > +	struct mana_serv_work *mns_wk;
-> >  	union gdma_eqe_info eqe_info;
-> >  	enum gdma_eqe_type type;
-> >  	struct gdma_event event;
-> > @@ -400,6 +441,26 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
-> >  		eq->eq.callback(eq->eq.context, eq, &event);
-> >  		break;
-> >  
-> > +	case GDMA_EQE_HWC_FPGA_RECONFIG:
-> > +	case GDMA_EQE_HWC_SOCMANA_CRASH:
-> 
-> may be we also add a log(dev_dbg) to indicate if the servicing is for
-> FPGA reconfig or socmana crash.
-> 
-> > +		if (gc->in_service) {
-> > +			dev_info(gc->dev, "Already in service\n");
-> > +			break;
-> > +		}
-> > +
-> > +		mns_wk = kzalloc(sizeof(*mns_wk), GFP_ATOMIC);
-> > +		if (!mns_wk) {
-> > +			dev_err(gc->dev, "Fail to alloc mana_serv_work\n");
-> > +			break;
-> > +		}
-> > +
-> > +		dev_info(gc->dev, "Start MANA service\n");
-> > +		gc->in_service = true;
-> > +		mns_wk->pdev = to_pci_dev(gc->dev);
-> > +		INIT_WORK(&mns_wk->serv_work, mana_serv_func);
-> > +		schedule_work(&mns_wk->serv_work);
-> > +		break;
-> > +
-> >  	default:
-> >  		break;
-> >  	}
-> > diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
-> > index 228603bf03f2..13cfbcf67815 100644
-> > --- a/include/net/mana/gdma.h
-> > +++ b/include/net/mana/gdma.h
-> > @@ -58,8 +58,9 @@ enum gdma_eqe_type {
-> >  	GDMA_EQE_HWC_INIT_EQ_ID_DB	= 129,
-> >  	GDMA_EQE_HWC_INIT_DATA		= 130,
-> >  	GDMA_EQE_HWC_INIT_DONE		= 131,
-> > -	GDMA_EQE_HWC_SOC_RECONFIG	= 132,
-> > +	GDMA_EQE_HWC_FPGA_RECONFIG	= 132,
-> >  	GDMA_EQE_HWC_SOC_RECONFIG_DATA	= 133,
-> > +	GDMA_EQE_HWC_SOCMANA_CRASH	= 135,
-> >  	GDMA_EQE_RNIC_QP_FATAL		= 176,
-> >  };
-> >  
-> > @@ -388,6 +389,8 @@ struct gdma_context {
-> >  	u32			test_event_eq_id;
-> >  
-> >  	bool			is_pf;
-> > +	bool			in_service;
-> > +
-> >  	phys_addr_t		bar0_pa;
-> >  	void __iomem		*bar0_va;
-> >  	void __iomem		*shm_base;
-> > -- 
-> > 2.34.1
+Only siw uses the code in iwcm.c, rxe does not.
+
+Bernard? What do you think about this analysis? I've never really
+looked inside iwcm.c..
+
+Thanks,
+Jason
