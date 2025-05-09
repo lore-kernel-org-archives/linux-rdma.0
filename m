@@ -1,47 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8707425E83D;
-	Fri,  9 May 2025 20:07:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C222025EF9B;
+	Fri,  9 May 2025 20:07:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746821241; cv=none; b=QjT13bZZ5hx7tJgAmgW6CcZUX1+B6/oeUS4uKXN200iUqjaGJf/6DsPaAW+xNHzVwjZ5+T/qRPc6V6tMtst1Jzhp4uVaHkVrKYi/4lsmrZOV4ZGMdG1QDWIrV39Mxts9fEg1R6x1DwAPm+eFJ3pfdHpRK5MySq5JVWNnM58758A=
+	t=1746821243; cv=none; b=uzMLlh2Qpp9ROWZRDvUd3P/RNZGZGuJVFWxOO1GZ51Psqw7GTH4c7nEcY6X3eYlb760orTcN/uy5arKGR0XN/QhLOCnAChfIRkeiuANtzWDOEusFqAFQkVCYHh+s1TJBQy8u4i7SziDobl+ST/XtrXssZpOqLM13nzdEjXX6AUw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746821241; c=relaxed/simple;
-	bh=qY0noNp0Yi5CsBV66H4PkVTpw4dzy8bdU36oXBSY9EQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RwtZmSj992cRpPZLB/fHrPoqNR0uxkWXiorNCP4d26ouD8kvEjrt+qONHyHIX0hMiwqwuKXb6sz/wO9GetEqW29wLac5ZarfmNdS2oms/Dpi5TrXruaE8mu49mdEiuiq66Sz/ykS3/ygShxKIGHtXVnBTjT+DJyEbDhRKkzLPZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QOcR6W9X; arc=none smtp.client-ip=192.198.163.16
+	s=arc-20240116; t=1746821243; c=relaxed/simple;
+	bh=lc8C60zK/6uOc10isNQBRIzs7/iW2MxTNBhxRn6eFTQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SmbGdNv+ONfl3gRk2jKMcxgmc1S9nK1GqKSfFgo6Q15/f0DoPV1dfYGWNcKFmxIUPqKfuQQazV1tycsvsc3TMjF/QGsoUjAyAyJaGD8k+t/e1uw36nxCWfIBmEu+kw0IzvXWhM0V/uFZQWJFzl4NtP9pUZ5iDASu0z65L8pT0QE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VAktZK2U; arc=none smtp.client-ip=192.198.163.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QOcR6W9X"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VAktZK2U"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1746821239; x=1778357239;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=qY0noNp0Yi5CsBV66H4PkVTpw4dzy8bdU36oXBSY9EQ=;
-  b=QOcR6W9X5Eh4HOBtAqxYQn8f2oL+pUcwWRTL2KFgZx2aaBFPOgylT7pt
-   Ug6cqnq5MY7iV/IrRcask143nBSC3vzJXwIeHwZyIbtvkb45bD4QrR1yP
-   0jJZSSLI/CjnaX5hqSO+xwZpz+sFJkz7IKAP1kChfYLQZF8FTnuuMxHjG
-   HUpNIIAGbHAGpw9lCg4IFnnfS0SjK0YlAZAMadiHmlquOVWpQVEUsFhgb
-   3vTWqvxs7NtdWEK8ui2k7jV6gzKHrUfsWHmnpyEAH04EZZuW27iifEnYu
-   nilEhNQYzEzAcJV+eN28HDcp6myJ7fxSsXUGBKngjk8JF2V/ExZpcJbWI
-   A==;
-X-CSE-ConnectionGUID: OK5n04UvSIGckuOqK0A1GQ==
-X-CSE-MsgGUID: JPICBzDxSiGlnMGdOZAFYw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11427"; a="36289872"
+  t=1746821242; x=1778357242;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=lc8C60zK/6uOc10isNQBRIzs7/iW2MxTNBhxRn6eFTQ=;
+  b=VAktZK2UA6YJtQn+U+JG1g3I1NrIGMx9bvKYX6iBKgm4SVqjL9jOcv6A
+   dP8yfcguxlbdmtnSB3B8Z3qDlMRzD6Ts3o8TSBS2fQOB/sNvxmi9FlXik
+   SyKJO2zkxEQKzp6bNLkKBvlbcXd4guHCrkjVLbJMg+Aq8Z2H+ODjIK8jn
+   EVkRo8gVRk3bk3erGVqrvUz8SkxA6oftO3pOInOy/G987RkIQm8R52Jup
+   vau14fz6rTGMYD2lLQCZOT5fek6x0KKSGZxfZJjRkAOLA2ET4fs9u9D4f
+   eG83yV0yeiBe9AZIxXEPI2GXMjFUqFnt75Ccxfv/aSxqUp2TrGZezzVpY
+   w==;
+X-CSE-ConnectionGUID: 3RPNyMTERPyjK3ydWZsTzA==
+X-CSE-MsgGUID: 8SAdcno5Q82imgrXYchp8Q==
+X-IronPort-AV: E=McAfee;i="6700,10204,11427"; a="36289898"
 X-IronPort-AV: E=Sophos;i="6.15,276,1739865600"; 
-   d="scan'208";a="36289872"
+   d="scan'208";a="36289898"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2025 13:07:18 -0700
-X-CSE-ConnectionGUID: gb2bat9jSVu3wpnZJpd3JQ==
-X-CSE-MsgGUID: DeHAmubxSuyvbUSNh0FAOw==
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2025 13:07:19 -0700
+X-CSE-ConnectionGUID: c/hlbY5NT/6tGmx/xwRPeQ==
+X-CSE-MsgGUID: Wefxhl08Rr6lN7DRrv6RIQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.15,276,1739865600"; 
-   d="scan'208";a="140780366"
+   d="scan'208";a="140780377"
 Received: from anguy11-upstream.jf.intel.com ([10.166.9.133])
-  by fmviesa003.fm.intel.com with ESMTP; 09 May 2025 13:07:17 -0700
+  by fmviesa003.fm.intel.com with ESMTP; 09 May 2025 13:07:18 -0700
 From: Tony Nguyen <anthony.l.nguyen@intel.com>
 To: davem@davemloft.net,
 	kuba@kernel.org,
@@ -52,14 +53,16 @@ To: davem@davemloft.net,
 	leon@kernel.org,
 	linux-rdma@vger.kernel.org,
 	netdev@vger.kernel.org
-Cc: Tony Nguyen <anthony.l.nguyen@intel.com>,
+Cc: Dave Ertman <david.m.ertman@intel.com>,
+	anthony.l.nguyen@intel.com,
 	tatyana.e.nikolova@intel.com,
-	david.m.ertman@intel.com,
 	przemyslaw.kitszel@intel.com
-Subject: [PATCH net-next,rdma-next v2 0/5][pull request] Prepare for Intel IPU E2000 (GEN3)
-Date: Fri,  9 May 2025 13:07:06 -0700
-Message-ID: <20250509200712.2911060-1-anthony.l.nguyen@intel.com>
+Subject: [PATCH net-next,rdma-next v2 3/5] iidc/ice/irdma: Break iidc.h into two headers
+Date: Fri,  9 May 2025 13:07:09 -0700
+Message-ID: <20250509200712.2911060-4-anthony.l.nguyen@intel.com>
 X-Mailer: git-send-email 2.47.1
+In-Reply-To: <20250509200712.2911060-1-anthony.l.nguyen@intel.com>
+References: <20250509200712.2911060-1-anthony.l.nguyen@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -68,143 +71,94 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is the first part in introducing RDMA support for idpf.
-This shared pull request targets both net-next and rdma-next branches
-and is based on tag v6.15-rc1.
+From: Dave Ertman <david.m.ertman@intel.com>
 
-v2:
-- Free cdev_info and iidc_priv in ice_deinit_rdma() (patch 5)
+In preparation of supporting more than a single core PCI driver
+for RDMA, break the iidc_rdma.h header file into two more focused
+headers.
 
-v1: https://lore.kernel.org/all/20250505212037.2092288-1-anthony.l.nguyen@intel.com/
+Only the elements universal to all Intel drivers will remain in
+the generic iidc_rdma.h header. Move the ice specific information
+to an ice specific header file named iidc_rdma_ice.h.
 
-IWL reviews:
-[v5] https://lore.kernel.org/all/20250416021549.606-1-tatyana.e.nikolova@intel.com/
-[v4] https://lore.kernel.org/all/20250225050428.2166-1-tatyana.e.nikolova@intel.com/
-[v3] https://lore.kernel.org/all/20250207194931.1569-1-tatyana.e.nikolova@intel.com/
-[v2] https://lore.kernel.org/all/20240824031924.421-1-tatyana.e.nikolova@intel.com/
-[v1] https://lore.kernel.org/all/20240724233917.704-1-tatyana.e.nikolova@intel.com/
-
-There are a few minor conflicts that exist with this series and the
-respective trees:
-
-net-next:
---- a/drivers/net/ethernet/intel/ice/ice_main.c
-+++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@@ -9341,9 -9310,8 +9341,10 @@@ ice_setup_tc(struct net_device *netdev
-             void *type_data)
-  {
-        struct ice_netdev_priv *np = netdev_priv(netdev);
- +      enum flow_block_binder_type binder_type;
-+       struct iidc_rdma_core_dev_info *cdev;
-        struct ice_pf *pf = np->vsi->back;
- +      flow_setup_cb_t *flower_handler;
-        bool locked = false;
-        int err;
-
-RDMA for-rc series [1] (showing direct conflicts):
---- a/drivers/infiniband/hw/irdma/main.c
-+++ b/drivers/infiniband/hw/irdma/main.c
-@@@ -221,8 -221,8 +221,8 @@@ static int irdma_init_interrupts(struc
-                        break;
-
-        if (i < IRDMA_MIN_MSIX) {
--               for (; i > 0; i--)
-+               while (--i >= 0)
- -                      ice_free_rdma_qvector(pf, &rf->msix_entries[i]);
- +                      ice_free_rdma_qvector(cdev, &rf->msix_entries[i]);
-
-                kfree(rf->msix_entries);
-                return -ENOMEM;
-
-
-@@@ -245,40 -245,35 +245,42 @@@ static void irdma_deinit_interrupts(str
-
-  static void irdma_remove(struct auxiliary_device *aux_dev)
-  {
-
-...
-
-+       kfree(iwdev->rf);
-+
- -      pr_debug("INIT: Gen2 PF[%d] device remove success\n", PCI_FUNC(pf->pdev->devfn));
- +      pr_debug("INIT: Gen2 PF[%d] device remove success\n", PCI_FUNC(cdev_info->pdev->devfn));
-  }
-
-[1] https://lore.kernel.org/linux-rdma/174514658010.719262.13870226048967432907.b4-ty@kernel.org/
-
-The following changes since commit 0af2f6be1b4281385b618cb86ad946eded089ac8:
-
-  Linux 6.15-rc1 (2025-04-06 13:11:33 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tnguy/linux.git for-next
-
-for you to fetch changes up to c24a65b6a27c78d8540409800886b6622ea86ebf:
-
-  iidc/ice/irdma: Update IDC to support multiple consumers (2025-05-09 11:35:43 -0700)
-
-----------------------------------------------------------------
-Tatyana Nikolova says:
-
-To align with review comments, the patch series introducing RDMA
-RoCEv2 support for the Intel Infrastructure Processing Unit (IPU)
-E2000 line of products is going to be submitted in three parts:
-
-1. Modify ice to use specific and common IIDC definitions and
-   pass a core device info to irdma.
-
-2. Add RDMA support to idpf and modify idpf to use specific and
-   common IIDC definitions and pass a core device info to irdma.
-
-3. Add RDMA RoCEv2 support for the E2000 products, referred to as
-   GEN3 to irdma.
-
-This first part is a 5 patch series based on the original
-"iidc/ice/irdma: Update IDC to support multiple consumers" patch
-to allow for multiple CORE PCI drivers, using the auxbus.
-
-Patches:
-1) Move header file to new name for clarity and replace ice
-   specific DSCP define with a kernel equivalent one in irdma
-2) Unify naming convention
-3) Separate header file into common and driver specific info
-4) Replace ice specific DSCP define with a kernel equivalent
-   one in ice
-5) Implement core device info struct and update drivers to use it
-
+Reviewed-by: Przemek Kitszel <przemyslaw.kitszel@intel.com>
+Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
-
-----------------------------------------------------------------
-Dave Ertman (4):
-  iidc/ice/irdma: Rename IDC header file
-  iidc/ice/irdma: Rename to iidc_* convention
-  iidc/ice/irdma: Break iidc.h into two headers
-  iidc/ice/irdma: Update IDC to support multiple consumers
-
-Tatyana Nikolova (1):
-  ice: Replace ice specific DSCP mapping num with a kernel define
-
- MAINTAINERS                                   |   2 +-
- drivers/infiniband/hw/irdma/main.c            | 125 ++++++-----
- drivers/infiniband/hw/irdma/main.h            |   3 +-
- drivers/infiniband/hw/irdma/osdep.h           |   2 +-
- drivers/infiniband/hw/irdma/type.h            |   4 +-
- .../net/ethernet/intel/ice/devlink/devlink.c  |  45 +++-
- drivers/net/ethernet/intel/ice/ice.h          |   6 +-
- drivers/net/ethernet/intel/ice/ice_dcb.c      |   2 +-
- drivers/net/ethernet/intel/ice/ice_dcb_lib.c  |  47 +++-
- drivers/net/ethernet/intel/ice/ice_dcb_lib.h  |   9 +
- drivers/net/ethernet/intel/ice/ice_dcb_nl.c   |   4 +-
- drivers/net/ethernet/intel/ice/ice_ethtool.c  |   8 +-
- drivers/net/ethernet/intel/ice/ice_idc.c      | 207 +++++++++++-------
- drivers/net/ethernet/intel/ice/ice_idc_int.h  |   5 +-
- drivers/net/ethernet/intel/ice/ice_main.c     |  18 +-
- drivers/net/ethernet/intel/ice/ice_type.h     |   6 +-
- include/linux/net/intel/iidc.h                | 109 ---------
- include/linux/net/intel/iidc_rdma.h           |  68 ++++++
- include/linux/net/intel/iidc_rdma_ice.h       |  70 ++++++
- 19 files changed, 452 insertions(+), 288 deletions(-)
- delete mode 100644 include/linux/net/intel/iidc.h
- create mode 100644 include/linux/net/intel/iidc_rdma.h
+---
+ drivers/net/ethernet/intel/ice/ice_idc_int.h |  1 +
+ include/linux/net/intel/iidc_rdma.h          | 14 +-------------
+ include/linux/net/intel/iidc_rdma_ice.h      | 19 +++++++++++++++++++
+ 3 files changed, 21 insertions(+), 13 deletions(-)
  create mode 100644 include/linux/net/intel/iidc_rdma_ice.h
+
+diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+index 03cd7d8d1aaa..17dbfcfb6a2a 100644
+--- a/drivers/net/ethernet/intel/ice/ice_idc_int.h
++++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
+@@ -5,6 +5,7 @@
+ #define _ICE_IDC_INT_H_
+ 
+ #include <linux/net/intel/iidc_rdma.h>
++#include <linux/net/intel/iidc_rdma_ice.h>
+ 
+ struct ice_pf;
+ 
+diff --git a/include/linux/net/intel/iidc_rdma.h b/include/linux/net/intel/iidc_rdma.h
+index 2b24a9912fa0..1e8136395154 100644
+--- a/include/linux/net/intel/iidc_rdma.h
++++ b/include/linux/net/intel/iidc_rdma.h
+@@ -1,5 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+-/* Copyright (C) 2021, Intel Corporation. */
++/* Copyright (C) 2021-2025, Intel Corporation. */
+ 
+ #ifndef _IIDC_RDMA_H_
+ #define _IIDC_RDMA_H_
+@@ -71,18 +71,6 @@ struct iidc_rdma_event {
+ 	u32 reg;
+ };
+ 
+-struct ice_pf;
+-
+-int ice_add_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
+-int ice_del_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
+-int ice_rdma_request_reset(struct ice_pf *pf,
+-			   enum iidc_rdma_reset_type reset_type);
+-int ice_rdma_update_vsi_filter(struct ice_pf *pf, u16 vsi_id, bool enable);
+-void ice_get_qos_params(struct ice_pf *pf,
+-			struct iidc_rdma_qos_params *qos);
+-int ice_alloc_rdma_qvector(struct ice_pf *pf, struct msix_entry *entry);
+-void ice_free_rdma_qvector(struct ice_pf *pf, struct msix_entry *entry);
+-
+ /* Structure representing auxiliary driver tailored information about the core
+  * PCI dev, each auxiliary driver using the IIDC interface will have an
+  * instance of this struct dedicated to it.
+diff --git a/include/linux/net/intel/iidc_rdma_ice.h b/include/linux/net/intel/iidc_rdma_ice.h
+new file mode 100644
+index 000000000000..78d10003d776
+--- /dev/null
++++ b/include/linux/net/intel/iidc_rdma_ice.h
+@@ -0,0 +1,19 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2021-2025, Intel Corporation. */
++
++#ifndef _IIDC_RDMA_ICE_H_
++#define _IIDC_RDMA_ICE_H_
++
++struct ice_pf;
++
++int ice_add_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
++int ice_del_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
++int ice_rdma_request_reset(struct ice_pf *pf,
++			   enum iidc_rdma_reset_type reset_type);
++int ice_rdma_update_vsi_filter(struct ice_pf *pf, u16 vsi_id, bool enable);
++void ice_get_qos_params(struct ice_pf *pf,
++			struct iidc_rdma_qos_params *qos);
++int ice_alloc_rdma_qvector(struct ice_pf *pf, struct msix_entry *entry);
++void ice_free_rdma_qvector(struct ice_pf *pf, struct msix_entry *entry);
++
++#endif /* _IIDC_RDMA_ICE_H_*/
+-- 
+2.47.1
+
