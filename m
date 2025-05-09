@@ -1,225 +1,149 @@
-Received: from out-187.mta1.migadu.com (out-187.mta1.migadu.com [95.215.58.187])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B0E8139B
-	for <linux-rdma@vger.kernel.org>; Fri,  9 May 2025 12:52:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8887E28EA44;
+	Fri,  9 May 2025 12:52:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746795135; cv=none; b=mNAxwW/2rd4gk1Vx6DHisyK+vaiIXkhPhQYa/+UaGVgULq5jKDJi3hI/fQNhWPq9yN1d+hf5dq48v8pLQwajTfQvOolt8fz2rAjwctBfKJXtO/SIC+gXe5xjG0Xs6j2acLm3FiwiWSp82SbMpiK/yWYSZ97wrpReyLD2m75WVj0=
+	t=1746795170; cv=none; b=UgR0IlgyCr6yby37xszF4Cjf0Bp+7YUInTBKzSKG8mdgM/ykrvGbkeF07u/+kSdGOK5EIdqCEUQBO8YZ/jG2v+Yc2K8YJiA3n3yGDwwp6AQ5JDbfU8cN3PlxOKckPhJ615bjN3PCEf8iTGqJLlZEkA2fJGNiZf2IfARitDDY01w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746795135; c=relaxed/simple;
-	bh=h/N09pbexzYE+qk2m7nfdm7xlx2BYT1NlbACj5xI9lU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=ClHuY2+xd3WPsppwpyQj1ngE1h0P0AvtNEvx/ORCz+cHJM90BPyWOkwMfUkn+Anya90sgQec4IgxYqP465jcPMVJ3NWPLyRCiBL97VR2hW3M59CFMCnACc31pfa3SHgNc8FqWYjqeY8MErypSnsyn9hgf7/E/2M7BsGmQsXpiBc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=VM7q8w0D; arc=none smtp.client-ip=95.215.58.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1746795170; c=relaxed/simple;
+	bh=BgRoUXYcSrAqisgxPiDX6UXaKvPPaCgwsEZyfhyMlFw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=LC7uaEPN/kH27z61pmMMrahLhtrUL4N0clE3htgZabM6YB/v6joc+QtIKIvE1J1tNtyCulAXjJ7oWafno0UAmX6/ghaHejINY7b1RNjGFC86VT2OCwxgsMNVk9t/VVjMIBCtWBweGU+Olji7TOgAzCu5wIy5uK+tuMB7MW86Nw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CkgAuKj2; arc=none smtp.client-ip=198.175.65.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="VM7q8w0D"
-Message-ID: <8a6fc2de-a2aa-497c-9938-ff66f18ef097@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1746795130;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=EganV1pOL8M2SSHAnKvcj8ajVnaVjVE4HDPaqbaAc40=;
-	b=VM7q8w0D43/CF/jbWDcht+Wv3+3/IpTgz+yUNA0IOhhYl9Y8HafuY9ddSULS2rP8cNIdxt
-	uZZmH6HJNHSD2B15ib4Ct41LAN9nwVYM3eo5rVI7XiKT2RPd1mmkVuw5HiiIPl7zBeazb0
-	OKk8dgqKyw+0mzWMTeWRORUVJYX7Sss=
-Date: Fri, 9 May 2025 14:52:08 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CkgAuKj2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1746795169; x=1778331169;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=BgRoUXYcSrAqisgxPiDX6UXaKvPPaCgwsEZyfhyMlFw=;
+  b=CkgAuKj2My4lk1JD/F4A5meH4iJsUwEpSm/m1aqb5FG2WHiAVcemvKUE
+   Qm5awLe23Lr1NMBQbr6FD7SjEWiVsaVgh+XeN4YiRLUb9TWHX//rpwf+x
+   TiDxN6yT6XKt3DiNuW6kYW9UFx7z5f2UzSoHGbmDzWZP6UPbYojsIU/zy
+   zzBWjWUnXCtmvo/1z3LA1yrU25Tn3wFtZmXRaLd/0VY08mduSN4alZg+j
+   XaF9FAIAywZ4dxnYZfqH0/ldIIxM7VnrkdwaRT/6eg1slb2zkV2SBramK
+   6mH8jcs3XFKbyI314LHgQcujyaiXw6zYODEYtszm5MuLGrwgLZUAWwTdu
+   Q==;
+X-CSE-ConnectionGUID: RSQlkGvHRb6l0DN4TlFUiQ==
+X-CSE-MsgGUID: SwwYXuLUQ4emDGyVODG5xQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11427"; a="66027268"
+X-IronPort-AV: E=Sophos;i="6.15,275,1739865600"; 
+   d="scan'208";a="66027268"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2025 05:52:49 -0700
+X-CSE-ConnectionGUID: BZDHX1swTe6uzMx0D0o0oQ==
+X-CSE-MsgGUID: 5ESaZ+aCS+yJh0Vw/9f4vw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,275,1739865600"; 
+   d="scan'208";a="141828269"
+Received: from amlin-018-114.igk.intel.com ([10.102.18.114])
+  by fmviesa004.fm.intel.com with ESMTP; 09 May 2025 05:52:43 -0700
+From: Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
+To: donald.hunter@gmail.com,
+	kuba@kernel.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	vadim.fedorenko@linux.dev,
+	jiri@resnulli.us,
+	anthony.l.nguyen@intel.com,
+	przemyslaw.kitszel@intel.com,
+	andrew+netdev@lunn.ch,
+	aleksandr.loktionov@intel.com
+Cc: netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	intel-wired-lan@lists.osuosl.org,
+	linux-rdma@vger.kernel.org,
+	Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
+Subject: [PATCH net-next v2 0/3] dpll: add Reference SYNC feature
+Date: Fri,  9 May 2025 14:46:48 +0200
+Message-Id: <20250509124651.1227098-1-arkadiusz.kubalewski@intel.com>
+X-Mailer: git-send-email 2.38.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH for-next v2 2/2] RDMA/rxe: Enable asynchronous prefetch
- for ODP MRs
-To: Daisuke Matsuda <dskmtsd@gmail.com>, linux-kernel@vger.kernel.org,
- linux-rdma@vger.kernel.org, leon@kernel.org, jgg@ziepe.ca,
- zyjzyj2000@gmail.com
-References: <20250503134224.4867-1-dskmtsd@gmail.com>
- <20250503134224.4867-3-dskmtsd@gmail.com>
- <dbc1bcdf-144d-44d2-8fc8-77bc2ad58b51@linux.dev>
- <2a6081b8-1772-4064-97d8-70d636b1868e@gmail.com>
-Content-Language: en-US
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Zhu Yanjun <yanjun.zhu@linux.dev>
-In-Reply-To: <2a6081b8-1772-4064-97d8-70d636b1868e@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
 
-On 09.05.25 14:19, Daisuke Matsuda wrote:
-> 
-> 
-> On 2025/05/06 0:25, Zhu Yanjun wrote:
->> On 03.05.25 15:42, Daisuke Matsuda wrote:
->>> Calling ibv_advise_mr(3) with flags other than IBV_ADVISE_MR_FLAG_FLUSH
->>> invokes asynchronous requests. It is best-effort, and thus can safely be
->>> deferred to the system-wide workqueue.
->>>
->>> Signed-off-by: Daisuke Matsuda <dskmtsd@gmail.com>
->>
->> I have made tests with rdma-core after applying this patch series. It 
->> seems that it can work well.
->> I read through this commit. Other than the following minor problems, I 
->> am fine with this commit.
->>
->> Reviewed-by: Zhu Yanjun <yanjun.zhu@linux.dev>
->>
->>> ---
->>>   drivers/infiniband/sw/rxe/rxe_odp.c | 81 ++++++++++++++++++++++++++++-
->>>   1 file changed, 80 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c 
->>> b/drivers/infiniband/sw/rxe/rxe_odp.c
->>> index e5c60b061d7e..d98b385a18ce 100644
->>> --- a/drivers/infiniband/sw/rxe/rxe_odp.c
->>> +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
->>> @@ -425,6 +425,73 @@ enum resp_states rxe_odp_do_atomic_write(struct 
->>> rxe_mr *mr, u64 iova, u64 value)
->>>       return RESPST_NONE;
->>>   }
->>> +struct prefetch_mr_work {
->>> +    struct work_struct work;
->>> +    u32 pf_flags;
->>> +    u32 num_sge;
->>> +    struct {
->>> +        u64 io_virt;
->>> +        struct rxe_mr *mr;
->>> +        size_t length;
->>> +    } frags[];
->>> +};
->>
->> The struct prefetch_mr_work should be moved into header file? IMO, it 
->> is better to move this struct to rxe_loc.h?
-> 
-> This struct is not likely to be used in other files.
-> I think leaving it here would be easier for other developers to 
-> understand because relevant codes are gathered.
-> If there is any specific reason to move, I will do so.
-> 
->>
->>> +
->>> +static void rxe_ib_prefetch_mr_work(struct work_struct *w)
->>> +{
->>> +    struct prefetch_mr_work *work =
->>> +        container_of(w, struct prefetch_mr_work, work);
->>> +    int ret;
->>> +    u32 i;
->>> +
->>> +    /* We rely on IB/core that work is executed if we have num_sge 
->>> != 0 only. */
->>> +    WARN_ON(!work->num_sge);
->>> +    for (i = 0; i < work->num_sge; ++i) {
->>> +        struct ib_umem_odp *umem_odp;
->>> +
->>> +        ret = rxe_odp_do_pagefault_and_lock(work->frags[i].mr, 
->>> work->frags[i].io_virt,
->>> +                            work->frags[i].length, work->pf_flags);
->>> +        if (ret < 0) {
->>> +            rxe_dbg_mr(work->frags[i].mr, "failed to prefetch the 
->>> mr\n");
->>> +            continue;
->>> +        }
->>> +
->>> +        umem_odp = to_ib_umem_odp(work->frags[i].mr->umem);
->>> +        mutex_unlock(&umem_odp->umem_mutex);
->>
->> Obviously this function is dependent on the mutex lock umem_mutex. So 
->> in the beginning of this function, it is better to  add 
->> lockdep_assert_held(&umem_odp->umem_mutex)?
-> 
-> The mutex **must not** be locked at the beginning, so
-> perhaps we can add lockdep_assert_not_held() instead at the beginning,
-> but this one is not used frequently, and we can do without that.
-> 
-> umem_mutex is locked in rxe_odp_do_pagefault_and_lock() in the for loop.
-> The function calls ib_umem_odp_map_dma_and_lock(), which locks the mutex 
-> only when pagefault is successful.
+The device may support the Reference SYNC feature, which allows the
+combination of two inputs into a Reference SYNC pair. In this
+configuration, clock signals from both inputs are used to synchronize
+the dpll device. The higher frequency signal is utilized for the loop
+bandwidth of the DPLL, while the lower frequency signal is used to
+syntonize the output signal of the DPLL device. This feature enables
+the provision of a high-quality loop bandwidth signal from an external
+source.
 
-Sure. umem_mutex is locked in other functions. It is not necessary to 
-use lockdep_assert_held at the beginning of this function.
+A capable input provides a list of inputs that can be paired to create
+a Reference SYNC pair. To control this feature, the user must request a
+desired state for a target pin: use ``DPLL_PIN_STATE_CONNECTED`` to
+enable or ``DPLL_PIN_STATE_DISCONNECTED`` to disable the feature. Only
+two pins can be bound to form a Reference SYNC pair at any given time.
 
-Zhu Yanjun
+Verify pins bind state/capabilities:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do pin-get \
+ --json '{"id":0}'
+{'board-label': 'CVL-SDP22',
+ 'id': 0,
+ [...]
+ 'reference-sync': [{'id': 1, 'state': 'disconnected'}],
+ [...]}
 
-> If ib_umem_odp_map_dma_and_lock() fails, an error is returned and then 
-> the mutex is not locked.
-> 
-> Daisuke
-> 
->>
->> Zhu Yanjun
->>
->>> +    }
->>> +
->>> +    kvfree(work);
->>> +}
->>> +
->>> +static int rxe_init_prefetch_work(struct ib_pd *ibpd,
->>> +                  enum ib_uverbs_advise_mr_advice advice,
->>> +                  u32 pf_flags, struct prefetch_mr_work *work,
->>> +                  struct ib_sge *sg_list, u32 num_sge)
->>> +{
->>> +    struct rxe_pd *pd = container_of(ibpd, struct rxe_pd, ibpd);
->>> +    u32 i;
->>> +
->>> +    INIT_WORK(&work->work, rxe_ib_prefetch_mr_work);
->>> +    work->pf_flags = pf_flags;
->>> +
->>> +    for (i = 0; i < num_sge; ++i) {
->>> +        struct rxe_mr *mr;
->>> +
->>> +        mr = lookup_mr(pd, IB_ACCESS_LOCAL_WRITE,
->>> +                   sg_list[i].lkey, RXE_LOOKUP_LOCAL);
->>> +        if (IS_ERR(mr)) {
->>> +            work->num_sge = i;
->>> +            return PTR_ERR(mr);
->>> +        }
->>> +        work->frags[i].io_virt = sg_list[i].addr;
->>> +        work->frags[i].length = sg_list[i].length;
->>> +        work->frags[i].mr = mr;
->>> +
->>> +        rxe_put(mr);
->>> +    }
->>> +    work->num_sge = num_sge;
->>> +    return 0;
->>> +}
->>> +
->>>   static int rxe_ib_prefetch_sg_list(struct ib_pd *ibpd,
->>>                      enum ib_uverbs_advise_mr_advice advice,
->>>                      u32 pf_flags, struct ib_sge *sg_list,
->>> @@ -478,6 +545,8 @@ static int rxe_ib_advise_mr_prefetch(struct ib_pd 
->>> *ibpd,
->>>                        u32 flags, struct ib_sge *sg_list, u32 num_sge)
->>>   {
->>>       u32 pf_flags = RXE_PAGEFAULT_DEFAULT;
->>> +    struct prefetch_mr_work *work;
->>> +    int rc;
->>>       if (advice == IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH)
->>>           pf_flags |= RXE_PAGEFAULT_RDONLY;
->>> @@ -490,7 +559,17 @@ static int rxe_ib_advise_mr_prefetch(struct 
->>> ib_pd *ibpd,
->>>           return rxe_ib_prefetch_sg_list(ibpd, advice, pf_flags, 
->>> sg_list,
->>>                              num_sge);
->>> -    /* Asynchronous call is "best-effort" */
->>> +    /* Asynchronous call is "best-effort" and allowed to fail */
->>> +    work = kvzalloc(struct_size(work, frags, num_sge), GFP_KERNEL);
->>> +    if (!work)
->>> +        return -ENOMEM;
->>> +
->>> +    rc = rxe_init_prefetch_work(ibpd, advice, pf_flags, work, 
->>> sg_list, num_sge);
->>> +    if (rc) {
->>> +        kvfree(work);
->>> +        return rc;
->>> +    }
->>> +    queue_work(system_unbound_wq, &work->work);
->>>       return 0;
->>>   }
->>
-> 
+Bind the pins by setting connected state between them:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do pin-set \
+ --json '{"id":0, "reference-sync":{"id":1, "state":"connected"}}'
+
+Verify pins bind state:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do pin-get \
+ --json '{"id":0}'
+{'board-label': 'CVL-SDP22',
+ 'id': 0,
+ [...]
+ 'reference-sync': [{'id': 1, 'state': 'connected'}],
+ [...]}
+
+Unbind the pins by setting disconnected state between them:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do pin-set \
+ --json '{"id":0, "reference-sync":{"id":1, "state":"disconnected"}}'
+
+v2:
+- improved cover letter description of the feature
+
+Arkadiusz Kubalewski (3):
+  dpll: add reference-sync netlink attribute
+  dpll: add reference sync get/set
+  ice: add ref-sync dpll pins
+
+ Documentation/driver-api/dpll.rst             |  25 +++
+ Documentation/netlink/specs/dpll.yaml         |  19 ++
+ drivers/dpll/dpll_core.c                      |  27 +++
+ drivers/dpll/dpll_core.h                      |   2 +
+ drivers/dpll/dpll_netlink.c                   | 188 ++++++++++++++++--
+ drivers/dpll/dpll_nl.c                        |  10 +-
+ drivers/dpll/dpll_nl.h                        |   1 +
+ .../net/ethernet/intel/ice/ice_adminq_cmd.h   |   2 +
+ drivers/net/ethernet/intel/ice/ice_dpll.c     | 186 +++++++++++++++++
+ include/linux/dpll.h                          |  10 +
+ include/uapi/linux/dpll.h                     |   1 +
+ 11 files changed, 451 insertions(+), 20 deletions(-)
+
+
+base-commit: 46431fd5224f7f3bab2823992ae1cf6f2700f1ce
+-- 
+2.38.1
 
