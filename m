@@ -1,48 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B811A25EF96;
-	Fri,  9 May 2025 20:07:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6784225F789;
+	Fri,  9 May 2025 20:07:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746821243; cv=none; b=QSfpCHQ2yTZk7xdauvfcJWIXctaCyFba8sLHFt82zSLOZ+RaH9KEkQcRJefQnGRgBvaZIS/P9tHtvoMbfYcQevlPd1IFVkqsX+6/S5fTGclo+X/xCz5FhrPo1tRMKJyNrB1sx/riMo+xIcMSy2ElZLwA6eN0xkrhGPxQMVoJVIs=
+	t=1746821244; cv=none; b=cfp1KP8kFZmcz4EBVv+PtFyHWAf9KvyYol4ecw0rNGI0qqRtPrb+A94oMatLHex/d9i1rVEQUqP2rmrLQhNl7Ew7f7PBYH/CIHzgkpU834wPHXS5e//zk4iK504hZtSIGMwbor/YivOh/mfqwXBi/FSyH9A7HTkRlPtZ6Z/qzVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746821243; c=relaxed/simple;
-	bh=LB3T3oavB3bTXPsmQCw/AuKSWwVSPWJN4YxxdiK7vOc=;
+	s=arc-20240116; t=1746821244; c=relaxed/simple;
+	bh=/eMys4wvH60G3cd94ScBWWoyNbLHd8rBXb3Yl2B5qAQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UHygCVpInM2iI9BlX8MHp1KIx0h6fMU+dByh7A/gPx0lcjvpfPbddOnFoVK0M7PNkL9GocqHtxcStvu0HK4V7ewV01L6x+nqR+8oOhtvyPbMTxP3xZDC7MxQqW5QE4EjZDg7DpLCVkUke87eiu6JCYtjOUdMnsB6MvLyxjsMsHo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eMG6tDkC; arc=none smtp.client-ip=192.198.163.16
+	 MIME-Version; b=C1fYvX0AEqHsroAd2U/2eqhP2zKQSiz8VuRN1F27De0Oc8QflXB2/x4U32SuIgw4pHWKgLXMl5MwFzZ7Mg/8i4WhcNowOyG9bLBn58Oyh2ztvXuB0uA7b0qGuTyuAPIuWqX/iFHWkL3hPc5zwNEQVuyg7ZkC8n4zUoHfAkU4U60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WtSXkyg8; arc=none smtp.client-ip=192.198.163.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eMG6tDkC"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WtSXkyg8"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1746821242; x=1778357242;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=LB3T3oavB3bTXPsmQCw/AuKSWwVSPWJN4YxxdiK7vOc=;
-  b=eMG6tDkCVRXtX6p4PGShrocPdMMMcD4WXLYnpLHtbJUltd/9FrenJgEf
-   8K2WIkF/kaBBAYhL7Oc6eOiy+HqqFV/NE2oOUWrnWVKAO8AIXIMqTAdbr
-   7FvyQ/ddBOsjFCTuC6w9bpM+G0sxk7UdLGiLlFSmvqDtHEVQ0oDgxbMQv
-   ir5lRKyNRMP9dO/nlKMYYYzK22g5nfc0U6KTKLAGhJ67uUNvdwSmVZoe/
-   FPyNe4hPiGXRTazInNr1xGEodamSGeYgousFNqBqMmrttg9TqE2tyweib
-   GZFpNXxipfE5MvsQ6guZ19RuPPE9ekV4g8ReZ7Ig6nEu+ZrjBDbLL7D++
-   g==;
-X-CSE-ConnectionGUID: 77uft+WuQ7+QtraLQHjsEw==
-X-CSE-MsgGUID: s7qsguIuQ/euFpH4/LADtw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11427"; a="36289891"
+  bh=/eMys4wvH60G3cd94ScBWWoyNbLHd8rBXb3Yl2B5qAQ=;
+  b=WtSXkyg85CVloYBiBeZL3EcGjz8yU0n/yffumyzBe8ZgmiSF66WJYNJa
+   wro6wlQ4pEOpPKY9ANvTK61fHunvZ7YjPPcEttfK3zfQ8KBfzRjmp+y1F
+   VFvENwkN2ZgmYj3qFkJez9PNciA3pB+B8pbL/osCFqJ2KcyfBs8rkGZ25
+   Vk/A+JSSQtKE851U7CXboLdMNOaK8M+2451fkkL2O0HSZut5rFhCRtFXG
+   ZVuvs+ftnR7i/0N4X0Q89zsK87RM5XbsbDkJMuREbSUvPOh2u+kmtxKxt
+   nlBBGRJ+ExggUYmzD6gQbbzWh/MmcK0DDi6vefuXulStxtOU5OfZEI0Z9
+   w==;
+X-CSE-ConnectionGUID: lJJrmPaDRVmCoSao1+XFaQ==
+X-CSE-MsgGUID: F+IiiebSTYe6v0O+UjzqHA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11427"; a="36289905"
 X-IronPort-AV: E=Sophos;i="6.15,276,1739865600"; 
-   d="scan'208";a="36289891"
+   d="scan'208";a="36289905"
 Received: from fmviesa003.fm.intel.com ([10.60.135.143])
   by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2025 13:07:19 -0700
-X-CSE-ConnectionGUID: 35kEZ3dlTz6dpoOCxr0Upg==
-X-CSE-MsgGUID: 3djObl6NTOiPpHorkxkmBg==
+X-CSE-ConnectionGUID: 6Hnt3M0/TO6FgOEY/zVtcQ==
+X-CSE-MsgGUID: UAYvK1wHS/KWqv2Kp3RhDw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.15,276,1739865600"; 
-   d="scan'208";a="140780374"
+   d="scan'208";a="140780380"
 Received: from anguy11-upstream.jf.intel.com ([10.166.9.133])
-  by fmviesa003.fm.intel.com with ESMTP; 09 May 2025 13:07:18 -0700
+  by fmviesa003.fm.intel.com with ESMTP; 09 May 2025 13:07:19 -0700
 From: Tony Nguyen <anthony.l.nguyen@intel.com>
 To: davem@davemloft.net,
 	kuba@kernel.org,
@@ -53,13 +53,14 @@ To: davem@davemloft.net,
 	leon@kernel.org,
 	linux-rdma@vger.kernel.org,
 	netdev@vger.kernel.org
-Cc: Dave Ertman <david.m.ertman@intel.com>,
+Cc: Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
 	anthony.l.nguyen@intel.com,
-	tatyana.e.nikolova@intel.com,
-	przemyslaw.kitszel@intel.com
-Subject: [PATCH net-next,rdma-next v2 2/5] iidc/ice/irdma: Rename to iidc_* convention
-Date: Fri,  9 May 2025 13:07:08 -0700
-Message-ID: <20250509200712.2911060-3-anthony.l.nguyen@intel.com>
+	david.m.ertman@intel.com,
+	przemyslaw.kitszel@intel.com,
+	Simon Horman <horms@kernel.org>
+Subject: [PATCH net-next,rdma-next v2 4/5] ice: Replace ice specific DSCP mapping num with a kernel define
+Date: Fri,  9 May 2025 13:07:10 -0700
+Message-ID: <20250509200712.2911060-5-anthony.l.nguyen@intel.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20250509200712.2911060-1-anthony.l.nguyen@intel.com>
 References: <20250509200712.2911060-1-anthony.l.nguyen@intel.com>
@@ -71,395 +72,134 @@ List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Dave Ertman <david.m.ertman@intel.com>
+From: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
 
-In preparation of supporting more than a single core PCI driver
-for RDMA, homogenize naming to iidc_rdma_* and IIDC_RDMA_*
-form.
+Replace ice driver specific DSCP mapping number defines
+ICE_DSCP_NUM_VAL and IIDC_MAX_DSCP_MAPPING with
+an equivalent kernel define DSCP_MAX.
 
 Reviewed-by: Przemek Kitszel <przemyslaw.kitszel@intel.com>
-Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova@intel.com>
+Signed-off-by: Dave Ertman <david.m.ertman@intel.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
 Signed-off-by: Tony Nguyen <anthony.l.nguyen@intel.com>
 ---
- drivers/infiniband/hw/irdma/main.c           | 41 +++++++++++---------
- drivers/net/ethernet/intel/ice/ice_dcb_lib.c |  8 ++--
- drivers/net/ethernet/intel/ice/ice_idc.c     | 23 ++++++-----
- drivers/net/ethernet/intel/ice/ice_idc_int.h |  2 +-
- drivers/net/ethernet/intel/ice/ice_main.c    |  8 ++--
- include/linux/net/intel/iidc_rdma.h          | 38 +++++++++---------
- 6 files changed, 64 insertions(+), 56 deletions(-)
+ drivers/net/ethernet/intel/ice/ice_dcb.c    | 2 +-
+ drivers/net/ethernet/intel/ice/ice_dcb_nl.c | 4 ++--
+ drivers/net/ethernet/intel/ice/ice_idc.c    | 2 +-
+ drivers/net/ethernet/intel/ice/ice_type.h   | 6 +++---
+ include/linux/net/intel/iidc_rdma.h         | 4 ++--
+ 5 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/irdma/main.c b/drivers/infiniband/hw/irdma/main.c
-index 1ee8969595d3..46489c0ab511 100644
---- a/drivers/infiniband/hw/irdma/main.c
-+++ b/drivers/infiniband/hw/irdma/main.c
-@@ -61,7 +61,7 @@ static void irdma_log_invalid_mtu(u16 mtu, struct irdma_sc_dev *dev)
- }
+diff --git a/drivers/net/ethernet/intel/ice/ice_dcb.c b/drivers/net/ethernet/intel/ice/ice_dcb.c
+index 74418c445cc4..64737fc62306 100644
+--- a/drivers/net/ethernet/intel/ice/ice_dcb.c
++++ b/drivers/net/ethernet/intel/ice/ice_dcb.c
+@@ -1288,7 +1288,7 @@ ice_add_dscp_up_tlv(struct ice_lldp_org_tlv *tlv, struct ice_dcbx_cfg *dcbcfg)
+ 	tlv->ouisubtype = htonl(ouisubtype);
  
- static void irdma_fill_qos_info(struct irdma_l2params *l2params,
--				struct iidc_qos_params *qos_info)
-+				struct iidc_rdma_qos_params *qos_info)
- {
- 	int i;
+ 	/* bytes 0 - 63 - IPv4 DSCP2UP LUT */
+-	for (i = 0; i < ICE_DSCP_NUM_VAL; i++) {
++	for (i = 0; i < DSCP_MAX; i++) {
+ 		/* IPv4 mapping */
+ 		buf[i] = dcbcfg->dscp_map[i];
+ 		/* IPv6 mapping */
+diff --git a/drivers/net/ethernet/intel/ice/ice_dcb_nl.c b/drivers/net/ethernet/intel/ice/ice_dcb_nl.c
+index 6d50b90a7359..a10c1c8d8697 100644
+--- a/drivers/net/ethernet/intel/ice/ice_dcb_nl.c
++++ b/drivers/net/ethernet/intel/ice/ice_dcb_nl.c
+@@ -754,7 +754,7 @@ static int ice_dcbnl_setapp(struct net_device *netdev, struct dcb_app *app)
+ 	if (!ice_is_feature_supported(pf, ICE_F_DSCP))
+ 		return -EOPNOTSUPP;
  
-@@ -85,12 +85,12 @@ static void irdma_fill_qos_info(struct irdma_l2params *l2params,
- 	}
- }
- 
--static void irdma_iidc_event_handler(struct ice_pf *pf, struct iidc_event *event)
-+static void irdma_iidc_event_handler(struct ice_pf *pf, struct iidc_rdma_event *event)
- {
- 	struct irdma_device *iwdev = dev_get_drvdata(&pf->adev->dev);
- 	struct irdma_l2params l2params = {};
- 
--	if (*event->type & BIT(IIDC_EVENT_AFTER_MTU_CHANGE)) {
-+	if (*event->type & BIT(IIDC_RDMA_EVENT_AFTER_MTU_CHANGE)) {
- 		ibdev_dbg(&iwdev->ibdev, "CLNT: new MTU = %d\n", iwdev->netdev->mtu);
- 		if (iwdev->vsi.mtu != iwdev->netdev->mtu) {
- 			l2params.mtu = iwdev->netdev->mtu;
-@@ -98,13 +98,13 @@ static void irdma_iidc_event_handler(struct ice_pf *pf, struct iidc_event *event
- 			irdma_log_invalid_mtu(l2params.mtu, &iwdev->rf->sc_dev);
- 			irdma_change_l2params(&iwdev->vsi, &l2params);
- 		}
--	} else if (*event->type & BIT(IIDC_EVENT_BEFORE_TC_CHANGE)) {
-+	} else if (*event->type & BIT(IIDC_RDMA_EVENT_BEFORE_TC_CHANGE)) {
- 		if (iwdev->vsi.tc_change_pending)
- 			return;
- 
- 		irdma_prep_tc_change(iwdev);
--	} else if (*event->type & BIT(IIDC_EVENT_AFTER_TC_CHANGE)) {
--		struct iidc_qos_params qos_info = {};
-+	} else if (*event->type & BIT(IIDC_RDMA_EVENT_AFTER_TC_CHANGE)) {
-+		struct iidc_rdma_qos_params qos_info = {};
- 
- 		if (!iwdev->vsi.tc_change_pending)
- 			return;
-@@ -116,7 +116,7 @@ static void irdma_iidc_event_handler(struct ice_pf *pf, struct iidc_event *event
- 		if (iwdev->rf->protocol_used != IRDMA_IWARP_PROTOCOL_ONLY)
- 			iwdev->dcb_vlan_mode = qos_info.num_tc > 1 && !l2params.dscp_mode;
- 		irdma_change_l2params(&iwdev->vsi, &l2params);
--	} else if (*event->type & BIT(IIDC_EVENT_CRIT_ERR)) {
-+	} else if (*event->type & BIT(IIDC_RDMA_EVENT_CRIT_ERR)) {
- 		ibdev_warn(&iwdev->ibdev, "ICE OICR event notification: oicr = 0x%08x\n",
- 			   event->reg);
- 		if (event->reg & IRDMAPFINT_OICR_PE_CRITERR_M) {
-@@ -245,11 +245,12 @@ static void irdma_deinit_interrupts(struct irdma_pci_f *rf, struct ice_pf *pf)
- 
- static void irdma_remove(struct auxiliary_device *aux_dev)
- {
--	struct iidc_auxiliary_dev *iidc_adev = container_of(aux_dev,
--							    struct iidc_auxiliary_dev,
--							    adev);
--	struct ice_pf *pf = iidc_adev->pf;
- 	struct irdma_device *iwdev = auxiliary_get_drvdata(aux_dev);
-+	struct iidc_rdma_core_auxiliary_dev *iidc_adev;
-+	struct ice_pf *pf;
-+
-+	iidc_adev = container_of(aux_dev, struct iidc_rdma_core_auxiliary_dev, adev);
-+	pf = iidc_adev->pf;
- 
- 	irdma_ib_unregister_device(iwdev);
- 	ice_rdma_update_vsi_filter(pf, iwdev->vsi_num, false);
-@@ -292,17 +293,19 @@ static void irdma_fill_device_info(struct irdma_device *iwdev, struct ice_pf *pf
- 
- static int irdma_probe(struct auxiliary_device *aux_dev, const struct auxiliary_device_id *id)
- {
--	struct iidc_auxiliary_dev *iidc_adev = container_of(aux_dev,
--							    struct iidc_auxiliary_dev,
--							    adev);
--	struct ice_pf *pf = iidc_adev->pf;
--	struct ice_vsi *vsi = ice_get_main_vsi(pf);
--	struct iidc_qos_params qos_info = {};
-+	struct iidc_rdma_core_auxiliary_dev *iidc_adev;
-+	struct iidc_rdma_qos_params qos_info = {};
-+	struct irdma_l2params l2params = {};
- 	struct irdma_device *iwdev;
- 	struct irdma_pci_f *rf;
--	struct irdma_l2params l2params = {};
-+	struct ice_vsi *vsi;
-+	struct ice_pf *pf;
- 	int err;
- 
-+	iidc_adev = container_of(aux_dev, struct iidc_rdma_core_auxiliary_dev, adev);
-+	pf = iidc_adev->pf;
-+	vsi = ice_get_main_vsi(pf);
-+
- 	if (!vsi)
- 		return -EIO;
- 	iwdev = ib_alloc_device(irdma_device, ibdev);
-@@ -367,7 +370,7 @@ static const struct auxiliary_device_id irdma_auxiliary_id_table[] = {
- 
- MODULE_DEVICE_TABLE(auxiliary, irdma_auxiliary_id_table);
- 
--static struct iidc_auxiliary_drv irdma_auxiliary_drv = {
-+static struct iidc_rdma_core_auxiliary_drv irdma_auxiliary_drv = {
- 	.adrv = {
- 	    .id_table = irdma_auxiliary_id_table,
- 	    .probe = irdma_probe,
-diff --git a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-index a7c510832824..fe16c59796db 100644
---- a/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-+++ b/drivers/net/ethernet/intel/ice/ice_dcb_lib.c
-@@ -352,8 +352,8 @@ int ice_pf_dcb_cfg(struct ice_pf *pf, struct ice_dcbx_cfg *new_cfg, bool locked)
- 	struct ice_aqc_port_ets_elem buf = { 0 };
- 	struct ice_dcbx_cfg *old_cfg, *curr_cfg;
- 	struct device *dev = ice_pf_to_dev(pf);
-+	struct iidc_rdma_event *event;
- 	int ret = ICE_DCB_NO_HW_CHG;
--	struct iidc_event *event;
- 	struct ice_vsi *pf_vsi;
- 
- 	curr_cfg = &pf->hw.port_info->qos_cfg.local_dcbx_cfg;
-@@ -405,7 +405,7 @@ int ice_pf_dcb_cfg(struct ice_pf *pf, struct ice_dcbx_cfg *new_cfg, bool locked)
- 		goto free_cfg;
- 	}
- 
--	set_bit(IIDC_EVENT_BEFORE_TC_CHANGE, event->type);
-+	set_bit(IIDC_RDMA_EVENT_BEFORE_TC_CHANGE, event->type);
- 	ice_send_event_to_aux(pf, event);
- 	kfree(event);
- 
-@@ -740,7 +740,7 @@ static int ice_dcb_noncontig_cfg(struct ice_pf *pf)
- void ice_pf_dcb_recfg(struct ice_pf *pf, bool locked)
- {
- 	struct ice_dcbx_cfg *dcbcfg = &pf->hw.port_info->qos_cfg.local_dcbx_cfg;
--	struct iidc_event *event;
-+	struct iidc_rdma_event *event;
- 	u8 tc_map = 0;
- 	int v, ret;
- 
-@@ -789,7 +789,7 @@ void ice_pf_dcb_recfg(struct ice_pf *pf, bool locked)
- 		if (!event)
- 			return;
- 
--		set_bit(IIDC_EVENT_AFTER_TC_CHANGE, event->type);
-+		set_bit(IIDC_RDMA_EVENT_AFTER_TC_CHANGE, event->type);
- 		ice_send_event_to_aux(pf, event);
- 		kfree(event);
- 	}
+-	if (app->protocol >= ICE_DSCP_NUM_VAL) {
++	if (app->protocol >= DSCP_MAX) {
+ 		netdev_err(netdev, "DSCP value 0x%04X out of range\n",
+ 			   app->protocol);
+ 		return -EINVAL;
+@@ -931,7 +931,7 @@ static int ice_dcbnl_delapp(struct net_device *netdev, struct dcb_app *app)
+ 	/* if the last DSCP mapping just got deleted, need to switch
+ 	 * to L2 VLAN QoS mode
+ 	 */
+-	if (bitmap_empty(new_cfg->dscp_mapped, ICE_DSCP_NUM_VAL) &&
++	if (bitmap_empty(new_cfg->dscp_mapped, DSCP_MAX) &&
+ 	    new_cfg->pfc_mode == ICE_QOS_MODE_DSCP) {
+ 		ret = ice_aq_set_pfc_mode(&pf->hw,
+ 					  ICE_AQC_PFC_VLAN_BASED_PFC,
 diff --git a/drivers/net/ethernet/intel/ice/ice_idc.c b/drivers/net/ethernet/intel/ice/ice_idc.c
-index bab3e81cad5d..d55107077d8c 100644
+index d55107077d8c..4421ba024396 100644
 --- a/drivers/net/ethernet/intel/ice/ice_idc.c
 +++ b/drivers/net/ethernet/intel/ice/ice_idc.c
-@@ -15,7 +15,8 @@ static DEFINE_XARRAY_ALLOC1(ice_aux_id);
-  * This function has to be called with a device_lock on the
-  * pf->adev.dev to avoid race conditions.
-  */
--static struct iidc_auxiliary_drv *ice_get_auxiliary_drv(struct ice_pf *pf)
-+static
-+struct iidc_rdma_core_auxiliary_drv *ice_get_auxiliary_drv(struct ice_pf *pf)
- {
- 	struct auxiliary_device *adev;
+@@ -225,7 +225,7 @@ void ice_get_qos_params(struct ice_pf *pf, struct iidc_rdma_qos_params *qos)
  
-@@ -23,8 +24,8 @@ static struct iidc_auxiliary_drv *ice_get_auxiliary_drv(struct ice_pf *pf)
- 	if (!adev || !adev->dev.driver)
- 		return NULL;
- 
--	return container_of(adev->dev.driver, struct iidc_auxiliary_drv,
--			    adrv.driver);
-+	return container_of(adev->dev.driver,
-+			    struct iidc_rdma_core_auxiliary_drv, adrv.driver);
+ 	qos->pfc_mode = dcbx_cfg->pfc_mode;
+ 	if (qos->pfc_mode == IIDC_DSCP_PFC_MODE)
+-		for (i = 0; i < IIDC_MAX_DSCP_MAPPING; i++)
++		for (i = 0; i < DSCP_MAX; i++)
+ 			qos->dscp_map[i] = dcbx_cfg->dscp_map[i];
  }
+ EXPORT_SYMBOL_GPL(ice_get_qos_params);
+diff --git a/drivers/net/ethernet/intel/ice/ice_type.h b/drivers/net/ethernet/intel/ice/ice_type.h
+index 0aab21113cc4..529f978ea45a 100644
+--- a/drivers/net/ethernet/intel/ice/ice_type.h
++++ b/drivers/net/ethernet/intel/ice/ice_type.h
+@@ -19,6 +19,7 @@
+ #include "ice_vlan_mode.h"
+ #include "ice_fwlog.h"
+ #include <linux/wait.h>
++#include <net/dscp.h>
  
- /**
-@@ -32,9 +33,9 @@ static struct iidc_auxiliary_drv *ice_get_auxiliary_drv(struct ice_pf *pf)
-  * @pf: pointer to PF struct
-  * @event: event struct
-  */
--void ice_send_event_to_aux(struct ice_pf *pf, struct iidc_event *event)
-+void ice_send_event_to_aux(struct ice_pf *pf, struct iidc_rdma_event *event)
+ static inline bool ice_is_tc_ena(unsigned long bitmap, u8 tc)
  {
--	struct iidc_auxiliary_drv *iadrv;
-+	struct iidc_rdma_core_auxiliary_drv *iadrv;
+@@ -695,7 +696,6 @@ struct ice_dcb_app_priority_table {
  
- 	if (WARN_ON_ONCE(!in_task()))
- 		return;
-@@ -141,7 +142,8 @@ EXPORT_SYMBOL_GPL(ice_del_rdma_qset);
-  * @pf: struct for PF
-  * @reset_type: type of reset
-  */
--int ice_rdma_request_reset(struct ice_pf *pf, enum iidc_reset_type reset_type)
-+int ice_rdma_request_reset(struct ice_pf *pf,
-+			   enum iidc_rdma_reset_type reset_type)
- {
- 	enum ice_reset_req reset;
- 
-@@ -205,7 +207,7 @@ EXPORT_SYMBOL_GPL(ice_rdma_update_vsi_filter);
-  * @pf: pointer to PF struct
-  * @qos: set of QoS values
-  */
--void ice_get_qos_params(struct ice_pf *pf, struct iidc_qos_params *qos)
-+void ice_get_qos_params(struct ice_pf *pf, struct iidc_rdma_qos_params *qos)
- {
- 	struct ice_dcbx_cfg *dcbx_cfg;
- 	unsigned int i;
-@@ -263,9 +265,10 @@ EXPORT_SYMBOL_GPL(ice_free_rdma_qvector);
-  */
- static void ice_adev_release(struct device *dev)
- {
--	struct iidc_auxiliary_dev *iadev;
-+	struct iidc_rdma_core_auxiliary_dev *iadev;
- 
--	iadev = container_of(dev, struct iidc_auxiliary_dev, adev.dev);
-+	iadev = container_of(dev, struct iidc_rdma_core_auxiliary_dev,
-+			     adev.dev);
- 	kfree(iadev);
- }
- 
-@@ -275,7 +278,7 @@ static void ice_adev_release(struct device *dev)
-  */
- int ice_plug_aux_dev(struct ice_pf *pf)
- {
--	struct iidc_auxiliary_dev *iadev;
-+	struct iidc_rdma_core_auxiliary_dev *iadev;
- 	struct auxiliary_device *adev;
- 	int ret;
- 
-diff --git a/drivers/net/ethernet/intel/ice/ice_idc_int.h b/drivers/net/ethernet/intel/ice/ice_idc_int.h
-index b0c504a6408e..03cd7d8d1aaa 100644
---- a/drivers/net/ethernet/intel/ice/ice_idc_int.h
-+++ b/drivers/net/ethernet/intel/ice/ice_idc_int.h
-@@ -8,6 +8,6 @@
- 
- struct ice_pf;
- 
--void ice_send_event_to_aux(struct ice_pf *pf, struct iidc_event *event);
-+void ice_send_event_to_aux(struct ice_pf *pf, struct iidc_rdma_event *event);
- 
- #endif /* !_ICE_IDC_INT_H_ */
-diff --git a/drivers/net/ethernet/intel/ice/ice_main.c b/drivers/net/ethernet/intel/ice/ice_main.c
-index d390157b59fe..6a20f9f2e608 100644
---- a/drivers/net/ethernet/intel/ice/ice_main.c
-+++ b/drivers/net/ethernet/intel/ice/ice_main.c
-@@ -2401,11 +2401,11 @@ static void ice_service_task(struct work_struct *work)
- 	}
- 
- 	if (test_and_clear_bit(ICE_AUX_ERR_PENDING, pf->state)) {
--		struct iidc_event *event;
-+		struct iidc_rdma_event *event;
- 
- 		event = kzalloc(sizeof(*event), GFP_KERNEL);
- 		if (event) {
--			set_bit(IIDC_EVENT_CRIT_ERR, event->type);
-+			set_bit(IIDC_RDMA_EVENT_CRIT_ERR, event->type);
- 			/* report the entire OICR value to AUX driver */
- 			swap(event->reg, pf->oicr_err_reg);
- 			ice_send_event_to_aux(pf, event);
-@@ -2424,11 +2424,11 @@ static void ice_service_task(struct work_struct *work)
- 		ice_plug_aux_dev(pf);
- 
- 	if (test_and_clear_bit(ICE_FLAG_MTU_CHANGED, pf->flags)) {
--		struct iidc_event *event;
-+		struct iidc_rdma_event *event;
- 
- 		event = kzalloc(sizeof(*event), GFP_KERNEL);
- 		if (event) {
--			set_bit(IIDC_EVENT_AFTER_MTU_CHANGE, event->type);
-+			set_bit(IIDC_RDMA_EVENT_AFTER_MTU_CHANGE, event->type);
- 			ice_send_event_to_aux(pf, event);
- 			kfree(event);
- 		}
+ #define ICE_MAX_USER_PRIORITY	8
+ #define ICE_DCBX_MAX_APPS	64
+-#define ICE_DSCP_NUM_VAL	64
+ #define ICE_LLDPDU_SIZE		1500
+ #define ICE_TLV_STATUS_OPER	0x1
+ #define ICE_TLV_STATUS_SYNC	0x2
+@@ -718,9 +718,9 @@ struct ice_dcbx_cfg {
+ 	u8 pfc_mode;
+ 	struct ice_dcb_app_priority_table app[ICE_DCBX_MAX_APPS];
+ 	/* when DSCP mapping defined by user set its bit to 1 */
+-	DECLARE_BITMAP(dscp_mapped, ICE_DSCP_NUM_VAL);
++	DECLARE_BITMAP(dscp_mapped, DSCP_MAX);
+ 	/* array holding DSCP -> UP/TC values for DSCP L3 QoS mode */
+-	u8 dscp_map[ICE_DSCP_NUM_VAL];
++	u8 dscp_map[DSCP_MAX];
+ 	u8 dcbx_mode;
+ #define ICE_DCBX_MODE_CEE	0x1
+ #define ICE_DCBX_MODE_IEEE	0x2
 diff --git a/include/linux/net/intel/iidc_rdma.h b/include/linux/net/intel/iidc_rdma.h
-index 0cd75404e459..2b24a9912fa0 100644
+index 1e8136395154..7f1910289534 100644
 --- a/include/linux/net/intel/iidc_rdma.h
 +++ b/include/linux/net/intel/iidc_rdma.h
-@@ -11,16 +11,16 @@
+@@ -10,6 +10,7 @@
+ #include <linux/if_ether.h>
  #include <linux/kernel.h>
  #include <linux/netdevice.h>
++#include <net/dscp.h>
  
--enum iidc_event_type {
--	IIDC_EVENT_BEFORE_MTU_CHANGE,
--	IIDC_EVENT_AFTER_MTU_CHANGE,
--	IIDC_EVENT_BEFORE_TC_CHANGE,
--	IIDC_EVENT_AFTER_TC_CHANGE,
--	IIDC_EVENT_CRIT_ERR,
--	IIDC_EVENT_NBITS		/* must be last */
-+enum iidc_rdma_event_type {
-+	IIDC_RDMA_EVENT_BEFORE_MTU_CHANGE,
-+	IIDC_RDMA_EVENT_AFTER_MTU_CHANGE,
-+	IIDC_RDMA_EVENT_BEFORE_TC_CHANGE,
-+	IIDC_RDMA_EVENT_AFTER_TC_CHANGE,
-+	IIDC_RDMA_EVENT_CRIT_ERR,
-+	IIDC_RDMA_EVENT_NBITS		/* must be last */
+ enum iidc_rdma_event_type {
+ 	IIDC_RDMA_EVENT_BEFORE_MTU_CHANGE,
+@@ -32,7 +33,6 @@ enum iidc_rdma_protocol {
  };
  
--enum iidc_reset_type {
-+enum iidc_rdma_reset_type {
- 	IIDC_PFR,
- 	IIDC_CORER,
- 	IIDC_GLOBR,
-@@ -47,7 +47,7 @@ struct iidc_rdma_qset_params {
- 	u8 tc; /* TC branch the Qset should belong to */
- };
+ #define IIDC_MAX_USER_PRIORITY		8
+-#define IIDC_MAX_DSCP_MAPPING		64
+ #define IIDC_DSCP_PFC_MODE		0x1
  
--struct iidc_qos_info {
-+struct iidc_rdma_qos_info {
- 	u64 tc_ctx;
- 	u8 rel_bw;
- 	u8 prio_type;
-@@ -56,8 +56,8 @@ struct iidc_qos_info {
- };
- 
- /* Struct to pass QoS info */
--struct iidc_qos_params {
--	struct iidc_qos_info tc_info[IEEE_8021QAZ_MAX_TCS];
-+struct iidc_rdma_qos_params {
-+	struct iidc_rdma_qos_info tc_info[IEEE_8021QAZ_MAX_TCS];
- 	u8 up2tc[IIDC_MAX_USER_PRIORITY];
- 	u8 vport_relative_bw;
+ /* Struct to hold per RDMA Qset info */
+@@ -63,7 +63,7 @@ struct iidc_rdma_qos_params {
  	u8 vport_priority_type;
-@@ -66,8 +66,8 @@ struct iidc_qos_params {
- 	u8 dscp_map[IIDC_MAX_DSCP_MAPPING];
+ 	u8 num_tc;
+ 	u8 pfc_mode;
+-	u8 dscp_map[IIDC_MAX_DSCP_MAPPING];
++	u8 dscp_map[DSCP_MAX];
  };
  
--struct iidc_event {
--	DECLARE_BITMAP(type, IIDC_EVENT_NBITS);
-+struct iidc_rdma_event {
-+	DECLARE_BITMAP(type, IIDC_RDMA_EVENT_NBITS);
- 	u32 reg;
- };
- 
-@@ -75,9 +75,11 @@ struct ice_pf;
- 
- int ice_add_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
- int ice_del_rdma_qset(struct ice_pf *pf, struct iidc_rdma_qset_params *qset);
--int ice_rdma_request_reset(struct ice_pf *pf, enum iidc_reset_type reset_type);
-+int ice_rdma_request_reset(struct ice_pf *pf,
-+			   enum iidc_rdma_reset_type reset_type);
- int ice_rdma_update_vsi_filter(struct ice_pf *pf, u16 vsi_id, bool enable);
--void ice_get_qos_params(struct ice_pf *pf, struct iidc_qos_params *qos);
-+void ice_get_qos_params(struct ice_pf *pf,
-+			struct iidc_rdma_qos_params *qos);
- int ice_alloc_rdma_qvector(struct ice_pf *pf, struct msix_entry *entry);
- void ice_free_rdma_qvector(struct ice_pf *pf, struct msix_entry *entry);
- 
-@@ -86,7 +88,7 @@ void ice_free_rdma_qvector(struct ice_pf *pf, struct msix_entry *entry);
-  * instance of this struct dedicated to it.
-  */
- 
--struct iidc_auxiliary_dev {
-+struct iidc_rdma_core_auxiliary_dev {
- 	struct auxiliary_device adev;
- 	struct ice_pf *pf;
- };
-@@ -96,14 +98,14 @@ struct iidc_auxiliary_dev {
-  * driver will access these ops by performing a container_of on the
-  * auxiliary_device->dev.driver.
-  */
--struct iidc_auxiliary_drv {
-+struct iidc_rdma_core_auxiliary_drv {
- 	struct auxiliary_driver adrv;
- 	/* This event_handler is meant to be a blocking call.  For instance,
- 	 * when a BEFORE_MTU_CHANGE event comes in, the event_handler will not
- 	 * return until the auxiliary driver is ready for the MTU change to
- 	 * happen.
- 	 */
--	void (*event_handler)(struct ice_pf *pf, struct iidc_event *event);
-+	void (*event_handler)(struct ice_pf *pf, struct iidc_rdma_event *event);
- };
- 
- #endif /* _IIDC_RDMA_H_*/
+ struct iidc_rdma_event {
 -- 
 2.47.1
 
