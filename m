@@ -1,66 +1,35 @@
-Received: from smtp-fw-80008.amazon.com (smtp-fw-80008.amazon.com [99.78.197.219])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D9BB298986;
-	Thu, 22 May 2025 16:12:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=99.78.197.219
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C57623C510;
+	Thu, 22 May 2025 16:30:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747930372; cv=none; b=DTAv3Ke29tQocIBHWtBZBaGFG4pABgcfMTjb4oifQjhFjLd1XWxMRG2xDFvog7RPJqdufoWI7ob7B7hTq5RS4KV73KBaAqm/dXOJJGRv5nRWX1iitTOL5eoinAhWjvfOzc15xswN/XF3OEPjyPnUlcUIN3fziRIgawn7pUpmErw=
+	t=1747931402; cv=none; b=ucjagqH4u6pgM5msf9vjbmEFWvpjuH+RTCP8Y6NzhEO5wXeX68cypzWO6hnb68WyTv8uTF5b65+cScOZeiMS0020/ufFfX1etuqEjmoyW4gc9yE+fj0ARv6oN16gg207rUq5+tsFyEEIC6TqL80PRJt4Kyzc+nogwZhUzO1UI70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747930372; c=relaxed/simple;
-	bh=r/9YbCnf38I2uNWxlrT08OWQjmU2+IxyxKka3g6yh7U=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mT1dzJHYLtWbiUwWadFBDf936DFuIwSNuExOMS4zFQ3du/VUdFFjzVmifdXIUAWBIiCAQeqqUw/a1qOEjcBSV45QnHVYiNvDCu+iPlz1u1qbbNC1sTEYqqCmqos5psdq+4fqITF8Z46UCbAI19nSvY4di00uC5xRFhgPEC6hGQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.co.jp; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=H0MMvTQ7; arc=none smtp.client-ip=99.78.197.219
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.co.jp
+	s=arc-20240116; t=1747931402; c=relaxed/simple;
+	bh=QauHD26f0xVLSJ2R78w8tIAsbID5M+Dr2BROMlraE/c=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=iabQ4+ySi5TZsBb7Nc/FW/abgMtYRAvsw14wzyDzSuSBqyz5hiNt6PnC/MnD/yxedbLh4WhWKDQPMvbD3lUji5w4w3n9CnfjPS1JxpkAWP/g1E2GcttU4UCZ7jHP8FUjCus67gUWX3vi4l+jHk7AfY+ipOtqrnOgrD+6lM6s7gQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V6TVzgvA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="H0MMvTQ7"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1747930370; x=1779466370;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=q83a3aOAlFEsUBxycxiFP+NkK9i6pWmdjvMN3DiYJEA=;
-  b=H0MMvTQ7QE1Kopn2QsQPABCVvDnXKdyXkuc5GQckz0i69GInlMDt7RpN
-   6UxIuhWaUU8PzaRicPGorasoKCOqeABKgB+o7lK0ulk6qxt/kTOtx/LTD
-   ViM2xgjec9k5w18Nub2CStiS8QX7WI7h49kWB4KKENgwHatfe9xznFA9I
-   RN/0XQPuJ061dMWYHAO+vY0QG82NbaMLJL3wIVf5lT2jk3foqvdSolS6N
-   40dm2NR/X9faXY3ow3sOnrwUutQp18AEB7erCpcLHe/rSIU0SetZ5o67v
-   648MAkkGZI4bACRrJIlW0+BxIg4C3cXgw64Qiwzz6SZ7ADzcFYS4mrxYG
-   g==;
-X-IronPort-AV: E=Sophos;i="6.15,306,1739836800"; 
-   d="scan'208";a="199907297"
-Received: from pdx4-co-svc-p1-lb2-vlan3.amazon.com (HELO smtpout.prod.us-west-2.prod.farcaster.email.amazon.dev) ([10.25.36.214])
-  by smtp-border-fw-80008.pdx80.corp.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 May 2025 16:12:48 +0000
-Received: from EX19MTAUWB002.ant.amazon.com [10.0.7.35:57322]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.3.185:2525] with esmtp (Farcaster)
- id 5dac8cde-4bb0-4f29-b099-51b167a264c8; Thu, 22 May 2025 16:12:48 +0000 (UTC)
-X-Farcaster-Flow-ID: 5dac8cde-4bb0-4f29-b099-51b167a264c8
-Received: from EX19D004ANA001.ant.amazon.com (10.37.240.138) by
- EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.1544.14;
- Thu, 22 May 2025 16:12:47 +0000
-Received: from 6c7e67bfbae3.amazon.com (10.187.170.32) by
- EX19D004ANA001.ant.amazon.com (10.37.240.138) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.1544.14;
- Thu, 22 May 2025 16:12:43 +0000
-From: Kuniyuki Iwashima <kuniyu@amazon.com>
-To: <pabeni@redhat.com>
-CC: <axboe@kernel.dk>, <chuck.lever@oracle.com>, <davem@davemloft.net>,
-	<edumazet@google.com>, <hch@lst.de>, <horms@kernel.org>,
-	<jaka@linux.ibm.com>, <jlayton@kernel.org>, <kbusch@kernel.org>,
-	<kuba@kernel.org>, <kuni1840@gmail.com>, <kuniyu@amazon.com>,
-	<linux-nfs@vger.kernel.org>, <linux-nvme@lists.infradead.org>,
-	<linux-rdma@vger.kernel.org>, <matttbe@kernel.org>, <mptcp@lists.linux.dev>,
-	<netdev@vger.kernel.org>, <sfrench@samba.org>, <wenjia@linux.ibm.com>,
-	<willemb@google.com>
-Subject: Re: [PATCH v1 net-next 4/6] socket: Remove kernel socket conversion except for net/rds/.
-Date: Thu, 22 May 2025 09:12:22 -0700
-Message-ID: <20250522161235.32989-1-kuniyu@amazon.com>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <7a965a97-a6d0-462f-b7dd-8833605ea7c9@redhat.com>
-References: <7a965a97-a6d0-462f-b7dd-8833605ea7c9@redhat.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V6TVzgvA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0B38C4CEE4;
+	Thu, 22 May 2025 16:30:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1747931401;
+	bh=QauHD26f0xVLSJ2R78w8tIAsbID5M+Dr2BROMlraE/c=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=V6TVzgvAVW7k4qchP56bP0HtsYvO1J/m4eA/vIA4PFum5z/HSdgPM3XVJ6STN88Hc
+	 GlLM6ZcGcyajLLz6y11aG7bsuTyodV7xQzYkZE37WbovUNUAp3tqWBfm70FWcaFe3Q
+	 BSs68FjZcJSyc5w9DLLjW7dEwRZyQWyaxttMG0VENubzpfnq1sPWublTirIaORJBVA
+	 gJjaF7p1MhwetcY9S+gAIu/1fGzUQhKhiUVPKQmS0G9zcS8ypFWzs9Xl2AwqYjIFLU
+	 vw+m/5HeIhR+fyi5qaOHiU5SjMZylvqYzHqnBKZ4x+0wbLvVtIWMrbb9VuR0zkt6nC
+	 1dY/RtsftCopQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 710DD3805D89;
+	Thu, 22 May 2025 16:30:38 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -68,106 +37,53 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D040UWB001.ant.amazon.com (10.13.138.82) To
- EX19D004ANA001.ant.amazon.com (10.37.240.138)
+Subject: Re: [PATCH net-next 0/5] net/mlx5: Convert mlx5 to netdev instance
+ locking
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <174793143726.2938999.16490486121028128951.git-patchwork-notify@kernel.org>
+Date: Thu, 22 May 2025 16:30:37 +0000
+References: <1747829342-1018757-1-git-send-email-tariqt@nvidia.com>
+In-Reply-To: <1747829342-1018757-1-git-send-email-tariqt@nvidia.com>
+To: Tariq Toukan <tariqt@nvidia.com>
+Cc: davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org,
+ saeedm@nvidia.com, richardcochran@gmail.com, ast@kernel.org,
+ daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
+ linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ netdev@vger.kernel.org, bpf@vger.kernel.org, moshe@nvidia.com,
+ mbloch@nvidia.com, gal@nvidia.com, cratiu@nvidia.com
 
-From: Paolo Abeni <pabeni@redhat.com>
-Date: Thu, 22 May 2025 10:55:47 +0200
-> On 5/17/25 5:50 AM, Kuniyuki Iwashima wrote:
-> > Since commit 26abe14379f8 ("net: Modify sk_alloc to not reference
-> > count the netns of kernel sockets."), TCP kernel socket has caused
-> > many UAF.
-> > 
-> > We have converted such sockets to hold netns refcnt, and we have
-> > the same pattern in cifs, mptcp, nvme, rds, smc, and sunrpc.
-> > 
-> >   __sock_create_kern(..., &sock);
-> >   sk_net_refcnt_upgrade(sock->sk);
-> > 
-> > Let's drop the conversion and use sock_create_kern() instead.
-> > 
-> > The changes for cifs, mptcp, nvme, and smc are straightforward.
-> > 
-> > For sunrpc, we call sock_create_net() for IPPROTO_TCP only and still
-> > call __sock_create_kern() for others.
-> > 
-> > For rds, we cannot drop sk_net_refcnt_upgrade() for accept()ed
-> > sockets.
-> > 
-> > Signed-off-by: Kuniyuki Iwashima <kuniyu@amazon.com>
+Hello:
+
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Wed, 21 May 2025 15:08:57 +0300 you wrote:
+> Hi,
 > 
-> This LGTM, but is touching a few other subsystems, it would be great to
-> collect acks from the relevant maintainers: I'm adding a few CCs.
+> This series by Cosmin converts mlx5 to use the recently added netdev
+> instance locking scheme.
 > 
-> Direct link to the series:
+> Find detailed description by Cosmin below [1].
 > 
-> https://lore.kernel.org/all/20250517035120.55560-1-kuniyu@amazon.com/#t
-> 
-> > diff --git a/fs/smb/client/connect.c b/fs/smb/client/connect.c
-> > index 37a2ba38f10e..c7b4f5a7cca1 100644
-> > --- a/fs/smb/client/connect.c
-> > +++ b/fs/smb/client/connect.c
-> > @@ -3348,21 +3348,14 @@ generic_ip_connect(struct TCP_Server_Info *server)
-> >  		socket = server->ssocket;
-> >  	} else {
-> >  		struct net *net = cifs_net_ns(server);
-> > -		struct sock *sk;
-> >  
-> > -		rc = __sock_create_kern(net, sfamily, SOCK_STREAM,
-> > -					IPPROTO_TCP, &server->ssocket);
-> > +		rc = sock_create_kern(net, sfamily, SOCK_STREAM,
-> > +				      IPPROTO_TCP, &server->ssocket);
-> >  		if (rc < 0) {
-> >  			cifs_server_dbg(VFS, "Error %d creating socket\n", rc);
-> >  			return rc;
-> >  		}
-> >  
-> > -		sk = server->ssocket->sk;
-> > -		__netns_tracker_free(net, &sk->ns_tracker, false);
-> > -		sk->sk_net_refcnt = 1;
-> > -		get_net_track(net, &sk->ns_tracker, GFP_KERNEL);
-> > -		sock_inuse_add(net, 1);
-> 
-> AFAICS the above implicitly adds a missing net_passive_dec(net), which
-> in turns looks like a separate bugfix. What about adding a separate
-> patch introducing that line? Could be in the same series to simplify the
-> processing.
+> [...]
 
-Thanks for catching!
+Here is the summary with links:
+  - [net-next,1/5] IB/IPoIB: Enqueue separate work_structs for each flushed interface
+    https://git.kernel.org/netdev/net-next/c/5f85120e7462
+  - [net-next,2/5] IB/IPoIB: Replace vlan_rwsem with the netdev instance lock
+    https://git.kernel.org/netdev/net-next/c/463e51769697
+  - [net-next,3/5] IB/IPoIB: Allow using netdevs that require the instance lock
+    https://git.kernel.org/netdev/net-next/c/fd07ba1680ba
+  - [net-next,4/5] net/mlx5e: Don't drop RTNL during firmware flash
+    https://git.kernel.org/netdev/net-next/c/d7d4f9f7365a
+  - [net-next,5/5] net/mlx5e: Convert mlx5 netdevs to instance locking
+    https://git.kernel.org/netdev/net-next/c/8f7b00307bf1
 
-Will add this patch before this change.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
----8<---
-commit c7ff005fe4d930169f319aca0bd9577541cd7459 (HEAD)
-Author: Kuniyuki Iwashima <kuniyu@amazon.com>
-Date:   Thu May 22 16:03:29 2025 +0000
 
-    smb: client: Add missing net_passive_dec().
-    
-    While reverting commit e9f2517a3e18 ("smb: client: fix TCP timers deadlock
-    after rmmod"), I should have added net_passive_dec(), which was added between
-    the original commit and the revert by commit 5c70eb5c593d ("net: better track
-    kernel sockets lifetime").
-    
-    Let's call net_passive_dec() in generic_ip_connect().
-    
-    Note that this commit is only needed for 6.14+.
-    
-    Fixes: 95d2b9f693ff ("Revert "smb: client: fix TCP timers deadlock after rmmod"")
-    Cc: <stable@vger.kernel.org> # 6.14.x
-    Signed-off-by: Kuniyuki Iwashima <kuniyu@amazon.com>
-
-diff --git a/fs/smb/client/connect.c b/fs/smb/client/connect.c
-index 37a2ba38f10e..afac23a5a3ec 100644
---- a/fs/smb/client/connect.c
-+++ b/fs/smb/client/connect.c
-@@ -3359,6 +3359,7 @@ generic_ip_connect(struct TCP_Server_Info *server)
- 
-                sk = server->ssocket->sk;
-                __netns_tracker_free(net, &sk->ns_tracker, false);
-+               net_passive_dec(net);
-                sk->sk_net_refcnt = 1;
-                get_net_track(net, &sk->ns_tracker, GFP_KERNEL);
-                sock_inuse_add(net, 1);
----8<---
