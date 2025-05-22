@@ -1,35 +1,71 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C57623C510;
-	Thu, 22 May 2025 16:30:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76051248862;
+	Thu, 22 May 2025 16:35:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747931402; cv=none; b=ucjagqH4u6pgM5msf9vjbmEFWvpjuH+RTCP8Y6NzhEO5wXeX68cypzWO6hnb68WyTv8uTF5b65+cScOZeiMS0020/ufFfX1etuqEjmoyW4gc9yE+fj0ARv6oN16gg207rUq5+tsFyEEIC6TqL80PRJt4Kyzc+nogwZhUzO1UI70=
+	t=1747931749; cv=none; b=pFwrunwBQBRo6Z9yCux4+TOIu3vd8qCiB0Lp9jRiS9jLmD5BSCeTqmBoLFrH5VlEy33xGapga5Pp6ubjUMRFjVJilHmaKsf/ohuHegmb1hIXD+8AjUaHmiEZgNd9PFAjCoxdtwtTXoy2iuqn5kAlH3p0jiqP7V0AnyAQ0lz//HM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747931402; c=relaxed/simple;
-	bh=QauHD26f0xVLSJ2R78w8tIAsbID5M+Dr2BROMlraE/c=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=iabQ4+ySi5TZsBb7Nc/FW/abgMtYRAvsw14wzyDzSuSBqyz5hiNt6PnC/MnD/yxedbLh4WhWKDQPMvbD3lUji5w4w3n9CnfjPS1JxpkAWP/g1E2GcttU4UCZ7jHP8FUjCus67gUWX3vi4l+jHk7AfY+ipOtqrnOgrD+6lM6s7gQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V6TVzgvA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1747931749; c=relaxed/simple;
+	bh=ux9eZaPRebseznFfCMQVDgdu76v+ODiKx1nrwgRY7uY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=tRNhd2W69QRFsSGmjDeWHCPRS6zZSVp1pvT7gTY3fZPHsxledat3VnCrb+HG3P949CmDa6IzOfvPemVVemYFQsO9WXrXE7MqUPWuau1z7uQI9useysIAyEW0o/CxNJF0y1cc1WDvQt4PPd8FEL9L1Ms7QVmaiVD51Ew0U8BC3qU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mxzAbpMy; arc=none smtp.client-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V6TVzgvA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0B38C4CEE4;
-	Thu, 22 May 2025 16:30:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1747931401;
-	bh=QauHD26f0xVLSJ2R78w8tIAsbID5M+Dr2BROMlraE/c=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=V6TVzgvAVW7k4qchP56bP0HtsYvO1J/m4eA/vIA4PFum5z/HSdgPM3XVJ6STN88Hc
-	 GlLM6ZcGcyajLLz6y11aG7bsuTyodV7xQzYkZE37WbovUNUAp3tqWBfm70FWcaFe3Q
-	 BSs68FjZcJSyc5w9DLLjW7dEwRZyQWyaxttMG0VENubzpfnq1sPWublTirIaORJBVA
-	 gJjaF7p1MhwetcY9S+gAIu/1fGzUQhKhiUVPKQmS0G9zcS8ypFWzs9Xl2AwqYjIFLU
-	 vw+m/5HeIhR+fyi5qaOHiU5SjMZylvqYzHqnBKZ4x+0wbLvVtIWMrbb9VuR0zkt6nC
-	 1dY/RtsftCopQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 710DD3805D89;
-	Thu, 22 May 2025 16:30:38 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mxzAbpMy"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1747931748; x=1779467748;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=ux9eZaPRebseznFfCMQVDgdu76v+ODiKx1nrwgRY7uY=;
+  b=mxzAbpMyKlHQuZ9GUoLLSZD0gPzxppvRMwercBiwLo/HV+CKJ26K6W9o
+   3DHLOOGw+yirprZJqmgg3WlBmq0ZG2WprDgdMsjMJ/taLnPYvrqTRexFY
+   LP8k6h+awJ6Nl1vVZvCAoSTzh6/nxHH+R/Q1+E6X8FKAisC6di1v5AwpW
+   XTxVxsOyit5UIw4JTYfLyfbJR/xB5qGaFH+ld6TretUvf40h/bTgzeV/l
+   2uz3h7BVps6MVKMuS/4HgKXkuxXIgRmhWzIb3G1osrzDrDlknoSckqDpa
+   9eRubHyS13+2ofzY6pP/7I2neoGTxQuxRczSQxPEgQklq9djSyHG21EAF
+   g==;
+X-CSE-ConnectionGUID: A5K775xTTceD33WfZD1F7A==
+X-CSE-MsgGUID: KEPc6NbOTg2/9qqNUOlMUQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11441"; a="49889025"
+X-IronPort-AV: E=Sophos;i="6.15,306,1739865600"; 
+   d="scan'208";a="49889025"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 May 2025 09:35:47 -0700
+X-CSE-ConnectionGUID: a6/QFpl9RSWoEr/nOLM3sQ==
+X-CSE-MsgGUID: WjNNFZnOQTmzoaUNJRYBHg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.15,306,1739865600"; 
+   d="scan'208";a="145631339"
+Received: from amlin-018-114.igk.intel.com ([10.102.18.114])
+  by orviesa004.jf.intel.com with ESMTP; 22 May 2025 09:35:42 -0700
+From: Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
+To: donald.hunter@gmail.com,
+	kuba@kernel.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	vadim.fedorenko@linux.dev,
+	jiri@resnulli.us,
+	anthony.l.nguyen@intel.com,
+	przemyslaw.kitszel@intel.com,
+	andrew+netdev@lunn.ch,
+	aleksandr.loktionov@intel.com,
+	corbet@lwn.net
+Cc: netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	intel-wired-lan@lists.osuosl.org,
+	linux-rdma@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	Arkadiusz Kubalewski <arkadiusz.kubalewski@intel.com>
+Subject: [PATCH net-next v3 0/3] dpll: add Reference SYNC feature
+Date: Thu, 22 May 2025 18:29:35 +0200
+Message-Id: <20250522162938.1490791-1-arkadiusz.kubalewski@intel.com>
+X-Mailer: git-send-email 2.38.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -37,53 +73,79 @@ List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 0/5] net/mlx5: Convert mlx5 to netdev instance
- locking
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <174793143726.2938999.16490486121028128951.git-patchwork-notify@kernel.org>
-Date: Thu, 22 May 2025 16:30:37 +0000
-References: <1747829342-1018757-1-git-send-email-tariqt@nvidia.com>
-In-Reply-To: <1747829342-1018757-1-git-send-email-tariqt@nvidia.com>
-To: Tariq Toukan <tariqt@nvidia.com>
-Cc: davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, andrew+netdev@lunn.ch, jgg@ziepe.ca, leon@kernel.org,
- saeedm@nvidia.com, richardcochran@gmail.com, ast@kernel.org,
- daniel@iogearbox.net, hawk@kernel.org, john.fastabend@gmail.com,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- netdev@vger.kernel.org, bpf@vger.kernel.org, moshe@nvidia.com,
- mbloch@nvidia.com, gal@nvidia.com, cratiu@nvidia.com
 
-Hello:
+The device may support the Reference SYNC feature, which allows the
+combination of two inputs into a Reference SYNC pair. In this
+configuration, clock signals from both inputs are used to synchronize
+the dpll device. The higher frequency signal is utilized for the loop
+bandwidth of the DPLL, while the lower frequency signal is used to
+syntonize the output signal of the DPLL device. This feature enables
+the provision of a high-quality loop bandwidth signal from an external
+source.
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+A capable input provides a list of inputs that can be paired to create
+a Reference SYNC pair. To control this feature, the user must request a
+desired state for a target pin: use ``DPLL_PIN_STATE_CONNECTED`` to
+enable or ``DPLL_PIN_STATE_DISCONNECTED`` to disable the feature. Only
+two pins can be bound to form a Reference SYNC pair at any given time.
 
-On Wed, 21 May 2025 15:08:57 +0300 you wrote:
-> Hi,
-> 
-> This series by Cosmin converts mlx5 to use the recently added netdev
-> instance locking scheme.
-> 
-> Find detailed description by Cosmin below [1].
-> 
-> [...]
+Verify pins bind state/capabilities:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do pin-get \
+ --json '{"id":0}'
+{'board-label': 'CVL-SDP22',
+ 'id': 0,
+ [...]
+ 'reference-sync': [{'id': 1, 'state': 'disconnected'}],
+ [...]}
 
-Here is the summary with links:
-  - [net-next,1/5] IB/IPoIB: Enqueue separate work_structs for each flushed interface
-    https://git.kernel.org/netdev/net-next/c/5f85120e7462
-  - [net-next,2/5] IB/IPoIB: Replace vlan_rwsem with the netdev instance lock
-    https://git.kernel.org/netdev/net-next/c/463e51769697
-  - [net-next,3/5] IB/IPoIB: Allow using netdevs that require the instance lock
-    https://git.kernel.org/netdev/net-next/c/fd07ba1680ba
-  - [net-next,4/5] net/mlx5e: Don't drop RTNL during firmware flash
-    https://git.kernel.org/netdev/net-next/c/d7d4f9f7365a
-  - [net-next,5/5] net/mlx5e: Convert mlx5 netdevs to instance locking
-    https://git.kernel.org/netdev/net-next/c/8f7b00307bf1
+Bind the pins by setting connected state between them:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do pin-set \
+ --json '{"id":0, "reference-sync":{"id":1, "state":"connected"}}'
 
-You are awesome, thank you!
+Verify pins bind state:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do pin-get \
+ --json '{"id":0}'
+{'board-label': 'CVL-SDP22',
+ 'id': 0,
+ [...]
+ 'reference-sync': [{'id': 1, 'state': 'connected'}],
+ [...]}
+
+Unbind the pins by setting disconnected state between them:
+$ ./tools/net/ynl/pyynl/cli.py \
+ --spec Documentation/netlink/specs/dpll.yaml \
+ --do pin-set \
+ --json '{"id":0, "reference-sync":{"id":1, "state":"disconnected"}}'
+
+v3:
+- no change.
+
+Arkadiusz Kubalewski (3):
+  dpll: add reference-sync netlink attribute
+  dpll: add reference sync get/set
+  ice: add ref-sync dpll pins
+
+ Documentation/driver-api/dpll.rst             |  25 +++
+ Documentation/netlink/specs/dpll.yaml         |  19 ++
+ drivers/dpll/dpll_core.c                      |  27 +++
+ drivers/dpll/dpll_core.h                      |   2 +
+ drivers/dpll/dpll_netlink.c                   | 188 ++++++++++++++++--
+ drivers/dpll/dpll_nl.c                        |  10 +-
+ drivers/dpll/dpll_nl.h                        |   1 +
+ .../net/ethernet/intel/ice/ice_adminq_cmd.h   |   2 +
+ drivers/net/ethernet/intel/ice/ice_dpll.c     | 186 +++++++++++++++++
+ include/linux/dpll.h                          |  10 +
+ include/uapi/linux/dpll.h                     |   1 +
+ 11 files changed, 451 insertions(+), 20 deletions(-)
+
+
+base-commit: 4ff4d86f6cceb6bea583bdb230e5439655778cce
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.38.1
 
