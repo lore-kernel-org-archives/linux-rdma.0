@@ -1,114 +1,124 @@
-Received: from cstnet.cn (smtp81.cstnet.cn [159.226.251.81])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29CF62036EC;
-	Fri, 23 May 2025 02:43:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.81
+Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A54B422154F;
+	Fri, 23 May 2025 03:26:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747968231; cv=none; b=MpPyIXb4wjD2w/4gFsOcvV/NSUgXSG/Cmq9ijt5qPGur1B42q8UOnmrAd0LkptLfa+Bq5XzOuCXQUZyFmJ3EdTRY2d645KektyE9rseqwGaqCyNEcCTohSdtzkZnMCaSRRbCT9BkJgIjurNy3oP1Z58BBb+0VooMe9+dktjiKGk=
+	t=1747970786; cv=none; b=heiywxgJpvEBzHVhmtGoFmDxg8eK78WiY4Jxop5sQ4P8H+lZGUqFPFpMIImTcpnEsglZBzkIR49enq5pI1p53HFr8u99J0rUqlfrnDoaBe9QMXbU3/xMme7JRVT4lO6lmEH44WjFnODzo9GsOmHTpyzUBmCm1cUkhioCbrwe5tk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747968231; c=relaxed/simple;
-	bh=R8lOQ3fgmIDT6B3qCyZt9+V0MTvZUd4Z8lh1XJTmVgo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bGKOy2Kki1UFTrOvzbWiCxVoA1Y0zWP1kzGh1hWxMQrXhdDRVm8NmZIHmOXHNk6TyOF/2z3gt+H6lNIiGaZI8Q/CAs/JXZvI1nQh74gpZbgC9KD9V/89LGiU9i3MU0LEg05KloufdI3V2FpHC92J+WVUY3P/X0zBB4eZLeVT3cY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.81
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost.localdomain (unknown [124.16.141.245])
-	by APP-03 (Coremail) with SMTP id rQCowADHETHN4C9o+dNcAA--.174S2;
-	Fri, 23 May 2025 10:43:30 +0800 (CST)
-From: Wentao Liang <vulab@iscas.ac.cn>
-To: saeedm@nvidia.com,
-	leon@kernel.org,
-	tariqt@nvidia.com,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
+	s=arc-20240116; t=1747970786; c=relaxed/simple;
+	bh=Nlu+Ye/l2MvdjyqvtqV9kAfumkCJ+PGw/5U4NmeTbnI=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=JxITAFQYUcB3pms/aobcDOncSKi3Orn3PPG2220jQuVv/m/5tdta225KzvZfiQ2iJzFhpjzjGO1cYmRkqW/s8q6z/18uLOOmUXS5M5DHAO1NnFIaUdKLlWhSEDT/602j4m12jA+Pn2oVNWTpJKCc/BQUXrXdGfNivJ5kYXuvweY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
+X-AuditID: a67dfc5b-681ff7000002311f-93-682feadc559e
+From: Byungchul Park <byungchul@sk.com>
+To: willy@infradead.org,
+	netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	kernel_team@skhynix.com,
 	kuba@kernel.org,
-	pabeni@redhat.com
-Cc: netdev@vger.kernel.org,
+	almasrymina@google.com,
+	ilias.apalodimas@linaro.org,
+	harry.yoo@oracle.com,
+	hawk@kernel.org,
+	akpm@linux-foundation.org,
+	davem@davemloft.net,
+	john.fastabend@gmail.com,
+	andrew+netdev@lunn.ch,
+	asml.silence@gmail.com,
+	toke@redhat.com,
+	tariqt@nvidia.com,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	david@redhat.com,
+	lorenzo.stoakes@oracle.com,
+	Liam.Howlett@oracle.com,
+	vbabka@suse.cz,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	horms@kernel.org,
 	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Wentao Liang <vulab@iscas.ac.cn>,
-	stable@vger.kernel.org
-Subject: [PATCH v4] net/mlx5: Add error handling in mlx5_query_nic_vport_node_guid()
-Date: Fri, 23 May 2025 10:43:04 +0800
-Message-ID: <20250523024304.1216-1-vulab@iscas.ac.cn>
-X-Mailer: git-send-email 2.42.0.windows.2
+	bpf@vger.kernel.org,
+	vishal.moola@gmail.com
+Subject: [PATCH 04/18] page_pool: rename __page_pool_alloc_page_order() to __page_pool_alloc_large_netmem()
+Date: Fri, 23 May 2025 12:25:55 +0900
+Message-Id: <20250523032609.16334-5-byungchul@sk.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20250523032609.16334-1-byungchul@sk.com>
+References: <20250523032609.16334-1-byungchul@sk.com>
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTcRjG++9cN1wcpubRqHQQhpE3NN5IQoLgCBFRfVLBRh7dck7ZdM0i
+	cCWUokvKMGzSJO9KR5bpNDFbXivIvMQ0rxP9YKnkmnkLc1bffjzvj4cHXhqTdeMBtEqTxWs1
+	CrWclOCSJa+KExOLYcpws5EBs9BIQsO6AWpmbASY61sQ/Nz4SoGru4+E5xVrGJg/5eHgFjYx
+	mO91UjBdvYBDx71WDJwP+kkoytvC4I6tVgSDLSYCSjarMGjNnaFguN1MwlTjDgEL9iIcBsrq
+	cJg2xUKv5QCsffiOoFtoFcFaYTkJj4YsJMzlTSMYeufE4anRhEDodBCwtW4mY4O45roxEddW
+	NklxFms297I2hCtwDGGctT6f5KyrDylu4ksHyfU/2cK5NptLxBXdXSa5H/PjOLfSOUpyQvMo
+	zn20dFOcy3r4IhMviUnm1So9rw07c1Wi7Bx/Rma+EhtWBAHLRatUARLTLBPFln7eJv6za6NK
+	5GGSCWYdjg3Mwz5MBOty9uEFSEJjzDLBzpu3diWa9mbS2PrK4x4HZ46yPaaxPV/KRLNC4RT5
+	t/MI29DUtZeLmZNs8ZR7L5ftOq9HxilPJ8u4Kba068W/Qf7s21oHXoykFrSvHslUGn26QqWO
+	ClXmaFSG0GsZ6Va0+9vq29sJNrQ6eNmOGBrJvaQ2SZhSRij0upx0O2JpTO4j7VkIVcqkyYqc
+	m7w2I0mbreZ1dnSQxuV+0si1G8kyJlWRxafxfCav/X8V0eKAXFSumlopOyX+3Ra0Ebjfe8d2
+	ATk7kyszBphFd5whvillRnXOWDLpXfKtpFmTEnx6ueHXfaMk+lhmzxUUsmR357YyhedTNX3q
+	REVkSKR/WbTemDp7KDwBgn3fP666lTh7fdyvP+aNSZgLbF/otyb5xAXF6ehhp29N/mjppZGz
+	hBzXKRURIZhWp/gD/TS9x9cCAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTcRyG+++cnZ0NB6cldtDoMqhMUTNTfqKUfaj+BGUQFQiiI09tqVM3
+	tZmEmnYTNW+h2KSZ9ykd867ZEO+WYGiWmqkslLDS8pa6rNTo28vzPrxfXpqQlZK2tEodyWnU
+	ihA5JSEl57wSncZmXJSHvz1DoOcrKahY0UHpZKMQ9MZ6BIurH0Sw0NFNQWHBMgH6/iQSlvg1
+	Aqa6zCKYKJkmoeVeAwHmhz0UpCZZCLjdWCaA9vxeIbypTxNC9loxAQ3xkyIYbNZTMF75RwjT
+	bakk9OaVkzCR5gNdBhtYfv0VQQffIIDllHwKsgYMFHxKmkAw0G4m4XFCGgLeNCwEy4qe8pHj
+	2vIRAW7K+yjChuooXFPmgJOHBwhcbXxA4er5TBEee9dC4Z5cC4mbGhcEODVxlsI/pkZJPGca
+	onDh5+8CzNcOkbjP0CE6v91P4h3EhaiiOY3LsUCJ0jT6hAqvE+vmeJ6IR/OiZCSmWeYou7Ba
+	LNjMFHOQHR5eJTazNePKLpi7yWQkoQlmVshO6S0bEk3vYIJZY5HjpkMy+9nOtJEtX8q4s3zK
+	OPVvcw9bUdW6xcWMB5s+vrTFZRvOi7ejonQkMaBtRmStUkeHKlQh7s7aYGWMWqVzvhIWWo02
+	7iu59SujES0Onm5DDI3kVlL7UBelTKiI1saEtiGWJuTW0s5pZ6VMGqSIuclpwgI0USGctg3Z
+	0aR8p/TMZS5QxlxTRHLBHBfOaf63AlpsG48cDQ1xLd6De8ubs+5eai+wmuHKogyPiu08j/ih
+	Kt99z0+0Zth0vUzw6L7jdP/3RXXsyVdefWfdHL/g6c6U9at1Hq0a46Fd2X76WNON3f3+ONne
+	VJNz4fhg3E/fsH4sXgrgn/p71p6yqKYUmW4RprCciHFH9ZjOfP2Abf779Vz/IjmpVSpcHQiN
+	VvEXrVITMboCAAA=
+X-CFilter-Loop: Reflected
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:rQCowADHETHN4C9o+dNcAA--.174S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxJr4rCF1DWr1DGF48uw4xXrb_yoW8ArW8pF
-	47tr9rCrykJa4rX3409FWrZrn5u3yjyayj9a47tw13Xr4ktr4qyr4Ykr9FgrWUuFW0ka9Y
-	yr42y3Z8AFn8C37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUU9014x267AKxVW8JVW5JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
-	6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
-	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
-	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwACI402YVCY1x02628v
-	n2kIc2xKxwCY1x0262kKe7AKxVWUtVW8ZwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7x
-	kEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E
-	67AF67kF1VAFwI0_Jw0_GFylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCw
-	CI42IY6xIIjxv20xvEc7CjxVAFwI0_Gr0_Cr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1x
-	MIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIda
-	VFxhVjvjDU0xZFpf9x0JUd-B_UUUUU=
-X-CM-SenderInfo: pyxotu46lvutnvoduhdfq/1tbiBwsLA2gvpLnHvQAAsk
 
-The function mlx5_query_nic_vport_node_guid() calls the function
-mlx5_query_nic_vport_context() but does not check its return value.
-A proper implementation can be found in mlx5_nic_vport_query_local_lb().
+Now that __page_pool_alloc_page_order() uses netmem alloc/put APIs, not
+page alloc/put APIs, rename it to __page_pool_alloc_large_netmem() to
+reflect what it does.
 
-Add error handling for mlx5_query_nic_vport_context(). If it fails, free
-the out buffer via kvfree() and return error code.
-
-Fixes: 9efa75254593 ("net/mlx5_core: Introduce access functions to query vport RoCE fields")
-Cc: stable@vger.kernel.org # v4.5
-Target: net
-Signed-off-by: Wentao Liang <vulab@iscas.ac.cn>
+Signed-off-by: Byungchul Park <byungchul@sk.com>
 ---
-v4: Fix code error.
-v3: Explicitly mention target branch. Change improper code.
-v2: Remove redundant reassignment. Fix typo error.
+ net/core/page_pool.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- drivers/net/ethernet/mellanox/mlx5/core/vport.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index 0d5f750faa45..c34cd9a1a79b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -465,19 +465,22 @@ int mlx5_query_nic_vport_node_guid(struct mlx5_core_dev *mdev, u64 *node_guid)
- {
- 	u32 *out;
- 	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
-+	int err;
- 
- 	out = kvzalloc(outlen, GFP_KERNEL);
- 	if (!out)
- 		return -ENOMEM;
- 
--	mlx5_query_nic_vport_context(mdev, 0, out);
-+	err = mlx5_query_nic_vport_context(mdev, 0, out);
-+	if (err)
-+		goto out;
- 
- 	*node_guid = MLX5_GET64(query_nic_vport_context_out, out,
- 				nic_vport_context.node_guid);
--
-+out:
- 	kvfree(out);
- 
--	return 0;
-+	return err;
+diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+index 2680d38d3daf..147cefe7a031 100644
+--- a/net/core/page_pool.c
++++ b/net/core/page_pool.c
+@@ -518,7 +518,7 @@ static bool page_pool_dma_map(struct page_pool *pool, netmem_ref netmem, gfp_t g
+ 	return false;
  }
- EXPORT_SYMBOL_GPL(mlx5_query_nic_vport_node_guid);
  
+-static netmem_ref __page_pool_alloc_page_order(struct page_pool *pool,
++static netmem_ref __page_pool_alloc_large_netmem(struct page_pool *pool,
+ 						 gfp_t gfp)
+ {
+ 	netmem_ref netmem;
+@@ -555,7 +555,7 @@ static noinline netmem_ref __page_pool_alloc_pages_slow(struct page_pool *pool,
+ 
+ 	/* Don't support bulk alloc for high-order pages */
+ 	if (unlikely(pp_order))
+-		return __page_pool_alloc_page_order(pool, gfp);
++		return __page_pool_alloc_large_netmem(pool, gfp);
+ 
+ 	/* Unnecessary as alloc cache is empty, but guarantees zero count */
+ 	if (unlikely(pool->alloc.count > 0))
 -- 
-2.42.0.windows.2
+2.17.1
 
