@@ -1,17 +1,17 @@
 Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B77591BBBE5;
-	Wed, 28 May 2025 02:29:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id ABC171C9DC6;
+	Wed, 28 May 2025 02:29:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748399368; cv=none; b=Pmqr0ja83+0FBx9ZV3ejTFULOrlWemLNVigzBlGikHgAJ1msv1rWxpAbUMtOa1+3hf93V21hN+U/bqX4gTcXMpUm0zu74oFx9V2yWmXnwLmCksE/dV7Fiab7TjNDlPwOgt3lCw88OTezOdkbAE16S/K2CfxY0eU0XYg+zkpTxi8=
+	t=1748399368; cv=none; b=b2vA5es2xlB5CeOQVeeYxw4TJi5dU1hXi++HXBLlDFxUQwtSi8DmnqPXlKJloq4R2ENnRAVUHg9GEmG6mrIusbVhGMLLwXYzsY1qH7iWNaEcTyu7BntUeOFZcN740/6XoVJNWtGkATv3UwBThpuLKPny2COEuXS0LvVHJ0MLjps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1748399368; c=relaxed/simple;
-	bh=rxNVScw+WaIc/Pgeu3xYxyvDXEZ9IwYcwWvNAwGq7Bg=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=thIbyrNX9d9bOdfGDciuS7aZhap0N20pIFGski36SszE7G7KA89HjAKz9vMRuxd1ffRUxp8AJhV2drIhRLd+Y/ywgEzDLrjFo4OhvL3KrVo/7jchJpCcnjV7ydeG+zayb81aQXU73sNOba491wyIUblnXm+INmxF7PsB0SkgU1o=
+	bh=zrNGKnbSxXrbqDwxy2zSBF4Zq1u8zpRiWQM30ZvnayA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=fWasVwLeNqfdu32n8fmQyEuO2xZjBBtYhw/gEUXQy7uUAQwGIZaKscI9G6ZyItW/nMbVAcXtR/iGg2+924tilkufI9k1ypZVQ6waQpRWmmEAMBTNaRHXk0Y1B2fTdZx5tbuh5HlUYzHMiHuwCL17LONeqGLI1zsFFNS5XfVAvHg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-669ff7000002311f-2b-68367501ca7a
+X-AuditID: a67dfc5b-669ff7000002311f-73-683675027897
 From: Byungchul Park <byungchul@sk.com>
 To: willy@infradead.org,
 	netdev@vger.kernel.org
@@ -47,40 +47,40 @@ Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	bpf@vger.kernel.org,
 	vishal.moola@gmail.com
-Subject: [PATCH v2 02/16] netmem: introduce netmem alloc APIs to wrap page alloc APIs
-Date: Wed, 28 May 2025 11:28:57 +0900
-Message-Id: <20250528022911.73453-3-byungchul@sk.com>
+Subject: [PATCH v2 09/16] page_pool: rename __page_pool_put_page() to __page_pool_put_netmem()
+Date: Wed, 28 May 2025 11:29:04 +0900
+Message-Id: <20250528022911.73453-10-byungchul@sk.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250528022911.73453-1-byungchul@sk.com>
 References: <20250528022911.73453-1-byungchul@sk.com>
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTcRjG++9cdrYcHJask2XWICqhpaH2JpVCgf+USEiDCsrhTm00l23O
-	GwTeILxHBYpNnZqmlsxW3sKspqVRkdltqTVbaH3IWZo6XWCO8tuP5/3x8MDLENJe0o/R6FJ4
-	vU6pldNiUjzpU7MDGcPUQbU/FWCy3Kbhljsdbo51UmBqbkfwe2FECDN9/TTU1cwRYHqVR8Ks
-	ZZGA8adOITgaJkjovtRBgLN0gIbiPA8BOZ2NAhhsL6Hg2mI9AR1ZY0J4c99Ew+fbSxRM2IpJ
-	eFbRRIKjJBKemmUw9/wHgj5LhwDmiippuDpkpuFrngPBUK+ThOvZJQgsPXYKPG4THbkZ32v6
-	KMBdFZ+E2Gw14ruNgbjAPkRga3M+ja3TV4R49H03jQfKPSTu6pwR4OJcF41/jQ+TeKrnHY0t
-	996R+IW5T4hnrBtj2RPivSpeq0nl9Tv3J4jVDxYGBcltovQpaxmVhcaFBUjEcGwI1/Klmlph
-	s+eGwMs0u5Wz2xcIL/uywdyMs58sQGKGYF0UN27yLEsMs4aN5xzDZ7wOyW7hyibrSS9L2FCu
-	tO4t+tcZwN1qfUR4dREbxj0ZTfTG0mVlqtCCvJUcOyvkir5X/d+zjnvcaCcvI4kZrWpGUo0u
-	NUmp0YYo1Bk6Tboi8XySFS2/tuHin5OdaHrwqA2xDJL7SHBrqFpKKVMNGUk2xDGE3FeSExGm
-	lkpUyoxMXn/+tN6o5Q02tJ4h5Wslu+bSVFL2rDKFP8fzybx+5SpgRH5ZiHj4UhR1Ki5g+0hV
-	7OSL49NLNJ/ZMx9uqj22sy2ez4yLjPbrL3C9sexS7FusPFDvjtpWJnPmrg62xWyqNM4H+e+J
-	iwh2yQ+VTFhVbpg8uVuQVj71OiipJXzgW7728IfCC2N33dE5/ke6E6SROfoOavvmgzL/PFdM
-	xDnZhuo7H7PlpEGtDA4k9AblX+1hWZzWAgAA
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTYRzGe3fenR1Hy+O0PFggLSoQ80LN/lGUFtGLHyIKM6LUg57c8Mqm
-	okFlXrKsaalg6YSFad5wMm9TTPKSFywUb8xLKtakD6mVF9QZ5Yi+/XieH8+Xh6Hk5diNUccm
-	CJpYPlpBS7H08un0YyjRT+VjnnAHvbGGhuqNZHg7ZxaDvqoJwermlARWuntpKH29ToF+MAPD
-	mnGLAmvPvARmyxcwtGU1UzCf20eDLsNGQZq5QgRdJf1iGGrKEUPBVhkFzalzEhhp1dMwU/NH
-	DAudOgz9RZUYZnP8ocewD9YHviPoNjaLYP1ZCQ35wwYavmTMIhjumsdQ/DAHgbHdIgbbhp72
-	V5CGygkRaSn6LCEGUyKpr/Ag2ZZhipiqntDE9CtPQqbH22jS99KGSYt5RUR06Us0+WmdxGS5
-	fYwmpd9+iIixYQyTj4ZuyRWnm9IzEUK0OknQeJ8Nk6rebQ6J4hsdkpdNheJUZJVkIweGY09w
-	BtsbkZ1p9ihnsWxSdnZhfbmV+V6cjaQMxS6JOavetiMxjDMbxM1O3rE7mD3MFS6WYTvLWCWX
-	WzqK/m26c9V17ym77sD6cR+mw+2xfEdZfmpEz5HUgHZVIRd1bFIMr45WemmjVCmx6mSv8LgY
-	E9p5r/ze9gszWh251IlYBil2y0idUiUX80nalJhOxDGUwkWWds5PJZdF8Cl3BU1cqCYxWtB2
-	ov0MVrjKAoOFMDkbyScIUYIQL2j+tyLGwS0VudZO6Q62BqzdgIsHQuZyfQN1e4YyPY8EvVI6
-	DaYVLJSoOgruK0N6vXoKZvBi8OjvHv8i5+JP9fHp5/0cveOyTSfHQ4jn4wtxt6xD1wb8M66G
-	WoSIss3GwrMPaqTVj/jQgOuyYPdDkVkdMS28j2Pm9qlajz66/2tW/16cf/t4nkGBtSre14PS
-	aPm/uaHcObkCAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTcRjG/e/8d3Ycro4nqVNB0aCM7jftjaL8kPGnT0FFUFENd2irOWVL
+	ncHIvFBZ2pUUnbUoTc2arHBzSc25vNBFMYtpF23pPoS6dDbNheaSvv14nvd9ng8PQ3FNeBGj
+	1p4RdFqFRk5LsXQo6t5aUVq8akNRrwxMlhoaHk0Y4GGfXQym6joEY78/SSDgbqHh/r0gBab2
+	XAy/LJMUDDR7JdBb4cPQcMFGgfdqKw0FuSEKsu2VIuioKxTDrclyCmxZfRJ47zDR8LVmWgw+
+	VwGGtpIqDL2FCdBsng/B14MI3BabCIJXymi42Wmm4XtuL4LOJi+G0vOFCCwvPGIITZjohGXk
+	WVW3iNSXfJEQszWNPK1cRfI9nRSxVl+iiXX0hoR8/thAk9biECb19oCIFOQM02RkoAcT/4sP
+	NLE8+4DJG7NbQgLWJfvYw9IdSkGjThd063eekKrGQxdRak604f21YioL+WX5iGF4dgs/2aDM
+	R5H/MOh8Lg4zzcbyHs9vKswx7EY+4G3B+UjKUOywmB8whURhYx57jB+vLP33gNnlfNVEGQqz
+	jI3nx8ra0GzoUv5RrZMKd0XO6K8+J4Vljo3j/ZctKJzJs78kvNnpp2bvF/KNlR58DcnMKKIa
+	cWpterJCrdmyTpWpVRvWJaUkW9HMtBXGP0fsaLRjvwuxDJJHyUhtnIoTK9L1mckuxDOUPEaW
+	vStexcmUisyzgi7luC5NI+hdaDGD5Qtkm4IZSo49qTgjnBaEVEH33xUxkYuyEC4/1b8acbHl
+	5wZvG+Mquqbquc6h6Frb1Lu57p7F3pfx2ulDR6/eLZzjKuo5TjaHfqYc5DLq8IpNY4bUJ299
+	2/V5D9ptjrwRx2rn4OE/Nb4fjaci/Ae+JR5Kbd0dqE+6Y6x+vvL64+6y/U5VX7TxwEvR1m1d
+	wdhEx97Qnu39u9d8lWO9SrFxFaXTK/4CjDAo/tYCAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRXUhTcRyG/e+cnR1Hq+OyOtmFOdDISjNUfqSU0de/LjLoIigwlx7dclPZ
+	VFxR+QV+5UcZITphIZpOYbLMTTOTzc8SlYmlpimGYmBazaZuQrmiu4fn5X1vXpoQ15M+tDw5
+	jVMlSxUSSkgKr0TkHuOlh8uO5/uB1tBMQdNGJryYM/NBq29DsLb5SQD2nn4Kap87CNCO5JHw
+	y+AkYKFvXgCz9YskdOabCJgvG6CgJM9FQI65gQfWmkE+jLaV8uGps44AU9acAMY6tBR8bv7N
+	h0VLCQmDVY0kzJZGQZ9uLzjeLyPoMZh44HhUQ0GFTUfBl7xZBDbrPAnV2aUIDF0TfHBtaKko
+	CW5tnOTh9qoZAdYZ0/HLhkBcNGEjsFFfSGHjzycCPP2hk8IDlS4St5vtPFySu0LhHwtTJF7t
+	Gqdw7dJ3Hja0jpN4SNcjuOp1QxgZzynkGZwq+FSsULbuKkCpuV6ZY+WVRBZaFRUhT5plQllH
+	92u+mynmEDsxsUm42ZsJYe3z/WQREtIEs8JnF7QunjvYzcSw6w3Vfwsk4882btQgN4uYcHat
+	ZhD9G/Vlm1q6t4do2nPb907HubWYCWNXiw2oHAl1yEOPvOXJGUqpXBEWpE6SaZLlmUFxKUoj
+	2n6v/v7WYzNaG7toQQyNJDtEuCVMJuZLM9QapQWxNCHxFuWcDpeJRfFSzV1OlXJLla7g1BZ0
+	gCYl+0SXr3OxYiZRmsYlcVwqp/qf8mhPnyykTvX3C6r4dDvR3HbiSOPRhIhlW/S5PI0xetl5
+	/t7DmJUA55lnkRxrIqy9ryrj37xVNoWqCwsSBt5RJ3ctjUa3t36MfZDxTbd1aca3bvYmt7NJ
+	m82K7EnD3cXiZSParw+ovmabijioPJtg3ezz6/b4WtRxeM/QZEzwnQuqsoGRYQmplklDAgmV
+	WvoHFS70lrkCAAA=
 X-CFilter-Loop: Reflected
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -88,41 +88,58 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-To eliminate the use of struct page in page pool, the page pool code
-should use netmem descriptor and APIs instead.
-
-As part of the work, introduce netmem alloc APIs allowing the code to
-use them rather than the existing APIs for struct page.
+Now that __page_pool_put_page() puts netmem, not struct page, rename it
+to __page_pool_put_netmem() to reflect what it does.
 
 Signed-off-by: Byungchul Park <byungchul@sk.com>
 ---
- include/net/netmem.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ net/core/page_pool.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/netmem.h b/include/net/netmem.h
-index a721f9e060a2..37d0e0e002c2 100644
---- a/include/net/netmem.h
-+++ b/include/net/netmem.h
-@@ -177,6 +177,19 @@ static inline netmem_ref page_to_netmem(struct page *page)
- 	return (__force netmem_ref)page;
- }
+diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+index af889671df23..f5fe3007f118 100644
+--- a/net/core/page_pool.c
++++ b/net/core/page_pool.c
+@@ -790,8 +790,8 @@ static bool __page_pool_page_can_be_recycled(netmem_ref netmem)
+  * subsystem.
+  */
+ static __always_inline netmem_ref
+-__page_pool_put_page(struct page_pool *pool, netmem_ref netmem,
+-		     unsigned int dma_sync_size, bool allow_direct)
++__page_pool_put_netmem(struct page_pool *pool, netmem_ref netmem,
++		       unsigned int dma_sync_size, bool allow_direct)
+ {
+ 	lockdep_assert_no_hardirq();
  
-+static inline netmem_ref alloc_netmems_node(int nid, gfp_t gfp_mask,
-+		unsigned int order)
-+{
-+	return page_to_netmem(alloc_pages_node(nid, gfp_mask, order));
-+}
-+
-+static inline unsigned long alloc_netmems_bulk_node(gfp_t gfp, int nid,
-+		unsigned long nr_netmems, netmem_ref *netmem_array)
-+{
-+	return alloc_pages_bulk_node(gfp, nid, nr_netmems,
-+			(struct page **)netmem_array);
-+}
-+
- /**
-  * virt_to_netmem - convert virtual memory pointer to a netmem reference
-  * @data: host memory pointer to convert
+@@ -850,7 +850,7 @@ static bool page_pool_napi_local(const struct page_pool *pool)
+ 	/* Allow direct recycle if we have reasons to believe that we are
+ 	 * in the same context as the consumer would run, so there's
+ 	 * no possible race.
+-	 * __page_pool_put_page() makes sure we're not in hardirq context
++	 * __page_pool_put_netmem() makes sure we're not in hardirq context
+ 	 * and interrupts are enabled prior to accessing the cache.
+ 	 */
+ 	cpuid = smp_processor_id();
+@@ -869,7 +869,7 @@ void page_pool_put_unrefed_netmem(struct page_pool *pool, netmem_ref netmem,
+ 		allow_direct = page_pool_napi_local(pool);
+ 
+ 	netmem =
+-		__page_pool_put_page(pool, netmem, dma_sync_size, allow_direct);
++		__page_pool_put_netmem(pool, netmem, dma_sync_size, allow_direct);
+ 	if (netmem && !page_pool_recycle_in_ring(pool, netmem)) {
+ 		/* Cache full, fallback to free pages */
+ 		recycle_stat_inc(pool, ring_full);
+@@ -970,8 +970,8 @@ void page_pool_put_netmem_bulk(netmem_ref *data, u32 count)
+ 				continue;
+ 			}
+ 
+-			netmem = __page_pool_put_page(pool, netmem, -1,
+-						      allow_direct);
++			netmem = __page_pool_put_netmem(pool, netmem, -1,
++							allow_direct);
+ 			/* Approved for bulk recycling in ptr_ring cache */
+ 			if (netmem)
+ 				bulk[bulk_len++] = netmem;
 -- 
 2.17.1
 
