@@ -1,171 +1,135 @@
 Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DBDF83EA63;
-	Wed, 28 May 2025 01:31:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AA5B91C862F;
+	Wed, 28 May 2025 02:29:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748395918; cv=none; b=hgRib9UjowOwE4tbGOYD3jotjDQ1HXKbDHCbFwHQnFkJ0jvRyt86poqL/2pYPTNqYS6+bhbEPvJTXf/tFndJaousq4JWvjObSsHGfUQ8XVS+hRp4pb52/utCauhpHulYtww0SFwZLcFv3j0ORK1VWI+3sy1ctac3aA+H4O1xxkI=
+	t=1748399367; cv=none; b=mXHrba6IsNiOMA0O3ITJhI5E3sj3kipSkqZKMoNQ/CJteupB0qDuDPBxkWT+fZH8+aK/YHmSEP9TMyzkQx8mG2tl1Y4pPPi4cLVXoYQmI+VanjPh8tEnbkolzOmMhIwTj430G7j/oKFFCgk4VdMiLLWd0/Peh/sPJkSZZx2IkCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748395918; c=relaxed/simple;
-	bh=DnBoCKZIfZh8wjVZyghSCR6eXUupTg0NHFjxZ0bAA/o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=P4BESKFMUDJzJ4INMwy/z96vs7LowJ2YBqvsLFWM0LytgRpTUbAj4RdKxhPNREg7BXd1oV/iJJ4b8rfCm9nvu40SB3FkQkSwAe1rsRWa5Hvz66ZIjVFV2xoo+EBygW1w+em818VlCa4j4foTwUKzVOsp4s880F5qj0SHXeReLio=
+	s=arc-20240116; t=1748399367; c=relaxed/simple;
+	bh=tBde3LU+2rZfI2yUYys643X8X47mUeuMIdg6rbr6seA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=dtCPQ4PIUyagn1uB7BxCslr8BZBCmf318e/XLJFpJa584+6KQqkoGE3AGJ92j78Psf47cx0Pya5Gq3SUS1EGTRTfhc1hnpQKx4kDlYppXAv6oLVmvuGkwEbD2ZGh3i76tcSw//62R72vZ349HH6w0SszI8dgJhLoXt+NjoEL1f4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-681ff7000002311f-55-6836678697d7
-Date: Wed, 28 May 2025 10:31:45 +0900
+X-AuditID: a67dfc5b-669ff7000002311f-69-68367501a16e
 From: Byungchul Park <byungchul@sk.com>
-To: Mina Almasry <almasrymina@google.com>
-Cc: Pavel Begunkov <asml.silence@gmail.com>, willy@infradead.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, kernel_team@skhynix.com, kuba@kernel.org,
-	ilias.apalodimas@linaro.org, harry.yoo@oracle.com, hawk@kernel.org,
-	akpm@linux-foundation.org, davem@davemloft.net,
-	john.fastabend@gmail.com, andrew+netdev@lunn.ch, toke@redhat.com,
-	tariqt@nvidia.com, edumazet@google.com, pabeni@redhat.com,
-	saeedm@nvidia.com, leon@kernel.org, ast@kernel.org,
-	daniel@iogearbox.net, david@redhat.com, lorenzo.stoakes@oracle.com,
-	Liam.Howlett@oracle.com, vbabka@suse.cz, rppt@kernel.org,
-	surenb@google.com, mhocko@suse.com, horms@kernel.org,
-	linux-rdma@vger.kernel.org, bpf@vger.kernel.org,
+To: willy@infradead.org,
+	netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	kernel_team@skhynix.com,
+	kuba@kernel.org,
+	almasrymina@google.com,
+	ilias.apalodimas@linaro.org,
+	harry.yoo@oracle.com,
+	hawk@kernel.org,
+	akpm@linux-foundation.org,
+	davem@davemloft.net,
+	john.fastabend@gmail.com,
+	andrew+netdev@lunn.ch,
+	asml.silence@gmail.com,
+	toke@redhat.com,
+	tariqt@nvidia.com,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	saeedm@nvidia.com,
+	leon@kernel.org,
+	ast@kernel.org,
+	daniel@iogearbox.net,
+	david@redhat.com,
+	lorenzo.stoakes@oracle.com,
+	Liam.Howlett@oracle.com,
+	vbabka@suse.cz,
+	rppt@kernel.org,
+	surenb@google.com,
+	mhocko@suse.com,
+	horms@kernel.org,
+	linux-rdma@vger.kernel.org,
+	bpf@vger.kernel.org,
 	vishal.moola@gmail.com
-Subject: Re: [PATCH 18/18] mm, netmem: remove the page pool members in struct
- page
-Message-ID: <20250528013145.GB2986@system.software.com>
-References: <20250523032609.16334-1-byungchul@sk.com>
- <20250523032609.16334-19-byungchul@sk.com>
- <CAHS8izM-ee5C8W2D2x9ChQz667PQEaYFOtgKZcFCMT4HRHL0fQ@mail.gmail.com>
- <20250526013744.GD74632@system.software.com>
- <cae26eaa-66cf-4d1f-ae13-047fb421824a@gmail.com>
- <20250527010226.GA19906@system.software.com>
- <651351db-e3ec-4944-8db5-e63290a578e8@gmail.com>
- <CAHS8izNYmWTgb+QDA72RYAQaFC15Tfc59tK3Q2d670gHyyKJNQ@mail.gmail.com>
+Subject: [PATCH v2 08/16] page_pool: rename __page_pool_release_page_dma() to __page_pool_release_netmem_dma()
+Date: Wed, 28 May 2025 11:29:03 +0900
+Message-Id: <20250528022911.73453-9-byungchul@sk.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20250528022911.73453-1-byungchul@sk.com>
+References: <20250528022911.73453-1-byungchul@sk.com>
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRXUhTYRzGfXfenR2Hg8OMOhVlTSoQ0ozSfxCmQvBGXRTdJZlTT23mpm1+
+	zCKwkiLLKVpkNnMl2dyE2fychNi0NFOyibbKVGYWRR/MpakzzSXePfyeh9/Nw1DSTryBUaqz
+	eI1ani6jxVj8I+jhTkF2lGKX3i4Gg7WOBsusDh6PtwrBYG5G8Hvugwi8Xd00VD+YocDwugDD
+	tHWegskXbhGM1XzG8PRaCwXu4h4aigp8FFxuNQlgoFkvhFvzjyhoyR8XwWCbgYbRuiUhfHYU
+	YXhZUYthTB8LL4xrYebVdwRd1hYBzNyspKHMaaRhomAMgbPTjeHeJT0Ca7tLCL5ZAx27lTTW
+	vhMQe8VHETHaskmDKYwUupwUsZmv08Q2VSoiI8NPadJT7sPE3uoVkKIrP2nimXyPya/2IZpY
+	G4cw6TN2iYjXtvkoe0K8P5VPV+bwmoiYJLGid75fmKmX6IYveal8NC8uRIEMx+7hBqs7qNXs
+	vl+D/Zlmd3Au19x/voaN5Lzu7mUuZij2p5CbNPgE/iKYVXO3f9QJCxHDYHYbNzyU5ccSdi83
+	Om6hV5whnKXe72eYQDaKez6S4sfS5cmvG1bkV3LsnIj70jmLV/bruWcmFy5BEiMKMCOpUp2j
+	kivT94Qr8tRKXXhKhsqGlq+tubiQ0IqmBo47EMsgWZCE1O9VSIXyHG2eyoE4hpKtkVw+EKWQ
+	SlLleed5TcYpTXY6r3WgjQyWrZPsnslNlbJn5Fn8WZ7P5DWrrYAJ3JCPDm1hPclxyfsEuRe+
+	mpc8A1N/D6dQpoOWI8ZB+5tjE7r40MXok/FNxVVtNzNPLwQ9GdnuvFvS01/aUjY6raq0iBq5
+	+A9pcWl/2iLCY2TR59CmfYWN3ESAD3vupKZVjV5VxfYm9FWFJnYYdMXjIW+bkt5XxgYnihfX
+	fiv/1OAabpdhrUIeGUZptPJ/SK0e+dYCAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTcRyG+5/bjrPBaUmd7D6LSugGab/ookHgn4IIihQhaujJLedam4oW
+	wVIpsra00qymzcLljWZLdKaYTNOsdcHS1mWpq42CvNRMdAvKEX17ed6H98vLklILFckq1ZmC
+	Vi1XyRgxJd67NX8tyopVbBj2bQGTtZ6BuqkcuDtkp8FU24RgYvqDCPxdPQzcqZwkwfSygIJf
+	1gAJ3m6PCAYtPgrazjWT4Ln0hAFDQZCEPHs1AZ3lvTS8ajLScDVQRUKzfkgErx+aGPhU/4cG
+	n8NAQe+NGgoGjfHQbZ4Hk8++I+iyNhMwebGcgSt9ZgY+Fwwi6Ov0UHDzjBGBtd1FQ3DKxMTL
+	cGPNOwK33HCLsNmWhR9UR+NCVx+JbbXnGWz7eVmEPw60MfhJWZDCLXY/gQ35owz+4X1P4bH2
+	fgbf+TpOYGtjP4Wd5i7RvjnJ4m2pgkqZLWjX7zgiVjwNPKc1RknOwBk/qUcBcSEKY3luE++p
+	sFChzHCreJdrmgzlCG4j7/f0zHAxS3KjNO81BYlQMZdT8yUj9XQhYlmKW8kP9GeGsISL4T8N
+	1TH/NpfydQ0dZEgJ42L5xx9TQlg6o4xdsKIiJDajWbUoQqnOzpArVTHrdOmKXLUyZ13K8Qwb
+	mnnPcvp3sR1NvE5wII5FstkS3BCjkNLybF1uhgPxLCmLkOTFxSqkklR57klBe/ywNksl6Bxo
+	IUvJ5kt2JwpHpFyaPFNIFwSNoP3fEmxYpB5d1nrTdk3oDO7hKPny1cVxx1ISxl/8WLzmYNC0
+	eWf4g8I3o7d9394sqzIs6Xilr3i01HnCvoBI1FSmnijaM2fTSFL4l8RTNKuJan07RSbHdS46
+	Gmk+NtUanhRd7pZcJfl718/6Sn/2R6wfD+zffujWgVFTWbVzeAVR6r52pSTxvs0po3QK+cZo
+	UquT/wUpO1o2uQIAAA==
+X-CFilter-Loop: Reflected
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAHS8izNYmWTgb+QDA72RYAQaFC15Tfc59tK3Q2d670gHyyKJNQ@mail.gmail.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Se2xLYRjG851zenpWmnyr4dsmLhVZtrjH5RWCEPH9IUwwyRAaO9FGV9La
-	NcTMYlG7uC3oijK7daPUbB3SMMtcky51K8boWIhdMt2qu8SlXcT+++V93vd5nj9egVWUSKIE
-	jW6fqNeptEpexsk6R1+acWTXAvXsXNd0MNuqeagKpEP5R4cEzNZaBL3976Tga3zIQ8klPwtm
-	Vw4HfbYBFr40eaXQWtbOwd3cOha8hY94yM8ZZCHbUcFAc22BBE4PlLJQl/VRCs9vm3n4UP1b
-	Au0N+Rw8NlVy0FqwHJos48D/tANBo62OAX/eeR5OuS08tOW0InA/8HJQfKgAgc3pkcBgwMwv
-	n0JrKt8wtN70Xkot9hR6syKOGj1ultqtR3lq/3FSSlte3eXpo7ODHK13+Biaf7iLpz1f3nK0
-	2/mSp7aalxx9ZmmUUp99YjxOlC1JErWaVFE/a+kOmbroQQDtfTc+faC0n89CfmxEgkDwPPK1
-	aY0RhYUwcP69NMgcnkaenL6KgszjGOLx9LNBjsCx5IrzhMSIZAKLuyTkWv/tkDAGbyQvPp0L
-	HcvxQpJ3xykNLilwDUsKP7fxw0I4eXzuMxdk9q/r0AU3GyzB4mhS/ksYHk8ih28VhzzD8Hpi
-	vXwxxGPxVHKv9iET9CTYIZBmq58bbh1J7ld4uOMo3DQiwjQiwvQ/wjQiwoI4K1JodKnJKo12
-	3kx1hk6TPnPnnmQ7+vs6ZQeGtjjQj+YNDQgLSDlaTq/PVyskqlRDRnIDIgKrjJBnL1ugVsiT
-	VBmZon7Pdn2KVjQ0oGiBU46Xz/WnJSnwLtU+cbco7hX1/1RGCIvKQuWbihLjXdY0b5Xh+DrX
-	ClBGtUWQn0X2mPXRnYxJ51EO3Qjzuhd9i/T1TbyH0zJu1LdsdVa/TR44W6yL6lkV8z3Q0bhZ
-	i65MimQY/c8UV++ZUS0r9bJj2xKiX3fXOi2rPQkH32R3rQ1kGZetjMktyYudzM4v3J+52Dmh
-	pc0XeUzJGdSqOXGs3qD6Ax+7MRg2AwAA
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0iTYRiGe/cdHS4+p+aXFcEsokFWkPV0oKQDvkREYdHhT678cMM5Y1PR
-	aqDTkszZSSvnrHWwdB0WnisbouK0gsTSVmaWmkRF2TzNmZVbRP67eO77vn49LCHNpkJZlSZJ
-	0GoUahktJsXb12YuORG3UrnM6JoHZtsdGm67U+HW+1oKzNZqBMPjXQwMNTlouH51lADz8ywS
-	RmweAj429zLQc3OAhLrsGgJ6T7fQYMyaIMBQWyqCxuJWCtqq8yjI95QQUJP+noEXD800vLvz
-	m4KBBiMJraYyEnryIqHZMgtGn35F0GSrEcFobjEN59stNPRl9SBob+wloSgjD4HN7qRgwm2m
-	I2W4suy1CD8wdTPYUp6MK0rlOMfZTuBy60kal7vOMfhtZx2NWy5NkPhB7ZAIGzO/0fjHxzck
-	/m7voPH1T4MibKvsIPEzSxOzI2C/eF2soFalCNql62PEyoJGNzrcFZLqKRmn09Eol4P8WJ5b
-	wbuLuxkvk9xC/kn+XeRlmlvEO53jhJeDuMX8DftZKgeJWYL7RvH3xh/6gkBuF//yQ6FvLOFW
-	8bmP7Iy3JOUqCf50fx/9NwjgWwv7SS8TU9afl9unxuwUz+Fv/WL/nufzmVVFPqcft5O3Xrvi
-	42AujK+vdojOoJmmaSbTNJPpv8k0zWRBpBUFqTQpCQqVOiJcF69M06hSww8lJpSjqfe4qf95
-	thYNv4hqQByLZP4SfD9CKaUUKbq0hAbEs4QsSGLYsFIplcQq0o4I2sQD2mS1oGtAc1hSFiLZ
-	ukeIkXJxiiQhXhAOC9p/qYj1C01HDsmFGlbYre9b97kwo7mbYjyP48a27Y0OrtN8WdUV5jG0
-	tTFzL+e7DkTbDRf85Zn6Ptp60bG6IGzLYHLuZH9H4kLHmkj4dexo48b6zh9VxzP2llRtih9b
-	ENB9cDI6/FXKUP2Mza6i2fJ9R/UuWeCp15aogQr9kbGK/bub2lQjUqeM1CkVy+WEVqf4A5sI
-	EioaAwAA
-X-CFilter-Loop: Reflected
 
-On Tue, May 27, 2025 at 10:38:43AM -0700, Mina Almasry wrote:
-> On Mon, May 26, 2025 at 10:29 PM Pavel Begunkov <asml.silence@gmail.com> wrote:
-> >
-> > On 5/27/25 02:02, Byungchul Park wrote:
-> > ...>> Patch 1:
-> > >>
-> > >> struct page {
-> > >>      unsigned long flags;
-> > >>      union {
-> > >>              struct_group_tagged(netmem_desc, netmem_desc) {
-> > >>                      // same layout as before
-> > >>                      ...
-> > >>                      struct page_pool *pp;
-> > >>                      ...
-> > >>              };
-> > >
-> > > This part will be gone shortly.  The matters come from absence of this
-> > > part.
-> >
-> > Right, the problem is not having an explicit netmem_desc in struct
-> > page and not using struct netmem_desc in all relevant helpers.
-> >
-> > >> struct net_iov {
-> > >>      unsigned long flags_padding;
-> > >>      union {
-> > >>              struct {
-> > >>                      // same layout as in page + build asserts;
-> > >>                      ...
-> > >>                      struct page_pool *pp;
-> > >>                      ...
-> > >>              };
-> > >>              struct netmem_desc desc;
-> > >>      };
-> > >> };
-> > >>
-> > >> struct netmem_desc *page_to_netmem_desc(struct page *page)
-> > >> {
-> > >>      return &page->netmem_desc;
-> > >
-> > > page will not have any netmem things in it after this, that matters.
-> >
-> > Ok, the question is where are you going to stash the fields?
-> > We still need space to store them. Are you going to do the
-> > indirection mm folks want?
-> >
-> 
-> I think I see some confusion here. I'm not sure indirection is what mm
-> folks want. The memdesc effort has already been implemented for zpdesc
-> and ptdesc[1], and the approach they did is very different from this
-> series. zpdesc and ptdesc have created a struct that mirrors the
+Now that __page_pool_release_page_dma() is for releasing netmem, not
+struct page, rename it to __page_pool_release_netmem_dma() to reflect
+what it does.
 
-It's struct netmem_desc.  Just introducing struct netmem_desc that looks
-exact same as struct net_iov, is ugly.
+Signed-off-by: Byungchul Park <byungchul@sk.com>
+---
+ net/core/page_pool.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-> entirety of struct page, not a subfield of struct page with
-> indirection:
+diff --git a/net/core/page_pool.c b/net/core/page_pool.c
+index fb487013ef00..af889671df23 100644
+--- a/net/core/page_pool.c
++++ b/net/core/page_pool.c
+@@ -674,8 +674,8 @@ void page_pool_clear_pp_info(netmem_ref netmem)
+ 	netmem_set_pp(netmem, NULL);
+ }
+ 
+-static __always_inline void __page_pool_release_page_dma(struct page_pool *pool,
+-							 netmem_ref netmem)
++static __always_inline void __page_pool_release_netmem_dma(struct page_pool *pool,
++							   netmem_ref netmem)
+ {
+ 	struct page *old, *page = netmem_to_page(netmem);
+ 	unsigned long id;
+@@ -722,7 +722,7 @@ static void page_pool_return_netmem(struct page_pool *pool, netmem_ref netmem)
+ 	if (static_branch_unlikely(&page_pool_mem_providers) && pool->mp_ops)
+ 		put = pool->mp_ops->release_netmem(pool, netmem);
+ 	else
+-		__page_pool_release_page_dma(pool, netmem);
++		__page_pool_release_netmem_dma(pool, netmem);
+ 
+ 	/* This may be the last page returned, releasing the pool, so
+ 	 * it is not safe to reference pool afterwards.
+@@ -1140,7 +1140,7 @@ static void page_pool_scrub(struct page_pool *pool)
+ 		}
+ 
+ 		xa_for_each(&pool->dma_mapped, id, ptr)
+-			__page_pool_release_page_dma(pool, page_to_netmem(ptr));
++			__page_pool_release_netmem_dma(pool, page_to_netmem((struct page *)ptr));
+ 	}
+ 
+ 	/* No more consumers should exist, but producers could still
+-- 
+2.17.1
 
-I think you got confused.
-
-At the beginning, I tried to place a place-holder:
-
-   https://lore.kernel.org/all/20250512125103.GC45370@system.software.com/
-
-But changed the direction as Matthew requested:
-
-   https://lore.kernel.org/all/aCK6J2YtA7vi1Kjz@casper.infradead.org/
-
-So now, I will go with the same direction as the others.  I will share
-the updates version with the assert issues fixed.
-
-	Byungchul
-> 
-> https://elixir.bootlin.com/linux/v6.14.3/source/mm/zpdesc.h#L29
-> 
-> I'm now a bit confused, because the code changes in this series do not
-> match the general approach that zpdesc and ptdesc have done.
-> Byungchul, is the deviation in approach from zpdesc and ptdecs
-> intentional? And if so why? Should we follow the zpdesc and ptdesc
-> lead and implement a new struct that mirrors the entirety of struct
-> page?
-> 
-> [1] https://kernelnewbies.org/MatthewWilcox/Memdescs/Path
-> 
-> --
-> Thanks,
-> Mina
