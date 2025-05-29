@@ -1,17 +1,17 @@
 Received: from invmail4.hynix.com (exvmail4.hynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 898D1218EBA;
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8D57B244682;
 	Thu, 29 May 2025 03:11:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748488270; cv=none; b=crnFwS4pDZmE1zUWTkxI0+/0z80dgb6G3lOnvkpweBkcE4QRB/+PYRaAz9VWb6fcVm0vInAEAdSyI7C1clRgC4W28cEUmdPoQTFCQfOYaasLK1dBz6S/dzbXlqJrlPV2h14xI5o0zMzw01nd4IPHQuxfjn+CQaHUbQL1j860YlA=
+	t=1748488271; cv=none; b=nJ6K7yZI+4AfcO5X7vNAcRWqLpK3RrYxmxP9kWSgPBtyhENBV17DZ7HxAGhjPZhHMzBqnlrGTFpqZ901749/9DsI8C/LyNDKc2WIJnkyJHNcrWFzn5sh2GWuZ5xIbhMxIuSpgGO9eNw1CDhzQrAA8E2uBRbCbuzfEnEDSIcafTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748488270; c=relaxed/simple;
-	bh=O4OVr102+Q9xG83rHoks5YzlZj6BBvsZTeqPS8k64qs=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=c3AxKjpW3Pw6D+O3rGn3FUexEqK815mVaQ3kdcJ5cqi54tbIqyf3SogPMWtk2wJX38LRnr/mE7qHwwdw1D4UsnKr42S0Kx3GojZ238mkXuUiy/WwUaEm1s+/ACEkL022yP24KBRo5KHYBPGKKdQFmjrt6lepqcmR+i+oEh+aqJY=
+	s=arc-20240116; t=1748488271; c=relaxed/simple;
+	bh=ypyoaLK2EXv2j/+xowGIgr+UdmJFtJ+H2sG3LeoYBkM=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=EFIkLw0SN7Qg00NM7GvTK7V4UMKk/yUpABS3Q7RPx8iPh9VIVC84pZD1HPtqkL1XiTla8m1t7PIGs/bCm8g9dxVr1PxqFWyYX5ozNFFf9m2FajIHEdOM7OsimMtLpX1ozgwZ6Qr4ILMl64zExiAd7jJdSFpzM35eV0PG6ZV94Ao=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-681ff7000002311f-e1-6837d041a7a7
+X-AuditID: a67dfc5b-681ff7000002311f-c4-6837d0412192
 From: Byungchul Park <byungchul@sk.com>
 To: willy@infradead.org,
 	netdev@vger.kernel.org
@@ -47,40 +47,37 @@ Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	bpf@vger.kernel.org,
 	vishal.moola@gmail.com
-Subject: [RFC v3 03/18] page_pool: use netmem alloc/put APIs in __page_pool_alloc_page_order()
-Date: Thu, 29 May 2025 12:10:32 +0900
-Message-Id: <20250529031047.7587-4-byungchul@sk.com>
+Subject: [RFC v3 00/18] Split netmem from struct page
+Date: Thu, 29 May 2025 12:10:29 +0900
+Message-Id: <20250529031047.7587-1-byungchul@sk.com>
 X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20250529031047.7587-1-byungchul@sk.com>
-References: <20250529031047.7587-1-byungchul@sk.com>
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTYRzGe3fOeXccrY7L7KRgtahIuhmW/yKy+hAv0Q27QBfMkae22lZs
-	aTOoTKVyNYsysbVgEtm8wGpWLilNW80ukJjKaqWx0JTK0LWlLitn+e0Hz/P8vjwsJXPRMaxK
-	e0TQaRVqOZbQkm/jS+avaUpSLnrkRmCxV2KoGDDArY9OBizl9xH8GPSKwe9yY7hREqTA8jqP
-	hoB9iILOZz4xdJR20fDwTDUFvguNGEx5IQpynDYRNN0vYKBw6CYF1dkfxfCmxoKhvfIPA10N
-	Jhqem8to6ChYBc+s0RB8+RWBy14tguD56xguN1sxfMrrQND8xEfDtVMFCOy1HgZCAxa8aga5
-	W/ZWRB6YP4iJ1ZFBqmzxxOhppoijPB8TR/8lMXnf9hCTxuIQTR44/SJiyu3FpK/zHU2+17Zi
-	Yr/bSpNXVpeY+B1xm7mdkhXpglqVKegWrkyTKG3FUw47Iw05PW9xNqqbYEQRLM8l8k+739Fj
-	3B2wUWHG3Bze4xkc5Sgugff73CMdCUtxvQzfaQmJwsEkLpVvrGtHYaa5Wfy9wRocZumIyO2p
-	/S+dxlfcfjwqiuCW8EVVRaNb2UjnqrEeh6U8FxDz7pJc0b/BVL7e5qEvIqkVjStHMpU2U6NQ
-	qRMXKLO0KsOCvYc0DjTybenxX7ucqL9pSwPiWCQfL21ESUoZo8jUZ2kaEM9S8ihpTvJSpUya
-	rsg6JugO7dFlqAV9A4plafkU6eLg0XQZt19xRDgoCIcF3VgqYiNispH5555Y7+9ijT/l7MIN
-	6+bu2JjSfe77Fc0L85cWvezN/DOhR8H1hh7N9O3zCmfHndBmpMbOmdiyMtgk3bT6s9yxdubJ
-	GuJqmRDtTRtOXhbbxmw78NLWVthqajdn4PjTqcMkMqpo6778K8f7jIsDifXDd/Jn5PWKln/e
-	zcRFpnrHaSfLab1SkRBP6fSKv3roE0bXAgAA
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTcRyG+++cnc3V6jhHHu2DMQtJyAu0/EVi1gf9K2R9iW6Ujjy45Zyy
-	qU1B8EooamomppMmks4LTabpFNNS09nFRDNmmtpiphFqecEbmRp9e+B93+fLyydENaQrX6GK
-	Z9UqmVJCCUhB2NmMk+eH/OQ+dpsP6IwNFNSvaaFm2swFXV0LguX1cR4s9fZTUFW5SoDuQyYJ
-	K8YNAux9Nh5MVc+Q0HG/lQDbAwsFeZmbBKSbDRzoqRjgwlBLPheKN54S0Jo6zYORdh0Fkw3b
-	XJjpziNhoKyWhKn8QOjTH4bVtz8R9BpbObCaW0HBw2E9Bd8ypxAM99hIKE/LR2DstHJhc01H
-	BUpwc+0YB7eVfeFhvSkBNxk8cY51mMCmumwKm34X8fDEpw4KW0o3SdxmXuLgvIx5Cv+yfybx
-	QucohatmFznY2DxK4nf6Xt5lxxsC/0hWqUhk1d4BEQK5odQ5zuyoTZ8bo1JR18Ec5MBn6FPM
-	7IqB2GWK9mCs1vU9FtO+zJKtn8xBAj5Bz3MZu26Tsxs40bcZS9ck2mWSPs48X2+ndlm4I+q3
-	dpL/pG5MfePLPZEDLWVKmkr2tqKdzuOcV1QBEujRvjokVqgSY2QKpdRLEy1PUim0XndiY0xo
-	577qlK1CM1oeCe5GNB9JDggtyE8u4soSNUkx3YjhExKxMP3cablIGClLSmbVseHqBCWr6UZH
-	+KTEWRh6lY0Q0VGyeDaaZeNY9f+Uw3dwTUUm3T7v+lulBU/0Lmtn3md9vWePmCsOEydf0wYP
-	lrTl1sQpn93cEi+9rvWIKhrjdQkCpCG9hWNv0n40zl+5XjkR8OKu/9GtpkE/aVY8aii/sD83
-	5dClE0WGi9ISbDz2pzLEy0VLTEc9Gnd32w5aqF9fjP7+sSMjdKonO8hdHe4kVEhIjVzm60mo
-	NbK/uD5MDboCAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRXUhTcRyG+++cnXNcDk5T8mhROJDIyDT8+JV9WBfx7yYjr6xAh57cUqfM
+	rxkFppJtqEWplc2YaUunNZumM8RsmtoHpYa2zPxEiShDZ0udZA7x7uF9eN+blyEk9aQPo1Cm
+	8yqlLElKiUjRL/fKvcf6wuSBhr4Q0JnqKahbVMPjcYsQdMZmBAtLX2mwd/VQUFXpIED3MZ+E
+	P6ZlAqa7J2kYM8yQ0FbQQsDkjV4KivKdBORaagTQ11wshJLlRwS05IzT8OmFjoLR+lUhzFiL
+	SHhTXkvCWHEEdOu3guPdTwRdphYBOAorKLg9oKdgKn8MwUDnJAn3rxYjMLXbhOBc1FERvrip
+	9osAt5Z/o7HenIEba/yx1jZAYLNRQ2Hz/C0ajwy1Ubj3rpPErRa7ABflzVJ4bnqYxL/bByls
+	ahok8Xt9F43t5h2n2bOiQ/F8kiKTV+07EiuSL0+UCVIbD6onDHMoB10P0CI3hmODOYdVS21w
+	Z3Mn6WKK3cXZbEuEiz3ZIM4+2bOWixiCnRVy0zqnwCU82BCu5JoDaRHDkKwfN1zg44rFazul
+	zkJ6fXMnV9fQQbi6HDtKc5/1FnJdeHOvamzkTbRZjzYZkUShzEyWKZKCA+TZSoU6IC4l2YzW
+	PjRcWTlnQfN9UVbEMkjqLu5FYXKJUJaZlp1sRRxDSD3FuUdD5RJxvCz7Eq9KiVFlJPFpVrSN
+	IaVe4v2OrHgJmyBL5xN5PpVXbVgB4+aTg6T8if6Ofk1Zg8cD+1BFdXT/M6w5+SPw+4ctf4Oe
+	K4NHVg9rNa+rL0fFqv28jLMXj2uWA2JCFx5eqA6Pz1s5sDschxvGCXVcVtuef5FLmvP5iXOR
+	U6fqZjJeloruBOmeKKN7fH20GZHuvt5iQ/1qt9D69kzhvbkR/dMEnt5eVayWkmlyWZA/oUqT
+	/QdTa+mCvwIAAA==
+X-Brightmail-Tracker: H4sIAAAAAAAAAwGiAl39CAMSjwQaCGludGVybmFsIgYKBApOO4MtQdA3aDCZlSM4nK+sBjir
+	+Hg4p+C4BTicqrYBOPT52wc488THBjijofYDOJzPhAQ49a/6AzjlxuIHON+m5gQ4vIe3Azji
+	j8gGOI2E+wM4grioAjjDnckFONC2jgU4lPqlAzi3gOAHONO6nAY43qz/BTjmwo0EOMmaqQQ4
+	345AOMagFjj2y+wBOMSvtwI49oydBjiT0qAGOOOE3wE40sPiBDibgY4BOK++2AU4+/icBkAi
+	SLSp2QJIuZrdB0igsnVIs6gqSIrY0gNIsqqJBkiy8pIHSNzWvAZIyJj7BEi5uPMCSI2D7gZI
+	8eXaBEjvvtUGSKPo8AJIr7TVBEjMoMQHUBFaCjxkZWxpdmVyLz5gCmj64ZYCcLM6eOGm8QGA
+	AYguigEJCBgQNBjDtsMEigEJCAYQJxjY2PkDigEJCBQQMRjz4scEigEKCAMQ7gUY5Zz7AooB
+	CQgTEDUYlIb2AYoBCAgEECUY2ocaigEJCA0QNBiV+4wHigEJCBgQHxirsMADkAEIoAEAqgEU
+	aW52bWFpbDUuc2toeW5peC5jb22yAQYKBKZ9/JG4AfTTR8IBEAgBIgwNyAE3aBIFYXZzeW3C
+	ARgIAyIUDYI/NmgSDWRheXplcm9fcnVsZXPCARsIBCIXDUpXZWASEGdhdGVrZWVwZXJfcnVs
+	ZXPCAQIICRqAAa+Hq3m/hccYoJPZo6j6cRoCjXvo1gf1Puf0j/MIhwfP8s0R7XIiu+jKFFyt
+	uMXcEW+w6itfTKn54TfanYu6Mgj1DjgE5CtKcXzO151ADqudYqo/ieyZPJdDoHRqED94IRmY
+	wSs8mS7XMlqxznvLtwNFZLAYcTm326N+hXOuwGoLIgRzaGExKgNyc2Hs4jL8ogIAAA==
 X-CFilter-Loop: Reflected
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -88,71 +85,180 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-Use netmem alloc/put APIs instead of page alloc/put APIs and make it
-return netmem_ref instead of struct page * in
-__page_pool_alloc_page_order().
+The MM subsystem is trying to reduce struct page to a single pointer.
+The first step towards that is splitting struct page by its individual
+users, as has already been done with folio and slab.  This patchset does
+that for netmem which is used for page pools.
 
-Signed-off-by: Byungchul Park <byungchul@sk.com>
-Reviewed-by: Mina Almasry <almasrymina@google.com>
+Matthew Wilcox tried and stopped the same work, you can see in:
+
+   https://lore.kernel.org/linux-mm/20230111042214.907030-1-willy@infradead.org/
+
+Mina Almasry already has done a lot fo prerequisite works by luck, he
+said :).  I stacked my patches on the top of his work e.i. netmem.
+
+I focused on removing the page pool members in struct page this time,
+not moving the allocation code of page pool from net to mm.  It can be
+done later if needed.
+
+The final patch removing the page pool fields will be submitted once
+all the converting work of page to netmem are done:
+
+   1. converting of libeth_fqe by Tony Nguyen.
+   2. converting of mlx5 by Tariq Toukan.
+   3. converting of prueth_swdata (on me).
+   4. converting of freescale driver (on me).
+
+For our discussion, I'm sharing what the final patch looks like the
+following.
+
+	Byungchul
+--8<--
+commit 86be39ea488df859cff6bc398a364f1dc486f2f9
+Author: Byungchul Park <byungchul@sk.com>
+Date:   Wed May 28 20:44:55 2025 +0900
+
+    mm, netmem: remove the page pool members in struct page
+    
+    Now that all the users of the page pool members in struct page have been
+    gone, the members can be removed from struct page.
+    
+    However, since struct netmem_desc still uses the space in struct page,
+    the important offsets should be checked properly, until struct
+    netmem_desc has its own instance from slab.
+    
+    Remove the page pool members in struct page and modify static checkers
+    for the offsets.
+    
+    Signed-off-by: Byungchul Park <byungchul@sk.com>
+
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 56d07edd01f9..5a7864eb9d76 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -119,17 +119,6 @@ struct page {
+ 			 */
+ 			unsigned long private;
+ 		};
+-		struct {	/* page_pool used by netstack */
+-			/**
+-			 * @pp_magic: magic value to avoid recycling non
+-			 * page_pool allocated pages.
+-			 */
+-			unsigned long pp_magic;
+-			struct page_pool *pp;
+-			unsigned long _pp_mapping_pad;
+-			unsigned long dma_addr;
+-			atomic_long_t pp_ref_count;
+-		};
+ 		struct {	/* Tail pages of compound page */
+ 			unsigned long compound_head;	/* Bit zero is set */
+ 		};
+diff --git a/include/net/netmem.h b/include/net/netmem.h
+index 9e4ed3530788..e88e299dd0f0 100644
+--- a/include/net/netmem.h
++++ b/include/net/netmem.h
+@@ -39,11 +39,8 @@ struct netmem_desc {
+ 	static_assert(offsetof(struct page, pg) == \
+ 		      offsetof(struct netmem_desc, desc))
+ NETMEM_DESC_ASSERT_OFFSET(flags, _flags);
+-NETMEM_DESC_ASSERT_OFFSET(pp_magic, pp_magic);
+-NETMEM_DESC_ASSERT_OFFSET(pp, pp);
+-NETMEM_DESC_ASSERT_OFFSET(_pp_mapping_pad, _pp_mapping_pad);
+-NETMEM_DESC_ASSERT_OFFSET(dma_addr, dma_addr);
+-NETMEM_DESC_ASSERT_OFFSET(pp_ref_count, pp_ref_count);
++NETMEM_DESC_ASSERT_OFFSET(lru, pp_magic);
++NETMEM_DESC_ASSERT_OFFSET(mapping, _pp_mapping_pad);
+ #undef NETMEM_DESC_ASSERT_OFFSET
+ 
+ /*
 ---
- net/core/page_pool.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+Changes from v2:
+	1. Introduce a netmem API, virt_to_head_netmem(), and use it
+	   when it's needed.
+	2. Introduce struct netmem_desc as a new struct and union'ed
+	   with the existing fields in struct net_iov.
+	3. Make page_pool_page_is_pp() access ->pp_magic through struct
+	   netmem_desc instead of struct page.
+	4. Move netmem alloc APIs from include/net/netmem.h to
+	   net/core/netmem_priv.h.
+	5. Apply trivial feedbacks, thanks to Mina, Pavel, and Toke.
+	6. Add given 'Reviewed-by's, thanks to Mina.
 
-diff --git a/net/core/page_pool.c b/net/core/page_pool.c
-index 974f3eef2efa..e101c39d65c7 100644
---- a/net/core/page_pool.c
-+++ b/net/core/page_pool.c
-@@ -518,29 +518,29 @@ static bool page_pool_dma_map(struct page_pool *pool, netmem_ref netmem, gfp_t g
- 	return false;
- }
- 
--static struct page *__page_pool_alloc_page_order(struct page_pool *pool,
--						 gfp_t gfp)
-+static netmem_ref __page_pool_alloc_page_order(struct page_pool *pool,
-+					       gfp_t gfp)
- {
--	struct page *page;
-+	netmem_ref netmem;
- 
- 	gfp |= __GFP_COMP;
--	page = alloc_pages_node(pool->p.nid, gfp, pool->p.order);
--	if (unlikely(!page))
--		return NULL;
-+	netmem = alloc_netmems_node(pool->p.nid, gfp, pool->p.order);
-+	if (unlikely(!netmem))
-+		return 0;
- 
--	if (pool->dma_map && unlikely(!page_pool_dma_map(pool, page_to_netmem(page), gfp))) {
--		put_page(page);
--		return NULL;
-+	if (pool->dma_map && unlikely(!page_pool_dma_map(pool, netmem, gfp))) {
-+		put_netmem(netmem);
-+		return 0;
- 	}
- 
- 	alloc_stat_inc(pool, slow_high_order);
--	page_pool_set_pp_info(pool, page_to_netmem(page));
-+	page_pool_set_pp_info(pool, netmem);
- 
- 	/* Track how many pages are held 'in-flight' */
- 	pool->pages_state_hold_cnt++;
--	trace_page_pool_state_hold(pool, page_to_netmem(page),
-+	trace_page_pool_state_hold(pool, netmem,
- 				   pool->pages_state_hold_cnt);
--	return page;
-+	return netmem;
- }
- 
- /* slow path */
-@@ -555,7 +555,7 @@ static noinline netmem_ref __page_pool_alloc_pages_slow(struct page_pool *pool,
- 
- 	/* Don't support bulk alloc for high-order pages */
- 	if (unlikely(pp_order))
--		return page_to_netmem(__page_pool_alloc_page_order(pool, gfp));
-+		return __page_pool_alloc_page_order(pool, gfp);
- 
- 	/* Unnecessary as alloc cache is empty, but guarantees zero count */
- 	if (unlikely(pool->alloc.count > 0))
+Changes from v1:
+	1. Rebase on net-next's main as of May 26.
+	2. Check checkpatch.pl, feedbacked by SJ Park.
+	3. Add converting of page to netmem in mt76.
+	4. Revert 'mlx5: use netmem descriptor and APIs for page pool'
+	   since it's on-going by Tariq Toukan.  I will wait for his
+	   work to be done.
+	5. Revert 'page_pool: use netmem APIs to access page->pp_magic
+	   in page_pool_page_is_pp()' since we need more discussion.
+	6. Revert 'mm, netmem: remove the page pool members in struct
+	   page' since there are some prerequisite works to remove the
+	   page pool fields from struct page.  I can submit this patch
+	   separatedly later.
+	7. Cancel relocating a page pool member in struct page.
+	8. Modify static assert for offests and size of struct
+	   netmem_desc.
+
+Changes from rfc:
+	1. Rebase on net-next's main branch.
+	   https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/
+	2. Fix a build error reported by kernel test robot.
+	   https://lore.kernel.org/all/202505100932.uzAMBW1y-lkp@intel.com/
+	3. Add given 'Reviewed-by's, thanks to Mina and Ilias.
+	4. Do static_assert() on the size of struct netmem_desc instead
+	   of placing place-holder in struct page, feedbacked by
+	   Matthew.
+	5. Do struct_group_tagged(netmem_desc) on struct net_iov instead
+	   of wholly renaming it to strcut netmem_desc, feedbacked by
+	   Mina and Pavel.
+
+Byungchul Park (18):
+  netmem: introduce struct netmem_desc mirroring struct page
+  netmem: introduce netmem alloc APIs to wrap page alloc APIs
+  page_pool: use netmem alloc/put APIs in __page_pool_alloc_page_order()
+  page_pool: rename __page_pool_alloc_page_order() to
+    __page_pool_alloc_netmem_order()
+  page_pool: use netmem alloc/put APIs in __page_pool_alloc_pages_slow()
+  page_pool: rename page_pool_return_page() to page_pool_return_netmem()
+  page_pool: use netmem put API in page_pool_return_netmem()
+  page_pool: rename __page_pool_release_page_dma() to
+    __page_pool_release_netmem_dma()
+  page_pool: rename __page_pool_put_page() to __page_pool_put_netmem()
+  page_pool: rename __page_pool_alloc_pages_slow() to
+    __page_pool_alloc_netmems_slow()
+  mlx4: use netmem descriptor and APIs for page pool
+  netmem: use _Generic to cover const casting for page_to_netmem()
+  netmem: remove __netmem_get_pp()
+  page_pool: make page_pool_get_dma_addr() just wrap
+    page_pool_get_dma_addr_netmem()
+  netdevsim: use netmem descriptor and APIs for page pool
+  netmem: introduce a netmem API, virt_to_head_netmem()
+  mt76: use netmem descriptor and APIs for page pool
+  page_pool: access ->pp_magic through struct netmem_desc in
+    page_pool_page_is_pp()
+
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c    |  48 +++---
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c    |   8 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h  |   4 +-
+ drivers/net/netdevsim/netdev.c                |  19 +--
+ drivers/net/netdevsim/netdevsim.h             |   2 +-
+ drivers/net/wireless/mediatek/mt76/dma.c      |   6 +-
+ drivers/net/wireless/mediatek/mt76/mt76.h     |  12 +-
+ .../net/wireless/mediatek/mt76/sdio_txrx.c    |  24 +--
+ drivers/net/wireless/mediatek/mt76/usb.c      |  10 +-
+ include/linux/mm.h                            |  12 --
+ include/net/netmem.h                          | 145 +++++++++++++-----
+ include/net/page_pool/helpers.h               |   7 +-
+ mm/page_alloc.c                               |   1 +
+ net/core/netmem_priv.h                        |  14 ++
+ net/core/page_pool.c                          | 101 ++++++------
+ 15 files changed, 239 insertions(+), 174 deletions(-)
+
+
+base-commit: d09a8a4ab57849d0401d7c0bc6583e367984d9f7
 -- 
 2.17.1
 
