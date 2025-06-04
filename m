@@ -1,71 +1,71 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 520461E1C36
-	for <linux-rdma@vger.kernel.org>; Wed,  4 Jun 2025 16:54:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1E221EBFE0
+	for <linux-rdma@vger.kernel.org>; Wed,  4 Jun 2025 16:54:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749056080; cv=none; b=ehkPE/z3zGQn8QQ/Anhvy7DuP3Nvj1stZQsk4ADIW+chupVg3YxgS5E+3V18IhL0PVoiKjEwTUx0U1AeyXlhFivP02oD6sQn9YT1jVGOjOHuFanYIqolzXOeIEjl8SkbiyQ7oVt8eXH0gfkzhShGME3BnTeVzOZw4LQqKh8ZGb0=
+	t=1749056092; cv=none; b=Xa7yflpsQWh7feNdx7ZBZMPWTh+k4JA99B0wquBA1OteYDBESNDbIfGyriFcy0fESONOkLP+KdsPJLGwygbos2iIKvqjg5X+7uj80FlnbqxsamUDD7/k+2BqS1qnYC50F2ATm8ofvunxTHogwyImwf9hKrjZ+4vs82uQxZpYu5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749056080; c=relaxed/simple;
-	bh=tcd0Zzewl9fyLQbRjA4EgreSr8MAtbggVIRO6sDPbgk=;
+	s=arc-20240116; t=1749056092; c=relaxed/simple;
+	bh=W01do5wY76nWoxIg5mxKnfoZrGLR+i9S8Z7A2Dc9Ies=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=hBUwjlomjFsHKpHVWeNV3UZl862oU1hJji/p6S5puEhd77VO3ymAfKOv93W/McfTrhhGoum/E1JZiO9ZBot/6KO+i+88CXFqsomRN+fEYCcs3D7AkbZqFQqcbY5WTnPEXjLMDGfSAX3gzYHcROGKvZcWQ4glfatllKtgA6ge9P8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=LaS9W4H4; arc=none smtp.client-ip=170.10.133.124
+	 MIME-Version:Content-Type; b=tbRjkMqD0S0yuyABZaxmEDQ4V5tLassGrIdPPHTp/KJVVDu/9/pBbhCsJpDPBgBK0pwELTh6pV/BjPwakuuJ94v8O/eAyAAm+PoKgzv+1A2S1BFLeS5TBPoMBJZ0oLaWRb0fWix5ZfHQvSrJpO5lN5dbQPcihGMkSo+olZvf83o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=I3svuSBm; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LaS9W4H4"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="I3svuSBm"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1749056078;
+	s=mimecast20190719; t=1749056089;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=tcd0Zzewl9fyLQbRjA4EgreSr8MAtbggVIRO6sDPbgk=;
-	b=LaS9W4H4StlrQ7Ke3sraaLMkOrGH6lCPrRKzRC9eVRhP0oNYS2IOj0bX9XHqVGIl5nAxpx
-	2wG1sYHcqbqQVo4z8OuMEZXWlCuBpyFRf+4IKrMmJcBw3nCnQHTwiGD7VKpMrLoOUWhKFj
-	X2vX8RMje7igenj8DB2mZvsoK/bDzEQ=
-Received: from mail-lj1-f200.google.com (mail-lj1-f200.google.com
- [209.85.208.200]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=W01do5wY76nWoxIg5mxKnfoZrGLR+i9S8Z7A2Dc9Ies=;
+	b=I3svuSBmD0ZYhc8GwaEwWk8eQ37WcUqwoPSTXWPWO+8nJDa+8pA2vU/F3KyLd2tRFSxyaY
+	eq/FgzwkfZ9emlUwI5RxQUWqm93oeZuDsi3ukUdI9HT1iizaOuQw0AuzZ2cQ8KZHms8gSn
+	EHoVxxpRGfRm5URnHRRMqkXtmAq1zJk=
+Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
+ [209.85.218.71]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-298-eFv7UA2TMeegxVUAXT6tJg-1; Wed, 04 Jun 2025 12:54:37 -0400
-X-MC-Unique: eFv7UA2TMeegxVUAXT6tJg-1
-X-Mimecast-MFC-AGG-ID: eFv7UA2TMeegxVUAXT6tJg_1749056075
-Received: by mail-lj1-f200.google.com with SMTP id 38308e7fff4ca-32a72e28932so5700631fa.1
-        for <linux-rdma@vger.kernel.org>; Wed, 04 Jun 2025 09:54:36 -0700 (PDT)
+ us-mta-138-rjQSUhz9OL6TF9kOkBCedQ-1; Wed, 04 Jun 2025 12:54:48 -0400
+X-MC-Unique: rjQSUhz9OL6TF9kOkBCedQ-1
+X-Mimecast-MFC-AGG-ID: rjQSUhz9OL6TF9kOkBCedQ_1749056087
+Received: by mail-ej1-f71.google.com with SMTP id a640c23a62f3a-acbbb00099eso3076966b.2
+        for <linux-rdma@vger.kernel.org>; Wed, 04 Jun 2025 09:54:48 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749056075; x=1749660875;
+        d=1e100.net; s=20230601; t=1749056087; x=1749660887;
         h=content-transfer-encoding:mime-version:message-id:date:references
          :in-reply-to:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=tcd0Zzewl9fyLQbRjA4EgreSr8MAtbggVIRO6sDPbgk=;
-        b=Hwf5IaLjt0e7jtQcSq3KGFVyj947eWMhI1J6pqMmTo3cqEKV9ngi0a2IQphtlgUtnE
-         6cLeqWreywx2/cEn95zjc551QWJRvSkQvdAuc8EiA53aOjxSPfuha9lHBdUKZ6HLQmDI
-         v+szhl2NTnbP/OQDHL7JhKM468XxwnrgD5aQQFSxVbJbg8UYpKSfdauv84fXINyiqeww
-         nH4P6dkzRah3VoM3zxtz4L9BpvBpscVKIrhKqGDPPZxxRKLscJJaRvOWwTxxbkNhe9kQ
-         6TxqAAr+mR3QI6vLUD6nzVJUit7bPdlbhD1zsVusBdWDLS5MRtEtwE/rD29MSYw5cd7L
-         qRDw==
-X-Forwarded-Encrypted: i=1; AJvYcCUeXZrFsm66SWGWWGtv2CiNmAlJFoya/6wSLuSteCA88/W6EEcDIqh7a7khbxzTSnIvLCWNw1I/lzQz@vger.kernel.org
-X-Gm-Message-State: AOJu0YzYwDtoNTyH0dVjPE3acXmSijhH85DJKH7SrC4xJak2B0LMguqV
-	P0ZCUcC95Nq7WeoeoOkXDJfV+o8ReSVknwKvsqYvWfEARHZcRNh48jc6OPaadK/87nT4dnVd30G
-	s7+SXXSAGJ4YNBGqrlJ/SUcxWzUSA7cnLRRA7NxhlWHzukXNiunU6+h0O3gcHi90=
-X-Gm-Gg: ASbGncuBbVOkwnVJT7z0Ri+RtafnESHXx3lNNroTvd1RqjSRAeZiLke6HxnE2pcqwrZ
-	C3g9xytaMqKzLTSZzEfoWnQC4desyr0nlUDkNPu2w1XUzIg/J9hs+Xnd/dh8mLfhCVUZ8Qzwhh9
-	XF0Gk0dtFOnEoV665a/xh6x93ANbw8TZYBgFWu34Zo9uiARKOXDJYTf72DWl8tX31a2jydRZpky
-	dfDSjh8YDopbcZKBsOuUsNuuHhP5ec8Ppsziy2javfxuQvawXUKbaoFO5c63PbuQh1SUhnBf7pW
-	nsMOQYnL+eBn3p3K0uM=
-X-Received: by 2002:a17:906:99c2:b0:ad8:8f3b:de2d with SMTP id a640c23a62f3a-ade07606d85mr24141266b.9.1749056063557;
-        Wed, 04 Jun 2025 09:54:23 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IE+FyEzbRQ7ljsnYaqZEY9RyRG/Pit4hUmUJvWYN4/otGwuEi027SbI5iZa7eBk4SkzaaVb2g==
-X-Received: by 2002:a17:907:72c7:b0:ad8:93a3:29c2 with SMTP id a640c23a62f3a-ade077dafb1mr27934766b.14.1749056049265;
-        Wed, 04 Jun 2025 09:54:09 -0700 (PDT)
-Received: from alrua-x1.borgediget.toke.dk ([2a0c:4d80:42:443::2])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ada6ad6abc2sm1124547566b.173.2025.06.04.09.54.08
+        bh=W01do5wY76nWoxIg5mxKnfoZrGLR+i9S8Z7A2Dc9Ies=;
+        b=CeKH5ozsLaaMqO+T/YdWtKKqRhdDTvMzBN+yTMedDk+NnXUZT5qhI1MjwqaIkQTkTO
+         XTdkqt/8XpZhO+3R3VduX0NULAslyfuatV7aKpoXAkLCNlxxle97FkFcHAGdMDXYTYVA
+         x2WXpFxJf3WSbpL3VPQ2/Rv5Pm0cYry2AJsLQhHRVrL6h/GTuyGLeAzR8LT1TG86zH31
+         03yA4/IdgMZKjuDYyfAKOcUBx2UpC70gXMa5ZW0Gc54G792Z695h9/oSGxntpN7RDR4o
+         WQP5Gld1n4gDir5KHCLE5Pidm4ooLEXHTGg2KbA5DI6P3eoWkCW54ZQcj4et8oPbd5kY
+         DHww==
+X-Forwarded-Encrypted: i=1; AJvYcCXKU6aVHIdaDzyDky6Xa8l2gDDV+/b1ZX8SFvmgXJdrzTZAWMdmHorJvSX/VerBzut4izjld3ec9Eom@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw4jr7GeQv8k+ZNAk1QhVIsOLWWd8P0f7G0q1Zam8MofIC1VXju
+	dM3GLPBGNsq4/xCYPdjzhgRWeMJfNUsEjo0J5W1Vl89v4Rq8LFQOpKbnAZ4JsokpBs6YZj3WvD9
+	pbN8oMWw8ckuRQah8aqUzHPzC9xilb2AuWPEe+QxhDRTNntvsYn2sUy5+NLT52WI=
+X-Gm-Gg: ASbGncswxQ4GRtODUbrc8XDxxggCFOmcn3QzNuNu1ZvV0n/gBv/MzKveRDlxbN4nHQG
+	5aLnH2PHsLgiZIPkcD0vgfh+gubf2Ip05mnhStRmT6RTQbcoLgrDCsgC0tcorJv1G+4Lgst0JTr
+	OLZQY75B6P9NB4dID/GNYUu7wbZiNfG2EE9ysKDL6265gzFu8IFffnTec5f5RAZYTGv4x+D5wEW
+	hdouxyIQ6MmNKKd1kIA119MPDq7xTwNPD7T3MFFurTL6o18siDR619MQvGBva4jdn3Rmre0V5C0
+	jbDVFZmsVERPojBzMr4k+KKLxAiiv/LnTI+c
+X-Received: by 2002:a17:907:60ca:b0:adb:469d:2221 with SMTP id a640c23a62f3a-addf8fb3392mr316905166b.45.1749056087016;
+        Wed, 04 Jun 2025 09:54:47 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF4qiEZwqMaU8PlogC4zz14GcOUJ6vF7+mDiQZEwc00xgVAfFjugss6CGYBiTVHOcZyOXoQUA==
+X-Received: by 2002:a17:907:60ca:b0:adb:469d:2221 with SMTP id a640c23a62f3a-addf8fb3392mr316901966b.45.1749056086612;
+        Wed, 04 Jun 2025 09:54:46 -0700 (PDT)
+Received: from alrua-x1.borgediget.toke.dk ([45.145.92.2])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ada5d82e7ffsm1136170866b.68.2025.06.04.09.54.45
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Jun 2025 09:54:08 -0700 (PDT)
+        Wed, 04 Jun 2025 09:54:46 -0700 (PDT)
 Received: by alrua-x1.borgediget.toke.dk (Postfix, from userid 1000)
-	id 9A0E71AA9158; Wed, 04 Jun 2025 18:54:07 +0200 (CEST)
+	id 286601AA915C; Wed, 04 Jun 2025 18:54:45 +0200 (CEST)
 From: Toke =?utf-8?Q?H=C3=B8iland-J=C3=B8rgensen?= <toke@redhat.com>
 To: Byungchul Park <byungchul@sk.com>, willy@infradead.org,
  netdev@vger.kernel.org
@@ -79,14 +79,14 @@ Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
  lorenzo.stoakes@oracle.com, Liam.Howlett@oracle.com, vbabka@suse.cz,
  rppt@kernel.org, surenb@google.com, mhocko@suse.com, horms@kernel.org,
  linux-rdma@vger.kernel.org, bpf@vger.kernel.org, vishal.moola@gmail.com
-Subject: Re: [RFC v4 03/18] page_pool: use netmem alloc/put APIs in
- __page_pool_alloc_page_order()
-In-Reply-To: <20250604025246.61616-4-byungchul@sk.com>
+Subject: Re: [RFC v4 07/18] page_pool: use netmem put API in
+ page_pool_return_netmem()
+In-Reply-To: <20250604025246.61616-8-byungchul@sk.com>
 References: <20250604025246.61616-1-byungchul@sk.com>
- <20250604025246.61616-4-byungchul@sk.com>
+ <20250604025246.61616-8-byungchul@sk.com>
 X-Clacks-Overhead: GNU Terry Pratchett
-Date: Wed, 04 Jun 2025 18:54:07 +0200
-Message-ID: <874iwvwiq8.fsf@toke.dk>
+Date: Wed, 04 Jun 2025 18:54:45 +0200
+Message-ID: <87y0u7v44q.fsf@toke.dk>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
@@ -98,9 +98,11 @@ Content-Transfer-Encoding: quoted-printable
 
 Byungchul Park <byungchul@sk.com> writes:
 
-> Use netmem alloc/put APIs instead of page alloc/put APIs and make it
-> return netmem_ref instead of struct page * in
-> __page_pool_alloc_page_order().
+> Use netmem put API, put_netmem(), instead of put_page() in
+> page_pool_return_netmem().
+>
+> While at it, delete #include <linux/mm.h> since the last put_page() in
+> page_pool.c has been just removed with this patch.
 >
 > Signed-off-by: Byungchul Park <byungchul@sk.com>
 > Reviewed-by: Mina Almasry <almasrymina@google.com>
