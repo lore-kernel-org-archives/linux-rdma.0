@@ -1,17 +1,17 @@
 Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B606523536A;
-	Wed,  4 Jun 2025 02:53:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 369A423906A;
+	Wed,  4 Jun 2025 02:53:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749005594; cv=none; b=Nz14i5vVEYa076WT5aR6C33Nnn+kNe0JIneQ2Csp1R38DCpYPX/Vi+1rodLX1+dw42UF73uW3ZIzRTnN1lO8oH2WyeK0Z+hlqB6ZwwgqWcchwXwCyWpHVupmos0UKpv9gF1lbNDAS3HX+d8aLgBxpkDpKV+FTbUQ/4KsgGoTlMA=
+	t=1749005595; cv=none; b=NjF+W1LoLrr6riYoAVqT53xXQ/0MwwnebujVw0ss+A13qqh1dp90XGW9Dtq8bhBuqCFnd4L2JCbk9O4RbO7YNPRzmIfz2kiVPmfHBpp4cYtnWhyE5VO/e4rg/oIGTmqio9i2jbytCVrcjyHrdVITVu3QnP1bFInd8/JN4DWuF1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749005594; c=relaxed/simple;
-	bh=3e2wWQjzL/nHoe82u8QRBrIltsUak/khJlSdHV3fHQ8=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=PW9iTb1o/AXGGDQYb59N9otjz8epwx+5T8rNabilVY82Mezqvuh5WWDEob46/TJ6MlI2PLOgtQTTCCTlpv1sfV4Fkq3i2n8y8BXXXbDfMPv2HNUI/OPQVvn+xPJKM6S357jUJ85D/QEFtc4SoXKK7+CBkbt+v0KMeXfsKkg6GQs=
+	s=arc-20240116; t=1749005595; c=relaxed/simple;
+	bh=mcub4JtT0gUWqPG8n/KXl/GyqQiEcFNqH1upQrURVyY=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References; b=X2BgoFn51LZ1p/J6/KoKH+cDm3akbs24JPd/O4Z32YrMvWFrEYLHVOf3LRK+/yjBQvpv9a7k6tWB2YdEQvSXj13oUiLqYZORnv4eshyIq7ATOq/kNMFaFy0NcnWgUPVoh3lXSuznas08ppBWVbRES2gFupe0M1JhoZP0EOI8TOk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
-X-AuditID: a67dfc5b-681ff7000002311f-5b-683fb50a8f99
+X-AuditID: a67dfc5b-681ff7000002311f-70-683fb50a0023
 From: Byungchul Park <byungchul@sk.com>
 To: willy@infradead.org,
 	netdev@vger.kernel.org
@@ -47,40 +47,40 @@ Cc: linux-kernel@vger.kernel.org,
 	linux-rdma@vger.kernel.org,
 	bpf@vger.kernel.org,
 	vishal.moola@gmail.com
-Subject: [RFC v4 16/18] netmem: introduce a netmem API, virt_to_head_netmem()
-Date: Wed,  4 Jun 2025 11:52:44 +0900
-Message-Id: <20250604025246.61616-17-byungchul@sk.com>
+Subject: [RFC v4 18/18] page_pool: access ->pp_magic through struct netmem_desc in page_pool_page_is_pp()
+Date: Wed,  4 Jun 2025 11:52:46 +0900
+Message-Id: <20250604025246.61616-19-byungchul@sk.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20250604025246.61616-1-byungchul@sk.com>
 References: <20250604025246.61616-1-byungchul@sk.com>
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWRa0hTYRjHe3fenR1Hg8OSPCkkDSKSMg2z50OZdIG3MMiyCwnW0EMbTWfz
-	XgZWVqRuiRqJzlhl6rw0mbbNEKk1b5V5y1g60yYagRo5HZVGqdG3H//n//99eRhK2o79GWVS
-	Kq9JkqtktBiLZ9Y+2i5+tk8RopsJAb2pnoa6H5lQPW4Tgr7WgmD+54gIPI5OGh4/9FKg783F
-	sGD6RcFkh1sEY1VTGFpvWylw3+2iQZu7SMF1W40A+iw6IZT8ekKBNWdcBIPP9TR8qv8jhCm7
-	FkN3mRHDmC4SOgzrwftmGoHDZBWAt6CChuIBAw0TuWMIBl65MZRf0yEwtTmFsPhDT0duIs3G
-	jwLSUjYqIgZzGmmqCSJ5zgGKmGvv0MQ8VyQirg+tNOkqXcSkxeYREO2NWZp8nxzG5FvbEE1M
-	zUOYvDU4RMRj3niMPSvek8CrlOm8ZkfEebHi9pQHJz9iMg3VX6kcNE3nIR+GY8O4p0sG/J/z
-	9BWCFabZLZzT+ZNaYV82lPO4O5c7YoZiZ4XcpH5xtbSOPco5G0ZXRZjdzPW4y0UrLGHDOe+X
-	CeqfNJCra3yxyj7LuWv2/upWyu7itLb31IqUY2dEXFFOK/o32MC9rHHiQiQxoDW1SKpMSk+U
-	K1VhwYqsJGVmcLw60YyWn1t1dSnWhub6TtgRyyDZWonNFaGQCuXpKVmJdsQxlMxXErh1OZIk
-	yLMu8xr1OU2aik+xowAGy/wkO70ZCVL2gjyVv8jzybzm/1XA+PjnoHzHtgMn1cct/T1xluIJ
-	dXy/ViBJC9cVNMlG9l+pO6huzDZmJMT1DeZ1n74XkxtjbFxKGx4uiQ6I9nH5GbOn5VWFl26q
-	TpEWZ/tnKD2kDOUG9w+HTjYsxJ7pPXxrqrLJt9LyO3H83fzrB+6F/OaoI1FOa2xYbcVe627C
-	YCNVL8MpCnloEKVJkf8FS5IIfNgCAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAAzWRbUgTcRzH/d/dbudocM1RhwbiIKRJppDxA8PshXYJRlAQJJFDDzedD20q
-	GhSWgjXcephU6ISV5mOyWDanyao5dGaSzbRVPjGZPSCr3JwPE0qN3n34Pr35UrionYikFEWl
-	nKpIppSQAkJwKrn6oOD5MXmC60cUGExPSOhaq4C2eSsPDJ0WBIH1L3zwO4ZJaH4YxMHwroaA
-	FdMGDt4hDx/mWhcJGKjtxcFzy0mCtiaEw3VrOwaDTSM8GLfoeFC/8RiH3qp5Pkz0G0iYffKH
-	B4t2LQEjDR0EzOlSYci4B4KjSwgcpl4MgnVNJOhdRhIWauYQuAY9BDRe0yEw2dw8CK0ZyFQJ
-	29PxCWP7Gmb4rNFcxj5rl7IatwtnzZ03Sda8fJfPTk8NkKzzQYhg+6x+jNVW+0j2t/czwf60
-	TZJs87dfGGvqmSTYt0YH//Tu84KjuZxSUc6pDqVkC+S1i36i5BFVYWz7jlehJVKDwimGPsxo
-	DE3YNpN0LON2r+PbLKYTGb9nmNAgAYXTPh7jNYR2QhF0JuPuntkpE/R+ZszTyN9mIX2ECX5d
-	wP+NRjNdT1/tcPiWPu27v9MV0UmM1voBv40ERhTWicSKovJCmUKZFK8ukFcWKSric4oLzWjr
-	v9Yrm3esKDBxwo5oCkl2Ca3TKXIRT1auriy0I4bCJWJh9IEtSZgrq7zMqYovqsqUnNqOoihC
-	sleYcY7LFtF5slKugONKONV/F6PCI6tQlmtGn5MWKLmUH+No6c6IT0+Ji/a/PHt188XyHOY8
-	/r6iz5uwb3xM2GO9IJZYVupXRsKS12LWcg2rDWaftM6Ulp6fmKBvybJN6YMfT8a2e0dVm9Fk
-	a04zo8vpX3mzcG+8K68uELyRpoh57ZyNq121SdctZzLjpI56fpg7ApMQarksUYqr1LK/M/SC
-	xLsCAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRXUhTYRjHe3fenbMNh4cldlL6cNCHkpVm8ZRi3hjvhVDQhaQXNfLUVtNk
+	fkfhKsO0tsqCpFZNRXNTmkzLGSZlNhXNhh85yzQWRokudCbqpJor7378n//vf/OIKNlbHCJS
+	ZWTzmgyFWk5LsGQ6oCJS8uygcnfZ1AEwWOppqFvIhydfbEIwmJ8jmFv8xICno5OGqop5Cgzv
+	izD8sixRMGF3MTBe8w1Da3EzBa6bXTToirwUXLbVCsDxXC+Eu0vVFDRrvzAw8MJAw1j9HyF8
+	a9dh6L5vwjCuTwC7MRjme6YQdFiaBTB/4yENd/qNNHwtGkfQ/8aF4cElPQJLm1MI3gUDnRBG
+	mkwjAtJy/zNDjNYc0lgbQUqd/RSxmktoYp0tY8joh1aadJV7MWmxeQREd8VNk5mJj5j8bBui
+	iaVpCJNeYwdDPNaNR9gUSVwar1bl8ppd8SckyoFuB84clOVXXi1BWjQaWIrEIo6N4dz2SrzK
+	jzpMghWm2W2c07lIrXAQG8V5XJ2+jkREsW4hN2Hw+ktrWRU3U+ryy5jdwj0uHvGzlN3H/bAP
+	/R/dxNU1vPIPiX35qPue35WxezmdbZBaGeXYaYbT3bAJ/wnrude1TnwLSY1ojRnJVBm56QqV
+	OmansiBDlb/z5Ll0K/I9t+bicqoNzTqOtiNWhOQBUttovFImVORmFaS3I05EyYOkm8J9kTRN
+	UXCe15w7rslR81ntKFSE5euk0fN5aTL2tCKbP8vzmbxm9SoQiUO0KKe3eE/TerS42Wz6nexO
+	njoW+p0hWwvnHNqz5sT6aklKbPihB1X49rWC6DJt3IV+756+/eWK2e3v6qrO6G0bIq5vLirT
+	Dq9LVIuTguraSPEd8eR47HBgvSesMPKp51le0imeofoyl3eMkUbTZHJDYcBL5nCwPCrGGxnY
+	lNpTI8dZSkVUBKXJUvwFNZAvYNgCAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAAzWRXUhTYRzGe3fenc3l6LiWntQQRh+kaQpaf6jMJPGkEF0EgTc68tCG25RN
+	RZNwpSGO1JZRotNWos1NnKjpTBGbYzoSFD9ilqVNFKMwTbOpQemiux/P183DJ0QmHMyXq3JZ
+	tUqqkJACLLh6riRS8OqiLFrffxQM1lYSLN4CeDlv44LB3I1gY+sDD9YdwyQ0Pt8kwDBWiuGn
+	dZuARaeHB3PNSxj6y3oI8FSNkFBRukPAPZuJA0P1Li6Md1dy4fF2EwE92nkeTL42kPCp9Q8X
+	luwVGFy1LRjmKhPAaQyEzbffEDisPRzYfFBPQvWEkYSF0jkEE0MeDHV3KxFYB9xc2PEayAQJ
+	09Uyw2F6az/yGGNHHtNpCmd07gmC6TCXk0zHj0c8ZvZdP8mM1Oxgpte2zmEqSlZIZm3xPWa+
+	D0yTTOPyKoexdk1jZtTo4F0LSBOcz2QV8nxWfTo+QyCbdI3jnClRwYv75UiLZg/okB+fpmLp
+	BkcLZ49J6gTtdm8ReyymYuh1zzDWIQGfoFa49KJhxxc6SMnpNZ0H7zGmjtHPymZ8LKTO0F+c
+	0/jfaBhtaR/0Dfnt6rMrT31dERVHV9imiIdIYET7zEgsV+UrpXJFXJQmS1aokhdE3cxWdqDd
+	/5rv/Nbb0MZksh1RfCTxF9pm42UirjRfU6i0I5pPSMTCsJO7kjBTWnibVWenq/MUrMaOQvhY
+	EiRMucFmiKhb0lw2i2VzWPV/l8P3C9Yic/lZh77a4lKZuvXRy6MWjy61rddTl+to8lKqy8PL
+	kYPZzc669H3+xTMXarTF0ohLndOHaz4nFB1RlnvfBDZETUVUPVEZ3d2xcYkLp46z0aHGNLw9
+	NF/VZk9VFCX1JQZgxf6vA0nXJX1XRn+1tsuSD40528SrQSEElRLqmJFgjUwaE06oNdK/gSRD
+	AbsCAAA=
 X-CFilter-Loop: Reflected
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
@@ -88,36 +88,82 @@ List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 
-To eliminate the use of struct page in page pool, the page pool code
-should use netmem descriptor and APIs instead.
+To simplify struct page, the effort to separate its own descriptor from
+struct page is required and the work for page pool is on going.
 
-As part of the work, introduce a netmem API to convert a virtual address
-to a head netmem allowing the code to use it rather than the existing
-API, virt_to_head_page() for struct page.
+To achieve that, all the code should avoid directly accessing page pool
+members of struct page.
+
+Access ->pp_magic through struct netmem_desc instead of directly
+accessing it through struct page in page_pool_page_is_pp().  Plus, move
+page_pool_page_is_pp() from mm.h to netmem.h to use struct netmem_desc
+without header dependency issue.
 
 Signed-off-by: Byungchul Park <byungchul@sk.com>
 ---
- include/net/netmem.h | 7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/mm.h   | 12 ------------
+ include/net/netmem.h | 14 ++++++++++++++
+ mm/page_alloc.c      |  1 +
+ 3 files changed, 15 insertions(+), 12 deletions(-)
 
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index e51dba8398f7..f23560853447 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -4311,16 +4311,4 @@ int arch_lock_shadow_stack_status(struct task_struct *t, unsigned long status);
+  */
+ #define PP_MAGIC_MASK ~(PP_DMA_INDEX_MASK | 0x3UL)
+ 
+-#ifdef CONFIG_PAGE_POOL
+-static inline bool page_pool_page_is_pp(struct page *page)
+-{
+-	return (page->pp_magic & PP_MAGIC_MASK) == PP_SIGNATURE;
+-}
+-#else
+-static inline bool page_pool_page_is_pp(struct page *page)
+-{
+-	return false;
+-}
+-#endif
+-
+ #endif /* _LINUX_MM_H */
 diff --git a/include/net/netmem.h b/include/net/netmem.h
-index d4066fcb1fee..d84ab624b489 100644
+index d84ab624b489..8f354ae7d5c3 100644
 --- a/include/net/netmem.h
 +++ b/include/net/netmem.h
-@@ -265,6 +265,13 @@ static inline netmem_ref netmem_compound_head(netmem_ref netmem)
- 	return page_to_netmem(compound_head(netmem_to_page(netmem)));
- }
+@@ -56,6 +56,20 @@ NETMEM_DESC_ASSERT_OFFSET(pp_ref_count, pp_ref_count);
+  */
+ static_assert(sizeof(struct netmem_desc) <= offsetof(struct page, _refcount));
  
-+static inline netmem_ref virt_to_head_netmem(const void *x)
++#ifdef CONFIG_PAGE_POOL
++static inline bool page_pool_page_is_pp(struct page *page)
 +{
-+	netmem_ref netmem = virt_to_netmem(x);
++	struct netmem_desc *desc = (struct netmem_desc *)page;
 +
-+	return netmem_compound_head(netmem);
++	return (desc->pp_magic & PP_MAGIC_MASK) == PP_SIGNATURE;
 +}
++#else
++static inline bool page_pool_page_is_pp(struct page *page)
++{
++	return false;
++}
++#endif
 +
- /**
-  * __netmem_address - unsafely get pointer to the memory backing @netmem
-  * @netmem: netmem reference to get the pointer for
+ /* net_iov */
+ 
+ DECLARE_STATIC_KEY_FALSE(page_pool_mem_providers);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 4f29e393f6af..be0752c0ac92 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -55,6 +55,7 @@
+ #include <linux/delayacct.h>
+ #include <linux/cacheinfo.h>
+ #include <linux/pgalloc_tag.h>
++#include <net/netmem.h>
+ #include <asm/div64.h>
+ #include "internal.h"
+ #include "shuffle.h"
 -- 
 2.17.1
 
