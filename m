@@ -1,249 +1,234 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F229E24677E;
-	Tue, 10 Jun 2025 17:15:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D29ED24633C;
+	Tue, 10 Jun 2025 18:42:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749575732; cv=none; b=AnqE3zgV/PxWWCdqpJTDcL2IBTFq9zwQq1kP15DVJmejIzbyslItyCCqRkDAdt9oVBEsINolOcpt8CycMEQvFC4D5r3JLOZ2GVz4w03vlnqWfo4GHKnT0AMvcG3uFhsSZhldgFV3TNxYpvv7nJdIgEfrOgyYVGbomVojfANVjFw=
+	t=1749580971; cv=none; b=SCZ+NgyzZQjGdLhEgLHSqwfbA2urP4roMH23b/8R9IWfS8qbJpvKS0kQh584yTw0niCeqQ8gglbKPxbXRylcucm6yzw5ywTyR/WvXVWnxgJdLYagl85wpw3UdgAbhNCGCM/UgyEPPNxDbti/EOW9SvFv/eWGggVSM0KMXHEvUxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749575732; c=relaxed/simple;
-	bh=u8r2Q+UtHJ4Nd9Z2cHIyBuA8VSeH+waJg4MzAJzv7o8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YWP20+q1aV/VxoSd2G2CUNJJeLjc5FM9GxCtIN8WcXoaZvd1CAYrKWHrLM6UT9gycSxM4bnrgr7Z3sLF3/DFQ2bIM3Zn811PLar7TSsMzCcDrcF1TOgnk7sudx3LK+rLIWcUglRFnHfwGnZ8fjdY+Z4CCane0i+CGAnSimwv2NM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=k+rsxyU8; arc=none smtp.client-ip=209.85.214.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1749580971; c=relaxed/simple;
+	bh=NCJFu44V4QJ1vQws4N4CiyJCUCgBz5teMTE2RAaiTbI=;
+	h=From:To:Cc:Subject:Date:Message-Id; b=lDnUwFMCyafi+HqLAY2j519EIeqv5e5JhzYc1mXfQN+RZlIPpdXdI67uHa5nEF/81aQxyw2qVFVScKlVEWp7G3EyivHUduaxKAuFYbOA/SeVU+9WdsM5mDKj1rWszeJxkE/iAY9s2do/x68A7hH/+A/xTpXfvRbZx63S45WMVBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=VLEP+8CS; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="k+rsxyU8"
-Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-2363e973db1so608435ad.0;
-        Tue, 10 Jun 2025 10:15:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1749575730; x=1750180530; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=rIrnh6Y6z0RsAszSzJMckGXGP+N0IS1GPSV62LbBz1M=;
-        b=k+rsxyU88u8RUD8fJhtZv3d6ytR4Cv00By8tOCzvdHICVKiWOn27CbjQT9BQwDlLv7
-         mNwGjLCJVqVA7KGpiwcE6miAgvueOvvGqD8gWXurN2RmKlZVIugINTMrP6sco2u33ivX
-         VlGBzyoL83UA2BFa7j1cL58fhp24i3oIcHAqNHR7tgiajKuqXbrjgKQuRDQQ0c6dz11v
-         acZRJkYg0J4luEW/Ll6F4hyDlF7vgvpqLrf6FN5EZ/4b11cp7ZsRhqkYj7B+XECUaiPc
-         8FsQS8MNKz3alLt4bII9mfsYrajVKSX7+TqF2PeVv4P8w2xrD8AkDrkv8Cg15Y6iIbzv
-         cL8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1749575730; x=1750180530;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=rIrnh6Y6z0RsAszSzJMckGXGP+N0IS1GPSV62LbBz1M=;
-        b=K+a7IHA43DMtX0BEnvN41xA8D+Lfvkv08JgYrXvXVmUzm3YXSaTbV1hSELub61YhIJ
-         BBznb/2/w1H056ztfXa3HD/VT5RdItPEgH4x4IBrMUuNuluGzLjYvxwPSN4veP/8tQms
-         XbY0QIke4BxysiOEpulQW4ZZUiRdT5gy87pAfxfGl4DkrKZ/eGWoRupLG6eIt1kAGcid
-         HgvhsHE6tjxw6K1xiKJWAl+vXka9IZEcoTL9FLVRbeGilwdyfybQ0YUug2YNPJb7E8yL
-         s1inTe0QJMoOyPCLSx9yDW+Sx9NUS72/8+R/DX6cdQ8K2A8xmAXLafUKTui0X8mOzpCD
-         oJJA==
-X-Forwarded-Encrypted: i=1; AJvYcCVTUcdhGVHgug0Az4QlX/FyIkYFmPMW2dyvF0d1PLRtAgvLjXh2PHuljZRPib5/UJxjHr59qx92VYHydG6RzPNB@vger.kernel.org, AJvYcCVpK+gsEUvv0AeoJDP9iuwzxmCOH5uOLWLMuNPd70PfA6XUJRMldFbU/Na/fCnLs0Yv/4BcMX4h6MJBXw==@vger.kernel.org, AJvYcCWlUhYryU237ogrn0UoTY/VBkXCNZ9q/dNu04ec5JJYxN0Gjxiobh1XtujSmMRUw4IkYjN5t8tNUj9IMvI=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyTNjJMCaK3k3X4D/URxFM84dKG9HrliLl/BK5egW+jpstO+1ed
-	RKJXX3NAWnkcYrMyZ74QIFEo9rQLd+CNOUpDLZK3sXFtxvOx5kmwMEY002YU
-X-Gm-Gg: ASbGncuViBFSeX2lFttoKjsk9zp0g6JDC+m3TNZHABJsmXdOcg4xNgLlLfu4pZkfUxm
-	9JcQNKboyZAbbY+v7PxnuCaozpHEfowwTci7LOeIvo9DqpH9rPKIT4APZaeTcHn3cWXNZY2Mjjx
-	jFzq76D0zDLi2Dy3xdWs/KPPijDvoPW50FgOTkdaeOplx8pzN7HzMFjhvh/5jXSb/Nhyw5KFAwg
-	dh5U0fw2ZfuCS/cBnLdEp+d3Z1M526IUVopYJ31v+PPE18ewhSVPEbKdoJ8ka2/QDWs8Ff9X+KZ
-	RwYADLp8a+/8OKhjQ3lKjId6Wk77S74+3x5T+ffqMaFz16VLon9rI5g3NAwGS6T5kpEPuGPx+e5
-	uMqvnJ4WM6Go+L0OyQfQVIHQ=
-X-Google-Smtp-Source: AGHT+IGjKW9uxJxECrtSXh89niGE9d1wlACS6WP7qG1lr3n7ec7MLI9AA185gIqYfLOWUsY3utuoDQ==
-X-Received: by 2002:a17:903:1b44:b0:231:d0da:5e1f with SMTP id d9443c01a7336-2364183445fmr2280735ad.21.1749575729503;
-        Tue, 10 Jun 2025 10:15:29 -0700 (PDT)
-Received: from localhost (c-73-158-218-242.hsd1.ca.comcast.net. [73.158.218.242])
-        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-236032fccd6sm73703615ad.134.2025.06.10.10.15.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Jun 2025 10:15:29 -0700 (PDT)
-From: Stanislav Fomichev <stfomichev@gmail.com>
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net,
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="VLEP+8CS"
+Received: by linux.microsoft.com (Postfix, from userid 1006)
+	id 5CF3221175A7; Tue, 10 Jun 2025 11:42:49 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 5CF3221175A7
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1749580969;
+	bh=DNW0VMHKju0KL6eZOtEkJKOmowbimuF1cYD5YEwI4CM=;
+	h=From:To:Cc:Subject:Date:From;
+	b=VLEP+8CSJIVWyaqTUKLBnHMspiqpNZdYPzR+Bezu2SzPzv54VOvWoY1HtDYKMJnjo
+	 iWFbk86N1h8suQsKEZ0LEDrGxmhTV8Pw21XA+cKMQMxmaUjI9AjvE75tLe8TA4LoZU
+	 WV7amKuRonFMoZI6rUU9X1hoo670Kw/MMqQ5zKPg=
+From: Haiyang Zhang <haiyangz@linux.microsoft.com>
+To: linux-hyperv@vger.kernel.org,
+	netdev@vger.kernel.org
+Cc: haiyangz@microsoft.com,
+	decui@microsoft.com,
+	stephen@networkplumber.org,
+	kys@microsoft.com,
+	paulros@microsoft.com,
+	olaf@aepfle.de,
+	vkuznets@redhat.com,
+	davem@davemloft.net,
+	wei.liu@kernel.org,
 	edumazet@google.com,
 	kuba@kernel.org,
 	pabeni@redhat.com,
-	skalluru@marvell.com,
-	manishc@marvell.com,
-	andrew+netdev@lunn.ch,
-	michael.chan@broadcom.com,
-	pavan.chebbi@broadcom.com,
-	ajit.khaparde@broadcom.com,
-	sriharsha.basavapatna@broadcom.com,
-	somnath.kotur@broadcom.com,
-	anthony.l.nguyen@intel.com,
-	przemyslaw.kitszel@intel.com,
-	tariqt@nvidia.com,
-	saeedm@nvidia.com,
-	louis.peens@corigine.com,
-	shshaikh@marvell.com,
-	GR-Linux-NIC-Dev@marvell.com,
-	ecree.xilinx@gmail.com,
-	horms@kernel.org,
-	dsahern@kernel.org,
-	shuah@kernel.org,
-	ruanjinjie@huawei.com,
-	mheib@redhat.com,
-	stfomichev@gmail.com,
-	linux-kernel@vger.kernel.org,
-	intel-wired-lan@lists.osuosl.org,
-	linux-rdma@vger.kernel.org,
-	oss-drivers@corigine.com,
-	linux-net-drivers@amd.com,
-	linux-kselftest@vger.kernel.org,
 	leon@kernel.org,
-	Aleksandr Loktionov <aleksandr.loktionov@intel.com>
-Subject: [PATCH net-next v3 4/4] Revert "bnxt_en: bring back rtnl_lock() in the bnxt_open() path"
-Date: Tue, 10 Jun 2025 10:15:22 -0700
-Message-ID: <20250610171522.2119030-5-stfomichev@gmail.com>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250610171522.2119030-1-stfomichev@gmail.com>
-References: <20250610171522.2119030-1-stfomichev@gmail.com>
+	longli@microsoft.com,
+	ssengar@linux.microsoft.com,
+	linux-rdma@vger.kernel.org,
+	daniel@iogearbox.net,
+	john.fastabend@gmail.com,
+	bpf@vger.kernel.org,
+	ast@kernel.org,
+	hawk@kernel.org,
+	tglx@linutronix.de,
+	shradhagupta@linux.microsoft.com,
+	andrew+netdev@lunn.ch,
+	kotaranov@microsoft.com,
+	horms@kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next,v7] net: mana: Add handler for hardware servicing events
+Date: Tue, 10 Jun 2025 11:42:22 -0700
+Message-Id: <1749580942-17671-1-git-send-email-haiyangz@linux.microsoft.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-This reverts commit 325eb217e41fa14f307c7cc702bd18d0bb38fe84.
+From: Haiyang Zhang <haiyangz@microsoft.com>
 
-udp_tunnel infra doesn't need RTNL, should be safe to get back
-to only netdev instance lock.
+To collaborate with hardware servicing events, upon receiving the special
+EQE notification from the HW channel, remove the devices on this bus.
+Then, after a waiting period based on the device specs, rescan the parent
+bus to recover the devices.
 
-Cc: Michael Chan <michael.chan@broadcom.com>
-Reviewed-by: Aleksandr Loktionov <aleksandr.loktionov@intel.com>
-Signed-off-by: Stanislav Fomichev <stfomichev@gmail.com>
+Signed-off-by: Haiyang Zhang <haiyangz@microsoft.com>
+Reviewed-by: Shradha Gupta <shradhagupta@linux.microsoft.com>
+Reviewed-by: Simon Horman <horms@kernel.org>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.c | 36 +++++------------------
- 1 file changed, 7 insertions(+), 29 deletions(-)
+v7:
+rebased.
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index a3dadde65b8d..1da208c36572 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -14055,28 +14055,13 @@ static void bnxt_unlock_sp(struct bnxt *bp)
- 	netdev_unlock(bp->dev);
+v6:
+Not acquiring module refcnt as suggested by Paolo Abeni.
+
+v5:
+Get refcnt of the pdev struct to avoid removal before running the work
+as suggested by Jakub Kicinski.
+
+v4:
+Renamed EQE type 135 to GDMA_EQE_HWC_RESET_REQUEST, since there can
+be multiple cases of this reset request.
+
+v3:
+Updated for checkpatch warnings as suggested by Simon Horman.
+
+v2:
+Added dev_dbg for service type as suggested by Shradha Gupta.
+Added driver cap bit.
+---
+ .../net/ethernet/microsoft/mana/gdma_main.c   | 67 +++++++++++++++++++
+ include/net/mana/gdma.h                       | 10 ++-
+ 2 files changed, 75 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/microsoft/mana/gdma_main.c b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+index 3504507477c6..c75184519fe4 100644
+--- a/drivers/net/ethernet/microsoft/mana/gdma_main.c
++++ b/drivers/net/ethernet/microsoft/mana/gdma_main.c
+@@ -352,11 +352,58 @@ void mana_gd_ring_cq(struct gdma_queue *cq, u8 arm_bit)
  }
+ EXPORT_SYMBOL_NS(mana_gd_ring_cq, "NET_MANA");
  
--/* Same as bnxt_lock_sp() with additional rtnl_lock */
--static void bnxt_rtnl_lock_sp(struct bnxt *bp)
--{
--	clear_bit(BNXT_STATE_IN_SP_TASK, &bp->state);
--	rtnl_lock();
--	netdev_lock(bp->dev);
--}
--
--static void bnxt_rtnl_unlock_sp(struct bnxt *bp)
--{
--	set_bit(BNXT_STATE_IN_SP_TASK, &bp->state);
--	netdev_unlock(bp->dev);
--	rtnl_unlock();
--}
--
- /* Only called from bnxt_sp_task() */
- static void bnxt_reset(struct bnxt *bp, bool silent)
++#define MANA_SERVICE_PERIOD 10
++
++struct mana_serv_work {
++	struct work_struct serv_work;
++	struct pci_dev *pdev;
++};
++
++static void mana_serv_func(struct work_struct *w)
++{
++	struct mana_serv_work *mns_wk;
++	struct pci_bus *bus, *parent;
++	struct pci_dev *pdev;
++
++	mns_wk = container_of(w, struct mana_serv_work, serv_work);
++	pdev = mns_wk->pdev;
++
++	pci_lock_rescan_remove();
++
++	if (!pdev)
++		goto out;
++
++	bus = pdev->bus;
++	if (!bus) {
++		dev_err(&pdev->dev, "MANA service: no bus\n");
++		goto out;
++	}
++
++	parent = bus->parent;
++	if (!parent) {
++		dev_err(&pdev->dev, "MANA service: no parent bus\n");
++		goto out;
++	}
++
++	pci_stop_and_remove_bus_device(bus->self);
++
++	msleep(MANA_SERVICE_PERIOD * 1000);
++
++	pci_rescan_bus(parent);
++
++out:
++	pci_unlock_rescan_remove();
++
++	pci_dev_put(pdev);
++	kfree(mns_wk);
++}
++
+ static void mana_gd_process_eqe(struct gdma_queue *eq)
  {
--	bnxt_rtnl_lock_sp(bp);
-+	bnxt_lock_sp(bp);
- 	if (test_bit(BNXT_STATE_OPEN, &bp->state))
- 		bnxt_reset_task(bp, silent);
--	bnxt_rtnl_unlock_sp(bp);
-+	bnxt_unlock_sp(bp);
- }
+ 	u32 head = eq->head % (eq->queue_size / GDMA_EQE_SIZE);
+ 	struct gdma_context *gc = eq->gdma_dev->gdma_context;
+ 	struct gdma_eqe *eq_eqe_ptr = eq->queue_mem_ptr;
++	struct mana_serv_work *mns_wk;
+ 	union gdma_eqe_info eqe_info;
+ 	enum gdma_eqe_type type;
+ 	struct gdma_event event;
+@@ -401,6 +448,26 @@ static void mana_gd_process_eqe(struct gdma_queue *eq)
+ 		eq->eq.callback(eq->eq.context, eq, &event);
+ 		break;
  
- /* Only called from bnxt_sp_task() */
-@@ -14084,9 +14069,9 @@ static void bnxt_rx_ring_reset(struct bnxt *bp)
- {
- 	int i;
- 
--	bnxt_rtnl_lock_sp(bp);
-+	bnxt_lock_sp(bp);
- 	if (!test_bit(BNXT_STATE_OPEN, &bp->state)) {
--		bnxt_rtnl_unlock_sp(bp);
-+		bnxt_unlock_sp(bp);
- 		return;
++	case GDMA_EQE_HWC_FPGA_RECONFIG:
++		dev_info(gc->dev, "Recv MANA service type:%d\n", type);
++
++		if (gc->in_service) {
++			dev_info(gc->dev, "Already in service\n");
++			break;
++		}
++
++		mns_wk = kzalloc(sizeof(*mns_wk), GFP_ATOMIC);
++		if (!mns_wk)
++			break;
++
++		dev_info(gc->dev, "Start MANA service type:%d\n", type);
++		gc->in_service = true;
++		mns_wk->pdev = to_pci_dev(gc->dev);
++		pci_dev_get(mns_wk->pdev);
++		INIT_WORK(&mns_wk->serv_work, mana_serv_func);
++		schedule_work(&mns_wk->serv_work);
++		break;
++
+ 	default:
+ 		break;
  	}
- 	/* Disable and flush TPA before resetting the RX ring */
-@@ -14125,7 +14110,7 @@ static void bnxt_rx_ring_reset(struct bnxt *bp)
- 	}
- 	if (bp->flags & BNXT_FLAG_TPA)
- 		bnxt_set_tpa(bp, true);
--	bnxt_rtnl_unlock_sp(bp);
-+	bnxt_unlock_sp(bp);
- }
+diff --git a/include/net/mana/gdma.h b/include/net/mana/gdma.h
+index 3ce56a816425..bfae59202669 100644
+--- a/include/net/mana/gdma.h
++++ b/include/net/mana/gdma.h
+@@ -58,7 +58,7 @@ enum gdma_eqe_type {
+ 	GDMA_EQE_HWC_INIT_EQ_ID_DB	= 129,
+ 	GDMA_EQE_HWC_INIT_DATA		= 130,
+ 	GDMA_EQE_HWC_INIT_DONE		= 131,
+-	GDMA_EQE_HWC_SOC_RECONFIG	= 132,
++	GDMA_EQE_HWC_FPGA_RECONFIG	= 132,
+ 	GDMA_EQE_HWC_SOC_RECONFIG_DATA	= 133,
+ 	GDMA_EQE_HWC_SOC_SERVICE	= 134,
+ 	GDMA_EQE_RNIC_QP_FATAL		= 176,
+@@ -403,6 +403,8 @@ struct gdma_context {
+ 	u32			test_event_eq_id;
  
- static void bnxt_fw_fatal_close(struct bnxt *bp)
-@@ -15017,17 +15002,15 @@ static void bnxt_fw_reset_task(struct work_struct *work)
- 		bp->fw_reset_state = BNXT_FW_RESET_STATE_OPENING;
- 		fallthrough;
- 	case BNXT_FW_RESET_STATE_OPENING:
--		while (!rtnl_trylock()) {
-+		while (!netdev_trylock(bp->dev)) {
- 			bnxt_queue_fw_reset_work(bp, HZ / 10);
- 			return;
- 		}
--		netdev_lock(bp->dev);
- 		rc = bnxt_open(bp->dev);
- 		if (rc) {
- 			netdev_err(bp->dev, "bnxt_open() failed during FW reset\n");
- 			bnxt_fw_reset_abort(bp, rc);
- 			netdev_unlock(bp->dev);
--			rtnl_unlock();
- 			goto ulp_start;
- 		}
+ 	bool			is_pf;
++	bool			in_service;
++
+ 	phys_addr_t		bar0_pa;
+ 	void __iomem		*bar0_va;
+ 	void __iomem		*shm_base;
+@@ -578,12 +580,16 @@ enum {
+ /* Driver can handle holes (zeros) in the device list */
+ #define GDMA_DRV_CAP_FLAG_1_DEV_LIST_HOLES_SUP BIT(11)
  
-@@ -15047,7 +15030,6 @@ static void bnxt_fw_reset_task(struct work_struct *work)
- 			bnxt_dl_health_fw_status_update(bp, true);
- 		}
- 		netdev_unlock(bp->dev);
--		rtnl_unlock();
- 		bnxt_ulp_start(bp, 0);
- 		bnxt_reenable_sriov(bp);
- 		netdev_lock(bp->dev);
-@@ -15996,7 +15978,7 @@ static int bnxt_queue_start(struct net_device *dev, void *qmem, int idx)
- 		   rc);
- 	napi_enable_locked(&bnapi->napi);
- 	bnxt_db_nq_arm(bp, &cpr->cp_db, cpr->cp_raw_cons);
--	netif_close(dev);
-+	bnxt_reset_task(bp, true);
- 	return rc;
- }
++/* Driver can self reset on FPGA Reconfig EQE notification */
++#define GDMA_DRV_CAP_FLAG_1_HANDLE_RECONFIG_EQE BIT(17)
++
+ #define GDMA_DRV_CAP_FLAGS1 \
+ 	(GDMA_DRV_CAP_FLAG_1_EQ_SHARING_MULTI_VPORT | \
+ 	 GDMA_DRV_CAP_FLAG_1_NAPI_WKDONE_FIX | \
+ 	 GDMA_DRV_CAP_FLAG_1_HWC_TIMEOUT_RECONFIG | \
+ 	 GDMA_DRV_CAP_FLAG_1_VARIABLE_INDIRECTION_TABLE_SUPPORT | \
+-	 GDMA_DRV_CAP_FLAG_1_DEV_LIST_HOLES_SUP)
++	 GDMA_DRV_CAP_FLAG_1_DEV_LIST_HOLES_SUP | \
++	 GDMA_DRV_CAP_FLAG_1_HANDLE_RECONFIG_EQE)
  
-@@ -16812,7 +16794,6 @@ static int bnxt_resume(struct device *device)
- 	struct bnxt *bp = netdev_priv(dev);
- 	int rc = 0;
+ #define GDMA_DRV_CAP_FLAGS2 0
  
--	rtnl_lock();
- 	netdev_lock(dev);
- 	rc = pci_enable_device(bp->pdev);
- 	if (rc) {
-@@ -16857,7 +16838,6 @@ static int bnxt_resume(struct device *device)
- 
- resume_exit:
- 	netdev_unlock(bp->dev);
--	rtnl_unlock();
- 	bnxt_ulp_start(bp, rc);
- 	if (!rc)
- 		bnxt_reenable_sriov(bp);
-@@ -17023,7 +17003,6 @@ static void bnxt_io_resume(struct pci_dev *pdev)
- 	int err;
- 
- 	netdev_info(bp->dev, "PCI Slot Resume\n");
--	rtnl_lock();
- 	netdev_lock(netdev);
- 
- 	err = bnxt_hwrm_func_qcaps(bp);
-@@ -17041,7 +17020,6 @@ static void bnxt_io_resume(struct pci_dev *pdev)
- 		netif_device_attach(netdev);
- 
- 	netdev_unlock(netdev);
--	rtnl_unlock();
- 	bnxt_ulp_start(bp, err);
- 	if (!err)
- 		bnxt_reenable_sriov(bp);
 -- 
-2.49.0
+2.34.1
 
