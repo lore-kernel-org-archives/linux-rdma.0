@@ -1,64 +1,82 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE7361F3D56;
-	Thu, 12 Jun 2025 09:10:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE5DF2F4321;
+	Thu, 12 Jun 2025 09:17:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749719400; cv=none; b=OOnEQX5w6e2dTKMULbOhQ5i7PcgvapluuHqVCmnfD+QebrOw22r8fwyj77IAidyqRLcZsKl3kZxqts1rnFEnxV00JIQO26Lqo1cASd2YQGwsLq5y7WkAbJ9Cn1nHu12HlFUik9tyucwx1f24QvYd6iZE7jFDwXHjHUezWA64nVc=
+	t=1749719831; cv=none; b=NUEzX/kZCeWKKPy1KdsO3TGx8612R0+JgMqlgwqocuXVTGiExr1wy5/Fur6k65Tt5wJNs+fCjV3QMAq/muSpJKCNci7UgYbkRi/QqNqHs1e3tl6qc7cTzJggVxaX3oGZBbsH9k+KaUHhFdX2CVHbhLRQSb/IhlfxJBCT9zRf/N0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749719400; c=relaxed/simple;
-	bh=z0RTtK9r5ywIYC7VEDioMum2J35lkVubMtpFRXbBLsA=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Message-Id:Date:
-	 MIME-Version:Content-Type; b=I0SPs6bgWwSsn4NzB3qHMepWN7CjlbLxKuLfGahVxOW2UKLc0u8qXDSBB2JnbGzVeLH4NB0urmKxEd1VAH9Rb3pAQTHI8WICj/FWTea4p6Qpwb8hzXiufbrIVo4UC5Gd7l3eQjesFSfJMfxU5Bnt2qhuhSv5lUN3MZAYXXAR8nc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bD3cqVu9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749719831; c=relaxed/simple;
+	bh=0CS6UxLwmkxg7FlF7moiajVuy5DQezaNlEbQHV6J/rQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hG5BSAKCkiO3kvzG8W/eysxEHf1x2jYDVEhalVlgtSSK2+/h0HpRibsHYtHk8IptLIZpmQreKD5ZWOk2tqAYVMhYNsSxyD5enesD5ZFpS0wLeQyCg/o/0t3IFujOery/+7JdUkFlIWVZ029JZ5waX7w0tt8SqQeBBeXS3o0dy2c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lUdmJjaQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bD3cqVu9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D990FC4CEEA;
-	Thu, 12 Jun 2025 09:09:59 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lUdmJjaQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EBD8C4CEEA;
+	Thu, 12 Jun 2025 09:17:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749719400;
-	bh=z0RTtK9r5ywIYC7VEDioMum2J35lkVubMtpFRXbBLsA=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date:From;
-	b=bD3cqVu9zuklH3UrhpzeRg6yzOlDU5IAYvOYfQvc7Ad7hLLZBANti9EyKIWIBSwWI
-	 ay5NGfMfwKMCW7+hKuwJcvISWi734dxC56QzkeNtZrPtVDbWO8g0djXmwpVmBgRmHb
-	 JGuaEi057WDNRNuBQDlkrjDDdr+/oDuKCOmeomKAaS3xq7szdE8JTj4rJuEJWNK1OP
-	 MILhNY7z3o7gWdno5dYJ0NISGipDfBf6PAHH6uxksm9HKkDAwesMOPBBDy08kSSa+m
-	 5JYanq0+0ggETTAwNb3hcAv4GFKu1W6EZKB7jnHXkcFUNBgWjvxG2c42Js54TDDgOB
-	 bG6Q/EggatGWw==
+	s=k20201202; t=1749719830;
+	bh=0CS6UxLwmkxg7FlF7moiajVuy5DQezaNlEbQHV6J/rQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=lUdmJjaQDvxiDPfu/vHCbeYYirs+IqJEidua379Aou3fw3irSw9PPDC+ZsQcylCtb
+	 Fqg5F33A+X+4tSIuJS18NydG7COronadV0ToXqOawRNP9uayHR9GhFjfwNO/gYyQTX
+	 deto7JyvjkU1J+eT3TpsYCDGx37jSWs1980PX+5UeS7ABJa5b20SUgzerWcY8q/kEv
+	 LwcWawBSSMrg3GXXRV645fOpyMtNPbjTMFJxqA+qnmI18rosEVkhEMp9/suFZplYlp
+	 kWN3KiUEK5LZRnJqXGNRo4bsZz/MQCqLKXIn/rzEUAYYlwzKX02Y9M7umYiOjYpB/+
+	 qc0igVATZJKkQ==
+Date: Thu, 12 Jun 2025 12:05:25 +0300
 From: Leon Romanovsky <leon@kernel.org>
-To: kotaranov@microsoft.com, shirazsaleem@microsoft.com, 
- longli@microsoft.com, jgg@ziepe.ca, 
- Konstantin Taranov <kotaranov@linux.microsoft.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <1749559717-3424-1-git-send-email-kotaranov@linux.microsoft.com>
-References: <1749559717-3424-1-git-send-email-kotaranov@linux.microsoft.com>
-Subject: Re: [PATCH rdma-next 1/1] RDMA/mana_ib: Add device statistics
- support
-Message-Id: <174971939753.3921946.3677169893703464160.b4-ty@kernel.org>
-Date: Thu, 12 Jun 2025 05:09:57 -0400
+To: Arnd Bergmann <arnd@kernel.org>, Patrisious Haddad <phaddad@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Arnd Bergmann <arnd@arndb.de>,
+	Christian =?iso-8859-1?Q?G=F6ttsche?= <cgzones@googlemail.com>,
+	Serge Hallyn <serge@hallyn.com>,
+	Chiara Meiohas <cmeiohas@nvidia.com>,
+	Al Viro <viro@zeniv.linux.org.uk>, linux-rdma@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] RDMA/mlx5: reduce stack usage in mlx5_ib_ufile_hw_cleanup
+Message-ID: <20250612090525.GT10669@unreal>
+References: <20250610092846.2642535-1-arnd@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.15-dev-37811
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250610092846.2642535-1-arnd@kernel.org>
 
-
-On Tue, 10 Jun 2025 05:48:37 -0700, Konstantin Taranov wrote:
-> Add support for mana device level statistics.
+On Tue, Jun 10, 2025 at 11:28:42AM +0200, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
 > 
+> This function has an array of eight mlx5_async_cmd structures, which
+> often fits on the stack, but depending on the configuration can
+> end up blowing the stack frame warning limit:
 > 
+> drivers/infiniband/hw/mlx5/devx.c:2670:6: error: stack frame size (1392) exceeds limit (1280) in 'mlx5_ib_ufile_hw_cleanup' [-Werror,-Wframe-larger-than]
+> 
+> Change this to a dynamic allocation instead. While a kmalloc()
+> can theoretically fail, a GFP_KERNEL allocation under a page will
+> block until memory has been freed up, so in the worst case, this
+> only adds extra time in an already constrained environment.
+> 
+> Fixes: 7c891a4dbcc1 ("RDMA/mlx5: Add implementation for ufile_hw_cleanup device operation")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/infiniband/hw/mlx5/devx.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
 
-Applied, thanks!
+<...>
 
-[1/1] RDMA/mana_ib: Add device statistics support
-      https://git.kernel.org/rdma/rdma/c/baa640d924e55e
+> +	async_cmd = kcalloc(MAX_ASYNC_CMDS, sizeof(*async_cmd), GFP_KERNEL);
+> +	if (WARN_ON(!async_cmd))
+> +		return;
 
-Best regards,
--- 
-Leon Romanovsky <leon@kernel.org>
+Patrisious,
 
+I took this patch for now (without WARN_ON) as it fixes Arnd's issue.
+We can provide followup patch if kcalloc() implementation hurts us.
+
+Thanks
