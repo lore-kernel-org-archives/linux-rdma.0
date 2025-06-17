@@ -1,139 +1,118 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53F0628DB57
-	for <linux-rdma@vger.kernel.org>; Tue, 17 Jun 2025 08:44:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C4CA52192EA;
+	Tue, 17 Jun 2025 10:53:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750149870; cv=none; b=nvmxQjZTsBRwKQn38RzkPPVJhGklb5/4Dnu883+Fw7YjWI8CtcNbMVUXS4uX4ez75rJvNmu29tUhFiuepr9D4OqnKd7R6lYlGfTqsDp3Auugjdw/N0VJ7dhOYM1DJTt3XCkb677IvZCbJc+7YNGLCg8m9EjDf10i0gN5g4vMARU=
+	t=1750157616; cv=none; b=G0iYiQEljZvKcLDiPvgzgxr4y9veBhp9hJStPxCAZd6b78R3mlF+kOwyvnP6uyX1OYv4bWjsBHKH4qlFS7EwYOXglM2vYquS7QlL4rMx/XO4PTAdM+Z1tc9PXPHM8Ntx+llZHHGn9C+kkFkx9Io7K46wuYx6HOQjQ2x10qtMIAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750149870; c=relaxed/simple;
-	bh=ROlC50yg2Q9PgOp9dkutdlRAGUF7RN/ajySi5/oFquo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Mt+5Mu8wjXVKZ96fl3b8Tf0ukvk7cU87NpE0sM0mX1EvFZ4h1FmEfKhaluCJTlTyUiEt0KXv6+Q2bI4jZ46SdvCyno9i3O0+CQWiJLWE8wPXtJC0/idctLQ4PESNkrmly17hrLf6x7Zh3e1QmdlMSHDXkfMf+AidJDqhLvgTz4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dhyQLG38; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1750157616; c=relaxed/simple;
+	bh=LXzxy9GJIJvOZ6hEU8LpqCZKVoKFWaP9J0LdMqIm7TU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=X9/e3hQGOP0Y0h7RWhN5MHuIUtmsLm0LgwErQjLz1qVS1Zk/y/EV8cISknWOC653t7lT2EV3hjYPA2BpMZEj1LZHW01S9uFRIuOnROWrr9mG2SLqYqQgDO0sF3st7XsELxQq9K5WCpPtbzbl6abrw2dHSSa7oK7/j84Y/RZkm2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=S8y3ONei; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dhyQLG38"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31124C4CEE3;
-	Tue, 17 Jun 2025 08:44:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1750149869;
-	bh=ROlC50yg2Q9PgOp9dkutdlRAGUF7RN/ajySi5/oFquo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dhyQLG38T/DbBJnsR73+qF/ZsT1myReHw7azRnTFJwi0w80mbyn6ounkMt/vpiQaW
-	 spoFLTkIj4w6hgpisEqDR8J0Jdx55cVaflhGjLHENN2U6K4lzJg67rJ5t86iI1QLcp
-	 YUUuSvVhP/IEMenKZPxY3ZivXm+DBthUQwDCxcy5GOF0JOKuv1yD+LnIqNQrXqhlVl
-	 ehIu9wUvgoeR7eL174Qq89OC2G4Ha9HS1gnNH6V0hLN25TVg3PxdEppFvYqnlxWiqt
-	 0pL9WgHPq+Rh/z+XfhHjRyF6mOR3vdsKV7i/PKwcypq/58plxc0GEpJQaKUSXAXEQl
-	 d3bBffpDjv46Q==
-From: Leon Romanovsky <leon@kernel.org>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Mark Bloch <mbloch@nvidia.com>,
-	Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-	linux-rdma@vger.kernel.org,
-	Parav Pandit <parav@nvidia.com>
-Subject: [PATCH rdma-next 2/3] RDMA/mlx5: Allocate IB device with net namespace supplied from core dev
-Date: Tue, 17 Jun 2025 11:44:02 +0300
-Message-ID: <bc5112ad4def0b2732edf778f43cd31570ba9ed4.1750149405.git.leon@kernel.org>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <cover.1750149405.git.leon@kernel.org>
-References: <cover.1750149405.git.leon@kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="S8y3ONei"
+Received: by linux.microsoft.com (Postfix, from userid 1134)
+	id 28DA321176D6; Tue, 17 Jun 2025 03:53:34 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 28DA321176D6
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1750157614;
+	bh=xsFfvfMOhD513ZWl589KLiqfUEOcBNPPyV+LjOiXiLI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=S8y3ONeiQr4oBJBn8VMHAJxLV/eWmSHN6tWd+UG5WGdZTb6TB5cRHkJp2t9T/SqCM
+	 geCh8p2qHCfvb3IginFivGq4/3ftZUOs8vXnFtzF+xkYzx+MDLXIJU9sMPtVBEaBrN
+	 ueF3s+jFbMuwsHyOr2GOOw7R6QPYFnhbUoElCDP4=
+Date: Tue, 17 Jun 2025 03:53:34 -0700
+From: Shradha Gupta <shradhagupta@linux.microsoft.com>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: linux-hyperv@vger.kernel.org, linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Nipun Gupta <nipun.gupta@amd.com>,
+	Yury Norov <yury.norov@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+	Jonathan Cameron <Jonathan.Cameron@huwei.com>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	Kevin Tian <kevin.tian@intel.com>, Long Li <longli@microsoft.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Bjorn Helgaas <bhelgaas@google.com>, Rob Herring <robh@kernel.org>,
+	Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>,
+	Krzysztof Wilczy???~Dski <kw@linux.com>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Dexuan Cui <decui@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>,
+	Konstantin Taranov <kotaranov@microsoft.com>,
+	Simon Horman <horms@kernel.org>, Leon Romanovsky <leon@kernel.org>,
+	Maxim Levitsky <mlevitsk@redhat.com>,
+	Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
+	Peter Zijlstra <peterz@infradead.org>, netdev@vger.kernel.org,
+	linux-rdma@vger.kernel.org, Paul Rosswurm <paulros@microsoft.com>,
+	Shradha Gupta <shradhagupta@microsoft.com>
+Subject: Re: [PATCH v6 0/5] Allow dyn MSI-X vector allocation of MANA
+Message-ID: <20250617105334.GC23702@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <1749650984-9193-1-git-send-email-shradhagupta@linux.microsoft.com>
+ <20250611085416.2e09b8cd@kernel.org>
+ <20250612061055.GA20126@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <20250616181148.2aed5dfe@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-rdma@vger.kernel.org
 List-Id: <linux-rdma.vger.kernel.org>
 List-Subscribe: <mailto:linux-rdma+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-rdma+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250616181148.2aed5dfe@kernel.org>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 
-From: Mark Bloch <mbloch@nvidia.com>
+On Mon, Jun 16, 2025 at 06:11:48PM -0700, Jakub Kicinski wrote:
+> On Wed, 11 Jun 2025 23:10:55 -0700 Shradha Gupta wrote:
+> > On Wed, Jun 11, 2025 at 08:54:16AM -0700, Jakub Kicinski wrote:
+> > > On Wed, 11 Jun 2025 07:09:44 -0700 Shradha Gupta wrote:  
+> > > > Changes in v6
+> > > >  * rebased to linux-next's v6.16-rc1 as per Jakub's suggestion  
+> > > 
+> > > I meant a branch, basically apply the patches on the v6.16-rc1 tag
+> > > and push it out to GitHub, kernel.org or somewhere else public.
+> > > Then we can pull it in and maintain the stable commit IDs.
+> > > No need to repost the patches, FWIW, just share the branch here
+> > > once you pushed it out..  
+> > 
+> > Oh, understood. Thanks for the clarity. Here is a github repo branch
+> > with the changes on v6.16-rc1 tag
+> > https://github.com/shradhagupta6/linux/tree/shradha_v6.16-rc1
+> 
+> The tag was good, but when I pulled it my check scripts complained:
+> 
+> Commit a19036b86845 ("net: mana: Allocate MSI-X vectors dynamically")
+> 	committer Signed-off-by missing
+> 	author email:    shradhagupta@linux.microsoft.com
+> 	committer email: shradhagupta@microsoft.com
+> 	Signed-off-by: Shradha Gupta <shradhagupta@linux.microsoft.com>
+> 
+> etc. You seem to have committed the patches with a slightly different
+> email address. Not a huge deal but better to fix it if we can.
+> 
+> So please base the tag. The code can stay the same just adjust the
+> committer or author/signoff email addrs. We can use this as an
+> opportunity to add Bjorn's email.
+> 
+> No need to repost the code just ping here once you updated the tag.
 
-Use the new ib_alloc_device_with_net() API to allocate the IB device
-so that it is properly bound to the network namespace obtained via
-mlx5_core_net(). This change ensures correct namespace association
-(e.g., for containerized setups).
+Hi Jakub,
 
-Additionally, expose mlx5_core_net so that RDMA driver can use it.
+I have updated the tag with the corrected author and committer details
+and added Bjorn's ack:
+https://github.com/shradhagupta6/linux/tree/shradha_v6.16-rc1
 
-Signed-off-by: Shay Drory <shayd@nvidia.com>
-Signed-off-by: Mark Bloch <mbloch@nvidia.com>
-Reviewed-by: Parav Pandit <parav@nvidia.com>
-Signed-off-by: Leon Romanovsky <leonro@nvidia.com>
----
- drivers/infiniband/hw/mlx5/ib_rep.c                | 3 ++-
- drivers/infiniband/hw/mlx5/main.c                  | 6 ++++--
- drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h | 5 -----
- include/linux/mlx5/driver.h                        | 5 +++++
- 4 files changed, 11 insertions(+), 8 deletions(-)
+By 'please base the tag', did you mean we rebase the changes with rc2?
+If so, I have also created a rc2 tag branch, JFYI
+https://github.com/shradhagupta6/linux/tree/shradha_v6.16-rc2
 
-diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
-index 49af1cfbe6d1..cc8859d3c2f5 100644
---- a/drivers/infiniband/hw/mlx5/ib_rep.c
-+++ b/drivers/infiniband/hw/mlx5/ib_rep.c
-@@ -88,7 +88,8 @@ mlx5_ib_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
- 	else
- 		return mlx5_ib_set_vport_rep(lag_master, rep, vport_index);
- 
--	ibdev = ib_alloc_device(mlx5_ib_dev, ib_dev);
-+	ibdev = ib_alloc_device_with_net(mlx5_ib_dev, ib_dev,
-+					 mlx5_core_net(lag_master));
- 	if (!ibdev)
- 		return -ENOMEM;
- 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index b0aa6c8f218c..d0ddb24aeb64 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4826,7 +4826,8 @@ static struct ib_device *mlx5_ib_add_sub_dev(struct ib_device *parent,
- 	    !MLX5_CAP_GEN_2(mparent->mdev, multiplane_qp_ud))
- 		return ERR_PTR(-EOPNOTSUPP);
- 
--	mplane = ib_alloc_device(mlx5_ib_dev, ib_dev);
-+	mplane = ib_alloc_device_with_net(mlx5_ib_dev, ib_dev,
-+					  mlx5_core_net(mparent->mdev));
- 	if (!mplane)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -4940,7 +4941,8 @@ static int mlx5r_probe(struct auxiliary_device *adev,
- 
- 	num_ports = max(MLX5_CAP_GEN(mdev, num_ports),
- 			MLX5_CAP_GEN(mdev, num_vhca_ports));
--	dev = ib_alloc_device(mlx5_ib_dev, ib_dev);
-+	dev = ib_alloc_device_with_net(mlx5_ib_dev, ib_dev,
-+				       mlx5_core_net(mdev));
- 	if (!dev)
- 		return -ENOMEM;
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
-index 37d5f445598c..b111ccd03b02 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
-@@ -45,11 +45,6 @@ int mlx5_crdump_enable(struct mlx5_core_dev *dev);
- void mlx5_crdump_disable(struct mlx5_core_dev *dev);
- int mlx5_crdump_collect(struct mlx5_core_dev *dev, u32 *cr_data);
- 
--static inline struct net *mlx5_core_net(struct mlx5_core_dev *dev)
--{
--	return devlink_net(priv_to_devlink(dev));
--}
--
- static inline struct net_device *mlx5_uplink_netdev_get(struct mlx5_core_dev *mdev)
- {
- 	return mdev->mlx5e_res.uplink_netdev;
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index e6ba8f4f4bd1..3475d33c75f4 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1349,4 +1349,9 @@ enum {
- };
- 
- bool mlx5_wc_support_get(struct mlx5_core_dev *mdev);
-+
-+static inline struct net *mlx5_core_net(struct mlx5_core_dev *dev)
-+{
-+	return devlink_net(priv_to_devlink(dev));
-+}
- #endif /* MLX5_DRIVER_H */
--- 
-2.49.0
+Hope this helps.
 
+Thanks,
+Shradha.
